@@ -1,128 +1,51 @@
-From: "Sanjeev Aditya Naga" <sanjeev.kernel@gmail.com>
-Subject: Re: [>=2.6.23][BUG] Oops on power disconnection
-Date: Wed, 2 Apr 2008 21:43:12 +0530
-Message-ID: <5681ec900804020913t4adc38b1r2e424fa8bbdda241@mail.gmail.com>
-References: <5681ec900803300645l5369cda4g119957a4b7f05d17@mail.gmail.com>
-	 <5681ec900803300651m6e5f38deke1b7746236e5bb9@mail.gmail.com>
-	 <20080402001418.aad6eed2.akpm@linux-foundation.org>
-	 <5681ec900804020608o62be52c4ted172e18daf24f5b@mail.gmail.com>
-	 <1207147729.30061.9.camel@hammer1.suse.de>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC][PATCH] PM: Introduce new top level suspend and hibernation
+ callbacks (rev. 6)
+Date: Wed, 2 Apr 2008 12:42:15 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0804021238190.5042-100000@iolanthe.rowland.org>
+References: <200804021728.45823.oliver@neukum.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rv-out-0910.google.com ([209.85.198.189]:60164 "EHLO
-	rv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753067AbYDBQNO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Apr 2008 12:13:14 -0400
-Received: by rv-out-0910.google.com with SMTP id k20so1503785rvb.1
-        for <linux-acpi@vger.kernel.org>; Wed, 02 Apr 2008 09:13:12 -0700 (PDT)
-In-Reply-To: <1207147729.30061.9.camel@hammer1.suse.de>
-Content-Disposition: inline
+Received: from iolanthe.rowland.org ([192.131.102.54]:42996 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755995AbYDBQmR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Apr 2008 12:42:17 -0400
+In-Reply-To: <200804021728.45823.oliver@neukum.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: trenn@suse.de
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+To: Oliver Neukum <oliver@neukum.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Nigel Cunningham <ncunningham@crca.org.au>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
-SGVsbG8gVGhvbWFzLAoKPiBIaSwKPgo+Cj4gIE9uIFdlZCwgMjAwOC0wNC0wMiBhdCAxODozOCAr
-MDUzMCwgU2FuamVldiBBZGl0eWEgTmFnYSB3cm90ZToKPiAgPiBIZWxsbyBBbmRyZXcgTW9ydG9u
-LAo+ICA+Cj4gID4gR3JlZXRpbmdzIQo+ICA+Cj4gID4gVGhhbmsgeW91IGZvciB0aGUgdXBkYXRl
-LiBJcyB0aGVyZSBhbnl0aGluZyBJIGNhbiBkbwo+ICA+IGZyb20gbXkgc2lkZT8KPiAgPgo+ICA+
-IEkgdGhvdWdodCBpdCB3YXMgYSBhY3BpIChkc2R0KSBwcm9ibGVtLiBBbmQgYmFzZWQgb24KPiAg
-PiBhIHR1dG9yaWFsLCBJIGhhdmUgdHJpZWQgdG8gZXh0cmFjdCwgZml4LCByZWNvbXBpbGUgdGhl
-IGRzZHQKPiAgPiBhbmQgdXNlIGl0IHdpdGggdGhlIGtlcm5lbC4gQnV0IHN0aWxsIEkgaGF2ZSB0
-aGUgc2FtZSBwcm9ibGVtLgo+ICA+IExldCBtZSBrbm93IGlmIEkgc2hhbGwgYXR0YWNoIHRoZSBk
-c2R0IChvcmlnaW5hbCkgZGVjb21waWxlZAo+ICA+IGNvZGUsIGlmIHRoYXQgaGVscHMuCj4KPiAg
-dGhpcyBjb3VsZCBiZSBkdWUgYSBnZW5lcmFsIG1lbW9yeSBjb3JydXB0aW9uIHByb2JsZW0gdGhy
-b3VnaCBBQ1BJQ0EuCj4gIElmIHlvdSBnZXQgZGlmZmVyZW50IGJhY2t0cmFjZXMgb24gcmVib290
-cyBldmVuIHlvdSBvbmx5IG1vZGlmaWVkIHRoaW5ncwo+ICB0aGF0IGRvIG5vdCBoYXZlIHRvIGRv
-IHdpdGggdGhlIHByb2JsZW0sIGl0J3MgcHJvYmFibHkgdGhhdCBhbmQgcmVsYXRlZAo+ICB0bzoK
-PiAg77u/aHR0cDovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lkPTEwMzM5Cj4K
-PiAgWW91IG1pZ2h0IHdhbnQgdG8gdHJ5IHRoZSBsYXRlc3Qga2VybmVsIG9yIHRoZSBwYXRjaCBw
-b3N0ZWQgdGhlcmUuCgpUaGFuayB5b3UgZm9yIHRoZSB1cGRhdGUuCkkgaGF2ZSBjaGVja2VkIHRo
-ZSBidWcgYW5kIHVuZm9ydHVuYXRlbHkgaXRzIG5vdCB0aGUKc2FtZSBpc3N1ZS4gVGhpbmdzIHdv
-cmsgYWJzb2x1dGVseSBmaW5lLCB3aGVuIEknbQpydW5uaW5nIG9uIEFDIHBvd2VyLiBJdCBldmVu
-IGRpc3BsYXlzIHRoZSBleGFjdApiYXR0ZXJ5IChhbmQgY2hhcmdpbmcpIHN0YXR1cyB0byBtZS4g
-SXQgbWVzc2VzIHVwCndoZW4gc3VkZGVubHkgQUMgcG93ZXIgZ2V0cyBkaXNjb25uZWN0ZWQgYW5k
-CnN3aXRjaGVzIHRvIGJhdHRlcnkgbW9kZSAoVGhlIHRpbWUgd2hlbiBJIGdldCBPb3BzKS4KVGhl
-IHN5c3RlbSBpcyBzdGlsbCB1c2FibGUgYWZ0ZXIgc3dpdGNoaW5nIHRvIGJhdHRlcnkKbW9kZSBh
-bmQgSSBzdGlsbCBnZXQgY29ycmVjdCBiYXR0ZXJ5IHN0YXRzIHVudGlsIGl0cwpjb21wbGV0ZWx5
-IGRpc2NoYXJnZWQuIEhvd2V2ZXIgbW9zdCBvZiB0aGUgY29tbWFuZHMKbGlrZSBraWxsLCBwb3dl
-cm9mZiwgamF2YSBkb2Vzbid0IHdvcmsgYWZ0ZXIgdGhlIE9vcHMuCgpCVFcgdGhlcmUgaXMgb25l
-IHNpbWlsYXJpdHkgd2l0aCB0aGUgcmVmZXJlbmNlZCBidWcuCklmIEkgYm9vdCB0aGUgY29tcHV0
-ZXIgd2l0aG91dCBBQyBQb3dlciwgaXQgZ2l2ZXMgdGhlCnNhbWUgT29wcyBhbmQgc3RvcHMgZHVy
-aW5nIGJvb3RpbmcgaXRzZWxmLgoKSSBzaGFsbCB0cnkgdGhlIGxhdGVzdCBrZXJuZWwgb25jZSBh
-bmQgc2hhbGwgdXBkYXRlIHlvdS4KCktpbmQgUmVnYXJkcywKU2FuamVldgoKCgo+Cj4gICAgVGhv
-bWFzCj4KPgo+Cj4gID4gS2luZCBSZWdhcmRzLAo+ICA+IFNhbmplZXYKPiAgPgo+ICA+IE9uIFdl
-ZCwgQXByIDIsIDIwMDggYXQgMTI6NDQgUE0sIEFuZHJldyBNb3J0b24KPiAgPiA8YWtwbUBsaW51
-eC1mb3VuZGF0aW9uLm9yZz4gd3JvdGU6Cj4gID4gPgo+ICA+ID4gT24gU3VuLCAzMCBNYXIgMjAw
-OCAxOToyMTozOSArMDUzMCAiU2FuamVldiBBZGl0eWEgTmFnYSIgPHNhbmplZXYua2VybmVsQGdt
-YWlsLmNvbT4gd3JvdGU6Cj4gID4gPgo+ICA+ID4gID4gSGksCj4gID4gPiAgPgo+ICA+ID4gID4g
-IFRoaXMgaGFwcGVucyBldmVyeXRpbWUgdGhlcmUgaXMgYSBwb3dlciBkaXNjb25uZWN0aW9uCj4g
-ID4gPiAgPiAgKHN3aXRjaGluZyB0byBiYXR0ZXJ5KS4gQ29tcGxldGUgZG1lc2cgYXR0YWNoZWQu
-IFRoaXMKPiAgPiA+ICA+ICBpbiBwYXJ0aWN1bGFyIGlzIG9mIGtlcm5lbCAyLjYuMjQuMy4KPiAg
-PiA+ICA+Cj4gID4gPiAgPiAgR3JlZXRpbmdzLAo+ICA+ID4gID4gIEtpbmQgUmVnYXJkcywKPiAg
-PiA+ICA+ICBTYW5qZWV2Cj4gID4gPiAgPgo+ICA+ID4gID4gIEJVRzogdW5hYmxlIHRvIGhhbmRs
-ZSBrZXJuZWwgTlVMTCBwb2ludGVyIGRlcmVmZXJlbmNlIGF0IHZpcnR1YWwKPiAgPiA+ICA+ICBh
-ZGRyZXNzIDAwMDAwMDIwCj4gID4gPiAgPiAgcHJpbnRpbmcgZWlwOiBjMDRjNDcxNiAqcGRlID0g
-NTc4YzIwNjcKPiAgPiA+ICA+ICBPb3BzOiAwMDAwIFsjMV0gU01QCj4gID4gPiAgPiAgTW9kdWxl
-cyBsaW5rZWQgaW46IGNiYyhVKSBnZW9kZV9hZXMoVSkgYmxrY2lwaGVyKFUpIGFlc19pNTg2KFUp
-Cj4gID4gPiAgPiAgYWVzX2dlbmVyaWMoVSkgZG1fY3J5cHQoVSkgaXB0X01BU1FVRVJBREUoVSkg
-aXB0YWJsZV9uYXQoVSkgbmZfbmF0KFUpCj4gID4gPiAgPiAgYnJpZGdlKFUpIGF1dG9mczQoVSkg
-bmZfY29ubnRyYWNrX2lwdjQoVSkgeHRfc3RhdGUoVSkgbmZfY29ubnRyYWNrKFUpCj4gID4gPiAg
-PiAgeHRfdGNwdWRwKFUpIGlwdF9SRUpFQ1QoVSkgaXB0YWJsZV9maWx0ZXIoVSkgaXBfdGFibGVz
-KFUpIHhfdGFibGVzKFUpCj4gID4gPiAgPiAgY3B1ZnJlcV9vbmRlbWFuZChVKSBhY3BpX2NwdWZy
-ZXEoVSkgZnVzZShVKSBsb29wKFUpIGRtX21pcnJvcihVKQo+ICA+ID4gID4gIGRtX211bHRpcGF0
-aChVKSBkbV9tb2QoVSkgaXB2NihVKSBzbmRfaGRhX2ludGVsKFUpIHNuZF9zZXFfZHVtbXkoVSkK
-PiAgPiA+ICA+ICBzbmRfc2VxX29zcyhVKSBzbmRfc2VxX21pZGlfZXZlbnQoVSkgc25kX3NlcShV
-KSBzbmRfc2VxX2RldmljZShVKQo+ICA+ID4gID4gIHNuZF9wY21fb3NzKFUpIHNyX21vZChVKSBz
-bmRfbWl4ZXJfb3NzKFUpIHNuZF9wY20oVSkgODEzOWNwKFUpCj4gID4gPiAgPiAgc25kX3RpbWVy
-KFUpIGJ1dHRvbihVKSA4MTM5dG9vKFUpIG1paShVKSBzbmRfcGFnZV9hbGxvYyhVKSBjZHJvbShV
-KQo+ICA+ID4gID4gIHZpZGVvKFUpIG91dHB1dChVKSBzbmRfaHdkZXAoVSkgYWMoVSkgc25kKFUp
-IHBjc3BrcihVKSBpMmNfcGlpeDQoVSkKPiAgPiA+ICA+ICBpMmNfY29yZShVKSBiYXR0ZXJ5KFUp
-IGpveWRldihVKSBzb3VuZGNvcmUoVSkgc2coVSkgcGF0YV9hdGlpeHAoVSkKPiAgPiA+ICA+ICBw
-YXRhX2FjcGkoVSkgc2F0YV9zaWwoVSkgYXRhX2dlbmVyaWMoVSkgbGliYXRhKFUpIHNkX21vZChV
-KQo+ICA+ID4gID4gIHNjc2lfbW9kKFUpIGV4dDMoVSkgamJkKFUpIG1iY2FjaGUoVSkgdWhjaV9o
-Y2QoVSkgb2hjaV9oY2QoVSkKPiAgPiA+ICA+ICBlaGNpX2hjZChVKQo+ICA+ID4gID4KPiAgPiA+
-ICA+ICBQaWQ6IDY5LCBjb21tOiBrYWNwaV9ub3RpZnkgTm90IHRhaW50ZWQgKDIuNi4yNC4zICM1
-KQo+ICA+ID4gID4gIEVJUDogMDA2MDpbPGMwNGM0NzE2Pl0gRUZMQUdTOiAwMDAxMDI0NiBDUFU6
-IDAKPiAgPiA+ICA+ICBFSVAgaXMgYXQgc3lzZnNfYWRkcm1fc3RhcnQrMHgyMS8weDgxCj4gID4g
-PiAgPiAgRUFYOiBjMDRjNDdkNyBFQlg6IDAwMDAwMDAwIEVDWDogMDAwMDAwMDAgRURYOiBmNzhi
-ODAwMAo+ICA+ID4gID4gIEVTSTogZjc4YjhlYjggRURJOiBmNzhiOGVjOCBFQlA6IDAwMDAwMDAw
-IEVTUDogZjc4YjhlYTQKPiAgPiA+ICA+ICAgRFM6IDAwN2IgRVM6IDAwN2IgRlM6IDAwZDggR1M6
-IDAwMDAgU1M6IDAwNjgKPiAgPiA+ICA+ICBQcm9jZXNzIGthY3BpX25vdGlmeSAocGlkOiA2OSwg
-dGk9Zjc4YjgwMDAgdGFzaz1mNzhkODAwMCB0YXNrLnRpPWY3OGI4MDAwKQo+ICA+ID4gID4gIFN0
-YWNrOiBmMjI5ZmY1NCBmMjI5ZmY1NCBmNWI4ZDM5MCBmZmZmZmZmNCBjMDRjNGI0NSAwMDAwMDAw
-MCAwMDAwMDAwMCAwMDAwMDAwMAo+ICA+ID4gID4gICAgICAgIDAwMDAwMDAwIGYyMjlmZjU0IDAw
-MDAwMDAwIDAwMDAwMDAwIGY3ODI2MDFjIGMwNGM0YmFiIGY3OGI4ZWUwIGMwNGZlNjVkCj4gID4g
-PiAgPiAgICAgICAgZjIyOWZmNTQgYzA0ZmU4YTggZjcyMmU2N2YgZmZmZmZmZmYgZmZmZmZmZmYg
-MDAwMDAwMDcgZjcyMmU2NzggZjc4MjYxZDgKPiAgPiA+ICA+ICBDYWxsIFRyYWNlOgo+ICA+ID4g
-ID4gICBbPGMwNGM0YjQ1Pl0gY3JlYXRlX2RpcisweDMzLzB4NmMKPiAgPiA+ICA+ICAgWzxjMDRj
-NGJhYj5dIHN5c2ZzX2NyZWF0ZV9kaXIrMHgyZC8weDQwCj4gID4gPiAgPiAgIFs8YzA0ZmU2NWQ+
-XSBrb2JqZWN0X2dldCsweGYvMHgxMwo+ICA+ID4gID4gICBbPGMwNGZlOGE4Pl0ga29iamVjdF9h
-ZGQrMHhkZC8weDE3Ngo+ICA+ID4gID4gICBbPGMwNGZlOWViPl0ga29iamVjdF9yZWdpc3Rlcisw
-eDE5LzB4MmQKPiAgPiA+ICA+ICAgWzxjMDViMGFkMD5dIGNwdWlkbGVfYWRkX3N0YXRlX3N5c2Zz
-KzB4N2IvMHhlNAo+ICA+ID4gID4gICBbPGMwNTI2NjBlPl0gYWNwaV9vc19leGVjdXRlX25vdGlm
-eSsweDAvMHgyYgo+ICA+ID4gID4gICBbPGMwNWIwM2ZkPl0gY3B1aWRsZV9lbmFibGVfZGV2aWNl
-KzB4MzEvMHg5Ygo+ICA+ID4gID4gICBbPGMwNTQ1OTIzPl0gYWNwaV9wcm9jZXNzb3JfY3N0X2hh
-c19jaGFuZ2VkKzB4NDAvMHg1NQo+ICA+ID4gID4gICBbPGMwNTQzYWUyPl0gYWNwaV9wcm9jZXNz
-b3Jfbm90aWZ5KzB4OGIvMHhmNAo+ICA+ID4gID4gICBbPGMwNTJiY2JiPl0gYWNwaV9ldl9ub3Rp
-ZnlfZGlzcGF0Y2grMHg0Yy8weDU1Cj4gID4gPiAgPiAgIFs8YzA1MjY2MzA+XSBhY3BpX29zX2V4
-ZWN1dGVfbm90aWZ5KzB4MjIvMHgyYgo+ICA+ID4gID4gICBbPGMwNTI2NjBlPl0gYWNwaV9vc19l
-eGVjdXRlX25vdGlmeSsweDAvMHgyYgo+ICA+ID4gID4gICBbPGMwNDNjMjEyPl0gcnVuX3dvcmtx
-dWV1ZSsweDdkLzB4MTA3Cj4gID4gPiAgPiAgIFs8YzA0M2ZhNWI+XSBwcmVwYXJlX3RvX3dhaXQr
-MHgyOC8weDQ1Cj4gID4gPiAgPiAgIFs8YzA0M2MzNWE+XSB3b3JrZXJfdGhyZWFkKzB4YmUvMHhj
-YQo+ICA+ID4gID4gICBbPGMwNDNmOGZmPl0gYXV0b3JlbW92ZV93YWtlX2Z1bmN0aW9uKzB4MC8w
-eDM1Cj4gID4gPiAgPiAgIFs8YzA0M2MyOWM+XSB3b3JrZXJfdGhyZWFkKzB4MC8weGNhCj4gID4g
-PiAgPiAgIFs8YzA0M2Y2Nzk+XSBrdGhyZWFkKzB4MzgvMHg1ZAo+ICA+ID4gID4gICBbPGMwNDNm
-NjQxPl0ga3RocmVhZCsweDAvMHg1ZAo+ICA+ID4gID4gICBbPGMwNDA2NDc3Pl0ga2VybmVsX3Ro
-cmVhZF9oZWxwZXIrMHg3LzB4MTAKPiAgPiA+ICA+ICAgPT09PT09PT09PT09PT09PT09PT09PT0K
-PiAgPiA+ICA+ICBDb2RlOiBjMCA4OSAzMSA4MyBjNCAxNCA1YiA1ZSA1ZiBjMyA1NyBiOSAwNCAw
-MCAwMCAwMCA1NiA4OSBjNyA1MyA4OQo+ICA+ID4gID4gIGM2IDgzIGVjIDA0IDg5IGQzIDMxIGMw
-IGYzIGFiIGI4IDkwM2YgNzIgYzAgODkgMTYgZTggNmEgY2YgMTYgMDAgPDhiPgo+ICA+ID4gID4g
-IDUzIDIwIGI5IGVjIDQyIDRjIGMwIGExIDg0IGU0IDgzIGMwIDg5IDFjIDI0IGU4IDQ0IDZlIGZk
-IGZmCj4gID4gPiAgPiAgRUlQOiBbPGMwNGM0NzE2Pl0gc3lzZnNfYWRkcm1fc3RhcnQrMHgyMS8w
-eDgxIFNTOkVTUCAwMDY4OmY3OGI4ZWE0Cj4gID4gPgo+ICA+ID4gIExvb2tzIGxpa2UgYSBjcHVp
-ZGxlIHByb2JsZW0gKG9yIGF0IGxlYXN0IGFjcGkpLgo+ICA+ID4KPiAgPiA+ICBJIHNlZW0gdG8g
-cmVjYWxsIGhhdmluZyBzZWVuIG90aGVyIHJlcG9ydHMgb2YgdGhpcz8KPiAgVGhlbiBpdCBtaWdo
-dCBiZSBzb21ldGhpbmcgZWxzZS4uLgo+Cj4gICAgVGhvbWFzCj4KPgo=
+On Wed, 2 Apr 2008, Oliver Neukum wrote:
+
+> Am Mittwoch, 2. April 2008 17:13:11 schrieb Alan Stern:
+> > Basically yes. =A0Subsystems and drivers are allowed to keep device=
+s
+> > suspended if they were suspended before the system went to sleep. =A0
+> > Remember, the purpose of the resume method is to let drivers know t=
+hat
+> > the system is now awake, not to force them to put their devices int=
+o a
+> > high-power state.
+>=20
+> Well, sometimes it is exactly that what we desire, eg. as a side effe=
+ct
+> of lsusb. Should the callbacks have different semantics depending on
+> the reason you call them? And how should that information be transfer=
+red?
+
+Which callbacks are you referring to?  When lsusb opens a device and
+does an autoresume, it does not call the same routine as the PM core
+does when resuming from a system sleep.  lsusb ends up calling
+usb_autoresume_device() whereas the PM core ends up calling
+usb_resume(), which is the function you quoted earlier.
+
+Alan Stern
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
