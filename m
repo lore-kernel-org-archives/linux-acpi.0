@@ -1,32 +1,54 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [RFC][PATCH 2/3] PM: New suspend and hibernation callbacks for platform bus type (rev. 3)
-Date: Wed, 2 Apr 2008 15:14:33 +0200
-Message-ID: <20080402131433.GA5449@ucw.cz>
-References: <200804020207.40278.rjw@sisk.pl> <200804020210.41203.rjw@sisk.pl>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC][PATCH] PM: Introduce new top level suspend and hibernation
+ callbacks (rev. 6)
+Date: Wed, 2 Apr 2008 10:11:14 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0804021007060.14858-100000@iolanthe.rowland.org>
+References: <200804012350.01407.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:3245 "EHLO spitz.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754394AbYDBNOw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 2 Apr 2008 09:14:52 -0400
-Content-Disposition: inline
-In-Reply-To: <200804020210.41203.rjw@sisk.pl>
+Received: from iolanthe.rowland.org ([192.131.102.54]:53149 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754531AbYDBOLP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Apr 2008 10:11:15 -0400
+In-Reply-To: <200804012350.01407.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Oliver Neukum <oliver@neukum.org>, Nigel Cunningham <ncunningham@crca.org.au>
+Cc: Nigel Cunningham <ncunningham@crca.org.au>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Oliver Neukum <oliver@neukum.org>
 
-On Wed 2008-04-02 02:10:40, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rjw@sisk.pl>
+On Tue, 1 Apr 2008, Rafael J. Wysocki wrote:
+
+> > If the device is gone, it doesn't much matter what resume() returns.
 > 
-> Implement new suspend and hibernation callbacks for the platform bus
-> type.
+> Yes, it does.  In that cases, the error code would tell the PM core not to attempt
+> to resume the device's children etc.
+
+If the device is gone then so are its descendants, right?  So it 
+doesn't matter whether the PM core tries to resume them.
+
+>  Otherwise, it's quite meaningless to the
+> PM core, because it really can mean anything and how's the PM core supposed
+> to handle _that_?
+
+Exactly.  This is the point I was trying to make a week or so ago.
+
+> Either we decide that the error codes returned by ->resume() mean critical
+> errors or there's no point in returning error codes from ->resume() at all
+> (other than logging the errors by the core).
 > 
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> Well, that's getting confused.  I think I'll have to rework the patch not to
+> really handle the errors returned by ->resume() and friends, after all, but
+> I'll keep the reporting of them.
+> 
+> However, I'd like to add a recommendation that the _new_ "resume" callbacks
+> should only return errors in critical situations as the indication to the PM
+> core that something went _really_ wrong and the device in question is quite
+> surely unusable.
 
-ACK.
+Agreed.  The most important aspect is that drivers should _not_ return
+an error if the device is working correctly.  We should fix the drivers 
+which make this mistake.
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Alan Stern
+
