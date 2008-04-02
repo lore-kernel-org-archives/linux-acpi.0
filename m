@@ -1,242 +1,392 @@
-From: Rene Herman <rene.herman@gmail.com>
-Subject: Re: [patch 00/37] PNP resource_table cleanups, v2
-Date: Wed, 02 Apr 2008 01:43:30 +0200
-Message-ID: <47F2C8A2.3070303@keyaccess.nl>
-References: <20080401151634.730901933@ldl.fc.hp.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [RFC][PATCH 2/3] PM: New suspend and hibernation callbacks for platform bus type (rev. 3)
+Date: Wed, 2 Apr 2008 02:10:40 +0200
+Message-ID: <200804020210.41203.rjw@sisk.pl>
+References: <200804020207.40278.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fk-out-0910.google.com ([209.85.128.189]:43866 "EHLO
-	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752968AbYDAXln (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Apr 2008 19:41:43 -0400
-Received: by fk-out-0910.google.com with SMTP id 19so3146426fkr.5
-        for <linux-acpi@vger.kernel.org>; Tue, 01 Apr 2008 16:41:42 -0700 (PDT)
-In-Reply-To: <20080401151634.730901933@ldl.fc.hp.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:49315 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755715AbYDBANK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 1 Apr 2008 20:13:10 -0400
+In-Reply-To: <200804020207.40278.rjw@sisk.pl>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
+To: pm list <linux-pm@lists.linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Oliver Neukum <oliver@neukum.org>, Nigel Cunningham <ncunningham@crca.org.au>
+
+From: Rafael J. Wysocki <rjw@sisk.pl>
+
+Implement new suspend and hibernation callbacks for the platform bus
+type.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/base/platform.c         |  296 ++++++++++++++++++++++++++++++++++++++--
+ include/linux/platform_device.h |    1 
+ 2 files changed, 289 insertions(+), 8 deletions(-)
+
+Index: linux-2.6/include/linux/platform_device.h
+===================================================================
+--- linux-2.6.orig/include/linux/platform_device.h
++++ linux-2.6/include/linux/platform_device.h
+@@ -53,6 +53,7 @@ struct platform_driver {
+ 	int (*suspend_late)(struct platform_device *, pm_message_t state);
+ 	int (*resume_early)(struct platform_device *);
+ 	int (*resume)(struct platform_device *);
++	struct pm_ext_ops *pm;
+ 	struct device_driver driver;
+ };
+ 
+Index: linux-2.6/drivers/base/platform.c
+===================================================================
+--- linux-2.6.orig/drivers/base/platform.c
++++ linux-2.6/drivers/base/platform.c
+@@ -453,6 +453,8 @@ int platform_driver_register(struct plat
+ 		drv->driver.suspend = platform_drv_suspend;
+ 	if (drv->resume)
+ 		drv->driver.resume = platform_drv_resume;
++	if (drv->pm)
++		drv->driver.pm = &drv->pm->base;
+ 	return driver_register(&drv->driver);
+ }
+ EXPORT_SYMBOL_GPL(platform_driver_register);
+@@ -560,7 +562,9 @@ static int platform_match(struct device 
+ 	return (strncmp(pdev->name, drv->name, BUS_ID_SIZE) == 0);
+ }
+ 
+-static int platform_suspend(struct device *dev, pm_message_t mesg)
++#ifdef CONFIG_PM_SLEEP
++
++static int platform_legacy_suspend(struct device *dev, pm_message_t mesg)
+ {
+ 	int ret = 0;
+ 
+@@ -570,7 +574,7 @@ static int platform_suspend(struct devic
+ 	return ret;
+ }
+ 
+-static int platform_suspend_late(struct device *dev, pm_message_t mesg)
++static int platform_legacy_suspend_late(struct device *dev, pm_message_t mesg)
+ {
+ 	struct platform_driver *drv = to_platform_driver(dev->driver);
+ 	struct platform_device *pdev;
+@@ -583,7 +587,7 @@ static int platform_suspend_late(struct 
+ 	return ret;
+ }
+ 
+-static int platform_resume_early(struct device *dev)
++static int platform_legacy_resume_early(struct device *dev)
+ {
+ 	struct platform_driver *drv = to_platform_driver(dev->driver);
+ 	struct platform_device *pdev;
+@@ -596,7 +600,7 @@ static int platform_resume_early(struct 
+ 	return ret;
+ }
+ 
+-static int platform_resume(struct device *dev)
++static int platform_legacy_resume(struct device *dev)
+ {
+ 	int ret = 0;
+ 
+@@ -606,15 +610,291 @@ static int platform_resume(struct device
+ 	return ret;
+ }
+ 
++static int platform_pm_prepare(struct device *dev)
++{
++	struct device_driver *drv = dev->driver;
++	int ret = 0;
++
++	if (drv && drv->pm && drv->pm->prepare)
++		ret = drv->pm->prepare(dev);
++
++	return ret;
++}
++
++static void platform_pm_complete(struct device *dev)
++{
++	struct device_driver *drv = dev->driver;
++
++	if (drv && drv->pm && drv->pm->complete)
++		drv->pm->complete(dev);
++}
++
++#ifdef CONFIG_SUSPEND
++
++static int platform_pm_suspend(struct device *dev)
++{
++	struct device_driver *drv = dev->driver;
++	int ret = 0;
++
++	if (drv && drv->pm) {
++		if (drv->pm->suspend)
++			ret = drv->pm->suspend(dev);
++	} else {
++		ret = platform_legacy_suspend(dev, PMSG_SUSPEND);
++	}
++
++	return ret;
++}
++
++static int platform_pm_suspend_noirq(struct device *dev)
++{
++	struct platform_driver *pdrv;
++	int ret = 0;
++
++	if (!dev->driver)
++		return 0;
++
++	pdrv = to_platform_driver(dev->driver);
++	if (pdrv->pm) {
++		if (pdrv->pm->suspend_noirq)
++			ret = pdrv->pm->suspend_noirq(dev);
++	} else {
++		ret = platform_legacy_suspend_late(dev, PMSG_SUSPEND);
++	}
++
++	return ret;
++}
++
++static int platform_pm_resume(struct device *dev)
++{
++	struct device_driver *drv = dev->driver;
++	int ret = 0;
++
++	if (drv && drv->pm) {
++		if (drv->pm->resume)
++			ret = drv->pm->resume(dev);
++	} else {
++		ret = platform_legacy_resume(dev);
++	}
++
++	return ret;
++}
++
++static int platform_pm_resume_noirq(struct device *dev)
++{
++	struct platform_driver *pdrv;
++	int ret = 0;
++
++	if (!dev->driver)
++		return 0;
++
++	pdrv = to_platform_driver(dev->driver);
++	if (pdrv->pm) {
++		if (pdrv->pm->resume_noirq)
++			ret = pdrv->pm->resume_noirq(dev);
++	} else {
++		ret = platform_legacy_resume_early(dev);
++	}
++
++	return ret;
++}
++
++#else /* !CONFIG_SUSPEND */
++
++#define platform_pm_suspend		NULL
++#define platform_pm_resume		NULL
++#define platform_pm_suspend_noirq	NULL
++#define platform_pm_resume_noirq	NULL
++
++#endif /* !CONFIG_SUSPEND */
++
++#ifdef CONFIG_HIBERNATION
++
++static int platform_pm_freeze(struct device *dev)
++{
++	struct device_driver *drv = dev->driver;
++	int ret = 0;
++
++	if (!drv)
++		return 0;
++
++	if (drv->pm) {
++		if (drv->pm->freeze)
++			ret = drv->pm->freeze(dev);
++	} else {
++		ret = platform_legacy_suspend(dev, PMSG_FREEZE);
++	}
++
++	return ret;
++}
++
++static int platform_pm_freeze_noirq(struct device *dev)
++{
++	struct platform_driver *pdrv;
++	int ret = 0;
++
++	if (!dev->driver)
++		return 0;
++
++	pdrv = to_platform_driver(dev->driver);
++	if (pdrv->pm) {
++		if (pdrv->pm->freeze_noirq)
++			ret = pdrv->pm->freeze_noirq(dev);
++	} else {
++		ret = platform_legacy_suspend_late(dev, PMSG_FREEZE);
++	}
++
++	return ret;
++}
++
++static int platform_pm_thaw(struct device *dev)
++{
++	struct device_driver *drv = dev->driver;
++	int ret = 0;
++
++	if (drv && drv->pm) {
++		if (drv->pm->thaw)
++			ret = drv->pm->thaw(dev);
++	} else {
++		ret = platform_legacy_resume(dev);
++	}
++
++	return ret;
++}
++
++static int platform_pm_thaw_noirq(struct device *dev)
++{
++	struct platform_driver *pdrv;
++	int ret = 0;
++
++	if (!dev->driver)
++		return 0;
++
++	pdrv = to_platform_driver(dev->driver);
++	if (pdrv->pm) {
++		if (pdrv->pm->thaw_noirq)
++			ret = pdrv->pm->thaw_noirq(dev);
++	} else {
++		ret = platform_legacy_resume_early(dev);
++	}
++
++	return ret;
++}
++
++static int platform_pm_poweroff(struct device *dev)
++{
++	struct device_driver *drv = dev->driver;
++	int ret = 0;
++
++	if (drv && drv->pm) {
++		if (drv->pm->poweroff)
++			ret = drv->pm->poweroff(dev);
++	} else {
++		ret = platform_legacy_suspend(dev, PMSG_HIBERNATE);
++	}
++
++	return ret;
++}
++
++static int platform_pm_poweroff_noirq(struct device *dev)
++{
++	struct platform_driver *pdrv;
++	int ret = 0;
++
++	if (!dev->driver)
++		return 0;
++
++	pdrv = to_platform_driver(dev->driver);
++	if (pdrv->pm) {
++		if (pdrv->pm->poweroff_noirq)
++			ret = pdrv->pm->poweroff_noirq(dev);
++	} else {
++		ret = platform_legacy_suspend_late(dev, PMSG_HIBERNATE);
++	}
++
++	return ret;
++}
++
++static int platform_pm_restore(struct device *dev)
++{
++	struct device_driver *drv = dev->driver;
++	int ret = 0;
++
++	if (drv && drv->pm) {
++		if (drv->pm->restore)
++			ret = drv->pm->restore(dev);
++	} else {
++		ret = platform_legacy_resume(dev);
++	}
++
++	return ret;
++}
++
++static int platform_pm_restore_noirq(struct device *dev)
++{
++	struct platform_driver *pdrv;
++	int ret = 0;
++
++	if (!dev->driver)
++		return 0;
++
++	pdrv = to_platform_driver(dev->driver);
++	if (pdrv->pm) {
++		if (pdrv->pm->restore_noirq)
++			ret = pdrv->pm->restore_noirq(dev);
++	} else {
++		ret = platform_legacy_resume_early(dev);
++	}
++
++	return ret;
++}
++
++#else /* !CONFIG_HIBERNATION */
++
++#define platform_pm_freeze		NULL
++#define platform_pm_thaw		NULL
++#define platform_pm_poweroff		NULL
++#define platform_pm_restore		NULL
++#define platform_pm_freeze_noirq	NULL
++#define platform_pm_thaw_noirq		NULL
++#define platform_pm_poweroff_noirq	NULL
++#define platform_pm_restore_noirq	NULL
++
++#endif /* !CONFIG_HIBERNATION */
++
++struct pm_ext_ops platform_pm_ops = {
++	.base = {
++		.prepare = platform_pm_prepare,
++		.complete = platform_pm_complete,
++		.suspend = platform_pm_suspend,
++		.resume = platform_pm_resume,
++		.freeze = platform_pm_freeze,
++		.thaw = platform_pm_thaw,
++		.poweroff = platform_pm_poweroff,
++		.restore = platform_pm_restore,
++	},
++	.suspend_noirq = platform_pm_suspend_noirq,
++	.resume_noirq = platform_pm_resume_noirq,
++	.freeze_noirq = platform_pm_freeze_noirq,
++	.thaw_noirq = platform_pm_thaw_noirq,
++	.poweroff_noirq = platform_pm_poweroff_noirq,
++	.restore_noirq = platform_pm_restore_noirq,
++};
++
++#define PLATFORM_PM_OPS_PTR	&platform_pm_ops
++
++#else /* !CONFIG_PM_SLEEP */
++
++#define PLATFORM_PM_OPS_PTR	NULL
++
++#endif /* !CONFIG_PM_SLEEP */
++
+ struct bus_type platform_bus_type = {
+ 	.name		= "platform",
+ 	.dev_attrs	= platform_dev_attrs,
+ 	.match		= platform_match,
+ 	.uevent		= platform_uevent,
+-	.suspend	= platform_suspend,
+-	.suspend_late	= platform_suspend_late,
+-	.resume_early	= platform_resume_early,
+-	.resume		= platform_resume,
++	.pm		= PLATFORM_PM_OPS_PTR,
+ };
+ EXPORT_SYMBOL_GPL(platform_bus_type);
+ 
 
-On 01-04-08 17:16, Bjorn Helgaas wrote:
-
-> This series of patches does some PNP housecleaning and
-> consolidation.
-
-Quite a series...
-
-[patch 01/37] ISAPNP: move config register addresses out of isapnp.h
-
-   Acked-By: Rene Herman <rene.herman@gmail.com>
-
-[patch 02/37] PNPACPI: continue after _CRS and _PRS errors
-
-   No opinion.
-
-[patch 03/37] PNP: make pnp_add_id() internal to PNP core
-
-   Acked-By: Rene Herman <rene.herman@gmail.com>
-
-[patch 04/37] PNP: change pnp_add_id() to allocate its own pnp_id structures
-
-   Acked-By: Rene Herman <rene.herman@gmail.com>
-
-[patch 05/37] PNP: add pnp_eisa_id_to_string()
-
-   +void pnp_eisa_id_to_string(u32 id, char *str)
-   +{
-   +       id = be32_to_cpu(id);
-   +       str[0] = '@' + ((id >> 26) & 0x1f);
-   +       str[1] = '@' + ((id >> 21) & 0x1f);
-   +       str[2] = '@' + ((id >> 16) & 0x1f);
-   +       str[3] = hex_asc((id >> 12) & 0xf);
-   +       str[4] = hex_asc((id >>  8) & 0xf);
-   +       str[5] = hex_asc((id >>  4) & 0xf);
-   +       str[6] = hex_asc((id >>  0) & 0xf);
-   +       str[7] = '\0';
-   +}
-
-   I'd much prefer 'A' - 1 over '@'. While no doubt not a practical issue,
-   it's more portable that way and more importantly, clearer.
-
-   By the way, the original isapnp_parse_id explicitly encodes the top _6_
-   bits in str[0] (& 0x3f) which seems odd. Bit 31 had better be 0 indeed,
-   but I wonder why the original didn't just assume such.
-
-   Other than that,
-
-   Acked-By: Rene Herman <rene.herman@gmail.com>
-
-[patch 06/37] PNP: add pnp_alloc_dev()
-
-   Acked-By: Rene Herman <rene.herman@gmail.com>
-
-[patch 07/37] PNP: make pnp_add_card_id() internal to PNP core
-
-   Acked-By: Rene Herman <rene.herman@gmail.com>
-
-[patch 08/37] PNP: change pnp_add_card_id() to allocate its own pnp_id 
-structures
-
-   Same problem with hexadecimal as before. Bisection would get a bogus
-   card id here, but fixed in 09/37.
-
-   Acked-By: Rene Herman <rene.herman@gmail.com>
-
-[patch 09/37] ISAPNP: pull pnp_add_card_id() out of isapnp_parse_card_id()
-
-   Acked-By: Rene Herman <rene.herman@gmail.com>
-
-[patch 10/37] PNP: add pnp_alloc_card()
-
-   Acked-By: Rene Herman <rene.herman@gmail.com>
-
-[patch 11/37] PNPACPI: pnpacpi_encode_ext_irq() wrongly set "irq" instead of 
-"extended_irq"
-
-   No opinion.
-
-[patch 12/37] PNPACPI: use temporaries to reduce repetition
-
-   Acked-By: Rene Herman <rene.herman@gmail.com>
-
-[patch 13/37] PNPACPI: hoist dma_flags() out of 
-pnpacpi_parse_allocated_dmaresource()
-
-   Acked-By: Rene Herman <rene.herman@gmail.com>
-
-[patch 14/37] PNPACPI: extend irq_flags() to set IORESOURCE_IRQ_SHAREABLE 
-when appropriate
-
-   Acked-By: Rene Herman <rene.herman@gmail.com>
-
-[patch 15/37] PNPACPI: pass pnp_dev instead of acpi_handle
-
-   Acked-By: Rene Herman <rene.herman@gmail.com>
-
-[patch 16/37] PNP: remove pnp_resource_table from internal get/set interfaces
-
-   Acked-By: Rene Herman <rene.herman@gmail.com>
-
-[patch 17/37] PNP: remove more pnp_resource_table arguments
-
-   Acked-By: Rene Herman <rene.herman@gmail.com>
-
-[patch 18/37] PNP: add pnp_init_resources(struct pnp_dev *) interface
-
-   Acked-By: Rene Herman <rene.herman@gmail.com>
-
-[patch 19/37] PNP: remove pnp_resource_table from internal 
-pnp_clean_resource_table interface
-
-   Acked-By: Rene Herman <rene.herman@gmail.com>
-
-[patch 20/37] PNP: make generic pnp_add_irq_resource()
-
-   Acked-By: Rene Herman <rene.herman@gmail.com>
-
-[patch 21/37] PNP: make generic pnp_add_dma_resource()
-
-   Acked-By: Rene Herman <rene.herman@gmail.com>
-
-[patch 22/37] PNP: make generic pnp_add_io_resource()
-
-   int pnp_add_io_resource(..., resource_size_t len, ...)
-   {
-         [ ... ]
-
-         if (len <= 0 || end >= 0x10003) {
-
-   len is a u32 or u64, so (len <= 0) == (len == 0)
-
-   But:
-
-   Acked-By: Rene Herman <rene.herman@gmail.com>
-
-[patch 23/37] PNP: make generic pnp_add_mem_resource()
-
-   1: Same comment for pnp_add_mem_resource as 22/37
-
-   2: There are 4 tests for ACPI_READ_WRITE_MEMORY here which are turned
-      into IORESOURCE_MEM_WRITEABLE or 0. Not sure, but should they be
-      turned into IORESOURCE_MEM_WRITEABLE or IORESOURCE_READONLY?
-
-   Otherwise and if not,
-
-   Acked-By: Rene Herman <rene.herman@gmail.com>
-
-[patch 24/37] PNP: use dev_printk when possible
-
-   Acked-By: Rene Herman <rene.herman@gmail.com>
-
-[patch 25/37] PNPACPI: remove redundant warnings about _CRS/_PRS failures
-
-   Acked-By: Rene Herman <rene.herman@gmail.com>
-
-[patch 26/37] PNPACPI: remove some pnp_dbg calls
-
-   Acked-By: Rene Herman <rene.herman@gmail.com>
-
-[patch 27/37] PNP: use conventional "i" for loop indices
-
-   Acked-By: Rene Herman <rene.herman@gmail.com>
-
-[patch 28/37] PNP: add pnp_get_resource() interface
-
-   Acked-By: Rene Herman <rene.herman@gmail.com>
-
-[patch 29/37] PNP: convert encoders to use pnp_get_resource(), not 
-pnp_resource_table
-
-   Acked-By: Rene Herman <rene.herman@gmail.com>
-
-[patch 30/37] PNP: convert resource accessors to use pnp_get_resource(), not 
-pnp_resource_table
-
-   Is there a reason to not make pnp_{port,mem,irq,dma}_{start,end,flags}()
-   inlines?
-
-   static inline resource_size_t pnp_port_start(struct pnp_dev *dev,
-                                                unsigned int bar)
-   {
-           struct resource *res = pnp_get_resource(dev, IORESOURCE_IO, bar);
-           return res->start;
-   }
-
-   and so on.
-
-   Also, you have pnp_{port,mem,irq,dma}_valid() returning a resource_size_t.
-   They should return int, I presume.
-
-[patch 31/37] PNP: convert resource checks to use pnp_get_resource(), not 
-pnp_resource_table
-
-   Acked-By: Rene Herman <rene.herman@gmail.com>
-
-[patch 32/37] PNP: convert resource assign functions to use 
-pnp_get_resource(), not pnp_resource_table
-
-   Acked-By: Rene Herman <rene.herman@gmail.com>
-
-[patch 33/37] PNP: remove PNP_MAX_* uses
-
-   Acked-By: Rene Herman <rene.herman@gmail.com>
-
-[patch 34/37] PNP: remove unused interfaces using pnp_resource_table
-
-   Acked-By: Rene Herman <rene.herman@gmail.com>
-
-[patch 35/37] rtc: dont reference pnp_resource_table directly
-
-   Acked-By: Rene Herman <rene.herman@gmail.com>
-
-[patch 36/37] PNP: make pnp_resource_table private to PNP core
-
-   Acked-By: Rene Herman <rene.herman@gmail.com>
-
-[patch 37/37] PNP: make interfaces private to the PNP core
-
-   Acked-By: Rene Herman <rene.herman@gmail.com>
-
-Rene.
