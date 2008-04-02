@@ -1,48 +1,199 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [RFC][PATCH] PM: Introduce new top level suspend and hibernation
- callbacks (rev. 6)
-Date: Wed, 2 Apr 2008 12:42:15 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0804021238190.5042-100000@iolanthe.rowland.org>
-References: <200804021728.45823.oliver@neukum.org>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [>=2.6.23][BUG] Oops on power disconnection
+Date: Wed, 02 Apr 2008 20:12:54 +0200
+Message-ID: <1207159974.4700.6.camel@queen.suse.de>
+References: <5681ec900803300645l5369cda4g119957a4b7f05d17@mail.gmail.com>
+	 <5681ec900803300651m6e5f38deke1b7746236e5bb9@mail.gmail.com>
+	 <20080402001418.aad6eed2.akpm@linux-foundation.org>
+	 <5681ec900804020608o62be52c4ted172e18daf24f5b@mail.gmail.com>
+	 <1207147729.30061.9.camel@hammer1.suse.de>
+	 <5681ec900804020913t4adc38b1r2e424fa8bbdda241@mail.gmail.com>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:42996 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755995AbYDBQmR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Apr 2008 12:42:17 -0400
-In-Reply-To: <200804021728.45823.oliver@neukum.org>
+Received: from cantor.suse.de ([195.135.220.2]:60527 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756025AbYDBSM5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 2 Apr 2008 14:12:57 -0400
+In-Reply-To: <5681ec900804020913t4adc38b1r2e424fa8bbdda241@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Oliver Neukum <oliver@neukum.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Nigel Cunningham <ncunningham@crca.org.au>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
+To: Sanjeev Aditya Naga <sanjeev.kernel@gmail.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-On Wed, 2 Apr 2008, Oliver Neukum wrote:
-
-> Am Mittwoch, 2. April 2008 17:13:11 schrieb Alan Stern:
-> > Basically yes. =A0Subsystems and drivers are allowed to keep device=
-s
-> > suspended if they were suspended before the system went to sleep. =A0
-> > Remember, the purpose of the resume method is to let drivers know t=
-hat
-> > the system is now awake, not to force them to put their devices int=
-o a
-> > high-power state.
+On Wed, 2008-04-02 at 21:43 +0530, Sanjeev Aditya Naga wrote:
+> Hello Thomas,
 >=20
-> Well, sometimes it is exactly that what we desire, eg. as a side effe=
-ct
-> of lsusb. Should the callbacks have different semantics depending on
-> the reason you call them? And how should that information be transfer=
-red?
+> > Hi,
+> >
+> >
+> >  On Wed, 2008-04-02 at 18:38 +0530, Sanjeev Aditya Naga wrote:
+> >  > Hello Andrew Morton,
+> >  >
+> >  > Greetings!
+> >  >
+> >  > Thank you for the update. Is there anything I can do
+> >  > from my side?
+> >  >
+> >  > I thought it was a acpi (dsdt) problem. And based on
+> >  > a tutorial, I have tried to extract, fix, recompile the dsdt
+> >  > and use it with the kernel. But still I have the same problem.
+> >  > Let me know if I shall attach the dsdt (original) decompiled
+> >  > code, if that helps.
+> >
+> >  this could be due a general memory corruption problem through ACPI=
+CA.
+> >  If you get different backtraces on reboots even you only modified =
+things
+> >  that do not have to do with the problem, it's probably that and re=
+lated
+> >  to:
+> >  =EF=BB=BFhttp://bugzilla.kernel.org/show_bug.cgi?id=3D10339
+> >
+> >  You might want to try the latest kernel or the patch posted there.
+>=20
+> Thank you for the update.
+> I have checked the bug and unfortunately its not the
+> same issue. Things work absolutely fine, when I'm
+> running on AC power. It even displays the exact
+> battery (and charging) status to me. It messes up
+> when suddenly AC power gets disconnected and
+> switches to battery mode (The time when I get Oops).
+> The system is still usable after switching to battery
+> mode and I still get correct battery stats until its
+> completely discharged. However most of the commands
+> like kill, poweroff, java doesn't work after the Oops.
+The bug is not related to battery, but to AML parsing and can therefore
+affect anything which is ACPI related.
 
-Which callbacks are you referring to?  When lsusb opens a device and
-does an autoresume, it does not call the same routine as the PM core
-does when resuming from a system sleep.  lsusb ends up calling
-usb_autoresume_device() whereas the PM core ends up calling
-usb_resume(), which is the function you quoted earlier.
+> BTW there is one similarity with the referenced bug.
+> If I boot the computer without AC Power, it gives the
+> same Oops and stops during booting itself.
+>=20
+> I shall try the latest kernel once and shall update you.
+That would be great.
+If it works, please give the patch there a try, IMO this one should see
+2.6.2[34].X stable kernels soon.
 
-Alan Stern
+Thanks,
+
+    Thomas
+
+>=20
+> >
+> >    Thomas
+> >
+> >
+> >
+> >  > Kind Regards,
+> >  > Sanjeev
+> >  >
+> >  > On Wed, Apr 2, 2008 at 12:44 PM, Andrew Morton
+> >  > <akpm@linux-foundation.org> wrote:
+> >  > >
+> >  > > On Sun, 30 Mar 2008 19:21:39 +0530 "Sanjeev Aditya Naga" <sanj=
+eev.kernel@gmail.com> wrote:
+> >  > >
+> >  > >  > Hi,
+> >  > >  >
+> >  > >  >  This happens everytime there is a power disconnection
+> >  > >  >  (switching to battery). Complete dmesg attached. This
+> >  > >  >  in particular is of kernel 2.6.24.3.
+> >  > >  >
+> >  > >  >  Greetings,
+> >  > >  >  Kind Regards,
+> >  > >  >  Sanjeev
+> >  > >  >
+> >  > >  >  BUG: unable to handle kernel NULL pointer dereference at v=
+irtual
+> >  > >  >  address 00000020
+> >  > >  >  printing eip: c04c4716 *pde =3D 578c2067
+> >  > >  >  Oops: 0000 [#1] SMP
+> >  > >  >  Modules linked in: cbc(U) geode_aes(U) blkcipher(U) aes_i5=
+86(U)
+> >  > >  >  aes_generic(U) dm_crypt(U) ipt_MASQUERADE(U) iptable_nat(U=
+) nf_nat(U)
+> >  > >  >  bridge(U) autofs4(U) nf_conntrack_ipv4(U) xt_state(U) nf_c=
+onntrack(U)
+> >  > >  >  xt_tcpudp(U) ipt_REJECT(U) iptable_filter(U) ip_tables(U) =
+x_tables(U)
+> >  > >  >  cpufreq_ondemand(U) acpi_cpufreq(U) fuse(U) loop(U) dm_mir=
+ror(U)
+> >  > >  >  dm_multipath(U) dm_mod(U) ipv6(U) snd_hda_intel(U) snd_seq=
+_dummy(U)
+> >  > >  >  snd_seq_oss(U) snd_seq_midi_event(U) snd_seq(U) snd_seq_de=
+vice(U)
+> >  > >  >  snd_pcm_oss(U) sr_mod(U) snd_mixer_oss(U) snd_pcm(U) 8139c=
+p(U)
+> >  > >  >  snd_timer(U) button(U) 8139too(U) mii(U) snd_page_alloc(U)=
+ cdrom(U)
+> >  > >  >  video(U) output(U) snd_hwdep(U) ac(U) snd(U) pcspkr(U) i2c=
+_piix4(U)
+> >  > >  >  i2c_core(U) battery(U) joydev(U) soundcore(U) sg(U) pata_a=
+tiixp(U)
+> >  > >  >  pata_acpi(U) sata_sil(U) ata_generic(U) libata(U) sd_mod(U=
+)
+> >  > >  >  scsi_mod(U) ext3(U) jbd(U) mbcache(U) uhci_hcd(U) ohci_hcd=
+(U)
+> >  > >  >  ehci_hcd(U)
+> >  > >  >
+> >  > >  >  Pid: 69, comm: kacpi_notify Not tainted (2.6.24.3 #5)
+> >  > >  >  EIP: 0060:[<c04c4716>] EFLAGS: 00010246 CPU: 0
+> >  > >  >  EIP is at sysfs_addrm_start+0x21/0x81
+> >  > >  >  EAX: c04c47d7 EBX: 00000000 ECX: 00000000 EDX: f78b8000
+> >  > >  >  ESI: f78b8eb8 EDI: f78b8ec8 EBP: 00000000 ESP: f78b8ea4
+> >  > >  >   DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
+> >  > >  >  Process kacpi_notify (pid: 69, ti=3Df78b8000 task=3Df78d80=
+00 task.ti=3Df78b8000)
+> >  > >  >  Stack: f229ff54 f229ff54 f5b8d390 fffffff4 c04c4b45 000000=
+00 00000000 00000000
+> >  > >  >        00000000 f229ff54 00000000 00000000 f782601c c04c4ba=
+b f78b8ee0 c04fe65d
+> >  > >  >        f229ff54 c04fe8a8 f722e67f ffffffff ffffffff 0000000=
+7 f722e678 f78261d8
+> >  > >  >  Call Trace:
+> >  > >  >   [<c04c4b45>] create_dir+0x33/0x6c
+> >  > >  >   [<c04c4bab>] sysfs_create_dir+0x2d/0x40
+> >  > >  >   [<c04fe65d>] kobject_get+0xf/0x13
+> >  > >  >   [<c04fe8a8>] kobject_add+0xdd/0x176
+> >  > >  >   [<c04fe9eb>] kobject_register+0x19/0x2d
+> >  > >  >   [<c05b0ad0>] cpuidle_add_state_sysfs+0x7b/0xe4
+> >  > >  >   [<c052660e>] acpi_os_execute_notify+0x0/0x2b
+> >  > >  >   [<c05b03fd>] cpuidle_enable_device+0x31/0x9b
+> >  > >  >   [<c0545923>] acpi_processor_cst_has_changed+0x40/0x55
+> >  > >  >   [<c0543ae2>] acpi_processor_notify+0x8b/0xf4
+> >  > >  >   [<c052bcbb>] acpi_ev_notify_dispatch+0x4c/0x55
+> >  > >  >   [<c0526630>] acpi_os_execute_notify+0x22/0x2b
+> >  > >  >   [<c052660e>] acpi_os_execute_notify+0x0/0x2b
+> >  > >  >   [<c043c212>] run_workqueue+0x7d/0x107
+> >  > >  >   [<c043fa5b>] prepare_to_wait+0x28/0x45
+> >  > >  >   [<c043c35a>] worker_thread+0xbe/0xca
+> >  > >  >   [<c043f8ff>] autoremove_wake_function+0x0/0x35
+> >  > >  >   [<c043c29c>] worker_thread+0x0/0xca
+> >  > >  >   [<c043f679>] kthread+0x38/0x5d
+> >  > >  >   [<c043f641>] kthread+0x0/0x5d
+> >  > >  >   [<c0406477>] kernel_thread_helper+0x7/0x10
+> >  > >  >   =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D
+> >  > >  >  Code: c0 89 31 83 c4 14 5b 5e 5f c3 57 b9 04 00 00 00 56 8=
+9 c7 53 89
+> >  > >  >  c6 83 ec 04 89 d3 31 c0 f3 ab b8 903f 72 c0 89 16 e8 6a cf=
+ 16 00 <8b>
+> >  > >  >  53 20 b9 ec 42 4c c0 a1 84 e4 83 c0 89 1c 24 e8 44 6e fd f=
+f
+> >  > >  >  EIP: [<c04c4716>] sysfs_addrm_start+0x21/0x81 SS:ESP 0068:=
+f78b8ea4
+> >  > >
+> >  > >  Looks like a cpuidle problem (or at least acpi).
+> >  > >
+> >  > >  I seem to recall having seen other reports of this?
+> >  Then it might be something else...
+> >
+> >    Thomas
+> >
+> >
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
