@@ -1,386 +1,128 @@
-From: "Fred Albrecht" <fred@fredshome.org>
-Subject: dmidecode for Samsung Q35 laptop
-Date: Wed, 2 Apr 2008 18:10:08 +0200
-Message-ID: <b367f9780804020910s4fe2a803o9c5a61fcea5a9f80@mail.gmail.com>
+From: "Sanjeev Aditya Naga" <sanjeev.kernel@gmail.com>
+Subject: Re: [>=2.6.23][BUG] Oops on power disconnection
+Date: Wed, 2 Apr 2008 21:43:12 +0530
+Message-ID: <5681ec900804020913t4adc38b1r2e424fa8bbdda241@mail.gmail.com>
+References: <5681ec900803300645l5369cda4g119957a4b7f05d17@mail.gmail.com>
+	 <5681ec900803300651m6e5f38deke1b7746236e5bb9@mail.gmail.com>
+	 <20080402001418.aad6eed2.akpm@linux-foundation.org>
+	 <5681ec900804020608o62be52c4ted172e18daf24f5b@mail.gmail.com>
+	 <1207147729.30061.9.camel@hammer1.suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rv-out-0910.google.com ([209.85.198.188]:54323 "EHLO
+Received: from rv-out-0910.google.com ([209.85.198.189]:60164 "EHLO
 	rv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756233AbYDBQKJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Apr 2008 12:10:09 -0400
-Received: by rv-out-0910.google.com with SMTP id k20so1503068rvb.1
-        for <linux-acpi@vger.kernel.org>; Wed, 02 Apr 2008 09:10:08 -0700 (PDT)
+	with ESMTP id S1753067AbYDBQNO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Apr 2008 12:13:14 -0400
+Received: by rv-out-0910.google.com with SMTP id k20so1503785rvb.1
+        for <linux-acpi@vger.kernel.org>; Wed, 02 Apr 2008 09:13:12 -0700 (PDT)
+In-Reply-To: <1207147729.30061.9.camel@hammer1.suse.de>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: trenn@suse.de
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-Hello, as per request in the dmesg :
-
-root@bop:~# uname -a
-Linux bop 2.6.22-14-generic #1 SMP Tue Feb 12 07:42:25 UTC 2008 i686 GNU/Linux
-
-root@bop:~# lsb_release -d
-Description:    Ubuntu 7.10
-
-# dmidecode 2.9
-SMBIOS 2.4 present.
-33 structures occupying 1030 bytes.
-Table at 0x000DC010.
-
-Handle 0x0000, DMI type 0, 24 bytes
-BIOS Information
-        Vendor: Phoenix Technologies LTD
-        Version: 25SD
-        Release Date: 03/29/2007
-        Address: 0xE7E40
-        Runtime Size: 98752 bytes
-        ROM Size: 1024 kB
-        Characteristics:
-                ISA is supported
-                PCI is supported
-                PC Card (PCMCIA) is supported
-                PNP is supported
-                APM is supported
-                BIOS is upgradeable
-                BIOS shadowing is allowed
-                ESCD support is available
-                Boot from CD is supported
-                ACPI is supported
-                USB legacy is supported
-                IEEE 1394 boot is supported
-                Smart battery is supported
-                BIOS boot specification is supported
-                Targeted content distribution is supported
-        BIOS Revision: 0.0
-        Firmware Revision: 0.0
-
-Handle 0x0001, DMI type 1, 27 bytes
-System Information
-        Manufacturer: SAMSUNG ELECTRONICS CO., LTD.
-        Product Name: Q35/Q36
-        Version: 25SD
-        Serial Number: 811L93CP400066
-        UUID: 60BBC5F4-DA1D-B211-8000-B18CD8B19F07
-        Wake-up Type: Power Switch
-        SKU Number: Not Specified
-        Family: Not Specified
-
-Handle 0x0002, DMI type 2, 8 bytes
-Base Board Information
-        Manufacturer: SAMSUNG ELECTRONICS CO., LTD.
-        Product Name: Q35/Q36
-        Version:
-        Serial Number: 123490EN400015
-
-Handle 0x0003, DMI type 3, 17 bytes
-Chassis Information
-        Manufacturer: SAMSUNG ELECTRONICS CO., LTD.
-        Type: Other
-        Lock: Not Present
-        Version: N/A
-        Serial Number: None
-        Asset Tag: No Asset Tag
-        Boot-up State: Safe
-        Power Supply State: Safe
-        Thermal State: Safe
-        Security Status: None
-        OEM Information: 0x00001234
-
-Handle 0x0004, DMI type 4, 35 bytes
-Processor Information
-        Socket Designation: U2E1
-        Type: Central Processor
-        Family: Other
-        Manufacturer: Intel
-        ID: F2 06 00 00 FF FB EB BF
-        Version: Intel(R) Core(TM)2 CPU         T5
-        Voltage: 3.3 V
-        External Clock: Unknown
-        Max Speed: 2048 MHz
-        Current Speed: 1660 MHz
-        Status: Populated, Enabled
-        Upgrade: ZIF Socket
-        L1 Cache Handle: 0x0005
-        L2 Cache Handle: 0x0006
-        L3 Cache Handle: Not Provided
-        Serial Number: Not Specified
-        Asset Tag: Not Specified
-        Part Number: Not Specified
-
-Handle 0x0005, DMI type 7, 19 bytes
-Cache Information
-        Socket Designation: L1 Cache
-        Configuration: Enabled, Socketed, Level 1
-        Operational Mode: Write Back
-        Location: Internal
-        Installed Size: 32 KB
-        Maximum Size: 32 KB
-        Supported SRAM Types:
-                Burst
-                Pipeline Burst
-                Asynchronous
-        Installed SRAM Type: Asynchronous
-        Speed: Unknown
-        Error Correction Type: Unknown
-        System Type: Unknown
-        Associativity: Unknown
-
-Handle 0x0006, DMI type 7, 19 bytes
-Cache Information
-        Socket Designation: L2 Cache
-        Configuration: Enabled, Socketed, Level 2
-        Operational Mode: Write Back
-        Location: External
-        Installed Size: 2048 KB
-        Maximum Size: 2048 KB
-        Supported SRAM Types:
-                Burst
-                Pipeline Burst
-                Asynchronous
-        Installed SRAM Type: Burst
-        Speed: Unknown
-        Error Correction Type: Unknown
-        System Type: Unknown
-        Associativity: Unknown
-
-Handle 0x0007, DMI type 8, 9 bytes
-Port Connector Information
-        Internal Reference Designator: J19
-        Internal Connector Type: 9 Pin Dual Inline (pin 10 cut)
-        External Reference Designator: COM 1
-        External Connector Type: DB-9 male
-        Port Type: Serial Port 16550A Compatible
-
-Handle 0x0008, DMI type 8, 9 bytes
-Port Connector Information
-        Internal Reference Designator: J23
-        Internal Connector Type: 25 Pin Dual Inline (pin 26 cut)
-        External Reference Designator: Parallel
-        External Connector Type: DB-25 female
-        Port Type: Parallel Port ECP/EPP
-
-Handle 0x0009, DMI type 8, 9 bytes
-Port Connector Information
-        Internal Reference Designator: J12
-        Internal Connector Type: None
-        External Reference Designator: PS/2 Mouse
-        External Connector Type: Circular DIN-8 male
-        Port Type: Keyboard Port
-
-Handle 0x000A, DMI type 9, 13 bytes
-System Slot Information
-        Designation: CARDBUS 0
-        Type: 32-bit PC Card (PCMCIA)
-        Current Usage: Unknown
-        Length: Other
-        ID: Adapter 0, Socket 0
-        Characteristics:
-                5.0 V is provided
-                3.3 V is provided
-                PC Card-16 is supported
-                Cardbus is supported
-
-Handle 0x000B, DMI type 10, 6 bytes
-On Board Device Information
-        Type: Sound
-        Status: Disabled
-        Description: HD-Audio
-
-Handle 0x000C, DMI type 11, 5 bytes
-OEM Strings
-        String 1: BBBBAAAAAAAA
-        String 2: 2007/08
-
-Handle 0x000D, DMI type 12, 5 bytes
-System Configuration Options
-        Option 1: Jumper settings can be described here.
-
-Handle 0x000E, DMI type 16, 15 bytes
-Physical Memory Array
-        Location: System Board Or Motherboard
-        Use: System Memory
-        Error Correction Type: None
-        Maximum Capacity: 3 GB
-        Error Information Handle: Not Provided
-        Number Of Devices: 2
-
-Handle 0x000F, DMI type 17, 27 bytes
-Memory Device
-        Array Handle: 0x000E
-        Error Information Handle: No Error
-        Total Width: 64 bits
-        Data Width: 64 bits
-        Size: 512 MB
-        Form Factor: SODIMM
-        Set: 1
-        Locator: M1
-        Bank Locator: Bank 0
-        Type: DDR
-        Type Detail: Synchronous
-        Speed: Unknown
-        Manufacturer: Not Specified
-        Serial Number: Not Specified
-        Asset Tag: Not Specified
-        Part Number: Not Specified
-
-Handle 0x0010, DMI type 17, 27 bytes
-Memory Device
-        Array Handle: 0x000E
-        Error Information Handle: No Error
-        Total Width: 64 bits
-        Data Width: 64 bits
-        Size: 512 MB
-        Form Factor: SODIMM
-        Set: 1
-        Locator: M2
-        Bank Locator: Bank 1
-        Type: DDR
-        Type Detail: Synchronous
-        Speed: Unknown
-        Manufacturer: Not Specified
-        Serial Number: Not Specified
-        Asset Tag: Not Specified
-        Part Number: Not Specified
-
-Handle 0x0011, DMI type 19, 15 bytes
-Memory Array Mapped Address
-        Starting Address: 0x00000000000
-        Ending Address: 0x0003FFFFFFF
-        Range Size: 1 GB
-        Physical Array Handle: 0x000E
-        Partition Width: 0
-
-Handle 0x0012, DMI type 20, 19 bytes
-Memory Device Mapped Address
-        Starting Address: 0x00000000000
-        Ending Address: 0x0001FFFFFFF
-        Range Size: 512 MB
-        Physical Device Handle: 0x000F
-        Memory Array Mapped Address Handle: 0x0011
-        Partition Row Position: Unknown
-        Interleave Position: Unknown
-        Interleaved Data Depth: Unknown
-
-Handle 0x0013, DMI type 20, 19 bytes
-Memory Device Mapped Address
-        Starting Address: 0x00020000000
-        Ending Address: 0x0003FFFFFFF
-        Range Size: 512 MB
-        Physical Device Handle: 0x0010
-        Memory Array Mapped Address Handle: 0x0011
-        Partition Row Position: Unknown
-        Interleave Position: Unknown
-        Interleaved Data Depth: Unknown
-
-Handle 0x0014, DMI type 21, 7 bytes
-Built-in Pointing Device
-        Type: Touch Pad
-        Interface: PS/2
-        Buttons: 4
-
-Handle 0x0015, DMI type 23, 13 bytes
-System Reset
-        Status: Enabled
-        Watchdog Timer: Present
-        Boot Option: Do Not Reboot
-        Boot Option On Limit: Do Not Reboot
-        Reset Count: Unknown
-        Reset Limit: Unknown
-        Timer Interval: Unknown
-        Timeout: Unknown
-
-Handle 0x0016, DMI type 24, 5 bytes
-Hardware Security
-        Power-On Password Status: Enabled
-        Keyboard Password Status: Unknown
-        Administrator Password Status: Enabled
-        Front Panel Reset Status: Unknown
-
-Handle 0x0017, DMI type 25, 9 bytes
-        System Power Controls
-        Next Scheduled Power-on: 12-31 23:59:59
-
-Handle 0x0018, DMI type 26, 20 bytes
-Voltage Probe
-        Description: Voltage Probe
-        Location: Processor
-        Status: OK
-        Maximum Value: Unknown
-        Minimum Value: Unknown
-        Resolution: Unknown
-        Tolerance: Unknown
-        Accuracy: Unknown
-        OEM-specific Information: 0x00000000
-
-Handle 0x0019, DMI type 27, 12 bytes
-Cooling Device
-        Temperature Probe Handle: 0x001A
-        Type: Fan
-        Status: OK
-        OEM-specific Information: 0x00000000
-
-Handle 0x001A, DMI type 28, 20 bytes
-Temperature Probe
-        Description: Temperature Probe
-        Location: Processor
-        Status: OK
-        Maximum Value: Unknown
-        Minimum Value Unknown
-        Resolution: Unknown
-        Tolerance: Unknown
-        Accuracy: Unknown
-        OEM-specific Information: 0x00000000
-
-Handle 0x001B, DMI type 29, 20 bytes
-Electrical Current Probe
-        Description: Electrical Current Probe
-        Location: Processor
-        Status: OK
-        Maximum Value: Unknown
-        Minimum Value: Unknown
-        Resolution: Unknown
-        Tolerance: Unknown
-        Accuracy: Unknown
-        OEM-specific Information: 0x00000000
-
-Handle 0x001C, DMI type 30, 6 bytes
-Out-of-band Remote Access
-        Manufacturer Name: Intel
-        Inbound Connection: Enabled
-        Outbound Connection: Disabled
-
-Handle 0x001D, DMI type 32, 20 bytes
-System Boot Information
-        Status: <OUT OF SPEC>
-
-Handle 0x001E, DMI type 129, 16 bytes
-OEM-specific Type
-        Header and Data:
-                81 10 1E 00 01 01 02 01 00 00 00 01 00 00 08 01
-        Strings:
-                Intel_ASF_001
-                Intel_ASF_001
-
-Handle 0x001F, DMI type 136, 6 bytes
-OEM-specific Type
-        Header and Data:
-                88 06 1F 00 FF FF
-
-Handle 0x0020, DMI type 127, 4 bytes
-End Of Table
-
-root@bop:~#
-
-Hopefully this can be of some use to you (still having network trouble
-on wakeup and ALSA problems with that machine, works ok otherwise).
-
-Cheers.
-
--- 
-Fred Albrecht
-Linux Guru
-fred@fredshome.org (now fixed)
-jabber : fred.albrecht@jabber.fsfe.org
+SGVsbG8gVGhvbWFzLAoKPiBIaSwKPgo+Cj4gIE9uIFdlZCwgMjAwOC0wNC0wMiBhdCAxODozOCAr
+MDUzMCwgU2FuamVldiBBZGl0eWEgTmFnYSB3cm90ZToKPiAgPiBIZWxsbyBBbmRyZXcgTW9ydG9u
+LAo+ICA+Cj4gID4gR3JlZXRpbmdzIQo+ICA+Cj4gID4gVGhhbmsgeW91IGZvciB0aGUgdXBkYXRl
+LiBJcyB0aGVyZSBhbnl0aGluZyBJIGNhbiBkbwo+ICA+IGZyb20gbXkgc2lkZT8KPiAgPgo+ICA+
+IEkgdGhvdWdodCBpdCB3YXMgYSBhY3BpIChkc2R0KSBwcm9ibGVtLiBBbmQgYmFzZWQgb24KPiAg
+PiBhIHR1dG9yaWFsLCBJIGhhdmUgdHJpZWQgdG8gZXh0cmFjdCwgZml4LCByZWNvbXBpbGUgdGhl
+IGRzZHQKPiAgPiBhbmQgdXNlIGl0IHdpdGggdGhlIGtlcm5lbC4gQnV0IHN0aWxsIEkgaGF2ZSB0
+aGUgc2FtZSBwcm9ibGVtLgo+ICA+IExldCBtZSBrbm93IGlmIEkgc2hhbGwgYXR0YWNoIHRoZSBk
+c2R0IChvcmlnaW5hbCkgZGVjb21waWxlZAo+ICA+IGNvZGUsIGlmIHRoYXQgaGVscHMuCj4KPiAg
+dGhpcyBjb3VsZCBiZSBkdWUgYSBnZW5lcmFsIG1lbW9yeSBjb3JydXB0aW9uIHByb2JsZW0gdGhy
+b3VnaCBBQ1BJQ0EuCj4gIElmIHlvdSBnZXQgZGlmZmVyZW50IGJhY2t0cmFjZXMgb24gcmVib290
+cyBldmVuIHlvdSBvbmx5IG1vZGlmaWVkIHRoaW5ncwo+ICB0aGF0IGRvIG5vdCBoYXZlIHRvIGRv
+IHdpdGggdGhlIHByb2JsZW0sIGl0J3MgcHJvYmFibHkgdGhhdCBhbmQgcmVsYXRlZAo+ICB0bzoK
+PiAg77u/aHR0cDovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lkPTEwMzM5Cj4K
+PiAgWW91IG1pZ2h0IHdhbnQgdG8gdHJ5IHRoZSBsYXRlc3Qga2VybmVsIG9yIHRoZSBwYXRjaCBw
+b3N0ZWQgdGhlcmUuCgpUaGFuayB5b3UgZm9yIHRoZSB1cGRhdGUuCkkgaGF2ZSBjaGVja2VkIHRo
+ZSBidWcgYW5kIHVuZm9ydHVuYXRlbHkgaXRzIG5vdCB0aGUKc2FtZSBpc3N1ZS4gVGhpbmdzIHdv
+cmsgYWJzb2x1dGVseSBmaW5lLCB3aGVuIEknbQpydW5uaW5nIG9uIEFDIHBvd2VyLiBJdCBldmVu
+IGRpc3BsYXlzIHRoZSBleGFjdApiYXR0ZXJ5IChhbmQgY2hhcmdpbmcpIHN0YXR1cyB0byBtZS4g
+SXQgbWVzc2VzIHVwCndoZW4gc3VkZGVubHkgQUMgcG93ZXIgZ2V0cyBkaXNjb25uZWN0ZWQgYW5k
+CnN3aXRjaGVzIHRvIGJhdHRlcnkgbW9kZSAoVGhlIHRpbWUgd2hlbiBJIGdldCBPb3BzKS4KVGhl
+IHN5c3RlbSBpcyBzdGlsbCB1c2FibGUgYWZ0ZXIgc3dpdGNoaW5nIHRvIGJhdHRlcnkKbW9kZSBh
+bmQgSSBzdGlsbCBnZXQgY29ycmVjdCBiYXR0ZXJ5IHN0YXRzIHVudGlsIGl0cwpjb21wbGV0ZWx5
+IGRpc2NoYXJnZWQuIEhvd2V2ZXIgbW9zdCBvZiB0aGUgY29tbWFuZHMKbGlrZSBraWxsLCBwb3dl
+cm9mZiwgamF2YSBkb2Vzbid0IHdvcmsgYWZ0ZXIgdGhlIE9vcHMuCgpCVFcgdGhlcmUgaXMgb25l
+IHNpbWlsYXJpdHkgd2l0aCB0aGUgcmVmZXJlbmNlZCBidWcuCklmIEkgYm9vdCB0aGUgY29tcHV0
+ZXIgd2l0aG91dCBBQyBQb3dlciwgaXQgZ2l2ZXMgdGhlCnNhbWUgT29wcyBhbmQgc3RvcHMgZHVy
+aW5nIGJvb3RpbmcgaXRzZWxmLgoKSSBzaGFsbCB0cnkgdGhlIGxhdGVzdCBrZXJuZWwgb25jZSBh
+bmQgc2hhbGwgdXBkYXRlIHlvdS4KCktpbmQgUmVnYXJkcywKU2FuamVldgoKCgo+Cj4gICAgVGhv
+bWFzCj4KPgo+Cj4gID4gS2luZCBSZWdhcmRzLAo+ICA+IFNhbmplZXYKPiAgPgo+ICA+IE9uIFdl
+ZCwgQXByIDIsIDIwMDggYXQgMTI6NDQgUE0sIEFuZHJldyBNb3J0b24KPiAgPiA8YWtwbUBsaW51
+eC1mb3VuZGF0aW9uLm9yZz4gd3JvdGU6Cj4gID4gPgo+ICA+ID4gT24gU3VuLCAzMCBNYXIgMjAw
+OCAxOToyMTozOSArMDUzMCAiU2FuamVldiBBZGl0eWEgTmFnYSIgPHNhbmplZXYua2VybmVsQGdt
+YWlsLmNvbT4gd3JvdGU6Cj4gID4gPgo+ICA+ID4gID4gSGksCj4gID4gPiAgPgo+ICA+ID4gID4g
+IFRoaXMgaGFwcGVucyBldmVyeXRpbWUgdGhlcmUgaXMgYSBwb3dlciBkaXNjb25uZWN0aW9uCj4g
+ID4gPiAgPiAgKHN3aXRjaGluZyB0byBiYXR0ZXJ5KS4gQ29tcGxldGUgZG1lc2cgYXR0YWNoZWQu
+IFRoaXMKPiAgPiA+ICA+ICBpbiBwYXJ0aWN1bGFyIGlzIG9mIGtlcm5lbCAyLjYuMjQuMy4KPiAg
+PiA+ICA+Cj4gID4gPiAgPiAgR3JlZXRpbmdzLAo+ICA+ID4gID4gIEtpbmQgUmVnYXJkcywKPiAg
+PiA+ICA+ICBTYW5qZWV2Cj4gID4gPiAgPgo+ICA+ID4gID4gIEJVRzogdW5hYmxlIHRvIGhhbmRs
+ZSBrZXJuZWwgTlVMTCBwb2ludGVyIGRlcmVmZXJlbmNlIGF0IHZpcnR1YWwKPiAgPiA+ICA+ICBh
+ZGRyZXNzIDAwMDAwMDIwCj4gID4gPiAgPiAgcHJpbnRpbmcgZWlwOiBjMDRjNDcxNiAqcGRlID0g
+NTc4YzIwNjcKPiAgPiA+ICA+ICBPb3BzOiAwMDAwIFsjMV0gU01QCj4gID4gPiAgPiAgTW9kdWxl
+cyBsaW5rZWQgaW46IGNiYyhVKSBnZW9kZV9hZXMoVSkgYmxrY2lwaGVyKFUpIGFlc19pNTg2KFUp
+Cj4gID4gPiAgPiAgYWVzX2dlbmVyaWMoVSkgZG1fY3J5cHQoVSkgaXB0X01BU1FVRVJBREUoVSkg
+aXB0YWJsZV9uYXQoVSkgbmZfbmF0KFUpCj4gID4gPiAgPiAgYnJpZGdlKFUpIGF1dG9mczQoVSkg
+bmZfY29ubnRyYWNrX2lwdjQoVSkgeHRfc3RhdGUoVSkgbmZfY29ubnRyYWNrKFUpCj4gID4gPiAg
+PiAgeHRfdGNwdWRwKFUpIGlwdF9SRUpFQ1QoVSkgaXB0YWJsZV9maWx0ZXIoVSkgaXBfdGFibGVz
+KFUpIHhfdGFibGVzKFUpCj4gID4gPiAgPiAgY3B1ZnJlcV9vbmRlbWFuZChVKSBhY3BpX2NwdWZy
+ZXEoVSkgZnVzZShVKSBsb29wKFUpIGRtX21pcnJvcihVKQo+ICA+ID4gID4gIGRtX211bHRpcGF0
+aChVKSBkbV9tb2QoVSkgaXB2NihVKSBzbmRfaGRhX2ludGVsKFUpIHNuZF9zZXFfZHVtbXkoVSkK
+PiAgPiA+ICA+ICBzbmRfc2VxX29zcyhVKSBzbmRfc2VxX21pZGlfZXZlbnQoVSkgc25kX3NlcShV
+KSBzbmRfc2VxX2RldmljZShVKQo+ICA+ID4gID4gIHNuZF9wY21fb3NzKFUpIHNyX21vZChVKSBz
+bmRfbWl4ZXJfb3NzKFUpIHNuZF9wY20oVSkgODEzOWNwKFUpCj4gID4gPiAgPiAgc25kX3RpbWVy
+KFUpIGJ1dHRvbihVKSA4MTM5dG9vKFUpIG1paShVKSBzbmRfcGFnZV9hbGxvYyhVKSBjZHJvbShV
+KQo+ICA+ID4gID4gIHZpZGVvKFUpIG91dHB1dChVKSBzbmRfaHdkZXAoVSkgYWMoVSkgc25kKFUp
+IHBjc3BrcihVKSBpMmNfcGlpeDQoVSkKPiAgPiA+ICA+ICBpMmNfY29yZShVKSBiYXR0ZXJ5KFUp
+IGpveWRldihVKSBzb3VuZGNvcmUoVSkgc2coVSkgcGF0YV9hdGlpeHAoVSkKPiAgPiA+ICA+ICBw
+YXRhX2FjcGkoVSkgc2F0YV9zaWwoVSkgYXRhX2dlbmVyaWMoVSkgbGliYXRhKFUpIHNkX21vZChV
+KQo+ICA+ID4gID4gIHNjc2lfbW9kKFUpIGV4dDMoVSkgamJkKFUpIG1iY2FjaGUoVSkgdWhjaV9o
+Y2QoVSkgb2hjaV9oY2QoVSkKPiAgPiA+ICA+ICBlaGNpX2hjZChVKQo+ICA+ID4gID4KPiAgPiA+
+ICA+ICBQaWQ6IDY5LCBjb21tOiBrYWNwaV9ub3RpZnkgTm90IHRhaW50ZWQgKDIuNi4yNC4zICM1
+KQo+ICA+ID4gID4gIEVJUDogMDA2MDpbPGMwNGM0NzE2Pl0gRUZMQUdTOiAwMDAxMDI0NiBDUFU6
+IDAKPiAgPiA+ICA+ICBFSVAgaXMgYXQgc3lzZnNfYWRkcm1fc3RhcnQrMHgyMS8weDgxCj4gID4g
+PiAgPiAgRUFYOiBjMDRjNDdkNyBFQlg6IDAwMDAwMDAwIEVDWDogMDAwMDAwMDAgRURYOiBmNzhi
+ODAwMAo+ICA+ID4gID4gIEVTSTogZjc4YjhlYjggRURJOiBmNzhiOGVjOCBFQlA6IDAwMDAwMDAw
+IEVTUDogZjc4YjhlYTQKPiAgPiA+ICA+ICAgRFM6IDAwN2IgRVM6IDAwN2IgRlM6IDAwZDggR1M6
+IDAwMDAgU1M6IDAwNjgKPiAgPiA+ICA+ICBQcm9jZXNzIGthY3BpX25vdGlmeSAocGlkOiA2OSwg
+dGk9Zjc4YjgwMDAgdGFzaz1mNzhkODAwMCB0YXNrLnRpPWY3OGI4MDAwKQo+ICA+ID4gID4gIFN0
+YWNrOiBmMjI5ZmY1NCBmMjI5ZmY1NCBmNWI4ZDM5MCBmZmZmZmZmNCBjMDRjNGI0NSAwMDAwMDAw
+MCAwMDAwMDAwMCAwMDAwMDAwMAo+ICA+ID4gID4gICAgICAgIDAwMDAwMDAwIGYyMjlmZjU0IDAw
+MDAwMDAwIDAwMDAwMDAwIGY3ODI2MDFjIGMwNGM0YmFiIGY3OGI4ZWUwIGMwNGZlNjVkCj4gID4g
+PiAgPiAgICAgICAgZjIyOWZmNTQgYzA0ZmU4YTggZjcyMmU2N2YgZmZmZmZmZmYgZmZmZmZmZmYg
+MDAwMDAwMDcgZjcyMmU2NzggZjc4MjYxZDgKPiAgPiA+ICA+ICBDYWxsIFRyYWNlOgo+ICA+ID4g
+ID4gICBbPGMwNGM0YjQ1Pl0gY3JlYXRlX2RpcisweDMzLzB4NmMKPiAgPiA+ICA+ICAgWzxjMDRj
+NGJhYj5dIHN5c2ZzX2NyZWF0ZV9kaXIrMHgyZC8weDQwCj4gID4gPiAgPiAgIFs8YzA0ZmU2NWQ+
+XSBrb2JqZWN0X2dldCsweGYvMHgxMwo+ICA+ID4gID4gICBbPGMwNGZlOGE4Pl0ga29iamVjdF9h
+ZGQrMHhkZC8weDE3Ngo+ICA+ID4gID4gICBbPGMwNGZlOWViPl0ga29iamVjdF9yZWdpc3Rlcisw
+eDE5LzB4MmQKPiAgPiA+ICA+ICAgWzxjMDViMGFkMD5dIGNwdWlkbGVfYWRkX3N0YXRlX3N5c2Zz
+KzB4N2IvMHhlNAo+ICA+ID4gID4gICBbPGMwNTI2NjBlPl0gYWNwaV9vc19leGVjdXRlX25vdGlm
+eSsweDAvMHgyYgo+ICA+ID4gID4gICBbPGMwNWIwM2ZkPl0gY3B1aWRsZV9lbmFibGVfZGV2aWNl
+KzB4MzEvMHg5Ygo+ICA+ID4gID4gICBbPGMwNTQ1OTIzPl0gYWNwaV9wcm9jZXNzb3JfY3N0X2hh
+c19jaGFuZ2VkKzB4NDAvMHg1NQo+ICA+ID4gID4gICBbPGMwNTQzYWUyPl0gYWNwaV9wcm9jZXNz
+b3Jfbm90aWZ5KzB4OGIvMHhmNAo+ICA+ID4gID4gICBbPGMwNTJiY2JiPl0gYWNwaV9ldl9ub3Rp
+ZnlfZGlzcGF0Y2grMHg0Yy8weDU1Cj4gID4gPiAgPiAgIFs8YzA1MjY2MzA+XSBhY3BpX29zX2V4
+ZWN1dGVfbm90aWZ5KzB4MjIvMHgyYgo+ICA+ID4gID4gICBbPGMwNTI2NjBlPl0gYWNwaV9vc19l
+eGVjdXRlX25vdGlmeSsweDAvMHgyYgo+ICA+ID4gID4gICBbPGMwNDNjMjEyPl0gcnVuX3dvcmtx
+dWV1ZSsweDdkLzB4MTA3Cj4gID4gPiAgPiAgIFs8YzA0M2ZhNWI+XSBwcmVwYXJlX3RvX3dhaXQr
+MHgyOC8weDQ1Cj4gID4gPiAgPiAgIFs8YzA0M2MzNWE+XSB3b3JrZXJfdGhyZWFkKzB4YmUvMHhj
+YQo+ICA+ID4gID4gICBbPGMwNDNmOGZmPl0gYXV0b3JlbW92ZV93YWtlX2Z1bmN0aW9uKzB4MC8w
+eDM1Cj4gID4gPiAgPiAgIFs8YzA0M2MyOWM+XSB3b3JrZXJfdGhyZWFkKzB4MC8weGNhCj4gID4g
+PiAgPiAgIFs8YzA0M2Y2Nzk+XSBrdGhyZWFkKzB4MzgvMHg1ZAo+ICA+ID4gID4gICBbPGMwNDNm
+NjQxPl0ga3RocmVhZCsweDAvMHg1ZAo+ICA+ID4gID4gICBbPGMwNDA2NDc3Pl0ga2VybmVsX3Ro
+cmVhZF9oZWxwZXIrMHg3LzB4MTAKPiAgPiA+ICA+ICAgPT09PT09PT09PT09PT09PT09PT09PT0K
+PiAgPiA+ICA+ICBDb2RlOiBjMCA4OSAzMSA4MyBjNCAxNCA1YiA1ZSA1ZiBjMyA1NyBiOSAwNCAw
+MCAwMCAwMCA1NiA4OSBjNyA1MyA4OQo+ICA+ID4gID4gIGM2IDgzIGVjIDA0IDg5IGQzIDMxIGMw
+IGYzIGFiIGI4IDkwM2YgNzIgYzAgODkgMTYgZTggNmEgY2YgMTYgMDAgPDhiPgo+ICA+ID4gID4g
+IDUzIDIwIGI5IGVjIDQyIDRjIGMwIGExIDg0IGU0IDgzIGMwIDg5IDFjIDI0IGU4IDQ0IDZlIGZk
+IGZmCj4gID4gPiAgPiAgRUlQOiBbPGMwNGM0NzE2Pl0gc3lzZnNfYWRkcm1fc3RhcnQrMHgyMS8w
+eDgxIFNTOkVTUCAwMDY4OmY3OGI4ZWE0Cj4gID4gPgo+ICA+ID4gIExvb2tzIGxpa2UgYSBjcHVp
+ZGxlIHByb2JsZW0gKG9yIGF0IGxlYXN0IGFjcGkpLgo+ICA+ID4KPiAgPiA+ICBJIHNlZW0gdG8g
+cmVjYWxsIGhhdmluZyBzZWVuIG90aGVyIHJlcG9ydHMgb2YgdGhpcz8KPiAgVGhlbiBpdCBtaWdo
+dCBiZSBzb21ldGhpbmcgZWxzZS4uLgo+Cj4gICAgVGhvbWFzCj4KPgo=
