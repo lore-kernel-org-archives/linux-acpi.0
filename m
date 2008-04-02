@@ -1,92 +1,260 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [>=2.6.23][BUG] Oops on power disconnection
-Date: Wed, 2 Apr 2008 00:14:18 -0700
-Message-ID: <20080402001418.aad6eed2.akpm@linux-foundation.org>
-References: <5681ec900803300645l5369cda4g119957a4b7f05d17@mail.gmail.com>
-	<5681ec900803300651m6e5f38deke1b7746236e5bb9@mail.gmail.com>
+From: "Zhang, Rui" <rui.zhang@intel.com>
+Subject: [PATCH 2/3] thermal: add hwmon sys I/F
+Date: Wed, 02 Apr 2008 16:08:13 +0800
+Message-ID: <1207123693.27304.6.camel@acpi-hp-zz.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59545 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751724AbYDBHOU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Apr 2008 03:14:20 -0400
-In-Reply-To: <5681ec900803300651m6e5f38deke1b7746236e5bb9@mail.gmail.com>
+Received: from mga09.intel.com ([134.134.136.24]:53793 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751705AbYDBIZe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 2 Apr 2008 04:25:34 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sanjeev Aditya Naga <sanjeev.kernel@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Jean Delvare <khali@linux-fr.org>, Hans de Goede <j.w.r.degoede@hhs.nl>
 
-On Sun, 30 Mar 2008 19:21:39 +0530 "Sanjeev Aditya Naga" <sanjeev.kernel@gmail.com> wrote:
 
-> Hi,
-> 
->  This happens everytime there is a power disconnection
->  (switching to battery). Complete dmesg attached. This
->  in particular is of kernel 2.6.24.3.
-> 
->  Greetings,
->  Kind Regards,
->  Sanjeev
-> 
->  BUG: unable to handle kernel NULL pointer dereference at virtual
->  address 00000020
->  printing eip: c04c4716 *pde = 578c2067
->  Oops: 0000 [#1] SMP
->  Modules linked in: cbc(U) geode_aes(U) blkcipher(U) aes_i586(U)
->  aes_generic(U) dm_crypt(U) ipt_MASQUERADE(U) iptable_nat(U) nf_nat(U)
->  bridge(U) autofs4(U) nf_conntrack_ipv4(U) xt_state(U) nf_conntrack(U)
->  xt_tcpudp(U) ipt_REJECT(U) iptable_filter(U) ip_tables(U) x_tables(U)
->  cpufreq_ondemand(U) acpi_cpufreq(U) fuse(U) loop(U) dm_mirror(U)
->  dm_multipath(U) dm_mod(U) ipv6(U) snd_hda_intel(U) snd_seq_dummy(U)
->  snd_seq_oss(U) snd_seq_midi_event(U) snd_seq(U) snd_seq_device(U)
->  snd_pcm_oss(U) sr_mod(U) snd_mixer_oss(U) snd_pcm(U) 8139cp(U)
->  snd_timer(U) button(U) 8139too(U) mii(U) snd_page_alloc(U) cdrom(U)
->  video(U) output(U) snd_hwdep(U) ac(U) snd(U) pcspkr(U) i2c_piix4(U)
->  i2c_core(U) battery(U) joydev(U) soundcore(U) sg(U) pata_atiixp(U)
->  pata_acpi(U) sata_sil(U) ata_generic(U) libata(U) sd_mod(U)
->  scsi_mod(U) ext3(U) jbd(U) mbcache(U) uhci_hcd(U) ohci_hcd(U)
->  ehci_hcd(U)
-> 
->  Pid: 69, comm: kacpi_notify Not tainted (2.6.24.3 #5)
->  EIP: 0060:[<c04c4716>] EFLAGS: 00010246 CPU: 0
->  EIP is at sysfs_addrm_start+0x21/0x81
->  EAX: c04c47d7 EBX: 00000000 ECX: 00000000 EDX: f78b8000
->  ESI: f78b8eb8 EDI: f78b8ec8 EBP: 00000000 ESP: f78b8ea4
->   DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
->  Process kacpi_notify (pid: 69, ti=f78b8000 task=f78d8000 task.ti=f78b8000)
->  Stack: f229ff54 f229ff54 f5b8d390 fffffff4 c04c4b45 00000000 00000000 00000000
->        00000000 f229ff54 00000000 00000000 f782601c c04c4bab f78b8ee0 c04fe65d
->        f229ff54 c04fe8a8 f722e67f ffffffff ffffffff 00000007 f722e678 f78261d8
->  Call Trace:
->   [<c04c4b45>] create_dir+0x33/0x6c
->   [<c04c4bab>] sysfs_create_dir+0x2d/0x40
->   [<c04fe65d>] kobject_get+0xf/0x13
->   [<c04fe8a8>] kobject_add+0xdd/0x176
->   [<c04fe9eb>] kobject_register+0x19/0x2d
->   [<c05b0ad0>] cpuidle_add_state_sysfs+0x7b/0xe4
->   [<c052660e>] acpi_os_execute_notify+0x0/0x2b
->   [<c05b03fd>] cpuidle_enable_device+0x31/0x9b
->   [<c0545923>] acpi_processor_cst_has_changed+0x40/0x55
->   [<c0543ae2>] acpi_processor_notify+0x8b/0xf4
->   [<c052bcbb>] acpi_ev_notify_dispatch+0x4c/0x55
->   [<c0526630>] acpi_os_execute_notify+0x22/0x2b
->   [<c052660e>] acpi_os_execute_notify+0x0/0x2b
->   [<c043c212>] run_workqueue+0x7d/0x107
->   [<c043fa5b>] prepare_to_wait+0x28/0x45
->   [<c043c35a>] worker_thread+0xbe/0xca
->   [<c043f8ff>] autoremove_wake_function+0x0/0x35
->   [<c043c29c>] worker_thread+0x0/0xca
->   [<c043f679>] kthread+0x38/0x5d
->   [<c043f641>] kthread+0x0/0x5d
->   [<c0406477>] kernel_thread_helper+0x7/0x10
->   =======================
->  Code: c0 89 31 83 c4 14 5b 5e 5f c3 57 b9 04 00 00 00 56 89 c7 53 89
->  c6 83 ec 04 89 d3 31 c0 f3 ab b8 903f 72 c0 89 16 e8 6a cf 16 00 <8b>
->  53 20 b9 ec 42 4c c0 a1 84 e4 83 c0 89 1c 24 e8 44 6e fd ff
->  EIP: [<c04c4716>] sysfs_addrm_start+0x21/0x81 SS:ESP 0068:f78b8ea4
+Add hwmon sys I/F for generic thermal driver.
 
-Looks like a cpuidle problem (or at least acpi).
+Note: we have one hwmon class device for _EACH_ type of the thermal zone device.
 
-I seem to recall having seen other reports of this?
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ drivers/thermal/thermal.c |  155 ++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/thermal.h   |   25 +++++++
+ 2 files changed, 180 insertions(+)
+
+Index: linux-2.6/drivers/thermal/thermal.c
+===================================================================
+--- linux-2.6.orig/drivers/thermal/thermal.c
++++ linux-2.6/drivers/thermal/thermal.c
+@@ -30,6 +30,7 @@
+ #include <linux/idr.h>
+ #include <linux/thermal.h>
+ #include <linux/spinlock.h>
++#include <linux/hwmon.h>
+ 
+ MODULE_AUTHOR("Zhang Rui");
+ MODULE_DESCRIPTION("Generic thermal management sysfs support");
+@@ -291,6 +292,155 @@ thermal_cooling_device_trip_point_show(s
+ 
+ /* Device management */
+ 
++#if defined(CONFIG_HWMON) ||	\
++	(defined(CONFIG_HWMON_MODULE) && defined(CONFIG_THERMAL_MODULE))
++/* hwmon sys I/F */
++static LIST_HEAD(thermal_hwmon_list);
++
++static ssize_t
++name_show(struct device *dev, struct device_attribute *attr, char *buf)
++{
++	struct hwmon_device_instance *hwmon =
++			container_of(attr, struct hwmon_device_instance, name);
++	return sprintf(buf, "%s\n", hwmon->type);
++}
++
++static ssize_t
++temp_input_show(struct device *dev, struct device_attribute *attr, char *buf)
++{
++	struct thermal_hwmon_attr *hwmon_attr
++			= container_of(attr, struct thermal_hwmon_attr, attr);
++	struct thermal_zone_device *tz
++			= container_of(hwmon_attr, struct thermal_zone_device,
++				       temp_input);
++
++	return tz->ops->get_temp(tz, buf);
++}
++
++static ssize_t
++temp_crit_show(struct device *dev, struct device_attribute *attr,
++		char *buf)
++{
++	struct thermal_hwmon_attr *hwmon_attr
++			= container_of(attr, struct thermal_hwmon_attr, attr);
++	struct thermal_zone_device *tz
++			= container_of(hwmon_attr, struct thermal_zone_device,
++				       temp_crit);
++
++	return tz->ops->get_trip_temp(tz, 0, buf);
++}
++
++
++static int
++thermal_add_hwmon_sysfs(struct thermal_zone_device *tz)
++{
++	struct hwmon_device_instance *hwmon;
++	int result;
++
++	mutex_lock(&thermal_list_lock);
++	list_for_each_entry(hwmon, &thermal_hwmon_list, node)
++		if (!strcmp(hwmon->type, tz->type)) {
++			list_add_tail(&tz->hwmon_node,
++				      &hwmon->tz_list);
++			mutex_unlock(&thermal_list_lock);
++			tz->hwmon = hwmon;
++			goto register_sys_interface;
++		}
++	mutex_unlock(&thermal_list_lock);
++
++	hwmon = kzalloc(sizeof(struct hwmon_device_instance), GFP_KERNEL);
++	if (!hwmon)
++		return -ENOMEM;
++
++	INIT_LIST_HEAD(&hwmon->tz_list);
++	strcpy(hwmon->type, tz->type);
++	hwmon->device = hwmon_device_register(NULL);
++	hwmon->name.attr.name = "name";
++	hwmon->name.attr.mode = 0444;
++	hwmon->name.show = name_show;
++	result = device_create_file(hwmon->device, &hwmon->name);
++	if (result)
++		return result;
++
++
++	mutex_lock(&thermal_list_lock);
++	list_add_tail(&hwmon->node, &thermal_hwmon_list);
++	list_add_tail(&tz->hwmon_node, &hwmon->tz_list);
++	mutex_unlock(&thermal_list_lock);
++
++	tz->hwmon = hwmon;
++
++  register_sys_interface:
++	hwmon->count++;
++
++	sprintf(tz->temp_input.name, "temp%d_input", hwmon->count);
++	tz->temp_input.attr.attr.name = tz->temp_input.name;
++	tz->temp_input.attr.attr.mode = 0444;
++	tz->temp_input.attr.show = temp_input_show;
++	result = device_create_file(hwmon->device, &tz->temp_input.attr);
++	if (result)
++		return result;
++
++	if (tz->trips > 0) {
++		char buf[40];
++		result = tz->ops->get_trip_type(tz, 0, buf);
++		if (result > 0 && !strcmp(buf, "critical\n")) {
++			sprintf(tz->temp_crit.name,
++				"temp%d_crit", hwmon->count);
++			tz->temp_crit.attr.attr.name = tz->temp_crit.name;
++			tz->temp_crit.attr.attr.mode = 0444;
++			tz->temp_crit.attr.show = temp_crit_show;
++			result = device_create_file(hwmon->device,
++						    &tz->temp_crit.attr);
++			if (result)
++				return result;
++		}
++	}
++
++	return 0;
++}
++
++static int
++thermal_remove_hwmon_sysfs(struct thermal_zone_device *tz)
++{
++	struct hwmon_device_instance *hwmon;
++
++	mutex_lock(&thermal_list_lock);
++	list_for_each_entry(hwmon, &thermal_hwmon_list, node) {
++		if (strcmp(hwmon->type, tz->type))
++			continue;
++
++		device_remove_file(hwmon->device, &tz->temp_input.attr);
++		if (!tz->temp_crit.attr.attr.name)
++			device_remove_file(hwmon->device, &tz->temp_crit.attr);
++		list_del(&tz->hwmon_node);
++		if (list_empty(&tz->hwmon->tz_list)) {
++			device_remove_file(tz->hwmon->device, &tz->hwmon->name);
++			hwmon_device_unregister(tz->hwmon->device);
++			list_del(&tz->hwmon->node);
++			mutex_unlock(&thermal_list_lock);
++			return 0;
++		}
++	}
++	mutex_unlock(&thermal_list_lock);
++
++	return -EINVAL;
++}
++#else
++static int
++thermal_add_hwmon_sysfs(struct thermal_zone_device *tz)
++{
++	return 0;
++}
++
++static int
++thermal_remove_hwmon_sysfs(struct thermal_zone_device *tz)
++{
++	return 0;
++}
++#endif
++
++
+ /**
+  * thermal_zone_bind_cooling_device - bind a cooling device to a thermal zone
+  * @tz:		thermal zone device
+@@ -638,6 +788,10 @@ struct thermal_zone_device *thermal_zone
+ 			goto unregister;
+ 	}
+ 
++	result = thermal_add_hwmon_sysfs(tz);
++	if (result)
++		goto unregister;
++
+ 	mutex_lock(&thermal_list_lock);
+ 	list_add_tail(&tz->node, &thermal_tz_list);
+ 	if (ops->bind)
+@@ -696,6 +850,7 @@ void thermal_zone_device_unregister(stru
+ 	for (count = 0; count < tz->trips; count++)
+ 		TRIP_POINT_ATTR_REMOVE(&tz->device, count);
+ 
++	thermal_remove_hwmon_sysfs(tz);
+ 	release_idr(&thermal_tz_idr, &thermal_idr_lock, tz->id);
+ 	idr_destroy(&tz->idr);
+ 	mutex_destroy(&tz->lock);
+Index: linux-2.6/include/linux/thermal.h
+===================================================================
+--- linux-2.6.orig/include/linux/thermal.h
++++ linux-2.6/include/linux/thermal.h
+@@ -65,6 +65,24 @@ struct thermal_cooling_device {
+ 				((long)t-2732+5)/10 : ((long)t-2732-5)/10)
+ #define CELSIUS_TO_KELVIN(t)	((t)*10+2732)
+ 
++#if defined(CONFIG_HWMON) ||	\
++	(defined(CONFIG_HWMON_MODULE) && defined(CONFIG_THERMAL_MODULE))
++/* thermal zone devices with the same type share one hwmon device */
++struct hwmon_device_instance {
++	char type[THERMAL_NAME_LENGTH];
++	struct device *device;
++	struct device_attribute name;
++	int count;
++	struct list_head tz_list;
++	struct list_head node;
++};
++
++struct thermal_hwmon_attr {
++	struct device_attribute attr;
++	char name[16];
++};
++#endif
++
+ struct thermal_zone_device {
+ 	int id;
+ 	char type[THERMAL_NAME_LENGTH];
+@@ -76,6 +94,13 @@ struct thermal_zone_device {
+ 	struct idr idr;
+ 	struct mutex lock;	/* protect cooling devices list */
+ 	struct list_head node;
++#if defined(CONFIG_HWMON) ||	\
++	(defined(CONFIG_HWMON_MODULE) && defined(CONFIG_THERMAL_MODULE))
++	struct list_head hwmon_node;	/* node in thermal_hwmon_list */
++	struct hwmon_device_instance *hwmon;
++	struct thermal_hwmon_attr temp_input;	/* hwmon sys attr */
++	struct thermal_hwmon_attr temp_crit;	/* hwmon sys attr */
++#endif
+ };
+ 
+ struct thermal_zone_device *thermal_zone_device_register(char *, int, void *,
+
+
