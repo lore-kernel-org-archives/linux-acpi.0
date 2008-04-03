@@ -1,76 +1,100 @@
-From: Rene Herman <rene.herman@keyaccess.nl>
-Subject: Re: [patch 00/37] PNP resource_table cleanups, v2
-Date: Thu, 03 Apr 2008 19:12:16 +0200
-Message-ID: <47F50FF0.40602@keyaccess.nl>
-References: <20080401151634.730901933@ldl.fc.hp.com> <200804021535.22011.bjorn.helgaas@hp.com> <47F4FDCB.2000803@keyaccess.nl> <200804031043.43068.bjorn.helgaas@hp.com>
+From: Andrey Borzenkov <arvidjaar@mail.ru>
+Subject: Re: rc6+ regression - backlight reset to 0 on boot after 7c0ea45be4f114d85ee35caeead8e1660699c46f
+Date: Thu, 3 Apr 2008 22:34:01 +0400
+Message-ID: <200804032234.03605.arvidjaar@mail.ru>
+References: <200804022253.17862.arvidjaar@mail.ru> <1207187979.25346.8.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: multipart/signed;
+  boundary="nextPart1389143.uqrbbUgXvt";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtpq2.tilbu1.nb.home.nl ([213.51.146.201]:38733 "EHLO
-	smtpq2.tilbu1.nb.home.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759998AbYDCRK3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Apr 2008 13:10:29 -0400
-In-Reply-To: <200804031043.43068.bjorn.helgaas@hp.com>
+Received: from mx5.mail.ru ([194.67.23.25]:22722 "EHLO mx5.mail.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754599AbYDCSeK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 3 Apr 2008 14:34:10 -0400
+In-Reply-To: <1207187979.25346.8.camel@yakui_zhao.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 03-04-08 18:43, Bjorn Helgaas wrote:
+--nextPart1389143.uqrbbUgXvt
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-> On Thursday 03 April 2008 09:54:51 am Rene Herman wrote:
->> However, now that you made me look closer and in context -- there's actually 
->> a possibly somewhat serious problem here.
->>
->> isapnp_read_resources() stores the resources as read from the hardware at 
->> the index in the table that matches the actual index in the hardware and 
->> isapnp_set_resources() stores them back into those same hardware indices.
->>
->> Now by using pnp_add_foo_resource() which just scans for the first _UNSET 
->> resource, the resources might not end up in the same linear position in 
->> table/list if intermediate resources were unset in hardware (!ret). A 
->> subsequent isapnp_set_resources() would them restore the value to the wrong 
->> hardware index.
->>
->> The IORESOURCE_ flags currently reserve too few bits (IORESOURCE_BITS,  8) 
->> to be able to store the hardware index: IORESOURCE_MEM and IORESOURCE_DMA 
->> need 2 and 1 respectively and there are 1 and 0 available respectively. It's 
->> ofcourse possible to hijack a few more bits in IORESOURCE_ flags but you're 
->> turning this into a list. I suppose the idea is to make it a simple list of 
->> struct resource, but perhaps a resource-private "driver_data" sort of field 
->> comes in handy for more than this already? Swiping more of IORESOURCE_ is a 
->> bit ugly...
->>
->> In any case, I missed this, but ISAPnP is still (at least in principle) 
->> broken with the current set therefore.
-> 
-> Hmm...  you're right.  And I think it could bite PNPBIOS and PNPACPI
-> as well -- they don't read/write hardware registers directly, but the
-> firmware still depends on preserving the resource order.  I'll have to
-> ponder that for a while.
+On Thursday 03 April 2008, Zhao Yakui wrote:
+> On Wed, 2008-04-02 at 22:53 +0400, Andrey Borzenkov wrote:
+> > Commit 7c0ea45be4f114d85ee35caeead8e1660699c46f registers ACPI backlight
+> > even if _BQC method (query current backlight level) is missing. The eff=
+ect is:
+> >=20
+> > during initialization video.c:acpi_video_device_find_cap() calls backli=
+ght_update_status(). It tries to fetch actual level via acpi_video_get_brig=
+htness() - but as _BQC is missing it just returns current value
+> > as stored in memory - i.e. zero, because it was never set. So effective=
+ly
+> > backlight_update_status() reset brightness to minimal value =3D=3D 0.
+> >=20
+> > This happens on Toshiba Portege 4000. Verified by reverting commit on t=
+op of
+> > rc8.
+> It seems that _BQC object is missing on the Toshiba Portege 4000. And
+> acpi video driver will continue to update the status of backlight even
+> when _BQC object is missing, which is inappropriate.=20
+> Maybe it is more appropriate that OS doesn't update the status of
+> backlight in boot phase when _BQC object is missing.
+>=20
+> Of course please attach the output of acpidump in kernel bugzilla.
+> http://bugzilla.kernel.org/show_bug.cgi?id=3D10387
 
-Both PNPBIOS and PNPACPI should be fine it seems:
+While patch in this bugzilla fixes this immediate regression, I still think
+this commit should be reverted for 2.6.25 to discuss design a bit more.
+Rationale:
 
-pnpbios_get_resources()
-   pnpbios_read_resources_from_node()
-     pnpbios_parse_allocated_resource_data()
-       pnpbios_parse_allocated_irqresource()
-       pnpbios_parse_allocated_dmaresource()
-       pnpbios_parse_allocated_ioresource()
-       pnpbios_parse_allocated_memresource()
+=2D on systems without _BQC it makes sysfs attribute actual_brightness usel=
+ess.
+Semantic of this is to return *real* brightness as reported by hardware; but
+this is noop without _BQC. So currently ACPI simply lies about its value.
+If we are going support hardware without _BQC we probably should not define
+=2D>get_brightness at all allowing read of actual_brightness to fail.
 
-where the latter do the same scan for the first _UNSET resource as the new 
-code does. Same thing for ACPI in the path
+=2D on at least some Toshibas we already have brightness control via HCI
+(toshiba_acpi):
 
-pnpacpi_get_resources()
-   pnpacpi_parse_allocated_resource()
-      pnpacpi_allocated_resource()
-        pnpacpi_parse_allocated_irqresource()
-        pnpacpi_parse_allocated_dmaresource()
-        pnpacpi_parse_allocated_ioresource()
-        pnpacpi_parse_allocated_memresource()
-        pnpacpi_parse_allocated_address_space()
-          pnpacpi_parse_allocated_memresource()
+{pts/0}% ll /sys/class/backlight
+=D0=B8=D1=82=D0=BE=D0=B3=D0=BE 0
+lrwxrwxrwx 1 root root 0 2008-04-03 22:20 acpi_video0 -> ../../devices/virt=
+ual/backlight/acpi_video0/
+lrwxrwxrwx 1 root root 0 2008-04-03 22:19 toshiba -> ../../devices/virtual/=
+backlight/toshiba/
 
-Rene.
+both of them refer to exactly the same hardware which is rather confusing.
+Something has to be done about it. This is even more confusing because ...
+
+=2D ... on those old Toshibas ACPI brightness control is far inferior. It
+effectively supports only three level of brightness while tochiba_acpi
+supports seven of them. So there is no need to keep inferior implementation
+if more advanced already exists and works just fine.
+
+This has strong chances of confusing user space about which control is real.
+So I think we really have to refrain from pushing this unless the issues ab=
+ove
+are settled.
+
+--nextPart1389143.uqrbbUgXvt
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEABECAAYFAkf1IxsACgkQR6LMutpd94yc+QCgxQh8NF76h4rUOL9llue+zSzr
+TyQAoJibtaEVipkPZi1HOtgG3W17jV+8
+=hazl
+-----END PGP SIGNATURE-----
+
+--nextPart1389143.uqrbbUgXvt--
