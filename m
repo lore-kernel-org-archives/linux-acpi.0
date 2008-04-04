@@ -1,95 +1,39 @@
-From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Subject: RE: [>=2.6.23][BUG] Oops on power disconnection
-Date: Thu, 3 Apr 2008 17:31:12 -0700
-Message-ID: <924EFEDD5F540B4284297C4DC59F3DEED0EA3C@orsmsx423.amr.corp.intel.com>
-References: <5681ec900803300645l5369cda4g119957a4b7f05d17@mail.gmail.com> <5681ec900803300651m6e5f38deke1b7746236e5bb9@mail.gmail.com> <20080402001418.aad6eed2.akpm@linux-foundation.org> <5681ec900804020608o62be52c4ted172e18daf24f5b@mail.gmail.com> <1207147729.30061.9.camel@hammer1.suse.de> <5681ec900804020913t4adc38b1r2e424fa8bbdda241@mail.gmail.com> <1207159974.4700.6.camel@queen.suse.de> <5681ec900804030915w720f3ccfp74e5d501ca3d6b56@mail.gmail.com> <1207256678.6024.90.camel@linux-2bdv.site>
+From: Gabriel C <nix.or.die@googlemail.com>
+Subject: array subscript is above array bounds warnings with gcc4.3
+Date: Fri, 04 Apr 2008 19:31:18 +0200
+Message-ID: <47F665E6.2010409@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:29890 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752069AbYDDAbL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 3 Apr 2008 20:31:11 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <1207256678.6024.90.camel@linux-2bdv.site>
+Received: from nf-out-0910.google.com ([64.233.182.184]:17372 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752875AbYDDRbY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Apr 2008 13:31:24 -0400
+Received: by nf-out-0910.google.com with SMTP id g13so116274nfb.21
+        for <linux-acpi@vger.kernel.org>; Fri, 04 Apr 2008 10:31:22 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: trenn@suse.de, Sanjeev Aditya Naga <sanjeev.kernel@gmail.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Li, Shaohua" <shaohua.li@intel.com>
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Gabriel C <crazy@frugalware.org>, netdev <netdev@vger.kernel.org>, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org
 
-IA0KDQo+LS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj5Gcm9tOiBUaG9tYXMgUmVubmluZ2Vy
-IFttYWlsdG86dHJlbm5Ac3VzZS5kZV0gDQo+U2VudDogVGh1cnNkYXksIEFwcmlsIDAzLCAyMDA4
-IDI6MDUgUE0NCj5UbzogU2FuamVldiBBZGl0eWEgTmFnYQ0KPkNjOiBBbmRyZXcgTW9ydG9uOyBs
-aW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnOyANCj5saW51eC1hY3BpQHZnZXIua2VybmVsLm9y
-ZzsgUGFsbGlwYWRpLCBWZW5rYXRlc2g7IExpLCBTaGFvaHVhDQo+U3ViamVjdDogUmU6IFs+PTIu
-Ni4yM11bQlVHXSBPb3BzIG9uIHBvd2VyIGRpc2Nvbm5lY3Rpb24NCj4NCj4NCj5PbiBUaHUsIDIw
-MDgtMDQtMDMgYXQgMjE6NDUgKzA1MzAsIFNhbmplZXYgQWRpdHlhIE5hZ2Egd3JvdGU6DQo+PiBI
-ZWxsbyBUaG9tYXMsDQo+PiANCj4+IE9uIFdlZCwgQXByIDIsIDIwMDggYXQgMTE6NDIgUE0sIFRo
-b21hcyBSZW5uaW5nZXIgDQo+PHRyZW5uQHN1c2UuZGU+IHdyb3RlOg0KPj4gPg0KPj4gPiBPbiBX
-ZWQsIDIwMDgtMDQtMDIgYXQgMjE6NDMgKzA1MzAsIFNhbmplZXYgQWRpdHlhIE5hZ2Egd3JvdGU6
-DQo+PiA+ICA+IEhlbGxvIFRob21hcywNCj4+ID4gID4NCj4+ID4gID4gPiBIaSwNCj4+ID4gID4g
-Pg0KPj4gPiAgPiA+DQo+PiA+ICA+ID4gIE9uIFdlZCwgMjAwOC0wNC0wMiBhdCAxODozOCArMDUz
-MCwgU2FuamVldiBBZGl0eWEgTmFnYSB3cm90ZToNCj4+ID4gID4gPiAgPiBIZWxsbyBBbmRyZXcg
-TW9ydG9uLA0KPj4gPiAgPiA+ICA+DQo+PiA+ICA+ID4gID4gR3JlZXRpbmdzIQ0KPj4gPiAgPiA+
-ICA+DQo+PiA+ICA+ID4gID4gVGhhbmsgeW91IGZvciB0aGUgdXBkYXRlLiBJcyB0aGVyZSBhbnl0
-aGluZyBJIGNhbiBkbw0KPj4gPiAgPiA+ICA+IGZyb20gbXkgc2lkZT8NCj4+ID4gID4gPiAgPg0K
-Pj4gPiAgPiA+ICA+IEkgdGhvdWdodCBpdCB3YXMgYSBhY3BpIChkc2R0KSBwcm9ibGVtLiBBbmQg
-YmFzZWQgb24NCj4+ID4gID4gPiAgPiBhIHR1dG9yaWFsLCBJIGhhdmUgdHJpZWQgdG8gZXh0cmFj
-dCwgZml4LCANCj5yZWNvbXBpbGUgdGhlIGRzZHQNCj4+ID4gID4gPiAgPiBhbmQgdXNlIGl0IHdp
-dGggdGhlIGtlcm5lbC4gQnV0IHN0aWxsIEkgaGF2ZSB0aGUgDQo+c2FtZSBwcm9ibGVtLg0KPj4g
-PiAgPiA+ICA+IExldCBtZSBrbm93IGlmIEkgc2hhbGwgYXR0YWNoIHRoZSBkc2R0IChvcmlnaW5h
-bCkgDQo+ZGVjb21waWxlZA0KPj4gPiAgPiA+ICA+IGNvZGUsIGlmIHRoYXQgaGVscHMuDQo+PiA+
-ICA+ID4NCj4+ID4gID4gPiAgdGhpcyBjb3VsZCBiZSBkdWUgYSBnZW5lcmFsIG1lbW9yeSBjb3Jy
-dXB0aW9uIA0KPnByb2JsZW0gdGhyb3VnaCBBQ1BJQ0EuDQo+PiA+ICA+ID4gIElmIHlvdSBnZXQg
-ZGlmZmVyZW50IGJhY2t0cmFjZXMgb24gcmVib290cyBldmVuIHlvdSANCj5vbmx5IG1vZGlmaWVk
-IHRoaW5ncw0KPj4gPiAgPiA+ICB0aGF0IGRvIG5vdCBoYXZlIHRvIGRvIHdpdGggdGhlIHByb2Js
-ZW0sIGl0J3MgDQo+cHJvYmFibHkgdGhhdCBhbmQgcmVsYXRlZA0KPj4gPiAgPiA+ICB0bzoNCj4+
-ID4gID4gPiAg77u/aHR0cDovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lkPTEw
-MzM5DQo+PiA+ICA+ID4NCj4+ID4gID4gPiAgWW91IG1pZ2h0IHdhbnQgdG8gdHJ5IHRoZSBsYXRl
-c3Qga2VybmVsIG9yIHRoZSBwYXRjaCANCj5wb3N0ZWQgdGhlcmUuDQo+PiA+ICA+DQo+PiA+ICA+
-IFRoYW5rIHlvdSBmb3IgdGhlIHVwZGF0ZS4NCj4+ID4gID4gSSBoYXZlIGNoZWNrZWQgdGhlIGJ1
-ZyBhbmQgdW5mb3J0dW5hdGVseSBpdHMgbm90IHRoZQ0KPj4gPiAgPiBzYW1lIGlzc3VlLiBUaGlu
-Z3Mgd29yayBhYnNvbHV0ZWx5IGZpbmUsIHdoZW4gSSdtDQo+PiA+ICA+IHJ1bm5pbmcgb24gQUMg
-cG93ZXIuIEl0IGV2ZW4gZGlzcGxheXMgdGhlIGV4YWN0DQo+PiA+ICA+IGJhdHRlcnkgKGFuZCBj
-aGFyZ2luZykgc3RhdHVzIHRvIG1lLiBJdCBtZXNzZXMgdXANCj4+ID4gID4gd2hlbiBzdWRkZW5s
-eSBBQyBwb3dlciBnZXRzIGRpc2Nvbm5lY3RlZCBhbmQNCj4+ID4gID4gc3dpdGNoZXMgdG8gYmF0
-dGVyeSBtb2RlIChUaGUgdGltZSB3aGVuIEkgZ2V0IE9vcHMpLg0KPj4gPiAgPiBUaGUgc3lzdGVt
-IGlzIHN0aWxsIHVzYWJsZSBhZnRlciBzd2l0Y2hpbmcgdG8gYmF0dGVyeQ0KPj4gPiAgPiBtb2Rl
-IGFuZCBJIHN0aWxsIGdldCBjb3JyZWN0IGJhdHRlcnkgc3RhdHMgdW50aWwgaXRzDQo+PiA+ICA+
-IGNvbXBsZXRlbHkgZGlzY2hhcmdlZC4gSG93ZXZlciBtb3N0IG9mIHRoZSBjb21tYW5kcw0KPj4g
-PiAgPiBsaWtlIGtpbGwsIHBvd2Vyb2ZmLCBqYXZhIGRvZXNuJ3Qgd29yayBhZnRlciB0aGUgT29w
-cy4NCj4+ID4gIFRoZSBidWcgaXMgbm90IHJlbGF0ZWQgdG8gYmF0dGVyeSwgYnV0IHRvIEFNTCBw
-YXJzaW5nIGFuZCANCj5jYW4gdGhlcmVmb3JlDQo+PiA+ICBhZmZlY3QgYW55dGhpbmcgd2hpY2gg
-aXMgQUNQSSByZWxhdGVkLg0KPj4gPg0KPj4gPg0KPj4gPiAgPiBCVFcgdGhlcmUgaXMgb25lIHNp
-bWlsYXJpdHkgd2l0aCB0aGUgcmVmZXJlbmNlZCBidWcuDQo+PiA+ICA+IElmIEkgYm9vdCB0aGUg
-Y29tcHV0ZXIgd2l0aG91dCBBQyBQb3dlciwgaXQgZ2l2ZXMgdGhlDQo+PiA+ICA+IHNhbWUgT29w
-cyBhbmQgc3RvcHMgZHVyaW5nIGJvb3RpbmcgaXRzZWxmLg0KPj4gPiAgPg0KPj4gPiAgPiBJIHNo
-YWxsIHRyeSB0aGUgbGF0ZXN0IGtlcm5lbCBvbmNlIGFuZCBzaGFsbCB1cGRhdGUgeW91Lg0KPj4g
-PiAgVGhhdCB3b3VsZCBiZSBncmVhdC4NCj4+ID4gIElmIGl0IHdvcmtzLCBwbGVhc2UgZ2l2ZSB0
-aGUgcGF0Y2ggdGhlcmUgYSB0cnksIElNTyB0aGlzIA0KPm9uZSBzaG91bGQgc2VlDQo+PiA+ICAy
-LjYuMlszNF0uWCBzdGFibGUga2VybmVscyBzb29uLg0KPj4gDQo+PiBJIGhhdmUgZ290IHRoZSBs
-YXN0ZXN0IGtlcm5lbCAyLjYuMjUtcmM4IHRvZGF5LiBJIG9ic2VydmVkIHRoYXQNCj4+IHRoZSBy
-ZWZlcmVuY2VkIHBhdGNoIGlzIGFscmVhZHkgaW4gdGhlIGtlcm5lbC4gSG93ZXZlciB0aGlzIGRp
-ZG4ndA0KPj4gc29sdmUgdGhlIHByb2JsZW0gaW4gcXVlc3Rpb24uIEkgZ2V0IHRoZSBzYW1lIE9v
-cHMgb24gdGhpcyBrZXJuZWwNCj4+IGFzIHdlbGwuIEZpbmQgdGhlIGxhdGVzdCBkbWVzZyBhbG9u
-ZyB3aXRoIHRoZSBPb3BzOg0KPk9rLg0KPk1heWJlIGJlc3QgaXMgeW91IGRvY3VtZW50IHRoZSBi
-YWNrdHJhY2VzL29vcHNlcyB3aXRoIGtlcm5lbCANCj52ZXJzaW9ucyBhdA0KPmJ1Z3ppbGxhLmtl
-cm5lbC5vcmcgYW5kIGFkZCBkbWVzZyBhbmQgYWNwaWR1bXAuDQo+SXQgc2VlbXMgeW91ciBtYWNo
-aW5lIG5vdGlmaWVzIE9TIHRoYXQgdGhlIEMtc3RhdGUgdGFibGUgY2hhbmdlZC4NCj5BRkFJSyB0
-aGlzIGlzIHJhcmUgYW5kIHRoZXJlIG1pZ2h0IGJlIGEgZ2VuZXJhbCBidWcgaW4gdGhlIA0KPmNw
-dWlkbGUgbGF5ZXINCj53aGljaCBJIGRvIG5vdCBrbm93IHdlbGwuDQo+QmVzdCB5b3UgYWRkIFZl
-bmthdGVzaCBhbmQgU2hhb2h1YSBMaSA8c2hhb2h1YS5saUBpbnRlbC5jb20+IHRvIENDIG9mDQo+
-dGhlIGJ1Zy4NCj5XaGlsZSB0aGUgYmFja3RyYWNlIHNob3dzIGEgbG90LCBjcHVpZGxlIElNTyBp
-cyBtaXNzaW5nIGEgZ2VuZXJhbCBkZWJ1Zw0KPm9wdGlvbiBsaWtlIGluIHRoZSBjcHVmcmVxIGxh
-eWVyLg0KPkkgY291bGRuJ3QgZmluZCBhIHNpbmdsZSBwcmludGsgaW4gdGhlIHdob2xlIGNwdWlk
-bGUve2NwdWlkbGUsc3lzZnN9LmMNCj5maWxlcywgZXZlbiBvbiBlcnJvciBwYXRocy4g77u/QWxz
-byBpbiB0aGUgY3B1aWRsZSBzcGVjaWZpYyBwYXJ0cyBvZg0KPmRyaXZlcnMvYWNwaS9wcm9jZXNz
-b3JfaWRsZS5jIHNvbWUgZGVidWcgcHJpbnRrcyBtYXkgaGVscCBmb3IgDQo+ZnV0dXJlIGJ1Zw0K
-PnJlcG9ydHMuIEl0IGlzIHZlcnkgaGFyZCB0byBndWVzcyB3aGF0IGhhcHBlbmVkLi4uDQo+DQoN
-ClRoaXMgbG9va3MgbGlrZSBjcHVpZGxlIGFuZCBrb2JqZWN0IGludGVyYWN0aW9uLg0KVGhlIGxh
-dGVzdCBvb3BzIGxvb2tzIGRpZmZlcmVudCBmcm9tIHRoZSBvcmlnaW5hbCBvbmUuIExhdGVzdCBv
-bmUgaXMgYQ0Kd2Fybl9vbiBpbiBsaWIva3JlZi5jOjQzDQoNCldlIChNZSBvciBTaGFvaHVhKSB3
-aWxsIHRha2UgYSBkZWVwZXIgbG9vayBhdCBnZXQgYmFjayBvbiB0aGlzLg0KDQpUaGFua3MsDQpW
-ZW5raQ0KDQo=
+Hi,
+
+I noticed these warning on my randconfig logs of some builds :
+
+..
+
+drivers/usb/core/hcd.c: In function 'usb_hcd_poll_rh_status':                                                                                                
+include/asm/string_32.h:65: warning: array subscript is above array bounds
+
+net/netfilter/nf_conntrack_proto_sctp.c: In function 'sctp_packet':                                                                                          
+net/netfilter/nf_conntrack_proto_sctp.c:374: warning: array subscript is above array bounds
+
+drivers/acpi/tables/tbfadt.c: In function 'acpi_tb_create_local_fadt':                                                                                       
+include/asm/string_32.h:65: warning: array subscript is above array bounds
+
+...
+
+Regards,
+
+Gabriel
