@@ -1,37 +1,98 @@
-From: Mark Smith
-	<nanog@85d5b20a518b8f6864949bd940457dc124746ddc.nosense.org>
-Subject: As requested, DMI info from kernel boot
-Date: Sat, 5 Apr 2008 11:07:52 +1030
-Message-ID: <20080405110752.b275e6d5.nanog@85d5b20a518b8f6864949bd940457dc124746ddc.nosense.org>
+From: "Sanjeev Aditya Naga" <sanjeev.kernel@gmail.com>
+Subject: Re: [>=2.6.23][BUG] Oops on power disconnection
+Date: Sat, 5 Apr 2008 18:45:42 +0530
+Message-ID: <5681ec900804050615y59bca042g648df348914b6062@mail.gmail.com>
+References: <5681ec900803300645l5369cda4g119957a4b7f05d17@mail.gmail.com>
+	 <5681ec900803300651m6e5f38deke1b7746236e5bb9@mail.gmail.com>
+	 <20080402001418.aad6eed2.akpm@linux-foundation.org>
+	 <5681ec900804020608o62be52c4ted172e18daf24f5b@mail.gmail.com>
+	 <1207147729.30061.9.camel@hammer1.suse.de>
+	 <5681ec900804020913t4adc38b1r2e424fa8bbdda241@mail.gmail.com>
+	 <1207159974.4700.6.camel@queen.suse.de>
+	 <5681ec900804030915w720f3ccfp74e5d501ca3d6b56@mail.gmail.com>
+	 <1207256678.6024.90.camel@linux-2bdv.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mistral.mail.adnap.net.au ([203.6.132.90]:56401 "EHLO
-	mistral.mail.adnap.net.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751930AbYDEBaE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Apr 2008 21:30:04 -0400
-Received: from 219-90-178-84.ip.adam.com.au ([219.90.178.84] helo=mail.nosense.org)
-	by mistral.mail.adnap.net.au with esmtp (Exim 4.69 (FreeBSD))
-	(envelope-from <nanog@85d5b20a518b8f6864949bd940457dc124746ddc.nosense.org>)
-	id 1JhwRG-000A8n-GK
-	for linux-acpi@vger.kernel.org; Sat, 05 Apr 2008 11:09:22 +1030
-Received: from ubu.nosense.org (localhost.localdomain [127.0.0.1])
-	by mail.nosense.org (Postfix) with SMTP id 2D2485F93A
-	for <linux-acpi@vger.kernel.org>; Sat,  5 Apr 2008 11:07:53 +1030 (CST)
+Received: from wr-out-0506.google.com ([64.233.184.227]:23163 "EHLO
+	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751646AbYDENPn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 5 Apr 2008 09:15:43 -0400
+Received: by wr-out-0506.google.com with SMTP id c48so412332wra.1
+        for <linux-acpi@vger.kernel.org>; Sat, 05 Apr 2008 06:15:42 -0700 (PDT)
+In-Reply-To: <1207256678.6024.90.camel@linux-2bdv.site>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: trenn@suse.de
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, "Li, Shaohua" <shaohua.li@intel.com>
 
-
-
-ACPI: DMI System Vendor: Dell Inc.
-ACPI: DMI Product Name: OptiPlex 755                 
-ACPI: DMI Product Version: 
-ACPI: DMI Board Name: 0GM819
-ACPI: DMI BIOS Vendor: Dell Inc.
-ACPI: DMI BIOS Date: 02/19/2008
-
-
-Regards,
-Mark.
+SGVsbG8gVGhvbWFzLAoKT24gRnJpLCBBcHIgNCwgMjAwOCBhdCAyOjM0IEFNLCBUaG9tYXMgUmVu
+bmluZ2VyIDx0cmVubkBzdXNlLmRlPiB3cm90ZToKPgo+Cj4gIE9uIFRodSwgMjAwOC0wNC0wMyBh
+dCAyMTo0NSArMDUzMCwgU2FuamVldiBBZGl0eWEgTmFnYSB3cm90ZToKPiAgPiBIZWxsbyBUaG9t
+YXMsCj4gID4KPiAgPiBPbiBXZWQsIEFwciAyLCAyMDA4IGF0IDExOjQyIFBNLCBUaG9tYXMgUmVu
+bmluZ2VyIDx0cmVubkBzdXNlLmRlPiB3cm90ZToKPiAgPiA+Cj4gID4gPiBPbiBXZWQsIDIwMDgt
+MDQtMDIgYXQgMjE6NDMgKzA1MzAsIFNhbmplZXYgQWRpdHlhIE5hZ2Egd3JvdGU6Cj4gID4gPiAg
+PiBIZWxsbyBUaG9tYXMsCj4gID4gPiAgPgo+ICA+ID4gID4gPiBIaSwKPiAgPiA+ICA+ID4KPiAg
+PiA+ICA+ID4KPiAgPiA+ICA+ID4gIE9uIFdlZCwgMjAwOC0wNC0wMiBhdCAxODozOCArMDUzMCwg
+U2FuamVldiBBZGl0eWEgTmFnYSB3cm90ZToKPiAgPiA+ICA+ID4gID4gSGVsbG8gQW5kcmV3IE1v
+cnRvbiwKPiAgPiA+ICA+ID4gID4KPiAgPiA+ICA+ID4gID4gR3JlZXRpbmdzIQo+ICA+ID4gID4g
+PiAgPgo+ICA+ID4gID4gPiAgPiBUaGFuayB5b3UgZm9yIHRoZSB1cGRhdGUuIElzIHRoZXJlIGFu
+eXRoaW5nIEkgY2FuIGRvCj4gID4gPiAgPiA+ICA+IGZyb20gbXkgc2lkZT8KPiAgPiA+ICA+ID4g
+ID4KPiAgPiA+ICA+ID4gID4gSSB0aG91Z2h0IGl0IHdhcyBhIGFjcGkgKGRzZHQpIHByb2JsZW0u
+IEFuZCBiYXNlZCBvbgo+ICA+ID4gID4gPiAgPiBhIHR1dG9yaWFsLCBJIGhhdmUgdHJpZWQgdG8g
+ZXh0cmFjdCwgZml4LCByZWNvbXBpbGUgdGhlIGRzZHQKPiAgPiA+ICA+ID4gID4gYW5kIHVzZSBp
+dCB3aXRoIHRoZSBrZXJuZWwuIEJ1dCBzdGlsbCBJIGhhdmUgdGhlIHNhbWUgcHJvYmxlbS4KPiAg
+PiA+ICA+ID4gID4gTGV0IG1lIGtub3cgaWYgSSBzaGFsbCBhdHRhY2ggdGhlIGRzZHQgKG9yaWdp
+bmFsKSBkZWNvbXBpbGVkCj4gID4gPiAgPiA+ICA+IGNvZGUsIGlmIHRoYXQgaGVscHMuCj4gID4g
+PiAgPiA+Cj4gID4gPiAgPiA+ICB0aGlzIGNvdWxkIGJlIGR1ZSBhIGdlbmVyYWwgbWVtb3J5IGNv
+cnJ1cHRpb24gcHJvYmxlbSB0aHJvdWdoIEFDUElDQS4KPiAgPiA+ICA+ID4gIElmIHlvdSBnZXQg
+ZGlmZmVyZW50IGJhY2t0cmFjZXMgb24gcmVib290cyBldmVuIHlvdSBvbmx5IG1vZGlmaWVkIHRo
+aW5ncwo+ICA+ID4gID4gPiAgdGhhdCBkbyBub3QgaGF2ZSB0byBkbyB3aXRoIHRoZSBwcm9ibGVt
+LCBpdCdzIHByb2JhYmx5IHRoYXQgYW5kIHJlbGF0ZWQKPiAgPiA+ICA+ID4gIHRvOgo+ICA+ID4g
+ID4gPiAg77u/aHR0cDovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lkPTEwMzM5
+Cj4gID4gPiAgPiA+Cj4gID4gPiAgPiA+ICBZb3UgbWlnaHQgd2FudCB0byB0cnkgdGhlIGxhdGVz
+dCBrZXJuZWwgb3IgdGhlIHBhdGNoIHBvc3RlZCB0aGVyZS4KPiAgPiA+ICA+Cj4gID4gPiAgPiBU
+aGFuayB5b3UgZm9yIHRoZSB1cGRhdGUuCj4gID4gPiAgPiBJIGhhdmUgY2hlY2tlZCB0aGUgYnVn
+IGFuZCB1bmZvcnR1bmF0ZWx5IGl0cyBub3QgdGhlCj4gID4gPiAgPiBzYW1lIGlzc3VlLiBUaGlu
+Z3Mgd29yayBhYnNvbHV0ZWx5IGZpbmUsIHdoZW4gSSdtCj4gID4gPiAgPiBydW5uaW5nIG9uIEFD
+IHBvd2VyLiBJdCBldmVuIGRpc3BsYXlzIHRoZSBleGFjdAo+ICA+ID4gID4gYmF0dGVyeSAoYW5k
+IGNoYXJnaW5nKSBzdGF0dXMgdG8gbWUuIEl0IG1lc3NlcyB1cAo+ICA+ID4gID4gd2hlbiBzdWRk
+ZW5seSBBQyBwb3dlciBnZXRzIGRpc2Nvbm5lY3RlZCBhbmQKPiAgPiA+ICA+IHN3aXRjaGVzIHRv
+IGJhdHRlcnkgbW9kZSAoVGhlIHRpbWUgd2hlbiBJIGdldCBPb3BzKS4KPiAgPiA+ICA+IFRoZSBz
+eXN0ZW0gaXMgc3RpbGwgdXNhYmxlIGFmdGVyIHN3aXRjaGluZyB0byBiYXR0ZXJ5Cj4gID4gPiAg
+PiBtb2RlIGFuZCBJIHN0aWxsIGdldCBjb3JyZWN0IGJhdHRlcnkgc3RhdHMgdW50aWwgaXRzCj4g
+ID4gPiAgPiBjb21wbGV0ZWx5IGRpc2NoYXJnZWQuIEhvd2V2ZXIgbW9zdCBvZiB0aGUgY29tbWFu
+ZHMKPiAgPiA+ICA+IGxpa2Uga2lsbCwgcG93ZXJvZmYsIGphdmEgZG9lc24ndCB3b3JrIGFmdGVy
+IHRoZSBPb3BzLgo+ICA+ID4gIFRoZSBidWcgaXMgbm90IHJlbGF0ZWQgdG8gYmF0dGVyeSwgYnV0
+IHRvIEFNTCBwYXJzaW5nIGFuZCBjYW4gdGhlcmVmb3JlCj4gID4gPiAgYWZmZWN0IGFueXRoaW5n
+IHdoaWNoIGlzIEFDUEkgcmVsYXRlZC4KPiAgPiA+Cj4gID4gPgo+ICA+ID4gID4gQlRXIHRoZXJl
+IGlzIG9uZSBzaW1pbGFyaXR5IHdpdGggdGhlIHJlZmVyZW5jZWQgYnVnLgo+ICA+ID4gID4gSWYg
+SSBib290IHRoZSBjb21wdXRlciB3aXRob3V0IEFDIFBvd2VyLCBpdCBnaXZlcyB0aGUKPiAgPiA+
+ICA+IHNhbWUgT29wcyBhbmQgc3RvcHMgZHVyaW5nIGJvb3RpbmcgaXRzZWxmLgo+ICA+ID4gID4K
+PiAgPiA+ICA+IEkgc2hhbGwgdHJ5IHRoZSBsYXRlc3Qga2VybmVsIG9uY2UgYW5kIHNoYWxsIHVw
+ZGF0ZSB5b3UuCj4gID4gPiAgVGhhdCB3b3VsZCBiZSBncmVhdC4KPiAgPiA+ICBJZiBpdCB3b3Jr
+cywgcGxlYXNlIGdpdmUgdGhlIHBhdGNoIHRoZXJlIGEgdHJ5LCBJTU8gdGhpcyBvbmUgc2hvdWxk
+IHNlZQo+ICA+ID4gIDIuNi4yWzM0XS5YIHN0YWJsZSBrZXJuZWxzIHNvb24uCj4gID4KPiAgPiBJ
+IGhhdmUgZ290IHRoZSBsYXN0ZXN0IGtlcm5lbCAyLjYuMjUtcmM4IHRvZGF5LiBJIG9ic2VydmVk
+IHRoYXQKPiAgPiB0aGUgcmVmZXJlbmNlZCBwYXRjaCBpcyBhbHJlYWR5IGluIHRoZSBrZXJuZWwu
+IEhvd2V2ZXIgdGhpcyBkaWRuJ3QKPiAgPiBzb2x2ZSB0aGUgcHJvYmxlbSBpbiBxdWVzdGlvbi4g
+SSBnZXQgdGhlIHNhbWUgT29wcyBvbiB0aGlzIGtlcm5lbAo+ICA+IGFzIHdlbGwuIEZpbmQgdGhl
+IGxhdGVzdCBkbWVzZyBhbG9uZyB3aXRoIHRoZSBPb3BzOgo+ICBPay4KPiAgTWF5YmUgYmVzdCBp
+cyB5b3UgZG9jdW1lbnQgdGhlIGJhY2t0cmFjZXMvb29wc2VzIHdpdGgga2VybmVsIHZlcnNpb25z
+IGF0Cj4gIGJ1Z3ppbGxhLmtlcm5lbC5vcmcgYW5kIGFkZCBkbWVzZyBhbmQgYWNwaWR1bXAuCj4g
+IEl0IHNlZW1zIHlvdXIgbWFjaGluZSBub3RpZmllcyBPUyB0aGF0IHRoZSBDLXN0YXRlIHRhYmxl
+IGNoYW5nZWQuCj4gIEFGQUlLIHRoaXMgaXMgcmFyZSBhbmQgdGhlcmUgbWlnaHQgYmUgYSBnZW5l
+cmFsIGJ1ZyBpbiB0aGUgY3B1aWRsZSBsYXllcgo+ICB3aGljaCBJIGRvIG5vdCBrbm93IHdlbGwu
+Cj4gIEJlc3QgeW91IGFkZCBWZW5rYXRlc2ggYW5kIFNoYW9odWEgTGkgPHNoYW9odWEubGlAaW50
+ZWwuY29tPiB0byBDQyBvZgo+ICB0aGUgYnVnLgo+ICBXaGlsZSB0aGUgYmFja3RyYWNlIHNob3dz
+IGEgbG90LCBjcHVpZGxlIElNTyBpcyBtaXNzaW5nIGEgZ2VuZXJhbCBkZWJ1Zwo+ICBvcHRpb24g
+bGlrZSBpbiB0aGUgY3B1ZnJlcSBsYXllci4KPiAgSSBjb3VsZG4ndCBmaW5kIGEgc2luZ2xlIHBy
+aW50ayBpbiB0aGUgd2hvbGUgY3B1aWRsZS97Y3B1aWRsZSxzeXNmc30uYwo+ICBmaWxlcywgZXZl
+biBvbiBlcnJvciBwYXRocy4g77u/QWxzbyBpbiB0aGUgY3B1aWRsZSBzcGVjaWZpYyBwYXJ0cyBv
+Zgo+ICBkcml2ZXJzL2FjcGkvcHJvY2Vzc29yX2lkbGUuYyBzb21lIGRlYnVnIHByaW50a3MgbWF5
+IGhlbHAgZm9yIGZ1dHVyZSBidWcKPiAgcmVwb3J0cy4gSXQgaXMgdmVyeSBoYXJkIHRvIGd1ZXNz
+IHdoYXQgaGFwcGVuZWQuLi4KClRoYW5rIHlvdSBmb3IgdGhlIHVwZGF0ZToKCkkgaGF2ZSBqdXN0
+IHJlZ2lzdGVyZWQgYSBidWcgYXQKaHR0cDovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcu
+Y2dpP2lkPTEwMzk0CmFzIGRpcmVjdGVkIGJ5IHlvdS4KCktpbmQgUmVnYXJkcywKU2FuamVldgo=
