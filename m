@@ -1,48 +1,37 @@
-From: Alok Kataria <akataria@vmware.com>
-Subject: Fix "buggy BIOS check" when CPUs are hot removed
-Date: Fri, 04 Apr 2008 16:48:44 -0700
-Message-ID: <1207352924.6294.29.camel@promb-2n-dhcp158.eng.vmware.com>
+From: Mark Smith
+	<nanog@85d5b20a518b8f6864949bd940457dc124746ddc.nosense.org>
+Subject: As requested, DMI info from kernel boot
+Date: Sat, 5 Apr 2008 11:07:52 +1030
+Message-ID: <20080405110752.b275e6d5.nanog@85d5b20a518b8f6864949bd940457dc124746ddc.nosense.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-outbound-1.vmware.com ([65.113.40.141]:49128 "EHLO
-	smtp-outbound-1.vmware.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751242AbYDDXsp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Apr 2008 19:48:45 -0400
+Received: from mistral.mail.adnap.net.au ([203.6.132.90]:56401 "EHLO
+	mistral.mail.adnap.net.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751930AbYDEBaE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Apr 2008 21:30:04 -0400
+Received: from 219-90-178-84.ip.adam.com.au ([219.90.178.84] helo=mail.nosense.org)
+	by mistral.mail.adnap.net.au with esmtp (Exim 4.69 (FreeBSD))
+	(envelope-from <nanog@85d5b20a518b8f6864949bd940457dc124746ddc.nosense.org>)
+	id 1JhwRG-000A8n-GK
+	for linux-acpi@vger.kernel.org; Sat, 05 Apr 2008 11:09:22 +1030
+Received: from ubu.nosense.org (localhost.localdomain [127.0.0.1])
+	by mail.nosense.org (Postfix) with SMTP id 2D2485F93A
+	for <linux-acpi@vger.kernel.org>; Sat,  5 Apr 2008 11:07:53 +1030 (CST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: len.brown@intel.com, rui.zhang@intel.com
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Daniel Arai <arai@vmware.com>, Zachary Amsden <zach@vmware.com>
-
-Fixes a BUG in ACPI hotplugging.
-
-processor_device_array[pr->id] needs to be set to NULL when removing a
-CPU. Else the "buggy BIOS check" in acpi_processor_start mistakenly
-fires when a CPU is removed from the system and then later re-added.
-
-Signed-off-by: Alok N Kataria <akataria@vmware.com>
-Signed-off-by: Dan Arai <arai@vmware.com>
-
----
-drivers/acpi/processor_core.c |    1 +
-1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/acpi/processor_core.c
-b/drivers/acpi/processor_core.c
-index 61450f4..0f95f26 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -828,6 +828,7 @@ static int acpi_processor_remove(struct acpi_device
-*device, int type)
-}
-
-processors[pr->id] = NULL;
-+ processor_device_array[pr->id] = NULL;
-
-kfree(pr);
-
--- 
-1.5.4
+To: linux-acpi@vger.kernel.org
 
 
+
+ACPI: DMI System Vendor: Dell Inc.
+ACPI: DMI Product Name: OptiPlex 755                 
+ACPI: DMI Product Version: 
+ACPI: DMI Board Name: 0GM819
+ACPI: DMI BIOS Vendor: Dell Inc.
+ACPI: DMI BIOS Date: 02/19/2008
+
+
+Regards,
+Mark.
