@@ -1,105 +1,37 @@
-From: "Sanjeev Aditya Naga" <sanjeev.kernel@gmail.com>
-Subject: Re: [>=2.6.23][BUG] Oops on power disconnection
-Date: Sat, 5 Apr 2008 23:35:51 +0530
-Message-ID: <5681ec900804051105k4183a005k448b39e51d03f387@mail.gmail.com>
-References: <5681ec900803300645l5369cda4g119957a4b7f05d17@mail.gmail.com>
-	 <5681ec900803300651m6e5f38deke1b7746236e5bb9@mail.gmail.com>
-	 <20080402001418.aad6eed2.akpm@linux-foundation.org>
-	 <5681ec900804020608o62be52c4ted172e18daf24f5b@mail.gmail.com>
-	 <1207147729.30061.9.camel@hammer1.suse.de>
-	 <5681ec900804020913t4adc38b1r2e424fa8bbdda241@mail.gmail.com>
-	 <1207159974.4700.6.camel@queen.suse.de>
-	 <5681ec900804030915w720f3ccfp74e5d501ca3d6b56@mail.gmail.com>
-	 <1207256678.6024.90.camel@linux-2bdv.site>
-	 <924EFEDD5F540B4284297C4DC59F3DEED0EA3C@orsmsx423.amr.corp.intel.com>
+From: su17171@freesurf.fr
+Subject: Dear Friend
+Date: Sat, 05 Apr 2008 22:35:15 +0200
+Message-ID: <20080405223515.26673ya8h0yff5wk__40416.5291147821$1207429325$gmane$org@webmail-html.freesurf.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754544AbYDESGK@vger.kernel.org>
-In-Reply-To: <924EFEDD5F540B4284297C4DC59F3DEED0EA3C@orsmsx423.amr.corp.intel.com>
+Content-Type: text/plain;
+	charset=ISO-8859-1;
+	DelSp="Yes";
+	format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fructidor.freesurf.fr ([212.43.206.30]:53955 "EHLO
+	smtp-out.freesurf.fr" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753491AbYDEVAj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 5 Apr 2008 17:00:39 -0400
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Cc: trenn@suse.de, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Li, Shaohua" <shaohua.li@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-SGVsbG8gVmVua2ksCgpPbiBGcmksIEFwciA0LCAyMDA4IGF0IDY6MDEgQU0sIFBhbGxpcGFkaSwg
-VmVua2F0ZXNoCjx2ZW5rYXRlc2gucGFsbGlwYWRpQGludGVsLmNvbT4gd3JvdGU6Cj4KPgo+Cj4g
-ID4tLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQo+ICA+RnJvbTogVGhvbWFzIFJlbm5pbmdlciBb
-bWFpbHRvOnRyZW5uQHN1c2UuZGVdCj4gID5TZW50OiBUaHVyc2RheSwgQXByaWwgMDMsIDIwMDgg
-MjowNSBQTQo+ICA+VG86IFNhbmplZXYgQWRpdHlhIE5hZ2EKPiAgPkNjOiBBbmRyZXcgTW9ydG9u
-OyBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnOwo+ICA+bGludXgtYWNwaUB2Z2VyLmtlcm5l
-bC5vcmc7IFBhbGxpcGFkaSwgVmVua2F0ZXNoOyBMaSwgU2hhb2h1YQo+ICA+U3ViamVjdDogUmU6
-IFs+PTIuNi4yM11bQlVHXSBPb3BzIG9uIHBvd2VyIGRpc2Nvbm5lY3Rpb24KPiAgPgo+ICA+Cj4g
-ID5PbiBUaHUsIDIwMDgtMDQtMDMgYXQgMjE6NDUgKzA1MzAsIFNhbmplZXYgQWRpdHlhIE5hZ2Eg
-d3JvdGU6Cj4gID4+IEhlbGxvIFRob21hcywKPiAgPj4KPiAgPj4gT24gV2VkLCBBcHIgMiwgMjAw
-OCBhdCAxMTo0MiBQTSwgVGhvbWFzIFJlbm5pbmdlcgo+ICA+PHRyZW5uQHN1c2UuZGU+IHdyb3Rl
-Ogo+ICA+PiA+Cj4gID4+ID4gT24gV2VkLCAyMDA4LTA0LTAyIGF0IDIxOjQzICswNTMwLCBTYW5q
-ZWV2IEFkaXR5YSBOYWdhIHdyb3RlOgo+ICA+PiA+ICA+IEhlbGxvIFRob21hcywKPiAgPj4gPiAg
-Pgo+ICA+PiA+ICA+ID4gSGksCj4gID4+ID4gID4gPgo+ICA+PiA+ICA+ID4KPiAgPj4gPiAgPiA+
-ICBPbiBXZWQsIDIwMDgtMDQtMDIgYXQgMTg6MzggKzA1MzAsIFNhbmplZXYgQWRpdHlhIE5hZ2Eg
-d3JvdGU6Cj4gID4+ID4gID4gPiAgPiBIZWxsbyBBbmRyZXcgTW9ydG9uLAo+ICA+PiA+ICA+ID4g
-ID4KPiAgPj4gPiAgPiA+ICA+IEdyZWV0aW5ncyEKPiAgPj4gPiAgPiA+ICA+Cj4gID4+ID4gID4g
-PiAgPiBUaGFuayB5b3UgZm9yIHRoZSB1cGRhdGUuIElzIHRoZXJlIGFueXRoaW5nIEkgY2FuIGRv
-Cj4gID4+ID4gID4gPiAgPiBmcm9tIG15IHNpZGU/Cj4gID4+ID4gID4gPiAgPgo+ICA+PiA+ICA+
-ID4gID4gSSB0aG91Z2h0IGl0IHdhcyBhIGFjcGkgKGRzZHQpIHByb2JsZW0uIEFuZCBiYXNlZCBv
-bgo+ICA+PiA+ICA+ID4gID4gYSB0dXRvcmlhbCwgSSBoYXZlIHRyaWVkIHRvIGV4dHJhY3QsIGZp
-eCwKPiAgPnJlY29tcGlsZSB0aGUgZHNkdAo+ICA+PiA+ICA+ID4gID4gYW5kIHVzZSBpdCB3aXRo
-IHRoZSBrZXJuZWwuIEJ1dCBzdGlsbCBJIGhhdmUgdGhlCj4gID5zYW1lIHByb2JsZW0uCj4gID4+
-ID4gID4gPiAgPiBMZXQgbWUga25vdyBpZiBJIHNoYWxsIGF0dGFjaCB0aGUgZHNkdCAob3JpZ2lu
-YWwpCj4gID5kZWNvbXBpbGVkCj4gID4+ID4gID4gPiAgPiBjb2RlLCBpZiB0aGF0IGhlbHBzLgo+
-ICA+PiA+ICA+ID4KPiAgPj4gPiAgPiA+ICB0aGlzIGNvdWxkIGJlIGR1ZSBhIGdlbmVyYWwgbWVt
-b3J5IGNvcnJ1cHRpb24KPiAgPnByb2JsZW0gdGhyb3VnaCBBQ1BJQ0EuCj4gID4+ID4gID4gPiAg
-SWYgeW91IGdldCBkaWZmZXJlbnQgYmFja3RyYWNlcyBvbiByZWJvb3RzIGV2ZW4geW91Cj4gID5v
-bmx5IG1vZGlmaWVkIHRoaW5ncwo+ICA+PiA+ICA+ID4gIHRoYXQgZG8gbm90IGhhdmUgdG8gZG8g
-d2l0aCB0aGUgcHJvYmxlbSwgaXQncwo+ICA+cHJvYmFibHkgdGhhdCBhbmQgcmVsYXRlZAo+ICA+
-PiA+ICA+ID4gIHRvOgo+ICA+PiA+ICA+ID4gIO+7v2h0dHA6Ly9idWd6aWxsYS5rZXJuZWwub3Jn
-L3Nob3dfYnVnLmNnaT9pZD0xMDMzOQo+ICA+PiA+ICA+ID4KPiAgPj4gPiAgPiA+ICBZb3UgbWln
-aHQgd2FudCB0byB0cnkgdGhlIGxhdGVzdCBrZXJuZWwgb3IgdGhlIHBhdGNoCj4gID5wb3N0ZWQg
-dGhlcmUuCj4gID4+ID4gID4KPiAgPj4gPiAgPiBUaGFuayB5b3UgZm9yIHRoZSB1cGRhdGUuCj4g
-ID4+ID4gID4gSSBoYXZlIGNoZWNrZWQgdGhlIGJ1ZyBhbmQgdW5mb3J0dW5hdGVseSBpdHMgbm90
-IHRoZQo+ICA+PiA+ICA+IHNhbWUgaXNzdWUuIFRoaW5ncyB3b3JrIGFic29sdXRlbHkgZmluZSwg
-d2hlbiBJJ20KPiAgPj4gPiAgPiBydW5uaW5nIG9uIEFDIHBvd2VyLiBJdCBldmVuIGRpc3BsYXlz
-IHRoZSBleGFjdAo+ICA+PiA+ICA+IGJhdHRlcnkgKGFuZCBjaGFyZ2luZykgc3RhdHVzIHRvIG1l
-LiBJdCBtZXNzZXMgdXAKPiAgPj4gPiAgPiB3aGVuIHN1ZGRlbmx5IEFDIHBvd2VyIGdldHMgZGlz
-Y29ubmVjdGVkIGFuZAo+ICA+PiA+ICA+IHN3aXRjaGVzIHRvIGJhdHRlcnkgbW9kZSAoVGhlIHRp
-bWUgd2hlbiBJIGdldCBPb3BzKS4KPiAgPj4gPiAgPiBUaGUgc3lzdGVtIGlzIHN0aWxsIHVzYWJs
-ZSBhZnRlciBzd2l0Y2hpbmcgdG8gYmF0dGVyeQo+ICA+PiA+ICA+IG1vZGUgYW5kIEkgc3RpbGwg
-Z2V0IGNvcnJlY3QgYmF0dGVyeSBzdGF0cyB1bnRpbCBpdHMKPiAgPj4gPiAgPiBjb21wbGV0ZWx5
-IGRpc2NoYXJnZWQuIEhvd2V2ZXIgbW9zdCBvZiB0aGUgY29tbWFuZHMKPiAgPj4gPiAgPiBsaWtl
-IGtpbGwsIHBvd2Vyb2ZmLCBqYXZhIGRvZXNuJ3Qgd29yayBhZnRlciB0aGUgT29wcy4KPiAgPj4g
-PiAgVGhlIGJ1ZyBpcyBub3QgcmVsYXRlZCB0byBiYXR0ZXJ5LCBidXQgdG8gQU1MIHBhcnNpbmcg
-YW5kCj4gID5jYW4gdGhlcmVmb3JlCj4gID4+ID4gIGFmZmVjdCBhbnl0aGluZyB3aGljaCBpcyBB
-Q1BJIHJlbGF0ZWQuCj4gID4+ID4KPiAgPj4gPgo+ICA+PiA+ICA+IEJUVyB0aGVyZSBpcyBvbmUg
-c2ltaWxhcml0eSB3aXRoIHRoZSByZWZlcmVuY2VkIGJ1Zy4KPiAgPj4gPiAgPiBJZiBJIGJvb3Qg
-dGhlIGNvbXB1dGVyIHdpdGhvdXQgQUMgUG93ZXIsIGl0IGdpdmVzIHRoZQo+ICA+PiA+ICA+IHNh
-bWUgT29wcyBhbmQgc3RvcHMgZHVyaW5nIGJvb3RpbmcgaXRzZWxmLgo+ICA+PiA+ICA+Cj4gID4+
-ID4gID4gSSBzaGFsbCB0cnkgdGhlIGxhdGVzdCBrZXJuZWwgb25jZSBhbmQgc2hhbGwgdXBkYXRl
-IHlvdS4KPiAgPj4gPiAgVGhhdCB3b3VsZCBiZSBncmVhdC4KPiAgPj4gPiAgSWYgaXQgd29ya3Ms
-IHBsZWFzZSBnaXZlIHRoZSBwYXRjaCB0aGVyZSBhIHRyeSwgSU1PIHRoaXMKPiAgPm9uZSBzaG91
-bGQgc2VlCj4gID4+ID4gIDIuNi4yWzM0XS5YIHN0YWJsZSBrZXJuZWxzIHNvb24uCj4gID4+Cj4g
-ID4+IEkgaGF2ZSBnb3QgdGhlIGxhc3Rlc3Qga2VybmVsIDIuNi4yNS1yYzggdG9kYXkuIEkgb2Jz
-ZXJ2ZWQgdGhhdAo+ICA+PiB0aGUgcmVmZXJlbmNlZCBwYXRjaCBpcyBhbHJlYWR5IGluIHRoZSBr
-ZXJuZWwuIEhvd2V2ZXIgdGhpcyBkaWRuJ3QKPiAgPj4gc29sdmUgdGhlIHByb2JsZW0gaW4gcXVl
-c3Rpb24uIEkgZ2V0IHRoZSBzYW1lIE9vcHMgb24gdGhpcyBrZXJuZWwKPiAgPj4gYXMgd2VsbC4g
-RmluZCB0aGUgbGF0ZXN0IGRtZXNnIGFsb25nIHdpdGggdGhlIE9vcHM6Cj4gID5Pay4KPiAgPk1h
-eWJlIGJlc3QgaXMgeW91IGRvY3VtZW50IHRoZSBiYWNrdHJhY2VzL29vcHNlcyB3aXRoIGtlcm5l
-bAo+ICA+dmVyc2lvbnMgYXQKPiAgPmJ1Z3ppbGxhLmtlcm5lbC5vcmcgYW5kIGFkZCBkbWVzZyBh
-bmQgYWNwaWR1bXAuCj4gID5JdCBzZWVtcyB5b3VyIG1hY2hpbmUgbm90aWZpZXMgT1MgdGhhdCB0
-aGUgQy1zdGF0ZSB0YWJsZSBjaGFuZ2VkLgo+ICA+QUZBSUsgdGhpcyBpcyByYXJlIGFuZCB0aGVy
-ZSBtaWdodCBiZSBhIGdlbmVyYWwgYnVnIGluIHRoZQo+ICA+Y3B1aWRsZSBsYXllcgo+ICA+d2hp
-Y2ggSSBkbyBub3Qga25vdyB3ZWxsLgo+ICA+QmVzdCB5b3UgYWRkIFZlbmthdGVzaCBhbmQgU2hh
-b2h1YSBMaSA8c2hhb2h1YS5saUBpbnRlbC5jb20+IHRvIENDIG9mCj4gID50aGUgYnVnLgo+ICA+
-V2hpbGUgdGhlIGJhY2t0cmFjZSBzaG93cyBhIGxvdCwgY3B1aWRsZSBJTU8gaXMgbWlzc2luZyBh
-IGdlbmVyYWwgZGVidWcKPiAgPm9wdGlvbiBsaWtlIGluIHRoZSBjcHVmcmVxIGxheWVyLgo+ICA+
-SSBjb3VsZG4ndCBmaW5kIGEgc2luZ2xlIHByaW50ayBpbiB0aGUgd2hvbGUgY3B1aWRsZS97Y3B1
-aWRsZSxzeXNmc30uYwo+ICA+ZmlsZXMsIGV2ZW4gb24gZXJyb3IgcGF0aHMuIO+7v0Fsc28gaW4g
-dGhlIGNwdWlkbGUgc3BlY2lmaWMgcGFydHMgb2YKPiAgPmRyaXZlcnMvYWNwaS9wcm9jZXNzb3Jf
-aWRsZS5jIHNvbWUgZGVidWcgcHJpbnRrcyBtYXkgaGVscCBmb3IKPiAgPmZ1dHVyZSBidWcKPiAg
-PnJlcG9ydHMuIEl0IGlzIHZlcnkgaGFyZCB0byBndWVzcyB3aGF0IGhhcHBlbmVkLi4uCj4gID4K
-Pgo+ICBUaGlzIGxvb2tzIGxpa2UgY3B1aWRsZSBhbmQga29iamVjdCBpbnRlcmFjdGlvbi4KPiAg
-VGhlIGxhdGVzdCBvb3BzIGxvb2tzIGRpZmZlcmVudCBmcm9tIHRoZSBvcmlnaW5hbCBvbmUuIExh
-dGVzdCBvbmUgaXMgYQo+ICB3YXJuX29uIGluIGxpYi9rcmVmLmM6NDMKPgo+ICBXZSAoTWUgb3Ig
-U2hhb2h1YSkgd2lsbCB0YWtlIGEgZGVlcGVyIGxvb2sgYXQgZ2V0IGJhY2sgb24gdGhpcy4KCgpU
-aGFuayB5b3UgZm9yIHRoZSB1cGRhdGUuIExldCBtZSBrbm93IGlmIEkgY2FuIGJlIG9mIGFueSBo
-ZWxwIQoKS2luZCBSZWdhcmRzLApTYW5qZWV2Cgo+Cj4gIFRoYW5rcywKPiAgVmVua2kKPgo+Cg==
+Dear Friend
+
+I could not get connected to you on phone so I decided to send this  
+email to you.Presently, I am out of the country.Since, I could not  
+reach you before I travelled I lodged your money including the  
+interest with the correspondent Bank Cotonou-Benin, in respect of the  
+little assistance you rendered to me during the cost of transfering my  
+sum.
+
+The Account Officer Name,Dr. Ken Ibru is informed on this contact him  
+to receive your fund. His email is:
+( ken55@sify.com )
+
+Please I may not have time to respond your email, just contact Dr Ken  
+Ibru to release your payment.
+Best Regards,
+Dr.Andrew And Partners
+
