@@ -1,117 +1,109 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: Realtek 8111c weirdness problems, apic/msi, and normal bug
-Date: Sat, 5 Apr 2008 23:23:54 -0700
-Message-ID: <20080405232354.57ff2fac.akpm@linux-foundation.org>
-References: <1207407804.14885.27.camel@localhost>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [PATCH 1/3] thermal: build generic thermal driver as a module
+Date: Sun, 6 Apr 2008 11:58:47 +0200
+Message-ID: <20080406115847.2849532e@hyperion.delvare>
+References: <1207123645.27304.3.camel@acpi-hp-zz.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33204 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751533AbYDFGY2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Apr 2008 02:24:28 -0400
-In-Reply-To: <1207407804.14885.27.camel@localhost>
+Received: from zone0.gcu-squad.org ([212.85.147.21]:2678 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751581AbYDFJ7E (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Apr 2008 05:59:04 -0400
+In-Reply-To: <1207123645.27304.3.camel@acpi-hp-zz.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kasper Sandberg <lkml@metanurb.dk>
-Cc: LKML Mailinglist <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, netdev@vger.kernel.org
+To: "Zhang, Rui" <rui.zhang@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Hans de Goede <j.w.r.degoede@hhs.nl>
 
+Hi Rui,
 
-Let's add some cc's.
+On Wed, 02 Apr 2008 16:07:25 +0800, Zhang, Rui wrote:
+> The generic thermal driver can be built as module "thermal_sys",
+> which give us more flexibility both at build time and
+> when bugs are reported.
 
-On Sat, 05 Apr 2008 17:03:24 +0200 Kasper Sandberg <lkml@metanurb.dk> wrote:
+I (obviously) like the idea...
 
-> Hello.
 > 
-> I have a Gigabyte-X48-DQ6 motherboard which contains two realtek 8111c
-> pci express gigabit ethernet controllers.
-> 
-> The driver for these are r8169
-> 
-> To cut to the results that matters(IMO) most, is that on .25-rc8-git3,
-> the driver detects these cards, both of them, on different interrupts,
-> however, none of the nics work if i have both msi and apic enabled. If i
-> boot with pci=nomsi, and apic is enabled, both ports work (however one
-> "insignificant" bug remains), if i boot with noapic boot parameter, but
-> msi is enabled, both controllers are again found, and they work, however
-> that insignificant bug is also present here.
-> 
-> The insignificant bug is, that one of the interfaces appears to always
-> report as link up, despite me not having any cable in it.
-> 
-> So apparently the conflict is if i have BOTH apic and msi.
-> 
-> That leads me to a question, untill this is resolved, which
-> configuration do i want? apic with no msi, or msi with no apic?
-> 
-> I also have some more information, however i do not know if its useful
-> at all: On a .23 livecd, which has both msi and apic, something
-> different happens. What happens is that both controllers are detected,
-> however only 1 of them works, ethtool reports that the working
-> controller properly detects link up/down, and that its TP with 1gbit.
-> This is the ethtool output for the .23 livecd with apic and msi:
-> Settings for eth0:
->         Supported ports: [ TP ]
->         Supported link modes:   10baseT/Half 10baseT/Full
->                                 100baseT/Half 100baseT/Full
->                                 1000baseT/Full
->         Supports auto-negotiation: Yes
->         Advertised link modes:  10baseT/Half 10baseT/Full
->                                 100baseT/Half 100baseT/Full
->                                 1000baseT/Full
->         Advertised auto-negotiation: Yes
->         Speed: 1000Mb/s
->         Duplex: Full
->         Port: Twisted Pair
->         PHYAD: 0
->         Transceiver: internal
->         Auto-negotiation: on
->         Supports Wake-on: pumbg
->         Wake-on: g
->         Current message level: 0x00000033 (51)
->         Link detected: yes
-> 
-> 
-> Settings for eth1:
->         Supported ports: [ FIBRE ]
->         Supported link modes:   1000baseT/Full
->         Supports auto-negotiation: Yes
->         Advertised link modes:  Not reported
->         Advertised auto-negotiation: Yes
->         Speed: 1000Mb/s
->         Duplex: Full
->         Port: FIBRE
->         PHYAD: 0
->         Transceiver: internal
->         Auto-negotiation: on
->         Supports Wake-on: pumbg
->         Wake-on: g
->         Current message level: 0x00000033 (51)
->         Link detected: no
-> 
-> and as you can see, eth1 is completely messed up, thinking its fibre,
-> and stuff..
-> 
-> it appears that on this configuration, both nic's were registered
-> in /proc/interrupts as IO-APIC-fasteoi.
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 > ---
+>  drivers/thermal/Kconfig   |    4 ++--
+>  drivers/thermal/Makefile  |    3 ++-
+>  drivers/thermal/thermal.c |    2 +-
+>  3 files changed, 5 insertions(+), 4 deletions(-)
 > 
-> I realize that more information will probably be needed to fix this bug,
-> however, as you probably will want to cc linux-netdev or apic/msi or
-> what it is, i will refrain from posting that now.
+> Index: linux-2.6/drivers/thermal/Kconfig
+> ===================================================================
+> --- linux-2.6.orig/drivers/thermal/Kconfig
+> +++ linux-2.6/drivers/thermal/Kconfig
+> @@ -3,7 +3,7 @@
+>  #
+>  
+>  menuconfig THERMAL
+> -	bool "Generic Thermal sysfs driver"
+> +	tristate "Generic Thermal sysfs driver"
+
+There's a build breakage currently if this is compiled as module, fix
+is below:
+
+---
+ include/linux/thermal.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- linux-2.6.25-rc8.orig/include/linux/thermal.h	2008-02-11 09:49:10.000000000 +0100
++++ linux-2.6.25-rc8/include/linux/thermal.h	2008-04-06 09:40:06.000000000 +0200
+@@ -89,7 +89,7 @@ int thermal_zone_bind_cooling_device(str
+ int thermal_zone_unbind_cooling_device(struct thermal_zone_device *, int,
+ 				       struct thermal_cooling_device *);
+ 
+-#ifdef	CONFIG_THERMAL
++#if defined CONFIG_THERMAL || defined CONFIG_THERMAL_MODULE
+ struct thermal_cooling_device *thermal_cooling_device_register(char *, void *,
+ 							       struct
+ 							       thermal_cooling_device_ops
+
+
+>  	help
+>  	  Generic Thermal Sysfs driver offers a generic mechanism for
+>  	  thermal management. Usually it's made up of one or more thermal
+> @@ -11,4 +11,4 @@ menuconfig THERMAL
+>  	  Each thermal zone contains its own temperature, trip points,
+>  	  cooling devices.
+>  	  All platforms with ACPI thermal support can use this driver.
+> -	  If you want this support, you should say Y here.
+> +	  If you want this support, you should say Y or M here.
+> Index: linux-2.6/drivers/thermal/thermal.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/thermal/thermal.c
+> +++ linux-2.6/drivers/thermal/thermal.c
+> @@ -31,7 +31,7 @@
+>  #include <linux/thermal.h>
+>  #include <linux/spinlock.h>
+>  
+> -MODULE_AUTHOR("Zhang Rui")
+> +MODULE_AUTHOR("Zhang Rui");
+>  MODULE_DESCRIPTION("Generic thermal management sysfs support");
+>  MODULE_LICENSE("GPL");
+>  
+> Index: linux-2.6/drivers/thermal/Makefile
+> ===================================================================
+> --- linux-2.6.orig/drivers/thermal/Makefile
+> +++ linux-2.6/drivers/thermal/Makefile
+> @@ -2,4 +2,5 @@
+>  # Makefile for sensor chip drivers.
+>  #
+>  
+> -obj-$(CONFIG_THERMAL)		+= thermal.o
+> +thermal_sys-objs	+= thermal.o
+> +obj-$(CONFIG_THERMAL)		+= thermal_sys.o
 > 
-> However, i can pretty much provide/try anything, so what would you want
-> me to get?
-> /proc/interrupts, dmesg, ethtool on .25 apic/nomsi?
-> /proc/interrupts, dmesg, ethtool on .25 msi/noapic?
-> /proc/interrupts, dmesg, ethtool on .25 msi/apic?
-> i also saw a strange message with .25 msi/apic, where when i rmmod r8169
-> and modprobe it again, it couldnt parse something, should i try get this
-> again?
-> 
-> 
-> In any case, just let me know what information you want, or patches you
-> wish me to test, and it will be done.
 > 
 
+I'd rather rename the source file to thermal_sys.c, so that developers
+can search for the module name and find it. It's also more efficient.
+Git handles renaming just fine, so I guess Len can take care of this.
+
+-- 
+Jean Delvare
