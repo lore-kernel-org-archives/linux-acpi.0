@@ -1,51 +1,117 @@
-From: "Nick Nobody" <me@nikosapi.org>
-Subject: Suspend on Lenovo 3000 V200 - Linux 2.6.25rc8
-Date: Sat, 5 Apr 2008 23:10:05 -0400
-Message-ID: <3e8fd0440804052010xbe8f59bw3268d8206b97ac3e@mail.gmail.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: Realtek 8111c weirdness problems, apic/msi, and normal bug
+Date: Sat, 5 Apr 2008 23:23:54 -0700
+Message-ID: <20080405232354.57ff2fac.akpm@linux-foundation.org>
+References: <1207407804.14885.27.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.248]:35963 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751673AbYDFDKG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 5 Apr 2008 23:10:06 -0400
-Received: by an-out-0708.google.com with SMTP id d31so182559and.103
-        for <linux-acpi@vger.kernel.org>; Sat, 05 Apr 2008 20:10:06 -0700 (PDT)
-Content-Disposition: inline
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33204 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751533AbYDFGY2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Apr 2008 02:24:28 -0400
+In-Reply-To: <1207407804.14885.27.camel@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Kasper Sandberg <lkml@metanurb.dk>
+Cc: LKML Mailinglist <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, netdev@vger.kernel.org
 
-Hello,
 
-I'm trying to get suspend working properly on my Lenovo 3000 V200. I'm
-using Linux 2.6.25rc8 and the latest xf86-video-intel. Before I was
-using kernel-2.6.23.15-137.fc8, xorg-x11-drv-i810-2.1.1-8.fc8 and
-suspend worked perfectly.
+Let's add some cc's.
 
-The laptop will go to sleep properly but it doesn't seem to enjoy
-waking up. When it starts up it will either display a black screen and
-remain frozen or I will end up at a virtual term login prompt but when
-I put in my username it never prompts me for my password.
+On Sat, 05 Apr 2008 17:03:24 +0200 Kasper Sandberg <lkml@metanurb.dk> wrote:
 
-The only way to get suspend working reasonably well is to first
-hibernate and then suspend. After a hibernation suspend seems to work
-fine :S
+> Hello.
+> 
+> I have a Gigabyte-X48-DQ6 motherboard which contains two realtek 8111c
+> pci express gigabit ethernet controllers.
+> 
+> The driver for these are r8169
+> 
+> To cut to the results that matters(IMO) most, is that on .25-rc8-git3,
+> the driver detects these cards, both of them, on different interrupts,
+> however, none of the nics work if i have both msi and apic enabled. If i
+> boot with pci=nomsi, and apic is enabled, both ports work (however one
+> "insignificant" bug remains), if i boot with noapic boot parameter, but
+> msi is enabled, both controllers are again found, and they work, however
+> that insignificant bug is also present here.
+> 
+> The insignificant bug is, that one of the interfaces appears to always
+> report as link up, despite me not having any cable in it.
+> 
+> So apparently the conflict is if i have BOTH apic and msi.
+> 
+> That leads me to a question, untill this is resolved, which
+> configuration do i want? apic with no msi, or msi with no apic?
+> 
+> I also have some more information, however i do not know if its useful
+> at all: On a .23 livecd, which has both msi and apic, something
+> different happens. What happens is that both controllers are detected,
+> however only 1 of them works, ethtool reports that the working
+> controller properly detects link up/down, and that its TP with 1gbit.
+> This is the ethtool output for the .23 livecd with apic and msi:
+> Settings for eth0:
+>         Supported ports: [ TP ]
+>         Supported link modes:   10baseT/Half 10baseT/Full
+>                                 100baseT/Half 100baseT/Full
+>                                 1000baseT/Full
+>         Supports auto-negotiation: Yes
+>         Advertised link modes:  10baseT/Half 10baseT/Full
+>                                 100baseT/Half 100baseT/Full
+>                                 1000baseT/Full
+>         Advertised auto-negotiation: Yes
+>         Speed: 1000Mb/s
+>         Duplex: Full
+>         Port: Twisted Pair
+>         PHYAD: 0
+>         Transceiver: internal
+>         Auto-negotiation: on
+>         Supports Wake-on: pumbg
+>         Wake-on: g
+>         Current message level: 0x00000033 (51)
+>         Link detected: yes
+> 
+> 
+> Settings for eth1:
+>         Supported ports: [ FIBRE ]
+>         Supported link modes:   1000baseT/Full
+>         Supports auto-negotiation: Yes
+>         Advertised link modes:  Not reported
+>         Advertised auto-negotiation: Yes
+>         Speed: 1000Mb/s
+>         Duplex: Full
+>         Port: FIBRE
+>         PHYAD: 0
+>         Transceiver: internal
+>         Auto-negotiation: on
+>         Supports Wake-on: pumbg
+>         Wake-on: g
+>         Current message level: 0x00000033 (51)
+>         Link detected: no
+> 
+> and as you can see, eth1 is completely messed up, thinking its fibre,
+> and stuff..
+> 
+> it appears that on this configuration, both nic's were registered
+> in /proc/interrupts as IO-APIC-fasteoi.
+> ---
+> 
+> I realize that more information will probably be needed to fix this bug,
+> however, as you probably will want to cc linux-netdev or apic/msi or
+> what it is, i will refrain from posting that now.
+> 
+> However, i can pretty much provide/try anything, so what would you want
+> me to get?
+> /proc/interrupts, dmesg, ethtool on .25 apic/nomsi?
+> /proc/interrupts, dmesg, ethtool on .25 msi/noapic?
+> /proc/interrupts, dmesg, ethtool on .25 msi/apic?
+> i also saw a strange message with .25 msi/apic, where when i rmmod r8169
+> and modprobe it again, it couldnt parse something, should i try get this
+> again?
+> 
+> 
+> In any case, just let me know what information you want, or patches you
+> wish me to test, and it will be done.
+> 
 
-I'm a real noob when it comes to figuring out these sort of things, so
-any pointers on things I could try would be much appreciated.
-
-Here's what s2ram has to say about my hardware:
-Machine is unknown.
-This machine can be identified by:
-    sys_vendor   = "LENOVO"
-    sys_product  = "07642CU"
-    sys_version  = "LENOVO3000 V200"
-    bios_version = "65ET32WW (1.06 )"
-
-Here's the output of dmidecode: http://pastebin.ca/973442
-
-Thanks,
-
-nick
