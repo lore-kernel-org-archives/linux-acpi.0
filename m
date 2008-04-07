@@ -1,50 +1,41 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: Re: ACPI
-Date: Mon, 07 Apr 2008 23:26:48 +0400
-Message-ID: <47FA7578.9060807@gmail.com>
-References: <47FA51D0.10907@freenet.de>
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: [REPOST] [PATCH] acpi thermal fix result check
+Date: Mon, 7 Apr 2008 23:55:30 +0200
+Message-ID: <20080407235530.60630d2b.krzysztof.h1@wp.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.152]:32244 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751519AbYDGT0t (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Apr 2008 15:26:49 -0400
-Received: by fg-out-1718.google.com with SMTP id l27so1560963fgb.17
-        for <linux-acpi@vger.kernel.org>; Mon, 07 Apr 2008 12:26:46 -0700 (PDT)
-In-Reply-To: <47FA51D0.10907@freenet.de>
+Received: from mx1.wp.pl ([212.77.101.5]:14597 "EHLO mx1.wp.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751930AbYDGVqf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 7 Apr 2008 17:46:35 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Lademann, Klaus" <azael@freenet.de>
+To: Andrew Morton <akpm@linux-foundation.org>
 Cc: linux-acpi@vger.kernel.org
 
-Dear Klaus,
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Lenovo 3000 N200 is not a ThinkPad, thus thinkpad_acpi fails to load, as 
-it fails to
-load on Dell, HP, etc.
+The  thermal_zone_device_register() uses ERR_PTR macro
+to return values. A correct check is to use the IS_ERR macro.
 
-Regards,
-Alex.
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+---
 
-Lademann, Klaus wrote:
-> Dear Kernel.org - Team
->
-> Thats my DMI -Text from Lenovo 3000 N200
-> ~# dmesg
->
->
-> ACPI: DMI System Vendor: LENOVO
-> ACPI: DMI Product Name: 0769B3G
-> ACPI: DMI Product Version: 3000 N200
-> ACPI: DMI Board Name: IEL10
-> ACPI: DMI BIOS Vendor: LENOVO
-> ACPI: DMI BIOS Date: 04/18/2007
->
-> I have interesting in thinkpad_acpi, but it is not running from
-> linux-2.6.24 with
-> error "no such device"
->
->   
+This patch was done against 2.6.25-rc8.
+The 2.6.25 kernels panic on Compaq AP550 without this patch
+as it has more then 10 (THERMAL_MAX_TRIPS) trip points (there are 12).
 
+diff -urp linux-2.6.24/drivers/acpi/thermal.c linux-2.6.25/drivers/acpi/thermal.c
+--- linux-2.6.24/drivers/acpi/thermal.c	2008-04-07 23:17:24.145477887 +0200
++++ linux-2.6.25/drivers/acpi/thermal.c	2008-04-07 23:24:04.341336464 +0200
+@@ -1125,7 +1125,7 @@ static int acpi_thermal_register_thermal
+ 			tz->trips.active[i].flags.valid; i++, trips++);
+ 	tz->thermal_zone = thermal_zone_device_register("ACPI thermal zone",
+ 					trips, tz, &acpi_thermal_zone_ops);
+-	if (!tz->thermal_zone)
++	if (IS_ERR(tz->thermal_zone))
+ 		return -ENODEV;
+ 
+ 	result = sysfs_create_link(&tz->device->dev.kobj,
