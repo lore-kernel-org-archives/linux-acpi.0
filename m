@@ -1,115 +1,50 @@
-From: Alok Kataria <akataria@vmware.com>
-Subject: Re: Fix "buggy BIOS check" when CPUs are hot removed
-Date: Mon, 07 Apr 2008 11:55:00 -0700
-Message-ID: <1207594500.5864.31.camel@promb-2n-dhcp158.eng.vmware.com>
-References: <1207352924.6294.29.camel@promb-2n-dhcp158.eng.vmware.com>
+From: Alexey Starikovskiy <aystarik@gmail.com>
+Subject: Re: ACPI
+Date: Mon, 07 Apr 2008 23:26:48 +0400
+Message-ID: <47FA7578.9060807@gmail.com>
+References: <47FA51D0.10907@freenet.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-xPZPmts3MBTSqbELzQX5"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-outbound-1.vmware.com ([65.113.40.141]:42972 "EHLO
-	smtp-outbound-1.vmware.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752002AbYDGSzB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Apr 2008 14:55:01 -0400
-In-Reply-To: <1207352924.6294.29.camel@promb-2n-dhcp158.eng.vmware.com>
+Received: from fg-out-1718.google.com ([72.14.220.152]:32244 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751519AbYDGT0t (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Apr 2008 15:26:49 -0400
+Received: by fg-out-1718.google.com with SMTP id l27so1560963fgb.17
+        for <linux-acpi@vger.kernel.org>; Mon, 07 Apr 2008 12:26:46 -0700 (PDT)
+In-Reply-To: <47FA51D0.10907@freenet.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: len.brown@intel.com
-Cc: rui.zhang@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Daniel Arai <arai@vmware.com>, Zachary Amsden <zach@vmware.com>
+To: "Lademann, Klaus" <azael@freenet.de>
+Cc: linux-acpi@vger.kernel.org
 
+Dear Klaus,
 
---=-xPZPmts3MBTSqbELzQX5
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Lenovo 3000 N200 is not a ThinkPad, thus thinkpad_acpi fails to load, as 
+it fails to
+load on Dell, HP, etc.
 
-This patch too seems malformed. Resending and also find attached.
+Regards,
+Alex.
 
-Thanks,
-Alok
+Lademann, Klaus wrote:
+> Dear Kernel.org - Team
+>
+> Thats my DMI -Text from Lenovo 3000 N200
+> ~# dmesg
+>
+>
+> ACPI: DMI System Vendor: LENOVO
+> ACPI: DMI Product Name: 0769B3G
+> ACPI: DMI Product Version: 3000 N200
+> ACPI: DMI Board Name: IEL10
+> ACPI: DMI BIOS Vendor: LENOVO
+> ACPI: DMI BIOS Date: 04/18/2007
+>
+> I have interesting in thinkpad_acpi, but it is not running from
+> linux-2.6.24 with
+> error "no such device"
+>
+>   
 
---
-Fix "buggy BIOS check" when CPUs are hot added and removed
-
-processor_device_array[pr->id] needs to be set to NULL when removing a
-CPU. Else the "buggy BIOS check" in acpi_processor_start mistakenly
-fires when a CPU is removed from the system and then later re-added.
-
-Signed-off-by: Alok N Kataria <akataria@vmware.com>
-Signed-off-by: Dan Arai <arai@vmware.com>
-
----
- drivers/acpi/processor_core.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/acpi/processor_core.c
-b/drivers/acpi/processor_core.c
-index 61450f4..0f95f26 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -828,6 +828,7 @@ static int acpi_processor_remove(struct acpi_device
-*device, int type)
- 	}
- 
- 	processors[pr->id] = NULL;
-+	processor_device_array[pr->id] = NULL;
- 
- 	kfree(pr);
- 
--- 
-1.5.4
-
-
-
-
-On Fri, 2008-04-04 at 16:48 -0700, Alok Kataria wrote:
-> Fixes a BUG in ACPI hotplugging.
-> 
-> processor_device_array[pr->id] needs to be set to NULL when removing a
-> CPU. Else the "buggy BIOS check" in acpi_processor_start mistakenly
-> fires when a CPU is removed from the system and then later re-added.
-> 
-> Signed-off-by: Alok N Kataria <akataria@vmware.com>
-> Signed-off-by: Dan Arai <arai@vmware.com>
-> 
-> ---
-> drivers/acpi/processor_core.c |    1 +
-> 1 files changed, 1 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/acpi/processor_core.c
-> b/drivers/acpi/processor_core.c
-> index 61450f4..0f95f26 100644
-> --- a/drivers/acpi/processor_core.c
-> +++ b/drivers/acpi/processor_core.c
-> @@ -828,6 +828,7 @@ static int acpi_processor_remove(struct acpi_device
-> *device, int type)
-> }
-> 
-> processors[pr->id] = NULL;
-> + processor_device_array[pr->id] = NULL;
-> 
-> kfree(pr);
-> 
-
---=-xPZPmts3MBTSqbELzQX5
-Content-Disposition: attachment; filename=buggy-bios-check-on-cpu-hotplug.patch
-Content-Transfer-Encoding: base64
-Content-Type: text/x-patch; name=buggy-bios-check-on-cpu-hotplug.patch; charset=utf-8
-
-Rml4ICJidWdneSBCSU9TIGNoZWNrIiB3aGVuIENQVXMgYXJlIGhvdCBhZGRlZCBhbmQgcmVtb3Zl
-ZA0KDQpwcm9jZXNzb3JfZGV2aWNlX2FycmF5W3ByLT5pZF0gbmVlZHMgdG8gYmUgc2V0IHRvIE5V
-TEwgd2hlbiByZW1vdmluZyBhDQpDUFUuIEVsc2UgdGhlICJidWdneSBCSU9TIGNoZWNrIiBpbiBh
-Y3BpX3Byb2Nlc3Nvcl9zdGFydCBtaXN0YWtlbmx5DQpmaXJlcyB3aGVuIGEgQ1BVIGlzIHJlbW92
-ZWQgZnJvbSB0aGUgc3lzdGVtIGFuZCB0aGVuIGxhdGVyIHJlLWFkZGVkLg0KDQpTaWduZWQtb2Zm
-LWJ5OiBBbG9rIE4gS2F0YXJpYSA8YWthdGFyaWFAdm13YXJlLmNvbT4NClNpZ25lZC1vZmYtYnk6
-IERhbiBBcmFpIDxhcmFpQHZtd2FyZS5jb20+DQoNCi0tLQ0KIGRyaXZlcnMvYWNwaS9wcm9jZXNz
-b3JfY29yZS5jIHwgICAgMSArDQogMSBmaWxlcyBjaGFuZ2VkLCAxIGluc2VydGlvbnMoKyksIDAg
-ZGVsZXRpb25zKC0pDQoNCmRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvcHJvY2Vzc29yX2NvcmUu
-YyBiL2RyaXZlcnMvYWNwaS9wcm9jZXNzb3JfY29yZS5jDQppbmRleCA2MTQ1MGY0Li4wZjk1ZjI2
-IDEwMDY0NA0KLS0tIGEvZHJpdmVycy9hY3BpL3Byb2Nlc3Nvcl9jb3JlLmMNCisrKyBiL2RyaXZl
-cnMvYWNwaS9wcm9jZXNzb3JfY29yZS5jDQpAQCAtODI4LDYgKzgyOCw3IEBAIHN0YXRpYyBpbnQg
-YWNwaV9wcm9jZXNzb3JfcmVtb3ZlKHN0cnVjdCBhY3BpX2RldmljZSAqZGV2aWNlLCBpbnQgdHlw
-ZSkNCiAJfQ0KIA0KIAlwcm9jZXNzb3JzW3ByLT5pZF0gPSBOVUxMOw0KKwlwcm9jZXNzb3JfZGV2
-aWNlX2FycmF5W3ByLT5pZF0gPSBOVUxMOw0KIA0KIAlrZnJlZShwcik7DQogDQotLSANCjEuNS40
-DQoNCg==
-
-
---=-xPZPmts3MBTSqbELzQX5--
