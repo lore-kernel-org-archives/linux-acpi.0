@@ -1,64 +1,115 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Suspend on Lenovo 3000 V200 - Linux 2.6.25rc8
-Date: Mon, 7 Apr 2008 19:34:41 +0200
-Message-ID: <200804071934.42121.rjw@sisk.pl>
-References: <3e8fd0440804052010xbe8f59bw3268d8206b97ac3e@mail.gmail.com> <200804071058.38141.rjw@sisk.pl> <200804071008.33879.me@nikosapi.org>
+From: Alok Kataria <akataria@vmware.com>
+Subject: Re: Fix "buggy BIOS check" when CPUs are hot removed
+Date: Mon, 07 Apr 2008 11:55:00 -0700
+Message-ID: <1207594500.5864.31.camel@promb-2n-dhcp158.eng.vmware.com>
+References: <1207352924.6294.29.camel@promb-2n-dhcp158.eng.vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="=-xPZPmts3MBTSqbELzQX5"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:56611 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751080AbYDGRew (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 7 Apr 2008 13:34:52 -0400
-In-Reply-To: <200804071008.33879.me@nikosapi.org>
-Content-Disposition: inline
+Received: from smtp-outbound-1.vmware.com ([65.113.40.141]:42972 "EHLO
+	smtp-outbound-1.vmware.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752002AbYDGSzB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Apr 2008 14:55:01 -0400
+In-Reply-To: <1207352924.6294.29.camel@promb-2n-dhcp158.eng.vmware.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: nikosapi <me@nikosapi.org>
-Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>
+To: len.brown@intel.com
+Cc: rui.zhang@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Daniel Arai <arai@vmware.com>, Zachary Amsden <zach@vmware.com>
 
-On Monday, 7 of April 2008, nikosapi wrote:
-> On April 7, 2008 04:58:37 Rafael J. Wysocki wrote:
-> > On Monday, 7 of April 2008, nikosapi wrote:
-> > > On April 6, 2008 19:23:36 Rafael J. Wysocki wrote:
-> > > > On Monday, 7 of April 2008, nikosapi wrote:
-> > > > > On April 6, 2008 16:21:57 Rafael J. Wysocki wrote:
-> > > > > > On Sunday, 6 of April 2008, Nick Nobody wrote:
-> >
-> > [--snip--]
-> >
-> > > > > Hello Rafael,
-> > > > >
-> > > > > I tested with that patch and the problem persists, when the laptop
-> > > > > resumes it locks up (with a black screen). If I add
-> > > > > acpi_apic_instance=2 acpi_osi=Linux as kernel boot options (as
-> > > > > suggested by my dmesg) when it resumes I get back to a virtual term
-> > > > > but I'm not able to log in. After entering my username it just hangs
-> > > > > there.
-> >
-> > Have you tried if doing "echo mem > /sys/power/state" instead of s2ram
-> > works?
-> >
-> > If you have, what graphics adapter is there in your machine?
-> >
-> > Rafael
-> > --
-> 
-> Yes, I've been using /sys/power/state to put the machine to sleep ever since 
-> you told me. 
-> 
-> Here's the output of lspci -d 8086:2a02 -vvvxxx 
-> 
-> 00:02.0 VGA compatible controller: Intel Corporation Mobile GM965/GL960 
-> Integrated Graphics Controller (rev 03) (prog-if 00 [VGA controller])
 
-Hm, Intel.  Do you use the i915 driver?
+--=-xPZPmts3MBTSqbELzQX5
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-Well, I think that what you see is another form of
-http://bugzilla.kernel.org/show_bug.cgi?id=10319
-so you can add yourself to the CC list in there.
+This patch too seems malformed. Resending and also find attached.
 
 Thanks,
-Rafael
+Alok
+
+--
+Fix "buggy BIOS check" when CPUs are hot added and removed
+
+processor_device_array[pr->id] needs to be set to NULL when removing a
+CPU. Else the "buggy BIOS check" in acpi_processor_start mistakenly
+fires when a CPU is removed from the system and then later re-added.
+
+Signed-off-by: Alok N Kataria <akataria@vmware.com>
+Signed-off-by: Dan Arai <arai@vmware.com>
+
+---
+ drivers/acpi/processor_core.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/acpi/processor_core.c
+b/drivers/acpi/processor_core.c
+index 61450f4..0f95f26 100644
+--- a/drivers/acpi/processor_core.c
++++ b/drivers/acpi/processor_core.c
+@@ -828,6 +828,7 @@ static int acpi_processor_remove(struct acpi_device
+*device, int type)
+ 	}
+ 
+ 	processors[pr->id] = NULL;
++	processor_device_array[pr->id] = NULL;
+ 
+ 	kfree(pr);
+ 
+-- 
+1.5.4
+
+
+
+
+On Fri, 2008-04-04 at 16:48 -0700, Alok Kataria wrote:
+> Fixes a BUG in ACPI hotplugging.
+> 
+> processor_device_array[pr->id] needs to be set to NULL when removing a
+> CPU. Else the "buggy BIOS check" in acpi_processor_start mistakenly
+> fires when a CPU is removed from the system and then later re-added.
+> 
+> Signed-off-by: Alok N Kataria <akataria@vmware.com>
+> Signed-off-by: Dan Arai <arai@vmware.com>
+> 
+> ---
+> drivers/acpi/processor_core.c |    1 +
+> 1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/acpi/processor_core.c
+> b/drivers/acpi/processor_core.c
+> index 61450f4..0f95f26 100644
+> --- a/drivers/acpi/processor_core.c
+> +++ b/drivers/acpi/processor_core.c
+> @@ -828,6 +828,7 @@ static int acpi_processor_remove(struct acpi_device
+> *device, int type)
+> }
+> 
+> processors[pr->id] = NULL;
+> + processor_device_array[pr->id] = NULL;
+> 
+> kfree(pr);
+> 
+
+--=-xPZPmts3MBTSqbELzQX5
+Content-Disposition: attachment; filename=buggy-bios-check-on-cpu-hotplug.patch
+Content-Transfer-Encoding: base64
+Content-Type: text/x-patch; name=buggy-bios-check-on-cpu-hotplug.patch; charset=utf-8
+
+Rml4ICJidWdneSBCSU9TIGNoZWNrIiB3aGVuIENQVXMgYXJlIGhvdCBhZGRlZCBhbmQgcmVtb3Zl
+ZA0KDQpwcm9jZXNzb3JfZGV2aWNlX2FycmF5W3ByLT5pZF0gbmVlZHMgdG8gYmUgc2V0IHRvIE5V
+TEwgd2hlbiByZW1vdmluZyBhDQpDUFUuIEVsc2UgdGhlICJidWdneSBCSU9TIGNoZWNrIiBpbiBh
+Y3BpX3Byb2Nlc3Nvcl9zdGFydCBtaXN0YWtlbmx5DQpmaXJlcyB3aGVuIGEgQ1BVIGlzIHJlbW92
+ZWQgZnJvbSB0aGUgc3lzdGVtIGFuZCB0aGVuIGxhdGVyIHJlLWFkZGVkLg0KDQpTaWduZWQtb2Zm
+LWJ5OiBBbG9rIE4gS2F0YXJpYSA8YWthdGFyaWFAdm13YXJlLmNvbT4NClNpZ25lZC1vZmYtYnk6
+IERhbiBBcmFpIDxhcmFpQHZtd2FyZS5jb20+DQoNCi0tLQ0KIGRyaXZlcnMvYWNwaS9wcm9jZXNz
+b3JfY29yZS5jIHwgICAgMSArDQogMSBmaWxlcyBjaGFuZ2VkLCAxIGluc2VydGlvbnMoKyksIDAg
+ZGVsZXRpb25zKC0pDQoNCmRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvcHJvY2Vzc29yX2NvcmUu
+YyBiL2RyaXZlcnMvYWNwaS9wcm9jZXNzb3JfY29yZS5jDQppbmRleCA2MTQ1MGY0Li4wZjk1ZjI2
+IDEwMDY0NA0KLS0tIGEvZHJpdmVycy9hY3BpL3Byb2Nlc3Nvcl9jb3JlLmMNCisrKyBiL2RyaXZl
+cnMvYWNwaS9wcm9jZXNzb3JfY29yZS5jDQpAQCAtODI4LDYgKzgyOCw3IEBAIHN0YXRpYyBpbnQg
+YWNwaV9wcm9jZXNzb3JfcmVtb3ZlKHN0cnVjdCBhY3BpX2RldmljZSAqZGV2aWNlLCBpbnQgdHlw
+ZSkNCiAJfQ0KIA0KIAlwcm9jZXNzb3JzW3ByLT5pZF0gPSBOVUxMOw0KKwlwcm9jZXNzb3JfZGV2
+aWNlX2FycmF5W3ByLT5pZF0gPSBOVUxMOw0KIA0KIAlrZnJlZShwcik7DQogDQotLSANCjEuNS40
+DQoNCg==
+
+
+--=-xPZPmts3MBTSqbELzQX5--
