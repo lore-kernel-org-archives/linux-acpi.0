@@ -1,17 +1,17 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: Suspend on Lenovo 3000 V200 - Linux 2.6.25rc8
-Date: Mon, 7 Apr 2008 10:44:29 +0200
-Message-ID: <200804071044.30445.rjw@sisk.pl>
+Date: Mon, 7 Apr 2008 10:58:37 +0200
+Message-ID: <200804071058.38141.rjw@sisk.pl>
 References: <3e8fd0440804052010xbe8f59bw3268d8206b97ac3e@mail.gmail.com> <200804070123.36912.rjw@sisk.pl> <200804061930.49659.me@nikosapi.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:52828 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:52902 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756988AbYDGIo2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 7 Apr 2008 04:44:28 -0400
+	id S1755462AbYDGI6X (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 7 Apr 2008 04:58:23 -0400
 In-Reply-To: <200804061930.49659.me@nikosapi.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
@@ -24,86 +24,7 @@ On Monday, 7 of April 2008, nikosapi wrote:
 > > On Monday, 7 of April 2008, nikosapi wrote:
 > > > On April 6, 2008 16:21:57 Rafael J. Wysocki wrote:
 > > > > On Sunday, 6 of April 2008, Nick Nobody wrote:
-> > > > > Hello,
-> > > >
-> > > > Hi,
-> > > >
-> > > > > I'm trying to get suspend working properly on my Lenovo 3000 V200.
-> > > > > I'm using Linux 2.6.25rc8 and the latest xf86-video-intel. Before I
-> > > > > was using kernel-2.6.23.15-137.fc8, xorg-x11-drv-i810-2.1.1-8.fc8 and
-> > > > > suspend worked perfectly.
-> > > > >
-> > > > > The laptop will go to sleep properly but it doesn't seem to enjoy
-> > > > > waking up. When it starts up it will either display a black screen
-> > > > > and remain frozen or I will end up at a virtual term login prompt but
-> > > > > when I put in my username it never prompts me for my password.
-> > > > >
-> > > > > The only way to get suspend working reasonably well is to first
-> > > > > hibernate and then suspend. After a hibernation suspend seems to work
-> > > > > fine :S
-> > > > >
-> > > > > I'm a real noob when it comes to figuring out these sort of things,
-> > > > > so any pointers on things I could try would be much appreciated.
-> > > > >
-> > > > > Here's what s2ram has to say about my hardware:
-> > > > > Machine is unknown.
-> > > > > This machine can be identified by:
-> > > > >     sys_vendor   = "LENOVO"
-> > > > >     sys_product  = "07642CU"
-> > > > >     sys_version  = "LENOVO3000 V200"
-> > > > >     bios_version = "65ET32WW (1.06 )"
-> > > > >
-> > > > > Here's the output of dmidecode: http://pastebin.ca/973442
-> > > >
-> > > > Can you try to run "echo mem > /sys/power/state" instead of s2ram and
-> > > > see if the symptoms are the same?
-> > > >
-> > > > Also, please try reverting commit
-> > > > 7c0ea45be4f114d85ee35caeead8e1660699c46f (reproduced below for
-> > > > conveninence) and see if that helps.
-> > > >
-> > > > Thanks,
-> > > > Rafael
-> > > >
-> > > > ---
-> > > > commit 7c0ea45be4f114d85ee35caeead8e1660699c46f
-> > > > Author: Zhao Yakui <yakui.zhao@intel.com>
-> > > > Date:   Tue Mar 11 16:56:47 2008 +0800
-> > > >
-> > > >     ACPI: Ignore _BQC object when registering backlight device
-> > > >
-> > > >     According to acpi spec , the objects of  _BCL and _BCM are required
-> > > > if integrated LCD is present and supports brightness level .The _BQC is
-> > > > the optional object. So the _BQC object is ignored when the backlight
-> > > > device is registered in ACPI video driver.
-> > > >
-> > > >     http://bugzilla.kernel.org/show_bug.cgi?id=10206
-> > > >
-> > > >     Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-> > > >     Signed-off-by: Zhang Rui  <rui.zhang@intel.com>
-> > > >     Signed-off-by: Len Brown <len.brown@intel.com>
-> > > >
-> > > > diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> > > > index 12cce69..ace958c 100644
-> > > > --- a/drivers/acpi/video.c
-> > > > +++ b/drivers/acpi/video.c
-> > > > @@ -713,7 +713,7 @@ static void acpi_video_device_find_cap(struct
-> > > > acpi_video_device *device)
-> > > >
-> > > >  	kfree(obj);
-> > > >
-> > > > -	if (device->cap._BCL && device->cap._BCM && device->cap._BQC &&
-> > > > max_level
-> > > >
-> > > > > 0){ +	if (device->cap._BCL && device->cap._BCM && max_level > 0) {
-> > > >
-> > > >  		int result;
-> > > >  		static int count = 0;
-> > > >  		char *name;
-> > > > --
-> > > > To unsubscribe from this list: send the line "unsubscribe linux-acpi"
-> > > > in the body of a message to majordomo@vger.kernel.org
-> > > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[--snip--]
 > > >
 > > > Hello Rafael,
 > > >
@@ -112,21 +33,9 @@ On Monday, 7 of April 2008, nikosapi wrote:
 > > > acpi_osi=Linux as kernel boot options (as suggested by my dmesg) when it
 > > > resumes I get back to a virtual term but I'm not able to log in. After
 > > > entering my username it just hangs there.
-> >
-> > Can you please test if the 2.6.24.4 kernel works, then?
-> >
-> > Rafael
-> > --
-> 
-> What a coincidence, I upgraded to kernel-2.6.24.4-64.fc8 this afternoon. 
-> Suspend and hibernate work perfectly, even my wifi led works ;)
-> 
-> Could it be an error I made while configuring the 2.6.25rc8 kernel? Or maybe 
-> some other software that needs to be upgraded?
 
-Most probably, there's a regression in the kernel.
+Have you tried if doing "echo mem > /sys/power/state" instead of s2ram works?
 
-Since the issue seems to be 100% reproducible for you, could you please carry
-out a bisection to find the commit that broke things for you?
+If you have, what graphics adapter is there in your machine?
 
 Rafael
