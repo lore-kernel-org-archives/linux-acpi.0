@@ -1,45 +1,51 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: Re: [PATCH] ACPI: check a return value correctly in
-	acpi_power_get_context()
-Date: Tue, 08 Apr 2008 16:38:26 +0800
-Message-ID: <1207643906.7387.0.camel@yakui_zhao.sh.intel.com>
-References: <47F9E1E2.5020506@cn.fujitsu.com>
+From: "Zhang, Rui" <rui.zhang@intel.com>
+Subject: Re: [REPOST] [PATCH] acpi thermal fix result check
+Date: Tue, 08 Apr 2008 09:11:34 +0800
+Message-ID: <1207617094.27304.15.camel@acpi-hp-zz.sh.intel.com>
+References: <20080407235530.60630d2b.krzysztof.h1@wp.pl>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:26854 "EHLO mga11.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:33737 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753324AbYDHAvL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 7 Apr 2008 20:51:11 -0400
-In-Reply-To: <47F9E1E2.5020506@cn.fujitsu.com>
+	id S1752614AbYDHBdK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 7 Apr 2008 21:33:10 -0400
+In-Reply-To: <20080407235530.60630d2b.krzysztof.h1@wp.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Li Zefan <lizf@cn.fujitsu.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+To: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org
 
-On Mon, 2008-04-07 at 16:57 +0800, Li Zefan wrote:
-> We should check *resource != NULL rather than resource != NULL,
-> which will be always true.
+
+On Mon, 2008-04-07 at 23:55 +0200, Krzysztof Helt wrote:
+> From: Krzysztof Helt <krzysztof.h1@wp.pl>
 > 
-> Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+> The  thermal_zone_device_register() uses ERR_PTR macro
+> to return values. A correct check is to use the IS_ERR macro.
+> 
+> Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 > ---
->  drivers/acpi/power.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
 > 
-> diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-> index 76bf6d9..f2a76ac 100644
-> --- a/drivers/acpi/power.c
-> +++ b/drivers/acpi/power.c
-> @@ -121,7 +121,7 @@ acpi_power_get_context(acpi_handle handle,
->  	}
->  
->  	*resource = acpi_driver_data(device);
-> -	if (!resource)
-> +	if (!*resource)
+> This patch was done against 2.6.25-rc8.
+> The 2.6.25 kernels panic on Compaq AP550 without this patch
+> as it has more then 10 (THERMAL_MAX_TRIPS) trip points (there are 12).
+> 
+> diff -urp linux-2.6.24/drivers/acpi/thermal.c linux-2.6.25/drivers/acpi/thermal.c
+> --- linux-2.6.24/drivers/acpi/thermal.c	2008-04-07 23:17:24.145477887 +0200
+> +++ linux-2.6.25/drivers/acpi/thermal.c	2008-04-07 23:24:04.341336464 +0200
+> @@ -1125,7 +1125,7 @@ static int acpi_thermal_register_thermal
+>  			tz->trips.active[i].flags.valid; i++, trips++);
+>  	tz->thermal_zone = thermal_zone_device_register("ACPI thermal zone",
+>  					trips, tz, &acpi_thermal_zone_ops);
+> -	if (!tz->thermal_zone)
+> +	if (IS_ERR(tz->thermal_zone))
 >  		return -ENODEV;
 >  
->  	return 0;
-agreed.
-
+>  	result = sysfs_create_link(&tz->device->dev.kobj,
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
