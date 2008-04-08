@@ -1,75 +1,45 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Suspend on Lenovo 3000 V200 - Linux 2.6.25rc8
-Date: Tue, 8 Apr 2008 01:12:49 +0200
-Message-ID: <200804080112.50211.rjw@sisk.pl>
-References: <3e8fd0440804052010xbe8f59bw3268d8206b97ac3e@mail.gmail.com> <200804071934.42121.rjw@sisk.pl> <200804071859.24899.me@nikosapi.org>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: [PATCH] ACPI: check a return value correctly in
+	acpi_power_get_context()
+Date: Tue, 08 Apr 2008 16:38:26 +0800
+Message-ID: <1207643906.7387.0.camel@yakui_zhao.sh.intel.com>
+References: <47F9E1E2.5020506@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:58377 "EHLO ogre.sisk.pl"
+Received: from mga11.intel.com ([192.55.52.93]:26854 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755746AbYDGXMh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 7 Apr 2008 19:12:37 -0400
-In-Reply-To: <200804071859.24899.me@nikosapi.org>
-Content-Disposition: inline
+	id S1753324AbYDHAvL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 7 Apr 2008 20:51:11 -0400
+In-Reply-To: <47F9E1E2.5020506@cn.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: nikosapi <me@nikosapi.org>
-Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>
+To: Li Zefan <lizf@cn.fujitsu.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 
-On Tuesday, 8 of April 2008, nikosapi wrote:
-> On April 7, 2008 13:34:41 Rafael J. Wysocki wrote:
-> > On Monday, 7 of April 2008, nikosapi wrote:
-> > > On April 7, 2008 04:58:37 Rafael J. Wysocki wrote:
-> > > > On Monday, 7 of April 2008, nikosapi wrote:
-> > > > > On April 6, 2008 19:23:36 Rafael J. Wysocki wrote:
-> > > > > > On Monday, 7 of April 2008, nikosapi wrote:
-> > > > > > > On April 6, 2008 16:21:57 Rafael J. Wysocki wrote:
-> > > > > > > > On Sunday, 6 of April 2008, Nick Nobody wrote:
-> > > >
-> > > > [--snip--]
-> > > >
-> > > > > > > Hello Rafael,
-> > > > > > >
-> > > > > > > I tested with that patch and the problem persists, when the
-> > > > > > > laptop resumes it locks up (with a black screen). If I add
-> > > > > > > acpi_apic_instance=2 acpi_osi=Linux as kernel boot options (as
-> > > > > > > suggested by my dmesg) when it resumes I get back to a virtual
-> > > > > > > term but I'm not able to log in. After entering my username it
-> > > > > > > just hangs there.
-> > > >
-> > > > Have you tried if doing "echo mem > /sys/power/state" instead of s2ram
-> > > > works?
-> > > >
-> > > > If you have, what graphics adapter is there in your machine?
-> > > >
-> > > > Rafael
-> > > > --
-> > >
-> > > Yes, I've been using /sys/power/state to put the machine to sleep ever
-> > > since you told me.
-> > >
-> > > Here's the output of lspci -d 8086:2a02 -vvvxxx
-> > >
-> > > 00:02.0 VGA compatible controller: Intel Corporation Mobile GM965/GL960
-> > > Integrated Graphics Controller (rev 03) (prog-if 00 [VGA controller])
-> >
-> > Hm, Intel.  Do you use the i915 driver?
-> >
-> > Well, I think that what you see is another form of
-> > http://bugzilla.kernel.org/show_bug.cgi?id=10319
-> > so you can add yourself to the CC list in there.
-> >
-> > Thanks,
-> > Rafael
+On Mon, 2008-04-07 at 16:57 +0800, Li Zefan wrote:
+> We should check *resource != NULL rather than resource != NULL,
+> which will be always true.
 > 
-> Good news! I was reading through the linux-kernel archives and I found this[1] 
-> post. It suggested using 2.6.25rc8-git2, I installed git4 and suspend works!
+> Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+> ---
+>  drivers/acpi/power.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
 > 
-> Thanks for your time, if you need anything else just ask.
+> diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+> index 76bf6d9..f2a76ac 100644
+> --- a/drivers/acpi/power.c
+> +++ b/drivers/acpi/power.c
+> @@ -121,7 +121,7 @@ acpi_power_get_context(acpi_handle handle,
+>  	}
+>  
+>  	*resource = acpi_driver_data(device);
+> -	if (!resource)
+> +	if (!*resource)
+>  		return -ENODEV;
+>  
+>  	return 0;
+agreed.
 
-Thanks for the update, I'm glad it started to work for you.
 
-Rafael
