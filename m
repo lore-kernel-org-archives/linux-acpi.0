@@ -1,82 +1,52 @@
-From: Matthew Wilcox <matthew@wil.cx>
-Subject: Re: [patch] PCI: Add DMI matching to i450NX fix-up for Dell PowerEdge 6300
-Date: Thu, 10 Apr 2008 10:58:03 -0600
-Message-ID: <20080410165802.GU11962@parisc-linux.org>
-References: <1207825695.7578.16.camel@hephaestion.lan.tjworld.net>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [GIT PATCH] thinkpad-acpi queue for the 2.6.26 merge window
+Date: Thu, 10 Apr 2008 13:23:35 -0400
+Message-ID: <200804101323.36432.lenb@kernel.org>
+References: <1207799585-10112-1-git-send-email-hmh@hmh.eng.br> <200804100237.16177.lenb@kernel.org> <20080410123459.GA18832@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from palinux.external.hp.com ([192.25.206.14]:39197 "EHLO
-	mail.parisc-linux.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755914AbYDJQ6V (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Apr 2008 12:58:21 -0400
+Received: from hera.kernel.org ([140.211.167.34]:35610 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755589AbYDJRYR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 10 Apr 2008 13:24:17 -0400
+In-Reply-To: <20080410123459.GA18832@khazad-dum.debian.net>
 Content-Disposition: inline
-In-Reply-To: <1207825695.7578.16.camel@hephaestion.lan.tjworld.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: TJ <linux@tjworld.net>
-Cc: linux-pci@atrey.karlin.mff.cuni.cz, linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, rpurdie@rpsys.net
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-On Thu, Apr 10, 2008 at 12:08:15PM +0100, TJ wrote:
-> http://bugzilla.kernel.org/show_bug.cgi?id=10396
+On Thursday 10 April 2008, Henrique de Moraes Holschuh wrote:
+> On Thu, 10 Apr 2008, Len Brown wrote:
+> > hmmm, if we drop this series as-is into acpi-test then it will fail due to no "brightness_get"...
 > 
-> The fix-up checks the PCI config for the subsidiary buses and if it
-> finds them scans them. This adds them to the root_pci_bus list. Later in
-> the boot process the ACPI/PCI code reads the ACPI DSDT table, finds the
-> PCI bus entries (PNP0A03) and tries to scan them. It fails when scanning
-> the 2nd and 3rd buses with:
+> Yeah.  How do you want to handle this?  Defer the drop into acpi-test
+> until Richard's tree gets merged, or maybe *temporarily* merge his tree
+> in acpi-test along with thinkpad-acpi stuff?
 > 
-> [ 0.910906] ACPI: PCI Root Bridge [PX0B] (0000:02)
-> [ 0.912085] ACPI: Bus 0000:02 not present in PCI namespace
-> [ 0.917111] ACPI: PCI Root Bridge [PX1A] (0000:03)
-> [ 0.920085] ACPI: Bus 0000:03 not present in PCI namespace
+> I can prepare a changeset with the patches needed from Richard's tree,
+> if you prefer that to a git pull and would prefer to have those patches
+> around acpi-test so that thinkpad-acpi can be merged sooner.
 > 
-> Unfortunately, the report is misleading since the reason is that the bus
-> is found to be already registered and therefore ignored. The situation
-> can be worked around by booting with "pci=noacpi".
+> I wanted to send you my queue before the merge window opens, so that
+> people could look at the patches, etc.  That's why I sent them in before
+> Richard's tree got merged.  The thinkpad-acpi patches did get some
+> testing already, in the thinkpad-acpi sourceforge releases.
 
-I agree with your analysis of the problem.
+Richard,
 
-> The solution is to make the pci_fixup_i450nx() code selective based on
-> the DMI of the system. I've introduced a patch that does this. Initially
-> the only DMI it will match is Dell PowerEdge 6300 but if other systems
-> are found to be affected the output of "dmidecode" should be captured
-> and reported. Additional DMI_MATCH entries can then be added to the
-> patch.
+If the patches that Henrique depends on are unlikely to change,
+then I'll be happy to put them on a branch in my tree and put
+henrique's driver on top of them.  If they go upstream via your
+tree and/or mine and are identical, then that works fine.
 
-I disagree with your solution -- it's a bit clumsy and only solves this
-one system.  How about this solution?
+However, if i check them into my tree and then you push a
+different version upstream, then we'd have a merge conflict.
 
-----
+Please let me know what you suggest.
 
-The PCI root bus that ACPI wants to scan may have already been discovered
-by another means.  In the case of Bugzilla 10396, it was found by
-pci_fixup_i450nx(), but there are many other ways to find root busses.
-
-The problem is that pci_scan_bus() will return NULL both for busses
-which don't exist and for busses which were already scanned.  We could
-decide to make pci_scan_bus() return an ERR_PTR() to allow callers to
-distinguish the two situations, but it is simpler for ACPI to check
-whether the bus already exists.
-
-Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
-
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index c3fed31..954e314 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -302,6 +302,8 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
- 	 * thus the root bridge's pci_dev does not exist).
- 	 */
- 	root->bus = pci_acpi_scan_root(device, root->id.segment, root->id.bus);
-+	if (!root->bus)
-+		root->bus = pci_find_bus(root->id.segment, root->id.bus);
- 	if (!root->bus) {
- 		printk(KERN_ERR PREFIX
- 			    "Bus %04x:%02x not present in PCI namespace\n",
-
--- 
-Intel are signing my paycheques ... these opinions are still mine
-"Bill, look, we understand that you're interested in selling us this
-operating system, but compare it to ours.  We can't possibly take such
-a retrograde step."
+thanks,
+-Len
