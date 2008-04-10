@@ -1,63 +1,68 @@
-From: matthieu castet <castet.matthieu@free.fr>
-Subject: [PATCH] check that acpi_wakeup_address is below 1MB v2
-Date: Thu, 10 Apr 2008 23:33:36 +0200
-Message-ID: <47FE87B0.7080709@free.fr>
+From: Richard Purdie <rpurdie@rpsys.net>
+Subject: Re: [GIT PATCH] thinkpad-acpi queue for the 2.6.26 merge window
+Date: Thu, 10 Apr 2008 23:34:58 +0100
+Message-ID: <1207866898.4969.111.camel@dax.rpnet.com>
+References: <1207799585-10112-1-git-send-email-hmh@hmh.eng.br>
+	 <200804100237.16177.lenb@kernel.org>
+	 <20080410123459.GA18832@khazad-dum.debian.net>
+	 <200804101323.36432.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------010008000402080405050709"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2-g19.free.fr ([212.27.42.28]:33379 "EHLO smtp2-g19.free.fr"
+Received: from tim.rpsys.net ([194.106.48.114]:55238 "EHLO tim.rpsys.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753740AbYDJVdi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 10 Apr 2008 17:33:38 -0400
-Received: from smtp2-g19.free.fr (localhost.localdomain [127.0.0.1])
-	by smtp2-g19.free.fr (Postfix) with ESMTP id 5E9CC12B6D8
-	for <linux-acpi@vger.kernel.org>; Thu, 10 Apr 2008 23:33:37 +0200 (CEST)
-Received: from [192.168.0.3] (cac94-1-81-57-151-96.fbx.proxad.net [81.57.151.96])
-	by smtp2-g19.free.fr (Postfix) with ESMTP id 041A612B6F5
-	for <linux-acpi@vger.kernel.org>; Thu, 10 Apr 2008 23:33:36 +0200 (CEST)
+	id S1751736AbYDJXAo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 10 Apr 2008 19:00:44 -0400
+In-Reply-To: <200804101323.36432.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------010008000402080405050709
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+On Thu, 2008-04-10 at 13:23 -0400, Len Brown wrote:
+> On Thursday 10 April 2008, Henrique de Moraes Holschuh wrote:
+> > On Thu, 10 Apr 2008, Len Brown wrote:
+> > > hmmm, if we drop this series as-is into acpi-test then it will fail due to no "brightness_get"...
+> > 
+> > Yeah.  How do you want to handle this?  Defer the drop into acpi-test
+> > until Richard's tree gets merged, or maybe *temporarily* merge his tree
+> > in acpi-test along with thinkpad-acpi stuff?
+> > 
+> > I can prepare a changeset with the patches needed from Richard's tree,
+> > if you prefer that to a git pull and would prefer to have those patches
+> > around acpi-test so that thinkpad-acpi can be merged sooner.
+> > 
+> > I wanted to send you my queue before the merge window opens, so that
+> > people could look at the patches, etc.  That's why I sent them in before
+> > Richard's tree got merged.  The thinkpad-acpi patches did get some
+> > testing already, in the thinkpad-acpi sourceforge releases.
+> 
+> Richard,
+> 
+> If the patches that Henrique depends on are unlikely to change,
+> then I'll be happy to put them on a branch in my tree and put
+> henrique's driver on top of them.  If they go upstream via your
+> tree and/or mine and are identical, then that works fine.
+> 
+> However, if i check them into my tree and then you push a
+> different version upstream, then we'd have a merge conflict.
+> 
+> Please let me know what you suggest.
 
-Hi,
+Those patches are queued and I have no plans to change them before
+submitting to Linus. 
 
-this patch add a check that the memory allocated for s3 wakeup is in the 
-first 1MB as required by acpi spec.
+When you say identical, do you mean the patches themselves or also the
+commit and object IDs? 
 
+Traditionally I have rebased the tree before sending the pull request to
+minimise the changes of any merge issues and the published tree is
+marked for -mm only for that reason. If thats going to cause a problem
+I'll just check any merge works before sending the pull request and
+leave the tree alone from now...
 
-Signed-off-by: "Matthieu CASTET <castet.matthieu@free.fr>"
+Cheers,
 
+Richard
 
---------------010008000402080405050709
-Content-Type: text/x-diff;
- name="acpi_alloc_s3_mem.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="acpi_alloc_s3_mem.diff"
-
-diff --git a/arch/x86/kernel/acpi/sleep.c b/arch/x86/kernel/acpi/sleep.c
-index 6bc815c..6636859 100644
---- a/arch/x86/kernel/acpi/sleep.c
-+++ b/arch/x86/kernel/acpi/sleep.c
-@@ -65,6 +65,13 @@ void __init acpi_reserve_bootmem(void)
- 	acpi_wakeup_address = (unsigned long)alloc_bootmem_low(PAGE_SIZE*2);
- 	if (!acpi_wakeup_address)
- 		printk(KERN_ERR "ACPI: Cannot allocate lowmem, S3 disabled.\n");
-+	/* check if we are in first 1MB of memory */
-+	if (__pa(acpi_wakeup_address) >= 1024*1024-PAGE_SIZE*2) {
-+		printk(KERN_ERR "ACPI: Cannot allocate lowmem in first 1MB,"
-+				"S3 disabled.\n");
-+		free_bootmem(acpi_wakeup_address, PAGE_SIZE*2);
-+		acpi_wakeup_address = 0;
-+	}
- }
- 
- 
-
---------------010008000402080405050709--
