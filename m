@@ -1,53 +1,654 @@
-From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: Re: [GIT PATCH] thinkpad-acpi queue for the 2.6.26
-	merge window
-Date: Thu, 10 Apr 2008 09:34:59 -0300
-Message-ID: <20080410123459.GA18832@khazad-dum.debian.net>
-References: <1207799585-10112-1-git-send-email-hmh@hmh.eng.br>
-	<200804100237.16177.lenb@kernel.org>
+From: Jared Tomlinson <vqf@cfl.rr.com>
+Subject: dmidecode - Dell Dimension E520N
+Date: Thu, 10 Apr 2008 09:30:52 -0400
+Message-ID: <47FE168C.7090504@cfl.rr.com>
+Reply-To: JaredT@cfl.rr.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200804100237.16177.lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/mixed;
+ boundary="------------020306030009070201030100"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.121]:62920 "EHLO
+	cdptpa-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755211AbYDJNbO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Apr 2008 09:31:14 -0400
+Received: from [127.0.0.1] (really [72.189.202.10])
+          by cdptpa-omta03.mail.rr.com with ESMTP
+          id <20080410133111.PCXC9908.cdptpa-omta03.mail.rr.com@[127.0.0.1]>
+          for <linux-acpi@vger.kernel.org>; Thu, 10 Apr 2008 13:31:11 +0000
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Thu, 10 Apr 2008, Len Brown wrote:
-> hmmm, if we drop this series as-is into acpi-test then it will fail due to no "brightness_get"...
+This is a multi-part message in MIME format.
+--------------020306030009070201030100
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Yeah.  How do you want to handle this?  Defer the drop into acpi-test
-until Richard's tree gets merged, or maybe *temporarily* merge his tree
-in acpi-test along with thinkpad-acpi stuff?
+Dell Dimension E520N running Ubuntu 7.10
 
-I can prepare a changeset with the patches needed from Richard's tree,
-if you prefer that to a git pull and would prefer to have those patches
-around acpi-test so that thinkpad-acpi can be merged sooner.
+ACPI: System BIOS is requesting _OSI(Linux)
+ACPI: Please test with "acpi_osi=!Linux"
 
-I wanted to send you my queue before the merge window opens, so that
-people could look at the patches, etc.  That's why I sent them in before
-Richard's tree got merged.  The thinkpad-acpi patches did get some
-testing already, in the thinkpad-acpi sourceforge releases.
+Jared Tomlinson
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+--------------020306030009070201030100
+Content-Type: text/plain;
+ name="dmidecode.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="dmidecode.txt"
 
--------------------------------------------------------------------------
-This SF.net email is sponsored by the 2008 JavaOne(SM) Conference 
-Don't miss this year's exciting event. There's still time to save $100. 
-Use priority code J8TL2D2. 
-http://ad.doubleclick.net/clk;198757673;13503038;p?http://java.sun.com/javaone
+# dmidecode 2.9
+SMBIOS 2.3 present.
+68 structures occupying 2451 bytes.
+Table at 0x000F0450.
+
+Handle 0xDA00, DMI type 218, 47 bytes
+OEM-specific Type
+	Header and Data:
+		DA 2F 00 DA B2 00 17 5B 0E 38 00 58 00 58 00 01
+		00 59 00 59 00 01 00 DD 01 DD 01 03 00 DC 01 DC
+		01 02 00 05 80 05 80 01 00 FF FF 00 00 00 00
+
+Handle 0xDA01, DMI type 218, 35 bytes
+OEM-specific Type
+	Header and Data:
+		DA 23 01 DA B2 00 17 5B 0E 38 00 10 F5 10 F5 00
+		00 11 F5 11 F5 00 00 12 F5 12 F5 00 00 FF FF 00
+		00 00 00
+
+Handle 0x0000, DMI type 0, 24 bytes
+BIOS Information
+	Vendor: Dell Inc.                
+	Version: 2.3.2 
+	Release Date: 03/30/2007
+	Address: 0xF0000
+	Runtime Size: 64 kB
+	ROM Size: 512 kB
+	Characteristics:
+		PCI is supported
+		PNP is supported
+		APM is supported
+		BIOS is upgradeable
+		BIOS shadowing is allowed
+		Boot from CD is supported
+		Selectable boot is supported
+		EDD is supported
+		Japanese floppy for Toshiba 1.2 MB is supported (int 13h)
+		Print screen service is supported (int 5h)
+		8042 keyboard services are supported (int 9h)
+		Serial services are supported (int 14h)
+		Printer services are supported (int 17h)
+		ACPI is supported
+		USB legacy is supported
+		LS-120 boot is supported
+		BIOS boot specification is supported
+		Function key-initiated network boot is supported
+		Targeted content distribution is supported
+	BIOS Revision: 2.3
+
+Handle 0x0100, DMI type 1, 27 bytes
+System Information
+	Manufacturer: Dell Inc.                
+	Product Name: Dell DM061                   
+	Version: Not Specified
+	Serial Number: 59CX4D1
+	UUID: 44454C4C-3900-1043-8058-B5C04F344431
+	Wake-up Type: Power Switch
+	SKU Number: Not Specified
+	Family: Not Specified
+
+Handle 0x0200, DMI type 2, 8 bytes
+Base Board Information
+	Manufacturer: Dell Inc.          
+	Product Name: 0WG864
+	Version:    
+	Serial Number: ..CN4811175F01SF.
+
+Handle 0x0300, DMI type 3, 13 bytes
+Chassis Information
+	Manufacturer: Dell Inc.                
+	Type: Mini Tower
+	Lock: Not Present
+	Version: Not Specified
+	Serial Number: 59CX4D1
+	Asset Tag:           
+	Boot-up State: Safe
+	Power Supply State: Safe
+	Thermal State: Safe
+	Security Status: None
+
+Handle 0x0400, DMI type 4, 40 bytes
+Processor Information
+	Socket Designation: Microprocessor
+	Type: Central Processor
+	Family: <OUT OF SPEC>
+	Manufacturer: Intel
+	ID: F2 06 00 00 FF FB EB BF
+	Version: Not Specified
+	Voltage: 1.8 V
+	External Clock: 800 MHz
+	Max Speed: 5200 MHz
+	Current Speed: 1800 MHz
+	Status: Populated, Enabled
+	Upgrade: ZIF Socket
+	L1 Cache Handle: 0x0700
+	L2 Cache Handle: 0x0701
+	L3 Cache Handle: Not Provided
+	Serial Number: Not Specified
+	Asset Tag: Not Specified
+	Part Number: Not Specified
+	Core Count: 2
+	Core Enabled: 2
+	Thread Count: 2
+	Characteristics:
+		64-bit capable
+
+Handle 0x0700, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: Not Specified
+	Configuration: Enabled, Not Socketed, Level 1
+	Operational Mode: Write Back
+	Location: Internal
+	Installed Size: 32 KB
+	Maximum Size: 32 KB
+	Supported SRAM Types:
+		Other
+	Installed SRAM Type: Other
+	Speed: Unknown
+	Error Correction Type: None
+	System Type: Data
+	Associativity: 8-way Set-associative
+
+Handle 0x0701, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: Not Specified
+	Configuration: Enabled, Not Socketed, Level 2
+	Operational Mode: Varies With Memory Address
+	Location: Internal
+	Installed Size: 2048 KB
+	Maximum Size: 2048 KB
+	Supported SRAM Types:
+		Other
+	Installed SRAM Type: Other
+	Speed: Unknown
+	Error Correction Type: Single-bit ECC
+	System Type: Unified
+	Associativity: 8-way Set-associative
+
+Handle 0x0805, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: USB1
+	Internal Connector Type: None
+	External Reference Designator: Not Specified
+	External Connector Type: Access Bus (USB)
+	Port Type: USB
+
+Handle 0x0806, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: USB2
+	Internal Connector Type: None
+	External Reference Designator: Not Specified
+	External Connector Type: Access Bus (USB)
+	Port Type: USB
+
+Handle 0x0807, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: USB3
+	Internal Connector Type: None
+	External Reference Designator: Not Specified
+	External Connector Type: Access Bus (USB)
+	Port Type: USB
+
+Handle 0x0808, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: USB4
+	Internal Connector Type: None
+	External Reference Designator: Not Specified
+	External Connector Type: Access Bus (USB)
+	Port Type: USB
+
+Handle 0x0809, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: USB5
+	Internal Connector Type: None
+	External Reference Designator: Not Specified
+	External Connector Type: Access Bus (USB)
+	Port Type: USB
+
+Handle 0x080A, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: USB6
+	Internal Connector Type: None
+	External Reference Designator: Not Specified
+	External Connector Type: Access Bus (USB)
+	Port Type: USB
+
+Handle 0x080B, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: USB7
+	Internal Connector Type: None
+	External Reference Designator: Not Specified
+	External Connector Type: Access Bus (USB)
+	Port Type: USB
+
+Handle 0x080C, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: USB8
+	Internal Connector Type: None
+	External Reference Designator: Not Specified
+	External Connector Type: Access Bus (USB)
+	Port Type: USB
+
+Handle 0x080D, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: ENET
+	Internal Connector Type: None
+	External Reference Designator: Not Specified
+	External Connector Type: RJ-45
+	Port Type: Network Port
+
+Handle 0x080E, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: MIC
+	Internal Connector Type: None
+	External Reference Designator: Not Specified
+	External Connector Type: Mini Jack (headphones)
+	Port Type: Audio Port
+
+Handle 0x080F, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: LINE-OUT
+	Internal Connector Type: None
+	External Reference Designator: Not Specified
+	External Connector Type: Mini Jack (headphones)
+	Port Type: Audio Port
+
+Handle 0x0810, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: LINE-IN
+	Internal Connector Type: None
+	External Reference Designator: Not Specified
+	External Connector Type: Mini Jack (headphones)
+	Port Type: Audio Port
+
+Handle 0x0811, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: HP-OUT
+	Internal Connector Type: None
+	External Reference Designator: Not Specified
+	External Connector Type: Mini Jack (headphones)
+	Port Type: Audio Port
+
+Handle 0x0812, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: MONITOR
+	Internal Connector Type: None
+	External Reference Designator: Not Specified
+	External Connector Type: DB-15 female
+	Port Type: Video Port
+
+Handle 0x090A, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PEG  
+	Type: x16 PCI Express
+	Current Usage: In Use
+	Length: Long
+	ID: 10
+	Characteristics:
+		3.3 V is provided
+		PME signal is supported
+
+Handle 0x0901, DMI type 126, 13 bytes
+Inactive
+
+Handle 0x0902, DMI type 9, 13 bytes
+System Slot Information
+	Designation: SLOT2  
+	Type: x1 PCI Express
+	Current Usage: Available
+	Length: Long
+	ID: 2
+	Characteristics:
+		3.3 V is provided
+		PME signal is supported
+
+Handle 0x0903, DMI type 9, 13 bytes
+System Slot Information
+	Designation: SLOT3  
+	Type: 32-bit PCI
+	Current Usage: Available
+	Length: Long
+	ID: 3
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+		PME signal is supported
+
+Handle 0x0904, DMI type 9, 13 bytes
+System Slot Information
+	Designation: SLOT4  
+	Type: 32-bit PCI
+	Current Usage: Available
+	Length: Long
+	ID: 4
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+		PME signal is supported
+
+Handle 0x0905, DMI type 126, 13 bytes
+Inactive
+
+Handle 0x0906, DMI type 126, 13 bytes
+Inactive
+
+Handle 0x0907, DMI type 126, 13 bytes
+Inactive
+
+Handle 0x0908, DMI type 126, 13 bytes
+Inactive
+
+Handle 0x0A00, DMI type 10, 6 bytes
+On Board Device Information
+	Type: Video
+	Status: Disabled
+	Description: Intel Graphics Media Accelerator 950
+
+Handle 0x0A02, DMI type 10, 6 bytes
+On Board Device Information
+	Type: Ethernet
+	Status: Enabled
+	Description: Intel Pro 1000 MT Network Connection
+
+Handle 0x0A03, DMI type 10, 6 bytes
+On Board Device Information
+	Type: Sound
+	Status: Disabled
+	Description: Intel(R) High Definition Audio Controller
+
+Handle 0x0B00, DMI type 11, 5 bytes
+OEM Strings
+	String 1: www.dell.com
+
+Handle 0x0D00, DMI type 13, 22 bytes
+BIOS Language Information
+	Installable Languages: 1
+		en|US|iso8859-1
+	Currently Installed Language: en|US|iso8859-1
+
+Handle 0x0F00, DMI type 15, 29 bytes
+System Event Log
+	Area Length: 2049 bytes
+	Header Start Offset: 0x0000
+	Header Length: 16 bytes
+	Data Start Offset: 0x0010
+	Access Method: Memory-mapped physical 32-bit address
+	Access Address: 0xFFF8D000
+	Status: Valid, Not Full
+	Change Token: 0x0000000B
+	Header Format: Type 1
+	Supported Log Type Descriptors: 3
+	Descriptor 1: POST error
+	Data Format 1: POST results bitmap
+	Descriptor 2: System limit exceeded
+	Data Format 2: System management
+	Descriptor 3: Log area reset/cleared
+	Data Format 3: None
+
+Handle 0x1000, DMI type 16, 15 bytes
+Physical Memory Array
+	Location: System Board Or Motherboard
+	Use: System Memory
+	Error Correction Type: Single-bit ECC
+	Maximum Capacity: 4 GB
+	Error Information Handle: Not Provided
+	Number Of Devices: 4
+
+Handle 0x1100, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x1000
+	Error Information Handle: Not Provided
+	Total Width: 64 bits
+	Data Width: 64 bits
+	Size: 512 MB
+	Form Factor: DIMM
+	Set: None
+	Locator: DIMM_1
+	Bank Locator: Not Specified
+	Type: DDR
+	Type Detail: Synchronous
+	Speed: 667 MHz (1.5 ns)
+	Manufacturer: AD00000000000000
+	Serial Number: 04008080
+	Asset Tag: 010724
+	Part Number: HYMP564U64CP8-Y5  
+
+Handle 0x1101, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x1000
+	Error Information Handle: Not Provided
+	Total Width: 64 bits
+	Data Width: 64 bits
+	Size: 512 MB
+	Form Factor: DIMM
+	Set: None
+	Locator: DIMM_3
+	Bank Locator: Not Specified
+	Type: DDR
+	Type Detail: Synchronous
+	Speed: 667 MHz (1.5 ns)
+	Manufacturer: AD00000000000000
+	Serial Number: 00005282
+	Asset Tag: 010720
+	Part Number: HYMP564U64CP8-Y5  
+
+Handle 0x1102, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x1000
+	Error Information Handle: Not Provided
+	Total Width: 64 bits
+	Data Width: 64 bits
+	Size: 512 MB
+	Form Factor: DIMM
+	Set: None
+	Locator: DIMM_2
+	Bank Locator: Not Specified
+	Type: DDR
+	Type Detail: Synchronous
+	Speed: 667 MHz (1.5 ns)
+	Manufacturer: AD00000000000000
+	Serial Number: 00003083
+	Asset Tag: 010724
+	Part Number: HYMP564U64CP8-Y5  
+
+Handle 0x1103, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x1000
+	Error Information Handle: Not Provided
+	Total Width: 64 bits
+	Data Width: 64 bits
+	Size: 512 MB
+	Form Factor: DIMM
+	Set: None
+	Locator: DIMM_4
+	Bank Locator: Not Specified
+	Type: DDR
+	Type Detail: Synchronous
+	Speed: 667 MHz (1.5 ns)
+	Manufacturer: AD00000000000000
+	Serial Number: 00003288
+	Asset Tag: 010720
+	Part Number: HYMP564U64CP8-Y5  
+
+Handle 0x1301, DMI type 19, 15 bytes
+Memory Array Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x0007FFFFFFF
+	Range Size: 2 GB
+	Physical Array Handle: 0x1000
+	Partition Width: 0
+
+Handle 0x1400, DMI type 20, 19 bytes
+Memory Device Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x0001FFFFFFF
+	Range Size: 512 MB
+	Physical Device Handle: 0x1100
+	Memory Array Mapped Address Handle: 0x1301
+	Partition Row Position: 1
+
+Handle 0x1401, DMI type 20, 19 bytes
+Memory Device Mapped Address
+	Starting Address: 0x00020000000
+	Ending Address: 0x0003FFFFFFF
+	Range Size: 512 MB
+	Physical Device Handle: 0x1101
+	Memory Array Mapped Address Handle: 0x1301
+	Partition Row Position: 1
+
+Handle 0x1402, DMI type 20, 19 bytes
+Memory Device Mapped Address
+	Starting Address: 0x00040000000
+	Ending Address: 0x0005FFFFFFF
+	Range Size: 512 MB
+	Physical Device Handle: 0x1102
+	Memory Array Mapped Address Handle: 0x1301
+	Partition Row Position: 1
+
+Handle 0x1403, DMI type 20, 19 bytes
+Memory Device Mapped Address
+	Starting Address: 0x00060000000
+	Ending Address: 0x0007FFFFFFF
+	Range Size: 512 MB
+	Physical Device Handle: 0x1103
+	Memory Array Mapped Address Handle: 0x1301
+	Partition Row Position: 1
+
+Handle 0x1800, DMI type 24, 5 bytes
+Hardware Security
+	Power-On Password Status: Enabled
+	Keyboard Password Status: Not Implemented
+	Administrator Password Status: Enabled
+	Front Panel Reset Status: Not Implemented
+
+Handle 0x1900, DMI type 25, 9 bytes
+	System Power Controls
+	Next Scheduled Power-on: 04-07 07:00:00
+
+Handle 0x1B10, DMI type 27, 12 bytes
+Cooling Device
+	Type: Fan
+	Status: OK
+	OEM-specific Information: 0x0000DD00
+
+Handle 0x1B11, DMI type 126, 12 bytes
+Inactive
+
+Handle 0x1B12, DMI type 126, 12 bytes
+Inactive
+
+Handle 0x1B13, DMI type 126, 12 bytes
+Inactive
+
+Handle 0x1B14, DMI type 126, 12 bytes
+Inactive
+
+Handle 0x2000, DMI type 32, 11 bytes
+System Boot Information
+	Status: No errors detected
+
+Handle 0x8800, DMI type 136, 6 bytes
+OEM-specific Type
+	Header and Data:
+		88 06 00 88 5A 5A
+
+Handle 0xD000, DMI type 208, 10 bytes
+OEM-specific Type
+	Header and Data:
+		D0 0A 00 D0 01 03 FE 00 DD 01
+
+Handle 0xD400, DMI type 212, 192 bytes
+OEM-specific Type
+	Header and Data:
+		D4 C0 00 D4 70 00 71 00 00 10 2D 2E 42 00 11 FE
+		01 43 00 11 FE 00 07 00 23 8F 00 08 00 23 F3 00
+		09 00 23 F3 04 0A 00 23 F3 08 0B 00 23 8F 10 0C
+		00 23 8F 20 0E 00 23 8F 30 0D 00 23 8C 40 A6 00
+		23 8C 41 A7 00 23 8C 42 05 01 22 FD 02 06 01 22
+		FD 00 8C 00 22 FE 00 8D 00 22 FE 01 09 01 25 3F
+		80 A1 00 26 F3 00 A2 00 26 F3 08 A3 00 26 F3 04
+		9F 00 26 FD 02 A0 00 26 FD 00 9D 00 11 FB 04 9E
+		00 11 FB 00 54 01 23 7F 00 55 01 23 7F 80 5C 00
+		78 BF 40 5D 00 78 BF 00 04 80 78 F5 0A 01 A0 78
+		F5 00 93 00 7B 7F 80 94 00 7B 7F 00 8A 00 37 DF
+		20 8B 00 37 DF 00 03 C0 67 00 05 FF FF 00 00 00
+
+Handle 0xD401, DMI type 212, 192 bytes
+OEM-specific Type
+	Header and Data:
+		D4 C0 01 D4 70 00 71 00 03 40 59 6D 2D 00 59 F8
+		02 2E 00 59 F8 00 6E 00 59 F8 01 28 00 59 3F 00
+		29 00 59 3F 40 2A 00 59 3F 80 2B 00 5A 00 00 2C
+		00 5B 00 00 55 00 59 E7 00 6D 00 59 E7 08 8E 00
+		59 E7 10 8F 00 59 E7 00 1C 00 55 FB 04 1D 00 55
+		FB 00 19 00 55 E7 00 1A 00 55 E7 08 1B 00 55 E7
+		10 23 00 55 7F 00 22 00 55 7F 80 EB 00 55 FE 00
+		EA 00 55 FE 01 01 01 51 3F 00 02 01 51 3F 40 03
+		01 51 3F 80 04 01 51 3F C0 40 01 54 EF 00 41 01
+		54 EF 10 42 01 54 F7 00 43 01 54 F7 08 4A 01 54
+		FB 00 4B 01 54 FB 04 4C 01 53 7F 00 4D 01 53 7F
+		80 56 01 7B FD 00 57 01 7B FD 02 FF FF 00 00 00
+
+Handle 0xD402, DMI type 212, 97 bytes
+OEM-specific Type
+	Header and Data:
+		D4 61 02 D4 70 00 71 00 00 10 2D 2E 2D 01 21 FE
+		01 2E 01 21 FE 00 E2 00 27 7F 00 E3 00 27 7F 80
+		E4 00 27 BF 00 E5 00 27 BF 40 D1 00 22 7F 80 D2
+		00 22 7F 00 37 01 21 F1 00 39 01 21 F1 02 4E 01
+		65 CF 00 4F 01 65 CF 10 D4 01 65 F3 00 D5 01 65
+		F3 04 D2 01 65 FC 00 D3 01 65 FC 01 FF FF 00 00
+		00
+
+Handle 0xD403, DMI type 212, 87 bytes
+OEM-specific Type
+	Header and Data:
+		D4 57 03 D4 70 00 71 00 03 40 59 6D 17 01 52 FE
+		00 18 01 52 FE 01 19 01 52 FB 00 1A 01 52 FB 04
+		1B 01 52 FD 00 1C 01 52 FD 02 1D 01 52 F7 00 1E
+		01 52 F7 08 1F 01 52 EF 00 20 01 52 EF 10 21 01
+		52 BF 00 22 01 52 BF 40 87 00 59 DF 20 88 00 59
+		DF 00 FF FF 00 00 00
+
+Handle 0xD800, DMI type 126, 9 bytes
+Inactive
+
+Handle 0xDD00, DMI type 221, 19 bytes
+OEM-specific Type
+	Header and Data:
+		DD 13 00 DD 00 01 00 00 00 10 F5 00 00 00 00 00
+		00 00 00
+
+Handle 0xDD01, DMI type 221, 19 bytes
+OEM-specific Type
+	Header and Data:
+		DD 13 01 DD 00 01 00 00 00 11 F5 00 00 00 00 00
+		00 00 00
+
+Handle 0xDD02, DMI type 221, 19 bytes
+OEM-specific Type
+	Header and Data:
+		DD 13 02 DD 00 01 00 00 00 12 F5 00 00 00 00 00
+		00 00 00
+
+Handle 0xDE00, DMI type 222, 13 bytes
+OEM-specific Type
+	Header and Data:
+		DE 0D 00 DE C1 01 FF FF 00 00 00 00 00
+
+Handle 0x7F00, DMI type 127, 4 bytes
+End Of Table
+
+
+--------------020306030009070201030100--
