@@ -1,8 +1,8 @@
 From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: [PATCH 02/13] ACPI: thinkpad-acpi: warn once about
-	weird hotkey masks
-Date: Thu, 10 Apr 2008 00:52:54 -0300
-Message-ID: <1207799585-10112-3-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 04/13] ACPI: thinkpad-acpi: rate-limit
+	CMOS/EC unsynced error messages
+Date: Thu, 10 Apr 2008 00:52:56 -0300
+Message-ID: <1207799585-10112-5-git-send-email-hmh@hmh.eng.br>
 References: <1207799585-10112-1-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -19,75 +19,65 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
 Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 To: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Joerg Platte <lists-v18Uk5sXZWJeoWH0uzbU5w@public.gmane.org>, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-thinkpad-acpi knows for a while now how to best program the hotkeys by
-default, and always enable them by default.  Unfortunately, this
-information has not filtered down everywhere it needs to, yet.  Notably,
-old ibm-acpi documentation and most "thinkpad setup guides" will have wrong
-information on this area.
+If userspace applications mess with the CMOS NVRAM, or something causes
+both the ACPI firmware and thinkpad-acpi to try to change the brightness at
+the same time, it is possible to have the CMOS and EC registers for the
+current brightness go out of sync.
 
-Warn the local admin once whenever any of the following patterns are met:
-
-1. Attempts to set hotkey mask to 0xffff (artifact from docs and config
-   for the old ibm-acpi driver and behaviour).  This mask makes no
-   real-world sense;
-
-2. Attempts to set hotkey mask to 0xffffffff, which means the user is
-   trying to just have "everything work" without even reading the
-   documentation, or that we need to get a bug report, because there
-   is a new thinkpad out there with new exciting hot keys :-)
-
-3. Attempts to set hotkey mask to 0xffffff, which is almost never the
-   correct way to set up volume and brightness event reporting (and with
-   the current state-of-the-art, it is known to never be right way to do
-   it).
-
-The driver will perform any and all requested operations, though,
-regardless of any warnings.  I hope these warnings can be removed one or
-two years from now.
+Should that happen, thinkpad-acpi could be really obnoxious when using a
+brightness_mode of 3 (both EC and CMOS).  Instead of complaining a massive
+number of times, make sure to complain only once until EC and CMOS are back
+in sync.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Cc: Joerg Platte <lists-v18Uk5sXZWJeoWH0uzbU5w@public.gmane.org>
 ---
- drivers/misc/thinkpad_acpi.c |   17 +++++++++++++++++
- 1 files changed, 17 insertions(+), 0 deletions(-)
+ drivers/misc/thinkpad_acpi.c |   22 +++++++++++++++-------
+ 1 files changed, 15 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 2c85a2e..cd263c5 100644
+index c8c1d6c..3513d99 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -237,6 +237,10 @@ static struct {
- 	u32 hotkey_poll_active:1;
- } tp_features;
+@@ -239,6 +239,7 @@ static struct {
  
-+static struct {
-+	u16 hotkey_mask_ff:1;
-+} tp_warned;
-+
+ static struct {
+ 	u16 hotkey_mask_ff:1;
++	u16 bright_cmos_ec_unsync:1;
+ } tp_warned;
+ 
  struct thinkpad_id_data {
- 	unsigned int vendor;	/* ThinkPad vendor:
- 				 * PCI_VENDOR_ID_IBM/PCI_VENDOR_ID_LENOVO */
-@@ -1182,6 +1186,19 @@ static int hotkey_mask_set(u32 mask)
- 	int rc = 0;
+@@ -4322,13 +4323,20 @@ static int brightness_get(struct backlight_device *bd)
+ 		level = lcmos;
+ 	}
  
- 	if (tp_features.hotkey_mask) {
-+		if (!tp_warned.hotkey_mask_ff &&
-+		    (mask == 0xffff || mask == 0xffffff ||
-+		     mask == 0xffffffff)) {
-+			tp_warned.hotkey_mask_ff = 1;
-+			printk(TPACPI_NOTICE
-+			       "setting the hotkey mask to 0x%08x is likely "
-+			       "not the best way to go about it\n", mask);
-+			printk(TPACPI_NOTICE
-+			       "please consider using the driver defaults, "
-+			       "and refer to up-to-date thinkpad-acpi "
-+			       "documentation\n");
+-	if (brightness_mode == 3 && lec != lcmos) {
+-		printk(TPACPI_ERR
+-			"CMOS NVRAM (%u) and EC (%u) do not agree "
+-			"on display brightness level\n",
+-			(unsigned int) lcmos,
+-			(unsigned int) lec);
+-		return -EIO;
++	if (brightness_mode == 3) {
++		if (lec == lcmos)
++			tp_warned.bright_cmos_ec_unsync = 0;
++		else {
++			if (!tp_warned.bright_cmos_ec_unsync) {
++				printk(TPACPI_ERR
++					"CMOS NVRAM (%u) and EC (%u) do not "
++					"agree on display brightness level\n",
++					(unsigned int) lcmos,
++					(unsigned int) lec);
++				tp_warned.bright_cmos_ec_unsync = 1;
++			}
++			return -EIO;
 +		}
-+
- 		HOTKEY_CONFIG_CRITICAL_START
- 		for (i = 0; i < 32; i++) {
- 			u32 m = 1 << i;
+ 	}
+ 
+ 	return level;
 -- 
 1.5.4.4
 
