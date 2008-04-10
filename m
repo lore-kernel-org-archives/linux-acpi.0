@@ -1,69 +1,158 @@
-From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: [PATCH 13/13] ACPI: thinkpad-acpi: bump up version
-	to 0.20
-Date: Thu, 10 Apr 2008 00:53:05 -0300
-Message-ID: <1207799585-10112-14-git-send-email-hmh@hmh.eng.br>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: [PATCH 08/13] ACPI: thinkpad-acpi: add sysfs led class support for thinklight (v3.1)
+Date: Thu, 10 Apr 2008 00:53:00 -0300
+Message-ID: <1207799585-10112-9-git-send-email-hmh@hmh.eng.br>
 References: <1207799585-10112-1-git-send-email-hmh@hmh.eng.br>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1207799585-10112-1-git-send-email-hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:53671 "EHLO
+	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755017AbYDJDxN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Apr 2008 23:53:13 -0400
+In-Reply-To: <1207799585-10112-1-git-send-email-hmh@hmh.eng.br>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Richard Purdie <rpurdie@rpsys.net>
 
-Full LED sysfs support, and the rest of the assorted minor fixes and
-enhancements are a good reason to checkpoint a new version...
+Add a sysfs led class interface to the thinklight (light subdriver).
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 ---
- Documentation/laptops/thinkpad-acpi.txt |    4 ++--
- drivers/misc/thinkpad_acpi.c            |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ Documentation/laptops/thinkpad-acpi.txt |   25 +++++++++++---
+ drivers/misc/thinkpad_acpi.c            |   57 ++++++++++++++++++++++++++++++-
+ 2 files changed, 76 insertions(+), 6 deletions(-)
 
 diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
-index 27ca0f9..a2ea504 100644
+index 0f403ff..22c1ac4 100644
 --- a/Documentation/laptops/thinkpad-acpi.txt
 +++ b/Documentation/laptops/thinkpad-acpi.txt
-@@ -1,7 +1,7 @@
- 		     ThinkPad ACPI Extras Driver
+@@ -692,16 +692,31 @@ while others are still having problems. For more information:
  
--                            Version 0.19
--                         January 06th, 2008
-+                            Version 0.20
-+                          April 09th, 2008
+ https://bugs.freedesktop.org/show_bug.cgi?id=2000
  
-                Borislav Deianov <borislav-iA+eEnwkJgzk1uMJSBkQmQ@public.gmane.org>
-              Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+-ThinkLight control -- /proc/acpi/ibm/light
+-------------------------------------------
++ThinkLight control
++------------------
++
++procfs: /proc/acpi/ibm/light
++sysfs attributes: as per led class, for the "tpacpi::thinklight" led
++
++procfs notes:
+ 
+-The current status of the ThinkLight can be found in this file. A few
+-models which do not make the status available will show it as
+-"unknown". The available commands are:
++The ThinkLight status can be read and set through the procfs interface.  A
++few models which do not make the status available will show the ThinkLight
++status as "unknown". The available commands are:
+ 
+ 	echo on  > /proc/acpi/ibm/light
+ 	echo off > /proc/acpi/ibm/light
+ 
++sysfs notes:
++
++The ThinkLight sysfs interface is documented by the led class
++documentation, in Documentation/leds-class.txt.  The ThinkLight led name
++is "tpacpi::thinklight".
++
++Due to limitations in the sysfs led class, if the status of the thinklight
++cannot be read or if it is unknown, thinkpad-acpi will report it as "off".
++It is impossible to know if the status returned through sysfs is valid.
++
+ Docking / undocking -- /proc/acpi/ibm/dock
+ ------------------------------------------
+ 
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 22ba93c..76e3ae3 100644
+index c39f1ad..f647dc7 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -21,7 +21,7 @@
-  *  02110-1301, USA.
-  */
+@@ -3279,13 +3279,49 @@ static int light_set_status(int status)
+ 	return -ENXIO;
+ }
  
--#define TPACPI_VERSION "0.19"
-+#define TPACPI_VERSION "0.20"
- #define TPACPI_SYSFS_VERSION 0x020200
++static void light_set_status_worker(struct work_struct *work)
++{
++	struct tpacpi_led_classdev *data =
++			container_of(work, struct tpacpi_led_classdev, work);
++
++	if (likely(tpacpi_lifecycle == TPACPI_LIFE_RUNNING))
++		light_set_status((data->new_brightness != LED_OFF));
++}
++
++static void light_sysfs_set(struct led_classdev *led_cdev,
++			enum led_brightness brightness)
++{
++	struct tpacpi_led_classdev *data =
++		container_of(led_cdev,
++			     struct tpacpi_led_classdev,
++			     led_classdev);
++	data->new_brightness = brightness;
++	schedule_work(&data->work);
++}
++
++static enum led_brightness light_sysfs_get(struct led_classdev *led_cdev)
++{
++	return (light_get_status() == 1)? LED_FULL : LED_OFF;
++}
++
++static struct tpacpi_led_classdev tpacpi_led_thinklight = {
++	.led_classdev = {
++		.name		= "tpacpi::thinklight",
++		.brightness_set	= &light_sysfs_set,
++		.brightness_get	= &light_sysfs_get,
++	}
++};
++
+ static int __init light_init(struct ibm_init_struct *iibm)
+ {
++	int rc = 0;
++
+ 	vdbg_printk(TPACPI_DBG_INIT, "initializing light subdriver\n");
  
- /*
+ 	TPACPI_ACPIHANDLE_INIT(ledb);
+ 	TPACPI_ACPIHANDLE_INIT(lght);
+ 	TPACPI_ACPIHANDLE_INIT(cmos);
++	INIT_WORK(&tpacpi_led_thinklight.work, light_set_status_worker);
+ 
+ 	/* light not supported on 570, 600e/x, 770e, 770x, G4x, R30, R31 */
+ 	tp_features.light = (cmos_handle || lght_handle) && !ledb_handle;
+@@ -3299,7 +3335,25 @@ static int __init light_init(struct ibm_init_struct *iibm)
+ 	vdbg_printk(TPACPI_DBG_INIT, "light is %s\n",
+ 		str_supported(tp_features.light));
+ 
+-	return (tp_features.light)? 0 : 1;
++	if (tp_features.light) {
++		rc = led_classdev_register(&tpacpi_pdev->dev,
++					   &tpacpi_led_thinklight.led_classdev);
++	}
++
++	if (rc < 0) {
++		tp_features.light = 0;
++		tp_features.light_status = 0;
++	} else {
++		rc = (tp_features.light)? 0 : 1;
++	}
++	return rc;
++}
++
++static void light_exit(void)
++{
++	led_classdev_unregister(&tpacpi_led_thinklight.led_classdev);
++	if (work_pending(&tpacpi_led_thinklight.work))
++		flush_scheduled_work();
+ }
+ 
+ static int light_read(char *p)
+@@ -3347,6 +3401,7 @@ static struct ibm_struct light_driver_data = {
+ 	.name = "light",
+ 	.read = light_read,
+ 	.write = light_write,
++	.exit = light_exit,
+ };
+ 
+ /*************************************************************************
 -- 
 1.5.4.4
 
-
--------------------------------------------------------------------------
-This SF.net email is sponsored by the 2008 JavaOne(SM) Conference 
-Don't miss this year's exciting event. There's still time to save $100. 
-Use priority code J8TL2D2. 
-http://ad.doubleclick.net/clk;198757673;13503038;p?http://java.sun.com/javaone
