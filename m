@@ -1,65 +1,63 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch] PNP: increase number of devices supported per protocol
-Date: Thu, 10 Apr 2008 12:15:55 -0600
-Message-ID: <200804101215.55507.bjorn.helgaas@hp.com>
+From: matthieu castet <castet.matthieu@free.fr>
+Subject: [PATCH] check that acpi_wakeup_address is below 1MB v2
+Date: Thu, 10 Apr 2008 23:33:36 +0200
+Message-ID: <47FE87B0.7080709@free.fr>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="------------010008000402080405050709"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0015.houston.hp.com ([15.201.24.18]:33904 "EHLO
-	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756400AbYDJSQA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Apr 2008 14:16:00 -0400
-Content-Disposition: inline
+Received: from smtp2-g19.free.fr ([212.27.42.28]:33379 "EHLO smtp2-g19.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753740AbYDJVdi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 10 Apr 2008 17:33:38 -0400
+Received: from smtp2-g19.free.fr (localhost.localdomain [127.0.0.1])
+	by smtp2-g19.free.fr (Postfix) with ESMTP id 5E9CC12B6D8
+	for <linux-acpi@vger.kernel.org>; Thu, 10 Apr 2008 23:33:37 +0200 (CEST)
+Received: from [192.168.0.3] (cac94-1-81-57-151-96.fbx.proxad.net [81.57.151.96])
+	by smtp2-g19.free.fr (Postfix) with ESMTP id 041A612B6F5
+	for <linux-acpi@vger.kernel.org>; Thu, 10 Apr 2008 23:33:36 +0200 (CEST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Adam Belay <ambx1@neo.rr.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, "Chen, Justin" <justin.chen@hp.com>
+To: linux-acpi@vger.kernel.org
 
-Increase the PNP "number of devices" limit.  We currently use an
-unsigned char, which limits us to 256 devices per protocol.  This
-patch changes that to an unsigned int.
+This is a multi-part message in MIME format.
+--------------010008000402080405050709
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Not all backends can take advantage of this: we limit ISAPNP to 10
-devices in isapnp_cfg_begin(), and PNPBIOS is limited to 256 devices
-because the BIOS interfaces use a one-byte device node number.
+Hi,
 
-But there is no limit on the number of PNPACPI devices we may have.
-Large HP Integrity machines have more than 256, which causes the
-current "unsigned char number" to wrap around.  This causes errors
-like this:
+this patch add a check that the memory allocated for s3 wakeup is in the 
+first 1MB as required by acpi spec.
 
-    pnp: PnP ACPI init
-    kobject_add failed for 00:00 with -EEXIST, don't try to register things with the same name in the same directory.
 
-    Call Trace:
-     [<a000000100010720>] show_stack+0x40/0xa0
-     [<a0000001000107b0>] dump_stack+0x30/0x60
-     [<a0000001001dbdf0>] kobject_add+0x290/0x2c0
-     [<a0000001002bfd40>] device_add+0x160/0x860
-     [<a0000001002c0470>] device_register+0x30/0x60
-     [<a00000010026ba70>] __pnp_add_device+0x130/0x180
-     [<a00000010026bb70>] pnp_add_device+0xb0/0xe0
-     [<a0000001007f2730>] pnpacpi_add_device+0x510/0x5a0
-     [<a0000001007f2810>] pnpacpi_add_device_handler+0x50/0x80
+Signed-off-by: "Matthieu CASTET <castet.matthieu@free.fr>"
 
-This patch increases the limit to fix this PNPACPI problem.  It
-should not have any adverse effect on ISAPNP or PNPBIOS because
-their limits are still enforced in the backends.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+--------------010008000402080405050709
+Content-Type: text/x-diff;
+ name="acpi_alloc_s3_mem.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="acpi_alloc_s3_mem.diff"
 
-Index: work8/include/linux/pnp.h
-===================================================================
---- work8.orig/include/linux/pnp.h	2008-04-04 10:40:37.000000000 -0600
-+++ work8/include/linux/pnp.h	2008-04-04 10:41:17.000000000 -0600
-@@ -175,7 +175,7 @@
- struct pnp_dev {
- 	struct device dev;		/* Driver Model device interface */
- 	u64 dma_mask;
--	unsigned char number;		/* used as an index, must be unique */
-+	unsigned int number;		/* used as an index, must be unique */
- 	int status;
+diff --git a/arch/x86/kernel/acpi/sleep.c b/arch/x86/kernel/acpi/sleep.c
+index 6bc815c..6636859 100644
+--- a/arch/x86/kernel/acpi/sleep.c
++++ b/arch/x86/kernel/acpi/sleep.c
+@@ -65,6 +65,13 @@ void __init acpi_reserve_bootmem(void)
+ 	acpi_wakeup_address = (unsigned long)alloc_bootmem_low(PAGE_SIZE*2);
+ 	if (!acpi_wakeup_address)
+ 		printk(KERN_ERR "ACPI: Cannot allocate lowmem, S3 disabled.\n");
++	/* check if we are in first 1MB of memory */
++	if (__pa(acpi_wakeup_address) >= 1024*1024-PAGE_SIZE*2) {
++		printk(KERN_ERR "ACPI: Cannot allocate lowmem in first 1MB,"
++				"S3 disabled.\n");
++		free_bootmem(acpi_wakeup_address, PAGE_SIZE*2);
++		acpi_wakeup_address = 0;
++	}
+ }
  
- 	struct list_head global_list;	/* node in global list of devices */
+ 
+
+--------------010008000402080405050709--
