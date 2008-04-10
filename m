@@ -1,124 +1,193 @@
 From: "Zhang, Rui" <rui.zhang@intel.com>
-Subject: [PATCH 4/6] thermal: update the documentation
-Date: Thu, 10 Apr 2008 16:17:01 +0800
-Message-ID: <1207815421.27304.42.camel@acpi-hp-zz.sh.intel.com>
+Subject: [PATCH 5/6] ACPI: elide a non-zero test on a result that is never 0
+Date: Thu, 10 Apr 2008 16:19:01 +0800
+Message-ID: <1207815541.27304.46.camel@acpi-hp-zz.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:60052 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:56192 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752990AbYDJIej (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 10 Apr 2008 04:34:39 -0400
+	id S1753197AbYDJIgk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 10 Apr 2008 04:36:40 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: Jean Delvare <khali@linux-fr.org>, Hans de Goede <j.w.r.degoede@hhs.nl>, linux-acpi <linux-acpi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, Julia Lawall <julia@diku.dk>
 
+From: Julia Lawall <julia@diku.dk>
 
-Update the documentation for the thermal driver hwmon sys I/F.
-
-Change the ACPI thermal zone type to be consistent with hwmon.
+thermal_cooling_device_register used to return NULL if THERMAL is "n".
+As the ACPI fan, processor and video drivers SELECT the generic
+thermal in PATCH 01, this is not a problem any more.
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- Documentation/thermal/sysfs-api.txt |   33 +++++++++++++++++++++++++++------
- drivers/acpi/thermal.c              |    2 +-
- 2 files changed, 28 insertions(+), 7 deletions(-)
+ drivers/acpi/fan.c            |   35 +++++++++++++++++------------------
+ drivers/acpi/processor_core.c |   31 +++++++++++++++----------------
+ drivers/acpi/video.c          |   27 ++++++++++++---------------
+ drivers/misc/intel_menlow.c   |   23 +++++++++--------------
+ 4 files changed, 53 insertions(+), 63 deletions(-)
 
-Index: linux-2.6/Documentation/thermal/sysfs-api.txt
+Index: linux-2.6/drivers/acpi/fan.c
 ===================================================================
---- linux-2.6.orig/Documentation/thermal/sysfs-api.txt
-+++ linux-2.6/Documentation/thermal/sysfs-api.txt
-@@ -108,10 +108,12 @@ and throttle appropriate devices.
- RO	read only value
- RW	read/write value
- 
--All thermal sysfs attributes will be represented under /sys/class/thermal
-+Thermal sysfs attributes will be represented under /sys/class/thermal.
-+Hwmon sysfs I/F extension is also available under /sys/class/hwmon
-+if hwmon is compiled in or built as a module.
- 
- Thermal zone device sys I/F, created once it's registered:
--|thermal_zone[0-*]:
-+/sys/class/thermal/thermal_zone[0-*]:
- 	|-----type:			Type of the thermal zone
- 	|-----temp:			Current temperature
- 	|-----mode:			Working mode of the thermal zone
-@@ -119,7 +121,7 @@ Thermal zone device sys I/F, created onc
- 	|-----trip_point_[0-*]_type:	Trip point type
- 
- Thermal cooling device sys I/F, created once it's registered:
--|cooling_device[0-*]:
-+/sys/class/thermal/cooling_device[0-*]:
- 	|-----type :			Type of the cooling device(processor/fan/...)
- 	|-----max_state:		Maximum cooling state of the cooling device
- 	|-----cur_state:		Current cooling state of the cooling device
-@@ -130,10 +132,19 @@ They represent the relationship between 
- They are created/removed for each
- thermal_zone_bind_cooling_device/thermal_zone_unbind_cooling_device successful execution.
- 
--|thermal_zone[0-*]
-+/sys/class/thermal/thermal_zone[0-*]
- 	|-----cdev[0-*]:		The [0-*]th cooling device in the current thermal zone
- 	|-----cdev[0-*]_trip_point:	Trip point that cdev[0-*] is associated with
- 
-+Besides the thermal zone device sysfs I/F and cooling device sysfs I/F,
-+the generic thermal driver also creates a hwmon sysfs I/F for each _type_ of
-+thermal zone device. E.g. the generic thermal driver reigsters one hwmon class device
-+and build the associated hwmon sys I/F for all the registered ACPI thermal zones.
-+/sys/class/hwmon/hwmon[0-*]:
-+	|-----name:			The type of the thermal zone devices.
-+	|-----temp[1-*]_input:		The current temperature of thermal zone [1-*].
-+	|-----temp[1-*]_critical:	The critical trip point of thermal zone [1-*].
-+Please read Documentation/hwmon/sysfs-interface for additional information.
- 
- ***************************
- * Thermal zone attributes *
-@@ -141,7 +152,10 @@ thermal_zone_bind_cooling_device/thermal
- 
- type				Strings which represent the thermal zone type.
- 				This is given by thermal zone driver as part of registration.
--				Eg: "ACPI thermal zone" indicates it's a ACPI thermal device
-+				Eg: "acpitz" indicates it's an ACPI thermal device.
-+				In order to keep it consistent with hwmon sys attribute,
-+				this should be a short, lowercase string,
-+				not containing spaces nor dashes.
- 				RO
- 				Required
- 
-@@ -218,7 +232,7 @@ the sys I/F structure will be built like
- /sys/class/thermal:
- 
- |thermal_zone1:
--	|-----type:			ACPI thermal zone
-+	|-----type:			acpitz
- 	|-----temp:			37000
- 	|-----mode:			kernel
- 	|-----trip_point_0_temp:	100000
-@@ -243,3 +257,10 @@ the sys I/F structure will be built like
- 	|-----type:			Fan
- 	|-----max_state:		2
- 	|-----cur_state:		0
+--- linux-2.6.orig/drivers/acpi/fan.c
++++ linux-2.6/drivers/acpi/fan.c
+@@ -260,24 +260,23 @@ static int acpi_fan_add(struct acpi_devi
+ 		result = PTR_ERR(cdev);
+ 		goto end;
+ 	}
+-	if (cdev) {
+-		printk(KERN_INFO PREFIX
+-			"%s is registered as cooling_device%d\n",
+-			device->dev.bus_id, cdev->id);
+-
+-		acpi_driver_data(device) = cdev;
+-		result = sysfs_create_link(&device->dev.kobj,
+-					   &cdev->device.kobj,
+-					   "thermal_cooling");
+-		if (result)
+-			return result;
+-
+-		result = sysfs_create_link(&cdev->device.kobj,
+-					   &device->dev.kobj,
+-					   "device");
+-		if (result)
+-			return result;
+-	}
 +
-+/sys/class/hwmon:
++	printk(KERN_INFO PREFIX
++		"%s is registered as cooling_device%d\n",
++		device->dev.bus_id, cdev->id);
 +
-+|hwmon0:
-+	|-----name:			acpitz
-+	|-----temp1_input:		37000
-+	|-----temp1_crit:		100000
-Index: linux-2.6/drivers/acpi/thermal.c
++	acpi_driver_data(device) = cdev;
++	result = sysfs_create_link(&device->dev.kobj,
++				   &cdev->device.kobj,
++				   "thermal_cooling");
++	if (result)
++		printk(KERN_ERR PREFIX "Create sysfs link\n");
++
++	result = sysfs_create_link(&cdev->device.kobj,
++				   &device->dev.kobj,
++				   "device");
++	if (result)
++		printk(KERN_ERR PREFIX "Create sysfs link\n");
+ 
+ 	result = acpi_fan_add_fs(device);
+ 	if (result)
+Index: linux-2.6/drivers/acpi/processor_core.c
 ===================================================================
---- linux-2.6.orig/drivers/acpi/thermal.c
-+++ linux-2.6/drivers/acpi/thermal.c
-@@ -1136,7 +1136,7 @@ static int acpi_thermal_register_thermal
+--- linux-2.6.orig/drivers/acpi/processor_core.c
++++ linux-2.6/drivers/acpi/processor_core.c
+@@ -674,22 +674,21 @@ static int __cpuinit acpi_processor_star
+ 		result = PTR_ERR(pr->cdev);
+ 		goto end;
+ 	}
+-	if (pr->cdev) {
+-		printk(KERN_INFO PREFIX
+-			"%s is registered as cooling_device%d\n",
+-			device->dev.bus_id, pr->cdev->id);
+-
+-		result = sysfs_create_link(&device->dev.kobj,
+-					   &pr->cdev->device.kobj,
+-					   "thermal_cooling");
+-		if (result)
+-			return result;
+-		result = sysfs_create_link(&pr->cdev->device.kobj,
+-					   &device->dev.kobj,
+-					   "device");
+-		if (result)
+-			return result;
+-	}
++
++	printk(KERN_INFO PREFIX
++		"%s is registered as cooling_device%d\n",
++		device->dev.bus_id, pr->cdev->id);
++
++	result = sysfs_create_link(&device->dev.kobj,
++				   &pr->cdev->device.kobj,
++				   "thermal_cooling");
++	if (result)
++		printk(KERN_ERR PREFIX "Create sysfs link\n");
++	result = sysfs_create_link(&pr->cdev->device.kobj,
++				   &device->dev.kobj,
++				   "device");
++	if (result)
++		printk(KERN_ERR PREFIX "Create sysfs link\n");
  
- 	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE &&
- 			tz->trips.active[i].flags.valid; i++, trips++);
--	tz->thermal_zone = thermal_zone_device_register("ACPI thermal zone",
-+	tz->thermal_zone = thermal_zone_device_register("acpitz",
- 					trips, tz, &acpi_thermal_zone_ops);
- 	if (!tz->thermal_zone)
- 		return -ENODEV;
+ 	if (pr->flags.throttling) {
+ 		printk(KERN_INFO PREFIX "%s [%s] (supports",
+Index: linux-2.6/drivers/acpi/video.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/video.c
++++ linux-2.6/drivers/acpi/video.c
+@@ -734,21 +734,18 @@ static void acpi_video_device_find_cap(s
+ 		if (IS_ERR(device->cdev))
+ 			return;
+ 
+-		if (device->cdev) {
+-			printk(KERN_INFO PREFIX
+-				"%s is registered as cooling_device%d\n",
+-				device->dev->dev.bus_id, device->cdev->id);
+-			result = sysfs_create_link(&device->dev->dev.kobj,
+-					  &device->cdev->device.kobj,
+-					  "thermal_cooling");
+-			if (result)
+-				printk(KERN_ERR PREFIX "Create sysfs link\n");
+-			result = sysfs_create_link(&device->cdev->device.kobj,
+-					  &device->dev->dev.kobj,
+-					  "device");
+-                        if (result)
+-				printk(KERN_ERR PREFIX "Create sysfs link\n");
+-		}
++		printk(KERN_INFO PREFIX
++			"%s is registered as cooling_device%d\n",
++			device->dev->dev.bus_id, device->cdev->id);
++		result = sysfs_create_link(&device->dev->dev.kobj,
++				  &device->cdev->device.kobj, "thermal_cooling");
++		if (result)
++			printk(KERN_ERR PREFIX "Create sysfs link\n");
++		result = sysfs_create_link(&device->cdev->device.kobj,
++				  &device->dev->dev.kobj, "device");
++		if (result)
++			printk(KERN_ERR PREFIX "Create sysfs link\n");
++
+ 	}
+ 	if (device->cap._DCS && device->cap._DSS){
+ 		static int count = 0;
+Index: linux-2.6/drivers/misc/intel_menlow.c
+===================================================================
+--- linux-2.6.orig/drivers/misc/intel_menlow.c
++++ linux-2.6/drivers/misc/intel_menlow.c
+@@ -175,20 +175,15 @@ static int intel_menlow_memory_add(struc
+ 		goto end;
+ 	}
+ 
+-	if (cdev) {
+-		acpi_driver_data(device) = cdev;
+-		result = sysfs_create_link(&device->dev.kobj,
+-					&cdev->device.kobj, "thermal_cooling");
+-		if (result)
+-			goto unregister;
+-
+-		result = sysfs_create_link(&cdev->device.kobj,
+-					&device->dev.kobj, "device");
+-		if (result) {
+-			sysfs_remove_link(&device->dev.kobj, "thermal_cooling");
+-			goto unregister;
+-		}
+-	}
++	acpi_driver_data(device) = cdev;
++	result = sysfs_create_link(&device->dev.kobj,
++				&cdev->device.kobj, "thermal_cooling");
++	if (result)
++		printk(KERN_ERR PREFIX "Create sysfs link\n");
++	result = sysfs_create_link(&cdev->device.kobj,
++				&device->dev.kobj, "device");
++	if (result)
++		printk(KERN_ERR PREFIX "Create sysfs link\n");
+ 
+  end:
+ 	return result;
 
 
