@@ -1,12 +1,14 @@
 From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: [GIT PATCH] thinkpad-acpi queue for the 2.6.26
-	merge window
-Date: Thu, 10 Apr 2008 00:52:52 -0300
-Message-ID: <1207799585-10112-1-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 02/13] ACPI: thinkpad-acpi: warn once about
+	weird hotkey masks
+Date: Thu, 10 Apr 2008 00:52:54 -0300
+Message-ID: <1207799585-10112-3-git-send-email-hmh@hmh.eng.br>
+References: <1207799585-10112-1-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1207799585-10112-1-git-send-email-hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
 	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
@@ -17,52 +19,78 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
 Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 To: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+thinkpad-acpi knows for a while now how to best program the hotkeys by
+default, and always enable them by default.  Unfortunately, this
+information has not filtered down everywhere it needs to, yet.  Notably,
+old ibm-acpi documentation and most "thinkpad setup guides" will have wrong
+information on this area.
 
-Len,
+Warn the local admin once whenever any of the following patterns are met:
 
-This patchset has my current thinkpad-acpi queue.  The target is 2.6.26's
-merge window.
+1. Attempts to set hotkey mask to 0xffff (artifact from docs and config
+   for the old ibm-acpi driver and behaviour).  This mask makes no
+   real-world sense;
 
-Some of the thinkpad-acpi patches require patches from Richard Purdie's LED
-tree that are already in -mm.  As far as I know, those are usually merged
-early when the merge window opens, so that shouldn't be a big problem.
+2. Attempts to set hotkey mask to 0xffffffff, which means the user is
+   trying to just have "everything work" without even reading the
+   documentation, or that we need to get a bug report, because there
+   is a new thinkpad out there with new exciting hot keys :-)
 
-As usual, the patch set is available at:
-git://repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git for-upstream/acpi-test
+3. Attempts to set hotkey mask to 0xffffff, which is almost never the
+   correct way to set up volume and brightness event reporting (and with
+   the current state-of-the-art, it is known to never be right way to do
+   it).
 
-Note that the above repository branch *DOES* have Richard's LED patches
-already merged in on top of 2.6.25-rc8 as a merge commit, and the
-thinkpad-acpi queue merged in as another merge commit.  The LED tree can be
-found at: git://git.o-hand.com/linux-rpurdie-leds for-mm
+The driver will perform any and all requested operations, though,
+regardless of any warnings.  I hope these warnings can be removed one or
+two years from now.
 
-Shortlog (with the LED tree stuff removed):
+Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+---
+ drivers/misc/thinkpad_acpi.c |   17 +++++++++++++++++
+ 1 files changed, 17 insertions(+), 0 deletions(-)
 
-Henrique de Moraes Holschuh (13):
-      ACPI: thinkpad-acpi: BIOS backlight mode helper (v2)
-      ACPI: thinkpad-acpi: warn once about weird hotkey masks
-      ACPI: thinkpad-acpi: enhance box identification output
-      ACPI: thinkpad-acpi: rate-limit CMOS/EC unsynced error messages
-      ACPI: thinkpad-acpi: fix brightness dimming control bug
-      ACPI: thinkpad-acpi: claim tpacpi as an official short handle
-      ACPI: thinkpad-acpi: prepare light and LED for sysfs support
-      ACPI: thinkpad-acpi: add sysfs led class support for thinklight (v3.1)
-      ACPI: thinkpad-acpi: add sysfs led class support to thinkpad leds (v3.1)
-      ACPI: thinkpad-acpi: fluff really minor fix
-      ACPI: thinkpad-acpi: use a private workqueue
-      ACPI: thinkpad-acpi: fix selects in Kconfig
-      ACPI: thinkpad-acpi: bump up version to 0.20
-
-Please merge the thinkpad-acpi changesets for acpi-test, for the next
-mainline merge window.
-
+diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
+index 2c85a2e..cd263c5 100644
+--- a/drivers/misc/thinkpad_acpi.c
++++ b/drivers/misc/thinkpad_acpi.c
+@@ -237,6 +237,10 @@ static struct {
+ 	u32 hotkey_poll_active:1;
+ } tp_features;
+ 
++static struct {
++	u16 hotkey_mask_ff:1;
++} tp_warned;
++
+ struct thinkpad_id_data {
+ 	unsigned int vendor;	/* ThinkPad vendor:
+ 				 * PCI_VENDOR_ID_IBM/PCI_VENDOR_ID_LENOVO */
+@@ -1182,6 +1186,19 @@ static int hotkey_mask_set(u32 mask)
+ 	int rc = 0;
+ 
+ 	if (tp_features.hotkey_mask) {
++		if (!tp_warned.hotkey_mask_ff &&
++		    (mask == 0xffff || mask == 0xffffff ||
++		     mask == 0xffffffff)) {
++			tp_warned.hotkey_mask_ff = 1;
++			printk(TPACPI_NOTICE
++			       "setting the hotkey mask to 0x%08x is likely "
++			       "not the best way to go about it\n", mask);
++			printk(TPACPI_NOTICE
++			       "please consider using the driver defaults, "
++			       "and refer to up-to-date thinkpad-acpi "
++			       "documentation\n");
++		}
++
+ 		HOTKEY_CONFIG_CRITICAL_START
+ 		for (i = 0; i < 32; i++) {
+ 			u32 m = 1 << i;
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+1.5.4.4
+
 
 -------------------------------------------------------------------------
 This SF.net email is sponsored by the 2008 JavaOne(SM) Conference 
