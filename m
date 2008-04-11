@@ -1,73 +1,50 @@
 From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: [PATCH 2/2] [RTC] : Add the support for alarm time relative to
-	current time in sysfs
-Date: Fri, 11 Apr 2008 20:38:12 +0800
-Message-ID: <1207917492.9448.40.camel@yakui_zhao.sh.intel.com>
+Subject: [PATCH 1/2] [RTC] : Fix the error in the function of cmos_set_alarm
+Date: Fri, 11 Apr 2008 20:36:49 +0800
+Message-ID: <1207917409.9448.38.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:26269 "EHLO mga11.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:26683 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751423AbYDKEsT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 11 Apr 2008 00:48:19 -0400
+	id S1757649AbYDKEtp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 11 Apr 2008 00:49:45 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: david-b@pacbell.net
 Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
 
-Subject: RTC: Add the support for alarm time relative to current time in sysfs
+Subject: RTC :Fix the error in the function of cmos_set_alarm  
 >From : Zhao Yakui <yakui.zhao@intel.com>
 
-In current kernel if we want to set the alarm time, the absolute time
-the seconds relative to 1970-01-01 00:00:00) should be written into 
-/sys/class/rtc/rtc0/wakealarm. It is not convenient.
-
-It is more reasonable to add the support for the alarm time 
-relative to current RTC time.(the unit is second)
-For example: 
-If the RTC is required to generate alarm after 2 minutes, the following will
-be OK.
-	echo +120 > /sys/class/rtc/rtc0/wakealarm
-or      echo +0x78 > /sys/class/rtc/rtc0/wakealarm
-
+There is a bug in the function of cmos_set_alarm. 
+RTC alarm time for October can't be set correctly. 
+For October: 0x0A will be written into the RTC region (MONTH_ALARM) 
+in current kernel. But in fact 0x10 should be written.
 
 Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
 Signed-off-by: Zhang Rui  <rui.zhang@intel.com>
 
 ---
- drivers/rtc/rtc-sysfs.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ drivers/rtc/rtc-cmos.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-Index: linux-2.6/drivers/rtc/rtc-sysfs.c
+Index: linux-2.6/drivers/rtc/rtc-cmos.c
 ===================================================================
---- linux-2.6.orig/drivers/rtc/rtc-sysfs.c
-+++ linux-2.6/drivers/rtc/rtc-sysfs.c
-@@ -145,6 +145,8 @@ rtc_sysfs_set_wakealarm(struct device *d
- 	unsigned long now, alarm;
- 	struct rtc_wkalrm alm;
- 	struct rtc_device *rtc = to_rtc_device(dev);
-+	char *buf_ptr;
-+	int adjust = 0;
+--- linux-2.6.orig/drivers/rtc/rtc-cmos.c
++++ linux-2.6/drivers/rtc/rtc-cmos.c
+@@ -198,9 +198,8 @@ static int cmos_set_alarm(struct device 
  
- 	/* Only request alarms that trigger in the future.  Disable them
- 	 * by writing another time, e.g. 0 meaning Jan 1 1970 UTC.
-@@ -154,7 +156,15 @@ rtc_sysfs_set_wakealarm(struct device *d
- 		return retval;
- 	rtc_tm_to_time(&alm.time, &now);
+ 	/* Writing 0xff means "don't care" or "match all".  */
  
--	alarm = simple_strtoul(buf, NULL, 0);
-+	buf_ptr = (char *)buf;
-+	if (*buf_ptr == '+') {
-+		buf_ptr++;
-+		adjust = 1;
-+	}
-+	alarm = simple_strtoul(buf_ptr, NULL, 0);
-+	if (adjust) {
-+		alarm += now;
-+	}
- 	if (alarm > now) {
- 		/* Avoid accidentally clobbering active alarms; we can't
- 		 * entirely prevent that here, without even the minimal
+-	mon = t->time.tm_mon;
+-	mon = (mon < 12) ? BIN2BCD(mon) : 0xff;
+-	mon++;
++	mon = t->time.tm_mon + 1;
++	mon = (mon <= 12) ? BIN2BCD(mon) : 0xff;
+ 
+ 	mday = t->time.tm_mday;
+ 	mday = (mday >= 1 && mday <= 31) ? BIN2BCD(mday) : 0xff;
 
 
