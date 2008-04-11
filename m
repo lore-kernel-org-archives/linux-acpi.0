@@ -1,43 +1,37 @@
-From: "Marcelo Laia" <marcelolaia@gmail.com>
-Subject: DMI info
-Date: Fri, 11 Apr 2008 09:38:46 -0300
-Message-ID: <a35fc1810804110538g1e8e8925q9c231f3ac9ffcf5d@mail.gmail.com>
+From: TJ <linux@tjworld.net>
+Subject: Re: [patch] PCI: Add DMI matching to i450NX fix-up for Dell
+	PowerEdge 6300
+Date: Fri, 11 Apr 2008 16:04:03 +0100
+Message-ID: <1207926243.10938.1.camel@hephaestion.lan.tjworld.net>
+References: <1207825695.7578.16.camel@hephaestion.lan.tjworld.net>
+	 <20080410165802.GU11962@parisc-linux.org>
+	 <1207905759.9448.4.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from qb-out-0506.google.com ([72.14.204.235]:18086 "EHLO
-	qb-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759603AbYDKMis convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Apr 2008 08:38:48 -0400
-Received: by qb-out-0506.google.com with SMTP id e11so530904qbe.15
-        for <linux-acpi@vger.kernel.org>; Fri, 11 Apr 2008 05:38:47 -0700 (PDT)
-Content-Disposition: inline
+Received: from tjworld.net ([67.18.187.6]:44902 "EHLO tjworld.net"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1758560AbYDKPEH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 11 Apr 2008 11:04:07 -0400
+In-Reply-To: <1207905759.9448.4.camel@yakui_zhao.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: Matthew Wilcox <matthew@wil.cx>, linux-pci@atrey.karlin.mff.cuni.cz, linux-acpi@vger.kernel.org, yhlu.kernel@gmail.com
 
-Setting up standard PCI resources
-ACPI: EC: Look up EC in DSDT
-ACPI: BIOS _OSI(Linux) query ignored
-ACPI: DMI System Vendor: Dell Inc.
-ACPI: DMI Product Name: Latitude D630
-ACPI: DMI Product Version:
-ACPI: DMI Board Name: 0KU184
-ACPI: DMI BIOS Vendor: Dell Inc.
-ACPI: DMI BIOS Date: 01/30/2008
-ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
+Confirmation that the patch in the -mm tree also solves the issue.
 
---=20
-Marcelo Luiz de Laia
-Jaboticabal - SP - Brazil
-sip:marcelolaia@ekiga.net
+On Fri, 2008-04-11 at 17:22 +0800, Zhao Yakui wrote:
+> Of course the patch can fix this problem. 
+> In fact we have another similar bug.
+> http://bugzilla.kernel.org/show_bug.cgi?id=10124
+> 
+> The patch is already added to the -mm tree.
+> The patch title is :
+>     acpi-unneccessary-to-scan-the-pci-bus-already-scanned.patch
+> 
+> Thanks.
+>    Yakui
 
-"Voc=EA v=EA as coisas como elas s=E3o e pergunta: por qu=EA? Mas eu so=
-nho com
-coisas que nunca foram e pergunto: por que n=E3o? " - Bernard Shaw
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
