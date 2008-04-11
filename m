@@ -1,44 +1,208 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: Re: [PATCH] check that acpi_wakeup_address is below 1MB v2
-Date: Fri, 11 Apr 2008 17:55:09 +0800
-Message-ID: <1207907709.9448.19.camel@yakui_zhao.sh.intel.com>
-References: <47FE87B0.7080709@free.fr>
+From: "Zhang, Rui" <rui.zhang@intel.com>
+Subject: Re: [PATCH 5/6] ACPI: elide a non-zero test on a result that is
+	never 0
+Date: Fri, 11 Apr 2008 10:09:24 +0800
+Message-ID: <1207879764.27304.53.camel@acpi-hp-zz.sh.intel.com>
+References: <1207815541.27304.46.camel@acpi-hp-zz.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:41764 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:2067 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751821AbYDKCYr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 10 Apr 2008 22:24:47 -0400
-In-Reply-To: <47FE87B0.7080709@free.fr>
+	id S1754544AbYDKCkl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 10 Apr 2008 22:40:41 -0400
+In-Reply-To: <1207815541.27304.46.camel@acpi-hp-zz.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: matthieu castet <castet.matthieu@free.fr>
-Cc: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, Julia Lawall <julia@diku.dk>
 
-On Thu, 2008-04-10 at 23:33 +0200, matthieu castet wrote:
-> Hi,
+
+On Thu, 2008-04-10 at 16:19 +0800, Zhang, Rui wrote:
+> From: Julia Lawall <julia@diku.dk>
 > 
-> this patch add a check that the memory allocated for s3 wakeup is in the 
-> first 1MB as required by acpi spec.
+> thermal_cooling_device_register used to return NULL if THERMAL is "n".
+> As the ACPI fan, processor and video drivers SELECT the generic
+> thermal in PATCH 01, this is not a problem any more.
 > 
-Have you found whether some systems are afflicted by this ?
+This is refreshed after running the checkpatch script.
+BTW: other patches have no such problems.
 
-In fact that OS allacates the acpi_wake_address follows the below two
-functions:
-reserve_bootmem(0, PAGE_SIZE, BOOTMEM_DEFAULT);
-reserve_bootmem(PAGE_SIZE, PAGE_SIZE, BOOTMEM_DEFAULT);
+From: Julia Lawall <julia@diku.dk>
 
-The above mechanism can insure that the acpi_wake_address is in memroy
-below 1M. (It is unncessary to apply the patch. IMO)
+thermal_cooling_device_register used to return NULL if THERMAL is "n".
+As the ACPI fan, processor and video drivers SELECT the generic
+thermal in PATCH 01, this is not a problem any more.
 
-Of course the addressing check will be more strict after this patch is
-applied.
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ drivers/acpi/fan.c            |   35 +++++++++++++++++------------------
+ drivers/acpi/processor_core.c |   31 +++++++++++++++----------------
+ drivers/acpi/video.c          |   28 +++++++++++++---------------
+ drivers/misc/intel_menlow.c   |   23 +++++++++--------------
+ 4 files changed, 54 insertions(+), 63 deletions(-)
 
-Best regards
-   Yakui
-> 
-> Signed-off-by: "Matthieu CASTET <castet.matthieu@free.fr>"
-> 
+Index: linux-2.6/drivers/acpi/fan.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/fan.c
++++ linux-2.6/drivers/acpi/fan.c
+@@ -260,24 +260,23 @@ static int acpi_fan_add(struct acpi_devi
+ 		result = PTR_ERR(cdev);
+ 		goto end;
+ 	}
+-	if (cdev) {
+-		printk(KERN_INFO PREFIX
+-			"%s is registered as cooling_device%d\n",
+-			device->dev.bus_id, cdev->id);
+-
+-		acpi_driver_data(device) = cdev;
+-		result = sysfs_create_link(&device->dev.kobj,
+-					   &cdev->device.kobj,
+-					   "thermal_cooling");
+-		if (result)
+-			return result;
+-
+-		result = sysfs_create_link(&cdev->device.kobj,
+-					   &device->dev.kobj,
+-					   "device");
+-		if (result)
+-			return result;
+-	}
++
++	printk(KERN_INFO PREFIX
++		"%s is registered as cooling_device%d\n",
++		device->dev.bus_id, cdev->id);
++
++	acpi_driver_data(device) = cdev;
++	result = sysfs_create_link(&device->dev.kobj,
++				   &cdev->device.kobj,
++				   "thermal_cooling");
++	if (result)
++		printk(KERN_ERR PREFIX "Create sysfs link\n");
++
++	result = sysfs_create_link(&cdev->device.kobj,
++				   &device->dev.kobj,
++				   "device");
++	if (result)
++		printk(KERN_ERR PREFIX "Create sysfs link\n");
+ 
+ 	result = acpi_fan_add_fs(device);
+ 	if (result)
+Index: linux-2.6/drivers/acpi/processor_core.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/processor_core.c
++++ linux-2.6/drivers/acpi/processor_core.c
+@@ -674,22 +674,21 @@ static int __cpuinit acpi_processor_star
+ 		result = PTR_ERR(pr->cdev);
+ 		goto end;
+ 	}
+-	if (pr->cdev) {
+-		printk(KERN_INFO PREFIX
+-			"%s is registered as cooling_device%d\n",
+-			device->dev.bus_id, pr->cdev->id);
+-
+-		result = sysfs_create_link(&device->dev.kobj,
+-					   &pr->cdev->device.kobj,
+-					   "thermal_cooling");
+-		if (result)
+-			return result;
+-		result = sysfs_create_link(&pr->cdev->device.kobj,
+-					   &device->dev.kobj,
+-					   "device");
+-		if (result)
+-			return result;
+-	}
++
++	printk(KERN_INFO PREFIX
++		"%s is registered as cooling_device%d\n",
++		device->dev.bus_id, pr->cdev->id);
++
++	result = sysfs_create_link(&device->dev.kobj,
++				   &pr->cdev->device.kobj,
++				   "thermal_cooling");
++	if (result)
++		printk(KERN_ERR PREFIX "Create sysfs link\n");
++	result = sysfs_create_link(&pr->cdev->device.kobj,
++				   &device->dev.kobj,
++				   "device");
++	if (result)
++		printk(KERN_ERR PREFIX "Create sysfs link\n");
+ 
+ 	if (pr->flags.throttling) {
+ 		printk(KERN_INFO PREFIX "%s [%s] (supports",
+Index: linux-2.6/drivers/acpi/video.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/video.c
++++ linux-2.6/drivers/acpi/video.c
+@@ -734,21 +734,19 @@ static void acpi_video_device_find_cap(s
+ 		if (IS_ERR(device->cdev))
+ 			return;
+ 
+-		if (device->cdev) {
+-			printk(KERN_INFO PREFIX
+-				"%s is registered as cooling_device%d\n",
+-				device->dev->dev.bus_id, device->cdev->id);
+-			result = sysfs_create_link(&device->dev->dev.kobj,
+-					  &device->cdev->device.kobj,
+-					  "thermal_cooling");
+-			if (result)
+-				printk(KERN_ERR PREFIX "Create sysfs link\n");
+-			result = sysfs_create_link(&device->cdev->device.kobj,
+-					  &device->dev->dev.kobj,
+-					  "device");
+-                        if (result)
+-				printk(KERN_ERR PREFIX "Create sysfs link\n");
+-		}
++		printk(KERN_INFO PREFIX
++			"%s is registered as cooling_device%d\n",
++			device->dev->dev.bus_id, device->cdev->id);
++		result = sysfs_create_link(&device->dev->dev.kobj,
++				&device->cdev->device.kobj,
++				"thermal_cooling");
++		if (result)
++			printk(KERN_ERR PREFIX "Create sysfs link\n");
++		result = sysfs_create_link(&device->cdev->device.kobj,
++				&device->dev->dev.kobj, "device");
++		if (result)
++			printk(KERN_ERR PREFIX "Create sysfs link\n");
++
+ 	}
+ 	if (device->cap._DCS && device->cap._DSS){
+ 		static int count = 0;
+Index: linux-2.6/drivers/misc/intel_menlow.c
+===================================================================
+--- linux-2.6.orig/drivers/misc/intel_menlow.c
++++ linux-2.6/drivers/misc/intel_menlow.c
+@@ -175,20 +175,15 @@ static int intel_menlow_memory_add(struc
+ 		goto end;
+ 	}
+ 
+-	if (cdev) {
+-		acpi_driver_data(device) = cdev;
+-		result = sysfs_create_link(&device->dev.kobj,
+-					&cdev->device.kobj, "thermal_cooling");
+-		if (result)
+-			goto unregister;
+-
+-		result = sysfs_create_link(&cdev->device.kobj,
+-					&device->dev.kobj, "device");
+-		if (result) {
+-			sysfs_remove_link(&device->dev.kobj, "thermal_cooling");
+-			goto unregister;
+-		}
+-	}
++	acpi_driver_data(device) = cdev;
++	result = sysfs_create_link(&device->dev.kobj,
++				&cdev->device.kobj, "thermal_cooling");
++	if (result)
++		printk(KERN_ERR PREFIX "Create sysfs link\n");
++	result = sysfs_create_link(&cdev->device.kobj,
++				&device->dev.kobj, "device");
++	if (result)
++		printk(KERN_ERR PREFIX "Create sysfs link\n");
+ 
+  end:
+ 	return result;
+
 
