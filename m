@@ -1,40 +1,43 @@
-From: Atilla Moen-Duran <atilla@moen-duran.no>
-Subject: DMI info - Lenovo ThinkPad X61 Tablet
-Date: Fri, 11 Apr 2008 12:18:06 +0200
-Message-ID: <47FF3ADE.80203@moen-duran.no>
+From: "Marcelo Laia" <marcelolaia@gmail.com>
+Subject: DMI info
+Date: Fri, 11 Apr 2008 09:38:46 -0300
+Message-ID: <a35fc1810804110538g1e8e8925q9c231f3ac9ffcf5d@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from lakepoint.domeneshop.no ([194.63.248.54]:36291 "EHLO
-	lakepoint.domeneshop.no" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760189AbYDKKke (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Apr 2008 06:40:34 -0400
-Received: from [192.168.0.13] (i165070.directconnect.no [82.148.165.70])
-	(authenticated bits=0)
-	by lakepoint.domeneshop.no (8.13.8/8.13.8) with ESMTP id m3BAHqm5021225
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NOT)
-	for <linux-acpi@vger.kernel.org>; Fri, 11 Apr 2008 12:17:57 +0200
+Received: from qb-out-0506.google.com ([72.14.204.235]:18086 "EHLO
+	qb-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759603AbYDKMis convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Apr 2008 08:38:48 -0400
+Received: by qb-out-0506.google.com with SMTP id e11so530904qbe.15
+        for <linux-acpi@vger.kernel.org>; Fri, 11 Apr 2008 05:38:47 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
-ACPI: EC: EC description table is found, configuring boot EC
-ACPI: BIOS _OSI(Linux) query honored via cmdline
-ACPI: DMI System Vendor: LENOVO
-ACPI: DMI Product Name: 776295G
-ACPI: DMI Product Version: ThinkPad X61 Tablet
-ACPI: DMI Board Name: 776295G
-ACPI: DMI BIOS Vendor: LENOVO
-ACPI: DMI BIOS Date: 01/29/2008
+Setting up standard PCI resources
+ACPI: EC: Look up EC in DSDT
+ACPI: BIOS _OSI(Linux) query ignored
+ACPI: DMI System Vendor: Dell Inc.
+ACPI: DMI Product Name: Latitude D630
+ACPI: DMI Product Version:
+ACPI: DMI Board Name: 0KU184
+ACPI: DMI BIOS Vendor: Dell Inc.
+ACPI: DMI BIOS Date: 01/30/2008
 ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
 
+--=20
+Marcelo Luiz de Laia
+Jaboticabal - SP - Brazil
+sip:marcelolaia@ekiga.net
 
-Kernel parameters:
-kernel /boot/kernel.current vga=0x318 root=/dev/sda3 console=tty1 
-acpi_osi=Linux pci=routeirq
-
-
-Regards
-Atilla Moen-Duran
-(Using Gentoo)
+"Voc=EA v=EA as coisas como elas s=E3o e pergunta: por qu=EA? Mas eu so=
+nho com
+coisas que nunca foram e pergunto: por que n=E3o? " - Bernard Shaw
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
