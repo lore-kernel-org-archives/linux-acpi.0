@@ -1,45 +1,50 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [RFC] [PATCH 1/3] Allow to override the RTC alarm time
-Date: Thu, 10 Apr 2008 20:46:47 -0700
-Message-ID: <200804102046.48082.david-b@pacbell.net>
-References: <1207722851.5997.16.camel@yakui_zhao.sh.intel.com> <200804090313.34805.david-b@pacbell.net> <1207911866.9448.34.camel@yakui_zhao.sh.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: akpm@linux-foundation.org
+Subject: [patch for 2.6.25? 2/3] acpi: bus: check once more for an empty list after locking it
+Date: Thu, 10 Apr 2008 21:30:15 -0700
+Message-ID: <200804110430.m3B4UFLb000417@imap1.linux-foundation.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp119.sbc.mail.sp1.yahoo.com ([69.147.64.92]:38468 "HELO
-	smtp119.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1756704AbYDKDqu (ORCPT
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60668 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750729AbYDKEas (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 10 Apr 2008 23:46:50 -0400
-In-Reply-To: <1207911866.9448.34.camel@yakui_zhao.sh.intel.com>
-Content-Disposition: inline
+	Fri, 11 Apr 2008 00:30:48 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: "Zhang, Rui" <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, lenb@kernel.org, Alessandro Zummo <alessandro.zummo@towertech.it>
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, cebbert@redhat.com, stable@kernel.org
 
-On Friday 11 April 2008, Zhao Yakui wrote:
-> But The following is reasonable. IMO.
-> =A0For October: 0x0A will be written into the RTC region
-> (MONTH_ALARM). But in fact 0x10 should be written.
-> =A0 =A0 =A0 =A0/* Writing 0xff means "don't care" or "match all". =A0=
-*/
-> =A0
-> - =A0 =A0 =A0 mon =3D t->time.tm_mon;
-> - =A0 =A0 =A0 mon =3D (mon < 12) ? BIN2BCD(mon) : 0xff;
-> - =A0 =A0 =A0 mon++;
-> + =A0 =A0 =A0 mon =3D t->time.tm_mon + 1;
-> + =A0 =A0 =A0 mon =3D (mon <=3D 12) ? BIN2BCD(mon) : 0xff;
->=20
-> Is there an opportunity to merge it?
+From: Chuck Ebbert <cebbert@redhat.com>
 
-Sure.  Submit that as a patch by itself.
+List could have become empty after the unlocked check that was made earlier,
+so check again inside the lock.
 
-- Dave
+Should fix https://bugzilla.redhat.com/show_bug.cgi?id=427765
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Chuck Ebbert <cebbert@redhat.com>
+Cc: <stable@kernel.org>
+Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ drivers/acpi/bus.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff -puN drivers/acpi/bus.c~acpi-bus-check-once-more-for-an-empty-list-after-locking-it drivers/acpi/bus.c
+--- a/drivers/acpi/bus.c~acpi-bus-check-once-more-for-an-empty-list-after-locking-it
++++ a/drivers/acpi/bus.c
+@@ -373,10 +373,11 @@ int acpi_bus_receive_event(struct acpi_b
+ 	}
+ 
+ 	spin_lock_irqsave(&acpi_bus_event_lock, flags);
+-	entry =
+-	    list_entry(acpi_bus_event_list.next, struct acpi_bus_event, node);
+-	if (entry)
++	if (!list_empty(&acpi_bus_event_list)) {
++		entry = list_entry(acpi_bus_event_list.next,
++				   struct acpi_bus_event, node);
+ 		list_del(&entry->node);
++	}
+ 	spin_unlock_irqrestore(&acpi_bus_event_lock, flags);
+ 
+ 	if (!entry)
+_
