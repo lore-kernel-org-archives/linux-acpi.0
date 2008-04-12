@@ -1,13 +1,13 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 57/73] ACPICA: Added new error messages
-Date: Sat, 12 Apr 2008 00:25:40 -0400
-Message-ID: <0e29795892c683650ae7aad8a05f323feeda1b9d.1207973800.git.len.brown@intel.com>
+Subject: [PATCH 41/73] ACPICA: Fixed a problem with AcpiGetDevices where the search of a branch of the device tree could be terminated prematurely
+Date: Sat, 12 Apr 2008 00:25:24 -0400
+Message-ID: <e9b790c8b33ba03dcd200c820e178bb7473ce8cd.1207973800.git.len.brown@intel.com>
 References: <1207974356-30687-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.89]:45175 "EHLO
-	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753518AbYDLE2L (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Apr 2008 00:28:11 -0400
+Received: from mga10.intel.com ([192.55.52.92]:7534 "EHLO
+	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753621AbYDLE2M (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Apr 2008 00:28:12 -0400
 In-Reply-To: <1207974356-30687-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <0b76302280f017f219f191ea2c1439ff66cc4b2a.1207973799.git.len.brown@intel.com>
 References: <0b76302280f017f219f191ea2c1439ff66cc4b2a.1207973799.git.len.brown@intel.com>
@@ -18,41 +18,47 @@ Cc: Bob Moore <robert.moore@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.
 
 From: Bob Moore <robert.moore@intel.com>
 
-New messages for the 2 AE_SUPPORT cases.
+In accordance with the ACPI specification, the search is terminated
+if a device is both not present and not functional (instead of
+just not present.) Yakui Zhao.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/utilities/utcopy.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
+ drivers/acpi/namespace/nsxfeval.c |   13 ++++++++-----
+ 1 files changed, 8 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/utilities/utcopy.c b/drivers/acpi/utilities/utcopy.c
-index ba89971..4c4021d 100644
---- a/drivers/acpi/utilities/utcopy.c
-+++ b/drivers/acpi/utilities/utcopy.c
-@@ -215,6 +215,11 @@ acpi_ut_copy_isimple_to_esimple(union acpi_operand_object *internal_object,
- 		/*
- 		 * There is no corresponding external object type
- 		 */
-+		ACPI_ERROR((AE_INFO,
-+			    "Unsupported object type, cannot convert to external object: %s",
-+			    acpi_ut_get_type_name(ACPI_GET_OBJECT_TYPE
-+						  (internal_object))));
-+
- 		return_ACPI_STATUS(AE_SUPPORT);
+diff --git a/drivers/acpi/namespace/nsxfeval.c b/drivers/acpi/namespace/nsxfeval.c
+index b92133f..cd97c80 100644
+--- a/drivers/acpi/namespace/nsxfeval.c
++++ b/drivers/acpi/namespace/nsxfeval.c
+@@ -467,10 +467,13 @@ acpi_ns_get_device_callback(acpi_handle obj_handle,
+ 		return (AE_CTRL_DEPTH);
  	}
  
-@@ -467,6 +472,10 @@ acpi_ut_copy_esimple_to_isimple(union acpi_object *external_object,
- 	default:
- 		/* All other types are not supported */
- 
-+		ACPI_ERROR((AE_INFO,
-+			    "Unsupported object type, cannot convert to internal object: %s",
-+			    acpi_ut_get_type_name(external_object->type)));
-+
- 		return_ACPI_STATUS(AE_SUPPORT);
+-	if (!(flags & ACPI_STA_DEVICE_PRESENT)) {
+-
+-		/* Don't examine children of the device if not present */
+-
++	if (!(flags & ACPI_STA_DEVICE_PRESENT) &&
++	    !(flags & ACPI_STA_DEVICE_FUNCTIONING)) {
++		/*
++		 * Don't examine the children of the device only when the
++		 * device is neither present nor functional. See ACPI spec,
++		 * description of _STA for more information.
++		 */
+ 		return (AE_CTRL_DEPTH);
  	}
+ 
+@@ -539,7 +542,7 @@ acpi_ns_get_device_callback(acpi_handle obj_handle,
+  *              value is returned to the caller.
+  *
+  *              This is a wrapper for walk_namespace, but the callback performs
+- *              additional filtering. Please see acpi_get_device_callback.
++ *              additional filtering. Please see acpi_ns_get_device_callback.
+  *
+  ******************************************************************************/
  
 -- 
 1.5.5.29.g7134
