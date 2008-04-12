@@ -1,13 +1,13 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 67/73] ACPICA: Fixes for external Reference Objects
-Date: Sat, 12 Apr 2008 00:25:50 -0400
-Message-ID: <ac9f1f2204eb7bd93d0fc3d23c42e2385131c302.1207973800.git.len.brown@intel.com>
+Subject: [PATCH 68/73] ACPICA: Updates for Debug object output
+Date: Sat, 12 Apr 2008 00:25:51 -0400
+Message-ID: <408f59a6c9e8a82faa0dc09a0ca04cb1469c9233.1207973801.git.len.brown@intel.com>
 References: <1207974356-30687-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.89]:60403 "EHLO
+Received: from mga05.intel.com ([192.55.52.89]:45175 "EHLO
 	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755710AbYDLE2P (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Apr 2008 00:28:15 -0400
+	with ESMTP id S1757278AbYDLE2Q (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Apr 2008 00:28:16 -0400
 In-Reply-To: <1207974356-30687-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <0b76302280f017f219f191ea2c1439ff66cc4b2a.1207973799.git.len.brown@intel.com>
 References: <0b76302280f017f219f191ea2c1439ff66cc4b2a.1207973799.git.len.brown@intel.com>
@@ -18,97 +18,141 @@ Cc: Bob Moore <robert.moore@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.
 
 From: Bob Moore <robert.moore@intel.com>
 
-All Reference Objects returned via the AcpiEvaluteObject interface
-are now marked as type "REFERENCE" instead of "ANY". The type ANY
-is now reservered for NULL objects - either NULL package elements
-or unresolved named references.
+Implemented several improvements for the output of the ASL "Debug"
+object to clarify and keep all data for a given object on one
+output line.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/utilities/utcopy.c |   32 ++++++++++++++++++++++++--------
- 1 files changed, 24 insertions(+), 8 deletions(-)
+ drivers/acpi/executer/exstore.c |   76 ++++++++++++++++++++++++++------------
+ 1 files changed, 52 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/acpi/utilities/utcopy.c b/drivers/acpi/utilities/utcopy.c
-index 4e9a62b..2a57c2c 100644
---- a/drivers/acpi/utilities/utcopy.c
-+++ b/drivers/acpi/utilities/utcopy.c
-@@ -43,6 +43,8 @@
+diff --git a/drivers/acpi/executer/exstore.c b/drivers/acpi/executer/exstore.c
+index 36c0fcc..dbc5e18 100644
+--- a/drivers/acpi/executer/exstore.c
++++ b/drivers/acpi/executer/exstore.c
+@@ -84,8 +84,12 @@ acpi_ex_do_debug_object(union acpi_operand_object *source_desc,
  
- #include <acpi/acpi.h>
- #include <acpi/amlcode.h>
-+#include <acpi/acnamesp.h>
+ 	ACPI_FUNCTION_TRACE_PTR(ex_do_debug_object, source_desc);
+ 
+-	ACPI_DEBUG_PRINT_RAW((ACPI_DB_DEBUG_OBJECT, "[ACPI Debug] %*s",
+-			      level, " "));
++	/* Print line header as long as we are not in the middle of an object display */
 +
++	if (!((level > 0) && index == 0)) {
++		ACPI_DEBUG_PRINT_RAW((ACPI_DB_DEBUG_OBJECT, "[ACPI Debug] %*s",
++				      level, " "));
++	}
  
- #define _COMPONENT          ACPI_UTILITIES
- ACPI_MODULE_NAME("utcopy")
-@@ -172,22 +174,21 @@ acpi_ut_copy_isimple_to_esimple(union acpi_operand_object *internal_object,
+ 	/* Display index for package output only */
  
- 	case ACPI_TYPE_LOCAL_REFERENCE:
+@@ -95,12 +99,12 @@ acpi_ex_do_debug_object(union acpi_operand_object *source_desc,
+ 	}
  
--		/*
--		 * This is an object reference.  Attempt to dereference it.
--		 */
-+		/* This is an object reference. */
-+
- 		switch (internal_object->reference.opcode) {
- 		case AML_INT_NAMEPATH_OP:
+ 	if (!source_desc) {
+-		ACPI_DEBUG_PRINT_RAW((ACPI_DB_DEBUG_OBJECT, "<Null Object>\n"));
++		ACPI_DEBUG_PRINT_RAW((ACPI_DB_DEBUG_OBJECT, "[Null Object]\n"));
+ 		return_VOID;
+ 	}
  
- 			/* For namepath, return the object handle ("reference") */
+ 	if (ACPI_GET_DESCRIPTOR_TYPE(source_desc) == ACPI_DESC_TYPE_OPERAND) {
+-		ACPI_DEBUG_PRINT_RAW((ACPI_DB_DEBUG_OBJECT, "%s: ",
++		ACPI_DEBUG_PRINT_RAW((ACPI_DB_DEBUG_OBJECT, "%s ",
+ 				      acpi_ut_get_object_type_name
+ 				      (source_desc)));
  
- 		default:
--			/*
--			 * Use the object type of "Any" to indicate a reference
--			 * to object containing a handle to an ACPI named object.
--			 */
--			external_object->type = ACPI_TYPE_ANY;
-+
-+			/* We are referring to the namespace node */
-+
- 			external_object->reference.handle =
- 			    internal_object->reference.node;
-+			external_object->reference.actual_type =
-+			    acpi_ns_get_type(internal_object->reference.node);
+@@ -162,7 +166,7 @@ acpi_ex_do_debug_object(union acpi_operand_object *source_desc,
+ 	case ACPI_TYPE_PACKAGE:
+ 
+ 		ACPI_DEBUG_PRINT_RAW((ACPI_DB_DEBUG_OBJECT,
+-				      "[0x%.2X Elements]\n",
++				      "[Contains 0x%.2X Elements]\n",
+ 				      source_desc->package.count));
+ 
+ 		/* Output the entire contents of the package */
+@@ -194,8 +198,47 @@ acpi_ex_do_debug_object(union acpi_operand_object *source_desc,
  			break;
  		}
- 		break;
-@@ -460,6 +461,7 @@ acpi_ut_copy_esimple_to_isimple(union acpi_object *external_object,
- 	case ACPI_TYPE_STRING:
- 	case ACPI_TYPE_BUFFER:
- 	case ACPI_TYPE_INTEGER:
-+	case ACPI_TYPE_LOCAL_REFERENCE:
  
- 		internal_object = acpi_ut_create_internal_object((u8)
- 								 external_object->
-@@ -469,6 +471,11 @@ acpi_ut_copy_esimple_to_isimple(union acpi_object *external_object,
+-		ACPI_DEBUG_PRINT_RAW((ACPI_DB_DEBUG_OBJECT, "\n"));
+-		if (source_desc->reference.object) {
++		ACPI_DEBUG_PRINT_RAW((ACPI_DB_DEBUG_OBJECT, "  "));
++
++		/* Check for valid node first, then valid object */
++
++		if (source_desc->reference.node) {
++			if (ACPI_GET_DESCRIPTOR_TYPE
++			    (source_desc->reference.node) !=
++			    ACPI_DESC_TYPE_NAMED) {
++				ACPI_DEBUG_PRINT_RAW((ACPI_DB_DEBUG_OBJECT,
++						      " %p - Not a valid namespace node\n",
++						      source_desc->reference.
++						      node));
++			} else {
++				ACPI_DEBUG_PRINT_RAW((ACPI_DB_DEBUG_OBJECT,
++						      "Node %p [%4.4s] ",
++						      source_desc->reference.
++						      node,
++						      (source_desc->reference.
++						       node)->name.ascii));
++
++				switch ((source_desc->reference.node)->type) {
++
++					/* These types have no attached object */
++
++				case ACPI_TYPE_DEVICE:
++					acpi_os_printf("Device\n");
++					break;
++
++				case ACPI_TYPE_THERMAL:
++					acpi_os_printf("Thermal Zone\n");
++					break;
++
++				default:
++					acpi_ex_do_debug_object((source_desc->
++								 reference.
++								 node)->object,
++								level + 4, 0);
++					break;
++				}
++			}
++		} else if (source_desc->reference.object) {
+ 			if (ACPI_GET_DESCRIPTOR_TYPE
+ 			    (source_desc->reference.object) ==
+ 			    ACPI_DESC_TYPE_NAMED) {
+@@ -208,28 +251,13 @@ acpi_ex_do_debug_object(union acpi_operand_object *source_desc,
+ 				acpi_ex_do_debug_object(source_desc->reference.
+ 							object, level + 4, 0);
+ 			}
+-		} else if (source_desc->reference.node) {
+-			if (ACPI_GET_DESCRIPTOR_TYPE
+-			    (source_desc->reference.node) !=
+-			    ACPI_DESC_TYPE_NAMED) {
+-				ACPI_DEBUG_PRINT_RAW((ACPI_DB_DEBUG_OBJECT,
+-						      " %p - Not a valid namespace node\n",
+-						      source_desc->reference.
+-						      node));
+-			} else {
+-				acpi_ex_do_debug_object((source_desc->reference.
+-							 node)->object,
+-							level + 4, 0);
+-			}
  		}
  		break;
  
-+	case ACPI_TYPE_ANY:	/* This is the case for a NULL object */
-+
-+		*ret_internal_object = NULL;
-+		return_ACPI_STATUS(AE_OK);
-+
  	default:
- 		/* All other types are not supported */
  
-@@ -522,6 +529,15 @@ acpi_ut_copy_esimple_to_isimple(union acpi_object *external_object,
- 		internal_object->integer.value = external_object->integer.value;
+-		ACPI_DEBUG_PRINT_RAW((ACPI_DB_DEBUG_OBJECT, "%p %s\n",
+-				      source_desc,
+-				      acpi_ut_get_object_type_name
+-				      (source_desc)));
++		ACPI_DEBUG_PRINT_RAW((ACPI_DB_DEBUG_OBJECT, "%p\n",
++				      source_desc));
  		break;
+ 	}
  
-+	case ACPI_TYPE_LOCAL_REFERENCE:
-+
-+		/* TBD: should validate incoming handle */
-+
-+		internal_object->reference.opcode = AML_INT_NAMEPATH_OP;
-+		internal_object->reference.node =
-+		    external_object->reference.handle;
-+		break;
-+
- 	default:
- 		/* Other types can't get here */
- 		break;
 -- 
 1.5.5.29.g7134
 
