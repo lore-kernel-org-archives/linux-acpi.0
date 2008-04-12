@@ -1,79 +1,71 @@
 From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: Re: [PATCH 08/13] ACPI: thinkpad-acpi: add sysfs led class support
- for thinklight (v3.1)
-Date: Fri, 11 Apr 2008 17:24:02 -0700
-Message-ID: <20080411172402.a863c6c7.randy.dunlap@oracle.com>
+Subject: Re: [PATCH 01/13] ACPI: thinkpad-acpi: BIOS backlight mode helper
+ (v2)
+Date: Fri, 11 Apr 2008 17:26:38 -0700
+Message-ID: <20080411172638.96d5a947.randy.dunlap@oracle.com>
 References: <1207799585-10112-1-git-send-email-hmh@hmh.eng.br>
-	<1207799585-10112-9-git-send-email-hmh@hmh.eng.br>
+	<1207799585-10112-2-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rgminet01.oracle.com ([148.87.113.118]:30705 "EHLO
-	rgminet01.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758049AbYDLA0K (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Apr 2008 20:26:10 -0400
-In-Reply-To: <1207799585-10112-9-git-send-email-hmh@hmh.eng.br>
+Received: from agminet01.oracle.com ([141.146.126.228]:11125 "EHLO
+	agminet01.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758537AbYDLA2L (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Apr 2008 20:28:11 -0400
+In-Reply-To: <1207799585-10112-2-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Len Brown <lenb@kernel.org>, ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Richard Purdie <rpurdie@rpsys.net>
+Cc: Len Brown <lenb@kernel.org>, ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>, Thomas Renninger <trenn@suse.de>
 
-On Thu, 10 Apr 2008 00:53:00 -0300 Henrique de Moraes Holschuh wrote:
+On Thu, 10 Apr 2008 00:52:53 -0300 Henrique de Moraes Holschuh wrote:
 
-> Add a sysfs led class interface to the thinklight (light subdriver).
-> 
-> Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-> Cc: Richard Purdie <rpurdie@rpsys.net>
-> ---
->  Documentation/laptops/thinkpad-acpi.txt |   25 +++++++++++---
->  drivers/misc/thinkpad_acpi.c            |   57 ++++++++++++++++++++++++++++++-
->  2 files changed, 76 insertions(+), 6 deletions(-)
+>  Documentation/laptops/thinkpad-acpi.txt |   49 +++++++
+>  drivers/misc/thinkpad_acpi.c            |  238 +++++++++++++++++--------------
+>  2 files changed, 182 insertions(+), 105 deletions(-)
 > 
 > diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
-> index 0f403ff..22c1ac4 100644
+> index 76cb428..bbc8275 100644
 > --- a/Documentation/laptops/thinkpad-acpi.txt
 > +++ b/Documentation/laptops/thinkpad-acpi.txt
-> @@ -692,16 +692,31 @@ while others are still having problems. For more information:
+> @@ -571,6 +571,46 @@ netlink interface and the input layer interface, and don't bother at all
+>  with hotkey_report_mode.
 >  
->  https://bugs.freedesktop.org/show_bug.cgi?id=2000
 >  
-> -ThinkLight control -- /proc/acpi/ibm/light
-> -------------------------------------------
-> +ThinkLight control
-> +------------------
+> +Brightness hotkey notes:
 > +
-> +procfs: /proc/acpi/ibm/light
-> +sysfs attributes: as per led class, for the "tpacpi::thinklight" led
+> +These are the current sane choices for brightness key mapping in
+> +thinkpad-acpi:
 > +
+> +For IBM and Lenovo models *without* ACPI backlight control (the ones on
+> +which thinkpad-acpi will autoload its backlight interface by default,
+> +and on which ACPI video does not export a backlight interface):
+> +
+> +1. Don't enable or map the brightness hotkeys in thinkpad-acpi, as
+> +   these older firmware versions unfortunately won't respect the hotkey
+> +   mask for brightness keys anyway, and always reacts to them.  This
+> +   usually work fine, unless X.org is doing something to block the BIOS.
 
-Well, I would really prefer that we call LEDs "LED" instead of "led"
-in user documentation.
+X.org is an organization AFAIK.  Please use something like
+"X.org drivers" or "X.org video drivers" when that it what is meant.
 
-> +procfs notes:
->  
-> -The current status of the ThinkLight can be found in this file. A few
-> -models which do not make the status available will show it as
-> -"unknown". The available commands are:
-> +The ThinkLight status can be read and set through the procfs interface.  A
-> +few models which do not make the status available will show the ThinkLight
-> +status as "unknown". The available commands are:
->  
->  	echo on  > /proc/acpi/ibm/light
->  	echo off > /proc/acpi/ibm/light
->  
-> +sysfs notes:
+> +   In that case, use (3) below.  This is the default mode of operation.
 > +
-> +The ThinkLight sysfs interface is documented by the led class
-> +documentation, in Documentation/leds-class.txt.  The ThinkLight led name
-> +is "tpacpi::thinklight".
+> +2. Enable the hotkeys, but map them to something else that is NOT
+> +   KEY_BRIGHTNESS_UP/DOWN or any other keycode that would cause
+> +   userspace to try to change the backlight level, and use that as an
+> +   on-screen-display hint.
 > +
-> +Due to limitations in the sysfs led class, if the status of the thinklight
-> +cannot be read or if it is unknown, thinkpad-acpi will report it as "off".
-> +It is impossible to know if the status returned through sysfs is valid.
-> +
->  Docking / undocking -- /proc/acpi/ibm/dock
->  ------------------------------------------
+> +3. IF AND ONLY IF X.org finds a way to block the firmware from
+
+ditto
+
+> +   automatically changing the brightness, enable the hotkeys and map
+> +   them to KEY_BRIGHTNESS_UP and KEY_BRIGHTNESS_DOWN, and feed that to
+> +   something that calls xbacklight.  thinkpad-acpi will not be able to
+> +   change brightness in that case either, so you should disable its
+> +   backlight interface.
 
 
 ---
