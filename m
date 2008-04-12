@@ -1,13 +1,13 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 40/73] ACPICA: Update version to 20071114
-Date: Sat, 12 Apr 2008 00:25:23 -0400
-Message-ID: <b6fa6f5945752b5e35bb10d6c520bea20753ae4a.1207973800.git.len.brown@intel.com>
+Subject: [PATCH 50/73] ACPICA: Fix for Load operator
+Date: Sat, 12 Apr 2008 00:25:33 -0400
+Message-ID: <6296f4cc361802a395c9f4d3f44889362ccefedb.1207973800.git.len.brown@intel.com>
 References: <1207974356-30687-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga10.intel.com ([192.55.52.92]:54694 "EHLO
-	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753620AbYDLE2M (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Apr 2008 00:28:12 -0400
+Received: from mga05.intel.com ([192.55.52.89]:60403 "EHLO
+	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753376AbYDLE2K (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Apr 2008 00:28:10 -0400
 In-Reply-To: <1207974356-30687-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <0b76302280f017f219f191ea2c1439ff66cc4b2a.1207973799.git.len.brown@intel.com>
 References: <0b76302280f017f219f191ea2c1439ff66cc4b2a.1207973799.git.len.brown@intel.com>
@@ -18,28 +18,29 @@ Cc: Bob Moore <robert.moore@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.
 
 From: Bob Moore <robert.moore@intel.com>
 
-Update version to 20071114.
+Fixed a problem with the Load operator where an exception was not
+returned in the case where the table is already loaded. (Lin Ming)
+BZ 463
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- include/acpi/acconfig.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/acpi/tables/tbinstal.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/include/acpi/acconfig.h b/include/acpi/acconfig.h
-index a2d4c87..c21e12d 100644
---- a/include/acpi/acconfig.h
-+++ b/include/acpi/acconfig.h
-@@ -63,7 +63,7 @@
+diff --git a/drivers/acpi/tables/tbinstal.c b/drivers/acpi/tables/tbinstal.c
+index 6a6ee1f..c4a9abb 100644
+--- a/drivers/acpi/tables/tbinstal.c
++++ b/drivers/acpi/tables/tbinstal.c
+@@ -169,6 +169,7 @@ acpi_tb_add_table(struct acpi_table_desc *table_desc,
  
- /* Current ACPICA subsystem version in YYYYMMDD format */
+ 		acpi_tb_delete_table(table_desc);
+ 		*table_index = i;
++		status = AE_ALREADY_EXISTS;
+ 		goto release;
+ 	}
  
--#define ACPI_CA_VERSION                 0x20071019
-+#define ACPI_CA_VERSION                 0x20071114
- 
- /*
-  * OS name, used for the _OS object.  The _OS object is essentially obsolete,
 -- 
 1.5.5.29.g7134
 
