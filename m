@@ -1,13 +1,13 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 60/73] ACPICA: Additional GPE/Notify handling change
-Date: Sat, 12 Apr 2008 00:25:43 -0400
-Message-ID: <e7a27fb06130ca7e04e71d0c5f11cf5e187f2395.1207973800.git.len.brown@intel.com>
+Subject: [PATCH 67/73] ACPICA: Fixes for external Reference Objects
+Date: Sat, 12 Apr 2008 00:25:50 -0400
+Message-ID: <ac9f1f2204eb7bd93d0fc3d23c42e2385131c302.1207973800.git.len.brown@intel.com>
 References: <1207974356-30687-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga10.intel.com ([192.55.52.92]:15947 "EHLO
-	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756773AbYDLE2Q (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Apr 2008 00:28:16 -0400
+Received: from mga05.intel.com ([192.55.52.89]:60403 "EHLO
+	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755710AbYDLE2P (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Apr 2008 00:28:15 -0400
 In-Reply-To: <1207974356-30687-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <0b76302280f017f219f191ea2c1439ff66cc4b2a.1207973799.git.len.brown@intel.com>
 References: <0b76302280f017f219f191ea2c1439ff66cc4b2a.1207973799.git.len.brown@intel.com>
@@ -18,137 +18,97 @@ Cc: Bob Moore <robert.moore@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.
 
 From: Bob Moore <robert.moore@intel.com>
 
-Implemented another MS compatibility design change for GPE/Notify
-handling. GPEs are now cleared/enabled asynchronously to
-allow all pending notifies to complete first. It is expected
-that the OSL will queue the enable request behind all pending
-notify requests (may require changes to the local host OSL in
-AcpiOsExecute). Alexey Starikovskiy
+All Reference Objects returned via the AcpiEvaluteObject interface
+are now marked as type "REFERENCE" instead of "ANY". The type ANY
+is now reservered for NULL objects - either NULL package elements
+or unresolved named references.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/events/evgpe.c |   40 ++++++++++++++++++++++++++++++----------
- 1 files changed, 30 insertions(+), 10 deletions(-)
+ drivers/acpi/utilities/utcopy.c |   32 ++++++++++++++++++++++++--------
+ 1 files changed, 24 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/acpi/events/evgpe.c b/drivers/acpi/events/evgpe.c
-index 0dadd2a..897baed 100644
---- a/drivers/acpi/events/evgpe.c
-+++ b/drivers/acpi/events/evgpe.c
-@@ -51,6 +51,8 @@ ACPI_MODULE_NAME("evgpe")
- /* Local prototypes */
- static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context);
+diff --git a/drivers/acpi/utilities/utcopy.c b/drivers/acpi/utilities/utcopy.c
+index 4e9a62b..2a57c2c 100644
+--- a/drivers/acpi/utilities/utcopy.c
++++ b/drivers/acpi/utilities/utcopy.c
+@@ -43,6 +43,8 @@
  
-+static void ACPI_SYSTEM_XFACE acpi_ev_asynch_enable_gpe(void *context);
+ #include <acpi/acpi.h>
+ #include <acpi/amlcode.h>
++#include <acpi/acnamesp.h>
 +
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_ev_set_gpe_type
-@@ -505,13 +507,22 @@ static void acpi_ev_asynch_enable_gpe(void *context);
  
- static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context)
- {
--	struct acpi_gpe_event_info *gpe_event_info = (void *)context;
-+	struct acpi_gpe_event_info *gpe_event_info = context;
- 	acpi_status status;
--	struct acpi_gpe_event_info local_gpe_event_info;
-+	struct acpi_gpe_event_info *local_gpe_event_info;
- 	struct acpi_evaluate_info *info;
+ #define _COMPONENT          ACPI_UTILITIES
+ ACPI_MODULE_NAME("utcopy")
+@@ -172,22 +174,21 @@ acpi_ut_copy_isimple_to_esimple(union acpi_operand_object *internal_object,
  
- 	ACPI_FUNCTION_TRACE(ev_asynch_execute_gpe_method);
+ 	case ACPI_TYPE_LOCAL_REFERENCE:
  
-+	/* Allocate a local GPE block */
+-		/*
+-		 * This is an object reference.  Attempt to dereference it.
+-		 */
++		/* This is an object reference. */
 +
-+	local_gpe_event_info =
-+	    ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_gpe_event_info));
-+	if (!local_gpe_event_info) {
-+		ACPI_EXCEPTION((AE_INFO, AE_NO_MEMORY, "while handling a GPE"));
-+		return_VOID;
-+	}
+ 		switch (internal_object->reference.opcode) {
+ 		case AML_INT_NAMEPATH_OP:
+ 
+ 			/* For namepath, return the object handle ("reference") */
+ 
+ 		default:
+-			/*
+-			 * Use the object type of "Any" to indicate a reference
+-			 * to object containing a handle to an ACPI named object.
+-			 */
+-			external_object->type = ACPI_TYPE_ANY;
 +
- 	status = acpi_ut_acquire_mutex(ACPI_MTX_EVENTS);
- 	if (ACPI_FAILURE(status)) {
- 		return_VOID;
-@@ -532,7 +543,7 @@ static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context)
- 	 * Take a snapshot of the GPE info for this level - we copy the
- 	 * info to prevent a race condition with remove_handler/remove_block.
- 	 */
--	ACPI_MEMCPY(&local_gpe_event_info, gpe_event_info,
-+	ACPI_MEMCPY(local_gpe_event_info, gpe_event_info,
- 		    sizeof(struct acpi_gpe_event_info));
- 
- 	status = acpi_ut_release_mutex(ACPI_MTX_EVENTS);
-@@ -544,7 +555,7 @@ static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context)
- 	 * Must check for control method type dispatch one more
- 	 * time to avoid race with ev_gpe_install_handler
- 	 */
--	if ((local_gpe_event_info.flags & ACPI_GPE_DISPATCH_MASK) ==
-+	if ((local_gpe_event_info->flags & ACPI_GPE_DISPATCH_MASK) ==
- 	    ACPI_GPE_DISPATCH_METHOD) {
- 
- 		/* Allocate the evaluation information block */
-@@ -558,10 +569,10 @@ static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context)
- 			 * control method that corresponds to this GPE
- 			 */
- 			info->prefix_node =
--			    local_gpe_event_info.dispatch.method_node;
-+			    local_gpe_event_info->dispatch.method_node;
- 			info->parameters =
- 			    ACPI_CAST_PTR(union acpi_operand_object *,
--					  gpe_event_info);
-+					  local_gpe_event_info);
- 			info->parameter_type = ACPI_PARAM_GPE;
- 			info->flags = ACPI_IGNORE_RETURN_VALUE;
- 
-@@ -573,13 +584,18 @@ static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context)
- 			ACPI_EXCEPTION((AE_INFO, status,
- 					"while evaluating GPE method [%4.4s]",
- 					acpi_ut_get_node_name
--					(local_gpe_event_info.dispatch.
-+					(local_gpe_event_info->dispatch.
- 					 method_node)));
++			/* We are referring to the namespace node */
++
+ 			external_object->reference.handle =
+ 			    internal_object->reference.node;
++			external_object->reference.actual_type =
++			    acpi_ns_get_type(internal_object->reference.node);
+ 			break;
  		}
- 	}
- 	/* Defer enabling of GPE until all notify handlers are done */
--	acpi_os_execute(OSL_NOTIFY_HANDLER, acpi_ev_asynch_enable_gpe,
-+	status = acpi_os_execute(OSL_NOTIFY_HANDLER, acpi_ev_asynch_enable_gpe,
- 				gpe_event_info);
-+
-+	if (ACPI_FAILURE(status)) {
-+		ACPI_FREE(local_gpe_event_info);
-+	}
-+
- 	return_VOID;
- }
+ 		break;
+@@ -460,6 +461,7 @@ acpi_ut_copy_esimple_to_isimple(union acpi_object *external_object,
+ 	case ACPI_TYPE_STRING:
+ 	case ACPI_TYPE_BUFFER:
+ 	case ACPI_TYPE_INTEGER:
++	case ACPI_TYPE_LOCAL_REFERENCE:
  
-@@ -595,12 +611,15 @@ static void acpi_ev_asynch_enable_gpe(void *context)
- 		 */
- 		status = acpi_hw_clear_gpe(gpe_event_info);
- 		if (ACPI_FAILURE(status)) {
--			return_VOID;
-+			goto exit;
+ 		internal_object = acpi_ut_create_internal_object((u8)
+ 								 external_object->
+@@ -469,6 +471,11 @@ acpi_ut_copy_esimple_to_isimple(union acpi_object *external_object,
  		}
- 	}
+ 		break;
  
- 	/* Enable this GPE */
- 	(void)acpi_hw_write_gpe_enable_reg(gpe_event_info);
-+  exit:
-+	ACPI_FREE(gpe_event_info);
-+	return;
- 	return_VOID;
- }
++	case ACPI_TYPE_ANY:	/* This is the case for a NULL object */
++
++		*ret_internal_object = NULL;
++		return_ACPI_STATUS(AE_OK);
++
+ 	default:
+ 		/* All other types are not supported */
  
-@@ -621,7 +640,8 @@ static void acpi_ev_asynch_enable_gpe(void *context)
-  ******************************************************************************/
+@@ -522,6 +529,15 @@ acpi_ut_copy_esimple_to_isimple(union acpi_object *external_object,
+ 		internal_object->integer.value = external_object->integer.value;
+ 		break;
  
- u32
--acpi_ev_gpe_dispatch(struct acpi_gpe_event_info *gpe_event_info, u32 gpe_number)
-+acpi_ev_gpe_dispatch(struct acpi_gpe_event_info * gpe_event_info,
-+		     u32 gpe_number)
- {
- 	acpi_status status;
- 
++	case ACPI_TYPE_LOCAL_REFERENCE:
++
++		/* TBD: should validate incoming handle */
++
++		internal_object->reference.opcode = AML_INT_NAMEPATH_OP;
++		internal_object->reference.node =
++		    external_object->reference.handle;
++		break;
++
+ 	default:
+ 		/* Other types can't get here */
+ 		break;
 -- 
 1.5.5.29.g7134
 
