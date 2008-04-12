@@ -1,13 +1,13 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 65/73] ACPICA: Fix for extraneous debug message for packages
-Date: Sat, 12 Apr 2008 00:25:48 -0400
-Message-ID: <d67cc0dd29df98d6ac4824a617c151d7842e3a73.1207973800.git.len.brown@intel.com>
+Subject: [PATCH 44/73] ACPICA: Undo accidental checkin of not-fully-tested mutex changes
+Date: Sat, 12 Apr 2008 00:25:27 -0400
+Message-ID: <a19391863a8f5dcab9bd950a4a18330ba8cadabd.1207973800.git.len.brown@intel.com>
 References: <1207974356-30687-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.89]:49384 "EHLO
-	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756654AbYDLE2Q (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Apr 2008 00:28:16 -0400
+Received: from mga10.intel.com ([192.55.52.92]:15947 "EHLO
+	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754018AbYDLE2M (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Apr 2008 00:28:12 -0400
 In-Reply-To: <1207974356-30687-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <0b76302280f017f219f191ea2c1439ff66cc4b2a.1207973799.git.len.brown@intel.com>
 References: <0b76302280f017f219f191ea2c1439ff66cc4b2a.1207973799.git.len.brown@intel.com>
@@ -18,66 +18,61 @@ Cc: Bob Moore <robert.moore@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.
 
 From: Bob Moore <robert.moore@intel.com>
 
-Fixed a problem where an extraneous debug message was produced for
-package objects (when debugging enabled). The message "Package
-List length larger than NumElements count" is now produced in
-the correct case, and is also an error message rather than a
-debug message. Added a debug message for the opposite case, where
-NumElements is larger than the Package List, and the package has
-been padded out with NULL elements.
-
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/dispatcher/dsobject.c |   33 ++++++++++++++++++++++++++++++---
- 1 files changed, 30 insertions(+), 3 deletions(-)
+ drivers/acpi/executer/exmutex.c |   16 ----------------
+ 1 files changed, 0 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/acpi/dispatcher/dsobject.c b/drivers/acpi/dispatcher/dsobject.c
-index 58d4d91..5184278 100644
---- a/drivers/acpi/dispatcher/dsobject.c
-+++ b/drivers/acpi/dispatcher/dsobject.c
-@@ -476,10 +476,37 @@ acpi_ds_build_internal_package_obj(struct acpi_walk_state *walk_state,
- 		arg = arg->common.next;
+diff --git a/drivers/acpi/executer/exmutex.c b/drivers/acpi/executer/exmutex.c
+index 7c70938..b8d035c 100644
+--- a/drivers/acpi/executer/exmutex.c
++++ b/drivers/acpi/executer/exmutex.c
+@@ -85,7 +85,6 @@ void acpi_ex_unlink_mutex(union acpi_operand_object *obj_desc)
+ 	} else {
+ 		thread->acquired_mutex_list = obj_desc->mutex.next;
+ 	}
+-	return;
+ }
+ 
+ /*******************************************************************************
+@@ -299,17 +298,6 @@ acpi_status acpi_ex_release_mutex_object(union acpi_operand_object *obj_desc)
+ 		return (AE_NOT_ACQUIRED);
  	}
  
--	if (!arg) {
-+	/* Check for match between num_elements and actual length of package_list */
-+
-+	if (arg) {
-+		/*
-+		 * num_elements was exhausted, but there are remaining elements in the
-+		 * package_list.
-+		 *
-+		 * Note: technically, this is an error, from ACPI spec: "It is an error
-+		 * for NumElements to be less than the number of elements in the
-+		 * PackageList". However, for now, we just print an error message and
-+		 * no exception is returned.
-+		 */
-+		while (arg) {
-+
-+			/* Find out how many elements there really are */
-+
-+			i++;
-+			arg = arg->common.next;
-+		}
-+
-+		ACPI_ERROR((AE_INFO,
-+			    "Package List length (%X) larger than NumElements count (%X), truncated\n",
-+			    i, element_count));
-+	} else if (i < element_count) {
-+		/*
-+		 * Arg list (elements) was exhausted, but we did not reach num_elements count.
-+		 * Note: this is not an error, the package is padded out with NULLs.
-+		 */
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--				  "Package List length larger than NumElements count (%X), truncated\n",
--				  element_count));
-+				  "Package List length (%X) smaller than NumElements count (%X), padded with null elements\n",
-+				  i, element_count));
+-	/* No obj_desc->Mutex.owner_thread for Global Lock */
+-
+-	/*
+-	 * Mutex to be released must be at the head of acquired list to prevent
+-	 * deadlock. (The head of the list is the last mutex acquired.)
+-	 */
+-	if (obj_desc->mutex.owner_thread &&
+-	    (obj_desc != obj_desc->mutex.owner_thread->acquired_mutex_list)) {
+-		return (AE_AML_MUTEX_ORDER);
+-	}
+-
+ 	/* Match multiple Acquires with multiple Releases */
+ 
+ 	obj_desc->mutex.acquisition_depth--;
+@@ -415,9 +403,6 @@ acpi_ex_release_mutex(union acpi_operand_object *obj_desc,
  	}
  
- 	obj_desc->package.flags |= AOPOBJ_DATA_VALID;
+ 	status = acpi_ex_release_mutex_object(obj_desc);
+-	if (ACPI_FAILURE(status)) {
+-		return_ACPI_STATUS(status);
+-	}
+ 
+ 	if (obj_desc->mutex.acquisition_depth == 0) {
+ 
+@@ -426,7 +411,6 @@ acpi_ex_release_mutex(union acpi_operand_object *obj_desc,
+ 		walk_state->thread->current_sync_level =
+ 		    obj_desc->mutex.original_sync_level;
+ 	}
+-
+ 	return_ACPI_STATUS(status);
+ }
+ 
 -- 
 1.5.5.29.g7134
 
