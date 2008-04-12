@@ -1,12 +1,12 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 17/73] ACPICA: Support for iASL - multiple files and wildcards
-Date: Sat, 12 Apr 2008 00:25:00 -0400
-Message-ID: <8709b73b87e1c41338480edafe8275e22eddf8a4.1207973799.git.len.brown@intel.com>
+Subject: [PATCH 14/73] ACPICA: Fix for update of the Global Lock Handle
+Date: Sat, 12 Apr 2008 00:24:57 -0400
+Message-ID: <fa55853ee6a9aeba44de3e4d545896e593d80b10.1207973799.git.len.brown@intel.com>
 References: <1207974356-30687-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga10.intel.com ([192.55.52.92]:54694 "EHLO
+Received: from mga10.intel.com ([192.55.52.92]:47253 "EHLO
 	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752482AbYDLE16 (ORCPT
+	with ESMTP id S1752481AbYDLE16 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Apr 2008 00:27:58 -0400
 In-Reply-To: <1207974356-30687-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <0b76302280f017f219f191ea2c1439ff66cc4b2a.1207973799.git.len.brown@intel.com>
@@ -18,70 +18,64 @@ Cc: Bob Moore <robert.moore@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.
 
 From: Bob Moore <robert.moore@intel.com>
 
-Implemented support to allow multiple files to be
-compiled/disassembled in a single invocation. This includes
-command line wildcard support for both the Windows and Unix
-versions of the compiler. This feature simplifies the disassembly
-and compilation of multiple ACPI tables in a single directory.
+Fixed a problem where the global lock handle was not properly
+updated if a thread that acquired the global lock via
+executing AML code then attempted to acquire the lock via the
+AcpiAcquireGlobalLock interface.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/utilities/utinit.c  |    3 +++
- drivers/acpi/utilities/utxface.c |    4 ++++
- 2 files changed, 7 insertions(+), 0 deletions(-)
+ drivers/acpi/events/evmisc.c  |   13 +++++++++++++
+ drivers/acpi/events/evxface.c |    9 +--------
+ 2 files changed, 14 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/acpi/utilities/utinit.c b/drivers/acpi/utilities/utinit.c
-index ad3c0d0..de44477 100644
---- a/drivers/acpi/utilities/utinit.c
-+++ b/drivers/acpi/utilities/utinit.c
-@@ -125,9 +125,12 @@ void acpi_ut_subsystem_shutdown(void)
- 	acpi_gbl_startup_flags = 0;
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Shutting down ACPI Subsystem\n"));
+diff --git a/drivers/acpi/events/evmisc.c b/drivers/acpi/events/evmisc.c
+index 2d34663..d075062 100644
+--- a/drivers/acpi/events/evmisc.c
++++ b/drivers/acpi/events/evmisc.c
+@@ -461,6 +461,19 @@ acpi_status acpi_ev_acquire_global_lock(u16 timeout)
+ 	acpi_ev_global_lock_acquired++;
  
-+#ifndef ACPI_ASL_COMPILER
+ 	/*
++	 * Update the global lock handle and check for wraparound. The handle is
++	 * only used for the external global lock interfaces, but it is updated
++	 * here to properly handle the case where a single thread may acquire the
++	 * lock via both the AML and the acpi_acquire_global_lock interfaces. The
++	 * handle is therefore updated on the first acquire from a given thread
++	 * regardless of where the acquisition request originated.
++	 */
++	acpi_gbl_global_lock_handle++;
++	if (acpi_gbl_global_lock_handle == 0) {
++		acpi_gbl_global_lock_handle = 1;
++	}
 +
- 	/* Close the acpi_event Handling */
++	/*
+ 	 * Make sure that a global lock actually exists. If not, just treat
+ 	 * the lock as a standard mutex.
+ 	 */
+diff --git a/drivers/acpi/events/evxface.c b/drivers/acpi/events/evxface.c
+index e210aa2..412cae6 100644
+--- a/drivers/acpi/events/evxface.c
++++ b/drivers/acpi/events/evxface.c
+@@ -782,15 +782,8 @@ acpi_status acpi_acquire_global_lock(u16 timeout, u32 * handle)
+ 					      acpi_os_get_thread_id());
  
- 	acpi_ev_terminate();
-+#endif
+ 	if (ACPI_SUCCESS(status)) {
+-		/*
+-		 * If this was the first acquisition of the Global Lock by this thread,
+-		 * create a new handle. Otherwise, return the existing handle.
+-		 */
+-		if (acpi_gbl_global_lock_mutex->mutex.acquisition_depth == 1) {
+-			acpi_gbl_global_lock_handle++;
+-		}
  
- 	/* Close the Namespace */
+-		/* Return the global lock handle */
++		/* Return the global lock handle (updated in acpi_ev_acquire_global_lock) */
  
-diff --git a/drivers/acpi/utilities/utxface.c b/drivers/acpi/utilities/utxface.c
-index 2d49691..15bd6ff 100644
---- a/drivers/acpi/utilities/utxface.c
-+++ b/drivers/acpi/utilities/utxface.c
-@@ -49,6 +49,7 @@
- #define _COMPONENT          ACPI_UTILITIES
- ACPI_MODULE_NAME("utxface")
- 
-+#ifndef ACPI_ASL_COMPILER
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_initialize_subsystem
-@@ -292,6 +293,7 @@ acpi_status acpi_initialize_objects(u32 flags)
- 
- ACPI_EXPORT_SYMBOL(acpi_initialize_objects)
- 
-+#endif
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_terminate
-@@ -335,6 +337,7 @@ acpi_status acpi_terminate(void)
- }
- 
- ACPI_EXPORT_SYMBOL(acpi_terminate)
-+#ifndef ACPI_ASL_COMPILER
- #ifdef ACPI_FUTURE_USAGE
- /*******************************************************************************
-  *
-@@ -490,3 +493,4 @@ acpi_status acpi_purge_cached_objects(void)
- }
- 
- ACPI_EXPORT_SYMBOL(acpi_purge_cached_objects)
-+#endif
+ 		*handle = acpi_gbl_global_lock_handle;
+ 	}
 -- 
 1.5.5.29.g7134
 
