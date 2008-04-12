@@ -1,13 +1,13 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 07/73] ACPICA: Update comments for acquire/release mutex interfaces
-Date: Sat, 12 Apr 2008 00:24:50 -0400
-Message-ID: <45bbee56e1e461802ed99f884369ba7a2d0fe136.1207973799.git.len.brown@intel.com>
+Subject: [PATCH 26/73] ACPICA: Add a table checksum verify for Load operator
+Date: Sat, 12 Apr 2008 00:25:09 -0400
+Message-ID: <44fd3509251fe52f6ed74eb4914e25304a20c639.1207973800.git.len.brown@intel.com>
 References: <1207974356-30687-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.89]:60403 "EHLO
-	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752558AbYDLE2A (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Apr 2008 00:28:00 -0400
+Received: from mga10.intel.com ([192.55.52.92]:7534 "EHLO
+	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752829AbYDLE2E (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Apr 2008 00:28:04 -0400
 In-Reply-To: <1207974356-30687-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <0b76302280f017f219f191ea2c1439ff66cc4b2a.1207973799.git.len.brown@intel.com>
 References: <0b76302280f017f219f191ea2c1439ff66cc4b2a.1207973799.git.len.brown@intel.com>
@@ -18,118 +18,81 @@ Cc: Bob Moore <robert.moore@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.
 
 From: Bob Moore <robert.moore@intel.com>
 
-pdate comments for acquire/release mutex interfaces
+Added a table checksum verification for the Load operator, in
+the case where the load is from a buffer. (BZ 578).
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/executer/exmutex.c |   36 ++++++++++++++++++++++++++++++------
- 1 files changed, 30 insertions(+), 6 deletions(-)
+ drivers/acpi/executer/exconfig.c |   24 +++++++++++++++++++++---
+ drivers/acpi/tables/tbutils.c    |    2 +-
+ 2 files changed, 22 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/executer/exmutex.c b/drivers/acpi/executer/exmutex.c
-index 0bebe75..32f24a8 100644
---- a/drivers/acpi/executer/exmutex.c
-+++ b/drivers/acpi/executer/exmutex.c
-@@ -134,7 +134,16 @@ acpi_ex_link_mutex(union acpi_operand_object *obj_desc,
-  *
-  * RETURN:      Status
-  *
-- * DESCRIPTION: Acquire an AML mutex, low-level interface
-+ * DESCRIPTION: Acquire an AML mutex, low-level interface. Provides a common
-+ *              path that supports multiple acquires by the same thread.
-+ *
-+ * MUTEX:       Interpreter must be locked
-+ *
-+ * NOTE: This interface is called from three places:
-+ * 1) From acpi_ex_acquire_mutex, via an AML Acquire() operator
-+ * 2) From acpi_ex_acquire_global_lock when an AML Field access requires the
-+ *    global lock
-+ * 3) From the external interface, acpi_acquire_global_lock
-  *
-  ******************************************************************************/
+diff --git a/drivers/acpi/executer/exconfig.c b/drivers/acpi/executer/exconfig.c
+index a0f34b4..dbf1e6f 100644
+--- a/drivers/acpi/executer/exconfig.c
++++ b/drivers/acpi/executer/exconfig.c
+@@ -275,6 +275,7 @@ acpi_ex_load_op(union acpi_operand_object *obj_desc,
+ 	struct acpi_table_desc table_desc;
+ 	acpi_native_uint table_index;
+ 	acpi_status status;
++	u32 length;
  
-@@ -174,7 +183,7 @@ acpi_ex_acquire_mutex_object(u16 timeout,
- 		return_ACPI_STATUS(status);
- 	}
+ 	ACPI_FUNCTION_TRACE(ex_load_op);
  
--	/* Have the mutex: update mutex and save the sync_level */
-+	/* Acquired the mutex: update mutex object */
+@@ -322,18 +323,35 @@ acpi_ex_load_op(union acpi_operand_object *obj_desc,
+ 				  "Load from Buffer or Field %p %s\n", obj_desc,
+ 				  acpi_ut_get_object_type_name(obj_desc)));
  
- 	obj_desc->mutex.thread_id = thread_id;
- 	obj_desc->mutex.acquisition_depth = 1;
-@@ -211,7 +220,7 @@ acpi_ex_acquire_mutex(union acpi_operand_object *time_desc,
- 		return_ACPI_STATUS(AE_BAD_PARAMETER);
- 	}
- 
--	/* Sanity check: we must have a valid thread ID */
-+	/* Must have a valid thread ID */
- 
- 	if (!walk_state->thread) {
- 		ACPI_ERROR((AE_INFO,
-@@ -221,7 +230,7 @@ acpi_ex_acquire_mutex(union acpi_operand_object *time_desc,
- 	}
- 
- 	/*
--	 * Current Sync level must be less than or equal to the sync level of the
-+	 * Current sync level must be less than or equal to the sync level of the
- 	 * mutex. This mechanism provides some deadlock prevention
- 	 */
- 	if (walk_state->thread->current_sync_level > obj_desc->mutex.sync_level) {
-@@ -236,6 +245,9 @@ acpi_ex_acquire_mutex(union acpi_operand_object *time_desc,
- 					      obj_desc,
- 					      walk_state->thread->thread_id);
- 	if (ACPI_SUCCESS(status) && obj_desc->mutex.acquisition_depth == 1) {
++		length = obj_desc->buffer.length;
 +
-+		/* Save Thread object, original/current sync levels */
++		/* Must have at least an ACPI table header */
 +
- 		obj_desc->mutex.owner_thread = walk_state->thread;
- 		obj_desc->mutex.original_sync_level =
- 		    walk_state->thread->current_sync_level;
-@@ -259,6 +271,16 @@ acpi_ex_acquire_mutex(union acpi_operand_object *time_desc,
-  * RETURN:      Status
-  *
-  * DESCRIPTION: Release a previously acquired Mutex, low level interface.
-+ *              Provides a common path that supports multiple releases (after
-+ *              previous multiple acquires) by the same thread.
-+ *
-+ * MUTEX:       Interpreter must be locked
-+ *
-+ * NOTE: This interface is called from three places:
-+ * 1) From acpi_ex_release_mutex, via an AML Acquire() operator
-+ * 2) From acpi_ex_release_global_lock when an AML Field access requires the
-+ *    global lock
-+ * 3) From the external interface, acpi_release_global_lock
-  *
-  ******************************************************************************/
- 
-@@ -294,6 +316,8 @@ acpi_status acpi_ex_release_mutex_object(union acpi_operand_object *obj_desc)
- 		acpi_os_release_mutex(obj_desc->mutex.os_mutex);
- 	}
- 
-+	/* Clear mutex info */
++		if (length < sizeof(struct acpi_table_header)) {
++			return_ACPI_STATUS(AE_INVALID_TABLE_LENGTH);
++		}
 +
- 	obj_desc->mutex.thread_id = 0;
- 	return_ACPI_STATUS(status);
- }
-@@ -348,7 +372,7 @@ acpi_ex_release_mutex(union acpi_operand_object *obj_desc,
- 		return_ACPI_STATUS(AE_AML_NOT_OWNER);
- 	}
++		/* Validate checksum here. It won't get validated in tb_add_table */
++
++		status = acpi_tb_verify_checksum((struct acpi_table_header *)
++						 obj_desc->buffer.pointer,
++						 length);
++		if (ACPI_FAILURE(status)) {
++			return_ACPI_STATUS(status);
++		}
++
+ 		/*
+ 		 * We need to copy the buffer since the original buffer could be
+ 		 * changed or deleted in the future
+ 		 */
+-		table_desc.pointer = ACPI_ALLOCATE(obj_desc->buffer.length);
++		table_desc.pointer = ACPI_ALLOCATE(length);
+ 		if (!table_desc.pointer) {
+ 			return_ACPI_STATUS(AE_NO_MEMORY);
+ 		}
  
--	/* Sanity check: we must have a valid thread ID */
-+	/* Must have a valid thread ID */
+ 		ACPI_MEMCPY(table_desc.pointer, obj_desc->buffer.pointer,
+-			    obj_desc->buffer.length);
+-		table_desc.length = obj_desc->buffer.length;
++			    length);
++		table_desc.length = length;
+ 		table_desc.flags = ACPI_TABLE_ORIGIN_ALLOCATED;
+ 		break;
  
- 	if (!walk_state->thread) {
- 		ACPI_ERROR((AE_INFO,
-@@ -370,7 +394,7 @@ acpi_ex_release_mutex(union acpi_operand_object *obj_desc,
+diff --git a/drivers/acpi/tables/tbutils.c b/drivers/acpi/tables/tbutils.c
+index 010f196..d04442f 100644
+--- a/drivers/acpi/tables/tbutils.c
++++ b/drivers/acpi/tables/tbutils.c
+@@ -212,7 +212,7 @@ acpi_status acpi_tb_verify_checksum(struct acpi_table_header *table, u32 length)
  
- 	status = acpi_ex_release_mutex_object(obj_desc);
+ 	if (checksum) {
+ 		ACPI_WARNING((AE_INFO,
+-			      "Incorrect checksum in table [%4.4s] -  %2.2X, should be %2.2X",
++			      "Incorrect checksum in table [%4.4s] - %2.2X, should be %2.2X",
+ 			      table->signature, table->checksum,
+ 			      (u8) (table->checksum - checksum)));
  
--	/* Restore sync_level */
-+	/* Restore the original sync_level */
- 
- 	walk_state->thread->current_sync_level =
- 	    obj_desc->mutex.original_sync_level;
 -- 
 1.5.5.29.g7134
 
