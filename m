@@ -1,13 +1,13 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 08/73] ACPICA: Removed extraneous code
-Date: Sat, 12 Apr 2008 00:24:51 -0400
-Message-ID: <64751fd5899d15404a7edf11ade56d63b229a915.1207973799.git.len.brown@intel.com>
+Subject: [PATCH 18/73] ACPICA: Add minimal disassembly support for the SLIC table
+Date: Sat, 12 Apr 2008 00:25:01 -0400
+Message-ID: <a16317ac7d590cd3a25d37f88d33da11b432304f.1207973799.git.len.brown@intel.com>
 References: <1207974356-30687-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga10.intel.com ([192.55.52.92]:54694 "EHLO
+Received: from mga10.intel.com ([192.55.52.92]:7534 "EHLO
 	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752260AbYDLE15 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Apr 2008 00:27:57 -0400
+	with ESMTP id S1752496AbYDLE16 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Apr 2008 00:27:58 -0400
 In-Reply-To: <1207974356-30687-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <0b76302280f017f219f191ea2c1439ff66cc4b2a.1207973799.git.len.brown@intel.com>
 References: <0b76302280f017f219f191ea2c1439ff66cc4b2a.1207973799.git.len.brown@intel.com>
@@ -18,54 +18,40 @@ Cc: Bob Moore <robert.moore@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.
 
 From: Bob Moore <robert.moore@intel.com>
 
+SLIC - Software Licensing Description Table.
+
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/dispatcher/dsmethod.c |    7 -------
- drivers/acpi/namespace/nswalk.c    |    4 +---
- 2 files changed, 1 insertions(+), 10 deletions(-)
+ include/acpi/acdisasm.h |    1 +
+ include/acpi/actbl1.h   |    1 +
+ 2 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/dispatcher/dsmethod.c b/drivers/acpi/dispatcher/dsmethod.c
-index c50c0cd..3db651c 100644
---- a/drivers/acpi/dispatcher/dsmethod.c
-+++ b/drivers/acpi/dispatcher/dsmethod.c
-@@ -535,7 +535,6 @@ void
- acpi_ds_terminate_control_method(union acpi_operand_object *method_desc,
- 				 struct acpi_walk_state *walk_state)
- {
--	struct acpi_namespace_node *method_node;
- 	acpi_status status;
- 
- 	ACPI_FUNCTION_TRACE_PTR(ds_terminate_control_method, walk_state);
-@@ -575,12 +574,6 @@ acpi_ds_terminate_control_method(union acpi_operand_object *method_desc,
- 
- 	if (walk_state) {
- 		/*
--		 * Delete any objects created by this method during execution.
--		 * The method Node is stored in the walk state
--		 */
--		method_node = walk_state->method_node;
--
--		/*
- 		 * Delete any namespace objects created anywhere within
- 		 * the namespace by the execution of this method
- 		 */
-diff --git a/drivers/acpi/namespace/nswalk.c b/drivers/acpi/namespace/nswalk.c
-index 280b835..c7b5409 100644
---- a/drivers/acpi/namespace/nswalk.c
-+++ b/drivers/acpi/namespace/nswalk.c
-@@ -77,9 +77,7 @@ struct acpi_namespace_node *acpi_ns_get_next_node(acpi_object_type type, struct
- 
- 		/* It's really the parent's _scope_ that we want */
- 
--		if (parent_node->child) {
--			next_node = parent_node->child;
--		}
-+		next_node = parent_node->child;
- 	}
- 
- 	else {
+diff --git a/include/acpi/acdisasm.h b/include/acpi/acdisasm.h
+index 389d772..75c354f 100644
+--- a/include/acpi/acdisasm.h
++++ b/include/acpi/acdisasm.h
+@@ -180,6 +180,7 @@ extern struct acpi_dmtable_info acpi_dm_table_info_mcfg0[];
+ extern struct acpi_dmtable_info acpi_dm_table_info_rsdp1[];
+ extern struct acpi_dmtable_info acpi_dm_table_info_rsdp2[];
+ extern struct acpi_dmtable_info acpi_dm_table_info_sbst[];
++extern struct acpi_dmtable_info acpi_dm_table_info_slic[];
+ extern struct acpi_dmtable_info acpi_dm_table_info_slit[];
+ extern struct acpi_dmtable_info acpi_dm_table_info_spcr[];
+ extern struct acpi_dmtable_info acpi_dm_table_info_spmi[];
+diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
+index a1b1b2e..dd8e11e 100644
+--- a/include/acpi/actbl1.h
++++ b/include/acpi/actbl1.h
+@@ -67,6 +67,7 @@
+ #define ACPI_SIG_MADT           "APIC"	/* Multiple APIC Description Table */
+ #define ACPI_SIG_MCFG           "MCFG"	/* PCI Memory Mapped Configuration table */
+ #define ACPI_SIG_SBST           "SBST"	/* Smart Battery Specification Table */
++#define ACPI_SIG_SLIC           "SLIC"	/* Software Licensing Description Table */
+ #define ACPI_SIG_SLIT           "SLIT"	/* System Locality Distance Information Table */
+ #define ACPI_SIG_SPCR           "SPCR"	/* Serial Port Console Redirection table */
+ #define ACPI_SIG_SPMI           "SPMI"	/* Server Platform Management Interface table */
 -- 
 1.5.5.29.g7134
 
