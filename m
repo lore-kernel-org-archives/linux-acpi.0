@@ -1,13 +1,13 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 71/73] ACPICA: Update for new Notify values
-Date: Sat, 12 Apr 2008 00:25:54 -0400
-Message-ID: <ea1286bbb8065f51640cdf882fe6986f1c53dfb2.1207973801.git.len.brown@intel.com>
+Subject: [PATCH 73/73] ACPICA: Fix for some local named nodes not marked temporary and to disallow duplicates
+Date: Sat, 12 Apr 2008 00:25:56 -0400
+Message-ID: <8b56e6a8add356fb9c9cc9c3ac93240b9c9d4e4e.1207973801.git.len.brown@intel.com>
 References: <1207974356-30687-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.89]:60403 "EHLO
+Received: from mga05.intel.com ([192.55.52.89]:49384 "EHLO
 	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757806AbYDLE2R (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Apr 2008 00:28:17 -0400
+	with ESMTP id S1757165AbYDLE2S (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Apr 2008 00:28:18 -0400
 In-Reply-To: <1207974356-30687-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <0b76302280f017f219f191ea2c1439ff66cc4b2a.1207973799.git.len.brown@intel.com>
 References: <0b76302280f017f219f191ea2c1439ff66cc4b2a.1207973799.git.len.brown@intel.com>
@@ -18,248 +18,257 @@ Cc: Bob Moore <robert.moore@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.
 
 From: Bob Moore <robert.moore@intel.com>
 
-Implemented several changes for Notify handling: Added support
-for new Notify values (ACPI 2.0+) and improved the Notify debug
-output. Notify on PowerResource objects is no longer allowed,
-as per the ACPI specification. (Bob Moore, Zhang Rui)
+Fixed a problem with the CreateField, CreateXXXField (Bit, Byte,
+Word, Dword, Qword), Field, BankField, and IndexField operators
+when invoked from inside an executing control method. In this case,
+these operators created namespace nodes that were incorrectly
+left marked as permanent nodes instead of temporary nodes. This
+could cause a problem if there is race condition between an
+exiting control method and a running namespace walk. (Reported
+by Linn Crosetto). Fixed a problem where the CreateField and
+CreateXXXField operators would incorrectly allow duplicate names
+(the name of the field) with no exception generated.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/events/evmisc.c      |   59 ++++++++++++++----------------------
- drivers/acpi/utilities/utglobal.c |   42 ++++++++++++++++++++++++++
- include/acpi/actypes.h            |   24 +++++++++-----
- include/acpi/acutils.h            |    2 +
- 4 files changed, 82 insertions(+), 45 deletions(-)
+ drivers/acpi/dispatcher/dsfield.c |  121 ++++++++++++++++++++++---------------
+ drivers/acpi/dispatcher/dswload.c |    6 ++
+ 2 files changed, 79 insertions(+), 48 deletions(-)
 
-diff --git a/drivers/acpi/events/evmisc.c b/drivers/acpi/events/evmisc.c
-index 4e7a13a..16cf270 100644
---- a/drivers/acpi/events/evmisc.c
-+++ b/drivers/acpi/events/evmisc.c
-@@ -49,22 +49,7 @@
- #define _COMPONENT          ACPI_EVENTS
- ACPI_MODULE_NAME("evmisc")
+diff --git a/drivers/acpi/dispatcher/dsfield.c b/drivers/acpi/dispatcher/dsfield.c
+index e87f6bf..0befcff 100644
+--- a/drivers/acpi/dispatcher/dsfield.c
++++ b/drivers/acpi/dispatcher/dsfield.c
+@@ -89,12 +89,16 @@ acpi_ds_create_buffer_field(union acpi_parse_object *op,
  
--/* Names for Notify() values, used for debug output */
--#ifdef ACPI_DEBUG_OUTPUT
--static const char *acpi_notify_value_names[] = {
--	"Bus Check",
--	"Device Check",
--	"Device Wake",
--	"Eject Request",
--	"Device Check Light",
--	"Frequency Mismatch",
--	"Bus Mode Mismatch",
--	"Power Fault"
--};
--#endif
--
- /* Pointer to FACS needed for the Global Lock */
--
- static struct acpi_table_facs *facs = NULL;
+ 	ACPI_FUNCTION_TRACE(ds_create_buffer_field);
  
- /* Local prototypes */
-@@ -94,7 +79,6 @@ u8 acpi_ev_is_notify_object(struct acpi_namespace_node *node)
- 	switch (node->type) {
- 	case ACPI_TYPE_DEVICE:
- 	case ACPI_TYPE_PROCESSOR:
--	case ACPI_TYPE_POWER:
- 	case ACPI_TYPE_THERMAL:
- 		/*
- 		 * These are the ONLY objects that can receive ACPI notifications
-@@ -139,17 +123,9 @@ acpi_ev_queue_notify_request(struct acpi_namespace_node * node,
- 	 *   initiate soft-off or sleep operation?
- 	 */
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--			  "Dispatching Notify(%X) on node %p\n", notify_value,
--			  node));
--
--	if (notify_value <= 7) {
--		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Notify value: %s\n",
--				  acpi_notify_value_names[notify_value]));
--	} else {
--		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--				  "Notify value: 0x%2.2X **Device Specific**\n",
--				  notify_value));
--	}
-+			  "Dispatching Notify on [%4.4s] Node %p Value 0x%2.2X (%s)\n",
-+			  acpi_ut_get_node_name(node), node, notify_value,
-+			  acpi_ut_get_notify_name(notify_value)));
- 
- 	/* Get the notify object attached to the NS Node */
- 
-@@ -159,10 +135,12 @@ acpi_ev_queue_notify_request(struct acpi_namespace_node * node,
- 		/* We have the notify object, Get the right handler */
- 
- 		switch (node->type) {
-+
-+			/* Notify allowed only on these types */
-+
- 		case ACPI_TYPE_DEVICE:
- 		case ACPI_TYPE_THERMAL:
- 		case ACPI_TYPE_PROCESSOR:
--		case ACPI_TYPE_POWER:
- 
- 			if (notify_value <= ACPI_MAX_SYS_NOTIFY) {
- 				handler_obj =
-@@ -179,8 +157,13 @@ acpi_ev_queue_notify_request(struct acpi_namespace_node * node,
- 		}
- 	}
- 
--	/* If there is any handler to run, schedule the dispatcher */
+-	/* Get the name_string argument */
 -
 +	/*
-+	 * If there is any handler to run, schedule the dispatcher.
-+	 * Check for:
-+	 * 1) Global system notify handler
-+	 * 2) Global device notify handler
-+	 * 3) Per-device notify handler
++	 * Get the name_string argument (name of the new buffer_field)
 +	 */
- 	if ((acpi_gbl_system_notify.handler
- 	     && (notify_value <= ACPI_MAX_SYS_NOTIFY))
- 	    || (acpi_gbl_device_notify.handler
-@@ -190,6 +173,13 @@ acpi_ev_queue_notify_request(struct acpi_namespace_node * node,
- 			return (AE_NO_MEMORY);
+ 	if (op->common.aml_opcode == AML_CREATE_FIELD_OP) {
++
++		/* For create_field, name is the 4th argument */
++
+ 		arg = acpi_ps_get_arg(op, 3);
+ 	} else {
+-		/* Create Bit/Byte/Word/Dword field */
++		/* For all other create_xXXField operators, name is the 3rd argument */
+ 
+ 		arg = acpi_ps_get_arg(op, 2);
+ 	}
+@@ -107,26 +111,30 @@ acpi_ds_create_buffer_field(union acpi_parse_object *op,
+ 		node = walk_state->deferred_node;
+ 		status = AE_OK;
+ 	} else {
+-		/*
+-		 * During the load phase, we want to enter the name of the field into
+-		 * the namespace.  During the execute phase (when we evaluate the size
+-		 * operand), we want to lookup the name
+-		 */
+-		if (walk_state->parse_flags & ACPI_PARSE_EXECUTE) {
+-			flags = ACPI_NS_NO_UPSEARCH | ACPI_NS_DONT_OPEN_SCOPE;
+-		} else {
+-			flags = ACPI_NS_NO_UPSEARCH | ACPI_NS_DONT_OPEN_SCOPE |
+-			    ACPI_NS_ERROR_IF_FOUND;
++		/* Execute flag should always be set when this function is entered */
++
++		if (!(walk_state->parse_flags & ACPI_PARSE_EXECUTE)) {
++			return_ACPI_STATUS(AE_AML_INTERNAL);
  		}
  
-+		if (!handler_obj) {
-+			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+					  "Executing system notify handler for Notify (%4.4s, %X) node %p\n",
-+					  acpi_ut_get_node_name(node),
-+					  notify_value, node));
+-		/*
+-		 * Enter the name_string into the namespace
+-		 */
++		/* Creating new namespace node, should not already exist */
++
++		flags = ACPI_NS_NO_UPSEARCH | ACPI_NS_DONT_OPEN_SCOPE |
++		    ACPI_NS_ERROR_IF_FOUND;
++
++		/* Mark node temporary if we are executing a method */
++
++		if (walk_state->method_node) {
++			flags |= ACPI_NS_TEMPORARY;
 +		}
 +
- 		notify_info->common.descriptor_type =
- 		    ACPI_DESC_TYPE_STATE_NOTIFY;
- 		notify_info->notify.node = node;
-@@ -202,15 +192,12 @@ acpi_ev_queue_notify_request(struct acpi_namespace_node * node,
++		/* Enter the name_string into the namespace */
++
+ 		status =
+ 		    acpi_ns_lookup(walk_state->scope_info,
+ 				   arg->common.value.string, ACPI_TYPE_ANY,
+ 				   ACPI_IMODE_LOAD_PASS1, flags, walk_state,
+-				   &(node));
++				   &node);
  		if (ACPI_FAILURE(status)) {
- 			acpi_ut_delete_generic_state(notify_info);
- 		}
--	}
--
--	if (!handler_obj) {
-+	} else {
- 		/*
--		 * There is no per-device notify handler for this device.
--		 * This may or may not be a problem.
-+		 * There is no notify handler (per-device or system) for this device.
- 		 */
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--				  "No notify handler for Notify(%4.4s, %X) node %p\n",
-+				  "No notify handler for Notify (%4.4s, %X) node %p\n",
- 				  acpi_ut_get_node_name(node), notify_value,
- 				  node));
+ 			ACPI_ERROR_NAMESPACE(arg->common.value.string, status);
+ 			return_ACPI_STATUS(status);
+@@ -136,13 +144,13 @@ acpi_ds_create_buffer_field(union acpi_parse_object *op,
+ 	/*
+ 	 * We could put the returned object (Node) on the object stack for later,
+ 	 * but for now, we will put it in the "op" object that the parser uses,
+-	 * so we can get it again at the end of this scope
++	 * so we can get it again at the end of this scope.
+ 	 */
+ 	op->common.node = node;
+ 
+ 	/*
+ 	 * If there is no object attached to the node, this node was just created
+-	 * and we need to create the field object.  Otherwise, this was a lookup
++	 * and we need to create the field object. Otherwise, this was a lookup
+ 	 * of an existing node and we don't want to create the field object again.
+ 	 */
+ 	obj_desc = acpi_ns_get_attached_object(node);
+@@ -164,9 +172,8 @@ acpi_ds_create_buffer_field(union acpi_parse_object *op,
  	}
-diff --git a/drivers/acpi/utilities/utglobal.c b/drivers/acpi/utilities/utglobal.c
-index d2097de..d0226fe 100644
---- a/drivers/acpi/utilities/utglobal.c
-+++ b/drivers/acpi/utilities/utglobal.c
-@@ -602,6 +602,48 @@ char *acpi_ut_get_mutex_name(u32 mutex_id)
  
- 	return (acpi_gbl_mutex_names[mutex_id]);
- }
+ 	/*
+-	 * Remember location in AML stream of the field unit
+-	 * opcode and operands -- since the buffer and index
+-	 * operands must be evaluated.
++	 * Remember location in AML stream of the field unit opcode and operands --
++	 * since the buffer and index operands must be evaluated.
+ 	 */
+ 	second_desc = obj_desc->common.next_object;
+ 	second_desc->extra.aml_start = op->named.data;
+@@ -261,7 +268,7 @@ acpi_ds_get_field_names(struct acpi_create_field_info *info,
+ 
+ 		case AML_INT_NAMEDFIELD_OP:
+ 
+-			/* Lookup the name */
++			/* Lookup the name, it should already exist */
+ 
+ 			status = acpi_ns_lookup(walk_state->scope_info,
+ 						(char *)&arg->named.name,
+@@ -272,19 +279,16 @@ acpi_ds_get_field_names(struct acpi_create_field_info *info,
+ 			if (ACPI_FAILURE(status)) {
+ 				ACPI_ERROR_NAMESPACE((char *)&arg->named.name,
+ 						     status);
+-				if (status != AE_ALREADY_EXISTS) {
+-					return_ACPI_STATUS(status);
+-				}
+-
+-				/* Already exists, ignore error */
++				return_ACPI_STATUS(status);
+ 			} else {
+ 				arg->common.node = info->field_node;
+ 				info->field_bit_length = arg->common.value.size;
+ 
+ 				/*
+-				 * If there is no object attached to the node, this node was just created
+-				 * and we need to create the field object.  Otherwise, this was a lookup
+-				 * of an existing node and we don't want to create the field object again.
++				 * If there is no object attached to the node, this node was
++				 * just created and we need to create the field object.
++				 * Otherwise, this was a lookup of an existing node and we
++				 * don't want to create the field object again.
+ 				 */
+ 				if (!acpi_ns_get_attached_object
+ 				    (info->field_node)) {
+@@ -409,18 +413,23 @@ acpi_ds_init_field_objects(union acpi_parse_object *op,
+ 
+ 	ACPI_FUNCTION_TRACE_PTR(ds_init_field_objects, op);
+ 
+-	/*
+-	 * During the load phase, we want to enter the name of the field into
+-	 * the namespace. During the execute phase (when we evaluate the bank_value
+-	 * operand), we want to lookup the name.
+-	 */
+-	if (walk_state->deferred_node) {
+-		flags = ACPI_NS_NO_UPSEARCH | ACPI_NS_DONT_OPEN_SCOPE;
+-	} else {
+-		flags = ACPI_NS_NO_UPSEARCH | ACPI_NS_DONT_OPEN_SCOPE |
+-		    ACPI_NS_ERROR_IF_FOUND;
++	/* Execute flag should always be set when this function is entered */
 +
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_ut_get_notify_name
-+ *
-+ * PARAMETERS:  notify_value    - Value from the Notify() request
-+ *
-+ * RETURN:      String corresponding to the Notify Value.
-+ *
-+ * DESCRIPTION: Translate a Notify Value to a notify namestring.
-+ *
-+ ******************************************************************************/
++	if (!(walk_state->parse_flags & ACPI_PARSE_EXECUTE)) {
++		if (walk_state->parse_flags & ACPI_PARSE_DEFERRED_OP) {
 +
-+/* Names for Notify() values, used for debug output */
++			/* bank_field Op is deferred, just return OK */
 +
-+static const char *acpi_gbl_notify_value_names[] = {
-+	"Bus Check",
-+	"Device Check",
-+	"Device Wake",
-+	"Eject Request",
-+	"Device Check Light",
-+	"Frequency Mismatch",
-+	"Bus Mode Mismatch",
-+	"Power Fault",
-+	"Capabilities Check",
-+	"Device PLD Check",
-+	"Reserved",
-+	"System Locality Update"
-+};
++			return_ACPI_STATUS(AE_OK);
++		}
 +
-+const char *acpi_ut_get_notify_name(u32 notify_value)
-+{
-+
-+	if (notify_value <= ACPI_NOTIFY_MAX) {
-+		return (acpi_gbl_notify_value_names[notify_value]);
-+	} else if (notify_value <= ACPI_MAX_SYS_NOTIFY) {
-+		return ("Reserved");
-+	} else {		/* Greater or equal to 0x80 */
-+
-+		return ("**Device Specific**");
++		return_ACPI_STATUS(AE_AML_INTERNAL);
+ 	}
+ 
++	/*
++	 * Get the field_list argument for this opcode. This is the start of the
++	 * list of field elements.
++	 */
+ 	switch (walk_state->opcode) {
+ 	case AML_FIELD_OP:
+ 		arg = acpi_ps_get_arg(op, 2);
+@@ -441,18 +450,34 @@ acpi_ds_init_field_objects(union acpi_parse_object *op,
+ 		return_ACPI_STATUS(AE_BAD_PARAMETER);
+ 	}
+ 
++	if (!arg) {
++		return_ACPI_STATUS(AE_AML_NO_OPERAND);
 +	}
-+}
- #endif
- 
- /*******************************************************************************
-diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-index 75ec153..cc24cef 100644
---- a/include/acpi/actypes.h
-+++ b/include/acpi/actypes.h
-@@ -402,14 +402,20 @@ typedef unsigned long long acpi_integer;
- /*
-  * Standard notify values
-  */
--#define ACPI_NOTIFY_BUS_CHECK           (u8) 0
--#define ACPI_NOTIFY_DEVICE_CHECK        (u8) 1
--#define ACPI_NOTIFY_DEVICE_WAKE         (u8) 2
--#define ACPI_NOTIFY_EJECT_REQUEST       (u8) 3
--#define ACPI_NOTIFY_DEVICE_CHECK_LIGHT  (u8) 4
--#define ACPI_NOTIFY_FREQUENCY_MISMATCH  (u8) 5
--#define ACPI_NOTIFY_BUS_MODE_MISMATCH   (u8) 6
--#define ACPI_NOTIFY_POWER_FAULT         (u8) 7
-+#define ACPI_NOTIFY_BUS_CHECK           (u8) 0x00
-+#define ACPI_NOTIFY_DEVICE_CHECK        (u8) 0x01
-+#define ACPI_NOTIFY_DEVICE_WAKE         (u8) 0x02
-+#define ACPI_NOTIFY_EJECT_REQUEST       (u8) 0x03
-+#define ACPI_NOTIFY_DEVICE_CHECK_LIGHT  (u8) 0x04
-+#define ACPI_NOTIFY_FREQUENCY_MISMATCH  (u8) 0x05
-+#define ACPI_NOTIFY_BUS_MODE_MISMATCH   (u8) 0x06
-+#define ACPI_NOTIFY_POWER_FAULT         (u8) 0x07
-+#define ACPI_NOTIFY_CAPABILITIES_CHECK  (u8) 0x08
-+#define ACPI_NOTIFY_DEVICE_PLD_CHECK    (u8) 0x09
-+#define ACPI_NOTIFY_RESERVED            (u8) 0x0A
-+#define ACPI_NOTIFY_LOCALITY_UPDATE     (u8) 0x0B
 +
-+#define ACPI_NOTIFY_MAX                 0x0B
- 
- /*
-  * Types associated with ACPI names and objects.  The first group of
-@@ -584,7 +590,7 @@ typedef u32 acpi_event_status;
- 
- #define ACPI_SYSTEM_NOTIFY              0x1
- #define ACPI_DEVICE_NOTIFY              0x2
--#define ACPI_ALL_NOTIFY                 0x3
-+#define ACPI_ALL_NOTIFY                 (ACPI_SYSTEM_NOTIFY | ACPI_DEVICE_NOTIFY)
- #define ACPI_MAX_NOTIFY_HANDLER_TYPE    0x3
- 
- #define ACPI_MAX_SYS_NOTIFY             0x7f
-diff --git a/include/acpi/acutils.h b/include/acpi/acutils.h
-index a291854..26115da 100644
---- a/include/acpi/acutils.h
-+++ b/include/acpi/acutils.h
-@@ -116,6 +116,8 @@ void acpi_ut_init_globals(void);
- 
- char *acpi_ut_get_mutex_name(u32 mutex_id);
- 
-+const char *acpi_ut_get_notify_name(u32 notify_value);
++	/* Creating new namespace node(s), should not already exist */
 +
- #endif
++	flags = ACPI_NS_NO_UPSEARCH | ACPI_NS_DONT_OPEN_SCOPE |
++	    ACPI_NS_ERROR_IF_FOUND;
++
++	/* Mark node(s) temporary if we are executing a method */
++
++	if (walk_state->method_node) {
++		flags |= ACPI_NS_TEMPORARY;
++	}
++
+ 	/*
+ 	 * Walk the list of entries in the field_list
+ 	 */
+ 	while (arg) {
+-
+-		/* Ignore OFFSET and ACCESSAS terms here */
+-
++		/*
++		 * Ignore OFFSET and ACCESSAS terms here; we are only interested in the
++		 * field names in order to enter them into the namespace.
++		 */
+ 		if (arg->common.aml_opcode == AML_INT_NAMEDFIELD_OP) {
+ 			status = acpi_ns_lookup(walk_state->scope_info,
+-						(char *)&arg->named.name,
+-						type, ACPI_IMODE_LOAD_PASS1,
+-						flags, walk_state, &node);
++						(char *)&arg->named.name, type,
++						ACPI_IMODE_LOAD_PASS1, flags,
++						walk_state, &node);
+ 			if (ACPI_FAILURE(status)) {
+ 				ACPI_ERROR_NAMESPACE((char *)&arg->named.name,
+ 						     status);
+@@ -468,7 +493,7 @@ acpi_ds_init_field_objects(union acpi_parse_object *op,
+ 			arg->common.node = node;
+ 		}
  
- char *acpi_ut_get_type_name(acpi_object_type type);
+-		/* Move to next field in the list */
++		/* Get the next field element in the list */
+ 
+ 		arg = arg->common.next;
+ 	}
+diff --git a/drivers/acpi/dispatcher/dswload.c b/drivers/acpi/dispatcher/dswload.c
+index ec68c1d..775b183 100644
+--- a/drivers/acpi/dispatcher/dswload.c
++++ b/drivers/acpi/dispatcher/dswload.c
+@@ -776,6 +776,12 @@ acpi_ds_load2_begin_op(struct acpi_walk_state *walk_state,
+ 		    acpi_ns_lookup(walk_state->scope_info, buffer_ptr,
+ 				   object_type, ACPI_IMODE_LOAD_PASS2, flags,
+ 				   walk_state, &node);
++
++		if (ACPI_SUCCESS(status) && (flags & ACPI_NS_TEMPORARY)) {
++			ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH,
++					  "***New Node [%4.4s] %p is temporary\n",
++					  acpi_ut_get_node_name(node), node));
++		}
+ 		break;
+ 	}
+ 
 -- 
 1.5.5.29.g7134
 
