@@ -1,13 +1,13 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 10/73] ACPICA: Misc fixes for recent global lock code update
-Date: Sat, 12 Apr 2008 00:24:53 -0400
-Message-ID: <9b286fa8c80995cb7f81b0a5b8874eb18ec2ead1.1207973799.git.len.brown@intel.com>
+Subject: [PATCH 07/73] ACPICA: Update comments for acquire/release mutex interfaces
+Date: Sat, 12 Apr 2008 00:24:50 -0400
+Message-ID: <45bbee56e1e461802ed99f884369ba7a2d0fe136.1207973799.git.len.brown@intel.com>
 References: <1207974356-30687-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.89]:45175 "EHLO
+Received: from mga05.intel.com ([192.55.52.89]:60403 "EHLO
 	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752764AbYDLE2D (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Apr 2008 00:28:03 -0400
+	with ESMTP id S1752558AbYDLE2A (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Apr 2008 00:28:00 -0400
 In-Reply-To: <1207974356-30687-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <0b76302280f017f219f191ea2c1439ff66cc4b2a.1207973799.git.len.brown@intel.com>
 References: <0b76302280f017f219f191ea2c1439ff66cc4b2a.1207973799.git.len.brown@intel.com>
@@ -18,173 +18,118 @@ Cc: Bob Moore <robert.moore@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.
 
 From: Bob Moore <robert.moore@intel.com>
 
-Fixes as a result of running full validation test suite.
+pdate comments for acquire/release mutex interfaces
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/events/evxface.c   |    2 +-
- drivers/acpi/executer/exfield.c |    8 ++++----
- drivers/acpi/executer/exmutex.c |   23 ++++++++++++++++++-----
- drivers/acpi/executer/exutils.c |   11 +++++++++--
- include/acpi/acinterp.h         |    2 +-
- 5 files changed, 33 insertions(+), 13 deletions(-)
+ drivers/acpi/executer/exmutex.c |   36 ++++++++++++++++++++++++++++++------
+ 1 files changed, 30 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/acpi/events/evxface.c b/drivers/acpi/events/evxface.c
-index dbf34a5..e210aa2 100644
---- a/drivers/acpi/events/evxface.c
-+++ b/drivers/acpi/events/evxface.c
-@@ -816,7 +816,7 @@ acpi_status acpi_release_global_lock(u32 handle)
- {
- 	acpi_status status;
- 
--	if (handle != acpi_gbl_global_lock_handle) {
-+	if (!handle || (handle != acpi_gbl_global_lock_handle)) {
- 		return (AE_NOT_ACQUIRED);
- 	}
- 
-diff --git a/drivers/acpi/executer/exfield.c b/drivers/acpi/executer/exfield.c
-index e66b367..da772cb 100644
---- a/drivers/acpi/executer/exfield.c
-+++ b/drivers/acpi/executer/exfield.c
-@@ -122,7 +122,7 @@ acpi_ex_read_data_from_field(struct acpi_walk_state *walk_state,
- 							     buffer.pointer),
- 					       ACPI_READ | (obj_desc->field.
- 							    attribute << 16));
--		acpi_ex_release_global_lock();
-+		acpi_ex_release_global_lock(obj_desc->common_field.field_flags);
- 		goto exit;
- 	}
- 
-@@ -177,7 +177,7 @@ acpi_ex_read_data_from_field(struct acpi_walk_state *walk_state,
- 	/* Read from the field */
- 
- 	status = acpi_ex_extract_from_field(obj_desc, buffer, (u32) length);
--	acpi_ex_release_global_lock();
-+	acpi_ex_release_global_lock(obj_desc->common_field.field_flags);
- 
-       exit:
- 	if (ACPI_FAILURE(status)) {
-@@ -284,7 +284,7 @@ acpi_ex_write_data_to_field(union acpi_operand_object *source_desc,
- 					       (acpi_integer *) buffer,
- 					       ACPI_WRITE | (obj_desc->field.
- 							     attribute << 16));
--		acpi_ex_release_global_lock();
-+		acpi_ex_release_global_lock(obj_desc->common_field.field_flags);
- 
- 		*result_desc = buffer_desc;
- 		return_ACPI_STATUS(status);
-@@ -364,7 +364,7 @@ acpi_ex_write_data_to_field(union acpi_operand_object *source_desc,
- 	/* Write to the field */
- 
- 	status = acpi_ex_insert_into_field(obj_desc, buffer, length);
--	acpi_ex_release_global_lock();
-+	acpi_ex_release_global_lock(obj_desc->common_field.field_flags);
- 
- 	/* Free temporary buffer if we used one */
- 
 diff --git a/drivers/acpi/executer/exmutex.c b/drivers/acpi/executer/exmutex.c
-index 32f24a8..b8d035c 100644
+index 0bebe75..32f24a8 100644
 --- a/drivers/acpi/executer/exmutex.c
 +++ b/drivers/acpi/executer/exmutex.c
-@@ -156,6 +156,10 @@ acpi_ex_acquire_mutex_object(u16 timeout,
- 
- 	ACPI_FUNCTION_TRACE_PTR(ex_acquire_mutex_object, obj_desc);
- 
-+	if (!obj_desc) {
-+		return_ACPI_STATUS(AE_BAD_PARAMETER);
-+	}
-+
- 	/* Support for multiple acquires by the owning thread */
- 
- 	if (obj_desc->mutex.thread_id == thread_id) {
-@@ -290,6 +294,10 @@ acpi_status acpi_ex_release_mutex_object(union acpi_operand_object *obj_desc)
- 
- 	ACPI_FUNCTION_TRACE(ex_release_mutex_object);
- 
-+	if (obj_desc->mutex.acquisition_depth == 0) {
-+		return (AE_NOT_ACQUIRED);
-+	}
-+
- 	/* Match multiple Acquires with multiple Releases */
- 
- 	obj_desc->mutex.acquisition_depth--;
-@@ -387,17 +395,22 @@ acpi_ex_release_mutex(union acpi_operand_object *obj_desc,
- 	 */
- 	if (obj_desc->mutex.sync_level > walk_state->thread->current_sync_level) {
- 		ACPI_ERROR((AE_INFO,
--			    "Cannot release Mutex [%4.4s], incorrect SyncLevel",
--			    acpi_ut_get_node_name(obj_desc->mutex.node)));
-+			    "Cannot release Mutex [%4.4s], SyncLevel mismatch: mutex %d current %d",
-+			    acpi_ut_get_node_name(obj_desc->mutex.node),
-+			    obj_desc->mutex.sync_level,
-+			    walk_state->thread->current_sync_level));
- 		return_ACPI_STATUS(AE_AML_MUTEX_ORDER);
- 	}
- 
- 	status = acpi_ex_release_mutex_object(obj_desc);
- 
--	/* Restore the original sync_level */
-+	if (obj_desc->mutex.acquisition_depth == 0) {
-+
-+		/* Restore the original sync_level */
- 
--	walk_state->thread->current_sync_level =
--	    obj_desc->mutex.original_sync_level;
-+		walk_state->thread->current_sync_level =
-+		    obj_desc->mutex.original_sync_level;
-+	}
- 	return_ACPI_STATUS(status);
- }
- 
-diff --git a/drivers/acpi/executer/exutils.c b/drivers/acpi/executer/exutils.c
-index c40b191..fd543ee 100644
---- a/drivers/acpi/executer/exutils.c
-+++ b/drivers/acpi/executer/exutils.c
-@@ -278,7 +278,8 @@ void acpi_ex_acquire_global_lock(u32 field_flags)
+@@ -134,7 +134,16 @@ acpi_ex_link_mutex(union acpi_operand_object *obj_desc,
   *
-  * FUNCTION:    acpi_ex_release_global_lock
+  * RETURN:      Status
   *
-- * PARAMETERS:  None
-+ * PARAMETERS:  field_flags           - Flags with Lock rule:
-+ *                                      always_lock or never_lock
-  *
-  * RETURN:      None
-  *
-@@ -286,12 +287,18 @@ void acpi_ex_acquire_global_lock(u32 field_flags)
+- * DESCRIPTION: Acquire an AML mutex, low-level interface
++ * DESCRIPTION: Acquire an AML mutex, low-level interface. Provides a common
++ *              path that supports multiple acquires by the same thread.
++ *
++ * MUTEX:       Interpreter must be locked
++ *
++ * NOTE: This interface is called from three places:
++ * 1) From acpi_ex_acquire_mutex, via an AML Acquire() operator
++ * 2) From acpi_ex_acquire_global_lock when an AML Field access requires the
++ *    global lock
++ * 3) From the external interface, acpi_acquire_global_lock
   *
   ******************************************************************************/
  
--void acpi_ex_release_global_lock(void)
-+void acpi_ex_release_global_lock(u32 field_flags)
- {
- 	acpi_status status;
+@@ -174,7 +183,7 @@ acpi_ex_acquire_mutex_object(u16 timeout,
+ 		return_ACPI_STATUS(status);
+ 	}
  
- 	ACPI_FUNCTION_TRACE(ex_release_global_lock);
+-	/* Have the mutex: update mutex and save the sync_level */
++	/* Acquired the mutex: update mutex object */
  
-+	/* Only use the lock if the always_lock bit is set */
+ 	obj_desc->mutex.thread_id = thread_id;
+ 	obj_desc->mutex.acquisition_depth = 1;
+@@ -211,7 +220,7 @@ acpi_ex_acquire_mutex(union acpi_operand_object *time_desc,
+ 		return_ACPI_STATUS(AE_BAD_PARAMETER);
+ 	}
+ 
+-	/* Sanity check: we must have a valid thread ID */
++	/* Must have a valid thread ID */
+ 
+ 	if (!walk_state->thread) {
+ 		ACPI_ERROR((AE_INFO,
+@@ -221,7 +230,7 @@ acpi_ex_acquire_mutex(union acpi_operand_object *time_desc,
+ 	}
+ 
+ 	/*
+-	 * Current Sync level must be less than or equal to the sync level of the
++	 * Current sync level must be less than or equal to the sync level of the
+ 	 * mutex. This mechanism provides some deadlock prevention
+ 	 */
+ 	if (walk_state->thread->current_sync_level > obj_desc->mutex.sync_level) {
+@@ -236,6 +245,9 @@ acpi_ex_acquire_mutex(union acpi_operand_object *time_desc,
+ 					      obj_desc,
+ 					      walk_state->thread->thread_id);
+ 	if (ACPI_SUCCESS(status) && obj_desc->mutex.acquisition_depth == 1) {
 +
-+	if (!(field_flags & AML_FIELD_LOCK_RULE_MASK)) {
-+		return_VOID;
-+	}
++		/* Save Thread object, original/current sync levels */
 +
- 	/* Release the global lock */
+ 		obj_desc->mutex.owner_thread = walk_state->thread;
+ 		obj_desc->mutex.original_sync_level =
+ 		    walk_state->thread->current_sync_level;
+@@ -259,6 +271,16 @@ acpi_ex_acquire_mutex(union acpi_operand_object *time_desc,
+  * RETURN:      Status
+  *
+  * DESCRIPTION: Release a previously acquired Mutex, low level interface.
++ *              Provides a common path that supports multiple releases (after
++ *              previous multiple acquires) by the same thread.
++ *
++ * MUTEX:       Interpreter must be locked
++ *
++ * NOTE: This interface is called from three places:
++ * 1) From acpi_ex_release_mutex, via an AML Acquire() operator
++ * 2) From acpi_ex_release_global_lock when an AML Field access requires the
++ *    global lock
++ * 3) From the external interface, acpi_release_global_lock
+  *
+  ******************************************************************************/
  
- 	status = acpi_ex_release_mutex_object(acpi_gbl_global_lock_mutex);
-diff --git a/include/acpi/acinterp.h b/include/acpi/acinterp.h
-index 2386388..92eb014 100644
---- a/include/acpi/acinterp.h
-+++ b/include/acpi/acinterp.h
-@@ -464,7 +464,7 @@ void acpi_ex_truncate_for32bit_table(union acpi_operand_object *obj_desc);
+@@ -294,6 +316,8 @@ acpi_status acpi_ex_release_mutex_object(union acpi_operand_object *obj_desc)
+ 		acpi_os_release_mutex(obj_desc->mutex.os_mutex);
+ 	}
  
- void acpi_ex_acquire_global_lock(u32 rule);
++	/* Clear mutex info */
++
+ 	obj_desc->mutex.thread_id = 0;
+ 	return_ACPI_STATUS(status);
+ }
+@@ -348,7 +372,7 @@ acpi_ex_release_mutex(union acpi_operand_object *obj_desc,
+ 		return_ACPI_STATUS(AE_AML_NOT_OWNER);
+ 	}
  
--void acpi_ex_release_global_lock(void);
-+void acpi_ex_release_global_lock(u32 rule);
+-	/* Sanity check: we must have a valid thread ID */
++	/* Must have a valid thread ID */
  
- void acpi_ex_eisa_id_to_string(u32 numeric_id, char *out_string);
+ 	if (!walk_state->thread) {
+ 		ACPI_ERROR((AE_INFO,
+@@ -370,7 +394,7 @@ acpi_ex_release_mutex(union acpi_operand_object *obj_desc,
  
+ 	status = acpi_ex_release_mutex_object(obj_desc);
+ 
+-	/* Restore sync_level */
++	/* Restore the original sync_level */
+ 
+ 	walk_state->thread->current_sync_level =
+ 	    obj_desc->mutex.original_sync_level;
 -- 
 1.5.5.29.g7134
 
