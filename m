@@ -1,13 +1,13 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 24/73] ACPICA: Fix a fault when storing DdbHandle to Debug object
-Date: Sat, 12 Apr 2008 00:25:07 -0400
-Message-ID: <b681583cc6bb084317993a5b9cb8f0d1ef47ba0a.1207973800.git.len.brown@intel.com>
+Subject: [PATCH 15/73] ACPICA: Update version to 20070508
+Date: Sat, 12 Apr 2008 00:24:58 -0400
+Message-ID: <e04004a7a1677a93efd0ca845864bdead6740744.1207973799.git.len.brown@intel.com>
 References: <1207974356-30687-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga10.intel.com ([192.55.52.92]:54694 "EHLO
-	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752811AbYDLE2E (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Apr 2008 00:28:04 -0400
+Received: from mga05.intel.com ([192.55.52.89]:60403 "EHLO
+	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752924AbYDLE2F (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Apr 2008 00:28:05 -0400
 In-Reply-To: <1207974356-30687-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <0b76302280f017f219f191ea2c1439ff66cc4b2a.1207973799.git.len.brown@intel.com>
 References: <0b76302280f017f219f191ea2c1439ff66cc4b2a.1207973799.git.len.brown@intel.com>
@@ -18,50 +18,28 @@ Cc: Bob Moore <robert.moore@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.
 
 From: Bob Moore <robert.moore@intel.com>
 
-Fixed a problem with the Debug object where a store of a DdbHandle
-reference object to the Debug object could cause a fault.
+Update version to 20070508.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/executer/exstore.c |   12 +++++++++++-
- 1 files changed, 11 insertions(+), 1 deletions(-)
+ include/acpi/acconfig.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/executer/exstore.c b/drivers/acpi/executer/exstore.c
-index f88b181..912889e 100644
---- a/drivers/acpi/executer/exstore.c
-+++ b/drivers/acpi/executer/exstore.c
-@@ -123,6 +123,8 @@ acpi_ex_do_debug_object(union acpi_operand_object *source_desc,
- 		return_VOID;
- 	}
+diff --git a/include/acpi/acconfig.h b/include/acpi/acconfig.h
+index c1829a3..a45230d 100644
+--- a/include/acpi/acconfig.h
++++ b/include/acpi/acconfig.h
+@@ -63,7 +63,7 @@
  
-+	/* source_desc is of type ACPI_DESC_TYPE_OPERAND */
-+
- 	switch (ACPI_GET_OBJECT_TYPE(source_desc)) {
- 	case ACPI_TYPE_INTEGER:
+ /* Current ACPICA subsystem version in YYYYMMDD format */
  
-@@ -180,11 +182,19 @@ acpi_ex_do_debug_object(union acpi_operand_object *source_desc,
- 					      (source_desc->reference.opcode),
- 					      source_desc->reference.offset));
- 		} else {
--			ACPI_DEBUG_PRINT_RAW((ACPI_DB_DEBUG_OBJECT, "[%s]\n",
-+			ACPI_DEBUG_PRINT_RAW((ACPI_DB_DEBUG_OBJECT, "[%s]",
- 					      acpi_ps_get_opcode_name
- 					      (source_desc->reference.opcode)));
- 		}
+-#define ACPI_CA_VERSION                 0x20070320
++#define ACPI_CA_VERSION                 0x20070508
  
-+		if (source_desc->reference.opcode == AML_LOAD_OP) {	/* Load and load_table */
-+			ACPI_DEBUG_PRINT_RAW((ACPI_DB_DEBUG_OBJECT,
-+					      " Table OwnerId %X\n",
-+					      source_desc->reference.object));
-+			break;
-+		}
-+
-+		ACPI_DEBUG_PRINT_RAW((ACPI_DB_DEBUG_OBJECT, "\n"));
- 		if (source_desc->reference.object) {
- 			if (ACPI_GET_DESCRIPTOR_TYPE
- 			    (source_desc->reference.object) ==
+ /*
+  * OS name, used for the _OS object.  The _OS object is essentially obsolete,
 -- 
 1.5.5.29.g7134
 
