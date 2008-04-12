@@ -1,62 +1,171 @@
-From: Kasper Sandberg <lkml@metanurb.dk>
-Subject: Re: Realtek 8111c weirdness problems, apic/msi, and normal bug
-Date: Sat, 12 Apr 2008 14:23:28 +0200
-Message-ID: <1208003008.1514.38.camel@localhost>
-References: <1207407804.14885.27.camel@localhost>
-	 <20080405232354.57ff2fac.akpm@linux-foundation.org>
-	 <20080406140624.GA24479@electric-eye.fr.zoreil.com>
-	 <1207541340.30698.18.camel@localhost>  <1207829872.1514.3.camel@localhost>
-	 <1207876315.1514.21.camel@localhost>  <1207937216.1514.30.camel@localhost>
+From: "Warwick Molloy" <wmolloy@gmail.com>
+Subject: dmidecode for Toshiba laptop...
+Date: Sat, 12 Apr 2008 22:48:45 +1000
+Message-ID: <d86269740804120548v5f3d6eefqf132d350bc087760@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1207937216.1514.30.camel@localhost>
-Sender: netdev-owner@vger.kernel.org
-To: Francois Romieu <romieu@fr.zoreil.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, LKML Mailinglist <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: multipart/mixed;
+	boundary="----=_Part_689_16967551.1208004525528"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from py-out-1112.google.com ([64.233.166.179]:33694 "EHLO
+	py-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753616AbYDLMsr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Apr 2008 08:48:47 -0400
+Received: by py-out-1112.google.com with SMTP id u52so1240952pyb.10
+        for <linux-acpi@vger.kernel.org>; Sat, 12 Apr 2008 05:48:45 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-I've got some more information (though probably not too helpful).
-Realtek has modified(i probably mentioned this earlier) the r8169
-driver, under the name of r8168. It might be worth checking out what
-they have done. people are reporting that it works:
-http://damienkane.livejournal.com/5574.html
-http://www.mail-archive.com/ubuntu-bugs%
-40lists.ubuntu.com/msg730229.html
+------=_Part_689_16967551.1208004525528
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-the driver can be found at:
-http://www.realtek.com.tw/downloads/downloadsView.aspx?Langid=1&PNid=13&PFid=5&Level=5&Conn=4&DownTypeID=3&GetDown=false
-if that doesent work, do: http://www.realtek.com.tw/downloads ->
-communication networks ics -> network interface controllers ->
-10/100/1000 gigabit ethernet -> pci express.
+Hello,
 
-I will try myself, but i have zero knowledge about this stuff in the
-kernel, and will probably not be able to find anything of use.
+Sending dmidecode output as requested by my kernel.  Hope this helps
+add to the ACPI Linux support work.
+Please let me know if I've missed something useful.
 
+Regards,
+Warwick
 
-On Fri, 2008-04-11 at 20:06 +0200, Kasper Sandberg wrote:
-> I've got more information again. This is dmesg, and /proc/interrupts
-> from a livecd (systemrescuecd), its a .23.14, and only 1 nic works (the
-<snip>
-> 
-> On Fri, 2008-04-11 at 03:11 +0200, Kasper Sandberg wrote:
-> > Sorry for top posting, but its just easier in this case :)
-> > 
-> <snip>
-> > > 
-> > > 
-> > > > > 
-> > > > 
-> > > > --
-> > > > To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> > > > the body of a message to majordomo@vger.kernel.org
-> > > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > > > Please read the FAQ at  http://www.tux.org/lkml/
-> > > 
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> > > the body of a message to majordomo@vger.kernel.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > > Please read the FAQ at  http://www.tux.org/lkml/
+dmesg extract below...
 
+[   31.522011] ACPI: bus type pci registered
+[   31.522018] PCI: Using configuration type 1
+[   31.523072] ACPI: EC: Look up EC in DSDT
+[   31.523707] ACPI: EC: GPE=0x19, ports=0x66, 0x62
+[   31.528153] ACPI: System BIOS is requesting _OSI(Linux)
+[   31.528155] ACPI: Please test with "acpi_osi=!Linux"
+[   31.528156] Please send dmidecode to linux-acpi@vger.kernel.org
+[   31.528407] ACPI: Interpreter enabled
+[   31.528410] ACPI: (supports S0 S3 S4 S5)
+[   31.528426] ACPI: Using IOAPIC for interrupt routing
+[   31.583157] ACPI: EC: GPE=0x19, ports=0x66, 0x62
+[   31.583196] ACPI: PCI Root Bridge [PCI0] (0000:00)
+[   31.583202] PCI: Probing PCI hardware (bus 00)
+[   31.583866] PCI quirk: region 1000-107f claimed by ICH6 ACPI/GPIO/TCO
+[   31.583871] PCI quirk: region 1180-11bf claimed by ICH6 GPIO
+[   31.584991] PCI: Transparent bridge - 0000:00:1e.0
+
+------=_Part_689_16967551.1208004525528
+Content-Type: application/octet-stream; name=dmi
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fey6lbnw0
+Content-Disposition: attachment; filename=dmi
+
+IyBkbWlkZWNvZGUgMi45ClNNQklPUyAyLjQgcHJlc2VudC4KMjIgc3RydWN0dXJlcyBvY2N1cHlp
+bmcgMTAwNyBieXRlcy4KVGFibGUgYXQgMHgwMDBEQzAxMC4KCkhhbmRsZSAweDAwMDAsIERNSSB0
+eXBlIDAsIDI0IGJ5dGVzCkJJT1MgSW5mb3JtYXRpb24KCVZlbmRvcjogVE9TSElCQQoJVmVyc2lv
+bjogVjEuNzAKCVJlbGVhc2UgRGF0ZTogMDgvMjEvMjAwNwoJQWRkcmVzczogMHhFNTk3MAoJUnVu
+dGltZSBTaXplOiAxMDgxNzYgYnl0ZXMKCVJPTSBTaXplOiA1MTIga0IKCUNoYXJhY3RlcmlzdGlj
+czoKCQlQQ0kgaXMgc3VwcG9ydGVkCgkJUEMgQ2FyZCAoUENNQ0lBKSBpcyBzdXBwb3J0ZWQKCQlQ
+TlAgaXMgc3VwcG9ydGVkCgkJQklPUyBpcyB1cGdyYWRlYWJsZQoJCUJJT1Mgc2hhZG93aW5nIGlz
+IGFsbG93ZWQKCQlCb290IGZyb20gQ0QgaXMgc3VwcG9ydGVkCgkJU2VsZWN0YWJsZSBib290IGlz
+IHN1cHBvcnRlZAoJCUphcGFuZXNlIGZsb3BweSBmb3IgVG9zaGliYSAxLjIgTUIgaXMgc3VwcG9y
+dGVkIChpbnQgMTNoKQoJCVByaW50IHNjcmVlbiBzZXJ2aWNlIGlzIHN1cHBvcnRlZCAoaW50IDVo
+KQoJCTgwNDIga2V5Ym9hcmQgc2VydmljZXMgYXJlIHN1cHBvcnRlZCAoaW50IDloKQoJCVNlcmlh
+bCBzZXJ2aWNlcyBhcmUgc3VwcG9ydGVkIChpbnQgMTRoKQoJCVByaW50ZXIgc2VydmljZXMgYXJl
+IHN1cHBvcnRlZCAoaW50IDE3aCkKCQlDR0EvbW9ubyB2aWRlbyBzZXJ2aWNlcyBhcmUgc3VwcG9y
+dGVkIChpbnQgMTBoKQoJCUFDUEkgaXMgc3VwcG9ydGVkCgkJVVNCIGxlZ2FjeSBpcyBzdXBwb3J0
+ZWQKCQlBR1AgaXMgc3VwcG9ydGVkCgkJU21hcnQgYmF0dGVyeSBpcyBzdXBwb3J0ZWQKCQlCSU9T
+IGJvb3Qgc3BlY2lmaWNhdGlvbiBpcyBzdXBwb3J0ZWQKCQlUYXJnZXRlZCBjb250ZW50IGRpc3Ry
+aWJ1dGlvbiBpcyBzdXBwb3J0ZWQKCUJJT1MgUmV2aXNpb246IDEuMTEyCglGaXJtd2FyZSBSZXZp
+c2lvbjogMS4xMTIKCkhhbmRsZSAweDAwMDEsIERNSSB0eXBlIDEsIDI3IGJ5dGVzClN5c3RlbSBJ
+bmZvcm1hdGlvbgoJTWFudWZhY3R1cmVyOiBUT1NISUJBCglQcm9kdWN0IE5hbWU6IFNhdGVsbGl0
+ZSBQMjAwCglWZXJzaW9uOiBQU1BCR0EtMDFYMDE1CglTZXJpYWwgTnVtYmVyOiA0NzI3NzA2MUsK
+CVVVSUQ6IDMzMDBBOUEyLUUyMjItMTFEQi04Njk0LTAwMTZENEY2NDQxMgoJV2FrZS11cCBUeXBl
+OiBQb3dlciBTd2l0Y2gKCVNLVSBOdW1iZXI6IDAxMjM0NTY3ODkxMjM0NTY3ODkxMjM0NTY3OAoJ
+RmFtaWx5OiBBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWgoKSGFuZGxlIDB4MDAwMiwgRE1JIHR5
+cGUgMiwgOCBieXRlcwpCYXNlIEJvYXJkIEluZm9ybWF0aW9uCglNYW51ZmFjdHVyZXI6IFRPU0hJ
+QkEKCVByb2R1Y3QgTmFtZTogSVNSQUUKCVZlcnNpb246IDEuMDAKCVNlcmlhbCBOdW1iZXI6IDAx
+MjM0NTY3ODlBQgoKSGFuZGxlIDB4MDAwMywgRE1JIHR5cGUgMywgMTcgYnl0ZXMKQ2hhc3NpcyBJ
+bmZvcm1hdGlvbgoJTWFudWZhY3R1cmVyOiBUT1NISUJBCglUeXBlOiBOb3RlYm9vawoJTG9jazog
+Tm90IFByZXNlbnQKCVZlcnNpb246IE4vQQoJU2VyaWFsIE51bWJlcjogTm9uZQoJQXNzZXQgVGFn
+OiAqCglCb290LXVwIFN0YXRlOiBTYWZlCglQb3dlciBTdXBwbHkgU3RhdGU6IFNhZmUKCVRoZXJt
+YWwgU3RhdGU6IFNhZmUKCVNlY3VyaXR5IFN0YXR1czogTm9uZQoJT0VNIEluZm9ybWF0aW9uOiAw
+eDAwMDAxMjM0CgpIYW5kbGUgMHgwMDA0LCBETUkgdHlwZSA0LCAzNSBieXRlcwpQcm9jZXNzb3Ig
+SW5mb3JtYXRpb24KCVNvY2tldCBEZXNpZ25hdGlvbjogVTJFMQoJVHlwZTogQ2VudHJhbCBQcm9j
+ZXNzb3IKCUZhbWlseTogT3RoZXIKCU1hbnVmYWN0dXJlcjogSW50ZWwKCUlEOiBGNiAwNiAwMCAw
+MCBGRiBGQiBFQiBCRgoJVmVyc2lvbjogSW50ZWwoUikgQ29yZShUTSkyIENQVSAgICAgICAgIFQ3
+CglWb2x0YWdlOiAzLjMgVgoJRXh0ZXJuYWwgQ2xvY2s6IFVua25vd24KCU1heCBTcGVlZDogMjA0
+OCBNSHoKCUN1cnJlbnQgU3BlZWQ6IDIwMDAgTUh6CglTdGF0dXM6IFBvcHVsYXRlZCwgRW5hYmxl
+ZAoJVXBncmFkZTogWklGIFNvY2tldAoJTDEgQ2FjaGUgSGFuZGxlOiAweDAwMDUKCUwyIENhY2hl
+IEhhbmRsZTogMHgwMDA2CglMMyBDYWNoZSBIYW5kbGU6IE5vdCBQcm92aWRlZAoJU2VyaWFsIE51
+bWJlcjogTm90IFNwZWNpZmllZAoJQXNzZXQgVGFnOiBOb3QgU3BlY2lmaWVkCglQYXJ0IE51bWJl
+cjogTm90IFNwZWNpZmllZAoKSGFuZGxlIDB4MDAwNSwgRE1JIHR5cGUgNywgMTkgYnl0ZXMKQ2Fj
+aGUgSW5mb3JtYXRpb24KCVNvY2tldCBEZXNpZ25hdGlvbjogTDEgQ2FjaGUKCUNvbmZpZ3VyYXRp
+b246IEVuYWJsZWQsIFNvY2tldGVkLCBMZXZlbCAxCglPcGVyYXRpb25hbCBNb2RlOiBXcml0ZSBC
+YWNrCglMb2NhdGlvbjogSW50ZXJuYWwKCUluc3RhbGxlZCBTaXplOiAzMiBLQgoJTWF4aW11bSBT
+aXplOiAzMiBLQgoJU3VwcG9ydGVkIFNSQU0gVHlwZXM6CgkJQnVyc3QKCQlQaXBlbGluZSBCdXJz
+dAoJCUFzeW5jaHJvbm91cwoJSW5zdGFsbGVkIFNSQU0gVHlwZTogQXN5bmNocm9ub3VzCglTcGVl
+ZDogVW5rbm93bgoJRXJyb3IgQ29ycmVjdGlvbiBUeXBlOiBVbmtub3duCglTeXN0ZW0gVHlwZTog
+VW5rbm93bgoJQXNzb2NpYXRpdml0eTogVW5rbm93bgoKSGFuZGxlIDB4MDAwNiwgRE1JIHR5cGUg
+NywgMTkgYnl0ZXMKQ2FjaGUgSW5mb3JtYXRpb24KCVNvY2tldCBEZXNpZ25hdGlvbjogTDIgQ2Fj
+aGUKCUNvbmZpZ3VyYXRpb246IEVuYWJsZWQsIFNvY2tldGVkLCBMZXZlbCAyCglPcGVyYXRpb25h
+bCBNb2RlOiBXcml0ZSBCYWNrCglMb2NhdGlvbjogRXh0ZXJuYWwKCUluc3RhbGxlZCBTaXplOiA0
+MDk2IEtCCglNYXhpbXVtIFNpemU6IDUxMiBLQgoJU3VwcG9ydGVkIFNSQU0gVHlwZXM6CgkJQnVy
+c3QKCQlQaXBlbGluZSBCdXJzdAoJCUFzeW5jaHJvbm91cwoJSW5zdGFsbGVkIFNSQU0gVHlwZTog
+QnVyc3QKCVNwZWVkOiBVbmtub3duCglFcnJvciBDb3JyZWN0aW9uIFR5cGU6IFVua25vd24KCVN5
+c3RlbSBUeXBlOiBVbmtub3duCglBc3NvY2lhdGl2aXR5OiBVbmtub3duCgpIYW5kbGUgMHgwMDA3
+LCBETUkgdHlwZSA4LCA5IGJ5dGVzClBvcnQgQ29ubmVjdG9yIEluZm9ybWF0aW9uCglJbnRlcm5h
+bCBSZWZlcmVuY2UgRGVzaWduYXRvcjogSjM1CglJbnRlcm5hbCBDb25uZWN0b3IgVHlwZTogTm9u
+ZQoJRXh0ZXJuYWwgUmVmZXJlbmNlIERlc2lnbmF0b3I6IEtleWJvYXJkCglFeHRlcm5hbCBDb25u
+ZWN0b3IgVHlwZTogQ2lyY3VsYXIgRElOLTggbWFsZQoJUG9ydCBUeXBlOiBLZXlib2FyZCBQb3J0
+CgpIYW5kbGUgMHgwMDA4LCBETUkgdHlwZSA4LCA5IGJ5dGVzClBvcnQgQ29ubmVjdG9yIEluZm9y
+bWF0aW9uCglJbnRlcm5hbCBSZWZlcmVuY2UgRGVzaWduYXRvcjogSjM2CglJbnRlcm5hbCBDb25u
+ZWN0b3IgVHlwZTogTm9uZQoJRXh0ZXJuYWwgUmVmZXJlbmNlIERlc2lnbmF0b3I6IFBTLzIgTW91
+c2UKCUV4dGVybmFsIENvbm5lY3RvciBUeXBlOiBDaXJjdWxhciBESU4tOCBtYWxlCglQb3J0IFR5
+cGU6IEtleWJvYXJkIFBvcnQKCkhhbmRsZSAweDAwMDksIERNSSB0eXBlIDksIDEzIGJ5dGVzClN5
+c3RlbSBTbG90IEluZm9ybWF0aW9uCglEZXNpZ25hdGlvbjogVEk3NDEyCglUeXBlOiAzMi1iaXQg
+UENJCglDdXJyZW50IFVzYWdlOiBVbmtub3duCglMZW5ndGg6IExvbmcKCUlEOiAwCglDaGFyYWN0
+ZXJpc3RpY3M6CgkJNS4wIFYgaXMgcHJvdmlkZWQKCQkzLjMgViBpcyBwcm92aWRlZAoKSGFuZGxl
+IDB4MDAwQSwgRE1JIHR5cGUgMTAsIDYgYnl0ZXMKT24gQm9hcmQgRGV2aWNlIEluZm9ybWF0aW9u
+CglUeXBlOiBTb3VuZAoJU3RhdHVzOiBEaXNhYmxlZAoJRGVzY3JpcHRpb246IEhELUF1ZGlvCgpI
+YW5kbGUgMHgwMDBCLCBETUkgdHlwZSAxMSwgNSBieXRlcwpPRU0gU3RyaW5ncwoJU3RyaW5nIDE6
+IFBTUEJHQS0wMVgwMTUsQTAxWDAxNTAwMQoKSGFuZGxlIDB4MDAwQywgRE1JIHR5cGUgMTIsIDUg
+Ynl0ZXMKU3lzdGVtIENvbmZpZ3VyYXRpb24gT3B0aW9ucwoJT3B0aW9uIDE6IEp1bXBlciBzZXR0
+aW5ncyBjYW4gYmUgZGVzY3JpYmVkIGhlcmUuCgpIYW5kbGUgMHgwMDBELCBETUkgdHlwZSAxNiwg
+MTUgYnl0ZXMKUGh5c2ljYWwgTWVtb3J5IEFycmF5CglMb2NhdGlvbjogU3lzdGVtIEJvYXJkIE9y
+IE1vdGhlcmJvYXJkCglVc2U6IFN5c3RlbSBNZW1vcnkKCUVycm9yIENvcnJlY3Rpb24gVHlwZTog
+Tm9uZQoJTWF4aW11bSBDYXBhY2l0eTogMyBHQgoJRXJyb3IgSW5mb3JtYXRpb24gSGFuZGxlOiBO
+b3QgUHJvdmlkZWQKCU51bWJlciBPZiBEZXZpY2VzOiAyCgpIYW5kbGUgMHgwMDBFLCBETUkgdHlw
+ZSAxNywgMjcgYnl0ZXMKTWVtb3J5IERldmljZQoJQXJyYXkgSGFuZGxlOiAweDAwMEQKCUVycm9y
+IEluZm9ybWF0aW9uIEhhbmRsZTogTm8gRXJyb3IKCVRvdGFsIFdpZHRoOiAzMiBiaXRzCglEYXRh
+IFdpZHRoOiAzMiBiaXRzCglTaXplOiAxMDI0IE1CCglGb3JtIEZhY3RvcjogU09ESU1NCglTZXQ6
+IDEKCUxvY2F0b3I6IE0xCglCYW5rIExvY2F0b3I6IEJhbmsgMAoJVHlwZTogRERSCglUeXBlIERl
+dGFpbDogU3luY2hyb25vdXMKCVNwZWVkOiBVbmtub3duCglNYW51ZmFjdHVyZXI6IE5vdCBTcGVj
+aWZpZWQKCVNlcmlhbCBOdW1iZXI6IE5vdCBTcGVjaWZpZWQKCUFzc2V0IFRhZzogTm90IFNwZWNp
+ZmllZAoJUGFydCBOdW1iZXI6IE5vdCBTcGVjaWZpZWQKCkhhbmRsZSAweDAwMEYsIERNSSB0eXBl
+IDE3LCAyNyBieXRlcwpNZW1vcnkgRGV2aWNlCglBcnJheSBIYW5kbGU6IDB4MDAwRAoJRXJyb3Ig
+SW5mb3JtYXRpb24gSGFuZGxlOiBObyBFcnJvcgoJVG90YWwgV2lkdGg6IDMyIGJpdHMKCURhdGEg
+V2lkdGg6IDMyIGJpdHMKCVNpemU6IDEwMjQgTUIKCUZvcm0gRmFjdG9yOiBTT0RJTU0KCVNldDog
+MQoJTG9jYXRvcjogTTIKCUJhbmsgTG9jYXRvcjogQmFuayAxCglUeXBlOiBERFIKCVR5cGUgRGV0
+YWlsOiBTeW5jaHJvbm91cwoJU3BlZWQ6IFVua25vd24KCU1hbnVmYWN0dXJlcjogTm90IFNwZWNp
+ZmllZAoJU2VyaWFsIE51bWJlcjogTm90IFNwZWNpZmllZAoJQXNzZXQgVGFnOiBOb3QgU3BlY2lm
+aWVkCglQYXJ0IE51bWJlcjogTm90IFNwZWNpZmllZAoKSGFuZGxlIDB4MDAxMCwgRE1JIHR5cGUg
+MTksIDE1IGJ5dGVzCk1lbW9yeSBBcnJheSBNYXBwZWQgQWRkcmVzcwoJU3RhcnRpbmcgQWRkcmVz
+czogMHgwMDAwMDAwMDAwMAoJRW5kaW5nIEFkZHJlc3M6IDB4MDAwN0ZGRkZGRkYKCVJhbmdlIFNp
+emU6IDIgR0IKCVBoeXNpY2FsIEFycmF5IEhhbmRsZTogMHgwMDBECglQYXJ0aXRpb24gV2lkdGg6
+IDAKCkhhbmRsZSAweDAwMTEsIERNSSB0eXBlIDIwLCAxOSBieXRlcwpNZW1vcnkgRGV2aWNlIE1h
+cHBlZCBBZGRyZXNzCglTdGFydGluZyBBZGRyZXNzOiAweDAwMDAwMDAwMDAwCglFbmRpbmcgQWRk
+cmVzczogMHgwMDAzRkZGRkZGRgoJUmFuZ2UgU2l6ZTogMSBHQgoJUGh5c2ljYWwgRGV2aWNlIEhh
+bmRsZTogMHgwMDBFCglNZW1vcnkgQXJyYXkgTWFwcGVkIEFkZHJlc3MgSGFuZGxlOiAweDAwMTAK
+CVBhcnRpdGlvbiBSb3cgUG9zaXRpb246IFVua25vd24KCUludGVybGVhdmUgUG9zaXRpb246IFVu
+a25vd24KCUludGVybGVhdmVkIERhdGEgRGVwdGg6IFVua25vd24KCkhhbmRsZSAweDAwMTIsIERN
+SSB0eXBlIDIwLCAxOSBieXRlcwpNZW1vcnkgRGV2aWNlIE1hcHBlZCBBZGRyZXNzCglTdGFydGlu
+ZyBBZGRyZXNzOiAweDAwMDQwMDAwMDAwCglFbmRpbmcgQWRkcmVzczogMHgwMDA3RkZGRkZGRgoJ
+UmFuZ2UgU2l6ZTogMSBHQgoJUGh5c2ljYWwgRGV2aWNlIEhhbmRsZTogMHgwMDBGCglNZW1vcnkg
+QXJyYXkgTWFwcGVkIEFkZHJlc3MgSGFuZGxlOiAweDAwMTAKCVBhcnRpdGlvbiBSb3cgUG9zaXRp
+b246IFVua25vd24KCUludGVybGVhdmUgUG9zaXRpb246IFVua25vd24KCUludGVybGVhdmVkIERh
+dGEgRGVwdGg6IFVua25vd24KCkhhbmRsZSAweDAwMTMsIERNSSB0eXBlIDIyLCAyNiBieXRlcwpQ
+b3J0YWJsZSBCYXR0ZXJ5CglMb2NhdGlvbjogMXN0IEJhdHRlcnkKCU1hbnVmYWN0dXJlcjogVE9T
+SElCQSAgIAoJTWFudWZhY3R1cmUgRGF0ZTogMTIvMDEvMjAwNQoJU2VyaWFsIE51bWJlcjogMzY1
+OFEKCU5hbWU6IFBBMzM5NVUgCglDaGVtaXN0cnk6IExpdGhpdW0gSW9uCglEZXNpZ24gQ2FwYWNp
+dHk6IDMxNTAwIG1XaAoJRGVzaWduIFZvbHRhZ2U6IDE0ODAwIG1WCglTQkRTIFZlcnNpb246IE5v
+dCBTcGVjaWZpZWQKCU1heGltdW0gRXJyb3I6IFVua25vd24KCU9FTS1zcGVjaWZpYyBJbmZvcm1h
+dGlvbjogMHgwMDAwMDAwMAoKSGFuZGxlIDB4MDAxNCwgRE1JIHR5cGUgMzIsIDIwIGJ5dGVzClN5
+c3RlbSBCb290IEluZm9ybWF0aW9uCglTdGF0dXM6IDxPVVQgT0YgU1BFQz4KCkhhbmRsZSAweDAw
+MTUsIERNSSB0eXBlIDEyNywgNCBieXRlcwpFbmQgT2YgVGFibGUKCg==
+------=_Part_689_16967551.1208004525528--
