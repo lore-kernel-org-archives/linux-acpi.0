@@ -1,129 +1,39 @@
-From: Kasper Sandberg <lkml@metanurb.dk>
-Subject: Re: Realtek 8111c weirdness problems, apic/msi, and normal bug
-Date: Sun, 13 Apr 2008 00:02:17 +0200
-Message-ID: <1208037737.1514.70.camel@localhost>
-References: <1207407804.14885.27.camel@localhost>
-	 <20080405232354.57ff2fac.akpm@linux-foundation.org>
-	 <20080406140624.GA24479@electric-eye.fr.zoreil.com>
-	 <1207541340.30698.18.camel@localhost> <1207829872.1514.3.camel@localhost>
-	 <1207876315.1514.21.camel@localhost>
-	 <20080412192215.GA17669@electric-eye.fr.zoreil.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH 1/3] PM: Introduce new top level suspend and
+	hibernation callbacks (rev. 7)
+Date: Fri, 11 Apr 2008 17:23:02 -0700
+Message-ID: <20080412002302.GA27656@kroah.com>
+References: <200804040111.15255.rjw@sisk.pl> <200804040112.45769.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20080412192215.GA17669@electric-eye.fr.zoreil.com>
-Sender: netdev-owner@vger.kernel.org
-To: Francois Romieu <romieu@fr.zoreil.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, LKML Mailinglist <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from pentafluge.infradead.org ([213.146.154.40]:34345 "EHLO
+	pentafluge.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752695AbYDLW0k (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Apr 2008 18:26:40 -0400
+Content-Disposition: inline
+In-Reply-To: <200804040112.45769.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Oliver Neukum <oliver@neukum.org>, Nigel Cunningham <ncunningham@crca.org.au>, Jesse Barnes <jbarnes@virtuousgeek.org>
 
-On Sat, 2008-04-12 at 21:22 +0200, Francois Romieu wrote:
-> Kasper Sandberg <lkml@metanurb.dk> :
-> > Sorry for top posting, but its just easier in this case :)
+On Fri, Apr 04, 2008 at 01:12:44AM +0200, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rjw@sisk.pl>
 > 
-> Tsk, tsk.
-> 
-> > I may have just gotten some new information to share.
-> > 
-> > I just built -git8. and the nic didnt work.. by booting with
-> > noapic/nomsi i got it running though. then i did some tests, and
-> > rebooted into the default(has worked mostly for me) noapic/msi boot.
-> > Then it worked.
-> 
-> Can you try a simple 'nomsi' boot ?
+> Introduce 'struct pm_ops' and 'struct pm_ext_ops' ('ext' meaning
+> 'extended') representing suspend and hibernation operations for bus
+> types, device classes, device types and device drivers.
 
-first off, isnt it pci=nomsi? it still appears to be using msi when
-booting with nomsi. anyway, i did as you asked.
+<snip>
 
-I have now booted with a multitude of parameters and combinations,
-dumped lots of information and done tests.
+This is probably because I took a few days to merge this, but it doesn't
+apply to my tree anymore, with some wierd merge errors that I don't
+think I can easily resolve without having to totally guess as to what it
+should be (the apm_32.c area especially...)
 
-> 
-> The lspci in your previous message (2008/04/10) suggested that
-> something was very wrong at the PCI level:
-> [...]
-> 05:00.0 0200: 10ec:8168 (rev ff) (prog-if ff)
->         !!! Unknown header type 7f
->         Kernel driver in use: r8169
->         Kernel modules: r8169
-> 00: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> 10: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> 20: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> 
-> (but this was on an older kernel, right ?)
-> 
-> When you see such an output, can you try to see if the direct access
-> option of lspci (-H{1/2}) makes a difference ?
-i have dumped with both.
-> 
-> [...]
-> > if its a boot where the nic works, i can usually rmmod/modprobe the
-> > module once without it giving error, however if its a boot where the nic
-> > doesent work, first time i rmmod and modprobe, it gives me an error..
-> > 
-> > the error is:
-> > PCI: cache line size of 32 is not supported by device 0000:05:00.0
-> > ACPI: PCI interrupt for device 0000:05:00.0 disabled
-> > r8169: probe of 0000:05:00.0 failed with error -22
-> 
-> What does lspci say here ?
-all in the dumps :)
-> 
-> > I have attached some dmesgs(sorry, but my client messes up inlines..)
-> > also.. link detecting isnt working properly, sometimes it will detect a
-> > link as down after a while.. its quite weird..
-> 
-> (please increase the size of your kernel log buffer)
-done.
-> 
-> > (oh, and this time its without nvidia just to be 100000% sure)
-> 
-> Thanks.
-> 
-> > I hope this can help to get it resolved, alot of people are having
-> > problems with these controllers.. i can however confirm that a similar
-> > controller is working perfectly on a friends gigabyte motherboard, thats
-> > with P35 chipset though, i have X48. He has only 1 of them onboard.
-> 
-> You can ask your friend to grep for the 'XID' line in the kernel log
-> written by the r8169 driver. If the values match, you have got the same
-> 816x hardware.
-I shall do as soon as he comes online.
-> 
-> There are different problems with the 8168
-> - older kernel with broken mmconfig / msi / etc.
-> - newer 8168 chipsets which are currently not correctly handled
-> - plain 8168 driver bugs
-> - ...
-> 
-> (that being said, it really works for some users too)
-> 
-> > also something which may be of interrest, realtek offers a modified
-> > r8169 driver called "r8168", which supposedly fixes this. I have been
-> > unable to get it to compile though, but i saw it on ubuntu forums.
-> 
-> I am looking very closely at Realtek's drivers but the diff between 
-> the different revisions of their 8168 driver are not always as
-> readable as I would hope for (things have improved though).
-okay.. well, i just thought i'd mention it, to be honest, i have more
-faith in you than realtek :)
+Care to respin these patches?  Sorry for the delay.
 
-the information i have dumped is too substantial to have inline in mail,
-and also, my mail client destroys whitespace, so i have put up a
-tarball, which is available here:
-http://download1.kaspersandberg.com/r8169_debugging.tar.bz2
+thanks,
 
-if you need more, for example, boots with "pci=nomsi" instead of just
-the nomsi parameter, or combinations, as always, feel free to ask, and i
-shall provide it.
-
-thanks!
-
-> 
-> Realtek is working at fixing its 8168 driver for recent kernels. It
-> should be easier to compare its behavior against the in-kernel driver
-> with recent kernels soon. It will makes everybody's life easier.
-> 
-
+greg k-h
