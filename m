@@ -1,13 +1,13 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 34/73] ACPICA: Cosmetic changes only, no functional changes
-Date: Sat, 12 Apr 2008 00:25:17 -0400
-Message-ID: <c5a20d0e0dca90d4e5bc9aa79a9d408fe823761a.1207973800.git.len.brown@intel.com>
+Subject: [PATCH 33/73] ACPICA: Cosmetic changes only, no functional changes
+Date: Sat, 12 Apr 2008 00:25:16 -0400
+Message-ID: <bd2d226a2b2d0751a849f3b0c7d627a3bc63e7a4.1207973800.git.len.brown@intel.com>
 References: <1207974356-30687-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga10.intel.com ([192.55.52.92]:20142 "EHLO
+Received: from mga10.intel.com ([192.55.52.92]:47253 "EHLO
 	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752944AbYDLE2I (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Apr 2008 00:28:08 -0400
+	with ESMTP id S1753300AbYDLE2J (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Apr 2008 00:28:09 -0400
 In-Reply-To: <1207974356-30687-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <0b76302280f017f219f191ea2c1439ff66cc4b2a.1207973799.git.len.brown@intel.com>
 References: <0b76302280f017f219f191ea2c1439ff66cc4b2a.1207973799.git.len.brown@intel.com>
@@ -24,447 +24,300 @@ Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/dispatcher/dsmethod.c |   38 ++++++++++++++++-------------------
- drivers/acpi/dispatcher/dsobject.c |    4 ++-
- drivers/acpi/dispatcher/dsopcode.c |    2 +-
- drivers/acpi/dispatcher/dsutils.c  |   10 +++-----
- drivers/acpi/dispatcher/dswstate.c |    6 ++--
- drivers/acpi/executer/exconfig.c   |   10 ++++----
- drivers/acpi/executer/exdump.c     |   10 +++++++-
- drivers/acpi/executer/exfldio.c    |    3 +-
- drivers/acpi/executer/exregion.c   |    8 ++++--
- drivers/acpi/executer/exstore.c    |    6 +++-
- drivers/acpi/executer/exsystem.c   |    1 -
- drivers/acpi/executer/exutils.c    |    1 -
- drivers/acpi/parser/psopcode.c     |    3 +-
- include/acpi/acglobal.h            |    8 ++----
- include/acpi/acmacros.h            |   10 +++++++++
- include/acpi/actypes.h             |    2 +
- 16 files changed, 69 insertions(+), 53 deletions(-)
+ drivers/acpi/events/evmisc.c      |    7 ++++---
+ drivers/acpi/events/evregion.c    |    2 +-
+ drivers/acpi/hardware/hwsleep.c   |   14 ++++++++------
+ drivers/acpi/namespace/nsdump.c   |    9 +++++----
+ drivers/acpi/namespace/nsload.c   |    2 +-
+ drivers/acpi/namespace/nsnames.c  |    2 +-
+ drivers/acpi/namespace/nsparse.c  |   17 +++++++++++------
+ drivers/acpi/resources/rscalc.c   |    6 +++---
+ drivers/acpi/resources/rsutils.c  |    6 +++---
+ drivers/acpi/utilities/utalloc.c  |    2 +-
+ drivers/acpi/utilities/utcopy.c   |    2 +-
+ drivers/acpi/utilities/utdebug.c  |   10 ++++------
+ drivers/acpi/utilities/utglobal.c |    2 +-
+ 13 files changed, 44 insertions(+), 37 deletions(-)
 
-diff --git a/drivers/acpi/dispatcher/dsmethod.c b/drivers/acpi/dispatcher/dsmethod.c
-index 3db651c..7a99740 100644
---- a/drivers/acpi/dispatcher/dsmethod.c
-+++ b/drivers/acpi/dispatcher/dsmethod.c
-@@ -42,7 +42,6 @@
-  */
+diff --git a/drivers/acpi/events/evmisc.c b/drivers/acpi/events/evmisc.c
+index d075062..4e7a13a 100644
+--- a/drivers/acpi/events/evmisc.c
++++ b/drivers/acpi/events/evmisc.c
+@@ -349,9 +349,10 @@ acpi_status acpi_ev_init_global_lock_handler(void)
  
- #include <acpi/acpi.h>
--#include <acpi/acparser.h>
- #include <acpi/amlcode.h>
- #include <acpi/acdispat.h>
- #include <acpi/acinterp.h>
-@@ -102,7 +101,7 @@ acpi_ds_method_error(acpi_status status, struct acpi_walk_state *walk_state)
- 						    walk_state->opcode,
- 						    walk_state->aml_offset,
- 						    NULL);
--		(void)acpi_ex_enter_interpreter();
-+		acpi_ex_enter_interpreter();
- 	}
- #ifdef ACPI_DISASSEMBLER
+ 	ACPI_FUNCTION_TRACE(ev_init_global_lock_handler);
+ 
+-	status =
+-	    acpi_get_table_by_index(ACPI_TABLE_INDEX_FACS,
+-				    (struct acpi_table_header **)&facs);
++	status = acpi_get_table_by_index(ACPI_TABLE_INDEX_FACS,
++					 ACPI_CAST_INDIRECT_PTR(struct
++								acpi_table_header,
++								&facs));
  	if (ACPI_FAILURE(status)) {
-@@ -535,7 +534,6 @@ void
- acpi_ds_terminate_control_method(union acpi_operand_object *method_desc,
- 				 struct acpi_walk_state *walk_state)
- {
--	acpi_status status;
+ 		return_ACPI_STATUS(status);
+ 	}
+diff --git a/drivers/acpi/events/evregion.c b/drivers/acpi/events/evregion.c
+index 58ad097..03624e9 100644
+--- a/drivers/acpi/events/evregion.c
++++ b/drivers/acpi/events/evregion.c
+@@ -394,7 +394,7 @@ acpi_ev_address_space_dispatch(union acpi_operand_object *region_obj,
+ 	ACPI_DEBUG_PRINT((ACPI_DB_OPREGION,
+ 			  "Handler %p (@%p) Address %8.8X%8.8X [%s]\n",
+ 			  &region_obj->region.handler->address_space, handler,
+-			  ACPI_FORMAT_UINT64(address),
++			  ACPI_FORMAT_NATIVE_UINT(address),
+ 			  acpi_ut_get_region_name(region_obj->region.
+ 						  space_id)));
  
- 	ACPI_FUNCTION_TRACE_PTR(ds_terminate_control_method, walk_state);
+diff --git a/drivers/acpi/hardware/hwsleep.c b/drivers/acpi/hardware/hwsleep.c
+index 4290e01..202f11a 100644
+--- a/drivers/acpi/hardware/hwsleep.c
++++ b/drivers/acpi/hardware/hwsleep.c
+@@ -70,9 +70,10 @@ acpi_set_firmware_waking_vector(acpi_physical_address physical_address)
  
-@@ -550,29 +548,27 @@ acpi_ds_terminate_control_method(union acpi_operand_object *method_desc,
- 		/* Delete all arguments and locals */
+ 	/* Get the FACS */
  
- 		acpi_ds_method_data_delete_all(walk_state);
--	}
+-	status =
+-	    acpi_get_table_by_index(ACPI_TABLE_INDEX_FACS,
+-				    (struct acpi_table_header **)&facs);
++	status = acpi_get_table_by_index(ACPI_TABLE_INDEX_FACS,
++					 ACPI_CAST_INDIRECT_PTR(struct
++								acpi_table_header,
++								&facs));
+ 	if (ACPI_FAILURE(status)) {
+ 		return_ACPI_STATUS(status);
+ 	}
+@@ -124,9 +125,10 @@ acpi_get_firmware_waking_vector(acpi_physical_address * physical_address)
  
--	/*
--	 * If method is serialized, release the mutex and restore the
--	 * current sync level for this thread
--	 */
--	if (method_desc->method.mutex) {
-+		/*
-+		 * If method is serialized, release the mutex and restore the
-+		 * current sync level for this thread
-+		 */
-+		if (method_desc->method.mutex) {
+ 	/* Get the FACS */
  
--		/* Acquisition Depth handles recursive calls */
-+			/* Acquisition Depth handles recursive calls */
+-	status =
+-	    acpi_get_table_by_index(ACPI_TABLE_INDEX_FACS,
+-				    (struct acpi_table_header **)&facs);
++	status = acpi_get_table_by_index(ACPI_TABLE_INDEX_FACS,
++					 ACPI_CAST_INDIRECT_PTR(struct
++								acpi_table_header,
++								&facs));
+ 	if (ACPI_FAILURE(status)) {
+ 		return_ACPI_STATUS(status);
+ 	}
+diff --git a/drivers/acpi/namespace/nsdump.c b/drivers/acpi/namespace/nsdump.c
+index 1fc4f86..3068e20 100644
+--- a/drivers/acpi/namespace/nsdump.c
++++ b/drivers/acpi/namespace/nsdump.c
+@@ -249,7 +249,9 @@ acpi_ns_dump_one_object(acpi_handle obj_handle,
+ 			acpi_os_printf("ID %X Len %.4X Addr %p\n",
+ 				       obj_desc->processor.proc_id,
+ 				       obj_desc->processor.length,
+-				       (char *)obj_desc->processor.address);
++				       ACPI_CAST_PTR(void,
++						     obj_desc->processor.
++						     address));
+ 			break;
  
--		method_desc->method.mutex->mutex.acquisition_depth--;
--		if (!method_desc->method.mutex->mutex.acquisition_depth) {
--			walk_state->thread->current_sync_level =
--			    method_desc->method.mutex->mutex.
--			    original_sync_level;
-+			method_desc->method.mutex->mutex.acquisition_depth--;
-+			if (!method_desc->method.mutex->mutex.acquisition_depth) {
-+				walk_state->thread->current_sync_level =
-+				    method_desc->method.mutex->mutex.
-+				    original_sync_level;
- 
--			acpi_os_release_mutex(method_desc->method.mutex->mutex.
--					      os_mutex);
--			method_desc->method.mutex->mutex.thread_id = 0;
-+				acpi_os_release_mutex(method_desc->method.
-+						      mutex->mutex.os_mutex);
-+				method_desc->method.mutex->mutex.thread_id = 0;
-+			}
- 		}
--	}
- 
--	if (walk_state) {
- 		/*
- 		 * Delete any namespace objects created anywhere within
- 		 * the namespace by the execution of this method
-@@ -613,7 +609,7 @@ acpi_ds_terminate_control_method(union acpi_operand_object *method_desc,
- 		 */
- 		if ((method_desc->method.method_flags & AML_METHOD_SERIALIZED)
- 		    && (!method_desc->method.mutex)) {
--			status = acpi_ds_create_method_mutex(method_desc);
-+			(void)acpi_ds_create_method_mutex(method_desc);
- 		}
- 
- 		/* No more threads, we can free the owner_id */
-diff --git a/drivers/acpi/dispatcher/dsobject.c b/drivers/acpi/dispatcher/dsobject.c
-index 7556d91..58d4d91 100644
---- a/drivers/acpi/dispatcher/dsobject.c
-+++ b/drivers/acpi/dispatcher/dsobject.c
-@@ -157,7 +157,9 @@ acpi_ds_build_internal_object(struct acpi_walk_state *walk_state,
- 			 * will remain as named references. This behavior is not described
- 			 * in the ACPI spec, but it appears to be an oversight.
- 			 */
--			obj_desc = (union acpi_operand_object *)op->common.node;
-+			obj_desc =
-+			    ACPI_CAST_PTR(union acpi_operand_object,
-+					  op->common.node);
- 
- 			status =
- 			    acpi_ex_resolve_node_to_value(ACPI_CAST_INDIRECT_PTR
-diff --git a/drivers/acpi/dispatcher/dsopcode.c b/drivers/acpi/dispatcher/dsopcode.c
-index 0c4630d..f0847ee 100644
---- a/drivers/acpi/dispatcher/dsopcode.c
-+++ b/drivers/acpi/dispatcher/dsopcode.c
-@@ -770,7 +770,7 @@ acpi_ds_eval_region_operands(struct acpi_walk_state *walk_state,
- 
- 	ACPI_DEBUG_PRINT((ACPI_DB_EXEC, "RgnObj %p Addr %8.8X%8.8X Len %X\n",
- 			  obj_desc,
--			  ACPI_FORMAT_UINT64(obj_desc->region.address),
-+			  ACPI_FORMAT_NATIVE_UINT(obj_desc->region.address),
- 			  obj_desc->region.length));
- 
- 	/* Now the address and length are valid for this opregion */
-diff --git a/drivers/acpi/dispatcher/dsutils.c b/drivers/acpi/dispatcher/dsutils.c
-index 36518b4..97d01dc 100644
---- a/drivers/acpi/dispatcher/dsutils.c
-+++ b/drivers/acpi/dispatcher/dsutils.c
-@@ -700,10 +700,9 @@ acpi_ds_create_operands(struct acpi_walk_state *walk_state,
- 	acpi_status status = AE_OK;
- 	union acpi_parse_object *arg;
- 	union acpi_parse_object *arguments[ACPI_OBJ_NUM_OPERANDS];
--	u8 arg_count = 0;
--	u8 count = 0;
--	u8 index = walk_state->num_operands;
--	u8 i;
-+	u32 arg_count = 0;
-+	u32 index = walk_state->num_operands;
-+	u32 i;
- 
- 	ACPI_FUNCTION_TRACE_PTR(ds_create_operands, first_arg);
- 
-@@ -734,14 +733,13 @@ acpi_ds_create_operands(struct acpi_walk_state *walk_state,
- 
- 		/* Force the filling of the operand stack in inverse order */
- 
--		walk_state->operand_index = index;
-+		walk_state->operand_index = (u8) index;
- 
- 		status = acpi_ds_create_operand(walk_state, arg, index);
- 		if (ACPI_FAILURE(status)) {
- 			goto cleanup;
- 		}
- 
--		count++;
- 		index--;
- 
- 		ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH,
-diff --git a/drivers/acpi/dispatcher/dswstate.c b/drivers/acpi/dispatcher/dswstate.c
-index 698d2e1..4c402be 100644
---- a/drivers/acpi/dispatcher/dswstate.c
-+++ b/drivers/acpi/dispatcher/dswstate.c
-@@ -220,7 +220,7 @@ static acpi_status acpi_ds_result_stack_push(struct acpi_walk_state *walk_state)
- 
- 	/* Check for stack overflow */
- 
--	if ((walk_state->result_size + ACPI_RESULTS_FRAME_OBJ_NUM) >
-+	if (((u32) walk_state->result_size + ACPI_RESULTS_FRAME_OBJ_NUM) >
- 	    ACPI_RESULTS_OBJ_NUM_MAX) {
- 		ACPI_ERROR((AE_INFO, "Result stack overflow: State=%p Num=%X",
- 			    walk_state, walk_state->result_size));
-@@ -400,7 +400,7 @@ void
- acpi_ds_obj_stack_pop_and_delete(u32 pop_count,
- 				 struct acpi_walk_state *walk_state)
- {
--	u32 i;
-+	acpi_native_int i;
- 	union acpi_operand_object *obj_desc;
- 
- 	ACPI_FUNCTION_NAME(ds_obj_stack_pop_and_delete);
-@@ -409,7 +409,7 @@ acpi_ds_obj_stack_pop_and_delete(u32 pop_count,
- 		return;
+ 		case ACPI_TYPE_DEVICE:
+@@ -320,9 +322,8 @@ acpi_ns_dump_one_object(acpi_handle obj_handle,
+ 							       space_id));
+ 			if (obj_desc->region.flags & AOPOBJ_DATA_VALID) {
+ 				acpi_os_printf(" Addr %8.8X%8.8X Len %.4X\n",
+-					       ACPI_FORMAT_UINT64(obj_desc->
+-								  region.
+-								  address),
++					       ACPI_FORMAT_NATIVE_UINT
++					       (obj_desc->region.address),
+ 					       obj_desc->region.length);
+ 			} else {
+ 				acpi_os_printf
+diff --git a/drivers/acpi/namespace/nsload.c b/drivers/acpi/namespace/nsload.c
+index 545010d..1bfcb6f 100644
+--- a/drivers/acpi/namespace/nsload.c
++++ b/drivers/acpi/namespace/nsload.c
+@@ -111,7 +111,7 @@ acpi_ns_load_table(acpi_native_uint table_index,
+ 	if (ACPI_SUCCESS(status)) {
+ 		acpi_tb_set_table_loaded_flag(table_index, TRUE);
+ 	} else {
+-		acpi_tb_release_owner_id(table_index);
++		(void)acpi_tb_release_owner_id(table_index);
  	}
  
--	for (i = (pop_count - 1); i >= 0; i--) {
-+	for (i = (acpi_native_int) (pop_count - 1); i >= 0; i--) {
- 		if (walk_state->num_operands == 0) {
- 			return;
- 		}
-diff --git a/drivers/acpi/executer/exconfig.c b/drivers/acpi/executer/exconfig.c
-index 3370aad..52b1e95 100644
---- a/drivers/acpi/executer/exconfig.c
-+++ b/drivers/acpi/executer/exconfig.c
-@@ -45,7 +45,6 @@
- #include <acpi/acinterp.h>
- #include <acpi/amlcode.h>
- #include <acpi/acnamesp.h>
--#include <acpi/acevents.h>
- #include <acpi/actables.h>
- #include <acpi/acdispat.h>
- 
-@@ -341,9 +340,10 @@ acpi_ex_load_op(union acpi_operand_object *obj_desc,
- 
- 		/* Validate checksum here. It won't get validated in tb_add_table */
- 
--		status = acpi_tb_verify_checksum((struct acpi_table_header *)
--						 obj_desc->buffer.pointer,
--						 length);
-+		status =
-+		    acpi_tb_verify_checksum(ACPI_CAST_PTR
-+					    (struct acpi_table_header,
-+					     obj_desc->buffer.pointer), length);
- 		if (ACPI_FAILURE(status)) {
- 			return_ACPI_STATUS(status);
- 		}
-@@ -468,7 +468,7 @@ acpi_status acpi_ex_unload_table(union acpi_operand_object *ddb_handle)
- 	 * (Offset contains the table_id)
- 	 */
- 	acpi_tb_delete_namespace_by_owner(table_index);
--	acpi_tb_release_owner_id(table_index);
-+	(void)acpi_tb_release_owner_id(table_index);
- 
- 	acpi_tb_set_table_loaded_flag(table_index, FALSE);
- 
-diff --git a/drivers/acpi/executer/exdump.c b/drivers/acpi/executer/exdump.c
-index fcb1da0..e48d916 100644
---- a/drivers/acpi/executer/exdump.c
-+++ b/drivers/acpi/executer/exdump.c
-@@ -506,6 +506,12 @@ void acpi_ex_dump_operand(union acpi_operand_object *obj_desc, u32 depth)
- 				       obj_desc->reference.object);
- 			break;
- 
-+		case AML_LOAD_OP:
-+
-+			acpi_os_printf("Reference: [DdbHandle] TableIndex %p\n",
-+				       obj_desc->reference.object);
-+			break;
-+
- 		case AML_REF_OF_OP:
- 
- 			acpi_os_printf("Reference: (RefOf) %p\n",
-@@ -631,8 +637,8 @@ void acpi_ex_dump_operand(union acpi_operand_object *obj_desc, u32 depth)
- 			acpi_os_printf("\n");
- 		} else {
- 			acpi_os_printf(" base %8.8X%8.8X Length %X\n",
--				       ACPI_FORMAT_UINT64(obj_desc->region.
--							  address),
-+				       ACPI_FORMAT_NATIVE_UINT(obj_desc->region.
-+							       address),
- 				       obj_desc->region.length);
- 		}
- 		break;
-diff --git a/drivers/acpi/executer/exfldio.c b/drivers/acpi/executer/exfldio.c
-index 65a48b6..1ece1c3 100644
---- a/drivers/acpi/executer/exfldio.c
-+++ b/drivers/acpi/executer/exfldio.c
-@@ -263,7 +263,8 @@ acpi_ex_access_region(union acpi_operand_object *obj_desc,
- 			      rgn_desc->region.space_id,
- 			      obj_desc->common_field.access_byte_width,
- 			      obj_desc->common_field.base_byte_offset,
--			      field_datum_byte_offset, (void *)address));
-+			      field_datum_byte_offset, ACPI_CAST_PTR(void,
-+								     address)));
- 
- 	/* Invoke the appropriate address_space/op_region handler */
- 
-diff --git a/drivers/acpi/executer/exregion.c b/drivers/acpi/executer/exregion.c
-index 3f51b7e..cbc6788 100644
---- a/drivers/acpi/executer/exregion.c
-+++ b/drivers/acpi/executer/exregion.c
-@@ -160,7 +160,7 @@ acpi_ex_system_memory_space_handler(u32 function,
- 		if (!mem_info->mapped_logical_address) {
+       unlock:
+diff --git a/drivers/acpi/namespace/nsnames.c b/drivers/acpi/namespace/nsnames.c
+index e14a141..ba1a4f0 100644
+--- a/drivers/acpi/namespace/nsnames.c
++++ b/drivers/acpi/namespace/nsnames.c
+@@ -182,7 +182,7 @@ acpi_size acpi_ns_get_pathname_length(struct acpi_namespace_node *node)
+ 	while (next_node && (next_node != acpi_gbl_root_node)) {
+ 		if (ACPI_GET_DESCRIPTOR_TYPE(next_node) != ACPI_DESC_TYPE_NAMED) {
  			ACPI_ERROR((AE_INFO,
- 				    "Could not map memory at %8.8X%8.8X, size %X",
--				    ACPI_FORMAT_UINT64(address),
-+				    ACPI_FORMAT_NATIVE_UINT(address),
- 				    (u32) window_size));
- 			mem_info->mapped_length = 0;
- 			return_ACPI_STATUS(AE_NO_MEMORY);
-@@ -182,7 +182,8 @@ acpi_ex_system_memory_space_handler(u32 function,
- 
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 			  "System-Memory (width %d) R/W %d Address=%8.8X%8.8X\n",
--			  bit_width, function, ACPI_FORMAT_UINT64(address)));
-+			  bit_width, function,
-+			  ACPI_FORMAT_NATIVE_UINT(address)));
- 
- 	/*
- 	 * Perform the memory read or write
-@@ -284,7 +285,8 @@ acpi_ex_system_io_space_handler(u32 function,
- 
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 			  "System-IO (width %d) R/W %d Address=%8.8X%8.8X\n",
--			  bit_width, function, ACPI_FORMAT_UINT64(address)));
-+			  bit_width, function,
-+			  ACPI_FORMAT_NATIVE_UINT(address)));
- 
- 	/* Decode the function parameter */
- 
-diff --git a/drivers/acpi/executer/exstore.c b/drivers/acpi/executer/exstore.c
-index d860f9c..2408122 100644
---- a/drivers/acpi/executer/exstore.c
-+++ b/drivers/acpi/executer/exstore.c
-@@ -189,7 +189,7 @@ acpi_ex_do_debug_object(union acpi_operand_object *source_desc,
- 
- 		if (source_desc->reference.opcode == AML_LOAD_OP) {	/* Load and load_table */
- 			ACPI_DEBUG_PRINT_RAW((ACPI_DB_DEBUG_OBJECT,
--					      " Table OwnerId %X\n",
-+					      " Table OwnerId %p\n",
- 					      source_desc->reference.object));
- 			break;
+-				    "Invalid NS Node (%X) while traversing path",
++				    "Invalid NS Node (%p) while traversing path",
+ 				    next_node));
+ 			return 0;
  		}
-@@ -213,7 +213,9 @@ acpi_ex_do_debug_object(union acpi_operand_object *source_desc,
- 			    (source_desc->reference.node) !=
- 			    ACPI_DESC_TYPE_NAMED) {
- 				ACPI_DEBUG_PRINT_RAW((ACPI_DB_DEBUG_OBJECT,
--						      " %p - Not a valid namespace node\n"));
-+						      " %p - Not a valid namespace node\n",
-+						      source_desc->reference.
-+						      node));
- 			} else {
- 				acpi_ex_do_debug_object((source_desc->reference.
- 							 node)->object,
-diff --git a/drivers/acpi/executer/exsystem.c b/drivers/acpi/executer/exsystem.c
-index 9460baf..a20a974 100644
---- a/drivers/acpi/executer/exsystem.c
-+++ b/drivers/acpi/executer/exsystem.c
-@@ -44,7 +44,6 @@
+diff --git a/drivers/acpi/namespace/nsparse.c b/drivers/acpi/namespace/nsparse.c
+index 86bd6e5..f260b69 100644
+--- a/drivers/acpi/namespace/nsparse.c
++++ b/drivers/acpi/namespace/nsparse.c
+@@ -112,21 +112,25 @@ acpi_ns_one_complete_parse(acpi_native_uint pass_number,
+ 		aml_start = (u8 *) table + sizeof(struct acpi_table_header);
+ 		aml_length = table->length - sizeof(struct acpi_table_header);
+ 		status = acpi_ds_init_aml_walk(walk_state, parse_root, NULL,
+-					       aml_start, aml_length, NULL,
+-					       (u8) pass_number);
++					       aml_start, (u32) aml_length,
++					       NULL, (u8) pass_number);
+ 	}
  
- #include <acpi/acpi.h>
- #include <acpi/acinterp.h>
--#include <acpi/acevents.h>
+ 	if (ACPI_FAILURE(status)) {
+ 		acpi_ds_delete_walk_state(walk_state);
+-		acpi_ps_delete_parse_tree(parse_root);
+-		return_ACPI_STATUS(status);
++		goto cleanup;
+ 	}
  
- #define _COMPONENT          ACPI_EXECUTER
- ACPI_MODULE_NAME("exsystem")
-diff --git a/drivers/acpi/executer/exutils.c b/drivers/acpi/executer/exutils.c
-index fd543ee..1b93f4d 100644
---- a/drivers/acpi/executer/exutils.c
-+++ b/drivers/acpi/executer/exutils.c
-@@ -61,7 +61,6 @@
- #include <acpi/acpi.h>
- #include <acpi/acinterp.h>
- #include <acpi/amlcode.h>
--#include <acpi/acevents.h>
+ 	/* start_node is the default location to load the table */
  
- #define _COMPONENT          ACPI_EXECUTER
- ACPI_MODULE_NAME("exutils")
-diff --git a/drivers/acpi/parser/psopcode.c b/drivers/acpi/parser/psopcode.c
-index 3bf8105..153621d 100644
---- a/drivers/acpi/parser/psopcode.c
-+++ b/drivers/acpi/parser/psopcode.c
-@@ -49,7 +49,8 @@
- #define _COMPONENT          ACPI_PARSER
- ACPI_MODULE_NAME("psopcode")
+ 	if (start_node && start_node != acpi_gbl_root_node) {
+-		acpi_ds_scope_stack_push(start_node, ACPI_TYPE_METHOD,
+-					 walk_state);
++		status =
++		    acpi_ds_scope_stack_push(start_node, ACPI_TYPE_METHOD,
++					     walk_state);
++		if (ACPI_FAILURE(status)) {
++			acpi_ds_delete_walk_state(walk_state);
++			goto cleanup;
++		}
+ 	}
  
--const u8 acpi_gbl_argument_count[] = { 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 6 };
-+static const u8 acpi_gbl_argument_count[] =
-+    { 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 6 };
+ 	/* Parse the AML */
+@@ -135,6 +139,7 @@ acpi_ns_one_complete_parse(acpi_native_uint pass_number,
+ 			  (unsigned)pass_number));
+ 	status = acpi_ps_parse_aml(walk_state);
+ 
++      cleanup:
+ 	acpi_ps_delete_parse_tree(parse_root);
+ 	return_ACPI_STATUS(status);
+ }
+diff --git a/drivers/acpi/resources/rscalc.c b/drivers/acpi/resources/rscalc.c
+index 0dd2ce8..dcc51e9 100644
+--- a/drivers/acpi/resources/rscalc.c
++++ b/drivers/acpi/resources/rscalc.c
+@@ -73,7 +73,7 @@ acpi_rs_stream_option_length(u32 resource_length, u32 minimum_total_length);
+ 
+ static u8 acpi_rs_count_set_bits(u16 bit_field)
+ {
+-	u8 bits_set;
++	acpi_native_uint bits_set;
+ 
+ 	ACPI_FUNCTION_ENTRY();
+ 
+@@ -81,10 +81,10 @@ static u8 acpi_rs_count_set_bits(u16 bit_field)
+ 
+ 		/* Zero the least significant bit that is set */
+ 
+-		bit_field &= (bit_field - 1);
++		bit_field &= (u16) (bit_field - 1);
+ 	}
+ 
+-	return (bits_set);
++	return ((u8) bits_set);
+ }
  
  /*******************************************************************************
-  *
-diff --git a/include/acpi/acglobal.h b/include/acpi/acglobal.h
-index 8624686..86cff21 100644
---- a/include/acpi/acglobal.h
-+++ b/include/acpi/acglobal.h
-@@ -267,8 +267,6 @@ extern char const *acpi_gbl_exception_names_ctrl[];
-  *
-  ****************************************************************************/
+diff --git a/drivers/acpi/resources/rsutils.c b/drivers/acpi/resources/rsutils.c
+index 11c0bd7..935a482 100644
+--- a/drivers/acpi/resources/rsutils.c
++++ b/drivers/acpi/resources/rsutils.c
+@@ -97,17 +97,17 @@ u8 acpi_rs_decode_bitmask(u16 mask, u8 * list)
+ u16 acpi_rs_encode_bitmask(u8 * list, u8 count)
+ {
+ 	acpi_native_uint i;
+-	u16 mask;
++	acpi_native_uint mask;
  
--#define NUM_NS_TYPES                    ACPI_TYPE_INVALID+1
--
- #if !defined (ACPI_NO_METHOD_EXECUTION) || defined (ACPI_CONSTANT_EVAL_ONLY)
- #define NUM_PREDEFINED_NAMES            10
- #else
-@@ -279,7 +277,7 @@ ACPI_EXTERN struct acpi_namespace_node acpi_gbl_root_node_struct;
- ACPI_EXTERN struct acpi_namespace_node *acpi_gbl_root_node;
- ACPI_EXTERN struct acpi_namespace_node *acpi_gbl_fadt_gpe_device;
+ 	ACPI_FUNCTION_ENTRY();
  
--extern const u8 acpi_gbl_ns_properties[NUM_NS_TYPES];
-+extern const u8 acpi_gbl_ns_properties[ACPI_NUM_NS_TYPES];
- extern const struct acpi_predefined_names
-     acpi_gbl_pre_defined_names[NUM_PREDEFINED_NAMES];
+ 	/* Encode the list into a single bitmask */
  
-@@ -287,8 +285,8 @@ extern const struct acpi_predefined_names
- ACPI_EXTERN u32 acpi_gbl_current_node_count;
- ACPI_EXTERN u32 acpi_gbl_current_node_size;
- ACPI_EXTERN u32 acpi_gbl_max_concurrent_node_count;
--ACPI_EXTERN acpi_size acpi_gbl_entry_stack_pointer;
--ACPI_EXTERN acpi_size acpi_gbl_lowest_stack_pointer;
-+ACPI_EXTERN acpi_size *acpi_gbl_entry_stack_pointer;
-+ACPI_EXTERN acpi_size *acpi_gbl_lowest_stack_pointer;
- ACPI_EXTERN u32 acpi_gbl_deepest_nesting;
+ 	for (i = 0, mask = 0; i < count; i++) {
+-		mask |= (0x0001 << list[i]);
++		mask |= (0x1 << list[i]);
+ 	}
+ 
+-	return (mask);
++	return ((u16) mask);
+ }
+ 
+ /*******************************************************************************
+diff --git a/drivers/acpi/utilities/utalloc.c b/drivers/acpi/utilities/utalloc.c
+index 6e56d5f..181e669 100644
+--- a/drivers/acpi/utilities/utalloc.c
++++ b/drivers/acpi/utilities/utalloc.c
+@@ -147,7 +147,7 @@ acpi_status acpi_ut_delete_caches(void)
+ 
+ 	if (acpi_gbl_display_final_mem_stats) {
+ 		ACPI_STRCPY(buffer, "MEMORY");
+-		acpi_db_display_statistics(buffer);
++		(void)acpi_db_display_statistics(buffer);
+ 	}
  #endif
  
-diff --git a/include/acpi/acmacros.h b/include/acpi/acmacros.h
-index 401228d..dc6a037 100644
---- a/include/acpi/acmacros.h
-+++ b/include/acpi/acmacros.h
-@@ -65,7 +65,11 @@
-  * Full 64-bit integer must be available on both 32-bit and 64-bit platforms
-  */
- #define ACPI_LODWORD(l)                 ((u32)(u64)(l))
-+#define ACPI_HIDWORD(l)                 ((u16)((((u64)(l)) >> 32) & 0xFFFFFFFF))
-+
-+#if 0
- #define ACPI_HIDWORD(l)                 ((u32)(((*(struct uint64_struct *)(void *)(&l))).hi))
-+#endif
+diff --git a/drivers/acpi/utilities/utcopy.c b/drivers/acpi/utilities/utcopy.c
+index 879eaa1..b56953d 100644
+--- a/drivers/acpi/utilities/utcopy.c
++++ b/drivers/acpi/utilities/utcopy.c
+@@ -570,7 +570,7 @@ acpi_ut_copy_epackage_to_ipackage(union acpi_object *external_object,
  
- /*
-  * printf() format helpers
-@@ -75,6 +79,12 @@
+ 			/* Truncate package and delete it */
  
- #define ACPI_FORMAT_UINT64(i)           ACPI_HIDWORD(i),ACPI_LODWORD(i)
+-			package_object->package.count = i;
++			package_object->package.count = (u32) i;
+ 			package_elements[i] = NULL;
+ 			acpi_ut_remove_reference(package_object);
+ 			return_ACPI_STATUS(status);
+diff --git a/drivers/acpi/utilities/utdebug.c b/drivers/acpi/utilities/utdebug.c
+index a914867..2d6a78f 100644
+--- a/drivers/acpi/utilities/utdebug.c
++++ b/drivers/acpi/utilities/utdebug.c
+@@ -68,9 +68,9 @@ static const char *acpi_ut_trim_function_name(const char *function_name);
  
-+#if ACPI_MACHINE_WIDTH == 64
-+#define ACPI_FORMAT_NATIVE_UINT(i)      ACPI_FORMAT_UINT64(i)
-+#else
-+#define ACPI_FORMAT_NATIVE_UINT(i)      0, (i)
-+#endif
-+
- /*
-  * Extract data using a pointer.  Any more than a byte and we
-  * get into potential aligment issues -- see the STORE macros below.
-diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-index 766178c..bb44700 100644
---- a/include/acpi/actypes.h
-+++ b/include/acpi/actypes.h
-@@ -477,6 +477,8 @@ typedef u32 acpi_object_type;
- #define ACPI_TYPE_INVALID               0x1E
- #define ACPI_TYPE_NOT_FOUND             0xFF
+ void acpi_ut_init_stack_ptr_trace(void)
+ {
+-	u32 current_sp;
++	acpi_size current_sp;
  
-+#define ACPI_NUM_NS_TYPES               (ACPI_TYPE_INVALID + 1)
-+
- /*
-  * All I/O
-  */
+-	acpi_gbl_entry_stack_pointer = ACPI_PTR_DIFF(&current_sp, NULL);
++	acpi_gbl_entry_stack_pointer = &current_sp;
+ }
+ 
+ /*******************************************************************************
+@@ -89,10 +89,8 @@ void acpi_ut_track_stack_ptr(void)
+ {
+ 	acpi_size current_sp;
+ 
+-	current_sp = ACPI_PTR_DIFF(&current_sp, NULL);
+-
+-	if (current_sp < acpi_gbl_lowest_stack_pointer) {
+-		acpi_gbl_lowest_stack_pointer = current_sp;
++	if (&current_sp < acpi_gbl_lowest_stack_pointer) {
++		acpi_gbl_lowest_stack_pointer = &current_sp;
+ 	}
+ 
+ 	if (acpi_gbl_nesting_level > acpi_gbl_deepest_nesting) {
+diff --git a/drivers/acpi/utilities/utglobal.c b/drivers/acpi/utilities/utglobal.c
+index 4442543..d2097de 100644
+--- a/drivers/acpi/utilities/utglobal.c
++++ b/drivers/acpi/utilities/utglobal.c
+@@ -723,7 +723,7 @@ void acpi_ut_init_globals(void)
+ 	acpi_gbl_root_node_struct.flags = ANOBJ_END_OF_PEER_LIST;
+ 
+ #ifdef ACPI_DEBUG_OUTPUT
+-	acpi_gbl_lowest_stack_pointer = ACPI_SIZE_MAX;
++	acpi_gbl_lowest_stack_pointer = ACPI_CAST_PTR(acpi_size, ACPI_SIZE_MAX);
+ #endif
+ 
+ #ifdef ACPI_DBG_TRACK_ALLOCATIONS
 -- 
 1.5.5.29.g7134
 
