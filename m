@@ -1,33 +1,62 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: 2.6.25-rc8-mm2 -- initcall acpi_init+0x0/0x216() returned with
- preemption imbalance
-Date: Fri, 11 Apr 2008 22:11:02 -0700
-Message-ID: <20080411221102.dc2d8c7d.akpm@linux-foundation.org>
-References: <a44ae5cd0804111241n7e6cbcadx1d9f66ed32dece1a@mail.gmail.com>
+From: Kasper Sandberg <lkml@metanurb.dk>
+Subject: Re: Realtek 8111c weirdness problems, apic/msi, and normal bug
+Date: Sat, 12 Apr 2008 14:23:28 +0200
+Message-ID: <1208003008.1514.38.camel@localhost>
+References: <1207407804.14885.27.camel@localhost>
+	 <20080405232354.57ff2fac.akpm@linux-foundation.org>
+	 <20080406140624.GA24479@electric-eye.fr.zoreil.com>
+	 <1207541340.30698.18.camel@localhost>  <1207829872.1514.3.camel@localhost>
+	 <1207876315.1514.21.camel@localhost>  <1207937216.1514.30.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39570 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758123AbYDLFLG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 12 Apr 2008 01:11:06 -0400
-In-Reply-To: <a44ae5cd0804111241n7e6cbcadx1d9f66ed32dece1a@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1207937216.1514.30.camel@localhost>
+Sender: netdev-owner@vger.kernel.org
+To: Francois Romieu <romieu@fr.zoreil.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, LKML Mailinglist <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Miles Lane <miles.lane@gmail.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, len.brown@intel.com, linux-acpi@vger.kernel.org
 
-On Fri, 11 Apr 2008 15:41:17 -0400 "Miles Lane" <miles.lane@gmail.com> wrote:
+I've got some more information (though probably not too helpful).
+Realtek has modified(i probably mentioned this earlier) the r8169
+driver, under the name of r8168. It might be worth checking out what
+they have done. people are reporting that it works:
+http://damienkane.livejournal.com/5574.html
+http://www.mail-archive.com/ubuntu-bugs%
+40lists.ubuntu.com/msg730229.html
 
-> Is this indicative of a kernel or hardware problem?
+the driver can be found at:
+http://www.realtek.com.tw/downloads/downloadsView.aspx?Langid=1&PNid=13&PFid=5&Level=5&Conn=4&DownTypeID=3&GetDown=false
+if that doesent work, do: http://www.realtek.com.tw/downloads ->
+communication networks ics -> network interface controllers ->
+10/100/1000 gigabit ethernet -> pci express.
+
+I will try myself, but i have zero knowledge about this stuff in the
+kernel, and will probably not be able to find anything of use.
+
+
+On Fri, 2008-04-11 at 20:06 +0200, Kasper Sandberg wrote:
+> I've got more information again. This is dmesg, and /proc/interrupts
+> from a livecd (systemrescuecd), its a .23.14, and only 1 nic works (the
+<snip>
 > 
-> [    0.279606] ACPI: Using IOAPIC for interrupt routing
-> [    0.279789] initcall acpi_init+0x0/0x216() returned with preemption imbalance
-> [    0.330789] ACPI: PCI Root Bridge [PCI0] (0000:00)
-> 
-
-That's a software bug.  Something under acpi_init() has mismatched
-preempt_disable/preempt_enable or mismatched spin_lock/spin_unlock, etc.
+> On Fri, 2008-04-11 at 03:11 +0200, Kasper Sandberg wrote:
+> > Sorry for top posting, but its just easier in this case :)
+> > 
+> <snip>
+> > > 
+> > > 
+> > > > > 
+> > > > 
+> > > > --
+> > > > To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> > > > the body of a message to majordomo@vger.kernel.org
+> > > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > > > Please read the FAQ at  http://www.tux.org/lkml/
+> > > 
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> > > the body of a message to majordomo@vger.kernel.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > > Please read the FAQ at  http://www.tux.org/lkml/
 
