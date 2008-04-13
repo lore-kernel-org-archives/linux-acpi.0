@@ -1,25 +1,28 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 1/3] PM: Introduce new top level suspend and hibernation callbacks (rev. 8)
-Date: Mon, 14 Apr 2008 01:08:04 +0200
-Message-ID: <200804140108.05447.rjw@sisk.pl>
-References: <200804040111.15255.rjw@sisk.pl> <200804140027.12161.rjw@sisk.pl> <1208126822.6958.63.camel@pasglop>
+From: Nigel Cunningham <ncunningham@crca.org.au>
+Subject: Re: [PATCH 1/3] PM: Introduce new top level suspend and
+	hibernation callbacks (rev. 8)
+Date: Mon, 14 Apr 2008 09:11:29 +1000
+Message-ID: <1208128289.29577.25.camel@nigel-laptop>
+References: <200804040111.15255.rjw@sisk.pl>
+	 <200804132339.45280.rjw@sisk.pl> <1208124646.6958.61.camel@pasglop>
+	 <200804140027.12161.rjw@sisk.pl>  <1208126822.6958.63.camel@pasglop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:37914 "EHLO ogre.sisk.pl"
+Received: from mail.crca.org.au ([67.207.131.56]:51983 "EHLO crca.org.au"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752750AbYDMXHd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 13 Apr 2008 19:07:33 -0400
+	id S1752750AbYDMXKo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 13 Apr 2008 19:10:44 -0400
 In-Reply-To: <1208126822.6958.63.camel@pasglop>
-Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: benh@kernel.crashing.org
-Cc: Greg KH <greg@kroah.com>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, Oliver Neukum <oliver@neukum.org>, Nigel Cunningham <ncunningham@crca.org.au>, Jesse Barnes <jbarnes@virtuousgeek.org>, Andrew Morton <akpm@linux-foundation.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Greg KH <greg@kroah.com>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, Oliver Neukum <oliver@neukum.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Andrew Morton <akpm@linux-foundation.org>
 
-On Monday, 14 of April 2008, Benjamin Herrenschmidt wrote:
-> 
+Hi Rafael etc.
+
+On Mon, 2008-04-14 at 08:47 +1000, Benjamin Herrenschmidt wrote:
 > > Well, I'm not sure and I'm not going to introduce the change right now, after
 > > the paches have been included in -mm.
 > > 
@@ -28,33 +31,23 @@ On Monday, 14 of April 2008, Benjamin Herrenschmidt wrote:
 > > the present one settles down a bit.
 > 
 > I disagree.
-
-Okay, so we have different opinions. :-)
- 
+> 
 > Doing it later would introduce yet another major semantic change.
->
+> 
 > I think we should get it right now. There's no hurry in pushing things
 > especially if they aren't quite right.
-
->From my point of view, they are as right as they can be at the moment.
-
-Besides, maintainig a set of patches like this so that it always applies to
-a tree that's continuously changing under it is far from funny.  I'm not going
-to do it much longer, that's for sure.
-
+> 
 > The ability for prepare() callbacks to sync with userland,
 > request_firmware, etc... is an important feature that's been needed for
 > some time imho.
+> 
+> Ben.
 
-Well, if we put ->prepare() before the freezer, what can it actually do?
-Certainly nothing that will block any (user space) task, because the freezer
-won't work after that.  So, all of the significant suspend work, like blocking
-tasks using the device etc., will have to be done by ->suspend().  Will that be
-convenient?  I'm not sure.  I'm not even sure that would be _doable_ at all.
+I agree. These calls have already been changing far too often in
+mainline. I know it's all been necessary but please, can we try to make
+one set of changes and just get it right this time?
 
-The point of view depends on what you think ->prepare() should be used for
-and I'm sure you have some specific cases in mind.  However, are they generic
-enough?
+Regards,
 
-Thanks,
-Rafael
+Nigel
+
