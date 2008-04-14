@@ -1,44 +1,48 @@
-From: Oliver Neukum <oliver@neukum.org>
-Subject: Re: [PATCH 1/3] PM: Introduce new top level suspend and hibernation callbacks (rev. 8)
-Date: Mon, 14 Apr 2008 22:41:08 +0200
-Message-ID: <200804142241.11545.oliver@neukum.org>
-References: <Pine.LNX.4.44L0.0804141043001.2236-100000@iolanthe.rowland.org>
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Subject: Re: [PATCH 1/3] PM: Introduce new top level suspend
+	and	hibernation callbacks (rev. 8)
+Date: Tue, 15 Apr 2008 06:45:52 +1000
+Message-ID: <1208205952.6958.174.camel@pasglop>
+References: <200804040111.15255.rjw@sisk.pl>
+	<200804132339.45280.rjw@sisk.pl> <1208124646.6958.61.camel@pasglop>
+	<200804140027.12161.rjw@sisk.pl> <1208126822.6958.63.camel@pasglop>
+	<20080414105522.GA4716@ucw.cz>
+Reply-To: benh@kernel.crashing.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out002.kontent.com ([81.88.40.216]:34210 "EHLO
-	smtp-out002.kontent.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752333AbYDNUln convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Apr 2008 16:41:43 -0400
-In-Reply-To: <Pine.LNX.4.44L0.0804141043001.2236-100000@iolanthe.rowland.org>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <20080414105522.GA4716@ucw.cz>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Nigel Cunningham <ncunningham@crca.org.au>, LKML <linux-kernel@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Greg KH <greg@kroah.com>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, Nigel Cunningham <ncunningham@crca.org.au>, Jesse Barnes <jbarnes@virtuousgeek.org>, Andrew Morton <akpm@linux-foundation.org>
 
-Am Montag, 14. April 2008 16:49:26 schrieb Alan Stern:
-> Now, I don't see what the big deal is here. =A0We all agree that it w=
-ould=20
-> be nice and appropriate if drivers could do things like=20
-> request_firmware() during prepare(). =A0But for the moment they can't=
-=2E =A0
-> It's not like this is some tremendous hardship -- you aren't going to=
-=20
-> have to rip out all the existing prepare() implementations and rewrit=
-e=20
-> them, because they don't exist yet!
 
-True. You cannot request firmware in the current suspend() call either.
-Rafael's code is a clear improvement over the existing code. Removal
-of the freezer will need a lot of rewriting in any case.
+On Mon, 2008-04-14 at 12:55 +0200, Pavel Machek wrote:
+> On Mon 2008-04-14 08:47:02, Benjamin Herrenschmidt wrote:
+> > 
+> > > Well, I'm not sure and I'm not going to introduce the change right now, after
+> > > the paches have been included in -mm.
+> > > 
+> > > That would require quite some changes in the core code that I'd prefer to
+> > > avoid for now.  We can do something like this in a separate patch series after
+> > > the present one settles down a bit.
+> > 
+> > I disagree.
+> > 
+> > Doing it later would introduce yet another major semantic change.
+> 
+> 'allow load_firmware from prepare that was not allowed before' is not 'major'.
 
-	Regards
-		Oliver
+Having user space fully operating is major.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Ben.
