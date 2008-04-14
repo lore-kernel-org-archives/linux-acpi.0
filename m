@@ -1,78 +1,40 @@
-From: nokos@gmx.net
-Subject: Re: [PATCH] ACPI: Support Fujitsu Lifebook S6410 in fujitsu-laptop
-Date: Mon, 14 Apr 2008 20:00:59 +0200
-Message-ID: <1208196059.11305.18.camel@earth.gruber.myown>
-References: <20080305030147.GA25310@earth.gruber.myown>
-	 <1207784442.32532.0.camel@earth.gruber.myown>
-	 <1208103760.19605.5.camel@earth.gruber.myown>
-	 <1208169984.1784.37.camel@queen.suse.de>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: Re: WMI support on Linux
+Date: Mon, 14 Apr 2008 18:55:25 +0100
+Message-ID: <200804141855.25974.carlos@strangeworlds.co.uk>
+References: <loom.20080414T173138-851@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-in-17.arcor-online.net ([151.189.21.57]:43272 "EHLO
-	mail-in-17.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757984AbYDNSB3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Apr 2008 14:01:29 -0400
-Received: from mail-in-08-z2.arcor-online.net (mail-in-08-z2.arcor-online.net [151.189.8.20])
-	by mail-in-17.arcor-online.net (Postfix) with ESMTP id 1F9732BBF39
-	for <linux-acpi@vger.kernel.org>; Mon, 14 Apr 2008 20:01:26 +0200 (CEST)
-Received: from mail-in-01.arcor-online.net (mail-in-01.arcor-online.net [151.189.21.41])
-	by mail-in-08-z2.arcor-online.net (Postfix) with ESMTP id 03A302130A2
-	for <linux-acpi@vger.kernel.org>; Mon, 14 Apr 2008 20:01:26 +0200 (CEST)
-Received: from [0.0.0.0] (dslb-084-056-092-007.pools.arcor-ip.net [84.56.92.7])
-	(Authenticated sender: nokos@arcor.de)
-	by mail-in-01.arcor-online.net (Postfix) with ESMTP id 9C6671A32E6
-	for <linux-acpi@vger.kernel.org>; Mon, 14 Apr 2008 20:01:19 +0200 (CEST)
-Received: from 127.0.0.1 (ident=2vYyKroknlp) by earth.gruber.myown with
- esmtp (masqmail 0.2.21) id 1JlSzE-0jK-00 for
- <linux-acpi@vger.kernel.org>; Mon, 14 Apr 2008 20:01:00 +0200
-In-Reply-To: <1208169984.1784.37.camel@queen.suse.de>
+Received: from phoenix.slamd64.com ([217.10.145.2]:56167 "EHLO
+	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1764442AbYDNRza (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Apr 2008 13:55:30 -0400
+In-Reply-To: <loom.20080414T173138-851@post.gmane.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Ajit <ajitrzid@yahoo.com>
+Cc: linux-acpi@vger.kernel.org
 
-Am Montag, den 14.04.2008, 12:46 +0200 schrieb Thomas Renninger:
-> >  
-> > +static int get_irb(void)
-> > +{
-> > +	unsigned long state = 0;
-> > +	acpi_status status = AE_OK;
-> > +
-> > +	status =
-> > +	    acpi_evaluate_integer(fujitsu->acpi_handle_e3, "GIRB", NULL,
-> > +				  &state);
-> This is ugly, but often done/needed in vendor specific ACPI drivers.
-> Guessing the used functions by trial and error...
-> Have a closer look whether there are more "upper level" functions you
-> could use to access the same info which might stay stable for this
-> specific fujitsu device.
-> Same for other functions below.
+On Monday 14 April 2008 18:44:40 Ajit wrote:
+>     I was curious when WMI BIOS support would be available in the kernel. I
+> saw some references to it in the Feb 08 archive( Randy Dunlap & Carlos
+> Corbacho ). Is there some patch that I can download to enable this support
+> ?
 
-looking through the DSDT it is only use in the S002 function and this
-one is only used in FUNC (which seems to be some kind of frontend for
-all the S000 - S009 functions with even more cryptic parameters, ie.
-FUNC(0x1002,1,0,0) is the same as GIRB())
+ACPI-WMI is available in the kernel from 2.6.25-rc1 onwards. However, in and 
+of itself, ACPI-WMI is not much use - you need another driver on top to 
+actually do anything useful with the data/ methods exposed by ACPI-WMI on 
+your hardware (e.g. acer-wmi, tc1100-wmi).
 
-The other functions used are SBL2, which is the same as SBLL except the
-	Method (SBLL, 1, NotSerialized)
-	{
-		If (NGTF)
-		{
-			Store (Arg0, LSBL)
-			Return (Zero)
-		}
-...
-clause which seems to stop SBLL from working and GBLS which is a variant of GBLL with similar problem.
-The whole point of the parameter use_alt_lcd_levels was to have an easy way to switch between
-SBLL/GBLL (not working on S6410) and SBL2/GBLS (working on S6410)
+The driver is also currently limited in that it does not expose the ACPI-WMI 
+internals to userspace yet.
 
-Peter
-
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+-Carlos
+-- 
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
