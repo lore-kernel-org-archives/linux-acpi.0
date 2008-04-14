@@ -1,42 +1,69 @@
 From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Subject: Re: [PATCH 1/3] PM: Introduce new top level suspend and
 	hibernation callbacks (rev. 8)
-Date: Mon, 14 Apr 2008 10:43:10 +1000
-Message-ID: <1208133790.6958.89.camel@pasglop>
-References: <Pine.LNX.4.44L0.0804131916420.3060-100000@netrider.rowland.org>
-	 <1208130513.6958.72.camel@pasglop>  <200804140207.19340.rjw@sisk.pl>
+Date: Mon, 14 Apr 2008 10:46:57 +1000
+Message-ID: <1208134017.6958.94.camel@pasglop>
+References: <200804040111.15255.rjw@sisk.pl>
+	 <200804140108.05447.rjw@sisk.pl> <1208130390.6958.71.camel@pasglop>
+	 <200804140231.32245.rjw@sisk.pl>
 Reply-To: benh@kernel.crashing.org
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gate.crashing.org ([63.228.1.57]:33446 "EHLO gate.crashing.org"
+Received: from gate.crashing.org ([63.228.1.57]:59352 "EHLO gate.crashing.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752964AbYDNAop (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 13 Apr 2008 20:44:45 -0400
-In-Reply-To: <200804140207.19340.rjw@sisk.pl>
+	id S1752918AbYDNAsg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 13 Apr 2008 20:48:36 -0400
+In-Reply-To: <200804140231.32245.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Nigel Cunningham <ncunningham@crca.org.au>, Greg KH <greg@kroah.com>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, Oliver Neukum <oliver@neukum.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Andrew Morton <akpm@linux-foundation.org>
+Cc: Greg KH <greg@kroah.com>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, Oliver Neukum <oliver@neukum.org>, Nigel Cunningham <ncunningham@crca.org.au>, Jesse Barnes <jbarnes@virtuousgeek.org>, Andrew Morton <akpm@linux-foundation.org>
 
 
-> Please have a look at this thread:
-> http://lkml.org/lkml/2008/3/21/322
-> (in short, the reporter sees APM suspend breakage under stress, occuring
-> because APM uses our suspending of devices without the freezer).
+On Mon, 2008-04-14 at 02:31 +0200, Rafael J. Wysocki wrote:
+> 
+> Well, in our discussions with Alan Stern ->prepare() turned out to be necessary
+> for exactly one reason, preventing new children of the device from being
+> registered (by threads concurrent wrt the suspend thread).  For this reason,
+> it doesn't really seem a good idea to run it before the freezer (seemingly, it
+> would be difficult to avoid situations in which the freezer would fail as a
+> result of ->prepare()).
 
-Note that the above seems to lack any useful information (as usual) such
-as what block driver is involved etc...
+I'm opposed to designing something around the freezer since we know it
+will ultimately go away.
 
-We fixed IDE to be robust vs. pending IOs a while ago. It's possible
-that libata isn't as solid yet, I don't know.
+If things like USB have issues with userland doing nasty things after
+prepare(), then those things need to be fixed. The freezer will only
+hide bugs and not even always or properly and not on all archs.
 
-This needs to be done regardless of feezer vs. not freezer. There are
-thins in the kernel that can trigger BIOs at any time pretty much
-regardless of user space being frozen or not, again, it's a case of
-sticking our head in the sand and hoping the freezer hides all our
-design bugs.
+> It looks like you'd like to have a third callback executed before the freezer,
+> but OTOH I don't see the reason not to use a notifier for such things.
+
+That's just gratuituous complication imho. We can add callbacks every
+week and no driver will every find out what to use and when.
+
+prepare() has quite well defined and nice semantics if you ignore your
+freezer trickery. It matches well with the needs of things like
+request_firmware or the DRM, and possibly a few others, in addition to
+matching well the need to block bus discovery.
+
+If some drivers have issue because of what userland might do after
+prepare(), then those drivers need to be fixed. We all know the freezer
+is not a proper solution. It just hides problems and not always
+correctly.
+
+> I have imagined that while we have the freezer, the operations that need to
+> be carried out with the user space available will be done using notifiers
+> and the rest will be done by ->prepare() and ->suspend().  Next, when we
+> finally drop the freezer, it will be possible to move the code from the
+> notifiers into ->prepare() and drop the notifiers altogether.
+
+Why do this two steps ? What is the point ?
+
+> Since, as you said, there aren't too many drivers that will need anything like
+> that, it seems perfectly doable to me.
 
 Ben.
 
