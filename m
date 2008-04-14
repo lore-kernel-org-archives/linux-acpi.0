@@ -1,38 +1,47 @@
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Subject: Re: [PATCH 1/3] PM: Introduce new top level suspend and
-	hibernation callbacks (rev. 8)
-Date: Mon, 14 Apr 2008 09:49:08 +1000
-Message-ID: <1208130548.6958.74.camel@pasglop>
-References: <Pine.LNX.4.44L0.0804131916420.3060-100000@netrider.rowland.org>
-	 <200804140133.23781.rjw@sisk.pl>
-Reply-To: benh@kernel.crashing.org
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 1/3] PM: Introduce new top level suspend and hibernation callbacks (rev. 8)
+Date: Mon, 14 Apr 2008 02:07:17 +0200
+Message-ID: <200804140207.19340.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0804131916420.3060-100000@netrider.rowland.org> <1208130513.6958.72.camel@pasglop>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gate.crashing.org ([63.228.1.57]:40772 "EHLO gate.crashing.org"
+Received: from ogre.sisk.pl ([217.79.144.158]:38161 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753091AbYDMXus (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 13 Apr 2008 19:50:48 -0400
-In-Reply-To: <200804140133.23781.rjw@sisk.pl>
+	id S1753389AbYDNAHP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 13 Apr 2008 20:07:15 -0400
+In-Reply-To: <1208130513.6958.72.camel@pasglop>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
+To: benh@kernel.crashing.org
 Cc: Alan Stern <stern@rowland.harvard.edu>, Nigel Cunningham <ncunningham@crca.org.au>, Greg KH <greg@kroah.com>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, Oliver Neukum <oliver@neukum.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Andrew Morton <akpm@linux-foundation.org>
 
-
-On Mon, 2008-04-14 at 01:33 +0200, Rafael J. Wysocki wrote:
+On Monday, 14 of April 2008, Benjamin Herrenschmidt wrote:
 > 
-> Plus in my opinion, while with ->prepare() after the freezer it's
-> possible
-> to write ->prepare() and ->suspend() that will work just fine when we
-> remove
-> the freezer, with ->prepare() before the freezer it would be hard to
-> do that,
-> unless ->prepare() was trivial.
+> On Sun, 2008-04-13 at 19:23 -0400, Alan Stern wrote:
+> > 
+> > Thus, in addition to making all the interface changes implied by the 
+> > new callbacks, drivers would also have to change the way they
+> > interact 
+> > with userspace.  Yes, this will have to be done eventually in any
+> > case, 
+> > as the freezer goes away -- but it shouldn't have to be done right
+> > now.
+> 
+> I disagree. The freezer can already be compiled out and is already not
+> used on some architectures.
 
-And removing a good half of the usage scenario where prepare is useful..
+Please have a look at this thread:
+http://lkml.org/lkml/2008/3/21/322
+(in short, the reporter sees APM suspend breakage under stress, occuring
+because APM uses our suspending of devices without the freezer).
 
-Ben.
+It mostly appears to work without the freezer, but that's bacuse no one
+actually does things that might break it.  I don't think we can rely on users
+being so kind to us forever. :-)
 
-
+Thanks,
+Rafael
