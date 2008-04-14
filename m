@@ -1,105 +1,437 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH] ACPI: Support Fujitsu Lifebook S6410 in fujitsu-laptop
-Date: Mon, 14 Apr 2008 21:18:09 +0200
-Message-ID: <1208200689.1784.126.camel@queen.suse.de>
-References: <20080305030147.GA25310@earth.gruber.myown>
-	 <1207784442.32532.0.camel@earth.gruber.myown>
-	 <1208103760.19605.5.camel@earth.gruber.myown>
-	 <1208169984.1784.37.camel@queen.suse.de>
-	 <1208193500.11305.17.camel@earth.gruber.myown>
-	 <1208195761.1784.95.camel@queen.suse.de>
-	 <1208197360.11305.33.camel@earth.gruber.myown>
-Reply-To: trenn@suse.de
+From: Claus Ilginnis <claus@ilginnis.de>
+Subject: Boot Message.....
+Date: Mon, 14 Apr 2008 21:39:17 +0200
+Message-ID: <1208201957.6797.1.camel@laptop-cpi>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="=-XMgslj6btwLTC7oYa+cR"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:59182 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757258AbYDNTSL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Apr 2008 15:18:11 -0400
-In-Reply-To: <1208197360.11305.33.camel@earth.gruber.myown>
+Received: from mo-p00-ob.rzone.de ([81.169.146.160]:10754 "EHLO
+	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753487AbYDNTu6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Apr 2008 15:50:58 -0400
+Received: from [192.168.0.100] (p54A00B29.dip0.t-ipconnect.de [84.160.11.41])
+	by post.webmailer.de (klopstock mo37) (RZmta 16.19)
+	with ESMTP id 401543k3EJDBhk for <linux-acpi@vger.kernel.org>;
+	Mon, 14 Apr 2008 21:39:25 +0200 (MEST)
+	(envelope-from: <claus@ilginnis.de>)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: nokos@gmx.net
-Cc: linux-acpi@vger.kernel.org
-
-On Mon, 2008-04-14 at 20:22 +0200, nokos@gmx.net wrote:
-> > > clause which seems to stop SBLL from working and GBLS which is a variant of GBLL with similar problem.
-> > > The whole point of the parameter use_alt_lcd_levels was to have an easy way to switch between
-> > > SBLL/GBLL (not working on S6410) and SBL2/GBLS (working on S6410)
-> > 
-> > Hmm, you mean because NGTF has another value on your machine?
-> > Trying to get this solved automatically would be great...
-> 
-> I have not yet tried to readout the NGTF with a platform device. Hmm,
-> how do access fields like NGTF (All I have done so far was calling
-> functions like GBLL() and examining the return value). 
-> 
-> According to the DSDT should FUNC(0x1004,1,4,0) switch off NGTF, but
-> then SBLL is still not working. 
-> 
-> Where can I find some documentation of the DSL/ASL language? Are there
-> docs about the linux-acpi interface?
-
-All the docs you need and AFAIK the only document is the ACPI spec
-itself:
-www.acpi.info
-Hmm, could it be that this site is not accessible (already for some
-time)?
-
-You could disassemble, modify and override your DSDT via initrd or
-compiling into the kernel.
-
-Before add:
-Store (NGTF, Debug)
-statements into the DSDT, compile the kernel with ACPI_DEBUG=y and
-increase the debug level
-acpi.debug_level=0x1F
-debug object should be added:
-cat /sys/module/acpi/parameters/debug_level
-to modify the value at runtime echo the mask in there directly:
-echo 0x1F> /sys/module/acpi/parameters/debug_level
-for example will increase the debug level up to INFO.
-
-There is also a convenient ASL function tracing debug facility in recent
-kernels, but I haven't used it yet.
-AFAIK you echo the ASL function in there..., the git commit for that has
-some more info:
+To: linux-acpi@vger.kernel.org
 
 
-commit 4169c45f179e285feac6bcf25f4bd0db6b109bab
-Author: Zhang Rui <rui.zhang@intel.com>
-Date:   Wed Nov 14 19:38:40 2007 -0500
+--=-XMgslj6btwLTC7oYa+cR
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-    ACPI: add control method tracing support
-    
-    Add debug tracing support during certain AML method execution.
-    
-    Four more module parameters are created under /sys/module/acpi/parameters/:
-    trace_method_name:  the AML method name that user wants to trace
-    
-    trace_debug_layer:  the temporary debug_layer used when tracing the method.
-                        Using 0xffffffff by default if it is 0.
-    
-    trace_debug_level:  the temporary debug_level used when tracing the method.
-                        Using 0x00ffffff by default if it is 0.
-    
-    trace_state:                The status of the tracing feature.
-                        "enabled" means this feature is enabled
-                        and the AML method is traced every time it's executed.
-                        "1" means this feature is enabled and the AML method
-                        will only be traced during the next execution.
-                        "disabled" means this feature is disabled.
-                        Users can enable/disable this debug tracing feature by
-                        "echo string > /sys/module/acpi/parameters/trace_state".
-                        "string" should be one of "enable", "disable" and "1".
+...tolds me to:
+Apr 14 19:00:57 laptop-cpi kernel: [   40.652607] Please send dmidecode
+to linux-acpi@vger.kernel.org
 
-Like that you could increase a specific function to a specific debug
-level without getting Mega Bytes of output and you might be able to read
-out data without rebooting and re-overriding the DSDT...
+So here you go ...
 
-   Thomas
+--=-XMgslj6btwLTC7oYa+cR
+Content-Disposition: attachment; filename=dmidecode.txt
+Content-Type: text/plain; name=dmidecode.txt; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+# dmidecode 2.9
+SMBIOS 2.4 present.
+37 structures occupying 1217 bytes.
+Table at 0x7FEEA000.
+
+Handle 0x0000, DMI type 0, 24 bytes
+BIOS Information
+	Vendor: FUJITSU SIEMENS
+	Version: 1.18
+	Release Date: 10/18/2006
+	ROM Size: 64 kB
+	Characteristics:
+		ISA is supported
+		PCI is supported
+		PC Card (PCMCIA) is supported
+		PNP is supported
+		APM is supported
+		BIOS is upgradeable
+		BIOS shadowing is allowed
+		ESCD support is available
+		Boot from CD is supported
+		ACPI is supported
+		USB legacy is supported
+		AGP is supported
+		BIOS boot specification is supported
+
+Handle 0x0001, DMI type 1, 27 bytes
+System Information
+	Manufacturer: FUJITSU SIEMENS
+	Product Name: AMILO Xi 1546
+	Version: Not Applicable
+	Serial Number: 7200CB37
+	UUID: 002A4454-CD63-0010-93B3-970E64DF6890
+	Wake-up Type: Power Switch
+	SKU Number: Not Specified
+	Family: Not Specified
+
+Handle 0x0002, DMI type 2, 8 bytes
+Base Board Information
+	Manufacturer: FUJITSU SIEMENS
+	Product Name: AMILO Xi 1546
+	Version: Not Applicable
+	Serial Number: Not Applicable
+
+Handle 0x0003, DMI type 3, 17 bytes
+Chassis Information
+	Manufacturer: FUJITSU SIEMENS
+	Type: Notebook
+	Lock: Not Present
+	Version: Not Applicable
+	Serial Number: Not Applicable
+	Asset Tag: Not Applicable
+	Boot-up State: Safe
+	Power Supply State: Safe
+	Thermal State: Safe
+	Security Status: None
+	OEM Information: 0x00001234
+
+Handle 0x0004, DMI type 4, 35 bytes
+Processor Information
+	Socket Designation: U2E1
+	Type: Central Processor
+	Family: Other
+	Manufacturer: Intel
+	ID: F6 06 00 00 FF FB EB BF
+	Version: Intel(R) Core(TM)2 CPU         T5
+	Voltage: 3.3 V
+	External Clock: Unknown
+	Max Speed: 2048 MHz
+	Current Speed: 1800 MHz
+	Status: Populated, Enabled
+	Upgrade: ZIF Socket
+	L1 Cache Handle: 0x0005
+	L2 Cache Handle: 0x0006
+	L3 Cache Handle: Not Provided
+	Serial Number: Not Specified
+	Asset Tag: Not Specified
+	Part Number: Not Specified
+
+Handle 0x0005, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: L1 Cache
+	Configuration: Enabled, Socketed, Level 1
+	Operational Mode: Write Back
+	Location: Internal
+	Installed Size: 16 KB
+	Maximum Size: 16 KB
+	Supported SRAM Types:
+		Burst
+		Pipeline Burst
+		Asynchronous
+	Installed SRAM Type: Asynchronous
+	Speed: Unknown
+	Error Correction Type: Unknown
+	System Type: Unknown
+	Associativity: Unknown
+
+Handle 0x0006, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: L2 Cache
+	Configuration: Enabled, Socketed, Level 2
+	Operational Mode: Write Back
+	Location: External
+	Installed Size: 2048 KB
+	Maximum Size: 512 KB
+	Supported SRAM Types:
+		Burst
+		Pipeline Burst
+		Asynchronous
+	Installed SRAM Type: Burst
+	Speed: Unknown
+	Error Correction Type: Unknown
+	System Type: Unknown
+	Associativity: Unknown
+
+Handle 0x0007, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J19
+	Internal Connector Type: 9 Pin Dual Inline (pin 10 cut)
+	External Reference Designator: COM 1
+	External Connector Type: DB-9 male
+	Port Type: Serial Port 16550A Compatible
+
+Handle 0x0008, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J1A1
+	Internal Connector Type: None
+	External Reference Designator: Keyboard
+	External Connector Type: Circular DIN-8 male
+	Port Type: Keyboard Port
+
+Handle 0x0009, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J1A1
+	Internal Connector Type: None
+	External Reference Designator: PS/2 Mouse
+	External Connector Type: Circular DIN-8 male
+	Port Type: Mouse Port
+
+Handle 0x000A, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PCI Slot J8B1
+	Type: 32-bit PCI
+	Current Usage: Unknown
+	Length: Long
+	ID: 0
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+
+Handle 0x000B, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PCI Slot J9B1
+	Type: 32-bit PCI
+	Current Usage: Unknown
+	Length: Long
+	ID: 0
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+
+Handle 0x000C, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PEG Slot J6C1
+	Type: 32-bit PCI Express
+	Current Usage: In Use
+	Length: Long
+	ID: 6
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+
+Handle 0x000D, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PCI Express Slot J7C1
+	Type: 32-bit PCI Express
+	Current Usage: Available
+	Length: Long
+	ID: 7
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+
+Handle 0x000E, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PCI Express Slot J8C1
+	Type: 32-bit PCI Express
+	Current Usage: Available
+	Length: Long
+	ID: 7
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+
+Handle 0x000F, DMI type 10, 6 bytes
+On Board Device Information
+	Type: Sound
+	Status: Disabled
+	Description: HD-Audio
+
+Handle 0x0010, DMI type 11, 5 bytes
+OEM Strings
+	String 1: This is the Intel Calistoga
+	String 2: Chipset CRB Platform
+
+Handle 0x0011, DMI type 12, 5 bytes
+System Configuration Options
+	Option 1: Jumper settings can be described here.
+
+Handle 0x0012, DMI type 15, 29 bytes
+System Event Log
+	Area Length: 16 bytes
+	Header Start Offset: 0x0000
+	Header Length: 16 bytes
+	Data Start Offset: 0x0010
+	Access Method: General-purpose non-volatile data functions
+	Access Address: 0x0000
+	Status: Valid, Not Full
+	Change Token: 0x00000005
+	Header Format: Type 1
+	Supported Log Type Descriptors: 3
+	Descriptor 1: POST error
+	Data Format 1: POST results bitmap
+	Descriptor 2: Single-bit ECC memory error
+	Data Format 2: Multiple-event
+	Descriptor 3: Multi-bit ECC memory error
+	Data Format 3: Multiple-event
+
+Handle 0x0013, DMI type 16, 15 bytes
+Physical Memory Array
+	Location: System Board Or Motherboard
+	Use: System Memory
+	Error Correction Type: None
+	Maximum Capacity: 3 GB
+	Error Information Handle: Not Provided
+	Number Of Devices: 2
+
+Handle 0x0014, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x0013
+	Error Information Handle: No Error
+	Total Width: 32 bits
+	Data Width: 32 bits
+	Size: 1024 MB
+	Form Factor: SODIMM
+	Set: 1
+	Locator: M1
+	Bank Locator: Bank 0
+	Type: DDR2
+	Type Detail: Synchronous
+	Speed: Unknown
+	Manufacturer: Not Specified
+	Serial Number: Not Specified
+	Asset Tag: Not Specified
+	Part Number: Not Specified
+
+Handle 0x0015, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x0013
+	Error Information Handle: No Error
+	Total Width: 32 bits
+	Data Width: 32 bits
+	Size: 1024 MB
+	Form Factor: SODIMM
+	Set: 1
+	Locator: M2
+	Bank Locator: Bank 1
+	Type: DDR2
+	Type Detail: Synchronous
+	Speed: Unknown
+	Manufacturer: Not Specified
+	Serial Number: Not Specified
+	Asset Tag: Not Specified
+	Part Number: Not Specified
+
+Handle 0x0016, DMI type 19, 15 bytes
+Memory Array Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x0007FFFFFFF
+	Range Size: 2 GB
+	Physical Array Handle: 0x0013
+	Partition Width: 0
+
+Handle 0x0017, DMI type 20, 19 bytes
+Memory Device Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x0003FFFFFFF
+	Range Size: 1 GB
+	Physical Device Handle: 0x0014
+	Memory Array Mapped Address Handle: 0x0016
+	Partition Row Position: Unknown
+	Interleave Position: Unknown
+	Interleaved Data Depth: Unknown
+
+Handle 0x0018, DMI type 20, 19 bytes
+Memory Device Mapped Address
+	Starting Address: 0x00040000000
+	Ending Address: 0x0007FFFFFFF
+	Range Size: 1 GB
+	Physical Device Handle: 0x0015
+	Memory Array Mapped Address Handle: 0x0016
+	Partition Row Position: Unknown
+	Interleave Position: Unknown
+	Interleaved Data Depth: Unknown
+
+Handle 0x0019, DMI type 23, 13 bytes
+System Reset
+	Status: Enabled
+	Watchdog Timer: Present
+	Boot Option: Do Not Reboot
+	Boot Option On Limit: Do Not Reboot
+	Reset Count: Unknown
+	Reset Limit: Unknown
+	Timer Interval: Unknown
+	Timeout: Unknown
+
+Handle 0x001A, DMI type 24, 5 bytes
+Hardware Security
+	Power-On Password Status: Disabled
+	Keyboard Password Status: Unknown
+	Administrator Password Status: Disabled
+	Front Panel Reset Status: Unknown
+
+Handle 0x001B, DMI type 25, 9 bytes
+	System Power Controls
+	Next Scheduled Power-on: 12-31 23:59:59
+
+Handle 0x001C, DMI type 26, 20 bytes
+Voltage Probe
+	Description: Voltage Probe
+	Location: Processor
+	Status: OK
+	Maximum Value: Unknown
+	Minimum Value: Unknown
+	Resolution: Unknown
+	Tolerance: Unknown
+	Accuracy: Unknown
+	OEM-specific Information: 0x00000000
+
+Handle 0x001D, DMI type 27, 12 bytes
+Cooling Device
+	Temperature Probe Handle: 0x001E
+	Type: Fan
+	Status: OK
+	OEM-specific Information: 0x00000000
+
+Handle 0x001E, DMI type 28, 20 bytes
+Temperature Probe
+	Description: Temperature Probe
+	Location: Processor
+	Status: OK
+	Maximum Value: Unknown
+	Minimum Value Unknown
+	Resolution: Unknown
+	Tolerance: Unknown
+	Accuracy: Unknown
+	OEM-specific Information: 0x00000000
+
+Handle 0x001F, DMI type 29, 20 bytes
+Electrical Current Probe
+	Description: Electrical Current Probe
+	Location: Processor
+	Status: OK
+	Maximum Value: Unknown
+	Minimum Value: Unknown
+	Resolution: Unknown
+	Tolerance: Unknown
+	Accuracy: Unknown
+	OEM-specific Information: 0x00000000
+
+Handle 0x0020, DMI type 30, 6 bytes
+Out-of-band Remote Access
+	Manufacturer Name: Intel
+	Inbound Connection: Enabled
+	Outbound Connection: Disabled
+
+Handle 0x0021, DMI type 32, 20 bytes
+System Boot Information
+	Status: <OUT OF SPEC>
+
+Handle 0x0022, DMI type 129, 16 bytes
+OEM-specific Type
+	Header and Data:
+		81 10 22 00 01 01 02 01 00 00 00 01 00 00 08 01
+	Strings:
+		Intel_ASF_001
+		Intel_ASF_001
+
+Handle 0x0023, DMI type 136, 8 bytes
+OEM-specific Type
+	Header and Data:
+		88 08 23 00 FF FF 00 00
+	Strings:
+		..$
+
+Handle 0x0024, DMI type 127, 4 bytes
+End Of Table
 
 
+--=-XMgslj6btwLTC7oYa+cR--
 
