@@ -1,107 +1,54 @@
-From: nokos@gmx.net
-Subject: Re: [PATCH] ACPI: Support Fujitsu Lifebook S6410 in fujitsu-laptop
-Date: Mon, 14 Apr 2008 20:22:40 +0200
-Message-ID: <1208197360.11305.33.camel@earth.gruber.myown>
-References: <20080305030147.GA25310@earth.gruber.myown>
-	 <1207784442.32532.0.camel@earth.gruber.myown>
-	 <1208103760.19605.5.camel@earth.gruber.myown>
-	 <1208169984.1784.37.camel@queen.suse.de>
-	 <1208193500.11305.17.camel@earth.gruber.myown>
-	 <1208195761.1784.95.camel@queen.suse.de>
+From: Adrian Bunk <bunk@kernel.org>
+Subject: [2.6 patch] #if 0 acpi/bay.c:eject_removable_drive()
+Date: Mon, 14 Apr 2008 21:40:47 +0300
+Message-ID: <20080414184047.GF6695@cs181133002.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-in-09.arcor-online.net ([151.189.21.49]:36892 "EHLO
-	mail-in-09.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765914AbYDNSXD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Apr 2008 14:23:03 -0400
-In-Reply-To: <1208195761.1784.95.camel@queen.suse.de>
+Received: from smtp4.pp.htv.fi ([213.243.153.38]:51066 "EHLO smtp4.pp.htv.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1764014AbYDNSlx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Apr 2008 14:41:53 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: trenn@suse.de
-Cc: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Am Montag, den 14.04.2008, 19:56 +0200 schrieb Thomas Renninger:
-> On Mon, 2008-04-14 at 19:18 +0200, nokos@gmx.net wrote:
-> > Am Montag, den 14.04.2008, 12:46 +0200 schrieb Thomas Renninger:
-> > > >  
-> > > > +static int get_irb(void)
-> > > > +{
-> > > > +	unsigned long state = 0;
-> > > > +	acpi_status status = AE_OK;
-> > > > +
-> > > > +	status =
-> > > > +	    acpi_evaluate_integer(fujitsu->acpi_handle_e3, "GIRB", NULL,
-> > > > +				  &state);
-> > > This is ugly, but often done/needed in vendor specific ACPI drivers.
-> > > Guessing the used functions by trial and error...
-> > > Have a closer look whether there are more "upper level" functions you
-> > > could use to access the same info which might stay stable for this
-> > > specific fujitsu device.
-> > > Same for other functions below.
-> > 
-> > looking through the DSDT it is only use in the S002 function and this
-> > one is only used in FUNC (which seems to be some kind of frontend for
-> > all the S000 - S009 functions with even more cryptic parameters, ie.
-> > FUNC(0x1002,1,0,0) is the same as GIRB())
-> > 
-> > The other functions used are SBL2, which is the same as SBLL except the
-> > 	Method (SBLL, 1, NotSerialized)
-> > 	{
-> > 		If (NGTF)
-> > 		{
-> > 			Store (Arg0, LSBL)
-> > 			Return (Zero)
-> > 		}
-> > ...
-> > clause which seems to stop SBLL from working and GBLS which is a variant of GBLL with similar problem.
-> > The whole point of the parameter use_alt_lcd_levels was to have an easy way to switch between
-> > SBLL/GBLL (not working on S6410) and SBL2/GBLS (working on S6410)
-> 
-> Hmm, you mean because NGTF has another value on your machine?
-> Trying to get this solved automatically would be great...
+This patch #if 0's the unused eject_removable_drive().
 
-I have not yet tried to readout the NGTF with a platform device. Hmm,
-how do access fields like NGTF (All I have done so far was calling
-functions like GBLL() and examining the return value). 
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 
-According to the DSDT should FUNC(0x1004,1,4,0) switch off NGTF, but
-then SBLL is still not working. 
+---
 
-Where can I find some documentation of the DSL/ASL language? Are there
-docs about the linux-acpi interface?
+This patch has been sent on:
+- 31 Mar 2008
+- 1 Mar 2008
 
-> I know there is an asus_acpi driver mailing list, I do not know about a
-> Fujitu one.
-> 
-> I do not have that much time currently, if you like I can go through the
-> code again after you split it into two parts.
-> Then it should be much easier to read...
+ drivers/acpi/bay.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-already done ... will test it bit and then post it here.
+de6f6fda54c9a51719c8e5a5b8d303fb958cfe36 foobar
+diff --git a/drivers/acpi/bay.c b/drivers/acpi/bay.c
+index 1fa8681..d2fc941 100644
+--- a/drivers/acpi/bay.c
++++ b/drivers/acpi/bay.c
+@@ -201,6 +201,7 @@ static int is_ejectable_bay(acpi_handle handle)
+ 	return 0;
+ }
+ 
++#if 0
+ /**
+  * eject_removable_drive - try to eject this drive
+  * @dev : the device structure of the drive
+@@ -225,6 +226,7 @@ int eject_removable_drive(struct device *dev)
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(eject_removable_drive);
++#endif  /*  0  */
+ 
+ static int acpi_bay_add_fs(struct bay *bay)
+ {
 
-> IMO we should also document our thinking, maybe not on a mailing list,
-> but more on bugzilla.kernel.org.
-> Then other Fujitsu users may show up testing or providing more DSDTs
-> etc. and at after some code iterations Len might accept a new Fujitsu
-> driver.
-
-should I open a bug "fujitsu-laptop not working on S6410" or something
-for further discussions?
-
-> Not sure whether it's worth it, but possibly a fujitsu ACPI mailinglist
-> on sourcefore or elsewhere might be worth it (but expect some amount of
-> work...). Maybe you the author of the other fujitsu driver or others are
-> willing to help...
-> 
-> I wonder whether you have fan problems?
-> I recently found this (probably older?) fujitsu bug:
-> http://bugzilla.kernel.org/show_bug.cgi?id=8049
-
-no, fan works as expected although I have no controls in /proc/acpi/fan/
-
-Peter 
 
 
