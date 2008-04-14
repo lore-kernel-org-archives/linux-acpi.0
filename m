@@ -1,39 +1,35 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH 1/3] PM: Introduce new top level suspend and hibernation
- callbacks (rev. 8)
-Date: Mon, 14 Apr 2008 11:13:40 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0804141105460.2406-100000@iolanthe.rowland.org>
-References: <200804141411.19385.rjw@sisk.pl>
+From: Ajit <ajitrzid@yahoo.com>
+Subject: WMI support on Linux
+Date: Mon, 14 Apr 2008 17:44:40 +0000 (UTC)
+Message-ID: <loom.20080414T173138-851@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1761607AbYDNPN4@vger.kernel.org>
-In-Reply-To: <200804141411.19385.rjw@sisk.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: benh@kernel.crashing.org, Greg KH <greg@kroah.com>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, Oliver Neukum <oliver@neukum.org>, Nigel Cunningham <ncunningham@crca.org.au>, Jesse Barnes <jbarnes@virtuousgeek.org>, Andrew Morton <akpm@linux-foundation.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from main.gmane.org ([80.91.229.2]:36307 "EHLO ciao.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1762268AbYDNRuM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Apr 2008 13:50:12 -0400
+Received: from root by ciao.gmane.org with local (Exim 4.43)
+	id 1JlSoc-0002bi-Kx
+	for linux-acpi@vger.kernel.org; Mon, 14 Apr 2008 17:50:03 +0000
+Received: from ABTS-KK-Dynamic-068.22.167.122.airtelbroadband.in ([ABTS-KK-Dynamic-068.22.167.122.airtelbroadband.in])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Mon, 14 Apr 2008 17:50:02 +0000
+Received: from ajitrzid by ABTS-KK-Dynamic-068.22.167.122.airtelbroadband.in with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Mon, 14 Apr 2008 17:50:02 +0000
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Mon, 14 Apr 2008, Rafael J. Wysocki wrote:
+Hello
+    I was curious when WMI BIOS support would be available in the kernel. I saw
+some references to it in the Feb 08 archive( Randy Dunlap & Carlos Corbacho ).
+Is there some patch that I can download to enable this support ? 
 
->     "you can assume that the user space is there while ->prepare() is running,
->     but you are supposed to prevent new children of the device from being
->     registered from that point on _and_ you have to make sure that freezable
->     tasks will be able to freeze after ->prepare() has run" (but why on Earth a
->     driver writer is now required to know what's a freezable task etc.?)
+TIA,
+Goodday,
+Ajit
 
-This reminds me...  We're going to need a way to make certain
-activities mutually exclusive with system sleep.  The simplest example
-is loading a kernel module; init and probe routines often end up
-causing new child devices to be registered.
-
-The most straightforward approach is to use an rwsem like the one we 
-used to have.  However I'm concerned that under some circumstances 
-there might be recursive read-locking.  (For example, the init routine 
-in a newly-loaded module decides to load yet another module.  Can this 
-actually happen?  libusual does something much like it.)
-
-So it's quite possible we'll end up needing a mechanism that resembles 
-an rwsem but allows recursive (properly nested) read-locking.  Does 
-such a thing exist already, or would it have to be invented?
-
-Alan Stern
