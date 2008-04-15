@@ -1,67 +1,166 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: ACPICA branch - first try Core revision 20080321
-Date: Tue, 15 Apr 2008 03:51:04 -0400
-Message-ID: <200804150351.04752.lenb@kernel.org>
-References: <1207974356-30687-1-git-send-email-lenb@kernel.org> <200804120041.31583.lenb@kernel.org> <48011F93.2000102@gmail.com>
+From: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Subject: Re: [Bugme-new] [Bug 10455] New: Kernel lockup when iwl3945 modules
+ is loaded after a few hours
+Date: Tue, 15 Apr 2008 01:32:51 -0700
+Message-ID: <20080415013251.e90e5abd.akpm@linux-foundation.org>
+References: <bug-10455-10286@http.bugzilla.kernel.org/>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:33679 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752984AbYDOHvX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Apr 2008 03:51:23 -0400
-In-Reply-To: <48011F93.2000102@gmail.com>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <bug-10455-10286-V0hAGp6uBxO456/isadD/XN4h3HLQggn@public.gmane.org/>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Cc: bugme-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>, "Lin, Ming M" <ming.m.lin@intel.com>
-Cc: linux-acpi@vger.kernel.org, "Moore, Robert" <robert.moore@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.de>
 
-On Saturday 12 April 2008, Alexey Starikovskiy wrote:
-> Len Brown wrote:
-> > The acpica branch is based on 2.6.25-rc9.
-> > Below is a dmesg diff of an HP nx6325 booting that baseline
-> > vs. booting the acpica branch.
-> >
-> > Two things jump out:
-> >
-> > 1. ACPI: Expecting a [Reference] package element, found type 14
-> >
-> >   
-> Add this to #67
-> diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-> index 44ea60c..1009261 100644
-> --- a/drivers/acpi/utils.c
-> +++ b/drivers/acpi/utils.c
-> @@ -398,7 +398,7 @@ acpi_evaluate_reference(acpi_handle handle,
->  
->          element = &(package->package.elements[i]);
->  
-> -        if (element->type != ACPI_TYPE_ANY) {
-> +        if (element->type != ACPI_TYPE_LOCAL_REFERENCE) {
->              status = AE_BAD_DATA;
->              printk(KERN_ERR PREFIX
->                      "Expecting a [Reference] package element, found 
-> type %X\n",
+
+(switched to email.  Please respond via emailed reply-to-all, not via the
+bugzilla web interface).
+
+On Tue, 15 Apr 2008 01:16:39 -0700 (PDT) bugme-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org wrote:
+
+> http://bugzilla.kernel.org/show_bug.cgi?id=10455
 > 
-> > 2. memory coorruption:
-> >
-> > slab error in verify_redzone_free(): cache `size-1024': memory outside object was overwritten
-> >
-> >   
-> drop #60
+>            Summary: Kernel lockup when iwl3945 modules is loaded after a few
+>                     hours
+>            Product: Drivers
+>            Version: 2.5
+>      KernelVersion: 2.6.25-rc9
+>           Platform: All
+>         OS/Version: Linux
+>               Tree: Mainline
+>             Status: NEW
+>           Severity: normal
+>           Priority: P1
+>          Component: network-wireless
+>         AssignedTo: drivers_network-wireless-ztI5WcYan/vQLgFONoPN62D2FQJk+8+b@public.gmane.org
+>         ReportedBy: bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+> 
+> 
+> Latest working kernel version: (not known)
+> Earliest failing kernel version: 2.6.25-rc9
 
+hm, why?  Has this machine never run earlier kernels?
 
-done, and the nx6325 now looks happy, so I've updated
-the acpica branch and pulled it into the test branch.
+> Distribution: Ubuntu Linux 7.10
+> Hardware Environment: Acer Aspire laptop model 5633WLMi
+> Software Environment: Ubuntu Linux 7.10, 32 bit mode.
+> Problem Description: When the iwl3945 module is loaded, the kernel locks up
+> after a few hours. This problem does not occur when the iwl3945 module is not
+> loaded.
+> 
+> Steps to reproduce: Boot the system.
+> 
+> The following kernel messages look suspicious:
+> 
+> Apr 14 20:16:24 localhost kernel: ACPI: PCI Interrupt 0000:05:00.0[A] -> GSI 19
+> (level, low) -> IRQ 19
+> Apr 14 20:16:24 localhost kernel: ACPI: PCI interrupt for device 0000:05:00.0
+> disabled
+> Apr 14 20:18:28 localhost kernel: ACPI: PCI Interrupt 0000:05:00.0[A] -> GSI 19
+> (level, low) -> IRQ 19
+> Apr 14 20:18:28 localhost kernel: ACPI: PCI interrupt for device 0000:05:00.0
+> disabled
+> Apr 14 20:20:32 localhost kernel: ACPI: PCI Interrupt 0000:05:00.0[A] -> GSI 19
+> (level, low) -> IRQ 19
+> Apr 14 20:20:32 localhost kernel: ACPI: PCI interrupt for device 0000:05:00.0
+> disabled
+> Apr 14 20:22:36 localhost kernel: ACPI: PCI Interrupt 0000:05:00.0[A] -> GSI 19
+> (level, low) -> IRQ 19
+> Apr 14 20:22:36 localhost kernel: ACPI: PCI interrupt for device 0000:05:00.0
+> disabled
+> Apr 14 20:24:40 localhost kernel: ACPI: PCI Interrupt 0000:05:00.0[A] -> GSI 19
+> (level, low) -> IRQ 19
+> Apr 14 20:24:40 localhost kernel: ACPI: PCI interrupt for device 0000:05:00.0
+> disabled
+> Apr 14 20:26:44 localhost kernel: ACPI: PCI Interrupt 0000:05:00.0[A] -> GSI 19
+> (level, low) -> IRQ 19
+> Apr 14 20:26:44 localhost kernel: ACPI: PCI interrupt for device 0000:05:00.0
+> disabled
+> Apr 14 20:28:48 localhost kernel: ACPI: PCI Interrupt 0000:05:00.0[A] -> GSI 19
+> (level, low) -> IRQ 19
+> Apr 14 20:28:48 localhost kernel: ACPI: PCI interrupt for device 0000:05:00.0
+> disabled
+> Apr 14 20:30:52 localhost kernel: ACPI: PCI Interrupt 0000:05:00.0[A] -> GSI 19
+> (level, low) -> IRQ 19
+> Apr 14 20:30:52 localhost kernel: ACPI: PCI interrupt for device 0000:05:00.0
+> disabled
+> Apr 14 20:32:56 localhost kernel: ACPI: PCI Interrupt 0000:05:00.0[A] -> GSI 19
+> (level, low) -> IRQ 19
+> Apr 14 20:32:56 localhost kernel: ACPI: PCI interrupt for device 0000:05:00.0
+> disabled
+> Apr 14 20:35:00 localhost kernel: ACPI: PCI Interrupt 0000:05:00.0[A] -> GSI 19
+> (level, low) -> IRQ 19
+> Apr 14 20:35:00 localhost kernel: ACPI: PCI interrupt for device 0000:05:00.0
+> disabled
+> Apr 14 20:37:04 localhost kernel: ACPI: PCI Interrupt 0000:05:00.0[A] -> GSI 19
+> (level, low) -> IRQ 19
+> Apr 14 20:37:04 localhost kernel: ACPI: PCI interrupt for device 0000:05:00.0
+> disabled
+> Apr 14 20:39:08 localhost kernel: ACPI: PCI Interrupt 0000:05:00.0[A] -> GSI 19
+> (level, low) -> IRQ 19
+> Apr 14 20:39:08 localhost kernel: ACPI: PCI interrupt for device 0000:05:00.0
+> disabled
+> Apr 14 20:41:12 localhost kernel: ACPI: PCI Interrupt 0000:05:00.0[A] -> GSI 19
+> (level, low) -> IRQ 19
+> Apr 14 20:41:12 localhost kernel: ACPI: PCI interrupt for device 0000:05:00.0
+> disabled
+> Apr 14 20:43:16 localhost kernel: ACPI: PCI Interrupt 0000:05:00.0[A] -> GSI 19
+> (level, low) -> IRQ 19
+> Apr 14 20:43:16 localhost kernel: ACPI: PCI interrupt for device 0000:05:00.0
+> disabled
+> Apr 14 20:45:20 localhost kernel: ACPI: PCI Interrupt 0000:05:00.0[A] -> GSI 19
+> (level, low) -> IRQ 19
+> Apr 14 20:45:20 localhost kernel: ACPI: PCI interrupt for device 0000:05:00.0
+> disabled
+> Apr 14 20:47:24 localhost kernel: ACPI: PCI Interrupt 0000:05:00.0[A] -> GSI 19
+> (level, low) -> IRQ 19
+> Apr 14 20:47:24 localhost kernel: ACPI: PCI interrupt for device 0000:05:00.0
+> disabled
+> Apr 14 20:49:28 localhost kernel: ACPI: PCI Interrupt 0000:05:00.0[A] -> GSI 19
+> (level, low) -> IRQ 19
+> Apr 14 20:49:28 localhost kernel: ACPI: PCI interrupt for device 0000:05:00.0
+> disabled
+> Apr 14 20:51:32 localhost kernel: ACPI: PCI Interrupt 0000:05:00.0[A] -> GSI 19
+> (level, low) -> IRQ 19
+> Apr 14 20:51:32 localhost kernel: ACPI: PCI interrupt for device 0000:05:00.0
+> disabled
+> Apr 14 20:53:36 localhost kernel: ACPI: PCI Interrupt 0000:05:00.0[A] -> GSI 19
+> (level, low) -> IRQ 19
+> Apr 14 20:53:36 localhost kernel: ACPI: PCI interrupt for device 0000:05:00.0
+> disabled
+> Apr 14 20:55:40 localhost kernel: ACPI: PCI Interrupt 0000:05:00.0[A] -> GSI 19
+> (level, low) -> IRQ 19
+> Apr 14 20:55:40 localhost kernel: ACPI: PCI interrupt for device 0000:05:00.0
+> disabled
+> Apr 14 20:57:44 localhost kernel: ACPI: PCI Interrupt 0000:05:00.0[A] -> GSI 19
+> (level, low) -> IRQ 19
+> Apr 14 20:57:44 localhost kernel: ACPI: PCI interrupt for device 0000:05:00.0
+> disabled
+> Apr 14 20:59:48 localhost kernel: ACPI: PCI Interrupt 0000:05:00.0[A] -> GSI 19
+> (level, low) -> IRQ 19
+> Apr 14 20:59:48 localhost kernel: ACPI: PCI interrupt for device 0000:05:00.0
+> disabled
+> Apr 14 21:01:52 localhost kernel: ACPI: PCI Interrupt 0000:05:00.0[A] -> GSI 19
+> (level, low) -> IRQ 19
+> Apr 14 21:01:52 localhost kernel: ACPI: PCI interrupt for device 0000:05:00.0
+> disabled
+> Apr 14 21:03:56 localhost kernel: ACPI: PCI Interrupt 0000:05:00.0[A] -> GSI 19
+> (level, low) -> IRQ 19
+> Apr 14 21:03:56 localhost kernel: ACPI: PCI interrupt for device 0000:05:00.0
+> disabled
+> Apr 14 21:06:00 localhost kernel: ACPI: PCI Interrupt 0000:05:00.0[A] -> GSI 19
+> (level, low) -> IRQ 19
+> Apr 14 21:06:00 localhost kernel: ACPI: PCI interrupt for device 0000:05:00.0
+> disabled
 
-but expanding testing to the t61, the latest ACPICA gives me these:
+Yes, that does look like an ACPI problem.  But one would expect it to kill
+the interface immediately, not several hours later.
 
+Can you send the /proc/interrupts contents?
 
-> ACPI Exception (scan-0716): AE_BAD_DATA, Extracting _PRW package [20080321]
-> ACPI Exception (scan-0716): AE_BAD_DATA, Extracting _PRW package [20080321]
-> ACPI Exception (scan-0716): AE_BAD_DATA, Extracting _PRW package [20080321]
-> ACPI Exception (scan-0716): AE_BAD_DATA, Extracting _PRW package [20080321]
-> ACPI Exception (scan-0716): AE_BAD_DATA, Extracting _PRW package [20080321]
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
