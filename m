@@ -1,82 +1,41 @@
-From: Ralf Orlowski <ralf@orle.de>
-Subject: Re: Can't get ACPI to work on a Panasonic Toughbook CF-52
-Date: Tue, 15 Apr 2008 22:24:57 +0200
-Message-ID: <48050F19.3090109@orle.de>
-References: <4801D253.40904@orle.de>	 <9D7649D18729DE4BB2BD7B494F7FEDC20122C2F2@pdsmsx415.ccr.corp.intel.com>	 <4802137E.9060804@orle.de>	 <1208164382.4031.11.camel@yakui_zhao.sh.intel.com>	 <480319F5.1060702@orle.de>	 <1208196157.4031.61.camel@yakui_zhao.sh.intel.com>	 <4803328B.7010902@orle.de> <1208249419.12372.8.camel@yakui_zhao.sh.intel.com> <48047804.40505@orle.de>
+From: Alexey Starikovskiy <aystarik@gmail.com>
+Subject: Re: [PATCH 65/73] ACPICA: Fix for extraneous debug message for packages
+Date: Wed, 16 Apr 2008 00:39:30 +0400
+Message-ID: <48051282.7050006@gmail.com>
+References: <1207974356-30687-1-git-send-email-lenb@kernel.org> <d67cc0dd29df98d6ac4824a617c151d7842e3a73.1207973800.git.len.brown@intel.com> <200804150309.25361.lenb@kernel.org> <48046902.8040900@gmail.com> <9D39833986E69849A2A8E74C1078B6B3257A97@orsmsx415.amr.corp.intel.com> <4804FA6A.2050401@suse.de> <9D39833986E69849A2A8E74C1078B6B3257BAC@orsmsx415.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ipx20135.ipxserver.de ([80.190.249.2]:2205 "EHLO
-	ipx20135.ipxserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1765724AbYDOUZB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Apr 2008 16:25:01 -0400
-In-Reply-To: <48047804.40505@orle.de>
+Received: from ug-out-1314.google.com ([66.249.92.168]:10659 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752864AbYDOUtb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Apr 2008 16:49:31 -0400
+Received: by ug-out-1314.google.com with SMTP id z38so783151ugc.16
+        for <linux-acpi@vger.kernel.org>; Tue, 15 Apr 2008 13:49:30 -0700 (PDT)
+In-Reply-To: <9D39833986E69849A2A8E74C1078B6B3257BAC@orsmsx415.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-Hello,
+Moore, Robert wrote:
+> I think one of the reasons we introduced ACPI_NATIVE_UINT is that "int"
+> is in fact not "native" under all compilation models.
+>
+> Here is the table from actypes.h
+>
+>  * Datatype  LP64 ILP64 LLP64 ILP32 LP32 16bit
+>  * char      8    8     8     8     8    8
+>  * short     16   16    16    16    16   16
+>  * _int32         32
+>  * int       32   64    32    32    16   16
+>  * long      64   64    32    32    32   32
+>  * long long            64    64
+>  * pointer   64   64    64    32    32   32
+>
+>   
+Sorry, what do you mean by "not native" ?
+sizeof(int) != sizeof(void *)  or something else?
+How does it change applicability as array index?
 
-Ralf Orlowski schrieb:
-> Hello,
-> 
-> Zhao Yakui schrieb:
->  > Will you please attach the output of acpidump.out and send it to me?
->  > I'd like to help you.
->  >
->  > Of course you can do it by yourself. (First you should install iasl
->  > compiler) iasl compiler can be downloaded from :
->  > http://www.acpica.org/downloads/index.php
->  >
->  > #acpidump > acpidump.out #acpixtract -a acpidump.out ( You can get
->  > the DSDT.dat) #iasl -d DSDT.dat (Get the DSDT.dsl) #modify the
->  > DSDT.dsl #iasl -tc DSDT.dat More detailed info can be found in In
->  > http://www.lesswatts.org/projects/acpi/faq.php Thanks .
-> 
-> Thank you very much for your help. That hint brought me a big step forward.
-> This way I managed to change the DSDT and compiled it into the kernel.
-> 
-> So now I can boot the system with ACPI enabled.
-> 
-> Now there's only one problem left:
-> I can send the system into suspend mode now with the power button or if 
-> I close the display.
-> But when I try to wake up the system from suspend mode it looks likes it 
-> wants to start up, but the display stays dark and it seems that it is 
-> hanging somewhere within the wake up process.
-> I can't even blindly change to a text console and type a reboot there to 
-> restart the system.
-> 
-> So are there any hints, where I can look for a configuration option to 
-> make this work also?
-> 
-
-As I read on the list, there are also other notebooks, that have 
-problems with suspend under kernel 2.6.25-rc?.
-
-So today I installed and tested kernel version 2.6.24.4 with the 
-exchanged DSDT.
-
-And so far everything seems to work now.
-I can boot the system with ACPI enabled and suspend is also working.
-
-If anyone needs a working DSDT and .config for kernel 2.6.24.4 for a 
-Panasonic Toughbook CF-52 he can just contact me.
-
-
-Bye Ralf
-> Bye Ralf
-> 
-> P.S. should I post something about the solution for starting the CF-52 
-> with ACPI enabled somewhere, so that this may also help others?
-> 
-> 
-
-
--- 
-Ralf Orlowski                           voice: +49-8134-935781
-Hadersried 27a                          car:   +49-173-5239069
-85235 Odelzhausen                       mobil: +49-160-8577361
-GERMANY                   E-mail: Ralf@orle.de (PGP available)
