@@ -1,51 +1,36 @@
-From: majie <china.majie@gmail.com>
-Subject: can't shut down
-Date: Tue, 15 Apr 2008 22:09:42 +0800
-Message-ID: <1c0ea1cc0804150709u3c4274fbq39467e6a1d704642@mail.gmail.com>
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: Re: [Bugme-new] [Bug 10455] New: Kernel lockup when iwl3945 modules is loaded after a few hours
+Date: Tue, 15 Apr 2008 09:15:55 -0600
+Message-ID: <200804150915.56235.bjorn.helgaas@hp.com>
+References: <bug-10455-10286@http.bugzilla.kernel.org/> <e2e108260804150139kf816be5m91e6206853a0d755@mail.gmail.com> <20080415020103.cd8e17f4.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rv-out-0708.google.com ([209.85.198.241]:5493 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755912AbYDOOJm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Apr 2008 10:09:42 -0400
-Received: by rv-out-0506.google.com with SMTP id k29so885666rvb.1
-        for <linux-acpi@vger.kernel.org>; Tue, 15 Apr 2008 07:09:42 -0700 (PDT)
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20080415020103.cd8e17f4.akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Cc: Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, bugme-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-Hi all,
+> > >  > Apr 14 21:06:00 localhost kernel: ACPI: PCI Interrupt 0000:05:00.0[A] -> GSI 19 (level, low) -> IRQ 19
+> > >  > Apr 14 21:06:00 localhost kernel: ACPI: PCI interrupt for device 0000:05:00.0 disabled
+> > >
+> > >  Yes, that does look like an ACPI problem.  But one would expect it to kill
+> > >  the interface immediately, not several hours later.
 
-I'm using Linux kernel 2.6.21.5-smp(Slackware 12). I experience an
-error when I turn off my computer. It doesn't turn off itself (maybe
-called going into G2/S5 Soft Off in the specification) after printing
-a message "acpi_power_off called". I have to press the power button
-for several seconds to turn it off. I think the CPUs may be running in
-full speed because I hear my fan running in high speed.
+I can't tell whether this is an ACPI problem.  These messages are from
+pci_enable_device() and pci_disable_device().  So it looks like you're
+seeing an enable/disable pair every 124 seconds.
 
-I tried to find out the problem by adding some printk()'s to the
-function acpi_enter_sleep_state()(in
-linux-2.6.21.5\drivers\acpi\hardware\hwsleep.c). And It shows that it
-runs into the final do-while loop in the function and doing an
-infinite loop. Maybe this is why my CPUs are running in full speed.
+This could be a problem somewhere in iwl3945_mac_start() that causes us
+to turn around and disable the device immediately.  Most of the problems
+there have IWL_ERROR() messages associated with them, and you apparently
+aren't seeing those.
 
-I don't have the ability to debug the kernel. So this is the only
-information I can provide about the code. If you want me to post my
-hardware spec or anything else, I'm very glad to, but please tell me
-which command and arguments should I use to get the info.
-
-I have tried the kernel options, but they don't work for me. My laptop
-can shut down flawlessly when using windows xp.
-
-By the way, It's a linux distribution independent problem because I
-also experienced it in kubuntu 7.10.
-
-I'm truly grateful for your help.
-Thank you very much.
-
------
-Best regards,
-	majie
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
