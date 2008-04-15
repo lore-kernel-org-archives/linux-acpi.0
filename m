@@ -1,71 +1,71 @@
-From: nokos@gmx.net
-Subject: Re: [PATCH] ACPI: Support Fujitsu Lifebook S6410 in fujitsu-laptop
-Date: Tue, 15 Apr 2008 12:51:06 +0200
-Message-ID: <1208256666.20860.37.camel@earth.gruber.myown>
-References: <200804150314.m3F3EnJW011526@turbo.physics.adelaide.edu.au>
+From: "George Spelvin" <linux@horizon.com>
+Subject: 2.6.25 regression: 60417f5976df breaks Thinkpad suspend
+Date: Tue, 15 Apr 2008 07:53:26 -0400
+Message-ID: <20080415115326.9915.qmail@science.horizon.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-in-05.arcor-online.net ([151.189.21.45]:47820 "EHLO
-	mail-in-05.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750715AbYDOKvf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Apr 2008 06:51:35 -0400
-In-Reply-To: <200804150314.m3F3EnJW011526@turbo.physics.adelaide.edu.au>
+Received: from science.horizon.com ([192.35.100.1]:19204 "HELO
+	science.horizon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751180AbYDOMAJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Apr 2008 08:00:09 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: trenn@suse.de, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+To: len.brown@intel.com, rjw@sisk.pl, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: linux@horizon.com
 
-Am Dienstag, den 15.04.2008, 12:44 +0930 schrieb Jonathan Woithe:
-> > > There probably are machines out there which only have one of above
-> > > devices, then only the relevant driver should be loaded.
-> > 
-> > I thought the since there is only a small functionality in each part and
-> > the module only registers drivers which are started only if an
-> > appropriate device is present it might be good to integrate it in one
-> > module. (in the S6410 case there is actually a third device FUJ02E1 but
-> > I don't know yet what it is for, there are some notifies for that device
-> > in the DSDT but so far I haven't triggered any of them)
-> 
-> A fair point.  I guess it really depends on how these devices end up being
-> structured.  Modularity enforces separation which can help with
-> maintainability going forward but it can also give rise to a certain
-> amount of code duplication.  I'd be interested to see what others think.
+When trying a recent 2.6.25 on a laptop, I discovered that it
+completely breaks suspend to RAM.  It blanks the screen and lights up
+the sleeping light, but judging by the noises the laptop makes (help,
+low battery!) after being unplugged for a while, it doesn't actually
+suspend a whole lot.
 
-I had another look into the DSDT and this is how the structure looks to
-me:
-I have three devices (FUJ02B1, FUJ02E1, FUJ02E3) with names (FJEX, CMBT,
-FEXT)
-so far it seems we can ignore the second since it always reports _STA=0
-(ie. disabled?)
+More interestingly, it gets the laptop into a state where the only ways
+I can make it respond are disconnecting and connecting AC power (beep),
+and holding the power button down for 4 seconds.
 
-FUJ02B1 Methods:
- - RBLL get max brightness level
- - GBLL/GBLS get current brightness (only difference GBLL zeros a flag
-if used for the first time which is not used anywhere else?)
- - SBLL/SBL2 set brightness (some differences, notable SBLL doesn't do
-anything if a flag is set but interacts with the video device GFX0)
- - GMOU,SMOU some getter/setter of unknown flags
- - GHKS,GSIF more unknown flags
+The really interesting part is that after that, it won't turn on again!
+I have to disconnect power and remove the battery to reset it hard enough
+that it will respond to furtherpresses of the power button.
 
-FUJ02E3 Methods:
- - FUNC frontend to S000-S009 : approx. FUNC(0x1000+i,j,k,l) =
-S00i(j,k,l)
- - S000-S009 getters and setters for various stuff (not restricted to
-FUJ02E3)
-    - S000 uses some fields from FUJ02E1
-    - S004 clones GIRB
-    - S006 seems to be a frontend for video/brightness stuff in FUJ02B1
-and FUJ02E3   
- - GIRB/SIRB get and set? the special hotkey registers
- - SBLC/SVBL/RSBL do something with brightness and/or video using
-FUJ02B1 methods
- 
-so it seems the devices are not independent of each other and a combined
-module might be the more sensible way to go?
+This smells like a BIOS bug to me, but it's interesting that it gets tickled.
 
+The patch is unfortunately one that fixes other machines:
 
-Peter
+>   ACPI suspend: Call _PTS before suspending devices
+>   
+>   The ACPI 1.0 specification wants us to put devices into low power
+>   states after executing the _PTS global control method, while ACPI
+>   2.0 and later want us to do that in the reverse order.  The current
+>   suspend code follows ACPI 2.0 in that respect which causes some
+>   ACPI 1.0x systems to hang during suspend (ref.
+>   http://bugzilla.kernel.org/show_bug.cgi?id=9528).
+>   
+>   Make the suspend code execute _PTS before putting devices into low
+>   power states (ie. in accordance with ACPI 1.0x) and provide a command
+>   line option to override the default if need be.
 
+Fortunately, the "acpi_new_pts_ordering" kernel parameter fixes it,
+but I waded through a full bisect (actually two, owing to some mistakes
+the first time) before finding out about it.
+
+IBM Thinkpad T21, "type 2647".  biosdecode says "Machine Type/Model:
+26478AU" and "BIOS Build ID: KZET22WW".  Early ACPI boot messages are
+
+ACPI: RSDP 000F7160, 0014 (r0 PTLTD )
+ACPI: RSDT 0FFF4D07, 002C (r1 PTLTD    RSDT    6040000  LTP        0)
+ACPI: FACP 0FFFEB65, 0074 (r1 IBM    TP-T21    6040000             0)
+ACPI: DSDT 0FFF4D33, 9E32 (r1 IBM    TP-T21    6040000 MSFT  100000C)
+ACPI: FACS 0FFFF000, 0040
+ACPI: BOOT 0FFFEBD9, 0027 (r1 PTLTD  $SBFTBL$  6040000  LTP        1)
+ACPI: PM-Timer IO Port: 0x1008
+
+With the patch applied and (default) enabled, there is a final disk
+access (O(1 second) long) after the "sleeping"LED turns on, and then
+the machine refuses to wake up.  Indeed, it refuses to be power-cycled,
+as described above.
+
+I'm not quite sure what The Right Thing to do is here, but I'm posting
+this just to document that the patch is not perfect, and to help anyone
+else who is stuck in the situation.
