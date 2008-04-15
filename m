@@ -1,62 +1,71 @@
-From: Ralf Orlowski <ralf@orle.de>
-Subject: Re: Can't get ACPI to work on a Panasonic Toughbook CF-52
-Date: Tue, 15 Apr 2008 11:40:20 +0200
-Message-ID: <48047804.40505@orle.de>
-References: <4801D253.40904@orle.de>	 <9D7649D18729DE4BB2BD7B494F7FEDC20122C2F2@pdsmsx415.ccr.corp.intel.com>	 <4802137E.9060804@orle.de>	 <1208164382.4031.11.camel@yakui_zhao.sh.intel.com>	 <480319F5.1060702@orle.de>	 <1208196157.4031.61.camel@yakui_zhao.sh.intel.com>	 <4803328B.7010902@orle.de> <1208249419.12372.8.camel@yakui_zhao.sh.intel.com>
+From: nokos@gmx.net
+Subject: Re: [PATCH] ACPI: Support Fujitsu Lifebook S6410 in fujitsu-laptop
+Date: Tue, 15 Apr 2008 12:51:06 +0200
+Message-ID: <1208256666.20860.37.camel@earth.gruber.myown>
+References: <200804150314.m3F3EnJW011526@turbo.physics.adelaide.edu.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ipx20135.ipxserver.de ([80.190.249.2]:2404 "EHLO
-	ipx20135.ipxserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756935AbYDOJk0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Apr 2008 05:40:26 -0400
-In-Reply-To: <1208249419.12372.8.camel@yakui_zhao.sh.intel.com>
+Received: from mail-in-05.arcor-online.net ([151.189.21.45]:47820 "EHLO
+	mail-in-05.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750715AbYDOKvf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Apr 2008 06:51:35 -0400
+In-Reply-To: <200804150314.m3F3EnJW011526@turbo.physics.adelaide.edu.au>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: trenn@suse.de, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
 
-Hello,
+Am Dienstag, den 15.04.2008, 12:44 +0930 schrieb Jonathan Woithe:
+> > > There probably are machines out there which only have one of above
+> > > devices, then only the relevant driver should be loaded.
+> > 
+> > I thought the since there is only a small functionality in each part and
+> > the module only registers drivers which are started only if an
+> > appropriate device is present it might be good to integrate it in one
+> > module. (in the S6410 case there is actually a third device FUJ02E1 but
+> > I don't know yet what it is for, there are some notifies for that device
+> > in the DSDT but so far I haven't triggered any of them)
+> 
+> A fair point.  I guess it really depends on how these devices end up being
+> structured.  Modularity enforces separation which can help with
+> maintainability going forward but it can also give rise to a certain
+> amount of code duplication.  I'd be interested to see what others think.
 
-Zhao Yakui schrieb:
- > Will you please attach the output of acpidump.out and send it to me?
- > I'd like to help you.
- >
- > Of course you can do it by yourself. (First you should install iasl
- > compiler) iasl compiler can be downloaded from :
- > http://www.acpica.org/downloads/index.php
- >
- > #acpidump > acpidump.out #acpixtract -a acpidump.out ( You can get
- > the DSDT.dat) #iasl -d DSDT.dat (Get the DSDT.dsl) #modify the
- > DSDT.dsl #iasl -tc DSDT.dat More detailed info can be found in In
- > http://www.lesswatts.org/projects/acpi/faq.php Thanks .
+I had another look into the DSDT and this is how the structure looks to
+me:
+I have three devices (FUJ02B1, FUJ02E1, FUJ02E3) with names (FJEX, CMBT,
+FEXT)
+so far it seems we can ignore the second since it always reports _STA=0
+(ie. disabled?)
 
-Thank you very much for your help. That hint brought me a big step forward.
-This way I managed to change the DSDT and compiled it into the kernel.
+FUJ02B1 Methods:
+ - RBLL get max brightness level
+ - GBLL/GBLS get current brightness (only difference GBLL zeros a flag
+if used for the first time which is not used anywhere else?)
+ - SBLL/SBL2 set brightness (some differences, notable SBLL doesn't do
+anything if a flag is set but interacts with the video device GFX0)
+ - GMOU,SMOU some getter/setter of unknown flags
+ - GHKS,GSIF more unknown flags
 
-So now I can boot the system with ACPI enabled.
-
-Now there's only one problem left:
-I can send the system into suspend mode now with the power button or if 
-I close the display.
-But when I try to wake up the system from suspend mode it looks likes it 
-wants to start up, but the display stays dark and it seems that it is 
-hanging somewhere within the wake up process.
-I can't even blindly change to a text console and type a reboot there to 
-restart the system.
-
-So are there any hints, where I can look for a configuration option to 
-make this work also?
-
-Bye Ralf
-
-P.S. should I post something about the solution for starting the CF-52 
-with ACPI enabled somewhere, so that this may also help others?
+FUJ02E3 Methods:
+ - FUNC frontend to S000-S009 : approx. FUNC(0x1000+i,j,k,l) =
+S00i(j,k,l)
+ - S000-S009 getters and setters for various stuff (not restricted to
+FUJ02E3)
+    - S000 uses some fields from FUJ02E1
+    - S004 clones GIRB
+    - S006 seems to be a frontend for video/brightness stuff in FUJ02B1
+and FUJ02E3   
+ - GIRB/SIRB get and set? the special hotkey registers
+ - SBLC/SVBL/RSBL do something with brightness and/or video using
+FUJ02B1 methods
+ 
+so it seems the devices are not independent of each other and a combined
+module might be the more sensible way to go?
 
 
--- 
-Ralf Orlowski                           voice: +49-8134-935781
-Hadersried 27a                          car:   +49-173-5239069
-85235 Odelzhausen                       mobil: +49-160-8577361
-GERMANY                   E-mail: Ralf@orle.de (PGP available)
+Peter
+
