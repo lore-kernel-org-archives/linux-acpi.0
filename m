@@ -1,134 +1,57 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: Re: [PATCH 2.6.25-rc7 001/001] ACPI: workaround for buggy BIOS to
-	ignore error LINK CRS method
-Date: Tue, 15 Apr 2008 21:49:45 +0800
-Message-ID: <1208267385.12372.11.camel@yakui_zhao.sh.intel.com>
-References: <f7430a760804090842s44ece7bh216d5d28e347955@mail.gmail.com>
-	 <20080409161251.0c0e73e9.akpm@linux-foundation.org>
-	 <1207824057.8704.12.camel@yakui_zhao.sh.intel.com>
-	 <f7430a760804100523t6483dc0cn144429ee7024a7f2@mail.gmail.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 65/73] ACPICA: Fix for extraneous debug message for packages
+Date: Tue, 15 Apr 2008 03:09:25 -0400
+Message-ID: <200804150309.25361.lenb@kernel.org>
+References: <1207974356-30687-1-git-send-email-lenb@kernel.org> <d67cc0dd29df98d6ac4824a617c151d7842e3a73.1207973800.git.len.brown@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-OG/LZqt5dV0mWDjve3Oe"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:33123 "EHLO mga01.intel.com"
+Received: from hera.kernel.org ([140.211.167.34]:40562 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754281AbYDOF6k (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Apr 2008 01:58:40 -0400
-In-Reply-To: <f7430a760804100523t6483dc0cn144429ee7024a7f2@mail.gmail.com>
+	id S1752150AbYDOHJo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Apr 2008 03:09:44 -0400
+In-Reply-To: <d67cc0dd29df98d6ac4824a617c151d7842e3a73.1207973800.git.len.brown@intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: NoWhereMan <uncommonnonsense@gmail.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: linux-acpi@vger.kernel.org
+Cc: Bob Moore <robert.moore@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.de>
 
+=46rom: Len Brown <len.brown@intel.com>
 
---=-OG/LZqt5dV0mWDjve3Oe
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+drivers/acpi/dispatcher/dsobject.c:499: warning: format =E2=80=98%X=E2=80=
+=99 expects type =E2=80=98unsigned int=E2=80=99, but argument 4 has typ=
+e =E2=80=98acpi_native_uint=E2=80=99
+drivers/acpi/dispatcher/dsobject.c:507: warning: format =E2=80=98%X=E2=80=
+=99 expects type =E2=80=98unsigned int=E2=80=99, but argument 7 has typ=
+e =E2=80=98acpi_native_uint=E2=80=99
 
-On Thu, 2008-04-10 at 14:23 +0200, NoWhereMan wrote:
-> On Thu, Apr 10, 2008 at 12:40 PM, Zhao Yakui <yakui.zhao@intel.com> wrote:
-> > On Wed, 2008-04-09 at 16:12 -0700, Andrew Morton wrote:
-> 
-> >  > That patch is about four months old.  Hopefully there was a reason why we
-> >  > dodn't proceed with it?
-> >  It seems that the system can work after applying the patch.
-> >  But the patch depends on the returned result(-ENODEV).
-> >  > if (ACPI_FAILURE(status)) {
-> >  >               ACPI_EXCEPTION((AE_INFO, status, "Evaluating _CRS"));
-> >  >                result = -ENODEV;
-> >   >               goto end;
-> >   >       }
-> >  Now I am writing another workaround patch about this problem.
-> 
-Will you please try the workaround patch and see whether the problem can
-be fixed?
-Thanks.
-> I'll try to help, testing the new patch on my system
-
---=-OG/LZqt5dV0mWDjve3Oe
-Content-Disposition: attachment; filename=crs_debug.patch
-Content-Type: text/x-patch; name=crs_debug.patch; charset=utf-8
-Content-Transfer-Encoding: 7bit
-
-An integer is returned by _CRS/_PRS object of LINK device
-for some broken bios( the HID of LINK device is "PNP0C0F").
-In such case irq_number will be constructed as the Extended
-IRQ descriptor.
-The content of the buffer should be the following:
-0x89,0x06,0x00,0x0D,0x01,0x0,0x00,0x00,0x00,0x79,0x00.
-And the length of the buffer is 11.
-
+Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/resources/rsutils.c |   47 +++++++++++++++++++++++++++++++++++++--
- 1 file changed, 45 insertions(+), 2 deletions(-)
+ drivers/acpi/dispatcher/dsobject.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Index: linux-2.6/drivers/acpi/resources/rsutils.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/resources/rsutils.c
-+++ linux-2.6/drivers/acpi/resources/rsutils.c
-@@ -611,7 +611,11 @@ acpi_rs_get_method_data(acpi_handle hand
- 			char *path, struct acpi_buffer *ret_buffer)
- {
- 	union acpi_operand_object *obj_desc;
-+	struct acpi_namespace_node *device_node = NULL;
- 	acpi_status status;
-+	u8 *ptr = NULL;
-+	u32 irq_number = 0;
-+	struct acpica_device_id hid;
- 
- 	ACPI_FUNCTION_TRACE(rs_get_method_data);
- 
-@@ -622,9 +626,48 @@ acpi_rs_get_method_data(acpi_handle hand
- 	status =
- 	    acpi_ut_evaluate_object(handle, path, ACPI_BTYPE_BUFFER, &obj_desc);
- 	if (ACPI_FAILURE(status)) {
--		return_ACPI_STATUS(status);
-+		/*
-+		 * An integer is returned by _CRS/_PRS object of LINK device
-+		 * for some broken bios( the HID of LINK device is "PNP0C0F").
-+		 * In such case irq_number will be constructed as the Extended
-+		 * IRQ descriptor.
-+		 * The content of the buffer should be the following:
-+		 * 0x89,0x06,0x00,0x0D,0x01,0x0,0x00,0x00,0x00,0x79,0x00.
-+		 * And the length of the buffer is 11.
-+		 */
-+		device_node = acpi_ns_map_handle_to_node(handle);
-+		status = acpi_ut_execute_HID(device_node, &hid);
-+		/* Now only LINK device is supported */
-+		if (ACPI_FAILURE(status) || ACPI_STRNCMP(hid.value,
-+					"PNP0C0F", sizeof(hid.value))) {
-+			ACPI_WARNING((AE_INFO , "Only LINK device supports "
-+				" the workaround patch"));
-+			return_ACPI_STATUS(AE_SUPPORT);
-+		}
-+
-+		status = acpi_ut_evaluate_object(handle, path,
-+				ACPI_BTYPE_INTEGER, &obj_desc);
-+		if (ACPI_FAILURE(status))
-+			return_ACPI_STATUS(status);
-+
-+		if (ACPI_GET_OBJECT_TYPE(obj_desc) == ACPI_TYPE_INTEGER) {
-+			#define IRQ_OFFSET	5
-+		 	char fixed_irq_buffer[] = { 0x89, 0x06, 0x0, 0x0D,
-+				0x01, 0x0, 0x0, 0x0, 0x0, 0x79, 0x0 };
-+			irq_number = obj_desc->integer.value;
-+			acpi_ut_remove_reference(obj_desc);
-+			obj_desc = acpi_ut_create_buffer_object(
-+					sizeof(fixed_irq_buffer));
-+			if (!obj_desc)
-+				return_ACPI_STATUS(AE_NO_MEMORY);
-+
-+			ptr = obj_desc->buffer.pointer;
-+			ACPI_MEMCPY(ptr, fixed_irq_buffer,
-+					sizeof(fixed_irq_buffer));
-+			ptr += IRQ_OFFSET;
-+			ACPI_MOVE_32_TO_32(ptr, &irq_number);
-+		}
- 	}
--
- 	/*
- 	 * Make the call to create a resource linked list from the
- 	 * byte stream buffer that comes back from the method
+diff --git a/drivers/acpi/dispatcher/dsobject.c b/drivers/acpi/dispatch=
+er/dsobject.c
+index 5184278..bdef2f0 100644
+--- a/drivers/acpi/dispatcher/dsobject.c
++++ b/drivers/acpi/dispatcher/dsobject.c
+@@ -373,7 +373,7 @@ acpi_ds_build_internal_package_obj(struct acpi_walk=
+_state *walk_state,
+ 	union acpi_parse_object *parent;
+ 	union acpi_operand_object *obj_desc =3D NULL;
+ 	acpi_status status =3D AE_OK;
+-	acpi_native_uint i;
++	u32 i;
+ 	u16 index;
+ 	u16 reference_count;
+=20
+--=20
+1.5.5.49.gf43e2
 
---=-OG/LZqt5dV0mWDjve3Oe--
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
