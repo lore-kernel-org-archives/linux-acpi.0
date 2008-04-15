@@ -1,57 +1,90 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 65/73] ACPICA: Fix for extraneous debug message for packages
-Date: Tue, 15 Apr 2008 03:09:25 -0400
-Message-ID: <200804150309.25361.lenb@kernel.org>
-References: <1207974356-30687-1-git-send-email-lenb@kernel.org> <d67cc0dd29df98d6ac4824a617c151d7842e3a73.1207973800.git.len.brown@intel.com>
+Subject: [PATCH 2.6.24-stable] pnpacpi: reduce printk severity for "pnpacpi: exceeded the max number of ..."
+Date: Tue, 15 Apr 2008 03:16:56 -0400
+Message-ID: <200804150316.56814.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:40562 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:52827 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752150AbYDOHJo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Apr 2008 03:09:44 -0400
-In-Reply-To: <d67cc0dd29df98d6ac4824a617c151d7842e3a73.1207973800.git.len.brown@intel.com>
+	id S1753210AbYDOHRK (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
+	Tue, 15 Apr 2008 03:17:10 -0400
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Bob Moore <robert.moore@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.de>
+To: stable@kernel.org, Linux-acpi@vger.kernel.org
 
-=46rom: Len Brown <len.brown@intel.com>
+From: Len Brown <len.brown@intel.com>
 
-drivers/acpi/dispatcher/dsobject.c:499: warning: format =E2=80=98%X=E2=80=
-=99 expects type =E2=80=98unsigned int=E2=80=99, but argument 4 has typ=
-e =E2=80=98acpi_native_uint=E2=80=99
-drivers/acpi/dispatcher/dsobject.c:507: warning: format =E2=80=98%X=E2=80=
-=99 expects type =E2=80=98unsigned int=E2=80=99, but argument 7 has typ=
-e =E2=80=98acpi_native_uint=E2=80=99
+We have been printing these messages at KERN_ERR since 2.6.24,
+per http://bugzilla.kernel.org/show_bug.cgi?id=9535
+
+But KERN_ERR pops up on a console booted with "quiet"
+and causes users to get alarmed and file bugs
+about the message itself:
+https://bugzilla.redhat.com/show_bug.cgi?id=436589
+
+So reduce the severity of these messages to
+KERN_WARNING, which is not printed by "quiet".
+
+This message will still be seen without "quiet",
+but a lot of messages are printed in that mode
+and it will be less likely to cause undue alarm.
+
+We could go all the way to KERN_DEBUG, but this
+is a real warning after all, so it seems prudent
+not to require "debug" to see it.
 
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/dispatcher/dsobject.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/dispatcher/dsobject.c b/drivers/acpi/dispatch=
-er/dsobject.c
-index 5184278..bdef2f0 100644
---- a/drivers/acpi/dispatcher/dsobject.c
-+++ b/drivers/acpi/dispatcher/dsobject.c
-@@ -373,7 +373,7 @@ acpi_ds_build_internal_package_obj(struct acpi_walk=
-_state *walk_state,
- 	union acpi_parse_object *parent;
- 	union acpi_operand_object *obj_desc =3D NULL;
- 	acpi_status status =3D AE_OK;
--	acpi_native_uint i;
-+	u32 i;
- 	u16 index;
- 	u16 reference_count;
-=20
---=20
+upsptream commit 33fd7afd66ffdc6addf1b085fe6403b6af532f8e 
+
+ drivers/pnp/pnpacpi/rsparser.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/pnp/pnpacpi/rsparser.c b/drivers/pnp/pnpacpi/rsparser.c
+index 6aa231e..2dcd196 100644
+--- a/drivers/pnp/pnpacpi/rsparser.c
++++ b/drivers/pnp/pnpacpi/rsparser.c
+@@ -85,7 +85,7 @@ static void pnpacpi_parse_allocated_irqresource(struct pnp_resource_table *res,
+ 	       i < PNP_MAX_IRQ)
+ 		i++;
+ 	if (i >= PNP_MAX_IRQ && !warned) {
+-		printk(KERN_ERR "pnpacpi: exceeded the max number of IRQ "
++		printk(KERN_WARNING "pnpacpi: exceeded the max number of IRQ "
+ 				"resources: %d \n", PNP_MAX_IRQ);
+ 		warned = 1;
+ 		return;
+@@ -187,7 +187,7 @@ static void pnpacpi_parse_allocated_dmaresource(struct pnp_resource_table *res,
+ 		res->dma_resource[i].start = dma;
+ 		res->dma_resource[i].end = dma;
+ 	} else if (!warned) {
+-		printk(KERN_ERR "pnpacpi: exceeded the max number of DMA "
++		printk(KERN_WARNING "pnpacpi: exceeded the max number of DMA "
+ 				"resources: %d \n", PNP_MAX_DMA);
+ 		warned = 1;
+ 	}
+@@ -213,7 +213,7 @@ static void pnpacpi_parse_allocated_ioresource(struct pnp_resource_table *res,
+ 		res->port_resource[i].start = io;
+ 		res->port_resource[i].end = io + len - 1;
+ 	} else if (!warned) {
+-		printk(KERN_ERR "pnpacpi: exceeded the max number of IO "
++		printk(KERN_WARNING "pnpacpi: exceeded the max number of IO "
+ 				"resources: %d \n", PNP_MAX_PORT);
+ 		warned = 1;
+ 	}
+@@ -241,7 +241,7 @@ static void pnpacpi_parse_allocated_memresource(struct pnp_resource_table *res,
+ 		res->mem_resource[i].start = mem;
+ 		res->mem_resource[i].end = mem + len - 1;
+ 	} else if (!warned) {
+-		printk(KERN_ERR "pnpacpi: exceeded the max number of mem "
++		printk(KERN_WARNING "pnpacpi: exceeded the max number of mem "
+ 				"resources: %d\n", PNP_MAX_MEM);
+ 		warned = 1;
+ 	}
+-- 
 1.5.5.49.gf43e2
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
