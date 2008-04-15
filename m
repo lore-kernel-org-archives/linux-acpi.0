@@ -1,61 +1,72 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: Re: [PATCH 65/73] ACPICA: Fix for extraneous debug message for packages
-Date: Tue, 15 Apr 2008 12:36:18 +0400
-Message-ID: <48046902.8040900@gmail.com>
-References: <1207974356-30687-1-git-send-email-lenb@kernel.org> <d67cc0dd29df98d6ac4824a617c151d7842e3a73.1207973800.git.len.brown@intel.com> <200804150309.25361.lenb@kernel.org>
+From: "Bart Van Assche" <bart.vanassche@gmail.com>
+Subject: Re: [Bugme-new] [Bug 10455] New: Kernel lockup when iwl3945 modules is loaded after a few hours
+Date: Tue, 15 Apr 2008 10:39:17 +0200
+Message-ID: <e2e108260804150139kf816be5m91e6206853a0d755@mail.gmail.com>
+References: <bug-10455-10286@http.bugzilla.kernel.org/>
+	 <20080415013251.e90e5abd.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.156]:61560 "EHLO
+Received: from fg-out-1718.google.com ([72.14.220.154]:2910 "EHLO
 	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754149AbYDOIgZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Apr 2008 04:36:25 -0400
-Received: by fg-out-1718.google.com with SMTP id l27so1912078fgb.17
-        for <linux-acpi@vger.kernel.org>; Tue, 15 Apr 2008 01:36:21 -0700 (PDT)
-In-Reply-To: <200804150309.25361.lenb@kernel.org>
+	with ESMTP id S1751921AbYDOIjT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Apr 2008 04:39:19 -0400
+Received: by fg-out-1718.google.com with SMTP id l27so1912930fgb.17
+        for <linux-acpi@vger.kernel.org>; Tue, 15 Apr 2008 01:39:18 -0700 (PDT)
+In-Reply-To: <20080415013251.e90e5abd.akpm@linux-foundation.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.de>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: bugme-daemon@bugzilla.kernel.org, linux-wireless@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Len Brown wrote:
-> From: Len Brown <len.brown@intel.com>
+On Tue, Apr 15, 2008 at 10:32 AM, Andrew Morton
+<akpm@linux-foundation.org> wrote:
 >
-> drivers/acpi/dispatcher/dsobject.c:499: warning: format =91%X=92 expe=
-cts type =91unsigned int=92, but argument 4 has type =91acpi_native_uin=
-t=92
-> drivers/acpi/dispatcher/dsobject.c:507: warning: format =91%X=92 expe=
-cts type =91unsigned int=92, but argument 7 has type =91acpi_native_uin=
-t=92
+>  > Latest working kernel version: (not known)
+>  > Earliest failing kernel version: 2.6.25-rc9
 >
-> Signed-off-by: Len Brown <len.brown@intel.com>
-> ---
->  drivers/acpi/dispatcher/dsobject.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/acpi/dispatcher/dsobject.c b/drivers/acpi/dispat=
-cher/dsobject.c
-> index 5184278..bdef2f0 100644
-> --- a/drivers/acpi/dispatcher/dsobject.c
-> +++ b/drivers/acpi/dispatcher/dsobject.c
-> @@ -373,7 +373,7 @@ acpi_ds_build_internal_package_obj(struct acpi_wa=
-lk_state *walk_state,
->  	union acpi_parse_object *parent;
->  	union acpi_operand_object *obj_desc =3D NULL;
->  	acpi_status status =3D AE_OK;
-> -	acpi_native_uint i;
-> +	u32 i;
->  =20
-why not just unsigned ?
->  	u16 index;
->  	u16 reference_count;
-> =20
->  =20
+>  hm, why?  Has this machine never run earlier kernels?
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2.6.22-14 works fine on the same hardware. This is the kernel provided
+by Ubuntu.
+
+>  > Apr 14 21:06:00 localhost kernel: ACPI: PCI Interrupt 0000:05:00.0[A] -> GSI 19
+>  > (level, low) -> IRQ 19
+>  > Apr 14 21:06:00 localhost kernel: ACPI: PCI interrupt for device 0000:05:00.0
+>  > disabled
+>
+>  Yes, that does look like an ACPI problem.  But one would expect it to kill
+>  the interface immediately, not several hours later.
+>
+>  Can you send the /proc/interrupts contents?
+
+Here it is:
+
+           CPU0       CPU1
+  0:     996478          0   IO-APIC-edge      timer
+  1:         30          0   IO-APIC-edge      i8042
+  8:          7          0   IO-APIC-edge      rtc
+  9:      57710          0   IO-APIC-fasteoi   acpi
+ 12:        132          0   IO-APIC-edge      i8042
+ 14:      31294      11519   IO-APIC-edge      ata_piix
+ 15:      69158          0   IO-APIC-edge      ata_piix
+ 16:      85016          0   IO-APIC-fasteoi   uhci_hcd:usb4,
+i915@pci:0000:00:02.0
+ 18:      15921          0   IO-APIC-fasteoi   uhci_hcd:usb3
+ 19:          0          0   IO-APIC-fasteoi   uhci_hcd:usb2
+ 21:      79770      60509   IO-APIC-fasteoi   eth0
+ 22:       5811          0   IO-APIC-fasteoi   HDA Intel
+ 23:          3          0   IO-APIC-fasteoi   uhci_hcd:usb1, ehci_hcd:usb5
+NMI:          0          0   Non-maskable interrupts
+LOC:        509     996926   Local timer interrupts
+RES:      29774      84400   Rescheduling interrupts
+CAL:         62      28154   function call interrupts
+TLB:        868       1262   TLB shootdowns
+TRM:          0          0   Thermal event interrupts
+SPU:          0          0   Spurious interrupts
+ERR:          0
+MIS:          0
+
+Bart.
