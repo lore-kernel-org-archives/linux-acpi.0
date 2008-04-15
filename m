@@ -1,116 +1,82 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH 65/73] ACPICA: Fix for extraneous debug message for packages
-Date: Tue, 15 Apr 2008 13:19:47 -0700
-Message-ID: <9D39833986E69849A2A8E74C1078B6B3257BAC@orsmsx415.amr.corp.intel.com>
-References: <1207974356-30687-1-git-send-email-lenb@kernel.org> <d67cc0dd29df98d6ac4824a617c151d7842e3a73.1207973800.git.len.brown@intel.com> <200804150309.25361.lenb@kernel.org> <48046902.8040900@gmail.com> <9D39833986E69849A2A8E74C1078B6B3257A97@orsmsx415.amr.corp.intel.com> <4804FA6A.2050401@suse.de>
+From: Ralf Orlowski <ralf@orle.de>
+Subject: Re: Can't get ACPI to work on a Panasonic Toughbook CF-52
+Date: Tue, 15 Apr 2008 22:24:57 +0200
+Message-ID: <48050F19.3090109@orle.de>
+References: <4801D253.40904@orle.de>	 <9D7649D18729DE4BB2BD7B494F7FEDC20122C2F2@pdsmsx415.ccr.corp.intel.com>	 <4802137E.9060804@orle.de>	 <1208164382.4031.11.camel@yakui_zhao.sh.intel.com>	 <480319F5.1060702@orle.de>	 <1208196157.4031.61.camel@yakui_zhao.sh.intel.com>	 <4803328B.7010902@orle.de> <1208249419.12372.8.camel@yakui_zhao.sh.intel.com> <48047804.40505@orle.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:53999 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751536AbYDOUTz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Apr 2008 16:19:55 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <4804FA6A.2050401@suse.de>
+Received: from ipx20135.ipxserver.de ([80.190.249.2]:2205 "EHLO
+	ipx20135.ipxserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1765724AbYDOUZB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Apr 2008 16:25:01 -0400
+In-Reply-To: <48047804.40505@orle.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: Alexey Starikovskiy <aystarik@gmail.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-I think one of the reasons we introduced ACPI_NATIVE_UINT is that "int"
-is in fact not "native" under all compilation models.
+Hello,
 
-Here is the table from actypes.h
+Ralf Orlowski schrieb:
+> Hello,
+> 
+> Zhao Yakui schrieb:
+>  > Will you please attach the output of acpidump.out and send it to me?
+>  > I'd like to help you.
+>  >
+>  > Of course you can do it by yourself. (First you should install iasl
+>  > compiler) iasl compiler can be downloaded from :
+>  > http://www.acpica.org/downloads/index.php
+>  >
+>  > #acpidump > acpidump.out #acpixtract -a acpidump.out ( You can get
+>  > the DSDT.dat) #iasl -d DSDT.dat (Get the DSDT.dsl) #modify the
+>  > DSDT.dsl #iasl -tc DSDT.dat More detailed info can be found in In
+>  > http://www.lesswatts.org/projects/acpi/faq.php Thanks .
+> 
+> Thank you very much for your help. That hint brought me a big step forward.
+> This way I managed to change the DSDT and compiled it into the kernel.
+> 
+> So now I can boot the system with ACPI enabled.
+> 
+> Now there's only one problem left:
+> I can send the system into suspend mode now with the power button or if 
+> I close the display.
+> But when I try to wake up the system from suspend mode it looks likes it 
+> wants to start up, but the display stays dark and it seems that it is 
+> hanging somewhere within the wake up process.
+> I can't even blindly change to a text console and type a reboot there to 
+> restart the system.
+> 
+> So are there any hints, where I can look for a configuration option to 
+> make this work also?
+> 
 
- * Datatype  LP64 ILP64 LLP64 ILP32 LP32 16bit
- * char      8    8     8     8     8    8
- * short     16   16    16    16    16   16
- * _int32         32
- * int       32   64    32    32    16   16
- * long      64   64    32    32    32   32
- * long long            64    64
- * pointer   64   64    64    32    32   32
+As I read on the list, there are also other notebooks, that have 
+problems with suspend under kernel 2.6.25-rc?.
+
+So today I installed and tested kernel version 2.6.24.4 with the 
+exchanged DSDT.
+
+And so far everything seems to work now.
+I can boot the system with ACPI enabled and suspend is also working.
+
+If anyone needs a working DSDT and .config for kernel 2.6.24.4 for a 
+Panasonic Toughbook CF-52 he can just contact me.
 
 
+Bye Ralf
+> Bye Ralf
+> 
+> P.S. should I post something about the solution for starting the CF-52 
+> with ACPI enabled somewhere, so that this may also help others?
+> 
+> 
 
 
->-----Original Message-----
->From: Alexey Starikovskiy [mailto:astarikovskiy@suse.de]
->Sent: Tuesday, April 15, 2008 11:57 AM
->To: Moore, Robert
->Cc: Alexey Starikovskiy; Len Brown; linux-acpi@vger.kernel.org
->Subject: Re: [PATCH 65/73] ACPICA: Fix for extraneous debug message for
->packages
->
->Moore, Robert wrote:
->> We use acpi_native_uint for things like array indexes so it goes
-32/64
->> without warnings (lint or otherwise).
->>
->> However,
->> typedef UINT32                          ACPI_NATIVE_UINT;
->>
->> should get converted to
->> typedef u32                             acpi_native_uint;
->Well, "unsigned int" is supposed to be of native length. u32 is not
-going
->to be of
->native length on 64 bits.
->What kind of warning do you avoid?
->I don't know any checker who does not accept int/unsigned int as array
->index...
->
->Regards,
->Alex.
->
->
->>
->> during the linuxiztion, I think
->>
->>> -----Original Message-----
->>> From: Alexey Starikovskiy [mailto:aystarik@gmail.com]
->>> Sent: Tuesday, April 15, 2008 1:36 AM
->>> To: Len Brown
->>> Cc: linux-acpi@vger.kernel.org; Moore, Robert; Alexey Starikovskiy
->>> Subject: Re: [PATCH 65/73] ACPICA: Fix for extraneous debug message
-for
->>> packages
->>>
->>> Len Brown wrote:
->>>> From: Len Brown <len.brown@intel.com>
->>>>
->>>> drivers/acpi/dispatcher/dsobject.c:499: warning: format '%X'
-expects
->> type
->>> 'unsigned int', but argument 4 has type 'acpi_native_uint'
->>>> drivers/acpi/dispatcher/dsobject.c:507: warning: format '%X'
-expects
->> type
->>> 'unsigned int', but argument 7 has type 'acpi_native_uint'
->>>> Signed-off-by: Len Brown <len.brown@intel.com>
->>>> ---
->>>>  drivers/acpi/dispatcher/dsobject.c |    2 +-
->>>>  1 files changed, 1 insertions(+), 1 deletions(-)
->>>>
->>>> diff --git a/drivers/acpi/dispatcher/dsobject.c
->>> b/drivers/acpi/dispatcher/dsobject.c
->>>> index 5184278..bdef2f0 100644
->>>> --- a/drivers/acpi/dispatcher/dsobject.c
->>>> +++ b/drivers/acpi/dispatcher/dsobject.c
->>>> @@ -373,7 +373,7 @@ acpi_ds_build_internal_package_obj(struct
->>> acpi_walk_state *walk_state,
->>>>  	union acpi_parse_object *parent;
->>>>  	union acpi_operand_object *obj_desc = NULL;
->>>>  	acpi_status status = AE_OK;
->>>> -	acpi_native_uint i;
->>>> +	u32 i;
->>>>
->>> why not just unsigned ?
->>>>  	u16 index;
->>>>  	u16 reference_count;
->>>>
->>>>
->>
-
+-- 
+Ralf Orlowski                           voice: +49-8134-935781
+Hadersried 27a                          car:   +49-173-5239069
+85235 Odelzhausen                       mobil: +49-160-8577361
+GERMANY                   E-mail: Ralf@orle.de (PGP available)
