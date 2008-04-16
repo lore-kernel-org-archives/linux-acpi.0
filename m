@@ -1,12 +1,12 @@
 From: Cezary Jackiewicz <cezary.jackiewicz@gmail.com>
-Subject: [PATCH -mm 3/3] misc,acpi,backlight: Compal Laptop Extras - add
- support for new laptops
-Date: Wed, 16 Apr 2008 22:53:54 +0200
-Message-ID: <20080416225354.528207fc@debian>
+Subject: [PATCH -mm 2/3] misc,acpi,backlight: Compal Laptop Extras - use
+ bitmask, not hex
+Date: Wed, 16 Apr 2008 22:53:04 +0200
+Message-ID: <20080416225304.3dc5b9d2@debian>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932495AbYDPUyi@vger.kernel.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932297AbYDPUxe@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Andrew Morton <akpm@osdl.org>
 Cc: Len Brown <lenb@kernel.org>, Richard Purdie <rpurdie@rpsys.net>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
@@ -14,79 +14,94 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Cezary Jackiewicz <cezary.jackiewicz@gmail.com>
 
-Compal-laptop: add support for new laptops:
-
-FL91/IFL91
-FL92/JFL92
-FT00/IFT00
+Clean up code. Use bitmask for operations.
 
 Signed-off-by: Cezary Jackiewicz <cezary.jackiewicz@gmail.com>
 ---
 diff -Nuar a/drivers/misc/compal-laptop.c b/drivers/misc/compal-laptop.c
---- a/drivers/misc/compal-laptop.c	2008-04-16 20:19:09.000000000 +0200
-+++ b/drivers/misc/compal-laptop.c	2008-04-16 18:11:05.000000000 +0200
-@@ -24,7 +24,7 @@
-  */
+--- a/drivers/misc/compal-laptop.c	2008-04-16 19:42:45.000000000 +0200
++++ b/drivers/misc/compal-laptop.c	2008-04-16 20:19:09.000000000 +0200
+@@ -1,7 +1,7 @@
+ /*-*-linux-c-*-*/
  
  /*
-- * comapl-laptop.c - Compal FL90/IFL90 laptop support.
-+ * comapl-laptop.c - Compal laptop support.
-  *
-  * This driver exports a few files in /sys/devices/platform/compal-laptop/:
-  *
-@@ -320,6 +320,30 @@
- 		},
- 		.callback = dmi_check_cb
- 	},
-+	{
-+		.ident = "FL91/IFL91",
-+		.matches = {
-+			DMI_MATCH(DMI_BOARD_NAME, "IFL91"),
-+			DMI_MATCH(DMI_BOARD_VERSION, "IFT00"),
-+		},
-+		.callback = dmi_check_cb
-+	},
-+	{
-+		.ident = "FL92/JFL92",
-+		.matches = {
-+			DMI_MATCH(DMI_BOARD_NAME, "JFL92"),
-+			DMI_MATCH(DMI_BOARD_VERSION, "IFT00"),
-+		},
-+		.callback = dmi_check_cb
-+	},
-+	{
-+		.ident = "FT00/IFT00",
-+		.matches = {
-+			DMI_MATCH(DMI_BOARD_NAME, "IFT00"),
-+			DMI_MATCH(DMI_BOARD_VERSION, "IFT00"),
-+		},
-+		.callback = dmi_check_cb
-+	},
- 	{ }
- };
+-  Copyright (C) 2008 Cezary Jackiewicz <cezary.Jackiewicz (at) gmail.com>
++  Copyright (C) 2008 Cezary Jackiewicz <cezary.jackiewicz (at) gmail.com>
  
-@@ -408,3 +432,6 @@
+   based on MSI driver
  
- MODULE_ALIAS("dmi:*:rnIFL90:rvrIFT00:*");
- MODULE_ALIAS("dmi:*:rnIFL90:rvrREFERENCE:*");
-+MODULE_ALIAS("dmi:*:rnIFL91:rvrIFT00:*");
-+MODULE_ALIAS("dmi:*:rnJFL92:rvrIFT00:*");
-+MODULE_ALIAS("dmi:*:rnIFT00:rvrIFT00:*");
-diff -Nuar a/drivers/misc/Kconfig b/drivers/misc/Kconfig
---- a/drivers/misc/Kconfig	2008-04-16 19:42:45.000000000 +0200
-+++ b/drivers/misc/Kconfig	2008-04-16 20:17:37.000000000 +0200
-@@ -226,10 +226,13 @@
- 	  This is a driver for laptops built by Compal:
+@@ -56,13 +56,17 @@
+ #include <linux/platform_device.h>
+ #include <linux/autoconf.h>
  
- 	  Compal FL90/IFL90
-+	  Compal FL91/IFL91
-+	  Compal FL92/JFL92
-+	  Compal FT00/IFT00
+-#define COMPAL_DRIVER_VERSION "0.2.2"
++#define COMPAL_DRIVER_VERSION "0.2.5"
  
- 	  It adds support for Bluetooth, WLAN and LCD brightness control.
+ #define COMPAL_LCD_LEVEL_MAX 8
  
--	  If you have an Compal FL90/IFL90 laptop, say Y or M here.
-+	  If you have an Compal FL9x/IFL9x/FT00 laptop, say Y or M here.
+ #define COMPAL_EC_COMMAND_WIRELESS 0xBB
+ #define COMPAL_EC_COMMAND_LCD_LEVEL 0xB9
  
- config SONY_LAPTOP
- 	tristate "Sony Laptop Extras"
++#define KILLSWITCH_MASK	0x10
++#define WLAN_MASK	0x01
++#define BT_MASK		0x02
++
+ static int force;
+ module_param(force, bool, 0);
+ MODULE_PARM_DESC(force, "Force driver load, ignore DMI data");
+@@ -94,13 +98,13 @@
+ 
+ 	ec_read(COMPAL_EC_COMMAND_WIRELESS, &result);
+ 
+-	if ((result & 0x10) == 0)
++	if ((result & KILLSWITCH_MASK) == 0)
+ 		return -EINVAL;
+ 	else {
+ 		if (state)
+-			value = (u8) (result | 0x01);
++			value = (u8) (result | WLAN_MASK);
+ 		else
+-			value = (u8) (result & 0xFE);
++			value = (u8) (result & ~WLAN_MASK);
+ 		ec_write(COMPAL_EC_COMMAND_WIRELESS, value);
+ 	}
+ 
+@@ -113,13 +117,13 @@
+ 
+ 	ec_read(COMPAL_EC_COMMAND_WIRELESS, &result);
+ 
+-	if ((result & 0x10) == 0)
++	if ((result & KILLSWITCH_MASK) == 0)
+ 		return -EINVAL;
+ 	else {
+ 		if (state)
+-			value = (u8) (result | 0x02);
++			value = (u8) (result | BT_MASK);
+ 		else
+-			value = (u8) (result & 0xFD);
++			value = (u8) (result & ~BT_MASK);
+ 		ec_write(COMPAL_EC_COMMAND_WIRELESS, value);
+ 	}
+ 
+@@ -133,17 +137,17 @@
+ 	ec_read(COMPAL_EC_COMMAND_WIRELESS, &result);
+ 
+ 	if (wlan) {
+-		if ((result & 0x10) == 0)
++		if ((result & KILLSWITCH_MASK) == 0)
+ 			*wlan = 0;
+ 		else
+-			*wlan = result & 0x01;
++			*wlan = result & WLAN_MASK;
+ 	}
+ 
+ 	if (bluetooth) {
+-		if ((result & 0x10) == 0)
++		if ((result & KILLSWITCH_MASK) == 0)
+ 			*bluetooth = 0;
+ 		else
+-			*bluetooth = (result >> 1) & 0x01;
++			*bluetooth = (result & BT_MASK) >> 1;
+ 	}
+ 
+ 	return 0;
