@@ -1,281 +1,169 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH 6/7] Initialize brightness and display switching in
-	separate functions
-Date: Wed, 16 Apr 2008 21:02:15 +0200
-Message-ID: <1208372535.1784.351.camel@queen.suse.de>
+Subject: [PATCH 2/7] ACPI: Introduce static func: cid_add to add IDs as
+	compatible IDs to a device
+Date: Wed, 16 Apr 2008 20:52:29 +0200
+Message-ID: <1208371949.1784.343.camel@queen.suse.de>
 Reply-To: trenn@suse.de
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:41514 "EHLO mx2.suse.de"
+Received: from cantor2.suse.de ([195.135.220.15]:38492 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751440AbYDPTCQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Apr 2008 15:02:16 -0400
+	id S1750958AbYDPSwa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Apr 2008 14:52:30 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi <linux-acpi@vger.kernel.org>, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Corentin CHARY <corentincj@iksaif.net>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Mattia Dongili <malattia@linux.it>
 
-Initialize brightness and display switching in separate functions
+ACPI: Introduce static func: cid_add to add IDs as compatible IDs to a device
 
-Should be no functional change.
-Also rename the ambiguous, multiple times declared "count" variable
+Rip the functionality out of acpi_device_set_id, it is needed elsewhere in
+the code on follow-up patches.
 
 Signed-off-by: Thomas Renninger <trenn@suse.de>
 
 ---
- drivers/acpi/video.c |  224 ++++++++++++++++++++++++++++-----------------------
- 1 file changed, 124 insertions(+), 100 deletions(-)
+ drivers/acpi/scan.c |   97 ++++++++++++++++++++++++++--------------------------
+ 1 file changed, 50 insertions(+), 47 deletions(-)
 
-Index: linux-acpi-2.6_video_native_vs_vendor/drivers/acpi/video.c
+Index: linux-acpi-2.6_video_native_vs_vendor/drivers/acpi/scan.c
 ===================================================================
---- linux-acpi-2.6_video_native_vs_vendor.orig/drivers/acpi/video.c
-+++ linux-acpi-2.6_video_native_vs_vendor/drivers/acpi/video.c
-@@ -619,8 +619,129 @@ acpi_video_bus_DOS(struct acpi_video_bus
- 	return status;
+--- linux-acpi-2.6_video_native_vs_vendor.orig/drivers/acpi/scan.c
++++ linux-acpi-2.6_video_native_vs_vendor/drivers/acpi/scan.c
+@@ -954,6 +954,52 @@ static int acpi_dock_match(struct acpi_d
+ 	return acpi_get_handle(device->handle, "_DCK", &tmp);
  }
  
-+static int
-+acpi_video_init_brightness(struct acpi_video_device *device)
-+{
-+	u32 max_level = 0;
-+	union acpi_object *obj = NULL;
-+	struct acpi_video_device_brightness *br = NULL;
-+	int result;
-+	char *name;
-+	int i;
-+	static int dev_count;
++/* Add a single Compatible ID or a whole list of CIDs to a device */
++static void cid_add(struct acpi_device *device, const char *cid_add,
++		    struct acpi_compatible_id_list *cid_list) {
 +
-+	if (!device->cap._BCL || !device->cap._BCM)
-+		return -ENODEV;
++	struct acpi_compatible_id_list *list = NULL;
++	int size = 0;
++	int count = 0;
 +
-+	if (ACPI_FAILURE(acpi_video_device_lcd_query_levels(device,
-+							    &obj))) {
-+		kfree(obj);
-+		return -ENODEV;
-+	}
++	if (!cid_list && !cid_add)
++		return;
 +
-+	if (obj->package.count >= 2) {
-+		int count = 0;
-+		union acpi_object *o;
-+
-+		br = kzalloc(sizeof(*br), GFP_KERNEL);
-+		if (!br) {
-+			printk(KERN_ERR "can't allocate memory\n");
-+			return -ENOMEM;
++	if (cid_list) {
++		size = cid_list->size;
++	} else if (cid_add) {
++		size = sizeof(struct acpi_compatible_id_list);
++		cid_list = ACPI_ALLOCATE_ZEROED((acpi_size) size);
++		if (!cid_list) {
++			printk(KERN_ERR "Memory allocation error\n");
++			return;
 +		} else {
-+			br->levels = kmalloc(obj->package.count *
-+					     sizeof *(br->levels), GFP_KERNEL);
-+			if (!br->levels)
-+				goto out;
-+
-+			for (i = 0; i < obj->package.count; i++) {
-+				o = (union acpi_object *)&obj->package.
-+					elements[i];
-+				if (o->type != ACPI_TYPE_INTEGER) {
-+					printk(KERN_ERR PREFIX
-+					       "Invalid data\n");
-+					continue;
-+				}
-+				br->levels[count] = (u32) o->integer.value;
-+
-+				if (br->levels[count] > max_level)
-+					max_level = br->levels[count];
-+				count++;
-+			}
-+out:
-+			if (count < 2) {
-+				kfree(br->levels);
-+				kfree(br);
-+				return -ENODEV;
-+			} else {
-+				br->count = count;
-+				device->brightness = br;
-+				ACPI_DEBUG_PRINT((ACPI_DB_INFO, "found %d "
-+						  "brightness levels\n",
-+						  count));
-+			}
-+		}
-+		kfree(obj);
-+		name = kzalloc(MAX_NAME_LEN, GFP_KERNEL);
-+		if (!name)
-+			return -ENOMEM;
-+
-+		sprintf(name, "acpi_video%d", dev_count++);
-+		device->backlight = backlight_device_register(name,
-+				      NULL, device, &acpi_backlight_ops);
-+		device->backlight->props.max_brightness =
-+			device->brightness->count-3;
-+		device->backlight->props.brightness =
-+			acpi_video_get_brightness(device->backlight);
-+		backlight_update_status(device->backlight);
-+		kfree(name);
-+
-+		device->cdev = thermal_cooling_device_register("LCD",
-+					       device->dev, &video_cooling_ops);
-+		if (IS_ERR(device->cdev))
-+			return -ENODEV;
-+
-+		printk(KERN_INFO PREFIX
-+		       "%s is registered as cooling_device%d\n",
-+		       device->dev->dev.bus_id, device->cdev->id);
-+		result = sysfs_create_link(&device->dev->dev.kobj,
-+					   &device->cdev->device.kobj,
-+					   "thermal_cooling");
-+		if (result) {
-+			printk(KERN_ERR PREFIX "Create sysfs link\n");
-+			return -ENODEV;
-+		}
-+		result = sysfs_create_link(&device->cdev->device.kobj,
-+					   &device->dev->dev.kobj,
-+					   "device");
-+		if (result) {
-+			printk(KERN_ERR PREFIX "Create sysfs link\n");
-+			return -ENODEV;
++			cid_list->count = 0;
++			cid_list->size = size;
 +		}
 +	}
-+	return 0;
++	if (cid_add)
++		size += sizeof(struct acpi_compatible_id);
++	list = kmalloc(size, GFP_KERNEL);
++
++	if (list) {
++		if (cid_list) {
++			memcpy(list, cid_list, cid_list->size);
++			count = cid_list->count;
++		}
++		if (cid_add) {
++			strncpy(list->id[count].value, cid_add,
++				ACPI_MAX_CID_LENGTH);
++			count++;
++			device->flags.compatible_ids = 1;
++		}
++		list->size = size;
++		list->count = count;
++		device->pnp.cid_list = list;
++	} else
++		printk(KERN_ERR PREFIX "Memory allocation error\n");
 +}
 +
-+static int
-+acpi_video_init_display_switching(struct acpi_video_device *device)
-+{
-+	char *name;
-+	static int dev_count;
-+
-+	if (!device->cap._DCS || !device->cap._DSS)
-+		return -ENODEV;
-+
-+	name = kzalloc(MAX_NAME_LEN, GFP_KERNEL);
-+	if (!name)
-+		return -ENOMEM;
-+	sprintf(name, "acpi_video%d", dev_count++);
-+	device->output_dev = video_output_register(name,
-+				   NULL, device, &acpi_output_properties);
-+	kfree(name);
-+	return 0;
-+}
-+
- /*
-- *  Arg:	
-+ *  Arg:
-  *  	device	: video output device (LCD, CRT, ..)
-  *
-  *  Return Value:
-@@ -633,11 +754,6 @@ acpi_video_bus_DOS(struct acpi_video_bus
- static void acpi_video_device_find_cap(struct acpi_video_device *device)
- {
- 	acpi_handle h_dummy1;
--	int i;
--	u32 max_level = 0;
--	union acpi_object *obj = NULL;
--	struct acpi_video_device_brightness *br = NULL;
--
+ static void acpi_device_set_id(struct acpi_device *device,
+ 			       struct acpi_device *parent, acpi_handle handle,
+ 			       int type)
+@@ -962,8 +1008,6 @@ static void acpi_device_set_id(struct ac
+ 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+ 	char *hid = NULL;
+ 	char *uid = NULL;
+-	struct acpi_compatible_id_list *cid_list = NULL;
+-	const char *cid_add = NULL;
+ 	acpi_status status;
  
- 	memset(&device->cap, 0, sizeof(device->cap));
+ 	switch (type) {
+@@ -980,7 +1024,7 @@ static void acpi_device_set_id(struct ac
+ 		if (info->valid & ACPI_VALID_UID)
+ 			uid = info->unique_id.value;
+ 		if (info->valid & ACPI_VALID_CID)
+-			cid_list = &info->compatibility_id;
++			cid_add(device, NULL, &info->compatibility_id);
+ 		if (info->valid & ACPI_VALID_ADR) {
+ 			device->pnp.bus_address = info->address;
+ 			device->flags.bus_address = 1;
+@@ -992,11 +1036,11 @@ static void acpi_device_set_id(struct ac
+ 		   against another driver.
+ 		*/
+ 		if (ACPI_SUCCESS(acpi_video_bus_match(device)))
+-			cid_add = ACPI_VIDEO_HID;
++			cid_add(device, ACPI_VIDEO_HID, NULL);
+ 		else if (ACPI_SUCCESS(acpi_bay_match(device)))
+-			cid_add = ACPI_BAY_HID;
++			cid_add(device, ACPI_BAY_HID, NULL);
+ 		else if (ACPI_SUCCESS(acpi_dock_match(device)))
+-			cid_add = ACPI_DOCK_HID;
++			cid_add(device, ACPI_DOCK_HID, NULL);;
  
-@@ -665,100 +781,8 @@ static void acpi_video_device_find_cap(s
- 		device->cap._DSS = 1;
+ 		break;
+ 	case ACPI_BUS_TYPE_POWER:
+@@ -1038,47 +1082,6 @@ static void acpi_device_set_id(struct ac
+ 		strcpy(device->pnp.unique_id, uid);
+ 		device->flags.unique_id = 1;
  	}
- 
--	if (ACPI_SUCCESS(acpi_video_device_lcd_query_levels(device, &obj))) {
+-	if (cid_list || cid_add) {
+-		struct  acpi_compatible_id_list *list;
+-		int size = 0;
+-		int count = 0;
 -
--		if (obj->package.count >= 2) {
--			int count = 0;
--			union acpi_object *o;
--
--			br = kzalloc(sizeof(*br), GFP_KERNEL);
--			if (!br) {
--				printk(KERN_ERR "can't allocate memory\n");
+-		if (cid_list) {
+-			size = cid_list->size;
+-		} else if (cid_add) {
+-			size = sizeof(struct acpi_compatible_id_list);
+-			cid_list = ACPI_ALLOCATE_ZEROED((acpi_size) size);
+-			if (!cid_list) {
+-				printk(KERN_ERR "Memory allocation error\n");
+-				kfree(buffer.pointer);
+-				return;
 -			} else {
--				br->levels = kmalloc(obj->package.count *
--						     sizeof *(br->levels), GFP_KERNEL);
--				if (!br->levels)
--					goto out;
--
--				for (i = 0; i < obj->package.count; i++) {
--					o = (union acpi_object *)&obj->package.
--					    elements[i];
--					if (o->type != ACPI_TYPE_INTEGER) {
--						printk(KERN_ERR PREFIX "Invalid data\n");
--						continue;
--					}
--					br->levels[count] = (u32) o->integer.value;
--
--					if (br->levels[count] > max_level)
--						max_level = br->levels[count];
--					count++;
--				}
--			      out:
--				if (count < 2) {
--					kfree(br->levels);
--					kfree(br);
--				} else {
--					br->count = count;
--					device->brightness = br;
--					ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--							  "found %d brightness levels\n",
--							  count));
--				}
+-				cid_list->count = 0;
+-				cid_list->size = size;
 -			}
 -		}
+-		if (cid_add)
+-			size += sizeof(struct acpi_compatible_id);
+-		list = kmalloc(size, GFP_KERNEL);
 -
--	} else {
--		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Could not query available LCD brightness level\n"));
+-		if (list) {
+-			if (cid_list) {
+-				memcpy(list, cid_list, cid_list->size);
+-				count = cid_list->count;
+-			}
+-			if (cid_add) {
+-				strncpy(list->id[count].value, cid_add,
+-					ACPI_MAX_CID_LENGTH);
+-				count++;
+-				device->flags.compatible_ids = 1;
+-			}
+-			list->size = size;
+-			list->count = count;
+-			device->pnp.cid_list = list;
+-		} else
+-			printk(KERN_ERR PREFIX "Memory allocation error\n");
 -	}
 -
--	kfree(obj);
--
--	if (device->cap._BCL && device->cap._BCM && max_level > 0) {
--		int result;
--		static int count = 0;
--		char *name;
--		name = kzalloc(MAX_NAME_LEN, GFP_KERNEL);
--		if (!name)
--			return;
--
--		sprintf(name, "acpi_video%d", count++);
--		device->backlight = backlight_device_register(name,
--			NULL, device, &acpi_backlight_ops);
--		device->backlight->props.max_brightness = device->brightness->count-3;
--		device->backlight->props.brightness = acpi_video_get_brightness(device->backlight);
--		backlight_update_status(device->backlight);
--		kfree(name);
--
--		device->cdev = thermal_cooling_device_register("LCD",
--					device->dev, &video_cooling_ops);
--		if (IS_ERR(device->cdev))
--			return;
--
--		printk(KERN_INFO PREFIX
--			"%s is registered as cooling_device%d\n",
--			device->dev->dev.bus_id, device->cdev->id);
--		result = sysfs_create_link(&device->dev->dev.kobj,
--				  &device->cdev->device.kobj,
--				  "thermal_cooling");
--		if (result)
--			printk(KERN_ERR PREFIX "Create sysfs link\n");
--		result = sysfs_create_link(&device->cdev->device.kobj,
--				  &device->dev->dev.kobj,
--				  "device");
--		if (result)
--			printk(KERN_ERR PREFIX "Create sysfs link\n");
--	}
--	if (device->cap._DCS && device->cap._DSS){
--		static int count = 0;
--		char *name;
--		name = kzalloc(MAX_NAME_LEN, GFP_KERNEL);
--		if (!name)
--			return;
--		sprintf(name, "acpi_video%d", count++);
--		device->output_dev = video_output_register(name,
--				NULL, device, &acpi_output_properties);
--		kfree(name);
--	}
-+	acpi_video_init_brightness(device);
-+	acpi_video_init_display_switching(device);
- 	return;
+ 	kfree(buffer.pointer);
  }
  
 
