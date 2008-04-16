@@ -1,224 +1,91 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH 7/7] Who controls brightness functionality: vendor specific
-	or generic video driver
-Date: Wed, 16 Apr 2008 21:02:52 +0200
-Message-ID: <1208372572.1784.352.camel@queen.suse.de>
+Subject: [PATCH 0/7] Differ generic vs vendor specific ACPI video support
+Date: Wed, 16 Apr 2008 20:51:22 +0200
+Message-ID: <1208371882.1784.340.camel@queen.suse.de>
 Reply-To: trenn@suse.de
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:41862 "EHLO mx2.suse.de"
+Received: from mx1.suse.de ([195.135.220.2]:42937 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751440AbYDPTCx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Apr 2008 15:02:53 -0400
+	id S1751151AbYDPSv1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Apr 2008 14:51:27 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Corentin CHARY <corentincj@iksaif.net>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Mattia Dongili <malattia@linux.it>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, jwoithe@physics.adelaide.edu.au, Carlos Corbacho <carlos@strangeworlds.co.uk>, corentincj@iksaif.net, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Barnes, Jesse" <jesse.barnes@intel.com>, Egbert Eich <eich@suse.de>, Mattia Dongili <malattia@linux.it>, hong.liu@intel.com
 
-Who controls brightness functionality: vendor specific or generic video driver
+Hi,
 
-Depending on the capablity of ACPI graphics devices and whether they implement
-all necessary functions so that the generic ACPI video driver can control
-them, decide at driver load time whether a vendor specific device driver or
-the ACPI video driver should control the brighntess functionality.
+This series is to avoid the parallel usage of ACPI video functionality.
+ACPI video functionality includes: brightness and video output
+switching.
 
-Signed-off-by: Thomas Renninger <trenn@suse.de>
+If generic functions are available, brightness and output switching
+should be served by the video driver by default. This patch series
+detects IGD capability of a plugged in graphics card, but does not
+decide anything automatically on this (yet). To be found out whether
+switching through vendor specific drivers still works then or whether
+graphics driver can switch better (probably the latter, depending on the
+driver...).
 
----
- drivers/misc/acer-wmi.c       |   15 +++++++++++----
- drivers/misc/asus-laptop.c    |    6 ++++++
- drivers/misc/fujitsu-laptop.c |   27 +++++++++++++++++++--------
- drivers/misc/msi-laptop.c     |   16 +++++++++++-----
- drivers/misc/sony-laptop.c    |   14 +++++++++-----
- drivers/misc/thinkpad_acpi.c  |    7 +++++++
- 6 files changed, 63 insertions(+), 22 deletions(-)
+The user can override the default decision to let the video ACPI driver
+handle brightness/display switching with a boot param:
+acpi_video_by_vendor.
+This should often work with osi="!Windows 2006" (then BIOSes often
+switch to the legacy, XP supported SMI or int10 methods).
 
-Index: linux-acpi-2.6_video_native_vs_vendor/drivers/misc/asus-laptop.c
-===================================================================
---- linux-acpi-2.6_video_native_vs_vendor.orig/drivers/misc/asus-laptop.c
-+++ linux-acpi-2.6_video_native_vs_vendor/drivers/misc/asus-laptop.c
-@@ -1105,6 +1105,12 @@ static int asus_backlight_init(struct de
- {
- 	struct backlight_device *bd;
- 
-+	if (acpi_video_support & ACPI_VIDEO_BRIGHTNESS &&
-+	    !(acpi_video_support & ACPI_VIDEO_FORCE_VENDOR_SPECIFIC)) {
-+		printk(ASUS_INFO "Brightness ignored, must be controlled by "
-+		       "ACPI video driver\n");
-+		return -ENODEV;
-+	}
- 	if (brightness_set_handle && lcd_switch_handle) {
- 		bd = backlight_device_register(ASUS_HOTK_FILE, dev,
- 					       NULL, &asusbl_ops);
-Index: linux-acpi-2.6_video_native_vs_vendor/drivers/misc/thinkpad_acpi.c
-===================================================================
---- linux-acpi-2.6_video_native_vs_vendor.orig/drivers/misc/thinkpad_acpi.c
-+++ linux-acpi-2.6_video_native_vs_vendor/drivers/misc/thinkpad_acpi.c
-@@ -4381,6 +4381,13 @@ static int __init brightness_init(struct
- 			   "module parameter\n");
- 		return 1;
- 	} else if (brightness_enable > 1) {
-+		if ((acpi_video_support & ACPI_VIDEO_BRIGHTNESS) &&
-+		    !(acpi_video_support & ACPI_VIDEO_FORCE_VENDOR_SPECIFIC)) {
-+			printk(TPACPI_INFO "Brightness ignored, must be "
-+			       "controlled by ACPI video driver\n");
-+			return 1;
-+		}
-+		/* Above, generic approach should make this check obsolete */
- 		if (brightness_check_std_acpi_support()) {
- 			printk(TPACPI_NOTICE
- 			       "standard ACPI backlight interface "
-Index: linux-acpi-2.6_video_native_vs_vendor/drivers/misc/fujitsu-laptop.c
-===================================================================
---- linux-acpi-2.6_video_native_vs_vendor.orig/drivers/misc/fujitsu-laptop.c
-+++ linux-acpi-2.6_video_native_vs_vendor/drivers/misc/fujitsu-laptop.c
-@@ -273,13 +273,21 @@ static int __init fujitsu_init(void)
- 
- 	/* Register backlight stuff */
- 
--	fujitsu->bl_device =
--	    backlight_device_register("fujitsu-laptop", NULL, NULL,
--				      &fujitsubl_ops);
--	if (IS_ERR(fujitsu->bl_device))
--		return PTR_ERR(fujitsu->bl_device);
-+	if (acpi_video_support & ACPI_VIDEO_BRIGHTNESS &&
-+	    !(acpi_video_support & ACPI_VIDEO_FORCE_VENDOR_SPECIFIC)) {
-+		printk(KERN_INFO "Brightness ignored, must be controlled by "
-+		       "ACPI video driver\n");
-+	} else {
-+		fujitsu->bl_device =
-+			backlight_device_register("fujitsu-laptop", NULL, NULL,
-+						  &fujitsubl_ops);
-+		if (IS_ERR(fujitsu->bl_device))
-+			return PTR_ERR(fujitsu->bl_device);
-+
-+		fujitsu->bl_device->props.max_brightness =
-+			FUJITSU_LCD_N_LEVELS - 1;
-+	}
- 
--	fujitsu->bl_device->props.max_brightness = FUJITSU_LCD_N_LEVELS - 1;
- 	ret = platform_driver_register(&fujitsupf_driver);
- 	if (ret)
- 		goto fail_backlight;
-@@ -321,7 +329,8 @@ static int __init fujitsu_init(void)
- 
-       fail_backlight:
- 
--	backlight_device_unregister(fujitsu->bl_device);
-+	if (fujitsu->bl_device)
-+		backlight_device_unregister(fujitsu->bl_device);
- 
-       fail_acpi:
- 
-@@ -336,9 +345,11 @@ static void __exit fujitsu_cleanup(void)
- 			   &fujitsupf_attribute_group);
- 	platform_device_unregister(fujitsu->pf_device);
- 	platform_driver_unregister(&fujitsupf_driver);
-+
- 	backlight_device_unregister(fujitsu->bl_device);
- 
--	acpi_bus_unregister_driver(&acpi_fujitsu_driver);
-+	if (fujitsu->bl_device)
-+		acpi_bus_unregister_driver(&acpi_fujitsu_driver);
- 
- 	kfree(fujitsu);
- 
-Index: linux-acpi-2.6_video_native_vs_vendor/drivers/misc/acer-wmi.c
-===================================================================
---- linux-acpi-2.6_video_native_vs_vendor.orig/drivers/misc/acer-wmi.c
-+++ linux-acpi-2.6_video_native_vs_vendor/drivers/misc/acer-wmi.c
-@@ -837,7 +837,8 @@ static int __devinit acer_backlight_init
- 
- static void acer_backlight_exit(void)
- {
--	backlight_device_unregister(acer_backlight_device);
-+	if (acer_backlight_device)
-+		backlight_device_unregister(acer_backlight_device);
- }
- 
- /*
-@@ -907,9 +908,15 @@ static int __devinit acer_platform_probe
- 	}
- 
- 	if (has_cap(ACER_CAP_BRIGHTNESS)) {
--		err = acer_backlight_init(&device->dev);
--		if (err)
--			goto error_brightness;
-+		if (acpi_video_support & ACPI_VIDEO_BRIGHTNESS &&
-+		    !(acpi_video_support & ACPI_VIDEO_FORCE_VENDOR_SPECIFIC))
-+			printk(ACER_INFO "Brightness must be controlled by "
-+			       "generic video driver\n");
-+		else {
-+			err = acer_backlight_init(&device->dev);
-+			if (err)
-+				goto error_brightness;
-+		}
- 	}
- 
- 	return 0;
-Index: linux-acpi-2.6_video_native_vs_vendor/drivers/misc/sony-laptop.c
-===================================================================
---- linux-acpi-2.6_video_native_vs_vendor.orig/drivers/misc/sony-laptop.c
-+++ linux-acpi-2.6_video_native_vs_vendor/drivers/misc/sony-laptop.c
-@@ -1037,7 +1037,12 @@ static int sony_nc_add(struct acpi_devic
- 		goto outinput;
- 	}
- 
--	if (ACPI_SUCCESS(acpi_get_handle(sony_nc_acpi_handle, "GBRT", &handle))) {
-+	if (acpi_video_support & ACPI_VIDEO_BRIGHTNESS &&
-+	    !(acpi_video_support & ACPI_VIDEO_FORCE_VENDOR_SPECIFIC)) {
-+		printk(KERN_INFO DRV_PFX "Sony: Brightness ignored, must be "
-+		       "controlled by ACPI video driver\n");
-+	} else if (ACPI_SUCCESS(acpi_get_handle(sony_nc_acpi_handle, "GBRT",
-+						&handle))) {
- 		sony_backlight_device = backlight_device_register("sony", NULL,
- 								  NULL,
- 								  &sony_backlight_ops);
-@@ -1047,12 +1052,11 @@ static int sony_nc_add(struct acpi_devic
- 			sony_backlight_device = NULL;
- 		} else {
- 			sony_backlight_device->props.brightness =
--			    sony_backlight_get_brightness
--			    (sony_backlight_device);
-+				sony_backlight_get_brightness
-+				(sony_backlight_device);
- 			sony_backlight_device->props.max_brightness =
--			    SONY_MAX_BRIGHTNESS - 1;
-+				SONY_MAX_BRIGHTNESS - 1;
- 		}
--
- 	}
- 
- 	/* initialize models with specific requirements */
-Index: linux-acpi-2.6_video_native_vs_vendor/drivers/misc/msi-laptop.c
-===================================================================
---- linux-acpi-2.6_video_native_vs_vendor.orig/drivers/misc/msi-laptop.c
-+++ linux-acpi-2.6_video_native_vs_vendor/drivers/misc/msi-laptop.c
-@@ -347,12 +347,18 @@ static int __init msi_init(void)
- 
- 	/* Register backlight stuff */
- 
--	msibl_device = backlight_device_register("msi-laptop-bl", NULL, NULL,
--						&msibl_ops);
--	if (IS_ERR(msibl_device))
--		return PTR_ERR(msibl_device);
-+	if ((acpi_video_support & ACPI_VIDEO_BRIGHTNESS) &&
-+	    !(acpi_video_support & ACPI_VIDEO_FORCE_VENDOR_SPECIFIC)) {
-+		printk(KERN_INFO "MSI: Brightness ignored, must be controlled "
-+		       "by ACPI video driver\n");
-+	} else {
-+		msibl_device = backlight_device_register("msi-laptop-bl", NULL,
-+							 NULL, &msibl_ops);
-+		if (IS_ERR(msibl_device))
-+			return PTR_ERR(msibl_device);
- 
--	msibl_device->props.max_brightness = MSI_LCD_LEVEL_MAX-1;
-+		msibl_device->props.max_brightness = MSI_LCD_LEVEL_MAX-1;
-+	}
- 
- 	ret = platform_driver_register(&msipf_driver);
- 	if (ret)
+The patches are compile and "boot" tested only.
+I checked that the acpi_get_physical_pci_device(..) function works that
+early and had to move video device detection to a bit later point.
 
+(I only added Egbert, Barnes and Hong to this mail, the patches
+themselves shouldn't be that interesting for you, but this):
+If the patch series gets accepted, I like to start another discussion
+about an interface between ACPI and graphics card drivers or better
+between the backlight interface and graphics card drivers.
+AFAIK some graphics card drivers already tried to catch acpi hotkey
+events, e.g. even IBM specific ones and tried to switch the
+display/brightness themselves. Which I could imagine resulting in
+(graphics card drivers) * (vendor specific) amount of implementations,
+being more a workaround than a solution.
+
+IMO there should be an easy switch (e.g. for graphics drivers to modify
+at runtime) to decide whether ACPI should try to switch the brightness
+or whether switching requests should be forwarded to the graphics
+drivers. The only central place where this could work for all kind of
+drivers that are involved into backlight switching, even for other archs
+currently is drivers/video/backlight/backlight.c.
+Do you think it's possible to e.g. give it a sysfs file and let graphics
+drivers tell the backlight interface whether it can switch the
+brightness and only let it generate a netlink (an ACPI independent)
+event that brightness should be changed?
+The same for the display output switching interface.
+Hmm, theoretically you can give it a generic "notify graphics cards"
+set_brightness/update_brightness call back function..., but it probably
+can be designed better for above purpose... suggestions?
+
+Instead of sending a netlink event directly, this could be an in-kernel
+notification to a (in-kernel) graphics driver stub. Currently it may
+just generate the netlink event and forward the request to the userspace
+graphics driver, later the in-kernel graphics drivers can handle it
+themselves.
+
+Also there are some input interfaces to be considered:
+  A) User explicitly requests a backlight change
+  B) Hotkeys generate key codes
+  C) Vendor specific (hotkey) ACPI devices get notified (the old way?)
+  D) The generic graphics device gets notified (The Vista way or do 
+     they finally go the keycode way or both?)
+
+I wonder how B currently works, is it directly routed to X all done in
+userspace (not telling /sys/.../backlight)? That would be bad. While I
+am all for graphics drivers taking over control, we should think about
+how this could all be pushed to be forwarded through one interface...
+
+These are some ideas just made from scratch without knowing much about
+the upcoming in-kernel graphics things..., more ideas are very welcome.
+
+   Thomas
 
