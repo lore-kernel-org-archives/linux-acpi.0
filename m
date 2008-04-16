@@ -1,169 +1,109 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [PATCH 1/6] thermal: add the support for building the generic
- thermal as a module
-Date: Wed, 16 Apr 2008 09:59:31 +0200
-Message-ID: <20080416095931.7855a9e8@hyperion.delvare>
-References: <1207815114.27304.32.camel@acpi-hp-zz.sh.intel.com>
+From: Ron Rechenmacher <ron@fnal.gov>
+Subject: Re: suspend/resume memory corruption on Dell Latitude D830
+Date: Wed, 16 Apr 2008 10:16:06 -0500
+Message-ID: <48061836.2050705@fnal.gov>
+References: <4803DD86.9060105@fnal.gov> <4804269C.4050507@fnal.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:27579 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751440AbYDPH7r (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Apr 2008 03:59:47 -0400
-In-Reply-To: <1207815114.27304.32.camel@acpi-hp-zz.sh.intel.com>
+Received: from mailgw2.fnal.gov ([131.225.111.12]:45142 "EHLO mailgw2.fnal.gov"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757652AbYDPPVN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Apr 2008 11:21:13 -0400
+Received: from mailav2.fnal.gov (mailav2.fnal.gov [131.225.111.20])
+ by mailgw2.fnal.gov
+ (iPlanet Messaging Server 5.2 HotFix 2.06 (built Mar 28 2005))
+ with SMTP id <0JZF003HDBD18T@mailgw2.fnal.gov> for linux-acpi@vger.kernel.org;
+ Wed, 16 Apr 2008 10:15:55 -0500 (CDT)
+Received: from mailgw1.fnal.gov ([131.225.111.11])
+ by mailav2.fnal.gov (SAVSMTP 3.1.7.47) with SMTP id M2008041610155417046 for
+ <linux-acpi@vger.kernel.org>; Wed, 16 Apr 2008 10:15:54 -0500
+Received: from conversion-daemon.mailgw1.fnal.gov by mailgw1.fnal.gov
+ (iPlanet Messaging Server 5.2 HotFix 2.06 (built Mar 28 2005))
+ id <0JZF00C01BMKFF@mailgw1.fnal.gov> (original mail from ron@fnal.gov)
+ for linux-acpi@vger.kernel.org; Wed, 16 Apr 2008 10:15:55 -0500 (CDT)
+Received: from [131.225.94.222] (d-r19381.dhcp.fnal.gov [131.225.94.222])
+ by mailgw1.fnal.gov
+ (iPlanet Messaging Server 5.2 HotFix 2.06 (built Mar 28 2005))
+ with ESMTPSA id <0JZF00M78BQI92@mailgw1.fnal.gov> for
+ linux-acpi@vger.kernel.org; Wed, 16 Apr 2008 10:15:54 -0500 (CDT)
+In-reply-to: <4804269C.4050507@fnal.gov>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, Hans de Goede <j.w.r.degoede@hhs.nl>, linux-acpi <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
+Cc: Ron Rechenmacher <ron@fnal.gov>
 
-Hi Rui,
+I've made a significant partial/temporary fix.
+I was able to use the memmap= kernel cmdline options to apparently keep 
+the kernel from using the memory that the suspend/resume process is 
+erroneously writing to:
+  kernel /vmlinuz-2.6.24.3-trc ro root=LABEL=/3 memmap=exactmap 
+memmap=636K@0 memmap=4K$636K memmap=3046M@1M memmap=1682K$3668334K 
+memmap=64M$3094M memmap=64K$4076M memmap=16K$4174944K 
+memmap=448K$4174976K memmap=24K$4175488K memmap=64K$4078M 
+memmap=2M$4094M memmap=511M@4097M x12345678
 
-On Thu, 10 Apr 2008 16:11:54 +0800, Zhang, Rui wrote:
-> Build the generic thermal driver as module "thermal_sys".
+This results in the following output from the kernel:
+...
+BIOS-provided physical RAM map:
+  BIOS-e820: 0000000000000000 - 000000000009f000 (usable)
+  BIOS-e820: 000000000009f000 - 00000000000a0000 (reserved)
+  BIOS-e820: 0000000000100000 - 00000000dfe5b800 (usable)
+  BIOS-e820: 00000000dfe5b800 - 00000000e0000000 (reserved)
+  BIOS-e820: 00000000f4000000 - 00000000f8000000 (reserved)
+  BIOS-e820: 00000000fec00000 - 00000000fec10000 (reserved)
+  BIOS-e820: 00000000fed18000 - 00000000fed1c000 (reserved)
+  BIOS-e820: 00000000fed20000 - 00000000fed90000 (reserved)
+  BIOS-e820: 00000000feda0000 - 00000000feda6000 (reserved)
+  BIOS-e820: 00000000fee00000 - 00000000fee10000 (reserved)
+  BIOS-e820: 00000000ffe00000 - 0000000100000000 (reserved)
+  BIOS-e820: 0000000100002000 - 0000000120000000 (usable)
+Entering add_active_range(0, 0, 159) 0 entries of 256 used
+Entering add_active_range(0, 256, 917083) 1 entries of 256 used
+Entering add_active_range(0, 1048578, 1179648) 2 entries of 256 used
+end_pfn_map = 1179648
+user-defined physical RAM map:
+  user: 0000000000000000 - 000000000009f000 (usable)
+  user: 000000000009f000 - 00000000000a0000 (reserved)
+  user: 0000000000100000 - 00000000be700000 (usable)
+  user: 00000000dfe5b800 - 00000000e0000000 (reserved)
+  user: 00000000c1600000 - 00000000c5600000 (reserved)
+  user: 00000000fec00000 - 00000000fec10000 (reserved)
+  user: 00000000fed18000 - 00000000fed1c000 (reserved)
+  user: 00000000fed20000 - 00000000fed90000 (reserved)
+  user: 00000000feda0000 - 00000000feda6000 (reserved)
+  user: 00000000fee00000 - 00000000fee10000 (reserved)
+  user: 00000000ffe00000 - 0000000100000000 (reserved)
+  user: 0000000100100000 - 0000000120000000 (usable)
+Entering add_active_range(0, 0, 159) 0 entries of 256 used
+Entering add_active_range(0, 256, 780032) 1 entries of 256 used
+Entering add_active_range(0, 1048832, 1179648) 2 entries of 256 used
+end_pfn_map = 1179648
+...
+
+With this, I loose near 500MB but my tests pass -- I do not see any 
+memory corruption after the resume. I could get a lot of the 500MB back 
+if I did not max out the kernel cmdline.
+Apparently the problem area is just after be700000.
+
+My 8 month battle seems to have turned into a linux/linux-acpi success 
+story. Thanks for the kernel cmdline options. I wonder if Vista could do 
+this?
+
+Thanks,
+Ron
+
+Ron Rechenmacher wrote:
+> More information on is at
+>     http://fnapcf.fnal.gov/~ron/dell_susp_3.5G_2blocks.txt
+> and http://fnapcf.fnal.gov/~ron/dell_susp_3.5G_2blocks.dmesg.txt
 > 
-> Make ACPI thermal, video, processor and fan SELECT the generic
-> thermal driver, as these drivers rely on it to build the sysfs I/F.
+> Is there a way to determine which acpi mapping/allocation is not being 
+> honored or is missing and/or using some memmap= kernel param
+> to get the kernel to stay away from the memory being changed during 
+> suspend/resume? (any other kernel param that might be useful?)
 > 
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> ---
->  drivers/acpi/Kconfig      |    4 +++-
->  drivers/thermal/Kconfig   |    4 ++--
->  drivers/thermal/Makefile  |    3 ++-
->  drivers/thermal/thermal.c |    2 +-
->  include/linux/thermal.h   |   14 --------------
->  5 files changed, 8 insertions(+), 19 deletions(-)
+> Thanks,
+> Ron
 > 
-> Index: linux-2.6/drivers/thermal/Kconfig
-> ===================================================================
-> --- linux-2.6.orig/drivers/thermal/Kconfig
-> +++ linux-2.6/drivers/thermal/Kconfig
-> @@ -3,7 +3,7 @@
->  #
->  
->  menuconfig THERMAL
-> -	bool "Generic Thermal sysfs driver"
-> +	tristate "Generic Thermal sysfs driver"
->  	help
->  	  Generic Thermal Sysfs driver offers a generic mechanism for
->  	  thermal management. Usually it's made up of one or more thermal
-> @@ -11,4 +11,4 @@ menuconfig THERMAL
->  	  Each thermal zone contains its own temperature, trip points,
->  	  cooling devices.
->  	  All platforms with ACPI thermal support can use this driver.
-> -	  If you want this support, you should say Y here.
-> +	  If you want this support, you should say Y or M here.
-> Index: linux-2.6/drivers/thermal/thermal.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/thermal/thermal.c
-> +++ linux-2.6/drivers/thermal/thermal.c
-> @@ -31,7 +31,7 @@
->  #include <linux/thermal.h>
->  #include <linux/spinlock.h>
->  
-> -MODULE_AUTHOR("Zhang Rui")
-> +MODULE_AUTHOR("Zhang Rui");
->  MODULE_DESCRIPTION("Generic thermal management sysfs support");
->  MODULE_LICENSE("GPL");
->  
-> Index: linux-2.6/drivers/thermal/Makefile
-> ===================================================================
-> --- linux-2.6.orig/drivers/thermal/Makefile
-> +++ linux-2.6/drivers/thermal/Makefile
-> @@ -2,4 +2,5 @@
->  # Makefile for sensor chip drivers.
->  #
->  
-> -obj-$(CONFIG_THERMAL)		+= thermal.o
-> +thermal_sys-objs	+= thermal.o
-> +obj-$(CONFIG_THERMAL)		+= thermal_sys.o
-> Index: linux-2.6/drivers/acpi/Kconfig
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/Kconfig
-> +++ linux-2.6/drivers/acpi/Kconfig
-> @@ -140,6 +140,7 @@ config ACPI_VIDEO
->  	tristate "Video"
->  	depends on X86 && BACKLIGHT_CLASS_DEVICE && VIDEO_OUTPUT_CONTROL
->  	depends on INPUT
-> +	select THERMAL
->  	help
->  	  This driver implement the ACPI Extensions For Display Adapters
->  	  for integrated graphics devices on motherboard, as specified in
-> @@ -151,6 +152,7 @@ config ACPI_VIDEO
->  
->  config ACPI_FAN
->  	tristate "Fan"
-> +	select THERMAL
->  	default y
->  	help
->  	  This driver adds support for ACPI fan devices, allowing user-mode 
-> @@ -172,6 +174,7 @@ config ACPI_BAY
->  
->  config ACPI_PROCESSOR
->  	tristate "Processor"
-> +	select THERMAL
->  	default y
->  	help
->  	  This driver installs ACPI as the idle handler for Linux, and uses
-> @@ -188,7 +191,6 @@ config ACPI_HOTPLUG_CPU
->  config ACPI_THERMAL
->  	tristate "Thermal Zone"
->  	depends on ACPI_PROCESSOR
-> -	select THERMAL
->  	default y
->  	help
->  	  This driver adds support for ACPI thermal zones.  Most mobile and
-
-I wouldn't remove this select. I agree it's not strictly needed right
-now because ACPI_THERMAL depends on ACPI_PROCESSOR and ACPI_PROCESSOR
-now selects THERMAL, but relying on "inherited" selects that way could
-break in the future, and is also not obvious for people not familiar
-with the code.
-
-Likewise, I am a little worried that drivers/misc/intel_menlow.c needs
-THERMAL but doesn't select it. It works because it depends on
-ACPI_THERMAL which depends on ACPI_PROCESSOR which itself selects
-THERMAL, but that's again a (2nd order) indirect select which isn't
-obvious to the newcomer and could break in the future if dependencies
-change. I'd rather have each driver select what it needs regardless of
-inherited selects.
-
-> Index: linux-2.6/include/linux/thermal.h
-> ===================================================================
-> --- linux-2.6.orig/include/linux/thermal.h
-> +++ linux-2.6/include/linux/thermal.h
-> @@ -88,24 +88,10 @@ int thermal_zone_bind_cooling_device(str
->  				     struct thermal_cooling_device *);
->  int thermal_zone_unbind_cooling_device(struct thermal_zone_device *, int,
->  				       struct thermal_cooling_device *);
-> -
-> -#ifdef	CONFIG_THERMAL
->  struct thermal_cooling_device *thermal_cooling_device_register(char *, void *,
->  							       struct
->  							       thermal_cooling_device_ops
->  							       *);
->  void thermal_cooling_device_unregister(struct thermal_cooling_device *);
-> -#else
-> -static inline struct thermal_cooling_device
-> -*thermal_cooling_device_register(char *c, void *v,
-> -				 struct thermal_cooling_device_ops *t)
-> -{
-> -	return NULL;
-> -}
-> -static inline
-> -    void thermal_cooling_device_unregister(struct thermal_cooling_device *t)
-> -{
-> -};
-> -#endif
->  
->  #endif /* __THERMAL_H__ */
-> 
-> 
-
-Other than that, this patch looks OK to me (except that I'd like to see
-drivers/thermal/thermal.c renamed to drivers/thermal/thermal_sys.c -
-but that's something for Len in git.)
-
--- 
-Jean Delvare
