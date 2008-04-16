@@ -1,91 +1,169 @@
-From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-Subject: Re: [PATCH] ACPI: Support Fujitsu Lifebook S6410 in fujitsu-laptop
-Date: Wed, 16 Apr 2008 08:51:43 +0930 (CST)
-Message-ID: <200804152321.m3FNLhPY022726@turbo.physics.adelaide.edu.au>
-References: <1208256666.20860.37.camel@earth.gruber.myown>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [PATCH 1/6] thermal: add the support for building the generic
+ thermal as a module
+Date: Wed, 16 Apr 2008 09:59:31 +0200
+Message-ID: <20080416095931.7855a9e8@hyperion.delvare>
+References: <1207815114.27304.32.camel@acpi-hp-zz.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:40650 "EHLO
-	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752581AbYDOXVx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Apr 2008 19:21:53 -0400
-In-Reply-To: <1208256666.20860.37.camel@earth.gruber.myown> from "nokos@gmx.net" at Apr 15, 2008 12:51:06 PM
+Received: from zone0.gcu-squad.org ([212.85.147.21]:27579 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751440AbYDPH7r (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Apr 2008 03:59:47 -0400
+In-Reply-To: <1207815114.27304.32.camel@acpi-hp-zz.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: nokos@gmx.net
-Cc: linux-acpi@vger.kernel.org, trenn@suse.de, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+To: "Zhang, Rui" <rui.zhang@intel.com>
+Cc: Len Brown <lenb@kernel.org>, Hans de Goede <j.w.r.degoede@hhs.nl>, linux-acpi <linux-acpi@vger.kernel.org>
 
-Hi Peter
+Hi Rui,
 
-> Am Dienstag, den 15.04.2008, 12:44 +0930 schrieb Jonathan Woithe:
-> > > > There probably are machines out there which only have one of above
-> > > > devices, then only the relevant driver should be loaded.
-> > > 
-> > > I thought the since there is only a small functionality in each part and
-> > > the module only registers drivers which are started only if an
-> > > appropriate device is present it might be good to integrate it in one
-> > > module. (in the S6410 case there is actually a third device FUJ02E1 but
-> > > I don't know yet what it is for, there are some notifies for that device
-> > > in the DSDT but so far I haven't triggered any of them)
-> > 
-> > A fair point.  I guess it really depends on how these devices end up being
-> > structured.  Modularity enforces separation which can help with
-> > maintainability going forward but it can also give rise to a certain
-> > amount of code duplication.  I'd be interested to see what others think.
+On Thu, 10 Apr 2008 16:11:54 +0800, Zhang, Rui wrote:
+> Build the generic thermal driver as module "thermal_sys".
 > 
-> I had another look into the DSDT and this is how the structure looks to
-> me:
-> I have three devices (FUJ02B1, FUJ02E1, FUJ02E3) with names (FJEX, CMBT,
-> FEXT)
-> so far it seems we can ignore the second since it always reports _STA=0
-> (ie. disabled?)
+> Make ACPI thermal, video, processor and fan SELECT the generic
+> thermal driver, as these drivers rely on it to build the sysfs I/F.
 > 
-> FUJ02B1 Methods:
->  - RBLL get max brightness level
->  - GBLL/GBLS get current brightness (only difference GBLL zeros a flag
-> if used for the first time which is not used anywhere else?)
->  - SBLL/SBL2 set brightness (some differences, notable SBLL doesn't do
-> anything if a flag is set but interacts with the video device GFX0)
->  - GMOU,SMOU some getter/setter of unknown flags
->  - GHKS,GSIF more unknown flags
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> ---
+>  drivers/acpi/Kconfig      |    4 +++-
+>  drivers/thermal/Kconfig   |    4 ++--
+>  drivers/thermal/Makefile  |    3 ++-
+>  drivers/thermal/thermal.c |    2 +-
+>  include/linux/thermal.h   |   14 --------------
+>  5 files changed, 8 insertions(+), 19 deletions(-)
 > 
-> FUJ02E3 Methods:
->  - FUNC frontend to S000-S009 : approx. FUNC(0x1000+i,j,k,l) =
-> S00i(j,k,l)
->  - S000-S009 getters and setters for various stuff (not restricted to
-> FUJ02E3)
->     - S000 uses some fields from FUJ02E1
->     - S004 clones GIRB
->     - S006 seems to be a frontend for video/brightness stuff in FUJ02B1
-> and FUJ02E3   
->  - GIRB/SIRB get and set? the special hotkey registers
->  - SBLC/SVBL/RSBL do something with brightness and/or video using
-> FUJ02B1 methods
+> Index: linux-2.6/drivers/thermal/Kconfig
+> ===================================================================
+> --- linux-2.6.orig/drivers/thermal/Kconfig
+> +++ linux-2.6/drivers/thermal/Kconfig
+> @@ -3,7 +3,7 @@
+>  #
 >  
-> so it seems the devices are not independent of each other and a combined
-> module might be the more sensible way to go?
+>  menuconfig THERMAL
+> -	bool "Generic Thermal sysfs driver"
+> +	tristate "Generic Thermal sysfs driver"
+>  	help
+>  	  Generic Thermal Sysfs driver offers a generic mechanism for
+>  	  thermal management. Usually it's made up of one or more thermal
+> @@ -11,4 +11,4 @@ menuconfig THERMAL
+>  	  Each thermal zone contains its own temperature, trip points,
+>  	  cooling devices.
+>  	  All platforms with ACPI thermal support can use this driver.
+> -	  If you want this support, you should say Y here.
+> +	  If you want this support, you should say Y or M here.
+> Index: linux-2.6/drivers/thermal/thermal.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/thermal/thermal.c
+> +++ linux-2.6/drivers/thermal/thermal.c
+> @@ -31,7 +31,7 @@
+>  #include <linux/thermal.h>
+>  #include <linux/spinlock.h>
+>  
+> -MODULE_AUTHOR("Zhang Rui")
+> +MODULE_AUTHOR("Zhang Rui");
+>  MODULE_DESCRIPTION("Generic thermal management sysfs support");
+>  MODULE_LICENSE("GPL");
+>  
+> Index: linux-2.6/drivers/thermal/Makefile
+> ===================================================================
+> --- linux-2.6.orig/drivers/thermal/Makefile
+> +++ linux-2.6/drivers/thermal/Makefile
+> @@ -2,4 +2,5 @@
+>  # Makefile for sensor chip drivers.
+>  #
+>  
+> -obj-$(CONFIG_THERMAL)		+= thermal.o
+> +thermal_sys-objs	+= thermal.o
+> +obj-$(CONFIG_THERMAL)		+= thermal_sys.o
+> Index: linux-2.6/drivers/acpi/Kconfig
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/Kconfig
+> +++ linux-2.6/drivers/acpi/Kconfig
+> @@ -140,6 +140,7 @@ config ACPI_VIDEO
+>  	tristate "Video"
+>  	depends on X86 && BACKLIGHT_CLASS_DEVICE && VIDEO_OUTPUT_CONTROL
+>  	depends on INPUT
+> +	select THERMAL
+>  	help
+>  	  This driver implement the ACPI Extensions For Display Adapters
+>  	  for integrated graphics devices on motherboard, as specified in
+> @@ -151,6 +152,7 @@ config ACPI_VIDEO
+>  
+>  config ACPI_FAN
+>  	tristate "Fan"
+> +	select THERMAL
+>  	default y
+>  	help
+>  	  This driver adds support for ACPI fan devices, allowing user-mode 
+> @@ -172,6 +174,7 @@ config ACPI_BAY
+>  
+>  config ACPI_PROCESSOR
+>  	tristate "Processor"
+> +	select THERMAL
+>  	default y
+>  	help
+>  	  This driver installs ACPI as the idle handler for Linux, and uses
+> @@ -188,7 +191,6 @@ config ACPI_HOTPLUG_CPU
+>  config ACPI_THERMAL
+>  	tristate "Thermal Zone"
+>  	depends on ACPI_PROCESSOR
+> -	select THERMAL
+>  	default y
+>  	help
+>  	  This driver adds support for ACPI thermal zones.  Most mobile and
 
-Maybe.  Let's see how the patch behaves on the S7020 first and take things
-from there.  From the above it seems to me that FUJ02B1 is the thing which
-deals direct with brightness and that any brightness-related stuff in
-FUJ02E3 may be there for convenience.  If that was the case then the modular
-split still makes sense I think.  If we can show that the FUJ02E3 methods
-add additional functionality on top of that provided by FUJ02B1 then a
-single module may make sense.  For example, maybe FUJ02E3's SBLC/SVBL/RSBL
-take care of selecting the correct low-level brightness control method on a
-given laptop.  Of course if laptops turn up without the FUJ02E3 it might
-complicate things somewhat.
+I wouldn't remove this select. I agree it's not strictly needed right
+now because ACPI_THERMAL depends on ACPI_PROCESSOR and ACPI_PROCESSOR
+now selects THERMAL, but relying on "inherited" selects that way could
+break in the future, and is also not obvious for people not familiar
+with the code.
 
-If we were to go to a single module we would have to find a way to
-automatically work out which brightness control method to use.  Otherwise
-almost every user of the module will have to worry about setting module
-parameters because there's no default setting which would work for "most"
-users.
+Likewise, I am a little worried that drivers/misc/intel_menlow.c needs
+THERMAL but doesn't select it. It works because it depends on
+ACPI_THERMAL which depends on ACPI_PROCESSOR which itself selects
+THERMAL, but that's again a (2nd order) indirect select which isn't
+obvious to the newcomer and could break in the future if dependencies
+change. I'd rather have each driver select what it needs regardless of
+inherited selects.
 
-I'll let you know how the current patch behaves on the S7020.
+> Index: linux-2.6/include/linux/thermal.h
+> ===================================================================
+> --- linux-2.6.orig/include/linux/thermal.h
+> +++ linux-2.6/include/linux/thermal.h
+> @@ -88,24 +88,10 @@ int thermal_zone_bind_cooling_device(str
+>  				     struct thermal_cooling_device *);
+>  int thermal_zone_unbind_cooling_device(struct thermal_zone_device *, int,
+>  				       struct thermal_cooling_device *);
+> -
+> -#ifdef	CONFIG_THERMAL
+>  struct thermal_cooling_device *thermal_cooling_device_register(char *, void *,
+>  							       struct
+>  							       thermal_cooling_device_ops
+>  							       *);
+>  void thermal_cooling_device_unregister(struct thermal_cooling_device *);
+> -#else
+> -static inline struct thermal_cooling_device
+> -*thermal_cooling_device_register(char *c, void *v,
+> -				 struct thermal_cooling_device_ops *t)
+> -{
+> -	return NULL;
+> -}
+> -static inline
+> -    void thermal_cooling_device_unregister(struct thermal_cooling_device *t)
+> -{
+> -};
+> -#endif
+>  
+>  #endif /* __THERMAL_H__ */
+> 
+> 
 
-Regards
-  jonathan
+Other than that, this patch looks OK to me (except that I'd like to see
+drivers/thermal/thermal.c renamed to drivers/thermal/thermal_sys.c -
+but that's something for Len in git.)
+
+-- 
+Jean Delvare
