@@ -1,107 +1,55 @@
-From: Cezary Jackiewicz <cezary.jackiewicz@gmail.com>
-Subject: [PATCH -mm 2/3] misc,acpi,backlight: Compal Laptop Extras - use
- bitmask, not hex
-Date: Wed, 16 Apr 2008 22:53:04 +0200
-Message-ID: <20080416225304.3dc5b9d2@debian>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH 7/7] Who controls brightness functionality: vendor
+	specific or generic video driver
+Date: Wed, 16 Apr 2008 18:01:08 -0300
+Message-ID: <20080416210108.GB3396@khazad-dum.debian.net>
+References: <1208372572.1784.352.camel@queen.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932297AbYDPUxe@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>
-Cc: Len Brown <lenb@kernel.org>, Richard Purdie <rpurdie@rpsys.net>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:58225 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752540AbYDPVBP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Apr 2008 17:01:15 -0400
+Content-Disposition: inline
+In-Reply-To: <1208372572.1784.352.camel@queen.suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Corentin CHARY <corentincj@iksaif.net>, Mattia Dongili <malattia@linux.it>
 
-From: Cezary Jackiewicz <cezary.jackiewicz@gmail.com>
+On Wed, 16 Apr 2008, Thomas Renninger wrote:
+> Index: linux-acpi-2.6_video_native_vs_vendor/drivers/misc/thinkpad_acpi.c
+> ===================================================================
+> --- linux-acpi-2.6_video_native_vs_vendor.orig/drivers/misc/thinkpad_acpi.c
+> +++ linux-acpi-2.6_video_native_vs_vendor/drivers/misc/thinkpad_acpi.c
+> @@ -4381,6 +4381,13 @@ static int __init brightness_init(struct
+>  			   "module parameter\n");
+>  		return 1;
+>  	} else if (brightness_enable > 1) {
+> +		if ((acpi_video_support & ACPI_VIDEO_BRIGHTNESS) &&
+> +		    !(acpi_video_support & ACPI_VIDEO_FORCE_VENDOR_SPECIFIC)) {
+> +			printk(TPACPI_INFO "Brightness ignored, must be "
+> +			       "controlled by ACPI video driver\n");
+> +			return 1;
+> +		}
+> +		/* Above, generic approach should make this check obsolete */
+>  		if (brightness_check_std_acpi_support()) {
+>  			printk(TPACPI_NOTICE
+>  			       "standard ACPI backlight interface "
 
-Clean up code. Use bitmask for operations.
+Ack.  But I am sure I will have to change this hunk a bit on
+thinkpad-acpi 0.20.  This is not a big issue, and if you prefer, I can
+handle adding the above support for thinkpad-acpi 0.20 since it is
+likely going to be merged late due to its dependency on some stuff for
+the LED class that needs to be in mainline first...
 
-Signed-off-by: Cezary Jackiewicz <cezary.jackiewicz@gmail.com>
----
-diff -Nuar a/drivers/misc/compal-laptop.c b/drivers/misc/compal-laptop.c
---- a/drivers/misc/compal-laptop.c	2008-04-16 19:42:45.000000000 +0200
-+++ b/drivers/misc/compal-laptop.c	2008-04-16 20:19:09.000000000 +0200
-@@ -1,7 +1,7 @@
- /*-*-linux-c-*-*/
- 
- /*
--  Copyright (C) 2008 Cezary Jackiewicz <cezary.Jackiewicz (at) gmail.com>
-+  Copyright (C) 2008 Cezary Jackiewicz <cezary.jackiewicz (at) gmail.com>
- 
-   based on MSI driver
- 
-@@ -56,13 +56,17 @@
- #include <linux/platform_device.h>
- #include <linux/autoconf.h>
- 
--#define COMPAL_DRIVER_VERSION "0.2.2"
-+#define COMPAL_DRIVER_VERSION "0.2.5"
- 
- #define COMPAL_LCD_LEVEL_MAX 8
- 
- #define COMPAL_EC_COMMAND_WIRELESS 0xBB
- #define COMPAL_EC_COMMAND_LCD_LEVEL 0xB9
- 
-+#define KILLSWITCH_MASK	0x10
-+#define WLAN_MASK	0x01
-+#define BT_MASK		0x02
-+
- static int force;
- module_param(force, bool, 0);
- MODULE_PARM_DESC(force, "Force driver load, ignore DMI data");
-@@ -94,13 +98,13 @@
- 
- 	ec_read(COMPAL_EC_COMMAND_WIRELESS, &result);
- 
--	if ((result & 0x10) == 0)
-+	if ((result & KILLSWITCH_MASK) == 0)
- 		return -EINVAL;
- 	else {
- 		if (state)
--			value = (u8) (result | 0x01);
-+			value = (u8) (result | WLAN_MASK);
- 		else
--			value = (u8) (result & 0xFE);
-+			value = (u8) (result & ~WLAN_MASK);
- 		ec_write(COMPAL_EC_COMMAND_WIRELESS, value);
- 	}
- 
-@@ -113,13 +117,13 @@
- 
- 	ec_read(COMPAL_EC_COMMAND_WIRELESS, &result);
- 
--	if ((result & 0x10) == 0)
-+	if ((result & KILLSWITCH_MASK) == 0)
- 		return -EINVAL;
- 	else {
- 		if (state)
--			value = (u8) (result | 0x02);
-+			value = (u8) (result | BT_MASK);
- 		else
--			value = (u8) (result & 0xFD);
-+			value = (u8) (result & ~BT_MASK);
- 		ec_write(COMPAL_EC_COMMAND_WIRELESS, value);
- 	}
- 
-@@ -133,17 +137,17 @@
- 	ec_read(COMPAL_EC_COMMAND_WIRELESS, &result);
- 
- 	if (wlan) {
--		if ((result & 0x10) == 0)
-+		if ((result & KILLSWITCH_MASK) == 0)
- 			*wlan = 0;
- 		else
--			*wlan = result & 0x01;
-+			*wlan = result & WLAN_MASK;
- 	}
- 
- 	if (bluetooth) {
--		if ((result & 0x10) == 0)
-+		if ((result & KILLSWITCH_MASK) == 0)
- 			*bluetooth = 0;
- 		else
--			*bluetooth = (result >> 1) & 0x01;
-+			*bluetooth = (result & BT_MASK) >> 1;
- 	}
- 
- 	return 0;
+Otherwise, merging it now is also fine for acpi-test, and I will resend
+the thinkpad-acpi queue adjusted accordingly.
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
