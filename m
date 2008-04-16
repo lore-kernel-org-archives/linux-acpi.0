@@ -1,91 +1,282 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH 0/7] Differ generic vs vendor specific ACPI video support
-Date: Wed, 16 Apr 2008 20:51:22 +0200
-Message-ID: <1208371882.1784.340.camel@queen.suse.de>
+Subject: [PATCH 6/7] Initialize brightness and display switching in
+	separate functions
+Date: Wed, 16 Apr 2008 21:02:15 +0200
+Message-ID: <1208372535.1784.351.camel@queen.suse.de>
 Reply-To: trenn@suse.de
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.suse.de ([195.135.220.2]:42937 "EHLO mx1.suse.de"
+Received: from cantor2.suse.de ([195.135.220.15]:41514 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751151AbYDPSv1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Apr 2008 14:51:27 -0400
+	id S1751440AbYDPTCQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Apr 2008 15:02:16 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, jwoithe@physics.adelaide.edu.au, Carlos Corbacho <carlos@strangeworlds.co.uk>, corentincj@iksaif.net, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Barnes, Jesse" <jesse.barnes@intel.com>, Egbert Eich <eich@suse.de>, Mattia Dongili <malattia@linux.it>, hong.liu@intel.com
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Corentin CHARY <corentincj@iksaif.net>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Mattia Dongili <malattia@linux.it>
 
-Hi,
+Initialize brightness and display switching in separate functions
 
-This series is to avoid the parallel usage of ACPI video functionality.
-ACPI video functionality includes: brightness and video output
-switching.
+Should be no functional change.
+Also rename the ambiguous, multiple times declared "count" variable
 
-If generic functions are available, brightness and output switching
-should be served by the video driver by default. This patch series
-detects IGD capability of a plugged in graphics card, but does not
-decide anything automatically on this (yet). To be found out whether
-switching through vendor specific drivers still works then or whether
-graphics driver can switch better (probably the latter, depending on the
-driver...).
+Signed-off-by: Thomas Renninger <trenn@suse.de>
 
-The user can override the default decision to let the video ACPI driver
-handle brightness/display switching with a boot param:
-acpi_video_by_vendor.
-This should often work with osi="!Windows 2006" (then BIOSes often
-switch to the legacy, XP supported SMI or int10 methods).
+---
+ drivers/acpi/video.c |  224 ++++++++++++++++++++++++++++-----------------------
+ 1 file changed, 124 insertions(+), 100 deletions(-)
 
-The patches are compile and "boot" tested only.
-I checked that the acpi_get_physical_pci_device(..) function works that
-early and had to move video device detection to a bit later point.
+Index: linux-acpi-2.6_video_native_vs_vendor/drivers/acpi/video.c
+===================================================================
+--- linux-acpi-2.6_video_native_vs_vendor.orig/drivers/acpi/video.c
++++ linux-acpi-2.6_video_native_vs_vendor/drivers/acpi/video.c
+@@ -619,8 +619,129 @@ acpi_video_bus_DOS(struct acpi_video_bus
+ 	return status;
+ }
+ 
++static int
++acpi_video_init_brightness(struct acpi_video_device *device)
++{
++	u32 max_level = 0;
++	union acpi_object *obj = NULL;
++	struct acpi_video_device_brightness *br = NULL;
++	int result;
++	char *name;
++	int i;
++	static int dev_count;
++
++	if (!device->cap._BCL || !device->cap._BCM)
++		return -ENODEV;
++
++	if (ACPI_FAILURE(acpi_video_device_lcd_query_levels(device,
++							    &obj))) {
++		kfree(obj);
++		return -ENODEV;
++	}
++
++	if (obj->package.count >= 2) {
++		int count = 0;
++		union acpi_object *o;
++
++		br = kzalloc(sizeof(*br), GFP_KERNEL);
++		if (!br) {
++			printk(KERN_ERR "can't allocate memory\n");
++			return -ENOMEM;
++		} else {
++			br->levels = kmalloc(obj->package.count *
++					     sizeof *(br->levels), GFP_KERNEL);
++			if (!br->levels)
++				goto out;
++
++			for (i = 0; i < obj->package.count; i++) {
++				o = (union acpi_object *)&obj->package.
++					elements[i];
++				if (o->type != ACPI_TYPE_INTEGER) {
++					printk(KERN_ERR PREFIX
++					       "Invalid data\n");
++					continue;
++				}
++				br->levels[count] = (u32) o->integer.value;
++
++				if (br->levels[count] > max_level)
++					max_level = br->levels[count];
++				count++;
++			}
++out:
++			if (count < 2) {
++				kfree(br->levels);
++				kfree(br);
++				return -ENODEV;
++			} else {
++				br->count = count;
++				device->brightness = br;
++				ACPI_DEBUG_PRINT((ACPI_DB_INFO, "found %d "
++						  "brightness levels\n",
++						  count));
++			}
++		}
++		kfree(obj);
++		name = kzalloc(MAX_NAME_LEN, GFP_KERNEL);
++		if (!name)
++			return -ENOMEM;
++
++		sprintf(name, "acpi_video%d", dev_count++);
++		device->backlight = backlight_device_register(name,
++				      NULL, device, &acpi_backlight_ops);
++		device->backlight->props.max_brightness =
++			device->brightness->count-3;
++		device->backlight->props.brightness =
++			acpi_video_get_brightness(device->backlight);
++		backlight_update_status(device->backlight);
++		kfree(name);
++
++		device->cdev = thermal_cooling_device_register("LCD",
++					       device->dev, &video_cooling_ops);
++		if (IS_ERR(device->cdev))
++			return -ENODEV;
++
++		printk(KERN_INFO PREFIX
++		       "%s is registered as cooling_device%d\n",
++		       device->dev->dev.bus_id, device->cdev->id);
++		result = sysfs_create_link(&device->dev->dev.kobj,
++					   &device->cdev->device.kobj,
++					   "thermal_cooling");
++		if (result) {
++			printk(KERN_ERR PREFIX "Create sysfs link\n");
++			return -ENODEV;
++		}
++		result = sysfs_create_link(&device->cdev->device.kobj,
++					   &device->dev->dev.kobj,
++					   "device");
++		if (result) {
++			printk(KERN_ERR PREFIX "Create sysfs link\n");
++			return -ENODEV;
++		}
++	}
++	return 0;
++}
++
++static int
++acpi_video_init_display_switching(struct acpi_video_device *device)
++{
++	char *name;
++	static int dev_count;
++
++	if (!device->cap._DCS || !device->cap._DSS)
++		return -ENODEV;
++
++	name = kzalloc(MAX_NAME_LEN, GFP_KERNEL);
++	if (!name)
++		return -ENOMEM;
++	sprintf(name, "acpi_video%d", dev_count++);
++	device->output_dev = video_output_register(name,
++				   NULL, device, &acpi_output_properties);
++	kfree(name);
++	return 0;
++}
++
+ /*
+- *  Arg:	
++ *  Arg:
+  *  	device	: video output device (LCD, CRT, ..)
+  *
+  *  Return Value:
+@@ -633,11 +754,6 @@ acpi_video_bus_DOS(struct acpi_video_bus
+ static void acpi_video_device_find_cap(struct acpi_video_device *device)
+ {
+ 	acpi_handle h_dummy1;
+-	int i;
+-	u32 max_level = 0;
+-	union acpi_object *obj = NULL;
+-	struct acpi_video_device_brightness *br = NULL;
+-
+ 
+ 	memset(&device->cap, 0, sizeof(device->cap));
+ 
+@@ -665,100 +781,8 @@ static void acpi_video_device_find_cap(s
+ 		device->cap._DSS = 1;
+ 	}
+ 
+-	if (ACPI_SUCCESS(acpi_video_device_lcd_query_levels(device, &obj))) {
+-
+-		if (obj->package.count >= 2) {
+-			int count = 0;
+-			union acpi_object *o;
+-
+-			br = kzalloc(sizeof(*br), GFP_KERNEL);
+-			if (!br) {
+-				printk(KERN_ERR "can't allocate memory\n");
+-			} else {
+-				br->levels = kmalloc(obj->package.count *
+-						     sizeof *(br->levels), GFP_KERNEL);
+-				if (!br->levels)
+-					goto out;
+-
+-				for (i = 0; i < obj->package.count; i++) {
+-					o = (union acpi_object *)&obj->package.
+-					    elements[i];
+-					if (o->type != ACPI_TYPE_INTEGER) {
+-						printk(KERN_ERR PREFIX "Invalid data\n");
+-						continue;
+-					}
+-					br->levels[count] = (u32) o->integer.value;
+-
+-					if (br->levels[count] > max_level)
+-						max_level = br->levels[count];
+-					count++;
+-				}
+-			      out:
+-				if (count < 2) {
+-					kfree(br->levels);
+-					kfree(br);
+-				} else {
+-					br->count = count;
+-					device->brightness = br;
+-					ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-							  "found %d brightness levels\n",
+-							  count));
+-				}
+-			}
+-		}
+-
+-	} else {
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Could not query available LCD brightness level\n"));
+-	}
+-
+-	kfree(obj);
+-
+-	if (device->cap._BCL && device->cap._BCM && max_level > 0) {
+-		int result;
+-		static int count = 0;
+-		char *name;
+-		name = kzalloc(MAX_NAME_LEN, GFP_KERNEL);
+-		if (!name)
+-			return;
+-
+-		sprintf(name, "acpi_video%d", count++);
+-		device->backlight = backlight_device_register(name,
+-			NULL, device, &acpi_backlight_ops);
+-		device->backlight->props.max_brightness = device->brightness->count-3;
+-		device->backlight->props.brightness = acpi_video_get_brightness(device->backlight);
+-		backlight_update_status(device->backlight);
+-		kfree(name);
+-
+-		device->cdev = thermal_cooling_device_register("LCD",
+-					device->dev, &video_cooling_ops);
+-		if (IS_ERR(device->cdev))
+-			return;
+-
+-		printk(KERN_INFO PREFIX
+-			"%s is registered as cooling_device%d\n",
+-			device->dev->dev.bus_id, device->cdev->id);
+-		result = sysfs_create_link(&device->dev->dev.kobj,
+-				  &device->cdev->device.kobj,
+-				  "thermal_cooling");
+-		if (result)
+-			printk(KERN_ERR PREFIX "Create sysfs link\n");
+-		result = sysfs_create_link(&device->cdev->device.kobj,
+-				  &device->dev->dev.kobj,
+-				  "device");
+-		if (result)
+-			printk(KERN_ERR PREFIX "Create sysfs link\n");
+-	}
+-	if (device->cap._DCS && device->cap._DSS){
+-		static int count = 0;
+-		char *name;
+-		name = kzalloc(MAX_NAME_LEN, GFP_KERNEL);
+-		if (!name)
+-			return;
+-		sprintf(name, "acpi_video%d", count++);
+-		device->output_dev = video_output_register(name,
+-				NULL, device, &acpi_output_properties);
+-		kfree(name);
+-	}
++	acpi_video_init_brightness(device);
++	acpi_video_init_display_switching(device);
+ 	return;
+ }
+ 
 
-(I only added Egbert, Barnes and Hong to this mail, the patches
-themselves shouldn't be that interesting for you, but this):
-If the patch series gets accepted, I like to start another discussion
-about an interface between ACPI and graphics card drivers or better
-between the backlight interface and graphics card drivers.
-AFAIK some graphics card drivers already tried to catch acpi hotkey
-events, e.g. even IBM specific ones and tried to switch the
-display/brightness themselves. Which I could imagine resulting in
-(graphics card drivers) * (vendor specific) amount of implementations,
-being more a workaround than a solution.
-
-IMO there should be an easy switch (e.g. for graphics drivers to modify
-at runtime) to decide whether ACPI should try to switch the brightness
-or whether switching requests should be forwarded to the graphics
-drivers. The only central place where this could work for all kind of
-drivers that are involved into backlight switching, even for other archs
-currently is drivers/video/backlight/backlight.c.
-Do you think it's possible to e.g. give it a sysfs file and let graphics
-drivers tell the backlight interface whether it can switch the
-brightness and only let it generate a netlink (an ACPI independent)
-event that brightness should be changed?
-The same for the display output switching interface.
-Hmm, theoretically you can give it a generic "notify graphics cards"
-set_brightness/update_brightness call back function..., but it probably
-can be designed better for above purpose... suggestions?
-
-Instead of sending a netlink event directly, this could be an in-kernel
-notification to a (in-kernel) graphics driver stub. Currently it may
-just generate the netlink event and forward the request to the userspace
-graphics driver, later the in-kernel graphics drivers can handle it
-themselves.
-
-Also there are some input interfaces to be considered:
-  A) User explicitly requests a backlight change
-  B) Hotkeys generate key codes
-  C) Vendor specific (hotkey) ACPI devices get notified (the old way?)
-  D) The generic graphics device gets notified (The Vista way or do 
-     they finally go the keycode way or both?)
-
-I wonder how B currently works, is it directly routed to X all done in
-userspace (not telling /sys/.../backlight)? That would be bad. While I
-am all for graphics drivers taking over control, we should think about
-how this could all be pushed to be forwarded through one interface...
-
-These are some ideas just made from scratch without knowing much about
-the upcoming in-kernel graphics things..., more ideas are very welcome.
-
-   Thomas
 
