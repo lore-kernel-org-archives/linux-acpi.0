@@ -1,220 +1,59 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH 5/7] Detect ACPI BIOS brightness capabilities early
-Date: Thu, 17 Apr 2008 21:27:40 +0200
-Message-ID: <1208460460.1784.392.camel@queen.suse.de>
-References: <1208372502.1784.350.camel@queen.suse.de>
-	 <1208424886.7844.25.camel@yakui_zhao.sh.intel.com>
+Subject: Re: [PATCH 7/7] Who controls brightness functionality: vendor
+	specific or generic video driver
+Date: Thu, 17 Apr 2008 21:32:18 +0200
+Message-ID: <1208460739.1784.398.camel@queen.suse.de>
+References: <1208372572.1784.352.camel@queen.suse.de>
+	 <20080416210108.GB3396@khazad-dum.debian.net>
 Reply-To: trenn@suse.de
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns.suse.de ([195.135.220.2]:59751 "EHLO mx1.suse.de"
+Received: from mail.suse.de ([195.135.220.2]:60691 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752170AbYDQT1o (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Apr 2008 15:27:44 -0400
-In-Reply-To: <1208424886.7844.25.camel@yakui_zhao.sh.intel.com>
+	id S1753123AbYDQTcU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 Apr 2008 15:32:20 -0400
+In-Reply-To: <20080416210108.GB3396@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Corentin CHARY <corentincj@iksaif.net>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Mattia Dongili <malattia@linux.it>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Corentin CHARY <corentincj@iksaif.net>, Mattia Dongili <malattia@linux.it>
 
-On Thu, 2008-04-17 at 17:34 +0800, Zhao Yakui wrote:
-> On Wed, 2008-04-16 at 21:01 +0200, Thomas Renninger wrote:
-> > Detect ACPI BIOS brightness capabilities early
-> > 
-> > Detect whether an ACPI graphics device supports ACPI video
-> > or the Integrated Graphics Device (IGD) extensions.
-> > Only check physically plugged, not the dummy devices.
-> > Depending on whether the kernel supports the IGD device, drivers
-> > can decide whether native vendor specific or a generic driver should
-> > take brightness or display switching control.
-> It is good to detect the ACPI BIOS video/brightness capabilities as
-> early as possible. 
-> But one ACPI device can't be identified as physically plugged device or
-> dummy device in the function of acpi_video_bus_match. When the
-> acpi_video_bus_match is called, there doesn't exist the link between
-> ACPI device and PCI device. Only after the PCI device is scanned, OS
-> will build the link between ACPI device and PCI device.
-I will have to look at this more detailed...
-A first idea: keep video_bus_match and let the video CID be added as
-done before.
-Maybe some is_pcidev and is_present flag can be added at pci scanning
-time (pci devs do not have a _STA func?), the latter gets updated via
-possible pci hotplug (not for this patch series needed, that sounds
-convenient in general).
-video cap matching (or say pci dev cap matching) could get a special
-case somewhere at pci scanning/binding then.
-So moving the video cap checking only a bit later was not enough and
-patch 3/7 is not worth much.
+On Wed, 2008-04-16 at 18:01 -0300, Henrique de Moraes Holschuh wrote:
+> On Wed, 16 Apr 2008, Thomas Renninger wrote:
+> > Index: linux-acpi-2.6_video_native_vs_vendor/drivers/misc/thinkpad_acpi.c
+> > ===================================================================
+> > --- linux-acpi-2.6_video_native_vs_vendor.orig/drivers/misc/thinkpad_acpi.c
+> > +++ linux-acpi-2.6_video_native_vs_vendor/drivers/misc/thinkpad_acpi.c
+> > @@ -4381,6 +4381,13 @@ static int __init brightness_init(struct
+> >  			   "module parameter\n");
+> >  		return 1;
+> >  	} else if (brightness_enable > 1) {
+> > +		if ((acpi_video_support & ACPI_VIDEO_BRIGHTNESS) &&
+> > +		    !(acpi_video_support & ACPI_VIDEO_FORCE_VENDOR_SPECIFIC)) {
+> > +			printk(TPACPI_INFO "Brightness ignored, must be "
+> > +			       "controlled by ACPI video driver\n");
+> > +			return 1;
+> > +		}
+> > +		/* Above, generic approach should make this check obsolete */
+> >  		if (brightness_check_std_acpi_support()) {
+> >  			printk(TPACPI_NOTICE
+> >  			       "standard ACPI backlight interface "
+> 
+> Ack.  But I am sure I will have to change this hunk a bit on
+> thinkpad-acpi 0.20.  This is not a big issue, and if you prefer, I can
+> handle adding the above support for thinkpad-acpi 0.20 since it is
+> likely going to be merged late due to its dependency on some stuff for
+> the LED class that needs to be in mainline first...
+
+I need to post another version, I hope to find some time over the
+week-end.
+I also need to go through and disable output switching also where
+supported.
 
 Thanks,
 
-  Thomas
+   Thomas
 
-> Best regards.
->    Yakui
-> > Introduce a boot parameter: acpi_brightness_by_vendor
-> > If set, the ACPI video driver will not control brightness
-> > 
-> > Signed-off-by: Thomas Renninger <trenn@suse.de>
-> > 
-> > ---
-> >  drivers/acpi/scan.c  |   95 +++++++++++++++++++++++++++++++++++++++++++++++----
-> >  include/linux/acpi.h |    9 ++++
-> >  2 files changed, 97 insertions(+), 7 deletions(-)
-> > 
-> > Index: linux-acpi-2.6_video_native_vs_vendor/drivers/acpi/scan.c
-> > ===================================================================
-> > --- linux-acpi-2.6_video_native_vs_vendor.orig/drivers/acpi/scan.c
-> > +++ linux-acpi-2.6_video_native_vs_vendor/drivers/acpi/scan.c
-> > @@ -879,10 +879,61 @@ static void acpi_device_get_busid(struct
-> >  	}
-> >  }
-> >  
-> > +/*
-> > + * Indicates which video capabilities are available in BIOS and follow the
-> > + * ACPI spec.
-> > + * If CONFIG_ACPI_VIDEO is not defined, the variable stays 0 and vendor
-> > + * specific drivers will always take over..., otherwise they want to take
-> > + * over some parts, e.g. if we have an IGD device, but no IGD driver yet,
-> > + * or if user explicitly requests native driver brightness support
-> > +*/
-> > +u8 acpi_video_support;
-> > +EXPORT_SYMBOL(acpi_video_support);
-> > +
-> > +#if defined(CONFIG_ACPI_VIDEO) || defined(CONFIG_ACPI_VIDEO_MODULE)
-> > +
-> > +static int __init acpi_brightness_force_vendor(char *str)
-> > +{
-> > +	acpi_video_support &= ACPI_VIDEO_FORCE_VENDOR_SPECIFIC;
-> > +	return 1;
-> > +}
-> > +__setup("acpi_video_by_vendor", acpi_brightness_force_vendor);
-> > +
-> > +static acpi_status
-> > +acpi_brightness_cap_match(acpi_handle handle, u32 level, void *context,
-> > +			  void **return_value)
-> > +{
-> > +       acpi_handle h_dummy;
-> > +
-> > +       if (ACPI_SUCCESS(acpi_get_handle(handle, "_BCM", &h_dummy)) &&
-> > +	   ACPI_SUCCESS(acpi_get_handle(handle, "_BCL", &h_dummy))) {
-> > +	       printk(KERN_INFO "Brightness switching support detected\n");
-> > +	       acpi_video_support |= ACPI_VIDEO_BRIGHTNESS;
-> > +	       return 0;
-> > +       }
-> > +       return -ENODEV;
-> > +}
-> > +
-> > +static void acpi_video_igd_match(struct acpi_device *device)
-> > +{
-> > +
-> > +	acpi_handle h_dummy;
-> > +
-> > +	/* We should check for all mandatory IGD functions here */
-> > +	if (ACPI_SUCCESS(acpi_get_handle(device->handle, "_DRDY", &h_dummy))) {
-> > +		acpi_video_support |= ACPI_VIDEO_IGD;
-> > +	}
-> > +}
-> > +
-> > +/*
-> > + * If this one returns 0, the device will be marked as a video device
-> > + * and the ACPI video driver module will be autoloaded
-> > + */
-> >  static int
-> >  acpi_video_bus_match(struct acpi_device *device)
-> >  {
-> >  	acpi_handle h_dummy;
-> > +	struct device *dev;
-> >  
-> >  	if (!device)
-> >  		return -EINVAL;
-> > @@ -893,22 +944,52 @@ acpi_video_bus_match(struct acpi_device 
-> >  
-> >  	/* Does this device able to support video switching ? */
-> >  	if (ACPI_SUCCESS(acpi_get_handle(device->handle, "_DOD", &h_dummy)) &&
-> > -	    ACPI_SUCCESS(acpi_get_handle(device->handle, "_DOS", &h_dummy)))
-> > -		return 0;
-> > -
-> > +	    ACPI_SUCCESS(acpi_get_handle(device->handle, "_DOS", &h_dummy))) {
-> > +		acpi_video_support |= ACPI_VIDEO_OUTPUT_SWITCHING;
-> > +		goto success;
-> > +	}
-> >  	/* Does this device able to retrieve a video ROM ? */
-> > -	if (ACPI_SUCCESS(acpi_get_handle(device->handle, "_ROM", &h_dummy)))
-> > -		return 0;
-> > +	if (ACPI_SUCCESS(acpi_get_handle(device->handle, "_ROM", &h_dummy))) {
-> > +		acpi_video_support |= ACPI_VIDEO_ROM_AVAILABLE;
-> > +		goto success;
-> > +	}
-> >  
-> >  	/* Does this device able to configure which video head to be POSTed ? */
-> >  	if (ACPI_SUCCESS(acpi_get_handle(device->handle, "_VPO", &h_dummy)) &&
-> >  	    ACPI_SUCCESS(acpi_get_handle(device->handle, "_GPD", &h_dummy)) &&
-> > -	    ACPI_SUCCESS(acpi_get_handle(device->handle, "_SPD", &h_dummy)))
-> > +	    ACPI_SUCCESS(acpi_get_handle(device->handle, "_SPD", &h_dummy))) {
-> > +		acpi_video_support |= ACPI_VIDEO_DEVICE_POSTING;
-> > +		goto success;
-> > +	}
-> > +	return -ENODEV;
-> > +
-> > + success:
-> > +	dev = acpi_get_physical_pci_device(device->handle);
-> > +	if (!dev)
-> > +		/* An ACPI dummy device, no card is plugged in, still return
-> > +		 * true so that this device can later be identified as a video
-> > +		 * device via CID list
-> > +		 */
-> >  		return 0;
-> > +	put_device(dev);
-> >  
-> > -	return -ENODEV;
-> > +	/* This device is a video device which is really plugged in,
-> > +	   now also check for IGD and brightness support */
-> > +	acpi_walk_namespace(ACPI_TYPE_DEVICE, device->handle, ACPI_UINT32_MAX,
-> > +			    acpi_brightness_cap_match, NULL, NULL);
-> > +	/* IGD testing might not be necessary if no brightness functions
-> > +	   are available */
-> > +	acpi_video_igd_match(device);
-> > +	return 0;
-> >  }
-> >  
-> > +#else /* CONFIG_ACPI_VIDEO || CONFIG_ACPI_VIDEO_MODULE */
-> > +
-> > +static int
-> > +acpi_video_bus_match(struct acpi_device *device) { return 0; }
-> > +
-> > +#endif
-> > +
-> >  /*
-> >   * acpi_bay_match - see if a device is an ejectable driver bay
-> >   *
-> > Index: linux-acpi-2.6_video_native_vs_vendor/include/linux/acpi.h
-> > ===================================================================
-> > --- linux-acpi-2.6_video_native_vs_vendor.orig/include/linux/acpi.h
-> > +++ linux-acpi-2.6_video_native_vs_vendor/include/linux/acpi.h
-> > @@ -169,6 +169,15 @@ struct acpi_pci_driver {
-> >  int acpi_pci_register_driver(struct acpi_pci_driver *driver);
-> >  void acpi_pci_unregister_driver(struct acpi_pci_driver *driver);
-> >  
-> > +/* video/brightness support */
-> > +#define ACPI_VIDEO_OUTPUT_SWITCHING		1
-> > +#define ACPI_VIDEO_DEVICE_POSTING		2
-> > +#define ACPI_VIDEO_ROM_AVAILABLE		4
-> > +#define ACPI_VIDEO_BRIGHTNESS			8
-> > +#define ACPI_VIDEO_IGD				16
-> > +#define ACPI_VIDEO_FORCE_VENDOR_SPECIFIC	32
-> > +extern u8 acpi_video_support;
-> > +
-> >  #ifdef CONFIG_ACPI_EC
-> >  
-> >  extern int ec_read(u8 addr, u8 *val);
-> > 
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
 
