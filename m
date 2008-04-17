@@ -1,40 +1,36 @@
-From: Jeff Garzik <jgarzik@pobox.com>
-Subject: Re: [PATCH] ata-acpi: don't call _GTF for disabled drive
-Date: Thu, 17 Apr 2008 15:57:00 -0400
-Message-ID: <4807AB8C.70303@pobox.com>
-References: <1206435045.23794.13.camel@sli10-desk.sh.intel.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH -mm 1/3] misc,acpi,backlight: Compal Laptop Extras - add
+ entry to MAINTAINERS
+Date: Thu, 17 Apr 2008 14:33:15 -0700
+Message-ID: <20080417143315.5ace65b3.akpm@linux-foundation.org>
+References: <20080416225057.57b8c25b@debian>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from srv5.dvmed.net ([207.36.208.214]:34259 "EHLO mail.dvmed.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752398AbYDQT5E (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Apr 2008 15:57:04 -0400
-In-Reply-To: <1206435045.23794.13.camel@sli10-desk.sh.intel.com>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38876 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751663AbYDQVeK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 Apr 2008 17:34:10 -0400
+In-Reply-To: <20080416225057.57b8c25b@debian>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, linux-ide <linux-ide@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: Cezary Jackiewicz <cezary.jackiewicz@gmail.com>
+Cc: lenb@kernel.org, rpurdie@rpsys.net, hmh@hmh.eng.br, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Shaohua Li wrote:
-> I got below log after a S3 resume in a ASUS A6VC laptop. The system has
-> only one IDE drive. It appears there is no reason calling _GTF for
-> disabled drive.
+On Wed, 16 Apr 2008 22:50:57 +0200
+Cezary Jackiewicz <cezary.jackiewicz@gmail.com> wrote:
+
+> From: Cezary Jackiewicz <cezary.jackiewicz@gmail.com>
 > 
-> ACPI Error (dsopcode-0483): Attempt to CreateField of length zero [20070126]
-> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.RATA] (Node df822a7c), AE_AML_OPERAND_VALUE
-> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.CHN1.DRV0._GTF] (Node df822bd0), AE_AML_OPERAND_VALUE
-> ata2.00: _GTF evaluation failed (AE 0x3006)
-> ACPI Error (dsopcode-0483): Attempt to CreateField of length zero [20070126]
-> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.RATA] (Node df822a7c), AE_AML_OPERAND_VALUE
-> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.CHN1.DRV1._GTF] (Node df822b94), AE_AML_OPERAND_VALUE
-> ata2.01: _GTF evaluation failed (AE 0x3006)
+> Add me to MAINTAINERS
 > 
-> Signed-off-by: Shaohua Li <shaohua.li@intel.com>
 
-well, no comments at all from anyone, even after a solicitation.  sigh...
+Thanks.  I have a note here that Len had requested some updates to
+miscacpibacklight-compal-laptop-extras-3rd-try.patch.patch, but I did not
+record what the particular issues were.
 
-applied
-
+Can you please remind us what his points were, and whether and how they
+were addressed?
 
