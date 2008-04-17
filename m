@@ -1,43 +1,30 @@
-From: "Jike Song" <albcamus@gmail.com>
-Subject: Re: as requested in dmesg
-Date: Thu, 17 Apr 2008 22:22:59 +0800
-Message-ID: <df9815e70804170722n5e558effr255288ded0e3a9df@mail.gmail.com>
-References: <48075BFD.3070907@swissonline.ch>
+From: Nick Andrew <nick@nick-andrew.net>
+Subject: Re: pnpacpi: reduce printk severity for "pnpacpi: exceeded the max	number of ..."
+Date: Fri, 18 Apr 2008 01:24:05 +1000
+Message-ID: <20080417152405.GB14206@tull.net>
+References: <20080417010122.148289106@sous-sol.org> <20080417010359.629397865@sous-sol.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.191]:32403 "EHLO
-	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753094AbYDQOXC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Apr 2008 10:23:02 -0400
-Received: by ti-out-0910.google.com with SMTP id 28so18027tif.23
-        for <linux-acpi@vger.kernel.org>; Thu, 17 Apr 2008 07:22:59 -0700 (PDT)
-In-Reply-To: <48075BFD.3070907@swissonline.ch>
+Received: from yoi5.greathalifaxhome.com ([66.180.172.116]:57304 "HELO
+	vps1.tull.net" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with SMTP
+	id S1761310AbYDQPbM (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
+	Thu, 17 Apr 2008 11:31:12 -0400
 Content-Disposition: inline
+In-Reply-To: <20080417010359.629397865@sous-sol.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans Zangger <h.zangger@swissonline.ch>
-Cc: linux-acpi@vger.kernel.org
+To: Chris Wright <chrisw@sous-sol.org>
+Cc: linux-kernel@vger.kernel.org, stable@kernel.org, Linux-acpi@vger.kernel.org, Justin Forbes <jmforbes@linuxtx.org>, Zwane Mwaikambo <zwane@arm.linux.org.uk>, Theodore Ts'o <tytso@mit.edu>, Randy Dunlap <rdunlap@xenotime.net>, Dave Jones <davej@redhat.com>, Chuck Wolber <chuckw@quantumlinux.com>, Chris Wedgwood <reviews@ml.cw.f00f.org>, Michael Krufky <mkrufky@linuxtv.org>, Chuck Ebbert <cebbert@redhat.com>, Domenico Andreoli <cavokz@gmail.com>, torvalds@linux-foundation.org, akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, Len Brown <lenb@kernel.org>, Len Brown <len.brown@intel.com>
 
-Hi,
+On Wed, Apr 16, 2008 at 06:02:20PM -0700, Chris Wright wrote:
+> -		printk(KERN_ERR "pnpacpi: exceeded the max number of IRQ "
+> +		printk(KERN_WARNING "pnpacpi: exceeded the max number of IRQ "
+>  				"resources: %d \n", PNP_MAX_IRQ);
 
-I think you should send the output of `dmidecode' for details.
+This is a good time to delete that whitespace before the newline
+in this hunk plus the two following. Unless you're going to go to
+dynamic memory allocation for these arrays in a month and wipe
+out all this code.
 
--Thanks,
-
-On Thu, Apr 17, 2008 at 10:17 PM, Hans Zangger <h.zangger@swissonline.ch> wrote:
-> here you go:
->
->  ACPI: DMI System Vendor: Dell Inc.
->  ACPI: DMI Product Name: Latitude D630
->  ACPI: DMI Product Version:
->  ACPI: DMI Board Name: 0KU184
->  ACPI: DMI BIOS Vendor: Dell Inc.
->  ACPI: DMI BIOS Date: 01/30/2008
->  ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
->  --
->  To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->  the body of a message to majordomo@vger.kernel.org
->  More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Nick.
