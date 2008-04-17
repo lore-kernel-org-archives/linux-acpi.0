@@ -1,88 +1,191 @@
-From: Chris Wright <chrisw@sous-sol.org>
-Subject: pnpacpi: reduce printk severity for "pnpacpi: exceeded the max number of ..."
-Date: Wed, 16 Apr 2008 18:02:20 -0700
-Message-ID: <20080417010359.629397865@sous-sol.org>
-References: <20080417010122.148289106@sous-sol.org>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: [PATCH 2/7] ACPI: Introduce static func: cid_add to add IDs as
+	compatible IDs to a device
+Date: Thu, 17 Apr 2008 17:02:43 +0800
+Message-ID: <1208422963.7844.13.camel@yakui_zhao.sh.intel.com>
+References: <1208371949.1784.343.camel@queen.suse.de>
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from sous-sol.org ([216.99.217.87]:58711 "EHLO sous-sol.org"
+Received: from mga11.intel.com ([192.55.52.93]:25401 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754173AbYDQBGg (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
-	Wed, 16 Apr 2008 21:06:36 -0400
-Content-Disposition: inline; filename=pnpacpi-reduce-printk-severity-for-pnpacpi-exceeded-the-max-number-of.patch
+	id S1762511AbYDQBL0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Apr 2008 21:11:26 -0400
+In-Reply-To: <1208371949.1784.343.camel@queen.suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@kernel.org, Linux-acpi@vger.kernel.org
-Cc: Justin Forbes <jmforbes@linuxtx.org>, Zwane Mwaikambo <zwane@arm.linux.org.uk>, Theodore Ts'o <tytso@mit.edu>, Randy Dunlap <rdunlap@xenotime.net>, Dave Jones <davej@redhat.com>, Chuck Wolber <chuckw@quantumlinux.com>, Chris Wedgwood <reviews@ml.cw.f00f.org>, Michael Krufky <mkrufky@linuxtv.org>, Chuck Ebbert <cebbert@redhat.com>, Domenico Andreoli <cavokz@gmail.com>, torvalds@linux-foundation.org, akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, Len Brown <lenb@kernel.org>, Len Brown <len.brown@intel.com>
+To: trenn@suse.de
+Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Corentin CHARY <corentincj@iksaif.net>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Mattia Dongili <malattia@linux.it>
 
--stable review patch.  If anyone has any objections, please let us know.
----------------------
+On Wed, 2008-04-16 at 20:52 +0200, Thomas Renninger wrote:
+> ACPI: Introduce static func: cid_add to add IDs as compatible IDs to a device
+> 
+> Rip the functionality out of acpi_device_set_id, it is needed elsewhere in
+> the code on follow-up patches.
+> 
+It seems that the cid_add function will be called twice for some
+devices. 
+For example: VIDEO device
+    When the CID object exists, the cid_add function will be called to
+add the compatible_list.
+    When it is identified as the VIDEO device, the cid_add function will
+be called again to add the compatible_list.
 
-From: Len Brown <len.brown@intel.com>
+In such case the compatible_list pointer will be replaced directly by
+new pointer and the memory pointed by compatible_list can't be free.
 
-upstream commit 33fd7afd66ffdc6addf1b085fe6403b6af532f8e 
+Best regards.
+   Yakui
+    
+> Signed-off-by: Thomas Renninger <trenn@suse.de>
+> 
+> ---
+>  drivers/acpi/scan.c |   97 ++++++++++++++++++++++++++--------------------------
+>  1 file changed, 50 insertions(+), 47 deletions(-)
+> 
+> Index: linux-acpi-2.6_video_native_vs_vendor/drivers/acpi/scan.c
+> ===================================================================
+> --- linux-acpi-2.6_video_native_vs_vendor.orig/drivers/acpi/scan.c
+> +++ linux-acpi-2.6_video_native_vs_vendor/drivers/acpi/scan.c
+> @@ -954,6 +954,52 @@ static int acpi_dock_match(struct acpi_d
+>  	return acpi_get_handle(device->handle, "_DCK", &tmp);
+>  }
+>  
+> +/* Add a single Compatible ID or a whole list of CIDs to a device */
+> +static void cid_add(struct acpi_device *device, const char *cid_add,
+> +		    struct acpi_compatible_id_list *cid_list) {
+> +
+> +	struct acpi_compatible_id_list *list = NULL;
+> +	int size = 0;
+> +	int count = 0;
+> +
+> +	if (!cid_list && !cid_add)
+> +		return;
+> +
+> +	if (cid_list) {
+> +		size = cid_list->size;
+> +	} else if (cid_add) {
+> +		size = sizeof(struct acpi_compatible_id_list);
+> +		cid_list = ACPI_ALLOCATE_ZEROED((acpi_size) size);
+> +		if (!cid_list) {
+> +			printk(KERN_ERR "Memory allocation error\n");
+> +			return;
+> +		} else {
+> +			cid_list->count = 0;
+> +			cid_list->size = size;
+> +		}
+> +	}
+> +	if (cid_add)
+> +		size += sizeof(struct acpi_compatible_id);
+> +	list = kmalloc(size, GFP_KERNEL);
+> +
+> +	if (list) {
+> +		if (cid_list) {
+> +			memcpy(list, cid_list, cid_list->size);
+> +			count = cid_list->count;
+> +		}
+> +		if (cid_add) {
+> +			strncpy(list->id[count].value, cid_add,
+> +				ACPI_MAX_CID_LENGTH);
+> +			count++;
+> +			device->flags.compatible_ids = 1;
+> +		}
+> +		list->size = size;
+> +		list->count = count;
+> +		device->pnp.cid_list = list;
+> +	} else
+> +		printk(KERN_ERR PREFIX "Memory allocation error\n");
+> +}
+> +
+>  static void acpi_device_set_id(struct acpi_device *device,
+>  			       struct acpi_device *parent, acpi_handle handle,
+>  			       int type)
+> @@ -962,8 +1008,6 @@ static void acpi_device_set_id(struct ac
+>  	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+>  	char *hid = NULL;
+>  	char *uid = NULL;
+> -	struct acpi_compatible_id_list *cid_list = NULL;
+> -	const char *cid_add = NULL;
+>  	acpi_status status;
+>  
+>  	switch (type) {
+> @@ -980,7 +1024,7 @@ static void acpi_device_set_id(struct ac
+>  		if (info->valid & ACPI_VALID_UID)
+>  			uid = info->unique_id.value;
+>  		if (info->valid & ACPI_VALID_CID)
+> -			cid_list = &info->compatibility_id;
+> +			cid_add(device, NULL, &info->compatibility_id);
+>  		if (info->valid & ACPI_VALID_ADR) {
+>  			device->pnp.bus_address = info->address;
+>  			device->flags.bus_address = 1;
+> @@ -992,11 +1036,11 @@ static void acpi_device_set_id(struct ac
+>  		   against another driver.
+>  		*/
+>  		if (ACPI_SUCCESS(acpi_video_bus_match(device)))
+> -			cid_add = ACPI_VIDEO_HID;
+> +			cid_add(device, ACPI_VIDEO_HID, NULL);
+>  		else if (ACPI_SUCCESS(acpi_bay_match(device)))
+> -			cid_add = ACPI_BAY_HID;
+> +			cid_add(device, ACPI_BAY_HID, NULL);
+>  		else if (ACPI_SUCCESS(acpi_dock_match(device)))
+> -			cid_add = ACPI_DOCK_HID;
+> +			cid_add(device, ACPI_DOCK_HID, NULL);;
+>  
+>  		break;
+>  	case ACPI_BUS_TYPE_POWER:
+> @@ -1038,47 +1082,6 @@ static void acpi_device_set_id(struct ac
+>  		strcpy(device->pnp.unique_id, uid);
+>  		device->flags.unique_id = 1;
+>  	}
+> -	if (cid_list || cid_add) {
+> -		struct  acpi_compatible_id_list *list;
+> -		int size = 0;
+> -		int count = 0;
+> -
+> -		if (cid_list) {
+> -			size = cid_list->size;
+> -		} else if (cid_add) {
+> -			size = sizeof(struct acpi_compatible_id_list);
+> -			cid_list = ACPI_ALLOCATE_ZEROED((acpi_size) size);
+> -			if (!cid_list) {
+> -				printk(KERN_ERR "Memory allocation error\n");
+> -				kfree(buffer.pointer);
+> -				return;
+> -			} else {
+> -				cid_list->count = 0;
+> -				cid_list->size = size;
+> -			}
+> -		}
+> -		if (cid_add)
+> -			size += sizeof(struct acpi_compatible_id);
+> -		list = kmalloc(size, GFP_KERNEL);
+> -
+> -		if (list) {
+> -			if (cid_list) {
+> -				memcpy(list, cid_list, cid_list->size);
+> -				count = cid_list->count;
+> -			}
+> -			if (cid_add) {
+> -				strncpy(list->id[count].value, cid_add,
+> -					ACPI_MAX_CID_LENGTH);
+> -				count++;
+> -				device->flags.compatible_ids = 1;
+> -			}
+> -			list->size = size;
+> -			list->count = count;
+> -			device->pnp.cid_list = list;
+> -		} else
+> -			printk(KERN_ERR PREFIX "Memory allocation error\n");
+> -	}
+> -
+>  	kfree(buffer.pointer);
+>  }
+>  
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-We have been printing these messages at KERN_ERR since 2.6.24,
-per http://bugzilla.kernel.org/show_bug.cgi?id=9535
-
-But KERN_ERR pops up on a console booted with "quiet"
-and causes users to get alarmed and file bugs
-about the message itself:
-https://bugzilla.redhat.com/show_bug.cgi?id=436589
-
-So reduce the severity of these messages to
-KERN_WARNING, which is not printed by "quiet".
-
-This message will still be seen without "quiet",
-but a lot of messages are printed in that mode
-and it will be less likely to cause undue alarm.
-
-We could go all the way to KERN_DEBUG, but this
-is a real warning after all, so it seems prudent
-not to require "debug" to see it.
-
-Signed-off-by: Len Brown <len.brown@intel.com>
-Signed-off-by: Chris Wright <chrisw@sous-sol.org>
----
- drivers/pnp/pnpacpi/rsparser.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
---- a/drivers/pnp/pnpacpi/rsparser.c
-+++ b/drivers/pnp/pnpacpi/rsparser.c
-@@ -85,7 +85,7 @@ static void pnpacpi_parse_allocated_irqr
- 	       i < PNP_MAX_IRQ)
- 		i++;
- 	if (i >= PNP_MAX_IRQ && !warned) {
--		printk(KERN_ERR "pnpacpi: exceeded the max number of IRQ "
-+		printk(KERN_WARNING "pnpacpi: exceeded the max number of IRQ "
- 				"resources: %d \n", PNP_MAX_IRQ);
- 		warned = 1;
- 		return;
-@@ -187,7 +187,7 @@ static void pnpacpi_parse_allocated_dmar
- 		res->dma_resource[i].start = dma;
- 		res->dma_resource[i].end = dma;
- 	} else if (!warned) {
--		printk(KERN_ERR "pnpacpi: exceeded the max number of DMA "
-+		printk(KERN_WARNING "pnpacpi: exceeded the max number of DMA "
- 				"resources: %d \n", PNP_MAX_DMA);
- 		warned = 1;
- 	}
-@@ -213,7 +213,7 @@ static void pnpacpi_parse_allocated_iore
- 		res->port_resource[i].start = io;
- 		res->port_resource[i].end = io + len - 1;
- 	} else if (!warned) {
--		printk(KERN_ERR "pnpacpi: exceeded the max number of IO "
-+		printk(KERN_WARNING "pnpacpi: exceeded the max number of IO "
- 				"resources: %d \n", PNP_MAX_PORT);
- 		warned = 1;
- 	}
-@@ -241,7 +241,7 @@ static void pnpacpi_parse_allocated_memr
- 		res->mem_resource[i].start = mem;
- 		res->mem_resource[i].end = mem + len - 1;
- 	} else if (!warned) {
--		printk(KERN_ERR "pnpacpi: exceeded the max number of mem "
-+		printk(KERN_WARNING "pnpacpi: exceeded the max number of mem "
- 				"resources: %d\n", PNP_MAX_MEM);
- 		warned = 1;
- 	}
-
--- 
