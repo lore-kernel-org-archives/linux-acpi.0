@@ -1,59 +1,40 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH 7/7] Who controls brightness functionality: vendor
-	specific or generic video driver
-Date: Thu, 17 Apr 2008 21:32:18 +0200
-Message-ID: <1208460739.1784.398.camel@queen.suse.de>
-References: <1208372572.1784.352.camel@queen.suse.de>
-	 <20080416210108.GB3396@khazad-dum.debian.net>
-Reply-To: trenn@suse.de
+From: Jeff Garzik <jgarzik@pobox.com>
+Subject: Re: [PATCH] ata-acpi: don't call _GTF for disabled drive
+Date: Thu, 17 Apr 2008 15:57:00 -0400
+Message-ID: <4807AB8C.70303@pobox.com>
+References: <1206435045.23794.13.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.suse.de ([195.135.220.2]:60691 "EHLO mx1.suse.de"
+Received: from srv5.dvmed.net ([207.36.208.214]:34259 "EHLO mail.dvmed.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753123AbYDQTcU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Apr 2008 15:32:20 -0400
-In-Reply-To: <20080416210108.GB3396@khazad-dum.debian.net>
+	id S1752398AbYDQT5E (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 Apr 2008 15:57:04 -0400
+In-Reply-To: <1206435045.23794.13.camel@sli10-desk.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Corentin CHARY <corentincj@iksaif.net>, Mattia Dongili <malattia@linux.it>
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, linux-ide <linux-ide@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-On Wed, 2008-04-16 at 18:01 -0300, Henrique de Moraes Holschuh wrote:
-> On Wed, 16 Apr 2008, Thomas Renninger wrote:
-> > Index: linux-acpi-2.6_video_native_vs_vendor/drivers/misc/thinkpad_acpi.c
-> > ===================================================================
-> > --- linux-acpi-2.6_video_native_vs_vendor.orig/drivers/misc/thinkpad_acpi.c
-> > +++ linux-acpi-2.6_video_native_vs_vendor/drivers/misc/thinkpad_acpi.c
-> > @@ -4381,6 +4381,13 @@ static int __init brightness_init(struct
-> >  			   "module parameter\n");
-> >  		return 1;
-> >  	} else if (brightness_enable > 1) {
-> > +		if ((acpi_video_support & ACPI_VIDEO_BRIGHTNESS) &&
-> > +		    !(acpi_video_support & ACPI_VIDEO_FORCE_VENDOR_SPECIFIC)) {
-> > +			printk(TPACPI_INFO "Brightness ignored, must be "
-> > +			       "controlled by ACPI video driver\n");
-> > +			return 1;
-> > +		}
-> > +		/* Above, generic approach should make this check obsolete */
-> >  		if (brightness_check_std_acpi_support()) {
-> >  			printk(TPACPI_NOTICE
-> >  			       "standard ACPI backlight interface "
+Shaohua Li wrote:
+> I got below log after a S3 resume in a ASUS A6VC laptop. The system has
+> only one IDE drive. It appears there is no reason calling _GTF for
+> disabled drive.
 > 
-> Ack.  But I am sure I will have to change this hunk a bit on
-> thinkpad-acpi 0.20.  This is not a big issue, and if you prefer, I can
-> handle adding the above support for thinkpad-acpi 0.20 since it is
-> likely going to be merged late due to its dependency on some stuff for
-> the LED class that needs to be in mainline first...
+> ACPI Error (dsopcode-0483): Attempt to CreateField of length zero [20070126]
+> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.RATA] (Node df822a7c), AE_AML_OPERAND_VALUE
+> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.CHN1.DRV0._GTF] (Node df822bd0), AE_AML_OPERAND_VALUE
+> ata2.00: _GTF evaluation failed (AE 0x3006)
+> ACPI Error (dsopcode-0483): Attempt to CreateField of length zero [20070126]
+> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.RATA] (Node df822a7c), AE_AML_OPERAND_VALUE
+> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.CHN1.DRV1._GTF] (Node df822b94), AE_AML_OPERAND_VALUE
+> ata2.01: _GTF evaluation failed (AE 0x3006)
+> 
+> Signed-off-by: Shaohua Li <shaohua.li@intel.com>
 
-I need to post another version, I hope to find some time over the
-week-end.
-I also need to go through and disable output switching also where
-supported.
+well, no comments at all from anyone, even after a solicitation.  sigh...
 
-Thanks,
-
-   Thomas
+applied
 
 
