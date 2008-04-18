@@ -1,95 +1,75 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 14/53] PNPACPI: extend irq_flags() to set IORESOURCE_IRQ_SHAREABLE when appropriate
-Date: Fri, 18 Apr 2008 14:50:09 -0600
-Message-ID: <20080418205050.048760500@ldl.fc.hp.com>
+Subject: [patch 03/53] PNP: make pnp_add_id() internal to PNP core
+Date: Fri, 18 Apr 2008 14:49:58 -0600
+Message-ID: <20080418205047.762350726@ldl.fc.hp.com>
 References: <20080418204955.342963315@ldl.fc.hp.com>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1762257AbYDRU4v@vger.kernel.org>
-Content-Disposition: inline; filename=pnpacpi-add-shareability-to-irq-flags
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1761776AbYDRUzh@vger.kernel.org>
+Content-Disposition: inline; filename=pnp-make-pnp_add_id-internal-to-core
 Sender: linux-kernel-owner@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, Rene Herman <rene.herman@gmail.com>, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This simplifies IRQ resource parsing slightly by computing all the
-IORESOURCE_IRQ_* flags at the same time.
-
-This also keeps track of shareability information when parsing options
-from _PRS.  Previously we ignored shareability in _PRS.
+pnp_add_id() doesn't need to be exposed outside the PNP core, so
+move the declaration to an internal header file.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Acked-By: Rene Herman <rene.herman@gmail.com>
 
-Index: work7/drivers/pnp/pnpacpi/rsparser.c
+Index: work7/include/linux/pnp.h
 ===================================================================
---- work7.orig/drivers/pnp/pnpacpi/rsparser.c	2008-03-21 15:10:22.000000000 -0600
-+++ work7/drivers/pnp/pnpacpi/rsparser.c	2008-03-21 15:10:23.000000000 -0600
-@@ -32,19 +32,26 @@
+--- work7.orig/include/linux/pnp.h	2008-03-21 13:31:06.000000000 -0600
++++ work7/include/linux/pnp.h	2008-03-21 13:31:08.000000000 -0600
+@@ -403,7 +403,6 @@
+ /* protocol helpers */
+ int pnp_is_active(struct pnp_dev *dev);
+ int compare_pnp_id(struct pnp_id *pos, const char *id);
+-int pnp_add_id(struct pnp_id *id, struct pnp_dev *dev);
+ int pnp_register_driver(struct pnp_driver *drv);
+ void pnp_unregister_driver(struct pnp_driver *drv);
+ 
+@@ -450,7 +449,6 @@
+ /* protocol helpers */
+ static inline int pnp_is_active(struct pnp_dev *dev) { return 0; }
+ static inline int compare_pnp_id(struct pnp_id *pos, const char *id) { return -ENODEV; }
+-static inline int pnp_add_id(struct pnp_id *id, struct pnp_dev *dev) { return -ENODEV; }
+ static inline int pnp_register_driver(struct pnp_driver *drv) { return -ENODEV; }
+ static inline void pnp_unregister_driver(struct pnp_driver *drv) { }
+ 
+Index: work7/drivers/pnp/base.h
+===================================================================
+--- work7.orig/drivers/pnp/base.h	2008-03-21 13:31:06.000000000 -0600
++++ work7/drivers/pnp/base.h	2008-03-21 13:31:39.000000000 -0600
+@@ -1,5 +1,6 @@
+ extern spinlock_t pnp_lock;
+ void *pnp_alloc(long size);
++int pnp_add_id(struct pnp_id *id, struct pnp_dev *dev);
+ int pnp_interface_attach_device(struct pnp_dev *dev);
+ void pnp_fixup_device(struct pnp_dev *dev);
+ void pnp_free_option(struct pnp_option *option);
+Index: work7/drivers/pnp/pnpacpi/core.c
+===================================================================
+--- work7.orig/drivers/pnp/pnpacpi/core.c	2008-03-21 13:31:06.000000000 -0600
++++ work7/drivers/pnp/pnpacpi/core.c	2008-03-21 13:31:08.000000000 -0600
+@@ -25,6 +25,7 @@
+ #include <acpi/acpi_bus.h>
+ #include <acpi/actypes.h>
+ 
++#include "../base.h"
+ #include "pnpacpi.h"
+ 
+ static int num = 0;
+Index: work7/drivers/pnp/pnpbios/core.c
+===================================================================
+--- work7.orig/drivers/pnp/pnpbios/core.c	2008-03-21 13:31:06.000000000 -0600
++++ work7/drivers/pnp/pnpbios/core.c	2008-03-21 13:31:08.000000000 -0600
+@@ -69,6 +69,7 @@
+ #include <asm/system.h>
+ #include <asm/byteorder.h>
+ 
++#include "../base.h"
+ #include "pnpbios.h"
+ 
  /*
-  * Allocated Resources
-  */
--static int irq_flags(int triggering, int polarity)
-+static int irq_flags(int triggering, int polarity, int shareable)
- {
-+	int flags;
-+
- 	if (triggering == ACPI_LEVEL_SENSITIVE) {
- 		if (polarity == ACPI_ACTIVE_LOW)
--			return IORESOURCE_IRQ_LOWLEVEL;
-+			flags = IORESOURCE_IRQ_LOWLEVEL;
- 		else
--			return IORESOURCE_IRQ_HIGHLEVEL;
-+			flags = IORESOURCE_IRQ_HIGHLEVEL;
- 	} else {
- 		if (polarity == ACPI_ACTIVE_LOW)
--			return IORESOURCE_IRQ_LOWEDGE;
-+			flags = IORESOURCE_IRQ_LOWEDGE;
- 		else
--			return IORESOURCE_IRQ_HIGHEDGE;
-+			flags = IORESOURCE_IRQ_HIGHEDGE;
- 	}
-+
-+	if (shareable)
-+		flags |= IORESOURCE_IRQ_SHAREABLE;
-+
-+	return flags;
- }
- 
- static void decode_irq_flags(int flag, int *triggering, int *polarity)
-@@ -108,16 +115,13 @@
- 	}
- 
- 	res->irq_resource[i].flags = IORESOURCE_IRQ;	// Also clears _UNSET flag
--	res->irq_resource[i].flags |= irq_flags(triggering, polarity);
-+	res->irq_resource[i].flags |= irq_flags(triggering, polarity, shareable);
- 	irq = acpi_register_gsi(gsi, triggering, polarity);
- 	if (irq < 0) {
- 		res->irq_resource[i].flags |= IORESOURCE_DISABLED;
- 		return;
- 	}
- 
--	if (shareable)
--		res->irq_resource[i].flags |= IORESOURCE_IRQ_SHAREABLE;
--
- 	res->irq_resource[i].start = irq;
- 	res->irq_resource[i].end = irq;
- 	pcibios_penalize_isa_irq(irq, 1);
-@@ -439,7 +443,7 @@
- 	for (i = 0; i < p->interrupt_count; i++)
- 		if (p->interrupts[i])
- 			__set_bit(p->interrupts[i], irq->map);
--	irq->flags = irq_flags(p->triggering, p->polarity);
-+	irq->flags = irq_flags(p->triggering, p->polarity, p->sharable);
- 
- 	pnp_register_irq_resource(option, irq);
- }
-@@ -459,7 +463,7 @@
- 	for (i = 0; i < p->interrupt_count; i++)
- 		if (p->interrupts[i])
- 			__set_bit(p->interrupts[i], irq->map);
--	irq->flags = irq_flags(p->triggering, p->polarity);
-+	irq->flags = irq_flags(p->triggering, p->polarity, p->sharable);
- 
- 	pnp_register_irq_resource(option, irq);
- }
 
 -- 
