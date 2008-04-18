@@ -1,100 +1,230 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 46/53] PNP: remove ratelimit on add resource failures
-Date: Fri, 18 Apr 2008 14:50:41 -0600
-Message-ID: <20080418205056.574167384@ldl.fc.hp.com>
+Subject: [patch 42/53] PNP: make generic pnp_add_mem_resource()
+Date: Fri, 18 Apr 2008 14:50:37 -0600
+Message-ID: <20080418205055.774927244@ldl.fc.hp.com>
 References: <20080418204955.342963315@ldl.fc.hp.com>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1763643AbYDRVKy@vger.kernel.org>
-Content-Disposition: inline; filename=pnp-remove-warning-ratelimit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1762038AbYDRVJf@vger.kernel.org>
+Content-Disposition: inline; filename=pnp-common-add-mem-resource
 Sender: linux-kernel-owner@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
 
-We used to have a fixed-size resource table.  If a device had
-twenty resources when the table only had space for ten, we didn't
-need ten warnings, so we added the ratelimit.
-
-Now that we can dynamically allocate new resources, we should
-only get failures if the allocation fails.  That should be
-rare enough that we don't need to ratelimit the messages.
+Add a pnp_add_mem_resource() that can be used by all the PNP
+backends.  This consolidates a little more pnp_resource_table
+knowledge into one place.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
+---
+ drivers/pnp/base.h             |    3 +++
+ drivers/pnp/resource.c         |   26 ++++++++++++++++++++++++++
+ drivers/pnp/interface.c        |   17 +++++++----------
+ drivers/pnp/isapnp/core.c      |    9 +++------
+ drivers/pnp/pnpacpi/rsparser.c |   32 ++++++++------------------------
+ drivers/pnp/pnpbios/rsparser.c |   23 ++++++-----------------
+ 6 files changed, 53 insertions(+), 57 deletions(-)
+
+Index: work8/drivers/pnp/base.h
+===================================================================
+--- work8.orig/drivers/pnp/base.h	2008-04-18 11:05:06.000000000 -0600
++++ work8/drivers/pnp/base.h	2008-04-18 11:06:13.000000000 -0600
+@@ -43,3 +43,6 @@
+ struct pnp_resource *pnp_add_io_resource(struct pnp_dev *dev,
+ 					 resource_size_t start,
+ 					 resource_size_t end, int flags);
++struct pnp_resource *pnp_add_mem_resource(struct pnp_dev *dev,
++					  resource_size_t start,
++					  resource_size_t end, int flags);
 Index: work8/drivers/pnp/resource.c
 ===================================================================
---- work8.orig/drivers/pnp/resource.c	2008-04-17 14:39:12.000000000 -0600
-+++ work8/drivers/pnp/resource.c	2008-04-17 14:40:09.000000000 -0600
-@@ -538,15 +538,10 @@
+--- work8.orig/drivers/pnp/resource.c	2008-04-18 11:05:06.000000000 -0600
++++ work8/drivers/pnp/resource.c	2008-04-18 11:06:13.000000000 -0600
+@@ -633,6 +633,32 @@
+ 	return pnp_res;
+ }
+ 
++struct pnp_resource *pnp_add_mem_resource(struct pnp_dev *dev,
++					  resource_size_t start,
++					  resource_size_t end, int flags)
++{
++	struct pnp_resource *pnp_res;
++	struct resource *res;
++	static unsigned char warned;
++
++	pnp_res = pnp_new_resource(dev, IORESOURCE_MEM);
++	if (!pnp_res) {
++		if (!warned) {
++			dev_err(&dev->dev, "can't add resource for MEM "
++				"0x%llx-0x%llx\n",(unsigned long long) start,
++				(unsigned long long) end);
++			warned = 1;
++		}
++		return NULL;
++	}
++
++	res = &pnp_res->res;
++	res->flags = IORESOURCE_MEM | flags;
++	res->start = start;
++	res->end = end;
++	return pnp_res;
++}
++
+ /* format is: pnp_reserve_irq=irq1[,irq2] .... */
+ static int __init pnp_setup_reserve_irq(char *str)
+ {
+Index: work8/drivers/pnp/interface.c
+===================================================================
+--- work8.orig/drivers/pnp/interface.c	2008-04-18 11:05:47.000000000 -0600
++++ work8/drivers/pnp/interface.c	2008-04-18 11:06:50.000000000 -0600
+@@ -323,7 +323,6 @@
+ {
+ 	struct pnp_dev *dev = to_pnp_dev(dmdev);
+ 	struct pnp_resource *pnp_res;
+-	struct resource *res;
+ 	char *buf = (void *)ubuf;
+ 	int retval = 0;
+ 	resource_size_t start, end;
+@@ -404,22 +403,20 @@
+ 				buf += 3;
+ 				while (isspace(*buf))
+ 					++buf;
+-				res = pnp_get_resource(dev, IORESOURCE_MEM,
+-						       nmem);
+-				if (!res)
+-					break;
+-				res->start = simple_strtoul(buf, &buf, 0);
++				start = simple_strtoul(buf, &buf, 0);
+ 				while (isspace(*buf))
+ 					++buf;
+ 				if (*buf == '-') {
+ 					buf += 1;
+ 					while (isspace(*buf))
+ 						++buf;
+-					res->end = simple_strtoul(buf, &buf, 0);
++					end = simple_strtoul(buf, &buf, 0);
+ 				} else
+-					res->end = res->start;
+-				res->flags = IORESOURCE_MEM;
+-				nmem++;
++					end = start;
++				pnp_res = pnp_add_mem_resource(dev, start, end,
++							       0);
++				if (pnp_res)
++					pnp_res->index = nmem++;
+ 				continue;
+ 			}
+ 			if (!strnicmp(buf, "irq", 3)) {
+Index: work8/drivers/pnp/isapnp/core.c
+===================================================================
+--- work8.orig/drivers/pnp/isapnp/core.c	2008-04-18 11:05:06.000000000 -0600
++++ work8/drivers/pnp/isapnp/core.c	2008-04-18 11:06:13.000000000 -0600
+@@ -924,7 +924,6 @@
+ static int isapnp_read_resources(struct pnp_dev *dev)
  {
  	struct pnp_resource *pnp_res;
- 	struct resource *res;
--	static unsigned char warned;
+-	struct resource *res;
+ 	int tmp, ret;
  
- 	pnp_res = pnp_new_resource(dev, IORESOURCE_IRQ);
- 	if (!pnp_res) {
--		if (!warned) {
--			dev_err(&dev->dev, "can't add resource for IRQ %d\n",
--				irq);
--			warned = 1;
--		}
-+		dev_err(&dev->dev, "can't add resource for IRQ %d\n", irq);
- 		return NULL;
- 	}
+ 	dev->active = isapnp_read_byte(ISAPNP_CFG_ACTIVATE);
+@@ -942,11 +941,9 @@
+ 			    isapnp_read_word(ISAPNP_CFG_MEM + (tmp << 3)) << 8;
+ 			if (!ret)
+ 				continue;
+-			pnp_res = &dev->res->mem[tmp];
+-			pnp_res->index = tmp;
+-			res = &pnp_res->res;
+-			res->start = ret;
+-			res->flags = IORESOURCE_MEM;
++			pnp_res = pnp_add_mem_resource(dev, ret, ret, 0);
++			if (pnp_res)
++				pnp_res->index = tmp;
+ 		}
+ 		for (tmp = 0; tmp < ISAPNP_MAX_IRQ; tmp++) {
+ 			ret =
+Index: work8/drivers/pnp/pnpacpi/rsparser.c
+===================================================================
+--- work8.orig/drivers/pnp/pnpacpi/rsparser.c	2008-04-18 11:05:06.000000000 -0600
++++ work8/drivers/pnp/pnpacpi/rsparser.c	2008-04-18 11:06:13.000000000 -0600
+@@ -173,34 +173,18 @@
+ }
  
-@@ -562,15 +557,10 @@
+ static void pnpacpi_parse_allocated_memresource(struct pnp_dev *dev,
+-						u64 mem, u64 len,
++						u64 start, u64 len,
+ 						int write_protect)
  {
- 	struct pnp_resource *pnp_res;
- 	struct resource *res;
+-	struct resource *res;
+-	int i;
 -	static unsigned char warned;
++	int flags = 0;
++	u64 end = start + len - 1;
  
- 	pnp_res = pnp_new_resource(dev, IORESOURCE_DMA);
- 	if (!pnp_res) {
--		if (!warned) {
--			dev_err(&dev->dev, "can't add resource for DMA %d\n",
--				dma);
--			warned = 1;
+-	for (i = 0; i < PNP_MAX_MEM; i++) {
+-		res = &dev->res->mem[i].res;
+-		if (res->flags & IORESOURCE_UNSET)
+-			break;
+-	}
+-	if (i < PNP_MAX_MEM) {
+-		res->flags = IORESOURCE_MEM;	// Also clears _UNSET flag
+-		if (len <= 0) {
+-			res->flags |= IORESOURCE_DISABLED;
+-			return;
 -		}
-+		dev_err(&dev->dev, "can't add resource for DMA %d\n", dma);
- 		return NULL;
- 	}
+-		if (write_protect == ACPI_READ_WRITE_MEMORY)
+-			res->flags |= IORESOURCE_MEM_WRITEABLE;
++	if (len == 0)
++		flags |= IORESOURCE_DISABLED;
++	if (write_protect == ACPI_READ_WRITE_MEMORY)
++		flags |= IORESOURCE_MEM_WRITEABLE;
  
-@@ -587,16 +577,11 @@
+-		res->start = mem;
+-		res->end = mem + len - 1;
+-	} else if (!warned) {
+-		printk(KERN_WARNING "pnpacpi: exceeded the max number of mem "
+-				"resources: %d\n", PNP_MAX_MEM);
+-		warned = 1;
+-	}
++	pnp_add_mem_resource(dev, start, end, flags);
+ }
+ 
+ static void pnpacpi_parse_allocated_address_space(struct pnp_dev *dev,
+Index: work8/drivers/pnp/pnpbios/rsparser.c
+===================================================================
+--- work8.orig/drivers/pnp/pnpbios/rsparser.c	2008-04-18 11:05:06.000000000 -0600
++++ work8/drivers/pnp/pnpbios/rsparser.c	2008-04-18 11:06:13.000000000 -0600
+@@ -67,26 +67,15 @@
+ }
+ 
+ static void pnpbios_parse_allocated_memresource(struct pnp_dev *dev,
+-						int mem, int len)
++						int start, int len)
  {
- 	struct pnp_resource *pnp_res;
- 	struct resource *res;
--	static unsigned char warned;
+-	struct resource *res;
+-	int i;
++	int flags = 0;
++	int end = start + len - 1;
  
- 	pnp_res = pnp_new_resource(dev, IORESOURCE_IO);
- 	if (!pnp_res) {
--		if (!warned) {
--			dev_err(&dev->dev, "can't add resource for IO "
--				"0x%llx-0x%llx\n",(unsigned long long) start,
--				(unsigned long long) end);
--			warned = 1;
+-	for (i = 0; i < PNP_MAX_MEM; i++) {
+-		res = &dev->res->mem[i].res;
+-		if (res->flags & IORESOURCE_UNSET)
+-			break;
+-	}
++	if (len <= 0)
++		flags |= IORESOURCE_DISABLED;
+ 
+-	if (i < PNP_MAX_MEM) {
+-		res->flags = IORESOURCE_MEM;	// Also clears _UNSET flag
+-		if (len <= 0) {
+-			res->flags |= IORESOURCE_DISABLED;
+-			return;
 -		}
-+		dev_err(&dev->dev, "can't add resource for IO 0x%llx-0x%llx\n",
-+			(unsigned long long) start, (unsigned long long) end);
- 		return NULL;
- 	}
+-		res->start = (unsigned long)mem;
+-		res->end = (unsigned long)(mem + len - 1);
+-	}
++	pnp_add_mem_resource(dev, start, end, flags);
+ }
  
-@@ -613,16 +598,11 @@
- {
- 	struct pnp_resource *pnp_res;
- 	struct resource *res;
--	static unsigned char warned;
- 
- 	pnp_res = pnp_new_resource(dev, IORESOURCE_MEM);
- 	if (!pnp_res) {
--		if (!warned) {
--			dev_err(&dev->dev, "can't add resource for MEM "
--				"0x%llx-0x%llx\n",(unsigned long long) start,
--				(unsigned long long) end);
--			warned = 1;
--		}
-+		dev_err(&dev->dev, "can't add resource for MEM 0x%llx-0x%llx\n",
-+			(unsigned long long) start, (unsigned long long) end);
- 		return NULL;
- 	}
- 
+ static unsigned char *pnpbios_parse_allocated_resource_data(struct pnp_dev *dev,
 
 -- 
