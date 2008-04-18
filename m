@@ -1,65 +1,77 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 15/53] PNPACPI: pass pnp_dev instead of acpi_handle
-Date: Fri, 18 Apr 2008 14:50:10 -0600
-Message-ID: <20080418205050.254067454@ldl.fc.hp.com>
+Subject: [patch 23/53] PNP: add pnp_get_resource() interface
+Date: Fri, 18 Apr 2008 14:50:18 -0600
+Message-ID: <20080418205051.913072509@ldl.fc.hp.com>
 References: <20080418204955.342963315@ldl.fc.hp.com>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1761782AbYDRU4g@vger.kernel.org>
-Content-Disposition: inline; filename=pnpacpi-use-pnp_dev
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1761997AbYDRU6O@vger.kernel.org>
+Content-Disposition: inline; filename=pnp-add-get-resource
 Sender: linux-kernel-owner@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, Rene Herman <rene.herman@gmail.com>, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Pass the pnp_dev pointer when possible instead of the acpi_handle.
-This allows better error messages and reduces the chance of error
-in the caller.
+This adds a pnp_get_resource() that works the same way as
+platform_get_resource().  This will enable us to consolidate
+many pnp_resource_table references in one place, which will
+make it easier to make the table dynamic.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Acked-By: Rene Herman <rene.herman@gmail.com>
 
-Index: work7/drivers/pnp/pnpacpi/core.c
+---
+ drivers/pnp/resource.c |   27 +++++++++++++++++++++++++++
+ include/linux/pnp.h    |    1 +
+ 2 files changed, 28 insertions(+)
+
+Index: work8/include/linux/pnp.h
 ===================================================================
---- work7.orig/drivers/pnp/pnpacpi/core.c	2008-03-21 15:35:05.000000000 -0600
-+++ work7/drivers/pnp/pnpacpi/core.c	2008-03-21 15:36:00.000000000 -0600
-@@ -88,10 +88,10 @@
- {
- 	acpi_handle handle = dev->data;
- 	struct acpi_buffer buffer;
--	int ret = 0;
-+	int ret;
- 	acpi_status status;
+--- work8.orig/include/linux/pnp.h	2008-04-10 13:28:45.000000000 -0600
++++ work8/include/linux/pnp.h	2008-04-10 13:31:52.000000000 -0600
+@@ -25,6 +25,7 @@
+ /*
+  * Resource Management
+  */
++struct resource *pnp_get_resource(struct pnp_dev *, unsigned int, unsigned int);
  
--	ret = pnpacpi_build_resource_template(handle, &buffer);
-+	ret = pnpacpi_build_resource_template(dev, &buffer);
- 	if (ret)
- 		return ret;
- 	ret = pnpacpi_encode_resources(res, &buffer);
-Index: work7/drivers/pnp/pnpacpi/pnpacpi.h
+ /* Use these instead of directly reading pnp_dev to get resource information */
+ #define pnp_port_start(dev,bar)   ((dev)->res.port_resource[(bar)].start)
+Index: work8/drivers/pnp/resource.c
 ===================================================================
---- work7.orig/drivers/pnp/pnpacpi/pnpacpi.h	2008-03-21 15:28:07.000000000 -0600
-+++ work7/drivers/pnp/pnpacpi/pnpacpi.h	2008-03-21 15:36:00.000000000 -0600
-@@ -8,5 +8,5 @@
- acpi_status pnpacpi_parse_allocated_resource(acpi_handle, struct pnp_resource_table*);
- acpi_status pnpacpi_parse_resource_option_data(acpi_handle, struct pnp_dev*);
- int pnpacpi_encode_resources(struct pnp_resource_table *, struct acpi_buffer *);
--int pnpacpi_build_resource_template(acpi_handle, struct acpi_buffer*);
-+int pnpacpi_build_resource_template(struct pnp_dev *, struct acpi_buffer *);
+--- work8.orig/drivers/pnp/resource.c	2008-04-10 12:26:08.000000000 -0600
++++ work8/drivers/pnp/resource.c	2008-04-10 13:31:52.000000000 -0600
+@@ -461,6 +461,33 @@
  #endif
-Index: work7/drivers/pnp/pnpacpi/rsparser.c
-===================================================================
---- work7.orig/drivers/pnp/pnpacpi/rsparser.c	2008-03-21 15:35:59.000000000 -0600
-+++ work7/drivers/pnp/pnpacpi/rsparser.c	2008-03-21 15:36:00.000000000 -0600
-@@ -775,9 +775,10 @@
- 	return AE_OK;
  }
  
--int pnpacpi_build_resource_template(acpi_handle handle,
-+int pnpacpi_build_resource_template(struct pnp_dev *dev,
- 				    struct acpi_buffer *buffer)
++struct resource *pnp_get_resource(struct pnp_dev *dev,
++				  unsigned int type, unsigned int num)
++{
++	struct pnp_resource_table *res = &dev->res;
++
++	switch (type) {
++	case IORESOURCE_IO:
++		if (num >= PNP_MAX_PORT)
++			return NULL;
++		return &res->port_resource[num];
++	case IORESOURCE_MEM:
++		if (num >= PNP_MAX_MEM)
++			return NULL;
++		return &res->mem_resource[num];
++	case IORESOURCE_IRQ:
++		if (num >= PNP_MAX_IRQ)
++			return NULL;
++		return &res->irq_resource[num];
++	case IORESOURCE_DMA:
++		if (num >= PNP_MAX_DMA)
++			return NULL;
++		return &res->dma_resource[num];
++	}
++	return NULL;
++}
++EXPORT_SYMBOL(pnp_get_resource);
++
+ /* format is: pnp_reserve_irq=irq1[,irq2] .... */
+ static int __init pnp_setup_reserve_irq(char *str)
  {
-+	acpi_handle handle = dev->data;
- 	struct acpi_resource *resource;
- 	int res_cnt = 0;
- 	acpi_status status;
 
 -- 
