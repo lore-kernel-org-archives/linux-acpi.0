@@ -1,383 +1,149 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 51/53] PNPBIOS: remove include/linux/pnpbios.h
-Date: Fri, 18 Apr 2008 14:50:46 -0600
-Message-ID: <20080418205057.554100151@ldl.fc.hp.com>
+Subject: [patch 49/53] PNP: make interfaces private to the PNP core
+Date: Fri, 18 Apr 2008 14:50:44 -0600
+Message-ID: <20080418205057.158064141@ldl.fc.hp.com>
 References: <20080418204955.342963315@ldl.fc.hp.com>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1763905AbYDRVNz@vger.kernel.org>
-Content-Disposition: inline; filename=pnpbios-remove-public-header
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1764043AbYDRVMy@vger.kernel.org>
+Content-Disposition: inline; filename=pnp-make-interfaces-private
 Sender: linux-kernel-owner@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-acpi@vger.kernel.org, Rene Herman <rene.herman@gmail.com>, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
 
-The contents of include/linux/pnpbios.h are used only inside the PNPBIOS
-backend, so this file doesn't need to be visible outside PNP.
-
-This patch moves the contents into an existing PNPBIOS-specific file,
-drivers/pnp/pnpbios/pnpbios.h.
+The interfaces for registering protocols, devices, cards,
+and resource options should only be used inside the PNP core.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Acked-By: Rene Herman <rene.herman@gmail.com>
 
 ---
- drivers/pnp/pnpbios/bioscalls.c |    1 
- drivers/pnp/pnpbios/core.c      |    1 
- drivers/pnp/pnpbios/pnpbios.h   |  136 ++++++++++++++++++++++++++++++++++++
- drivers/pnp/pnpbios/proc.c      |    2 
- drivers/pnp/pnpbios/rsparser.c  |    1 
- include/linux/pnpbios.h         |  151 ----------------------------------------
- 6 files changed, 137 insertions(+), 155 deletions(-)
+ drivers/pnp/base.h  |   24 +++++++++++++++++++++++-
+ include/linux/pnp.h |   34 ----------------------------------
+ 2 files changed, 23 insertions(+), 35 deletions(-)
 
-Index: work7/drivers/pnp/pnpbios/bioscalls.c
+Index: work8/include/linux/pnp.h
 ===================================================================
---- work7.orig/drivers/pnp/pnpbios/bioscalls.c	2008-04-04 14:44:01.000000000 -0600
-+++ work7/drivers/pnp/pnpbios/bioscalls.c	2008-04-04 14:47:36.000000000 -0600
-@@ -7,7 +7,6 @@
- #include <linux/init.h>
- #include <linux/linkage.h>
- #include <linux/kernel.h>
--#include <linux/pnpbios.h>
- #include <linux/device.h>
- #include <linux/pnp.h>
- #include <linux/mm.h>
-Index: work7/drivers/pnp/pnpbios/core.c
-===================================================================
---- work7.orig/drivers/pnp/pnpbios/core.c	2008-04-04 14:44:32.000000000 -0600
-+++ work7/drivers/pnp/pnpbios/core.c	2008-04-04 14:44:45.000000000 -0600
-@@ -50,7 +50,6 @@
- #include <linux/init.h>
- #include <linux/linkage.h>
- #include <linux/kernel.h>
--#include <linux/pnpbios.h>
- #include <linux/device.h>
- #include <linux/pnp.h>
- #include <linux/mm.h>
-Index: work7/drivers/pnp/pnpbios/pnpbios.h
-===================================================================
---- work7.orig/drivers/pnp/pnpbios/pnpbios.h	2008-04-04 14:34:16.000000000 -0600
-+++ work7/drivers/pnp/pnpbios/pnpbios.h	2008-04-04 14:38:27.000000000 -0600
-@@ -2,6 +2,142 @@
-  * pnpbios.h - contains local definitions
-  */
+--- work8.orig/include/linux/pnp.h	2008-04-17 15:05:18.000000000 -0600
++++ work8/include/linux/pnp.h	2008-04-17 16:19:05.000000000 -0600
+@@ -416,19 +416,12 @@
+ #if defined(CONFIG_PNP)
  
-+/*
-+ * Include file for the interface to a PnP BIOS
-+ *
-+ * Original BIOS code (C) 1998 Christian Schmidt (chr.schmidt@tu-bs.de)
-+ * PnP handler parts (c) 1998 Tom Lees <tom@lpsg.demon.co.uk>
-+ * Minor reorganizations by David Hinds <dahinds@users.sourceforge.net>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; either version 2, or (at your option) any
-+ * later version.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
-+
-+/*
-+ * Return codes
-+ */
-+#define PNP_SUCCESS                     0x00
-+#define PNP_NOT_SET_STATICALLY          0x7f
-+#define PNP_UNKNOWN_FUNCTION            0x81
-+#define PNP_FUNCTION_NOT_SUPPORTED      0x82
-+#define PNP_INVALID_HANDLE              0x83
-+#define PNP_BAD_PARAMETER               0x84
-+#define PNP_SET_FAILED                  0x85
-+#define PNP_EVENTS_NOT_PENDING          0x86
-+#define PNP_SYSTEM_NOT_DOCKED           0x87
-+#define PNP_NO_ISA_PNP_CARDS            0x88
-+#define PNP_UNABLE_TO_DETERMINE_DOCK_CAPABILITIES 0x89
-+#define PNP_CONFIG_CHANGE_FAILED_NO_BATTERY 0x8a
-+#define PNP_CONFIG_CHANGE_FAILED_RESOURCE_CONFLICT 0x8b
-+#define PNP_BUFFER_TOO_SMALL            0x8c
-+#define PNP_USE_ESCD_SUPPORT            0x8d
-+#define PNP_MESSAGE_NOT_SUPPORTED       0x8e
-+#define PNP_HARDWARE_ERROR              0x8f
-+
-+#define ESCD_SUCCESS                    0x00
-+#define ESCD_IO_ERROR_READING           0x55
-+#define ESCD_INVALID                    0x56
-+#define ESCD_BUFFER_TOO_SMALL           0x59
-+#define ESCD_NVRAM_TOO_SMALL            0x5a
-+#define ESCD_FUNCTION_NOT_SUPPORTED     0x81
-+
-+/*
-+ * Events that can be received by "get event"
-+ */
-+#define PNPEV_ABOUT_TO_CHANGE_CONFIG	0x0001
-+#define PNPEV_DOCK_CHANGED		0x0002
-+#define PNPEV_SYSTEM_DEVICE_CHANGED	0x0003
-+#define PNPEV_CONFIG_CHANGED_FAILED	0x0004
-+#define PNPEV_UNKNOWN_SYSTEM_EVENT	0xffff
-+/* 0x8000 through 0xfffe are OEM defined */
-+
-+/*
-+ * Messages that should be sent through "send message"
-+ */
-+#define PNPMSG_OK			0x00
-+#define PNPMSG_ABORT			0x01
-+#define PNPMSG_UNDOCK_DEFAULT_ACTION	0x40
-+#define PNPMSG_POWER_OFF		0x41
-+#define PNPMSG_PNP_OS_ACTIVE		0x42
-+#define PNPMSG_PNP_OS_INACTIVE		0x43
-+
-+/*
-+ * Plug and Play BIOS flags
-+ */
-+#define PNPBIOS_NO_DISABLE		0x0001
-+#define PNPBIOS_NO_CONFIG		0x0002
-+#define PNPBIOS_OUTPUT			0x0004
-+#define PNPBIOS_INPUT			0x0008
-+#define PNPBIOS_BOOTABLE		0x0010
-+#define PNPBIOS_DOCK			0x0020
-+#define PNPBIOS_REMOVABLE		0x0040
-+#define pnpbios_is_static(x) (((x)->flags & 0x0100) == 0x0000)
-+#define pnpbios_is_dynamic(x) ((x)->flags & 0x0080)
-+
-+/*
-+ * Function Parameters
-+ */
-+#define PNPMODE_STATIC 1
-+#define PNPMODE_DYNAMIC 0
-+
-+/* 0x8000 through 0xffff are OEM defined */
-+
-+#pragma pack(1)
-+struct pnp_dev_node_info {
-+	__u16 no_nodes;
-+	__u16 max_node_size;
-+};
-+struct pnp_docking_station_info {
-+	__u32 location_id;
-+	__u32 serial;
-+	__u16 capabilities;
-+};
-+struct pnp_isa_config_struc {
-+	__u8 revision;
-+	__u8 no_csns;
-+	__u16 isa_rd_data_port;
-+	__u16 reserved;
-+};
-+struct escd_info_struc {
-+	__u16 min_escd_write_size;
-+	__u16 escd_size;
-+	__u32 nv_storage_base;
-+};
-+struct pnp_bios_node {
-+	__u16 size;
-+	__u8 handle;
-+	__u32 eisa_id;
-+	__u8 type_code[3];
-+	__u16 flags;
-+	__u8 data[0];
-+};
-+#pragma pack()
-+
-+/* non-exported */
-+extern struct pnp_dev_node_info node_info;
-+
-+extern int pnp_bios_dev_node_info(struct pnp_dev_node_info *data);
-+extern int pnp_bios_get_dev_node(u8 *nodenum, char config,
-+				 struct pnp_bios_node *data);
-+extern int pnp_bios_set_dev_node(u8 nodenum, char config,
-+				 struct pnp_bios_node *data);
-+extern int pnp_bios_get_stat_res(char *info);
-+extern int pnp_bios_isapnp_config(struct pnp_isa_config_struc *data);
-+extern int pnp_bios_escd_info(struct escd_info_struc *data);
-+extern int pnp_bios_read_escd(char *data, u32 nvram_base);
-+extern int pnp_bios_dock_station_info(struct pnp_docking_station_info *data);
-+
- #pragma pack(1)
- union pnp_bios_install_struct {
- 	struct {
-Index: work7/drivers/pnp/pnpbios/proc.c
-===================================================================
---- work7.orig/drivers/pnp/pnpbios/proc.c	2008-04-04 14:43:14.000000000 -0600
-+++ work7/drivers/pnp/pnpbios/proc.c	2008-04-04 14:43:47.000000000 -0600
-@@ -23,7 +23,7 @@
- #include <linux/slab.h>
- #include <linux/types.h>
- #include <linux/proc_fs.h>
--#include <linux/pnpbios.h>
-+#include <linux/pnp.h>
- #include <linux/init.h>
+ /* device management */
+-int pnp_register_protocol(struct pnp_protocol *protocol);
+-void pnp_unregister_protocol(struct pnp_protocol *protocol);
+-int pnp_add_device(struct pnp_dev *dev);
+ int pnp_device_attach(struct pnp_dev *pnp_dev);
+ void pnp_device_detach(struct pnp_dev *pnp_dev);
+ extern struct list_head pnp_global;
+ extern int pnp_platform_devices;
  
- #include <asm/uaccess.h>
-Index: work7/drivers/pnp/pnpbios/rsparser.c
-===================================================================
---- work7.orig/drivers/pnp/pnpbios/rsparser.c	2008-04-04 14:44:50.000000000 -0600
-+++ work7/drivers/pnp/pnpbios/rsparser.c	2008-04-04 14:44:55.000000000 -0600
-@@ -4,7 +4,6 @@
+ /* multidevice card support */
+-int pnp_add_card(struct pnp_card *card);
+-void pnp_remove_card(struct pnp_card *card);
+-int pnp_add_card_device(struct pnp_card *card, struct pnp_dev *dev);
+-void pnp_remove_card_device(struct pnp_dev *dev);
+ struct pnp_dev *pnp_request_card_device(struct pnp_card_link *clink,
+ 					const char *id, struct pnp_dev *from);
+ void pnp_release_card_device(struct pnp_dev *dev);
+@@ -437,23 +430,12 @@
+ extern struct list_head pnp_cards;
  
- #include <linux/ctype.h>
- #include <linux/pnp.h>
--#include <linux/pnpbios.h>
- #include <linux/string.h>
- #include <linux/slab.h>
+ /* resource management */
+-struct pnp_option *pnp_register_independent_option(struct pnp_dev *dev);
+-struct pnp_option *pnp_register_dependent_option(struct pnp_dev *dev,
+-						 int priority);
+-int pnp_register_irq_resource(struct pnp_option *option, struct pnp_irq *data);
+-int pnp_register_dma_resource(struct pnp_option *option, struct pnp_dma *data);
+-int pnp_register_port_resource(struct pnp_option *option,
+-			       struct pnp_port *data);
+-int pnp_register_mem_resource(struct pnp_option *option, struct pnp_mem *data);
+-void pnp_init_resources(struct pnp_dev *dev);
+ int pnp_auto_config_dev(struct pnp_dev *dev);
+-int pnp_validate_config(struct pnp_dev *dev);
+ int pnp_start_dev(struct pnp_dev *dev);
+ int pnp_stop_dev(struct pnp_dev *dev);
+ int pnp_activate_dev(struct pnp_dev *dev);
+ int pnp_disable_dev(struct pnp_dev *dev);
  
-Index: work7/include/linux/pnpbios.h
+-
+ /* protocol helpers */
+ int pnp_is_active(struct pnp_dev *dev);
+ int compare_pnp_id(struct pnp_id *pos, const char *id);
+@@ -463,35 +445,19 @@
+ #else
+ 
+ /* device management */
+-static inline int pnp_register_protocol(struct pnp_protocol *protocol) { return -ENODEV; }
+-static inline void pnp_unregister_protocol(struct pnp_protocol *protocol) { }
+-static inline int pnp_init_device(struct pnp_dev *dev) { return -ENODEV; }
+-static inline int pnp_add_device(struct pnp_dev *dev) { return -ENODEV; }
+ static inline int pnp_device_attach(struct pnp_dev *pnp_dev) { return -ENODEV; }
+ static inline void pnp_device_detach(struct pnp_dev *pnp_dev) { }
+ 
+ #define pnp_platform_devices 0
+ 
+ /* multidevice card support */
+-static inline int pnp_add_card(struct pnp_card *card) { return -ENODEV; }
+-static inline void pnp_remove_card(struct pnp_card *card) { }
+-static inline int pnp_add_card_device(struct pnp_card *card, struct pnp_dev *dev) { return -ENODEV; }
+-static inline void pnp_remove_card_device(struct pnp_dev *dev) { }
+ static inline struct pnp_dev *pnp_request_card_device(struct pnp_card_link *clink, const char *id, struct pnp_dev *from) { return NULL; }
+ static inline void pnp_release_card_device(struct pnp_dev *dev) { }
+ static inline int pnp_register_card_driver(struct pnp_card_driver *drv) { return -ENODEV; }
+ static inline void pnp_unregister_card_driver(struct pnp_card_driver *drv) { }
+ 
+ /* resource management */
+-static inline struct pnp_option *pnp_register_independent_option(struct pnp_dev *dev) { return NULL; }
+-static inline struct pnp_option *pnp_register_dependent_option(struct pnp_dev *dev, int priority) { return NULL; }
+-static inline int pnp_register_irq_resource(struct pnp_option *option, struct pnp_irq *data) { return -ENODEV; }
+-static inline int pnp_register_dma_resource(struct pnp_option *option, struct pnp_dma *data) { return -ENODEV; }
+-static inline int pnp_register_port_resource(struct pnp_option *option, struct pnp_port *data) { return -ENODEV; }
+-static inline int pnp_register_mem_resource(struct pnp_option *option, struct pnp_mem *data) { return -ENODEV; }
+-static inline void pnp_init_resources(struct pnp_dev *dev) { }
+ static inline int pnp_auto_config_dev(struct pnp_dev *dev) { return -ENODEV; }
+-static inline int pnp_validate_config(struct pnp_dev *dev) { return -ENODEV; }
+ static inline int pnp_start_dev(struct pnp_dev *dev) { return -ENODEV; }
+ static inline int pnp_stop_dev(struct pnp_dev *dev) { return -ENODEV; }
+ static inline int pnp_activate_dev(struct pnp_dev *dev) { return -ENODEV; }
+Index: work8/drivers/pnp/base.h
 ===================================================================
---- work7.orig/include/linux/pnpbios.h	2008-04-04 14:33:53.000000000 -0600
-+++ /dev/null	1970-01-01 00:00:00.000000000 +0000
-@@ -1,151 +0,0 @@
--/*
-- * Include file for the interface to a PnP BIOS
-- *
-- * Original BIOS code (C) 1998 Christian Schmidt (chr.schmidt@tu-bs.de)
-- * PnP handler parts (c) 1998 Tom Lees <tom@lpsg.demon.co.uk>
-- * Minor reorganizations by David Hinds <dahinds@users.sourceforge.net>
-- *
-- * This program is free software; you can redistribute it and/or modify it
-- * under the terms of the GNU General Public License as published by the
-- * Free Software Foundation; either version 2, or (at your option) any
-- * later version.
-- *
-- * This program is distributed in the hope that it will be useful, but
-- * WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-- * General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-- */
--
--#ifndef _LINUX_PNPBIOS_H
--#define _LINUX_PNPBIOS_H
--
--#ifdef __KERNEL__
--
--#include <linux/types.h>
--#include <linux/pnp.h>
--
--/*
-- * Return codes
-- */
--#define PNP_SUCCESS                     0x00
--#define PNP_NOT_SET_STATICALLY          0x7f
--#define PNP_UNKNOWN_FUNCTION            0x81
--#define PNP_FUNCTION_NOT_SUPPORTED      0x82
--#define PNP_INVALID_HANDLE              0x83
--#define PNP_BAD_PARAMETER               0x84
--#define PNP_SET_FAILED                  0x85
--#define PNP_EVENTS_NOT_PENDING          0x86
--#define PNP_SYSTEM_NOT_DOCKED           0x87
--#define PNP_NO_ISA_PNP_CARDS            0x88
--#define PNP_UNABLE_TO_DETERMINE_DOCK_CAPABILITIES 0x89
--#define PNP_CONFIG_CHANGE_FAILED_NO_BATTERY 0x8a
--#define PNP_CONFIG_CHANGE_FAILED_RESOURCE_CONFLICT 0x8b
--#define PNP_BUFFER_TOO_SMALL            0x8c
--#define PNP_USE_ESCD_SUPPORT            0x8d
--#define PNP_MESSAGE_NOT_SUPPORTED       0x8e
--#define PNP_HARDWARE_ERROR              0x8f
--
--#define ESCD_SUCCESS                    0x00
--#define ESCD_IO_ERROR_READING           0x55
--#define ESCD_INVALID                    0x56
--#define ESCD_BUFFER_TOO_SMALL           0x59
--#define ESCD_NVRAM_TOO_SMALL            0x5a
--#define ESCD_FUNCTION_NOT_SUPPORTED     0x81
--
--/*
-- * Events that can be received by "get event"
-- */
--#define PNPEV_ABOUT_TO_CHANGE_CONFIG	0x0001
--#define PNPEV_DOCK_CHANGED		0x0002
--#define PNPEV_SYSTEM_DEVICE_CHANGED	0x0003
--#define PNPEV_CONFIG_CHANGED_FAILED	0x0004
--#define PNPEV_UNKNOWN_SYSTEM_EVENT	0xffff
--/* 0x8000 through 0xfffe are OEM defined */
--
--/*
-- * Messages that should be sent through "send message"
-- */
--#define PNPMSG_OK			0x00
--#define PNPMSG_ABORT			0x01
--#define PNPMSG_UNDOCK_DEFAULT_ACTION	0x40
--#define PNPMSG_POWER_OFF		0x41
--#define PNPMSG_PNP_OS_ACTIVE		0x42
--#define PNPMSG_PNP_OS_INACTIVE		0x43
--
--/*
-- * Plug and Play BIOS flags
-- */
--#define PNPBIOS_NO_DISABLE		0x0001
--#define PNPBIOS_NO_CONFIG		0x0002
--#define PNPBIOS_OUTPUT			0x0004
--#define PNPBIOS_INPUT			0x0008
--#define PNPBIOS_BOOTABLE		0x0010
--#define PNPBIOS_DOCK			0x0020
--#define PNPBIOS_REMOVABLE		0x0040
--#define pnpbios_is_static(x) (((x)->flags & 0x0100) == 0x0000)
--#define pnpbios_is_dynamic(x) ((x)->flags & 0x0080)
--
--/*
-- * Function Parameters
-- */
--#define PNPMODE_STATIC 1
--#define PNPMODE_DYNAMIC 0
--
--/* 0x8000 through 0xffff are OEM defined */
--
--#pragma pack(1)
--struct pnp_dev_node_info {
--	__u16 no_nodes;
--	__u16 max_node_size;
--};
--struct pnp_docking_station_info {
--	__u32 location_id;
--	__u32 serial;
--	__u16 capabilities;
--};
--struct pnp_isa_config_struc {
--	__u8 revision;
--	__u8 no_csns;
--	__u16 isa_rd_data_port;
--	__u16 reserved;
--};
--struct escd_info_struc {
--	__u16 min_escd_write_size;
--	__u16 escd_size;
--	__u32 nv_storage_base;
--};
--struct pnp_bios_node {
--	__u16 size;
--	__u8 handle;
--	__u32 eisa_id;
--	__u8 type_code[3];
--	__u16 flags;
--	__u8 data[0];
--};
--#pragma pack()
--
--#ifdef CONFIG_PNPBIOS
--
--/* non-exported */
--extern struct pnp_dev_node_info node_info;
--
--extern int pnp_bios_dev_node_info(struct pnp_dev_node_info *data);
--extern int pnp_bios_get_dev_node(u8 *nodenum, char config,
--				 struct pnp_bios_node *data);
--extern int pnp_bios_set_dev_node(u8 nodenum, char config,
--				 struct pnp_bios_node *data);
--extern int pnp_bios_get_stat_res(char *info);
--extern int pnp_bios_isapnp_config(struct pnp_isa_config_struc *data);
--extern int pnp_bios_escd_info(struct escd_info_struc *data);
--extern int pnp_bios_read_escd(char *data, u32 nvram_base);
--extern int pnp_bios_dock_station_info(struct pnp_docking_station_info *data);
--
--#endif /* CONFIG_PNPBIOS */
--
--#endif /* __KERNEL__ */
--
--#endif /* _LINUX_PNPBIOS_H */
+--- work8.orig/drivers/pnp/base.h	2008-04-17 15:05:18.000000000 -0600
++++ work8/drivers/pnp/base.h	2008-04-17 16:19:05.000000000 -0600
+@@ -1,12 +1,34 @@
+ extern spinlock_t pnp_lock;
+ void *pnp_alloc(long size);
++
++int pnp_register_protocol(struct pnp_protocol *protocol);
++void pnp_unregister_protocol(struct pnp_protocol *protocol);
++
+ #define PNP_EISA_ID_MASK 0x7fffffff
+ void pnp_eisa_id_to_string(u32 id, char *str);
+ struct pnp_dev *pnp_alloc_dev(struct pnp_protocol *, int id, char *pnpid);
+ struct pnp_card *pnp_alloc_card(struct pnp_protocol *, int id, char *pnpid);
++
++int pnp_add_device(struct pnp_dev *dev);
+ struct pnp_id *pnp_add_id(struct pnp_dev *dev, char *id);
+-struct pnp_id *pnp_add_card_id(struct pnp_card *card, char *id);
+ int pnp_interface_attach_device(struct pnp_dev *dev);
++
++int pnp_add_card(struct pnp_card *card);
++struct pnp_id *pnp_add_card_id(struct pnp_card *card, char *id);
++void pnp_remove_card(struct pnp_card *card);
++int pnp_add_card_device(struct pnp_card *card, struct pnp_dev *dev);
++void pnp_remove_card_device(struct pnp_dev *dev);
++
++struct pnp_option *pnp_register_independent_option(struct pnp_dev *dev);
++struct pnp_option *pnp_register_dependent_option(struct pnp_dev *dev,
++						 int priority);
++int pnp_register_irq_resource(struct pnp_option *option, struct pnp_irq *data);
++int pnp_register_dma_resource(struct pnp_option *option, struct pnp_dma *data);
++int pnp_register_port_resource(struct pnp_option *option,
++			       struct pnp_port *data);
++int pnp_register_mem_resource(struct pnp_option *option, struct pnp_mem *data);
++void pnp_init_resources(struct pnp_dev *dev);
++
+ void pnp_fixup_device(struct pnp_dev *dev);
+ void pnp_free_option(struct pnp_option *option);
+ int __pnp_add_device(struct pnp_dev *dev);
 
 -- 
