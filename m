@@ -1,40 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: [patch 9/9] ThinkPad ACPI: fix possible NULL pointer dereference
-Date: Fri, 18 Apr 2008 13:27:29 -0700
-Message-ID: <200804182027.m3IKRUlu013564@imap1.linux-foundation.org>
+Subject: [patch 6/9] acpi video: blacklist Fujitsu Lifebook S6410
+Date: Fri, 18 Apr 2008 13:27:27 -0700
+Message-ID: <200804182027.m3IKRRE3013555@imap1.linux-foundation.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34398 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51555 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752868AbYDRU1w (ORCPT
+	by vger.kernel.org with ESMTP id S1751915AbYDRU1v (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 18 Apr 2008 16:27:52 -0400
+	Fri, 18 Apr 2008 16:27:51 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, gorcunov@gmail.com, hmh@hmh.eng.br
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, nokos@gmx.net, robert.moore@intel.com, trenn@suse.de
 
-From: Cyrill Gorcunov <gorcunov@gmail.com>
+From: Peter Gruber <nokos@gmx.net>
 
-Fix potential NULL pointer dereference if kstrdup failed
+Taken from http://bugzilla.kernel.org/show_bug.cgi?id=10454
 
-Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
-Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Len Brown <lenb@kernel.org>
+Cc: "Moore, Robert" <robert.moore@intel.com>
+Cc: Thomas Renninger <trenn@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/thinkpad_acpi.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/blacklist.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN drivers/misc/thinkpad_acpi.c~thinkpad-acpi-fix-possible-null-pointer-dereference drivers/misc/thinkpad_acpi.c
---- a/drivers/misc/thinkpad_acpi.c~thinkpad-acpi-fix-possible-null-pointer-dereference
-+++ a/drivers/misc/thinkpad_acpi.c
-@@ -5826,7 +5826,7 @@ static void __init get_thinkpad_model_da
- 
- 	tp->model_str = kstrdup(dmi_get_system_info(DMI_PRODUCT_VERSION),
- 					GFP_KERNEL);
--	if (strnicmp(tp->model_str, "ThinkPad", 8) != 0) {
-+	if (tp->model_str && strnicmp(tp->model_str, "ThinkPad", 8) != 0) {
- 		kfree(tp->model_str);
- 		tp->model_str = NULL;
- 	}
+diff -puN drivers/acpi/blacklist.c~acpi-video-balcklist-fujitsu-lifebook-s6410 drivers/acpi/blacklist.c
+--- a/drivers/acpi/blacklist.c~acpi-video-balcklist-fujitsu-lifebook-s6410
++++ a/drivers/acpi/blacklist.c
+@@ -448,6 +448,14 @@ static struct dmi_system_id acpi_osi_dmi
+ 	 	     DMI_MATCH(DMI_PRODUCT_NAME, "ESPRIMO Mobile V5505"),
+ 		},
+ 	},
++	{
++	.callback = dmi_disable_osi_vista,
++	.ident = "Fujitsu Siemens",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "FUJITSU SIEMENS"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "LIFEBOOK S6410"),
++		},
++	},
+ 	/*
+ 	 * Disable OSI(Linux) warnings on all "Hewlett-Packard"
+ 	 *
 _
