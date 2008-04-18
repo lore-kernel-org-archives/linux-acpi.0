@@ -1,145 +1,60 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 29/53] PNP: convert sysfs interface to use pnp_get_resource(), not pnp_resource_table
-Date: Fri, 18 Apr 2008 14:50:24 -0600
-Message-ID: <20080418205053.141145787@ldl.fc.hp.com>
+Subject: [patch 01/53] ISAPNP: move config register addresses out of isapnp.h
+Date: Fri, 18 Apr 2008 14:49:56 -0600
+Message-ID: <20080418205047.236350695@ldl.fc.hp.com>
 References: <20080418204955.342963315@ldl.fc.hp.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0007.atlanta.hp.com ([15.192.0.44]:29907 "EHLO
-	g5t0007.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758562AbYDRUwN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Apr 2008 16:52:13 -0400
-Content-Disposition: inline; filename=pnp-convert-proc-to-pnp_get_resource
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1761426AbYDRUwr@vger.kernel.org>
+Content-Disposition: inline; filename=isapnp-remove-register-addrs-from-header
+Sender: linux-kernel-owner@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-acpi@vger.kernel.org, Rene Herman <rene.herman@gmail.com>, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
+List-Id: linux-acpi@vger.kernel.org
 
-This removes more direct references to pnp_resource_table.
-
-Note that this does not allow adding new resources beyond the
-preallocated ones, so even though it does not reference
-pnp_resource_table directly, it is still limited to the
-fixed size of that table.  When the preallocation is removed,
-we'll have to change this so it can add new resources.
+These are used only in drivers/pnp/isapnp/core.c, so no need to
+expose them to the world.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Acked-By: Rene Herman <rene.herman@gmail.com>
 
-Index: work8/drivers/pnp/interface.c
+Index: work7/drivers/pnp/isapnp/core.c
 ===================================================================
---- work8.orig/drivers/pnp/interface.c	2008-04-10 16:09:39.000000000 -0600
-+++ work8/drivers/pnp/interface.c	2008-04-10 16:15:48.000000000 -0600
-@@ -323,6 +323,7 @@
- 			  const char *ubuf, size_t count)
- {
- 	struct pnp_dev *dev = to_pnp_dev(dmdev);
-+	struct resource *res;
- 	char *buf = (void *)ubuf;
- 	int retval = 0;
+--- work7.orig/drivers/pnp/isapnp/core.c	2008-03-21 11:52:12.000000000 -0600
++++ work7/drivers/pnp/isapnp/core.c	2008-03-21 11:53:24.000000000 -0600
+@@ -88,6 +88,14 @@
+ #define _LTAG_MEM32RANGE	0x85
+ #define _LTAG_FIXEDMEM32RANGE	0x86
  
-@@ -382,76 +383,72 @@
- 				buf += 2;
- 				while (isspace(*buf))
- 					++buf;
--				dev->res.port_resource[nport].start =
--				    simple_strtoul(buf, &buf, 0);
-+				res = pnp_get_resource(dev, IORESOURCE_IO,
-+						       nport);
-+				if (!res)
-+					break;
-+				res->start = simple_strtoul(buf, &buf, 0);
- 				while (isspace(*buf))
- 					++buf;
- 				if (*buf == '-') {
- 					buf += 1;
- 					while (isspace(*buf))
- 						++buf;
--					dev->res.port_resource[nport].end =
--					    simple_strtoul(buf, &buf, 0);
-+					res->end = simple_strtoul(buf, &buf, 0);
- 				} else
--					dev->res.port_resource[nport].end =
--					    dev->res.port_resource[nport].start;
--				dev->res.port_resource[nport].flags =
--				    IORESOURCE_IO;
-+					res->end = res->start;
-+				res->flags = IORESOURCE_IO;
- 				nport++;
--				if (nport >= PNP_MAX_PORT)
--					break;
- 				continue;
- 			}
- 			if (!strnicmp(buf, "mem", 3)) {
- 				buf += 3;
- 				while (isspace(*buf))
- 					++buf;
--				dev->res.mem_resource[nmem].start =
--				    simple_strtoul(buf, &buf, 0);
-+				res = pnp_get_resource(dev, IORESOURCE_MEM,
-+						       nmem);
-+				if (!res)
-+					break;
-+				res->start = simple_strtoul(buf, &buf, 0);
- 				while (isspace(*buf))
- 					++buf;
- 				if (*buf == '-') {
- 					buf += 1;
- 					while (isspace(*buf))
- 						++buf;
--					dev->res.mem_resource[nmem].end =
--					    simple_strtoul(buf, &buf, 0);
-+					res->end = simple_strtoul(buf, &buf, 0);
- 				} else
--					dev->res.mem_resource[nmem].end =
--					    dev->res.mem_resource[nmem].start;
--				dev->res.mem_resource[nmem].flags =
--				    IORESOURCE_MEM;
-+					res->end = res->start;
-+				res->flags = IORESOURCE_MEM;
- 				nmem++;
--				if (nmem >= PNP_MAX_MEM)
--					break;
- 				continue;
- 			}
- 			if (!strnicmp(buf, "irq", 3)) {
- 				buf += 3;
- 				while (isspace(*buf))
- 					++buf;
--				dev->res.irq_resource[nirq].start =
--				    dev->res.irq_resource[nirq].end =
-+				res = pnp_get_resource(dev, IORESOURCE_IRQ,
-+						       nirq);
-+				if (!res)
-+					break;
-+				res->start = res->end =
- 				    simple_strtoul(buf, &buf, 0);
--				dev->res.irq_resource[nirq].flags =
--				    IORESOURCE_IRQ;
-+				res->flags = IORESOURCE_IRQ;
- 				nirq++;
--				if (nirq >= PNP_MAX_IRQ)
--					break;
- 				continue;
- 			}
- 			if (!strnicmp(buf, "dma", 3)) {
- 				buf += 3;
- 				while (isspace(*buf))
- 					++buf;
--				dev->res.dma_resource[ndma].start =
--				    dev->res.dma_resource[ndma].end =
-+				res = pnp_get_resource(dev, IORESOURCE_DMA,
-+						       ndma);
-+				if (!res)
-+					break;
-+				res->start = res->end =
- 				    simple_strtoul(buf, &buf, 0);
--				dev->res.dma_resource[ndma].flags =
--				    IORESOURCE_DMA;
-+				res->flags = IORESOURCE_DMA;
- 				ndma++;
--				if (ndma >= PNP_MAX_DMA)
--					break;
- 				continue;
- 			}
- 			break;
++/* Logical device control and configuration registers */
++
++#define ISAPNP_CFG_ACTIVATE	0x30	/* byte */
++#define ISAPNP_CFG_MEM		0x40	/* 4 * dword */
++#define ISAPNP_CFG_PORT		0x60	/* 8 * word */
++#define ISAPNP_CFG_IRQ		0x70	/* 2 * word */
++#define ISAPNP_CFG_DMA		0x74	/* 2 * byte */
++
+ /*
+  * Sizes of ISAPNP logical device configuration register sets.
+  * See PNP-ISA-v1.0a.pdf, Appendix A.
+Index: work7/include/linux/isapnp.h
+===================================================================
+--- work7.orig/include/linux/isapnp.h	2008-03-21 11:45:41.000000000 -0600
++++ work7/include/linux/isapnp.h	2008-03-21 11:52:39.000000000 -0600
+@@ -26,16 +26,6 @@
+ #include <linux/pnp.h>
+ 
+ /*
+- *  Configuration registers (TODO: change by specification)
+- */ 
+-
+-#define ISAPNP_CFG_ACTIVATE		0x30	/* byte */
+-#define ISAPNP_CFG_MEM			0x40	/* 4 * dword */
+-#define ISAPNP_CFG_PORT			0x60	/* 8 * word */
+-#define ISAPNP_CFG_IRQ			0x70	/* 2 * word */
+-#define ISAPNP_CFG_DMA			0x74	/* 2 * byte */
+-
+-/*
+  *
+  */
+ 
 
 -- 
