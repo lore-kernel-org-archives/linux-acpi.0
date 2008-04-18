@@ -1,82 +1,88 @@
-From: Philippe Coval <rzr@users.sf.net>
-Subject: Re: [PATCH] Override DSDT and SSDTs via initramfs
-Date: Sat, 19 Apr 2008 00:07:06 +0200
-Message-ID: <48091B8A.3000800@users.sf.net>
-References: <4798E2A5.6020804@users.sf.net> <47A0FBD4.6090603@tremplin-utc.net> <1201861297.14573.66.camel@queen.suse.de> <200802062151.48404.lenb@kernel.org>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: pnpacpi: reduce printk severity for "pnpacpi: exceeded the max number of ..."
+Date: Fri, 18 Apr 2008 15:48:33 -0600
+Message-ID: <200804181548.33872.bjorn.helgaas@hp.com>
+References: <20080417010122.148289106@sous-sol.org> <20080417010359.629397865@sous-sol.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enigDF670D0E57C923BD1445A3FA"
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2-g19.free.fr ([212.27.42.28]:48764 "EHLO smtp2-g19.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751101AbYDRWHO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 18 Apr 2008 18:07:14 -0400
-In-Reply-To: <200802062151.48404.lenb@kernel.org>
+Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:44286 "EHLO
+	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751717AbYDRVsh (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Fri, 18 Apr 2008 17:48:37 -0400
+In-Reply-To: <20080417010359.629397865@sous-sol.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: trenn@suse.de, =?UTF-8?B?w4lyaWMgUGllbA==?= <Eric.Piel@tremplin-utc.net>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, dsdt <dsdt@gaugusch.at>
+To: Chris Wright <chrisw@sous-sol.org>
+Cc: linux-kernel@vger.kernel.org, stable@kernel.org, Linux-acpi@vger.kernel.org, Justin Forbes <jmforbes@linuxtx.org>, Zwane Mwaikambo <zwane@arm.linux.org.uk>, Theodore Ts'o <tytso@mit.edu>, Randy Dunlap <rdunlap@xenotime.net>, Dave Jones <davej@redhat.com>, Chuck Wolber <chuckw@quantumlinux.com>, Chris Wedgwood <reviews@ml.cw.f00f.org>, Michael Krufky <mkrufky@linuxtv.org>, Chuck Ebbert <cebbert@redhat.com>, Domenico Andreoli <cavokz@gmail.com>, torvalds@linux-foundation.org, akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, Len Brown <lenb@kernel.org>, Len Brown <len.brown@intel.com>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigDF670D0E57C923BD1445A3FA
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+On Wednesday 16 April 2008 07:02:20 pm Chris Wright wrote:
+> -stable review patch.  If anyone has any objections, please let us know.
+
+I don't object to the point of the patch (changing KERN_ERR to
+KERN_WARNING), but there is a more serious bug lurking here that
+corrupts memory, and if we're doing a -stable patch, we should
+fix it.
+
+The test is:
+
+	if (i >= PNP_MAX_IRQ && !warned) {
+		printk(...);
+		warned = 1;
+		return;
+	}
+
+But it should be:
+
+	if (i >= PNP_MAX_IRQ) {
+		if (!warned) {
+			printk(...);
+			warned = 1;
+		}
+		return;
+	}
+
+> --- a/drivers/pnp/pnpacpi/rsparser.c
+> +++ b/drivers/pnp/pnpacpi/rsparser.c
+> @@ -85,7 +85,7 @@ static void pnpacpi_parse_allocated_irqr
+>  	       i < PNP_MAX_IRQ)
+>  		i++;
+>  	if (i >= PNP_MAX_IRQ && !warned) {
+> -		printk(KERN_ERR "pnpacpi: exceeded the max number of IRQ "
+> +		printk(KERN_WARNING "pnpacpi: exceeded the max number of IRQ "
+>  				"resources: %d \n", PNP_MAX_IRQ);
+>  		warned = 1;
+>  		return;
+> @@ -187,7 +187,7 @@ static void pnpacpi_parse_allocated_dmar
+>  		res->dma_resource[i].start = dma;
+>  		res->dma_resource[i].end = dma;
+>  	} else if (!warned) {
+> -		printk(KERN_ERR "pnpacpi: exceeded the max number of DMA "
+> +		printk(KERN_WARNING "pnpacpi: exceeded the max number of DMA "
+>  				"resources: %d \n", PNP_MAX_DMA);
+>  		warned = 1;
+>  	}
+> @@ -213,7 +213,7 @@ static void pnpacpi_parse_allocated_iore
+>  		res->port_resource[i].start = io;
+>  		res->port_resource[i].end = io + len - 1;
+>  	} else if (!warned) {
+> -		printk(KERN_ERR "pnpacpi: exceeded the max number of IO "
+> +		printk(KERN_WARNING "pnpacpi: exceeded the max number of IO "
+>  				"resources: %d \n", PNP_MAX_PORT);
+>  		warned = 1;
+>  	}
+> @@ -241,7 +241,7 @@ static void pnpacpi_parse_allocated_memr
+>  		res->mem_resource[i].start = mem;
+>  		res->mem_resource[i].end = mem + len - 1;
+>  	} else if (!warned) {
+> -		printk(KERN_ERR "pnpacpi: exceeded the max number of mem "
+> +		printk(KERN_WARNING "pnpacpi: exceeded the max number of mem "
+>  				"resources: %d\n", PNP_MAX_MEM);
+>  		warned = 1;
+>  	}
+> 
 
 
-Hi,
-
-First let me introduce myself, my name does not appear,
-  but I am the quoted one by Andrew Morton on his 1st post of this thread=
- :
-
-  http://thread.gmane.org/gmane.linux.acpi.devel/27726
-
-  > > I am annoyed by this missing (or rejected) feature upstream : DSDT
-  > >   http://gaugusch.at/kernel.shtml
-  > > So to use "custom DSDT loading" I have to patch my laptop buggy BIO=
-S
-  ...
-  > > Hopefully many distro already include this patch, but not all of th=
-em
-  > > such as debian :
-  > >   http://bugs.debian.org/251023
-
-You may be aware of that yet, but It seems that the patch was rejected
-for 2.6.25
-
-=20
-http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3Dco=
-mmit;h=3D9a9e0d685553af76cb6ae2af93cca4913e7fcd47
-
-Quoting linus : "the relevant ACPI code should either run much later,"
-
-So was next then ? how can we help to fix this recurrent issue ?
-
-Anyway I'd like to thank you all for all time spent on this job,
-and I am happy with the patch as it is...
-
-Regards
-
---=20
- # mailto:rzr[a]users.sf.net -- gpg:0x467094BC
- # http://rzr.online.fr/contribs.htm -- Libre Software Addict
- # xmpp:rzr[a]jabber.fr -- sip:rzr[a]ekiga.net
-
-
-
---------------enigDF670D0E57C923BD1445A3FA
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iD8DBQFICRuLlNXo+kZwlLwRAljhAKCPZn+6GV0NYtcAUiZNDbevL+0URwCdHShf
-wMmc50XzmTpIXEB/p7Dn4rw=
-=aVGc
------END PGP SIGNATURE-----
-
---------------enigDF670D0E57C923BD1445A3FA--
