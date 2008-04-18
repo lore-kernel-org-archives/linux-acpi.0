@@ -1,225 +1,57 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 26/53] PNP: use conventional "i" for loop indices
-Date: Fri, 18 Apr 2008 14:50:21 -0600
-Message-ID: <20080418205052.552976598@ldl.fc.hp.com>
+Subject: [patch 13/53] PNPACPI: hoist dma_flags() out of pnpacpi_parse_allocated_dmaresource()
+Date: Fri, 18 Apr 2008 14:50:08 -0600
+Message-ID: <20080418205049.850057335@ldl.fc.hp.com>
 References: <20080418204955.342963315@ldl.fc.hp.com>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758277AbYDRVBd@vger.kernel.org>
-Content-Disposition: inline; filename=pnp-rename-temps
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1762376AbYDRU6y@vger.kernel.org>
+Content-Disposition: inline; filename=pnpacpi-hoist-dma-flags
 Sender: linux-kernel-owner@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, Rene Herman <rene.herman@gmail.com>, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Cosmetic only: just use "i" instead of "tmp".
+Hoist dma_flags() out of pnpacpi_parse_allocated_dmaresource() into its
+caller.  This makes pnpacpi_parse_allocated_dmaresource() more similar
+to pnpbios_parse_allocated_dmaresource().
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Acked-By: Rene Herman <rene.herman@gmail.com>
 
-Index: work7/drivers/pnp/resource.c
+Index: work7/drivers/pnp/pnpacpi/rsparser.c
 ===================================================================
---- work7.orig/drivers/pnp/resource.c	2008-03-24 16:32:00.000000000 -0600
-+++ work7/drivers/pnp/resource.c	2008-03-24 16:33:17.000000000 -0600
-@@ -215,7 +215,7 @@
+--- work7.orig/drivers/pnp/pnpacpi/rsparser.c	2008-03-21 15:08:36.000000000 -0600
++++ work7/drivers/pnp/pnpacpi/rsparser.c	2008-03-21 15:10:22.000000000 -0600
+@@ -167,8 +167,7 @@
+ }
  
- int pnp_check_port(struct pnp_dev *dev, int idx)
+ static void pnpacpi_parse_allocated_dmaresource(struct pnp_resource_table *res,
+-						u32 dma, int type,
+-						int bus_master, int transfer)
++						u32 dma, int flags)
  {
--	int tmp;
-+	int i;
- 	struct pnp_dev *tdev;
- 	resource_size_t *port, *end, *tport, *tend;
+ 	int i = 0;
+ 	static unsigned char warned;
+@@ -178,8 +177,7 @@
+ 		i++;
+ 	if (i < PNP_MAX_DMA) {
+ 		res->dma_resource[i].flags = IORESOURCE_DMA;	// Also clears _UNSET flag
+-		res->dma_resource[i].flags |=
+-		    dma_flags(type, bus_master, transfer);
++		res->dma_resource[i].flags |= flags;
+ 		if (dma == -1) {
+ 			res->dma_resource[i].flags |= IORESOURCE_DISABLED;
+ 			return;
+@@ -309,9 +307,8 @@
+ 		if (dma->channel_count > 0)
+ 			pnpacpi_parse_allocated_dmaresource(res_table,
+ 				dma->channels[0],
+-				dma->type,
+-				dma->bus_master,
+-				dma->transfer);
++				dma_flags(dma->type, dma->bus_master,
++					  dma->transfer));
+ 		break;
  
-@@ -234,18 +234,18 @@
- 	}
- 
- 	/* check if the resource is reserved */
--	for (tmp = 0; tmp < 8; tmp++) {
--		int rport = pnp_reserve_io[tmp << 1];
--		int rend = pnp_reserve_io[(tmp << 1) + 1] + rport - 1;
-+	for (i = 0; i < 8; i++) {
-+		int rport = pnp_reserve_io[i << 1];
-+		int rend = pnp_reserve_io[(i << 1) + 1] + rport - 1;
- 		if (ranged_conflict(port, end, &rport, &rend))
- 			return 0;
- 	}
- 
- 	/* check for internal conflicts */
--	for (tmp = 0; tmp < PNP_MAX_PORT && tmp != idx; tmp++) {
--		if (dev->res.port_resource[tmp].flags & IORESOURCE_IO) {
--			tport = &dev->res.port_resource[tmp].start;
--			tend = &dev->res.port_resource[tmp].end;
-+	for (i = 0; i < PNP_MAX_PORT && i != idx; i++) {
-+		if (dev->res.port_resource[i].flags & IORESOURCE_IO) {
-+			tport = &dev->res.port_resource[i].start;
-+			tend = &dev->res.port_resource[i].end;
- 			if (ranged_conflict(port, end, tport, tend))
- 				return 0;
- 		}
-@@ -255,13 +255,13 @@
- 	pnp_for_each_dev(tdev) {
- 		if (tdev == dev)
- 			continue;
--		for (tmp = 0; tmp < PNP_MAX_PORT; tmp++) {
--			if (tdev->res.port_resource[tmp].flags & IORESOURCE_IO) {
-+		for (i = 0; i < PNP_MAX_PORT; i++) {
-+			if (tdev->res.port_resource[i].flags & IORESOURCE_IO) {
- 				if (cannot_compare
--				    (tdev->res.port_resource[tmp].flags))
-+				    (tdev->res.port_resource[i].flags))
- 					continue;
--				tport = &tdev->res.port_resource[tmp].start;
--				tend = &tdev->res.port_resource[tmp].end;
-+				tport = &tdev->res.port_resource[i].start;
-+				tend = &tdev->res.port_resource[i].end;
- 				if (ranged_conflict(port, end, tport, tend))
- 					return 0;
- 			}
-@@ -273,7 +273,7 @@
- 
- int pnp_check_mem(struct pnp_dev *dev, int idx)
- {
--	int tmp;
-+	int i;
- 	struct pnp_dev *tdev;
- 	resource_size_t *addr, *end, *taddr, *tend;
- 
-@@ -292,18 +292,18 @@
- 	}
- 
- 	/* check if the resource is reserved */
--	for (tmp = 0; tmp < 8; tmp++) {
--		int raddr = pnp_reserve_mem[tmp << 1];
--		int rend = pnp_reserve_mem[(tmp << 1) + 1] + raddr - 1;
-+	for (i = 0; i < 8; i++) {
-+		int raddr = pnp_reserve_mem[i << 1];
-+		int rend = pnp_reserve_mem[(i << 1) + 1] + raddr - 1;
- 		if (ranged_conflict(addr, end, &raddr, &rend))
- 			return 0;
- 	}
- 
- 	/* check for internal conflicts */
--	for (tmp = 0; tmp < PNP_MAX_MEM && tmp != idx; tmp++) {
--		if (dev->res.mem_resource[tmp].flags & IORESOURCE_MEM) {
--			taddr = &dev->res.mem_resource[tmp].start;
--			tend = &dev->res.mem_resource[tmp].end;
-+	for (i = 0; i < PNP_MAX_MEM && i != idx; i++) {
-+		if (dev->res.mem_resource[i].flags & IORESOURCE_MEM) {
-+			taddr = &dev->res.mem_resource[i].start;
-+			tend = &dev->res.mem_resource[i].end;
- 			if (ranged_conflict(addr, end, taddr, tend))
- 				return 0;
- 		}
-@@ -313,13 +313,13 @@
- 	pnp_for_each_dev(tdev) {
- 		if (tdev == dev)
- 			continue;
--		for (tmp = 0; tmp < PNP_MAX_MEM; tmp++) {
--			if (tdev->res.mem_resource[tmp].flags & IORESOURCE_MEM) {
-+		for (i = 0; i < PNP_MAX_MEM; i++) {
-+			if (tdev->res.mem_resource[i].flags & IORESOURCE_MEM) {
- 				if (cannot_compare
--				    (tdev->res.mem_resource[tmp].flags))
-+				    (tdev->res.mem_resource[i].flags))
- 					continue;
--				taddr = &tdev->res.mem_resource[tmp].start;
--				tend = &tdev->res.mem_resource[tmp].end;
-+				taddr = &tdev->res.mem_resource[i].start;
-+				tend = &tdev->res.mem_resource[i].end;
- 				if (ranged_conflict(addr, end, taddr, tend))
- 					return 0;
- 			}
-@@ -336,7 +336,7 @@
- 
- int pnp_check_irq(struct pnp_dev *dev, int idx)
- {
--	int tmp;
-+	int i;
- 	struct pnp_dev *tdev;
- 	resource_size_t *irq = &dev->res.irq_resource[idx].start;
- 
-@@ -349,15 +349,15 @@
- 		return 0;
- 
- 	/* check if the resource is reserved */
--	for (tmp = 0; tmp < 16; tmp++) {
--		if (pnp_reserve_irq[tmp] == *irq)
-+	for (i = 0; i < 16; i++) {
-+		if (pnp_reserve_irq[i] == *irq)
- 			return 0;
- 	}
- 
- 	/* check for internal conflicts */
--	for (tmp = 0; tmp < PNP_MAX_IRQ && tmp != idx; tmp++) {
--		if (dev->res.irq_resource[tmp].flags & IORESOURCE_IRQ) {
--			if (dev->res.irq_resource[tmp].start == *irq)
-+	for (i = 0; i < PNP_MAX_IRQ && i != idx; i++) {
-+		if (dev->res.irq_resource[i].flags & IORESOURCE_IRQ) {
-+			if (dev->res.irq_resource[i].start == *irq)
- 				return 0;
- 		}
- 	}
-@@ -388,12 +388,12 @@
- 	pnp_for_each_dev(tdev) {
- 		if (tdev == dev)
- 			continue;
--		for (tmp = 0; tmp < PNP_MAX_IRQ; tmp++) {
--			if (tdev->res.irq_resource[tmp].flags & IORESOURCE_IRQ) {
-+		for (i = 0; i < PNP_MAX_IRQ; i++) {
-+			if (tdev->res.irq_resource[i].flags & IORESOURCE_IRQ) {
- 				if (cannot_compare
--				    (tdev->res.irq_resource[tmp].flags))
-+				    (tdev->res.irq_resource[i].flags))
- 					continue;
--				if ((tdev->res.irq_resource[tmp].start == *irq))
-+				if ((tdev->res.irq_resource[i].start == *irq))
- 					return 0;
- 			}
- 		}
-@@ -405,7 +405,7 @@
- int pnp_check_dma(struct pnp_dev *dev, int idx)
- {
- #ifndef CONFIG_IA64
--	int tmp;
-+	int i;
- 	struct pnp_dev *tdev;
- 	resource_size_t *dma = &dev->res.dma_resource[idx].start;
- 
-@@ -418,15 +418,15 @@
- 		return 0;
- 
- 	/* check if the resource is reserved */
--	for (tmp = 0; tmp < 8; tmp++) {
--		if (pnp_reserve_dma[tmp] == *dma)
-+	for (i = 0; i < 8; i++) {
-+		if (pnp_reserve_dma[i] == *dma)
- 			return 0;
- 	}
- 
- 	/* check for internal conflicts */
--	for (tmp = 0; tmp < PNP_MAX_DMA && tmp != idx; tmp++) {
--		if (dev->res.dma_resource[tmp].flags & IORESOURCE_DMA) {
--			if (dev->res.dma_resource[tmp].start == *dma)
-+	for (i = 0; i < PNP_MAX_DMA && i != idx; i++) {
-+		if (dev->res.dma_resource[i].flags & IORESOURCE_DMA) {
-+			if (dev->res.dma_resource[i].start == *dma)
- 				return 0;
- 		}
- 	}
-@@ -443,12 +443,12 @@
- 	pnp_for_each_dev(tdev) {
- 		if (tdev == dev)
- 			continue;
--		for (tmp = 0; tmp < PNP_MAX_DMA; tmp++) {
--			if (tdev->res.dma_resource[tmp].flags & IORESOURCE_DMA) {
-+		for (i = 0; i < PNP_MAX_DMA; i++) {
-+			if (tdev->res.dma_resource[i].flags & IORESOURCE_DMA) {
- 				if (cannot_compare
--				    (tdev->res.dma_resource[tmp].flags))
-+				    (tdev->res.dma_resource[i].flags))
- 					continue;
--				if ((tdev->res.dma_resource[tmp].start == *dma))
-+				if ((tdev->res.dma_resource[i].start == *dma))
- 					return 0;
- 			}
- 		}
+ 	case ACPI_RESOURCE_TYPE_IO:
 
 -- 
