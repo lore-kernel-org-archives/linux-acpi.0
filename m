@@ -1,336 +1,225 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 12/53] PNPACPI: use temporaries to reduce repetition
-Date: Fri, 18 Apr 2008 14:50:07 -0600
-Message-ID: <20080418205049.647331217@ldl.fc.hp.com>
+Subject: [patch 26/53] PNP: use conventional "i" for loop indices
+Date: Fri, 18 Apr 2008 14:50:21 -0600
+Message-ID: <20080418205052.552976598@ldl.fc.hp.com>
 References: <20080418204955.342963315@ldl.fc.hp.com>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1762730AbYDRU7m@vger.kernel.org>
-Content-Disposition: inline; filename=pnpacpi-use-acpi-resource-temporaries
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758277AbYDRVBd@vger.kernel.org>
+Content-Disposition: inline; filename=pnp-rename-temps
 Sender: linux-kernel-owner@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, Rene Herman <rene.herman@gmail.com>, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
 
-No functional change, just fewer words and fewer chances for
-transcription errors.
+Cosmetic only: just use "i" instead of "tmp".
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Acked-By: Rene Herman <rene.herman@gmail.com>
 
-Index: work7/drivers/pnp/pnpacpi/rsparser.c
+Index: work7/drivers/pnp/resource.c
 ===================================================================
---- work7.orig/drivers/pnp/pnpacpi/rsparser.c	2008-03-20 12:07:31.000000000 -0600
-+++ work7/drivers/pnp/pnpacpi/rsparser.c	2008-03-20 12:14:54.000000000 -0600
-@@ -278,6 +278,14 @@
- 					      void *data)
+--- work7.orig/drivers/pnp/resource.c	2008-03-24 16:32:00.000000000 -0600
++++ work7/drivers/pnp/resource.c	2008-03-24 16:33:17.000000000 -0600
+@@ -215,7 +215,7 @@
+ 
+ int pnp_check_port(struct pnp_dev *dev, int idx)
  {
- 	struct pnp_resource_table *res_table = data;
-+	struct acpi_resource_irq *irq;
-+	struct acpi_resource_dma *dma;
-+	struct acpi_resource_io *io;
-+	struct acpi_resource_fixed_io *fixed_io;
-+	struct acpi_resource_memory24 *memory24;
-+	struct acpi_resource_memory32 *memory32;
-+	struct acpi_resource_fixed_memory32 *fixed_memory32;
-+	struct acpi_resource_extended_irq *extended_irq;
- 	int i;
+-	int tmp;
++	int i;
+ 	struct pnp_dev *tdev;
+ 	resource_size_t *port, *end, *tport, *tend;
  
- 	switch (res->type) {
-@@ -286,29 +294,32 @@
- 		 * Per spec, only one interrupt per descriptor is allowed in
- 		 * _CRS, but some firmware violates this, so parse them all.
- 		 */
--		for (i = 0; i < res->data.irq.interrupt_count; i++) {
-+		irq = &res->data.irq;
-+		for (i = 0; i < irq->interrupt_count; i++) {
- 			pnpacpi_parse_allocated_irqresource(res_table,
--				res->data.irq.interrupts[i],
--				res->data.irq.triggering,
--				res->data.irq.polarity,
--				res->data.irq.sharable);
-+				irq->interrupts[i],
-+				irq->triggering,
-+				irq->polarity,
-+				irq->sharable);
- 		}
- 		break;
- 
- 	case ACPI_RESOURCE_TYPE_DMA:
--		if (res->data.dma.channel_count > 0)
-+		dma = &res->data.dma;
-+		if (dma->channel_count > 0)
- 			pnpacpi_parse_allocated_dmaresource(res_table,
--				res->data.dma.channels[0],
--				res->data.dma.type,
--				res->data.dma.bus_master,
--				res->data.dma.transfer);
-+				dma->channels[0],
-+				dma->type,
-+				dma->bus_master,
-+				dma->transfer);
- 		break;
- 
- 	case ACPI_RESOURCE_TYPE_IO:
-+		io = &res->data.io;
- 		pnpacpi_parse_allocated_ioresource(res_table,
--			res->data.io.minimum,
--			res->data.io.address_length,
--			res->data.io.io_decode);
-+			io->minimum,
-+			io->address_length,
-+			io->io_decode);
- 		break;
- 
- 	case ACPI_RESOURCE_TYPE_START_DEPENDENT:
-@@ -316,9 +327,10 @@
- 		break;
- 
- 	case ACPI_RESOURCE_TYPE_FIXED_IO:
-+		fixed_io = &res->data.fixed_io;
- 		pnpacpi_parse_allocated_ioresource(res_table,
--			res->data.fixed_io.address,
--			res->data.fixed_io.address_length,
-+			fixed_io->address,
-+			fixed_io->address_length,
- 			ACPI_DECODE_10);
- 		break;
- 
-@@ -329,22 +341,25 @@
- 		break;
- 
- 	case ACPI_RESOURCE_TYPE_MEMORY24:
-+		memory24 = &res->data.memory24;
- 		pnpacpi_parse_allocated_memresource(res_table,
--			res->data.memory24.minimum,
--			res->data.memory24.address_length,
--			res->data.memory24.write_protect);
-+			memory24->minimum,
-+			memory24->address_length,
-+			memory24->write_protect);
- 		break;
- 	case ACPI_RESOURCE_TYPE_MEMORY32:
-+		memory32 = &res->data.memory32;
- 		pnpacpi_parse_allocated_memresource(res_table,
--			res->data.memory32.minimum,
--			res->data.memory32.address_length,
--			res->data.memory32.write_protect);
-+			memory32->minimum,
-+			memory32->address_length,
-+			memory32->write_protect);
- 		break;
- 	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
-+		fixed_memory32 = &res->data.fixed_memory32;
- 		pnpacpi_parse_allocated_memresource(res_table,
--			res->data.fixed_memory32.address,
--			res->data.fixed_memory32.address_length,
--			res->data.fixed_memory32.write_protect);
-+			fixed_memory32->address,
-+			fixed_memory32->address_length,
-+			fixed_memory32->write_protect);
- 		break;
- 	case ACPI_RESOURCE_TYPE_ADDRESS16:
- 	case ACPI_RESOURCE_TYPE_ADDRESS32:
-@@ -358,15 +373,16 @@
- 		break;
- 
- 	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
--		if (res->data.extended_irq.producer_consumer == ACPI_PRODUCER)
-+		extended_irq = &res->data.extended_irq;
-+		if (extended_irq->producer_consumer == ACPI_PRODUCER)
- 			return AE_OK;
- 
--		for (i = 0; i < res->data.extended_irq.interrupt_count; i++) {
-+		for (i = 0; i < extended_irq->interrupt_count; i++) {
- 			pnpacpi_parse_allocated_irqresource(res_table,
--				res->data.extended_irq.interrupts[i],
--				res->data.extended_irq.triggering,
--				res->data.extended_irq.polarity,
--				res->data.extended_irq.sharable);
-+				extended_irq->interrupts[i],
-+				extended_irq->triggering,
-+				extended_irq->polarity,
-+				extended_irq->sharable);
- 		}
- 		break;
- 
-@@ -795,122 +811,136 @@
- static void pnpacpi_encode_irq(struct acpi_resource *resource,
- 			       struct resource *p)
- {
-+	struct acpi_resource_irq *irq = &resource->data.irq;
- 	int triggering, polarity;
- 
- 	decode_irq_flags(p->flags & IORESOURCE_BITS, &triggering, &polarity);
--	resource->data.irq.triggering = triggering;
--	resource->data.irq.polarity = polarity;
-+	irq->triggering = triggering;
-+	irq->polarity = polarity;
- 	if (triggering == ACPI_EDGE_SENSITIVE)
--		resource->data.irq.sharable = ACPI_EXCLUSIVE;
-+		irq->sharable = ACPI_EXCLUSIVE;
- 	else
--		resource->data.irq.sharable = ACPI_SHARED;
--	resource->data.irq.interrupt_count = 1;
--	resource->data.irq.interrupts[0] = p->start;
-+		irq->sharable = ACPI_SHARED;
-+	irq->interrupt_count = 1;
-+	irq->interrupts[0] = p->start;
- }
- 
- static void pnpacpi_encode_ext_irq(struct acpi_resource *resource,
- 				   struct resource *p)
- {
-+	struct acpi_resource_extended_irq *extended_irq = &resource->data.extended_irq;
- 	int triggering, polarity;
- 
- 	decode_irq_flags(p->flags & IORESOURCE_BITS, &triggering, &polarity);
--	resource->data.extended_irq.producer_consumer = ACPI_CONSUMER;
--	resource->data.extended_irq.triggering = triggering;
--	resource->data.extended_irq.polarity = polarity;
-+	extended_irq->producer_consumer = ACPI_CONSUMER;
-+	extended_irq->triggering = triggering;
-+	extended_irq->polarity = polarity;
- 	if (triggering == ACPI_EDGE_SENSITIVE)
--		resource->data.extended_irq.sharable = ACPI_EXCLUSIVE;
-+		extended_irq->sharable = ACPI_EXCLUSIVE;
- 	else
--		resource->data.extended_irq.sharable = ACPI_SHARED;
--	resource->data.extended_irq.interrupt_count = 1;
--	resource->data.extended_irq.interrupts[0] = p->start;
-+		extended_irq->sharable = ACPI_SHARED;
-+	extended_irq->interrupt_count = 1;
-+	extended_irq->interrupts[0] = p->start;
- }
- 
- static void pnpacpi_encode_dma(struct acpi_resource *resource,
- 			       struct resource *p)
- {
-+	struct acpi_resource_dma *dma = &resource->data.dma;
-+
- 	/* Note: pnp_assign_dma will copy pnp_dma->flags into p->flags */
- 	switch (p->flags & IORESOURCE_DMA_SPEED_MASK) {
- 	case IORESOURCE_DMA_TYPEA:
--		resource->data.dma.type = ACPI_TYPE_A;
-+		dma->type = ACPI_TYPE_A;
- 		break;
- 	case IORESOURCE_DMA_TYPEB:
--		resource->data.dma.type = ACPI_TYPE_B;
-+		dma->type = ACPI_TYPE_B;
- 		break;
- 	case IORESOURCE_DMA_TYPEF:
--		resource->data.dma.type = ACPI_TYPE_F;
-+		dma->type = ACPI_TYPE_F;
- 		break;
- 	default:
--		resource->data.dma.type = ACPI_COMPATIBILITY;
-+		dma->type = ACPI_COMPATIBILITY;
+@@ -234,18 +234,18 @@
  	}
  
- 	switch (p->flags & IORESOURCE_DMA_TYPE_MASK) {
- 	case IORESOURCE_DMA_8BIT:
--		resource->data.dma.transfer = ACPI_TRANSFER_8;
-+		dma->transfer = ACPI_TRANSFER_8;
- 		break;
- 	case IORESOURCE_DMA_8AND16BIT:
--		resource->data.dma.transfer = ACPI_TRANSFER_8_16;
-+		dma->transfer = ACPI_TRANSFER_8_16;
- 		break;
- 	default:
--		resource->data.dma.transfer = ACPI_TRANSFER_16;
-+		dma->transfer = ACPI_TRANSFER_16;
+ 	/* check if the resource is reserved */
+-	for (tmp = 0; tmp < 8; tmp++) {
+-		int rport = pnp_reserve_io[tmp << 1];
+-		int rend = pnp_reserve_io[(tmp << 1) + 1] + rport - 1;
++	for (i = 0; i < 8; i++) {
++		int rport = pnp_reserve_io[i << 1];
++		int rend = pnp_reserve_io[(i << 1) + 1] + rport - 1;
+ 		if (ranged_conflict(port, end, &rport, &rend))
+ 			return 0;
  	}
  
--	resource->data.dma.bus_master = !!(p->flags & IORESOURCE_DMA_MASTER);
--	resource->data.dma.channel_count = 1;
--	resource->data.dma.channels[0] = p->start;
-+	dma->bus_master = !!(p->flags & IORESOURCE_DMA_MASTER);
-+	dma->channel_count = 1;
-+	dma->channels[0] = p->start;
- }
+ 	/* check for internal conflicts */
+-	for (tmp = 0; tmp < PNP_MAX_PORT && tmp != idx; tmp++) {
+-		if (dev->res.port_resource[tmp].flags & IORESOURCE_IO) {
+-			tport = &dev->res.port_resource[tmp].start;
+-			tend = &dev->res.port_resource[tmp].end;
++	for (i = 0; i < PNP_MAX_PORT && i != idx; i++) {
++		if (dev->res.port_resource[i].flags & IORESOURCE_IO) {
++			tport = &dev->res.port_resource[i].start;
++			tend = &dev->res.port_resource[i].end;
+ 			if (ranged_conflict(port, end, tport, tend))
+ 				return 0;
+ 		}
+@@ -255,13 +255,13 @@
+ 	pnp_for_each_dev(tdev) {
+ 		if (tdev == dev)
+ 			continue;
+-		for (tmp = 0; tmp < PNP_MAX_PORT; tmp++) {
+-			if (tdev->res.port_resource[tmp].flags & IORESOURCE_IO) {
++		for (i = 0; i < PNP_MAX_PORT; i++) {
++			if (tdev->res.port_resource[i].flags & IORESOURCE_IO) {
+ 				if (cannot_compare
+-				    (tdev->res.port_resource[tmp].flags))
++				    (tdev->res.port_resource[i].flags))
+ 					continue;
+-				tport = &tdev->res.port_resource[tmp].start;
+-				tend = &tdev->res.port_resource[tmp].end;
++				tport = &tdev->res.port_resource[i].start;
++				tend = &tdev->res.port_resource[i].end;
+ 				if (ranged_conflict(port, end, tport, tend))
+ 					return 0;
+ 			}
+@@ -273,7 +273,7 @@
  
- static void pnpacpi_encode_io(struct acpi_resource *resource,
- 			      struct resource *p)
+ int pnp_check_mem(struct pnp_dev *dev, int idx)
  {
-+	struct acpi_resource_io *io = &resource->data.io;
-+
- 	/* Note: pnp_assign_port will copy pnp_port->flags into p->flags */
--	resource->data.io.io_decode = (p->flags & PNP_PORT_FLAG_16BITADDR) ?
-+	io->io_decode = (p->flags & PNP_PORT_FLAG_16BITADDR) ?
- 	    ACPI_DECODE_16 : ACPI_DECODE_10;
--	resource->data.io.minimum = p->start;
--	resource->data.io.maximum = p->end;
--	resource->data.io.alignment = 0;	/* Correct? */
--	resource->data.io.address_length = p->end - p->start + 1;
-+	io->minimum = p->start;
-+	io->maximum = p->end;
-+	io->alignment = 0;	/* Correct? */
-+	io->address_length = p->end - p->start + 1;
- }
+-	int tmp;
++	int i;
+ 	struct pnp_dev *tdev;
+ 	resource_size_t *addr, *end, *taddr, *tend;
  
- static void pnpacpi_encode_fixed_io(struct acpi_resource *resource,
- 				    struct resource *p)
+@@ -292,18 +292,18 @@
+ 	}
+ 
+ 	/* check if the resource is reserved */
+-	for (tmp = 0; tmp < 8; tmp++) {
+-		int raddr = pnp_reserve_mem[tmp << 1];
+-		int rend = pnp_reserve_mem[(tmp << 1) + 1] + raddr - 1;
++	for (i = 0; i < 8; i++) {
++		int raddr = pnp_reserve_mem[i << 1];
++		int rend = pnp_reserve_mem[(i << 1) + 1] + raddr - 1;
+ 		if (ranged_conflict(addr, end, &raddr, &rend))
+ 			return 0;
+ 	}
+ 
+ 	/* check for internal conflicts */
+-	for (tmp = 0; tmp < PNP_MAX_MEM && tmp != idx; tmp++) {
+-		if (dev->res.mem_resource[tmp].flags & IORESOURCE_MEM) {
+-			taddr = &dev->res.mem_resource[tmp].start;
+-			tend = &dev->res.mem_resource[tmp].end;
++	for (i = 0; i < PNP_MAX_MEM && i != idx; i++) {
++		if (dev->res.mem_resource[i].flags & IORESOURCE_MEM) {
++			taddr = &dev->res.mem_resource[i].start;
++			tend = &dev->res.mem_resource[i].end;
+ 			if (ranged_conflict(addr, end, taddr, tend))
+ 				return 0;
+ 		}
+@@ -313,13 +313,13 @@
+ 	pnp_for_each_dev(tdev) {
+ 		if (tdev == dev)
+ 			continue;
+-		for (tmp = 0; tmp < PNP_MAX_MEM; tmp++) {
+-			if (tdev->res.mem_resource[tmp].flags & IORESOURCE_MEM) {
++		for (i = 0; i < PNP_MAX_MEM; i++) {
++			if (tdev->res.mem_resource[i].flags & IORESOURCE_MEM) {
+ 				if (cannot_compare
+-				    (tdev->res.mem_resource[tmp].flags))
++				    (tdev->res.mem_resource[i].flags))
+ 					continue;
+-				taddr = &tdev->res.mem_resource[tmp].start;
+-				tend = &tdev->res.mem_resource[tmp].end;
++				taddr = &tdev->res.mem_resource[i].start;
++				tend = &tdev->res.mem_resource[i].end;
+ 				if (ranged_conflict(addr, end, taddr, tend))
+ 					return 0;
+ 			}
+@@ -336,7 +336,7 @@
+ 
+ int pnp_check_irq(struct pnp_dev *dev, int idx)
  {
--	resource->data.fixed_io.address = p->start;
--	resource->data.fixed_io.address_length = p->end - p->start + 1;
-+	struct acpi_resource_fixed_io *fixed_io = &resource->data.fixed_io;
-+
-+	fixed_io->address = p->start;
-+	fixed_io->address_length = p->end - p->start + 1;
- }
+-	int tmp;
++	int i;
+ 	struct pnp_dev *tdev;
+ 	resource_size_t *irq = &dev->res.irq_resource[idx].start;
  
- static void pnpacpi_encode_mem24(struct acpi_resource *resource,
- 				 struct resource *p)
+@@ -349,15 +349,15 @@
+ 		return 0;
+ 
+ 	/* check if the resource is reserved */
+-	for (tmp = 0; tmp < 16; tmp++) {
+-		if (pnp_reserve_irq[tmp] == *irq)
++	for (i = 0; i < 16; i++) {
++		if (pnp_reserve_irq[i] == *irq)
+ 			return 0;
+ 	}
+ 
+ 	/* check for internal conflicts */
+-	for (tmp = 0; tmp < PNP_MAX_IRQ && tmp != idx; tmp++) {
+-		if (dev->res.irq_resource[tmp].flags & IORESOURCE_IRQ) {
+-			if (dev->res.irq_resource[tmp].start == *irq)
++	for (i = 0; i < PNP_MAX_IRQ && i != idx; i++) {
++		if (dev->res.irq_resource[i].flags & IORESOURCE_IRQ) {
++			if (dev->res.irq_resource[i].start == *irq)
+ 				return 0;
+ 		}
+ 	}
+@@ -388,12 +388,12 @@
+ 	pnp_for_each_dev(tdev) {
+ 		if (tdev == dev)
+ 			continue;
+-		for (tmp = 0; tmp < PNP_MAX_IRQ; tmp++) {
+-			if (tdev->res.irq_resource[tmp].flags & IORESOURCE_IRQ) {
++		for (i = 0; i < PNP_MAX_IRQ; i++) {
++			if (tdev->res.irq_resource[i].flags & IORESOURCE_IRQ) {
+ 				if (cannot_compare
+-				    (tdev->res.irq_resource[tmp].flags))
++				    (tdev->res.irq_resource[i].flags))
+ 					continue;
+-				if ((tdev->res.irq_resource[tmp].start == *irq))
++				if ((tdev->res.irq_resource[i].start == *irq))
+ 					return 0;
+ 			}
+ 		}
+@@ -405,7 +405,7 @@
+ int pnp_check_dma(struct pnp_dev *dev, int idx)
  {
-+	struct acpi_resource_memory24 *memory24 = &resource->data.memory24;
-+
- 	/* Note: pnp_assign_mem will copy pnp_mem->flags into p->flags */
--	resource->data.memory24.write_protect =
-+	memory24->write_protect =
- 	    (p->flags & IORESOURCE_MEM_WRITEABLE) ?
- 	    ACPI_READ_WRITE_MEMORY : ACPI_READ_ONLY_MEMORY;
--	resource->data.memory24.minimum = p->start;
--	resource->data.memory24.maximum = p->end;
--	resource->data.memory24.alignment = 0;
--	resource->data.memory24.address_length = p->end - p->start + 1;
-+	memory24->minimum = p->start;
-+	memory24->maximum = p->end;
-+	memory24->alignment = 0;
-+	memory24->address_length = p->end - p->start + 1;
- }
+ #ifndef CONFIG_IA64
+-	int tmp;
++	int i;
+ 	struct pnp_dev *tdev;
+ 	resource_size_t *dma = &dev->res.dma_resource[idx].start;
  
- static void pnpacpi_encode_mem32(struct acpi_resource *resource,
- 				 struct resource *p)
- {
--	resource->data.memory32.write_protect =
-+	struct acpi_resource_memory32 *memory32 = &resource->data.memory32;
-+
-+	memory32->write_protect =
- 	    (p->flags & IORESOURCE_MEM_WRITEABLE) ?
- 	    ACPI_READ_WRITE_MEMORY : ACPI_READ_ONLY_MEMORY;
--	resource->data.memory32.minimum = p->start;
--	resource->data.memory32.maximum = p->end;
--	resource->data.memory32.alignment = 0;
--	resource->data.memory32.address_length = p->end - p->start + 1;
-+	memory32->minimum = p->start;
-+	memory32->maximum = p->end;
-+	memory32->alignment = 0;
-+	memory32->address_length = p->end - p->start + 1;
- }
+@@ -418,15 +418,15 @@
+ 		return 0;
  
- static void pnpacpi_encode_fixed_mem32(struct acpi_resource *resource,
- 				       struct resource *p)
- {
--	resource->data.fixed_memory32.write_protect =
-+	struct acpi_resource_fixed_memory32 *fixed_memory32 = &resource->data.fixed_memory32;
-+
-+	fixed_memory32->write_protect =
- 	    (p->flags & IORESOURCE_MEM_WRITEABLE) ?
- 	    ACPI_READ_WRITE_MEMORY : ACPI_READ_ONLY_MEMORY;
--	resource->data.fixed_memory32.address = p->start;
--	resource->data.fixed_memory32.address_length = p->end - p->start + 1;
-+	fixed_memory32->address = p->start;
-+	fixed_memory32->address_length = p->end - p->start + 1;
- }
+ 	/* check if the resource is reserved */
+-	for (tmp = 0; tmp < 8; tmp++) {
+-		if (pnp_reserve_dma[tmp] == *dma)
++	for (i = 0; i < 8; i++) {
++		if (pnp_reserve_dma[i] == *dma)
+ 			return 0;
+ 	}
  
- int pnpacpi_encode_resources(struct pnp_resource_table *res_table,
+ 	/* check for internal conflicts */
+-	for (tmp = 0; tmp < PNP_MAX_DMA && tmp != idx; tmp++) {
+-		if (dev->res.dma_resource[tmp].flags & IORESOURCE_DMA) {
+-			if (dev->res.dma_resource[tmp].start == *dma)
++	for (i = 0; i < PNP_MAX_DMA && i != idx; i++) {
++		if (dev->res.dma_resource[i].flags & IORESOURCE_DMA) {
++			if (dev->res.dma_resource[i].start == *dma)
+ 				return 0;
+ 		}
+ 	}
+@@ -443,12 +443,12 @@
+ 	pnp_for_each_dev(tdev) {
+ 		if (tdev == dev)
+ 			continue;
+-		for (tmp = 0; tmp < PNP_MAX_DMA; tmp++) {
+-			if (tdev->res.dma_resource[tmp].flags & IORESOURCE_DMA) {
++		for (i = 0; i < PNP_MAX_DMA; i++) {
++			if (tdev->res.dma_resource[i].flags & IORESOURCE_DMA) {
+ 				if (cannot_compare
+-				    (tdev->res.dma_resource[tmp].flags))
++				    (tdev->res.dma_resource[i].flags))
+ 					continue;
+-				if ((tdev->res.dma_resource[tmp].start == *dma))
++				if ((tdev->res.dma_resource[i].start == *dma))
+ 					return 0;
+ 			}
+ 		}
 
 -- 
