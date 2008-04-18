@@ -1,52 +1,49 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 07/53] PNP: make pnp_add_card_id() internal to PNP core
-Date: Fri, 18 Apr 2008 14:50:02 -0600
-Message-ID: <20080418205048.622698411@ldl.fc.hp.com>
+Subject: [patch 50/53] ISAPNP: remove unused pnp_dev->regs field
+Date: Fri, 18 Apr 2008 14:50:45 -0600
+Message-ID: <20080418205057.357405111@ldl.fc.hp.com>
 References: <20080418204955.342963315@ldl.fc.hp.com>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1761453AbYDRUyD@vger.kernel.org>
-Content-Disposition: inline; filename=pnp-make-pnp_add_card_id-internal-to-core
-Sender: linux-kernel-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Rene Herman <rene.herman@gmail.com>, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:21870 "EHLO
+	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761347AbYDRUwi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Apr 2008 16:52:38 -0400
+Content-Disposition: inline; filename=isapnp-remove-unused-pnp_dev-fields
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-pnp_add_card_id() doesn't need to be exposed outside the PNP core, so
-move the declaration to an internal header file.
+The "regs" field in struct pnp_dev is set but never read, so remove it.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Acked-By: Rene Herman <rene.herman@gmail.com>
 
-Index: work7/drivers/pnp/base.h
+Index: work8/drivers/pnp/isapnp/core.c
 ===================================================================
---- work7.orig/drivers/pnp/base.h	2008-04-02 15:17:49.000000000 -0600
-+++ work7/drivers/pnp/base.h	2008-04-02 15:19:07.000000000 -0600
-@@ -4,6 +4,7 @@
- void pnp_eisa_id_to_string(u32 id, char *str);
- struct pnp_dev *pnp_alloc_dev(struct pnp_protocol *, int id, char *pnpid);
- struct pnp_id *pnp_add_id(struct pnp_dev *dev, char *id);
-+int pnp_add_card_id(struct pnp_id *id, struct pnp_card *card);
- int pnp_interface_attach_device(struct pnp_dev *dev);
- void pnp_fixup_device(struct pnp_dev *dev);
- void pnp_free_option(struct pnp_option *option);
-Index: work7/include/linux/pnp.h
+--- work8.orig/drivers/pnp/isapnp/core.c	2008-04-18 11:15:16.000000000 -0600
++++ work8/drivers/pnp/isapnp/core.c	2008-04-18 11:19:49.000000000 -0600
+@@ -416,10 +416,7 @@
+ 	if (!dev)
+ 		return NULL;
+ 
+-	dev->regs = tmp[4];
+ 	dev->card = card;
+-	if (size > 5)
+-		dev->regs |= tmp[5] << 8;
+ 	dev->capabilities |= PNP_CONFIGURABLE;
+ 	dev->capabilities |= PNP_READ;
+ 	dev->capabilities |= PNP_WRITE;
+Index: work8/include/linux/pnp.h
 ===================================================================
---- work7.orig/include/linux/pnp.h	2008-04-02 14:39:11.000000000 -0600
-+++ work7/include/linux/pnp.h	2008-04-02 15:19:07.000000000 -0600
-@@ -371,7 +371,6 @@
- void pnp_remove_card(struct pnp_card *card);
- int pnp_add_card_device(struct pnp_card *card, struct pnp_dev *dev);
- void pnp_remove_card_device(struct pnp_dev *dev);
--int pnp_add_card_id(struct pnp_id *id, struct pnp_card *card);
- struct pnp_dev *pnp_request_card_device(struct pnp_card_link *clink,
- 					const char *id, struct pnp_dev *from);
- void pnp_release_card_device(struct pnp_dev *dev);
-@@ -423,7 +422,6 @@
- static inline void pnp_remove_card(struct pnp_card *card) { }
- static inline int pnp_add_card_device(struct pnp_card *card, struct pnp_dev *dev) { return -ENODEV; }
- static inline void pnp_remove_card_device(struct pnp_dev *dev) { }
--static inline int pnp_add_card_id(struct pnp_id *id, struct pnp_card *card) { return -ENODEV; }
- static inline struct pnp_dev *pnp_request_card_device(struct pnp_card_link *clink, const char *id, struct pnp_dev *from) { return NULL; }
- static inline void pnp_release_card_device(struct pnp_dev *dev) { }
- static inline int pnp_register_card_driver(struct pnp_card_driver *drv) { return -ENODEV; }
+--- work8.orig/include/linux/pnp.h	2008-04-18 11:19:43.000000000 -0600
++++ work8/include/linux/pnp.h	2008-04-18 11:19:49.000000000 -0600
+@@ -255,7 +255,6 @@
+ 	struct list_head resources;
+ 
+ 	char name[PNP_NAME_LEN];	/* contains a human-readable name */
+-	unsigned short regs;		/* ISAPnP: supported registers */
+ 	int flags;			/* used by protocols */
+ 	struct proc_dir_entry *procent;	/* device entry in /proc/bus/isapnp */
+ 	void *data;
 
 -- 
