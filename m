@@ -1,64 +1,119 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 19/53] PNP: remove pnp_resource_table from internal pnp_clean_resource_table interface
-Date: Fri, 18 Apr 2008 14:50:14 -0600
-Message-ID: <20080418205051.061686512@ldl.fc.hp.com>
+Subject: [patch 10/53] PNP: add pnp_alloc_card()
+Date: Fri, 18 Apr 2008 14:50:05 -0600
+Message-ID: <20080418205049.242749226@ldl.fc.hp.com>
 References: <20080418204955.342963315@ldl.fc.hp.com>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1761597AbYDRVAK@vger.kernel.org>
-Content-Disposition: inline; filename=pnp-remove-pnp_resource_table-from-clean
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1762366AbYDRU6j@vger.kernel.org>
+Content-Disposition: inline; filename=pnp-alloc-card
 Sender: linux-kernel-owner@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, Rene Herman <rene.herman@gmail.com>, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This changes pnp_clean_resource_table() to take a pnp_dev pointer
-rather than a pnp_resource_table pointer.  This reduces the visibility
-of pnp_resource_table and removes an opportunity for error in the
-caller.
+Add pnp_alloc_card() to allocate a struct pnp_card and fill in the
+protocol, instance number, and initial PNP ID.  Now it is always
+valid to use dev_printk() on any pnp_card pointer.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Acked-By: Rene Herman <rene.herman@gmail.com>
 
-Index: work7/drivers/pnp/manager.c
+---
+ drivers/pnp/base.h        |    1 +
+ drivers/pnp/card.c        |   28 +++++++++++++++++++++++++---
+ drivers/pnp/isapnp/core.c |   11 ++++-------
+ 3 files changed, 30 insertions(+), 10 deletions(-)
+
+Index: work7/drivers/pnp/base.h
 ===================================================================
---- work7.orig/drivers/pnp/manager.c	2008-03-25 11:03:59.000000000 -0600
-+++ work7/drivers/pnp/manager.c	2008-03-25 11:04:52.000000000 -0600
-@@ -247,8 +247,9 @@
-  * pnp_clean_resources - clears resources that were not manually set
-  * @res: the resources to clean
-  */
--static void pnp_clean_resource_table(struct pnp_resource_table *res)
-+static void pnp_clean_resource_table(struct pnp_dev *dev)
- {
-+	struct pnp_resource_table *res = &dev->res;
- 	int idx;
- 
- 	for (idx = 0; idx < PNP_MAX_IRQ; idx++) {
-@@ -304,7 +305,7 @@
- 		return -ENODEV;
- 
- 	mutex_lock(&pnp_res_mutex);
--	pnp_clean_resource_table(&dev->res);	/* start with a fresh slate */
-+	pnp_clean_resource_table(dev);
- 	if (dev->independent) {
- 		port = dev->independent->port;
- 		mem = dev->independent->mem;
-@@ -376,7 +377,7 @@
- 	return 1;
- 
- fail:
--	pnp_clean_resource_table(&dev->res);
-+	pnp_clean_resource_table(dev);
- 	mutex_unlock(&pnp_res_mutex);
- 	return 0;
+--- work7.orig/drivers/pnp/base.h	2008-04-02 15:19:10.000000000 -0600
++++ work7/drivers/pnp/base.h	2008-04-02 15:19:13.000000000 -0600
+@@ -3,6 +3,7 @@
+ #define PNP_EISA_ID_MASK 0x7fffffff
+ void pnp_eisa_id_to_string(u32 id, char *str);
+ struct pnp_dev *pnp_alloc_dev(struct pnp_protocol *, int id, char *pnpid);
++struct pnp_card *pnp_alloc_card(struct pnp_protocol *, int id, char *pnpid);
+ struct pnp_id *pnp_add_id(struct pnp_dev *dev, char *id);
+ struct pnp_id *pnp_add_card_id(struct pnp_card *card, char *id);
+ int pnp_interface_attach_device(struct pnp_dev *dev);
+Index: work7/drivers/pnp/card.c
+===================================================================
+--- work7.orig/drivers/pnp/card.c	2008-04-02 15:19:10.000000000 -0600
++++ work7/drivers/pnp/card.c	2008-04-02 15:19:13.000000000 -0600
+@@ -151,6 +151,31 @@
+ 	kfree(card);
  }
-@@ -554,7 +555,7 @@
  
- 	/* release the resources so that other devices can use them */
- 	mutex_lock(&pnp_res_mutex);
--	pnp_clean_resource_table(&dev->res);
-+	pnp_clean_resource_table(dev);
- 	mutex_unlock(&pnp_res_mutex);
++struct pnp_card *pnp_alloc_card(struct pnp_protocol *protocol, int id, char *pnpid)
++{
++	struct pnp_card *card;
++	struct pnp_id *dev_id;
++
++	card = kzalloc(sizeof(struct pnp_card), GFP_KERNEL);
++	if (!card)
++		return NULL;
++
++	card->protocol = protocol;
++	card->number = id;
++
++	card->dev.parent = &card->protocol->dev;
++	sprintf(card->dev.bus_id, "%02x:%02x", card->protocol->number,
++		card->number);
++
++	dev_id = pnp_add_card_id(card, pnpid);
++	if (!dev_id) {
++		kfree(card);
++		return NULL;
++	}
++
++	return card;
++}
++
+ static ssize_t pnp_show_card_name(struct device *dmdev,
+ 				  struct device_attribute *attr, char *buf)
+ {
+@@ -206,9 +231,6 @@
+ 	int error;
+ 	struct list_head *pos, *temp;
  
- 	return 0;
+-	sprintf(card->dev.bus_id, "%02x:%02x", card->protocol->number,
+-		card->number);
+-	card->dev.parent = &card->protocol->dev;
+ 	card->dev.bus = NULL;
+ 	card->dev.release = &pnp_release_card;
+ 	error = device_register(&card->dev);
+Index: work7/drivers/pnp/isapnp/core.c
+===================================================================
+--- work7.orig/drivers/pnp/isapnp/core.c	2008-04-02 15:19:11.000000000 -0600
++++ work7/drivers/pnp/isapnp/core.c	2008-04-02 15:19:13.000000000 -0600
+@@ -840,16 +840,14 @@
+ 		       header[5], header[6], header[7], header[8]);
+ 		printk(KERN_DEBUG "checksum = 0x%x\n", checksum);
+ #endif
+-		if ((card =
+-		     kzalloc(sizeof(struct pnp_card), GFP_KERNEL)) == NULL)
+-			continue;
+-
+-		card->number = csn;
+-		INIT_LIST_HEAD(&card->devices);
+ 		eisa_id = header[0] | header[1] << 8 |
+ 			  header[2] << 16 | header[3] << 24;
+ 		pnp_eisa_id_to_string(eisa_id, id);
+-		pnp_add_card_id(card, id);
++		card = pnp_alloc_card(&isapnp_protocol, csn, id);
++		if (!card)
++			continue;
++
++		INIT_LIST_HEAD(&card->devices);
+ 		card->serial =
+ 		    (header[7] << 24) | (header[6] << 16) | (header[5] << 8) |
+ 		    header[4];
+@@ -860,7 +858,6 @@
+ 			       "isapnp: checksum for device %i is not valid (0x%x)\n",
+ 			       csn, isapnp_checksum_value);
+ 		card->checksum = isapnp_checksum_value;
+-		card->protocol = &isapnp_protocol;
+ 
+ 		pnp_add_card(card);
+ 	}
 
 -- 
