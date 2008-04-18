@@ -1,40 +1,42 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH] ACPI : RSDT is forced to be used when 32/64X address
-	mismatch in FADT
-Date: Sat, 19 Apr 2008 01:24:54 -0300
-Message-ID: <20080419042454.GC11635@khazad-dum.debian.net>
-References: <1208515293.4072.3.camel@yakui_zhao.sh.intel.com> <1208518162.1784.418.camel@queen.suse.de> <1208525704.1784.435.camel@queen.suse.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Sergey Yanovich <ynvich@gmail.com>
+Subject: [PATCH 1/3] Correctly detect Sony TX770P PIC device type
+Date: Sat, 19 Apr 2008 01:41:33 +0300
+Message-ID: <1208558495-22792-1-git-send-email-ynvich@gmail.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:50242 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751447AbYDSEY4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 19 Apr 2008 00:24:56 -0400
-Content-Disposition: inline
-In-Reply-To: <1208525704.1784.435.camel@queen.suse.de>
+Received: from ug-out-1314.google.com ([66.249.92.169]:65210 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751780AbYDRWmD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Apr 2008 18:42:03 -0400
+Received: by ug-out-1314.google.com with SMTP id z38so174967ugc.16
+        for <linux-acpi@vger.kernel.org>; Fri, 18 Apr 2008 15:42:01 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Zhao Yakui <yakui.zhao@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: malattia@linux.it, Sergey Yanovich <ynvich@gmail.com>
 
-On Fri, 18 Apr 2008, Thomas Renninger wrote:
-> I'd take DMI_MATCH(DMI_BIOS_VERSION,"1SET") to match for all.
+This laptop has Type 4 SPIC device, support for which has been added
+recently. This device resides behind an older ISA bridge and was
+earlier incorrectly detected as Type 3.
+---
+ drivers/misc/sony-laptop.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-Agreed, if 1SET70 has a bug, all other versions of that BIOS before 70
-probably have that bug too.
-
-> These machines might be very similar (ThinkPad R40e is probably wrong as
-> not the name, but the BIOS version which could be the same than for e.g.
-> R50 is hit). I expect that C states are going to work if you take the
-
--EPARSE.  The 1S BIOS *is* the R40e BIOS, and don't understand what you
-mean with the R50?  The BIOS for the R50, T40, T41 and T42 as well as
-some R51 models is the same (BIOS 1R).
-
+diff --git a/drivers/misc/sony-laptop.c b/drivers/misc/sony-laptop.c
+index 02ff3d1..be70153 100644
+--- a/drivers/misc/sony-laptop.c
++++ b/drivers/misc/sony-laptop.c
+@@ -1563,6 +1563,11 @@ static void sony_pic_detect_device_type(struct sony_pic_dev *dev)
+ 	pcidev = pci_get_device(PCI_VENDOR_ID_INTEL,
+ 			PCI_DEVICE_ID_INTEL_ICH6_1, NULL);
+ 	if (pcidev) {
++		if (pcidev->subsystem_vendor == PCI_VENDOR_ID_SONY &&
++				pcidev->subsystem_device == 0x81E2) {
++			dev->control = &spic_types[3];
++			goto out;
++		}
+ 		dev->control = &spic_types[2];
+ 		goto out;
+ 	}
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+1.5.5
+
