@@ -1,14 +1,14 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 30/53] PNP: convert resource initializers to use pnp_get_resource(), not pnp_resource_table
-Date: Fri, 18 Apr 2008 14:50:25 -0600
-Message-ID: <20080418205053.333482627@ldl.fc.hp.com>
+Subject: [patch 29/53] PNP: convert sysfs interface to use pnp_get_resource(), not pnp_resource_table
+Date: Fri, 18 Apr 2008 14:50:24 -0600
+Message-ID: <20080418205053.141145787@ldl.fc.hp.com>
 References: <20080418204955.342963315@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:26253 "EHLO
-	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761114AbYDRUwP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Apr 2008 16:52:15 -0400
-Content-Disposition: inline; filename=pnp-convert-inits-to-pnp_get_resource
+Received: from g5t0007.atlanta.hp.com ([15.192.0.44]:29907 "EHLO
+	g5t0007.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758562AbYDRUwN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Apr 2008 16:52:13 -0400
+Content-Disposition: inline; filename=pnp-convert-proc-to-pnp_get_resource
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
@@ -16,81 +16,130 @@ Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@
 
 This removes more direct references to pnp_resource_table.
 
+Note that this does not allow adding new resources beyond the
+preallocated ones, so even though it does not reference
+pnp_resource_table directly, it is still limited to the
+fixed size of that table.  When the preallocation is removed,
+we'll have to change this so it can add new resources.
+
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Index: work8/drivers/pnp/manager.c
+Index: work8/drivers/pnp/interface.c
 ===================================================================
---- work8.orig/drivers/pnp/manager.c	2008-04-10 16:50:03.000000000 -0600
-+++ work8/drivers/pnp/manager.c	2008-04-10 16:59:08.000000000 -0600
-@@ -232,17 +232,17 @@
-  */
- void pnp_init_resources(struct pnp_dev *dev)
+--- work8.orig/drivers/pnp/interface.c	2008-04-10 16:09:39.000000000 -0600
++++ work8/drivers/pnp/interface.c	2008-04-10 16:15:48.000000000 -0600
+@@ -323,6 +323,7 @@
+ 			  const char *ubuf, size_t count)
  {
--	struct pnp_resource_table *table = &dev->res;
--	int idx;
+ 	struct pnp_dev *dev = to_pnp_dev(dmdev);
 +	struct resource *res;
-+	int i;
+ 	char *buf = (void *)ubuf;
+ 	int retval = 0;
  
--	for (idx = 0; idx < PNP_MAX_IRQ; idx++)
--		pnp_init_resource(&table->irq_resource[idx]);
--	for (idx = 0; idx < PNP_MAX_DMA; idx++)
--		pnp_init_resource(&table->dma_resource[idx]);
--	for (idx = 0; idx < PNP_MAX_PORT; idx++)
--		pnp_init_resource(&table->port_resource[idx]);
--	for (idx = 0; idx < PNP_MAX_MEM; idx++)
--		pnp_init_resource(&table->mem_resource[idx]);
-+	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_IRQ, i)); i++)
-+		pnp_init_resource(res);
-+	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_DMA, i)); i++)
-+		pnp_init_resource(res);
-+	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_IO, i)); i++)
-+		pnp_init_resource(res);
-+	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_MEM, i)); i++)
-+		pnp_init_resource(res);
- }
- 
- /**
-@@ -251,24 +251,24 @@
-  */
- static void pnp_clean_resource_table(struct pnp_dev *dev)
- {
--	struct pnp_resource_table *table = &dev->res;
--	int idx;
-+	struct resource *res;
-+	int i;
- 
--	for (idx = 0; idx < PNP_MAX_IRQ; idx++) {
--		if (table->irq_resource[idx].flags & IORESOURCE_AUTO)
--			pnp_init_resource(&table->irq_resource[idx]);
--	}
--	for (idx = 0; idx < PNP_MAX_DMA; idx++) {
--		if (table->dma_resource[idx].flags & IORESOURCE_AUTO)
--			pnp_init_resource(&table->dma_resource[idx]);
--	}
--	for (idx = 0; idx < PNP_MAX_PORT; idx++) {
--		if (table->port_resource[idx].flags & IORESOURCE_AUTO)
--			pnp_init_resource(&table->port_resource[idx]);
--	}
--	for (idx = 0; idx < PNP_MAX_MEM; idx++) {
--		if (table->mem_resource[idx].flags & IORESOURCE_AUTO)
--			pnp_init_resource(&table->mem_resource[idx]);
-+	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_IRQ, i)); i++) {
-+		if (res->flags & IORESOURCE_AUTO)
-+			pnp_init_resource(res);
-+	}
-+	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_DMA, i)); i++) {
-+		if (res->flags & IORESOURCE_AUTO)
-+			pnp_init_resource(res);
-+	}
-+	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_IO, i)); i++) {
-+		if (res->flags & IORESOURCE_AUTO)
-+			pnp_init_resource(res);
-+	}
-+	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_MEM, i)); i++) {
-+		if (res->flags & IORESOURCE_AUTO)
-+			pnp_init_resource(res);
- 	}
- }
- 
+@@ -382,76 +383,72 @@
+ 				buf += 2;
+ 				while (isspace(*buf))
+ 					++buf;
+-				dev->res.port_resource[nport].start =
+-				    simple_strtoul(buf, &buf, 0);
++				res = pnp_get_resource(dev, IORESOURCE_IO,
++						       nport);
++				if (!res)
++					break;
++				res->start = simple_strtoul(buf, &buf, 0);
+ 				while (isspace(*buf))
+ 					++buf;
+ 				if (*buf == '-') {
+ 					buf += 1;
+ 					while (isspace(*buf))
+ 						++buf;
+-					dev->res.port_resource[nport].end =
+-					    simple_strtoul(buf, &buf, 0);
++					res->end = simple_strtoul(buf, &buf, 0);
+ 				} else
+-					dev->res.port_resource[nport].end =
+-					    dev->res.port_resource[nport].start;
+-				dev->res.port_resource[nport].flags =
+-				    IORESOURCE_IO;
++					res->end = res->start;
++				res->flags = IORESOURCE_IO;
+ 				nport++;
+-				if (nport >= PNP_MAX_PORT)
+-					break;
+ 				continue;
+ 			}
+ 			if (!strnicmp(buf, "mem", 3)) {
+ 				buf += 3;
+ 				while (isspace(*buf))
+ 					++buf;
+-				dev->res.mem_resource[nmem].start =
+-				    simple_strtoul(buf, &buf, 0);
++				res = pnp_get_resource(dev, IORESOURCE_MEM,
++						       nmem);
++				if (!res)
++					break;
++				res->start = simple_strtoul(buf, &buf, 0);
+ 				while (isspace(*buf))
+ 					++buf;
+ 				if (*buf == '-') {
+ 					buf += 1;
+ 					while (isspace(*buf))
+ 						++buf;
+-					dev->res.mem_resource[nmem].end =
+-					    simple_strtoul(buf, &buf, 0);
++					res->end = simple_strtoul(buf, &buf, 0);
+ 				} else
+-					dev->res.mem_resource[nmem].end =
+-					    dev->res.mem_resource[nmem].start;
+-				dev->res.mem_resource[nmem].flags =
+-				    IORESOURCE_MEM;
++					res->end = res->start;
++				res->flags = IORESOURCE_MEM;
+ 				nmem++;
+-				if (nmem >= PNP_MAX_MEM)
+-					break;
+ 				continue;
+ 			}
+ 			if (!strnicmp(buf, "irq", 3)) {
+ 				buf += 3;
+ 				while (isspace(*buf))
+ 					++buf;
+-				dev->res.irq_resource[nirq].start =
+-				    dev->res.irq_resource[nirq].end =
++				res = pnp_get_resource(dev, IORESOURCE_IRQ,
++						       nirq);
++				if (!res)
++					break;
++				res->start = res->end =
+ 				    simple_strtoul(buf, &buf, 0);
+-				dev->res.irq_resource[nirq].flags =
+-				    IORESOURCE_IRQ;
++				res->flags = IORESOURCE_IRQ;
+ 				nirq++;
+-				if (nirq >= PNP_MAX_IRQ)
+-					break;
+ 				continue;
+ 			}
+ 			if (!strnicmp(buf, "dma", 3)) {
+ 				buf += 3;
+ 				while (isspace(*buf))
+ 					++buf;
+-				dev->res.dma_resource[ndma].start =
+-				    dev->res.dma_resource[ndma].end =
++				res = pnp_get_resource(dev, IORESOURCE_DMA,
++						       ndma);
++				if (!res)
++					break;
++				res->start = res->end =
+ 				    simple_strtoul(buf, &buf, 0);
+-				dev->res.dma_resource[ndma].flags =
+-				    IORESOURCE_DMA;
++				res->flags = IORESOURCE_DMA;
+ 				ndma++;
+-				if (ndma >= PNP_MAX_DMA)
+-					break;
+ 				continue;
+ 			}
+ 			break;
 
 -- 
