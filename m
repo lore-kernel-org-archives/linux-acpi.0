@@ -1,294 +1,234 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 21/53] PNP: use dev_printk when possible
-Date: Fri, 18 Apr 2008 14:50:16 -0600
-Message-ID: <20080418205051.486129321@ldl.fc.hp.com>
+Subject: [patch 27/53] PNP: convert resource checks to use pnp_get_resource(), not pnp_resource_table
+Date: Fri, 18 Apr 2008 14:50:22 -0600
+Message-ID: <20080418205052.749572181@ldl.fc.hp.com>
 References: <20080418204955.342963315@ldl.fc.hp.com>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1762359AbYDRVDU@vger.kernel.org>
-Content-Disposition: inline; filename=pnp-dev_printk
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1762784AbYDRVCU@vger.kernel.org>
+Content-Disposition: inline; filename=pnp-convert-checks-to-pnp_get_resource
 Sender: linux-kernel-owner@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Rene Herman <rene.herman@gmail.com>, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Use dev_printk() when possible for more informative error messages.
+This removes more direct references to pnp_resource_table.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Acked-By: Rene Herman <rene.herman@gmail.com>
 
 ---
- drivers/pnp/isapnp/core.c      |   38 ++++++++++++++++++--------------------
- drivers/pnp/pnpacpi/rsparser.c |   20 ++++++++++++--------
- drivers/pnp/pnpbios/rsparser.c |   36 ++++++++++++++----------------------
- 3 files changed, 44 insertions(+), 50 deletions(-)
+ drivers/pnp/resource.c |   96 +++++++++++++++++++++++++++++--------------------
+ 1 file changed, 58 insertions(+), 38 deletions(-)
 
-Index: work8/drivers/pnp/isapnp/core.c
+Index: work8/drivers/pnp/resource.c
 ===================================================================
---- work8.orig/drivers/pnp/isapnp/core.c	2008-04-10 13:28:45.000000000 -0600
-+++ work8/drivers/pnp/isapnp/core.c	2008-04-10 13:35:11.000000000 -0600
-@@ -729,9 +729,8 @@
- 				isapnp_skip_bytes(size);
- 			return 1;
- 		default:
--			printk(KERN_ERR
--			       "isapnp: unexpected or unknown tag type 0x%x for logical device %i (device %i), ignored\n",
--			       type, dev->number, card->number);
-+			dev_err(&dev->dev, "unknown tag 0x%x (card %i), "
-+				"ignored\n", type, card->number);
+--- work8.orig/drivers/pnp/resource.c	2008-04-10 13:59:17.000000000 -0600
++++ work8/drivers/pnp/resource.c	2008-04-10 15:23:34.000000000 -0600
+@@ -216,16 +216,19 @@
+ int pnp_check_port(struct pnp_dev *dev, int idx)
+ {
+ 	int i;
++	struct resource *res, *tres;
+ 	struct pnp_dev *tdev;
+ 	resource_size_t *port, *end, *tport, *tend;
+ 
+-	port = &dev->res.port_resource[idx].start;
+-	end = &dev->res.port_resource[idx].end;
++	res = pnp_get_resource(dev, IORESOURCE_IO, idx);
+ 
+ 	/* if the resource doesn't exist, don't complain about it */
+-	if (cannot_compare(dev->res.port_resource[idx].flags))
++	if (!res || cannot_compare(res->flags))
+ 		return 1;
+ 
++	port = &res->start;
++	end = &res->end;
++
+ 	/* check if the resource is already in use, skip if the
+ 	 * device is active because it itself may be in use */
+ 	if (!dev->active) {
+@@ -243,9 +246,10 @@
+ 
+ 	/* check for internal conflicts */
+ 	for (i = 0; i < PNP_MAX_PORT && i != idx; i++) {
+-		if (dev->res.port_resource[i].flags & IORESOURCE_IO) {
+-			tport = &dev->res.port_resource[i].start;
+-			tend = &dev->res.port_resource[i].end;
++		tres = pnp_get_resource(dev, IORESOURCE_IO, i);
++		if (tres && tres->flags & IORESOURCE_IO) {
++			tport = &tres->start;
++			tend = &tres->end;
+ 			if (ranged_conflict(port, end, tport, tend))
+ 				return 0;
  		}
- __skip:
- 		if (size > 0)
-@@ -784,9 +783,8 @@
- 				isapnp_skip_bytes(size);
- 			return;
- 		default:
--			printk(KERN_ERR
--			       "isapnp: unexpected or unknown tag type 0x%x for device %i, ignored\n",
--			       type, card->number);
-+			dev_err(&card->dev, "unknown tag 0x%x, ignored\n",
-+			       type);
- 		}
- __skip:
- 		if (size > 0)
-@@ -833,13 +831,6 @@
- 		isapnp_wake(csn);
- 		isapnp_peek(header, 9);
- 		checksum = isapnp_checksum(header);
--#if 0
--		printk(KERN_DEBUG
--		       "vendor: %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n",
--		       header[0], header[1], header[2], header[3], header[4],
--		       header[5], header[6], header[7], header[8]);
--		printk(KERN_DEBUG "checksum = 0x%x\n", checksum);
--#endif
- 		eisa_id = header[0] | header[1] << 8 |
- 			  header[2] << 16 | header[3] << 24;
- 		pnp_eisa_id_to_string(eisa_id, id);
-@@ -847,6 +838,13 @@
- 		if (!card)
+@@ -256,12 +260,12 @@
+ 		if (tdev == dev)
  			continue;
+ 		for (i = 0; i < PNP_MAX_PORT; i++) {
+-			if (tdev->res.port_resource[i].flags & IORESOURCE_IO) {
+-				if (cannot_compare
+-				    (tdev->res.port_resource[i].flags))
++			tres = pnp_get_resource(tdev, IORESOURCE_IO, i);
++			if (tres && tres->flags & IORESOURCE_IO) {
++				if (cannot_compare(tres->flags))
+ 					continue;
+-				tport = &tdev->res.port_resource[i].start;
+-				tend = &tdev->res.port_resource[i].end;
++				tport = &tres->start;
++				tend = &tres->end;
+ 				if (ranged_conflict(port, end, tport, tend))
+ 					return 0;
+ 			}
+@@ -274,16 +278,19 @@
+ int pnp_check_mem(struct pnp_dev *dev, int idx)
+ {
+ 	int i;
++	struct resource *res, *tres;
+ 	struct pnp_dev *tdev;
+ 	resource_size_t *addr, *end, *taddr, *tend;
  
-+#if 0
-+		dev_info(&card->dev,
-+		       "vendor: %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n",
-+		       header[0], header[1], header[2], header[3], header[4],
-+		       header[5], header[6], header[7], header[8]);
-+		dev_info(&card->dev, "checksum = 0x%x\n", checksum);
-+#endif
- 		INIT_LIST_HEAD(&card->devices);
- 		card->serial =
- 		    (header[7] << 24) | (header[6] << 16) | (header[5] << 8) |
-@@ -854,9 +852,8 @@
- 		isapnp_checksum_value = 0x00;
- 		isapnp_parse_resource_map(card);
- 		if (isapnp_checksum_value != 0x00)
--			printk(KERN_ERR
--			       "isapnp: checksum for device %i is not valid (0x%x)\n",
--			       csn, isapnp_checksum_value);
-+			dev_err(&card->dev, "invalid checksum 0x%x\n",
-+				isapnp_checksum_value);
- 		card->checksum = isapnp_checksum_value;
+-	addr = &dev->res.mem_resource[idx].start;
+-	end = &dev->res.mem_resource[idx].end;
++	res = pnp_get_resource(dev, IORESOURCE_MEM, idx);
  
- 		pnp_add_card(card);
-@@ -1114,13 +1111,13 @@
- 	protocol_for_each_card(&isapnp_protocol, card) {
- 		cards++;
- 		if (isapnp_verbose) {
--			printk(KERN_INFO "isapnp: Card '%s'\n",
--			       card->name[0] ? card->name : "Unknown");
-+			dev_info(&card->dev, "card '%s'\n",
-+			       card->name[0] ? card->name : "unknown");
- 			if (isapnp_verbose < 2)
- 				continue;
- 			card_for_each_dev(card, dev) {
--				printk(KERN_INFO "isapnp:   Device '%s'\n",
--				       dev->name[0] ? dev->name : "Unknown");
-+				dev_info(&card->dev, "device '%s'\n",
-+				       dev->name[0] ? dev->name : "unknown");
+ 	/* if the resource doesn't exist, don't complain about it */
+-	if (cannot_compare(dev->res.mem_resource[idx].flags))
++	if (!res || cannot_compare(res->flags))
+ 		return 1;
+ 
++	addr = &res->start;
++	end = &res->end;
++
+ 	/* check if the resource is already in use, skip if the
+ 	 * device is active because it itself may be in use */
+ 	if (!dev->active) {
+@@ -301,9 +308,10 @@
+ 
+ 	/* check for internal conflicts */
+ 	for (i = 0; i < PNP_MAX_MEM && i != idx; i++) {
+-		if (dev->res.mem_resource[i].flags & IORESOURCE_MEM) {
+-			taddr = &dev->res.mem_resource[i].start;
+-			tend = &dev->res.mem_resource[i].end;
++		tres = pnp_get_resource(dev, IORESOURCE_MEM, i);
++		if (tres && tres->flags & IORESOURCE_MEM) {
++			taddr = &tres->start;
++			tend = &tres->end;
+ 			if (ranged_conflict(addr, end, taddr, tend))
+ 				return 0;
+ 		}
+@@ -314,12 +322,12 @@
+ 		if (tdev == dev)
+ 			continue;
+ 		for (i = 0; i < PNP_MAX_MEM; i++) {
+-			if (tdev->res.mem_resource[i].flags & IORESOURCE_MEM) {
+-				if (cannot_compare
+-				    (tdev->res.mem_resource[i].flags))
++			tres = pnp_get_resource(tdev, IORESOURCE_MEM, i);
++			if (tres && tres->flags & IORESOURCE_MEM) {
++				if (cannot_compare(tres->flags))
+ 					continue;
+-				taddr = &tdev->res.mem_resource[i].start;
+-				tend = &tdev->res.mem_resource[i].end;
++				taddr = &tres->start;
++				tend = &tres->end;
+ 				if (ranged_conflict(addr, end, taddr, tend))
+ 					return 0;
+ 			}
+@@ -337,13 +345,18 @@
+ int pnp_check_irq(struct pnp_dev *dev, int idx)
+ {
+ 	int i;
++	struct resource *res, *tres;
+ 	struct pnp_dev *tdev;
+-	resource_size_t *irq = &dev->res.irq_resource[idx].start;
++	resource_size_t *irq;
++
++	res = pnp_get_resource(dev, IORESOURCE_IRQ, idx);
+ 
+ 	/* if the resource doesn't exist, don't complain about it */
+-	if (cannot_compare(dev->res.irq_resource[idx].flags))
++	if (!res || cannot_compare(res->flags))
+ 		return 1;
+ 
++	irq = &res->start;
++
+ 	/* check if the resource is valid */
+ 	if (*irq < 0 || *irq > 15)
+ 		return 0;
+@@ -356,8 +369,9 @@
+ 
+ 	/* check for internal conflicts */
+ 	for (i = 0; i < PNP_MAX_IRQ && i != idx; i++) {
+-		if (dev->res.irq_resource[i].flags & IORESOURCE_IRQ) {
+-			if (dev->res.irq_resource[i].start == *irq)
++		tres = pnp_get_resource(dev, IORESOURCE_IRQ, i);
++		if (tres && tres->flags & IORESOURCE_IRQ) {
++			if (tres->start == *irq)
+ 				return 0;
+ 		}
+ 	}
+@@ -389,11 +403,11 @@
+ 		if (tdev == dev)
+ 			continue;
+ 		for (i = 0; i < PNP_MAX_IRQ; i++) {
+-			if (tdev->res.irq_resource[i].flags & IORESOURCE_IRQ) {
+-				if (cannot_compare
+-				    (tdev->res.irq_resource[i].flags))
++			tres = pnp_get_resource(tdev, IORESOURCE_IRQ, i);
++			if (tres && tres->flags & IORESOURCE_IRQ) {
++				if (cannot_compare(tres->flags))
+ 					continue;
+-				if ((tdev->res.irq_resource[i].start == *irq))
++				if (tres->start == *irq)
+ 					return 0;
  			}
  		}
- 	}
-Index: work8/drivers/pnp/pnpacpi/rsparser.c
-===================================================================
---- work8.orig/drivers/pnp/pnpacpi/rsparser.c	2008-04-10 13:28:45.000000000 -0600
-+++ work8/drivers/pnp/pnpacpi/rsparser.c	2008-04-10 13:35:11.000000000 -0600
-@@ -108,7 +108,7 @@
- 		p = p ? ACPI_ACTIVE_LOW : ACPI_ACTIVE_HIGH;
+@@ -406,13 +420,18 @@
+ {
+ #ifndef CONFIG_IA64
+ 	int i;
++	struct resource *res, *tres;
+ 	struct pnp_dev *tdev;
+-	resource_size_t *dma = &dev->res.dma_resource[idx].start;
++	resource_size_t *dma;
++
++	res = pnp_get_resource(dev, IORESOURCE_DMA, idx);
  
- 		if (triggering != t || polarity != p) {
--			pnp_warn("IRQ %d override to %s, %s",
-+			dev_warn(&dev->dev, "IRQ %d override to %s, %s\n",
- 				gsi, t ? "edge":"level", p ? "low":"high");
- 			triggering = t;
- 			polarity = p;
-@@ -261,7 +261,7 @@
+ 	/* if the resource doesn't exist, don't complain about it */
+-	if (cannot_compare(dev->res.dma_resource[idx].flags))
++	if (!res || cannot_compare(res->flags))
+ 		return 1;
  
- 	status = acpi_resource_to_address64(res, p);
- 	if (!ACPI_SUCCESS(status)) {
--		pnp_warn("PnPACPI: failed to convert resource type %d",
-+		dev_warn(&dev->dev, "failed to convert resource type %d\n",
- 			 res->type);
- 		return;
- 	}
-@@ -395,7 +395,8 @@
- 		break;
++	dma = &res->start;
++
+ 	/* check if the resource is valid */
+ 	if (*dma < 0 || *dma == 4 || *dma > 7)
+ 		return 0;
+@@ -425,8 +444,9 @@
  
- 	default:
--		pnp_warn("PnPACPI: unknown resource type %d", res->type);
-+		dev_warn(&dev->dev, "unknown resource type %d in _CRS\n",
-+			 res->type);
- 		return AE_ERROR;
- 	}
- 
-@@ -661,7 +662,8 @@
- 	case ACPI_RESOURCE_TYPE_END_DEPENDENT:
- 		/*only one EndDependentFn is allowed */
- 		if (!parse_data->option_independent) {
--			pnp_warn("PnPACPI: more than one EndDependentFn");
-+			dev_warn(&dev->dev, "more than one EndDependentFn "
-+				 "in _PRS\n");
- 			return AE_ERROR;
+ 	/* check for internal conflicts */
+ 	for (i = 0; i < PNP_MAX_DMA && i != idx; i++) {
+-		if (dev->res.dma_resource[i].flags & IORESOURCE_DMA) {
+-			if (dev->res.dma_resource[i].start == *dma)
++		tres = pnp_get_resource(dev, IORESOURCE_DMA, i);
++		if (tres && tres->flags & IORESOURCE_DMA) {
++			if (tres->start == *dma)
+ 				return 0;
  		}
- 		parse_data->option = parse_data->option_independent;
-@@ -710,7 +712,8 @@
- 		break;
- 
- 	default:
--		pnp_warn("PnPACPI: unknown resource type %d", res->type);
-+		dev_warn(&dev->dev, "unknown resource type %d in _PRS\n",
-+			 res->type);
- 		return AE_ERROR;
  	}
- 
-@@ -790,7 +793,7 @@
- 	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
- 				     pnpacpi_count_resources, &res_cnt);
- 	if (ACPI_FAILURE(status)) {
--		pnp_err("Evaluate _CRS failed");
-+		dev_err(&dev->dev, "can't evaluate _CRS\n");
- 		return -EINVAL;
- 	}
- 	if (!res_cnt)
-@@ -805,7 +808,7 @@
- 				     pnpacpi_type_resources, &resource);
- 	if (ACPI_FAILURE(status)) {
- 		kfree(buffer->pointer);
--		pnp_err("Evaluate _CRS failed");
-+		dev_err(&dev->dev, "can't evaluate _CRS\n");
- 		return -EINVAL;
- 	}
- 	/* resource will pointer the end resource now */
-@@ -1022,7 +1025,8 @@
- 		case ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64:
- 		case ACPI_RESOURCE_TYPE_GENERIC_REGISTER:
- 		default:	/* other type */
--			pnp_warn("unknown resource type %d", resource->type);
-+			dev_warn(&dev->dev, "can't encode unknown resource "
-+				 "type %d\n", resource->type);
- 			return -EINVAL;
+@@ -444,11 +464,11 @@
+ 		if (tdev == dev)
+ 			continue;
+ 		for (i = 0; i < PNP_MAX_DMA; i++) {
+-			if (tdev->res.dma_resource[i].flags & IORESOURCE_DMA) {
+-				if (cannot_compare
+-				    (tdev->res.dma_resource[i].flags))
++			tres = pnp_get_resource(tdev, IORESOURCE_DMA, i);
++			if (tres && tres->flags & IORESOURCE_DMA) {
++				if (cannot_compare(tres->flags))
+ 					continue;
+-				if ((tdev->res.dma_resource[i].start == *dma))
++				if (tres->start == *dma)
+ 					return 0;
+ 			}
  		}
- 		resource++;
-Index: work8/drivers/pnp/pnpbios/rsparser.c
-===================================================================
---- work8.orig/drivers/pnp/pnpbios/rsparser.c	2008-04-10 13:28:45.000000000 -0600
-+++ work8/drivers/pnp/pnpbios/rsparser.c	2008-04-10 13:35:11.000000000 -0600
-@@ -239,9 +239,8 @@
- 
- 		default:	/* an unkown tag */
- len_err:
--			printk(KERN_ERR
--			       "PnPBIOS: Unknown tag '0x%x', length '%d'.\n",
--			       tag, len);
-+			dev_err(&dev->dev, "unknown tag 0x%x length %d\n",
-+				tag, len);
- 			break;
- 		}
- 
-@@ -252,8 +251,7 @@
- 			p += len + 1;
- 	}
- 
--	printk(KERN_ERR
--	       "PnPBIOS: Resource structure does not contain an end tag.\n");
-+	dev_err(&dev->dev, "no end tag in resource structure\n");
- 
- 	return NULL;
- }
-@@ -460,8 +458,8 @@
- 			if (len != 0)
- 				goto len_err;
- 			if (option_independent == option)
--				printk(KERN_WARNING
--				       "PnPBIOS: Missing SMALL_TAG_STARTDEP tag\n");
-+				dev_warn(&dev->dev, "missing "
-+					 "SMALL_TAG_STARTDEP tag\n");
- 			option = option_independent;
- 			break;
- 
-@@ -470,9 +468,8 @@
- 
- 		default:	/* an unkown tag */
- len_err:
--			printk(KERN_ERR
--			       "PnPBIOS: Unknown tag '0x%x', length '%d'.\n",
--			       tag, len);
-+			dev_err(&dev->dev, "unknown tag 0x%x length %d\n",
-+				tag, len);
- 			break;
- 		}
- 
-@@ -483,8 +480,7 @@
- 			p += len + 1;
- 	}
- 
--	printk(KERN_ERR
--	       "PnPBIOS: Resource structure does not contain an end tag.\n");
-+	dev_err(&dev->dev, "no end tag in resource structure\n");
- 
- 	return NULL;
- }
-@@ -542,9 +538,8 @@
- 
- 		default:	/* an unkown tag */
- len_err:
--			printk(KERN_ERR
--			       "PnPBIOS: Unknown tag '0x%x', length '%d'.\n",
--			       tag, len);
-+			dev_err(&dev->dev, "unknown tag 0x%x length %d\n",
-+				tag, len);
- 			break;
- 		}
- 
-@@ -555,8 +550,7 @@
- 			p += len + 1;
- 	}
- 
--	printk(KERN_ERR
--	       "PnPBIOS: Resource structure does not contain an end tag.\n");
-+	dev_err(&dev->dev, "no end tag in resource structure\n");
- 
- 	return NULL;
- }
-@@ -736,9 +730,8 @@
- 
- 		default:	/* an unkown tag */
- len_err:
--			printk(KERN_ERR
--			       "PnPBIOS: Unknown tag '0x%x', length '%d'.\n",
--			       tag, len);
-+			dev_err(&dev->dev, "unknown tag 0x%x length %d\n",
-+				tag, len);
- 			break;
- 		}
- 
-@@ -749,8 +742,7 @@
- 			p += len + 1;
- 	}
- 
--	printk(KERN_ERR
--	       "PnPBIOS: Resource structure does not contain an end tag.\n");
-+	dev_err(&dev->dev, "no end tag in resource structure\n");
- 
- 	return NULL;
- }
 
 -- 
