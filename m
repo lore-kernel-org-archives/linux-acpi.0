@@ -1,88 +1,154 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: pnpacpi: reduce printk severity for "pnpacpi: exceeded the max number of ..."
-Date: Fri, 18 Apr 2008 15:48:33 -0600
-Message-ID: <200804181548.33872.bjorn.helgaas@hp.com>
-References: <20080417010122.148289106@sous-sol.org> <20080417010359.629397865@sous-sol.org>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:44286 "EHLO
-	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751717AbYDRVsh (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Fri, 18 Apr 2008 17:48:37 -0400
-In-Reply-To: <20080417010359.629397865@sous-sol.org>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Subject: [patch 53/53] PNP: dont sort by type in /sys/.../resources
+Date: Fri, 18 Apr 2008 14:50:48 -0600
+Message-ID: <20080418205057.946054260@ldl.fc.hp.com>
+References: <20080418204955.342963315@ldl.fc.hp.com>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1763434AbYDRVOl@vger.kernel.org>
+Content-Disposition: inline; filename=pnp-unsort-proc-resources
+Sender: linux-kernel-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Chris Wright <chrisw@sous-sol.org>
-Cc: linux-kernel@vger.kernel.org, stable@kernel.org, Linux-acpi@vger.kernel.org, Justin Forbes <jmforbes@linuxtx.org>, Zwane Mwaikambo <zwane@arm.linux.org.uk>, Theodore Ts'o <tytso@mit.edu>, Randy Dunlap <rdunlap@xenotime.net>, Dave Jones <davej@redhat.com>, Chuck Wolber <chuckw@quantumlinux.com>, Chris Wedgwood <reviews@ml.cw.f00f.org>, Michael Krufky <mkrufky@linuxtv.org>, Chuck Ebbert <cebbert@redhat.com>, Domenico Andreoli <cavokz@gmail.com>, torvalds@linux-foundation.org, akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, Len Brown <lenb@kernel.org>, Len Brown <len.brown@intel.com>
 
-On Wednesday 16 April 2008 07:02:20 pm Chris Wright wrote:
-> -stable review patch.  If anyone has any objections, please let us know.
+Rather than stepping through all IO resources, then stepping through
+all MMIO resources, etc. (and traversing the list every time), we
+can just iterate over the resource list once directly.
 
-I don't object to the point of the patch (changing KERN_ERR to
-KERN_WARNING), but there is a more serious bug lurking here that
-corrupts memory, and if we're doing a -stable patch, we should
-fix it.
+This can change the order in /sys, e.g.,
 
-The test is:
+    # cat /sys/devices/pnp0/00:07/resources     # OLD
+    state = active
+    io 0x3f8-0x3ff
+    irq 4
 
-	if (i >= PNP_MAX_IRQ && !warned) {
-		printk(...);
-		warned = 1;
-		return;
-	}
+    # cat /sys/devices/pnp0/00:07/resources     # NEW
+    state = active
+    irq 4
+    io 0x3f8-0x3ff
 
-But it should be:
+The old code artificially sorted resources by type; the new code
+just lists them in the order we found them.
 
-	if (i >= PNP_MAX_IRQ) {
-		if (!warned) {
-			printk(...);
-			warned = 1;
-		}
-		return;
-	}
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-> --- a/drivers/pnp/pnpacpi/rsparser.c
-> +++ b/drivers/pnp/pnpacpi/rsparser.c
-> @@ -85,7 +85,7 @@ static void pnpacpi_parse_allocated_irqr
->  	       i < PNP_MAX_IRQ)
->  		i++;
->  	if (i >= PNP_MAX_IRQ && !warned) {
-> -		printk(KERN_ERR "pnpacpi: exceeded the max number of IRQ "
-> +		printk(KERN_WARNING "pnpacpi: exceeded the max number of IRQ "
->  				"resources: %d \n", PNP_MAX_IRQ);
->  		warned = 1;
->  		return;
-> @@ -187,7 +187,7 @@ static void pnpacpi_parse_allocated_dmar
->  		res->dma_resource[i].start = dma;
->  		res->dma_resource[i].end = dma;
->  	} else if (!warned) {
-> -		printk(KERN_ERR "pnpacpi: exceeded the max number of DMA "
-> +		printk(KERN_WARNING "pnpacpi: exceeded the max number of DMA "
->  				"resources: %d \n", PNP_MAX_DMA);
->  		warned = 1;
->  	}
-> @@ -213,7 +213,7 @@ static void pnpacpi_parse_allocated_iore
->  		res->port_resource[i].start = io;
->  		res->port_resource[i].end = io + len - 1;
->  	} else if (!warned) {
-> -		printk(KERN_ERR "pnpacpi: exceeded the max number of IO "
-> +		printk(KERN_WARNING "pnpacpi: exceeded the max number of IO "
->  				"resources: %d \n", PNP_MAX_PORT);
->  		warned = 1;
->  	}
-> @@ -241,7 +241,7 @@ static void pnpacpi_parse_allocated_memr
->  		res->mem_resource[i].start = mem;
->  		res->mem_resource[i].end = mem + len - 1;
->  	} else if (!warned) {
-> -		printk(KERN_ERR "pnpacpi: exceeded the max number of mem "
-> +		printk(KERN_WARNING "pnpacpi: exceeded the max number of mem "
->  				"resources: %d\n", PNP_MAX_MEM);
->  		warned = 1;
->  	}
-> 
+Index: work8/drivers/pnp/interface.c
+===================================================================
+--- work8.orig/drivers/pnp/interface.c	2008-04-18 11:22:35.000000000 -0600
++++ work8/drivers/pnp/interface.c	2008-04-18 11:52:53.000000000 -0600
+@@ -243,16 +243,30 @@
+ 
+ static DEVICE_ATTR(options, S_IRUGO, pnp_show_options, NULL);
+ 
+-#define set(flags)      ((flags & IORESOURCE_UNSET) == 0)
++static char *pnp_resource_type_name(struct resource *res)
++{
++	switch (pnp_resource_type(res)) {
++	case IORESOURCE_IO:
++		return "io";
++	case IORESOURCE_MEM:
++		return "mem";
++	case IORESOURCE_IRQ:
++		return "irq";
++	case IORESOURCE_DMA:
++		return "dma";
++	}
++	return NULL;
++}
+ 
+ static ssize_t pnp_show_current_resources(struct device *dmdev,
+ 					  struct device_attribute *attr,
+ 					  char *buf)
+ {
+ 	struct pnp_dev *dev = to_pnp_dev(dmdev);
++	struct pnp_resource *pnp_res;
+ 	struct resource *res;
+-	int i, ret;
+ 	pnp_info_buffer_t *buffer;
++	int ret;
+ 
+ 	if (!dev)
+ 		return -EINVAL;
+@@ -264,54 +278,36 @@
+ 	buffer->buffer = buf;
+ 	buffer->curr = buffer->buffer;
+ 
+-	pnp_printf(buffer, "state = ");
+-	if (dev->active)
+-		pnp_printf(buffer, "active\n");
+-	else
+-		pnp_printf(buffer, "disabled\n");
+-
+-	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_IO, i)); i++) {
+-		if (set(res->flags)) {
+-			pnp_printf(buffer, "io");
+-			if (res->flags & IORESOURCE_DISABLED)
+-				pnp_printf(buffer, " disabled\n");
+-			else
+-				pnp_printf(buffer, " 0x%llx-0x%llx\n",
+-					   (unsigned long long) res->start,
+-					   (unsigned long long) res->end);
+-		}
+-	}
+-	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_MEM, i)); i++) {
+-		if (set(res->flags)) {
+-			pnp_printf(buffer, "mem");
+-			if (res->flags & IORESOURCE_DISABLED)
+-				pnp_printf(buffer, " disabled\n");
+-			else
+-				pnp_printf(buffer, " 0x%llx-0x%llx\n",
+-					   (unsigned long long) res->start,
+-					   (unsigned long long) res->end);
+-		}
+-	}
+-	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_IRQ, i)); i++) {
+-		if (set(res->flags)) {
+-			pnp_printf(buffer, "irq");
+-			if (res->flags & IORESOURCE_DISABLED)
+-				pnp_printf(buffer, " disabled\n");
+-			else
+-				pnp_printf(buffer, " %lld\n",
+-					   (unsigned long long) res->start);
++	pnp_printf(buffer, "state = %s\n", dev->active ? "active" : "disabled");
++
++	list_for_each_entry(pnp_res, &dev->resources, list) {
++		res = &pnp_res->res;
++		if (res->flags & IORESOURCE_UNSET)
++			continue;
++
++		pnp_printf(buffer, pnp_resource_type_name(res));
++
++		if (res->flags & IORESOURCE_DISABLED) {
++			pnp_printf(buffer, " disabled\n");
++			continue;
+ 		}
+-	}
+-	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_DMA, i)); i++) {
+-		if (set(res->flags)) {
+-			pnp_printf(buffer, "dma");
+-			if (res->flags & IORESOURCE_DISABLED)
+-				pnp_printf(buffer, " disabled\n");
+-			else
+-				pnp_printf(buffer, " %lld\n",
+-					   (unsigned long long) res->start);
++
++		switch (pnp_resource_type(res)) {
++		case IORESOURCE_IO:
++		case IORESOURCE_MEM:
++			pnp_printf(buffer, " 0x%llx-0x%llx\n",
++				   (unsigned long long) res->start,
++				   (unsigned long long) res->end);
++			break;
++		case IORESOURCE_IRQ:
++		case IORESOURCE_DMA:
++			pnp_printf(buffer, " %lld\n",
++				   (unsigned long long) res->start);
++			break;
+ 		}
++
+ 	}
++
+ 	ret = (buffer->curr - buf);
+ 	kfree(buffer);
+ 	return ret;
 
-
+-- 
