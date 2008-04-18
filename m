@@ -1,208 +1,213 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 05/53] PNP: add pnp_eisa_id_to_string()
-Date: Fri, 18 Apr 2008 14:50:00 -0600
-Message-ID: <20080418205048.178135806@ldl.fc.hp.com>
+Subject: [patch 06/53] PNP: add pnp_alloc_dev()
+Date: Fri, 18 Apr 2008 14:50:01 -0600
+Message-ID: <20080418205048.405229008@ldl.fc.hp.com>
 References: <20080418204955.342963315@ldl.fc.hp.com>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1761629AbYDRUy7@vger.kernel.org>
-Content-Disposition: inline; filename=pnp-common-eisa-id-parse
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1761883AbYDRUyo@vger.kernel.org>
+Content-Disposition: inline; filename=pnp-alloc-dev
 Sender: linux-kernel-owner@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-acpi@vger.kernel.org, Rene Herman <rene.herman@gmail.com>, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Converting the EISA ID to a string is messy and error-prone, and
-we might as well use the same code for ISAPNP and PNPBIOS.
-
-PNPACPI uses the conversion done by the ACPI core with
-acpi_ex_eisa_id_to_string().
+Add pnp_alloc_dev() to allocate a struct pnp_dev and fill in the
+protocol, instance number, and initial PNP ID.  Now it is always
+valid to use dev_printk() on any pnp_dev pointer.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Acked-By: Rene Herman <rene.herman@gmail.com>
 
 ---
- drivers/pnp/base.h             |    2 ++
- drivers/pnp/isapnp/core.c      |   32 +++++++++++---------------------
- drivers/pnp/pnpbios/core.c     |    2 +-
- drivers/pnp/pnpbios/rsparser.c |   26 +++-----------------------
- drivers/pnp/support.c          |   26 ++++++++++++++++++++++++++
- 5 files changed, 43 insertions(+), 45 deletions(-)
+ drivers/pnp/base.h         |    1 +
+ drivers/pnp/core.c         |   28 +++++++++++++++++++++++++---
+ drivers/pnp/isapnp/core.c  |   11 +++++------
+ drivers/pnp/pnpacpi/core.c |   19 +++----------------
+ drivers/pnp/pnpbios/core.c |   15 +++------------
+ 5 files changed, 37 insertions(+), 37 deletions(-)
 
 Index: work7/drivers/pnp/base.h
 ===================================================================
---- work7.orig/drivers/pnp/base.h	2008-04-02 10:22:28.000000000 -0600
-+++ work7/drivers/pnp/base.h	2008-04-02 14:59:50.000000000 -0600
-@@ -1,5 +1,7 @@
- extern spinlock_t pnp_lock;
+--- work7.orig/drivers/pnp/base.h	2008-04-02 14:59:50.000000000 -0600
++++ work7/drivers/pnp/base.h	2008-04-02 15:17:49.000000000 -0600
+@@ -2,6 +2,7 @@
  void *pnp_alloc(long size);
-+#define PNP_EISA_ID_MASK 0x7fffffff
-+void pnp_eisa_id_to_string(u32 id, char *str);
+ #define PNP_EISA_ID_MASK 0x7fffffff
+ void pnp_eisa_id_to_string(u32 id, char *str);
++struct pnp_dev *pnp_alloc_dev(struct pnp_protocol *, int id, char *pnpid);
  struct pnp_id *pnp_add_id(struct pnp_dev *dev, char *id);
  int pnp_interface_attach_device(struct pnp_dev *dev);
  void pnp_fixup_device(struct pnp_dev *dev);
-Index: work7/drivers/pnp/isapnp/core.c
+Index: work7/drivers/pnp/core.c
 ===================================================================
---- work7.orig/drivers/pnp/isapnp/core.c	2008-04-02 10:22:28.000000000 -0600
-+++ work7/drivers/pnp/isapnp/core.c	2008-04-02 14:39:11.000000000 -0600
-@@ -398,24 +398,6 @@
+--- work7.orig/drivers/pnp/core.c	2008-04-02 14:39:11.000000000 -0600
++++ work7/drivers/pnp/core.c	2008-04-02 15:17:49.000000000 -0600
+@@ -109,6 +109,31 @@
+ 	kfree(dev);
  }
  
- /*
-- *  Parse EISA id.
-- */
--static void isapnp_parse_id(struct pnp_dev *dev, unsigned short vendor,
--			    unsigned short device)
--{
--	char id[8];
--
--	sprintf(id, "%c%c%c%x%x%x%x",
--		'A' + ((vendor >> 2) & 0x3f) - 1,
--		'A' + (((vendor & 3) << 3) | ((vendor >> 13) & 7)) - 1,
--		'A' + ((vendor >> 8) & 0x1f) - 1,
--		(device >> 4) & 0x0f,
--		device & 0x0f, (device >> 12) & 0x0f, (device >> 8) & 0x0f);
--
--	pnp_add_id(dev, id);
--}
--
--/*
-  *  Parse logical device tag.
-  */
- static struct pnp_dev *__init isapnp_parse_device(struct pnp_card *card,
-@@ -423,13 +405,17 @@
++struct pnp_dev *pnp_alloc_dev(struct pnp_protocol *protocol, int id, char *pnpid)
++{
++	struct pnp_dev *dev;
++	struct pnp_id *dev_id;
++
++	dev = kzalloc(sizeof(struct pnp_dev), GFP_KERNEL);
++	if (!dev)
++		return NULL;
++
++	dev->protocol = protocol;
++	dev->number = id;
++
++	dev->dev.parent = &dev->protocol->dev;
++	sprintf(dev->dev.bus_id, "%02x:%02x", dev->protocol->number,
++		dev->number);
++
++	dev_id = pnp_add_id(dev, pnpid);
++	if (!dev_id) {
++		kfree(dev);
++		return NULL;
++	}
++
++	return dev;
++}
++
+ int __pnp_add_device(struct pnp_dev *dev)
  {
- 	unsigned char tmp[6];
- 	struct pnp_dev *dev;
-+	u32 eisa_id;
-+	char id[8];
+ 	int ret;
+@@ -145,9 +170,6 @@
+ 	if (dev->card)
+ 		return -EINVAL;
+ 
+-	dev->dev.parent = &dev->protocol->dev;
+-	sprintf(dev->dev.bus_id, "%02x:%02x", dev->protocol->number,
+-		dev->number);
+ 	ret = __pnp_add_device(dev);
+ 	if (ret)
+ 		return ret;
+Index: work7/drivers/pnp/isapnp/core.c
+===================================================================
+--- work7.orig/drivers/pnp/isapnp/core.c	2008-04-02 14:39:11.000000000 -0600
++++ work7/drivers/pnp/isapnp/core.c	2008-04-02 15:17:49.000000000 -0600
+@@ -409,18 +409,17 @@
+ 	char id[8];
  
  	isapnp_peek(tmp, size);
- 	dev = kzalloc(sizeof(struct pnp_dev), GFP_KERNEL);
- 	if (!dev)
- 		return NULL;
- 	dev->number = number;
--	isapnp_parse_id(dev, (tmp[1] << 8) | tmp[0], (tmp[3] << 8) | tmp[2]);
-+	eisa_id = tmp[0] | tmp[1] << 8 | tmp[2] << 16 | tmp[3] << 24;
-+	pnp_eisa_id_to_string(eisa_id, id);
-+	pnp_add_id(dev, id);
+-	dev = kzalloc(sizeof(struct pnp_dev), GFP_KERNEL);
+-	if (!dev)
+-		return NULL;
+-	dev->number = number;
+ 	eisa_id = tmp[0] | tmp[1] << 8 | tmp[2] << 16 | tmp[3] << 24;
+ 	pnp_eisa_id_to_string(eisa_id, id);
+-	pnp_add_id(dev, id);
++
++	dev = pnp_alloc_dev(&isapnp_protocol, number, id);
++	if (!dev)
++		return NULL;
++
  	dev->regs = tmp[4];
  	dev->card = card;
  	if (size > 5)
-@@ -619,6 +605,8 @@
- 	unsigned char type, tmp[17];
- 	struct pnp_option *option;
- 	struct pnp_dev *dev;
-+	u32 eisa_id;
-+	char id[8];
- 
- 	if ((dev = isapnp_parse_device(card, size, number++)) == NULL)
- 		return 1;
-@@ -658,8 +646,10 @@
- 		case _STAG_COMPATDEVID:
- 			if (size == 4 && compat < DEVICE_COUNT_COMPATIBLE) {
- 				isapnp_peek(tmp, 4);
--				isapnp_parse_id(dev, (tmp[1] << 8) | tmp[0],
--						(tmp[3] << 8) | tmp[2]);
-+				eisa_id = tmp[0] | tmp[1] << 8 |
-+					  tmp[2] << 16 | tmp[3] << 24;
-+				pnp_eisa_id_to_string(eisa_id, id);
-+				pnp_add_id(dev, id);
- 				compat++;
- 				size = 0;
- 			}
-Index: work7/drivers/pnp/pnpbios/core.c
+ 		dev->regs |= tmp[5] << 8;
+-	dev->protocol = &isapnp_protocol;
+ 	dev->capabilities |= PNP_CONFIGURABLE;
+ 	dev->capabilities |= PNP_READ;
+ 	dev->capabilities |= PNP_WRITE;
+Index: work7/drivers/pnp/pnpacpi/core.c
 ===================================================================
---- work7.orig/drivers/pnp/pnpbios/core.c	2008-04-02 10:22:28.000000000 -0600
-+++ work7/drivers/pnp/pnpbios/core.c	2008-04-02 14:58:58.000000000 -0600
-@@ -332,7 +332,7 @@
- 	if (!dev)
- 		return -1;
- 
--	pnpid32_to_pnpid(node->eisa_id, id);
-+	pnp_eisa_id_to_string(node->eisa_id & PNP_EISA_ID_MASK, id);
- 	dev_id = pnp_add_id(dev, id);
- 	if (!dev_id) {
- 		kfree(dev);
-Index: work7/drivers/pnp/pnpbios/rsparser.c
-===================================================================
---- work7.orig/drivers/pnp/pnpbios/rsparser.c	2008-04-02 10:22:28.000000000 -0600
-+++ work7/drivers/pnp/pnpbios/rsparser.c	2008-04-02 14:59:13.000000000 -0600
-@@ -494,32 +494,12 @@
-  * Compatible Device IDs
-  */
- 
--#define HEX(id,a) hex[((id)>>a) & 15]
--#define CHAR(id,a) (0x40 + (((id)>>a) & 31))
--
--void pnpid32_to_pnpid(u32 id, char *str)
--{
--	const char *hex = "0123456789abcdef";
--
--	id = be32_to_cpu(id);
--	str[0] = CHAR(id, 26);
--	str[1] = CHAR(id, 21);
--	str[2] = CHAR(id, 16);
--	str[3] = HEX(id, 12);
--	str[4] = HEX(id, 8);
--	str[5] = HEX(id, 4);
--	str[6] = HEX(id, 0);
--	str[7] = '\0';
--}
--
--#undef CHAR
--#undef HEX
--
- static unsigned char *pnpbios_parse_compatible_ids(unsigned char *p,
- 						   unsigned char *end,
- 						   struct pnp_dev *dev)
+--- work7.orig/drivers/pnp/pnpacpi/core.c	2008-04-02 14:39:11.000000000 -0600
++++ work7/drivers/pnp/pnpacpi/core.c	2008-04-02 15:17:49.000000000 -0600
+@@ -152,7 +152,6 @@
  {
- 	int len, tag;
-+	u32 eisa_id;
- 	char id[8];
- 	struct pnp_id *dev_id;
+ 	acpi_handle temp = NULL;
+ 	acpi_status status;
+-	struct pnp_id *dev_id;
+ 	struct pnp_dev *dev;
  
-@@ -549,8 +529,8 @@
- 		case SMALL_TAG_COMPATDEVID:	/* compatible ID */
- 			if (len != 4)
- 				goto len_err;
--			pnpid32_to_pnpid(p[1] | p[2] << 8 | p[3] << 16 | p[4] <<
--					 24, id);
-+			eisa_id = p[1] | p[2] << 8 | p[3] << 16 | p[4] << 24;
-+			pnp_eisa_id_to_string(eisa_id & PNP_EISA_ID_MASK, id);
- 			dev_id = pnp_add_id(dev, id);
- 			if (!dev_id)
- 				return NULL;
-Index: work7/drivers/pnp/support.c
-===================================================================
---- work7.orig/drivers/pnp/support.c	2008-04-02 10:22:28.000000000 -0600
-+++ work7/drivers/pnp/support.c	2008-04-02 14:53:13.000000000 -0600
-@@ -25,3 +25,29 @@
+ 	status = acpi_get_handle(device->handle, "_CRS", &temp);
+@@ -160,11 +159,10 @@
+ 	    is_exclusive_device(device))
+ 		return 0;
+ 
+-	dev = kzalloc(sizeof(struct pnp_dev), GFP_KERNEL);
+-	if (!dev) {
+-		pnp_err("Out of memory");
++	dev = pnp_alloc_dev(&pnpacpi_protocol, num, acpi_device_hid(device));
++	if (!dev)
+ 		return -ENOMEM;
+-	}
++
+ 	dev->data = device->handle;
+ 	/* .enabled means the device can decode the resources */
+ 	dev->active = device->status.enabled;
+@@ -180,19 +178,11 @@
+ 	if (ACPI_SUCCESS(status))
+ 		dev->capabilities |= PNP_DISABLE;
+ 
+-	dev->protocol = &pnpacpi_protocol;
+-
+ 	if (strlen(acpi_device_name(device)))
+ 		strncpy(dev->name, acpi_device_name(device), sizeof(dev->name));
+ 	else
+ 		strncpy(dev->name, acpi_device_bid(device), sizeof(dev->name));
+ 
+-	dev->number = num;
+-
+-	dev_id = pnp_add_id(dev, acpi_device_hid(device));
+-	if (!dev_id)
+-		goto err;
+-
+ 	if (dev->active) {
+ 		/* parse allocated resource */
+ 		status = pnpacpi_parse_allocated_resource(device->handle,
+@@ -230,9 +220,6 @@
+ 	num++;
+ 
+ 	return AE_OK;
+-err:
+-	kfree(dev);
+-	return -EINVAL;
  }
  
- EXPORT_SYMBOL(pnp_is_active);
-+
-+/*
-+ * Functionally similar to acpi_ex_eisa_id_to_string(), but that's
-+ * buried in the ACPI CA, and we can't depend on it being present.
-+ */
-+void pnp_eisa_id_to_string(u32 id, char *str)
-+{
-+	id = be32_to_cpu(id);
-+
-+	/*
-+	 * According to the specs, the first three characters are five-bit
-+	 * compressed ASCII, and the left-over high order bit should be zero.
-+	 * However, the Linux ISAPNP code historically used six bits for the
-+	 * first character, and there seem to be IDs that depend on that,
-+	 * e.g., "nEC8241" in the Linux 8250_pnp serial driver and the
-+	 * FreeBSD sys/pc98/cbus/sio_cbus.c driver.
-+	 */
-+	str[0] = 'A' + ((id >> 26) & 0x3f) - 1;
-+	str[1] = 'A' + ((id >> 21) & 0x1f) - 1;
-+	str[2] = 'A' + ((id >> 16) & 0x1f) - 1;
-+	str[3] = hex_asc((id >> 12) & 0xf);
-+	str[4] = hex_asc((id >>  8) & 0xf);
-+	str[5] = hex_asc((id >>  4) & 0xf);
-+	str[6] = hex_asc((id >>  0) & 0xf);
-+	str[7] = '\0';
-+}
+ static acpi_status __init pnpacpi_add_device_handler(acpi_handle handle,
+Index: work7/drivers/pnp/pnpbios/core.c
+===================================================================
+--- work7.orig/drivers/pnp/pnpbios/core.c	2008-04-02 14:58:58.000000000 -0600
++++ work7/drivers/pnp/pnpbios/core.c	2008-04-02 15:18:46.000000000 -0600
+@@ -318,7 +318,6 @@
+ {
+ 	struct list_head *pos;
+ 	struct pnp_dev *dev;
+-	struct pnp_id *dev_id;
+ 	char id[8];
+ 
+ 	/* check if the device is already added */
+@@ -328,18 +327,11 @@
+ 			return -1;
+ 	}
+ 
+-	dev = kzalloc(sizeof(struct pnp_dev), GFP_KERNEL);
+-	if (!dev)
+-		return -1;
+-
+ 	pnp_eisa_id_to_string(node->eisa_id & PNP_EISA_ID_MASK, id);
+-	dev_id = pnp_add_id(dev, id);
+-	if (!dev_id) {
+-		kfree(dev);
++	dev = pnp_alloc_dev(&pnpbios_protocol, node->handle, id);
++	if (!dev)
+ 		return -1;
+-	}
+ 
+-	dev->number = node->handle;
+ 	pnpbios_parse_data_stream(dev, node);
+ 	dev->active = pnp_is_active(dev);
+ 	dev->flags = node->flags;
+@@ -352,7 +344,6 @@
+ 		dev->capabilities |= PNP_WRITE;
+ 	if (dev->flags & PNPBIOS_REMOVABLE)
+ 		dev->capabilities |= PNP_REMOVABLE;
+-	dev->protocol = &pnpbios_protocol;
+ 
+ 	/* clear out the damaged flags */
+ 	if (!dev->active)
 
 -- 
