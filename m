@@ -1,92 +1,82 @@
-From: Rene Herman <rene.herman@keyaccess.nl>
-Subject: Re: [patch 22/53] PNP: factor pnp_init_resource_table() and pnp_clean_resource_table()
-Date: Sat, 19 Apr 2008 00:29:15 +0200
-Message-ID: <480920BB.9010506@keyaccess.nl>
-References: <20080418204955.342963315@ldl.fc.hp.com> <20080418205051.704761191@ldl.fc.hp.com>
+From: Philippe Coval <rzr@users.sf.net>
+Subject: Re: [PATCH] Override DSDT and SSDTs via initramfs
+Date: Sat, 19 Apr 2008 00:07:06 +0200
+Message-ID: <48091B8A.3000800@users.sf.net>
+References: <4798E2A5.6020804@users.sf.net> <47A0FBD4.6090603@tremplin-utc.net> <1201861297.14573.66.camel@queen.suse.de> <200802062151.48404.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754367AbYDRW0Z@vger.kernel.org>
-In-Reply-To: <20080418205051.704761191@ldl.fc.hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enigDF670D0E57C923BD1445A3FA"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp2-g19.free.fr ([212.27.42.28]:48764 "EHLO smtp2-g19.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751101AbYDRWHO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 18 Apr 2008 18:07:14 -0400
+In-Reply-To: <200802062151.48404.lenb@kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: trenn@suse.de, =?UTF-8?B?w4lyaWMgUGllbA==?= <Eric.Piel@tremplin-utc.net>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, dsdt <dsdt@gaugusch.at>
 
-On 18-04-08 22:50, Bjorn Helgaas wrote:
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enigDF670D0E57C923BD1445A3FA
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-> Move the common part of pnp_init_resource_table() and
-> pnp_clean_resource_table() into a new pnp_init_resource().
-> This reduces a little code duplication and will be
-> useful later to initialize an individual resource.
 
-This can't be right, can it? :
+Hi,
 
-> +void pnp_init_resource(struct resource *res)
-> +{
-> +	unsigned long type;
-> +
-> +	type = res->flags & (IORESOURCE_IO  | IORESOURCE_MEM |
-> +			     IORESOURCE_IRQ | IORESOURCE_DMA);
-> +
-> +	res->name = NULL;
-> +	res->flags = type | IORESOURCE_AUTO | IORESOURCE_UNSET;
-> +	if (type == IORESOURCE_IRQ || type == IORESOURCE_DMA) {
-> +		res->start = -1;
-> +		res->end = -1;
-> +	} else {
-> +		res->start = 0;
-> +		res->end = 0;
-> +	}
-> +}
+First let me introduce myself, my name does not appear,
+  but I am the quoted one by Andrew Morton on his 1st post of this thread=
+ :
 
-This depends on the type already being set in res->flags, yet:
+  http://thread.gmane.org/gmane.linux.acpi.devel/27726
 
->  /**
->   * pnp_init_resources - Resets a resource table to default values.
->   * @table: pointer to the desired resource table
-> @@ -209,34 +227,14 @@
->  	struct pnp_resource_table *table = &dev->res;
->  	int idx;
->  
-> -	for (idx = 0; idx < PNP_MAX_IRQ; idx++) {
-> -		table->irq_resource[idx].name = NULL;
-> -		table->irq_resource[idx].start = -1;
-> -		table->irq_resource[idx].end = -1;
-> -		table->irq_resource[idx].flags =
-> -		    IORESOURCE_IRQ | IORESOURCE_AUTO | IORESOURCE_UNSET;
-> -	}
-> -	for (idx = 0; idx < PNP_MAX_DMA; idx++) {
-> -		table->dma_resource[idx].name = NULL;
-> -		table->dma_resource[idx].start = -1;
-> -		table->dma_resource[idx].end = -1;
-> -		table->dma_resource[idx].flags =
-> -		    IORESOURCE_DMA | IORESOURCE_AUTO | IORESOURCE_UNSET;
-> -	}
-> -	for (idx = 0; idx < PNP_MAX_PORT; idx++) {
-> -		table->port_resource[idx].name = NULL;
-> -		table->port_resource[idx].start = 0;
-> -		table->port_resource[idx].end = 0;
-> -		table->port_resource[idx].flags =
-> -		    IORESOURCE_IO | IORESOURCE_AUTO | IORESOURCE_UNSET;
-> -	}
-> -	for (idx = 0; idx < PNP_MAX_MEM; idx++) {
-> -		table->mem_resource[idx].name = NULL;
-> -		table->mem_resource[idx].start = 0;
-> -		table->mem_resource[idx].end = 0;
-> -		table->mem_resource[idx].flags =
-> -		    IORESOURCE_MEM | IORESOURCE_AUTO | IORESOURCE_UNSET;
-> -	}
-> +	for (idx = 0; idx < PNP_MAX_IRQ; idx++)
-> +		pnp_init_resource(&table->irq_resource[idx]);
-> +	for (idx = 0; idx < PNP_MAX_DMA; idx++)
-> +		pnp_init_resource(&table->dma_resource[idx]);
-> +	for (idx = 0; idx < PNP_MAX_PORT; idx++)
-> +		pnp_init_resource(&table->port_resource[idx]);
-> +	for (idx = 0; idx < PNP_MAX_MEM; idx++)
-> +		pnp_init_resource(&table->mem_resource[idx]);
->  }
+  > > I am annoyed by this missing (or rejected) feature upstream : DSDT
+  > >   http://gaugusch.at/kernel.shtml
+  > > So to use "custom DSDT loading" I have to patch my laptop buggy BIO=
+S
+  ...
+  > > Hopefully many distro already include this patch, but not all of th=
+em
+  > > such as debian :
+  > >   http://bugs.debian.org/251023
 
-... it's not being set.
+You may be aware of that yet, but It seems that the patch was rejected
+for 2.6.25
 
-Rene.
+=20
+http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3Dco=
+mmit;h=3D9a9e0d685553af76cb6ae2af93cca4913e7fcd47
+
+Quoting linus : "the relevant ACPI code should either run much later,"
+
+So was next then ? how can we help to fix this recurrent issue ?
+
+Anyway I'd like to thank you all for all time spent on this job,
+and I am happy with the patch as it is...
+
+Regards
+
+--=20
+ # mailto:rzr[a]users.sf.net -- gpg:0x467094BC
+ # http://rzr.online.fr/contribs.htm -- Libre Software Addict
+ # xmpp:rzr[a]jabber.fr -- sip:rzr[a]ekiga.net
+
+
+
+--------------enigDF670D0E57C923BD1445A3FA
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iD8DBQFICRuLlNXo+kZwlLwRAljhAKCPZn+6GV0NYtcAUiZNDbevL+0URwCdHShf
+wMmc50XzmTpIXEB/p7Dn4rw=
+=aVGc
+-----END PGP SIGNATURE-----
+
+--------------enigDF670D0E57C923BD1445A3FA--
