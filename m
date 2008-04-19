@@ -1,49 +1,61 @@
-From: Peter Williams <pwil3058@bigpond.net.au>
-Subject: Requested DMI information
-Date: Sat, 19 Apr 2008 15:05:08 +1000
-Message-ID: <48097D84.5000804@bigpond.net.au>
+From: Matthew <jackdachef@gmail.com>
+Subject: Re: Linux 2.6.25
+Date: Sat, 19 Apr 2008 12:18:33 +0200
+Message-ID: <e85b9d30804190318u74e14f0ct6ab53cb86f6ce15f@mail.gmail.com>
+References: <e85b9d30804180837y39c52e26i588e4b67c87a5e9d@mail.gmail.com>
+	 <alpine.LFD.1.00.0804180843150.2879@woody.linux-foundation.org>
+	 <20080418193802.GK7674@cvg> <20080418200338.GL7674@cvg>
+	 <48096179.4060803@keyaccess.nl> <480964F7.3040701@keyaccess.nl>
+	 <20080419061701.GA7688@cvg>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nschwqsrv02p.mx.bigpond.com ([61.9.189.234]:24758 "EHLO
-	nschwqsrv02p.mx.bigpond.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753227AbYDSJSt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 19 Apr 2008 05:18:49 -0400
-Received: from nschwotgx02p.mx.bigpond.com ([121.223.3.174])
-          by nschwmtas06p.mx.bigpond.com with ESMTP
-          id <20080419050518.JGQY14822.nschwmtas06p.mx.bigpond.com@nschwotgx02p.mx.bigpond.com>
-          for <linux-acpi@vger.kernel.org>; Sat, 19 Apr 2008 05:05:18 +0000
-Received: from mudlark.pw.nest ([121.223.3.174])
-          by nschwotgx02p.mx.bigpond.com with ESMTP
-          id <20080419050518.KNQB1196.nschwotgx02p.mx.bigpond.com@mudlark.pw.nest>
-          for <linux-acpi@vger.kernel.org>; Sat, 19 Apr 2008 05:05:18 +0000
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1760096AbYDSKTH@vger.kernel.org>
+In-Reply-To: <20080419061701.GA7688@cvg>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: torvalds@linux-foundation.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-Whilst perusing my syslog I noticed a request for DMI information to be 
-forwarded to this address.  So, here it is:
+>Hello Mat,
+>I'm not familiar with "coretemp", can you point me to the exact version
+>of the application you are running so I can see how it is getting at
+>the underlying information?
 
-Apr 19 14:34:20 mudlark kernel: PCI: Using configuration type 1
-Apr 19 14:34:20 mudlark kernel: ACPI: Interpreter enabled
-Apr 19 14:34:20 mudlark kernel: ACPI: (supports S0 S1 S3 S4 S5)
-Apr 19 14:34:20 mudlark kernel: ACPI: Using IOAPIC for interrupt routing
-Apr 19 14:34:20 mudlark kernel: ACPI: BIOS _OSI(Linux) query ignored
-Apr 19 14:34:20 mudlark kernel: ACPI: DMI System Vendor:
-Apr 19 14:34:20 mudlark kernel: ACPI: DMI Product Name:
-Apr 19 14:34:20 mudlark kernel: ACPI: DMI Product Version:
-Apr 19 14:34:20 mudlark kernel: ACPI: DMI Board Name: DG31PR
-Apr 19 14:34:20 mudlark kernel: ACPI: DMI BIOS Vendor: Intel Corp.
-Apr 19 14:34:20 mudlark kernel: ACPI: DMI BIOS Date: 09/28/2007
-Apr 19 14:34:20 mudlark kernel: ACPI: Please send DMI info above to 
-linux-acpi@vger.kernel.org
+>Also, do you see any change with and without kernel built with
+CONFIG_THERMAL=y?
 
-Enjoy
-Peter
--- 
-Peter Williams                                   pwil3058@bigpond.net.au
+>thanks,
+>-Len
 
-"Learning, n. The kind of ignorance distinguishing the studious."
-  -- Ambrose Bierce
+Hi Len,
+
+sure, the apps I am using for reading out the processor's temp via
+coretemp are / were:
+lm_sensors: version 2.10.4, 2.10.6 and (currently) 3.0.1: all report
+the same (higher) temperatures (compared to 2.6.24 series)
+
+CONFIG_THERMAL currently is enabled in the kernel:
+grep CONFIG_THERMAL /usr/src/linux/.config
+CONFIG_THERMAL=y
+
+I'll recompile the kernel now & let you know the effect in a few hours
+(currently I'm working on the box)
+
+"Dairinin" on forums.gentoo.org pointed out that the desktop-cpu
+simply might not be identified correctly:
+http://forums.gentoo.org/viewtopic-p-5065902.html#5065902
+
+"Thats because new kernel (lm_sensors, etc?, etc?)incorrectly thinks
+our cpu's Tj is 100C, whereas for all core 2 duo's it is 85C (100C is
+for C0 stepping and above, AFAIK). Substract 15 and you'll get real
+temps."
+
+I don't know if that's the case but it sounds plausible to me
+
+thanks everyone for your answer & help so far
+
+Regards
+
+Mat
