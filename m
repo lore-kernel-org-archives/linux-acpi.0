@@ -1,69 +1,105 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: Linux 2.6.25 (coretemp reads high temperatures)
-Date: Fri, 18 Apr 2008 21:51:48 -0400
-Message-ID: <200804182151.49021.lenb@kernel.org>
-References: <e85b9d30804180837y39c52e26i588e4b67c87a5e9d@mail.gmail.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: [RESEND patch 2.6.25] ACPI sets up device.power.can_wakeup flags
+Date: Fri, 18 Apr 2008 21:14:34 -0700
+Message-ID: <200804182114.34282.david-b@pacbell.net>
+References: <200803201408.33466.david-b@pacbell.net> <200803201420.40660.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754268AbYDSBwp@vger.kernel.org>
-In-Reply-To: <e85b9d30804180837y39c52e26i588e4b67c87a5e9d@mail.gmail.com>
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp120.sbc.mail.sp1.yahoo.com ([69.147.64.93]:40178 "HELO
+	smtp120.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751347AbYDSESH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 19 Apr 2008 00:18:07 -0400
+In-Reply-To: <200803201420.40660.david-b@pacbell.net>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matthew <jackdachef@gmail.com>, linux-acpi@vger.kernel.org
-Cc: torvalds@linux-foundation.org, linux-kernel@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-pm@lists.linux-foundation.org, Thomas Renninger <trenn@suse.de>
 
-On Friday 18 April 2008, Matthew wrote:
-> Hi everyone, hi Linus,
->=20
-> congratulations on this new great kernel-release :)
->=20
-> I've another "regression" to report for 2.6.25:
->=20
-> it's concerning much higher temperatures being read out by the
-> "coretemp" kernel-module in comparison to 2.6.24* series
->=20
-> e.g. where temperatures were around 40-47=B0C they are now constantly
-> jumping around 55-70=B0C (even in idle !)
->=20
-> several other users/testers have reported this issue too (both on
-> zen-sources [heavy patched] & latest gentoo-sources) [slightly
-> patched]:
->=20
-> http://forums.gentoo.org/viewtopic-t-684812-highlight-.html
->=20
-> if I understood git right it (also) happens in conjunction with an 3
-> weeks old acpi-snapshot
-> (http://repo.or.cz/w/linux-2.6/zen-sources.git?a=3Dheads) integrated =
-in
-> zen-sources
->=20
-> I can "reproduce" this on an Intel Core 2 Duo 6600 (Conroe) with a P5=
-W
-> DH Deluxe mainboard (by Asus) since at least 2.6.25-rc8 (or possibly
-> also rc7)
->=20
-> the temperatures on mobile core (2) duo intel processors [e.g. an
-> T7500] seem to be read out correctly - I can't tell it exactly but
-> this seems to be an entirely "cosmetical" issue
-> (hopefully it's not the opposite and the values are now read out
-> correctly since such high temps would be very worrying ;) )
->=20
-> Keep up the great work & please don't forget your growing amount of
-> linux-desktop users :)
->=20
-> Regards
->=20
-> Mat
+This exports the "acpi_device.wakeup.flags.valid" flag to the driver
+model as "device.power.can_wakeup".  That is, each "ACPI device" in
+the /proc/acpi/wakeup file that corresponds to a "real" device will
+initialize the can_wakeup flag to true.
 
-Hello Mat,
-I'm not familiar with "coretemp", can you point me to the exact version
-of the application you are running so I can see how it is getting at
-the underlying information?
+A separate patch is needed to make ACPI pay attention to the userspace
+input:  devices that can_wakeup have a should_wakeup flag, initially
+true, which is settable via sysfs and tested using device_may_wakeup().
+That's intended to be the primary policy input to the system, not the
+ACPI-specific /proc/acpi/wakeup file.
 
-Also, do you see any change with and without kernel built with CONFIG_T=
-HERMAL=3Dy?
+Note also that the ACPI tables list only motherboard devices, but many
+systems include more peripherals than those.  While the USB framework
+handles USB peripherals, nothing in Linux currently sets those flags
+for wakeup-capable devices on other expansion busses (like PCI).
 
-thanks,
--Len
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+---
+NOTE:  this should probably not merge upstream until the patch to
+make ACPI actually *use* these flags gets merged, since otherwise
+these flags won't reflect actual behavior.
+
+ drivers/acpi/button.c |    3 +++
+ drivers/acpi/glue.c   |    1 +
+ drivers/acpi/power.c  |    4 ++++
+ 3 files changed, 8 insertions(+)
+
+--- g26.orig/drivers/acpi/button.c	2008-03-20 03:02:45.000000000 -0700
++++ g26/drivers/acpi/button.c	2008-03-20 03:27:24.000000000 -0700
+@@ -476,6 +476,9 @@ static int acpi_button_add(struct acpi_d
+ 	if (button->type == ACPI_BUTTON_TYPE_LID)
+ 		acpi_lid_send_state(button);
+ 
++	/* for these devices the ACPI node *IS* the "physical" device */
++	device_init_wakeup(&device->dev, device->wakeup.flags.valid);
++
+ 	if (device->wakeup.flags.valid) {
+ 		/* Button's GPE is run-wake GPE */
+ 		acpi_set_gpe_type(device->wakeup.gpe_device,
+--- g26.orig/drivers/acpi/glue.c	2008-03-20 03:27:11.000000000 -0700
++++ g26/drivers/acpi/glue.c	2008-03-20 03:27:25.000000000 -0700
+@@ -162,6 +162,7 @@ static int acpi_bind_one(struct device *
+ 	if (!ACPI_FAILURE(status)) {
+ 		int ret;
+ 
++		device_init_wakeup(dev, acpi_dev->wakeup.flags.valid);
+ 		ret = sysfs_create_link(&dev->kobj, &acpi_dev->dev.kobj,
+ 				"firmware_node");
+ 		if (ret != 0)
+--- g26.orig/drivers/acpi/power.c	2008-03-20 03:02:45.000000000 -0700
++++ g26/drivers/acpi/power.c	2008-03-20 03:27:25.000000000 -0700
+@@ -313,6 +313,7 @@ int acpi_enable_wakeup_device_power(stru
+ 		ret = acpi_power_on(dev->wakeup.resources.handles[i], dev);
+ 		if (ret) {
+ 			printk(KERN_ERR PREFIX "Transition power state\n");
++			device_init_wakeup(&dev->dev, 0);
+ 			dev->wakeup.flags.valid = 0;
+ 			return -1;
+ 		}
+@@ -322,6 +323,7 @@ int acpi_enable_wakeup_device_power(stru
+ 	status = acpi_evaluate_object(dev->handle, "_PSW", &arg_list, NULL);
+ 	if (ACPI_FAILURE(status) && (status != AE_NOT_FOUND)) {
+ 		printk(KERN_ERR PREFIX "Evaluate _PSW\n");
++		device_init_wakeup(&dev->dev, 0);
+ 		dev->wakeup.flags.valid = 0;
+ 		ret = -1;
+ 	}
+@@ -351,6 +353,7 @@ int acpi_disable_wakeup_device_power(str
+ 	status = acpi_evaluate_object(dev->handle, "_PSW", &arg_list, NULL);
+ 	if (ACPI_FAILURE(status) && (status != AE_NOT_FOUND)) {
+ 		printk(KERN_ERR PREFIX "Evaluate _PSW\n");
++		device_init_wakeup(&dev->dev, 0);
+ 		dev->wakeup.flags.valid = 0;
+ 		return -1;
+ 	}
+@@ -360,6 +363,7 @@ int acpi_disable_wakeup_device_power(str
+ 		ret = acpi_power_off_device(dev->wakeup.resources.handles[i], dev);
+ 		if (ret) {
+ 			printk(KERN_ERR PREFIX "Transition power state\n");
++			device_init_wakeup(&dev->dev, 0);
+ 			dev->wakeup.flags.valid = 0;
+ 			return -1;
+ 		}
