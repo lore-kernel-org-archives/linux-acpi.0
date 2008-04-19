@@ -1,42 +1,32 @@
-From: Sergey Yanovich <ynvich@gmail.com>
-Subject: [PATCH 1/3] Correctly detect Sony TX770P PIC device type
-Date: Sat, 19 Apr 2008 01:41:33 +0300
-Message-ID: <1208558495-22792-1-git-send-email-ynvich@gmail.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.169]:65210 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751780AbYDRWmD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Apr 2008 18:42:03 -0400
-Received: by ug-out-1314.google.com with SMTP id z38so174967ugc.16
-        for <linux-acpi@vger.kernel.org>; Fri, 18 Apr 2008 15:42:01 -0700 (PDT)
-Sender: linux-acpi-owner@vger.kernel.org
+From: Rene Herman <rene.herman@keyaccess.nl>
+Subject: Re: [patch 22/53] PNP: factor pnp_init_resource_table() and pnp_clean_resource_table()
+Date: Sat, 19 Apr 2008 06:46:01 +0200
+Message-ID: <48097909.7010203@keyaccess.nl>
+References: <20080418204955.342963315@ldl.fc.hp.com> <20080418205051.704761191@ldl.fc.hp.com> <480920BB.9010506@keyaccess.nl> <200804182157.34313.bjorn.helgaas@hp.com> <48097886.9000907@keyaccess.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754566AbYDSEnQ@vger.kernel.org>
+In-Reply-To: <48097886.9000907@keyaccess.nl>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: malattia@linux.it, Sergey Yanovich <ynvich@gmail.com>
 
-This laptop has Type 4 SPIC device, support for which has been added
-recently. This device resides behind an older ISA bridge and was
-earlier incorrectly detected as Type 3.
----
- drivers/misc/sony-laptop.c |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+On 19-04-08 06:43, Rene Herman wrote:
 
-diff --git a/drivers/misc/sony-laptop.c b/drivers/misc/sony-laptop.c
-index 02ff3d1..be70153 100644
---- a/drivers/misc/sony-laptop.c
-+++ b/drivers/misc/sony-laptop.c
-@@ -1563,6 +1563,11 @@ static void sony_pic_detect_device_type(struct sony_pic_dev *dev)
- 	pcidev = pci_get_device(PCI_VENDOR_ID_INTEL,
- 			PCI_DEVICE_ID_INTEL_ICH6_1, NULL);
- 	if (pcidev) {
-+		if (pcidev->subsystem_vendor == PCI_VENDOR_ID_SONY &&
-+				pcidev->subsystem_device == 0x81E2) {
-+			dev->control = &spic_types[3];
-+			goto out;
-+		}
- 		dev->control = &spic_types[2];
- 		goto out;
- 	}
--- 
-1.5.5
+> pnp: the driver 'cs4236_isapnp' has been registered
+> cs4236_isapnp 01:01.00: driver attached
+> cs4236_isapnp 01:01.02: driver attached
+> cs4236_isapnp 01:01.03: driver attached
+> cs4236_isapnp 01:01.00: too many I/O port resources
+> cs4236_isapnp 01:01.00: too many I/O port resources
+> cs4236_isapnp 01:01.00: too many I/O port resources
+> cs4236_isapnp 01:01.00: too many IRQ resources
+> cs4236_isapnp 01:01.00: too many DMA resources
+> cs4236_isapnp 01:01.00: too many DMA resources
+> cs4236_isapnp 01:01.00: activated
 
+Oh, yes, 01:01.00 has three port resources, 1 IRQ resource and 2 DMA resources.
+
+Rene.
