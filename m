@@ -1,105 +1,40 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: [RESEND patch 2.6.25] ACPI sets up device.power.can_wakeup flags
-Date: Fri, 18 Apr 2008 21:14:34 -0700
-Message-ID: <200804182114.34282.david-b@pacbell.net>
-References: <200803201408.33466.david-b@pacbell.net> <200803201420.40660.david-b@pacbell.net>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH] ACPI : RSDT is forced to be used when 32/64X address
+	mismatch in FADT
+Date: Sat, 19 Apr 2008 01:24:54 -0300
+Message-ID: <20080419042454.GC11635@khazad-dum.debian.net>
+References: <1208515293.4072.3.camel@yakui_zhao.sh.intel.com> <1208518162.1784.418.camel@queen.suse.de> <1208525704.1784.435.camel@queen.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp120.sbc.mail.sp1.yahoo.com ([69.147.64.93]:40178 "HELO
-	smtp120.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751347AbYDSESH (ORCPT
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:50242 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751447AbYDSEY4 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 19 Apr 2008 00:18:07 -0400
-In-Reply-To: <200803201420.40660.david-b@pacbell.net>
+	Sat, 19 Apr 2008 00:24:56 -0400
 Content-Disposition: inline
+In-Reply-To: <1208525704.1784.435.camel@queen.suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-pm@lists.linux-foundation.org, Thomas Renninger <trenn@suse.de>
+To: Thomas Renninger <trenn@suse.de>
+Cc: Zhao Yakui <yakui.zhao@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org
 
-This exports the "acpi_device.wakeup.flags.valid" flag to the driver
-model as "device.power.can_wakeup".  That is, each "ACPI device" in
-the /proc/acpi/wakeup file that corresponds to a "real" device will
-initialize the can_wakeup flag to true.
+On Fri, 18 Apr 2008, Thomas Renninger wrote:
+> I'd take DMI_MATCH(DMI_BIOS_VERSION,"1SET") to match for all.
 
-A separate patch is needed to make ACPI pay attention to the userspace
-input:  devices that can_wakeup have a should_wakeup flag, initially
-true, which is settable via sysfs and tested using device_may_wakeup().
-That's intended to be the primary policy input to the system, not the
-ACPI-specific /proc/acpi/wakeup file.
+Agreed, if 1SET70 has a bug, all other versions of that BIOS before 70
+probably have that bug too.
 
-Note also that the ACPI tables list only motherboard devices, but many
-systems include more peripherals than those.  While the USB framework
-handles USB peripherals, nothing in Linux currently sets those flags
-for wakeup-capable devices on other expansion busses (like PCI).
+> These machines might be very similar (ThinkPad R40e is probably wrong as
+> not the name, but the BIOS version which could be the same than for e.g.
+> R50 is hit). I expect that C states are going to work if you take the
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
----
-NOTE:  this should probably not merge upstream until the patch to
-make ACPI actually *use* these flags gets merged, since otherwise
-these flags won't reflect actual behavior.
+-EPARSE.  The 1S BIOS *is* the R40e BIOS, and don't understand what you
+mean with the R50?  The BIOS for the R50, T40, T41 and T42 as well as
+some R51 models is the same (BIOS 1R).
 
- drivers/acpi/button.c |    3 +++
- drivers/acpi/glue.c   |    1 +
- drivers/acpi/power.c  |    4 ++++
- 3 files changed, 8 insertions(+)
-
---- g26.orig/drivers/acpi/button.c	2008-03-20 03:02:45.000000000 -0700
-+++ g26/drivers/acpi/button.c	2008-03-20 03:27:24.000000000 -0700
-@@ -476,6 +476,9 @@ static int acpi_button_add(struct acpi_d
- 	if (button->type == ACPI_BUTTON_TYPE_LID)
- 		acpi_lid_send_state(button);
- 
-+	/* for these devices the ACPI node *IS* the "physical" device */
-+	device_init_wakeup(&device->dev, device->wakeup.flags.valid);
-+
- 	if (device->wakeup.flags.valid) {
- 		/* Button's GPE is run-wake GPE */
- 		acpi_set_gpe_type(device->wakeup.gpe_device,
---- g26.orig/drivers/acpi/glue.c	2008-03-20 03:27:11.000000000 -0700
-+++ g26/drivers/acpi/glue.c	2008-03-20 03:27:25.000000000 -0700
-@@ -162,6 +162,7 @@ static int acpi_bind_one(struct device *
- 	if (!ACPI_FAILURE(status)) {
- 		int ret;
- 
-+		device_init_wakeup(dev, acpi_dev->wakeup.flags.valid);
- 		ret = sysfs_create_link(&dev->kobj, &acpi_dev->dev.kobj,
- 				"firmware_node");
- 		if (ret != 0)
---- g26.orig/drivers/acpi/power.c	2008-03-20 03:02:45.000000000 -0700
-+++ g26/drivers/acpi/power.c	2008-03-20 03:27:25.000000000 -0700
-@@ -313,6 +313,7 @@ int acpi_enable_wakeup_device_power(stru
- 		ret = acpi_power_on(dev->wakeup.resources.handles[i], dev);
- 		if (ret) {
- 			printk(KERN_ERR PREFIX "Transition power state\n");
-+			device_init_wakeup(&dev->dev, 0);
- 			dev->wakeup.flags.valid = 0;
- 			return -1;
- 		}
-@@ -322,6 +323,7 @@ int acpi_enable_wakeup_device_power(stru
- 	status = acpi_evaluate_object(dev->handle, "_PSW", &arg_list, NULL);
- 	if (ACPI_FAILURE(status) && (status != AE_NOT_FOUND)) {
- 		printk(KERN_ERR PREFIX "Evaluate _PSW\n");
-+		device_init_wakeup(&dev->dev, 0);
- 		dev->wakeup.flags.valid = 0;
- 		ret = -1;
- 	}
-@@ -351,6 +353,7 @@ int acpi_disable_wakeup_device_power(str
- 	status = acpi_evaluate_object(dev->handle, "_PSW", &arg_list, NULL);
- 	if (ACPI_FAILURE(status) && (status != AE_NOT_FOUND)) {
- 		printk(KERN_ERR PREFIX "Evaluate _PSW\n");
-+		device_init_wakeup(&dev->dev, 0);
- 		dev->wakeup.flags.valid = 0;
- 		return -1;
- 	}
-@@ -360,6 +363,7 @@ int acpi_disable_wakeup_device_power(str
- 		ret = acpi_power_off_device(dev->wakeup.resources.handles[i], dev);
- 		if (ret) {
- 			printk(KERN_ERR PREFIX "Transition power state\n");
-+			device_init_wakeup(&dev->dev, 0);
- 			dev->wakeup.flags.valid = 0;
- 			return -1;
- 		}
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
