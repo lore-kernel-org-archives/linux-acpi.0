@@ -1,112 +1,61 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: [RESEND patch 2.6.25] acpi_pm_device_sleep_state()
-	cleanup
-Date: Fri, 18 Apr 2008 21:11:34 -0700
-Message-ID: <200804182111.34999.david-b@pacbell.net>
-References: <200803201408.33466.david-b@pacbell.net>
-	<200803201410.57801.david-b@pacbell.net>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [patch 22/53] PNP: factor pnp_init_resource_table() and pnp_clean_resource_table()
+Date: Fri, 18 Apr 2008 21:57:32 -0600
+Message-ID: <200804182157.34313.bjorn.helgaas@hp.com>
+References: <20080418204955.342963315@ldl.fc.hp.com> <20080418205051.704761191@ldl.fc.hp.com> <480920BB.9010506@keyaccess.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <200803201410.57801.david-b@pacbell.net>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:30301 "EHLO
+	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750769AbYDSEC7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 19 Apr 2008 00:02:59 -0400
+In-Reply-To: <480920BB.9010506@keyaccess.nl>
 Content-Disposition: inline
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-pm@lists.linux-foundation.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Rene Herman <rene.herman@keyaccess.nl>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-From: David Brownell <dbrownell@users.sourceforge.net>
+On Friday 18 April 2008 4:29:15 pm Rene Herman wrote:
+> On 18-04-08 22:50, Bjorn Helgaas wrote:
+> > Move the common part of pnp_init_resource_table() and
+> > pnp_clean_resource_table() into a new pnp_init_resource().
+> > This reduces a little code duplication and will be
+> > useful later to initialize an individual resource.
+>
+> This can't be right, can it? :
+> > +void pnp_init_resource(struct resource *res)
+> > +{
+> > +	unsigned long type;
+> > +
+> > +	type = res->flags & (IORESOURCE_IO  | IORESOURCE_MEM |
+> > +			     IORESOURCE_IRQ | IORESOURCE_DMA);
+> > +
+> > +	res->name = NULL;
+> > +	res->flags = type | IORESOURCE_AUTO | IORESOURCE_UNSET;
+> > +	if (type == IORESOURCE_IRQ || type == IORESOURCE_DMA) {
+> > +		res->start = -1;
+> > +		res->end = -1;
+> > +	} else {
+> > +		res->start = 0;
+> > +		res->end = 0;
+> > +	}
+> > +}
+>
+> This depends on the type already being set in res->flags, yet:
 
-Get rid of a superfluous acpi_pm_device_sleep_state() parameter.  The
-only legitimate value of that parameter must be derived from the first
-parameter, which is what all the callers already do.  (However, this
-does not address the fact that ACPI still doesn't set up those flags.)
+Yep, you're right.  I fixed it, but it requires changes to a couple
+other patches down the line, so I'll wait to repost the series until
+next week in case you find more problems.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Acked-by: Pavel Machek <pavel@ucw.cz>
----
- drivers/acpi/sleep/main.c  |    8 ++++----
- drivers/pci/pci-acpi.c     |    3 +--
- drivers/pnp/pnpacpi/core.c |    4 +---
- include/acpi/acpi_bus.h    |    4 ++--
- 4 files changed, 8 insertions(+), 11 deletions(-)
+I think this is only a problem for bisection.  By the time you
+apply the whole series, we start with an empty resource list, and
+every time we add one, we set the type in pnp_new_resource().
 
---- g26.orig/drivers/acpi/sleep/main.c	2008-04-18 19:26:19.000000000 -0700
-+++ g26/drivers/acpi/sleep/main.c	2008-04-18 20:08:23.000000000 -0700
-@@ -369,8 +369,8 @@ int acpi_suspend(u32 acpi_state)
- /**
-  *	acpi_pm_device_sleep_state - return preferred power state of ACPI device
-  *		in the system sleep state given by %acpi_target_sleep_state
-- *	@dev: device to examine
-- *	@wake: if set, the device should be able to wake up the system
-+ *	@dev: device to examine; its driver model wakeup flags control
-+ *		whether it should be able to wake up the system
-  *	@d_min_p: used to store the upper limit of allowed states range
-  *	Return value: preferred power state of the device on success, -ENODEV on
-  *		failure (ie. if there's no 'struct acpi_device' for @dev)
-@@ -388,7 +388,7 @@ int acpi_suspend(u32 acpi_state)
-  *	via @wake.
-  */
- 
--int acpi_pm_device_sleep_state(struct device *dev, int wake, int *d_min_p)
-+int acpi_pm_device_sleep_state(struct device *dev, int *d_min_p)
- {
- 	acpi_handle handle = DEVICE_ACPI_HANDLE(dev);
- 	struct acpi_device *adev;
-@@ -427,7 +427,7 @@ int acpi_pm_device_sleep_state(struct de
- 	 * can wake the system.  _S0W may be valid, too.
- 	 */
- 	if (acpi_target_sleep_state == ACPI_STATE_S0 ||
--	    (wake && adev->wakeup.state.enabled &&
-+	    (device_may_wakeup(dev) && adev->wakeup.state.enabled &&
- 	     adev->wakeup.sleep_state <= acpi_target_sleep_state)) {
- 		acpi_status status;
- 
---- g26.orig/drivers/pci/pci-acpi.c	2008-04-18 19:26:19.000000000 -0700
-+++ g26/drivers/pci/pci-acpi.c	2008-04-18 20:08:23.000000000 -0700
-@@ -249,8 +249,7 @@ static pci_power_t acpi_pci_choose_state
- {
- 	int acpi_state;
- 
--	acpi_state = acpi_pm_device_sleep_state(&pdev->dev,
--		device_may_wakeup(&pdev->dev), NULL);
-+	acpi_state = acpi_pm_device_sleep_state(&pdev->dev, NULL);
- 	if (acpi_state < 0)
- 		return PCI_POWER_ERROR;
- 
---- g26.orig/drivers/pnp/pnpacpi/core.c	2008-04-18 19:26:19.000000000 -0700
-+++ g26/drivers/pnp/pnpacpi/core.c	2008-04-18 20:08:23.000000000 -0700
-@@ -132,9 +132,7 @@ static int pnpacpi_suspend(struct pnp_de
- {
- 	int power_state;
- 
--	power_state = acpi_pm_device_sleep_state(&dev->dev,
--						device_may_wakeup(&dev->dev),
--						NULL);
-+	power_state = acpi_pm_device_sleep_state(&dev->dev, NULL);
- 	if (power_state < 0)
- 		power_state = (state.event == PM_EVENT_ON) ?
- 				ACPI_STATE_D0 : ACPI_STATE_D3;
---- g26.orig/include/acpi/acpi_bus.h	2008-04-18 19:26:19.000000000 -0700
-+++ g26/include/acpi/acpi_bus.h	2008-04-18 20:08:23.000000000 -0700
-@@ -376,9 +376,9 @@ acpi_handle acpi_get_pci_rootbridge_hand
- #define DEVICE_ACPI_HANDLE(dev) ((acpi_handle)((dev)->archdata.acpi_handle))
- 
- #ifdef CONFIG_PM_SLEEP
--int acpi_pm_device_sleep_state(struct device *, int, int *);
-+int acpi_pm_device_sleep_state(struct device *, int *);
- #else /* !CONFIG_PM_SLEEP */
--static inline int acpi_pm_device_sleep_state(struct device *d, int w, int *p)
-+static inline int acpi_pm_device_sleep_state(struct device *d, int *p)
- {
- 	if (p)
- 		*p = ACPI_STATE_D0;
+That makes me wonder whether pnp_init_resources() should just
+free the whole list, so we just start again with an empty list.
+
+Bjorn
