@@ -1,41 +1,29 @@
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: [PATCH] acer-wmi: Remove LED colour comment from documentation
-Date: Sat, 19 Apr 2008 19:46:29 +0100
-Message-ID: <20080419184628.1809.32286.stgit@pacifica>
+From: "George Spelvin" <linux@horizon.com>
+Subject: Re: 2.6.25 regression: 60417f5976df breaks Thinkpad suspend
+Date: Sun, 20 Apr 2008 15:13:18 -0400
+Message-ID: <20080420191318.12214.qmail@science.horizon.com>
+References: <20080415115326.9915.qmail@science.horizon.com>
+ <200804161937.25557.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:35485 "EHLO
-	pacifica" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754902AbYDSTFY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 19 Apr 2008 15:05:24 -0400
+Received: from science.horizon.com ([192.35.100.1]:11203 "HELO
+	science.horizon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755773AbYDTTNg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 20 Apr 2008 15:13:36 -0400
+In-Reply-To: <200804161937.25557.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: lenb@kernel.org
+To: rjw@sisk.pl, linux@horizon.com
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, len.brown@intel.com
 
-This should have been removed when the colour was removed from the LED
-device name.
+"Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+> This change has been reverted from the current Linus' tree, so please check
+> if 2.6.25-rc9 (or a later git snapshot) works for you.
 
-Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
----
+With apologies for the long delay (I was in the middle of a lengthy debug
+session I didn't want to lose to install a new kernel), yes 2.6.25-rc9 works
+fine.
 
- Documentation/laptops/acer-wmi.txt |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
-
-
-diff --git a/Documentation/laptops/acer-wmi.txt b/Documentation/laptops/acer-wmi.txt
-index 23df051..956efb6 100644
---- a/Documentation/laptops/acer-wmi.txt
-+++ b/Documentation/laptops/acer-wmi.txt
-@@ -174,8 +174,6 @@ The LED is exposed through the LED subsystem, and can be found in:
- The mail LED is autodetected, so if you don't have one, the LED device won't
- be registered.
- 
--If you have a mail LED that is not green, please report this to me.
--
- Backlight
- *********
- 
-
+Thank you very much!
