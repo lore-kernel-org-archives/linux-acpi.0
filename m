@@ -1,238 +1,81 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [PATCH, RFC] Create 'slot' sysfsattributein/sys/devices/system/cpu/cpuN/topology/
-Date: Mon, 21 Apr 2008 15:00:02 -0700
-Message-ID: <1FE6DD409037234FAB833C420AA843EC012664E0@orsmsx424.amr.corp.intel.com>
-References: <20080310222735.GA22619@ldl.fc.hp.com> <1FE6DD409037234FAB833C420AA843ECCBFA9D@orsmsx424.amr.corp.intel.com> <20080319233140.GD16237@ldl.fc.hp.com> <1FE6DD409037234FAB833C420AA843ECE13C6E@orsmsx424.amr.corp.intel.com> <20080326185912.GA30749@ldl.fc.hp.com> <20080421052450.GA24055@ldl.fc.hp.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [patch 22/53] PNP: factor pnp_init_resource_table() and pnp_clean_resource_table()
+Date: Mon, 21 Apr 2008 17:10:37 -0600
+Message-ID: <200804211710.38660.bjorn.helgaas@hp.com>
+References: <20080418204955.342963315@ldl.fc.hp.com> <48097886.9000907@keyaccess.nl> <480CDFDB.3020703@keyaccess.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:32474 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753485AbYDUWJt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Apr 2008 18:09:49 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <20080421052450.GA24055@ldl.fc.hp.com>
+Received: from g1t0028.austin.hp.com ([15.216.28.35]:34800 "EHLO
+	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758415AbYDUXKo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Apr 2008 19:10:44 -0400
+In-Reply-To: <480CDFDB.3020703@keyaccess.nl>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Chiang <achiang@hp.com>, lenb@kernel.org, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Rene Herman <rene.herman@keyaccess.nl>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-> I noticed that this patch wasn't in the git tree you sent to
-> Linus for 2.6.26. I don't remember seeing a NACK though -- is
-> there something that I could rework to make it more acceptable?
+On Monday 21 April 2008 12:41:31 pm Rene Herman wrote:
+> isapnp_get_resources didn't allocate simply since it hasn't been called yet; 
+> there's nothing to get from an inactive device. It is pnp_assign_resources 
+> which constructs the table which isapnp_set_resources then puts to the hardware.
 
-I'm mostly ok with this version of the patch.  I didn't see any
-comments from the linux-kernel crowd on the whether they are fond
-of the new API ("slot" file in cpu/cpuN/topology/) and hate to make
-the presumption that because they are silent that they agree.
+Yes, right.  I reproduced this on an ACPI system where the BIOS leaves
+a couple devices disabled.
 
-The "mostly ok" part would transform to "fully ok" if there were a way
-to make sure the "slot" files only appeared on systems where they are
-meaningful (i.e. have a value other then -1 in them).  If there is
-an easy way to make this happen, then it would make me happier (less
-clutter in /sys) and perhaps others too (since this API is only useful
-on large systems where "slot" is meaningful, and there is generally
-some bias from the community at large about adding interfaces that
-aren't needed for normal desktop/laptop systems).
+> Getting things working also needs setting pnp_res->index (to nport, nmem, 
+> nirq, ndma in pnp_assign_resources) so that the isapnp_set_resources which 
+> follows sets to the correct hardware index, but at that point position in 
+> the list and the index are mixing together in unhealthy ways -- in the 
+> pnp_assign_foo helpers, pnp_get_resource(.., idx) just get the "idx-th" 
+> resource of the correct type in the list but it seems it really should be 
+> getting the resource of the correct type with its ->index set to "idx".
 
--Tony
+I don't mind setting pnp_res->index in the generic pnp_assign_* code.
+We have to do that already in pnp_set_current_resources() (the /sys
+interface), and I don't see a good way around it.
 
-Patch follows to save people digging in the archives to see what we
-are talking about.
+In pnp_assign_resources(), we currently assume that all independent
+options appear before any dependent ones because we compute nport,
+nmem, etc by iterating through the independent options first.  Then
+we use those nport, nmem, etc values as the "index" (CSR index for
+ISAPNP, nth resource type in the template for PNPBIOS and PNPACPI).
+I don't know whether this assumption is in the spec, but at least
+we've assumed it for a long time.
 
+I'm trying to figure out the cases where pnp_assign_resources()
+has to pay attention to pre-existing configuration.  It looks like
+the common case is that we'll start with an empty resource list, and
+we can just find non-conflicting values and use pnp_add_foo_resource().
 
-> Subject: [PATCH] Create 'slot' sysfs attribute in /sys/devices/system/cpu/cpuN/topology/
-> From: Alex Chiang <achiang@hp.com>
+But I'm concerned about all the IORESOURCE_AUTO stuff.  Seems like
+we should only get to pnp_assign_foo() with !IORESOURCE_AUTO if
+(a) we've used /sys to set some but not all resources, or (b) the
+BIOS described fewer things in _CRS than in _PRS (which seems like
+a BIOS bug).  But I'm not comfortable with this yet.
+
+> Anyways, currently things really don't work though, due to
 > 
-> /sys/devices/system/cpu/cpuN/topology/physical_package_id exists,
-> but may contain incorrect information, especially on older ia64
-> platforms that do not have modern firmware.
+> 1) pnp_assign_resources needing to construct the list and
+> 2) it needing to match resources by their index.
 > 
-> Create a 'slot' attribute and define an interface that may be
-> populated via alternate sources, without breaking existing
-> functionality.
-> 
-> Implement this interface on ia64 by invoking the _SUN method on a
-> per cpu basis.
-> 
-> Leave other archs alone for now.
-> 
-> v2 -> v3:
-> 	- Stop stomping on existing PBLK in the event of _SUN failure
-> 
-> v1 -> v2:
-> 	- Check for _SUN object on CPU before blindly attempting
-> 	  to call it
-> 
-> Signed-off-by: Alex Chiang <achiang@hp.com>
-> ---
->  arch/ia64/kernel/setup.c      |    1 +
->  arch/ia64/kernel/topology.c   |    6 ++++++
->  drivers/acpi/processor_core.c |    8 ++++++++
->  drivers/base/topology.c       |    9 +++++++++
->  include/asm-ia64/cpu.h        |    1 +
->  include/asm-ia64/processor.h  |    7 ++++++-
->  include/asm-ia64/topology.h   |    3 +++
->  include/asm-x86/topology.h    |    2 ++
->  8 files changed, 36 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/ia64/kernel/setup.c b/arch/ia64/kernel/setup.c
-> index 4aa9eae..228d960 100644
-> --- a/arch/ia64/kernel/setup.c
-> +++ b/arch/ia64/kernel/setup.c
-> @@ -735,6 +735,7 @@ identify_cpu (struct cpuinfo_ia64 *c)
->  	 */
->  	c->threads_per_core = c->cores_per_socket = c->num_log = 1;
->  	c->socket_id = -1;
-> +	c->slot = -1;
->  
->  	identify_siblings(c);
->  
-> diff --git a/arch/ia64/kernel/topology.c b/arch/ia64/kernel/topology.c
-> index a2484fc..512de14 100644
-> --- a/arch/ia64/kernel/topology.c
-> +++ b/arch/ia64/kernel/topology.c
-> @@ -27,6 +27,12 @@
->  
->  static struct ia64_cpu *sysfs_cpus;
->  
-> +void ia64_set_topology_slot(int num, u32 slot)
-> +{
-> +	cpu_data(num)->slot = slot;
-> +}
-> +EXPORT_SYMBOL_GPL(ia64_set_topology_slot);
-> +
->  int arch_register_cpu(int num)
->  {
->  #if defined (CONFIG_ACPI) && defined (CONFIG_HOTPLUG_CPU)
-> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-> index 36a68fa..a3a740d 100644
-> --- a/drivers/acpi/processor_core.c
-> +++ b/drivers/acpi/processor_core.c
-> @@ -612,6 +612,14 @@ static int acpi_processor_get_info(struct acpi_processor *pr, unsigned has_uid)
->  		request_region(pr->throttling.address, 6, "ACPI CPU throttle");
->  	}
->  
-> +	/*
-> +	 * If ACPI describes a slot number for this CPU, let's fill it in
-> +	 */
-> +	status = acpi_evaluate_object(pr->handle, "_SUN", NULL, &buffer);
-> +	if (ACPI_FAILURE(status))
-> +		object.integer.value = -1;
-> +	arch_set_topology_slot(pr->id, object.integer.value);
-> +
->  	return 0;
->  }
->  
-> diff --git a/drivers/base/topology.c b/drivers/base/topology.c
-> index e1d3ad4..4fcffca 100644
-> --- a/drivers/base/topology.c
-> +++ b/drivers/base/topology.c
-> @@ -57,6 +57,14 @@ define_one_ro(physical_package_id);
->  #define ref_physical_package_id_attr
->  #endif
->  
-> +#ifdef	topology_slot
-> +define_id_show_func(slot);
-> +define_one_ro(slot);
-> +#define ref_slot_attr			&attr_slot.attr,
-> +#else
-> +#define ref_slot_attr
-> +#endif
-> +
->  #ifdef topology_core_id
->  define_id_show_func(core_id);
->  define_one_ro(core_id);
-> @@ -83,6 +91,7 @@ define_one_ro(core_siblings);
->  
->  static struct attribute *default_attrs[] = {
->  	ref_physical_package_id_attr
-> +	ref_slot_attr
->  	ref_core_id_attr
->  	ref_thread_siblings_attr
->  	ref_core_siblings_attr
-> diff --git a/include/asm-ia64/cpu.h b/include/asm-ia64/cpu.h
-> index e87fa32..393e545 100644
-> --- a/include/asm-ia64/cpu.h
-> +++ b/include/asm-ia64/cpu.h
-> @@ -14,6 +14,7 @@ DECLARE_PER_CPU(struct ia64_cpu, cpu_devices);
->  
->  DECLARE_PER_CPU(int, cpu_state);
->  
-> +extern void arch_set_topology_slot(int num, u32 slot);
->  extern int arch_register_cpu(int num);
->  #ifdef CONFIG_HOTPLUG_CPU
->  extern void arch_unregister_cpu(int);
-> diff --git a/include/asm-ia64/processor.h b/include/asm-ia64/processor.h
-> index 741f7ec..066553c 100644
-> --- a/include/asm-ia64/processor.h
-> +++ b/include/asm-ia64/processor.h
-> @@ -125,6 +125,10 @@ struct ia64_psr {
->   */
->  struct cpuinfo_ia64 {
->  	__u32 softirq_pending;
-> +
-> +#ifdef CONFIG_SMP
-> +	int cpu;
-> +#endif
->  	__u64 itm_delta;	/* # of clock cycles between clock ticks */
->  	__u64 itm_next;		/* interval timer mask value to use for next clock tick */
->  	__u64 nsec_per_cyc;	/* (1000000000<<IA64_NSEC_PER_CYC_SHIFT)/itc_freq */
-> @@ -140,7 +144,6 @@ struct cpuinfo_ia64 {
->  
->  #ifdef CONFIG_SMP
->  	__u64 loops_per_jiffy;
-> -	int cpu;
->  	__u32 socket_id;	/* physical processor socket id */
->  	__u16 core_id;		/* core id */
->  	__u16 thread_id;	/* thread id */
-> @@ -150,6 +153,8 @@ struct cpuinfo_ia64 {
->  	__u8  threads_per_core;	/* Threads per core */
->  #endif
->  
-> +	__u32 slot;		/* physical slot; can differ from socket_id */
-> +
->  	/* CPUID-derived information: */
->  	__u64 ppn;
->  	__u64 features;
-> diff --git a/include/asm-ia64/topology.h b/include/asm-ia64/topology.h
-> index 2d67b72..f986693 100644
-> --- a/include/asm-ia64/topology.h
-> +++ b/include/asm-ia64/topology.h
-> @@ -110,12 +110,15 @@ void build_cpu_to_node_map(void);
->  
->  #ifdef CONFIG_SMP
->  #define topology_physical_package_id(cpu)	(cpu_data(cpu)->socket_id)
-> +#define topology_slot(cpu)			(cpu_data(cpu)->slot)
->  #define topology_core_id(cpu)			(cpu_data(cpu)->core_id)
->  #define topology_core_siblings(cpu)		(cpu_core_map[cpu])
->  #define topology_thread_siblings(cpu)		(per_cpu(cpu_sibling_map, cpu))
->  #define smt_capable() 				(smp_num_siblings > 1)
->  #endif
->  
-> +#define arch_set_topology_slot(num, slot)	ia64_set_topology_slot(num,slot)
-> +
->  #include <asm-generic/topology.h>
->  
->  #endif /* _ASM_IA64_TOPOLOGY_H */
-> diff --git a/include/asm-x86/topology.h b/include/asm-x86/topology.h
-> index 8af05a9..d4c922c 100644
-> --- a/include/asm-x86/topology.h
-> +++ b/include/asm-x86/topology.h
-> @@ -180,6 +180,8 @@ extern cpumask_t cpu_coregroup_map(int cpu);
->  #define topology_thread_siblings(cpu)		(per_cpu(cpu_sibling_map, cpu))
->  #endif
->  
-> +#define arch_set_topology_slot(num, slot)
-> +
->  #ifdef CONFIG_SMP
->  #define mc_capable()			(boot_cpu_data.x86_max_cores > 1)
->  #define smt_capable()			(smp_num_siblings > 1)
-> -- 
-> 1.5.3.1.g1e61
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> (do note that pnp_assign_foo are the only callers of pnp_check_foo and they 
+> could be either merged together or at least not communicate via "idx" but 
+> simply by passing the res/pnp_res).
+
+Yes, I'd like to do that.  But I think I'd better wait or I'll never
+get anything finished :-)
+
+> Also note -- manually set resources are skipped in pnp_assign_resources, yet 
+> they also definitely need their index initialized for use by 
+> isapnp_set_resources.
+
+Yes.  "Manually set resources" includes ones from /sys and also the
+resources we discover from active devices.  We should already be setting
+those in the /sys and ISAPNP "read resources" paths.
+
+Bjorn
