@@ -1,286 +1,365 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH 4/6] thermal: update the documentation
-Date: Mon, 21 Apr 2008 16:07:10 +0800
-Message-ID: <1208765230.3550.4.camel@rzhang-1.sh.intel.com>
-References: <1207815421.27304.42.camel@acpi-hp-zz.sh.intel.com>
-	 <20080416223517.1ca7d2df@hyperion.delvare>
+Subject: Re: [PATCH 3/6] thermal: add hwmon sysfs I/F
+Date: Mon, 21 Apr 2008 16:07:52 +0800
+Message-ID: <1208765272.3550.7.camel@rzhang-1.sh.intel.com>
+References: <1207815360.27304.39.camel@acpi-hp-zz.sh.intel.com>
+	 <20080416224555.15304b3d@hyperion.delvare>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:28844 "EHLO mga09.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:4437 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753386AbYDUIIb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Apr 2008 04:08:31 -0400
-In-Reply-To: <20080416223517.1ca7d2df@hyperion.delvare>
+	id S1756419AbYDUIJM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 Apr 2008 04:09:12 -0400
+In-Reply-To: <20080416224555.15304b3d@hyperion.delvare>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Jean Delvare <khali@linux-fr.org>
-Cc: Len Brown <lenb@kernel.org>, Hans de Goede <j.w.r.degoede@hhs.nl>, linux-acpi <linux-acpi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
+Cc: Len Brown <lenb@kernel.org>, Hans de Goede <j.w.r.degoede@hhs.nl>, linux-acpi <linux-acpi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, waldi@debian.org
 
 
-On Thu, 2008-04-17 at 04:35 +0800, Jean Delvare wrote:
-> On Thu, 10 Apr 2008 16:17:01 +0800, Zhang, Rui wrote:
+On Thu, 2008-04-17 at 04:45 +0800, Jean Delvare wrote:
+> Hi Rui,
+> 
+> On Thu, 10 Apr 2008 16:16:00 +0800, Zhang, Rui wrote:
 > >
-> > Update the documentation for the thermal driver hwmon sys I/F.
+> > Add hwmon sys I/F for generic thermal driver.
 > >
-> > Change the ACPI thermal zone type to be consistent with hwmon.
+> > Note: we have one hwmon class device for EACH TYPE of the thermal
+> zone device.
 > >
 > > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 > > ---
-> >  Documentation/thermal/sysfs-api.txt |   33
-> +++++++++++++++++++++++++++------
-> >  drivers/acpi/thermal.c              |    2 +-
-> >  2 files changed, 28 insertions(+), 7 deletions(-)
+> >  drivers/thermal/thermal.c |  164
+> ++++++++++++++++++++++++++++++++++++++++++++++
+> >  include/linux/thermal.h   |   24 ++++++
+> >  2 files changed, 188 insertions(+)
+> 
+> Much better than the previous version but there are a few problems
+> left:
+> 
 > >
-> > Index: linux-2.6/Documentation/thermal/sysfs-api.txt
+> > Index: linux-2.6/drivers/thermal/thermal.c
 > > ===================================================================
-> > --- linux-2.6.orig/Documentation/thermal/sysfs-api.txt
-> > +++ linux-2.6/Documentation/thermal/sysfs-api.txt
-> > @@ -108,10 +108,12 @@ and throttle appropriate devices.
-> >  RO   read only value
-> >  RW   read/write value
+> > --- linux-2.6.orig/drivers/thermal/thermal.c
+> > +++ linux-2.6/drivers/thermal/thermal.c
+> > @@ -291,6 +291,165 @@ thermal_cooling_device_trip_point_show(s
 > > 
-> > -All thermal sysfs attributes will be represented
-> under /sys/class/thermal
-> > +Thermal sysfs attributes will be represented
-> under /sys/class/thermal.
-> > +Hwmon sysfs I/F extension is also available under /sys/class/hwmon
-> > +if hwmon is compiled in or built as a module.
+> >  /* Device management */
 > > 
-> >  Thermal zone device sys I/F, created once it's registered:
-> > -|thermal_zone[0-*]:
-> > +/sys/class/thermal/thermal_zone[0-*]:
-> >       |-----type:                     Type of the thermal zone
-> >       |-----temp:                     Current temperature
-> >       |-----mode:                     Working mode of the thermal
-> zone
-> > @@ -119,7 +121,7 @@ Thermal zone device sys I/F, created onc
-> >       |-----trip_point_[0-*]_type:    Trip point type
-> > 
-> >  Thermal cooling device sys I/F, created once it's registered:
-> > -|cooling_device[0-*]:
-> > +/sys/class/thermal/cooling_device[0-*]:
-> >       |-----type :                    Type of the cooling
-> device(processor/fan/...)
-> >       |-----max_state:                Maximum cooling state of the
-> cooling device
-> >       |-----cur_state:                Current cooling state of the
-> cooling device
-> > @@ -130,10 +132,19 @@ They represent the relationship between
-> >  They are created/removed for each
-> >  thermal_zone_bind_cooling_device/thermal_zone_unbind_cooling_device
-> successful execution.
-> > 
-> > -|thermal_zone[0-*]
-> > +/sys/class/thermal/thermal_zone[0-*]
-> >       |-----cdev[0-*]:                The [0-*]th cooling device in
-> the current thermal zone
-> >       |-----cdev[0-*]_trip_point:     Trip point that cdev[0-*] is
-> associated with
-> > 
-> > +Besides the thermal zone device sysfs I/F and cooling device sysfs
-> I/F,
-> > +the generic thermal driver also creates a hwmon sysfs I/F for each
-> _type_ of
-> > +thermal zone device. E.g. the generic thermal driver reigsters one
-> hwmon class device
-> 
-> Typo: registers.
-> 
-> > +and build the associated hwmon sys I/F for all the registered ACPI
-> thermal zones.
-> 
-> sysfs I/F.
-> 
-> > +/sys/class/hwmon/hwmon[0-*]:
-> > +     |-----name:                     The type of the thermal zone
-> devices.
-> > +     |-----temp[1-*]_input:          The current temperature of
-> thermal zone [1-*].
-> > +     |-----temp[1-*]_critical:       The critical trip point of
-> thermal zone [1-*].
-> > +Please read Documentation/hwmon/sysfs-interface for additional
-> information.
-> > 
-> >  ***************************
-> >  * Thermal zone attributes *
-> > @@ -141,7 +152,10 @@ thermal_zone_bind_cooling_device/thermal
-> > 
-> >  type                         Strings which represent the thermal
-> zone type.
-> >                               This is given by thermal zone driver
-> as part of registration.
-> > -                             Eg: "ACPI thermal zone" indicates it's
-> a ACPI thermal device
-> > +                             Eg: "acpitz" indicates it's an ACPI
-> thermal device.
-> > +                             In order to keep it consistent with
-> hwmon sys attribute,
-> > +                             this should be a short, lowercase
-> string,
-> > +                             not containing spaces nor dashes.
-> >                               RO
-> >                               Required
-> > 
-> > @@ -218,7 +232,7 @@ the sys I/F structure will be built like
-> >  /sys/class/thermal:
-> > 
-> >  |thermal_zone1:
-> > -     |-----type:                     ACPI thermal zone
-> > +     |-----type:                     acpitz
-> >       |-----temp:                     37000
-> >       |-----mode:                     kernel
-> >       |-----trip_point_0_temp:        100000
-> > @@ -243,3 +257,10 @@ the sys I/F structure will be built like
-> >       |-----type:                     Fan
-> >       |-----max_state:                2
-> >       |-----cur_state:                0
+> > +#if defined(CONFIG_HWMON) || \
+> > +     (defined(CONFIG_HWMON_MODULE) &&
+> defined(CONFIG_THERMAL_MODULE))
+> > +/* hwmon sys I/F */
+> > +#include <linux/hwmon.h>
+> > +static LIST_HEAD(thermal_hwmon_list);
 > > +
-> > +/sys/class/hwmon:
+> > +static ssize_t
+> > +name_show(struct device *dev, struct device_attribute *attr, char
+> *buf)
+> > +{
+> > +     struct thermal_hwmon_device *hwmon = dev->driver_data;
+> > +     return sprintf(buf, "%s\n", hwmon->type);
+> > +}
+> > +static DEVICE_ATTR(name, 0444, name_show, NULL);
 > > +
-> > +|hwmon0:
-> > +     |-----name:                     acpitz
-> > +     |-----temp1_input:              37000
-> > +     |-----temp1_crit:               100000
-> > Index: linux-2.6/drivers/acpi/thermal.c
-> > ===================================================================
-> > --- linux-2.6.orig/drivers/acpi/thermal.c
-> > +++ linux-2.6/drivers/acpi/thermal.c
-> > @@ -1136,7 +1136,7 @@ static int acpi_thermal_register_thermal
-> > 
-> >       for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE &&
-> >                       tz->trips.active[i].flags.valid; i++, trips
-> ++);
-> > -     tz->thermal_zone = thermal_zone_device_register("ACPI thermal
-> zone",
-> > +     tz->thermal_zone = thermal_zone_device_register("acpitz",
-> >                                       trips, tz,
-> &acpi_thermal_zone_ops);
-> >       if (!tz->thermal_zone)
-> >               return -ENODEV;
-> >
-> >
+> > +static ssize_t
+> > +temp_input_show(struct device *dev, struct device_attribute *attr,
+> char *buf)
+> > +{
+> > +     struct thermal_hwmon_attr *hwmon_attr
+> > +                     = container_of(attr, struct
+> thermal_hwmon_attr, attr);
+> > +     struct thermal_zone_device *tz
+> > +                     = container_of(hwmon_attr, struct
+> thermal_zone_device,
+> > +                                    temp_input);
+> > +
+> > +     return tz->ops->get_temp(tz, buf);
+> > +}
+> > +
+> > +static ssize_t
+> > +temp_crit_show(struct device *dev, struct device_attribute *attr,
+> > +             char *buf)
+> > +{
+> > +     struct thermal_hwmon_attr *hwmon_attr
+> > +                     = container_of(attr, struct
+> thermal_hwmon_attr, attr);
+> > +     struct thermal_zone_device *tz
+> > +                     = container_of(hwmon_attr, struct
+> thermal_zone_device,
+> > +                                    temp_crit);
+> > +
+> > +     return tz->ops->get_trip_temp(tz, 0, buf);
+> > +}
+> > +
+> > +
+> > +static int
+> > +thermal_add_hwmon_sysfs(struct thermal_zone_device *tz)
+> > +{
+> > +     struct thermal_hwmon_device *hwmon;
+> > +     int new_hwmon_device = 0;
+> > +     int result;
+> > +
+> > +     mutex_lock(&thermal_list_lock);
+> > +     list_for_each_entry(hwmon, &thermal_hwmon_list, node)
+> > +             if (!strcmp(hwmon->type, tz->type)) {
+> > +                     new_hwmon_device = 1;
+> > +                     mutex_unlock(&thermal_list_lock);
+> > +                     goto register_sys_interface;
+> > +             }
+> > +     mutex_unlock(&thermal_list_lock);
 > 
-> Other than these details, the patch looks OK to me.
-> 
+> I'm confused. new_hwmon_device is set to 1 when you do NOT create a
+> new
+> hwmon device, and to 0 when you DO create a new hwmon device? Wouldn't
+> it make way more sense the other way around?
 
-Update the documentation for the thermal driver hwmon sys I/F.
+"hwmon_already_available" was used at the beginning.
+I renamed this flag later but forget to change the logic. :)
+Please review the patch below.
 
-Change the ACPI thermal zone type to be consistent with hwmon.
+
+Add hwmon sys I/F for generic thermal driver.
+
+Note: we have one hwmon class device for EACH TYPE of the thermal zone device.
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- Documentation/thermal/sysfs-api.txt |   33
-+++++++++++++++++++++++++++------
- drivers/acpi/thermal.c              |    2 +-
- 2 files changed, 28 insertions(+), 7 deletions(-)
+ drivers/thermal/thermal.c |  163 ++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/thermal.h   |   24 ++++++
+ 2 files changed, 187 insertions(+)
 
-Index: old-git/Documentation/thermal/sysfs-api.txt
+Index: old-git/drivers/thermal/thermal.c
 ===================================================================
---- old-git.orig/Documentation/thermal/sysfs-api.txt	2008-04-21
-15:16:05.000000000 +0800
-+++ old-git/Documentation/thermal/sysfs-api.txt	2008-04-21
-15:20:59.000000000 +0800
-@@ -108,10 +108,12 @@
- RO	read only value
- RW	read/write value
+--- old-git.orig/drivers/thermal/thermal.c	2008-04-21 15:06:41.000000000 +0800
++++ old-git/drivers/thermal/thermal.c	2008-04-21 15:19:47.000000000 +0800
+@@ -291,6 +291,164 @@
  
--All thermal sysfs attributes will be represented
-under /sys/class/thermal
-+Thermal sysfs attributes will be represented under /sys/class/thermal.
-+Hwmon sysfs I/F extension is also available under /sys/class/hwmon
-+if hwmon is compiled in or built as a module.
+ /* Device management */
  
- Thermal zone device sys I/F, created once it's registered:
--|thermal_zone[0-*]:
-+/sys/class/thermal/thermal_zone[0-*]:
- 	|-----type:			Type of the thermal zone
- 	|-----temp:			Current temperature
- 	|-----mode:			Working mode of the thermal zone
-@@ -119,7 +121,7 @@
- 	|-----trip_point_[0-*]_type:	Trip point type
- 
- Thermal cooling device sys I/F, created once it's registered:
--|cooling_device[0-*]:
-+/sys/class/thermal/cooling_device[0-*]:
- 	|-----type :			Type of the cooling device(processor/fan/...)
- 	|-----max_state:		Maximum cooling state of the cooling device
- 	|-----cur_state:		Current cooling state of the cooling device
-@@ -130,10 +132,19 @@
- They are created/removed for each
- thermal_zone_bind_cooling_device/thermal_zone_unbind_cooling_device
-successful execution.
- 
--|thermal_zone[0-*]
-+/sys/class/thermal/thermal_zone[0-*]
- 	|-----cdev[0-*]:		The [0-*]th cooling device in the current thermal
-zone
- 	|-----cdev[0-*]_trip_point:	Trip point that cdev[0-*] is associated
-with
- 
-+Besides the thermal zone device sysfs I/F and cooling device sysfs I/F,
-+the generic thermal driver also creates a hwmon sysfs I/F for each
-_type_ of
-+thermal zone device. E.g. the generic thermal driver registers one
-hwmon class device
-+and build the associated hwmon sysfs I/F for all the registered ACPI
-thermal zones.
-+/sys/class/hwmon/hwmon[0-*]:
-+	|-----name:			The type of the thermal zone devices.
-+	|-----temp[1-*]_input:		The current temperature of thermal zone [1-*].
-+	|-----temp[1-*]_critical:	The critical trip point of thermal zone
-[1-*].
-+Please read Documentation/hwmon/sysfs-interface for additional
-information.
- 
- ***************************
- * Thermal zone attributes *
-@@ -141,7 +152,10 @@
- 
- type				Strings which represent the thermal zone type.
- 				This is given by thermal zone driver as part of registration.
--				Eg: "ACPI thermal zone" indicates it's a ACPI thermal device
-+				Eg: "acpitz" indicates it's an ACPI thermal device.
-+				In order to keep it consistent with hwmon sys attribute,
-+				this should be a short, lowercase string,
-+				not containing spaces nor dashes.
- 				RO
- 				Required
- 
-@@ -218,7 +232,7 @@
- /sys/class/thermal:
- 
- |thermal_zone1:
--	|-----type:			ACPI thermal zone
-+	|-----type:			acpitz
- 	|-----temp:			37000
- 	|-----mode:			kernel
- 	|-----trip_point_0_temp:	100000
-@@ -243,3 +257,10 @@
- 	|-----type:			Fan
- 	|-----max_state:		2
- 	|-----cur_state:		0
++#if defined(CONFIG_HWMON) ||	\
++	(defined(CONFIG_HWMON_MODULE) && defined(CONFIG_THERMAL_MODULE))
++/* hwmon sys I/F */
++#include <linux/hwmon.h>
++static LIST_HEAD(thermal_hwmon_list);
 +
-+/sys/class/hwmon:
++static ssize_t
++name_show(struct device *dev, struct device_attribute *attr, char *buf)
++{
++	struct thermal_hwmon_device *hwmon = dev->driver_data;
++	return sprintf(buf, "%s\n", hwmon->type);
++}
++static DEVICE_ATTR(name, 0444, name_show, NULL);
 +
-+|hwmon0:
-+	|-----name:			acpitz
-+	|-----temp1_input:		37000
-+	|-----temp1_crit:		100000
-Index: old-git/drivers/acpi/thermal.c
++static ssize_t
++temp_input_show(struct device *dev, struct device_attribute *attr, char *buf)
++{
++	struct thermal_hwmon_attr *hwmon_attr
++			= container_of(attr, struct thermal_hwmon_attr, attr);
++	struct thermal_zone_device *tz
++			= container_of(hwmon_attr, struct thermal_zone_device,
++				       temp_input);
++
++	return tz->ops->get_temp(tz, buf);
++}
++
++static ssize_t
++temp_crit_show(struct device *dev, struct device_attribute *attr,
++		char *buf)
++{
++	struct thermal_hwmon_attr *hwmon_attr
++			= container_of(attr, struct thermal_hwmon_attr, attr);
++	struct thermal_zone_device *tz
++			= container_of(hwmon_attr, struct thermal_zone_device,
++				       temp_crit);
++
++	return tz->ops->get_trip_temp(tz, 0, buf);
++}
++
++
++static int
++thermal_add_hwmon_sysfs(struct thermal_zone_device *tz)
++{
++	struct thermal_hwmon_device *hwmon;
++	int new_hwmon_device = 1;
++	int result;
++
++	mutex_lock(&thermal_list_lock);
++	list_for_each_entry(hwmon, &thermal_hwmon_list, node)
++		if (!strcmp(hwmon->type, tz->type)) {
++			new_hwmon_device = 0;
++			mutex_unlock(&thermal_list_lock);
++			goto register_sys_interface;
++		}
++	mutex_unlock(&thermal_list_lock);
++
++	hwmon = kzalloc(sizeof(struct thermal_hwmon_device), GFP_KERNEL);
++	if (!hwmon)
++		return -ENOMEM;
++
++	INIT_LIST_HEAD(&hwmon->tz_list);
++	strlcpy(hwmon->type, tz->type, THERMAL_NAME_LENGTH);
++	hwmon->device = hwmon_device_register(NULL);
++	if (IS_ERR(hwmon->device)) {
++		result = PTR_ERR(hwmon->device);
++		goto free_mem;
++	}
++	hwmon->device->driver_data = hwmon;
++	result = device_create_file(hwmon->device, &dev_attr_name);
++	if (result)
++		goto unregister_hwmon_device;
++
++ register_sys_interface:
++	tz->hwmon = hwmon;
++	hwmon->count++;
++
++	snprintf(tz->temp_input.name, THERMAL_NAME_LENGTH,
++		 "temp%d_input", hwmon->count);
++	tz->temp_input.attr.attr.name = tz->temp_input.name;
++	tz->temp_input.attr.attr.mode = 0444;
++	tz->temp_input.attr.show = temp_input_show;
++	result = device_create_file(hwmon->device, &tz->temp_input.attr);
++	if (result)
++		goto unregister_hwmon_device;
++
++	if (tz->ops->get_crit_temp) {
++		unsigned long temperature;
++		if (!tz->ops->get_crit_temp(tz, &temperature)) {
++			snprintf(tz->temp_crit.name, THERMAL_NAME_LENGTH,
++				"temp%d_crit", hwmon->count);
++			tz->temp_crit.attr.attr.name = tz->temp_crit.name;
++			tz->temp_crit.attr.attr.mode = 0444;
++			tz->temp_crit.attr.show = temp_crit_show;
++			result = device_create_file(hwmon->device,
++						    &tz->temp_crit.attr);
++			if (result)
++				goto unregister_hwmon_device;
++		}
++	}
++
++	mutex_lock(&thermal_list_lock);
++	if (new_hwmon_device)
++		list_add_tail(&hwmon->node, &thermal_hwmon_list);
++	list_add_tail(&tz->hwmon_node, &hwmon->tz_list);
++	mutex_unlock(&thermal_list_lock);
++
++	return 0;
++
++ unregister_hwmon_device:
++	device_remove_file(hwmon->device, &tz->temp_crit.attr);
++	device_remove_file(hwmon->device, &tz->temp_input.attr);
++	if (new_hwmon_device) {
++		device_remove_file(hwmon->device, &dev_attr_name);
++		hwmon_device_unregister(hwmon->device);
++	}
++ free_mem:
++	if (new_hwmon_device)
++		kfree(hwmon);
++
++	return result;
++}
++
++static void
++thermal_remove_hwmon_sysfs(struct thermal_zone_device *tz)
++{
++	struct thermal_hwmon_device *hwmon = tz->hwmon;
++
++	tz->hwmon = NULL;
++	device_remove_file(hwmon->device, &tz->temp_input.attr);
++	device_remove_file(hwmon->device, &tz->temp_crit.attr);
++
++	mutex_lock(&thermal_list_lock);
++	list_del(&tz->hwmon_node);
++	if (!list_empty(&hwmon->tz_list)) {
++		mutex_unlock(&thermal_list_lock);
++		return;
++	}
++	list_del(&hwmon->node);
++	mutex_unlock(&thermal_list_lock);
++
++	device_remove_file(hwmon->device, &dev_attr_name);
++	hwmon_device_unregister(hwmon->device);
++	kfree(hwmon);
++}
++#else
++static int
++thermal_add_hwmon_sysfs(struct thermal_zone_device *tz)
++{
++	return 0;
++}
++
++static void
++thermal_remove_hwmon_sysfs(struct thermal_zone_device *tz)
++{
++}
++#endif
++
++
+ /**
+  * thermal_zone_bind_cooling_device - bind a cooling device to a thermal zone
+  * @tz:		thermal zone device
+@@ -638,6 +796,10 @@
+ 			goto unregister;
+ 	}
+ 
++	result = thermal_add_hwmon_sysfs(tz);
++	if (result)
++		goto unregister;
++
+ 	mutex_lock(&thermal_list_lock);
+ 	list_add_tail(&tz->node, &thermal_tz_list);
+ 	if (ops->bind)
+@@ -696,6 +858,7 @@
+ 	for (count = 0; count < tz->trips; count++)
+ 		TRIP_POINT_ATTR_REMOVE(&tz->device, count);
+ 
++	thermal_remove_hwmon_sysfs(tz);
+ 	release_idr(&thermal_tz_idr, &thermal_idr_lock, tz->id);
+ 	idr_destroy(&tz->idr);
+ 	mutex_destroy(&tz->lock);
+Index: old-git/include/linux/thermal.h
 ===================================================================
---- old-git.orig/drivers/acpi/thermal.c	2008-04-21 15:16:05.000000000
-+0800
-+++ old-git/drivers/acpi/thermal.c	2008-04-21 15:20:14.000000000 +0800
-@@ -1136,7 +1136,7 @@
+--- old-git.orig/include/linux/thermal.h	2008-04-21 15:09:30.000000000 +0800
++++ old-git/include/linux/thermal.h	2008-04-21 15:09:34.000000000 +0800
+@@ -66,6 +66,23 @@
+ 				((long)t-2732+5)/10 : ((long)t-2732-5)/10)
+ #define CELSIUS_TO_KELVIN(t)	((t)*10+2732)
  
- 	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE &&
- 			tz->trips.active[i].flags.valid; i++, trips++);
--	tz->thermal_zone = thermal_zone_device_register("ACPI thermal zone",
-+	tz->thermal_zone = thermal_zone_device_register("acpitz",
- 					trips, tz, &acpi_thermal_zone_ops);
- 	if (!tz->thermal_zone)
- 		return -ENODEV;
++#if defined(CONFIG_HWMON) ||	\
++	(defined(CONFIG_HWMON_MODULE) && defined(CONFIG_THERMAL_MODULE))
++/* thermal zone devices with the same type share one hwmon device */
++struct thermal_hwmon_device {
++	char type[THERMAL_NAME_LENGTH];
++	struct device *device;
++	int count;
++	struct list_head tz_list;
++	struct list_head node;
++};
++
++struct thermal_hwmon_attr {
++	struct device_attribute attr;
++	char name[16];
++};
++#endif
++
+ struct thermal_zone_device {
+ 	int id;
+ 	char type[THERMAL_NAME_LENGTH];
+@@ -77,6 +94,13 @@
+ 	struct idr idr;
+ 	struct mutex lock;	/* protect cooling devices list */
+ 	struct list_head node;
++#if defined(CONFIG_HWMON) ||	\
++	(defined(CONFIG_HWMON_MODULE) && defined(CONFIG_THERMAL_MODULE))
++	struct list_head hwmon_node;
++	struct thermal_hwmon_device *hwmon;
++	struct thermal_hwmon_attr temp_input;	/* hwmon sys attr */
++	struct thermal_hwmon_attr temp_crit;	/* hwmon sys attr */
++#endif
+ };
+ 
+ struct thermal_zone_device *thermal_zone_device_register(char *, int, void *,
 
 
