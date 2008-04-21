@@ -1,83 +1,268 @@
-From: majie <china.majie@gmail.com>
-Subject: Re: can't shut down
-Date: Mon, 21 Apr 2008 12:45:26 +0800
-Message-ID: <480C1BE6.50201@gmail.com>
-References: <1c0ea1cc0804150709u3c4274fbq39467e6a1d704642@mail.gmail.com>	 <1208334994.6931.2.camel@yakui_zhao.sh.intel.com>	 <4806E81F.2010008@gmail.com> <1208523832.4072.6.camel@yakui_zhao.sh.intel.com>
+From: Alex Chiang <achiang@hp.com>
+Subject: Re: [PATCH, RFC] Create 'slot' sysfs
+	attributein/sys/devices/system/cpu/cpuN/topology/
+Date: Sun, 20 Apr 2008 23:24:50 -0600
+Message-ID: <20080421052450.GA24055@ldl.fc.hp.com>
+References: <20080310222735.GA22619@ldl.fc.hp.com> <1FE6DD409037234FAB833C420AA843ECCBFA9D@orsmsx424.amr.corp.intel.com> <20080319233140.GD16237@ldl.fc.hp.com> <1FE6DD409037234FAB833C420AA843ECE13C6E@orsmsx424.amr.corp.intel.com> <20080326185912.GA30749@ldl.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.181]:25040 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750987AbYDUEo1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Apr 2008 00:44:27 -0400
-Received: by wa-out-1112.google.com with SMTP id m16so2828305waf.23
-        for <linux-acpi@vger.kernel.org>; Sun, 20 Apr 2008 21:44:24 -0700 (PDT)
-In-Reply-To: <1208523832.4072.6.camel@yakui_zhao.sh.intel.com>
+Received: from g1t0026.austin.hp.com ([15.216.28.33]:47652 "EHLO
+	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751467AbYDUFYw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Apr 2008 01:24:52 -0400
+Content-Disposition: inline
+In-Reply-To: <20080326185912.GA30749@ldl.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>, linux-acpi@vger.kernel.org
+To: "Luck, Tony" <tony.luck@intel.com>, lenb@kernel.org, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Zhao Yakui wrote:
-> On Thu, 2008-04-17 at 14:03 +0800, majie wrote:
->> Zhao Yakui wrote:
->>> On Tue, 2008-04-15 at 22:09 +0800, majie wrote:
->>>> Hi all,
->>>>
->>>> I'm using Linux kernel 2.6.21.5-smp(Slackware 12). I experience an
->>>> error when I turn off my computer. It doesn't turn off itself (maybe
->>>> called going into G2/S5 Soft Off in the specification) after printing
->>>> a message "acpi_power_off called". I have to press the power button
->>>> for several seconds to turn it off. I think the CPUs may be running in
->>>> full speed because I hear my fan running in high speed.
->>>>
->>>> I tried to find out the problem by adding some printk()'s to the
->>>> function acpi_enter_sleep_state()(in
->>>> linux-2.6.21.5\drivers\acpi\hardware\hwsleep.c). And It shows that it
->>>> runs into the final do-while loop in the function and doing an
->>>> infinite loop. Maybe this is why my CPUs are running in full speed.
->>>>
->>>> I don't have the ability to debug the kernel. So this is the only
->>>> information I can provide about the code. If you want me to post my
->>>> hardware spec or anything else, I'm very glad to, but please tell me
->>>> which command and arguments should I use to get the info.
->>>>
->>>> I have tried the kernel options, but they don't work for me. My laptop
->>>> can shut down flawlessly when using windows xp.
->>>>
->>>> By the way, It's a linux distribution independent problem because I
->>>> also experienced it in kubuntu 7.10.
->>> Will you please attach the output of acpidump?
->>> The latest dump tool (20070116) can be found in 
->>> http://www.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
->>>
-> Will you please try the latest kernel(2.6.25-rc9) and see whether the
-> problem still exists? 
-> Note: 
-> a. ACPI should be enabled in kernel configuration.
-> b. Don't use the custom DSDT
-> c. use "poweroff" command to shutdown
+Hi Tony,
+
+I noticed that this patch wasn't in the git tree you sent to
+Linus for 2.6.26. I don't remember seeing a NACK though -- is
+there something that I could rework to make it more acceptable?
+
+Thanks.
+
+/ac
+
+* Alex Chiang <achiang@hp.com>:
+> Hi Tony,
 > 
-> If the problem still exists, please attach the output of dmesg.
-> thanks.
->       
-
-Hi Yakui,
-Do you receive my email I sent to you on April 19 ? I'm still unable to 
-have the 2.6.25-rc9 kernel boot and run. I can't make a valid initrd to 
-boot the kernel. I've spend the whole weekend to solve the problem. But 
-I've no idea why it can mount my real root filesystem.
-
-So I can't test the 2.6.25-rc9 kernel in normal mode. I want to shutdown 
-the computer using busybox's poweroff in the initrd before the real root 
-filesystem being mounted. Is this approach equal to the "normal" shutdown?
-
-Sorry for causing the trouble to you.
-Thank you.
-
--------
-Regards,
-	majie
-
-
-
+> * Luck, Tony <tony.luck@intel.com>:
+> > +	if (ACPI_SUCCESS(acpi_get_handle(pr->handle, "_SUN", &handle))) {
+> > +		status = acpi_evaluate_object(pr->handle,
+> > +						"_SUN", NULL, &buffer);
+> > +		if (ACPI_FAILURE(status))
+> > +			object.integer.value = -1;
+> > +	} else {
+> > +		object.integer.value = -1;
+> > +	}
+> > +	arch_set_topology_slot(pr->id, object.integer.value);
+> > +
+> >  	if (!object.processor.pblk_address)
+> >  		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "No PBLK (NULL address)\n"));
+> >  	else if (object.processor.pblk_length != 6)
+> > 
+> > I'm still seeing these messages:
+> > 
+> >  "ACPI: Invalid PBLK length [0]"
+> > 
+> > for every cpu.  Presumably because "object" is a union and when
+> > you did the "object.integer.value = -1;" you scribbled on some bits
+> > that were needed in the subsequent code.
+> 
+> Yes, you're right. Sorry about the sloppy code.
+> 
+> Here is v3. I've verified that:
+> 
+> 	- it's benign on tiger (does not create errors/console
+> 	  noise). You'll still see the -1 if you cat
+> 	  /sys/devices/system/cpu/cpuN/topology/slot, but you
+> 	  would also get the -1 if you cat physical_package_id
+> 
+> 	- it does the right thing on platforms that do supply
+> 	  _SUN for processor objects. On my rx2600,
+> 	  physical_package_id is -1, but I get valid values for
+> 	  'slot' now.
+> 
+> Thanks.
+> 
+> /ac
+> 
+> Subject: [PATCH] Create 'slot' sysfs attribute in /sys/devices/system/cpu/cpuN/topology/
+> From: Alex Chiang <achiang@hp.com>
+> 
+> /sys/devices/system/cpu/cpuN/topology/physical_package_id exists,
+> but may contain incorrect information, especially on older ia64
+> platforms that do not have modern firmware.
+> 
+> Create a 'slot' attribute and define an interface that may be
+> populated via alternate sources, without breaking existing
+> functionality.
+> 
+> Implement this interface on ia64 by invoking the _SUN method on a
+> per cpu basis.
+> 
+> Leave other archs alone for now.
+> 
+> v2 -> v3:
+> 	- Stop stomping on existing PBLK in the event of _SUN failure
+> 
+> v1 -> v2:
+> 	- Check for _SUN object on CPU before blindly attempting
+> 	  to call it
+> 
+> Signed-off-by: Alex Chiang <achiang@hp.com>
+> ---
+>  arch/ia64/kernel/setup.c      |    1 +
+>  arch/ia64/kernel/topology.c   |    6 ++++++
+>  drivers/acpi/processor_core.c |    8 ++++++++
+>  drivers/base/topology.c       |    9 +++++++++
+>  include/asm-ia64/cpu.h        |    1 +
+>  include/asm-ia64/processor.h  |    7 ++++++-
+>  include/asm-ia64/topology.h   |    3 +++
+>  include/asm-x86/topology.h    |    2 ++
+>  8 files changed, 36 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/ia64/kernel/setup.c b/arch/ia64/kernel/setup.c
+> index 4aa9eae..228d960 100644
+> --- a/arch/ia64/kernel/setup.c
+> +++ b/arch/ia64/kernel/setup.c
+> @@ -735,6 +735,7 @@ identify_cpu (struct cpuinfo_ia64 *c)
+>  	 */
+>  	c->threads_per_core = c->cores_per_socket = c->num_log = 1;
+>  	c->socket_id = -1;
+> +	c->slot = -1;
+>  
+>  	identify_siblings(c);
+>  
+> diff --git a/arch/ia64/kernel/topology.c b/arch/ia64/kernel/topology.c
+> index a2484fc..512de14 100644
+> --- a/arch/ia64/kernel/topology.c
+> +++ b/arch/ia64/kernel/topology.c
+> @@ -27,6 +27,12 @@
+>  
+>  static struct ia64_cpu *sysfs_cpus;
+>  
+> +void ia64_set_topology_slot(int num, u32 slot)
+> +{
+> +	cpu_data(num)->slot = slot;
+> +}
+> +EXPORT_SYMBOL_GPL(ia64_set_topology_slot);
+> +
+>  int arch_register_cpu(int num)
+>  {
+>  #if defined (CONFIG_ACPI) && defined (CONFIG_HOTPLUG_CPU)
+> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+> index 36a68fa..a3a740d 100644
+> --- a/drivers/acpi/processor_core.c
+> +++ b/drivers/acpi/processor_core.c
+> @@ -612,6 +612,14 @@ static int acpi_processor_get_info(struct acpi_processor *pr, unsigned has_uid)
+>  		request_region(pr->throttling.address, 6, "ACPI CPU throttle");
+>  	}
+>  
+> +	/*
+> +	 * If ACPI describes a slot number for this CPU, let's fill it in
+> +	 */
+> +	status = acpi_evaluate_object(pr->handle, "_SUN", NULL, &buffer);
+> +	if (ACPI_FAILURE(status))
+> +		object.integer.value = -1;
+> +	arch_set_topology_slot(pr->id, object.integer.value);
+> +
+>  	return 0;
+>  }
+>  
+> diff --git a/drivers/base/topology.c b/drivers/base/topology.c
+> index e1d3ad4..4fcffca 100644
+> --- a/drivers/base/topology.c
+> +++ b/drivers/base/topology.c
+> @@ -57,6 +57,14 @@ define_one_ro(physical_package_id);
+>  #define ref_physical_package_id_attr
+>  #endif
+>  
+> +#ifdef	topology_slot
+> +define_id_show_func(slot);
+> +define_one_ro(slot);
+> +#define ref_slot_attr			&attr_slot.attr,
+> +#else
+> +#define ref_slot_attr
+> +#endif
+> +
+>  #ifdef topology_core_id
+>  define_id_show_func(core_id);
+>  define_one_ro(core_id);
+> @@ -83,6 +91,7 @@ define_one_ro(core_siblings);
+>  
+>  static struct attribute *default_attrs[] = {
+>  	ref_physical_package_id_attr
+> +	ref_slot_attr
+>  	ref_core_id_attr
+>  	ref_thread_siblings_attr
+>  	ref_core_siblings_attr
+> diff --git a/include/asm-ia64/cpu.h b/include/asm-ia64/cpu.h
+> index e87fa32..393e545 100644
+> --- a/include/asm-ia64/cpu.h
+> +++ b/include/asm-ia64/cpu.h
+> @@ -14,6 +14,7 @@ DECLARE_PER_CPU(struct ia64_cpu, cpu_devices);
+>  
+>  DECLARE_PER_CPU(int, cpu_state);
+>  
+> +extern void arch_set_topology_slot(int num, u32 slot);
+>  extern int arch_register_cpu(int num);
+>  #ifdef CONFIG_HOTPLUG_CPU
+>  extern void arch_unregister_cpu(int);
+> diff --git a/include/asm-ia64/processor.h b/include/asm-ia64/processor.h
+> index 741f7ec..066553c 100644
+> --- a/include/asm-ia64/processor.h
+> +++ b/include/asm-ia64/processor.h
+> @@ -125,6 +125,10 @@ struct ia64_psr {
+>   */
+>  struct cpuinfo_ia64 {
+>  	__u32 softirq_pending;
+> +
+> +#ifdef CONFIG_SMP
+> +	int cpu;
+> +#endif
+>  	__u64 itm_delta;	/* # of clock cycles between clock ticks */
+>  	__u64 itm_next;		/* interval timer mask value to use for next clock tick */
+>  	__u64 nsec_per_cyc;	/* (1000000000<<IA64_NSEC_PER_CYC_SHIFT)/itc_freq */
+> @@ -140,7 +144,6 @@ struct cpuinfo_ia64 {
+>  
+>  #ifdef CONFIG_SMP
+>  	__u64 loops_per_jiffy;
+> -	int cpu;
+>  	__u32 socket_id;	/* physical processor socket id */
+>  	__u16 core_id;		/* core id */
+>  	__u16 thread_id;	/* thread id */
+> @@ -150,6 +153,8 @@ struct cpuinfo_ia64 {
+>  	__u8  threads_per_core;	/* Threads per core */
+>  #endif
+>  
+> +	__u32 slot;		/* physical slot; can differ from socket_id */
+> +
+>  	/* CPUID-derived information: */
+>  	__u64 ppn;
+>  	__u64 features;
+> diff --git a/include/asm-ia64/topology.h b/include/asm-ia64/topology.h
+> index 2d67b72..f986693 100644
+> --- a/include/asm-ia64/topology.h
+> +++ b/include/asm-ia64/topology.h
+> @@ -110,12 +110,15 @@ void build_cpu_to_node_map(void);
+>  
+>  #ifdef CONFIG_SMP
+>  #define topology_physical_package_id(cpu)	(cpu_data(cpu)->socket_id)
+> +#define topology_slot(cpu)			(cpu_data(cpu)->slot)
+>  #define topology_core_id(cpu)			(cpu_data(cpu)->core_id)
+>  #define topology_core_siblings(cpu)		(cpu_core_map[cpu])
+>  #define topology_thread_siblings(cpu)		(per_cpu(cpu_sibling_map, cpu))
+>  #define smt_capable() 				(smp_num_siblings > 1)
+>  #endif
+>  
+> +#define arch_set_topology_slot(num, slot)	ia64_set_topology_slot(num,slot)
+> +
+>  #include <asm-generic/topology.h>
+>  
+>  #endif /* _ASM_IA64_TOPOLOGY_H */
+> diff --git a/include/asm-x86/topology.h b/include/asm-x86/topology.h
+> index 8af05a9..d4c922c 100644
+> --- a/include/asm-x86/topology.h
+> +++ b/include/asm-x86/topology.h
+> @@ -180,6 +180,8 @@ extern cpumask_t cpu_coregroup_map(int cpu);
+>  #define topology_thread_siblings(cpu)		(per_cpu(cpu_sibling_map, cpu))
+>  #endif
+>  
+> +#define arch_set_topology_slot(num, slot)
+> +
+>  #ifdef CONFIG_SMP
+>  #define mc_capable()			(boot_cpu_data.x86_max_cores > 1)
+>  #define smt_capable()			(smp_num_siblings > 1)
+> -- 
+> 1.5.3.1.g1e61
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
