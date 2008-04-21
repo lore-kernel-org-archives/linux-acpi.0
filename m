@@ -1,41 +1,157 @@
 From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [PATCH 3/6] thermal: add hwmon sysfs I/F
-Date: Mon, 21 Apr 2008 11:25:54 +0200
-Message-ID: <20080421112554.3768a4da@hyperion.delvare>
-References: <1207815360.27304.39.camel@acpi-hp-zz.sh.intel.com>
-	<20080416224555.15304b3d@hyperion.delvare>
-	<1208765272.3550.7.camel@rzhang-1.sh.intel.com>
+Subject: Re: [PATCH 4/6] thermal: update the documentation
+Date: Mon, 21 Apr 2008 11:33:28 +0200
+Message-ID: <20080421113328.294b4fc3@hyperion.delvare>
+References: <1207815421.27304.42.camel@acpi-hp-zz.sh.intel.com>
+	<20080416223517.1ca7d2df@hyperion.delvare>
+	<1208765230.3550.4.camel@rzhang-1.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:1081 "EHLO
+Received: from zone0.gcu-squad.org ([212.85.147.21]:45574 "EHLO
 	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755091AbYDUJ0G (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Apr 2008 05:26:06 -0400
-In-Reply-To: <1208765272.3550.7.camel@rzhang-1.sh.intel.com>
+	with ESMTP id S1750814AbYDUJdj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Apr 2008 05:33:39 -0400
+In-Reply-To: <1208765230.3550.4.camel@rzhang-1.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Zhang Rui <rui.zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, Hans de Goede <j.w.r.degoede@hhs.nl>, linux-acpi <linux-acpi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, waldi@debian.org
+Cc: Len Brown <lenb@kernel.org>, Hans de Goede <j.w.r.degoede@hhs.nl>, linux-acpi <linux-acpi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
 
-On Mon, 21 Apr 2008 16:07:52 +0800, Zhang Rui wrote:
-> "hwmon_already_available" was used at the beginning.
-> I renamed this flag later but forget to change the logic. :)
-> Please review the patch below.
+Hi Rui,
+
+On Mon, 21 Apr 2008 16:07:10 +0800, Zhang Rui wrote:
+> Update the documentation for the thermal driver hwmon sys I/F.
 > 
-> 
-> Add hwmon sys I/F for generic thermal driver.
-> 
-> Note: we have one hwmon class device for EACH TYPE of the thermal zone device.
+> Change the ACPI thermal zone type to be consistent with hwmon.
 > 
 > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 > ---
->  drivers/thermal/thermal.c |  163 ++++++++++++++++++++++++++++++++++++++++++++++
->  include/linux/thermal.h   |   24 ++++++
->  2 files changed, 187 insertions(+)
+>  Documentation/thermal/sysfs-api.txt |   33
+> +++++++++++++++++++++++++++------
+>  drivers/acpi/thermal.c              |    2 +-
+>  2 files changed, 28 insertions(+), 7 deletions(-)
+> 
+> Index: old-git/Documentation/thermal/sysfs-api.txt
+> ===================================================================
+> --- old-git.orig/Documentation/thermal/sysfs-api.txt	2008-04-21
+> 15:16:05.000000000 +0800
+> +++ old-git/Documentation/thermal/sysfs-api.txt	2008-04-21
+> 15:20:59.000000000 +0800
+> @@ -108,10 +108,12 @@
+>  RO	read only value
+>  RW	read/write value
+>  
+> -All thermal sysfs attributes will be represented
+> under /sys/class/thermal
 
-Acked-by: Jean Delvare <khali@linux-fr.org>
+For some reason your mailer wrapped long lines on this patch, so it
+doesn't apply. I guess you'll have to fix that and resend so that Len
+can pick your patch.
 
+> +Thermal sysfs attributes will be represented under /sys/class/thermal.
+> +Hwmon sysfs I/F extension is also available under /sys/class/hwmon
+> +if hwmon is compiled in or built as a module.
+>  
+>  Thermal zone device sys I/F, created once it's registered:
+> -|thermal_zone[0-*]:
+> +/sys/class/thermal/thermal_zone[0-*]:
+>  	|-----type:			Type of the thermal zone
+>  	|-----temp:			Current temperature
+>  	|-----mode:			Working mode of the thermal zone
+> @@ -119,7 +121,7 @@
+>  	|-----trip_point_[0-*]_type:	Trip point type
+>  
+>  Thermal cooling device sys I/F, created once it's registered:
+> -|cooling_device[0-*]:
+> +/sys/class/thermal/cooling_device[0-*]:
+>  	|-----type :			Type of the cooling device(processor/fan/...)
+>  	|-----max_state:		Maximum cooling state of the cooling device
+>  	|-----cur_state:		Current cooling state of the cooling device
+> @@ -130,10 +132,19 @@
+>  They are created/removed for each
+>  thermal_zone_bind_cooling_device/thermal_zone_unbind_cooling_device
+> successful execution.
+>  
+> -|thermal_zone[0-*]
+> +/sys/class/thermal/thermal_zone[0-*]
+>  	|-----cdev[0-*]:		The [0-*]th cooling device in the current thermal
+> zone
+>  	|-----cdev[0-*]_trip_point:	Trip point that cdev[0-*] is associated
+> with
+>  
+> +Besides the thermal zone device sysfs I/F and cooling device sysfs I/F,
+> +the generic thermal driver also creates a hwmon sysfs I/F for each
+> _type_ of
+> +thermal zone device. E.g. the generic thermal driver registers one
+> hwmon class device
+> +and build the associated hwmon sysfs I/F for all the registered ACPI
+> thermal zones.
+> +/sys/class/hwmon/hwmon[0-*]:
+> +	|-----name:			The type of the thermal zone devices.
+> +	|-----temp[1-*]_input:		The current temperature of thermal zone [1-*].
+> +	|-----temp[1-*]_critical:	The critical trip point of thermal zone
+> [1-*].
+> +Please read Documentation/hwmon/sysfs-interface for additional
+> information.
+>  
+>  ***************************
+>  * Thermal zone attributes *
+> @@ -141,7 +152,10 @@
+>  
+>  type				Strings which represent the thermal zone type.
+>  				This is given by thermal zone driver as part of registration.
+> -				Eg: "ACPI thermal zone" indicates it's a ACPI thermal device
+> +				Eg: "acpitz" indicates it's an ACPI thermal device.
+> +				In order to keep it consistent with hwmon sys attribute,
+> +				this should be a short, lowercase string,
+> +				not containing spaces nor dashes.
+>  				RO
+>  				Required
+>  
+> @@ -218,7 +232,7 @@
+>  /sys/class/thermal:
+>  
+>  |thermal_zone1:
+> -	|-----type:			ACPI thermal zone
+> +	|-----type:			acpitz
+>  	|-----temp:			37000
+>  	|-----mode:			kernel
+>  	|-----trip_point_0_temp:	100000
+> @@ -243,3 +257,10 @@
+>  	|-----type:			Fan
+>  	|-----max_state:		2
+>  	|-----cur_state:		0
+> +
+> +/sys/class/hwmon:
+> +
+> +|hwmon0:
+> +	|-----name:			acpitz
+> +	|-----temp1_input:		37000
+> +	|-----temp1_crit:		100000
+> Index: old-git/drivers/acpi/thermal.c
+> ===================================================================
+> --- old-git.orig/drivers/acpi/thermal.c	2008-04-21 15:16:05.000000000
+> +0800
+> +++ old-git/drivers/acpi/thermal.c	2008-04-21 15:20:14.000000000 +0800
+> @@ -1136,7 +1136,7 @@
+>  
+>  	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE &&
+>  			tz->trips.active[i].flags.valid; i++, trips++);
+> -	tz->thermal_zone = thermal_zone_device_register("ACPI thermal zone",
+> +	tz->thermal_zone = thermal_zone_device_register("acpitz",
+>  					trips, tz, &acpi_thermal_zone_ops);
+>  	if (!tz->thermal_zone)
+>  		return -ENODEV;
+> 
+
+This last chunk applies with fuzz 2 here. If this is because I'm
+missing other acpi patches, that's OK, but if not you should refresh
+the patch so that Len has no problem pushing it in git.
+
+Other than that, this patch now looks fine to me.
+
+Thanks,
 -- 
 Jean Delvare
