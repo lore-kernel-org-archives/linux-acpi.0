@@ -1,60 +1,142 @@
-From: Jiri Kosina <jkosina@suse.cz>
-Subject: WARNING: at drivers/base/sys.c:183 sysdev_driver_register+0x75/0x12e()
-Date: Tue, 22 Apr 2008 16:12:15 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0804221609130.12972@jikos.suse.cz>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [PATCH 4/6] thermal: update the documentation
+Date: Tue, 22 Apr 2008 16:13:45 +0200
+Message-ID: <20080422161345.41f33e68@hyperion.delvare>
+References: <1207815421.27304.42.camel@acpi-hp-zz.sh.intel.com>
+	<20080416223517.1ca7d2df@hyperion.delvare>
+	<1208765230.3550.4.camel@rzhang-1.sh.intel.com>
+	<20080421113328.294b4fc3@hyperion.delvare>
+	<1208825410.3550.14.camel@rzhang-1.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <cpufreq-bounces+glkc-cpufreq=gmane.org@lists.linux.org.uk>
-List-Unsubscribe: <http://lists.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request@lists.linux.org.uk?subject=unsubscribe>
-List-Archive: <http://lists.linux.org.uk/mailman/private/cpufreq>
-List-Post: <mailto:cpufreq@lists.linux.org.uk>
-List-Help: <mailto:cpufreq-request@lists.linux.org.uk?subject=help>
-List-Subscribe: <http://lists.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request@lists.linux.org.uk?subject=subscribe>
-Sender: cpufreq-bounces@lists.linux.org.uk
-Errors-To: cpufreq-bounces+glkc-cpufreq=gmane.org+glkc-cpufreq=gmane.org@lists.linux.org.uk
-To: davej@codemonkey.org.uk, lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, Greg KH <greg@kroah.com>, linux-kernel@vger.kernel.org, cpufreq@lists.linux.org.uk
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from zone0.gcu-squad.org ([212.85.147.21]:28883 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934186AbYDVOOI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Apr 2008 10:14:08 -0400
+In-Reply-To: <1208825410.3550.14.camel@rzhang-1.sh.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Len Brown <lenb@kernel.org>, Hans de Goede <j.w.r.degoede@hhs.nl>, linux-acpi <linux-acpi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
 
-Hi,
+Hi Rui,
 
-I am getting the acpi-cpufreq-drivercore warning below when booting 
-current git (807501475)
+On Tue, 22 Apr 2008 08:50:09 +0800, Zhang Rui wrote:
+> thanks for reviewing. :)
+> 
+> 
+> Update the documentation for the thermal driver hwmon sys I/F.
+> 
+> Change the ACPI thermal zone type to be consistent with hwmon.
+> 
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> ---
+>  Documentation/thermal/sysfs-api.txt |   33 +++++++++++++++++++++++++++------
+>  drivers/acpi/thermal.c              |    2 +-
+>  2 files changed, 28 insertions(+), 7 deletions(-)
+> 
+> Index: linux-2.6/Documentation/thermal/sysfs-api.txt
+> ===================================================================
+> --- linux-2.6.orig/Documentation/thermal/sysfs-api.txt	2008-04-22 08:43:59.000000000 +0800
+> +++ linux-2.6/Documentation/thermal/sysfs-api.txt	2008-04-22 08:44:38.000000000 +0800
+> @@ -108,10 +108,12 @@
+>  RO	read only value
+>  RW	read/write value
+>  
+> -All thermal sysfs attributes will be represented under /sys/class/thermal
+> +Thermal sysfs attributes will be represented under /sys/class/thermal.
+> +Hwmon sysfs I/F extension is also available under /sys/class/hwmon
+> +if hwmon is compiled in or built as a module.
+>  
+>  Thermal zone device sys I/F, created once it's registered:
+> -|thermal_zone[0-*]:
+> +/sys/class/thermal/thermal_zone[0-*]:
+>  	|-----type:			Type of the thermal zone
+>  	|-----temp:			Current temperature
+>  	|-----mode:			Working mode of the thermal zone
+> @@ -119,7 +121,7 @@
+>  	|-----trip_point_[0-*]_type:	Trip point type
+>  
+>  Thermal cooling device sys I/F, created once it's registered:
+> -|cooling_device[0-*]:
+> +/sys/class/thermal/cooling_device[0-*]:
+>  	|-----type :			Type of the cooling device(processor/fan/...)
+>  	|-----max_state:		Maximum cooling state of the cooling device
+>  	|-----cur_state:		Current cooling state of the cooling device
+> @@ -130,10 +132,19 @@
+>  They are created/removed for each
+>  thermal_zone_bind_cooling_device/thermal_zone_unbind_cooling_device successful execution.
+>  
+> -|thermal_zone[0-*]
+> +/sys/class/thermal/thermal_zone[0-*]
+>  	|-----cdev[0-*]:		The [0-*]th cooling device in the current thermal zone
+>  	|-----cdev[0-*]_trip_point:	Trip point that cdev[0-*] is associated with
+>  
+> +Besides the thermal zone device sysfs I/F and cooling device sysfs I/F,
+> +the generic thermal driver also creates a hwmon sysfs I/F for each _type_ of
+> +thermal zone device. E.g. the generic thermal driver registers one hwmon class device
+> +and build the associated hwmon sysfs I/F for all the registered ACPI thermal zones.
+> +/sys/class/hwmon/hwmon[0-*]:
+> +	|-----name:			The type of the thermal zone devices.
+> +	|-----temp[1-*]_input:		The current temperature of thermal zone [1-*].
+> +	|-----temp[1-*]_critical:	The critical trip point of thermal zone [1-*].
+> +Please read Documentation/hwmon/sysfs-interface for additional information.
+>  
+>  ***************************
+>  * Thermal zone attributes *
+> @@ -141,7 +152,10 @@
+>  
+>  type				Strings which represent the thermal zone type.
+>  				This is given by thermal zone driver as part of registration.
+> -				Eg: "ACPI thermal zone" indicates it's a ACPI thermal device
+> +				Eg: "acpitz" indicates it's an ACPI thermal device.
+> +				In order to keep it consistent with hwmon sys attribute,
+> +				this should be a short, lowercase string,
+> +				not containing spaces nor dashes.
+>  				RO
+>  				Required
+>  
+> @@ -218,7 +232,7 @@
+>  /sys/class/thermal:
+>  
+>  |thermal_zone1:
+> -	|-----type:			ACPI thermal zone
+> +	|-----type:			acpitz
+>  	|-----temp:			37000
+>  	|-----mode:			kernel
+>  	|-----trip_point_0_temp:	100000
+> @@ -243,3 +257,10 @@
+>  	|-----type:			Fan
+>  	|-----max_state:		2
+>  	|-----cur_state:		0
+> +
+> +/sys/class/hwmon:
+> +
+> +|hwmon0:
+> +	|-----name:			acpitz
+> +	|-----temp1_input:		37000
+> +	|-----temp1_crit:		100000
+> Index: linux-2.6/drivers/acpi/thermal.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/thermal.c	2008-04-22 08:43:59.000000000 +0800
+> +++ linux-2.6/drivers/acpi/thermal.c	2008-04-22 08:44:38.000000000 +0800
+> @@ -1136,7 +1136,7 @@
+>  
+>  	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE &&
+>  			tz->trips.active[i].flags.valid; i++, trips++);
+> -	tz->thermal_zone = thermal_zone_device_register("ACPI thermal zone",
+> +	tz->thermal_zone = thermal_zone_device_register("acpitz",
+>  					trips, tz, &acpi_thermal_zone_ops);
+>  	if (IS_ERR(tz->thermal_zone))
+>  		return -ENODEV;
+> 
+> 
 
-powernow-k8: Found 1 AMD Athlon(tm) 64 Processor 3000+ processors (1 cpu 
-cores) (version 2.20.00)
-powernow-k8: BIOS error - no PSB or ACPI _PSS objects
-sysdev: class cpu: driver (ffffffff8057fd10) has already been registered 
-to a class, something is wrong, but will forge on!
-------------[ cut here ]------------
-WARNING: at drivers/base/sys.c:183 sysdev_driver_register+0x75/0x12e()
-Modules linked in: acpi_cpufreq(+) snd_mixer_oss freq_table snd_seq loop 
-dm_mod snd_via82xx gameport snd_ac97_codec ac97_bus snd_pcm snd_timer 
-snd_page_alloc snd_mpu401_uart snd_rawmidi parport_pc snd_seq_device 
-parport snd shpchp floppy i2c_viapro i2c_core soundcore pci_hotplug sr_mod 
-r8169 cdrom button sg usbhid hid sd_mod edd ext3 mbcache jbd fan pata_via 
-sata_via libata scsi_mod dock thermal processor
-Pid: 2284, comm: modprobe Not tainted 2.6.25-default-03410-g8075014 #27
+Looks alright.
 
-Call Trace:
- [<ffffffff8022dcc7>] warn_on_slowpath+0x58/0x6b
- [<ffffffff8022eba7>] ? printk+0x67/0x69
- [<ffffffff8042777a>] ? __mutex_unlock_slowpath+0xf9/0x105
- [<ffffffff8042778f>] ? mutex_unlock+0x9/0xb
- [<ffffffff8042927d>] ? _spin_unlock_irqrestore+0x3f/0x47
- [<ffffffff80368b33>] sysdev_driver_register+0x75/0x12e
- [<ffffffff803a9fb3>] cpufreq_register_driver+0x95/0x12f
- [<ffffffffa00f503f>] :acpi_cpufreq:acpi_cpufreq_init+0x3f/0x41
- [<ffffffff80252b4b>] sys_init_module+0x19d1/0x1b02
- [<ffffffff80285eda>] ? __kmalloc+0x0/0xea
- [<ffffffff8024a87b>] ? trace_hardirqs_on+0xf1/0x115
- [<ffffffff80428afc>] ? trace_hardirqs_on_thunk+0x35/0x3a
- [<ffffffff8020bf7b>] system_call_after_swapgs+0x7b/0x80
-
----[ end trace 21ad653327c7db6f ]---
+Acked-by: Jean Delvare <khali@linux-fr.org>
 
 -- 
-Jiri Kosina
+Jean Delvare
