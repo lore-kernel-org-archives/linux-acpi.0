@@ -1,82 +1,155 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH 65/73] ACPICA: Fix for extraneous debug message for packages
-Date: Tue, 22 Apr 2008 15:21:34 -0700
-Message-ID: <9D39833986E69849A2A8E74C1078B6B3335943@orsmsx415.amr.corp.intel.com>
-References: <1207974356-30687-1-git-send-email-lenb@kernel.org> <200804150309.25361.lenb@kernel.org> <48046902.8040900@gmail.com> <200804221523.22999.lenb@kernel.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 67/73] ACPICA: Fixes for external Reference Objects
+Date: Tue, 22 Apr 2008 19:15:38 -0400
+Message-ID: <200804221915.38530.lenb@kernel.org>
+References: <1207974356-30687-1-git-send-email-lenb@kernel.org> <ac9f1f2204eb7bd93d0fc3d23c42e2385131c302.1207973800.git.len.brown@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:30932 "EHLO mga02.intel.com"
+Received: from hera.kernel.org ([140.211.167.34]:37128 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757078AbYDVWVf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Apr 2008 18:21:35 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <200804221523.22999.lenb@kernel.org>
+	id S1750761AbYDVXP6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 22 Apr 2008 19:15:58 -0400
+In-Reply-To: <ac9f1f2204eb7bd93d0fc3d23c42e2385131c302.1207973800.git.len.brown@intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, Alexey Starikovskiy <aystarik@gmail.com>
-Cc: linux-acpi@vger.kernel.org, Alexey Starikovskiy <astarikovskiy@suse.de>
+To: linux-acpi@vger.kernel.org
+Cc: Bob Moore <robert.moore@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.de>, Lin Ming <ming.m.lin@intel.com>
 
->would probably work just as well.  Certainly acpi_native_uint was
-overkill.
+commit cd0b2248241f4146152fb04a6bf4bccb6ce0478a
+Author: Bob Moore <robert.moore@intel.com>
+Date:   Thu Apr 10 19:06:43 2008 +0400
 
-I disagree. Often more efficient to use machine native word rather than
-fooling around with a byte load/clear and store
+ACPICA: Fixes for external Reference Objects
+    
+All Reference Objects returned via the AcpiEvaluteObject interface
+are now marked as type "REFERENCE" instead of "ANY". The type ANY
+is now reservered for NULL objects - either NULL package elements
+or unresolved named references.
+    
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
+
+---
+updated patch:
+utils.c update from Alexey Starikovskiy
+scan.c update from Lin Ming:
+
+ scan.c             |    3 +--
+ utilities/utcopy.c |   32 ++++++++++++++++++++++++--------
+ utils.c            |    2 +-
+ 3 files changed, 26 insertions(+), 11 deletions(-)
 
 
->-----Original Message-----
->From: Len Brown [mailto:lenb@kernel.org]
->Sent: Tuesday, April 22, 2008 12:23 PM
->To: Alexey Starikovskiy
->Cc: linux-acpi@vger.kernel.org; Moore, Robert; Alexey Starikovskiy
->Subject: Re: [PATCH 65/73] ACPICA: Fix for extraneous debug message for
->packages
->
->On Tuesday 15 April 2008, Alexey Starikovskiy wrote:
->> Len Brown wrote:
->> > From: Len Brown <len.brown@intel.com>
->> >
->> > drivers/acpi/dispatcher/dsobject.c:499: warning: format '%X'
-expects
->type 'unsigned int', but argument 4 has type 'acpi_native_uint'
->> > drivers/acpi/dispatcher/dsobject.c:507: warning: format '%X'
-expects
->type 'unsigned int', but argument 7 has type 'acpi_native_uint'
->> >
->> > Signed-off-by: Len Brown <len.brown@intel.com>
->> > ---
->> >  drivers/acpi/dispatcher/dsobject.c |    2 +-
->> >  1 files changed, 1 insertions(+), 1 deletions(-)
->> >
->> > diff --git a/drivers/acpi/dispatcher/dsobject.c
->b/drivers/acpi/dispatcher/dsobject.c
->> > index 5184278..bdef2f0 100644
->> > --- a/drivers/acpi/dispatcher/dsobject.c
->> > +++ b/drivers/acpi/dispatcher/dsobject.c
->> > @@ -373,7 +373,7 @@ acpi_ds_build_internal_package_obj(struct
->acpi_walk_state *walk_state,
->> >  	union acpi_parse_object *parent;
->> >  	union acpi_operand_object *obj_desc = NULL;
->> >  	acpi_status status = AE_OK;
->> > -	acpi_native_uint i;
->> > +	u32 i;
->> >
->> why not just unsigned ?
->
->> >  	u16 index;
->> >  	u16 reference_count;
->
->No particular reason, u32 and unsigned are synonyms on the
-architectures we
->care about.
->Now that you point it out, i prefer unsigned, and will go with that.
->
->This is used as an index into the arrary of elements in a package, so
-8-
->bits
->would probably work just as well.  Certainly acpi_native_uint was
-overkill.
->
->-Len
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index e6ce262..464ee6e 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -677,9 +677,8 @@ acpi_bus_extract_wakeup_device_power_package(struct acpi_device *device,
+ 	device->wakeup.resources.count = package->package.count - 2;
+ 	for (i = 0; i < device->wakeup.resources.count; i++) {
+ 		element = &(package->package.elements[i + 2]);
+-		if (element->type != ACPI_TYPE_ANY) {
++		if (element->type != ACPI_TYPE_LOCAL_REFERENCE)
+ 			return AE_BAD_DATA;
+-		}
+ 
+ 		device->wakeup.resources.handles[i] = element->reference.handle;
+ 	}
+diff --git a/drivers/acpi/utilities/utcopy.c b/drivers/acpi/utilities/utcopy.c
+index 4e9a62b..2a57c2c 100644
+--- a/drivers/acpi/utilities/utcopy.c
++++ b/drivers/acpi/utilities/utcopy.c
+@@ -43,6 +43,8 @@
+ 
+ #include <acpi/acpi.h>
+ #include <acpi/amlcode.h>
++#include <acpi/acnamesp.h>
++
+ 
+ #define _COMPONENT          ACPI_UTILITIES
+ ACPI_MODULE_NAME("utcopy")
+@@ -172,22 +174,21 @@ acpi_ut_copy_isimple_to_esimple(union acpi_operand_object *internal_object,
+ 
+ 	case ACPI_TYPE_LOCAL_REFERENCE:
+ 
+-		/*
+-		 * This is an object reference.  Attempt to dereference it.
+-		 */
++		/* This is an object reference. */
++
+ 		switch (internal_object->reference.opcode) {
+ 		case AML_INT_NAMEPATH_OP:
+ 
+ 			/* For namepath, return the object handle ("reference") */
+ 
+ 		default:
+-			/*
+-			 * Use the object type of "Any" to indicate a reference
+-			 * to object containing a handle to an ACPI named object.
+-			 */
+-			external_object->type = ACPI_TYPE_ANY;
++
++			/* We are referring to the namespace node */
++
+ 			external_object->reference.handle =
+ 			    internal_object->reference.node;
++			external_object->reference.actual_type =
++			    acpi_ns_get_type(internal_object->reference.node);
+ 			break;
+ 		}
+ 		break;
+@@ -460,6 +461,7 @@ acpi_ut_copy_esimple_to_isimple(union acpi_object *external_object,
+ 	case ACPI_TYPE_STRING:
+ 	case ACPI_TYPE_BUFFER:
+ 	case ACPI_TYPE_INTEGER:
++	case ACPI_TYPE_LOCAL_REFERENCE:
+ 
+ 		internal_object = acpi_ut_create_internal_object((u8)
+ 								 external_object->
+@@ -469,6 +471,11 @@ acpi_ut_copy_esimple_to_isimple(union acpi_object *external_object,
+ 		}
+ 		break;
+ 
++	case ACPI_TYPE_ANY:	/* This is the case for a NULL object */
++
++		*ret_internal_object = NULL;
++		return_ACPI_STATUS(AE_OK);
++
+ 	default:
+ 		/* All other types are not supported */
+ 
+@@ -522,6 +529,15 @@ acpi_ut_copy_esimple_to_isimple(union acpi_object *external_object,
+ 		internal_object->integer.value = external_object->integer.value;
+ 		break;
+ 
++	case ACPI_TYPE_LOCAL_REFERENCE:
++
++		/* TBD: should validate incoming handle */
++
++		internal_object->reference.opcode = AML_INT_NAMEPATH_OP;
++		internal_object->reference.node =
++		    external_object->reference.handle;
++		break;
++
+ 	default:
+ 		/* Other types can't get here */
+ 		break;
+diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+index 44ea60c..1009261 100644
+--- a/drivers/acpi/utils.c
++++ b/drivers/acpi/utils.c
+@@ -398,7 +398,7 @@ acpi_evaluate_reference(acpi_handle handle,
+ 
+ 		element = &(package->package.elements[i]);
+ 
+-		if (element->type != ACPI_TYPE_ANY) {
++		if (element->type != ACPI_TYPE_LOCAL_REFERENCE) {
+ 			status = AE_BAD_DATA;
+ 			printk(KERN_ERR PREFIX
+ 				    "Expecting a [Reference] package element, found type %X\n",
