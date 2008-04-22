@@ -1,161 +1,94 @@
-From: Mehturt <mehturt@gmail.com>
-Subject: dmidecode
-Date: Tue, 22 Apr 2008 22:03:11 +0200
-Message-ID: <43deb2920804221303h2feaa252rc681764baf6b4ae9@mail.gmail.com>
+From: Rene Herman <rene.herman@keyaccess.nl>
+Subject: Re: [patch 22/53] PNP: factor pnp_init_resource_table() and pnp_clean_resource_table()
+Date: Tue, 22 Apr 2008 23:01:58 +0200
+Message-ID: <480E5246.5000804@keyaccess.nl>
+References: <20080418204955.342963315@ldl.fc.hp.com> <48097886.9000907@keyaccess.nl> <480CDFDB.3020703@keyaccess.nl> <200804211710.38660.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_18579_9372665.1208894591787"
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.248]:44608 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758202AbYDVUDM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Apr 2008 16:03:12 -0400
-Received: by an-out-0708.google.com with SMTP id d31so628669and.103
-        for <linux-acpi@vger.kernel.org>; Tue, 22 Apr 2008 13:03:11 -0700 (PDT)
+Received: from smtpq1.tilbu1.nb.home.nl ([213.51.146.200]:37203 "EHLO
+	smtpq1.tilbu1.nb.home.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752496AbYDVVCK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Apr 2008 17:02:10 -0400
+In-Reply-To: <200804211710.38660.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-------=_Part_18579_9372665.1208894591787
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On 22-04-08 01:10, Bjorn Helgaas wrote:
 
-This is what I've found in my dmesg:
-[   17.324322] ACPI: System BIOS is requesting _OSI(Linux)
-[   17.324324] ACPI: Please test with "acpi_osi=!Linux"
-[   17.324325] Please send dmidecode to linux-acpi@vger.kernel.org
+> Yes, right.  I reproduced this on an ACPI system where the BIOS leaves
+> a couple devices disabled.
 
-So I'm sending output of dmidecode, as requested..
-m.
+Ah, good, not just  isapnp then. I was starting to feel lonely here, sitting 
+atop my pile of ISA crap...
 
-------=_Part_18579_9372665.1208894591787
-Content-Type: text/plain; name=dmidecode.txt
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_ffcwmdv30
-Content-Disposition: attachment; filename=dmidecode.txt
+>> Getting things working also needs setting pnp_res->index (to nport, nmem, 
+>> nirq, ndma in pnp_assign_resources) so that the isapnp_set_resources which 
+>> follows sets to the correct hardware index, but at that point position in 
+>> the list and the index are mixing together in unhealthy ways -- in the 
+>> pnp_assign_foo helpers, pnp_get_resource(.., idx) just get the "idx-th" 
+>> resource of the correct type in the list but it seems it really should be 
+>> getting the resource of the correct type with its ->index set to "idx".
+> 
+> I don't mind setting pnp_res->index in the generic pnp_assign_* code.
+> We have to do that already in pnp_set_current_resources() (the /sys
+> interface), and I don't see a good way around it.
+> 
+> In pnp_assign_resources(), we currently assume that all independent
+> options appear before any dependent ones because we compute nport,
+> nmem, etc by iterating through the independent options first.  Then
+> we use those nport, nmem, etc values as the "index" (CSR index for
+> ISAPNP, nth resource type in the template for PNPBIOS and PNPACPI).
+> I don't know whether this assumption is in the spec, but at least
+> we've assumed it for a long time.
 
-IyBkbWlkZWNvZGUgMi45ClNNQklPUyAyLjMxIHByZXNlbnQuCjI1IHN0cnVjdHVyZXMgb2NjdXB5
-aW5nIDk3OSBieXRlcy4KVGFibGUgYXQgMHgwMDBEQzAxMC4KCkhhbmRsZSAweDAwMDAsIERNSSB0
-eXBlIDAsIDIwIGJ5dGVzCkJJT1MgSW5mb3JtYXRpb24KCVZlbmRvcjogVE9TSElCQQoJVmVyc2lv
-bjogVjIuOTAKCVJlbGVhc2UgRGF0ZTogMDkvMTMvMjAwNwoJQWRkcmVzczogMHhFNTkxMAoJUnVu
-dGltZSBTaXplOiAxMDgyNzIgYnl0ZXMKCVJPTSBTaXplOiA1MTIga0IKCUNoYXJhY3RlcmlzdGlj
-czoKCQlQQ0kgaXMgc3VwcG9ydGVkCgkJUEMgQ2FyZCAoUENNQ0lBKSBpcyBzdXBwb3J0ZWQKCQlQ
-TlAgaXMgc3VwcG9ydGVkCgkJQklPUyBpcyB1cGdyYWRlYWJsZQoJCUJJT1Mgc2hhZG93aW5nIGlz
-IGFsbG93ZWQKCQlCb290IGZyb20gQ0QgaXMgc3VwcG9ydGVkCgkJU2VsZWN0YWJsZSBib290IGlz
-IHN1cHBvcnRlZAoJCUphcGFuZXNlIGZsb3BweSBmb3IgVG9zaGliYSAxLjIgTUIgaXMgc3VwcG9y
-dGVkIChpbnQgMTNoKQoJCVByaW50IHNjcmVlbiBzZXJ2aWNlIGlzIHN1cHBvcnRlZCAoaW50IDVo
-KQoJCTgwNDIga2V5Ym9hcmQgc2VydmljZXMgYXJlIHN1cHBvcnRlZCAoaW50IDloKQoJCVNlcmlh
-bCBzZXJ2aWNlcyBhcmUgc3VwcG9ydGVkIChpbnQgMTRoKQoJCVByaW50ZXIgc2VydmljZXMgYXJl
-IHN1cHBvcnRlZCAoaW50IDE3aCkKCQlDR0EvbW9ubyB2aWRlbyBzZXJ2aWNlcyBhcmUgc3VwcG9y
-dGVkIChpbnQgMTBoKQoJCUFDUEkgaXMgc3VwcG9ydGVkCgkJVVNCIGxlZ2FjeSBpcyBzdXBwb3J0
-ZWQKCQlBR1AgaXMgc3VwcG9ydGVkCgkJU21hcnQgYmF0dGVyeSBpcyBzdXBwb3J0ZWQKCQlCSU9T
-IGJvb3Qgc3BlY2lmaWNhdGlvbiBpcyBzdXBwb3J0ZWQKCkhhbmRsZSAweDAwMDEsIERNSSB0eXBl
-IDEsIDI1IGJ5dGVzClN5c3RlbSBJbmZvcm1hdGlvbgoJTWFudWZhY3R1cmVyOiBUT1NISUJBCglQ
-cm9kdWN0IE5hbWU6IDAwMDAwMDAwMDAwMDAwMDAwMDAwCglWZXJzaW9uOiAwMDAwMDAwMDAwMDAw
-MDAwCglTZXJpYWwgTnVtYmVyOiAwMDAwMDAwMDAKCVVVSUQ6IDAwMDAwMDAwLTAwMDAtMDAwMC0w
-MDAwLTAwMTZENDg5RTY0MQoJV2FrZS11cCBUeXBlOiBQb3dlciBTd2l0Y2gKCkhhbmRsZSAweDAw
-MDIsIERNSSB0eXBlIDIsIDggYnl0ZXMKQmFzZSBCb2FyZCBJbmZvcm1hdGlvbgoJTWFudWZhY3R1
-cmVyOiBUT1NISUJBCglQcm9kdWN0IE5hbWU6IEhBUUFBCglWZXJzaW9uOiBOdWxsCglTZXJpYWwg
-TnVtYmVyOiAwMTIzNDU2Nzg5QUIKCkhhbmRsZSAweDAwMDMsIERNSSB0eXBlIDMsIDIxIGJ5dGVz
-CkNoYXNzaXMgSW5mb3JtYXRpb24KCU1hbnVmYWN0dXJlcjogVE9TSElCQQoJVHlwZTogTm90ZWJv
-b2sKCUxvY2s6IE5vdCBQcmVzZW50CglWZXJzaW9uOiBOL0EKCVNlcmlhbCBOdW1iZXI6IE5vbmUK
-CUFzc2V0IFRhZzogKgoJQm9vdC11cCBTdGF0ZTogU2FmZQoJUG93ZXIgU3VwcGx5IFN0YXRlOiBT
-YWZlCglUaGVybWFsIFN0YXRlOiBTYWZlCglTZWN1cml0eSBTdGF0dXM6IE5vbmUKCU9FTSBJbmZv
-cm1hdGlvbjogMHgwMDAwMDAwMAoJSGVpZ2h0OiA1MiBVCglOdW1iZXIgT2YgUG93ZXIgQ29yZHM6
-IDE4CglDb250YWluZWQgRWxlbWVudHM6IDAKCkhhbmRsZSAweDAwMDQsIERNSSB0eXBlIDQsIDM1
-IGJ5dGVzClByb2Nlc3NvciBJbmZvcm1hdGlvbgoJU29ja2V0IERlc2lnbmF0aW9uOiBVMkUxCglU
-eXBlOiBDZW50cmFsIFByb2Nlc3NvcgoJRmFtaWx5OiBVbmtub3duCglNYW51ZmFjdHVyZXI6IElu
-dGVsCglJRDogRjYgMDYgMDAgMDAgRkYgRkIgRUIgQkYKCVZlcnNpb246ICAgCglWb2x0YWdlOiAz
-LjMgVgoJRXh0ZXJuYWwgQ2xvY2s6IFVua25vd24KCU1heCBTcGVlZDogMjA0OCBNSHoKCUN1cnJl
-bnQgU3BlZWQ6IDIxMzAgTUh6CglTdGF0dXM6IFBvcHVsYXRlZCwgRW5hYmxlZAoJVXBncmFkZTog
-WklGIFNvY2tldAoJTDEgQ2FjaGUgSGFuZGxlOiAweDAwMDUKCUwyIENhY2hlIEhhbmRsZTogMHgw
-MDA2CglMMyBDYWNoZSBIYW5kbGU6IE5vdCBQcm92aWRlZAoJU2VyaWFsIE51bWJlcjogTm90IFNw
-ZWNpZmllZAoJQXNzZXQgVGFnOiBOb3QgU3BlY2lmaWVkCglQYXJ0IE51bWJlcjogTm90IFNwZWNp
-ZmllZAoKSGFuZGxlIDB4MDAwNSwgRE1JIHR5cGUgNywgMTkgYnl0ZXMKQ2FjaGUgSW5mb3JtYXRp
-b24KCVNvY2tldCBEZXNpZ25hdGlvbjogTDEgQ2FjaGUKCUNvbmZpZ3VyYXRpb246IEVuYWJsZWQs
-IFNvY2tldGVkLCBMZXZlbCAxCglPcGVyYXRpb25hbCBNb2RlOiBXcml0ZSBCYWNrCglMb2NhdGlv
-bjogSW50ZXJuYWwKCUluc3RhbGxlZCBTaXplOiAzMiBLQgoJTWF4aW11bSBTaXplOiAzMiBLQgoJ
-U3VwcG9ydGVkIFNSQU0gVHlwZXM6CgkJQnVyc3QKCQlQaXBlbGluZSBCdXJzdAoJCUFzeW5jaHJv
-bm91cwoJSW5zdGFsbGVkIFNSQU0gVHlwZTogQXN5bmNocm9ub3VzCglTcGVlZDogVW5rbm93bgoJ
-RXJyb3IgQ29ycmVjdGlvbiBUeXBlOiBVbmtub3duCglTeXN0ZW0gVHlwZTogVW5rbm93bgoJQXNz
-b2NpYXRpdml0eTogVW5rbm93bgoKSGFuZGxlIDB4MDAwNiwgRE1JIHR5cGUgNywgMTkgYnl0ZXMK
-Q2FjaGUgSW5mb3JtYXRpb24KCVNvY2tldCBEZXNpZ25hdGlvbjogTDIgQ2FjaGUKCUNvbmZpZ3Vy
-YXRpb246IEVuYWJsZWQsIFNvY2tldGVkLCBMZXZlbCAyCglPcGVyYXRpb25hbCBNb2RlOiBXcml0
-ZSBCYWNrCglMb2NhdGlvbjogRXh0ZXJuYWwKCUluc3RhbGxlZCBTaXplOiA0MDk2IEtCCglNYXhp
-bXVtIFNpemU6IDUxMiBLQgoJU3VwcG9ydGVkIFNSQU0gVHlwZXM6CgkJQnVyc3QKCQlQaXBlbGlu
-ZSBCdXJzdAoJCUFzeW5jaHJvbm91cwoJSW5zdGFsbGVkIFNSQU0gVHlwZTogQnVyc3QKCVNwZWVk
-OiBVbmtub3duCglFcnJvciBDb3JyZWN0aW9uIFR5cGU6IFVua25vd24KCVN5c3RlbSBUeXBlOiBV
-bmtub3duCglBc3NvY2lhdGl2aXR5OiBVbmtub3duCgpIYW5kbGUgMHgwMDA3LCBETUkgdHlwZSA4
-LCA5IGJ5dGVzClBvcnQgQ29ubmVjdG9yIEluZm9ybWF0aW9uCglJbnRlcm5hbCBSZWZlcmVuY2Ug
-RGVzaWduYXRvcjogSjE5CglJbnRlcm5hbCBDb25uZWN0b3IgVHlwZTogOSBQaW4gRHVhbCBJbmxp
-bmUgKHBpbiAxMCBjdXQpCglFeHRlcm5hbCBSZWZlcmVuY2UgRGVzaWduYXRvcjogQ09NIDEKCUV4
-dGVybmFsIENvbm5lY3RvciBUeXBlOiBEQi05IG1hbGUKCVBvcnQgVHlwZTogU2VyaWFsIFBvcnQg
-MTY1NTBBIENvbXBhdGlibGUKCkhhbmRsZSAweDAwMDgsIERNSSB0eXBlIDgsIDkgYnl0ZXMKUG9y
-dCBDb25uZWN0b3IgSW5mb3JtYXRpb24KCUludGVybmFsIFJlZmVyZW5jZSBEZXNpZ25hdG9yOiBK
-MjMKCUludGVybmFsIENvbm5lY3RvciBUeXBlOiAyNSBQaW4gRHVhbCBJbmxpbmUgKHBpbiAyNiBj
-dXQpCglFeHRlcm5hbCBSZWZlcmVuY2UgRGVzaWduYXRvcjogUGFyYWxsZWwKCUV4dGVybmFsIENv
-bm5lY3RvciBUeXBlOiBEQi0yNSBmZW1hbGUKCVBvcnQgVHlwZTogUGFyYWxsZWwgUG9ydCBFQ1Av
-RVBQCgpIYW5kbGUgMHgwMDA5LCBETUkgdHlwZSA4LCA5IGJ5dGVzClBvcnQgQ29ubmVjdG9yIElu
-Zm9ybWF0aW9uCglJbnRlcm5hbCBSZWZlcmVuY2UgRGVzaWduYXRvcjogSjExCglJbnRlcm5hbCBD
-b25uZWN0b3IgVHlwZTogTm9uZQoJRXh0ZXJuYWwgUmVmZXJlbmNlIERlc2lnbmF0b3I6IEtleWJv
-YXJkCglFeHRlcm5hbCBDb25uZWN0b3IgVHlwZTogQ2lyY3VsYXIgRElOLTggbWFsZQoJUG9ydCBU
-eXBlOiBLZXlib2FyZCBQb3J0CgpIYW5kbGUgMHgwMDBBLCBETUkgdHlwZSA4LCA5IGJ5dGVzClBv
-cnQgQ29ubmVjdG9yIEluZm9ybWF0aW9uCglJbnRlcm5hbCBSZWZlcmVuY2UgRGVzaWduYXRvcjog
-SjEyCglJbnRlcm5hbCBDb25uZWN0b3IgVHlwZTogTm9uZQoJRXh0ZXJuYWwgUmVmZXJlbmNlIERl
-c2lnbmF0b3I6IFBTLzIgTW91c2UKCUV4dGVybmFsIENvbm5lY3RvciBUeXBlOiBDaXJjdWxhciBE
-SU4tOCBtYWxlCglQb3J0IFR5cGU6IEtleWJvYXJkIFBvcnQKCkhhbmRsZSAweDAwMEIsIERNSSB0
-eXBlIDksIDEzIGJ5dGVzClN5c3RlbSBTbG90IEluZm9ybWF0aW9uCglEZXNpZ25hdGlvbjogVEkg
-UENJNzQxMgoJVHlwZTogMzItYml0IFBDSQoJQ3VycmVudCBVc2FnZTogVW5rbm93bgoJTGVuZ3Ro
-OiBMb25nCglJRDogMAoJQ2hhcmFjdGVyaXN0aWNzOgoJCTUuMCBWIGlzIHByb3ZpZGVkCgkJMy4z
-IFYgaXMgcHJvdmlkZWQKCkhhbmRsZSAweDAwMEMsIERNSSB0eXBlIDEwLCA2IGJ5dGVzCk9uIEJv
-YXJkIERldmljZSBJbmZvcm1hdGlvbgoJVHlwZTogU291bmQKCVN0YXR1czogRGlzYWJsZWQKCURl
-c2NyaXB0aW9uOiBIRC1BdWRpbwoKSGFuZGxlIDB4MDAwRCwgRE1JIHR5cGUgMTEsIDUgYnl0ZXMK
-T0VNIFN0cmluZ3MKCVN0cmluZyAxOiAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAw
-MDAwMDAwCgpIYW5kbGUgMHgwMDBFLCBETUkgdHlwZSAxMiwgNSBieXRlcwpTeXN0ZW0gQ29uZmln
-dXJhdGlvbiBPcHRpb25zCglPcHRpb24gMTogSnVtcGVyIHNldHRpbmdzIGNhbiBiZSBkZXNjcmli
-ZWQgaGVyZS4KCkhhbmRsZSAweDAwMEYsIERNSSB0eXBlIDE2LCAxNSBieXRlcwpQaHlzaWNhbCBN
-ZW1vcnkgQXJyYXkKCUxvY2F0aW9uOiBTeXN0ZW0gQm9hcmQgT3IgTW90aGVyYm9hcmQKCVVzZTog
-U3lzdGVtIE1lbW9yeQoJRXJyb3IgQ29ycmVjdGlvbiBUeXBlOiBOb25lCglNYXhpbXVtIENhcGFj
-aXR5OiAzIEdCCglFcnJvciBJbmZvcm1hdGlvbiBIYW5kbGU6IE5vdCBQcm92aWRlZAoJTnVtYmVy
-IE9mIERldmljZXM6IDIKCkhhbmRsZSAweDAwMTAsIERNSSB0eXBlIDE3LCAyNyBieXRlcwpNZW1v
-cnkgRGV2aWNlCglBcnJheSBIYW5kbGU6IDB4MDAwRgoJRXJyb3IgSW5mb3JtYXRpb24gSGFuZGxl
-OiBObyBFcnJvcgoJVG90YWwgV2lkdGg6IDMyIGJpdHMKCURhdGEgV2lkdGg6IDMyIGJpdHMKCVNp
-emU6IDUxMiBNQgoJRm9ybSBGYWN0b3I6IFNPRElNTQoJU2V0OiAxCglMb2NhdG9yOiBNMQoJQmFu
-ayBMb2NhdG9yOiBCYW5rIDAKCVR5cGU6IEREUgoJVHlwZSBEZXRhaWw6IFN5bmNocm9ub3VzCglT
-cGVlZDogVW5rbm93bgoJTWFudWZhY3R1cmVyOiBOb3QgU3BlY2lmaWVkCglTZXJpYWwgTnVtYmVy
-OiBOb3QgU3BlY2lmaWVkCglBc3NldCBUYWc6IE5vdCBTcGVjaWZpZWQKCVBhcnQgTnVtYmVyOiBO
-b3QgU3BlY2lmaWVkCgpIYW5kbGUgMHgwMDExLCBETUkgdHlwZSAxNywgMjcgYnl0ZXMKTWVtb3J5
-IERldmljZQoJQXJyYXkgSGFuZGxlOiAweDAwMEYKCUVycm9yIEluZm9ybWF0aW9uIEhhbmRsZTog
-Tm8gRXJyb3IKCVRvdGFsIFdpZHRoOiAzMiBiaXRzCglEYXRhIFdpZHRoOiAzMiBiaXRzCglTaXpl
-OiA1MTIgTUIKCUZvcm0gRmFjdG9yOiBTT0RJTU0KCVNldDogMQoJTG9jYXRvcjogTTIKCUJhbmsg
-TG9jYXRvcjogQmFuayAxCglUeXBlOiBERFIKCVR5cGUgRGV0YWlsOiBTeW5jaHJvbm91cwoJU3Bl
-ZWQ6IFVua25vd24KCU1hbnVmYWN0dXJlcjogTm90IFNwZWNpZmllZAoJU2VyaWFsIE51bWJlcjog
-Tm90IFNwZWNpZmllZAoJQXNzZXQgVGFnOiBOb3QgU3BlY2lmaWVkCglQYXJ0IE51bWJlcjogTm90
-IFNwZWNpZmllZAoKSGFuZGxlIDB4MDAxMiwgRE1JIHR5cGUgMTksIDE1IGJ5dGVzCk1lbW9yeSBB
-cnJheSBNYXBwZWQgQWRkcmVzcwoJU3RhcnRpbmcgQWRkcmVzczogMHgwMDAwMDAwMDAwMAoJRW5k
-aW5nIEFkZHJlc3M6IDB4MDAwM0ZGRkZGRkYKCVJhbmdlIFNpemU6IDEgR0IKCVBoeXNpY2FsIEFy
-cmF5IEhhbmRsZTogMHgwMDBGCglQYXJ0aXRpb24gV2lkdGg6IDAKCkhhbmRsZSAweDAwMTMsIERN
-SSB0eXBlIDIwLCAxOSBieXRlcwpNZW1vcnkgRGV2aWNlIE1hcHBlZCBBZGRyZXNzCglTdGFydGlu
-ZyBBZGRyZXNzOiAweDAwMDAwMDAwMDAwCglFbmRpbmcgQWRkcmVzczogMHgwMDAxRkZGRkZGRgoJ
-UmFuZ2UgU2l6ZTogNTEyIE1CCglQaHlzaWNhbCBEZXZpY2UgSGFuZGxlOiAweDAwMTAKCU1lbW9y
-eSBBcnJheSBNYXBwZWQgQWRkcmVzcyBIYW5kbGU6IDB4MDAxMgoJUGFydGl0aW9uIFJvdyBQb3Np
-dGlvbjogVW5rbm93bgoJSW50ZXJsZWF2ZSBQb3NpdGlvbjogVW5rbm93bgoJSW50ZXJsZWF2ZWQg
-RGF0YSBEZXB0aDogVW5rbm93bgoKSGFuZGxlIDB4MDAxNCwgRE1JIHR5cGUgMjAsIDE5IGJ5dGVz
-Ck1lbW9yeSBEZXZpY2UgTWFwcGVkIEFkZHJlc3MKCVN0YXJ0aW5nIEFkZHJlc3M6IDB4MDAwMjAw
-MDAwMDAKCUVuZGluZyBBZGRyZXNzOiAweDAwMDNGRkZGRkZGCglSYW5nZSBTaXplOiA1MTIgTUIK
-CVBoeXNpY2FsIERldmljZSBIYW5kbGU6IDB4MDAxMQoJTWVtb3J5IEFycmF5IE1hcHBlZCBBZGRy
-ZXNzIEhhbmRsZTogMHgwMDEyCglQYXJ0aXRpb24gUm93IFBvc2l0aW9uOiBVbmtub3duCglJbnRl
-cmxlYXZlIFBvc2l0aW9uOiBVbmtub3duCglJbnRlcmxlYXZlZCBEYXRhIERlcHRoOiBVbmtub3du
-CgpIYW5kbGUgMHgwMDE1LCBETUkgdHlwZSAyMiwgMjYgYnl0ZXMKUG9ydGFibGUgQmF0dGVyeQoJ
-TG9jYXRpb246IDFzdCBCYXR0ZXJ5CglNYW51ZmFjdHVyZXI6IFRPU0hJQkEgICAKCU1hbnVmYWN0
-dXJlIERhdGU6IDEyLzAxLzIwMDUKCVNlcmlhbCBOdW1iZXI6IDM2NThRCglOYW1lOiBQQTMzOTVV
-IAoJQ2hlbWlzdHJ5OiBMaXRoaXVtIElvbgoJRGVzaWduIENhcGFjaXR5OiAzMTUwMCBtV2gKCURl
-c2lnbiBWb2x0YWdlOiAxNDgwMCBtVgoJU0JEUyBWZXJzaW9uOiBOb3QgU3BlY2lmaWVkCglNYXhp
-bXVtIEVycm9yOiBVbmtub3duCglPRU0tc3BlY2lmaWMgSW5mb3JtYXRpb246IDB4MDAwMDAwMDAK
-CkhhbmRsZSAweDAwMTYsIERNSSB0eXBlIDMyLCAyMCBieXRlcwpTeXN0ZW0gQm9vdCBJbmZvcm1h
-dGlvbgoJU3RhdHVzOiA8T1VUIE9GIFNQRUM+CgpIYW5kbGUgMHgwMDE3LCBETUkgdHlwZSAxMzYs
-IDggYnl0ZXMKT0VNLXNwZWNpZmljIFR5cGUKCUhlYWRlciBhbmQgRGF0YToKCQk4OCAwOCAxNyAw
-MCA1QSA1QSAwMCAwMAoJU3RyaW5nczoKCQkuLi4KCkhhbmRsZSAweDAwMTgsIERNSSB0eXBlIDEy
-NywgNCBieXRlcwpFbmQgT2YgVGFibGUKCg==
-------=_Part_18579_9372665.1208894591787--
+Did this just address my position/index worry above?
+
+It seems you designed the list to be basically in any order, judging by 
+things such as pnp_new_resource which'll happily reuse resources of the 
+correct type at any position in the list. Yet, pnp_assign_foo() and friends 
+retrieve resources (through pnp_get_resource) by position in the list and 
+not by the index. I'm not overly sure of failure scenarios but isn't this 
+mixing up position and index in a bad way?
+
+> I'm trying to figure out the cases where pnp_assign_resources()
+> has to pay attention to pre-existing configuration.  It looks like
+> the common case is that we'll start with an empty resource list, and
+> we can just find non-conflicting values and use pnp_add_foo_resource().
+
+Yes...
+
+> But I'm concerned about all the IORESOURCE_AUTO stuff.  Seems like
+> we should only get to pnp_assign_foo() with !IORESOURCE_AUTO if
+> (a) we've used /sys to set some but not all resources, or (b) the
+> BIOS described fewer things in _CRS than in _PRS (which seems like
+> a BIOS bug).  But I'm not comfortable with this yet.
+
+Sounds right to me. Note that the /sys stuff is also not a corner case 
+situation either, as it's the way to force at least ISAPnP hardware to 
+manual settings.
+
+>> (do note that pnp_assign_foo are the only callers of pnp_check_foo and they 
+>> could be either merged together or at least not communicate via "idx" but 
+>> simply by passing the res/pnp_res).
+> 
+> Yes, I'd like to do that.  But I think I'd better wait or I'll never
+> get anything finished :-)
+
+Well, the idea here was that getting rid of one "idx" here so that things 
+communicate directly removes at least one possible ordering artifact...
+
+>> Also note -- manually set resources are skipped in pnp_assign_resources, yet 
+>> they also definitely need their index initialized for use by 
+>> isapnp_set_resources.
+> 
+> Yes.  "Manually set resources" includes ones from /sys and also the
+> resources we discover from active devices.  We should already be setting
+> those in the /sys and ISAPNP "read resources" paths.
+
+Hmm, yes, that sounds true...
+
+Rene.
