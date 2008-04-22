@@ -1,112 +1,150 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [RESEND patch 2.6.25] ACPI sets up device.power.can_wakeup
-	flags
-Date: Tue, 22 Apr 2008 10:48:20 +0800
-Message-ID: <1208832500.3550.38.camel@rzhang-1.sh.intel.com>
-References: <200803201408.33466.david-b@pacbell.net>
-	 <200803201420.40660.david-b@pacbell.net>
-	 <200804182114.34282.david-b@pacbell.net>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: [patch 3/9] acpi: adjust register handling
+Date: Tue, 22 Apr 2008 19:15:15 +0800
+Message-ID: <1208862915.14474.31.camel@yakui_zhao.sh.intel.com>
+References: <200804182027.m3IKRPrs013544@imap1.linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:28403 "EHLO mga11.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:50021 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753600AbYDVCtn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Apr 2008 22:49:43 -0400
-In-Reply-To: <200804182114.34282.david-b@pacbell.net>
+	id S1755718AbYDVDXd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 Apr 2008 23:23:33 -0400
+In-Reply-To: <200804182027.m3IKRPrs013544@imap1.linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, Thomas Renninger <trenn@suse.de>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, jbeulich@novell.com, akpm@linux-foundation.org
 
+On Fri, 2008-04-18 at 13:27 -0700, akpm@linux-foundation.org wrote:
+> From: "Jan Beulich" <jbeulich@novell.com>
+> 
+> acpi_hw_low_level_{read,write}() have no need to accept a NULL reg argument
+> anymore (all callers use addresses of or derived from ACPI globals), and it
+> really should always have been considered an error to call these functions in
+> such a way.
+IMO this is inappropriate. On some laptops there are some optional
+register blocks . For example: PM1b_event_block, PM1B_control_block. 
+And the optional register block will be accessed in many functions. (For
+example: sleep flowchart, power_off flowchart).
+If the AE_BAD_PARAMETER is returned by acpi_hw_low_level_read when the
+reg doesn't exist, there will be many regressions.
 
-On Fri, 2008-04-18 at 21:14 -0700, David Brownell wrote:
-> This exports the "acpi_device.wakeup.flags.valid" flag to the driver
-> model as "device.power.can_wakeup".  That is, each "ACPI device" in
-> the /proc/acpi/wakeup file that corresponds to a "real" device will
-> initialize the can_wakeup flag to true.
 > 
-> A separate patch is needed to make ACPI pay attention to the userspace
-> input:  devices that can_wakeup have a should_wakeup flag, initially
-> true, which is settable via sysfs and tested using device_may_wakeup().
-> That's intended to be the primary policy input to the system, not the
-> ACPI-specific /proc/acpi/wakeup file.
+> Additionally acpi_hw_low_level_read() should initialize the value read in all
+> cases when it returns successfully.
 > 
-> Note also that the ACPI tables list only motherboard devices, but many
-> systems include more peripherals than those.  While the USB framework
-> handles USB peripherals, nothing in Linux currently sets those flags
-> for wakeup-capable devices on other expansion busses (like PCI).
+> Also use ACPI_GPE_REGISTER_WIDTH where possible rather than a plain number.
+It is ok.  
 > 
-> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-
+> Signed-off-by: Jan Beulich <jbeulich@novell.com>
+> Cc: Len Brown <lenb@kernel.org>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 > ---
-> NOTE:  this should probably not merge upstream until the patch to
-> make ACPI actually *use* these flags gets merged, since otherwise
-> these flags won't reflect actual behavior.
 > 
->  drivers/acpi/button.c |    3 +++
->  drivers/acpi/glue.c   |    1 +
->  drivers/acpi/power.c  |    4 ++++
->  3 files changed, 8 insertions(+)
+>  drivers/acpi/hardware/hwgpe.c  |   15 ++++++++-------
+>  drivers/acpi/hardware/hwregs.c |    6 +++---
+>  2 files changed, 11 insertions(+), 10 deletions(-)
 > 
-> --- g26.orig/drivers/acpi/button.c	2008-03-20 03:02:45.000000000 -0700
-> +++ g26/drivers/acpi/button.c	2008-03-20 03:27:24.000000000 -0700
-> @@ -476,6 +476,9 @@ static int acpi_button_add(struct acpi_d
->  	if (button->type == ACPI_BUTTON_TYPE_LID)
->  		acpi_lid_send_state(button);
+> diff -puN drivers/acpi/hardware/hwgpe.c~acpi-adjust-register-handling drivers/acpi/hardware/hwgpe.c
+> --- a/drivers/acpi/hardware/hwgpe.c~acpi-adjust-register-handling
+> +++ a/drivers/acpi/hardware/hwgpe.c
+> @@ -84,7 +84,8 @@ acpi_hw_write_gpe_enable_reg(struct acpi
 >  
-> +	/* for these devices the ACPI node *IS* the "physical" device */
-> +	device_init_wakeup(&device->dev, device->wakeup.flags.valid);
-> +
->  	if (device->wakeup.flags.valid) {
->  		/* Button's GPE is run-wake GPE */
->  		acpi_set_gpe_type(device->wakeup.gpe_device,
-> --- g26.orig/drivers/acpi/glue.c	2008-03-20 03:27:11.000000000 -0700
-> +++ g26/drivers/acpi/glue.c	2008-03-20 03:27:25.000000000 -0700
-> @@ -162,6 +162,7 @@ static int acpi_bind_one(struct device *
->  	if (!ACPI_FAILURE(status)) {
->  		int ret;
+>  	/* Write the entire GPE (runtime) enable register */
 >  
-> +		device_init_wakeup(dev, acpi_dev->wakeup.flags.valid);
->  		ret = sysfs_create_link(&dev->kobj, &acpi_dev->dev.kobj,
->  				"firmware_node");
->  		if (ret != 0)
-> --- g26.orig/drivers/acpi/power.c	2008-03-20 03:02:45.000000000 -0700
-> +++ g26/drivers/acpi/power.c	2008-03-20 03:27:25.000000000 -0700
-> @@ -313,6 +313,7 @@ int acpi_enable_wakeup_device_power(stru
->  		ret = acpi_power_on(dev->wakeup.resources.handles[i], dev);
->  		if (ret) {
->  			printk(KERN_ERR PREFIX "Transition power state\n");
-> +			device_init_wakeup(&dev->dev, 0);
->  			dev->wakeup.flags.valid = 0;
->  			return -1;
->  		}
-> @@ -322,6 +323,7 @@ int acpi_enable_wakeup_device_power(stru
->  	status = acpi_evaluate_object(dev->handle, "_PSW", &arg_list, NULL);
->  	if (ACPI_FAILURE(status) && (status != AE_NOT_FOUND)) {
->  		printk(KERN_ERR PREFIX "Evaluate _PSW\n");
-> +		device_init_wakeup(&dev->dev, 0);
->  		dev->wakeup.flags.valid = 0;
->  		ret = -1;
+> -	status = acpi_hw_low_level_write(8, gpe_register_info->enable_for_run,
+> +	status = acpi_hw_low_level_write(ACPI_GPE_REGISTER_WIDTH,
+> +					 gpe_register_info->enable_for_run,
+>  					 &gpe_register_info->enable_address);
+>  
+>  	return (status);
+> @@ -118,7 +119,7 @@ acpi_status acpi_hw_clear_gpe(struct acp
+>  	 * Write a one to the appropriate bit in the status register to
+>  	 * clear this GPE.
+>  	 */
+> -	status = acpi_hw_low_level_write(8, register_bit,
+> +	status = acpi_hw_low_level_write(ACPI_GPE_REGISTER_WIDTH, register_bit,
+>  					 &gpe_event_info->register_info->
+>  					 status_address);
+>  
+> @@ -181,7 +182,7 @@ acpi_hw_get_gpe_status(struct acpi_gpe_e
+>  	/* GPE currently active (status bit == 1)? */
+>  
+>  	status =
+> -	    acpi_hw_low_level_read(8, &in_byte,
+> +	    acpi_hw_low_level_read(ACPI_GPE_REGISTER_WIDTH, &in_byte,
+>  				   &gpe_register_info->status_address);
+>  	if (ACPI_FAILURE(status)) {
+>  		goto unlock_and_exit;
+> @@ -226,7 +227,7 @@ acpi_hw_disable_gpe_block(struct acpi_gp
+>  
+>  		/* Disable all GPEs in this register */
+>  
+> -		status = acpi_hw_low_level_write(8, 0x00,
+> +		status = acpi_hw_low_level_write(ACPI_GPE_REGISTER_WIDTH, 0x00,
+>  						 &gpe_block->register_info[i].
+>  						 enable_address);
+>  		if (ACPI_FAILURE(status)) {
+> @@ -263,7 +264,7 @@ acpi_hw_clear_gpe_block(struct acpi_gpe_
+>  
+>  		/* Clear status on all GPEs in this register */
+>  
+> -		status = acpi_hw_low_level_write(8, 0xFF,
+> +		status = acpi_hw_low_level_write(ACPI_GPE_REGISTER_WIDTH, 0xFF,
+>  						 &gpe_block->register_info[i].
+>  						 status_address);
+>  		if (ACPI_FAILURE(status)) {
+> @@ -307,7 +308,7 @@ acpi_hw_enable_runtime_gpe_block(struct 
+>  		/* Enable all "runtime" GPEs in this register */
+>  
+>  		status =
+> -		    acpi_hw_low_level_write(8,
+> +		    acpi_hw_low_level_write(ACPI_GPE_REGISTER_WIDTH,
+>  					    gpe_block->register_info[i].
+>  					    enable_for_run,
+>  					    &gpe_block->register_info[i].
+> @@ -350,7 +351,7 @@ acpi_hw_enable_wakeup_gpe_block(struct a
+>  
+>  		/* Enable all "wake" GPEs in this register */
+>  
+> -		status = acpi_hw_low_level_write(8,
+> +		status = acpi_hw_low_level_write(ACPI_GPE_REGISTER_WIDTH,
+>  						 gpe_block->register_info[i].
+>  						 enable_for_wake,
+>  						 &gpe_block->register_info[i].
+> diff -puN drivers/acpi/hardware/hwregs.c~acpi-adjust-register-handling drivers/acpi/hardware/hwregs.c
+> --- a/drivers/acpi/hardware/hwregs.c~acpi-adjust-register-handling
+> +++ a/drivers/acpi/hardware/hwregs.c
+> @@ -745,8 +745,9 @@ acpi_hw_low_level_read(u32 width, u32 * 
+>  	 * because the PM1A/B code must not fail if B isn't present.
+>  	 */
+>  	if (!reg) {
+> -		return (AE_OK);
+> +		return (AE_BAD_PARAMETER);
 >  	}
-> @@ -351,6 +353,7 @@ int acpi_disable_wakeup_device_power(str
->  	status = acpi_evaluate_object(dev->handle, "_PSW", &arg_list, NULL);
->  	if (ACPI_FAILURE(status) && (status != AE_NOT_FOUND)) {
->  		printk(KERN_ERR PREFIX "Evaluate _PSW\n");
-> +		device_init_wakeup(&dev->dev, 0);
->  		dev->wakeup.flags.valid = 0;
->  		return -1;
+> +	*value = 0;
+>  
+>  	/* Get a local copy of the address. Handles possible alignment issues */
+>  
+> @@ -754,7 +755,6 @@ acpi_hw_low_level_read(u32 width, u32 * 
+>  	if (!address) {
+>  		return (AE_OK);
 >  	}
-> @@ -360,6 +363,7 @@ int acpi_disable_wakeup_device_power(str
->  		ret = acpi_power_off_device(dev->wakeup.resources.handles[i], dev);
->  		if (ret) {
->  			printk(KERN_ERR PREFIX "Transition power state\n");
-> +			device_init_wakeup(&dev->dev, 0);
->  			dev->wakeup.flags.valid = 0;
->  			return -1;
->  		}
+> -	*value = 0;
+>  
+>  	/*
+>  	 * Two address spaces supported: Memory or IO.
+> @@ -815,7 +815,7 @@ acpi_hw_low_level_write(u32 width, u32 v
+>  	 * because the PM1A/B code must not fail if B isn't present.
+>  	 */
+>  	if (!reg) {
+> -		return (AE_OK);
+> +		return (AE_BAD_PARAMETER);
+>  	}
+>  
+>  	/* Get a local copy of the address. Handles possible alignment issues */
+> _
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 > the body of a message to majordomo@vger.kernel.org
