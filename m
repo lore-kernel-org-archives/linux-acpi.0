@@ -1,66 +1,69 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: Re: [PATCH 2.6.25-rc7 001/001] ACPI: workaround for buggy BIOS to
-	ignore error LINK CRS method
-Date: Tue, 22 Apr 2008 21:37:47 +0800
-Message-ID: <1208871467.14474.57.camel@yakui_zhao.sh.intel.com>
-References: <f7430a760804090842s44ece7bh216d5d28e347955@mail.gmail.com>
-	 <20080409161251.0c0e73e9.akpm@linux-foundation.org>
-	 <1207824057.8704.12.camel@yakui_zhao.sh.intel.com>
-	 <f7430a760804100523t6483dc0cn144429ee7024a7f2@mail.gmail.com>
-	 <1208267385.12372.11.camel@yakui_zhao.sh.intel.com>
-	 <f7430a760804150121ndfaf065j332ebf1cee3c572@mail.gmail.com>
-	 <f7430a760804151538v410f7c64m21d90cb9da8e9baa@mail.gmail.com>
-	 <f7430a760804161154o77dd7fc5g622d3bbe4fa1183b@mail.gmail.com>
-	 <f7430a760804210613h69e4b560q774301a1152ef77d@mail.gmail.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: Suspend issue on ancient asus A7V system
+Date: Tue, 22 Apr 2008 15:33:50 +0800
+Message-ID: <1208849630.3550.42.camel@rzhang-1.sh.intel.com>
+References: <20080421093641.GD20322@zoy.org>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:6503 "EHLO mga01.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:35913 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757258AbYDVFqF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 22 Apr 2008 01:46:05 -0400
-In-Reply-To: <f7430a760804210613h69e4b560q774301a1152ef77d@mail.gmail.com>
+	id S1755284AbYDVHfR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 22 Apr 2008 03:35:17 -0400
+In-Reply-To: <20080421093641.GD20322@zoy.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: NoWhereMan <uncommonnonsense@gmail.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: Michel Lespinasse <walken@zoy.org>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>
 
-On Mon, 2008-04-21 at 15:13 +0200, NoWhereMan wrote:
-> patch is working; cc'ing to ML
+
+On Mon, 2008-04-21 at 02:36 -0700, Michel Lespinasse wrote:
+> Hi,
 > 
-Thanks for the test.
-I will try to push Len to merge this patch.
-> On Wed, Apr 16, 2008 at 8:54 PM, NoWhereMan <uncommonnonsense@gmail.com> wrote:
-> > FYI it wasn't latest git but still rc7; I've fast-forwarded now to
-> >  rc9, but if no significant changes were made on that part of acpi I'm
-> >  sure it will work anyway
-> >
-> >
-> >
-> >  On Wed, Apr 16, 2008 at 12:38 AM, NoWhereMan <uncommonnonsense@gmail.com> wrote:
-> >  > hi Zhao,
-> >  >
-> >  >  I've applied the patch to latest linus git, boot went flawlessly
-> >  >  (except the usual error messages about _CRS method) and both wireless
-> >  >  and USB work, so I'm assuming it worked.
-> >  >
-> >  >  I'm attaching my dmesg just for reference. I've enabled ACPI debugging
-> >  >  in my kernel config.
-> >  >
-> >  >  thank you a lot for your efforts with this bug
-> >  >
-> >  >
-> >  >
-> >  >  On Tue, Apr 15, 2008 at 10:21 AM, NoWhereMan <uncommonnonsense@gmail.com> wrote:
-> >  >  > On Tue, Apr 15, 2008 at 3:49 PM, Zhao Yakui <yakui.zhao@intel.com> wrote:
-> >  >  >
-> >  >  >  >  Will you please try the workaround patch and see whether the problem can
-> >  >  >  >  be fixed?
-> >  >  >  >  Thanks.
-> >  >  >
-> >  >  >  I will as soon as possible, thank you for your efforts!
-> >  >  >
-> >  >
-> >
+> I'm having a minor issue getting suspend to ram to work on an old
+> asus A7V based system: the system does suspend (I can hear the fans
+> go off etc...) but it immediately resumes.
+> 
+> I do have a workaround though: After booting, this system shows in
+> /proc/acpi/wakeup:
+> Device  S-state   Status   Sysfs node
+> PWRB      S5    *enabled   
+> PCI0      S4     disabled  no-bus:pci0000:00
+> USB0      S4     disabled  pci:0000:00:04.2
+> USB1      S4     disabled  pci:0000:00:04.3
+> 
+> If I run echo PWRB > /proc/acpi/wakeup,
+> 
+> 1- the kernel complains that "ACPI: 'PCI0' and 'PWRB' have the same GPE,
+>    can't disable/enable one seperately"
+> 
+> 2- /proc/acpi/wakeup now shows:
+> Device  S-state   Status   Sysfs node
+> PWRB      S5    *disabled  
+> PCI0      S4     disabled  no-bus:pci0000:00
+> USB0      S4     disabled  pci:0000:00:04.2
+> USB1      S4     disabled  pci:0000:00:04.3
+
+What can you see in /proc/acpi/wakeup if you run "echo PWRB
+> /proc/acpi/wakeup" again?
+
+Please open a bug at
+http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
+and attach the acpidump output there.
+
+thanks,
+rui
+
+> 
+> 3- The system can now be suspended, and it will
+>    resume normally when I press the power button.
+> 
+> This is not a recent regression, that system has been like that since
+> I first got suspend working.
+> 
+> Hope this helps. I can collect additional information if you tell me how.
+> 
+> Cheers,
+> 
 
