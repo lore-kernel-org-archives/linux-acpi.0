@@ -1,289 +1,296 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH 4/6] thermal: update the documentation
-Date: Tue, 22 Apr 2008 08:50:09 +0800
-Message-ID: <1208825410.3550.14.camel@rzhang-1.sh.intel.com>
-References: <1207815421.27304.42.camel@acpi-hp-zz.sh.intel.com>
-	 <20080416223517.1ca7d2df@hyperion.delvare>
-	 <1208765230.3550.4.camel@rzhang-1.sh.intel.com>
-	 <20080421113328.294b4fc3@hyperion.delvare>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: [PATCH] ACPI : RSDT is forced to be used when 32/64X address
+	mismatch in FADT
+Date: Tue, 22 Apr 2008 16:46:39 +0800
+Message-ID: <1208853999.14474.16.camel@yakui_zhao.sh.intel.com>
+References: <1208515293.4072.3.camel@yakui_zhao.sh.intel.com>
+	 <1208518162.1784.418.camel@queen.suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:11090 "EHLO mga01.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:15577 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761144AbYDVAvc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Apr 2008 20:51:32 -0400
-In-Reply-To: <20080421113328.294b4fc3@hyperion.delvare>
+	id S1761254AbYDVAy6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 Apr 2008 20:54:58 -0400
+In-Reply-To: <1208518162.1784.418.camel@queen.suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Len Brown <lenb@kernel.org>, Hans de Goede <j.w.r.degoede@hhs.nl>, linux-acpi <linux-acpi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
+To: trenn@suse.de
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
 
-
-On Mon, 2008-04-21 at 17:33 +0800, Jean Delvare wrote:
-> Hi Rui,
+On Fri, 2008-04-18 at 13:29 +0200, Thomas Renninger wrote:
+> On Fri, 2008-04-18 at 18:41 +0800, Zhao Yakui wrote:
+> > Subject: ACPI: RSDT is forced to be used when 32/64X address mismatch in FADT
+> > >From : Zhao Yakui <yakui.zhao@intel.com>
+> > 
+> > On some laptops 32/64x address mismatches in FADT when XSDT is used,
+> > which will cause some potential problem. In such cases the RSDT is 
+> > used instead of XSDT.
+> This sounds wrong.
 > 
-> On Mon, 21 Apr 2008 16:07:10 +0800, Zhang Rui wrote:
-> > Update the documentation for the thermal driver hwmon sys I/F.
-> >
-> > Change the ACPI thermal zone type to be consistent with hwmon.
-> >
-> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+Thank you for caring this problem.
+> It sounds like the system got tested using the RSDT (probably on
+> Windows). Nowadays, the XSDT will be the more tested table and RSDT
+> entries are likely to be wrong. 
+IMO. RSDT is still the more tested table and on many laptops the RSDT is
+used by Windows even when there exist both RSDT and XSDT. 
+> If you get a mismatch on a more recent
+> machines it's likely that you choose the wrong table by taking the RSDT.
+> IMO these machines (if there are not much) should be blacklisted to use
+> the RSDT using dmi info (which should already be available at that
+> time).
+Of course the method your introduce is also OK. And we should add a
+global varible which is used to select RSDT or XSDT. But the parse of
+ACPI tables is realized in ACPICA. IMO it is inappropriate to add such
+variable referred by ACPICA.
+
+Best regards
+    Yakui
+
+>    Thomas
+> > 
+> > http://bugzilla.kernel.org/show_bug.cgi?id=8246
+> > 
+> > Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+> > Signed-off-by: Zhang Rui  <rui.zhang@intel.com>
+> > 
 > > ---
-> >  Documentation/thermal/sysfs-api.txt |   33
-> > +++++++++++++++++++++++++++------
-> >  drivers/acpi/thermal.c              |    2 +-
-> >  2 files changed, 28 insertions(+), 7 deletions(-)
-> >
-> > Index: old-git/Documentation/thermal/sysfs-api.txt
+> >  drivers/acpi/tables/tbfadt.c  |   46 +++++++++++++++++++++++++++++++-----------
+> >  drivers/acpi/tables/tbutils.c |   28 +++++++++++++++++++++++--
+> >  include/acpi/actables.h       |    4 +--
+> >  3 files changed, 63 insertions(+), 15 deletions(-)
+> > 
+> > Index: linux-2.6/drivers/acpi/tables/tbutils.c
 > > ===================================================================
-> > --- old-git.orig/Documentation/thermal/sysfs-api.txt  2008-04-21
-> > 15:16:05.000000000 +0800
-> > +++ old-git/Documentation/thermal/sysfs-api.txt       2008-04-21
-> > 15:20:59.000000000 +0800
-> > @@ -108,10 +108,12 @@
-> >  RO   read only value
-> >  RW   read/write value
-> > 
-> > -All thermal sysfs attributes will be represented
-> > under /sys/class/thermal
-> 
-> For some reason your mailer wrapped long lines on this patch, so it
-> doesn't apply. I guess you'll have to fix that and resend so that Len
-> can pick your patch.
-> 
-> > +Thermal sysfs attributes will be represented
-> under /sys/class/thermal.
-> > +Hwmon sysfs I/F extension is also available under /sys/class/hwmon
-> > +if hwmon is compiled in or built as a module.
-> > 
-> >  Thermal zone device sys I/F, created once it's registered:
-> > -|thermal_zone[0-*]:
-> > +/sys/class/thermal/thermal_zone[0-*]:
-> >       |-----type:                     Type of the thermal zone
-> >       |-----temp:                     Current temperature
-> >       |-----mode:                     Working mode of the thermal
-> zone
-> > @@ -119,7 +121,7 @@
-> >       |-----trip_point_[0-*]_type:    Trip point type
-> > 
-> >  Thermal cooling device sys I/F, created once it's registered:
-> > -|cooling_device[0-*]:
-> > +/sys/class/thermal/cooling_device[0-*]:
-> >       |-----type :                    Type of the cooling
-> device(processor/fan/...)
-> >       |-----max_state:                Maximum cooling state of the
-> cooling device
-> >       |-----cur_state:                Current cooling state of the
-> cooling device
-> > @@ -130,10 +132,19 @@
-> >  They are created/removed for each
-> >  thermal_zone_bind_cooling_device/thermal_zone_unbind_cooling_device
-> > successful execution.
-> > 
-> > -|thermal_zone[0-*]
-> > +/sys/class/thermal/thermal_zone[0-*]
-> >       |-----cdev[0-*]:                The [0-*]th cooling device in
-> the current thermal
-> > zone
-> >       |-----cdev[0-*]_trip_point:     Trip point that cdev[0-*] is
-> associated
-> > with
-> > 
-> > +Besides the thermal zone device sysfs I/F and cooling device sysfs
-> I/F,
-> > +the generic thermal driver also creates a hwmon sysfs I/F for each
-> > _type_ of
-> > +thermal zone device. E.g. the generic thermal driver registers one
-> > hwmon class device
-> > +and build the associated hwmon sysfs I/F for all the registered
-> ACPI
-> > thermal zones.
-> > +/sys/class/hwmon/hwmon[0-*]:
-> > +     |-----name:                     The type of the thermal zone
-> devices.
-> > +     |-----temp[1-*]_input:          The current temperature of
-> thermal zone [1-*].
-> > +     |-----temp[1-*]_critical:       The critical trip point of
-> thermal zone
-> > [1-*].
-> > +Please read Documentation/hwmon/sysfs-interface for additional
-> > information.
-> > 
-> >  ***************************
-> >  * Thermal zone attributes *
-> > @@ -141,7 +152,10 @@
-> > 
-> >  type                         Strings which represent the thermal
-> zone type.
-> >                               This is given by thermal zone driver
-> as part of registration.
-> > -                             Eg: "ACPI thermal zone" indicates it's
-> a ACPI thermal device
-> > +                             Eg: "acpitz" indicates it's an ACPI
-> thermal device.
-> > +                             In order to keep it consistent with
-> hwmon sys attribute,
-> > +                             this should be a short, lowercase
-> string,
-> > +                             not containing spaces nor dashes.
-> >                               RO
-> >                               Required
-> > 
-> > @@ -218,7 +232,7 @@
-> >  /sys/class/thermal:
-> > 
-> >  |thermal_zone1:
-> > -     |-----type:                     ACPI thermal zone
-> > +     |-----type:                     acpitz
-> >       |-----temp:                     37000
-> >       |-----mode:                     kernel
-> >       |-----trip_point_0_temp:        100000
-> > @@ -243,3 +257,10 @@
-> >       |-----type:                     Fan
-> >       |-----max_state:                2
-> >       |-----cur_state:                0
+> > --- linux-2.6.orig/drivers/acpi/tables/tbutils.c
+> > +++ linux-2.6/drivers/acpi/tables/tbutils.c
+> > @@ -404,9 +404,22 @@ acpi_tb_parse_root_table(acpi_physical_a
+> >  	u32 length;
+> >  	u8 *table_entry;
+> >  	acpi_status status;
+> > +	int rsdt_forced;
+> >  
+> >  	ACPI_FUNCTION_TRACE(tb_parse_root_table);
+> >  
+> > +	rsdt_forced = 0;
 > > +
-> > +/sys/class/hwmon:
-> > +
-> > +|hwmon0:
-> > +     |-----name:                     acpitz
-> > +     |-----temp1_input:              37000
-> > +     |-----temp1_crit:               100000
-> > Index: old-git/drivers/acpi/thermal.c
+> > +rsdt_retry:
+> > +	if (rsdt_forced) {
+> > +		/*
+> > +		 * When rsdt is forced to be used, it is necessary to
+> > +		 * reinitialize the acpi_gbl_root_table_list.
+> > +		 */
+> > +		for (i = 0; i < acpi_gbl_root_table_list.count; i++)
+> > +			ACPI_MEMSET(&(acpi_gbl_root_table_list.tables[i]),
+> > +				0, sizeof(struct acpi_table_desc));
+> > +	}
+> >  	/*
+> >  	 * Map the entire RSDP and extract the address of the RSDT or XSDT
+> >  	 */
+> > @@ -421,7 +434,8 @@ acpi_tb_parse_root_table(acpi_physical_a
+> >  
+> >  	/* Differentiate between RSDT and XSDT root tables */
+> >  
+> > -	if (rsdp->revision > 1 && rsdp->xsdt_physical_address) {
+> > +	if (rsdp->revision > 1 && rsdp->xsdt_physical_address
+> > +		&& !rsdt_forced) {
+> >  		/*
+> >  		 * Root table is an XSDT (64-bit physical addresses). We must use the
+> >  		 * XSDT if the revision is > 1 and the XSDT pointer is present, as per
+> > @@ -550,7 +564,17 @@ acpi_tb_parse_root_table(acpi_physical_a
+> >  		if (ACPI_COMPARE_NAME
+> >  		    (&acpi_gbl_root_table_list.tables[i].signature,
+> >  		     ACPI_SIG_FADT)) {
+> > -			acpi_tb_parse_fadt(i, flags);
+> > +			status = acpi_tb_parse_fadt(i, flags);
+> > +			if (ACPI_FAILURE(status) && !rsdt_forced) {
+> > +				/*
+> > +				 * If FADT has some errors and XSDT is used,
+> > +				 * rsdt will be tried.
+> > +				 */
+> > +				ACPI_WARNING((AE_INFO, "FADT has errors. "
+> > +					"RSDT will be used instead"));
+> > +				rsdt_forced = 1;
+> > +				goto rsdt_retry;
+> > +			}
+> >  		}
+> >  	}
+> >  
+> > Index: linux-2.6/include/acpi/actables.h
 > > ===================================================================
-> > --- old-git.orig/drivers/acpi/thermal.c       2008-04-21
-> 15:16:05.000000000
-> > +0800
-> > +++ old-git/drivers/acpi/thermal.c    2008-04-21 15:20:14.000000000
-> +0800
-> > @@ -1136,7 +1136,7 @@
+> > --- linux-2.6.orig/include/acpi/actables.h
+> > +++ linux-2.6/include/acpi/actables.h
+> > @@ -49,9 +49,9 @@ acpi_status acpi_allocate_root_table(u32
+> >  /*
+> >   * tbfadt - FADT parse/convert/validate
+> >   */
+> > -void acpi_tb_parse_fadt(acpi_native_uint table_index, u8 flags);
+> > +acpi_status acpi_tb_parse_fadt(acpi_native_uint table_index, u8 flags);
+> >  
+> > -void acpi_tb_create_local_fadt(struct acpi_table_header *table, u32 length);
+> > +acpi_status acpi_tb_create_local_fadt(struct acpi_table_header *table, u32 length);
+> >  
+> >  /*
+> >   * tbfind - find ACPI table
+> > Index: linux-2.6/drivers/acpi/tables/tbfadt.c
+> > ===================================================================
+> > --- linux-2.6.orig/drivers/acpi/tables/tbfadt.c
+> > +++ linux-2.6/drivers/acpi/tables/tbfadt.c
+> > @@ -54,7 +54,7 @@ acpi_tb_init_generic_address(struct acpi
+> >  
+> >  static void acpi_tb_convert_fadt(void);
+> >  
+> > -static void acpi_tb_validate_fadt(void);
+> > +static acpi_status acpi_tb_validate_fadt(void);
+> >  
+> >  /* Table for conversion of FADT to common internal format and FADT validation */
+> >  
+> > @@ -148,17 +148,18 @@ acpi_tb_init_generic_address(struct acpi
+> >   * PARAMETERS:  table_index         - Index for the FADT
+> >   *              Flags               - Flags
+> >   *
+> > - * RETURN:      None
+> > + * RETURN:      status
+> >   *
+> >   * DESCRIPTION: Initialize the FADT, DSDT and FACS tables
+> >   *              (FADT contains the addresses of the DSDT and FACS)
+> >   *
+> >   ******************************************************************************/
+> >  
+> > -void acpi_tb_parse_fadt(acpi_native_uint table_index, u8 flags)
+> > +acpi_status acpi_tb_parse_fadt(acpi_native_uint table_index, u8 flags)
+> >  {
+> >  	u32 length;
+> >  	struct acpi_table_header *table;
+> > +	acpi_status status;
+> >  
+> >  	/*
+> >  	 * The FADT has multiple versions with different lengths,
+> > @@ -173,7 +174,7 @@ void acpi_tb_parse_fadt(acpi_native_uint
+> >  	    acpi_os_map_memory(acpi_gbl_root_table_list.tables[table_index].
+> >  			       address, length);
+> >  	if (!table) {
+> > -		return;
+> > +		return_ACPI_STATUS(AE_NO_MEMORY);
+> >  	}
+> >  
+> >  	/*
+> > @@ -184,7 +185,7 @@ void acpi_tb_parse_fadt(acpi_native_uint
+> >  
+> >  	/* Obtain a local copy of the FADT in common ACPI 2.0+ format */
+> >  
+> > -	acpi_tb_create_local_fadt(table, length);
+> > +	status = acpi_tb_create_local_fadt(table, length);
+> >  
+> >  	/* All done with the real FADT, unmap it */
+> >  
+> > @@ -197,6 +198,8 @@ void acpi_tb_parse_fadt(acpi_native_uint
+> >  
+> >  	acpi_tb_install_table((acpi_physical_address) acpi_gbl_FADT.Xfacs,
+> >  			      flags, ACPI_SIG_FACS, ACPI_TABLE_INDEX_FACS);
+> > +
+> > +	return_ACPI_STATUS(status);
+> >  }
+> >  
+> >  /*******************************************************************************
+> > @@ -206,7 +209,7 @@ void acpi_tb_parse_fadt(acpi_native_uint
+> >   * PARAMETERS:  Table               - Pointer to BIOS FADT
+> >   *              Length              - Length of the table
+> >   *
+> > - * RETURN:      None
+> > + * RETURN:      status
+> >   *
+> >   * DESCRIPTION: Get a local copy of the FADT and convert it to a common format.
+> >   *              Performs validation on some important FADT fields.
+> > @@ -215,9 +218,10 @@ void acpi_tb_parse_fadt(acpi_native_uint
+> >   *
+> >   ******************************************************************************/
+> >  
+> > -void acpi_tb_create_local_fadt(struct acpi_table_header *table, u32 length)
+> > +acpi_status
+> > +acpi_tb_create_local_fadt(struct acpi_table_header *table, u32 length)
+> >  {
+> > -
+> > +	acpi_status status;
+> >  	/*
+> >  	 * Check if the FADT is larger than the largest table that we expect
+> >  	 * (the ACPI 2.0/3.0 version). If so, truncate the table, and issue
+> > @@ -244,7 +248,9 @@ void acpi_tb_create_local_fadt(struct ac
+> >  	 * 2) Validate some of the important values within the FADT
+> >  	 */
+> >  	acpi_tb_convert_fadt();
+> > -	acpi_tb_validate_fadt();
+> > +	status = acpi_tb_validate_fadt();
+> > +
+> > +	return_ACPI_STATUS(status);
+> >  }
+> >  
+> >  /*******************************************************************************
+> > @@ -377,7 +383,7 @@ static void acpi_tb_convert_fadt(void)
+> >   *
+> >   * PARAMETERS:  Table           - Pointer to the FADT to be validated
+> >   *
+> > - * RETURN:      None
+> > + * RETURN:      status
+> >   *
+> >   * DESCRIPTION: Validate various important fields within the FADT. If a problem
+> >   *              is found, issue a message, but no status is returned.
+> > @@ -391,12 +397,16 @@ static void acpi_tb_convert_fadt(void)
+> >   *
+> >   ******************************************************************************/
+> >  
+> > -static void acpi_tb_validate_fadt(void)
+> > +static acpi_status acpi_tb_validate_fadt(void)
+> >  {
+> >  	u32 *address32;
+> >  	struct acpi_generic_address *address64;
+> >  	u8 length;
+> >  	acpi_native_uint i;
+> > +	acpi_status status;
+> > +
+> > +	/* The default status is AE_OK */
+> > +	status = AE_OK;
+> >  
+> >  	/* Examine all of the 64-bit extended address fields (X fields) */
+> >  
+> > @@ -420,6 +430,12 @@ static void acpi_tb_validate_fadt(void)
+> >  			 * Both the address and length must be non-zero.
+> >  			 */
+> >  			if (!address64->address || !length) {
+> > +				/*
+> > +				 * Is it necessary to break the loop when the
+> > +				 * required filed has zero address or length?
+> > +				 * If it is required, please fix me.
+> > +				 */
+> > +				status = AE_ERROR;
+> >  				ACPI_ERROR((AE_INFO,
+> >  					    "Required field \"%s\" has zero address and/or length: %8.8X%8.8X/%X",
+> >  					    fadt_info_table[i].name,
+> > @@ -447,10 +463,18 @@ static void acpi_tb_validate_fadt(void)
+> >  
+> >  		if (address64->address && *address32 &&
+> >  		    (address64->address != (u64) * address32)) {
+> > +			/*
+> > +			 * Is it necessary to break the loop when the 32/64
+> > +			 * address mismatches ?
+> > +			 * If it is required, please fix me.
+> > +			 */
+> > +			status = AE_ERROR;
+> >  			ACPI_ERROR((AE_INFO,
+> >  				    "32/64X address mismatch in \"%s\": [%8.8X] [%8.8X%8.8X], using 64X",
+> >  				    fadt_info_table[i].name, *address32,
+> >  				    ACPI_FORMAT_UINT64(address64->address)));
+> >  		}
+> >  	}
+> > +
+> > +	return_ACPI_STATUS(status);
+> >  }
 > > 
-> >       for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE &&
-> >                       tz->trips.active[i].flags.valid; i++, trips
-> ++);
-> > -     tz->thermal_zone = thermal_zone_device_register("ACPI thermal
-> zone",
-> > +     tz->thermal_zone = thermal_zone_device_register("acpitz",
-> >                                       trips, tz,
-> &acpi_thermal_zone_ops);
-> >       if (!tz->thermal_zone)
-> >               return -ENODEV;
-> >
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
-> This last chunk applies with fuzz 2 here. If this is because I'm
-> missing other acpi patches, that's OK, but if not you should refresh
-> the patch so that Len has no problem pushing it in git.
-> 
-> Other than that, this patch now looks fine to me.
-Hi, Jean,
-thanks for reviewing. :)
-
-
-Update the documentation for the thermal driver hwmon sys I/F.
-
-Change the ACPI thermal zone type to be consistent with hwmon.
-
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- Documentation/thermal/sysfs-api.txt |   33 +++++++++++++++++++++++++++------
- drivers/acpi/thermal.c              |    2 +-
- 2 files changed, 28 insertions(+), 7 deletions(-)
-
-Index: linux-2.6/Documentation/thermal/sysfs-api.txt
-===================================================================
---- linux-2.6.orig/Documentation/thermal/sysfs-api.txt	2008-04-22 08:43:59.000000000 +0800
-+++ linux-2.6/Documentation/thermal/sysfs-api.txt	2008-04-22 08:44:38.000000000 +0800
-@@ -108,10 +108,12 @@
- RO	read only value
- RW	read/write value
- 
--All thermal sysfs attributes will be represented under /sys/class/thermal
-+Thermal sysfs attributes will be represented under /sys/class/thermal.
-+Hwmon sysfs I/F extension is also available under /sys/class/hwmon
-+if hwmon is compiled in or built as a module.
- 
- Thermal zone device sys I/F, created once it's registered:
--|thermal_zone[0-*]:
-+/sys/class/thermal/thermal_zone[0-*]:
- 	|-----type:			Type of the thermal zone
- 	|-----temp:			Current temperature
- 	|-----mode:			Working mode of the thermal zone
-@@ -119,7 +121,7 @@
- 	|-----trip_point_[0-*]_type:	Trip point type
- 
- Thermal cooling device sys I/F, created once it's registered:
--|cooling_device[0-*]:
-+/sys/class/thermal/cooling_device[0-*]:
- 	|-----type :			Type of the cooling device(processor/fan/...)
- 	|-----max_state:		Maximum cooling state of the cooling device
- 	|-----cur_state:		Current cooling state of the cooling device
-@@ -130,10 +132,19 @@
- They are created/removed for each
- thermal_zone_bind_cooling_device/thermal_zone_unbind_cooling_device successful execution.
- 
--|thermal_zone[0-*]
-+/sys/class/thermal/thermal_zone[0-*]
- 	|-----cdev[0-*]:		The [0-*]th cooling device in the current thermal zone
- 	|-----cdev[0-*]_trip_point:	Trip point that cdev[0-*] is associated with
- 
-+Besides the thermal zone device sysfs I/F and cooling device sysfs I/F,
-+the generic thermal driver also creates a hwmon sysfs I/F for each _type_ of
-+thermal zone device. E.g. the generic thermal driver registers one hwmon class device
-+and build the associated hwmon sysfs I/F for all the registered ACPI thermal zones.
-+/sys/class/hwmon/hwmon[0-*]:
-+	|-----name:			The type of the thermal zone devices.
-+	|-----temp[1-*]_input:		The current temperature of thermal zone [1-*].
-+	|-----temp[1-*]_critical:	The critical trip point of thermal zone [1-*].
-+Please read Documentation/hwmon/sysfs-interface for additional information.
- 
- ***************************
- * Thermal zone attributes *
-@@ -141,7 +152,10 @@
- 
- type				Strings which represent the thermal zone type.
- 				This is given by thermal zone driver as part of registration.
--				Eg: "ACPI thermal zone" indicates it's a ACPI thermal device
-+				Eg: "acpitz" indicates it's an ACPI thermal device.
-+				In order to keep it consistent with hwmon sys attribute,
-+				this should be a short, lowercase string,
-+				not containing spaces nor dashes.
- 				RO
- 				Required
- 
-@@ -218,7 +232,7 @@
- /sys/class/thermal:
- 
- |thermal_zone1:
--	|-----type:			ACPI thermal zone
-+	|-----type:			acpitz
- 	|-----temp:			37000
- 	|-----mode:			kernel
- 	|-----trip_point_0_temp:	100000
-@@ -243,3 +257,10 @@
- 	|-----type:			Fan
- 	|-----max_state:		2
- 	|-----cur_state:		0
-+
-+/sys/class/hwmon:
-+
-+|hwmon0:
-+	|-----name:			acpitz
-+	|-----temp1_input:		37000
-+	|-----temp1_crit:		100000
-Index: linux-2.6/drivers/acpi/thermal.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/thermal.c	2008-04-22 08:43:59.000000000 +0800
-+++ linux-2.6/drivers/acpi/thermal.c	2008-04-22 08:44:38.000000000 +0800
-@@ -1136,7 +1136,7 @@
- 
- 	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE &&
- 			tz->trips.active[i].flags.valid; i++, trips++);
--	tz->thermal_zone = thermal_zone_device_register("ACPI thermal zone",
-+	tz->thermal_zone = thermal_zone_device_register("acpitz",
- 					trips, tz, &acpi_thermal_zone_ops);
- 	if (IS_ERR(tz->thermal_zone))
- 		return -ENODEV;
-
 
