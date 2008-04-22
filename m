@@ -1,152 +1,98 @@
 From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: Re: [patch 3/9] acpi: adjust register handling
-Date: Tue, 22 Apr 2008 19:15:15 +0800
-Message-ID: <1208862915.14474.31.camel@yakui_zhao.sh.intel.com>
-References: <200804182027.m3IKRPrs013544@imap1.linux-foundation.org>
+Subject: Re: can't shut down
+Date: Tue, 22 Apr 2008 19:32:43 +0800
+Message-ID: <1208863963.14474.41.camel@yakui_zhao.sh.intel.com>
+References: <1c0ea1cc0804150709u3c4274fbq39467e6a1d704642@mail.gmail.com>
+	 <1208334994.6931.2.camel@yakui_zhao.sh.intel.com>
+	 <4806E81F.2010008@gmail.com>
+	 <1208523832.4072.6.camel@yakui_zhao.sh.intel.com>
+	 <480C1BE6.50201@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:50021 "EHLO mga01.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:28543 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755718AbYDVDXd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Apr 2008 23:23:33 -0400
-In-Reply-To: <200804182027.m3IKRPrs013544@imap1.linux-foundation.org>
+	id S1758727AbYDVDlB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 Apr 2008 23:41:01 -0400
+In-Reply-To: <480C1BE6.50201@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, jbeulich@novell.com, akpm@linux-foundation.org
+To: majie <china.majie@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Fri, 2008-04-18 at 13:27 -0700, akpm@linux-foundation.org wrote:
-> From: "Jan Beulich" <jbeulich@novell.com>
+On Mon, 2008-04-21 at 12:45 +0800, majie wrote:
+> Zhao Yakui wrote:
+> > On Thu, 2008-04-17 at 14:03 +0800, majie wrote:
+> >> Zhao Yakui wrote:
+> >>> On Tue, 2008-04-15 at 22:09 +0800, majie wrote:
+> >>>> Hi all,
+> >>>>
+> >>>> I'm using Linux kernel 2.6.21.5-smp(Slackware 12). I experience an
+> >>>> error when I turn off my computer. It doesn't turn off itself (maybe
+> >>>> called going into G2/S5 Soft Off in the specification) after printing
+> >>>> a message "acpi_power_off called". I have to press the power button
+> >>>> for several seconds to turn it off. I think the CPUs may be running in
+> >>>> full speed because I hear my fan running in high speed.
+> >>>>
+> >>>> I tried to find out the problem by adding some printk()'s to the
+> >>>> function acpi_enter_sleep_state()(in
+> >>>> linux-2.6.21.5\drivers\acpi\hardware\hwsleep.c). And It shows that it
+> >>>> runs into the final do-while loop in the function and doing an
+> >>>> infinite loop. Maybe this is why my CPUs are running in full speed.
+> >>>>
+> >>>> I don't have the ability to debug the kernel. So this is the only
+> >>>> information I can provide about the code. If you want me to post my
+> >>>> hardware spec or anything else, I'm very glad to, but please tell me
+> >>>> which command and arguments should I use to get the info.
+> >>>>
+> >>>> I have tried the kernel options, but they don't work for me. My laptop
+> >>>> can shut down flawlessly when using windows xp.
+> >>>>
+> >>>> By the way, It's a linux distribution independent problem because I
+> >>>> also experienced it in kubuntu 7.10.
+> >>> Will you please attach the output of acpidump?
+> >>> The latest dump tool (20070116) can be found in 
+> >>> http://www.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
+> >>>
+> > Will you please try the latest kernel(2.6.25-rc9) and see whether the
+> > problem still exists? 
+> > Note: 
+> > a. ACPI should be enabled in kernel configuration.
+> > b. Don't use the custom DSDT
+> > c. use "poweroff" command to shutdown
+> > 
+> > If the problem still exists, please attach the output of dmesg.
+> > thanks.
+> >       
 > 
-> acpi_hw_low_level_{read,write}() have no need to accept a NULL reg argument
-> anymore (all callers use addresses of or derived from ACPI globals), and it
-> really should always have been considered an error to call these functions in
-> such a way.
-IMO this is inappropriate. On some laptops there are some optional
-register blocks . For example: PM1b_event_block, PM1B_control_block. 
-And the optional register block will be accessed in many functions. (For
-example: sleep flowchart, power_off flowchart).
-If the AE_BAD_PARAMETER is returned by acpi_hw_low_level_read when the
-reg doesn't exist, there will be many regressions.
+> Hi Yakui,
+> Do you receive my email I sent to you on April 19 ? I'm still unable to 
+> have the 2.6.25-rc9 kernel boot and run. I can't make a valid initrd to 
+> boot the kernel. I've spend the whole weekend to solve the problem. But 
+> I've no idea why it can mount my real root filesystem.
 
+Sorry for the no response.
+IMO the problem is related to the kernel config. For example: the SATA
+driver should be built into kernel. (If not, OS can't find the root
+filesystem).
+Please do it again as listed in the following:(Pay attention to the
+kernel configuration).
+a. make bzImage; make modules;
+b. make modules_install; make install;
+> So I can't test the 2.6.25-rc9 kernel in normal mode. I want to shutdown 
+> the computer using busybox's poweroff in the initrd before the real root 
+> filesystem being mounted. Is this approach equal to the "normal" shutdown?
+
+
+
+> Sorry for causing the trouble to you.
+> Thank you.
 > 
-> Additionally acpi_hw_low_level_read() should initialize the value read in all
-> cases when it returns successfully.
+> -------
+> Regards,
+> 	majie
 > 
-> Also use ACPI_GPE_REGISTER_WIDTH where possible rather than a plain number.
-It is ok.  
 > 
-> Signed-off-by: Jan Beulich <jbeulich@novell.com>
-> Cc: Len Brown <lenb@kernel.org>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
 > 
->  drivers/acpi/hardware/hwgpe.c  |   15 ++++++++-------
->  drivers/acpi/hardware/hwregs.c |    6 +++---
->  2 files changed, 11 insertions(+), 10 deletions(-)
-> 
-> diff -puN drivers/acpi/hardware/hwgpe.c~acpi-adjust-register-handling drivers/acpi/hardware/hwgpe.c
-> --- a/drivers/acpi/hardware/hwgpe.c~acpi-adjust-register-handling
-> +++ a/drivers/acpi/hardware/hwgpe.c
-> @@ -84,7 +84,8 @@ acpi_hw_write_gpe_enable_reg(struct acpi
->  
->  	/* Write the entire GPE (runtime) enable register */
->  
-> -	status = acpi_hw_low_level_write(8, gpe_register_info->enable_for_run,
-> +	status = acpi_hw_low_level_write(ACPI_GPE_REGISTER_WIDTH,
-> +					 gpe_register_info->enable_for_run,
->  					 &gpe_register_info->enable_address);
->  
->  	return (status);
-> @@ -118,7 +119,7 @@ acpi_status acpi_hw_clear_gpe(struct acp
->  	 * Write a one to the appropriate bit in the status register to
->  	 * clear this GPE.
->  	 */
-> -	status = acpi_hw_low_level_write(8, register_bit,
-> +	status = acpi_hw_low_level_write(ACPI_GPE_REGISTER_WIDTH, register_bit,
->  					 &gpe_event_info->register_info->
->  					 status_address);
->  
-> @@ -181,7 +182,7 @@ acpi_hw_get_gpe_status(struct acpi_gpe_e
->  	/* GPE currently active (status bit == 1)? */
->  
->  	status =
-> -	    acpi_hw_low_level_read(8, &in_byte,
-> +	    acpi_hw_low_level_read(ACPI_GPE_REGISTER_WIDTH, &in_byte,
->  				   &gpe_register_info->status_address);
->  	if (ACPI_FAILURE(status)) {
->  		goto unlock_and_exit;
-> @@ -226,7 +227,7 @@ acpi_hw_disable_gpe_block(struct acpi_gp
->  
->  		/* Disable all GPEs in this register */
->  
-> -		status = acpi_hw_low_level_write(8, 0x00,
-> +		status = acpi_hw_low_level_write(ACPI_GPE_REGISTER_WIDTH, 0x00,
->  						 &gpe_block->register_info[i].
->  						 enable_address);
->  		if (ACPI_FAILURE(status)) {
-> @@ -263,7 +264,7 @@ acpi_hw_clear_gpe_block(struct acpi_gpe_
->  
->  		/* Clear status on all GPEs in this register */
->  
-> -		status = acpi_hw_low_level_write(8, 0xFF,
-> +		status = acpi_hw_low_level_write(ACPI_GPE_REGISTER_WIDTH, 0xFF,
->  						 &gpe_block->register_info[i].
->  						 status_address);
->  		if (ACPI_FAILURE(status)) {
-> @@ -307,7 +308,7 @@ acpi_hw_enable_runtime_gpe_block(struct 
->  		/* Enable all "runtime" GPEs in this register */
->  
->  		status =
-> -		    acpi_hw_low_level_write(8,
-> +		    acpi_hw_low_level_write(ACPI_GPE_REGISTER_WIDTH,
->  					    gpe_block->register_info[i].
->  					    enable_for_run,
->  					    &gpe_block->register_info[i].
-> @@ -350,7 +351,7 @@ acpi_hw_enable_wakeup_gpe_block(struct a
->  
->  		/* Enable all "wake" GPEs in this register */
->  
-> -		status = acpi_hw_low_level_write(8,
-> +		status = acpi_hw_low_level_write(ACPI_GPE_REGISTER_WIDTH,
->  						 gpe_block->register_info[i].
->  						 enable_for_wake,
->  						 &gpe_block->register_info[i].
-> diff -puN drivers/acpi/hardware/hwregs.c~acpi-adjust-register-handling drivers/acpi/hardware/hwregs.c
-> --- a/drivers/acpi/hardware/hwregs.c~acpi-adjust-register-handling
-> +++ a/drivers/acpi/hardware/hwregs.c
-> @@ -745,8 +745,9 @@ acpi_hw_low_level_read(u32 width, u32 * 
->  	 * because the PM1A/B code must not fail if B isn't present.
->  	 */
->  	if (!reg) {
-> -		return (AE_OK);
-> +		return (AE_BAD_PARAMETER);
->  	}
-> +	*value = 0;
->  
->  	/* Get a local copy of the address. Handles possible alignment issues */
->  
-> @@ -754,7 +755,6 @@ acpi_hw_low_level_read(u32 width, u32 * 
->  	if (!address) {
->  		return (AE_OK);
->  	}
-> -	*value = 0;
->  
->  	/*
->  	 * Two address spaces supported: Memory or IO.
-> @@ -815,7 +815,7 @@ acpi_hw_low_level_write(u32 width, u32 v
->  	 * because the PM1A/B code must not fail if B isn't present.
->  	 */
->  	if (!reg) {
-> -		return (AE_OK);
-> +		return (AE_BAD_PARAMETER);
->  	}
->  
->  	/* Get a local copy of the address. Handles possible alignment issues */
-> _
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
