@@ -1,142 +1,51 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [PATCH 4/6] thermal: update the documentation
-Date: Tue, 22 Apr 2008 16:13:45 +0200
-Message-ID: <20080422161345.41f33e68@hyperion.delvare>
-References: <1207815421.27304.42.camel@acpi-hp-zz.sh.intel.com>
-	<20080416223517.1ca7d2df@hyperion.delvare>
-	<1208765230.3550.4.camel@rzhang-1.sh.intel.com>
-	<20080421113328.294b4fc3@hyperion.delvare>
-	<1208825410.3550.14.camel@rzhang-1.sh.intel.com>
+From: "Langsdorf, Mark" <mark.langsdorf@amd.com>
+Subject: RE: WARNING: at drivers/base/sys.c:183 sysdev_driver_register+0x75/0x12e()
+Date: Tue, 22 Apr 2008 11:51:21 -0500
+Message-ID: <6453C3CB8E2B3646B0D020C112613273093908@sausexmb4.amd.com>
+References: <Pine.LNX.4.64.0804221609130.12972@jikos.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:28883 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934186AbYDVOOI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Apr 2008 10:14:08 -0400
-In-Reply-To: <1208825410.3550.14.camel@rzhang-1.sh.intel.com>
+Received: from outbound-dub.frontbridge.com ([213.199.154.16]:30642 "EHLO
+	outbound7-dub-R.bigfish.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755025AbYDVQvk convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 22 Apr 2008 12:51:40 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <Pine.LNX.4.64.0804221609130.12972@jikos.suse.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, Hans de Goede <j.w.r.degoede@hhs.nl>, linux-acpi <linux-acpi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
+To: Jiri Kosina <jkosina@suse.cz>, davej@codemonkey.org.uk, lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, Greg KH <greg@kroah.com>, linux-kernel@vger.kernel.org, cpufreq@lists.linux.org.uk
 
-Hi Rui,
+> From: cpufreq-bounces@lists.linux.org.uk 
+> [mailto:cpufreq-bounces@lists.linux.org.uk] On Behalf Of Jiri Kosina
+> Sent: Tuesday, April 22, 2008 9:12 AM
+> To: davej@codemonkey.org.uk; lenb@kernel.org
+> 
+> Hi,
+> 
+> I am getting the acpi-cpufreq-drivercore warning below when booting 
+> current git (807501475)
+> 
+> powernow-k8: Found 1 AMD Athlon(tm) 64 Processor 3000+ 
+> processors (1 cpu 
+> cores) (version 2.20.00)
+> powernow-k8: BIOS error - no PSB or ACPI _PSS objects
+> sysdev: class cpu: driver (ffffffff8057fd10) has already been 
+> registered to a class, something is wrong, but will forge on!
+> 
+Why is the acpi-cpufreq driver trying to
+instantiate on an AMD processor?  It shouldn't
+do that.
 
-On Tue, 22 Apr 2008 08:50:09 +0800, Zhang Rui wrote:
-> thanks for reviewing. :)
-> 
-> 
-> Update the documentation for the thermal driver hwmon sys I/F.
-> 
-> Change the ACPI thermal zone type to be consistent with hwmon.
-> 
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> ---
->  Documentation/thermal/sysfs-api.txt |   33 +++++++++++++++++++++++++++------
->  drivers/acpi/thermal.c              |    2 +-
->  2 files changed, 28 insertions(+), 7 deletions(-)
-> 
-> Index: linux-2.6/Documentation/thermal/sysfs-api.txt
-> ===================================================================
-> --- linux-2.6.orig/Documentation/thermal/sysfs-api.txt	2008-04-22 08:43:59.000000000 +0800
-> +++ linux-2.6/Documentation/thermal/sysfs-api.txt	2008-04-22 08:44:38.000000000 +0800
-> @@ -108,10 +108,12 @@
->  RO	read only value
->  RW	read/write value
->  
-> -All thermal sysfs attributes will be represented under /sys/class/thermal
-> +Thermal sysfs attributes will be represented under /sys/class/thermal.
-> +Hwmon sysfs I/F extension is also available under /sys/class/hwmon
-> +if hwmon is compiled in or built as a module.
->  
->  Thermal zone device sys I/F, created once it's registered:
-> -|thermal_zone[0-*]:
-> +/sys/class/thermal/thermal_zone[0-*]:
->  	|-----type:			Type of the thermal zone
->  	|-----temp:			Current temperature
->  	|-----mode:			Working mode of the thermal zone
-> @@ -119,7 +121,7 @@
->  	|-----trip_point_[0-*]_type:	Trip point type
->  
->  Thermal cooling device sys I/F, created once it's registered:
-> -|cooling_device[0-*]:
-> +/sys/class/thermal/cooling_device[0-*]:
->  	|-----type :			Type of the cooling device(processor/fan/...)
->  	|-----max_state:		Maximum cooling state of the cooling device
->  	|-----cur_state:		Current cooling state of the cooling device
-> @@ -130,10 +132,19 @@
->  They are created/removed for each
->  thermal_zone_bind_cooling_device/thermal_zone_unbind_cooling_device successful execution.
->  
-> -|thermal_zone[0-*]
-> +/sys/class/thermal/thermal_zone[0-*]
->  	|-----cdev[0-*]:		The [0-*]th cooling device in the current thermal zone
->  	|-----cdev[0-*]_trip_point:	Trip point that cdev[0-*] is associated with
->  
-> +Besides the thermal zone device sysfs I/F and cooling device sysfs I/F,
-> +the generic thermal driver also creates a hwmon sysfs I/F for each _type_ of
-> +thermal zone device. E.g. the generic thermal driver registers one hwmon class device
-> +and build the associated hwmon sysfs I/F for all the registered ACPI thermal zones.
-> +/sys/class/hwmon/hwmon[0-*]:
-> +	|-----name:			The type of the thermal zone devices.
-> +	|-----temp[1-*]_input:		The current temperature of thermal zone [1-*].
-> +	|-----temp[1-*]_critical:	The critical trip point of thermal zone [1-*].
-> +Please read Documentation/hwmon/sysfs-interface for additional information.
->  
->  ***************************
->  * Thermal zone attributes *
-> @@ -141,7 +152,10 @@
->  
->  type				Strings which represent the thermal zone type.
->  				This is given by thermal zone driver as part of registration.
-> -				Eg: "ACPI thermal zone" indicates it's a ACPI thermal device
-> +				Eg: "acpitz" indicates it's an ACPI thermal device.
-> +				In order to keep it consistent with hwmon sys attribute,
-> +				this should be a short, lowercase string,
-> +				not containing spaces nor dashes.
->  				RO
->  				Required
->  
-> @@ -218,7 +232,7 @@
->  /sys/class/thermal:
->  
->  |thermal_zone1:
-> -	|-----type:			ACPI thermal zone
-> +	|-----type:			acpitz
->  	|-----temp:			37000
->  	|-----mode:			kernel
->  	|-----trip_point_0_temp:	100000
-> @@ -243,3 +257,10 @@
->  	|-----type:			Fan
->  	|-----max_state:		2
->  	|-----cur_state:		0
-> +
-> +/sys/class/hwmon:
-> +
-> +|hwmon0:
-> +	|-----name:			acpitz
-> +	|-----temp1_input:		37000
-> +	|-----temp1_crit:		100000
-> Index: linux-2.6/drivers/acpi/thermal.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/thermal.c	2008-04-22 08:43:59.000000000 +0800
-> +++ linux-2.6/drivers/acpi/thermal.c	2008-04-22 08:44:38.000000000 +0800
-> @@ -1136,7 +1136,7 @@
->  
->  	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE &&
->  			tz->trips.active[i].flags.valid; i++, trips++);
-> -	tz->thermal_zone = thermal_zone_device_register("ACPI thermal zone",
-> +	tz->thermal_zone = thermal_zone_device_register("acpitz",
->  					trips, tz, &acpi_thermal_zone_ops);
->  	if (IS_ERR(tz->thermal_zone))
->  		return -ENODEV;
-> 
-> 
+PowerNow! failed to load because the BIOS wasn't 
+set up correctly.  But the acpi-cpufreq driver
+shouldn't have loaded at all.
 
-Looks alright.
+-Mark Langsdorf
+Operating System Research Center
+AMD
 
-Acked-by: Jean Delvare <khali@linux-fr.org>
-
--- 
-Jean Delvare
