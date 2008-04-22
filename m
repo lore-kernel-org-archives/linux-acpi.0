@@ -1,98 +1,185 @@
 From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: Re: can't shut down
-Date: Tue, 22 Apr 2008 19:32:43 +0800
-Message-ID: <1208863963.14474.41.camel@yakui_zhao.sh.intel.com>
-References: <1c0ea1cc0804150709u3c4274fbq39467e6a1d704642@mail.gmail.com>
-	 <1208334994.6931.2.camel@yakui_zhao.sh.intel.com>
-	 <4806E81F.2010008@gmail.com>
-	 <1208523832.4072.6.camel@yakui_zhao.sh.intel.com>
-	 <480C1BE6.50201@gmail.com>
+Subject: Re: [RESEND patch 2.6.25] ACPI uses device_may_wakeup() policy
+	inputs
+Date: Tue, 22 Apr 2008 21:30:17 +0800
+Message-ID: <1208871017.14474.52.camel@yakui_zhao.sh.intel.com>
+References: <200803201408.33466.david-b@pacbell.net>
+	 <200803201422.55014.david-b@pacbell.net>
+	 <200804182118.05228.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:28543 "EHLO mga11.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:43157 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758727AbYDVDlB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Apr 2008 23:41:01 -0400
-In-Reply-To: <480C1BE6.50201@gmail.com>
+	id S1751884AbYDVFif (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 22 Apr 2008 01:38:35 -0400
+In-Reply-To: <200804182118.05228.david-b@pacbell.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: majie <china.majie@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, Thomas Renninger <trenn@suse.de>
 
-On Mon, 2008-04-21 at 12:45 +0800, majie wrote:
-> Zhao Yakui wrote:
-> > On Thu, 2008-04-17 at 14:03 +0800, majie wrote:
-> >> Zhao Yakui wrote:
-> >>> On Tue, 2008-04-15 at 22:09 +0800, majie wrote:
-> >>>> Hi all,
-> >>>>
-> >>>> I'm using Linux kernel 2.6.21.5-smp(Slackware 12). I experience an
-> >>>> error when I turn off my computer. It doesn't turn off itself (maybe
-> >>>> called going into G2/S5 Soft Off in the specification) after printing
-> >>>> a message "acpi_power_off called". I have to press the power button
-> >>>> for several seconds to turn it off. I think the CPUs may be running in
-> >>>> full speed because I hear my fan running in high speed.
-> >>>>
-> >>>> I tried to find out the problem by adding some printk()'s to the
-> >>>> function acpi_enter_sleep_state()(in
-> >>>> linux-2.6.21.5\drivers\acpi\hardware\hwsleep.c). And It shows that it
-> >>>> runs into the final do-while loop in the function and doing an
-> >>>> infinite loop. Maybe this is why my CPUs are running in full speed.
-> >>>>
-> >>>> I don't have the ability to debug the kernel. So this is the only
-> >>>> information I can provide about the code. If you want me to post my
-> >>>> hardware spec or anything else, I'm very glad to, but please tell me
-> >>>> which command and arguments should I use to get the info.
-> >>>>
-> >>>> I have tried the kernel options, but they don't work for me. My laptop
-> >>>> can shut down flawlessly when using windows xp.
-> >>>>
-> >>>> By the way, It's a linux distribution independent problem because I
-> >>>> also experienced it in kubuntu 7.10.
-> >>> Will you please attach the output of acpidump?
-> >>> The latest dump tool (20070116) can be found in 
-> >>> http://www.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
-> >>>
-> > Will you please try the latest kernel(2.6.25-rc9) and see whether the
-> > problem still exists? 
-> > Note: 
-> > a. ACPI should be enabled in kernel configuration.
-> > b. Don't use the custom DSDT
-> > c. use "poweroff" command to shutdown
-> > 
-> > If the problem still exists, please attach the output of dmesg.
-> > thanks.
-> >       
+On Fri, 2008-04-18 at 21:18 -0700, David Brownell wrote:
+> This imports the driver model device.power.may_wakeup flags to ACPI,
+> using it to *REPLACE* the /proc/acpi/wakeup flags for some devices.
+> It depends on the previous patch making device.power.can_wakeup behave.
+> It does that by:
 > 
-> Hi Yakui,
-> Do you receive my email I sent to you on April 19 ? I'm still unable to 
-> have the 2.6.25-rc9 kernel boot and run. I can't make a valid initrd to 
-> boot the kernel. I've spend the whole weekend to solve the problem. But 
-> I've no idea why it can mount my real root filesystem.
+>  - Implementing platform_enable_wakeup(), which is currently invoked only
+>    by pci_enable_wake().  When that's called -- probably in the driver
+>    suspend() call -- it updates acpi_device.wakeup.state.enabled flag in
+>    the same way writing to /proc/acpi/wakeup updates it.
+>    
+>  - Updating the usage of the corresponding ACPI flags when turning on
+>    wakeup power domains and GPEs.
+> 
+> THIS PATCH NEEDS MORE ATTENTION because of the way the ACPI method
+> invocations have been changing, e.g. the 1.0 vs 2.0 sequencing.
+> 
+> Right now it's not clear to me whether the GPEs are always enabled at
+> the right time, and for that matter whether the rules haven't changed
+> so that drivers can no longer effectively control those settings from
+> suspend() unless acpi_new_pts_ordering is in effect.
+Agree with what Rui said. The patch doesn't change the time when GPEs
+are enabled/disabled.
 
-Sorry for the no response.
-IMO the problem is related to the kernel config. For example: the SATA
-driver should be built into kernel. (If not, OS can't find the root
-filesystem).
-Please do it again as listed in the following:(Pay attention to the
-kernel configuration).
-a. make bzImage; make modules;
-b. make modules_install; make install;
-> So I can't test the 2.6.25-rc9 kernel in normal mode. I want to shutdown 
-> the computer using busybox's poweroff in the initrd before the real root 
-> filesystem being mounted. Is this approach equal to the "normal" shutdown?
+But after the patch is applied, some PCI device(the ACPI device with the
+_PRW object) can wake the sleeping system by default. And it is totally
+opposite to the current flowchart. 
 
-
-
-> Sorry for causing the trouble to you.
-> Thank you.
+> ACPI systems see behavioral changes as follows:
 > 
-> -------
-> Regards,
-> 	majie
+>    * Wakeup-aware PCI drivers no longer need to have someone override the
+>      initial system config by writing to /proc/acpi/wakeup; existing calls
+>      to pci_enable_wake() suffice.  For wakeup-unaware drivers, it's still
+>      not clearly safe to enable wakeup in /proc/acpi/wakeup.
 > 
+>    * Non-PCI frameworks (as for PS2 serial ports) could call the platform
+>      hook like PCI does, supporting wakeup-aware drivers.
 > 
+>    * The /sys/devices/.../power/wakeup flags are a different kind of manual
+>      override.  They _disable_ wakeup for broken hardware or drivers, rather
+>      than _enabling_ it in the hope that unmodified drivers won't break when
+>      their hardware triggers wakeup events.
 > 
+> NOT YET SIGNED-OFF ... primarily because of the confusion about
+> the order in which ACPI methods get called during entry to suspend
+> states.  Presumably one of the "new style" PM methods calls will
+> now always work for drivers wanting to enable wakeup methods...
+> 
+> ---
+>  drivers/acpi/sleep/main.c   |    2 +-
+>  drivers/acpi/sleep/wakeup.c |   44 ++++++++++++++++++++++++++++++++++++++++++--
+>  2 files changed, 43 insertions(+), 3 deletions(-)
+> 
+> --- g26.orig/drivers/acpi/sleep/main.c	2008-02-24 02:07:57.000000000 -0800
+> +++ g26/drivers/acpi/sleep/main.c	2008-02-24 02:08:04.000000000 -0800
+> @@ -470,7 +470,7 @@ int acpi_pm_device_sleep_state(struct de
+>  	 * can wake the system.  _S0W may be valid, too.
+>  	 */
+>  	if (acpi_target_sleep_state == ACPI_STATE_S0 ||
+> -	    (device_may_wakeup(dev) && adev->wakeup.state.enabled &&
+> +	    (device_may_wakeup(dev) &&
+>  	     adev->wakeup.sleep_state <= acpi_target_sleep_state)) {
+>  		acpi_status status;
+>  
+> --- g26.orig/drivers/acpi/sleep/wakeup.c	2008-02-24 02:03:27.000000000 -0800
+> +++ g26/drivers/acpi/sleep/wakeup.c	2008-02-24 02:08:04.000000000 -0800
+> @@ -35,12 +35,22 @@ void acpi_enable_wakeup_device_prep(u8 s
+>  		struct acpi_device *dev = container_of(node,
+>  						       struct acpi_device,
+>  						       wakeup_list);
+> +		struct device *ldev;
+>  
+>  		if (!dev->wakeup.flags.valid ||
+>  		    !dev->wakeup.state.enabled ||
+>  		    (sleep_state > (u32) dev->wakeup.sleep_state))
+>  			continue;
+>  
+> +		ldev = acpi_get_physical_device(dev->handle);
+> +		if (ldev) {
+> +			int flag = device_may_wakeup(ldev);
+> +
+> +			put_device(ldev);
+> +			if (!flag)
+> +				continue;
+> +		}
+> +
+>  		spin_unlock(&acpi_device_lock);
+>  		acpi_enable_wakeup_device_power(dev);
+>  		spin_lock(&acpi_device_lock);
+> @@ -57,8 +67,8 @@ void acpi_enable_wakeup_device(u8 sleep_
+>  {
+>  	struct list_head *node, *next;
+>  
+> -	/* 
+> -	 * Caution: this routine must be invoked when interrupt is disabled 
+> +	/*
+> +	 * Caution: this routine must be invoked when interrupt is disabled
+>  	 * Refer ACPI2.0: P212
+>  	 */
+>  	ACPI_FUNCTION_TRACE("acpi_enable_wakeup_device");
+> @@ -107,6 +117,7 @@ void acpi_disable_wakeup_device(u8 sleep
+>  	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+>  		struct acpi_device *dev =
+>  			container_of(node, struct acpi_device, wakeup_list);
+> +		struct device *ldev;
+>  
+>  		if (!dev->wakeup.flags.valid)
+>  			continue;
+> @@ -125,6 +136,15 @@ void acpi_disable_wakeup_device(u8 sleep
+>  			continue;
+>  		}
+>  
+> +		ldev = acpi_get_physical_device(dev->handle);
+> +		if (ldev) {
+> +			int flag = device_may_wakeup(ldev);
+> +
+> +			put_device(ldev);
+> +			if (!flag)
+> +				continue;
+> +		}
+> +
+>  		spin_unlock(&acpi_device_lock);
+>  		acpi_disable_wakeup_device_power(dev);
+>  		/* Never disable run-wake GPE */
+> @@ -139,6 +159,24 @@ void acpi_disable_wakeup_device(u8 sleep
+>  	spin_unlock(&acpi_device_lock);
+>  }
+>  
+> +static int acpi_platform_enable_wakeup(struct device *dev, int is_on)
+> +{
+> +	struct acpi_device	*adev;
+> +	int			status;
+> +
+> +	if (!device_can_wakeup(dev))
+> +		return -EINVAL;
+> +	if (is_on && !device_may_wakeup(dev))
+> +		return -EINVAL;
+> +
+> +	status = acpi_bus_get_device(DEVICE_ACPI_HANDLE(dev), &adev);
+> +	if (status < 0)
+> +		return status;
+> +
+> +	adev->wakeup.state.enabled = !!is_on;
+> +	return 0;
+> +}
+> +
+>  static int __init acpi_wakeup_device_init(void)
+>  {
+>  	struct list_head *node, *next;
+> @@ -146,6 +184,8 @@ static int __init acpi_wakeup_device_ini
+>  	if (acpi_disabled)
+>  		return 0;
+>  
+> +	platform_enable_wakeup = acpi_platform_enable_wakeup;
+> +
+>  	spin_lock(&acpi_device_lock);
+>  	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+>  		struct acpi_device *dev = container_of(node,
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
