@@ -1,32 +1,37 @@
-From: Jiri Kosina <jkosina@suse.cz>
-Subject: RE: WARNING: at drivers/base/sys.c:183 sysdev_driver_register+0x75/0x12e()
-Date: Tue, 22 Apr 2008 21:56:52 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0804222155070.12972@jikos.suse.cz>
-References: <Pine.LNX.4.64.0804221609130.12972@jikos.suse.cz>
- <6453C3CB8E2B3646B0D020C112613273093908@sausexmb4.amd.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [ibm-acpi-devel] [GIT PATCH] thinkpad-acpi queue for the
+	2.6.26 merge window
+Date: Tue, 22 Apr 2008 17:02:23 -0300
+Message-ID: <20080422200223.GA25311@khazad-dum.debian.net>
+References: <1207799585-10112-1-git-send-email-hmh@hmh.eng.br> <200804100237.16177.lenb@kernel.org> <20080410123459.GA18832@khazad-dum.debian.net> <200804101323.36432.lenb@kernel.org> <1207866898.4969.111.camel@dax.rpnet.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from styx.suse.cz ([82.119.242.94]:39078 "EHLO mail.suse.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1756386AbYDVT4x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 22 Apr 2008 15:56:53 -0400
-In-Reply-To: <6453C3CB8E2B3646B0D020C112613273093908@sausexmb4.amd.com>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:58449 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753988AbYDVUC1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 22 Apr 2008 16:02:27 -0400
+Content-Disposition: inline
+In-Reply-To: <1207866898.4969.111.camel@dax.rpnet.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Langsdorf, Mark" <mark.langsdorf@amd.com>
-Cc: davej@codemonkey.org.uk, lenb@kernel.org, linux-acpi@vger.kernel.org, Greg KH <greg@kroah.com>, linux-kernel@vger.kernel.org, cpufreq@lists.linux.org.uk
+To: Richard Purdie <rpurdie@rpsys.net>
+Cc: Len Brown <lenb@kernel.org>, ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-On Tue, 22 Apr 2008, Langsdorf, Mark wrote:
+On Thu, 10 Apr 2008, Richard Purdie wrote:
+> Those patches are queued and I have no plans to change them before
+> submitting to Linus. 
 
-> PowerNow! failed to load because the BIOS wasn't set up correctly.  But 
-> the acpi-cpufreq driver shouldn't have loaded at all.
+Any news on this?  Richard, could you send your queue to Linus now that
+the window is open?
 
-I'd guess that it is because acpi_cpufreq_init() doesn't contain any check 
-at all that will make sure that the CPU supports needed features (as 
-opposed to powernow/speedstep/etc modules, which perform such checks), 
-right?
+If you do, I will resend my series to Len, and he will be able to just
+rebase acpi-test on top of latest mainline [after your queue gets merged
+by Linus] which will be faster and easier for all involved.
 
 -- 
-Jiri Kosina
-SUSE Labs
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
