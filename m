@@ -1,43 +1,44 @@
-From: Ralf Orlowski <ralf@orle.de>
-Subject: suspend not working on Panasonic Toughbook CF-52 with kernel 2.6.25
-Date: Tue, 22 Apr 2008 10:01:59 +0200
-Message-ID: <480D9B77.4050206@orle.de>
+From: "Jan Beulich" <jbeulich@novell.com>
+Subject: Re: [patch 3/9] acpi: adjust register handling
+Date: Tue, 22 Apr 2008 09:01:59 +0100
+Message-ID: <480DB797.76E4.0078.0@novell.com>
+References: <200804182027.m3IKRPrs013544@imap1.linux-foundation.org>
+ <1208862915.14474.31.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ipx20135.ipxserver.de ([80.190.249.2]:2997 "EHLO
-	ipx20135.ipxserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762703AbYDVICE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Apr 2008 04:02:04 -0400
+Received: from vpn.id2.novell.com ([195.33.99.129]:49833 "EHLO
+	vpn.id2.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756295AbYDVIWF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Apr 2008 04:22:05 -0400
+In-Reply-To: <1208862915.14474.31.camel@yakui_zhao.sh.intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-laptop@mobilix.org, linux-acpi@vger.kernel.org
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: lenb@kernel.org, akpm@linux-foundation.org, linux-acpi@vger.kernel.org
 
-Hello,
+>>> Zhao Yakui <yakui.zhao@intel.com> 22.04.08 13:15 >>>
+>On Fri, 2008-04-18 at 13:27 -0700, akpm@linux-foundation.org wrote:
+>> From: "Jan Beulich" <jbeulich@novell.com>
+>> 
+>> acpi_hw_low_level_{read,write}() have no need to accept a NULL reg argument
+>> anymore (all callers use addresses of or derived from ACPI globals), and it
+>> really should always have been considered an error to call these functions in
+>> such a way.
+>IMO this is inappropriate. On some laptops there are some optional
+>register blocks . For example: PM1b_event_block, PM1B_control_block. 
+>And the optional register block will be accessed in many functions. (For
+>example: sleep flowchart, power_off flowchart).
+>If the AE_BAD_PARAMETER is returned by acpi_hw_low_level_read when the
+>reg doesn't exist, there will be many regressions.
 
-there seems to be a bug in the ACPI-Code of the new stable kernel 2.6.25.
-I just upgraded my Panasonic Toughbook CF-52 from kernel 2.6.24.4 to 
-2.6.25.
-On this notebook I had to exchange the DSDT to get ACPI working, but 
-with this exchange suspend works fine with kernel 2.6.24.4.
+No, that's not the case: as said in the description, the register structures
+are static (hence the addresses of them are never NULL) - an optional,
+not implemented register is identified by the address field inside the
+register structure being zero (which is still being accounted for, as it
+was before the change).
 
-But now I upgraded to 2.6.25 and used the same DSDT. The system starts 
-without any problems with ACPI enabled.
-When I close the display, the system goes into suspend mode, as it should.
-But when I open the display again, the green LED goes on, as if the 
-system tries to start again, but then the system hangs. The display 
-stays dark and it doesn't react to any key-stroke any more.
+Jan
 
-With kernel 2.6.24.4 it just wakes up as it should and I can continue my 
-work from the status, it was before the suspend.
-
-Does anyone know something about this bug in kernel 2.6.25?
-
-
-Bye Ralf
--- 
-Ralf Orlowski                           voice: +49-8134-935781
-Hadersried 27a                          car:   +49-173-5239069
-85235 Odelzhausen                       mobil: +49-160-8577361
-GERMANY                   E-mail: Ralf@orle.de (PGP available)
