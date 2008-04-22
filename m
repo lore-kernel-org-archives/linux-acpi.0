@@ -1,69 +1,32 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 46/73] ACPICA: Fixed a couple memory leaks associated with "implicit return" objects when the AML Interpreter slack mode is enabled
-Date: Tue, 22 Apr 2008 14:24:49 -0400
-Message-ID: <200804221424.49706.lenb@kernel.org>
-References: <1207974356-30687-1-git-send-email-lenb@kernel.org> <eebfce1bc757911d1d03a687356ce43e03078253.1207973800.git.len.brown@intel.com>
+From: Jiri Kosina <jkosina@suse.cz>
+Subject: RE: WARNING: at drivers/base/sys.c:183 sysdev_driver_register+0x75/0x12e()
+Date: Tue, 22 Apr 2008 21:56:52 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0804222155070.12972@jikos.suse.cz>
+References: <Pine.LNX.4.64.0804221609130.12972@jikos.suse.cz>
+ <6453C3CB8E2B3646B0D020C112613273093908@sausexmb4.amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:53603 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755497AbYDVSZJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 22 Apr 2008 14:25:09 -0400
-In-Reply-To: <eebfce1bc757911d1d03a687356ce43e03078253.1207973800.git.len.brown@intel.com>
-Content-Disposition: inline
+Received: from styx.suse.cz ([82.119.242.94]:39078 "EHLO mail.suse.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1756386AbYDVT4x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 22 Apr 2008 15:56:53 -0400
+In-Reply-To: <6453C3CB8E2B3646B0D020C112613273093908@sausexmb4.amd.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Bob Moore <robert.moore@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.de>
+To: "Langsdorf, Mark" <mark.langsdorf@amd.com>
+Cc: davej@codemonkey.org.uk, lenb@kernel.org, linux-acpi@vger.kernel.org, Greg KH <greg@kroah.com>, linux-kernel@vger.kernel.org, cpufreq@lists.linux.org.uk
 
-Bob reports that this one breaks implicit return,
-so I'm dropping it.
+On Tue, 22 Apr 2008, Langsdorf, Mark wrote:
 
-thanks,
--Len
+> PowerNow! failed to load because the BIOS wasn't set up correctly.  But 
+> the acpi-cpufreq driver shouldn't have loaded at all.
 
-On Saturday 12 April 2008, Len Brown wrote:
-> From: Bob Moore <robert.moore@intel.com>
-> 
-> Lin Ming BZ 349
-> 
-> Signed-off-by: Bob Moore <robert.moore@intel.com>
-> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-> Signed-off-by: Len Brown <len.brown@intel.com>
-> ---
->  drivers/acpi/dispatcher/dsmethod.c |    3 +++
->  drivers/acpi/dispatcher/dsmthdat.c |    2 ++
->  2 files changed, 5 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/acpi/dispatcher/dsmethod.c b/drivers/acpi/dispatcher/dsmethod.c
-> index 7a99740..9e24641 100644
-> --- a/drivers/acpi/dispatcher/dsmethod.c
-> +++ b/drivers/acpi/dispatcher/dsmethod.c
-> @@ -103,6 +103,9 @@ acpi_ds_method_error(acpi_status status, struct acpi_walk_state *walk_state)
->  						    NULL);
->  		acpi_ex_enter_interpreter();
->  	}
-> +
-> +	acpi_ds_clear_implicit_return(walk_state);
-> +
->  #ifdef ACPI_DISASSEMBLER
->  	if (ACPI_FAILURE(status)) {
->  
-> diff --git a/drivers/acpi/dispatcher/dsmthdat.c b/drivers/acpi/dispatcher/dsmthdat.c
-> index ba4626e..38510d1 100644
-> --- a/drivers/acpi/dispatcher/dsmthdat.c
-> +++ b/drivers/acpi/dispatcher/dsmthdat.c
-> @@ -172,6 +172,8 @@ void acpi_ds_method_data_delete_all(struct acpi_walk_state *walk_state)
->  		}
->  	}
->  
-> +	acpi_ds_clear_implicit_return(walk_state);
-> +
->  	return_VOID;
->  }
->  
+I'd guess that it is because acpi_cpufreq_init() doesn't contain any check 
+at all that will make sure that the CPU supports needed features (as 
+opposed to powernow/speedstep/etc modules, which perform such checks), 
+right?
 
-
+-- 
+Jiri Kosina
+SUSE Labs
