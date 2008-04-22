@@ -1,51 +1,69 @@
-From: "Langsdorf, Mark" <mark.langsdorf@amd.com>
-Subject: RE: WARNING: at drivers/base/sys.c:183 sysdev_driver_register+0x75/0x12e()
-Date: Tue, 22 Apr 2008 11:51:21 -0500
-Message-ID: <6453C3CB8E2B3646B0D020C112613273093908@sausexmb4.amd.com>
-References: <Pine.LNX.4.64.0804221609130.12972@jikos.suse.cz>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 46/73] ACPICA: Fixed a couple memory leaks associated with "implicit return" objects when the AML Interpreter slack mode is enabled
+Date: Tue, 22 Apr 2008 14:24:49 -0400
+Message-ID: <200804221424.49706.lenb@kernel.org>
+References: <1207974356-30687-1-git-send-email-lenb@kernel.org> <eebfce1bc757911d1d03a687356ce43e03078253.1207973800.git.len.brown@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 8BIT
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outbound-dub.frontbridge.com ([213.199.154.16]:30642 "EHLO
-	outbound7-dub-R.bigfish.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755025AbYDVQvk convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 22 Apr 2008 12:51:40 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <Pine.LNX.4.64.0804221609130.12972@jikos.suse.cz>
+Received: from hera.kernel.org ([140.211.167.34]:53603 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755497AbYDVSZJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 22 Apr 2008 14:25:09 -0400
+In-Reply-To: <eebfce1bc757911d1d03a687356ce43e03078253.1207973800.git.len.brown@intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiri Kosina <jkosina@suse.cz>, davej@codemonkey.org.uk, lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, Greg KH <greg@kroah.com>, linux-kernel@vger.kernel.org, cpufreq@lists.linux.org.uk
+To: linux-acpi@vger.kernel.org
+Cc: Bob Moore <robert.moore@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.de>
 
-> From: cpufreq-bounces@lists.linux.org.uk 
-> [mailto:cpufreq-bounces@lists.linux.org.uk] On Behalf Of Jiri Kosina
-> Sent: Tuesday, April 22, 2008 9:12 AM
-> To: davej@codemonkey.org.uk; lenb@kernel.org
-> 
-> Hi,
-> 
-> I am getting the acpi-cpufreq-drivercore warning below when booting 
-> current git (807501475)
-> 
-> powernow-k8: Found 1 AMD Athlon(tm) 64 Processor 3000+ 
-> processors (1 cpu 
-> cores) (version 2.20.00)
-> powernow-k8: BIOS error - no PSB or ACPI _PSS objects
-> sysdev: class cpu: driver (ffffffff8057fd10) has already been 
-> registered to a class, something is wrong, but will forge on!
-> 
-Why is the acpi-cpufreq driver trying to
-instantiate on an AMD processor?  It shouldn't
-do that.
+Bob reports that this one breaks implicit return,
+so I'm dropping it.
 
-PowerNow! failed to load because the BIOS wasn't 
-set up correctly.  But the acpi-cpufreq driver
-shouldn't have loaded at all.
+thanks,
+-Len
 
--Mark Langsdorf
-Operating System Research Center
-AMD
+On Saturday 12 April 2008, Len Brown wrote:
+> From: Bob Moore <robert.moore@intel.com>
+> 
+> Lin Ming BZ 349
+> 
+> Signed-off-by: Bob Moore <robert.moore@intel.com>
+> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+> Signed-off-by: Len Brown <len.brown@intel.com>
+> ---
+>  drivers/acpi/dispatcher/dsmethod.c |    3 +++
+>  drivers/acpi/dispatcher/dsmthdat.c |    2 ++
+>  2 files changed, 5 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/acpi/dispatcher/dsmethod.c b/drivers/acpi/dispatcher/dsmethod.c
+> index 7a99740..9e24641 100644
+> --- a/drivers/acpi/dispatcher/dsmethod.c
+> +++ b/drivers/acpi/dispatcher/dsmethod.c
+> @@ -103,6 +103,9 @@ acpi_ds_method_error(acpi_status status, struct acpi_walk_state *walk_state)
+>  						    NULL);
+>  		acpi_ex_enter_interpreter();
+>  	}
+> +
+> +	acpi_ds_clear_implicit_return(walk_state);
+> +
+>  #ifdef ACPI_DISASSEMBLER
+>  	if (ACPI_FAILURE(status)) {
+>  
+> diff --git a/drivers/acpi/dispatcher/dsmthdat.c b/drivers/acpi/dispatcher/dsmthdat.c
+> index ba4626e..38510d1 100644
+> --- a/drivers/acpi/dispatcher/dsmthdat.c
+> +++ b/drivers/acpi/dispatcher/dsmthdat.c
+> @@ -172,6 +172,8 @@ void acpi_ds_method_data_delete_all(struct acpi_walk_state *walk_state)
+>  		}
+>  	}
+>  
+> +	acpi_ds_clear_implicit_return(walk_state);
+> +
+>  	return_VOID;
+>  }
+>  
+
 
