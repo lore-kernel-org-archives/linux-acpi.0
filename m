@@ -1,185 +1,66 @@
 From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: Re: [RESEND patch 2.6.25] ACPI uses device_may_wakeup() policy
-	inputs
-Date: Tue, 22 Apr 2008 21:30:17 +0800
-Message-ID: <1208871017.14474.52.camel@yakui_zhao.sh.intel.com>
-References: <200803201408.33466.david-b@pacbell.net>
-	 <200803201422.55014.david-b@pacbell.net>
-	 <200804182118.05228.david-b@pacbell.net>
+Subject: Re: [PATCH 2.6.25-rc7 001/001] ACPI: workaround for buggy BIOS to
+	ignore error LINK CRS method
+Date: Tue, 22 Apr 2008 21:37:47 +0800
+Message-ID: <1208871467.14474.57.camel@yakui_zhao.sh.intel.com>
+References: <f7430a760804090842s44ece7bh216d5d28e347955@mail.gmail.com>
+	 <20080409161251.0c0e73e9.akpm@linux-foundation.org>
+	 <1207824057.8704.12.camel@yakui_zhao.sh.intel.com>
+	 <f7430a760804100523t6483dc0cn144429ee7024a7f2@mail.gmail.com>
+	 <1208267385.12372.11.camel@yakui_zhao.sh.intel.com>
+	 <f7430a760804150121ndfaf065j332ebf1cee3c572@mail.gmail.com>
+	 <f7430a760804151538v410f7c64m21d90cb9da8e9baa@mail.gmail.com>
+	 <f7430a760804161154o77dd7fc5g622d3bbe4fa1183b@mail.gmail.com>
+	 <f7430a760804210613h69e4b560q774301a1152ef77d@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:43157 "EHLO mga11.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:6503 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751884AbYDVFif (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 22 Apr 2008 01:38:35 -0400
-In-Reply-To: <200804182118.05228.david-b@pacbell.net>
+	id S1757258AbYDVFqF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 22 Apr 2008 01:46:05 -0400
+In-Reply-To: <f7430a760804210613h69e4b560q774301a1152ef77d@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, Thomas Renninger <trenn@suse.de>
+To: NoWhereMan <uncommonnonsense@gmail.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-On Fri, 2008-04-18 at 21:18 -0700, David Brownell wrote:
-> This imports the driver model device.power.may_wakeup flags to ACPI,
-> using it to *REPLACE* the /proc/acpi/wakeup flags for some devices.
-> It depends on the previous patch making device.power.can_wakeup behave.
-> It does that by:
+On Mon, 2008-04-21 at 15:13 +0200, NoWhereMan wrote:
+> patch is working; cc'ing to ML
 > 
->  - Implementing platform_enable_wakeup(), which is currently invoked only
->    by pci_enable_wake().  When that's called -- probably in the driver
->    suspend() call -- it updates acpi_device.wakeup.state.enabled flag in
->    the same way writing to /proc/acpi/wakeup updates it.
->    
->  - Updating the usage of the corresponding ACPI flags when turning on
->    wakeup power domains and GPEs.
-> 
-> THIS PATCH NEEDS MORE ATTENTION because of the way the ACPI method
-> invocations have been changing, e.g. the 1.0 vs 2.0 sequencing.
-> 
-> Right now it's not clear to me whether the GPEs are always enabled at
-> the right time, and for that matter whether the rules haven't changed
-> so that drivers can no longer effectively control those settings from
-> suspend() unless acpi_new_pts_ordering is in effect.
-Agree with what Rui said. The patch doesn't change the time when GPEs
-are enabled/disabled.
-
-But after the patch is applied, some PCI device(the ACPI device with the
-_PRW object) can wake the sleeping system by default. And it is totally
-opposite to the current flowchart. 
-
-> ACPI systems see behavioral changes as follows:
-> 
->    * Wakeup-aware PCI drivers no longer need to have someone override the
->      initial system config by writing to /proc/acpi/wakeup; existing calls
->      to pci_enable_wake() suffice.  For wakeup-unaware drivers, it's still
->      not clearly safe to enable wakeup in /proc/acpi/wakeup.
-> 
->    * Non-PCI frameworks (as for PS2 serial ports) could call the platform
->      hook like PCI does, supporting wakeup-aware drivers.
-> 
->    * The /sys/devices/.../power/wakeup flags are a different kind of manual
->      override.  They _disable_ wakeup for broken hardware or drivers, rather
->      than _enabling_ it in the hope that unmodified drivers won't break when
->      their hardware triggers wakeup events.
-> 
-> NOT YET SIGNED-OFF ... primarily because of the confusion about
-> the order in which ACPI methods get called during entry to suspend
-> states.  Presumably one of the "new style" PM methods calls will
-> now always work for drivers wanting to enable wakeup methods...
-> 
-> ---
->  drivers/acpi/sleep/main.c   |    2 +-
->  drivers/acpi/sleep/wakeup.c |   44 ++++++++++++++++++++++++++++++++++++++++++--
->  2 files changed, 43 insertions(+), 3 deletions(-)
-> 
-> --- g26.orig/drivers/acpi/sleep/main.c	2008-02-24 02:07:57.000000000 -0800
-> +++ g26/drivers/acpi/sleep/main.c	2008-02-24 02:08:04.000000000 -0800
-> @@ -470,7 +470,7 @@ int acpi_pm_device_sleep_state(struct de
->  	 * can wake the system.  _S0W may be valid, too.
->  	 */
->  	if (acpi_target_sleep_state == ACPI_STATE_S0 ||
-> -	    (device_may_wakeup(dev) && adev->wakeup.state.enabled &&
-> +	    (device_may_wakeup(dev) &&
->  	     adev->wakeup.sleep_state <= acpi_target_sleep_state)) {
->  		acpi_status status;
->  
-> --- g26.orig/drivers/acpi/sleep/wakeup.c	2008-02-24 02:03:27.000000000 -0800
-> +++ g26/drivers/acpi/sleep/wakeup.c	2008-02-24 02:08:04.000000000 -0800
-> @@ -35,12 +35,22 @@ void acpi_enable_wakeup_device_prep(u8 s
->  		struct acpi_device *dev = container_of(node,
->  						       struct acpi_device,
->  						       wakeup_list);
-> +		struct device *ldev;
->  
->  		if (!dev->wakeup.flags.valid ||
->  		    !dev->wakeup.state.enabled ||
->  		    (sleep_state > (u32) dev->wakeup.sleep_state))
->  			continue;
->  
-> +		ldev = acpi_get_physical_device(dev->handle);
-> +		if (ldev) {
-> +			int flag = device_may_wakeup(ldev);
-> +
-> +			put_device(ldev);
-> +			if (!flag)
-> +				continue;
-> +		}
-> +
->  		spin_unlock(&acpi_device_lock);
->  		acpi_enable_wakeup_device_power(dev);
->  		spin_lock(&acpi_device_lock);
-> @@ -57,8 +67,8 @@ void acpi_enable_wakeup_device(u8 sleep_
->  {
->  	struct list_head *node, *next;
->  
-> -	/* 
-> -	 * Caution: this routine must be invoked when interrupt is disabled 
-> +	/*
-> +	 * Caution: this routine must be invoked when interrupt is disabled
->  	 * Refer ACPI2.0: P212
->  	 */
->  	ACPI_FUNCTION_TRACE("acpi_enable_wakeup_device");
-> @@ -107,6 +117,7 @@ void acpi_disable_wakeup_device(u8 sleep
->  	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
->  		struct acpi_device *dev =
->  			container_of(node, struct acpi_device, wakeup_list);
-> +		struct device *ldev;
->  
->  		if (!dev->wakeup.flags.valid)
->  			continue;
-> @@ -125,6 +136,15 @@ void acpi_disable_wakeup_device(u8 sleep
->  			continue;
->  		}
->  
-> +		ldev = acpi_get_physical_device(dev->handle);
-> +		if (ldev) {
-> +			int flag = device_may_wakeup(ldev);
-> +
-> +			put_device(ldev);
-> +			if (!flag)
-> +				continue;
-> +		}
-> +
->  		spin_unlock(&acpi_device_lock);
->  		acpi_disable_wakeup_device_power(dev);
->  		/* Never disable run-wake GPE */
-> @@ -139,6 +159,24 @@ void acpi_disable_wakeup_device(u8 sleep
->  	spin_unlock(&acpi_device_lock);
->  }
->  
-> +static int acpi_platform_enable_wakeup(struct device *dev, int is_on)
-> +{
-> +	struct acpi_device	*adev;
-> +	int			status;
-> +
-> +	if (!device_can_wakeup(dev))
-> +		return -EINVAL;
-> +	if (is_on && !device_may_wakeup(dev))
-> +		return -EINVAL;
-> +
-> +	status = acpi_bus_get_device(DEVICE_ACPI_HANDLE(dev), &adev);
-> +	if (status < 0)
-> +		return status;
-> +
-> +	adev->wakeup.state.enabled = !!is_on;
-> +	return 0;
-> +}
-> +
->  static int __init acpi_wakeup_device_init(void)
->  {
->  	struct list_head *node, *next;
-> @@ -146,6 +184,8 @@ static int __init acpi_wakeup_device_ini
->  	if (acpi_disabled)
->  		return 0;
->  
-> +	platform_enable_wakeup = acpi_platform_enable_wakeup;
-> +
->  	spin_lock(&acpi_device_lock);
->  	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
->  		struct acpi_device *dev = container_of(node,
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks for the test.
+I will try to push Len to merge this patch.
+> On Wed, Apr 16, 2008 at 8:54 PM, NoWhereMan <uncommonnonsense@gmail.com> wrote:
+> > FYI it wasn't latest git but still rc7; I've fast-forwarded now to
+> >  rc9, but if no significant changes were made on that part of acpi I'm
+> >  sure it will work anyway
+> >
+> >
+> >
+> >  On Wed, Apr 16, 2008 at 12:38 AM, NoWhereMan <uncommonnonsense@gmail.com> wrote:
+> >  > hi Zhao,
+> >  >
+> >  >  I've applied the patch to latest linus git, boot went flawlessly
+> >  >  (except the usual error messages about _CRS method) and both wireless
+> >  >  and USB work, so I'm assuming it worked.
+> >  >
+> >  >  I'm attaching my dmesg just for reference. I've enabled ACPI debugging
+> >  >  in my kernel config.
+> >  >
+> >  >  thank you a lot for your efforts with this bug
+> >  >
+> >  >
+> >  >
+> >  >  On Tue, Apr 15, 2008 at 10:21 AM, NoWhereMan <uncommonnonsense@gmail.com> wrote:
+> >  >  > On Tue, Apr 15, 2008 at 3:49 PM, Zhao Yakui <yakui.zhao@intel.com> wrote:
+> >  >  >
+> >  >  >  >  Will you please try the workaround patch and see whether the problem can
+> >  >  >  >  be fixed?
+> >  >  >  >  Thanks.
+> >  >  >
+> >  >  >  I will as soon as possible, thank you for your efforts!
+> >  >  >
+> >  >
+> >
 
