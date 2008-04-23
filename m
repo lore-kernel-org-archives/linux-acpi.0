@@ -1,90 +1,53 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 70/73] ACPICA: Fix to disable unknown spurious GPEs
-Date: Tue, 22 Apr 2008 22:57:15 -0400
-Message-ID: <200804222257.16029.lenb@kernel.org>
-References: <1207974356-30687-1-git-send-email-lenb@kernel.org> <16ff5d276b6f17288051f32accdbd675242e5282.1207973801.git.len.brown@intel.com>
+Subject: [stable PATCH for 2.6.24.5 and 2.6.25] pnpacpi: fix potential corruption on "pnpacpi: exceeded the max number of IRQ resources 2"
+Date: Wed, 23 Apr 2008 00:09:13 -0400
+Message-ID: <200804230009.15258.lenb@kernel.org>
+References: <20080417010122.148289106@sous-sol.org> <20080417010359.629397865@sous-sol.org> <200804181548.33872.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="utf-8"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:39260 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:56279 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755266AbYDWC5e (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 22 Apr 2008 22:57:34 -0400
-In-Reply-To: <16ff5d276b6f17288051f32accdbd675242e5282.1207973801.git.len.brown@intel.com>
+	id S1750749AbYDWEMI (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
+	Wed, 23 Apr 2008 00:12:08 -0400
+In-Reply-To: <200804181548.33872.bjorn.helgaas@hp.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Bob Moore <robert.moore@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.de>, Zhang Rui <rui.zhang@intel.com>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Chris Wright <chrisw@sous-sol.org>, linux-kernel@vger.kernel.org, stable@kernel.org, Linux-acpi@vger.kernel.org, Justin Forbes <jmforbes@linuxtx.org>, Zwane Mwaikambo <zwane@arm.linux.org.uk>, Theodore Ts'o <tytso@mit.edu>, Randy Dunlap <rdunlap@xenotime.net>, Dave Jones <davej@redhat.com>, Chuck Wolber <chuckw@quantumlinux.com>, Chris Wedgwood <reviews@ml.cw.f00f.org>, Michael Krufky <mkrufky@linuxtv.org>, Chuck Ebbert <cebbert@redhat.com>, Domenico Andreoli <cavokz@gmail.com>, torvalds@linux-foundation.org, akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk
 
-On Saturday 12 April 2008, Len Brown wrote:
-> From: Bob Moore <robert.moore@intel.com>
-> 
-> Implemented another change to eliminate/suppress spurious or
-> stray GPEs. The AcpiEvDisableGpe function will now disable GPEs
-> that are neither enabled nor disabled -- meaning that the GPE is
-> unknown to the system. This will prevent future interrupts from
-> that GPE. (Zhang Rui) BZ 6217
-> 
-> Signed-off-by: Bob Moore <robert.moore@intel.com>
-> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-> Signed-off-by: Len Brown <len.brown@intel.com>
-> ---
->  drivers/acpi/events/evgpe.c |    9 ++++++++-
->  1 files changed, 8 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/acpi/events/evgpe.c b/drivers/acpi/events/evgpe.c
-> index 897baed..6940f5d 100644
-> --- a/drivers/acpi/events/evgpe.c
-> +++ b/drivers/acpi/events/evgpe.c
-> @@ -250,7 +250,14 @@ acpi_status acpi_ev_disable_gpe(struct acpi_gpe_event_info *gpe_event_info)
->  
->  	ACPI_FUNCTION_TRACE(ev_disable_gpe);
->  
-> -	if (!(gpe_event_info->flags & ACPI_GPE_ENABLE_MASK)) {
-> +	/*
-> +	 * Ignore this if the GPE is valid and not enabled.
-> +	 *
-> +	 * Flags is only zero if GPE is neither enabled or disabled -- it may
-> +	 * be a spurious or stray GPE -- disable it in the default case below.
-> +	 */
-> +	if (gpe_event_info->flags &&
-> +	    (!(gpe_event_info->flags & ACPI_GPE_ENABLE_MASK))) {
->  		return_ACPI_STATUS(AE_OK);
->  	}
->  
+From: Len Brown <len.brown@intel.com>
 
+PNP_MAX_IRQ is 2
+If a device invokes pnpacpi_parse_allocated_irqresource() 0, 1, or 2 times, we are happy.
+The 3rd time, we will fail and print "pnpacpi: exceeded the max number of IRQ resources: 2"
+The 4th and subsequent calls (if this ever happened) would silently scribble on
+irq_resource[2], which doesn't actualy exist.
 
-When applied to 2.6.25, the patch above causes ACPI Error messages below on my T61.
-Certainly this is a case of the EC getting an interrupt (GPE x02) before it has initialized.
+Found-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
 
-Perhaps it breaks the call of acpi_install_gpe_handler() to acpi_ev_disable_gpe()?
-
--Len
-
-
- PCI: Using MMCONFIG at f0000000 - f3ffffff
- PCI: Using configuration type 1
- evgpeblk-0956 [00] ev_create_gpe_block   : GPE 00 to 1F [_GPE] 4 regs on int 0x9
-+ACPI Error (evregion-0316): No handler for Region [ECOR] (ffff81007d35dda0) [EmbeddedControl] [20070126]
-+ACPI Error (exfldio-0289): Region EmbeddedControl(3) has no handler [20070126]
-+ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPC_.EC__.AC__._PSR] (Node ffff81007d364ab0), AE_NOT_EXIST
-+ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPC_.EC__.HKEY.CKC4] (Node ffff81007d364f48), AE_NOT_EXIST
-+ACPI Error (psparse-0537): Method parse/execution failed [\_GPE._L02] (Node ffff81007d376420), AE_NOT_EXIST
-+ACPI Exception (evgpe-0584): AE_NOT_EXIST, while evaluating GPE method [_L02] [20070126]
- evgpeblk-1052 [00] ev_initialize_gpe_bloc: Found 9 Wake, Enabled 3 Runtime GPEs in this block
- ACPI: EC: EC description table is found, configuring boot EC
--ACPI: EC: non-query interrupt received, switching to interrupt mode
--Completing Region/Field/Buffer/Package initialization:........................................................................................................................
-......................................................................................................................................................................
--Initialized 29/33 Regions 138/138 Fields 64/64 Buffers 55/72 Packages (1888 nodes)
-+Completing Region/Field/Buffer/Package initialization:........................................................................................................................
-.......................................................................................................................................................................
-+Initialized 30/33 Regions 138/138 Fields 64/64 Buffers 55/72 Packages (1888 nodes)
- Initializing Device/Processor/Thermal objects by executing _INI methods:.<5>ACPI: BIOS _OSI(Linux) query honored via DMI
-+ACPI: EC: non-query interrupt received, switching to interrupt mode
- .......
- Executed 8 _INI methods requiring 2 _STA executions (examined 88 objects)
- ACPI: Interpreter enabled
+diff --git a/drivers/pnp/pnpacpi/rsparser.c b/drivers/pnp/pnpacpi/rsparser.c
+index 2dcd196..98cbc9f 100644
+--- a/drivers/pnp/pnpacpi/rsparser.c
++++ b/drivers/pnp/pnpacpi/rsparser.c
+@@ -84,10 +84,12 @@ static void pnpacpi_parse_allocated_irqresource(struct pnp_resource_table *res,
+ 	while (!(res->irq_resource[i].flags & IORESOURCE_UNSET) &&
+ 	       i < PNP_MAX_IRQ)
+ 		i++;
+-	if (i >= PNP_MAX_IRQ && !warned) {
+-		printk(KERN_WARNING "pnpacpi: exceeded the max number of IRQ "
+-				"resources: %d \n", PNP_MAX_IRQ);
+-		warned = 1;
++	if (i >= PNP_MAX_IRQ) {
++		if (!warned) {
++			printk(KERN_WARNING "pnpacpi: exceeded the max number"
++				" of IRQ resources: %d\n", PNP_MAX_IRQ);
++			warned = 1;
++		}
+ 		return;
+ 	}
+ 	/*
