@@ -1,94 +1,66 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: Re: [PATCH 70/73] ACPICA: Fix to disable unknown spurious GPEs
-Date: Wed, 23 Apr 2008 09:28:54 +0400
-Message-ID: <480EC916.1050407@suse.de>
-References: <1207974356-30687-1-git-send-email-lenb@kernel.org> <16ff5d276b6f17288051f32accdbd675242e5282.1207973801.git.len.brown@intel.com> <200804222257.16029.lenb@kernel.org>
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: Re: Linux 2.6.25 (coretemp reads high temperatures)
+Date: Wed, 23 Apr 2008 11:43:10 +0300
+Message-ID: <200804231143.10875.maximlevitsky@gmail.com>
+References: <e85b9d30804180837y39c52e26i588e4b67c87a5e9d@mail.gmail.com> <200804182151.49021.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:47515 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751491AbYDWF32 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Apr 2008 01:29:28 -0400
-In-Reply-To: <200804222257.16029.lenb@kernel.org>
+Received: from fg-out-1718.google.com ([72.14.220.157]:21132 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752408AbYDWInQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Apr 2008 04:43:16 -0400
+Received: by fg-out-1718.google.com with SMTP id l27so2537314fgb.17
+        for <linux-acpi@vger.kernel.org>; Wed, 23 Apr 2008 01:43:15 -0700 (PDT)
+In-Reply-To: <200804182151.49021.lenb@kernel.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>, Zhang Rui <rui.zhang@intel.com>
+Cc: Matthew <jackdachef@gmail.com>, linux-acpi@vger.kernel.org, torvalds@linux-foundation.org, linux-kernel@vger.kernel.org
 
-Len Brown wrote:
-> On Saturday 12 April 2008, Len Brown wrote:
->> From: Bob Moore <robert.moore@intel.com>
->>
->> Implemented another change to eliminate/suppress spurious or
->> stray GPEs. The AcpiEvDisableGpe function will now disable GPEs
->> that are neither enabled nor disabled -- meaning that the GPE is
->> unknown to the system. This will prevent future interrupts from
->> that GPE. (Zhang Rui) BZ 6217
->>
->> Signed-off-by: Bob Moore <robert.moore@intel.com>
->> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
->> Signed-off-by: Len Brown <len.brown@intel.com>
->> ---
->>  drivers/acpi/events/evgpe.c |    9 ++++++++-
->>  1 files changed, 8 insertions(+), 1 deletions(-)
->>
->> diff --git a/drivers/acpi/events/evgpe.c b/drivers/acpi/events/evgpe.c
->> index 897baed..6940f5d 100644
->> --- a/drivers/acpi/events/evgpe.c
->> +++ b/drivers/acpi/events/evgpe.c
->> @@ -250,7 +250,14 @@ acpi_status acpi_ev_disable_gpe(struct acpi_gpe_event_info *gpe_event_info)
->>  
->>  	ACPI_FUNCTION_TRACE(ev_disable_gpe);
->>  
->> -	if (!(gpe_event_info->flags & ACPI_GPE_ENABLE_MASK)) {
->> +	/*
->> +	 * Ignore this if the GPE is valid and not enabled.
->> +	 *
->> +	 * Flags is only zero if GPE is neither enabled or disabled -- it may
->> +	 * be a spurious or stray GPE -- disable it in the default case below.
->> +	 */
->> +	if (gpe_event_info->flags &&
->> +	    (!(gpe_event_info->flags & ACPI_GPE_ENABLE_MASK))) {
->>  		return_ACPI_STATUS(AE_OK);
->>  	}
->>  
-> 
-> 
-> When applied to 2.6.25, the patch above causes ACPI Error messages below on my T61.
-> Certainly this is a case of the EC getting an interrupt (GPE x02) before it has initialized.
-> 
-> Perhaps it breaks the call of acpi_install_gpe_handler() to acpi_ev_disable_gpe()?
-Congratulations, now you too hit this one, patch is already there...
-It is wroong to enable GPE before handler for it is installed...
-http://bugzilla.kernel.org/show_bug.cgi?id=9916
+On Saturday, 19 April 2008 04:51:48 Len Brown wrote:
+> On Friday 18 April 2008, Matthew wrote:
+> > Hi everyone, hi Linus,
+> >=20
+> > congratulations on this new great kernel-release :)
+> >=20
+> > I've another "regression" to report for 2.6.25:
+> >=20
+> > it's concerning much higher temperatures being read out by the
+> > "coretemp" kernel-module in comparison to 2.6.24* series
+> >=20
+> > e.g. where temperatures were around 40-47=B0C they are now constant=
+ly
+> > jumping around 55-70=B0C (even in idle !)
 
-> 
-> -Len
-> 
-> 
->  PCI: Using MMCONFIG at f0000000 - f3ffffff
->  PCI: Using configuration type 1
->  evgpeblk-0956 [00] ev_create_gpe_block   : GPE 00 to 1F [_GPE] 4 regs on int 0x9
-> +ACPI Error (evregion-0316): No handler for Region [ECOR] (ffff81007d35dda0) [EmbeddedControl] [20070126]
-> +ACPI Error (exfldio-0289): Region EmbeddedControl(3) has no handler [20070126]
-> +ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPC_.EC__.AC__._PSR] (Node ffff81007d364ab0), AE_NOT_EXIST
-> +ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPC_.EC__.HKEY.CKC4] (Node ffff81007d364f48), AE_NOT_EXIST
-> +ACPI Error (psparse-0537): Method parse/execution failed [\_GPE._L02] (Node ffff81007d376420), AE_NOT_EXIST
-> +ACPI Exception (evgpe-0584): AE_NOT_EXIST, while evaluating GPE method [_L02] [20070126]
->  evgpeblk-1052 [00] ev_initialize_gpe_bloc: Found 9 Wake, Enabled 3 Runtime GPEs in this block
->  ACPI: EC: EC description table is found, configuring boot EC
-> -ACPI: EC: non-query interrupt received, switching to interrupt mode
-> -Completing Region/Field/Buffer/Package initialization:........................................................................................................................
-> ......................................................................................................................................................................
-> -Initialized 29/33 Regions 138/138 Fields 64/64 Buffers 55/72 Packages (1888 nodes)
-> +Completing Region/Field/Buffer/Package initialization:........................................................................................................................
-> .......................................................................................................................................................................
-> +Initialized 30/33 Regions 138/138 Fields 64/64 Buffers 55/72 Packages (1888 nodes)
->  Initializing Device/Processor/Thermal objects by executing _INI methods:.<5>ACPI: BIOS _OSI(Linux) query honored via DMI
-> +ACPI: EC: non-query interrupt received, switching to interrupt mode
->  .......
->  Executed 8 _INI methods requiring 2 _STA executions (examined 88 objects)
->  ACPI: Interpreter enabled
+I just updated from 2.6.24 to 2.6.25
+(I usually follow whole development cycle, but I was very busy, so I sk=
+ipped 2.6.25 cycle)
 
+I confirm this.
+I *know* that temperatures reported now are wrong.
+
+The reason is that bios did report same temperatures as coretemp in 2.6=
+=2E24,
+moreover some time ago I have run a cpu tool (don't remember its name) =
+on windows
+which similar to coretemp reads from each core directly, sensor data ,=20
+and I noticed that temperature that bios reports is exactly the average=
+=20
+temperature of both cores
+(I had to run this on windows - intel haven't released=20
+drivers for their QST for temperature monitoring from bios - very sad)
+
+And the driver did say in kernel log that TJMAX is 85C
+
+Lets at least make a kernel option to override tjmax?
+
+Best regards,
+	Maxim Levitsky
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
