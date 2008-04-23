@@ -1,58 +1,50 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [patch 22/53] PNP: factor pnp_init_resource_table() and pnp_clean_resource_table()
-Date: Wed, 23 Apr 2008 17:08:53 -0600
-Message-ID: <200804231708.53572.bjorn.helgaas@hp.com>
-References: <20080418204955.342963315@ldl.fc.hp.com> <200804211710.38660.bjorn.helgaas@hp.com> <480E5246.5000804@keyaccess.nl>
+From: Richard Purdie <rpurdie-Fm38FmjxZ/leoWH0uzbU5w@public.gmane.org>
+Subject: Re: [GIT PATCH] thinkpad-acpi queue for the	2.6.26
+	merge window
+Date: Thu, 24 Apr 2008 00:16:53 +0100
+Message-ID: <1208992613.4988.32.camel@dax.rpnet.com>
+References: <1207799585-10112-1-git-send-email-hmh@hmh.eng.br>
+	<200804100237.16177.lenb@kernel.org>
+	<20080410123459.GA18832@khazad-dum.debian.net>
+	<200804101323.36432.lenb@kernel.org>
+	<1207866898.4969.111.camel@dax.rpnet.com>
+	<20080422200223.GA25311@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0017.houston.hp.com ([15.201.24.20]:24947 "EHLO
-	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752643AbYDWXIz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Apr 2008 19:08:55 -0400
-In-Reply-To: <480E5246.5000804@keyaccess.nl>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20080422200223.GA25311-ZGHd14iZgfaRjzvQDGKj+xxZW9W5cXbT@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Rene Herman <rene.herman@keyaccess.nl>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-On Tuesday 22 April 2008 03:01:58 pm Rene Herman wrote:
-> It seems you designed the list to be basically in any order, judging by 
-> things such as pnp_new_resource which'll happily reuse resources of the 
-> correct type at any position in the list. Yet, pnp_assign_foo() and friends 
-> retrieve resources (through pnp_get_resource) by position in the list and 
-> not by the index. I'm not overly sure of failure scenarios but isn't this 
-> mixing up position and index in a bad way?
-
-Yes, I think you're right.
-
-My idea is that the list should end up in the same order as the
-resource list from the BIOS, e.g., the _CRS and _PRS lists for
-ACPI.  In the case of ISAPNP, it'll be in the order that we read
-things from the hardware registers.
-
-I think I should probably make pnp_new_resource() always allocate
-a new resource and get rid of the idea of reusing something already
-in the list.
-
-> >> (do note that pnp_assign_foo are the only callers of pnp_check_foo and they 
-> >> could be either merged together or at least not communicate via "idx" but 
-> >> simply by passing the res/pnp_res).
-> > 
-> > Yes, I'd like to do that.  But I think I'd better wait or I'll never
-> > get anything finished :-)
+On Tue, 2008-04-22 at 17:02 -0300, Henrique de Moraes Holschuh wrote:
+> On Thu, 10 Apr 2008, Richard Purdie wrote:
+> > Those patches are queued and I have no plans to change them before
+> > submitting to Linus. 
 > 
-> Well, the idea here was that getting rid of one "idx" here so that things 
-> communicate directly removes at least one possible ordering artifact...
+> Any news on this?  Richard, could you send your queue to Linus now that
+> the window is open?
 
-Yup.  I ended up doing this after all.
+I should send the request tomorrow. Sorry about the delay, I've been
+away for a few days.
 
-I updated the patches and my ACPI box with the inactive devices now
-boots (it failed with the v3 patches).  I'll work on the
-pnp_new_resource() thing tomorrow, but I'll send you the current
-patches now in case you have a chance to try them on your ISA box.
+Cheers,
 
-Bjorn
+Richard
+
+
+-------------------------------------------------------------------------
+This SF.net email is sponsored by the 2008 JavaOne(SM) Conference 
+Don't miss this year's exciting event. There's still time to save $100. 
+Use priority code J8TL2D2. 
+http://ad.doubleclick.net/clk;198757673;13503038;p?http://java.sun.com/javaone
