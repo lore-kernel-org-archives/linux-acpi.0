@@ -1,58 +1,90 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH 65/73] ACPICA: Fix for extraneous debug message for packages
-Date: Tue, 22 Apr 2008 18:00:52 -0700
-Message-ID: <9D39833986E69849A2A8E74C1078B6B3335AD1@orsmsx415.amr.corp.intel.com>
-References: <1207974356-30687-1-git-send-email-lenb@kernel.org> <200804221523.22999.lenb@kernel.org> <9D39833986E69849A2A8E74C1078B6B3335943@orsmsx415.amr.corp.intel.com> <200804221922.34506.lenb@kernel.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 70/73] ACPICA: Fix to disable unknown spurious GPEs
+Date: Tue, 22 Apr 2008 22:57:15 -0400
+Message-ID: <200804222257.16029.lenb@kernel.org>
+References: <1207974356-30687-1-git-send-email-lenb@kernel.org> <16ff5d276b6f17288051f32accdbd675242e5282.1207973801.git.len.brown@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:39591 "EHLO mga03.intel.com"
+Received: from hera.kernel.org ([140.211.167.34]:39260 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754366AbYDWBAy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Apr 2008 21:00:54 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <200804221922.34506.lenb@kernel.org>
+	id S1755266AbYDWC5e (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 22 Apr 2008 22:57:34 -0400
+In-Reply-To: <16ff5d276b6f17288051f32accdbd675242e5282.1207973801.git.len.brown@intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Alexey Starikovskiy <aystarik@gmail.com>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Bob Moore <robert.moore@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.de>, Zhang Rui <rui.zhang@intel.com>
 
-Right, there is no concern about overflow.
-
-I believe that using a native word is usually more efficient in terms of
-both performance and code size. As long as the variable is on the stack,
-it is using up a machine-word-sized stack slot anyway.
-
-
------Original Message-----
-From: Len Brown [mailto:lenb@kernel.org] 
-Sent: Tuesday, April 22, 2008 4:23 PM
-To: Moore, Robert
-Cc: Alexey Starikovskiy; linux-acpi@vger.kernel.org
-Subject: Re: [PATCH 65/73] ACPICA: Fix for extraneous debug message for
-packages
-
-On Tuesday 22 April 2008, Moore, Robert wrote:
-> >would probably work just as well.  Certainly acpi_native_uint was
-> overkill.
+On Saturday 12 April 2008, Len Brown wrote:
+> From: Bob Moore <robert.moore@intel.com>
 > 
-> I disagree. Often more efficient to use machine native word rather
-than
-> fooling around with a byte load/clear and store
+> Implemented another change to eliminate/suppress spurious or
+> stray GPEs. The AcpiEvDisableGpe function will now disable GPEs
+> that are neither enabled nor disabled -- meaning that the GPE is
+> unknown to the system. This will prevent future interrupts from
+> that GPE. (Zhang Rui) BZ 6217
+> 
+> Signed-off-by: Bob Moore <robert.moore@intel.com>
+> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+> Signed-off-by: Len Brown <len.brown@intel.com>
+> ---
+>  drivers/acpi/events/evgpe.c |    9 ++++++++-
+>  1 files changed, 8 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/acpi/events/evgpe.c b/drivers/acpi/events/evgpe.c
+> index 897baed..6940f5d 100644
+> --- a/drivers/acpi/events/evgpe.c
+> +++ b/drivers/acpi/events/evgpe.c
+> @@ -250,7 +250,14 @@ acpi_status acpi_ev_disable_gpe(struct acpi_gpe_event_info *gpe_event_info)
+>  
+>  	ACPI_FUNCTION_TRACE(ev_disable_gpe);
+>  
+> -	if (!(gpe_event_info->flags & ACPI_GPE_ENABLE_MASK)) {
+> +	/*
+> +	 * Ignore this if the GPE is valid and not enabled.
+> +	 *
+> +	 * Flags is only zero if GPE is neither enabled or disabled -- it may
+> +	 * be a spurious or stray GPE -- disable it in the default case below.
+> +	 */
+> +	if (gpe_event_info->flags &&
+> +	    (!(gpe_event_info->flags & ACPI_GPE_ENABLE_MASK))) {
+>  		return_ACPI_STATUS(AE_OK);
+>  	}
+>  
 
-perhaps you mis-read my message.
-I went with "unsigned", which is 32-bits on both 32 and 64 bit x86.
 
-I shouldn't have mentioned that a byte was sufficient --
-my point was simply that it is darn unlikely that we'd overflow
-a capacity of 2^8.  There is zero chance we'd overflow 2^32;
-and thus no practical utility for 2^64 index capacitiy.
+When applied to 2.6.25, the patch above causes ACPI Error messages below on my T61.
+Certainly this is a case of the EC getting an interrupt (GPE x02) before it has initialized.
 
-I don't think that using a 32-bit index is a performance penalty
-on the hardware we care about.  I also don't think that performance
-is important here.
+Perhaps it breaks the call of acpi_install_gpe_handler() to acpi_ev_disable_gpe()?
 
 -Len
 
+
+ PCI: Using MMCONFIG at f0000000 - f3ffffff
+ PCI: Using configuration type 1
+ evgpeblk-0956 [00] ev_create_gpe_block   : GPE 00 to 1F [_GPE] 4 regs on int 0x9
++ACPI Error (evregion-0316): No handler for Region [ECOR] (ffff81007d35dda0) [EmbeddedControl] [20070126]
++ACPI Error (exfldio-0289): Region EmbeddedControl(3) has no handler [20070126]
++ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPC_.EC__.AC__._PSR] (Node ffff81007d364ab0), AE_NOT_EXIST
++ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPC_.EC__.HKEY.CKC4] (Node ffff81007d364f48), AE_NOT_EXIST
++ACPI Error (psparse-0537): Method parse/execution failed [\_GPE._L02] (Node ffff81007d376420), AE_NOT_EXIST
++ACPI Exception (evgpe-0584): AE_NOT_EXIST, while evaluating GPE method [_L02] [20070126]
+ evgpeblk-1052 [00] ev_initialize_gpe_bloc: Found 9 Wake, Enabled 3 Runtime GPEs in this block
+ ACPI: EC: EC description table is found, configuring boot EC
+-ACPI: EC: non-query interrupt received, switching to interrupt mode
+-Completing Region/Field/Buffer/Package initialization:........................................................................................................................
+......................................................................................................................................................................
+-Initialized 29/33 Regions 138/138 Fields 64/64 Buffers 55/72 Packages (1888 nodes)
++Completing Region/Field/Buffer/Package initialization:........................................................................................................................
+.......................................................................................................................................................................
++Initialized 30/33 Regions 138/138 Fields 64/64 Buffers 55/72 Packages (1888 nodes)
+ Initializing Device/Processor/Thermal objects by executing _INI methods:.<5>ACPI: BIOS _OSI(Linux) query honored via DMI
++ACPI: EC: non-query interrupt received, switching to interrupt mode
+ .......
+ Executed 8 _INI methods requiring 2 _STA executions (examined 88 objects)
+ ACPI: Interpreter enabled
