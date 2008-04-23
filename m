@@ -1,66 +1,60 @@
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-Subject: Re: Linux 2.6.25 (coretemp reads high temperatures)
-Date: Wed, 23 Apr 2008 11:43:10 +0300
-Message-ID: <200804231143.10875.maximlevitsky@gmail.com>
-References: <e85b9d30804180837y39c52e26i588e4b67c87a5e9d@mail.gmail.com> <200804182151.49021.lenb@kernel.org>
+From: Adrian Bunk <bunk@kernel.org>
+Subject: [2.6 patch] proper prototype for
+	acpi_processor_tstate_has_changed()
+Date: Wed, 23 Apr 2008 12:50:25 +0300
+Message-ID: <20080423095025.GJ28933@cs181133002.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.157]:21132 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752408AbYDWInQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Apr 2008 04:43:16 -0400
-Received: by fg-out-1718.google.com with SMTP id l27so2537314fgb.17
-        for <linux-acpi@vger.kernel.org>; Wed, 23 Apr 2008 01:43:15 -0700 (PDT)
-In-Reply-To: <200804182151.49021.lenb@kernel.org>
+Received: from smtp4.pp.htv.fi ([213.243.153.38]:45999 "EHLO smtp4.pp.htv.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753070AbYDWJvF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 23 Apr 2008 05:51:05 -0400
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Matthew <jackdachef@gmail.com>, linux-acpi@vger.kernel.org, torvalds@linux-foundation.org, linux-kernel@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Saturday, 19 April 2008 04:51:48 Len Brown wrote:
-> On Friday 18 April 2008, Matthew wrote:
-> > Hi everyone, hi Linus,
-> >=20
-> > congratulations on this new great kernel-release :)
-> >=20
-> > I've another "regression" to report for 2.6.25:
-> >=20
-> > it's concerning much higher temperatures being read out by the
-> > "coretemp" kernel-module in comparison to 2.6.24* series
-> >=20
-> > e.g. where temperatures were around 40-47=B0C they are now constant=
-ly
-> > jumping around 55-70=B0C (even in idle !)
+This patch adds a proper prototype for acpi_processor_tstate_has_changed()
+in include/acpi/processor.h
 
-I just updated from 2.6.24 to 2.6.25
-(I usually follow whole development cycle, but I was very busy, so I sk=
-ipped 2.6.25 cycle)
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 
-I confirm this.
-I *know* that temperatures reported now are wrong.
+---
 
-The reason is that bios did report same temperatures as coretemp in 2.6=
-=2E24,
-moreover some time ago I have run a cpu tool (don't remember its name) =
-on windows
-which similar to coretemp reads from each core directly, sensor data ,=20
-and I noticed that temperature that bios reports is exactly the average=
-=20
-temperature of both cores
-(I had to run this on windows - intel haven't released=20
-drivers for their QST for temperature monitoring from bios - very sad)
+This patch has been sent on:
+- 14 Apr 2008
+- 31 Mar 2008
+- 1 Mar 2008
 
-And the driver did say in kernel log that TJMAX is 85C
+ drivers/acpi/processor_core.c |    1 -
+ include/acpi/processor.h      |    1 +
+ 2 files changed, 1 insertion(+), 1 deletion(-)
 
-Lets at least make a kernel option to override tjmax?
+fcdb74ac24c943bc290e85e2d757f82dbb065955 foobar
+diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+index a3cc8a9..d88f21e 100644
+--- a/drivers/acpi/processor_core.c
++++ b/drivers/acpi/processor_core.c
+@@ -86,7 +86,6 @@ static int acpi_processor_info_open_fs(struct inode *inode, struct file *file);
+ static void acpi_processor_notify(acpi_handle handle, u32 event, void *data);
+ static acpi_status acpi_processor_hotadd_init(acpi_handle handle, int *p_cpu);
+ static int acpi_processor_handle_eject(struct acpi_processor *pr);
+-extern int acpi_processor_tstate_has_changed(struct acpi_processor *pr);
+ 
+ 
+ static const struct acpi_device_id processor_device_ids[] = {
+diff --git a/include/acpi/processor.h b/include/acpi/processor.h
+index 06480bc..06ebb6e 100644
+--- a/include/acpi/processor.h
++++ b/include/acpi/processor.h
+@@ -319,6 +319,7 @@ static inline int acpi_processor_ppc_has_changed(struct acpi_processor *pr)
+ #endif				/* CONFIG_CPU_FREQ */
+ 
+ /* in processor_throttling.c */
++int acpi_processor_tstate_has_changed(struct acpi_processor *pr);
+ int acpi_processor_get_throttling_info(struct acpi_processor *pr);
+ extern int acpi_processor_set_throttling(struct acpi_processor *pr, int state);
+ extern struct file_operations acpi_processor_throttling_fops;
 
-Best regards,
-	Maxim Levitsky
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
