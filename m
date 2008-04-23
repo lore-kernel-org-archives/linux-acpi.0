@@ -1,53 +1,69 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [stable PATCH for 2.6.24.5 and 2.6.25] pnpacpi: fix potential corruption on "pnpacpi: exceeded the max number of IRQ resources 2"
-Date: Wed, 23 Apr 2008 00:09:13 -0400
-Message-ID: <200804230009.15258.lenb@kernel.org>
-References: <20080417010122.148289106@sous-sol.org> <20080417010359.629397865@sous-sol.org> <200804181548.33872.bjorn.helgaas@hp.com>
+From: Peter Williams <pwil3058@bigpond.net.au>
+Subject: Advice on result of using acpi_osi=Linux
+Date: Wed, 23 Apr 2008 14:42:57 +1000
+Message-ID: <480EBE51.1000408@bigpond.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:56279 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750749AbYDWEMI (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
-	Wed, 23 Apr 2008 00:12:08 -0400
-In-Reply-To: <200804181548.33872.bjorn.helgaas@hp.com>
-Content-Disposition: inline
+Received: from nschwmtas05p.mx.bigpond.com ([61.9.189.149]:21479 "EHLO
+	nschwmtas05p.mx.bigpond.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751059AbYDWEnL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 23 Apr 2008 00:43:11 -0400
+Received: from nschwotgx01p.mx.bigpond.com ([58.170.62.70])
+          by nschwmtas05p.mx.bigpond.com with ESMTP
+          id <20080423044308.ZSUE15832.nschwmtas05p.mx.bigpond.com@nschwotgx01p.mx.bigpond.com>
+          for <linux-acpi@vger.kernel.org>; Wed, 23 Apr 2008 04:43:08 +0000
+Received: from mudlark.pw.nest ([58.170.62.70])
+          by nschwotgx01p.mx.bigpond.com with ESMTP
+          id <20080423044308.GILE1861.nschwotgx01p.mx.bigpond.com@mudlark.pw.nest>
+          for <linux-acpi@vger.kernel.org>; Wed, 23 Apr 2008 04:43:08 +0000
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Chris Wright <chrisw@sous-sol.org>, linux-kernel@vger.kernel.org, stable@kernel.org, Linux-acpi@vger.kernel.org, Justin Forbes <jmforbes@linuxtx.org>, Zwane Mwaikambo <zwane@arm.linux.org.uk>, Theodore Ts'o <tytso@mit.edu>, Randy Dunlap <rdunlap@xenotime.net>, Dave Jones <davej@redhat.com>, Chuck Wolber <chuckw@quantumlinux.com>, Chris Wedgwood <reviews@ml.cw.f00f.org>, Michael Krufky <mkrufky@linuxtv.org>, Chuck Ebbert <cebbert@redhat.com>, Domenico Andreoli <cavokz@gmail.com>, torvalds@linux-foundation.org, akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk
+To: linux-acpi@vger.kernel.org
 
-From: Len Brown <len.brown@intel.com>
+As requested via syslog message, I'm reporting the results I obtained 
+using acpi_osi=Linux on the boot command line:
 
-PNP_MAX_IRQ is 2
-If a device invokes pnpacpi_parse_allocated_irqresource() 0, 1, or 2 times, we are happy.
-The 3rd time, we will fail and print "pnpacpi: exceeded the max number of IRQ resources: 2"
-The 4th and subsequent calls (if this ever happened) would silently scribble on
-irq_resource[2], which doesn't actualy exist.
+Without this addition to command line, I get:
 
-Found-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Signed-off-by: Len Brown <len.brown@intel.com>
+Apr 23 14:04:38 mudlark kernel: ACPI: BIOS _OSI(Linux) query ignored
+Apr 23 14:04:38 mudlark kernel: ACPI: DMI System Vendor: 
 
-diff --git a/drivers/pnp/pnpacpi/rsparser.c b/drivers/pnp/pnpacpi/rsparser.c
-index 2dcd196..98cbc9f 100644
---- a/drivers/pnp/pnpacpi/rsparser.c
-+++ b/drivers/pnp/pnpacpi/rsparser.c
-@@ -84,10 +84,12 @@ static void pnpacpi_parse_allocated_irqresource(struct pnp_resource_table *res,
- 	while (!(res->irq_resource[i].flags & IORESOURCE_UNSET) &&
- 	       i < PNP_MAX_IRQ)
- 		i++;
--	if (i >= PNP_MAX_IRQ && !warned) {
--		printk(KERN_WARNING "pnpacpi: exceeded the max number of IRQ "
--				"resources: %d \n", PNP_MAX_IRQ);
--		warned = 1;
-+	if (i >= PNP_MAX_IRQ) {
-+		if (!warned) {
-+			printk(KERN_WARNING "pnpacpi: exceeded the max number"
-+				" of IRQ resources: %d\n", PNP_MAX_IRQ);
-+			warned = 1;
-+		}
- 		return;
- 	}
- 	/*
+Apr 23 14:04:38 mudlark kernel: ACPI: DMI Product Name: 
+
+Apr 23 14:04:38 mudlark kernel: ACPI: DMI Product Version: 
+
+Apr 23 14:04:38 mudlark kernel: ACPI: DMI Board Name: DG31PR
+Apr 23 14:04:38 mudlark kernel: ACPI: DMI BIOS Vendor: Intel Corp.
+Apr 23 14:04:38 mudlark kernel: ACPI: DMI BIOS Date: 09/28/2007
+Apr 23 14:04:38 mudlark kernel: ACPI: Please send DMI info above to 
+linux-acpi@vger.kernel.org
+Apr 23 14:04:38 mudlark kernel: ACPI: If "acpi_osi=Linux" works better, 
+please notify linux-acpi@vger.kernel.org
+
+With this addition, I get:
+
+Apr 23 14:13:57 mudlark kernel: ACPI: BIOS _OSI(Linux) query honored via 
+cmdline
+Apr 23 14:13:57 mudlark kernel: ACPI: DMI System Vendor: 
+
+Apr 23 14:13:57 mudlark kernel: ACPI: DMI Product Name: 
+
+Apr 23 14:13:57 mudlark kernel: ACPI: DMI Product Version: 
+
+Apr 23 14:13:57 mudlark kernel: ACPI: DMI Board Name: DG31PR
+Apr 23 14:13:57 mudlark kernel: ACPI: DMI BIOS Vendor: Intel Corp.
+Apr 23 14:13:57 mudlark kernel: ACPI: DMI BIOS Date: 09/28/2007
+Apr 23 14:13:57 mudlark kernel: ACPI: Please send DMI info above to 
+linux-acpi@vger.kernel.org
+
+I'm not sure if this constitutes better but I thought I'd report it anyway.
+
+Peter
+-- 
+Peter Williams                                   pwil3058@bigpond.net.au
+
+"Learning, n. The kind of ignorance distinguishing the studious."
+  -- Ambrose Bierce
