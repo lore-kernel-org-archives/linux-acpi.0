@@ -1,69 +1,182 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: Advice on result of using acpi_osi=Linux
-Date: Wed, 23 Apr 2008 21:10:14 -0400
-Message-ID: <200804232110.14301.lenb@kernel.org>
-References: <480EBE51.1000408@bigpond.net.au>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH 4/6] thermal: update the documentation
+Date: Thu, 24 Apr 2008 09:39:54 +0800
+Message-ID: <1209001195.3550.59.camel@rzhang-1.sh.intel.com>
+References: <1207815421.27304.42.camel@acpi-hp-zz.sh.intel.com>
+	 <20080416223517.1ca7d2df@hyperion.delvare>
+	 <1208765230.3550.4.camel@rzhang-1.sh.intel.com>
+	 <20080421113328.294b4fc3@hyperion.delvare>
+	 <1208825410.3550.14.camel@rzhang-1.sh.intel.com>
+	 <20080422161345.41f33e68@hyperion.delvare>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:43471 "EHLO hera.kernel.org"
+Received: from mga11.intel.com ([192.55.52.93]:57678 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752917AbYDXBKe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 23 Apr 2008 21:10:34 -0400
-In-Reply-To: <480EBE51.1000408@bigpond.net.au>
-Content-Disposition: inline
+	id S1752633AbYDXBlX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 23 Apr 2008 21:41:23 -0400
+In-Reply-To: <20080422161345.41f33e68@hyperion.delvare>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Williams <pwil3058@bigpond.net.au>
-Cc: linux-acpi@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Len Brown <lenb@kernel.org>, Hans de Goede <j.w.r.degoede@hhs.nl>, linux-acpi <linux-acpi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
 
-thanks for the report, peter.
 
-please send me the output from dmidecode.
+On Tue, 2008-04-22 at 22:13 +0800, Jean Delvare wrote:
+> Hi Rui,
+> 
+> On Tue, 22 Apr 2008 08:50:09 +0800, Zhang Rui wrote:
+> > thanks for reviewing. :)
+> >
+> >
+> > Update the documentation for the thermal driver hwmon sys I/F.
+> >
+> > Change the ACPI thermal zone type to be consistent with hwmon.
+> >
+> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> > ---
+> >  Documentation/thermal/sysfs-api.txt |   33
+> +++++++++++++++++++++++++++------
+> >  drivers/acpi/thermal.c              |    2 +-
+> >  2 files changed, 28 insertions(+), 7 deletions(-)
+> >
+> > Index: linux-2.6/Documentation/thermal/sysfs-api.txt
+> > ===================================================================
+> > --- linux-2.6.orig/Documentation/thermal/sysfs-api.txt
+> 2008-04-22 08:43:59.000000000 +0800
+> > +++ linux-2.6/Documentation/thermal/sysfs-api.txt     2008-04-22
+> 08:44:38.000000000 +0800
+> > @@ -108,10 +108,12 @@
+> >  RO   read only value
+> >  RW   read/write value
+> > 
+> > -All thermal sysfs attributes will be represented
+> under /sys/class/thermal
+> > +Thermal sysfs attributes will be represented
+> under /sys/class/thermal.
+> > +Hwmon sysfs I/F extension is also available under /sys/class/hwmon
+> > +if hwmon is compiled in or built as a module.
+> > 
+> >  Thermal zone device sys I/F, created once it's registered:
+> > -|thermal_zone[0-*]:
+> > +/sys/class/thermal/thermal_zone[0-*]:
+> >       |-----type:                     Type of the thermal zone
+> >       |-----temp:                     Current temperature
+> >       |-----mode:                     Working mode of the thermal
+> zone
+> > @@ -119,7 +121,7 @@
+> >       |-----trip_point_[0-*]_type:    Trip point type
+> > 
+> >  Thermal cooling device sys I/F, created once it's registered:
+> > -|cooling_device[0-*]:
+> > +/sys/class/thermal/cooling_device[0-*]:
+> >       |-----type :                    Type of the cooling
+> device(processor/fan/...)
+> >       |-----max_state:                Maximum cooling state of the
+> cooling device
+> >       |-----cur_state:                Current cooling state of the
+> cooling device
+> > @@ -130,10 +132,19 @@
+> >  They are created/removed for each
+> >  thermal_zone_bind_cooling_device/thermal_zone_unbind_cooling_device
+> successful execution.
+> > 
+> > -|thermal_zone[0-*]
+> > +/sys/class/thermal/thermal_zone[0-*]
+> >       |-----cdev[0-*]:                The [0-*]th cooling device in
+> the current thermal zone
+> >       |-----cdev[0-*]_trip_point:     Trip point that cdev[0-*] is
+> associated with
+> > 
+> > +Besides the thermal zone device sysfs I/F and cooling device sysfs
+> I/F,
+> > +the generic thermal driver also creates a hwmon sysfs I/F for each
+> _type_ of
+> > +thermal zone device. E.g. the generic thermal driver registers one
+> hwmon class device
+> > +and build the associated hwmon sysfs I/F for all the registered
+> ACPI thermal zones.
+> > +/sys/class/hwmon/hwmon[0-*]:
+> > +     |-----name:                     The type of the thermal zone
+> devices.
+> > +     |-----temp[1-*]_input:          The current temperature of
+> thermal zone [1-*].
+> > +     |-----temp[1-*]_critical:       The critical trip point of
+> thermal zone [1-*].
+> > +Please read Documentation/hwmon/sysfs-interface for additional
+> information.
+> > 
+> >  ***************************
+> >  * Thermal zone attributes *
+> > @@ -141,7 +152,10 @@
+> > 
+> >  type                         Strings which represent the thermal
+> zone type.
+> >                               This is given by thermal zone driver
+> as part of registration.
+> > -                             Eg: "ACPI thermal zone" indicates it's
+> a ACPI thermal device
+> > +                             Eg: "acpitz" indicates it's an ACPI
+> thermal device.
+> > +                             In order to keep it consistent with
+> hwmon sys attribute,
+> > +                             this should be a short, lowercase
+> string,
+> > +                             not containing spaces nor dashes.
+> >                               RO
+> >                               Required
+> > 
+> > @@ -218,7 +232,7 @@
+> >  /sys/class/thermal:
+> > 
+> >  |thermal_zone1:
+> > -     |-----type:                     ACPI thermal zone
+> > +     |-----type:                     acpitz
+> >       |-----temp:                     37000
+> >       |-----mode:                     kernel
+> >       |-----trip_point_0_temp:        100000
+> > @@ -243,3 +257,10 @@
+> >       |-----type:                     Fan
+> >       |-----max_state:                2
+> >       |-----cur_state:                0
+> > +
+> > +/sys/class/hwmon:
+> > +
+> > +|hwmon0:
+> > +     |-----name:                     acpitz
+> > +     |-----temp1_input:              37000
+> > +     |-----temp1_crit:               100000
+> > Index: linux-2.6/drivers/acpi/thermal.c
+> > ===================================================================
+> > --- linux-2.6.orig/drivers/acpi/thermal.c     2008-04-22
+> 08:43:59.000000000 +0800
+> > +++ linux-2.6/drivers/acpi/thermal.c  2008-04-22 08:44:38.000000000
+> +0800
+> > @@ -1136,7 +1136,7 @@
+> > 
+> >       for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE &&
+> >                       tz->trips.active[i].flags.valid; i++, trips
+> ++);
+> > -     tz->thermal_zone = thermal_zone_device_register("ACPI thermal
+> zone",
+> > +     tz->thermal_zone = thermal_zone_device_register("acpitz",
+> >                                       trips, tz,
+> &acpi_thermal_zone_ops);
+> >       if (IS_ERR(tz->thermal_zone))
+> >               return -ENODEV;
+> >
+> >
+> 
+> Looks alright.
+> 
+> Acked-by: Jean Delvare <khali@linux-fr.org>
+> 
+Good news. :)
+thanks for your efforts on reviewing these patches, Jean.
 
--Len
+Len, please apply this patch set.
 
-On Wednesday 23 April 2008, Peter Williams wrote:
-> As requested via syslog message, I'm reporting the results I obtained 
-> using acpi_osi=Linux on the boot command line:
-> 
-> Without this addition to command line, I get:
-> 
-> Apr 23 14:04:38 mudlark kernel: ACPI: BIOS _OSI(Linux) query ignored
-> Apr 23 14:04:38 mudlark kernel: ACPI: DMI System Vendor: 
-> 
-> Apr 23 14:04:38 mudlark kernel: ACPI: DMI Product Name: 
-> 
-> Apr 23 14:04:38 mudlark kernel: ACPI: DMI Product Version: 
-> 
-> Apr 23 14:04:38 mudlark kernel: ACPI: DMI Board Name: DG31PR
-> Apr 23 14:04:38 mudlark kernel: ACPI: DMI BIOS Vendor: Intel Corp.
-> Apr 23 14:04:38 mudlark kernel: ACPI: DMI BIOS Date: 09/28/2007
-> Apr 23 14:04:38 mudlark kernel: ACPI: Please send DMI info above to 
-> linux-acpi@vger.kernel.org
-> Apr 23 14:04:38 mudlark kernel: ACPI: If "acpi_osi=Linux" works better, 
-> please notify linux-acpi@vger.kernel.org
-> 
-> With this addition, I get:
-> 
-> Apr 23 14:13:57 mudlark kernel: ACPI: BIOS _OSI(Linux) query honored via 
-> cmdline
-> Apr 23 14:13:57 mudlark kernel: ACPI: DMI System Vendor: 
-> 
-> Apr 23 14:13:57 mudlark kernel: ACPI: DMI Product Name: 
-> 
-> Apr 23 14:13:57 mudlark kernel: ACPI: DMI Product Version: 
-> 
-> Apr 23 14:13:57 mudlark kernel: ACPI: DMI Board Name: DG31PR
-> Apr 23 14:13:57 mudlark kernel: ACPI: DMI BIOS Vendor: Intel Corp.
-> Apr 23 14:13:57 mudlark kernel: ACPI: DMI BIOS Date: 09/28/2007
-> Apr 23 14:13:57 mudlark kernel: ACPI: Please send DMI info above to 
-> linux-acpi@vger.kernel.org
-> 
-> I'm not sure if this constitutes better but I thought I'd report it anyway.
-> 
-> Peter
-
+thanks,
+rui
 
