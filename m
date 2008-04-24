@@ -1,123 +1,87 @@
-From: Alex Chiang <achiang@hp.com>
-Subject: Re: [PATCH 2/2] ia64: Provide ACPI fixup for
-	/proc/cpuinfo/physical_id
-Date: Thu, 24 Apr 2008 12:57:58 -0600
-Message-ID: <20080424185758.GE32553@ldl.fc.hp.com>
-References: <20080310222735.GA22619@ldl.fc.hp.com> <1FE6DD409037234FAB833C420AA843ECCBFA9D@orsmsx424.amr.corp.intel.com> <20080319233140.GD16237@ldl.fc.hp.com> <1FE6DD409037234FAB833C420AA843ECE13C6E@orsmsx424.amr.corp.intel.com> <20080326185912.GA30749@ldl.fc.hp.com> <20080421052450.GA24055@ldl.fc.hp.com> <1FE6DD409037234FAB833C420AA843EC012664E0@orsmsx424.amr.corp.intel.com> <20080424184417.GA32553@ldl.fc.hp.com> <20080424185222.GC32553@ldl.fc.hp.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [patch 22/53] PNP: factor pnp_init_resource_table() and pnp_clean_resource_table()
+Date: Thu, 24 Apr 2008 16:45:50 -0600
+Message-ID: <200804241645.51454.bjorn.helgaas@hp.com>
+References: <20080418204955.342963315@ldl.fc.hp.com> <200804211710.38660.bjorn.helgaas@hp.com> <480E5246.5000804@keyaccess.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-ia64-owner@vger.kernel.org>
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:37635 "EHLO
+	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754683AbYDXWpx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Apr 2008 18:45:53 -0400
+In-Reply-To: <480E5246.5000804@keyaccess.nl>
 Content-Disposition: inline
-In-Reply-To: <20080424185222.GC32553@ldl.fc.hp.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>, lenb@kernel.org, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Rene Herman <rene.herman@keyaccess.nl>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-Fix the checkpatch issues in this patch as well.
+On Tuesday 22 April 2008 03:01:58 pm Rene Herman wrote:
+> On 22-04-08 01:10, Bjorn Helgaas wrote:
+> >> Getting things working also needs setting pnp_res->index (to nport, nmem, 
+> >> nirq, ndma in pnp_assign_resources) so that the isapnp_set_resources which 
+> >> follows sets to the correct hardware index, but at that point position in 
+> >> the list and the index are mixing together in unhealthy ways -- in the 
+> >> pnp_assign_foo helpers, pnp_get_resource(.., idx) just get the "idx-th" 
+> >> resource of the correct type in the list but it seems it really should be 
+> >> getting the resource of the correct type with its ->index set to "idx".
+> > 
+> > I don't mind setting pnp_res->index in the generic pnp_assign_* code.
+> > We have to do that already in pnp_set_current_resources() (the /sys
+> > interface), and I don't see a good way around it.
+> > 
+> > In pnp_assign_resources(), we currently assume that all independent
+> > options appear before any dependent ones because we compute nport,
+> > nmem, etc by iterating through the independent options first.  Then
+> > we use those nport, nmem, etc values as the "index" (CSR index for
+> > ISAPNP, nth resource type in the template for PNPBIOS and PNPACPI).
+> > I don't know whether this assumption is in the spec, but at least
+> > we've assumed it for a long time.
+> 
+> Did this just address my position/index worry above?
 
-/ac
+Here's something interesting.  I was mistaken about the ordering
+of independent vs. dependent options coming from BIOS -- I have
+several examples where the dependent ones come first, including
+this one:
 
-From: Alex Chiang <achiang@hp.com>
-Subject: [PATCH 2/2] ia64: Provide ACPI fixup for /proc/cpuinfo/physical_id
+    pnp 00:0a: parse resource options
+    pnp 00:0a: new independent option
+    pnp 00:0a: new dependent option (priority 0x1)
+    pnp 00:0a:   io  min 0x3f8 max 0x3f8 align 1 size 8 flags 0x1
+    pnp 00:0a: new dependent option (priority 0x1)
+    pnp 00:0a:   io  min 0x2e8 max 0x2e8 align 1 size 8 flags 0x1
+    pnp 00:0a: new dependent option (priority 0x1)
+    pnp 00:0a:   io  min 0x2f8 max 0x2f8 align 1 size 8 flags 0x1
+    pnp 00:0a: new dependent option (priority 0x1)
+    pnp 00:0a:   io  min 0x3e8 max 0x3e8 align 1 size 8 flags 0x1
+    pnp 00:0a: end dependent options
+    pnp 00:0a:   irq bitmask 00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000cf8 flags 0x1
+    pnp 00:0a:   io  min 0x100 max 0x130 align 16 size 8 flags 0x1
+    pnp 00:0a:   dma bitmask 0xe flags 0x2
+    pnp 00:0a: Plug and Play ACPI device, IDs SMCf010 (disabled)
 
-Legacy HP ia64 platforms currently cannot provide
-/proc/cpuinfo/physical_id due to legacy SAL/PAL implementations.
-However, that physical topology information can be obtained
-via ACPI.
+The interesting thing here is that this IRDA device comes up disabled,
+and we use pnp_assign_resources() before enabling it.  But we
+assign independent options first, so we end up reversing the order
+of these IO regions:
 
-Provide an interface that gives ACPI one last chance to provide
-physical_id for these legacy platforms. This logic only comes
-into play iff:
+    state = active
+    io 0x100-0x107
+    io 0x2e8-0x2ef
+    irq 5
+    dma 1
 
-	- ACPI actually provides slot information for the CPU
-	- we lack a valid socket_id
+The driver for this device (smsc-ircc2.c) currently can't claim it
+via PNP, but by long painful trial and error, I figured out last
+summer that I could get the PNP claim code to work if I manually
+swapped the IO regions!
 
-Otherwise, we don't do anything. Since x86 uses the ACPI processor
-driver as well, we provide an empty #define.
+I haven't done anything about this yet, but it sure looks to me like
+we need to preserve the order of the independent/dependent options
+as we get them from the BIOS.
 
-Signed-off-by: Alex Chiang <achiang@hp.com>
----
- arch/ia64/kernel/topology.c   |    7 +++++++
- drivers/acpi/processor_core.c |    8 ++++++++
- include/asm-ia64/cpu.h        |    1 +
- include/asm-ia64/topology.h   |    1 +
- include/asm-x86/topology.h    |    2 ++
- 5 files changed, 19 insertions(+), 0 deletions(-)
-
-diff --git a/arch/ia64/kernel/topology.c b/arch/ia64/kernel/topology.c
-index a2484fc..bb584b4 100644
---- a/arch/ia64/kernel/topology.c
-+++ b/arch/ia64/kernel/topology.c
-@@ -27,6 +27,13 @@
- 
- static struct ia64_cpu *sysfs_cpus;
- 
-+void ia64_fix_socket_id(int num, u32 slot)
-+{
-+	if (cpu_data(num)->socket_id == -1)
-+		cpu_data(num)->socket_id = slot;
-+}
-+EXPORT_SYMBOL_GPL(ia64_fix_socket_id);
-+
- int arch_register_cpu(int num)
- {
- #if defined (CONFIG_ACPI) && defined (CONFIG_HOTPLUG_CPU)
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index a825b43..89578d4 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -612,6 +612,14 @@ static int acpi_processor_get_info(struct acpi_processor *pr, unsigned has_uid)
- 		request_region(pr->throttling.address, 6, "ACPI CPU throttle");
- 	}
- 
-+	/*
-+	 * If ACPI describes a slot number for this CPU, we can use it
-+	 * to fix a broken topology->physical_package_id.
-+	 */
-+	status = acpi_evaluate_object(pr->handle, "_SUN", NULL, &buffer);
-+	if (ACPI_SUCCESS(status))
-+		arch_fix_phys_package_id(pr->id, object.integer.value);
-+
- 	return 0;
- }
- 
-diff --git a/include/asm-ia64/cpu.h b/include/asm-ia64/cpu.h
-index e87fa32..9ba5155 100644
---- a/include/asm-ia64/cpu.h
-+++ b/include/asm-ia64/cpu.h
-@@ -14,6 +14,7 @@ DECLARE_PER_CPU(struct ia64_cpu, cpu_devices);
- 
- DECLARE_PER_CPU(int, cpu_state);
- 
-+extern void arch_fix_phys_package_id(int num, u32 slot);
- extern int arch_register_cpu(int num);
- #ifdef CONFIG_HOTPLUG_CPU
- extern void arch_unregister_cpu(int);
-diff --git a/include/asm-ia64/topology.h b/include/asm-ia64/topology.h
-index f2f72ef..8e68f0f 100644
---- a/include/asm-ia64/topology.h
-+++ b/include/asm-ia64/topology.h
-@@ -116,6 +116,7 @@ void build_cpu_to_node_map(void);
- #define smt_capable() 				(smp_num_siblings > 1)
- #endif
- 
-+#define arch_fix_phys_package_id(num, slot)	ia64_fix_socket_id(num, slot)
- #define pcibus_to_cpumask(bus)	(pcibus_to_node(bus) == -1 ? \
- 					CPU_MASK_ALL : \
- 					node_to_cpumask(pcibus_to_node(bus)) \
-diff --git a/include/asm-x86/topology.h b/include/asm-x86/topology.h
-index 2207326..efa3108 100644
---- a/include/asm-x86/topology.h
-+++ b/include/asm-x86/topology.h
-@@ -193,6 +193,8 @@ extern cpumask_t cpu_coregroup_map(int cpu);
- #define topology_thread_siblings(cpu)		(per_cpu(cpu_sibling_map, cpu))
- #endif
- 
-+#define arch_fix_phys_package_id(num, slot)
-+
- #ifdef CONFIG_SMP
- #define mc_capable()			(boot_cpu_data.x86_max_cores > 1)
- #define smt_capable()			(smp_num_siblings > 1)
--- 
-1.5.3.1.g1e61
-
+Bjorn
