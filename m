@@ -1,164 +1,49 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 51/54] PNPACPI: move _CRS/_PRS warnings closer to the action
-Date: Fri, 25 Apr 2008 12:38:58 -0600
-Message-ID: <20080425183934.932494912@ldl.fc.hp.com>
+Subject: [patch 53/54] ISAPNP: remove unused pnp_dev->regs field
+Date: Fri, 25 Apr 2008 12:39:00 -0600
+Message-ID: <20080425183935.358126448@ldl.fc.hp.com>
 References: <20080425183807.366134771@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0007.atlanta.hp.com ([15.192.0.44]:19330 "EHLO
-	g5t0007.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1764945AbYDYSkm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Apr 2008 14:40:42 -0400
-Content-Disposition: inline; filename=pnpacpi-cleanup-CRS-PRS-warnings
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:7538 "EHLO
+	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1763167AbYDYSkv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Apr 2008 14:40:51 -0400
+Content-Disposition: inline; filename=isapnp-remove-unused-pnp_dev-fields
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-Move warnings about _CRS and _PRS problems to the place where we
-actually make the ACPI calls.  Then we don't have to pass around
-acpi_status values any more than necessary.
+The "regs" field in struct pnp_dev is set but never read, so remove it.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Index: work10/drivers/pnp/pnpacpi/pnpacpi.h
+Index: work10/drivers/pnp/isapnp/core.c
 ===================================================================
---- work10.orig/drivers/pnp/pnpacpi/pnpacpi.h	2008-04-25 11:14:56.000000000 -0600
-+++ work10/drivers/pnp/pnpacpi/pnpacpi.h	2008-04-25 11:15:15.000000000 -0600
-@@ -5,8 +5,8 @@
- #include <linux/acpi.h>
- #include <linux/pnp.h>
+--- work10.orig/drivers/pnp/isapnp/core.c	2008-04-25 11:15:14.000000000 -0600
++++ work10/drivers/pnp/isapnp/core.c	2008-04-25 11:15:17.000000000 -0600
+@@ -416,10 +416,7 @@
+ 	if (!dev)
+ 		return NULL;
  
--acpi_status pnpacpi_parse_allocated_resource(struct pnp_dev *);
--acpi_status pnpacpi_parse_resource_option_data(struct pnp_dev *);
-+int pnpacpi_parse_allocated_resource(struct pnp_dev *);
-+int pnpacpi_parse_resource_option_data(struct pnp_dev *);
- int pnpacpi_encode_resources(struct pnp_dev *, struct acpi_buffer *);
- int pnpacpi_build_resource_template(struct pnp_dev *, struct acpi_buffer *);
- #endif
-Index: work10/drivers/pnp/pnpacpi/core.c
+-	dev->regs = tmp[4];
+ 	dev->card = card;
+-	if (size > 5)
+-		dev->regs |= tmp[5] << 8;
+ 	dev->capabilities |= PNP_CONFIGURABLE;
+ 	dev->capabilities |= PNP_READ;
+ 	dev->capabilities |= PNP_WRITE;
+Index: work10/include/linux/pnp.h
 ===================================================================
---- work10.orig/drivers/pnp/pnpacpi/core.c	2008-04-25 11:14:58.000000000 -0600
-+++ work10/drivers/pnp/pnpacpi/core.c	2008-04-25 11:15:15.000000000 -0600
-@@ -75,11 +75,8 @@
+--- work10.orig/include/linux/pnp.h	2008-04-25 11:15:16.000000000 -0600
++++ work10/include/linux/pnp.h	2008-04-25 11:15:17.000000000 -0600
+@@ -256,7 +256,6 @@
+ 	struct pnp_resource_table *res;
  
- static int pnpacpi_get_resources(struct pnp_dev *dev)
- {
--	acpi_status status;
--
- 	dev_dbg(&dev->dev, "get resources\n");
--	status = pnpacpi_parse_allocated_resource(dev);
--	return ACPI_FAILURE(status) ? -ENODEV : 0;
-+	return pnpacpi_parse_allocated_resource(dev);
- }
- 
- static int pnpacpi_set_resources(struct pnp_dev *dev)
-@@ -182,22 +179,11 @@
- 	else
- 		strncpy(dev->name, acpi_device_bid(device), sizeof(dev->name));
- 
--	if (dev->active) {
--		/* parse allocated resource */
--		status = pnpacpi_parse_allocated_resource(dev);
--		if (ACPI_FAILURE(status) && (status != AE_NOT_FOUND)) {
--			pnp_err("PnPACPI: METHOD_NAME__CRS failure for %s",
--				acpi_device_hid(device));
--		}
--	}
-+	if (dev->active)
-+		pnpacpi_parse_allocated_resource(dev);
- 
--	if (dev->capabilities & PNP_CONFIGURABLE) {
--		status = pnpacpi_parse_resource_option_data(dev);
--		if (ACPI_FAILURE(status) && (status != AE_NOT_FOUND)) {
--			pnp_err("PnPACPI: METHOD_NAME__PRS failure for %s",
--				acpi_device_hid(device));
--		}
--	}
-+	if (dev->capabilities & PNP_CONFIGURABLE)
-+		pnpacpi_parse_resource_option_data(dev);
- 
- 	if (device->flags.compatible_ids) {
- 		struct acpi_compatible_id_list *cid_list = device->pnp.cid_list;
-Index: work10/drivers/pnp/pnpacpi/rsparser.c
-===================================================================
---- work10.orig/drivers/pnp/pnpacpi/rsparser.c	2008-04-25 11:15:13.000000000 -0600
-+++ work10/drivers/pnp/pnpacpi/rsparser.c	2008-04-25 11:15:15.000000000 -0600
-@@ -339,16 +339,24 @@
- 	return AE_OK;
- }
- 
--acpi_status pnpacpi_parse_allocated_resource(struct pnp_dev *dev)
-+int pnpacpi_parse_allocated_resource(struct pnp_dev *dev)
- {
- 	acpi_handle handle = dev->data;
-+	acpi_status status;
- 
- 	dev_dbg(&dev->dev, "parse allocated resources\n");
- 
- 	pnp_init_resources(dev);
- 
--	return acpi_walk_resources(handle, METHOD_NAME__CRS,
--				   pnpacpi_allocated_resource, dev);
-+	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
-+				     pnpacpi_allocated_resource, dev);
-+
-+	if (ACPI_FAILURE(status)) {
-+		if (status != AE_NOT_FOUND)
-+			dev_err(&dev->dev, "can't evaluate _CRS: %d", status);
-+		return -EPERM;
-+	}
-+	return 0;
- }
- 
- static __init void pnpacpi_parse_dma_option(struct pnp_dev *dev,
-@@ -670,7 +678,7 @@
- 	return AE_OK;
- }
- 
--acpi_status __init pnpacpi_parse_resource_option_data(struct pnp_dev *dev)
-+int __init pnpacpi_parse_resource_option_data(struct pnp_dev *dev)
- {
- 	acpi_handle handle = dev->data;
- 	acpi_status status;
-@@ -680,13 +688,19 @@
- 
- 	parse_data.option = pnp_register_independent_option(dev);
- 	if (!parse_data.option)
--		return AE_ERROR;
-+		return -ENOMEM;
-+
- 	parse_data.option_independent = parse_data.option;
- 	parse_data.dev = dev;
- 	status = acpi_walk_resources(handle, METHOD_NAME__PRS,
- 				     pnpacpi_option_resource, &parse_data);
- 
--	return status;
-+	if (ACPI_FAILURE(status)) {
-+		if (status != AE_NOT_FOUND)
-+			dev_err(&dev->dev, "can't evaluate _PRS: %d", status);
-+		return -EPERM;
-+	}
-+	return 0;
- }
- 
- static int pnpacpi_supported_resource(struct acpi_resource *res)
-@@ -745,7 +759,7 @@
- 	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
- 				     pnpacpi_count_resources, &res_cnt);
- 	if (ACPI_FAILURE(status)) {
--		dev_err(&dev->dev, "can't evaluate _CRS\n");
-+		dev_err(&dev->dev, "can't evaluate _CRS: %d\n", status);
- 		return -EINVAL;
- 	}
- 	if (!res_cnt)
-@@ -760,7 +774,7 @@
- 				     pnpacpi_type_resources, &resource);
- 	if (ACPI_FAILURE(status)) {
- 		kfree(buffer->pointer);
--		dev_err(&dev->dev, "can't evaluate _CRS\n");
-+		dev_err(&dev->dev, "can't evaluate _CRS: %d\n", status);
- 		return -EINVAL;
- 	}
- 	/* resource will pointer the end resource now */
+ 	char name[PNP_NAME_LEN];	/* contains a human-readable name */
+-	unsigned short regs;		/* ISAPnP: supported registers */
+ 	int flags;			/* used by protocols */
+ 	struct proc_dir_entry *procent;	/* device entry in /proc/bus/isapnp */
+ 	void *data;
 
 -- 
