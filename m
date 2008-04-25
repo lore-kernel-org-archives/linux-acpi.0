@@ -1,134 +1,119 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 50/54] ISAPNP: fold isapnp_read_resources() back into isapnp_get_resources()
-Date: Fri, 25 Apr 2008 12:38:57 -0600
-Message-ID: <20080425183934.516655076@ldl.fc.hp.com>
+Subject: [patch 33/54] PNP: reduce redundancy in pnp_set_current_resources()
+Date: Fri, 25 Apr 2008 12:38:40 -0600
+Message-ID: <20080425183930.822331763@ldl.fc.hp.com>
 References: <20080425183807.366134771@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0015.houston.hp.com ([15.201.24.18]:7456 "EHLO
-	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1764909AbYDYSkj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Apr 2008 14:40:39 -0400
-Content-Disposition: inline; filename=isapnp-fold-isapnp_read_resources
+Received: from g1t0028.austin.hp.com ([15.216.28.35]:9995 "EHLO
+	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1764669AbYDYSkM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Apr 2008 14:40:12 -0400
+Content-Disposition: inline; filename=pnp-simplify-proc-functions
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-isapnp_get_resources() does very little besides call
-isapnp_read_resources(), so just fold them back together.
-
-Based on a patch by Rene Herman <rene.herman@gmail.com>
+Use a temporary "res" pointer to replace repeated lookups in
+the pnp resource tables.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Index: work10/drivers/pnp/isapnp/core.c
+Index: work10/drivers/pnp/interface.c
 ===================================================================
---- work10.orig/drivers/pnp/isapnp/core.c	2008-04-25 11:15:13.000000000 -0600
-+++ work10/drivers/pnp/isapnp/core.c	2008-04-25 11:15:14.000000000 -0600
-@@ -929,62 +929,55 @@
- EXPORT_SYMBOL(isapnp_cfg_end);
- EXPORT_SYMBOL(isapnp_write_byte);
- 
--static int isapnp_read_resources(struct pnp_dev *dev)
--{
--	struct pnp_resource *pnp_res;
--	int tmp, ret;
--
--	dev->active = isapnp_read_byte(ISAPNP_CFG_ACTIVATE);
--	if (dev->active) {
--		for (tmp = 0; tmp < ISAPNP_MAX_PORT; tmp++) {
--			ret = isapnp_read_word(ISAPNP_CFG_PORT + (tmp << 1));
--			if (!ret)
--				continue;
--			pnp_res = pnp_add_io_resource(dev, ret, ret, 0);
--			if (pnp_res)
--				pnp_res->index = tmp;
--		}
--		for (tmp = 0; tmp < ISAPNP_MAX_MEM; tmp++) {
--			ret =
--			    isapnp_read_word(ISAPNP_CFG_MEM + (tmp << 3)) << 8;
--			if (!ret)
--				continue;
--			pnp_res = pnp_add_mem_resource(dev, ret, ret, 0);
--			if (pnp_res)
--				pnp_res->index = tmp;
--		}
--		for (tmp = 0; tmp < ISAPNP_MAX_IRQ; tmp++) {
--			ret =
--			    (isapnp_read_word(ISAPNP_CFG_IRQ + (tmp << 1)) >>
--			     8);
--			if (!ret)
--				continue;
--			pnp_res = pnp_add_irq_resource(dev, ret, 0);
--			if (pnp_res)
--				pnp_res->index = tmp;
--		}
--		for (tmp = 0; tmp < ISAPNP_MAX_DMA; tmp++) {
--			ret = isapnp_read_byte(ISAPNP_CFG_DMA + tmp);
--			if (ret == 4)
--				continue;
--			pnp_res = pnp_add_dma_resource(dev, ret, 0);
--			if  (pnp_res)
--				pnp_res->index = tmp;
--		}
--	}
--	return 0;
--}
--
- static int isapnp_get_resources(struct pnp_dev *dev)
+--- work10.orig/drivers/pnp/interface.c	2008-04-25 11:14:58.000000000 -0600
++++ work10/drivers/pnp/interface.c	2008-04-25 11:15:04.000000000 -0600
+@@ -323,6 +323,7 @@
+ 			  const char *ubuf, size_t count)
  {
--	int ret;
-+	struct pnp_resource *pnp_res;
-+	int i, ret;
+ 	struct pnp_dev *dev = to_pnp_dev(dmdev);
++	struct resource *res;
+ 	char *buf = (void *)ubuf;
+ 	int retval = 0;
  
- 	dev_dbg(&dev->dev, "get resources\n");
- 	pnp_init_resources(dev);
- 	isapnp_cfg_begin(dev->card->number, dev->number);
--	ret = isapnp_read_resources(dev);
-+	dev->active = isapnp_read_byte(ISAPNP_CFG_ACTIVATE);
-+	if (!dev->active)
-+		goto __end;
-+
-+	for (i = 0; i < ISAPNP_MAX_PORT; i++) {
-+		ret = isapnp_read_word(ISAPNP_CFG_PORT + (i << 1));
-+		if (!ret)
-+			continue;
-+		pnp_res = pnp_add_io_resource(dev, ret, ret, 0);
-+		if (pnp_res)
-+			pnp_res->index = i;
-+	}
-+	for (i = 0; i < ISAPNP_MAX_MEM; i++) {
-+		ret = isapnp_read_word(ISAPNP_CFG_MEM + (i << 3)) << 8;
-+		if (!ret)
-+			continue;
-+		pnp_res = pnp_add_mem_resource(dev, ret, ret, 0);
-+		if (pnp_res)
-+			pnp_res->index = i;
-+	}
-+	for (i = 0; i < ISAPNP_MAX_IRQ; i++) {
-+		ret = (isapnp_read_word(ISAPNP_CFG_IRQ + (i << 1)) >>
-+		     8);
-+		if (!ret)
-+			continue;
-+		pnp_res = pnp_add_irq_resource(dev, ret, 0);
-+		if (pnp_res)
-+			pnp_res->index = i;
-+	}
-+	for (i = 0; i < ISAPNP_MAX_DMA; i++) {
-+		ret = isapnp_read_byte(ISAPNP_CFG_DMA + i);
-+		if (ret == 4)
-+			continue;
-+		pnp_res = pnp_add_dma_resource(dev, ret, 0);
-+		if  (pnp_res)
-+			pnp_res->index = i;
-+	}
-+
-+__end:
- 	isapnp_cfg_end();
--	return ret;
-+	return 0;
- }
- 
- static int isapnp_set_resources(struct pnp_dev *dev)
+@@ -382,21 +383,18 @@
+ 				buf += 2;
+ 				while (isspace(*buf))
+ 					++buf;
+-				dev->res.port_resource[nport].start =
+-				    simple_strtoul(buf, &buf, 0);
++				res = &dev->res.port_resource[nport];
++				res->start = simple_strtoul(buf, &buf, 0);
+ 				while (isspace(*buf))
+ 					++buf;
+ 				if (*buf == '-') {
+ 					buf += 1;
+ 					while (isspace(*buf))
+ 						++buf;
+-					dev->res.port_resource[nport].end =
+-					    simple_strtoul(buf, &buf, 0);
++					res->end = simple_strtoul(buf, &buf, 0);
+ 				} else
+-					dev->res.port_resource[nport].end =
+-					    dev->res.port_resource[nport].start;
+-				dev->res.port_resource[nport].flags =
+-				    IORESOURCE_IO;
++					res->end = res->start;
++				res->flags = IORESOURCE_IO;
+ 				nport++;
+ 				if (nport >= PNP_MAX_PORT)
+ 					break;
+@@ -406,21 +404,18 @@
+ 				buf += 3;
+ 				while (isspace(*buf))
+ 					++buf;
+-				dev->res.mem_resource[nmem].start =
+-				    simple_strtoul(buf, &buf, 0);
++				res = &dev->res.mem_resource[nmem];
++				res->start = simple_strtoul(buf, &buf, 0);
+ 				while (isspace(*buf))
+ 					++buf;
+ 				if (*buf == '-') {
+ 					buf += 1;
+ 					while (isspace(*buf))
+ 						++buf;
+-					dev->res.mem_resource[nmem].end =
+-					    simple_strtoul(buf, &buf, 0);
++					res->end = simple_strtoul(buf, &buf, 0);
+ 				} else
+-					dev->res.mem_resource[nmem].end =
+-					    dev->res.mem_resource[nmem].start;
+-				dev->res.mem_resource[nmem].flags =
+-				    IORESOURCE_MEM;
++					res->end = res->start;
++				res->flags = IORESOURCE_MEM;
+ 				nmem++;
+ 				if (nmem >= PNP_MAX_MEM)
+ 					break;
+@@ -430,11 +425,10 @@
+ 				buf += 3;
+ 				while (isspace(*buf))
+ 					++buf;
+-				dev->res.irq_resource[nirq].start =
+-				    dev->res.irq_resource[nirq].end =
++				res = &dev->res.irq_resource[nirq];
++				res->start = res->end =
+ 				    simple_strtoul(buf, &buf, 0);
+-				dev->res.irq_resource[nirq].flags =
+-				    IORESOURCE_IRQ;
++				res->flags = IORESOURCE_IRQ;
+ 				nirq++;
+ 				if (nirq >= PNP_MAX_IRQ)
+ 					break;
+@@ -444,11 +438,10 @@
+ 				buf += 3;
+ 				while (isspace(*buf))
+ 					++buf;
+-				dev->res.dma_resource[ndma].start =
+-				    dev->res.dma_resource[ndma].end =
++				res = &dev->res.dma_resource[ndma];
++				res->start = res->end =
+ 				    simple_strtoul(buf, &buf, 0);
+-				dev->res.dma_resource[ndma].flags =
+-				    IORESOURCE_DMA;
++				res->flags = IORESOURCE_DMA;
+ 				ndma++;
+ 				if (ndma >= PNP_MAX_DMA)
+ 					break;
 
 -- 
