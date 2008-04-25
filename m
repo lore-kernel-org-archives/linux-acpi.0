@@ -1,387 +1,238 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 54/54] PNPBIOS: remove include/linux/pnpbios.h
-Date: Fri, 25 Apr 2008 12:39:01 -0600
-Message-ID: <20080425183935.546247290@ldl.fc.hp.com>
+Subject: [patch 48/54] PNP: make generic pnp_add_mem_resource()
+Date: Fri, 25 Apr 2008 12:38:55 -0600
+Message-ID: <20080425183933.942549462@ldl.fc.hp.com>
 References: <20080425183807.366134771@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0017.houston.hp.com ([15.201.24.20]:48906 "EHLO
-	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753332AbYDYSkp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Apr 2008 14:40:45 -0400
-Content-Disposition: inline; filename=pnpbios-remove-public-header
+Received: from g4t0016.houston.hp.com ([15.201.24.19]:32390 "EHLO
+	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762006AbYDYSkg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Apr 2008 14:40:36 -0400
+Content-Disposition: inline; filename=pnp-common-add-mem-resource
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-The contents of include/linux/pnpbios.h are used only inside the PNPBIOS
-backend, so this file doesn't need to be visible outside PNP.
-
-This patch moves the contents into an existing PNPBIOS-specific file,
-drivers/pnp/pnpbios/pnpbios.h.
+Add a pnp_add_mem_resource() that can be used by all the PNP
+backends.  This consolidates a little more pnp_resource_table
+knowledge into one place.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
 ---
- drivers/pnp/pnpbios/bioscalls.c |    1 
- drivers/pnp/pnpbios/core.c      |    1 
- drivers/pnp/pnpbios/pnpbios.h   |  136 ++++++++++++++++++++++++++++++++++++
- drivers/pnp/pnpbios/proc.c      |    2 
- drivers/pnp/pnpbios/rsparser.c  |    1 
- include/linux/pnpbios.h         |  151 ----------------------------------------
- 6 files changed, 137 insertions(+), 155 deletions(-)
+ drivers/pnp/base.h             |    3 +++
+ drivers/pnp/interface.c        |   18 +++++++-----------
+ drivers/pnp/isapnp/core.c      |    9 +++------
+ drivers/pnp/pnpacpi/rsparser.c |   32 ++++++++------------------------
+ drivers/pnp/pnpbios/rsparser.c |   23 ++++++-----------------
+ drivers/pnp/resource.c         |   29 +++++++++++++++++++++++++++++
+ 6 files changed, 56 insertions(+), 58 deletions(-)
 
-Index: work10/drivers/pnp/pnpbios/bioscalls.c
+Index: work10/drivers/pnp/base.h
 ===================================================================
---- work10.orig/drivers/pnp/pnpbios/bioscalls.c	2008-04-25 11:12:14.000000000 -0600
-+++ work10/drivers/pnp/pnpbios/bioscalls.c	2008-04-25 11:15:17.000000000 -0600
-@@ -7,7 +7,6 @@
- #include <linux/init.h>
- #include <linux/linkage.h>
- #include <linux/kernel.h>
--#include <linux/pnpbios.h>
- #include <linux/device.h>
- #include <linux/pnp.h>
- #include <linux/mm.h>
-Index: work10/drivers/pnp/pnpbios/core.c
+--- work10.orig/drivers/pnp/base.h	2008-04-25 11:15:12.000000000 -0600
++++ work10/drivers/pnp/base.h	2008-04-25 11:15:13.000000000 -0600
+@@ -45,3 +45,6 @@
+ struct pnp_resource *pnp_add_io_resource(struct pnp_dev *dev,
+ 					 resource_size_t start,
+ 					 resource_size_t end, int flags);
++struct pnp_resource *pnp_add_mem_resource(struct pnp_dev *dev,
++					  resource_size_t start,
++					  resource_size_t end, int flags);
+Index: work10/drivers/pnp/resource.c
 ===================================================================
---- work10.orig/drivers/pnp/pnpbios/core.c	2008-04-25 11:14:58.000000000 -0600
-+++ work10/drivers/pnp/pnpbios/core.c	2008-04-25 11:15:17.000000000 -0600
-@@ -50,7 +50,6 @@
- #include <linux/init.h>
- #include <linux/linkage.h>
- #include <linux/kernel.h>
--#include <linux/pnpbios.h>
- #include <linux/device.h>
- #include <linux/pnp.h>
- #include <linux/mm.h>
-Index: work10/drivers/pnp/pnpbios/pnpbios.h
-===================================================================
---- work10.orig/drivers/pnp/pnpbios/pnpbios.h	2008-04-25 11:14:56.000000000 -0600
-+++ work10/drivers/pnp/pnpbios/pnpbios.h	2008-04-25 11:15:17.000000000 -0600
-@@ -2,6 +2,142 @@
-  * pnpbios.h - contains local definitions
-  */
+--- work10.orig/drivers/pnp/resource.c	2008-04-25 11:15:12.000000000 -0600
++++ work10/drivers/pnp/resource.c	2008-04-25 11:15:13.000000000 -0600
+@@ -650,6 +650,35 @@
+ 	return pnp_res;
+ }
  
-+/*
-+ * Include file for the interface to a PnP BIOS
-+ *
-+ * Original BIOS code (C) 1998 Christian Schmidt (chr.schmidt@tu-bs.de)
-+ * PnP handler parts (c) 1998 Tom Lees <tom@lpsg.demon.co.uk>
-+ * Minor reorganizations by David Hinds <dahinds@users.sourceforge.net>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; either version 2, or (at your option) any
-+ * later version.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
++struct pnp_resource *pnp_add_mem_resource(struct pnp_dev *dev,
++					  resource_size_t start,
++					  resource_size_t end, int flags)
++{
++	struct pnp_resource *pnp_res;
++	struct resource *res;
++	static unsigned char warned;
 +
-+/*
-+ * Return codes
-+ */
-+#define PNP_SUCCESS                     0x00
-+#define PNP_NOT_SET_STATICALLY          0x7f
-+#define PNP_UNKNOWN_FUNCTION            0x81
-+#define PNP_FUNCTION_NOT_SUPPORTED      0x82
-+#define PNP_INVALID_HANDLE              0x83
-+#define PNP_BAD_PARAMETER               0x84
-+#define PNP_SET_FAILED                  0x85
-+#define PNP_EVENTS_NOT_PENDING          0x86
-+#define PNP_SYSTEM_NOT_DOCKED           0x87
-+#define PNP_NO_ISA_PNP_CARDS            0x88
-+#define PNP_UNABLE_TO_DETERMINE_DOCK_CAPABILITIES 0x89
-+#define PNP_CONFIG_CHANGE_FAILED_NO_BATTERY 0x8a
-+#define PNP_CONFIG_CHANGE_FAILED_RESOURCE_CONFLICT 0x8b
-+#define PNP_BUFFER_TOO_SMALL            0x8c
-+#define PNP_USE_ESCD_SUPPORT            0x8d
-+#define PNP_MESSAGE_NOT_SUPPORTED       0x8e
-+#define PNP_HARDWARE_ERROR              0x8f
++	pnp_res = pnp_new_resource(dev, IORESOURCE_MEM);
++	if (!pnp_res) {
++		if (!warned) {
++			dev_err(&dev->dev, "can't add resource for MEM "
++				"0x%llx-0x%llx\n",(unsigned long long) start,
++				(unsigned long long) end);
++			warned = 1;
++		}
++		return NULL;
++	}
 +
-+#define ESCD_SUCCESS                    0x00
-+#define ESCD_IO_ERROR_READING           0x55
-+#define ESCD_INVALID                    0x56
-+#define ESCD_BUFFER_TOO_SMALL           0x59
-+#define ESCD_NVRAM_TOO_SMALL            0x5a
-+#define ESCD_FUNCTION_NOT_SUPPORTED     0x81
++	res = &pnp_res->res;
++	res->flags = IORESOURCE_MEM | flags;
++	res->start = start;
++	res->end = end;
 +
-+/*
-+ * Events that can be received by "get event"
-+ */
-+#define PNPEV_ABOUT_TO_CHANGE_CONFIG	0x0001
-+#define PNPEV_DOCK_CHANGED		0x0002
-+#define PNPEV_SYSTEM_DEVICE_CHANGED	0x0003
-+#define PNPEV_CONFIG_CHANGED_FAILED	0x0004
-+#define PNPEV_UNKNOWN_SYSTEM_EVENT	0xffff
-+/* 0x8000 through 0xfffe are OEM defined */
++	dev_dbg(&dev->dev, "  add mem 0x%llx-0x%llx flags 0x%x\n",
++		(unsigned long long) start, (unsigned long long) end, flags);
++	return pnp_res;
++}
 +
-+/*
-+ * Messages that should be sent through "send message"
-+ */
-+#define PNPMSG_OK			0x00
-+#define PNPMSG_ABORT			0x01
-+#define PNPMSG_UNDOCK_DEFAULT_ACTION	0x40
-+#define PNPMSG_POWER_OFF		0x41
-+#define PNPMSG_PNP_OS_ACTIVE		0x42
-+#define PNPMSG_PNP_OS_INACTIVE		0x43
-+
-+/*
-+ * Plug and Play BIOS flags
-+ */
-+#define PNPBIOS_NO_DISABLE		0x0001
-+#define PNPBIOS_NO_CONFIG		0x0002
-+#define PNPBIOS_OUTPUT			0x0004
-+#define PNPBIOS_INPUT			0x0008
-+#define PNPBIOS_BOOTABLE		0x0010
-+#define PNPBIOS_DOCK			0x0020
-+#define PNPBIOS_REMOVABLE		0x0040
-+#define pnpbios_is_static(x) (((x)->flags & 0x0100) == 0x0000)
-+#define pnpbios_is_dynamic(x) ((x)->flags & 0x0080)
-+
-+/*
-+ * Function Parameters
-+ */
-+#define PNPMODE_STATIC 1
-+#define PNPMODE_DYNAMIC 0
-+
-+/* 0x8000 through 0xffff are OEM defined */
-+
-+#pragma pack(1)
-+struct pnp_dev_node_info {
-+	__u16 no_nodes;
-+	__u16 max_node_size;
-+};
-+struct pnp_docking_station_info {
-+	__u32 location_id;
-+	__u32 serial;
-+	__u16 capabilities;
-+};
-+struct pnp_isa_config_struc {
-+	__u8 revision;
-+	__u8 no_csns;
-+	__u16 isa_rd_data_port;
-+	__u16 reserved;
-+};
-+struct escd_info_struc {
-+	__u16 min_escd_write_size;
-+	__u16 escd_size;
-+	__u32 nv_storage_base;
-+};
-+struct pnp_bios_node {
-+	__u16 size;
-+	__u8 handle;
-+	__u32 eisa_id;
-+	__u8 type_code[3];
-+	__u16 flags;
-+	__u8 data[0];
-+};
-+#pragma pack()
-+
-+/* non-exported */
-+extern struct pnp_dev_node_info node_info;
-+
-+extern int pnp_bios_dev_node_info(struct pnp_dev_node_info *data);
-+extern int pnp_bios_get_dev_node(u8 *nodenum, char config,
-+				 struct pnp_bios_node *data);
-+extern int pnp_bios_set_dev_node(u8 nodenum, char config,
-+				 struct pnp_bios_node *data);
-+extern int pnp_bios_get_stat_res(char *info);
-+extern int pnp_bios_isapnp_config(struct pnp_isa_config_struc *data);
-+extern int pnp_bios_escd_info(struct escd_info_struc *data);
-+extern int pnp_bios_read_escd(char *data, u32 nvram_base);
-+extern int pnp_bios_dock_station_info(struct pnp_docking_station_info *data);
-+
- #pragma pack(1)
- union pnp_bios_install_struct {
- 	struct {
-Index: work10/drivers/pnp/pnpbios/proc.c
+ /* format is: pnp_reserve_irq=irq1[,irq2] .... */
+ static int __init pnp_setup_reserve_irq(char *str)
+ {
+Index: work10/drivers/pnp/interface.c
 ===================================================================
---- work10.orig/drivers/pnp/pnpbios/proc.c	2008-04-25 11:12:14.000000000 -0600
-+++ work10/drivers/pnp/pnpbios/proc.c	2008-04-25 11:15:17.000000000 -0600
-@@ -23,7 +23,7 @@
- #include <linux/slab.h>
- #include <linux/types.h>
- #include <linux/proc_fs.h>
--#include <linux/pnpbios.h>
-+#include <linux/pnp.h>
- #include <linux/init.h>
+--- work10.orig/drivers/pnp/interface.c	2008-04-25 11:15:12.000000000 -0600
++++ work10/drivers/pnp/interface.c	2008-04-25 11:15:13.000000000 -0600
+@@ -323,7 +323,6 @@
+ {
+ 	struct pnp_dev *dev = to_pnp_dev(dmdev);
+ 	struct pnp_resource *pnp_res;
+-	struct resource *res;
+ 	char *buf = (void *)ubuf;
+ 	int retval = 0;
+ 	resource_size_t start, end;
+@@ -404,23 +403,20 @@
+ 				buf += 3;
+ 				while (isspace(*buf))
+ 					++buf;
+-				pnp_res = &dev->res->mem[nmem];
+-				pnp_res->index = nmem;
+-				res = &pnp_res->res;
+-				res->start = simple_strtoul(buf, &buf, 0);
++				start = simple_strtoul(buf, &buf, 0);
+ 				while (isspace(*buf))
+ 					++buf;
+ 				if (*buf == '-') {
+ 					buf += 1;
+ 					while (isspace(*buf))
+ 						++buf;
+-					res->end = simple_strtoul(buf, &buf, 0);
++					end = simple_strtoul(buf, &buf, 0);
+ 				} else
+-					res->end = res->start;
+-				res->flags = IORESOURCE_MEM;
+-				nmem++;
+-				if (nmem >= PNP_MAX_MEM)
+-					break;
++					end = start;
++				pnp_res = pnp_add_mem_resource(dev, start, end,
++							       0);
++				if (pnp_res)
++					pnp_res->index = nmem++;
+ 				continue;
+ 			}
+ 			if (!strnicmp(buf, "irq", 3)) {
+Index: work10/drivers/pnp/isapnp/core.c
+===================================================================
+--- work10.orig/drivers/pnp/isapnp/core.c	2008-04-25 11:15:12.000000000 -0600
++++ work10/drivers/pnp/isapnp/core.c	2008-04-25 11:15:13.000000000 -0600
+@@ -932,7 +932,6 @@
+ static int isapnp_read_resources(struct pnp_dev *dev)
+ {
+ 	struct pnp_resource *pnp_res;
+-	struct resource *res;
+ 	int tmp, ret;
  
- #include <asm/uaccess.h>
+ 	dev->active = isapnp_read_byte(ISAPNP_CFG_ACTIVATE);
+@@ -950,11 +949,9 @@
+ 			    isapnp_read_word(ISAPNP_CFG_MEM + (tmp << 3)) << 8;
+ 			if (!ret)
+ 				continue;
+-			pnp_res = &dev->res->mem[tmp];
+-			pnp_res->index = tmp;
+-			res = &pnp_res->res;
+-			res->start = ret;
+-			res->flags = IORESOURCE_MEM;
++			pnp_res = pnp_add_mem_resource(dev, ret, ret, 0);
++			if (pnp_res)
++				pnp_res->index = tmp;
+ 		}
+ 		for (tmp = 0; tmp < ISAPNP_MAX_IRQ; tmp++) {
+ 			ret =
+Index: work10/drivers/pnp/pnpacpi/rsparser.c
+===================================================================
+--- work10.orig/drivers/pnp/pnpacpi/rsparser.c	2008-04-25 11:15:12.000000000 -0600
++++ work10/drivers/pnp/pnpacpi/rsparser.c	2008-04-25 11:15:13.000000000 -0600
+@@ -173,34 +173,18 @@
+ }
+ 
+ static void pnpacpi_parse_allocated_memresource(struct pnp_dev *dev,
+-						u64 mem, u64 len,
++						u64 start, u64 len,
+ 						int write_protect)
+ {
+-	struct resource *res;
+-	int i;
+-	static unsigned char warned;
++	int flags = 0;
++	u64 end = start + len - 1;
+ 
+-	for (i = 0; i < PNP_MAX_MEM; i++) {
+-		res = &dev->res->mem[i].res;
+-		if (res->flags & IORESOURCE_UNSET)
+-			break;
+-	}
+-	if (i < PNP_MAX_MEM) {
+-		res->flags = IORESOURCE_MEM;	// Also clears _UNSET flag
+-		if (len <= 0) {
+-			res->flags |= IORESOURCE_DISABLED;
+-			return;
+-		}
+-		if (write_protect == ACPI_READ_WRITE_MEMORY)
+-			res->flags |= IORESOURCE_MEM_WRITEABLE;
++	if (len == 0)
++		flags |= IORESOURCE_DISABLED;
++	if (write_protect == ACPI_READ_WRITE_MEMORY)
++		flags |= IORESOURCE_MEM_WRITEABLE;
+ 
+-		res->start = mem;
+-		res->end = mem + len - 1;
+-	} else if (!warned) {
+-		printk(KERN_WARNING "pnpacpi: exceeded the max number of mem "
+-				"resources: %d\n", PNP_MAX_MEM);
+-		warned = 1;
+-	}
++	pnp_add_mem_resource(dev, start, end, flags);
+ }
+ 
+ static void pnpacpi_parse_allocated_address_space(struct pnp_dev *dev,
 Index: work10/drivers/pnp/pnpbios/rsparser.c
 ===================================================================
---- work10.orig/drivers/pnp/pnpbios/rsparser.c	2008-04-25 11:15:13.000000000 -0600
-+++ work10/drivers/pnp/pnpbios/rsparser.c	2008-04-25 11:15:17.000000000 -0600
-@@ -4,7 +4,6 @@
+--- work10.orig/drivers/pnp/pnpbios/rsparser.c	2008-04-25 11:15:12.000000000 -0600
++++ work10/drivers/pnp/pnpbios/rsparser.c	2008-04-25 11:15:13.000000000 -0600
+@@ -67,26 +67,15 @@
+ }
  
- #include <linux/ctype.h>
- #include <linux/pnp.h>
--#include <linux/pnpbios.h>
- #include <linux/string.h>
- #include <linux/slab.h>
+ static void pnpbios_parse_allocated_memresource(struct pnp_dev *dev,
+-						int mem, int len)
++						int start, int len)
+ {
+-	struct resource *res;
+-	int i;
++	int flags = 0;
++	int end = start + len - 1;
  
-Index: work10/include/linux/pnpbios.h
-===================================================================
---- work10.orig/include/linux/pnpbios.h	2008-04-25 11:12:14.000000000 -0600
-+++ /dev/null	1970-01-01 00:00:00.000000000 +0000
-@@ -1,151 +0,0 @@
--/*
-- * Include file for the interface to a PnP BIOS
-- *
-- * Original BIOS code (C) 1998 Christian Schmidt (chr.schmidt@tu-bs.de)
-- * PnP handler parts (c) 1998 Tom Lees <tom@lpsg.demon.co.uk>
-- * Minor reorganizations by David Hinds <dahinds@users.sourceforge.net>
-- *
-- * This program is free software; you can redistribute it and/or modify it
-- * under the terms of the GNU General Public License as published by the
-- * Free Software Foundation; either version 2, or (at your option) any
-- * later version.
-- *
-- * This program is distributed in the hope that it will be useful, but
-- * WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-- * General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-- */
--
--#ifndef _LINUX_PNPBIOS_H
--#define _LINUX_PNPBIOS_H
--
--#ifdef __KERNEL__
--
--#include <linux/types.h>
--#include <linux/pnp.h>
--
--/*
-- * Return codes
-- */
--#define PNP_SUCCESS                     0x00
--#define PNP_NOT_SET_STATICALLY          0x7f
--#define PNP_UNKNOWN_FUNCTION            0x81
--#define PNP_FUNCTION_NOT_SUPPORTED      0x82
--#define PNP_INVALID_HANDLE              0x83
--#define PNP_BAD_PARAMETER               0x84
--#define PNP_SET_FAILED                  0x85
--#define PNP_EVENTS_NOT_PENDING          0x86
--#define PNP_SYSTEM_NOT_DOCKED           0x87
--#define PNP_NO_ISA_PNP_CARDS            0x88
--#define PNP_UNABLE_TO_DETERMINE_DOCK_CAPABILITIES 0x89
--#define PNP_CONFIG_CHANGE_FAILED_NO_BATTERY 0x8a
--#define PNP_CONFIG_CHANGE_FAILED_RESOURCE_CONFLICT 0x8b
--#define PNP_BUFFER_TOO_SMALL            0x8c
--#define PNP_USE_ESCD_SUPPORT            0x8d
--#define PNP_MESSAGE_NOT_SUPPORTED       0x8e
--#define PNP_HARDWARE_ERROR              0x8f
--
--#define ESCD_SUCCESS                    0x00
--#define ESCD_IO_ERROR_READING           0x55
--#define ESCD_INVALID                    0x56
--#define ESCD_BUFFER_TOO_SMALL           0x59
--#define ESCD_NVRAM_TOO_SMALL            0x5a
--#define ESCD_FUNCTION_NOT_SUPPORTED     0x81
--
--/*
-- * Events that can be received by "get event"
-- */
--#define PNPEV_ABOUT_TO_CHANGE_CONFIG	0x0001
--#define PNPEV_DOCK_CHANGED		0x0002
--#define PNPEV_SYSTEM_DEVICE_CHANGED	0x0003
--#define PNPEV_CONFIG_CHANGED_FAILED	0x0004
--#define PNPEV_UNKNOWN_SYSTEM_EVENT	0xffff
--/* 0x8000 through 0xfffe are OEM defined */
--
--/*
-- * Messages that should be sent through "send message"
-- */
--#define PNPMSG_OK			0x00
--#define PNPMSG_ABORT			0x01
--#define PNPMSG_UNDOCK_DEFAULT_ACTION	0x40
--#define PNPMSG_POWER_OFF		0x41
--#define PNPMSG_PNP_OS_ACTIVE		0x42
--#define PNPMSG_PNP_OS_INACTIVE		0x43
--
--/*
-- * Plug and Play BIOS flags
-- */
--#define PNPBIOS_NO_DISABLE		0x0001
--#define PNPBIOS_NO_CONFIG		0x0002
--#define PNPBIOS_OUTPUT			0x0004
--#define PNPBIOS_INPUT			0x0008
--#define PNPBIOS_BOOTABLE		0x0010
--#define PNPBIOS_DOCK			0x0020
--#define PNPBIOS_REMOVABLE		0x0040
--#define pnpbios_is_static(x) (((x)->flags & 0x0100) == 0x0000)
--#define pnpbios_is_dynamic(x) ((x)->flags & 0x0080)
--
--/*
-- * Function Parameters
-- */
--#define PNPMODE_STATIC 1
--#define PNPMODE_DYNAMIC 0
--
--/* 0x8000 through 0xffff are OEM defined */
--
--#pragma pack(1)
--struct pnp_dev_node_info {
--	__u16 no_nodes;
--	__u16 max_node_size;
--};
--struct pnp_docking_station_info {
--	__u32 location_id;
--	__u32 serial;
--	__u16 capabilities;
--};
--struct pnp_isa_config_struc {
--	__u8 revision;
--	__u8 no_csns;
--	__u16 isa_rd_data_port;
--	__u16 reserved;
--};
--struct escd_info_struc {
--	__u16 min_escd_write_size;
--	__u16 escd_size;
--	__u32 nv_storage_base;
--};
--struct pnp_bios_node {
--	__u16 size;
--	__u8 handle;
--	__u32 eisa_id;
--	__u8 type_code[3];
--	__u16 flags;
--	__u8 data[0];
--};
--#pragma pack()
--
--#ifdef CONFIG_PNPBIOS
--
--/* non-exported */
--extern struct pnp_dev_node_info node_info;
--
--extern int pnp_bios_dev_node_info(struct pnp_dev_node_info *data);
--extern int pnp_bios_get_dev_node(u8 *nodenum, char config,
--				 struct pnp_bios_node *data);
--extern int pnp_bios_set_dev_node(u8 nodenum, char config,
--				 struct pnp_bios_node *data);
--extern int pnp_bios_get_stat_res(char *info);
--extern int pnp_bios_isapnp_config(struct pnp_isa_config_struc *data);
--extern int pnp_bios_escd_info(struct escd_info_struc *data);
--extern int pnp_bios_read_escd(char *data, u32 nvram_base);
--extern int pnp_bios_dock_station_info(struct pnp_docking_station_info *data);
--
--#endif /* CONFIG_PNPBIOS */
--
--#endif /* __KERNEL__ */
--
--#endif /* _LINUX_PNPBIOS_H */
+-	for (i = 0; i < PNP_MAX_MEM; i++) {
+-		res = &dev->res->mem[i].res;
+-		if (res->flags & IORESOURCE_UNSET)
+-			break;
+-	}
++	if (len <= 0)
++		flags |= IORESOURCE_DISABLED;
+ 
+-	if (i < PNP_MAX_MEM) {
+-		res->flags = IORESOURCE_MEM;	// Also clears _UNSET flag
+-		if (len <= 0) {
+-			res->flags |= IORESOURCE_DISABLED;
+-			return;
+-		}
+-		res->start = (unsigned long)mem;
+-		res->end = (unsigned long)(mem + len - 1);
+-	}
++	pnp_add_mem_resource(dev, start, end, flags);
+ }
+ 
+ static unsigned char *pnpbios_parse_allocated_resource_data(struct pnp_dev *dev,
 
 -- 
