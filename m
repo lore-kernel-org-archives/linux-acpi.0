@@ -1,482 +1,232 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 42/54] PNP: add struct pnp_resource
-Date: Fri, 25 Apr 2008 12:38:49 -0600
-Message-ID: <20080425183932.665145836@ldl.fc.hp.com>
+Subject: [patch 47/54] PNP: make generic pnp_add_io_resource()
+Date: Fri, 25 Apr 2008 12:38:54 -0600
+Message-ID: <20080425183933.738662275@ldl.fc.hp.com>
 References: <20080425183807.366134771@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0007.atlanta.hp.com ([15.192.0.44]:19217 "EHLO
-	g5t0007.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1764864AbYDYSk3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Apr 2008 14:40:29 -0400
-Content-Disposition: inline; filename=pnp-add-struct-pnp_resource
+Received: from g4t0016.houston.hp.com ([15.201.24.19]:32371 "EHLO
+	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1764236AbYDYSkf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Apr 2008 14:40:35 -0400
+Content-Disposition: inline; filename=pnp-common-add-io-resource
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-This patch adds a "struct pnp_resource".  This currently
-contains only a struct resource, but we will soon need
-additional PNP-specific information.
+Add a pnp_add_io_resource() that can be used by all the PNP
+backends.  This consolidates a little more pnp_resource_table
+knowledge into one place.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
 ---
- drivers/pnp/base.h             |   12 ++++++++----
- drivers/pnp/interface.c        |   13 +++++++++----
- drivers/pnp/isapnp/core.c      |   26 ++++++++++++++++++--------
- drivers/pnp/manager.c          |   32 ++++++++++++++++++++------------
- drivers/pnp/pnpacpi/rsparser.c |    8 ++++----
- drivers/pnp/pnpbios/rsparser.c |    8 ++++----
- drivers/pnp/resource.c         |    8 ++++----
- drivers/pnp/support.c          |    8 ++++----
- 8 files changed, 71 insertions(+), 44 deletions(-)
+ drivers/pnp/base.h             |    3 +++
+ drivers/pnp/interface.c        |   19 ++++++++-----------
+ drivers/pnp/isapnp/core.c      |    8 +++-----
+ drivers/pnp/pnpacpi/rsparser.c |   35 ++++++++++-------------------------
+ drivers/pnp/pnpbios/rsparser.c |   23 ++++++-----------------
+ drivers/pnp/resource.c         |   29 +++++++++++++++++++++++++++++
+ 6 files changed, 59 insertions(+), 58 deletions(-)
 
 Index: work10/drivers/pnp/base.h
 ===================================================================
---- work10.orig/drivers/pnp/base.h	2008-04-25 11:15:08.000000000 -0600
-+++ work10/drivers/pnp/base.h	2008-04-25 11:15:09.000000000 -0600
-@@ -26,9 +26,13 @@
- #define PNP_MAX_IRQ		 2
- #define PNP_MAX_DMA		 2
- 
-+struct pnp_resource {
-+	struct resource res;
-+};
-+
- struct pnp_resource_table {
--	struct resource port_resource[PNP_MAX_PORT];
--	struct resource mem_resource[PNP_MAX_MEM];
--	struct resource dma_resource[PNP_MAX_DMA];
--	struct resource irq_resource[PNP_MAX_IRQ];
-+	struct pnp_resource port[PNP_MAX_PORT];
-+	struct pnp_resource mem[PNP_MAX_MEM];
-+	struct pnp_resource dma[PNP_MAX_DMA];
-+	struct pnp_resource irq[PNP_MAX_IRQ];
- };
-Index: work10/drivers/pnp/isapnp/core.c
-===================================================================
---- work10.orig/drivers/pnp/isapnp/core.c	2008-04-25 11:15:09.000000000 -0600
-+++ work10/drivers/pnp/isapnp/core.c	2008-04-25 11:15:09.000000000 -0600
-@@ -931,6 +931,7 @@
- 
- static int isapnp_read_resources(struct pnp_dev *dev)
- {
-+	struct pnp_resource *pnp_res;
- 	struct resource *res;
- 	int tmp, ret;
- 
-@@ -940,7 +941,8 @@
- 			ret = isapnp_read_word(ISAPNP_CFG_PORT + (tmp << 1));
- 			if (!ret)
- 				continue;
--			res = &dev->res->port_resource[tmp];
-+			pnp_res = &dev->res->port[tmp];
-+			res = &pnp_res->res;
- 			res->start = ret;
- 			res->flags = IORESOURCE_IO;
- 		}
-@@ -949,7 +951,8 @@
- 			    isapnp_read_word(ISAPNP_CFG_MEM + (tmp << 3)) << 8;
- 			if (!ret)
- 				continue;
--			res = &dev->res->mem_resource[tmp];
-+			pnp_res = &dev->res->mem[tmp];
-+			res = &pnp_res->res;
- 			res->start = ret;
- 			res->flags = IORESOURCE_MEM;
- 		}
-@@ -959,7 +962,8 @@
- 			     8);
- 			if (!ret)
- 				continue;
--			res = &dev->res->irq_resource[tmp];
-+			pnp_res = &dev->res->irq[tmp];
-+			res = &pnp_res->res;
- 			res->start = res->end = ret;
- 			res->flags = IORESOURCE_IRQ;
- 		}
-@@ -967,7 +971,8 @@
- 			ret = isapnp_read_byte(ISAPNP_CFG_DMA + tmp);
- 			if (ret == 4)
- 				continue;
--			res = &dev->res->dma_resource[tmp];
-+			pnp_res = &dev->res->dma[tmp];
-+			res = &pnp_res->res;
- 			res->start = res->end = ret;
- 			res->flags = IORESOURCE_DMA;
- 		}
-@@ -989,6 +994,7 @@
- 
- static int isapnp_set_resources(struct pnp_dev *dev)
- {
-+	struct pnp_resource *pnp_res;
- 	struct resource *res;
- 	int tmp;
- 
-@@ -996,7 +1002,8 @@
- 	isapnp_cfg_begin(dev->card->number, dev->number);
- 	dev->active = 1;
- 	for (tmp = 0; tmp < ISAPNP_MAX_PORT; tmp++) {
--		res = &dev->res->port_resource[tmp];
-+		pnp_res = &dev->res->port[tmp];
-+		res = &pnp_res->res;
- 		if ((res->flags & (IORESOURCE_IO | IORESOURCE_UNSET)) ==
- 				IORESOURCE_IO) {
- 			dev_dbg(&dev->dev, "  set io  %d to 0x%llx\n",
-@@ -1006,7 +1013,8 @@
- 		}
- 	}
- 	for (tmp = 0; tmp < ISAPNP_MAX_IRQ; tmp++) {
--		res = &dev->res->irq_resource[tmp];
-+		pnp_res = &dev->res->irq[tmp];
-+		res = &pnp_res->res;
- 		if ((res->flags & (IORESOURCE_IRQ | IORESOURCE_UNSET)) ==
- 				IORESOURCE_IRQ) {
- 			int irq = res->start;
-@@ -1017,7 +1025,8 @@
- 		}
- 	}
- 	for (tmp = 0; tmp < ISAPNP_MAX_DMA; tmp++) {
--		res = &dev->res->dma_resource[tmp];
-+		pnp_res = &dev->res->dma[tmp];
-+		res = &pnp_res->res;
- 		if ((res->flags & (IORESOURCE_DMA | IORESOURCE_UNSET)) ==
- 				IORESOURCE_DMA) {
- 			dev_dbg(&dev->dev, "  set dma %d to %lld\n",
-@@ -1026,7 +1035,8 @@
- 		}
- 	}
- 	for (tmp = 0; tmp < ISAPNP_MAX_MEM; tmp++) {
--		res = &dev->res->mem_resource[tmp];
-+		pnp_res = &dev->res->mem[tmp];
-+		res = &pnp_res->res;
- 		if ((res->flags & (IORESOURCE_MEM | IORESOURCE_UNSET)) ==
- 				IORESOURCE_MEM) {
- 			dev_dbg(&dev->dev, "  set mem %d to 0x%llx\n",
-Index: work10/drivers/pnp/pnpacpi/rsparser.c
-===================================================================
---- work10.orig/drivers/pnp/pnpacpi/rsparser.c	2008-04-25 11:15:09.000000000 -0600
-+++ work10/drivers/pnp/pnpacpi/rsparser.c	2008-04-25 11:15:09.000000000 -0600
-@@ -92,7 +92,7 @@
- 		return;
- 
- 	for (i = 0; i < PNP_MAX_IRQ; i++) {
--		res = &dev->res->irq_resource[i];
-+		res = &dev->res->irq[i].res;
- 		if (res->flags & IORESOURCE_UNSET)
- 			break;
- 	}
-@@ -185,7 +185,7 @@
- 	static unsigned char warned;
- 
- 	for (i = 0; i < PNP_MAX_DMA; i++) {
--		res = &dev->res->dma_resource[i];
-+		res = &dev->res->dma[i].res;
- 		if (res->flags & IORESOURCE_UNSET)
- 			break;
- 	}
-@@ -213,7 +213,7 @@
- 	static unsigned char warned;
- 
- 	for (i = 0; i < PNP_MAX_PORT; i++) {
--		res = &dev->res->port_resource[i];
-+		res = &dev->res->port[i].res;
- 		if (res->flags & IORESOURCE_UNSET)
- 			break;
- 	}
-@@ -243,7 +243,7 @@
- 	static unsigned char warned;
- 
- 	for (i = 0; i < PNP_MAX_MEM; i++) {
--		res = &dev->res->mem_resource[i];
-+		res = &dev->res->mem[i].res;
- 		if (res->flags & IORESOURCE_UNSET)
- 			break;
- 	}
-Index: work10/drivers/pnp/pnpbios/rsparser.c
-===================================================================
---- work10.orig/drivers/pnp/pnpbios/rsparser.c	2008-04-25 11:15:09.000000000 -0600
-+++ work10/drivers/pnp/pnpbios/rsparser.c	2008-04-25 11:15:09.000000000 -0600
-@@ -60,7 +60,7 @@
- 	int i;
- 
- 	for (i = 0; i < PNP_MAX_IRQ; i++) {
--		res = &dev->res->irq_resource[i];
-+		res = &dev->res->irq[i].res;
- 		if (res->flags & IORESOURCE_UNSET)
- 			break;
- 	}
-@@ -82,7 +82,7 @@
- 	int i;
- 
- 	for (i = 0; i < PNP_MAX_DMA; i++) {
--		res = &dev->res->dma_resource[i];
-+		res = &dev->res->dma[i].res;
- 		if (res->flags & IORESOURCE_UNSET)
- 			break;
- 	}
-@@ -104,7 +104,7 @@
- 	int i;
- 
- 	for (i = 0; i < PNP_MAX_PORT; i++) {
--		res = &dev->res->port_resource[i];
-+		res = &dev->res->port[i].res;
- 		if (res->flags & IORESOURCE_UNSET)
- 			break;
- 	}
-@@ -127,7 +127,7 @@
- 	int i;
- 
- 	for (i = 0; i < PNP_MAX_MEM; i++) {
--		res = &dev->res->mem_resource[i];
-+		res = &dev->res->mem[i].res;
- 		if (res->flags & IORESOURCE_UNSET)
- 			break;
- 	}
-Index: work10/drivers/pnp/resource.c
-===================================================================
---- work10.orig/drivers/pnp/resource.c	2008-04-25 11:15:08.000000000 -0600
-+++ work10/drivers/pnp/resource.c	2008-04-25 11:15:09.000000000 -0600
-@@ -508,19 +508,19 @@
- 	case IORESOURCE_IO:
- 		if (num >= PNP_MAX_PORT)
- 			return NULL;
--		return &res->port_resource[num];
-+		return &res->port[num].res;
- 	case IORESOURCE_MEM:
- 		if (num >= PNP_MAX_MEM)
- 			return NULL;
--		return &res->mem_resource[num];
-+		return &res->mem[num].res;
- 	case IORESOURCE_IRQ:
- 		if (num >= PNP_MAX_IRQ)
- 			return NULL;
--		return &res->irq_resource[num];
-+		return &res->irq[num].res;
- 	case IORESOURCE_DMA:
- 		if (num >= PNP_MAX_DMA)
- 			return NULL;
--		return &res->dma_resource[num];
-+		return &res->dma[num].res;
- 	}
- 	return NULL;
- }
-Index: work10/drivers/pnp/manager.c
-===================================================================
---- work10.orig/drivers/pnp/manager.c	2008-04-25 11:15:08.000000000 -0600
-+++ work10/drivers/pnp/manager.c	2008-04-25 11:15:09.000000000 -0600
-@@ -19,6 +19,7 @@
- 
- static int pnp_assign_port(struct pnp_dev *dev, struct pnp_port *rule, int idx)
- {
-+	struct pnp_resource *pnp_res;
- 	struct resource *res;
- 
- 	if (idx >= PNP_MAX_PORT) {
-@@ -27,7 +28,8 @@
- 		return 1;
- 	}
- 
--	res = &dev->res->port_resource[idx];
-+	pnp_res = &dev->res->port[idx];
-+	res = &pnp_res->res;
- 
- 	/* check if this resource has been manually set, if so skip */
- 	if (!(res->flags & IORESOURCE_AUTO)) {
-@@ -66,6 +68,7 @@
- 
- static int pnp_assign_mem(struct pnp_dev *dev, struct pnp_mem *rule, int idx)
- {
-+	struct pnp_resource *pnp_res;
- 	struct resource *res;
- 
- 	if (idx >= PNP_MAX_MEM) {
-@@ -74,7 +77,8 @@
- 		return 1;
- 	}
- 
--	res = &dev->res->mem_resource[idx];
-+	pnp_res = &dev->res->mem[idx];
-+	res = &pnp_res->res;
- 
- 	/* check if this resource has been manually set, if so skip */
- 	if (!(res->flags & IORESOURCE_AUTO)) {
-@@ -123,6 +127,7 @@
- 
- static int pnp_assign_irq(struct pnp_dev *dev, struct pnp_irq *rule, int idx)
- {
-+	struct pnp_resource *pnp_res;
- 	struct resource *res;
- 	int i;
- 
-@@ -137,7 +142,8 @@
- 		return 1;
- 	}
- 
--	res = &dev->res->irq_resource[idx];
-+	pnp_res = &dev->res->irq[idx];
-+	res = &pnp_res->res;
- 
- 	/* check if this resource has been manually set, if so skip */
- 	if (!(res->flags & IORESOURCE_AUTO)) {
-@@ -180,6 +186,7 @@
- 
- static void pnp_assign_dma(struct pnp_dev *dev, struct pnp_dma *rule, int idx)
- {
-+	struct pnp_resource *pnp_res;
- 	struct resource *res;
- 	int i;
- 
-@@ -193,7 +200,8 @@
- 		return;
- 	}
- 
--	res = &dev->res->dma_resource[idx];
-+	pnp_res = &dev->res->dma[idx];
-+	res = &pnp_res->res;
- 
- 	/* check if this resource has been manually set, if so skip */
- 	if (!(res->flags & IORESOURCE_AUTO)) {
-@@ -251,22 +259,22 @@
- 	int idx;
- 
- 	for (idx = 0; idx < PNP_MAX_IRQ; idx++) {
--		res = &dev->res->irq_resource[idx];
-+		res = &dev->res->irq[idx].res;
- 		res->flags = IORESOURCE_IRQ;
- 		pnp_init_resource(res);
- 	}
- 	for (idx = 0; idx < PNP_MAX_DMA; idx++) {
--		res = &dev->res->dma_resource[idx];
-+		res = &dev->res->dma[idx].res;
- 		res->flags = IORESOURCE_DMA;
- 		pnp_init_resource(res);
- 	}
- 	for (idx = 0; idx < PNP_MAX_PORT; idx++) {
--		res = &dev->res->port_resource[idx];
-+		res = &dev->res->port[idx].res;
- 		res->flags = IORESOURCE_IO;
- 		pnp_init_resource(res);
- 	}
- 	for (idx = 0; idx < PNP_MAX_MEM; idx++) {
--		res = &dev->res->mem_resource[idx];
-+		res = &dev->res->mem[idx].res;
- 		res->flags = IORESOURCE_MEM;
- 		pnp_init_resource(res);
- 	}
-@@ -282,22 +290,22 @@
- 	int idx;
- 
- 	for (idx = 0; idx < PNP_MAX_IRQ; idx++) {
--		res = &dev->res->irq_resource[idx];
-+		res = &dev->res->irq[idx].res;
- 		if (res->flags & IORESOURCE_AUTO)
- 			pnp_init_resource(res);
- 	}
- 	for (idx = 0; idx < PNP_MAX_DMA; idx++) {
--		res = &dev->res->dma_resource[idx];
-+		res = &dev->res->dma[idx].res;
- 		if (res->flags & IORESOURCE_AUTO)
- 			pnp_init_resource(res);
- 	}
- 	for (idx = 0; idx < PNP_MAX_PORT; idx++) {
--		res = &dev->res->port_resource[idx];
-+		res = &dev->res->port[idx].res;
- 		if (res->flags & IORESOURCE_AUTO)
- 			pnp_init_resource(res);
- 	}
- 	for (idx = 0; idx < PNP_MAX_MEM; idx++) {
--		res = &dev->res->mem_resource[idx];
-+		res = &dev->res->mem[idx].res;
- 		if (res->flags & IORESOURCE_AUTO)
- 			pnp_init_resource(res);
- 	}
+--- work10.orig/drivers/pnp/base.h	2008-04-25 11:15:12.000000000 -0600
++++ work10/drivers/pnp/base.h	2008-04-25 11:15:12.000000000 -0600
+@@ -42,3 +42,6 @@
+ 					  int flags);
+ struct pnp_resource *pnp_add_dma_resource(struct pnp_dev *dev, int dma,
+ 					  int flags);
++struct pnp_resource *pnp_add_io_resource(struct pnp_dev *dev,
++					 resource_size_t start,
++					 resource_size_t end, int flags);
 Index: work10/drivers/pnp/interface.c
 ===================================================================
---- work10.orig/drivers/pnp/interface.c	2008-04-25 11:15:08.000000000 -0600
-+++ work10/drivers/pnp/interface.c	2008-04-25 11:15:09.000000000 -0600
-@@ -322,6 +322,7 @@
- 			  const char *ubuf, size_t count)
- {
- 	struct pnp_dev *dev = to_pnp_dev(dmdev);
-+	struct pnp_resource *pnp_res;
+--- work10.orig/drivers/pnp/interface.c	2008-04-25 11:15:12.000000000 -0600
++++ work10/drivers/pnp/interface.c	2008-04-25 11:15:12.000000000 -0600
+@@ -326,7 +326,7 @@
  	struct resource *res;
  	char *buf = (void *)ubuf;
  	int retval = 0;
-@@ -382,7 +383,8 @@
+-	resource_size_t start;
++	resource_size_t start, end;
+ 
+ 	if (dev->status & PNP_ATTACHED) {
+ 		retval = -EBUSY;
+@@ -384,23 +384,20 @@
  				buf += 2;
  				while (isspace(*buf))
  					++buf;
--				res = &dev->res->port_resource[nport];
-+				pnp_res = &dev->res->port[nport];
-+				res = &pnp_res->res;
- 				res->start = simple_strtoul(buf, &buf, 0);
+-				pnp_res = &dev->res->port[nport];
+-				pnp_res->index = nport;
+-				res = &pnp_res->res;
+-				res->start = simple_strtoul(buf, &buf, 0);
++				start = simple_strtoul(buf, &buf, 0);
  				while (isspace(*buf))
  					++buf;
-@@ -403,7 +405,8 @@
- 				buf += 3;
- 				while (isspace(*buf))
- 					++buf;
--				res = &dev->res->mem_resource[nmem];
-+				pnp_res = &dev->res->mem[nmem];
-+				res = &pnp_res->res;
- 				res->start = simple_strtoul(buf, &buf, 0);
- 				while (isspace(*buf))
- 					++buf;
-@@ -424,7 +427,8 @@
- 				buf += 3;
- 				while (isspace(*buf))
- 					++buf;
--				res = &dev->res->irq_resource[nirq];
-+				pnp_res = &dev->res->irq[nirq];
-+				res = &pnp_res->res;
- 				res->start = res->end =
- 				    simple_strtoul(buf, &buf, 0);
- 				res->flags = IORESOURCE_IRQ;
-@@ -437,7 +441,8 @@
- 				buf += 3;
- 				while (isspace(*buf))
- 					++buf;
--				res = &dev->res->dma_resource[ndma];
-+				pnp_res = &dev->res->dma[ndma];
-+				res = &pnp_res->res;
- 				res->start = res->end =
- 				    simple_strtoul(buf, &buf, 0);
- 				res->flags = IORESOURCE_DMA;
-Index: work10/drivers/pnp/support.c
+ 				if (*buf == '-') {
+ 					buf += 1;
+ 					while (isspace(*buf))
+ 						++buf;
+-					res->end = simple_strtoul(buf, &buf, 0);
++					end = simple_strtoul(buf, &buf, 0);
+ 				} else
+-					res->end = res->start;
+-				res->flags = IORESOURCE_IO;
+-				nport++;
+-				if (nport >= PNP_MAX_PORT)
+-					break;
++					end = start;
++				pnp_res = pnp_add_io_resource(dev, start, end,
++							      0);
++				if (pnp_res)
++					pnp_res->index = nport++;
+ 				continue;
+ 			}
+ 			if (!strnicmp(buf, "mem", 3)) {
+Index: work10/drivers/pnp/isapnp/core.c
 ===================================================================
---- work10.orig/drivers/pnp/support.c	2008-04-25 11:15:08.000000000 -0600
-+++ work10/drivers/pnp/support.c	2008-04-25 11:15:09.000000000 -0600
-@@ -61,26 +61,26 @@
- 	dev_dbg(&dev->dev, "current resources: %s\n", desc);
+--- work10.orig/drivers/pnp/isapnp/core.c	2008-04-25 11:15:12.000000000 -0600
++++ work10/drivers/pnp/isapnp/core.c	2008-04-25 11:15:12.000000000 -0600
+@@ -941,11 +941,9 @@
+ 			ret = isapnp_read_word(ISAPNP_CFG_PORT + (tmp << 1));
+ 			if (!ret)
+ 				continue;
+-			pnp_res = &dev->res->port[tmp];
+-			pnp_res->index = tmp;
+-			res = &pnp_res->res;
+-			res->start = ret;
+-			res->flags = IORESOURCE_IO;
++			pnp_res = pnp_add_io_resource(dev, ret, ret, 0);
++			if (pnp_res)
++				pnp_res->index = tmp;
+ 		}
+ 		for (tmp = 0; tmp < ISAPNP_MAX_MEM; tmp++) {
+ 			ret =
+Index: work10/drivers/pnp/pnpacpi/rsparser.c
+===================================================================
+--- work10.orig/drivers/pnp/pnpacpi/rsparser.c	2008-04-25 11:15:12.000000000 -0600
++++ work10/drivers/pnp/pnpacpi/rsparser.c	2008-04-25 11:15:12.000000000 -0600
+@@ -158,33 +158,18 @@
+ 	return flags;
+ }
  
- 	for (i = 0; i < PNP_MAX_IRQ; i++) {
--		res = &dev->res->irq_resource[i];
-+		res = &dev->res->irq[i].res;
- 		if (!(res->flags & IORESOURCE_UNSET))
- 			dev_dbg(&dev->dev, "  irq %lld flags 0x%lx\n",
- 				(unsigned long long) res->start, res->flags);
- 	}
- 	for (i = 0; i < PNP_MAX_DMA; i++) {
--		res = &dev->res->dma_resource[i];
-+		res = &dev->res->dma[i].res;
- 		if (!(res->flags & IORESOURCE_UNSET))
- 			dev_dbg(&dev->dev, "  dma %lld flags 0x%lx\n",
- 				(unsigned long long) res->start, res->flags);
- 	}
- 	for (i = 0; i < PNP_MAX_PORT; i++) {
--		res = &dev->res->port_resource[i];
-+		res = &dev->res->port[i].res;
- 		if (!(res->flags & IORESOURCE_UNSET))
- 			dev_dbg(&dev->dev, "  io  0x%llx-0x%llx flags 0x%lx\n",
- 				(unsigned long long) res->start,
- 				(unsigned long long) res->end, res->flags);
- 	}
- 	for (i = 0; i < PNP_MAX_MEM; i++) {
--		res = &dev->res->mem_resource[i];
-+		res = &dev->res->mem[i].res;
- 		if (!(res->flags & IORESOURCE_UNSET))
- 			dev_dbg(&dev->dev, "  mem 0x%llx-0x%llx flags 0x%lx\n",
- 				(unsigned long long) res->start,
+-static void pnpacpi_parse_allocated_ioresource(struct pnp_dev *dev,
+-					       u64 io, u64 len, int io_decode)
++static void pnpacpi_parse_allocated_ioresource(struct pnp_dev *dev, u64 start,
++					       u64 len, int io_decode)
+ {
+-	struct resource *res;
+-	int i;
+-	static unsigned char warned;
++	int flags = 0;
++	u64 end = start + len - 1;
+ 
+-	for (i = 0; i < PNP_MAX_PORT; i++) {
+-		res = &dev->res->port[i].res;
+-		if (res->flags & IORESOURCE_UNSET)
+-			break;
+-	}
+-	if (i < PNP_MAX_PORT) {
+-		res->flags = IORESOURCE_IO;	// Also clears _UNSET flag
+-		if (io_decode == ACPI_DECODE_16)
+-			res->flags |= PNP_PORT_FLAG_16BITADDR;
+-		if (len <= 0 || (io + len - 1) >= 0x10003) {
+-			res->flags |= IORESOURCE_DISABLED;
+-			return;
+-		}
+-		res->start = io;
+-		res->end = io + len - 1;
+-	} else if (!warned) {
+-		printk(KERN_WARNING "pnpacpi: exceeded the max number of IO "
+-				"resources: %d \n", PNP_MAX_PORT);
+-		warned = 1;
+-	}
++	if (io_decode == ACPI_DECODE_16)
++		flags |= PNP_PORT_FLAG_16BITADDR;
++	if (len == 0 || end >= 0x10003)
++		flags |= IORESOURCE_DISABLED;
++
++	pnp_add_io_resource(dev, start, end, flags);
+ }
+ 
+ static void pnpacpi_parse_allocated_memresource(struct pnp_dev *dev,
+Index: work10/drivers/pnp/pnpbios/rsparser.c
+===================================================================
+--- work10.orig/drivers/pnp/pnpbios/rsparser.c	2008-04-25 11:15:12.000000000 -0600
++++ work10/drivers/pnp/pnpbios/rsparser.c	2008-04-25 11:15:12.000000000 -0600
+@@ -55,26 +55,15 @@
+  */
+ 
+ static void pnpbios_parse_allocated_ioresource(struct pnp_dev *dev,
+-					       int io, int len)
++					       int start, int len)
+ {
+-	struct resource *res;
+-	int i;
++	int flags = 0;
++	int end = start + len - 1;
+ 
+-	for (i = 0; i < PNP_MAX_PORT; i++) {
+-		res = &dev->res->port[i].res;
+-		if (res->flags & IORESOURCE_UNSET)
+-			break;
+-	}
++	if (len <= 0 || end >= 0x10003)
++		flags |= IORESOURCE_DISABLED;
+ 
+-	if (i < PNP_MAX_PORT) {
+-		res->flags = IORESOURCE_IO;	// Also clears _UNSET flag
+-		if (len <= 0 || (io + len - 1) >= 0x10003) {
+-			res->flags |= IORESOURCE_DISABLED;
+-			return;
+-		}
+-		res->start = (unsigned long)io;
+-		res->end = (unsigned long)(io + len - 1);
+-	}
++	pnp_add_io_resource(dev, start, end, flags);
+ }
+ 
+ static void pnpbios_parse_allocated_memresource(struct pnp_dev *dev,
+Index: work10/drivers/pnp/resource.c
+===================================================================
+--- work10.orig/drivers/pnp/resource.c	2008-04-25 11:15:12.000000000 -0600
++++ work10/drivers/pnp/resource.c	2008-04-25 11:15:12.000000000 -0600
+@@ -621,6 +621,35 @@
+ 	return pnp_res;
+ }
+ 
++struct pnp_resource *pnp_add_io_resource(struct pnp_dev *dev,
++					 resource_size_t start,
++					 resource_size_t end, int flags)
++{
++	struct pnp_resource *pnp_res;
++	struct resource *res;
++	static unsigned char warned;
++
++	pnp_res = pnp_new_resource(dev, IORESOURCE_IO);
++	if (!pnp_res) {
++		if (!warned) {
++			dev_err(&dev->dev, "can't add resource for IO "
++				"0x%llx-0x%llx\n",(unsigned long long) start,
++				(unsigned long long) end);
++			warned = 1;
++		}
++		return NULL;
++	}
++
++	res = &pnp_res->res;
++	res->flags = IORESOURCE_IO | flags;
++	res->start = start;
++	res->end = end;
++
++	dev_dbg(&dev->dev, "  add io  0x%llx-0x%llx flags 0x%x\n",
++		(unsigned long long) start, (unsigned long long) end, flags);
++	return pnp_res;
++}
++
+ /* format is: pnp_reserve_irq=irq1[,irq2] .... */
+ static int __init pnp_setup_reserve_irq(char *str)
+ {
 
 -- 
