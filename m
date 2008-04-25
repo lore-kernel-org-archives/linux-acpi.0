@@ -1,87 +1,56 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [patch 22/53] PNP: factor pnp_init_resource_table() and pnp_clean_resource_table()
-Date: Thu, 24 Apr 2008 16:45:50 -0600
-Message-ID: <200804241645.51454.bjorn.helgaas@hp.com>
-References: <20080418204955.342963315@ldl.fc.hp.com> <200804211710.38660.bjorn.helgaas@hp.com> <480E5246.5000804@keyaccess.nl>
+From: Len Brown <lenb@kernel.org>
+Subject: [2.6.25-stable PATCH] regression: powertop says 120K wakeups/sec
+Date: Thu, 24 Apr 2008 20:15:19 -0400
+Message-ID: <200804242015.19462.lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-15"
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0015.houston.hp.com ([15.201.24.18]:37635 "EHLO
-	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754683AbYDXWpx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Apr 2008 18:45:53 -0400
-In-Reply-To: <480E5246.5000804@keyaccess.nl>
+Received: from hera.kernel.org ([140.211.167.34]:55121 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752728AbYDYAP5 (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
+	Thu, 24 Apr 2008 20:15:57 -0400
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rene Herman <rene.herman@keyaccess.nl>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
+To: stable@kernel.org
+Cc: Linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-On Tuesday 22 April 2008 03:01:58 pm Rene Herman wrote:
-> On 22-04-08 01:10, Bjorn Helgaas wrote:
-> >> Getting things working also needs setting pnp_res->index (to nport, nmem, 
-> >> nirq, ndma in pnp_assign_resources) so that the isapnp_set_resources which 
-> >> follows sets to the correct hardware index, but at that point position in 
-> >> the list and the index are mixing together in unhealthy ways -- in the 
-> >> pnp_assign_foo helpers, pnp_get_resource(.., idx) just get the "idx-th" 
-> >> resource of the correct type in the list but it seems it really should be 
-> >> getting the resource of the correct type with its ->index set to "idx".
-> > 
-> > I don't mind setting pnp_res->index in the generic pnp_assign_* code.
-> > We have to do that already in pnp_set_current_resources() (the /sys
-> > interface), and I don't see a good way around it.
-> > 
-> > In pnp_assign_resources(), we currently assume that all independent
-> > options appear before any dependent ones because we compute nport,
-> > nmem, etc by iterating through the independent options first.  Then
-> > we use those nport, nmem, etc values as the "index" (CSR index for
-> > ISAPNP, nth resource type in the template for PNPBIOS and PNPACPI).
-> > I don't know whether this assumption is in the spec, but at least
-> > we've assumed it for a long time.
-> 
-> Did this just address my position/index worry above?
+From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Date:   Wed Apr 9 21:31:46 2008 -0400
 
-Here's something interesting.  I was mistaken about the ordering
-of independent vs. dependent options coming from BIOS -- I have
-several examples where the dependent ones come first, including
-this one:
+commit 0fda6b403f0eca66ad8a7c946b3996e359100443
+    
+Patch to fix huge number of wakeups reported due to recent changes in
+processor_idle.c. The problem was that the entry_method determination was
+broken due to one of the recent commits (bc71bec91f987) causing
+C1 entry to not to go to halt.
+    
+http://lkml.org/lkml/2008/3/22/124
+    
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
 
-    pnp 00:0a: parse resource options
-    pnp 00:0a: new independent option
-    pnp 00:0a: new dependent option (priority 0x1)
-    pnp 00:0a:   io  min 0x3f8 max 0x3f8 align 1 size 8 flags 0x1
-    pnp 00:0a: new dependent option (priority 0x1)
-    pnp 00:0a:   io  min 0x2e8 max 0x2e8 align 1 size 8 flags 0x1
-    pnp 00:0a: new dependent option (priority 0x1)
-    pnp 00:0a:   io  min 0x2f8 max 0x2f8 align 1 size 8 flags 0x1
-    pnp 00:0a: new dependent option (priority 0x1)
-    pnp 00:0a:   io  min 0x3e8 max 0x3e8 align 1 size 8 flags 0x1
-    pnp 00:0a: end dependent options
-    pnp 00:0a:   irq bitmask 00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000cf8 flags 0x1
-    pnp 00:0a:   io  min 0x100 max 0x130 align 16 size 8 flags 0x1
-    pnp 00:0a:   dma bitmask 0xe flags 0x2
-    pnp 00:0a: Plug and Play ACPI device, IDs SMCf010 (disabled)
-
-The interesting thing here is that this IRDA device comes up disabled,
-and we use pnp_assign_resources() before enabling it.  But we
-assign independent options first, so we end up reversing the order
-of these IO regions:
-
-    state = active
-    io 0x100-0x107
-    io 0x2e8-0x2ef
-    irq 5
-    dma 1
-
-The driver for this device (smsc-ircc2.c) currently can't claim it
-via PNP, but by long painful trial and error, I figured out last
-summer that I could get the PNP claim code to work if I manually
-swapped the IO regions!
-
-I haven't done anything about this yet, but it sure looks to me like
-we need to preserve the order of the independent/dependent options
-as we get them from the BIOS.
-
-Bjorn
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index 788da97..836362b 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -848,6 +848,7 @@ static int acpi_processor_get_power_info_default(struct acpi_processor *pr)
+ 		/* all processors need to support C1 */
+ 		pr->power.states[ACPI_STATE_C1].type = ACPI_STATE_C1;
+ 		pr->power.states[ACPI_STATE_C1].valid = 1;
++		pr->power.states[ACPI_STATE_C1].entry_method = ACPI_CSTATE_HALT;
+ 	}
+ 	/* the C0 state only exists as a filler in our array */
+ 	pr->power.states[ACPI_STATE_C0].valid = 1;
+@@ -960,6 +961,9 @@ static int acpi_processor_get_power_info_cst(struct acpi_processor *pr)
+ 				 cx.address);
+ 		}
+ 
++		if (cx.type == ACPI_STATE_C1) {
++			cx.valid = 1;
++		}
+ 
+ 		obj = &(element->package.elements[2]);
+ 		if (obj->type != ACPI_TYPE_INTEGER)
