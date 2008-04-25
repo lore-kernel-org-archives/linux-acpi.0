@@ -1,24 +1,39 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH 70/73] ACPICA: Fix to disable unknown spurious GPEs
-Date: Fri, 25 Apr 2008 09:53:06 +0800
-Message-ID: <1209088386.3538.18.camel@rzhang-crestline.sh.intel.com>
-References: <1207974356-30687-1-git-send-email-lenb@kernel.org>
-	 <480EC916.1050407@suse.de>
-	 <9D39833986E69849A2A8E74C1078B6B3372B65@orsmsx415.amr.corp.intel.com>
-	 <200804242140.28805.lenb@kernel.org>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH 70/73] ACPICA: Fix to disable unknown spurious GPEs
+Date: Thu, 24 Apr 2008 18:57:15 -0700
+Message-ID: <9D39833986E69849A2A8E74C1078B6B33735F5@orsmsx415.amr.corp.intel.com>
+References: <1207974356-30687-1-git-send-email-lenb@kernel.org> <480EC916.1050407@suse.de> <9D39833986E69849A2A8E74C1078B6B3372B65@orsmsx415.amr.corp.intel.com> <200804242140.28805.lenb@kernel.org> <1209088386.3538.18.camel@rzhang-crestline.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:27001 "EHLO mga11.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:53128 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754778AbYDYByf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 24 Apr 2008 21:54:35 -0400
-In-Reply-To: <200804242140.28805.lenb@kernel.org>
+	id S1755226AbYDYB5U convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Apr 2008 21:57:20 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <1209088386.3538.18.camel@rzhang-crestline.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: "Moore, Robert" <robert.moore@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.de>, linux-acpi@vger.kernel.org
+To: "Zhang, Rui" <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, linux-acpi@vger.kernel.org
+
+Yes, this is my question also.
+
+I hope Alexey can help with this. I'm very nervous about any code that
+works or does not work for reasons unknown. When this happens in the GPE
+code, I get more than nervous.
+
+Bob
+
+
+-----Original Message-----
+From: Zhang, Rui 
+Sent: Thursday, April 24, 2008 6:53 PM
+To: Len Brown
+Cc: Moore, Robert; Alexey Starikovskiy; linux-acpi@vger.kernel.org
+Subject: Re: [PATCH 70/73] ACPICA: Fix to disable unknown spurious GPEs
 
 
 On Fri, 2008-04-25 at 09:40 +0800, Len Brown wrote:
@@ -149,15 +164,18 @@ rui
 > mode
 > > >> -Completing Region/Field/Buffer/Package
 > >
-> >initialization:........................................................
+>
+>initialization:........................................................
 > > ....
 > > >............................................................
 > > >>
 > >
-> >.......................................................................
+>
+>.......................................................................
 > > ....
 > >
-> >.......................................................................
+>
+>.......................................................................
 > > ....
 > > >................
 > > >> -Initialized 29/33 Regions 138/138 Fields 64/64 Buffers 55/72
@@ -165,15 +183,18 @@ rui
 > > >(1888 nodes)
 > > >> +Completing Region/Field/Buffer/Package
 > >
-> >initialization:........................................................
+>
+>initialization:........................................................
 > > ....
 > > >............................................................
 > > >>
 > >
-> >.......................................................................
+>
+>.......................................................................
 > > ....
 > >
-> >.......................................................................
+>
+>.......................................................................
 > > ....
 > > >.................
 > > >> +Initialized 30/33 Regions 138/138 Fields 64/64 Buffers 55/72
