@@ -1,219 +1,226 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 32/54] PNP: reduce redundancy in pnp_check_port() and others
-Date: Fri, 25 Apr 2008 12:38:39 -0600
-Message-ID: <20080425183930.626960666@ldl.fc.hp.com>
+Subject: [patch 43/54] PNP: add pnp_resource index for ISAPNP
+Date: Fri, 25 Apr 2008 12:38:50 -0600
+Message-ID: <20080425183932.866077549@ldl.fc.hp.com>
 References: <20080425183807.366134771@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0017.houston.hp.com ([15.201.24.20]:48680 "EHLO
+Received: from g4t0017.houston.hp.com ([15.201.24.20]:48777 "EHLO
 	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1764670AbYDYSkN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Apr 2008 14:40:13 -0400
-Content-Disposition: inline; filename=pnp-simplify-check-functions
+	with ESMTP id S1764849AbYDYSk1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Apr 2008 14:40:27 -0400
+Content-Disposition: inline; filename=pnp-add-pnp_resource-index
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-Use a temporary "res" pointer to replace repeated lookups in
-the pnp resource tables.
+Save the ISAPNP config register index in the struct pnp_resource.
+
+We need this because it is important to write ISAPNP configuration
+back to the same registers we read it from.  For example, if we
+read valid regions from memory descriptors 0, 1, and 3, we'd
+better write them back to the same registers, without compressing
+them to descriptors 0, 1, and 2.
+
+This was previously guaranteed by using the index into the
+pnp_resource_table array as the ISAPNP config register index.
+However, I am removing those fixed-size arrays, so we need to
+save the ISAPNP register index elsewhere.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Index: work10/drivers/pnp/resource.c
+---
+ drivers/pnp/base.h        |    1 +
+ drivers/pnp/interface.c   |    4 ++++
+ drivers/pnp/isapnp/core.c |   26 +++++++++++++++++---------
+ drivers/pnp/manager.c     |    4 ++++
+ 4 files changed, 26 insertions(+), 9 deletions(-)
+
+Index: work10/drivers/pnp/base.h
 ===================================================================
---- work10.orig/drivers/pnp/resource.c	2008-04-25 11:15:02.000000000 -0600
-+++ work10/drivers/pnp/resource.c	2008-04-25 11:15:03.000000000 -0600
-@@ -243,13 +243,15 @@
+--- work10.orig/drivers/pnp/base.h	2008-04-25 11:15:09.000000000 -0600
++++ work10/drivers/pnp/base.h	2008-04-25 11:15:10.000000000 -0600
+@@ -28,6 +28,7 @@
+ 
+ struct pnp_resource {
+ 	struct resource res;
++	unsigned int index;		/* ISAPNP config register index */
+ };
+ 
+ struct pnp_resource_table {
+Index: work10/drivers/pnp/isapnp/core.c
+===================================================================
+--- work10.orig/drivers/pnp/isapnp/core.c	2008-04-25 11:15:09.000000000 -0600
++++ work10/drivers/pnp/isapnp/core.c	2008-04-25 11:15:10.000000000 -0600
+@@ -942,6 +942,7 @@
+ 			if (!ret)
+ 				continue;
+ 			pnp_res = &dev->res->port[tmp];
++			pnp_res->index = tmp;
+ 			res = &pnp_res->res;
+ 			res->start = ret;
+ 			res->flags = IORESOURCE_IO;
+@@ -952,6 +953,7 @@
+ 			if (!ret)
+ 				continue;
+ 			pnp_res = &dev->res->mem[tmp];
++			pnp_res->index = tmp;
+ 			res = &pnp_res->res;
+ 			res->start = ret;
+ 			res->flags = IORESOURCE_MEM;
+@@ -963,6 +965,7 @@
+ 			if (!ret)
+ 				continue;
+ 			pnp_res = &dev->res->irq[tmp];
++			pnp_res->index = tmp;
+ 			res = &pnp_res->res;
+ 			res->start = res->end = ret;
+ 			res->flags = IORESOURCE_IRQ;
+@@ -972,6 +975,7 @@
+ 			if (ret == 4)
+ 				continue;
+ 			pnp_res = &dev->res->dma[tmp];
++			pnp_res->index = tmp;
+ 			res = &pnp_res->res;
+ 			res->start = res->end = ret;
+ 			res->flags = IORESOURCE_DMA;
+@@ -996,52 +1000,56 @@
  {
- 	int i;
- 	struct pnp_dev *tdev;
-+	struct resource *res, *tres;
- 	resource_size_t *port, *end, *tport, *tend;
+ 	struct pnp_resource *pnp_res;
+ 	struct resource *res;
+-	int tmp;
++	int tmp, index;
  
--	port = &dev->res.port_resource[idx].start;
--	end = &dev->res.port_resource[idx].end;
-+	res = &dev->res.port_resource[idx];
-+	port = &res->start;
-+	end = &res->end;
- 
- 	/* if the resource doesn't exist, don't complain about it */
--	if (cannot_compare(dev->res.port_resource[idx].flags))
-+	if (cannot_compare(res->flags))
- 		return 1;
- 
- 	/* check if the resource is already in use, skip if the
-@@ -269,9 +271,10 @@
- 
- 	/* check for internal conflicts */
- 	for (i = 0; i < PNP_MAX_PORT && i != idx; i++) {
--		if (dev->res.port_resource[i].flags & IORESOURCE_IO) {
--			tport = &dev->res.port_resource[i].start;
--			tend = &dev->res.port_resource[i].end;
-+		tres = &dev->res.port_resource[i];
-+		if (tres->flags & IORESOURCE_IO) {
-+			tport = &tres->start;
-+			tend = &tres->end;
- 			if (ranged_conflict(port, end, tport, tend))
- 				return 0;
- 		}
-@@ -282,12 +285,12 @@
- 		if (tdev == dev)
- 			continue;
- 		for (i = 0; i < PNP_MAX_PORT; i++) {
--			if (tdev->res.port_resource[i].flags & IORESOURCE_IO) {
--				if (cannot_compare
--				    (tdev->res.port_resource[i].flags))
-+			tres = &tdev->res.port_resource[i];
-+			if (tres->flags & IORESOURCE_IO) {
-+				if (cannot_compare(tres->flags))
- 					continue;
--				tport = &tdev->res.port_resource[i].start;
--				tend = &tdev->res.port_resource[i].end;
-+				tport = &tres->start;
-+				tend = &tres->end;
- 				if (ranged_conflict(port, end, tport, tend))
- 					return 0;
- 			}
-@@ -301,13 +304,15 @@
- {
- 	int i;
- 	struct pnp_dev *tdev;
-+	struct resource *res, *tres;
- 	resource_size_t *addr, *end, *taddr, *tend;
- 
--	addr = &dev->res.mem_resource[idx].start;
--	end = &dev->res.mem_resource[idx].end;
-+	res = &dev->res.mem_resource[idx];
-+	addr = &res->start;
-+	end = &res->end;
- 
- 	/* if the resource doesn't exist, don't complain about it */
--	if (cannot_compare(dev->res.mem_resource[idx].flags))
-+	if (cannot_compare(res->flags))
- 		return 1;
- 
- 	/* check if the resource is already in use, skip if the
-@@ -327,9 +332,10 @@
- 
- 	/* check for internal conflicts */
- 	for (i = 0; i < PNP_MAX_MEM && i != idx; i++) {
--		if (dev->res.mem_resource[i].flags & IORESOURCE_MEM) {
--			taddr = &dev->res.mem_resource[i].start;
--			tend = &dev->res.mem_resource[i].end;
-+		tres = &dev->res.mem_resource[i];
-+		if (tres->flags & IORESOURCE_MEM) {
-+			taddr = &tres->start;
-+			tend = &tres->end;
- 			if (ranged_conflict(addr, end, taddr, tend))
- 				return 0;
- 		}
-@@ -340,12 +346,12 @@
- 		if (tdev == dev)
- 			continue;
- 		for (i = 0; i < PNP_MAX_MEM; i++) {
--			if (tdev->res.mem_resource[i].flags & IORESOURCE_MEM) {
--				if (cannot_compare
--				    (tdev->res.mem_resource[i].flags))
-+			tres = &tdev->res.mem_resource[i];
-+			if (tres->flags & IORESOURCE_MEM) {
-+				if (cannot_compare(tres->flags))
- 					continue;
--				taddr = &tdev->res.mem_resource[i].start;
--				tend = &tdev->res.mem_resource[i].end;
-+				taddr = &tres->start;
-+				tend = &tres->end;
- 				if (ranged_conflict(addr, end, taddr, tend))
- 					return 0;
- 			}
-@@ -364,10 +370,14 @@
- {
- 	int i;
- 	struct pnp_dev *tdev;
--	resource_size_t *irq = &dev->res.irq_resource[idx].start;
-+	struct resource *res, *tres;
-+	resource_size_t *irq;
-+
-+	res = &dev->res.irq_resource[idx];
-+	irq = &res->start;
- 
- 	/* if the resource doesn't exist, don't complain about it */
--	if (cannot_compare(dev->res.irq_resource[idx].flags))
-+	if (cannot_compare(res->flags))
- 		return 1;
- 
- 	/* check if the resource is valid */
-@@ -382,8 +392,9 @@
- 
- 	/* check for internal conflicts */
- 	for (i = 0; i < PNP_MAX_IRQ && i != idx; i++) {
--		if (dev->res.irq_resource[i].flags & IORESOURCE_IRQ) {
--			if (dev->res.irq_resource[i].start == *irq)
-+		tres = &dev->res.irq_resource[i];
-+		if (tres->flags & IORESOURCE_IRQ) {
-+			if (tres->start == *irq)
- 				return 0;
+ 	dev_dbg(&dev->dev, "set resources\n");
+ 	isapnp_cfg_begin(dev->card->number, dev->number);
+ 	dev->active = 1;
+ 	for (tmp = 0; tmp < ISAPNP_MAX_PORT; tmp++) {
+ 		pnp_res = &dev->res->port[tmp];
++		index = pnp_res->index;
+ 		res = &pnp_res->res;
+ 		if ((res->flags & (IORESOURCE_IO | IORESOURCE_UNSET)) ==
+ 				IORESOURCE_IO) {
+ 			dev_dbg(&dev->dev, "  set io  %d to 0x%llx\n",
+-				tmp, (unsigned long long) res->start);
+-			isapnp_write_word(ISAPNP_CFG_PORT + (tmp << 1),
++				index, (unsigned long long) res->start);
++			isapnp_write_word(ISAPNP_CFG_PORT + (index << 1),
+ 					  res->start);
  		}
  	}
-@@ -415,11 +426,11 @@
- 		if (tdev == dev)
- 			continue;
- 		for (i = 0; i < PNP_MAX_IRQ; i++) {
--			if (tdev->res.irq_resource[i].flags & IORESOURCE_IRQ) {
--				if (cannot_compare
--				    (tdev->res.irq_resource[i].flags))
-+			tres = &tdev->res.irq_resource[i];
-+			if (tres->flags & IORESOURCE_IRQ) {
-+				if (cannot_compare(tres->flags))
- 					continue;
--				if ((tdev->res.irq_resource[i].start == *irq))
-+				if (tres->start == *irq)
- 					return 0;
- 			}
- 		}
-@@ -433,10 +444,14 @@
- #ifndef CONFIG_IA64
- 	int i;
- 	struct pnp_dev *tdev;
--	resource_size_t *dma = &dev->res.dma_resource[idx].start;
-+	struct resource *res, *tres;
-+	resource_size_t *dma;
-+
-+	res = &dev->res.dma_resource[idx];
-+	dma = &res->start;
- 
- 	/* if the resource doesn't exist, don't complain about it */
--	if (cannot_compare(dev->res.dma_resource[idx].flags))
-+	if (cannot_compare(res->flags))
- 		return 1;
- 
- 	/* check if the resource is valid */
-@@ -451,8 +466,9 @@
- 
- 	/* check for internal conflicts */
- 	for (i = 0; i < PNP_MAX_DMA && i != idx; i++) {
--		if (dev->res.dma_resource[i].flags & IORESOURCE_DMA) {
--			if (dev->res.dma_resource[i].start == *dma)
-+		tres = &dev->res.dma_resource[i];
-+		if (tres->flags & IORESOURCE_DMA) {
-+			if (tres->start == *dma)
- 				return 0;
+ 	for (tmp = 0; tmp < ISAPNP_MAX_IRQ; tmp++) {
+ 		pnp_res = &dev->res->irq[tmp];
++		index = pnp_res->index;
+ 		res = &pnp_res->res;
+ 		if ((res->flags & (IORESOURCE_IRQ | IORESOURCE_UNSET)) ==
+ 				IORESOURCE_IRQ) {
+ 			int irq = res->start;
+ 			if (irq == 2)
+ 				irq = 9;
+-			dev_dbg(&dev->dev, "  set irq %d to %d\n", tmp, irq);
+-			isapnp_write_byte(ISAPNP_CFG_IRQ + (tmp << 1), irq);
++			dev_dbg(&dev->dev, "  set irq %d to %d\n", index, irq);
++			isapnp_write_byte(ISAPNP_CFG_IRQ + (index << 1), irq);
  		}
  	}
-@@ -470,11 +486,11 @@
- 		if (tdev == dev)
- 			continue;
- 		for (i = 0; i < PNP_MAX_DMA; i++) {
--			if (tdev->res.dma_resource[i].flags & IORESOURCE_DMA) {
--				if (cannot_compare
--				    (tdev->res.dma_resource[i].flags))
-+			tres = &tdev->res.dma_resource[i];
-+			if (tres->flags & IORESOURCE_DMA) {
-+				if (cannot_compare(tres->flags))
- 					continue;
--				if ((tdev->res.dma_resource[i].start == *dma))
-+				if (tres->start == *dma)
- 					return 0;
- 			}
+ 	for (tmp = 0; tmp < ISAPNP_MAX_DMA; tmp++) {
+ 		pnp_res = &dev->res->dma[tmp];
++		index = pnp_res->index;
+ 		res = &pnp_res->res;
+ 		if ((res->flags & (IORESOURCE_DMA | IORESOURCE_UNSET)) ==
+ 				IORESOURCE_DMA) {
+ 			dev_dbg(&dev->dev, "  set dma %d to %lld\n",
+-				tmp, (unsigned long long) res->start);
+-			isapnp_write_byte(ISAPNP_CFG_DMA + tmp, res->start);
++				index, (unsigned long long) res->start);
++			isapnp_write_byte(ISAPNP_CFG_DMA + index, res->start);
  		}
+ 	}
+ 	for (tmp = 0; tmp < ISAPNP_MAX_MEM; tmp++) {
+ 		pnp_res = &dev->res->mem[tmp];
++		index = pnp_res->index;
+ 		res = &pnp_res->res;
+ 		if ((res->flags & (IORESOURCE_MEM | IORESOURCE_UNSET)) ==
+ 				IORESOURCE_MEM) {
+ 			dev_dbg(&dev->dev, "  set mem %d to 0x%llx\n",
+-				tmp, (unsigned long long) res->start);
+-			isapnp_write_word(ISAPNP_CFG_MEM + (tmp << 3),
++				index, (unsigned long long) res->start);
++			isapnp_write_word(ISAPNP_CFG_MEM + (index << 3),
+ 					  (res->start >> 8) & 0xffff);
+ 		}
+ 	}
+Index: work10/drivers/pnp/interface.c
+===================================================================
+--- work10.orig/drivers/pnp/interface.c	2008-04-25 11:15:09.000000000 -0600
++++ work10/drivers/pnp/interface.c	2008-04-25 11:15:10.000000000 -0600
+@@ -384,6 +384,7 @@
+ 				while (isspace(*buf))
+ 					++buf;
+ 				pnp_res = &dev->res->port[nport];
++				pnp_res->index = nport;
+ 				res = &pnp_res->res;
+ 				res->start = simple_strtoul(buf, &buf, 0);
+ 				while (isspace(*buf))
+@@ -406,6 +407,7 @@
+ 				while (isspace(*buf))
+ 					++buf;
+ 				pnp_res = &dev->res->mem[nmem];
++				pnp_res->index = nmem;
+ 				res = &pnp_res->res;
+ 				res->start = simple_strtoul(buf, &buf, 0);
+ 				while (isspace(*buf))
+@@ -428,6 +430,7 @@
+ 				while (isspace(*buf))
+ 					++buf;
+ 				pnp_res = &dev->res->irq[nirq];
++				pnp_res->index = nirq;
+ 				res = &pnp_res->res;
+ 				res->start = res->end =
+ 				    simple_strtoul(buf, &buf, 0);
+@@ -442,6 +445,7 @@
+ 				while (isspace(*buf))
+ 					++buf;
+ 				pnp_res = &dev->res->dma[ndma];
++				pnp_res->index = ndma;
+ 				res = &pnp_res->res;
+ 				res->start = res->end =
+ 				    simple_strtoul(buf, &buf, 0);
+Index: work10/drivers/pnp/manager.c
+===================================================================
+--- work10.orig/drivers/pnp/manager.c	2008-04-25 11:15:09.000000000 -0600
++++ work10/drivers/pnp/manager.c	2008-04-25 11:15:10.000000000 -0600
+@@ -40,6 +40,7 @@
+ 	}
+ 
+ 	/* set the initial values */
++	pnp_res->index = idx;
+ 	res->flags |= rule->flags | IORESOURCE_IO;
+ 	res->flags &= ~IORESOURCE_UNSET;
+ 
+@@ -89,6 +90,7 @@
+ 	}
+ 
+ 	/* set the initial values */
++	pnp_res->index = idx;
+ 	res->flags |= rule->flags | IORESOURCE_MEM;
+ 	res->flags &= ~IORESOURCE_UNSET;
+ 
+@@ -153,6 +155,7 @@
+ 	}
+ 
+ 	/* set the initial values */
++	pnp_res->index = idx;
+ 	res->flags |= rule->flags | IORESOURCE_IRQ;
+ 	res->flags &= ~IORESOURCE_UNSET;
+ 
+@@ -211,6 +214,7 @@
+ 	}
+ 
+ 	/* set the initial values */
++	pnp_res->index = idx;
+ 	res->flags |= rule->flags | IORESOURCE_DMA;
+ 	res->flags &= ~IORESOURCE_UNSET;
+ 
 
 -- 
