@@ -1,56 +1,81 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 08/54] PNP: make pnp_add_card_id() internal to PNP core
-Date: Fri, 25 Apr 2008 12:38:15 -0600
-Message-ID: <20080425183925.738777338@ldl.fc.hp.com>
+Subject: [patch 27/54] PNP: add pnp_get_resource() interface
+Date: Fri, 25 Apr 2008 12:38:34 -0600
+Message-ID: <20080425183929.604824325@ldl.fc.hp.com>
 References: <20080425183807.366134771@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0029.austin.hp.com ([15.216.28.36]:9336 "EHLO
-	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761148AbYDYSjg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Apr 2008 14:39:36 -0400
-Content-Disposition: inline; filename=pnp-make-pnp_add_card_id-internal-to-core
+Received: from g1t0027.austin.hp.com ([15.216.28.34]:8436 "EHLO
+	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1764399AbYDYSkE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Apr 2008 14:40:04 -0400
+Content-Disposition: inline; filename=pnp-add-get-resource
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, Rene Herman <rene.herman@gmail.com>, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-pnp_add_card_id() doesn't need to be exposed outside the PNP core, so
-move the declaration to an internal header file.
+This adds a pnp_get_resource() that works the same way as
+platform_get_resource().  This will enable us to consolidate
+many pnp_resource_table references in one place, which will
+make it easier to make the table dynamic.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Acked-By: Rene Herman <rene.herman@gmail.com>
 
-Index: work10/drivers/pnp/base.h
-===================================================================
---- work10.orig/drivers/pnp/base.h	2008-04-25 11:14:49.000000000 -0600
-+++ work10/drivers/pnp/base.h	2008-04-25 11:14:50.000000000 -0600
-@@ -4,6 +4,7 @@
- void pnp_eisa_id_to_string(u32 id, char *str);
- struct pnp_dev *pnp_alloc_dev(struct pnp_protocol *, int id, char *pnpid);
- struct pnp_id *pnp_add_id(struct pnp_dev *dev, char *id);
-+int pnp_add_card_id(struct pnp_id *id, struct pnp_card *card);
- int pnp_interface_attach_device(struct pnp_dev *dev);
- void pnp_fixup_device(struct pnp_dev *dev);
- void pnp_free_option(struct pnp_option *option);
+---
+ drivers/pnp/resource.c |   27 +++++++++++++++++++++++++++
+ include/linux/pnp.h    |    1 +
+ 2 files changed, 28 insertions(+)
+
 Index: work10/include/linux/pnp.h
 ===================================================================
---- work10.orig/include/linux/pnp.h	2008-04-25 11:14:45.000000000 -0600
-+++ work10/include/linux/pnp.h	2008-04-25 11:14:50.000000000 -0600
-@@ -371,7 +371,6 @@
- void pnp_remove_card(struct pnp_card *card);
- int pnp_add_card_device(struct pnp_card *card, struct pnp_dev *dev);
- void pnp_remove_card_device(struct pnp_dev *dev);
--int pnp_add_card_id(struct pnp_id *id, struct pnp_card *card);
- struct pnp_dev *pnp_request_card_device(struct pnp_card_link *clink,
- 					const char *id, struct pnp_dev *from);
- void pnp_release_card_device(struct pnp_dev *dev);
-@@ -423,7 +422,6 @@
- static inline void pnp_remove_card(struct pnp_card *card) { }
- static inline int pnp_add_card_device(struct pnp_card *card, struct pnp_dev *dev) { return -ENODEV; }
- static inline void pnp_remove_card_device(struct pnp_dev *dev) { }
--static inline int pnp_add_card_id(struct pnp_id *id, struct pnp_card *card) { return -ENODEV; }
- static inline struct pnp_dev *pnp_request_card_device(struct pnp_card_link *clink, const char *id, struct pnp_dev *from) { return NULL; }
- static inline void pnp_release_card_device(struct pnp_dev *dev) { }
- static inline int pnp_register_card_driver(struct pnp_card_driver *drv) { return -ENODEV; }
+--- work10.orig/include/linux/pnp.h	2008-04-25 11:14:59.000000000 -0600
++++ work10/include/linux/pnp.h	2008-04-25 11:15:01.000000000 -0600
+@@ -25,6 +25,7 @@
+ /*
+  * Resource Management
+  */
++struct resource *pnp_get_resource(struct pnp_dev *, unsigned int, unsigned int);
+ 
+ /* Use these instead of directly reading pnp_dev to get resource information */
+ #define pnp_port_start(dev,bar)   ((dev)->res.port_resource[(bar)].start)
+Index: work10/drivers/pnp/resource.c
+===================================================================
+--- work10.orig/drivers/pnp/resource.c	2008-04-25 11:14:55.000000000 -0600
++++ work10/drivers/pnp/resource.c	2008-04-25 11:15:01.000000000 -0600
+@@ -487,6 +487,33 @@
+ #endif
+ }
+ 
++struct resource *pnp_get_resource(struct pnp_dev *dev,
++				  unsigned int type, unsigned int num)
++{
++	struct pnp_resource_table *res = &dev->res;
++
++	switch (type) {
++	case IORESOURCE_IO:
++		if (num >= PNP_MAX_PORT)
++			return NULL;
++		return &res->port_resource[num];
++	case IORESOURCE_MEM:
++		if (num >= PNP_MAX_MEM)
++			return NULL;
++		return &res->mem_resource[num];
++	case IORESOURCE_IRQ:
++		if (num >= PNP_MAX_IRQ)
++			return NULL;
++		return &res->irq_resource[num];
++	case IORESOURCE_DMA:
++		if (num >= PNP_MAX_DMA)
++			return NULL;
++		return &res->dma_resource[num];
++	}
++	return NULL;
++}
++EXPORT_SYMBOL(pnp_get_resource);
++
+ /* format is: pnp_reserve_irq=irq1[,irq2] .... */
+ static int __init pnp_setup_reserve_irq(char *str)
+ {
 
 -- 
