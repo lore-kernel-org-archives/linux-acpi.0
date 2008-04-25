@@ -1,59 +1,493 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH 70/73] ACPICA: Fix to disable unknown spurious GPEs
-Date: Thu, 24 Apr 2008 21:18:19 -0700
-Message-ID: <9D39833986E69849A2A8E74C1078B6B337361E@orsmsx415.amr.corp.intel.com>
-References: <1207974356-30687-1-git-send-email-lenb@kernel.org>	 <480EC916.1050407@suse.de>	 <9D39833986E69849A2A8E74C1078B6B3372B65@orsmsx415.amr.corp.intel.com>	 <200804242140.28805.lenb@kernel.org>	 <1209088386.3538.18.camel@rzhang-crestline.sh.intel.com>	 <9D39833986E69849A2A8E74C1078B6B33735F5@orsmsx415.amr.corp.intel.com>	 <48113D80.70406@suse.de> <1209090486.3538.36.camel@rzhang-crestline.sh.intel.com> <4811447F.6010602@suse.de>
+From: Peter Williams <pwil3058@bigpond.net.au>
+Subject: Re: Advice on result of using acpi_osi=Linux
+Date: Fri, 25 Apr 2008 12:20:51 +1000
+Message-ID: <48114003.2060505@bigpond.net.au>
+References: <480EBE51.1000408@bigpond.net.au> <200804232110.14301.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:22053 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750981AbYDYESV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Apr 2008 00:18:21 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <4811447F.6010602@suse.de>
+Received: from qsrv01ps.mx.bigpond.com ([144.140.82.181]:34001 "EHLO
+	qsrv01ps.mx.bigpond.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752651AbYDYGhQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Apr 2008 02:37:16 -0400
+In-Reply-To: <200804232110.14301.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>, "Zhang, Rui" <rui.zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
 
->> After 6217 is applied, when installing EC GPE handler, Linux will
-invoke
->> acpi_hw_write_gpe_enable_reg to try to disable EC GPE which is not
-done
->> before. Don't know if this is related.
->No, EC GPE handler is installed later. Thus the error is triggered
->during execution of 6217 code...
+Len Brown wrote:
+> thanks for the report, peter.
+> 
+> please send me the output from dmidecode.
+> 
 
-Attempt to disable EC GPE causes a GPE? I still do not understand.
+Attached below.  I've noticed some discrepancies between this output and 
+what I've observed in the BIOS set up, namely video, sound and ethernet 
+are listed as disabled (below) but are enabled in the BIOS set up.  The 
+video and ethernet are working OK but the sound card does not appear to 
+be found.  I've discussed the sound card issue with the appropriate 
+developers and their consensus is that it is not a problem in the sound 
+software but at a deeper level in PCI or ACPI.
+
+If you wish me to test kernel changes to investigate these problems (or 
+any other issues) I'm happy to help so don't hesitate to ask.
+
+# dmidecode 2.7
+SMBIOS 2.4 present.
+42 structures occupying 1671 bytes.
+Table at 0x000E8170.
+
+Handle 0x0000, DMI type 0, 24 bytes.
+BIOS Information
+         Vendor: Intel Corp.
+         Version: PRG3110H.86A.0028.2007.0928.1134
+         Release Date: 09/28/2007
+         Address: 0xF0000
+         Runtime Size: 64 kB
+         ROM Size: 1024 kB
+         Characteristics:
+                 PCI is supported
+                 BIOS is upgradeable
+                 BIOS shadowing is allowed
+                 ESCD support is available
+                 Boot from CD is supported
+                 Selectable boot is supported
+                 BIOS ROM is socketed
+                 EDD is supported
+                 5.25"/1.2 MB floppy services are supported (int 13h)
+                 3.5"/720 KB floppy services are supported (int 13h)
+                 3.5"/2.88 MB floppy services are supported (int 13h)
+                 Print screen service is supported (int 5h)
+                 8042 keyboard services are supported (int 9h)
+                 Serial services are supported (int 14h)
+                 Printer services are supported (int 17h)
+                 CGA/mono video services are supported (int 10h)
+                 ACPI is supported
+                 USB legacy is supported
+                 LS-120 boot is supported
+                 ATAPI Zip drive boot is supported
+                 BIOS boot specification is supported
+                 Targeted content distribution is supported
+
+Handle 0x0001, DMI type 1, 27 bytes.
+System Information
+         Manufacturer:
+         Product Name:
+         Version:
+         Serial Number:
+         UUID: E9478ECA-AD17-11DC-8733-0011D8A408ED
+         Wake-up Type: Power Switch
+         SKU Number: Not Specified
+         Family: Not Specified
+
+Handle 0x0002, DMI type 2, 15 bytes.
+Base Board Information
+         Manufacturer: Intel Corporation
+         Product Name: DG31PR
+         Version: AAD97573-204
+         Serial Number: BTPR75000DPM
+         Asset Tag: To be filled by O.E.M.
+         Features:
+                 Board is a hosting board
+                 Board is replaceable
+         Location In Chassis: To be filled by O.E.M.
+         Chassis Handle: 0x0003
+         Type: Motherboard
+         Contained Object Handles: 0
+
+Handle 0x0003, DMI type 3, 21 bytes.
+Chassis Information
+         Manufacturer:
+         Type: Unknown
+         Lock: Not Present
+         Version:
+         Serial Number:
+         Asset Tag:
+         Boot-up State: Safe
+         Power Supply State: Safe
+         Thermal State: Safe
+         Security Status: None
+         OEM Information: 0x00000000
+         Heigth: Unspecified
+         Number Of Power Cords: 1
+         Contained Elements: 0
+
+Handle 0x0004, DMI type 4, 35 bytes.
+Processor Information
+         Socket Designation: J3E1
+         Type: Central Processor
+         Family: Pentium 4
+         Manufacturer: Intel
+         ID: FD 06 00 00 FF FB EB BF
+         Signature: Type 0, Family 6, Model 15, Stepping 13
+         Flags:
+                 FPU (Floating-point unit on-chip)
+                 VME (Virtual mode extension)
+                 DE (Debugging extension)
+                 PSE (Page size extension)
+                 TSC (Time stamp counter)
+                 MSR (Model specific registers)
+                 PAE (Physical address extension)
+                 MCE (Machine check exception)
+                 CX8 (CMPXCHG8 instruction supported)
+                 APIC (On-chip APIC hardware supported)
+                 SEP (Fast system call)
+                 MTRR (Memory type range registers)
+                 PGE (Page global enable)
+                 MCA (Machine check architecture)
+                 CMOV (Conditional move instruction supported)
+                 PAT (Page attribute table)
+                 PSE-36 (36-bit page size extension)
+                 CLFSH (CLFLUSH instruction supported)
+                 DS (Debug store)
+                 ACPI (ACPI supported)
+                 MMX (MMX technology supported)
+                 FXSR (Fast floating-point save and restore)
+                 SSE (Streaming SIMD extensions)
+                 SSE2 (Streaming SIMD extensions 2)
+                 SS (Self-snoop)
+                 HTT (Hyper-threading technology)
+                 TM (Thermal monitor supported)
+                 PBE (Pending break enabled)
+         Version: Intel(R) Core(TM)2 Duo CPU     E4600  @ 2.40GHz
+         Voltage: Unknown
+         External Clock: 800 MHz
+         Max Speed: 4000 MHz
+         Current Speed: 2400 MHz
+         Status: Populated, Enabled
+         Upgrade: Other
+         L1 Cache Handle: 0x0005
+         L2 Cache Handle: 0x0006
+         L3 Cache Handle: Not Provided
+         Serial Number: Not Specified
+         Asset Tag: Unknown
+         Part Number: Not Specified
+
+Handle 0x0005, DMI type 7, 19 bytes.
+Cache Information
+         Socket Designation: Unknown
+         Configuration: Enabled, Not Socketed, Level 1
+         Operational Mode: Write Back
+         Location: Internal
+         Installed Size: 32 KB
+         Maximum Size: 32 KB
+         Supported SRAM Types:
+                 Synchronous
+         Installed SRAM Type: Synchronous
+         Speed: Unknown
+         Error Correction Type: Single-bit ECC
+         System Type: Unified
+         Associativity: 8-way Set-associative
+
+Handle 0x0006, DMI type 7, 19 bytes.
+Cache Information
+         Socket Designation: Unknown
+         Configuration: Enabled, Not Socketed, Level 2
+         Operational Mode: Write Back
+         Location: Internal
+         Installed Size: 2048 KB
+         Maximum Size: 2048 KB
+         Supported SRAM Types:
+                 Synchronous
+         Installed SRAM Type: Synchronous
+         Speed: Unknown
+         Error Correction Type: Single-bit ECC
+         System Type: Unified
+         Associativity: 8-way Set-associative
+
+Handle 0x0007, DMI type 126, 19 bytes.
+Inactive
+
+Handle 0x0008, DMI type 8, 9 bytes.
+Port Connector Information
+         Internal Reference Designator: J1A1
+         Internal Connector Type: None
+         External Reference Designator: PS2Mouse
+         External Connector Type: PS/2
+         Port Type: Mouse Port
+
+Handle 0x0009, DMI type 8, 9 bytes.
+Port Connector Information
+         Internal Reference Designator: J1A1
+         Internal Connector Type: None
+         External Reference Designator: Keyboard
+         External Connector Type: PS/2
+         Port Type: Keyboard Port
+
+Handle 0x000A, DMI type 8, 9 bytes.
+Port Connector Information
+         Internal Reference Designator: J4A3
+         Internal Connector Type: None
+         External Reference Designator: USB1
+         External Connector Type: Access Bus (USB)
+         Port Type: USB
+
+Handle 0x000B, DMI type 8, 9 bytes.
+Port Connector Information
+         Internal Reference Designator: J4A3
+         Internal Connector Type: None
+         External Reference Designator: USB2
+         External Connector Type: Access Bus (USB)
+         Port Type: USB
+
+Handle 0x000C, DMI type 8, 9 bytes.
+Port Connector Information
+         Internal Reference Designator: J4A3
+         Internal Connector Type: None
+         External Reference Designator: USB3
+         External Connector Type: Access Bus (USB)
+         Port Type: USB
+
+Handle 0x000D, DMI type 8, 9 bytes.
+Port Connector Information
+         Internal Reference Designator: J4A3
+         Internal Connector Type: None
+         External Reference Designator: USB4
+         External Connector Type: Access Bus (USB)
+         Port Type: USB
+
+Handle 0x000E, DMI type 8, 9 bytes.
+Port Connector Information
+         Internal Reference Designator: JA4A1
+         Internal Connector Type: None
+         External Reference Designator: USB5
+         External Connector Type: Access Bus (USB)
+         Port Type: USB
+
+Handle 0x000F, DMI type 8, 9 bytes.
+Port Connector Information
+         Internal Reference Designator: JA4A1
+         Internal Connector Type: None
+         External Reference Designator: USB6
+         External Connector Type: Access Bus (USB)
+         Port Type: USB
+
+Handle 0x0010, DMI type 8, 9 bytes.
+Port Connector Information
+         Internal Reference Designator: PRIMARY
+         Internal Connector Type: On Board IDE
+         External Reference Designator: Not Specified
+         External Connector Type: None
+         Port Type: Other
+
+Handle 0x0011, DMI type 8, 9 bytes.
+Port Connector Information
+         Internal Reference Designator: SECONDARY
+         Internal Connector Type: On Board IDE
+         External Reference Designator: Not Specified
+         External Connector Type: None
+         Port Type: Other
+
+Handle 0x0012, DMI type 8, 9 bytes.
+Port Connector Information
+         Internal Reference Designator: ATX_PWR
+         Internal Connector Type: Other
+         External Reference Designator: Not Specified
+         External Connector Type: None
+         Port Type: Other
+
+Handle 0x0013, DMI type 8, 9 bytes.
+Port Connector Information
+         Internal Reference Designator: J6J2 - SATA
+         Internal Connector Type: Other
+         External Reference Designator: Not Specified
+         External Connector Type: None
+         Port Type: Other
+
+Handle 0x0014, DMI type 8, 9 bytes.
+Port Connector Information
+         Internal Reference Designator: J6H3 - SATA
+         Internal Connector Type: Other
+         External Reference Designator: Not Specified
+         External Connector Type: None
+         Port Type: Other
+
+Handle 0x0015, DMI type 8, 9 bytes.
+Port Connector Information
+         Internal Reference Designator: J6H4 - SATA
+         Internal Connector Type: Other
+         External Reference Designator: Not Specified
+         External Connector Type: None
+         Port Type: Other
+
+Handle 0x0016, DMI type 8, 9 bytes.
+Port Connector Information
+         Internal Reference Designator: J3J1 - FLOPPY
+         Internal Connector Type: On Board Floppy
+         External Reference Designator: Not Specified
+         External Connector Type: None
+         Port Type: Other
+
+Handle 0x0017, DMI type 8, 9 bytes.
+Port Connector Information
+         Internal Reference Designator: J9H1 - FRONT PANEL HDR
+         Internal Connector Type: 9 Pin Dual Inline (pin 10 cut)
+         External Reference Designator: Not Specified
+         External Connector Type: None
+         Port Type: Other
+
+Handle 0x0018, DMI type 9, 13 bytes.
+System Slot Information
+         Designation: PCIE X16 SLOT
+         Type: x16 PCI Express
+         Current Usage: Available
+         Length: Short
+         Characteristics:
+                 3.3 V is provided
+
+Handle 0x0019, DMI type 9, 13 bytes.
+System Slot Information
+         Designation: PCIE X1 SLOT 1
+         Type: x1 PCI Express
+         Current Usage: Available
+         Length: Short
+         Characteristics:
+                 3.3 V is provided
+                 PME signal is supported
+                 SMBus signal is supported
+
+Handle 0x001A, DMI type 9, 13 bytes.
+System Slot Information
+         Designation: PCIE X1 SLOT 2
+         Type: x1 PCI Express
+         Current Usage: Available
+         Length: Short
+         Characteristics:
+                 3.3 V is provided
+                 PME signal is supported
+                 SMBus signal is supported
+
+Handle 0x001B, DMI type 9, 13 bytes.
+System Slot Information
+         Designation: PCI SLOT 1
+         Type: 32-bit PCI
+         Current Usage: Available
+         Length: Long
+         ID: 1
+         Characteristics:
+                 3.3 V is provided
+                 PME signal is supported
+                 SMBus signal is supported
+
+Handle 0x001C, DMI type 10, 6 bytes.
+On Board Device Information
+         Type: Video
+         Status: Disabled
+         Description:   Intel(R) Extreme Graphics 3 Controller
+
+Handle 0x001D, DMI type 10, 6 bytes.
+On Board Device Information
+         Type: Sound
+         Status: Disabled
+         Description:  Intel(R) Azalia Audio Device
+
+Handle 0x001E, DMI type 10, 6 bytes.
+On Board Device Information
+         Type: Ethernet
+         Status: Disabled
+         Description:         Intel (R) 82562 Ethernet Device.
+
+Handle 0x001F, DMI type 11, 5 bytes.
+OEM Strings
+         String 1: To Be Filled By O.E.M.
+
+Handle 0x0020, DMI type 12, 5 bytes.
+System Configuration Options
+         Option 1: BOOT SELECT :: 00 = SPI; 11 = PCI/LPC
+
+Handle 0x0021, DMI type 13, 22 bytes.
+BIOS Language Information
+         Installable Languages: 1
+                 en|US|iso8859-1
+         Currently Installed Language: en|US|iso8859-1
+
+Handle 0x0022, DMI type 16, 15 bytes.
+Physical Memory Array
+         Location: System Board Or Motherboard
+         Use: System Memory
+         Error Correction Type: None
+         Maximum Capacity: 4 GB
+         Error Information Handle: Not Provided
+         Number Of Devices: 2
+
+Handle 0x0023, DMI type 19, 15 bytes.
+Memory Array Mapped Address
+         Starting Address: 0x00000000000
+         Ending Address: 0x000FFFFFFFF
+         Range Size: 4 GB
+         Physical Array Handle: 0x0022
+         Partition Width: 0
+
+Handle 0x0024, DMI type 17, 27 bytes.
+Memory Device
+         Array Handle: 0x0022
+         Error Information Handle: Not Provided
+         Total Width: 64 bits
+         Data Width: 64 bits
+         Size: 2048 MB
+         Form Factor: DIMM
+         Set: None
+         Locator: J6H1
+         Bank Locator: CHAN A DIMM 0
+         Type: DDR
+         Type Detail: Synchronous
+         Speed: 800 MHz (1.2 ns)
+         Manufacturer: Unknown
+         Serial Number: Unknown
+         Asset Tag: Unknown
+         Part Number: Unknown
+
+Handle 0x0025, DMI type 20, 19 bytes.
+Memory Device Mapped Address
+         Starting Address: 0x00000000000
+         Ending Address: 0x0007FFFFFFF
+         Range Size: 2 GB
+         Physical Device Handle: 0x0024
+         Memory Array Mapped Address Handle: 0x0023
+         Partition Row Position: 1
+
+Handle 0x0026, DMI type 17, 27 bytes.
+Memory Device
+         Array Handle: 0x0022
+         Error Information Handle: Not Provided
+         Total Width: 64 bits
+         Data Width: 64 bits
+         Size: 2048 MB
+         Form Factor: DIMM
+         Set: None
+         Locator: J6H2
+         Bank Locator: CHAN A DIMM 1
+         Type: DDR
+         Type Detail: Synchronous
+         Speed: 800 MHz (1.2 ns)
+         Manufacturer: Unknown
+         Serial Number: Unknown
+         Asset Tag: Unknown
+         Part Number: Unknown
+
+Handle 0x0027, DMI type 20, 19 bytes.
+Memory Device Mapped Address
+         Starting Address: 0x00080000000
+         Ending Address: 0x000FFFFFFFF
+         Range Size: 2 GB
+         Physical Device Handle: 0x0026
+         Memory Array Mapped Address Handle: 0x0023
+         Partition Row Position: 1
+
+Handle 0x0028, DMI type 32, 20 bytes.
+System Boot Information
+         Status: No errors detected
+
+Handle 0x0029, DMI type 127, 4 bytes.
+End Of Table
 
 
->-----Original Message-----
->From: Alexey Starikovskiy [mailto:astarikovskiy@suse.de]
->Sent: Thursday, April 24, 2008 7:40 PM
->To: Zhang, Rui
->Cc: Moore, Robert; Len Brown; linux-acpi@vger.kernel.org
->Subject: Re: [PATCH 70/73] ACPICA: Fix to disable unknown spurious GPEs
->
->Zhang Rui wrote:
->> On Fri, 2008-04-25 at 10:10 +0800, Alexey Starikovskiy wrote:
->>> Actually, I too don't know why _disabling_ some GPE could trigger EC
->>> one...
->>> May be Len could try to debug this issue, as he is the only one with
->>> hardware...
->>> One thought is that EC GPE is not present in GPE scope, thus it will
->>> be not configured by the
->>> time 6217' code is executed. So, in theory, 6217 could try to
-disable
->>> EC GPE.
->> In acpi_install_gpe_handler, Linux always disables the GPE before
->> installing a GPE handler.
->> After 6217 is applied, when installing EC GPE handler, Linux will
-invoke
->> acpi_hw_write_gpe_enable_reg to try to disable EC GPE which is not
-done
->> before. Don't know if this is related.
->No, EC GPE handler is installed later. Thus the error is triggered
->during execution of 6217 code...
+
+
+-- 
+Peter Williams                                   pwil3058@bigpond.net.au
+
+"Learning, n. The kind of ignorance distinguishing the studious."
+  -- Ambrose Bierce
