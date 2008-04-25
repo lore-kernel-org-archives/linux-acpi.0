@@ -1,561 +1,553 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 19/54] PNP: remove more pnp_resource_table arguments
-Date: Fri, 25 Apr 2008 12:38:26 -0600
-Message-ID: <20080425183927.971199356@ldl.fc.hp.com>
+Subject: [patch 20/54] PNP: add debug output to encoders
+Date: Fri, 25 Apr 2008 12:38:27 -0600
+Message-ID: <20080425183928.174509640@ldl.fc.hp.com>
 References: <20080425183807.366134771@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0007.atlanta.hp.com ([15.192.0.44]:19038 "EHLO
-	g5t0007.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1763713AbYDYSjx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Apr 2008 14:39:53 -0400
-Content-Disposition: inline; filename=pnp-remove-more-pnp_resource_table-args
+Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:16332 "EHLO
+	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754338AbYDYSjz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Apr 2008 14:39:55 -0400
+Content-Disposition: inline; filename=pnp-add-encoder-debug-output
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Rene Herman <rene.herman@gmail.com>, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-Stop passing around struct pnp_resource_table pointers.  In most cases,
-the caller doesn't need to know how the resources are stored inside
-the struct pnp_dev.
+Add debug output to encoders (enabled by CONFIG_PNP_DEBUG).  This
+uses dev_printk, so I had to add pnp_dev arguments at the same time.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Acked-By: Rene Herman <rene.herman@gmail.com>
 
 ---
- drivers/pnp/isapnp/core.c      |    6 ++--
- drivers/pnp/pnpacpi/core.c     |   11 ++-----
- drivers/pnp/pnpacpi/pnpacpi.h  |    6 ++--
- drivers/pnp/pnpacpi/rsparser.c |   55 +++++++++++++++++++++-----------------
- drivers/pnp/pnpbios/core.c     |    4 +-
- drivers/pnp/pnpbios/pnpbios.h  |    4 +-
- drivers/pnp/pnpbios/rsparser.c |   58 ++++++++++++++++++++---------------------
- 7 files changed, 73 insertions(+), 71 deletions(-)
+ drivers/pnp/isapnp/core.c      |    2 
+ drivers/pnp/pnpacpi/core.c     |    2 
+ drivers/pnp/pnpacpi/rsparser.c |   90 +++++++++++++++++++++++++++++------------
+ drivers/pnp/pnpbios/core.c     |    2 
+ drivers/pnp/pnpbios/rsparser.c |   58 ++++++++++++++++++++------
+ 5 files changed, 114 insertions(+), 40 deletions(-)
 
 Index: work10/drivers/pnp/isapnp/core.c
 ===================================================================
---- work10.orig/drivers/pnp/isapnp/core.c	2008-04-25 11:14:55.000000000 -0600
-+++ work10/drivers/pnp/isapnp/core.c	2008-04-25 11:14:56.000000000 -0600
-@@ -932,9 +932,9 @@
- EXPORT_SYMBOL(isapnp_cfg_end);
- EXPORT_SYMBOL(isapnp_write_byte);
- 
--static int isapnp_read_resources(struct pnp_dev *dev,
--				 struct pnp_resource_table *res)
-+static int isapnp_read_resources(struct pnp_dev *dev)
+--- work10.orig/drivers/pnp/isapnp/core.c	2008-04-25 11:14:56.000000000 -0600
++++ work10/drivers/pnp/isapnp/core.c	2008-04-25 11:14:57.000000000 -0600
+@@ -980,6 +980,7 @@
  {
-+	struct pnp_resource_table *res = &dev->res;
- 	int tmp, ret;
+ 	int ret;
  
- 	dev->active = isapnp_read_byte(ISAPNP_CFG_ACTIVATE);
-@@ -982,7 +982,7 @@
- 
++	dev_dbg(&dev->dev, "get resources\n");
  	pnp_init_resource_table(&dev->res);
  	isapnp_cfg_begin(dev->card->number, dev->number);
--	ret = isapnp_read_resources(dev, &dev->res);
-+	ret = isapnp_read_resources(dev);
+ 	ret = isapnp_read_resources(dev);
+@@ -992,15 +993,19 @@
+ 	struct pnp_resource_table *res = &dev->res;
+ 	int tmp;
+ 
++	dev_dbg(&dev->dev, "set resources\n");
+ 	isapnp_cfg_begin(dev->card->number, dev->number);
+ 	dev->active = 1;
+ 	for (tmp = 0;
+ 	     tmp < ISAPNP_MAX_PORT
+ 	     && (res->port_resource[tmp].
+ 		 flags & (IORESOURCE_IO | IORESOURCE_UNSET)) == IORESOURCE_IO;
+-	     tmp++)
++	     tmp++) {
++		dev_dbg(&dev->dev, "  set io  %d to 0x%llx\n",
++			tmp, (unsigned long long) res->port_resource[tmp].start);
+ 		isapnp_write_word(ISAPNP_CFG_PORT + (tmp << 1),
+ 				  res->port_resource[tmp].start);
++	}
+ 	for (tmp = 0;
+ 	     tmp < ISAPNP_MAX_IRQ
+ 	     && (res->irq_resource[tmp].
+@@ -1009,22 +1014,29 @@
+ 		int irq = res->irq_resource[tmp].start;
+ 		if (irq == 2)
+ 			irq = 9;
++		dev_dbg(&dev->dev, "  set irq %d to %d\n", tmp, irq);
+ 		isapnp_write_byte(ISAPNP_CFG_IRQ + (tmp << 1), irq);
+ 	}
+ 	for (tmp = 0;
+ 	     tmp < ISAPNP_MAX_DMA
+ 	     && (res->dma_resource[tmp].
+ 		 flags & (IORESOURCE_DMA | IORESOURCE_UNSET)) == IORESOURCE_DMA;
+-	     tmp++)
++	     tmp++) {
++		dev_dbg(&dev->dev, "  set dma %d to %lld\n",
++			tmp, (unsigned long long) res->dma_resource[tmp].start);
+ 		isapnp_write_byte(ISAPNP_CFG_DMA + tmp,
+ 				  res->dma_resource[tmp].start);
++	}
+ 	for (tmp = 0;
+ 	     tmp < ISAPNP_MAX_MEM
+ 	     && (res->mem_resource[tmp].
+ 		 flags & (IORESOURCE_MEM | IORESOURCE_UNSET)) == IORESOURCE_MEM;
+-	     tmp++)
++	     tmp++) {
++		dev_dbg(&dev->dev, "  set mem %d to 0x%llx\n",
++			tmp, (unsigned long long) res->mem_resource[tmp].start);
+ 		isapnp_write_word(ISAPNP_CFG_MEM + (tmp << 3),
+ 				  (res->mem_resource[tmp].start >> 8) & 0xffff);
++	}
+ 	/* FIXME: We aren't handling 32bit mems properly here */
+ 	isapnp_activate(dev->number);
  	isapnp_cfg_end();
- 	return ret;
- }
 Index: work10/drivers/pnp/pnpacpi/core.c
 ===================================================================
---- work10.orig/drivers/pnp/pnpacpi/core.c	2008-04-25 11:14:55.000000000 -0600
-+++ work10/drivers/pnp/pnpacpi/core.c	2008-04-25 11:14:56.000000000 -0600
-@@ -77,8 +77,7 @@
+--- work10.orig/drivers/pnp/pnpacpi/core.c	2008-04-25 11:14:56.000000000 -0600
++++ work10/drivers/pnp/pnpacpi/core.c	2008-04-25 11:14:57.000000000 -0600
+@@ -77,6 +77,7 @@
  {
  	acpi_status status;
  
--	status = pnpacpi_parse_allocated_resource((acpi_handle) dev->data,
--						  &dev->res);
-+	status = pnpacpi_parse_allocated_resource(dev);
++	dev_dbg(&dev->dev, "get resources\n");
+ 	status = pnpacpi_parse_allocated_resource(dev);
  	return ACPI_FAILURE(status) ? -ENODEV : 0;
  }
+@@ -88,6 +89,7 @@
+ 	int ret;
+ 	acpi_status status;
  
-@@ -92,7 +91,7 @@
++	dev_dbg(&dev->dev, "set resources\n");
  	ret = pnpacpi_build_resource_template(dev, &buffer);
  	if (ret)
  		return ret;
--	ret = pnpacpi_encode_resources(&dev->res, &buffer);
-+	ret = pnpacpi_encode_resources(dev, &buffer);
- 	if (ret) {
- 		kfree(buffer.pointer);
- 		return ret;
-@@ -183,8 +182,7 @@
- 
- 	if (dev->active) {
- 		/* parse allocated resource */
--		status = pnpacpi_parse_allocated_resource(device->handle,
--							  &dev->res);
-+		status = pnpacpi_parse_allocated_resource(dev);
- 		if (ACPI_FAILURE(status) && (status != AE_NOT_FOUND)) {
- 			pnp_err("PnPACPI: METHOD_NAME__CRS failure for %s",
- 				acpi_device_hid(device));
-@@ -192,8 +190,7 @@
- 	}
- 
- 	if (dev->capabilities & PNP_CONFIGURABLE) {
--		status = pnpacpi_parse_resource_option_data(device->handle,
--							    dev);
-+		status = pnpacpi_parse_resource_option_data(dev);
- 		if (ACPI_FAILURE(status) && (status != AE_NOT_FOUND)) {
- 			pnp_err("PnPACPI: METHOD_NAME__PRS failure for %s",
- 				acpi_device_hid(device));
-Index: work10/drivers/pnp/pnpacpi/pnpacpi.h
-===================================================================
---- work10.orig/drivers/pnp/pnpacpi/pnpacpi.h	2008-04-25 11:14:54.000000000 -0600
-+++ work10/drivers/pnp/pnpacpi/pnpacpi.h	2008-04-25 11:14:56.000000000 -0600
-@@ -5,8 +5,8 @@
- #include <linux/acpi.h>
- #include <linux/pnp.h>
- 
--acpi_status pnpacpi_parse_allocated_resource(acpi_handle, struct pnp_resource_table*);
--acpi_status pnpacpi_parse_resource_option_data(acpi_handle, struct pnp_dev*);
--int pnpacpi_encode_resources(struct pnp_resource_table *, struct acpi_buffer *);
-+acpi_status pnpacpi_parse_allocated_resource(struct pnp_dev *);
-+acpi_status pnpacpi_parse_resource_option_data(struct pnp_dev *);
-+int pnpacpi_encode_resources(struct pnp_dev *, struct acpi_buffer *);
- int pnpacpi_build_resource_template(struct pnp_dev *, struct acpi_buffer *);
- #endif
 Index: work10/drivers/pnp/pnpacpi/rsparser.c
 ===================================================================
---- work10.orig/drivers/pnp/pnpacpi/rsparser.c	2008-04-25 11:14:55.000000000 -0600
-+++ work10/drivers/pnp/pnpacpi/rsparser.c	2008-04-25 11:14:56.000000000 -0600
-@@ -76,10 +76,11 @@
- 	}
- }
- 
--static void pnpacpi_parse_allocated_irqresource(struct pnp_resource_table *res,
-+static void pnpacpi_parse_allocated_irqresource(struct pnp_dev *dev,
- 						u32 gsi, int triggering,
- 						int polarity, int shareable)
+--- work10.orig/drivers/pnp/pnpacpi/rsparser.c	2008-04-25 11:14:56.000000000 -0600
++++ work10/drivers/pnp/pnpacpi/rsparser.c	2008-04-25 11:14:57.000000000 -0600
+@@ -408,6 +408,8 @@
  {
-+	struct pnp_resource_table *res = &dev->res;
- 	int i = 0;
- 	int irq;
- 	int p, t;
-@@ -172,9 +173,10 @@
- 	return flags;
- }
+ 	acpi_handle handle = dev->data;
  
--static void pnpacpi_parse_allocated_dmaresource(struct pnp_resource_table *res,
-+static void pnpacpi_parse_allocated_dmaresource(struct pnp_dev *dev,
- 						u32 dma, int flags)
- {
-+	struct pnp_resource_table *res = &dev->res;
- 	int i = 0;
- 	static unsigned char warned;
- 
-@@ -197,9 +199,10 @@
- 	}
- }
- 
--static void pnpacpi_parse_allocated_ioresource(struct pnp_resource_table *res,
-+static void pnpacpi_parse_allocated_ioresource(struct pnp_dev *dev,
- 					       u64 io, u64 len, int io_decode)
- {
-+	struct pnp_resource_table *res = &dev->res;
- 	int i = 0;
- 	static unsigned char warned;
- 
-@@ -223,10 +226,11 @@
- 	}
- }
- 
--static void pnpacpi_parse_allocated_memresource(struct pnp_resource_table *res,
-+static void pnpacpi_parse_allocated_memresource(struct pnp_dev *dev,
- 						u64 mem, u64 len,
- 						int write_protect)
- {
-+	struct pnp_resource_table *res = &dev->res;
- 	int i = 0;
- 	static unsigned char warned;
- 
-@@ -251,7 +255,7 @@
- 	}
- }
- 
--static void pnpacpi_parse_allocated_address_space(struct pnp_resource_table *res_table,
-+static void pnpacpi_parse_allocated_address_space(struct pnp_dev *dev,
- 						  struct acpi_resource *res)
- {
- 	struct acpi_resource_address64 addr, *p = &addr;
-@@ -268,11 +272,11 @@
- 		return;
- 
- 	if (p->resource_type == ACPI_MEMORY_RANGE)
--		pnpacpi_parse_allocated_memresource(res_table,
-+		pnpacpi_parse_allocated_memresource(dev,
- 			p->minimum, p->address_length,
- 			p->info.mem.write_protect);
- 	else if (p->resource_type == ACPI_IO_RANGE)
--		pnpacpi_parse_allocated_ioresource(res_table,
-+		pnpacpi_parse_allocated_ioresource(dev,
- 			p->minimum, p->address_length,
- 			p->granularity == 0xfff ? ACPI_DECODE_10 :
- 				ACPI_DECODE_16);
-@@ -281,7 +285,7 @@
- static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
- 					      void *data)
- {
--	struct pnp_resource_table *res_table = data;
-+	struct pnp_dev *dev = data;
- 	struct acpi_resource_irq *irq;
- 	struct acpi_resource_dma *dma;
- 	struct acpi_resource_io *io;
-@@ -300,7 +304,7 @@
- 		 */
- 		irq = &res->data.irq;
- 		for (i = 0; i < irq->interrupt_count; i++) {
--			pnpacpi_parse_allocated_irqresource(res_table,
-+			pnpacpi_parse_allocated_irqresource(dev,
- 				irq->interrupts[i],
- 				irq->triggering,
- 				irq->polarity,
-@@ -311,7 +315,7 @@
- 	case ACPI_RESOURCE_TYPE_DMA:
- 		dma = &res->data.dma;
- 		if (dma->channel_count > 0)
--			pnpacpi_parse_allocated_dmaresource(res_table,
-+			pnpacpi_parse_allocated_dmaresource(dev,
- 				dma->channels[0],
- 				dma_flags(dma->type, dma->bus_master,
- 					  dma->transfer));
-@@ -319,7 +323,7 @@
- 
- 	case ACPI_RESOURCE_TYPE_IO:
- 		io = &res->data.io;
--		pnpacpi_parse_allocated_ioresource(res_table,
-+		pnpacpi_parse_allocated_ioresource(dev,
- 			io->minimum,
- 			io->address_length,
- 			io->io_decode);
-@@ -331,7 +335,7 @@
- 
- 	case ACPI_RESOURCE_TYPE_FIXED_IO:
- 		fixed_io = &res->data.fixed_io;
--		pnpacpi_parse_allocated_ioresource(res_table,
-+		pnpacpi_parse_allocated_ioresource(dev,
- 			fixed_io->address,
- 			fixed_io->address_length,
- 			ACPI_DECODE_10);
-@@ -345,21 +349,21 @@
- 
- 	case ACPI_RESOURCE_TYPE_MEMORY24:
- 		memory24 = &res->data.memory24;
--		pnpacpi_parse_allocated_memresource(res_table,
-+		pnpacpi_parse_allocated_memresource(dev,
- 			memory24->minimum,
- 			memory24->address_length,
- 			memory24->write_protect);
- 		break;
- 	case ACPI_RESOURCE_TYPE_MEMORY32:
- 		memory32 = &res->data.memory32;
--		pnpacpi_parse_allocated_memresource(res_table,
-+		pnpacpi_parse_allocated_memresource(dev,
- 			memory32->minimum,
- 			memory32->address_length,
- 			memory32->write_protect);
- 		break;
- 	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
- 		fixed_memory32 = &res->data.fixed_memory32;
--		pnpacpi_parse_allocated_memresource(res_table,
-+		pnpacpi_parse_allocated_memresource(dev,
- 			fixed_memory32->address,
- 			fixed_memory32->address_length,
- 			fixed_memory32->write_protect);
-@@ -367,7 +371,7 @@
- 	case ACPI_RESOURCE_TYPE_ADDRESS16:
- 	case ACPI_RESOURCE_TYPE_ADDRESS32:
- 	case ACPI_RESOURCE_TYPE_ADDRESS64:
--		pnpacpi_parse_allocated_address_space(res_table, res);
-+		pnpacpi_parse_allocated_address_space(dev, res);
- 		break;
- 
- 	case ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64:
-@@ -381,7 +385,7 @@
- 			return AE_OK;
- 
- 		for (i = 0; i < extended_irq->interrupt_count; i++) {
--			pnpacpi_parse_allocated_irqresource(res_table,
-+			pnpacpi_parse_allocated_irqresource(dev,
- 				extended_irq->interrupts[i],
- 				extended_irq->triggering,
- 				extended_irq->polarity,
-@@ -400,14 +404,15 @@
- 	return AE_OK;
- }
- 
--acpi_status pnpacpi_parse_allocated_resource(acpi_handle handle,
--					     struct pnp_resource_table * res)
-+acpi_status pnpacpi_parse_allocated_resource(struct pnp_dev *dev)
- {
-+	acpi_handle handle = dev->data;
++	dev_dbg(&dev->dev, "parse allocated resources\n");
 +
  	/* Blank the resource table values */
--	pnp_init_resource_table(res);
-+	pnp_init_resource_table(&dev->res);
+ 	pnp_init_resource_table(&dev->res);
  
- 	return acpi_walk_resources(handle, METHOD_NAME__CRS,
--				   pnpacpi_allocated_resource, res);
-+				   pnpacpi_allocated_resource, dev);
- }
- 
- static __init void pnpacpi_parse_dma_option(struct pnp_dev *dev,
-@@ -727,9 +732,9 @@
- 	return AE_OK;
- }
- 
--acpi_status __init pnpacpi_parse_resource_option_data(acpi_handle handle,
--						      struct pnp_dev *dev)
-+acpi_status __init pnpacpi_parse_resource_option_data(struct pnp_dev *dev)
- {
-+	acpi_handle handle = dev->data;
+@@ -738,6 +740,8 @@
  	acpi_status status;
  	struct acpipnp_parse_option_s parse_data;
  
-@@ -959,9 +964,9 @@
- 	fixed_memory32->address_length = p->end - p->start + 1;
- }
- 
--int pnpacpi_encode_resources(struct pnp_resource_table *res_table,
--			     struct acpi_buffer *buffer)
-+int pnpacpi_encode_resources(struct pnp_dev *dev, struct acpi_buffer *buffer)
- {
-+	struct pnp_resource_table *res_table = &dev->res;
- 	int i = 0;
- 	/* pnpacpi_build_resource_template allocates extra mem */
- 	int res_cnt = (buffer->length - 1) / sizeof(struct acpi_resource) - 1;
-Index: work10/drivers/pnp/pnpbios/core.c
-===================================================================
---- work10.orig/drivers/pnp/pnpbios/core.c	2008-04-25 11:14:55.000000000 -0600
-+++ work10/drivers/pnp/pnpbios/core.c	2008-04-25 11:14:56.000000000 -0600
-@@ -219,7 +219,7 @@
- 		kfree(node);
- 		return -ENODEV;
- 	}
--	pnpbios_read_resources_from_node(&dev->res, node);
-+	pnpbios_read_resources_from_node(dev, node);
- 	dev->active = pnp_is_active(dev);
- 	kfree(node);
++	dev_dbg(&dev->dev, "parse resource options\n");
++
+ 	parse_data.option = pnp_register_independent_option(dev);
+ 	if (!parse_data.option)
+ 		return AE_ERROR;
+@@ -814,7 +818,7 @@
+ 	buffer->pointer = kzalloc(buffer->length - 1, GFP_KERNEL);
+ 	if (!buffer->pointer)
+ 		return -ENOMEM;
+-	pnp_dbg("Res cnt %d", res_cnt);
++
+ 	resource = (struct acpi_resource *)buffer->pointer;
+ 	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
+ 				     pnpacpi_type_resources, &resource);
+@@ -829,7 +833,8 @@
  	return 0;
-@@ -241,7 +241,7 @@
- 		kfree(node);
- 		return -ENODEV;
- 	}
--	if (pnpbios_write_resources_to_node(&dev->res, node) < 0) {
-+	if (pnpbios_write_resources_to_node(dev, node) < 0) {
- 		kfree(node);
- 		return -1;
- 	}
-Index: work10/drivers/pnp/pnpbios/pnpbios.h
-===================================================================
---- work10.orig/drivers/pnp/pnpbios/pnpbios.h	2008-04-25 11:12:16.000000000 -0600
-+++ work10/drivers/pnp/pnpbios/pnpbios.h	2008-04-25 11:14:56.000000000 -0600
-@@ -28,8 +28,8 @@
- extern int  pnpbios_dont_use_current_config;
- 
- extern int pnpbios_parse_data_stream(struct pnp_dev *dev, struct pnp_bios_node * node);
--extern int pnpbios_read_resources_from_node(struct pnp_resource_table *res, struct pnp_bios_node * node);
--extern int pnpbios_write_resources_to_node(struct pnp_resource_table *res, struct pnp_bios_node * node);
-+extern int pnpbios_read_resources_from_node(struct pnp_dev *dev, struct pnp_bios_node *node);
-+extern int pnpbios_write_resources_to_node(struct pnp_dev *dev, struct pnp_bios_node *node);
- extern void pnpid32_to_pnpid(u32 id, char *str);
- 
- extern void pnpbios_print_status(const char * module, u16 status);
-Index: work10/drivers/pnp/pnpbios/rsparser.c
-===================================================================
---- work10.orig/drivers/pnp/pnpbios/rsparser.c	2008-04-25 11:14:55.000000000 -0600
-+++ work10/drivers/pnp/pnpbios/rsparser.c	2008-04-25 11:14:56.000000000 -0600
-@@ -54,9 +54,9 @@
-  * Allocated Resources
-  */
- 
--static void pnpbios_parse_allocated_irqresource(struct pnp_resource_table *res,
--						int irq)
-+static void pnpbios_parse_allocated_irqresource(struct pnp_dev *dev, int irq)
- {
-+	struct pnp_resource_table *res = &dev->res;
- 	int i = 0;
- 
- 	while (!(res->irq_resource[i].flags & IORESOURCE_UNSET)
-@@ -74,9 +74,9 @@
- 	}
  }
  
--static void pnpbios_parse_allocated_dmaresource(struct pnp_resource_table *res,
--						int dma)
-+static void pnpbios_parse_allocated_dmaresource(struct pnp_dev *dev, int dma)
+-static void pnpacpi_encode_irq(struct acpi_resource *resource,
++static void pnpacpi_encode_irq(struct pnp_dev *dev,
++			       struct acpi_resource *resource,
+ 			       struct resource *p)
  {
-+	struct pnp_resource_table *res = &dev->res;
- 	int i = 0;
- 
- 	while (i < PNP_MAX_DMA &&
-@@ -93,9 +93,10 @@
- 	}
+ 	struct acpi_resource_irq *irq = &resource->data.irq;
+@@ -844,9 +849,15 @@
+ 		irq->sharable = ACPI_SHARED;
+ 	irq->interrupt_count = 1;
+ 	irq->interrupts[0] = p->start;
++
++	dev_dbg(&dev->dev, "  encode irq %d %s %s %s\n", (int) p->start,
++		triggering == ACPI_LEVEL_SENSITIVE ? "level" : "edge",
++		polarity == ACPI_ACTIVE_LOW ? "low" : "high",
++		irq->sharable == ACPI_SHARED ? "shared" : "exclusive");
  }
  
--static void pnpbios_parse_allocated_ioresource(struct pnp_resource_table *res,
-+static void pnpbios_parse_allocated_ioresource(struct pnp_dev *dev,
- 					       int io, int len)
+-static void pnpacpi_encode_ext_irq(struct acpi_resource *resource,
++static void pnpacpi_encode_ext_irq(struct pnp_dev *dev,
++				   struct acpi_resource *resource,
+ 				   struct resource *p)
  {
-+	struct pnp_resource_table *res = &dev->res;
- 	int i = 0;
- 
- 	while (!(res->port_resource[i].flags & IORESOURCE_UNSET)
-@@ -112,9 +113,10 @@
- 	}
+ 	struct acpi_resource_extended_irq *extended_irq = &resource->data.extended_irq;
+@@ -862,9 +873,15 @@
+ 		extended_irq->sharable = ACPI_SHARED;
+ 	extended_irq->interrupt_count = 1;
+ 	extended_irq->interrupts[0] = p->start;
++
++	dev_dbg(&dev->dev, "  encode irq %d %s %s %s\n", (int) p->start,
++		triggering == ACPI_LEVEL_SENSITIVE ? "level" : "edge",
++		polarity == ACPI_ACTIVE_LOW ? "low" : "high",
++		extended_irq->sharable == ACPI_SHARED ? "shared" : "exclusive");
  }
  
--static void pnpbios_parse_allocated_memresource(struct pnp_resource_table *res,
-+static void pnpbios_parse_allocated_memresource(struct pnp_dev *dev,
- 						int mem, int len)
+-static void pnpacpi_encode_dma(struct acpi_resource *resource,
++static void pnpacpi_encode_dma(struct pnp_dev *dev,
++			       struct acpi_resource *resource,
+ 			       struct resource *p)
  {
-+	struct pnp_resource_table *res = &dev->res;
- 	int i = 0;
- 
- 	while (!(res->mem_resource[i].flags & IORESOURCE_UNSET)
-@@ -131,11 +133,9 @@
- 	}
+ 	struct acpi_resource_dma *dma = &resource->data.dma;
+@@ -898,9 +915,14 @@
+ 	dma->bus_master = !!(p->flags & IORESOURCE_DMA_MASTER);
+ 	dma->channel_count = 1;
+ 	dma->channels[0] = p->start;
++
++	dev_dbg(&dev->dev, "  encode dma %d "
++		"type 0x%x transfer 0x%x master %d\n",
++		(int) p->start, dma->type, dma->transfer, dma->bus_master);
  }
  
--static unsigned char *pnpbios_parse_allocated_resource_data(unsigned char *p,
--							    unsigned char *end,
--							    struct
--							    pnp_resource_table
--							    *res)
-+static unsigned char *pnpbios_parse_allocated_resource_data(struct pnp_dev *dev,
-+							    unsigned char *p,
-+							    unsigned char *end)
+-static void pnpacpi_encode_io(struct acpi_resource *resource,
++static void pnpacpi_encode_io(struct pnp_dev *dev,
++			      struct acpi_resource *resource,
+ 			      struct resource *p)
  {
- 	unsigned int len, tag;
- 	int io, size, mask, i;
-@@ -144,7 +144,7 @@
- 		return NULL;
+ 	struct acpi_resource_io *io = &resource->data.io;
+@@ -912,18 +934,27 @@
+ 	io->maximum = p->end;
+ 	io->alignment = 0;	/* Correct? */
+ 	io->address_length = p->end - p->start + 1;
++
++	dev_dbg(&dev->dev, "  encode io 0x%llx-0x%llx decode 0x%x\n",
++		(unsigned long long) p->start, (unsigned long long) p->end,
++		io->io_decode);
+ }
  
- 	/* Blank the resource table values */
--	pnp_init_resource_table(res);
-+	pnp_init_resource_table(&dev->res);
+-static void pnpacpi_encode_fixed_io(struct acpi_resource *resource,
++static void pnpacpi_encode_fixed_io(struct pnp_dev *dev,
++				    struct acpi_resource *resource,
+ 				    struct resource *p)
+ {
+ 	struct acpi_resource_fixed_io *fixed_io = &resource->data.fixed_io;
  
- 	while ((char *)p < (char *)end) {
+ 	fixed_io->address = p->start;
+ 	fixed_io->address_length = p->end - p->start + 1;
++
++	dev_dbg(&dev->dev, "  encode fixed_io 0x%llx-0x%llx\n",
++		(unsigned long long) p->start, (unsigned long long) p->end);
+ }
  
-@@ -164,7 +164,7 @@
- 				goto len_err;
- 			io = *(short *)&p[4];
- 			size = *(short *)&p[10];
--			pnpbios_parse_allocated_memresource(res, io, size);
-+			pnpbios_parse_allocated_memresource(dev, io, size);
+-static void pnpacpi_encode_mem24(struct acpi_resource *resource,
++static void pnpacpi_encode_mem24(struct pnp_dev *dev,
++				 struct acpi_resource *resource,
+ 				 struct resource *p)
+ {
+ 	struct acpi_resource_memory24 *memory24 = &resource->data.memory24;
+@@ -936,9 +967,14 @@
+ 	memory24->maximum = p->end;
+ 	memory24->alignment = 0;
+ 	memory24->address_length = p->end - p->start + 1;
++
++	dev_dbg(&dev->dev, "  encode mem24 0x%llx-0x%llx write_protect 0x%x\n",
++		(unsigned long long) p->start, (unsigned long long) p->end,
++		memory24->write_protect);
+ }
+ 
+-static void pnpacpi_encode_mem32(struct acpi_resource *resource,
++static void pnpacpi_encode_mem32(struct pnp_dev *dev,
++				 struct acpi_resource *resource,
+ 				 struct resource *p)
+ {
+ 	struct acpi_resource_memory32 *memory32 = &resource->data.memory32;
+@@ -950,9 +986,14 @@
+ 	memory32->maximum = p->end;
+ 	memory32->alignment = 0;
+ 	memory32->address_length = p->end - p->start + 1;
++
++	dev_dbg(&dev->dev, "  encode mem32 0x%llx-0x%llx write_protect 0x%x\n",
++		(unsigned long long) p->start, (unsigned long long) p->end,
++		memory32->write_protect);
+ }
+ 
+-static void pnpacpi_encode_fixed_mem32(struct acpi_resource *resource,
++static void pnpacpi_encode_fixed_mem32(struct pnp_dev *dev,
++				       struct acpi_resource *resource,
+ 				       struct resource *p)
+ {
+ 	struct acpi_resource_fixed_memory32 *fixed_memory32 = &resource->data.fixed_memory32;
+@@ -962,6 +1003,11 @@
+ 	    ACPI_READ_WRITE_MEMORY : ACPI_READ_ONLY_MEMORY;
+ 	fixed_memory32->address = p->start;
+ 	fixed_memory32->address_length = p->end - p->start + 1;
++
++	dev_dbg(&dev->dev, "  encode fixed_mem32 0x%llx-0x%llx "
++		"write_protect 0x%x\n",
++		(unsigned long long) p->start, (unsigned long long) p->end,
++		fixed_memory32->write_protect);
+ }
+ 
+ int pnpacpi_encode_resources(struct pnp_dev *dev, struct acpi_buffer *buffer)
+@@ -973,57 +1019,49 @@
+ 	struct acpi_resource *resource = buffer->pointer;
+ 	int port = 0, irq = 0, dma = 0, mem = 0;
+ 
+-	pnp_dbg("res cnt %d", res_cnt);
++	dev_dbg(&dev->dev, "encode %d resources\n", res_cnt);
+ 	while (i < res_cnt) {
+ 		switch (resource->type) {
+ 		case ACPI_RESOURCE_TYPE_IRQ:
+-			pnp_dbg("Encode irq");
+-			pnpacpi_encode_irq(resource,
++			pnpacpi_encode_irq(dev, resource,
+ 					   &res_table->irq_resource[irq]);
+ 			irq++;
  			break;
  
- 		case LARGE_TAG_ANSISTR:
-@@ -180,7 +180,7 @@
+ 		case ACPI_RESOURCE_TYPE_DMA:
+-			pnp_dbg("Encode dma");
+-			pnpacpi_encode_dma(resource,
++			pnpacpi_encode_dma(dev, resource,
+ 					   &res_table->dma_resource[dma]);
+ 			dma++;
+ 			break;
+ 		case ACPI_RESOURCE_TYPE_IO:
+-			pnp_dbg("Encode io");
+-			pnpacpi_encode_io(resource,
++			pnpacpi_encode_io(dev, resource,
+ 					  &res_table->port_resource[port]);
+ 			port++;
+ 			break;
+ 		case ACPI_RESOURCE_TYPE_FIXED_IO:
+-			pnp_dbg("Encode fixed io");
+-			pnpacpi_encode_fixed_io(resource,
++			pnpacpi_encode_fixed_io(dev, resource,
+ 						&res_table->
+ 						port_resource[port]);
+ 			port++;
+ 			break;
+ 		case ACPI_RESOURCE_TYPE_MEMORY24:
+-			pnp_dbg("Encode mem24");
+-			pnpacpi_encode_mem24(resource,
++			pnpacpi_encode_mem24(dev, resource,
+ 					     &res_table->mem_resource[mem]);
+ 			mem++;
+ 			break;
+ 		case ACPI_RESOURCE_TYPE_MEMORY32:
+-			pnp_dbg("Encode mem32");
+-			pnpacpi_encode_mem32(resource,
++			pnpacpi_encode_mem32(dev, resource,
+ 					     &res_table->mem_resource[mem]);
+ 			mem++;
+ 			break;
+ 		case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
+-			pnp_dbg("Encode fixed mem32");
+-			pnpacpi_encode_fixed_mem32(resource,
++			pnpacpi_encode_fixed_mem32(dev, resource,
+ 						   &res_table->
+ 						   mem_resource[mem]);
+ 			mem++;
+ 			break;
+ 		case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
+-			pnp_dbg("Encode ext irq");
+-			pnpacpi_encode_ext_irq(resource,
++			pnpacpi_encode_ext_irq(dev, resource,
+ 					       &res_table->irq_resource[irq]);
+ 			irq++;
+ 			break;
+Index: work10/drivers/pnp/pnpbios/core.c
+===================================================================
+--- work10.orig/drivers/pnp/pnpbios/core.c	2008-04-25 11:14:56.000000000 -0600
++++ work10/drivers/pnp/pnpbios/core.c	2008-04-25 11:14:57.000000000 -0600
+@@ -212,6 +212,7 @@
+ 	if (!pnpbios_is_dynamic(dev))
+ 		return -EPERM;
+ 
++	dev_dbg(&dev->dev, "get resources\n");
+ 	node = kzalloc(node_info.max_node_size, GFP_KERNEL);
+ 	if (!node)
+ 		return -1;
+@@ -234,6 +235,7 @@
+ 	if (!pnpbios_is_dynamic(dev))
+ 		return -EPERM;
+ 
++	dev_dbg(&dev->dev, "set resources\n");
+ 	node = kzalloc(node_info.max_node_size, GFP_KERNEL);
+ 	if (!node)
+ 		return -1;
+Index: work10/drivers/pnp/pnpbios/rsparser.c
+===================================================================
+--- work10.orig/drivers/pnp/pnpbios/rsparser.c	2008-04-25 11:14:56.000000000 -0600
++++ work10/drivers/pnp/pnpbios/rsparser.c	2008-04-25 11:14:57.000000000 -0600
+@@ -143,6 +143,8 @@
+ 	if (!p)
+ 		return NULL;
+ 
++	dev_dbg(&dev->dev, "parse allocated resources\n");
++
+ 	/* Blank the resource table values */
+ 	pnp_init_resource_table(&dev->res);
+ 
+@@ -390,6 +392,8 @@
+ 	if (!p)
+ 		return NULL;
+ 
++	dev_dbg(&dev->dev, "parse resource options\n");
++
+ 	option_independent = option = pnp_register_independent_option(dev);
+ 	if (!option)
+ 		return NULL;
+@@ -574,7 +578,8 @@
+  * Allocated Resource Encoding
+  */
+ 
+-static void pnpbios_encode_mem(unsigned char *p, struct resource *res)
++static void pnpbios_encode_mem(struct pnp_dev *dev, unsigned char *p,
++			       struct resource *res)
+ {
+ 	unsigned long base = res->start;
+ 	unsigned long len = res->end - res->start + 1;
+@@ -585,9 +590,13 @@
+ 	p[7] = ((base >> 8) >> 8) & 0xff;
+ 	p[10] = (len >> 8) & 0xff;
+ 	p[11] = ((len >> 8) >> 8) & 0xff;
++
++	dev_dbg(&dev->dev, "  encode mem 0x%llx-0x%llx\n",
++		(unsigned long long) res->start, (unsigned long long) res->end);
+ }
+ 
+-static void pnpbios_encode_mem32(unsigned char *p, struct resource *res)
++static void pnpbios_encode_mem32(struct pnp_dev *dev, unsigned char *p,
++				 struct resource *res)
+ {
+ 	unsigned long base = res->start;
+ 	unsigned long len = res->end - res->start + 1;
+@@ -604,9 +613,13 @@
+ 	p[17] = (len >> 8) & 0xff;
+ 	p[18] = (len >> 16) & 0xff;
+ 	p[19] = (len >> 24) & 0xff;
++
++	dev_dbg(&dev->dev, "  encode mem32 0x%llx-0x%llx\n",
++		(unsigned long long) res->start, (unsigned long long) res->end);
+ }
+ 
+-static void pnpbios_encode_fixed_mem32(unsigned char *p, struct resource *res)
++static void pnpbios_encode_fixed_mem32(struct pnp_dev *dev, unsigned char *p,
++				       struct resource *res)
+ {
+ 	unsigned long base = res->start;
+ 	unsigned long len = res->end - res->start + 1;
+@@ -619,26 +632,36 @@
+ 	p[9] = (len >> 8) & 0xff;
+ 	p[10] = (len >> 16) & 0xff;
+ 	p[11] = (len >> 24) & 0xff;
++
++	dev_dbg(&dev->dev, "  encode fixed_mem32 0x%llx-0x%llx\n",
++		(unsigned long long) res->start, (unsigned long long) res->end);
+ }
+ 
+-static void pnpbios_encode_irq(unsigned char *p, struct resource *res)
++static void pnpbios_encode_irq(struct pnp_dev *dev, unsigned char *p,
++			       struct resource *res)
+ {
+ 	unsigned long map = 0;
+ 
+ 	map = 1 << res->start;
+ 	p[1] = map & 0xff;
+ 	p[2] = (map >> 8) & 0xff;
++
++	dev_dbg(&dev->dev, "  encode irq %d\n", res->start);
+ }
+ 
+-static void pnpbios_encode_dma(unsigned char *p, struct resource *res)
++static void pnpbios_encode_dma(struct pnp_dev *dev, unsigned char *p,
++			       struct resource *res)
+ {
+ 	unsigned long map = 0;
+ 
+ 	map = 1 << res->start;
+ 	p[1] = map & 0xff;
++
++	dev_dbg(&dev->dev, "  encode dma %d\n", res->start);
+ }
+ 
+-static void pnpbios_encode_port(unsigned char *p, struct resource *res)
++static void pnpbios_encode_port(struct pnp_dev *dev, unsigned char *p,
++				struct resource *res)
+ {
+ 	unsigned long base = res->start;
+ 	unsigned long len = res->end - res->start + 1;
+@@ -648,9 +671,13 @@
+ 	p[4] = base & 0xff;
+ 	p[5] = (base >> 8) & 0xff;
+ 	p[7] = len & 0xff;
++
++	dev_dbg(&dev->dev, "  encode io 0x%llx-0x%llx\n",
++		(unsigned long long) res->start, (unsigned long long) res->end);
+ }
+ 
+-static void pnpbios_encode_fixed_port(unsigned char *p, struct resource *res)
++static void pnpbios_encode_fixed_port(struct pnp_dev *dev, unsigned char *p,
++				      struct resource *res)
+ {
+ 	unsigned long base = res->start;
+ 	unsigned long len = res->end - res->start + 1;
+@@ -658,6 +685,9 @@
+ 	p[1] = base & 0xff;
+ 	p[2] = (base >> 8) & 0xff;
+ 	p[3] = len & 0xff;
++
++	dev_dbg(&dev->dev, "  encode fixed_io 0x%llx-0x%llx\n",
++		(unsigned long long) res->start, (unsigned long long) res->end);
+ }
+ 
+ static unsigned char *pnpbios_encode_allocated_resource_data(struct pnp_dev
+@@ -688,42 +718,42 @@
+ 		case LARGE_TAG_MEM:
+ 			if (len != 9)
  				goto len_err;
- 			io = *(int *)&p[4];
- 			size = *(int *)&p[16];
--			pnpbios_parse_allocated_memresource(res, io, size);
-+			pnpbios_parse_allocated_memresource(dev, io, size);
+-			pnpbios_encode_mem(p, &res->mem_resource[mem]);
++			pnpbios_encode_mem(dev, p, &res->mem_resource[mem]);
+ 			mem++;
+ 			break;
+ 
+ 		case LARGE_TAG_MEM32:
+ 			if (len != 17)
+ 				goto len_err;
+-			pnpbios_encode_mem32(p, &res->mem_resource[mem]);
++			pnpbios_encode_mem32(dev, p, &res->mem_resource[mem]);
+ 			mem++;
  			break;
  
  		case LARGE_TAG_FIXEDMEM32:
-@@ -188,7 +188,7 @@
+ 			if (len != 9)
  				goto len_err;
- 			io = *(int *)&p[4];
- 			size = *(int *)&p[8];
--			pnpbios_parse_allocated_memresource(res, io, size);
-+			pnpbios_parse_allocated_memresource(dev, io, size);
+-			pnpbios_encode_fixed_mem32(p, &res->mem_resource[mem]);
++			pnpbios_encode_fixed_mem32(dev, p, &res->mem_resource[mem]);
+ 			mem++;
  			break;
  
  		case SMALL_TAG_IRQ:
-@@ -199,7 +199,7 @@
- 			for (i = 0; i < 16; i++, mask = mask >> 1)
- 				if (mask & 0x01)
- 					io = i;
--			pnpbios_parse_allocated_irqresource(res, io);
-+			pnpbios_parse_allocated_irqresource(dev, io);
+ 			if (len < 2 || len > 3)
+ 				goto len_err;
+-			pnpbios_encode_irq(p, &res->irq_resource[irq]);
++			pnpbios_encode_irq(dev, p, &res->irq_resource[irq]);
+ 			irq++;
  			break;
  
  		case SMALL_TAG_DMA:
-@@ -210,7 +210,7 @@
- 			for (i = 0; i < 8; i++, mask = mask >> 1)
- 				if (mask & 0x01)
- 					io = i;
--			pnpbios_parse_allocated_dmaresource(res, io);
-+			pnpbios_parse_allocated_dmaresource(dev, io);
+ 			if (len != 2)
+ 				goto len_err;
+-			pnpbios_encode_dma(p, &res->dma_resource[dma]);
++			pnpbios_encode_dma(dev, p, &res->dma_resource[dma]);
+ 			dma++;
  			break;
  
  		case SMALL_TAG_PORT:
-@@ -218,7 +218,7 @@
+ 			if (len != 7)
  				goto len_err;
- 			io = p[2] + p[3] * 256;
- 			size = p[7];
--			pnpbios_parse_allocated_ioresource(res, io, size);
-+			pnpbios_parse_allocated_ioresource(dev, io, size);
+-			pnpbios_encode_port(p, &res->port_resource[port]);
++			pnpbios_encode_port(dev, p, &res->port_resource[port]);
+ 			port++;
  			break;
  
- 		case SMALL_TAG_VENDOR:
-@@ -230,7 +230,7 @@
+@@ -734,7 +764,7 @@
+ 		case SMALL_TAG_FIXEDPORT:
+ 			if (len != 3)
  				goto len_err;
- 			io = p[1] + p[2] * 256;
- 			size = p[3];
--			pnpbios_parse_allocated_ioresource(res, io, size);
-+			pnpbios_parse_allocated_ioresource(dev, io, size);
+-			pnpbios_encode_fixed_port(p, &res->port_resource[port]);
++			pnpbios_encode_fixed_port(dev, p, &res->port_resource[port]);
+ 			port++;
  			break;
  
- 		case SMALL_TAG_END:
-@@ -660,12 +660,12 @@
- 	p[3] = len & 0xff;
- }
- 
--static unsigned char *pnpbios_encode_allocated_resource_data(unsigned char *p,
--							     unsigned char *end,
--							     struct
--							     pnp_resource_table
--							     *res)
-+static unsigned char *pnpbios_encode_allocated_resource_data(struct pnp_dev
-+								*dev,
-+							     unsigned char *p,
-+							     unsigned char *end)
- {
-+	struct pnp_resource_table *res = &dev->res;
- 	unsigned int len, tag;
- 	int port = 0, irq = 0, dma = 0, mem = 0;
- 
-@@ -774,7 +774,7 @@
- 	unsigned char *p = (char *)node->data;
- 	unsigned char *end = (char *)(node->data + node->size);
- 
--	p = pnpbios_parse_allocated_resource_data(p, end, &dev->res);
-+	p = pnpbios_parse_allocated_resource_data(dev, p, end);
- 	if (!p)
- 		return -EIO;
- 	p = pnpbios_parse_resource_option_data(p, end, dev);
-@@ -786,25 +786,25 @@
- 	return 0;
- }
- 
--int pnpbios_read_resources_from_node(struct pnp_resource_table *res,
-+int pnpbios_read_resources_from_node(struct pnp_dev *dev,
- 				     struct pnp_bios_node *node)
- {
- 	unsigned char *p = (char *)node->data;
- 	unsigned char *end = (char *)(node->data + node->size);
- 
--	p = pnpbios_parse_allocated_resource_data(p, end, res);
-+	p = pnpbios_parse_allocated_resource_data(dev, p, end);
- 	if (!p)
- 		return -EIO;
- 	return 0;
- }
- 
--int pnpbios_write_resources_to_node(struct pnp_resource_table *res,
-+int pnpbios_write_resources_to_node(struct pnp_dev *dev,
- 				    struct pnp_bios_node *node)
- {
- 	unsigned char *p = (char *)node->data;
- 	unsigned char *end = (char *)(node->data + node->size);
- 
--	p = pnpbios_encode_allocated_resource_data(p, end, res);
-+	p = pnpbios_encode_allocated_resource_data(dev, p, end);
- 	if (!p)
- 		return -EIO;
- 	return 0;
 
 -- 
