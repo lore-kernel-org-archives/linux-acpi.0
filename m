@@ -1,493 +1,66 @@
-From: Peter Williams <pwil3058@bigpond.net.au>
-Subject: Re: Advice on result of using acpi_osi=Linux
-Date: Fri, 25 Apr 2008 12:20:51 +1000
-Message-ID: <48114003.2060505@bigpond.net.au>
-References: <480EBE51.1000408@bigpond.net.au> <200804232110.14301.lenb@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: [patch 00/54] PNP cleanup, v4
+Date: Fri, 25 Apr 2008 12:38:07 -0600
+Message-ID: <20080425183807.366134771@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from qsrv01ps.mx.bigpond.com ([144.140.82.181]:34001 "EHLO
-	qsrv01ps.mx.bigpond.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752651AbYDYGhQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Apr 2008 02:37:16 -0400
-In-Reply-To: <200804232110.14301.lenb@kernel.org>
+Received: from g5t0007.atlanta.hp.com ([15.192.0.44]:18906 "EHLO
+	g5t0007.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753701AbYDYSj1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Apr 2008 14:39:27 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-Len Brown wrote:
-> thanks for the report, peter.
-> 
-> please send me the output from dmidecode.
-> 
+I'm still working through some issues with removing the
+fixed pnp_resource_table.  But I'd like to get some of
+the earlier patches off my plate, so here they are.  These
+should be relatively safe because they don't really change
+any fundamental behavior.  I'd like to get them in -mm
+for some test time.
 
-Attached below.  I've noticed some discrepancies between this output and 
-what I've observed in the BIOS set up, namely video, sound and ethernet 
-are listed as disabled (below) but are enabled in the BIOS set up.  The 
-video and ethernet are working OK but the sound card does not appear to 
-be found.  I've discussed the sound card issue with the appropriate 
-developers and their consensus is that it is not a problem in the sound 
-software but at a deeper level in PCI or ACPI.
+I'll start a new series for converting from a table to
+a list.
 
-If you wish me to test kernel changes to investigate these problems (or 
-any other issues) I'm happy to help so don't hesitate to ask.
+I added some debug code for resource handling, so if you test
+this and see problems, it would help me investigate them if you
+collect the dmesg log with CONFIG_PNP_DEBUG turned on.
 
-# dmidecode 2.7
-SMBIOS 2.4 present.
-42 structures occupying 1671 bytes.
-Table at 0x000E8170.
+Changes between v3 and v4:
 
-Handle 0x0000, DMI type 0, 24 bytes.
-BIOS Information
-         Vendor: Intel Corp.
-         Version: PRG3110H.86A.0028.2007.0928.1134
-         Release Date: 09/28/2007
-         Address: 0xF0000
-         Runtime Size: 64 kB
-         ROM Size: 1024 kB
-         Characteristics:
-                 PCI is supported
-                 BIOS is upgradeable
-                 BIOS shadowing is allowed
-                 ESCD support is available
-                 Boot from CD is supported
-                 Selectable boot is supported
-                 BIOS ROM is socketed
-                 EDD is supported
-                 5.25"/1.2 MB floppy services are supported (int 13h)
-                 3.5"/720 KB floppy services are supported (int 13h)
-                 3.5"/2.88 MB floppy services are supported (int 13h)
-                 Print screen service is supported (int 5h)
-                 8042 keyboard services are supported (int 9h)
-                 Serial services are supported (int 14h)
-                 Printer services are supported (int 17h)
-                 CGA/mono video services are supported (int 10h)
-                 ACPI is supported
-                 USB legacy is supported
-                 LS-120 boot is supported
-                 ATAPI Zip drive boot is supported
-                 BIOS boot specification is supported
-                 Targeted content distribution is supported
+  - changed pnp_check_port(), etc., to take resource instead of index
+  - added some decoder/encoder/assign debug output (under CONFIG_PNP_DEBUG)
+  - fixed some ISAPNP register index bisectability problems
+  - removed the list-based resource management (will work on that separately)
 
-Handle 0x0001, DMI type 1, 27 bytes.
-System Information
-         Manufacturer:
-         Product Name:
-         Version:
-         Serial Number:
-         UUID: E9478ECA-AD17-11DC-8733-0011D8A408ED
-         Wake-up Type: Power Switch
-         SKU Number: Not Specified
-         Family: Not Specified
+Changes between v2 and v3:
 
-Handle 0x0002, DMI type 2, 15 bytes.
-Base Board Information
-         Manufacturer: Intel Corporation
-         Product Name: DG31PR
-         Version: AAD97573-204
-         Serial Number: BTPR75000DPM
-         Asset Tag: To be filled by O.E.M.
-         Features:
-                 Board is a hosting board
-                 Board is replaceable
-         Location In Chassis: To be filled by O.E.M.
-         Chassis Handle: 0x0003
-         Type: Motherboard
-         Contained Object Handles: 0
+  - several updates from Rene Herman's review:
+	- tweak EISA ID conversion and keep high-order bit for ISAPNP
+	- fix pnp_add_card_id() so bisection works better
+	- fix some "x <= 0" tests when x is unsigned
+	- make resource accessors inlines, not #defines
+	- fix pnp_{port,mem,irq,dma}_valid() return int, not resource_size_t
+	- fold isapnp_read_resources() back into isapnp_get_resources()
+  - factored out pnp_init_resource() from pnp_{init,clean}_resource_table()
+  - initialize generic pnp_dev fields earlier, to help dev_printk
+  - add pnp_resource to hold ISAPNP register index
+  - convert to resource management from table to list (finally)
+  - remove pnp_dev->regs (only set by ISAPNP, never used)
+  - in /sys/.../resources, don't sort resources by type
 
-Handle 0x0003, DMI type 3, 21 bytes.
-Chassis Information
-         Manufacturer:
-         Type: Unknown
-         Lock: Not Present
-         Version:
-         Serial Number:
-         Asset Tag:
-         Boot-up State: Safe
-         Power Supply State: Safe
-         Thermal State: Safe
-         Security Status: None
-         OEM Information: 0x00000000
-         Heigth: Unspecified
-         Number Of Power Cords: 1
-         Contained Elements: 0
+Changes between first post and v2:
 
-Handle 0x0004, DMI type 4, 35 bytes.
-Processor Information
-         Socket Designation: J3E1
-         Type: Central Processor
-         Family: Pentium 4
-         Manufacturer: Intel
-         ID: FD 06 00 00 FF FB EB BF
-         Signature: Type 0, Family 6, Model 15, Stepping 13
-         Flags:
-                 FPU (Floating-point unit on-chip)
-                 VME (Virtual mode extension)
-                 DE (Debugging extension)
-                 PSE (Page size extension)
-                 TSC (Time stamp counter)
-                 MSR (Model specific registers)
-                 PAE (Physical address extension)
-                 MCE (Machine check exception)
-                 CX8 (CMPXCHG8 instruction supported)
-                 APIC (On-chip APIC hardware supported)
-                 SEP (Fast system call)
-                 MTRR (Memory type range registers)
-                 PGE (Page global enable)
-                 MCA (Machine check architecture)
-                 CMOV (Conditional move instruction supported)
-                 PAT (Page attribute table)
-                 PSE-36 (36-bit page size extension)
-                 CLFSH (CLFLUSH instruction supported)
-                 DS (Debug store)
-                 ACPI (ACPI supported)
-                 MMX (MMX technology supported)
-                 FXSR (Fast floating-point save and restore)
-                 SSE (Streaming SIMD extensions)
-                 SSE2 (Streaming SIMD extensions 2)
-                 SS (Self-snoop)
-                 HTT (Hyper-threading technology)
-                 TM (Thermal monitor supported)
-                 PBE (Pending break enabled)
-         Version: Intel(R) Core(TM)2 Duo CPU     E4600  @ 2.40GHz
-         Voltage: Unknown
-         External Clock: 800 MHz
-         Max Speed: 4000 MHz
-         Current Speed: 2400 MHz
-         Status: Populated, Enabled
-         Upgrade: Other
-         L1 Cache Handle: 0x0005
-         L2 Cache Handle: 0x0006
-         L3 Cache Handle: Not Provided
-         Serial Number: Not Specified
-         Asset Tag: Unknown
-         Part Number: Not Specified
+  - export pnp_get_resource()
+  - fix EISA ID conversion and make a common function for ISAPNP/PNPBIOS
+  - fix typos in pnp_check_{port,mem,etc} that made resource assign fail
 
-Handle 0x0005, DMI type 7, 19 bytes.
-Cache Information
-         Socket Designation: Unknown
-         Configuration: Enabled, Not Socketed, Level 1
-         Operational Mode: Write Back
-         Location: Internal
-         Installed Size: 32 KB
-         Maximum Size: 32 KB
-         Supported SRAM Types:
-                 Synchronous
-         Installed SRAM Type: Synchronous
-         Speed: Unknown
-         Error Correction Type: Single-bit ECC
-         System Type: Unified
-         Associativity: 8-way Set-associative
+  - the following fixes should precede this series (they're in -mm already):
+	- parport_pc: wrap PNP probe code in CONFIG_PNP
+	- radio-cadet: wrap PNP probe code in CONFIG_PNP
+	- smsc-ircc2: wrap PNP probe code in CONFIG_PNP
+	- nsc-ircc: wrap PNP probe code in CONFIG_PNP
 
-Handle 0x0006, DMI type 7, 19 bytes.
-Cache Information
-         Socket Designation: Unknown
-         Configuration: Enabled, Not Socketed, Level 2
-         Operational Mode: Write Back
-         Location: Internal
-         Installed Size: 2048 KB
-         Maximum Size: 2048 KB
-         Supported SRAM Types:
-                 Synchronous
-         Installed SRAM Type: Synchronous
-         Speed: Unknown
-         Error Correction Type: Single-bit ECC
-         System Type: Unified
-         Associativity: 8-way Set-associative
-
-Handle 0x0007, DMI type 126, 19 bytes.
-Inactive
-
-Handle 0x0008, DMI type 8, 9 bytes.
-Port Connector Information
-         Internal Reference Designator: J1A1
-         Internal Connector Type: None
-         External Reference Designator: PS2Mouse
-         External Connector Type: PS/2
-         Port Type: Mouse Port
-
-Handle 0x0009, DMI type 8, 9 bytes.
-Port Connector Information
-         Internal Reference Designator: J1A1
-         Internal Connector Type: None
-         External Reference Designator: Keyboard
-         External Connector Type: PS/2
-         Port Type: Keyboard Port
-
-Handle 0x000A, DMI type 8, 9 bytes.
-Port Connector Information
-         Internal Reference Designator: J4A3
-         Internal Connector Type: None
-         External Reference Designator: USB1
-         External Connector Type: Access Bus (USB)
-         Port Type: USB
-
-Handle 0x000B, DMI type 8, 9 bytes.
-Port Connector Information
-         Internal Reference Designator: J4A3
-         Internal Connector Type: None
-         External Reference Designator: USB2
-         External Connector Type: Access Bus (USB)
-         Port Type: USB
-
-Handle 0x000C, DMI type 8, 9 bytes.
-Port Connector Information
-         Internal Reference Designator: J4A3
-         Internal Connector Type: None
-         External Reference Designator: USB3
-         External Connector Type: Access Bus (USB)
-         Port Type: USB
-
-Handle 0x000D, DMI type 8, 9 bytes.
-Port Connector Information
-         Internal Reference Designator: J4A3
-         Internal Connector Type: None
-         External Reference Designator: USB4
-         External Connector Type: Access Bus (USB)
-         Port Type: USB
-
-Handle 0x000E, DMI type 8, 9 bytes.
-Port Connector Information
-         Internal Reference Designator: JA4A1
-         Internal Connector Type: None
-         External Reference Designator: USB5
-         External Connector Type: Access Bus (USB)
-         Port Type: USB
-
-Handle 0x000F, DMI type 8, 9 bytes.
-Port Connector Information
-         Internal Reference Designator: JA4A1
-         Internal Connector Type: None
-         External Reference Designator: USB6
-         External Connector Type: Access Bus (USB)
-         Port Type: USB
-
-Handle 0x0010, DMI type 8, 9 bytes.
-Port Connector Information
-         Internal Reference Designator: PRIMARY
-         Internal Connector Type: On Board IDE
-         External Reference Designator: Not Specified
-         External Connector Type: None
-         Port Type: Other
-
-Handle 0x0011, DMI type 8, 9 bytes.
-Port Connector Information
-         Internal Reference Designator: SECONDARY
-         Internal Connector Type: On Board IDE
-         External Reference Designator: Not Specified
-         External Connector Type: None
-         Port Type: Other
-
-Handle 0x0012, DMI type 8, 9 bytes.
-Port Connector Information
-         Internal Reference Designator: ATX_PWR
-         Internal Connector Type: Other
-         External Reference Designator: Not Specified
-         External Connector Type: None
-         Port Type: Other
-
-Handle 0x0013, DMI type 8, 9 bytes.
-Port Connector Information
-         Internal Reference Designator: J6J2 - SATA
-         Internal Connector Type: Other
-         External Reference Designator: Not Specified
-         External Connector Type: None
-         Port Type: Other
-
-Handle 0x0014, DMI type 8, 9 bytes.
-Port Connector Information
-         Internal Reference Designator: J6H3 - SATA
-         Internal Connector Type: Other
-         External Reference Designator: Not Specified
-         External Connector Type: None
-         Port Type: Other
-
-Handle 0x0015, DMI type 8, 9 bytes.
-Port Connector Information
-         Internal Reference Designator: J6H4 - SATA
-         Internal Connector Type: Other
-         External Reference Designator: Not Specified
-         External Connector Type: None
-         Port Type: Other
-
-Handle 0x0016, DMI type 8, 9 bytes.
-Port Connector Information
-         Internal Reference Designator: J3J1 - FLOPPY
-         Internal Connector Type: On Board Floppy
-         External Reference Designator: Not Specified
-         External Connector Type: None
-         Port Type: Other
-
-Handle 0x0017, DMI type 8, 9 bytes.
-Port Connector Information
-         Internal Reference Designator: J9H1 - FRONT PANEL HDR
-         Internal Connector Type: 9 Pin Dual Inline (pin 10 cut)
-         External Reference Designator: Not Specified
-         External Connector Type: None
-         Port Type: Other
-
-Handle 0x0018, DMI type 9, 13 bytes.
-System Slot Information
-         Designation: PCIE X16 SLOT
-         Type: x16 PCI Express
-         Current Usage: Available
-         Length: Short
-         Characteristics:
-                 3.3 V is provided
-
-Handle 0x0019, DMI type 9, 13 bytes.
-System Slot Information
-         Designation: PCIE X1 SLOT 1
-         Type: x1 PCI Express
-         Current Usage: Available
-         Length: Short
-         Characteristics:
-                 3.3 V is provided
-                 PME signal is supported
-                 SMBus signal is supported
-
-Handle 0x001A, DMI type 9, 13 bytes.
-System Slot Information
-         Designation: PCIE X1 SLOT 2
-         Type: x1 PCI Express
-         Current Usage: Available
-         Length: Short
-         Characteristics:
-                 3.3 V is provided
-                 PME signal is supported
-                 SMBus signal is supported
-
-Handle 0x001B, DMI type 9, 13 bytes.
-System Slot Information
-         Designation: PCI SLOT 1
-         Type: 32-bit PCI
-         Current Usage: Available
-         Length: Long
-         ID: 1
-         Characteristics:
-                 3.3 V is provided
-                 PME signal is supported
-                 SMBus signal is supported
-
-Handle 0x001C, DMI type 10, 6 bytes.
-On Board Device Information
-         Type: Video
-         Status: Disabled
-         Description:   Intel(R) Extreme Graphics 3 Controller
-
-Handle 0x001D, DMI type 10, 6 bytes.
-On Board Device Information
-         Type: Sound
-         Status: Disabled
-         Description:  Intel(R) Azalia Audio Device
-
-Handle 0x001E, DMI type 10, 6 bytes.
-On Board Device Information
-         Type: Ethernet
-         Status: Disabled
-         Description:         Intel (R) 82562 Ethernet Device.
-
-Handle 0x001F, DMI type 11, 5 bytes.
-OEM Strings
-         String 1: To Be Filled By O.E.M.
-
-Handle 0x0020, DMI type 12, 5 bytes.
-System Configuration Options
-         Option 1: BOOT SELECT :: 00 = SPI; 11 = PCI/LPC
-
-Handle 0x0021, DMI type 13, 22 bytes.
-BIOS Language Information
-         Installable Languages: 1
-                 en|US|iso8859-1
-         Currently Installed Language: en|US|iso8859-1
-
-Handle 0x0022, DMI type 16, 15 bytes.
-Physical Memory Array
-         Location: System Board Or Motherboard
-         Use: System Memory
-         Error Correction Type: None
-         Maximum Capacity: 4 GB
-         Error Information Handle: Not Provided
-         Number Of Devices: 2
-
-Handle 0x0023, DMI type 19, 15 bytes.
-Memory Array Mapped Address
-         Starting Address: 0x00000000000
-         Ending Address: 0x000FFFFFFFF
-         Range Size: 4 GB
-         Physical Array Handle: 0x0022
-         Partition Width: 0
-
-Handle 0x0024, DMI type 17, 27 bytes.
-Memory Device
-         Array Handle: 0x0022
-         Error Information Handle: Not Provided
-         Total Width: 64 bits
-         Data Width: 64 bits
-         Size: 2048 MB
-         Form Factor: DIMM
-         Set: None
-         Locator: J6H1
-         Bank Locator: CHAN A DIMM 0
-         Type: DDR
-         Type Detail: Synchronous
-         Speed: 800 MHz (1.2 ns)
-         Manufacturer: Unknown
-         Serial Number: Unknown
-         Asset Tag: Unknown
-         Part Number: Unknown
-
-Handle 0x0025, DMI type 20, 19 bytes.
-Memory Device Mapped Address
-         Starting Address: 0x00000000000
-         Ending Address: 0x0007FFFFFFF
-         Range Size: 2 GB
-         Physical Device Handle: 0x0024
-         Memory Array Mapped Address Handle: 0x0023
-         Partition Row Position: 1
-
-Handle 0x0026, DMI type 17, 27 bytes.
-Memory Device
-         Array Handle: 0x0022
-         Error Information Handle: Not Provided
-         Total Width: 64 bits
-         Data Width: 64 bits
-         Size: 2048 MB
-         Form Factor: DIMM
-         Set: None
-         Locator: J6H2
-         Bank Locator: CHAN A DIMM 1
-         Type: DDR
-         Type Detail: Synchronous
-         Speed: 800 MHz (1.2 ns)
-         Manufacturer: Unknown
-         Serial Number: Unknown
-         Asset Tag: Unknown
-         Part Number: Unknown
-
-Handle 0x0027, DMI type 20, 19 bytes.
-Memory Device Mapped Address
-         Starting Address: 0x00080000000
-         Ending Address: 0x000FFFFFFFF
-         Range Size: 2 GB
-         Physical Device Handle: 0x0026
-         Memory Array Mapped Address Handle: 0x0023
-         Partition Row Position: 1
-
-Handle 0x0028, DMI type 32, 20 bytes.
-System Boot Information
-         Status: No errors detected
-
-Handle 0x0029, DMI type 127, 4 bytes.
-End Of Table
-
-
-
+Bjorn
 
 -- 
-Peter Williams                                   pwil3058@bigpond.net.au
-
-"Learning, n. The kind of ignorance distinguishing the studious."
-  -- Ambrose Bierce
