@@ -1,292 +1,184 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 31/54] PNP: reduce redundancy in pnp_assign_port() and others
-Date: Fri, 25 Apr 2008 12:38:38 -0600
-Message-ID: <20080425183930.426637983@ldl.fc.hp.com>
+Subject: [patch 22/54] PNP: add pnp_init_resources(struct pnp_dev *) interface
+Date: Fri, 25 Apr 2008 12:38:29 -0600
+Message-ID: <20080425183928.585867235@ldl.fc.hp.com>
 References: <20080425183807.366134771@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0026.austin.hp.com ([15.216.28.33]:40180 "EHLO
-	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1764645AbYDYSkJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Apr 2008 14:40:09 -0400
-Content-Disposition: inline; filename=pnp-simplify-assign-functions
+Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:28780 "EHLO
+	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1764184AbYDYSj7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Apr 2008 14:39:59 -0400
+Content-Disposition: inline; filename=pnp-remove-pnp_resource_table-from-init
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-acpi@vger.kernel.org, Rene Herman <rene.herman@gmail.com>, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-Use a temporary "res" pointer to replace repeated lookups in
-the pnp resource tables.
+Add pnp_init_resources(struct pnp_dev *) to replace
+pnp_init_resource_table(), which takes a pointer to the
+pnp_resource_table itself.  Passing only the pnp_dev * reduces
+the possibility for error in the caller and removes the
+pnp_resource_table implementation detail from the interface.
+
+Even though pnp_init_resource_table() is exported, I did not
+export pnp_init_resources() because it is used only by the PNP
+core.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Acked-By: Rene Herman <rene.herman@gmail.com>
 
 ---
- drivers/pnp/manager.c |  108 ++++++++++++++++++++++----------------------------
- 1 file changed, 48 insertions(+), 60 deletions(-)
+ drivers/pnp/interface.c        |    6 +++---
+ drivers/pnp/isapnp/core.c      |    4 ++--
+ drivers/pnp/manager.c          |    5 +++++
+ drivers/pnp/pnpacpi/core.c     |    2 +-
+ drivers/pnp/pnpacpi/rsparser.c |    3 +--
+ drivers/pnp/pnpbios/core.c     |    2 +-
+ drivers/pnp/pnpbios/rsparser.c |    3 +--
+ include/linux/pnp.h            |    2 ++
+ 8 files changed, 16 insertions(+), 11 deletions(-)
 
+Index: work10/include/linux/pnp.h
+===================================================================
+--- work10.orig/include/linux/pnp.h	2008-04-25 11:14:55.000000000 -0600
++++ work10/include/linux/pnp.h	2008-04-25 11:14:58.000000000 -0600
+@@ -391,6 +391,7 @@
+ int pnp_register_mem_resource(struct pnp_dev *dev, struct pnp_option *option,
+ 			      struct pnp_mem *data);
+ void pnp_init_resource_table(struct pnp_resource_table *table);
++void pnp_init_resources(struct pnp_dev *dev);
+ int pnp_manual_config_dev(struct pnp_dev *dev, struct pnp_resource_table *res,
+ 			  int mode);
+ int pnp_auto_config_dev(struct pnp_dev *dev);
+@@ -438,6 +439,7 @@
+ static inline int pnp_register_port_resource(struct pnp_dev *dev, struct pnp_option *option, struct pnp_port *data) { return -ENODEV; }
+ static inline int pnp_register_mem_resource(struct pnp_dev *dev, struct pnp_option *option, struct pnp_mem *data) { return -ENODEV; }
+ static inline void pnp_init_resource_table(struct pnp_resource_table *table) { }
++static inline void pnp_init_resources(struct pnp_dev *dev) { }
+ static inline int pnp_manual_config_dev(struct pnp_dev *dev, struct pnp_resource_table *res, int mode) { return -ENODEV; }
+ static inline int pnp_auto_config_dev(struct pnp_dev *dev) { return -ENODEV; }
+ static inline int pnp_validate_config(struct pnp_dev *dev) { return -ENODEV; }
 Index: work10/drivers/pnp/manager.c
 ===================================================================
---- work10.orig/drivers/pnp/manager.c	2008-04-25 11:15:00.000000000 -0600
-+++ work10/drivers/pnp/manager.c	2008-04-25 11:15:03.000000000 -0600
-@@ -19,8 +19,7 @@
- 
- static int pnp_assign_port(struct pnp_dev *dev, struct pnp_port *rule, int idx)
- {
--	resource_size_t *start, *end;
--	unsigned long *flags;
-+	struct resource *res;
- 
- 	if (idx >= PNP_MAX_PORT) {
- 		dev_err(&dev->dev, "too many I/O port resources\n");
-@@ -28,49 +27,46 @@
- 		return 1;
+--- work10.orig/drivers/pnp/manager.c	2008-04-25 11:14:57.000000000 -0600
++++ work10/drivers/pnp/manager.c	2008-04-25 11:14:58.000000000 -0600
+@@ -272,6 +272,11 @@
  	}
- 
--	start = &dev->res.port_resource[idx].start;
--	end = &dev->res.port_resource[idx].end;
--	flags = &dev->res.port_resource[idx].flags;
-+	res = &dev->res.port_resource[idx];
- 
- 	/* check if this resource has been manually set, if so skip */
--	if (!(dev->res.port_resource[idx].flags & IORESOURCE_AUTO)) {
-+	if (!(res->flags & IORESOURCE_AUTO)) {
- 		dev_dbg(&dev->dev, "  io %d already set to 0x%llx-0x%llx "
--			"flags 0x%x\n", idx, (unsigned long long) *start,
--			(unsigned long long) *end, (int) *flags);
-+			"flags 0x%x\n", idx, (unsigned long long) res->start,
-+			(unsigned long long) res->end, (int) res->flags);
- 		return 1;
- 	}
- 
- 	/* set the initial values */
--	*flags |= rule->flags | IORESOURCE_IO;
--	*flags &= ~IORESOURCE_UNSET;
-+	res->flags |= rule->flags | IORESOURCE_IO;
-+	res->flags &= ~IORESOURCE_UNSET;
- 
- 	if (!rule->size) {
--		*flags |= IORESOURCE_DISABLED;
-+		res->flags |= IORESOURCE_DISABLED;
- 		dev_dbg(&dev->dev, "  io %d disabled\n", idx);
- 		return 1;	/* skip disabled resource requests */
- 	}
- 
--	*start = rule->min;
--	*end = *start + rule->size - 1;
-+	res->start = rule->min;
-+	res->end = res->start + rule->size - 1;
- 
- 	/* run through until pnp_check_port is happy */
- 	while (!pnp_check_port(dev, idx)) {
--		*start += rule->align;
--		*end = *start + rule->size - 1;
--		if (*start > rule->max || !rule->align) {
-+		res->start += rule->align;
-+		res->end = res->start + rule->size - 1;
-+		if (res->start > rule->max || !rule->align) {
- 			dev_dbg(&dev->dev, "  couldn't assign io %d\n", idx);
- 			return 0;
- 		}
- 	}
- 	dev_dbg(&dev->dev, "  assign io  %d 0x%llx-0x%llx\n", idx,
--		(unsigned long long) *start, (unsigned long long) *end);
-+		(unsigned long long) res->start, (unsigned long long) res->end);
- 	return 1;
  }
  
- static int pnp_assign_mem(struct pnp_dev *dev, struct pnp_mem *rule, int idx)
- {
--	resource_size_t *start, *end;
--	unsigned long *flags;
-+	struct resource *res;
- 
- 	if (idx >= PNP_MAX_MEM) {
- 		dev_err(&dev->dev, "too many memory resources\n");
-@@ -78,59 +74,56 @@
- 		return 1;
++void pnp_init_resources(struct pnp_dev *dev)
++{
++	pnp_init_resource_table(&dev->res);
++}
++
+ /**
+  * pnp_clean_resources - clears resources that were not manually set
+  * @res: the resources to clean
+Index: work10/drivers/pnp/interface.c
+===================================================================
+--- work10.orig/drivers/pnp/interface.c	2008-04-25 11:14:55.000000000 -0600
++++ work10/drivers/pnp/interface.c	2008-04-25 11:14:58.000000000 -0600
+@@ -351,14 +351,14 @@
+ 	if (!strnicmp(buf, "auto", 4)) {
+ 		if (dev->active)
+ 			goto done;
+-		pnp_init_resource_table(&dev->res);
++		pnp_init_resources(dev);
+ 		retval = pnp_auto_config_dev(dev);
+ 		goto done;
  	}
- 
--	start = &dev->res.mem_resource[idx].start;
--	end = &dev->res.mem_resource[idx].end;
--	flags = &dev->res.mem_resource[idx].flags;
-+	res = &dev->res.mem_resource[idx];
- 
- 	/* check if this resource has been manually set, if so skip */
--	if (!(dev->res.mem_resource[idx].flags & IORESOURCE_AUTO)) {
-+	if (!(res->flags & IORESOURCE_AUTO)) {
- 		dev_dbg(&dev->dev, "  mem %d already set to 0x%llx-0x%llx "
--			"flags 0x%x\n", idx, (unsigned long long) *start,
--			(unsigned long long) *end, (int) *flags);
-+			"flags 0x%x\n", idx, (unsigned long long) res->start,
-+			(unsigned long long) res->end, (int) res->flags);
- 		return 1;
+ 	if (!strnicmp(buf, "clear", 5)) {
+ 		if (dev->active)
+ 			goto done;
+-		pnp_init_resource_table(&dev->res);
++		pnp_init_resources(dev);
+ 		goto done;
  	}
- 
- 	/* set the initial values */
--	*flags |= rule->flags | IORESOURCE_MEM;
--	*flags &= ~IORESOURCE_UNSET;
-+	res->flags |= rule->flags | IORESOURCE_MEM;
-+	res->flags &= ~IORESOURCE_UNSET;
- 
- 	/* convert pnp flags to standard Linux flags */
- 	if (!(rule->flags & IORESOURCE_MEM_WRITEABLE))
--		*flags |= IORESOURCE_READONLY;
-+		res->flags |= IORESOURCE_READONLY;
- 	if (rule->flags & IORESOURCE_MEM_CACHEABLE)
--		*flags |= IORESOURCE_CACHEABLE;
-+		res->flags |= IORESOURCE_CACHEABLE;
- 	if (rule->flags & IORESOURCE_MEM_RANGELENGTH)
--		*flags |= IORESOURCE_RANGELENGTH;
-+		res->flags |= IORESOURCE_RANGELENGTH;
- 	if (rule->flags & IORESOURCE_MEM_SHADOWABLE)
--		*flags |= IORESOURCE_SHADOWABLE;
-+		res->flags |= IORESOURCE_SHADOWABLE;
- 
- 	if (!rule->size) {
--		*flags |= IORESOURCE_DISABLED;
-+		res->flags |= IORESOURCE_DISABLED;
- 		dev_dbg(&dev->dev, "  mem %d disabled\n", idx);
- 		return 1;	/* skip disabled resource requests */
- 	}
- 
--	*start = rule->min;
--	*end = *start + rule->size - 1;
-+	res->start = rule->min;
-+	res->end = res->start + rule->size - 1;
- 
- 	/* run through until pnp_check_mem is happy */
- 	while (!pnp_check_mem(dev, idx)) {
--		*start += rule->align;
--		*end = *start + rule->size - 1;
--		if (*start > rule->max || !rule->align) {
-+		res->start += rule->align;
-+		res->end = res->start + rule->size - 1;
-+		if (res->start > rule->max || !rule->align) {
- 			dev_dbg(&dev->dev, "  couldn't assign mem %d\n", idx);
- 			return 0;
- 		}
- 	}
- 	dev_dbg(&dev->dev, "  assign mem %d 0x%llx-0x%llx\n", idx,
--		(unsigned long long) *start, (unsigned long long) *end);
-+		(unsigned long long) res->start, (unsigned long long) res->end);
- 	return 1;
+ 	if (!strnicmp(buf, "get", 3)) {
+@@ -373,7 +373,7 @@
+ 		if (dev->active)
+ 			goto done;
+ 		buf += 3;
+-		pnp_init_resource_table(&dev->res);
++		pnp_init_resources(dev);
+ 		mutex_lock(&pnp_res_mutex);
+ 		while (1) {
+ 			while (isspace(*buf))
+Index: work10/drivers/pnp/isapnp/core.c
+===================================================================
+--- work10.orig/drivers/pnp/isapnp/core.c	2008-04-25 11:14:57.000000000 -0600
++++ work10/drivers/pnp/isapnp/core.c	2008-04-25 11:14:58.000000000 -0600
+@@ -424,7 +424,7 @@
+ 	dev->capabilities |= PNP_READ;
+ 	dev->capabilities |= PNP_WRITE;
+ 	dev->capabilities |= PNP_DISABLE;
+-	pnp_init_resource_table(&dev->res);
++	pnp_init_resources(dev);
+ 	return dev;
  }
  
- static int pnp_assign_irq(struct pnp_dev *dev, struct pnp_irq *rule, int idx)
- {
--	resource_size_t *start, *end;
--	unsigned long *flags;
-+	struct resource *res;
- 	int i;
+@@ -981,7 +981,7 @@
+ 	int ret;
  
- 	/* IRQ priority: this table is good for i386 */
-@@ -144,40 +137,39 @@
- 		return 1;
- 	}
+ 	dev_dbg(&dev->dev, "get resources\n");
+-	pnp_init_resource_table(&dev->res);
++	pnp_init_resources(dev);
+ 	isapnp_cfg_begin(dev->card->number, dev->number);
+ 	ret = isapnp_read_resources(dev);
+ 	isapnp_cfg_end();
+Index: work10/drivers/pnp/pnpacpi/core.c
+===================================================================
+--- work10.orig/drivers/pnp/pnpacpi/core.c	2008-04-25 11:14:57.000000000 -0600
++++ work10/drivers/pnp/pnpacpi/core.c	2008-04-25 11:14:58.000000000 -0600
+@@ -212,7 +212,7 @@
  
--	start = &dev->res.irq_resource[idx].start;
--	end = &dev->res.irq_resource[idx].end;
--	flags = &dev->res.irq_resource[idx].flags;
-+	res = &dev->res.irq_resource[idx];
+ 	/* clear out the damaged flags */
+ 	if (!dev->active)
+-		pnp_init_resource_table(&dev->res);
++		pnp_init_resources(dev);
+ 	pnp_add_device(dev);
+ 	num++;
  
- 	/* check if this resource has been manually set, if so skip */
--	if (!(dev->res.irq_resource[idx].flags & IORESOURCE_AUTO)) {
-+	if (!(res->flags & IORESOURCE_AUTO)) {
- 		dev_dbg(&dev->dev, "  irq %d already set to %d flags 0x%x\n",
--			idx, (int) *start, (int) *flags);
-+			idx, (int) res->start, (int) res->flags);
- 		return 1;
- 	}
+Index: work10/drivers/pnp/pnpbios/core.c
+===================================================================
+--- work10.orig/drivers/pnp/pnpbios/core.c	2008-04-25 11:14:57.000000000 -0600
++++ work10/drivers/pnp/pnpbios/core.c	2008-04-25 11:14:58.000000000 -0600
+@@ -347,7 +347,7 @@
  
- 	/* set the initial values */
--	*flags |= rule->flags | IORESOURCE_IRQ;
--	*flags &= ~IORESOURCE_UNSET;
-+	res->flags |= rule->flags | IORESOURCE_IRQ;
-+	res->flags &= ~IORESOURCE_UNSET;
+ 	/* clear out the damaged flags */
+ 	if (!dev->active)
+-		pnp_init_resource_table(&dev->res);
++		pnp_init_resources(dev);
  
- 	if (bitmap_empty(rule->map, PNP_IRQ_NR)) {
--		*flags |= IORESOURCE_DISABLED;
-+		res->flags |= IORESOURCE_DISABLED;
- 		dev_dbg(&dev->dev, "  irq %d disabled\n", idx);
- 		return 1;	/* skip disabled resource requests */
- 	}
+ 	pnp_add_device(dev);
+ 	pnpbios_interface_attach_device(node);
+Index: work10/drivers/pnp/pnpacpi/rsparser.c
+===================================================================
+--- work10.orig/drivers/pnp/pnpacpi/rsparser.c	2008-04-25 11:14:57.000000000 -0600
++++ work10/drivers/pnp/pnpacpi/rsparser.c	2008-04-25 11:14:58.000000000 -0600
+@@ -410,8 +410,7 @@
  
- 	/* TBD: need check for >16 IRQ */
--	*start = find_next_bit(rule->map, PNP_IRQ_NR, 16);
--	if (*start < PNP_IRQ_NR) {
--		*end = *start;
--		dev_dbg(&dev->dev, "  assign irq %d %d\n", idx, (int) *start);
-+	res->start = find_next_bit(rule->map, PNP_IRQ_NR, 16);
-+	if (res->start < PNP_IRQ_NR) {
-+		res->end = res->start;
-+		dev_dbg(&dev->dev, "  assign irq %d %d\n", idx,
-+			(int) res->start);
- 		return 1;
- 	}
- 	for (i = 0; i < 16; i++) {
- 		if (test_bit(xtab[i], rule->map)) {
--			*start = *end = xtab[i];
-+			res->start = res->end = xtab[i];
- 			if (pnp_check_irq(dev, idx)) {
- 				dev_dbg(&dev->dev, "  assign irq %d %d\n", idx,
--					(int) *start);
-+					(int) res->start);
- 				return 1;
- 			}
- 		}
-@@ -188,8 +180,7 @@
+ 	dev_dbg(&dev->dev, "parse allocated resources\n");
  
- static void pnp_assign_dma(struct pnp_dev *dev, struct pnp_dma *rule, int idx)
- {
--	resource_size_t *start, *end;
--	unsigned long *flags;
-+	struct resource *res;
- 	int i;
+-	/* Blank the resource table values */
+-	pnp_init_resource_table(&dev->res);
++	pnp_init_resources(dev);
  
- 	/* DMA priority: this table is good for i386 */
-@@ -202,35 +193,33 @@
- 		return;
- 	}
+ 	return acpi_walk_resources(handle, METHOD_NAME__CRS,
+ 				   pnpacpi_allocated_resource, dev);
+Index: work10/drivers/pnp/pnpbios/rsparser.c
+===================================================================
+--- work10.orig/drivers/pnp/pnpbios/rsparser.c	2008-04-25 11:14:57.000000000 -0600
++++ work10/drivers/pnp/pnpbios/rsparser.c	2008-04-25 11:14:58.000000000 -0600
+@@ -145,8 +145,7 @@
  
--	start = &dev->res.dma_resource[idx].start;
--	end = &dev->res.dma_resource[idx].end;
--	flags = &dev->res.dma_resource[idx].flags;
-+	res = &dev->res.dma_resource[idx];
+ 	dev_dbg(&dev->dev, "parse allocated resources\n");
  
- 	/* check if this resource has been manually set, if so skip */
--	if (!(dev->res.dma_resource[idx].flags & IORESOURCE_AUTO)) {
-+	if (!(res->flags & IORESOURCE_AUTO)) {
- 		dev_dbg(&dev->dev, "  dma %d already set to %d flags 0x%x\n",
--			idx, (int) *start, (int) *flags);
-+			idx, (int) res->start, (int) res->flags);
- 		return;
- 	}
+-	/* Blank the resource table values */
+-	pnp_init_resource_table(&dev->res);
++	pnp_init_resources(dev);
  
- 	/* set the initial values */
--	*flags |= rule->flags | IORESOURCE_DMA;
--	*flags &= ~IORESOURCE_UNSET;
-+	res->flags |= rule->flags | IORESOURCE_DMA;
-+	res->flags &= ~IORESOURCE_UNSET;
- 
- 	for (i = 0; i < 8; i++) {
- 		if (rule->map & (1 << xtab[i])) {
--			*start = *end = xtab[i];
-+			res->start = res->end = xtab[i];
- 			if (pnp_check_dma(dev, idx)) {
- 				dev_dbg(&dev->dev, "  assign dma %d %d\n", idx,
--					(int) *start);
-+					(int) res->start);
- 				return;
- 			}
- 		}
- 	}
- #ifdef MAX_DMA_CHANNELS
--	*start = *end = MAX_DMA_CHANNELS;
-+	res->start = res->end = MAX_DMA_CHANNELS;
- #endif
--	*flags |= IORESOURCE_UNSET | IORESOURCE_DISABLED;
-+	res->flags |= IORESOURCE_UNSET | IORESOURCE_DISABLED;
- 	dev_dbg(&dev->dev, "  disable dma %d\n", idx);
- }
+ 	while ((char *)p < (char *)end) {
  
 
 -- 
