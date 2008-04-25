@@ -1,122 +1,164 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 09/54] PNP: change pnp_add_card_id() to allocate its own pnp_id structures
-Date: Fri, 25 Apr 2008 12:38:16 -0600
-Message-ID: <20080425183925.949094545@ldl.fc.hp.com>
+Subject: [patch 51/54] PNPACPI: move _CRS/_PRS warnings closer to the action
+Date: Fri, 25 Apr 2008 12:38:58 -0600
+Message-ID: <20080425183934.932494912@ldl.fc.hp.com>
 References: <20080425183807.366134771@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0028.austin.hp.com ([15.216.28.35]:9749 "EHLO
-	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761464AbYDYSji (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Apr 2008 14:39:38 -0400
-Content-Disposition: inline; filename=pnp-move-allocation-into-pnp_add_card_id
+Received: from g5t0007.atlanta.hp.com ([15.192.0.44]:19330 "EHLO
+	g5t0007.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1764945AbYDYSkm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Apr 2008 14:40:42 -0400
+Content-Disposition: inline; filename=pnpacpi-cleanup-CRS-PRS-warnings
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Rene Herman <rene.herman@gmail.com>, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-This moves some of the pnp_id knowledge out of the backends and into
-the PNP core.
+Move warnings about _CRS and _PRS problems to the place where we
+actually make the ACPI calls.  Then we don't have to pass around
+acpi_status values any more than necessary.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Acked-By: Rene Herman <rene.herman@gmail.com>
 
-Index: work10/drivers/pnp/base.h
+Index: work10/drivers/pnp/pnpacpi/pnpacpi.h
 ===================================================================
---- work10.orig/drivers/pnp/base.h	2008-04-25 11:14:50.000000000 -0600
-+++ work10/drivers/pnp/base.h	2008-04-25 11:14:50.000000000 -0600
-@@ -4,7 +4,7 @@
- void pnp_eisa_id_to_string(u32 id, char *str);
- struct pnp_dev *pnp_alloc_dev(struct pnp_protocol *, int id, char *pnpid);
- struct pnp_id *pnp_add_id(struct pnp_dev *dev, char *id);
--int pnp_add_card_id(struct pnp_id *id, struct pnp_card *card);
-+struct pnp_id *pnp_add_card_id(struct pnp_card *card, char *id);
- int pnp_interface_attach_device(struct pnp_dev *dev);
- void pnp_fixup_device(struct pnp_dev *dev);
- void pnp_free_option(struct pnp_option *option);
-Index: work10/drivers/pnp/card.c
-===================================================================
---- work10.orig/drivers/pnp/card.c	2008-04-25 11:12:17.000000000 -0600
-+++ work10/drivers/pnp/card.c	2008-04-25 11:14:50.000000000 -0600
-@@ -5,6 +5,7 @@
-  */
- 
- #include <linux/module.h>
-+#include <linux/ctype.h>
- #include <linux/slab.h>
+--- work10.orig/drivers/pnp/pnpacpi/pnpacpi.h	2008-04-25 11:14:56.000000000 -0600
++++ work10/drivers/pnp/pnpacpi/pnpacpi.h	2008-04-25 11:15:15.000000000 -0600
+@@ -5,8 +5,8 @@
+ #include <linux/acpi.h>
  #include <linux/pnp.h>
- #include "base.h"
-@@ -100,19 +101,33 @@
-  * @id: pointer to a pnp_id structure
-  * @card: pointer to the desired card
-  */
--int pnp_add_card_id(struct pnp_id *id, struct pnp_card *card)
-+struct pnp_id *pnp_add_card_id(struct pnp_card *card, char *id)
- {
--	struct pnp_id *ptr;
-+	struct pnp_id *dev_id, *ptr;
  
--	id->next = NULL;
-+	dev_id = kzalloc(sizeof(struct pnp_id), GFP_KERNEL);
-+	if (!dev_id)
-+		return NULL;
-+
-+	dev_id->id[0] = id[0];
-+	dev_id->id[1] = id[1];
-+	dev_id->id[2] = id[2];
-+	dev_id->id[3] = tolower(id[3]);
-+	dev_id->id[4] = tolower(id[4]);
-+	dev_id->id[5] = tolower(id[5]);
-+	dev_id->id[6] = tolower(id[6]);
-+	dev_id->id[7] = '\0';
-+
-+	dev_id->next = NULL;
- 	ptr = card->id;
- 	while (ptr && ptr->next)
- 		ptr = ptr->next;
- 	if (ptr)
--		ptr->next = id;
-+		ptr->next = dev_id;
- 	else
--		card->id = id;
--	return 0;
-+		card->id = dev_id;
-+
-+	return dev_id;
- }
- 
- static void pnp_free_card_ids(struct pnp_card *card)
-Index: work10/drivers/pnp/isapnp/core.c
+-acpi_status pnpacpi_parse_allocated_resource(struct pnp_dev *);
+-acpi_status pnpacpi_parse_resource_option_data(struct pnp_dev *);
++int pnpacpi_parse_allocated_resource(struct pnp_dev *);
++int pnpacpi_parse_resource_option_data(struct pnp_dev *);
+ int pnpacpi_encode_resources(struct pnp_dev *, struct acpi_buffer *);
+ int pnpacpi_build_resource_template(struct pnp_dev *, struct acpi_buffer *);
+ #endif
+Index: work10/drivers/pnp/pnpacpi/core.c
 ===================================================================
---- work10.orig/drivers/pnp/isapnp/core.c	2008-04-25 11:14:49.000000000 -0600
-+++ work10/drivers/pnp/isapnp/core.c	2008-04-25 11:14:50.000000000 -0600
-@@ -822,17 +822,18 @@
- static void isapnp_parse_card_id(struct pnp_card *card, unsigned short vendor,
- 				 unsigned short device)
- {
--	struct pnp_id *id = kzalloc(sizeof(struct pnp_id), GFP_KERNEL);
-+	char id[8];
+--- work10.orig/drivers/pnp/pnpacpi/core.c	2008-04-25 11:14:58.000000000 -0600
++++ work10/drivers/pnp/pnpacpi/core.c	2008-04-25 11:15:15.000000000 -0600
+@@ -75,11 +75,8 @@
  
--	if (!id)
--		return;
--	sprintf(id->id, "%c%c%c%x%x%x%x",
--		'A' + ((vendor >> 2) & 0x3f) - 1,
--		'A' + (((vendor & 3) << 3) | ((vendor >> 13) & 7)) - 1,
--		'A' + ((vendor >> 8) & 0x1f) - 1,
--		(device >> 4) & 0x0f,
--		device & 0x0f, (device >> 12) & 0x0f, (device >> 8) & 0x0f);
--	pnp_add_card_id(id, card);
-+	id[0] = 'A' + ((vendor >> 2) & 0x3f) - 1;
-+	id[1] = 'A' + (((vendor & 3) << 3) | ((vendor >> 13) & 7)) - 1;
-+	id[2] = 'A' + ((vendor >> 8) & 0x1f) - 1;
-+	id[3] = hex_asc((device >> 4) & 0x0f);
-+	id[4] = hex_asc(device & 0x0f);
-+	id[5] = hex_asc((device >> 12) & 0x0f);
-+	id[6] = hex_asc((device >> 8) & 0x0f);
-+	id[7] = '\0';
-+
-+	pnp_add_card_id(card, id);
+ static int pnpacpi_get_resources(struct pnp_dev *dev)
+ {
+-	acpi_status status;
+-
+ 	dev_dbg(&dev->dev, "get resources\n");
+-	status = pnpacpi_parse_allocated_resource(dev);
+-	return ACPI_FAILURE(status) ? -ENODEV : 0;
++	return pnpacpi_parse_allocated_resource(dev);
  }
  
- /*
+ static int pnpacpi_set_resources(struct pnp_dev *dev)
+@@ -182,22 +179,11 @@
+ 	else
+ 		strncpy(dev->name, acpi_device_bid(device), sizeof(dev->name));
+ 
+-	if (dev->active) {
+-		/* parse allocated resource */
+-		status = pnpacpi_parse_allocated_resource(dev);
+-		if (ACPI_FAILURE(status) && (status != AE_NOT_FOUND)) {
+-			pnp_err("PnPACPI: METHOD_NAME__CRS failure for %s",
+-				acpi_device_hid(device));
+-		}
+-	}
++	if (dev->active)
++		pnpacpi_parse_allocated_resource(dev);
+ 
+-	if (dev->capabilities & PNP_CONFIGURABLE) {
+-		status = pnpacpi_parse_resource_option_data(dev);
+-		if (ACPI_FAILURE(status) && (status != AE_NOT_FOUND)) {
+-			pnp_err("PnPACPI: METHOD_NAME__PRS failure for %s",
+-				acpi_device_hid(device));
+-		}
+-	}
++	if (dev->capabilities & PNP_CONFIGURABLE)
++		pnpacpi_parse_resource_option_data(dev);
+ 
+ 	if (device->flags.compatible_ids) {
+ 		struct acpi_compatible_id_list *cid_list = device->pnp.cid_list;
+Index: work10/drivers/pnp/pnpacpi/rsparser.c
+===================================================================
+--- work10.orig/drivers/pnp/pnpacpi/rsparser.c	2008-04-25 11:15:13.000000000 -0600
++++ work10/drivers/pnp/pnpacpi/rsparser.c	2008-04-25 11:15:15.000000000 -0600
+@@ -339,16 +339,24 @@
+ 	return AE_OK;
+ }
+ 
+-acpi_status pnpacpi_parse_allocated_resource(struct pnp_dev *dev)
++int pnpacpi_parse_allocated_resource(struct pnp_dev *dev)
+ {
+ 	acpi_handle handle = dev->data;
++	acpi_status status;
+ 
+ 	dev_dbg(&dev->dev, "parse allocated resources\n");
+ 
+ 	pnp_init_resources(dev);
+ 
+-	return acpi_walk_resources(handle, METHOD_NAME__CRS,
+-				   pnpacpi_allocated_resource, dev);
++	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
++				     pnpacpi_allocated_resource, dev);
++
++	if (ACPI_FAILURE(status)) {
++		if (status != AE_NOT_FOUND)
++			dev_err(&dev->dev, "can't evaluate _CRS: %d", status);
++		return -EPERM;
++	}
++	return 0;
+ }
+ 
+ static __init void pnpacpi_parse_dma_option(struct pnp_dev *dev,
+@@ -670,7 +678,7 @@
+ 	return AE_OK;
+ }
+ 
+-acpi_status __init pnpacpi_parse_resource_option_data(struct pnp_dev *dev)
++int __init pnpacpi_parse_resource_option_data(struct pnp_dev *dev)
+ {
+ 	acpi_handle handle = dev->data;
+ 	acpi_status status;
+@@ -680,13 +688,19 @@
+ 
+ 	parse_data.option = pnp_register_independent_option(dev);
+ 	if (!parse_data.option)
+-		return AE_ERROR;
++		return -ENOMEM;
++
+ 	parse_data.option_independent = parse_data.option;
+ 	parse_data.dev = dev;
+ 	status = acpi_walk_resources(handle, METHOD_NAME__PRS,
+ 				     pnpacpi_option_resource, &parse_data);
+ 
+-	return status;
++	if (ACPI_FAILURE(status)) {
++		if (status != AE_NOT_FOUND)
++			dev_err(&dev->dev, "can't evaluate _PRS: %d", status);
++		return -EPERM;
++	}
++	return 0;
+ }
+ 
+ static int pnpacpi_supported_resource(struct acpi_resource *res)
+@@ -745,7 +759,7 @@
+ 	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
+ 				     pnpacpi_count_resources, &res_cnt);
+ 	if (ACPI_FAILURE(status)) {
+-		dev_err(&dev->dev, "can't evaluate _CRS\n");
++		dev_err(&dev->dev, "can't evaluate _CRS: %d\n", status);
+ 		return -EINVAL;
+ 	}
+ 	if (!res_cnt)
+@@ -760,7 +774,7 @@
+ 				     pnpacpi_type_resources, &resource);
+ 	if (ACPI_FAILURE(status)) {
+ 		kfree(buffer->pointer);
+-		dev_err(&dev->dev, "can't evaluate _CRS\n");
++		dev_err(&dev->dev, "can't evaluate _CRS: %d\n", status);
+ 		return -EINVAL;
+ 	}
+ 	/* resource will pointer the end resource now */
 
 -- 
