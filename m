@@ -1,110 +1,88 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: Re: [PATCH 10/14] ACPI: thinkpad-acpi: use uppercase for "LED" on
- user documentation
-Date: Fri, 25 Apr 2008 21:06:52 -0700
-Message-ID: <4812AA5C.3010600@oracle.com>
-References: <1209182550-32725-1-git-send-email-hmh@hmh.eng.br> <1209182550-32725-11-git-send-email-hmh@hmh.eng.br>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [RESEND patch 2.6.25] ACPI uses device_may_wakeup() policy inputs
+Date: Sat, 26 Apr 2008 12:29:24 -0700
+Message-ID: <200804261229.24855.david-b@pacbell.net>
+References: <200803201408.33466.david-b@pacbell.net> <200804182118.05228.david-b@pacbell.net> <1208832132.3550.35.camel@rzhang-1.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rgminet01.oracle.com ([148.87.113.118]:15866 "EHLO
-	rgminet01.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750944AbYDZELI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 26 Apr 2008 00:11:08 -0400
-In-Reply-To: <1209182550-32725-11-git-send-email-hmh@hmh.eng.br>
+Received: from smtp120.sbc.mail.sp1.yahoo.com ([69.147.64.93]:36404 "HELO
+	smtp120.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1759189AbYDZThd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 26 Apr 2008 15:37:33 -0400
+In-Reply-To: <1208832132.3550.35.camel@rzhang-1.sh.intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Len Brown <lenb@kernel.org>, ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, Thomas Renninger <trenn@suse.de>
 
-Henrique de Moraes Holschuh wrote:
-> Change all occourences of the "led" word to full uppercase in user
-> documentation.
+On Monday 21 April 2008, Zhang Rui wrote:
 > 
-> Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-> Cc: Randy Dunlap <randy.dunlap@oracle.com>
+> On Fri, 2008-04-18 at 21:18 -0700, David Brownell wrote:
+> > This imports the driver model device.power.may_wakeup flags to ACPI,
+> > using it to *REPLACE* the /proc/acpi/wakeup flags for some devices.
+> > It depends on the previous patch making device.power.can_wakeup
+> > behave. It does that by:
+> > 
+> >  - Implementing platform_enable_wakeup(), which is currently invoked
+> >    only by pci_enable_wake().  When that's called -- probably in the
+> >    driver suspend() call -- it updates acpi_device.wakeup.state.enabled
+> >    flag in the same way writing to /proc/acpi/wakeup updates it.
+> >    
+> >  - Updating the usage of the corresponding ACPI flags when turning on
+> >    wakeup power domains and GPEs.
+> > 
+> > THIS PATCH NEEDS MORE ATTENTION because of the way the ACPI method
+> > invocations have been changing, e.g. the 1.0 vs 2.0 sequencing.
+> > 
+> > Right now it's not clear to me whether the GPEs are always enabled at
+> > the right time, and for that matter whether the rules haven't changed
+> > so that drivers can no longer effectively control those settings from
+> > suspend() unless acpi_new_pts_ordering is in effect.
+>
+> Sorry. It's such a long sentence which is hard for me to understand. :(
 
-Thank you.
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+Apologies.
+
+On the bright side ... didn't all the new_pts_ordering stuff
+get removed?  If that stays gone, it removes the main concern
+I had.  That comment was written when I observed what looked
+to be troublesome semantic changes from that "new" ordering.
 
 
-> ---
->  Documentation/laptops/thinkpad-acpi.txt |   22 +++++++++++-----------
->  1 files changed, 11 insertions(+), 11 deletions(-)
+> > it's not clear to me whether the GPEs are always enabled at
+> > the right time
+>  
+> this patch doesn't change the time when GPEs are enabled.
+
+No it doesn't.  Maybe I'm just more paranoid about it than
+someone who knows ACPI (and its version-specific issues) a
+lot better than me.
+
+
+> > NOT YET SIGNED-OFF ... primarily because of the confusion about
+> > the order in which ACPI methods get called during entry to suspend
+> > states.
+>
+> I think it's safe to apply this patch.
+
+I did this work before the "new_pts_ordering" stuff happened.  Then
+after "new_pts_ordering", it looked a bit problematic ... originally,
+I would have agreed with you.  Maybe now I can agree again.
+
+- Dave
+
+
+
+> thanks,
+> rui
 > 
-> diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
-> index 73b80a7..947b726 100644
-> --- a/Documentation/laptops/thinkpad-acpi.txt
-> +++ b/Documentation/laptops/thinkpad-acpi.txt
-> @@ -697,7 +697,7 @@ ThinkLight control
->  ------------------
->  
->  procfs: /proc/acpi/ibm/light
-> -sysfs attributes: as per led class, for the "tpacpi::thinklight" led
-> +sysfs attributes: as per LED class, for the "tpacpi::thinklight" LED
->  
->  procfs notes:
->  
-> @@ -710,11 +710,11 @@ status as "unknown". The available commands are:
->  
->  sysfs notes:
->  
-> -The ThinkLight sysfs interface is documented by the led class
-> -documentation, in Documentation/leds-class.txt.  The ThinkLight led name
-> +The ThinkLight sysfs interface is documented by the LED class
-> +documentation, in Documentation/leds-class.txt.  The ThinkLight LED name
->  is "tpacpi::thinklight".
->  
-> -Due to limitations in the sysfs led class, if the status of the thinklight
-> +Due to limitations in the sysfs LED class, if the status of the thinklight
->  cannot be read or if it is unknown, thinkpad-acpi will report it as "off".
->  It is impossible to know if the status returned through sysfs is valid.
->  
-> @@ -880,7 +880,7 @@ LED control
->  -----------
->  
->  procfs: /proc/acpi/ibm/led
-> -sysfs attributes: as per led class, see below for names
-> +sysfs attributes: as per LED class, see below for names
->  
->  Some of the LED indicators can be controlled through this feature.  On
->  some older ThinkPad models, it is possible to query the status of the
-> @@ -891,11 +891,11 @@ procfs notes:
->  
->  The available commands are:
->  
-> -	echo '<led number> on' >/proc/acpi/ibm/led
-> -	echo '<led number> off' >/proc/acpi/ibm/led
-> -	echo '<led number> blink' >/proc/acpi/ibm/led
-> +	echo '<LED number> on' >/proc/acpi/ibm/led
-> +	echo '<LED number> off' >/proc/acpi/ibm/led
-> +	echo '<LED number> blink' >/proc/acpi/ibm/led
->  
-> -The <led number> range is 0 to 7. The set of LEDs that can be
-> +The <LED number> range is 0 to 7. The set of LEDs that can be
->  controlled varies from model to model. Here is the common ThinkPad
->  mapping:
->  
-> @@ -912,7 +912,7 @@ All of the above can be turned on and off and can be made to blink.
->  
->  sysfs notes:
->  
-> -The ThinkPad LED sysfs interface is described in detail by the led class
-> +The ThinkPad LED sysfs interface is described in detail by the LED class
->  documentation, in Documentation/leds-class.txt.
->  
->  The leds are named (in LED ID order, from 0 to 7):
-> @@ -920,7 +920,7 @@ The leds are named (in LED ID order, from 0 to 7):
->  "tpacpi::dock_active", "tpacpi::bay_active", "tpacpi::dock_batt",
->  "tpacpi::unknown_led", "tpacpi::standby".
->  
-> -Due to limitations in the sysfs led class, if the status of the LED
-> +Due to limitations in the sysfs LED class, if the status of the LED
->  indicators cannot be read due to an error, thinkpad-acpi will report it as
->  a brightness of zero (same as LED off).
->  
+> > Presumably one of the "new style" PM methods calls will
+> > now always work for drivers wanting to enable wakeup methods...
+> 
 
 
--- 
-~Randy
