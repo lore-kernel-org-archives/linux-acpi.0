@@ -1,86 +1,185 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 02/14] ACPI: thinkpad-acpi: warn once about weird hotkey masks
-Date: Sat, 26 Apr 2008 01:02:18 -0300
-Message-ID: <1209182550-32725-3-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 05/14] ACPI: thinkpad-acpi: fix brightness dimming control bug
+Date: Sat, 26 Apr 2008 01:02:21 -0300
+Message-ID: <1209182550-32725-6-git-send-email-hmh@hmh.eng.br>
 References: <1209182550-32725-1-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:51399 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:49672 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750713AbYDZECe (ORCPT
+	by vger.kernel.org with ESMTP id S1750960AbYDZECg (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 26 Apr 2008 00:02:34 -0400
+	Sat, 26 Apr 2008 00:02:36 -0400
 In-Reply-To: <1209182550-32725-1-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-thinkpad-acpi knows for a while now how to best program the hotkeys by
-default, and always enable them by default.  Unfortunately, this
-information has not filtered down everywhere it needs to, yet.  Notably,
-old ibm-acpi documentation and most "thinkpad setup guides" will have wrong
-information on this area.
+ibm-acpi and thinkpad-acpi did not know about bit 5 of the EC backlight
+level control register (EC 0x31), so it was always forced to zero on
+any writes.
 
-Warn the local admin once whenever any of the following patterns are met:
+This would disable the BIOS option to *not* use a dimmer backlight level
+scale while on battery, and who knows what else (there are two other
+control bits of unknown function).
 
-1. Attempts to set hotkey mask to 0xffff (artifact from docs and config
-   for the old ibm-acpi driver and behaviour).  This mask makes no
-   real-world sense;
-
-2. Attempts to set hotkey mask to 0xffffffff, which means the user is
-   trying to just have "everything work" without even reading the
-   documentation, or that we need to get a bug report, because there
-   is a new thinkpad out there with new exciting hot keys :-)
-
-3. Attempts to set hotkey mask to 0xffffff, which is almost never the
-   correct way to set up volume and brightness event reporting (and with
-   the current state-of-the-art, it is known to never be right way to do
-   it).
-
-The driver will perform any and all requested operations, though,
-regardless of any warnings.  I hope these warnings can be removed one or
-two years from now.
+Bit 5 controls the "reduce backlight levels when on battery" optional
+functionality (active low).  Bits 6 and 7 are better left alone as well,
+instead of being forced to zero.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 ---
- drivers/misc/thinkpad_acpi.c |   17 +++++++++++++++++
- 1 files changed, 17 insertions(+), 0 deletions(-)
+ drivers/misc/thinkpad_acpi.c |   64 ++++++++++++++++++++++++++++++++----------
+ 1 files changed, 49 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 2c85a2e..cd263c5 100644
+index 7dc6b73..5e25abc 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -237,6 +237,10 @@ static struct {
- 	u32 hotkey_poll_active:1;
- } tp_features;
+@@ -4295,8 +4295,16 @@ static struct ibm_struct ecdump_driver_data = {
  
-+static struct {
-+	u16 hotkey_mask_ff:1;
-+} tp_warned;
-+
- struct thinkpad_id_data {
- 	unsigned int vendor;	/* ThinkPad vendor:
- 				 * PCI_VENDOR_ID_IBM/PCI_VENDOR_ID_LENOVO */
-@@ -1182,6 +1186,19 @@ static int hotkey_mask_set(u32 mask)
- 	int rc = 0;
+ #define TPACPI_BACKLIGHT_DEV_NAME "thinkpad_screen"
  
- 	if (tp_features.hotkey_mask) {
-+		if (!tp_warned.hotkey_mask_ff &&
-+		    (mask == 0xffff || mask == 0xffffff ||
-+		     mask == 0xffffffff)) {
-+			tp_warned.hotkey_mask_ff = 1;
-+			printk(TPACPI_NOTICE
-+			       "setting the hotkey mask to 0x%08x is likely "
-+			       "not the best way to go about it\n", mask);
-+			printk(TPACPI_NOTICE
-+			       "please consider using the driver defaults, "
-+			       "and refer to up-to-date thinkpad-acpi "
-+			       "documentation\n");
-+		}
++enum {
++	TP_EC_BACKLIGHT = 0x31,
 +
- 		HOTKEY_CONFIG_CRITICAL_START
- 		for (i = 0; i < 32; i++) {
- 			u32 m = 1 << i;
++	/* TP_EC_BACKLIGHT bitmasks */
++	TP_EC_BACKLIGHT_LVLMSK = 0x1F,
++	TP_EC_BACKLIGHT_CMDMSK = 0xE0,
++	TP_EC_BACKLIGHT_MAPSW = 0x20,
++};
++
+ static struct backlight_device *ibm_backlight_device;
+-static int brightness_offset = 0x31;
+ static int brightness_mode;
+ static unsigned int brightness_enable = 2; /* 2 = auto, 0 = no, 1 = yes */
+ 
+@@ -4305,16 +4313,24 @@ static struct mutex brightness_mutex;
+ /*
+  * ThinkPads can read brightness from two places: EC 0x31, or
+  * CMOS NVRAM byte 0x5E, bits 0-3.
++ *
++ * EC 0x31 has the following layout
++ *   Bit 7: unknown function
++ *   Bit 6: unknown function
++ *   Bit 5: Z: honour scale changes, NZ: ignore scale changes
++ *   Bit 4: must be set to zero to avoid problems
++ *   Bit 3-0: backlight brightness level
++ *
++ * brightness_get_raw returns status data in the EC 0x31 layout
+  */
+-static int brightness_get(struct backlight_device *bd)
++static int brightness_get_raw(int *status)
+ {
+ 	u8 lec = 0, lcmos = 0, level = 0;
+ 
+ 	if (brightness_mode & 1) {
+-		if (!acpi_ec_read(brightness_offset, &lec))
++		if (!acpi_ec_read(TP_EC_BACKLIGHT, &lec))
+ 			return -EIO;
+-		lec &= (tp_features.bright_16levels)? 0x0f : 0x07;
+-		level = lec;
++		level = lec & TP_EC_BACKLIGHT_LVLMSK;
+ 	};
+ 	if (brightness_mode & 2) {
+ 		lcmos = (nvram_read_byte(TP_NVRAM_ADDR_BRIGHTNESS)
+@@ -4325,6 +4341,8 @@ static int brightness_get(struct backlight_device *bd)
+ 	}
+ 
+ 	if (brightness_mode == 3) {
++		*status = lec;	/* Prefer EC, CMOS is just a backing store */
++		lec &= TP_EC_BACKLIGHT_LVLMSK;
+ 		if (lec == lcmos)
+ 			tp_warned.bright_cmos_ec_unsync = 0;
+ 		else {
+@@ -4338,9 +4356,11 @@ static int brightness_get(struct backlight_device *bd)
+ 			}
+ 			return -EIO;
+ 		}
++	} else {
++		*status = level;
+ 	}
+ 
+-	return level;
++	return 0;
+ }
+ 
+ /* May return EINTR which can always be mapped to ERESTARTSYS */
+@@ -4348,19 +4368,22 @@ static int brightness_set(int value)
+ {
+ 	int cmos_cmd, inc, i, res;
+ 	int current_value;
++	int command_bits;
+ 
+-	if (value > ((tp_features.bright_16levels)? 15 : 7))
++	if (value > ((tp_features.bright_16levels)? 15 : 7) ||
++	    value < 0)
+ 		return -EINVAL;
+ 
+ 	res = mutex_lock_interruptible(&brightness_mutex);
+ 	if (res < 0)
+ 		return res;
+ 
+-	current_value = brightness_get(NULL);
+-	if (current_value < 0) {
+-		res = current_value;
++	res = brightness_get_raw(&current_value);
++	if (res < 0)
+ 		goto errout;
+-	}
++
++	command_bits = current_value & TP_EC_BACKLIGHT_CMDMSK;
++	current_value &= TP_EC_BACKLIGHT_LVLMSK;
+ 
+ 	cmos_cmd = value > current_value ?
+ 			TP_CMOS_BRIGHTNESS_UP :
+@@ -4375,7 +4398,8 @@ static int brightness_set(int value)
+ 			goto errout;
+ 		}
+ 		if ((brightness_mode & 1) &&
+-		    !acpi_ec_write(brightness_offset, i + inc)) {
++		    !acpi_ec_write(TP_EC_BACKLIGHT,
++				   (i + inc) | command_bits)) {
+ 			res = -EIO;
+ 			goto errout;;
+ 		}
+@@ -4398,6 +4422,17 @@ static int brightness_update_status(struct backlight_device *bd)
+ 				bd->props.brightness : 0);
+ }
+ 
++static int brightness_get(struct backlight_device *bd)
++{
++	int status, res;
++
++	res = brightness_get_raw(&status);
++	if (res < 0)
++		return 0; /* FIXME: teach backlight about error handling */
++
++	return status & TP_EC_BACKLIGHT_LVLMSK;
++}
++
+ static struct backlight_ops ibm_backlight_data = {
+ 	.get_brightness = brightness_get,
+ 	.update_status  = brightness_update_status,
+@@ -4462,8 +4497,7 @@ static int __init brightness_init(struct ibm_init_struct *iibm)
+ 	if (brightness_mode > 3)
+ 		return -EINVAL;
+ 
+-	b = brightness_get(NULL);
+-	if (b < 0)
++	if (brightness_get_raw(&b) < 0)
+ 		return 1;
+ 
+ 	if (tp_features.bright_16levels)
+@@ -4481,7 +4515,7 @@ static int __init brightness_init(struct ibm_init_struct *iibm)
+ 
+ 	ibm_backlight_device->props.max_brightness =
+ 				(tp_features.bright_16levels)? 15 : 7;
+-	ibm_backlight_device->props.brightness = b;
++	ibm_backlight_device->props.brightness = b & TP_EC_BACKLIGHT_LVLMSK;
+ 	backlight_update_status(ibm_backlight_device);
+ 
+ 	return 0;
 -- 
 1.5.4.4
 
