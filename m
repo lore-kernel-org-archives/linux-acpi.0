@@ -1,40 +1,296 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 11/14] ACPI: thinkpad-acpi: fluff really minor fix
-Date: Sat, 26 Apr 2008 01:02:27 -0300
-Message-ID: <1209182550-32725-12-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 09/14] ACPI: thinkpad-acpi: add sysfs led class support to thinkpad leds (v3.2)
+Date: Sat, 26 Apr 2008 01:02:25 -0300
+Message-ID: <1209182550-32725-10-git-send-email-hmh@hmh.eng.br>
 References: <1209182550-32725-1-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:54797 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:45796 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751115AbYDZECi (ORCPT
+	by vger.kernel.org with ESMTP id S1751080AbYDZECg (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 26 Apr 2008 00:02:38 -0400
+	Sat, 26 Apr 2008 00:02:36 -0400
 In-Reply-To: <1209182550-32725-1-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Richard Purdie <rpurdie@rpsys.net>
 
-Fix a minor (nano?) thing that bothered me at exactly at the wrong time.
+Add a sysfs led class interface to the led subdriver.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 ---
- drivers/misc/thinkpad_acpi.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ Documentation/laptops/thinkpad-acpi.txt |   47 +++++++++--
+ drivers/misc/thinkpad_acpi.c            |  136 ++++++++++++++++++++++++++++++-
+ 2 files changed, 176 insertions(+), 7 deletions(-)
 
+diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
+index af1f2bc..73b80a7 100644
+--- a/Documentation/laptops/thinkpad-acpi.txt
++++ b/Documentation/laptops/thinkpad-acpi.txt
+@@ -876,28 +876,63 @@ The cmos command interface is prone to firmware split-brain problems, as
+ in newer ThinkPads it is just a compatibility layer.  Do not use it, it is
+ exported just as a debug tool.
+ 
+-LED control -- /proc/acpi/ibm/led
+----------------------------------
++LED control
++-----------
+ 
+-Some of the LED indicators can be controlled through this feature. The
+-available commands are:
++procfs: /proc/acpi/ibm/led
++sysfs attributes: as per led class, see below for names
++
++Some of the LED indicators can be controlled through this feature.  On
++some older ThinkPad models, it is possible to query the status of the
++LED indicators as well.  Newer ThinkPads cannot query the real status
++of the LED indicators.
++
++procfs notes:
++
++The available commands are:
+ 
+ 	echo '<led number> on' >/proc/acpi/ibm/led
+ 	echo '<led number> off' >/proc/acpi/ibm/led
+ 	echo '<led number> blink' >/proc/acpi/ibm/led
+ 
+ The <led number> range is 0 to 7. The set of LEDs that can be
+-controlled varies from model to model. Here is the mapping on the X40:
++controlled varies from model to model. Here is the common ThinkPad
++mapping:
+ 
+ 	0 - power
+ 	1 - battery (orange)
+ 	2 - battery (green)
+-	3 - UltraBase
++	3 - UltraBase/dock
+ 	4 - UltraBay
++	5 - UltraBase battery slot
++	6 - (unknown)
+ 	7 - standby
+ 
+ All of the above can be turned on and off and can be made to blink.
+ 
++sysfs notes:
++
++The ThinkPad LED sysfs interface is described in detail by the led class
++documentation, in Documentation/leds-class.txt.
++
++The leds are named (in LED ID order, from 0 to 7):
++"tpacpi::power", "tpacpi:orange:batt", "tpacpi:green:batt",
++"tpacpi::dock_active", "tpacpi::bay_active", "tpacpi::dock_batt",
++"tpacpi::unknown_led", "tpacpi::standby".
++
++Due to limitations in the sysfs led class, if the status of the LED
++indicators cannot be read due to an error, thinkpad-acpi will report it as
++a brightness of zero (same as LED off).
++
++If the thinkpad firmware doesn't support reading the current status,
++trying to read the current LED brightness will just return whatever
++brightness was last written to that attribute.
++
++These LEDs can blink using hardware acceleration.  To request that a
++ThinkPad indicator LED should blink in hardware accelerated mode, use the
++"timer" trigger, and leave the delay_on and delay_off parameters set to
++zero (to request hardware acceleration autodetection).
++
+ ACPI sounds -- /proc/acpi/ibm/beep
+ ----------------------------------
+ 
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 2ab3633..f471b46 100644
+index 38a119b..2ab3633 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -3881,7 +3881,7 @@ static int led_set_status(unsigned int led, enum led_status_t ledstatus)
- 					      led * led_exp_hlbl[ledstatus]);
- 			if (rc >= 0)
- 				rc = ec_write(TPACPI_LED_EC_HLCL,
--					       led * led_exp_hlcl[ledstatus]);
-+					      led * led_exp_hlcl[ledstatus]);
- 			break;
- 	case TPACPI_LED_NEW:
- 			/* all others */
+@@ -277,6 +277,7 @@ struct tpacpi_led_classdev {
+ 	struct led_classdev led_classdev;
+ 	struct work_struct work;
+ 	enum led_brightness new_brightness;
++	unsigned int led;
+ };
+ 
+ /****************************************************************************
+@@ -3814,20 +3815,38 @@ TPACPI_HANDLE(led, ec, "SLED",	/* 570 */
+ 	   "LED",		/* all others */
+ 	   );			/* R30, R31 */
+ 
++#define TPACPI_LED_NUMLEDS 8
++static struct tpacpi_led_classdev *tpacpi_leds;
++static enum led_status_t tpacpi_led_state_cache[TPACPI_LED_NUMLEDS];
++static const char const *tpacpi_led_names[TPACPI_LED_NUMLEDS] = {
++	/* there's a limit of 19 chars + NULL before 2.6.26 */
++	"tpacpi::power",
++	"tpacpi:orange:batt",
++	"tpacpi:green:batt",
++	"tpacpi::dock_active",
++	"tpacpi::bay_active",
++	"tpacpi::dock_batt",
++	"tpacpi::unknown_led",
++	"tpacpi::standby",
++};
++
+ static int led_get_status(unsigned int led)
+ {
+ 	int status;
++	enum led_status_t led_s;
+ 
+ 	switch (led_supported) {
+ 	case TPACPI_LED_570:
+ 		if (!acpi_evalf(ec_handle,
+ 				&status, "GLED", "dd", 1 << led))
+ 			return -EIO;
+-		return (status == 0)?
++		led_s = (status == 0)?
+ 				TPACPI_LED_OFF :
+ 				((status == 1)?
+ 					TPACPI_LED_ON :
+ 					TPACPI_LED_BLINK);
++		tpacpi_led_state_cache[led] = led_s;
++		return led_s;
+ 	default:
+ 		return -ENXIO;
+ 	}
+@@ -3874,11 +3893,96 @@ static int led_set_status(unsigned int led, enum led_status_t ledstatus)
+ 		rc = -ENXIO;
+ 	}
+ 
++	if (!rc)
++		tpacpi_led_state_cache[led] = ledstatus;
++
+ 	return rc;
+ }
+ 
++static void led_sysfs_set_status(unsigned int led,
++				 enum led_brightness brightness)
++{
++	led_set_status(led,
++			(brightness == LED_OFF) ?
++			TPACPI_LED_OFF :
++			(tpacpi_led_state_cache[led] == TPACPI_LED_BLINK) ?
++				TPACPI_LED_BLINK : TPACPI_LED_ON);
++}
++
++static void led_set_status_worker(struct work_struct *work)
++{
++	struct tpacpi_led_classdev *data =
++		container_of(work, struct tpacpi_led_classdev, work);
++
++	if (likely(tpacpi_lifecycle == TPACPI_LIFE_RUNNING))
++		led_sysfs_set_status(data->led, data->new_brightness);
++}
++
++static void led_sysfs_set(struct led_classdev *led_cdev,
++			enum led_brightness brightness)
++{
++	struct tpacpi_led_classdev *data = container_of(led_cdev,
++			     struct tpacpi_led_classdev, led_classdev);
++
++	data->new_brightness = brightness;
++	schedule_work(&data->work);
++}
++
++static int led_sysfs_blink_set(struct led_classdev *led_cdev,
++			unsigned long *delay_on, unsigned long *delay_off)
++{
++	struct tpacpi_led_classdev *data = container_of(led_cdev,
++			     struct tpacpi_led_classdev, led_classdev);
++
++	/* Can we choose the flash rate? */
++	if (*delay_on == 0 && *delay_off == 0) {
++		/* yes. set them to the hardware blink rate (1 Hz) */
++		*delay_on = 500; /* ms */
++		*delay_off = 500; /* ms */
++	} else if ((*delay_on != 500) || (*delay_off != 500))
++		return -EINVAL;
++
++	data->new_brightness = TPACPI_LED_BLINK;
++	schedule_work(&data->work);
++
++	return 0;
++}
++
++static enum led_brightness led_sysfs_get(struct led_classdev *led_cdev)
++{
++	int rc;
++
++	struct tpacpi_led_classdev *data = container_of(led_cdev,
++			     struct tpacpi_led_classdev, led_classdev);
++
++	rc = led_get_status(data->led);
++
++	if (rc == TPACPI_LED_OFF || rc < 0)
++		rc = LED_OFF;	/* no error handling in led class :( */
++	else
++		rc = LED_FULL;
++
++	return rc;
++}
++
++static void led_exit(void)
++{
++	unsigned int i;
++
++	for (i = 0; i < TPACPI_LED_NUMLEDS; i++) {
++		if (tpacpi_leds[i].led_classdev.name)
++			led_classdev_unregister(&tpacpi_leds[i].led_classdev);
++	}
++
++	kfree(tpacpi_leds);
++	tpacpi_leds = NULL;
++}
++
+ static int __init led_init(struct ibm_init_struct *iibm)
+ {
++	unsigned int i;
++	int rc;
++
+ 	vdbg_printk(TPACPI_DBG_INIT, "initializing LED subdriver\n");
+ 
+ 	TPACPI_ACPIHANDLE_INIT(led);
+@@ -3899,6 +4003,35 @@ static int __init led_init(struct ibm_init_struct *iibm)
+ 	vdbg_printk(TPACPI_DBG_INIT, "LED commands are %s, mode %d\n",
+ 		str_supported(led_supported), led_supported);
+ 
++	tpacpi_leds = kzalloc(sizeof(*tpacpi_leds) * TPACPI_LED_NUMLEDS,
++			      GFP_KERNEL);
++	if (!tpacpi_leds) {
++		printk(TPACPI_ERR "Out of memory for LED data\n");
++		return -ENOMEM;
++	}
++
++	for (i = 0; i < TPACPI_LED_NUMLEDS; i++) {
++		tpacpi_leds[i].led = i;
++
++		tpacpi_leds[i].led_classdev.brightness_set = &led_sysfs_set;
++		tpacpi_leds[i].led_classdev.blink_set = &led_sysfs_blink_set;
++		if (led_supported == TPACPI_LED_570)
++			tpacpi_leds[i].led_classdev.brightness_get =
++							&led_sysfs_get;
++
++		tpacpi_leds[i].led_classdev.name = tpacpi_led_names[i];
++
++		INIT_WORK(&tpacpi_leds[i].work, led_set_status_worker);
++
++		rc = led_classdev_register(&tpacpi_pdev->dev,
++					   &tpacpi_leds[i].led_classdev);
++		if (rc < 0) {
++			tpacpi_leds[i].led_classdev.name = NULL;
++			led_exit();
++			return rc;
++		}
++	}
++
+ 	return (led_supported != TPACPI_LED_NONE)? 0 : 1;
+ }
+ 
+@@ -3969,6 +4102,7 @@ static struct ibm_struct led_driver_data = {
+ 	.name = "led",
+ 	.read = led_read,
+ 	.write = led_write,
++	.exit = led_exit,
+ };
+ 
+ /*************************************************************************
 -- 
 1.5.4.4
 
