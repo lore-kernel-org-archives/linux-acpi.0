@@ -1,89 +1,86 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 06/14] ACPI: thinkpad-acpi: claim tpacpi as an official short handle (v1.1)
-Date: Sat, 26 Apr 2008 01:02:22 -0300
-Message-ID: <1209182550-32725-7-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 02/14] ACPI: thinkpad-acpi: warn once about weird hotkey masks
+Date: Sat, 26 Apr 2008 01:02:18 -0300
+Message-ID: <1209182550-32725-3-git-send-email-hmh@hmh.eng.br>
 References: <1209182550-32725-1-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:55738 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:51399 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750950AbYDZECg (ORCPT
+	by vger.kernel.org with ESMTP id S1750713AbYDZECe (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 26 Apr 2008 00:02:36 -0400
+	Sat, 26 Apr 2008 00:02:34 -0400
 In-Reply-To: <1209182550-32725-1-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Unfortunately, a lot of stuff in the kernel has size limitations, so
-"thinkpad-acpi" ends up eating up too much real estate.  We were using
-"tpacpi" in symbols already, but this shorthand was not visible to
-userland.
+thinkpad-acpi knows for a while now how to best program the hotkeys by
+default, and always enable them by default.  Unfortunately, this
+information has not filtered down everywhere it needs to, yet.  Notably,
+old ibm-acpi documentation and most "thinkpad setup guides" will have wrong
+information on this area.
 
-Document that the driver will use tpacpi as a short hand where necessary,
-and use it to name the kernel thread for NVRAM polling (now named
-"ktpacpi_nvramd").
+Warn the local admin once whenever any of the following patterns are met:
 
-Also, register a module alias with the shorthand.  One can refer to the
-module using the shorthand name.
+1. Attempts to set hotkey mask to 0xffff (artifact from docs and config
+   for the old ibm-acpi driver and behaviour).  This mask makes no
+   real-world sense;
+
+2. Attempts to set hotkey mask to 0xffffffff, which means the user is
+   trying to just have "everything work" without even reading the
+   documentation, or that we need to get a bug report, because there
+   is a new thinkpad out there with new exciting hot keys :-)
+
+3. Attempts to set hotkey mask to 0xffffff, which is almost never the
+   correct way to set up volume and brightness event reporting (and with
+   the current state-of-the-art, it is known to never be right way to do
+   it).
+
+The driver will perform any and all requested operations, though,
+regardless of any warnings.  I hope these warnings can be removed one or
+two years from now.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 ---
- Documentation/laptops/thinkpad-acpi.txt |    5 +++++
- drivers/misc/thinkpad_acpi.c            |    8 ++++++--
- 2 files changed, 11 insertions(+), 2 deletions(-)
+ drivers/misc/thinkpad_acpi.c |   17 +++++++++++++++++
+ 1 files changed, 17 insertions(+), 0 deletions(-)
 
-diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
-index a77da28..a41bc89 100644
---- a/Documentation/laptops/thinkpad-acpi.txt
-+++ b/Documentation/laptops/thinkpad-acpi.txt
-@@ -18,6 +18,11 @@ This driver used to be named ibm-acpi until kernel 2.6.21 and release
- moved to the drivers/misc tree and renamed to thinkpad-acpi for kernel
- 2.6.22, and release 0.14.
- 
-+The driver is named "thinkpad-acpi".  In some places, like module
-+names, "thinkpad_acpi" is used because of userspace issues.
-+
-+"tpacpi" is used as a shorthand where "thinkpad-acpi" would be too
-+long due to length limitations on some Linux kernel versions.
- 
- Status
- ------
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 5e25abc..2b73dfa 100644
+index 2c85a2e..cd263c5 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -133,8 +133,11 @@ enum {
- #define TPACPI_PROC_DIR "ibm"
- #define TPACPI_ACPI_EVENT_PREFIX "ibm"
- #define TPACPI_DRVR_NAME TPACPI_FILE
-+#define TPACPI_DRVR_SHORTNAME "tpacpi"
- #define TPACPI_HWMON_DRVR_NAME TPACPI_NAME "_hwmon"
+@@ -237,6 +237,10 @@ static struct {
+ 	u32 hotkey_poll_active:1;
+ } tp_features;
  
-+#define TPACPI_NVRAM_KTHREAD_NAME "ktpacpi_nvramd"
++static struct {
++	u16 hotkey_mask_ff:1;
++} tp_warned;
 +
- #define TPACPI_MAX_ACPI_ARGS 3
+ struct thinkpad_id_data {
+ 	unsigned int vendor;	/* ThinkPad vendor:
+ 				 * PCI_VENDOR_ID_IBM/PCI_VENDOR_ID_LENOVO */
+@@ -1182,6 +1186,19 @@ static int hotkey_mask_set(u32 mask)
+ 	int rc = 0;
  
- /* Debugging */
-@@ -1523,8 +1526,7 @@ static void hotkey_poll_setup(int may_warn)
- 	    (tpacpi_inputdev->users > 0 || hotkey_report_mode < 2)) {
- 		if (!tpacpi_hotkey_task) {
- 			tpacpi_hotkey_task = kthread_run(hotkey_kthread,
--							 NULL,
--							 TPACPI_FILE "d");
-+					NULL, TPACPI_NVRAM_KTHREAD_NAME);
- 			if (IS_ERR(tpacpi_hotkey_task)) {
- 				tpacpi_hotkey_task = NULL;
- 				printk(TPACPI_ERR
-@@ -6316,6 +6318,8 @@ static int __init thinkpad_acpi_module_init(void)
- /* Please remove this in year 2009 */
- MODULE_ALIAS("ibm_acpi");
- 
-+MODULE_ALIAS(TPACPI_DRVR_SHORTNAME);
+ 	if (tp_features.hotkey_mask) {
++		if (!tp_warned.hotkey_mask_ff &&
++		    (mask == 0xffff || mask == 0xffffff ||
++		     mask == 0xffffffff)) {
++			tp_warned.hotkey_mask_ff = 1;
++			printk(TPACPI_NOTICE
++			       "setting the hotkey mask to 0x%08x is likely "
++			       "not the best way to go about it\n", mask);
++			printk(TPACPI_NOTICE
++			       "please consider using the driver defaults, "
++			       "and refer to up-to-date thinkpad-acpi "
++			       "documentation\n");
++		}
 +
- /*
-  * DMI matching for module autoloading
-  *
+ 		HOTKEY_CONFIG_CRITICAL_START
+ 		for (i = 0; i < 32; i++) {
+ 			u32 m = 1 << i;
 -- 
 1.5.4.4
 
