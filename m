@@ -1,100 +1,349 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 10/14] ACPI: thinkpad-acpi: use uppercase for "LED" on user documentation
-Date: Sat, 26 Apr 2008 01:02:26 -0300
-Message-ID: <1209182550-32725-11-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 07/14] ACPI: thinkpad-acpi: prepare light and LED for sysfs support
+Date: Sat, 26 Apr 2008 01:02:23 -0300
+Message-ID: <1209182550-32725-8-git-send-email-hmh@hmh.eng.br>
 References: <1209182550-32725-1-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:44062 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:34159 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750708AbYDZECg (ORCPT
+	by vger.kernel.org with ESMTP id S1750990AbYDZECg (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
 	Sat, 26 Apr 2008 00:02:36 -0400
 In-Reply-To: <1209182550-32725-1-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Randy Dunlap <randy.dunlap@oracle.com>
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Change all occourences of the "led" word to full uppercase in user
-documentation.
+Do some preparatory work to add sysfs support to the thinklight and
+thinkpad leds driver.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
 ---
- Documentation/laptops/thinkpad-acpi.txt |   22 +++++++++++-----------
- 1 files changed, 11 insertions(+), 11 deletions(-)
+ drivers/misc/Kconfig         |    2 +
+ drivers/misc/thinkpad_acpi.c |  191 ++++++++++++++++++++++++++++++------------
+ 2 files changed, 138 insertions(+), 55 deletions(-)
 
-diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
-index 73b80a7..947b726 100644
---- a/Documentation/laptops/thinkpad-acpi.txt
-+++ b/Documentation/laptops/thinkpad-acpi.txt
-@@ -697,7 +697,7 @@ ThinkLight control
- ------------------
+diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+index 297a48f..3a5d769 100644
+--- a/drivers/misc/Kconfig
++++ b/drivers/misc/Kconfig
+@@ -245,6 +245,8 @@ config THINKPAD_ACPI
+ 	select HWMON
+ 	select NVRAM
+ 	depends on INPUT
++	select NEW_LEDS
++	select LEDS_CLASS
+ 	---help---
+ 	  This is a driver for the IBM and Lenovo ThinkPad laptops. It adds
+ 	  support for Fn-Fx key combinations, Bluetooth control, video
+diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
+index 2b73dfa..5a3fb09 100644
+--- a/drivers/misc/thinkpad_acpi.c
++++ b/drivers/misc/thinkpad_acpi.c
+@@ -67,6 +67,7 @@
+ #include <linux/hwmon.h>
+ #include <linux/hwmon-sysfs.h>
+ #include <linux/input.h>
++#include <linux/leds.h>
+ #include <asm/uaccess.h>
  
- procfs: /proc/acpi/ibm/light
--sysfs attributes: as per led class, for the "tpacpi::thinklight" led
-+sysfs attributes: as per LED class, for the "tpacpi::thinklight" LED
+ #include <linux/dmi.h>
+@@ -85,6 +86,8 @@
+ #define TP_CMOS_VOLUME_MUTE	2
+ #define TP_CMOS_BRIGHTNESS_UP	4
+ #define TP_CMOS_BRIGHTNESS_DOWN	5
++#define TP_CMOS_THINKLIGHT_ON	12
++#define TP_CMOS_THINKLIGHT_OFF	13
  
- procfs notes:
+ /* NVRAM Addresses */
+ enum tp_nvram_addr {
+@@ -269,6 +272,13 @@ static enum {
+ static int experimental;
+ static u32 dbg_level;
  
-@@ -710,11 +710,11 @@ status as "unknown". The available commands are:
++/* Special LED class that can defer work */
++struct tpacpi_led_classdev {
++	struct led_classdev led_classdev;
++	struct work_struct work;
++	enum led_brightness new_brightness;
++};
++
+ /****************************************************************************
+  ****************************************************************************
+  *
+@@ -3237,6 +3247,39 @@ static struct ibm_struct video_driver_data = {
+ TPACPI_HANDLE(lght, root, "\\LGHT");	/* A21e, A2xm/p, T20-22, X20-21 */
+ TPACPI_HANDLE(ledb, ec, "LEDB");		/* G4x */
  
- sysfs notes:
++static int light_get_status(void)
++{
++	int status = 0;
++
++	if (tp_features.light_status) {
++		if (!acpi_evalf(ec_handle, &status, "KBLT", "d"))
++			return -EIO;
++		return (!!status);
++	}
++
++	return -ENXIO;
++}
++
++static int light_set_status(int status)
++{
++	int rc;
++
++	if (tp_features.light) {
++		if (cmos_handle) {
++			rc = acpi_evalf(cmos_handle, NULL, NULL, "vd",
++					(status)?
++						TP_CMOS_THINKLIGHT_ON :
++						TP_CMOS_THINKLIGHT_OFF);
++		} else {
++			rc = acpi_evalf(lght_handle, NULL, NULL, "vd",
++					(status)? 1 : 0);
++		}
++		return (rc)? 0 : -EIO;
++	}
++
++	return -ENXIO;
++}
++
+ static int __init light_init(struct ibm_init_struct *iibm)
+ {
+ 	vdbg_printk(TPACPI_DBG_INIT, "initializing light subdriver\n");
+@@ -3263,7 +3306,7 @@ static int __init light_init(struct ibm_init_struct *iibm)
+ static int light_read(char *p)
+ {
+ 	int len = 0;
+-	int status = 0;
++	int status;
  
--The ThinkLight sysfs interface is documented by the led class
--documentation, in Documentation/leds-class.txt.  The ThinkLight led name
-+The ThinkLight sysfs interface is documented by the LED class
-+documentation, in Documentation/leds-class.txt.  The ThinkLight LED name
- is "tpacpi::thinklight".
+ 	if (!tp_features.light) {
+ 		len += sprintf(p + len, "status:\t\tnot supported\n");
+@@ -3271,8 +3314,9 @@ static int light_read(char *p)
+ 		len += sprintf(p + len, "status:\t\tunknown\n");
+ 		len += sprintf(p + len, "commands:\ton, off\n");
+ 	} else {
+-		if (!acpi_evalf(ec_handle, &status, "KBLT", "d"))
+-			return -EIO;
++		status = light_get_status();
++		if (status < 0)
++			return status;
+ 		len += sprintf(p + len, "status:\t\t%s\n", onoff(status, 0));
+ 		len += sprintf(p + len, "commands:\ton, off\n");
+ 	}
+@@ -3282,31 +3326,22 @@ static int light_read(char *p)
  
--Due to limitations in the sysfs led class, if the status of the thinklight
-+Due to limitations in the sysfs LED class, if the status of the thinklight
- cannot be read or if it is unknown, thinkpad-acpi will report it as "off".
- It is impossible to know if the status returned through sysfs is valid.
+ static int light_write(char *buf)
+ {
+-	int cmos_cmd, lght_cmd;
+ 	char *cmd;
+-	int success;
++	int newstatus = 0;
  
-@@ -880,7 +880,7 @@ LED control
- -----------
+ 	if (!tp_features.light)
+ 		return -ENODEV;
  
- procfs: /proc/acpi/ibm/led
--sysfs attributes: as per led class, see below for names
-+sysfs attributes: as per LED class, see below for names
+ 	while ((cmd = next_cmd(&buf))) {
+ 		if (strlencmp(cmd, "on") == 0) {
+-			cmos_cmd = 0x0c;
+-			lght_cmd = 1;
++			newstatus = 1;
+ 		} else if (strlencmp(cmd, "off") == 0) {
+-			cmos_cmd = 0x0d;
+-			lght_cmd = 0;
++			newstatus = 0;
+ 		} else
+ 			return -EINVAL;
+-
+-		success = cmos_handle ?
+-		    acpi_evalf(cmos_handle, NULL, NULL, "vd", cmos_cmd) :
+-		    acpi_evalf(lght_handle, NULL, NULL, "vd", lght_cmd);
+-		if (!success)
+-			return -EIO;
+ 	}
  
- Some of the LED indicators can be controlled through this feature.  On
- some older ThinkPad models, it is possible to query the status of the
-@@ -891,11 +891,11 @@ procfs notes:
+-	return 0;
++	return light_set_status(newstatus);
+ }
  
- The available commands are:
+ static struct ibm_struct light_driver_data = {
+@@ -3710,6 +3745,12 @@ enum {	/* For TPACPI_LED_OLD */
+ 	TPACPI_LED_EC_HLMS = 0x0e,	/* EC reg to select led to command */
+ };
  
--	echo '<led number> on' >/proc/acpi/ibm/led
--	echo '<led number> off' >/proc/acpi/ibm/led
--	echo '<led number> blink' >/proc/acpi/ibm/led
-+	echo '<LED number> on' >/proc/acpi/ibm/led
-+	echo '<LED number> off' >/proc/acpi/ibm/led
-+	echo '<LED number> blink' >/proc/acpi/ibm/led
++enum led_status_t {
++	TPACPI_LED_OFF = 0,
++	TPACPI_LED_ON,
++	TPACPI_LED_BLINK,
++};
++
+ static enum led_access_mode led_supported;
  
--The <led number> range is 0 to 7. The set of LEDs that can be
-+The <LED number> range is 0 to 7. The set of LEDs that can be
- controlled varies from model to model. Here is the common ThinkPad
- mapping:
+ TPACPI_HANDLE(led, ec, "SLED",	/* 570 */
+@@ -3718,6 +3759,69 @@ TPACPI_HANDLE(led, ec, "SLED",	/* 570 */
+ 	   "LED",		/* all others */
+ 	   );			/* R30, R31 */
  
-@@ -912,7 +912,7 @@ All of the above can be turned on and off and can be made to blink.
++static int led_get_status(unsigned int led)
++{
++	int status;
++
++	switch (led_supported) {
++	case TPACPI_LED_570:
++		if (!acpi_evalf(ec_handle,
++				&status, "GLED", "dd", 1 << led))
++			return -EIO;
++		return (status == 0)?
++				TPACPI_LED_OFF :
++				((status == 1)?
++					TPACPI_LED_ON :
++					TPACPI_LED_BLINK);
++	default:
++		return -ENXIO;
++	}
++
++	/* not reached */
++}
++
++static int led_set_status(unsigned int led, enum led_status_t ledstatus)
++{
++	/* off, on, blink. Index is led_status_t */
++	static const int const led_sled_arg1[] = { 0, 1, 3 };
++	static const int const led_exp_hlbl[] = { 0, 0, 1 };	/* led# * */
++	static const int const led_exp_hlcl[] = { 0, 1, 1 };	/* led# * */
++	static const int const led_led_arg1[] = { 0, 0x80, 0xc0 };
++
++	int rc = 0;
++
++	switch (led_supported) {
++	case TPACPI_LED_570:
++			/* 570 */
++			led = 1 << led;
++			if (!acpi_evalf(led_handle, NULL, NULL, "vdd",
++					led, led_sled_arg1[ledstatus]))
++				rc = -EIO;
++			break;
++	case TPACPI_LED_OLD:
++			/* 600e/x, 770e, 770x, A21e, A2xm/p, T20-22, X20 */
++			led = 1 << led;
++			rc = ec_write(TPACPI_LED_EC_HLMS, led);
++			if (rc >= 0)
++				rc = ec_write(TPACPI_LED_EC_HLBL,
++					      led * led_exp_hlbl[ledstatus]);
++			if (rc >= 0)
++				rc = ec_write(TPACPI_LED_EC_HLCL,
++					       led * led_exp_hlcl[ledstatus]);
++			break;
++	case TPACPI_LED_NEW:
++			/* all others */
++			if (!acpi_evalf(led_handle, NULL, NULL, "vdd",
++					led, led_led_arg1[ledstatus]))
++				rc = -EIO;
++			break;
++	default:
++		rc = -ENXIO;
++	}
++
++	return rc;
++}
++
+ static int __init led_init(struct ibm_init_struct *iibm)
+ {
+ 	vdbg_printk(TPACPI_DBG_INIT, "initializing LED subdriver\n");
+@@ -3743,7 +3847,9 @@ static int __init led_init(struct ibm_init_struct *iibm)
+ 	return (led_supported != TPACPI_LED_NONE)? 0 : 1;
+ }
  
- sysfs notes:
+-#define led_status(s) ((s) == 0 ? "off" : ((s) == 1 ? "on" : "blinking"))
++#define str_led_status(s) \
++	((s) == TPACPI_LED_OFF ? "off" : \
++		((s) == TPACPI_LED_ON ? "on" : "blinking"))
  
--The ThinkPad LED sysfs interface is described in detail by the led class
-+The ThinkPad LED sysfs interface is described in detail by the LED class
- documentation, in Documentation/leds-class.txt.
+ static int led_read(char *p)
+ {
+@@ -3759,11 +3865,11 @@ static int led_read(char *p)
+ 		/* 570 */
+ 		int i, status;
+ 		for (i = 0; i < 8; i++) {
+-			if (!acpi_evalf(ec_handle,
+-					&status, "GLED", "dd", 1 << i))
++			status = led_get_status(i);
++			if (status < 0)
+ 				return -EIO;
+ 			len += sprintf(p + len, "%d:\t\t%s\n",
+-				       i, led_status(status));
++				       i, str_led_status(status));
+ 		}
+ 	}
  
- The leds are named (in LED ID order, from 0 to 7):
-@@ -920,7 +920,7 @@ The leds are named (in LED ID order, from 0 to 7):
- "tpacpi::dock_active", "tpacpi::bay_active", "tpacpi::dock_batt",
- "tpacpi::unknown_led", "tpacpi::standby".
+@@ -3773,16 +3879,11 @@ static int led_read(char *p)
+ 	return len;
+ }
  
--Due to limitations in the sysfs led class, if the status of the LED
-+Due to limitations in the sysfs LED class, if the status of the LED
- indicators cannot be read due to an error, thinkpad-acpi will report it as
- a brightness of zero (same as LED off).
+-/* off, on, blink */
+-static const int led_sled_arg1[] = { 0, 1, 3 };
+-static const int led_exp_hlbl[] = { 0, 0, 1 };	/* led# * */
+-static const int led_exp_hlcl[] = { 0, 1, 1 };	/* led# * */
+-static const int led_led_arg1[] = { 0, 0x80, 0xc0 };
+-
+ static int led_write(char *buf)
+ {
+ 	char *cmd;
+-	int led, ind, ret;
++	int led, rc;
++	enum led_status_t s;
  
+ 	if (!led_supported)
+ 		return -ENODEV;
+@@ -3792,38 +3893,18 @@ static int led_write(char *buf)
+ 			return -EINVAL;
+ 
+ 		if (strstr(cmd, "off")) {
+-			ind = 0;
++			s = TPACPI_LED_OFF;
+ 		} else if (strstr(cmd, "on")) {
+-			ind = 1;
++			s = TPACPI_LED_ON;
+ 		} else if (strstr(cmd, "blink")) {
+-			ind = 2;
+-		} else
+-			return -EINVAL;
+-
+-		if (led_supported == TPACPI_LED_570) {
+-			/* 570 */
+-			led = 1 << led;
+-			if (!acpi_evalf(led_handle, NULL, NULL, "vdd",
+-					led, led_sled_arg1[ind]))
+-				return -EIO;
+-		} else if (led_supported == TPACPI_LED_OLD) {
+-			/* 600e/x, 770e, 770x, A21e, A2xm/p, T20-22, X20 */
+-			led = 1 << led;
+-			ret = ec_write(TPACPI_LED_EC_HLMS, led);
+-			if (ret >= 0)
+-				ret = ec_write(TPACPI_LED_EC_HLBL,
+-						led * led_exp_hlbl[ind]);
+-			if (ret >= 0)
+-				ret = ec_write(TPACPI_LED_EC_HLCL,
+-						led * led_exp_hlcl[ind]);
+-			if (ret < 0)
+-				return ret;
++			s = TPACPI_LED_BLINK;
+ 		} else {
+-			/* all others */
+-			if (!acpi_evalf(led_handle, NULL, NULL, "vdd",
+-					led, led_led_arg1[ind]))
+-				return -EIO;
++			return -EINVAL;
+ 		}
++
++		rc = led_set_status(led, s);
++		if (rc < 0)
++			return rc;
+ 	}
+ 
+ 	return 0;
 -- 
 1.5.4.4
 
