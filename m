@@ -1,430 +1,100 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 01/14] ACPI: thinkpad-acpi: BIOS backlight mode helper (v2.1)
-Date: Sat, 26 Apr 2008 01:02:17 -0300
-Message-ID: <1209182550-32725-2-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 10/14] ACPI: thinkpad-acpi: use uppercase for "LED" on user documentation
+Date: Sat, 26 Apr 2008 01:02:26 -0300
+Message-ID: <1209182550-32725-11-git-send-email-hmh@hmh.eng.br>
 References: <1209182550-32725-1-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:42952 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:44062 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750716AbYDZECe (ORCPT
+	by vger.kernel.org with ESMTP id S1750708AbYDZECg (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 26 Apr 2008 00:02:34 -0400
+	Sat, 26 Apr 2008 00:02:36 -0400
 In-Reply-To: <1209182550-32725-1-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Matthew Garrett <mjg59@srcf.ucam.org>, Thomas Renninger <trenn@suse.de>
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Randy Dunlap <randy.dunlap@oracle.com>
 
-Lenovo ThinkPads with generic ACPI backlight level control can be easily
-set to react to keyboard brightness key presses in a more predictable way
-than what they do when in "DOS / bootloader" mode after Linux brings
-up the ACPI interface.
-
-The switch to the ACPI backlight mode in the firmware is designed to be
-safe to use only as an one way trapdoor.  One is not to force the firmware
-to switch back to "DOS/bootloader" mode except by rebooting.  The mode
-switch itself is performed by calling any of the ACPI _BCL methods at least
-once.
-
-When in ACPI mode, the backlight firmware just issues (standard) events for
-the brightness up/down hot key presses along with the non-standard HKEY
-events which thinkpad-acpi traps, and doesn't touch the hardware.
-
-thinkpad-acpi will:
-
-1. Place the ThinkPad firmware in ACPI backlight control mode
-   if one is available
-2. Suppress HKEY backlight change notifications by default
-   to avoid double-reporting when ACPI video is loaded when
-   the ThinkPad is in ACPI backlight control mode
-3. Urge the user to load the ACPI video driver
-
-The user is free to use either the ACPI video driver to get the brightness
-key events, or to override the thinkpad-acpi default hotkey mask to get
-them from thinkpad-acpi as well (this will result in duplicate events if
-ACPI video is loaded, so let's hope distros won't screw this up).
-
-Provided userspace is sane, all should work (and *keep* working), which is
-more that can be said about the non-ACPI mode of the new Lenovo ThinkPad
-BIOSes when coupled to current userspace and X.org drivers.
-
-Full guidelines for backlight hot key reporting and use of the
-thinkpad-acpi backlight interface have been added to the documentation.
+Change all occourences of the "led" word to full uppercase in user
+documentation.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Thomas Renninger <trenn@suse.de>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 ---
- Documentation/laptops/thinkpad-acpi.txt |   50 +++++++
- drivers/misc/thinkpad_acpi.c            |  238 +++++++++++++++++--------------
- 2 files changed, 183 insertions(+), 105 deletions(-)
+ Documentation/laptops/thinkpad-acpi.txt |   22 +++++++++++-----------
+ 1 files changed, 11 insertions(+), 11 deletions(-)
 
 diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
-index 76cb428..a77da28 100644
+index 73b80a7..947b726 100644
 --- a/Documentation/laptops/thinkpad-acpi.txt
 +++ b/Documentation/laptops/thinkpad-acpi.txt
-@@ -571,6 +571,47 @@ netlink interface and the input layer interface, and don't bother at all
- with hotkey_report_mode.
+@@ -697,7 +697,7 @@ ThinkLight control
+ ------------------
  
+ procfs: /proc/acpi/ibm/light
+-sysfs attributes: as per led class, for the "tpacpi::thinklight" led
++sysfs attributes: as per LED class, for the "tpacpi::thinklight" LED
  
-+Brightness hotkey notes:
-+
-+These are the current sane choices for brightness key mapping in
-+thinkpad-acpi:
-+
-+For IBM and Lenovo models *without* ACPI backlight control (the ones on
-+which thinkpad-acpi will autoload its backlight interface by default,
-+and on which ACPI video does not export a backlight interface):
-+
-+1. Don't enable or map the brightness hotkeys in thinkpad-acpi, as
-+   these older firmware versions unfortunately won't respect the hotkey
-+   mask for brightness keys anyway, and always reacts to them.  This
-+   usually work fine, unless X.org drivers are doing something to block
-+   the BIOS.  In that case, use (3) below.  This is the default mode of
-+   operation.
-+
-+2. Enable the hotkeys, but map them to something else that is NOT
-+   KEY_BRIGHTNESS_UP/DOWN or any other keycode that would cause
-+   userspace to try to change the backlight level, and use that as an
-+   on-screen-display hint.
-+
-+3. IF AND ONLY IF X.org drivers find a way to block the firmware from
-+   automatically changing the brightness, enable the hotkeys and map
-+   them to KEY_BRIGHTNESS_UP and KEY_BRIGHTNESS_DOWN, and feed that to
-+   something that calls xbacklight.  thinkpad-acpi will not be able to
-+   change brightness in that case either, so you should disable its
-+   backlight interface.
-+
-+For Lenovo models *with* ACPI backlight control:
-+
-+1. Load up ACPI video and use that.  ACPI video will report ACPI
-+   events for brightness change keys.  Do not mess with thinkpad-acpi
-+   defaults in this case.  thinkpad-acpi should not have anything to do
-+   with backlight events in a scenario where ACPI video is loaded:
-+   brightness hotkeys must be disabled, and the backlight interface is
-+   to be kept disabled as well.  This is the default mode of operation.
-+
-+2. Do *NOT* load up ACPI video, enable the hotkeys in thinkpad-acpi,
-+   and map them to KEY_BRIGHTNESS_UP and KEY_BRIGHTNESS_DOWN.  Process
-+   these keys on userspace somehow (e.g. by calling xbacklight).
-+
- Bluetooth
- ---------
+ procfs notes:
  
-@@ -1090,6 +1131,15 @@ it there will be the following attributes:
- 		dim the display.
+@@ -710,11 +710,11 @@ status as "unknown". The available commands are:
  
+ sysfs notes:
  
-+WARNING:
-+
-+    Whatever you do, do NOT ever call thinkpad-acpi backlight-level change
-+    interface and the ACPI-based backlight level change interface
-+    (available on newer BIOSes, and driven by the Linux ACPI video driver)
-+    at the same time.  The two will interact in bad ways, do funny things,
-+    and maybe reduce the life of the backlight lamps by needlessly kicking
-+    its level up and down at every change.
-+
- Volume control -- /proc/acpi/ibm/volume
- ---------------------------------------
+-The ThinkLight sysfs interface is documented by the led class
+-documentation, in Documentation/leds-class.txt.  The ThinkLight led name
++The ThinkLight sysfs interface is documented by the LED class
++documentation, in Documentation/leds-class.txt.  The ThinkLight LED name
+ is "tpacpi::thinklight".
  
-diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 6cb7812..2c85a2e 100644
---- a/drivers/misc/thinkpad_acpi.c
-+++ b/drivers/misc/thinkpad_acpi.c
-@@ -225,6 +225,7 @@ static struct {
- 	u32 light:1;
- 	u32 light_status:1;
- 	u32 bright_16levels:1;
-+	u32 bright_acpimode:1;
- 	u32 wan:1;
- 	u32 fan_ctrl_status_undef:1;
- 	u32 input_device_registered:1;
-@@ -807,6 +808,80 @@ static int parse_strtoul(const char *buf,
- 	return 0;
- }
+-Due to limitations in the sysfs led class, if the status of the thinklight
++Due to limitations in the sysfs LED class, if the status of the thinklight
+ cannot be read or if it is unknown, thinkpad-acpi will report it as "off".
+ It is impossible to know if the status returned through sysfs is valid.
  
-+static int __init tpacpi_query_bcl_levels(acpi_handle handle)
-+{
-+	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-+	union acpi_object *obj;
-+	int rc;
-+
-+	if (ACPI_SUCCESS(acpi_evaluate_object(handle, NULL, NULL, &buffer))) {
-+		obj = (union acpi_object *)buffer.pointer;
-+		if (!obj || (obj->type != ACPI_TYPE_PACKAGE)) {
-+			printk(TPACPI_ERR "Unknown _BCL data, "
-+			       "please report this to %s\n", TPACPI_MAIL);
-+			rc = 0;
-+		} else {
-+			rc = obj->package.count;
-+		}
-+	} else {
-+		return 0;
-+	}
-+
-+	kfree(buffer.pointer);
-+	return rc;
-+}
-+
-+static acpi_status __init tpacpi_acpi_walk_find_bcl(acpi_handle handle,
-+					u32 lvl, void *context, void **rv)
-+{
-+	char name[ACPI_PATH_SEGMENT_LENGTH];
-+	struct acpi_buffer buffer = { sizeof(name), &name };
-+
-+	if (ACPI_SUCCESS(acpi_get_name(handle, ACPI_SINGLE_NAME, &buffer)) &&
-+	    !strncmp("_BCL", name, sizeof(name) - 1)) {
-+		BUG_ON(!rv || !*rv);
-+		**(int **)rv = tpacpi_query_bcl_levels(handle);
-+		return AE_CTRL_TERMINATE;
-+	} else {
-+		return AE_OK;
-+	}
-+}
-+
-+/*
-+ * Returns 0 (no ACPI _BCL or _BCL invalid), or size of brightness map
-+ */
-+static int __init tpacpi_check_std_acpi_brightness_support(void)
-+{
-+	int status;
-+	int bcl_levels = 0;
-+	void *bcl_ptr = &bcl_levels;
-+
-+	if (!vid_handle) {
-+		TPACPI_ACPIHANDLE_INIT(vid);
-+	}
-+	if (!vid_handle)
-+		return 0;
-+
-+	/*
-+	 * Search for a _BCL method, and execute it.  This is safe on all
-+	 * ThinkPads, and as a side-effect, _BCL will place a Lenovo Vista
-+	 * BIOS in ACPI backlight control mode.  We do NOT have to care
-+	 * about calling the _BCL method in an enabled video device, any
-+	 * will do for our purposes.
-+	 */
-+
-+	status = acpi_walk_namespace(ACPI_TYPE_METHOD, vid_handle, 3,
-+				     tpacpi_acpi_walk_find_bcl, NULL,
-+				     &bcl_ptr);
-+
-+	if (ACPI_SUCCESS(status) && bcl_levels > 2) {
-+		tp_features.bright_acpimode = 1;
-+		return (bcl_levels - 2);
-+	}
-+
-+	return 0;
-+}
-+
- /*************************************************************************
-  * thinkpad-acpi driver attributes
-  */
-@@ -1887,6 +1962,9 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
- 		KEY_UNKNOWN,	/* 0x0D: FN+INSERT */
- 		KEY_UNKNOWN,	/* 0x0E: FN+DELETE */
+@@ -880,7 +880,7 @@ LED control
+ -----------
  
-+		/* These either have to go through ACPI video, or
-+		 * act like in the IBM ThinkPads, so don't ever
-+		 * enable them by default */
- 		KEY_RESERVED,	/* 0x0F: FN+HOME (brightness up) */
- 		KEY_RESERVED,	/* 0x10: FN+END (brightness down) */
+ procfs: /proc/acpi/ibm/led
+-sysfs attributes: as per led class, see below for names
++sysfs attributes: as per LED class, see below for names
  
-@@ -2091,6 +2169,32 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
- 			set_bit(SW_TABLET_MODE, tpacpi_inputdev->swbit);
- 		}
+ Some of the LED indicators can be controlled through this feature.  On
+ some older ThinkPad models, it is possible to query the status of the
+@@ -891,11 +891,11 @@ procfs notes:
  
-+		/* Do not issue duplicate brightness change events to
-+		 * userspace */
-+		if (!tp_features.bright_acpimode)
-+			/* update bright_acpimode... */
-+			tpacpi_check_std_acpi_brightness_support();
-+
-+		if (tp_features.bright_acpimode) {
-+			printk(TPACPI_INFO
-+			       "This ThinkPad has standard ACPI backlight "
-+			       "brightness control, supported by the ACPI "
-+			       "video driver\n");
-+			printk(TPACPI_NOTICE
-+			       "Disabling thinkpad-acpi brightness events "
-+			       "by default...\n");
-+
-+			/* The hotkey_reserved_mask change below is not
-+			 * necessary while the keys are at KEY_RESERVED in the
-+			 * default map, but better safe than sorry, leave it
-+			 * here as a marker of what we have to do, especially
-+			 * when we finally become able to set this at runtime
-+			 * on response to X.org requests */
-+			hotkey_reserved_mask |=
-+				(1 << TP_ACPI_HOTKEYSCAN_FNHOME)
-+				| (1 << TP_ACPI_HOTKEYSCAN_FNEND);
-+		}
-+
- 		dbg_printk(TPACPI_DBG_INIT,
- 				"enabling hot key handling\n");
- 		res = hotkey_status_set(1);
-@@ -4273,100 +4377,6 @@ static struct backlight_ops ibm_backlight_data = {
+ The available commands are:
  
- /* --------------------------------------------------------------------- */
+-	echo '<led number> on' >/proc/acpi/ibm/led
+-	echo '<led number> off' >/proc/acpi/ibm/led
+-	echo '<led number> blink' >/proc/acpi/ibm/led
++	echo '<LED number> on' >/proc/acpi/ibm/led
++	echo '<LED number> off' >/proc/acpi/ibm/led
++	echo '<LED number> blink' >/proc/acpi/ibm/led
  
--static int __init tpacpi_query_bcll_levels(acpi_handle handle)
--{
--	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
--	union acpi_object *obj;
--	int rc;
--
--	if (ACPI_SUCCESS(acpi_evaluate_object(handle, NULL, NULL, &buffer))) {
--		obj = (union acpi_object *)buffer.pointer;
--		if (!obj || (obj->type != ACPI_TYPE_PACKAGE)) {
--			printk(TPACPI_ERR "Unknown BCLL data, "
--			       "please report this to %s\n", TPACPI_MAIL);
--			rc = 0;
--		} else {
--			rc = obj->package.count;
--		}
--	} else {
--		return 0;
--	}
--
--	kfree(buffer.pointer);
--	return rc;
--}
--
--static acpi_status __init brightness_find_bcll(acpi_handle handle, u32 lvl,
--					void *context, void **rv)
--{
--	char name[ACPI_PATH_SEGMENT_LENGTH];
--	struct acpi_buffer buffer = { sizeof(name), &name };
--
--	if (ACPI_SUCCESS(acpi_get_name(handle, ACPI_SINGLE_NAME, &buffer)) &&
--	    !strncmp("BCLL", name, sizeof(name) - 1)) {
--		if (tpacpi_query_bcll_levels(handle) == 16) {
--			*rv = handle;
--			return AE_CTRL_TERMINATE;
--		} else {
--			return AE_OK;
--		}
--	} else {
--		return AE_OK;
--	}
--}
--
--static int __init brightness_check_levels(void)
--{
--	int status;
--	void *found_node = NULL;
--
--	if (!vid_handle) {
--		TPACPI_ACPIHANDLE_INIT(vid);
--	}
--	if (!vid_handle)
--		return 0;
--
--	/* Search for a BCLL package with 16 levels */
--	status = acpi_walk_namespace(ACPI_TYPE_PACKAGE, vid_handle, 3,
--					brightness_find_bcll, NULL,
--					&found_node);
--
--	return (ACPI_SUCCESS(status) && found_node != NULL);
--}
--
--static acpi_status __init brightness_find_bcl(acpi_handle handle, u32 lvl,
--					void *context, void **rv)
--{
--	char name[ACPI_PATH_SEGMENT_LENGTH];
--	struct acpi_buffer buffer = { sizeof(name), &name };
--
--	if (ACPI_SUCCESS(acpi_get_name(handle, ACPI_SINGLE_NAME, &buffer)) &&
--	    !strncmp("_BCL", name, sizeof(name) - 1)) {
--		*rv = handle;
--		return AE_CTRL_TERMINATE;
--	} else {
--		return AE_OK;
--	}
--}
--
--static int __init brightness_check_std_acpi_support(void)
--{
--	int status;
--	void *found_node = NULL;
--
--	if (!vid_handle) {
--		TPACPI_ACPIHANDLE_INIT(vid);
--	}
--	if (!vid_handle)
--		return 0;
--
--	/* Search for a _BCL method, but don't execute it */
--	status = acpi_walk_namespace(ACPI_TYPE_METHOD, vid_handle, 3,
--				     brightness_find_bcl, NULL, &found_node);
--
--	return (ACPI_SUCCESS(status) && found_node != NULL);
--}
--
- static int __init brightness_init(struct ibm_init_struct *iibm)
- {
- 	int b;
-@@ -4375,13 +4385,19 @@ static int __init brightness_init(struct ibm_init_struct *iibm)
+-The <led number> range is 0 to 7. The set of LEDs that can be
++The <LED number> range is 0 to 7. The set of LEDs that can be
+ controlled varies from model to model. Here is the common ThinkPad
+ mapping:
  
- 	mutex_init(&brightness_mutex);
+@@ -912,7 +912,7 @@ All of the above can be turned on and off and can be made to blink.
  
--	if (!brightness_enable) {
--		dbg_printk(TPACPI_DBG_INIT,
--			   "brightness support disabled by "
--			   "module parameter\n");
--		return 1;
--	} else if (brightness_enable > 1) {
--		if (brightness_check_std_acpi_support()) {
-+	/*
-+	 * We always attempt to detect acpi support, so as to switch
-+	 * Lenovo Vista BIOS to ACPI brightness mode even if we are not
-+	 * going to publish a backlight interface
-+	 */
-+	b = tpacpi_check_std_acpi_brightness_support();
-+	if (b > 0) {
-+		if (thinkpad_id.vendor == PCI_VENDOR_ID_LENOVO) {
-+			printk(TPACPI_NOTICE
-+			       "Lenovo BIOS switched to ACPI backlight "
-+			       "control mode\n");
-+		}
-+		if (brightness_enable > 1) {
- 			printk(TPACPI_NOTICE
- 			       "standard ACPI backlight interface "
- 			       "available, not loading native one...\n");
-@@ -4389,6 +4405,22 @@ static int __init brightness_init(struct ibm_init_struct *iibm)
- 		}
- 	}
+ sysfs notes:
  
-+	if (!brightness_enable) {
-+		dbg_printk(TPACPI_DBG_INIT,
-+			   "brightness support disabled by "
-+			   "module parameter\n");
-+		return 1;
-+	}
-+
-+	if (b > 16) {
-+		printk(TPACPI_ERR
-+		       "Unsupported brightness interface, "
-+		       "please contact %s\n", TPACPI_MAIL);
-+		return 1;
-+	}
-+	if (b == 16)
-+		tp_features.bright_16levels = 1;
-+
- 	if (!brightness_mode) {
- 		if (thinkpad_id.vendor == PCI_VENDOR_ID_LENOVO)
- 			brightness_mode = 2;
-@@ -4402,10 +4434,6 @@ static int __init brightness_init(struct ibm_init_struct *iibm)
- 	if (brightness_mode > 3)
- 		return -EINVAL;
+-The ThinkPad LED sysfs interface is described in detail by the led class
++The ThinkPad LED sysfs interface is described in detail by the LED class
+ documentation, in Documentation/leds-class.txt.
  
--	tp_features.bright_16levels =
--			thinkpad_id.vendor == PCI_VENDOR_ID_LENOVO &&
--			brightness_check_levels();
--
- 	b = brightness_get(NULL);
- 	if (b < 0)
- 		return 1;
+ The leds are named (in LED ID order, from 0 to 7):
+@@ -920,7 +920,7 @@ The leds are named (in LED ID order, from 0 to 7):
+ "tpacpi::dock_active", "tpacpi::bay_active", "tpacpi::dock_batt",
+ "tpacpi::unknown_led", "tpacpi::standby".
+ 
+-Due to limitations in the sysfs led class, if the status of the LED
++Due to limitations in the sysfs LED class, if the status of the LED
+ indicators cannot be read due to an error, thinkpad-acpi will report it as
+ a brightness of zero (same as LED off).
+ 
 -- 
 1.5.4.4
 
