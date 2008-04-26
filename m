@@ -1,135 +1,49 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 12/14] ACPI: thinkpad-acpi: use a private workqueue
-Date: Sat, 26 Apr 2008 01:02:28 -0300
-Message-ID: <1209182550-32725-13-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 13/14] ACPI: thinkpad-acpi: fix selects in Kconfig
+Date: Sat, 26 Apr 2008 01:02:29 -0300
+Message-ID: <1209182550-32725-14-git-send-email-hmh@hmh.eng.br>
 References: <1209182550-32725-1-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:32856 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:34159 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751117AbYDZECi (ORCPT
+	by vger.kernel.org with ESMTP id S1751170AbYDZECj (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 26 Apr 2008 00:02:38 -0400
+	Sat, 26 Apr 2008 00:02:39 -0400
 In-Reply-To: <1209182550-32725-1-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Switch all task workers to a private thinkpad-acpi workqueue.
+Add missing select for BACKLIGHT_LCD_SUPPORT, as select doesn't select the
+dependencies of a symbol for us.
 
-This way, we don't risk causing trouble for other tasks scheduled to the
-default work queue, as our workers end up needing to access the ACPI EC,
-run ACPI AML code, trigger SMI traps... and none of those are exactly known
-to be fast, simple operations.
+Also, "select INPUT" in Kconfig.  We are not an Input device, nor are we
+anywhere close to the input subsystem in the Kconfig tree, so using
+"depends on INPUT" is not user-friendly at all.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 ---
- drivers/misc/thinkpad_acpi.c |   26 +++++++++++++++++++-------
- 1 files changed, 19 insertions(+), 7 deletions(-)
+ drivers/misc/Kconfig |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index f471b46..d5c08c0 100644
---- a/drivers/misc/thinkpad_acpi.c
-+++ b/drivers/misc/thinkpad_acpi.c
-@@ -140,6 +140,7 @@ enum {
- #define TPACPI_HWMON_DRVR_NAME TPACPI_NAME "_hwmon"
- 
- #define TPACPI_NVRAM_KTHREAD_NAME "ktpacpi_nvramd"
-+#define TPACPI_WORKQUEUE_NAME "ktpacpid"
- 
- #define TPACPI_MAX_ACPI_ARGS 3
- 
-@@ -272,6 +273,8 @@ static enum {
- static int experimental;
- static u32 dbg_level;
- 
-+static struct workqueue_struct *tpacpi_wq;
-+
- /* Special LED class that can defer work */
- struct tpacpi_led_classdev {
- 	struct led_classdev led_classdev;
-@@ -3298,7 +3301,7 @@ static void light_sysfs_set(struct led_classdev *led_cdev,
- 			     struct tpacpi_led_classdev,
- 			     led_classdev);
- 	data->new_brightness = brightness;
--	schedule_work(&data->work);
-+	queue_work(tpacpi_wq, &data->work);
- }
- 
- static enum led_brightness light_sysfs_get(struct led_classdev *led_cdev)
-@@ -3355,7 +3358,7 @@ static void light_exit(void)
- {
- 	led_classdev_unregister(&tpacpi_led_thinklight.led_classdev);
- 	if (work_pending(&tpacpi_led_thinklight.work))
--		flush_scheduled_work();
-+		flush_workqueue(tpacpi_wq);
- }
- 
- static int light_read(char *p)
-@@ -3925,7 +3928,7 @@ static void led_sysfs_set(struct led_classdev *led_cdev,
- 			     struct tpacpi_led_classdev, led_classdev);
- 
- 	data->new_brightness = brightness;
--	schedule_work(&data->work);
-+	queue_work(tpacpi_wq, &data->work);
- }
- 
- static int led_sysfs_blink_set(struct led_classdev *led_cdev,
-@@ -3943,7 +3946,7 @@ static int led_sysfs_blink_set(struct led_classdev *led_cdev,
- 		return -EINVAL;
- 
- 	data->new_brightness = TPACPI_LED_BLINK;
--	schedule_work(&data->work);
-+	queue_work(tpacpi_wq, &data->work);
- 
- 	return 0;
- }
-@@ -5408,11 +5411,11 @@ static void fan_watchdog_reset(void)
- 	if (fan_watchdog_maxinterval > 0 &&
- 	    tpacpi_lifecycle != TPACPI_LIFE_EXITING) {
- 		fan_watchdog_active = 1;
--		if (!schedule_delayed_work(&fan_watchdog_task,
-+		if (!queue_delayed_work(tpacpi_wq, &fan_watchdog_task,
- 				msecs_to_jiffies(fan_watchdog_maxinterval
- 						 * 1000))) {
- 			printk(TPACPI_ERR
--			       "failed to schedule the fan watchdog, "
-+			       "failed to queue the fan watchdog, "
- 			       "watchdog will not trigger\n");
- 		}
- 	} else
-@@ -5782,7 +5785,7 @@ static void fan_exit(void)
- 			   &driver_attr_fan_watchdog);
- 
- 	cancel_delayed_work(&fan_watchdog_task);
--	flush_scheduled_work();
-+	flush_workqueue(tpacpi_wq);
- }
- 
- static int fan_read(char *p)
-@@ -6436,6 +6439,9 @@ static void thinkpad_acpi_module_exit(void)
- 	if (proc_dir)
- 		remove_proc_entry(TPACPI_PROC_DIR, acpi_root_dir);
- 
-+	if (tpacpi_wq)
-+		destroy_workqueue(tpacpi_wq);
-+
- 	kfree(thinkpad_id.bios_version_str);
- 	kfree(thinkpad_id.ec_version_str);
- 	kfree(thinkpad_id.model_str);
-@@ -6466,6 +6472,12 @@ static int __init thinkpad_acpi_module_init(void)
- 	TPACPI_ACPIHANDLE_INIT(ecrd);
- 	TPACPI_ACPIHANDLE_INIT(ecwr);
- 
-+	tpacpi_wq = create_singlethread_workqueue(TPACPI_WORKQUEUE_NAME);
-+	if (!tpacpi_wq) {
-+		thinkpad_acpi_module_exit();
-+		return -ENOMEM;
-+	}
-+
- 	proc_dir = proc_mkdir(TPACPI_PROC_DIR, acpi_root_dir);
- 	if (!proc_dir) {
- 		printk(TPACPI_ERR
+diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+index 3a5d769..2e21794 100644
+--- a/drivers/misc/Kconfig
++++ b/drivers/misc/Kconfig
+@@ -241,10 +241,11 @@ config SONYPI_COMPAT
+ config THINKPAD_ACPI
+ 	tristate "ThinkPad ACPI Laptop Extras"
+ 	depends on X86 && ACPI
++	select BACKLIGHT_LCD_SUPPORT
+ 	select BACKLIGHT_CLASS_DEVICE
+ 	select HWMON
+ 	select NVRAM
+-	depends on INPUT
++	select INPUT
+ 	select NEW_LEDS
+ 	select LEDS_CLASS
+ 	---help---
 -- 
 1.5.4.4
 
