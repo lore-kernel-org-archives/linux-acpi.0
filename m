@@ -1,56 +1,159 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 14/14] ACPI: thinkpad-acpi: bump up version to 0.20
-Date: Sat, 26 Apr 2008 01:02:30 -0300
-Message-ID: <1209182550-32725-15-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 08/14] ACPI: thinkpad-acpi: add sysfs led class support for thinklight (v3.1)
+Date: Sat, 26 Apr 2008 01:02:24 -0300
+Message-ID: <1209182550-32725-9-git-send-email-hmh@hmh.eng.br>
 References: <1209182550-32725-1-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:59531 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:48884 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751126AbYDZECi (ORCPT
+	by vger.kernel.org with ESMTP id S1751087AbYDZECg (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 26 Apr 2008 00:02:38 -0400
+	Sat, 26 Apr 2008 00:02:36 -0400
 In-Reply-To: <1209182550-32725-1-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Richard Purdie <rpurdie@rpsys.net>
 
-Full LED sysfs support, and the rest of the assorted minor fixes and
-enhancements are a good reason to checkpoint a new version...
+Add a sysfs led class interface to the thinklight (light subdriver).
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 ---
- Documentation/laptops/thinkpad-acpi.txt |    4 ++--
- drivers/misc/thinkpad_acpi.c            |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ Documentation/laptops/thinkpad-acpi.txt |   25 +++++++++++---
+ drivers/misc/thinkpad_acpi.c            |   57 ++++++++++++++++++++++++++++++-
+ 2 files changed, 76 insertions(+), 6 deletions(-)
 
 diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
-index 947b726..01c6c3d 100644
+index a41bc89..af1f2bc 100644
 --- a/Documentation/laptops/thinkpad-acpi.txt
 +++ b/Documentation/laptops/thinkpad-acpi.txt
-@@ -1,7 +1,7 @@
- 		     ThinkPad ACPI Extras Driver
+@@ -693,16 +693,31 @@ while others are still having problems. For more information:
  
--                            Version 0.19
--                         January 06th, 2008
-+                            Version 0.20
-+                          April 09th, 2008
+ https://bugs.freedesktop.org/show_bug.cgi?id=2000
  
-                Borislav Deianov <borislav@users.sf.net>
-              Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+-ThinkLight control -- /proc/acpi/ibm/light
+-------------------------------------------
++ThinkLight control
++------------------
++
++procfs: /proc/acpi/ibm/light
++sysfs attributes: as per led class, for the "tpacpi::thinklight" led
++
++procfs notes:
+ 
+-The current status of the ThinkLight can be found in this file. A few
+-models which do not make the status available will show it as
+-"unknown". The available commands are:
++The ThinkLight status can be read and set through the procfs interface.  A
++few models which do not make the status available will show the ThinkLight
++status as "unknown". The available commands are:
+ 
+ 	echo on  > /proc/acpi/ibm/light
+ 	echo off > /proc/acpi/ibm/light
+ 
++sysfs notes:
++
++The ThinkLight sysfs interface is documented by the led class
++documentation, in Documentation/leds-class.txt.  The ThinkLight led name
++is "tpacpi::thinklight".
++
++Due to limitations in the sysfs led class, if the status of the thinklight
++cannot be read or if it is unknown, thinkpad-acpi will report it as "off".
++It is impossible to know if the status returned through sysfs is valid.
++
+ Docking / undocking -- /proc/acpi/ibm/dock
+ ------------------------------------------
+ 
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index d5c08c0..d29ad2e 100644
+index 5a3fb09..38a119b 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -21,7 +21,7 @@
-  *  02110-1301, USA.
-  */
+@@ -3280,13 +3280,49 @@ static int light_set_status(int status)
+ 	return -ENXIO;
+ }
  
--#define TPACPI_VERSION "0.19"
-+#define TPACPI_VERSION "0.20"
- #define TPACPI_SYSFS_VERSION 0x020200
++static void light_set_status_worker(struct work_struct *work)
++{
++	struct tpacpi_led_classdev *data =
++			container_of(work, struct tpacpi_led_classdev, work);
++
++	if (likely(tpacpi_lifecycle == TPACPI_LIFE_RUNNING))
++		light_set_status((data->new_brightness != LED_OFF));
++}
++
++static void light_sysfs_set(struct led_classdev *led_cdev,
++			enum led_brightness brightness)
++{
++	struct tpacpi_led_classdev *data =
++		container_of(led_cdev,
++			     struct tpacpi_led_classdev,
++			     led_classdev);
++	data->new_brightness = brightness;
++	schedule_work(&data->work);
++}
++
++static enum led_brightness light_sysfs_get(struct led_classdev *led_cdev)
++{
++	return (light_get_status() == 1)? LED_FULL : LED_OFF;
++}
++
++static struct tpacpi_led_classdev tpacpi_led_thinklight = {
++	.led_classdev = {
++		.name		= "tpacpi::thinklight",
++		.brightness_set	= &light_sysfs_set,
++		.brightness_get	= &light_sysfs_get,
++	}
++};
++
+ static int __init light_init(struct ibm_init_struct *iibm)
+ {
++	int rc = 0;
++
+ 	vdbg_printk(TPACPI_DBG_INIT, "initializing light subdriver\n");
  
- /*
+ 	TPACPI_ACPIHANDLE_INIT(ledb);
+ 	TPACPI_ACPIHANDLE_INIT(lght);
+ 	TPACPI_ACPIHANDLE_INIT(cmos);
++	INIT_WORK(&tpacpi_led_thinklight.work, light_set_status_worker);
+ 
+ 	/* light not supported on 570, 600e/x, 770e, 770x, G4x, R30, R31 */
+ 	tp_features.light = (cmos_handle || lght_handle) && !ledb_handle;
+@@ -3300,7 +3336,25 @@ static int __init light_init(struct ibm_init_struct *iibm)
+ 	vdbg_printk(TPACPI_DBG_INIT, "light is %s\n",
+ 		str_supported(tp_features.light));
+ 
+-	return (tp_features.light)? 0 : 1;
++	if (tp_features.light) {
++		rc = led_classdev_register(&tpacpi_pdev->dev,
++					   &tpacpi_led_thinklight.led_classdev);
++	}
++
++	if (rc < 0) {
++		tp_features.light = 0;
++		tp_features.light_status = 0;
++	} else {
++		rc = (tp_features.light)? 0 : 1;
++	}
++	return rc;
++}
++
++static void light_exit(void)
++{
++	led_classdev_unregister(&tpacpi_led_thinklight.led_classdev);
++	if (work_pending(&tpacpi_led_thinklight.work))
++		flush_scheduled_work();
+ }
+ 
+ static int light_read(char *p)
+@@ -3348,6 +3402,7 @@ static struct ibm_struct light_driver_data = {
+ 	.name = "light",
+ 	.read = light_read,
+ 	.write = light_write,
++	.exit = light_exit,
+ };
+ 
+ /*************************************************************************
 -- 
 1.5.4.4
 
