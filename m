@@ -1,57 +1,37 @@
-From: Rene Herman <rene.herman@keyaccess.nl>
-Subject: Re: [patch 00/54] PNP cleanup, v4
-Date: Sun, 27 Apr 2008 01:47:32 +0200
-Message-ID: <4813BF14.8090109@keyaccess.nl>
-References: <20080425183807.366134771@ldl.fc.hp.com> <4813BBE9.2010803@keyaccess.nl>
+From: Mattia Dongili <malattia@linux.it>
+Subject: Re: [PATCH 1/3] Correctly detect Sony TX770P PIC device type
+Date: Sun, 27 Apr 2008 15:15:22 +0900
+Message-ID: <20080427061521.GB9533@inferi.kami.home>
+References: <1208558495-22792-1-git-send-email-ynvich@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------020901080502050401040701"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtpq1.tilbu1.nb.home.nl ([213.51.146.200]:35169 "EHLO
-	smtpq1.tilbu1.nb.home.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752692AbYDZXrZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 26 Apr 2008 19:47:25 -0400
-In-Reply-To: <4813BBE9.2010803@keyaccess.nl>
+Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:35512
+	"EHLO tadamune.kami.home" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751156AbYD0HBH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 27 Apr 2008 03:01:07 -0400
+Content-Disposition: inline
+In-Reply-To: <1208558495-22792-1-git-send-email-ynvich@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
+To: Sergey Yanovich <ynvich@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------020901080502050401040701
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+On Sat, Apr 19, 2008 at 01:41:33AM +0300, Sergey Yanovich wrote:
+> This laptop has Type 4 SPIC device, support for which has been added
+> recently. This device resides behind an older ISA bridge and was
+> earlier incorrectly detected as Type 3.
 
-On 27-04-08 01:34, Rene Herman wrote:
+NAK, introducing Type4 was actually a mistake in the beginning. Soon
+after my patches have been merged into mainline I had reports from Type3
+users who would actually benefit from the same extra hotkey handling
+implemented for the Type4.
 
-> Good idea...
+What I'm going to do is remove the Type3/Type4 distinction, this should
+be enough.
 
-By the way, would you terribly mind submitting this alongside? It's been 
-ages since we heard from Adam.
-
-Rene
-
---------------020901080502050401040701
-Content-Type: text/plain;
- name="pnp-maintainer.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="pnp-maintainer.diff"
-
-diff --git a/MAINTAINERS b/MAINTAINERS
-index a942f38..7b10551 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -3171,8 +3171,8 @@ L:	netdev@vger.kernel.org
- S:	Maintained
- 
- PNP SUPPORT
--P:	Adam Belay
--M:	ambx1@neo.rr.com
-+P:	Bjorn Helgaas
-+M:	bjorn.helgaas@hp.com
- S:	Maintained
- 
- PNXxxxx I2C DRIVER
-
---------------020901080502050401040701--
+Cheers
+-- 
+mattia
+:wq!
