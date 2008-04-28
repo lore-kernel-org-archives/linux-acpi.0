@@ -1,165 +1,62 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 52/55] PNPACPI: move _CRS/_PRS warnings closer to the action
-Date: Mon, 28 Apr 2008 16:34:39 -0600
-Message-ID: <20080428223627.142743634@ldl.fc.hp.com>
-References: <20080428223347.233593713@ldl.fc.hp.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [RESEND patch 2.6.25] ACPI uses device_may_wakeup() policy
+	inputs
+Date: Mon, 28 Apr 2008 19:54:13 -0300
+Message-ID: <20080428225413.GD3489@khazad-dum.debian.net>
+References: <200803201408.33466.david-b@pacbell.net> <1209386885.884.9.camel@yakui_zhao.sh.intel.com> <20080428213553.GA3489@khazad-dum.debian.net> <200804281520.05683.david-b@pacbell.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0029.austin.hp.com ([15.216.28.36]:34539 "EHLO
-	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966813AbYD1Whb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Apr 2008 18:37:31 -0400
-Content-Disposition: inline; filename=pnpacpi-cleanup-CRS-PRS-warnings
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:47711 "EHLO
+	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S967573AbYD1WyR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 28 Apr 2008 18:54:17 -0400
+Content-Disposition: inline
+In-Reply-To: <200804281520.05683.david-b@pacbell.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Rene Herman <rene.herman@gmail.com>, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
+To: David Brownell <david-b@pacbell.net>
+Cc: Zhao Yakui <yakui.zhao@intel.com>, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, Thomas Renninger <trenn@suse.de>
 
-Move warnings about _CRS and _PRS problems to the place where we
-actually make the ACPI calls.  Then we don't have to pass around
-acpi_status values any more than necessary.
+On Mon, 28 Apr 2008, David Brownell wrote:
+> > Which calls for a new standard interface to let userpace control that,
+> > doesn't it?  Issues with wake-up devices are not uncommon, the user
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Acked-By: Rene Herman <rene.herman@gmail.com>
+[...]
 
-Index: work10/drivers/pnp/pnpacpi/pnpacpi.h
-===================================================================
---- work10.orig/drivers/pnp/pnpacpi/pnpacpi.h	2008-04-28 16:09:20.000000000 -0600
-+++ work10/drivers/pnp/pnpacpi/pnpacpi.h	2008-04-28 16:09:49.000000000 -0600
-@@ -5,8 +5,8 @@
- #include <linux/acpi.h>
- #include <linux/pnp.h>
- 
--acpi_status pnpacpi_parse_allocated_resource(struct pnp_dev *);
--acpi_status pnpacpi_parse_resource_option_data(struct pnp_dev *);
-+int pnpacpi_parse_allocated_resource(struct pnp_dev *);
-+int pnpacpi_parse_resource_option_data(struct pnp_dev *);
- int pnpacpi_encode_resources(struct pnp_dev *, struct acpi_buffer *);
- int pnpacpi_build_resource_template(struct pnp_dev *, struct acpi_buffer *);
- #endif
-Index: work10/drivers/pnp/pnpacpi/core.c
-===================================================================
---- work10.orig/drivers/pnp/pnpacpi/core.c	2008-04-28 16:09:22.000000000 -0600
-+++ work10/drivers/pnp/pnpacpi/core.c	2008-04-28 16:09:49.000000000 -0600
-@@ -75,11 +75,8 @@
- 
- static int pnpacpi_get_resources(struct pnp_dev *dev)
- {
--	acpi_status status;
--
- 	dev_dbg(&dev->dev, "get resources\n");
--	status = pnpacpi_parse_allocated_resource(dev);
--	return ACPI_FAILURE(status) ? -ENODEV : 0;
-+	return pnpacpi_parse_allocated_resource(dev);
- }
- 
- static int pnpacpi_set_resources(struct pnp_dev *dev)
-@@ -182,22 +179,11 @@
- 	else
- 		strncpy(dev->name, acpi_device_bid(device), sizeof(dev->name));
- 
--	if (dev->active) {
--		/* parse allocated resource */
--		status = pnpacpi_parse_allocated_resource(dev);
--		if (ACPI_FAILURE(status) && (status != AE_NOT_FOUND)) {
--			pnp_err("PnPACPI: METHOD_NAME__CRS failure for %s",
--				acpi_device_hid(device));
--		}
--	}
-+	if (dev->active)
-+		pnpacpi_parse_allocated_resource(dev);
- 
--	if (dev->capabilities & PNP_CONFIGURABLE) {
--		status = pnpacpi_parse_resource_option_data(dev);
--		if (ACPI_FAILURE(status) && (status != AE_NOT_FOUND)) {
--			pnp_err("PnPACPI: METHOD_NAME__PRS failure for %s",
--				acpi_device_hid(device));
--		}
--	}
-+	if (dev->capabilities & PNP_CONFIGURABLE)
-+		pnpacpi_parse_resource_option_data(dev);
- 
- 	if (device->flags.compatible_ids) {
- 		struct acpi_compatible_id_list *cid_list = device->pnp.cid_list;
-Index: work10/drivers/pnp/pnpacpi/rsparser.c
-===================================================================
---- work10.orig/drivers/pnp/pnpacpi/rsparser.c	2008-04-28 16:09:48.000000000 -0600
-+++ work10/drivers/pnp/pnpacpi/rsparser.c	2008-04-28 16:09:49.000000000 -0600
-@@ -339,16 +339,24 @@
- 	return AE_OK;
- }
- 
--acpi_status pnpacpi_parse_allocated_resource(struct pnp_dev *dev)
-+int pnpacpi_parse_allocated_resource(struct pnp_dev *dev)
- {
- 	acpi_handle handle = dev->data;
-+	acpi_status status;
- 
- 	dev_dbg(&dev->dev, "parse allocated resources\n");
- 
- 	pnp_init_resources(dev);
- 
--	return acpi_walk_resources(handle, METHOD_NAME__CRS,
--				   pnpacpi_allocated_resource, dev);
-+	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
-+				     pnpacpi_allocated_resource, dev);
-+
-+	if (ACPI_FAILURE(status)) {
-+		if (status != AE_NOT_FOUND)
-+			dev_err(&dev->dev, "can't evaluate _CRS: %d", status);
-+		return -EPERM;
-+	}
-+	return 0;
- }
- 
- static __init void pnpacpi_parse_dma_option(struct pnp_dev *dev,
-@@ -670,7 +678,7 @@
- 	return AE_OK;
- }
- 
--acpi_status __init pnpacpi_parse_resource_option_data(struct pnp_dev *dev)
-+int __init pnpacpi_parse_resource_option_data(struct pnp_dev *dev)
- {
- 	acpi_handle handle = dev->data;
- 	acpi_status status;
-@@ -680,13 +688,19 @@
- 
- 	parse_data.option = pnp_register_independent_option(dev);
- 	if (!parse_data.option)
--		return AE_ERROR;
-+		return -ENOMEM;
-+
- 	parse_data.option_independent = parse_data.option;
- 	parse_data.dev = dev;
- 	status = acpi_walk_resources(handle, METHOD_NAME__PRS,
- 				     pnpacpi_option_resource, &parse_data);
- 
--	return status;
-+	if (ACPI_FAILURE(status)) {
-+		if (status != AE_NOT_FOUND)
-+			dev_err(&dev->dev, "can't evaluate _PRS: %d", status);
-+		return -EPERM;
-+	}
-+	return 0;
- }
- 
- static int pnpacpi_supported_resource(struct acpi_resource *res)
-@@ -745,7 +759,7 @@
- 	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
- 				     pnpacpi_count_resources, &res_cnt);
- 	if (ACPI_FAILURE(status)) {
--		dev_err(&dev->dev, "can't evaluate _CRS\n");
-+		dev_err(&dev->dev, "can't evaluate _CRS: %d\n", status);
- 		return -EINVAL;
- 	}
- 	if (!res_cnt)
-@@ -760,7 +774,7 @@
- 				     pnpacpi_type_resources, &resource);
- 	if (ACPI_FAILURE(status)) {
- 		kfree(buffer->pointer);
--		dev_err(&dev->dev, "can't evaluate _CRS\n");
-+		dev_err(&dev->dev, "can't evaluate _CRS: %d\n", status);
- 		return -EINVAL;
- 	}
- 	/* resource will pointer the end resource now */
+> That "new standard interface" has been in the kernel for quite
+> some time now:  /sys/devices/.../power/wakeup attributes, which
+> default to "enabled" for wake-capable devices.  Set to "disabled"
+> if it's not behaving on your system for some reason.  It's part
+> of the driver model infrastructure.
+
+Ok.  That answers my point.  Can we override the defaults with whatever
+information ACPI might have about them?
+
+I certainly would not expect (or appreciate) that this:
+
+$ cat /proc/acpi/wakeup 
+Device  S-state   Status   Sysfs node
+LID       S3    *enabled   
+SLPB      S3    *enabled   
+UART      S3     disabled  pnp:00:09
+EXP0      S4     disabled  pci:0000:00:1c.0
+EXP1      S4     disabled  
+EXP2      S4     disabled  pci:0000:00:1c.2
+EXP3      S4     disabled  
+PCI1      S4     disabled  pci:0000:00:1e.0
+USB0      S3     disabled  pci:0000:00:1d.0
+USB1      S3     disabled  pci:0000:00:1d.1
+USB3      S3     disabled  pci:0000:00:1d.3
+USB7      S3     disabled  pci:0000:00:1d.7
+AC9M      S4     disabled  
+
+(which is mostly following what I told the BIOS to do), to suddely have
+more lines set to "enable" :-)
 
 -- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
