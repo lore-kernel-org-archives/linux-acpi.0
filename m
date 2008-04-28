@@ -1,60 +1,60 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 03/55] PNPACPI: continue after _CRS and _PRS errors
-Date: Mon, 28 Apr 2008 16:33:50 -0600
-Message-ID: <20080428223617.027828411@ldl.fc.hp.com>
+Subject: [patch 01/55] PNP: turn on -DDEBUG when CONFIG_PNP_DEBUG is set
+Date: Mon, 28 Apr 2008 16:33:48 -0600
+Message-ID: <20080428223616.616114896@ldl.fc.hp.com>
 References: <20080428223347.233593713@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0017.houston.hp.com ([15.201.24.20]:9212 "EHLO
+Received: from g4t0017.houston.hp.com ([15.201.24.20]:9194 "EHLO
 	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934507AbYD1WgU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Apr 2008 18:36:20 -0400
-Content-Disposition: inline; filename=pnpacpi-ignore-errors
+	with ESMTP id S934495AbYD1WgT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Apr 2008 18:36:19 -0400
+Content-Disposition: inline; filename=pnp-turn-on-debug-in-makefiles
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-acpi@vger.kernel.org, Rene Herman <rene.herman@gmail.com>, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-Keep going and register the device even if we have trouble parsing
-_CRS or _PRS.  A parsing problem might mean we ignore some resources
-the device is using, or we might not be able to change its resources.
-But we should still take note of anything we *could* parse correctly.
-
-Also remove reference to dev_id because I plan to remove it soon.
+Turn on -DDEBUG in CFLAGS when CONFIG_PNP_DEBUG=y.  This makes
+dev_dbg() do what you expect.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Acked-by: Rene Herman <rene.herman@gmail.com>
 
-Index: work10/drivers/pnp/pnpacpi/core.c
+Index: work10/drivers/pnp/isapnp/Makefile
 ===================================================================
---- work10.orig/drivers/pnp/pnpacpi/core.c	2008-04-28 15:57:04.000000000 -0600
-+++ work10/drivers/pnp/pnpacpi/core.c	2008-04-28 16:09:08.000000000 -0600
-@@ -213,8 +213,7 @@
- 							  &dev->res);
- 		if (ACPI_FAILURE(status) && (status != AE_NOT_FOUND)) {
- 			pnp_err("PnPACPI: METHOD_NAME__CRS failure for %s",
--				dev_id->id);
--			goto err1;
-+				acpi_device_hid(device));
- 		}
- 	}
+--- work10.orig/drivers/pnp/isapnp/Makefile	2008-04-28 16:00:27.000000000 -0600
++++ work10/drivers/pnp/isapnp/Makefile	2008-04-28 16:09:03.000000000 -0600
+@@ -5,3 +5,7 @@
+ isapnp-proc-$(CONFIG_PROC_FS) = proc.o
  
-@@ -223,8 +222,7 @@
- 							    dev);
- 		if (ACPI_FAILURE(status) && (status != AE_NOT_FOUND)) {
- 			pnp_err("PnPACPI: METHOD_NAME__PRS failure for %s",
--				dev_id->id);
--			goto err1;
-+				acpi_device_hid(device));
- 		}
- 	}
+ obj-y := core.o compat.o $(isapnp-proc-y)
++
++ifeq ($(CONFIG_PNP_DEBUG),y)
++EXTRA_CFLAGS += -DDEBUG
++endif
+Index: work10/drivers/pnp/pnpacpi/Makefile
+===================================================================
+--- work10.orig/drivers/pnp/pnpacpi/Makefile	2008-04-28 16:00:27.000000000 -0600
++++ work10/drivers/pnp/pnpacpi/Makefile	2008-04-28 16:09:03.000000000 -0600
+@@ -3,3 +3,7 @@
+ #
  
-@@ -252,8 +250,6 @@
- 	num++;
+ obj-y := core.o rsparser.o
++
++ifeq ($(CONFIG_PNP_DEBUG),y)
++EXTRA_CFLAGS += -DDEBUG
++endif
+Index: work10/drivers/pnp/pnpbios/Makefile
+===================================================================
+--- work10.orig/drivers/pnp/pnpbios/Makefile	2008-04-28 16:00:27.000000000 -0600
++++ work10/drivers/pnp/pnpbios/Makefile	2008-04-28 16:09:03.000000000 -0600
+@@ -5,3 +5,7 @@
+ pnpbios-proc-$(CONFIG_PNPBIOS_PROC_FS) = proc.o
  
- 	return AE_OK;
--err1:
--	kfree(dev_id);
- err:
- 	kfree(dev);
- 	return -EINVAL;
+ obj-y := core.o bioscalls.o rsparser.o $(pnpbios-proc-y)
++
++ifeq ($(CONFIG_PNP_DEBUG),y)
++EXTRA_CFLAGS += -DDEBUG
++endif
 
 -- 
