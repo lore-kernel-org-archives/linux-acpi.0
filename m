@@ -1,156 +1,50 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 35/55] PNP: pass resources, not indexes, to pnp_check_port(), et al
-Date: Mon, 28 Apr 2008 16:34:22 -0600
-Message-ID: <20080428223623.690341458@ldl.fc.hp.com>
+Subject: [patch 54/55] ISAPNP: remove unused pnp_dev->regs field
+Date: Mon, 28 Apr 2008 16:34:41 -0600
+Message-ID: <20080428223627.551087646@ldl.fc.hp.com>
 References: <20080428223347.233593713@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:3790 "EHLO
-	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965169AbYD1WhF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Apr 2008 18:37:05 -0400
-Content-Disposition: inline; filename=pnp-pass-resource-to-check-functions
+Received: from g1t0027.austin.hp.com ([15.216.28.34]:1032 "EHLO
+	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966820AbYD1Whd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Apr 2008 18:37:33 -0400
+Content-Disposition: inline; filename=isapnp-remove-unused-pnp_dev-fields
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, Rene Herman <rene.herman@gmail.com>, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-The caller already has the struct resource pointer, so no need for
-pnp_check_port(), pnp_check_mem(), etc., to look it up again.
+The "regs" field in struct pnp_dev is set but never read, so remove it.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Acked-By: Rene Herman <rene.herman@gmail.com>
 
-Index: work10/drivers/pnp/base.h
+Index: work10/drivers/pnp/isapnp/core.c
 ===================================================================
---- work10.orig/drivers/pnp/base.h	2008-04-28 16:09:25.000000000 -0600
-+++ work10/drivers/pnp/base.h	2008-04-28 16:09:34.000000000 -0600
-@@ -12,10 +12,10 @@
- int __pnp_add_device(struct pnp_dev *dev);
- void __pnp_remove_device(struct pnp_dev *dev);
+--- work10.orig/drivers/pnp/isapnp/core.c	2008-04-28 16:09:49.000000000 -0600
++++ work10/drivers/pnp/isapnp/core.c	2008-04-28 16:09:51.000000000 -0600
+@@ -416,10 +416,7 @@
+ 	if (!dev)
+ 		return NULL;
  
--int pnp_check_port(struct pnp_dev * dev, int idx);
--int pnp_check_mem(struct pnp_dev * dev, int idx);
--int pnp_check_irq(struct pnp_dev * dev, int idx);
--int pnp_check_dma(struct pnp_dev * dev, int idx);
-+int pnp_check_port(struct pnp_dev *dev, struct resource *res);
-+int pnp_check_mem(struct pnp_dev *dev, struct resource *res);
-+int pnp_check_irq(struct pnp_dev *dev, struct resource *res);
-+int pnp_check_dma(struct pnp_dev *dev, struct resource *res);
- 
- void dbg_pnp_show_resources(struct pnp_dev *dev, char *desc);
- 
-Index: work10/drivers/pnp/manager.c
+-	dev->regs = tmp[4];
+ 	dev->card = card;
+-	if (size > 5)
+-		dev->regs |= tmp[5] << 8;
+ 	dev->capabilities |= PNP_CONFIGURABLE;
+ 	dev->capabilities |= PNP_READ;
+ 	dev->capabilities |= PNP_WRITE;
+Index: work10/include/linux/pnp.h
 ===================================================================
---- work10.orig/drivers/pnp/manager.c	2008-04-28 16:09:31.000000000 -0600
-+++ work10/drivers/pnp/manager.c	2008-04-28 16:09:34.000000000 -0600
-@@ -51,7 +51,7 @@
- 	res->end = res->start + rule->size - 1;
+--- work10.orig/include/linux/pnp.h	2008-04-28 16:09:50.000000000 -0600
++++ work10/include/linux/pnp.h	2008-04-28 16:09:51.000000000 -0600
+@@ -253,7 +253,6 @@
+ 	struct pnp_resource_table *res;
  
- 	/* run through until pnp_check_port is happy */
--	while (!pnp_check_port(dev, idx)) {
-+	while (!pnp_check_port(dev, res)) {
- 		res->start += rule->align;
- 		res->end = res->start + rule->size - 1;
- 		if (res->start > rule->max || !rule->align) {
-@@ -108,7 +108,7 @@
- 	res->end = res->start + rule->size - 1;
- 
- 	/* run through until pnp_check_mem is happy */
--	while (!pnp_check_mem(dev, idx)) {
-+	while (!pnp_check_mem(dev, res)) {
- 		res->start += rule->align;
- 		res->end = res->start + rule->size - 1;
- 		if (res->start > rule->max || !rule->align) {
-@@ -167,7 +167,7 @@
- 	for (i = 0; i < 16; i++) {
- 		if (test_bit(xtab[i], rule->map)) {
- 			res->start = res->end = xtab[i];
--			if (pnp_check_irq(dev, idx)) {
-+			if (pnp_check_irq(dev, res)) {
- 				dev_dbg(&dev->dev, "  assign irq %d %d\n", idx,
- 					(int) res->start);
- 				return 1;
-@@ -209,7 +209,7 @@
- 	for (i = 0; i < 8; i++) {
- 		if (rule->map & (1 << xtab[i])) {
- 			res->start = res->end = xtab[i];
--			if (pnp_check_dma(dev, idx)) {
-+			if (pnp_check_dma(dev, res)) {
- 				dev_dbg(&dev->dev, "  assign dma %d %d\n", idx,
- 					(int) res->start);
- 				return;
-Index: work10/drivers/pnp/resource.c
-===================================================================
---- work10.orig/drivers/pnp/resource.c	2008-04-28 16:09:33.000000000 -0600
-+++ work10/drivers/pnp/resource.c	2008-04-28 16:09:34.000000000 -0600
-@@ -239,14 +239,13 @@
- #define cannot_compare(flags) \
- ((flags) & (IORESOURCE_UNSET | IORESOURCE_DISABLED))
- 
--int pnp_check_port(struct pnp_dev *dev, int idx)
-+int pnp_check_port(struct pnp_dev *dev, struct resource *res)
- {
- 	int i;
- 	struct pnp_dev *tdev;
--	struct resource *res, *tres;
-+	struct resource *tres;
- 	resource_size_t *port, *end, *tport, *tend;
- 
--	res = &dev->res.port_resource[idx];
- 	port = &res->start;
- 	end = &res->end;
- 
-@@ -300,14 +299,13 @@
- 	return 1;
- }
- 
--int pnp_check_mem(struct pnp_dev *dev, int idx)
-+int pnp_check_mem(struct pnp_dev *dev, struct resource *res)
- {
- 	int i;
- 	struct pnp_dev *tdev;
--	struct resource *res, *tres;
-+	struct resource *tres;
- 	resource_size_t *addr, *end, *taddr, *tend;
- 
--	res = &dev->res.mem_resource[idx];
- 	addr = &res->start;
- 	end = &res->end;
- 
-@@ -366,14 +364,13 @@
- 	return IRQ_HANDLED;
- }
- 
--int pnp_check_irq(struct pnp_dev *dev, int idx)
-+int pnp_check_irq(struct pnp_dev *dev, struct resource *res)
- {
- 	int i;
- 	struct pnp_dev *tdev;
--	struct resource *res, *tres;
-+	struct resource *tres;
- 	resource_size_t *irq;
- 
--	res = &dev->res.irq_resource[idx];
- 	irq = &res->start;
- 
- 	/* if the resource doesn't exist, don't complain about it */
-@@ -439,15 +436,14 @@
- 	return 1;
- }
- 
--int pnp_check_dma(struct pnp_dev *dev, int idx)
-+int pnp_check_dma(struct pnp_dev *dev, struct resource *res)
- {
- #ifndef CONFIG_IA64
- 	int i;
- 	struct pnp_dev *tdev;
--	struct resource *res, *tres;
-+	struct resource *tres;
- 	resource_size_t *dma;
- 
--	res = &dev->res.dma_resource[idx];
- 	dma = &res->start;
- 
- 	/* if the resource doesn't exist, don't complain about it */
+ 	char name[PNP_NAME_LEN];	/* contains a human-readable name */
+-	unsigned short regs;		/* ISAPnP: supported registers */
+ 	int flags;			/* used by protocols */
+ 	struct proc_dir_entry *procent;	/* device entry in /proc/bus/isapnp */
+ 	void *data;
 
 -- 
