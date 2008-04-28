@@ -1,60 +1,79 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 01/55] PNP: turn on -DDEBUG when CONFIG_PNP_DEBUG is set
-Date: Mon, 28 Apr 2008 16:33:48 -0600
-Message-ID: <20080428223616.616114896@ldl.fc.hp.com>
+Subject: [patch 04/55] PNP: make pnp_add_id() internal to PNP core
+Date: Mon, 28 Apr 2008 16:33:51 -0600
+Message-ID: <20080428223617.243108378@ldl.fc.hp.com>
 References: <20080428223347.233593713@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0017.houston.hp.com ([15.201.24.20]:9194 "EHLO
-	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934495AbYD1WgT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Apr 2008 18:36:19 -0400
-Content-Disposition: inline; filename=pnp-turn-on-debug-in-makefiles
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:12284 "EHLO
+	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965134AbYD1WgW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Apr 2008 18:36:22 -0400
+Content-Disposition: inline; filename=pnp-make-pnp_add_id-internal-to-core
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, Rene Herman <rene.herman@gmail.com>, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-Turn on -DDEBUG in CFLAGS when CONFIG_PNP_DEBUG=y.  This makes
-dev_dbg() do what you expect.
+pnp_add_id() doesn't need to be exposed outside the PNP core, so
+move the declaration to an internal header file.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Acked-by: Rene Herman <rene.herman@gmail.com>
+Acked-By: Rene Herman <rene.herman@gmail.com>
 
-Index: work10/drivers/pnp/isapnp/Makefile
+Index: work10/include/linux/pnp.h
 ===================================================================
---- work10.orig/drivers/pnp/isapnp/Makefile	2008-04-28 16:00:27.000000000 -0600
-+++ work10/drivers/pnp/isapnp/Makefile	2008-04-28 16:09:03.000000000 -0600
-@@ -5,3 +5,7 @@
- isapnp-proc-$(CONFIG_PROC_FS) = proc.o
+--- work10.orig/include/linux/pnp.h	2008-04-28 15:57:04.000000000 -0600
++++ work10/include/linux/pnp.h	2008-04-28 16:09:09.000000000 -0600
+@@ -403,7 +403,6 @@
+ /* protocol helpers */
+ int pnp_is_active(struct pnp_dev *dev);
+ int compare_pnp_id(struct pnp_id *pos, const char *id);
+-int pnp_add_id(struct pnp_id *id, struct pnp_dev *dev);
+ int pnp_register_driver(struct pnp_driver *drv);
+ void pnp_unregister_driver(struct pnp_driver *drv);
  
- obj-y := core.o compat.o $(isapnp-proc-y)
-+
-+ifeq ($(CONFIG_PNP_DEBUG),y)
-+EXTRA_CFLAGS += -DDEBUG
-+endif
-Index: work10/drivers/pnp/pnpacpi/Makefile
+@@ -450,7 +449,6 @@
+ /* protocol helpers */
+ static inline int pnp_is_active(struct pnp_dev *dev) { return 0; }
+ static inline int compare_pnp_id(struct pnp_id *pos, const char *id) { return -ENODEV; }
+-static inline int pnp_add_id(struct pnp_id *id, struct pnp_dev *dev) { return -ENODEV; }
+ static inline int pnp_register_driver(struct pnp_driver *drv) { return -ENODEV; }
+ static inline void pnp_unregister_driver(struct pnp_driver *drv) { }
+ 
+Index: work10/drivers/pnp/base.h
 ===================================================================
---- work10.orig/drivers/pnp/pnpacpi/Makefile	2008-04-28 16:00:27.000000000 -0600
-+++ work10/drivers/pnp/pnpacpi/Makefile	2008-04-28 16:09:03.000000000 -0600
-@@ -3,3 +3,7 @@
- #
- 
- obj-y := core.o rsparser.o
-+
-+ifeq ($(CONFIG_PNP_DEBUG),y)
-+EXTRA_CFLAGS += -DDEBUG
-+endif
-Index: work10/drivers/pnp/pnpbios/Makefile
+--- work10.orig/drivers/pnp/base.h	2008-04-28 15:57:04.000000000 -0600
++++ work10/drivers/pnp/base.h	2008-04-28 16:09:09.000000000 -0600
+@@ -1,5 +1,6 @@
+ extern spinlock_t pnp_lock;
+ void *pnp_alloc(long size);
++int pnp_add_id(struct pnp_id *id, struct pnp_dev *dev);
+ int pnp_interface_attach_device(struct pnp_dev *dev);
+ void pnp_fixup_device(struct pnp_dev *dev);
+ void pnp_free_option(struct pnp_option *option);
+Index: work10/drivers/pnp/pnpacpi/core.c
 ===================================================================
---- work10.orig/drivers/pnp/pnpbios/Makefile	2008-04-28 16:00:27.000000000 -0600
-+++ work10/drivers/pnp/pnpbios/Makefile	2008-04-28 16:09:03.000000000 -0600
-@@ -5,3 +5,7 @@
- pnpbios-proc-$(CONFIG_PNPBIOS_PROC_FS) = proc.o
+--- work10.orig/drivers/pnp/pnpacpi/core.c	2008-04-28 16:09:08.000000000 -0600
++++ work10/drivers/pnp/pnpacpi/core.c	2008-04-28 16:09:09.000000000 -0600
+@@ -25,6 +25,7 @@
+ #include <acpi/acpi_bus.h>
+ #include <acpi/actypes.h>
  
- obj-y := core.o bioscalls.o rsparser.o $(pnpbios-proc-y)
-+
-+ifeq ($(CONFIG_PNP_DEBUG),y)
-+EXTRA_CFLAGS += -DDEBUG
-+endif
++#include "../base.h"
+ #include "pnpacpi.h"
+ 
+ static int num = 0;
+Index: work10/drivers/pnp/pnpbios/core.c
+===================================================================
+--- work10.orig/drivers/pnp/pnpbios/core.c	2008-04-28 15:57:04.000000000 -0600
++++ work10/drivers/pnp/pnpbios/core.c	2008-04-28 16:09:09.000000000 -0600
+@@ -69,6 +69,7 @@
+ #include <asm/system.h>
+ #include <asm/byteorder.h>
+ 
++#include "../base.h"
+ #include "pnpbios.h"
+ 
+ /*
 
 -- 
