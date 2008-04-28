@@ -1,42 +1,69 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [RESEND patch 2.6.25] ACPI uses device_may_wakeup() policy inputs
-Date: Mon, 28 Apr 2008 15:28:14 -0700
-Message-ID: <200804281528.14629.david-b@pacbell.net>
-References: <200803201408.33466.david-b@pacbell.net> <1209386885.884.9.camel@yakui_zhao.sh.intel.com> <1209372607.3538.107.camel@rzhang-crestline.sh.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: [patch 00/55] PNP cleanup, v5
+Date: Mon, 28 Apr 2008 16:33:47 -0600
+Message-ID: <20080428223347.233593713@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp115.sbc.mail.sp1.yahoo.com ([69.147.64.88]:31730 "HELO
-	smtp115.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S933799AbYD1W2R (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 28 Apr 2008 18:28:17 -0400
-In-Reply-To: <1209372607.3538.107.camel@rzhang-crestline.sh.intel.com>
-Content-Disposition: inline
+Received: from g4t0014.houston.hp.com ([15.201.24.17]:42983 "EHLO
+	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934483AbYD1WgS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Apr 2008 18:36:18 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Zhao Yakui <yakui.zhao@intel.com>, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, Thomas Renninger <trenn@suse.de>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-On Monday 28 April 2008, Zhang Rui wrote:
-> > > 
-> > Yes. What your said is right. If your patch is applied, whether the PCI
-> > device can wake the sleeping system is controlled by device driver.
-> 
-> This may cause some "regressions", something like system resumes
-> immediately after enter S3. This should rather be a driver/device
-> problem which rises a wake up event when it's suspend.
-> The right thing to do is to disable the wake up flag for this device.
-> The patch was dropped for this reason last time it's merged and we
-> should take good care of it this time. :)
-> 
-> Dave,
-> Maybe we should state this in the change log?
+I'm trying to stabilize something so we can get it into -mm, 
+so this only addresses Rene's comments on v4. 
 
-I already seem to have added that in the changelog for the last
-version of the patch I sent ...
+As a reminder, if anybody tests this and sees problems, the
+dmesg log with CONFIG_PNP_DEBUG enabled would be a great help
+to me.
 
-- dave
+Changes between v4 and v5:
 
+  - moved #ifdef DEBUG inside dbg_pnp_show_resources()
+  - removed cast of flags to int; print the long directly
+  - changed printk "0x%x" to "%#x"
+  - set "type" in pnp_clean_resource_table()
+  - fix return type of pnp_{port,mem,irq,dma}_flags()
+  - new patch converts pnp_assign_*() and /sys interfaces to pnp_get_resource()
+  - added Rene's acks
+
+Changes between v3 and v4:
+
+  - changed pnp_check_port(), etc., to take resource instead of index
+  - added some decoder/encoder/assign debug output (under CONFIG_PNP_DEBUG)
+  - fixed some ISAPNP register index bisectability problems
+  - removed the list-based resource management (will work on that separately)
+
+Changes between v2 and v3:
+
+  - several updates from Rene Herman's review:
+	- tweak EISA ID conversion and keep high-order bit for ISAPNP
+	- fix pnp_add_card_id() so bisection works better
+	- fix some "x <= 0" tests when x is unsigned
+	- make resource accessors inlines, not #defines
+	- fix pnp_{port,mem,irq,dma}_valid() return int, not resource_size_t
+	- fold isapnp_read_resources() back into isapnp_get_resources()
+  - factored out pnp_init_resource() from pnp_{init,clean}_resource_table()
+  - initialize generic pnp_dev fields earlier, to help dev_printk
+  - add pnp_resource to hold ISAPNP register index
+  - convert to resource management from table to list (finally)
+  - remove pnp_dev->regs (only set by ISAPNP, never used)
+  - in /sys/.../resources, don't sort resources by type
+
+Changes between first post and v2:
+
+  - export pnp_get_resource()
+  - fix EISA ID conversion and make a common function for ISAPNP/PNPBIOS
+  - fix typos in pnp_check_{port,mem,etc} that made resource assign fail
+
+  - the following fixes should precede this series (they're in -mm already):
+	- parport_pc: wrap PNP probe code in CONFIG_PNP
+	- radio-cadet: wrap PNP probe code in CONFIG_PNP
+	- smsc-ircc2: wrap PNP probe code in CONFIG_PNP
+	- nsc-ircc: wrap PNP probe code in CONFIG_PNP
+
+Bjorn
+
+-- 
