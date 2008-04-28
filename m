@@ -1,36 +1,44 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [linux-pm] [RESEND patch 2.6.25] ACPI uses device_may_wakeup()
- policy inputs
-Date: Mon, 28 Apr 2008 09:43:21 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0804280941440.3566-100000@iolanthe.rowland.org>
-References: <1209372607.3538.107.camel@rzhang-crestline.sh.intel.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [patch 21/54] PNP: add debug when assigning PNP resources
+Date: Mon, 28 Apr 2008 09:25:56 -0600
+Message-ID: <200804280925.56771.bjorn.helgaas@hp.com>
+References: <20080425183807.366134771@ldl.fc.hp.com> <20080425183928.375529075@ldl.fc.hp.com> <48139DFC.500@keyaccess.nl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:46403 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S934414AbYD1NnY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Apr 2008 09:43:24 -0400
-In-Reply-To: <1209372607.3538.107.camel@rzhang-crestline.sh.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S935245AbYD1P06@vger.kernel.org>
+In-Reply-To: <48139DFC.500@keyaccess.nl>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rene Herman <rene.herman@keyaccess.nl>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Zhao Yakui <yakui.zhao@intel.com>, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org
 
-On Mon, 28 Apr 2008, Zhang Rui wrote:
+On Saturday 26 April 2008 03:26:20 pm Rene Herman wrote:
+> On 25-04-08 20:38, Bjorn Helgaas wrote:
+> > +#else
+> > +void dbg_pnp_show_resources(struct pnp_dev *dev, char *desc)
+> > +{
+> > +}
+> > +#endif
+> 
+> Not too important, but #ifdef could be inside body.
 
-> This may cause some "regressions", something like system resumes
-> immediately after enter S3. This should rather be a driver/device
-> problem which rises a wake up event when it's suspend.
-> The right thing to do is to disable the wake up flag for this device.
-> The patch was dropped for this reason last time it's merged and we
-> should take good care of it this time. :)
+Much nicer, thanks.
 
-Indeed, it's easy to imagine a situation where somebody suspends their 
-laptop and then unplugs a USB mouse, thereby causing a wakeup event.
+I'll add your updates and acks and repost this series today.
 
-I suspect many PCI devices should be disabled for remote wakeup during 
-system sleeps.
+> > +		dev_dbg(&dev->dev, "  io %d already set to 0x%llx-0x%llx "
+> > +			"flags 0x%x\n", idx, (unsigned long long) *start,
+> > +			(unsigned long long) *end, (int) *flags);
+> 
+> I wanted to ask/comment why you're casting the flags to int though. It's an 
+> unsigned long, both in the resource and by type here. Ie, 0x%lx and no 
+> casting? (I btw also like %#lx better then the explicit 0x, but that doesn't 
+> really matter).
 
-Alan Stern
+Two more good ideas.  The cast was just me not paying attention, and
+the "0x%x" habit is deeply ingrained.  I'll change both.
 
+Bjorn
