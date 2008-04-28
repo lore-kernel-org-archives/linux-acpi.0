@@ -1,122 +1,42 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 09/55] PNP: change pnp_add_card_id() to allocate its own pnp_id structures
-Date: Mon, 28 Apr 2008 16:33:56 -0600
-Message-ID: <20080428223618.274183498@ldl.fc.hp.com>
+Subject: [patch 12/55] PNPACPI: pnpacpi_encode_ext_irq() wrongly set "irq" instead of "extended_irq"
+Date: Mon, 28 Apr 2008 16:33:59 -0600
+Message-ID: <20080428223618.877424514@ldl.fc.hp.com>
 References: <20080428223347.233593713@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:3522 "EHLO
+Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:3545 "EHLO
 	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966026AbYD1Wg3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Apr 2008 18:36:29 -0400
-Content-Disposition: inline; filename=pnp-move-allocation-into-pnp_add_card_id
+	with ESMTP id S966158AbYD1Wgc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Apr 2008 18:36:32 -0400
+Content-Disposition: inline; filename=pnpacpi-fix-encode-extended-irq
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Rene Herman <rene.herman@gmail.com>, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-This moves some of the pnp_id knowledge out of the backends and into
-the PNP core.
+pnpacpi_encode_ext_irq() should set resource->data.extended_irq, not
+resource->data.irq.
+
+This has been wrong since at least 2.6.12.  I haven't seen any bug
+reports, but it's clearly incorrect.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Acked-By: Rene Herman <rene.herman@gmail.com>
 
-Index: work10/drivers/pnp/base.h
+Index: work10/drivers/pnp/pnpacpi/rsparser.c
 ===================================================================
---- work10.orig/drivers/pnp/base.h	2008-04-28 16:09:12.000000000 -0600
-+++ work10/drivers/pnp/base.h	2008-04-28 16:09:13.000000000 -0600
-@@ -4,7 +4,7 @@
- void pnp_eisa_id_to_string(u32 id, char *str);
- struct pnp_dev *pnp_alloc_dev(struct pnp_protocol *, int id, char *pnpid);
- struct pnp_id *pnp_add_id(struct pnp_dev *dev, char *id);
--int pnp_add_card_id(struct pnp_id *id, struct pnp_card *card);
-+struct pnp_id *pnp_add_card_id(struct pnp_card *card, char *id);
- int pnp_interface_attach_device(struct pnp_dev *dev);
- void pnp_fixup_device(struct pnp_dev *dev);
- void pnp_free_option(struct pnp_option *option);
-Index: work10/drivers/pnp/card.c
-===================================================================
---- work10.orig/drivers/pnp/card.c	2008-04-28 15:57:04.000000000 -0600
-+++ work10/drivers/pnp/card.c	2008-04-28 16:09:13.000000000 -0600
-@@ -5,6 +5,7 @@
-  */
- 
- #include <linux/module.h>
-+#include <linux/ctype.h>
- #include <linux/slab.h>
- #include <linux/pnp.h>
- #include "base.h"
-@@ -100,19 +101,33 @@
-  * @id: pointer to a pnp_id structure
-  * @card: pointer to the desired card
-  */
--int pnp_add_card_id(struct pnp_id *id, struct pnp_card *card)
-+struct pnp_id *pnp_add_card_id(struct pnp_card *card, char *id)
- {
--	struct pnp_id *ptr;
-+	struct pnp_id *dev_id, *ptr;
- 
--	id->next = NULL;
-+	dev_id = kzalloc(sizeof(struct pnp_id), GFP_KERNEL);
-+	if (!dev_id)
-+		return NULL;
-+
-+	dev_id->id[0] = id[0];
-+	dev_id->id[1] = id[1];
-+	dev_id->id[2] = id[2];
-+	dev_id->id[3] = tolower(id[3]);
-+	dev_id->id[4] = tolower(id[4]);
-+	dev_id->id[5] = tolower(id[5]);
-+	dev_id->id[6] = tolower(id[6]);
-+	dev_id->id[7] = '\0';
-+
-+	dev_id->next = NULL;
- 	ptr = card->id;
- 	while (ptr && ptr->next)
- 		ptr = ptr->next;
- 	if (ptr)
--		ptr->next = id;
-+		ptr->next = dev_id;
+--- work10.orig/drivers/pnp/pnpacpi/rsparser.c	2008-04-28 15:57:04.000000000 -0600
++++ work10/drivers/pnp/pnpacpi/rsparser.c	2008-04-28 16:09:15.000000000 -0600
+@@ -820,9 +820,9 @@
+ 	resource->data.extended_irq.triggering = triggering;
+ 	resource->data.extended_irq.polarity = polarity;
+ 	if (triggering == ACPI_EDGE_SENSITIVE)
+-		resource->data.irq.sharable = ACPI_EXCLUSIVE;
++		resource->data.extended_irq.sharable = ACPI_EXCLUSIVE;
  	else
--		card->id = id;
--	return 0;
-+		card->id = dev_id;
-+
-+	return dev_id;
+-		resource->data.irq.sharable = ACPI_SHARED;
++		resource->data.extended_irq.sharable = ACPI_SHARED;
+ 	resource->data.extended_irq.interrupt_count = 1;
+ 	resource->data.extended_irq.interrupts[0] = p->start;
  }
- 
- static void pnp_free_card_ids(struct pnp_card *card)
-Index: work10/drivers/pnp/isapnp/core.c
-===================================================================
---- work10.orig/drivers/pnp/isapnp/core.c	2008-04-28 16:09:12.000000000 -0600
-+++ work10/drivers/pnp/isapnp/core.c	2008-04-28 16:09:13.000000000 -0600
-@@ -822,17 +822,18 @@
- static void isapnp_parse_card_id(struct pnp_card *card, unsigned short vendor,
- 				 unsigned short device)
- {
--	struct pnp_id *id = kzalloc(sizeof(struct pnp_id), GFP_KERNEL);
-+	char id[8];
- 
--	if (!id)
--		return;
--	sprintf(id->id, "%c%c%c%x%x%x%x",
--		'A' + ((vendor >> 2) & 0x3f) - 1,
--		'A' + (((vendor & 3) << 3) | ((vendor >> 13) & 7)) - 1,
--		'A' + ((vendor >> 8) & 0x1f) - 1,
--		(device >> 4) & 0x0f,
--		device & 0x0f, (device >> 12) & 0x0f, (device >> 8) & 0x0f);
--	pnp_add_card_id(id, card);
-+	id[0] = 'A' + ((vendor >> 2) & 0x3f) - 1;
-+	id[1] = 'A' + (((vendor & 3) << 3) | ((vendor >> 13) & 7)) - 1;
-+	id[2] = 'A' + ((vendor >> 8) & 0x1f) - 1;
-+	id[3] = hex_asc((device >> 4) & 0x0f);
-+	id[4] = hex_asc(device & 0x0f);
-+	id[5] = hex_asc((device >> 12) & 0x0f);
-+	id[6] = hex_asc((device >> 8) & 0x0f);
-+	id[7] = '\0';
-+
-+	pnp_add_card_id(card, id);
- }
- 
- /*
 
 -- 
