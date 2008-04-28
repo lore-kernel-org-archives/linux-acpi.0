@@ -1,388 +1,554 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 55/55] PNPBIOS: remove include/linux/pnpbios.h
-Date: Mon, 28 Apr 2008 16:34:42 -0600
-Message-ID: <20080428223627.750739835@ldl.fc.hp.com>
+Subject: [patch 20/55] PNP: add debug output to encoders
+Date: Mon, 28 Apr 2008 16:34:07 -0600
+Message-ID: <20080428223620.523037604@ldl.fc.hp.com>
 References: <20080428223347.233593713@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0029.austin.hp.com ([15.216.28.36]:34590 "EHLO
-	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966113AbYD1Whf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Apr 2008 18:37:35 -0400
-Content-Disposition: inline; filename=pnpbios-remove-public-header
+Received: from g5t0007.atlanta.hp.com ([15.192.0.44]:30547 "EHLO
+	g5t0007.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934638AbYD1Wgs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Apr 2008 18:36:48 -0400
+Content-Disposition: inline; filename=pnp-add-encoder-debug-output
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, Rene Herman <rene.herman@gmail.com>, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-The contents of include/linux/pnpbios.h are used only inside the PNPBIOS
-backend, so this file doesn't need to be visible outside PNP.
-
-This patch moves the contents into an existing PNPBIOS-specific file,
-drivers/pnp/pnpbios/pnpbios.h.
+Add debug output to encoders (enabled by CONFIG_PNP_DEBUG).  This
+uses dev_printk, so I had to add pnp_dev arguments at the same time.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Acked-By: Rene Herman <rene.herman@gmail.com>
 
 ---
- drivers/pnp/pnpbios/bioscalls.c |    1 
- drivers/pnp/pnpbios/core.c      |    1 
- drivers/pnp/pnpbios/pnpbios.h   |  136 ++++++++++++++++++++++++++++++++++++
- drivers/pnp/pnpbios/proc.c      |    2 
- drivers/pnp/pnpbios/rsparser.c  |    1 
- include/linux/pnpbios.h         |  151 ----------------------------------------
- 6 files changed, 137 insertions(+), 155 deletions(-)
+ drivers/pnp/isapnp/core.c      |    2 
+ drivers/pnp/pnpacpi/core.c     |    2 
+ drivers/pnp/pnpacpi/rsparser.c |   90 +++++++++++++++++++++++++++++------------
+ drivers/pnp/pnpbios/core.c     |    2 
+ drivers/pnp/pnpbios/rsparser.c |   58 ++++++++++++++++++++------
+ 5 files changed, 114 insertions(+), 40 deletions(-)
 
-Index: work10/drivers/pnp/pnpbios/bioscalls.c
+Index: work10/drivers/pnp/isapnp/core.c
 ===================================================================
---- work10.orig/drivers/pnp/pnpbios/bioscalls.c	2008-04-28 15:57:01.000000000 -0600
-+++ work10/drivers/pnp/pnpbios/bioscalls.c	2008-04-28 16:09:51.000000000 -0600
-@@ -7,7 +7,6 @@
- #include <linux/init.h>
- #include <linux/linkage.h>
- #include <linux/kernel.h>
--#include <linux/pnpbios.h>
- #include <linux/device.h>
- #include <linux/pnp.h>
- #include <linux/mm.h>
+--- work10.orig/drivers/pnp/isapnp/core.c	2008-04-28 16:09:20.000000000 -0600
++++ work10/drivers/pnp/isapnp/core.c	2008-04-28 16:09:21.000000000 -0600
+@@ -980,6 +980,7 @@
+ {
+ 	int ret;
+ 
++	dev_dbg(&dev->dev, "get resources\n");
+ 	pnp_init_resource_table(&dev->res);
+ 	isapnp_cfg_begin(dev->card->number, dev->number);
+ 	ret = isapnp_read_resources(dev);
+@@ -992,15 +993,19 @@
+ 	struct pnp_resource_table *res = &dev->res;
+ 	int tmp;
+ 
++	dev_dbg(&dev->dev, "set resources\n");
+ 	isapnp_cfg_begin(dev->card->number, dev->number);
+ 	dev->active = 1;
+ 	for (tmp = 0;
+ 	     tmp < ISAPNP_MAX_PORT
+ 	     && (res->port_resource[tmp].
+ 		 flags & (IORESOURCE_IO | IORESOURCE_UNSET)) == IORESOURCE_IO;
+-	     tmp++)
++	     tmp++) {
++		dev_dbg(&dev->dev, "  set io  %d to %#llx\n",
++			tmp, (unsigned long long) res->port_resource[tmp].start);
+ 		isapnp_write_word(ISAPNP_CFG_PORT + (tmp << 1),
+ 				  res->port_resource[tmp].start);
++	}
+ 	for (tmp = 0;
+ 	     tmp < ISAPNP_MAX_IRQ
+ 	     && (res->irq_resource[tmp].
+@@ -1009,22 +1014,29 @@
+ 		int irq = res->irq_resource[tmp].start;
+ 		if (irq == 2)
+ 			irq = 9;
++		dev_dbg(&dev->dev, "  set irq %d to %d\n", tmp, irq);
+ 		isapnp_write_byte(ISAPNP_CFG_IRQ + (tmp << 1), irq);
+ 	}
+ 	for (tmp = 0;
+ 	     tmp < ISAPNP_MAX_DMA
+ 	     && (res->dma_resource[tmp].
+ 		 flags & (IORESOURCE_DMA | IORESOURCE_UNSET)) == IORESOURCE_DMA;
+-	     tmp++)
++	     tmp++) {
++		dev_dbg(&dev->dev, "  set dma %d to %lld\n",
++			tmp, (unsigned long long) res->dma_resource[tmp].start);
+ 		isapnp_write_byte(ISAPNP_CFG_DMA + tmp,
+ 				  res->dma_resource[tmp].start);
++	}
+ 	for (tmp = 0;
+ 	     tmp < ISAPNP_MAX_MEM
+ 	     && (res->mem_resource[tmp].
+ 		 flags & (IORESOURCE_MEM | IORESOURCE_UNSET)) == IORESOURCE_MEM;
+-	     tmp++)
++	     tmp++) {
++		dev_dbg(&dev->dev, "  set mem %d to %#llx\n",
++			tmp, (unsigned long long) res->mem_resource[tmp].start);
+ 		isapnp_write_word(ISAPNP_CFG_MEM + (tmp << 3),
+ 				  (res->mem_resource[tmp].start >> 8) & 0xffff);
++	}
+ 	/* FIXME: We aren't handling 32bit mems properly here */
+ 	isapnp_activate(dev->number);
+ 	isapnp_cfg_end();
+Index: work10/drivers/pnp/pnpacpi/core.c
+===================================================================
+--- work10.orig/drivers/pnp/pnpacpi/core.c	2008-04-28 16:09:20.000000000 -0600
++++ work10/drivers/pnp/pnpacpi/core.c	2008-04-28 16:09:21.000000000 -0600
+@@ -77,6 +77,7 @@
+ {
+ 	acpi_status status;
+ 
++	dev_dbg(&dev->dev, "get resources\n");
+ 	status = pnpacpi_parse_allocated_resource(dev);
+ 	return ACPI_FAILURE(status) ? -ENODEV : 0;
+ }
+@@ -88,6 +89,7 @@
+ 	int ret;
+ 	acpi_status status;
+ 
++	dev_dbg(&dev->dev, "set resources\n");
+ 	ret = pnpacpi_build_resource_template(dev, &buffer);
+ 	if (ret)
+ 		return ret;
+Index: work10/drivers/pnp/pnpacpi/rsparser.c
+===================================================================
+--- work10.orig/drivers/pnp/pnpacpi/rsparser.c	2008-04-28 16:09:20.000000000 -0600
++++ work10/drivers/pnp/pnpacpi/rsparser.c	2008-04-28 16:09:21.000000000 -0600
+@@ -408,6 +408,8 @@
+ {
+ 	acpi_handle handle = dev->data;
+ 
++	dev_dbg(&dev->dev, "parse allocated resources\n");
++
+ 	/* Blank the resource table values */
+ 	pnp_init_resource_table(&dev->res);
+ 
+@@ -738,6 +740,8 @@
+ 	acpi_status status;
+ 	struct acpipnp_parse_option_s parse_data;
+ 
++	dev_dbg(&dev->dev, "parse resource options\n");
++
+ 	parse_data.option = pnp_register_independent_option(dev);
+ 	if (!parse_data.option)
+ 		return AE_ERROR;
+@@ -814,7 +818,7 @@
+ 	buffer->pointer = kzalloc(buffer->length - 1, GFP_KERNEL);
+ 	if (!buffer->pointer)
+ 		return -ENOMEM;
+-	pnp_dbg("Res cnt %d", res_cnt);
++
+ 	resource = (struct acpi_resource *)buffer->pointer;
+ 	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
+ 				     pnpacpi_type_resources, &resource);
+@@ -829,7 +833,8 @@
+ 	return 0;
+ }
+ 
+-static void pnpacpi_encode_irq(struct acpi_resource *resource,
++static void pnpacpi_encode_irq(struct pnp_dev *dev,
++			       struct acpi_resource *resource,
+ 			       struct resource *p)
+ {
+ 	struct acpi_resource_irq *irq = &resource->data.irq;
+@@ -844,9 +849,15 @@
+ 		irq->sharable = ACPI_SHARED;
+ 	irq->interrupt_count = 1;
+ 	irq->interrupts[0] = p->start;
++
++	dev_dbg(&dev->dev, "  encode irq %d %s %s %s\n", (int) p->start,
++		triggering == ACPI_LEVEL_SENSITIVE ? "level" : "edge",
++		polarity == ACPI_ACTIVE_LOW ? "low" : "high",
++		irq->sharable == ACPI_SHARED ? "shared" : "exclusive");
+ }
+ 
+-static void pnpacpi_encode_ext_irq(struct acpi_resource *resource,
++static void pnpacpi_encode_ext_irq(struct pnp_dev *dev,
++				   struct acpi_resource *resource,
+ 				   struct resource *p)
+ {
+ 	struct acpi_resource_extended_irq *extended_irq = &resource->data.extended_irq;
+@@ -862,9 +873,15 @@
+ 		extended_irq->sharable = ACPI_SHARED;
+ 	extended_irq->interrupt_count = 1;
+ 	extended_irq->interrupts[0] = p->start;
++
++	dev_dbg(&dev->dev, "  encode irq %d %s %s %s\n", (int) p->start,
++		triggering == ACPI_LEVEL_SENSITIVE ? "level" : "edge",
++		polarity == ACPI_ACTIVE_LOW ? "low" : "high",
++		extended_irq->sharable == ACPI_SHARED ? "shared" : "exclusive");
+ }
+ 
+-static void pnpacpi_encode_dma(struct acpi_resource *resource,
++static void pnpacpi_encode_dma(struct pnp_dev *dev,
++			       struct acpi_resource *resource,
+ 			       struct resource *p)
+ {
+ 	struct acpi_resource_dma *dma = &resource->data.dma;
+@@ -898,9 +915,14 @@
+ 	dma->bus_master = !!(p->flags & IORESOURCE_DMA_MASTER);
+ 	dma->channel_count = 1;
+ 	dma->channels[0] = p->start;
++
++	dev_dbg(&dev->dev, "  encode dma %d "
++		"type %#x transfer %#x master %d\n",
++		(int) p->start, dma->type, dma->transfer, dma->bus_master);
+ }
+ 
+-static void pnpacpi_encode_io(struct acpi_resource *resource,
++static void pnpacpi_encode_io(struct pnp_dev *dev,
++			      struct acpi_resource *resource,
+ 			      struct resource *p)
+ {
+ 	struct acpi_resource_io *io = &resource->data.io;
+@@ -912,18 +934,27 @@
+ 	io->maximum = p->end;
+ 	io->alignment = 0;	/* Correct? */
+ 	io->address_length = p->end - p->start + 1;
++
++	dev_dbg(&dev->dev, "  encode io %#llx-%#llx decode %#x\n",
++		(unsigned long long) p->start, (unsigned long long) p->end,
++		io->io_decode);
+ }
+ 
+-static void pnpacpi_encode_fixed_io(struct acpi_resource *resource,
++static void pnpacpi_encode_fixed_io(struct pnp_dev *dev,
++				    struct acpi_resource *resource,
+ 				    struct resource *p)
+ {
+ 	struct acpi_resource_fixed_io *fixed_io = &resource->data.fixed_io;
+ 
+ 	fixed_io->address = p->start;
+ 	fixed_io->address_length = p->end - p->start + 1;
++
++	dev_dbg(&dev->dev, "  encode fixed_io %#llx-%#llx\n",
++		(unsigned long long) p->start, (unsigned long long) p->end);
+ }
+ 
+-static void pnpacpi_encode_mem24(struct acpi_resource *resource,
++static void pnpacpi_encode_mem24(struct pnp_dev *dev,
++				 struct acpi_resource *resource,
+ 				 struct resource *p)
+ {
+ 	struct acpi_resource_memory24 *memory24 = &resource->data.memory24;
+@@ -936,9 +967,14 @@
+ 	memory24->maximum = p->end;
+ 	memory24->alignment = 0;
+ 	memory24->address_length = p->end - p->start + 1;
++
++	dev_dbg(&dev->dev, "  encode mem24 %#llx-%#llx write_protect %#x\n",
++		(unsigned long long) p->start, (unsigned long long) p->end,
++		memory24->write_protect);
+ }
+ 
+-static void pnpacpi_encode_mem32(struct acpi_resource *resource,
++static void pnpacpi_encode_mem32(struct pnp_dev *dev,
++				 struct acpi_resource *resource,
+ 				 struct resource *p)
+ {
+ 	struct acpi_resource_memory32 *memory32 = &resource->data.memory32;
+@@ -950,9 +986,14 @@
+ 	memory32->maximum = p->end;
+ 	memory32->alignment = 0;
+ 	memory32->address_length = p->end - p->start + 1;
++
++	dev_dbg(&dev->dev, "  encode mem32 %#llx-%#llx write_protect %#x\n",
++		(unsigned long long) p->start, (unsigned long long) p->end,
++		memory32->write_protect);
+ }
+ 
+-static void pnpacpi_encode_fixed_mem32(struct acpi_resource *resource,
++static void pnpacpi_encode_fixed_mem32(struct pnp_dev *dev,
++				       struct acpi_resource *resource,
+ 				       struct resource *p)
+ {
+ 	struct acpi_resource_fixed_memory32 *fixed_memory32 = &resource->data.fixed_memory32;
+@@ -962,6 +1003,11 @@
+ 	    ACPI_READ_WRITE_MEMORY : ACPI_READ_ONLY_MEMORY;
+ 	fixed_memory32->address = p->start;
+ 	fixed_memory32->address_length = p->end - p->start + 1;
++
++	dev_dbg(&dev->dev, "  encode fixed_mem32 %#llx-%#llx "
++		"write_protect %#x\n",
++		(unsigned long long) p->start, (unsigned long long) p->end,
++		fixed_memory32->write_protect);
+ }
+ 
+ int pnpacpi_encode_resources(struct pnp_dev *dev, struct acpi_buffer *buffer)
+@@ -973,57 +1019,49 @@
+ 	struct acpi_resource *resource = buffer->pointer;
+ 	int port = 0, irq = 0, dma = 0, mem = 0;
+ 
+-	pnp_dbg("res cnt %d", res_cnt);
++	dev_dbg(&dev->dev, "encode %d resources\n", res_cnt);
+ 	while (i < res_cnt) {
+ 		switch (resource->type) {
+ 		case ACPI_RESOURCE_TYPE_IRQ:
+-			pnp_dbg("Encode irq");
+-			pnpacpi_encode_irq(resource,
++			pnpacpi_encode_irq(dev, resource,
+ 					   &res_table->irq_resource[irq]);
+ 			irq++;
+ 			break;
+ 
+ 		case ACPI_RESOURCE_TYPE_DMA:
+-			pnp_dbg("Encode dma");
+-			pnpacpi_encode_dma(resource,
++			pnpacpi_encode_dma(dev, resource,
+ 					   &res_table->dma_resource[dma]);
+ 			dma++;
+ 			break;
+ 		case ACPI_RESOURCE_TYPE_IO:
+-			pnp_dbg("Encode io");
+-			pnpacpi_encode_io(resource,
++			pnpacpi_encode_io(dev, resource,
+ 					  &res_table->port_resource[port]);
+ 			port++;
+ 			break;
+ 		case ACPI_RESOURCE_TYPE_FIXED_IO:
+-			pnp_dbg("Encode fixed io");
+-			pnpacpi_encode_fixed_io(resource,
++			pnpacpi_encode_fixed_io(dev, resource,
+ 						&res_table->
+ 						port_resource[port]);
+ 			port++;
+ 			break;
+ 		case ACPI_RESOURCE_TYPE_MEMORY24:
+-			pnp_dbg("Encode mem24");
+-			pnpacpi_encode_mem24(resource,
++			pnpacpi_encode_mem24(dev, resource,
+ 					     &res_table->mem_resource[mem]);
+ 			mem++;
+ 			break;
+ 		case ACPI_RESOURCE_TYPE_MEMORY32:
+-			pnp_dbg("Encode mem32");
+-			pnpacpi_encode_mem32(resource,
++			pnpacpi_encode_mem32(dev, resource,
+ 					     &res_table->mem_resource[mem]);
+ 			mem++;
+ 			break;
+ 		case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
+-			pnp_dbg("Encode fixed mem32");
+-			pnpacpi_encode_fixed_mem32(resource,
++			pnpacpi_encode_fixed_mem32(dev, resource,
+ 						   &res_table->
+ 						   mem_resource[mem]);
+ 			mem++;
+ 			break;
+ 		case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
+-			pnp_dbg("Encode ext irq");
+-			pnpacpi_encode_ext_irq(resource,
++			pnpacpi_encode_ext_irq(dev, resource,
+ 					       &res_table->irq_resource[irq]);
+ 			irq++;
+ 			break;
 Index: work10/drivers/pnp/pnpbios/core.c
 ===================================================================
---- work10.orig/drivers/pnp/pnpbios/core.c	2008-04-28 16:09:22.000000000 -0600
-+++ work10/drivers/pnp/pnpbios/core.c	2008-04-28 16:09:51.000000000 -0600
-@@ -50,7 +50,6 @@
- #include <linux/init.h>
- #include <linux/linkage.h>
- #include <linux/kernel.h>
--#include <linux/pnpbios.h>
- #include <linux/device.h>
- #include <linux/pnp.h>
- #include <linux/mm.h>
-Index: work10/drivers/pnp/pnpbios/pnpbios.h
-===================================================================
---- work10.orig/drivers/pnp/pnpbios/pnpbios.h	2008-04-28 16:09:20.000000000 -0600
-+++ work10/drivers/pnp/pnpbios/pnpbios.h	2008-04-28 16:09:51.000000000 -0600
-@@ -2,6 +2,142 @@
-  * pnpbios.h - contains local definitions
-  */
+--- work10.orig/drivers/pnp/pnpbios/core.c	2008-04-28 16:09:20.000000000 -0600
++++ work10/drivers/pnp/pnpbios/core.c	2008-04-28 16:09:21.000000000 -0600
+@@ -212,6 +212,7 @@
+ 	if (!pnpbios_is_dynamic(dev))
+ 		return -EPERM;
  
-+/*
-+ * Include file for the interface to a PnP BIOS
-+ *
-+ * Original BIOS code (C) 1998 Christian Schmidt (chr.schmidt@tu-bs.de)
-+ * PnP handler parts (c) 1998 Tom Lees <tom@lpsg.demon.co.uk>
-+ * Minor reorganizations by David Hinds <dahinds@users.sourceforge.net>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; either version 2, or (at your option) any
-+ * later version.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
-+
-+/*
-+ * Return codes
-+ */
-+#define PNP_SUCCESS                     0x00
-+#define PNP_NOT_SET_STATICALLY          0x7f
-+#define PNP_UNKNOWN_FUNCTION            0x81
-+#define PNP_FUNCTION_NOT_SUPPORTED      0x82
-+#define PNP_INVALID_HANDLE              0x83
-+#define PNP_BAD_PARAMETER               0x84
-+#define PNP_SET_FAILED                  0x85
-+#define PNP_EVENTS_NOT_PENDING          0x86
-+#define PNP_SYSTEM_NOT_DOCKED           0x87
-+#define PNP_NO_ISA_PNP_CARDS            0x88
-+#define PNP_UNABLE_TO_DETERMINE_DOCK_CAPABILITIES 0x89
-+#define PNP_CONFIG_CHANGE_FAILED_NO_BATTERY 0x8a
-+#define PNP_CONFIG_CHANGE_FAILED_RESOURCE_CONFLICT 0x8b
-+#define PNP_BUFFER_TOO_SMALL            0x8c
-+#define PNP_USE_ESCD_SUPPORT            0x8d
-+#define PNP_MESSAGE_NOT_SUPPORTED       0x8e
-+#define PNP_HARDWARE_ERROR              0x8f
-+
-+#define ESCD_SUCCESS                    0x00
-+#define ESCD_IO_ERROR_READING           0x55
-+#define ESCD_INVALID                    0x56
-+#define ESCD_BUFFER_TOO_SMALL           0x59
-+#define ESCD_NVRAM_TOO_SMALL            0x5a
-+#define ESCD_FUNCTION_NOT_SUPPORTED     0x81
-+
-+/*
-+ * Events that can be received by "get event"
-+ */
-+#define PNPEV_ABOUT_TO_CHANGE_CONFIG	0x0001
-+#define PNPEV_DOCK_CHANGED		0x0002
-+#define PNPEV_SYSTEM_DEVICE_CHANGED	0x0003
-+#define PNPEV_CONFIG_CHANGED_FAILED	0x0004
-+#define PNPEV_UNKNOWN_SYSTEM_EVENT	0xffff
-+/* 0x8000 through 0xfffe are OEM defined */
-+
-+/*
-+ * Messages that should be sent through "send message"
-+ */
-+#define PNPMSG_OK			0x00
-+#define PNPMSG_ABORT			0x01
-+#define PNPMSG_UNDOCK_DEFAULT_ACTION	0x40
-+#define PNPMSG_POWER_OFF		0x41
-+#define PNPMSG_PNP_OS_ACTIVE		0x42
-+#define PNPMSG_PNP_OS_INACTIVE		0x43
-+
-+/*
-+ * Plug and Play BIOS flags
-+ */
-+#define PNPBIOS_NO_DISABLE		0x0001
-+#define PNPBIOS_NO_CONFIG		0x0002
-+#define PNPBIOS_OUTPUT			0x0004
-+#define PNPBIOS_INPUT			0x0008
-+#define PNPBIOS_BOOTABLE		0x0010
-+#define PNPBIOS_DOCK			0x0020
-+#define PNPBIOS_REMOVABLE		0x0040
-+#define pnpbios_is_static(x) (((x)->flags & 0x0100) == 0x0000)
-+#define pnpbios_is_dynamic(x) ((x)->flags & 0x0080)
-+
-+/*
-+ * Function Parameters
-+ */
-+#define PNPMODE_STATIC 1
-+#define PNPMODE_DYNAMIC 0
-+
-+/* 0x8000 through 0xffff are OEM defined */
-+
-+#pragma pack(1)
-+struct pnp_dev_node_info {
-+	__u16 no_nodes;
-+	__u16 max_node_size;
-+};
-+struct pnp_docking_station_info {
-+	__u32 location_id;
-+	__u32 serial;
-+	__u16 capabilities;
-+};
-+struct pnp_isa_config_struc {
-+	__u8 revision;
-+	__u8 no_csns;
-+	__u16 isa_rd_data_port;
-+	__u16 reserved;
-+};
-+struct escd_info_struc {
-+	__u16 min_escd_write_size;
-+	__u16 escd_size;
-+	__u32 nv_storage_base;
-+};
-+struct pnp_bios_node {
-+	__u16 size;
-+	__u8 handle;
-+	__u32 eisa_id;
-+	__u8 type_code[3];
-+	__u16 flags;
-+	__u8 data[0];
-+};
-+#pragma pack()
-+
-+/* non-exported */
-+extern struct pnp_dev_node_info node_info;
-+
-+extern int pnp_bios_dev_node_info(struct pnp_dev_node_info *data);
-+extern int pnp_bios_get_dev_node(u8 *nodenum, char config,
-+				 struct pnp_bios_node *data);
-+extern int pnp_bios_set_dev_node(u8 nodenum, char config,
-+				 struct pnp_bios_node *data);
-+extern int pnp_bios_get_stat_res(char *info);
-+extern int pnp_bios_isapnp_config(struct pnp_isa_config_struc *data);
-+extern int pnp_bios_escd_info(struct escd_info_struc *data);
-+extern int pnp_bios_read_escd(char *data, u32 nvram_base);
-+extern int pnp_bios_dock_station_info(struct pnp_docking_station_info *data);
-+
- #pragma pack(1)
- union pnp_bios_install_struct {
- 	struct {
-Index: work10/drivers/pnp/pnpbios/proc.c
-===================================================================
---- work10.orig/drivers/pnp/pnpbios/proc.c	2008-04-28 15:57:01.000000000 -0600
-+++ work10/drivers/pnp/pnpbios/proc.c	2008-04-28 16:09:51.000000000 -0600
-@@ -23,7 +23,7 @@
- #include <linux/slab.h>
- #include <linux/types.h>
- #include <linux/proc_fs.h>
--#include <linux/pnpbios.h>
-+#include <linux/pnp.h>
- #include <linux/init.h>
++	dev_dbg(&dev->dev, "get resources\n");
+ 	node = kzalloc(node_info.max_node_size, GFP_KERNEL);
+ 	if (!node)
+ 		return -1;
+@@ -234,6 +235,7 @@
+ 	if (!pnpbios_is_dynamic(dev))
+ 		return -EPERM;
  
- #include <asm/uaccess.h>
++	dev_dbg(&dev->dev, "set resources\n");
+ 	node = kzalloc(node_info.max_node_size, GFP_KERNEL);
+ 	if (!node)
+ 		return -1;
 Index: work10/drivers/pnp/pnpbios/rsparser.c
 ===================================================================
---- work10.orig/drivers/pnp/pnpbios/rsparser.c	2008-04-28 16:09:48.000000000 -0600
-+++ work10/drivers/pnp/pnpbios/rsparser.c	2008-04-28 16:09:51.000000000 -0600
-@@ -4,7 +4,6 @@
+--- work10.orig/drivers/pnp/pnpbios/rsparser.c	2008-04-28 16:09:20.000000000 -0600
++++ work10/drivers/pnp/pnpbios/rsparser.c	2008-04-28 16:09:21.000000000 -0600
+@@ -143,6 +143,8 @@
+ 	if (!p)
+ 		return NULL;
  
- #include <linux/ctype.h>
- #include <linux/pnp.h>
--#include <linux/pnpbios.h>
- #include <linux/string.h>
- #include <linux/slab.h>
++	dev_dbg(&dev->dev, "parse allocated resources\n");
++
+ 	/* Blank the resource table values */
+ 	pnp_init_resource_table(&dev->res);
  
-Index: work10/include/linux/pnpbios.h
-===================================================================
---- work10.orig/include/linux/pnpbios.h	2008-04-28 15:57:01.000000000 -0600
-+++ /dev/null	1970-01-01 00:00:00.000000000 +0000
-@@ -1,151 +0,0 @@
--/*
-- * Include file for the interface to a PnP BIOS
-- *
-- * Original BIOS code (C) 1998 Christian Schmidt (chr.schmidt@tu-bs.de)
-- * PnP handler parts (c) 1998 Tom Lees <tom@lpsg.demon.co.uk>
-- * Minor reorganizations by David Hinds <dahinds@users.sourceforge.net>
-- *
-- * This program is free software; you can redistribute it and/or modify it
-- * under the terms of the GNU General Public License as published by the
-- * Free Software Foundation; either version 2, or (at your option) any
-- * later version.
-- *
-- * This program is distributed in the hope that it will be useful, but
-- * WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-- * General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-- */
--
--#ifndef _LINUX_PNPBIOS_H
--#define _LINUX_PNPBIOS_H
--
--#ifdef __KERNEL__
--
--#include <linux/types.h>
--#include <linux/pnp.h>
--
--/*
-- * Return codes
-- */
--#define PNP_SUCCESS                     0x00
--#define PNP_NOT_SET_STATICALLY          0x7f
--#define PNP_UNKNOWN_FUNCTION            0x81
--#define PNP_FUNCTION_NOT_SUPPORTED      0x82
--#define PNP_INVALID_HANDLE              0x83
--#define PNP_BAD_PARAMETER               0x84
--#define PNP_SET_FAILED                  0x85
--#define PNP_EVENTS_NOT_PENDING          0x86
--#define PNP_SYSTEM_NOT_DOCKED           0x87
--#define PNP_NO_ISA_PNP_CARDS            0x88
--#define PNP_UNABLE_TO_DETERMINE_DOCK_CAPABILITIES 0x89
--#define PNP_CONFIG_CHANGE_FAILED_NO_BATTERY 0x8a
--#define PNP_CONFIG_CHANGE_FAILED_RESOURCE_CONFLICT 0x8b
--#define PNP_BUFFER_TOO_SMALL            0x8c
--#define PNP_USE_ESCD_SUPPORT            0x8d
--#define PNP_MESSAGE_NOT_SUPPORTED       0x8e
--#define PNP_HARDWARE_ERROR              0x8f
--
--#define ESCD_SUCCESS                    0x00
--#define ESCD_IO_ERROR_READING           0x55
--#define ESCD_INVALID                    0x56
--#define ESCD_BUFFER_TOO_SMALL           0x59
--#define ESCD_NVRAM_TOO_SMALL            0x5a
--#define ESCD_FUNCTION_NOT_SUPPORTED     0x81
--
--/*
-- * Events that can be received by "get event"
-- */
--#define PNPEV_ABOUT_TO_CHANGE_CONFIG	0x0001
--#define PNPEV_DOCK_CHANGED		0x0002
--#define PNPEV_SYSTEM_DEVICE_CHANGED	0x0003
--#define PNPEV_CONFIG_CHANGED_FAILED	0x0004
--#define PNPEV_UNKNOWN_SYSTEM_EVENT	0xffff
--/* 0x8000 through 0xfffe are OEM defined */
--
--/*
-- * Messages that should be sent through "send message"
-- */
--#define PNPMSG_OK			0x00
--#define PNPMSG_ABORT			0x01
--#define PNPMSG_UNDOCK_DEFAULT_ACTION	0x40
--#define PNPMSG_POWER_OFF		0x41
--#define PNPMSG_PNP_OS_ACTIVE		0x42
--#define PNPMSG_PNP_OS_INACTIVE		0x43
--
--/*
-- * Plug and Play BIOS flags
-- */
--#define PNPBIOS_NO_DISABLE		0x0001
--#define PNPBIOS_NO_CONFIG		0x0002
--#define PNPBIOS_OUTPUT			0x0004
--#define PNPBIOS_INPUT			0x0008
--#define PNPBIOS_BOOTABLE		0x0010
--#define PNPBIOS_DOCK			0x0020
--#define PNPBIOS_REMOVABLE		0x0040
--#define pnpbios_is_static(x) (((x)->flags & 0x0100) == 0x0000)
--#define pnpbios_is_dynamic(x) ((x)->flags & 0x0080)
--
--/*
-- * Function Parameters
-- */
--#define PNPMODE_STATIC 1
--#define PNPMODE_DYNAMIC 0
--
--/* 0x8000 through 0xffff are OEM defined */
--
--#pragma pack(1)
--struct pnp_dev_node_info {
--	__u16 no_nodes;
--	__u16 max_node_size;
--};
--struct pnp_docking_station_info {
--	__u32 location_id;
--	__u32 serial;
--	__u16 capabilities;
--};
--struct pnp_isa_config_struc {
--	__u8 revision;
--	__u8 no_csns;
--	__u16 isa_rd_data_port;
--	__u16 reserved;
--};
--struct escd_info_struc {
--	__u16 min_escd_write_size;
--	__u16 escd_size;
--	__u32 nv_storage_base;
--};
--struct pnp_bios_node {
--	__u16 size;
--	__u8 handle;
--	__u32 eisa_id;
--	__u8 type_code[3];
--	__u16 flags;
--	__u8 data[0];
--};
--#pragma pack()
--
--#ifdef CONFIG_PNPBIOS
--
--/* non-exported */
--extern struct pnp_dev_node_info node_info;
--
--extern int pnp_bios_dev_node_info(struct pnp_dev_node_info *data);
--extern int pnp_bios_get_dev_node(u8 *nodenum, char config,
--				 struct pnp_bios_node *data);
--extern int pnp_bios_set_dev_node(u8 nodenum, char config,
--				 struct pnp_bios_node *data);
--extern int pnp_bios_get_stat_res(char *info);
--extern int pnp_bios_isapnp_config(struct pnp_isa_config_struc *data);
--extern int pnp_bios_escd_info(struct escd_info_struc *data);
--extern int pnp_bios_read_escd(char *data, u32 nvram_base);
--extern int pnp_bios_dock_station_info(struct pnp_docking_station_info *data);
--
--#endif /* CONFIG_PNPBIOS */
--
--#endif /* __KERNEL__ */
--
--#endif /* _LINUX_PNPBIOS_H */
+@@ -390,6 +392,8 @@
+ 	if (!p)
+ 		return NULL;
+ 
++	dev_dbg(&dev->dev, "parse resource options\n");
++
+ 	option_independent = option = pnp_register_independent_option(dev);
+ 	if (!option)
+ 		return NULL;
+@@ -574,7 +578,8 @@
+  * Allocated Resource Encoding
+  */
+ 
+-static void pnpbios_encode_mem(unsigned char *p, struct resource *res)
++static void pnpbios_encode_mem(struct pnp_dev *dev, unsigned char *p,
++			       struct resource *res)
+ {
+ 	unsigned long base = res->start;
+ 	unsigned long len = res->end - res->start + 1;
+@@ -585,9 +590,13 @@
+ 	p[7] = ((base >> 8) >> 8) & 0xff;
+ 	p[10] = (len >> 8) & 0xff;
+ 	p[11] = ((len >> 8) >> 8) & 0xff;
++
++	dev_dbg(&dev->dev, "  encode mem %#llx-%#llx\n",
++		(unsigned long long) res->start, (unsigned long long) res->end);
+ }
+ 
+-static void pnpbios_encode_mem32(unsigned char *p, struct resource *res)
++static void pnpbios_encode_mem32(struct pnp_dev *dev, unsigned char *p,
++				 struct resource *res)
+ {
+ 	unsigned long base = res->start;
+ 	unsigned long len = res->end - res->start + 1;
+@@ -604,9 +613,13 @@
+ 	p[17] = (len >> 8) & 0xff;
+ 	p[18] = (len >> 16) & 0xff;
+ 	p[19] = (len >> 24) & 0xff;
++
++	dev_dbg(&dev->dev, "  encode mem32 %#llx-%#llx\n",
++		(unsigned long long) res->start, (unsigned long long) res->end);
+ }
+ 
+-static void pnpbios_encode_fixed_mem32(unsigned char *p, struct resource *res)
++static void pnpbios_encode_fixed_mem32(struct pnp_dev *dev, unsigned char *p,
++				       struct resource *res)
+ {
+ 	unsigned long base = res->start;
+ 	unsigned long len = res->end - res->start + 1;
+@@ -619,26 +632,36 @@
+ 	p[9] = (len >> 8) & 0xff;
+ 	p[10] = (len >> 16) & 0xff;
+ 	p[11] = (len >> 24) & 0xff;
++
++	dev_dbg(&dev->dev, "  encode fixed_mem32 %#llx-%#llx\n",
++		(unsigned long long) res->start, (unsigned long long) res->end);
+ }
+ 
+-static void pnpbios_encode_irq(unsigned char *p, struct resource *res)
++static void pnpbios_encode_irq(struct pnp_dev *dev, unsigned char *p,
++			       struct resource *res)
+ {
+ 	unsigned long map = 0;
+ 
+ 	map = 1 << res->start;
+ 	p[1] = map & 0xff;
+ 	p[2] = (map >> 8) & 0xff;
++
++	dev_dbg(&dev->dev, "  encode irq %d\n", res->start);
+ }
+ 
+-static void pnpbios_encode_dma(unsigned char *p, struct resource *res)
++static void pnpbios_encode_dma(struct pnp_dev *dev, unsigned char *p,
++			       struct resource *res)
+ {
+ 	unsigned long map = 0;
+ 
+ 	map = 1 << res->start;
+ 	p[1] = map & 0xff;
++
++	dev_dbg(&dev->dev, "  encode dma %d\n", res->start);
+ }
+ 
+-static void pnpbios_encode_port(unsigned char *p, struct resource *res)
++static void pnpbios_encode_port(struct pnp_dev *dev, unsigned char *p,
++				struct resource *res)
+ {
+ 	unsigned long base = res->start;
+ 	unsigned long len = res->end - res->start + 1;
+@@ -648,9 +671,13 @@
+ 	p[4] = base & 0xff;
+ 	p[5] = (base >> 8) & 0xff;
+ 	p[7] = len & 0xff;
++
++	dev_dbg(&dev->dev, "  encode io %#llx-%#llx\n",
++		(unsigned long long) res->start, (unsigned long long) res->end);
+ }
+ 
+-static void pnpbios_encode_fixed_port(unsigned char *p, struct resource *res)
++static void pnpbios_encode_fixed_port(struct pnp_dev *dev, unsigned char *p,
++				      struct resource *res)
+ {
+ 	unsigned long base = res->start;
+ 	unsigned long len = res->end - res->start + 1;
+@@ -658,6 +685,9 @@
+ 	p[1] = base & 0xff;
+ 	p[2] = (base >> 8) & 0xff;
+ 	p[3] = len & 0xff;
++
++	dev_dbg(&dev->dev, "  encode fixed_io %#llx-%#llx\n",
++		(unsigned long long) res->start, (unsigned long long) res->end);
+ }
+ 
+ static unsigned char *pnpbios_encode_allocated_resource_data(struct pnp_dev
+@@ -688,42 +718,42 @@
+ 		case LARGE_TAG_MEM:
+ 			if (len != 9)
+ 				goto len_err;
+-			pnpbios_encode_mem(p, &res->mem_resource[mem]);
++			pnpbios_encode_mem(dev, p, &res->mem_resource[mem]);
+ 			mem++;
+ 			break;
+ 
+ 		case LARGE_TAG_MEM32:
+ 			if (len != 17)
+ 				goto len_err;
+-			pnpbios_encode_mem32(p, &res->mem_resource[mem]);
++			pnpbios_encode_mem32(dev, p, &res->mem_resource[mem]);
+ 			mem++;
+ 			break;
+ 
+ 		case LARGE_TAG_FIXEDMEM32:
+ 			if (len != 9)
+ 				goto len_err;
+-			pnpbios_encode_fixed_mem32(p, &res->mem_resource[mem]);
++			pnpbios_encode_fixed_mem32(dev, p, &res->mem_resource[mem]);
+ 			mem++;
+ 			break;
+ 
+ 		case SMALL_TAG_IRQ:
+ 			if (len < 2 || len > 3)
+ 				goto len_err;
+-			pnpbios_encode_irq(p, &res->irq_resource[irq]);
++			pnpbios_encode_irq(dev, p, &res->irq_resource[irq]);
+ 			irq++;
+ 			break;
+ 
+ 		case SMALL_TAG_DMA:
+ 			if (len != 2)
+ 				goto len_err;
+-			pnpbios_encode_dma(p, &res->dma_resource[dma]);
++			pnpbios_encode_dma(dev, p, &res->dma_resource[dma]);
+ 			dma++;
+ 			break;
+ 
+ 		case SMALL_TAG_PORT:
+ 			if (len != 7)
+ 				goto len_err;
+-			pnpbios_encode_port(p, &res->port_resource[port]);
++			pnpbios_encode_port(dev, p, &res->port_resource[port]);
+ 			port++;
+ 			break;
+ 
+@@ -734,7 +764,7 @@
+ 		case SMALL_TAG_FIXEDPORT:
+ 			if (len != 3)
+ 				goto len_err;
+-			pnpbios_encode_fixed_port(p, &res->port_resource[port]);
++			pnpbios_encode_fixed_port(dev, p, &res->port_resource[port]);
+ 			port++;
+ 			break;
+ 
 
 -- 
