@@ -1,74 +1,63 @@
-From: Jeremy Moles <jeremy@emperorlinux.com>
-Subject: CF-30 ACPI (Core2Duo)
-Date: Mon, 28 Apr 2008 14:18:55 -0400
-Message-ID: <1209406735.3815.35.camel@ripley.weyland-yutani>
-Reply-To: jeremy@emperorlinux.com
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [patch 41/54] PNP: remove pnp_resource_table references from resource decoders
+Date: Mon, 28 Apr 2008 14:36:20 -0600
+Message-ID: <200804281436.21061.bjorn.helgaas@hp.com>
+References: <20080425183807.366134771@ldl.fc.hp.com> <20080425183932.457629051@ldl.fc.hp.com> <4813AC7D.9000006@keyaccess.nl>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from router.emperor-sw2.exsbs.net ([208.254.201.37]:45856 "EHLO
-	sade.emperorlinux.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933231AbYD1SnC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Apr 2008 14:43:02 -0400
+Received: from g4t0017.houston.hp.com ([15.201.24.20]:17913 "EHLO
+	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S937386AbYD1UgW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Apr 2008 16:36:22 -0400
+In-Reply-To: <4813AC7D.9000006@keyaccess.nl>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Rene Herman <rene.herman@keyaccess.nl>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-We are having some ACPI problems with a second generation Panasonic
-CF-30 laptop, (by that I mean specifically the Core2Duo version, model
-number starts with CF-30F---, and not the mk1 version CoreDuo CF-30C---
-model).
+On Saturday 26 April 2008 04:28:13 pm Rene Herman wrote:
+> On 25-04-08 20:38, Bjorn Helgaas wrote:
+> 
+> > Index: work10/drivers/pnp/pnpacpi/rsparser.c
+> > ===================================================================
+> > --- work10.orig/drivers/pnp/pnpacpi/rsparser.c	2008-04-25 11:15:08.000000000 -0600
+> > +++ work10/drivers/pnp/pnpacpi/rsparser.c	2008-04-25 11:15:09.000000000 -0600
+> > @@ -82,8 +82,8 @@
+> >  						u32 gsi, int triggering,
+> >  						int polarity, int shareable)
+> >  {
+> > -	struct pnp_resource_table *res = dev->res;
+> > -	int i = 0;
+> > +	struct resource *res;
+> > +	int i;
+> >  	int irq;
+> >  	int p, t;
+> >  	static unsigned char warned;
+> > @@ -91,9 +91,11 @@
+> >  	if (!valid_IRQ(gsi))
+> >  		return;
+> >  
+> > -	while (!(res->irq_resource[i].flags & IORESOURCE_UNSET) &&
+> > -	       i < PNP_MAX_IRQ)
+> > -		i++;
+> > +	for (i = 0; i < PNP_MAX_IRQ; i++) {
+> > +		res = &dev->res->irq_resource[i];
+> > +		if (res->flags & IORESOURCE_UNSET)
+> > +			break;
+> > +	}
+> 
+> Another possible user of pnp_resource_valid.
 
-While the CoreDuo CF-30C--- models are quite fine with ACPI, the mk2
-Core2Duo version will not boot without a custom DSDT, and even then the
-system contains many warnings and has been highly "unstable" (that is:
-random, non-deterministic lockups).
+I changed this, and also changed the array lookups to use
+pnp_get_resource().  And I made similar changes in ISAPNP.
 
-The BIOS and EC version are both V2.00L11.  Further, there are no BIOS
-options relating to how the SATA subsystem should be treated, as these
-kinds of tweaks to the BIOS often help system stability in our
-experience.
+And I replaced many of these &dev->res->irq_resource[] things
+with pnp_get_resource().  This change rippled through several
+subsequent patches, but it's just more mechanical changes.
 
-Seeing as these are newly-introduced as of Mar 2008, there are no BIOS
-upgrades available.  We have contacted Panasonic engineers, but are
-still waiting on a response--though it is unlikely they will be able to
-comment at all. Also, other Panasonic Core2Duo's, like the CF-19F---
-have thus far been fine with ACPI.
-
-----------------------------------------------------------------------
-
-I have uploaded what I believe to be all the pertinent data for anyone
-who is interested in taking a look. The file names should be pretty
-self-explanatory:
-
-	http://downloads.emperorlinux.com/research/cf-30
-
-The "MODE1" boot has the following kernel options:
-
-	acpi_osi=Linux noapic nolapic pci=nommconf
-
-The "MODE2" boot is just a normal boot, without any fancy options. What
-we're really looking for is any advice on why we might be getting some
-of these kernel errors in dmesg. The DSDT I'm using is included in both
-directories (it's the same in both places), but the only change I made
-was:
-
-	OperationRegion (IGDM, SystemMemory, \ASLB, 0x2000)
-
-...to...
-
-	OperationRegion (IGDM, SystemMemory, ASLB, 0x2000)
-
-...which I found somewhere in the list archives. Without this change,
-the system will not boot at all, and locks up very soon in the process
-(too soon to use anything like serial consoles or net consoles).
-
-----------------------------------------------------------------------
-
-I know this is a huge wall of text, but any guidance on where to go next
-would be great. Time is not an issue, so any tests or extra info or
-custom patches you'd like me to apply are perfectly fine. Otherwise,
-I'll continue to hack away and keep this thread updated for anyone else
-in the future.
+Bjorn
 
