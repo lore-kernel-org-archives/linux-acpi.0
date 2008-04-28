@@ -1,32 +1,36 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [patch 00/54] PNP cleanup, v4
-Date: Mon, 28 Apr 2008 15:16:12 -0600
-Message-ID: <200804281516.12704.bjorn.helgaas@hp.com>
-References: <20080425183807.366134771@ldl.fc.hp.com> <4813BBE9.2010803@keyaccess.nl> <4813BF14.8090109@keyaccess.nl>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [RESEND patch 2.6.25] ACPI uses device_may_wakeup() policy
+	inputs
+Date: Mon, 28 Apr 2008 18:35:53 -0300
+Message-ID: <20080428213553.GA3489@khazad-dum.debian.net>
+References: <200803201408.33466.david-b@pacbell.net> <200804182118.05228.david-b@pacbell.net> <1208871017.14474.52.camel@yakui_zhao.sh.intel.com> <200804261237.26499.david-b@pacbell.net> <1209386885.884.9.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0017.houston.hp.com ([15.201.24.20]:33579 "EHLO
-	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934013AbYD1VQM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Apr 2008 17:16:12 -0400
-In-Reply-To: <4813BF14.8090109@keyaccess.nl>
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:35363 "EHLO
+	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1763832AbYD1Vf4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 28 Apr 2008 17:35:56 -0400
 Content-Disposition: inline
+In-Reply-To: <1209386885.884.9.camel@yakui_zhao.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rene Herman <rene.herman@keyaccess.nl>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: David Brownell <david-b@pacbell.net>, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, Thomas Renninger <trenn@suse.de>
 
-On Saturday 26 April 2008 05:47:32 pm Rene Herman wrote:
-> By the way, would you terribly mind submitting this alongside? It's been 
-> ages since we heard from Adam.
+On Mon, 28 Apr 2008, Zhao Yakui wrote:
+> Yes. What your said is right. If your patch is applied, whether the PCI
+> device can wake the sleeping system is controlled by device driver. In
+> such case the /proc/acpi/wakeup will be useless.
 
-I actually poked Adam about this recently and volunteered to take
-over PNP maintenance.  He's been really busy with coursework and
-hasn't been able to do much Linux work.  But he's about to graduate
-and should soon have more free time, so he's going to continue as
-the official maintainer, and I'll continue kibitzing.
+Which calls for a new standard interface to let userpace control that,
+doesn't it?  Issues with wake-up devices are not uncommon, the user
+really has to have a way to configure that, and IMHO it better be a
+generic one...
 
-Bjorn
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
