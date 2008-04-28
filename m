@@ -1,302 +1,170 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 39/55] PNP: remove PNP_MAX_* uses
-Date: Mon, 28 Apr 2008 16:34:26 -0600
-Message-ID: <20080428223624.499516896@ldl.fc.hp.com>
+Subject: [patch 37/55] PNP: convert encoders to use pnp_get_resource(), not pnp_resource_table
+Date: Mon, 28 Apr 2008 16:34:24 -0600
+Message-ID: <20080428223624.090936536@ldl.fc.hp.com>
 References: <20080428223347.233593713@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0015.houston.hp.com ([15.201.24.18]:12876 "EHLO
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:12861 "EHLO
 	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966741AbYD1WhL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Apr 2008 18:37:11 -0400
-Content-Disposition: inline; filename=pnp-remove-max-uses
+	with ESMTP id S966725AbYD1WhI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Apr 2008 18:37:08 -0400
+Content-Disposition: inline; filename=pnp-convert-encoders-to-pnp_get_resource
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-acpi@vger.kernel.org, Rene Herman <rene.herman@gmail.com>, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-Remove some PNP_MAX_* uses.  The pnp_resource_table isn't
-dynamic yet, but with pnp_get_resource(), we can start moving
-away from the table size constants.
+This removes more direct references to pnp_resource_table.  This
+path is used when telling a device what resources it should use.
+
+This doesn't convert ISAPNP because ISA needs to know the config
+register index in addition to the resource itself.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Acked-By: Rene Herman <rene.herman@gmail.com>
 
----
- drivers/pnp/interface.c |   43 ++++++++++++++++++------------------
- drivers/pnp/quirks.c    |   13 ++++++-----
- drivers/pnp/resource.c  |   56 +++++++++++++++++++++++++++---------------------
- drivers/pnp/system.c    |   21 ++++++++----------
- 4 files changed, 70 insertions(+), 63 deletions(-)
-
-Index: work10/drivers/pnp/interface.c
+Index: work10/drivers/pnp/pnpacpi/rsparser.c
 ===================================================================
---- work10.orig/drivers/pnp/interface.c	2008-04-28 16:09:36.000000000 -0600
-+++ work10/drivers/pnp/interface.c	2008-04-28 16:09:37.000000000 -0600
-@@ -248,6 +248,7 @@
- 					  char *buf)
+--- work10.orig/drivers/pnp/pnpacpi/rsparser.c	2008-04-28 16:09:24.000000000 -0600
++++ work10/drivers/pnp/pnpacpi/rsparser.c	2008-04-28 16:09:35.000000000 -0600
+@@ -1014,7 +1014,6 @@
+ 
+ int pnpacpi_encode_resources(struct pnp_dev *dev, struct acpi_buffer *buffer)
  {
- 	struct pnp_dev *dev = to_pnp_dev(dmdev);
-+	struct resource *res;
- 	int i, ret;
- 	pnp_info_buffer_t *buffer;
+-	struct pnp_resource_table *res_table = &dev->res;
+ 	int i = 0;
+ 	/* pnpacpi_build_resource_template allocates extra mem */
+ 	int res_cnt = (buffer->length - 1) / sizeof(struct acpi_resource) - 1;
+@@ -1026,45 +1025,43 @@
+ 		switch (resource->type) {
+ 		case ACPI_RESOURCE_TYPE_IRQ:
+ 			pnpacpi_encode_irq(dev, resource,
+-					   &res_table->irq_resource[irq]);
++			       pnp_get_resource(dev, IORESOURCE_IRQ, irq));
+ 			irq++;
+ 			break;
  
-@@ -267,50 +268,46 @@
- 	else
- 		pnp_printf(buffer, "disabled\n");
- 
--	for (i = 0; i < PNP_MAX_PORT; i++) {
--		if (pnp_port_valid(dev, i)) {
-+	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_IO, i)); i++) {
-+		if (pnp_resource_valid(res)) {
- 			pnp_printf(buffer, "io");
--			if (pnp_port_flags(dev, i) & IORESOURCE_DISABLED)
-+			if (res->flags & IORESOURCE_DISABLED)
- 				pnp_printf(buffer, " disabled\n");
- 			else
- 				pnp_printf(buffer, " 0x%llx-0x%llx\n",
--					   (unsigned long long)
--					   pnp_port_start(dev, i),
--					   (unsigned long long)pnp_port_end(dev,
--									    i));
-+					   (unsigned long long) res->start,
-+					   (unsigned long long) res->end);
- 		}
- 	}
--	for (i = 0; i < PNP_MAX_MEM; i++) {
--		if (pnp_mem_valid(dev, i)) {
-+	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_MEM, i)); i++) {
-+		if (pnp_resource_valid(res)) {
- 			pnp_printf(buffer, "mem");
--			if (pnp_mem_flags(dev, i) & IORESOURCE_DISABLED)
-+			if (res->flags & IORESOURCE_DISABLED)
- 				pnp_printf(buffer, " disabled\n");
- 			else
- 				pnp_printf(buffer, " 0x%llx-0x%llx\n",
--					   (unsigned long long)
--					   pnp_mem_start(dev, i),
--					   (unsigned long long)pnp_mem_end(dev,
--									   i));
-+					   (unsigned long long) res->start,
-+					   (unsigned long long) res->end);
- 		}
- 	}
--	for (i = 0; i < PNP_MAX_IRQ; i++) {
--		if (pnp_irq_valid(dev, i)) {
-+	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_IRQ, i)); i++) {
-+		if (pnp_resource_valid(res)) {
- 			pnp_printf(buffer, "irq");
--			if (pnp_irq_flags(dev, i) & IORESOURCE_DISABLED)
-+			if (res->flags & IORESOURCE_DISABLED)
- 				pnp_printf(buffer, " disabled\n");
- 			else
- 				pnp_printf(buffer, " %lld\n",
--					   (unsigned long long)pnp_irq(dev, i));
-+					   (unsigned long long) res->start);
- 		}
- 	}
--	for (i = 0; i < PNP_MAX_DMA; i++) {
--		if (pnp_dma_valid(dev, i)) {
-+	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_DMA, i)); i++) {
-+		if (pnp_resource_valid(res)) {
- 			pnp_printf(buffer, "dma");
--			if (pnp_dma_flags(dev, i) & IORESOURCE_DISABLED)
-+			if (res->flags & IORESOURCE_DISABLED)
- 				pnp_printf(buffer, " disabled\n");
- 			else
- 				pnp_printf(buffer, " %lld\n",
--					   (unsigned long long)pnp_dma(dev, i));
-+					   (unsigned long long) res->start);
- 		}
- 	}
- 	ret = (buffer->curr - buf);
-Index: work10/drivers/pnp/quirks.c
+ 		case ACPI_RESOURCE_TYPE_DMA:
+ 			pnpacpi_encode_dma(dev, resource,
+-					   &res_table->dma_resource[dma]);
++				pnp_get_resource(dev, IORESOURCE_DMA, dma));
+ 			dma++;
+ 			break;
+ 		case ACPI_RESOURCE_TYPE_IO:
+ 			pnpacpi_encode_io(dev, resource,
+-					  &res_table->port_resource[port]);
++				pnp_get_resource(dev, IORESOURCE_IO, port));
+ 			port++;
+ 			break;
+ 		case ACPI_RESOURCE_TYPE_FIXED_IO:
+ 			pnpacpi_encode_fixed_io(dev, resource,
+-						&res_table->
+-						port_resource[port]);
++				pnp_get_resource(dev, IORESOURCE_IO, port));
+ 			port++;
+ 			break;
+ 		case ACPI_RESOURCE_TYPE_MEMORY24:
+ 			pnpacpi_encode_mem24(dev, resource,
+-					     &res_table->mem_resource[mem]);
++				pnp_get_resource(dev, IORESOURCE_MEM, mem));
+ 			mem++;
+ 			break;
+ 		case ACPI_RESOURCE_TYPE_MEMORY32:
+ 			pnpacpi_encode_mem32(dev, resource,
+-					     &res_table->mem_resource[mem]);
++				pnp_get_resource(dev, IORESOURCE_MEM, mem));
+ 			mem++;
+ 			break;
+ 		case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
+ 			pnpacpi_encode_fixed_mem32(dev, resource,
+-						   &res_table->
+-						   mem_resource[mem]);
++				pnp_get_resource(dev, IORESOURCE_MEM, mem));
+ 			mem++;
+ 			break;
+ 		case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
+ 			pnpacpi_encode_ext_irq(dev, resource,
+-					       &res_table->irq_resource[irq]);
++				pnp_get_resource(dev, IORESOURCE_IRQ, irq));
+ 			irq++;
+ 			break;
+ 		case ACPI_RESOURCE_TYPE_START_DEPENDENT:
+Index: work10/drivers/pnp/pnpbios/rsparser.c
 ===================================================================
---- work10.orig/drivers/pnp/quirks.c	2008-04-28 16:09:27.000000000 -0600
-+++ work10/drivers/pnp/quirks.c	2008-04-28 16:09:37.000000000 -0600
-@@ -138,13 +138,15 @@
- 
- 			pci_start = pci_resource_start(pdev, i);
- 			pci_end = pci_resource_end(pdev, i);
--			for (j = 0; j < PNP_MAX_MEM; j++) {
--				if (!pnp_mem_valid(dev, j) ||
--				    pnp_mem_len(dev, j) == 0)
-+			for (j = 0;
-+			     (res = pnp_get_resource(dev, IORESOURCE_MEM, j));
-+			     j++) {
-+				if (res->flags & IORESOURCE_UNSET ||
-+				    (res->start == 0 && res->end == 0))
- 					continue;
- 
--				pnp_start = pnp_mem_start(dev, j);
--				pnp_end = pnp_mem_end(dev, j);
-+				pnp_start = res->start;
-+				pnp_end = res->end;
- 
- 				/*
- 				 * If the PNP region doesn't overlap the PCI
-@@ -177,7 +179,6 @@
- 					pci_name(pdev), i,
- 					(unsigned long long) pci_start,
- 					(unsigned long long) pci_end);
--				res = pnp_get_resource(dev, IORESOURCE_MEM, j);
- 				res->flags = 0;
- 			}
- 		}
-Index: work10/drivers/pnp/resource.c
-===================================================================
---- work10.orig/drivers/pnp/resource.c	2008-04-28 16:09:34.000000000 -0600
-+++ work10/drivers/pnp/resource.c	2008-04-28 16:09:37.000000000 -0600
-@@ -269,9 +269,8 @@
- 	}
- 
- 	/* check for internal conflicts */
--	for (i = 0; i < PNP_MAX_PORT; i++) {
--		tres = pnp_get_resource(dev, IORESOURCE_IO, i);
--		if (tres && tres != res && tres->flags & IORESOURCE_IO) {
-+	for (i = 0; (tres = pnp_get_resource(dev, IORESOURCE_IO, i)); i++) {
-+		if (tres != res && tres->flags & IORESOURCE_IO) {
- 			tport = &tres->start;
- 			tend = &tres->end;
- 			if (ranged_conflict(port, end, tport, tend))
-@@ -283,9 +282,10 @@
- 	pnp_for_each_dev(tdev) {
- 		if (tdev == dev)
- 			continue;
--		for (i = 0; i < PNP_MAX_PORT; i++) {
--			tres = pnp_get_resource(tdev, IORESOURCE_IO, i);
--			if (tres && tres->flags & IORESOURCE_IO) {
-+		for (i = 0;
-+		     (tres = pnp_get_resource(tdev, IORESOURCE_IO, i));
-+		     i++) {
-+			if (tres->flags & IORESOURCE_IO) {
- 				if (cannot_compare(tres->flags))
- 					continue;
- 				tport = &tres->start;
-@@ -329,9 +329,8 @@
- 	}
- 
- 	/* check for internal conflicts */
--	for (i = 0; i < PNP_MAX_MEM; i++) {
--		tres = pnp_get_resource(dev, IORESOURCE_MEM, i);
--		if (tres && tres != res && tres->flags & IORESOURCE_MEM) {
-+	for (i = 0; (tres = pnp_get_resource(dev, IORESOURCE_MEM, i)); i++) {
-+		if (tres != res && tres->flags & IORESOURCE_MEM) {
- 			taddr = &tres->start;
- 			tend = &tres->end;
- 			if (ranged_conflict(addr, end, taddr, tend))
-@@ -343,9 +342,10 @@
- 	pnp_for_each_dev(tdev) {
- 		if (tdev == dev)
- 			continue;
--		for (i = 0; i < PNP_MAX_MEM; i++) {
--			tres = pnp_get_resource(tdev, IORESOURCE_MEM, i);
--			if (tres && tres->flags & IORESOURCE_MEM) {
-+		for (i = 0;
-+		     (tres = pnp_get_resource(tdev, IORESOURCE_MEM, i));
-+		     i++) {
-+			if (tres->flags & IORESOURCE_MEM) {
- 				if (cannot_compare(tres->flags))
- 					continue;
- 				taddr = &tres->start;
-@@ -388,9 +388,8 @@
- 	}
- 
- 	/* check for internal conflicts */
--	for (i = 0; i < PNP_MAX_IRQ; i++) {
--		tres = pnp_get_resource(dev, IORESOURCE_IRQ, i);
--		if (tres && tres != res && tres->flags & IORESOURCE_IRQ) {
-+	for (i = 0; (tres = pnp_get_resource(dev, IORESOURCE_IRQ, i)); i++) {
-+		if (tres != res && tres->flags & IORESOURCE_IRQ) {
- 			if (tres->start == *irq)
- 				return 0;
- 		}
-@@ -422,9 +421,10 @@
- 	pnp_for_each_dev(tdev) {
- 		if (tdev == dev)
- 			continue;
--		for (i = 0; i < PNP_MAX_IRQ; i++) {
--			tres = pnp_get_resource(tdev, IORESOURCE_IRQ, i);
--			if (tres && tres->flags & IORESOURCE_IRQ) {
-+		for (i = 0;
-+		     (tres = pnp_get_resource(tdev, IORESOURCE_IRQ, i));
-+		     i++) {
-+			if (tres->flags & IORESOURCE_IRQ) {
- 				if (cannot_compare(tres->flags))
- 					continue;
- 				if (tres->start == *irq)
-@@ -461,9 +461,8 @@
- 	}
- 
- 	/* check for internal conflicts */
--	for (i = 0; i < PNP_MAX_DMA; i++) {
--		tres = pnp_get_resource(dev, IORESOURCE_DMA, i);
--		if (tres && tres != res && tres->flags & IORESOURCE_DMA) {
-+	for (i = 0; (tres = pnp_get_resource(dev, IORESOURCE_DMA, i)); i++) {
-+		if (tres != res && tres->flags & IORESOURCE_DMA) {
- 			if (tres->start == *dma)
- 				return 0;
- 		}
-@@ -481,9 +480,10 @@
- 	pnp_for_each_dev(tdev) {
- 		if (tdev == dev)
- 			continue;
--		for (i = 0; i < PNP_MAX_DMA; i++) {
--			tres = pnp_get_resource(tdev, IORESOURCE_DMA, i);
--			if (tres && tres->flags & IORESOURCE_DMA) {
-+		for (i = 0;
-+		     (tres = pnp_get_resource(tdev, IORESOURCE_DMA, i));
-+		     i++) {
-+			if (tres->flags & IORESOURCE_DMA) {
- 				if (cannot_compare(tres->flags))
- 					continue;
- 				if (tres->start == *dma)
-Index: work10/drivers/pnp/system.c
-===================================================================
---- work10.orig/drivers/pnp/system.c	2008-04-28 15:57:02.000000000 -0600
-+++ work10/drivers/pnp/system.c	2008-04-28 16:09:37.000000000 -0600
-@@ -56,14 +56,15 @@
- 
- static void reserve_resources_of_dev(struct pnp_dev *dev)
+--- work10.orig/drivers/pnp/pnpbios/rsparser.c	2008-04-28 16:09:24.000000000 -0600
++++ work10/drivers/pnp/pnpbios/rsparser.c	2008-04-28 16:09:35.000000000 -0600
+@@ -688,7 +688,6 @@
+ 							     unsigned char *p,
+ 							     unsigned char *end)
  {
-+	struct resource *res;
- 	int i;
+-	struct pnp_resource_table *res = &dev->res;
+ 	unsigned int len, tag;
+ 	int port = 0, irq = 0, dma = 0, mem = 0;
  
--	for (i = 0; i < PNP_MAX_PORT; i++) {
--		if (!pnp_port_valid(dev, i))
-+	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_IO, i)); i++) {
-+		if (res->flags & IORESOURCE_UNSET)
- 			continue;
--		if (pnp_port_start(dev, i) == 0)
-+		if (res->start == 0)
- 			continue;	/* disabled */
--		if (pnp_port_start(dev, i) < 0x100)
-+		if (res->start < 0x100)
- 			/*
- 			 * Below 0x100 is only standard PC hardware
- 			 * (pics, kbd, timer, dma, ...)
-@@ -73,19 +74,17 @@
- 			 * So, do nothing
- 			 */
- 			continue;
--		if (pnp_port_end(dev, i) < pnp_port_start(dev, i))
-+		if (res->end < res->start)
- 			continue;	/* invalid */
+@@ -711,42 +710,48 @@
+ 		case LARGE_TAG_MEM:
+ 			if (len != 9)
+ 				goto len_err;
+-			pnpbios_encode_mem(dev, p, &res->mem_resource[mem]);
++			pnpbios_encode_mem(dev, p,
++				pnp_get_resource(dev, IORESOURCE_MEM, mem));
+ 			mem++;
+ 			break;
  
--		reserve_range(dev, pnp_port_start(dev, i),
--			      pnp_port_end(dev, i), 1);
-+		reserve_range(dev, res->start, res->end, 1);
- 	}
+ 		case LARGE_TAG_MEM32:
+ 			if (len != 17)
+ 				goto len_err;
+-			pnpbios_encode_mem32(dev, p, &res->mem_resource[mem]);
++			pnpbios_encode_mem32(dev, p,
++				pnp_get_resource(dev, IORESOURCE_MEM, mem));
+ 			mem++;
+ 			break;
  
--	for (i = 0; i < PNP_MAX_MEM; i++) {
--		if (!pnp_mem_valid(dev, i))
-+	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_MEM, i)); i++) {
-+		if (res->flags & IORESOURCE_UNSET)
- 			continue;
+ 		case LARGE_TAG_FIXEDMEM32:
+ 			if (len != 9)
+ 				goto len_err;
+-			pnpbios_encode_fixed_mem32(dev, p, &res->mem_resource[mem]);
++			pnpbios_encode_fixed_mem32(dev, p,
++				pnp_get_resource(dev, IORESOURCE_MEM, mem));
+ 			mem++;
+ 			break;
  
--		reserve_range(dev, pnp_mem_start(dev, i),
--			      pnp_mem_end(dev, i), 0);
-+		reserve_range(dev, res->start, res->end, 0);
- 	}
- }
+ 		case SMALL_TAG_IRQ:
+ 			if (len < 2 || len > 3)
+ 				goto len_err;
+-			pnpbios_encode_irq(dev, p, &res->irq_resource[irq]);
++			pnpbios_encode_irq(dev, p,
++				pnp_get_resource(dev, IORESOURCE_IRQ, irq));
+ 			irq++;
+ 			break;
+ 
+ 		case SMALL_TAG_DMA:
+ 			if (len != 2)
+ 				goto len_err;
+-			pnpbios_encode_dma(dev, p, &res->dma_resource[dma]);
++			pnpbios_encode_dma(dev, p,
++				pnp_get_resource(dev, IORESOURCE_DMA, dma));
+ 			dma++;
+ 			break;
+ 
+ 		case SMALL_TAG_PORT:
+ 			if (len != 7)
+ 				goto len_err;
+-			pnpbios_encode_port(dev, p, &res->port_resource[port]);
++			pnpbios_encode_port(dev, p,
++				pnp_get_resource(dev, IORESOURCE_IO, port));
+ 			port++;
+ 			break;
+ 
+@@ -757,7 +762,8 @@
+ 		case SMALL_TAG_FIXEDPORT:
+ 			if (len != 3)
+ 				goto len_err;
+-			pnpbios_encode_fixed_port(dev, p, &res->port_resource[port]);
++			pnpbios_encode_fixed_port(dev, p,
++				pnp_get_resource(dev, IORESOURCE_IO, port));
+ 			port++;
+ 			break;
  
 
 -- 
