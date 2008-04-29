@@ -1,13 +1,13 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 004/171] ACPI: EC: Improve debug output
-Date: Tue, 29 Apr 2008 04:43:55 -0400
-Message-ID: <dc0e8490fe884a9378b8ee04a5b5f905f06f4633.1209457069.git.len.brown@intel.com>
+Subject: [PATCH 008/171] ACPI: EC: Use default setup handler
+Date: Tue, 29 Apr 2008 04:43:59 -0400
+Message-ID: <6d9e11206371be370b153264934378a29b6afe9b.1209457069.git.len.brown@intel.com>
 References: <1209458675-9757-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.21]:16639 "EHLO
+Received: from mga06.intel.com ([134.134.136.21]:5420 "EHLO
 	orsmga101.jf.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1759077AbYD2Iom (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Apr 2008 04:44:42 -0400
+	with ESMTP id S1759962AbYD2Ior (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Apr 2008 04:44:47 -0400
 In-Reply-To: <1209458675-9757-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <1071695f17daf050638e0bc550db647f8237c3bb.1209457069.git.len.brown@intel.com>
 References: <1071695f17daf050638e0bc550db647f8237c3bb.1209457069.git.len.brown@intel.com>
@@ -21,36 +21,43 @@ From: Alexey Starikovskiy <astarikovskiy@suse.de>
 Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/ec.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/acpi/ec.c |   16 +---------------
+ 1 files changed, 1 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 63e0ac2..1a7949c 100644
+index f0e8216..167af37 100644
 --- a/drivers/acpi/ec.c
 +++ b/drivers/acpi/ec.c
-@@ -248,9 +248,9 @@ static int acpi_ec_wait(struct acpi_ec *ec, enum ec_event event, int force_poll)
- 			udelay(ACPI_EC_UDELAY);
- 		}
- 	}
--	pr_err(PREFIX "acpi_ec_wait timeout,"
--			       " status = %d, expect_event = %d\n",
--			       acpi_ec_read_status(ec), event);
-+	pr_err(PREFIX "acpi_ec_wait timeout, status = 0x%2.2x, event = %s\n",
-+		acpi_ec_read_status(ec),
-+		(event == ACPI_EC_EVENT_OBF_1) ? "\"b0=1\"" : "\"b1=0\"");
- 	ret = -ETIME;
-       end:
- 	clear_bit(EC_FLAGS_ADDRESS, &ec->flags);
-@@ -264,8 +264,8 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec, u8 command,
- {
- 	int result = 0;
- 	set_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
--	acpi_ec_write_cmd(ec, command);
- 	pr_debug(PREFIX "transaction start\n");
-+	acpi_ec_write_cmd(ec, command);
- 	for (; wdata_len > 0; --wdata_len) {
- 		result = acpi_ec_wait(ec, ACPI_EC_EVENT_IBF_0, force_poll);
- 		if (result) {
+@@ -533,20 +533,6 @@ static void do_ec_poll(struct work_struct *work)
+    -------------------------------------------------------------------------- */
+ 
+ static acpi_status
+-acpi_ec_space_setup(acpi_handle region_handle,
+-		    u32 function, void *handler_context, void **return_context)
+-{
+-	/*
+-	 * The EC object is in the handler context and is needed
+-	 * when calling the acpi_ec_space_handler.
+-	 */
+-	*return_context = (function != ACPI_REGION_DEACTIVATE) ?
+-	    handler_context : NULL;
+-
+-	return AE_OK;
+-}
+-
+-static acpi_status
+ acpi_ec_space_handler(u32 function, acpi_physical_address address,
+ 		      u32 bits, acpi_integer *value,
+ 		      void *handler_context, void *region_context)
+@@ -858,7 +844,7 @@ static int ec_install_handlers(struct acpi_ec *ec)
+ 	status = acpi_install_address_space_handler(ec->handle,
+ 						    ACPI_ADR_SPACE_EC,
+ 						    &acpi_ec_space_handler,
+-						    &acpi_ec_space_setup, ec);
++						    NULL, ec);
+ 	if (ACPI_FAILURE(status)) {
+ 		acpi_remove_gpe_handler(NULL, ec->gpe, &acpi_ec_gpe_handler);
+ 		return -ENODEV;
 -- 
 1.5.5.1.99.gf0ec4
 
