@@ -1,78 +1,69 @@
-From: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Subject: BIOS _OSI(Linux) query ignored on PRIMEQUEST
-Date: Tue, 29 Apr 2008 19:34:33 +0900
-Message-ID: <4816F9B9.3090609@jp.fujitsu.com>
+From: Richard <tuxbox.guru@gmail.com>
+Subject: Re: 2.6.25 pci=noacpi
+Date: Tue, 29 Apr 2008 12:01:10 +0100
+Message-ID: <4816FFF6.5060700@gmail.com>
+References: <20080425183807.366134771@ldl.fc.hp.com>	<20080425183934.516655076@ldl.fc.hp.com>	<4813B5AB.4060308@keyaccess.nl>	<200804281507.38309.bjorn.helgaas@hp.com>	<4816C605.4000601@gmail.com> <20080429000411.ce73230f.akpm@linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-2022-JP
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:49071 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759894AbYD2Kes (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Apr 2008 06:34:48 -0400
-Received: from m5.gw.fujitsu.co.jp ([10.0.50.75])
-	by fgwmail5.fujitsu.co.jp (Fujitsu Gateway) with ESMTP id m3TAYk8i016548
-	for <linux-acpi@vger.kernel.org> (envelope-from izumi.taku@jp.fujitsu.com);
-	Tue, 29 Apr 2008 19:34:46 +0900
-Received: from smail (m5 [127.0.0.1])
-	by outgoing.m5.gw.fujitsu.co.jp (Postfix) with ESMTP id 96E7F2AC027
-	for <linux-acpi@vger.kernel.org>; Tue, 29 Apr 2008 19:34:46 +0900 (JST)
-Received: from s3.gw.fujitsu.co.jp (s3.gw.fujitsu.co.jp [10.0.50.93])
-	by m5.gw.fujitsu.co.jp (Postfix) with ESMTP id 6DA1C12C045
-	for <linux-acpi@vger.kernel.org>; Tue, 29 Apr 2008 19:34:46 +0900 (JST)
-Received: from s3.gw.fujitsu.co.jp (s3 [127.0.0.1])
-	by s3.gw.fujitsu.co.jp (Postfix) with ESMTP id 55CBA161C007
-	for <linux-acpi@vger.kernel.org>; Tue, 29 Apr 2008 19:34:46 +0900 (JST)
-Received: from fjm502.ms.jp.fujitsu.com (fjm502.ms.jp.fujitsu.com [10.56.99.74])
-	by s3.gw.fujitsu.co.jp (Postfix) with ESMTP id F15B1161C009
-	for <linux-acpi@vger.kernel.org>; Tue, 29 Apr 2008 19:34:45 +0900 (JST)
-Received: from fjmscan503.ms.jp.fujitsu.com (fjmscan503.ms.jp.fujitsu.com [10.56.99.143])by fjm502.ms.jp.fujitsu.com with ESMTP id m3TAYZ5k020978
-	for <linux-acpi@vger.kernel.org>; Tue, 29 Apr 2008 19:34:35 +0900
-Received: from [127.0.0.1] ([10.124.100.133])
-	by fjmscan503.ms.jp.fujitsu.com (8.13.1/8.12.11) with ESMTP id m3TAYYHQ015894
-	for <linux-acpi@vger.kernel.org>; Tue, 29 Apr 2008 19:34:35 +0900
+Received: from ug-out-1314.google.com ([66.249.92.171]:47570 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755273AbYD2LBW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Apr 2008 07:01:22 -0400
+Received: by ug-out-1314.google.com with SMTP id z38so1099346ugc.16
+        for <linux-acpi@vger.kernel.org>; Tue, 29 Apr 2008 04:01:20 -0700 (PDT)
+In-Reply-To: <20080429000411.ce73230f.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-acpi@vger.kernel.org, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>
 
-Hi all,
+Hi there,
 
-The following message is displayed on our server(PRIMEQUEST):
+Now I am at a loss.. I cant get any logs from netconsole. With ACPI
+enabled it drops dead just after the kernel hands control to Init. When
+I reboot with acpi disabled there is no trace of the previous boot in
+/var/log/message or kernel logs.
 
-  ACPI: bus type pci registered
-  ACPI: EC: Look up EC in DSDT
-  ACPI: BIOS _OSI(Linux) query ignored
-  ACPI: DMI System Vendor: <NULL>
-  ACPI: DMI Product Name: <NULL>
-  ACPI: DMI Product Version: <NULL>
-  ACPI: DMI Board Name: <NULL>
-  ACPI: DMI BIOS Vendor: FUJITSU LIMITED
-  ACPI: DMI BIOS Date: 1/17/2008
-  ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
-  ACPI: If "acpi_osi=Linux" works better, please notify
-linux-acpi@vger.kernel.org
+The network card I have is a Tigon3 and its not initialised before the
+system dies... or so it looks (altho I cant seem to get any netconsole
+working - I suspect pebkac)
 
-Because "acpi_osi=Linux" boot option works well, so we want to
-use _OSI(Linux) query on PRIMEQUEST without this boot option and
-inihibit above message.
+I have tried to find an option where the kernel boot is logged
+explicitly to disk, but I cant seem to find the option. There is so much
+chaff I cant seem to get my brain to find the REAL options list thats up
+to date.
 
-I thought the way to achive our goal was to add
-the following entry to acpi_osi_dmi_table
-(at drivers/acpi/blacklist.c),
+Any pointers are appreciated
+Richard
 
-   {
-     .callback = dmi_enable_osi_linux,
-     .ident = "Fujitsu PRIMEQUEST",
-     .matches = {
-             DMI_MATCH(DMI_BIOS_VENDOR, "FUJITSU LIMITED"),
-	    },
-   }
 
-but unfortunately this table seems to be valid only for x86 machines.
-Our server is ia64, but what is the best solution?
 
--- 
-Regards,
 
-Taku Izumi <izumi.taku@jp.fujitsu.com>
+
+Andrew Morton wrote:
+> On Tue, 29 Apr 2008 07:53:57 +0100 Richard <tuxbox.guru@gmail.com> wrote:
+>
+>   
+>> Hi all,
+>>
+>> Using an AMD Sempron notebook (HP Compaq 6715b) single processor 
+>> machine,  It shuts down during bootup when ACPI is fully enabled.  I 
+>> added pci=noacpi to the cmdline and it finally boots, but its extremely 
+>> slow...  (kdm times out with error saying it took too long to load and 
+>> disables graphical)
+>>
+>> Dmesg doest show anything out of the ordinary, irq_stats only shows the 
+>> timer interrupts being incremented. (noirq also works, but same 
+>> behaviour) Can someone please offer me some pointers so I can fault find 
+>> this problem.
+>>
+>>     
+>
+> Did any earlier kernels work OK?  If so, which versions?
+>
+> Thanks.
+>
+>   
 
