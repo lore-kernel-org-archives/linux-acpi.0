@@ -1,152 +1,519 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 094/171] thermal: add the support for building the generic thermal as a module
-Date: Tue, 29 Apr 2008 04:44:14 -0400
-Message-ID: <63c4ec905d63834a97ec7dbbf0a2ec89ef5872be.1209457069.git.len.brown@intel.com>
+Subject: [PATCH 085/171] eeepc-laptop: add base driver
+Date: Tue, 29 Apr 2008 04:44:06 -0400
+Message-ID: <6f094f2af232258a9983f3ce36ce0397b568cba5.1209457069.git.len.brown@intel.com>
 References: <1209458675-9757-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.21]:28120 "EHLO
+Received: from mga06.intel.com ([134.134.136.21]:1417 "EHLO
 	orsmga101.jf.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1760661AbYD2IpL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Apr 2008 04:45:11 -0400
+	with ESMTP id S1756305AbYD2Io7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Apr 2008 04:44:59 -0400
 In-Reply-To: <1209458675-9757-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <1071695f17daf050638e0bc550db647f8237c3bb.1209457069.git.len.brown@intel.com>
 References: <1071695f17daf050638e0bc550db647f8237c3bb.1209457069.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Eric Cooper <ecc@cmu.edu>, Corentin Chary <corentincj@iksaif.net>, Len Brown <len.brown@intel.com>
 
-From: Zhang Rui <rui.zhang@intel.com>
+From: Eric Cooper <ecc@cmu.edu>
 
-Build the generic thermal driver as module "thermal_sys".
+This patch is based on Eric Cooper's work to clean the original asus_acpi
+given by Asus.  It's a platform driver (/sys/devices/platform/eeepc/)
+wich support:
+     - hotkeys - wlan on/off - camera on/off - cardr on/off
 
-Make ACPI thermal, video, processor and fan SELECT the generic
-thermal driver, as these drivers rely on it to build the sysfs I/F.
-
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-Acked-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/Kconfig      |    3 +++
- drivers/misc/Kconfig      |    1 +
- drivers/thermal/Kconfig   |    4 ++--
- drivers/thermal/Makefile  |    3 ++-
- drivers/thermal/thermal.c |    2 +-
- include/linux/thermal.h   |   14 --------------
- 6 files changed, 9 insertions(+), 18 deletions(-)
+ drivers/misc/Kconfig        |   11 +
+ drivers/misc/Makefile       |    3 +-
+ drivers/misc/eeepc-laptop.c |  442 +++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 455 insertions(+), 1 deletions(-)
+ create mode 100644 drivers/misc/eeepc-laptop.c
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index b4f5e85..c52fca8 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -140,6 +140,7 @@ config ACPI_VIDEO
- 	tristate "Video"
- 	depends on X86 && BACKLIGHT_CLASS_DEVICE && VIDEO_OUTPUT_CONTROL
- 	depends on INPUT
-+	select THERMAL
- 	help
- 	  This driver implement the ACPI Extensions For Display Adapters
- 	  for integrated graphics devices on motherboard, as specified in
-@@ -151,6 +152,7 @@ config ACPI_VIDEO
- 
- config ACPI_FAN
- 	tristate "Fan"
-+	select THERMAL
- 	default y
- 	help
- 	  This driver adds support for ACPI fan devices, allowing user-mode 
-@@ -172,6 +174,7 @@ config ACPI_BAY
- 
- config ACPI_PROCESSOR
- 	tristate "Processor"
-+	select THERMAL
- 	default y
- 	help
- 	  This driver installs ACPI as the idle handler for Linux, and uses
 diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
-index 297a48f..08f35d7 100644
+index 962817e..10c5ecf 100644
 --- a/drivers/misc/Kconfig
 +++ b/drivers/misc/Kconfig
-@@ -344,6 +344,7 @@ config ATMEL_SSC
- config INTEL_MENLOW
- 	tristate "Thermal Management driver for Intel menlow platform"
- 	depends on ACPI_THERMAL
-+	select THERMAL
- 	depends on X86
- 	---help---
- 	  ACPI thermal management enhancement driver on
-diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
-index 17e71d5..4b62852 100644
---- a/drivers/thermal/Kconfig
-+++ b/drivers/thermal/Kconfig
-@@ -3,7 +3,7 @@
- #
+@@ -327,4 +327,15 @@ config ENCLOSURE_SERVICES
+ 	  driver (SCSI/ATA) which supports enclosures
+ 	  or a SCSI enclosure device (SES) to use these services.
  
- menuconfig THERMAL
--	bool "Generic Thermal sysfs driver"
-+	tristate "Generic Thermal sysfs driver"
- 	help
- 	  Generic Thermal Sysfs driver offers a generic mechanism for
- 	  thermal management. Usually it's made up of one or more thermal
-@@ -11,4 +11,4 @@ menuconfig THERMAL
- 	  Each thermal zone contains its own temperature, trip points,
- 	  cooling devices.
- 	  All platforms with ACPI thermal support can use this driver.
--	  If you want this support, you should say Y here.
-+	  If you want this support, you should say Y or M here.
-diff --git a/drivers/thermal/Makefile b/drivers/thermal/Makefile
-index 8ef1232..02b6451 100644
---- a/drivers/thermal/Makefile
-+++ b/drivers/thermal/Makefile
-@@ -2,4 +2,5 @@
- # Makefile for sensor chip drivers.
- #
- 
--obj-$(CONFIG_THERMAL)		+= thermal.o
-+thermal_sys-objs	+= thermal.o
-+obj-$(CONFIG_THERMAL)		+= thermal_sys.o
-diff --git a/drivers/thermal/thermal.c b/drivers/thermal/thermal.c
-index 7f79bbf..cf56af4 100644
---- a/drivers/thermal/thermal.c
-+++ b/drivers/thermal/thermal.c
-@@ -31,7 +31,7 @@
- #include <linux/thermal.h>
- #include <linux/spinlock.h>
- 
--MODULE_AUTHOR("Zhang Rui")
-+MODULE_AUTHOR("Zhang Rui");
- MODULE_DESCRIPTION("Generic thermal management sysfs support");
- MODULE_LICENSE("GPL");
- 
-diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-index 90c1c19..3ff680b 100644
---- a/include/linux/thermal.h
-+++ b/include/linux/thermal.h
-@@ -88,24 +88,10 @@ int thermal_zone_bind_cooling_device(struct thermal_zone_device *, int,
- 				     struct thermal_cooling_device *);
- int thermal_zone_unbind_cooling_device(struct thermal_zone_device *, int,
- 				       struct thermal_cooling_device *);
--
--#ifdef	CONFIG_THERMAL
- struct thermal_cooling_device *thermal_cooling_device_register(char *, void *,
- 							       struct
- 							       thermal_cooling_device_ops
- 							       *);
- void thermal_cooling_device_unregister(struct thermal_cooling_device *);
--#else
--static inline struct thermal_cooling_device
--*thermal_cooling_device_register(char *c, void *v,
--				 struct thermal_cooling_device_ops *t)
--{
--	return NULL;
--}
--static inline
--    void thermal_cooling_device_unregister(struct thermal_cooling_device *t)
--{
--};
--#endif
- 
- #endif /* __THERMAL_H__ */
++config EEEPC_LAPTOP
++	tristate "Eee PC Hotkey Driver (EXPERIMENTAL)"
++	depends on X86
++	depends on ACPI
++	depends on EXPERIMENTAL
++	---help---
++	  This driver supports the Fn-Fx keys on Eee PC laptops.
++	  It also adds the ability to switch camera/wlan on/off.
++
++	  If you have an Eee PC laptop, say Y or M here.
++
+ endif # MISC_DEVICES
+diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
+index 3b12f5d..ef53a92 100644
+--- a/drivers/misc/Makefile
++++ b/drivers/misc/Makefile
+@@ -7,7 +7,8 @@ obj-$(CONFIG_IBM_ASM)		+= ibmasm/
+ obj-$(CONFIG_HDPU_FEATURES)	+= hdpuftrs/
+ obj-$(CONFIG_MSI_LAPTOP)     += msi-laptop.o
+ obj-$(CONFIG_ACER_WMI)     += acer-wmi.o
+-obj-$(CONFIG_ASUS_LAPTOP)     += asus-laptop.o
++obj-$(CONFIG_ASUS_LAPTOP)	+= asus-laptop.o
++obj-$(CONFIG_EEEPC_LAPTOP)	+= eeepc-laptop.o
+ obj-$(CONFIG_ATMEL_PWM)		+= atmel_pwm.o
+ obj-$(CONFIG_ATMEL_SSC)		+= atmel-ssc.o
+ obj-$(CONFIG_TC1100_WMI)	+= tc1100-wmi.o
+diff --git a/drivers/misc/eeepc-laptop.c b/drivers/misc/eeepc-laptop.c
+new file mode 100644
+index 0000000..e34ff97
+--- /dev/null
++++ b/drivers/misc/eeepc-laptop.c
+@@ -0,0 +1,442 @@
++/*
++ *  eepc-laptop.c - Asus Eee PC extras
++ *
++ *  Based on asus_acpi.c as patched for the Eee PC by Asus:
++ *  ftp://ftp.asus.com/pub/ASUS/EeePC/701/ASUS_ACPI_071126.rar
++ *  Based on eee.c from eeepc-linux
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/types.h>
++#include <linux/platform_device.h>
++#include <acpi/acpi_drivers.h>
++#include <acpi/acpi_bus.h>
++#include <linux/uaccess.h>
++
++#define EEEPC_LAPTOP_VERSION	"0.1"
++
++#define EEEPC_HOTK_NAME		"Eee PC Hotkey Driver"
++#define EEEPC_HOTK_FILE		"eeepc"
++#define EEEPC_HOTK_CLASS	"hotkey"
++#define EEEPC_HOTK_DEVICE_NAME	"Hotkey"
++#define EEEPC_HOTK_HID		"ASUS010"
++
++#define EEEPC_LOG	EEEPC_HOTK_FILE ": "
++#define EEEPC_ERR	KERN_ERR	EEEPC_LOG
++#define EEEPC_WARNING	KERN_WARNING	EEEPC_LOG
++#define EEEPC_NOTICE	KERN_NOTICE	EEEPC_LOG
++#define EEEPC_INFO	KERN_INFO	EEEPC_LOG
++
++/*
++ * Definitions for Asus EeePC
++ */
++#define	NOTIFY_WLAN_ON	0x10
++
++enum {
++	DISABLE_ASL_WLAN = 0x0001,
++	DISABLE_ASL_BLUETOOTH = 0x0002,
++	DISABLE_ASL_IRDA = 0x0004,
++	DISABLE_ASL_CAMERA = 0x0008,
++	DISABLE_ASL_TV = 0x0010,
++	DISABLE_ASL_GPS = 0x0020,
++	DISABLE_ASL_DISPLAYSWITCH = 0x0040,
++	DISABLE_ASL_MODEM = 0x0080,
++	DISABLE_ASL_CARDREADER = 0x0100
++};
++
++enum {
++	CM_ASL_WLAN = 0,
++	CM_ASL_BLUETOOTH,
++	CM_ASL_IRDA,
++	CM_ASL_1394,
++	CM_ASL_CAMERA,
++	CM_ASL_TV,
++	CM_ASL_GPS,
++	CM_ASL_DVDROM,
++	CM_ASL_DISPLAYSWITCH,
++	CM_ASL_PANELBRIGHT,
++	CM_ASL_BIOSFLASH,
++	CM_ASL_ACPIFLASH,
++	CM_ASL_CPUFV,
++	CM_ASL_CPUTEMPERATURE,
++	CM_ASL_FANCPU,
++	CM_ASL_FANCHASSIS,
++	CM_ASL_USBPORT1,
++	CM_ASL_USBPORT2,
++	CM_ASL_USBPORT3,
++	CM_ASL_MODEM,
++	CM_ASL_CARDREADER,
++	CM_ASL_LID
++};
++
++const char *cm_getv[] = {
++	"WLDG", NULL, NULL, NULL,
++	"CAMG", NULL, NULL, NULL,
++	NULL, "PBLG", NULL, NULL,
++	"CFVG", NULL, NULL, NULL,
++	"USBG", NULL, NULL, "MODG",
++	"CRDG", "LIDG"
++};
++
++const char *cm_setv[] = {
++	"WLDS", NULL, NULL, NULL,
++	"CAMS", NULL, NULL, NULL,
++	"SDSP", "PBLS", "HDPS", NULL,
++	"CFVS", NULL, NULL, NULL,
++	"USBG", NULL, NULL, "MODS",
++	"CRDS", NULL
++};
++
++/*
++ * This is the main structure, we can use it to store useful information
++ * about the hotk device
++ */
++struct eeepc_hotk {
++	struct acpi_device *device;	/* the device we are in */
++	acpi_handle handle;		/* the handle of the hotk device */
++	u32 cm_supported;		/* the control methods supported
++					   by this BIOS */
++	uint init_flag;			/* Init flags */
++	u16 event_count[128];		/* count for each event */
++};
++
++/* The actual device the driver binds to */
++static struct eeepc_hotk *ehotk;
++
++/* Platform device/driver */
++static struct platform_driver platform_driver = {
++	.driver = {
++		.name = EEEPC_HOTK_FILE,
++		.owner = THIS_MODULE,
++	}
++};
++
++static struct platform_device *platform_device;
++
++/*
++ * The hotkey driver declaration
++ */
++static int eeepc_hotk_add(struct acpi_device *device);
++static int eeepc_hotk_remove(struct acpi_device *device, int type);
++
++static const struct acpi_device_id eeepc_device_ids[] = {
++	{EEEPC_HOTK_HID, 0},
++	{"", 0},
++};
++MODULE_DEVICE_TABLE(acpi, eeepc_device_ids);
++
++static struct acpi_driver eeepc_hotk_driver = {
++	.name = EEEPC_HOTK_NAME,
++	.class = EEEPC_HOTK_CLASS,
++	.ids = eeepc_device_ids,
++	.ops = {
++		.add = eeepc_hotk_add,
++		.remove = eeepc_hotk_remove,
++	},
++};
++
++MODULE_AUTHOR("Corentin Chary, Eric Cooper");
++MODULE_DESCRIPTION(EEEPC_HOTK_NAME);
++MODULE_LICENSE("GPL");
++
++/*
++ * ACPI Helpers
++ */
++static int write_acpi_int(acpi_handle handle, const char *method, int val,
++			  struct acpi_buffer *output)
++{
++	struct acpi_object_list params;
++	union acpi_object in_obj;
++	acpi_status status;
++
++	params.count = 1;
++	params.pointer = &in_obj;
++	in_obj.type = ACPI_TYPE_INTEGER;
++	in_obj.integer.value = val;
++
++	status = acpi_evaluate_object(handle, (char *)method, &params, output);
++	return (status == AE_OK ? 0 : -1);
++}
++
++static int read_acpi_int(acpi_handle handle, const char *method, int *val)
++{
++	acpi_status status;
++	ulong result;
++
++	status = acpi_evaluate_integer(handle, (char *)method, NULL, &result);
++	if (ACPI_FAILURE(status)) {
++		*val = -1;
++		return -1;
++	} else {
++		*val = result;
++		return 0;
++	}
++}
++
++static int set_acpi(int cm, int value)
++{
++	if (ehotk->cm_supported & (0x1 << cm)) {
++		const char *method = cm_setv[cm];
++		if (method == NULL)
++			return -ENODEV;
++		if (write_acpi_int(ehotk->handle, method, value, NULL))
++			printk(EEEPC_WARNING "Error writing %s\n", method);
++	}
++	return 0;
++}
++
++static int get_acpi(int cm)
++{
++	int value = -1;
++	if ((ehotk->cm_supported & (0x1 << cm))) {
++		const char *method = cm_getv[cm];
++		if (method == NULL)
++			return -ENODEV;
++		if (read_acpi_int(ehotk->handle, method, &value))
++			printk(EEEPC_WARNING "Error reading %s\n", method);
++	}
++	return value;
++}
++
++/*
++ * Sys helpers
++ */
++static int parse_arg(const char *buf, unsigned long count, int *val)
++{
++	if (!count)
++		return 0;
++	if (sscanf(buf, "%i", val) != 1)
++		return -EINVAL;
++	return count;
++}
++
++static ssize_t store_sys_acpi(int cm, const char *buf, size_t count)
++{
++	int rv, value;
++
++	rv = parse_arg(buf, count, &value);
++	if (rv > 0)
++		set_acpi(cm, value);
++	return rv;
++}
++
++static ssize_t show_sys_acpi(int cm, char *buf)
++{
++	return sprintf(buf, "%d\n", get_acpi(cm));
++}
++
++#define EEEPC_CREATE_DEVICE_ATTR(_name, _cm)				\
++	static ssize_t show_##_name(struct device *dev,			\
++				    struct device_attribute *attr,	\
++				    char *buf)				\
++	{								\
++		return show_sys_acpi(_cm, buf);				\
++	}								\
++	static ssize_t store_##_name(struct device *dev,		\
++				     struct device_attribute *attr,	\
++				     const char *buf, size_t count)	\
++	{								\
++		return store_sys_acpi(_cm, buf, count);			\
++	}								\
++	static struct device_attribute dev_attr_##_name = {		\
++		.attr = {						\
++			.name = __stringify(_name),			\
++			.mode = 0644 },					\
++		.show   = show_##_name,					\
++		.store  = store_##_name,				\
++	}
++
++EEEPC_CREATE_DEVICE_ATTR(camera, CM_ASL_CAMERA);
++EEEPC_CREATE_DEVICE_ATTR(cardr, CM_ASL_CARDREADER);
++EEEPC_CREATE_DEVICE_ATTR(disp, CM_ASL_DISPLAYSWITCH);
++EEEPC_CREATE_DEVICE_ATTR(wlan, CM_ASL_WLAN);
++
++static struct attribute *platform_attributes[] = {
++	&dev_attr_camera.attr,
++	&dev_attr_cardr.attr,
++	&dev_attr_disp.attr,
++	&dev_attr_wlan.attr,
++	NULL
++};
++
++static struct attribute_group platform_attribute_group = {
++	.attrs = platform_attributes
++};
++
++/*
++ * Hotkey functions
++ */
++static int eeepc_hotk_check(void)
++{
++	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
++	int result;
++
++	result = acpi_bus_get_status(ehotk->device);
++	if (result)
++		return result;
++	if (ehotk->device->status.present) {
++		if (write_acpi_int(ehotk->handle, "INIT", ehotk->init_flag,
++				    &buffer)) {
++			printk(EEEPC_ERR "Hotkey initialization failed\n");
++			return -ENODEV;
++		} else {
++			printk(EEEPC_NOTICE "Hotkey init flags 0x%x\n",
++			       ehotk->init_flag);
++		}
++		/* get control methods supported */
++		if (read_acpi_int(ehotk->handle, "CMSG"
++				   , &ehotk->cm_supported)) {
++			printk(EEEPC_ERR
++			       "Get control methods supported failed\n");
++			return -ENODEV;
++		} else {
++			printk(EEEPC_INFO
++			       "Get control methods supported: 0x%x\n",
++			       ehotk->cm_supported);
++		}
++	} else {
++		printk(EEEPC_ERR "Hotkey device not present, aborting\n");
++		return -EINVAL;
++	}
++	return 0;
++}
++
++static void notify_wlan(u32 *event)
++{
++	/* if DISABLE_ASL_WLAN is set, the notify code for fn+f2
++	   will always be 0x10 */
++	if (ehotk->cm_supported & (0x1 << CM_ASL_WLAN)) {
++		const char *method = cm_getv[CM_ASL_WLAN];
++		int value;
++		if (read_acpi_int(ehotk->handle, method, &value))
++			printk(EEEPC_WARNING "Error reading %s\n",
++			       method);
++		else if (value == 1)
++			*event = 0x11;
++	}
++}
++
++static void eeepc_hotk_notify(acpi_handle handle, u32 event, void *data)
++{
++	if (!ehotk)
++		return;
++	if (event == NOTIFY_WLAN_ON && (DISABLE_ASL_WLAN & ehotk->init_flag))
++		notify_wlan(&event);
++	acpi_bus_generate_proc_event(ehotk->device, event,
++				     ehotk->event_count[event % 128]++);
++}
++
++static int eeepc_hotk_add(struct acpi_device *device)
++{
++	acpi_status status = AE_OK;
++	int result;
++
++	if (!device)
++		 return -EINVAL;
++	printk(EEEPC_NOTICE EEEPC_HOTK_NAME "\n");
++	ehotk = kzalloc(sizeof(struct eeepc_hotk), GFP_KERNEL);
++	if (!ehotk)
++		return -ENOMEM;
++	ehotk->init_flag = DISABLE_ASL_WLAN | DISABLE_ASL_DISPLAYSWITCH;
++	ehotk->handle = device->handle;
++	strcpy(acpi_device_name(device), EEEPC_HOTK_DEVICE_NAME);
++	strcpy(acpi_device_class(device), EEEPC_HOTK_CLASS);
++	acpi_driver_data(device) = ehotk;
++	ehotk->device = device;
++	result = eeepc_hotk_check();
++	if (result)
++		goto end;
++	status = acpi_install_notify_handler(ehotk->handle, ACPI_SYSTEM_NOTIFY,
++					     eeepc_hotk_notify, ehotk);
++	if (ACPI_FAILURE(status))
++		printk(EEEPC_ERR "Error installing notify handler\n");
++ end:
++	if (result) {
++		kfree(ehotk);
++		ehotk = NULL;
++	}
++	return result;
++}
++
++static int eeepc_hotk_remove(struct acpi_device *device, int type)
++{
++	acpi_status status = 0;
++
++	if (!device || !acpi_driver_data(device))
++		 return -EINVAL;
++	status = acpi_remove_notify_handler(ehotk->handle, ACPI_SYSTEM_NOTIFY,
++					    eeepc_hotk_notify);
++	if (ACPI_FAILURE(status))
++		printk(EEEPC_ERR "Error removing notify handler\n");
++	kfree(ehotk);
++	return 0;
++}
++
++/*
++ * exit/init
++ */
++static void __exit eeepc_laptop_exit(void)
++{
++	acpi_bus_unregister_driver(&eeepc_hotk_driver);
++	sysfs_remove_group(&platform_device->dev.kobj,
++			   &platform_attribute_group);
++	platform_device_unregister(platform_device);
++	platform_driver_unregister(&platform_driver);
++}
++
++static int __init eeepc_laptop_init(void)
++{
++	struct device *dev;
++	int result;
++
++	if (acpi_disabled)
++		return -ENODEV;
++	result = acpi_bus_register_driver(&eeepc_hotk_driver);
++	if (result < 0)
++		return result;
++	if (!ehotk) {
++		acpi_bus_unregister_driver(&eeepc_hotk_driver);
++		return -ENODEV;
++	}
++	dev = acpi_get_physical_device(ehotk->device->handle);
++	/* Register platform stuff */
++	result = platform_driver_register(&platform_driver);
++	if (result)
++		goto fail_platform_driver;
++	platform_device = platform_device_alloc(EEEPC_HOTK_FILE, -1);
++	if (!platform_device) {
++		result = -ENOMEM;
++		goto fail_platform_device1;
++	}
++	result = platform_device_add(platform_device);
++	if (result)
++		goto fail_platform_device2;
++	result = sysfs_create_group(&platform_device->dev.kobj,
++				    &platform_attribute_group);
++	if (result)
++		goto fail_sysfs;
++	return 0;
++fail_sysfs:
++	platform_device_del(platform_device);
++fail_platform_device2:
++	platform_device_put(platform_device);
++fail_platform_device1:
++	platform_driver_unregister(&platform_driver);
++fail_platform_driver:
++	return result;
++}
++
++module_init(eeepc_laptop_init);
++module_exit(eeepc_laptop_exit);
 -- 
 1.5.5.1.99.gf0ec4
 
