@@ -1,143 +1,112 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: Linux 2.6.25 (coretemp reads high temperatures)
-Date: Tue, 29 Apr 2008 15:07:03 +0200
-Message-ID: <1209474423.1784.837.camel@queen.suse.de>
-References: <e85b9d30804180837y39c52e26i588e4b67c87a5e9d@mail.gmail.com>
-	 <200804182151.49021.lenb@kernel.org>
-	 <200804231143.10875.maximlevitsky@gmail.com>
-	 <1209406784.11608.15.camel@localhost>
-Reply-To: trenn@suse.de
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1761489AbYD2NHZ@vger.kernel.org>
-In-Reply-To: <1209406784.11608.15.camel@localhost>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kasper Sandberg <lkml@metanurb.dk>
-Cc: Maxim Levitsky <maximlevitsky@gmail.com>, Len Brown <lenb@kernel.org>, Matthew <jackdachef@gmail.com>, linux-acpi@vger.kernel.org, torvalds@linux-foundation.org, linux-kernel@vger.kernel.org, Jean Delvare <khali@linux-fr.org>, "Zhang, Rui" <rui.zhang@intel.com>
+From: Sergey Yanovich <ynvich@gmail.com>
+Subject: [PATCH] acpi: add control over wifi power in Sony laptops
+Date: Tue, 29 Apr 2008 16:36:49 +0300
+Message-ID: <1209476209-7809-1-git-send-email-ynvich@gmail.com>
+References: <1208558495-22792-2-git-send-email-ynvich@gmail.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fg-out-1718.google.com ([72.14.220.159]:19088 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752072AbYD2Ngz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Apr 2008 09:36:55 -0400
+Received: by fg-out-1718.google.com with SMTP id l27so2923fgb.17
+        for <linux-acpi@vger.kernel.org>; Tue, 29 Apr 2008 06:36:54 -0700 (PDT)
+In-Reply-To: <1208558495-22792-2-git-send-email-ynvich@gmail.com>
+In-Reply-To: <1208558495-22792-2-git-send-email-ynvich@gmail.com>
+References: <1208558495-22792-2-git-send-email-ynvich@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: malattia@linux.it, Sergey Yanovich <ynvich@gmail.com>
 
-On Mon, 2008-04-28 at 20:19 +0200, Kasper Sandberg wrote:
-> On Wed, 2008-04-23 at 11:43 +0300, Maxim Levitsky wrote:
-> > On Saturday, 19 April 2008 04:51:48 Len Brown wrote:
-> > > On Friday 18 April 2008, Matthew wrote:
-> > > > Hi everyone, hi Linus,
-> > > >=20
-> > > > congratulations on this new great kernel-release :)
-> > > >=20
-> > > > I've another "regression" to report for 2.6.25:
-> > > >=20
-> > > > it's concerning much higher temperatures being read out by the
-> > > > "coretemp" kernel-module in comparison to 2.6.24* series
-> > > >=20
-> > > > e.g. where temperatures were around 40-47=C2=B0C they are now c=
-onstantly
-> > > > jumping around 55-70=C2=B0C (even in idle !)
-> >=20
-> > I just updated from 2.6.24 to 2.6.25
-> > (I usually follow whole development cycle, but I was very busy, so =
-I skipped 2.6.25 cycle)
-> >=20
-> > I confirm this.
-> > I *know* that temperatures reported now are wrong.
->=20
-> I too can confirm that it reports incorrect temperatures.
->=20
-> I have a Q9450, and this is my "sensors" output:
-> it8718-isa-0290
-> Adapter: ISA adapter
-> <snip>
-> temp1:       +44=C3=82=C2=B0C  (low  =3D  +127=C3=82=C2=B0C, high =3D=
-  +127=C3=82=C2=B0C)   sensor =3D
-> thermistor
-> temp2:       +22=C3=82=C2=B0C  (low  =3D  +127=C3=82=C2=B0C, high =3D=
-   +60=C3=82=C2=B0C)   sensor =3D diode
-> temp3:        -2=C3=82=C2=B0C  (low  =3D  +127=C3=82=C2=B0C, high =3D=
-  +127=C3=82=C2=B0C)   sensor =3D
-> thermistor
-> vid:      +0.000 V
->=20
-> coretemp-isa-0000
-> Adapter: ISA adapter
-> Core 0:      +44=C3=82=C2=B0C  (high =3D  +100=C3=82=C2=B0C)
->=20
-> coretemp-isa-0001
-> Adapter: ISA adapter
-> Core 1:      +44=C3=82=C2=B0C  (high =3D  +100=C3=82=C2=B0C)
->=20
-> coretemp-isa-0002
-> Adapter: ISA adapter
-> Core 2:      +43=C3=82=C2=B0C  (high =3D  +100=C3=82=C2=B0C)
->=20
-> coretemp-isa-0003
-> Adapter: ISA adapter
-> Core 3:      +41=C3=82=C2=B0C  (high =3D  +100=C3=82=C2=B0C)
->=20
->=20
-> temp2 is the cpu temperature(matches bios), temp1 is the northbridge(=
-i
-> think, bios says "system temp").
->=20
-> i have watercooling, and well :P when i touch the "tube", its normal
-> room temperature, and believe me, i would notice if it was 45.. this =
-is
-> with my cpu at idle - at full load on all 4 cores, temp2 says 35, and
-> ~60 on coretemp, and THIS i would surely be able to notice over room
-> temp :)
->=20
-> any progress on this bug?
->=20
-> >=20
-> > The reason is that bios did report same temperatures as coretemp in=
- 2.6.24,
-> > moreover some time ago I have run a cpu tool (don't remember its na=
-me) on windows
-> > which similar to coretemp reads from each core directly, sensor dat=
-a ,=20
-> > and I noticed that temperature that bios reports is exactly the ave=
-rage=20
-> > temperature of both cores
-> > (I had to run this on windows - intel haven't released=20
-> > drivers for their QST for temperature monitoring from bios - very s=
-ad)
-> >=20
-> > And the driver did say in kernel log that TJMAX is 85C
-> >=20
-> > Lets at least make a kernel option to override tjmax?
-> >=20
+Sony laptops have a single hardware rfkill switch, which controls
+several wireless devices: wifi, bluetooth, wwan. The code to
+selectively control bluetooth and wwan is already present. This
+paths adds handling of wifi.
 
-Could it be that due to latest thermal changes ACPI is reading
-temperatures more often, or started to read sensors that interfere with
-libsensors?
+Signed-off-by: Sergey Yanovich <ynvich@gmail.com>
+---
+ drivers/misc/sony-laptop.c |   42 ++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 42 insertions(+), 0 deletions(-)
 
-There was a patch-set that detect such interference from myself and Jea=
-n
-which was not accepted by Linus.
-This is what I got from Jean recently, he should be able to point you t=
-o
-the latest patches if you want to give them a try:
-----------------------------------------------
-On Mon, 28 Apr 2008 22:13:13 -0700, Andrew Morton wrote:
-> In light of Linus's dummyspit last time around I guess I'll drop
-> this patch.
+diff --git a/drivers/misc/sony-laptop.c b/drivers/misc/sony-laptop.c
+index be70153..e5b8709 100644
+--- a/drivers/misc/sony-laptop.c
++++ b/drivers/misc/sony-laptop.c
+@@ -1227,6 +1227,7 @@ struct sony_pic_dev {
+ 	u8			camera_power;
+ 	u8			bluetooth_power;
+ 	u8			wwan_power;
++	u8			wifi_power;
+ };
+ 
+ static struct sony_pic_dev spic_dev = {
+@@ -1760,6 +1761,7 @@ static void sony_pic_set_wwanpower(u8 state)
+ 		return;
+ 	}
+ 	sony_pic_call2(0xB0, state);
++	sony_pic_call1(0x82);
+ 	spic_dev.wwan_power = state;
+ 	mutex_unlock(&spic_dev.lock);
+ }
+@@ -1788,6 +1790,44 @@ static ssize_t sony_pic_wwanpower_show(struct device *dev,
+ 	return count;
+ }
+ 
++/* wifi power (TX series) */
++static void sony_pic_set_wifipower(u8 state)
++{
++	state = !!state;
++	mutex_lock(&spic_dev.lock);
++	if (spic_dev.wifi_power == state) {
++		mutex_unlock(&spic_dev.lock);
++		return;
++	}
++	sony_pic_call2(0x98, -state);
++	sony_pic_call1(0x82);
++	spic_dev.wifi_power = state;
++	mutex_unlock(&spic_dev.lock);
++}
++
++static ssize_t sony_pic_wifipower_store(struct device *dev,
++		struct device_attribute *attr,
++		const char *buffer, size_t count)
++{
++	unsigned long value;
++	if (!strict_strtoul(buffer, 10, &value))
++		return -EINVAL;
++
++	sony_pic_set_wifipower(value);
++
++	return count;
++}
++
++static ssize_t sony_pic_wifipower_show(struct device *dev,
++		struct device_attribute *attr, char *buffer)
++{
++	ssize_t count;
++	mutex_lock(&spic_dev.lock);
++	count = snprintf(buffer, PAGE_SIZE, "%d\n", spic_dev.wifi_power);
++	mutex_unlock(&spic_dev.lock);
++	return count;
++}
++
+ /* bluetooth subsystem power state */
+ static void __sony_pic_set_bluetoothpower(u8 state)
+ {
+@@ -1870,11 +1910,13 @@ struct device_attribute spic_attr_##_name = __ATTR(_name,	\
+ 
+ static SPIC_ATTR(bluetoothpower, 0644);
+ static SPIC_ATTR(wwanpower, 0644);
++static SPIC_ATTR(wifipower, 0644);
+ static SPIC_ATTR(fanspeed, 0644);
+ 
+ static struct attribute *spic_attributes[] = {
+ 	&spic_attr_bluetoothpower.attr,
+ 	&spic_attr_wwanpower.attr,
++	&spic_attr_wifipower.attr,
+ 	&spic_attr_fanspeed.attr,
+ 	NULL
+ };
+-- 
+1.5.5.1
 
-That's OK, I'll include it in my i2c tree instead. While Linus doesn't
-like it, he didn't actually provide replacement code, only a vague idea
-which Thomas and myself know by experience, won't work well anyway. As
-the checks done by this driver are valuable, having it in -mm and
-linux-next is still good.
-
---=20
-Jean Delvare
-----------------------------------------------
-
-
-If you get a conflict you should see something like this when loading
-the hwmon/sensor driver:
-i2c /dev entries driver
-f71805f: Found F71805F/FG chip at 0x290, revision 19
-ACPI: I/O resource f71805f [0x290-0x297] conflicts with ACPI region IP_=
-_ [0x295-0x296]
-ACPI: Device needs an ACPI driver
-
-   Thomas
