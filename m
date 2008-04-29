@@ -1,59 +1,85 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch 9/9] ThinkPad ACPI: fix possible NULL pointer dereference
-Date: Tue, 29 Apr 2008 04:16:25 -0400
-Message-ID: <200804290416.25482.lenb@kernel.org>
-References: <200804182027.m3IKRUlu013564@imap1.linux-foundation.org>
+Subject: Re: [patch 00/55] PNP cleanup, v5
+Date: Tue, 29 Apr 2008 04:38:00 -0400
+Message-ID: <200804290438.00657.lenb@kernel.org>
+References: <20080428223347.233593713@ldl.fc.hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:55956 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:57490 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753582AbYD2IRP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 29 Apr 2008 04:17:15 -0400
-In-Reply-To: <200804182027.m3IKRUlu013564@imap1.linux-foundation.org>
+	id S1752991AbYD2Ij1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 29 Apr 2008 04:39:27 -0400
+In-Reply-To: <20080428223347.233593713@ldl.fc.hp.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: akpm@linux-foundation.org
-Cc: linux-acpi@vger.kernel.org, gorcunov@gmail.com, hmh@hmh.eng.br
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-applied
+Bjorn,
+I'm running this version on my primary development machine,
+and I've pulled it into the acpi tree a few minutes ago.
 
 thanks,
--len
+-Len
 
-On Friday 18 April 2008, akpm@linux-foundation.org wrote:
-> From: Cyrill Gorcunov <gorcunov@gmail.com>
+On Monday 28 April 2008, Bjorn Helgaas wrote:
+> I'm trying to stabilize something so we can get it into -mm, 
+> so this only addresses Rene's comments on v4. 
 > 
-> Fix potential NULL pointer dereference if kstrdup failed
+> As a reminder, if anybody tests this and sees problems, the
+> dmesg log with CONFIG_PNP_DEBUG enabled would be a great help
+> to me.
 > 
-> Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
-> Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
+> Changes between v4 and v5:
 > 
->  drivers/misc/thinkpad_acpi.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>   - moved #ifdef DEBUG inside dbg_pnp_show_resources()
+>   - removed cast of flags to int; print the long directly
+>   - changed printk "0x%x" to "%#x"
+>   - set "type" in pnp_clean_resource_table()
+>   - fix return type of pnp_{port,mem,irq,dma}_flags()
+>   - new patch converts pnp_assign_*() and /sys interfaces to pnp_get_resource()
+>   - added Rene's acks
 > 
-> diff -puN drivers/misc/thinkpad_acpi.c~thinkpad-acpi-fix-possible-null-pointer-dereference drivers/misc/thinkpad_acpi.c
-> --- a/drivers/misc/thinkpad_acpi.c~thinkpad-acpi-fix-possible-null-pointer-dereference
-> +++ a/drivers/misc/thinkpad_acpi.c
-> @@ -5826,7 +5826,7 @@ static void __init get_thinkpad_model_da
->  
->  	tp->model_str = kstrdup(dmi_get_system_info(DMI_PRODUCT_VERSION),
->  					GFP_KERNEL);
-> -	if (strnicmp(tp->model_str, "ThinkPad", 8) != 0) {
-> +	if (tp->model_str && strnicmp(tp->model_str, "ThinkPad", 8) != 0) {
->  		kfree(tp->model_str);
->  		tp->model_str = NULL;
->  	}
-> _
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Changes between v3 and v4:
+> 
+>   - changed pnp_check_port(), etc., to take resource instead of index
+>   - added some decoder/encoder/assign debug output (under CONFIG_PNP_DEBUG)
+>   - fixed some ISAPNP register index bisectability problems
+>   - removed the list-based resource management (will work on that separately)
+> 
+> Changes between v2 and v3:
+> 
+>   - several updates from Rene Herman's review:
+> 	- tweak EISA ID conversion and keep high-order bit for ISAPNP
+> 	- fix pnp_add_card_id() so bisection works better
+> 	- fix some "x <= 0" tests when x is unsigned
+> 	- make resource accessors inlines, not #defines
+> 	- fix pnp_{port,mem,irq,dma}_valid() return int, not resource_size_t
+> 	- fold isapnp_read_resources() back into isapnp_get_resources()
+>   - factored out pnp_init_resource() from pnp_{init,clean}_resource_table()
+>   - initialize generic pnp_dev fields earlier, to help dev_printk
+>   - add pnp_resource to hold ISAPNP register index
+>   - convert to resource management from table to list (finally)
+>   - remove pnp_dev->regs (only set by ISAPNP, never used)
+>   - in /sys/.../resources, don't sort resources by type
+> 
+> Changes between first post and v2:
+> 
+>   - export pnp_get_resource()
+>   - fix EISA ID conversion and make a common function for ISAPNP/PNPBIOS
+>   - fix typos in pnp_check_{port,mem,etc} that made resource assign fail
+> 
+>   - the following fixes should precede this series (they're in -mm already):
+> 	- parport_pc: wrap PNP probe code in CONFIG_PNP
+> 	- radio-cadet: wrap PNP probe code in CONFIG_PNP
+> 	- smsc-ircc2: wrap PNP probe code in CONFIG_PNP
+> 	- nsc-ircc: wrap PNP probe code in CONFIG_PNP
+> 
+> Bjorn
 > 
 
 
