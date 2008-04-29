@@ -1,414 +1,111 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 012/171] PM: Remove legacy PM
-Date: Tue, 29 Apr 2008 04:44:03 -0400
-Message-ID: <6afe1a1fe8ff83f6ac2726b04665e76ba7b14f3e.1209457069.git.len.brown@intel.com>
+Subject: [PATCH 010/171] ACPI : Disable the device's ability to wake the sleeping system in the boot phase
+Date: Tue, 29 Apr 2008 04:44:01 -0400
+Message-ID: <729b2bdbfa19dd9be98dbd49caf2773b3271cc24.1209457069.git.len.brown@intel.com>
 References: <1209458675-9757-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.21]:45231 "EHLO
+Received: from mga06.intel.com ([134.134.136.21]:35853 "EHLO
 	orsmga101.jf.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755020AbYD2Iov (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Apr 2008 04:44:51 -0400
+	with ESMTP id S1760109AbYD2Ios (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Apr 2008 04:44:48 -0400
 In-Reply-To: <1209458675-9757-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <1071695f17daf050638e0bc550db647f8237c3bb.1209457069.git.len.brown@intel.com>
 References: <1071695f17daf050638e0bc550db647f8237c3bb.1209457069.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Pavel Machek <pavel@suse.cz>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
+Cc: Zhao Yakui <yakui.zhao@intel.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Pavel Machek <pavel@suse.cz>
+From: Zhao Yakui <yakui.zhao@intel.com>
 
-AFAICT pm_send_all is a nop when noone uses pm_register...
+In some machines some GPE is shared by several ACPI devices, for example:
+sleep button, keyboard, mouse. At the same time one of them is
+non-wake(runtime) device and the other are wake devices. In such case OSPM
+should call the _PSW object to disable the device's ability to
+wake the sleeping system in the boot phase.
+Otherwise there will be ACPI interrupt flood triggered by the GPE input.
 
-Hmm.. can we just force CONFIG_PM_LEGACY=n, and see what happens?
+The _PSW object is depreciated in ACPI 3.0 and is replaced by _DSW.
+So it is necessary to call _DSW object first. Only when it is not
+present will the _PSW object used.
 
-Or maybe this is better idea? It may break build somewhere, but it
-should be easy to fix... (it builds here, i386 and x86-64).
+http://bugzilla.kernel.org/show_bug.cgi?id=10224
 
-Signed-off-by: Pavel Machek <pavel@suse.cz>
-Acked-by: Ralf Baechle <ralf@linux-mips.org>
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+Signed-off-by: Zhang Rui  <rui.zhang@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- arch/frv/kernel/pm.c            |    8 --
- arch/mips/au1000/common/power.c |   17 +---
- arch/x86/kernel/apm_32.c        |   15 ---
- kernel/power/Kconfig            |   10 --
- kernel/power/Makefile           |    1 -
- kernel/power/pm.c               |  205 ---------------------------------------
- 6 files changed, 2 insertions(+), 254 deletions(-)
- delete mode 100644 kernel/power/pm.c
+ drivers/acpi/scan.c |   43 ++++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 42 insertions(+), 1 deletions(-)
 
-diff --git a/arch/frv/kernel/pm.c b/arch/frv/kernel/pm.c
-index c57ce3f..73f3aee 100644
---- a/arch/frv/kernel/pm.c
-+++ b/arch/frv/kernel/pm.c
-@@ -163,14 +163,11 @@ static int sysctl_pm_do_suspend(ctl_table *ctl, int write, struct file *filp,
- 	if ((mode != 1) && (mode != 5))
- 		return -EINVAL;
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index e6ce262..bd32351 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -692,6 +692,9 @@ static int acpi_bus_get_wakeup_device_flags(struct acpi_device *device)
+ 	acpi_status status = 0;
+ 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+ 	union acpi_object *package = NULL;
++	union acpi_object in_arg[3];
++	struct acpi_object_list arg_list = { 3, in_arg };
++	acpi_status psw_status = AE_OK;
  
--	retval = pm_send_all(PM_SUSPEND, (void *)3);
--
- 	if (retval == 0) {
- 		if (mode == 5)
- 		    retval = pm_do_bus_sleep();
- 		else
- 		    retval = pm_do_suspend();
--		pm_send_all(PM_RESUME, (void *)0);
- 	}
+ 	struct acpi_device_id button_device_ids[] = {
+ 		{"PNP0C0D", 0},
+@@ -700,7 +703,6 @@ static int acpi_bus_get_wakeup_device_flags(struct acpi_device *device)
+ 		{"", 0},
+ 	};
  
- 	return retval;
-@@ -183,9 +180,6 @@ static int try_set_cmode(int new_cmode)
- 	if (!(clock_cmodes_permitted & (1<<new_cmode)))
- 		return -EINVAL;
+-
+ 	/* _PRW */
+ 	status = acpi_evaluate_object(device->handle, "_PRW", NULL, &buffer);
+ 	if (ACPI_FAILURE(status)) {
+@@ -718,6 +720,45 @@ static int acpi_bus_get_wakeup_device_flags(struct acpi_device *device)
+ 	kfree(buffer.pointer);
  
--	/* tell all the drivers we're suspending */
--	pm_send_all(PM_SUSPEND, (void *)3);
--
- 	/* now change cmode */
- 	local_irq_disable();
- 	frv_dma_pause_all();
-@@ -201,8 +195,6 @@ static int try_set_cmode(int new_cmode)
- 	frv_dma_resume_all();
- 	local_irq_enable();
- 
--	/* tell all the drivers we're resuming */
--	pm_send_all(PM_RESUME, (void *)0);
- 	return 0;
- }
- 
-diff --git a/arch/mips/au1000/common/power.c b/arch/mips/au1000/common/power.c
-index 54047d6..a9f7f63 100644
---- a/arch/mips/au1000/common/power.c
-+++ b/arch/mips/au1000/common/power.c
-@@ -258,7 +258,6 @@ int au_sleep(void)
- static int pm_do_sleep(ctl_table * ctl, int write, struct file *file,
- 		       void __user *buffer, size_t * len, loff_t *ppos)
- {
--	int retval = 0;
- #ifdef SLEEP_TEST_TIMEOUT
- #define TMPBUFLEN2 16
- 	char buf[TMPBUFLEN2], *p;
-@@ -278,33 +277,21 @@ static int pm_do_sleep(ctl_table * ctl, int write, struct file *file,
- 		p = buf;
- 		sleep_ticks = simple_strtoul(p, &p, 0);
- #endif
--		retval = pm_send_all(PM_SUSPEND, (void *) 2);
--
--		if (retval)
--			return retval;
- 
- 		au_sleep();
--		retval = pm_send_all(PM_RESUME, (void *) 0);
- 	}
--	return retval;
-+	return 0;
- }
- 
- static int pm_do_suspend(ctl_table * ctl, int write, struct file *file,
- 			 void __user *buffer, size_t * len, loff_t *ppos)
- {
--	int retval = 0;
--
- 	if (!write) {
- 		*len = 0;
- 	} else {
--		retval = pm_send_all(PM_SUSPEND, (void *) 2);
--		if (retval)
--			return retval;
- 		suspend_mode = 1;
--
--		retval = pm_send_all(PM_RESUME, (void *) 0);
- 	}
--	return retval;
-+	return 0;
- }
- 
- 
-diff --git a/arch/x86/kernel/apm_32.c b/arch/x86/kernel/apm_32.c
-index d4438ef..d7e92bf 100644
---- a/arch/x86/kernel/apm_32.c
-+++ b/arch/x86/kernel/apm_32.c
-@@ -1189,19 +1189,6 @@ static int suspend(int vetoable)
- 	int err;
- 	struct apm_user	*as;
- 
--	if (pm_send_all(PM_SUSPEND, (void *)3)) {
--		/* Vetoed */
--		if (vetoable) {
--			if (apm_info.connection_version > 0x100)
--				set_system_power_state(APM_STATE_REJECT);
--			err = -EBUSY;
--			ignore_sys_suspend = 0;
--			printk(KERN_WARNING "apm: suspend was vetoed.\n");
--			goto out;
--		}
--		printk(KERN_CRIT "apm: suspend was vetoed, but suspending anyway.\n");
--	}
--
- 	device_suspend(PMSG_SUSPEND);
- 	local_irq_disable();
- 	device_power_down(PMSG_SUSPEND);
-@@ -1224,7 +1211,6 @@ static int suspend(int vetoable)
- 	device_power_up();
- 	local_irq_enable();
- 	device_resume();
--	pm_send_all(PM_RESUME, (void *)0);
- 	queue_event(APM_NORMAL_RESUME, NULL);
-  out:
- 	spin_lock(&user_list_lock);
-@@ -1337,7 +1323,6 @@ static void check_events(void)
- 			if ((event != APM_NORMAL_RESUME)
- 			    || (ignore_normal_resume == 0)) {
- 				device_resume();
--				pm_send_all(PM_RESUME, (void *)0);
- 				queue_event(event, NULL);
- 			}
- 			ignore_normal_resume = 0;
-diff --git a/kernel/power/Kconfig b/kernel/power/Kconfig
-index 6233f3b..b45da40 100644
---- a/kernel/power/Kconfig
-+++ b/kernel/power/Kconfig
-@@ -19,16 +19,6 @@ config PM
- 	  will issue the hlt instruction if nothing is to be done, thereby
- 	  sending the processor to sleep and saving power.
- 
--config PM_LEGACY
--	bool "Legacy Power Management API (DEPRECATED)"
--	depends on PM
--	default n
--	---help---
--	   Support for pm_register() and friends.  This old API is obsoleted
--	   by the driver model.
--
--	   If unsure, say N.
--
- config PM_DEBUG
- 	bool "Power Management Debug Support"
- 	depends on PM
-diff --git a/kernel/power/Makefile b/kernel/power/Makefile
-index f7dfff2..597823b 100644
---- a/kernel/power/Makefile
-+++ b/kernel/power/Makefile
-@@ -4,7 +4,6 @@ EXTRA_CFLAGS	+=	-DDEBUG
- endif
- 
- obj-y				:= main.o
--obj-$(CONFIG_PM_LEGACY)		+= pm.o
- obj-$(CONFIG_PM_SLEEP)		+= process.o console.o
- obj-$(CONFIG_HIBERNATION)	+= swsusp.o disk.o snapshot.o swap.o user.o
- 
-diff --git a/kernel/power/pm.c b/kernel/power/pm.c
-deleted file mode 100644
-index 60c73fa..0000000
---- a/kernel/power/pm.c
-+++ /dev/null
-@@ -1,205 +0,0 @@
--/*
-- *  pm.c - Power management interface
-- *
-- *  Copyright (C) 2000 Andrew Henroid
-- *
-- *  This program is free software; you can redistribute it and/or modify
-- *  it under the terms of the GNU General Public License as published by
-- *  the Free Software Foundation; either version 2 of the License, or
-- *  (at your option) any later version.
-- *
-- *  This program is distributed in the hope that it will be useful,
-- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- *  GNU General Public License for more details.
-- *
-- *  You should have received a copy of the GNU General Public License
-- *  along with this program; if not, write to the Free Software
-- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-- */
--#include <linux/init.h>
--#include <linux/module.h>
--#include <linux/spinlock.h>
--#include <linux/mm.h>
--#include <linux/slab.h>
--#include <linux/pm.h>
--#include <linux/pm_legacy.h>
--#include <linux/interrupt.h>
--#include <linux/mutex.h>
--
--/*
-- *	Locking notes:
-- *		pm_devs_lock can be a semaphore providing pm ops are not called
-- *	from an interrupt handler (already a bad idea so no change here). Each
-- *	change must be protected so that an unlink of an entry doesn't clash
-- *	with a pm send - which is permitted to sleep in the current architecture
-- *
-- *	Module unloads clashing with pm events now work out safely, the module 
-- *	unload path will block until the event has been sent. It may well block
-- *	until a resume but that will be fine.
-- */
-- 
--static DEFINE_MUTEX(pm_devs_lock);
--static LIST_HEAD(pm_devs);
--
--/**
-- *	pm_register - register a device with power management
-- *	@type: device type 
-- *	@id: device ID
-- *	@callback: callback function
-- *
-- *	Add a device to the list of devices that wish to be notified about
-- *	power management events. A &pm_dev structure is returned on success,
-- *	on failure the return is %NULL.
-- *
-- *      The callback function will be called in process context and
-- *      it may sleep.
-- */
-- 
--struct pm_dev *pm_register(pm_dev_t type,
--			   unsigned long id,
--			   pm_callback callback)
--{
--	struct pm_dev *dev = kzalloc(sizeof(struct pm_dev), GFP_KERNEL);
--	if (dev) {
--		dev->type = type;
--		dev->id = id;
--		dev->callback = callback;
--
--		mutex_lock(&pm_devs_lock);
--		list_add(&dev->entry, &pm_devs);
--		mutex_unlock(&pm_devs_lock);
--	}
--	return dev;
--}
--
--/**
-- *	pm_send - send request to a single device
-- *	@dev: device to send to
-- *	@rqst: power management request
-- *	@data: data for the callback
-- *
-- *	Issue a power management request to a given device. The 
-- *	%PM_SUSPEND and %PM_RESUME events are handled specially. The
-- *	data field must hold the intended next state. No call is made
-- *	if the state matches.
-- *
-- *	BUGS: what stops two power management requests occurring in parallel
-- *	and conflicting.
-- *
-- *	WARNING: Calling pm_send directly is not generally recommended, in
-- *	particular there is no locking against the pm_dev going away. The
-- *	caller must maintain all needed locking or have 'inside knowledge'
-- *	on the safety. Also remember that this function is not locked against
-- *	pm_unregister. This means that you must handle SMP races on callback
-- *	execution and unload yourself.
-- */
-- 
--static int pm_send(struct pm_dev *dev, pm_request_t rqst, void *data)
--{
--	int status = 0;
--	unsigned long prev_state, next_state;
--
--	if (in_interrupt())
--		BUG();
--
--	switch (rqst) {
--	case PM_SUSPEND:
--	case PM_RESUME:
--		prev_state = dev->state;
--		next_state = (unsigned long) data;
--		if (prev_state != next_state) {
--			if (dev->callback)
--				status = (*dev->callback)(dev, rqst, data);
--			if (!status) {
--				dev->state = next_state;
--				dev->prev_state = prev_state;
--			}
--		}
--		else {
--			dev->prev_state = prev_state;
--		}
--		break;
--	default:
--		if (dev->callback)
--			status = (*dev->callback)(dev, rqst, data);
--		break;
--	}
--	return status;
--}
--
--/*
-- * Undo incomplete request
-- */
--static void pm_undo_all(struct pm_dev *last)
--{
--	struct list_head *entry = last->entry.prev;
--	while (entry != &pm_devs) {
--		struct pm_dev *dev = list_entry(entry, struct pm_dev, entry);
--		if (dev->state != dev->prev_state) {
--			/* previous state was zero (running) resume or
--			 * previous state was non-zero (suspended) suspend
--			 */
--			pm_request_t undo = (dev->prev_state
--					     ? PM_SUSPEND:PM_RESUME);
--			pm_send(dev, undo, (void*) dev->prev_state);
--		}
--		entry = entry->prev;
--	}
--}
--
--/**
-- *	pm_send_all - send request to all managed devices
-- *	@rqst: power management request
-- *	@data: data for the callback
-- *
-- *	Issue a power management request to a all devices. The 
-- *	%PM_SUSPEND events are handled specially. Any device is 
-- *	permitted to fail a suspend by returning a non zero (error)
-- *	value from its callback function. If any device vetoes a 
-- *	suspend request then all other devices that have suspended 
-- *	during the processing of this request are restored to their
-- *	previous state.
-- *
-- *	WARNING:  This function takes the pm_devs_lock. The lock is not dropped until
-- *	the callbacks have completed. This prevents races against pm locking
-- *	functions, races against module unload pm_unregister code. It does
-- *	mean however that you must not issue pm_ functions within the callback
-- *	or you will deadlock and users will hate you.
-- *
-- *	Zero is returned on success. If a suspend fails then the status
-- *	from the device that vetoes the suspend is returned.
-- *
-- *	BUGS: what stops two power management requests occurring in parallel
-- *	and conflicting.
-- */
-- 
--int pm_send_all(pm_request_t rqst, void *data)
--{
--	struct list_head *entry;
--	
--	mutex_lock(&pm_devs_lock);
--	entry = pm_devs.next;
--	while (entry != &pm_devs) {
--		struct pm_dev *dev = list_entry(entry, struct pm_dev, entry);
--		if (dev->callback) {
--			int status = pm_send(dev, rqst, data);
--			if (status) {
--				/* return devices to previous state on
--				 * failed suspend request
--				 */
--				if (rqst == PM_SUSPEND)
--					pm_undo_all(dev);
--				mutex_unlock(&pm_devs_lock);
--				return status;
--			}
--		}
--		entry = entry->next;
--	}
--	mutex_unlock(&pm_devs_lock);
--	return 0;
--}
--
--EXPORT_SYMBOL(pm_register);
--EXPORT_SYMBOL(pm_send_all);
--
+ 	device->wakeup.flags.valid = 1;
++	/* Call _PSW/_DSW object to disable its ability to wake the sleeping
++	 * system for the ACPI device with the _PRW object.
++	 * The _PSW object is depreciated in ACPI 3.0 and is replaced by _DSW.
++	 * So it is necessary to call _DSW object first. Only when it is not
++	 * present will the _PSW object used.
++	 */
++	/*
++	 * Three agruments are needed for the _DSW object.
++	 * Argument 0: enable/disable the wake capabilities
++	 * When _DSW object is called to disable the wake capabilities, maybe
++	 * the first argument is filled. The value of the other two agruments
++	 * is meaningless.
++	 */
++	in_arg[0].type = ACPI_TYPE_INTEGER;
++	in_arg[0].integer.value = 0;
++	in_arg[1].type = ACPI_TYPE_INTEGER;
++	in_arg[1].integer.value = 0;
++	in_arg[2].type = ACPI_TYPE_INTEGER;
++	in_arg[2].integer.value = 0;
++	psw_status = acpi_evaluate_object(device->handle, "_DSW",
++						&arg_list, NULL);
++	if (ACPI_FAILURE(psw_status) && (psw_status != AE_NOT_FOUND))
++		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "error in evaluate _DSW\n"));
++	/*
++	 * When the _DSW object is not present, OSPM will call _PSW object.
++	 */
++	if (psw_status == AE_NOT_FOUND) {
++		/*
++		 * Only one agruments is required for the _PSW object.
++		 * agrument 0: enable/disable the wake capabilities
++		 */
++		arg_list.count = 1;
++		in_arg[0].integer.value = 0;
++		psw_status = acpi_evaluate_object(device->handle, "_PSW",
++						&arg_list, NULL);
++		if (ACPI_FAILURE(psw_status) && (psw_status != AE_NOT_FOUND))
++			ACPI_DEBUG_PRINT((ACPI_DB_INFO, "error in "
++						"evaluate _PSW\n"));
++	}
+ 	/* Power button, Lid switch always enable wakeup */
+ 	if (!acpi_match_device_ids(device, button_device_ids))
+ 		device->wakeup.flags.run_wake = 1;
 -- 
 1.5.5.1.99.gf0ec4
 
