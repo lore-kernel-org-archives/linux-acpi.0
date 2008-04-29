@@ -1,159 +1,95 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [PATCH 2/2] ia64: Provide ACPI fixup for /proc/cpuinfo/physical_id
-Date: Tue, 29 Apr 2008 15:32:46 -0700
-Message-ID: <1FE6DD409037234FAB833C420AA843EC0138200C@orsmsx424.amr.corp.intel.com>
-References: <20080310222735.GA22619@ldl.fc.hp.com> <1FE6DD409037234FAB833C420AA843ECCBFA9D@orsmsx424.amr.corp.intel.com> <20080319233140.GD16237@ldl.fc.hp.com> <1FE6DD409037234FAB833C420AA843ECE13C6E@orsmsx424.amr.corp.intel.com> <20080326185912.GA30749@ldl.fc.hp.com> <20080421052450.GA24055@ldl.fc.hp.com> <1FE6DD409037234FAB833C420AA843EC012664E0@orsmsx424.amr.corp.intel.com> <20080424184417.GA32553@ldl.fc.hp.com> <20080424185222.GC32553@ldl.fc.hp.com>
+From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Subject: [PATCH] Fix acpi_processor_idle and idle= boot parameter interaction
+Date: Tue, 29 Apr 2008 15:57:26 -0700
+Message-ID: <20080429225726.GA27244@linux-os.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-ia64-owner@vger.kernel.org>
-Content-class: urn:content-classes:message
-In-Reply-To: <20080424185222.GC32553@ldl.fc.hp.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Alex Chiang <achiang@hp.com>, lenb@kernel.org, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:44352 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751156AbYD2W51 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 29 Apr 2008 18:57:27 -0400
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-
-Alex,
-
-I chewed on this a bit ... 
- 
-+void ia64_fix_socket_id(int num, u32 slot)
-+{
-+	if (cpu_data(num)->socket_id == -1)
-+		cpu_data(num)->socket_id= slot;
-+}
-+EXPORT_SYMBOL_GPL(ia64_fix_socket_id);
-
-1) socket_id is only defined when CONFIG_SMP=y, so this breaks UP
-   build.  Fix: Wrap body of this function inside #ifdef
-2) should really just name this function "arch_fix_phys_package_id"
-   and avoid the #define rename in topology.h
+To: Len Brown <lenb@kernel.org>
+Cc: Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
 
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-+	/*
-+	 * If ACPI describes a slot number for this CPU, we can use it
-+	 * to fix a broken topology->physical_package_id.
-+	 */
-+	status = acpi_evaluate_object(pr->handle, "_SUN", NULL, &buffer);
-+	if (ACPI_SUCCESS(status))
-+		arch_fix_phys_package_id(pr->id, object.integer.value);
-+
 
-Comment here still refers to what the previous patch was doing. Should
-now say that we are fixing /proc/cpuinfo "physical id".
- 
-diff --git a/include/asm-ia64/topology.h b/include/asm-ia64/topology.h
-+#define arch_fix_phys_package_id(num, slot)	ia64_fix_socket_id(num, slot)
+acpi_processor_idle and "idle=" boot parameter interaction is broken.
+The problem is that, at boot time acpi driver is checking for "idle=" boot
+option and not registering the acpi idle handler. But, when there is a CST
+changed callback (typically when switching AC <-> battery or suspend-resume)
+there are no checks for boot_option_idle_override and acpi idle handler tries
+to get installed with nasty side effects.
 
-Not needed if we name ia64_fix_socket_id() appropriately. Turn this
-into an extern definition for arch_fix_phys_package_id() and drop the
-extern from cpu.h
+With CPU_IDLE configured this issue causes results in a nasty oops on CST
+change callback and without CPU_IDLE there is no oops, but boot option
+of "idle=" gets ignored and acpi idle handler gets installed.
 
-diff --git a/include/asm-x86/topology.h b/include/asm-x86/topology.h
-+#define arch_fix_phys_package_id(num, slot)
+Change the behavior to not do anything in acpi idle handler when there is a
+"idle=" boot option.
 
-Style preference is to now use a "static inline void" function for
-this to make sure args are correctly typed, and to avoid warnings about
-unused variables.
+Note that the problem is only there when "idle=" boot option is used.
 
-updated version of the patch looks like this ... ok???
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
--Tony
+---
+ drivers/acpi/processor_idle.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-commit fe086a7bea7ab714930bd48addba961ceeef7634
-Author: Alex Chiang <achiang@hp.com>
-Date:   Tue Apr 29 15:05:29 2008 -0700
-
-    [IA64] Provide ACPI fixup for /proc/cpuinfo/physical_id
-    
-    Legacy HP ia64 platforms currently cannot provide
-    /proc/cpuinfo/physical_id due to legacy SAL/PAL implementations.
-    However, that physical topology information can be obtained
-    via ACPI.
-    
-    Provide an interface that gives ACPI one last chance to provide
-    physical_id for these legacy platforms. This logic only comes
-    into play iff:
-    
-    - ACPI actually provides slot information for the CPU
-    - we lack a valid socket_id
-    
-    Otherwise, we don't do anything.
-    
-    Since x86 uses the ACPI processor driver as well, we provide a nop
-    stub function for arch_fix_phys_package_id() in asm-x86/topology.h
-    
-    Signed-off-by: Alex Chiang <achiang@hp.com>
-    Signed-off-by: Tony Luck <tony.luck@intel.com>
-
-diff --git a/arch/ia64/kernel/topology.c b/arch/ia64/kernel/topology.c
-index a2484fc..abb17a6 100644
---- a/arch/ia64/kernel/topology.c
-+++ b/arch/ia64/kernel/topology.c
-@@ -27,6 +27,15 @@
- 
- static struct ia64_cpu *sysfs_cpus;
- 
-+void arch_fix_phys_package_id(int num, u32 slot)
-+{
-+#ifdef CONFIG_SMP
-+	if (cpu_data(num)->socket_id == -1)
-+		cpu_data(num)->socket_id = slot;
-+#endif
-+}
-+EXPORT_SYMBOL_GPL(arch_fix_phys_package_id);
-+
- int arch_register_cpu(int num)
+Index: linux-2.6/drivers/acpi/processor_idle.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/processor_idle.c	2008-04-29 14:28:06.000000000 -0700
++++ linux-2.6/drivers/acpi/processor_idle.c	2008-04-29 14:28:13.000000000 -0700
+@@ -1295,6 +1295,8 @@ int acpi_processor_cst_has_changed(struc
  {
- #if defined (CONFIG_ACPI) && defined (CONFIG_HOTPLUG_CPU)
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index dd28c91..5241e3f 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -603,6 +603,15 @@ static int acpi_processor_get_info(struct acpi_processor *pr, unsigned has_uid)
- 		request_region(pr->throttling.address, 6, "ACPI CPU throttle");
- 	}
+ 	int result = 0;
  
-+	/*
-+	 * If ACPI describes a slot number for this CPU, we can use it
-+	 * ensure we get the right value in the "physical id" field
-+	 * of /proc/cpuinfo
-+	 */
-+	status = acpi_evaluate_object(pr->handle, "_SUN", NULL, &buffer);
-+	if (ACPI_SUCCESS(status))
-+		arch_fix_phys_package_id(pr->id, object.integer.value);
++	if (boot_option_idle_override)
++		return 0;
+ 
+ 	if (!pr)
+ 		return -EINVAL;
+@@ -1734,6 +1736,9 @@ int acpi_processor_cst_has_changed(struc
+ {
+ 	int ret;
+ 
++	if (boot_option_idle_override)
++		return 0;
 +
- 	return 0;
- }
+ 	if (!pr)
+ 		return -EINVAL;
  
-diff --git a/include/asm-ia64/topology.h b/include/asm-ia64/topology.h
-index f2f72ef..32863b3 100644
---- a/include/asm-ia64/topology.h
-+++ b/include/asm-ia64/topology.h
-@@ -116,6 +116,8 @@ void build_cpu_to_node_map(void);
- #define smt_capable() 				(smp_num_siblings > 1)
+@@ -1764,6 +1769,8 @@ int __cpuinit acpi_processor_power_init(
+ 	struct proc_dir_entry *entry = NULL;
+ 	unsigned int i;
+ 
++	if (boot_option_idle_override)
++		return 0;
+ 
+ 	if (!first_run) {
+ 		dmi_check_system(processor_power_dmi_table);
+@@ -1799,7 +1806,7 @@ int __cpuinit acpi_processor_power_init(
+ 	 * Note that we use previously set idle handler will be used on
+ 	 * platforms that only support C1.
+ 	 */
+-	if ((pr->flags.power) && (!boot_option_idle_override)) {
++	if (pr->flags.power) {
+ #ifdef CONFIG_CPU_IDLE
+ 		acpi_processor_setup_cpuidle(pr);
+ 		pr->power.dev.cpu = pr->id;
+@@ -1835,8 +1842,11 @@ int __cpuinit acpi_processor_power_init(
+ int acpi_processor_power_exit(struct acpi_processor *pr,
+ 			      struct acpi_device *device)
+ {
++	if (boot_option_idle_override)
++		return 0;
++
+ #ifdef CONFIG_CPU_IDLE
+-	if ((pr->flags.power) && (!boot_option_idle_override))
++	if (pr->flags.power)
+ 		cpuidle_unregister_device(&pr->power.dev);
  #endif
- 
-+extern void arch_fix_phys_package_id(int num, u32 slot);
-+
- #define pcibus_to_cpumask(bus)	(pcibus_to_node(bus) == -1 ? \
- 					CPU_MASK_ALL : \
- 					node_to_cpumask(pcibus_to_node(bus)) \
-diff --git a/include/asm-x86/topology.h b/include/asm-x86/topology.h
-index 0e6d6b0..4f35a0f 100644
---- a/include/asm-x86/topology.h
-+++ b/include/asm-x86/topology.h
-@@ -193,6 +193,10 @@ extern cpumask_t cpu_coregroup_map(int cpu);
- #define topology_thread_siblings(cpu)		(per_cpu(cpu_sibling_map, cpu))
- #endif
- 
-+static inline void arch_fix_phys_package_id(int num, u32 slot)
-+{
-+}
-+
- struct pci_bus;
- void set_pci_bus_resources_arch_default(struct pci_bus *b);
- 
-
-
+ 	pr->flags.power_setup_done = 0;
