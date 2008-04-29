@@ -1,61 +1,73 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [GIT PATCH] thinkpad-acpi queue for the 2.6.26 merge window (v2)
-Date: Tue, 29 Apr 2008 05:08:01 -0400
-Message-ID: <200804290508.01452.lenb@kernel.org>
-References: <1209182550-32725-1-git-send-email-hmh@hmh.eng.br>
+Subject: Re: ACPICA branch (0 Objects with 0 Devices 0 Methods 0 Regions)
+Date: Tue, 29 Apr 2008 05:04:54 -0400
+Message-ID: <200804290504.54789.lenb@kernel.org>
+References: <1207974356-30687-1-git-send-email-lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:43101 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:43062 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757563AbYD2OVV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 29 Apr 2008 10:21:21 -0400
-In-Reply-To: <1209182550-32725-1-git-send-email-hmh@hmh.eng.br>
+	id S1765611AbYD2OUs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 29 Apr 2008 10:20:48 -0400
+In-Reply-To: <1207974356-30687-1-git-send-email-lenb@kernel.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, "Moore, Robert" <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>
 
-Wups,
-looks like I still have v1 in my tree -- will fix.
+Hmm, i just noticed something strange on the T61
+
+Linus' tree prints these messages:
+
+[lenb@t61 sut]$ grep -i ssdt 2.6.25-06058-ga01e035/dmesg
+ACPI: SSDT 7D6BB9B4, 0269 (r1 LENOVO TP-7L        2100 MSFT  3000000)
+ACPI: SSDT 7D6E26D9, 025F (r1 LENOVO TP-7L        2100 INTL 20050513)
+ACPI: SSDT 7D6E2938, 00A6 (r1 LENOVO TP-7L        2100 INTL 20050513)
+ACPI: SSDT 7D6E29DE, 04F7 (r1 LENOVO TP-7L        2100 INTL 20050513)
+ACPI: SSDT 7D6E2ED5, 01D8 (r1 LENOVO TP-7L        2100 INTL 20050513)
+Table [SSDT](id 0002) - 11 Objects with 0 Devices 7 Methods 0 Regions
+Table [SSDT](id 0003) - 7 Objects with 0 Devices 3 Methods 0 Regions
+Table [SSDT](id 0004) - 4 Objects with 0 Devices 3 Methods 0 Regions
+Table [SSDT](id 0005) - 14 Objects with 0 Devices 5 Methods 0 Regions
+Table [SSDT](id 0006) - 14 Objects with 1 Devices 2 Methods 0 Regions
+ACPI: SSDT 7D6E1B32, 02C4 (r1  PmRef  Cpu0Ist      100 INTL 20050513)
+Table [SSDT](id 003A) - 6 Objects with 0 Devices 4 Methods 0 Regions
+ACPI: SSDT 7D6E1E7B, 085E (r1  PmRef  Cpu0Cst      100 INTL 20050513)
+Table [SSDT](id 003B) - 16 Objects with 0 Devices 1 Methods 0 Regions
+ACPI: SSDT 7D6E1A6A, 00C8 (r1  PmRef  Cpu1Ist      100 INTL 20050513)
+Table [SSDT](id 0046) - 4 Objects with 0 Devices 4 Methods 0 Regions
+ACPI: SSDT 7D6E1DF6, 0085 (r1  PmRef  Cpu1Cst      100 INTL 20050513)
+Table [SSDT](id 0047) - 1 Objects with 0 Devices 1 Methods 0 Regions
+
+
+The acpi test tree prints these messages:
+
+[lenb@t61 sut]$ grep -i ssdt 2.6.25-06238-gf4e0ea3/dmesg
+ACPI: SSDT 7D6BB9B4, 0269 (r1 LENOVO TP-7L        2100 MSFT  3000000)
+ACPI: SSDT 7D6E26D9, 025F (r1 LENOVO TP-7L        2100 INTL 20050513)
+ACPI: SSDT 7D6E2938, 00A6 (r1 LENOVO TP-7L        2100 INTL 20050513)
+ACPI: SSDT 7D6E29DE, 04F7 (r1 LENOVO TP-7L        2100 INTL 20050513)
+ACPI: SSDT 7D6E2ED5, 01D8 (r1 LENOVO TP-7L        2100 INTL 20050513)
+Table [SSDT](id 0002) - 11 Objects with 0 Devices 7 Methods 0 Regions
+Table [SSDT](id 0003) - 7 Objects with 0 Devices 3 Methods 0 Regions
+Table [SSDT](id 0004) - 4 Objects with 0 Devices 3 Methods 0 Regions
+Table [SSDT](id 0005) - 14 Objects with 0 Devices 5 Methods 0 Regions
+Table [SSDT](id 0006) - 14 Objects with 1 Devices 2 Methods 0 Regions
+ACPI: SSDT 7D6E1B32, 02C4 (r1  PmRef  Cpu0Ist      100 INTL 20050513)
+Table [SSDT](id 0044) - 0 Objects with 0 Devices 0 Methods 0 Regions
+ACPI: SSDT 7D6E1E7B, 085E (r1  PmRef  Cpu0Cst      100 INTL 20050513)
+Table [SSDT](id 0045) - 0 Objects with 0 Devices 0 Methods 0 Regions
+ACPI: SSDT 7D6E1A6A, 00C8 (r1  PmRef  Cpu1Ist      100 INTL 20050513)
+Table [SSDT](id 0050) - 0 Objects with 0 Devices 0 Methods 0 Regions
+ACPI: SSDT 7D6E1DF6, 0085 (r1  PmRef  Cpu1Cst      100 INTL 20050513)
+Table [SSDT](id 0051) - 0 Objects with 0 Devices 0 Methods 0 Regions
+
+ie.  "0 Objects with 0 Devices 0 Methods 0 Regions"
+
+dunno if this is just cosmetic -- the p-states that are advertised in
+the SSDT's seem to be working normally, and C-states do too.
 
 -Len
-
-On Saturday 26 April 2008, Henrique de Moraes Holschuh wrote:
-> Len,
-> 
-> This patchset has my current thinkpad-acpi queue.  The target is 2.6.26's
-> merge window.
-> 
-> Some of the thinkpad-acpi patches require patches from Richard Purdie's LED
-> tree that have been recently merged in mainline.
-> 
-> As usual, the patch set is available at:
-> git://repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git for-upstream/acpi-test
-> 
-> Shortlog:
-> 
-> Henrique de Moraes Holschuh (14):
->       ACPI: thinkpad-acpi: BIOS backlight mode helper (v2.1)
->       ACPI: thinkpad-acpi: warn once about weird hotkey masks
->       ACPI: thinkpad-acpi: enhance box identification output (v2)
->       ACPI: thinkpad-acpi: rate-limit CMOS/EC unsynced error messages
->       ACPI: thinkpad-acpi: fix brightness dimming control bug
->       ACPI: thinkpad-acpi: claim tpacpi as an official short handle (v1.1)
->       ACPI: thinkpad-acpi: prepare light and LED for sysfs support
->       ACPI: thinkpad-acpi: add sysfs led class support for thinklight (v3.1)
->       ACPI: thinkpad-acpi: add sysfs led class support to thinkpad leds (v3.2)
->       ACPI: thinkpad-acpi: use uppercase for "LED" on user documentation
->       ACPI: thinkpad-acpi: fluff really minor fix
->       ACPI: thinkpad-acpi: use a private workqueue
->       ACPI: thinkpad-acpi: fix selects in Kconfig
->       ACPI: thinkpad-acpi: bump up version to 0.20
-> 
-> Please merge the thinkpad-acpi changesets for acpi-test, for submission in
-> the currently open mainline merge window.
-> 
-
-
