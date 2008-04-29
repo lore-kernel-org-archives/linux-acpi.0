@@ -1,38 +1,58 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: 2.6.25 pci=noacpi
-Date: Tue, 29 Apr 2008 00:04:11 -0700
-Message-ID: <20080429000411.ce73230f.akpm@linux-foundation.org>
-References: <20080425183807.366134771@ldl.fc.hp.com>
-	<20080425183934.516655076@ldl.fc.hp.com>
-	<4813B5AB.4060308@keyaccess.nl>
-	<200804281507.38309.bjorn.helgaas@hp.com>
-	<4816C605.4000601@gmail.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 1/6] thermal: add the support for building the generic  thermal as a module
+Date: Tue, 29 Apr 2008 03:15:55 -0400
+Message-ID: <200804290315.56072.lenb@kernel.org>
+References: <1207815114.27304.32.camel@acpi-hp-zz.sh.intel.com> <20080416095931.7855a9e8@hyperion.delvare>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1759505AbYD2HFb@vger.kernel.org>
-In-Reply-To: <4816C605.4000601@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Richard <tuxbox.guru@gmail.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hera.kernel.org ([140.211.167.34]:59358 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754273AbYD2HQW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Apr 2008 03:16:22 -0400
+In-Reply-To: <20080416095931.7855a9e8@hyperion.delvare>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, Hans de Goede <j.w.r.degoede@hhs.nl>, linux-acpi <linux-acpi@vger.kernel.org>
 
-On Tue, 29 Apr 2008 07:53:57 +0100 Richard <tuxbox.guru@gmail.com> wrote:
+On Wednesday 16 April 2008, Jean Delvare wrote:
+> I'd like to see
+> drivers/thermal/thermal.c renamed to drivers/thermal/thermal_sys.c -
+> but that's something for Len in git.)
 
-> Hi all,
-> 
-> Using an AMD Sempron notebook (HP Compaq 6715b) single processor 
-> machine,  It shuts down during bootup when ACPI is fully enabled.  I 
-> added pci=noacpi to the cmdline and it finally boots, but its extremely 
-> slow...  (kdm times out with error saying it took too long to load and 
-> disables graphical)
-> 
-> Dmesg doest show anything out of the ordinary, irq_stats only shows the 
-> timer interrupts being incremented. (noirq also works, but same 
-> behaviour) Can someone please offer me some pointers so I can fault find 
-> this problem.
-> 
+>From ff16cab69b6ed621686cf342306785175775152d Mon Sep 17 00:00:00 2001
+From: Len Brown <len.brown@intel.com>
+Date: Tue, 29 Apr 2008 03:12:17 -0400
+Subject: [PATCH] thermal: re-name thermal.c to thermal_sys.c
+Organization: Intel Open Source Technology Center
 
-Did any earlier kernels work OK?  If so, which versions?
+thermal_sys was already the name of the resulting module,
+and it is built from  this one source file.
 
-Thanks.
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ drivers/thermal/Makefile                     |    1 -
+ drivers/thermal/{thermal.c => thermal_sys.c} |    0 
+ 2 files changed, 0 insertions(+), 1 deletions(-)
+ rename drivers/thermal/{thermal.c => thermal_sys.c} (100%)
+
+diff --git a/drivers/thermal/Makefile b/drivers/thermal/Makefile
+index 02b6451..31108a0 100644
+--- a/drivers/thermal/Makefile
++++ b/drivers/thermal/Makefile
+@@ -2,5 +2,4 @@
+ # Makefile for sensor chip drivers.
+ #
+ 
+-thermal_sys-objs	+= thermal.o
+ obj-$(CONFIG_THERMAL)		+= thermal_sys.o
+diff --git a/drivers/thermal/thermal.c b/drivers/thermal/thermal_sys.c
+similarity index 100%
+rename from drivers/thermal/thermal.c
+rename to drivers/thermal/thermal_sys.c
+-- 
+1.5.5.1.99.gf0ec4
+
