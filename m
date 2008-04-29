@@ -1,90 +1,196 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 157/171] ACPI: thinkpad-acpi: warn once about weird hotkey masks
-Date: Tue, 29 Apr 2008 04:44:22 -0400
-Message-ID: <3fdd44abc01b44b0bafbe9304783361daa42bcb0.1209457072.git.len.brown@intel.com>
+Subject: [PATCH 086/171] eeepc-laptop: add backlight
+Date: Tue, 29 Apr 2008 04:44:07 -0400
+Message-ID: <6cfeddbe70c9a135c006bee3b883037ab389368c.1209457069.git.len.brown@intel.com>
 References: <1209458675-9757-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.21]:1417 "EHLO
+Received: from mga06.intel.com ([134.134.136.21]:45231 "EHLO
 	orsmga101.jf.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1760796AbYD2Ipc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Apr 2008 04:45:32 -0400
+	with ESMTP id S1756336AbYD2Io7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Apr 2008 04:44:59 -0400
 In-Reply-To: <1209458675-9757-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <1071695f17daf050638e0bc550db647f8237c3bb.1209457069.git.len.brown@intel.com>
 References: <1071695f17daf050638e0bc550db647f8237c3bb.1209457069.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com>
+Cc: Corentin Chary <corentincj@iksaif.net>, Len Brown <len.brown@intel.com>
 
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+From: Corentin Chary <corentincj@iksaif.net>
 
-thinkpad-acpi knows for a while now how to best program the hotkeys by
-default, and always enable them by default.  Unfortunately, this
-information has not filtered down everywhere it needs to, yet.  Notably,
-old ibm-acpi documentation and most "thinkpad setup guides" will have wrong
-information on this area.
+Add backlight class support to the eeepc-laptop driver.
 
-Warn the local admin once whenever any of the following patterns are met:
-
-1. Attempts to set hotkey mask to 0xffff (artifact from docs and config
-   for the old ibm-acpi driver and behaviour).  This mask makes no
-   real-world sense;
-
-2. Attempts to set hotkey mask to 0xffffffff, which means the user is
-   trying to just have "everything work" without even reading the
-   documentation, or that we need to get a bug report, because there
-   is a new thinkpad out there with new exciting hot keys :-)
-
-3. Attempts to set hotkey mask to 0xffffff, which is almost never the
-   correct way to set up volume and brightness event reporting (and with
-   the current state-of-the-art, it is known to never be right way to do
-   it).
-
-The driver will perform any and all requested operations, though,
-regardless of any warnings.  I hope these warnings can be removed one or
-two years from now.
-
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/thinkpad_acpi.c |   17 +++++++++++++++++
- 1 files changed, 17 insertions(+), 0 deletions(-)
+ drivers/misc/Kconfig        |    1 +
+ drivers/misc/eeepc-laptop.c |   77 +++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 78 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 2c85a2e..cd263c5 100644
---- a/drivers/misc/thinkpad_acpi.c
-+++ b/drivers/misc/thinkpad_acpi.c
-@@ -237,6 +237,10 @@ static struct {
- 	u32 hotkey_poll_active:1;
- } tp_features;
+diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+index 10c5ecf..e9ab291 100644
+--- a/drivers/misc/Kconfig
++++ b/drivers/misc/Kconfig
+@@ -331,6 +331,7 @@ config EEEPC_LAPTOP
+ 	tristate "Eee PC Hotkey Driver (EXPERIMENTAL)"
+ 	depends on X86
+ 	depends on ACPI
++	depends on BACKLIGHT_CLASS_DEVICE
+ 	depends on EXPERIMENTAL
+ 	---help---
+ 	  This driver supports the Fn-Fx keys on Eee PC laptops.
+diff --git a/drivers/misc/eeepc-laptop.c b/drivers/misc/eeepc-laptop.c
+index e34ff97..2b59b7e 100644
+--- a/drivers/misc/eeepc-laptop.c
++++ b/drivers/misc/eeepc-laptop.c
+@@ -21,6 +21,8 @@
+ #include <linux/init.h>
+ #include <linux/types.h>
+ #include <linux/platform_device.h>
++#include <linux/backlight.h>
++#include <linux/fb.h>
+ #include <acpi/acpi_drivers.h>
+ #include <acpi/acpi_bus.h>
+ #include <linux/uaccess.h>
+@@ -43,6 +45,8 @@
+  * Definitions for Asus EeePC
+  */
+ #define	NOTIFY_WLAN_ON	0x10
++#define NOTIFY_BRN_MIN	0x20
++#define NOTIFY_BRN_MAX	0x2f
  
-+static struct {
-+	u16 hotkey_mask_ff:1;
-+} tp_warned;
-+
- struct thinkpad_id_data {
- 	unsigned int vendor;	/* ThinkPad vendor:
- 				 * PCI_VENDOR_ID_IBM/PCI_VENDOR_ID_LENOVO */
-@@ -1182,6 +1186,19 @@ static int hotkey_mask_set(u32 mask)
- 	int rc = 0;
+ enum {
+ 	DISABLE_ASL_WLAN = 0x0001,
+@@ -147,6 +151,19 @@ static struct acpi_driver eeepc_hotk_driver = {
+ 	},
+ };
  
- 	if (tp_features.hotkey_mask) {
-+		if (!tp_warned.hotkey_mask_ff &&
-+		    (mask == 0xffff || mask == 0xffffff ||
-+		     mask == 0xffffffff)) {
-+			tp_warned.hotkey_mask_ff = 1;
-+			printk(TPACPI_NOTICE
-+			       "setting the hotkey mask to 0x%08x is likely "
-+			       "not the best way to go about it\n", mask);
-+			printk(TPACPI_NOTICE
-+			       "please consider using the driver defaults, "
-+			       "and refer to up-to-date thinkpad-acpi "
-+			       "documentation\n");
-+		}
++/* The backlight device /sys/class/backlight */
++static struct backlight_device *eeepc_backlight_device;
 +
- 		HOTKEY_CONFIG_CRITICAL_START
- 		for (i = 0; i < 32; i++) {
- 			u32 m = 1 << i;
++/*
++ * The backlight class declaration
++ */
++static int read_brightness(struct backlight_device *bd);
++static int update_bl_status(struct backlight_device *bd);
++static struct backlight_ops eeepcbl_ops = {
++	.get_brightness = read_brightness,
++	.update_status = update_bl_status,
++};
++
+ MODULE_AUTHOR("Corentin Chary, Eric Cooper");
+ MODULE_DESCRIPTION(EEEPC_HOTK_NAME);
+ MODULE_LICENSE("GPL");
+@@ -211,6 +228,25 @@ static int get_acpi(int cm)
+ }
+ 
+ /*
++ * Backlight
++ */
++static int read_brightness(struct backlight_device *bd)
++{
++	return get_acpi(CM_ASL_PANELBRIGHT);
++}
++
++static int set_brightness(struct backlight_device *bd, int value)
++{
++	value = max(0, min(15, value));
++	return set_acpi(CM_ASL_PANELBRIGHT, value);
++}
++
++static int update_bl_status(struct backlight_device *bd)
++{
++	return set_brightness(bd, bd->props.brightness);
++}
++
++/*
+  * Sys helpers
+  */
+ static int parse_arg(const char *buf, unsigned long count, int *val)
+@@ -328,12 +364,20 @@ static void notify_wlan(u32 *event)
+ 	}
+ }
+ 
++static void notify_brn(void)
++{
++	struct backlight_device *bd = eeepc_backlight_device;
++	bd->props.brightness = read_brightness(bd);
++}
++
+ static void eeepc_hotk_notify(acpi_handle handle, u32 event, void *data)
+ {
+ 	if (!ehotk)
+ 		return;
+ 	if (event == NOTIFY_WLAN_ON && (DISABLE_ASL_WLAN & ehotk->init_flag))
+ 		notify_wlan(&event);
++	if (event >= NOTIFY_BRN_MIN && event <= NOTIFY_BRN_MAX)
++		notify_brn();
+ 	acpi_bus_generate_proc_event(ehotk->device, event,
+ 				     ehotk->event_count[event % 128]++);
+ }
+@@ -387,8 +431,16 @@ static int eeepc_hotk_remove(struct acpi_device *device, int type)
+ /*
+  * exit/init
+  */
++static void eeepc_backlight_exit(void)
++{
++	if (eeepc_backlight_device)
++		backlight_device_unregister(eeepc_backlight_device);
++	eeepc_backlight_device = NULL;
++}
++
+ static void __exit eeepc_laptop_exit(void)
+ {
++	eeepc_backlight_exit();
+ 	acpi_bus_unregister_driver(&eeepc_hotk_driver);
+ 	sysfs_remove_group(&platform_device->dev.kobj,
+ 			   &platform_attribute_group);
+@@ -396,6 +448,26 @@ static void __exit eeepc_laptop_exit(void)
+ 	platform_driver_unregister(&platform_driver);
+ }
+ 
++static int eeepc_backlight_init(struct device *dev)
++{
++	struct backlight_device *bd;
++
++	bd = backlight_device_register(EEEPC_HOTK_FILE, dev,
++				       NULL, &eeepcbl_ops);
++	if (IS_ERR(bd)) {
++		printk(EEEPC_ERR
++		       "Could not register eeepc backlight device\n");
++		eeepc_backlight_device = NULL;
++		return PTR_ERR(bd);
++	}
++	eeepc_backlight_device = bd;
++	bd->props.max_brightness = 15;
++	bd->props.brightness = read_brightness(NULL);
++	bd->props.power = FB_BLANK_UNBLANK;
++	backlight_update_status(bd);
++	return 0;
++}
++
+ static int __init eeepc_laptop_init(void)
+ {
+ 	struct device *dev;
+@@ -411,6 +483,9 @@ static int __init eeepc_laptop_init(void)
+ 		return -ENODEV;
+ 	}
+ 	dev = acpi_get_physical_device(ehotk->device->handle);
++	result = eeepc_backlight_init(dev);
++	if (result)
++		goto fail_backlight;
+ 	/* Register platform stuff */
+ 	result = platform_driver_register(&platform_driver);
+ 	if (result)
+@@ -435,6 +510,8 @@ fail_platform_device2:
+ fail_platform_device1:
+ 	platform_driver_unregister(&platform_driver);
+ fail_platform_driver:
++	eeepc_backlight_exit();
++fail_backlight:
+ 	return result;
+ }
+ 
 -- 
 1.5.5.1.99.gf0ec4
 
