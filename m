@@ -1,13 +1,13 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 008/171] ACPI: EC: Use default setup handler
-Date: Tue, 29 Apr 2008 04:43:59 -0400
-Message-ID: <6d9e11206371be370b153264934378a29b6afe9b.1209457069.git.len.brown@intel.com>
+Subject: [PATCH 006/171] ACPI: EC: Switch off GPE mode during suspend/resume
+Date: Tue, 29 Apr 2008 04:43:57 -0400
+Message-ID: <223883b7aafa02410ed2e571d6032c876d0b23b8.1209457069.git.len.brown@intel.com>
 References: <1209458675-9757-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.21]:5420 "EHLO
+Received: from mga06.intel.com ([134.134.136.21]:43301 "EHLO
 	orsmga101.jf.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1759962AbYD2Ior (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Apr 2008 04:44:47 -0400
+	with ESMTP id S1759527AbYD2Ioo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Apr 2008 04:44:44 -0400
 In-Reply-To: <1209458675-9757-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <1071695f17daf050638e0bc550db647f8237c3bb.1209457069.git.len.brown@intel.com>
 References: <1071695f17daf050638e0bc550db647f8237c3bb.1209457069.git.len.brown@intel.com>
@@ -21,43 +21,94 @@ From: Alexey Starikovskiy <astarikovskiy@suse.de>
 Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/ec.c |   16 +---------------
- 1 files changed, 1 insertions(+), 15 deletions(-)
+ drivers/acpi/ec.c |   60 +++++++++++++++++++++++++++++++++-------------------
+ 1 files changed, 38 insertions(+), 22 deletions(-)
 
 diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index f0e8216..167af37 100644
+index 7f07b68..da67d22 100644
 --- a/drivers/acpi/ec.c
 +++ b/drivers/acpi/ec.c
-@@ -533,20 +533,6 @@ static void do_ec_poll(struct work_struct *work)
-    -------------------------------------------------------------------------- */
+@@ -83,28 +83,6 @@ enum {
+ 	EC_FLAGS_RESCHEDULE_POLL	/* Re-schedule poll */
+ };
  
- static acpi_status
--acpi_ec_space_setup(acpi_handle region_handle,
--		    u32 function, void *handler_context, void **return_context)
--{
--	/*
--	 * The EC object is in the handler context and is needed
--	 * when calling the acpi_ec_space_handler.
--	 */
--	*return_context = (function != ACPI_REGION_DEACTIVATE) ?
--	    handler_context : NULL;
+-static int acpi_ec_remove(struct acpi_device *device, int type);
+-static int acpi_ec_start(struct acpi_device *device);
+-static int acpi_ec_stop(struct acpi_device *device, int type);
+-static int acpi_ec_add(struct acpi_device *device);
 -
--	return AE_OK;
--}
+-static const struct acpi_device_id ec_device_ids[] = {
+-	{"PNP0C09", 0},
+-	{"", 0},
+-};
 -
--static acpi_status
- acpi_ec_space_handler(u32 function, acpi_physical_address address,
- 		      u32 bits, acpi_integer *value,
- 		      void *handler_context, void *region_context)
-@@ -858,7 +844,7 @@ static int ec_install_handlers(struct acpi_ec *ec)
- 	status = acpi_install_address_space_handler(ec->handle,
- 						    ACPI_ADR_SPACE_EC,
- 						    &acpi_ec_space_handler,
--						    &acpi_ec_space_setup, ec);
-+						    NULL, ec);
- 	if (ACPI_FAILURE(status)) {
- 		acpi_remove_gpe_handler(NULL, ec->gpe, &acpi_ec_gpe_handler);
- 		return -ENODEV;
+-static struct acpi_driver acpi_ec_driver = {
+-	.name = "ec",
+-	.class = ACPI_EC_CLASS,
+-	.ids = ec_device_ids,
+-	.ops = {
+-		.add = acpi_ec_add,
+-		.remove = acpi_ec_remove,
+-		.start = acpi_ec_start,
+-		.stop = acpi_ec_stop,
+-		},
+-};
+-
+ /* If we find an EC via the ECDT, we need to keep a ptr to its context */
+ /* External interfaces use first EC only, so remember */
+ typedef int (*acpi_ec_query_func) (void *data);
+@@ -924,6 +902,11 @@ int __init acpi_boot_ec_enable(void)
+ 	return -EFAULT;
+ }
+ 
++static const struct acpi_device_id ec_device_ids[] = {
++	{"PNP0C09", 0},
++	{"", 0},
++};
++
+ int __init acpi_ec_ecdt_probe(void)
+ {
+ 	int ret;
+@@ -973,6 +956,39 @@ int __init acpi_ec_ecdt_probe(void)
+ 	return -ENODEV;
+ }
+ 
++static int acpi_ec_suspend(struct acpi_device *device, pm_message_t state)
++{
++	struct acpi_ec *ec = acpi_driver_data(device);
++	/* Stop using GPE */
++	set_bit(EC_FLAGS_NO_GPE, &ec->flags);
++	clear_bit(EC_FLAGS_GPE_MODE, &ec->flags);
++	acpi_disable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
++	return 0;
++}
++
++static int acpi_ec_resume(struct acpi_device *device)
++{
++	struct acpi_ec *ec = acpi_driver_data(device);
++	/* Enable use of GPE back */
++	clear_bit(EC_FLAGS_NO_GPE, &ec->flags);
++	acpi_enable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
++	return 0;
++}
++
++static struct acpi_driver acpi_ec_driver = {
++	.name = "ec",
++	.class = ACPI_EC_CLASS,
++	.ids = ec_device_ids,
++	.ops = {
++		.add = acpi_ec_add,
++		.remove = acpi_ec_remove,
++		.start = acpi_ec_start,
++		.stop = acpi_ec_stop,
++		.suspend = acpi_ec_suspend,
++		.resume = acpi_ec_resume,
++		},
++};
++
+ static int __init acpi_ec_init(void)
+ {
+ 	int result = 0;
 -- 
 1.5.5.1.99.gf0ec4
 
