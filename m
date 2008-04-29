@@ -1,13 +1,13 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 166/171] ACPI: thinkpad-acpi: use a private workqueue
-Date: Tue, 29 Apr 2008 04:44:31 -0400
-Message-ID: <8d35f533f7c048d9277dd0de40ba2de15ef3f03e.1209457073.git.len.brown@intel.com>
+Subject: [PATCH 161/171] ACPI: thinkpad-acpi: claim tpacpi as an official short handle
+Date: Tue, 29 Apr 2008 04:44:26 -0400
+Message-ID: <32cfa7598852f915962d1ff505828b05cff485bc.1209457073.git.len.brown@intel.com>
 References: <1209458675-9757-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.21]:45231 "EHLO
+Received: from mga06.intel.com ([134.134.136.21]:1417 "EHLO
 	orsmga101.jf.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1758887AbYD2Ipo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Apr 2008 04:45:44 -0400
+	with ESMTP id S1757452AbYD2Ips (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Apr 2008 04:45:48 -0400
 In-Reply-To: <1209458675-9757-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <1071695f17daf050638e0bc550db647f8237c3bb.1209457069.git.len.brown@intel.com>
 References: <1071695f17daf050638e0bc550db647f8237c3bb.1209457069.git.len.brown@intel.com>
@@ -18,122 +18,76 @@ Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com
 
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Switch all task workers to a private thinkpad-acpi workqueue.
+Unfortunately, a lot of stuff in the kernel has size limitations, so
+"thinkpad-acpi" ends up eating up too much real estate.  We were using
+"tpacpi" in symbols already, but this shorthand was not visible to
+userland.
 
-This way, we don't risk causing trouble for other tasks scheduled to the
-default work queue, as our workers end up needing to access the ACPI EC,
-run ACPI AML code, trigger SMI traps... and none of those are exactly known
-to be fast, simple operations.
+Document that the driver will use tpacpi as a short hand where necessary,
+and use it to name the kernel thread for NVRAM polling (now named
+"ktpacpi_nvramd").
+
+Also, register a module alias with the shorthand.  One can refer to the
+module using the shorthand name.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/thinkpad_acpi.c |   26 +++++++++++++++++++-------
- 1 files changed, 19 insertions(+), 7 deletions(-)
+ Documentation/laptops/thinkpad-acpi.txt |    5 +++++
+ drivers/misc/thinkpad_acpi.c            |    8 ++++++--
+ 2 files changed, 11 insertions(+), 2 deletions(-)
 
+diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
+index bbc8275..0f403ff 100644
+--- a/Documentation/laptops/thinkpad-acpi.txt
++++ b/Documentation/laptops/thinkpad-acpi.txt
+@@ -18,6 +18,11 @@ This driver used to be named ibm-acpi until kernel 2.6.21 and release
+ moved to the drivers/misc tree and renamed to thinkpad-acpi for kernel
+ 2.6.22, and release 0.14.
+ 
++The driver is named "thinkpad-acpi".  In some places, like module
++names, "thinkpad_acpi" is used because of userspace issues.
++
++"tpacpi" is used as a shorthand where "thinkpad-acpi" would be too
++long due to lenght limitations on some Linux kernel versions.
+ 
+ Status
+ ------
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 0d05719..22ba93c 100644
+index 1a26423..f23acc8 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -140,6 +140,7 @@ enum {
+@@ -133,8 +133,11 @@ enum {
+ #define TPACPI_PROC_DIR "ibm"
+ #define TPACPI_ACPI_EVENT_PREFIX "ibm"
+ #define TPACPI_DRVR_NAME TPACPI_FILE
++#define TPACPI_DRVR_SHORTNAME "tpacpi"
  #define TPACPI_HWMON_DRVR_NAME TPACPI_NAME "_hwmon"
  
- #define TPACPI_NVRAM_KTHREAD_NAME "ktpacpi_nvramd"
-+#define TPACPI_WORKQUEUE_NAME "ktpacpid"
- 
++#define TPACPI_NVRAM_KTHREAD_NAME "ktpacpi_nvramd"
++
  #define TPACPI_MAX_ACPI_ARGS 3
  
-@@ -272,6 +273,8 @@ static enum {
- static int experimental;
- static u32 dbg_level;
+ /* Debugging */
+@@ -1522,8 +1525,7 @@ static void hotkey_poll_setup(int may_warn)
+ 	    (tpacpi_inputdev->users > 0 || hotkey_report_mode < 2)) {
+ 		if (!tpacpi_hotkey_task) {
+ 			tpacpi_hotkey_task = kthread_run(hotkey_kthread,
+-							 NULL,
+-							 TPACPI_FILE "d");
++					NULL, TPACPI_NVRAM_KTHREAD_NAME);
+ 			if (IS_ERR(tpacpi_hotkey_task)) {
+ 				tpacpi_hotkey_task = NULL;
+ 				printk(TPACPI_ERR
+@@ -6315,6 +6317,8 @@ static int __init thinkpad_acpi_module_init(void)
+ /* Please remove this in year 2009 */
+ MODULE_ALIAS("ibm_acpi");
  
-+static struct workqueue_struct *tpacpi_wq;
++MODULE_ALIAS(TPACPI_DRVR_SHORTNAME);
 +
- /* Special LED class that can defer work */
- struct tpacpi_led_classdev {
- 	struct led_classdev led_classdev;
-@@ -3297,7 +3300,7 @@ static void light_sysfs_set(struct led_classdev *led_cdev,
- 			     struct tpacpi_led_classdev,
- 			     led_classdev);
- 	data->new_brightness = brightness;
--	schedule_work(&data->work);
-+	queue_work(tpacpi_wq, &data->work);
- }
- 
- static enum led_brightness light_sysfs_get(struct led_classdev *led_cdev)
-@@ -3354,7 +3357,7 @@ static void light_exit(void)
- {
- 	led_classdev_unregister(&tpacpi_led_thinklight.led_classdev);
- 	if (work_pending(&tpacpi_led_thinklight.work))
--		flush_scheduled_work();
-+		flush_workqueue(tpacpi_wq);
- }
- 
- static int light_read(char *p)
-@@ -3924,7 +3927,7 @@ static void led_sysfs_set(struct led_classdev *led_cdev,
- 			     struct tpacpi_led_classdev, led_classdev);
- 
- 	data->new_brightness = brightness;
--	schedule_work(&data->work);
-+	queue_work(tpacpi_wq, &data->work);
- }
- 
- static int led_sysfs_blink_set(struct led_classdev *led_cdev,
-@@ -3942,7 +3945,7 @@ static int led_sysfs_blink_set(struct led_classdev *led_cdev,
- 		return -EINVAL;
- 
- 	data->new_brightness = TPACPI_LED_BLINK;
--	schedule_work(&data->work);
-+	queue_work(tpacpi_wq, &data->work);
- 
- 	return 0;
- }
-@@ -5407,11 +5410,11 @@ static void fan_watchdog_reset(void)
- 	if (fan_watchdog_maxinterval > 0 &&
- 	    tpacpi_lifecycle != TPACPI_LIFE_EXITING) {
- 		fan_watchdog_active = 1;
--		if (!schedule_delayed_work(&fan_watchdog_task,
-+		if (!queue_delayed_work(tpacpi_wq, &fan_watchdog_task,
- 				msecs_to_jiffies(fan_watchdog_maxinterval
- 						 * 1000))) {
- 			printk(TPACPI_ERR
--			       "failed to schedule the fan watchdog, "
-+			       "failed to queue the fan watchdog, "
- 			       "watchdog will not trigger\n");
- 		}
- 	} else
-@@ -5781,7 +5784,7 @@ static void fan_exit(void)
- 			   &driver_attr_fan_watchdog);
- 
- 	cancel_delayed_work(&fan_watchdog_task);
--	flush_scheduled_work();
-+	flush_workqueue(tpacpi_wq);
- }
- 
- static int fan_read(char *p)
-@@ -6435,6 +6438,9 @@ static void thinkpad_acpi_module_exit(void)
- 	if (proc_dir)
- 		remove_proc_entry(TPACPI_PROC_DIR, acpi_root_dir);
- 
-+	if (tpacpi_wq)
-+		destroy_workqueue(tpacpi_wq);
-+
- 	kfree(thinkpad_id.bios_version_str);
- 	kfree(thinkpad_id.ec_version_str);
- 	kfree(thinkpad_id.model_str);
-@@ -6465,6 +6471,12 @@ static int __init thinkpad_acpi_module_init(void)
- 	TPACPI_ACPIHANDLE_INIT(ecrd);
- 	TPACPI_ACPIHANDLE_INIT(ecwr);
- 
-+	tpacpi_wq = create_singlethread_workqueue(TPACPI_WORKQUEUE_NAME);
-+	if (!tpacpi_wq) {
-+		thinkpad_acpi_module_exit();
-+		return -ENOMEM;
-+	}
-+
- 	proc_dir = proc_mkdir(TPACPI_PROC_DIR, acpi_root_dir);
- 	if (!proc_dir) {
- 		printk(TPACPI_ERR
+ /*
+  * DMI matching for module autoloading
+  *
 -- 
 1.5.5.1.99.gf0ec4
 
