@@ -1,117 +1,551 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: ACPI on Compaq 6715b - BIOS from the wrong end of the planet
-Date: Tue, 29 Apr 2008 20:29:31 +0200
-Message-ID: <1209493771.1784.892.camel@queen.suse.de>
-References: <48144209.7080203@gmail.com>
-	 <1209476717.1784.853.camel@queen.suse.de>  <4817457C.6000103@gmail.com>
-Reply-To: trenn@suse.de
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] ACPI: re-name acpi_pm_ops to acpi_suspend_ops
+Date: Tue, 29 Apr 2008 22:24:27 +0200
+Message-ID: <200804292224.27963.rjw@sisk.pl>
+References: <200804291020.33068.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns2.suse.de ([195.135.220.15]:36381 "EHLO mx2.suse.de"
+Received: from ogre.sisk.pl ([217.79.144.158]:38104 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755768AbYD2S3e (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 29 Apr 2008 14:29:34 -0400
-In-Reply-To: <4817457C.6000103@gmail.com>
+	id S1757149AbYD2UYh (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
+	Tue, 29 Apr 2008 16:24:37 -0400
+In-Reply-To: <200804291020.33068.lenb@kernel.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Richard <tuxbox.guru@gmail.com>
-Cc: linux-acpi@vger.kernel.org, "Langsdorf, Mark" <mark.langsdorf@amd.com>, andreas.herrmann3@amd.com
+To: Len Brown <lenb@kernel.org>
+Cc: Pavel Machek <pavel@ucw.cz>, Linux-acpi@vger.kernel.org
 
-On Tue, 2008-04-29 at 16:57 +0100, Richard wrote:
-> Thomas Renninger wrote:
-> > On Sun, 2008-04-27 at 10:06 +0100, Richard wrote:
-> >   
-> >> Hi all,
-> >>
-> >> Pardon for the intrusion, I am trying to fault find a horrible wrong 
-> >> ACPI interface and fix it.
-> >>
-> >> the problem is as follows... 
-> >>
-> >> Kernel 2.6.23 works fine, except there is no stable clocksource.. 
-> >> acpi_pm, tsc doesnt work and jiffies .. well thats just jiffies. The 
-> >> kernel boots but time sources are erratic and this results in an 
-> >> unstable clock (Mp3's play at erratic speeds)
-> >>
-> >> Kernel 2.6.25 hangs the system if I enable ACPI Timer and rebuild/boot 
-> >> the new linux kernel. The only clock sources are tsc and jiffies and TSC 
-> >> is disables due to being erratic. If I totally disable ACPI, the kernel 
-> >> boots and works with stable clocks..  but obviously Power management is 
-> >> gone.
-> >>
-> >> The system is an ATI bridged AMD Sempron notebook. I have tried Millions 
-> >> of options in the kernel bootup and none seem to do clear the problem. 
-> >> This system seems to suffer from the Clocks fast bug. (the dmesg reports 
-> >> that the 8254 clock is disables, IO-APIC int0 fails and IO-APIC Vritual 
-> >> wire is OK.. if that means anything :D)
-> >>
-> >> Any pointers.. and if anyone wants the AML/ACPI stuff, please feel free 
-> >> to shout.
-> >>     
-> > Does:
-> > disable_timer_pin_1
-> > or
-> > noapictimer
-> > work?
-> >
-> >    Thomas
-> >
-> >
-> >   
+On Tuesday, 29 of April 2008, Len Brown wrote:
+> Pavel, Rafael,
+> I re-named the acpi_pm_* ops to be acpi_suspend_* below.
 > 
-> Thanks a Million..
-> noapictimer works perfectly ... BUT  .. only on 64Bit.  acpi_pm is not 
-> present on 32bit as a clocksource and it defaulted to jiffies. (tsc was 
-> marked as imreliable)
-> 
-> I am really surprised that this Sempron notebook actually had 64Bit CPU 
-> compatibility :D
+> I think also that main.c isn't the best name for this file,
+> how about acpi_platform_suspend.c, or maybe just acpi_suspend.c?
 
-This one helps for my Turion.
-AFAIK, another Turion (very similar) does not need this, but I do not
-know for sure.
+Well, I have a patch in the works that conflicts with these changes.
+This is a patch to add 'acpi_old_suspend_ordering' so that people can use
+the ACPI 1.0 ordering of suspend code.
 
+Unfortunately, it depends on a couple of patches in the Greg's tree, so
+I thought I would submit it later, but well, please find it below.
 
-Index: linux-2.6.25-rc6/arch/x86/kernel/cpu/amd.c
+Thanks,
+Rafael
+
+---
+From: Rafael J. Wysocki <rjw@sisk.pl>
+
+There are some systems out there that don't work correctly with
+our current suspend/hibernation code ordering.  Provide a workaround
+for these systems allowing them to pass the
+'acpi_old_suspend_ordering' command line parameter to the kernel that
+will make it use the pre-ACPI 2.0 suspend code ordering.
+
+Unfortunately, that requires us to add a platform hook to the
+resuming of devices for recovering the platform in case one of the
+device drivers' .suspend() routines returns error code.  Namely,
+ACPI 1.0 specifies that _PTS should be called before suspending
+devices, but _WAK still should be called before resuming them in
+order to undo the changes made by _PTS.  However, if there is an
+error during suspending devices, they are automatically resumed
+without returning control to the PM core, so the _WAK has to be
+called from within device_resume() in that cases.
+
+The patch also reorders and refactors the ACPI suspend/hibernation
+code to avoid duplication as far as reasonably possible.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ Documentation/kernel-parameters.txt |    5 
+ drivers/acpi/sleep/main.c           |  310 +++++++++++++++++++++---------------
+ drivers/base/power/main.c           |   15 +
+ include/linux/pm.h                  |    2 
+ 4 files changed, 205 insertions(+), 127 deletions(-)
+
+Index: linux-2.6/Documentation/kernel-parameters.txt
 ===================================================================
---- linux-2.6.25-rc6.orig/arch/x86/kernel/cpu/amd.c
-+++ linux-2.6.25-rc6/arch/x86/kernel/cpu/amd.c
-@@ -39,9 +39,14 @@ static __cpuinit int amd_apic_timer_brok
- {
- 	u32 lo, hi;
- 	u32 eax = cpuid_eax(CPUID_PROCESSOR_SIGNATURE);
-+	struct cpuinfo_x86 *c = &boot_cpu_data;
+--- linux-2.6.orig/Documentation/kernel-parameters.txt
++++ linux-2.6/Documentation/kernel-parameters.txt
+@@ -170,6 +170,11 @@ and is between 256 and 4096 characters. 
+ 	acpi_irq_isa=	[HW,ACPI] If irq_balance, mark listed IRQs used by ISA
+ 			Format: <irq>,<irq>...
  
- 	switch (eax & CPUID_XFAM) {
- 	case CPUID_XFAM_K8:
-+		if (c->x86 == 15 && c->x86_model == 72 && c->x86_mask == 2) {
-+			printk ("Found AMD Turion, disabling apic timer\n");
-+			return 1;
-+		}
- 		if ((eax & CPUID_XMOD) < CPUID_XMOD_REV_F)
- 			break;
- 	case CPUID_XFAM_10H:
-Index: linux-2.6.25-rc6/arch/x86/kernel/setup_64.c
++       acpi_old_suspend_ordering [HW,ACPI]
++                       Enforce the ACPI 1.0 ordering of the _PTS control
++                       method wrt putting devices into low power states
++                       default: ACPI 2.0 ordering of _PTS
++
+ 	acpi_no_auto_ssdt	[HW,ACPI] Disable automatic loading of SSDT
+ 
+ 	acpi_os_name=	[HW,ACPI] Tell ACPI BIOS the name of the OS
+Index: linux-2.6/drivers/acpi/sleep/main.c
 ===================================================================
---- linux-2.6.25-rc6.orig/arch/x86/kernel/setup_64.c
-+++ linux-2.6.25-rc6/arch/x86/kernel/setup_64.c
-@@ -627,11 +627,14 @@ static void __cpuinit early_init_amd_mc(
- static __cpuinit int amd_apic_timer_broken(void)
- {
- 	u32 lo, hi, eax = cpuid_eax(CPUID_PROCESSOR_SIGNATURE);
+--- linux-2.6.orig/drivers/acpi/sleep/main.c
++++ linux-2.6/drivers/acpi/sleep/main.c
+@@ -15,6 +15,7 @@
+ #include <linux/dmi.h>
+ #include <linux/device.h>
+ #include <linux/suspend.h>
++#include <linux/pm.h>
+ 
+ #include <asm/io.h>
+ 
+@@ -24,10 +25,6 @@
+ 
+ u8 sleep_states[ACPI_S_STATE_COUNT];
+ 
+-#ifdef CONFIG_PM_SLEEP
+-static u32 acpi_target_sleep_state = ACPI_STATE_S0;
+-#endif
 -
- 	struct cpuinfo_x86 *c = &boot_cpu_data;
+ static int acpi_sleep_prepare(u32 acpi_state)
+ {
+ #ifdef CONFIG_ACPI_SLEEP
+@@ -50,9 +47,107 @@ static int acpi_sleep_prepare(u32 acpi_s
+ 	return 0;
+ }
  
-   	switch (eax & CPUID_XFAM) {
- 	case CPUID_XFAM_K8:
-+		if (c->x86 == 15 && c->x86_model == 72 && c->x86_mask == 2) {
-+			printk ("Found AMD Turion, disabling apic timer\n");
-+			return 1;
-+		}
- 		if ((eax & CPUID_XMOD) < CPUID_XMOD_REV_F)
- 			break;
- 	case CPUID_XFAM_10H:
-
-
+-#ifdef CONFIG_SUSPEND
+-static struct platform_suspend_ops acpi_pm_ops;
++#ifdef CONFIG_PM_SLEEP
++static u32 acpi_target_sleep_state = ACPI_STATE_S0;
++
++static int init_8259A_after_S1;
++
++/*
++ * ACPI 1.0 wants us to execute _PTS before suspending devices, so we allow the
++ * user to request that behavior by using the 'acpi_old_suspend_ordering'
++ * kernel command line option that causes the following variable to be set.
++ */
++static bool old_suspend_ordering;
++
++static int __init acpi_old_suspend_ordering(char *str)
++{
++	old_suspend_ordering = true;
++	return 1;
++}
++__setup("acpi_old_suspend_ordering", acpi_old_suspend_ordering);
+ 
++/**
++ *	acpi_pm_disable_gpes - Disable the GPEs.
++ */
++static int acpi_pm_disable_gpes(void)
++{
++	acpi_hw_disable_all_gpes();
++	return 0;
++}
++
++/**
++ *	__acpi_pm_prepare - Prepare the platform to enter the target state.
++ *
++ *	If necessary, set the firmware waking vector and do arch-specific
++ *	nastiness to get the wakeup code to the waking vector.
++ */
++static int __acpi_pm_prepare(void)
++{
++	int error = acpi_sleep_prepare(acpi_target_sleep_state);
++
++	if (error)
++		acpi_target_sleep_state = ACPI_STATE_S0;
++	return error;
++}
++
++/**
++ *	acpi_pm_prepare - Prepare the platform to enter the target sleep
++ *		state and disable the GPEs.
++ */
++static int acpi_pm_prepare(void)
++{
++	int error = __acpi_pm_prepare();
++
++	if (!error)
++		acpi_hw_disable_all_gpes();
++	return error;
++}
++
++/**
++ *	acpi_pm_finish - Instruct the platform to leave a sleep state.
++ *
++ *	This is called after we wake back up (or if entering the sleep state
++ *	failed).
++ */
++static void acpi_pm_finish(void)
++{
++	u32 acpi_state = acpi_target_sleep_state;
++
++	if (acpi_state == ACPI_STATE_S0)
++		return;
++
++	printk(KERN_INFO PREFIX "Waking up from system sleep state S%d\n",
++		acpi_state);
++	acpi_disable_wakeup_device(acpi_state);
++	acpi_leave_sleep_state(acpi_state);
++
++	/* reset firmware waking vector */
++	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
++
++	acpi_target_sleep_state = ACPI_STATE_S0;
++
++#ifdef CONFIG_X86
++	if (acpi_state == ACPI_STATE_S1 && init_8259A_after_S1) {
++		printk("Broken toshiba laptop -> kicking interrupts\n");
++		init_8259A(0);
++	}
++#endif
++}
++
++/**
++ *	acpi_pm_end - Finish up suspend sequence.
++ */
++static void acpi_pm_end(void)
++{
++	/*
++	 * This is necessary in case acpi_pm_finish() is not called during a
++	 * failing transition to a sleep state.
++	 */
++	acpi_target_sleep_state = ACPI_STATE_S0;
++}
++#endif /* CONFIG_PM_SLEEP */
++
++#ifdef CONFIG_SUSPEND
+ extern void do_suspend_lowlevel(void);
+ 
+ static u32 acpi_suspend_states[] = {
+@@ -62,14 +157,11 @@ static u32 acpi_suspend_states[] = {
+ 	[PM_SUSPEND_MAX] = ACPI_STATE_S5
+ };
+ 
+-static int init_8259A_after_S1;
+-
+ /**
+- *	acpi_pm_begin - Set the target system sleep state to the state
++ *	acpi_suspend_begin - Set the target system sleep state to the state
+  *		associated with given @pm_state, if supported.
+  */
+-
+-static int acpi_pm_begin(suspend_state_t pm_state)
++static int acpi_suspend_begin(suspend_state_t pm_state)
+ {
+ 	u32 acpi_state = acpi_suspend_states[pm_state];
+ 	int error = 0;
+@@ -85,34 +177,14 @@ static int acpi_pm_begin(suspend_state_t
+ }
+ 
+ /**
+- *	acpi_pm_prepare - Do preliminary suspend work.
+- *
+- *	If necessary, set the firmware waking vector and do arch-specific
+- *	nastiness to get the wakeup code to the waking vector.
+- */
+-
+-static int acpi_pm_prepare(void)
+-{
+-	int error = acpi_sleep_prepare(acpi_target_sleep_state);
+-
+-	if (error) {
+-		acpi_target_sleep_state = ACPI_STATE_S0;
+-		return error;
+-	}
+-
+-	return ACPI_SUCCESS(acpi_hw_disable_all_gpes()) ? 0 : -EFAULT;
+-}
+-
+-/**
+- *	acpi_pm_enter - Actually enter a sleep state.
++ *	acpi_suspend_enter - Actually enter a sleep state.
+  *	@pm_state: ignored
+  *
+  *	Flush caches and go to sleep. For STR we have to call arch-specific
+  *	assembly, which in turn call acpi_enter_sleep_state().
+  *	It's unfortunate, but it works. Please fix if you're feeling frisky.
+  */
+-
+-static int acpi_pm_enter(suspend_state_t pm_state)
++static int acpi_suspend_enter(suspend_state_t pm_state)
+ {
+ 	acpi_status status = AE_OK;
+ 	unsigned long flags = 0;
+@@ -168,47 +240,7 @@ static int acpi_pm_enter(suspend_state_t
+ 	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
+ }
+ 
+-/**
+- *	acpi_pm_finish - Instruct the platform to leave a sleep state.
+- *
+- *	This is called after we wake back up (or if entering the sleep state
+- *	failed). 
+- */
+-
+-static void acpi_pm_finish(void)
+-{
+-	u32 acpi_state = acpi_target_sleep_state;
+-
+-	acpi_disable_wakeup_device(acpi_state);
+-	acpi_leave_sleep_state(acpi_state);
+-
+-	/* reset firmware waking vector */
+-	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
+-
+-	acpi_target_sleep_state = ACPI_STATE_S0;
+-
+-#ifdef CONFIG_X86
+-	if (init_8259A_after_S1) {
+-		printk("Broken toshiba laptop -> kicking interrupts\n");
+-		init_8259A(0);
+-	}
+-#endif
+-}
+-
+-/**
+- *	acpi_pm_end - Finish up suspend sequence.
+- */
+-
+-static void acpi_pm_end(void)
+-{
+-	/*
+-	 * This is necessary in case acpi_pm_finish() is not called during a
+-	 * failing transition to a sleep state.
+-	 */
+-	acpi_target_sleep_state = ACPI_STATE_S0;
+-}
+-
+-static int acpi_pm_state_valid(suspend_state_t pm_state)
++static int acpi_suspend_state_valid(suspend_state_t pm_state)
+ {
+ 	u32 acpi_state;
+ 
+@@ -225,10 +257,38 @@ static int acpi_pm_state_valid(suspend_s
+ }
+ 
+ static struct platform_suspend_ops acpi_pm_ops = {
+-	.valid = acpi_pm_state_valid,
+-	.begin = acpi_pm_begin,
++	.valid = acpi_suspend_state_valid,
++	.begin = acpi_suspend_begin,
+ 	.prepare = acpi_pm_prepare,
+-	.enter = acpi_pm_enter,
++	.enter = acpi_suspend_enter,
++	.finish = acpi_pm_finish,
++	.end = acpi_pm_end,
++};
++
++/**
++ *	acpi_suspend_begin_old - Set the target system sleep state to the
++ *		state associated with given @pm_state, if supported, and
++ *		execute the _PTS control method.  This function is used if the
++ *		pre-ACPI 2.0 suspend ordering has been requested.
++ */
++static int acpi_suspend_begin_old(suspend_state_t pm_state)
++{
++	int error = acpi_suspend_begin(pm_state);
++
++	if (!error)
++		error = __acpi_pm_prepare();
++	return error;
++}
++
++/*
++ * The following callbacks are used if the pre-ACPI 2.0 suspend ordering has
++ * been requested.
++ */
++static struct platform_suspend_ops acpi_pm_ops_old = {
++	.valid = acpi_suspend_state_valid,
++	.begin = acpi_suspend_begin_old,
++	.prepare = acpi_pm_disable_gpes,
++	.enter = acpi_suspend_enter,
+ 	.finish = acpi_pm_finish,
+ 	.end = acpi_pm_end,
+ };
+@@ -269,22 +329,9 @@ __setup("acpi_s4_nosigcheck", acpi_s4_no
+ static int acpi_hibernation_begin(void)
+ {
+ 	acpi_target_sleep_state = ACPI_STATE_S4;
+-
+ 	return 0;
+ }
+ 
+-static int acpi_hibernation_prepare(void)
+-{
+-	int error = acpi_sleep_prepare(ACPI_STATE_S4);
+-
+-	if (error) {
+-		acpi_target_sleep_state = ACPI_STATE_S0;
+-		return error;
+-	}
+-
+-	return ACPI_SUCCESS(acpi_hw_disable_all_gpes()) ? 0 : -EFAULT;
+-}
+-
+ static int acpi_hibernation_enter(void)
+ {
+ 	acpi_status status = AE_OK;
+@@ -320,52 +367,54 @@ static void acpi_hibernation_leave(void)
+ 	}
+ }
+ 
+-static void acpi_hibernation_finish(void)
++static void acpi_pm_enable_gpes(void)
+ {
+-	acpi_disable_wakeup_device(ACPI_STATE_S4);
+-	acpi_leave_sleep_state(ACPI_STATE_S4);
+-
+-	/* reset firmware waking vector */
+-	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
+-
+-	acpi_target_sleep_state = ACPI_STATE_S0;
++	acpi_hw_enable_all_runtime_gpes();
+ }
+ 
+-static void acpi_hibernation_end(void)
+-{
+-	/*
+-	 * This is necessary in case acpi_hibernation_finish() is not called
+-	 * during a failing transition to the sleep state.
+-	 */
+-	acpi_target_sleep_state = ACPI_STATE_S0;
+-}
++static struct platform_hibernation_ops acpi_hibernation_ops = {
++	.begin = acpi_hibernation_begin,
++	.end = acpi_pm_end,
++	.pre_snapshot = acpi_pm_prepare,
++	.finish = acpi_pm_finish,
++	.prepare = acpi_pm_prepare,
++	.enter = acpi_hibernation_enter,
++	.leave = acpi_hibernation_leave,
++	.pre_restore = acpi_pm_disable_gpes,
++	.restore_cleanup = acpi_pm_enable_gpes,
++};
+ 
+-static int acpi_hibernation_pre_restore(void)
++/**
++ *	acpi_hibernation_begin_old - Set the target system sleep state to
++ *		ACPI_STATE_S4 and execute the _PTS control method.  This
++ *		function is used if the pre-ACPI 2.0 suspend ordering has been
++ *		requested.
++ */
++static int acpi_hibernation_begin_old(void)
+ {
+-	acpi_status status;
+-
+-	status = acpi_hw_disable_all_gpes();
+-
+-	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
+-}
++	int error = acpi_sleep_prepare(ACPI_STATE_S4);
+ 
+-static void acpi_hibernation_restore_cleanup(void)
+-{
+-	acpi_hw_enable_all_runtime_gpes();
++	if (!error)
++		acpi_target_sleep_state = ACPI_STATE_S4;
++	return error;
+ }
+ 
+-static struct platform_hibernation_ops acpi_hibernation_ops = {
+-	.begin = acpi_hibernation_begin,
+-	.end = acpi_hibernation_end,
+-	.pre_snapshot = acpi_hibernation_prepare,
+-	.finish = acpi_hibernation_finish,
+-	.prepare = acpi_hibernation_prepare,
++/*
++ * The following callbacks are used if the pre-ACPI 2.0 suspend ordering has
++ * been requested.
++ */
++static struct platform_hibernation_ops acpi_hibernation_ops_old = {
++	.begin = acpi_hibernation_begin_old,
++	.end = acpi_pm_end,
++	.pre_snapshot = acpi_pm_disable_gpes,
++	.finish = acpi_pm_finish,
++	.prepare = acpi_pm_disable_gpes,
+ 	.enter = acpi_hibernation_enter,
+ 	.leave = acpi_hibernation_leave,
+-	.pre_restore = acpi_hibernation_pre_restore,
+-	.restore_cleanup = acpi_hibernation_restore_cleanup,
++	.pre_restore = acpi_pm_disable_gpes,
++	.restore_cleanup = acpi_pm_enable_gpes,
+ };
+-#endif				/* CONFIG_HIBERNATION */
++#endif /* CONFIG_HIBERNATION */
+ 
+ int acpi_suspend(u32 acpi_state)
+ {
+@@ -509,13 +558,14 @@ int __init acpi_sleep_init(void)
+ 		}
+ 	}
+ 
+-	suspend_set_ops(&acpi_pm_ops);
++	suspend_set_ops(old_suspend_ordering ? &acpi_pm_ops_old : &acpi_pm_ops);
+ #endif
+ 
+ #ifdef CONFIG_HIBERNATION
+ 	status = acpi_get_sleep_type_data(ACPI_STATE_S4, &type_a, &type_b);
+ 	if (ACPI_SUCCESS(status)) {
+-		hibernation_set_ops(&acpi_hibernation_ops);
++		hibernation_set_ops(old_suspend_ordering ?
++			&acpi_hibernation_ops_old : &acpi_hibernation_ops);
+ 		sleep_states[ACPI_STATE_S4] = 1;
+ 		printk(" S4");
+ 		if (!nosigcheck) {
+@@ -527,6 +577,12 @@ int __init acpi_sleep_init(void)
+ 		}
+ 	}
+ #endif
++
++#ifdef CONFIG_PM_SLEEP
++	if (old_suspend_ordering)
++		platform_pm_recover = acpi_pm_finish;
++#endif
++
+ 	status = acpi_get_sleep_type_data(ACPI_STATE_S5, &type_a, &type_b);
+ 	if (ACPI_SUCCESS(status)) {
+ 		sleep_states[ACPI_STATE_S5] = 1;
+Index: linux-2.6/drivers/base/power/main.c
+===================================================================
+--- linux-2.6.orig/drivers/base/power/main.c
++++ linux-2.6/drivers/base/power/main.c
+@@ -28,6 +28,20 @@
+ #include "power.h"
+ 
+ /*
++ * Some platforms (most importantly ACPI) may need to be prepared for
++ * resuming devices in case of a failure to suspend them.  They should set
++ * this pointer to the routine that will always be called just prior to resuming
++ * devices.
++ */
++void (*platform_pm_recover)(void);
++
++static inline void recover_platform(void)
++{
++	if (platform_pm_recover)
++		platform_pm_recover();
++}
++
++/*
+  * The entries in the dpm_list list are in a depth first order, simply
+  * because children are guaranteed to be discovered after parents, and
+  * are inserted at the back of the list on discovery.
+@@ -511,6 +525,7 @@ static void dpm_complete(pm_message_t st
+ void device_resume(pm_message_t state)
+ {
+ 	might_sleep();
++	recover_platform();
+ 	dpm_resume(state);
+ 	dpm_complete(state);
+ }
+Index: linux-2.6/include/linux/pm.h
+===================================================================
+--- linux-2.6.orig/include/linux/pm.h
++++ linux-2.6/include/linux/pm.h
+@@ -447,6 +447,8 @@ struct dev_pm_info {
+  */
+ 
+ #ifdef CONFIG_PM_SLEEP
++extern void (*platform_pm_recover)(void);
++
+ extern void device_pm_lock(void);
+ extern void device_power_up(pm_message_t state);
+ extern void device_resume(pm_message_t state);
