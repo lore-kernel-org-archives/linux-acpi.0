@@ -1,141 +1,72 @@
-From: Alex Chiang <achiang@hp.com>
-Subject: Re: [PATCH 2/2] ia64: Provide ACPI fixup for
-	/proc/cpuinfo/physical_id
-Date: Tue, 29 Apr 2008 17:20:37 -0600
-Message-ID: <20080429232037.GA3820@ldl.fc.hp.com>
-References: <20080310222735.GA22619@ldl.fc.hp.com> <1FE6DD409037234FAB833C420AA843ECCBFA9D@orsmsx424.amr.corp.intel.com> <20080319233140.GD16237@ldl.fc.hp.com> <1FE6DD409037234FAB833C420AA843ECE13C6E@orsmsx424.amr.corp.intel.com> <20080326185912.GA30749@ldl.fc.hp.com> <20080421052450.GA24055@ldl.fc.hp.com> <1FE6DD409037234FAB833C420AA843EC012664E0@orsmsx424.amr.corp.intel.com> <20080424184417.GA32553@ldl.fc.hp.com> <20080424185222.GC32553@ldl.fc.hp.com> <1FE6DD409037234FAB833C420AA843EC0138200C@orsmsx424.amr.corp.intel.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [linux-pm] [RESEND patch 2.6.25] ACPI uses device_may_wakeup() policy inputs
+Date: Tue, 29 Apr 2008 16:38:30 -0700
+Message-ID: <200804291638.30469.david-b@pacbell.net>
+References: <Pine.LNX.4.44L0.0804280941440.3566-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-ia64-owner@vger.kernel.org>
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp121.sbc.mail.sp1.yahoo.com ([69.147.64.94]:48702 "HELO
+	smtp121.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754342AbYD2Xie (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 29 Apr 2008 19:38:34 -0400
+In-Reply-To: <Pine.LNX.4.44L0.0804280941440.3566-100000@iolanthe.rowland.org>
 Content-Disposition: inline
-In-Reply-To: <1FE6DD409037234FAB833C420AA843EC0138200C@orsmsx424.amr.corp.intel.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: lenb@kernel.org, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-pm@lists.linux-foundation.org
+Cc: Alan Stern <stern@rowland.harvard.edu>, Zhang Rui <rui.zhang@intel.com>, Zhao Yakui <yakui.zhao@intel.com>, linux-acpi@vger.kernel.org
 
-Hi Tony,
-
-* Luck, Tony <tony.luck@intel.com>:
-> Alex,
+On Monday 28 April 2008, Alan Stern wrote:
+> On Mon, 28 Apr 2008, Zhang Rui wrote:
 > 
-> I chewed on this a bit ... 
+> > This may cause some "regressions", something like system resumes
+> > immediately after enter S3. This should rather be a driver/device
+> > problem which rises a wake up event when it's suspend.
+> > The right thing to do is to disable the wake up flag for this device.
+> > The patch was dropped for this reason last time it's merged and we
+> > should take good care of it this time. :)
 
-Thanks for all the fixups -- your version looks a lot nicer!
+Actually that oversimplifies the problem.  The system that
+was issuing wake events should not have been issuing them.
 
-> diff --git a/include/asm-x86/topology.h b/include/asm-x86/topology.h
-> +#define arch_fix_phys_package_id(num, slot)
-> 
-> Style preference is to now use a "static inline void" function for
-> this to make sure args are correctly typed, and to avoid warnings about
-> unused variables.
+That seemed to me at the time, and still does seem to me,
+like an ACPI problem ... especially since most other systems
+behaved just fine.  I have one observation I'll share in a
+separate message, which _might_ shed some light on this.
 
-*nod*
 
-I'll use that convention in the future, thanks.
+> Indeed, it's easy to imagine a situation where somebody suspends their 
+> laptop and then unplugs a USB mouse, thereby causing a wakeup event.
 
-> updated version of the patch looks like this ... ok???
+It's also easy to imagine getting used to unplugging
+such devices *first* ... :)
 
-Looks great to me.
 
-/ac
+> I suspect many PCI devices should be disabled for remote wakeup during 
+> system sleeps.
 
-> 
-> -Tony
-> 
-> commit fe086a7bea7ab714930bd48addba961ceeef7634
-> Author: Alex Chiang <achiang@hp.com>
-> Date:   Tue Apr 29 15:05:29 2008 -0700
-> 
->     [IA64] Provide ACPI fixup for /proc/cpuinfo/physical_id
->     
->     Legacy HP ia64 platforms currently cannot provide
->     /proc/cpuinfo/physical_id due to legacy SAL/PAL implementations.
->     However, that physical topology information can be obtained
->     via ACPI.
->     
->     Provide an interface that gives ACPI one last chance to provide
->     physical_id for these legacy platforms. This logic only comes
->     into play iff:
->     
->     - ACPI actually provides slot information for the CPU
->     - we lack a valid socket_id
->     
->     Otherwise, we don't do anything.
->     
->     Since x86 uses the ACPI processor driver as well, we provide a nop
->     stub function for arch_fix_phys_package_id() in asm-x86/topology.h
->     
->     Signed-off-by: Alex Chiang <achiang@hp.com>
->     Signed-off-by: Tony Luck <tony.luck@intel.com>
-> 
-> diff --git a/arch/ia64/kernel/topology.c b/arch/ia64/kernel/topology.c
-> index a2484fc..abb17a6 100644
-> --- a/arch/ia64/kernel/topology.c
-> +++ b/arch/ia64/kernel/topology.c
-> @@ -27,6 +27,15 @@
->  
->  static struct ia64_cpu *sysfs_cpus;
->  
-> +void arch_fix_phys_package_id(int num, u32 slot)
-> +{
-> +#ifdef CONFIG_SMP
-> +	if (cpu_data(num)->socket_id == -1)
-> +		cpu_data(num)->socket_id = slot;
-> +#endif
-> +}
-> +EXPORT_SYMBOL_GPL(arch_fix_phys_package_id);
-> +
->  int arch_register_cpu(int num)
->  {
->  #if defined (CONFIG_ACPI) && defined (CONFIG_HOTPLUG_CPU)
-> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-> index dd28c91..5241e3f 100644
-> --- a/drivers/acpi/processor_core.c
-> +++ b/drivers/acpi/processor_core.c
-> @@ -603,6 +603,15 @@ static int acpi_processor_get_info(struct acpi_processor *pr, unsigned has_uid)
->  		request_region(pr->throttling.address, 6, "ACPI CPU throttle");
->  	}
->  
-> +	/*
-> +	 * If ACPI describes a slot number for this CPU, we can use it
-> +	 * ensure we get the right value in the "physical id" field
-> +	 * of /proc/cpuinfo
-> +	 */
-> +	status = acpi_evaluate_object(pr->handle, "_SUN", NULL, &buffer);
-> +	if (ACPI_SUCCESS(status))
-> +		arch_fix_phys_package_id(pr->id, object.integer.value);
-> +
->  	return 0;
->  }
->  
-> diff --git a/include/asm-ia64/topology.h b/include/asm-ia64/topology.h
-> index f2f72ef..32863b3 100644
-> --- a/include/asm-ia64/topology.h
-> +++ b/include/asm-ia64/topology.h
-> @@ -116,6 +116,8 @@ void build_cpu_to_node_map(void);
->  #define smt_capable() 				(smp_num_siblings > 1)
->  #endif
->  
-> +extern void arch_fix_phys_package_id(int num, u32 slot);
-> +
->  #define pcibus_to_cpumask(bus)	(pcibus_to_node(bus) == -1 ? \
->  					CPU_MASK_ALL : \
->  					node_to_cpumask(pcibus_to_node(bus)) \
-> diff --git a/include/asm-x86/topology.h b/include/asm-x86/topology.h
-> index 0e6d6b0..4f35a0f 100644
-> --- a/include/asm-x86/topology.h
-> +++ b/include/asm-x86/topology.h
-> @@ -193,6 +193,10 @@ extern cpumask_t cpu_coregroup_map(int cpu);
->  #define topology_thread_siblings(cpu)		(per_cpu(cpu_sibling_map, cpu))
->  #endif
->  
-> +static inline void arch_fix_phys_package_id(int num, u32 slot)
-> +{
-> +}
-> +
->  struct pci_bus;
->  void set_pci_bus_resources_arch_default(struct pci_bus *b);
->  
-> 
-> 
+I wouldn't say that it's "PCI devices".  Remember, these
+patches only change ACPI behavior ... making it act more
+like non-ACPI systems.  If there's any change, in defaults
+it should not be a global "for all PCI devices" one ... it
+should be limited (and temporary!) for some ACPI devices.
+
+The situation is that *currently* ACPI is configured so
+that it's acts unlike non-ACPI systems:  wakeup isn't
+enabled.  And in at least some systems, it doesn't work
+when it's enabled either.
+
+One can argue about how to deal with that breakage.  It
+seems likely to me that -- since this ACPI wakeup code
+has hardly ever been used on Linux -- using it will turn
+up bugs in the ACPI stack.  At which point a significant
+question is:  how are those bugs ever going to be found
+and fixed, if ACPI never actually turns on its wakeup
+mechanisms?
+
+- Dave
+
