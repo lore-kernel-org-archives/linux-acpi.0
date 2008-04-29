@@ -1,85 +1,55 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch 00/55] PNP cleanup, v5
-Date: Tue, 29 Apr 2008 04:38:00 -0400
-Message-ID: <200804290438.00657.lenb@kernel.org>
-References: <20080428223347.233593713@ldl.fc.hp.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH 002/171] ACPI: EC: Restore udelay in poll mode
+Date: Tue, 29 Apr 2008 04:43:53 -0400
+Message-ID: <e6e82a3087e6dad619149246082c910623ea9c36.1209457069.git.len.brown@intel.com>
+References: <1209458675-9757-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:57490 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752991AbYD2Ij1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 29 Apr 2008 04:39:27 -0400
-In-Reply-To: <20080428223347.233593713@ldl.fc.hp.com>
-Content-Disposition: inline
+Received: from mga06.intel.com ([134.134.136.21]:16639 "EHLO
+	orsmga101.jf.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757719AbYD2Iok (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Apr 2008 04:44:40 -0400
+In-Reply-To: <1209458675-9757-1-git-send-email-lenb@kernel.org>
+In-Reply-To: <1071695f17daf050638e0bc550db647f8237c3bb.1209457069.git.len.brown@intel.com>
+References: <1071695f17daf050638e0bc550db647f8237c3bb.1209457069.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
+To: linux-acpi@vger.kernel.org
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>
 
-Bjorn,
-I'm running this version on my primary development machine,
-and I've pulled it into the acpi tree a few minutes ago.
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
 
-thanks,
--Len
+This fixes keyboard event handling on some systems.
 
-On Monday 28 April 2008, Bjorn Helgaas wrote:
-> I'm trying to stabilize something so we can get it into -mm, 
-> so this only addresses Rene's comments on v4. 
-> 
-> As a reminder, if anybody tests this and sees problems, the
-> dmesg log with CONFIG_PNP_DEBUG enabled would be a great help
-> to me.
-> 
-> Changes between v4 and v5:
-> 
->   - moved #ifdef DEBUG inside dbg_pnp_show_resources()
->   - removed cast of flags to int; print the long directly
->   - changed printk "0x%x" to "%#x"
->   - set "type" in pnp_clean_resource_table()
->   - fix return type of pnp_{port,mem,irq,dma}_flags()
->   - new patch converts pnp_assign_*() and /sys interfaces to pnp_get_resource()
->   - added Rene's acks
-> 
-> Changes between v3 and v4:
-> 
->   - changed pnp_check_port(), etc., to take resource instead of index
->   - added some decoder/encoder/assign debug output (under CONFIG_PNP_DEBUG)
->   - fixed some ISAPNP register index bisectability problems
->   - removed the list-based resource management (will work on that separately)
-> 
-> Changes between v2 and v3:
-> 
->   - several updates from Rene Herman's review:
-> 	- tweak EISA ID conversion and keep high-order bit for ISAPNP
-> 	- fix pnp_add_card_id() so bisection works better
-> 	- fix some "x <= 0" tests when x is unsigned
-> 	- make resource accessors inlines, not #defines
-> 	- fix pnp_{port,mem,irq,dma}_valid() return int, not resource_size_t
-> 	- fold isapnp_read_resources() back into isapnp_get_resources()
->   - factored out pnp_init_resource() from pnp_{init,clean}_resource_table()
->   - initialize generic pnp_dev fields earlier, to help dev_printk
->   - add pnp_resource to hold ISAPNP register index
->   - convert to resource management from table to list (finally)
->   - remove pnp_dev->regs (only set by ISAPNP, never used)
->   - in /sys/.../resources, don't sort resources by type
-> 
-> Changes between first post and v2:
-> 
->   - export pnp_get_resource()
->   - fix EISA ID conversion and make a common function for ISAPNP/PNPBIOS
->   - fix typos in pnp_check_{port,mem,etc} that made resource assign fail
-> 
->   - the following fixes should precede this series (they're in -mm already):
-> 	- parport_pc: wrap PNP probe code in CONFIG_PNP
-> 	- radio-cadet: wrap PNP probe code in CONFIG_PNP
-> 	- smsc-ircc2: wrap PNP probe code in CONFIG_PNP
-> 	- nsc-ircc: wrap PNP probe code in CONFIG_PNP
-> 
-> Bjorn
-> 
+Note that this delay was thought unnecessary, and removed
+from linux-2.6.20 with 50c1e1138cb94f6aca0f8555777edbcefe0324e2
+'ACPI: ec: Drop udelay() from poll mode. Loop by reading status field instead.'
 
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ drivers/acpi/ec.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index 7222a18..828c752 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -73,6 +73,7 @@ enum ec_event {
+ 
+ #define ACPI_EC_DELAY		500	/* Wait 500ms max. during EC ops */
+ #define ACPI_EC_UDELAY_GLK	1000	/* Wait 1ms max. to get global lock */
++#define ACPI_EC_UDELAY		100	/* Wait 100us before polling EC again */
+ 
+ enum {
+ 	EC_FLAGS_WAIT_GPE = 0,		/* Don't check status until GPE arrives */
+@@ -227,6 +228,7 @@ static int acpi_ec_wait(struct acpi_ec *ec, enum ec_event event, int force_poll)
+ 		while (time_before(jiffies, delay)) {
+ 			if (acpi_ec_check_status(ec, event))
+ 				goto end;
++			udelay(ACPI_EC_UDELAY);
+ 		}
+ 	}
+ 	pr_err(PREFIX "acpi_ec_wait timeout,"
+-- 
+1.5.5.1.99.gf0ec4
 
