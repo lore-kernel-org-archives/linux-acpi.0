@@ -1,551 +1,736 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI: re-name acpi_pm_ops to acpi_suspend_ops
-Date: Tue, 29 Apr 2008 22:24:27 +0200
-Message-ID: <200804292224.27963.rjw@sisk.pl>
-References: <200804291020.33068.lenb@kernel.org>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [patch 4/9] acpi: adjust _acpi_{module,function}_name definitions
+Date: Tue, 29 Apr 2008 13:24:41 -0700
+Message-ID: <9D39833986E69849A2A8E74C1078B6B3409ADD@orsmsx415.amr.corp.intel.com>
+References: <200804182027.m3IKRQ8O013547@imap1.linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:38104 "EHLO ogre.sisk.pl"
+Received: from mga14.intel.com ([143.182.124.37]:52993 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757149AbYD2UYh (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
-	Tue, 29 Apr 2008 16:24:37 -0400
-In-Reply-To: <200804291020.33068.lenb@kernel.org>
-Content-Disposition: inline
+	id S1756916AbYD2UYo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Apr 2008 16:24:44 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <200804182027.m3IKRQ8O013547@imap1.linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Pavel Machek <pavel@ucw.cz>, Linux-acpi@vger.kernel.org
+To: akpm@linux-foundation.org, lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, jbeulich@novell.com
 
-On Tuesday, 29 of April 2008, Len Brown wrote:
-> Pavel, Rafael,
-> I re-named the acpi_pm_* ops to be acpi_suspend_* below.
-> 
-> I think also that main.c isn't the best name for this file,
-> how about acpi_platform_suspend.c, or maybe just acpi_suspend.c?
 
-Well, I have a patch in the works that conflicts with these changes.
-This is a patch to add 'acpi_old_suspend_ordering' so that people can use
-the ACPI 1.0 ordering of suspend code.
 
-Unfortunately, it depends on a couple of patches in the Greg's tree, so
-I thought I would submit it later, but well, please find it below.
+>_acpi_{module,function}_name have no need to be (static) pointers to
+static
+>string literals - they can just be arrays, reducing memory footprint.
 
-Thanks,
-Rafael
+>_ _acpi_function_name can be
+>static (removing the code needed to initialize the variable.
 
----
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Yes, this is good. Thanks. I see a reduction of 8.1K (code+data) across
+the entire subsystem.
 
-There are some systems out there that don't work correctly with
-our current suspend/hibernation code ordering.  Provide a workaround
-for these systems allowing them to pass the
-'acpi_old_suspend_ordering' command line parameter to the kernel that
-will make it use the pre-ACPI 2.0 suspend code ordering.
 
-Unfortunately, that requires us to add a platform hook to the
-resuming of devices for recovering the platform in case one of the
-device drivers' .suspend() routines returns error code.  Namely,
-ACPI 1.0 specifies that _PTS should be called before suspending
-devices, but _WAK still should be called before resuming them in
-order to undo the changes made by _PTS.  However, if there is an
-error during suspending devices, they are automatically resumed
-without returning control to the PM core, so the _WAK has to be
-called from within device_resume() in that cases.
+>_acpi_module_name also can be 'const' qualified (requires adding
+'const'
+>qualifiers to various functions' parameters)
 
-The patch also reorders and refactors the ACPI suspend/hibernation
-code to avoid duplication as far as reasonably possible.
+We can probably do this, as long as it doesn't start a chain of "const
+pollution".
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- Documentation/kernel-parameters.txt |    5 
- drivers/acpi/sleep/main.c           |  310 +++++++++++++++++++++---------------
- drivers/base/power/main.c           |   15 +
- include/linux/pm.h                  |    2 
- 4 files changed, 205 insertions(+), 127 deletions(-)
+Bob
 
-Index: linux-2.6/Documentation/kernel-parameters.txt
-===================================================================
---- linux-2.6.orig/Documentation/kernel-parameters.txt
-+++ linux-2.6/Documentation/kernel-parameters.txt
-@@ -170,6 +170,11 @@ and is between 256 and 4096 characters. 
- 	acpi_irq_isa=	[HW,ACPI] If irq_balance, mark listed IRQs used by ISA
- 			Format: <irq>,<irq>...
- 
-+       acpi_old_suspend_ordering [HW,ACPI]
-+                       Enforce the ACPI 1.0 ordering of the _PTS control
-+                       method wrt putting devices into low power states
-+                       default: ACPI 2.0 ordering of _PTS
-+
- 	acpi_no_auto_ssdt	[HW,ACPI] Disable automatic loading of SSDT
- 
- 	acpi_os_name=	[HW,ACPI] Tell ACPI BIOS the name of the OS
-Index: linux-2.6/drivers/acpi/sleep/main.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/sleep/main.c
-+++ linux-2.6/drivers/acpi/sleep/main.c
-@@ -15,6 +15,7 @@
- #include <linux/dmi.h>
- #include <linux/device.h>
- #include <linux/suspend.h>
-+#include <linux/pm.h>
- 
- #include <asm/io.h>
- 
-@@ -24,10 +25,6 @@
- 
- u8 sleep_states[ACPI_S_STATE_COUNT];
- 
--#ifdef CONFIG_PM_SLEEP
--static u32 acpi_target_sleep_state = ACPI_STATE_S0;
--#endif
--
- static int acpi_sleep_prepare(u32 acpi_state)
- {
- #ifdef CONFIG_ACPI_SLEEP
-@@ -50,9 +47,107 @@ static int acpi_sleep_prepare(u32 acpi_s
- 	return 0;
- }
- 
--#ifdef CONFIG_SUSPEND
--static struct platform_suspend_ops acpi_pm_ops;
-+#ifdef CONFIG_PM_SLEEP
-+static u32 acpi_target_sleep_state = ACPI_STATE_S0;
-+
-+static int init_8259A_after_S1;
-+
-+/*
-+ * ACPI 1.0 wants us to execute _PTS before suspending devices, so we allow the
-+ * user to request that behavior by using the 'acpi_old_suspend_ordering'
-+ * kernel command line option that causes the following variable to be set.
-+ */
-+static bool old_suspend_ordering;
-+
-+static int __init acpi_old_suspend_ordering(char *str)
-+{
-+	old_suspend_ordering = true;
-+	return 1;
-+}
-+__setup("acpi_old_suspend_ordering", acpi_old_suspend_ordering);
- 
-+/**
-+ *	acpi_pm_disable_gpes - Disable the GPEs.
-+ */
-+static int acpi_pm_disable_gpes(void)
-+{
-+	acpi_hw_disable_all_gpes();
-+	return 0;
-+}
-+
-+/**
-+ *	__acpi_pm_prepare - Prepare the platform to enter the target state.
-+ *
-+ *	If necessary, set the firmware waking vector and do arch-specific
-+ *	nastiness to get the wakeup code to the waking vector.
-+ */
-+static int __acpi_pm_prepare(void)
-+{
-+	int error = acpi_sleep_prepare(acpi_target_sleep_state);
-+
-+	if (error)
-+		acpi_target_sleep_state = ACPI_STATE_S0;
-+	return error;
-+}
-+
-+/**
-+ *	acpi_pm_prepare - Prepare the platform to enter the target sleep
-+ *		state and disable the GPEs.
-+ */
-+static int acpi_pm_prepare(void)
-+{
-+	int error = __acpi_pm_prepare();
-+
-+	if (!error)
-+		acpi_hw_disable_all_gpes();
-+	return error;
-+}
-+
-+/**
-+ *	acpi_pm_finish - Instruct the platform to leave a sleep state.
-+ *
-+ *	This is called after we wake back up (or if entering the sleep state
-+ *	failed).
-+ */
-+static void acpi_pm_finish(void)
-+{
-+	u32 acpi_state = acpi_target_sleep_state;
-+
-+	if (acpi_state == ACPI_STATE_S0)
-+		return;
-+
-+	printk(KERN_INFO PREFIX "Waking up from system sleep state S%d\n",
-+		acpi_state);
-+	acpi_disable_wakeup_device(acpi_state);
-+	acpi_leave_sleep_state(acpi_state);
-+
-+	/* reset firmware waking vector */
-+	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
-+
-+	acpi_target_sleep_state = ACPI_STATE_S0;
-+
-+#ifdef CONFIG_X86
-+	if (acpi_state == ACPI_STATE_S1 && init_8259A_after_S1) {
-+		printk("Broken toshiba laptop -> kicking interrupts\n");
-+		init_8259A(0);
-+	}
-+#endif
-+}
-+
-+/**
-+ *	acpi_pm_end - Finish up suspend sequence.
-+ */
-+static void acpi_pm_end(void)
-+{
-+	/*
-+	 * This is necessary in case acpi_pm_finish() is not called during a
-+	 * failing transition to a sleep state.
-+	 */
-+	acpi_target_sleep_state = ACPI_STATE_S0;
-+}
-+#endif /* CONFIG_PM_SLEEP */
-+
-+#ifdef CONFIG_SUSPEND
- extern void do_suspend_lowlevel(void);
- 
- static u32 acpi_suspend_states[] = {
-@@ -62,14 +157,11 @@ static u32 acpi_suspend_states[] = {
- 	[PM_SUSPEND_MAX] = ACPI_STATE_S5
- };
- 
--static int init_8259A_after_S1;
--
- /**
-- *	acpi_pm_begin - Set the target system sleep state to the state
-+ *	acpi_suspend_begin - Set the target system sleep state to the state
-  *		associated with given @pm_state, if supported.
-  */
--
--static int acpi_pm_begin(suspend_state_t pm_state)
-+static int acpi_suspend_begin(suspend_state_t pm_state)
- {
- 	u32 acpi_state = acpi_suspend_states[pm_state];
- 	int error = 0;
-@@ -85,34 +177,14 @@ static int acpi_pm_begin(suspend_state_t
- }
- 
- /**
-- *	acpi_pm_prepare - Do preliminary suspend work.
-- *
-- *	If necessary, set the firmware waking vector and do arch-specific
-- *	nastiness to get the wakeup code to the waking vector.
-- */
--
--static int acpi_pm_prepare(void)
--{
--	int error = acpi_sleep_prepare(acpi_target_sleep_state);
--
--	if (error) {
--		acpi_target_sleep_state = ACPI_STATE_S0;
--		return error;
--	}
--
--	return ACPI_SUCCESS(acpi_hw_disable_all_gpes()) ? 0 : -EFAULT;
--}
--
--/**
-- *	acpi_pm_enter - Actually enter a sleep state.
-+ *	acpi_suspend_enter - Actually enter a sleep state.
-  *	@pm_state: ignored
-  *
-  *	Flush caches and go to sleep. For STR we have to call arch-specific
-  *	assembly, which in turn call acpi_enter_sleep_state().
-  *	It's unfortunate, but it works. Please fix if you're feeling frisky.
-  */
--
--static int acpi_pm_enter(suspend_state_t pm_state)
-+static int acpi_suspend_enter(suspend_state_t pm_state)
- {
- 	acpi_status status = AE_OK;
- 	unsigned long flags = 0;
-@@ -168,47 +240,7 @@ static int acpi_pm_enter(suspend_state_t
- 	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
- }
- 
--/**
-- *	acpi_pm_finish - Instruct the platform to leave a sleep state.
-- *
-- *	This is called after we wake back up (or if entering the sleep state
-- *	failed). 
-- */
--
--static void acpi_pm_finish(void)
--{
--	u32 acpi_state = acpi_target_sleep_state;
--
--	acpi_disable_wakeup_device(acpi_state);
--	acpi_leave_sleep_state(acpi_state);
--
--	/* reset firmware waking vector */
--	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
--
--	acpi_target_sleep_state = ACPI_STATE_S0;
--
--#ifdef CONFIG_X86
--	if (init_8259A_after_S1) {
--		printk("Broken toshiba laptop -> kicking interrupts\n");
--		init_8259A(0);
--	}
--#endif
--}
--
--/**
-- *	acpi_pm_end - Finish up suspend sequence.
-- */
--
--static void acpi_pm_end(void)
--{
--	/*
--	 * This is necessary in case acpi_pm_finish() is not called during a
--	 * failing transition to a sleep state.
--	 */
--	acpi_target_sleep_state = ACPI_STATE_S0;
--}
--
--static int acpi_pm_state_valid(suspend_state_t pm_state)
-+static int acpi_suspend_state_valid(suspend_state_t pm_state)
- {
- 	u32 acpi_state;
- 
-@@ -225,10 +257,38 @@ static int acpi_pm_state_valid(suspend_s
- }
- 
- static struct platform_suspend_ops acpi_pm_ops = {
--	.valid = acpi_pm_state_valid,
--	.begin = acpi_pm_begin,
-+	.valid = acpi_suspend_state_valid,
-+	.begin = acpi_suspend_begin,
- 	.prepare = acpi_pm_prepare,
--	.enter = acpi_pm_enter,
-+	.enter = acpi_suspend_enter,
-+	.finish = acpi_pm_finish,
-+	.end = acpi_pm_end,
-+};
-+
-+/**
-+ *	acpi_suspend_begin_old - Set the target system sleep state to the
-+ *		state associated with given @pm_state, if supported, and
-+ *		execute the _PTS control method.  This function is used if the
-+ *		pre-ACPI 2.0 suspend ordering has been requested.
-+ */
-+static int acpi_suspend_begin_old(suspend_state_t pm_state)
-+{
-+	int error = acpi_suspend_begin(pm_state);
-+
-+	if (!error)
-+		error = __acpi_pm_prepare();
-+	return error;
-+}
-+
-+/*
-+ * The following callbacks are used if the pre-ACPI 2.0 suspend ordering has
-+ * been requested.
-+ */
-+static struct platform_suspend_ops acpi_pm_ops_old = {
-+	.valid = acpi_suspend_state_valid,
-+	.begin = acpi_suspend_begin_old,
-+	.prepare = acpi_pm_disable_gpes,
-+	.enter = acpi_suspend_enter,
- 	.finish = acpi_pm_finish,
- 	.end = acpi_pm_end,
- };
-@@ -269,22 +329,9 @@ __setup("acpi_s4_nosigcheck", acpi_s4_no
- static int acpi_hibernation_begin(void)
- {
- 	acpi_target_sleep_state = ACPI_STATE_S4;
--
- 	return 0;
- }
- 
--static int acpi_hibernation_prepare(void)
--{
--	int error = acpi_sleep_prepare(ACPI_STATE_S4);
--
--	if (error) {
--		acpi_target_sleep_state = ACPI_STATE_S0;
--		return error;
--	}
--
--	return ACPI_SUCCESS(acpi_hw_disable_all_gpes()) ? 0 : -EFAULT;
--}
--
- static int acpi_hibernation_enter(void)
- {
- 	acpi_status status = AE_OK;
-@@ -320,52 +367,54 @@ static void acpi_hibernation_leave(void)
- 	}
- }
- 
--static void acpi_hibernation_finish(void)
-+static void acpi_pm_enable_gpes(void)
- {
--	acpi_disable_wakeup_device(ACPI_STATE_S4);
--	acpi_leave_sleep_state(ACPI_STATE_S4);
--
--	/* reset firmware waking vector */
--	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
--
--	acpi_target_sleep_state = ACPI_STATE_S0;
-+	acpi_hw_enable_all_runtime_gpes();
- }
- 
--static void acpi_hibernation_end(void)
--{
--	/*
--	 * This is necessary in case acpi_hibernation_finish() is not called
--	 * during a failing transition to the sleep state.
--	 */
--	acpi_target_sleep_state = ACPI_STATE_S0;
--}
-+static struct platform_hibernation_ops acpi_hibernation_ops = {
-+	.begin = acpi_hibernation_begin,
-+	.end = acpi_pm_end,
-+	.pre_snapshot = acpi_pm_prepare,
-+	.finish = acpi_pm_finish,
-+	.prepare = acpi_pm_prepare,
-+	.enter = acpi_hibernation_enter,
-+	.leave = acpi_hibernation_leave,
-+	.pre_restore = acpi_pm_disable_gpes,
-+	.restore_cleanup = acpi_pm_enable_gpes,
-+};
- 
--static int acpi_hibernation_pre_restore(void)
-+/**
-+ *	acpi_hibernation_begin_old - Set the target system sleep state to
-+ *		ACPI_STATE_S4 and execute the _PTS control method.  This
-+ *		function is used if the pre-ACPI 2.0 suspend ordering has been
-+ *		requested.
-+ */
-+static int acpi_hibernation_begin_old(void)
- {
--	acpi_status status;
--
--	status = acpi_hw_disable_all_gpes();
--
--	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
--}
-+	int error = acpi_sleep_prepare(ACPI_STATE_S4);
- 
--static void acpi_hibernation_restore_cleanup(void)
--{
--	acpi_hw_enable_all_runtime_gpes();
-+	if (!error)
-+		acpi_target_sleep_state = ACPI_STATE_S4;
-+	return error;
- }
- 
--static struct platform_hibernation_ops acpi_hibernation_ops = {
--	.begin = acpi_hibernation_begin,
--	.end = acpi_hibernation_end,
--	.pre_snapshot = acpi_hibernation_prepare,
--	.finish = acpi_hibernation_finish,
--	.prepare = acpi_hibernation_prepare,
-+/*
-+ * The following callbacks are used if the pre-ACPI 2.0 suspend ordering has
-+ * been requested.
-+ */
-+static struct platform_hibernation_ops acpi_hibernation_ops_old = {
-+	.begin = acpi_hibernation_begin_old,
-+	.end = acpi_pm_end,
-+	.pre_snapshot = acpi_pm_disable_gpes,
-+	.finish = acpi_pm_finish,
-+	.prepare = acpi_pm_disable_gpes,
- 	.enter = acpi_hibernation_enter,
- 	.leave = acpi_hibernation_leave,
--	.pre_restore = acpi_hibernation_pre_restore,
--	.restore_cleanup = acpi_hibernation_restore_cleanup,
-+	.pre_restore = acpi_pm_disable_gpes,
-+	.restore_cleanup = acpi_pm_enable_gpes,
- };
--#endif				/* CONFIG_HIBERNATION */
-+#endif /* CONFIG_HIBERNATION */
- 
- int acpi_suspend(u32 acpi_state)
- {
-@@ -509,13 +558,14 @@ int __init acpi_sleep_init(void)
- 		}
- 	}
- 
--	suspend_set_ops(&acpi_pm_ops);
-+	suspend_set_ops(old_suspend_ordering ? &acpi_pm_ops_old : &acpi_pm_ops);
- #endif
- 
- #ifdef CONFIG_HIBERNATION
- 	status = acpi_get_sleep_type_data(ACPI_STATE_S4, &type_a, &type_b);
- 	if (ACPI_SUCCESS(status)) {
--		hibernation_set_ops(&acpi_hibernation_ops);
-+		hibernation_set_ops(old_suspend_ordering ?
-+			&acpi_hibernation_ops_old : &acpi_hibernation_ops);
- 		sleep_states[ACPI_STATE_S4] = 1;
- 		printk(" S4");
- 		if (!nosigcheck) {
-@@ -527,6 +577,12 @@ int __init acpi_sleep_init(void)
- 		}
- 	}
- #endif
-+
-+#ifdef CONFIG_PM_SLEEP
-+	if (old_suspend_ordering)
-+		platform_pm_recover = acpi_pm_finish;
-+#endif
-+
- 	status = acpi_get_sleep_type_data(ACPI_STATE_S5, &type_a, &type_b);
- 	if (ACPI_SUCCESS(status)) {
- 		sleep_states[ACPI_STATE_S5] = 1;
-Index: linux-2.6/drivers/base/power/main.c
-===================================================================
---- linux-2.6.orig/drivers/base/power/main.c
-+++ linux-2.6/drivers/base/power/main.c
-@@ -28,6 +28,20 @@
- #include "power.h"
- 
- /*
-+ * Some platforms (most importantly ACPI) may need to be prepared for
-+ * resuming devices in case of a failure to suspend them.  They should set
-+ * this pointer to the routine that will always be called just prior to resuming
-+ * devices.
-+ */
-+void (*platform_pm_recover)(void);
-+
-+static inline void recover_platform(void)
-+{
-+	if (platform_pm_recover)
-+		platform_pm_recover();
-+}
-+
-+/*
-  * The entries in the dpm_list list are in a depth first order, simply
-  * because children are guaranteed to be discovered after parents, and
-  * are inserted at the back of the list on discovery.
-@@ -511,6 +525,7 @@ static void dpm_complete(pm_message_t st
- void device_resume(pm_message_t state)
- {
- 	might_sleep();
-+	recover_platform();
- 	dpm_resume(state);
- 	dpm_complete(state);
- }
-Index: linux-2.6/include/linux/pm.h
-===================================================================
---- linux-2.6.orig/include/linux/pm.h
-+++ linux-2.6/include/linux/pm.h
-@@ -447,6 +447,8 @@ struct dev_pm_info {
-  */
- 
- #ifdef CONFIG_PM_SLEEP
-+extern void (*platform_pm_recover)(void);
-+
- extern void device_pm_lock(void);
- extern void device_power_up(pm_message_t state);
- extern void device_resume(pm_message_t state);
+
+
+
+
+>-----Original Message-----
+>From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+>owner@vger.kernel.org] On Behalf Of akpm@linux-foundation.org
+>Sent: Friday, April 18, 2008 1:27 PM
+>To: lenb@kernel.org
+>Cc: linux-acpi@vger.kernel.org; akpm@linux-foundation.org;
+>jbeulich@novell.com
+>Subject: [patch 4/9] acpi: adjust _acpi_{module,function}_name
+definitions
+>
+>From: "Jan Beulich" <jbeulich@novell.com>
+>
+>_acpi_{module,function}_name have no need to be (static) pointers to
+static
+>string literals - they can just be arrays, reducing memory footprint.
+>_acpi_module_name also can be 'const' qualified (requires adding
+'const'
+>qualifiers to various functions' parameters), and _acpi_function_name
+can
+>be
+>static (removing the code needed to initialize the variable.
+>
+>Signed-off-by: Jan Beulich <jbeulich@novell.com>
+>Cc: Len Brown <lenb@kernel.org>
+>Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+>---
+>
+> drivers/acpi/executer/exdump.c    |    4 +-
+> drivers/acpi/namespace/nsutils.c  |   23 ++++++------
+> drivers/acpi/utilities/utdebug.c  |   30 ++++++++--------
+> drivers/acpi/utilities/utmisc.c   |   11 +++---
+> drivers/acpi/utilities/utobject.c |    4 +-
+> include/acpi/acinterp.h           |    5 +-
+> include/acpi/aclocal.h            |    4 +-
+> include/acpi/acmacros.h           |    7 +--
+> include/acpi/acnamesp.h           |   19 +++++-----
+> include/acpi/acutils.h            |   51 ++++++++++++----------------
+> 10 files changed, 78 insertions(+), 80 deletions(-)
+>
+>diff -puN drivers/acpi/executer/exdump.c~acpi-adjust-
+>_acpi_modulefunction_name-definitions drivers/acpi/executer/exdump.c
+>---
+a/drivers/acpi/executer/exdump.c~acpi-adjust-_acpi_modulefunction_name-
+>definitions
+>+++ a/drivers/acpi/executer/exdump.c
+>@@ -771,9 +771,9 @@ void acpi_ex_dump_operand(union acpi_ope
+> void
+> acpi_ex_dump_operands(union acpi_operand_object **operands,
+> 		      acpi_interpreter_mode interpreter_mode,
+>-		      char *ident,
+>+		      const char *ident,
+> 		      u32 num_levels,
+>-		      char *note, char *module_name, u32 line_number)
+>+		      const char *note, const char *module_name, u32
+>line_number)
+> {
+> 	acpi_native_uint i;
+>
+>diff -puN drivers/acpi/namespace/nsutils.c~acpi-adjust-
+>_acpi_modulefunction_name-definitions drivers/acpi/namespace/nsutils.c
+>--- a/drivers/acpi/namespace/nsutils.c~acpi-adjust-
+>_acpi_modulefunction_name-definitions
+>+++ a/drivers/acpi/namespace/nsutils.c
+>@@ -73,9 +73,9 @@ acpi_name acpi_ns_find_parent_name(struc
+>
+>***********************************************************************
+****
+>***/
+>
+> void
+>-acpi_ns_report_error(char *module_name,
+>+acpi_ns_report_error(const char *module_name,
+> 		     u32 line_number,
+>-		     char *internal_name, acpi_status lookup_status)
+>+		     const char *internal_name, acpi_status
+lookup_status)
+> {
+> 	acpi_status status;
+> 	u32 bad_name;
+>@@ -130,11 +130,11 @@ acpi_ns_report_error(char *module_name,
+>
+>***********************************************************************
+****
+>***/
+>
+> void
+>-acpi_ns_report_method_error(char *module_name,
+>+acpi_ns_report_method_error(const char *module_name,
+> 			    u32 line_number,
+>-			    char *message,
+>+			    const char *message,
+> 			    struct acpi_namespace_node *prefix_node,
+>-			    char *path, acpi_status method_status)
+>+			    const char *path, acpi_status method_status)
+> {
+> 	acpi_status status;
+> 	struct acpi_namespace_node *node = prefix_node;
+>@@ -167,7 +167,7 @@ acpi_ns_report_method_error(char *module
+>
+>***********************************************************************
+****
+>***/
+>
+> void
+>-acpi_ns_print_node_pathname(struct acpi_namespace_node *node, char
+>*message)
+>+acpi_ns_print_node_pathname(struct acpi_namespace_node *node, const
+char
+>*message)
+> {
+> 	struct acpi_buffer buffer;
+> 	acpi_status status;
+>@@ -296,7 +296,7 @@ u32 acpi_ns_local(acpi_object_type type)
+>
+> void acpi_ns_get_internal_name_length(struct acpi_namestring_info
+*info)
+> {
+>-	char *next_external_char;
+>+	const char *next_external_char;
+> 	u32 i;
+>
+> 	ACPI_FUNCTION_ENTRY();
+>@@ -363,7 +363,7 @@ acpi_status acpi_ns_build_internal_name(
+> {
+> 	u32 num_segments = info->num_segments;
+> 	char *internal_name = info->internal_name;
+>-	char *external_name = info->next_external_char;
+>+	const char *external_name = info->next_external_char;
+> 	char *result = NULL;
+> 	acpi_native_uint i;
+>
+>@@ -472,7 +472,8 @@ acpi_status acpi_ns_build_internal_name(
+>  *
+>
+>***********************************************************************
+****
+>****/
+>
+>-acpi_status acpi_ns_internalize_name(char *external_name, char
+>**converted_name)
+>+acpi_status acpi_ns_internalize_name(const char *external_name,
+>+				     char **converted_name)
+> {
+> 	char *internal_name;
+> 	struct acpi_namestring_info info;
+>@@ -528,7 +529,7 @@ acpi_status acpi_ns_internalize_name(cha
+>
+> acpi_status
+> acpi_ns_externalize_name(u32 internal_name_length,
+>-			 char *internal_name,
+>+			 const char *internal_name,
+> 			 u32 * converted_name_length, char
+**converted_name)
+> {
+> 	acpi_native_uint names_index = 0;
+>@@ -823,7 +824,7 @@ u32 acpi_ns_opens_scope(acpi_object_type
+>
+> acpi_status
+> acpi_ns_get_node(struct acpi_namespace_node *prefix_node,
+>-		 char *pathname,
+>+		 const char *pathname,
+> 		 u32 flags, struct acpi_namespace_node **return_node)
+> {
+> 	union acpi_generic_state scope_info;
+>diff -puN drivers/acpi/utilities/utdebug.c~acpi-adjust-
+>_acpi_modulefunction_name-definitions drivers/acpi/utilities/utdebug.c
+>--- a/drivers/acpi/utilities/utdebug.c~acpi-adjust-
+>_acpi_modulefunction_name-definitions
+>+++ a/drivers/acpi/utilities/utdebug.c
+>@@ -156,8 +156,8 @@ static const char *acpi_ut_trim_function
+> void ACPI_INTERNAL_VAR_XFACE
+> acpi_ut_debug_print(u32 requested_debug_level,
+> 		    u32 line_number,
+>-		    const char *function_name,
+>-		    char *module_name, u32 component_id, char *format,
+...)
+>+		    const char *function_name, const char *module_name,
+>+		    u32 component_id, const char *format, ...)
+> {
+> 	acpi_thread_id thread_id;
+> 	va_list args;
+>@@ -227,8 +227,8 @@ ACPI_EXPORT_SYMBOL(acpi_ut_debug_print)
+> void ACPI_INTERNAL_VAR_XFACE
+> acpi_ut_debug_print_raw(u32 requested_debug_level,
+> 			u32 line_number,
+>-			const char *function_name,
+>-			char *module_name, u32 component_id, char
+*format, ...)
+>+			const char *function_name, const char
+*module_name,
+>+			u32 component_id, const char *format, ...)
+> {
+> 	va_list args;
+>
+>@@ -261,7 +261,7 @@ ACPI_EXPORT_SYMBOL(acpi_ut_debug_print_r
+>
+>***********************************************************************
+****
+>***/
+> void
+> acpi_ut_trace(u32 line_number,
+>-	      const char *function_name, char *module_name, u32
+component_id)
+>+	      const char *function_name, const char *module_name, u32
+>component_id)
+> {
+>
+> 	acpi_gbl_nesting_level++;
+>@@ -293,7 +293,7 @@ ACPI_EXPORT_SYMBOL(acpi_ut_trace)
+> void
+> acpi_ut_trace_ptr(u32 line_number,
+> 		  const char *function_name,
+>-		  char *module_name, u32 component_id, void *pointer)
+>+		  const char *module_name, u32 component_id, void
+*pointer)
+> {
+> 	acpi_gbl_nesting_level++;
+> 	acpi_ut_track_stack_ptr();
+>@@ -324,7 +324,7 @@ acpi_ut_trace_ptr(u32 line_number,
+> void
+> acpi_ut_trace_str(u32 line_number,
+> 		  const char *function_name,
+>-		  char *module_name, u32 component_id, char *string)
+>+		  const char *module_name, u32 component_id, const char
+>*string)
+> {
+>
+> 	acpi_gbl_nesting_level++;
+>@@ -356,7 +356,7 @@ acpi_ut_trace_str(u32 line_number,
+> void
+> acpi_ut_trace_u32(u32 line_number,
+> 		  const char *function_name,
+>-		  char *module_name, u32 component_id, u32 integer)
+>+		  const char *module_name, u32 component_id, u32
+integer)
+> {
+>
+> 	acpi_gbl_nesting_level++;
+>@@ -385,8 +385,8 @@ acpi_ut_trace_u32(u32 line_number,
+>
+>***********************************************************************
+****
+>***/
+>
+> void
+>-acpi_ut_exit(u32 line_number,
+>-	     const char *function_name, char *module_name, u32
+component_id)
+>+acpi_ut_exit(u32 line_number, const char *function_name,
+>+	     const char *module_name, u32 component_id)
+> {
+>
+> 	acpi_ut_debug_print(ACPI_LV_FUNCTIONS,
+>@@ -416,8 +416,8 @@ ACPI_EXPORT_SYMBOL(acpi_ut_exit)
+>
+>***********************************************************************
+****
+>***/
+> void
+> acpi_ut_status_exit(u32 line_number,
+>-		    const char *function_name,
+>-		    char *module_name, u32 component_id, acpi_status
+status)
+>+		    const char *function_name, const char *module_name,
+>+		    u32 component_id, acpi_status status)
+> {
+>
+> 	if (ACPI_SUCCESS(status)) {
+>@@ -457,8 +457,8 @@ ACPI_EXPORT_SYMBOL(acpi_ut_status_exit)
+>
+>***********************************************************************
+****
+>***/
+> void
+> acpi_ut_value_exit(u32 line_number,
+>-		   const char *function_name,
+>-		   char *module_name, u32 component_id, acpi_integer
+value)
+>+		   const char *function_name, const char *module_name,
+>+		   u32 component_id, acpi_integer value)
+> {
+>
+> 	acpi_ut_debug_print(ACPI_LV_FUNCTIONS,
+>@@ -490,7 +490,7 @@ ACPI_EXPORT_SYMBOL(acpi_ut_value_exit)
+> void
+> acpi_ut_ptr_exit(u32 line_number,
+> 		 const char *function_name,
+>-		 char *module_name, u32 component_id, u8 * ptr)
+>+		 const char *module_name, u32 component_id, u8 * ptr)
+> {
+>
+> 	acpi_ut_debug_print(ACPI_LV_FUNCTIONS,
+>diff -puN drivers/acpi/utilities/utmisc.c~acpi-adjust-
+>_acpi_modulefunction_name-definitions drivers/acpi/utilities/utmisc.c
+>--- a/drivers/acpi/utilities/utmisc.c~acpi-adjust-
+>_acpi_modulefunction_name-definitions
+>+++ a/drivers/acpi/utilities/utmisc.c
+>@@ -1024,7 +1024,7 @@ acpi_ut_walk_package_tree(union acpi_ope
+>
+>***********************************************************************
+****
+>***/
+>
+> void ACPI_INTERNAL_VAR_XFACE
+>-acpi_ut_error(char *module_name, u32 line_number, char *format, ...)
+>+acpi_ut_error(const char *module_name, u32 line_number, const char
+>*format, ...)
+> {
+> 	va_list args;
+>
+>@@ -1037,8 +1037,8 @@ acpi_ut_error(char *module_name, u32 lin
+> }
+>
+> void ACPI_INTERNAL_VAR_XFACE
+>-acpi_ut_exception(char *module_name,
+>-		  u32 line_number, acpi_status status, char *format,
+...)
+>+acpi_ut_exception(const char *module_name,
+>+		  u32 line_number, acpi_status status, const char
+*format, ...)
+> {
+> 	va_list args;
+>
+>@@ -1053,7 +1053,8 @@ acpi_ut_exception(char *module_name,
+> EXPORT_SYMBOL(acpi_ut_exception);
+>
+> void ACPI_INTERNAL_VAR_XFACE
+>-acpi_ut_warning(char *module_name, u32 line_number, char *format, ...)
+>+acpi_ut_warning(const char *module_name,
+>+		u32 line_number, const char *format, ...)
+> {
+> 	va_list args;
+>
+>@@ -1067,7 +1068,7 @@ acpi_ut_warning(char *module_name, u32 l
+> }
+>
+> void ACPI_INTERNAL_VAR_XFACE
+>-acpi_ut_info(char *module_name, u32 line_number, char *format, ...)
+>+acpi_ut_info(const char *module_name, u32 line_number, const char
+*format,
+>...)
+> {
+> 	va_list args;
+>
+>diff -puN drivers/acpi/utilities/utobject.c~acpi-adjust-
+>_acpi_modulefunction_name-definitions drivers/acpi/utilities/utobject.c
+>--- a/drivers/acpi/utilities/utobject.c~acpi-adjust-
+>_acpi_modulefunction_name-definitions
+>+++ a/drivers/acpi/utilities/utobject.c
+>@@ -83,7 +83,7 @@ acpi_ut_get_element_length(u8 object_typ
+>  *
+>
+>***********************************************************************
+****
+>***/
+>
+>-union acpi_operand_object *acpi_ut_create_internal_object_dbg(char
+>*module_name,
+>+union acpi_operand_object *acpi_ut_create_internal_object_dbg(const
+char
+>*module_name,
+> 							      u32
+line_number,
+> 							      u32
+component_id,
+>
+acpi_object_type
+>@@ -347,7 +347,7 @@ u8 acpi_ut_valid_internal_object(void *o
+>  *
+>
+>***********************************************************************
+****
+>***/
+>
+>-void *acpi_ut_allocate_object_desc_dbg(char *module_name,
+>+void *acpi_ut_allocate_object_desc_dbg(const char *module_name,
+> 				       u32 line_number, u32
+component_id)
+> {
+> 	union acpi_operand_object *object;
+>diff -puN
+include/acpi/acinterp.h~acpi-adjust-_acpi_modulefunction_name-
+>definitions include/acpi/acinterp.h
+>--- a/include/acpi/acinterp.h~acpi-adjust-_acpi_modulefunction_name-
+>definitions
+>+++ a/include/acpi/acinterp.h
+>@@ -367,9 +367,10 @@ void acpi_ex_dump_operand(union acpi_ope
+> void
+> acpi_ex_dump_operands(union acpi_operand_object **operands,
+> 		      acpi_interpreter_mode interpreter_mode,
+>-		      char *ident,
+>+		      const char *ident,
+> 		      u32 num_levels,
+>-		      char *note, char *module_name, u32 line_number);
+>+		      const char *note, const char *module_name,
+>+		      u32 line_number);
+>
+> #ifdef	ACPI_FUTURE_USAGE
+> void
+>diff -puN include/acpi/aclocal.h~acpi-adjust-_acpi_modulefunction_name-
+>definitions include/acpi/aclocal.h
+>--- a/include/acpi/aclocal.h~acpi-adjust-_acpi_modulefunction_name-
+>definitions
+>+++ a/include/acpi/aclocal.h
+>@@ -282,8 +282,8 @@ struct acpi_predefined_names {
+> /* Info structure used to convert external<->internal namestrings */
+>
+> struct acpi_namestring_info {
+>-	char *external_name;
+>-	char *next_external_char;
+>+	const char *external_name;
+>+	const char *next_external_char;
+> 	char *internal_name;
+> 	u32 length;
+> 	u32 num_segments;
+>diff -puN
+include/acpi/acmacros.h~acpi-adjust-_acpi_modulefunction_name-
+>definitions include/acpi/acmacros.h
+>--- a/include/acpi/acmacros.h~acpi-adjust-_acpi_modulefunction_name-
+>definitions
+>+++ a/include/acpi/acmacros.h
+>@@ -414,7 +414,7 @@ struct acpi_integer_overlay {
+>  * error messages. The __FILE__ macro is not very useful for this,
+because
+>it
+>  * often includes the entire pathname to the module
+>  */
+>-#define ACPI_MODULE_NAME(name)          static char ACPI_UNUSED_VAR
+>*_acpi_module_name = name;
+>+#define ACPI_MODULE_NAME(name)          static const char
+ACPI_UNUSED_VAR
+>_acpi_module_name[] = name;
+> #else
+> #define ACPI_MODULE_NAME(name)
+> #endif
+>@@ -467,8 +467,7 @@ struct acpi_integer_overlay {
+> /*
+>  * If ACPI_GET_FUNCTION_NAME was not defined in the compiler-dependent
+>header,
+>  * define it now. This is the case where there the compiler does not
+>support
+>- * a __FUNCTION__ macro or equivalent. We save the function name on
+the
+>- * local stack.
+>+ * a __FUNCTION__ macro or equivalent.
+>  */
+> #ifndef ACPI_GET_FUNCTION_NAME
+> #define ACPI_GET_FUNCTION_NAME          _acpi_function_name
+>@@ -479,7 +478,7 @@ struct acpi_integer_overlay {
+>  * Note: (const char) is used to be compatible with the debug
+interfaces
+>  * and macros such as __FUNCTION__.
+>  */
+>-#define ACPI_FUNCTION_NAME(name)        const char
+*_acpi_function_name =
+>#name;
+>+#define ACPI_FUNCTION_NAME(name)        static const char
+>_acpi_function_name[] = #name;
+>
+> #else
+> /* Compiler supports __FUNCTION__ (or equivalent) -- Ignore this macro
+*/
+>diff -puN
+include/acpi/acnamesp.h~acpi-adjust-_acpi_modulefunction_name-
+>definitions include/acpi/acnamesp.h
+>--- a/include/acpi/acnamesp.h~acpi-adjust-_acpi_modulefunction_name-
+>definitions
+>+++ a/include/acpi/acnamesp.h
+>@@ -201,7 +201,7 @@ acpi_ns_pattern_match(struct acpi_namesp
+>
+> acpi_status
+> acpi_ns_get_node(struct acpi_namespace_node *prefix_node,
+>-		 char *external_pathname,
+>+		 const char *external_pathname,
+> 		 u32 flags, struct acpi_namespace_node **out_node);
+>
+> acpi_size acpi_ns_get_pathname_length(struct acpi_namespace_node
+*node);
+>@@ -265,28 +265,29 @@ acpi_object_type acpi_ns_get_type(struct
+> u32 acpi_ns_local(acpi_object_type type);
+>
+> void
+>-acpi_ns_report_error(char *module_name,
+>+acpi_ns_report_error(const char *module_name,
+> 		     u32 line_number,
+>-		     char *internal_name, acpi_status lookup_status);
+>+		     const char *internal_name, acpi_status
+lookup_status);
+>
+> void
+>-acpi_ns_report_method_error(char *module_name,
+>+acpi_ns_report_method_error(const char *module_name,
+> 			    u32 line_number,
+>-			    char *message,
+>+			    const char *message,
+> 			    struct acpi_namespace_node *node,
+>-			    char *path, acpi_status lookup_status);
+>+			    const char *path, acpi_status
+lookup_status);
+>
+>-void acpi_ns_print_node_pathname(struct acpi_namespace_node *node,
+char
+>*msg);
+>+void acpi_ns_print_node_pathname(struct acpi_namespace_node *node,
+>+				 const char *msg);
+>
+> acpi_status acpi_ns_build_internal_name(struct acpi_namestring_info
+>*info);
+>
+> void acpi_ns_get_internal_name_length(struct acpi_namestring_info
+*info);
+>
+>-acpi_status acpi_ns_internalize_name(char *dotted_name, char
+>**converted_name);
+>+acpi_status acpi_ns_internalize_name(const char *dotted_name, char
+>**converted_name);
+>
+> acpi_status
+> acpi_ns_externalize_name(u32 internal_name_length,
+>-			 char *internal_name,
+>+			 const char *internal_name,
+> 			 u32 * converted_name_length, char
+**converted_name);
+>
+> struct acpi_namespace_node *acpi_ns_map_handle_to_node(acpi_handle
+>handle);
+>diff -puN include/acpi/acutils.h~acpi-adjust-_acpi_modulefunction_name-
+>definitions include/acpi/acutils.h
+>--- a/include/acpi/acutils.h~acpi-adjust-_acpi_modulefunction_name-
+>definitions
+>+++ a/include/acpi/acutils.h
+>@@ -245,85 +245,80 @@ void acpi_ut_track_stack_ptr(void);
+>
+> void
+> acpi_ut_trace(u32 line_number,
+>-	      const char *function_name, char *module_name, u32
+>component_id);
+>+	      const char *function_name, const char *module_name, u32
+>component_id);
+>
+> void
+> acpi_ut_trace_ptr(u32 line_number,
+> 		  const char *function_name,
+>-		  char *module_name, u32 component_id, void *pointer);
+>+		  const char *module_name, u32 component_id, void
+*pointer);
+>
+> void
+> acpi_ut_trace_u32(u32 line_number,
+> 		  const char *function_name,
+>-		  char *module_name, u32 component_id, u32 integer);
+>+		  const char *module_name, u32 component_id, u32
+integer);
+>
+> void
+> acpi_ut_trace_str(u32 line_number,
+> 		  const char *function_name,
+>-		  char *module_name, u32 component_id, char *string);
+>+		  const char *module_name, u32 component_id, const char
+>*string);
+>
+> void
+> acpi_ut_exit(u32 line_number,
+>-	     const char *function_name, char *module_name, u32
+component_id);
+>+	     const char *function_name, const char *module_name, u32
+>component_id);
+>
+> void
+> acpi_ut_status_exit(u32 line_number,
+> 		    const char *function_name,
+>-		    char *module_name, u32 component_id, acpi_status
+status);
+>+		    const char *module_name, u32 component_id,
+acpi_status
+>status);
+>
+> void
+> acpi_ut_value_exit(u32 line_number,
+> 		   const char *function_name,
+>-		   char *module_name, u32 component_id, acpi_integer
+value);
+>+		   const char *module_name, u32 component_id,
+acpi_integer
+>value);
+>
+> void
+> acpi_ut_ptr_exit(u32 line_number,
+> 		 const char *function_name,
+>-		 char *module_name, u32 component_id, u8 * ptr);
+>+		 const char *module_name, u32 component_id, u8 * ptr);
+>
+> void acpi_ut_dump_buffer(u8 * buffer, u32 count, u32 display, u32
+>component_id);
+>
+> void acpi_ut_dump_buffer2(u8 * buffer, u32 count, u32 display);
+>
+>-void acpi_ut_report_error(char *module_name, u32 line_number);
+>-
+>-void acpi_ut_report_info(char *module_name, u32 line_number);
+>-
+>-void acpi_ut_report_warning(char *module_name, u32 line_number);
+>-
+> /* Error and message reporting interfaces */
+>
+> void ACPI_INTERNAL_VAR_XFACE
+> acpi_ut_debug_print(u32 requested_debug_level,
+> 		    u32 line_number,
+> 		    const char *function_name,
+>-		    char *module_name,
+>-		    u32 component_id, char *format, ...)
+ACPI_PRINTF_LIKE(6);
+>+		    const char *module_name,
+>+		    u32 component_id,
+>+		    const char *format, ...) ACPI_PRINTF_LIKE(6);
+>
+> void ACPI_INTERNAL_VAR_XFACE
+> acpi_ut_debug_print_raw(u32 requested_debug_level,
+> 			u32 line_number,
+> 			const char *function_name,
+>-			char *module_name,
+>+			const char *module_name,
+> 			u32 component_id,
+>-			char *format, ...) ACPI_PRINTF_LIKE(6);
+>+			const char *format, ...) ACPI_PRINTF_LIKE(6);
+>
+> void ACPI_INTERNAL_VAR_XFACE
+>-acpi_ut_error(char *module_name,
+>-	      u32 line_number, char *format, ...) ACPI_PRINTF_LIKE(3);
+>+acpi_ut_error(const char *module_name,
+>+	      u32 line_number, const char *format, ...)
+ACPI_PRINTF_LIKE(3);
+>
+> void ACPI_INTERNAL_VAR_XFACE
+>-acpi_ut_exception(char *module_name,
+>+acpi_ut_exception(const char *module_name,
+> 		  u32 line_number,
+>-		  acpi_status status, char *format, ...)
+ACPI_PRINTF_LIKE(4);
+>+		  acpi_status status, const char *format, ...)
+>ACPI_PRINTF_LIKE(4);
+>
+> void ACPI_INTERNAL_VAR_XFACE
+>-acpi_ut_warning(char *module_name,
+>-		u32 line_number, char *format, ...) ACPI_PRINTF_LIKE(3);
+>+acpi_ut_warning(const char *module_name,
+>+		u32 line_number, const char *format, ...)
+ACPI_PRINTF_LIKE(3);
+>
+> void ACPI_INTERNAL_VAR_XFACE
+>-acpi_ut_info(char *module_name,
+>-	     u32 line_number, char *format, ...) ACPI_PRINTF_LIKE(3);
+>+acpi_ut_info(const char *module_name,
+>+	     u32 line_number, const char *format, ...)
+ACPI_PRINTF_LIKE(3);
+>
+> /*
+>  * utdelete - Object deletion and reference counts
+>@@ -376,13 +371,13 @@ acpi_ut_execute_sxds(struct acpi_namespa
+> /*
+>  * utobject - internal object create/delete/cache routines
+>  */
+>-union acpi_operand_object *acpi_ut_create_internal_object_dbg(char
+>*module_name,
+>+union acpi_operand_object *acpi_ut_create_internal_object_dbg(const
+char
+>*module_name,
+> 							      u32
+line_number,
+> 							      u32
+component_id,
+>
+acpi_object_type
+> 							      type);
+>
+>-void *acpi_ut_allocate_object_desc_dbg(char *module_name,
+>+void *acpi_ut_allocate_object_desc_dbg(const char *module_name,
+> 				       u32 line_number, u32
+component_id);
+>
+> #define acpi_ut_create_internal_object(t)
+>acpi_ut_create_internal_object_dbg
+>(_acpi_module_name,__LINE__,_COMPONENT,t)
+>_
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-acpi"
+in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
