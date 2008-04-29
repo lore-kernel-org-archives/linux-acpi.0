@@ -1,47 +1,33 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 170/171] ACPI: check a return value correctly in acpi_power_get_context()
-Date: Tue, 29 Apr 2008 04:44:34 -0400
-Message-ID: <3d557ab36cfb0296c8985609518bb8e19cda80a2.1209457073.git.len.brown@intel.com>
-References: <1209458675-9757-1-git-send-email-lenb@kernel.org>
+From: Sergey Yanovich <ynvich@gmail.com>
+Subject: Re: [PATCH 1/3] Correctly detect Sony TX770P PIC device type
+Date: Tue, 29 Apr 2008 11:52:05 +0300
+Message-ID: <4816E1B5.4030304@gmail.com>
+References: <1208558495-22792-1-git-send-email-ynvich@gmail.com> <20080427061521.GB9533@inferi.kami.home>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.21]:28120 "EHLO
-	orsmga101.jf.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1760173AbYD2Ipp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Apr 2008 04:45:45 -0400
-In-Reply-To: <1209458675-9757-1-git-send-email-lenb@kernel.org>
-In-Reply-To: <1071695f17daf050638e0bc550db647f8237c3bb.1209457069.git.len.brown@intel.com>
-References: <1071695f17daf050638e0bc550db647f8237c3bb.1209457069.git.len.brown@intel.com>
+Received: from fg-out-1718.google.com ([72.14.220.152]:31503 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751262AbYD2IwL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Apr 2008 04:52:11 -0400
+Received: by fg-out-1718.google.com with SMTP id l27so5147840fgb.17
+        for <linux-acpi@vger.kernel.org>; Tue, 29 Apr 2008 01:52:08 -0700 (PDT)
+In-Reply-To: <20080427061521.GB9533@inferi.kami.home>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Li Zefan <lizf@cn.fujitsu.com>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
+To: Mattia Dongili <malattia@linux.it>
+Cc: linux-acpi@vger.kernel.org
 
-From: Li Zefan <lizf@cn.fujitsu.com>
+Mattia Dongili wrote:
+> What I'm going to do is remove the Type3/Type4 distinction, this should
+> be enough.
 
-We should check *resource != NULL rather than resource != NULL, which will be
-always true.
+Great to hear, that the problem is being addressed. It'll be nice to 
+have all keys working with a stock kernel.
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Acked-by: Zhao Yakui <yakui.zhao@intel.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- drivers/acpi/power.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Any comments about wifi power and state sync patches?
 
-diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-index 76bf6d9..f2a76ac 100644
---- a/drivers/acpi/power.c
-+++ b/drivers/acpi/power.c
-@@ -121,7 +121,7 @@ acpi_power_get_context(acpi_handle handle,
- 	}
- 
- 	*resource = acpi_driver_data(device);
--	if (!resource)
-+	if (!*resource)
- 		return -ENODEV;
- 
- 	return 0;
+Cheers,
 -- 
-1.5.5.1.99.gf0ec4
-
+Sergey Yanovich
