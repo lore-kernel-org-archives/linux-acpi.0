@@ -1,34 +1,52 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: kacpid and acpid
-Date: Wed, 30 Apr 2008 11:57:22 -0300
-Message-ID: <20080430145722.GE3543@khazad-dum.debian.net>
-References: <48187B40.4090003@gmx.de>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: Linux 2.6.25 (coretemp reads high temperatures)
+Date: Wed, 30 Apr 2008 17:18:29 +0200
+Message-ID: <20080430171829.41891b07@hyperion.delvare>
+References: <e85b9d30804180837y39c52e26i588e4b67c87a5e9d@mail.gmail.com>
+	<200804182151.49021.lenb@kernel.org>
+	<200804231143.10875.maximlevitsky@gmail.com>
+	<1209406784.11608.15.camel@localhost>
+	<1209474423.1784.837.camel@queen.suse.de>
+	<20080429170824.09540206@hyperion.delvare>
+	<48179DB4.8040701@assembler.cz>
+	<e85b9d30804291558r4051f1bbm9256aa2af2d86b6c@mail.gmail.com>
+	<20080430081035.2e789a50@hyperion.delvare>
+	<20080430144655.GB3543@khazad-dum.debian.net>
+	<48188753.40305@assembler.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4.smtp.messagingengine.com ([66.111.4.28]:52825 "EHLO
-	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756299AbYD3O5Y (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 Apr 2008 10:57:24 -0400
-Content-Disposition: inline
-In-Reply-To: <48187B40.4090003@gmx.de>
+Received: from zone0.gcu-squad.org ([212.85.147.21]:42906 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757279AbYD3PSx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Apr 2008 11:18:53 -0400
+In-Reply-To: <48188753.40305@assembler.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Markus Feldmann <feldmann_markus@gmx.de>
-Cc: linux-acpi@vger.kernel.org
+To: Rudolf Marek <r.marek@assembler.cz>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Matthew <jackdachef@gmail.com>, Maxim Levitsky <maximlevitsky@gmail.com>, trenn@suse.de, Kasper Sandberg <lkml@metanurb.dk>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, torvalds@linux-foundation.org, linux-kernel@vger.kernel.org, "Zhang, Rui" <rui.zhang@intel.com>
 
-On Wed, 30 Apr 2008, Markus Feldmann wrote:
-> my Problem is that i can not install "acpid" and "acpi-support"
-> correctly, because another Process "kacpid" have got Access to
-> /proc/acpi/event
+On Wed, 30 Apr 2008 16:50:59 +0200, Rudolf Marek wrote:
+> >>> but like lm_sensors's output states - it's not bad until  I / we'=
+re
+> >>> getting temperatures from 85=B0C (?) [in this particular case], .=
+=2E.
+> >> If I remember correctly, at 84=B0C your CPU will start to throttle=
+, at
+> >> 100=B0C it will shut down. You still have 24=B0C before the former=
+ happens,
+> >> so it should be OK.
+>=20
+> The high limit is when the all fans should go max. Throttle is at cri=
+t.
 
-Upgrade to latest Debian Lenny (it is NOT a stable distribution), check
-if it fixed the issue, and if not, ask about it on debian-user at lists
-debian org...
+Ah, sorry then, I remembered incorrectly.
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+--=20
+Jean Delvare
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
