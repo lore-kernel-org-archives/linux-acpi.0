@@ -1,36 +1,55 @@
-From: Rudolf Marek <r.marek@assembler.cz>
-Subject: Re: Linux 2.6.25 (coretemp reads high temperatures)
-Date: Wed, 30 Apr 2008 16:50:59 +0200
-Message-ID: <48188753.40305@assembler.cz>
-References: <e85b9d30804180837y39c52e26i588e4b67c87a5e9d@mail.gmail.com> <200804182151.49021.lenb@kernel.org> <200804231143.10875.maximlevitsky@gmail.com> <1209406784.11608.15.camel@localhost> <1209474423.1784.837.camel@queen.suse.de> <20080429170824.09540206@hyperion.delvare> <48179DB4.8040701@assembler.cz> <e85b9d30804291558r4051f1bbm9256aa2af2d86b6c@mail.gmail.com> <20080430081035.2e789a50@hyperion.delvare> <20080430144655.GB3543@khazad-dum.debian.net>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH 091/171] ACPI: GPE enabling should happen after EC
+	installation
+Date: Wed, 30 Apr 2008 11:53:11 -0300
+Message-ID: <20080430145311.GD3543@khazad-dum.debian.net>
+References: <1209458675-9757-1-git-send-email-lenb@kernel.org> <204470272c3b055b352d5f127d5d5c7dce5fa597.1209457069.git.len.brown@intel.com> <1209551134.12515.47.camel@yakui_zhao.sh.intel.com> <200804300758.54778.carlos@strangeworlds.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ms.trustica.cz ([82.208.32.68]:41341 "EHLO ms.trustica.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757078AbYD3OvN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 Apr 2008 10:51:13 -0400
-In-Reply-To: <20080430144655.GB3543@khazad-dum.debian.net>
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:59716 "EHLO
+	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1759316AbYD3OxO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 30 Apr 2008 10:53:14 -0400
+Content-Disposition: inline
+In-Reply-To: <200804300758.54778.carlos@strangeworlds.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Jean Delvare <khali@linux-fr.org>, Matthew <jackdachef@gmail.com>, Maxim Levitsky <maximlevitsky@gmail.com>, trenn@suse.de, Kasper Sandberg <lkml@metanurb.dk>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, torvalds@linux-foundation.org, linux-kernel@vger.kernel.org, "Zhang, Rui" <rui.zhang@intel.com>
+To: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Cc: Zhao Yakui <yakui.zhao@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.de>, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Len Brown <lenb@kernel.org>
 
->>> but like lm_sensors's output states - it's not bad until  I / we're
->>> getting temperatures from 85=B0C (?) [in this particular case], ...
->> If I remember correctly, at 84=B0C your CPU will start to throttle, =
-at
->> 100=B0C it will shut down. You still have 24=B0C before the former h=
-appens,
->> so it should be OK.
+On Wed, 30 Apr 2008, Carlos Corbacho wrote:
+> On Wednesday 30 April 2008 11:25:34 Zhao Yakui wrote:
+> > On Tue, 2008-04-29 at 04:44 -0400, Len Brown wrote:
+> > > From: Alexey Starikovskiy <astarikovskiy@suse.de>
+> > >
+> > > GPE could try to access EC region, so should not be enabled before
+> > > EC is installed
+> >
+> > It is caused by broken bios if GPE method tries to access EC region
+> > before EC is initialized correctly. It is more appropriate to fix this
+> > issue by upgrading bios rather than by the patch.
+> > And this patch will cause some potential problems.
+> 
+> 1) Does the BIOS in question work under Windows?
+> 2) Does the system in question require a BIOS upgrade under Windows for this 
+> issue?
+> 
+> If the answer to both of those is 'no', then the answer is that it's a Linux 
+> bug, and a patch of some description is appropriate.
 
-The high limit is when the all fans should go max. Throttle is at crit.
+3) Did the vendor issue an O.S. "driver workaround"?  If so, it means we
+add a *quirk*, and not that we hose ACPI for everyone else.
 
-Rudolf
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Just because there are crappy BIOS's out there, and we'd rather not put in 
+> nasty fixes, doesn't mean that we shouldn't.
+
+But it means we need to limit the damage these nasty fixes can do to
+others.
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
