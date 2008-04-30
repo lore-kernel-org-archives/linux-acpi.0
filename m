@@ -1,119 +1,61 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: ACPI on Compaq 6715b - BIOS from the wrong end of the planet
-Date: Wed, 30 Apr 2008 10:39:52 +0200
-Message-ID: <1209544792.29352.78.camel@linux-2bdv.site>
-References: <48144209.7080203@gmail.com>
-	 <1209476717.1784.853.camel@queen.suse.de>  <4817457C.6000103@gmail.com>
-	 <1209493771.1784.892.camel@queen.suse.de>  <4817B0E1.7080102@zytor.com>
-Reply-To: trenn@suse.de
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: [PATCH 091/171] ACPI: GPE enabling should happen after EC
+	installation
+Date: Thu, 01 May 2008 00:43:02 +0800
+Message-ID: <1209573782.16111.32.camel@yakui_zhao.sh.intel.com>
+References: <1209458675-9757-1-git-send-email-lenb@kernel.org>
+	 <1209551134.12515.47.camel@yakui_zhao.sh.intel.com>
+	 <200804300758.54778.carlos@strangeworlds.co.uk>
+	 <200804300817.53800.carlos@strangeworlds.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns2.suse.de ([195.135.220.15]:44995 "EHLO mx2.suse.de"
+Received: from mga09.intel.com ([134.134.136.24]:57067 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755223AbYD3Ijz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 Apr 2008 04:39:55 -0400
-In-Reply-To: <4817B0E1.7080102@zytor.com>
+	id S1755151AbYD3IwM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 30 Apr 2008 04:52:12 -0400
+In-Reply-To: <200804300817.53800.carlos@strangeworlds.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Richard <tuxbox.guru@gmail.com>, linux-acpi@vger.kernel.org, "Langsdorf, Mark" <mark.langsdorf@amd.com>, andreas.herrmann3@amd.com
+To: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Len Brown <lenb@kernel.org>
+
+On Wed, 2008-04-30 at 08:17 +0100, Carlos Corbacho wrote:
+> On Wednesday 30 April 2008 07:58:53 Carlos Corbacho wrote:
+> > On Wednesday 30 April 2008 11:25:34 Zhao Yakui wrote:
+> > > On Tue, 2008-04-29 at 04:44 -0400, Len Brown wrote:
+> > > > From: Alexey Starikovskiy <astarikovskiy@suse.de>
+> > > >
+> > > > GPE could try to access EC region, so should not be enabled before
+> > > > EC is installed
+> > >
+> > > It is caused by broken bios if GPE method tries to access EC region
+> > > before EC is initialized correctly. It is more appropriate to fix this
+> > > issue by upgrading bios rather than by the patch.
+> > > And this patch will cause some potential problems.
+> >
+> > 1) Does the BIOS in question work under Windows?
+> 
+> ^^^
+> that should be 'not work'
+For the laptop in bug 9916:
+Windows can work on the BIOS in question. In fact only warning message
+is printed for Linux and it won't break anything. (Maybe the warning
+message also exists on windows. But we can't see them.)
+> 
+> > 2) Does the system in question require a BIOS upgrade under Windows for
+> > this issue?
+> >
+After the BIOS is upgraded, the warning message disappears on Linux. It
+is very lucky that we have such a laptop. After the bios is upgraded,
+the warning message disappears.
+> > If the answer to both of those is 'no', then the answer is that it's a
+> > Linux bug, and a patch of some description is appropriate.
+> >
+> > Just because there are crappy BIOS's out there, and we'd rather not put in
+> > nasty fixes, doesn't mean that we shouldn't.
 
 
-On Tue, 2008-04-29 at 16:36 -0700, H. Peter Anvin wrote:
-> Thomas Renninger wrote:
-> >>>  =20
-> >> Thanks a Million..
-> >> noapictimer works perfectly ... BUT  .. only on 64Bit.  acpi_pm is=
- not=20
-> >> present on 32bit as a clocksource and it defaulted to jiffies. (ts=
-c was=20
-> >> marked as imreliable)
-> >>
-> >> I am really surprised that this Sempron notebook actually had 64Bi=
-t CPU=20
-> >> compatibility :D
-> >=20
-> > This one helps for my Turion.
-> > AFAIK, another Turion (very similar) does not need this, but I do n=
-ot
-> > know for sure.
-> >=20
->=20
-> Is the common denominator here the Turion (and if so, what model=20
-> number), or is it the mainboard or BIOS?  If the latter, it should be=
-=20
-> keyed on a DMI signature instead of the CPU.
+> -Carlos
 
-noapictimer is needed on machines with C1E (when all cores issue C1, th=
-e
-BIOS may decide to shut down more things, like the apic timer...).
-Therefore the checking for C1E (in arch/x86/setup_64.c
-amd_apic_timer_broken(..)). The check for C1E is done for K8 RevF, K10
-and K11. I now expect it simply has been forgotten that K8 RevE=EF=BB=BF=
- CPUs
-may also have C1E (maybe only mobile Turion and Semprons, could the
-check below be enhanced to only check mobile CPUs?)?
-
-This patch should also check for RevE with more than one core. It's
-untested, but should compile. Does this one work for you Richard?
-
--- Unrelated --
-Peter: You wrote the syslinux stuff, right? What kind of luck is that :=
-)
-There currently is a discussion about being able to override ACPI table=
-s
-via initrd. The discussion is a bit stuck because the data is needed
-earlier than initrd is unpacked and the hacks to make it work are not
-accepted by Linus. I thought about adding another binary image to i386
-boot protocol, similar to initrd=3D which contains data for very early
-kernel boot initialization, but this would be a heavy hammer (but IMO
-still better than only do it for kexec, another suggestion...) , =EF=BB=
-=BFI
-better open a separate thread or pre-ask privately whether this makes
-sense at all. It would be great if you could advise and possibly help t=
-o
-convince so that we finally may find a solution accepted mainline.
-=EF=BB=BF-- Unrelated --
-
-
-Also check for broken apic timer for RevE multi core machines
-
-Signed-off-by: Thomas Renninger <trenn@suse.de>
-
-Index: linux-2.6/arch/x86/kernel/setup_64.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-2.6.orig/arch/x86/kernel/setup_64.c
-+++ linux-2.6/arch/x86/kernel/setup_64.c
-@@ -686,7 +686,7 @@ static void __cpuinit early_init_amd_mc(
- #define CPUID_XFAM_10H		0x00100000
- #define CPUID_XFAM_11H		0x00200000
- #define CPUID_XMOD		0x000f0000
--#define CPUID_XMOD_REV_F	0x00040000
-+#define CPUID_XMOD_REV_E	0x00020000
-=20
- /* AMD systems with C1E don't have a working lAPIC timer. Check for th=
-at. */
- static __cpuinit int amd_apic_timer_broken(void)
-@@ -695,7 +695,9 @@ static __cpuinit int amd_apic_timer_brok
-=20
- 	switch (eax & CPUID_XFAM) {
- 	case CPUID_XFAM_K8:
--		if ((eax & CPUID_XMOD) < CPUID_XMOD_REV_F)
-+		if ((eax & CPUID_XMOD) < CPUID_XMOD_REV_E)
-+			break;
-+		if (num_online_cpus() < 2)
- 			break;
- 	case CPUID_XFAM_10H:
- 	case CPUID_XFAM_11H:
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
