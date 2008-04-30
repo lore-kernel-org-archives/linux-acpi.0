@@ -1,72 +1,34 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+From: Rudolf Marek <r.marek@assembler.cz>
 Subject: Re: Linux 2.6.25 (coretemp reads high temperatures)
-Date: Wed, 30 Apr 2008 11:51:10 -0300
-Message-ID: <20080430145110.GC3543@khazad-dum.debian.net>
-References: <e85b9d30804180837y39c52e26i588e4b67c87a5e9d@mail.gmail.com> <200804182151.49021.lenb@kernel.org> <200804231143.10875.maximlevitsky@gmail.com> <1209406784.11608.15.camel@localhost> <1209474423.1784.837.camel@queen.suse.de> <20080429170824.09540206@hyperion.delvare> <48179DB4.8040701@assembler.cz> <1209514274.27499.12.camel@localhost> <20080430082005.4b76186f@hyperion.delvare>
+Date: Wed, 30 Apr 2008 16:50:59 +0200
+Message-ID: <48188753.40305@assembler.cz>
+References: <e85b9d30804180837y39c52e26i588e4b67c87a5e9d@mail.gmail.com> <200804182151.49021.lenb@kernel.org> <200804231143.10875.maximlevitsky@gmail.com> <1209406784.11608.15.camel@localhost> <1209474423.1784.837.camel@queen.suse.de> <20080429170824.09540206@hyperion.delvare> <48179DB4.8040701@assembler.cz> <e85b9d30804291558r4051f1bbm9256aa2af2d86b6c@mail.gmail.com> <20080430081035.2e789a50@hyperion.delvare> <20080430144655.GB3543@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4.smtp.messagingengine.com ([66.111.4.28]:34584 "EHLO
-	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756765AbYD3OvN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
+Received: from ms.trustica.cz ([82.208.32.68]:41341 "EHLO ms.trustica.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757078AbYD3OvN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Wed, 30 Apr 2008 10:51:13 -0400
-Content-Disposition: inline
-In-Reply-To: <20080430082005.4b76186f@hyperion.delvare>
+In-Reply-To: <20080430144655.GB3543@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Kasper Sandberg <lkml@metanurb.dk>, Rudolf Marek <r.marek@assembler.cz>, Maxim Levitsky <maximlevitsky@gmail.com>, trenn@suse.de, Len Brown <lenb@kernel.org>, Matthew <jackdachef@gmail.com>, linux-acpi@vger.kernel.org, torvalds@linux-foundation.org, linux-kernel@vger.kernel.org, "Zhang, Rui" <rui.zhang@intel.com>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Jean Delvare <khali@linux-fr.org>, Matthew <jackdachef@gmail.com>, Maxim Levitsky <maximlevitsky@gmail.com>, trenn@suse.de, Kasper Sandberg <lkml@metanurb.dk>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, torvalds@linux-foundation.org, linux-kernel@vger.kernel.org, "Zhang, Rui" <rui.zhang@intel.com>
 
-On Wed, 30 Apr 2008, Jean Delvare wrote:
-> On Wed, 30 Apr 2008 02:11:14 +0200, Kasper Sandberg wrote:
-> > On Wed, 2008-04-30 at 00:14 +0200, Rudolf Marek wrote:
-> > > Well again, I tried hard at Intel and I really could not get any =
-info on some
-> > > calibration bit. The temperature is non-physical on arbitrary sca=
-le. I changed
-> > > that so for some people it jumped to 100C, for some it remained.
-> >=20
-> > So, im confused.. The reason for this is that the internal sensor i=
-s
-> > operating on some sort of weird scale, and thus when you interpolat=
-e it
-> > into "your" scale, it doesent quite come out in the actual degrees
-> > celcius the cpu temperature really is?
->=20
-> It's really only an offset, rather than scaling. The temperature
-> reported by the Core and Core2 CPUs is a relative temperature. It tel=
-ls
-> how far you are from the maximum temperature the CPU can survive. The
-> value is expressed in (relative) degrees C.
+>>> but like lm_sensors's output states - it's not bad until  I / we're
+>>> getting temperatures from 85=B0C (?) [in this particular case], ...
+>> If I remember correctly, at 84=B0C your CPU will start to throttle, =
+at
+>> 100=B0C it will shut down. You still have 24=B0C before the former h=
+appens,
+>> so it should be OK.
 
-Ah, please ignore my email about ITUs (Intel thermal units), then.  The
-above means 1ITU=3D1=B0C, but their zeros are at different places.
+The high limit is when the all fans should go max. Throttle is at crit.
 
-> Rudolf did his best to find out the (absolute) temperature each CPU
-> model can survive (known as TJmax) so that the coretemp driver can
-> provide an absolute temperature to user-space, as all other hardware
-> monitoring drivers do. Our hope was to limit the confusion, but it
-> seems we failed ;) Maybe it would be better if the driver was reporti=
-ng
-> the relative temperature value directly when we don't know the TJmax
-> value for sure - but then all user-space tools would need to learn ho=
-w
-> to deal with this.
-
-Actually, just libsensors would, and the local admin can adjust it at
-will using the config file.
-
-Nobody in userspace should be reading hwmon sysfs directly without the
-use of libsensors.  If they are, it is their bug, and it is unsupported
-AFAIK.
-
---=20
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Rudolf
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
