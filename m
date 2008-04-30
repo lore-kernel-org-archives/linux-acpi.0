@@ -1,129 +1,154 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: RE: ACPICA branch (0 Objects with 0 Devices 0 Methods 0 Regions)
-Date: Wed, 30 Apr 2008 19:03:50 +0800
-Message-ID: <1209553430.2963.7.camel@minggr.sh.intel.com>
-References: <1207974356-30687-1-git-send-email-lenb@kernel.org>
-	 <200804290504.54789.lenb@kernel.org>
-	 <9D39833986E69849A2A8E74C1078B6B33BCDFA@orsmsx415.amr.corp.intel.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: ACPI on Compaq 6715b - BIOS from the wrong end of the planet
+Date: Wed, 30 Apr 2008 14:07:40 +0200
+Message-ID: <1209557260.1784.905.camel@queen.suse.de>
+References: <48144209.7080203@gmail.com>
+	 <1209476717.1784.853.camel@queen.suse.de>  <4817457C.6000103@gmail.com>
+	 <1209493771.1784.892.camel@queen.suse.de>  <4817B0E1.7080102@zytor.com>
+	 <1209544792.29352.78.camel@linux-2bdv.site>  <48184885.2090703@gmail.com>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:51883 "EHLO mga01.intel.com"
+Received: from ns2.suse.de ([195.135.220.15]:47098 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756090AbYD3LGE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 Apr 2008 07:06:04 -0400
-In-Reply-To: <9D39833986E69849A2A8E74C1078B6B33BCDFA@orsmsx415.amr.corp.intel.com>
+	id S1753341AbYD3MHm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 30 Apr 2008 08:07:42 -0400
+In-Reply-To: <48184885.2090703@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Richard <tuxbox.guru@gmail.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>, linux-acpi@vger.kernel.org, "Langsdorf, Mark" <mark.langsdorf@amd.com>, andreas.herrmann3@amd.com
 
- nsalloc-0226 [00] ns_install_node       : _PPC (Untyped) [Node f7836450
-Owner A1] added to CPU0 (Processor) [Node f78164f8]
- nsalloc-0226 [00] ns_install_node       : _PCT (Method) [Node f7836360
-Owner A1] added to CPU0 (Processor) [Node f78164f8]
- nsalloc-0226 [00] ns_install_node       : XPSS (Method) [Node f7836378
-Owner A1] added to CPU0 (Processor) [Node f78164f8]
- nsalloc-0226 [00] ns_install_node       : SPSS (Untyped) [Node f7836390
-Owner A1] added to CPU0 (Processor) [Node f78164f8]
- nsalloc-0226 [00] ns_install_node       : _PSS (Untyped) [Node f78363a8
-Owner A1] added to CPU0 (Processor) [Node f78164f8]
- nsalloc-0226 [00] ns_install_node       : _PSD (Method) [Node f78363c0
-Owner A1] added to CPU0 (Processor) [Node f78164f8]
-Table [SSDT](id 00A1) - 0 Objects with 0 Devices 0 Methods 0 Regions
+On Wed, 2008-04-30 at 11:23 +0100, Richard wrote:
+> Thomas Renninger wrote:
+> > On Tue, 2008-04-29 at 16:36 -0700, H. Peter Anvin wrote:
+> >  =20
+> >> Thomas Renninger wrote:
+> >>    =20
+> >>>>>  =20
+> >>>>>          =20
+> >>>> Thanks a Million..
+> >>>> noapictimer works perfectly ... BUT  .. only on 64Bit.  acpi_pm =
+is not=20
+> >>>> present on 32bit as a clocksource and it defaulted to jiffies. (=
+tsc was=20
+> >>>> marked as imreliable)
+> >>>>
+> >>>> I am really surprised that this Sempron notebook actually had 64=
+Bit CPU=20
+> >>>> compatibility :D
+> >>>>        =20
+> >>> This one helps for my Turion.
+> >>> AFAIK, another Turion (very similar) does not need this, but I do=
+ not
+> >>> know for sure.
+> >>>
+> >>>      =20
+> >> Is the common denominator here the Turion (and if so, what model=20
+> >> number), or is it the mainboard or BIOS?  If the latter, it should=
+ be=20
+> >> keyed on a DMI signature instead of the CPU.
+> >>    =20
+> >
+> > noapictimer is needed on machines with C1E (when all cores issue C1=
+, the
+> > BIOS may decide to shut down more things, like the apic timer...).
+> > Therefore the checking for C1E (in arch/x86/setup_64.c
+> > amd_apic_timer_broken(..)). The check for C1E is done for K8 RevF, =
+K10
+> > and K11. I now expect it simply has been forgotten that K8 RevE=EF=BB=
+=BF CPUs
+> > may also have C1E (maybe only mobile Turion and Semprons, could the
+> > check below be enhanced to only check mobile CPUs?)?
+> >
+> > This patch should also check for RevE with more than one core. It's
+> > untested, but should compile. Does this one work for you Richard?
+> >
+> >
+> > Also check for broken apic timer for RevE multi core machines
+> >
+> > Signed-off-by: Thomas Renninger <trenn@suse.de>
+> >
+> > Index: linux-2.6/arch/x86/kernel/setup_64.c
+> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> > --- linux-2.6.orig/arch/x86/kernel/setup_64.c
+> > +++ linux-2.6/arch/x86/kernel/setup_64.c
+> > @@ -686,7 +686,7 @@ static void __cpuinit early_init_amd_mc(
+> >  #define CPUID_XFAM_10H		0x00100000
+> >  #define CPUID_XFAM_11H		0x00200000
+> >  #define CPUID_XMOD		0x000f0000
+> > -#define CPUID_XMOD_REV_F	0x00040000
+> > +#define CPUID_XMOD_REV_E	0x00020000
+> > =20
+> >  /* AMD systems with C1E don't have a working lAPIC timer. Check fo=
+r that. */
+> >  static __cpuinit int amd_apic_timer_broken(void)
+> > @@ -695,7 +695,9 @@ static __cpuinit int amd_apic_timer_brok
+> > =20
+> >  	switch (eax & CPUID_XFAM) {
+> >  	case CPUID_XFAM_K8:
+> > -		if ((eax & CPUID_XMOD) < CPUID_XMOD_REV_F)
+> > +		if ((eax & CPUID_XMOD) < CPUID_XMOD_REV_E)
+{                         printk("RevD or lower\n");
+> > +			break;
+}
+> > +		if (num_online_cpus() < 2)
+{                         printk("Only detected %d online CPUs\n",
+                          num_online_cpus());
+> >  			break;
+}
+> >  	case CPUID_XFAM_10H:
+> >  	case CPUID_XFAM_11H:
+Also something at the C1E check which should come here then, does it
+match?
+Maybe it really is a RevE and the second CPU is not brought up yet?
+> >
+> >
+> >  =20
+>=20
+>=20
+> Hi there,
+>=20
+> The results are in.. and the patch done nothing on my notebook. The=20
+> symptoms are exactly the same as before. Kernel loads, INIT starts an=
+d=20
+> then the machine shuts down a few seconds later. noapictimer still fi=
+xes=20
+> it tho'=20
 
-Above dmesg comes from a HP machine.
+Googled this:
+Sempron 3600+ (CN),256K,rev.F2,62W,SocketAM2    ALL  0107
+So this Sempron probably is RevF already but the C1E check does not
+work?
+Hope you still have the kernel compiled flying around?
+Could you add a lot printks at the place (some examples above) where it
+is checked for broken apic timer.
+Maybe you can also just return that it's broken to check whether settin=
+g
+noapictimer variable at this place generally works for you...
 
-Table OwnerId is 0xA1, and there're nodes with this OwnerId.
-Strange that it prints "0 Objects".
+Thanks,
+
+    Thomas
 
 
-On Wed, 2008-04-30 at 00:09 +0800, Moore, Robert wrote:
-> It looks like the tables in question are dynamically loaded:
-> 
-> >ACPI: SSDT 7D6E1B32, 02C4 (r1  PmRef  Cpu0Ist      100 INTL 20050513)
-> >Table [SSDT](id 0044) - 0 Objects with 0 Devices 0 Methods 0 Regions
-> >ACPI: SSDT 7D6E1E7B, 085E (r1  PmRef  Cpu0Cst      100 INTL 20050513)
-> >Table [SSDT](id 0045) - 0 Objects with 0 Devices 0 Methods 0 Regions
-> >ACPI: SSDT 7D6E1A6A, 00C8 (r1  PmRef  Cpu1Ist      100 INTL 20050513)
-> >Table [SSDT](id 0050) - 0 Objects with 0 Devices 0 Methods 0 Regions
-> >ACPI: SSDT 7D6E1DF6, 0085 (r1  PmRef  Cpu1Cst      100 INTL 20050513)
-> >Table [SSDT](id 0051) - 0 Objects with 0 Devices 0 Methods 0 Regions
-> 
-> What the zeroes mean is that a WalkNamespace after the table load did
-> not find any such objects created by the table.
-> 
-> Something does look wrong, it may not affect your machine, but has the
-> potential to cause problems on other machines.
-> 
-> The difference in owner IDs between the two traces might mean that there
-> is some mismatch somewhere. I would debug and determine 1) The actual
-> owner id created for the newly loaded table, and 2) what owner id is
-> passed to AcpiDsInitializeObjects after the table is loaded.
-> 
-> Bob
-> 
-> 
-> 
-> >-----Original Message-----
-> >From: Len Brown [mailto:lenb@kernel.org]
-> >Sent: Tuesday, April 29, 2008 2:05 AM
-> >To: linux-acpi@vger.kernel.org; Moore, Robert; Lin, Ming M
-> >Subject: Re: ACPICA branch (0 Objects with 0 Devices 0 Methods 0
-> Regions)
-> >
-> >Hmm, i just noticed something strange on the T61
-> >
-> >Linus' tree prints these messages:
-> >
-> >[lenb@t61 sut]$ grep -i ssdt 2.6.25-06058-ga01e035/dmesg
-> >ACPI: SSDT 7D6BB9B4, 0269 (r1 LENOVO TP-7L        2100 MSFT  3000000)
-> >ACPI: SSDT 7D6E26D9, 025F (r1 LENOVO TP-7L        2100 INTL 20050513)
-> >ACPI: SSDT 7D6E2938, 00A6 (r1 LENOVO TP-7L        2100 INTL 20050513)
-> >ACPI: SSDT 7D6E29DE, 04F7 (r1 LENOVO TP-7L        2100 INTL 20050513)
-> >ACPI: SSDT 7D6E2ED5, 01D8 (r1 LENOVO TP-7L        2100 INTL 20050513)
-> >Table [SSDT](id 0002) - 11 Objects with 0 Devices 7 Methods 0 Regions
-> >Table [SSDT](id 0003) - 7 Objects with 0 Devices 3 Methods 0 Regions
-> >Table [SSDT](id 0004) - 4 Objects with 0 Devices 3 Methods 0 Regions
-> >Table [SSDT](id 0005) - 14 Objects with 0 Devices 5 Methods 0 Regions
-> >Table [SSDT](id 0006) - 14 Objects with 1 Devices 2 Methods 0 Regions
-> >ACPI: SSDT 7D6E1B32, 02C4 (r1  PmRef  Cpu0Ist      100 INTL 20050513)
-> >Table [SSDT](id 003A) - 6 Objects with 0 Devices 4 Methods 0 Regions
-> >ACPI: SSDT 7D6E1E7B, 085E (r1  PmRef  Cpu0Cst      100 INTL 20050513)
-> >Table [SSDT](id 003B) - 16 Objects with 0 Devices 1 Methods 0 Regions
-> >ACPI: SSDT 7D6E1A6A, 00C8 (r1  PmRef  Cpu1Ist      100 INTL 20050513)
-> >Table [SSDT](id 0046) - 4 Objects with 0 Devices 4 Methods 0 Regions
-> >ACPI: SSDT 7D6E1DF6, 0085 (r1  PmRef  Cpu1Cst      100 INTL 20050513)
-> >Table [SSDT](id 0047) - 1 Objects with 0 Devices 1 Methods 0 Regions
-> >
-> >
-> >The acpi test tree prints these messages:
-> >
-> >[lenb@t61 sut]$ grep -i ssdt 2.6.25-06238-gf4e0ea3/dmesg
-> >ACPI: SSDT 7D6BB9B4, 0269 (r1 LENOVO TP-7L        2100 MSFT  3000000)
-> >ACPI: SSDT 7D6E26D9, 025F (r1 LENOVO TP-7L        2100 INTL 20050513)
-> >ACPI: SSDT 7D6E2938, 00A6 (r1 LENOVO TP-7L        2100 INTL 20050513)
-> >ACPI: SSDT 7D6E29DE, 04F7 (r1 LENOVO TP-7L        2100 INTL 20050513)
-> >ACPI: SSDT 7D6E2ED5, 01D8 (r1 LENOVO TP-7L        2100 INTL 20050513)
-> >Table [SSDT](id 0002) - 11 Objects with 0 Devices 7 Methods 0 Regions
-> >Table [SSDT](id 0003) - 7 Objects with 0 Devices 3 Methods 0 Regions
-> >Table [SSDT](id 0004) - 4 Objects with 0 Devices 3 Methods 0 Regions
-> >Table [SSDT](id 0005) - 14 Objects with 0 Devices 5 Methods 0 Regions
-> >Table [SSDT](id 0006) - 14 Objects with 1 Devices 2 Methods 0 Regions
-> >ACPI: SSDT 7D6E1B32, 02C4 (r1  PmRef  Cpu0Ist      100 INTL 20050513)
-> >Table [SSDT](id 0044) - 0 Objects with 0 Devices 0 Methods 0 Regions
-> >ACPI: SSDT 7D6E1E7B, 085E (r1  PmRef  Cpu0Cst      100 INTL 20050513)
-> >Table [SSDT](id 0045) - 0 Objects with 0 Devices 0 Methods 0 Regions
-> >ACPI: SSDT 7D6E1A6A, 00C8 (r1  PmRef  Cpu1Ist      100 INTL 20050513)
-> >Table [SSDT](id 0050) - 0 Objects with 0 Devices 0 Methods 0 Regions
-> >ACPI: SSDT 7D6E1DF6, 0085 (r1  PmRef  Cpu1Cst      100 INTL 20050513)
-> >Table [SSDT](id 0051) - 0 Objects with 0 Devices 0 Methods 0 Regions
-> >
-> >ie.  "0 Objects with 0 Devices 0 Methods 0 Regions"
-> >
-> >dunno if this is just cosmetic -- the p-states that are advertised in
-> >the SSDT's seem to be working normally, and C-states do too.
-> >
-> >-Len
 
+PS: That i386 does not boot sounds related to:
+
+Mobile AMD Sempron(tm) Processor 3500+ does not boot with i386 kernel
+https://bugzilla.novell.com/show_bug.cgi?id=3D331960
+
+If you don't mind you could post the timer things you found out there
+and eventually we could have a look how to get the machine going with
+i386, the reporter has handed over the machine to his girl friend,
+therefore the bug got stuck...
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
