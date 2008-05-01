@@ -1,61 +1,76 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: 2.6.25 pci=noacpi
-Date: Thu, 1 May 2008 11:59:37 -0400
-Message-ID: <200805011159.38059.lenb@kernel.org>
-References: <20080425183807.366134771@ldl.fc.hp.com> <200805010110.40709.lenb@kernel.org> <48196CC5.6070704@gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH] ACPI: re-name acpi_pm_ops to acpi_suspend_ops
+Date: Thu, 1 May 2008 18:14:36 +0200
+Message-ID: <20080501161436.GF26085@elf.ucw.cz>
+References: <200804291020.33068.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-2022-jp"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:51875 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757513AbYEAQAX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 1 May 2008 12:00:23 -0400
-In-Reply-To: <48196CC5.6070704@gmail.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.31.123]:54734 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751290AbYEAQOQ (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Thu, 1 May 2008 12:14:16 -0400
 Content-Disposition: inline
+In-Reply-To: <200804291020.33068.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Richard <tuxbox.guru@gmail.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>
+To: Len Brown <lenb@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux-acpi@vger.kernel.org
 
-On Thursday 01 May 2008, Richard wrote:
-> Len Brown wrote:
-> > On Tuesday 29 April 2008, Richard wrote:
-> >   
-> >> Hi there,
-> >>
-> >> Now I am at a loss.. I cant get any logs from netconsole. With ACPI
-> >> enabled it drops dead just after the kernel hands control to Init. When
-> >> I reboot with acpi disabled there is no trace of the previous boot in
-> >> /var/log/message or kernel logs.
-> >>
-> >> The network card I have is a Tigon3 and its not initialised before the
-> >> system dies... or so it looks (altho I cant seem to get any netconsole
-> >> working - I suspect pebkac)
-> >>
-> >> I have tried to find an option where the kernel boot is logged
-> >> explicitly to disk, but I cant seem to find the option. There is so much
-> >> chaff I cant seem to get my brain to find the REAL options list thats up
-> >> to date.
-> >>
-> >> Any pointers are appreciated
-> >>     
-> >
-> > go fishing with this bait:
-> >
-> > idle=poll
-> > acpi=noirq
-> >
-> > -Len
-> >
-> >   
-> Thanks :-) With help from Thomas (and his team) , noapictimer seems to
-> have fixed the symptom.. now its to hunt for the cure :-)
+Hi!
 
-if the problem is the apic timer stopping during C-states,
-then you should find that idle=poll will also work around the problem.
-If idle=poll does not work around it but noapictimer does, then
-the problem is the apic timer when the system is non-idle.
+> Pavel, Rafael,
+> I re-named the acpi_pm_* ops to be acpi_suspend_* below.
+> 
+> I think also that main.c isn't the best name for this file,
+> how about acpi_platform_suspend.c, or maybe just acpi_suspend.c?
 
--Len
+sleep/main.c sounds quite sensible, but I guess acpi_suspend.c would
+be okay, too.
+
+> commit 2c6e33c366bff2f839df60d9235ff09143e28dd9
+> Author: Len Brown <len.brown@intel.com>
+> Date:   Wed Apr 23 18:02:52 2008 -0400
+> 
+>     ACPI: re-name acpi_pm_ops to acpi_suspend_ops
+>     
+>     ... as they are platform_suspend_ops after all.
+>     
+>     cosmetic re-name only, no functional change.
+>     
+>     Signed-off-by: Len Brown <len.brown@intel.com>
+> 
+> diff --git a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
+> index 71183ee..c3b0cd8 100644
+> --- a/drivers/acpi/sleep/main.c
+> +++ b/drivers/acpi/sleep/main.c
+> @@ -51,7 +51,7 @@ static int acpi_sleep_prepare(u32 acpi_state)
+>  }
+>  
+>  #ifdef CONFIG_SUSPEND
+> -static struct platform_suspend_ops acpi_pm_ops;
+> +static struct platform_suspend_ops acpi_suspend_ops;
+>  
+
+ACK.
+
+>  extern void do_suspend_lowlevel(void);
+>  
+> @@ -65,11 +65,11 @@ static u32 acpi_suspend_states[] = {
+>  static int init_8259A_after_S1;
+>  
+>  /**
+> - *	acpi_pm_begin - Set the target system sleep state to the state
+> + *	acpi_suspend_begin - Set the target system sleep state to the state
+>   *		associated with given @pm_state, if supported.
+>   */
+>  
+> -static int acpi_pm_begin(suspend_state_t pm_state)
+> +static int acpi_suspend_begin(suspend_state_t pm_state)
+
+And yes, this means it is very good idea.
+									Pavel
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
