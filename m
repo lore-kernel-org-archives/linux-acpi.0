@@ -1,44 +1,61 @@
-From: Adrian Bunk <bunk@kernel.org>
-Subject: Re: [GIT PATCH] ACPI patches for 2.6.26-rc0
-Date: Thu, 1 May 2008 15:16:08 +0300
-Message-ID: <20080501121608.GZ29330@cs181133002.pp.htv.fi>
-References: <200804301420.11696.lenb@kernel.org> <alpine.LFD.1.10.0804301153100.2980@woody.linux-foundation.org> <20080501102641.b7970395.sfr@canb.auug.org.au>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: 2.6.25 pci=noacpi
+Date: Thu, 1 May 2008 11:59:37 -0400
+Message-ID: <200805011159.38059.lenb@kernel.org>
+References: <20080425183807.366134771@ldl.fc.hp.com> <200805010110.40709.lenb@kernel.org> <48196CC5.6070704@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain;
+  charset="iso-2022-jp"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp6.pp.htv.fi ([213.243.153.40]:33579 "EHLO smtp6.pp.htv.fi"
+Received: from hera.kernel.org ([140.211.167.34]:51875 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751789AbYEAMQz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 1 May 2008 08:16:55 -0400
+	id S1757513AbYEAQAX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 1 May 2008 12:00:23 -0400
+In-Reply-To: <48196CC5.6070704@gmail.com>
 Content-Disposition: inline
-In-Reply-To: <20080501102641.b7970395.sfr@canb.auug.org.au>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: postmaster@kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org
+To: Richard <tuxbox.guru@gmail.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>
 
-On Thu, May 01, 2008 at 10:26:41AM +1000, Stephen Rothwell wrote:
-> On Wed, 30 Apr 2008 11:55:57 -0700 (PDT) Linus Torvalds <torvalds@linux-foundation.org> wrote:
+On Thursday 01 May 2008, Richard wrote:
+> Len Brown wrote:
+> > On Tuesday 29 April 2008, Richard wrote:
+> >   
+> >> Hi there,
+> >>
+> >> Now I am at a loss.. I cant get any logs from netconsole. With ACPI
+> >> enabled it drops dead just after the kernel hands control to Init. When
+> >> I reboot with acpi disabled there is no trace of the previous boot in
+> >> /var/log/message or kernel logs.
+> >>
+> >> The network card I have is a Tigon3 and its not initialised before the
+> >> system dies... or so it looks (altho I cant seem to get any netconsole
+> >> working - I suspect pebkac)
+> >>
+> >> I have tried to find an option where the kernel boot is logged
+> >> explicitly to disk, but I cant seem to find the option. There is so much
+> >> chaff I cant seem to get my brain to find the REAL options list thats up
+> >> to date.
+> >>
+> >> Any pointers are appreciated
+> >>     
 > >
-> > There were some (smaller) rejects in drivers/misc/intel_menlow.c due to 
-> > two different versions of the same patch from Julia Lawall (again, the 
-> > other came through Andrew), and I picked the one from Andrew because it 
-> > had the later date. But again, you should double-check.
-> 
-> I reported these to Len yesterday at 14:13 (+1000) but hera and zeus1
-> rejected this email with "451 4.3.2 Please try again later" until 4:41
-> (+1000) this morning ... Does anyone know why?
->...
+> > go fishing with this bait:
+> >
+> > idle=poll
+> > acpi=noirq
+> >
+> > -Len
+> >
+> >   
+> Thanks :-) With help from Thomas (and his team) , noapictimer seems to
+> have fixed the symptom.. now its to hunt for the cure :-)
 
-http://lkml.org/lkml/2008/4/30/394
- 
-cu
-Adrian
+if the problem is the apic timer stopping during C-states,
+then you should find that idle=poll will also work around the problem.
+If idle=poll does not work around it but noapictimer does, then
+the problem is the apic timer when the system is non-idle.
 
--- 
-
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
-
+-Len
