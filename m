@@ -1,76 +1,118 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] ACPI: re-name acpi_pm_ops to acpi_suspend_ops
-Date: Thu, 1 May 2008 18:14:36 +0200
-Message-ID: <20080501161436.GF26085@elf.ucw.cz>
-References: <200804291020.33068.lenb@kernel.org>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [patch 02/10] acpi: fix FADT parsing
+Date: Thu, 01 May 2008 19:38:59 +0200
+Message-ID: <1209663539.1131.25.camel@linux-2bdv.site>
+References: <200805010952.m419q29R031800@imap1.linux-foundation.org>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.31.123]:54734 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751290AbYEAQOQ (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Thu, 1 May 2008 12:14:16 -0400
-Content-Disposition: inline
-In-Reply-To: <200804291020.33068.lenb@kernel.org>
+Received: from mx2.suse.de ([195.135.220.15]:53825 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760501AbYEARjD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 1 May 2008 13:39:03 -0400
+In-Reply-To: <200805010952.m419q29R031800@imap1.linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux-acpi@vger.kernel.org
+To: akpm@linux-foundation.org, "Moore, Robert" <robert.moore@intel.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, jbeulich@novell.com, Zhao Yakui <yakui.zhao@intel.com>
 
-Hi!
+I wonder whether this could be the real fix for the ThinkPads where it
+helped to read FADT entries through RSDT instead of XSDT?
+Could this be related?
+http://bugzilla.kernel.org/show_bug.cgi?id=8246
 
-> Pavel, Rafael,
-> I re-named the acpi_pm_* ops to be acpi_suspend_* below.
+Hmm, I'll post the patch there, they should give it a try...
+
+Bob, do you mind giving this a review and push it into your acpica tree
+if it looks ok to you?
+This looks like a pretty important fix.
+
+Thanks,
+
+   Thomas
+
+On Thu, 2008-05-01 at 02:52 -0700, akpm@linux-foundation.org wrote:
+> From: "Jan Beulich" <jbeulich@novell.com>
 > 
-> I think also that main.c isn't the best name for this file,
-> how about acpi_platform_suspend.c, or maybe just acpi_suspend.c?
-
-sleep/main.c sounds quite sensible, but I guess acpi_suspend.c would
-be okay, too.
-
-> commit 2c6e33c366bff2f839df60d9235ff09143e28dd9
-> Author: Len Brown <len.brown@intel.com>
-> Date:   Wed Apr 23 18:02:52 2008 -0400
+> The (1.0 inherited) separate length fields in the FADT are byte granular. 
+> Further, PM1a/b may have distinct lengths and live in distinct address spaces.
+>  acpi_tb_convert_fadt() should account for all of these conditions.
 > 
->     ACPI: re-name acpi_pm_ops to acpi_suspend_ops
->     
->     ... as they are platform_suspend_ops after all.
->     
->     cosmetic re-name only, no functional change.
->     
->     Signed-off-by: Len Brown <len.brown@intel.com>
+> Apart from these changes I'm puzzled by the fact that, not just for
+> acpi_gbl_xpm1{a,b}_enable, acpi_hw_low_level_{read,write}() get an explicit
+> size passed rather than using the size found in the passed GAS.  What happens
+> on a platform that defines PM1{a,b} wider than 16 bits?  Of course,
+> acpi_hw_low_level_{read,write}() at present are entirely un-prepared to deal
+> with sizes other than 8, 16, or 32, not to speak of a non-zero bit_offset or
+> access_width...
 > 
-> diff --git a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
-> index 71183ee..c3b0cd8 100644
-> --- a/drivers/acpi/sleep/main.c
-> +++ b/drivers/acpi/sleep/main.c
-> @@ -51,7 +51,7 @@ static int acpi_sleep_prepare(u32 acpi_state)
+> Signed-off-by: Jan Beulich <jbeulich@novell.com>
+> Cc: Len Brown <lenb@kernel.org>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+> 
+>  drivers/acpi/tables/tbfadt.c |   16 +++++++++++-----
+>  1 file changed, 11 insertions(+), 5 deletions(-)
+> 
+> diff -puN drivers/acpi/tables/tbfadt.c~acpi-fix-fadt-parsing drivers/acpi/tables/tbfadt.c
+> --- a/drivers/acpi/tables/tbfadt.c~acpi-fix-fadt-parsing
+> +++ a/drivers/acpi/tables/tbfadt.c
+> @@ -124,7 +124,7 @@ static struct acpi_fadt_info fadt_info_t
+>  
+>  static void inline
+>  acpi_tb_init_generic_address(struct acpi_generic_address *generic_address,
+> -			     u8 bit_width, u64 address)
+> +			     u8 byte_width, u64 address)
+>  {
+>  
+>  	/*
+> @@ -136,7 +136,7 @@ acpi_tb_init_generic_address(struct acpi
+>  	/* All other fields are byte-wide */
+>  
+>  	generic_address->space_id = ACPI_ADR_SPACE_SYSTEM_IO;
+> -	generic_address->bit_width = bit_width;
+> +	generic_address->bit_width = byte_width << 3;
+>  	generic_address->bit_offset = 0;
+>  	generic_address->access_width = 0;
 >  }
+> @@ -343,9 +343,11 @@ static void acpi_tb_convert_fadt(void)
+>  	 *
+>  	 * The PM event blocks are split into two register blocks, first is the
+>  	 * PM Status Register block, followed immediately by the PM Enable Register
+> -	 * block. Each is of length (pm1_event_length/2)
+> +	 * block. Each is of length (xpm1x_event_block.bit_width/2)
+>  	 */
+> -	pm1_register_length = (u8) ACPI_DIV_2(acpi_gbl_FADT.pm1_event_length);
+> +	WARN_ON(ACPI_MOD_16(acpi_gbl_FADT.xpm1a_event_block.bit_width));
+> +	pm1_register_length = (u8) ACPI_DIV_16(acpi_gbl_FADT
+> +					       .xpm1a_event_block.bit_width);
 >  
->  #ifdef CONFIG_SUSPEND
-> -static struct platform_suspend_ops acpi_pm_ops;
-> +static struct platform_suspend_ops acpi_suspend_ops;
+>  	/* The PM1A register block is required */
 >  
+> @@ -360,13 +362,17 @@ static void acpi_tb_convert_fadt(void)
+>  	/* The PM1B register block is optional, ignore if not present */
+>  
+>  	if (acpi_gbl_FADT.xpm1b_event_block.address) {
+> +		WARN_ON(ACPI_MOD_16(acpi_gbl_FADT.xpm1b_event_block.bit_width));
+> +		pm1_register_length = (u8) ACPI_DIV_16(acpi_gbl_FADT
+> +						       .xpm1b_event_block
+> +						       .bit_width);
+>  		acpi_tb_init_generic_address(&acpi_gbl_xpm1b_enable,
+>  					     pm1_register_length,
+>  					     (acpi_gbl_FADT.xpm1b_event_block.
+>  					      address + pm1_register_length));
+>  		/* Don't forget to copy space_id of the GAS */
+>  		acpi_gbl_xpm1b_enable.space_id =
+> -		    acpi_gbl_FADT.xpm1a_event_block.space_id;
+> +		    acpi_gbl_FADT.xpm1b_event_block.space_id;
+>  
+>  	}
+>  }
+> _
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-ACK.
-
->  extern void do_suspend_lowlevel(void);
->  
-> @@ -65,11 +65,11 @@ static u32 acpi_suspend_states[] = {
->  static int init_8259A_after_S1;
->  
->  /**
-> - *	acpi_pm_begin - Set the target system sleep state to the state
-> + *	acpi_suspend_begin - Set the target system sleep state to the state
->   *		associated with given @pm_state, if supported.
->   */
->  
-> -static int acpi_pm_begin(suspend_state_t pm_state)
-> +static int acpi_suspend_begin(suspend_state_t pm_state)
-
-And yes, this means it is very good idea.
-									Pavel
-
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
