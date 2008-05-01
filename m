@@ -1,74 +1,109 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: [GIT PATCH] ACPI patches for 2.6.26-rc0
-Date: Thu, 1 May 2008 10:26:41 +1000
-Message-ID: <20080501102641.b7970395.sfr@canb.auug.org.au>
-References: <200804301420.11696.lenb@kernel.org>
-	<alpine.LFD.1.10.0804301153100.2980@woody.linux-foundation.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] Fix acpi_processor_idle and idle= boot parameter interaction
+Date: Wed, 30 Apr 2008 22:12:01 -0400
+Message-ID: <200804302212.01674.lenb@kernel.org>
+References: <20080429225726.GA27244@linux-os.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Thu__1_May_2008_10_26_41_+1000_cousAr.6IDldLgrM"
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from chilli.pcug.org.au ([203.10.76.44]:54486 "EHLO smtps.tip.net.au"
+Received: from hera.kernel.org ([140.211.167.34]:43485 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755823AbYEAA0u (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 Apr 2008 20:26:50 -0400
-In-Reply-To: <alpine.LFD.1.10.0804301153100.2980@woody.linux-foundation.org>
+	id S1753423AbYEACMU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 30 Apr 2008 22:12:20 -0400
+In-Reply-To: <20080429225726.GA27244@linux-os.sc.intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: postmaster@kernel.org
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org
+To: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
---Signature=_Thu__1_May_2008_10_26_41_+1000_cousAr.6IDldLgrM
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This is upstream now.
 
-On Wed, 30 Apr 2008 11:55:57 -0700 (PDT) Linus Torvalds <torvalds@linux-fou=
-ndation.org> wrote:
->
-> There were some (smaller) rejects in drivers/misc/intel_menlow.c due to=20
-> two different versions of the same patch from Julia Lawall (again, the=20
-> other came through Andrew), and I picked the one from Andrew because it=20
-> had the later date. But again, you should double-check.
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=36a913586597cab1cd565e9bf348d037f0df955b
 
-I reported these to Len yesterday at 14:13 (+1000) but hera and zeus1
-rejected this email with "451 4.3.2 Please try again later" until 4:41
-(+1000) this morning ... Does anyone know why?
+thanks,
+-Len
 
-In fact, even then the logs said:
+On Tuesday 29 April 2008, Venki Pallipadi wrote:
+> 
+> acpi_processor_idle and "idle=" boot parameter interaction is broken.
+> The problem is that, at boot time acpi driver is checking for "idle=" boot
+> option and not registering the acpi idle handler. But, when there is a CST
+> changed callback (typically when switching AC <-> battery or suspend-resume)
+> there are no checks for boot_option_idle_override and acpi idle handler tries
+> to get installed with nasty side effects.
+> 
+> With CPU_IDLE configured this issue causes results in a nasty oops on CST
+> change callback and without CPU_IDLE there is no oops, but boot option
+> of "idle=" gets ignored and acpi idle handler gets installed.
+> 
+> Change the behavior to not do anything in acpi idle handler when there is a
+> "idle=" boot option.
+> 
+> Note that the problem is only there when "idle=" boot option is used.
+> 
+> Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+> 
+> ---
+>  drivers/acpi/processor_idle.c |   14 ++++++++++++--
+>  1 file changed, 12 insertions(+), 2 deletions(-)
+> 
+> Index: linux-2.6/drivers/acpi/processor_idle.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/processor_idle.c	2008-04-29 14:28:06.000000000 -0700
+> +++ linux-2.6/drivers/acpi/processor_idle.c	2008-04-29 14:28:13.000000000 -0700
+> @@ -1295,6 +1295,8 @@ int acpi_processor_cst_has_changed(struc
+>  {
+>  	int result = 0;
+>  
+> +	if (boot_option_idle_override)
+> +		return 0;
+>  
+>  	if (!pr)
+>  		return -EINVAL;
+> @@ -1734,6 +1736,9 @@ int acpi_processor_cst_has_changed(struc
+>  {
+>  	int ret;
+>  
+> +	if (boot_option_idle_override)
+> +		return 0;
+> +
+>  	if (!pr)
+>  		return -EINVAL;
+>  
+> @@ -1764,6 +1769,8 @@ int __cpuinit acpi_processor_power_init(
+>  	struct proc_dir_entry *entry = NULL;
+>  	unsigned int i;
+>  
+> +	if (boot_option_idle_override)
+> +		return 0;
+>  
+>  	if (!first_run) {
+>  		dmi_check_system(processor_power_dmi_table);
+> @@ -1799,7 +1806,7 @@ int __cpuinit acpi_processor_power_init(
+>  	 * Note that we use previously set idle handler will be used on
+>  	 * platforms that only support C1.
+>  	 */
+> -	if ((pr->flags.power) && (!boot_option_idle_override)) {
+> +	if (pr->flags.power) {
+>  #ifdef CONFIG_CPU_IDLE
+>  		acpi_processor_setup_cpuidle(pr);
+>  		pr->power.dev.cpu = pr->id;
+> @@ -1835,8 +1842,11 @@ int __cpuinit acpi_processor_power_init(
+>  int acpi_processor_power_exit(struct acpi_processor *pr,
+>  			      struct acpi_device *device)
+>  {
+> +	if (boot_option_idle_override)
+> +		return 0;
+> +
+>  #ifdef CONFIG_CPU_IDLE
+> -	if ((pr->flags.power) && (!boot_option_idle_override))
+> +	if (pr->flags.power)
+>  		cpuidle_unregister_device(&pr->power.dev);
+>  #endif
+>  	pr->flags.power_setup_done = 0;
+> 
 
-May  1 04:41:17 chilli postfix/qmgr[25076]: BFB2F36800C: from=3D<sfr@canb.a=
-uug.org
-.au>, size=3D1742, nrcpt=3D2 (queue active)
-May  1 04:41:19 chilli postfix/smtp[29167]: BFB2F36800C: host zeus1.kernel.=
-org[2
-04.152.191.4] said: 451 4.3.2 Please try again later (in reply to MAIL FROM=
- comm
-and)
-May  1 04:41:21 chilli postfix/smtp[29167]: BFB2F36800C: to=3D<lenb@kernel.=
-org>, r
-elay=3Dzeus2.kernel.org[204.152.191.36]:25, delay=3D52057, delays=3D52053/0=
-.03/3.2/0.6
-8, dsn=3D2.0.0, status=3Dsent (250 2.0.0 m3UIfK9Z027193 Message accepted fo=
-r deliver
-y)
 
-And, as you can see, it was eventually delivered via zeus2.
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
-
---Signature=_Thu__1_May_2008_10_26_41_+1000_cousAr.6IDldLgrM
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFIGQ5FTgG2atn1QN8RAt7zAKCFhhz/J3BagUT8CeK9WEIueXPoDACdFr1Y
-nXSAv+PA3DIfBr5lBerSv1E=
-=jKhE
------END PGP SIGNATURE-----
-
---Signature=_Thu__1_May_2008_10_26_41_+1000_cousAr.6IDldLgrM--
