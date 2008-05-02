@@ -1,111 +1,55 @@
-From: akpm@linux-foundation.org
-Subject: [patch 07/10] acpi_pm_device_sleep_state() cleanup
-Date: Fri, 02 May 2008 13:31:41 -0700
-Message-ID: <200805022031.m42KVfbO013069@imap1.linux-foundation.org>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: Linux 2.6.25 (coretemp reads high temperatures)
+Date: Fri, 2 May 2008 22:35:30 +0200
+Message-ID: <20080502203529.GD3956@ucw.cz>
+References: <e85b9d30804180837y39c52e26i588e4b67c87a5e9d@mail.gmail.com> <200804182151.49021.lenb@kernel.org> <200804231143.10875.maximlevitsky@gmail.com> <1209406784.11608.15.camel@localhost> <1209474423.1784.837.camel@queen.suse.de> <20080429170824.09540206@hyperion.delvare> <48179DB4.8040701@assembler.cz>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32783 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765118AbYEBUcN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 May 2008 16:32:13 -0400
+Received: from atrey.karlin.mff.cuni.cz ([195.113.31.123]:46183 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757997AbYEBUfq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 May 2008 16:35:46 -0400
+Content-Disposition: inline
+In-Reply-To: <48179DB4.8040701@assembler.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, dbrownell@users.sourceforge.net, bjorn.helgaas@hp.com, jbarnes@virtuousgeek.org, pavel@ucw.cz, trenn@suse.de
+To: Rudolf Marek <r.marek@assembler.cz>
+Cc: Jean Delvare <khali@linux-fr.org>, Maxim Levitsky <maximlevitsky@gmail.com>, trenn@suse.de, Kasper Sandberg <lkml@metanurb.dk>, Len Brown <lenb@kernel.org>, Matthew <jackdachef@gmail.com>, linux-acpi@vger.kernel.org, torvalds@linux-foundation.org, linux-kernel@vger.kernel.org, "Zhang, Rui" <rui.zhang@intel.com>
 
-From: David Brownell <dbrownell@users.sourceforge.net>
+Hi!
 
-Get rid of a superfluous acpi_pm_device_sleep_state() parameter.  The only
-legitimate value of that parameter must be derived from the first parameter,
-which is what all the callers already do.  (However, this does not address the
-fact that ACPI *still* doesn't set up those flags.)
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Cc: Thomas Renninger <trenn@suse.de>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+> > I still need to be convinced that there is a bug here.
+> 
+> It is not a bug, a max limit changed too, it is just matter how to scale it. The
+> temperature is non-physical so comparing it to physical temperature does not
+> make any sense. I'm sorry I did not invent this relative temp stuff - Complain
+> @intel. They have some calibration of TjMAX for mobiles, but this bit does not
+> work for desktops/servers. I tried really hard to get at LEAST some
+> documentation so the driver looks like it looks. And not
+> guessed/guessed/guessed/how it looked earlier.
 
- drivers/acpi/sleep/main.c  |    8 ++++----
- drivers/pci/pci-acpi.c     |    3 +--
- drivers/pnp/pnpacpi/core.c |    4 +---
- include/acpi/acpi_bus.h    |    4 ++--
- 4 files changed, 8 insertions(+), 11 deletions(-)
+If absolute temperature is not known, could we move it to some
+obviously invalid range, so that people would not treat it as absolute
+temperature?
 
-diff -puN drivers/acpi/sleep/main.c~acpi_pm_device_sleep_state-cleanup drivers/acpi/sleep/main.c
---- a/drivers/acpi/sleep/main.c~acpi_pm_device_sleep_state-cleanup
-+++ a/drivers/acpi/sleep/main.c
-@@ -369,8 +369,8 @@ int acpi_suspend(u32 acpi_state)
- /**
-  *	acpi_pm_device_sleep_state - return preferred power state of ACPI device
-  *		in the system sleep state given by %acpi_target_sleep_state
-- *	@dev: device to examine
-- *	@wake: if set, the device should be able to wake up the system
-+ *	@dev: device to examine; its driver model wakeup flags control
-+ *		whether it should be able to wake up the system
-  *	@d_min_p: used to store the upper limit of allowed states range
-  *	Return value: preferred power state of the device on success, -ENODEV on
-  *		failure (ie. if there's no 'struct acpi_device' for @dev)
-@@ -388,7 +388,7 @@ int acpi_suspend(u32 acpi_state)
-  *	via @wake.
-  */
- 
--int acpi_pm_device_sleep_state(struct device *dev, int wake, int *d_min_p)
-+int acpi_pm_device_sleep_state(struct device *dev, int *d_min_p)
- {
- 	acpi_handle handle = DEVICE_ACPI_HANDLE(dev);
- 	struct acpi_device *adev;
-@@ -427,7 +427,7 @@ int acpi_pm_device_sleep_state(struct de
- 	 * can wake the system.  _S0W may be valid, too.
- 	 */
- 	if (acpi_target_sleep_state == ACPI_STATE_S0 ||
--	    (wake && adev->wakeup.state.enabled &&
-+	    (device_may_wakeup(dev) && adev->wakeup.state.enabled &&
- 	     adev->wakeup.sleep_state <= acpi_target_sleep_state)) {
- 		acpi_status status;
- 
-diff -puN drivers/pci/pci-acpi.c~acpi_pm_device_sleep_state-cleanup drivers/pci/pci-acpi.c
---- a/drivers/pci/pci-acpi.c~acpi_pm_device_sleep_state-cleanup
-+++ a/drivers/pci/pci-acpi.c
-@@ -249,8 +249,7 @@ static pci_power_t acpi_pci_choose_state
- {
- 	int acpi_state;
- 
--	acpi_state = acpi_pm_device_sleep_state(&pdev->dev,
--		device_may_wakeup(&pdev->dev), NULL);
-+	acpi_state = acpi_pm_device_sleep_state(&pdev->dev, NULL);
- 	if (acpi_state < 0)
- 		return PCI_POWER_ERROR;
- 
-diff -puN drivers/pnp/pnpacpi/core.c~acpi_pm_device_sleep_state-cleanup drivers/pnp/pnpacpi/core.c
---- a/drivers/pnp/pnpacpi/core.c~acpi_pm_device_sleep_state-cleanup
-+++ a/drivers/pnp/pnpacpi/core.c
-@@ -117,9 +117,7 @@ static int pnpacpi_suspend(struct pnp_de
- {
- 	int power_state;
- 
--	power_state = acpi_pm_device_sleep_state(&dev->dev,
--						device_may_wakeup(&dev->dev),
--						NULL);
-+	power_state = acpi_pm_device_sleep_state(&dev->dev, NULL);
- 	if (power_state < 0)
- 		power_state = (state.event == PM_EVENT_ON) ?
- 				ACPI_STATE_D0 : ACPI_STATE_D3;
-diff -puN include/acpi/acpi_bus.h~acpi_pm_device_sleep_state-cleanup include/acpi/acpi_bus.h
---- a/include/acpi/acpi_bus.h~acpi_pm_device_sleep_state-cleanup
-+++ a/include/acpi/acpi_bus.h
-@@ -376,9 +376,9 @@ acpi_handle acpi_get_pci_rootbridge_hand
- #define DEVICE_ACPI_HANDLE(dev) ((acpi_handle)((dev)->archdata.acpi_handle))
- 
- #ifdef CONFIG_PM_SLEEP
--int acpi_pm_device_sleep_state(struct device *, int, int *);
-+int acpi_pm_device_sleep_state(struct device *, int *);
- #else /* !CONFIG_PM_SLEEP */
--static inline int acpi_pm_device_sleep_state(struct device *d, int w, int *p)
-+static inline int acpi_pm_device_sleep_state(struct device *d, int *p)
- {
- 	if (p)
- 		*p = ACPI_STATE_D0;
-_
+Like, set tjmax == 0K, and report relative temperatures below 0K? Or
+move it to 100-200C range, which is obviously invalid?
+
+Or maybe invent 'relative temperature' attribute?
+
+> >>>> Lets at least make a kernel option to override tjmax?
+> > 
+> > That's a possibility for sure, but what we would really need is to
+> > adjust the coretemp driver heuristics to always get it right - if
+> > that's not already the case, that is. I'll let Rudolf decide anyway.
+> 
+> Well again, Intel swears there is no way how to get the TjMAX for
+> desktops/servers. It sucks but this is not my fault.
+
+Uff, does it differ between cpus with same stepping/etc?
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
