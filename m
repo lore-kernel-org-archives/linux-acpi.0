@@ -1,160 +1,59 @@
-From: Kent Rasmussen <kent_rasmussen@sil.org>
-Subject: Satellite A205-S5812 dmidecode
-Date: Fri, 02 May 2008 11:50:30 -0700
-Message-ID: <481B6276.5070008@sil.org>
+From: "Jan Beulich" <jbeulich@novell.com>
+Subject: Re: [patch 05/10] acpi: use __init* on everything
+	intables/tbfadt.c
+Date: Fri, 02 May 2008 20:43:04 +0100
+Message-ID: <481B7CDA020000780004B921@vpn.id2.novell.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------080608030408030108070306"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.wsfo.org ([208.145.81.51]:52955 "EHLO smtp1.wsfo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934352AbYEBS75 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 2 May 2008 14:59:57 -0400
-Received: from mail.link77.net (mail.link77.net [172.22.0.125])
-	by smtp1.wsfo.org (8.13.1/8.13.1) with ESMTP id m42IotId017411
-	(version=TLSv1/SSLv3 cipher=DES-CBC3-SHA bits=168 verify=NO)
-	for <linux-acpi@vger.kernel.org>; Fri, 2 May 2008 14:50:55 -0400
-Received: from [64.13.10.8] (account kent_rasmussen@sil.org HELO [192.168.0.3])
-  by mail.link77.net (CommuniGate Pro SMTP 5.2.2)
-  with ESMTPSA id 180307916 for linux-acpi@vger.kernel.org; Fri, 02 May 2008 14:50:54 -0400
+Received: from vpn.id2.novell.com ([195.33.99.129]:43069 "EHLO
+	vpn.id2.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932248AbYEBTnL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 May 2008 15:43:11 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: trenn@suse.de
+Cc: robert.moore@intel.com, lenb@kernel.org, akpm@linux-foundation.org, linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------080608030408030108070306
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+>>> Thomas Renninger <trenn@suse.de> 05/01/08 8:55 PM >>>
+>Andrew, IMO you can drop this and the const cleanups from -mm tree.
+>
+>Jan, nearly all code in:
+>drivers/acpi/*/*.[hc]
+>is part of ACPICA. This currently still is (may change) an Intel
+>internal repository which gets synced to several OS implementations,
+>also Linux. __init does not exist there (yet).
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+I'm fairly sure I saw __init used elsewhere in ACPI CA code, so I
+didn't think adding mode stuff like this would cause problems (as
+long as the changes were correct of course).
 
-I saw a note in the dmesg output, and ran this for you with Kernel
-command line: root=UUID=ba635616-7113-4ba4-b686-48fd31b651f9 ro
-splash acpi_osi=!Linux
+>Also the const changes may be a bit of a pain -> this is what Robert
+>meant with as long as it won't end in a chain of const cleanups :)
 
-If this helps, or tells you anything useful about my computer,
-please let me know.
+Of course they're a pain now. But see below.
 
-Thanks,
+>The whole code gets style cleaned up through Lindent and manually to
+>half way fit to the Linux kernel style when things get merged.
+>
+>Currently Robert has to readjust this to ACPICA coding style by hand
+>and merge it into the internal Intel repository. Len has to pick it up
+>somewhat later and merge it back to the Linux kernel...
+>
+>Therefore I expect for cleanup patches (this one is on the edge, but I
+>could understand Intel if they hold it off) the best is to wait until
+>Intel publishs ACPICA as CVS or whatever repository on their
+>lesswatts.org site.
 
-Kent Rasmussen
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
+That's brave to say - I've been seeing this kind of significant cleanup
+potential about seven years ago (when I wasn't dealing with ACPI CA
+on Linux, yet), so I have to admit I find it a little odd (at least) to defer
+this even further - the code should have been written const-correct
+and __init-ready (iirc Windows also has a concept of init code) from
+the beginning in my opinion. ANyway, the purpose of both patches
+was to try and get this cleanup started in Linux or at least turn
+attention to this on the ACPI CA side.
 
-iD8DBQFIG2J2c7tUjlKyxNMRAt10AKCF5M0A4UtQ/8mH+teAAzz44vzBkgCfUTZ9
-D95K+6ja/VkoFsuHcJxfNmQ=
-=lXne
------END PGP SIGNATURE-----
-
---------------080608030408030108070306
-Content-Type: text/plain;
- name="dmidecode.ToshibaA205-S5812.txt"
-Content-Transfer-Encoding: base64
-Content-Disposition: inline;
- filename="dmidecode.ToshibaA205-S5812.txt"
-
-IyBkbWlkZWNvZGUgMi45ClNNQklPUyAyLjQgcHJlc2VudC4KMjAgc3RydWN0dXJlcyBvY2N1
-cHlpbmcgODg5IGJ5dGVzLgpUYWJsZSBhdCAweDAwMERGMDEwLgoKSGFuZGxlIDB4MDAwMCwg
-RE1JIHR5cGUgMCwgMjQgYnl0ZXMKQklPUyBJbmZvcm1hdGlvbgoJVmVuZG9yOiBQaG9lbml4
-IFRlY2hub2xvZ2llcyBMVEQKCVZlcnNpb246IDEuOTAgICAgCglSZWxlYXNlIERhdGU6IDAx
-LzE5LzIwMDgKCUFkZHJlc3M6IDB4RTVEQjAKCVJ1bnRpbWUgU2l6ZTogMTA3MDg4IGJ5dGVz
-CglST00gU2l6ZTogMTAyNCBrQgoJQ2hhcmFjdGVyaXN0aWNzOgoJCUlTQSBpcyBzdXBwb3J0
-ZWQKCQlQQ0kgaXMgc3VwcG9ydGVkCgkJUEMgQ2FyZCAoUENNQ0lBKSBpcyBzdXBwb3J0ZWQK
-CQlQTlAgaXMgc3VwcG9ydGVkCgkJQklPUyBpcyB1cGdyYWRlYWJsZQoJCUJJT1Mgc2hhZG93
-aW5nIGlzIGFsbG93ZWQKCQlFU0NEIHN1cHBvcnQgaXMgYXZhaWxhYmxlCgkJQm9vdCBmcm9t
-IENEIGlzIHN1cHBvcnRlZAoJCUFDUEkgaXMgc3VwcG9ydGVkCgkJVVNCIGxlZ2FjeSBpcyBz
-dXBwb3J0ZWQKCQlBR1AgaXMgc3VwcG9ydGVkCgkJQklPUyBib290IHNwZWNpZmljYXRpb24g
-aXMgc3VwcG9ydGVkCgkJVGFyZ2V0ZWQgY29udGVudCBkaXN0cmlidXRpb24gaXMgc3VwcG9y
-dGVkCgpIYW5kbGUgMHgwMDAxLCBETUkgdHlwZSAxLCAyNyBieXRlcwpTeXN0ZW0gSW5mb3Jt
-YXRpb24KCU1hbnVmYWN0dXJlcjogVE9TSElCQQoJUHJvZHVjdCBOYW1lOiBTYXRlbGxpdGUg
-QTIwNQoJVmVyc2lvbjogUFNBRjNVLTBQRDAwVgoJU2VyaWFsIE51bWJlcjogWjczNTAxNDlR
-CglVVUlEOiAwRjVEM0UwMC1CMDMwLTExREMtQTcwRS0wMEEwRDE5NDQ0RUYKCVdha2UtdXAg
-VHlwZTogUG93ZXIgU3dpdGNoCglTS1UgTnVtYmVyOiBOb3QgU3BlY2lmaWVkCglGYW1pbHk6
-IE5vdCBTcGVjaWZpZWQKCkhhbmRsZSAweDAwMDIsIERNSSB0eXBlIDIsIDggYnl0ZXMKQmFz
-ZSBCb2FyZCBJbmZvcm1hdGlvbgoJTWFudWZhY3R1cmVyOiBJbnRlbCBDb3Jwb3JhdGlvbgoJ
-UHJvZHVjdCBOYW1lOiBTQU5UQSBST1NBIENSQgoJVmVyc2lvbjogTm90IEFwcGxpY2FibGUK
-CVNlcmlhbCBOdW1iZXI6IE5vdCBBcHBsaWNhYmxlCgpIYW5kbGUgMHgwMDAzLCBETUkgdHlw
-ZSAzLCAxNyBieXRlcwpDaGFzc2lzIEluZm9ybWF0aW9uCglNYW51ZmFjdHVyZXI6IE5vIEVu
-Y2xvc3VyZQoJVHlwZTogT3RoZXIKCUxvY2s6IE5vdCBQcmVzZW50CglWZXJzaW9uOiBOL0EK
-CVNlcmlhbCBOdW1iZXI6IE5vbmUKCUFzc2V0IFRhZzogTm8gQXNzZXQgVGFnCglCb290LXVw
-IFN0YXRlOiBTYWZlCglQb3dlciBTdXBwbHkgU3RhdGU6IFNhZmUKCVRoZXJtYWwgU3RhdGU6
-IFNhZmUKCVNlY3VyaXR5IFN0YXR1czogTm9uZQoJT0VNIEluZm9ybWF0aW9uOiAweDAwMDAx
-MjM0CgpIYW5kbGUgMHgwMDA0LCBETUkgdHlwZSA0LCAzNSBieXRlcwpQcm9jZXNzb3IgSW5m
-b3JtYXRpb24KCVNvY2tldCBEZXNpZ25hdGlvbjogVTJFMQoJVHlwZTogQ2VudHJhbCBQcm9j
-ZXNzb3IKCUZhbWlseTogPE9VVCBPRiBTUEVDPgoJTWFudWZhY3R1cmVyOiBJbnRlbAoJSUQ6
-IEZEIDA2IDAwIDAwIEZGIEZCIEVCIEJGCglWZXJzaW9uOiBDUFUgVmVyc2lvbgoJVm9sdGFn
-ZTogMy4zIFYKCUV4dGVybmFsIENsb2NrOiBVbmtub3duCglNYXggU3BlZWQ6IDQwOTYgTUh6
-CglDdXJyZW50IFNwZWVkOiAxNjAwIE1IegoJU3RhdHVzOiBQb3B1bGF0ZWQsIEVuYWJsZWQK
-CVVwZ3JhZGU6IFpJRiBTb2NrZXQKCUwxIENhY2hlIEhhbmRsZTogMHgwMDA1CglMMiBDYWNo
-ZSBIYW5kbGU6IDB4MDAwNgoJTDMgQ2FjaGUgSGFuZGxlOiBOb3QgUHJvdmlkZWQKCVNlcmlh
-bCBOdW1iZXI6IE5vdCBTcGVjaWZpZWQKCUFzc2V0IFRhZzogTm90IFNwZWNpZmllZAoJUGFy
-dCBOdW1iZXI6IE5vdCBTcGVjaWZpZWQKCkhhbmRsZSAweDAwMDUsIERNSSB0eXBlIDcsIDE5
-IGJ5dGVzCkNhY2hlIEluZm9ybWF0aW9uCglTb2NrZXQgRGVzaWduYXRpb246IEwxIENhY2hl
-CglDb25maWd1cmF0aW9uOiBFbmFibGVkLCBTb2NrZXRlZCwgTGV2ZWwgMQoJT3BlcmF0aW9u
-YWwgTW9kZTogV3JpdGUgQmFjawoJTG9jYXRpb246IEludGVybmFsCglJbnN0YWxsZWQgU2l6
-ZTogNjQgS0IKCU1heGltdW0gU2l6ZTogNjQgS0IKCVN1cHBvcnRlZCBTUkFNIFR5cGVzOgoJ
-CUJ1cnN0CgkJUGlwZWxpbmUgQnVyc3QKCQlBc3luY2hyb25vdXMKCUluc3RhbGxlZCBTUkFN
-IFR5cGU6IEFzeW5jaHJvbm91cwoJU3BlZWQ6IFVua25vd24KCUVycm9yIENvcnJlY3Rpb24g
-VHlwZTogVW5rbm93bgoJU3lzdGVtIFR5cGU6IFVua25vd24KCUFzc29jaWF0aXZpdHk6IFVu
-a25vd24KCkhhbmRsZSAweDAwMDYsIERNSSB0eXBlIDcsIDE5IGJ5dGVzCkNhY2hlIEluZm9y
-bWF0aW9uCglTb2NrZXQgRGVzaWduYXRpb246IEwyIENhY2hlCglDb25maWd1cmF0aW9uOiBF
-bmFibGVkLCBTb2NrZXRlZCwgTGV2ZWwgMgoJT3BlcmF0aW9uYWwgTW9kZTogV3JpdGUgQmFj
-awoJTG9jYXRpb246IEludGVybmFsCglJbnN0YWxsZWQgU2l6ZTogMTAyNCBLQgoJTWF4aW11
-bSBTaXplOiA0MDk2IEtCCglTdXBwb3J0ZWQgU1JBTSBUeXBlczoKCQlCdXJzdAoJCVBpcGVs
-aW5lIEJ1cnN0CgkJQXN5bmNocm9ub3VzCglJbnN0YWxsZWQgU1JBTSBUeXBlOiBCdXJzdAoJ
-U3BlZWQ6IFVua25vd24KCUVycm9yIENvcnJlY3Rpb24gVHlwZTogVW5rbm93bgoJU3lzdGVt
-IFR5cGU6IFVua25vd24KCUFzc29jaWF0aXZpdHk6IFVua25vd24KCkhhbmRsZSAweDAwMDcs
-IERNSSB0eXBlIDExLCA1IGJ5dGVzCk9FTSBTdHJpbmdzCglTdHJpbmcgMTogUFNBRjNVLTBQ
-RDAwVixTUTAwNDU4NVYwMywxMUIKCVN0cmluZyAyOiBUVmJDRlItOEVBT2s2CglTdHJpbmcg
-MzogWnNaS2gwRmtUNytwYwoJU3RyaW5nIDQ6IE5uRms5WlhidzFJMmwKCVN0cmluZyA1OiAg
-ICAgICAgICAgICAgICAgIAoKSGFuZGxlIDB4MDAwOCwgRE1JIHR5cGUgMTIsIDUgYnl0ZXMK
-U3lzdGVtIENvbmZpZ3VyYXRpb24gT3B0aW9ucwoJT3B0aW9uIDE6IE5WUjowMDcyNzAwMgoJ
-T3B0aW9uIDI6IERTTjogWjc4UVQwME5UICAgICAgICAgIAoJT3B0aW9uIDM6IERTTjo2NFQx
-MjgwMjFFREwzU0IyICAxNjBCMDkyNAoJT3B0aW9uIDQ6IERTTjo3QkVDQjlEQgoKSGFuZGxl
-IDB4MDAwOSwgRE1JIHR5cGUgMTYsIDE1IGJ5dGVzClBoeXNpY2FsIE1lbW9yeSBBcnJheQoJ
-TG9jYXRpb246IFN5c3RlbSBCb2FyZCBPciBNb3RoZXJib2FyZAoJVXNlOiBTeXN0ZW0gTWVt
-b3J5CglFcnJvciBDb3JyZWN0aW9uIFR5cGU6IE5vbmUKCU1heGltdW0gQ2FwYWNpdHk6IDQg
-R0IKCUVycm9yIEluZm9ybWF0aW9uIEhhbmRsZTogTm90IFByb3ZpZGVkCglOdW1iZXIgT2Yg
-RGV2aWNlczogMgoKSGFuZGxlIDB4MDAwQSwgRE1JIHR5cGUgMTcsIDI3IGJ5dGVzCk1lbW9y
-eSBEZXZpY2UKCUFycmF5IEhhbmRsZTogMHgwMDA5CglFcnJvciBJbmZvcm1hdGlvbiBIYW5k
-bGU6IDB4RkYwMQoJVG90YWwgV2lkdGg6IDY0IGJpdHMKCURhdGEgV2lkdGg6IDY0IGJpdHMK
-CVNpemU6IDEwMjQgTUIKCUZvcm0gRmFjdG9yOiBTT0RJTU0KCVNldDogMQoJTG9jYXRvcjog
-TTEKCUJhbmsgTG9jYXRvcjogQmFuayAwCglUeXBlOiBERFIyCglUeXBlIERldGFpbDogU3lu
-Y2hyb25vdXMKCVNwZWVkOiA2NjcgTUh6ICgxLjUgbnMpCglNYW51ZmFjdHVyZXI6IE1mZyAw
-CglTZXJpYWwgTnVtYmVyOiAxMjM0LUIwCglBc3NldCBUYWc6IE5vdCBTcGVjaWZpZWQKCVBh
-cnQgTnVtYmVyOiBTT0RJTU0wMDAKCkhhbmRsZSAweDAwMEIsIERNSSB0eXBlIDE3LCAyNyBi
-eXRlcwpNZW1vcnkgRGV2aWNlCglBcnJheSBIYW5kbGU6IDB4MDAwOQoJRXJyb3IgSW5mb3Jt
-YXRpb24gSGFuZGxlOiAweEZGMDEKCVRvdGFsIFdpZHRoOiA2NCBiaXRzCglEYXRhIFdpZHRo
-OiA2NCBiaXRzCglTaXplOiAxMDI0IE1CCglGb3JtIEZhY3RvcjogU09ESU1NCglTZXQ6IDEK
-CUxvY2F0b3I6IE0yCglCYW5rIExvY2F0b3I6IEJhbmsgMQoJVHlwZTogRERSMgoJVHlwZSBE
-ZXRhaWw6IFN5bmNocm9ub3VzCglTcGVlZDogNjY3IE1IeiAoMS41IG5zKQoJTWFudWZhY3R1
-cmVyOiBNZmcgMQoJU2VyaWFsIE51bWJlcjogMTIzNC1CMQoJQXNzZXQgVGFnOiBOb3QgU3Bl
-Y2lmaWVkCglQYXJ0IE51bWJlcjogU09ESU1NMDAxCgpIYW5kbGUgMHgwMDBDLCBETUkgdHlw
-ZSAxOSwgMTUgYnl0ZXMKTWVtb3J5IEFycmF5IE1hcHBlZCBBZGRyZXNzCglTdGFydGluZyBB
-ZGRyZXNzOiAweDAwMDAwMDAwMDAwCglFbmRpbmcgQWRkcmVzczogMHgwMDA3RkZGRkZGRgoJ
-UmFuZ2UgU2l6ZTogMiBHQgoJUGh5c2ljYWwgQXJyYXkgSGFuZGxlOiAweDAwMDkKCVBhcnRp
-dGlvbiBXaWR0aDogMAoKSGFuZGxlIDB4MDAwRCwgRE1JIHR5cGUgMjAsIDE5IGJ5dGVzCk1l
-bW9yeSBEZXZpY2UgTWFwcGVkIEFkZHJlc3MKCVN0YXJ0aW5nIEFkZHJlc3M6IDB4MDAwMDAw
-MDAwMDAKCUVuZGluZyBBZGRyZXNzOiAweDAwMDNGRkZGRkZGCglSYW5nZSBTaXplOiAxIEdC
-CglQaHlzaWNhbCBEZXZpY2UgSGFuZGxlOiAweDAwMEEKCU1lbW9yeSBBcnJheSBNYXBwZWQg
-QWRkcmVzcyBIYW5kbGU6IDB4MDAwQwoJUGFydGl0aW9uIFJvdyBQb3NpdGlvbjogVW5rbm93
-bgoJSW50ZXJsZWF2ZSBQb3NpdGlvbjogVW5rbm93bgoJSW50ZXJsZWF2ZWQgRGF0YSBEZXB0
-aDogVW5rbm93bgoKSGFuZGxlIDB4MDAwRSwgRE1JIHR5cGUgMjAsIDE5IGJ5dGVzCk1lbW9y
-eSBEZXZpY2UgTWFwcGVkIEFkZHJlc3MKCVN0YXJ0aW5nIEFkZHJlc3M6IDB4MDAwNDAwMDAw
-MDAKCUVuZGluZyBBZGRyZXNzOiAweDAwMDdGRkZGRkZGCglSYW5nZSBTaXplOiAxIEdCCglQ
-aHlzaWNhbCBEZXZpY2UgSGFuZGxlOiAweDAwMEIKCU1lbW9yeSBBcnJheSBNYXBwZWQgQWRk
-cmVzcyBIYW5kbGU6IDB4MDAwQwoJUGFydGl0aW9uIFJvdyBQb3NpdGlvbjogVW5rbm93bgoJ
-SW50ZXJsZWF2ZSBQb3NpdGlvbjogVW5rbm93bgoJSW50ZXJsZWF2ZWQgRGF0YSBEZXB0aDog
-VW5rbm93bgoKSGFuZGxlIDB4MDAwRiwgRE1JIHR5cGUgMzIsIDIwIGJ5dGVzClN5c3RlbSBC
-b290IEluZm9ybWF0aW9uCglTdGF0dXM6IDxPVVQgT0YgU1BFQz4KCkhhbmRsZSAweDAwMTAs
-IERNSSB0eXBlIDEyOSwgMTYgYnl0ZXMKT0VNLXNwZWNpZmljIFR5cGUKCUhlYWRlciBhbmQg
-RGF0YToKCQk4MSAxMCAxMCAwMCAwMSAwMSAwMiAwMSAwMCAwMCAwMCAwMSAwMCAwMCAwOCAw
-MQoJU3RyaW5nczoKCQlJbnRlbF9BU0ZfMDAxCgkJSW50ZWxfQVNGXzAwMQoKSGFuZGxlIDB4
-MDAxMSwgRE1JIHR5cGUgMTM2LCA2IGJ5dGVzCk9FTS1zcGVjaWZpYyBUeXBlCglIZWFkZXIg
-YW5kIERhdGE6CgkJODggMDYgMTEgMDAgRkYgRkYKCkhhbmRsZSAweDAwMTIsIERNSSB0eXBl
-IDE1MCwgMTQgYnl0ZXMKT0VNLXNwZWNpZmljIFR5cGUKCUhlYWRlciBhbmQgRGF0YToKCQk5
-NiAwRSAxMiAwMCAwMSAwMSAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMAoJU3RyaW5nczoKCQlB
-QlNPTFVURShQSE9FTklYKSBDTE0KCkhhbmRsZSAweDAwMTMsIERNSSB0eXBlIDEyNywgNCBi
-eXRlcwpFbmQgT2YgVGFibGUKCg==
---------------080608030408030108070306--
+Jan
