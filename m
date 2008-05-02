@@ -1,38 +1,43 @@
-From: Shane Hansen <shane.hansen@inl.gov>
-Subject: linux kernel 2.6.23+ can't restart
-Date: Fri, 02 May 2008 11:50:00 -0600
-Message-ID: <481B5448.6060202@inl.gov>
+From: "H. Peter Anvin" <hpa@zytor.com>
+Subject: Re: [Fwd: Overriding ACPI tables]
+Date: Fri, 02 May 2008 10:43:35 -0700
+Message-ID: <481B52C7.3040101@zytor.com>
+References: <1209661364.1131.8.camel@linux-2bdv.site> <481AE9D0.1030407@tremplin-utc.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-out.inel.gov ([134.20.15.178]:1544 "EHLO inel.gov"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1756647AbYEBQzW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 2 May 2008 12:55:22 -0400
+Received: from terminus.zytor.com ([198.137.202.10]:60205 "EHLO
+	terminus.zytor.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758145AbYEBRoA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 May 2008 13:44:00 -0400
+In-Reply-To: <481AE9D0.1030407@tremplin-utc.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Eric Piel <eric.piel@tremplin-utc.net>
+Cc: trenn@suse.de, linux-acpi@vger.kernel.org, Richard <tuxbox.guru@gmail.com>, andreas.herrmann3@amd.com
 
-May  2 11:45:18 [kernel] ACPI: DMI Product Version:
-May  2 11:45:18 [kernel] ACPI: DMI Board Name: 0F9382
-May  2 11:45:18 [kernel] ACPI: DMI BIOS Vendor: Dell Inc.
-May  2 11:45:18 [kernel] ACPI: DMI BIOS Date: 12/13/2007
+Eric Piel wrote:
+> Hi Peter,
+> 
+> Thank you for the pointer. You are talking about setup_data, right? I'll 
+> try to use it for reading the DSDT table. I have a couple of questions 
+> though:
+> * I can find reference of it only in setup_64.c, is it planned to add 
+> support also for 32bit? (That's a must for me)
+> * From inside the kernel, all I have to do is to add a hook inside 
+> parse_setup_data(), allocate memory and I'll be able to copy the data 
+> into this safe place, right?
+> * Is there any bootloader which already has support for this extension? 
+>  By chance, would you have a patch for grub?
+> 
 
-Since upgrading to the 2.6.23 / 2.6.24 kernels I can no longer "restart" 
-my system.  I can "shutdown" ok, the machine powers off just fine.  
-However when I try a "restart" the kernel goes through all the normal 
-stuff and then hangs on the line that says "Restarting System".  I have 
-to hold down the power button to power off the case...
+It is planned, but not yet implemented, because the early reservations 
+infrastructure hasn't been ported over to 32 bits yet.  The intent is to 
+reserve this memory early and automatically.
 
+So far this has only been used for large EFI SGI machines, so it's 
+probably been implemented on ELILO only.  As far as Grub is concerned, I 
+won't touch it with a ten-foot pole.
 
-Suggestions?
-
--- 
-Shane Hansen
-Cyber Security Research
-Idaho National Laboratory
-Work: 208-526-2793
-Cell: 208-351-3668
-
-
+	-hpa
