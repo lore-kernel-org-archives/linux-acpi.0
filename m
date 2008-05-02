@@ -1,75 +1,155 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: Linux 2.6.25 (coretemp reads high temperatures)
-Date: Fri, 2 May 2008 22:36:15 +0200
-Message-ID: <20080502203615.GF3956@ucw.cz>
-References: <e85b9d30804180837y39c52e26i588e4b67c87a5e9d@mail.gmail.com> <200804182151.49021.lenb@kernel.org> <200804231143.10875.maximlevitsky@gmail.com> <1209406784.11608.15.camel@localhost> <1209474423.1784.837.camel@queen.suse.de> <20080429170824.09540206@hyperion.delvare> <48179DB4.8040701@assembler.cz> <1209514274.27499.12.camel@localhost> <20080430082005.4b76186f@hyperion.delvare> <20080430145110.GC3543@khazad-dum.debian.net>
+From: Fenghua Yu <fenghua.yu@intel.com>
+Subject: [PATCH] Handle invalid ACPI SLIT table
+Date: Fri, 2 May 2008 15:26:45 -0700
+Message-ID: <20080502222645.GA25167@linux-os.sc.intel.com>
+References: <BAE9DCEF64577A439B3A37F36F9B691C0339372B@orsmsx418.amr.corp.intel.com> <617E1C2C70743745A92448908E030B2A02AD5AD7@scsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.31.123]:46259 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934352AbYEBUgb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 May 2008 16:36:31 -0400
+Received: from mga11.intel.com ([192.55.52.93]:61407 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1764239AbYEBW0q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 2 May 2008 18:26:46 -0400
 Content-Disposition: inline
-In-Reply-To: <20080430145110.GC3543@khazad-dum.debian.net>
+In-Reply-To: <617E1C2C70743745A92448908E030B2A02AD5AD7@scsmsx411.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Jean Delvare <khali@linux-fr.org>, Kasper Sandberg <lkml@metanurb.dk>, Rudolf Marek <r.marek@assembler.cz>, Maxim Levitsky <maximlevitsky@gmail.com>, trenn@suse.de, Len Brown <lenb@kernel.org>, Matthew <jackdachef@gmail.com>, linux-acpi@vger.kernel.org, torvalds@linux-foundation.org, linux-kernel@vger.kernel.org, "Zhang, Rui" <rui.zhang@intel.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, "Luck, Tony" <tony.luck@intel.com>, Len Brown <lenb@kernel.org>, Arjan van de Ven <arjan@lin>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org
 
-Hi!
 
-> > > So, im confused.. The reason for this is that the internal sensor=
- is
-> > > operating on some sort of weird scale, and thus when you interpol=
-ate it
-> > > into "your" scale, it doesent quite come out in the actual degree=
-s
-> > > celcius the cpu temperature really is?
-> >=20
-> > It's really only an offset, rather than scaling. The temperature
-> > reported by the Core and Core2 CPUs is a relative temperature. It t=
-ells
-> > how far you are from the maximum temperature the CPU can survive. T=
-he
-> > value is expressed in (relative) degrees C.
->=20
-> Ah, please ignore my email about ITUs (Intel thermal units), then.  T=
-he
-> above means 1ITU=3D1=B0C, but their zeros are at different places.
->=20
-> > Rudolf did his best to find out the (absolute) temperature each CPU
-> > model can survive (known as TJmax) so that the coretemp driver can
-> > provide an absolute temperature to user-space, as all other hardwar=
-e
-> > monitoring drivers do. Our hope was to limit the confusion, but it
-> > seems we failed ;) Maybe it would be better if the driver was repor=
-ting
-> > the relative temperature value directly when we don't know the TJma=
-x
-> > value for sure - but then all user-space tools would need to learn =
-how
-> > to deal with this.
->=20
-> Actually, just libsensors would, and the local admin can adjust it at
-> will using the config file.
->=20
-> Nobody in userspace should be reading hwmon sysfs directly without th=
-e
-> use of libsensors.  If they are, it is their bug, and it is unsupport=
-ed
-> AFAIK.
+This is a SLIT sanity checking patch. It moves slit_valid() function to
+generic ACPI code and does sanity checking for both x86 and ia64. It sets up
+node_distance with LOCAL_DISTANCE and REMOTE_DISTANCE when hitting invalid SLIT
+table on ia64. It also cleans up unused variable localities in acpi_parse_slit()
+on x86. 
 
-Hmm, that's an interesting ABI design. No, I do not think that's a
-good idea.
+Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
-/blog.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+---
+
+ arch/ia64/kernel/acpi.c |    9 +++++++--
+ arch/x86/mm/srat_64.c   |   27 ---------------------------
+ drivers/acpi/numa.c     |   31 +++++++++++++++++++++++++++----
+ 3 files changed, 34 insertions(+), 33 deletions(-)
+
+diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
+index c7467f8..4f156f4 100644
+--- a/arch/ia64/kernel/acpi.c
++++ b/arch/ia64/kernel/acpi.c
+@@ -460,7 +460,6 @@ void __init acpi_numa_slit_init(struct acpi_table_slit *slit)
+ 		printk(KERN_ERR
+ 		       "ACPI 2.0 SLIT: size mismatch: %d expected, %d actual\n",
+ 		       len, slit->header.length);
+-		memset(numa_slit, 10, sizeof(numa_slit));
+ 		return;
+ 	}
+ 	slit_table = slit;
+@@ -569,8 +568,14 @@ void __init acpi_numa_arch_fixup(void)
+ 	printk(KERN_INFO "Number of memory chunks in system = %d\n",
+ 	       num_node_memblks);
+ 
+-	if (!slit_table)
++	if (!slit_table) {
++		for (i = 0; i < MAX_NUMNODES; i++)
++			for (j = 0; j < MAX_NUMNODES; j++)
++				node_distance(i, j) = i == j ? LOCAL_DISTANCE :
++							REMOTE_DISTANCE;
+ 		return;
++	}
++
+ 	memset(numa_slit, -1, sizeof(numa_slit));
+ 	for (i = 0; i < slit_table->locality_count; i++) {
+ 		if (!pxm_bit_test(i))
+diff --git a/arch/x86/mm/srat_64.c b/arch/x86/mm/srat_64.c
+index 3890234..99649dc 100644
+--- a/arch/x86/mm/srat_64.c
++++ b/arch/x86/mm/srat_64.c
+@@ -97,36 +97,9 @@ static __init inline int srat_disabled(void)
+ 	return numa_off || acpi_numa < 0;
+ }
+ 
+-/*
+- * A lot of BIOS fill in 10 (= no distance) everywhere. This messes
+- * up the NUMA heuristics which wants the local node to have a smaller
+- * distance than the others.
+- * Do some quick checks here and only use the SLIT if it passes.
+- */
+-static __init int slit_valid(struct acpi_table_slit *slit)
+-{
+-	int i, j;
+-	int d = slit->locality_count;
+-	for (i = 0; i < d; i++) {
+-		for (j = 0; j < d; j++)  {
+-			u8 val = slit->entry[d*i + j];
+-			if (i == j) {
+-				if (val != LOCAL_DISTANCE)
+-					return 0;
+-			} else if (val <= LOCAL_DISTANCE)
+-				return 0;
+-		}
+-	}
+-	return 1;
+-}
+-
+ /* Callback for SLIT parsing */
+ void __init acpi_numa_slit_init(struct acpi_table_slit *slit)
+ {
+-	if (!slit_valid(slit)) {
+-		printk(KERN_INFO "ACPI: SLIT table looks invalid. Not used.\n");
+-		return;
+-	}
+ 	acpi_slit = slit;
+ }
+ 
+diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
+index 5d59cb3..658e5f3 100644
+--- a/drivers/acpi/numa.c
++++ b/drivers/acpi/numa.c
+@@ -140,19 +140,42 @@ acpi_table_print_srat_entry(struct acpi_subtable_header *header)
+ 	}
+ }
+ 
++/*
++ * A lot of BIOS fill in 10 (= no distance) everywhere. This messes
++ * up the NUMA heuristics which wants the local node to have a smaller
++ * distance than the others.
++ * Do some quick checks here and only use the SLIT if it passes.
++ */
++static __init int slit_valid(struct acpi_table_slit *slit)
++{
++	int i, j;
++	int d = slit->locality_count;
++	for (i = 0; i < d; i++) {
++		for (j = 0; j < d; j++)  {
++			u8 val = slit->entry[d*i + j];
++			if (i == j) {
++				if (val != LOCAL_DISTANCE)
++					return 0;
++			} else if (val <= LOCAL_DISTANCE)
++				return 0;
++		}
++	}
++	return 1;
++}
++
+ static int __init acpi_parse_slit(struct acpi_table_header *table)
+ {
+ 	struct acpi_table_slit *slit;
+-	u32 localities;
+ 
+ 	if (!table)
+ 		return -EINVAL;
+ 
+ 	slit = (struct acpi_table_slit *)table;
+ 
+-	/* downcast just for %llu vs %lu for i386/ia64  */
+-	localities = (u32) slit->locality_count;
+-
++	if (!slit_valid(slit)) {
++		printk(KERN_INFO "ACPI: SLIT table looks invalid. Not used.\n");
++		return -EINVAL;
++	}
+ 	acpi_numa_slit_init(slit);
+ 
+ 	return 0;
