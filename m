@@ -1,81 +1,85 @@
-From: "Roland" <devzero@web.de>
-Subject: modprobe acpi-cpufreq - prints WARNING and taints kernel
-Date: Fri, 2 May 2008 01:58:29 +0200
-Message-ID: <002d01c8abe7$415ce060$6400a8c0@bui.materna.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: acpi video: procfs duplicates
+Date: Thu, 1 May 2008 17:19:12 -0700
+Message-ID: <20080501171912.655088dc.akpm@linux-foundation.org>
+References: <bug-10586-10286@http.bugzilla.kernel.org/>
+	<20080501130444.cc5c63e8.akpm@linux-foundation.org>
+	<86A21F45FFA48B408A65E67054362EB6069DD742@CULEBRA.amr.ch2m.com>
+	<20080501133003.be723364.akpm@linux-foundation.org>
+	<86A21F45FFA48B408A65E67054362EB621C948@CULEBRA.amr.ch2m.com>
+	<481A5276.4040607@sbcglobal.net>
+	<20080501164856.f93ff909.randy.dunlap@oracle.com>
+	<481A58A2.7070807@sbcglobal.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="iso-8859-1";
-	reply-type=original
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmmailgate03.web.de ([217.72.192.234]:48417 "EHLO
-	fmmailgate03.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753723AbYEAX6b (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 May 2008 19:58:31 -0400
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56255 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753863AbYEBATs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 May 2008 20:19:48 -0400
+In-Reply-To: <481A58A2.7070807@sbcglobal.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: len.brown@intel.com, linux-acpi@vger.kernel.org
-
-git17 on vmware - modprobe acpi-cpufreq gives the warning below.
-that also didn`t happen with earlier kernels - so maybe it`s a regression, 
-too.
+To: linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>
+Cc: Ryan Roth <ryanroth@sbcglobal.net>
 
 
-May  2 01:40:21 opensuse103 kernel: ACPI: ACPI0007:00 is registered as 
-cooling_device0
-May  2 01:40:21 opensuse103 kernel: ACPI: Processor [CPU0] (supports 8 
-throttling states)
-May  2 01:40:24 opensuse103 kernel: sysdev: class cpu: driver (c037d1c0) has 
-already been registered to a class, something is wrong, but will forge on!
-May  2 01:40:24 opensuse103 kernel: ------------[ cut here ]------------
-May  2 01:40:24 opensuse103 kernel: WARNING: at drivers/base/sys.c:183 
-sysdev_driver_register+0x56/0xe9()
-May  2 01:40:24 opensuse103 kernel: Modules linked in: acpi_cpufreq(+) 
-processor zatm ovcamchip i2c_core via82cxxx vga16fb vgastate uPD98402 trm290 
-triflex michael_mic crc32c deflate zlib_deflate sha512_generic cts seed 
-camellia anubis khazad cast6 cast5 lrw gf128mul aes_i586 aes_generic serpent 
-blowfish sha256_generic md4 cbc des_generic sha1_generic md5 snd_seq_dummy 
-snd_seq snd_timer snd_seq_device snd soundcore slc90e66 sis5513 siimage 
-serverworks sctp libcrc32c sc1200 cfi_probe rz1000 fcrypt pcbc arc4 ecb 
-crypto_blkcipher pdc202xx_old pdc202xx_new parkbd opti621 ns87415 nls_cp932 
-jedec_probe gen_probe chipreg jmicron it821x it8213 ip2 ip2main ide_generic 
-ide_cd_mod cdrom hpt366 hpt34x eni suni atm decnet dccp_ipv6 dccp_ipv4 dccp 
-cy82c693 cs5535 cs5530 cs5520 cmd64x cmd640 capifs sunrpc atiixp ar7part mtd 
-amd74xx alim15x3 aec62xx a3d gameport 9pnet_fd 9pnet 8250_hub6 8250_fourport 
-8250_exar_st16c554 8250_boca 8250_accent ipv6 fuse ahci libata dock 
-ide_pci_generic piix parport_pc parport pcnet32 ide_core mii intel
-May  2 01:40:24 opensuse103 kernel: _agp agpgart ext3 mbcache jbd mptspi 
-mptscsih mptbase scsi_transport_spi sd_mod scsi_mod [last unloaded: usbcore]
-May  2 01:40:24 opensuse103 kernel: Pid: 13752, comm: modprobe Tainted: G 
-W 2.6.25-git17-default #1
-May  2 01:40:24 opensuse103 kernel:  [<c0121576>] warn_on_slowpath+0x40/0x67
-May  2 01:40:24 opensuse103 kernel:  [<c01258e9>] irq_exit+0x53/0x6a
-May  2 01:40:24 opensuse103 kernel:  [<c011142d>] 
-smp_apic_timer_interrupt+0x6b/0x76
-May  2 01:40:24 opensuse103 kernel:  [<c0105a18>] 
-apic_timer_interrupt+0x28/0x30
-May  2 01:40:24 opensuse103 kernel:  [<c0121e51>] vprintk+0x2b9/0x2cd
-May  2 01:40:24 opensuse103 kernel:  [<c01cb41e>] __next_cpu+0x12/0x1e
-May  2 01:40:24 opensuse103 kernel:  [<d0c55a48>] 
-acpi_processor_preregister_performance+0x504/0x510 [processor]
-May  2 01:40:24 opensuse103 kernel:  [<c01a662f>] sysfs_ilookup_test+0x0/0xd
-May  2 01:40:24 opensuse103 kernel:  [<c016cc78>] percpu_populate+0x32/0x39
-May  2 01:40:24 opensuse103 kernel:  [<c0121e79>] printk+0x14/0x18
-May  2 01:40:24 opensuse103 kernel:  [<c02321d3>] 
-sysdev_driver_register+0x56/0xe9
-May  2 01:40:24 opensuse103 kernel:  [<c0253da1>] 
-cpufreq_register_driver+0x7d/0xf9
-May  2 01:40:24 opensuse103 kernel:  [<c013db4c>] 
-sys_init_module+0x1694/0x17a7
-May  2 01:40:24 opensuse103 kernel:  [<c01079de>] sys_mmap2+0x62/0x77
-May  2 01:40:24 opensuse103 kernel:  [<c010491f>] 
-sysenter_past_esp+0x78/0xb9
-May  2 01:40:24 opensuse103 kernel:  =======================
-May  2 01:40:24 opensuse103 kernel: ---[ end trace 570d6a1488783306 ]---
+In
 
+	http://bugzilla.kernel.org/show_bug.cgi?id=10586
 
+Ryan is showing this:
 
+May  1 16:15:01 kernel: Call Trace:
+May  1 16:15:01 kernel:  [<ffffffff81118269>] idr_get_new+0xb/0x28
+May  1 16:15:01 kernel:  [<ffffffff810d5e92>] proc_register+0xcb/0x14b
+May  1 16:15:01 kernel:  [<ffffffff810d5ec5>] proc_register+0xfe/0x14b
+May  1 16:15:01 kernel:  [<ffffffff810d5f96>] proc_create_data+0x84/0x9e
+May  1 16:15:01 kernel:  [<ffffffffa013dd37>] :video:acpi_video_bus_add+0x98f/0xc6d
+May  1 16:15:01 kernel:  [<ffffffff8115d4d9>] acpi_device_probe+0x43/0x91
+May  1 16:15:01 kernel:  [<ffffffff81192564>] driver_probe_device+0xd0/0x14d
+May  1 16:15:01 kernel:  [<ffffffff81192627>] __driver_attach+0x46/0x6d
+May  1 16:15:01 kernel:  [<ffffffff811925e1>] __driver_attach+0x0/0x6d
+May  1 16:15:01 kernel:  [<ffffffff81191f09>] bus_for_each_dev+0x44/0x6f
+May  1 16:15:01 kernel:  [<ffffffff8119186e>] bus_add_driver+0xb2/0x1ff
+May  1 16:15:01 kernel:  [<ffffffff81192846>] driver_register+0x59/0xcd
+May  1 16:15:01 kernel:  [<ffffffffa00d803c>] :video:acpi_video_init+0x3c/0x5e
+May  1 16:15:01 kernel:  [<ffffffff81052db2>] sys_init_module+0x171a/0x1896
+May  1 16:15:01 kernel:  [<ffffffff8115d812>] acpi_bus_register_driver+0x0/0x3e
+May  1 16:15:01 kernel:  [<ffffffff81098831>] vfs_read+0xa6/0xfe
+May  1 16:15:01 kernel:  [<ffffffff8100bf3b>] system_call_after_swapgs+0x7b/0x80
+May  1 16:15:01 kernel: 
+May  1 16:15:01 kernel: proc_dir_entry 'info' already registered
+May  1 16:15:01 kernel: Pid: 1099, comm: modprobe Not tainted 2.6.25-git16 #3
+May  1 16:15:01 kernel: 
+May  1 16:15:01 kernel: Call Trace:
+May  1 16:15:01 kernel:  [<ffffffff81118269>] idr_get_new+0xb/0x28
+May  1 16:15:01 kernel:  [<ffffffff810d5e92>] proc_register+0xcb/0x14b
+May  1 16:15:01 kernel:  [<ffffffff810d5edb>] proc_register+0x114/0x14b
+May  1 16:15:01 kernel:  [<ffffffff810d5f96>] proc_create_data+0x84/0x9e
+May  1 16:15:01 kernel:  [<ffffffffa013dd37>] :video:acpi_video_bus_add+0x98f/0xc6d
+May  1 16:15:01 kernel:  [<ffffffff8115d4d9>] acpi_device_probe+0x43/0x91
+May  1 16:15:01 kernel:  [<ffffffff81192564>] driver_probe_device+0xd0/0x14d
+May  1 16:15:01 kernel:  [<ffffffff81192627>] __driver_attach+0x46/0x6d
+May  1 16:15:01 kernel:  [<ffffffff811925e1>] __driver_attach+0x0/0x6d
+May  1 16:15:01 kernel:  [<ffffffff81191f09>] bus_for_each_dev+0x44/0x6f
+May  1 16:15:01 kernel:  [<ffffffff8119186e>] bus_add_driver+0xb2/0x1ff
+May  1 16:15:01 kernel:  [<ffffffff81192846>] driver_register+0x59/0xcd
+May  1 16:15:01 kernel:  [<ffffffffa00d803c>] :video:acpi_video_init+0x3c/0x5e
+May  1 16:15:01 kernel:  [<ffffffff81052db2>] sys_init_module+0x171a/0x1896
+May  1 16:15:01 kernel:  [<ffffffff8115d812>] acpi_bus_register_driver+0x0/0x3e
+May  1 16:15:01 kernel:  [<ffffffff81098831>] vfs_read+0xa6/0xfe
+May  1 16:15:01 kernel:  [<ffffffff8100bf3b>] system_call_after_swapgs+0x7b/0x80
+May  1 16:15:01 kernel: 
 
+(etc).
 
+So acpi video is trying to re-register the same /proc files.
+
+Perhaps this is due to that one-video-card-pretends-to-be-two-video-cards
+thing?
+
+Full boot logs are at http://userweb.kernel.org/~akpm/x.txt
+
+Thanks.
