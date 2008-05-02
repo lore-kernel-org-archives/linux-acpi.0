@@ -1,91 +1,302 @@
 From: akpm@linux-foundation.org
-Subject: [patch 02/10] acpi: fix FADT parsing
-Date: Fri, 02 May 2008 13:31:36 -0700
-Message-ID: <200805022031.m42KVavY013054@imap1.linux-foundation.org>
+Subject: [patch 08/10] acpi: change processors from array to per_cpu variable
+Date: Fri, 02 May 2008 13:31:42 -0700
+Message-ID: <200805022031.m42KVgkU013072@imap1.linux-foundation.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34129 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60970 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755469AbYEBUbv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 May 2008 16:31:51 -0400
+	by vger.kernel.org with ESMTP id S1755593AbYEBUb7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 May 2008 16:31:59 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, jbeulich@novell.com
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, travis@sgi.com, len.brown@intel.com
 
-From: "Jan Beulich" <jbeulich@novell.com>
+From: Mike Travis <travis@sgi.com>
 
-The (1.0 inherited) separate length fields in the FADT are byte granular. 
-Further, PM1a/b may have distinct lengths and live in distinct address spaces.
- acpi_tb_convert_fadt() should account for all of these conditions.
+Change processors from an array sized by NR_CPUS to a per_cpu variable.
 
-Apart from these changes I'm puzzled by the fact that, not just for
-acpi_gbl_xpm1{a,b}_enable, acpi_hw_low_level_{read,write}() get an explicit
-size passed rather than using the size found in the passed GAS.  What happens
-on a platform that defines PM1{a,b} wider than 16 bits?  Of course,
-acpi_hw_low_level_{read,write}() at present are entirely un-prepared to deal
-with sizes other than 8, 16, or 32, not to speak of a non-zero bit_offset or
-access_width...
-
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
-Cc: Len Brown <lenb@kernel.org>
+Cc: Len Brown <len.brown@intel.com>
+Signed-off-by: Mike Travis <travis@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/tables/tbfadt.c |   16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ drivers/acpi/processor_core.c       |   20 +++++++++-----------
+ drivers/acpi/processor_idle.c       |    8 ++++----
+ drivers/acpi/processor_perflib.c    |   18 +++++++++---------
+ drivers/acpi/processor_throttling.c |   14 +++++++-------
+ include/acpi/processor.h            |    2 +-
+ 5 files changed, 30 insertions(+), 32 deletions(-)
 
-diff -puN drivers/acpi/tables/tbfadt.c~acpi-fix-fadt-parsing drivers/acpi/tables/tbfadt.c
---- a/drivers/acpi/tables/tbfadt.c~acpi-fix-fadt-parsing
-+++ a/drivers/acpi/tables/tbfadt.c
-@@ -124,7 +124,7 @@ static struct acpi_fadt_info fadt_info_t
+diff -puN drivers/acpi/processor_core.c~acpi-change-processors-from-array-to-per_cpu-variable drivers/acpi/processor_core.c
+--- a/drivers/acpi/processor_core.c~acpi-change-processors-from-array-to-per_cpu-variable
++++ a/drivers/acpi/processor_core.c
+@@ -119,7 +119,7 @@ static const struct file_operations acpi
+ 	.release = single_release,
+ };
  
- static void inline
- acpi_tb_init_generic_address(struct acpi_generic_address *generic_address,
--			     u8 bit_width, u64 address)
-+			     u8 byte_width, u64 address)
+-struct acpi_processor *processors[NR_CPUS];
++DEFINE_PER_CPU(struct acpi_processor *, processors);
+ struct acpi_processor_errata errata __read_mostly;
+ 
+ /* --------------------------------------------------------------------------
+@@ -615,7 +615,7 @@ static int acpi_processor_get_info(struc
+ 	return 0;
+ }
+ 
+-static void *processor_device_array[NR_CPUS];
++static DEFINE_PER_CPU(void *, processor_device_array);
+ 
+ static int __cpuinit acpi_processor_start(struct acpi_device *device)
  {
- 
- 	/*
-@@ -136,7 +136,7 @@ acpi_tb_init_generic_address(struct acpi
- 	/* All other fields are byte-wide */
- 
- 	generic_address->space_id = ACPI_ADR_SPACE_SYSTEM_IO;
--	generic_address->bit_width = bit_width;
-+	generic_address->bit_width = byte_width << 3;
- 	generic_address->bit_offset = 0;
- 	generic_address->access_width = 0;
- }
-@@ -343,9 +343,11 @@ static void acpi_tb_convert_fadt(void)
- 	 *
- 	 * The PM event blocks are split into two register blocks, first is the
- 	 * PM Status Register block, followed immediately by the PM Enable Register
--	 * block. Each is of length (pm1_event_length/2)
-+	 * block. Each is of length (xpm1x_event_block.bit_width/2)
+@@ -639,15 +639,15 @@ static int __cpuinit acpi_processor_star
+ 	 * ACPI id of processors can be reported wrongly by the BIOS.
+ 	 * Don't trust it blindly
  	 */
--	pm1_register_length = (u8) ACPI_DIV_2(acpi_gbl_FADT.pm1_event_length);
-+	WARN_ON(ACPI_MOD_16(acpi_gbl_FADT.xpm1a_event_block.bit_width));
-+	pm1_register_length = (u8) ACPI_DIV_16(acpi_gbl_FADT
-+					       .xpm1a_event_block.bit_width);
- 
- 	/* The PM1A register block is required */
- 
-@@ -360,13 +362,17 @@ static void acpi_tb_convert_fadt(void)
- 	/* The PM1B register block is optional, ignore if not present */
- 
- 	if (acpi_gbl_FADT.xpm1b_event_block.address) {
-+		WARN_ON(ACPI_MOD_16(acpi_gbl_FADT.xpm1b_event_block.bit_width));
-+		pm1_register_length = (u8) ACPI_DIV_16(acpi_gbl_FADT
-+						       .xpm1b_event_block
-+						       .bit_width);
- 		acpi_tb_init_generic_address(&acpi_gbl_xpm1b_enable,
- 					     pm1_register_length,
- 					     (acpi_gbl_FADT.xpm1b_event_block.
- 					      address + pm1_register_length));
- 		/* Don't forget to copy space_id of the GAS */
- 		acpi_gbl_xpm1b_enable.space_id =
--		    acpi_gbl_FADT.xpm1a_event_block.space_id;
-+		    acpi_gbl_FADT.xpm1b_event_block.space_id;
- 
+-	if (processor_device_array[pr->id] != NULL &&
+-	    processor_device_array[pr->id] != device) {
++	if (per_cpu(processor_device_array, pr->id) != NULL &&
++	    per_cpu(processor_device_array, pr->id) != device) {
+ 		printk(KERN_WARNING "BIOS reported wrong ACPI id "
+ 			"for the processor\n");
+ 		return -ENODEV;
  	}
- }
+-	processor_device_array[pr->id] = device;
++	per_cpu(processor_device_array, pr->id) = device;
+ 
+-	processors[pr->id] = pr;
++	per_cpu(processors, pr->id) = pr;
+ 
+ 	result = acpi_processor_add_fs(device);
+ 	if (result)
+@@ -754,7 +754,7 @@ static int acpi_cpu_soft_notify(struct n
+ 		unsigned long action, void *hcpu)
+ {
+ 	unsigned int cpu = (unsigned long)hcpu;
+-	struct acpi_processor *pr = processors[cpu];
++	struct acpi_processor *pr = per_cpu(processors, cpu);
+ 
+ 	if (action == CPU_ONLINE && pr) {
+ 		acpi_processor_ppc_has_changed(pr);
+@@ -826,8 +826,8 @@ static int acpi_processor_remove(struct 
+ 		pr->cdev = NULL;
+ 	}
+ 
+-	processors[pr->id] = NULL;
+-	processor_device_array[pr->id] = NULL;
++	per_cpu(processors, pr->id) = NULL;
++	per_cpu(processor_device_array, pr->id) = NULL;
+ 	kfree(pr);
+ 
+ 	return 0;
+@@ -1075,8 +1075,6 @@ static int __init acpi_processor_init(vo
+ {
+ 	int result = 0;
+ 
+-
+-	memset(&processors, 0, sizeof(processors));
+ 	memset(&errata, 0, sizeof(errata));
+ 
+ #ifdef CONFIG_SMP
+diff -puN drivers/acpi/processor_idle.c~acpi-change-processors-from-array-to-per_cpu-variable drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~acpi-change-processors-from-array-to-per_cpu-variable
++++ a/drivers/acpi/processor_idle.c
+@@ -419,7 +419,7 @@ static void acpi_processor_idle(void)
+ 	 */
+ 	local_irq_disable();
+ 
+-	pr = processors[smp_processor_id()];
++	pr = __get_cpu_var(processors);
+ 	if (!pr) {
+ 		local_irq_enable();
+ 		return;
+@@ -1450,7 +1450,7 @@ static int acpi_idle_enter_c1(struct cpu
+ 	struct acpi_processor *pr;
+ 	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
+ 
+-	pr = processors[smp_processor_id()];
++	pr = __get_cpu_var(processors);
+ 
+ 	if (unlikely(!pr))
+ 		return 0;
+@@ -1490,7 +1490,7 @@ static int acpi_idle_enter_simple(struct
+ 	u32 t1, t2;
+ 	int sleep_ticks = 0;
+ 
+-	pr = processors[smp_processor_id()];
++	pr = __get_cpu_var(processors);
+ 
+ 	if (unlikely(!pr))
+ 		return 0;
+@@ -1568,7 +1568,7 @@ static int acpi_idle_enter_bm(struct cpu
+ 	u32 t1, t2;
+ 	int sleep_ticks = 0;
+ 
+-	pr = processors[smp_processor_id()];
++	pr = __get_cpu_var(processors);
+ 
+ 	if (unlikely(!pr))
+ 		return 0;
+diff -puN drivers/acpi/processor_perflib.c~acpi-change-processors-from-array-to-per_cpu-variable drivers/acpi/processor_perflib.c
+--- a/drivers/acpi/processor_perflib.c~acpi-change-processors-from-array-to-per_cpu-variable
++++ a/drivers/acpi/processor_perflib.c
+@@ -89,7 +89,7 @@ static int acpi_processor_ppc_notifier(s
+ 	if (event != CPUFREQ_INCOMPATIBLE)
+ 		goto out;
+ 
+-	pr = processors[policy->cpu];
++	pr = per_cpu(processors, policy->cpu);
+ 	if (!pr || !pr->performance)
+ 		goto out;
+ 
+@@ -572,7 +572,7 @@ int acpi_processor_preregister_performan
+ 
+ 	/* Call _PSD for all CPUs */
+ 	for_each_possible_cpu(i) {
+-		pr = processors[i];
++		pr = per_cpu(processors, i);
+ 		if (!pr) {
+ 			/* Look only at processors in ACPI namespace */
+ 			continue;
+@@ -603,7 +603,7 @@ int acpi_processor_preregister_performan
+ 	 * domain info.
+ 	 */
+ 	for_each_possible_cpu(i) {
+-		pr = processors[i];
++		pr = per_cpu(processors, i);
+ 		if (!pr)
+ 			continue;
+ 
+@@ -624,7 +624,7 @@ int acpi_processor_preregister_performan
+ 
+ 	cpus_clear(covered_cpus);
+ 	for_each_possible_cpu(i) {
+-		pr = processors[i];
++		pr = per_cpu(processors, i);
+ 		if (!pr)
+ 			continue;
+ 
+@@ -651,7 +651,7 @@ int acpi_processor_preregister_performan
+ 			if (i == j)
+ 				continue;
+ 
+-			match_pr = processors[j];
++			match_pr = per_cpu(processors, j);
+ 			if (!match_pr)
+ 				continue;
+ 
+@@ -680,7 +680,7 @@ int acpi_processor_preregister_performan
+ 			if (i == j)
+ 				continue;
+ 
+-			match_pr = processors[j];
++			match_pr = per_cpu(processors, j);
+ 			if (!match_pr)
+ 				continue;
+ 
+@@ -697,7 +697,7 @@ int acpi_processor_preregister_performan
+ 
+ err_ret:
+ 	for_each_possible_cpu(i) {
+-		pr = processors[i];
++		pr = per_cpu(processors, i);
+ 		if (!pr || !pr->performance)
+ 			continue;
+ 
+@@ -728,7 +728,7 @@ acpi_processor_register_performance(stru
+ 
+ 	mutex_lock(&performance_mutex);
+ 
+-	pr = processors[cpu];
++	pr = per_cpu(processors, cpu);
+ 	if (!pr) {
+ 		mutex_unlock(&performance_mutex);
+ 		return -ENODEV;
+@@ -766,7 +766,7 @@ acpi_processor_unregister_performance(st
+ 
+ 	mutex_lock(&performance_mutex);
+ 
+-	pr = processors[cpu];
++	pr = per_cpu(processors, cpu);
+ 	if (!pr) {
+ 		mutex_unlock(&performance_mutex);
+ 		return;
+diff -puN drivers/acpi/processor_throttling.c~acpi-change-processors-from-array-to-per_cpu-variable drivers/acpi/processor_throttling.c
+--- a/drivers/acpi/processor_throttling.c~acpi-change-processors-from-array-to-per_cpu-variable
++++ a/drivers/acpi/processor_throttling.c
+@@ -71,7 +71,7 @@ static int acpi_processor_update_tsd_coo
+ 	 * coordination between all CPUs.
+ 	 */
+ 	for_each_possible_cpu(i) {
+-		pr = processors[i];
++		pr = per_cpu(processors, i);
+ 		if (!pr)
+ 			continue;
+ 
+@@ -93,7 +93,7 @@ static int acpi_processor_update_tsd_coo
+ 
+ 	cpus_clear(covered_cpus);
+ 	for_each_possible_cpu(i) {
+-		pr = processors[i];
++		pr = per_cpu(processors, i);
+ 		if (!pr)
+ 			continue;
+ 
+@@ -119,7 +119,7 @@ static int acpi_processor_update_tsd_coo
+ 			if (i == j)
+ 				continue;
+ 
+-			match_pr = processors[j];
++			match_pr = per_cpu(processors, j);
+ 			if (!match_pr)
+ 				continue;
+ 
+@@ -152,7 +152,7 @@ static int acpi_processor_update_tsd_coo
+ 			if (i == j)
+ 				continue;
+ 
+-			match_pr = processors[j];
++			match_pr = per_cpu(processors, j);
+ 			if (!match_pr)
+ 				continue;
+ 
+@@ -172,7 +172,7 @@ static int acpi_processor_update_tsd_coo
+ 
+ err_ret:
+ 	for_each_possible_cpu(i) {
+-		pr = processors[i];
++		pr = per_cpu(processors, i);
+ 		if (!pr)
+ 			continue;
+ 
+@@ -214,7 +214,7 @@ static int acpi_processor_throttling_not
+ 	struct acpi_processor_throttling *p_throttling;
+ 
+ 	cpu = p_tstate->cpu;
+-	pr = processors[cpu];
++	pr = per_cpu(processors, cpu);
+ 	if (!pr) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Invalid pr pointer\n"));
+ 		return 0;
+@@ -1035,7 +1035,7 @@ int acpi_processor_set_throttling(struct
+ 		 * cpus.
+ 		 */
+ 		for_each_cpu_mask(i, online_throttling_cpus) {
+-			match_pr = processors[i];
++			match_pr = per_cpu(processors, i);
+ 			/*
+ 			 * If the pointer is invalid, we will report the
+ 			 * error message and continue.
+diff -puN include/acpi/processor.h~acpi-change-processors-from-array-to-per_cpu-variable include/acpi/processor.h
+--- a/include/acpi/processor.h~acpi-change-processors-from-array-to-per_cpu-variable
++++ a/include/acpi/processor.h
+@@ -255,7 +255,7 @@ extern void acpi_processor_unregister_pe
+ int acpi_processor_notify_smm(struct module *calling_module);
+ 
+ /* for communication between multiple parts of the processor kernel module */
+-extern struct acpi_processor *processors[NR_CPUS];
++DECLARE_PER_CPU(struct acpi_processor *, processors);
+ extern struct acpi_processor_errata errata;
+ 
+ void arch_acpi_processor_init_pdc(struct acpi_processor *pr);
 _
