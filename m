@@ -1,109 +1,41 @@
-From: "Sanjeev Aditya Naga" <sanjeev.kernel@gmail.com>
-Subject: Re: [>=2.6.23][BUG] Oops on power disconnection
-Date: Sat, 3 May 2008 15:25:05 +0530
-Message-ID: <5681ec900805030255n629d9cdbl1769c6812c8df928@mail.gmail.com>
-References: <5681ec900803300645l5369cda4g119957a4b7f05d17@mail.gmail.com>
-	 <5681ec900803300651m6e5f38deke1b7746236e5bb9@mail.gmail.com>
-	 <20080402001418.aad6eed2.akpm@linux-foundation.org>
-	 <5681ec900804020608o62be52c4ted172e18daf24f5b@mail.gmail.com>
-	 <1207147729.30061.9.camel@hammer1.suse.de>
-	 <5681ec900804020913t4adc38b1r2e424fa8bbdda241@mail.gmail.com>
-	 <1207159974.4700.6.camel@queen.suse.de>
-	 <5681ec900804030915w720f3ccfp74e5d501ca3d6b56@mail.gmail.com>
-	 <1207256678.6024.90.camel@linux-2bdv.site>
-	 <5681ec900804050615y59bca042g648df348914b6062@mail.gmail.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: linux kernel 2.6.23+ can't restart
+Date: Sat, 03 May 2008 21:35:00 +0200
+Message-ID: <1209843300.13290.1.camel@linux-2bdv.site>
+References: <481B5448.6060202@inl.gov>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.238]:26384 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759197AbYECJzG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 3 May 2008 05:55:06 -0400
-Received: by rv-out-0506.google.com with SMTP id l9so389868rvb.1
-        for <linux-acpi@vger.kernel.org>; Sat, 03 May 2008 02:55:05 -0700 (PDT)
-In-Reply-To: <5681ec900804050615y59bca042g648df348914b6062@mail.gmail.com>
-Content-Disposition: inline
+Received: from ns.suse.de ([195.135.220.2]:57302 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751593AbYECTfD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 3 May 2008 15:35:03 -0400
+In-Reply-To: <481B5448.6060202@inl.gov>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: trenn@suse.de
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, "Li, Shaohua" <shaohua.li@intel.com>
+To: Shane Hansen <shane.hansen@inl.gov>
+Cc: linux-acpi@vger.kernel.org
 
-SGVsbG8gVGhvbWFzLCBBbmRyZXcsCgpUaGUgcmVjZW50IHBhdGNoIGdpdmVuIGJ5IFZlbmthdGVz
-aCBhdApodHRwOi8vYnVnemlsbGEua2VybmVsLm9yZy9zaG93X2J1Zy5jZ2k/aWQ9MTAzOTQKaGFz
-IGZpeGVkIHRoZSBwcm9ibGVtLiBUaGFuayB5b3UgYWxsIGZvciB0aGUgc3VwcG9ydApleHRlbmRl
-ZCByZWdhcmRpbmcgdGhlIHNhbWUuCgpLaW5kIFJlZ2FyZHMsClNhbmplZXYKCk9uIFNhdCwgQXBy
-IDUsIDIwMDggYXQgNjo0NSBQTSwgU2FuamVldiBBZGl0eWEgTmFnYQo8c2FuamVldi5rZXJuZWxA
-Z21haWwuY29tPiB3cm90ZToKPiBIZWxsbyBUaG9tYXMsCj4KPgo+Cj4gIE9uIEZyaSwgQXByIDQs
-IDIwMDggYXQgMjozNCBBTSwgVGhvbWFzIFJlbm5pbmdlciA8dHJlbm5Ac3VzZS5kZT4gd3JvdGU6
-Cj4gID4KPiAgPgo+ICA+ICBPbiBUaHUsIDIwMDgtMDQtMDMgYXQgMjE6NDUgKzA1MzAsIFNhbmpl
-ZXYgQWRpdHlhIE5hZ2Egd3JvdGU6Cj4gID4gID4gSGVsbG8gVGhvbWFzLAo+ICA+ICA+Cj4gID4g
-ID4gT24gV2VkLCBBcHIgMiwgMjAwOCBhdCAxMTo0MiBQTSwgVGhvbWFzIFJlbm5pbmdlciA8dHJl
-bm5Ac3VzZS5kZT4gd3JvdGU6Cj4gID4gID4gPgo+ICA+ICA+ID4gT24gV2VkLCAyMDA4LTA0LTAy
-IGF0IDIxOjQzICswNTMwLCBTYW5qZWV2IEFkaXR5YSBOYWdhIHdyb3RlOgo+ICA+ICA+ID4gID4g
-SGVsbG8gVGhvbWFzLAo+ICA+ICA+ID4gID4KPiAgPiAgPiA+ICA+ID4gSGksCj4gID4gID4gPiAg
-PiA+Cj4gID4gID4gPiAgPiA+Cj4gID4gID4gPiAgPiA+ICBPbiBXZWQsIDIwMDgtMDQtMDIgYXQg
-MTg6MzggKzA1MzAsIFNhbmplZXYgQWRpdHlhIE5hZ2Egd3JvdGU6Cj4gID4gID4gPiAgPiA+ICA+
-IEhlbGxvIEFuZHJldyBNb3J0b24sCj4gID4gID4gPiAgPiA+ICA+Cj4gID4gID4gPiAgPiA+ICA+
-IEdyZWV0aW5ncyEKPiAgPiAgPiA+ICA+ID4gID4KPiAgPiAgPiA+ICA+ID4gID4gVGhhbmsgeW91
-IGZvciB0aGUgdXBkYXRlLiBJcyB0aGVyZSBhbnl0aGluZyBJIGNhbiBkbwo+ICA+ICA+ID4gID4g
-PiAgPiBmcm9tIG15IHNpZGU/Cj4gID4gID4gPiAgPiA+ICA+Cj4gID4gID4gPiAgPiA+ICA+IEkg
-dGhvdWdodCBpdCB3YXMgYSBhY3BpIChkc2R0KSBwcm9ibGVtLiBBbmQgYmFzZWQgb24KPiAgPiAg
-PiA+ICA+ID4gID4gYSB0dXRvcmlhbCwgSSBoYXZlIHRyaWVkIHRvIGV4dHJhY3QsIGZpeCwgcmVj
-b21waWxlIHRoZSBkc2R0Cj4gID4gID4gPiAgPiA+ICA+IGFuZCB1c2UgaXQgd2l0aCB0aGUga2Vy
-bmVsLiBCdXQgc3RpbGwgSSBoYXZlIHRoZSBzYW1lIHByb2JsZW0uCj4gID4gID4gPiAgPiA+ICA+
-IExldCBtZSBrbm93IGlmIEkgc2hhbGwgYXR0YWNoIHRoZSBkc2R0IChvcmlnaW5hbCkgZGVjb21w
-aWxlZAo+ICA+ICA+ID4gID4gPiAgPiBjb2RlLCBpZiB0aGF0IGhlbHBzLgo+ICA+ICA+ID4gID4g
-Pgo+ICA+ICA+ID4gID4gPiAgdGhpcyBjb3VsZCBiZSBkdWUgYSBnZW5lcmFsIG1lbW9yeSBjb3Jy
-dXB0aW9uIHByb2JsZW0gdGhyb3VnaCBBQ1BJQ0EuCj4gID4gID4gPiAgPiA+ICBJZiB5b3UgZ2V0
-IGRpZmZlcmVudCBiYWNrdHJhY2VzIG9uIHJlYm9vdHMgZXZlbiB5b3Ugb25seSBtb2RpZmllZCB0
-aGluZ3MKPiAgPiAgPiA+ICA+ID4gIHRoYXQgZG8gbm90IGhhdmUgdG8gZG8gd2l0aCB0aGUgcHJv
-YmxlbSwgaXQncyBwcm9iYWJseSB0aGF0IGFuZCByZWxhdGVkCj4gID4gID4gPiAgPiA+ICB0bzoK
-PiAgPiAgPiA+ICA+ID4gIO+7v2h0dHA6Ly9idWd6aWxsYS5rZXJuZWwub3JnL3Nob3dfYnVnLmNn
-aT9pZD0xMDMzOQo+ICA+ICA+ID4gID4gPgo+ICA+ICA+ID4gID4gPiAgWW91IG1pZ2h0IHdhbnQg
-dG8gdHJ5IHRoZSBsYXRlc3Qga2VybmVsIG9yIHRoZSBwYXRjaCBwb3N0ZWQgdGhlcmUuCj4gID4g
-ID4gPiAgPgo+ICA+ICA+ID4gID4gVGhhbmsgeW91IGZvciB0aGUgdXBkYXRlLgo+ICA+ICA+ID4g
-ID4gSSBoYXZlIGNoZWNrZWQgdGhlIGJ1ZyBhbmQgdW5mb3J0dW5hdGVseSBpdHMgbm90IHRoZQo+
-ICA+ICA+ID4gID4gc2FtZSBpc3N1ZS4gVGhpbmdzIHdvcmsgYWJzb2x1dGVseSBmaW5lLCB3aGVu
-IEknbQo+ICA+ICA+ID4gID4gcnVubmluZyBvbiBBQyBwb3dlci4gSXQgZXZlbiBkaXNwbGF5cyB0
-aGUgZXhhY3QKPiAgPiAgPiA+ICA+IGJhdHRlcnkgKGFuZCBjaGFyZ2luZykgc3RhdHVzIHRvIG1l
-LiBJdCBtZXNzZXMgdXAKPiAgPiAgPiA+ICA+IHdoZW4gc3VkZGVubHkgQUMgcG93ZXIgZ2V0cyBk
-aXNjb25uZWN0ZWQgYW5kCj4gID4gID4gPiAgPiBzd2l0Y2hlcyB0byBiYXR0ZXJ5IG1vZGUgKFRo
-ZSB0aW1lIHdoZW4gSSBnZXQgT29wcykuCj4gID4gID4gPiAgPiBUaGUgc3lzdGVtIGlzIHN0aWxs
-IHVzYWJsZSBhZnRlciBzd2l0Y2hpbmcgdG8gYmF0dGVyeQo+ICA+ICA+ID4gID4gbW9kZSBhbmQg
-SSBzdGlsbCBnZXQgY29ycmVjdCBiYXR0ZXJ5IHN0YXRzIHVudGlsIGl0cwo+ICA+ICA+ID4gID4g
-Y29tcGxldGVseSBkaXNjaGFyZ2VkLiBIb3dldmVyIG1vc3Qgb2YgdGhlIGNvbW1hbmRzCj4gID4g
-ID4gPiAgPiBsaWtlIGtpbGwsIHBvd2Vyb2ZmLCBqYXZhIGRvZXNuJ3Qgd29yayBhZnRlciB0aGUg
-T29wcy4KPiAgPiAgPiA+ICBUaGUgYnVnIGlzIG5vdCByZWxhdGVkIHRvIGJhdHRlcnksIGJ1dCB0
-byBBTUwgcGFyc2luZyBhbmQgY2FuIHRoZXJlZm9yZQo+ICA+ICA+ID4gIGFmZmVjdCBhbnl0aGlu
-ZyB3aGljaCBpcyBBQ1BJIHJlbGF0ZWQuCj4gID4gID4gPgo+ICA+ICA+ID4KPiAgPiAgPiA+ICA+
-IEJUVyB0aGVyZSBpcyBvbmUgc2ltaWxhcml0eSB3aXRoIHRoZSByZWZlcmVuY2VkIGJ1Zy4KPiAg
-PiAgPiA+ICA+IElmIEkgYm9vdCB0aGUgY29tcHV0ZXIgd2l0aG91dCBBQyBQb3dlciwgaXQgZ2l2
-ZXMgdGhlCj4gID4gID4gPiAgPiBzYW1lIE9vcHMgYW5kIHN0b3BzIGR1cmluZyBib290aW5nIGl0
-c2VsZi4KPiAgPiAgPiA+ICA+Cj4gID4gID4gPiAgPiBJIHNoYWxsIHRyeSB0aGUgbGF0ZXN0IGtl
-cm5lbCBvbmNlIGFuZCBzaGFsbCB1cGRhdGUgeW91Lgo+ICA+ICA+ID4gIFRoYXQgd291bGQgYmUg
-Z3JlYXQuCj4gID4gID4gPiAgSWYgaXQgd29ya3MsIHBsZWFzZSBnaXZlIHRoZSBwYXRjaCB0aGVy
-ZSBhIHRyeSwgSU1PIHRoaXMgb25lIHNob3VsZCBzZWUKPiAgPiAgPiA+ICAyLjYuMlszNF0uWCBz
-dGFibGUga2VybmVscyBzb29uLgo+ICA+ICA+Cj4gID4gID4gSSBoYXZlIGdvdCB0aGUgbGFzdGVz
-dCBrZXJuZWwgMi42LjI1LXJjOCB0b2RheS4gSSBvYnNlcnZlZCB0aGF0Cj4gID4gID4gdGhlIHJl
-ZmVyZW5jZWQgcGF0Y2ggaXMgYWxyZWFkeSBpbiB0aGUga2VybmVsLiBIb3dldmVyIHRoaXMgZGlk
-bid0Cj4gID4gID4gc29sdmUgdGhlIHByb2JsZW0gaW4gcXVlc3Rpb24uIEkgZ2V0IHRoZSBzYW1l
-IE9vcHMgb24gdGhpcyBrZXJuZWwKPiAgPiAgPiBhcyB3ZWxsLiBGaW5kIHRoZSBsYXRlc3QgZG1l
-c2cgYWxvbmcgd2l0aCB0aGUgT29wczoKPiAgPiAgT2suCj4gID4gIE1heWJlIGJlc3QgaXMgeW91
-IGRvY3VtZW50IHRoZSBiYWNrdHJhY2VzL29vcHNlcyB3aXRoIGtlcm5lbCB2ZXJzaW9ucyBhdAo+
-ICA+ICBidWd6aWxsYS5rZXJuZWwub3JnIGFuZCBhZGQgZG1lc2cgYW5kIGFjcGlkdW1wLgo+ICA+
-ICBJdCBzZWVtcyB5b3VyIG1hY2hpbmUgbm90aWZpZXMgT1MgdGhhdCB0aGUgQy1zdGF0ZSB0YWJs
-ZSBjaGFuZ2VkLgo+ICA+ICBBRkFJSyB0aGlzIGlzIHJhcmUgYW5kIHRoZXJlIG1pZ2h0IGJlIGEg
-Z2VuZXJhbCBidWcgaW4gdGhlIGNwdWlkbGUgbGF5ZXIKPiAgPiAgd2hpY2ggSSBkbyBub3Qga25v
-dyB3ZWxsLgo+ICA+ICBCZXN0IHlvdSBhZGQgVmVua2F0ZXNoIGFuZCBTaGFvaHVhIExpIDxzaGFv
-aHVhLmxpQGludGVsLmNvbT4gdG8gQ0Mgb2YKPiAgPiAgdGhlIGJ1Zy4KPiAgPiAgV2hpbGUgdGhl
-IGJhY2t0cmFjZSBzaG93cyBhIGxvdCwgY3B1aWRsZSBJTU8gaXMgbWlzc2luZyBhIGdlbmVyYWwg
-ZGVidWcKPiAgPiAgb3B0aW9uIGxpa2UgaW4gdGhlIGNwdWZyZXEgbGF5ZXIuCj4gID4gIEkgY291
-bGRuJ3QgZmluZCBhIHNpbmdsZSBwcmludGsgaW4gdGhlIHdob2xlIGNwdWlkbGUve2NwdWlkbGUs
-c3lzZnN9LmMKPiAgPiAgZmlsZXMsIGV2ZW4gb24gZXJyb3IgcGF0aHMuIO+7v0Fsc28gaW4gdGhl
-IGNwdWlkbGUgc3BlY2lmaWMgcGFydHMgb2YKPiAgPiAgZHJpdmVycy9hY3BpL3Byb2Nlc3Nvcl9p
-ZGxlLmMgc29tZSBkZWJ1ZyBwcmludGtzIG1heSBoZWxwIGZvciBmdXR1cmUgYnVnCj4gID4gIHJl
-cG9ydHMuIEl0IGlzIHZlcnkgaGFyZCB0byBndWVzcyB3aGF0IGhhcHBlbmVkLi4uCj4KPiAgVGhh
-bmsgeW91IGZvciB0aGUgdXBkYXRlOgo+Cj4gIEkgaGF2ZSBqdXN0IHJlZ2lzdGVyZWQgYSBidWcg
-YXQKPiAgaHR0cDovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lkPTEwMzk0Cj4g
-IGFzIGRpcmVjdGVkIGJ5IHlvdS4KPgo+ICBLaW5kIFJlZ2FyZHMsCj4gIFNhbmplZXYKPgo=
+
+On Fri, 2008-05-02 at 11:50 -0600, Shane Hansen wrote:
+> May  2 11:45:18 [kernel] ACPI: DMI Product Version:
+> May  2 11:45:18 [kernel] ACPI: DMI Board Name: 0F9382
+> May  2 11:45:18 [kernel] ACPI: DMI BIOS Vendor: Dell Inc.
+> May  2 11:45:18 [kernel] ACPI: DMI BIOS Date: 12/13/2007
+> 
+> Since upgrading to the 2.6.23 / 2.6.24 kernels I can no longer "restart" 
+> my system.  I can "shutdown" ok, the machine powers off just fine.  
+> However when I try a "restart" the kernel goes through all the normal 
+> stuff and then hangs on the line that says "Restarting System".  I have 
+> to hold down the power button to power off the case...
+> 
+> 
+> Suggestions?
+
+Does this also happen with the latest 2.6.25 kernel?
+git-bisect?
+
+  Thomas
+
