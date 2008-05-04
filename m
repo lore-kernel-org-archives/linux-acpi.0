@@ -1,41 +1,37 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [patch 04/10] acpi: adjust _acpi_{module,function}_namedefinitions
-Date: Sun, 4 May 2008 12:14:41 -0700
-Message-ID: <9D39833986E69849A2A8E74C1078B6B3446FBD@orsmsx415.amr.corp.intel.com>
-References: <200805010952.m419q3Jc031806@imap1.linux-foundation.org> <1209722812.22514.28.camel@linux-2bdv.site> <20080502054113.4e5839d9.akpm@linux-foundation.org> <1209737075.22514.79.camel@linux-2bdv.site>
+From: Rene Herman <rene.herman@keyaccess.nl>
+Subject: Re: 2.6.25 pci=noacpi
+Date: Sun, 04 May 2008 21:23:25 +0200
+Message-ID: <481E0D2D.1030608@keyaccess.nl>
+References: <20080425183807.366134771@ldl.fc.hp.com> <20080425183934.516655076@ldl.fc.hp.com> <4813B5AB.4060308@keyaccess.nl> <200804281507.38309.bjorn.helgaas@hp.com> <4816C605.4000601@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:23139 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753965AbYEDTOm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 4 May 2008 15:14:42 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <1209737075.22514.79.camel@linux-2bdv.site>
+Received: from smtpq1.groni1.gr.home.nl ([213.51.130.200]:56366 "EHLO
+	smtpq1.groni1.gr.home.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754511AbYEDTWi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 4 May 2008 15:22:38 -0400
+In-Reply-To: <4816C605.4000601@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: trenn@suse.de
-Cc: linux-acpi@vger.kernel.org, jbeulich@novell.com
+To: Richard <tuxbox.guru@gmail.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
->But in future, such patches should definitely be based against ACPICA
->code. Len will probably announce here where to find the very latest
->sources, soon. Currently the latest official release linked to on
->http://lesswatts.org is still from 2006. AFAIK things will get better
->here, soon.
->
->   Thomas
+On 29-04-08 08:53, Richard wrote:
 
+> Using an AMD Sempron notebook (HP Compaq 6715b) single processor 
+> machine,  It shuts down during bootup when ACPI is fully enabled.  I 
+> added pci=noacpi to the cmdline and it finally boots, but its extremely 
+> slow...  (kdm times out with error saying it took too long to load and 
+> disables graphical)
 
-The latest ACPICA source can be found at the acpica.org website. In
-fact, we have converted our source repository from CVS to git, and the
-actual working git repository is now publicly available at
+Does booting with io_delay=0xed on the kernel command line fix it? If so, we 
+need the output of
 
-http://www.acpica.org/repos/acpica.git/
+# dmidecode -s baseboard-manufacturer
 
-The acpica.org website was created at the end of 2007, and is now the
-home of the acpica project.
+and
 
-Bob
+# dmidecode -s baseboard-product-name
 
+Rene.
