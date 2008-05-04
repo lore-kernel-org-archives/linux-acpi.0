@@ -1,51 +1,69 @@
 From: Rene Herman <rene.herman@keyaccess.nl>
-Subject: Re: PNP: set IRQ index in sysfs "set irq" interface
-Date: Sun, 04 May 2008 15:47:45 +0200
-Message-ID: <481DBE81.8000608@keyaccess.nl>
-References: <200805011539.58705.bjorn.helgaas@hp.com>
+Subject: Re: [patch 00/37] PNP resource_table cleanups, v2
+Date: Sun, 04 May 2008 16:14:58 +0200
+Message-ID: <481DC4E2.7060803@keyaccess.nl>
+References: <20080401151634.730901933@ldl.fc.hp.com> <200804021535.22011.bjorn.helgaas@hp.com> <47F4FDCB.2000803@keyaccess.nl> <200805011447.38234.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtpq2.groni1.gr.home.nl ([213.51.130.201]:39818 "EHLO
+Received: from smtpq2.groni1.gr.home.nl ([213.51.130.201]:44739 "EHLO
 	smtpq2.groni1.gr.home.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753661AbYEDNrH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 4 May 2008 09:47:07 -0400
-In-Reply-To: <200805011539.58705.bjorn.helgaas@hp.com>
+	with ESMTP id S1752665AbYEDOOS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 4 May 2008 10:14:18 -0400
+In-Reply-To: <200805011447.38234.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
+Cc: Rene Herman <rene.herman@gmail.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-On 01-05-08 23:39, Bjorn Helgaas wrote:
+On 01-05-08 22:47, Bjorn Helgaas wrote:
 
-> We have to set the ISAPNP register index when setting an IRQ via
-> the sysfs interface.  We already do it for IO, MEM, and DMA
-> resources; I just missed the IRQ one.
+> I want to understand this better.  I think the case we're concerned
+> about is this:
 > 
-> This needs to be in 2.6.26.
+>   Memory descriptor 0 is not assigned, i.e., its base and limit/range
+>   registers starting at 0x40 contain zeroes, but Descriptor 1, starting
+>   at 0x48, *is* assigned.
 > 
-> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+> The 2.6.25 "get_resources" code doesn't touch the resource table for
+> Descriptor 0, so its entry remains "unset".  The "set_resources" code
+> skips Descriptor 0 because its resource table entry is "unset" and
+> writes Descriptor 1.
+
+Yes.
+
+> When I convert the table to a list, I have to make sure that we write
+> the Descriptor 1 resources to the correct place starting at 0x48, not
+> to the Descriptor 0 registers.  To do this, I made "get_resources" set
+> the pnp_resource.index field to the current descriptor index, and
+> "set_resources" uses pnp_resource.index to compute the register address.
 > 
-> Index: work10/drivers/pnp/interface.c
-> ===================================================================
-> --- work10.orig/drivers/pnp/interface.c	2008-05-01 15:26:28.000000000 -0600
-> +++ work10/drivers/pnp/interface.c	2008-05-01 15:26:39.000000000 -0600
-> @@ -424,7 +424,7 @@
->  				start = simple_strtoul(buf, &buf, 0);
->  				pnp_res = pnp_add_irq_resource(dev, start, 0);
->  				if (pnp_res)
-> -					nirq++;
-> +					pnp_res->index = nirq++;
->  				continue;
->  			}
->  			if (!strnicmp(buf, "dma", 3)) {
+> However, PNPBIOS, PNPACPI, and even ISAPNP Resource Data is all based
+> on the ordinal position in list (see the fourth paragraph of section
+> 4.6.1 of the ISA spec).  Having pnp_resource.index in addition to a
+> list position adds a lot of confusion.
 
-Ha, my ack wasn't on that one...
+I agree. Got confused/uneasy about the difference myself looking at the 
+dynamic code.
 
-But what I wanted to ask -- judging from my .gitconfig (as opposed to my 
-memory) I haven't done anything special to get the -p (--show-c-function) 
-functionality from git-diff. Do you do anything special to not get it? It 
-really helps when looking at patches.
+> I think a better solution would be to get rid of pnp_resource.index
+> and have "get_resources" add a "disabled" resource for Descriptor 0,
+> so the Nth MEM resource in the list would always correspond to the
+> Nth Memory Descriptor register.
+> 
+> Does this make sense?
 
-Rene.
+It does. Ofcourse, you can than also not reuse _UNSET resources as you did 
+previously but that's for the best anyway.
+
+In trying to come up with problems I'm only finding a difference in an added 
+failure mode with respect to the static array if we run out of memory at a 
+bad time and this is quite unserious.
+
+Yes, I'd say to just do that. It might appear a bit clumsy from an 
+implementation standpoint but the only thing this stuff should be doing is 
+enable inane amounts of possible resources for one device without forcing 
+them on all.
+
+Rene
