@@ -1,42 +1,41 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: Linux 2.6.25 (coretemp reads high temperatures)
-Date: Sun, 4 May 2008 14:42:29 -0300
-Message-ID: <20080504174229.GA29118@khazad-dum.debian.net>
-References: <200804182151.49021.lenb@kernel.org> <200804231143.10875.maximlevitsky@gmail.com> <1209406784.11608.15.camel@localhost> <1209474423.1784.837.camel@queen.suse.de> <20080429170824.09540206@hyperion.delvare> <48179DB4.8040701@assembler.cz> <1209514274.27499.12.camel@localhost> <20080430082005.4b76186f@hyperion.delvare> <20080430145110.GC3543@khazad-dum.debian.net> <20080502203615.GF3956@ucw.cz>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [patch 04/10] acpi: adjust _acpi_{module,function}_namedefinitions
+Date: Sun, 4 May 2008 12:14:41 -0700
+Message-ID: <9D39833986E69849A2A8E74C1078B6B3446FBD@orsmsx415.amr.corp.intel.com>
+References: <200805010952.m419q3Jc031806@imap1.linux-foundation.org> <1209722812.22514.28.camel@linux-2bdv.site> <20080502054113.4e5839d9.akpm@linux-foundation.org> <1209737075.22514.79.camel@linux-2bdv.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4.smtp.messagingengine.com ([66.111.4.28]:32815 "EHLO
-	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751782AbYEDRme (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 4 May 2008 13:42:34 -0400
-Content-Disposition: inline
-In-Reply-To: <20080502203615.GF3956@ucw.cz>
+Received: from mga02.intel.com ([134.134.136.20]:23139 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753965AbYEDTOm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 4 May 2008 15:14:42 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <1209737075.22514.79.camel@linux-2bdv.site>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Jean Delvare <khali@linux-fr.org>, Kasper Sandberg <lkml@metanurb.dk>, Rudolf Marek <r.marek@assembler.cz>, Maxim Levitsky <maximlevitsky@gmail.com>, trenn@suse.de, Len Brown <lenb@kernel.org>, Matthew <jackdachef@gmail.com>, linux-acpi@vger.kernel.org, torvalds@linux-foundation.org, linux-kernel@vger.kernel.org, "Zhang, Rui" <rui.zhang@intel.com>
+To: trenn@suse.de
+Cc: linux-acpi@vger.kernel.org, jbeulich@novell.com
 
-On Fri, 02 May 2008, Pavel Machek wrote:
-> > Actually, just libsensors would, and the local admin can adjust it at
-> > will using the config file.
-> > 
-> > Nobody in userspace should be reading hwmon sysfs directly without the
-> > use of libsensors.  If they are, it is their bug, and it is unsupported
-> > AFAIK.
-> 
-> Hmm, that's an interesting ABI design. No, I do not think that's a
-> good idea.
+>But in future, such patches should definitely be based against ACPICA
+>code. Len will probably announce here where to find the very latest
+>sources, soon. Currently the latest official release linked to on
+>http://lesswatts.org is still from 2006. AFAIK things will get better
+>here, soon.
+>
+>   Thomas
 
-That's how it is.  The kernel drivers are to attempt to do their best to
-give proper readings.  But if they don't, the library can apply
-arbritary user-configurable adjustments.
 
-I'd rather different attribute names like "raw_temp#" were used when the
-adjustment thorugh libsensors is *required*, though.
+The latest ACPICA source can be found at the acpica.org website. In
+fact, we have converted our source repository from CVS to git, and the
+actual working git repository is now publicly available at
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+http://www.acpica.org/repos/acpica.git/
+
+The acpica.org website was created at the end of 2007, and is now the
+home of the acpica project.
+
+Bob
+
