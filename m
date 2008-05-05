@@ -1,60 +1,39 @@
-From: JM <v-j-m@suomi24.fi>
-Subject: Re: Acer Aspire 9813WKMI fan runs all the time after suspend to ram
-Date: Mon, 5 May 2008 21:49:15 +0200 (CEST)
-Message-ID: <28220299.1210016955623.JavaMail.apache@eni-cpps13.sth.basefarm.net>
-Reply-To: v-j-m@suomi24.fi
+From: Holger Macht <hmacht@suse.de>
+Subject: [PATCH] bay: Exit if notify handler cannot be installed
+Date: Mon, 5 May 2008 22:25:08 +0200
+Message-ID: <20080505202508.GA3690@homac>
 Mime-Version: 1.0
-Content-Type: text/plain;charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from eni-mailout01.sth.basefarm.net ([80.76.148.7]:53530 "EHLO
-	eni-mailout01.sth.basefarm.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753298AbYEEUNr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 May 2008 16:13:47 -0400
-Received: from [10.7.4.195] (port=34641 helo=eni-cpps13.sth.basefarm.net)
-	by eni-mailout01.sth.basefarm.net with esmtps (TLSv1:AES256-SHA:256)
-	(Exim 4.66)
-	(envelope-from <v-j-m@suomi24.fi>)
-	id 1Jt6gV-0000rR-6M
-	for linux-acpi@vger.kernel.org; Mon, 05 May 2008 21:49:16 +0200
-Received: from localhost ([127.0.0.1]:34639 helo=eni-cpps13.sth.basefarm.net)
-	by eni-cpps13.sth.basefarm.net with esmtp (Exim 4.66)
-	(envelope-from <v-j-m@suomi24.fi>)
-	id 1Jt6gV-0008O5-KH
-	for linux-acpi@vger.kernel.org; Mon, 05 May 2008 21:49:15 +0200
+Received: from cantor2.suse.de ([195.135.220.15]:59364 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754978AbYEEUW7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 5 May 2008 16:22:59 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, kristen.c.accardi@intel.com
 
->
-> Notebook fan runs all the time after suspend to ram.
->
+If acpi_install_notify_handler() for a bay device fails, the bay driver is
+superfluous. Most likely, another driver (like libata) is already caring
+about this device anyway. Furthermore,
+register_hotplug_dock_device(acpi_handle) from the dock driver must not be
+called twice with the same handler. So clean up and exit.
 
-Workaround:
+Signed-off-by: Holger Macht <hmacht@suse.de>
+---
 
-Original DSDT > http://aceracpi.googlecode.com/svn/trunk/dsdt/acer/aspire/9810.dsl
+diff --git a/drivers/acpi/bay.c b/drivers/acpi/bay.c
+index d2fc941..ce9038f 100644
+--- a/drivers/acpi/bay.c
++++ b/drivers/acpi/bay.c
+@@ -311,6 +311,7 @@ static int bay_add(acpi_handle handle, int id)
+ 			bay_notify, new_bay);
+ 	if (ACPI_FAILURE(status)) {
+ 		printk(KERN_ERR PREFIX "Error installing bay notify handler\n");
++		goto bay_add_err;
+ 	}
+ 
+ 	/* if we are on a dock station, we should register for dock
 
-Normalize behavior of fan on cold boot and wakeup:
-Store (0x46, SMIF)
-Store (0x00, TRP0)
-But in _WAK is:
-If (LAnd (DTSE, MPEN))
-and that is not true.
-
---- a/dsdt.dsl
-+++ b/dsdt.dsl
-@@ -462,11 +462,11 @@
-         Store (0x00, PO80)
-         If (LEqual (Arg0, 0x03))
-         {
--            If (LAnd (DTSE, MPEN))
--            {
-+            // If (LAnd (DTSE, MPEN))
-+            // {
-                 Store (0x46, SMIF)
-                 Store (0x00, TRP0)
--            }
-+            // }
-         }
-
-         If (LOr (LEqual (Arg0, 0x03), LEqual (Arg0, 0x04)))
