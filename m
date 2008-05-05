@@ -1,34 +1,61 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: PNP: set IRQ index in sysfs "set irq" interface
-Date: Mon, 5 May 2008 09:00:45 -0600
-Message-ID: <200805050900.46521.bjorn.helgaas@hp.com>
-References: <200805011539.58705.bjorn.helgaas@hp.com> <481DBE81.8000608@keyaccess.nl>
+From: Adrian Bunk <bunk@kernel.org>
+Subject: [2.6 patch] proper prototype for
+	acpi_processor_tstate_has_changed()
+Date: Mon, 5 May 2008 21:28:46 +0300
+Message-ID: <20080505182845.GR17139@cs181133002.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:10680 "EHLO
-	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752095AbYEEPAq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 May 2008 11:00:46 -0400
-In-Reply-To: <481DBE81.8000608@keyaccess.nl>
+Received: from smtp5.pp.htv.fi ([213.243.153.39]:33094 "EHLO smtp5.pp.htv.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1761511AbYEES3x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 5 May 2008 14:29:53 -0400
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rene Herman <rene.herman@keyaccess.nl>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 
-On Sunday 04 May 2008 07:47:45 am Rene Herman wrote:
-> But what I wanted to ask -- judging from my .gitconfig (as opposed to my 
-> memory) I haven't done anything special to get the -p (--show-c-function) 
-> functionality from git-diff. Do you do anything special to not get it? It 
-> really helps when looking at patches.
+This patch adds a proper prototype for acpi_processor_tstate_has_changed()
+in include/acpi/processor.h
 
-I agree, "--show-c-function" is often handy.  I use quilt, and it
-looks like it doesn't add that option by default.  I added a ~/.quiltrc
-containing 'QUILT_DIFF_OPTS="-p"', and it looks like that will do the
-trick.  Thanks for the tip.
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 
-Bjorn
+---
+
+This patch has been sent on:
+- 23 Apr 2008
+- 14 Apr 2008
+- 31 Mar 2008
+- 1 Mar 2008
+
+ drivers/acpi/processor_core.c |    1 -
+ include/acpi/processor.h      |    1 +
+ 2 files changed, 1 insertion(+), 1 deletion(-)
+
+fcdb74ac24c943bc290e85e2d757f82dbb065955 foobar
+diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+index a3cc8a9..d88f21e 100644
+--- a/drivers/acpi/processor_core.c
++++ b/drivers/acpi/processor_core.c
+@@ -86,7 +86,6 @@ static int acpi_processor_info_open_fs(struct inode *inode, struct file *file);
+ static void acpi_processor_notify(acpi_handle handle, u32 event, void *data);
+ static acpi_status acpi_processor_hotadd_init(acpi_handle handle, int *p_cpu);
+ static int acpi_processor_handle_eject(struct acpi_processor *pr);
+-extern int acpi_processor_tstate_has_changed(struct acpi_processor *pr);
+ 
+ 
+ static const struct acpi_device_id processor_device_ids[] = {
+diff --git a/include/acpi/processor.h b/include/acpi/processor.h
+index 06480bc..06ebb6e 100644
+--- a/include/acpi/processor.h
++++ b/include/acpi/processor.h
+@@ -319,6 +319,7 @@ static inline int acpi_processor_ppc_has_changed(struct acpi_processor *pr)
+ #endif				/* CONFIG_CPU_FREQ */
+ 
+ /* in processor_throttling.c */
++int acpi_processor_tstate_has_changed(struct acpi_processor *pr);
+ int acpi_processor_get_throttling_info(struct acpi_processor *pr);
+ extern int acpi_processor_set_throttling(struct acpi_processor *pr, int state);
+ extern struct file_operations acpi_processor_throttling_fops;
 
