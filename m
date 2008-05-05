@@ -1,39 +1,82 @@
-From: Holger Macht <hmacht@suse.de>
-Subject: [PATCH] bay: Exit if notify handler cannot be installed
-Date: Mon, 5 May 2008 22:25:08 +0200
-Message-ID: <20080505202508.GA3690@homac>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: [patch 2/8] PNP: add detail to debug resource dump
+Date: Mon, 05 May 2008 16:36:32 -0600
+Message-ID: <20080505223959.136127921@ldl.fc.hp.com>
+References: <20080505223630.682082986@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:59364 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754978AbYEEUW7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 May 2008 16:22:59 -0400
-Content-Disposition: inline
+Received: from g1t0029.austin.hp.com ([15.216.28.36]:25919 "EHLO
+	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760731AbYEEWkA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 May 2008 18:40:00 -0400
+Content-Disposition: inline; filename=pnp-better-resource-dump
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, kristen.c.accardi@intel.com
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-If acpi_install_notify_handler() for a bay device fails, the bay driver is
-superfluous. Most likely, another driver (like libata) is already caring
-about this device anyway. Furthermore,
-register_hotplug_dock_device(acpi_handle) from the dock driver must not be
-called twice with the same handler. So clean up and exit.
+In the debug resource dump, decode the flags and indicate when
+a resource is disabled or has been automatically assigned.
 
-Signed-off-by: Holger Macht <hmacht@suse.de>
----
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-diff --git a/drivers/acpi/bay.c b/drivers/acpi/bay.c
-index d2fc941..ce9038f 100644
---- a/drivers/acpi/bay.c
-+++ b/drivers/acpi/bay.c
-@@ -311,6 +311,7 @@ static int bay_add(acpi_handle handle, int id)
- 			bay_notify, new_bay);
- 	if (ACPI_FAILURE(status)) {
- 		printk(KERN_ERR PREFIX "Error installing bay notify handler\n");
-+		goto bay_add_err;
+Index: work10/drivers/pnp/support.c
+===================================================================
+--- work10.orig/drivers/pnp/support.c	2008-05-02 11:18:50.000000000 -0600
++++ work10/drivers/pnp/support.c	2008-05-05 09:39:03.000000000 -0600
+@@ -63,28 +63,46 @@ void dbg_pnp_show_resources(struct pnp_d
+ 	for (i = 0; i < PNP_MAX_IRQ; i++) {
+ 		res = pnp_get_resource(dev, IORESOURCE_IRQ, i);
+ 		if (res && !(res->flags & IORESOURCE_UNSET))
+-			dev_dbg(&dev->dev, "  irq %lld flags %#lx\n",
+-				(unsigned long long) res->start, res->flags);
++			dev_dbg(&dev->dev, "  irq %lld flags %#lx%s%s\n",
++				(unsigned long long) res->start, res->flags,
++				res->flags & IORESOURCE_DISABLED ?
++					" DISABLED" : "",
++				res->flags & IORESOURCE_AUTO ?
++					" AUTO" : "");
  	}
- 
- 	/* if we are on a dock station, we should register for dock
+ 	for (i = 0; i < PNP_MAX_DMA; i++) {
+ 		res = pnp_get_resource(dev, IORESOURCE_DMA, i);
+ 		if (res && !(res->flags & IORESOURCE_UNSET))
+-			dev_dbg(&dev->dev, "  dma %lld flags %#lx\n",
+-				(unsigned long long) res->start, res->flags);
++			dev_dbg(&dev->dev, "  dma %lld flags %#lx%s%s\n",
++				(unsigned long long) res->start, res->flags,
++				res->flags & IORESOURCE_DISABLED ?
++					" DISABLED" : "",
++				res->flags & IORESOURCE_AUTO ?
++					" AUTO" : "");
+ 	}
+ 	for (i = 0; i < PNP_MAX_PORT; i++) {
+ 		res = pnp_get_resource(dev, IORESOURCE_IO, i);
+ 		if (res && !(res->flags & IORESOURCE_UNSET))
+-			dev_dbg(&dev->dev, "  io  %#llx-%#llx flags %#lx\n",
++			dev_dbg(&dev->dev, "  io  %#llx-%#llx flags %#lx"
++				"%s%s\n",
+ 				(unsigned long long) res->start,
+-				(unsigned long long) res->end, res->flags);
++				(unsigned long long) res->end, res->flags,
++				res->flags & IORESOURCE_DISABLED ?
++					" DISABLED" : "",
++				res->flags & IORESOURCE_AUTO ?
++					" AUTO" : "");
+ 	}
+ 	for (i = 0; i < PNP_MAX_MEM; i++) {
+ 		res = pnp_get_resource(dev, IORESOURCE_MEM, i);
+ 		if (res && !(res->flags & IORESOURCE_UNSET))
+-			dev_dbg(&dev->dev, "  mem %#llx-%#llx flags %#lx\n",
++			dev_dbg(&dev->dev, "  mem %#llx-%#llx flags %#lx"
++				"%s%s\n",
+ 				(unsigned long long) res->start,
+-				(unsigned long long) res->end, res->flags);
++				(unsigned long long) res->end, res->flags,
++				res->flags & IORESOURCE_DISABLED ?
++					" DISABLED" : "",
++				res->flags & IORESOURCE_AUTO ?
++					" AUTO" : "");
+ 	}
+ #endif
+ }
 
+-- 
