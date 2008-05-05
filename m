@@ -1,82 +1,39 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 2/8] PNP: add detail to debug resource dump
-Date: Mon, 05 May 2008 16:36:32 -0600
-Message-ID: <20080505223959.136127921@ldl.fc.hp.com>
+Subject: [patch 1/8] PNP: set IRQ index in sysfs "set irq" interface
+Date: Mon, 05 May 2008 16:36:31 -0600
+Message-ID: <20080505223958.851331042@ldl.fc.hp.com>
 References: <20080505223630.682082986@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0029.austin.hp.com ([15.216.28.36]:25919 "EHLO
-	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760731AbYEEWkA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 May 2008 18:40:00 -0400
-Content-Disposition: inline; filename=pnp-better-resource-dump
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:19927 "EHLO
+	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760629AbYEEWj6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 May 2008 18:39:58 -0400
+Content-Disposition: inline; filename=pnp-interface-fixup
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-In the debug resource dump, decode the flags and indicate when
-a resource is disabled or has been automatically assigned.
+We have to set the ISAPNP register index when setting an IRQ via
+the sysfs interface.  We already do it for IO, MEM, and DMA
+resources; I just missed the IRQ one.
+
+This should be in 2.6.26.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Index: work10/drivers/pnp/support.c
+Index: work10/drivers/pnp/interface.c
 ===================================================================
---- work10.orig/drivers/pnp/support.c	2008-05-02 11:18:50.000000000 -0600
-+++ work10/drivers/pnp/support.c	2008-05-05 09:39:03.000000000 -0600
-@@ -63,28 +63,46 @@ void dbg_pnp_show_resources(struct pnp_d
- 	for (i = 0; i < PNP_MAX_IRQ; i++) {
- 		res = pnp_get_resource(dev, IORESOURCE_IRQ, i);
- 		if (res && !(res->flags & IORESOURCE_UNSET))
--			dev_dbg(&dev->dev, "  irq %lld flags %#lx\n",
--				(unsigned long long) res->start, res->flags);
-+			dev_dbg(&dev->dev, "  irq %lld flags %#lx%s%s\n",
-+				(unsigned long long) res->start, res->flags,
-+				res->flags & IORESOURCE_DISABLED ?
-+					" DISABLED" : "",
-+				res->flags & IORESOURCE_AUTO ?
-+					" AUTO" : "");
- 	}
- 	for (i = 0; i < PNP_MAX_DMA; i++) {
- 		res = pnp_get_resource(dev, IORESOURCE_DMA, i);
- 		if (res && !(res->flags & IORESOURCE_UNSET))
--			dev_dbg(&dev->dev, "  dma %lld flags %#lx\n",
--				(unsigned long long) res->start, res->flags);
-+			dev_dbg(&dev->dev, "  dma %lld flags %#lx%s%s\n",
-+				(unsigned long long) res->start, res->flags,
-+				res->flags & IORESOURCE_DISABLED ?
-+					" DISABLED" : "",
-+				res->flags & IORESOURCE_AUTO ?
-+					" AUTO" : "");
- 	}
- 	for (i = 0; i < PNP_MAX_PORT; i++) {
- 		res = pnp_get_resource(dev, IORESOURCE_IO, i);
- 		if (res && !(res->flags & IORESOURCE_UNSET))
--			dev_dbg(&dev->dev, "  io  %#llx-%#llx flags %#lx\n",
-+			dev_dbg(&dev->dev, "  io  %#llx-%#llx flags %#lx"
-+				"%s%s\n",
- 				(unsigned long long) res->start,
--				(unsigned long long) res->end, res->flags);
-+				(unsigned long long) res->end, res->flags,
-+				res->flags & IORESOURCE_DISABLED ?
-+					" DISABLED" : "",
-+				res->flags & IORESOURCE_AUTO ?
-+					" AUTO" : "");
- 	}
- 	for (i = 0; i < PNP_MAX_MEM; i++) {
- 		res = pnp_get_resource(dev, IORESOURCE_MEM, i);
- 		if (res && !(res->flags & IORESOURCE_UNSET))
--			dev_dbg(&dev->dev, "  mem %#llx-%#llx flags %#lx\n",
-+			dev_dbg(&dev->dev, "  mem %#llx-%#llx flags %#lx"
-+				"%s%s\n",
- 				(unsigned long long) res->start,
--				(unsigned long long) res->end, res->flags);
-+				(unsigned long long) res->end, res->flags,
-+				res->flags & IORESOURCE_DISABLED ?
-+					" DISABLED" : "",
-+				res->flags & IORESOURCE_AUTO ?
-+					" AUTO" : "");
- 	}
- #endif
- }
+--- work10.orig/drivers/pnp/interface.c	2008-05-01 15:26:28.000000000 -0600
++++ work10/drivers/pnp/interface.c	2008-05-01 15:26:39.000000000 -0600
+@@ -424,7 +424,7 @@
+ 				start = simple_strtoul(buf, &buf, 0);
+ 				pnp_res = pnp_add_irq_resource(dev, start, 0);
+ 				if (pnp_res)
+-					nirq++;
++					pnp_res->index = nirq++;
+ 				continue;
+ 			}
+ 			if (!strnicmp(buf, "dma", 3)) {
 
 -- 
