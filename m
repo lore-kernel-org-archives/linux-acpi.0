@@ -1,43 +1,41 @@
-From: Pavel Machek <pavel@suse.cz>
-Subject: Re: Linux 2.6.25 (coretemp reads high temperatures)
-Date: Mon, 5 May 2008 15:45:48 +0200
-Message-ID: <20080505134548.GB5351@elf.ucw.cz>
-References: <200804231143.10875.maximlevitsky@gmail.com> <1209406784.11608.15.camel@localhost> <1209474423.1784.837.camel@queen.suse.de> <20080429170824.09540206@hyperion.delvare> <48179DB4.8040701@assembler.cz> <1209514274.27499.12.camel@localhost> <20080430082005.4b76186f@hyperion.delvare> <20080430145110.GC3543@khazad-dum.debian.net> <20080502203615.GF3956@ucw.cz> <20080504174229.GA29118@khazad-dum.debian.net>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [patch 00/37] PNP resource_table cleanups, v2
+Date: Mon, 5 May 2008 08:48:57 -0600
+Message-ID: <200805050848.58436.bjorn.helgaas@hp.com>
+References: <20080401151634.730901933@ldl.fc.hp.com> <481DC4E2.7060803@keyaccess.nl> <481DC60A.7090307@keyaccess.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.31.123]:60028 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755007AbYEENo7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 May 2008 09:44:59 -0400
+Received: from g4t0014.houston.hp.com ([15.201.24.17]:11744 "EHLO
+	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755950AbYEEOs6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 May 2008 10:48:58 -0400
+In-Reply-To: <481DC60A.7090307@keyaccess.nl>
 Content-Disposition: inline
-In-Reply-To: <20080504174229.GA29118@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Jean Delvare <khali@linux-fr.org>, Kasper Sandberg <lkml@metanurb.dk>, Rudolf Marek <r.marek@assembler.cz>, Maxim Levitsky <maximlevitsky@gmail.com>, trenn@suse.de, Len Brown <lenb@kernel.org>, Matthew <jackdachef@gmail.com>, linux-acpi@vger.kernel.org, torvalds@linux-foundation.org, linux-kernel@vger.kernel.org, "Zhang, Rui" <rui.zhang@intel.com>
+To: Rene Herman <rene.herman@keyaccess.nl>
+Cc: Rene Herman <rene.herman@gmail.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-On Sun 2008-05-04 14:42:29, Henrique de Moraes Holschuh wrote:
-> On Fri, 02 May 2008, Pavel Machek wrote:
-> > > Actually, just libsensors would, and the local admin can adjust it at
-> > > will using the config file.
-> > > 
-> > > Nobody in userspace should be reading hwmon sysfs directly without the
-> > > use of libsensors.  If they are, it is their bug, and it is unsupported
-> > > AFAIK.
-> > 
-> > Hmm, that's an interesting ABI design. No, I do not think that's a
-> > good idea.
+On Sunday 04 May 2008 08:19:54 am Rene Herman wrote:
+> On 04-05-08 16:14, Rene Herman wrote:
 > 
-> That's how it is.  The kernel drivers are to attempt to do their best to
-> give proper readings.  But if they don't, the library can apply
-> arbritary user-configurable adjustments.
+> > In trying to come up with problems I'm only finding a difference in an 
+> > added failure mode with respect to the static array if we run out of 
+> > memory at a bad time and this is quite unserious.
 > 
-> I'd rather different attribute names like "raw_temp#" were used when the
-> adjustment thorugh libsensors is *required*, though.
+> I mean, this would be an added mode when just releasing and rbuilding teh 
+> list as opposed to teh reusing, it's not a diffeerence with respect to the 
+> .index setup.
+> 
+> So, going to completely slash struct pnp_resource again? :) Would improve 
+> things...
 
-Yes, that would be nice.
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+It would be nice to get rid of struct pnp_resource, but then I
+wouldn't have a place to keep the list pointer.  But I think
+it will disappear from most of the interfaces, e.g,. we can
+get rid of pnp_get_pnp_resource(), etc.
+
+Bjorn
