@@ -1,61 +1,60 @@
-From: Adrian Bunk <bunk@kernel.org>
-Subject: [2.6 patch] proper prototype for
-	acpi_processor_tstate_has_changed()
-Date: Mon, 5 May 2008 21:28:46 +0300
-Message-ID: <20080505182845.GR17139@cs181133002.pp.htv.fi>
+From: JM <v-j-m@suomi24.fi>
+Subject: Re: Acer Aspire 9813WKMI fan runs all the time after suspend to ram
+Date: Mon, 5 May 2008 21:49:15 +0200 (CEST)
+Message-ID: <28220299.1210016955623.JavaMail.apache@eni-cpps13.sth.basefarm.net>
+Reply-To: v-j-m@suomi24.fi
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain;charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp5.pp.htv.fi ([213.243.153.39]:33094 "EHLO smtp5.pp.htv.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761511AbYEES3x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 May 2008 14:29:53 -0400
-Content-Disposition: inline
+Received: from eni-mailout01.sth.basefarm.net ([80.76.148.7]:53530 "EHLO
+	eni-mailout01.sth.basefarm.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753298AbYEEUNr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 May 2008 16:13:47 -0400
+Received: from [10.7.4.195] (port=34641 helo=eni-cpps13.sth.basefarm.net)
+	by eni-mailout01.sth.basefarm.net with esmtps (TLSv1:AES256-SHA:256)
+	(Exim 4.66)
+	(envelope-from <v-j-m@suomi24.fi>)
+	id 1Jt6gV-0000rR-6M
+	for linux-acpi@vger.kernel.org; Mon, 05 May 2008 21:49:16 +0200
+Received: from localhost ([127.0.0.1]:34639 helo=eni-cpps13.sth.basefarm.net)
+	by eni-cpps13.sth.basefarm.net with esmtp (Exim 4.66)
+	(envelope-from <v-j-m@suomi24.fi>)
+	id 1Jt6gV-0008O5-KH
+	for linux-acpi@vger.kernel.org; Mon, 05 May 2008 21:49:15 +0200
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+To: linux-acpi@vger.kernel.org
 
-This patch adds a proper prototype for acpi_processor_tstate_has_changed()
-in include/acpi/processor.h
+>
+> Notebook fan runs all the time after suspend to ram.
+>
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Workaround:
 
----
+Original DSDT > http://aceracpi.googlecode.com/svn/trunk/dsdt/acer/aspire/9810.dsl
 
-This patch has been sent on:
-- 23 Apr 2008
-- 14 Apr 2008
-- 31 Mar 2008
-- 1 Mar 2008
+Normalize behavior of fan on cold boot and wakeup:
+Store (0x46, SMIF)
+Store (0x00, TRP0)
+But in _WAK is:
+If (LAnd (DTSE, MPEN))
+and that is not true.
 
- drivers/acpi/processor_core.c |    1 -
- include/acpi/processor.h      |    1 +
- 2 files changed, 1 insertion(+), 1 deletion(-)
+--- a/dsdt.dsl
++++ b/dsdt.dsl
+@@ -462,11 +462,11 @@
+         Store (0x00, PO80)
+         If (LEqual (Arg0, 0x03))
+         {
+-            If (LAnd (DTSE, MPEN))
+-            {
++            // If (LAnd (DTSE, MPEN))
++            // {
+                 Store (0x46, SMIF)
+                 Store (0x00, TRP0)
+-            }
++            // }
+         }
 
-fcdb74ac24c943bc290e85e2d757f82dbb065955 foobar
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index a3cc8a9..d88f21e 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -86,7 +86,6 @@ static int acpi_processor_info_open_fs(struct inode *inode, struct file *file);
- static void acpi_processor_notify(acpi_handle handle, u32 event, void *data);
- static acpi_status acpi_processor_hotadd_init(acpi_handle handle, int *p_cpu);
- static int acpi_processor_handle_eject(struct acpi_processor *pr);
--extern int acpi_processor_tstate_has_changed(struct acpi_processor *pr);
- 
- 
- static const struct acpi_device_id processor_device_ids[] = {
-diff --git a/include/acpi/processor.h b/include/acpi/processor.h
-index 06480bc..06ebb6e 100644
---- a/include/acpi/processor.h
-+++ b/include/acpi/processor.h
-@@ -319,6 +319,7 @@ static inline int acpi_processor_ppc_has_changed(struct acpi_processor *pr)
- #endif				/* CONFIG_CPU_FREQ */
- 
- /* in processor_throttling.c */
-+int acpi_processor_tstate_has_changed(struct acpi_processor *pr);
- int acpi_processor_get_throttling_info(struct acpi_processor *pr);
- extern int acpi_processor_set_throttling(struct acpi_processor *pr, int state);
- extern struct file_operations acpi_processor_throttling_fops;
-
+         If (LOr (LEqual (Arg0, 0x03), LEqual (Arg0, 0x04)))
