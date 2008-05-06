@@ -1,66 +1,72 @@
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: Re: Acer Aspire 9813WKMI fan runs all the time after suspend to ram
-Date: Tue, 6 May 2008 19:05:47 +0100
-Message-ID: <200805061905.47593.carlos@strangeworlds.co.uk>
-References: <28220299.1210016955623.JavaMail.apache@eni-cpps13.sth.basefarm.net> <1210085519.4802.48.camel@linux-2bdv.site>
+From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Subject: Re: acpi_cpu_freq_init warning...
+Date: Wed, 07 May 2008 04:02:53 +0900
+Message-ID: <87skwvcl2a.fsf@duaron.myhome.or.jp>
+References: <86802c440805051951u153ebc21p15f0d73904496217@mail.gmail.com>
+	<87k5i8hrmk.fsf@duaron.myhome.or.jp>
+	<alpine.LFD.1.10.0805060741290.32269@woody.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from phoenix.slamd64.com ([217.10.145.2]:55291 "EHLO
-	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751368AbYEFSF6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 May 2008 14:05:58 -0400
-In-Reply-To: <1210085519.4802.48.camel@linux-2bdv.site>
-Content-Disposition: inline
+Received: from mail.parknet.ad.jp ([210.171.162.6]:40795 "EHLO
+	mail.officemail.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752532AbYEFTDB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 May 2008 15:03:01 -0400
+In-Reply-To: <alpine.LFD.1.10.0805060741290.32269@woody.linux-foundation.org>
+	(Linus Torvalds's message of "Tue, 6 May 2008 07:47:18 -0700 (PDT)")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: trenn@suse.de
-Cc: v-j-m@suomi24.fi, linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Yinghai Lu <yhlu.kernel@gmail.com>, Greg KH <gregkh@suse.de>, Ingo Molnar <mingo@elte.hu>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 
-On Tuesday 06 May 2008 15:51:59 Thomas Renninger wrote:
->> Original DSDT > 
-http://aceracpi.googlecode.com/svn/trunk/dsdt/acer/aspire/9810.dsl
-> [..]
-> Could you find out whether some osi set variable is involved.
-> (The ones that get set when BIOS (in DSDT) calls e.g.
-> osi("Windows 2006"))
-> Something like:
-> if (osi("Windows 2006"))
->     Store(1, DTSE)
-> Maybe you find out what the DTSE or MPEN variable is good for, is set by
-> some _INI function of a specific device or whatever?
+Linus Torvalds <torvalds@linux-foundation.org> writes:
 
-Looking at the DSDT link posted, those variables are never set in it. I wonder 
-who, or what, is expected to set them then...
+> On Tue, 6 May 2008, OGAWA Hirofumi wrote:
+>> -	if ((drv->entry.next != drv->entry.prev) ||
+>> +	if ((drv->entry.next != drv->entry.prev) &&
+>>  	    (drv->entry.next != NULL)) {
+>
+> Umm. That code still makes no sense.
+>
+> The "drv->entry.next == drv->entry.prev" condition will trigger under 
+> *three* different circumstances:
+>
+>  - next/prev == NULL (uninitialized). Checked for by the explicit check 
+>    against NULL.
+>
+>  - list empty (both next/prev point back to itself), which I assume the 
+>    check was *meant* for.
+>
+>  - list has only *one* entry, when next/prev both point to the list head.
+>
+> and I'm pretty damn sure that whoever wrote that code didn't mean that 
+> last one, but who knows..
+>
+> The fact is, looking at next/prev this way is a sure way to have bugs.
+>
+> What is that PoS *trying* to test for? I assume it is meant to test for
+>
+> 	/* Is the list initialized and non-empty? */
+> 	if (drv->entry.next && !list_empty(&drv->entry)) {
+> 		...
+>
+> and dammit, just doing it that way is shorter and simpler.
 
-Perhaps it would be worth experimenting instead with OSI when booting and see 
-what happens then? e.g.
+Whoops, sorry. You are right.
 
-acpi_osi="!Windows 2006"
-
-(Perhaps OSYS also triggers an SMI trap which does or doesn't do it? Worth a 
-shot at least).
-
-> Best you create a bug for that at bugzilla.kernel.org (and add me to CC
-> or post the bug no).
-> Full (or none) fan is a real blocker bug that should generally be
-> resolved.
-
-I've also had a report from a user the other day that hit the same bug on an 
-Aspire 5710 series (which seems to have the same root cause, from glancing 
-over the DSDT):
-
-http://aceracpi.googlecode.com/svn/trunk/dsdt/acer/aspire/5710.dsl
-
-> Does this BIOS expose an ACPI fan device correctly? 
-
-Acer BIOS's never expose the fan, AFAIK (and it's not available through WMI 
-either).
-
--Carlos
+diff -puN drivers/base/sys.c~fix-sys-bogus-warning drivers/base/sys.c
+--- linux-2.6/drivers/base/sys.c~fix-sys-bogus-warning	2008-05-07 03:51:00.000000000 +0900
++++ linux-2.6-hirofumi/drivers/base/sys.c	2008-05-07 04:01:14.000000000 +0900
+@@ -175,8 +175,7 @@ int sysdev_driver_register(struct sysdev
+ 	}
+ 
+ 	/* Check whether this driver has already been added to a class. */
+-	if ((drv->entry.next != drv->entry.prev) ||
+-	    (drv->entry.next != NULL)) {
++	if (drv->entry.next && !list_empty(&drv->entry)) {
+ 		printk(KERN_WARNING "sysdev: class %s: driver (%p) has already"
+ 			" been registered to a class, something is wrong, but "
+ 			"will forge on!\n", cls->name, drv);
+_
 -- 
-E-Mail: carlos@strangeworlds.co.uk
-Web: strangeworlds.co.uk
-GPG Key ID: 0x23EE722D
+OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
