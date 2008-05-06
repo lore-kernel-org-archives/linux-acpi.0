@@ -1,72 +1,76 @@
-From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+From: Greg KH <gregkh@suse.de>
 Subject: Re: acpi_cpu_freq_init warning...
-Date: Wed, 07 May 2008 04:02:53 +0900
-Message-ID: <87skwvcl2a.fsf@duaron.myhome.or.jp>
-References: <86802c440805051951u153ebc21p15f0d73904496217@mail.gmail.com>
-	<87k5i8hrmk.fsf@duaron.myhome.or.jp>
-	<alpine.LFD.1.10.0805060741290.32269@woody.linux-foundation.org>
+Date: Tue, 6 May 2008 13:20:33 -0700
+Message-ID: <20080506202033.GA3114@suse.de>
+References: <86802c440805051951u153ebc21p15f0d73904496217@mail.gmail.com> <87k5i8hrmk.fsf@duaron.myhome.or.jp> <alpine.LFD.1.10.0805060741290.32269@woody.linux-foundation.org> <87skwvcl2a.fsf@duaron.myhome.or.jp>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.parknet.ad.jp ([210.171.162.6]:40795 "EHLO
-	mail.officemail.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752532AbYEFTDB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 May 2008 15:03:01 -0400
-In-Reply-To: <alpine.LFD.1.10.0805060741290.32269@woody.linux-foundation.org>
-	(Linus Torvalds's message of "Tue, 6 May 2008 07:47:18 -0700 (PDT)")
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932235AbYEFUV1@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <87skwvcl2a.fsf@duaron.myhome.or.jp>
+Sender: linux-kernel-owner@vger.kernel.org
+To: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Yinghai Lu <yhlu.kernel@gmail.com>, Ingo Molnar <mingo@elte.hu>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Yinghai Lu <yhlu.kernel@gmail.com>, Greg KH <gregkh@suse.de>, Ingo Molnar <mingo@elte.hu>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 
-Linus Torvalds <torvalds@linux-foundation.org> writes:
+On Wed, May 07, 2008 at 04:02:53AM +0900, OGAWA Hirofumi wrote:
+> Linus Torvalds <torvalds@linux-foundation.org> writes:
+> 
+> > On Tue, 6 May 2008, OGAWA Hirofumi wrote:
+> >> -	if ((drv->entry.next != drv->entry.prev) ||
+> >> +	if ((drv->entry.next != drv->entry.prev) &&
+> >>  	    (drv->entry.next != NULL)) {
+> >
+> > Umm. That code still makes no sense.
+> >
+> > The "drv->entry.next == drv->entry.prev" condition will trigger under 
+> > *three* different circumstances:
+> >
+> >  - next/prev == NULL (uninitialized). Checked for by the explicit check 
+> >    against NULL.
+> >
+> >  - list empty (both next/prev point back to itself), which I assume the 
+> >    check was *meant* for.
+> >
+> >  - list has only *one* entry, when next/prev both point to the list head.
+> >
+> > and I'm pretty damn sure that whoever wrote that code didn't mean that 
+> > last one, but who knows..
+> >
+> > The fact is, looking at next/prev this way is a sure way to have bugs.
+> >
+> > What is that PoS *trying* to test for? I assume it is meant to test for
+> >
+> > 	/* Is the list initialized and non-empty? */
+> > 	if (drv->entry.next && !list_empty(&drv->entry)) {
+> > 		...
+> >
+> > and dammit, just doing it that way is shorter and simpler.
 
-> On Tue, 6 May 2008, OGAWA Hirofumi wrote:
->> -	if ((drv->entry.next != drv->entry.prev) ||
->> +	if ((drv->entry.next != drv->entry.prev) &&
->>  	    (drv->entry.next != NULL)) {
->
-> Umm. That code still makes no sense.
->
-> The "drv->entry.next == drv->entry.prev" condition will trigger under 
-> *three* different circumstances:
->
->  - next/prev == NULL (uninitialized). Checked for by the explicit check 
->    against NULL.
->
->  - list empty (both next/prev point back to itself), which I assume the 
->    check was *meant* for.
->
->  - list has only *one* entry, when next/prev both point to the list head.
->
-> and I'm pretty damn sure that whoever wrote that code didn't mean that 
-> last one, but who knows..
->
-> The fact is, looking at next/prev this way is a sure way to have bugs.
->
-> What is that PoS *trying* to test for? I assume it is meant to test for
->
-> 	/* Is the list initialized and non-empty? */
-> 	if (drv->entry.next && !list_empty(&drv->entry)) {
-> 		...
->
-> and dammit, just doing it that way is shorter and simpler.
+But I don't think that will work as others have pointed out, this
+structure's list field isn't initialized yet.
 
-Whoops, sorry. You are right.
+> Whoops, sorry. You are right.
+> 
+> diff -puN drivers/base/sys.c~fix-sys-bogus-warning drivers/base/sys.c
+> --- linux-2.6/drivers/base/sys.c~fix-sys-bogus-warning	2008-05-07 03:51:00.000000000 +0900
+> +++ linux-2.6-hirofumi/drivers/base/sys.c	2008-05-07 04:01:14.000000000 +0900
+> @@ -175,8 +175,7 @@ int sysdev_driver_register(struct sysdev
+>  	}
+>  
+>  	/* Check whether this driver has already been added to a class. */
+> -	if ((drv->entry.next != drv->entry.prev) ||
+> -	    (drv->entry.next != NULL)) {
+> +	if (drv->entry.next && !list_empty(&drv->entry)) {
 
-diff -puN drivers/base/sys.c~fix-sys-bogus-warning drivers/base/sys.c
---- linux-2.6/drivers/base/sys.c~fix-sys-bogus-warning	2008-05-07 03:51:00.000000000 +0900
-+++ linux-2.6-hirofumi/drivers/base/sys.c	2008-05-07 04:01:14.000000000 +0900
-@@ -175,8 +175,7 @@ int sysdev_driver_register(struct sysdev
- 	}
- 
- 	/* Check whether this driver has already been added to a class. */
--	if ((drv->entry.next != drv->entry.prev) ||
--	    (drv->entry.next != NULL)) {
-+	if (drv->entry.next && !list_empty(&drv->entry)) {
- 		printk(KERN_WARNING "sysdev: class %s: driver (%p) has already"
- 			" been registered to a class, something is wrong, but "
- 			"will forge on!\n", cls->name, drv);
-_
--- 
-OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Did you try this patch out?
+
+I say rip the whole thing out, it was added to try to make some bugs in
+upper layers more obvious, but if it can't be correct, I have no
+objection to removing the thing.  Other bad things happen later on if
+the developer messes this one up, this is not a 'user can cause this'
+type of error at all.
+
+thanks,
+
+greg k-h
