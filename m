@@ -1,17 +1,17 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 1/4] ACPI Hibernation: Use ACPI hardware signature
-Date: Tue, 6 May 2008 23:33:16 +0200
-Message-ID: <200805062333.17558.rjw@sisk.pl>
+Subject: [PATCH 4/4] PCI ACPI: Drop the second argument of platform_pci_choose_state
+Date: Tue, 6 May 2008 23:38:41 +0200
+Message-ID: <200805062338.42587.rjw@sisk.pl>
 References: <200805062331.39454.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:56406 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:56412 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760666AbYEFVjL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 6 May 2008 17:39:11 -0400
+	id S1760826AbYEFVjO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 6 May 2008 17:39:14 -0400
 In-Reply-To: <200805062331.39454.rjw@sisk.pl>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
@@ -19,64 +19,65 @@ List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Pavel Machek <pavel@ucw.cz>, Johannes Berg <johannes@sipsolutions.net>, Shaohua Li <shaohua.li@intel.com>, David Brownell <david-b@pacbell.net>, Jesse Barnes <jbarnes@virtuousgeek.org>
 
-From: Shaohua Li <shaohua.li@intel.com>
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-ACPI defines a hardware signature. BIOS calculates the signature
-according to hardware configure, if hardware changes, the signature
-will change, in this case, S4 resume should fail.
+Since the second argument of acpi_pci_choose_state() and
+platform_pci_choose_state() is never used, so remove it.
 
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- drivers/acpi/sleep/main.c |   24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ drivers/pci/pci-acpi.c |    3 +--
+ drivers/pci/pci.c      |    4 ++--
+ drivers/pci/pci.h      |    3 +--
+ 3 files changed, 4 insertions(+), 6 deletions(-)
 
-Index: linux-2.6/drivers/acpi/sleep/main.c
+Index: linux-2.6/drivers/pci/pci-acpi.c
 ===================================================================
---- linux-2.6.orig/drivers/acpi/sleep/main.c
-+++ linux-2.6/drivers/acpi/sleep/main.c
-@@ -255,6 +255,17 @@ static struct dmi_system_id __initdata a
- #endif /* CONFIG_SUSPEND */
+--- linux-2.6.orig/drivers/pci/pci-acpi.c
++++ linux-2.6/drivers/pci/pci-acpi.c
+@@ -244,8 +244,7 @@ EXPORT_SYMBOL(pci_osc_control_set);
+  * 	choose highest power _SxD or any lower power
+  */
  
- #ifdef CONFIG_HIBERNATION
-+static unsigned long s4_hardware_signature;
-+static struct acpi_table_facs *facs;
-+static bool nosigcheck;
-+
-+static int __init acpi_s4_nosigcheck(char *str)
-+{
-+	nosigcheck = true;
-+	return 1;
-+}
-+__setup("acpi_s4_nosigcheck", acpi_s4_nosigcheck);
-+
- static int acpi_hibernation_begin(void)
+-static pci_power_t acpi_pci_choose_state(struct pci_dev *pdev,
+-	pm_message_t state)
++static pci_power_t acpi_pci_choose_state(struct pci_dev *pdev)
  {
- 	acpi_target_sleep_state = ACPI_STATE_S4;
-@@ -301,6 +312,12 @@ static void acpi_hibernation_leave(void)
- 	acpi_enable();
- 	/* Reprogram control registers and execute _BFS */
- 	acpi_leave_sleep_state_prep(ACPI_STATE_S4);
-+	/* Check the hardware signature */
-+	if (facs && s4_hardware_signature != facs->hardware_signature) {
-+		printk(KERN_EMERG "ACPI: Hardware changed while hibernated, "
-+			"cannot resume!\n");
-+		panic("ACPI S4 hardware signature mismatch");
-+	}
+ 	int acpi_state;
+ 
+Index: linux-2.6/drivers/pci/pci.c
+===================================================================
+--- linux-2.6.orig/drivers/pci/pci.c
++++ linux-2.6/drivers/pci/pci.c
+@@ -508,7 +508,7 @@ pci_set_power_state(struct pci_dev *dev,
+ 	return 0;
  }
  
- static void acpi_hibernation_finish(void)
-@@ -501,6 +518,13 @@ int __init acpi_sleep_init(void)
- 		hibernation_set_ops(&acpi_hibernation_ops);
- 		sleep_states[ACPI_STATE_S4] = 1;
- 		printk(" S4");
-+		if (!nosigcheck) {
-+			acpi_get_table_by_index(ACPI_TABLE_INDEX_FACS,
-+				(struct acpi_table_header **)&facs);
-+			if (facs)
-+				s4_hardware_signature =
-+					facs->hardware_signature;
-+		}
+-pci_power_t (*platform_pci_choose_state)(struct pci_dev *dev, pm_message_t state);
++pci_power_t (*platform_pci_choose_state)(struct pci_dev *dev);
+  
+ /**
+  * pci_choose_state - Choose the power state of a PCI device
+@@ -528,7 +528,7 @@ pci_power_t pci_choose_state(struct pci_
+ 		return PCI_D0;
+ 
+ 	if (platform_pci_choose_state) {
+-		ret = platform_pci_choose_state(dev, state);
++		ret = platform_pci_choose_state(dev);
+ 		if (ret != PCI_POWER_ERROR)
+ 			return ret;
  	}
- #endif
- 	status = acpi_get_sleep_type_data(ACPI_STATE_S5, &type_a, &type_b);
+Index: linux-2.6/drivers/pci/pci.h
+===================================================================
+--- linux-2.6.orig/drivers/pci/pci.h
++++ linux-2.6/drivers/pci/pci.h
+@@ -6,8 +6,7 @@ extern void pci_remove_sysfs_dev_files(s
+ extern void pci_cleanup_rom(struct pci_dev *dev);
+ 
+ /* Firmware callbacks */
+-extern pci_power_t (*platform_pci_choose_state)(struct pci_dev *dev,
+-						pm_message_t state);
++extern pci_power_t (*platform_pci_choose_state)(struct pci_dev *dev);
+ extern int (*platform_pci_set_power_state)(struct pci_dev *dev,
+ 						pci_power_t state);
+ 
