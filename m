@@ -1,65 +1,66 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [patch 04/10] acpi: adjust_acpi_{module,function}_namedefinitions
-Date: Tue, 6 May 2008 10:36:07 -0700
-Message-ID: <9D39833986E69849A2A8E74C1078B6B348BB38@orsmsx415.amr.corp.intel.com>
-References: <200805010952.m419q3Jc031806@imap1.linux-foundation.org> <1209722812.22514.28.camel@linux-2bdv.site> <20080502054113.4e5839d9.akpm@linux-foundation.org> <1209737075.22514.79.camel@linux-2bdv.site> <9D39833986E69849A2A8E74C1078B6B3446FBD@orsmsx415.amr.corp.intel.com> <1210078264.4802.1.camel@linux-2bdv.site>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: Re: Acer Aspire 9813WKMI fan runs all the time after suspend to ram
+Date: Tue, 6 May 2008 19:05:47 +0100
+Message-ID: <200805061905.47593.carlos@strangeworlds.co.uk>
+References: <28220299.1210016955623.JavaMail.apache@eni-cpps13.sth.basefarm.net> <1210085519.4802.48.camel@linux-2bdv.site>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:2810 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760561AbYEFRhI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 May 2008 13:37:08 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <1210078264.4802.1.camel@linux-2bdv.site>
+Received: from phoenix.slamd64.com ([217.10.145.2]:55291 "EHLO
+	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751368AbYEFSF6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 May 2008 14:05:58 -0400
+In-Reply-To: <1210085519.4802.48.camel@linux-2bdv.site>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: trenn@suse.de
-Cc: linux-acpi@vger.kernel.org, jbeulich@novell.com, "Brown, Len" <len.brown@intel.com>
+Cc: v-j-m@suomi24.fi, linux-acpi@vger.kernel.org
 
-This is now fixed, thanks.
-Bob
+On Tuesday 06 May 2008 15:51:59 Thomas Renninger wrote:
+>> Original DSDT > 
+http://aceracpi.googlecode.com/svn/trunk/dsdt/acer/aspire/9810.dsl
+> [..]
+> Could you find out whether some osi set variable is involved.
+> (The ones that get set when BIOS (in DSDT) calls e.g.
+> osi("Windows 2006"))
+> Something like:
+> if (osi("Windows 2006"))
+>     Store(1, DTSE)
+> Maybe you find out what the DTSE or MPEN variable is good for, is set by
+> some _INI function of a specific device or whatever?
 
+Looking at the DSDT link posted, those variables are never set in it. I wonder 
+who, or what, is expected to set them then...
 
->-----Original Message-----
->From: Thomas Renninger [mailto:trenn@suse.de]
->Sent: Tuesday, May 06, 2008 5:51 AM
->To: Moore, Robert
->Cc: linux-acpi@vger.kernel.org; jbeulich@novell.com; Brown, Len
->Subject: RE: [patch 04/10] acpi:
->adjust_acpi_{module,function}_namedefinitions
->
->
->On Sun, 2008-05-04 at 12:14 -0700, Moore, Robert wrote:
->> >But in future, such patches should definitely be based against
-ACPICA
->> >code. Len will probably announce here where to find the very latest
->> >sources, soon. Currently the latest official release linked to on
->> >http://lesswatts.org is still from 2006. AFAIK things will get
-better
->> >here, soon.
->> >
->> >   Thomas
->>
->>
->> The latest ACPICA source can be found at the acpica.org website. In
->> fact, we have converted our source repository from CVS to git, and
-the
->> actual working git repository is now publicly available at
->>
->> http://www.acpica.org/repos/acpica.git/
->>
->> The acpica.org website was created at the end of 2007, and is now the
->> home of the acpica project.
->
->Great!
->You should update the acpica link on the lesswatts.org site:
->http://www.lesswatts.org/downloads
->which still points to:
->http://developer.intel.com/technology/iapc/acpi/downloads.htm
->
->
->   Thomas
+Perhaps it would be worth experimenting instead with OSI when booting and see 
+what happens then? e.g.
 
+acpi_osi="!Windows 2006"
+
+(Perhaps OSYS also triggers an SMI trap which does or doesn't do it? Worth a 
+shot at least).
+
+> Best you create a bug for that at bugzilla.kernel.org (and add me to CC
+> or post the bug no).
+> Full (or none) fan is a real blocker bug that should generally be
+> resolved.
+
+I've also had a report from a user the other day that hit the same bug on an 
+Aspire 5710 series (which seems to have the same root cause, from glancing 
+over the DSDT):
+
+http://aceracpi.googlecode.com/svn/trunk/dsdt/acer/aspire/5710.dsl
+
+> Does this BIOS expose an ACPI fan device correctly? 
+
+Acer BIOS's never expose the fan, AFAIK (and it's not available through WMI 
+either).
+
+-Carlos
+-- 
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
