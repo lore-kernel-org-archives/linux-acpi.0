@@ -1,213 +1,62 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: ACPICA branch (0 Objects with 0 Devices 0 Methods 0 Regions)
-Date: Tue, 6 May 2008 10:07:40 -0700
-Message-ID: <9D39833986E69849A2A8E74C1078B6B348BAE5@orsmsx415.amr.corp.intel.com>
-References: <1207974356-30687-1-git-send-email-lenb@kernel.org> <200804290504.54789.lenb@kernel.org> <9D39833986E69849A2A8E74C1078B6B33BCDFA@orsmsx415.amr.corp.intel.com> <1210054833.7447.3.camel@minggr>
+From: Holger Macht <hmacht@suse.de>
+Subject: Re: [PATCH] bay: Exit if notify handler cannot be installed
+Date: Tue, 6 May 2008 19:12:48 +0200
+Message-ID: <20080506171248.GA20797@homac>
+References: <20080505202508.GA3690@homac> <20080506091522.GA4378@homac> <1210065811.12668.1.camel@sli10-desk.sh.intel.com> <20080506093315.GD4378@homac> <20080506093516.GE4378@homac> <20080506152411.GB22828@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:54341 "EHLO mga11.intel.com"
+Received: from cantor2.suse.de ([195.135.220.15]:43530 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760507AbYEFRHv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 May 2008 13:07:51 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <1210054833.7447.3.camel@minggr>
+	id S1755241AbYEFRKj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 6 May 2008 13:10:39 -0400
+Content-Disposition: inline
+In-Reply-To: <20080506152411.GB22828@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Lin, Ming M" <ming.m.lin@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Shaohua Li <shaohua.li@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Accardi, Kristen C" <kristen.c.accardi@intel.com>
 
-We should find out how windows handles table loading.
-Bob
+On Di 06. Mai - 12:24:11, Henrique de Moraes Holschuh wrote:
+> On Tue, 06 May 2008, Holger Macht wrote:
+> > On Di 06. Mai - 11:33:16, Holger Macht wrote:
+> > > On Di 06. Mai - 17:23:31, Shaohua Li wrote:
+> > > > On Tue, 2008-05-06 at 17:15 +0800, Holger Macht wrote:
+> > > > > On Mo 05. Mai - 22:25:08, Holger Macht wrote:
+> > > > > > If acpi_install_notify_handler() for a bay device fails, the bay
+> > > > > driver is
+> > > > > > superfluous. Most likely, another driver (like libata) is already
+> > > > > caring
+> > > > > > about this device anyway. Furthermore,
+> > > > > > register_hotplug_dock_device(acpi_handle) from the dock driver must
+> > > > > not be
+> > > > > > called twice with the same handler. So clean up and exit.
+> > > > > 
+> > > > > The patch needs some more work. I'll send an updated one as soon as
+> > > > > ready.
+> > > > The bay driver is duplicated with libata, I thought we should delete it.
+> > > > See bug http://bugzilla.kernel.org/show_bug.cgi?id=9526
+> > > 
+> > > Yes, I know, but couldn't it be helpful on systems not using libata?
+> > 
+> > Also, libata has to be patched to execute ACPI _EJ0 (not a huge issue, I
+> > know) or calling bay's eject_removable drive method.
+> 
+> It *is* a huge issue.  I think that currently, bay handling on thinkpads
+> is broken because of it, and users that expect it to just work could
+> well fry their hardware if they're the sort of people who don't LOOK at
+> the bay light before they yank stuff from it :-)
+> 
+> This is not a bug report, but a head's up.  I am at 2.6.23, so I didn't
+> test for the bug yet.
+> 
+> Anyway, when you bind to an ACPI node, you forbid anything else from
+> doing it.  This means it is now your problem to handle **ALL**
+> capabilities of that node.  This means libata MUST handle ejection, or
+> it MUST NOT bind to an ACPI node.
 
+I fully agree. With "not a huge issue", I rather meant that coding this
+two lines of code is pretty easy ;-)
 
->-----Original Message-----
->From: Lin, Ming M
->Sent: Monday, May 05, 2008 11:21 PM
->To: Moore, Robert
->Cc: Len Brown; linux-acpi@vger.kernel.org
->Subject: RE: ACPICA branch (0 Objects with 0 Devices 0 Methods 0
-Regions)
->
->Hi, all
->
->The root cause found, it's caused by a patch
->which introduced in ACPICA version 20071019
->
->commit 7f4ac9f91383a0707de559dc8fbca986fc2d302f
->Author: Bob Moore <robert.moore@intel.com>
->Date:   Thu Apr 10 19:06:39 2008 +0400
->
->    ACPICA: Fix for Load/LoadTable to specify load location
->
->    Fixed a problem with the Load and LoadTable operators where
->    the table location within the namespace was ignored. Instead,
->    the table was always loaded into the root or current scope.
->
->    Signed-off-by: Bob Moore <robert.moore@intel.com>
->    Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
->    Signed-off-by: Len Brown <len.brown@intel.com>
->
->
->For example,
->SSDT:
->Name(\tmp0, 0)
->
->DSDT:
->Method(m000)
->{
->	<Load the SSDT above>
->}
->
->Namespace walking will start at node m000, so \tmp0 will never appear
-at
->the namespace walking.
->
->It seems that we should again force the table always loaded into the
->root.
->Load statement is always inside a method.
->It makes no sense to install some nodes inside a method since the nodes
->in method should all be temporary nodes that will be deleted when
-method
->exit.
->
->Lin Ming
->---
->diff --git a/drivers/acpi/executer/exconfig.c
->b/drivers/acpi/executer/exconfig.c
->index 24da921..508bb0e 100644
->--- a/drivers/acpi/executer/exconfig.c
->+++ b/drivers/acpi/executer/exconfig.c
->@@ -376,7 +376,7 @@ acpi_ex_load_op(union acpi_operand_object
-*obj_desc,
->        }
->
->        status =
->-           acpi_ex_add_table(table_index,
->walk_state->scope_info->scope.node,
->+           acpi_ex_add_table(table_index, acpi_gbl_root_node,
->                              &ddb_handle);
->        if (ACPI_FAILURE(status)) {
->
->On Wed, 2008-04-30 at 00:09 +0800, Moore, Robert wrote:
->> It looks like the tables in question are dynamically loaded:
->>
->> >ACPI: SSDT 7D6E1B32, 02C4 (r1  PmRef  Cpu0Ist      100 INTL
-20050513)
->> >Table [SSDT](id 0044) - 0 Objects with 0 Devices 0 Methods 0 Regions
->> >ACPI: SSDT 7D6E1E7B, 085E (r1  PmRef  Cpu0Cst      100 INTL
-20050513)
->> >Table [SSDT](id 0045) - 0 Objects with 0 Devices 0 Methods 0 Regions
->> >ACPI: SSDT 7D6E1A6A, 00C8 (r1  PmRef  Cpu1Ist      100 INTL
-20050513)
->> >Table [SSDT](id 0050) - 0 Objects with 0 Devices 0 Methods 0 Regions
->> >ACPI: SSDT 7D6E1DF6, 0085 (r1  PmRef  Cpu1Cst      100 INTL
-20050513)
->> >Table [SSDT](id 0051) - 0 Objects with 0 Devices 0 Methods 0 Regions
->>
->> What the zeroes mean is that a WalkNamespace after the table load did
->> not find any such objects created by the table.
->>
->> Something does look wrong, it may not affect your machine, but has
-the
->> potential to cause problems on other machines.
->>
->> The difference in owner IDs between the two traces might mean that
-there
->> is some mismatch somewhere. I would debug and determine 1) The actual
->> owner id created for the newly loaded table, and 2) what owner id is
->> passed to AcpiDsInitializeObjects after the table is loaded.
->>
->> Bob
->>
->>
->>
->> >-----Original Message-----
->> >From: Len Brown [mailto:lenb@kernel.org]
->> >Sent: Tuesday, April 29, 2008 2:05 AM
->> >To: linux-acpi@vger.kernel.org; Moore, Robert; Lin, Ming M
->> >Subject: Re: ACPICA branch (0 Objects with 0 Devices 0 Methods 0
->> Regions)
->> >
->> >Hmm, i just noticed something strange on the T61
->> >
->> >Linus' tree prints these messages:
->> >
->> >[lenb@t61 sut]$ grep -i ssdt 2.6.25-06058-ga01e035/dmesg
->> >ACPI: SSDT 7D6BB9B4, 0269 (r1 LENOVO TP-7L        2100 MSFT
-3000000)
->> >ACPI: SSDT 7D6E26D9, 025F (r1 LENOVO TP-7L        2100 INTL
-20050513)
->> >ACPI: SSDT 7D6E2938, 00A6 (r1 LENOVO TP-7L        2100 INTL
-20050513)
->> >ACPI: SSDT 7D6E29DE, 04F7 (r1 LENOVO TP-7L        2100 INTL
-20050513)
->> >ACPI: SSDT 7D6E2ED5, 01D8 (r1 LENOVO TP-7L        2100 INTL
-20050513)
->> >Table [SSDT](id 0002) - 11 Objects with 0 Devices 7 Methods 0
-Regions
->> >Table [SSDT](id 0003) - 7 Objects with 0 Devices 3 Methods 0 Regions
->> >Table [SSDT](id 0004) - 4 Objects with 0 Devices 3 Methods 0 Regions
->> >Table [SSDT](id 0005) - 14 Objects with 0 Devices 5 Methods 0
-Regions
->> >Table [SSDT](id 0006) - 14 Objects with 1 Devices 2 Methods 0
-Regions
->> >ACPI: SSDT 7D6E1B32, 02C4 (r1  PmRef  Cpu0Ist      100 INTL
-20050513)
->> >Table [SSDT](id 003A) - 6 Objects with 0 Devices 4 Methods 0 Regions
->> >ACPI: SSDT 7D6E1E7B, 085E (r1  PmRef  Cpu0Cst      100 INTL
-20050513)
->> >Table [SSDT](id 003B) - 16 Objects with 0 Devices 1 Methods 0
-Regions
->> >ACPI: SSDT 7D6E1A6A, 00C8 (r1  PmRef  Cpu1Ist      100 INTL
-20050513)
->> >Table [SSDT](id 0046) - 4 Objects with 0 Devices 4 Methods 0 Regions
->> >ACPI: SSDT 7D6E1DF6, 0085 (r1  PmRef  Cpu1Cst      100 INTL
-20050513)
->> >Table [SSDT](id 0047) - 1 Objects with 0 Devices 1 Methods 0 Regions
->> >
->> >
->> >The acpi test tree prints these messages:
->> >
->> >[lenb@t61 sut]$ grep -i ssdt 2.6.25-06238-gf4e0ea3/dmesg
->> >ACPI: SSDT 7D6BB9B4, 0269 (r1 LENOVO TP-7L        2100 MSFT
-3000000)
->> >ACPI: SSDT 7D6E26D9, 025F (r1 LENOVO TP-7L        2100 INTL
-20050513)
->> >ACPI: SSDT 7D6E2938, 00A6 (r1 LENOVO TP-7L        2100 INTL
-20050513)
->> >ACPI: SSDT 7D6E29DE, 04F7 (r1 LENOVO TP-7L        2100 INTL
-20050513)
->> >ACPI: SSDT 7D6E2ED5, 01D8 (r1 LENOVO TP-7L        2100 INTL
-20050513)
->> >Table [SSDT](id 0002) - 11 Objects with 0 Devices 7 Methods 0
-Regions
->> >Table [SSDT](id 0003) - 7 Objects with 0 Devices 3 Methods 0 Regions
->> >Table [SSDT](id 0004) - 4 Objects with 0 Devices 3 Methods 0 Regions
->> >Table [SSDT](id 0005) - 14 Objects with 0 Devices 5 Methods 0
-Regions
->> >Table [SSDT](id 0006) - 14 Objects with 1 Devices 2 Methods 0
-Regions
->> >ACPI: SSDT 7D6E1B32, 02C4 (r1  PmRef  Cpu0Ist      100 INTL
-20050513)
->> >Table [SSDT](id 0044) - 0 Objects with 0 Devices 0 Methods 0 Regions
->> >ACPI: SSDT 7D6E1E7B, 085E (r1  PmRef  Cpu0Cst      100 INTL
-20050513)
->> >Table [SSDT](id 0045) - 0 Objects with 0 Devices 0 Methods 0 Regions
->> >ACPI: SSDT 7D6E1A6A, 00C8 (r1  PmRef  Cpu1Ist      100 INTL
-20050513)
->> >Table [SSDT](id 0050) - 0 Objects with 0 Devices 0 Methods 0 Regions
->> >ACPI: SSDT 7D6E1DF6, 0085 (r1  PmRef  Cpu1Cst      100 INTL
-20050513)
->> >Table [SSDT](id 0051) - 0 Objects with 0 Devices 0 Methods 0 Regions
->> >
->> >ie.  "0 Objects with 0 Devices 0 Methods 0 Regions"
->> >
->> >dunno if this is just cosmetic -- the p-states that are advertised
-in
->> >the SSDT's seem to be working normally, and C-states do too.
->> >
->> >-Len
-
+Regards,
+	Holger
