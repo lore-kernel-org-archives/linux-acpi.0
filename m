@@ -1,63 +1,52 @@
-From: Thomas Renninger <trenn@suse.de>
+From: Linus Torvalds <torvalds@linux-foundation.org>
 Subject: Re: acpi_cpu_freq_init warning...
-Date: Tue, 06 May 2008 17:44:22 +0200
-Message-ID: <1210088662.4802.69.camel@linux-2bdv.site>
-References: <86802c440805051951u153ebc21p15f0d73904496217@mail.gmail.com>
-	 <87k5i8hrmk.fsf@duaron.myhome.or.jp>
-Reply-To: trenn@suse.de
+Date: Tue, 6 May 2008 07:47:18 -0700 (PDT)
+Message-ID: <alpine.LFD.1.10.0805060741290.32269@woody.linux-foundation.org>
+References: <86802c440805051951u153ebc21p15f0d73904496217@mail.gmail.com> <87k5i8hrmk.fsf@duaron.myhome.or.jp>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1760034AbYEFNos@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47273 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754646AbYEFOsQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 May 2008 10:48:16 -0400
 In-Reply-To: <87k5i8hrmk.fsf@duaron.myhome.or.jp>
-Sender: linux-kernel-owner@vger.kernel.org
-To: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Cc: Yinghai Lu <yhlu.kernel@gmail.com>, Greg KH <gregkh@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Jiri Kosina <jkosina@suse.cz>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Yinghai Lu <yhlu.kernel@gmail.com>, Greg KH <gregkh@suse.de>, Ingo Molnar <mingo@elte.hu>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 
 
-On Tue, 2008-05-06 at 15:29 +0900, OGAWA Hirofumi wrote:
-> > calling  acpi_cpufreq_init+0x0/0x68()
-> > sysdev: class cpu: driver (ffffffff80da0110) has already been
-> > registered to a class, something is wrong, but will forge on!
-> > ------------[ cut here ]------------
-> > WARNING: at drivers/base/sys.c:183 sysdev_driver_register+0x82/0x150()
-> > Modules linked in:
-> > Pid: 1, comm: swapper Not tainted
-> > 2.6.26-rc1-sched-devel.git-x86-latest.git-00485-g253148c-dirty #333
-> 
-> I've seen this too. The following patch seems to work for me.
 
-Venkatesh Greg, should this patch also go into 2.6.25 stable kernel?
-Not 100% sure, but IIRC Jiri reported the same problem on a 2.6.25
-kernel.
+On Tue, 6 May 2008, OGAWA Hirofumi wrote:
+> -	if ((drv->entry.next != drv->entry.prev) ||
+> +	if ((drv->entry.next != drv->entry.prev) &&
+>  	    (drv->entry.next != NULL)) {
 
-OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Umm. That code still makes no sense.
 
+The "drv->entry.next == drv->entry.prev" condition will trigger under 
+*three* different circumstances:
 
-[PATCH] Fix bogus warning in sysdev_driver_register()
+ - next/prev == NULL (uninitialized). Checked for by the explicit check 
+   against NULL.
 
-        if ((drv->entry.next != drv->entry.prev) ||
-            (drv->entry.next != NULL)) {
+ - list empty (both next/prev point back to itself), which I assume the 
+   check was *meant* for.
 
-warns list_empty(&drv->entry).
+ - list has only *one* entry, when next/prev both point to the list head.
 
-Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
----
+and I'm pretty damn sure that whoever wrote that code didn't mean that 
+last one, but who knows..
 
- drivers/base/sys.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+The fact is, looking at next/prev this way is a sure way to have bugs.
 
-diff -puN drivers/base/sys.c~fix-sys-bogus-warning drivers/base/sys.c
---- linux-2.6/drivers/base/sys.c~fix-sys-bogus-warning  2008-05-06 14:30:42.000000000 +0900
-+++ linux-2.6-hirofumi/drivers/base/sys.c       2008-05-06 14:30:45.000000000 +0900
-@@ -175,7 +175,7 @@ int sysdev_driver_register(struct sysdev
-        }
- 
-        /* Check whether this driver has already been added to a class. */
--       if ((drv->entry.next != drv->entry.prev) ||
-+       if ((drv->entry.next != drv->entry.prev) &&
-            (drv->entry.next != NULL)) {
-                printk(KERN_WARNING "sysdev: class %s: driver (%p) has already"
-                        " been registered to a class, something is wrong, but "
-_
+What is that PoS *trying* to test for? I assume it is meant to test for
+
+	/* Is the list initialized and non-empty? */
+	if (drv->entry.next && !list_empty(&drv->entry)) {
+		...
+
+and dammit, just doing it that way is shorter and simpler.
+
+				Linus
