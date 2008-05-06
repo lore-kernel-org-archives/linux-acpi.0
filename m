@@ -1,93 +1,63 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: Re: Acer Aspire 9813WKMI fan runs all the time after suspend to ram
-Date: Tue, 06 May 2008 16:51:59 +0200
-Message-ID: <1210085519.4802.48.camel@linux-2bdv.site>
-References: <28220299.1210016955623.JavaMail.apache@eni-cpps13.sth.basefarm.net>
+Subject: Re: acpi_cpu_freq_init warning...
+Date: Tue, 06 May 2008 17:44:22 +0200
+Message-ID: <1210088662.4802.69.camel@linux-2bdv.site>
+References: <86802c440805051951u153ebc21p15f0d73904496217@mail.gmail.com>
+	 <87k5i8hrmk.fsf@duaron.myhome.or.jp>
 Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:50865 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755201AbYEFMwK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 6 May 2008 08:52:10 -0400
-In-Reply-To: <28220299.1210016955623.JavaMail.apache@eni-cpps13.sth.basefarm.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1760034AbYEFNos@vger.kernel.org>
+In-Reply-To: <87k5i8hrmk.fsf@duaron.myhome.or.jp>
+Sender: linux-kernel-owner@vger.kernel.org
+To: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Yinghai Lu <yhlu.kernel@gmail.com>, Greg KH <gregkh@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Jiri Kosina <jkosina@suse.cz>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: v-j-m@suomi24.fi
-Cc: linux-acpi@vger.kernel.org
 
 
-On Mon, 2008-05-05 at 21:49 +0200, JM wrote:
-> >
-> > Notebook fan runs all the time after suspend to ram.
-> >
->=20
-> Workaround:
->=20
-> Original DSDT > http://aceracpi.googlecode.com/svn/trunk/dsdt/acer/as=
-pire/9810.dsl
->=20
-> Normalize behavior of fan on cold boot and wakeup:
-> Store (0x46, SMIF)
-> Store (0x00, TRP0)
-> But in _WAK is:
-> If (LAnd (DTSE, MPEN))
-> and that is not true.
->=20
-> --- a/dsdt.dsl
-> +++ b/dsdt.dsl
-> @@ -462,11 +462,11 @@
->          Store (0x00, PO80)
->          If (LEqual (Arg0, 0x03))
->          {
-> -            If (LAnd (DTSE, MPEN))
-> -            {
-> +            // If (LAnd (DTSE, MPEN))
-> +            // {
->                  Store (0x46, SMIF)
->                  Store (0x00, TRP0)
-> -            }
-> +            // }
->          }
-Could you find out whether some osi set variable is involved.
-(The ones that get set when BIOS (in DSDT) calls e.g.
-osi("Windows 2006"))
-Something like:
-if (osi("Windows 2006"))
-    Store(1, DTSE)
-Maybe you find out what the DTSE or MPEN variable is good for, is set b=
-y
-some _INI function of a specific device or whatever?
+On Tue, 2008-05-06 at 15:29 +0900, OGAWA Hirofumi wrote:
+> > calling  acpi_cpufreq_init+0x0/0x68()
+> > sysdev: class cpu: driver (ffffffff80da0110) has already been
+> > registered to a class, something is wrong, but will forge on!
+> > ------------[ cut here ]------------
+> > WARNING: at drivers/base/sys.c:183 sysdev_driver_register+0x82/0x150()
+> > Modules linked in:
+> > Pid: 1, comm: swapper Not tainted
+> > 2.6.26-rc1-sched-devel.git-x86-latest.git-00485-g253148c-dirty #333
+> 
+> I've seen this too. The following patch seems to work for me.
 
-Best you create a bug for that at bugzilla.kernel.org (and add me to CC
-or post the bug no).
-=46ull (or none) fan is a real blocker bug that should generally be
-resolved.
+Venkatesh Greg, should this patch also go into 2.6.25 stable kernel?
+Not 100% sure, but IIRC Jiri reported the same problem on a 2.6.25
+kernel.
 
-Does this BIOS expose an ACPI fan device correctly? If yes is:
-echo 1 >/proc/acpi/fan/*/state
-or:
-=EF=BB=BFecho 0 >/proc/acpi/fan/*/state
-=EF=BB=BFecho 1 >/proc/acpi/fan/*/state
-=EF=BB=BFecho 0 >/proc/acpi/fan/*/state
-or whatever also a workaround?
+OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 
-Thanks,
 
-   Thomas
+[PATCH] Fix bogus warning in sysdev_driver_register()
 
->=20
->          If (LOr (LEqual (Arg0, 0x03), LEqual (Arg0, 0x04)))
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+        if ((drv->entry.next != drv->entry.prev) ||
+            (drv->entry.next != NULL)) {
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+warns list_empty(&drv->entry).
+
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+---
+
+ drivers/base/sys.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff -puN drivers/base/sys.c~fix-sys-bogus-warning drivers/base/sys.c
+--- linux-2.6/drivers/base/sys.c~fix-sys-bogus-warning  2008-05-06 14:30:42.000000000 +0900
++++ linux-2.6-hirofumi/drivers/base/sys.c       2008-05-06 14:30:45.000000000 +0900
+@@ -175,7 +175,7 @@ int sysdev_driver_register(struct sysdev
+        }
+ 
+        /* Check whether this driver has already been added to a class. */
+-       if ((drv->entry.next != drv->entry.prev) ||
++       if ((drv->entry.next != drv->entry.prev) &&
+            (drv->entry.next != NULL)) {
+                printk(KERN_WARNING "sysdev: class %s: driver (%p) has already"
+                        " been registered to a class, something is wrong, but "
+_
