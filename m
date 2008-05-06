@@ -1,88 +1,93 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [2.6 patch] proper prototype for
-	acpi_processor_tstate_has_changed()
-Date: Tue, 06 May 2008 16:43:56 +0200
-Message-ID: <1210085036.4802.40.camel@linux-2bdv.site>
-References: <20080505182845.GR17139@cs181133002.pp.htv.fi>
+Subject: Re: Acer Aspire 9813WKMI fan runs all the time after suspend to ram
+Date: Tue, 06 May 2008 16:51:59 +0200
+Message-ID: <1210085519.4802.48.camel@linux-2bdv.site>
+References: <28220299.1210016955623.JavaMail.apache@eni-cpps13.sth.basefarm.net>
 Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:49571 "EHLO mx2.suse.de"
+Received: from cantor2.suse.de ([195.135.220.15]:50865 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762637AbYEFMoI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 6 May 2008 08:44:08 -0400
-In-Reply-To: <20080505182845.GR17139@cs181133002.pp.htv.fi>
+	id S1755201AbYEFMwK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 6 May 2008 08:52:10 -0400
+In-Reply-To: <28220299.1210016955623.JavaMail.apache@eni-cpps13.sth.basefarm.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Bunk <bunk@kernel.org>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+To: v-j-m@suomi24.fi
+Cc: linux-acpi@vger.kernel.org
 
 
-On Mon, 2008-05-05 at 21:28 +0300, Adrian Bunk wrote:
-> This patch adds a proper prototype for acpi_processor_tstate_has_changed()
-> in include/acpi/processor.h
+On Mon, 2008-05-05 at 21:49 +0200, JM wrote:
+> >
+> > Notebook fan runs all the time after suspend to ram.
+> >
+>=20
+> Workaround:
+>=20
+> Original DSDT > http://aceracpi.googlecode.com/svn/trunk/dsdt/acer/as=
+pire/9810.dsl
+>=20
+> Normalize behavior of fan on cold boot and wakeup:
+> Store (0x46, SMIF)
+> Store (0x00, TRP0)
+> But in _WAK is:
+> If (LAnd (DTSE, MPEN))
+> and that is not true.
+>=20
+> --- a/dsdt.dsl
+> +++ b/dsdt.dsl
+> @@ -462,11 +462,11 @@
+>          Store (0x00, PO80)
+>          If (LEqual (Arg0, 0x03))
+>          {
+> -            If (LAnd (DTSE, MPEN))
+> -            {
+> +            // If (LAnd (DTSE, MPEN))
+> +            // {
+>                  Store (0x46, SMIF)
+>                  Store (0x00, TRP0)
+> -            }
+> +            // }
+>          }
+Could you find out whether some osi set variable is involved.
+(The ones that get set when BIOS (in DSDT) calls e.g.
+osi("Windows 2006"))
+Something like:
+if (osi("Windows 2006"))
+    Store(1, DTSE)
+Maybe you find out what the DTSE or MPEN variable is good for, is set b=
+y
+some _INI function of a specific device or whatever?
 
-IMO the header files for ACPI could get a bit cleaned up anyway.
-E.g. /include/acpi/* has Linux kernel and acpica specific headers
-(e.g. acpi_bus.h and acpi_drivers.h).
-I was thinking about starting:
-- drivers/acpi/acpi.h (or more) header files for Linux specific
-  declarations only used in the acpi subsystem
-- include/linux/acpi.h (or more) for Linux specific global ACPI
-  declarations
-- /include/acpi/* should then just be a copy of the acpica
-  lindent'ed header files
+Best you create a bug for that at bugzilla.kernel.org (and add me to CC
+or post the bug no).
+=46ull (or none) fan is a real blocker bug that should generally be
+resolved.
 
-If someone thinks this produces more trouble any good..., otherwise I or
-whoever could send some cleanup patches if feeling bored.
+Does this BIOS expose an ACPI fan device correctly? If yes is:
+echo 1 >/proc/acpi/fan/*/state
+or:
+=EF=BB=BFecho 0 >/proc/acpi/fan/*/state
+=EF=BB=BFecho 1 >/proc/acpi/fan/*/state
+=EF=BB=BFecho 0 >/proc/acpi/fan/*/state
+or whatever also a workaround?
+
+Thanks,
 
    Thomas
 
-> 
-> Signed-off-by: Adrian Bunk <bunk@kernel.org>
-> 
-> ---
-> 
-> This patch has been sent on:
-> - 23 Apr 2008
-> - 14 Apr 2008
-> - 31 Mar 2008
-> - 1 Mar 2008
-> 
->  drivers/acpi/processor_core.c |    1 -
->  include/acpi/processor.h      |    1 +
->  2 files changed, 1 insertion(+), 1 deletion(-)
-> 
-> fcdb74ac24c943bc290e85e2d757f82dbb065955 foobar
-> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-> index a3cc8a9..d88f21e 100644
-> --- a/drivers/acpi/processor_core.c
-> +++ b/drivers/acpi/processor_core.c
-> @@ -86,7 +86,6 @@ static int acpi_processor_info_open_fs(struct inode *inode, struct file *file);
->  static void acpi_processor_notify(acpi_handle handle, u32 event, void *data);
->  static acpi_status acpi_processor_hotadd_init(acpi_handle handle, int *p_cpu);
->  static int acpi_processor_handle_eject(struct acpi_processor *pr);
-> -extern int acpi_processor_tstate_has_changed(struct acpi_processor *pr);
->  
-> 
->  static const struct acpi_device_id processor_device_ids[] = {
-> diff --git a/include/acpi/processor.h b/include/acpi/processor.h
-> index 06480bc..06ebb6e 100644
-> --- a/include/acpi/processor.h
-> +++ b/include/acpi/processor.h
-> @@ -319,6 +319,7 @@ static inline int acpi_processor_ppc_has_changed(struct acpi_processor *pr)
->  #endif				/* CONFIG_CPU_FREQ */
->  
->  /* in processor_throttling.c */
-> +int acpi_processor_tstate_has_changed(struct acpi_processor *pr);
->  int acpi_processor_get_throttling_info(struct acpi_processor *pr);
->  extern int acpi_processor_set_throttling(struct acpi_processor *pr, int state);
->  extern struct file_operations acpi_processor_throttling_fops;
-> 
+>=20
+>          If (LOr (LEqual (Arg0, 0x03), LEqual (Arg0, 0x04)))
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
+ in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
