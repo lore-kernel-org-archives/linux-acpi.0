@@ -1,43 +1,54 @@
-From: Holger Macht <hmacht@suse.de>
-Subject: Re: [PATCH] bay: Exit if notify handler cannot be installed
-Date: Tue, 6 May 2008 11:35:16 +0200
-Message-ID: <20080506093516.GE4378@homac>
-References: <20080505202508.GA3690@homac> <20080506091522.GA4378@homac> <1210065811.12668.1.camel@sli10-desk.sh.intel.com> <20080506093315.GD4378@homac>
+From: Thomas Renninger <trenn@suse.de>
+Subject: RE: [patch 04/10] acpi: adjust
+	_acpi_{module,function}_namedefinitions
+Date: Tue, 06 May 2008 14:51:04 +0200
+Message-ID: <1210078264.4802.1.camel@linux-2bdv.site>
+References: <200805010952.m419q3Jc031806@imap1.linux-foundation.org>
+	 <1209722812.22514.28.camel@linux-2bdv.site>
+	 <20080502054113.4e5839d9.akpm@linux-foundation.org>
+	 <1209737075.22514.79.camel@linux-2bdv.site>
+	 <9D39833986E69849A2A8E74C1078B6B3446FBD@orsmsx415.amr.corp.intel.com>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:37971 "EHLO mx1.suse.de"
+Received: from mx1.suse.de ([195.135.220.2]:52129 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754156AbYEFJdG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 6 May 2008 05:33:06 -0400
-Content-Disposition: inline
-In-Reply-To: <20080506093315.GD4378@homac>
+	id S1751453AbYEFKvQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 6 May 2008 06:51:16 -0400
+In-Reply-To: <9D39833986E69849A2A8E74C1078B6B3446FBD@orsmsx415.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Accardi, Kristen C" <kristen.c.accardi@intel.com>
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: linux-acpi@vger.kernel.org, jbeulich@novell.com, "Brown, Len" <len.brown@intel.com>
 
-On Di 06. Mai - 11:33:16, Holger Macht wrote:
-> On Di 06. Mai - 17:23:31, Shaohua Li wrote:
-> > On Tue, 2008-05-06 at 17:15 +0800, Holger Macht wrote:
-> > > On Mo 05. Mai - 22:25:08, Holger Macht wrote:
-> > > > If acpi_install_notify_handler() for a bay device fails, the bay
-> > > driver is
-> > > > superfluous. Most likely, another driver (like libata) is already
-> > > caring
-> > > > about this device anyway. Furthermore,
-> > > > register_hotplug_dock_device(acpi_handle) from the dock driver must
-> > > not be
-> > > > called twice with the same handler. So clean up and exit.
-> > > 
-> > > The patch needs some more work. I'll send an updated one as soon as
-> > > ready.
-> > The bay driver is duplicated with libata, I thought we should delete it.
-> > See bug http://bugzilla.kernel.org/show_bug.cgi?id=9526
+
+On Sun, 2008-05-04 at 12:14 -0700, Moore, Robert wrote:
+> >But in future, such patches should definitely be based against ACPICA
+> >code. Len will probably announce here where to find the very latest
+> >sources, soon. Currently the latest official release linked to on
+> >http://lesswatts.org is still from 2006. AFAIK things will get better
+> >here, soon.
+> >
+> >   Thomas
 > 
-> Yes, I know, but couldn't it be helpful on systems not using libata?
+> 
+> The latest ACPICA source can be found at the acpica.org website. In
+> fact, we have converted our source repository from CVS to git, and the
+> actual working git repository is now publicly available at
+> 
+> http://www.acpica.org/repos/acpica.git/
+> 
+> The acpica.org website was created at the end of 2007, and is now the
+> home of the acpica project.
 
-Also, libata has to be patched to execute ACPI _EJ0 (not a huge issue, I
-know) or calling bay's eject_removable drive method.
+Great!
+You should update the acpica link on the lesswatts.org site:
+http://www.lesswatts.org/downloads
+which still points to:
+http://developer.intel.com/technology/iapc/acpi/downloads.htm
 
-Regards,
-	Holger
+
+   Thomas
+
