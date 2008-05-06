@@ -1,68 +1,82 @@
-From: Greg KH <gregkh@suse.de>
-Subject: Re: acpi_cpu_freq_init warning...
-Date: Tue, 6 May 2008 14:38:01 -0700
-Message-ID: <20080506213801.GA26345@suse.de>
-References: <86802c440805051951u153ebc21p15f0d73904496217@mail.gmail.com> <87k5i8hrmk.fsf@duaron.myhome.or.jp> <alpine.LFD.1.10.0805060741290.32269@woody.linux-foundation.org> <87skwvcl2a.fsf@duaron.myhome.or.jp> <20080506202033.GA3114@suse.de> <alpine.LFD.1.10.0805061325270.32269@woody.linux-foundation.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH 1/4] ACPI Hibernation: Use ACPI hardware signature
+Date: Tue, 6 May 2008 23:33:16 +0200
+Message-ID: <200805062333.17558.rjw@sisk.pl>
+References: <200805062331.39454.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:36009 "EHLO mx2.suse.de"
+Received: from ogre.sisk.pl ([217.79.144.158]:56406 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753995AbYEFVi1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 6 May 2008 17:38:27 -0400
+	id S1760666AbYEFVjL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 6 May 2008 17:39:11 -0400
+In-Reply-To: <200805062331.39454.rjw@sisk.pl>
 Content-Disposition: inline
-In-Reply-To: <alpine.LFD.1.10.0805061325270.32269@woody.linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>, Yinghai Lu <yhlu.kernel@gmail.com>, Ingo Molnar <mingo@elte.hu>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Pavel Machek <pavel@ucw.cz>, Johannes Berg <johannes@sipsolutions.net>, Shaohua Li <shaohua.li@intel.com>, David Brownell <david-b@pacbell.net>, Jesse Barnes <jbarnes@virtuousgeek.org>
 
-On Tue, May 06, 2008 at 01:27:37PM -0700, Linus Torvalds wrote:
-> 
-> 
-> On Tue, 6 May 2008, Greg KH wrote:
-> 
-> > On Wed, May 07, 2008 at 04:02:53AM +0900, OGAWA Hirofumi wrote:
-> > > Linus Torvalds <torvalds@linux-foundation.org> writes:
-> > > 
-> > > > On Tue, 6 May 2008, OGAWA Hirofumi wrote:
-> > > >> -	if ((drv->entry.next != drv->entry.prev) ||
-> > > >> +	if ((drv->entry.next != drv->entry.prev) &&
-> > > >>  	    (drv->entry.next != NULL)) {
-> > > >
-> > > > Umm. That code still makes no sense.
-> > > >
-> > > > The "drv->entry.next == drv->entry.prev" condition will trigger under 
-> > > > *three* different circumstances:
-> > > >
-> > > >  - next/prev == NULL (uninitialized). Checked for by the explicit check 
-> > > >    against NULL.
-> > > >
-> > > >  - list empty (both next/prev point back to itself), which I assume the 
-> > > >    check was *meant* for.
-> > > >
-> > > >  - list has only *one* entry, when next/prev both point to the list head.
-> > > >
-> > > > and I'm pretty damn sure that whoever wrote that code didn't mean that 
-> > > > last one, but who knows..
-> > > >
-> > > > The fact is, looking at next/prev this way is a sure way to have bugs.
-> > > >
-> > > > What is that PoS *trying* to test for? I assume it is meant to test for
-> > > >
-> > > > 	/* Is the list initialized and non-empty? */
-> > > > 	if (drv->entry.next && !list_empty(&drv->entry)) {
-> > > > 		...
-> > > >
-> > > > and dammit, just doing it that way is shorter and simpler.
-> > 
-> > But I don't think that will work as others have pointed out, this
-> > structure's list field isn't initialized yet.
-> 
-> Umm. And what do you think the test for drv->entry.next is there for?
+From: Shaohua Li <shaohua.li@intel.com>
 
-Doh, nevermind, I don't know what I was thinking, this should be fine.
+ACPI defines a hardware signature. BIOS calculates the signature
+according to hardware configure, if hardware changes, the signature
+will change, in this case, S4 resume should fail.
 
-I think I need a nap...
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/acpi/sleep/main.c |   24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-greg k-h
+Index: linux-2.6/drivers/acpi/sleep/main.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/sleep/main.c
++++ linux-2.6/drivers/acpi/sleep/main.c
+@@ -255,6 +255,17 @@ static struct dmi_system_id __initdata a
+ #endif /* CONFIG_SUSPEND */
+ 
+ #ifdef CONFIG_HIBERNATION
++static unsigned long s4_hardware_signature;
++static struct acpi_table_facs *facs;
++static bool nosigcheck;
++
++static int __init acpi_s4_nosigcheck(char *str)
++{
++	nosigcheck = true;
++	return 1;
++}
++__setup("acpi_s4_nosigcheck", acpi_s4_nosigcheck);
++
+ static int acpi_hibernation_begin(void)
+ {
+ 	acpi_target_sleep_state = ACPI_STATE_S4;
+@@ -301,6 +312,12 @@ static void acpi_hibernation_leave(void)
+ 	acpi_enable();
+ 	/* Reprogram control registers and execute _BFS */
+ 	acpi_leave_sleep_state_prep(ACPI_STATE_S4);
++	/* Check the hardware signature */
++	if (facs && s4_hardware_signature != facs->hardware_signature) {
++		printk(KERN_EMERG "ACPI: Hardware changed while hibernated, "
++			"cannot resume!\n");
++		panic("ACPI S4 hardware signature mismatch");
++	}
+ }
+ 
+ static void acpi_hibernation_finish(void)
+@@ -501,6 +518,13 @@ int __init acpi_sleep_init(void)
+ 		hibernation_set_ops(&acpi_hibernation_ops);
+ 		sleep_states[ACPI_STATE_S4] = 1;
+ 		printk(" S4");
++		if (!nosigcheck) {
++			acpi_get_table_by_index(ACPI_TABLE_INDEX_FACS,
++				(struct acpi_table_header **)&facs);
++			if (facs)
++				s4_hardware_signature =
++					facs->hardware_signature;
++		}
+ 	}
+ #endif
+ 	status = acpi_get_sleep_type_data(ACPI_STATE_S5, &type_a, &type_b);
