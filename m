@@ -1,54 +1,40 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: RE: [patch 04/10] acpi: adjust
-	_acpi_{module,function}_namedefinitions
-Date: Tue, 06 May 2008 14:51:04 +0200
-Message-ID: <1210078264.4802.1.camel@linux-2bdv.site>
-References: <200805010952.m419q3Jc031806@imap1.linux-foundation.org>
-	 <1209722812.22514.28.camel@linux-2bdv.site>
-	 <20080502054113.4e5839d9.akpm@linux-foundation.org>
-	 <1209737075.22514.79.camel@linux-2bdv.site>
-	 <9D39833986E69849A2A8E74C1078B6B3446FBD@orsmsx415.amr.corp.intel.com>
+Subject: Re: PNP: set IRQ index in sysfs "set irq" interface
+Date: Tue, 06 May 2008 16:29:43 +0200
+Message-ID: <1210084183.4802.29.camel@linux-2bdv.site>
+References: <200805011539.58705.bjorn.helgaas@hp.com>
+	 <481DBE81.8000608@keyaccess.nl>  <200805050900.46521.bjorn.helgaas@hp.com>
 Reply-To: trenn@suse.de
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.suse.de ([195.135.220.2]:52129 "EHLO mx1.suse.de"
+Received: from ns1.suse.de ([195.135.220.2]:42206 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751453AbYEFKvQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 6 May 2008 06:51:16 -0400
-In-Reply-To: <9D39833986E69849A2A8E74C1078B6B3446FBD@orsmsx415.amr.corp.intel.com>
+	id S1752071AbYEFM3z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 6 May 2008 08:29:55 -0400
+In-Reply-To: <200805050900.46521.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: linux-acpi@vger.kernel.org, jbeulich@novell.com, "Brown, Len" <len.brown@intel.com>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Rene Herman <rene.herman@keyaccess.nl>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
 
-On Sun, 2008-05-04 at 12:14 -0700, Moore, Robert wrote:
-> >But in future, such patches should definitely be based against ACPICA
-> >code. Len will probably announce here where to find the very latest
-> >sources, soon. Currently the latest official release linked to on
-> >http://lesswatts.org is still from 2006. AFAIK things will get better
-> >here, soon.
-> >
-> >   Thomas
+On Mon, 2008-05-05 at 09:00 -0600, Bjorn Helgaas wrote:
+> On Sunday 04 May 2008 07:47:45 am Rene Herman wrote:
+> > But what I wanted to ask -- judging from my .gitconfig (as opposed to my 
+> > memory) I haven't done anything special to get the -p (--show-c-function) 
+> > functionality from git-diff. Do you do anything special to not get it? It 
+> > really helps when looking at patches.
 > 
-> 
-> The latest ACPICA source can be found at the acpica.org website. In
-> fact, we have converted our source repository from CVS to git, and the
-> actual working git repository is now publicly available at
-> 
-> http://www.acpica.org/repos/acpica.git/
-> 
-> The acpica.org website was created at the end of 2007, and is now the
-> home of the acpica project.
+> I agree, "--show-c-function" is often handy.  I use quilt, and it
+> looks like it doesn't add that option by default.  I added a ~/.quiltrc
+> containing 'QUILT_DIFF_OPTS="-p"', and it looks like that will do the
+> trick.  Thanks for the tip.
 
-Great!
-You should update the acpica link on the lesswatts.org site:
-http://www.lesswatts.org/downloads
-which still points to:
-http://developer.intel.com/technology/iapc/acpi/downloads.htm
+QUILT_REFRESH_ARGS="--diffstat"
+in .quiltrc
+is also nice if you have huger patches.
 
-
-   Thomas
+    Thomas
 
