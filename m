@@ -1,68 +1,79 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: Vs: Re: Acer Aspire 9813WKMI fan runs all the time after
-	suspend to ram
-Date: Wed, 07 May 2008 14:32:30 +0800
-Message-ID: <1210141950.3648.10.camel@rzhang-crestline.sh.intel.com>
-References: <27920691.1210137673091.JavaMail.apache@eni-cpps16.sth.basefarm.net>
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: [PATCH 1/4] ACPI Hibernation: Use ACPI hardware signature
+Date: Wed, 7 May 2008 11:20:55 +0200
+Message-ID: <20080507092055.GA13858@elf.ucw.cz>
+References: <200805062331.39454.rjw@sisk.pl> <200805062333.17558.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:42114 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757005AbYEGGej (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 7 May 2008 02:34:39 -0400
-In-Reply-To: <27920691.1210137673091.JavaMail.apache@eni-cpps16.sth.basefarm.net>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.31.123]:43999 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753592AbYEGJUN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 May 2008 05:20:13 -0400
+Content-Disposition: inline
+In-Reply-To: <200805062333.17558.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: v-j-m@suomi24.fi
-Cc: linux-acpi@vger.kernel.org, Thomas Renninger <trenn@suse.de>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Johannes Berg <johannes@sipsolutions.net>, Shaohua Li <shaohua.li@intel.com>, David Brownell <david-b@pacbell.net>, Jesse Barnes <jbarnes@virtuousgeek.org>
 
+Hi!
 
-On Wed, 2008-05-07 at 07:21 +0200, JM wrote:
-> >
-> >Perhaps it would be worth experimenting instead with OSI when booting and see 
-> >what happens then? e.g.
-> >
-> >acpi_osi="!Windows 2006"
-> >
-> >(Perhaps OSYS also triggers an SMI trap which does or doesn't do it? Worth a 
-> >shot at least).
-> >
-> acpi_osi="!Windows 2006"
-> acpi_osi="!Windows 2001 SP2"
-> acpi_osi="!Windows 2001 SP1"
-> acpi_osi="!Windows 2001"
-> It is same with all. On cold boot fan stop ~1-2 seconds after Grub (Scope PR INI) and never stop after suspend.
+> From: Shaohua Li <shaohua.li@intel.com>
 > 
-> >> Best you create a bug for that at bugzilla.kernel.org (and add me to CC
-> >> or post the bug no).
-> >> Full (or none) fan is a real blocker bug that should generally be
-> >> resolved.
-> >
-> >I've also had a report from a user the other day that hit the same bug on an 
-> >Aspire 5710 series (which seems to have the same root cause, from glancing 
-> >over the DSDT):
-> >
-> >http://aceracpi.googlecode.com/svn/trunk/dsdt/acer/aspire/5710.dsl
-> >
-> >> Does this BIOS expose an ACPI fan device correctly? 
-> >
-> >Acer BIOS's never expose the fan, AFAIK (and it's not available through WMI 
-> >either).
-> >
-> Is this kernel bug or not?
-Is the temperature ever updated after s3?
-It seems that we have some similar bug reports for this problem.
-Please refer to bug
-http://bugzilla.kernel.org/show_bug.cgi?id=9754
-http://bugzilla.kernel.org/show_bug.cgi?id=9167
-
-thanks,
-rui
+> ACPI defines a hardware signature. BIOS calculates the signature
+> according to hardware configure, if hardware changes, the signature
+> will change, in this case, S4 resume should fail.
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> ---
+>  drivers/acpi/sleep/main.c |   24 ++++++++++++++++++++++++
+>  1 file changed, 24 insertions(+)
+> 
+> Index: linux-2.6/drivers/acpi/sleep/main.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/sleep/main.c
+> +++ linux-2.6/drivers/acpi/sleep/main.c
+> @@ -255,6 +255,17 @@ static struct dmi_system_id __initdata a
+>  #endif /* CONFIG_SUSPEND */
+>  
+>  #ifdef CONFIG_HIBERNATION
+> +static unsigned long s4_hardware_signature;
+> +static struct acpi_table_facs *facs;
+> +static bool nosigcheck;
+> +
+> +static int __init acpi_s4_nosigcheck(char *str)
+> +{
+> +	nosigcheck = true;
+> +	return 1;
+> +}
+> +__setup("acpi_s4_nosigcheck", acpi_s4_nosigcheck);
+> +
 
+Needs a patch to Documentation/ , too.
+
+>  static int acpi_hibernation_begin(void)
+>  {
+>  	acpi_target_sleep_state = ACPI_STATE_S4;
+> @@ -301,6 +312,12 @@ static void acpi_hibernation_leave(void)
+>  	acpi_enable();
+>  	/* Reprogram control registers and execute _BFS */
+>  	acpi_leave_sleep_state_prep(ACPI_STATE_S4);
+> +	/* Check the hardware signature */
+> +	if (facs && s4_hardware_signature != facs->hardware_signature)
+
+do you need && !nosigcheck here ?
+
+> +		printk(KERN_EMERG "ACPI: Hardware changed while hibernated, "
+> +			"cannot resume!\n");
+> +		panic("ACPI S4 hardware signature mismatch");
+> +	}
+>  }
+>  
+>  static void acpi_hibernation_finish(void)
+
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
