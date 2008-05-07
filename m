@@ -1,125 +1,145 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] [PATCH 2/2] PCI PM: Introduce pci_preferred_state
-Date: Wed, 7 May 2008 20:32:57 +0200
-Message-ID: <200805072032.58472.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0805071139020.3701-100000@iolanthe.rowland.org>
+From: "Vegard Nossum" <vegard.nossum@gmail.com>
+Subject: Re: ACPI: kmemcheck: Caught 16-bit read from freed memory (f7c12ec6)
+Date: Wed, 7 May 2008 21:21:24 +0200
+Message-ID: <19f34abd0805071221o236c8629ib184a4720f178e7b@mail.gmail.com>
+References: <19f34abd0805060909q635d2d43j9414e5f179c9e22f@mail.gmail.com>
+	 <84144f020805061338yd6e3declaf5ff9ca344c28ba@mail.gmail.com>
+	 <19f34abd0805061346q4af7e4f8kd65009f8d3021d0e@mail.gmail.com>
+	 <4820C56C.6070204@cs.helsinki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:33885 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755962AbYEGSc5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 7 May 2008 14:32:57 -0400
-In-Reply-To: <Pine.LNX.4.44L0.0805071139020.3701-100000@iolanthe.rowland.org>
+Received: from wf-out-1314.google.com ([209.85.200.171]:12179 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933560AbYEGTVZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 May 2008 15:21:25 -0400
+Received: by wf-out-1314.google.com with SMTP id 27so390328wfd.4
+        for <linux-acpi@vger.kernel.org>; Wed, 07 May 2008 12:21:25 -0700 (PDT)
+In-Reply-To: <4820C56C.6070204@cs.helsinki.fi>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Pavel Machek <pavel@suse.cz>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Jesse Barnes <jbarnes@virtuousgeek.org>
+To: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Lin Ming <ming.m.lin@intel.com>, Bob Moore <robert.moore@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wednesday, 7 of May 2008, Alan Stern wrote:
-> On Wed, 7 May 2008, Rafael J. Wysocki wrote:
-> 
-> > On Wednesday, 7 of May 2008, Pavel Machek wrote:
-> > > Hi!
-> > > 
-> > > > From: Rafael J. Wysocki <rjw@sisk.pl>
-> > > > 
-> > > > The new suspend and hibernation callbacks introduced with
-> > > > 'struct pm_ops' and 'struct pm_ext_ops' do not take a
-> > > > pm_message_t argument, so the drivers using them will not be able
-> > > > to use pci_choose_state() in its present form.  For this reason,
-> > > > introduce the new function pci_preferred_state() playing the role
-> > > > of pci_choose_state(), but taking only a pointer to the device
-> > > > object.
-> > > > 
-> > > > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> > > > ---
-> > > >  drivers/pci/pci.c   |   33 ++++++++++++++++++++++++++++++++-
-> > > >  include/linux/pci.h |    1 +
-> > > >  include/linux/pm.h  |   10 ++++++++++
-> > > >  3 files changed, 43 insertions(+), 1 deletion(-)
-> > > > 
-> > > > Index: linux-2.6/drivers/pci/pci.c
-> > > > ===================================================================
-> > > > --- linux-2.6.orig/drivers/pci/pci.c
-> > > > +++ linux-2.6/drivers/pci/pci.c
-> > > > @@ -509,7 +509,38 @@ pci_set_power_state(struct pci_dev *dev,
-> > > >  }
-> > > >  
-> > > >  pci_power_t (*platform_pci_choose_state)(struct pci_dev *dev);
-> > > > - 
-> > > > +
-> > > > +/**
-> > > > + * pci_preferred_state - Choose the preferred power state of a PCI device
-> > > > + * @dev: PCI device to be put into the low power state
-> > > > + * @sp: Information aboutabout what the driver would prefer to do with
-> > > > + *	the device if there were no platform-implemeted policy.
-> > > > + *
-> > > > + * Returns PCI power state suitable for given device and given suspend policy.
-> > > > + * The policy, however, is only used if platform_pci_choose_state() fails or is
-> > > > + * not present.  Otherwise, it is assumed that platform_pci_choose_state()
-> > > > + * implements the right policy.
-> > > > + */
-> > > > +
-> > > > +pci_power_t pci_preferred_state(struct pci_dev *dev, enum suspend_policy sp)
-> > > > +{
-> > > > +	pci_power_t ret;
-> > > > +
-> > > > +	if (!pci_find_capability(dev, PCI_CAP_ID_PM))
-> > > > +		return PCI_D0;
-> > > > +
-> > > > +	ret = (sp == SP_TURN_OFF) ? PCI_D3hot : PCI_D0;
-> > > > +	if (platform_pci_choose_state) {
-> > > > +		pci_power_t platform_ret = platform_pci_choose_state(dev);
-> > > > +
-> > > > +		if (platform_ret != PCI_POWER_ERROR)
-> > > > +			ret = platform_ret;
-> > > > +	}
-> > > > +	return ret;
-> > > > +}
-> > > > +
-> > > > +EXPORT_SYMBOL(pci_preferred_state);
-> > > 
-> > > I don't get it. How is driver supposed to use this? How does the
-> > > driver decide between SP_TURN_OFF and SP_TURN_ON?
-> > > 
-> > > ...and it seems to be clearer to just inline this in the driver... or
-> > > pass  PCI_D3hot/PCI_D0 to it, instead of inventing yet another
-> > > define...
-> > 
-> > I thought about that too.  I'd like to know what the other people think,
-> > though.
-> 
-> The point of this isn't at all clear.
-> 
-> Is this routine meant to be called during a hibernation 
-> transition?
+Hi,
 
-Yes, it is.
+On Tue, May 6, 2008 at 10:54 PM, Pekka Enberg <penberg@cs.helsinki.fi> wrote:
+>
+> Vegard Nossum wrote:
+>
+> > On Tue, May 6, 2008 at 10:38 PM, Pekka Enberg <penberg@cs.helsinki.fi>
+> wrote:
+> >
+> > > On Tue, May 6, 2008 at 7:09 PM, Vegard Nossum <vegard.nossum@gmail.com>
+> wrote:
+> > >  >  Running kmemcheck on top of v2.6.26-rc1 gives the following (never
+> > >  >  before seen) warning:
+> > >  >
+> > >  >  Linux Plug and Play Support v0.97 (c) Adam Belay
+> > >  >  pnp: PnP ACPI init
+> > >  >  ACPI: bus type pnp registered
+> > >  >  kmemcheck: Caught 16-bit read from freed memory (f7c12ec6)
+> > >  >
+> > >  >  Pid: 1, comm: swapper Not tainted (2.6.26-rc1-00010-g7966e04 #2)
+> > >  >  EIP: 0060:[<c027ecaa>] EFLAGS: 00010286 CPU: 0
+> > >  >  EIP is at acpi_ps_get_next_arg+0x1b8/0x262
+> > >  >  EAX: f7c12ec0 EBX: f7d20428 ECX: f7ca1b00 EDX: 00000001
+> > >  >  ESI: 00000049 EDI: f7d20400 EBP: f7c61e38 ESP: c06c9dc8
+> > >  >   DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
+> > >  >  CR0: 8005003b CR2: f7c46456 CR3: 006ba000 CR4: 000006c0
+> > >  >  DR0: 00000000 DR1: 00000000 DR2: 00000000 DR3: 00000000
+> > >  >  DR6: ffff4ff0 DR7: 00000400
+> > >  >   [<c0119192>] kmemcheck_read+0xe2/0x140
+> > >  >   [<c0119326>] kmemcheck_access+0x136/0x1a0
+> > >  >   [<c04bd286>] do_page_fault+0x5e6/0x690
+> > >  >   [<c04bb2da>] error_code+0x72/0x78
+> > >  >   [<c027f991>] acpi_ps_parse_loop+0x4dd/0x7f8
+> > >  >   [<c027ee36>] acpi_ps_parse_aml+0xb4/0x332
+> > >  >   [<c02802c0>] acpi_ps_execute_method+0x13d/0x20d
+> > >  >   [<c027c8a2>] acpi_ns_evaluate+0x10e/0x1b0
+> > >  >   [<c0283210>] acpi_ut_evaluate_object+0x51/0x18d
+> > >  >   [<c0283406>] acpi_ut_execute_STA+0x22/0x7b
+> > >  >   [<c027c18b>] acpi_ns_get_device_callback+0x5a/0x121
+> > >  >   [<c027e410>] acpi_ns_walk_namespace+0xf0/0x10c
+> > >  >   [<c027c0b5>] acpi_get_devices+0x47/0x5d
+> > >  >   [<c068db45>] pnpacpi_init+0x65/0xa0
+> > >  >   [<c06735c7>] kernel_init+0x127/0x290
+> > >  >   [<c0104cc7>] kernel_thread_helper+0x7/0x10
+> > >  >   [<ffffffff>] 0xffffffff
+> > >  >  pnp: PnP ACPI: found 17 devices
+> > >  >  ACPI: ACPI bus type pnp unregistered
+> > >  >
+> > >  >  This faulting instruction comes from
+> > >  >
+> > >  >  $ addr2line -e vmlinux -i c027ecaa
+> > >  >  drivers/acpi/parser/psargs.c:694
+> > >
+> > >  (That's some seriously hairy code in ACPI btw.)
+> > >
+> > >  Vegard, can you do disassembly for the faulting instruction? I *think*
+> > >  it's the "walk_state->op" bit that is hanging to an object that was
+> > >  already deleted in the strange loop in acpi_ps_parse_loop() but it
+> > >  would be good to have some more data on this.
+> > >
+> >
+> > Of course. This is in fact another image, but the EIP (and indeed
+> > EAX...EDX) are exactly the same. I hope this doesn't get mangled too
+> > much by gmail. It's a lot, though :-)
+> >
+>
+>  [snip]
+>
+>
+>
+> > c027ec9b:       89 45 e4                mov    %eax,-0x1c(%ebp)
+> > c027ec9e:       0f 84 9e 00 00 00       je     c027ed42
+> <acpi_ps_get_next_arg+0x250>
+> > c027eca4:       8b 87 d4 01 00 00       mov    0x1d4(%edi),%eax
+> > c027ecaa:       66 81 78 06 2a 5b       cmpw   $0x5b2a,0x6(%eax)
+> >
+> >       ^--- EIP here
+> >
+> > Well, at least kmemcheck correctly identifies it as a 16-bit read...
+> >
+>
+>  Aah, I didn't notice it was a 16-bit read. But yeah at offset 6 we have
+> 16-bit aml_opcode:
+>
+>  #define ACPI_PARSE_COMMON \
+>         union acpi_parse_object         *parent; \
+>         u8                              descriptor_type; \
+>         u8                              flags; \
+>         u16                             aml_opcode; \
+>
+>  So walk_state->op probably points to an object that was already free'd.
+> Len?
 
-> Or is it just for suspend? 
-> 
-> And why would the return value ever be anything other than D3_hot?  (Or 
-> why would the driver ever want to put a device in a different state?)
+I turned on ACPI logging just in case you can use it for something.
+The full log was a whopping 36M, so I grepped for the memory address
+in question (actually, "f7c12ec." since the last digit is 0 for the
+start of the object and 6 for the ->op). It turns up a few times; in
+particular:
 
-In principle, the driver may want to put the device into a state having shorter
-wake up latency than D3_hot.
+ psutils-0177 [F7C5C000] [00] ps_free_op            : Free retval op: f7c12ec0
+ psutils-0177 [F7C5C000] [00] ps_free_op            : Free retval op: f7c12ec0
 
-> AFAICS, the only reason would be because platform_pci_choose_state() 
-> suggested something else.  In which case there's no need for the 
-> "policy" argument.
+but you should keep in mind that the kmemcheck report will turn up
+out-of-line, probably a long time after the actual error. (The
+stack-trace and register dump is correct, though.)
 
-There is a need in two cases:
-- if platform_pci_choose_state() is not defined (it only is defined for ACPI
-  systems at the moment),
-- if platform_pci_choose_state() returns PCI_POWER_ERROR meaning that it cannot
-  handle the device.
+I've uploaded the log to here:
 
-I agree with Pavel that the driver could pass a "fallback state" as a second
-argument to be used in case the platform cannot provide it with one.
+http://userweb.kernel.org/~vegard/bugs/20080507-acpi/relevant.txt
 
-Thanks,
-Rafael
+The full log is also available at full.txt. I hope it can help.
+
+
+Vegard
+
+-- 
+"The animistic metaphor of the bug that maliciously sneaked in while
+the programmer was not looking is intellectually dishonest as it
+disguises that the error is the programmer's own creation."
+	-- E. W. Dijkstra, EWD1036
