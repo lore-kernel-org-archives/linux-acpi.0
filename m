@@ -1,52 +1,511 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: Re: [PATCH] bay: Exit if notify handler cannot be installed
-Date: Wed, 07 May 2008 09:27:38 +0800
-Message-ID: <1210123658.30944.6.camel@sli10-desk.sh.intel.com>
-References: <20080505202508.GA3690@homac> <20080506091522.GA4378@homac>
-	 <1210065811.12668.1.camel@sli10-desk.sh.intel.com>
-	 <20080506151846.GA22828@khazad-dum.debian.net>
-	 <1210122279.27316.2.camel@sli10-desk.sh.intel.com>
-	 <20080507011354.GA8163@khazad-dum.debian.net>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+From: <gregkh@suse.de>
+Subject: patch pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type.patch added to gregkh-2.6 tree
+Date: Tue, 06 May 2008 22:08:09 -0700
+Message-ID: <12101368891140@kroah.org>
+References: <200804301409.26554.rjw@sisk.pl>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:19052 "EHLO mga11.intel.com"
+Received: from mx2.suse.de ([195.135.220.15]:47011 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753252AbYEGBXu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 6 May 2008 21:23:50 -0400
-In-Reply-To: <20080507011354.GA8163@khazad-dum.debian.net>
+	id S1754312AbYEGFJR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 7 May 2008 01:09:17 -0400
+In-Reply-To: <200804301409.26554.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Holger Macht <hmacht@suse.de>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Accardi, Kristen C" <kristen.c.accardi@intel.com>
+To: rjw@sisk.pl, akpm@linux-foundation.org, astarikovskiy@suse.de, benh@kernel.crashing.org, david-b@pacbell.net, greg@kroah.com, gregkh@suse.de, jbarnes@virtuousgeek.org, lenb@kernel.org
 
-On Tue, 2008-05-06 at 22:13 -0300, Henrique de Moraes Holschuh wrote:
-> On Wed, 07 May 2008, Shaohua Li wrote:
-> > On Tue, 2008-05-06 at 12:18 -0300, Henrique de Moraes Holschuh wrote:
-> > > On Tue, 06 May 2008, Shaohua Li wrote:
-> > > > The bay driver is duplicated with libata, I thought we should delete it.
-> > > > See bug http://bugzilla.kernel.org/show_bug.cgi?id=9526
-> > > 
-> > > The bay driver is currently useless, BUT it should handle a lot of stuff
-> > > libata won't, such as bay batteries, bay floppies, and anything else in
-> > > a bay that is not a hard disk.
-> > > 
-> > > The fact that the driver currently looks only after disks is just a bug.
-> > > It should, in fact, bind to any ejectable device not already handled by
-> > > a different driver.
-> > Isn't this the job of acpi dock driver?
-> 
-> No, but I actually fail to see why do we even care about the difference
-> from a dock to a bay.  Dock *could* be made to handle both.
-It appears some systems haven't a dock but a bay. In a thinkpad, you
-could hotplug cdrom/battery/harddisk in the slot of cdrom, but it's not
-a dock. libata should handle it well (but it doesn't handle _EJ0
-currently, I have a patch in above bugzilla).
 
-But you are right, acpi dock driver should be extended to support bay.
-I'll give it a try.
+This is a note to let you know that I've just added the patch titled
 
-Thanks,
-Shaohua
+     Subject: PM: New suspend and hibernation callbacks for PCI bus type
 
+to my gregkh-2.6 tree.  Its filename is
+
+     pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type.patch
+
+This tree can be found at 
+    http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
+
+
+>From rjw@sisk.pl Wed Apr 30 05:09:52 2008
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Date: Wed, 30 Apr 2008 14:09:24 +0200
+Subject: PM: New suspend and hibernation callbacks for PCI bus type
+To: Greg KH <greg@kroah.com>
+Cc: pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Len Brown <lenb@kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Oliver Neukum <oliver@neukum.org>, Nigel Cunningham <ncunningham@crca.org.au>, Jesse Barnes <jbarnes@virtuousgeek.org>, Andrew Morton <akpm@linux-foundation.org>
+Message-ID: <200804301409.26554.rjw@sisk.pl>
+Content-Disposition: inline
+
+From: Rafael J. Wysocki <rjw@sisk.pl>
+
+Implement new suspend and hibernation callbacks for the PCI bus type.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Acked-by: Jesse Barnes <jbarnes@virtuousgeek.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+
+---
+ drivers/pci/pci-driver.c |  376 ++++++++++++++++++++++++++++++++++++++++++-----
+ include/linux/pci.h      |    2 
+ 2 files changed, 337 insertions(+), 41 deletions(-)
+
+--- a/drivers/pci/pci-driver.c
++++ b/drivers/pci/pci-driver.c
+@@ -274,7 +274,57 @@ static int pci_device_remove(struct devi
+ 	return 0;
+ }
+ 
+-static int pci_device_suspend(struct device * dev, pm_message_t state)
++static void pci_device_shutdown(struct device *dev)
++{
++	struct pci_dev *pci_dev = to_pci_dev(dev);
++	struct pci_driver *drv = pci_dev->driver;
++
++	if (drv && drv->shutdown)
++		drv->shutdown(pci_dev);
++	pci_msi_shutdown(pci_dev);
++	pci_msix_shutdown(pci_dev);
++}
++
++#ifdef CONFIG_PM_SLEEP
++
++/*
++ * Default "suspend" method for devices that have no driver provided suspend,
++ * or not even a driver at all.
++ */
++static void pci_default_pm_suspend(struct pci_dev *pci_dev)
++{
++	pci_save_state(pci_dev);
++	/*
++	 * mark its power state as "unknown", since we don't know if
++	 * e.g. the BIOS will change its device state when we suspend.
++	 */
++	if (pci_dev->current_state == PCI_D0)
++		pci_dev->current_state = PCI_UNKNOWN;
++}
++
++/*
++ * Default "resume" method for devices that have no driver provided resume,
++ * or not even a driver at all.
++ */
++static int pci_default_pm_resume(struct pci_dev *pci_dev)
++{
++	int retval = 0;
++
++	/* restore the PCI config space */
++	pci_restore_state(pci_dev);
++	/* if the device was enabled before suspend, reenable */
++	retval = pci_reenable_device(pci_dev);
++	/*
++	 * if the device was busmaster before the suspend, make it busmaster
++	 * again
++	 */
++	if (pci_dev->is_busmaster)
++		pci_set_master(pci_dev);
++
++	return retval;
++}
++
++static int pci_legacy_suspend(struct device *dev, pm_message_t state)
+ {
+ 	struct pci_dev * pci_dev = to_pci_dev(dev);
+ 	struct pci_driver * drv = pci_dev->driver;
+@@ -284,18 +334,12 @@ static int pci_device_suspend(struct dev
+ 		i = drv->suspend(pci_dev, state);
+ 		suspend_report_result(drv->suspend, i);
+ 	} else {
+-		pci_save_state(pci_dev);
+-		/*
+-		 * mark its power state as "unknown", since we don't know if
+-		 * e.g. the BIOS will change its device state when we suspend.
+-		 */
+-		if (pci_dev->current_state == PCI_D0)
+-			pci_dev->current_state = PCI_UNKNOWN;
++		pci_default_pm_suspend(pci_dev);
+ 	}
+ 	return i;
+ }
+ 
+-static int pci_device_suspend_late(struct device * dev, pm_message_t state)
++static int pci_legacy_suspend_late(struct device *dev, pm_message_t state)
+ {
+ 	struct pci_dev * pci_dev = to_pci_dev(dev);
+ 	struct pci_driver * drv = pci_dev->driver;
+@@ -308,26 +352,7 @@ static int pci_device_suspend_late(struc
+ 	return i;
+ }
+ 
+-/*
+- * Default resume method for devices that have no driver provided resume,
+- * or not even a driver at all.
+- */
+-static int pci_default_resume(struct pci_dev *pci_dev)
+-{
+-	int retval = 0;
+-
+-	/* restore the PCI config space */
+-	pci_restore_state(pci_dev);
+-	/* if the device was enabled before suspend, reenable */
+-	retval = pci_reenable_device(pci_dev);
+-	/* if the device was busmaster before the suspend, make it busmaster again */
+-	if (pci_dev->is_busmaster)
+-		pci_set_master(pci_dev);
+-
+-	return retval;
+-}
+-
+-static int pci_device_resume(struct device * dev)
++static int pci_legacy_resume(struct device *dev)
+ {
+ 	int error;
+ 	struct pci_dev * pci_dev = to_pci_dev(dev);
+@@ -336,11 +361,11 @@ static int pci_device_resume(struct devi
+ 	if (drv && drv->resume)
+ 		error = drv->resume(pci_dev);
+ 	else
+-		error = pci_default_resume(pci_dev);
++		error = pci_default_pm_resume(pci_dev);
+ 	return error;
+ }
+ 
+-static int pci_device_resume_early(struct device * dev)
++static int pci_legacy_resume_early(struct device *dev)
+ {
+ 	int error = 0;
+ 	struct pci_dev * pci_dev = to_pci_dev(dev);
+@@ -353,17 +378,288 @@ static int pci_device_resume_early(struc
+ 	return error;
+ }
+ 
+-static void pci_device_shutdown(struct device *dev)
++static int pci_pm_prepare(struct device *dev)
++{
++	struct device_driver *drv = dev->driver;
++	int error = 0;
++
++	if (drv && drv->pm && drv->pm->prepare)
++		error = drv->pm->prepare(dev);
++
++	return error;
++}
++
++static void pci_pm_complete(struct device *dev)
++{
++	struct device_driver *drv = dev->driver;
++
++	if (drv && drv->pm && drv->pm->complete)
++		drv->pm->complete(dev);
++}
++
++#ifdef CONFIG_SUSPEND
++
++static int pci_pm_suspend(struct device *dev)
++{
++	struct pci_dev *pci_dev = to_pci_dev(dev);
++	struct device_driver *drv = dev->driver;
++	int error = 0;
++
++	if (drv && drv->pm) {
++		if (drv->pm->suspend) {
++			error = drv->pm->suspend(dev);
++			suspend_report_result(drv->pm->suspend, error);
++		} else {
++			pci_default_pm_suspend(pci_dev);
++		}
++	} else {
++		error = pci_legacy_suspend(dev, PMSG_SUSPEND);
++	}
++
++	return error;
++}
++
++static int pci_pm_suspend_noirq(struct device *dev)
+ {
+ 	struct pci_dev *pci_dev = to_pci_dev(dev);
+ 	struct pci_driver *drv = pci_dev->driver;
++	int error = 0;
+ 
+-	if (drv && drv->shutdown)
+-		drv->shutdown(pci_dev);
+-	pci_msi_shutdown(pci_dev);
+-	pci_msix_shutdown(pci_dev);
++	if (drv && drv->pm) {
++		if (drv->pm->suspend_noirq) {
++			error = drv->pm->suspend_noirq(dev);
++			suspend_report_result(drv->pm->suspend_noirq, error);
++		}
++	} else {
++		error = pci_legacy_suspend_late(dev, PMSG_SUSPEND);
++	}
++
++	return error;
+ }
+ 
++static int pci_pm_resume(struct device *dev)
++{
++	struct pci_dev *pci_dev = to_pci_dev(dev);
++	struct device_driver *drv = dev->driver;
++	int error;
++
++	if (drv && drv->pm) {
++		error = drv->pm->resume ? drv->pm->resume(dev) :
++			pci_default_pm_resume(pci_dev);
++	} else {
++		error = pci_legacy_resume(dev);
++	}
++
++	return error;
++}
++
++static int pci_pm_resume_noirq(struct device *dev)
++{
++	struct pci_dev *pci_dev = to_pci_dev(dev);
++	struct pci_driver *drv = pci_dev->driver;
++	int error = 0;
++
++	pci_fixup_device(pci_fixup_resume, pci_dev);
++
++	if (drv && drv->pm) {
++		if (drv->pm->resume_noirq)
++			error = drv->pm->resume_noirq(dev);
++	} else {
++		error = pci_legacy_resume_early(dev);
++	}
++
++	return error;
++}
++
++#else /* !CONFIG_SUSPEND */
++
++#define pci_pm_suspend		NULL
++#define pci_pm_suspend_noirq	NULL
++#define pci_pm_resume		NULL
++#define pci_pm_resume_noirq	NULL
++
++#endif /* !CONFIG_SUSPEND */
++
++#ifdef CONFIG_HIBERNATION
++
++static int pci_pm_freeze(struct device *dev)
++{
++	struct pci_dev *pci_dev = to_pci_dev(dev);
++	struct device_driver *drv = dev->driver;
++	int error = 0;
++
++	if (drv && drv->pm) {
++		if (drv->pm->freeze) {
++			error = drv->pm->freeze(dev);
++			suspend_report_result(drv->pm->freeze, error);
++		} else {
++			pci_default_pm_suspend(pci_dev);
++		}
++	} else {
++		error = pci_legacy_suspend(dev, PMSG_FREEZE);
++	}
++
++	return error;
++}
++
++static int pci_pm_freeze_noirq(struct device *dev)
++{
++	struct pci_dev *pci_dev = to_pci_dev(dev);
++	struct pci_driver *drv = pci_dev->driver;
++	int error = 0;
++
++	if (drv && drv->pm) {
++		if (drv->pm->freeze_noirq) {
++			error = drv->pm->freeze_noirq(dev);
++			suspend_report_result(drv->pm->freeze_noirq, error);
++		}
++	} else {
++		error = pci_legacy_suspend_late(dev, PMSG_FREEZE);
++	}
++
++	return error;
++}
++
++static int pci_pm_thaw(struct device *dev)
++{
++	struct device_driver *drv = dev->driver;
++	int error = 0;
++
++	if (drv && drv->pm) {
++		if (drv->pm->thaw)
++			error =  drv->pm->thaw(dev);
++	} else {
++		error = pci_legacy_resume(dev);
++	}
++
++	return error;
++}
++
++static int pci_pm_thaw_noirq(struct device *dev)
++{
++	struct pci_dev *pci_dev = to_pci_dev(dev);
++	struct pci_driver *drv = pci_dev->driver;
++	int error = 0;
++
++	if (drv && drv->pm) {
++		if (drv->pm->thaw_noirq)
++			error = drv->pm->thaw_noirq(dev);
++	} else {
++		error = pci_legacy_resume_early(dev);
++	}
++
++	return error;
++}
++
++static int pci_pm_poweroff(struct device *dev)
++{
++	struct device_driver *drv = dev->driver;
++	int error = 0;
++
++	if (drv && drv->pm) {
++		if (drv->pm->poweroff) {
++			error = drv->pm->poweroff(dev);
++			suspend_report_result(drv->pm->poweroff, error);
++		}
++	} else {
++		error = pci_legacy_suspend(dev, PMSG_HIBERNATE);
++	}
++
++	return error;
++}
++
++static int pci_pm_poweroff_noirq(struct device *dev)
++{
++	struct pci_dev *pci_dev = to_pci_dev(dev);
++	struct pci_driver *drv = pci_dev->driver;
++	int error = 0;
++
++	if (drv && drv->pm) {
++		if (drv->pm->poweroff_noirq) {
++			error = drv->pm->poweroff_noirq(dev);
++			suspend_report_result(drv->pm->poweroff_noirq, error);
++		}
++	} else {
++		error = pci_legacy_suspend_late(dev, PMSG_HIBERNATE);
++	}
++
++	return error;
++}
++
++static int pci_pm_restore(struct device *dev)
++{
++	struct pci_dev *pci_dev = to_pci_dev(dev);
++	struct device_driver *drv = dev->driver;
++	int error;
++
++	if (drv && drv->pm) {
++		error = drv->pm->restore ? drv->pm->restore(dev) :
++			pci_default_pm_resume(pci_dev);
++	} else {
++		error = pci_legacy_resume(dev);
++	}
++
++	return error;
++}
++
++static int pci_pm_restore_noirq(struct device *dev)
++{
++	struct pci_dev *pci_dev = to_pci_dev(dev);
++	struct pci_driver *drv = pci_dev->driver;
++	int error = 0;
++
++	pci_fixup_device(pci_fixup_resume, pci_dev);
++
++	if (drv && drv->pm) {
++		if (drv->pm->restore_noirq)
++			error = drv->pm->restore_noirq(dev);
++	} else {
++		error = pci_legacy_resume_early(dev);
++	}
++
++	return error;
++}
++
++#else /* !CONFIG_HIBERNATION */
++
++#define pci_pm_freeze		NULL
++#define pci_pm_freeze_noirq	NULL
++#define pci_pm_thaw		NULL
++#define pci_pm_thaw_noirq	NULL
++#define pci_pm_poweroff		NULL
++#define pci_pm_poweroff_noirq	NULL
++#define pci_pm_restore		NULL
++#define pci_pm_restore_noirq	NULL
++
++#endif /* !CONFIG_HIBERNATION */
++
++struct pm_ext_ops pci_pm_ops = {
++	.base = {
++		.prepare = pci_pm_prepare,
++		.complete = pci_pm_complete,
++		.suspend = pci_pm_suspend,
++		.resume = pci_pm_resume,
++		.freeze = pci_pm_freeze,
++		.thaw = pci_pm_thaw,
++		.poweroff = pci_pm_poweroff,
++		.restore = pci_pm_restore,
++	},
++	.suspend_noirq = pci_pm_suspend_noirq,
++	.resume_noirq = pci_pm_resume_noirq,
++	.freeze_noirq = pci_pm_freeze_noirq,
++	.thaw_noirq = pci_pm_thaw_noirq,
++	.poweroff_noirq = pci_pm_poweroff_noirq,
++	.restore_noirq = pci_pm_restore_noirq,
++};
++
++#define PCI_PM_OPS_PTR	&pci_pm_ops
++
++#else /* !CONFIG_PM_SLEEP */
++
++#define PCI_PM_OPS_PTR	NULL
++
++#endif /* !CONFIG_PM_SLEEP */
++
+ /**
+  * __pci_register_driver - register a new pci driver
+  * @drv: the driver structure to register
+@@ -386,6 +682,9 @@ int __pci_register_driver(struct pci_dri
+ 	drv->driver.owner = owner;
+ 	drv->driver.mod_name = mod_name;
+ 
++	if (drv->pm)
++		drv->driver.pm = &drv->pm->base;
++
+ 	spin_lock_init(&drv->dynids.lock);
+ 	INIT_LIST_HEAD(&drv->dynids.list);
+ 
+@@ -511,12 +810,9 @@ struct bus_type pci_bus_type = {
+ 	.uevent		= pci_uevent,
+ 	.probe		= pci_device_probe,
+ 	.remove		= pci_device_remove,
+-	.suspend	= pci_device_suspend,
+-	.suspend_late	= pci_device_suspend_late,
+-	.resume_early	= pci_device_resume_early,
+-	.resume		= pci_device_resume,
+ 	.shutdown	= pci_device_shutdown,
+ 	.dev_attrs	= pci_dev_attrs,
++	.pm		= PCI_PM_OPS_PTR,
+ };
+ 
+ static int __init pci_driver_init(void)
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -389,7 +389,7 @@ struct pci_driver {
+ 	int  (*resume_early) (struct pci_dev *dev);
+ 	int  (*resume) (struct pci_dev *dev);	                /* Device woken up */
+ 	void (*shutdown) (struct pci_dev *dev);
+-
++	struct pm_ext_ops *pm;
+ 	struct pci_error_handlers *err_handler;
+ 	struct device_driver	driver;
+ 	struct pci_dynids dynids;
+
+
+Patches currently in gregkh-2.6 which might be from rjw@sisk.pl are
+
+driver-core/pm-introduce-new-top-level-suspend-and-hibernation-callbacks.patch
+driver-core/pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type.patch
+driver-core/pm-new-suspend-and-hibernation-callbacks-for-platform-bus-type.patch
