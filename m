@@ -1,115 +1,106 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: 2.6.25 pci=noacpi
-Date: Wed, 07 May 2008 12:19:44 +0200
-Message-ID: <1210155584.13141.22.camel@queen.suse.de>
-References: <20080425183807.366134771@ldl.fc.hp.com>
-	 <200805010110.40709.lenb@kernel.org>	<48196CC5.6070704@gmail.com>
-	 <200805011159.38059.lenb@kernel.org>	<481AF995.3000305@gmail.com>
-	 <20080502054729.a91e601c.akpm@linux-foundation.org>
-	 <481B12FE.1050805@gmail.com>
-Reply-To: trenn@suse.de
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 1/2] ACPI PM: Add suspend sequence workaround
+Date: Wed, 7 May 2008 14:21:18 +0200
+Message-ID: <200805071421.19788.rjw@sisk.pl>
+References: <200805062342.42789.rjw@sisk.pl> <200805062344.31117.rjw@sisk.pl> <20080507092931.GD13858@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns1.suse.de ([195.135.220.2]:34760 "EHLO mx1.suse.de"
+Received: from ogre.sisk.pl ([217.79.144.158]:60226 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753143AbYEGKTq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 7 May 2008 06:19:46 -0400
-In-Reply-To: <481B12FE.1050805@gmail.com>
+	id S1752358AbYEGMVP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 7 May 2008 08:21:15 -0400
+In-Reply-To: <20080507092931.GD13858@elf.ucw.cz>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Richard <tuxbox.guru@gmail.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Jaroslav Kysela <perex@perex.cz>
+To: Pavel Machek <pavel@suse.cz>
+Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, pm list <linux-pm@lists.linux-foundation.org>, Greg KH <greg@kroah.com>
 
-On Fri, 2008-05-02 at 14:11 +0100, Richard wrote:
-> Andrew Morton wrote:
-> > On Fri, 02 May 2008 12:23:01 +0100 Richard <tuxbox.guru@gmail.com> wrote:
-> >
-> >   
-> >> Len Brown wrote:
-> >>     
-> >>> On Thursday 01 May 2008, Richard wrote:
-> >>>   
-> >>>       
-> >>>> Len Brown wrote:
-> >>>>     
-> >>>>         
-> >>>>> On Tuesday 29 April 2008, Richard wrote:
-> >>>>>   
-> >>>>>       
-> >>>>>           
-> >>>>>> Hi there,
-> >>>>>>
-> >>>>>> Now I am at a loss.. I cant get any logs from netconsole. With ACPI
-> >>>>>> enabled it drops dead just after the kernel hands control to Init. When
-> >>>>>> I reboot with acpi disabled there is no trace of the previous boot in
-> >>>>>> /var/log/message or kernel logs.
-> >>>>>>
-> >>>>>> The network card I have is a Tigon3 and its not initialised before the
-> >>>>>> system dies... or so it looks (altho I cant seem to get any netconsole
-> >>>>>> working - I suspect pebkac)
-> >>>>>>
-> >>>>>> I have tried to find an option where the kernel boot is logged
-> >>>>>> explicitly to disk, but I cant seem to find the option. There is so much
-> >>>>>> chaff I cant seem to get my brain to find the REAL options list thats up
-> >>>>>> to date.
-> >>>>>>
-> >>>>>> Any pointers are appreciated
-> >>>>>>     
-> >>>>>>         
-> >>>>>>             
-> >>>>> go fishing with this bait:
-> >>>>>
-> >>>>> idle=poll
-> >>>>> acpi=noirq
-> >>>>>
-> >>>>> -Len
-> >>>>>
-> >>>>>   
-> >>>>>       
-> >>>>>           
-> >>>> Thanks :-) With help from Thomas (and his team) , noapictimer seems to
-> >>>> have fixed the symptom.. now its to hunt for the cure :-)
-> >>>>     
-> >>>>         
-> >>> if the problem is the apic timer stopping during C-states,
-> >>> then you should find that idle=poll will also work around the problem.
-> >>> If idle=poll does not work around it but noapictimer does, then
-> >>> the problem is the apic timer when the system is non-idle.
-> >>>
-> >>> -Len
-> >>>
-> >>>   
-> >>>       
-> >> Hi Len,
-> >>
-> >> thanks - the idle=poll works to fix the problem.
-> >>     
-> >
-> > Well, that's hardly a "fix".  The power consumption will be very high.
-> >
-> >   
-> Hehehe, its a start. A booting kernel is definitely a good start (even 
-> one what drinks battery). I have some avenues in the source to 
-> investigate, but being a ACPI n00bie its trying to get my head around 
-> the mass of code thats a daunting task.
+On Wednesday, 7 of May 2008, Pavel Machek wrote:
+> Hi!
+> > ---
+> >  Documentation/kernel-parameters.txt |    5 
+> >  drivers/acpi/sleep/main.c           |  301 +++++++++++++++++++++---------------
+> >  drivers/base/power/main.c           |   15 +
+> >  include/linux/pm.h                  |    2 
+> >  4 files changed, 201 insertions(+), 122 deletions(-)
+> > 
+> > Index: linux-2.6/Documentation/kernel-parameters.txt
+> > ===================================================================
+> > --- linux-2.6.orig/Documentation/kernel-parameters.txt
+> > +++ linux-2.6/Documentation/kernel-parameters.txt
+> > @@ -170,6 +170,11 @@ and is between 256 and 4096 characters. 
+> >  	acpi_irq_isa=	[HW,ACPI] If irq_balance, mark listed IRQs used by ISA
+> >  			Format: <irq>,<irq>...
+> >  
+> > +       acpi_old_suspend_ordering [HW,ACPI]
+> > +                       Enforce the ACPI 1.0 ordering of the _PTS control
+> > +                       method wrt putting devices into low power states
+> > +                       default: ACPI 2.0 ordering of _PTS
+> > +
+> 
+> Space vs. tabs issue here, not too important...
+> 
+> > +#ifdef CONFIG_PM_SLEEP
+> > +static u32 acpi_target_sleep_state = ACPI_STATE_S0;
+> > +
+> > +static int init_8259A_after_S1;
+> 
+> 8259A after S1 init is workaround for bug in toshiba 4030cdt. We can
+> probably remove it now.
+> 
+> > +#ifdef CONFIG_X86
+> > +	if (acpi_state == ACPI_STATE_S1 && init_8259A_after_S1) {
+> > +		printk("Broken toshiba laptop -> kicking interrupts\n");
+> > +		init_8259A(0);
+> > +	}
+> > +#endif
+> 
+> This can die. I believe I've removed it already, but apparently not.
 
-Richard, could you try processor.max_cstate=2 (or even 1), pls (without
-noapictimer).
-Or you can double check whether you have cstates at all first(when
-booting with noapictimer):
-cat /proc/acpi/processor/*/power
+Yes, but I'm going to add some analogous code for machines that are known to
+need the "old" suspend ordering, so I've left that as a template. ;-)
+ 
+> > +/*
+> > + * The following callbacks are used if the pre-ACPI 2.0 suspend ordering has
+> > + * been requested.
+> > + */
+> > +static struct platform_hibernation_ops acpi_hibernation_ops_old = {
+> > +	.begin = acpi_hibernation_begin_old,
+> > +	.end = acpi_pm_end,
+> > +	.pre_snapshot = acpi_pm_disable_gpes,
+> > +	.finish = acpi_pm_finish,
+> > +	.prepare = acpi_pm_disable_gpes,
+> >  	.enter = acpi_hibernation_enter,
+> >  	.leave = acpi_hibernation_leave,
+> > -	.pre_restore = acpi_hibernation_pre_restore,
+> > -	.restore_cleanup = acpi_hibernation_restore_cleanup,
+> > +	.pre_restore = acpi_pm_disable_gpes,
+> > +	.restore_cleanup = acpi_pm_enable_gpes,
+> >  };
+> > -#endif				/* CONFIG_HIBERNATION */
+> > +#endif /* CONFIG_HIBERNATION */
+> 
+> ...
+> 
+> >  /*
+> > + * Some platforms (most importantly ACPI) may need to be prepared for
+> > + * resuming devices in case of a failure to suspend them.  They should set
+> > + * this pointer to the routine that will always be called just prior to resuming
+> > + * devices.
+> > + */
+> > +void (*platform_pm_recover)(void);
+> 
+> Should this be moved to acpi_suspend/hibernation ops? We already have
+> nice structures...
 
-Vendors often invalidate deeper sleep states with an invalid latency.
-Maybe this has been forgotten here, Windows does not use deeper C-state
-or it works there for some reason.
-If this works for you, please send dmidecode output.
-IMO we should then blacklist this machine in
-drivers/acpi/processor_idle.c to not use the offending sleep state.
-There already is a blacklist.
+The catch here is that if device_suspend() fails, it doesn't return to the
+caller, but invokes device_resume() directly.  While that could be changed, I'm
+not sure if the final result would be much nicer (this is a workaround hack
+this way or another).
 
 Thanks,
-
-   Thomas
-
+Rafael
