@@ -1,41 +1,49 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 1/2] ACPI PM: Add suspend sequence workaround
-Date: Wed, 7 May 2008 00:09:52 +0200
-Message-ID: <200805070009.53120.rjw@sisk.pl>
-References: <200805062342.42789.rjw@sisk.pl> <200805062344.31117.rjw@sisk.pl> <200805062257.55554.carlos@strangeworlds.co.uk>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: Re: [PATCH] bay: Exit if notify handler cannot be installed
+Date: Wed, 07 May 2008 09:03:41 +0800
+Message-ID: <1210122221.27316.0.camel@sli10-desk.sh.intel.com>
+References: <20080505202508.GA3690@homac> <20080506091522.GA4378@homac>
+	 <1210065811.12668.1.camel@sli10-desk.sh.intel.com>
+	 <20080506093315.GD4378@homac>  <20080506093516.GE4378@homac>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:56615 "EHLO ogre.sisk.pl"
+Received: from mga11.intel.com ([192.55.52.93]:20898 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933179AbYEFWLi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 6 May 2008 18:11:38 -0400
-In-Reply-To: <200805062257.55554.carlos@strangeworlds.co.uk>
-Content-Disposition: inline
+	id S1753671AbYEGA7w (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 6 May 2008 20:59:52 -0400
+In-Reply-To: <20080506093516.GE4378@homac>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>, Greg KH <greg@kroah.com>
+To: Holger Macht <hmacht@suse.de>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Accardi, Kristen C" <kristen.c.accardi@intel.com>
 
-On Tuesday, 6 of May 2008, Carlos Corbacho wrote:
-> On Tuesday 06 May 2008 22:44:30 Rafael J. Wysocki wrote:
-> > From: Rafael J. Wysocki <rjw@sisk.pl>
-> >
-> > There are some systems out there that don't work correctly with
-> > our current suspend/hibernation code ordering.  Provide a workaround
-> > for these systems allowing them to pass the
-> > 'acpi_old_suspend_ordering' command line parameter to the kernel that
-> > will make it use the pre-ACPI 2.0 suspend code ordering.
+On Tue, 2008-05-06 at 11:35 +0200, Holger Macht wrote:
+> On Di 06. Mai - 11:33:16, Holger Macht wrote:
+> > On Di 06. Mai - 17:23:31, Shaohua Li wrote:
+> > > On Tue, 2008-05-06 at 17:15 +0800, Holger Macht wrote:
+> > > > On Mo 05. Mai - 22:25:08, Holger Macht wrote:
+> > > > > If acpi_install_notify_handler() for a bay device fails, the bay
+> > > > driver is
+> > > > > superfluous. Most likely, another driver (like libata) is already
+> > > > caring
+> > > > > about this device anyway. Furthermore,
+> > > > > register_hotplug_dock_device(acpi_handle) from the dock driver must
+> > > > not be
+> > > > > called twice with the same handler. So clean up and exit.
+> > > > 
+> > > > The patch needs some more work. I'll send an updated one as soon as
+> > > > ready.
+> > > The bay driver is duplicated with libata, I thought we should delete it.
+> > > See bug http://bugzilla.kernel.org/show_bug.cgi?id=9526
+> > 
+> > Yes, I know, but couldn't it be helpful on systems not using libata?
 > 
-> Can we tack on a set of DMI matches to this somewhere to automatically apply 
-> this to the systems we know so far that need the old ordering?
-
-Yes, that will be the next step.
-
-I think the command line argument may be useful anyway for checking if given
-system is affected.
+> Also, libata has to be patched to execute ACPI _EJ0 (not a huge issue, I
+> know) or calling bay's eject_removable drive method.
+I have a patch in above bugzilla to handle it.
 
 Thanks,
-Rafael
+Shaohua
+
