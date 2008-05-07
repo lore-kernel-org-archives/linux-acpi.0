@@ -1,89 +1,115 @@
-From: Pavel Machek <pavel@suse.cz>
-Subject: Re: [PATCH 2/2] PCI PM: Introduce pci_preferred_state
-Date: Wed, 7 May 2008 11:33:09 +0200
-Message-ID: <20080507093309.GE13858@elf.ucw.cz>
-References: <200805062342.42789.rjw@sisk.pl> <200805062349.18683.rjw@sisk.pl>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: 2.6.25 pci=noacpi
+Date: Wed, 07 May 2008 12:19:44 +0200
+Message-ID: <1210155584.13141.22.camel@queen.suse.de>
+References: <20080425183807.366134771@ldl.fc.hp.com>
+	 <200805010110.40709.lenb@kernel.org>	<48196CC5.6070704@gmail.com>
+	 <200805011159.38059.lenb@kernel.org>	<481AF995.3000305@gmail.com>
+	 <20080502054729.a91e601c.akpm@linux-foundation.org>
+	 <481B12FE.1050805@gmail.com>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.31.123]:55095 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751424AbYEGJc1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 May 2008 05:32:27 -0400
-Content-Disposition: inline
-In-Reply-To: <200805062349.18683.rjw@sisk.pl>
+Received: from ns1.suse.de ([195.135.220.2]:34760 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753143AbYEGKTq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 7 May 2008 06:19:46 -0400
+In-Reply-To: <481B12FE.1050805@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, pm list <linux-pm@lists.linux-foundation.org>, Greg KH <greg@kroah.com>
+To: Richard <tuxbox.guru@gmail.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Jaroslav Kysela <perex@perex.cz>
 
-Hi!
+On Fri, 2008-05-02 at 14:11 +0100, Richard wrote:
+> Andrew Morton wrote:
+> > On Fri, 02 May 2008 12:23:01 +0100 Richard <tuxbox.guru@gmail.com> wrote:
+> >
+> >   
+> >> Len Brown wrote:
+> >>     
+> >>> On Thursday 01 May 2008, Richard wrote:
+> >>>   
+> >>>       
+> >>>> Len Brown wrote:
+> >>>>     
+> >>>>         
+> >>>>> On Tuesday 29 April 2008, Richard wrote:
+> >>>>>   
+> >>>>>       
+> >>>>>           
+> >>>>>> Hi there,
+> >>>>>>
+> >>>>>> Now I am at a loss.. I cant get any logs from netconsole. With ACPI
+> >>>>>> enabled it drops dead just after the kernel hands control to Init. When
+> >>>>>> I reboot with acpi disabled there is no trace of the previous boot in
+> >>>>>> /var/log/message or kernel logs.
+> >>>>>>
+> >>>>>> The network card I have is a Tigon3 and its not initialised before the
+> >>>>>> system dies... or so it looks (altho I cant seem to get any netconsole
+> >>>>>> working - I suspect pebkac)
+> >>>>>>
+> >>>>>> I have tried to find an option where the kernel boot is logged
+> >>>>>> explicitly to disk, but I cant seem to find the option. There is so much
+> >>>>>> chaff I cant seem to get my brain to find the REAL options list thats up
+> >>>>>> to date.
+> >>>>>>
+> >>>>>> Any pointers are appreciated
+> >>>>>>     
+> >>>>>>         
+> >>>>>>             
+> >>>>> go fishing with this bait:
+> >>>>>
+> >>>>> idle=poll
+> >>>>> acpi=noirq
+> >>>>>
+> >>>>> -Len
+> >>>>>
+> >>>>>   
+> >>>>>       
+> >>>>>           
+> >>>> Thanks :-) With help from Thomas (and his team) , noapictimer seems to
+> >>>> have fixed the symptom.. now its to hunt for the cure :-)
+> >>>>     
+> >>>>         
+> >>> if the problem is the apic timer stopping during C-states,
+> >>> then you should find that idle=poll will also work around the problem.
+> >>> If idle=poll does not work around it but noapictimer does, then
+> >>> the problem is the apic timer when the system is non-idle.
+> >>>
+> >>> -Len
+> >>>
+> >>>   
+> >>>       
+> >> Hi Len,
+> >>
+> >> thanks - the idle=poll works to fix the problem.
+> >>     
+> >
+> > Well, that's hardly a "fix".  The power consumption will be very high.
+> >
+> >   
+> Hehehe, its a start. A booting kernel is definitely a good start (even 
+> one what drinks battery). I have some avenues in the source to 
+> investigate, but being a ACPI n00bie its trying to get my head around 
+> the mass of code thats a daunting task.
 
-> From: Rafael J. Wysocki <rjw@sisk.pl>
-> 
-> The new suspend and hibernation callbacks introduced with
-> 'struct pm_ops' and 'struct pm_ext_ops' do not take a
-> pm_message_t argument, so the drivers using them will not be able
-> to use pci_choose_state() in its present form.  For this reason,
-> introduce the new function pci_preferred_state() playing the role
-> of pci_choose_state(), but taking only a pointer to the device
-> object.
-> 
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> ---
->  drivers/pci/pci.c   |   33 ++++++++++++++++++++++++++++++++-
->  include/linux/pci.h |    1 +
->  include/linux/pm.h  |   10 ++++++++++
->  3 files changed, 43 insertions(+), 1 deletion(-)
-> 
-> Index: linux-2.6/drivers/pci/pci.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/pci/pci.c
-> +++ linux-2.6/drivers/pci/pci.c
-> @@ -509,7 +509,38 @@ pci_set_power_state(struct pci_dev *dev,
->  }
->  
->  pci_power_t (*platform_pci_choose_state)(struct pci_dev *dev);
-> - 
-> +
-> +/**
-> + * pci_preferred_state - Choose the preferred power state of a PCI device
-> + * @dev: PCI device to be put into the low power state
-> + * @sp: Information aboutabout what the driver would prefer to do with
-> + *	the device if there were no platform-implemeted policy.
-> + *
-> + * Returns PCI power state suitable for given device and given suspend policy.
-> + * The policy, however, is only used if platform_pci_choose_state() fails or is
-> + * not present.  Otherwise, it is assumed that platform_pci_choose_state()
-> + * implements the right policy.
-> + */
-> +
-> +pci_power_t pci_preferred_state(struct pci_dev *dev, enum suspend_policy sp)
-> +{
-> +	pci_power_t ret;
-> +
-> +	if (!pci_find_capability(dev, PCI_CAP_ID_PM))
-> +		return PCI_D0;
-> +
-> +	ret = (sp == SP_TURN_OFF) ? PCI_D3hot : PCI_D0;
-> +	if (platform_pci_choose_state) {
-> +		pci_power_t platform_ret = platform_pci_choose_state(dev);
-> +
-> +		if (platform_ret != PCI_POWER_ERROR)
-> +			ret = platform_ret;
-> +	}
-> +	return ret;
-> +}
-> +
-> +EXPORT_SYMBOL(pci_preferred_state);
+Richard, could you try processor.max_cstate=2 (or even 1), pls (without
+noapictimer).
+Or you can double check whether you have cstates at all first(when
+booting with noapictimer):
+cat /proc/acpi/processor/*/power
 
-I don't get it. How is driver supposed to use this? How does the
-driver decide between SP_TURN_OFF and SP_TURN_ON?
+Vendors often invalidate deeper sleep states with an invalid latency.
+Maybe this has been forgotten here, Windows does not use deeper C-state
+or it works there for some reason.
+If this works for you, please send dmidecode output.
+IMO we should then blacklist this machine in
+drivers/acpi/processor_idle.c to not use the offending sleep state.
+There already is a blacklist.
 
-...and it seems to be clearer to just inline this in the driver... or
-pass  PCI_D3hot/PCI_D0 to it, instead of inventing yet another
-define...
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Thanks,
+
+   Thomas
+
