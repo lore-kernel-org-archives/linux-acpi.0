@@ -1,36 +1,34 @@
 From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: [linux-pm] [PATCH 2/2] PCI PM: Introduce pci_preferred_state
-Date: Fri, 9 May 2008 10:37:23 -0700
-Message-ID: <200805091037.23767.jbarnes@virtuousgeek.org>
-References: <Pine.LNX.4.44L0.0805071139020.3701-100000@iolanthe.rowland.org> <200805091024.53027.jbarnes@virtuousgeek.org> <200805091934.41341.rjw@sisk.pl>
+Subject: Re: [patch] pci-acpi: handle multiple _OSC
+Date: Fri, 9 May 2008 10:40:36 -0700
+Message-ID: <200805091040.37139.jbarnes@virtuousgeek.org>
+References: <1210238510.23649.2.camel@sli10-desk.sh.intel.com> <1210297604.8716.5.camel@sli10-desk.sh.intel.com> <482400B3.4020808@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outbound-mail-111.bluehost.com ([69.89.18.7]:36773 "HELO
-	outbound-mail-111.bluehost.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752097AbYEIRhh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 May 2008 13:37:37 -0400
-In-Reply-To: <200805091934.41341.rjw@sisk.pl>
+Received: from outbound-mail-152.bluehost.com ([67.222.39.32]:40092 "HELO
+	outbound-mail-152.bluehost.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754125AbYEIRrX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 May 2008 13:47:23 -0400
+In-Reply-To: <482400B3.4020808@jp.fujitsu.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Pavel Machek <pavel@suse.cz>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Cc: Shaohua Li <shaohua.li@intel.com>, linux-pci <linux-pci@atrey.karlin.mff.cuni.cz>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Friday, May 09, 2008 10:34 am Rafael J. Wysocki wrote:
-> > So in this case pci_choose_state would either change state or leave it
-> > untouched if it didn't have a better idea about things.  But now that I
-> > look at it I'm not sure it's an improvement. :)
->
-> Well, in principle we could go farther and introduce a wrapper around
-> pci_set_power_state() that will call platform_pci_choose_state() to obtain
-> the new state or use the driver-provided one if that fails.
+On Friday, May 09, 2008 12:43 am Kenji Kaneshige wrote:
+> -static u32 ctrlset_buf[3] = {0, 0, 0};
+> -static u32 global_ctrlsets = 0;
+> +#define MAX_ACPI_OSC 30 /* Should be enough */
+> +static struct acpi_osc_data {
+> +	acpi_handle handle;
+> +	u32 ctrlset_buf[3];
+> +	u32 global_ctrlsets;
+> +} acpi_osc_data_array[MAX_ACPI_OSC];
 
-Hm, yeah that sounds pretty reasonable actually.  Especially given that so 
-many drivers just do:
-  pci_set_power_state(pdev, pci_choose_state(pdev, state));
-anyway...
+Could this just be a linked list of OSC objects instead?
 
 Jesse
