@@ -1,149 +1,84 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH 1/3] ACPICA: Add acpi_gbl_force_rsdt variable
-Date: Fri, 9 May 2008 10:28:31 -0700
-Message-ID: <9D39833986E69849A2A8E74C1078B6B34FACBB@orsmsx415.amr.corp.intel.com>
-References: <1210259402.6710.10.camel@hammer1.suse.de> <9D39833986E69849A2A8E74C1078B6B34C305A@orsmsx415.amr.corp.intel.com> <1210323010.29724.7.camel@queen.suse.de>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] [PATCH 2/2] PCI PM: Introduce pci_preferred_state
+Date: Fri, 9 May 2008 19:34:40 +0200
+Message-ID: <200805091934.41341.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0805071139020.3701-100000@iolanthe.rowland.org> <200805091913.40197.rjw@sisk.pl> <200805091024.53027.jbarnes@virtuousgeek.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:35416 "EHLO mga09.intel.com"
+Received: from ogre.sisk.pl ([217.79.144.158]:51250 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757683AbYEIR27 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 May 2008 13:28:59 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <1210323010.29724.7.camel@queen.suse.de>
+	id S1753483AbYEIRe7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 9 May 2008 13:34:59 -0400
+In-Reply-To: <200805091024.53027.jbarnes@virtuousgeek.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: trenn@suse.de
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Zhao, Yakui" <yakui.zhao@intel.com>, me@markdoughty.co.uk, "Starikovskiy, Alexey Y" <astarikovskiy@suse.de>
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Pavel Machek <pavel@suse.cz>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-Sounds like there are still a lot of "unknowns", namely
+On Friday, 9 of May 2008, Jesse Barnes wrote:
+> On Friday, May 09, 2008 10:13 am Rafael J. Wysocki wrote:
+> > > So why not make platform_pci_choose_state do:
+> > > + pci_power_t noacpi_pci_choose_state(struct pci_dev *dev, pci_message_t
+> > > state)
+> > > + {
+> > > +       if (!pci_find_capability(dev, PCI_CAP_ID_PM))
+> > > +               return state;
+> > > + }
+> > >
+> > > instead?  Then in the PCI core we would assign either
+> > > platform_pci_choose_state to acpi_pci_choose_state or
+> > > noacpi_pci_choose_state
+> >
+> > Good idea.
+> >
+> > > (though that's a bad name).
+> >
+> > Does generic_pci_choose_state() sound better?
+> 
+> Yeah, that's better.
+> 
+> > > But really, since drivers should probably know what power state to put
+> > > their devices in for suspend & hibernate, maybe on non-ACPI systems the
+> > > function should just return an error and the driver can choose...
+> >
+> > That's one possibility too, but in that case many drivers will do
+> >
+> > state = pci_preferred_state(dev);
+> > if (state == PCI_POWER_ERROR)
+> > 	state = something;
+> >
+> > It's just shorter to write
+> >
+> > state = pci_preferred_state(dev, something);
+> 
+> But really that's the idea, since if the core doesn't know what state your 
+> device should be in (and in many non-ACPI cases I'd argue that to be true) 
+> your driver should be picking something sensible.  After all, states other 
+> than D0 and D3 are really device dependent, right?
+> 
+> One way to avoid some ugliness like you show above would be:
+> 
+> device_suspend(...)
+> {
+>   ...
+>   state = PCI_D3hot;
+>   pci_choose_state(dev, pm_state, &state);
+>   pci_set_power_state(dev, state);
+>   ...
+> }
+> 
+> So in this case pci_choose_state would either change state or leave it 
+> untouched if it didn't have a better idea about things.  But now that I look 
+> at it I'm not sure it's an improvement. :)
 
-1) what does XP do?
-2) what does Vista do?
-3) is there actually a bug in ACPICA?
+Well, in principle we could go farther and introduce a wrapper around
+pci_set_power_state() that will call platform_pci_choose_state() to obtain the
+new state or use the driver-provided one if that fails.
 
-I'm not comfortable just slapping in another global when so many
-questions remain unanswered.
+What do you think?
 
-Bob
-
-
->-----Original Message-----
->From: Thomas Renninger [mailto:trenn@suse.de]
->Sent: Friday, May 09, 2008 1:50 AM
->To: Moore, Robert
->Cc: linux-acpi; Len Brown; Zhao, Yakui; me@markdoughty.co.uk;
-Starikovskiy,
->Alexey Y
->Subject: RE: [PATCH 1/3] ACPICA: Add acpi_gbl_force_rsdt variable
->
->On Thu, 2008-05-08 at 09:32 -0700, Moore, Robert wrote:
->> Has there any investigation into how windows handles this?
->It's too late now, anyway.
->This is about 3 years old machines, we do not want to change the
->behavior XSDT vs RSDT in general and produce some regressions as a
->side-effect, but just fix up some known broken machines.
->
->I expect that XP did violate a bit the spec and tended to prefer the
->RSDT. I don't know how to check all this, but I expect that Vista is
->preferring the XSDT again.
->Or there always were bugs in acpica setting up the FADT via XSDT
-causing
->this.
->
->Providing OS a knob at this place shouldn't be a big deal?
->
->   Thomas
->
->> >-----Original Message-----
->> >From: Thomas Renninger [mailto:trenn@suse.de]
->> >Sent: Thursday, May 08, 2008 8:10 AM
->> >To: linux-acpi; Len Brown
->> >Cc: Zhao, Yakui; me@markdoughty.co.uk; Moore, Robert; Starikovskiy,
->> Alexey
->> >Y
->> >Subject: [PATCH 1/3] ACPICA: Add acpi_gbl_force_rsdt variable
->> >
->> >I expect separate patches should now be patched against
->> >acpica when possible?
->> >
->> >Does this also make sense with patches which have dependencies
->> >to other patches for the Linux kernel? In this case there is not a
->> >"does not compile" dependency, but at least they belong together.
->> >
->> >I wonder what works out for acpica and Linux kernel maintainers
-best,
->> >please advise.
->> >
->> >
->> >----
->> >
->> >ACPICA: Add acpi_gbl_force_rsdt variable
->> >
->> >Signed-off-by: Thomas Renninger <trenn@suse.de>
->> >Tested-by: Mark Doughty <me@markdoughty.co.uk>
->> >
->> >
->> >---
->> > drivers/acpi/tables/tbutils.c     |    3 ++-
->> > drivers/acpi/utilities/utglobal.c |    1 +
->> > include/acpi/acglobal.h           |    1 +
->> > 3 files changed, 4 insertions(+), 1 deletion(-)
->> >
->> >Index: linux-acpi-
->> >2.6_video_native_vs_vendor/drivers/acpi/utilities/utglobal.c
->> >===================================================================
->> >--- linux-acpi-
->> >2.6_video_native_vs_vendor.orig/drivers/acpi/utilities/utglobal.c
->> >+++
->>
-linux-acpi-2.6_video_native_vs_vendor/drivers/acpi/utilities/utglobal.c
->> >@@ -76,6 +76,7 @@ u8 acpi_gbl_method_executing = FALSE;
->> > /* System flags */
->> >
->> > u32 acpi_gbl_startup_flags = 0;
->> >+int acpi_gbl_force_rsdt = 0;
->> >
->> > /* System starts uninitialized */
->> >
->> >Index: linux-acpi-2.6_video_native_vs_vendor/include/acpi/acglobal.h
->> >===================================================================
->> >---
-linux-acpi-2.6_video_native_vs_vendor.orig/include/acpi/acglobal.h
->> >+++ linux-acpi-2.6_video_native_vs_vendor/include/acpi/acglobal.h
->> >@@ -246,6 +246,7 @@ ACPI_EXTERN u8 acpi_gbl_system_awake_and
->> >
->> > extern u8 acpi_gbl_shutdown;
->> > extern u32 acpi_gbl_startup_flags;
->> >+extern int acpi_gbl_force_rsdt;
->> > extern const char *acpi_gbl_sleep_state_names[ACPI_S_STATE_COUNT];
->> > extern const char *acpi_gbl_highest_dstate_names[4];
->> > extern const struct acpi_opcode_info
->> >acpi_gbl_aml_op_info[AML_NUM_OPCODES];
->> >Index:
->> linux-acpi-2.6_video_native_vs_vendor/drivers/acpi/tables/tbutils.c
->> >===================================================================
->> >--- linux-acpi-
->> >2.6_video_native_vs_vendor.orig/drivers/acpi/tables/tbutils.c
->> >+++
-linux-acpi-2.6_video_native_vs_vendor/drivers/acpi/tables/tbutils.c
->> >@@ -421,7 +421,8 @@ acpi_tb_parse_root_table(acpi_physical_a
->> >
->> > 	/* Differentiate between RSDT and XSDT root tables */
->> >
->> >-	if (rsdp->revision > 1 && rsdp->xsdt_physical_address) {
->> >+	if (rsdp->revision > 1 && rsdp->xsdt_physical_address
->> >+	    && !acpi_gbl_force_rsdt) {
->> > 		/*
->> > 		 * Root table is an XSDT (64-bit physical addresses). We
->> must
->> >use the
->> > 		 * XSDT if the revision is > 1 and the XSDT pointer is
->> present,
->> >as per
->> >
->>
-
+Rafael
