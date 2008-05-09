@@ -1,34 +1,79 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: [patch] pci-acpi: handle multiple _OSC
-Date: Fri, 9 May 2008 10:40:36 -0700
-Message-ID: <200805091040.37139.jbarnes@virtuousgeek.org>
-References: <1210238510.23649.2.camel@sli10-desk.sh.intel.com> <1210297604.8716.5.camel@sli10-desk.sh.intel.com> <482400B3.4020808@jp.fujitsu.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [patch 05/10] acpi: use __init* on everythingintables/tbfadt.c
+Date: Fri, 9 May 2008 13:04:50 -0700
+Message-ID: <9D39833986E69849A2A8E74C1078B6B34FAE8D@orsmsx415.amr.corp.intel.com>
+References: <481B7CDA020000780004B921@vpn.id2.novell.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outbound-mail-152.bluehost.com ([67.222.39.32]:40092 "HELO
-	outbound-mail-152.bluehost.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754125AbYEIRrX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 May 2008 13:47:23 -0400
-In-Reply-To: <482400B3.4020808@jp.fujitsu.com>
-Content-Disposition: inline
+Received: from mga11.intel.com ([192.55.52.93]:52235 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752284AbYEIUEy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 May 2008 16:04:54 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <481B7CDA020000780004B921@vpn.id2.novell.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Cc: Shaohua Li <shaohua.li@intel.com>, linux-pci <linux-pci@atrey.karlin.mff.cuni.cz>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: Jan Beulich <jbeulich@novell.com>, trenn@suse.de
+Cc: lenb@kernel.org, akpm@linux-foundation.org, linux-acpi@vger.kernel.org
 
-On Friday, May 09, 2008 12:43 am Kenji Kaneshige wrote:
-> -static u32 ctrlset_buf[3] = {0, 0, 0};
-> -static u32 global_ctrlsets = 0;
-> +#define MAX_ACPI_OSC 30 /* Should be enough */
-> +static struct acpi_osc_data {
-> +	acpi_handle handle;
-> +	u32 ctrlset_buf[3];
-> +	u32 global_ctrlsets;
-> +} acpi_osc_data_array[MAX_ACPI_OSC];
+Jan,
 
-Could this just be a linked list of OSC objects instead?
+I've integrated your const and macro changes into the acpica source.
 
-Jesse
+Thanks for your help,
+Bob
+
+
+>-----Original Message-----
+>From: Jan Beulich [mailto:jbeulich@novell.com]
+>Sent: Friday, May 02, 2008 12:43 PM
+>To: trenn@suse.de
+>Cc: Moore, Robert; lenb@kernel.org; akpm@linux-foundation.org; linux-
+>acpi@vger.kernel.org
+>Subject: Re: [patch 05/10] acpi: use __init* on
+everythingintables/tbfadt.c
+>
+>>>> Thomas Renninger <trenn@suse.de> 05/01/08 8:55 PM >>>
+>>Andrew, IMO you can drop this and the const cleanups from -mm tree.
+>>
+>>Jan, nearly all code in:
+>>drivers/acpi/*/*.[hc]
+>>is part of ACPICA. This currently still is (may change) an Intel
+>>internal repository which gets synced to several OS implementations,
+>>also Linux. __init does not exist there (yet).
+>
+>I'm fairly sure I saw __init used elsewhere in ACPI CA code, so I
+>didn't think adding mode stuff like this would cause problems (as
+>long as the changes were correct of course).
+>
+>>Also the const changes may be a bit of a pain -> this is what Robert
+>>meant with as long as it won't end in a chain of const cleanups :)
+>
+>Of course they're a pain now. But see below.
+>
+>>The whole code gets style cleaned up through Lindent and manually to
+>>half way fit to the Linux kernel style when things get merged.
+>>
+>>Currently Robert has to readjust this to ACPICA coding style by hand
+>>and merge it into the internal Intel repository. Len has to pick it up
+>>somewhat later and merge it back to the Linux kernel...
+>>
+>>Therefore I expect for cleanup patches (this one is on the edge, but I
+>>could understand Intel if they hold it off) the best is to wait until
+>>Intel publishs ACPICA as CVS or whatever repository on their
+>>lesswatts.org site.
+>
+>That's brave to say - I've been seeing this kind of significant cleanup
+>potential about seven years ago (when I wasn't dealing with ACPI CA
+>on Linux, yet), so I have to admit I find it a little odd (at least) to
+>defer
+>this even further - the code should have been written const-correct
+>and __init-ready (iirc Windows also has a concept of init code) from
+>the beginning in my opinion. ANyway, the purpose of both patches
+>was to try and get this cleanup started in Linux or at least turn
+>attention to this on the ACPI CA side.
+>
+>Jan
