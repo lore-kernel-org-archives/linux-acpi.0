@@ -1,130 +1,135 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH 2/3] Introduce acpi_root_table=rsdt boot param and dmi
-	list to force rsdt
-Date: Fri, 09 May 2008 17:20:44 +0200
-Message-ID: <1210346444.29724.49.camel@queen.suse.de>
-References: <1210259416.6710.13.camel@hammer1.suse.de>
-Reply-To: trenn@suse.de
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 1/4] ACPI Hibernation: Use ACPI hardware signature
+Date: Fri, 9 May 2008 17:27:39 +0200
+Message-ID: <200805091727.40905.rjw@sisk.pl>
+References: <200805062331.39454.rjw@sisk.pl> <200805071428.02613.rjw@sisk.pl> <20080507210438.GD18516@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:43937 "EHLO mx2.suse.de"
+Received: from ogre.sisk.pl ([217.79.144.158]:50555 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751986AbYEIPUq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 9 May 2008 11:20:46 -0400
-In-Reply-To: <1210259416.6710.13.camel@hammer1.suse.de>
+	id S1751656AbYEIP1u (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 9 May 2008 11:27:50 -0400
+In-Reply-To: <20080507210438.GD18516@elf.ucw.cz>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi <linux-acpi@vger.kernel.org>
-Cc: Len Brown <lenb@kernel.org>, Zhao Yakui <yakui.zhao@intel.com>, me@markdoughty.co.uk, linux-thinkpad <linux-thinkpad@linux-thinkpad.org>
+To: Pavel Machek <pavel@suse.cz>
+Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Johannes Berg <johannes@sipsolutions.net>, Shaohua Li <shaohua.li@intel.com>, David Brownell <david-b@pacbell.net>, Jesse Barnes <jbarnes@virtuousgeek.org>
 
-Updated Patch.
+On Wednesday, 7 of May 2008, Pavel Machek wrote:
+> Hi!
 
-The dmi list was not complete.
-http://bugzilla.kernel.org/show_bug.cgi?id=8246
-states a R51e which also needs to be added.
-IMO the whole [XTR][45]* models which came out at that time should be
-added also, this should be rather safe to do.
+Hi,
 
-This one also adds the known broken R50e and another similar BIOS
-(1RET*) now.
+> > > > +static int __init acpi_s4_nosigcheck(char *str)
+> > > > +{
+> > > > +	nosigcheck = true;
+> > > > +	return 1;
+> > > > +}
+> > > > +__setup("acpi_s4_nosigcheck", acpi_s4_nosigcheck);
+> > > > +
+> > > 
+> > > Needs a patch to Documentation/ , too.
+> > 
+> > Yes, thanks.
+> > 
+> > > > +	/* Check the hardware signature */
+> > > > +	if (facs && s4_hardware_signature != facs->hardware_signature)
+> > > 
+> > > do you need && !nosigcheck here ?
+> > 
+> > No, facs is NULL if !nosigcheck.
+> 
+> Aha, ook. You can add my ACK when you add the Documentation/.
 
-=========
+Corrected patch is appended.
 
-
-Introduce acpi_root_table=rsdt boot param and dmi list to force rsdt
-
-Blacklist R40e, R51e and T40, T40p, T41, T41p, T42, T42p, R50 and R50p
-ThinkPads to use the RSDT instead of the XSDT.
-
-Signed-off-by: Thomas Renninger <trenn@suse.de>
-Tested-by: Mark Doughty <me@markdoughty.co.uk>
-CC: Yakui Zhao <yakui.zhao@intel.com>
-
+Thanks,
+Rafael
 
 ---
- Documentation/kernel-parameters.txt |    5 +++++
- drivers/acpi/tables.c               |   36 ++++++++++++++++++++++++++++++++++++
- 2 files changed, 41 insertions(+)
+From: Shaohua Li <shaohua.li@intel.com>
 
-Index: linux-acpi-2.6_video_native_vs_vendor/drivers/acpi/tables.c
+ACPI defines a hardware signature. BIOS calculates the signature
+according to hardware configure, if hardware changes, the signature
+will change, in this case, S4 resume should fail.
+
+[rjw: The kernel command line switch acpi_s4_nosigcheck is added for
+systems on which this mechanism is broken.]
+
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Acked-by: Pavel Machek <pavel@suse.cz>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ Documentation/kernel-parameters.txt |    5 +++++
+ drivers/acpi/sleep/main.c           |   24 ++++++++++++++++++++++++
+ 2 files changed, 29 insertions(+)
+
+Index: linux-2.6/drivers/acpi/sleep/main.c
 ===================================================================
---- linux-acpi-2.6_video_native_vs_vendor.orig/drivers/acpi/tables.c
-+++ linux-acpi-2.6_video_native_vs_vendor/drivers/acpi/tables.c
-@@ -32,6 +32,7 @@
- #include <linux/errno.h>
- #include <linux/acpi.h>
- #include <linux/bootmem.h>
-+#include <linux/dmi.h>
+--- linux-2.6.orig/drivers/acpi/sleep/main.c
++++ linux-2.6/drivers/acpi/sleep/main.c
+@@ -255,6 +255,17 @@ static struct dmi_system_id __initdata a
+ #endif /* CONFIG_SUSPEND */
  
- #define PREFIX			"ACPI: "
- 
-@@ -282,6 +283,36 @@ static void __init check_multiple_madt(v
- 	return;
+ #ifdef CONFIG_HIBERNATION
++static unsigned long s4_hardware_signature;
++static struct acpi_table_facs *facs;
++static bool nosigcheck;
++
++static int __init acpi_s4_nosigcheck(char *str)
++{
++	nosigcheck = true;
++	return 1;
++}
++__setup("acpi_s4_nosigcheck", acpi_s4_nosigcheck);
++
+ static int acpi_hibernation_begin(void)
+ {
+ 	acpi_target_sleep_state = ACPI_STATE_S4;
+@@ -301,6 +312,12 @@ static void acpi_hibernation_leave(void)
+ 	acpi_enable();
+ 	/* Reprogram control registers and execute _BFS */
+ 	acpi_leave_sleep_state_prep(ACPI_STATE_S4);
++	/* Check the hardware signature */
++	if (facs && s4_hardware_signature != facs->hardware_signature) {
++		printk(KERN_EMERG "ACPI: Hardware changed while hibernated, "
++			"cannot resume!\n");
++		panic("ACPI S4 hardware signature mismatch");
++	}
  }
  
-+static struct dmi_system_id acpi_rsdt_dmi_table[] = {
-+	{
-+	    .ident = "ThinkPad ", /* R40e, broken C-states */
-+	    .matches = {
-+		DMI_MATCH(DMI_BIOS_VENDOR, "IBM"),
-+		DMI_MATCH(DMI_BIOS_VERSION, "1SET")},
-+	},
-+	{
-+	    .ident = "ThinkPad ", /* R50e, slow booting */
-+	    .matches = {
-+		DMI_MATCH(DMI_BIOS_VENDOR, "IBM"),
-+		DMI_MATCH(DMI_BIOS_VERSION, "1WET")},
-+	},
-+	{
-+	    .ident = "ThinkPad ", /* T40, T40p, T41, T41p, T42, T42p
-+				     R50, R50p */
-+	    .matches = {
-+		DMI_MATCH(DMI_BIOS_VENDOR, "IBM"),
-+		DMI_MATCH(DMI_BIOS_VERSION, "1RET")},
-+	},
-+};
-+
-+static int __init acpi_force_rsdt(char *opt)
-+{
-+	if (!strcmp(opt, "rsdt"))
-+		acpi_gbl_force_rsdt = 1;
-+	return 0;
-+}
-+early_param("acpi_root_table", acpi_force_rsdt);
-+
- /*
-  * acpi_table_init()
-  *
-@@ -293,6 +324,11 @@ static void __init check_multiple_madt(v
- 
- int __init acpi_table_init(void)
- {
-+	if (dmi_check_system(acpi_rsdt_dmi_table))
-+		acpi_gbl_force_rsdt = 1;
-+	if (acpi_gbl_force_rsdt)
-+		printk(KERN_INFO "Using RSDT as ACPI root table\n");
-+
- 	acpi_initialize_tables(initial_tables, ACPI_MAX_TABLES, 0);
- 	check_multiple_madt();
- 	return 0;
-Index: linux-acpi-2.6_video_native_vs_vendor/Documentation/kernel-parameters.txt
+ static void acpi_hibernation_finish(void)
+@@ -501,6 +518,13 @@ int __init acpi_sleep_init(void)
+ 		hibernation_set_ops(&acpi_hibernation_ops);
+ 		sleep_states[ACPI_STATE_S4] = 1;
+ 		printk(" S4");
++		if (!nosigcheck) {
++			acpi_get_table_by_index(ACPI_TABLE_INDEX_FACS,
++				(struct acpi_table_header **)&facs);
++			if (facs)
++				s4_hardware_signature =
++					facs->hardware_signature;
++		}
+ 	}
+ #endif
+ 	status = acpi_get_sleep_type_data(ACPI_STATE_S5, &type_a, &type_b);
+Index: linux-2.6/Documentation/kernel-parameters.txt
 ===================================================================
---- linux-acpi-2.6_video_native_vs_vendor.orig/Documentation/kernel-parameters.txt
-+++ linux-acpi-2.6_video_native_vs_vendor/Documentation/kernel-parameters.txt
-@@ -230,6 +230,11 @@ and is between 256 and 4096 characters.
- 			to assume that this machine's pmtimer latches its value
- 			and always returns good values.
+--- linux-2.6.orig/Documentation/kernel-parameters.txt
++++ linux-2.6/Documentation/kernel-parameters.txt
+@@ -152,6 +152,11 @@ and is between 256 and 4096 characters. 
+ 			s3_beep is for debugging; it makes the PC's speaker beep
+ 			as soon as the kernel's real-mode entry point is called.
  
-+	acpi_root_table= [X86,ACPI]
-+			{ rsdt }
-+			rsdt: Take RSDT address for fetching
-+			ACPI tables (instead of XSDT)
++	acpi_s4_nosigcheck [HW,ACPI] S4 hardware signature
++			ACPI will ignore the S4 hardware signature
++			default: The hardware signature is checked during
++			         resume from S4.
 +
- 	agp=		[AGP]
- 			{ off | try_unsupported }
- 			off: disable AGP support
-
-
-
+ 	acpi_sci=	[HW,ACPI] ACPI System Control Interrupt trigger mode
+ 			Format: { level | edge | high | low }
+ 
