@@ -1,79 +1,125 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [patch 05/10] acpi: use __init* on everythingintables/tbfadt.c
-Date: Fri, 9 May 2008 13:04:50 -0700
-Message-ID: <9D39833986E69849A2A8E74C1078B6B34FAE8D@orsmsx415.amr.corp.intel.com>
-References: <481B7CDA020000780004B921@vpn.id2.novell.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] [PATCH 2/2] PCI PM: Introduce pci_preferred_state
+Date: Fri, 9 May 2008 23:44:52 +0200
+Message-ID: <200805092344.53713.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0805071139020.3701-100000@iolanthe.rowland.org> <200805091934.41341.rjw@sisk.pl> <200805091037.23767.jbarnes@virtuousgeek.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:52235 "EHLO mga11.intel.com"
+Received: from ogre.sisk.pl ([217.79.144.158]:52339 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752284AbYEIUEy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 May 2008 16:04:54 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <481B7CDA020000780004B921@vpn.id2.novell.com>
+	id S1755243AbYEIVo7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 9 May 2008 17:44:59 -0400
+In-Reply-To: <200805091037.23767.jbarnes@virtuousgeek.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jan Beulich <jbeulich@novell.com>, trenn@suse.de
-Cc: lenb@kernel.org, akpm@linux-foundation.org, linux-acpi@vger.kernel.org
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Pavel Machek <pavel@suse.cz>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-Jan,
+On Friday, 9 of May 2008, Jesse Barnes wrote:
+> On Friday, May 09, 2008 10:34 am Rafael J. Wysocki wrote:
+> > > So in this case pci_choose_state would either change state or leave it
+> > > untouched if it didn't have a better idea about things.  But now that I
+> > > look at it I'm not sure it's an improvement. :)
+> >
+> > Well, in principle we could go farther and introduce a wrapper around
+> > pci_set_power_state() that will call platform_pci_choose_state() to obtain
+> > the new state or use the driver-provided one if that fails.
+> 
+> Hm, yeah that sounds pretty reasonable actually.  Especially given that so 
+> many drivers just do:
+>   pci_set_power_state(pdev, pci_choose_state(pdev, state));
+> anyway...
 
-I've integrated your const and macro changes into the acpica source.
+Okay, what about this:
 
-Thanks for your help,
-Bob
+---
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
+The new suspend and hibernation callbacks introduced with
+'struct pm_ops' and 'struct pm_ext_ops' do not take a
+pm_message_t argument, so the drivers using them will not be able
+to use pci_choose_state() in its present form.  For this reason,
+introduce a new function, pci_choose_and_set_state(), playing the
+role of pci_choose_state() combined with pci_set_power_state() and
+allowing the driver to put the device into a power state chosen by
+the platform.
 
->-----Original Message-----
->From: Jan Beulich [mailto:jbeulich@novell.com]
->Sent: Friday, May 02, 2008 12:43 PM
->To: trenn@suse.de
->Cc: Moore, Robert; lenb@kernel.org; akpm@linux-foundation.org; linux-
->acpi@vger.kernel.org
->Subject: Re: [patch 05/10] acpi: use __init* on
-everythingintables/tbfadt.c
->
->>>> Thomas Renninger <trenn@suse.de> 05/01/08 8:55 PM >>>
->>Andrew, IMO you can drop this and the const cleanups from -mm tree.
->>
->>Jan, nearly all code in:
->>drivers/acpi/*/*.[hc]
->>is part of ACPICA. This currently still is (may change) an Intel
->>internal repository which gets synced to several OS implementations,
->>also Linux. __init does not exist there (yet).
->
->I'm fairly sure I saw __init used elsewhere in ACPI CA code, so I
->didn't think adding mode stuff like this would cause problems (as
->long as the changes were correct of course).
->
->>Also the const changes may be a bit of a pain -> this is what Robert
->>meant with as long as it won't end in a chain of const cleanups :)
->
->Of course they're a pain now. But see below.
->
->>The whole code gets style cleaned up through Lindent and manually to
->>half way fit to the Linux kernel style when things get merged.
->>
->>Currently Robert has to readjust this to ACPICA coding style by hand
->>and merge it into the internal Intel repository. Len has to pick it up
->>somewhat later and merge it back to the Linux kernel...
->>
->>Therefore I expect for cleanup patches (this one is on the edge, but I
->>could understand Intel if they hold it off) the best is to wait until
->>Intel publishs ACPICA as CVS or whatever repository on their
->>lesswatts.org site.
->
->That's brave to say - I've been seeing this kind of significant cleanup
->potential about seven years ago (when I wasn't dealing with ACPI CA
->on Linux, yet), so I have to admit I find it a little odd (at least) to
->defer
->this even further - the code should have been written const-correct
->and __init-ready (iirc Windows also has a concept of init code) from
->the beginning in my opinion. ANyway, the purpose of both patches
->was to try and get this cleanup started in Linux or at least turn
->attention to this on the ACPI CA side.
->
->Jan
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/pci/pci.c   |   46 +++++++++++++++++++++++++++++++++++++++++++++-
+ include/linux/pci.h |    1 +
+ 2 files changed, 46 insertions(+), 1 deletion(-)
+
+Index: linux-2.6/drivers/pci/pci.c
+===================================================================
+--- linux-2.6.orig/drivers/pci/pci.c
++++ linux-2.6/drivers/pci/pci.c
+@@ -509,7 +509,51 @@ pci_set_power_state(struct pci_dev *dev,
+ }
+ 
+ pci_power_t (*platform_pci_choose_state)(struct pci_dev *dev);
+- 
++
++/**
++ * pci_choose_and_set_state - Choose the power state of a PCI device and put
++ *                            the device into that state.
++ * @dev: PCI device to be put into a low power state
++ * @state: State to put the device into by default
++ *
++ * Use the platform driver to choose the preferred PCI power state of given
++ * device and put the device into that state.  If the target power state of
++ * the device cannot be chosen using the platform driver, the driver-provided
++ * @state is used.
++ *
++ * RETURN VALUE:
++ * -EINVAL if trying to enter a lower state than we're already in.
++ * 0 if we're already in the requested state.
++ * -EIO if device does not support PCI PM.
++ * 0 if we can successfully change the power state.
++ */
++
++int pci_choose_and_set_state(struct pci_dev *dev, pci_power_t state)
++{
++	if (!pci_find_capability(dev, PCI_CAP_ID_PM))
++		return -EIO;
++
++	if (platform_pci_choose_state) {
++		pci_power_t ret = platform_pci_choose_state(dev);
++
++		switch (ret) {
++		case PCI_POWER_ERROR:
++		case PCI_UNKNOWN:
++			break;
++		case PCI_D1:
++		case PCI_D2:
++			if (pci_no_d1d2(dev))
++				break;
++		default:
++			state = ret;
++		}
++	}
++
++	return pci_set_power_state(dev, state);
++}
++
++EXPORT_SYMBOL(pci_choose_and_set_state);
++
+ /**
+  * pci_choose_state - Choose the power state of a PCI device
+  * @dev: PCI device to be suspended
+Index: linux-2.6/include/linux/pci.h
+===================================================================
+--- linux-2.6.orig/include/linux/pci.h
++++ linux-2.6/include/linux/pci.h
+@@ -615,6 +615,7 @@ size_t pci_get_rom_size(void __iomem *ro
+ int pci_save_state(struct pci_dev *dev);
+ int pci_restore_state(struct pci_dev *dev);
+ int pci_set_power_state(struct pci_dev *dev, pci_power_t state);
++int pci_choose_and_set_state(struct pci_dev *dev, pci_power_t state);
+ pci_power_t pci_choose_state(struct pci_dev *dev, pm_message_t state);
+ int pci_enable_wake(struct pci_dev *dev, pci_power_t state, int enable);
+ 
