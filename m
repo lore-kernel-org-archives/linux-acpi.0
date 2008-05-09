@@ -1,76 +1,66 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: [PATCH 2/2] PCI PM: Introduce pci_preferred_state
-Date: Fri, 9 May 2008 09:47:08 -0700
-Message-ID: <200805090947.08620.jbarnes@virtuousgeek.org>
-References: <Pine.LNX.4.44L0.0805071139020.3701-100000@iolanthe.rowland.org>
-	<200805072032.58472.rjw@sisk.pl> <200805091744.04749.rjw@sisk.pl>
+From: Gabriel C <nix.or.die@googlemail.com>
+Subject: Re: linux-next: ACPI I/O resource conflicts warning
+Date: Fri, 09 May 2008 18:52:11 +0200
+Message-ID: <4824813B.6090607@googlemail.com>
+References: <4823A6DA.8010502@googlemail.com> <1210343425.29724.39.camel@queen.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <200805091744.04749.rjw@sisk.pl>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Pavel Machek <pavel@suse.cz>, pm list <linux-pm@lists.linux-foundation.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fonzie.hosting9000.com ([85.214.50.12]:47787 "EHLO
+	fonzie.hosting9000.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756529AbYEIQwW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 May 2008 12:52:22 -0400
+In-Reply-To: <1210343425.29724.39.camel@queen.suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: trenn@suse.de
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Jean Delvare <khali@linux-fr.org>
 
-> > > > I thought about that too.  I'd like to know what the other people
-> > > > think, though.
-> > >
-> > > The point of this isn't at all clear.
-> > >
-> > > Is this routine meant to be called during a hibernation
-> > > transition?
-> >
-> > Yes, it is.
-> >
-> > > Or is it just for suspend?
-> > >
-> > > And why would the return value ever be anything other than D3_hot?  (Or
-> > > why would the driver ever want to put a device in a different state?)
-> >
-> > In principle, the driver may want to put the device into a state having
-> > shorter wake up latency than D3_hot.
-> >
-> > > AFAICS, the only reason would be because platform_pci_choose_state()
-> > > suggested something else.  In which case there's no need for the
-> > > "policy" argument.
-> >
-> > There is a need in two cases:
-> > - if platform_pci_choose_state() is not defined (it only is defined for
-> > ACPI systems at the moment),
-> > - if platform_pci_choose_state() returns PCI_POWER_ERROR meaning that it
-> > cannot handle the device.
-> >
-> > I agree with Pavel that the driver could pass a "fallback state" as a
-> > second argument to be used in case the platform cannot provide it with
-> > one.
->
-> Modified patch follows.
+Thomas Renninger wrote:
+> On Fri, 2008-05-09 at 03:20 +0200, Gabriel C wrote:
+>> Hi all ,
+>>
+>> I've noticed on linux-next from today the following ACPI warning:
+>>
+>> ...
+>>
+>> [4294023.308622] ACPI: PCI Interrupt 0000:00:1f.3[C] -> GSI 18 (level, low) -> IRQ 18
+>> [4294023.308622] ACPI: I/O resource  [0x400-0x41f] conflicts with ACPI region SMRG [0x400-0x40f]
+>> [4294023.316478] ACPI: Device needs an ACPI driver
+> 
+> You use libsensors and the sensor you use is also declared and possibly
+> used via ACPI.
 
-So why not make platform_pci_choose_state do:
-+ pci_power_t noacpi_pci_choose_state(struct pci_dev *dev, pci_message_t 
-state)
-+ {
-+       if (!pci_find_capability(dev, PCI_CAP_ID_PM))
-+               return state;
-+ }
+Not really , lsmsensors was not running and no modules loaded for my sensors but yeah when I start it another warning
+pops up ( this one I've reported to lm-sensors mailing list )
 
-instead?  Then in the PCI core we would assign either 
-platform_pci_choose_state to acpi_pci_choose_state or noacpi_pci_choose_state 
-(though that's a bad name).
 
-But really, since drivers should probably know what power state to put their 
-devices in for suspend & hibernate, maybe on non-ACPI systems the function 
-should just return an error and the driver can choose...
+w83627ehf: Found W83627DHG chip at 0x290
+ACPI: I/O resource w83627ehf [0x295-0x296] conflicts with ACPI region HWRE [0x290-0x299]
+ACPI: Device needs an ACPI driver
 
-Jesse
+> 
+>> dsdt.dsl from my motherboard can be found there:
+>>
+>> http://frugalware.org/~crazy/ASUS_P5E-VM_DO/dsdt.dsl
+>>
+>> full dmesg:
+>>
+>> http://frugalware.org/~crazy/dmesg/DMAR/dmesg
+>>
+>> Please let me know if you need more infos.
+> 
+> Maybe you could open a bug report on bugzilla.kernel.org and post
+> acpidump and dmi output (not only dsdt) there. Then we could collect
+> affected BIOSes at one central place for further evaluation and
+> discussion.
+
+Sure I will open an task about soon.
+
+> 
+> Thanks,
+> 
+>    Thomas
+
+Gabriel 
