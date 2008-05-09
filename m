@@ -1,59 +1,53 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: Subject:ACPI: Send the reserved AC notification event to user space
-Date: Fri, 09 May 2008 17:22:22 +0800
-Message-ID: <1210324942.8562.46.camel@yakui_zhao.sh.intel.com>
-References: <1191814518.3830.2.camel@yakui_zhao.sh.intel.com>
-	 <200710092343.40843.lenb@kernel.org>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: linux-next: ACPI I/O resource conflicts warning
+Date: Fri, 09 May 2008 16:30:25 +0200
+Message-ID: <1210343425.29724.39.camel@queen.suse.de>
+References: <4823A6DA.8010502@googlemail.com>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:58391 "EHLO mga11.intel.com"
+Received: from ns.suse.de ([195.135.220.2]:39541 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752449AbYEIJM3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 9 May 2008 05:12:29 -0400
-In-Reply-To: <200710092343.40843.lenb@kernel.org>
+	id S1751224AbYEIOa1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 9 May 2008 10:30:27 -0400
+In-Reply-To: <4823A6DA.8010502@googlemail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: Gabriel C <nix.or.die@googlemail.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Jean Delvare <khali@linux-fr.org>
 
-Subject:ACPI: Send the reserved AC notification event to user space 
->From : Zhao Yakui <yakui.zhao@intel.com>
+On Fri, 2008-05-09 at 03:20 +0200, Gabriel C wrote:
+> Hi all ,
+> 
+> I've noticed on linux-next from today the following ACPI warning:
+> 
+> ...
+> 
+> [4294023.308622] ACPI: PCI Interrupt 0000:00:1f.3[C] -> GSI 18 (level, low) -> IRQ 18
+> [4294023.308622] ACPI: I/O resource  [0x400-0x41f] conflicts with ACPI region SMRG [0x400-0x40f]
+> [4294023.316478] ACPI: Device needs an ACPI driver
 
-On some laptops the bogus bios sends the reserved AC notification event(0x81)
-when the AC adapter is plugged/unplugged .It can't be sent to 
-user space, which causes that user space application can't 
-receive the AC adapter event. 
-So the reserved AC adapter event(0x81) is still sent to the user space 
-so that user space can receive the notification event.
+You use libsensors and the sensor you use is also declared and possibly
+used via ACPI.
 
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
----
- drivers/acpi/ac.c |    4 ++++
- 1 file changed, 4 insertions(+)
+> dsdt.dsl from my motherboard can be found there:
+> 
+> http://frugalware.org/~crazy/ASUS_P5E-VM_DO/dsdt.dsl
+> 
+> full dmesg:
+> 
+> http://frugalware.org/~crazy/dmesg/DMAR/dmesg
+> 
+> Please let me know if you need more infos.
 
-Index: linux-2.6/drivers/acpi/ac.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/ac.c
-+++ linux-2.6/drivers/acpi/ac.c
-@@ -42,6 +42,7 @@
- #define ACPI_AC_DEVICE_NAME		"AC Adapter"
- #define ACPI_AC_FILE_STATE		"state"
- #define ACPI_AC_NOTIFY_STATUS		0x80
-+#define ACPI_AC_NOTIFY_RESERVED		0x81
- #define ACPI_AC_STATUS_OFFLINE		0x00
- #define ACPI_AC_STATUS_ONLINE		0x01
- #define ACPI_AC_STATUS_UNKNOWN		0xFF
-@@ -233,6 +234,9 @@ static void acpi_ac_notify(acpi_handle h
- 
- 	device = ac->device;
- 	switch (event) {
-+	case ACPI_AC_NOTIFY_RESERVED:
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+				  "Unsupported event [0x%x]\n", event));
- 	case ACPI_AC_NOTIFY_STATUS:
- 	case ACPI_NOTIFY_BUS_CHECK:
- 	case ACPI_NOTIFY_DEVICE_CHECK:
+Maybe you could open a bug report on bugzilla.kernel.org and post
+acpidump and dmi output (not only dsdt) there. Then we could collect
+affected BIOSes at one central place for further evaluation and
+discussion.
 
+Thanks,
+
+   Thomas
 
