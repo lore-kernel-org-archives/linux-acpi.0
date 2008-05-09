@@ -1,73 +1,89 @@
-From: Gabriel C <nix.or.die@googlemail.com>
-Subject: Re: linux-next: ACPI I/O resource conflicts warning
-Date: Fri, 09 May 2008 19:04:04 +0200
-Message-ID: <48248404.2080709@googlemail.com>
-References: <4823A6DA.8010502@googlemail.com>	<1210343425.29724.39.camel@queen.suse.de>	<4824813B.6090607@googlemail.com> <20080509185831.579e1a4e@hyperion.delvare>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] [PATCH 2/2] PCI PM: Introduce pci_preferred_state
+Date: Fri, 9 May 2008 19:13:39 +0200
+Message-ID: <200805091913.40197.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0805071139020.3701-100000@iolanthe.rowland.org> <200805091744.04749.rjw@sisk.pl> <200805090947.08620.jbarnes@virtuousgeek.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fonzie.hosting9000.com ([85.214.50.12]:39401 "EHLO
-	fonzie.hosting9000.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754900AbYEIREP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 May 2008 13:04:15 -0400
-In-Reply-To: <20080509185831.579e1a4e@hyperion.delvare>
+Received: from ogre.sisk.pl ([217.79.144.158]:51110 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756127AbYEIROR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 9 May 2008 13:14:17 -0400
+In-Reply-To: <200805090947.08620.jbarnes@virtuousgeek.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jean Delvare <khali@linux-fr.org>
-Cc: trenn@suse.de, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Pavel Machek <pavel@suse.cz>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-Jean Delvare wrote:
-> On Fri, 09 May 2008 18:52:11 +0200, Gabriel C wrote:
->> Thomas Renninger wrote:
->>> On Fri, 2008-05-09 at 03:20 +0200, Gabriel C wrote:
->>>> Hi all ,
->>>>
->>>> I've noticed on linux-next from today the following ACPI warning:
->>>>
->>>> ...
->>>>
->>>> [4294023.308622] ACPI: PCI Interrupt 0000:00:1f.3[C] -> GSI 18 (level, low) -> IRQ 18
->>>> [4294023.308622] ACPI: I/O resource  [0x400-0x41f] conflicts with ACPI region SMRG [0x400-0x40f]
->>>> [4294023.316478] ACPI: Device needs an ACPI driver
->>> You use libsensors and the sensor you use is also declared and possibly
->>> used via ACPI.
->> Not really , lsmsensors was not running and no modules loaded for my sensors but yeah when I start it another warning
->> pops up ( this one I've reported to lm-sensors mailing list )
+On Friday, 9 of May 2008, Jesse Barnes wrote:
+> > > > > I thought about that too.  I'd like to know what the other people
+> > > > > think, though.
+> > > >
+> > > > The point of this isn't at all clear.
+> > > >
+> > > > Is this routine meant to be called during a hibernation
+> > > > transition?
+> > >
+> > > Yes, it is.
+> > >
+> > > > Or is it just for suspend?
+> > > >
+> > > > And why would the return value ever be anything other than D3_hot?  (Or
+> > > > why would the driver ever want to put a device in a different state?)
+> > >
+> > > In principle, the driver may want to put the device into a state having
+> > > shorter wake up latency than D3_hot.
+> > >
+> > > > AFAICS, the only reason would be because platform_pci_choose_state()
+> > > > suggested something else.  In which case there's no need for the
+> > > > "policy" argument.
+> > >
+> > > There is a need in two cases:
+> > > - if platform_pci_choose_state() is not defined (it only is defined for
+> > > ACPI systems at the moment),
+> > > - if platform_pci_choose_state() returns PCI_POWER_ERROR meaning that it
+> > > cannot handle the device.
+> > >
+> > > I agree with Pavel that the driver could pass a "fallback state" as a
+> > > second argument to be used in case the platform cannot provide it with
+> > > one.
+> >
+> > Modified patch follows.
 > 
-> Could be your SMBus controller then, we have these checks in both hwmon
-> drivers and i2c bus drivers... Check what appears at 0x400
-> in /proc/iports.
-
-Ahh, you are right.
-
-0400-041f : 0000:00:1f.3
-  0400-041f : i801_smbus
-
-00:1f.3 SMBus: Intel Corporation 82801I (ICH9 Family) SMBus Controller (rev 02)
-
-
+> So why not make platform_pci_choose_state do:
+> + pci_power_t noacpi_pci_choose_state(struct pci_dev *dev, pci_message_t 
+> state)
+> + {
+> +       if (!pci_find_capability(dev, PCI_CAP_ID_PM))
+> +               return state;
+> + }
 > 
->> w83627ehf: Found W83627DHG chip at 0x290
->> ACPI: I/O resource w83627ehf [0x295-0x296] conflicts with ACPI region HWRE [0x290-0x299]
->> ACPI: Device needs an ACPI driver
->>
->>>> dsdt.dsl from my motherboard can be found there:
->>>>
->>>> http://frugalware.org/~crazy/ASUS_P5E-VM_DO/dsdt.dsl
->>>>
->>>> full dmesg:
->>>>
->>>> http://frugalware.org/~crazy/dmesg/DMAR/dmesg
->>>>
->>>> Please let me know if you need more infos.
->>> Maybe you could open a bug report on bugzilla.kernel.org and post
->>> acpidump and dmi output (not only dsdt) there. Then we could collect
->>> affected BIOSes at one central place for further evaluation and
->>> discussion.
->> Sure I will open an task about soon.
-> 
-> When you do, please add me to Cc, thanks.
-> 
+> instead?  Then in the PCI core we would assign either 
+> platform_pci_choose_state to acpi_pci_choose_state or noacpi_pci_choose_state 
 
-Sure I will
+Good idea.
+
+> (though that's a bad name).
+
+Does generic_pci_choose_state() sound better?
+
+> But really, since drivers should probably know what power state to put their 
+> devices in for suspend & hibernate, maybe on non-ACPI systems the function 
+> should just return an error and the driver can choose...
+
+That's one possibility too, but in that case many drivers will do
+
+state = pci_preferred_state(dev);
+if (state == PCI_POWER_ERROR)
+	state = something;
+
+It's just shorter to write
+
+state = pci_preferred_state(dev, something);
+
+Thanks,
+Rafael
