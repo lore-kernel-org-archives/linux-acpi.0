@@ -1,106 +1,58 @@
-From: Tilman Schmidt <tilman@imap.cc>
-Subject: Re: [2.6.26-rc1] WARNING: at drivers/base/sys.c:183
-Date: Mon, 12 May 2008 22:57:39 +0200
-Message-ID: <4828AF43.9030608@imap.cc>
-References: <48273860.1000103@imap.cc> <20080511184658.GA2087@codemonkey.org.uk>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC][PATCH 2/2] ACPI PM: Add possibility to change suspend sequence
+Date: Tue, 13 May 2008 00:34:05 +0200
+Message-ID: <200805130034.06604.rjw@sisk.pl>
+References: <200805062342.42789.rjw@sisk.pl> <200805091923.36763.rjw@sisk.pl> <20080512072301.GC24094@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enigEDE993C090B7CBD9AC736F43"
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:57558 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759165AbYELU57 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 12 May 2008 16:57:59 -0400
-In-Reply-To: <20080511184658.GA2087@codemonkey.org.uk>
+Received: from ogre.sisk.pl ([217.79.144.158]:41735 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754382AbYELWd4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 12 May 2008 18:33:56 -0400
+In-Reply-To: <20080512072301.GC24094@elf.ucw.cz>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dave Jones <davej@codemonkey.org.uk>, yakui.zhao@intel.com
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@suse.cz>
+Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, pm list <linux-pm@lists.linux-foundation.org>, Greg KH <greg@kroah.com>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigEDE993C090B7CBD9AC736F43
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Monday, 12 of May 2008, Pavel Machek wrote:
+> Hi!
+> 
+> > Index: linux-2.6/Documentation/kernel-parameters.txt
+> > ===================================================================
+> > --- linux-2.6.orig/Documentation/kernel-parameters.txt
+> > +++ linux-2.6/Documentation/kernel-parameters.txt
+> > @@ -157,6 +157,11 @@ and is between 256 and 4096 characters. 
+> >  			default: The hardware signature is checked during
+> >  			         resume from S4.
+> >  
+> > +	acpi_old_suspend_ordering [HW,ACPI] ACPI suspend ordering
+> > +			Enforce the ACPI 1.0 ordering of the _PTS control
+> > +			method wrt putting devices into low power states
+> > +			default: ACPI 2.0 ordering of _PTS
+> > +
+> >  	acpi_sci=	[HW,ACPI] ACPI System Control Interrupt trigger mode
+> >  			Format: { level | edge | high | low }
+> >
+> 
+> Hmm, I have a wild idea...
+> 
+> acpi_sleep=old_ordering
+> 
+> ...and reuse the same variable we already use for
+> s3_bios/s3_mode. Then, we'd be able to blacklist the systems needing
+> old_ordering from s2ram...
+> 
+> I guess this whitelist should better be done in kernel, but short-term
+> ability to whitelist from userland could not hurt...?
 
-Am 11.05.2008 20:46 schrieb Dave Jones:
->=20
->  > May 11 19:32:44 xenon kernel: [   29.607563] sysdev: class cpu: driv=
-er (c0439804) has already been registered to a class, something is wrong,=
- but will forge on!
->  > May 11 19:32:44 xenon kernel: [   29.611835] ------------[ cut here =
-]------------
->  > May 11 19:32:44 xenon kernel: [   29.616182] WARNING: at drivers/bas=
-e/sys.c:183 sysdev_driver_register+0x59/0xf2()
->  > May 11 19:32:44 xenon kernel: [   29.622037] Modules linked in: acpi=
-_cpufreq(+) speedstep_lib microcode firmware_class loop osst st sr_mod cd=
-rom pata_acpi bas_gigaset snd_hda_intel gigaset isdn snd_pcm rtc_cmos ata=
-_generic aic7xxx snd_timer rtc_core usblp snd slhc ohci1394 pata_marvell =
-thermal ieee1394 rtc_lib i2c_i801 parport_pc intel_agp processor soundcor=
-e crc_ccitt iTCO_wdt button scsi_transport_spi iTCO_vendor_support parpor=
-t snd_page_alloc agpgart i2c_core sg ext3 jbd mbcache linear usbhid hid s=
-d_mod ahci libata uhci_hcd ehci_hcd scsi_mod dock usbcore dm_snapshot dm_=
-mod
->  > May 11 19:32:44 xenon kernel: [   29.648305] Pid: 2860, comm: modpro=
-be Not tainted 2.6.26-rc1-testing #1
->  > May 11 19:32:44 xenon kernel: [   29.653156]  [<c0129d09>] warn_on_s=
-lowpath+0x41/0x6d
->  > May 11 19:32:44 xenon kernel: [   29.658026]  [<c0120032>] ? push_rt=
-_task+0xb1/0x1ab
->  > May 11 19:32:44 xenon kernel: [   29.664013]  [<c012a75a>] ? vprintk=
-+0x3a5/0x3c5
->  > May 11 19:32:44 xenon kernel: [   29.670995]  [<c010b7a4>] ? native_=
-sched_clock+0xe0/0xff
->  > May 11 19:32:44 xenon kernel: [   29.675849]  [<c010b7a4>] ? native_=
-sched_clock+0xe0/0xff
->  > May 11 19:32:44 xenon kernel: [   29.680678]  [<c0143881>] ? put_loc=
-k_stats+0xd/0x21
->  > May 11 19:32:44 xenon kernel: [   29.685465]  [<c012a78f>] ? printk+=
-0x15/0x17
->  > May 11 19:32:44 xenon kernel: [   29.690406]  [<c026a57a>] sysdev_dr=
-iver_register+0x59/0xf2
->  > May 11 19:32:44 xenon kernel: [   29.696845]  [<c02a8fe3>] cpufreq_r=
-egister_driver+0x80/0xfc
->  > May 11 19:32:44 xenon kernel: [   29.701892]  [<faafe034>] acpi_cpuf=
-req_init+0x34/0x3a [acpi_cpufreq]
->  > May 11 19:32:44 xenon kernel: [   29.708279]  [<c014d441>] sys_init_=
-module+0x1883/0x1a34
->  > May 11 19:32:44 xenon kernel: [   29.713176]  [<c0106b63>] sysenter_=
-past_esp+0x78/0xd1
->  > May 11 19:32:44 xenon kernel: [   29.718586]  =3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->  > May 11 19:32:44 xenon kernel: [   29.723414] ---[ end trace da2515dc=
-0122d0b1 ]---
->=20
-> And then we freak out when we init the next cpufreq module, acpi-cpufre=
-q, which gets further
-> and tries to actually get registered.
->=20
-> I don't really understand what's happening that makes sysfs so unhappy.=
+There's one problem with that, acpi_sleep is x86-specific and it's actually
+handled in arch/x86/kernel/acpi/sleep.c .  Well, ok, I think I can handle that,
+but it won't look nice.
 
-> I guess if we had a clue what driver 'c0439804' was me might have some =
-clues.
-> What symbols are near that address in /proc/kallsyms ?
-
-According to /proc/kallsyms, c0439804 =3D cpufreq_sysdev_driver.
-
-HTH
-T.
-
-
---------------enigEDE993C090B7CBD9AC736F43
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.4-svn0 (GNU/Linux)
-Comment: Using GnuPG with SUSE - http://enigmail.mozdev.org
-
-iD8DBQFIKK9QQ3+did9BuFsRAtqTAKCMZ7GOVwyogM3zl1r1oUuiXAxLEQCfeIWr
-Who8M+t5Il3ozlCT6m0QPIk=
-=lAl/
------END PGP SIGNATURE-----
-
---------------enigEDE993C090B7CBD9AC736F43--
+Thanks,
+Rafael
