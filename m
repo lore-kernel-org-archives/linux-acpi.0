@@ -1,48 +1,235 @@
-From: "Carlos R. Mafra" <crmafra2@gmail.com>
-Subject: Re: [2.6.26-rc1] WARNING: at drivers/base/sys.c:183
-Date: Sun, 11 May 2008 17:24:17 -0300
-Message-ID: <20080511202416.GA5771@beyonder.ift.unesp.br>
-References: <48273860.1000103@imap.cc>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: Re: [patch] pci-acpi: handle multiple _OSC
+Date: Mon, 12 May 2008 10:48:10 +0800
+Message-ID: <1210560490.2172.2.camel@sli10-desk.sh.intel.com>
+References: <1210238510.23649.2.camel@sli10-desk.sh.intel.com>
+	 <1210297604.8716.5.camel@sli10-desk.sh.intel.com>
+	 <482400B3.4020808@jp.fujitsu.com>
+	 <200805091040.37139.jbarnes@virtuousgeek.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758749AbYEKUYx@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <48273860.1000103@imap.cc>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tilman Schmidt <tilman@imap.cc>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, yakui.zhao@intel.com, davej@codemonkey.org.uk
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:63627 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753746AbYELCoI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 11 May 2008 22:44:08 -0400
+In-Reply-To: <200805091040.37139.jbarnes@virtuousgeek.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, linux-pci <linux-pci@atrey.karlin.mff.cuni.cz>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Sun 11.May'08 at 20:18:08 +0200, Tilman Schmidt wrote:
-> This warning, first reported for 2.6.25-rc5-mm1
-> (see http://lkml.org/lkml/2008/3/12/444)
-> has now made it into mainline:
-> 
-> May 11 19:32:44 xenon kernel: [   29.017148] powernow: This module only works with AMD K7 CPUs
-> May 11 19:32:44 xenon kernel: [   29.607563] sysdev: class cpu: driver (c0439804) has already been registered to a class, something is wrong, but will forge on!
-> May 11 19:32:44 xenon kernel: [   29.611835] ------------[ cut here ]------------
-> May 11 19:32:44 xenon kernel: [   29.616182] WARNING: at drivers/base/sys.c:183 sysdev_driver_register+0x59/0xf2()
-> May 11 19:32:44 xenon kernel: [   29.622037] Modules linked in: acpi_cpufreq(+) speedstep_lib microcode firmware_class loop osst st sr_mod cdrom pata_acpi bas_gigaset snd_hda_intel gigaset isdn snd_pcm rtc_cmos ata_generic aic7xxx snd_timer rtc_core usblp snd slhc ohci1394 pata_marvell thermal ieee1394 rtc_lib i2c_i801 parport_pc intel_agp processor soundcore crc_ccitt iTCO_wdt button scsi_transport_spi iTCO_vendor_support parport snd_page_alloc agpgart i2c_core sg ext3 jbd mbcache linear usbhid hid sd_mod ahci libata uhci_hcd ehci_hcd scsi_mod dock usbcore dm_snapshot dm_mod
-> May 11 19:32:44 xenon kernel: [   29.648305] Pid: 2860, comm: modprobe Not tainted 2.6.26-rc1-testing #1
-> May 11 19:32:44 xenon kernel: [   29.653156]  [<c0129d09>] warn_on_slowpath+0x41/0x6d
-> May 11 19:32:44 xenon kernel: [   29.658026]  [<c0120032>] ? push_rt_task+0xb1/0x1ab
-> May 11 19:32:44 xenon kernel: [   29.664013]  [<c012a75a>] ? vprintk+0x3a5/0x3c5
-> May 11 19:32:44 xenon kernel: [   29.670995]  [<c010b7a4>] ? native_sched_clock+0xe0/0xff
-> May 11 19:32:44 xenon kernel: [   29.675849]  [<c010b7a4>] ? native_sched_clock+0xe0/0xff
-> May 11 19:32:44 xenon kernel: [   29.680678]  [<c0143881>] ? put_lock_stats+0xd/0x21
-> May 11 19:32:44 xenon kernel: [   29.685465]  [<c012a78f>] ? printk+0x15/0x17
-> May 11 19:32:44 xenon kernel: [   29.690406]  [<c026a57a>] sysdev_driver_register+0x59/0xf2
-> May 11 19:32:44 xenon kernel: [   29.696845]  [<c02a8fe3>] cpufreq_register_driver+0x80/0xfc
-> May 11 19:32:44 xenon kernel: [   29.701892]  [<faafe034>] acpi_cpufreq_init+0x34/0x3a [acpi_cpufreq]
-> May 11 19:32:44 xenon kernel: [   29.708279]  [<c014d441>] sys_init_module+0x1883/0x1a34
-> May 11 19:32:44 xenon kernel: [   29.713176]  [<c0106b63>] sysenter_past_esp+0x78/0xd1
-> May 11 19:32:44 xenon kernel: [   29.718586]  =======================
-> May 11 19:32:44 xenon kernel: [   29.723414] ---[ end trace da2515dc0122d0b1 ]---
-> 
-> ts@xenon:~> uname -a
-> Linux xenon 2.6.26-rc1-testing #1 SMP PREEMPT Tue May 6 19:52:43 CEST 2008 i686 i686 i386 GNU/Linux
+On Fri, 2008-05-09 at 10:40 -0700, Jesse Barnes wrote:
+> On Friday, May 09, 2008 12:43 am Kenji Kaneshige wrote:
+> > -static u32 ctrlset_buf[3] =3D {0, 0, 0};
+> > -static u32 global_ctrlsets =3D 0;
+> > +#define MAX_ACPI_OSC 30 /* Should be enough */
+> > +static struct acpi_osc_data {
+> > +	acpi_handle handle;
+> > +	u32 ctrlset_buf[3];
+> > +	u32 global_ctrlsets;
+> > +} acpi_osc_data_array[MAX_ACPI_OSC];
+>=20
+> Could this just be a linked list of OSC objects instead?
+fixed. patch is against Kenji's =EF=BB=BF"PCI ACPI: fix uninitialized v=
+ariable
+in __pci_osc_support_set" patch.
 
-Isn't it fixed by db176c6ed8974fae94328ad5ac9e70b094ff22fd 
-("Fix bogus warning in sysdev_driver_register()") ?
+=EF=BB=BFThere is an IA64 system here which have two pci root bridges w=
+ith _OSC.
+One _OSC disables SHPC control bit but the other not. Below patch makes
+_OSC data per-device instead of one global, otherwise linux takes both
+root bridges don't support SHPC.
 
-This commit is post-rc1: v2.6.26-rc1-165-gdb176c6
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+---
+ drivers/pci/pci-acpi.c |   95 ++++++++++++++++++++++++++++++++++------=
+---------
+ 1 file changed, 66 insertions(+), 29 deletions(-)
+
+Index: linux/drivers/pci/pci-acpi.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux.orig/drivers/pci/pci-acpi.c	2008-05-12 10:16:36.000000000 +08=
+00
++++ linux/drivers/pci/pci-acpi.c	2008-05-12 10:43:46.000000000 +0800
+@@ -19,8 +19,31 @@
+ #include <linux/pci-acpi.h>
+ #include "pci.h"
+=20
+-static u32 ctrlset_buf[3] =3D {0, 0, 0};
+-static u32 global_ctrlsets =3D 0;
++struct acpi_osc_data {
++	acpi_handle handle;
++	u32 ctrlset_buf[3];
++	u32 global_ctrlsets;
++	struct list_head sibiling;
++};
++static LIST_HEAD(acpi_osc_data_list);
++
++static struct acpi_osc_data *acpi_get_osc_data(acpi_handle handle)
++{
++	struct acpi_osc_data *data;
++
++	list_for_each_entry(data, &acpi_osc_data_list, sibiling) {
++		if (data->handle =3D=3D handle)
++			return data;
++	}
++	data =3D kzalloc(sizeof(*data), GFP_KERNEL);
++	if (!data)
++		return NULL;
++	INIT_LIST_HEAD(&data->sibiling);
++	data->handle =3D handle;
++	list_add_tail(&data->sibiling, &acpi_osc_data_list);
++	return data;
++}
++
+ static u8 OSC_UUID[16] =3D {0x5B, 0x4D, 0xDB, 0x33, 0xF7, 0x1F, 0x1C, =
+0x40, 0x96, 0x57, 0x74, 0x41, 0xC0, 0x3D, 0xD7, 0x66};
+=20
+ static acpi_status =20
+@@ -37,8 +60,21 @@ acpi_query_osc (
+ 	union acpi_object 	*out_obj;
+ 	u32			osc_dw0;
+ 	acpi_status *ret_status =3D (acpi_status *)retval;
++	struct acpi_osc_data *osc_data =3D acpi_get_osc_data(handle);
++	u32 flags =3D (unsigned long)context, temp;
++
++	if (!osc_data) {
++		printk(KERN_ERR "acpi osc data array is full\n");
++		return AE_ERROR;
++	}
++
++	osc_data->ctrlset_buf[OSC_SUPPORT_TYPE] |=3D (flags & OSC_SUPPORT_MAS=
+KS);
++
++	/* do _OSC query for all possible controls */
++	temp =3D osc_data->ctrlset_buf[OSC_CONTROL_TYPE];
++	osc_data->ctrlset_buf[OSC_QUERY_TYPE] =3D OSC_QUERY_ENABLE;
++	osc_data->ctrlset_buf[OSC_CONTROL_TYPE] =3D OSC_CONTROL_MASKS;
+=20
+-=09
+ 	/* Setting up input parameters */
+ 	input.count =3D 4;
+ 	input.pointer =3D in_params;
+@@ -51,13 +87,11 @@ acpi_query_osc (
+ 	in_params[2].integer.value	=3D 3;
+ 	in_params[3].type		=3D ACPI_TYPE_BUFFER;
+ 	in_params[3].buffer.length 	=3D 12;
+-	in_params[3].buffer.pointer 	=3D (u8 *)context;
++	in_params[3].buffer.pointer 	=3D (u8 *)osc_data->ctrlset_buf;
+=20
+ 	status =3D acpi_evaluate_object(handle, "_OSC", &input, &output);
+-	if (ACPI_FAILURE (status)) {
+-		*ret_status =3D status;
+-		return status;
+-	}
++	if (ACPI_FAILURE(status))
++		goto out_nofree;
+ 	out_obj =3D output.pointer;
+=20
+ 	if (out_obj->type !=3D ACPI_TYPE_BUFFER) {
+@@ -76,7 +110,8 @@ acpi_query_osc (
+ 			printk(KERN_DEBUG "_OSC invalid revision\n");=20
+ 		if (osc_dw0 & OSC_CAPABILITIES_MASK_ERROR) {
+ 			/* Update Global Control Set */
+-			global_ctrlsets =3D *((u32 *)(out_obj->buffer.pointer+8));
++			osc_data->global_ctrlsets =3D
++				*((u32 *)(out_obj->buffer.pointer + 8));
+ 			status =3D AE_OK;
+ 			goto query_osc_out;
+ 		}
+@@ -85,12 +120,21 @@ acpi_query_osc (
+ 	}
+=20
+ 	/* Update Global Control Set */
+-	global_ctrlsets =3D *((u32 *)(out_obj->buffer.pointer + 8));
++	osc_data->global_ctrlsets =3D *((u32 *)(out_obj->buffer.pointer + 8))=
+;
+ 	status =3D AE_OK;
+=20
+ query_osc_out:
+ 	kfree(output.pointer);
++out_nofree:
+ 	*ret_status =3D status;
++
++	osc_data->ctrlset_buf[OSC_QUERY_TYPE] =3D !OSC_QUERY_ENABLE;
++	osc_data->ctrlset_buf[OSC_CONTROL_TYPE] =3D temp;
++	if (ACPI_FAILURE(status)) {
++		/* no osc support at all */
++		osc_data->ctrlset_buf[OSC_SUPPORT_TYPE] =3D 0;
++	}
++
+ 	return status;
+ }
+=20
+@@ -165,28 +209,15 @@ run_osc_out:
+  **/
+ acpi_status __pci_osc_support_set(u32 flags, const char *hid)
+ {
+-	u32 temp;
+ 	acpi_status retval =3D AE_NOT_FOUND;
+=20
+ 	if (!(flags & OSC_SUPPORT_MASKS)) {
+ 		return AE_TYPE;
+ 	}
+-	ctrlset_buf[OSC_SUPPORT_TYPE] |=3D (flags & OSC_SUPPORT_MASKS);
+-
+-	/* do _OSC query for all possible controls */
+-	temp =3D ctrlset_buf[OSC_CONTROL_TYPE];
+-	ctrlset_buf[OSC_QUERY_TYPE] =3D OSC_QUERY_ENABLE;
+-	ctrlset_buf[OSC_CONTROL_TYPE] =3D OSC_CONTROL_MASKS;
+ 	acpi_get_devices(hid,
+ 			acpi_query_osc,
+-			ctrlset_buf,
++			(void *)(unsigned long)flags,
+ 			(void **) &retval );
+-	ctrlset_buf[OSC_QUERY_TYPE] =3D !OSC_QUERY_ENABLE;
+-	ctrlset_buf[OSC_CONTROL_TYPE] =3D temp;
+-	if (ACPI_FAILURE(retval)) {
+-		/* no osc support at all */
+-		ctrlset_buf[OSC_SUPPORT_TYPE] =3D 0;
+-	}
+ 	return AE_OK;
+ }
+=20
+@@ -201,19 +232,25 @@ acpi_status pci_osc_control_set(acpi_han
+ {
+ 	acpi_status	status;
+ 	u32		ctrlset;
++	struct acpi_osc_data *osc_data =3D acpi_get_osc_data(handle);
++
++	if (!osc_data) {
++		printk(KERN_ERR "acpi osc data array is full\n");
++		return AE_ERROR;
++	}
+=20
+ 	ctrlset =3D (flags & OSC_CONTROL_MASKS);
+ 	if (!ctrlset) {
+ 		return AE_TYPE;
+ 	}
+-	if (ctrlset_buf[OSC_SUPPORT_TYPE] &&=20
+-	 	((global_ctrlsets & ctrlset) !=3D ctrlset)) {
++	if (osc_data->ctrlset_buf[OSC_SUPPORT_TYPE] &&
++		((osc_data->global_ctrlsets & ctrlset) !=3D ctrlset)) {
+ 		return AE_SUPPORT;
+ 	}
+-	ctrlset_buf[OSC_CONTROL_TYPE] |=3D ctrlset;
+-	status =3D acpi_run_osc(handle, ctrlset_buf);
++	osc_data->ctrlset_buf[OSC_CONTROL_TYPE] |=3D ctrlset;
++	status =3D acpi_run_osc(handle, osc_data->ctrlset_buf);
+ 	if (ACPI_FAILURE (status)) {
+-		ctrlset_buf[OSC_CONTROL_TYPE] &=3D ~ctrlset;
++		osc_data->ctrlset_buf[OSC_CONTROL_TYPE] &=3D ~ctrlset;
+ 	}
+ =09
+ 	return status;
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
