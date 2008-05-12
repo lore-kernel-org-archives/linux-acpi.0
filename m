@@ -1,89 +1,68 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] [PATCH 2/2] PCI PM: Introduce pci_preferred_state
-Date: Mon, 12 May 2008 16:52:55 +0200
-Message-ID: <200805121652.56002.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0805071139020.3701-100000@iolanthe.rowland.org> <200805092344.53713.rjw@sisk.pl> <20080512140013.GC1725@elf.ucw.cz>
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: Re: [patch] pci-acpi: handle multiple _OSC
+Date: Mon, 12 May 2008 09:07:34 -0700
+Message-ID: <200805120907.35106.jbarnes@virtuousgeek.org>
+References: <1210238510.23649.2.camel@sli10-desk.sh.intel.com> <1210560490.2172.2.camel@sli10-desk.sh.intel.com> <48284C61.4040604@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="iso-2022-jp"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:39629 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752164AbYELOxW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 12 May 2008 10:53:22 -0400
-In-Reply-To: <20080512140013.GC1725@elf.ucw.cz>
+Received: from outbound-mail-106.bluehost.com ([69.89.22.6]:59787 "HELO
+	outbound-mail-106.bluehost.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751897AbYELQOV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 12 May 2008 12:14:21 -0400
+In-Reply-To: <48284C61.4040604@jp.fujitsu.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@suse.cz>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Alan Stern <stern@rowland.harvard.edu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Cc: Shaohua Li <shaohua.li@intel.com>, linux-pci <linux-pci@atrey.karlin.mff.cuni.cz>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Monday, 12 of May 2008, Pavel Machek wrote:
-> Hi!
-> 
-> > From: Rafael J. Wysocki <rjw@sisk.pl>
-> > 
-> > The new suspend and hibernation callbacks introduced with
-> > 'struct pm_ops' and 'struct pm_ext_ops' do not take a
-> > pm_message_t argument, so the drivers using them will not be able
-> > to use pci_choose_state() in its present form.  For this reason,
-> > introduce a new function, pci_choose_and_set_state(), playing the
-> > role of pci_choose_state() combined with pci_set_power_state() and
-> > allowing the driver to put the device into a power state chosen by
-> > the platform.
-> > 
-> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> > ---
-> >  drivers/pci/pci.c   |   46 +++++++++++++++++++++++++++++++++++++++++++++-
-> >  include/linux/pci.h |    1 +
-> >  2 files changed, 46 insertions(+), 1 deletion(-)
-> > 
-> > Index: linux-2.6/drivers/pci/pci.c
-> > ===================================================================
-> > --- linux-2.6.orig/drivers/pci/pci.c
-> > +++ linux-2.6/drivers/pci/pci.c
-> > @@ -509,7 +509,51 @@ pci_set_power_state(struct pci_dev *dev,
-> >  }
-> >  
-> >  pci_power_t (*platform_pci_choose_state)(struct pci_dev *dev);
-> > - 
+On Monday, May 12, 2008 6:55 am Kenji Kaneshige wrote:
+> Shaohua Li wrote:
+> > On Fri, 2008-05-09 at 10:40 -0700, Jesse Barnes wrote:
+> >> On Friday, May 09, 2008 12:43 am Kenji Kaneshige wrote:
+> >>> -static u32 ctrlset_buf[3] = {0, 0, 0};
+> >>> -static u32 global_ctrlsets = 0;
+> >>> +#define MAX_ACPI_OSC 30 /* Should be enough */
+> >>> +static struct acpi_osc_data {
+> >>> +	acpi_handle handle;
+> >>> +	u32 ctrlset_buf[3];
+> >>> +	u32 global_ctrlsets;
+> >>> +} acpi_osc_data_array[MAX_ACPI_OSC];
+> >>
+> >> Could this just be a linked list of OSC objects instead?
+> >
+> > fixed. patch is against Kenji's ?"PCI ACPI: fix uninitialized variable
+> > in __pci_osc_support_set" patch.
+>
+> I found a problem.
+>
+> > @@ -201,19 +232,25 @@ acpi_status pci_osc_control_set(acpi_han
+> >  {
+> >  	acpi_status	status;
+> >  	u32		ctrlset;
+> > +	struct acpi_osc_data *osc_data = acpi_get_osc_data(handle);
 > > +
-> > +/**
-> > + * pci_choose_and_set_state - Choose the power state of a PCI device and put
-> > + *                            the device into that state.
-> > + * @dev: PCI device to be put into a low power state
-> > + * @state: State to put the device into by default
-> > + *
-> > + * Use the platform driver to choose the preferred PCI power state of given
-> > + * device and put the device into that state.  If the target power state of
-> > + * the device cannot be chosen using the platform driver, the driver-provided
-> > + * @state is used.
-> > + *
-> > + * RETURN VALUE:
-> > + * -EINVAL if trying to enter a lower state than we're already in.
-> > + * 0 if we're already in the requested state.
-> > + * -EIO if device does not support PCI PM.
-> > + * 0 if we can successfully change the power state.
-> > + */
-> > +
-> > +int pci_choose_and_set_state(struct pci_dev *dev, pci_power_t state)
-> > +{
-> 
-> > +	if (!pci_find_capability(dev, PCI_CAP_ID_PM))
-> > +		return -EIO;
-> 
-> Hmm, not sure if this is good idea. First, simple drivers will just
-> ignore the return value,
+> > +	if (!osc_data) {
+> > +		printk(KERN_ERR "acpi osc data array is full\n");
+> > +		return AE_ERROR;
+> > +	}
+>
+> The pci_osc_control_set() function can be called for the ACPI object
+> that doesn't have _OSC method. In this case, acpi_get_osc_data() would
+> allocate a useless memory region. To avoid this, we need to check the
+> existence of _OSC before calling acpi_get_osc_data(). Here is a patch
+> to fix this problem. It is against your patch.
+>
+> ---
+>  drivers/pci/pci-acpi.c |    8 +++++++-
+>  1 file changed, 7 insertions(+), 1 deletion(-)
 
-That doesn't matter to us.
-
-> and second, it returns -EIO even if I'm 
-> asking it to enter state it already has -- like PCI_D0 -- no?
-
-The -EIO means the operation could not be carried out, whatever the driver
-author meant.  In particular, we wouldn't check what the current state of the
-device was, so why would we return anything other than error code?
+Thanks Shaohua & Kenji, I applied both fixes to the 'for-linus' tree.  Please 
+test it out soon, I'd like to send Linus a pull request shortly.
 
 Thanks,
-Rafael
+Jesse
