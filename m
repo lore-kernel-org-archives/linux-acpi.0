@@ -1,55 +1,30 @@
-From: Pavel Machek <pavel@suse.cz>
-Subject: Re: [RFC][PATCH 2/2] ACPI PM: Add possibility to change suspend
-	sequence
-Date: Mon, 12 May 2008 09:23:01 +0200
-Message-ID: <20080512072301.GC24094@elf.ucw.cz>
-References: <200805062342.42789.rjw@sisk.pl> <200805071421.19788.rjw@sisk.pl> <200805091920.27756.rjw@sisk.pl> <200805091923.36763.rjw@sisk.pl>
+From: Neil Wallace <rowinggolfer@googlemail.com>
+Subject: DMI info for advent 9112
+Date: Mon, 12 May 2008 14:01:01 +0100
+Message-ID: <48283F8D.40502@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.31.123]:52094 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755332AbYELHWe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 May 2008 03:22:34 -0400
-Content-Disposition: inline
-In-Reply-To: <200805091923.36763.rjw@sisk.pl>
+Received: from an-out-0708.google.com ([209.85.132.241]:52506 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753640AbYELNIj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 May 2008 09:08:39 -0400
+Received: by an-out-0708.google.com with SMTP id d40so466609and.103
+        for <linux-acpi@vger.kernel.org>; Mon, 12 May 2008 06:08:38 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, pm list <linux-pm@lists.linux-foundation.org>, Greg KH <greg@kroah.com>
+To: linux-acpi@vger.kernel.org
 
-Hi!
+[   12.939339] ACPI: EC: Look up EC in DSDT
+[   12.941294] ACPI: BIOS _OSI(Linux) query ignored
+[   12.941297] ACPI: DMI System Vendor: DIXONSXP       
+[   12.941299] ACPI: DMI Product Name: DIXONSXP
+[   12.941300] ACPI: DMI Product Version: 1.00
+[   12.941302] ACPI: DMI Board Name: DIXONSXP
+[   12.941304] ACPI: DMI BIOS Vendor: DIXONSXP       
+[   12.941305] ACPI: DMI BIOS Date: 09/20/2007
+[   12.941307] ACPI: Please send DMI info above to 
+linux-acpi@vger.kernel.org
 
-> Index: linux-2.6/Documentation/kernel-parameters.txt
-> ===================================================================
-> --- linux-2.6.orig/Documentation/kernel-parameters.txt
-> +++ linux-2.6/Documentation/kernel-parameters.txt
-> @@ -157,6 +157,11 @@ and is between 256 and 4096 characters. 
->  			default: The hardware signature is checked during
->  			         resume from S4.
->  
-> +	acpi_old_suspend_ordering [HW,ACPI] ACPI suspend ordering
-> +			Enforce the ACPI 1.0 ordering of the _PTS control
-> +			method wrt putting devices into low power states
-> +			default: ACPI 2.0 ordering of _PTS
-> +
->  	acpi_sci=	[HW,ACPI] ACPI System Control Interrupt trigger mode
->  			Format: { level | edge | high | low }
->
 
-Hmm, I have a wild idea...
-
-acpi_sleep=old_ordering
-
-...and reuse the same variable we already use for
-s3_bios/s3_mode. Then, we'd be able to blacklist the systems needing
-old_ordering from s2ram...
-
-I guess this whitelist should better be done in kernel, but short-term
-ability to whitelist from userland could not hurt...?
-
-									Pavel
-
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
