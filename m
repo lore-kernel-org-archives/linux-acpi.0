@@ -1,101 +1,104 @@
-From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Subject: Re: [patch] pci-acpi: handle multiple _OSC
-Date: Tue, 13 May 2008 16:48:50 +0900
-Message-ID: <482947E2.5070101@jp.fujitsu.com>
-References: <1210238510.23649.2.camel@sli10-desk.sh.intel.com> <1210560490.2172.2.camel@sli10-desk.sh.intel.com> <48284C61.4040604@jp.fujitsu.com> <200805120907.35106.jbarnes@virtuousgeek.org>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [patch 05/10] acpi: use __init* oneverythingintables/tbfadt.c
+Date: Tue, 13 May 2008 08:06:49 -0700
+Message-ID: <9D39833986E69849A2A8E74C1078B6B353E60E@orsmsx415.amr.corp.intel.com>
+References: <481B7CDA020000780004B921@vpn.id2.novell.com> <9D39833986E69849A2A8E74C1078B6B34FAE8D@orsmsx415.amr.corp.intel.com> <482957DF.76E4.0078.0@novell.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:37943 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754703AbYEMHuG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 May 2008 03:50:06 -0400
-In-Reply-To: <200805120907.35106.jbarnes@virtuousgeek.org>
+Received: from mga09.intel.com ([134.134.136.24]:61048 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752555AbYEMPGv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 May 2008 11:06:51 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <482957DF.76E4.0078.0@novell.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Shaohua Li <shaohua.li@intel.com>, linux-pci <linux-pci@atrey.karlin.mff.cuni.cz>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: Jan Beulich <jbeulich@novell.com>
+Cc: lenb@kernel.org, akpm@linux-foundation.org, trenn@suse.de, linux-acpi@vger.kernel.org
 
-Jesse Barnes wrote:
-> On Monday, May 12, 2008 6:55 am Kenji Kaneshige wrote:
->> Shaohua Li wrote:
->>> On Fri, 2008-05-09 at 10:40 -0700, Jesse Barnes wrote:
->>>> On Friday, May 09, 2008 12:43 am Kenji Kaneshige wrote:
->>>>> -static u32 ctrlset_buf[3] = {0, 0, 0};
->>>>> -static u32 global_ctrlsets = 0;
->>>>> +#define MAX_ACPI_OSC 30 /* Should be enough */
->>>>> +static struct acpi_osc_data {
->>>>> +	acpi_handle handle;
->>>>> +	u32 ctrlset_buf[3];
->>>>> +	u32 global_ctrlsets;
->>>>> +} acpi_osc_data_array[MAX_ACPI_OSC];
->>>> Could this just be a linked list of OSC objects instead?
->>> fixed. patch is against Kenji's ?"PCI ACPI: fix uninitialized variable
->>> in __pci_osc_support_set" patch.
->> I found a problem.
+devel@acpica.org
+
+
+
+>-----Original Message-----
+>From: Jan Beulich [mailto:jbeulich@novell.com]
+>Sent: Monday, May 12, 2008 11:57 PM
+>To: Moore, Robert
+>Cc: lenb@kernel.org; akpm@linux-foundation.org; trenn@suse.de; linux-
+>acpi@vger.kernel.org
+>Subject: RE: [patch 05/10] acpi: use __init*
+oneverythingintables/tbfadt.c
+>
+>Thanks, Robert! So for future changes like this (if any) I suppose they
+>would
+>be preferred to be directly against acpica? What mailing list would
+they go
+>to? Jan
+>
+>>>> "Moore, Robert" <robert.moore@intel.com> 09.05.08 22:04 >>>
+>Jan,
+>
+>I've integrated your const and macro changes into the acpica source.
+>
+>Thanks for your help,
+>Bob
+>
+>
+>>-----Original Message-----
+>>From: Jan Beulich [mailto:jbeulich@novell.com]
+>>Sent: Friday, May 02, 2008 12:43 PM
+>>To: trenn@suse.de
+>>Cc: Moore, Robert; lenb@kernel.org; akpm@linux-foundation.org; linux-
+>>acpi@vger.kernel.org
+>>Subject: Re: [patch 05/10] acpi: use __init* on
+>everythingintables/tbfadt.c
 >>
->>> @@ -201,19 +232,25 @@ acpi_status pci_osc_control_set(acpi_han
->>>  {
->>>  	acpi_status	status;
->>>  	u32		ctrlset;
->>> +	struct acpi_osc_data *osc_data = acpi_get_osc_data(handle);
->>> +
->>> +	if (!osc_data) {
->>> +		printk(KERN_ERR "acpi osc data array is full\n");
->>> +		return AE_ERROR;
->>> +	}
->> The pci_osc_control_set() function can be called for the ACPI object
->> that doesn't have _OSC method. In this case, acpi_get_osc_data() would
->> allocate a useless memory region. To avoid this, we need to check the
->> existence of _OSC before calling acpi_get_osc_data(). Here is a patch
->> to fix this problem. It is against your patch.
+>>>>> Thomas Renninger <trenn@suse.de> 05/01/08 8:55 PM >>>
+>>>Andrew, IMO you can drop this and the const cleanups from -mm tree.
+>>>
+>>>Jan, nearly all code in:
+>>>drivers/acpi/*/*.[hc]
+>>>is part of ACPICA. This currently still is (may change) an Intel
+>>>internal repository which gets synced to several OS implementations,
+>>>also Linux. __init does not exist there (yet).
 >>
->> ---
->>  drivers/pci/pci-acpi.c |    8 +++++++-
->>  1 file changed, 7 insertions(+), 1 deletion(-)
-> 
-> Thanks Shaohua & Kenji, I applied both fixes to the 'for-linus' tree.  Please 
-> test it out soon, I'd like to send Linus a pull request shortly.
-> 
-
-I noticed the similar fix is also needed for acpi_query_osc().
-
-Thanks,
-Kenji Kaneshige
-
-
-The acpi_query_osc() function can be called for the ACPI object that
-doesn't have _OSC method. In this case, acpi_get_osc_data() would
-allocate a useless memory region. To avoid this, we need to check the
-existence of _OSC before calling acpi_get_osc_data().
-
-Signed-off-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-
----
- drivers/pci/pci-acpi.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
-
-Index: linux-2.6.26-rc2/drivers/pci/pci-acpi.c
-===================================================================
---- linux-2.6.26-rc2.orig/drivers/pci/pci-acpi.c
-+++ linux-2.6.26-rc2/drivers/pci/pci-acpi.c
-@@ -60,9 +60,15 @@ acpi_query_osc (
- 	union acpi_object 	*out_obj;
- 	u32			osc_dw0;
- 	acpi_status *ret_status = (acpi_status *)retval;
--	struct acpi_osc_data *osc_data = acpi_get_osc_data(handle);
-+	struct acpi_osc_data *osc_data;
- 	u32 flags = (unsigned long)context, temp;
-+	acpi_handle tmp;
- 
-+	status = acpi_get_handle(handle, "_OSC", &tmp);
-+	if (ACPI_FAILURE(status))
-+		return status;
-+
-+	osc_data = acpi_get_osc_data(handle);
- 	if (!osc_data) {
- 		printk(KERN_ERR "acpi osc data array is full\n");
- 		return AE_ERROR;
-
+>>I'm fairly sure I saw __init used elsewhere in ACPI CA code, so I
+>>didn't think adding mode stuff like this would cause problems (as
+>>long as the changes were correct of course).
+>>
+>>>Also the const changes may be a bit of a pain -> this is what Robert
+>>>meant with as long as it won't end in a chain of const cleanups :)
+>>
+>>Of course they're a pain now. But see below.
+>>
+>>>The whole code gets style cleaned up through Lindent and manually to
+>>>half way fit to the Linux kernel style when things get merged.
+>>>
+>>>Currently Robert has to readjust this to ACPICA coding style by hand
+>>>and merge it into the internal Intel repository. Len has to pick it
+up
+>>>somewhat later and merge it back to the Linux kernel...
+>>>
+>>>Therefore I expect for cleanup patches (this one is on the edge, but
+I
+>>>could understand Intel if they hold it off) the best is to wait until
+>>>Intel publishs ACPICA as CVS or whatever repository on their
+>>>lesswatts.org site.
+>>
+>>That's brave to say - I've been seeing this kind of significant
+cleanup
+>>potential about seven years ago (when I wasn't dealing with ACPI CA
+>>on Linux, yet), so I have to admit I find it a little odd (at least)
+to
+>>defer
+>>this even further - the code should have been written const-correct
+>>and __init-ready (iirc Windows also has a concept of init code) from
+>>the beginning in my opinion. ANyway, the purpose of both patches
+>>was to try and get this cleanup started in Linux or at least turn
+>>attention to this on the ACPI CA side.
+>>
+>>Jan
 
