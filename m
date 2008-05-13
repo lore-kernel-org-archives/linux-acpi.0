@@ -1,690 +1,441 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC][PATCH 2/2] ACPI PM: Add possibility to change suspend sequence
-Date: Tue, 13 May 2008 01:03:25 +0200
-Message-ID: <200805130103.26644.rjw@sisk.pl>
-References: <200805062342.42789.rjw@sisk.pl> <20080512072301.GC24094@elf.ucw.cz> <200805130034.06604.rjw@sisk.pl>
+From: James Bottomley <James.Bottomley@HansenPartnership.com>
+Subject: Re: Fwd: [2.6.25.1] QLA1040 Panic on startup (ACPI related)
+Date: Mon, 12 May 2008 19:27:58 -0500
+Message-ID: <1210638478.3078.46.camel@localhost.localdomain>
+References: <c457bfbf0805121437m355f2931p7d1a32fd5e40eb8e@mail.gmail.com>
+	 <1210629550.3078.34.camel@localhost.localdomain>
+	 <c457bfbf0805121638q4f9fd69eh86b01e5516f67d8a@mail.gmail.com>
+	 <c457bfbf0805121640l7959d6fq402284ea1087604c@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:41871 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755093AbYELXDQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 12 May 2008 19:03:16 -0400
-In-Reply-To: <200805130034.06604.rjw@sisk.pl>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <c457bfbf0805121640l7959d6fq402284ea1087604c@mail.gmail.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: sean bruno <seanwbruno@gmail.com>
+Cc: linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@suse.cz>
-Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, pm list <linux-pm@lists.linux-foundation.org>, Greg KH <greg@kroah.com>, Andrew Morton <akpm@linux-foundation.org>
 
-On Tuesday, 13 of May 2008, Rafael J. Wysocki wrote:
-> On Monday, 12 of May 2008, Pavel Machek wrote:
-> > Hi!
-> > 
-> > > Index: linux-2.6/Documentation/kernel-parameters.txt
-> > > ===================================================================
-> > > --- linux-2.6.orig/Documentation/kernel-parameters.txt
-> > > +++ linux-2.6/Documentation/kernel-parameters.txt
-> > > @@ -157,6 +157,11 @@ and is between 256 and 4096 characters. 
-> > >  			default: The hardware signature is checked during
-> > >  			         resume from S4.
-> > >  
-> > > +	acpi_old_suspend_ordering [HW,ACPI] ACPI suspend ordering
-> > > +			Enforce the ACPI 1.0 ordering of the _PTS control
-> > > +			method wrt putting devices into low power states
-> > > +			default: ACPI 2.0 ordering of _PTS
-> > > +
-> > >  	acpi_sci=	[HW,ACPI] ACPI System Control Interrupt trigger mode
-> > >  			Format: { level | edge | high | low }
-> > >
-> > 
-> > Hmm, I have a wild idea...
-> > 
-> > acpi_sleep=old_ordering
-> > 
-> > ...and reuse the same variable we already use for
-> > s3_bios/s3_mode. Then, we'd be able to blacklist the systems needing
-> > old_ordering from s2ram...
-> > 
-> > I guess this whitelist should better be done in kernel, but short-term
-> > ability to whitelist from userland could not hurt...?
+On Mon, 2008-05-12 at 16:40 -0700, sean bruno wrote:
+> ---------- Forwarded message ----------
+> From: sean bruno <seanwbruno@gmail.com>
+> Date: Mon, May 12, 2008 at 4:38 PM
+> Subject: Re: [2.6.25.1] QLA1040 Panic on startup
+> To: James Bottomley <James.Bottomley@hansenpartnership.com>
 > 
-> There's one problem with that, acpi_sleep is x86-specific and it's actually
-> handled in arch/x86/kernel/acpi/sleep.c .  Well, ok, I think I can handle that,
-> but it won't look nice.
+> 
+> >  This looks a bit like an ACPI IRQ routing problem
+>  >
+>  >  Could you try booting with the kernel parameter
+>  >
+>  >  acpi=noirq
+>  >
+>  >  And see if that fixes it?
+>  >
+>  >  Thanks,
+>  >
+>  >  James
+> 
+>  Thanks James.  Setting acpi=noirq does indeed allow this system to
+>  boot normally.  The motherboard in question is an Intel D201GLY2.
+> 
+>  Here is the output of the system when it works correctly:
 
-Below is the result, please have a look.
+That definitely tags it as an acpi issue.  I've cc'd the acpi mailing
+list who should be able to help with further advice about how to fix
+this (or how to help them diagnose it further).
 
-Thanks,
-Rafael
+James
 
----
-From: Rafael J. Wysocki <rjw@sisk.pl>
 
-There are some systems out there that don't work correctly with
-our current suspend/hibernation code ordering.  Provide a workaround
-for these systems allowing them to pass the
-'acpi_sleep=old_ordering' in the kernel command line which will make
-the kernel use the pre-ACPI 2.0 suspend code ordering.
+> 
+>   BIOS-provided physical RAM map:
+>   BIOS-e801: 0000000000000000 - 000000000009f000 (usable)
+>   BIOS-e801: 0000000000100000 - 000000001ce60000 (usable)
+>  0MB HIGHMEM available.
+>  462MB LOWMEM available.
+>  Zone PFN ranges:
+>   DMA             0 ->     4096
+>   Normal       4096 ->   118368
+>   HighMem    118368 ->   118368
+>  Movable zone start PFN for each node
+>  early_node_map[1] active PFN ranges
+>     0:        0 ->   118368
+>  DMI 2.4 present.
+>  ACPI: RSDP 000FE020, 0014 (r0 INTEL )
+>  ACPI: RSDT 1DEFE038, 002C (r1 INTEL  DG965CO        89       1000013)
+>  ACPI: FACP 1DEFD000, 0074 (r1 INTEL  DG965CO        89 MSFT  1000013)
+>  ACPI: DSDT 1DEF9000, 312C (r1 INTEL  DG965CO        89 MSFT  1000013)
+>  ACPI: FACS 1DEBC000, 0040
+>  ACPI: APIC 1DEF8000, 006C (r1 INTEL  DG965CO        89 MSFT  1000013)
+>  ACPI: PM-Timer IO Port: 0x808
+>  Allocating PCI resources starting at 20000000 (gap: 1ce60000:e31a0000)
+>  Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 117444
+>  Kernel command line: nokeymap root=/dev/ram0 rw vga=normal acpi=noirq
+>  console=tty1 console=ttyS0,115200n8
+> 
+> Enabling fast FPU save and restore... done.
+>  Enabling unmasked SIMD FPU exception support... done.
+>  Initializing CPU#0
+>  PID hash table entries: 2048 (order: 11, 8192 bytes)
+>  Detected 1200.063 MHz processor.
+> 
+> Console: colour VGA+ 80x25
+>  console [tty1] enabled
+>  console [ttyS0] enabled
+>  Dentry cache hash table entries: 65536 (order: 6, 262144 bytes)
+>  Inode-cache hash table entries: 32768 (order: 5, 131072 bytes)
+>  Memory: 425476k/473472k available (5522k kernel code, 47404k reserved,
+>  2555k data, 332k init, 0k highmem)
+>  virtual kernel memory layout:
+>     fixmap  : 0xfffe8000 - 0xfffff000   (  92 kB)
+>     pkmap   : 0xff800000 - 0xffc00000   (4096 kB)
+>     vmalloc : 0xdd800000 - 0xff7fe000   ( 543 MB)
+>     lowmem  : 0xc0000000 - 0xdce60000   ( 462 MB)
+>       .init : 0xc08e6000 - 0xc0939000   ( 332 kB)
+>       .data : 0xc066497f - 0xc08e3774   (2555 kB)
+>       .text : 0xc0100000 - 0xc066497f   (5522 kB)
+>  Checking if this processor honours the WP bit even in supervisor mode...Ok.
+>  Calibrating delay using timer specific routine.. 2401.71 BogoMIPS (lpj=4803439)
+> 
+> Mount-cache hash table entries: 512
+>  CPU: L1 I cache: 32K, L1 D cache: 32K
+>  CPU: L2 cache: 512K
+>  using mwait in idle threads.
+>  Compat vDSO mapped to ffffe000.
+>  CPU: Intel(R) Celeron(R) CPU          220  @ 1.20GHz stepping 01
+>  Checking 'hlt' instruction... OK.
+>  Freeing SMP alternatives: 0k freed
+>  ACPI: Core revision 20070126
+>  ACPI: setting ELCR to 0e00 (from 0c00)
+> 
+> net_namespace: 152 bytes
+>  xor: automatically using best checksumming function: pIII_sse
+>    pIII_sse  :  4277.000 MB/sec
+>  xor: using function: pIII_sse (4277.000 MB/sec)
+>  NET: Registered protocol family 16
+>  No dock devices found.
+>  ACPI: bus type pci registered
+>  PCI: Using configuration type 1
+>  Setting up standard PCI resources
+>  ACPI: Interpreter enabled
+>  ACPI: (supports S0 S1 S5)
+>  ACPI: Using PIC for interrupt routing
+>  ACPI: PCI Root Bridge [PCI0] (0000:00)
+> 
+> Linux Plug and Play Support v0.97 (c) Adam Belay
+>  pnp: PnP ACPI init
+>  ACPI: bus type pnp registered
+>  pnp: PnP ACPI: found 8 devices
+>  ACPI: ACPI bus type pnp unregistered
+>  SCSI subsystem initialized
+>  usbcore: registered new interface driver usbfs
+>  usbcore: registered new interface driver hub
+>  usbcore: registered new device driver usb
+>  PCI: Probing PCI hardware
+>  PCI: Using IRQ router default [1039/0964] at 0000:00:02.0
+> 
+> 
+> system 00:05: ioport range 0x800-0x8fe has been reserved
+>  system 00:05: ioport range 0x8ff-0x8ff has been reserved
+>  system 00:05: ioport range 0x4d0-0x4d1 has been reserved
+>  system 00:05: ioport range 0x4d6-0x4d6 has been reserved
+>  system 00:05: ioport range 0x295-0x29e has been reserved
+>  system 00:05: ioport range 0x2e8-0x2ef has been reserved
+>  system 00:05: ioport range 0x481-0x48f has been reserved
+>  system 00:06: iomem range 0x0-0x9ffff could not be reserved
+>  system 00:06: iomem range 0xec000-0xfffff could not be reserved
+>  system 00:06: iomem range 0x100000-0x1dffffff could not be reserved
+>  system 00:06: iomem range 0xe0000000-0xefffffff has been reserved
+>  system 00:06: iomem range 0xfec00000-0xfec00fff has been reserved
+>  system 00:06: iomem range 0xfee00000-0xfee00fff has been reserved
+>  PCI: Bridge: 0000:00:01.0
+>   IO window: 1000-1fff
+>   MEM window: 0x2a000000-0x2a0fffff
+>   PREFETCH window: 0x0000000020000000-0x0000000027ffffff
+>  PCI: Bridge: 0000:00:1f.0
+>   IO window: disabled.
+>   MEM window: 0x1e000000-0x1e0fffff
+>   PREFETCH window: disabled.
+>  PCI: Enabling device 0000:00:1f.0 (0000 -> 0002)
+>  NET: Registered protocol family 2
+>  IP route cache hash table entries: 4096 (order: 2, 16384 bytes)
+>  TCP established hash table entries: 16384 (order: 5, 131072 bytes)
+>  TCP bind hash table entries: 16384 (order: 4, 65536 bytes)
+>  TCP: Hash tables configured (established 16384 bind 16384)
+>  TCP reno registered
+>  checking if image is initramfs... it is
+>  Overmounted tmpfs
+>  Freeing initrd memory: 34338k freed
+>  Installing knfsd (copyright (C) 1996 okir@monad.swb.de).
+>  NTFS driver 2.1.29 [Flags: R/W].
+>  fuse init (API version 7.9)
+>  JFS: nTxBlock = 3593, nTxLock = 28751
+>  SGI XFS with realtime, large block numbers, no debug enabled
+>  async_tx: api initialized (sync-only)
+>  io scheduler noop registered
+>  io scheduler anticipatory registered (default)
+>  input: Power Button (FF) as /class/input/input0
+>  ACPI: Power Button (FF) [PWRF]
+>  input: Power Button (CM) as /class/input/input1
+>  ACPI: Power Button (CM) [PWRB]
+>  ACPI: ACPI0007:00 is registered as cooling_device0
+>  ACPI: Processor [CPU0] (supports 8 throttling states)
+>  Real Time Clock Driver v1.12ac
+>  Non-volatile memory driver v1.2
+>  Serial: 8250/16550 driver $Revision: 1.90 $ 4 ports, IRQ sharing disabled
+>  serial8250: ttyS0 at I/O 0x3f8 (irq = 4) is a 16550A
+>  00:07: ttyS0 at I/O 0x3f8 (irq = 4) is a 16550A
+>  brd: module loaded
+>  loop: module loaded
+>  Compaq SMART2 Driver (v 2.6.0)
+>  HP CISS Driver (v 3.6.14)
+>  Intel(R) PRO/1000 Network Driver - version 7.3.20-k2
+>  Copyright (c) 1999-2006 Intel Corporation.
+>  e1000e: Intel(R) PRO/1000 Network Driver - 0.2.0
+>  e1000e: Copyright (c) 1999-2007 Intel Corporation.
+>  Intel(R) Gigabit Ethernet Network Driver - version 1.0.8-k2
+>  Copyright (c) 2007 Intel Corporation.
+>  ixgbe: Intel(R) 10 Gigabit PCI Express Network Driver - version 1.1.18
+>  ixgbe: Copyright (c) 1999-2007 Intel Corporation.
+>  Intel(R) PRO/10GbE Network Driver - version 1.0.126-k4
+>  Copyright (c) 1999-2006 Intel Corporation.
+>  tehuti: Tehuti Networks(R) Network Driver, 7.29.3
+>  tehuti: Options: hw_csum
+>  pcnet32.c:v1.34 14.Aug.2007 tsbogend@alpha.franken.de
+>  e100: Intel(R) PRO/100 Network Driver, 3.5.23-k4-NAPI
+>  e100: Copyright(c) 1999-2006 Intel Corporation
+>  ThunderLAN driver v1.15
+>  TLAN: 0 devices installed, PCI: 0  EISA: 0
+>  sis900.c: v1.08.10 Apr. 2 2006
+> 
+> 0000:00:04.0: SiS 900 on Foxconn 661 7MI transceiver found at address 1.
+>  0000:00:04.0: Using transceiver found at address 1 as default
+>  eth0: SiS 900 PCI Fast Ethernet at 0x2400, IRQ 10, 00:1c:c0:1e:dc:6b
+> 
+> 
+> ns83820.c: National Semiconductor DP83820 10/100/1000 driver.
+>  eth%d: i82596 initialization timed out
+>  usbcore: registered new interface driver catc
+>  drivers/net/usb/catc.c: v2.8 CATC EL1210A NetMate USB Ethernet driver
+>  usbcore: registered new interface driver kaweth
+>  pegasus: v0.6.14 (2006/09/27), Pegasus/Pegasus II USB Ethernet driver
+>  usbcore: registered new interface driver pegasus
+>  drivers/net/usb/rtl8150.c: rtl8150 based usb-ethernet driver v0.6.2
+> (2004/08/27)
+>  usbcore: registered new interface driver rtl8150
+>  dmfe: Davicom DM9xxx net driver, version 1.36.4 (2002-01-17)
+>  winbond-840.c:v1.01-e (2.4 port) Sep-11-2006  Donald Becker <becker@scyld.com>
+>   http://www.scyld.com/network/drivers.html
+>  Uniform Multi-Platform E-IDE driver
+>  ide: Assuming 33MHz system bus speed for PIO modes; override with idebus=xx
+>  SIS5513: IDE controller (0x1039:0x5513 rev 0x01) at  PCI slot 0000:00:02.5
+>  SIS5513: not 100% native mode: will probe irqs later
+>  SIS5513: SiS 962/963 MuTIOL IDE UDMA133 controller
+>     ide0: BM-DMA at 0x2890-0x2897, BIOS settings: hda:PIO, hdb:PIO
+>     ide1: BM-DMA at 0x2898-0x289f, BIOS settings: hdc:PIO, hdd:PIO
+>  hda: TRANSCEND, ATA DISK drive
+>  hda: UDMA/66 mode selected
+>  ide0 at 0x1f0-0x1f7,0x3f6 on irq 14
+>  hda: max request size: 128KiB
+>  hda: 1000944 sectors (512 MB) w/2KiB Cache, CHS=993/16/63
+>   hda: hda1 hda2 hda3
+>   hda1: <bsd:bad subpartition - ignored
+>   >
+>   hda2: <bsd:bad subpartition - ignored
+>   >
+>  ide-floppy driver 1.00
+>  Loading Adaptec I2O RAID: Version 2.4 Build 5go
+>  Detecting Adaptec I2O RAID controllers...
+>  Adaptec aacraid driver 1.1-5[2455]-ms
+>  scsi: <fdomain> Detection failed (no card)
+> 
+> qla1280: QLA1040 found on PCI bus 0, dev 6
+>  scsi(2:0): Resetting SCSI BUS
+>  scsi2 : QLogic QLA1040 PCI to SCSI Host Adapter
+>        Firmware version:  7.65.06, Driver version 3.26
+>  Emulex LightPulse Fibre Channel SCSI driver 8.2.5
+>  Copyright(c) 2004-2008 Emulex.  All rights reserved.
+>  Failed initialization of WD-7000 SCSI card!
+>  megaraid cmm: 2.20.2.7 (Release Date: Sun Jul 16 00:01:03 EST 2006)
+>  megaraid: 2.20.5.1 (Release Date: Thu Nov 16 15:32:35 EST 2006)
+>  megasas: 00.00.03.16-rc1 Thu. Nov. 07 10:09:32 PDT 2007
+>  GDT-HA: Storage RAID Controller Driver. Version: 3.05
+>  GDT-HA: Found 0 PCI Storage RAID Controllers
+>  3ware Storage Controller device driver for Linux v1.26.02.002.
+>  3ware 9000 Storage Controller device driver for Linux v2.26.02.010.
+>  RocketRAID 3xxx/4xxx Controller driver v1.3 (071203)
+>  st: Version 20080221, fixed bufsize 32768, s/g segs 256
+>  Driver 'st' needs updating - please use bus_type methods
+>  osst :I: Tape driver with OnStream support version 0.99.4
+>  osst :I: $Id: osst.c,v 1.73 2005/01/01 21:13:34 wriede Exp $
+>  Driver 'osst' needs updating - please use bus_type methods
+>  Driver 'sd' needs updating - please use bus_type methods
+>  Driver 'sr' needs updating - please use bus_type methods
+>  sata_sis 0000:00:05.0: version 1.0
+>  sata_sis 0000:00:05.0: Detected SiS 180/181/964 chipset in SATA mode
+>  scsi3 : sata_sis
+>  scsi4 : sata_sis
+>  ata1: SATA max UDMA/133 cmd 0x28a8 ctl 0x28b4 bmdma 0x2880 irq 11
+>  ata2: SATA max UDMA/133 cmd 0x28a0 ctl 0x28b0 bmdma 0x2888 irq 11
+>  ata1: SATA link up 1.5 Gbps (SStatus 113 SControl 300)
+>  ata1.00: ATA-7: ST380815AS, 3.AAD, max UDMA/133
+>  ata1.00: 156301488 sectors, multi 16: LBA48 NCQ (depth 0/32)
+>  ata1.00: configured for UDMA/133
+>  ata2: SATA link up 1.5 Gbps (SStatus 113 SControl 300)
+>  ata2.00: ATA-7: ST3250410AS, 3.AAC, max UDMA/133
+>  ata2.00: 488397168 sectors, multi 16: LBA48 NCQ (depth 0/32)
+>  ata2.00: configured for UDMA/133
+>  scsi 3:0:0:0: Direct-Access     ATA      ST380815AS       3.AA PQ: 0 ANSI: 5
+>  sd 3:0:0:0: [sda] 156301488 512-byte hardware sectors (80026 MB)
+>  sd 3:0:0:0: [sda] Write Protect is off
+>  sd 3:0:0:0: [sda] Write cache: enabled, read cache: enabled, doesn't
+>  support DPO or FUA
+>  sd 3:0:0:0: [sda] 156301488 512-byte hardware sectors (80026 MB)
+>  sd 3:0:0:0: [sda] Write Protect is off
+>  sd 3:0:0:0: [sda] Write cache: enabled, read cache: enabled, doesn't
+>  support DPO or FUA
+>   sda: unknown partition table
+>  sd 3:0:0:0: [sda] Attached SCSI disk
+>  sd 3:0:0:0: Attached scsi generic sg0 type 0
+>  scsi 4:0:0:0: Direct-Access     ATA      ST3250410AS      3.AA PQ: 0 ANSI: 5
+>  sd 4:0:0:0: [sdb] 488397168 512-byte hardware sectors (250059 MB)
+>  sd 4:0:0:0: [sdb] Write Protect is off
+>  sd 4:0:0:0: [sdb] Write cache: enabled, read cache: enabled, doesn't
+>  support DPO or FUA
+>  sd 4:0:0:0: [sdb] 488397168 512-byte hardware sectors (250059 MB)
+>  sd 4:0:0:0: [sdb] Write Protect is off
+>  sd 4:0:0:0: [sdb] Write cache: enabled, read cache: enabled, doesn't
+>  support DPO or FUA
+>   sdb: [LDM]
+>  sd 4:0:0:0: [sdb] Attached SCSI disk
+>  sd 4:0:0:0: Attached scsi generic sg1 type 0
+>  Fusion MPT base driver 3.04.06
+>  Copyright (c) 1999-2007 LSI Corporation
+>  Fusion MPT SPI Host driver 3.04.06
+>  Fusion MPT FC Host driver 3.04.06
+>  Fusion MPT SAS Host driver 3.04.06
+>  Fusion MPT misc device (ioctl) driver 3.04.06
+>  mptctl: Registered with Fusion MPT base driver
+>  mptctl: /dev/mptctl @ (major,minor=10,220)
+>  ieee1394: raw1394: /dev/raw1394 device initialized
+>  PCI: Enabling device 0000:00:03.3 (0100 -> 0102)
+>  ehci_hcd 0000:00:03.3: EHCI Host Controller
+>  ehci_hcd 0000:00:03.3: new USB bus registered, assigned bus number 1
+>  ehci_hcd 0000:00:03.3: irq 11, io mem 0x2a102000
+>  ehci_hcd 0000:00:03.3: USB 2.0 started, EHCI 1.00, driver 10 Dec 2004
+>  usb usb1: configuration #1 chosen from 1 choice
+>  hub 1-0:1.0: USB hub found
+>  hub 1-0:1.0: 8 ports detected
+>  116x: driver isp116x-hcd, 03 Nov 2005
+>  PCI: Enabling device 0000:00:03.0 (0100 -> 0102)
+>  ohci_hcd 0000:00:03.0: OHCI Host Controller
+>  ohci_hcd 0000:00:03.0: new USB bus registered, assigned bus number 2
+>  ohci_hcd 0000:00:03.0: irq 11, io mem 0x2a105000
+>  usb usb2: configuration #1 chosen from 1 choice
+>  hub 2-0:1.0: USB hub found
+>  hub 2-0:1.0: 3 ports detected
+>  PCI: Enabling device 0000:00:03.1 (0100 -> 0102)
+>  ohci_hcd 0000:00:03.1: OHCI Host Controller
+>  ohci_hcd 0000:00:03.1: new USB bus registered, assigned bus number 3
+>  ohci_hcd 0000:00:03.1: irq 11, io mem 0x2a104000
+>  hub 1-0:1.0: unable to enumerate USB device on port 5
+>  usb usb3: configuration #1 chosen from 1 choice
+>  hub 3-0:1.0: USB hub found
+>  hub 3-0:1.0: 3 ports detected
+>  PCI: Enabling device 0000:00:03.2 (0100 -> 0102)
+>  ohci_hcd 0000:00:03.2: OHCI Host Controller
+>  ohci_hcd 0000:00:03.2: new USB bus registered, assigned bus number 4
+>  ohci_hcd 0000:00:03.2: irq 10, io mem 0x2a103000
+>  usb usb4: configuration #1 chosen from 1 choice
+>  hub 4-0:1.0: USB hub found
+>  hub 4-0:1.0: 2 ports detected
+>  usb 1-6: new high speed USB device using ehci_hcd and address 3
+>  USB Universal Host Controller Interface driver v3.0
+>  sl811: driver sl811-hcd, 19 May 2005
+>  usb 1-6: configuration #1 chosen from 1 choice
+>  usb 3-2: new full speed USB device using ohci_hcd and address 2
+>  usb 3-2: configuration #1 chosen from 1 choice
+>  hub 3-2:1.0: USB hub found
+>  hub 3-2:1.0: 3 ports detected
+>  usb 3-2.1: new full speed USB device using ohci_hcd and address 3
+>  usb 3-2.1: configuration #1 chosen from 1 choice
+>  usbcore: registered new interface driver usblp
+>  Initializing USB Mass Storage driver...
+>  scsi5 : SCSI emulation for USB Mass Storage devices
+>  usbcore: registered new interface driver usb-storage
+>  USB Mass Storage support registered.
+>  usbcore: registered new interface driver usblcd
+>  PNP: No PS/2 controller found. Probing ports directly.
+>  serio: i8042 KBD port at 0x60,0x64 irq 1
+>  serio: i8042 AUX port at 0x60,0x64 irq 12
+>  mice: PS/2 mouse device common for all mice
+>  md: linear personality registered for level -1
+>  md: raid0 personality registered for level 0
+>  md: raid1 personality registered for level 1
+>  md: raid10 personality registered for level 10
+>  raid6: int32x1    504 MB/s
+>  raid6: int32x2    514 MB/s
+>  raid6: int32x4    366 MB/s
+>  raid6: int32x8    348 MB/s
+>  raid6: mmxx1     1630 MB/s
+>  raid6: mmxx2     1787 MB/s
+>  raid6: sse1x1    1125 MB/s
+>  raid6: sse1x2    1394 MB/s
+>  raid6: sse2x1    2028 MB/s
+>  raid6: sse2x2    2212 MB/s
+>  raid6: using algorithm sse2x2 (2212 MB/s)
+>  md: raid6 personality registered for level 6
+>  md: raid5 personality registered for level 5
+>  md: raid4 personality registered for level 4
+>  md: multipath personality registered for level -4
+>  device-mapper: ioctl: 4.13.0-ioctl (2007-10-18) initialised:
+> dm-devel@redhat.com
+>  device-mapper: multipath: version 1.0.5 loaded
+>  device-mapper: multipath round-robin: version 1.0.0 loaded
+>  device-mapper: multipath emc: version 0.0.3 loaded
+>  cpuidle: using governor ladder
+>  sdhci: Secure Digital Host Controller Interface driver
+>  sdhci: Copyright(c) Pierre Ossman
+>  wbsd: Winbond W83L51xD SD/MMC card interface driver
+>  wbsd: Copyright(c) Pierre Ossman
+>  padlock: VIA PadLock not detected.
+>  usbcore: registered new interface driver hiddev
+>  input: Dell Dell USB Keyboard Hub as /class/input/input2
+>  input: USB HID v1.10 Keyboard [Dell Dell USB Keyboard Hub] on
+>  usb-0000:00:03.1-2.1
+>  input: Dell Dell USB Keyboard Hub as /class/input/input3
+>  input: USB HID v1.10 Device [Dell Dell USB Keyboard Hub] on
+> usb-0000:00:03.1-2.1
+>  usbcore: registered new interface driver usbhid
+>  drivers/hid/usbhid/hid-core.c: v2.6:USB HID core driver
+>  TCP cubic registered
+>  NET: Registered protocol family 1
+>  NET: Registered protocol family 17
+>  RPC: Registered udp transport module.
+>  RPC: Registered tcp transport module.
+>  Using IPI Shortcut mode
+>  BIOS EDD facility v0.16 2004-Jun-25, 6 devices found
+>  Freeing unused kernel memory: 332k freed
+> 
+>  INIT: version 2.86 booting
+>  none on /proc type proc (rw)
+>  sysfs on /sys type sysfs (rw)
+>  Initializing udev dynamic device directory.
+>  Checking non-root filesystems:
+>  fsck 1.40.9 (27-Apr-2008)
+>  none on /dev/pts type devpts (rw,gid=5,mode=620)
+>  none on /proc/bus/usb type usbfs (rw)
+>  Running /etc/rc.d/rc.modules:
+>  Updating module dependencies for Linux 2.6.25.1:
+> 
+>  INIT: Entering runlevel: 3
+>  Going multiuser...
+>  Updating shared library links:  /sbin/ldconfig &
+>  Starting sysklogd daemons:  /usr/sbin/syslogd /usr/sbin/klogd -c 3 -x
+>  Starting ACPI daemon:  /usr/sbin/acpid
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-scsi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Unfortunately, that requires us to rework the resuming of devices for
-recovering the platform in case one of the device drivers' .suspend()
-routines returns error code.  Namely, ACPI 1.0 specifies that _PTS
-should be called before suspending devices, but _WAK still should be
-called before resuming them in order to undo the changes made by
-_PTS.  However, if there is an error during suspending devices, they
-are automatically resumed without returning control to the PM core
-and that has to be changed.  For this reason, the high-level suspend
-and hibernation code has to be changed as well and new platform
-callbacks are necessary.
-
-The patch also reorders and refactors the ACPI suspend/hibernation
-code to avoid duplication as far as reasonably possible.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- Documentation/kernel-parameters.txt |    6 
- arch/x86/kernel/acpi/sleep.c        |    2 
- drivers/acpi/sleep/main.c           |  276 +++++++++++++++++++++---------------
- drivers/base/power/main.c           |    2 
- include/linux/acpi.h                |    3 
- include/linux/suspend.h             |   14 +
- kernel/power/disk.c                 |   28 ++-
- kernel/power/main.c                 |   10 -
- 8 files changed, 215 insertions(+), 126 deletions(-)
-
-Index: linux-2.6/Documentation/kernel-parameters.txt
-===================================================================
---- linux-2.6.orig/Documentation/kernel-parameters.txt
-+++ linux-2.6/Documentation/kernel-parameters.txt
-@@ -147,10 +147,14 @@ and is between 256 and 4096 characters. 
- 			default: 0
- 
- 	acpi_sleep=	[HW,ACPI] Sleep options
--			Format: { s3_bios, s3_mode, s3_beep }
-+			Format: { s3_bios, s3_mode, s3_beep, old_ordering }
- 			See Documentation/power/video.txt for s3_bios and s3_mode.
- 			s3_beep is for debugging; it makes the PC's speaker beep
- 			as soon as the kernel's real-mode entry point is called.
-+			old_ordering causes the ACPI 1.0 ordering of the _PTS
-+			control method, wrt putting devices into low power
-+			states, to be enforced (the ACPI 2.0 ordering of _PTS is
-+			used by default).
- 
- 	acpi_s4_nosigcheck [HW,ACPI] S4 hardware signature
- 			ACPI will ignore the S4 hardware signature
-Index: linux-2.6/drivers/acpi/sleep/main.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/sleep/main.c
-+++ linux-2.6/drivers/acpi/sleep/main.c
-@@ -24,10 +24,6 @@
- 
- u8 sleep_states[ACPI_S_STATE_COUNT];
- 
--#ifdef CONFIG_PM_SLEEP
--static u32 acpi_target_sleep_state = ACPI_STATE_S0;
--#endif
--
- static int acpi_sleep_prepare(u32 acpi_state)
- {
- #ifdef CONFIG_ACPI_SLEEP
-@@ -50,9 +46,96 @@ static int acpi_sleep_prepare(u32 acpi_s
- 	return 0;
- }
- 
--#ifdef CONFIG_SUSPEND
--static struct platform_suspend_ops acpi_suspend_ops;
-+#ifdef CONFIG_PM_SLEEP
-+static u32 acpi_target_sleep_state = ACPI_STATE_S0;
-+
-+/*
-+ * ACPI 1.0 wants us to execute _PTS before suspending devices, so we allow the
-+ * user to request that behavior by using the 'acpi_old_suspend_ordering'
-+ * kernel command line option that causes the following variable to be set.
-+ */
-+static bool old_suspend_ordering;
-+
-+void __init acpi_old_suspend_ordering(void)
-+{
-+	old_suspend_ordering = true;
-+}
-+
-+/**
-+ *	acpi_pm_disable_gpes - Disable the GPEs.
-+ */
-+static int acpi_pm_disable_gpes(void)
-+{
-+	acpi_hw_disable_all_gpes();
-+	return 0;
-+}
-+
-+/**
-+ *	__acpi_pm_prepare - Prepare the platform to enter the target state.
-+ *
-+ *	If necessary, set the firmware waking vector and do arch-specific
-+ *	nastiness to get the wakeup code to the waking vector.
-+ */
-+static int __acpi_pm_prepare(void)
-+{
-+	int error = acpi_sleep_prepare(acpi_target_sleep_state);
-+
-+	if (error)
-+		acpi_target_sleep_state = ACPI_STATE_S0;
-+	return error;
-+}
-+
-+/**
-+ *	acpi_pm_prepare - Prepare the platform to enter the target sleep
-+ *		state and disable the GPEs.
-+ */
-+static int acpi_pm_prepare(void)
-+{
-+	int error = __acpi_pm_prepare();
-+
-+	if (!error)
-+		acpi_hw_disable_all_gpes();
-+	return error;
-+}
-+
-+/**
-+ *	acpi_pm_finish - Instruct the platform to leave a sleep state.
-+ *
-+ *	This is called after we wake back up (or if entering the sleep state
-+ *	failed).
-+ */
-+static void acpi_pm_finish(void)
-+{
-+	u32 acpi_state = acpi_target_sleep_state;
-+
-+	if (acpi_state == ACPI_STATE_S0)
-+		return;
-+
-+	printk(KERN_INFO PREFIX "Waking up from system sleep state S%d\n",
-+		acpi_state);
-+	acpi_disable_wakeup_device(acpi_state);
-+	acpi_leave_sleep_state(acpi_state);
-+
-+	/* reset firmware waking vector */
-+	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
-+
-+	acpi_target_sleep_state = ACPI_STATE_S0;
-+}
-+
-+/**
-+ *	acpi_pm_end - Finish up suspend sequence.
-+ */
-+static void acpi_pm_end(void)
-+{
-+	/*
-+	 * This is necessary in case acpi_pm_finish() is not called during a
-+	 * failing transition to a sleep state.
-+	 */
-+	acpi_target_sleep_state = ACPI_STATE_S0;
-+}
-+#endif /* CONFIG_PM_SLEEP */
- 
-+#ifdef CONFIG_SUSPEND
- extern void do_suspend_lowlevel(void);
- 
- static u32 acpi_suspend_states[] = {
-@@ -66,7 +149,6 @@ static u32 acpi_suspend_states[] = {
-  *	acpi_suspend_begin - Set the target system sleep state to the state
-  *		associated with given @pm_state, if supported.
-  */
--
- static int acpi_suspend_begin(suspend_state_t pm_state)
- {
- 	u32 acpi_state = acpi_suspend_states[pm_state];
-@@ -83,25 +165,6 @@ static int acpi_suspend_begin(suspend_st
- }
- 
- /**
-- *	acpi_suspend_prepare - Do preliminary suspend work.
-- *
-- *	If necessary, set the firmware waking vector and do arch-specific
-- *	nastiness to get the wakeup code to the waking vector.
-- */
--
--static int acpi_suspend_prepare(void)
--{
--	int error = acpi_sleep_prepare(acpi_target_sleep_state);
--
--	if (error) {
--		acpi_target_sleep_state = ACPI_STATE_S0;
--		return error;
--	}
--
--	return ACPI_SUCCESS(acpi_hw_disable_all_gpes()) ? 0 : -EFAULT;
--}
--
--/**
-  *	acpi_suspend_enter - Actually enter a sleep state.
-  *	@pm_state: ignored
-  *
-@@ -109,7 +172,6 @@ static int acpi_suspend_prepare(void)
-  *	assembly, which in turn call acpi_enter_sleep_state().
-  *	It's unfortunate, but it works. Please fix if you're feeling frisky.
-  */
--
- static int acpi_suspend_enter(suspend_state_t pm_state)
- {
- 	acpi_status status = AE_OK;
-@@ -166,39 +228,6 @@ static int acpi_suspend_enter(suspend_st
- 	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
- }
- 
--/**
-- *	acpi_suspend_finish - Instruct the platform to leave a sleep state.
-- *
-- *	This is called after we wake back up (or if entering the sleep state
-- *	failed). 
-- */
--
--static void acpi_suspend_finish(void)
--{
--	u32 acpi_state = acpi_target_sleep_state;
--
--	acpi_disable_wakeup_device(acpi_state);
--	acpi_leave_sleep_state(acpi_state);
--
--	/* reset firmware waking vector */
--	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
--
--	acpi_target_sleep_state = ACPI_STATE_S0;
--}
--
--/**
-- *	acpi_suspend_end - Finish up suspend sequence.
-- */
--
--static void acpi_suspend_end(void)
--{
--	/*
--	 * This is necessary in case acpi_suspend_finish() is not called during a
--	 * failing transition to a sleep state.
--	 */
--	acpi_target_sleep_state = ACPI_STATE_S0;
--}
--
- static int acpi_suspend_state_valid(suspend_state_t pm_state)
- {
- 	u32 acpi_state;
-@@ -218,10 +247,39 @@ static int acpi_suspend_state_valid(susp
- static struct platform_suspend_ops acpi_suspend_ops = {
- 	.valid = acpi_suspend_state_valid,
- 	.begin = acpi_suspend_begin,
--	.prepare = acpi_suspend_prepare,
-+	.prepare = acpi_pm_prepare,
-+	.enter = acpi_suspend_enter,
-+	.finish = acpi_pm_finish,
-+	.end = acpi_pm_end,
-+};
-+
-+/**
-+ *	acpi_suspend_begin_old - Set the target system sleep state to the
-+ *		state associated with given @pm_state, if supported, and
-+ *		execute the _PTS control method.  This function is used if the
-+ *		pre-ACPI 2.0 suspend ordering has been requested.
-+ */
-+static int acpi_suspend_begin_old(suspend_state_t pm_state)
-+{
-+	int error = acpi_suspend_begin(pm_state);
-+
-+	if (!error)
-+		error = __acpi_pm_prepare();
-+	return error;
-+}
-+
-+/*
-+ * The following callbacks are used if the pre-ACPI 2.0 suspend ordering has
-+ * been requested.
-+ */
-+static struct platform_suspend_ops acpi_suspend_ops_old = {
-+	.valid = acpi_suspend_state_valid,
-+	.begin = acpi_suspend_begin_old,
-+	.prepare = acpi_pm_disable_gpes,
- 	.enter = acpi_suspend_enter,
--	.finish = acpi_suspend_finish,
--	.end = acpi_suspend_end,
-+	.finish = acpi_pm_finish,
-+	.end = acpi_pm_end,
-+	.recover = acpi_pm_finish,
- };
- #endif /* CONFIG_SUSPEND */
- 
-@@ -240,22 +298,9 @@ __setup("acpi_s4_nosigcheck", acpi_s4_no
- static int acpi_hibernation_begin(void)
- {
- 	acpi_target_sleep_state = ACPI_STATE_S4;
--
- 	return 0;
- }
- 
--static int acpi_hibernation_prepare(void)
--{
--	int error = acpi_sleep_prepare(ACPI_STATE_S4);
--
--	if (error) {
--		acpi_target_sleep_state = ACPI_STATE_S0;
--		return error;
--	}
--
--	return ACPI_SUCCESS(acpi_hw_disable_all_gpes()) ? 0 : -EFAULT;
--}
--
- static int acpi_hibernation_enter(void)
- {
- 	acpi_status status = AE_OK;
-@@ -291,52 +336,55 @@ static void acpi_hibernation_leave(void)
- 	}
- }
- 
--static void acpi_hibernation_finish(void)
-+static void acpi_pm_enable_gpes(void)
- {
--	acpi_disable_wakeup_device(ACPI_STATE_S4);
--	acpi_leave_sleep_state(ACPI_STATE_S4);
--
--	/* reset firmware waking vector */
--	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
--
--	acpi_target_sleep_state = ACPI_STATE_S0;
-+	acpi_hw_enable_all_runtime_gpes();
- }
- 
--static void acpi_hibernation_end(void)
--{
--	/*
--	 * This is necessary in case acpi_hibernation_finish() is not called
--	 * during a failing transition to the sleep state.
--	 */
--	acpi_target_sleep_state = ACPI_STATE_S0;
--}
-+static struct platform_hibernation_ops acpi_hibernation_ops = {
-+	.begin = acpi_hibernation_begin,
-+	.end = acpi_pm_end,
-+	.pre_snapshot = acpi_pm_prepare,
-+	.finish = acpi_pm_finish,
-+	.prepare = acpi_pm_prepare,
-+	.enter = acpi_hibernation_enter,
-+	.leave = acpi_hibernation_leave,
-+	.pre_restore = acpi_pm_disable_gpes,
-+	.restore_cleanup = acpi_pm_enable_gpes,
-+};
- 
--static int acpi_hibernation_pre_restore(void)
-+/**
-+ *	acpi_hibernation_begin_old - Set the target system sleep state to
-+ *		ACPI_STATE_S4 and execute the _PTS control method.  This
-+ *		function is used if the pre-ACPI 2.0 suspend ordering has been
-+ *		requested.
-+ */
-+static int acpi_hibernation_begin_old(void)
- {
--	acpi_status status;
--
--	status = acpi_hw_disable_all_gpes();
--
--	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
--}
-+	int error = acpi_sleep_prepare(ACPI_STATE_S4);
- 
--static void acpi_hibernation_restore_cleanup(void)
--{
--	acpi_hw_enable_all_runtime_gpes();
-+	if (!error)
-+		acpi_target_sleep_state = ACPI_STATE_S4;
-+	return error;
- }
- 
--static struct platform_hibernation_ops acpi_hibernation_ops = {
--	.begin = acpi_hibernation_begin,
--	.end = acpi_hibernation_end,
--	.pre_snapshot = acpi_hibernation_prepare,
--	.finish = acpi_hibernation_finish,
--	.prepare = acpi_hibernation_prepare,
-+/*
-+ * The following callbacks are used if the pre-ACPI 2.0 suspend ordering has
-+ * been requested.
-+ */
-+static struct platform_hibernation_ops acpi_hibernation_ops_old = {
-+	.begin = acpi_hibernation_begin_old,
-+	.end = acpi_pm_end,
-+	.pre_snapshot = acpi_pm_disable_gpes,
-+	.finish = acpi_pm_finish,
-+	.prepare = acpi_pm_disable_gpes,
- 	.enter = acpi_hibernation_enter,
- 	.leave = acpi_hibernation_leave,
--	.pre_restore = acpi_hibernation_pre_restore,
--	.restore_cleanup = acpi_hibernation_restore_cleanup,
-+	.pre_restore = acpi_pm_disable_gpes,
-+	.restore_cleanup = acpi_pm_enable_gpes,
-+	.recover = acpi_pm_finish,
- };
--#endif				/* CONFIG_HIBERNATION */
-+#endif /* CONFIG_HIBERNATION */
- 
- int acpi_suspend(u32 acpi_state)
- {
-@@ -478,13 +526,15 @@ int __init acpi_sleep_init(void)
- 		}
- 	}
- 
--	suspend_set_ops(&acpi_suspend_ops);
-+	suspend_set_ops(old_suspend_ordering ?
-+		&acpi_suspend_ops_old : &acpi_suspend_ops);
- #endif
- 
- #ifdef CONFIG_HIBERNATION
- 	status = acpi_get_sleep_type_data(ACPI_STATE_S4, &type_a, &type_b);
- 	if (ACPI_SUCCESS(status)) {
--		hibernation_set_ops(&acpi_hibernation_ops);
-+		hibernation_set_ops(old_suspend_ordering ?
-+			&acpi_hibernation_ops_old : &acpi_hibernation_ops);
- 		sleep_states[ACPI_STATE_S4] = 1;
- 		printk(" S4");
- 		if (!nosigcheck) {
-Index: linux-2.6/include/linux/suspend.h
-===================================================================
---- linux-2.6.orig/include/linux/suspend.h
-+++ linux-2.6/include/linux/suspend.h
-@@ -86,6 +86,11 @@ typedef int __bitwise suspend_state_t;
-  *	that implement @begin(), but platforms implementing @begin() should
-  *	also provide a @end() which cleans up transitions aborted before
-  *	@enter().
-+ *
-+ * @recover: Recover the platform from a suspend failure.
-+ *	Called by the PM core if the suspending of devices fails.
-+ *	This callback is optional and should only be implemented by platforms
-+ *	which require special recovery actions in that situation.
-  */
- struct platform_suspend_ops {
- 	int (*valid)(suspend_state_t state);
-@@ -94,6 +99,7 @@ struct platform_suspend_ops {
- 	int (*enter)(suspend_state_t state);
- 	void (*finish)(void);
- 	void (*end)(void);
-+	void (*recover)(void);
- };
- 
- #ifdef CONFIG_SUSPEND
-@@ -149,7 +155,7 @@ extern void mark_free_pages(struct zone 
-  * The methods in this structure allow a platform to carry out special
-  * operations required by it during a hibernation transition.
-  *
-- * All the methods below must be implemented.
-+ * All the methods below, except for @recover(), must be implemented.
-  *
-  * @begin: Tell the platform driver that we're starting hibernation.
-  *	Called right after shrinking memory and before freezing devices.
-@@ -189,6 +195,11 @@ extern void mark_free_pages(struct zone 
-  * @restore_cleanup: Clean up after a failing image restoration.
-  *	Called right after the nonboot CPUs have been enabled and before
-  *	thawing devices (runs with IRQs on).
-+ *
-+ * @recover: Recover the platform from a failure to suspend devices.
-+ *	Called by the PM core if the suspending of devices during hibernation
-+ *	fails.  This callback is optional and should only be implemented by
-+ *	platforms which require special recovery actions in that situation.
-  */
- struct platform_hibernation_ops {
- 	int (*begin)(void);
-@@ -200,6 +211,7 @@ struct platform_hibernation_ops {
- 	void (*leave)(void);
- 	int (*pre_restore)(void);
- 	void (*restore_cleanup)(void);
-+	void (*recover)(void);
- };
- 
- #ifdef CONFIG_HIBERNATION
-Index: linux-2.6/kernel/power/main.c
-===================================================================
---- linux-2.6.orig/kernel/power/main.c
-+++ linux-2.6/kernel/power/main.c
-@@ -269,11 +269,11 @@ int suspend_devices_and_enter(suspend_st
- 	error = device_suspend(PMSG_SUSPEND);
- 	if (error) {
- 		printk(KERN_ERR "PM: Some devices failed to suspend\n");
--		goto Resume_console;
-+		goto Recover_platform;
- 	}
- 
- 	if (suspend_test(TEST_DEVICES))
--		goto Resume_devices;
-+		goto Recover_platform;
- 
- 	if (suspend_ops->prepare) {
- 		error = suspend_ops->prepare();
-@@ -294,12 +294,16 @@ int suspend_devices_and_enter(suspend_st
- 		suspend_ops->finish();
-  Resume_devices:
- 	device_resume(PMSG_RESUME);
-- Resume_console:
- 	resume_console();
-  Close:
- 	if (suspend_ops->end)
- 		suspend_ops->end();
- 	return error;
-+
-+ Recover_platform:
-+	if (suspend_ops->recover)
-+		suspend_ops->recover();
-+	goto Resume_devices;
- }
- 
- /**
-Index: linux-2.6/kernel/power/disk.c
-===================================================================
---- linux-2.6.orig/kernel/power/disk.c
-+++ linux-2.6/kernel/power/disk.c
-@@ -180,6 +180,17 @@ static void platform_restore_cleanup(int
- }
- 
- /**
-+ *	platform_recover - recover the platform from a failure to suspend
-+ *	devices.
-+ */
-+
-+static void platform_recover(int platform_mode)
-+{
-+	if (platform_mode && hibernation_ops && hibernation_ops->recover)
-+		hibernation_ops->recover();
-+}
-+
-+/**
-  *	create_image - freeze devices that need to be frozen with interrupts
-  *	off, create the hibernation image and thaw those devices.  Control
-  *	reappears in this routine after a restore.
-@@ -258,10 +269,10 @@ int hibernation_snapshot(int platform_mo
- 	suspend_console();
- 	error = device_suspend(PMSG_FREEZE);
- 	if (error)
--		goto Resume_console;
-+		goto Recover_platform;
- 
- 	if (hibernation_test(TEST_DEVICES))
--		goto Resume_devices;
-+		goto Recover_platform;
- 
- 	error = platform_pre_snapshot(platform_mode);
- 	if (error || hibernation_test(TEST_PLATFORM))
-@@ -285,11 +296,14 @@ int hibernation_snapshot(int platform_mo
-  Resume_devices:
- 	device_resume(in_suspend ?
- 		(error ? PMSG_RECOVER : PMSG_THAW) : PMSG_RESTORE);
-- Resume_console:
- 	resume_console();
-  Close:
- 	platform_end(platform_mode);
- 	return error;
-+
-+ Recover_platform:
-+	platform_recover(platform_mode);
-+	goto Resume_devices;
- }
- 
- /**
-@@ -398,8 +412,11 @@ int hibernation_platform_enter(void)
- 
- 	suspend_console();
- 	error = device_suspend(PMSG_HIBERNATE);
--	if (error)
--		goto Resume_console;
-+	if (error) {
-+		if (hibernation_ops->recover)
-+			hibernation_ops->recover();
-+		goto Resume_devices;
-+	}
- 
- 	error = hibernation_ops->prepare();
- 	if (error)
-@@ -428,7 +445,6 @@ int hibernation_platform_enter(void)
- 	hibernation_ops->finish();
-  Resume_devices:
- 	device_resume(PMSG_RESTORE);
-- Resume_console:
- 	resume_console();
-  Close:
- 	hibernation_ops->end();
-Index: linux-2.6/drivers/base/power/main.c
-===================================================================
---- linux-2.6.orig/drivers/base/power/main.c
-+++ linux-2.6/drivers/base/power/main.c
-@@ -781,8 +781,6 @@ int device_suspend(pm_message_t state)
- 	error = dpm_prepare(state);
- 	if (!error)
- 		error = dpm_suspend(state);
--	if (error)
--		device_resume(resume_event(state));
- 	return error;
- }
- EXPORT_SYMBOL_GPL(device_suspend);
-Index: linux-2.6/arch/x86/kernel/acpi/sleep.c
-===================================================================
---- linux-2.6.orig/arch/x86/kernel/acpi/sleep.c
-+++ linux-2.6/arch/x86/kernel/acpi/sleep.c
-@@ -124,6 +124,8 @@ static int __init acpi_sleep_setup(char 
- 			acpi_realmode_flags |= 2;
- 		if (strncmp(str, "s3_beep", 7) == 0)
- 			acpi_realmode_flags |= 4;
-+		if (strncmp(str, "old_ordering", 12) == 0)
-+			acpi_old_suspend_ordering();
- 		str = strchr(str, ',');
- 		if (str != NULL)
- 			str += strspn(str, ", \t");
-Index: linux-2.6/include/linux/acpi.h
-===================================================================
---- linux-2.6.orig/include/linux/acpi.h
-+++ linux-2.6/include/linux/acpi.h
-@@ -233,6 +233,9 @@ int acpi_check_region(resource_size_t st
- 		      const char *name);
- int acpi_check_mem_region(resource_size_t start, resource_size_t n,
- 		      const char *name);
-+#ifdef CONFIG_PM_SLEEP
-+void __init acpi_old_suspend_ordering(void);
-+#endif /* CONFIG_PM_SLEEP */
- 
- #else	/* CONFIG_ACPI */
- 
