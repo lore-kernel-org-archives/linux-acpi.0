@@ -1,81 +1,74 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] Fix polling policy in the absence of _TZP
-Date: Tue, 13 May 2008 23:19:39 -0400
-Message-ID: <200805132319.39947.lenb@kernel.org>
-References: <20080514010000.GB21608@srcf.ucam.org>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: [PATCH]: ACPI: Disable Fixed_RTC event when installing RTC handler
+Date: Wed, 14 May 2008 11:32:59 +0800
+Message-ID: <1210735979.7932.14.camel@yakui_zhao.sh.intel.com>
+References: <1191814518.3830.2.camel@yakui_zhao.sh.intel.com>
+	 <200710092343.40843.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:42572 "EHLO hera.kernel.org"
+Received: from mga11.intel.com ([192.55.52.93]:45624 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755549AbYENDU4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 13 May 2008 23:20:56 -0400
-In-Reply-To: <20080514010000.GB21608@srcf.ucam.org>
-Content-Disposition: inline
+	id S1755549AbYENDYN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 13 May 2008 23:24:13 -0400
+In-Reply-To: <200710092343.40843.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
+To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org
 
-On Tuesday 13 May 2008, Matthew Garrett wrote:
-> Fix Linux to conform to 11.3.18 of the ACPI spec 3.0. In the absence of 
-> a _TZP method, we should be polling at a default frequency. While it can 
-> be argued that "0" is a default frequency, I don't think that's what the 
-> spec authors had in mind.
+Subject:ACPI: Disable Fixed_RTC event when installing RTC handler
+>From : Zhao Yakui <yakui.zhao@intel.com>
 
-Actually it is what the spec authors had in mind,
-and the spec is wrong.  Yes, I can provide documentation
-supporting this statement.
+The Fixed_RTC event should be disabled when installing RTC handler.
+Only when RTC alarm is set will it be enabled again. If it is not 
+disabled, maybe some machines will be powered on automatically after 
+the system is shutdown even when the RTC alarm is not set.
 
-NAK
+http://bugzilla.kernel.org/show_bug.cgi?id=10010
 
-thanks,
--Len
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 
-> Signed-off-by: Matthew Garrett <mjg@redhat.com>
-> 
-> ---
-> 
-> Arguably this should be implemented in such a way that the polling rate 
-> increases as the temperature rises and drops if the trend is downwards. 
-> That would give higher resolution when we're heading towards a trip 
-> point, without any significant increase in power consumption since 
-> increased temperatures imply that the CPU is probably not idle.
-> 
-> diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-> index 504385b..93cb3e8 100644
-> --- a/drivers/acpi/thermal.c
-> +++ b/drivers/acpi/thermal.c
-> @@ -846,10 +846,11 @@ static void acpi_thermal_check(void *data)
->  	 * Calculate Sleep Time
->  	 * --------------------
->  	 * If we're in the passive state, use _TSP's value.  Otherwise
-> -	 * use the default polling frequency (e.g. _TZP).  If no polling
-> -	 * frequency is specified then we'll wait forever (at least until
-> -	 * a thermal event occurs).  Note that _TSP and _TZD values are
-> -	 * given in 1/10th seconds (we must covert to milliseconds).
-> +	 * use the default polling frequency (e.g. _TZP).  If no
-> +	 * polling frequency is specified then we'll wait 10 seconds
-> +	 * (or until a thermal event occurs).  Note that _TSP and _TZD
-> +	 * values are given in 1/10th seconds (we must covert to
-> +	 * milliseconds).
->  	 */
->  	if (tz->state.passive) {
->  		sleep_time = tz->trips.passive.tsp * 100;
-> @@ -1575,8 +1576,9 @@ static int acpi_thermal_get_info(struct acpi_thermal *tz)
->  	/* Get default polling frequency [_TZP] (optional) */
->  	if (tzp)
->  		tz->polling_frequency = tzp;
-> -	else
-> -		acpi_thermal_get_polling_frequency(tz);
-> +	else if (acpi_thermal_get_polling_frequency(tz) == -ENODEV)
-> +		/* If no _TZP, default to polling every 10 seconds */
-> +		tz->polling_frequency = 100;
->  
->  	return 0;
->  }
-> 
+---
+ drivers/acpi/glue.c       |    6 ++++++
+ drivers/acpi/sleep/proc.c |    6 ++++++
+ 2 files changed, 12 insertions(+)
+
+Index: linux-2.6/drivers/acpi/glue.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/glue.c
++++ linux-2.6/drivers/acpi/glue.c
+@@ -272,6 +272,12 @@ static u32 rtc_handler(void *context)
+ static inline void rtc_wake_setup(void)
+ {
+ 	acpi_install_fixed_event_handler(ACPI_EVENT_RTC, rtc_handler, NULL);
++	/*
++	 * After the RTC handler is installed, the Fixed_RTC event should
++	 * be disabled. Only when the RTC alarm is set will it be enabled.
++	 */
++	acpi_clear_event(ACPI_EVENT_RTC);
++	acpi_disable_event(ACPI_EVENT_RTC, 0);
+ }
+ 
+ static void rtc_wake_on(struct device *dev)
+Index: linux-2.6/drivers/acpi/sleep/proc.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/sleep/proc.c
++++ linux-2.6/drivers/acpi/sleep/proc.c
+@@ -495,6 +495,12 @@ static int __init acpi_sleep_proc_init(v
+ 		    acpi_root_dir, &acpi_system_alarm_fops);
+ 
+ 	acpi_install_fixed_event_handler(ACPI_EVENT_RTC, rtc_handler, NULL);
++	/*
++	 * Disable the RTC event after installing RTC handler.
++	 * Only when RTC alarm is set will it be enabled.
++	 */
++	acpi_clear_event(ACPI_EVENT_RTC);
++	acpi_disable_event(ACPI_EVENT_RTC, 0);
+ #endif				/* HAVE_ACPI_LEGACY_ALARM */
+ 
+ 	/* 'wakeup device' [R/W] */
 
 
