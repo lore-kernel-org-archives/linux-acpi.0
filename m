@@ -1,160 +1,79 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 2/2] Add a passive cooling trip point if the firmware doesn't define one
-Date: Tue, 13 May 2008 23:30:20 -0400
-Message-ID: <200805132330.20159.lenb@kernel.org>
-References: <20080514010000.GB21608@srcf.ucam.org> <20080514010300.GC21608@srcf.ucam.org> <20080514010820.GD21608@srcf.ucam.org>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: ACPI regression test.
+Date: Wed, 14 May 2008 11:36:38 +0800
+Message-ID: <1210736198.2865.7.camel@rzhang-crestline.sh.intel.com>
+References: <1210311086.5227.27.camel@rzhang-crestline.sh.intel.com>
+	 <200805132051.14285.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:50984 "EHLO hera.kernel.org"
+Received: from mga11.intel.com ([192.55.52.93]:64939 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755549AbYENDaa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 13 May 2008 23:30:30 -0400
-In-Reply-To: <20080514010820.GD21608@srcf.ucam.org>
-Content-Disposition: inline
+	id S1755549AbYENDft (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 13 May 2008 23:35:49 -0400
+In-Reply-To: <200805132051.14285.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Li, Shaohua" <shaohua.li@intel.com>, "Lin, Ming M" <ming.m.lin@intel.com>, "Zhao, Yakui" <yakui.zhao@intel.com>
 
-On Tuesday 13 May 2008, Matthew Garrett wrote:
-> If a thermal zone is provided with a critical temperature, then there is 
-> obviously a concern on the part of the vendor that it may overheat. 
-> Currently Linux will only attempt to do something about that if the 
-> vendor has explicitly added a passive cooling trip point. However, it's 
-> clear that allowing the system to hit the critical trip point is far 
-> from ideal - the system will immediately shut down, and data will almost 
-> certainly be lost. This patch adds a default passive cooling zone if the 
-> platform does not provide its own, with the default being to have it be 
-> 5 degrees below the critical shutoff temperature. This should avoid the 
-> kernel limiting performance unless it's genuinely likely that the 
-> hardware is about to overheat and shut down. The default temperature 
-> value can be overridden by passing the thermal.psv argument at boot or 
-> module load time.
+
+On Wed, 2008-05-14 at 08:51 +0800, Len Brown wrote:
+> On Friday 09 May 2008, Zhang Rui wrote:
+> > Hi, all,
+> >
+> > In order to reduce the ACPI regressions for each release,
+> > we plan to do an ACPI regression test every time before/after there
+> is
+> > an import push to linus's tree from len, i.e. before/after ACPI
+> patches
+> > for Linux-2.6.xx-rc1 are merged.
+> >
+> > As this is the first step, we only do some basic tests for the
+> problems
+> > which are usually seen in bugzilla and do the tests manually.
+> >
+> > test case 1: Sytem boot. Check if it can boot with no errors.
+> > test case 2: s3 test. Try suspend to memory 5 times in a row.
+> > test case 3: cpu p-state c-state. Poke the cpu c/p-state sysfs I/F
+> and
+> >            see if it work well.
+> > test case 4: battery/ac. Check if the state is update correctly.
+> > test case 5: fan/thermal. Try to heat the system and see if the
+> >            fan/processor state is changed upon trip point.
+> > test case 6: video/backlight. For the laptops that follow the ACPI
+> video
+> >            extension, check if hotkey and backlight sysfs I/F is
+> >            working correctly.
+> > test case 7: Event. Try to trigger
+> AC/Battery/Button/Processor/Thermal
+> >            events and see if they are tiggered/exported to
+> userspace.
+> > test case 8: shutdown. Check if shutdown works,
+> >            including before and after S3 test.
+> >
+> > If you think something else is worth testing or have question on the
+> > test result, please let us know, any comments are appreciated.
 > 
-> Signed-off-by: Matthew Garrett <mjg@redhat.com>
+> Do all of these pass with 2.6.25.stable?
+Yes.
+The sata problem is a 2.6.26-rc1 regression. And it's fixed in
+2.6.26-rc2.
+
 > 
-> ---
+> How are these test related to ABAT?
+> http://www.lesswatts.org/projects/acpi/validation.php
+We didn't test with ABAT. Will try later.
+
 > 
-> While this is clearly something of a hack,
-
-
-Yes, I'm aware of the Dell D610, and I'm truly sorry
-that Dell built a machine with a poor thermal solution,
-didn't supply _PSV, and somehow looked after Windows
-without looking after Linux.
-
-But I'm not willing to screw up Linux for the
-benefit of an obsolete screwed up Dell laptop.
-
-An entire new handheld product line will ship this year
-where the assumption that the processor is the primary
-contributor to heat may simply be _false_, thermal
-zones may be totally unrelated to the processor,
-and throttling the processor may be exactly the
-wrong way to handle a thermal issue.
-
-I'm sorry for D610 owners running Linux, really I am.
-
--Len
-
-> I'd argue that it's the right  
-> thing to do. In the real world, it's highly unlikely that a piece of 
-> ahrdware is going to reach equilibrium at 5 degrees below the critical 
-> temperature. If we've reached that temperature, the machine is in 
-> serious danger of powering down in the near future and we really ought 
-> to do something about it.
+> Perhaps we should archive the test results on the validation page
+> above?
 > 
-> This patch associates the CPUs with the zone even if the zone may be 
-> relating to an entirely different part of the hardware. This is a 
-> pragmatic decision - right now the CPUs are the only hardware we really 
-> have any thermal control over, and even if the thermal zone is covering 
-> the GPU (for instance) then the only thing we can do to reduce the heat 
-> is to reduce the load on the CPU. I think this is certainly better than 
-> letting the machine power down.
-> 
-> diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-> index 93cb3e8..19acfd3 100644
-> --- a/drivers/acpi/thermal.c
-> +++ b/drivers/acpi/thermal.c
-> @@ -116,6 +116,8 @@ static const struct acpi_device_id  thermal_device_ids[] = {
->  };
->  MODULE_DEVICE_TABLE(acpi, thermal_device_ids);
->  
-> +extern struct acpi_handle_list acpi_processor_list;
-> +
->  static struct acpi_driver acpi_thermal_driver = {
->  	.name = "thermal",
->  	.class = ACPI_THERMAL_CLASS,
-> @@ -418,9 +420,7 @@ static int acpi_thermal_trips_update(struct acpi_thermal *tz, int flag)
->  				"_PSV", NULL, &tz->trips.passive.temperature);
->  		}
->  
-> -		if (ACPI_FAILURE(status))
-> -			tz->trips.passive.flags.valid = 0;
-> -		else {
-> +		if (ACPI_SUCCESS(status)) {
->  			tz->trips.passive.flags.valid = 1;
->  			if (flag == ACPI_TRIPS_INIT) {
->  				status = acpi_evaluate_integer(
-> @@ -440,20 +440,48 @@ static int acpi_thermal_trips_update(struct acpi_thermal *tz, int flag)
->  					tz->trips.passive.flags.valid = 0;
->  			}
->  		}
-> +
-> +		if (!tz->trips.passive.flags.valid) {
-> +			/* If there's no valid passive zone, add a fake
-> +			   one in order to ensure that we don't hit the
-> +			   critical temperature limit */
-> +
-> +			tz->trips.passive.flags.valid = 1;
-> +			tz->trips.passive.tc1 = 1;
-> +			tz->trips.passive.tc2 = 1;
-> +
-> +			/* A high rate of polling here is acceptable -
-> +			   if we're hitting this limit, then the
-> +			   system is clearly under load. A higher
-> +			   polling frequency means that we can weigh
-> +			   the load against the temperature more
-> +			   effeciently and overall reduce power
-> +			   consumption */
-> +
-> +			tz->trips.passive.tsp = 10;
-> +
-> +			/* Set the passive trip temperature to be either
-> +			   the option passed by the user or 5 degrees below the
-> +			   critical temperature. That should give us enough
-> +			   head room without limiting performance */
-> +
-> +			if (!psv)
-> +				tz->trips.passive.temperature =
-> +					tz->trips.critical.temperature - 50;
-> +		}
->  	}
->  	if ((flag & ACPI_TRIPS_DEVICES) && tz->trips.passive.flags.valid) {
->  		memset(&devices, 0, sizeof(struct acpi_handle_list));
->  		status = acpi_evaluate_reference(tz->device->handle, "_PSL",
->  							NULL, &devices);
-> -		if (ACPI_FAILURE(status))
-> -			tz->trips.passive.flags.valid = 0;
-> -		else
-> -			tz->trips.passive.flags.valid = 1;
-> -
-> -		if (memcmp(&tz->trips.passive.devices, &devices,
-> +		if (ACPI_FAILURE(status)) {
-> +			memcpy(&tz->trips.passive.devices,
-> +			       &acpi_processor_list,
-> +			       sizeof (struct acpi_handle_list));
-> +		} else if (memcmp(&tz->trips.passive.devices, &devices,
->  				sizeof(struct acpi_handle_list))) {
->  			memcpy(&tz->trips.passive.devices, &devices,
-> -				sizeof(struct acpi_handle_list));
-> +			       sizeof(struct acpi_handle_list));
->  			ACPI_THERMAL_TRIPS_EXCEPTION(flag, "device");
->  		}
->  	}
-> 
+Agree.
+The first step is to do the tests by scripts rather than manually. :)
+I'll work on this later.
 
+thanks,
+rui
 
