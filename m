@@ -1,303 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: [patch 08/11] acpi: change processors from array to per_cpu variable
+Subject: [patch 07/11] acpi_pm_device_sleep_state() cleanup
 Date: Wed, 14 May 2008 16:09:20 -0700
-Message-ID: <200805142309.m4EN9LDv025997@imap1.linux-foundation.org>
+Message-ID: <200805142309.m4EN9KBX025994@imap1.linux-foundation.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58485 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40459 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752570AbYENXKI (ORCPT
+	by vger.kernel.org with ESMTP id S1752603AbYENXKV (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 14 May 2008 19:10:08 -0400
+	Wed, 14 May 2008 19:10:21 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, travis@sgi.com, len.brown@intel.com
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, dbrownell@users.sourceforge.net, bjorn.helgaas@hp.com, jbarnes@virtuousgeek.org, pavel@ucw.cz, trenn@suse.de
 
-From: Mike Travis <travis@sgi.com>
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-Change processors from an array sized by NR_CPUS to a per_cpu variable.
+Get rid of a superfluous acpi_pm_device_sleep_state() parameter.  The only
+legitimate value of that parameter must be derived from the first parameter,
+which is what all the callers already do.  (However, this does not address the
+fact that ACPI *still* doesn't set up those flags.)
 
-Cc: Len Brown <len.brown@intel.com>
-Signed-off-by: Mike Travis <travis@sgi.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Cc: Thomas Renninger <trenn@suse.de>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_core.c       |   20 +++++++++-----------
- drivers/acpi/processor_idle.c       |    8 ++++----
- drivers/acpi/processor_perflib.c    |   18 +++++++++---------
- drivers/acpi/processor_throttling.c |   14 +++++++-------
- include/acpi/processor.h            |    2 +-
- 5 files changed, 30 insertions(+), 32 deletions(-)
+ drivers/acpi/sleep/main.c  |    8 ++++----
+ drivers/pci/pci-acpi.c     |    3 +--
+ drivers/pnp/pnpacpi/core.c |    4 +---
+ include/acpi/acpi_bus.h    |    4 ++--
+ 4 files changed, 8 insertions(+), 11 deletions(-)
 
-diff -puN drivers/acpi/processor_core.c~acpi-change-processors-from-array-to-per_cpu-variable drivers/acpi/processor_core.c
---- a/drivers/acpi/processor_core.c~acpi-change-processors-from-array-to-per_cpu-variable
-+++ a/drivers/acpi/processor_core.c
-@@ -119,7 +119,7 @@ static const struct file_operations acpi
- 	.release = single_release,
- };
+diff -puN drivers/acpi/sleep/main.c~acpi_pm_device_sleep_state-cleanup drivers/acpi/sleep/main.c
+--- a/drivers/acpi/sleep/main.c~acpi_pm_device_sleep_state-cleanup
++++ a/drivers/acpi/sleep/main.c
+@@ -369,8 +369,8 @@ int acpi_suspend(u32 acpi_state)
+ /**
+  *	acpi_pm_device_sleep_state - return preferred power state of ACPI device
+  *		in the system sleep state given by %acpi_target_sleep_state
+- *	@dev: device to examine
+- *	@wake: if set, the device should be able to wake up the system
++ *	@dev: device to examine; its driver model wakeup flags control
++ *		whether it should be able to wake up the system
+  *	@d_min_p: used to store the upper limit of allowed states range
+  *	Return value: preferred power state of the device on success, -ENODEV on
+  *		failure (ie. if there's no 'struct acpi_device' for @dev)
+@@ -388,7 +388,7 @@ int acpi_suspend(u32 acpi_state)
+  *	via @wake.
+  */
  
--struct acpi_processor *processors[NR_CPUS];
-+DEFINE_PER_CPU(struct acpi_processor *, processors);
- struct acpi_processor_errata errata __read_mostly;
- 
- /* --------------------------------------------------------------------------
-@@ -615,7 +615,7 @@ static int acpi_processor_get_info(struc
- 	return 0;
- }
- 
--static void *processor_device_array[NR_CPUS];
-+static DEFINE_PER_CPU(void *, processor_device_array);
- 
- static int __cpuinit acpi_processor_start(struct acpi_device *device)
+-int acpi_pm_device_sleep_state(struct device *dev, int wake, int *d_min_p)
++int acpi_pm_device_sleep_state(struct device *dev, int *d_min_p)
  {
-@@ -639,15 +639,15 @@ static int __cpuinit acpi_processor_star
- 	 * ACPI id of processors can be reported wrongly by the BIOS.
- 	 * Don't trust it blindly
+ 	acpi_handle handle = DEVICE_ACPI_HANDLE(dev);
+ 	struct acpi_device *adev;
+@@ -427,7 +427,7 @@ int acpi_pm_device_sleep_state(struct de
+ 	 * can wake the system.  _S0W may be valid, too.
  	 */
--	if (processor_device_array[pr->id] != NULL &&
--	    processor_device_array[pr->id] != device) {
-+	if (per_cpu(processor_device_array, pr->id) != NULL &&
-+	    per_cpu(processor_device_array, pr->id) != device) {
- 		printk(KERN_WARNING "BIOS reported wrong ACPI id "
- 			"for the processor\n");
- 		return -ENODEV;
- 	}
--	processor_device_array[pr->id] = device;
-+	per_cpu(processor_device_array, pr->id) = device;
+ 	if (acpi_target_sleep_state == ACPI_STATE_S0 ||
+-	    (wake && adev->wakeup.state.enabled &&
++	    (device_may_wakeup(dev) && adev->wakeup.state.enabled &&
+ 	     adev->wakeup.sleep_state <= acpi_target_sleep_state)) {
+ 		acpi_status status;
  
--	processors[pr->id] = pr;
-+	per_cpu(processors, pr->id) = pr;
- 
- 	result = acpi_processor_add_fs(device);
- 	if (result)
-@@ -753,7 +753,7 @@ static int acpi_cpu_soft_notify(struct n
- 		unsigned long action, void *hcpu)
+diff -puN drivers/pci/pci-acpi.c~acpi_pm_device_sleep_state-cleanup drivers/pci/pci-acpi.c
+--- a/drivers/pci/pci-acpi.c~acpi_pm_device_sleep_state-cleanup
++++ a/drivers/pci/pci-acpi.c
+@@ -249,8 +249,7 @@ static pci_power_t acpi_pci_choose_state
  {
- 	unsigned int cpu = (unsigned long)hcpu;
--	struct acpi_processor *pr = processors[cpu];
-+	struct acpi_processor *pr = per_cpu(processors, cpu);
+ 	int acpi_state;
  
- 	if (action == CPU_ONLINE && pr) {
- 		acpi_processor_ppc_has_changed(pr);
-@@ -825,8 +825,8 @@ static int acpi_processor_remove(struct 
- 		pr->cdev = NULL;
- 	}
+-	acpi_state = acpi_pm_device_sleep_state(&pdev->dev,
+-		device_may_wakeup(&pdev->dev), NULL);
++	acpi_state = acpi_pm_device_sleep_state(&pdev->dev, NULL);
+ 	if (acpi_state < 0)
+ 		return PCI_POWER_ERROR;
  
--	processors[pr->id] = NULL;
--	processor_device_array[pr->id] = NULL;
-+	per_cpu(processors, pr->id) = NULL;
-+	per_cpu(processor_device_array, pr->id) = NULL;
- 	kfree(pr);
- 
- 	return 0;
-@@ -1074,8 +1074,6 @@ static int __init acpi_processor_init(vo
+diff -puN drivers/pnp/pnpacpi/core.c~acpi_pm_device_sleep_state-cleanup drivers/pnp/pnpacpi/core.c
+--- a/drivers/pnp/pnpacpi/core.c~acpi_pm_device_sleep_state-cleanup
++++ a/drivers/pnp/pnpacpi/core.c
+@@ -117,9 +117,7 @@ static int pnpacpi_suspend(struct pnp_de
  {
- 	int result = 0;
+ 	int power_state;
  
--
--	memset(&processors, 0, sizeof(processors));
- 	memset(&errata, 0, sizeof(errata));
+-	power_state = acpi_pm_device_sleep_state(&dev->dev,
+-						device_may_wakeup(&dev->dev),
+-						NULL);
++	power_state = acpi_pm_device_sleep_state(&dev->dev, NULL);
+ 	if (power_state < 0)
+ 		power_state = (state.event == PM_EVENT_ON) ?
+ 				ACPI_STATE_D0 : ACPI_STATE_D3;
+diff -puN include/acpi/acpi_bus.h~acpi_pm_device_sleep_state-cleanup include/acpi/acpi_bus.h
+--- a/include/acpi/acpi_bus.h~acpi_pm_device_sleep_state-cleanup
++++ a/include/acpi/acpi_bus.h
+@@ -376,9 +376,9 @@ acpi_handle acpi_get_pci_rootbridge_hand
+ #define DEVICE_ACPI_HANDLE(dev) ((acpi_handle)((dev)->archdata.acpi_handle))
  
- #ifdef CONFIG_SMP
-diff -puN drivers/acpi/processor_idle.c~acpi-change-processors-from-array-to-per_cpu-variable drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~acpi-change-processors-from-array-to-per_cpu-variable
-+++ a/drivers/acpi/processor_idle.c
-@@ -419,7 +419,7 @@ static void acpi_processor_idle(void)
- 	 */
- 	local_irq_disable();
- 
--	pr = processors[smp_processor_id()];
-+	pr = __get_cpu_var(processors);
- 	if (!pr) {
- 		local_irq_enable();
- 		return;
-@@ -1450,7 +1450,7 @@ static int acpi_idle_enter_c1(struct cpu
- 	struct acpi_processor *pr;
- 	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
- 
--	pr = processors[smp_processor_id()];
-+	pr = __get_cpu_var(processors);
- 
- 	if (unlikely(!pr))
- 		return 0;
-@@ -1490,7 +1490,7 @@ static int acpi_idle_enter_simple(struct
- 	u32 t1, t2;
- 	int sleep_ticks = 0;
- 
--	pr = processors[smp_processor_id()];
-+	pr = __get_cpu_var(processors);
- 
- 	if (unlikely(!pr))
- 		return 0;
-@@ -1568,7 +1568,7 @@ static int acpi_idle_enter_bm(struct cpu
- 	u32 t1, t2;
- 	int sleep_ticks = 0;
- 
--	pr = processors[smp_processor_id()];
-+	pr = __get_cpu_var(processors);
- 
- 	if (unlikely(!pr))
- 		return 0;
-diff -puN drivers/acpi/processor_perflib.c~acpi-change-processors-from-array-to-per_cpu-variable drivers/acpi/processor_perflib.c
---- a/drivers/acpi/processor_perflib.c~acpi-change-processors-from-array-to-per_cpu-variable
-+++ a/drivers/acpi/processor_perflib.c
-@@ -89,7 +89,7 @@ static int acpi_processor_ppc_notifier(s
- 	if (event != CPUFREQ_INCOMPATIBLE)
- 		goto out;
- 
--	pr = processors[policy->cpu];
-+	pr = per_cpu(processors, policy->cpu);
- 	if (!pr || !pr->performance)
- 		goto out;
- 
-@@ -572,7 +572,7 @@ int acpi_processor_preregister_performan
- 
- 	/* Call _PSD for all CPUs */
- 	for_each_possible_cpu(i) {
--		pr = processors[i];
-+		pr = per_cpu(processors, i);
- 		if (!pr) {
- 			/* Look only at processors in ACPI namespace */
- 			continue;
-@@ -603,7 +603,7 @@ int acpi_processor_preregister_performan
- 	 * domain info.
- 	 */
- 	for_each_possible_cpu(i) {
--		pr = processors[i];
-+		pr = per_cpu(processors, i);
- 		if (!pr)
- 			continue;
- 
-@@ -624,7 +624,7 @@ int acpi_processor_preregister_performan
- 
- 	cpus_clear(covered_cpus);
- 	for_each_possible_cpu(i) {
--		pr = processors[i];
-+		pr = per_cpu(processors, i);
- 		if (!pr)
- 			continue;
- 
-@@ -651,7 +651,7 @@ int acpi_processor_preregister_performan
- 			if (i == j)
- 				continue;
- 
--			match_pr = processors[j];
-+			match_pr = per_cpu(processors, j);
- 			if (!match_pr)
- 				continue;
- 
-@@ -680,7 +680,7 @@ int acpi_processor_preregister_performan
- 			if (i == j)
- 				continue;
- 
--			match_pr = processors[j];
-+			match_pr = per_cpu(processors, j);
- 			if (!match_pr)
- 				continue;
- 
-@@ -697,7 +697,7 @@ int acpi_processor_preregister_performan
- 
- err_ret:
- 	for_each_possible_cpu(i) {
--		pr = processors[i];
-+		pr = per_cpu(processors, i);
- 		if (!pr || !pr->performance)
- 			continue;
- 
-@@ -728,7 +728,7 @@ acpi_processor_register_performance(stru
- 
- 	mutex_lock(&performance_mutex);
- 
--	pr = processors[cpu];
-+	pr = per_cpu(processors, cpu);
- 	if (!pr) {
- 		mutex_unlock(&performance_mutex);
- 		return -ENODEV;
-@@ -766,7 +766,7 @@ acpi_processor_unregister_performance(st
- 
- 	mutex_lock(&performance_mutex);
- 
--	pr = processors[cpu];
-+	pr = per_cpu(processors, cpu);
- 	if (!pr) {
- 		mutex_unlock(&performance_mutex);
- 		return;
-diff -puN drivers/acpi/processor_throttling.c~acpi-change-processors-from-array-to-per_cpu-variable drivers/acpi/processor_throttling.c
---- a/drivers/acpi/processor_throttling.c~acpi-change-processors-from-array-to-per_cpu-variable
-+++ a/drivers/acpi/processor_throttling.c
-@@ -71,7 +71,7 @@ static int acpi_processor_update_tsd_coo
- 	 * coordination between all CPUs.
- 	 */
- 	for_each_possible_cpu(i) {
--		pr = processors[i];
-+		pr = per_cpu(processors, i);
- 		if (!pr)
- 			continue;
- 
-@@ -93,7 +93,7 @@ static int acpi_processor_update_tsd_coo
- 
- 	cpus_clear(covered_cpus);
- 	for_each_possible_cpu(i) {
--		pr = processors[i];
-+		pr = per_cpu(processors, i);
- 		if (!pr)
- 			continue;
- 
-@@ -119,7 +119,7 @@ static int acpi_processor_update_tsd_coo
- 			if (i == j)
- 				continue;
- 
--			match_pr = processors[j];
-+			match_pr = per_cpu(processors, j);
- 			if (!match_pr)
- 				continue;
- 
-@@ -152,7 +152,7 @@ static int acpi_processor_update_tsd_coo
- 			if (i == j)
- 				continue;
- 
--			match_pr = processors[j];
-+			match_pr = per_cpu(processors, j);
- 			if (!match_pr)
- 				continue;
- 
-@@ -172,7 +172,7 @@ static int acpi_processor_update_tsd_coo
- 
- err_ret:
- 	for_each_possible_cpu(i) {
--		pr = processors[i];
-+		pr = per_cpu(processors, i);
- 		if (!pr)
- 			continue;
- 
-@@ -214,7 +214,7 @@ static int acpi_processor_throttling_not
- 	struct acpi_processor_throttling *p_throttling;
- 
- 	cpu = p_tstate->cpu;
--	pr = processors[cpu];
-+	pr = per_cpu(processors, cpu);
- 	if (!pr) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Invalid pr pointer\n"));
- 		return 0;
-@@ -1035,7 +1035,7 @@ int acpi_processor_set_throttling(struct
- 		 * cpus.
- 		 */
- 		for_each_cpu_mask(i, online_throttling_cpus) {
--			match_pr = processors[i];
-+			match_pr = per_cpu(processors, i);
- 			/*
- 			 * If the pointer is invalid, we will report the
- 			 * error message and continue.
-diff -puN include/acpi/processor.h~acpi-change-processors-from-array-to-per_cpu-variable include/acpi/processor.h
---- a/include/acpi/processor.h~acpi-change-processors-from-array-to-per_cpu-variable
-+++ a/include/acpi/processor.h
-@@ -255,7 +255,7 @@ extern void acpi_processor_unregister_pe
- int acpi_processor_notify_smm(struct module *calling_module);
- 
- /* for communication between multiple parts of the processor kernel module */
--extern struct acpi_processor *processors[NR_CPUS];
-+DECLARE_PER_CPU(struct acpi_processor *, processors);
- extern struct acpi_processor_errata errata;
- 
- void arch_acpi_processor_init_pdc(struct acpi_processor *pr);
+ #ifdef CONFIG_PM_SLEEP
+-int acpi_pm_device_sleep_state(struct device *, int, int *);
++int acpi_pm_device_sleep_state(struct device *, int *);
+ #else /* !CONFIG_PM_SLEEP */
+-static inline int acpi_pm_device_sleep_state(struct device *d, int w, int *p)
++static inline int acpi_pm_device_sleep_state(struct device *d, int *p)
+ {
+ 	if (p)
+ 		*p = ACPI_STATE_D0;
 _
