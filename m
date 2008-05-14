@@ -1,75 +1,59 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: About p4-clockmod breakage/removal
-Date: Tue, 13 May 2008 20:48:00 -0400
-Message-ID: <200805132048.00653.lenb@kernel.org>
-References: <48246C3E.7010608@ceibo.fiec.espol.edu.ec>
+Subject: Re: ACPI regression test.
+Date: Tue, 13 May 2008 20:51:14 -0400
+Message-ID: <200805132051.14285.lenb@kernel.org>
+References: <1210311086.5227.27.camel@rzhang-crestline.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:35270 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:47355 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756807AbYENAyd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 May 2008 20:54:33 -0400
-In-Reply-To: <48246C3E.7010608@ceibo.fiec.espol.edu.ec>
+	id S1757078AbYENAzj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 13 May 2008 20:55:39 -0400
+In-Reply-To: <1210311086.5227.27.camel@rzhang-crestline.sh.intel.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: cpufreq@lists.linux.org.uk
-Cc: Alex =?iso-8859-1?q?Villac=ED=ADs_Lasso?= <avillaci@ceibo.fiec.espol.edu.ec>, linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Li, Shaohua" <shaohua.li@intel.com>, "Lin, Ming M" <ming.m.lin@intel.com>, Zhao Yakui <yakui.zhao@intel.com>
 
-On Friday 09 May 2008, Alex Villac=ED=ADs Lasso wrote:
-> In a somewhat old computer I use at home, I have a Pentium 4 CPU runn=
-ing=20
-> at 1.7GHz. On this computer, acpi-cpufreq does not work (modprobe fai=
-ls=20
-> with -ENODEV), only p4-clockmod. Lately this means I have to compile =
-my=20
-> own kernel to get speed throttling on my computer.
->=20
-> Recently, patch ed9cbcd40004904dbe61ccc16d6106a7de38c998 (Revert=20
-> "speedstep-lib.c: fix frequency multiplier for Pentium4 models 0&1")=20
-> broke clock speed reporting. It now reports I have a max speed of 13.=
-80=20
-> GHz instead of 1.7GHz. I only wish my CPU were that fast... Reverting=
-=20
-> this patch fixes the problem for me. However, since I suscribed=20
-> yesterday to this list, I see talk about removing p4-clockmod altoget=
-her=20
-> from the tree. Maybe my real problem is that acpi-cpufreq does not wo=
-rk=20
-> even though it should, but I have yet to find a way to make the modul=
-e=20
-> print the information that is supposed to be displayed through dprint=
-k()=20
-> messages. What else can I do to debug acpi-cpufreq on my machine?
+On Friday 09 May 2008, Zhang Rui wrote:
+> Hi, all,
+> 
+> In order to reduce the ACPI regressions for each release,
+> we plan to do an ACPI regression test every time before/after there is
+> an import push to linus's tree from len, i.e. before/after ACPI patches
+> for Linux-2.6.xx-rc1 are merged.
+> 
+> As this is the first step, we only do some basic tests for the problems
+> which are usually seen in bugzilla and do the tests manually.
+> 
+> test case 1: Sytem boot. Check if it can boot with no errors.
+> test case 2: s3 test. Try suspend to memory 5 times in a row.
+> test case 3: cpu p-state c-state. Poke the cpu c/p-state sysfs I/F and
+> 	     see if it work well.
+> test case 4: battery/ac. Check if the state is update correctly.
+> test case 5: fan/thermal. Try to heat the system and see if the
+> 	     fan/processor state is changed upon trip point.
+> test case 6: video/backlight. For the laptops that follow the ACPI video
+> 	     extension, check if hotkey and backlight sysfs I/F is
+> 	     working correctly.
+> test case 7: Event. Try to trigger AC/Battery/Button/Processor/Thermal
+> 	     events and see if they are tiggered/exported to userspace.
+> test case 8: shutdown. Check if shutdown works,
+> 	     including before and after S3 test.
+> 
+> If you think something else is worth testing or have question on the
+> test result, please let us know, any comments are appreciated.
 
-Assuming this is a laptop with a batter,
-I'd certainly be interested if you could run BLTK
-and measure any benefit to p4-clockmod (I've never
-been able to)
+Do all of these pass with 2.6.25.stable?
 
-http://www.lesswatts.org/projects/bltk/
+How are these test related to ABAT?
+http://www.lesswatts.org/projects/acpi/validation.php
 
-Re: acpi-cpufreq
-Verify that you're running the latest BIOS,
-and look in BIOS SETUP for any options related
-to CPU power management, Speed Step, EIST, P-states etc,
-and enable if present.
+Perhaps we should archive the test results on the validation page above?
 
-If that doesn't do it, then open a bug here
-complaining that acpi-cpufreq doesn't load:
-
-http://bugzilla.kernel.org/enter_bug.cgi?product=3DACPI
-
-and attach the output from acpidump -- which will tell
-us if the underlying BIOS support is present.
-My guess is that it is not.
-
--Len
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+thanks,
+-len
