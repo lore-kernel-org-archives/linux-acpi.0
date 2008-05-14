@@ -1,50 +1,44 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: Re: /proc/acpi/battery/BAT0/info stale when battery changed on Thinkpad
- X60t
-Date: Wed, 14 May 2008 21:10:41 +0400
-Message-ID: <482B1D11.3000600@gmail.com>
-References: <200805141105.02277.neitzke@ias.edu>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: About p4-clockmod breakage/removal
+Date: Wed, 14 May 2008 11:28:08 -0400
+Message-ID: <200805141128.08893.lenb@kernel.org>
+References: <48246C3E.7010608@ceibo.fiec.espol.edu.ec> <1210764974.29724.181.camel@queen.suse.de> <20080514114215.GA31135@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.159]:35343 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754185AbYENRKF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 May 2008 13:10:05 -0400
-Received: by fg-out-1718.google.com with SMTP id 19so6942fgg.17
-        for <linux-acpi@vger.kernel.org>; Wed, 14 May 2008 10:10:00 -0700 (PDT)
-In-Reply-To: <200805141105.02277.neitzke@ias.edu>
+Received: from hera.kernel.org ([140.211.167.34]:35852 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752778AbYENWmi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 14 May 2008 18:42:38 -0400
+In-Reply-To: <20080514114215.GA31135@srcf.ucam.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Neitzke <neitzke@ias.edu>
-Cc: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Thomas Renninger <trenn@suse.de>, cpufreq@lists.linux.org.uk, Alex =?iso-8859-1?q?Villac=ED=ADs_Lasso?= <avillaci@ceibo.fiec.espol.edu.ec>, linux-acpi@vger.kernel.org
 
-Please check if following patch helps:
+On Wednesday 14 May 2008, Matthew Garrett wrote:
+> On Wed, May 14, 2008 at 01:36:14PM +0200, Thomas Renninger wrote:
+> 
+> > Also there is another interface via mce:
+> > arch/x86/kernel/cpu/mcheck/therm_throt.c
+> > 
+> > AFAIK this should be implemented in (all?) P4s, but Intel people should
+> > know for sure.
+> 
+> Hm. The MCE interface is only for reporting, rather than control. Do you 
+> know if it's possible to set the temperature at which the CPU will start 
+> its own throttling? That would potentially be more straightforward.
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index b1c723f..e5ca3a0 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -472,7 +472,7 @@ static void sysfs_remove_battery(struct acpi_battery 
-*battery)
- 
- static int acpi_battery_update(struct acpi_battery *battery)
- {
--    int result;
-+    int result, old_present = acpi_battery_present(battery);
-     result = acpi_battery_get_status(battery);
-     if (result)
-         return result;
-@@ -483,7 +483,8 @@ static int acpi_battery_update(struct acpi_battery 
-*battery)
-         return 0;
-     }
- #endif
--    if (!battery->update_time) {
-+    if (!battery->update_time ||
-+        old_present != acpi_battery_present(battery)) {
-         result = acpi_battery_get_info(battery);
-         if (result)
-             return result;
+No. this is hardware invoked thermal trottling, and the software
+here is just trying to gracefully explain to you the reason
+that your machine is running abnormally slow.
 
+Software can not change the trip point for hardware thermal throttling.
+It is set at the factory.  It is basically a hardware fail-safe mechanism,
+and thus the trip point is set higher than that for ACPI thermal
+throttling.
+
+-Len
