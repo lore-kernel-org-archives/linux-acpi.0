@@ -1,59 +1,74 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: ACPI regression test.
-Date: Tue, 13 May 2008 20:51:14 -0400
-Message-ID: <200805132051.14285.lenb@kernel.org>
-References: <1210311086.5227.27.camel@rzhang-crestline.sh.intel.com>
+Subject: Re: Subject:ACPI: Send the reserved AC notification event to user space
+Date: Tue, 13 May 2008 20:55:28 -0400
+Message-ID: <200805132055.28148.lenb@kernel.org>
+References: <1191814518.3830.2.camel@yakui_zhao.sh.intel.com> <200710092343.40843.lenb@kernel.org> <1210324942.8562.46.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:47355 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:47359 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757078AbYENAzj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 13 May 2008 20:55:39 -0400
-In-Reply-To: <1210311086.5227.27.camel@rzhang-crestline.sh.intel.com>
+	id S1757353AbYENAzm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 13 May 2008 20:55:42 -0400
+In-Reply-To: <1210324942.8562.46.camel@yakui_zhao.sh.intel.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Li, Shaohua" <shaohua.li@intel.com>, "Lin, Ming M" <ming.m.lin@intel.com>, Zhao Yakui <yakui.zhao@intel.com>
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Friday 09 May 2008, Zhang Rui wrote:
-> Hi, all,
+On Friday 09 May 2008, Zhao Yakui wrote:
+> Subject:ACPI: Send the reserved AC notification event to user space 
+> >From : Zhao Yakui <yakui.zhao@intel.com>
 > 
-> In order to reduce the ACPI regressions for each release,
-> we plan to do an ACPI regression test every time before/after there is
-> an import push to linus's tree from len, i.e. before/after ACPI patches
-> for Linux-2.6.xx-rc1 are merged.
+> On some laptops the bogus bios sends the reserved AC notification event(0x81)
+> when the AC adapter is plugged/unplugged .It can't be sent to 
+> user space, which causes that user space application can't 
+> receive the AC adapter event. 
+> So the reserved AC adapter event(0x81) is still sent to the user space 
+> so that user space can receive the notification event.
 > 
-> As this is the first step, we only do some basic tests for the problems
-> which are usually seen in bugzilla and do the tests manually.
+> Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+> ---
+>  drivers/acpi/ac.c |    4 ++++
+>  1 file changed, 4 insertions(+)
 > 
-> test case 1: Sytem boot. Check if it can boot with no errors.
-> test case 2: s3 test. Try suspend to memory 5 times in a row.
-> test case 3: cpu p-state c-state. Poke the cpu c/p-state sysfs I/F and
-> 	     see if it work well.
-> test case 4: battery/ac. Check if the state is update correctly.
-> test case 5: fan/thermal. Try to heat the system and see if the
-> 	     fan/processor state is changed upon trip point.
-> test case 6: video/backlight. For the laptops that follow the ACPI video
-> 	     extension, check if hotkey and backlight sysfs I/F is
-> 	     working correctly.
-> test case 7: Event. Try to trigger AC/Battery/Button/Processor/Thermal
-> 	     events and see if they are tiggered/exported to userspace.
-> test case 8: shutdown. Check if shutdown works,
-> 	     including before and after S3 test.
+> Index: linux-2.6/drivers/acpi/ac.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/ac.c
+> +++ linux-2.6/drivers/acpi/ac.c
+> @@ -42,6 +42,7 @@
+>  #define ACPI_AC_DEVICE_NAME		"AC Adapter"
+>  #define ACPI_AC_FILE_STATE		"state"
+>  #define ACPI_AC_NOTIFY_STATUS		0x80
+> +#define ACPI_AC_NOTIFY_RESERVED		0x81
+>  #define ACPI_AC_STATUS_OFFLINE		0x00
+>  #define ACPI_AC_STATUS_ONLINE		0x01
+>  #define ACPI_AC_STATUS_UNKNOWN		0xFF
+> @@ -233,6 +234,9 @@ static void acpi_ac_notify(acpi_handle h
+>  
+>  	device = ac->device;
+>  	switch (event) {
+> +	case ACPI_AC_NOTIFY_RESERVED:
+
+shouldn't this line above be "default:"
+and the default: below this patch be removed?
+
+-Len
+
+> +		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+> +				  "Unsupported event [0x%x]\n", event));
+>  	case ACPI_AC_NOTIFY_STATUS:
+>  	case ACPI_NOTIFY_BUS_CHECK:
+>  	case ACPI_NOTIFY_DEVICE_CHECK:
 > 
-> If you think something else is worth testing or have question on the
-> test result, please let us know, any comments are appreciated.
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Do all of these pass with 2.6.25.stable?
 
-How are these test related to ABAT?
-http://www.lesswatts.org/projects/acpi/validation.php
-
-Perhaps we should archive the test results on the validation page above?
-
-thanks,
--len
