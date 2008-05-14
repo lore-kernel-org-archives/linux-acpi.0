@@ -1,79 +1,51 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: ACPI regression test.
-Date: Wed, 14 May 2008 11:36:38 +0800
-Message-ID: <1210736198.2865.7.camel@rzhang-crestline.sh.intel.com>
-References: <1210311086.5227.27.camel@rzhang-crestline.sh.intel.com>
-	 <200805132051.14285.lenb@kernel.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: About p4-clockmod breakage/removal
+Date: Tue, 13 May 2008 23:35:32 -0400
+Message-ID: <200805132335.33118.lenb@kernel.org>
+References: <48246C3E.7010608@ceibo.fiec.espol.edu.ec> <200805132048.00653.lenb@kernel.org> <20080514005636.GA21608@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:64939 "EHLO mga11.intel.com"
+Received: from hera.kernel.org ([140.211.167.34]:43061 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755549AbYENDft (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 13 May 2008 23:35:49 -0400
-In-Reply-To: <200805132051.14285.lenb@kernel.org>
+	id S1755650AbYENDfx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 13 May 2008 23:35:53 -0400
+In-Reply-To: <20080514005636.GA21608@srcf.ucam.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Li, Shaohua" <shaohua.li@intel.com>, "Lin, Ming M" <ming.m.lin@intel.com>, "Zhao, Yakui" <yakui.zhao@intel.com>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: cpufreq@lists.linux.org.uk, Alex =?iso-8859-1?q?Villac=ED=ADs_Lasso?= <avillaci@ceibo.fiec.espol.edu.ec>, linux-acpi@vger.kernel.org
 
-
-On Wed, 2008-05-14 at 08:51 +0800, Len Brown wrote:
-> On Friday 09 May 2008, Zhang Rui wrote:
-> > Hi, all,
-> >
-> > In order to reduce the ACPI regressions for each release,
-> > we plan to do an ACPI regression test every time before/after there
-> is
-> > an import push to linus's tree from len, i.e. before/after ACPI
-> patches
-> > for Linux-2.6.xx-rc1 are merged.
-> >
-> > As this is the first step, we only do some basic tests for the
-> problems
-> > which are usually seen in bugzilla and do the tests manually.
-> >
-> > test case 1: Sytem boot. Check if it can boot with no errors.
-> > test case 2: s3 test. Try suspend to memory 5 times in a row.
-> > test case 3: cpu p-state c-state. Poke the cpu c/p-state sysfs I/F
-> and
-> >            see if it work well.
-> > test case 4: battery/ac. Check if the state is update correctly.
-> > test case 5: fan/thermal. Try to heat the system and see if the
-> >            fan/processor state is changed upon trip point.
-> > test case 6: video/backlight. For the laptops that follow the ACPI
-> video
-> >            extension, check if hotkey and backlight sysfs I/F is
-> >            working correctly.
-> > test case 7: Event. Try to trigger
-> AC/Battery/Button/Processor/Thermal
-> >            events and see if they are tiggered/exported to
-> userspace.
-> > test case 8: shutdown. Check if shutdown works,
-> >            including before and after S3 test.
-> >
-> > If you think something else is worth testing or have question on the
-> > test result, please let us know, any comments are appreciated.
+On Tuesday 13 May 2008, Matthew Garrett wrote:
+> On Tue, May 13, 2008 at 08:48:00PM -0400, Len Brown wrote:
 > 
-> Do all of these pass with 2.6.25.stable?
-Yes.
-The sata problem is a 2.6.26-rc1 regression. And it's fixed in
-2.6.26-rc2.
-
+> > Assuming this is a laptop with a batter,
+> > I'd certainly be interested if you could run BLTK
+> > and measure any benefit to p4-clockmod (I've never
+> > been able to)
 > 
-> How are these test related to ABAT?
-> http://www.lesswatts.org/projects/acpi/validation.php
-We didn't test with ABAT. Will try later.
+> The most plausible benefit to p4-clockmod is its utility in throttling 
+> the CPU if it would otherwise cause the system to overheat. From that 
+> point of view, I think it's worth keeping around - especially since not 
+> all machines expose T states via ACPI.
 
-> 
-> Perhaps we should archive the test results on the validation page
-> above?
-> 
-Agree.
-The first step is to do the tests by scripts rather than manually. :)
-I'll work on this later.
+Matthew,
+I'm delighted in your efforts to make Linux better, I really am.
+So I'm sorry that for the 3rd message in a row I have to
+completely disagree with you.
 
-thanks,
-rui
+cpufreq is not designed to manage thermals, and putting p4_clockmod
+underneath it to manage thermals is a mistake.
+
+There is already a well known thermal throttling interface
+available via ACPI and it does not need p4_clockmod to run.
+Passive trip points work automatically even without cpufreq being present.
+If they do not, then we need to fix them.
+
+p4-clockmod should have been removed from the tree over a year ago.
+
+-Len
 
