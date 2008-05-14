@@ -1,51 +1,83 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: About p4-clockmod breakage/removal
-Date: Tue, 13 May 2008 23:35:32 -0400
-Message-ID: <200805132335.33118.lenb@kernel.org>
-References: <48246C3E.7010608@ceibo.fiec.espol.edu.ec> <200805132048.00653.lenb@kernel.org> <20080514005636.GA21608@srcf.ucam.org>
+Subject: Re: [PATCH]: ACPI: Disable Fixed_RTC event when installing RTC handler
+Date: Wed, 14 May 2008 00:33:05 -0400
+Message-ID: <200805140033.05877.lenb@kernel.org>
+References: <1191814518.3830.2.camel@yakui_zhao.sh.intel.com> <200710092343.40843.lenb@kernel.org> <1210735979.7932.14.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:43061 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:36349 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755650AbYENDfx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 13 May 2008 23:35:53 -0400
-In-Reply-To: <20080514005636.GA21608@srcf.ucam.org>
+	id S1751192AbYENEdP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 14 May 2008 00:33:15 -0400
+In-Reply-To: <1210735979.7932.14.camel@yakui_zhao.sh.intel.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: cpufreq@lists.linux.org.uk, Alex =?iso-8859-1?q?Villac=ED=ADs_Lasso?= <avillaci@ceibo.fiec.espol.edu.ec>, linux-acpi@vger.kernel.org
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Tuesday 13 May 2008, Matthew Garrett wrote:
-> On Tue, May 13, 2008 at 08:48:00PM -0400, Len Brown wrote:
-> 
-> > Assuming this is a laptop with a batter,
-> > I'd certainly be interested if you could run BLTK
-> > and measure any benefit to p4-clockmod (I've never
-> > been able to)
-> 
-> The most plausible benefit to p4-clockmod is its utility in throttling 
-> the CPU if it would otherwise cause the system to overheat. From that 
-> point of view, I think it's worth keeping around - especially since not 
-> all machines expose T states via ACPI.
+Applied.
 
-Matthew,
-I'm delighted in your efforts to make Linux better, I really am.
-So I'm sorry that for the 3rd message in a row I have to
-completely disagree with you.
-
-cpufreq is not designed to manage thermals, and putting p4_clockmod
-underneath it to manage thermals is a mistake.
-
-There is already a well known thermal throttling interface
-available via ACPI and it does not need p4_clockmod to run.
-Passive trip points work automatically even without cpufreq being present.
-If they do not, then we need to fix them.
-
-p4-clockmod should have been removed from the tree over a year ago.
-
+thanks,
 -Len
+
+On Tuesday 13 May 2008, Zhao Yakui wrote:
+> Subject:ACPI: Disable Fixed_RTC event when installing RTC handler
+> >From : Zhao Yakui <yakui.zhao@intel.com>
+> 
+> The Fixed_RTC event should be disabled when installing RTC handler.
+> Only when RTC alarm is set will it be enabled again. If it is not 
+> disabled, maybe some machines will be powered on automatically after 
+> the system is shutdown even when the RTC alarm is not set.
+> 
+> http://bugzilla.kernel.org/show_bug.cgi?id=10010
+> 
+> Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> 
+> ---
+>  drivers/acpi/glue.c       |    6 ++++++
+>  drivers/acpi/sleep/proc.c |    6 ++++++
+>  2 files changed, 12 insertions(+)
+> 
+> Index: linux-2.6/drivers/acpi/glue.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/glue.c
+> +++ linux-2.6/drivers/acpi/glue.c
+> @@ -272,6 +272,12 @@ static u32 rtc_handler(void *context)
+>  static inline void rtc_wake_setup(void)
+>  {
+>  	acpi_install_fixed_event_handler(ACPI_EVENT_RTC, rtc_handler, NULL);
+> +	/*
+> +	 * After the RTC handler is installed, the Fixed_RTC event should
+> +	 * be disabled. Only when the RTC alarm is set will it be enabled.
+> +	 */
+> +	acpi_clear_event(ACPI_EVENT_RTC);
+> +	acpi_disable_event(ACPI_EVENT_RTC, 0);
+>  }
+>  
+>  static void rtc_wake_on(struct device *dev)
+> Index: linux-2.6/drivers/acpi/sleep/proc.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/sleep/proc.c
+> +++ linux-2.6/drivers/acpi/sleep/proc.c
+> @@ -495,6 +495,12 @@ static int __init acpi_sleep_proc_init(v
+>  		    acpi_root_dir, &acpi_system_alarm_fops);
+>  
+>  	acpi_install_fixed_event_handler(ACPI_EVENT_RTC, rtc_handler, NULL);
+> +	/*
+> +	 * Disable the RTC event after installing RTC handler.
+> +	 * Only when RTC alarm is set will it be enabled.
+> +	 */
+> +	acpi_clear_event(ACPI_EVENT_RTC);
+> +	acpi_disable_event(ACPI_EVENT_RTC, 0);
+>  #endif				/* HAVE_ACPI_LEGACY_ALARM */
+>  
+>  	/* 'wakeup device' [R/W] */
+> 
+> 
+
 
