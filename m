@@ -1,112 +1,544 @@
 From: akpm@linux-foundation.org
-Subject: [patch 07/11] acpi_pm_device_sleep_state() cleanup
-Date: Wed, 14 May 2008 16:09:20 -0700
-Message-ID: <200805142309.m4EN9KBX025994@imap1.linux-foundation.org>
+Subject: [patch 06/11] misc,acpi,backlight: compal Laptop Extras
+Date: Wed, 14 May 2008 16:09:19 -0700
+Message-ID: <200805142309.m4EN9JVI025991@imap1.linux-foundation.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40459 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47250 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752603AbYENXKV (ORCPT
+	by vger.kernel.org with ESMTP id S1752086AbYENXKU (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 14 May 2008 19:10:21 -0400
+	Wed, 14 May 2008 19:10:20 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, dbrownell@users.sourceforge.net, bjorn.helgaas@hp.com, jbarnes@virtuousgeek.org, pavel@ucw.cz, trenn@suse.de
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, cezary.jackiewicz@gmail.com, aystarik@gmail.com, hmh@hmh.eng.br, rpurdie@rpsys.net
 
-From: David Brownell <dbrownell@users.sourceforge.net>
+From: Cezary Jackiewicz <cezary.jackiewicz@gmail.com>
 
-Get rid of a superfluous acpi_pm_device_sleep_state() parameter.  The only
-legitimate value of that parameter must be derived from the first parameter,
-which is what all the callers already do.  (However, this does not address the
-fact that ACPI *still* doesn't set up those flags.)
+This is driver for Compal Laptop: FL90/IFL90, based on MSI driver.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Cc: Thomas Renninger <trenn@suse.de>
+This driver exports a few files in /sys/devices/platform/compal-laptop/:
+ lcd_level - screen brightness: contains a single integer in the range 0..7 (rw)
+ wlan - wlan subsystem state: contains 0 or 1 (rw)
+ bluetooth - bluetooth subsystem state: contains 0 or 1 (rw)
+ raw - raw value taken from embedded controller register (ro)
+
+In addition to these platform device attributes the driver registers itself
+in the Linux backlight control subsystem and is available to userspace under
+/sys/class/backlight/compal-laptop/.
+
+Signed-off-by: Cezary Jackiewicz <cezary.jackiewicz@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Cc: Len Brown <lenb@kernel.org>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Alexey Starikovskiy <aystarik@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/sleep/main.c  |    8 ++++----
- drivers/pci/pci-acpi.c     |    3 +--
- drivers/pnp/pnpacpi/core.c |    4 +---
- include/acpi/acpi_bus.h    |    4 ++--
- 4 files changed, 8 insertions(+), 11 deletions(-)
+ MAINTAINERS                  |    5 
+ drivers/misc/Kconfig         |   17 +
+ drivers/misc/Makefile        |    5 
+ drivers/misc/compal-laptop.c |  437 +++++++++++++++++++++++++++++++++
+ 4 files changed, 462 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/sleep/main.c~acpi_pm_device_sleep_state-cleanup drivers/acpi/sleep/main.c
---- a/drivers/acpi/sleep/main.c~acpi_pm_device_sleep_state-cleanup
-+++ a/drivers/acpi/sleep/main.c
-@@ -369,8 +369,8 @@ int acpi_suspend(u32 acpi_state)
- /**
-  *	acpi_pm_device_sleep_state - return preferred power state of ACPI device
-  *		in the system sleep state given by %acpi_target_sleep_state
-- *	@dev: device to examine
-- *	@wake: if set, the device should be able to wake up the system
-+ *	@dev: device to examine; its driver model wakeup flags control
-+ *		whether it should be able to wake up the system
-  *	@d_min_p: used to store the upper limit of allowed states range
-  *	Return value: preferred power state of the device on success, -ENODEV on
-  *		failure (ie. if there's no 'struct acpi_device' for @dev)
-@@ -388,7 +388,7 @@ int acpi_suspend(u32 acpi_state)
-  *	via @wake.
-  */
+diff -puN MAINTAINERS~miscacpibacklight-compal-laptop-extras-3rd-try MAINTAINERS
+--- a/MAINTAINERS~miscacpibacklight-compal-laptop-extras-3rd-try
++++ a/MAINTAINERS
+@@ -1150,6 +1150,11 @@ M:	scott@spiteful.org
+ L:	pcihpd-discuss@lists.sourceforge.net
+ S:	Supported
  
--int acpi_pm_device_sleep_state(struct device *dev, int wake, int *d_min_p)
-+int acpi_pm_device_sleep_state(struct device *dev, int *d_min_p)
- {
- 	acpi_handle handle = DEVICE_ACPI_HANDLE(dev);
- 	struct acpi_device *adev;
-@@ -427,7 +427,7 @@ int acpi_pm_device_sleep_state(struct de
- 	 * can wake the system.  _S0W may be valid, too.
- 	 */
- 	if (acpi_target_sleep_state == ACPI_STATE_S0 ||
--	    (wake && adev->wakeup.state.enabled &&
-+	    (device_may_wakeup(dev) && adev->wakeup.state.enabled &&
- 	     adev->wakeup.sleep_state <= acpi_target_sleep_state)) {
- 		acpi_status status;
++COMPAL LAPTOP SUPPORT
++P:	Cezary Jackiewicz
++M:	cezary.jackiewicz@gmail.com
++S:	Maintained
++
+ COMPUTONE INTELLIPORT MULTIPORT CARD
+ P:	Michael H. Warfield
+ M:	mhw@wittsend.com
+diff -puN drivers/misc/Kconfig~miscacpibacklight-compal-laptop-extras-3rd-try drivers/misc/Kconfig
+--- a/drivers/misc/Kconfig~miscacpibacklight-compal-laptop-extras-3rd-try
++++ a/drivers/misc/Kconfig
+@@ -219,6 +219,23 @@ config MSI_LAPTOP
  
-diff -puN drivers/pci/pci-acpi.c~acpi_pm_device_sleep_state-cleanup drivers/pci/pci-acpi.c
---- a/drivers/pci/pci-acpi.c~acpi_pm_device_sleep_state-cleanup
-+++ a/drivers/pci/pci-acpi.c
-@@ -249,8 +249,7 @@ static pci_power_t acpi_pci_choose_state
- {
- 	int acpi_state;
+ 	  If you have an MSI S270 laptop, say Y or M here.
  
--	acpi_state = acpi_pm_device_sleep_state(&pdev->dev,
--		device_may_wakeup(&pdev->dev), NULL);
-+	acpi_state = acpi_pm_device_sleep_state(&pdev->dev, NULL);
- 	if (acpi_state < 0)
- 		return PCI_POWER_ERROR;
++config COMPAL_LAPTOP
++	tristate "Compal Laptop Extras"
++	depends on X86
++	depends on ACPI_EC
++	depends on BACKLIGHT_CLASS_DEVICE
++        ---help---
++	  This is a driver for laptops built by Compal:
++
++	  Compal FL90/IFL90
++	  Compal FL91/IFL91
++	  Compal FL92/JFL92
++	  Compal FT00/IFT00
++
++	  It adds support for Bluetooth, WLAN and LCD brightness control.
++
++	  If you have an Compal FL9x/IFL9x/FT00 laptop, say Y or M here.
++
+ config SONY_LAPTOP
+ 	tristate "Sony Laptop Extras"
+ 	depends on X86 && ACPI
+diff -puN drivers/misc/Makefile~miscacpibacklight-compal-laptop-extras-3rd-try drivers/misc/Makefile
+--- a/drivers/misc/Makefile~miscacpibacklight-compal-laptop-extras-3rd-try
++++ a/drivers/misc/Makefile
+@@ -5,10 +5,11 @@ obj- := misc.o	# Dummy rule to force bui
  
-diff -puN drivers/pnp/pnpacpi/core.c~acpi_pm_device_sleep_state-cleanup drivers/pnp/pnpacpi/core.c
---- a/drivers/pnp/pnpacpi/core.c~acpi_pm_device_sleep_state-cleanup
-+++ a/drivers/pnp/pnpacpi/core.c
-@@ -117,9 +117,7 @@ static int pnpacpi_suspend(struct pnp_de
- {
- 	int power_state;
- 
--	power_state = acpi_pm_device_sleep_state(&dev->dev,
--						device_may_wakeup(&dev->dev),
--						NULL);
-+	power_state = acpi_pm_device_sleep_state(&dev->dev, NULL);
- 	if (power_state < 0)
- 		power_state = (state.event == PM_EVENT_ON) ?
- 				ACPI_STATE_D0 : ACPI_STATE_D3;
-diff -puN include/acpi/acpi_bus.h~acpi_pm_device_sleep_state-cleanup include/acpi/acpi_bus.h
---- a/include/acpi/acpi_bus.h~acpi_pm_device_sleep_state-cleanup
-+++ a/include/acpi/acpi_bus.h
-@@ -376,9 +376,9 @@ acpi_handle acpi_get_pci_rootbridge_hand
- #define DEVICE_ACPI_HANDLE(dev) ((acpi_handle)((dev)->archdata.acpi_handle))
- 
- #ifdef CONFIG_PM_SLEEP
--int acpi_pm_device_sleep_state(struct device *, int, int *);
-+int acpi_pm_device_sleep_state(struct device *, int *);
- #else /* !CONFIG_PM_SLEEP */
--static inline int acpi_pm_device_sleep_state(struct device *d, int w, int *p)
-+static inline int acpi_pm_device_sleep_state(struct device *d, int *p)
- {
- 	if (p)
- 		*p = ACPI_STATE_D0;
+ obj-$(CONFIG_IBM_ASM)		+= ibmasm/
+ obj-$(CONFIG_HDPU_FEATURES)	+= hdpuftrs/
+-obj-$(CONFIG_MSI_LAPTOP)     += msi-laptop.o
+-obj-$(CONFIG_ACER_WMI)     += acer-wmi.o
+ obj-$(CONFIG_ASUS_LAPTOP)	+= asus-laptop.o
+ obj-$(CONFIG_EEEPC_LAPTOP)	+= eeepc-laptop.o
++obj-$(CONFIG_MSI_LAPTOP)	+= msi-laptop.o
++obj-$(CONFIG_COMPAL_LAPTOP)	+= compal-laptop.o
++obj-$(CONFIG_ACER_WMI)		+= acer-wmi.o
+ obj-$(CONFIG_ATMEL_PWM)		+= atmel_pwm.o
+ obj-$(CONFIG_ATMEL_SSC)		+= atmel-ssc.o
+ obj-$(CONFIG_ATMEL_TCLIB)	+= atmel_tclib.o
+diff -puN /dev/null drivers/misc/compal-laptop.c
+--- /dev/null
++++ a/drivers/misc/compal-laptop.c
+@@ -0,0 +1,437 @@
++/*-*-linux-c-*-*/
++
++/*
++  Copyright (C) 2008 Cezary Jackiewicz <cezary.jackiewicz (at) gmail.com>
++
++  based on MSI driver
++
++  Copyright (C) 2006 Lennart Poettering <mzxreary (at) 0pointer (dot) de>
++
++  This program is free software; you can redistribute it and/or modify
++  it under the terms of the GNU General Public License as published by
++  the Free Software Foundation; either version 2 of the License, or
++  (at your option) any later version.
++
++  This program is distributed in the hope that it will be useful, but
++  WITHOUT ANY WARRANTY; without even the implied warranty of
++  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++  General Public License for more details.
++
++  You should have received a copy of the GNU General Public License
++  along with this program; if not, write to the Free Software
++  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
++  02110-1301, USA.
++ */
++
++/*
++ * comapl-laptop.c - Compal laptop support.
++ *
++ * This driver exports a few files in /sys/devices/platform/compal-laptop/:
++ *
++ *   lcd_level - Screen brightness: contains a single integer in the
++ *   range 0..7. (rw)
++ *
++ *   wlan - wlan subsystem state: contains 0 or 1 (rw)
++ *
++ *   bluetooth - Bluetooth subsystem state: contains 0 or 1 (rw)
++ *
++ *   raw - raw value taken from embedded controller register (ro)
++ *
++ * In addition to these platform device attributes the driver
++ * registers itself in the Linux backlight control subsystem and is
++ * available to userspace under /sys/class/backlight/compal-laptop/.
++ *
++ * This driver might work on other laptops produced by Compal. If you
++ * want to try it you can pass force=1 as argument to the module which
++ * will force it to load even when the DMI data doesn't identify the
++ * laptop as IFL90.
++ */
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/acpi.h>
++#include <linux/dmi.h>
++#include <linux/backlight.h>
++#include <linux/platform_device.h>
++#include <linux/autoconf.h>
++
++#define COMPAL_DRIVER_VERSION "0.2.5"
++
++#define COMPAL_LCD_LEVEL_MAX 8
++
++#define COMPAL_EC_COMMAND_WIRELESS 0xBB
++#define COMPAL_EC_COMMAND_LCD_LEVEL 0xB9
++
++#define KILLSWITCH_MASK	0x10
++#define WLAN_MASK	0x01
++#define BT_MASK		0x02
++
++static int force;
++module_param(force, bool, 0);
++MODULE_PARM_DESC(force, "Force driver load, ignore DMI data");
++
++/* Hardware access */
++
++static int set_lcd_level(int level)
++{
++	if (level < 0 || level >= COMPAL_LCD_LEVEL_MAX)
++		return -EINVAL;
++
++	ec_write(COMPAL_EC_COMMAND_LCD_LEVEL, level);
++
++	return 0;
++}
++
++static int get_lcd_level(void)
++{
++	u8 result;
++
++	ec_read(COMPAL_EC_COMMAND_LCD_LEVEL, &result);
++
++	return (int) result;
++}
++
++static int set_wlan_state(int state)
++{
++	u8 result, value;
++
++	ec_read(COMPAL_EC_COMMAND_WIRELESS, &result);
++
++	if ((result & KILLSWITCH_MASK) == 0)
++		return -EINVAL;
++	else {
++		if (state)
++			value = (u8) (result | WLAN_MASK);
++		else
++			value = (u8) (result & ~WLAN_MASK);
++		ec_write(COMPAL_EC_COMMAND_WIRELESS, value);
++	}
++
++	return 0;
++}
++
++static int set_bluetooth_state(int state)
++{
++	u8 result, value;
++
++	ec_read(COMPAL_EC_COMMAND_WIRELESS, &result);
++
++	if ((result & KILLSWITCH_MASK) == 0)
++		return -EINVAL;
++	else {
++		if (state)
++			value = (u8) (result | BT_MASK);
++		else
++			value = (u8) (result & ~BT_MASK);
++		ec_write(COMPAL_EC_COMMAND_WIRELESS, value);
++	}
++
++	return 0;
++}
++
++static int get_wireless_state(int *wlan, int *bluetooth)
++{
++	u8 result;
++
++	ec_read(COMPAL_EC_COMMAND_WIRELESS, &result);
++
++	if (wlan) {
++		if ((result & KILLSWITCH_MASK) == 0)
++			*wlan = 0;
++		else
++			*wlan = result & WLAN_MASK;
++	}
++
++	if (bluetooth) {
++		if ((result & KILLSWITCH_MASK) == 0)
++			*bluetooth = 0;
++		else
++			*bluetooth = (result & BT_MASK) >> 1;
++	}
++
++	return 0;
++}
++
++/* Backlight device stuff */
++
++static int bl_get_brightness(struct backlight_device *b)
++{
++	return get_lcd_level();
++}
++
++
++static int bl_update_status(struct backlight_device *b)
++{
++	return set_lcd_level(b->props.brightness);
++}
++
++static struct backlight_ops compalbl_ops = {
++	.get_brightness = bl_get_brightness,
++	.update_status  = bl_update_status,
++};
++
++static struct backlight_device *compalbl_device;
++
++/* Platform device */
++
++static ssize_t show_wlan(struct device *dev,
++	struct device_attribute *attr, char *buf)
++{
++	int ret, enabled;
++
++	ret = get_wireless_state(&enabled, NULL);
++	if (ret < 0)
++		return ret;
++
++	return sprintf(buf, "%i\n", enabled);
++}
++
++static ssize_t show_raw(struct device *dev,
++	struct device_attribute *attr, char *buf)
++{
++	u8 result;
++
++	ec_read(COMPAL_EC_COMMAND_WIRELESS, &result);
++
++	return sprintf(buf, "%i\n", result);
++}
++
++static ssize_t show_bluetooth(struct device *dev,
++	struct device_attribute *attr, char *buf)
++{
++	int ret, enabled;
++
++	ret = get_wireless_state(NULL, &enabled);
++	if (ret < 0)
++		return ret;
++
++	return sprintf(buf, "%i\n", enabled);
++}
++
++static ssize_t show_lcd_level(struct device *dev,
++	struct device_attribute *attr, char *buf)
++{
++	int ret;
++
++	ret = get_lcd_level();
++	if (ret < 0)
++		return ret;
++
++	return sprintf(buf, "%i\n", ret);
++}
++
++static ssize_t store_lcd_level(struct device *dev,
++	struct device_attribute *attr, const char *buf, size_t count)
++{
++	int level, ret;
++
++	if (sscanf(buf, "%i", &level) != 1 ||
++		(level < 0 || level >= COMPAL_LCD_LEVEL_MAX))
++		return -EINVAL;
++
++	ret = set_lcd_level(level);
++	if (ret < 0)
++		return ret;
++
++	return count;
++}
++
++static ssize_t store_wlan_state(struct device *dev,
++	struct device_attribute *attr, const char *buf, size_t count)
++{
++	int state, ret;
++
++	if (sscanf(buf, "%i", &state) != 1 || (state < 0 || state > 1))
++		return -EINVAL;
++
++	ret = set_wlan_state(state);
++	if (ret < 0)
++		return ret;
++
++	return count;
++}
++
++static ssize_t store_bluetooth_state(struct device *dev,
++	struct device_attribute *attr, const char *buf, size_t count)
++{
++	int state, ret;
++
++	if (sscanf(buf, "%i", &state) != 1 || (state < 0 || state > 1))
++		return -EINVAL;
++
++	ret = set_bluetooth_state(state);
++	if (ret < 0)
++		return ret;
++
++	return count;
++}
++
++static DEVICE_ATTR(lcd_level, 0644, show_lcd_level, store_lcd_level);
++static DEVICE_ATTR(bluetooth, 0644, show_bluetooth, store_bluetooth_state);
++static DEVICE_ATTR(wlan, 0644, show_wlan, store_wlan_state);
++static DEVICE_ATTR(raw, 0444, show_raw, NULL);
++
++static struct attribute *compal_attributes[] = {
++	&dev_attr_lcd_level.attr,
++	&dev_attr_bluetooth.attr,
++	&dev_attr_wlan.attr,
++	&dev_attr_raw.attr,
++	NULL
++};
++
++static struct attribute_group compal_attribute_group = {
++	.attrs = compal_attributes
++};
++
++static struct platform_driver compal_driver = {
++	.driver = {
++		.name = "compal-laptop",
++		.owner = THIS_MODULE,
++	}
++};
++
++static struct platform_device *compal_device;
++
++/* Initialization */
++
++static int dmi_check_cb(const struct dmi_system_id *id)
++{
++	printk(KERN_INFO "compal-laptop: Identified laptop model '%s'.\n",
++		id->ident);
++
++	return 0;
++}
++
++static struct dmi_system_id __initdata compal_dmi_table[] = {
++	{
++		.ident = "FL90/IFL90",
++		.matches = {
++			DMI_MATCH(DMI_BOARD_NAME, "IFL90"),
++			DMI_MATCH(DMI_BOARD_VERSION, "IFT00"),
++		},
++		.callback = dmi_check_cb
++	},
++	{
++		.ident = "FL90/IFL90",
++		.matches = {
++			DMI_MATCH(DMI_BOARD_NAME, "IFL90"),
++			DMI_MATCH(DMI_BOARD_VERSION, "REFERENCE"),
++		},
++		.callback = dmi_check_cb
++	},
++	{
++		.ident = "FL91/IFL91",
++		.matches = {
++			DMI_MATCH(DMI_BOARD_NAME, "IFL91"),
++			DMI_MATCH(DMI_BOARD_VERSION, "IFT00"),
++		},
++		.callback = dmi_check_cb
++	},
++	{
++		.ident = "FL92/JFL92",
++		.matches = {
++			DMI_MATCH(DMI_BOARD_NAME, "JFL92"),
++			DMI_MATCH(DMI_BOARD_VERSION, "IFT00"),
++		},
++		.callback = dmi_check_cb
++	},
++	{
++		.ident = "FT00/IFT00",
++		.matches = {
++			DMI_MATCH(DMI_BOARD_NAME, "IFT00"),
++			DMI_MATCH(DMI_BOARD_VERSION, "IFT00"),
++		},
++		.callback = dmi_check_cb
++	},
++	{ }
++};
++
++static int __init compal_init(void)
++{
++	int ret;
++
++	if (acpi_disabled)
++		return -ENODEV;
++
++	if (!force && !dmi_check_system(compal_dmi_table))
++		return -ENODEV;
++
++	/* Register backlight stuff */
++
++	compalbl_device = backlight_device_register("compal-laptop", NULL, NULL,
++						&compalbl_ops);
++	if (IS_ERR(compalbl_device))
++		return PTR_ERR(compalbl_device);
++
++	compalbl_device->props.max_brightness = COMPAL_LCD_LEVEL_MAX-1;
++
++	ret = platform_driver_register(&compal_driver);
++	if (ret)
++		goto fail_backlight;
++
++	/* Register platform stuff */
++
++	compal_device = platform_device_alloc("compal-laptop", -1);
++	if (!compal_device) {
++		ret = -ENOMEM;
++		goto fail_platform_driver;
++	}
++
++	ret = platform_device_add(compal_device);
++	if (ret)
++		goto fail_platform_device1;
++
++	ret = sysfs_create_group(&compal_device->dev.kobj,
++		&compal_attribute_group);
++	if (ret)
++		goto fail_platform_device2;
++
++	printk(KERN_INFO "compal-laptop: driver "COMPAL_DRIVER_VERSION
++		" successfully loaded.\n");
++
++	return 0;
++
++fail_platform_device2:
++
++	platform_device_del(compal_device);
++
++fail_platform_device1:
++
++	platform_device_put(compal_device);
++
++fail_platform_driver:
++
++	platform_driver_unregister(&compal_driver);
++
++fail_backlight:
++
++	backlight_device_unregister(compalbl_device);
++
++	return ret;
++}
++
++static void __exit compal_cleanup(void)
++{
++
++	sysfs_remove_group(&compal_device->dev.kobj, &compal_attribute_group);
++	platform_device_unregister(compal_device);
++	platform_driver_unregister(&compal_driver);
++	backlight_device_unregister(compalbl_device);
++
++	printk(KERN_INFO "compal-laptop: driver unloaded.\n");
++}
++
++module_init(compal_init);
++module_exit(compal_cleanup);
++
++MODULE_AUTHOR("Cezary Jackiewicz");
++MODULE_DESCRIPTION("Compal Laptop Support");
++MODULE_VERSION(COMPAL_DRIVER_VERSION);
++MODULE_LICENSE("GPL");
++
++MODULE_ALIAS("dmi:*:rnIFL90:rvrIFT00:*");
++MODULE_ALIAS("dmi:*:rnIFL90:rvrREFERENCE:*");
++MODULE_ALIAS("dmi:*:rnIFL91:rvrIFT00:*");
++MODULE_ALIAS("dmi:*:rnJFL92:rvrIFT00:*");
++MODULE_ALIAS("dmi:*:rnIFT00:rvrIFT00:*");
 _
