@@ -1,54 +1,85 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH 2/3] Introduce acpi_root_table=rsdt boot param and dmi
-	list to force rsdt
-Date: Tue, 13 May 2008 22:55:16 -0300
-Message-ID: <20080514015516.GA20663@khazad-dum.debian.net>
-References: <1210259416.6710.13.camel@hammer1.suse.de> <1210346444.29724.49.camel@queen.suse.de> <20080510121754.GA18338@khazad-dum.debian.net> <200805132059.22031.lenb@kernel.org>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: Subject:ACPI: Send the reserved AC notification event to user
+	space
+Date: Wed, 14 May 2008 10:47:19 +0800
+Message-ID: <1210733239.7932.10.camel@yakui_zhao.sh.intel.com>
+References: <1191814518.3830.2.camel@yakui_zhao.sh.intel.com>
+	 <200710092343.40843.lenb@kernel.org>
+	 <1210324942.8562.46.camel@yakui_zhao.sh.intel.com>
+	 <200805132055.28148.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:52608 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751815AbYENBzV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 13 May 2008 21:55:21 -0400
-Content-Disposition: inline
-In-Reply-To: <200805132059.22031.lenb@kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:37011 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751228AbYENCid (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 13 May 2008 22:38:33 -0400
+In-Reply-To: <200805132055.28148.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: Thomas Renninger <trenn@suse.de>, linux-acpi <linux-acpi@vger.kernel.org>, Zhao Yakui <yakui.zhao@intel.com>, me@markdoughty.co.uk, linux-thinkpad <linux-thinkpad@linux-thinkpad.org>
+Cc: linux-acpi@vger.kernel.org
 
-On Tue, 13 May 2008, Len Brown wrote:
-> On Saturday 10 May 2008, Henrique de Moraes Holschuh wrote:
-> > On Fri, 09 May 2008, Thomas Renninger wrote:
-> > > IMO the whole [XTR][45]* models which came out at that time should be
-> > > added also, this should be rather safe to do.
+On Tue, 2008-05-13 at 20:55 -0400, Len Brown wrote:
+> On Friday 09 May 2008, Zhao Yakui wrote:
+> > Subject:ACPI: Send the reserved AC notification event to user space 
+> > >From : Zhao Yakui <yakui.zhao@intel.com>
 > > 
-> > The X4x are rather different beasts. Better check.  The T40-2 are the
-> > same BIOS, and it was the most updated BIOS in IBM's thinkpad history.
-> > Better check that one too.  They might not need (or want) the "fix".
+> > On some laptops the bogus bios sends the reserved AC notification event(0x81)
+> > when the AC adapter is plugged/unplugged .It can't be sent to 
+> > user space, which causes that user space application can't 
+> > receive the AC adapter event. 
+> > So the reserved AC adapter event(0x81) is still sent to the user space 
+> > so that user space can receive the notification event.
 > > 
-> > What do you need to compare between the tables? I have them.
+> > Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+> > ---
+> >  drivers/acpi/ac.c |    4 ++++
+> >  1 file changed, 4 insertions(+)
+> > 
+> > Index: linux-2.6/drivers/acpi/ac.c
+> > ===================================================================
+> > --- linux-2.6.orig/drivers/acpi/ac.c
+> > +++ linux-2.6/drivers/acpi/ac.c
+> > @@ -42,6 +42,7 @@
+> >  #define ACPI_AC_DEVICE_NAME		"AC Adapter"
+> >  #define ACPI_AC_FILE_STATE		"state"
+> >  #define ACPI_AC_NOTIFY_STATUS		0x80
+> > +#define ACPI_AC_NOTIFY_RESERVED		0x81
+> >  #define ACPI_AC_STATUS_OFFLINE		0x00
+> >  #define ACPI_AC_STATUS_ONLINE		0x01
+> >  #define ACPI_AC_STATUS_UNKNOWN		0xFF
+> > @@ -233,6 +234,9 @@ static void acpi_ac_notify(acpi_handle h
+> >  
+> >  	device = ac->device;
+> >  	switch (event) {
+> > +	case ACPI_AC_NOTIFY_RESERVED:
 > 
-> please send me the acpidump for an r40e that need to use
-> the RSDT instead of an XSDT.
+> shouldn't this line above be "default:"
+If the follwing debug info is not needed, it will be OK to put it above
+the "default" branch.
+  > "Unsupported event [0x%x]\n", event. 
+When this line is put above the "AC_NOTIFY_STATUS" branch, it can send
+the notification event to user space while printing the debug info. 
+> and the default: below this patch be removed?
+Had better not remove the default branch. If other type of notification
+event is sent to AC device, the debug info can be printed. It will be
+helpful to find the root cause.
+> -Len
+> 
+> > +		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+> > +				  "Unsupported event [0x%x]\n", event));
+> >  	case ACPI_AC_NOTIFY_STATUS:
+> >  	case ACPI_NOTIFY_BUS_CHECK:
+> >  	case ACPI_NOTIFY_DEVICE_CHECK:
+> > 
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> 
+> 
 
-It looks like I spoke too soon.  I have the DSDT only, most of them
-already piped through the disassembler :(   These came from the old
-ibm-acpi maintainer, and also from acpi.sf.net.  Neither Borislav nor
-acpi.sf.net saw the value of storing the full set of ACPI data
-structures.
-
-I know better, but I have the full acpidump+dmidecode for just a few
-thinkpads, and I have not organized it properly in one place, yet :(
-I am sure the r40e and r50e were not on the set, though.
-
-Well, since ltp is already CC'ed, they can help us get the data we need.
-I will send a more attention-catching request as a reply to this.
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
