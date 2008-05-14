@@ -1,33 +1,51 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] Fix polling policy in the absence of _TZP
-Date: Wed, 14 May 2008 11:14:33 +0100
-Message-ID: <20080514101433.GA29757@srcf.ucam.org>
-References: <20080514010000.GB21608@srcf.ucam.org> <200805132319.39947.lenb@kernel.org>
+From: Pavel Troller <patrol@sinus.cz>
+Subject: Re: About p4-clockmod breakage/removal
+Date: Wed, 14 May 2008 13:18:17 +0200
+Message-ID: <20080514111817.GA21186@tangens.sinus.cz>
+References: <48246C3E.7010608@ceibo.fiec.espol.edu.ec>
+	<200805132048.00653.lenb@kernel.org>
+	<20080514005636.GA21608@srcf.ucam.org>
+Reply-To: Pavel Troller <patrol@sinus.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mjg.x.mythic-beasts.com ([93.93.128.6]:51593 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1753911AbYENKO4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 May 2008 06:14:56 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <cpufreq-bounces+glkc-cpufreq=m.gmane.org@lists.linux.org.uk>
 Content-Disposition: inline
-In-Reply-To: <200805132319.39947.lenb@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20080514005636.GA21608@srcf.ucam.org>
+List-Unsubscribe: <http://lists.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request@lists.linux.org.uk?subject=unsubscribe>
+List-Archive: <http://lists.linux.org.uk/mailman/private/cpufreq>
+List-Post: <mailto:cpufreq@lists.linux.org.uk>
+List-Help: <mailto:cpufreq-request@lists.linux.org.uk?subject=help>
+List-Subscribe: <http://lists.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request@lists.linux.org.uk?subject=subscribe>
+Sender: cpufreq-bounces@lists.linux.org.uk
+Errors-To: cpufreq-bounces+glkc-cpufreq=m.gmane.org+glkc-cpufreq=m.gmane.org@lists.linux.org.uk
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: cpufreq@lists.linux.org.uk, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
 
-On Tue, May 13, 2008 at 11:19:39PM -0400, Len Brown wrote:
-> On Tuesday 13 May 2008, Matthew Garrett wrote:
-> > Fix Linux to conform to 11.3.18 of the ACPI spec 3.0. In the absence of 
-> > a _TZP method, we should be polling at a default frequency. While it can 
-> > be argued that "0" is a default frequency, I don't think that's what the 
-> > spec authors had in mind.
+> On Tue, May 13, 2008 at 08:48:00PM -0400, Len Brown wrote:
 > 
-> Actually it is what the spec authors had in mind,
-> and the spec is wrong.  Yes, I can provide documentation
-
-Hmm. Ok, I'll handle this differently.
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+> > Assuming this is a laptop with a batter,
+> > I'd certainly be interested if you could run BLTK
+> > and measure any benefit to p4-clockmod (I've never
+> > been able to)
+> 
+> The most plausible benefit to p4-clockmod is its utility in throttling 
+> the CPU if it would otherwise cause the system to overheat. From that 
+> point of view, I think it's worth keeping around - especially since not 
+> all machines expose T states via ACPI.
+> 
+Hi!
+  I heavily used p4-clockmod having old, broken battery. Using it and
+throttling the CPU frequency immediately after AC disconnection was
+necessary to limit the maximum current the CPU was able to drain from
+the battery. Otherwise, the battery voltage would drop below the allowed
+level and the machine would either switch off or crash. Yes, in idle state,
+there was no change in the CPU power consumption, but during heavy CPU
+load, 75% throttle really limited the power consumption to the level
+allowing operation even with that old poor battery.
+  So, p4-clockmod REALLY helped me a lot in this case. I vote for keeping
+it on its place!
+  With regards, Pavel Troller
