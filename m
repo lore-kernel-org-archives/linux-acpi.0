@@ -1,40 +1,46 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: About p4-clockmod breakage/removal
-Date: Wed, 14 May 2008 13:56:18 +0100
-Message-ID: <20080514125618.GA32422@srcf.ucam.org>
-References: <48246C3E.7010608@ceibo.fiec.espol.edu.ec>
-	<200805132048.00653.lenb@kernel.org>
-	<20080514005636.GA21608@srcf.ucam.org>
-	<1210764974.29724.181.camel@queen.suse.de>
-	<20080514114215.GA31135@srcf.ucam.org>
-	<1210769358.21269.21.camel@queen.suse.de>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [linux-pm] [RESEND patch 2.6.25] ACPI uses device_may_wakeup() policy inputs
+Date: Wed, 14 May 2008 16:56:19 +0200
+Message-ID: <20080514145619.GB6615@ucw.cz>
+References: <200804291638.30469.david-b@pacbell.net> <Pine.LNX.4.44L0.0804300950460.2432-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <cpufreq-bounces+glkc-cpufreq=gmane.org@lists.linux.org.uk>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.31.123]:51678 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932259AbYENO4g (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 May 2008 10:56:36 -0400
 Content-Disposition: inline
-In-Reply-To: <1210769358.21269.21.camel@queen.suse.de>
-List-Unsubscribe: <http://lists.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request@lists.linux.org.uk?subject=unsubscribe>
-List-Archive: <http://lists.linux.org.uk/mailman/private/cpufreq>
-List-Post: <mailto:cpufreq@lists.linux.org.uk>
-List-Help: <mailto:cpufreq-request@lists.linux.org.uk?subject=help>
-List-Subscribe: <http://lists.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request@lists.linux.org.uk?subject=subscribe>
-Sender: cpufreq-bounces@lists.linux.org.uk
-Errors-To: cpufreq-bounces+glkc-cpufreq=gmane.org+glkc-cpufreq=gmane.org@lists.linux.org.uk
-To: Thomas Renninger <trenn@suse.de>
-Cc: cpufreq@lists.linux.org.uk, linux-acpi@vger.kernel.org
+In-Reply-To: <Pine.LNX.4.44L0.0804300950460.2432-100000@iolanthe.rowland.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: David Brownell <david-b@pacbell.net>, Zhao Yakui <yakui.zhao@intel.com>, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org
 
-On Wed, May 14, 2008 at 02:49:18PM +0200, Thomas Renninger wrote:
+Hi!
 
-> You might find a hack to modify this, by reading P4 (this seem to sit in
-> the CPU itself?) or chipset specs. But again, is it worth it for a P4
-> where no power saving capabilities are present anyway?
+> > > Indeed, it's easy to imagine a situation where somebody suspends their 
+> > > laptop and then unplugs a USB mouse, thereby causing a wakeup event.
+> > 
+> > It's also easy to imagine getting used to unplugging
+> > such devices *first* ... :)
+> 
+> Maybe.  But people aren't likely to unplug the mouse first if
+> suspending the laptop is done by clicking on a "Suspend" button.  :-)
+> 
+> Or consider the case of a flash drive with a mounted filesystem.  You 
+> can't safely unplug it before suspending, but you can safely unplug it 
+> after suspending (provided you remember to plug it back in before 
+> resuming).
+> 
+> Besides, people will complain that the [insert your choice] operating 
+> system doesn't make them remember to unplug USB devices before 
+> suspending, so why should Linux?
 
-If the alternative is thermal shutdown, sure. I'll take a look through 
-the specs.
+Besides, its a regression.
 
+So we really should just default to the current behaviour on ACPI
+systems: lid and power button wake up the system, other devices don't.
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
