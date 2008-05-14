@@ -1,51 +1,81 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [patch 6/8] PNP: replace pnp_resource_table with dynamically
- allocated resources
-Date: Tue, 13 May 2008 19:42:41 -0700
-Message-ID: <20080513194241.d11664df.akpm@linux-foundation.org>
-References: <20080505223630.682082986@ldl.fc.hp.com>
-	<20080505224000.013817328@ldl.fc.hp.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] Fix polling policy in the absence of _TZP
+Date: Tue, 13 May 2008 23:19:39 -0400
+Message-ID: <200805132319.39947.lenb@kernel.org>
+References: <20080514010000.GB21608@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55826 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751228AbYENCnl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 13 May 2008 22:43:41 -0400
-In-Reply-To: <20080505224000.013817328@ldl.fc.hp.com>
+Received: from hera.kernel.org ([140.211.167.34]:42572 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755549AbYENDU4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 13 May 2008 23:20:56 -0400
+In-Reply-To: <20080514010000.GB21608@srcf.ucam.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-acpi@vger.kernel.org
 
-On Mon, 05 May 2008 16:36:36 -0600 Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
+On Tuesday 13 May 2008, Matthew Garrett wrote:
+> Fix Linux to conform to 11.3.18 of the ACPI spec 3.0. In the absence of 
+> a _TZP method, we should be polling at a default frequency. While it can 
+> be argued that "0" is a default frequency, I don't think that's what the 
+> spec authors had in mind.
 
-> PNP used to have a fixed-size pnp_resource_table for tracking the
-> resources used by a device.  This table often overflowed, so we've
-> had to increase the table size, which wastes memory because most
-> devices have very few resources.
-> 
-> This patch replaces the table with a linked list of resources where
-> the entries are allocated on demand.
-> 
-> This removes messages like these:
-> 
->     pnpacpi: exceeded the max number of IO resources
->     00:01: too many I/O port resources
-> 
-> References:
-> 
->     http://bugzilla.kernel.org/show_bug.cgi?id=9535
->     http://bugzilla.kernel.org/show_bug.cgi?id=9740
->     http://lkml.org/lkml/2007/11/30/110
-> 
-> This patch also changes the way PNP uses the IORESOURCE_UNSET,
-> IORESOURCE_AUTO, and IORESOURCE_DISABLED flags.
+Actually it is what the spec authors had in mind,
+and the spec is wrong.  Yes, I can provide documentation
+supporting this statement.
 
-This patch kills my prehistoric dual PIII.
+NAK
 
-http://userweb.kernel.org/~akpm/p5135912.jpg
-http://userweb.kernel.org/~akpm/config-vmm.txt
-http://userweb.kernel.org/~akpm/dmesg-vmm.txt
+thanks,
+-Len
+
+> Signed-off-by: Matthew Garrett <mjg@redhat.com>
+> 
+> ---
+> 
+> Arguably this should be implemented in such a way that the polling rate 
+> increases as the temperature rises and drops if the trend is downwards. 
+> That would give higher resolution when we're heading towards a trip 
+> point, without any significant increase in power consumption since 
+> increased temperatures imply that the CPU is probably not idle.
+> 
+> diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+> index 504385b..93cb3e8 100644
+> --- a/drivers/acpi/thermal.c
+> +++ b/drivers/acpi/thermal.c
+> @@ -846,10 +846,11 @@ static void acpi_thermal_check(void *data)
+>  	 * Calculate Sleep Time
+>  	 * --------------------
+>  	 * If we're in the passive state, use _TSP's value.  Otherwise
+> -	 * use the default polling frequency (e.g. _TZP).  If no polling
+> -	 * frequency is specified then we'll wait forever (at least until
+> -	 * a thermal event occurs).  Note that _TSP and _TZD values are
+> -	 * given in 1/10th seconds (we must covert to milliseconds).
+> +	 * use the default polling frequency (e.g. _TZP).  If no
+> +	 * polling frequency is specified then we'll wait 10 seconds
+> +	 * (or until a thermal event occurs).  Note that _TSP and _TZD
+> +	 * values are given in 1/10th seconds (we must covert to
+> +	 * milliseconds).
+>  	 */
+>  	if (tz->state.passive) {
+>  		sleep_time = tz->trips.passive.tsp * 100;
+> @@ -1575,8 +1576,9 @@ static int acpi_thermal_get_info(struct acpi_thermal *tz)
+>  	/* Get default polling frequency [_TZP] (optional) */
+>  	if (tzp)
+>  		tz->polling_frequency = tzp;
+> -	else
+> -		acpi_thermal_get_polling_frequency(tz);
+> +	else if (acpi_thermal_get_polling_frequency(tz) == -ENODEV)
+> +		/* If no _TZP, default to polling every 10 seconds */
+> +		tz->polling_frequency = 100;
+>  
+>  	return 0;
+>  }
+> 
+
+
