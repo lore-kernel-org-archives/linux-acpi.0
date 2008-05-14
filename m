@@ -1,74 +1,160 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: [PATCH]: ACPI: Disable Fixed_RTC event when installing RTC handler
-Date: Wed, 14 May 2008 11:32:59 +0800
-Message-ID: <1210735979.7932.14.camel@yakui_zhao.sh.intel.com>
-References: <1191814518.3830.2.camel@yakui_zhao.sh.intel.com>
-	 <200710092343.40843.lenb@kernel.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 2/2] Add a passive cooling trip point if the firmware doesn't define one
+Date: Tue, 13 May 2008 23:30:20 -0400
+Message-ID: <200805132330.20159.lenb@kernel.org>
+References: <20080514010000.GB21608@srcf.ucam.org> <20080514010300.GC21608@srcf.ucam.org> <20080514010820.GD21608@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:45624 "EHLO mga11.intel.com"
+Received: from hera.kernel.org ([140.211.167.34]:50984 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755549AbYENDYN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 13 May 2008 23:24:13 -0400
-In-Reply-To: <200710092343.40843.lenb@kernel.org>
+	id S1755549AbYENDaa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 13 May 2008 23:30:30 -0400
+In-Reply-To: <20080514010820.GD21608@srcf.ucam.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
 Cc: linux-acpi@vger.kernel.org
 
-Subject:ACPI: Disable Fixed_RTC event when installing RTC handler
->From : Zhao Yakui <yakui.zhao@intel.com>
+On Tuesday 13 May 2008, Matthew Garrett wrote:
+> If a thermal zone is provided with a critical temperature, then there is 
+> obviously a concern on the part of the vendor that it may overheat. 
+> Currently Linux will only attempt to do something about that if the 
+> vendor has explicitly added a passive cooling trip point. However, it's 
+> clear that allowing the system to hit the critical trip point is far 
+> from ideal - the system will immediately shut down, and data will almost 
+> certainly be lost. This patch adds a default passive cooling zone if the 
+> platform does not provide its own, with the default being to have it be 
+> 5 degrees below the critical shutoff temperature. This should avoid the 
+> kernel limiting performance unless it's genuinely likely that the 
+> hardware is about to overheat and shut down. The default temperature 
+> value can be overridden by passing the thermal.psv argument at boot or 
+> module load time.
+> 
+> Signed-off-by: Matthew Garrett <mjg@redhat.com>
+> 
+> ---
+> 
+> While this is clearly something of a hack,
 
-The Fixed_RTC event should be disabled when installing RTC handler.
-Only when RTC alarm is set will it be enabled again. If it is not 
-disabled, maybe some machines will be powered on automatically after 
-the system is shutdown even when the RTC alarm is not set.
 
-http://bugzilla.kernel.org/show_bug.cgi?id=10010
+Yes, I'm aware of the Dell D610, and I'm truly sorry
+that Dell built a machine with a poor thermal solution,
+didn't supply _PSV, and somehow looked after Windows
+without looking after Linux.
 
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+But I'm not willing to screw up Linux for the
+benefit of an obsolete screwed up Dell laptop.
 
----
- drivers/acpi/glue.c       |    6 ++++++
- drivers/acpi/sleep/proc.c |    6 ++++++
- 2 files changed, 12 insertions(+)
+An entire new handheld product line will ship this year
+where the assumption that the processor is the primary
+contributor to heat may simply be _false_, thermal
+zones may be totally unrelated to the processor,
+and throttling the processor may be exactly the
+wrong way to handle a thermal issue.
 
-Index: linux-2.6/drivers/acpi/glue.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/glue.c
-+++ linux-2.6/drivers/acpi/glue.c
-@@ -272,6 +272,12 @@ static u32 rtc_handler(void *context)
- static inline void rtc_wake_setup(void)
- {
- 	acpi_install_fixed_event_handler(ACPI_EVENT_RTC, rtc_handler, NULL);
-+	/*
-+	 * After the RTC handler is installed, the Fixed_RTC event should
-+	 * be disabled. Only when the RTC alarm is set will it be enabled.
-+	 */
-+	acpi_clear_event(ACPI_EVENT_RTC);
-+	acpi_disable_event(ACPI_EVENT_RTC, 0);
- }
- 
- static void rtc_wake_on(struct device *dev)
-Index: linux-2.6/drivers/acpi/sleep/proc.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/sleep/proc.c
-+++ linux-2.6/drivers/acpi/sleep/proc.c
-@@ -495,6 +495,12 @@ static int __init acpi_sleep_proc_init(v
- 		    acpi_root_dir, &acpi_system_alarm_fops);
- 
- 	acpi_install_fixed_event_handler(ACPI_EVENT_RTC, rtc_handler, NULL);
-+	/*
-+	 * Disable the RTC event after installing RTC handler.
-+	 * Only when RTC alarm is set will it be enabled.
-+	 */
-+	acpi_clear_event(ACPI_EVENT_RTC);
-+	acpi_disable_event(ACPI_EVENT_RTC, 0);
- #endif				/* HAVE_ACPI_LEGACY_ALARM */
- 
- 	/* 'wakeup device' [R/W] */
+I'm sorry for D610 owners running Linux, really I am.
+
+-Len
+
+> I'd argue that it's the right  
+> thing to do. In the real world, it's highly unlikely that a piece of 
+> ahrdware is going to reach equilibrium at 5 degrees below the critical 
+> temperature. If we've reached that temperature, the machine is in 
+> serious danger of powering down in the near future and we really ought 
+> to do something about it.
+> 
+> This patch associates the CPUs with the zone even if the zone may be 
+> relating to an entirely different part of the hardware. This is a 
+> pragmatic decision - right now the CPUs are the only hardware we really 
+> have any thermal control over, and even if the thermal zone is covering 
+> the GPU (for instance) then the only thing we can do to reduce the heat 
+> is to reduce the load on the CPU. I think this is certainly better than 
+> letting the machine power down.
+> 
+> diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+> index 93cb3e8..19acfd3 100644
+> --- a/drivers/acpi/thermal.c
+> +++ b/drivers/acpi/thermal.c
+> @@ -116,6 +116,8 @@ static const struct acpi_device_id  thermal_device_ids[] = {
+>  };
+>  MODULE_DEVICE_TABLE(acpi, thermal_device_ids);
+>  
+> +extern struct acpi_handle_list acpi_processor_list;
+> +
+>  static struct acpi_driver acpi_thermal_driver = {
+>  	.name = "thermal",
+>  	.class = ACPI_THERMAL_CLASS,
+> @@ -418,9 +420,7 @@ static int acpi_thermal_trips_update(struct acpi_thermal *tz, int flag)
+>  				"_PSV", NULL, &tz->trips.passive.temperature);
+>  		}
+>  
+> -		if (ACPI_FAILURE(status))
+> -			tz->trips.passive.flags.valid = 0;
+> -		else {
+> +		if (ACPI_SUCCESS(status)) {
+>  			tz->trips.passive.flags.valid = 1;
+>  			if (flag == ACPI_TRIPS_INIT) {
+>  				status = acpi_evaluate_integer(
+> @@ -440,20 +440,48 @@ static int acpi_thermal_trips_update(struct acpi_thermal *tz, int flag)
+>  					tz->trips.passive.flags.valid = 0;
+>  			}
+>  		}
+> +
+> +		if (!tz->trips.passive.flags.valid) {
+> +			/* If there's no valid passive zone, add a fake
+> +			   one in order to ensure that we don't hit the
+> +			   critical temperature limit */
+> +
+> +			tz->trips.passive.flags.valid = 1;
+> +			tz->trips.passive.tc1 = 1;
+> +			tz->trips.passive.tc2 = 1;
+> +
+> +			/* A high rate of polling here is acceptable -
+> +			   if we're hitting this limit, then the
+> +			   system is clearly under load. A higher
+> +			   polling frequency means that we can weigh
+> +			   the load against the temperature more
+> +			   effeciently and overall reduce power
+> +			   consumption */
+> +
+> +			tz->trips.passive.tsp = 10;
+> +
+> +			/* Set the passive trip temperature to be either
+> +			   the option passed by the user or 5 degrees below the
+> +			   critical temperature. That should give us enough
+> +			   head room without limiting performance */
+> +
+> +			if (!psv)
+> +				tz->trips.passive.temperature =
+> +					tz->trips.critical.temperature - 50;
+> +		}
+>  	}
+>  	if ((flag & ACPI_TRIPS_DEVICES) && tz->trips.passive.flags.valid) {
+>  		memset(&devices, 0, sizeof(struct acpi_handle_list));
+>  		status = acpi_evaluate_reference(tz->device->handle, "_PSL",
+>  							NULL, &devices);
+> -		if (ACPI_FAILURE(status))
+> -			tz->trips.passive.flags.valid = 0;
+> -		else
+> -			tz->trips.passive.flags.valid = 1;
+> -
+> -		if (memcmp(&tz->trips.passive.devices, &devices,
+> +		if (ACPI_FAILURE(status)) {
+> +			memcpy(&tz->trips.passive.devices,
+> +			       &acpi_processor_list,
+> +			       sizeof (struct acpi_handle_list));
+> +		} else if (memcmp(&tz->trips.passive.devices, &devices,
+>  				sizeof(struct acpi_handle_list))) {
+>  			memcpy(&tz->trips.passive.devices, &devices,
+> -				sizeof(struct acpi_handle_list));
+> +			       sizeof(struct acpi_handle_list));
+>  			ACPI_THERMAL_TRIPS_EXCEPTION(flag, "device");
+>  		}
+>  	}
+> 
 
 
