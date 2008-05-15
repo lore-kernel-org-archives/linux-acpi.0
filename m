@@ -1,30 +1,53 @@
-From: Rene Herman <rene.herman@keyaccess.nl>
-Subject: Re: [patch 6/8] PNP: replace pnp_resource_table with dynamically
- allocated resources
-Date: Thu, 15 May 2008 09:54:42 +0200
-Message-ID: <482BEC42.9060605@keyaccess.nl>
-References: <20080505223630.682082986@ldl.fc.hp.com> <20080505224000.013817328@ldl.fc.hp.com> <20080513194241.d11664df.akpm@linux-foundation.org> <200805141718.35158.bjorn.helgaas@hp.com>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: [PATCH] ACPI: Battery: Update info for inserted battery
+Date: Thu, 15 May 2008 13:26:33 +0400
+Message-ID: <20080515092633.1640.49831.stgit@thinkpad>
+References: <200805141918.50286.neitzke@ias.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtpq2.tilbu1.nb.home.nl ([213.51.146.201]:47146 "EHLO
-	smtpq2.tilbu1.nb.home.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753346AbYEOHxE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 May 2008 03:53:04 -0400
-In-Reply-To: <200805141718.35158.bjorn.helgaas@hp.com>
+Received: from charybdis-ext.suse.de ([195.135.221.2]:45452 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755395AbYEOJZr (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Thu, 15 May 2008 05:25:47 -0400
+In-Reply-To: <200805141918.50286.neitzke@ias.edu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>
+To: LenBrown <lenb@kernel.org>
+Cc: Linux-acpi@vger.kernel.org
 
-On 15-05-08 01:18, Bjorn Helgaas wrote:
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+Acked-by: Andy Neitzke <neitzke@ias.edu>
 
-> Thanks for the report.  I think I've fixed the problem.
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+---
 
-I saw it was PnPBIOS by the way. PnPBIOS appears to be obsolete these 
-days; do you have machines to test it on yourself? I do (plenty), so 
-although I'm not being fast with testing anyway, would you want me to 
-switch those from PnPACPI to PnPBIOS?
+ drivers/acpi/battery.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-Rene.
+
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index b1c723f..e5ca3a0 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -472,7 +472,7 @@ static void sysfs_remove_battery(struct acpi_battery *battery)
+ 
+ static int acpi_battery_update(struct acpi_battery *battery)
+ {
+-	int result;
++	int result, old_present = acpi_battery_present(battery);
+ 	result = acpi_battery_get_status(battery);
+ 	if (result)
+ 		return result;
+@@ -483,7 +483,8 @@ static int acpi_battery_update(struct acpi_battery *battery)
+ 		return 0;
+ 	}
+ #endif
+-	if (!battery->update_time) {
++	if (!battery->update_time ||
++	    old_present != acpi_battery_present(battery)) {
+ 		result = acpi_battery_get_info(battery);
+ 		if (result)
+ 			return result;
+
