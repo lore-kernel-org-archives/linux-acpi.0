@@ -1,41 +1,49 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: About p4-clockmod breakage/removal
-Date: Wed, 14 May 2008 22:55:10 -0300
-Message-ID: <20080515015510.GD3415@khazad-dum.debian.net>
-References: <48246C3E.7010608@ceibo.fiec.espol.edu.ec> <20080514005636.GA21608@srcf.ucam.org> <20080514111817.GA21186@tangens.sinus.cz> <200805141322.26879.lenb@kernel.org>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [linux-pm] Suspend, followed by immediate resume
+Date: Thu, 15 May 2008 10:04:16 +0800
+Message-ID: <1210817056.2929.14.camel@rzhang-crestline.sh.intel.com>
+References: <20080501214437.0ae618c5@osprey.hogchain.net>
+	 <20080514144253.GB6260@ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:52408 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751060AbYEOBzP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 14 May 2008 21:55:15 -0400
-Content-Disposition: inline
-In-Reply-To: <200805141322.26879.lenb@kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:49891 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751904AbYEOCEO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 14 May 2008 22:04:14 -0400
+In-Reply-To: <20080514144253.GB6260@ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Pavel Troller <patrol@sinus.cz>, Matthew Garrett <mjg59@srcf.ucam.org>, cpufreq@lists.linux.org.uk, Alex =?iso-8859-1?B?VmlsbGFj7a1z?= Lasso <avillaci@ceibo.fiec.espol.edu.ec>, linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>, Jay Cliburn <jacliburn@bellsouth.net>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>
 
-On Wed, 14 May 2008, Len Brown wrote:
-> But the cost is that others with actual working hardware
-> unnwittingly run p4-clockmod and slow down their machine with
-> no energy savings benefit.
 
-Well, there ARE ways to make sure p4-clockmod is only used as a last
-ressort, and we CAN make sure the user will be told it is using a last
-ressort measure that does not save energy.  Major nasty printks come to
-mind.
+On Wed, 2008-05-14 at 16:42 +0200, Pavel Machek wrote:
+> Hi!
+> 
+> > I'm trying to get wake-on-lan working on the network driver I maintain
+> > (atl1), but I can't get my system to suspend to memory long enough to
+> > test it.  Seems that my system suspends and immediately wakes up again
+> > without any intervention on my part.  This is with kernel 2.6.25.1, but
+> > I've always encountered this phenomenon, going back to 2.6.21 when the
+> > driver was merged into mainline.  I've finally resolved to get to the
+> > bottom of it, and I'm hoping linux-pm can help.
+> > 
+> > To suspend, I execute
+> > 
+> > echo mem > /sys/power/state
+> > 
+> > and the system actually suspends (as far as I can tell), but within a
+> > few seconds it wakes up without any intervention on my part.  I've
+> 
+> Check /proc/acpi/wakeup?
+Please try the patches here:
+http://bugzilla.kernel.org/show_bug.cgi?id=10503#c5
+http://bugzilla.kernel.org/show_bug.cgi?id=10503#c7
 
-p4-clockmod has saved my bacon on an Intel D875PBZ motherboard whose
-processor was overheating, as well (older kernel, though. That box runs
-2.6.16.y).  I can't check right now if that motherboard has proper ACPI
-thermal zones that would do the same in a new kernel without
-p4-clockmod, but I will do so when I have the chance.
+thanks,
+rui
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+
+
