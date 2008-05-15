@@ -1,54 +1,35 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH 2/2] Add a passive cooling trip point if the firmware
-	doesn't define one
-Date: Thu, 15 May 2008 08:55:16 +0800
-Message-ID: <1210812916.2929.6.camel@rzhang-crestline.sh.intel.com>
-References: <20080514010000.GB21608@srcf.ucam.org>
-	 <20080514010300.GC21608@srcf.ucam.org>
-	 <20080514010820.GD21608@srcf.ucam.org> <200805132330.20159.lenb@kernel.org>
-	 <20080514093304.GB28678@srcf.ucam.org>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH 2/2] Add a passive cooling trip point if the firmware doesn't define one
+Date: Thu, 15 May 2008 02:04:26 +0100
+Message-ID: <20080515010426.GA13927@srcf.ucam.org>
+References: <20080514010000.GB21608@srcf.ucam.org> <20080514010300.GC21608@srcf.ucam.org> <20080514010820.GD21608@srcf.ucam.org> <200805132330.20159.lenb@kernel.org> <20080514093304.GB28678@srcf.ucam.org> <1210812916.2929.6.camel@rzhang-crestline.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:2289 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751489AbYEOAzL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 14 May 2008 20:55:11 -0400
-In-Reply-To: <20080514093304.GB28678@srcf.ucam.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:47148 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751647AbYEOBEw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 May 2008 21:04:52 -0400
+Content-Disposition: inline
+In-Reply-To: <1210812916.2929.6.camel@rzhang-crestline.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
+To: Zhang Rui <rui.zhang@intel.com>
 Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
+On Thu, May 15, 2008 at 08:55:16AM +0800, Zhang Rui wrote:
 
-On Wed, 2008-05-14 at 10:33 +0100, Matthew Garrett wrote:
-> On Tue, May 13, 2008 at 11:30:20PM -0400, Len Brown wrote:
-> 
-> > An entire new handheld product line will ship this year
-> > where the assumption that the processor is the primary
-> > contributor to heat may simply be _false_, thermal
-> > zones may be totally unrelated to the processor,
-> > and throttling the processor may be exactly the
-> > wrong way to handle a thermal issue.
-> 
-> That's fine. In the ACPI code, we currently have no support for managing 
-> thermal conditions through anything other than the processor. Once that 
-> changes, it's easy to fix this up so it doesn't interfere with thermal 
-> zones that are handled by throttling other devices.
-> 
-> Menlow has a more complex thermal model than machines we've seen up to 
-> now, but I was under the impression that this was to be handled by the 
-> new generic thermal class rather than the existing ACPI code. I don't 
-> see this patch as being in conflict with supporting that.
-> 
-Menlow also defines ACPI thermal zones and all these thermal zones are
-registered with the generic thermal class.
-The difference is that menlow uses _TZD to list many other devices for
-throttling, and all these devices are registered with the generic
-thermal class as well.
-If this patch is applied, processors may be throttled unexcepted.
+> Menlow also defines ACPI thermal zones and all these thermal zones are
+> registered with the generic thermal class.
+> The difference is that menlow uses _TZD to list many other devices for
+> throttling, and all these devices are registered with the generic
+> thermal class as well.
+> If this patch is applied, processors may be throttled unexcepted.
 
-thanks,
-rui
+Hm. If there's a TZD defined for the thermal zone, then it makes sense 
+to use that rather than using the processor. I didn't bother since I 
+haven't yet been able to find a machine that used TZD for anything other 
+than the CPU :) I'll implement that tomorrow.
 
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
