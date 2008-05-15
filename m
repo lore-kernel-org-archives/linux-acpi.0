@@ -1,40 +1,32 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [GIT PATCH] thinkpad-acpi bug fixes for 2.6.26-rc
-Date: Thu, 15 May 2008 16:29:36 -0300
-Message-ID: <1210879778-21046-1-git-send-email-hmh@hmh.eng.br>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: [patch 0/4] PNP: convert resource table to dynamic list, v2
+Date: Thu, 15 May 2008 16:07:26 -0600
+Message-ID: <20080515220726.029505668@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:56808 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751768AbYEOT3m (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 May 2008 15:29:42 -0400
+Received: from g4t0014.houston.hp.com ([15.201.24.17]:22707 "EHLO
+	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751800AbYEOW5W (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 May 2008 18:57:22 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>, Takashi Iwai <tiwai@suse.de>
 
+This series replaces the fixed-size pnp_resource_table with a
+linked list of resources.
 
-Len,
+This iteration fixes a null pointer dereference Andrew found
+on a PNPBIOS machine.
 
-This patchset has my current thinkpad-acpi queue for 2.6.26-rc.  It
-includes two fixes, one of them being a regression from 2.6.25 that bites
-users of older ThinkPads.
+Because of that problem, Andrew dropped the following patches
+from the -mm tree (these were patches 6-8 of the v1 series):
 
-Please send them to Linus for mainline merge.
+  pnp-replace-pnp_resource_table-with-dynamically-allocated-resources.patch
+  pnp-remove-ratelimit-on-add-resource-failures.patch
+  pnp-dont-sort-by-type-in-sys-resources.patch
 
-As usual, the patch set is available at:
-git://repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git for-upstream/acpi-release
+This posting doesn't repeat patches 1-5 from the original v1 series;
+the first is already in Linus's tree, and the rest are still in -mm.
 
-Shortlog:
-
-Henrique de Moraes Holschuh (2):
-      ACPI: thinkpad-acpi: fix initialization error paths
-      ACPI: thinkpad-acpi: fix LED handling on older ThinkPads
-
-Thanks!
-
+Bjorn
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
