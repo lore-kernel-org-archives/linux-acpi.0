@@ -1,49 +1,43 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [linux-pm] Suspend, followed by immediate resume
-Date: Thu, 15 May 2008 10:04:16 +0800
-Message-ID: <1210817056.2929.14.camel@rzhang-crestline.sh.intel.com>
-References: <20080501214437.0ae618c5@osprey.hogchain.net>
-	 <20080514144253.GB6260@ucw.cz>
+Subject: Re: [PATCH 2/2] Add a passive cooling trip point if the firmware
+	doesn't define one
+Date: Thu, 15 May 2008 10:15:39 +0800
+Message-ID: <1210817739.2929.24.camel@rzhang-crestline.sh.intel.com>
+References: <20080514010000.GB21608@srcf.ucam.org>
+	 <20080514010300.GC21608@srcf.ucam.org>
+	 <20080514010820.GD21608@srcf.ucam.org> <200805132330.20159.lenb@kernel.org>
+	 <20080514093304.GB28678@srcf.ucam.org>
+	 <1210812916.2929.6.camel@rzhang-crestline.sh.intel.com>
+	 <20080515010426.GA13927@srcf.ucam.org>
+	 <1210814699.2929.10.camel@rzhang-crestline.sh.intel.com>
+	 <20080515015831.GA14829@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:49891 "EHLO mga11.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:63970 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751904AbYEOCEO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 14 May 2008 22:04:14 -0400
-In-Reply-To: <20080514144253.GB6260@ucw.cz>
+	id S1752199AbYEOCPe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 14 May 2008 22:15:34 -0400
+In-Reply-To: <20080515015831.GA14829@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>, Jay Cliburn <jacliburn@bellsouth.net>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
 
-On Wed, 2008-05-14 at 16:42 +0200, Pavel Machek wrote:
-> Hi!
+On Thu, 2008-05-15 at 02:58 +0100, Matthew Garrett wrote:
+> On Thu, May 15, 2008 at 09:24:59AM +0800, Zhang Rui wrote:
+> > On Thu, 2008-05-15 at 09:04 +0800, Matthew Garrett wrote:
+> > >  I'll implement that tomorrow.
+> > sorry I don't understand this. what will you implement?
 > 
-> > I'm trying to get wake-on-lan working on the network driver I maintain
-> > (atl1), but I can't get my system to suspend to memory long enough to
-> > test it.  Seems that my system suspends and immediately wakes up again
-> > without any intervention on my part.  This is with kernel 2.6.25.1, but
-> > I've always encountered this phenomenon, going back to 2.6.21 when the
-> > driver was merged into mainline.  I've finally resolved to get to the
-> > bottom of it, and I'm hoping linux-pm can help.
-> > 
-> > To suspend, I execute
-> > 
-> > echo mem > /sys/power/state
-> > 
-> > and the system actually suspends (as far as I can tell), but within a
-> > few seconds it wakes up without any intervention on my part.  I've
+> I'll modify my patch so it uses the devices in a _TZD package if they're 
+> present.
 > 
-> Check /proc/acpi/wakeup?
-Please try the patches here:
-http://bugzilla.kernel.org/show_bug.cgi?id=10503#c5
-http://bugzilla.kernel.org/show_bug.cgi?id=10503#c7
+Hmm, ACPI thermal zone doesn't know how to throttle the devices in a
+_TZD package, so I don't think we can use the _TZD devices.
 
 thanks,
 rui
-
-
 
