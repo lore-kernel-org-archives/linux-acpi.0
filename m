@@ -1,106 +1,40 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 3/4] PNP: remove ratelimit on add resource failures
-Date: Thu, 15 May 2008 16:07:29 -0600
-Message-ID: <20080515220754.916930897@ldl.fc.hp.com>
-References: <20080515220726.029505668@ldl.fc.hp.com>
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: Re: [PATCH 0/5] pci-acpi: improvement for _OSC evaluation
+Date: Fri, 16 May 2008 11:00:05 -0700
+Message-ID: <200805161100.06049.jbarnes@virtuousgeek.org>
+References: <482BD572.30504@jp.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-2022-jp"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:33557 "EHLO
-	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761591AbYEOW71 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 May 2008 18:59:27 -0400
-Content-Disposition: inline; filename=pnp-remove-warning-ratelimit
+Received: from outbound-mail-156.bluehost.com ([67.222.39.36]:56048 "HELO
+	outbound-mail-156.bluehost.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752547AbYEPSAP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 16 May 2008 14:00:15 -0400
+In-Reply-To: <482BD572.30504@jp.fujitsu.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>, Takashi Iwai <tiwai@suse.de>
+To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Cc: linux-pci@vger.kernel.org, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Li, Shaohua" <shaohua.li@intel.com>
 
-We used to have a fixed-size resource table.  If a device had
-twenty resources when the table only had space for ten, we didn't
-need ten warnings, so we added the ratelimit.
+On Wednesday, May 14, 2008 11:17 pm Kenji Kaneshige wrote:
+> Hi,
+>
+> Here are some improvement patches for _OSC evaluation on PCI.
+>
+> - [PATCH 1/5] pci-acpi: remove duplicate code for _OSC
+> - [PATCH 2/5] pci-acpi: use local buffer for _OSC
+> - [PATCH 3/5] pci-acpi: add flag to indicate query had been done
+> - [PATCH 4/5] pci-acpi: remove unused variable in __pci_osc_support_set
+> - [PATCH 5/5] pci-acpi: minor cleanups for _OSC
+>
+> For details, please see the header of each patch.
 
-Now that we can dynamically allocate new resources, we should
-only get failures if the allocation fails.  That should be
-rare enough that we don't need to ratelimit the messages.
+These cleanups look nice; Shaohua maybe you could take a look too and 
+ack/nack?
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-
-Index: work10/drivers/pnp/resource.c
-===================================================================
---- work10.orig/drivers/pnp/resource.c	2008-05-05 11:38:16.000000000 -0600
-+++ work10/drivers/pnp/resource.c	2008-05-05 11:49:05.000000000 -0600
-@@ -537,15 +537,10 @@ struct pnp_resource *pnp_add_irq_resourc
- {
- 	struct pnp_resource *pnp_res;
- 	struct resource *res;
--	static unsigned char warned;
- 
- 	pnp_res = pnp_new_resource(dev);
- 	if (!pnp_res) {
--		if (!warned) {
--			dev_err(&dev->dev, "can't add resource for IRQ %d\n",
--				irq);
--			warned = 1;
--		}
-+		dev_err(&dev->dev, "can't add resource for IRQ %d\n", irq);
- 		return NULL;
- 	}
- 
-@@ -563,15 +558,10 @@ struct pnp_resource *pnp_add_dma_resourc
- {
- 	struct pnp_resource *pnp_res;
- 	struct resource *res;
--	static unsigned char warned;
- 
- 	pnp_res = pnp_new_resource(dev);
- 	if (!pnp_res) {
--		if (!warned) {
--			dev_err(&dev->dev, "can't add resource for DMA %d\n",
--				dma);
--			warned = 1;
--		}
-+		dev_err(&dev->dev, "can't add resource for DMA %d\n", dma);
- 		return NULL;
- 	}
- 
-@@ -590,16 +580,12 @@ struct pnp_resource *pnp_add_io_resource
- {
- 	struct pnp_resource *pnp_res;
- 	struct resource *res;
--	static unsigned char warned;
- 
- 	pnp_res = pnp_new_resource(dev);
- 	if (!pnp_res) {
--		if (!warned) {
--			dev_err(&dev->dev, "can't add resource for IO "
--				"%#llx-%#llx\n",(unsigned long long) start,
--				(unsigned long long) end);
--			warned = 1;
--		}
-+		dev_err(&dev->dev, "can't add resource for IO %#llx-%#llx\n",
-+			(unsigned long long) start,
-+			(unsigned long long) end);
- 		return NULL;
- 	}
- 
-@@ -619,16 +605,12 @@ struct pnp_resource *pnp_add_mem_resourc
- {
- 	struct pnp_resource *pnp_res;
- 	struct resource *res;
--	static unsigned char warned;
- 
- 	pnp_res = pnp_new_resource(dev);
- 	if (!pnp_res) {
--		if (!warned) {
--			dev_err(&dev->dev, "can't add resource for MEM "
--				"%#llx-%#llx\n",(unsigned long long) start,
--				(unsigned long long) end);
--			warned = 1;
--		}
-+		dev_err(&dev->dev, "can't add resource for MEM %#llx-%#llx\n",
-+			(unsigned long long) start,
-+			(unsigned long long) end);
- 		return NULL;
- 	}
- 
-
--- 
+Thanks,
+Jesse
