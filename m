@@ -1,41 +1,39 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: [patch 07/11] acpi_pm_device_sleep_state() cleanup
-Date: Fri, 16 May 2008 11:03:12 -0700
-Message-ID: <200805161103.13871.jbarnes@virtuousgeek.org>
-References: <200805142309.m4EN9KBX025994@imap1.linux-foundation.org>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [patch 6/8] PNP: replace pnp_resource_table with dynamically allocated resources
+Date: Fri, 16 May 2008 11:17:25 -0600
+Message-ID: <200805161117.26288.bjorn.helgaas@hp.com>
+References: <20080505223630.682082986@ldl.fc.hp.com> <200805141718.35158.bjorn.helgaas@hp.com> <482BEC42.9060605@keyaccess.nl>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="utf-8"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outbound-mail-03.bluehost.com ([69.89.21.13]:36594 "HELO
-	outbound-mail-03.bluehost.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1759085AbYEPSKH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 16 May 2008 14:10:07 -0400
-In-Reply-To: <200805142309.m4EN9KBX025994@imap1.linux-foundation.org>
+Received: from g4t0016.houston.hp.com ([15.201.24.19]:37604 "EHLO
+	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752785AbYEPS0o (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 May 2008 14:26:44 -0400
+In-Reply-To: <482BEC42.9060605@keyaccess.nl>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: akpm@linux-foundation.org
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, dbrownell@users.sourceforge.net, bjorn.helgaas@hp.com, pavel@ucw.cz, trenn@suse.de
+To: Rene Herman <rene.herman@keyaccess.nl>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>
 
-On Wednesday, May 14, 2008 4:09 pm akpm@linux-foundation.org wrote:
-> From: David Brownell <dbrownell@users.sourceforge.net>
->
-> Get rid of a superfluous acpi_pm_device_sleep_state() parameter.  The only
-> legitimate value of that parameter must be derived from the first
-> parameter, which is what all the callers already do.  (However, this does
-> not address the fact that ACPI *still* doesn't set up those flags.)
->
-> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-> Acked-by: Pavel Machek <pavel@ucw.cz>
-> Cc: Thomas Renninger <trenn@suse.de>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-> Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+On Thursday 15 May 2008 01:54:42 am Rene Herman wrote:
+> On 15-05-08 01:18, Bjorn Helgaas wrote:
+> 
+> > Thanks for the report.  I think I've fixed the problem.
+> 
+> I saw it was PnPBIOS by the way. PnPBIOS appears to be obsolete these 
+> days; do you have machines to test it on yourself? I do (plenty), so 
+> although I'm not being fast with testing anyway, would you want me to 
+> switch those from PnPACPI to PnPBIOS?
 
-Looks good to me, should probably go in through the ACPI tree.
+All of my machines have ACPI, but in this case, I was able to
+reproduce the null pointer dereference Andrew by booting with
+"pnpacpi=off".
 
-Acked-by: Jesse Barnes <jbarnes@virtuousgeek.org>
+PNPBIOS testing is pretty scarce, though, so anything you
+do along those lines would be much appreciated.
+
+Bjorn
