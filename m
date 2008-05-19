@@ -1,53 +1,173 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [patch 3/8] PNP: remove pnp_resource.index
-Date: Mon, 19 May 2008 17:27:00 -0600
-Message-ID: <200805191727.01487.bjorn.helgaas@hp.com>
-References: <20080505223630.682082986@ldl.fc.hp.com> <20080505223959.374741576@ldl.fc.hp.com> <4831F8BC.3080405@keyaccess.nl>
+Subject: Re: [patch 4/4] PNP: dont sort by type in /sys/.../resources
+Date: Mon, 19 May 2008 17:41:09 -0600
+Message-ID: <200805191741.10562.bjorn.helgaas@hp.com>
+References: <20080515220726.029505668@ldl.fc.hp.com> <20080515220755.127620227@ldl.fc.hp.com> <20080519184228.2mbxt2meths8cg0c@webmail.mit.edu>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-15"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0027.austin.hp.com ([15.216.28.34]:12537 "EHLO
-	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754741AbYESX1D (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 May 2008 19:27:03 -0400
-In-Reply-To: <4831F8BC.3080405@keyaccess.nl>
+Received: from g4t0016.houston.hp.com ([15.201.24.19]:39925 "EHLO
+	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753644AbYESXlI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 May 2008 19:41:08 -0400
+In-Reply-To: <20080519184228.2mbxt2meths8cg0c@webmail.mit.edu>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rene Herman <rene.herman@keyaccess.nl>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
+To: Adam M Belay <abelay@mit.edu>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>, Takashi Iwai <tiwai@suse.de>
 
-On Monday 19 May 2008 04:01:32 pm Rene Herman wrote:
-> On 06-05-08 00:36, Bjorn Helgaas wrote:
-> 
-> > We used pnp_resource.index to keep track of which ISAPNP configuration
-> > register a resource should be written to.  We needed this only to
-> > handle the case where a register is disabled but a subsequent register
-> > in the same set is enabled.
-> > 
-> > Rather than explicitly maintaining the pnp_resource.index, this patch
-> > adds a resource every time we read an ISAPNP configuration register
-> > and marks the resource as IORESOURCE_DISABLED when appropriate.  This
-> > makes the position in the pnp_resource_table always correspond to the
-> > config register index.
-> > 
-> > Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> 
-> > -			pnp_res = pnp_add_io_resource(dev, start, end,
-> > -						      0);
-> > -			if (pnp_res)
-> > -				pnp_res->index = nport++;
-> > +			pnp_add_io_resource(dev, start, end, 0);
-> 
-> In the tree after your v2 series, pnp_add_foo_resource() are called as 
-> void functions yet still return a struct pnp_resource *. You might have 
-> other plans but if not, I guess they can _be_ void functions?
+On Monday 19 May 2008 04:42:28 pm Adam M Belay wrote:
+> Does this fix a bug or is it just a more convenient representation?
 
-You're right, I still don't do anything with the return value.  It
-could be used to check for success/failure, but we currently don't
-do that.  Possibly a future cleanup since there's no functional
-problem here.
+Mostly just simpler code.
+
+It is important to maintain the order of resources within each
+type, of course, so we can encode them in the correct order when
+we set device configuration.  But we could still sort them by
+type if you think that's important.
+
+There is some risk with changing the order, but there's also
+some benefit in reducing the fiddling we do with the data from
+the firmware.  It's been conceptually liberating for me to see
+the data correlate more exactly with _CRS and friends.
+
+> Perhaps, if
+> we're going to change the interface we could switch to PCI style sysfs
+> resources.
+
+You mean like resource_show(), which looks like this?
+
+  $ cat /sys/devices/pci0000:00/0000:00:00.0/resource 
+  0x0000000000000000 0x0000000000000000 0x0000000000000000
+  0x0000000000000000 0x0000000000000000 0x0000000000000000
+  0x0000000000000000 0x0000000000000000 0x0000000000000000
+  0x0000000000000000 0x0000000000000000 0x0000000000000000
+  0x0000000000000000 0x0000000000000000 0x0000000000000000
+  0x0000000000000000 0x0000000000000000 0x0000000000000000
+  0x0000000000000000 0x0000000000000000 0x0000000000000000
+
+I'm all in favor of converging with the PCI style of doing things,
+but I'm not sure I understand your idea in this case.  We still do
+quite a bit of manual poking in the PNP resource file, and the
+labels make it nicer for human consumption.
 
 Bjorn
+
+> Quoting Bjorn Helgaas <bjorn.helgaas@hp.com>:
+> 
+> > Rather than stepping through all IO resources, then stepping through
+> > all MMIO resources, etc., we can just iterate over the resource list
+> > once directly.
+> >
+> > This can change the order in /sys, e.g.,
+> >
+> >    # cat /sys/devices/pnp0/00:07/resources     # OLD
+> >    state = active
+> >    io 0x3f8-0x3ff
+> >    irq 4
+> >
+> >    # cat /sys/devices/pnp0/00:07/resources     # NEW
+> >    state = active
+> >    irq 4
+> >    io 0x3f8-0x3ff
+> >
+> > The old code artificially sorted resources by type; the new code
+> > just lists them in the order we read them from the ISAPNP hardware
+> > or the BIOS.
+> >
+> > Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+> >
+> > Index: work10/drivers/pnp/interface.c
+> > ===================================================================
+> > --- work10.orig/drivers/pnp/interface.c	2008-05-05 11:54:26.000000000 -0600
+> > +++ work10/drivers/pnp/interface.c	2008-05-05 11:59:53.000000000 -0600
+> > @@ -248,8 +248,9 @@ static ssize_t pnp_show_current_resource
+> > 					  char *buf)
+> > {
+> > 	struct pnp_dev *dev = to_pnp_dev(dmdev);
+> > +	struct pnp_resource *pnp_res;
+> > 	struct resource *res;
+> > -	int i, ret;
+> > +	int ret;
+> > 	pnp_info_buffer_t *buffer;
+> >
+> > 	if (!dev)
+> > @@ -262,46 +263,33 @@ static ssize_t pnp_show_current_resource
+> > 	buffer->buffer = buf;
+> > 	buffer->curr = buffer->buffer;
+> >
+> > -	pnp_printf(buffer, "state = ");
+> > -	if (dev->active)
+> > -		pnp_printf(buffer, "active\n");
+> > -	else
+> > -		pnp_printf(buffer, "disabled\n");
+> > -
+> > -	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_IO, i)); i++) {
+> > -		pnp_printf(buffer, "io");
+> > -		if (res->flags & IORESOURCE_DISABLED)
+> > -			pnp_printf(buffer, " disabled\n");
+> > -		else
+> > -			pnp_printf(buffer, " 0x%llx-0x%llx\n",
+> > -				   (unsigned long long) res->start,
+> > -				   (unsigned long long) res->end);
+> > -	}
+> > -	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_MEM, i)); i++) {
+> > -		pnp_printf(buffer, "mem");
+> > -		if (res->flags & IORESOURCE_DISABLED)
+> > +	pnp_printf(buffer, "state = %s\n", dev->active ? "active" : "disabled");
+> > +
+> > +	list_for_each_entry(pnp_res, &dev->resources, list) {
+> > +		res = &pnp_res->res;
+> > +
+> > +		pnp_printf(buffer, pnp_resource_type_name(res));
+> > +
+> > +		if (res->flags & IORESOURCE_DISABLED) {
+> > 			pnp_printf(buffer, " disabled\n");
+> > -		else
+> > -			pnp_printf(buffer, " 0x%llx-0x%llx\n",
+> > +			continue;
+> > +		}
+> > +
+> > +		switch (pnp_resource_type(res)) {
+> > +		case IORESOURCE_IO:
+> > +		case IORESOURCE_MEM:
+> > +			pnp_printf(buffer, " %#llx-%#llx\n",
+> > 				   (unsigned long long) res->start,
+> > 				   (unsigned long long) res->end);
+> > -	}
+> > -	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_IRQ, i)); i++) {
+> > -		pnp_printf(buffer, "irq");
+> > -		if (res->flags & IORESOURCE_DISABLED)
+> > -			pnp_printf(buffer, " disabled\n");
+> > -		else
+> > -			pnp_printf(buffer, " %lld\n",
+> > -				   (unsigned long long) res->start);
+> > -	}
+> > -	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_DMA, i)); i++) {
+> > -		pnp_printf(buffer, "dma");
+> > -		if (res->flags & IORESOURCE_DISABLED)
+> > -			pnp_printf(buffer, " disabled\n");
+> > -		else
+> > +			break;
+> > +		case IORESOURCE_IRQ:
+> > +		case IORESOURCE_DMA:
+> > 			pnp_printf(buffer, " %lld\n",
+> > 				   (unsigned long long) res->start);
+> > +			break;
+> > +		}
+> > 	}
+> > +
+> > 	ret = (buffer->curr - buf);
+> > 	kfree(buffer);
+> > 	return ret;
+> >
+> > --
+> >
+> 
+> 
+> 
+
+
