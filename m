@@ -1,17 +1,17 @@
 From: Rene Herman <rene.herman@keyaccess.nl>
-Subject: Re: [patch 2/8] PNP: add detail to debug resource dump
-Date: Mon, 19 May 2008 23:47:15 +0200
-Message-ID: <4831F563.8070105@keyaccess.nl>
-References: <20080505223630.682082986@ldl.fc.hp.com> <20080505223959.136127921@ldl.fc.hp.com>
+Subject: Re: [patch 5/8] PNP: add pnp_resource_type_name() helper function
+Date: Tue, 20 May 2008 00:03:31 +0200
+Message-ID: <4831F933.2010908@keyaccess.nl>
+References: <20080505223630.682082986@ldl.fc.hp.com> <20080505223959.789928242@ldl.fc.hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtpq1.groni1.gr.home.nl ([213.51.130.200]:56120 "EHLO
-	smtpq1.groni1.gr.home.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760979AbYESXVS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 May 2008 19:21:18 -0400
-In-Reply-To: <20080505223959.136127921@ldl.fc.hp.com>
+Received: from smtpq2.groni1.gr.home.nl ([213.51.130.201]:49302 "EHLO
+	smtpq2.groni1.gr.home.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760992AbYESXVU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 May 2008 19:21:20 -0400
+In-Reply-To: <20080505223959.789928242@ldl.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Bjorn Helgaas <bjorn.helgaas@hp.com>
@@ -19,8 +19,9 @@ Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.k
 
 On 06-05-08 00:36, Bjorn Helgaas wrote:
 
-> In the debug resource dump, decode the flags and indicate when
-> a resource is disabled or has been automatically assigned.
+> This patch adds a "pnp_resource_type_name(struct resource *)" that
+> returns the string resource type.  This will be used by the sysfs
+> "show resources" function and the debug resource dump function.
 > 
 > Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
