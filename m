@@ -1,118 +1,276 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 3/7] ACPI PM: acpi_pm_device_sleep_state() cleanup
-Date: Tue, 20 May 2008 01:34:48 +0200
-Message-ID: <200805200134.49129.rjw@sisk.pl>
+Subject: [PATCH 6/7] Freezer: Introduce PF_FREEZER_NOSIG
+Date: Tue, 20 May 2008 01:40:16 +0200
+Message-ID: <200805200140.17053.rjw@sisk.pl>
 References: <200805200129.19904.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:40102 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:40118 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750812AbYESXmT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 19 May 2008 19:42:19 -0400
+	id S1754558AbYESXm2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 19 May 2008 19:42:28 -0400
 In-Reply-To: <200805200129.19904.rjw@sisk.pl>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, David Brownell <dbrownell@users.sourceforge.net>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>, Gautham R Shenoy <ego@in.ibm.com>
 
-From: David Brownell <dbrownell@users.sourceforge.net>
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Get rid of a superfluous acpi_pm_device_sleep_state() parameter.  The
-only legitimate value of that parameter must be derived from the first
-parameter, which is what all the callers already do.  (However, this
-does not address the fact that ACPI still doesn't set up those flags.)
+The freezer currently attempts to distinguish kernel threads from
+user space tasks by checking if their mm pointer is unset and it
+does not send fake signals to kernel threads.  However, there are
+kernel threads, mostly related to networking, that behave like
+user space tasks and may want to be sent a fake signal to be frozen.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Acked-by: Jesse Barnes <jbarnes@virtuousgeek.org>
+Introduce the new process flag PF_FREEZER_NOSIG that will be set
+by default for all kernel threads and make the freezer only send
+fake signals to the tasks having PF_FREEZER_NOSIG unset.  Provide
+the set_freezable_with_signal() function to be called by the kernel
+threads that want to be sent a fake signal for freezing.
+
+This patch should not change the freezer's observable behavior.
+
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@suse.cz>
+Cc: Gautham R Shenoy <ego@in.ibm.com>
 ---
- drivers/acpi/sleep/main.c  |    8 ++++----
- drivers/pci/pci-acpi.c     |    3 +--
- drivers/pnp/pnpacpi/core.c |    4 +---
- include/acpi/acpi_bus.h    |    4 ++--
- 4 files changed, 8 insertions(+), 11 deletions(-)
+ include/linux/freezer.h |   10 ++++
+ include/linux/sched.h   |    1 
+ kernel/kthread.c        |    2 
+ kernel/power/process.c  |   97 ++++++++++++++++++++----------------------------
+ 4 files changed, 54 insertions(+), 56 deletions(-)
 
-Index: linux-2.6/drivers/acpi/sleep/main.c
+Index: linux-2.6/include/linux/freezer.h
 ===================================================================
---- linux-2.6.orig/drivers/acpi/sleep/main.c
-+++ linux-2.6/drivers/acpi/sleep/main.c
-@@ -386,8 +386,8 @@ int acpi_suspend(u32 acpi_state)
- /**
-  *	acpi_pm_device_sleep_state - return preferred power state of ACPI device
-  *		in the system sleep state given by %acpi_target_sleep_state
-- *	@dev: device to examine
-- *	@wake: if set, the device should be able to wake up the system
-+ *	@dev: device to examine; its driver model wakeup flags control
-+ *		whether it should be able to wake up the system
-  *	@d_min_p: used to store the upper limit of allowed states range
-  *	Return value: preferred power state of the device on success, -ENODEV on
-  *		failure (ie. if there's no 'struct acpi_device' for @dev)
-@@ -405,7 +405,7 @@ int acpi_suspend(u32 acpi_state)
-  *	via @wake.
+--- linux-2.6.orig/include/linux/freezer.h
++++ linux-2.6/include/linux/freezer.h
+@@ -128,6 +128,15 @@ static inline void set_freezable(void)
+ }
+ 
+ /*
++ * Tell the freezer that the current task should be frozen by it and that it
++ * should send a fake signal to the task to freeze it.
++ */
++static inline void set_freezable_with_signal(void)
++{
++	current->flags &= ~(PF_NOFREEZE | PF_FREEZER_NOSIG);
++}
++
++/*
+  * Freezer-friendly wrappers around wait_event_interruptible() and
+  * wait_event_interruptible_timeout(), originally defined in <linux/wait.h>
   */
+@@ -174,6 +183,7 @@ static inline void freezer_do_not_count(
+ static inline void freezer_count(void) {}
+ static inline int freezer_should_skip(struct task_struct *p) { return 0; }
+ static inline void set_freezable(void) {}
++static inline void set_freezable_with_signal(void) {}
  
--int acpi_pm_device_sleep_state(struct device *dev, int wake, int *d_min_p)
-+int acpi_pm_device_sleep_state(struct device *dev, int *d_min_p)
- {
- 	acpi_handle handle = DEVICE_ACPI_HANDLE(dev);
- 	struct acpi_device *adev;
-@@ -444,7 +444,7 @@ int acpi_pm_device_sleep_state(struct de
- 	 * can wake the system.  _S0W may be valid, too.
- 	 */
- 	if (acpi_target_sleep_state == ACPI_STATE_S0 ||
--	    (wake && adev->wakeup.state.enabled &&
-+	    (device_may_wakeup(dev) && adev->wakeup.state.enabled &&
- 	     adev->wakeup.sleep_state <= acpi_target_sleep_state)) {
- 		acpi_status status;
- 
-Index: linux-2.6/drivers/pci/pci-acpi.c
+ #define wait_event_freezable(wq, condition)				\
+ 		wait_event_interruptible(wq, condition)
+Index: linux-2.6/include/linux/sched.h
 ===================================================================
---- linux-2.6.orig/drivers/pci/pci-acpi.c
-+++ linux-2.6/drivers/pci/pci-acpi.c
-@@ -298,8 +298,7 @@ static pci_power_t acpi_pci_choose_state
- {
- 	int acpi_state;
+--- linux-2.6.orig/include/linux/sched.h
++++ linux-2.6/include/linux/sched.h
+@@ -1508,6 +1508,7 @@ static inline void put_task_struct(struc
+ #define PF_MEMPOLICY	0x10000000	/* Non-default NUMA mempolicy */
+ #define PF_MUTEX_TESTER	0x20000000	/* Thread belongs to the rt mutex tester */
+ #define PF_FREEZER_SKIP	0x40000000	/* Freezer should not count it as freezeable */
++#define PF_FREEZER_NOSIG 0x80000000	/* Freezer won't send signals to it */
  
--	acpi_state = acpi_pm_device_sleep_state(&pdev->dev,
--		device_may_wakeup(&pdev->dev), NULL);
-+	acpi_state = acpi_pm_device_sleep_state(&pdev->dev, NULL);
- 	if (acpi_state < 0)
- 		return PCI_POWER_ERROR;
- 
-Index: linux-2.6/drivers/pnp/pnpacpi/core.c
+ /*
+  * Only the _current_ task can read/write to tsk->flags, but other
+Index: linux-2.6/kernel/power/process.c
 ===================================================================
---- linux-2.6.orig/drivers/pnp/pnpacpi/core.c
-+++ linux-2.6/drivers/pnp/pnpacpi/core.c
-@@ -117,9 +117,7 @@ static int pnpacpi_suspend(struct pnp_de
- {
- 	int power_state;
+--- linux-2.6.orig/kernel/power/process.c
++++ linux-2.6/kernel/power/process.c
+@@ -19,9 +19,6 @@
+  */
+ #define TIMEOUT	(20 * HZ)
  
--	power_state = acpi_pm_device_sleep_state(&dev->dev,
--						device_may_wakeup(&dev->dev),
--						NULL);
-+	power_state = acpi_pm_device_sleep_state(&dev->dev, NULL);
- 	if (power_state < 0)
- 		power_state = (state.event == PM_EVENT_ON) ?
- 				ACPI_STATE_D0 : ACPI_STATE_D3;
-Index: linux-2.6/include/acpi/acpi_bus.h
+-#define FREEZER_KERNEL_THREADS 0
+-#define FREEZER_USER_SPACE 1
+-
+ static inline int freezeable(struct task_struct * p)
+ {
+ 	if ((p == current) ||
+@@ -84,63 +81,53 @@ static void fake_signal_wake_up(struct t
+ 	spin_unlock_irqrestore(&p->sighand->siglock, flags);
+ }
+ 
+-static int has_mm(struct task_struct *p)
++static inline bool should_send_signal(struct task_struct *p)
+ {
+-	return (p->mm && !(p->flags & PF_BORROWED_MM));
++	return !(p->flags & PF_FREEZER_NOSIG);
+ }
+ 
+ /**
+  *	freeze_task - send a freeze request to given task
+  *	@p: task to send the request to
+- *	@with_mm_only: if set, the request will only be sent if the task has its
+- *		own mm
+- *	Return value: 0, if @with_mm_only is set and the task has no mm of its
+- *		own or the task is frozen, 1, otherwise
++ *	@sig_only: if set, the request will only be sent if the task has the
++ *		PF_FREEZER_NOSIG flag unset
++ *	Return value: 'false', if @sig_only is set and the task has
++ *		PF_FREEZER_NOSIG set or the task is frozen, 'true', otherwise
+  *
+- *	The freeze request is sent by seting the tasks's TIF_FREEZE flag and
++ *	The freeze request is sent by setting the tasks's TIF_FREEZE flag and
+  *	either sending a fake signal to it or waking it up, depending on whether
+- *	or not it has its own mm (ie. it is a user land task).  If @with_mm_only
+- *	is set and the task has no mm of its own (ie. it is a kernel thread),
+- *	its TIF_FREEZE flag should not be set.
+- *
+- *	The task_lock() is necessary to prevent races with exit_mm() or
+- *	use_mm()/unuse_mm() from occuring.
++ *	or not it has PF_FREEZER_NOSIG set.  If @sig_only is set and the task
++ *	has PF_FREEZER_NOSIG set (ie. it is a typical kernel thread), its
++ *	TIF_FREEZE flag will not be set.
+  */
+-static int freeze_task(struct task_struct *p, int with_mm_only)
++static bool freeze_task(struct task_struct *p, bool sig_only)
+ {
+-	int ret = 1;
++	/*
++	 * We first check if the task is freezing and next if it has already
++	 * been frozen to avoid the race with frozen_process() which first marks
++	 * the task as frozen and next clears its TIF_FREEZE.
++	 */
++	if (!freezing(p)) {
++		rmb();
++		if (frozen(p))
++			return false;
+ 
+-	task_lock(p);
+-	if (freezing(p)) {
+-		if (has_mm(p)) {
+-			if (!signal_pending(p))
+-				fake_signal_wake_up(p);
+-		} else {
+-			if (with_mm_only)
+-				ret = 0;
+-			else
+-				wake_up_state(p, TASK_INTERRUPTIBLE);
+-		}
++		if (!sig_only || should_send_signal(p))
++			set_freeze_flag(p);
++		else
++			return false;
++	}
++
++	if (should_send_signal(p)) {
++		if (!signal_pending(p))
++			fake_signal_wake_up(p);
++	} else if (sig_only) {
++		return false;
+ 	} else {
+-		rmb();
+-		if (frozen(p)) {
+-			ret = 0;
+-		} else {
+-			if (has_mm(p)) {
+-				set_freeze_flag(p);
+-				fake_signal_wake_up(p);
+-			} else {
+-				if (with_mm_only) {
+-					ret = 0;
+-				} else {
+-					set_freeze_flag(p);
+-					wake_up_state(p, TASK_INTERRUPTIBLE);
+-				}
+-			}
+-		}
++		wake_up_state(p, TASK_INTERRUPTIBLE);
+ 	}
+-	task_unlock(p);
+-	return ret;
++
++	return true;
+ }
+ 
+ static void cancel_freezing(struct task_struct *p)
+@@ -156,7 +143,7 @@ static void cancel_freezing(struct task_
+ 	}
+ }
+ 
+-static int try_to_freeze_tasks(int freeze_user_space)
++static int try_to_freeze_tasks(bool sig_only)
+ {
+ 	struct task_struct *g, *p;
+ 	unsigned long end_time;
+@@ -175,7 +162,7 @@ static int try_to_freeze_tasks(int freez
+ 			if (frozen(p) || !freezeable(p))
+ 				continue;
+ 
+-			if (!freeze_task(p, freeze_user_space))
++			if (!freeze_task(p, sig_only))
+ 				continue;
+ 
+ 			/*
+@@ -235,13 +222,13 @@ int freeze_processes(void)
+ 	int error;
+ 
+ 	printk("Freezing user space processes ... ");
+-	error = try_to_freeze_tasks(FREEZER_USER_SPACE);
++	error = try_to_freeze_tasks(true);
+ 	if (error)
+ 		goto Exit;
+ 	printk("done.\n");
+ 
+ 	printk("Freezing remaining freezable tasks ... ");
+-	error = try_to_freeze_tasks(FREEZER_KERNEL_THREADS);
++	error = try_to_freeze_tasks(false);
+ 	if (error)
+ 		goto Exit;
+ 	printk("done.");
+@@ -251,7 +238,7 @@ int freeze_processes(void)
+ 	return error;
+ }
+ 
+-static void thaw_tasks(int thaw_user_space)
++static void thaw_tasks(bool nosig_only)
+ {
+ 	struct task_struct *g, *p;
+ 
+@@ -260,7 +247,7 @@ static void thaw_tasks(int thaw_user_spa
+ 		if (!freezeable(p))
+ 			continue;
+ 
+-		if (!p->mm == thaw_user_space)
++		if (nosig_only && should_send_signal(p))
+ 			continue;
+ 
+ 		thaw_process(p);
+@@ -271,8 +258,8 @@ static void thaw_tasks(int thaw_user_spa
+ void thaw_processes(void)
+ {
+ 	printk("Restarting tasks ... ");
+-	thaw_tasks(FREEZER_KERNEL_THREADS);
+-	thaw_tasks(FREEZER_USER_SPACE);
++	thaw_tasks(true);
++	thaw_tasks(false);
+ 	schedule();
+ 	printk("done.\n");
+ }
+Index: linux-2.6/kernel/kthread.c
 ===================================================================
---- linux-2.6.orig/include/acpi/acpi_bus.h
-+++ linux-2.6/include/acpi/acpi_bus.h
-@@ -376,9 +376,9 @@ acpi_handle acpi_get_pci_rootbridge_hand
- #define DEVICE_ACPI_HANDLE(dev) ((acpi_handle)((dev)->archdata.acpi_handle))
+--- linux-2.6.orig/kernel/kthread.c
++++ linux-2.6/kernel/kthread.c
+@@ -234,7 +234,7 @@ int kthreadd(void *unused)
+ 	set_user_nice(tsk, KTHREAD_NICE_LEVEL);
+ 	set_cpus_allowed(tsk, CPU_MASK_ALL);
  
- #ifdef CONFIG_PM_SLEEP
--int acpi_pm_device_sleep_state(struct device *, int, int *);
-+int acpi_pm_device_sleep_state(struct device *, int *);
- #else /* !CONFIG_PM_SLEEP */
--static inline int acpi_pm_device_sleep_state(struct device *d, int w, int *p)
-+static inline int acpi_pm_device_sleep_state(struct device *d, int *p)
- {
- 	if (p)
- 		*p = ACPI_STATE_D0;
+-	current->flags |= PF_NOFREEZE;
++	current->flags |= PF_NOFREEZE | PF_FREEZER_NOSIG;
+ 
+ 	for (;;) {
+ 		set_current_state(TASK_INTERRUPTIBLE);
 
