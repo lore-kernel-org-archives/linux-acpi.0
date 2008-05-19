@@ -1,34 +1,33 @@
-From: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+From: Zhao Yakui <yakui.zhao@intel.com>
 Subject: Re: PROBLEM: Error messages on resume from memory/disk.
-Date: Sun, 18 May 2008 20:11:03 +0200
-Message-ID: <200805182011.03831.bzolnier@gmail.com>
+Date: Mon, 19 May 2008 08:47:59 +0800
+Message-ID: <1211158079.11821.7.camel@yakui_zhao.sh.intel.com>
 References: <482F1765.30705@list.ru>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-ide-owner@vger.kernel.org>
 In-Reply-To: <482F1765.30705@list.ru>
-Content-Disposition: inline
 Sender: linux-ide-owner@vger.kernel.org
 To: ronne@list.ru
-Cc: linux-ide@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, Tejun Heo <htejun@gmail.com>, Jeff Garzik <jgarzik@redhat.com>
+Cc: bzolnier@gmail.com, linux-ide@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-
-Hi,
-
-I'm adding Jeff and Tejun to cc: since you're using libata stack.
-
-[ + I guess that they would like to know if the problem is still
-    present with 2.6.26-rc2. ]
-
-On Saturday 17 May 2008, Andrei Gusev wrote:
+On Sat, 2008-05-17 at 21:35 +0400, Andrei Gusev wrote:
 > Hello!
 > 
 > I see error messages in log of my laptop on resume from memory or disk.
 > 
 > There is this messages:
+Will you please try the following commit and see whether the problem
+still exists?
+
+>commit 48feb3c419508487becfb9ea3afcc54c3eac6d80
+Author: Shaohua Li <shaohua.li@intel.com>
+Date:   Tue Mar 25 16:50:45 2008 +0800
+
+    ata-acpi: don't call _GTF for disabled drive
+
 > May 17 20:49:01 zaratustra PM: Writing back config space on device 
 > 0000:00:1f.1 at offset 9 (was 0, writing 28000000)
 > May 17 20:49:01 zaratustra PM: Writing back config space on device 
@@ -2376,3 +2375,5 @@ On Saturday 17 May 2008, Andrei Gusev wrote:
 > 
 > Best,
 > Andrey
+> 
+
