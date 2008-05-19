@@ -1,46 +1,52 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: [PATCH 0/5] pci-acpi: improvement for _OSC evaluation
-Date: Mon, 19 May 2008 15:27:51 -0700
-Message-ID: <200805191527.51549.jbarnes@virtuousgeek.org>
-References: <482BD572.30504@jp.fujitsu.com> <200805161100.06049.jbarnes@virtuousgeek.org> <1211167762.2836.0.camel@sli10-desk.sh.intel.com>
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: [RFC][PATCH 2/2] ACPI PM: Add possibility to change suspend
+	sequence
+Date: Tue, 20 May 2008 00:36:12 +0200
+Message-ID: <20080519223612.GA2320@elf.ucw.cz>
+References: <200805062342.42789.rjw@sisk.pl> <20080512072301.GC24094@elf.ucw.cz> <200805130034.06604.rjw@sisk.pl> <200805130103.26644.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outbound-mail-34.bluehost.com ([69.89.18.154]:55720 "HELO
-	outbound-mail-34.bluehost.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1756767AbYESW2E (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 19 May 2008 18:28:04 -0400
-In-Reply-To: <1211167762.2836.0.camel@sli10-desk.sh.intel.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.31.123]:45045 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755689AbYESWfZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 May 2008 18:35:25 -0400
 Content-Disposition: inline
+In-Reply-To: <200805130103.26644.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, linux-pci@vger.kernel.org, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, pm list <linux-pm@lists.linux-foundation.org>, Greg KH <greg@kroah.com>, Andrew Morton <akpm@linux-foundation.org>
 
-On Sunday, May 18, 2008 8:29 pm Shaohua Li wrote:
-> On Fri, 2008-05-16 at 11:00 -0700, Jesse Barnes wrote:
-> > On Wednesday, May 14, 2008 11:17 pm Kenji Kaneshige wrote:
-> > > Hi,
-> > >
-> > > Here are some improvement patches for _OSC evaluation on PCI.
-> > >
-> > > - [PATCH 1/5] pci-acpi: remove duplicate code for _OSC
-> > > - [PATCH 2/5] pci-acpi: use local buffer for _OSC
-> > > - [PATCH 3/5] pci-acpi: add flag to indicate query had been done
-> > > - [PATCH 4/5] pci-acpi: remove unused variable in __pci_osc_support_set
-> > > - [PATCH 5/5] pci-acpi: minor cleanups for _OSC
-> > >
-> > > For details, please see the header of each patch.
-> >
-> > These cleanups look nice; Shaohua maybe you could take a look too and
-> > ack/nack?
->
-> Looks good. ACKed.
+Hi!
 
-Great, thanks for the review.  Applied to linux-next.
+> From: Rafael J. Wysocki <rjw@sisk.pl>
+> 
+> There are some systems out there that don't work correctly with
+> our current suspend/hibernation code ordering.  Provide a workaround
+> for these systems allowing them to pass the
+> 'acpi_sleep=old_ordering' in the kernel command line which will make
+> the kernel use the pre-ACPI 2.0 suspend code ordering.
+> 
+> Unfortunately, that requires us to rework the resuming of devices for
+> recovering the platform in case one of the device drivers' .suspend()
+> routines returns error code.  Namely, ACPI 1.0 specifies that _PTS
+> should be called before suspending devices, but _WAK still should be
+> called before resuming them in order to undo the changes made by
+> _PTS.  However, if there is an error during suspending devices, they
+> are automatically resumed without returning control to the PM core
+> and that has to be changed.  For this reason, the high-level suspend
+> and hibernation code has to be changed as well and new platform
+> callbacks are necessary.
+> 
+> The patch also reorders and refactors the ACPI suspend/hibernation
+> code to avoid duplication as far as reasonably possible.
+> 
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 
-Thanks,
-Jesse
+I like it. ACK.
+								Pavel
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
