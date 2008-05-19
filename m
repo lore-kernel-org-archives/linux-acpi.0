@@ -1,73 +1,46 @@
-From: Adrian Bunk <bunk@kernel.org>
-Subject: [2.6 patch] MAINTAINERS: update ACPI homepage
-Date: Tue, 20 May 2008 01:08:23 +0300
-Message-ID: <20080519220823.GS17716@cs181133002.pp.htv.fi>
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: Re: [PATCH 0/5] pci-acpi: improvement for _OSC evaluation
+Date: Mon, 19 May 2008 15:27:51 -0700
+Message-ID: <200805191527.51549.jbarnes@virtuousgeek.org>
+References: <482BD572.30504@jp.fujitsu.com> <200805161100.06049.jbarnes@virtuousgeek.org> <1211167762.2836.0.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp4.pp.htv.fi ([213.243.153.38]:43156 "EHLO smtp4.pp.htv.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1763790AbYESWK3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 19 May 2008 18:10:29 -0400
+Received: from outbound-mail-34.bluehost.com ([69.89.18.154]:55720 "HELO
+	outbound-mail-34.bluehost.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1756767AbYESW2E (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 19 May 2008 18:28:04 -0400
+In-Reply-To: <1211167762.2836.0.camel@sli10-desk.sh.intel.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, linux-pci@vger.kernel.org, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-This patch updates the location of the ACPI homepage in MAINTAINERS.
+On Sunday, May 18, 2008 8:29 pm Shaohua Li wrote:
+> On Fri, 2008-05-16 at 11:00 -0700, Jesse Barnes wrote:
+> > On Wednesday, May 14, 2008 11:17 pm Kenji Kaneshige wrote:
+> > > Hi,
+> > >
+> > > Here are some improvement patches for _OSC evaluation on PCI.
+> > >
+> > > - [PATCH 1/5] pci-acpi: remove duplicate code for _OSC
+> > > - [PATCH 2/5] pci-acpi: use local buffer for _OSC
+> > > - [PATCH 3/5] pci-acpi: add flag to indicate query had been done
+> > > - [PATCH 4/5] pci-acpi: remove unused variable in __pci_osc_support_set
+> > > - [PATCH 5/5] pci-acpi: minor cleanups for _OSC
+> > >
+> > > For details, please see the header of each patch.
+> >
+> > These cleanups look nice; Shaohua maybe you could take a look too and
+> > ack/nack?
+>
+> Looks good. ACKed.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Great, thanks for the review.  Applied to linux-next.
 
----
-
- MAINTAINERS |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
-
-c794b6dd555942426b3cdbf51519e4ea5c642721 diff --git a/MAINTAINERS b/MAINTAINERS
-index 4127b9e..bfbe353 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -228,21 +228,21 @@ ACPI BATTERY DRIVERS
- P:	Alexey Starikovskiy
- M:	astarikovskiy@suse.de
- L:	linux-acpi@vger.kernel.org
--W:	http://acpi.sourceforge.net/
-+W:	http://www.lesswatts.org/projects/acpi/
- S:	Supported
- 
- ACPI EC DRIVER
- P:	Alexey Starikovskiy
- M:	astarikovskiy@suse.de
- L:	linux-acpi@vger.kernel.org
--W:	http://acpi.sourceforge.net/
-+W:	http://www.lesswatts.org/projects/acpi/
- S:	Supported
- 
- ACPI FAN DRIVER
- P:	Len Brown
- M:	len.brown@intel.com
- L:	linux-acpi@vger.kernel.org
--W:	http://acpi.sourceforge.net/
-+W:	http://www.lesswatts.org/projects/acpi/
- S:	Supported
- 
- ACPI PCI HOTPLUG DRIVER
-@@ -255,14 +255,14 @@ ACPI THERMAL DRIVER
- P:	Len Brown
- M:	len.brown@intel.com
- L:	linux-acpi@vger.kernel.org
--W:	http://acpi.sourceforge.net/
-+W:	http://www.lesswatts.org/projects/acpi/
- S:	Supported
- 
- ACPI VIDEO DRIVER
- P:	Rui Zhang
- M:	rui.zhang@intel.com
- L:	linux-acpi@vger.kernel.org
--W:	http://acpi.sourceforge.net/
-+W:	http://www.lesswatts.org/projects/acpi/
- S:	Supported
- 
- ACPI WMI DRIVER
-
+Thanks,
+Jesse
