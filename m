@@ -1,54 +1,36 @@
 From: Pavel Machek <pavel@suse.cz>
-Subject: Re: [PATCH 1/7] ACPI Hibernation: Use ACPI hardware signature
-Date: Tue, 20 May 2008 17:17:48 +0200
-Message-ID: <20080520151748.GA2067@elf.ucw.cz>
-References: <200805200129.19904.rjw@sisk.pl> <200805200131.33913.rjw@sisk.pl>
+Subject: Re: [PATCH 7/7] ACPI PM: Add possibility to change suspend sequence
+Date: Tue, 20 May 2008 17:20:11 +0200
+Message-ID: <20080520152011.GB2067@elf.ucw.cz>
+References: <200805200129.19904.rjw@sisk.pl> <200805200141.58518.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.31.123]:54705 "EHLO
+Received: from atrey.karlin.mff.cuni.cz ([195.113.31.123]:54934 "EHLO
 	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932647AbYETPQt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 May 2008 11:16:49 -0400
+	with ESMTP id S1755084AbYETPTN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 May 2008 11:19:13 -0400
 Content-Disposition: inline
-In-Reply-To: <200805200131.33913.rjw@sisk.pl>
+In-Reply-To: <200805200141.58518.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Shaohua Li <shaohua.li@intel.com>
+Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Carlos Corbacho <carlos@strangeworlds.co.uk>
 
-Hi!
-
-> From: Shaohua Li <shaohua.li@intel.com>
+On Tue 2008-05-20 01:41:57, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rjw@sisk.pl>
 > 
-> ACPI defines a hardware signature. BIOS calculates the signature
-> according to hardware configure, if hardware changes, the signature
-> will change, in this case, S4 resume should fail.
-> 
-> Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-> Acked-by: Pavel Machek <pavel@suse.cz>
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> There are some systems out there that don't work correctly with
+> our current suspend/hibernation code ordering.  Provide a workaround
+> for these systems allowing them to pass the
+> 'acpi_old_suspend_ordering' command line parameter to the kernel that
+> will make it use the pre-ACPI 2.0 suspend code ordering.
 
-I guess I'm quite late to the party, but... could we make this use
-acpi_sleep= command line option, and related variable?
+Command line option is now  acpi_sleep=old_ordering, but I guess that
+does not matter much.
 
-That brings advantage of existing /proc/sys interface, so that s2disk
-could do blacklist in userspace, and easily...
-
-									Pavel
-
-> @@ -152,6 +152,11 @@ and is between 256 and 4096 characters. 
->  			s3_beep is for debugging; it makes the PC's speaker beep
->  			as soon as the kernel's real-mode entry point is called.
->  
-> +	acpi_s4_nosigcheck [HW,ACPI] S4 hardware signature
-> +			ACPI will ignore the S4 hardware signature
-> +			default: The hardware signature is checked during
-> +			         resume from S4.
-> +
->  	acpi_sci=	[HW,ACPI] ACPI System Control Interrupt trigger mode
->  			Format: { level | edge | high | low }
->  
+Thanks for the patch!
+							Pavel
 
 -- 
 (english) http://www.livejournal.com/~pavelmachek
