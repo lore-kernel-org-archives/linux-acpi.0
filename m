@@ -1,55 +1,82 @@
-From: Pavel Machek <pavel@suse.cz>
-Subject: Re: [PATCH 1/7] ACPI Hibernation: Use ACPI hardware signature
-	(rev. 2)
-Date: Thu, 22 May 2008 00:55:01 +0200
-Message-ID: <20080521225501.GA25208@elf.ucw.cz>
-References: <200805200129.19904.rjw@sisk.pl> <20080520151748.GA2067@elf.ucw.cz> <200805202151.11448.rjw@sisk.pl> <200805212316.01025.rjw@sisk.pl>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: ACPI CA resource encoding problem
+Date: Wed, 21 May 2008 17:25:26 -0600
+Message-ID: <200805211725.26397.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.31.123]:54030 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759241AbYEUWyM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 May 2008 18:54:12 -0400
+Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:31052 "EHLO
+	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761698AbYEUXZX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 May 2008 19:25:23 -0400
 Content-Disposition: inline
-In-Reply-To: <200805212316.01025.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Shaohua Li <shaohua.li@intel.com>
+To: Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-Hi!
+I've tripped over some devices that work with PNPBIOS but not with
+PNPACPI, even though Linux is configuring the devices identically.
+
+Linux evaluates _CRS to get a template, which it then fills in and
+passes to _SRS to configure the device.  The ACPI CA decodes the AML
+bytestream returned from _CRS into a series of acpi_resource structs.
+
+When Linux evaluates _SRS, the ACPI CA re-encodes the acpi_resource
+structs into an AML bytestream.  However, the encoded bytestream
+sometimes has a different form than that returned from _CRS.
+
+For example, acpi_rs_set_irq encodes a small IRQ descriptor.  If the
+IRQ is edge-sensitive, active high, and exclusive, acpi_rs_set_irq
+optimizes the output AML by omitting the optional flags byte.
+
+I think it would be better for acpi_rs_set_irq to generate an AML
+descriptor that exactly matches the format and size of the descriptor
+we got from _CRS because _SRS may not be smart enough to handle the
+variation.
+
+On a Toshiba Portege 4000, the parport_pc and smsc-ircc2 drivers both
+work with PNPBIOS, and neither works with PNPACPI.  I think the reason
+is this acpi_rs_set_irq optimization.  If I apply the attached patch,
+which removes that optimization, both drivers work with PNPACPI.
+
+I don't claim that this patch is correct, because it *always* generates
+3-byte IRQ descriptors, while _SRS may be expecting a 2-byte descriptor.
+But I think it is enough to point out a problem.
+
+Bjorn
 
 
-> > > > ACPI defines a hardware signature. BIOS calculates the signature
-> > > > according to hardware configure, if hardware changes, the signature
-> > > > will change, in this case, S4 resume should fail.
-> > > > 
-> > > > Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-> > > > Acked-by: Pavel Machek <pavel@suse.cz>
-> > > > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> > > 
-> > > I guess I'm quite late to the party, but... could we make this use
-> > > acpi_sleep= command line option, and related variable?
-> > > 
-> > > That brings advantage of existing /proc/sys interface, so that s2disk
-> > > could do blacklist in userspace, and easily...
-> > 
-> > If I have the time.
-> 
-> Okay, patch reworked.
-> 
-> Len, please disregard the previous version, the current one is
-> appended.
-
-Thanks a lot!
-								Pavel
-
-> Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-
-ACK.
-
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Index: work10/drivers/acpi/resources/rsirq.c
+===================================================================
+--- work10.orig/drivers/acpi/resources/rsirq.c	2008-05-21 15:14:10.000000000 -0600
++++ work10/drivers/acpi/resources/rsirq.c	2008-05-21 15:15:11.000000000 -0600
+@@ -152,26 +152,6 @@ struct acpi_rsconvert_info acpi_rs_set_i
+ 	/* Reset length to 3 bytes (descriptor with flags byte) */
+ 
+ 	{ACPI_RSC_LENGTH, 0, 0, sizeof(struct aml_resource_irq)},
+-
+-	/*
+-	 * Check if the flags byte is necessary. Not needed if the flags are:
+-	 * ACPI_EDGE_SENSITIVE, ACPI_ACTIVE_HIGH, ACPI_EXCLUSIVE
+-	 */
+-	{ACPI_RSC_EXIT_NE, ACPI_RSC_COMPARE_VALUE,
+-	 ACPI_RS_OFFSET(data.irq.triggering),
+-	 ACPI_EDGE_SENSITIVE},
+-
+-	{ACPI_RSC_EXIT_NE, ACPI_RSC_COMPARE_VALUE,
+-	 ACPI_RS_OFFSET(data.irq.polarity),
+-	 ACPI_ACTIVE_HIGH},
+-
+-	{ACPI_RSC_EXIT_NE, ACPI_RSC_COMPARE_VALUE,
+-	 ACPI_RS_OFFSET(data.irq.sharable),
+-	 ACPI_EXCLUSIVE},
+-
+-	/* We can optimize to a 2-byte irq_no_flags() descriptor */
+-
+-	{ACPI_RSC_LENGTH, 0, 0, sizeof(struct aml_resource_irq_noflags)}
+ };
+ 
+ /*******************************************************************************
