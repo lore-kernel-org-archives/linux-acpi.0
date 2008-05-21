@@ -1,114 +1,164 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: Re: Sony laptop battery has odd behavior with 2.6.26-rc3ish build.
-Date: Wed, 21 May 2008 16:08:30 +0400
-Message-ID: <483410BE.1010905@suse.de>
-References: <20080521115723.GF4287@sgi.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH 1/7] ACPI Hibernation: Use ACPI hardware signature (rev. 2)
+Date: Wed, 21 May 2008 23:16:00 +0200
+Message-ID: <200805212316.01025.rjw@sisk.pl>
+References: <200805200129.19904.rjw@sisk.pl> <20080520151748.GA2067@elf.ucw.cz> <200805202151.11448.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:39558 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1759429AbYEUMO6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 May 2008 08:14:58 -0400
-In-Reply-To: <20080521115723.GF4287@sgi.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:53672 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S937918AbYEUVPf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 21 May 2008 17:15:35 -0400
+In-Reply-To: <200805202151.11448.rjw@sisk.pl>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robin Holt <holt@sgi.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Pavel Machek <pavel@suse.cz>, Len Brown <lenb@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Shaohua Li <shaohua.li@intel.com>
 
-Could you please open bug report at bugzilla.kernel.org under ACPI/Battery and
-attach all the information to it?
-dmesg might be helpful too.
+On Tuesday, 20 of May 2008, Rafael J. Wysocki wrote:
+> On Tuesday, 20 of May 2008, Pavel Machek wrote:
+> > Hi!
+> > 
+> > > From: Shaohua Li <shaohua.li@intel.com>
+> > > 
+> > > ACPI defines a hardware signature. BIOS calculates the signature
+> > > according to hardware configure, if hardware changes, the signature
+> > > will change, in this case, S4 resume should fail.
+> > > 
+> > > Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+> > > Acked-by: Pavel Machek <pavel@suse.cz>
+> > > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> > 
+> > I guess I'm quite late to the party, but... could we make this use
+> > acpi_sleep= command line option, and related variable?
+> > 
+> > That brings advantage of existing /proc/sys interface, so that s2disk
+> > could do blacklist in userspace, and easily...
+> 
+> If I have the time.
+
+Okay, patch reworked.
+
+Len, please disregard the previous version, the current one is appended.
 
 Thanks,
-Alex.
-Robin Holt wrote:
-> A couple days ago, I updated my test build to commit
-> 8033c6e9736c29cce5f0d0abbca9a44dffb20c39 and noticed an odd behavior
-> with the battery.  If I unplug the power, the battery discharges and
-> that is reflected in /proc/acpi/battery/BAT0/state.  I am not certain
-> the discharge is continuous and uniform or if it goes in steps.  When I
-> plug the power back in, the level stays at a constant value (+-1mAh)
-> for a considerable period of time.  It then does a single step back to
-> the fully charged value.
-> 
-> I have not done any searching to see when this began.  I had been running
-> the ubuntu 2.6.22-14 kernel before this and the behavior was normal.
-> 
-> I am not certain what information you will need.  Commit is above.
-> 
-> $ cat /proc/acpi/battery/BAT0/alarm
-> alarm:                   unsupported
-> $ cat /proc/acpi/battery/BAT0/info
-> present:                 yes
-> design capacity:         4800 mAh
-> last full capacity:      4096 mAh
-> battery technology:      non-rechargeable
-> design voltage:          12588 mV
-> design capacity warning: 1000 mAh
-> design capacity low:     400 mAh
-> capacity granularity 1:  100 mAh
-> capacity granularity 2:  100 mAh
-> model number:            
-> serial number:           
-> battery type:            LiOn
-> OEM info:                Sony Corp.
-> $ cat /proc/acpi/battery/BAT0/state
-> present:                 yes
-> capacity state:          ok
-> charging state:          charging
-> present rate:            unknown
-> remaining capacity:      4096 mAh
-> present voltage:         unknown
-> 
-> What I think is relevant .config information:
-> CONFIG_ACPI=y
-> CONFIG_ACPI_SLEEP=y
-> CONFIG_ACPI_PROCFS=y
-> CONFIG_ACPI_PROCFS_POWER=y
-> CONFIG_ACPI_SYSFS_POWER=y
-> CONFIG_ACPI_PROC_EVENT=y
-> CONFIG_ACPI_AC=m
-> CONFIG_ACPI_BATTERY=m
-> CONFIG_ACPI_BUTTON=m
-> CONFIG_ACPI_VIDEO=m
-> CONFIG_ACPI_FAN=m
-> CONFIG_ACPI_DOCK=m
-> CONFIG_ACPI_BAY=m
-> CONFIG_ACPI_PROCESSOR=m
-> CONFIG_ACPI_HOTPLUG_CPU=y
-> CONFIG_ACPI_THERMAL=m
-> CONFIG_ACPI_WMI=m
-> CONFIG_ACPI_ASUS=m
-> CONFIG_ACPI_TOSHIBA=m
-> # CONFIG_ACPI_CUSTOM_DSDT is not set
-> CONFIG_ACPI_BLACKLIST_YEAR=2000
-> # CONFIG_ACPI_DEBUG is not set
-> CONFIG_ACPI_EC=y
-> CONFIG_ACPI_POWER=y
-> CONFIG_ACPI_SYSTEM=y
-> CONFIG_ACPI_CONTAINER=m
-> CONFIG_ACPI_SBS=m
-> CONFIG_X86_ACPI_CPUFREQ=m
-> CONFIG_X86_POWERNOW_K7_ACPI=y
-> CONFIG_X86_POWERNOW_K8_ACPI=y
-> # CONFIG_X86_ACPI_CPUFREQ_PROC_INTF is not set
-> CONFIG_HOTPLUG_PCI_ACPI=m
-> CONFIG_HOTPLUG_PCI_ACPI_IBM=m
-> CONFIG_PNPACPI=y
-> CONFIG_THINKPAD_ACPI=m
-> # CONFIG_THINKPAD_ACPI_DEBUG is not set
-> CONFIG_THINKPAD_ACPI_BAY=y
-> CONFIG_THINKPAD_ACPI_VIDEO=y
-> CONFIG_THINKPAD_ACPI_HOTKEY_POLL=y
-> CONFIG_BLK_DEV_IDEACPI=y
-> CONFIG_ATA_ACPI=y
-> CONFIG_PATA_ACPI=m
-> CONFIG_SONY_LAPTOP=m
-> CONFIG_SONYPI_COMPAT=y
-> CONFIG_SONYPI=m
-> 
-> Thanks,
-> Robin Holt
+Rafael
 
+---
+From: Shaohua Li <shaohua.li@intel.com>
+
+ACPI defines a hardware signature.  BIOS calculates the signature
+according to hardware configure and if hardware changes while
+hibernated, the signature will change.  In that case, S4 resume
+should fail.
+
+Still, there may be systems on which this mechanism does not work
+correctly, so it is better to provide a workaround for them.  For
+this reason, add a new switch to the acpi_sleep= command line
+argument allowing one to disable hardware signature checking.
+
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ Documentation/kernel-parameters.txt |    4 +++-
+ arch/x86/kernel/acpi/sleep.c        |    2 ++
+ drivers/acpi/sleep/main.c           |   22 ++++++++++++++++++++++
+ include/linux/acpi.h                |    3 +++
+ 4 files changed, 30 insertions(+), 1 deletion(-)
+
+Index: linux-2.6/drivers/acpi/sleep/main.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/sleep/main.c
++++ linux-2.6/drivers/acpi/sleep/main.c
+@@ -255,6 +255,15 @@ static struct dmi_system_id __initdata a
+ #endif /* CONFIG_SUSPEND */
+ 
+ #ifdef CONFIG_HIBERNATION
++static unsigned long s4_hardware_signature;
++static struct acpi_table_facs *facs;
++static bool nosigcheck;
++
++void __init acpi_no_s4_hw_signature(void)
++{
++	nosigcheck = true;
++}
++
+ static int acpi_hibernation_begin(void)
+ {
+ 	acpi_target_sleep_state = ACPI_STATE_S4;
+@@ -301,6 +310,12 @@ static void acpi_hibernation_leave(void)
+ 	acpi_enable();
+ 	/* Reprogram control registers and execute _BFS */
+ 	acpi_leave_sleep_state_prep(ACPI_STATE_S4);
++	/* Check the hardware signature */
++	if (facs && s4_hardware_signature != facs->hardware_signature) {
++		printk(KERN_EMERG "ACPI: Hardware changed while hibernated, "
++			"cannot resume!\n");
++		panic("ACPI S4 hardware signature mismatch");
++	}
+ }
+ 
+ static void acpi_hibernation_finish(void)
+@@ -501,6 +516,13 @@ int __init acpi_sleep_init(void)
+ 		hibernation_set_ops(&acpi_hibernation_ops);
+ 		sleep_states[ACPI_STATE_S4] = 1;
+ 		printk(" S4");
++		if (!nosigcheck) {
++			acpi_get_table_by_index(ACPI_TABLE_INDEX_FACS,
++				(struct acpi_table_header **)&facs);
++			if (facs)
++				s4_hardware_signature =
++					facs->hardware_signature;
++		}
+ 	}
+ #endif
+ 	status = acpi_get_sleep_type_data(ACPI_STATE_S5, &type_a, &type_b);
+Index: linux-2.6/Documentation/kernel-parameters.txt
+===================================================================
+--- linux-2.6.orig/Documentation/kernel-parameters.txt
++++ linux-2.6/Documentation/kernel-parameters.txt
+@@ -147,10 +147,12 @@ and is between 256 and 4096 characters. 
+ 			default: 0
+ 
+ 	acpi_sleep=	[HW,ACPI] Sleep options
+-			Format: { s3_bios, s3_mode, s3_beep }
++			Format: { s3_bios, s3_mode, s3_beep, s4_nohwsig }
+ 			See Documentation/power/video.txt for s3_bios and s3_mode.
+ 			s3_beep is for debugging; it makes the PC's speaker beep
+ 			as soon as the kernel's real-mode entry point is called.
++			s4_nohwsig prevents ACPI hardware signature from being
++			used during resume from hibernation.
+ 
+ 	acpi_sci=	[HW,ACPI] ACPI System Control Interrupt trigger mode
+ 			Format: { level | edge | high | low }
+Index: linux-2.6/arch/x86/kernel/acpi/sleep.c
+===================================================================
+--- linux-2.6.orig/arch/x86/kernel/acpi/sleep.c
++++ linux-2.6/arch/x86/kernel/acpi/sleep.c
+@@ -124,6 +124,8 @@ static int __init acpi_sleep_setup(char 
+ 			acpi_realmode_flags |= 2;
+ 		if (strncmp(str, "s3_beep", 7) == 0)
+ 			acpi_realmode_flags |= 4;
++		if (strncmp(str, "s4_nohwsig", 10) == 0)
++			acpi_no_s4_hw_signature();
+ 		str = strchr(str, ',');
+ 		if (str != NULL)
+ 			str += strspn(str, ", \t");
+Index: linux-2.6/include/linux/acpi.h
+===================================================================
+--- linux-2.6.orig/include/linux/acpi.h
++++ linux-2.6/include/linux/acpi.h
+@@ -234,6 +234,9 @@ int acpi_check_region(resource_size_t st
+ int acpi_check_mem_region(resource_size_t start, resource_size_t n,
+ 		      const char *name);
+ 
++#ifdef CONFIG_PM_SLEEP
++void __init acpi_no_s4_hw_signature(void);
++#endif /* CONFIG_PM_SLEEP */
+ #else	/* CONFIG_ACPI */
+ 
+ static inline int early_acpi_boot_init(void)
