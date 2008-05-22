@@ -1,77 +1,177 @@
 From: Shaohua Li <shaohua.li@intel.com>
-Subject: [PATCH 2/8] add _LCK support for dock
-Date: Thu, 22 May 2008 14:33:08 +0800
-Message-ID: <1211437988.25221.36.camel@sli10-desk.sh.intel.com>
+Subject: [PATCH 4/8] FIx duplicate notification handler register
+Date: Thu, 22 May 2008 14:33:59 +0800
+Message-ID: <1211438039.25221.40.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:10134 "EHLO mga11.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:20902 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756076AbYEVG2c (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 22 May 2008 02:28:32 -0400
+	id S1751838AbYEVG30 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 22 May 2008 02:29:26 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux acpi <linux-acpi@vger.kernel.org>
 Cc: Len Brown <lenb@kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Accardi, Kristen C" <kristen.c.accardi@intel.com>, Holger Macht <hmacht@suse.de>, mjg59 <mjg59@srcf.ucam.org>
 
-support _LCK method.
+Battery driver already registers notification handler. To avoid register
+notification handler again, the patch introduced a notifier chain in
+global system notifier handler. 
 
 Signed-off-by: Shaohua Li <shaohua.li@intel.com>
 ---
- drivers/acpi/dock.c |   19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ drivers/acpi/bus.c      |   15 +++++++++++++++
+ drivers/acpi/dock.c     |   43 +++++++++++++++++++++----------------------
+ include/acpi/acpi_bus.h |    3 +++
+ 3 files changed, 39 insertions(+), 22 deletions(-)
 
-Index: linux/drivers/acpi/dock.c
+Index: linux/drivers/acpi/bus.c
 ===================================================================
---- linux.orig/drivers/acpi/dock.c	2008-05-22 09:28:10.000000000 +0800
-+++ linux/drivers/acpi/dock.c	2008-05-22 09:28:20.000000000 +0800
-@@ -452,6 +452,22 @@ static inline void complete_undock(struc
- 	ds->flags &= ~(DOCK_UNDOCKING);
+--- linux.orig/drivers/acpi/bus.c	2008-05-22 09:58:46.000000000 +0800
++++ linux/drivers/acpi/bus.c	2008-05-22 10:06:44.000000000 +0800
+@@ -474,6 +474,19 @@ static int acpi_bus_check_scope(struct a
+ 	return 0;
  }
  
-+static void dock_lock(struct dock_station *ds, int lock)
++static BLOCKING_NOTIFIER_HEAD(acpi_bus_notify_list);
++int register_acpi_bus_notifier(struct notifier_block *nb)
 +{
-+	struct acpi_object_list arg_list;
-+	union acpi_object arg;
-+	acpi_status status;
-+
-+	arg_list.count = 1;
-+	arg_list.pointer = &arg;
-+	arg.type = ACPI_TYPE_INTEGER;
-+	arg.integer.value = !!lock;
-+	status = acpi_evaluate_object(ds->handle, "_LCK", &arg_list, NULL);
-+	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND)
-+		printk(KERN_WARNING PREFIX "%s device failed\n",
-+			lock ? "Locking" : "Unlocking");
++	return blocking_notifier_chain_register(&acpi_bus_notify_list, nb);
 +}
++EXPORT_SYMBOL_GPL(register_acpi_bus_notifier);
++
++void unregister_acpi_bus_notifier(struct notifier_block *nb)
++{
++	blocking_notifier_chain_unregister(&acpi_bus_notify_list, nb);
++}
++EXPORT_SYMBOL_GPL(unregister_acpi_bus_notifier);
 +
  /**
-  * dock_in_progress - see if we are in the middle of handling a dock event
-  * @ds: the dock station
-@@ -616,6 +632,7 @@ static void dock_notify(acpi_handle hand
- 			hotplug_dock_devices(ds, event);
- 			complete_dock(ds);
- 			dock_event(ds, event, DOCK_EVENT);
-+			dock_lock(ds, 1);
- 		}
- 		break;
- 	case ACPI_NOTIFY_DEVICE_CHECK:
-@@ -628,6 +645,7 @@ static void dock_notify(acpi_handle hand
- 	 * to the driver who wish to hotplug.
-          */
- 	case ACPI_NOTIFY_EJECT_REQUEST:
-+		dock_lock(ds, 0);
- 		begin_undock(ds);
- 		if (immediate_undock)
- 			handle_eject_request(ds, event);
-@@ -712,6 +730,7 @@ static ssize_t write_undock(struct devic
- 	if (!count)
- 		return -EINVAL;
+  * acpi_bus_notify
+  * ---------------
+@@ -484,6 +497,8 @@ static void acpi_bus_notify(acpi_handle 
+ 	int result = 0;
+ 	struct acpi_device *device = NULL;
  
-+	dock_lock(dock_station, 0);
- 	begin_undock(dock_station);
- 	ret = handle_eject_request(dock_station, ACPI_NOTIFY_EJECT_REQUEST);
- 	return ret ? ret: count;
++	blocking_notifier_call_chain(&acpi_bus_notify_list,
++		type, (void *)handle);
+ 
+ 	if (acpi_bus_get_device(handle, &device))
+ 		return;
+Index: linux/drivers/acpi/dock.c
+===================================================================
+--- linux.orig/drivers/acpi/dock.c	2008-05-22 10:01:54.000000000 +0800
++++ linux/drivers/acpi/dock.c	2008-05-22 10:57:23.000000000 +0800
+@@ -727,6 +727,25 @@ static void dock_notify(acpi_handle hand
+ 	}
+ }
+ 
++static int acpi_dock_notifier_call(struct notifier_block *this,
++	unsigned long event, void *data)
++{
++	struct dock_station *dock_station;
++	acpi_handle handle = (acpi_handle)data;
++
++	list_for_each_entry(dock_station, &dock_stations, sibiling) {
++		if (dock_station->handle == handle) {
++			dock_notify(handle, event, dock_station);
++			return 0 ;
++		}
++	}
++	return 0;
++}
++
++static struct notifier_block dock_acpi_notifier = {
++	.notifier_call = acpi_dock_notifier_call,
++};
++
+ /**
+  * find_dock_devices - find devices on the dock station
+  * @handle: the handle of the device we are examining
+@@ -837,7 +856,6 @@ static DEVICE_ATTR(uid, S_IRUGO, show_do
+ static int dock_add(acpi_handle handle)
+ {
+ 	int ret;
+-	acpi_status status;
+ 	struct dock_dependent_device *dd;
+ 	struct dock_station *dock_station;
+ 	struct platform_device *dock_device;
+@@ -929,23 +947,10 @@ static int dock_add(acpi_handle handle)
+ 	}
+ 	add_dock_dependent_device(dock_station, dd);
+ 
+-	/* register for dock events */
+-	status = acpi_install_notify_handler(dock_station->handle,
+-					     ACPI_SYSTEM_NOTIFY,
+-					     dock_notify, dock_station);
+-
+-	if (ACPI_FAILURE(status)) {
+-		printk(KERN_ERR PREFIX "Error installing notify handler\n");
+-		ret = -ENODEV;
+-		goto dock_add_err;
+-	}
+-
+ 	dock_station_count++;
+ 	list_add(&dock_station->sibiling, &dock_stations);
+ 	return 0;
+ 
+-dock_add_err:
+-	kfree(dd);
+ dock_add_err_unregister:
+ 	device_remove_file(&dock_device->dev, &dev_attr_docked);
+ 	device_remove_file(&dock_device->dev, &dev_attr_undock);
+@@ -963,7 +968,6 @@ dock_add_err_unregister:
+ static int dock_remove(struct dock_station *dock_station)
+ {
+ 	struct dock_dependent_device *dd, *tmp;
+-	acpi_status status;
+ 	struct platform_device *dock_device = dock_station->dock_device;
+ 
+ 	if (!dock_station_count)
+@@ -974,13 +978,6 @@ static int dock_remove(struct dock_stati
+ 				 list)
+ 	    kfree(dd);
+ 
+-	/* remove dock notify handler */
+-	status = acpi_remove_notify_handler(dock_station->handle,
+-					    ACPI_SYSTEM_NOTIFY,
+-					    dock_notify);
+-	if (ACPI_FAILURE(status))
+-		printk(KERN_ERR "Error removing notify handler\n");
+-
+ 	/* cleanup sysfs */
+ 	device_remove_file(&dock_device->dev, &dev_attr_docked);
+ 	device_remove_file(&dock_device->dev, &dev_attr_undock);
+@@ -1039,6 +1036,7 @@ static int __init dock_init(void)
+ 		return 0;
+ 	}
+ 
++	register_acpi_bus_notifier(&dock_acpi_notifier);
+ 	printk(KERN_INFO PREFIX "%s: %d docks/bays found\n",
+ 		ACPI_DOCK_DRIVER_DESCRIPTION, dock_station_count);
+ 	return 0;
+@@ -1048,6 +1046,7 @@ static void __exit dock_exit(void)
+ {
+ 	struct dock_station *dock_station;
+ 
++	unregister_acpi_bus_notifier(&dock_acpi_notifier);
+ 	list_for_each_entry(dock_station, &dock_stations, sibiling)
+ 		dock_remove(dock_station);
+ }
+Index: linux/include/acpi/acpi_bus.h
+===================================================================
+--- linux.orig/include/acpi/acpi_bus.h	2008-05-22 09:58:46.000000000 +0800
++++ linux/include/acpi/acpi_bus.h	2008-05-22 10:06:44.000000000 +0800
+@@ -326,6 +326,9 @@ int acpi_bus_get_private_data(acpi_handl
+ extern int acpi_notifier_call_chain(struct acpi_device *, u32, u32);
+ extern int register_acpi_notifier(struct notifier_block *);
+ extern int unregister_acpi_notifier(struct notifier_block *);
++
++extern int register_acpi_bus_notifier(struct notifier_block *nb);
++extern void unregister_acpi_bus_notifier(struct notifier_block *nb);
+ /*
+  * External Functions
+  */
 
 
