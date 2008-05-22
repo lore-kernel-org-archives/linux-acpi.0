@@ -1,177 +1,173 @@
 From: Shaohua Li <shaohua.li@intel.com>
-Subject: [PATCH 4/8] FIx duplicate notification handler register
-Date: Thu, 22 May 2008 14:33:59 +0800
-Message-ID: <1211438039.25221.40.camel@sli10-desk.sh.intel.com>
+Subject: [PATCH 5/8] fix hotplug race
+Date: Thu, 22 May 2008 14:34:07 +0800
+Message-ID: <1211438047.25221.42.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:20902 "EHLO mga02.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:51221 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751838AbYEVG30 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 22 May 2008 02:29:26 -0400
+	id S1756892AbYEVG3a (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 22 May 2008 02:29:30 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux acpi <linux-acpi@vger.kernel.org>
 Cc: Len Brown <lenb@kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Accardi, Kristen C" <kristen.c.accardi@intel.com>, Holger Macht <hmacht@suse.de>, mjg59 <mjg59@srcf.ucam.org>
 
-Battery driver already registers notification handler. To avoid register
-notification handler again, the patch introduced a notifier chain in
-global system notifier handler. 
+hotplug notification handler and drivers' notification handler are all
+running in one workqueue. Before hotplug removes an acpi device, the
+device driver's notification handler is already be recorded to run just
+after global notification handler. After hotplug notification handler
+runs, acpica will notice a NULL notification handler and crash. This
+patch runs hotplug in other workqueue and wait for all acpi notication
+handlers finish. 
 
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Shaohua Li <shaohua.li@intel.com>
 ---
- drivers/acpi/bus.c      |   15 +++++++++++++++
- drivers/acpi/dock.c     |   43 +++++++++++++++++++++----------------------
- include/acpi/acpi_bus.h |    3 +++
- 3 files changed, 39 insertions(+), 22 deletions(-)
+ drivers/acpi/dock.c     |   24 +++++++++++++++++++++++-
+ drivers/acpi/osl.c      |   44 +++++++++++++++++++++++++++++++++++++++-----
+ include/acpi/acpiosxf.h |    3 +++
+ 3 files changed, 65 insertions(+), 6 deletions(-)
 
-Index: linux/drivers/acpi/bus.c
-===================================================================
---- linux.orig/drivers/acpi/bus.c	2008-05-22 09:58:46.000000000 +0800
-+++ linux/drivers/acpi/bus.c	2008-05-22 10:06:44.000000000 +0800
-@@ -474,6 +474,19 @@ static int acpi_bus_check_scope(struct a
- 	return 0;
- }
- 
-+static BLOCKING_NOTIFIER_HEAD(acpi_bus_notify_list);
-+int register_acpi_bus_notifier(struct notifier_block *nb)
-+{
-+	return blocking_notifier_chain_register(&acpi_bus_notify_list, nb);
-+}
-+EXPORT_SYMBOL_GPL(register_acpi_bus_notifier);
-+
-+void unregister_acpi_bus_notifier(struct notifier_block *nb)
-+{
-+	blocking_notifier_chain_unregister(&acpi_bus_notify_list, nb);
-+}
-+EXPORT_SYMBOL_GPL(unregister_acpi_bus_notifier);
-+
- /**
-  * acpi_bus_notify
-  * ---------------
-@@ -484,6 +497,8 @@ static void acpi_bus_notify(acpi_handle 
- 	int result = 0;
- 	struct acpi_device *device = NULL;
- 
-+	blocking_notifier_call_chain(&acpi_bus_notify_list,
-+		type, (void *)handle);
- 
- 	if (acpi_bus_get_device(handle, &device))
- 		return;
 Index: linux/drivers/acpi/dock.c
 ===================================================================
---- linux.orig/drivers/acpi/dock.c	2008-05-22 10:01:54.000000000 +0800
-+++ linux/drivers/acpi/dock.c	2008-05-22 10:57:23.000000000 +0800
-@@ -727,6 +727,25 @@ static void dock_notify(acpi_handle hand
+--- linux.orig/drivers/acpi/dock.c	2008-05-22 10:57:23.000000000 +0800
++++ linux/drivers/acpi/dock.c	2008-05-22 10:57:31.000000000 +0800
+@@ -727,6 +727,20 @@ static void dock_notify(acpi_handle hand
  	}
  }
  
-+static int acpi_dock_notifier_call(struct notifier_block *this,
-+	unsigned long event, void *data)
-+{
-+	struct dock_station *dock_station;
-+	acpi_handle handle = (acpi_handle)data;
-+
-+	list_for_each_entry(dock_station, &dock_stations, sibiling) {
-+		if (dock_station->handle == handle) {
-+			dock_notify(handle, event, dock_station);
-+			return 0 ;
-+		}
-+	}
-+	return 0;
-+}
-+
-+static struct notifier_block dock_acpi_notifier = {
-+	.notifier_call = acpi_dock_notifier_call,
++struct dock_data {
++	acpi_handle handle;
++	unsigned long event;
++	struct dock_station *ds;
 +};
 +
- /**
-  * find_dock_devices - find devices on the dock station
-  * @handle: the handle of the device we are examining
-@@ -837,7 +856,6 @@ static DEVICE_ATTR(uid, S_IRUGO, show_do
- static int dock_add(acpi_handle handle)
- {
- 	int ret;
--	acpi_status status;
- 	struct dock_dependent_device *dd;
- 	struct dock_station *dock_station;
- 	struct platform_device *dock_device;
-@@ -929,23 +947,10 @@ static int dock_add(acpi_handle handle)
- 	}
- 	add_dock_dependent_device(dock_station, dd);
- 
--	/* register for dock events */
--	status = acpi_install_notify_handler(dock_station->handle,
--					     ACPI_SYSTEM_NOTIFY,
--					     dock_notify, dock_station);
--
--	if (ACPI_FAILURE(status)) {
--		printk(KERN_ERR PREFIX "Error installing notify handler\n");
--		ret = -ENODEV;
--		goto dock_add_err;
--	}
--
- 	dock_station_count++;
- 	list_add(&dock_station->sibiling, &dock_stations);
- 	return 0;
- 
--dock_add_err:
--	kfree(dd);
- dock_add_err_unregister:
- 	device_remove_file(&dock_device->dev, &dev_attr_docked);
- 	device_remove_file(&dock_device->dev, &dev_attr_undock);
-@@ -963,7 +968,6 @@ dock_add_err_unregister:
- static int dock_remove(struct dock_station *dock_station)
- {
- 	struct dock_dependent_device *dd, *tmp;
--	acpi_status status;
- 	struct platform_device *dock_device = dock_station->dock_device;
- 
- 	if (!dock_station_count)
-@@ -974,13 +978,6 @@ static int dock_remove(struct dock_stati
- 				 list)
- 	    kfree(dd);
- 
--	/* remove dock notify handler */
--	status = acpi_remove_notify_handler(dock_station->handle,
--					    ACPI_SYSTEM_NOTIFY,
--					    dock_notify);
--	if (ACPI_FAILURE(status))
--		printk(KERN_ERR "Error removing notify handler\n");
--
- 	/* cleanup sysfs */
- 	device_remove_file(&dock_device->dev, &dev_attr_docked);
- 	device_remove_file(&dock_device->dev, &dev_attr_undock);
-@@ -1039,6 +1036,7 @@ static int __init dock_init(void)
- 		return 0;
- 	}
- 
-+	register_acpi_bus_notifier(&dock_acpi_notifier);
- 	printk(KERN_INFO PREFIX "%s: %d docks/bays found\n",
- 		ACPI_DOCK_DRIVER_DESCRIPTION, dock_station_count);
- 	return 0;
-@@ -1048,6 +1046,7 @@ static void __exit dock_exit(void)
- {
- 	struct dock_station *dock_station;
- 
-+	unregister_acpi_bus_notifier(&dock_acpi_notifier);
- 	list_for_each_entry(dock_station, &dock_stations, sibiling)
- 		dock_remove(dock_station);
- }
-Index: linux/include/acpi/acpi_bus.h
-===================================================================
---- linux.orig/include/acpi/acpi_bus.h	2008-05-22 09:58:46.000000000 +0800
-+++ linux/include/acpi/acpi_bus.h	2008-05-22 10:06:44.000000000 +0800
-@@ -326,6 +326,9 @@ int acpi_bus_get_private_data(acpi_handl
- extern int acpi_notifier_call_chain(struct acpi_device *, u32, u32);
- extern int register_acpi_notifier(struct notifier_block *);
- extern int unregister_acpi_notifier(struct notifier_block *);
++static void acpi_dock_deferred_cb(void *context)
++{
++	struct dock_data *data = (struct dock_data *)context;
 +
-+extern int register_acpi_bus_notifier(struct notifier_block *nb);
-+extern void unregister_acpi_bus_notifier(struct notifier_block *nb);
- /*
-  * External Functions
-  */
++	dock_notify(data->handle, data->event, data->ds);
++	kfree(data);
++}
++
+ static int acpi_dock_notifier_call(struct notifier_block *this,
+ 	unsigned long event, void *data)
+ {
+@@ -735,7 +749,15 @@ static int acpi_dock_notifier_call(struc
+ 
+ 	list_for_each_entry(dock_station, &dock_stations, sibiling) {
+ 		if (dock_station->handle == handle) {
+-			dock_notify(handle, event, dock_station);
++			struct dock_data *dock_data;
++
++			dock_data = kmalloc(sizeof(*dock_data), GFP_KERNEL);
++			if (!dock_data)
++				return 0;
++			dock_data->handle = handle;
++			dock_data->event = event;
++			dock_data->ds = dock_station;
++			acpi_os_hotplug_execute(acpi_dock_deferred_cb, dock_data);
+ 			return 0 ;
+ 		}
+ 	}
+Index: linux/drivers/acpi/osl.c
+===================================================================
+--- linux.orig/drivers/acpi/osl.c	2008-05-22 10:54:50.000000000 +0800
++++ linux/drivers/acpi/osl.c	2008-05-22 10:57:31.000000000 +0800
+@@ -682,6 +682,22 @@ static void acpi_os_execute_deferred(str
+ 	return;
+ }
+ 
++static void acpi_os_execute_hp_deferred(struct work_struct *work)
++{
++	struct acpi_os_dpc *dpc = container_of(work, struct acpi_os_dpc, work);
++	if (!dpc) {
++		printk(KERN_ERR PREFIX "Invalid (NULL) context\n");
++		return;
++	}
++
++	acpi_os_wait_events_complete(NULL);
++
++	dpc->function(dpc->context);
++	kfree(dpc);
++
++	return;
++}
++
+ /*******************************************************************************
+  *
+  * FUNCTION:    acpi_os_execute
+@@ -697,12 +713,13 @@ static void acpi_os_execute_deferred(str
+  *
+  ******************************************************************************/
+ 
+-acpi_status acpi_os_execute(acpi_execute_type type,
+-			    acpi_osd_exec_callback function, void *context)
++static acpi_status __acpi_os_execute(acpi_execute_type type,
++	acpi_osd_exec_callback function, void *context, int hp)
+ {
+ 	acpi_status status = AE_OK;
+ 	struct acpi_os_dpc *dpc;
+ 	struct workqueue_struct *queue;
++	int ret;
+ 	ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
+ 			  "Scheduling function [%p(%p)] for deferred execution.\n",
+ 			  function, context));
+@@ -726,9 +743,16 @@ acpi_status acpi_os_execute(acpi_execute
+ 	dpc->function = function;
+ 	dpc->context = context;
+ 
+-	INIT_WORK(&dpc->work, acpi_os_execute_deferred);
+-	queue = (type == OSL_NOTIFY_HANDLER) ? kacpi_notify_wq : kacpid_wq;
+-	if (!queue_work(queue, &dpc->work)) {
++	if (!hp) {
++		INIT_WORK(&dpc->work, acpi_os_execute_deferred);
++		queue = (type == OSL_NOTIFY_HANDLER) ? kacpi_notify_wq : kacpid_wq;
++		ret = queue_work(queue, &dpc->work);
++	} else {
++		INIT_WORK(&dpc->work, acpi_os_execute_hp_deferred);
++		ret = schedule_work(&dpc->work);
++	}
++
++	if (!ret) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
+ 			  "Call to queue_work() failed.\n"));
+ 		status = AE_ERROR;
+@@ -737,8 +761,18 @@ acpi_status acpi_os_execute(acpi_execute
+ 	return_ACPI_STATUS(status);
+ }
+ 
++acpi_status acpi_os_execute(acpi_execute_type type,
++			    acpi_osd_exec_callback function, void *context)
++{
++	return __acpi_os_execute(type, function, context, 0);
++}
+ EXPORT_SYMBOL(acpi_os_execute);
+ 
++acpi_status acpi_os_hotplug_execute(acpi_osd_exec_callback function, void *context)
++{
++	return __acpi_os_execute(0, function, context, 1);
++}
++
+ void acpi_os_wait_events_complete(void *context)
+ {
+ 	flush_workqueue(kacpid_wq);
+Index: linux/include/acpi/acpiosxf.h
+===================================================================
+--- linux.orig/include/acpi/acpiosxf.h	2008-05-22 10:54:50.000000000 +0800
++++ linux/include/acpi/acpiosxf.h	2008-05-22 10:57:31.000000000 +0800
+@@ -193,6 +193,9 @@ acpi_status
+ acpi_os_execute(acpi_execute_type type,
+ 		acpi_osd_exec_callback function, void *context);
+ 
++acpi_status
++acpi_os_hotplug_execute(acpi_osd_exec_callback function, void *context);
++
+ void acpi_os_wait_events_complete(void *context);
+ 
+ void acpi_os_sleep(acpi_integer milliseconds);
 
 
