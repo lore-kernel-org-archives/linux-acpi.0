@@ -1,46 +1,360 @@
-From: Holger Macht <hmacht@suse.de>
-Subject: Re: [PATCH 0/8] docking realted fixes
-Date: Thu, 22 May 2008 14:14:17 +0200
-Message-ID: <20080522121416.GA3558@homac.Speedport_W_700V>
-References: <1211437981.25221.32.camel@sli10-desk.sh.intel.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH 70/73] ACPICA: Fix to disable unknown spurious GPEs
+Date: Thu, 22 May 2008 09:45:28 -0700
+Message-ID: <9D39833986E69849A2A8E74C1078B6B35F4D85@orsmsx415.amr.corp.intel.com>
+References: <1207974356-30687-1-git-send-email-lenb@kernel.org> <480EC916.1050407@suse.de> <9D39833986E69849A2A8E74C1078B6B3372B65@orsmsx415.amr.corp.intel.com> <200804242140.28805.lenb@kernel.org> <1209088386.3538.18.camel@rzhang-crestline.sh.intel.com> <9D39833986E69849A2A8E74C1078B6B33735F5@orsmsx415.amr.corp.intel.com> <823A93EED437D048963A3697DB0E35DE015C58DC@pdsmsx414.ccr.corp.intel.com> <1211388969.6254.30.camel@rzhang-dt.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:34457 "EHLO mx2.suse.de"
+Received: from mga02.intel.com ([134.134.136.20]:24089 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760966AbYEVML5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 22 May 2008 08:11:57 -0400
-Content-Disposition: inline
-In-Reply-To: <1211437981.25221.32.camel@sli10-desk.sh.intel.com>
+	id S1754706AbYEVQp1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 May 2008 12:45:27 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <1211388969.6254.30.camel@rzhang-dt.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Accardi, Kristen C" <kristen.c.accardi@intel.com>, mjg59 <mjg59@srcf.ucam.org>
+To: "Zhang, Rui" <rui.zhang@intel.com>, "Therien, Guy" <guy.therien@intel.com>
+Cc: Len Brown <lenb@kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, linux-acpi@vger.kernel.org, "Zhao, Yakui" <yakui.zhao@intel.com>
 
-On Thu 22. May - 14:33:01, Shaohua Li wrote:
-> docking station releted fixes
-> patch 1, 2: fix
-> patch 3, 4, 5: merge bay driver into dock driver. dock driver can handle
-> battery and bay.
-> patch 6, 7: make libata work with dock driver
-> patch 8: cleanup
-> 
-> I tested in a T43 with bay and battery hotplug, please review.
+Rui,
 
-Have you seen this patch? Are those changes incorporated?
-  http://marc.info/?l=linux-acpi&m=121129188316720&w=2
+Thanks for examining this issue in detail. Your proposal to
+read/update/write the GPE enable register to simply disable one GPE
+sounds interesting. I want to think about this a bit more -- it has been
+a long time since I have looked closely at the GPE handling.
 
-What are the advantages against just letting libata-acpi doing the _EJ0?
+With my discussions with Alexey Starikovskiy, we have concluded that
+there is something incorrect about the current design, where there exist
+windows where a GPE could come in with no driver available to handle it.
 
-I gave your patch set a short test and have encountered the following
-issues:
+I'm no longer intimate with the GPE handling model, but it would seem to
+me that GPEs should be treated like other interrupts where an interrupt
+level remains disabled until a driver is installed which in turn calls
+the kernel to install a handler for that interrupt. Only then can the
+interrupt be safely enabled.
 
- 1. No uevent on a ACPI_NOTIFY_EJECT_REQUEST giving no chance to userspace
-    to clean up filesystems etc.
+There is added complexity since drivers (with the exception of the
+Embedded Controller) do not handle GPEs directly; instead, an _Lxx/_Exx
+method is run which in turn (usually) generates a Notify on a device. We
+expect the device driver for the device to have installed a notify
+handler.
 
- 2. When a bay device is removed, the device (e.g. /dev/sr0) stays visible
-    for userspace, even after accessing it and getting a rescan and
-     'klogd: ata5.00: disabled'
+So it would seem to me that it would be architecturally best to leave a
+GPE disabled until either a handler for the GPE is installed, or a
+notify handler is installed for the device associated with the GPE.
 
-Regards,
-	Holger
+What am I missing?
+Bob
+
+
+>-----Original Message-----
+>From: Zhang, Rui
+>Sent: Wednesday, May 21, 2008 9:56 AM
+>To: Moore, Robert
+>Cc: Len Brown; Alexey Starikovskiy; linux-acpi@vger.kernel.org; Zhao,
+Yakui
+>Subject: RE: [PATCH 70/73] ACPICA: Fix to disable unknown spurious GPEs
+>
+>
+>On Wed, 2008-05-21 at 16:28 +0800, Zhang, Rui wrote:
+>> Hi, all,
+>>
+>> With Yakui's help, we've root caused this problem.
+>>
+>> For the GPEs with _Lxx/_Exx methods, Linux updates the enable mask
+but
+>> doesn't enable them in HW in acpi_ev_gpe_initialize.
+>> And in acpi_ev_install_fadt_gpes, the GPEs that are shown in _PRW
+>> methods but don't have _Lxx/_Exx methods are disabled in
+>> acpi_ev_set_type, before 6217 is applied, the acpi_ev_disable_gpe
+won't
+>> write the GPE enable register and everything goes well.
+>> But with 6217 applied, acpi_ev_disable_gpe will write the GPE enable
+>> register and enable all the _Lxx/_Exx GPEs as a side effect.
+>>
+>> And the error message is printed out if a _Lxx/_Exx GPE is fired and
+try
+>> to access EC address space.
+>>
+>> Of cource this can be solved by Alexey's patch which installs the EC
+>> address space handler before any GPE is enabled in HW.
+>>
+>> But there is still one problem with both 6217 and 9916 applied which
+>> I'll talk about in the next email. :)
+>Please refer to bug 9781 and 10224, where a GPE is used as a wake GPE
+>and a RUN_WAKE GPE at the same time,
+>
+>Before 6217 and 9916 are applied, Linux disable the wake GPEs in
+>acpi_ev_install_fadt_gpes, call _PSW to disable the device's wakeup
+>ability in acpi_scan_init, and re-enable the GPE as a RUN_WAKE GPE in
+>acpi_button_add.
+>
+>But with both 6217 and 9916 applied, Linux enable all the _Lxx/_Exx
+GPEs
+>in acpi_ec_ecdt_probe, and won't disable it until
+>acpi_ev_install_fadt_gpes. And this may bring an interrupt storm
+because
+>the _PSW is not called and the wakeup GPE keeps on firing.
+>
+>IMO, we should revert the 9916 patch because Yakui reproduced the
+>problem on T61 and confirm it's fixed by a BIOS update, maybe we should
+>ask the bug reporter to test the new BIOS as well. :)
+>
+>For bug 6217, we should do the following for stray GPEs:
+>1. get the current value of GPE_ENABLE register
+>2. clear the stray GPE bit of GPE_ENABLE register
+>3. write the value back
+>
+>Any comments on this?
+>
+>thanks,
+>rui
+>
+>>
+>> Thanks,
+>> Rui
+>>
+>> >-----Original Message-----
+>> >From: Moore, Robert
+>> >Sent: Friday, April 25, 2008 9:57 AM
+>> >To: Zhang, Rui; Len Brown
+>> >Cc: Alexey Starikovskiy; linux-acpi@vger.kernel.org
+>> >Subject: RE: [PATCH 70/73] ACPICA: Fix to disable unknown spurious
+GPEs
+>> >
+>> >Yes, this is my question also.
+>> >
+>> >I hope Alexey can help with this. I'm very nervous about any code
+that
+>> works
+>> >or does not work for reasons unknown. When this happens in the GPE
+>> code, I get
+>> >more than nervous.
+>> >
+>> >Bob
+>> >
+>> >
+>> >-----Original Message-----
+>> >From: Zhang, Rui
+>> >Sent: Thursday, April 24, 2008 6:53 PM
+>> >To: Len Brown
+>> >Cc: Moore, Robert; Alexey Starikovskiy; linux-acpi@vger.kernel.org
+>> >Subject: Re: [PATCH 70/73] ACPICA: Fix to disable unknown spurious
+GPEs
+>> >
+>> >
+>> >On Fri, 2008-04-25 at 09:40 +0800, Len Brown wrote:
+>> >> oh goody, i thought this one rang a bell...
+>> >>
+>> >> I'll apply 6217 on top of 9916 (which was already in the test
+tree,
+>> >> but not on the acpica branch)
+>> >>
+>> >> the error goes away with both applied.
+>> >
+>> >I still don't see why the error messages pop up if 6217 is applied.
+>> >IMO, 6217 won't enable the EC GPE. :(
+>> >
+>> >thanks,
+>> >rui
+>> >
+>> >> On Wednesday 23 April 2008, Moore, Robert wrote:
+>> >> > Alexey,
+>> >> >
+>> >> > I remember there was some discussion on this, but I'm still not
+>> sure
+>> >> why
+>> >> > the patch for 6217 (Ignore GPE if valid and not enabled) makes
+the
+>> >> other
+>> >> > problem (too early enabling of GPEs) apparent. Please explain.
+>> >> >
+>> >> > Thanks,
+>> >> > Bob
+>> >> >
+>> >> >
+>> >> > >-----Original Message-----
+>> >> > >From: Alexey Starikovskiy [mailto:astarikovskiy@suse.de]
+>> >> > >Sent: Tuesday, April 22, 2008 10:29 PM
+>> >> > >To: Len Brown
+>> >> > >Cc: linux-acpi@vger.kernel.org; Moore, Robert; Zhang, Rui
+>> >> > >Subject: Re: [PATCH 70/73] ACPICA: Fix to disable unknown
+spurious
+>> >> GPEs
+>> >> > >
+>> >> > >Len Brown wrote:
+>> >> > >> On Saturday 12 April 2008, Len Brown wrote:
+>> >> > >>> From: Bob Moore <robert.moore@intel.com>
+>> >> > >>>
+>> >> > >>> Implemented another change to eliminate/suppress spurious or
+>> >> > >>> stray GPEs. The AcpiEvDisableGpe function will now disable
+GPEs
+>> >> > >>> that are neither enabled nor disabled -- meaning that the
+GPE
+>> is
+>> >> > >>> unknown to the system. This will prevent future interrupts
+from
+>> >> > >>> that GPE. (Zhang Rui) BZ 6217
+>> >> > >>>
+>> >> > >>> Signed-off-by: Bob Moore <robert.moore@intel.com>
+>> >> > >>> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+>> >> > >>> Signed-off-by: Len Brown <len.brown@intel.com>
+>> >> > >>> ---
+>> >> > >>>  drivers/acpi/events/evgpe.c |    9 ++++++++-
+>> >> > >>>  1 files changed, 8 insertions(+), 1 deletions(-)
+>> >> > >>>
+>> >> > >>> diff --git a/drivers/acpi/events/evgpe.c
+>> >> > b/drivers/acpi/events/evgpe.c
+>> >> > >>> index 897baed..6940f5d 100644
+>> >> > >>> --- a/drivers/acpi/events/evgpe.c
+>> >> > >>> +++ b/drivers/acpi/events/evgpe.c
+>> >> > >>> @@ -250,7 +250,14 @@ acpi_status acpi_ev_disable_gpe(struct
+>> >> > >acpi_gpe_event_info *gpe_event_info)
+>> >> > >>>
+>> >> > >>>   ACPI_FUNCTION_TRACE(ev_disable_gpe);
+>> >> > >>>
+>> >> > >>> - if (!(gpe_event_info->flags & ACPI_GPE_ENABLE_MASK)) {
+>> >> > >>> + /*
+>> >> > >>> +  * Ignore this if the GPE is valid and not enabled.
+>> >> > >>> +  *
+>> >> > >>> +  * Flags is only zero if GPE is neither enabled or
+disabled
+>> --
+>> >> > it may
+>> >> > >>> +  * be a spurious or stray GPE -- disable it in the default
+>> >> case
+>> >> > >below.
+>> >> > >>> +  */
+>> >> > >>> + if (gpe_event_info->flags &&
+>> >> > >>> +     (!(gpe_event_info->flags & ACPI_GPE_ENABLE_MASK))) {
+>> >> > >>>           return_ACPI_STATUS(AE_OK);
+>> >> > >>>   }
+>> >> > >>>
+>> >> > >>
+>> >> > >>
+>> >> > >> When applied to 2.6.25, the patch above causes ACPI Error
+>> >> messages
+>> >> > below
+>> >> > >on my T61.
+>> >> > >> Certainly this is a case of the EC getting an interrupt (GPE
+>> x02)
+>> >> > before
+>> >> > >it has initialized.
+>> >> > >>
+>> >> > >> Perhaps it breaks the call of acpi_install_gpe_handler() to
+>> >> > >acpi_ev_disable_gpe()?
+>> >> > >Congratulations, now you too hit this one, patch is already
+>> >> there...
+>> >> > >It is wroong to enable GPE before handler for it is
+installed...
+>> >> > >http://bugzilla.kernel.org/show_bug.cgi?id=9916
+>> >> > >
+>> >> > >>
+>> >> > >> -Len
+>> >> > >>
+>> >> > >>
+>> >> > >>  PCI: Using MMCONFIG at f0000000 - f3ffffff
+>> >> > >>  PCI: Using configuration type 1
+>> >> > >>  evgpeblk-0956 [00] ev_create_gpe_block   : GPE 00 to 1F
+[_GPE]
+>> 4
+>> >> > regs on
+>> >> > >int 0x9
+>> >> > >> +ACPI Error (evregion-0316): No handler for Region [ECOR]
+>> >> > >(ffff81007d35dda0) [EmbeddedControl] [20070126]
+>> >> > >> +ACPI Error (exfldio-0289): Region EmbeddedControl(3) has no
+>> >> handler
+>> >> > >[20070126]
+>> >> > >> +ACPI Error (psparse-0537): Method parse/execution failed
+>> >> > >[\_SB_.PCI0.LPC_.EC__.AC__._PSR] (Node ffff81007d364ab0),
+>> >> AE_NOT_EXIST
+>> >> > >> +ACPI Error (psparse-0537): Method parse/execution failed
+>> >> > >[\_SB_.PCI0.LPC_.EC__.HKEY.CKC4] (Node ffff81007d364f48),
+>> >> AE_NOT_EXIST
+>> >> > >> +ACPI Error (psparse-0537): Method parse/execution failed
+>> >> > [\_GPE._L02]
+>> >> > >(Node ffff81007d376420), AE_NOT_EXIST
+>> >> > >> +ACPI Exception (evgpe-0584): AE_NOT_EXIST, while evaluating
+GPE
+>> >> > method
+>> >> > >[_L02] [20070126]
+>> >> > >>  evgpeblk-1052 [00] ev_initialize_gpe_bloc: Found 9 Wake,
+>> Enabled
+>> >> 3
+>> >> > >Runtime GPEs in this block
+>> >> > >>  ACPI: EC: EC description table is found, configuring boot EC
+>> >> > >> -ACPI: EC: non-query interrupt received, switching to
+interrupt
+>> >> mode
+>> >> > >> -Completing Region/Field/Buffer/Package
+>> >> >
+>> >>
+>>
+>initialization:........................................................
+>> >> > ....
+>> >> > >............................................................
+>> >> > >>
+>> >> >
+>> >>
+>>
+>.......................................................................
+>> >> > ....
+>> >> >
+>> >>
+>>
+>.......................................................................
+>> >> > ....
+>> >> > >................
+>> >> > >> -Initialized 29/33 Regions 138/138 Fields 64/64 Buffers 55/72
+>> >> > Packages
+>> >> > >(1888 nodes)
+>> >> > >> +Completing Region/Field/Buffer/Package
+>> >> >
+>> >>
+>>
+>initialization:........................................................
+>> >> > ....
+>> >> > >............................................................
+>> >> > >>
+>> >> >
+>> >>
+>>
+>.......................................................................
+>> >> > ....
+>> >> >
+>> >>
+>>
+>.......................................................................
+>> >> > ....
+>> >> > >.................
+>> >> > >> +Initialized 30/33 Regions 138/138 Fields 64/64 Buffers 55/72
+>> >> > Packages
+>> >> > >(1888 nodes)
+>> >> > >>  Initializing Device/Processor/Thermal objects by executing
+_INI
+>> >> > >methods:.<5>ACPI: BIOS _OSI(Linux) query honored via DMI
+>> >> > >> +ACPI: EC: non-query interrupt received, switching to
+interrupt
+>> >> mode
+>> >> > >>  .......
+>> >> > >>  Executed 8 _INI methods requiring 2 _STA executions
+(examined
+>> 88
+>> >> > >objects)
+>> >> > >>  ACPI: Interpreter enabled
+>> >> >
+>> >> >
+>> >>
+>> >>
+>> >>
+>> >>
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi"
+in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
