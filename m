@@ -1,173 +1,255 @@
 From: Shaohua Li <shaohua.li@intel.com>
-Subject: [PATCH 5/8] fix hotplug race
-Date: Thu, 22 May 2008 14:34:07 +0800
-Message-ID: <1211438047.25221.42.camel@sli10-desk.sh.intel.com>
+Subject: [PATCH 7/8]introduce .uevent for devices in dock
+Date: Thu, 22 May 2008 14:34:15 +0800
+Message-ID: <1211438055.25221.45.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:51221 "EHLO mga11.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:12896 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756892AbYEVG3a (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 22 May 2008 02:29:30 -0400
+	id S1756914AbYEVG3j (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 22 May 2008 02:29:39 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux acpi <linux-acpi@vger.kernel.org>
 Cc: Len Brown <lenb@kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Accardi, Kristen C" <kristen.c.accardi@intel.com>, Holger Macht <hmacht@suse.de>, mjg59 <mjg59@srcf.ucam.org>
 
-hotplug notification handler and drivers' notification handler are all
-running in one workqueue. Before hotplug removes an acpi device, the
-device driver's notification handler is already be recorded to run just
-after global notification handler. After hotplug notification handler
-runs, acpica will notice a NULL notification handler and crash. This
-patch runs hotplug in other workqueue and wait for all acpi notication
-handlers finish. 
+dock's uevent reported itself, not ata. It might be difficult to find an
+ata device just according to a dock. This patch introduces docking ops
+for each device in a dock. when docking, dock driver can send device
+specific uevent. This should help dock station too (not just bay) 
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Shaohua Li <shaohua.li@intel.com>
 ---
- drivers/acpi/dock.c     |   24 +++++++++++++++++++++++-
- drivers/acpi/osl.c      |   44 +++++++++++++++++++++++++++++++++++++++-----
- include/acpi/acpiosxf.h |    3 +++
- 3 files changed, 65 insertions(+), 6 deletions(-)
+ drivers/acpi/dock.c                |   17 +++++++-----
+ drivers/ata/libata-acpi.c          |   51 +++++++++++++++++++++++++++----------
+ drivers/pci/hotplug/acpiphp_glue.c |    6 ++--
+ include/acpi/acpi_drivers.h        |    9 +++++-
+ 4 files changed, 60 insertions(+), 23 deletions(-)
 
-Index: linux/drivers/acpi/dock.c
+Index: linux/drivers/ata/libata-acpi.c
 ===================================================================
---- linux.orig/drivers/acpi/dock.c	2008-05-22 10:57:23.000000000 +0800
-+++ linux/drivers/acpi/dock.c	2008-05-22 10:57:31.000000000 +0800
-@@ -727,6 +727,20 @@ static void dock_notify(acpi_handle hand
+--- linux.orig/drivers/ata/libata-acpi.c	2008-05-22 14:09:13.000000000 +0800
++++ linux/drivers/ata/libata-acpi.c	2008-05-22 14:10:21.000000000 +0800
+@@ -121,10 +121,7 @@ static void ata_acpi_associate_ide_port(
+ static void ata_acpi_handle_hotplug(struct ata_port *ap, struct ata_device
+ 				    *dev, u32 event)
+ {
+-	char event_string[12];
+-	char *envp[] = { event_string, NULL };
+ 	struct ata_eh_info *ehi;
+-	struct kobject *kobj = NULL;
+ 	int wait = 0;
+ 	unsigned long flags;
+ 	acpi_handle handle;
+@@ -170,6 +167,28 @@ static void ata_acpi_handle_hotplug(stru
+ 
+ 	if (wait)
+ 		ata_port_wait_eh(ap);
++}
++
++static void ata_acpi_dev_notify(acpi_handle handle, u32 event, void *data)
++{
++	struct ata_device *dev = data;
++
++	ata_acpi_handle_hotplug(NULL, dev, event);
++}
++
++static void ata_acpi_ap_notify(acpi_handle handle, u32 event, void *data)
++{
++	struct ata_port *ap = data;
++
++	ata_acpi_handle_hotplug(ap, NULL, event);
++}
++
++static void ata_acpi_uevent(struct ata_port *ap, struct ata_device *dev,
++	u32 event)
++{
++	struct kobject *kobj = NULL;
++	char event_string[12];
++	char *envp[] = { event_string, NULL };
+ 
+ 	if (dev) {
+ 		if (dev->sdev)
+@@ -183,20 +202,26 @@ static void ata_acpi_handle_hotplug(stru
  	}
  }
  
-+struct dock_data {
-+	acpi_handle handle;
-+	unsigned long event;
-+	struct dock_station *ds;
+-static void ata_acpi_dev_notify(acpi_handle handle, u32 event, void *data)
++static void ata_acpi_ap_uevent(acpi_handle handle, u32 event, void *data)
+ {
+-	struct ata_device *dev = data;
+-
+-	ata_acpi_handle_hotplug(NULL, dev, event);
++	ata_acpi_uevent(data, NULL, event);
+ }
+ 
+-static void ata_acpi_ap_notify(acpi_handle handle, u32 event, void *data)
++static void ata_acpi_dev_uevent(acpi_handle handle, u32 event, void *data)
+ {
+-	struct ata_port *ap = data;
+-
+-	ata_acpi_handle_hotplug(ap, NULL, event);
++	ata_acpi_uevent(NULL, data, event);
+ }
+ 
++static struct acpi_dock_ops ata_acpi_dev_dock_ops = {
++	.handler = ata_acpi_dev_notify,
++	.uevent = ata_acpi_dev_uevent,
 +};
 +
-+static void acpi_dock_deferred_cb(void *context)
-+{
-+	struct dock_data *data = (struct dock_data *)context;
++static struct acpi_dock_ops ata_acpi_ap_dock_ops = {
++	.handler = ata_acpi_ap_notify,
++	.uevent = ata_acpi_ap_uevent,
++};
 +
-+	dock_notify(data->handle, data->event, data->ds);
-+	kfree(data);
-+}
-+
- static int acpi_dock_notifier_call(struct notifier_block *this,
- 	unsigned long event, void *data)
- {
-@@ -735,7 +749,15 @@ static int acpi_dock_notifier_call(struc
+ /**
+  * ata_acpi_associate - associate ATA host with ACPI objects
+  * @host: target ATA host
+@@ -232,7 +257,7 @@ void ata_acpi_associate(struct ata_host 
+ 		if (ap->acpi_handle) {
+ 			/* we might be on a docking station */
+ 			register_hotplug_dock_device(ap->acpi_handle,
+-						     ata_acpi_ap_notify, ap);
++						     &ata_acpi_ap_dock_ops, ap);
+ 		}
  
- 	list_for_each_entry(dock_station, &dock_stations, sibiling) {
- 		if (dock_station->handle == handle) {
--			dock_notify(handle, event, dock_station);
-+			struct dock_data *dock_data;
-+
-+			dock_data = kmalloc(sizeof(*dock_data), GFP_KERNEL);
-+			if (!dock_data)
-+				return 0;
-+			dock_data->handle = handle;
-+			dock_data->event = event;
-+			dock_data->ds = dock_station;
-+			acpi_os_hotplug_execute(acpi_dock_deferred_cb, dock_data);
- 			return 0 ;
+ 		for (j = 0; j < ata_link_max_devices(&ap->link); j++) {
+@@ -241,7 +266,7 @@ void ata_acpi_associate(struct ata_host 
+ 			if (dev->acpi_handle) {
+ 				/* we might be on a docking station */
+ 				register_hotplug_dock_device(dev->acpi_handle,
+-						ata_acpi_dev_notify, dev);
++						&ata_acpi_dev_dock_ops, dev);
+ 			}
  		}
  	}
-Index: linux/drivers/acpi/osl.c
+Index: linux/include/acpi/acpi_drivers.h
 ===================================================================
---- linux.orig/drivers/acpi/osl.c	2008-05-22 10:54:50.000000000 +0800
-+++ linux/drivers/acpi/osl.c	2008-05-22 10:57:31.000000000 +0800
-@@ -682,6 +682,22 @@ static void acpi_os_execute_deferred(str
- 	return;
+--- linux.orig/include/acpi/acpi_drivers.h	2008-05-22 14:08:37.000000000 +0800
++++ linux/include/acpi/acpi_drivers.h	2008-05-22 14:10:21.000000000 +0800
+@@ -113,12 +113,17 @@ int acpi_processor_set_thermal_limit(acp
+ /*--------------------------------------------------------------------------
+                                   Dock Station
+   -------------------------------------------------------------------------- */
++struct acpi_dock_ops {
++	acpi_notify_handler handler;
++	acpi_notify_handler uevent;
++};
++
+ #if defined(CONFIG_ACPI_DOCK) || defined(CONFIG_ACPI_DOCK_MODULE)
+ extern int is_dock_device(acpi_handle handle);
+ extern int register_dock_notifier(struct notifier_block *nb);
+ extern void unregister_dock_notifier(struct notifier_block *nb);
+ extern int register_hotplug_dock_device(acpi_handle handle,
+-					acpi_notify_handler handler,
++					struct acpi_dock_ops *ops,
+ 					void *context);
+ extern void unregister_hotplug_dock_device(acpi_handle handle);
+ #else
+@@ -134,7 +139,7 @@ static inline void unregister_dock_notif
+ {
+ }
+ static inline int register_hotplug_dock_device(acpi_handle handle,
+-					       acpi_notify_handler handler,
++					       struct acpi_dock_ops *ops,
+ 					       void *context)
+ {
+ 	return -ENODEV;
+Index: linux/drivers/acpi/dock.c
+===================================================================
+--- linux.orig/drivers/acpi/dock.c	2008-05-22 14:08:37.000000000 +0800
++++ linux/drivers/acpi/dock.c	2008-05-22 14:10:21.000000000 +0800
+@@ -75,7 +75,7 @@ struct dock_dependent_device {
+ 	struct list_head list;
+ 	struct list_head hotplug_list;
+ 	acpi_handle handle;
+-	acpi_notify_handler handler;
++	struct acpi_dock_ops *ops;
+ 	void *context;
+ };
+ 
+@@ -384,8 +384,8 @@ static void hotplug_dock_devices(struct 
+ 	 * First call driver specific hotplug functions
+ 	 */
+ 	list_for_each_entry(dd, &ds->hotplug_devices, hotplug_list) {
+-		if (dd->handler)
+-			dd->handler(dd->handle, event, dd->context);
++		if (dd->ops && dd->ops->handler)
++			dd->ops->handler(dd->handle, event, dd->context);
+ 	}
+ 
+ 	/*
+@@ -408,6 +408,7 @@ static void dock_event(struct dock_stati
+ 	struct device *dev = &ds->dock_device->dev;
+ 	char event_string[13];
+ 	char *envp[] = { event_string, NULL };
++	struct dock_dependent_device *dd;
+ 
+ 	if (num == UNDOCK_EVENT)
+ 		sprintf(event_string, "EVENT=undock");
+@@ -419,6 +420,10 @@ static void dock_event(struct dock_stati
+ 	 * changed.
+ 	 */
+ 	kobject_uevent_env(&dev->kobj, KOBJ_CHANGE, envp);
++
++	list_for_each_entry(dd, &ds->hotplug_devices, hotplug_list)
++		if (dd->ops && dd->ops->uevent)
++			dd->ops->uevent(dd->handle, event, dd->context);
  }
  
-+static void acpi_os_execute_hp_deferred(struct work_struct *work)
-+{
-+	struct acpi_os_dpc *dpc = container_of(work, struct acpi_os_dpc, work);
-+	if (!dpc) {
-+		printk(KERN_ERR PREFIX "Invalid (NULL) context\n");
-+		return;
-+	}
-+
-+	acpi_os_wait_events_complete(NULL);
-+
-+	dpc->function(dpc->context);
-+	kfree(dpc);
-+
-+	return;
-+}
-+
- /*******************************************************************************
+ /**
+@@ -584,7 +589,7 @@ EXPORT_SYMBOL_GPL(unregister_dock_notifi
+ /**
+  * register_hotplug_dock_device - register a hotplug function
+  * @handle: the handle of the device
+- * @handler: the acpi_notifier_handler to call after docking
++ * @ops: handlers to call after docking
+  * @context: device specific data
   *
-  * FUNCTION:    acpi_os_execute
-@@ -697,12 +713,13 @@ static void acpi_os_execute_deferred(str
-  *
-  ******************************************************************************/
- 
--acpi_status acpi_os_execute(acpi_execute_type type,
--			    acpi_osd_exec_callback function, void *context)
-+static acpi_status __acpi_os_execute(acpi_execute_type type,
-+	acpi_osd_exec_callback function, void *context, int hp)
+  * If a driver would like to perform a hotplug operation after a dock
+@@ -592,7 +597,7 @@ EXPORT_SYMBOL_GPL(unregister_dock_notifi
+  * the dock driver after _DCK is executed.
+  */
+ int
+-register_hotplug_dock_device(acpi_handle handle, acpi_notify_handler handler,
++register_hotplug_dock_device(acpi_handle handle, struct acpi_dock_ops *ops,
+ 			     void *context)
  {
- 	acpi_status status = AE_OK;
- 	struct acpi_os_dpc *dpc;
- 	struct workqueue_struct *queue;
-+	int ret;
- 	ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
- 			  "Scheduling function [%p(%p)] for deferred execution.\n",
- 			  function, context));
-@@ -726,9 +743,16 @@ acpi_status acpi_os_execute(acpi_execute
- 	dpc->function = function;
- 	dpc->context = context;
- 
--	INIT_WORK(&dpc->work, acpi_os_execute_deferred);
--	queue = (type == OSL_NOTIFY_HANDLER) ? kacpi_notify_wq : kacpid_wq;
--	if (!queue_work(queue, &dpc->work)) {
-+	if (!hp) {
-+		INIT_WORK(&dpc->work, acpi_os_execute_deferred);
-+		queue = (type == OSL_NOTIFY_HANDLER) ? kacpi_notify_wq : kacpid_wq;
-+		ret = queue_work(queue, &dpc->work);
-+	} else {
-+		INIT_WORK(&dpc->work, acpi_os_execute_hp_deferred);
-+		ret = schedule_work(&dpc->work);
-+	}
-+
-+	if (!ret) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
- 			  "Call to queue_work() failed.\n"));
- 		status = AE_ERROR;
-@@ -737,8 +761,18 @@ acpi_status acpi_os_execute(acpi_execute
- 	return_ACPI_STATUS(status);
+ 	struct dock_dependent_device *dd;
+@@ -608,7 +613,7 @@ register_hotplug_dock_device(acpi_handle
+ 	list_for_each_entry(dock_station, &dock_stations, sibiling) {
+ 		dd = find_dock_dependent_device(dock_station, handle);
+ 		if (dd) {
+-			dd->handler = handler;
++			dd->ops = ops;
+ 			dd->context = context;
+ 			dock_add_hotplug_device(dock_station, dd);
+ 			return 0;
+Index: linux/drivers/pci/hotplug/acpiphp_glue.c
+===================================================================
+--- linux.orig/drivers/pci/hotplug/acpiphp_glue.c	2008-05-22 14:08:37.000000000 +0800
++++ linux/drivers/pci/hotplug/acpiphp_glue.c	2008-05-22 14:10:21.000000000 +0800
+@@ -169,7 +169,9 @@ static int post_dock_fixups(struct notif
  }
  
-+acpi_status acpi_os_execute(acpi_execute_type type,
-+			    acpi_osd_exec_callback function, void *context)
-+{
-+	return __acpi_os_execute(type, function, context, 0);
-+}
- EXPORT_SYMBOL(acpi_os_execute);
+
+-
++static struct acpi_dock_ops acpiphp_dock_ops = {
++	.handler = handle_hotplug_event_func,
++};
  
-+acpi_status acpi_os_hotplug_execute(acpi_osd_exec_callback function, void *context)
-+{
-+	return __acpi_os_execute(0, function, context, 1);
-+}
-+
- void acpi_os_wait_events_complete(void *context)
- {
- 	flush_workqueue(kacpid_wq);
-Index: linux/include/acpi/acpiosxf.h
-===================================================================
---- linux.orig/include/acpi/acpiosxf.h	2008-05-22 10:54:50.000000000 +0800
-+++ linux/include/acpi/acpiosxf.h	2008-05-22 10:57:31.000000000 +0800
-@@ -193,6 +193,9 @@ acpi_status
- acpi_os_execute(acpi_execute_type type,
- 		acpi_osd_exec_callback function, void *context);
+ /* callback routine to register each ACPI PCI slot object */
+ static acpi_status
+@@ -280,7 +282,7 @@ register_slot(acpi_handle handle, u32 lv
+ 		 */
+ 		newfunc->flags &= ~FUNC_HAS_EJ0;
+ 		if (register_hotplug_dock_device(handle,
+-			handle_hotplug_event_func, newfunc))
++			&acpiphp_dock_ops, newfunc))
+ 			dbg("failed to register dock device\n");
  
-+acpi_status
-+acpi_os_hotplug_execute(acpi_osd_exec_callback function, void *context);
-+
- void acpi_os_wait_events_complete(void *context);
- 
- void acpi_os_sleep(acpi_integer milliseconds);
+ 		/* we need to be notified when dock events happen
 
 
