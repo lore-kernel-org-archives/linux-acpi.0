@@ -1,56 +1,51 @@
-From: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Subject: [PATCH 2/2] ACPI: add DMI info to enable OSI(Linux) on PRIMEQUEST
-Date: Fri, 23 May 2008 15:43:48 +0900
-Message-ID: <483667A4.9000606@jp.fujitsu.com>
-References: <4816F9B9.3090609@jp.fujitsu.com> <4836660B.3080406@jp.fujitsu.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: Sony laptop battery has odd behavior with 2.6.26-rc3ish build.
+Date: Fri, 23 May 2008 09:21:56 +0200
+Message-ID: <20080523072156.GA8964@ucw.cz>
+References: <20080521115723.GF4287@sgi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:55051 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754463AbYEWGnK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 May 2008 02:43:10 -0400
-In-Reply-To: <4836660B.3080406@jp.fujitsu.com>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:2837 "EHLO spitz.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752068AbYEWHW3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 23 May 2008 03:22:29 -0400
+Content-Disposition: inline
+In-Reply-To: <20080521115723.GF4287@sgi.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
+To: Robin Holt <holt@sgi.com>
+Cc: astarikovskiy@suse.de, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-This patch adds DMI info to enable OSI(Linux) on PRIMEQUEST.
-(PRIMEQUEST is ia64 machine.)
+Hi!
 
-Signed-off-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
+> A couple days ago, I updated my test build to commit
+> 8033c6e9736c29cce5f0d0abbca9a44dffb20c39 and noticed an odd behavior
+> with the battery.  If I unplug the power, the battery discharges and
+> that is reflected in /proc/acpi/battery/BAT0/state.  I am not certain
+> the discharge is continuous and uniform or if it goes in steps.  When I
+> plug the power back in, the level stays at a constant value (+-1mAh)
+> for a considerable period of time.  It then does a single step back to
+> the fully charged value.
+> 
+> I have not done any searching to see when this began.  I had been running
+> the ubuntu 2.6.22-14 kernel before this and the behavior was normal.
+> 
+> I am not certain what information you will need.  Commit is above.
 
----
-  drivers/acpi/blacklist.c |   14 ++++++++++++++
-  1 file changed, 14 insertions(+)
+git bisect would certainly help...
 
-Index: linux-2.6.25.4/drivers/acpi/blacklist.c
-===================================================================
---- linux-2.6.25.4.orig/drivers/acpi/blacklist.c
-+++ linux-2.6.25.4/drivers/acpi/blacklist.c
-@@ -626,6 +626,20 @@ static struct dmi_system_id acpi_osi_dmi
-  		     DMI_MATCH(DMI_SYS_VENDOR, "TOSHIBA"),
-  		},
-  	},
-+	/*
-+	 * Enable OSI(Linux) on Fujitsu PRIMEQUEST
-+	 *
-+	 * DMI_MATCH(DMI_BIOS_VERSION, "PRIMEQUEST"),
-+	 *
-+	 */
-+	{
-+	.callback = dmi_enable_osi_linux,
-+	.ident = "Fujitsu PRIMEQUEST",
-+	.matches = {
-+		     DMI_MATCH(DMI_BIOS_VENDOR, "FUJITSU LIMITED"),
-+		     DMI_MATCH(DMI_BIOS_VERSION, "PRIMEQUEST"),
-+		},
-+	},
-  	{}
-  };
+> $ cat /proc/acpi/battery/BAT0/alarm
+> alarm:                   unsupported
+> $ cat /proc/acpi/battery/BAT0/info
+> present:                 yes
+> design capacity:         4800 mAh
+> last full capacity:      4096 mAh
+> battery technology:      non-rechargeable
 
+Because something is clearly wrong here.
 
-
-
+						Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
