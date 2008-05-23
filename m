@@ -1,24 +1,110 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] Fujitsu-laptop update
-Date: Fri, 23 May 2008 17:16:59 +0100
-Message-ID: <20080523161659.GB19674@srcf.ucam.org>
-References: <200805230005.m4N05gEf004890@turbo.physics.adelaide.edu.au>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: ACPI CA resource encoding problem
+Date: Fri, 23 May 2008 12:19:10 -0600
+Message-ID: <200805231219.10766.bjorn.helgaas@hp.com>
+References: <200805211725.26397.bjorn.helgaas@hp.com> <9D39833986E69849A2A8E74C1078B6B35F4D93@orsmsx415.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:50680 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751004AbYEWQRX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 May 2008 12:17:23 -0400
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:26882 "EHLO
+	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752967AbYEWSTH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 May 2008 14:19:07 -0400
+In-Reply-To: <9D39833986E69849A2A8E74C1078B6B35F4D93@orsmsx415.amr.corp.intel.com>
 Content-Disposition: inline
-In-Reply-To: <200805230005.m4N05gEf004890@turbo.physics.adelaide.edu.au>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, nokos@gmx.net
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-Can you also add a modalias for the PNP device? That would avoid the 
-need to add a large number of DMI entries.
+On Thursday 22 May 2008 10:48:29 am Moore, Robert wrote:
+> This has already been addressed by two patches to the ACPICA code. See
+> bugzilla 9487.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Oh, yes, I see the ACPICA fix in the code, now that you point it out.
+Unfortunately, nobody's hooked up the Linux side of things yet,
+so we're still broken.  I'll try to post a patch for that today.
+
+> >-----Original Message-----
+> >From: Bjorn Helgaas [mailto:bjorn.helgaas@hp.com]
+> >Sent: Wednesday, May 21, 2008 4:25 PM
+> >To: Len Brown; Moore, Robert
+> >Cc: linux-acpi@vger.kernel.org
+> >Subject: ACPI CA resource encoding problem
+> >
+> >I've tripped over some devices that work with PNPBIOS but not with
+> >PNPACPI, even though Linux is configuring the devices identically.
+> >
+> >Linux evaluates _CRS to get a template, which it then fills in and
+> >passes to _SRS to configure the device.  The ACPI CA decodes the AML
+> >bytestream returned from _CRS into a series of acpi_resource structs.
+> >
+> >When Linux evaluates _SRS, the ACPI CA re-encodes the acpi_resource
+> >structs into an AML bytestream.  However, the encoded bytestream
+> >sometimes has a different form than that returned from _CRS.
+> >
+> >For example, acpi_rs_set_irq encodes a small IRQ descriptor.  If the
+> >IRQ is edge-sensitive, active high, and exclusive, acpi_rs_set_irq
+> >optimizes the output AML by omitting the optional flags byte.
+> >
+> >I think it would be better for acpi_rs_set_irq to generate an AML
+> >descriptor that exactly matches the format and size of the descriptor
+> >we got from _CRS because _SRS may not be smart enough to handle the
+> >variation.
+> >
+> >On a Toshiba Portege 4000, the parport_pc and smsc-ircc2 drivers both
+> >work with PNPBIOS, and neither works with PNPACPI.  I think the reason
+> >is this acpi_rs_set_irq optimization.  If I apply the attached patch,
+> >which removes that optimization, both drivers work with PNPACPI.
+> >
+> >I don't claim that this patch is correct, because it *always* generates
+> >3-byte IRQ descriptors, while _SRS may be expecting a 2-byte
+> descriptor.
+> >But I think it is enough to point out a problem.
+> >
+> >Bjorn
+> >
+> >
+> >Index: work10/drivers/acpi/resources/rsirq.c
+> >===================================================================
+> >--- work10.orig/drivers/acpi/resources/rsirq.c	2008-05-21
+> >15:14:10.000000000 -0600
+> >+++ work10/drivers/acpi/resources/rsirq.c	2008-05-21
+> 15:15:11.000000000 -
+> >0600
+> >@@ -152,26 +152,6 @@ struct acpi_rsconvert_info acpi_rs_set_i
+> > 	/* Reset length to 3 bytes (descriptor with flags byte) */
+> >
+> > 	{ACPI_RSC_LENGTH, 0, 0, sizeof(struct aml_resource_irq)},
+> >-
+> >-	/*
+> >-	 * Check if the flags byte is necessary. Not needed if the flags
+> are:
+> >-	 * ACPI_EDGE_SENSITIVE, ACPI_ACTIVE_HIGH, ACPI_EXCLUSIVE
+> >-	 */
+> >-	{ACPI_RSC_EXIT_NE, ACPI_RSC_COMPARE_VALUE,
+> >-	 ACPI_RS_OFFSET(data.irq.triggering),
+> >-	 ACPI_EDGE_SENSITIVE},
+> >-
+> >-	{ACPI_RSC_EXIT_NE, ACPI_RSC_COMPARE_VALUE,
+> >-	 ACPI_RS_OFFSET(data.irq.polarity),
+> >-	 ACPI_ACTIVE_HIGH},
+> >-
+> >-	{ACPI_RSC_EXIT_NE, ACPI_RSC_COMPARE_VALUE,
+> >-	 ACPI_RS_OFFSET(data.irq.sharable),
+> >-	 ACPI_EXCLUSIVE},
+> >-
+> >-	/* We can optimize to a 2-byte irq_no_flags() descriptor */
+> >-
+> >-	{ACPI_RSC_LENGTH, 0, 0, sizeof(struct aml_resource_irq_noflags)}
+> > };
+> >
+> >
+> >/**********************************************************************
+> ****
+> >*****
+> 
+
+
