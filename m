@@ -1,85 +1,38 @@
-From: Robin Holt <holt@sgi.com>
-Subject: Re: Sony laptop battery has odd behavior with 2.6.26-rc3ish build.
-Date: Fri, 23 May 2008 04:40:39 -0500
-Message-ID: <20080523094039.GH4287@sgi.com>
-References: <20080521115723.GF4287@sgi.com> <20080523072156.GA8964@ucw.cz> <20080523084346.GG4287@sgi.com>
+From: Richard Hughes <hughsient@gmail.com>
+Subject: Re: [PATCH] Fujitsu-laptop update
+Date: Fri, 23 May 2008 13:22:51 +0100
+Message-ID: <1211545371.22562.4.camel@hughsie-work>
+References: <200805230005.m4N05gEf004890@turbo.physics.adelaide.edu.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757602AbYEWJkz@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20080523084346.GG4287@sgi.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Robin Holt <holt@sgi.com>, astarikovskiy@suse.de, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from nf-out-0910.google.com ([64.233.182.189]:29610 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752013AbYEWMYB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 May 2008 08:24:01 -0400
+Received: by nf-out-0910.google.com with SMTP id d3so285144nfc.21
+        for <linux-acpi@vger.kernel.org>; Fri, 23 May 2008 05:23:59 -0700 (PDT)
+In-Reply-To: <200805230005.m4N05gEf004890@turbo.physics.adelaide.edu.au>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, nokos@gmx.net
 
-Definitely the battery.  I just rebooted to XP and did a similar
-experiment with their battery monitor and it behaved equivalently
-(although they present only percentages).  So, I would say this is
-something unrelated and was just finally noticed because I was paying
-more attention.
+On Fri, 2008-05-23 at 09:35 +0930, Jonathan Woithe wrote:
+> 
+>  * Brightness hotkey actions are sent to userspace. This can be
+> disabled using a module parameter if it causes issues with models
+> which handle these keys transparently in the BIOS.
+> 
+>  * Actions of additional hotkeys found on some Fujitsu models (eg: the
+>    suspend key and the dedicated "power on passphrase" keys) are
+> broadcast to userspace.
 
-Thanks,
-Robin
+Brilliant. There's now very few drivers still doing odd things to get
+keys up to userspace. Using INPUT is totally the right thing to do here,
+rock on.
 
-On Fri, May 23, 2008 at 03:43:46AM -0500, Robin Holt wrote:
-> I think this is my battery/laptop ACPI.  I just booted back to  2.6.22-14
-> and the behavior remained the same.  Interestingly, it started chaged
-> to 4096mAh and I unplugged it.  The battery began discharging.  When it
-> reached 3800mAh, I plugged it back in.  The battery indicated it was
-> charging, but remaining capacity slowly declined to 3072mAh where it
-> stablized.  Removing/Instaling the battery gave no change in behavior,
-> upon reinsertion, the reading remained at 3072mAh.  I then unplugged the
-> charger.  It was approx 35 seconds before the reading began to trickle
-> back down.  Again, it trickled down slowly (which it is doing currently).
-> 
-> Either it has always behaved this way and I just didn't notice it or
-> something has changed inside my battery.  I have not done any BIOS update
-> in years (last one that was available).
-> 
-> Thanks,
-> Robin
-> 
-> On Fri, May 23, 2008 at 09:21:56AM +0200, Pavel Machek wrote:
-> > Hi!
-> > 
-> > > A couple days ago, I updated my test build to commit
-> > > 8033c6e9736c29cce5f0d0abbca9a44dffb20c39 and noticed an odd behavior
-> > > with the battery.  If I unplug the power, the battery discharges and
-> > > that is reflected in /proc/acpi/battery/BAT0/state.  I am not certain
-> > > the discharge is continuous and uniform or if it goes in steps.  When I
-> > > plug the power back in, the level stays at a constant value (+-1mAh)
-> > > for a considerable period of time.  It then does a single step back to
-> > > the fully charged value.
-> > > 
-> > > I have not done any searching to see when this began.  I had been running
-> > > the ubuntu 2.6.22-14 kernel before this and the behavior was normal.
-> > > 
-> > > I am not certain what information you will need.  Commit is above.
-> > 
-> > git bisect would certainly help...
-> > 
-> > > $ cat /proc/acpi/battery/BAT0/alarm
-> > > alarm:                   unsupported
-> > > $ cat /proc/acpi/battery/BAT0/info
-> > > present:                 yes
-> > > design capacity:         4800 mAh
-> > > last full capacity:      4096 mAh
-> > > battery technology:      non-rechargeable
-> > 
-> > Because something is clearly wrong here.
-> > 
-> > 						Pavel
-> > -- 
-> > (english) http://www.livejournal.com/~pavelmachek
-> > (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > Please read the FAQ at  http://www.tux.org/lkml/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+Richard.
+
+
