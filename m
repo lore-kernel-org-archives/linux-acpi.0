@@ -1,110 +1,86 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: ACPI CA resource encoding problem
-Date: Fri, 23 May 2008 12:19:10 -0600
-Message-ID: <200805231219.10766.bjorn.helgaas@hp.com>
-References: <200805211725.26397.bjorn.helgaas@hp.com> <9D39833986E69849A2A8E74C1078B6B35F4D93@orsmsx415.amr.corp.intel.com>
+Subject: PNPACPI: use _CRS IRQ descriptor length for _SRS
+Date: Fri, 23 May 2008 16:29:23 -0600
+Message-ID: <200805231629.24421.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0015.houston.hp.com ([15.201.24.18]:26882 "EHLO
-	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752967AbYEWSTH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 May 2008 14:19:07 -0400
-In-Reply-To: <9D39833986E69849A2A8E74C1078B6B35F4D93@orsmsx415.amr.corp.intel.com>
+Received: from g5t0007.atlanta.hp.com ([15.192.0.44]:35331 "EHLO
+	g5t0007.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750846AbYEWW3V (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 May 2008 18:29:21 -0400
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>
+Cc: Matthieu Castet <castet.matthieu@free.fr>, Li Shaohua <shaohua.li@intel.com>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Tom Jaeger <ThJaeger@gmail.com>, Robert Moore <Robert.Moore@intel.com>, linux-acpi@vger.kernel.org
 
-On Thursday 22 May 2008 10:48:29 am Moore, Robert wrote:
-> This has already been addressed by two patches to the ACPICA code. See
-> bugzilla 9487.
+[This fixes a long-standing parport PNPACPI bug, and it would
+nice to have it in 2.6.26.]
 
-Oh, yes, I see the ACPICA fix in the code, now that you point it out.
-Unfortunately, nobody's hooked up the Linux side of things yet,
-so we're still broken.  I'll try to post a patch for that today.
+When configuring the resources of an ACPI device, we first
+evaluate _CRS to get a template of resource descriptors, then
+fill in the specific resource values we want, and finally
+evaluate _SRS to actually configure the device.
 
-> >-----Original Message-----
-> >From: Bjorn Helgaas [mailto:bjorn.helgaas@hp.com]
-> >Sent: Wednesday, May 21, 2008 4:25 PM
-> >To: Len Brown; Moore, Robert
-> >Cc: linux-acpi@vger.kernel.org
-> >Subject: ACPI CA resource encoding problem
-> >
-> >I've tripped over some devices that work with PNPBIOS but not with
-> >PNPACPI, even though Linux is configuring the devices identically.
-> >
-> >Linux evaluates _CRS to get a template, which it then fills in and
-> >passes to _SRS to configure the device.  The ACPI CA decodes the AML
-> >bytestream returned from _CRS into a series of acpi_resource structs.
-> >
-> >When Linux evaluates _SRS, the ACPI CA re-encodes the acpi_resource
-> >structs into an AML bytestream.  However, the encoded bytestream
-> >sometimes has a different form than that returned from _CRS.
-> >
-> >For example, acpi_rs_set_irq encodes a small IRQ descriptor.  If the
-> >IRQ is edge-sensitive, active high, and exclusive, acpi_rs_set_irq
-> >optimizes the output AML by omitting the optional flags byte.
-> >
-> >I think it would be better for acpi_rs_set_irq to generate an AML
-> >descriptor that exactly matches the format and size of the descriptor
-> >we got from _CRS because _SRS may not be smart enough to handle the
-> >variation.
-> >
-> >On a Toshiba Portege 4000, the parport_pc and smsc-ircc2 drivers both
-> >work with PNPBIOS, and neither works with PNPACPI.  I think the reason
-> >is this acpi_rs_set_irq optimization.  If I apply the attached patch,
-> >which removes that optimization, both drivers work with PNPACPI.
-> >
-> >I don't claim that this patch is correct, because it *always* generates
-> >3-byte IRQ descriptors, while _SRS may be expecting a 2-byte
-> descriptor.
-> >But I think it is enough to point out a problem.
-> >
-> >Bjorn
-> >
-> >
-> >Index: work10/drivers/acpi/resources/rsirq.c
-> >===================================================================
-> >--- work10.orig/drivers/acpi/resources/rsirq.c	2008-05-21
-> >15:14:10.000000000 -0600
-> >+++ work10/drivers/acpi/resources/rsirq.c	2008-05-21
-> 15:15:11.000000000 -
-> >0600
-> >@@ -152,26 +152,6 @@ struct acpi_rsconvert_info acpi_rs_set_i
-> > 	/* Reset length to 3 bytes (descriptor with flags byte) */
-> >
-> > 	{ACPI_RSC_LENGTH, 0, 0, sizeof(struct aml_resource_irq)},
-> >-
-> >-	/*
-> >-	 * Check if the flags byte is necessary. Not needed if the flags
-> are:
-> >-	 * ACPI_EDGE_SENSITIVE, ACPI_ACTIVE_HIGH, ACPI_EXCLUSIVE
-> >-	 */
-> >-	{ACPI_RSC_EXIT_NE, ACPI_RSC_COMPARE_VALUE,
-> >-	 ACPI_RS_OFFSET(data.irq.triggering),
-> >-	 ACPI_EDGE_SENSITIVE},
-> >-
-> >-	{ACPI_RSC_EXIT_NE, ACPI_RSC_COMPARE_VALUE,
-> >-	 ACPI_RS_OFFSET(data.irq.polarity),
-> >-	 ACPI_ACTIVE_HIGH},
-> >-
-> >-	{ACPI_RSC_EXIT_NE, ACPI_RSC_COMPARE_VALUE,
-> >-	 ACPI_RS_OFFSET(data.irq.sharable),
-> >-	 ACPI_EXCLUSIVE},
-> >-
-> >-	/* We can optimize to a 2-byte irq_no_flags() descriptor */
-> >-
-> >-	{ACPI_RSC_LENGTH, 0, 0, sizeof(struct aml_resource_irq_noflags)}
-> > };
-> >
-> >
-> >/**********************************************************************
-> ****
-> >*****
-> 
+Some resources have optional fields, so the size of encoded
+descriptors varies depending on the specific values.  For
+example, IRQ descriptors can be either two or three bytes long.
+The third byte contains triggering information and can be
+omitted if the IRQ is edge-triggered and active high.
 
+The BIOS often assumes that IRQ descriptors in the _SRS
+buffer use the same format as those in the _CRS buffer, so
+this patch enforces that constraint.
 
+The "Start Dependent Function" descriptor also has an optional
+byte, but we don't currently encode those descriptors, so I
+didn't do anything for those.
+
+I have tested this patch on a Toshiba Portege 4000.  Without
+the patch, parport_pc claims the parallel port only if I use
+"pnpacpi=off".  This patch makes it work with PNPACPI.
+
+This is an extension of a patch by Tom Jaeger:
+    http://bugzilla.kernel.org/show_bug.cgi?id=9487#c42
+
+References:
+    http://bugzilla.kernel.org/show_bug.cgi?id=5832 Enabling ACPI Plug and Play in kernels >2.6.9 kills Parallel support
+    http://bugzilla.kernel.org/show_bug.cgi?id=9487 buggy firmware expects four-byte IRQ resource descriptor (was: Serial port disappears after Suspend on Toshiba R25)
+    http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=1d5b285da1893b90507b081664ac27f1a8a3dc5b
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+
+Index: work11/drivers/pnp/pnpacpi/rsparser.c
+===================================================================
+--- work11.orig/drivers/pnp/pnpacpi/rsparser.c	2008-05-22 13:41:52.000000000 -0600
++++ work11/drivers/pnp/pnpacpi/rsparser.c	2008-05-23 15:53:41.000000000 -0600
+@@ -742,6 +742,9 @@ static acpi_status pnpacpi_type_resource
+ 	if (pnpacpi_supported_resource(res)) {
+ 		(*resource)->type = res->type;
+ 		(*resource)->length = sizeof(struct acpi_resource);
++		if (res->type == ACPI_RESOURCE_TYPE_IRQ)
++			(*resource)->data.irq.descriptor_length =
++					res->data.irq.descriptor_length;
+ 		(*resource)++;
+ 	}
+ 
+@@ -799,11 +802,14 @@ static void pnpacpi_encode_irq(struct pn
+ 		irq->sharable = ACPI_SHARED;
+ 	irq->interrupt_count = 1;
+ 	irq->interrupts[0] = p->start;
++	irq->descriptor_length = resource->data.irq.descriptor_length;
+ 
+-	dev_dbg(&dev->dev, "  encode irq %d %s %s %s\n", (int) p->start,
++	dev_dbg(&dev->dev, "  encode irq %d %s %s %s (%d-byte descriptor)\n",
++		(int) p->start,
+ 		triggering == ACPI_LEVEL_SENSITIVE ? "level" : "edge",
+ 		polarity == ACPI_ACTIVE_LOW ? "low" : "high",
+-		irq->sharable == ACPI_SHARED ? "shared" : "exclusive");
++		irq->sharable == ACPI_SHARED ? "shared" : "exclusive",
++		irq->descriptor_length);
+ }
+ 
+ static void pnpacpi_encode_ext_irq(struct pnp_dev *dev,
