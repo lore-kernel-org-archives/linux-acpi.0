@@ -1,40 +1,23 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH 0/4] Fix forcedeth hibernate/wake-on-lan problems
-Date: Tue, 27 May 2008 14:32:12 -0700
-Message-ID: <200805271432.12881.david-b@pacbell.net>
-References: <20080518125715.GA19229@yamamaya.is-a-geek.org> <20080525181329.GA5044@yamamaya.is-a-geek.org> <20080527062153.GA3651@yamamaya.is-a-geek.org>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20080527062153.GA3651@yamamaya.is-a-geek.org>
-Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
-To: Tobias Diedrich <ranma+kernel@tdiedrich.de>
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Ayaz Abdulla <aabdulla@nvidia.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Stephen Hemminger <shemminger@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: [patch 0/2] PNPACPI: fix IRQ encoding problems
+Date: Tue, 27 May 2008 16:49:15 -0600
+Message-ID: <20080527224915.412211349@ldl.fc.hp.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g1t0029.austin.hp.com ([15.216.28.36]:8857 "EHLO
+	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757060AbYE0Wte (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 May 2008 18:49:34 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Andrew Morton <akpm@linux-foundation.org>, Tom Jaeger <ThJaeger@gmail.com>
 
-On Monday 26 May 2008, Tobias Diedrich wrote:
-> The platform_enable_wakeup() hook is still there, but unused.
+These patches fix some IRQ encoding problems in PNPACPI.  I
+don't have reports of people hitting these specific problems,
+but they could easily cause hard-to-debug suspend/resume failures
+or failures when enabling devices left disabled by the BIOS.
 
-The patches to support it (still) haven't been merged.
+I think these changes should go into 2.6.26.
 
-
-> AFAICS this patch should solve the "'ethtool -s eth0 wol g' doesn't
-> suffice, I also have to write magic values into /proc/acpi/wakeup"
-> issue.
-
-Yeah; under ACPI, PCI does not act like it does everywhere else.
-Nor does wakeup in general.
-
-After sending patches to fix that for a couple years now, I'm
-well past being tired of doing that.  I suggest it's overdue for
-the ACPI team to get this part of their act together.
-
-That is:  either start merging those patches, possibly with updates
-to handle broken hardware better; or rewrite them; ... or just say
-explicitly the message I've been receiving:  "Linux ACPI will never
-support wakeup the way the rest of Linux can and does".  (And the
-"why" should be something reasonable.)
-
+Bjorn
+-- 
