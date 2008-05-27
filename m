@@ -1,65 +1,91 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: PNPACPI: use _CRS IRQ descriptor length for _SRS
-Date: Tue, 27 May 2008 10:47:53 -0600
-Message-ID: <200805271047.54620.bjorn.helgaas@hp.com>
-References: <200805231629.24421.bjorn.helgaas@hp.com> <48386498.6010006@gmail.com>
+Subject: PNPACPI: use _CRS IRQ descriptor length for _SRS, v2
+Date: Tue, 27 May 2008 10:53:58 -0600
+Message-ID: <200805271053.59654.bjorn.helgaas@hp.com>
+References: <200805231629.24421.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0029.austin.hp.com ([15.216.28.36]:31106 "EHLO
-	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757717AbYE0Qrv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 May 2008 12:47:51 -0400
-In-Reply-To: <48386498.6010006@gmail.com>
+Received: from g1t0027.austin.hp.com ([15.216.28.34]:28255 "EHLO
+	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756839AbYE0Qx4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 May 2008 12:53:56 -0400
+In-Reply-To: <200805231629.24421.bjorn.helgaas@hp.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Jaeger <thjaeger@gmail.com>
-Cc: Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Matthieu Castet <castet.matthieu@free.fr>, Li Shaohua <shaohua.li@intel.com>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Robert Moore <Robert.Moore@intel.com>, linux-acpi@vger.kernel.org
+To: Adam Belay <ambx1@neo.rr.com>
+Cc: Adam M Belay <abelay@mit.edu>, Matthieu Castet <castet.matthieu@free.fr>, Li Shaohua <shaohua.li@intel.com>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Tom Jaeger <ThJaeger@gmail.com>, Robert Moore <Robert.Moore@intel.com>, linux-acpi@vger.kernel.org
 
-On Saturday 24 May 2008 12:55:20 pm Thomas Jaeger wrote:
-> Bjorn Helgaas wrote:
-> > [This fixes a long-standing parport PNPACPI bug, and it would
-> > nice to have it in 2.6.26.]
-> >   
-> I agree, especially since the ground work has already been laid in 
-> 1d5b285da1893b90507b081664ac27f1a8a3dc5b.
-> > @@ -799,11 +802,14 @@ static void pnpacpi_encode_irq(struct pn
-> >  		irq->sharable = ACPI_SHARED;
-> >  	irq->interrupt_count = 1;
-> >  	irq->interrupts[0] = p->start;
-> > +	irq->descriptor_length = resource->data.irq.descriptor_length;
-> >   
-> I don't understand the point of this line.  Aren't 
-> irq->descriptor_length and resource->data.irq.descriptor_length the same 
-> thing?
+    [This fixes a long-standing parport PNPACPI bug (see bugzilla
+    links below).  I think it should go in 2.6.26.
 
-You're right, I don't know what I was thinking there.  I'm sorry I
-cast aspersions on your patch, which should be correct and sufficient.
-I will still post an updated version, if you don't mind, to add a
-little debug output.  And I think I'll still skip the "start dependent
-function" piece, since we don't encode those.  (I don't see anything
-in the spec that says you can't have a "start DPF" descriptor in a
-_CRS or _SRS buffer, but I have no idea what it would mean.)
+    This v2 patch removes an unnecessary line pointed out by
+    Tom Jaeger.]
 
-Later, I'm going to take another look at this template/encode business.
-It looks like we currently allocate a new buffer sized to hold only the
-descriptors we know about.  I think it would be better if we just
-evaluated _CRS, kept the buffer it returned, then encoded our new
-resources directly into the same buffer, ignoring things we don't know
-about.  That way we wouldn't be quite so susceptible to issues like
-this.
 
-> Bjorn, while we're on the subject, could you have a look at 
-> http://bugzilla.kernel.org/show_bug.cgi?id=9487#c32 ? I've noticed that 
-> you've already fixed the third point there; the other two points may 
-> well be irrelevant or never occur in practice, but then they could be 
-> the sort of thing that costs somebody hours of debugging time.
+When configuring the resources of an ACPI device, we first
+evaluate _CRS to get a template of resource descriptors, then
+fill in the specific resource values we want, and finally
+evaluate _SRS to actually configure the device.
 
-I agree, that should be cleaned up.  I'll take a look at that, too.
+Some resources have optional fields, so the size of encoded
+descriptors varies depending on the specific values.  For
+example, IRQ descriptors can be either two or three bytes long.
+The third byte contains triggering information and can be
+omitted if the IRQ is edge-triggered and active high.
 
-Thanks,
-  Bjorn
+The BIOS often assumes that IRQ descriptors in the _SRS
+buffer use the same format as those in the _CRS buffer, so
+this patch enforces that constraint.
+
+The "Start Dependent Function" descriptor also has an optional
+byte, but we don't currently encode those descriptors, so I
+didn't do anything for those.
+
+I have tested this patch on a Toshiba Portege 4000.  Without
+the patch, parport_pc claims the parallel port only if I use
+"pnpacpi=off".  This patch makes it work with PNPACPI.
+
+This is an extension of a patch by Tom Jaeger:
+    http://bugzilla.kernel.org/show_bug.cgi?id=9487#c42
+
+References:
+    http://bugzilla.kernel.org/show_bug.cgi?id=5832 Enabling ACPI Plug and Play in kernels >2.6.9 kills Parallel support
+    http://bugzilla.kernel.org/show_bug.cgi?id=9487 buggy firmware expects four-byte IRQ resource descriptor (was: Serial port disappears after Suspend on Toshiba R25)
+    http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=1d5b285da1893b90507b081664ac27f1a8a3dc5b related ACPICA fix
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+
+Index: work11/drivers/pnp/pnpacpi/rsparser.c
+===================================================================
+--- work11.orig/drivers/pnp/pnpacpi/rsparser.c	2008-05-22 13:41:52.000000000 -0600
++++ work11/drivers/pnp/pnpacpi/rsparser.c	2008-05-27 10:34:32.000000000 -0600
+@@ -742,6 +742,9 @@ static acpi_status pnpacpi_type_resource
+ 	if (pnpacpi_supported_resource(res)) {
+ 		(*resource)->type = res->type;
+ 		(*resource)->length = sizeof(struct acpi_resource);
++		if (res->type == ACPI_RESOURCE_TYPE_IRQ)
++			(*resource)->data.irq.descriptor_length =
++					res->data.irq.descriptor_length;
+ 		(*resource)++;
+ 	}
+ 
+@@ -800,10 +803,12 @@ static void pnpacpi_encode_irq(struct pn
+ 	irq->interrupt_count = 1;
+ 	irq->interrupts[0] = p->start;
+ 
+-	dev_dbg(&dev->dev, "  encode irq %d %s %s %s\n", (int) p->start,
++	dev_dbg(&dev->dev, "  encode irq %d %s %s %s (%d-byte descriptor)\n",
++		(int) p->start,
+ 		triggering == ACPI_LEVEL_SENSITIVE ? "level" : "edge",
+ 		polarity == ACPI_ACTIVE_LOW ? "low" : "high",
+-		irq->sharable == ACPI_SHARED ? "shared" : "exclusive");
++		irq->sharable == ACPI_SHARED ? "shared" : "exclusive",
++		irq->descriptor_length);
+ }
+ 
+ static void pnpacpi_encode_ext_irq(struct pnp_dev *dev,
 
