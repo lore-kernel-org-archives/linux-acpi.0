@@ -1,51 +1,57 @@
-From: Chris Hermansen <chris.hermansen@timberline.ca>
-Subject: DMI info
-Date: Mon, 26 May 2008 12:01:49 -0700
-Message-ID: <483B091D.1060105@timberline.ca>
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: Re: [PATCH 2/2] ACPI: add DMI info to enable OSI(Linux) on
+ PRIMEQUEST
+Date: Tue, 27 May 2008 10:13:02 +0900
+Message-ID: <20080527101302.4bd49e6c.kamezawa.hiroyu@jp.fujitsu.com>
+References: <4816F9B9.3090609@jp.fujitsu.com>
+	<4836660B.3080406@jp.fujitsu.com>
+	<483667A4.9000606@jp.fujitsu.com>
+	<20080525114308.GA5237@ucw.cz>
+	<483A6D15.6030701@jp.fujitsu.com>
+	<20080526080614.GA28147@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from h66-244-194-174.bigpipeinc.com ([66.244.194.174]:30842 "EHLO
-	atmail.timberline.ca" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754996AbYEZTco (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 May 2008 15:32:44 -0400
-Received: from [172.16.1.133]
-	by atmail.timberline.ca with esmtp (Exim 4.63)
-	(envelope-from <chris.hermansen@timberline.ca>)
-	id 1K0hx7-0002yw-TV
-	for linux-acpi@vger.kernel.org; Mon, 26 May 2008 13:01:49 -0600
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:34858 "EHLO
+	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753272AbYE0BHy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 May 2008 21:07:54 -0400
+In-Reply-To: <20080526080614.GA28147@elf.ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@suse.cz>
+Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-May 26 10:36:59 TNRG048 kernel: [   13.398894] ACPI: BIOS _OSI(Linux)
-query ignored
-May 26 10:36:59 TNRG048 kernel: [   13.398896] ACPI: DMI System Vendor:
-Dell Inc.              =20
-May 26 10:36:59 TNRG048 kernel: [   13.398897] ACPI: DMI Product Name:
-OptiPlex 745               =20
-May 26 10:36:59 TNRG048 kernel: [   13.398899] ACPI: DMI Product Versio=
-n:
-May 26 10:36:59 TNRG048 kernel: [   13.398900] ACPI: DMI Board Name: 0T=
-Y565
-May 26 10:36:59 TNRG048 kernel: [   13.398901] ACPI: DMI BIOS Vendor:
-Dell Inc.              =20
-May 26 10:36:59 TNRG048 kernel: [   13.398902] ACPI: DMI BIOS Date:
-05/21/2007
-May 26 10:36:59 TNRG048 kernel: [   13.398903] ACPI: Please send DMI
-info above to linux-acpi@vger.kernel.org
+On Mon, 26 May 2008 10:06:14 +0200
+Pavel Machek <pavel@suse.cz> wrote:
 
---=20
-Regards,
+> On Mon 2008-05-26 16:56:05, Taku Izumi wrote:
+> >
+> > Thank you for your response.
+> >
+> >>> This patch adds DMI info to enable OSI(Linux) on PRIMEQUEST.
+> >>> (PRIMEQUEST is ia64 machine.)
+> >>
+> >> Why is it needed? Why needs your bios know whether it is Linux or BSD
+> >> or whatver running?
+> >
+> >   For memory hotplug support.
+> >   Memory hotplug doesn't work on PRIMEQUEST when OSI(Linux) is disabled.
+> 
+> So fix the BIOS: there's no reason why memory hotplug should not work
+> on BSD or Windows...
+> 									Pavel
+IIRC, PrimeQuest doesn't support BSD ;)
 
-Chris Hermansen         mailto:chris.hermansen@timberline.ca
-tel+1.604.714.2878 =B7 fax+1.604.733.0631 =B7 mob+1.778.232.0644
-Timberline Natural Resource Group =B7 http://www.timberline.ca
-401 =B7 958 West 8th Avenue  =B7 Vancouver BC =B7 Canada =B7 V5Z 1E5
+It's not really for memory hotplug. The result of _OSI method (TOOS) is
+used for PCI, EC driver's behavior, etc.. (on my box) 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+BTW, PrimeQuest's firmware is designed in 2.6.18 age and _heavily_ tested under
+_OSI("Linux") environments. So, the acpi layer which returns _OSI("Linux") 
+is valid for PrimeQuest. I don't hear a major firmware update for
+already-sold-hosts is scheduled.
+
+Thanks,
+-Kame
+
