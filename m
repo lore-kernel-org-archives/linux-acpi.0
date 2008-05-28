@@ -1,44 +1,43 @@
-From: david@lang.hm
-Subject: Re: [Fwd: Re: long-term regression - Parallel Port broken?]
-Date: Wed, 28 May 2008 02:19:05 -0700 (PDT)
-Message-ID: <alpine.DEB.1.10.0805280217510.2373@asgard.lang.hm>
-References: <1183030080.4249.172.camel@queen.suse.de> <Pine.LNX.4.64.0707292058040.6510@asgard.lang.hm> <200707300808.17934.bjorn.helgaas@hp.com> <200805271711.37254.bjorn.helgaas@hp.com>
+From: Matthew Garrett <mjg59@codon.org.uk>
+Subject: RESEND: [PATCH 1/3] Input: Add switch for dock events
+Date: Wed, 28 May 2008 14:32:15 +0100
+Message-ID: <20080528130621.GA32646__45737.618712201$1211981642$gmane$org@srcf.ucam.org>
+References: <20080523160955.GA19674@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.lang.hm ([64.81.33.126]:46904 "EHLO bifrost.lang.hm"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751390AbYE1JTa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 28 May 2008 05:19:30 -0400
-In-Reply-To: <200805271711.37254.bjorn.helgaas@hp.com>
+Received: from cavan.codon.org.uk ([93.93.128.6]:42696 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750989AbYE1Nc2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 May 2008 09:32:28 -0400
+Content-Disposition: inline
+In-Reply-To: <20080523160955.GA19674@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: trenn@suse.de, linux-acpi <linux-acpi@vger.kernel.org>, Randy Dunlap <randy.dunlap@oracle.com>
+To: linux-input@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, 27 May 2008, Bjorn Helgaas wrote:
+Add a SW_DOCK switch to input.h. ACPI docks currently send their docking 
+status as a uevent, but not all docks are ACPI or correspond to a 
+device. In that case, it makes more sense to simply generate an input 
+event on docking or undocking.
 
->> On Sunday 29 July 2007 09:59:18 pm david@lang.hm wrote:
->>> On Sun, 29 Jul 2007, Bjorn Helgaas wrote:
->>>> This seems an awful lot like this bug report:
->>>>  http://bugzilla.kernel.org/show_bug.cgi?id=5832
->>>>
->>>> Can you take a look at 5832, and maybe we can combine your problem
->>>> with that one if you agree they look the same?
->>>
->>> yes, it definantly looks like the same thing.
->
-> Hi David,
->
-> I think 2.6.25 + the patch here:
->    http://marc.info/?l=linux-acpi&m=121190728701748&w=2
->
-> should fix the parallel port problem you saw.  If you have a
-> chance to confirm or disprove that, I'd appreciate hearing
-> about it.  I'm trying to get this change in for 2.6.26.
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
 
-I'll see what I can do. I've moved twice since running into this and at 
-the moment the printer is hooked to a network dongle, I'll move it to the 
-server and try a couple tests, probably not before thursday though.
+---
 
-David Lang
+diff --git a/include/linux/input.h b/include/linux/input.h
+index 28a094f..0bc55ee 100644
+--- a/include/linux/input.h
++++ b/include/linux/input.h
+@@ -638,6 +638,7 @@ struct input_absinfo {
+ #define SW_TABLET_MODE		0x01  /* set = tablet mode */
+ #define SW_HEADPHONE_INSERT	0x02  /* set = inserted */
+ #define SW_RADIO		0x03  /* set = radio enabled */
++#define SW_DOCK			0x04  /* set = plugged into dock */
+ #define SW_MAX			0x0f
+ #define SW_CNT			(SW_MAX+1)
+ 
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
