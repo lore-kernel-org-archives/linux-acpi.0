@@ -1,40 +1,85 @@
-From: Andrew Morton <akpm@linux-foundation.org>
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Subject: Re: [PATCH 2/2] ACPI: add DMI info to enable OSI(Linux) on
  PRIMEQUEST
-Date: Tue, 27 May 2008 16:50:43 -0700
-Message-ID: <20080527165043.6522f061.akpm@linux-foundation.org>
+Date: Wed, 28 May 2008 09:09:37 +0900
+Message-ID: <20080528090937.af2ad164.kamezawa.hiroyu@jp.fujitsu.com>
 References: <4816F9B9.3090609@jp.fujitsu.com>
 	<4836660B.3080406@jp.fujitsu.com>
 	<483667A4.9000606@jp.fujitsu.com>
 	<20080527162029.e549a226.akpm@linux-foundation.org>
-	<12c511ca0805271641r68d50d3do9f6427a8dc6ad469@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58802 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759297AbYE0Xuq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 27 May 2008 19:50:46 -0400
-In-Reply-To: <12c511ca0805271641r68d50d3do9f6427a8dc6ad469@mail.gmail.com>
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:49606 "EHLO
+	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752680AbYE1AET (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 May 2008 20:04:19 -0400
+In-Reply-To: <20080527162029.e549a226.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tony Luck <tony.luck@intel.com>
-Cc: izumi.taku@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, 27 May 2008 16:41:59 -0700
-"Tony Luck" <tony.luck@intel.com> wrote:
+On Tue, 27 May 2008 16:20:29 -0700
+Andrew Morton <akpm@linux-foundation.org> wrote:
 
-> I'm not sure that sharing drivers/acpi/blacklist.c between different
-> architectures is wise idea.  There are entries in there that make
-> blanket decisions for all machines made by an OEM.
+> On Fri, 23 May 2008 15:43:48 +0900
+> Taku Izumi <izumi.taku@jp.fujitsu.com> wrote:
 > 
-> It seems quite possible that an OEM that makes boxes using
-> different processor architectures might make different mistakes
-> in the respective BIOS teams.
+> > This patch adds DMI info to enable OSI(Linux) on PRIMEQUEST.
+> > (PRIMEQUEST is ia64 machine.)
+> > 
+> > Signed-off-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
+> > 
+> > ---
+> >   drivers/acpi/blacklist.c |   14 ++++++++++++++
+> >   1 file changed, 14 insertions(+)
+> > 
+> > Index: linux-2.6.25.4/drivers/acpi/blacklist.c
+> > ===================================================================
+> > --- linux-2.6.25.4.orig/drivers/acpi/blacklist.c
+> > +++ linux-2.6.25.4/drivers/acpi/blacklist.c
+> > @@ -626,6 +626,20 @@ static struct dmi_system_id acpi_osi_dmi
+> >   		     DMI_MATCH(DMI_SYS_VENDOR, "TOSHIBA"),
+> >   		},
+> >   	},
+> > +	/*
+> > +	 * Enable OSI(Linux) on Fujitsu PRIMEQUEST
+> > +	 *
+> > +	 * DMI_MATCH(DMI_BIOS_VERSION, "PRIMEQUEST"),
+> > +	 *
+> > +	 */
+> > +	{
+> > +	.callback = dmi_enable_osi_linux,
+> > +	.ident = "Fujitsu PRIMEQUEST",
+> > +	.matches = {
+> > +		     DMI_MATCH(DMI_BIOS_VENDOR, "FUJITSU LIMITED"),
+> > +		     DMI_MATCH(DMI_BIOS_VERSION, "PRIMEQUEST"),
+> > +		},
+> > +	},
+> >   	{}
+> >   };
 > 
+> It is unclear (to me) what the impact of this patch is.  Does it fix a
+> problem which would justify including these patches in 2.6.26?
+> 
+Ah, sorry. I think this is not 2.6.26 candidates.
 
-So...  what's the fix?  We don't appear to have a blacklisting table
-under arch/ia64.  Should `#ifdef CONFIG_IA64' be added to
-drivers/acpi/blacklist.c entries?
+  Before patch.
+    - PrimeQuest doesn't work well without acpi_osi="Linux" boot option.
+  After patch
+    - PrimeQuest works well without boot option.
+
+But Pavel Machek and Arjan van de Ven informed us that "Supporting OSI("Linux")
+on PrimeQuest will be harmful even if it works well now. Because we cannot
+guarantee compatibility of this interface in future". So, we're now discussing
+the problem with our firmware team.
+
+So, please ignore this patch for a while. We'll repost if necessary.
+
+Thank you.
+
+Regards.
+-Kame
+
