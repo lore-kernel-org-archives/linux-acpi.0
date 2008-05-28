@@ -1,30 +1,44 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] Fujitsu-laptop update
-Date: Wed, 28 May 2008 10:04:02 +0100
-Message-ID: <20080528090402.GA29533@srcf.ucam.org>
-References: <20080523161659.GB19674@srcf.ucam.org> <200805280412.m4S4C6Cr008232@turbo.physics.adelaide.edu.au>
+From: david@lang.hm
+Subject: Re: [Fwd: Re: long-term regression - Parallel Port broken?]
+Date: Wed, 28 May 2008 02:19:05 -0700 (PDT)
+Message-ID: <alpine.DEB.1.10.0805280217510.2373@asgard.lang.hm>
+References: <1183030080.4249.172.camel@queen.suse.de> <Pine.LNX.4.64.0707292058040.6510@asgard.lang.hm> <200707300808.17934.bjorn.helgaas@hp.com> <200805271711.37254.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:46540 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751150AbYE1JE2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 May 2008 05:04:28 -0400
-Content-Disposition: inline
-In-Reply-To: <200805280412.m4S4C6Cr008232@turbo.physics.adelaide.edu.au>
+Received: from mail.lang.hm ([64.81.33.126]:46904 "EHLO bifrost.lang.hm"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751390AbYE1JTa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 28 May 2008 05:19:30 -0400
+In-Reply-To: <200805271711.37254.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, nokos@gmx.net
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: trenn@suse.de, linux-acpi <linux-acpi@vger.kernel.org>, Randy Dunlap <randy.dunlap@oracle.com>
 
-On Wed, May 28, 2008 at 01:42:06PM +0930, Jonathan Woithe wrote:
+On Tue, 27 May 2008, Bjorn Helgaas wrote:
 
-> At the risk of sounding uninformed (which is fine, because I am :-) ), how
-> does one go about finding the appropriate ID for the PNP device?  Are we
-> talking the FUJ02B1 and FUJ02E3 devices themselves (in which case we'll have
-> two such modaliases) or some other overarching device?
+>> On Sunday 29 July 2007 09:59:18 pm david@lang.hm wrote:
+>>> On Sun, 29 Jul 2007, Bjorn Helgaas wrote:
+>>>> This seems an awful lot like this bug report:
+>>>>  http://bugzilla.kernel.org/show_bug.cgi?id=5832
+>>>>
+>>>> Can you take a look at 5832, and maybe we can combine your problem
+>>>> with that one if you agree they look the same?
+>>>
+>>> yes, it definantly looks like the same thing.
+>
+> Hi David,
+>
+> I think 2.6.25 + the patch here:
+>    http://marc.info/?l=linux-acpi&m=121190728701748&w=2
+>
+> should fix the parallel port problem you saw.  If you have a
+> chance to confirm or disprove that, I'd appreciate hearing
+> about it.  I'm trying to get this change in for 2.6.26.
 
-Yup, those sound appropriate.
+I'll see what I can do. I've moved twice since running into this and at 
+the moment the printer is hooked to a network dongle, I'll move it to the 
+server and try a couple tests, probably not before thursday though.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+David Lang
