@@ -1,30 +1,33 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [PATCH 2/2] ACPI: add DMI info to enable OSI(Linux) on PRIMEQUEST
-Date: Tue, 27 May 2008 21:04:16 -0700
-Message-ID: <1FE6DD409037234FAB833C420AA843EC016FF579@orsmsx424.amr.corp.intel.com>
-References: <4816F9B9.3090609@jp.fujitsu.com><4836660B.3080406@jp.fujitsu.com><483667A4.9000606@jp.fujitsu.com><20080527162029.e549a226.akpm@linux-foundation.org><12c511ca0805271641r68d50d3do9f6427a8dc6ad469@mail.gmail.com> <20080527165043.6522f061.akpm@linux-foundation.org>
+From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Subject: Re: [PATCH] Fujitsu-laptop update
+Date: Wed, 28 May 2008 13:42:06 +0930 (CST)
+Message-ID: <200805280412.m4S4C6Cr008232@turbo.physics.adelaide.edu.au>
+References: <20080523161659.GB19674@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:60314 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750707AbYE1EFC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 May 2008 00:05:02 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <20080527165043.6522f061.akpm@linux-foundation.org>
+Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:58041 "EHLO
+	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751025AbYE1EMc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 28 May 2008 00:12:32 -0400
+In-Reply-To: <20080523161659.GB19674@srcf.ucam.org> from "Matthew Garrett" at May 23, 2008 05:16:59 PM
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: izumi.taku@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, linux-acpi@vger.kernel.org, lenb@kernel.org, nokos@gmx.net
 
-> So...  what's the fix?  We don't appear to have a blacklisting table
-> under arch/ia64.  Should `#ifdef CONFIG_IA64' be added to
-> drivers/acpi/blacklist.c entries?
+Matthew Garrett wrote:
+> Can you also add a modalias for the PNP device? That would avoid the 
+> need to add a large number of DMI entries.
 
-That sounds reasonable.  We should also put #if defined(CONFIG_X86)
-around all the existing entries in the acpi_osi_dmi_table[].
+At the risk of sounding uninformed (which is fine, because I am :-) ), how
+does one go about finding the appropriate ID for the PNP device?  Are we
+talking the FUJ02B1 and FUJ02E3 devices themselves (in which case we'll have
+two such modaliases) or some other overarching device?
 
--Tony
+Regards
+  jonathan
 
 
