@@ -1,15 +1,15 @@
-From: Matthew Garrett <mjg59@codon.org.uk>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 Subject: RESEND: [PATCH 1/3] Input: Add switch for dock events
-Date: Wed, 28 May 2008 14:32:15 +0100
-Message-ID: <20080528130621.GA32646__45737.618712201$1211981642$gmane$org@srcf.ucam.org>
+Date: Wed, 28 May 2008 14:33:06 +0100
+Message-ID: <20080528130621.GA32646__13309.751955285$1211981683$gmane$org@srcf.ucam.org>
 References: <20080523160955.GA19674@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:42696 "EHLO
+Received: from cavan.codon.org.uk ([93.93.128.6]:42712 "EHLO
 	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750989AbYE1Nc2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 May 2008 09:32:28 -0400
+	with ESMTP id S1750855AbYE1NdX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 May 2008 09:33:23 -0400
 Content-Disposition: inline
 In-Reply-To: <20080523160955.GA19674@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
