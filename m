@@ -1,39 +1,71 @@
-From: Tejun Heo <htejun@gmail.com>
-Subject: Re: [PATCH] libata: Handle bay devices in dock stations
-Date: Thu, 29 May 2008 12:08:44 +0900
-Message-ID: <483E1E3C.8070307@gmail.com>
-References: <20080528143857.GB5585@homac.suse.de> <20080528200227.80f708cd.akpm@linux-foundation.org>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: [PATCH]  ACPI:  Ignore _BQC object when registering backlight
+	device
+Date: Thu, 29 May 2008 11:25:49 +0800
+Message-ID: <1212031549.17613.3.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.233]:10295 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754232AbYE2DIu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 May 2008 23:08:50 -0400
-Received: by rv-out-0506.google.com with SMTP id l9so3855248rvb.1
-        for <linux-acpi@vger.kernel.org>; Wed, 28 May 2008 20:08:50 -0700 (PDT)
-In-Reply-To: <20080528200227.80f708cd.akpm@linux-foundation.org>
+Received: from mga11.intel.com ([192.55.52.93]:22283 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750926AbYE2DQk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 28 May 2008 23:16:40 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Holger Macht <hmacht@suse.de>, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, Jeff Garzik <jeff@garzik.org>, linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org
 
-Andrew Morton wrote:
->> +	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_EJ0",
->> +					      &arg_list, NULL)))
->> +		printk(KERN_ERR "Failed to evaluate _EJ0!\n");
->> +}
-> 
-> It would be better if the printk were to self-identify where it is
-> coming from.  If your kernel just blurts "Failed to evaluate _EJ0!"
-> it's a bit of a head-scratcher.
-> 
-> "libata-acpi: failed to evaluate _EJ0", perhaps?
+Subject: ACPI: Ignore _BQC object when registering backlight device
+>From : Zhao Yakui <yakui.zhao@intel.com>
 
-ata_port_printk() would be better.
+According to acpi spec , the objectes of  _BCL and _BCM are required if
+integrated LCD is present and supports brightness level and the _BQC is
+the optional object. So the _BQC object will be ignored when the backlight 
+device is registered.
+At the same time when there is no _BQC object, the current brightness will be
+set to the maximum.
 
-Thanks.
+http://bugzilla.kernel.org/show_bug.cgi?id=10206
 
--- 
-tejun
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+Signed-off-by: Zhang Rui  <rui.zhang@intel.com>
+
+---
+ drivers/acpi/video.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
+
+Index: linux-2.6/drivers/acpi/video.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/video.c
++++ linux-2.6/drivers/acpi/video.c
+@@ -720,7 +720,7 @@ static void acpi_video_device_find_cap(s
+ 
+ 	kfree(obj);
+ 
+-	if (device->cap._BCL && device->cap._BCM && device->cap._BQC && max_level > 0){
++	if (device->cap._BCL && device->cap._BCM && max_level > 0) {
+ 		int result;
+ 		static int count = 0;
+ 		char *name;
+@@ -732,7 +732,17 @@ static void acpi_video_device_find_cap(s
+ 		device->backlight = backlight_device_register(name,
+ 			NULL, device, &acpi_backlight_ops);
+ 		device->backlight->props.max_brightness = device->brightness->count-3;
+-		device->backlight->props.brightness = acpi_video_get_brightness(device->backlight);
++		/*
++		 * If there exists the _BQC object, the _BQC object will be
++		 * called to get the current backlight brightness. Otherwise
++		 * the brightness will be set to the maximum.
++		 */
++		if (device->cap._BQC)
++			device->backlight->props.brightness =
++				acpi_video_get_brightness(device->backlight);
++		else
++			device->backlight->props.brightness =
++				device->backlight->props.max_brightness;
+ 		backlight_update_status(device->backlight);
+ 		kfree(name);
+ 
+
+
