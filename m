@@ -1,51 +1,49 @@
-From: Rene Herman <rene.herman@keyaccess.nl>
-Subject: Re: [patch 2/2] PNPACPI: fix shareable IRQ encode/decode
-Date: Thu, 29 May 2008 01:14:49 +0200
-Message-ID: <483DE769.8070208@keyaccess.nl>
-References: <20080527224915.412211349@ldl.fc.hp.com> <20080527224938.681457358@ldl.fc.hp.com> <483DC787.6070700@keyaccess.nl> <200805281605.23556.bjorn.helgaas@hp.com>
+From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Subject: [PATCH] Fujitsu-laptop: autoload based on PnP device
+Date: Thu, 29 May 2008 10:30:20 +0930 (CST)
+Message-ID: <200805290100.m4T10KZe019539@turbo.physics.adelaide.edu.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtpq2.tilbu1.nb.home.nl ([213.51.146.201]:44401 "EHLO
-	smtpq2.tilbu1.nb.home.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753982AbYE1XLz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 May 2008 19:11:55 -0400
-In-Reply-To: <200805281605.23556.bjorn.helgaas@hp.com>
+Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:60946 "EHLO
+	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752669AbYE2BAo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 28 May 2008 21:00:44 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Andrew Morton <akpm@linux-foundation.org>, Tom Jaeger <ThJaeger@gmail.com>
+To: linux-acpi@vger.kernel.org
+Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, lenb@kernel.org, nokos@gmx.net
 
-On 29-05-08 00:05, Bjorn Helgaas wrote:
+This patch adds module autoloading based on PnP devices in Fujitsu
+laptops following Matthew Garrett's suggestion.  It is against a 2.6.25 tree
+which has already had my previous fujitsu laptop update patch applied.
 
-> On Wednesday 28 May 2008 02:58:47 pm Rene Herman wrote:
->> On 28-05-08 00:49, Bjorn Helgaas wrote:
->>
->>> When we encode IRQ resources, we should use the "shareable"
->>> flag we got from _PRS rather than guessing based on the
->>> IRQ trigger mode.
->>>
->>> This is based on a patch by Tom Jaeger <ThJaeger@gmail.com>:
->>>     http://bugzilla.kernel.org/show_bug.cgi?id=9487#c32
->>>
->>> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
->> Not-commented-on-by: Rene Herman <rene.herman@gmail.com>
->>
->> Makes sense patchwise but one would expect that it wasn't that way to 
->> start with due to perhaps some/many/most BIOSen not encoding the flag 
->> correctly in _PRS. Don't know ACPI though...
-> 
-> I added IORESOURCE_IRQ_SHAREABLE recently:
->   http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=c32928c579d88acd43981b59e86900da65f40762
-> 
-> and I just didn't notice these places at the time.  If I had,
-> I would have made this change then.  It's possible we could
-> trip over a BIOS issue, but I don't *think* that's why it's
-> been this way in the past.
+This patch includes the patch submitted earlier by Dan Williams which adds
+the FUJ02bf PnP device to the autoload list.
 
-Ah, I see. Was likely just a matter of originally not having a place to 
-stash it then (by the way, time flies; "recently" is almost two years 
-ago...)
+Signed-off-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
 
-Rene.
+--- linux-2.6.25-old/drivers/misc/fujitsu-laptop.c	2008-05-29 10:14:30.000000000 +0930
++++ linux-2.6.25/drivers/misc/fujitsu-laptop.c	2008-05-29 10:22:07.000000000 +0930
+@@ -65,7 +65,7 @@
+ #include <linux/video_output.h>
+ #include <linux/platform_device.h>
+ 
+-#define FUJITSU_DRIVER_VERSION "0.4.0"
++#define FUJITSU_DRIVER_VERSION "0.4.1"
+ 
+ #define FUJITSU_LCD_N_LEVELS 8
+ 
+@@ -1074,3 +1074,10 @@
+     ("dmi:*:svnFUJITSUSIEMENS:*:pvr:rvnFUJITSU:rnFJNB1D3:*:cvrS6410:*");
+ MODULE_ALIAS
+     ("dmi:*:svnFUJITSU:*:pvr:rvnFUJITSU:rnFJNB19C:*:cvrS7020:*");
++
++static struct pnp_device_id pnp_ids[] = {
++	{ .id = "FUJ02bf" },
++	{ .id = "FUJ02B1" },
++	{ .id = "FUJ02E3" },
++};
++MODULE_DEVICE_TABLE(pnp, pnp_ids);
