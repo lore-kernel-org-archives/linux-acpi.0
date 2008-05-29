@@ -1,38 +1,21 @@
-From: Holger Macht <hmacht@suse.de>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 Subject: Re: [PATCH] libata: Handle bay devices in dock stations
-Date: Thu, 29 May 2008 16:14:21 +0200
-Message-ID: <20080529141421.GC9268@homac.suse.de>
-References: <20080528143857.GB5585@homac.suse.de> <20080529132253.GA22309@srcf.ucam.org> <483EB33D.6010101@gmail.com> <20080529140213.GA23373@srcf.ucam.org>
+Date: Thu, 29 May 2008 15:02:13 +0100
+Message-ID: <20080529140213.GA23373@srcf.ucam.org>
+References: <20080528143857.GB5585@homac.suse.de> <20080529132253.GA22309@srcf.ucam.org> <483EB33D.6010101@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-ide-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757272AbYE2OCr@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20080529140213.GA23373@srcf.ucam.org>
-Sender: linux-ide-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Tejun Heo <htejun@gmail.com>, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, Jeff Garzik <jeff@garzik.org>, linux-acpi@vger.kernel.org, akpm@linux-foundation.org
+In-Reply-To: <483EB33D.6010101@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tejun Heo <htejun@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, Jeff Garzik <jeff@garzik.org>, linux-acpi@vger.kernel.org, akpm@linux-foundation.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu 29. May - 15:02:13, Matthew Garrett wrote:
-> On Thu, May 29, 2008 at 10:44:29PM +0900, Tejun Heo wrote:
-> > Does this fix the problem?
-> 
-> No, I'm seeing an identical hang. Mainline works fine.
+On Thu, May 29, 2008 at 10:44:29PM +0900, Tejun Heo wrote:
+> Does this fix the problem?
 
-Maybe you could also try this on top of Tejun's patch?
-
---- linux-2.6/drivers/ata/libata-acpi.c.orig	2008-05-29 16:13:00.000000000 +0200
-+++ linux-2.6/drivers/ata/libata-acpi.c	2008-05-29 16:13:04.000000000 +0200
-@@ -237,10 +237,8 @@
- 
- 	spin_unlock_irqrestore(ap->lock, flags);
- 
--	if (wait) {
-+	if (wait)
- 		ata_port_wait_eh(ap);
--		ata_acpi_eject_device(handle);
--	}
- 
- 	if (kobj && !is_dock_event) {
- 		sprintf(event_string, "BAY_EVENT=%d", event);
-
+No, I'm seeing an identical hang. Mainline works fine.
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
