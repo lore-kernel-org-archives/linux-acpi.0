@@ -1,20 +1,25 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+From: Holger Macht <hmacht@suse.de>
 Subject: Re: [PATCH] libata: Handle bay devices in dock stations
-Date: Thu, 29 May 2008 15:49:34 +0100
-Message-ID: <20080529144934.GA24382@srcf.ucam.org>
-References: <20080528143857.GB5585@homac.suse.de> <20080529132253.GA22309@srcf.ucam.org> <483EB33D.6010101@gmail.com> <20080529140213.GA23373@srcf.ucam.org> <20080529141421.GC9268@homac.suse.de> <20080529143541.GA24013@srcf.ucam.org> <483EBFC5.7020406@gmail.com>
+Date: Thu, 29 May 2008 18:32:02 +0200
+Message-ID: <20080529163201.GA4520@homac>
+References: <20080528143857.GB5585@homac.suse.de> <20080529132253.GA22309@srcf.ucam.org> <483EB33D.6010101@gmail.com> <20080529140213.GA23373@srcf.ucam.org> <20080529141421.GC9268@homac.suse.de> <20080529143541.GA24013@srcf.ucam.org> <483EBFC5.7020406@gmail.com> <20080529144934.GA24382@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-ide-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <483EBFC5.7020406@gmail.com>
+In-Reply-To: <20080529144934.GA24382@srcf.ucam.org>
 Sender: linux-ide-owner@vger.kernel.org
-To: Tejun Heo <htejun@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, Jeff Garzik <jeff@garzik.org>, linux-acpi@vger.kernel.org, akpm@linux-foundation.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Tejun Heo <htejun@gmail.com>, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, Jeff Garzik <jeff@garzik.org>, linux-acpi@vger.kernel.org, akpm@linux-foundation.org
 List-Id: linux-acpi@vger.kernel.org
 
-Got it. It works if I lose the ata_port_freeze() from 
-ata_acpi_detach_device. 
+On Thu 29. May - 15:49:34, Matthew Garrett wrote:
+> Got it. It works if I lose the ata_port_freeze() from 
+> ata_acpi_detach_device. 
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Tejun, any idea? This is in for quite some time now. Maybe there's some
+involved...
+
+Regards,
+	Holger
+
