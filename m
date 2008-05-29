@@ -1,97 +1,39 @@
-From: Andrew Morton <akpm@linux-foundation.org>
+From: Tejun Heo <htejun@gmail.com>
 Subject: Re: [PATCH] libata: Handle bay devices in dock stations
-Date: Wed, 28 May 2008 20:02:27 -0700
-Message-ID: <20080528200227.80f708cd.akpm@linux-foundation.org>
-References: <20080528143857.GB5585@homac.suse.de>
+Date: Thu, 29 May 2008 12:08:44 +0900
+Message-ID: <483E1E3C.8070307@gmail.com>
+References: <20080528143857.GB5585@homac.suse.de> <20080528200227.80f708cd.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59258 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751119AbYE2DDK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 28 May 2008 23:03:10 -0400
-In-Reply-To: <20080528143857.GB5585@homac.suse.de>
+Received: from rv-out-0506.google.com ([209.85.198.233]:10295 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754232AbYE2DIu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 May 2008 23:08:50 -0400
+Received: by rv-out-0506.google.com with SMTP id l9so3855248rvb.1
+        for <linux-acpi@vger.kernel.org>; Wed, 28 May 2008 20:08:50 -0700 (PDT)
+In-Reply-To: <20080528200227.80f708cd.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Holger Macht <hmacht@suse.de>
-Cc: linux-kernel@vger.kernel.org, Tejun Heo <htejun@gmail.com>, linux-ide@vger.kernel.org, Jeff Garzik <jeff@garzik.org>, linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Holger Macht <hmacht@suse.de>, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, Jeff Garzik <jeff@garzik.org>, linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On Wed, 28 May 2008 16:38:57 +0200 Holger Macht <hmacht@suse.de> wrote:
-
-> * Differentiate between bay devices in dock stations and others:
+Andrew Morton wrote:
+>> +	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_EJ0",
+>> +					      &arg_list, NULL)))
+>> +		printk(KERN_ERR "Failed to evaluate _EJ0!\n");
+>> +}
 > 
->  - When an ACPI_NOTIFY_EJECT_REQUEST appears, just signal uevent to
->    userspace (that is when the optional eject button on a bay device is
->    pressed/pulled) giving the possibility to unmount file systems and to
->    clean up. Also, only send uevent in case we get an EJECT_REQUEST
->    without doing anything else. In other cases, you'll get an add/remove
->    event because libata attaches/detaches the device.
+> It would be better if the printk were to self-identify where it is
+> coming from.  If your kernel just blurts "Failed to evaluate _EJ0!"
+> it's a bit of a head-scratcher.
 > 
->  - In case of a dock event, which in turn signals an
->    ACPI_NOTIFY_EJECT_REQUEST, immediately detach the device, because it
->    may already have been gone
-> 
-> * In case of an ACPI_NOTIFY_DEVICE/BUS_CHECK, evaluate _STA to check if
->   the device has been plugged or unplugged. If plugged, hotplug it, if
->   unplugged, just signal event to userspace
->   (initial patch by Matthew Garrett <mjg59@srcf.ucam.org>)
-> 
-> * Call ACPI _EJ0 for detached devices
-> 
-> ...
-> 
-> +static void ata_acpi_eject_device(acpi_handle handle)
-> +{
-> +	struct acpi_object_list arg_list;
-> +	union acpi_object arg;
-> +
-> +	arg_list.count = 1;
-> +	arg_list.pointer = &arg;
-> +	arg.type = ACPI_TYPE_INTEGER;
-> +	arg.integer.value = 1;
+> "libata-acpi: failed to evaluate _EJ0", perhaps?
 
-This might look nicer (and safer) if it used the
+ata_port_printk() would be better.
 
-	union acpi_object arg = {
-		.foo = bar,
-		...
-	};
+Thanks.
 
-form.  However this can cause gcc to emit poor code.
-
-> +	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_EJ0",
-> +					      &arg_list, NULL)))
-> +		printk(KERN_ERR "Failed to evaluate _EJ0!\n");
-> +}
-
-It would be better if the printk were to self-identify where it is
-coming from.  If your kernel just blurts "Failed to evaluate _EJ0!"
-it's a bit of a head-scratcher.
-
-"libata-acpi: failed to evaluate _EJ0", perhaps?
-
-
-> +static void ata_acpi_detach_device(struct ata_port *ap, struct ata_device *dev)
-> +{
-> +	if (dev)
-> +		dev->flags |= ATA_DFLAG_DETACH;
-> +	else {
-> +		struct ata_link *tlink;
-> +		struct ata_device *tdev;
-> +
-> +		ata_port_for_each_link(tlink, ap)
-> +			ata_link_for_each_dev(tdev, tlink)
-> +				tdev->flags |= ATA_DFLAG_DETACH;
-> +	}
-> +
-> +	ata_port_freeze(ap);
-> +	ata_port_schedule_eh(ap);
-> +}
-
-I guess the significance of `dev==0' is known to those who are steeped
-in ata_acpi_handle_hotplug() knowledge, but it's pretty inscrutable to
-the occasional visitor.  Some comments would help.
-
-
+-- 
+tejun
