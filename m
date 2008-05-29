@@ -1,53 +1,54 @@
-From: "Jeff Trull" <linmodemstudent@gmail.com>
-Subject: looking for advanced debugging advice (resume from ram)
-Date: Wed, 28 May 2008 21:09:24 -0700
-Message-ID: <685450530805282109j15259cf8s258eeee82d0a65d1@mail.gmail.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: RESEND: [PATCH 2/3] ACPI: Send switch event on dock events
+Date: Wed, 28 May 2008 22:32:25 -0700
+Message-ID: <20080528223225.51cf8298.akpm@linux-foundation.org>
+References: <20080528130621.GA32646@srcf.ucam.org>
+	<20080528132152.GB32646@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.154]:11491 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750726AbYE2EJ0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 May 2008 00:09:26 -0400
-Received: by fg-out-1718.google.com with SMTP id 19so1937515fgg.17
-        for <linux-acpi@vger.kernel.org>; Wed, 28 May 2008 21:09:24 -0700 (PDT)
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20080528132152.GB32646@srcf.ucam.org>
+Sender: linux-input-owner@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-input@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, kristen.c.accardi@intel.com
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-Hi all,
+On Wed, 28 May 2008 14:33:49 +0100 Matthew Garrett <mjg59@srcf.ucam.org> wrote:
 
-I'm sending this out because I've tried a lot of techniques I found
-described on the web and am
-now running out of ideas.  I have a Fujitsu Lifebook S2010 and it
-hangs when resuming from S3
-(fan running, no disk activity, no response to caps lock), but
-hibernates fine. I have tried:
+> Send a switch event on docking for consistency with docks that don't 
+> present as a separate device.
+> 
+> Signed-off-by: Matthew Garrett <mjg@redhat.com>
+> 
+> ---
+> 
+> diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
+> index fa44fb9..a67e74c 100644
+> --- a/drivers/acpi/dock.c
+> +++ b/drivers/acpi/dock.c
+> @@ -25,6 +25,7 @@
+>  #include <linux/kernel.h>
+>  #include <linux/module.h>
+>  #include <linux/init.h>
+> +#include <linux/input.h>
+>  #include <linux/types.h>
+>  #include <linux/notifier.h>
+>  #include <linux/platform_device.h>
+> @@ -65,6 +66,7 @@ struct dock_station {
+>  	struct mutex hp_lock;
+>  	struct list_head dependent_devices;
+>  	struct list_head hotplug_devices;
+> +	struct input_dev *dock_input;
+>  };
+>  
+>  struct dock_dependent_device {
+> @@ -345,10 +347,13 @@ static void dock_event(struct dock_station *ds, u32 event, int num)
+>  	char event_string[13];
+>  	char *envp[] = { event_string, NULL };
+>  
+> -	if (num == UNDOCK_EVENT)
+> +	if (num == UNDOCK_EVENT) {
+> +		input_report_switch(dock_station->dock_input, SW_DOCK, 0);
 
-1) running my DSDT through iasl - there are no errors
-2) unloading all possible modules before suspend - does not help
-3) pm_trace - results are unreliable (different every time, or not
-present in dmesg at all)
-4) Rafael Wysocki's pm_test_level patch from last year - it appears to
-exonerate the drivers
-5) adding code to the kernel to toggle the keyboard LEDs - this
-revealed that at least some
-    code is being executed after resume.  However, sometimes this
-added code triggers a
-    kernel panic (flashing keyboard LEDs).
-6) adding TRACE_RESUME() calls in various places - this gives either
-unrepeatable results,
-    no results, or kernel panics as in 5)
-
-I just decided this afternoon to start adding calls to the emergency
-reboot function to figure
-out how far the code is getting, but it occurred to me that perhaps
-I've become desperate and
-I should ask the experts instead.  Is there any hope of a faster
-approach?  I'm getting about
-one iteration per hour on my old slow laptop.
-
-Thanks,
-Jeff
+Is CONFIG_ACPI_DOCK=y, CONFIG_INPUT=n possible?  I think so..
