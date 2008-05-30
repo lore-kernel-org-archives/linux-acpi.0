@@ -1,199 +1,58 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 14/15] PNP: support optional IRQ resources
-Date: Fri, 30 May 2008 16:49:07 -0600
-Message-ID: <20080530224934.156287156@ldl.fc.hp.com>
+Subject: [patch 12/15] PNPACPI: ignore _PRS interrupt numbers larger than PNP_IRQ_NR
+Date: Fri, 30 May 2008 16:49:05 -0600
+Message-ID: <20080530224933.755433659@ldl.fc.hp.com>
 References: <20080530224853.976744229@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0027.austin.hp.com ([15.216.28.34]:47721 "EHLO
+Received: from g1t0027.austin.hp.com ([15.216.28.34]:47674 "EHLO
 	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754871AbYE3Wto (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 May 2008 18:49:44 -0400
-Content-Disposition: inline; filename=pnp-optional-irqs
+	with ESMTP id S1754754AbYE3Wtm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 May 2008 18:49:42 -0400
+Content-Disposition: inline; filename=pnpacpi-extended-irq-option
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>, Takashi Iwai <tiwai@suse.de>
 
-This patch adds an IORESOURCE_IRQ_OPTIONAL flag for use when
-assigning resources to a device.  If the flag is set and we are
-unable to assign an IRQ to the device, we can leave the IRQ
-disabled but allow the overall resource allocation to succeed.
+ACPI Extended Interrupt Descriptors can encode 32-bit interrupt
+numbers, so an interrupt number may exceed the size of the bitmap
+we use to track possible IRQ settings.
 
-Some devices request an IRQ, but can run without an IRQ
-(possibly with degraded performance).  This flag lets us run
-the device without the IRQ instead of just leaving the
-device disabled.
+To avoid corrupting memory, complain and ignore too-large interrupt
+numbers.
 
-This is a reimplementation of this previous change by Rene
-Herman <rene.herman@gmail.com>:
-    http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=3b73a223661ed137c5d3d2635f954382e94f5a43
+There's similar code in pnpacpi_parse_irq_option(), but I didn't
+change that because the small IRQ descriptor can only encode
+IRQs 0-15, which do not exceed bitmap size.
 
-I reimplemented this for two reasons:
-    - to prepare for converting all resource options into a single linked
-      list, as opposed to the per-resource-type lists we have now, and
-    - to preserve the order and number of resource options.
-
-In PNPBIOS and ACPI, we configure a device by giving firmware a
-list of resource assignments.  It is important that this list
-has exactly the same number of resources, in the same order,
-as the "template" list we got from the firmware in the first
-place.
-
-The problem of a sound card being left disabled for want of an
-IRQ was reported by Uwe Bugla <uwe.bugla@gmx.de>.
+In the future, we could handle IRQ numbers greater than PNP_IRQ_NR
+by replacing the bitmap with a table or list.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Index: work10/include/linux/ioport.h
+Index: work10/drivers/pnp/pnpacpi/rsparser.c
 ===================================================================
---- work10.orig/include/linux/ioport.h	2008-05-20 13:34:58.000000000 -0600
-+++ work10/include/linux/ioport.h	2008-05-20 13:39:21.000000000 -0600
-@@ -59,6 +59,7 @@ struct resource_list {
- #define IORESOURCE_IRQ_HIGHLEVEL	(1<<2)
- #define IORESOURCE_IRQ_LOWLEVEL		(1<<3)
- #define IORESOURCE_IRQ_SHAREABLE	(1<<4)
-+#define IORESOURCE_IRQ_OPTIONAL		(1<<5)
+--- work10.orig/drivers/pnp/pnpacpi/rsparser.c	2008-05-30 13:23:34.000000000 -0600
++++ work10/drivers/pnp/pnpacpi/rsparser.c	2008-05-30 14:45:52.000000000 -0600
+@@ -421,9 +421,16 @@ static __init void pnpacpi_parse_ext_irq
+ 		return;
  
- /* ISA PnP DMA specific bits (IORESOURCE_BITS) */
- #define IORESOURCE_DMA_TYPE_MASK	(3<<0)
-Index: work10/drivers/pnp/manager.c
-===================================================================
---- work10.orig/drivers/pnp/manager.c	2008-05-20 13:39:21.000000000 -0600
-+++ work10/drivers/pnp/manager.c	2008-05-20 13:39:25.000000000 -0600
-@@ -153,6 +153,15 @@ static int pnp_assign_irq(struct pnp_dev
- 				goto __add;
- 		}
- 	}
-+
-+	if (rule->flags & IORESOURCE_IRQ_OPTIONAL) {
-+		res->start = -1;
-+		res->end = -1;
-+		res->flags |= IORESOURCE_DISABLED;
-+		dev_dbg(&dev->dev, "  irq %d disabled (optional)\n", idx);
-+		goto __add;
-+	}
-+
- 	dev_dbg(&dev->dev, "  couldn't assign irq %d\n", idx);
- 	return -EBUSY;
- 
-Index: work10/drivers/pnp/quirks.c
-===================================================================
---- work10.orig/drivers/pnp/quirks.c	2008-05-20 13:39:36.000000000 -0600
-+++ work10/drivers/pnp/quirks.c	2008-05-20 14:01:42.000000000 -0600
-@@ -118,34 +118,46 @@ static struct pnp_option *quirk_isapnp_m
- 	struct pnp_option *res;
- 
- 	/*
--	 * Build a functional IRQ-less variant of each MPU option.
-+	 * Build a functional IRQ-optional variant of each MPU option.
- 	 */
- 
- 	for (res = dev->dependent; res; res = res->next) {
- 		struct pnp_option *curr;
- 		struct pnp_port *port;
--		struct pnp_port *copy;
-+		struct pnp_port *copy_port;
-+		struct pnp_irq *irq;
-+		struct pnp_irq *copy_irq;
- 
- 		port = res->port;
--		if (!port || !res->irq)
-+		irq = res->irq;
-+		if (!port || !irq)
- 			continue;
- 
--		copy = pnp_alloc(sizeof *copy);
--		if (!copy)
-+		copy_port = pnp_alloc(sizeof *copy_port);
-+		if (!copy_port)
- 			break;
- 
--		copy->min = port->min;
--		copy->max = port->max;
--		copy->align = port->align;
--		copy->size = port->size;
--		copy->flags = port->flags;
-+		copy_irq = pnp_alloc(sizeof *copy_irq);
-+		if (!copy_irq) {
-+			kfree(copy_port);
-+			break;
+ 	bitmap_zero(map.bits, PNP_IRQ_NR);
+-	for (i = 0; i < p->interrupt_count; i++)
+-		if (p->interrupts[i])
+-			__set_bit(p->interrupts[i], map.bits);
++	for (i = 0; i < p->interrupt_count; i++) {
++		if (p->interrupts[i]) {
++			if (p->interrupts[i] < PNP_IRQ_NR)
++				__set_bit(p->interrupts[i], map.bits);
++			else
++				dev_err(&dev->dev, "ignoring IRQ %d option "
++					"(too large for %d entry bitmap)\n",
++					p->interrupts[i], PNP_IRQ_NR);
 +		}
-+
-+		*copy_port = *port;
-+		copy_port->next = NULL;
-+
-+		*copy_irq = *irq;
-+		copy_irq->flags |= IORESOURCE_IRQ_OPTIONAL;
-+		copy_irq->next = NULL;
++	}
  
- 		curr = pnp_build_option(PNP_RES_PRIORITY_FUNCTIONAL);
- 		if (!curr) {
--			kfree(copy);
-+			kfree(copy_port);
-+			kfree(copy_irq);
- 			break;
- 		}
--		curr->port = copy;
-+		curr->port = copy_port;
-+		curr->irq = copy_irq;
- 
- 		if (prev)
- 			prev->next = curr;
-@@ -154,7 +166,7 @@ static struct pnp_option *quirk_isapnp_m
- 		prev = curr;
- 	}
- 	if (head)
--		dev_info(&dev->dev, "adding IRQ-less MPU options\n");
-+		dev_info(&dev->dev, "adding IRQ-optional MPU options\n");
- 
- 	return head;
- }
-@@ -164,10 +176,6 @@ static void quirk_ad1815_mpu_resources(s
- 	struct pnp_option *res;
- 	struct pnp_irq *irq;
- 
--	/*
--	 * Distribute the independent IRQ over the dependent options
--	 */
--
- 	res = dev->independent;
- 	if (!res)
- 		return;
-@@ -176,33 +184,10 @@ static void quirk_ad1815_mpu_resources(s
- 	if (!irq || irq->next)
- 		return;
- 
--	res = dev->dependent;
--	if (!res)
--		return;
--
--	while (1) {
--		struct pnp_irq *copy;
--
--		copy = pnp_alloc(sizeof *copy);
--		if (!copy)
--			break;
--
--		bitmap_copy(copy->map.bits, irq->map.bits, PNP_IRQ_NR);
--		copy->flags = irq->flags;
--
--		copy->next = res->irq; /* Yes, this is NULL */
--		res->irq = copy;
--
--		if (!res->next)
--			break;
--		res = res->next;
--	}
--	kfree(irq);
-+	irq->flags |= IORESOURCE_IRQ_OPTIONAL;
-+	dev_info(&dev->dev, "made independent IRQ optional\n");
- 
- 	res->next = quirk_isapnp_mpu_options(dev);
--
--	res = dev->independent;
--	res->irq = NULL;
- }
- 
- static void quirk_isapnp_mpu_resources(struct pnp_dev *dev)
+ 	flags = irq_flags(p->triggering, p->polarity, p->sharable);
+ 	pnp_register_irq_resource(dev, option, &map, flags);
 
 -- 
