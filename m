@@ -1,178 +1,142 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 03/15] PNP: define PNP-specific IORESOURCE_IO_* flags alongside IRQ, DMA, MEM
-Date: Fri, 30 May 2008 16:48:56 -0600
-Message-ID: <20080530224931.975366762@ldl.fc.hp.com>
+Subject: [patch 04/15] PNP: make resource option structures private to PNP subsystem
+Date: Fri, 30 May 2008 16:48:57 -0600
+Message-ID: <20080530224932.167361093@ldl.fc.hp.com>
 References: <20080530224853.976744229@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0015.houston.hp.com ([15.201.24.18]:36019 "EHLO
-	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753310AbYE3Wtb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 May 2008 18:49:31 -0400
-Content-Disposition: inline; filename=pnp-io-option-flags
+Received: from g4t0016.houston.hp.com ([15.201.24.19]:18550 "EHLO
+	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753163AbYE3Wta (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 May 2008 18:49:30 -0400
+Content-Disposition: inline; filename=pnp-make-option-structures-private
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>, Takashi Iwai <tiwai@suse.de>
 
-PNP previously defined PNP_PORT_FLAG_16BITADDR and PNP_PORT_FLAG_FIXED
-in a private header file, but put those flags in struct resource.flags
-fields.  Better to make them IORESOURCE_IO_* flags like the existing
-IRQ, DMA, and MEM flags.
+Nothing outside the PNP subsystem should need access to a
+device's resource options, so this patch moves the option
+structure declarations to a private header file.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
----
- include/linux/ioport.h         |   10 +++++++---
- include/linux/pnp.h            |    3 ---
- drivers/pnp/interface.c        |    2 +-
- drivers/pnp/isapnp/core.c      |    4 ++--
- drivers/pnp/pnpacpi/rsparser.c |   10 +++++-----
- drivers/pnp/pnpbios/rsparser.c |    4 ++--
- 6 files changed, 17 insertions(+), 16 deletions(-)
-
-Index: work10/include/linux/ioport.h
+Index: work10/drivers/pnp/base.h
 ===================================================================
---- work10.orig/include/linux/ioport.h	2008-05-27 15:36:38.000000000 -0600
-+++ work10/include/linux/ioport.h	2008-05-30 13:20:16.000000000 -0600
-@@ -76,7 +76,7 @@ struct resource_list {
- #define IORESOURCE_DMA_TYPEB		(2<<6)
- #define IORESOURCE_DMA_TYPEF		(3<<6)
+--- work10.orig/drivers/pnp/base.h	2008-05-16 16:10:32.000000000 -0600
++++ work10/drivers/pnp/base.h	2008-05-16 16:10:56.000000000 -0600
+@@ -19,6 +19,54 @@ void pnp_remove_card(struct pnp_card *ca
+ int pnp_add_card_device(struct pnp_card *card, struct pnp_dev *dev);
+ void pnp_remove_card_device(struct pnp_dev *dev);
  
--/* ISA PnP memory I/O specific bits (IORESOURCE_BITS) */
-+/* ISA PnP memory specific bits (IORESOURCE_BITS) */
- #define IORESOURCE_MEM_WRITEABLE	(1<<0)	/* dup: IORESOURCE_READONLY */
- #define IORESOURCE_MEM_CACHEABLE	(1<<1)	/* dup: IORESOURCE_CACHEABLE */
- #define IORESOURCE_MEM_RANGELENGTH	(1<<2)	/* dup: IORESOURCE_RANGELENGTH */
-@@ -88,6 +88,10 @@ struct resource_list {
- #define IORESOURCE_MEM_SHADOWABLE	(1<<5)	/* dup: IORESOURCE_SHADOWABLE */
- #define IORESOURCE_MEM_EXPANSIONROM	(1<<6)
- 
-+/* ISA PnP I/O specific bits (IORESOURCE_BITS) */
-+#define IORESOURCE_IO_16BIT_ADDR	(1<<0)
-+#define IORESOURCE_IO_FIXED		(1<<1)
++struct pnp_port {
++	unsigned short min;	/* min base number */
++	unsigned short max;	/* max base number */
++	unsigned char align;	/* align boundary */
++	unsigned char size;	/* size of range */
++	unsigned char flags;	/* port flags */
++	unsigned char pad;	/* pad */
++	struct pnp_port *next;	/* next port */
++};
 +
- /* PCI ROM control bits (IORESOURCE_BITS) */
- #define IORESOURCE_ROM_ENABLE		(1<<0)	/* ROM is enabled, same as PCI_ROM_ADDRESS_ENABLE */
- #define IORESOURCE_ROM_SHADOW		(1<<1)	/* ROM is copy at C000:0 */
++#define PNP_IRQ_NR 256
++struct pnp_irq {
++	DECLARE_BITMAP(map, PNP_IRQ_NR);	/* bitmask for IRQ lines */
++	unsigned char flags;	/* IRQ flags */
++	unsigned char pad;	/* pad */
++	struct pnp_irq *next;	/* next IRQ */
++};
++
++struct pnp_dma {
++	unsigned char map;	/* bitmask for DMA channels */
++	unsigned char flags;	/* DMA flags */
++	struct pnp_dma *next;	/* next port */
++};
++
++struct pnp_mem {
++	unsigned int min;	/* min base number */
++	unsigned int max;	/* max base number */
++	unsigned int align;	/* align boundary */
++	unsigned int size;	/* size of range */
++	unsigned char flags;	/* memory flags */
++	unsigned char pad;	/* pad */
++	struct pnp_mem *next;	/* next memory resource */
++};
++
++#define PNP_RES_PRIORITY_PREFERRED	0
++#define PNP_RES_PRIORITY_ACCEPTABLE	1
++#define PNP_RES_PRIORITY_FUNCTIONAL	2
++#define PNP_RES_PRIORITY_INVALID	65535
++
++struct pnp_option {
++	unsigned short priority;	/* priority */
++	struct pnp_port *port;		/* first port */
++	struct pnp_irq *irq;		/* first IRQ */
++	struct pnp_dma *dma;		/* first DMA */
++	struct pnp_mem *mem;		/* first memory resource */
++	struct pnp_option *next;	/* used to chain dependent resources */
++};
++
+ struct pnp_option *pnp_build_option(int priority);
+ struct pnp_option *pnp_register_independent_option(struct pnp_dev *dev);
+ struct pnp_option *pnp_register_dependent_option(struct pnp_dev *dev,
 Index: work10/include/linux/pnp.h
 ===================================================================
---- work10.orig/include/linux/pnp.h	2008-05-27 15:36:38.000000000 -0600
-+++ work10/include/linux/pnp.h	2008-05-30 13:20:16.000000000 -0600
-@@ -175,9 +175,6 @@ static inline int pnp_dma_valid(struct p
+--- work10.orig/include/linux/pnp.h	2008-05-16 16:11:01.000000000 -0600
++++ work10/include/linux/pnp.h	2008-05-16 16:11:12.000000000 -0600
+@@ -175,54 +175,6 @@ static inline int pnp_dma_valid(struct p
  }
  
  
--#define PNP_PORT_FLAG_16BITADDR	(1<<0)
--#define PNP_PORT_FLAG_FIXED	(1<<1)
+-struct pnp_port {
+-	unsigned short min;	/* min base number */
+-	unsigned short max;	/* max base number */
+-	unsigned char align;	/* align boundary */
+-	unsigned char size;	/* size of range */
+-	unsigned char flags;	/* port flags */
+-	unsigned char pad;	/* pad */
+-	struct pnp_port *next;	/* next port */
+-};
 -
- struct pnp_port {
- 	unsigned short min;	/* min base number */
- 	unsigned short max;	/* max base number */
-Index: work10/drivers/pnp/interface.c
-===================================================================
---- work10.orig/drivers/pnp/interface.c	2008-05-27 16:09:33.000000000 -0600
-+++ work10/drivers/pnp/interface.c	2008-05-30 13:20:16.000000000 -0600
-@@ -57,7 +57,7 @@ static void pnp_print_port(pnp_info_buff
- 		   "%sport 0x%x-0x%x, align 0x%x, size 0x%x, %i-bit address decoding\n",
- 		   space, port->min, port->max,
- 		   port->align ? (port->align - 1) : 0, port->size,
--		   port->flags & PNP_PORT_FLAG_16BITADDR ? 16 : 10);
-+		   port->flags & IORESOURCE_IO_16BIT_ADDR ? 16 : 10);
- }
- 
- static void pnp_print_irq(pnp_info_buffer_t * buffer, char *space,
-Index: work10/drivers/pnp/isapnp/core.c
-===================================================================
---- work10.orig/drivers/pnp/isapnp/core.c	2008-05-27 15:36:38.000000000 -0600
-+++ work10/drivers/pnp/isapnp/core.c	2008-05-30 13:20:16.000000000 -0600
-@@ -486,7 +486,7 @@ static void __init isapnp_parse_port_res
- 	port->max = (tmp[4] << 8) | tmp[3];
- 	port->align = tmp[5];
- 	port->size = tmp[6];
--	port->flags = tmp[0] ? PNP_PORT_FLAG_16BITADDR : 0;
-+	port->flags = tmp[0] ? IORESOURCE_IO_16BIT_ADDR : 0;
- 	pnp_register_port_resource(dev, option, port);
- }
- 
-@@ -507,7 +507,7 @@ static void __init isapnp_parse_fixed_po
- 	port->min = port->max = (tmp[1] << 8) | tmp[0];
- 	port->size = tmp[2];
- 	port->align = 0;
--	port->flags = PNP_PORT_FLAG_FIXED;
-+	port->flags = IORESOURCE_IO_FIXED;
- 	pnp_register_port_resource(dev, option, port);
- }
- 
-Index: work10/drivers/pnp/pnpacpi/rsparser.c
-===================================================================
---- work10.orig/drivers/pnp/pnpacpi/rsparser.c	2008-05-27 16:09:30.000000000 -0600
-+++ work10/drivers/pnp/pnpacpi/rsparser.c	2008-05-30 13:20:16.000000000 -0600
-@@ -178,7 +178,7 @@ static void pnpacpi_parse_allocated_iore
- 	u64 end = start + len - 1;
- 
- 	if (io_decode == ACPI_DECODE_16)
--		flags |= PNP_PORT_FLAG_16BITADDR;
-+		flags |= IORESOURCE_IO_16BIT_ADDR;
- 	if (len == 0 || end >= 0x10003)
- 		flags |= IORESOURCE_DISABLED;
- 
-@@ -451,7 +451,7 @@ static __init void pnpacpi_parse_port_op
- 	port->align = io->alignment;
- 	port->size = io->address_length;
- 	port->flags = ACPI_DECODE_16 == io->io_decode ?
--	    PNP_PORT_FLAG_16BITADDR : 0;
-+	    IORESOURCE_IO_16BIT_ADDR : 0;
- 	pnp_register_port_resource(dev, option, port);
- }
- 
-@@ -469,7 +469,7 @@ static __init void pnpacpi_parse_fixed_p
- 	port->min = port->max = io->address;
- 	port->size = io->address_length;
- 	port->align = 0;
--	port->flags = PNP_PORT_FLAG_FIXED;
-+	port->flags = IORESOURCE_IO_FIXED;
- 	pnp_register_port_resource(dev, option, port);
- }
- 
-@@ -575,7 +575,7 @@ static __init void pnpacpi_parse_address
- 		port->min = port->max = p->minimum;
- 		port->size = p->address_length;
- 		port->align = 0;
--		port->flags = PNP_PORT_FLAG_FIXED;
-+		port->flags = IORESOURCE_IO_FIXED;
- 		pnp_register_port_resource(dev, option, port);
- 	}
- }
-@@ -890,7 +890,7 @@ static void pnpacpi_encode_io(struct pnp
- 	struct acpi_resource_io *io = &resource->data.io;
- 
- 	/* Note: pnp_assign_port will copy pnp_port->flags into p->flags */
--	io->io_decode = (p->flags & PNP_PORT_FLAG_16BITADDR) ?
-+	io->io_decode = (p->flags & IORESOURCE_IO_16BIT_ADDR) ?
- 	    ACPI_DECODE_16 : ACPI_DECODE_10;
- 	io->minimum = p->start;
- 	io->maximum = p->end;
-Index: work10/drivers/pnp/pnpbios/rsparser.c
-===================================================================
---- work10.orig/drivers/pnp/pnpbios/rsparser.c	2008-05-27 15:36:38.000000000 -0600
-+++ work10/drivers/pnp/pnpbios/rsparser.c	2008-05-30 13:20:16.000000000 -0600
-@@ -310,7 +310,7 @@ static __init void pnpbios_parse_port_op
- 	port->max = (p[5] << 8) | p[4];
- 	port->align = p[6];
- 	port->size = p[7];
--	port->flags = p[1] ? PNP_PORT_FLAG_16BITADDR : 0;
-+	port->flags = p[1] ? IORESOURCE_IO_16BIT_ADDR : 0;
- 	pnp_register_port_resource(dev, option, port);
- }
- 
-@@ -326,7 +326,7 @@ static __init void pnpbios_parse_fixed_p
- 	port->min = port->max = (p[2] << 8) | p[1];
- 	port->size = p[3];
- 	port->align = 0;
--	port->flags = PNP_PORT_FLAG_FIXED;
-+	port->flags = IORESOURCE_IO_FIXED;
- 	pnp_register_port_resource(dev, option, port);
- }
- 
+-#define PNP_IRQ_NR 256
+-struct pnp_irq {
+-	DECLARE_BITMAP(map, PNP_IRQ_NR);	/* bitmask for IRQ lines */
+-	unsigned char flags;	/* IRQ flags */
+-	unsigned char pad;	/* pad */
+-	struct pnp_irq *next;	/* next IRQ */
+-};
+-
+-struct pnp_dma {
+-	unsigned char map;	/* bitmask for DMA channels */
+-	unsigned char flags;	/* DMA flags */
+-	struct pnp_dma *next;	/* next port */
+-};
+-
+-struct pnp_mem {
+-	unsigned int min;	/* min base number */
+-	unsigned int max;	/* max base number */
+-	unsigned int align;	/* align boundary */
+-	unsigned int size;	/* size of range */
+-	unsigned char flags;	/* memory flags */
+-	unsigned char pad;	/* pad */
+-	struct pnp_mem *next;	/* next memory resource */
+-};
+-
+-#define PNP_RES_PRIORITY_PREFERRED	0
+-#define PNP_RES_PRIORITY_ACCEPTABLE	1
+-#define PNP_RES_PRIORITY_FUNCTIONAL	2
+-#define PNP_RES_PRIORITY_INVALID	65535
+-
+-struct pnp_option {
+-	unsigned short priority;	/* priority */
+-	struct pnp_port *port;		/* first port */
+-	struct pnp_irq *irq;		/* first IRQ */
+-	struct pnp_dma *dma;		/* first DMA */
+-	struct pnp_mem *mem;		/* first memory resource */
+-	struct pnp_option *next;	/* used to chain dependent resources */
+-};
+-
+ /*
+  * Device Management
+  */
 
 -- 
