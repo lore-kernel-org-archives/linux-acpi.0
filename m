@@ -1,83 +1,178 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 01/15] serial: when guessing, check only active resources, not options
-Date: Fri, 30 May 2008 16:48:54 -0600
-Message-ID: <20080530224931.549456692@ldl.fc.hp.com>
+Subject: [patch 03/15] PNP: define PNP-specific IORESOURCE_IO_* flags alongside IRQ, DMA, MEM
+Date: Fri, 30 May 2008 16:48:56 -0600
+Message-ID: <20080530224931.975366762@ldl.fc.hp.com>
 References: <20080530224853.976744229@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:27817 "EHLO
-	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752967AbYE3Wt3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 May 2008 18:49:29 -0400
-Content-Disposition: inline; filename=serial-pnp-check-current-resources-not-options
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:36019 "EHLO
+	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753310AbYE3Wtb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 May 2008 18:49:31 -0400
+Content-Disposition: inline; filename=pnp-io-option-flags
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>, Takashi Iwai <tiwai@suse.de>
 
-Given a completely unknown PNP device, if it happens to have
-a modem-like string in its name and it matches a COM port
-address, we assume it's a modem.
-
-We used to check the address against all the possible resource
-options for the device.  But the device is already configured
-and enabled, so we only need to check the resources it is
-actually using.  If we matched an address that wasn't currently
-enabled, we would fail anyway as soon as we attempted to touch
-the device at that address.
-
-This removes a reference to the struct pnp_dev.{independent,dependent}
-fields, which I will soon make private to the PNP subsystem.
+PNP previously defined PNP_PORT_FLAG_16BITADDR and PNP_PORT_FLAG_FIXED
+in a private header file, but put those flags in struct resource.flags
+fields.  Better to make them IORESOURCE_IO_* flags like the existing
+IRQ, DMA, and MEM flags.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Index: work10/drivers/serial/8250_pnp.c
+---
+ include/linux/ioport.h         |   10 +++++++---
+ include/linux/pnp.h            |    3 ---
+ drivers/pnp/interface.c        |    2 +-
+ drivers/pnp/isapnp/core.c      |    4 ++--
+ drivers/pnp/pnpacpi/rsparser.c |   10 +++++-----
+ drivers/pnp/pnpbios/rsparser.c |    4 ++--
+ 6 files changed, 17 insertions(+), 16 deletions(-)
+
+Index: work10/include/linux/ioport.h
 ===================================================================
---- work10.orig/drivers/serial/8250_pnp.c	2008-05-13 11:28:48.000000000 -0600
-+++ work10/drivers/serial/8250_pnp.c	2008-05-13 11:29:16.000000000 -0600
-@@ -383,22 +383,19 @@ static int __devinit check_name(char *na
- 	return 0;
+--- work10.orig/include/linux/ioport.h	2008-05-27 15:36:38.000000000 -0600
++++ work10/include/linux/ioport.h	2008-05-30 13:20:16.000000000 -0600
+@@ -76,7 +76,7 @@ struct resource_list {
+ #define IORESOURCE_DMA_TYPEB		(2<<6)
+ #define IORESOURCE_DMA_TYPEF		(3<<6)
+ 
+-/* ISA PnP memory I/O specific bits (IORESOURCE_BITS) */
++/* ISA PnP memory specific bits (IORESOURCE_BITS) */
+ #define IORESOURCE_MEM_WRITEABLE	(1<<0)	/* dup: IORESOURCE_READONLY */
+ #define IORESOURCE_MEM_CACHEABLE	(1<<1)	/* dup: IORESOURCE_CACHEABLE */
+ #define IORESOURCE_MEM_RANGELENGTH	(1<<2)	/* dup: IORESOURCE_RANGELENGTH */
+@@ -88,6 +88,10 @@ struct resource_list {
+ #define IORESOURCE_MEM_SHADOWABLE	(1<<5)	/* dup: IORESOURCE_SHADOWABLE */
+ #define IORESOURCE_MEM_EXPANSIONROM	(1<<6)
+ 
++/* ISA PnP I/O specific bits (IORESOURCE_BITS) */
++#define IORESOURCE_IO_16BIT_ADDR	(1<<0)
++#define IORESOURCE_IO_FIXED		(1<<1)
++
+ /* PCI ROM control bits (IORESOURCE_BITS) */
+ #define IORESOURCE_ROM_ENABLE		(1<<0)	/* ROM is enabled, same as PCI_ROM_ADDRESS_ENABLE */
+ #define IORESOURCE_ROM_SHADOW		(1<<1)	/* ROM is copy at C000:0 */
+Index: work10/include/linux/pnp.h
+===================================================================
+--- work10.orig/include/linux/pnp.h	2008-05-27 15:36:38.000000000 -0600
++++ work10/include/linux/pnp.h	2008-05-30 13:20:16.000000000 -0600
+@@ -175,9 +175,6 @@ static inline int pnp_dma_valid(struct p
  }
  
--static int __devinit check_resources(struct pnp_option *option)
-+static int __devinit check_resources(struct pnp_dev *dev)
- {
--	struct pnp_option *tmp;
--	if (!option)
-+	resource_size_t port, size;
-+
-+	if (!pnp_port_valid(dev, 0))
- 		return 0;
  
--	for (tmp = option; tmp; tmp = tmp->next) {
--		struct pnp_port *port;
--		for (port = tmp->port; port; port = port->next)
--			if ((port->size == 8) &&
--			    ((port->min == 0x2f8) ||
--			     (port->min == 0x3f8) ||
--			     (port->min == 0x2e8) ||
--			     (port->min == 0x3e8)))
--				return 1;
--	}
-+	port = pnp_port_start(dev, 0);
-+	size = pnp_port_len(dev, 0);
-+
-+	if (size == 8 &&
-+	    (port == 0x2f8 || port == 0x3f8 || port == 0x2e8 || port == 0x3e8))
-+		return 1;
- 
- 	return 0;
- }
-@@ -420,10 +417,7 @@ static int __devinit serial_pnp_guess_bo
- 		(dev->card && check_name(dev->card->name))))
- 			return -ENODEV;
- 
--	if (check_resources(dev->independent))
--		return 0;
+-#define PNP_PORT_FLAG_16BITADDR	(1<<0)
+-#define PNP_PORT_FLAG_FIXED	(1<<1)
 -
--	if (check_resources(dev->dependent))
-+	if (check_resources(dev))
- 		return 0;
+ struct pnp_port {
+ 	unsigned short min;	/* min base number */
+ 	unsigned short max;	/* max base number */
+Index: work10/drivers/pnp/interface.c
+===================================================================
+--- work10.orig/drivers/pnp/interface.c	2008-05-27 16:09:33.000000000 -0600
++++ work10/drivers/pnp/interface.c	2008-05-30 13:20:16.000000000 -0600
+@@ -57,7 +57,7 @@ static void pnp_print_port(pnp_info_buff
+ 		   "%sport 0x%x-0x%x, align 0x%x, size 0x%x, %i-bit address decoding\n",
+ 		   space, port->min, port->max,
+ 		   port->align ? (port->align - 1) : 0, port->size,
+-		   port->flags & PNP_PORT_FLAG_16BITADDR ? 16 : 10);
++		   port->flags & IORESOURCE_IO_16BIT_ADDR ? 16 : 10);
+ }
  
- 	return -ENODEV;
+ static void pnp_print_irq(pnp_info_buffer_t * buffer, char *space,
+Index: work10/drivers/pnp/isapnp/core.c
+===================================================================
+--- work10.orig/drivers/pnp/isapnp/core.c	2008-05-27 15:36:38.000000000 -0600
++++ work10/drivers/pnp/isapnp/core.c	2008-05-30 13:20:16.000000000 -0600
+@@ -486,7 +486,7 @@ static void __init isapnp_parse_port_res
+ 	port->max = (tmp[4] << 8) | tmp[3];
+ 	port->align = tmp[5];
+ 	port->size = tmp[6];
+-	port->flags = tmp[0] ? PNP_PORT_FLAG_16BITADDR : 0;
++	port->flags = tmp[0] ? IORESOURCE_IO_16BIT_ADDR : 0;
+ 	pnp_register_port_resource(dev, option, port);
+ }
+ 
+@@ -507,7 +507,7 @@ static void __init isapnp_parse_fixed_po
+ 	port->min = port->max = (tmp[1] << 8) | tmp[0];
+ 	port->size = tmp[2];
+ 	port->align = 0;
+-	port->flags = PNP_PORT_FLAG_FIXED;
++	port->flags = IORESOURCE_IO_FIXED;
+ 	pnp_register_port_resource(dev, option, port);
+ }
+ 
+Index: work10/drivers/pnp/pnpacpi/rsparser.c
+===================================================================
+--- work10.orig/drivers/pnp/pnpacpi/rsparser.c	2008-05-27 16:09:30.000000000 -0600
++++ work10/drivers/pnp/pnpacpi/rsparser.c	2008-05-30 13:20:16.000000000 -0600
+@@ -178,7 +178,7 @@ static void pnpacpi_parse_allocated_iore
+ 	u64 end = start + len - 1;
+ 
+ 	if (io_decode == ACPI_DECODE_16)
+-		flags |= PNP_PORT_FLAG_16BITADDR;
++		flags |= IORESOURCE_IO_16BIT_ADDR;
+ 	if (len == 0 || end >= 0x10003)
+ 		flags |= IORESOURCE_DISABLED;
+ 
+@@ -451,7 +451,7 @@ static __init void pnpacpi_parse_port_op
+ 	port->align = io->alignment;
+ 	port->size = io->address_length;
+ 	port->flags = ACPI_DECODE_16 == io->io_decode ?
+-	    PNP_PORT_FLAG_16BITADDR : 0;
++	    IORESOURCE_IO_16BIT_ADDR : 0;
+ 	pnp_register_port_resource(dev, option, port);
+ }
+ 
+@@ -469,7 +469,7 @@ static __init void pnpacpi_parse_fixed_p
+ 	port->min = port->max = io->address;
+ 	port->size = io->address_length;
+ 	port->align = 0;
+-	port->flags = PNP_PORT_FLAG_FIXED;
++	port->flags = IORESOURCE_IO_FIXED;
+ 	pnp_register_port_resource(dev, option, port);
+ }
+ 
+@@ -575,7 +575,7 @@ static __init void pnpacpi_parse_address
+ 		port->min = port->max = p->minimum;
+ 		port->size = p->address_length;
+ 		port->align = 0;
+-		port->flags = PNP_PORT_FLAG_FIXED;
++		port->flags = IORESOURCE_IO_FIXED;
+ 		pnp_register_port_resource(dev, option, port);
+ 	}
+ }
+@@ -890,7 +890,7 @@ static void pnpacpi_encode_io(struct pnp
+ 	struct acpi_resource_io *io = &resource->data.io;
+ 
+ 	/* Note: pnp_assign_port will copy pnp_port->flags into p->flags */
+-	io->io_decode = (p->flags & PNP_PORT_FLAG_16BITADDR) ?
++	io->io_decode = (p->flags & IORESOURCE_IO_16BIT_ADDR) ?
+ 	    ACPI_DECODE_16 : ACPI_DECODE_10;
+ 	io->minimum = p->start;
+ 	io->maximum = p->end;
+Index: work10/drivers/pnp/pnpbios/rsparser.c
+===================================================================
+--- work10.orig/drivers/pnp/pnpbios/rsparser.c	2008-05-27 15:36:38.000000000 -0600
++++ work10/drivers/pnp/pnpbios/rsparser.c	2008-05-30 13:20:16.000000000 -0600
+@@ -310,7 +310,7 @@ static __init void pnpbios_parse_port_op
+ 	port->max = (p[5] << 8) | p[4];
+ 	port->align = p[6];
+ 	port->size = p[7];
+-	port->flags = p[1] ? PNP_PORT_FLAG_16BITADDR : 0;
++	port->flags = p[1] ? IORESOURCE_IO_16BIT_ADDR : 0;
+ 	pnp_register_port_resource(dev, option, port);
+ }
+ 
+@@ -326,7 +326,7 @@ static __init void pnpbios_parse_fixed_p
+ 	port->min = port->max = (p[2] << 8) | p[1];
+ 	port->size = p[3];
+ 	port->align = 0;
+-	port->flags = PNP_PORT_FLAG_FIXED;
++	port->flags = IORESOURCE_IO_FIXED;
+ 	pnp_register_port_resource(dev, option, port);
+ }
+ 
 
 -- 
