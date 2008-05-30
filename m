@@ -1,76 +1,83 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 02/15] PNP: whitespace/coding style fixes
-Date: Fri, 30 May 2008 16:48:55 -0600
-Message-ID: <20080530224931.775639142@ldl.fc.hp.com>
+Subject: [patch 01/15] serial: when guessing, check only active resources, not options
+Date: Fri, 30 May 2008 16:48:54 -0600
+Message-ID: <20080530224931.549456692@ldl.fc.hp.com>
 References: <20080530224853.976744229@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0016.houston.hp.com ([15.201.24.19]:18537 "EHLO
-	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753000AbYE3Wt3 (ORCPT
+Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:27817 "EHLO
+	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752967AbYE3Wt3 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 May 2008 18:49:29 -0400
-Content-Disposition: inline; filename=pnp-interface-style
+Content-Disposition: inline; filename=serial-pnp-check-current-resources-not-options
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>, Takashi Iwai <tiwai@suse.de>
 
-No functional change; just make a couple declarations
-consistent with the rest of the file.
+Given a completely unknown PNP device, if it happens to have
+a modem-like string in its name and it matches a COM port
+address, we assume it's a modem.
+
+We used to check the address against all the possible resource
+options for the device.  But the device is already configured
+and enabled, so we only need to check the resources it is
+actually using.  If we matched an address that wasn't currently
+enabled, we would fail anyway as soon as we attempted to touch
+the device at that address.
+
+This removes a reference to the struct pnp_dev.{independent,dependent}
+fields, which I will soon make private to the PNP subsystem.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Index: work10/drivers/pnp/interface.c
+Index: work10/drivers/serial/8250_pnp.c
 ===================================================================
---- work10.orig/drivers/pnp/interface.c	2008-05-09 14:42:25.000000000 -0600
-+++ work10/drivers/pnp/interface.c	2008-05-09 14:45:57.000000000 -0600
-@@ -216,12 +216,12 @@ static ssize_t pnp_show_options(struct d
- 				struct device_attribute *attr, char *buf)
- {
- 	struct pnp_dev *dev = to_pnp_dev(dmdev);
-+	pnp_info_buffer_t *buffer;
- 	struct pnp_option *independent = dev->independent;
- 	struct pnp_option *dependent = dev->dependent;
- 	int ret, dep = 1;
- 
--	pnp_info_buffer_t *buffer = (pnp_info_buffer_t *)
--	    pnp_alloc(sizeof(pnp_info_buffer_t));
-+	buffer = pnp_alloc(sizeof(pnp_info_buffer_t));
- 	if (!buffer)
- 		return -ENOMEM;
- 
-@@ -248,17 +248,18 @@ static ssize_t pnp_show_current_resource
- 					  char *buf)
- {
- 	struct pnp_dev *dev = to_pnp_dev(dmdev);
-+	pnp_info_buffer_t *buffer;
- 	struct pnp_resource *pnp_res;
- 	struct resource *res;
- 	int ret;
--	pnp_info_buffer_t *buffer;
- 
- 	if (!dev)
- 		return -EINVAL;
- 
--	buffer = (pnp_info_buffer_t *) pnp_alloc(sizeof(pnp_info_buffer_t));
-+	buffer = pnp_alloc(sizeof(pnp_info_buffer_t));
- 	if (!buffer)
- 		return -ENOMEM;
-+
- 	buffer->len = PAGE_SIZE;
- 	buffer->buffer = buf;
- 	buffer->curr = buffer->buffer;
-@@ -295,9 +296,9 @@ static ssize_t pnp_show_current_resource
- 	return ret;
+--- work10.orig/drivers/serial/8250_pnp.c	2008-05-13 11:28:48.000000000 -0600
++++ work10/drivers/serial/8250_pnp.c	2008-05-13 11:29:16.000000000 -0600
+@@ -383,22 +383,19 @@ static int __devinit check_name(char *na
+ 	return 0;
  }
  
--static ssize_t
--pnp_set_current_resources(struct device *dmdev, struct device_attribute *attr,
--			  const char *ubuf, size_t count)
-+static ssize_t pnp_set_current_resources(struct device *dmdev,
-+					 struct device_attribute *attr,
-+					 const char *ubuf, size_t count)
+-static int __devinit check_resources(struct pnp_option *option)
++static int __devinit check_resources(struct pnp_dev *dev)
  {
- 	struct pnp_dev *dev = to_pnp_dev(dmdev);
- 	char *buf = (void *)ubuf;
+-	struct pnp_option *tmp;
+-	if (!option)
++	resource_size_t port, size;
++
++	if (!pnp_port_valid(dev, 0))
+ 		return 0;
+ 
+-	for (tmp = option; tmp; tmp = tmp->next) {
+-		struct pnp_port *port;
+-		for (port = tmp->port; port; port = port->next)
+-			if ((port->size == 8) &&
+-			    ((port->min == 0x2f8) ||
+-			     (port->min == 0x3f8) ||
+-			     (port->min == 0x2e8) ||
+-			     (port->min == 0x3e8)))
+-				return 1;
+-	}
++	port = pnp_port_start(dev, 0);
++	size = pnp_port_len(dev, 0);
++
++	if (size == 8 &&
++	    (port == 0x2f8 || port == 0x3f8 || port == 0x2e8 || port == 0x3e8))
++		return 1;
+ 
+ 	return 0;
+ }
+@@ -420,10 +417,7 @@ static int __devinit serial_pnp_guess_bo
+ 		(dev->card && check_name(dev->card->name))))
+ 			return -ENODEV;
+ 
+-	if (check_resources(dev->independent))
+-		return 0;
+-
+-	if (check_resources(dev->dependent))
++	if (check_resources(dev))
+ 		return 0;
+ 
+ 	return -ENODEV;
 
 -- 
