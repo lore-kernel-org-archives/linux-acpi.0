@@ -1,142 +1,43 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 04/15] PNP: make resource option structures private to PNP subsystem
-Date: Fri, 30 May 2008 16:48:57 -0600
-Message-ID: <20080530224932.167361093@ldl.fc.hp.com>
+Subject: [patch 08/15] PNP: in debug resource dump, make empty list obvious
+Date: Fri, 30 May 2008 16:49:01 -0600
+Message-ID: <20080530224932.974122201@ldl.fc.hp.com>
 References: <20080530224853.976744229@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0016.houston.hp.com ([15.201.24.19]:18550 "EHLO
-	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753163AbYE3Wta (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 May 2008 18:49:30 -0400
-Content-Disposition: inline; filename=pnp-make-option-structures-private
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:36043 "EHLO
+	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754059AbYE3Wth (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 May 2008 18:49:37 -0400
+Content-Disposition: inline; filename=pnp-improve-debug-resource-dump
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>, Takashi Iwai <tiwai@suse.de>
 
-Nothing outside the PNP subsystem should need access to a
-device's resource options, so this patch moves the option
-structure declarations to a private header file.
+If the resource list is empty, say that explicitly.  Previously,
+it was confusing because often the heading was followed by zero
+resource lines, then some "add resource" lines from auto-assignment,
+so the "add" lines looked like current resources.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Index: work10/drivers/pnp/base.h
+Index: work10/drivers/pnp/support.c
 ===================================================================
---- work10.orig/drivers/pnp/base.h	2008-05-16 16:10:32.000000000 -0600
-+++ work10/drivers/pnp/base.h	2008-05-16 16:10:56.000000000 -0600
-@@ -19,6 +19,54 @@ void pnp_remove_card(struct pnp_card *ca
- int pnp_add_card_device(struct pnp_card *card, struct pnp_dev *dev);
- void pnp_remove_card_device(struct pnp_dev *dev);
+--- work10.orig/drivers/pnp/support.c	2008-05-16 16:01:26.000000000 -0600
++++ work10/drivers/pnp/support.c	2008-05-16 16:13:42.000000000 -0600
+@@ -77,7 +77,12 @@ void dbg_pnp_show_resources(struct pnp_d
+ 	struct pnp_resource *pnp_res;
+ 	struct resource *res;
  
-+struct pnp_port {
-+	unsigned short min;	/* min base number */
-+	unsigned short max;	/* max base number */
-+	unsigned char align;	/* align boundary */
-+	unsigned char size;	/* size of range */
-+	unsigned char flags;	/* port flags */
-+	unsigned char pad;	/* pad */
-+	struct pnp_port *next;	/* next port */
-+};
+-	dev_dbg(&dev->dev, "current resources: %s\n", desc);
++	if (list_empty(&dev->resources)) {
++		dev_dbg(&dev->dev, "%s: no current resources\n", desc);
++		return;
++	}
 +
-+#define PNP_IRQ_NR 256
-+struct pnp_irq {
-+	DECLARE_BITMAP(map, PNP_IRQ_NR);	/* bitmask for IRQ lines */
-+	unsigned char flags;	/* IRQ flags */
-+	unsigned char pad;	/* pad */
-+	struct pnp_irq *next;	/* next IRQ */
-+};
-+
-+struct pnp_dma {
-+	unsigned char map;	/* bitmask for DMA channels */
-+	unsigned char flags;	/* DMA flags */
-+	struct pnp_dma *next;	/* next port */
-+};
-+
-+struct pnp_mem {
-+	unsigned int min;	/* min base number */
-+	unsigned int max;	/* max base number */
-+	unsigned int align;	/* align boundary */
-+	unsigned int size;	/* size of range */
-+	unsigned char flags;	/* memory flags */
-+	unsigned char pad;	/* pad */
-+	struct pnp_mem *next;	/* next memory resource */
-+};
-+
-+#define PNP_RES_PRIORITY_PREFERRED	0
-+#define PNP_RES_PRIORITY_ACCEPTABLE	1
-+#define PNP_RES_PRIORITY_FUNCTIONAL	2
-+#define PNP_RES_PRIORITY_INVALID	65535
-+
-+struct pnp_option {
-+	unsigned short priority;	/* priority */
-+	struct pnp_port *port;		/* first port */
-+	struct pnp_irq *irq;		/* first IRQ */
-+	struct pnp_dma *dma;		/* first DMA */
-+	struct pnp_mem *mem;		/* first memory resource */
-+	struct pnp_option *next;	/* used to chain dependent resources */
-+};
-+
- struct pnp_option *pnp_build_option(int priority);
- struct pnp_option *pnp_register_independent_option(struct pnp_dev *dev);
- struct pnp_option *pnp_register_dependent_option(struct pnp_dev *dev,
-Index: work10/include/linux/pnp.h
-===================================================================
---- work10.orig/include/linux/pnp.h	2008-05-16 16:11:01.000000000 -0600
-+++ work10/include/linux/pnp.h	2008-05-16 16:11:12.000000000 -0600
-@@ -175,54 +175,6 @@ static inline int pnp_dma_valid(struct p
- }
++	dev_dbg(&dev->dev, "%s: current resources:\n", desc);
+ 	list_for_each_entry(pnp_res, &dev->resources, list) {
+ 		res = &pnp_res->res;
  
- 
--struct pnp_port {
--	unsigned short min;	/* min base number */
--	unsigned short max;	/* max base number */
--	unsigned char align;	/* align boundary */
--	unsigned char size;	/* size of range */
--	unsigned char flags;	/* port flags */
--	unsigned char pad;	/* pad */
--	struct pnp_port *next;	/* next port */
--};
--
--#define PNP_IRQ_NR 256
--struct pnp_irq {
--	DECLARE_BITMAP(map, PNP_IRQ_NR);	/* bitmask for IRQ lines */
--	unsigned char flags;	/* IRQ flags */
--	unsigned char pad;	/* pad */
--	struct pnp_irq *next;	/* next IRQ */
--};
--
--struct pnp_dma {
--	unsigned char map;	/* bitmask for DMA channels */
--	unsigned char flags;	/* DMA flags */
--	struct pnp_dma *next;	/* next port */
--};
--
--struct pnp_mem {
--	unsigned int min;	/* min base number */
--	unsigned int max;	/* max base number */
--	unsigned int align;	/* align boundary */
--	unsigned int size;	/* size of range */
--	unsigned char flags;	/* memory flags */
--	unsigned char pad;	/* pad */
--	struct pnp_mem *next;	/* next memory resource */
--};
--
--#define PNP_RES_PRIORITY_PREFERRED	0
--#define PNP_RES_PRIORITY_ACCEPTABLE	1
--#define PNP_RES_PRIORITY_FUNCTIONAL	2
--#define PNP_RES_PRIORITY_INVALID	65535
--
--struct pnp_option {
--	unsigned short priority;	/* priority */
--	struct pnp_port *port;		/* first port */
--	struct pnp_irq *irq;		/* first IRQ */
--	struct pnp_dma *dma;		/* first DMA */
--	struct pnp_mem *mem;		/* first memory resource */
--	struct pnp_option *next;	/* used to chain dependent resources */
--};
--
- /*
-  * Device Management
-  */
 
 -- 
