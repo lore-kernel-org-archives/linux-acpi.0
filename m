@@ -1,180 +1,188 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 05/15] PNP: introduce pnp_irq_mask_t typedef
-Date: Fri, 30 May 2008 16:48:58 -0600
-Message-ID: <20080530224932.360968516@ldl.fc.hp.com>
+Subject: [patch 09/15] PNP: make resource assignment functions return 0 (success) or -EBUSY (failure)
+Date: Fri, 30 May 2008 16:49:02 -0600
+Message-ID: <20080530224933.163750253@ldl.fc.hp.com>
 References: <20080530224853.976744229@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0016.houston.hp.com ([15.201.24.19]:18565 "EHLO
-	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753460AbYE3Wtd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 May 2008 18:49:33 -0400
-Content-Disposition: inline; filename=pnp-irq-bitmap-decl
+Received: from g4t0017.houston.hp.com ([15.201.24.20]:11377 "EHLO
+	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754243AbYE3Wth (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 May 2008 18:49:37 -0400
+Content-Disposition: inline; filename=pnp-change-assignment-return-values
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>, Takashi Iwai <tiwai@suse.de>
 
-This adds a typedef for the IRQ bitmap, which should cause
-no functional change, but will make it easier to pass a
-pointer to a bitmap to pnp_register_irq_resource().
+This patch doesn't change any behavior; it just makes the return
+values more conventional.
+
+This changes pnp_assign_dma() from a void function to one that
+returns an int, just like the other assignment functions.  For
+now, at least, pnp_assign_dma() always returns 0 (success), so
+it appears to never fail, just like before.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Index: work10/drivers/pnp/base.h
-===================================================================
---- work10.orig/drivers/pnp/base.h	2008-05-30 13:20:29.000000000 -0600
-+++ work10/drivers/pnp/base.h	2008-05-30 13:20:36.000000000 -0600
-@@ -30,8 +30,10 @@ struct pnp_port {
- };
- 
- #define PNP_IRQ_NR 256
-+typedef struct { DECLARE_BITMAP(bits, PNP_IRQ_NR); } pnp_irq_mask_t;
-+
- struct pnp_irq {
--	DECLARE_BITMAP(map, PNP_IRQ_NR);	/* bitmask for IRQ lines */
-+	pnp_irq_mask_t map;	/* bitmap for IRQ lines */
- 	unsigned char flags;	/* IRQ flags */
- 	unsigned char pad;	/* pad */
- 	struct pnp_irq *next;	/* next IRQ */
-Index: work10/drivers/pnp/resource.c
-===================================================================
---- work10.orig/drivers/pnp/resource.c	2008-05-27 15:36:38.000000000 -0600
-+++ work10/drivers/pnp/resource.c	2008-05-30 13:20:36.000000000 -0600
-@@ -98,13 +98,13 @@ int pnp_register_irq_resource(struct pnp
- 		int i;
- 
- 		for (i = 0; i < 16; i++)
--			if (test_bit(i, data->map))
-+			if (test_bit(i, data->map.bits))
- 				pcibios_penalize_isa_irq(i, 0);
- 	}
- #endif
- 
- #ifdef DEBUG
--	bitmap_scnprintf(buf, sizeof(buf), data->map, PNP_IRQ_NR);
-+	bitmap_scnprintf(buf, sizeof(buf), data->map.bits, PNP_IRQ_NR);
- 	dev_dbg(&dev->dev, "  irq bitmask %s flags %#x\n", buf,
- 		data->flags);
- #endif
 Index: work10/drivers/pnp/manager.c
 ===================================================================
---- work10.orig/drivers/pnp/manager.c	2008-05-27 15:36:38.000000000 -0600
-+++ work10/drivers/pnp/manager.c	2008-05-30 13:20:36.000000000 -0600
-@@ -128,20 +128,20 @@ static int pnp_assign_irq(struct pnp_dev
- 	res->start = -1;
- 	res->end = -1;
- 
--	if (bitmap_empty(rule->map, PNP_IRQ_NR)) {
-+	if (bitmap_empty(rule->map.bits, PNP_IRQ_NR)) {
- 		res->flags |= IORESOURCE_DISABLED;
- 		dev_dbg(&dev->dev, "  irq %d disabled\n", idx);
- 		goto __add;
+--- work10.orig/drivers/pnp/manager.c	2008-05-13 13:27:01.000000000 -0600
++++ work10/drivers/pnp/manager.c	2008-05-13 13:29:05.000000000 -0600
+@@ -26,7 +26,7 @@ static int pnp_assign_port(struct pnp_de
+ 		dev_dbg(&dev->dev, "  io %d already set to %#llx-%#llx "
+ 			"flags %#lx\n", idx, (unsigned long long) res->start,
+ 			(unsigned long long) res->end, res->flags);
+-		return 1;
++		return 0;
  	}
  
- 	/* TBD: need check for >16 IRQ */
--	res->start = find_next_bit(rule->map, PNP_IRQ_NR, 16);
-+	res->start = find_next_bit(rule->map.bits, PNP_IRQ_NR, 16);
- 	if (res->start < PNP_IRQ_NR) {
- 		res->end = res->start;
- 		goto __add;
+ 	res = &local_res;
+@@ -51,13 +51,13 @@ static int pnp_assign_port(struct pnp_de
+ 				"(min %#llx max %#llx)\n", idx,
+ 				(unsigned long long) rule->min,
+ 				(unsigned long long) rule->max);
+-			return 0;
++			return -EBUSY;
+ 		}
  	}
- 	for (i = 0; i < 16; i++) {
--		if (test_bit(xtab[i], rule->map)) {
-+		if (test_bit(xtab[i], rule->map.bits)) {
- 			res->start = res->end = xtab[i];
- 			if (pnp_check_irq(dev, res))
- 				goto __add;
-Index: work10/drivers/pnp/interface.c
-===================================================================
---- work10.orig/drivers/pnp/interface.c	2008-05-30 13:20:16.000000000 -0600
-+++ work10/drivers/pnp/interface.c	2008-05-30 13:20:36.000000000 -0600
-@@ -67,7 +67,7 @@ static void pnp_print_irq(pnp_info_buffe
  
- 	pnp_printf(buffer, "%sirq ", space);
- 	for (i = 0; i < PNP_IRQ_NR; i++)
--		if (test_bit(i, irq->map)) {
-+		if (test_bit(i, irq->map.bits)) {
- 			if (!first) {
- 				pnp_printf(buffer, ",");
- 			} else {
-@@ -78,7 +78,7 @@ static void pnp_print_irq(pnp_info_buffe
- 			else
- 				pnp_printf(buffer, "%i", i);
+ __add:
+ 	pnp_add_io_resource(dev, res->start, res->end, res->flags);
+-	return 1;
++	return 0;
+ }
+ 
+ static int pnp_assign_mem(struct pnp_dev *dev, struct pnp_mem *rule, int idx)
+@@ -69,7 +69,7 @@ static int pnp_assign_mem(struct pnp_dev
+ 		dev_dbg(&dev->dev, "  mem %d already set to %#llx-%#llx "
+ 			"flags %#lx\n", idx, (unsigned long long) res->start,
+ 			(unsigned long long) res->end, res->flags);
+-		return 1;
++		return 0;
+ 	}
+ 
+ 	res = &local_res;
+@@ -103,13 +103,13 @@ static int pnp_assign_mem(struct pnp_dev
+ 				"(min %#llx max %#llx)\n", idx,
+ 				(unsigned long long) rule->min,
+ 				(unsigned long long) rule->max);
+-			return 0;
++			return -EBUSY;
  		}
--	if (bitmap_empty(irq->map, PNP_IRQ_NR))
-+	if (bitmap_empty(irq->map.bits, PNP_IRQ_NR))
- 		pnp_printf(buffer, "<none>");
- 	if (irq->flags & IORESOURCE_IRQ_HIGHEDGE)
- 		pnp_printf(buffer, " High-Edge");
-Index: work10/drivers/pnp/isapnp/core.c
-===================================================================
---- work10.orig/drivers/pnp/isapnp/core.c	2008-05-30 13:20:16.000000000 -0600
-+++ work10/drivers/pnp/isapnp/core.c	2008-05-30 13:20:36.000000000 -0600
-@@ -441,7 +441,7 @@ static void __init isapnp_parse_irq_reso
- 	if (!irq)
- 		return;
- 	bits = (tmp[1] << 8) | tmp[0];
--	bitmap_copy(irq->map, &bits, 16);
-+	bitmap_copy(irq->map.bits, &bits, 16);
- 	if (size > 2)
- 		irq->flags = tmp[2];
- 	else
-Index: work10/drivers/pnp/pnpacpi/rsparser.c
-===================================================================
---- work10.orig/drivers/pnp/pnpacpi/rsparser.c	2008-05-30 13:20:16.000000000 -0600
-+++ work10/drivers/pnp/pnpacpi/rsparser.c	2008-05-30 13:20:36.000000000 -0600
-@@ -408,7 +408,7 @@ static __init void pnpacpi_parse_irq_opt
+ 	}
  
- 	for (i = 0; i < p->interrupt_count; i++)
- 		if (p->interrupts[i])
--			__set_bit(p->interrupts[i], irq->map);
-+			__set_bit(p->interrupts[i], irq->map.bits);
- 	irq->flags = irq_flags(p->triggering, p->polarity, p->sharable);
+ __add:
+ 	pnp_add_mem_resource(dev, res->start, res->end, res->flags);
+-	return 1;
++	return 0;
+ }
  
- 	pnp_register_irq_resource(dev, option, irq);
-@@ -429,7 +429,7 @@ static __init void pnpacpi_parse_ext_irq
+ static int pnp_assign_irq(struct pnp_dev *dev, struct pnp_irq *rule, int idx)
+@@ -126,7 +126,7 @@ static int pnp_assign_irq(struct pnp_dev
+ 	if (res) {
+ 		dev_dbg(&dev->dev, "  irq %d already set to %d flags %#lx\n",
+ 			idx, (int) res->start, res->flags);
+-		return 1;
++		return 0;
+ 	}
  
- 	for (i = 0; i < p->interrupt_count; i++)
- 		if (p->interrupts[i])
--			__set_bit(p->interrupts[i], irq->map);
-+			__set_bit(p->interrupts[i], irq->map.bits);
- 	irq->flags = irq_flags(p->triggering, p->polarity, p->sharable);
- 
- 	pnp_register_irq_resource(dev, option, irq);
-Index: work10/drivers/pnp/quirks.c
-===================================================================
---- work10.orig/drivers/pnp/quirks.c	2008-05-27 15:36:38.000000000 -0600
-+++ work10/drivers/pnp/quirks.c	2008-05-30 13:20:36.000000000 -0600
-@@ -68,7 +68,7 @@ static void quirk_cmi8330_resources(stru
- 
- 		for (irq = res->irq; irq; irq = irq->next) {	// Valid irqs are 5, 7, 10
- 			tmp = 0x04A0;
--			bitmap_copy(irq->map, &tmp, 16);	// 0000 0100 1010 0000
-+			bitmap_copy(irq->map.bits, &tmp, 16);	// 0000 0100 1010 0000
+ 	res = &local_res;
+@@ -154,14 +154,14 @@ static int pnp_assign_irq(struct pnp_dev
  		}
+ 	}
+ 	dev_dbg(&dev->dev, "  couldn't assign irq %d\n", idx);
+-	return 0;
++	return -EBUSY;
  
- 		for (dma = res->dma; dma; dma = dma->next)	// Valid 8bit dma channels are 1,3
-@@ -187,7 +187,7 @@ static void quirk_ad1815_mpu_resources(s
- 		if (!copy)
- 			break;
+ __add:
+ 	pnp_add_irq_resource(dev, res->start, res->flags);
+-	return 1;
++	return 0;
+ }
  
--		memcpy(copy->map, irq->map, sizeof copy->map);
-+		bitmap_copy(copy->map.bits, irq->map.bits, PNP_IRQ_NR);
- 		copy->flags = irq->flags;
+-static void pnp_assign_dma(struct pnp_dev *dev, struct pnp_dma *rule, int idx)
++static int pnp_assign_dma(struct pnp_dev *dev, struct pnp_dma *rule, int idx)
+ {
+ 	struct resource *res, local_res;
+ 	int i;
+@@ -175,7 +175,7 @@ static void pnp_assign_dma(struct pnp_de
+ 	if (res) {
+ 		dev_dbg(&dev->dev, "  dma %d already set to %d flags %#lx\n",
+ 			idx, (int) res->start, res->flags);
+-		return;
++		return 0;
+ 	}
  
- 		copy->next = res->irq; /* Yes, this is NULL */
-Index: work10/drivers/pnp/pnpbios/rsparser.c
-===================================================================
---- work10.orig/drivers/pnp/pnpbios/rsparser.c	2008-05-30 13:20:16.000000000 -0600
-+++ work10/drivers/pnp/pnpbios/rsparser.c	2008-05-30 13:20:36.000000000 -0600
-@@ -275,7 +275,7 @@ static __init void pnpbios_parse_irq_opt
- 	if (!irq)
- 		return;
- 	bits = (p[2] << 8) | p[1];
--	bitmap_copy(irq->map, &bits, 16);
-+	bitmap_copy(irq->map.bits, &bits, 16);
- 	if (size > 2)
- 		irq->flags = p[3];
- 	else
+ 	res = &local_res;
+@@ -198,6 +198,7 @@ static void pnp_assign_dma(struct pnp_de
+ 
+ __add:
+ 	pnp_add_dma_resource(dev, res->start, res->flags);
++	return 0;
+ }
+ 
+ void pnp_init_resources(struct pnp_dev *dev)
+@@ -243,25 +244,26 @@ static int pnp_assign_resources(struct p
+ 		irq = dev->independent->irq;
+ 		dma = dev->independent->dma;
+ 		while (port) {
+-			if (!pnp_assign_port(dev, port, nport))
++			if (pnp_assign_port(dev, port, nport) < 0)
+ 				goto fail;
+ 			nport++;
+ 			port = port->next;
+ 		}
+ 		while (mem) {
+-			if (!pnp_assign_mem(dev, mem, nmem))
++			if (pnp_assign_mem(dev, mem, nmem) < 0)
+ 				goto fail;
+ 			nmem++;
+ 			mem = mem->next;
+ 		}
+ 		while (irq) {
+-			if (!pnp_assign_irq(dev, irq, nirq))
++			if (pnp_assign_irq(dev, irq, nirq) < 0)
+ 				goto fail;
+ 			nirq++;
+ 			irq = irq->next;
+ 		}
+ 		while (dma) {
+-			pnp_assign_dma(dev, dma, ndma);
++			if (pnp_assign_dma(dev, dma, ndma) < 0)
++				goto fail;
+ 			ndma++;
+ 			dma = dma->next;
+ 		}
+@@ -281,25 +283,26 @@ static int pnp_assign_resources(struct p
+ 		irq = dep->irq;
+ 		dma = dep->dma;
+ 		while (port) {
+-			if (!pnp_assign_port(dev, port, nport))
++			if (pnp_assign_port(dev, port, nport) < 0)
+ 				goto fail;
+ 			nport++;
+ 			port = port->next;
+ 		}
+ 		while (mem) {
+-			if (!pnp_assign_mem(dev, mem, nmem))
++			if (pnp_assign_mem(dev, mem, nmem) < 0)
+ 				goto fail;
+ 			nmem++;
+ 			mem = mem->next;
+ 		}
+ 		while (irq) {
+-			if (!pnp_assign_irq(dev, irq, nirq))
++			if (pnp_assign_irq(dev, irq, nirq) < 0)
+ 				goto fail;
+ 			nirq++;
+ 			irq = irq->next;
+ 		}
+ 		while (dma) {
+-			pnp_assign_dma(dev, dma, ndma);
++			if (pnp_assign_dma(dev, dma, ndma) < 0)
++				goto fail;
+ 			ndma++;
+ 			dma = dma->next;
+ 		}
 
 -- 
