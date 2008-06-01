@@ -1,17 +1,18 @@
 From: Rene Herman <rene.herman@keyaccess.nl>
-Subject: Re: [patch 02/15] PNP: whitespace/coding style fixes
-Date: Sun, 01 Jun 2008 21:52:17 +0200
-Message-ID: <4842FDF1.8060602@keyaccess.nl>
-References: <20080530224853.976744229@ldl.fc.hp.com> <20080530224931.775639142@ldl.fc.hp.com>
+Subject: Re: [patch 03/15] PNP: define PNP-specific IORESOURCE_IO_* flags
+ alongside IRQ, DMA, MEM
+Date: Sun, 01 Jun 2008 23:03:17 +0200
+Message-ID: <48430E95.9000903@keyaccess.nl>
+References: <20080530224853.976744229@ldl.fc.hp.com> <20080530224931.975366762@ldl.fc.hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtpq2.tilbu1.nb.home.nl ([213.51.146.201]:46591 "EHLO
-	smtpq2.tilbu1.nb.home.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751337AbYFATtB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 1 Jun 2008 15:49:01 -0400
-In-Reply-To: <20080530224931.775639142@ldl.fc.hp.com>
+Received: from smtpq1.tilbu1.nb.home.nl ([213.51.146.200]:48260 "EHLO
+	smtpq1.tilbu1.nb.home.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752044AbYFAVAE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 1 Jun 2008 17:00:04 -0400
+In-Reply-To: <20080530224931.975366762@ldl.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Bjorn Helgaas <bjorn.helgaas@hp.com>
@@ -19,16 +20,17 @@ Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.k
 
 On 31-05-08 00:48, Bjorn Helgaas wrote:
 
-> No functional change; just make a couple declarations
-> consistent with the rest of the file.
+> PNP previously defined PNP_PORT_FLAG_16BITADDR and PNP_PORT_FLAG_FIXED
+> in a private header file, but put those flags in struct resource.flags
+> fields.  Better to make them IORESOURCE_IO_* flags like the existing
+> IRQ, DMA, and MEM flags.
 > 
 > Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
 Acked-by: Rene Herman <rene.herman@gmail.com>
 
-By the way, noticed recently that Acked-by might not be the right tag 
-given that I'm not in any formal acking path or anything; feel free to 
-translate them into any tag of your liking. They're meant as "looked at 
-this and agree".
+Wondered a bit since only PnPACPI seems to directly encode those flags 
+to a res->flags (as opposed to a port->flags) but pnp_assign_port() 
+copies them over verbatim indeed...
 
 Rene.
