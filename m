@@ -1,31 +1,60 @@
-From: Rene Herman <rene.herman@keyaccess.nl>
-Subject: Re: [patch 13/15] PNP: rename pnp_register_*_resource() local variables
-Date: Mon, 02 Jun 2008 01:25:40 +0200
-Message-ID: <48432FF4.304@keyaccess.nl>
-References: <20080530224853.976744229@ldl.fc.hp.com> <20080530224933.955847696@ldl.fc.hp.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+From: akinobu.mita@gmail.com
+Subject: [patch -v2 17/23] acpi: use memory_read_from_buffer
+Date: Mon, 02 Jun 2008 08:13:46 +0900
+Message-ID: <20080601231623.811622701@gmail.com>
+References: <20080601231329.223608711@gmail.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtpq2.groni1.gr.home.nl ([213.51.130.201]:48193 "EHLO
-	smtpq2.groni1.gr.home.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752498AbYFAXWW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 1 Jun 2008 19:22:22 -0400
-In-Reply-To: <20080530224933.955847696@ldl.fc.hp.com>
+Received: from wf-out-1314.google.com ([209.85.200.175]:9115 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756706AbYFAX2j (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 1 Jun 2008 19:28:39 -0400
+Received: by wf-out-1314.google.com with SMTP id 27so628387wfd.4
+        for <linux-acpi@vger.kernel.org>; Sun, 01 Jun 2008 16:28:38 -0700 (PDT)
+Content-Disposition: inline; filename=acpi-use-memory-read-from-buffer.patch
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>, Takashi Iwai <tiwai@suse.de>
+To: linux-kernel@vger.kernel.org
+Cc: Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-On 31-05-08 00:49, Bjorn Helgaas wrote:
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Len Brown <len.brown@intel.com>
+Cc: linux-acpi@vger.kernel.org
+---
+ drivers/acpi/system.c |   15 ++-------------
+ 1 file changed, 2 insertions(+), 13 deletions(-)
 
-> No functional change; just rename "data" to something more
-> descriptive.
-> 
-> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Index: 2.6-git/drivers/acpi/system.c
+===================================================================
+--- 2.6-git.orig/drivers/acpi/system.c
++++ 2.6-git/drivers/acpi/system.c
+@@ -77,7 +77,6 @@ static ssize_t acpi_table_show(struct ko
+ 	    container_of(bin_attr, struct acpi_table_attr, attr);
+ 	struct acpi_table_header *table_header = NULL;
+ 	acpi_status status;
+-	ssize_t ret_count = count;
+ 
+ 	status =
+ 	    acpi_get_table(table_attr->name, table_attr->instance,
+@@ -85,18 +84,8 @@ static ssize_t acpi_table_show(struct ko
+ 	if (ACPI_FAILURE(status))
+ 		return -ENODEV;
+ 
+-	if (offset >= table_header->length) {
+-		ret_count = 0;
+-		goto end;
+-	}
+-
+-	if (offset + ret_count > table_header->length)
+-		ret_count = table_header->length - offset;
+-
+-	memcpy(buf, ((char *)table_header) + offset, ret_count);
+-
+-      end:
+-	return ret_count;
++	return memory_read_from_buffer(buf, count, &offset,
++					table_header, table_header->length);
+ }
+ 
+ static void acpi_table_attr_init(struct acpi_table_attr *table_attr,
 
-Acked-by: Rene Herman <rene.herman@gmail.com>
-
-(last 2 after sleep)
-
-Rene.
+-- 
