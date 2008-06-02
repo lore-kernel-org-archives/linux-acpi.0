@@ -1,60 +1,36 @@
-From: akinobu.mita@gmail.com
-Subject: [patch -v2 17/23] acpi: use memory_read_from_buffer
-Date: Mon, 02 Jun 2008 08:13:46 +0900
-Message-ID: <20080601231623.811622701@gmail.com>
-References: <20080601231329.223608711@gmail.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.175]:9115 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756706AbYFAX2j (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 1 Jun 2008 19:28:39 -0400
-Received: by wf-out-1314.google.com with SMTP id 27so628387wfd.4
-        for <linux-acpi@vger.kernel.org>; Sun, 01 Jun 2008 16:28:38 -0700 (PDT)
-Content-Disposition: inline; filename=acpi-use-memory-read-from-buffer.patch
-Sender: linux-acpi-owner@vger.kernel.org
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [patch 01/15] serial: when guessing, check only active resources, not options
+Date: Mon, 2 Jun 2008 09:21:02 -0600
+Message-ID: <200806020921.04350.bjorn.helgaas@hp.com>
+References: <20080530224853.976744229@ldl.fc.hp.com> <20080530224931.549456692@ldl.fc.hp.com> <4842FB89.6040802@keyaccess.nl>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754776AbYFBPVU@vger.kernel.org>
+In-Reply-To: <4842FB89.6040802@keyaccess.nl>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rene Herman <rene.herman@keyaccess.nl>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>, Takashi Iwai <tiwai@suse.de>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Len Brown <len.brown@intel.com>
-Cc: linux-acpi@vger.kernel.org
----
- drivers/acpi/system.c |   15 ++-------------
- 1 file changed, 2 insertions(+), 13 deletions(-)
+On Sunday 01 June 2008 01:42:01 pm Rene Herman wrote:
+> We used to cry "modem" if the device _could_ be configured using a COM 
+> address while after this change we'd only do so if it _was_ configured 
+> using one.
+> 
+> My old analog modem for example had 5 dependent sets -- the first with 
+> the regular COM port addresses (0x3f8, 0x2f8, 0x3e8, 0x2e8) and a 5th 
+> one listing a port range of (IIRC, something like that at least) 0x100 
+> to 0xff8.
+> 
+> So say I'd have a PC with the regular two onboard COM ports at COM1 and 
+> COM2 (0x3f8 and 0x2f8) and an additional serial controller providing 
+> COM3 and COM4 (0x3e8 and 0x2e8). My modem would then be configured to 
+> use 0x100 and this code would no longer trigger while it did use to.
 
-Index: 2.6-git/drivers/acpi/system.c
-===================================================================
---- 2.6-git.orig/drivers/acpi/system.c
-+++ 2.6-git/drivers/acpi/system.c
-@@ -77,7 +77,6 @@ static ssize_t acpi_table_show(struct ko
- 	    container_of(bin_attr, struct acpi_table_attr, attr);
- 	struct acpi_table_header *table_header = NULL;
- 	acpi_status status;
--	ssize_t ret_count = count;
- 
- 	status =
- 	    acpi_get_table(table_attr->name, table_attr->instance,
-@@ -85,18 +84,8 @@ static ssize_t acpi_table_show(struct ko
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
- 
--	if (offset >= table_header->length) {
--		ret_count = 0;
--		goto end;
--	}
--
--	if (offset + ret_count > table_header->length)
--		ret_count = table_header->length - offset;
--
--	memcpy(buf, ((char *)table_header) + offset, ret_count);
--
--      end:
--	return ret_count;
-+	return memory_read_from_buffer(buf, count, &offset,
-+					table_header, table_header->length);
- }
- 
- static void acpi_table_attr_init(struct acpi_table_attr *table_attr,
+Ah, you're right.  That scenario hadn't occurred to me.  Let me see
+if I can figure out a way to make that work again.
 
--- 
+Bjorn
