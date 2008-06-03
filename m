@@ -1,49 +1,131 @@
 From: Rene Herman <rene.herman@keyaccess.nl>
-Subject: Re: [patch 14/15] PNP: support optional IRQ resources
-Date: Tue, 03 Jun 2008 22:25:18 +0200
-Message-ID: <4845A8AE.30009@keyaccess.nl>
-References: <20080530224853.976744229@ldl.fc.hp.com> <20080530224934.156287156@ldl.fc.hp.com> <48458141.9020409@keyaccess.nl> <200806031421.00767.bjorn.helgaas@hp.com>
+Subject: Re: [patch 15/15] PNP: convert resource options to single linked
+ list
+Date: Tue, 03 Jun 2008 23:13:37 +0200
+Message-ID: <4845B401.7020102@keyaccess.nl>
+References: <20080530224853.976744229@ldl.fc.hp.com> <20080530224934.357694359@ldl.fc.hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtpq2.groni1.gr.home.nl ([213.51.130.201]:46392 "EHLO
+Received: from smtpq2.groni1.gr.home.nl ([213.51.130.201]:56392 "EHLO
 	smtpq2.groni1.gr.home.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751685AbYFCUZ1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Jun 2008 16:25:27 -0400
-In-Reply-To: <200806031421.00767.bjorn.helgaas@hp.com>
+	with ESMTP id S1751237AbYFCVNv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Jun 2008 17:13:51 -0400
+In-Reply-To: <20080530224934.357694359@ldl.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>, Takashi Iwai <tiwai@suse.de>
 
-On 03-06-08 22:20, Bjorn Helgaas wrote:
+On 31-05-08 00:49, Bjorn Helgaas wrote:
 
-> On Tuesday 03 June 2008 11:37:05 am Rene Herman wrote:
->>> Index: work10/include/linux/ioport.h
->>> ===================================================================
->>> --- work10.orig/include/linux/ioport.h	2008-05-20 13:34:58.000000000 -0600
->>> +++ work10/include/linux/ioport.h	2008-05-20 13:39:21.000000000 -0600
->>> @@ -59,6 +59,7 @@ struct resource_list {
->>>  #define IORESOURCE_IRQ_HIGHLEVEL	(1<<2)
->>>  #define IORESOURCE_IRQ_LOWLEVEL		(1<<3)
->>>  #define IORESOURCE_IRQ_SHAREABLE	(1<<4)
->>> +#define IORESOURCE_IRQ_OPTIONAL		(1<<5)
->>>  
->>>  /* ISA PnP DMA specific bits (IORESOURCE_BITS) */
->>>  #define IORESOURCE_DMA_TYPE_MASK	(3<<0)
->> Andrew scooped up a patch from a previous reaction of mine that deleted 
->> the "ISA " from these comments. I tend to use comments as a great way of 
->> avoiding actually reading code (I'm silly like that) and so as to be 
->> burned a _bit_ less by it, I think it's good if they're accurate. In 
->> this case for example, one might be tempted to assume these bits were 
->> specific to drivers/pnp/isapnp.
-> 
-> Yes, I see that's pnpacpi-fix-irq-flag-decoding-comment-fix.patch
-> in mmotm.  How about if I incorporate that in my series (the one
-> Andrew hasn't yet picked up), since your patch will otherwise
-> conflict with it?
+Forgot this comment:
 
-Yep, that would be good.
+> --- work10.orig/drivers/pnp/quirks.c	2008-05-30 15:58:14.000000000 -0600
+> +++ work10/drivers/pnp/quirks.c	2008-05-30 15:58:15.000000000 -0600
+
+> +static struct pnp_option *pnp_clone_dependent_set(struct pnp_dev *dev,
+> +						  unsigned int set)
+>  {
+> -	struct pnp_option *head = NULL;
+> -	struct pnp_option *prev = NULL;
+> -	struct pnp_option *res;
+> -
+> -	/*
+> -	 * Build a functional IRQ-optional variant of each MPU option.
+> -	 */
+> -
+> -	for (res = dev->dependent; res; res = res->next) {
+> -		struct pnp_option *curr;
+> -		struct pnp_port *port;
+> -		struct pnp_port *copy_port;
+> -		struct pnp_irq *irq;
+> -		struct pnp_irq *copy_irq;
+> -
+> -		port = res->port;
+> -		irq = res->irq;
+> -		if (!port || !irq)
+> -			continue;
+> +	struct pnp_option *tail = NULL, *first_new_option = NULL;
+> +	struct pnp_option *option, *new_option;
+> +	unsigned int flags;
+> +
+> +	list_for_each_entry(option, &dev->options, list) {
+> +		if (pnp_option_is_dependent(option))
+> +			tail = option;
+> +	}
+> +	if (!tail) {
+> +		dev_err(&dev->dev, "no dependent option sets\n");
+> +		return NULL;
+> +	}
+>  
+> -		copy_port = pnp_alloc(sizeof *copy_port);
+> -		if (!copy_port)
+> -			break;
+> -
+> -		copy_irq = pnp_alloc(sizeof *copy_irq);
+> -		if (!copy_irq) {
+> -			kfree(copy_port);
+> -			break;
+> -		}
+> +	flags = pnp_dependent_option(dev, PNP_RES_PRIORITY_FUNCTIONAL);
+> +	list_for_each_entry(option, &dev->options, list) {
+> +		if (pnp_option_is_dependent(option) &&
+> +		    pnp_option_set(option) == set) {
+> +			new_option = kmalloc(sizeof(struct pnp_option),
+> +					     GFP_KERNEL);
+> +			if (!new_option) {
+> +				dev_err(&dev->dev, "couldn't clone dependent "
+> +					"set %d\n", set);
+> +				return NULL;
+> +			}
+>  
+> -		*copy_port = *port;
+> -		copy_port->next = NULL;
+> +			*new_option = *option;
+> +			new_option->flags = flags;
+> +			if (!first_new_option)
+> +				first_new_option = new_option;
+>  
+> -		*copy_irq = *irq;
+> -		copy_irq->flags |= IORESOURCE_IRQ_OPTIONAL;
+> -		copy_irq->next = NULL;
+> -
+> -		curr = pnp_build_option(PNP_RES_PRIORITY_FUNCTIONAL);
+> -		if (!curr) {
+> -			kfree(copy_port);
+> -			kfree(copy_irq);
+> -			break;
+> +			list_add(&new_option->list, &tail->list);
+> +			tail = new_option;
+>  		}
+> -		curr->port = copy_port;
+> -		curr->irq = copy_irq;
+> -
+> -		if (prev)
+> -			prev->next = curr;
+> -		else
+> -			head = curr;
+> -		prev = curr;
+>  	}
+> -	if (head)
+> -		dev_info(&dev->dev, "adding IRQ-optional MPU options\n");
+>  
+> -	return head;
+> +	return first_new_option;
+>  }
+
+This works, but I did the "disconnected chain build" that I did due to 
+finding it particularly clumsy to add to the dependent chain while 
+walking it.
+
+This avoids actual problems due to num_sets = dev->num_dependents_sets 
+in caller and the pnp_option_set(option) == set in the loop (not unlike 
+the first version of the original checked for a present irq) but it's 
+again checking the options it just added itself.
+
+If you feel that's perfectly fine then <shrug> but thought I'd still 
+remark on it in case it wasn't intentional.
 
 Rene.
