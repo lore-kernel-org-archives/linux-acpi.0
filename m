@@ -1,91 +1,132 @@
-From: Tobias Diedrich <ranma+kernel@tdiedrich.de>
-Subject: Re: [linux-pm] [PATCH 0/4] Fix forcedeth hibernate/wake-on-lan
-	problems
-Date: Tue, 3 Jun 2008 19:30:13 +0200
-Message-ID: <20080603173013.GA9490@yamamaya.is-a-geek.org>
-References: <20080603061618.GB9301@yamamaya.is-a-geek.org> <Pine.LNX.4.44L0.0806031002510.2363-100000@iolanthe.rowland.org>
+From: Rene Herman <rene.herman@keyaccess.nl>
+Subject: Re: [patch 14/15] PNP: support optional IRQ resources
+Date: Tue, 03 Jun 2008 19:37:05 +0200
+Message-ID: <48458141.9020409@keyaccess.nl>
+References: <20080530224853.976744229@ldl.fc.hp.com> <20080530224934.156287156@ldl.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.0806031002510.2363-100000@iolanthe.rowland.org>
-Sender: netdev-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Ayaz Abdulla <aabdulla@nvidia.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Stephen Hemminger <shemminger@linux-foundation.org>, David Brownell <david-b@pacbell.net>, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtpq2.tilbu1.nb.home.nl ([213.51.146.201]:56033 "EHLO
+	smtpq2.tilbu1.nb.home.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751498AbYFCRhS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Jun 2008 13:37:18 -0400
+In-Reply-To: <20080530224934.156287156@ldl.fc.hp.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>, Takashi Iwai <tiwai@suse.de>
 
-Alan Stern wrote:
-> > > Also, you should run "lspci -vv" as root to see what wakeup signa=
-ls the=20
-> > > USB controllers are issuing.
-[...]
-> > 00:02.1 USB Controller: nVidia Corporation MCP55 USB Controller (re=
-v a2) (prog-if 20 [EHCI])
-> > 	Subsystem: ASUSTeK Computer Inc. Unknown device 8239
-> > 	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr=
-- Stepping- SERR- FastB2B- DisINTx-
-> > 	Status: Cap+ 66MHz+ UDF- FastB2B+ ParErr- DEVSEL=3Dfast >TAbort- <=
-TAbort- <MAbort- >SERR- <PERR- INTx-
-> > 	Latency: 0 (750ns min, 250ns max)
-> > 	Interrupt: pin B routed to IRQ 20
-> > 	Region 0: Memory at fe02e000 (32-bit, non-prefetchable) [size=3D25=
-6]
-> > 	Capabilities: [44] Debug port: BAR=3D1 offset=3D0098
-> > 	Capabilities: [80] Power Management version 2
-> > 		Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=3D0mA PME(D0+,D1+,D2+,D3ho=
-t+,D3cold+)
-> > 		Status: D0 PME-Enable- DSel=3D0 DScale=3D0 PME+
-> > 	Kernel driver in use: ehci_hcd
->=20
-> The EHCI controller settings, however, are strange.  The relevant par=
-t=20
-> is the Power Management Status line near the end:
->=20
-> > 		Status: D0 PME-Enable- DSel=3D0 DScale=3D0 PME+
->=20
-> This means the controller is in the D0 state (as expected) and=20
-> PME-Enable is currently turned off ("PME" stands for "Power Managemen=
-t=20
-> Event").  But the PME+ at the end means that as soon as PME does get=20
-> enabled -- like when the controller is suspended at the start of a=20
-> system sleep -- it _will_ send a PME signal.
->=20
-> So for some reason your EHCI controller thinks a wakeup event is=20
-> pending.  This means you should examine the contents of the "register=
-s"=20
-> file in the debugfs directory for the EHCI controller, not OHCI.
+On 31-05-08 00:49, Bjorn Helgaas wrote:
 
-melchior:/mnt/ehci/0000:00:02.1# cat registers
-bus pci, device 0000:00:02.1 (driver 10 Dec 2004)
-EHCI Host Controller
-EHCI 1.00, hcd state 1
-ownership 00000001
-SMI sts/enable 0xc0080000
-structural params 0x00101a8a
-capability params 0x0000a086
-status 0008 FLR
-command 010009 (park)=3D0 ithresh=3D1 period=3D256 RUN
-intrenable 37 IAA FATAL PCD ERR INT
-uframe 3f3a
-port 1 status 003400 POWER OWNER sig=3Dk
-port 2 status 001000 POWER sig=3Dse0
-port 3 status 003400 POWER OWNER sig=3Dk
-port 4 status 003400 POWER OWNER sig=3Dk
-port 5 status 001000 POWER sig=3Dse0
-port 6 status 001000 POWER sig=3Dse0
-port 7 status 001000 POWER sig=3Dse0
-port 8 status 001000 POWER sig=3Dse0
-port 9 status 001000 POWER sig=3Dse0
-port 10 status 001000 POWER sig=3Dse0
-irq normal 0 err 0 reclaim 0 (lost 0)
-complete 0 unlink 0
+> This patch adds an IORESOURCE_IRQ_OPTIONAL flag for use when
+> assigning resources to a device.  If the flag is set and we are
+> unable to assign an IRQ to the device, we can leave the IRQ
+> disabled but allow the overall resource allocation to succeed.
+> 
+> Some devices request an IRQ, but can run without an IRQ
+> (possibly with degraded performance).  This flag lets us run
+> the device without the IRQ instead of just leaving the
+> device disabled.
+> 
+> This is a reimplementation of this previous change by Rene
+> Herman <rene.herman@gmail.com>:
+>     http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=3b73a223661ed137c5d3d2635f954382e94f5a43
+> 
+> I reimplemented this for two reasons:
+>     - to prepare for converting all resource options into a single linked
+>       list, as opposed to the per-resource-type lists we have now, and
+>     - to preserve the order and number of resource options.
+> 
+> In PNPBIOS and ACPI, we configure a device by giving firmware a
+> list of resource assignments.  It is important that this list
+> has exactly the same number of resources, in the same order,
+> as the "template" list we got from the firmware in the first
+> place.
+> 
+> The problem of a sound card being left disabled for want of an
+> IRQ was reported by Uwe Bugla <uwe.bugla@gmx.de>.
 
-HTH,
+Nit -- the soundcard itself isn't left disabled, just its MPU401. It's 
+only the fact that ALSA mentions this fact which triggered the report.
 
---=20
-Tobias						PGP: http://9ac7e0bc.uguu.de
-=E3=81=93=E3=81=AE=E3=83=A1=E3=83=BC=E3=83=AB=E3=81=AF=E5=8D=81=E5=89=B2=
-=E5=86=8D=E5=88=A9=E7=94=A8=E3=81=95=E3=82=8C=E3=81=9F=E3=83=93=E3=83=83=
-=E3=83=88=E3=81=A7=E4=BD=9C=E3=82=89=E3=82=8C=E3=81=A6=E3=81=84=E3=81=BE=
-=E3=81=99=E3=80=82
+> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+> 
+> Index: work10/include/linux/ioport.h
+> ===================================================================
+> --- work10.orig/include/linux/ioport.h	2008-05-20 13:34:58.000000000 -0600
+> +++ work10/include/linux/ioport.h	2008-05-20 13:39:21.000000000 -0600
+> @@ -59,6 +59,7 @@ struct resource_list {
+>  #define IORESOURCE_IRQ_HIGHLEVEL	(1<<2)
+>  #define IORESOURCE_IRQ_LOWLEVEL		(1<<3)
+>  #define IORESOURCE_IRQ_SHAREABLE	(1<<4)
+> +#define IORESOURCE_IRQ_OPTIONAL		(1<<5)
+>  
+>  /* ISA PnP DMA specific bits (IORESOURCE_BITS) */
+>  #define IORESOURCE_DMA_TYPE_MASK	(3<<0)
+
+Andrew scooped up a patch from a previous reaction of mine that deleted 
+the "ISA " from these comments. I tend to use comments as a great way of 
+avoiding actually reading code (I'm silly like that) and so as to be 
+burned a _bit_ less by it, I think it's good if they're accurate. In 
+this case for example, one might be tempted to assume these bits were 
+specific to drivers/pnp/isapnp.
+
+<snip>
+
+> @@ -164,10 +176,6 @@ static void quirk_ad1815_mpu_resources(s
+>  	struct pnp_option *res;
+>  	struct pnp_irq *irq;
+>  
+> -	/*
+> -	 * Distribute the independent IRQ over the dependent options
+> -	 */
+> -
+>  	res = dev->independent;
+>  	if (!res)
+>  		return;
+> @@ -176,33 +184,10 @@ static void quirk_ad1815_mpu_resources(s
+>  	if (!irq || irq->next)
+>  		return;
+>  
+> -	res = dev->dependent;
+> -	if (!res)
+> -		return;
+> -
+> -	while (1) {
+> -		struct pnp_irq *copy;
+> -
+> -		copy = pnp_alloc(sizeof *copy);
+> -		if (!copy)
+> -			break;
+> -
+> -		bitmap_copy(copy->map.bits, irq->map.bits, PNP_IRQ_NR);
+> -		copy->flags = irq->flags;
+> -
+> -		copy->next = res->irq; /* Yes, this is NULL */
+> -		res->irq = copy;
+> -
+> -		if (!res->next)
+> -			break;
+> -		res = res->next;
+> -	}
+> -	kfree(irq);
+> +	irq->flags |= IORESOURCE_IRQ_OPTIONAL;
+> +	dev_info(&dev->dev, "made independent IRQ optional\n");
+>  
+>  	res->next = quirk_isapnp_mpu_options(dev);
+
+As commented yesterday, this line should just go. We don't need to clone 
+here (we do for the other two PNP IDs, so the cloning can't go entirely).
+
+The actual (slight) problem with it not working is in 15/15...
+
+> -
+> -	res = dev->independent;
+> -	res->irq = NULL;
+>  }
+>  
+>  static void quirk_isapnp_mpu_resources(struct pnp_dev *dev)
+
+Rene.
+
