@@ -1,132 +1,51 @@
-From: Rene Herman <rene.herman@keyaccess.nl>
-Subject: Re: [patch 14/15] PNP: support optional IRQ resources
-Date: Tue, 03 Jun 2008 19:37:05 +0200
-Message-ID: <48458141.9020409@keyaccess.nl>
-References: <20080530224853.976744229@ldl.fc.hp.com> <20080530224934.156287156@ldl.fc.hp.com>
+From: Jeff Garzik <jeff@garzik.org>
+Subject: Re: [PATCH] libata: Handle bay devices in dock stations
+Date: Tue, 03 Jun 2008 14:07:42 -0400
+Message-ID: <4845886E.2010505@garzik.org>
+References: <20080528143857.GB5585@homac.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtpq2.tilbu1.nb.home.nl ([213.51.146.201]:56033 "EHLO
-	smtpq2.tilbu1.nb.home.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751498AbYFCRhS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Jun 2008 13:37:18 -0400
-In-Reply-To: <20080530224934.156287156@ldl.fc.hp.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <20080528143857.GB5585@homac.suse.de>
+Sender: linux-ide-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, Tejun Heo <htejun@gmail.com>, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>, akpm@linux-foundation.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>, Takashi Iwai <tiwai@suse.de>
 
-On 31-05-08 00:49, Bjorn Helgaas wrote:
-
-> This patch adds an IORESOURCE_IRQ_OPTIONAL flag for use when
-> assigning resources to a device.  If the flag is set and we are
-> unable to assign an IRQ to the device, we can leave the IRQ
-> disabled but allow the overall resource allocation to succeed.
+Holger Macht wrote:
+> * Differentiate between bay devices in dock stations and others:
 > 
-> Some devices request an IRQ, but can run without an IRQ
-> (possibly with degraded performance).  This flag lets us run
-> the device without the IRQ instead of just leaving the
-> device disabled.
+>  - When an ACPI_NOTIFY_EJECT_REQUEST appears, just signal uevent to
+>    userspace (that is when the optional eject button on a bay device is
+>    pressed/pulled) giving the possibility to unmount file systems and to
+>    clean up. Also, only send uevent in case we get an EJECT_REQUEST
+>    without doing anything else. In other cases, you'll get an add/remove
+>    event because libata attaches/detaches the device.
 > 
-> This is a reimplementation of this previous change by Rene
-> Herman <rene.herman@gmail.com>:
->     http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=3b73a223661ed137c5d3d2635f954382e94f5a43
+>  - In case of a dock event, which in turn signals an
+>    ACPI_NOTIFY_EJECT_REQUEST, immediately detach the device, because it
+>    may already have been gone
 > 
-> I reimplemented this for two reasons:
->     - to prepare for converting all resource options into a single linked
->       list, as opposed to the per-resource-type lists we have now, and
->     - to preserve the order and number of resource options.
+> * In case of an ACPI_NOTIFY_DEVICE/BUS_CHECK, evaluate _STA to check if
+>   the device has been plugged or unplugged. If plugged, hotplug it, if
+>   unplugged, just signal event to userspace
+>   (initial patch by Matthew Garrett <mjg59@srcf.ucam.org>)
 > 
-> In PNPBIOS and ACPI, we configure a device by giving firmware a
-> list of resource assignments.  It is important that this list
-> has exactly the same number of resources, in the same order,
-> as the "template" list we got from the firmware in the first
-> place.
+> * Call ACPI _EJ0 for detached devices
 > 
-> The problem of a sound card being left disabled for want of an
-> IRQ was reported by Uwe Bugla <uwe.bugla@gmx.de>.
-
-Nit -- the soundcard itself isn't left disabled, just its MPU401. It's 
-only the fact that ALSA mentions this fact which triggered the report.
-
-> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+> Signed-off-by: Holger Macht <hmacht@suse.de>
+> ---
 > 
-> Index: work10/include/linux/ioport.h
-> ===================================================================
-> --- work10.orig/include/linux/ioport.h	2008-05-20 13:34:58.000000000 -0600
-> +++ work10/include/linux/ioport.h	2008-05-20 13:39:21.000000000 -0600
-> @@ -59,6 +59,7 @@ struct resource_list {
->  #define IORESOURCE_IRQ_HIGHLEVEL	(1<<2)
->  #define IORESOURCE_IRQ_LOWLEVEL		(1<<3)
->  #define IORESOURCE_IRQ_SHAREABLE	(1<<4)
-> +#define IORESOURCE_IRQ_OPTIONAL		(1<<5)
->  
->  /* ISA PnP DMA specific bits (IORESOURCE_BITS) */
->  #define IORESOURCE_DMA_TYPE_MASK	(3<<0)
+> Changes regarding the previous patch:
+> 
+>  * Make sure kobj does not go away outside locking
+>  * Coding style cleanups
+>  * Call _EJ0 for detached devices
 
-Andrew scooped up a patch from a previous reaction of mine that deleted 
-the "ISA " from these comments. I tend to use comments as a great way of 
-avoiding actually reading code (I'm silly like that) and so as to be 
-burned a _bit_ less by it, I think it's good if they're accurate. In 
-this case for example, one might be tempted to assume these bits were 
-specific to drivers/pnp/isapnp.
+Matthew, any comments?
 
-<snip>
-
-> @@ -164,10 +176,6 @@ static void quirk_ad1815_mpu_resources(s
->  	struct pnp_option *res;
->  	struct pnp_irq *irq;
->  
-> -	/*
-> -	 * Distribute the independent IRQ over the dependent options
-> -	 */
-> -
->  	res = dev->independent;
->  	if (!res)
->  		return;
-> @@ -176,33 +184,10 @@ static void quirk_ad1815_mpu_resources(s
->  	if (!irq || irq->next)
->  		return;
->  
-> -	res = dev->dependent;
-> -	if (!res)
-> -		return;
-> -
-> -	while (1) {
-> -		struct pnp_irq *copy;
-> -
-> -		copy = pnp_alloc(sizeof *copy);
-> -		if (!copy)
-> -			break;
-> -
-> -		bitmap_copy(copy->map.bits, irq->map.bits, PNP_IRQ_NR);
-> -		copy->flags = irq->flags;
-> -
-> -		copy->next = res->irq; /* Yes, this is NULL */
-> -		res->irq = copy;
-> -
-> -		if (!res->next)
-> -			break;
-> -		res = res->next;
-> -	}
-> -	kfree(irq);
-> +	irq->flags |= IORESOURCE_IRQ_OPTIONAL;
-> +	dev_info(&dev->dev, "made independent IRQ optional\n");
->  
->  	res->next = quirk_isapnp_mpu_options(dev);
-
-As commented yesterday, this line should just go. We don't need to clone 
-here (we do for the other two PNP IDs, so the cloning can't go entirely).
-
-The actual (slight) problem with it not working is in 15/15...
-
-> -
-> -	res = dev->independent;
-> -	res->irq = NULL;
->  }
->  
->  static void quirk_isapnp_mpu_resources(struct pnp_dev *dev)
-
-Rene.
+It would be nice if you and Holger could work together to produce a 
+single patch[set]...  right now I have patches from both of you, and I 
+was sorta waiting on the thread to die down to see if competing patches 
+might merge into a single set
 
