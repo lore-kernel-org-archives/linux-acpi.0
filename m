@@ -1,60 +1,48 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [linux-pm] [PATCH 0/4] Fix forcedeth hibernate/wake-on-lan
- problems
-Date: Tue, 3 Jun 2008 16:06:10 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0806031603410.3524-100000@iolanthe.rowland.org>
-References: <20080603173013.GA9490@yamamaya.is-a-geek.org>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [patch 14/15] PNP: support optional IRQ resources
+Date: Tue, 3 Jun 2008 14:20:59 -0600
+Message-ID: <200806031421.00767.bjorn.helgaas@hp.com>
+References: <20080530224853.976744229@ldl.fc.hp.com> <20080530224934.156287156@ldl.fc.hp.com> <48458141.9020409@keyaccess.nl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:32782 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753151AbYFCUGL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Jun 2008 16:06:11 -0400
-In-Reply-To: <20080603173013.GA9490@yamamaya.is-a-geek.org>
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:34276 "EHLO
+	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751685AbYFCUU5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Jun 2008 16:20:57 -0400
+In-Reply-To: <48458141.9020409@keyaccess.nl>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tobias Diedrich <ranma+kernel@tdiedrich.de>
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Ayaz Abdulla <aabdulla@nvidia.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Stephen Hemminger <shemminger@linux-foundation.org>, David Brownell <david-b@pacbell.net>, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org
+To: Rene Herman <rene.herman@keyaccess.nl>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>, Takashi Iwai <tiwai@suse.de>
 
-On Tue, 3 Jun 2008, Tobias Diedrich wrote:
-
-> > So for some reason your EHCI controller thinks a wakeup event is 
-> > pending.  This means you should examine the contents of the "registers" 
-> > file in the debugfs directory for the EHCI controller, not OHCI.
+On Tuesday 03 June 2008 11:37:05 am Rene Herman wrote:
+> > Index: work10/include/linux/ioport.h
+> > ===================================================================
+> > --- work10.orig/include/linux/ioport.h	2008-05-20 13:34:58.000000000 -0600
+> > +++ work10/include/linux/ioport.h	2008-05-20 13:39:21.000000000 -0600
+> > @@ -59,6 +59,7 @@ struct resource_list {
+> >  #define IORESOURCE_IRQ_HIGHLEVEL	(1<<2)
+> >  #define IORESOURCE_IRQ_LOWLEVEL		(1<<3)
+> >  #define IORESOURCE_IRQ_SHAREABLE	(1<<4)
+> > +#define IORESOURCE_IRQ_OPTIONAL		(1<<5)
+> >  
+> >  /* ISA PnP DMA specific bits (IORESOURCE_BITS) */
+> >  #define IORESOURCE_DMA_TYPE_MASK	(3<<0)
 > 
-> melchior:/mnt/ehci/0000:00:02.1# cat registers
-> bus pci, device 0000:00:02.1 (driver 10 Dec 2004)
-> EHCI Host Controller
-> EHCI 1.00, hcd state 1
-> ownership 00000001
-> SMI sts/enable 0xc0080000
-> structural params 0x00101a8a
-> capability params 0x0000a086
-> status 0008 FLR
-> command 010009 (park)=0 ithresh=1 period=256 RUN
-> intrenable 37 IAA FATAL PCD ERR INT
-> uframe 3f3a
-> port 1 status 003400 POWER OWNER sig=k
-> port 2 status 001000 POWER sig=se0
-> port 3 status 003400 POWER OWNER sig=k
-> port 4 status 003400 POWER OWNER sig=k
-> port 5 status 001000 POWER sig=se0
-> port 6 status 001000 POWER sig=se0
-> port 7 status 001000 POWER sig=se0
-> port 8 status 001000 POWER sig=se0
-> port 9 status 001000 POWER sig=se0
-> port 10 status 001000 POWER sig=se0
-> irq normal 0 err 0 reclaim 0 (lost 0)
-> complete 0 unlink 0
+> Andrew scooped up a patch from a previous reaction of mine that deleted 
+> the "ISA " from these comments. I tend to use comments as a great way of 
+> avoiding actually reading code (I'm silly like that) and so as to be 
+> burned a _bit_ less by it, I think it's good if they're accurate. In 
+> this case for example, one might be tempted to assume these bits were 
+> specific to drivers/pnp/isapnp.
 
-Got to admit, I'm stumped.  There's nothing in the state description to 
-indicate why the controller should want to signal a wakeup event.
+Yes, I see that's pnpacpi-fix-irq-flag-decoding-comment-fix.patch
+in mmotm.  How about if I incorporate that in my series (the one
+Andrew hasn't yet picked up), since your patch will otherwise
+conflict with it?
 
-As an experiment, you could try disabling wakeup on the EHCI controller 
-alone, leaving it enabled on the OHCI controller.  Since the keyboard 
--- and in fact all your USB devices -- is attached to the OHCI 
-controller, it should do what you want.
-
-Alan Stern
-
+Bjorn
