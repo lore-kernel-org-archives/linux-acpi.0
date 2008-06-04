@@ -1,98 +1,60 @@
-From: Rene Herman <rene.herman@keyaccess.nl>
-Subject: Re: [patch 15/15] PNP: convert resource options to single linked
- list
-Date: Wed, 04 Jun 2008 13:48:27 +0200
-Message-ID: <4846810B.2030301@keyaccess.nl>
-References: <20080530224853.976744229@ldl.fc.hp.com> <20080530224934.357694359@ldl.fc.hp.com> <4845A217.3030701@keyaccess.nl> <4845D937.2000205@keyaccess.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: [patch -v3 16/22] acpi: use memory_read_from_buffer
+Date: Wed, 04 Jun 2008 20:56:49 +0900
+Message-ID: <20080604115824.062644468@gmail.com>
+References: <20080604115633.116832712@gmail.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtpq1.tilbu1.nb.home.nl ([213.51.146.200]:35471 "EHLO
-	smtpq1.tilbu1.nb.home.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752566AbYFDLsf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Jun 2008 07:48:35 -0400
-In-Reply-To: <4845D937.2000205@keyaccess.nl>
+Received: from rv-out-0506.google.com ([209.85.198.225]:42730 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760215AbYFDMKp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Jun 2008 08:10:45 -0400
+Received: by rv-out-0506.google.com with SMTP id l9so79958rvb.1
+        for <linux-acpi@vger.kernel.org>; Wed, 04 Jun 2008 05:10:44 -0700 (PDT)
+Content-Disposition: inline; filename=acpi-use-memory-read-from-buffer.patch
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>, Takashi Iwai <tiwai@suse.de>
+To: linux-kernel@vger.kernel.org, akpm@linux-foundation.org
+Cc: Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-On 04-06-08 01:52, Rene Herman wrote:
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Len Brown <len.brown@intel.com>
+Cc: linux-acpi@vger.kernel.org
+---
+ drivers/acpi/system.c |   15 ++-------------
+ 1 file changed, 2 insertions(+), 13 deletions(-)
 
-Mmm. If you care for it:
+Index: 2.6-git/drivers/acpi/system.c
+===================================================================
+--- 2.6-git.orig/drivers/acpi/system.c
++++ 2.6-git/drivers/acpi/system.c
+@@ -77,7 +77,6 @@ static ssize_t acpi_table_show(struct ko
+ 	    container_of(bin_attr, struct acpi_table_attr, attr);
+ 	struct acpi_table_header *table_header = NULL;
+ 	acpi_status status;
+-	ssize_t ret_count = count;
+ 
+ 	status =
+ 	    acpi_get_table(table_attr->name, table_attr->instance,
+@@ -85,18 +84,8 @@ static ssize_t acpi_table_show(struct ko
+ 	if (ACPI_FAILURE(status))
+ 		return -ENODEV;
+ 
+-	if (offset >= table_header->length) {
+-		ret_count = 0;
+-		goto end;
+-	}
+-
+-	if (offset + ret_count > table_header->length)
+-		ret_count = table_header->length - offset;
+-
+-	memcpy(buf, ((char *)table_header) + offset, ret_count);
+-
+-      end:
+-	return ret_count;
++	return memory_read_from_buffer(buf, count, &offset,
++					table_header, table_header->length);
+ }
+ 
+ static void acpi_table_attr_init(struct acpi_table_attr *table_attr,
 
-> === 4 === quirk_ad1815_mpu_resources, ADS7151
-> 
-> These results are with the dependent cloning already removed locally.
-> 
-> * pre-quirk:
-> 
-> irq 5,7,2/9,11,12 High-Edge
-> Dependent: 00 - Priority preferred
->   port 0x330-0x330, align 0x0, size 0x2, 10-bit address decoding
-> Dependent: 01 - Priority acceptable
->   port 0x300-0x300, align 0x0, size 0x2, 10-bit address decoding
-> Dependent: 02 - Priority functional
->   port 0x100-0x3fe, align 0x1, size 0x2, 10-bit address decoding
-> 
-> * post-quirk:
-> 
-> irq 5,7,2/9,11,12 High-Edge
-> Dependent: 00 - Priority preferred
->   port 0x330-0x330, align 0x0, size 0x2, 10-bit address decoding
-> Dependent: 01 - Priority acceptable
->   port 0x300-0x300, align 0x0, size 0x2, 10-bit address decoding
-> Dependent: 02 - Priority functional
->   port 0x100-0x3fe, align 0x1, size 0x2, 10-bit address decoding
-> 
-> 
-> See why that "(optional)" flag display is good? :-) I ofcourse tested 
-> things and the flag works great...
-> 
-> 
-> == 5 == quirk_add_irq_optional_dependent_sets, ADS7181
-> 
-> * pre-quirk:
-> 
-> Dependent: 00 - Priority preferred
->   irq 2/9 High-Edge
->   port 0x330-0x330, align 0xf, size 0x2, 16-bit address decoding
-> Dependent: 01 - Priority acceptable
->   irq 2/9 High-Edge
->   port 0x300-0x330, align 0xf, size 0x2, 16-bit address decoding
-> Dependent: 02 - Priority functional
->   irq 2/9,10,11 High-Edge
->   port 0x300-0x330, align 0xf, size 0x2, 16-bit address decoding
-> 
-> * post-quirk:
-> 
-> Dependent: 00 - Priority preferred
->   irq 2/9 High-Edge
->   port 0x330-0x330, align 0xf, size 0x2, 16-bit address decoding
-> Dependent: 01 - Priority acceptable
->   irq 2/9 High-Edge
->   port 0x300-0x330, align 0xf, size 0x2, 16-bit address decoding
-> Dependent: 02 - Priority functional
->   irq 2/9,10,11 High-Edge
->   port 0x300-0x330, align 0xf, size 0x2, 16-bit address decoding
-> Dependent: 03 - Priority functional
->   irq 2/9 High-Edge
->   port 0x330-0x330, align 0xf, size 0x2, 16-bit address decoding
-> Dependent: 04 - Priority functional
->   irq 2/9 High-Edge
->   port 0x300-0x330, align 0xf, size 0x2, 16-bit address decoding
-> Dependent: 05 - Priority functional
->   irq 2/9,10,11 High-Edge
->   port 0x300-0x330, align 0xf, size 0x2, 16-bit address decoding
-
-ADS7181 in fact might as well delete the IRQ from the dependents and add
-"irq 2/9,10,11 High-Edge Optinal" in front as an independent same as 
-ADS7151. That way, all the cloning can go.
-
-I'll probably place that on top if you don't, but you might already want 
-to since it loses all that code. Only difference would be that if IRQ 9 
-is taken and 10 free, the new situation would grab 330/10 while the old 
-would've taken 300/10, but that's in fact better...
-
-Rene.
+-- 
