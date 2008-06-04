@@ -1,45 +1,98 @@
-From: Jeff Garzik <jeff@garzik.org>
-Subject: Re: [PATCH] libata: Handle bay devices in dock stations
-Date: Wed, 04 Jun 2008 06:29:34 -0400
-Message-ID: <48466E8E.9070108@garzik.org>
-References: <20080528143857.GB5585@homac.suse.de> <4845886E.2010505@garzik.org> <20080603182759.GB3556@homac>
+From: Rene Herman <rene.herman@keyaccess.nl>
+Subject: Re: [patch 15/15] PNP: convert resource options to single linked
+ list
+Date: Wed, 04 Jun 2008 13:48:27 +0200
+Message-ID: <4846810B.2030301@keyaccess.nl>
+References: <20080530224853.976744229@ldl.fc.hp.com> <20080530224934.357694359@ldl.fc.hp.com> <4845A217.3030701@keyaccess.nl> <4845D937.2000205@keyaccess.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <20080603182759.GB3556@homac>
-Sender: linux-ide-owner@vger.kernel.org
-To: Jeff Garzik <jeff@garzik.org>, linux-kernel@vger.kernel.org, Tejun Heo <htejun@gmail.com>, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtpq1.tilbu1.nb.home.nl ([213.51.146.200]:35471 "EHLO
+	smtpq1.tilbu1.nb.home.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752566AbYFDLsf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Jun 2008 07:48:35 -0400
+In-Reply-To: <4845D937.2000205@keyaccess.nl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>, Takashi Iwai <tiwai@suse.de>
 
-Holger Macht wrote:
-> * Differentiate between bay devices in dock stations and others:
-> 
->  - When an ACPI_NOTIFY_EJECT_REQUEST appears, just signal uevent to
->    userspace (that is when the optional eject button on a bay device is
->    pressed/pulled) giving the possibility to unmount file systems and to
->    clean up. Also, only send uevent in case we get an EJECT_REQUEST
->    without doing anything else. In other cases, you'll get an add/remove
->    event because libata attaches/detaches the device.
-> 
->  - In case of a dock event, which in turn signals an
->    ACPI_NOTIFY_EJECT_REQUEST, immediately detach the device, because it
->    may already have been gone
-> 
-> * In case of an ACPI_NOTIFY_DEVICE/BUS_CHECK, evaluate _STA to check if
->   the device has been plugged or unplugged. If plugged, hotplug it, if
->   unplugged, just signal event to userspace
->   (initial patch by Matthew Garrett <mjg59@srcf.ucam.org>)
-> 
-> * Call ACPI _EJ0 for detached devices
-> 
-> Signed-off-by: Holger Macht <hmacht@suse.de>
-> ---
-> 
-> Previous patch differences:
->  * Remove one call to ata_port_freeze
->  * Add some documentation from Tejun
+On 04-06-08 01:52, Rene Herman wrote:
 
-applied
+Mmm. If you care for it:
 
+> === 4 === quirk_ad1815_mpu_resources, ADS7151
+> 
+> These results are with the dependent cloning already removed locally.
+> 
+> * pre-quirk:
+> 
+> irq 5,7,2/9,11,12 High-Edge
+> Dependent: 00 - Priority preferred
+>   port 0x330-0x330, align 0x0, size 0x2, 10-bit address decoding
+> Dependent: 01 - Priority acceptable
+>   port 0x300-0x300, align 0x0, size 0x2, 10-bit address decoding
+> Dependent: 02 - Priority functional
+>   port 0x100-0x3fe, align 0x1, size 0x2, 10-bit address decoding
+> 
+> * post-quirk:
+> 
+> irq 5,7,2/9,11,12 High-Edge
+> Dependent: 00 - Priority preferred
+>   port 0x330-0x330, align 0x0, size 0x2, 10-bit address decoding
+> Dependent: 01 - Priority acceptable
+>   port 0x300-0x300, align 0x0, size 0x2, 10-bit address decoding
+> Dependent: 02 - Priority functional
+>   port 0x100-0x3fe, align 0x1, size 0x2, 10-bit address decoding
+> 
+> 
+> See why that "(optional)" flag display is good? :-) I ofcourse tested 
+> things and the flag works great...
+> 
+> 
+> == 5 == quirk_add_irq_optional_dependent_sets, ADS7181
+> 
+> * pre-quirk:
+> 
+> Dependent: 00 - Priority preferred
+>   irq 2/9 High-Edge
+>   port 0x330-0x330, align 0xf, size 0x2, 16-bit address decoding
+> Dependent: 01 - Priority acceptable
+>   irq 2/9 High-Edge
+>   port 0x300-0x330, align 0xf, size 0x2, 16-bit address decoding
+> Dependent: 02 - Priority functional
+>   irq 2/9,10,11 High-Edge
+>   port 0x300-0x330, align 0xf, size 0x2, 16-bit address decoding
+> 
+> * post-quirk:
+> 
+> Dependent: 00 - Priority preferred
+>   irq 2/9 High-Edge
+>   port 0x330-0x330, align 0xf, size 0x2, 16-bit address decoding
+> Dependent: 01 - Priority acceptable
+>   irq 2/9 High-Edge
+>   port 0x300-0x330, align 0xf, size 0x2, 16-bit address decoding
+> Dependent: 02 - Priority functional
+>   irq 2/9,10,11 High-Edge
+>   port 0x300-0x330, align 0xf, size 0x2, 16-bit address decoding
+> Dependent: 03 - Priority functional
+>   irq 2/9 High-Edge
+>   port 0x330-0x330, align 0xf, size 0x2, 16-bit address decoding
+> Dependent: 04 - Priority functional
+>   irq 2/9 High-Edge
+>   port 0x300-0x330, align 0xf, size 0x2, 16-bit address decoding
+> Dependent: 05 - Priority functional
+>   irq 2/9,10,11 High-Edge
+>   port 0x300-0x330, align 0xf, size 0x2, 16-bit address decoding
 
+ADS7181 in fact might as well delete the IRQ from the dependents and add
+"irq 2/9,10,11 High-Edge Optinal" in front as an independent same as 
+ADS7151. That way, all the cloning can go.
+
+I'll probably place that on top if you don't, but you might already want 
+to since it loses all that code. Only difference would be that if IRQ 9 
+is taken and 10 free, the new situation would grab 330/10 while the old 
+would've taken 300/10, but that's in fact better...
+
+Rene.
