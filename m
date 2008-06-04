@@ -1,69 +1,107 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 17/18] ISAPNP: handle independent options following dependent ones
-Date: Wed, 04 Jun 2008 16:09:50 -0600
-Message-ID: <20080604221130.143096410@ldl.fc.hp.com>
+Subject: [patch 16/18] PNP: remove extra 0x100 bit from option priority
+Date: Wed, 04 Jun 2008 16:09:49 -0600
+Message-ID: <20080604221129.955112741@ldl.fc.hp.com>
 References: <20080604220933.168145536@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0029.austin.hp.com ([15.216.28.36]:35837 "EHLO
-	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758873AbYFDWL7 (ORCPT
+Received: from g1t0027.austin.hp.com ([15.216.28.34]:33605 "EHLO
+	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762727AbYFDWL7 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Jun 2008 18:11:59 -0400
-Content-Disposition: inline; filename=isapnp-enddep-bugfix
+Content-Disposition: inline; filename=pnp-remove-extra-priority-bits
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>, Takashi Iwai <tiwai@suse.de>
 
-The ISAPNP spec recommends that independent options precede
-dependent ones, but this is not actually required.  The current
-ISAPNP code incorrectly puts such trailing independent options
-at the end of the last dependent option list.
+When building resource options, ISAPNP and PNPBIOS set the priority
+to something like "0x100 | PNP_RES_PRIORITY_ACCEPTABLE", but we 
+immediately mask off the 0x100 again in pnp_build_option(), so that
+bit looks superfluous.
 
-This patch fixes that bug by resetting the current option list
-to the independent list when we see an "End Dependent Functions"
-tag.  PNPBIOS and PNPACPI handle this the same way.
+Thanks to Rene Herman <rene.herman@gmail.com> for pointing this out.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
 Index: work10/drivers/pnp/isapnp/core.c
 ===================================================================
---- work10.orig/drivers/pnp/isapnp/core.c	2008-06-03 15:45:02.000000000 -0600
-+++ work10/drivers/pnp/isapnp/core.c	2008-06-03 15:49:38.000000000 -0600
-@@ -584,14 +584,14 @@ static int __init isapnp_create_device(s
+--- work10.orig/drivers/pnp/isapnp/core.c	2008-06-02 15:00:07.000000000 -0600
++++ work10/drivers/pnp/isapnp/core.c	2008-06-02 15:00:10.000000000 -0600
+@@ -582,7 +582,7 @@ isapnp_parse_name(char *name, unsigned i
+ static int __init isapnp_create_device(struct pnp_card *card,
+ 				       unsigned short size)
  {
- 	int number = 0, skip = 0, priority, compat = 0;
+-	int number = 0, skip = 0, priority = 0, compat = 0;
++	int number = 0, skip = 0, priority, compat = 0;
  	unsigned char type, tmp[17];
--	struct pnp_option *option;
-+	struct pnp_option *option, *option_independent;
+ 	struct pnp_option *option;
  	struct pnp_dev *dev;
- 	u32 eisa_id;
- 	char id[8];
- 
- 	if ((dev = isapnp_parse_device(card, size, number++)) == NULL)
- 		return 1;
--	option = pnp_register_independent_option(dev);
-+	option_independent = option = pnp_register_independent_option(dev);
- 	if (!option) {
- 		kfree(dev);
- 		return 1;
-@@ -613,6 +613,7 @@ static int __init isapnp_create_device(s
+@@ -621,7 +621,6 @@ static int __init isapnp_create_device(s
+ 			} else {
+ 				skip = 1;
+ 			}
+-			priority = 0;
+ 			compat = 0;
+ 			break;
+ 		case _STAG_COMPATDEVID:
+@@ -650,10 +649,10 @@ static int __init isapnp_create_device(s
+ 		case _STAG_STARTDEP:
+ 			if (size > 1)
+ 				goto __skip;
+-			priority = 0x100 | PNP_RES_PRIORITY_ACCEPTABLE;
++			priority = PNP_RES_PRIORITY_ACCEPTABLE;
+ 			if (size > 0) {
+ 				isapnp_peek(tmp, size);
+-				priority = 0x100 | tmp[0];
++				priority = tmp[0];
  				size = 0;
- 				skip = 0;
- 				option = pnp_register_independent_option(dev);
-+				option_independent = option;
- 				if (!option) {
- 					kfree(dev);
- 					return 1;
-@@ -662,6 +663,10 @@ static int __init isapnp_create_device(s
+ 			}
+ 			option = pnp_register_dependent_option(dev, priority);
+@@ -663,7 +662,6 @@ static int __init isapnp_create_device(s
  		case _STAG_ENDDEP:
  			if (size != 0)
  				goto __skip;
-+			if (option_independent == option)
-+				dev_warn(&dev->dev, "missing "
-+					 "_STAG_STARTDEP tag\n");
-+			option = option_independent;
+-			priority = 0;
  			dev_dbg(&dev->dev, "end dependent options\n");
  			break;
  		case _STAG_IOPORT:
+Index: work10/drivers/pnp/pnpbios/rsparser.c
+===================================================================
+--- work10.orig/drivers/pnp/pnpbios/rsparser.c	2008-06-02 15:00:07.000000000 -0600
++++ work10/drivers/pnp/pnpbios/rsparser.c	2008-06-02 15:00:10.000000000 -0600
+@@ -315,7 +315,7 @@ pnpbios_parse_resource_option_data(unsig
+ 					struct pnp_dev *dev)
+ {
+ 	unsigned int len, tag;
+-	int priority = 0;
++	int priority;
+ 	struct pnp_option *option, *option_independent;
+ 
+ 	if (!p)
+@@ -389,9 +389,9 @@ pnpbios_parse_resource_option_data(unsig
+ 		case SMALL_TAG_STARTDEP:
+ 			if (len > 1)
+ 				goto len_err;
+-			priority = 0x100 | PNP_RES_PRIORITY_ACCEPTABLE;
++			priority = PNP_RES_PRIORITY_ACCEPTABLE;
+ 			if (len > 0)
+-				priority = 0x100 | p[1];
++				priority = p[1];
+ 			option = pnp_register_dependent_option(dev, priority);
+ 			if (!option)
+ 				return NULL;
+Index: work10/drivers/pnp/pnpacpi/rsparser.c
+===================================================================
+--- work10.orig/drivers/pnp/pnpacpi/rsparser.c	2008-06-02 15:00:07.000000000 -0600
++++ work10/drivers/pnp/pnpacpi/rsparser.c	2008-06-02 15:00:10.000000000 -0600
+@@ -545,7 +545,7 @@ struct acpipnp_parse_option_s {
+ static __init acpi_status pnpacpi_option_resource(struct acpi_resource *res,
+ 						  void *data)
+ {
+-	int priority = 0;
++	int priority;
+ 	struct acpipnp_parse_option_s *parse_data = data;
+ 	struct pnp_dev *dev = parse_data->dev;
+ 	struct pnp_option *option = parse_data->option;
 
 -- 
