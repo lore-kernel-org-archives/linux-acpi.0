@@ -1,73 +1,69 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [patch 15/15] PNP: convert resource options to single linked list
-Date: Wed, 4 Jun 2008 17:06:33 -0600
-Message-ID: <200806041706.35385.bjorn.helgaas@hp.com>
-References: <20080530224853.976744229@ldl.fc.hp.com> <200806041450.10576.bjorn.helgaas@hp.com> <484717A6.4060403@keyaccess.nl>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: [patch -v3 16/22] acpi: use memory_read_from_buffer
+Date: Thu, 05 Jun 2008 09:21:26 +0800
+Message-ID: <1212628886.10730.2.camel@yakui_zhao.sh.intel.com>
+References: <20080604115633.116832712@gmail.com>
+	 <20080604115824.062644468@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0026.austin.hp.com ([15.216.28.33]:43967 "EHLO
-	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753280AbYFDXGb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Jun 2008 19:06:31 -0400
-In-Reply-To: <484717A6.4060403@keyaccess.nl>
-Content-Disposition: inline
+Received: from mga01.intel.com ([192.55.52.88]:48075 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751742AbYFEBLo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 4 Jun 2008 21:11:44 -0400
+In-Reply-To: <20080604115824.062644468@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rene Herman <rene.herman@keyaccess.nl>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>, Takashi Iwai <tiwai@suse.de>
+To: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: linux-kernel@vger.kernel.org, akpm@linux-foundation.org, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-On Wednesday 04 June 2008 04:31:02 pm Rene Herman wrote:
-> On 04-06-08 22:50, Bjorn Helgaas wrote:
+On Wed, 2008-06-04 at 20:56 +0900, Akinobu Mita wrote:
+> plain text document attachment
+> (acpi-use-memory-read-from-buffer.patch)
+> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+> Cc: Len Brown <len.brown@intel.com>
+> Cc: linux-acpi@vger.kernel.org
+> ---
+>  drivers/acpi/system.c |   15 ++-------------
+>  1 file changed, 2 insertions(+), 13 deletions(-)
 > 
-> > On Wednesday 04 June 2008 05:48:27 am Rene Herman wrote:
-> >> On 04-06-08 01:52, Rene Herman wrote:
-> > 
-> >> ADS7181 in fact might as well delete the IRQ from the dependents and add
-> >> "irq 2/9,10,11 High-Edge Optinal" in front as an independent same as 
-> >> ADS7151. That way, all the cloning can go.
-> > 
-> > We currently clone for AZT0002 as well as ADS7181.  Can we do the
-> > same for both?  It would be nice to get rid of the cloning code
-> > if we can.
+> Index: 2.6-git/drivers/acpi/system.c
+> ===================================================================
+> --- 2.6-git.orig/drivers/acpi/system.c
+> +++ 2.6-git/drivers/acpi/system.c
+> @@ -77,7 +77,6 @@ static ssize_t acpi_table_show(struct ko
+>  	    container_of(bin_attr, struct acpi_table_attr, attr);
+>  	struct acpi_table_header *table_header = NULL;
+>  	acpi_status status;
+> -	ssize_t ret_count = count;
+>  
+>  	status =
+>  	    acpi_get_table(table_attr->name, table_attr->instance,
+> @@ -85,18 +84,8 @@ static ssize_t acpi_table_show(struct ko
+>  	if (ACPI_FAILURE(status))
+>  		return -ENODEV;
+>  
+> -	if (offset >= table_header->length) {
+> -		ret_count = 0;
+> -		goto end;
+> -	}
+> -
+> -	if (offset + ret_count > table_header->length)
+> -		ret_count = table_header->length - offset;
+> -
+> -	memcpy(buf, ((char *)table_header) + offset, ret_count);
+> -
+> -      end:
+> -	return ret_count;
+> +	return memory_read_from_buffer(buf, count, &offset,
+> +					table_header, table_header->length);
+>  }
+it seems that there is no definition of memory_read_from_buffer. 
+Where is the function of memory_read_from_buffer defined?
+Is there a bug about the current function of acpi_table_show?
+Thanks.
+>  
+>  static void acpi_table_attr_init(struct acpi_table_attr *table_attr,
 > 
-> Yes. AZT0002 (the MPU401 on an AZT2320 chip) is the exact same as 
-> ADS7181 (the MPU401 on an AD1816 chip).
-> 
-> IORESOURCE_IRQ_OPTIONAL clears the path for doing things better. I see 
-> its dependent 2 can then just go entirely in fact.
-> 
-> Hardware says:
-> 
-> Dependent: 00 - Priority preferred
->    irq 2/9 High-Edge
->    port 0x330-0x330, align 0xf, size 0x2, 16-bit address decoding
-> Dependent: 01 - Priority acceptable
->    irq 2/9 High-Edge
->    port 0x300-0x330, align 0xf, size 0x2, 16-bit address decoding
-> Dependent: 02 - Priority functional
->    irq 2/9,10,11 High-Edge
->    port 0x300-0x330, align 0xf, size 0x2, 16-bit address decoding
-> 
-> We want it to end up as:
-> 
-> irq 2/9,10,11 High-Edge (Optional)
-> Dependent: 00 - Priority preferred
->    port 0x330-0x330, align 0xf, size 0x2, 16-bit address decoding
-> Dependent: 01 - Priority acceptable
->    port 0x300-0x330, align 0xf, size 0x2, 16-bit address decoding
-> 
-> So walk dependents deleting IRQs, except last dependent IRQ which is 
-> cloned into a new independent (inserted in front would be best for 
-> ISAPnP since the spec does recommend this) while making it optional and 
-> then just delete the last dependent completely (it would be same as the 
-> previous dependent after all).
 
-That would probably simplify things a bit.  Although in the general
-case, I suppose we'd want to make sure the options we delete are
-a subset of the independent one we add.  Will look at this more
-tomorrow.
-
-Bjorn
