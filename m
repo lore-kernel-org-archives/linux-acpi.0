@@ -1,69 +1,74 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: Re: [PATCH] ACPI : Disable the C2C3_FFH access mode if MWAIT is
-	unsupported
-Date: Thu, 05 Jun 2008 13:45:27 +0800
-Message-ID: <1212644727.14847.1.camel@sli10-desk.sh.intel.com>
-References: <1212637455.10730.8.camel@yakui_zhao.sh.intel.com>
-	 <alpine.LFD.1.10.0806050130220.4914@localhost.localdomain>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: Kernel GPF ACPI
+Date: Thu, 05 Jun 2008 01:54:46 -0400 (EDT)
+Message-ID: <alpine.LFD.1.10.0806050152510.4914@localhost.localdomain>
+References: <20080603021645.A63FDCBC9E@ws5-11.us4.outblaze.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:52939 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751941AbYFEFkL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 5 Jun 2008 01:40:11 -0400
-In-Reply-To: <alpine.LFD.1.10.0806050130220.4914@localhost.localdomain>
+Received: from vms173005pub.verizon.net ([206.46.173.5]:54819 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752086AbYFEFyt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Jun 2008 01:54:49 -0400
+In-reply-to: <20080603021645.A63FDCBC9E@ws5-11.us4.outblaze.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: "Zhao, Yakui" <yakui.zhao@intel.com>, linux-acpi@vger.kernel.org
+To: Mike White <argentia@operamail.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Thu, 2008-06-05 at 13:35 +0800, Len Brown wrote:
-> 
-> 
-> On Thu, 5 Jun 2008, Zhao Yakui wrote:
-> 
-> > Subject: ACPI: Disable the C2C3_FFH access mode if MWAIT is
-> unsupported
-> > From: Zhao Yakui <yakui.zhao@intel.com>
-> >
-> >    After the following commit is merged, C2C3_FFH mode will be
-> enabled and
-> > passed into the _PDC object. But because MWAIT is unsupported on
-> some laptops,
-> > the different power states will be returned by the _CST object.
-> > Maybe it will be better to disable C2C3_FFH access mode if MWAIT is
-> unsupported.
-> > 
-> > commit 991528d7348667924176f3e29addea0675298944
-> > Author: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-> > Date:   Mon Sep 25 16:28:13 2006 -0700
-> >
-> >     ACPI: Processor native C-states using MWAIT
-> 
-> > http://bugzilla.kernel.org/show_bug.cgi?id=10807
-> 
-> Interesting bug report.
-> Unfortunately, it is a BIOS bug that the BIOS exposes C3
-> when the OS doesn't support MWAIT, but neglects to expose
-> C3 when the OS does support MWAIT.
-> 
-> This patch will have no effect on the system in the bug report.
-> Indeed, it would benefit only a system with a BIOS that thinks
-> it has MWAIT support but a CPU that thinks it doesn't...
-> 
-> probably good hygine to do this, but I don't think it will
-> help anything.
-> 
-> I think the fix for the machine in bug 10807 is to
-> have a bootparam that disables mwait support,
-> say "idle=!mwait" and a DMI entry for that box
-> that invokes it to work around the BIOS bug.
-The patch isn't related to the bug, but we got the idea when debugging
-the bug. Yakui should write a new description which doesn't mention the
-bugzilla. I thought we need this patch to avoid buggy BIOS.
 
-Thanks,
-Shaohua
+Thanks for the report, Mike,
+
+> Running Opensuse 10.3 on Asus M2N32-SLI (default BIOS settings), AMD Dual core CPU.
+> Kernel is stock that comes with that version of suse.
+> 
+> Linux deathscape 2.6.22.5-31-default #1 SMP 2007/09/21 22:29:00 UTC x86_64 x86_64 x86_64 GNU/Linux
+> 
+> Upon booting the system, service /etc/rc.d/powersaved segfaults, specifically /usr/sbin/powersaved
+> 
+> Output from dmesg:
+> 
+> 
+> Jun  2 00:51:01 deathscape kernel: general protection fault: 0000 [1] SMP 
+> Jun  2 00:51:01 deathscape kernel: last sysfs file: /block/sr0/capability
+> Jun  2 00:51:01 deathscape kernel: CPU 1 
+> Jun  2 00:51:01 deathscape kernel: Modules linked in: snd_pcm_oss snd_mixer_oss snd_seq ip6t_REJECT xt_tcpudp ipt_REJECT xt_state iptable_mangle iptable_nat nf_nat iptable_filter ip6table_mangle cpufreq_conservative cpufreq_userspace nf_conntrack_ipv4 nf_conntrack cpufreq_powersave nfnetlink powernow_k8 ip_tables ip6table_filter ip6_tables x_tables ipv6 apparmor dm_crypt xfs loop dm_mod rfcomm l2cap joydev hci_usb usbhid parport_pc hid parport bluetooth ff_memless snd_usb_audio snd_usb_lib snd_rawmidi snd_seq_device ohci1394 snd_hda_intel snd_pcm snd_timer rtc_cmos rtc_core rtc_lib uvcvideo firmware_class compat_ioctl32 videodev snd_hwdep nvidia(P) snd k8temp forcedeth ieee1394 hwmon serio_raw sr_mod cdrom snd_page_alloc i2c_nforce2 v4l1_compat soundcore i2c_core v4l2_common button sg sd
+ _mod ehci_hcd ohci_hcd usbcore edd ext3 mbcache jbd fan sata_sil24 sata_nv pata_amd libata scsi_mod thermal processor
+> Jun  2 00:51:01 deathscape kernel: Pid: 3327, comm: powersaved Tainted: P      N 2.6.22.5-31-default #1
+> Jun  2 00:51:01 deathscape kernel: RIP: 0010:[<ffffffff80333fda>]  [<ffffffff80333fda>] acpi_ns_map_handle_to_node+0x14/0x1d
+> Jun  2 00:51:01 deathscape kernel: RSP: 0018:ffff810111ae7e10  EFLAGS: 00010246
+> Jun  2 00:51:01 deathscape kernel: RAX: 0000000000000000 RBX: 0000000000001001 RCX: ffffffff804801f7
+> Jun  2 00:51:01 deathscape kernel: RDX: 000000000000b57b RSI: 0000000000000100 RDI: 4d52454854584e4c
+> Jun  2 00:51:01 deathscape kernel: RBP: 4d52454854584e4c R08: ffffffff8047fdf0 R09: ffffffff804801af
+> Jun  2 00:51:01 deathscape kernel: R10: 0000000000000000 R11: 0000000000000000 R12: ffff810111ae7e78
+> Jun  2 00:51:01 deathscape kernel: R13: ffffffff8033f448 R14: ffff810111ae7e78 R15: 00002b0fae66f000
+> Jun  2 00:51:01 deathscape kernel: FS:  00002b0fb02ac140(0000) GS:ffff81011b962840(0000) knlGS:0000000000000000
+> Jun  2 00:51:01 deathscape kernel: CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+> Jun  2 00:51:01 deathscape kernel: CR2: 00002b0fae66f000 CR3: 00000001118c4000 CR4: 00000000000006e0
+> Jun  2 00:51:01 deathscape kernel: Process powersaved (pid: 3327, threadinfo ffff810111ae6000, task ffff81011a738850)
+> Jun  2 00:51:01 deathscape kernel: Stack:  ffffffff8033321e ffff810111859c38 ffff810111ae7e78 4d52454854584e4c
+> Jun  2 00:51:01 deathscape kernel:  ffff81011969b8c0 ffffffff8801434d ffffffff8033e980 0000000000000003
+> Jun  2 00:51:01 deathscape kernel:  ffff810119a6f000 0000000000000000 ffffffff880135c5 0000000000100073
+> Jun  2 00:51:01 deathscape kernel: Call Trace:
+> Jun  2 00:51:01 deathscape kernel:  [<ffffffff8033321e>] acpi_get_data+0x3e/0x6e
+> Jun  2 00:51:01 deathscape kernel:  [<ffffffff8033e980>] acpi_bus_get_device+0x25/0x68
+> Jun  2 00:51:01 deathscape kernel:  [<ffffffff880135c5>] :thermal:acpi_thermal_trip_seq_show+0x12b/0x257
+> Jun  2 00:51:01 deathscape kernel:  [<ffffffff802a19c2>] seq_read+0x105/0x28b
+> Jun  2 00:51:01 deathscape kernel:  [<ffffffff8028943d>] vfs_read+0xcb/0x153
+> Jun  2 00:51:01 deathscape kernel:  [<ffffffff802897d1>] sys_read+0x45/0x6e
+> Jun  2 00:51:01 deathscape kernel:  [<ffffffff80209dac>] tracesys+0xdc/0xe1
+> Jun  2 00:51:01 deathscape kernel: 
+> Jun  2 00:51:01 deathscape kernel: 
+> Jun  2 00:51:01 deathscape kernel: Code: 80 7f 08 0f 48 0f 44 c7 c3 48 89 f8 c3 31 c0 48 85 ff 74 0d 
+> Jun  2 00:51:01 deathscape kernel: RIP  [<ffffffff80333fda>] acpi_ns_map_handle_to_node+0x14/0x1d
+> Jun  2 00:51:01 deathscape kernel:  RSP <ffff810111ae7e10>
+> 
+
+searching for acpi_thermal_trip_seq_show on kerneloops.org shows that this
+may still be a problem -- at least up through 2.6.24.
+
+<adding linux-acpi list to the cc>
+
+thanks,
+-Len
 
