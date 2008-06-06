@@ -1,32 +1,36 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: bug? acpi p-state + ondemand keeps dropping max freq
-Date: Fri, 6 Jun 2008 01:13:58 -0300
-Message-ID: <20080606041358.GA3457@khazad-dum.debian.net>
-References: <48486920.4040006@intel.com>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: [PATCH 0/8] docking realted fixes
+Date: Fri, 06 Jun 2008 13:22:00 +0800
+Message-ID: <1212729720.25188.23.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:42131 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750713AbYFFEOD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Jun 2008 00:14:03 -0400
-Content-Disposition: inline
-In-Reply-To: <48486920.4040006@intel.com>
+Received: from mga02.intel.com ([134.134.136.20]:35655 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751177AbYFFFQf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 6 Jun 2008 01:16:35 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Kok, Auke" <auke-jan.h.kok@intel.com>
-Cc: linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>, cpufreq@lists.linux.org.uk, Dave Jones <davej@codemonkey.org.uk>
+To: linux acpi <linux-acpi@vger.kernel.org>
+Cc: Len Brown <lenb@kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Accardi, Kristen C" <kristen.c.accardi@intel.com>, Holger Macht <hmacht@suse.de>, mjg59 <mjg59@srcf.ucam.org>, Jeff Garzik <jeff@garzik.org>, Tejun Heo <htejun@gmail.com>
 
-On Thu, 05 Jun 2008, Kok, Auke wrote:
-> This renders my Dothan to utterly poor speeds. (standard T43)
+Docking station, bay, battery hotplug follows the same principle. we
+currently have a lot of duplicate code for each of the hotplug (we
+currently don't support battery hotplug yet). The patch series try to
+make ACPI dock driver support all above hotplug. This simplified things
+and removed a lot of code.
 
-Which ThinkPad T43 model and BIOS revision?
+patch 1: fix a bug. the patch isn't related with follow patches
+patch 2: add _LCK method support
+patch 3, 4, 5: merge bay driver into dock driver. dock driver can handle
+battery and bay.
+patch 6, 7: make libata work well with dock driver
+patch 8: cleanup
 
-I have a T43 2687DDU with the latest BIOS, and I have never seen
-anything like that happening.  Is it overheating or something like that?
+I tested in a T43 with bay and battery hotplug, please review.
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Thanks,
+Shaohua
+
+
