@@ -1,49 +1,65 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: linux-next Regression: Unable to locate IOAPIC
-Date: Fri, 6 Jun 2008 11:50:24 -0700
-Message-ID: <20080606115024.387b5f80.akpm@linux-foundation.org>
-References: <200806051100.12885.dex@dragonslave.de>
-	<20080606031718.36cbbdc9.akpm@linux-foundation.org>
-	<200806061930.29046.dex@dragonslave.de>
+From: "Henrique de Moraes Holschuh" <hmh@hmh.eng.br>
+Subject: Re: bug? acpi p-state + ondemand keeps dropping max freq
+Date: Fri, 06 Jun 2008 16:47:38 -0300
+Message-ID: <1212781658.28267.1257170963@webmail.messagingengine.com>
+References: <48486920.4040006@intel.com>
+ <20080606041358.GA3457@khazad-dum.debian.net>
+ <48496714.6030005@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57806 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755063AbYFFSub (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Jun 2008 14:50:31 -0400
-In-Reply-To: <200806061930.29046.dex@dragonslave.de>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:59973 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752298AbYFFTrj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Jun 2008 15:47:39 -0400
+Content-Disposition: inline
+In-Reply-To: <48496714.6030005@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: webmaster@dragonslave.de
-Cc: Daniel Exner <dex@dragonslave.de>, linux-kernel@vger.kernel.org, linux-next@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Kok, Auke" <auke-jan.h.kok@intel.com>
+Cc: linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>, cpufreq@lists.linux.org.uk, Dave Jones <davej@codemonkey.org.uk>
 
-On Fri, 6 Jun 2008 19:30:28 +0200 Daniel Exner <dex@dragonslave.de> wrote:
-
-> Andrew Morton wrote:
-> > (cc linux-acpi)
-> >
-> > On Thu, 5 Jun 2008 11:00:12 +0200 Daniel Exner <dex@dragonslave.de> wrote:
-> > > Hi!
-> > >
-> > > (Added myself to CC, because I'm not subscribed)
-> > >
-> > > with linux-next snapshot 20080604 my Laptop morphes into sitting duck and
-> > > I think this is due to this:
-> >
-> > I assume 2.6.26-rc5 is OK?
-> Indeed.. just tried it with (nearly) the same config: no unable to locate 
-> IOAPIC
+On Fri, 06 Jun 2008 09:34:28 -0700, "Kok, Auke" <auke-jan.h.kok@intel.com> said:
+> Henrique de Moraes Holschuh wrote:
+> > On Thu, 05 Jun 2008, Kok, Auke wrote:
+> >> This renders my Dothan to utterly poor speeds. (standard T43)
+> > 
+> > Which ThinkPad T43 model and BIOS revision?
+> > 
+> > I have a T43 2687DDU with the latest BIOS, and I have never seen
+> > anything like that happening.  Is it overheating or something like that?
 > 
-> Will try todays next snapshot above -rc5 now.
+> T43 2668NU3 Version: 1YET59WW (1.24 )
 
-OK, thanks.
+Older version of the planar card, but should be close enough to the
+2687 I have...
 
-It would be great if you could test 2.6.26-rc5 plus
-http://userweb.kernel.org/~akpm/git-acpi.patch.  That'll allow us to
-confirm that the regression is due to changes in the acpi tree.
+Your BIOS is horribly old, and your EC firmware is very old too.  You
+really should upgrade to BIOS 1.29 (1YET65WW) and EC 1.06.  Lenovo has
+CDs you can use to upgrade even without Windows.  thinkwiki.org has the 
+links to the support pages with the downloads.
 
-> BTW: Any chance to get this damn thing to not route everything by IRQ 11 !?
+After you upgrade, go into the BIOS configuration screen, and set everything
+related to Speedstep and performance management to highest performance.  You
+can let the BIOS do BUS power management, and you should let it do screen
+brightness power management, but don't let it mess with the processor speed
+or the disks.   It can have bad interactions with Linux power management.
 
-ooh, wrong guy to ask, sorry.
+> hardly overheating:
+> 
+>   Thermal zone 1 : ok, 49 C
+
+It is probably a bad interaction from SMBIOS power management with the native
+Linux power management.
+
+BTW: install thinkpad-acpi and lm-sensors 3.0, and you will be able to see the
+11 thermal zones the EC controls in a T43.
+
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
+
