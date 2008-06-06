@@ -1,36 +1,61 @@
 From: Shaohua Li <shaohua.li@intel.com>
-Subject: [PATCH 0/8] docking realted fixes
-Date: Fri, 06 Jun 2008 13:22:00 +0800
-Message-ID: <1212729720.25188.23.camel@sli10-desk.sh.intel.com>
+Subject: [patch 1/8]avoid check _STA method
+Date: Fri, 06 Jun 2008 13:22:11 +0800
+Message-ID: <1212729731.25188.24.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:35655 "EHLO mga02.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:4403 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751177AbYFFFQf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 6 Jun 2008 01:16:35 -0400
+	id S1751721AbYFFFQr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 6 Jun 2008 01:16:47 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux acpi <linux-acpi@vger.kernel.org>
 Cc: Len Brown <lenb@kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Accardi, Kristen C" <kristen.c.accardi@intel.com>, Holger Macht <hmacht@suse.de>, mjg59 <mjg59@srcf.ucam.org>, Jeff Garzik <jeff@garzik.org>, Tejun Heo <htejun@gmail.com>
 
-Docking station, bay, battery hotplug follows the same principle. we
-currently have a lot of duplicate code for each of the hotplug (we
-currently don't support battery hotplug yet). The patch series try to
-make ACPI dock driver support all above hotplug. This simplified things
-and removed a lot of code.
+=EF=BB=BFIn some BIOSes, every _STA method call will send a notificatio=
+n again,
+this cause freeze. And in some BIOSes, it appears _STA should be called
+after _DCK. This tries to avoid calls _STA, and still keep the device
+present check.
+=EF=BB=BFhttp://bugzilla.kernel.org/show_bug.cgi?id=3D10431
 
-patch 1: fix a bug. the patch isn't related with follow patches
-patch 2: add _LCK method support
-patch 3, 4, 5: merge bay driver into dock driver. dock driver can handle
-battery and bay.
-patch 6, 7: make libata work well with dock driver
-patch 8: cleanup
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>=20
+---
+ drivers/acpi/dock.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-I tested in a T43 with bay and battery hotplug, please review.
+Index: linux/drivers/acpi/dock.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux.orig/drivers/acpi/dock.c	2008-05-26 10:49:42.000000000 +0800
++++ linux/drivers/acpi/dock.c	2008-06-05 09:09:13.000000000 +0800
+@@ -599,14 +599,16 @@ static int handle_eject_request(struct d
+ static void dock_notify(acpi_handle handle, u32 event, void *data)
+ {
+ 	struct dock_station *ds =3D data;
++	struct acpi_device *tmp;
+=20
+ 	switch (event) {
+ 	case ACPI_NOTIFY_BUS_CHECK:
+-		if (!dock_in_progress(ds) && dock_present(ds)) {
++		if (!dock_in_progress(ds) && acpi_bus_get_device(ds->handle, &tmp)) =
+{
+ 			begin_dock(ds);
+ 			dock(ds);
+ 			if (!dock_present(ds)) {
+ 				printk(KERN_ERR PREFIX "Unable to dock!\n");
++				complete_dock(ds);
+ 				break;
+ 			}
+ 			atomic_notifier_call_chain(&dock_notifier_list,
 
-Thanks,
-Shaohua
 
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
