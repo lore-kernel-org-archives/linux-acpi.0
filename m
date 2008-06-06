@@ -1,54 +1,31 @@
-From: "Kok, Auke" <auke-jan.h.kok@intel.com>
-Subject: bug? acpi p-state + ondemand keeps dropping max freq
-Date: Thu, 05 Jun 2008 15:30:56 -0700
-Message-ID: <48486920.4040006@intel.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: acpi problem
+Date: Thu, 5 Jun 2008 17:12:04 -0700
+Message-ID: <20080605171204.4bb341f5.akpm@linux-foundation.org>
+References: <20080529173315.GA7420@guevara.dmp>
+	<200805292156.08963.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:63004 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754570AbYFEWcl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 5 Jun 2008 18:32:41 -0400
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58217 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753185AbYFFANC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Jun 2008 20:13:02 -0400
+In-Reply-To: <200805292156.08963.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: "Brown, Len" <len.brown@intel.com>, cpufreq@lists.linux.org.uk, Dave Jones <davej@codemonkey.org.uk>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: paco.dmp@gmail.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org
 
+On Thu, 29 May 2008 21:56:08 +0200
+"Rafael J. Wysocki" <rjw@sisk.pl> wrote:
 
-I've consistently experienced the following bizarre problem since 2.6.20, all the
-way up to 2.6.25.3 (regressed yesterday and each of these kernels exposes this
-behaviour):
+> [Added a couple of CCs]
 
-/sys/devices/system/cpu/cpu0/cpufreq # grep . *
-affected_cpus:0
-cpuinfo_cur_freq:800000
-cpuinfo_max_freq:1866000
-cpuinfo_min_freq:800000
-scaling_available_frequencies:1866000 1600000 1333000 1066000 800000
-scaling_available_governors:ondemand performance
-scaling_cur_freq:800000
-scaling_driver:acpi-cpufreq
-scaling_governor:ondemand
-scaling_max_freq:800000
-scaling_min_freq:800000
+Didn't work out so well, did it?
 
+Please enter this in a report against acpi at bugzilla.kernel.org, thanks.
 
+Don't forget to check the "regression" box :(
 
-Notice that scaling_mx_freq dropped down to the lowest possible value and as such
-my CPU is only working at 800MHz. At boot time this field properly displays
-1866MHz and everything works OK. After a certain period (?) this value drops down
-and I cannot manually elevate it back to the normal level:
-
-# echo 1866000 > scaling_max_freq ; cat scaling_max_freq
-800000
-# echo 1866000 > scaling_max_freq ; cat scaling_max_freq
-800000
-
-
-This renders my Dothan to utterly poor speeds. (standard T43)
-
-performance cpufreq governor makes no difference - I still can't change the
-frequency upper/lower values.
-
-Auke
