@@ -1,37 +1,39 @@
 From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: Re: PTS ordering / asus P1-AH2 system
-Date: Sat, 7 Jun 2008 11:22:10 +0100
-Message-ID: <200806071122.10951.carlos@strangeworlds.co.uk>
-References: <20080607040650.GA21015@zoy.org>
+Subject: Re: Suspend and hibernation patchset for 2.6.26-rc3
+Date: Sat, 7 Jun 2008 11:21:57 +0100
+Message-ID: <200806071121.59619.carlos@strangeworlds.co.uk>
+References: <200805212329.59539.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from phoenix.slamd64.com ([217.10.145.2]:54375 "EHLO
-	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755642AbYFGKWV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Jun 2008 06:22:21 -0400
-In-Reply-To: <20080607040650.GA21015@zoy.org>
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <200805212329.59539.rjw@sisk.pl>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Nigel Cunningham <ncunningham@crca.org.au>, LKML <linux-kernel@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Alexey Starikovskiy <astarikovskiy@suse.de>
 List-Id: linux-acpi@vger.kernel.org
-To: Michel Lespinasse <walken@zoy.org>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-(Adding Rafael to CC)
+On Wednesday 21 May 2008 22:29:57 Rafael J. Wysocki wrote:
+> Patches 01-06 and 11 have been sent to Len as 2.6.27 material.  They have
+> been tested by me for some time (except for the most recent changes in
+> patches 01 and 11) and have not lead to any problems so far.
 
-On Saturday 07 June 2008 05:06:50 Michel Lespinasse wrote:
-> I am wondering, are there patches for 2.6.25.* or 2.6.26-rc* to
-> work around the suspend/resume PTS ordering issue, even using
-> a kernel parameter if needed ?
+Patch 11:
 
-See Rafael's patches here: 
-http://www.sisk.pl/kernel/hibernation_and_suspend/2.6.26-rc3/patches/
+Tested-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
 
-(They apply fine to the latest 2.6.26 git, and should hit mainline in 2.6.27)
+My box can now suspend & resume quite happily with acpi_sleep=old_ordering
 
-You'll need to boot with acpi_sleep=old_ordering to test.
+(That's on latest 2.6.26 git + the patch series on top).
 
 -Carlos
 -- 
