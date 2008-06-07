@@ -1,42 +1,94 @@
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: Re: Suspend and hibernation patchset for 2.6.26-rc3
-Date: Sat, 7 Jun 2008 11:21:57 +0100
-Message-ID: <200806071121.59619.carlos@strangeworlds.co.uk>
-References: <200805212329.59539.rjw@sisk.pl>
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: Re: ACPI: EC: GPE storm detected, disabling EC GPE
+Date: Sat, 7 Jun 2008 13:59:04 +0300
+Message-ID: <200806071359.04426.maximlevitsky@gmail.com>
+References: <dd18b0c30806062321x2918f6feq7c817bde52ba0c4c@mail.gmail.com> <20080606235526.783acc83.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <200805212329.59539.rjw@sisk.pl>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1759149AbYFGK7X@vger.kernel.org>
+In-Reply-To: <20080606235526.783acc83.akpm@linux-foundation.org>
 Content-Disposition: inline
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Nigel Cunningham <ncunningham@crca.org.au>, LKML <linux-kernel@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Alexey Starikovskiy <astarikovskiy@suse.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Justin Mattock <justinmattock@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Alexey Starikovskiy <astarikovskiy@suse.de>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday 21 May 2008 22:29:57 Rafael J. Wysocki wrote:
-> Patches 01-06 and 11 have been sent to Len as 2.6.27 material.  They have
-> been tested by me for some time (except for the most recent changes in
-> patches 01 and 11) and have not lead to any problems so far.
+On Saturday, 7 June 2008 09:55:26 Andrew Morton wrote:
+> On Sat, 7 Jun 2008 06:21:54 +0000 "Justin Mattock" <justinmattock@gmail.com> wrote:
+> 
+> > Well; I was hoping it was going to be just an easy fix, but unfortunately
+> > changing
+> >  if (atomic_read(&ec->irq_count) > 5) {
+> >  to
+> > if (atomic_read(&ec->irq_count) > 20) {
+> > does seem to make the message disappear, for a while, probably at
+> > around three hours,(for me at least) then the message appeared again.
+> > :-(
+> > So leaving me back to the beginning of try to have a go at this.
+> > regards;
+> 
+> I removed bugzilla from cc - that only works if there's [Bug 1234] in
+> the Subject:.
+> 
+> I added linux-acpi to cc - this is an acpi problem.
+> 
+> What Justin is mysteriously referring to here is:
+> 
+> 
+> : From: "Justin Mattock" <justinmattock@gmail.com>
+> : To: "Linux Kernel Mailing List" <linux-kernel@vger.kernel.org>
+> : Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+> : Subject: GPE storm detected, disabling EC GPE
+> : Date: 	Thu, 5 Jun 2008 21:01:55 +0000
+> : Sender: linux-kernel-owner@vger.kernel.org
+> : 
+> : FWIW I noticed a post where the person had changed 5 to 20, and it
+> : seemed to work for them;
+> : So with that in mind I decide to give that a go, here is the location:
+> : drivers/acpi/ec.c
+> : @@ -527,47 +488,51 @@ static u32 acpi_ec_gpe_handler(void *data)
+> :  {
+> :         acpi_status status = AE_OK;
+> :         struct acpi_ec *ec = data;
+> :        u8 state = acpi_ec_read_status(ec);
+> : 
+> :         pr_debug(PREFIX "~~~> interrupt\n");
+> :        atomic_inc(&ec->irq_count);
+> : -       if (atomic_read(&ec->irq_count) > 5) {
+> : +       if (atomic_read(&ec->irq_count) > 20) {
+> :                pr_err(PREFIX "GPE storm detected, disabling EC GPE\n");
+> :                ec_switch_to_poll_mode(ec);
+> :                goto end;
+> :        }
+> : 
+> : Now I don't know if this will work for other brands, but for
+> : me(Macbook Pro ATI chipset) I have not received the
+> : GPE storm detected, disabling EC GPE message, but it's only been an
+> : hour, maybe after two or three this might appear.
+> : Also is this good or bad to set 5 to 20 for the system?
+> 
+> Could someone from acpi land please help here?
+> 
+> Justin, has this machine always had this problem or is it something
+> which earlier kernels handled correctly?
+> 
+> Thanks.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+> 
 
-Patch 11:
+I have acer aspire 5720G which shows this message in latest -git
+but doesn't show it in ubuntu 2.6.24 kernel.
 
-Tested-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
+I also noticed that in -git volume wheel behaves strangely, it sometimes increases volume
+when I rotate it in direction of decrease, and vise versa.
 
-My box can now suspend & resume quite happily with acpi_sleep=old_ordering
+Since the EC is in charge of volume wheel, it could be related.
 
-(That's on latest 2.6.26 git + the patch series on top).
-
--Carlos
--- 
-E-Mail: carlos@strangeworlds.co.uk
-Web: strangeworlds.co.uk
-GPG Key ID: 0x23EE722D
+Best regards,
+	Maxim Levitsky
