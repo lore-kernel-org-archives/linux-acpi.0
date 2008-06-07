@@ -1,70 +1,65 @@
-From: "Justin Mattock" <justinmattock@gmail.com>
-Subject: Re: ACPI: EC: GPE storm detected, disabling EC GPE
-Date: Sat, 7 Jun 2008 23:20:07 +0000
-Message-ID: <dd18b0c30806071620o7b1c591dmf86081eadaa8078c@mail.gmail.com>
-References: <dd18b0c30806062321x2918f6feq7c817bde52ba0c4c@mail.gmail.com>
-	 <20080606235526.783acc83.akpm@linux-foundation.org>
-	 <dd18b0c30806070847t63b8dbc0x8bfcbafc359f7031@mail.gmail.com>
-	 <484AE148.6000204@suse.de>
-	 <dd18b0c30806071335j200daa9t517bf41ab10b2f@mail.gmail.com>
-	 <484AFD3C.7080600@suse.de>
+From: =?iso-8859-1?Q?Bj=F6rn?= Steinbrink <B.Steinbrink@gmx.de>
+Subject: Re: bug? acpi p-state + ondemand keeps dropping max freq
+Date: Sun, 8 Jun 2008 01:22:19 +0200
+Message-ID: <20080607232219.GA25693@atjola.homenet>
+References: <48486920.4040006@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.240]:60139 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753535AbYFGXUI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Jun 2008 19:20:08 -0400
-Received: by an-out-0708.google.com with SMTP id d40so389842and.103
-        for <linux-acpi@vger.kernel.org>; Sat, 07 Jun 2008 16:20:08 -0700 (PDT)
-In-Reply-To: <484AFD3C.7080600@suse.de>
+Received: from mail.gmx.net ([213.165.64.20]:44623 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753535AbYFGXWY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 7 Jun 2008 19:22:24 -0400
 Content-Disposition: inline
+In-Reply-To: <48486920.4040006@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: "Kok, Auke" <auke-jan.h.kok@intel.com>
+Cc: linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>, cpufreq@lists.linux.org.uk, Dave Jones <davej@codemonkey.org.uk>
 
-On Sat, Jun 7, 2008 at 9:27 PM, Alexey Starikovskiy
-<astarikovskiy@suse.de> wrote:
-> Justin Mattock wrote:
->>
->> Interesting, over here I'm using a Macbook Pro ATI chipset. I'm not
->> experiencing things like missing keys or anything of that nature.
->> but am concerned with what might happen to the hardware in the long
->> run. As for the patches I did apply those,
->> and it did give me a better idea of what is happening., but just to
->> get a right info, when ACPI: EC: gpe storm detected message appears
->> does it disable interrupt mode for that moment and then go back to it
->> original state, or is it once the gpe storm is triggered the interupt
->> mode is disabled until a reboot is performed. from looking at the data
->> from the patches that I used from here it looks like something in the
->> system triggers that message, but then after a few seconds  goes back
->> to its original state, until another storm is detected.
->> I don't have a problem with this message if it's triggering and then
->> returning to it's original state until another storm triggers this
->> message again, but I am concerned with the message being triggered,
->> and then the system is stuck in that mode until a reboot.(but if this
->> is O.K. for the system then that's cool too).
->
-> If interrupt storm from EC is detected EC interrupt will be disabled
-> permanently.
-> EC driver then starts to poll hardware for events in half-second interval,
-> so it is
-> still fully functional, but may be there is going to be impact on power
-> consumption, etc.
->
-> Regards,
-> Alex.
->
+On 2008.06.05 15:30:56 -0700, Kok, Auke wrote:
+>=20
+> I've consistently experienced the following bizarre problem since
+> 2.6.20, all the way up to 2.6.25.3 (regressed yesterday and each of
+> these kernels exposes this behaviour):
+>=20
+> /sys/devices/system/cpu/cpu0/cpufreq # grep . *
+> affected_cpus:0
+> cpuinfo_cur_freq:800000
+> cpuinfo_max_freq:1866000
+> cpuinfo_min_freq:800000
+> scaling_available_frequencies:1866000 1600000 1333000 1066000 800000
+> scaling_available_governors:ondemand performance
+> scaling_cur_freq:800000
+> scaling_driver:acpi-cpufreq
+> scaling_governor:ondemand
+> scaling_max_freq:800000
+> scaling_min_freq:800000
+>=20
 
-Hmmm, power consumption., well that's not bad, but maybe I should be
-concerned with my battery, maybe I should
-remove my battery, and use it only if I need be., just to be on the
-safe side. (apple already replaced this one for free, without apple
-care, so
-I don't think they want to do that again.)
-regards;
+I also saw that on my T43, didn't have time to investigate any further
+and forgot about it shortly after :-(
 
--- 
-Justin P. Mattock
+>=20
+> Notice that scaling_mx_freq dropped down to the lowest possible value
+> and as such my CPU is only working at 800MHz. At boot time this field
+> properly displays 1866MHz and everything works OK. After a certain
+> period (?) this value drops down and I cannot manually elevate it bac=
+k
+> to the normal level:
+>=20
+> # echo 1866000 > scaling_max_freq ; cat scaling_max_freq
+> 800000
+> # echo 1866000 > scaling_max_freq ; cat scaling_max_freq
+> 800000
+
+Try with "echo -n", seems that sysfs (or at least that file) doesn't
+like newlines.
+
+Bj=F6rn
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
