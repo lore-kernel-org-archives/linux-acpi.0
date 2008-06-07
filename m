@@ -1,43 +1,64 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: Re: ACPI: EC: GPE storm detected, disabling EC GPE
-Date: Sun, 08 Jun 2008 01:27:24 +0400
-Message-ID: <484AFD3C.7080600@suse.de>
-References: <dd18b0c30806062321x2918f6feq7c817bde52ba0c4c@mail.gmail.com>	 <20080606235526.783acc83.akpm@linux-foundation.org>	 <dd18b0c30806070847t63b8dbc0x8bfcbafc359f7031@mail.gmail.com>	 <484AE148.6000204@suse.de> <dd18b0c30806071335j200daa9t517bf41ab10b2f@mail.gmail.com>
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: bug? acpi p-state + ondemand keeps dropping max freq
+Date: Sat, 7 Jun 2008 23:39:18 +0200
+Message-ID: <20080607213918.GC1746@elf.ucw.cz>
+References: <20080606140846.GA9580@ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:52413 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753755AbYFGV12 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Jun 2008 17:27:28 -0400
-In-Reply-To: <dd18b0c30806071335j200daa9t517bf41ab10b2f@mail.gmail.com>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:36930 "EHLO
+	gprs189-60.eurotel.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752067AbYFGVi0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Jun 2008 17:38:26 -0400
+Content-Disposition: inline
+In-Reply-To: <20080606140846.GA9580@ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Justin Mattock <justinmattock@gmail.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: pavel@suse.cz, auke-jan.h.kok@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, len.brown@intel.com, cpufreq@lists.linux.org.uk, davej@codemonkey.org.uk
 
-Justin Mattock wrote:
-> Interesting, over here I'm using a Macbook Pro ATI chipset. I'm not
-> experiencing things like missing keys or anything of that nature.
-> but am concerned with what might happen to the hardware in the long
-> run. As for the patches I did apply those,
-> and it did give me a better idea of what is happening., but just to
-> get a right info, when ACPI: EC: gpe storm detected message appears
-> does it disable interrupt mode for that moment and then go back to it
-> original state, or is it once the gpe storm is triggered the interupt
-> mode is disabled until a reboot is performed. from looking at the data
-> from the patches that I used from here it looks like something in the
-> system triggers that message, but then after a few seconds  goes back
-> to its original state, until another storm is detected.
-> I don't have a problem with this message if it's triggering and then
-> returning to it's original state until another storm triggers this
-> message again, but I am concerned with the message being triggered,
-> and then the system is stuck in that mode until a reboot.(but if this
-> is O.K. for the system then that's cool too).
-If interrupt storm from EC is detected EC interrupt will be disabled permanently.
-EC driver then starts to poll hardware for events in half-second interval, so it is
-still fully functional, but may be there is going to be impact on power consumption, etc.
+Hi!
 
-Regards,
-Alex.
+> I've consistently experienced the following bizarre problem since 2.6.20, all the
+> way up to 2.6.25.3 (regressed yesterday and each of these kernels exposes this
+> behaviour):
+> 
+> /sys/devices/system/cpu/cpu0/cpufreq # grep . *
+> affected_cpus:0
+> cpuinfo_cur_freq:800000
+> cpuinfo_max_freq:1866000
+> cpuinfo_min_freq:800000
+> scaling_available_frequencies:1866000 1600000 1333000 1066000 800000
+> scaling_available_governors:ondemand performance
+> scaling_cur_freq:800000
+> scaling_driver:acpi-cpufreq
+> scaling_governor:ondemand
+> scaling_max_freq:800000
+> scaling_min_freq:800000
+> 
+> 
+> 
+> Notice that scaling_mx_freq dropped down to the lowest possible value and as such
+> my CPU is only working at 800MHz. At boot time this field properly displays
+> 1866MHz and everything works OK. After a certain period (?) this value drops down
+> and I cannot manually elevate it back to the normal level:
+> 
+> # echo 1866000 > scaling_max_freq ; cat scaling_max_freq
+> 800000
+> # echo 1866000 > scaling_max_freq ; cat scaling_max_freq
+> 800000
+> 
+> 
+> This renders my Dothan to utterly poor speeds. (standard T43)
+> 
+> performance cpufreq governor makes no difference - I still can't change the
+> frequency upper/lower values.
+
+Hmm, I have similar problem in Novell bugzilla, on very different hw:
+
+https://bugzilla.novell.com/show_bug.cgi?id=396311
+
+								Pavel
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
