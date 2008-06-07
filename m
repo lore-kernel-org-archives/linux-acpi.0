@@ -1,90 +1,150 @@
-From: "Justin Mattock" <justinmattock@gmail.com>
-Subject: Re: ACPI: EC: GPE storm detected, disabling EC GPE
-Date: Sat, 7 Jun 2008 15:47:57 +0000
-Message-ID: <dd18b0c30806070847t63b8dbc0x8bfcbafc359f7031@mail.gmail.com>
-References: <dd18b0c30806062321x2918f6feq7c817bde52ba0c4c@mail.gmail.com>
-	 <20080606235526.783acc83.akpm@linux-foundation.org>
+From: "Frej Salminiitty" <frej.salminiitty@10duke.com>
+Subject: dmidecode output
+Date: Sat, 7 Jun 2008 22:05:52 +0300 (EEST)
+Message-ID: <24716.88.113.123.232.1212865552.squirrel@mail2.locotech.fi>
+Reply-To: frej.salminiitty@10duke.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;boundary="----=_20080607220552_70915"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.250]:17086 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758406AbYFGPsA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Jun 2008 11:48:00 -0400
-Received: by an-out-0708.google.com with SMTP id d40so367981and.103
-        for <linux-acpi@vger.kernel.org>; Sat, 07 Jun 2008 08:47:57 -0700 (PDT)
-In-Reply-To: <20080606235526.783acc83.akpm@linux-foundation.org>
-Content-Disposition: inline
+Received: from trinity.locotech.fi ([194.100.45.114]:57302 "HELO
+	trinity.locotech.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754910AbYFGTMd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Jun 2008 15:12:33 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Alexey Starikovskiy <astarikovskiy@suse.de>
+To: linux-acpi@vger.kernel.org
 
-On Sat, Jun 7, 2008 at 6:55 AM, Andrew Morton <akpm@linux-foundation.org> wrote:
-> On Sat, 7 Jun 2008 06:21:54 +0000 "Justin Mattock" <justinmattock@gmail.com> wrote:
->
->> Well; I was hoping it was going to be just an easy fix, but unfortunately
->> changing
->>  if (atomic_read(&ec->irq_count) > 5) {
->>  to
->> if (atomic_read(&ec->irq_count) > 20) {
->> does seem to make the message disappear, for a while, probably at
->> around three hours,(for me at least) then the message appeared again.
->> :-(
->> So leaving me back to the beginning of try to have a go at this.
->> regards;
->
-> I removed bugzilla from cc - that only works if there's [Bug 1234] in
-> the Subject:.
->
-> I added linux-acpi to cc - this is an acpi problem.
->
-> What Justin is mysteriously referring to here is:
->
->
-> : From: "Justin Mattock" <justinmattock@gmail.com>
-> : To: "Linux Kernel Mailing List" <linux-kernel@vger.kernel.org>
-> : Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-> : Subject: GPE storm detected, disabling EC GPE
-> : Date:         Thu, 5 Jun 2008 21:01:55 +0000
-> : Sender: linux-kernel-owner@vger.kernel.org
-> :
-> : FWIW I noticed a post where the person had changed 5 to 20, and it
-> : seemed to work for them;
-> : So with that in mind I decide to give that a go, here is the location:
-> : drivers/acpi/ec.c
-> : @@ -527,47 +488,51 @@ static u32 acpi_ec_gpe_handler(void *data)
-> :  {
-> :         acpi_status status = AE_OK;
-> :         struct acpi_ec *ec = data;
-> :        u8 state = acpi_ec_read_status(ec);
-> :
-> :         pr_debug(PREFIX "~~~> interrupt\n");
-> :        atomic_inc(&ec->irq_count);
-> : -       if (atomic_read(&ec->irq_count) > 5) {
-> : +       if (atomic_read(&ec->irq_count) > 20) {
-> :                pr_err(PREFIX "GPE storm detected, disabling EC GPE\n");
-> :                ec_switch_to_poll_mode(ec);
-> :                goto end;
-> :        }
-> :
-> : Now I don't know if this will work for other brands, but for
-> : me(Macbook Pro ATI chipset) I have not received the
-> : GPE storm detected, disabling EC GPE message, but it's only been an
-> : hour, maybe after two or three this might appear.
-> : Also is this good or bad to set 5 to 20 for the system?
->
-> Could someone from acpi land please help here?
->
-> Justin, has this machine always had this problem or is it something
-> which earlier kernels handled correctly?
->
-> Thanks.
->
+------=_20080607220552_70915
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 
-This issue just recently started, 2.6.25-rc9 and below don't give me
-this message.
+Hi,
+Please find attached dmidecode as requested by an entry in the system
+messages...
 
--- 
-Justin P. Mattock
+Cheers,
+Frej
+
+
+
+------=_20080607220552_70915
+Content-Type: application/octet-stream; name="dmidecode.out"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="dmidecode.out"
+
+IyBkbWlkZWNvZGUgMi45ClNNQklPUyAyLjQgcHJlc2VudC4KMTkgc3RydWN0dXJlcyBvY2N1cHlp
+bmcgNzI2IGJ5dGVzLgpUYWJsZSBhdCAweDAwMERGMDEwLgoKSGFuZGxlIDB4MDAwMCwgRE1JIHR5
+cGUgMCwgMjQgYnl0ZXMKQklPUyBJbmZvcm1hdGlvbgoJVmVuZG9yOiBIZXdsZXR0LVBhY2thcmQK
+CVZlcnNpb246IEYuMkMgICAgCglSZWxlYXNlIERhdGU6IDAzLzI0LzIwMDgKCUFkZHJlc3M6IDB4
+RTY5NDAKCVJ1bnRpbWUgU2l6ZTogMTA0MTI4IGJ5dGVzCglST00gU2l6ZTogMTAyNCBrQgoJQ2hh
+cmFjdGVyaXN0aWNzOgoJCUlTQSBpcyBzdXBwb3J0ZWQKCQlQQ0kgaXMgc3VwcG9ydGVkCgkJUE5Q
+IGlzIHN1cHBvcnRlZAoJCUJJT1MgaXMgdXBncmFkZWFibGUKCQlCSU9TIHNoYWRvd2luZyBpcyBh
+bGxvd2VkCgkJRVNDRCBzdXBwb3J0IGlzIGF2YWlsYWJsZQoJCUJvb3QgZnJvbSBDRCBpcyBzdXBw
+b3J0ZWQKCQlTZWxlY3RhYmxlIGJvb3QgaXMgc3VwcG9ydGVkCgkJUHJpbnQgc2NyZWVuIHNlcnZp
+Y2UgaXMgc3VwcG9ydGVkIChpbnQgNWgpCgkJODA0MiBrZXlib2FyZCBzZXJ2aWNlcyBhcmUgc3Vw
+cG9ydGVkIChpbnQgOWgpCgkJU2VyaWFsIHNlcnZpY2VzIGFyZSBzdXBwb3J0ZWQgKGludCAxNGgp
+CgkJUHJpbnRlciBzZXJ2aWNlcyBhcmUgc3VwcG9ydGVkIChpbnQgMTdoKQoJCUFDUEkgaXMgc3Vw
+cG9ydGVkCgkJVVNCIGxlZ2FjeSBpcyBzdXBwb3J0ZWQKCQlBR1AgaXMgc3VwcG9ydGVkCgkJU21h
+cnQgYmF0dGVyeSBpcyBzdXBwb3J0ZWQKCQlUYXJnZXRlZCBjb250ZW50IGRpc3RyaWJ1dGlvbiBp
+cyBzdXBwb3J0ZWQKCkhhbmRsZSAweDAwMDEsIERNSSB0eXBlIDEsIDI3IGJ5dGVzClN5c3RlbSBJ
+bmZvcm1hdGlvbgoJTWFudWZhY3R1cmVyOiBIZXdsZXR0LVBhY2thcmQKCVByb2R1Y3QgTmFtZTog
+SFAgUGF2aWxpb24gZHY5NzAwIE5vdGVib29rIFBDICAgIAoJVmVyc2lvbjogUmV2IDEKCVNlcmlh
+bCBOdW1iZXI6IENORjgxMzBNSjMKCVVVSUQ6IDQzNEU0NjM4LTMxMzMtMzA0RC00QTMzLTAwMUU2
+ODQwNTUxQgoJV2FrZS11cCBUeXBlOiBQb3dlciBTd2l0Y2gKCVNLVSBOdW1iZXI6IEZGNDgwRUEj
+VVVXCglGYW1pbHk6IDEwM0NfNTMzNUtWCgpIYW5kbGUgMHgwMDAyLCBETUkgdHlwZSAyLCA4IGJ5
+dGVzCkJhc2UgQm9hcmQgSW5mb3JtYXRpb24KCU1hbnVmYWN0dXJlcjogUXVhbnRhCglQcm9kdWN0
+IE5hbWU6IDMwREEKCVZlcnNpb246IDg1LjI2CglTZXJpYWwgTnVtYmVyOiBOb25lMgoKSGFuZGxl
+IDB4MDAwMywgRE1JIHR5cGUgMywgMTcgYnl0ZXMKQ2hhc3NpcyBJbmZvcm1hdGlvbgoJTWFudWZh
+Y3R1cmVyOiBRdWFudGEKCVR5cGU6IE5vdGVib29rCglMb2NrOiBOb3QgUHJlc2VudAoJVmVyc2lv
+bjogTi9BCglTZXJpYWwgTnVtYmVyOiBOb25lCglBc3NldCBUYWc6ICAgICAgICAgICAgICAgICAg
+ICAgCglCb290LXVwIFN0YXRlOiBTYWZlCglQb3dlciBTdXBwbHkgU3RhdGU6IFNhZmUKCVRoZXJt
+YWwgU3RhdGU6IFNhZmUKCVNlY3VyaXR5IFN0YXR1czogTm9uZQoJT0VNIEluZm9ybWF0aW9uOiAw
+eDAwMDAwMTA0CgpIYW5kbGUgMHgwMDA0LCBETUkgdHlwZSA0LCAzNSBieXRlcwpQcm9jZXNzb3Ig
+SW5mb3JtYXRpb24KCVNvY2tldCBEZXNpZ25hdGlvbjogU29ja2V0IFMxCglUeXBlOiBDZW50cmFs
+IFByb2Nlc3NvcgoJRmFtaWx5OiBPcHRlcm9uCglNYW51ZmFjdHVyZXI6IEFNRAoJSUQ6IDgyIDBG
+IDA2IDAwIEZGIEZCIDhCIDE3CglTaWduYXR1cmU6IEZhbWlseSAxNSwgTW9kZWwgMTA0LCBTdGVw
+cGluZyAyCglGbGFnczoKCQlGUFUgKEZsb2F0aW5nLXBvaW50IHVuaXQgb24tY2hpcCkKCQlWTUUg
+KFZpcnR1YWwgbW9kZSBleHRlbnNpb24pCgkJREUgKERlYnVnZ2luZyBleHRlbnNpb24pCgkJUFNF
+IChQYWdlIHNpemUgZXh0ZW5zaW9uKQoJCVRTQyAoVGltZSBzdGFtcCBjb3VudGVyKQoJCU1TUiAo
+TW9kZWwgc3BlY2lmaWMgcmVnaXN0ZXJzKQoJCVBBRSAoUGh5c2ljYWwgYWRkcmVzcyBleHRlbnNp
+b24pCgkJTUNFIChNYWNoaW5lIGNoZWNrIGV4Y2VwdGlvbikKCQlDWDggKENNUFhDSEc4IGluc3Ry
+dWN0aW9uIHN1cHBvcnRlZCkKCQlBUElDIChPbi1jaGlwIEFQSUMgaGFyZHdhcmUgc3VwcG9ydGVk
+KQoJCVNFUCAoRmFzdCBzeXN0ZW0gY2FsbCkKCQlNVFJSIChNZW1vcnkgdHlwZSByYW5nZSByZWdp
+c3RlcnMpCgkJUEdFIChQYWdlIGdsb2JhbCBlbmFibGUpCgkJTUNBIChNYWNoaW5lIGNoZWNrIGFy
+Y2hpdGVjdHVyZSkKCQlDTU9WIChDb25kaXRpb25hbCBtb3ZlIGluc3RydWN0aW9uIHN1cHBvcnRl
+ZCkKCQlQQVQgKFBhZ2UgYXR0cmlidXRlIHRhYmxlKQoJCVBTRS0zNiAoMzYtYml0IHBhZ2Ugc2l6
+ZSBleHRlbnNpb24pCgkJQ0xGU0ggKENMRkxVU0ggaW5zdHJ1Y3Rpb24gc3VwcG9ydGVkKQoJCU1N
+WCAoTU1YIHRlY2hub2xvZ3kgc3VwcG9ydGVkKQoJCUZYU1IgKEZhc3QgZmxvYXRpbmctcG9pbnQg
+c2F2ZSBhbmQgcmVzdG9yZSkKCQlTU0UgKFN0cmVhbWluZyBTSU1EIGV4dGVuc2lvbnMpCgkJU1NF
+MiAoU3RyZWFtaW5nIFNJTUQgZXh0ZW5zaW9ucyAyKQoJCUhUVCAoSHlwZXItdGhyZWFkaW5nIHRl
+Y2hub2xvZ3kpCglWZXJzaW9uOiBBTUQgVHVyaW9uKHRtKSA2NCBYMiBNb2JpbGUgVEw2MAoJVm9s
+dGFnZTogMS42IFYKCUV4dGVybmFsIENsb2NrOiAyMDAgTUh6CglNYXggU3BlZWQ6IDIwMDAgTUh6
+CglDdXJyZW50IFNwZWVkOiAyMDAwIE1IegoJU3RhdHVzOiBQb3B1bGF0ZWQsIEVuYWJsZWQKCVVw
+Z3JhZGU6IE5vbmUKCUwxIENhY2hlIEhhbmRsZTogMHgwMDA1CglMMiBDYWNoZSBIYW5kbGU6IDB4
+MDAwNgoJTDMgQ2FjaGUgSGFuZGxlOiBOb3QgUHJvdmlkZWQKCVNlcmlhbCBOdW1iZXI6IE5vdCBT
+cGVjaWZpZWQKCUFzc2V0IFRhZzogTm90IFNwZWNpZmllZAoJUGFydCBOdW1iZXI6IE5vdCBTcGVj
+aWZpZWQKCkhhbmRsZSAweDAwMDUsIERNSSB0eXBlIDcsIDE5IGJ5dGVzCkNhY2hlIEluZm9ybWF0
+aW9uCglTb2NrZXQgRGVzaWduYXRpb246IEwxIENhY2hlCglDb25maWd1cmF0aW9uOiBFbmFibGVk
+LCBOb3QgU29ja2V0ZWQsIExldmVsIDEKCU9wZXJhdGlvbmFsIE1vZGU6IFdyaXRlIEJhY2sKCUxv
+Y2F0aW9uOiBJbnRlcm5hbAoJSW5zdGFsbGVkIFNpemU6IDY0IEtCCglNYXhpbXVtIFNpemU6IDY0
+IEtCCglTdXBwb3J0ZWQgU1JBTSBUeXBlczoKCQlCdXJzdAoJCVBpcGVsaW5lIEJ1cnN0CgkJQXN5
+bmNocm9ub3VzCglJbnN0YWxsZWQgU1JBTSBUeXBlOiBBc3luY2hyb25vdXMKCVNwZWVkOiBVbmtu
+b3duCglFcnJvciBDb3JyZWN0aW9uIFR5cGU6IFVua25vd24KCVN5c3RlbSBUeXBlOiBVbmtub3du
+CglBc3NvY2lhdGl2aXR5OiBVbmtub3duCgpIYW5kbGUgMHgwMDA2LCBETUkgdHlwZSA3LCAxOSBi
+eXRlcwpDYWNoZSBJbmZvcm1hdGlvbgoJU29ja2V0IERlc2lnbmF0aW9uOiBMMiBDYWNoZQoJQ29u
+ZmlndXJhdGlvbjogRW5hYmxlZCwgTm90IFNvY2tldGVkLCBMZXZlbCAyCglPcGVyYXRpb25hbCBN
+b2RlOiBXcml0ZSBUaHJvdWdoCglMb2NhdGlvbjogSW50ZXJuYWwKCUluc3RhbGxlZCBTaXplOiAx
+MDI0IEtCCglNYXhpbXVtIFNpemU6IDEwMjQgS0IKCVN1cHBvcnRlZCBTUkFNIFR5cGVzOgoJCUJ1
+cnN0CgkJUGlwZWxpbmUgQnVyc3QKCQlTeW5jaHJvbm91cwoJSW5zdGFsbGVkIFNSQU0gVHlwZTog
+U3luY2hyb25vdXMKCVNwZWVkOiBVbmtub3duCglFcnJvciBDb3JyZWN0aW9uIFR5cGU6IFVua25v
+d24KCVN5c3RlbSBUeXBlOiBVbmlmaWVkCglBc3NvY2lhdGl2aXR5OiBVbmtub3duCgpIYW5kbGUg
+MHgwMDA3LCBETUkgdHlwZSA5LCAxMyBieXRlcwpTeXN0ZW0gU2xvdCBJbmZvcm1hdGlvbgoJRGVz
+aWduYXRpb246IFBDSSBFeHByZXNzIFNsb3QgMQoJVHlwZTogNjQtYml0IFBDSSBFeHByZXNzCglD
+dXJyZW50IFVzYWdlOiBBdmFpbGFibGUKCUxlbmd0aDogU2hvcnQKCUlEOiAwCglDaGFyYWN0ZXJp
+c3RpY3M6CgkJNS4wIFYgaXMgcHJvdmlkZWQKCQkzLjMgViBpcyBwcm92aWRlZAoKSGFuZGxlIDB4
+MDAwOCwgRE1JIHR5cGUgOSwgMTMgYnl0ZXMKU3lzdGVtIFNsb3QgSW5mb3JtYXRpb24KCURlc2ln
+bmF0aW9uOiBQQ0kgRXhwcmVzcyBTbG90IDIKCVR5cGU6IDY0LWJpdCBQQ0kgRXhwcmVzcwoJQ3Vy
+cmVudCBVc2FnZTogQXZhaWxhYmxlCglMZW5ndGg6IFNob3J0CglJRDogMAoJQ2hhcmFjdGVyaXN0
+aWNzOgoJCTUuMCBWIGlzIHByb3ZpZGVkCgkJMy4zIFYgaXMgcHJvdmlkZWQKCQlQTUUgc2lnbmFs
+IGlzIHN1cHBvcnRlZAoJCUhvdC1wbHVnIGRldmljZXMgYXJlIHN1cHBvcnRlZAoKSGFuZGxlIDB4
+MDAwOSwgRE1JIHR5cGUgMTAsIDYgYnl0ZXMKT24gQm9hcmQgRGV2aWNlIEluZm9ybWF0aW9uCglU
+eXBlOiBWaWRlbwoJU3RhdHVzOiBFbmFibGVkCglEZXNjcmlwdGlvbjogICAgCgpIYW5kbGUgMHgw
+MDBBLCBETUkgdHlwZSAxMSwgNSBieXRlcwpPRU0gU3RyaW5ncwoJU3RyaW5nIDE6ICRIUCQKCVN0
+cmluZyAyOiBMT0MjVVVXCglTdHJpbmcgMzogQUJTIDcwLzcxIDZBIDZCIDZDIDZECgpIYW5kbGUg
+MHgwMDBCLCBETUkgdHlwZSAxNiwgMTUgYnl0ZXMKUGh5c2ljYWwgTWVtb3J5IEFycmF5CglMb2Nh
+dGlvbjogU3lzdGVtIEJvYXJkIE9yIE1vdGhlcmJvYXJkCglVc2U6IFN5c3RlbSBNZW1vcnkKCUVy
+cm9yIENvcnJlY3Rpb24gVHlwZTogTm9uZQoJTWF4aW11bSBDYXBhY2l0eTogMiBHQgoJRXJyb3Ig
+SW5mb3JtYXRpb24gSGFuZGxlOiBOb3QgUHJvdmlkZWQKCU51bWJlciBPZiBEZXZpY2VzOiAyCgpI
+YW5kbGUgMHgwMDBDLCBETUkgdHlwZSAxNywgMjcgYnl0ZXMKTWVtb3J5IERldmljZQoJQXJyYXkg
+SGFuZGxlOiAweDAwMEIKCUVycm9yIEluZm9ybWF0aW9uIEhhbmRsZTogTm8gRXJyb3IKCVRvdGFs
+IFdpZHRoOiA2NCBiaXRzCglEYXRhIFdpZHRoOiA2NCBiaXRzCglTaXplOiAyMDQ4IE1CCglGb3Jt
+IEZhY3RvcjogRElNTQoJU2V0OiAxCglMb2NhdG9yOiBESU1NIDEKCUJhbmsgTG9jYXRvcjogQmFu
+ayAwLDEKCVR5cGU6IEREUjIKCVR5cGUgRGV0YWlsOiBTeW5jaHJvbm91cwoJU3BlZWQ6IDY2NyBN
+SHogKDEuNSBucykKCU1hbnVmYWN0dXJlcjogTm90IFNwZWNpZmllZAoJU2VyaWFsIE51bWJlcjog
+Tm90IFNwZWNpZmllZAoJQXNzZXQgVGFnOiBOb3QgU3BlY2lmaWVkCglQYXJ0IE51bWJlcjogTm90
+IFNwZWNpZmllZAoKSGFuZGxlIDB4MDAwRCwgRE1JIHR5cGUgMTcsIDI3IGJ5dGVzCk1lbW9yeSBE
+ZXZpY2UKCUFycmF5IEhhbmRsZTogMHgwMDBCCglFcnJvciBJbmZvcm1hdGlvbiBIYW5kbGU6IE5v
+IEVycm9yCglUb3RhbCBXaWR0aDogNjQgYml0cwoJRGF0YSBXaWR0aDogNjQgYml0cwoJU2l6ZTog
+MTAyNCBNQgoJRm9ybSBGYWN0b3I6IERJTU0KCVNldDogMQoJTG9jYXRvcjogRElNTSAyCglCYW5r
+IExvY2F0b3I6IEJhbmsgMiwzCglUeXBlOiBERFIyCglUeXBlIERldGFpbDogVW5rbm93bgoJU3Bl
+ZWQ6IDY2NyBNSHogKDEuNSBucykKCU1hbnVmYWN0dXJlcjogTm90IFNwZWNpZmllZAoJU2VyaWFs
+IE51bWJlcjogTm90IFNwZWNpZmllZAoJQXNzZXQgVGFnOiBOb3QgU3BlY2lmaWVkCglQYXJ0IE51
+bWJlcjogTm90IFNwZWNpZmllZAoKSGFuZGxlIDB4MDAwRSwgRE1JIHR5cGUgMTksIDE1IGJ5dGVz
+Ck1lbW9yeSBBcnJheSBNYXBwZWQgQWRkcmVzcwoJU3RhcnRpbmcgQWRkcmVzczogMHgwMDAwMDAw
+MDAwMAoJRW5kaW5nIEFkZHJlc3M6IDB4MDAwQkZGRkZGRkYKCVJhbmdlIFNpemU6IDMgR0IKCVBo
+eXNpY2FsIEFycmF5IEhhbmRsZTogMHgwMDBCCglQYXJ0aXRpb24gV2lkdGg6IDAKCkhhbmRsZSAw
+eDAwMEYsIERNSSB0eXBlIDIwLCAxOSBieXRlcwpNZW1vcnkgRGV2aWNlIE1hcHBlZCBBZGRyZXNz
+CglTdGFydGluZyBBZGRyZXNzOiAweDAwMDAwMDAwMDAwCglFbmRpbmcgQWRkcmVzczogMHgwMDA3
+RkZGRkZGRgoJUmFuZ2UgU2l6ZTogMiBHQgoJUGh5c2ljYWwgRGV2aWNlIEhhbmRsZTogMHgwMDBD
+CglNZW1vcnkgQXJyYXkgTWFwcGVkIEFkZHJlc3MgSGFuZGxlOiAweDAwMEUKCVBhcnRpdGlvbiBS
+b3cgUG9zaXRpb246IDIKCUludGVybGVhdmUgUG9zaXRpb246IDIKCUludGVybGVhdmVkIERhdGEg
+RGVwdGg6IDIKCkhhbmRsZSAweDAwMTAsIERNSSB0eXBlIDIwLCAxOSBieXRlcwpNZW1vcnkgRGV2
+aWNlIE1hcHBlZCBBZGRyZXNzCglTdGFydGluZyBBZGRyZXNzOiAweDAwMDgwMDAwMDAwCglFbmRp
+bmcgQWRkcmVzczogMHgwMDBCRkZGRkZGRgoJUmFuZ2UgU2l6ZTogMSBHQgoJUGh5c2ljYWwgRGV2
+aWNlIEhhbmRsZTogMHgwMDBECglNZW1vcnkgQXJyYXkgTWFwcGVkIEFkZHJlc3MgSGFuZGxlOiAw
+eDAwMEUKCVBhcnRpdGlvbiBSb3cgUG9zaXRpb246IDIKCUludGVybGVhdmUgUG9zaXRpb246IDIK
+CUludGVybGVhdmVkIERhdGEgRGVwdGg6IDIKCkhhbmRsZSAweDAwMTEsIERNSSB0eXBlIDMyLCAy
+MCBieXRlcwpTeXN0ZW0gQm9vdCBJbmZvcm1hdGlvbgoJU3RhdHVzOiA8T1VUIE9GIFNQRUM+CgpI
+YW5kbGUgMHgwMDEyLCBETUkgdHlwZSAxMjcsIDQgYnl0ZXMKRW5kIE9mIFRhYmxlCgo=
+------=_20080607220552_70915--
+
