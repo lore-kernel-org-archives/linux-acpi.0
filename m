@@ -1,40 +1,79 @@
-From: Thomas Schneider <maxmusterm@googlemail.com>
-Subject: DMI of the md98300 laptop
-Date: Sat, 7 Jun 2008 03:35:34 +0200
-Message-ID: <20080607033534.0886af7f@gmail.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: bug? acpi p-state + ondemand keeps dropping max freq
+Date: Fri, 06 Jun 2008 22:46:17 -0400 (EDT)
+Message-ID: <alpine.LFD.1.10.0806062240410.3110@localhost.localdomain>
+References: <48486920.4040006@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mu-out-0910.google.com ([209.85.134.188]:36521 "EHLO
-	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757156AbYFGBfi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Jun 2008 21:35:38 -0400
-Received: by mu-out-0910.google.com with SMTP id w8so768510mue.1
-        for <linux-acpi@vger.kernel.org>; Fri, 06 Jun 2008 18:35:37 -0700 (PDT)
+Received: from vms046pub.verizon.net ([206.46.252.46]:60969 "EHLO
+	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752991AbYFGCqU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Jun 2008 22:46:20 -0400
+In-reply-to: <48486920.4040006@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-
-ACPI: Core revision 20070126
-ACPI: Checking initramfs for custom DSDT
-ACPI: bus type pci registered
-ACPI: EC: Look up EC in DSDT
-ACPI: BIOS _OSI(Linux) query ignored
-ACPI: DMI System Vendor: MEDION
-ACPI: DMI Product Name: WAM2030
-ACPI: DMI Product Version:         
-ACPI: DMI Board Name: WAM2030
-ACPI: DMI BIOS Vendor: Phoenix Technologies LTD
-ACPI: DMI BIOS Date: 03/19/2007
+To: "Kok, Auke" <auke-jan.h.kok@intel.com>
+Cc: linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Dave Jones <davej@codemonkey.org.uk>, "Brown, Len" <len.brown@intel.com>, cpufreq@lists.linux.org.uk
 
 
-Fan does not work not with don't know what works better acpi_osi=Linux
-or acpi_osi=Windows or acpi_osi=Windows foo will check it out soon.
-LCD works
-FN keys too
-Hotkeys not
-Fan does not work
-Thermal_zone works
-with the asus acpi driver i can control leds
-regards Thomas
+
+On Thu, 5 Jun 2008, Kok, Auke wrote:
+
+> 
+> I've consistently experienced the following bizarre problem since 2.6.20, all the
+> way up to 2.6.25.3 (regressed yesterday and each of these kernels exposes this
+> behaviour):
+> 
+> /sys/devices/system/cpu/cpu0/cpufreq # grep . *
+> affected_cpus:0
+> cpuinfo_cur_freq:800000
+> cpuinfo_max_freq:1866000
+> cpuinfo_min_freq:800000
+> scaling_available_frequencies:1866000 1600000 1333000 1066000 800000
+> scaling_available_governors:ondemand performance
+> scaling_cur_freq:800000
+> scaling_driver:acpi-cpufreq
+> scaling_governor:ondemand
+> scaling_max_freq:800000
+> scaling_min_freq:800000
+> 
+> 
+> 
+> Notice that scaling_mx_freq dropped down to the lowest possible value and as such
+> my CPU is only working at 800MHz. At boot time this field properly displays
+> 1866MHz and everything works OK. After a certain period (?) this value drops down
+> and I cannot manually elevate it back to the normal level:
+> 
+> # echo 1866000 > scaling_max_freq ; cat scaling_max_freq
+> 800000
+> # echo 1866000 > scaling_max_freq ; cat scaling_max_freq
+> 800000
+> 
+> 
+> This renders my Dothan to utterly poor speeds. (standard T43)
+> 
+> performance cpufreq governor makes no difference - I still can't change the
+> frequency upper/lower values.
+
+could be two causes:
+1. thermal
+2. user space
+
+for #1....
+
+watch grep . /proc/acpi/thermal_zone/THM*/*
+and see if anythign is climbing
+you can build w/o CONFIG_ACPI_THERMAL
+and see if they symptom goes away -- for that
+is the module which would force cpufreq to Pn.
+
+
+for #2...
+
+see if it happens in single user mode without
+hal or distro daemons running.
+
+cheers,
+-Len
+
