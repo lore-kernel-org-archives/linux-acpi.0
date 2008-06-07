@@ -1,79 +1,33 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: bug? acpi p-state + ondemand keeps dropping max freq
-Date: Fri, 06 Jun 2008 22:46:17 -0400 (EDT)
-Message-ID: <alpine.LFD.1.10.0806062240410.3110@localhost.localdomain>
-References: <48486920.4040006@intel.com>
+From: Andrew Robb <ajrobb@bigfoot.com>
+Subject: DMI info
+Date: Sat, 07 Jun 2008 05:14:28 +0100
+Message-ID: <484A0B24.1060602@bigfoot.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms046pub.verizon.net ([206.46.252.46]:60969 "EHLO
-	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752991AbYFGCqU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Jun 2008 22:46:20 -0400
-In-reply-to: <48486920.4040006@intel.com>
+Received: from mtaout03-winn.ispmail.ntl.com ([81.103.221.49]:61307 "EHLO
+	mtaout03-winn.ispmail.ntl.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750812AbYFGEOd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Jun 2008 00:14:33 -0400
+Received: from aamtaout03-winn.ispmail.ntl.com ([81.103.221.35])
+          by mtaout03-winn.ispmail.ntl.com with ESMTP
+          id <20080607041951.NCPK16629.mtaout03-winn.ispmail.ntl.com@aamtaout03-winn.ispmail.ntl.com>
+          for <linux-acpi@vger.kernel.org>; Sat, 7 Jun 2008 05:19:51 +0100
+Received: from [192.168.0.10] (really [81.108.102.127])
+          by aamtaout03-winn.ispmail.ntl.com with ESMTP
+          id <20080607042332.NERI8797.aamtaout03-winn.ispmail.ntl.com@[192.168.0.10]>
+          for <linux-acpi@vger.kernel.org>; Sat, 7 Jun 2008 05:23:32 +0100
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Kok, Auke" <auke-jan.h.kok@intel.com>
-Cc: linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Dave Jones <davej@codemonkey.org.uk>, "Brown, Len" <len.brown@intel.com>, cpufreq@lists.linux.org.uk
+To: linux-acpi@vger.kernel.org
 
-
-
-On Thu, 5 Jun 2008, Kok, Auke wrote:
-
-> 
-> I've consistently experienced the following bizarre problem since 2.6.20, all the
-> way up to 2.6.25.3 (regressed yesterday and each of these kernels exposes this
-> behaviour):
-> 
-> /sys/devices/system/cpu/cpu0/cpufreq # grep . *
-> affected_cpus:0
-> cpuinfo_cur_freq:800000
-> cpuinfo_max_freq:1866000
-> cpuinfo_min_freq:800000
-> scaling_available_frequencies:1866000 1600000 1333000 1066000 800000
-> scaling_available_governors:ondemand performance
-> scaling_cur_freq:800000
-> scaling_driver:acpi-cpufreq
-> scaling_governor:ondemand
-> scaling_max_freq:800000
-> scaling_min_freq:800000
-> 
-> 
-> 
-> Notice that scaling_mx_freq dropped down to the lowest possible value and as such
-> my CPU is only working at 800MHz. At boot time this field properly displays
-> 1866MHz and everything works OK. After a certain period (?) this value drops down
-> and I cannot manually elevate it back to the normal level:
-> 
-> # echo 1866000 > scaling_max_freq ; cat scaling_max_freq
-> 800000
-> # echo 1866000 > scaling_max_freq ; cat scaling_max_freq
-> 800000
-> 
-> 
-> This renders my Dothan to utterly poor speeds. (standard T43)
-> 
-> performance cpufreq governor makes no difference - I still can't change the
-> frequency upper/lower values.
-
-could be two causes:
-1. thermal
-2. user space
-
-for #1....
-
-watch grep . /proc/acpi/thermal_zone/THM*/*
-and see if anythign is climbing
-you can build w/o CONFIG_ACPI_THERMAL
-and see if they symptom goes away -- for that
-is the module which would force cpufreq to Pn.
-
-
-for #2...
-
-see if it happens in single user mode without
-hal or distro daemons running.
-
-cheers,
--Len
+[   34.511147] ACPI: DMI System Vendor: DIXONSXP
+[   34.511148] ACPI: DMI Product Name: Calistoga & ICH7M Chipset
+[   34.511150] ACPI: DMI Product Version: Not Applicable
+[   34.511151] ACPI: DMI Board Name: MPAD-MSAE Customer Reference Boards
+[   34.511153] ACPI: DMI BIOS Vendor: Phoenix Technologies LTD
+[   34.511154] ACPI: DMI BIOS Date: 02/14/2007
+[   34.511156] ACPI: Please send DMI info above to 
+linux-acpi@vger.kernel.org
 
