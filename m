@@ -1,80 +1,44 @@
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: ACPI PM: Add DMI quirk list for ACPI 1.0 suspend order
-Date: Sat, 7 Jun 2008 12:21:55 +0100
-Message-ID: <200806071221.56373.carlos@strangeworlds.co.uk>
+From: "Guillaume Chazarain" <guichaz@gmail.com>
+Subject: Re: ACPI: EC: GPE storm detected, disabling EC GPE
+Date: Sat, 7 Jun 2008 16:31:50 +0200
+Message-ID: <3d8471ca0806070731o98d62a9lab6caf394aa60277@mail.gmail.com>
+References: <dd18b0c30806062321x2918f6feq7c817bde52ba0c4c@mail.gmail.com>
+	 <20080606235526.783acc83.akpm@linux-foundation.org>
+	 <200806071359.04426.maximlevitsky@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from phoenix.slamd64.com ([217.10.145.2]:57681 "EHLO
-	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750987AbYFGLWG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Jun 2008 07:22:06 -0400
+Received: from ug-out-1314.google.com ([66.249.92.168]:26092 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756141AbYFGObx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Jun 2008 10:31:53 -0400
+Received: by ug-out-1314.google.com with SMTP id h2so871436ugf.16
+        for <linux-acpi@vger.kernel.org>; Sat, 07 Jun 2008 07:31:50 -0700 (PDT)
+In-Reply-To: <200806071359.04426.maximlevitsky@gmail.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi <linux-acpi@vger.kernel.org>
-Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Justin Mattock <justinmattock@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Alexey Starikovskiy <astarikovskiy@suse.de>
 
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+On Sat, Jun 7, 2008 at 12:59 PM, Maxim Levitsky <maximlevitsky@gmail.com> wrote:
+> I also noticed that in -git volume wheel behaves strangely, it sometimes increases volume
+> when I rotate it in direction of decrease, and vise versa.
 
-There are a few BIOS' that we know of already that need to use the
-ACPI 1.0 suspend order. This appears to be only be a small minority of
-mostly nVidia based systems.
+I have a similar problem, the ACPI keys on my laptop are very laggy
+(like 1 second), maybe you are seeing the same thing with your volume
+wheel?
 
-Based on observation of Windows behaviour, it's clear that Windows is
-also doing maintaining its own list of broken hardware that needs this
-workaround.
+changing
+ if (atomic_read(&ec->irq_count) > 5) {
+ to
+if (atomic_read(&ec->irq_count) > 20) {
+fixed the problem completely for me.
 
-Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
----
-This doesn't include the other two (or was it three?) systems that we know of
-that need this quirk, as we'll need the DMI data for those (and I don't think
-we have that yet?).
+It's all in http://bugzilla.kernel.org/show_bug.cgi?id=9998
 
-This applies on top of Rafael's "ACPI PM: Add possibility to change suspend
-sequence" patch.
+Cheers.
 
- drivers/acpi/sleep/main.c |   20 ++++++++++++++++++++
- 1 files changed, 20 insertions(+), 0 deletions(-)
-
-
-diff --git a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
-index edfeeb0..15fc48d 100644
---- a/drivers/acpi/sleep/main.c
-+++ b/drivers/acpi/sleep/main.c
-@@ -281,6 +281,24 @@ static struct platform_suspend_ops acpi_suspend_ops_old = {
- 	.end = acpi_pm_end,
- 	.recover = acpi_pm_finish,
- };
-+
-+static int __init init_old_suspend_ordering(const struct dmi_system_id *d)
-+{
-+	old_suspend_ordering = true;
-+	return 0;
-+}
-+
-+static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
-+	{
-+	.callback = init_old_suspend_ordering,
-+	.ident = "Abit KN9 (nForce4 variant)",
-+	.matches = {
-+		DMI_MATCH(DMI_BOARD_VENDOR, "http://www.abit.com.tw/"),
-+		DMI_MATCH(DMI_BOARD_NAME, "KN9 Series(NF-CK804)"),
-+		},
-+	},
-+	{},
-+};
- #endif /* CONFIG_SUSPEND */
- 
- #ifdef CONFIG_HIBERNATION
-@@ -507,6 +525,8 @@ int __init acpi_sleep_init(void)
- 	u8 type_a, type_b;
- #ifdef CONFIG_SUSPEND
- 	int i = 0;
-+
-+	dmi_check_system(acpisleep_dmi_table);
- #endif
- 
- 	if (acpi_disabled)
+-- 
+Guillaume
