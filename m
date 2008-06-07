@@ -1,94 +1,80 @@
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-Subject: Re: ACPI: EC: GPE storm detected, disabling EC GPE
-Date: Sat, 7 Jun 2008 13:59:04 +0300
-Message-ID: <200806071359.04426.maximlevitsky@gmail.com>
-References: <dd18b0c30806062321x2918f6feq7c817bde52ba0c4c@mail.gmail.com> <20080606235526.783acc83.akpm@linux-foundation.org>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: ACPI PM: Add DMI quirk list for ACPI 1.0 suspend order
+Date: Sat, 7 Jun 2008 12:21:55 +0100
+Message-ID: <200806071221.56373.carlos@strangeworlds.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1759149AbYFGK7X@vger.kernel.org>
-In-Reply-To: <20080606235526.783acc83.akpm@linux-foundation.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from phoenix.slamd64.com ([217.10.145.2]:57681 "EHLO
+	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750987AbYFGLWG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Jun 2008 07:22:06 -0400
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Justin Mattock <justinmattock@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Alexey Starikovskiy <astarikovskiy@suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi <linux-acpi@vger.kernel.org>
+Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-On Saturday, 7 June 2008 09:55:26 Andrew Morton wrote:
-> On Sat, 7 Jun 2008 06:21:54 +0000 "Justin Mattock" <justinmattock@gmail.com> wrote:
-> 
-> > Well; I was hoping it was going to be just an easy fix, but unfortunately
-> > changing
-> >  if (atomic_read(&ec->irq_count) > 5) {
-> >  to
-> > if (atomic_read(&ec->irq_count) > 20) {
-> > does seem to make the message disappear, for a while, probably at
-> > around three hours,(for me at least) then the message appeared again.
-> > :-(
-> > So leaving me back to the beginning of try to have a go at this.
-> > regards;
-> 
-> I removed bugzilla from cc - that only works if there's [Bug 1234] in
-> the Subject:.
-> 
-> I added linux-acpi to cc - this is an acpi problem.
-> 
-> What Justin is mysteriously referring to here is:
-> 
-> 
-> : From: "Justin Mattock" <justinmattock@gmail.com>
-> : To: "Linux Kernel Mailing List" <linux-kernel@vger.kernel.org>
-> : Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-> : Subject: GPE storm detected, disabling EC GPE
-> : Date: 	Thu, 5 Jun 2008 21:01:55 +0000
-> : Sender: linux-kernel-owner@vger.kernel.org
-> : 
-> : FWIW I noticed a post where the person had changed 5 to 20, and it
-> : seemed to work for them;
-> : So with that in mind I decide to give that a go, here is the location:
-> : drivers/acpi/ec.c
-> : @@ -527,47 +488,51 @@ static u32 acpi_ec_gpe_handler(void *data)
-> :  {
-> :         acpi_status status = AE_OK;
-> :         struct acpi_ec *ec = data;
-> :        u8 state = acpi_ec_read_status(ec);
-> : 
-> :         pr_debug(PREFIX "~~~> interrupt\n");
-> :        atomic_inc(&ec->irq_count);
-> : -       if (atomic_read(&ec->irq_count) > 5) {
-> : +       if (atomic_read(&ec->irq_count) > 20) {
-> :                pr_err(PREFIX "GPE storm detected, disabling EC GPE\n");
-> :                ec_switch_to_poll_mode(ec);
-> :                goto end;
-> :        }
-> : 
-> : Now I don't know if this will work for other brands, but for
-> : me(Macbook Pro ATI chipset) I have not received the
-> : GPE storm detected, disabling EC GPE message, but it's only been an
-> : hour, maybe after two or three this might appear.
-> : Also is this good or bad to set 5 to 20 for the system?
-> 
-> Could someone from acpi land please help here?
-> 
-> Justin, has this machine always had this problem or is it something
-> which earlier kernels handled correctly?
-> 
-> Thanks.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
 
-I have acer aspire 5720G which shows this message in latest -git
-but doesn't show it in ubuntu 2.6.24 kernel.
+There are a few BIOS' that we know of already that need to use the
+ACPI 1.0 suspend order. This appears to be only be a small minority of
+mostly nVidia based systems.
 
-I also noticed that in -git volume wheel behaves strangely, it sometimes increases volume
-when I rotate it in direction of decrease, and vise versa.
+Based on observation of Windows behaviour, it's clear that Windows is
+also doing maintaining its own list of broken hardware that needs this
+workaround.
 
-Since the EC is in charge of volume wheel, it could be related.
+Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
+---
+This doesn't include the other two (or was it three?) systems that we know of
+that need this quirk, as we'll need the DMI data for those (and I don't think
+we have that yet?).
 
-Best regards,
-	Maxim Levitsky
+This applies on top of Rafael's "ACPI PM: Add possibility to change suspend
+sequence" patch.
+
+ drivers/acpi/sleep/main.c |   20 ++++++++++++++++++++
+ 1 files changed, 20 insertions(+), 0 deletions(-)
+
+
+diff --git a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
+index edfeeb0..15fc48d 100644
+--- a/drivers/acpi/sleep/main.c
++++ b/drivers/acpi/sleep/main.c
+@@ -281,6 +281,24 @@ static struct platform_suspend_ops acpi_suspend_ops_old = {
+ 	.end = acpi_pm_end,
+ 	.recover = acpi_pm_finish,
+ };
++
++static int __init init_old_suspend_ordering(const struct dmi_system_id *d)
++{
++	old_suspend_ordering = true;
++	return 0;
++}
++
++static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
++	{
++	.callback = init_old_suspend_ordering,
++	.ident = "Abit KN9 (nForce4 variant)",
++	.matches = {
++		DMI_MATCH(DMI_BOARD_VENDOR, "http://www.abit.com.tw/"),
++		DMI_MATCH(DMI_BOARD_NAME, "KN9 Series(NF-CK804)"),
++		},
++	},
++	{},
++};
+ #endif /* CONFIG_SUSPEND */
+ 
+ #ifdef CONFIG_HIBERNATION
+@@ -507,6 +525,8 @@ int __init acpi_sleep_init(void)
+ 	u8 type_a, type_b;
+ #ifdef CONFIG_SUSPEND
+ 	int i = 0;
++
++	dmi_check_system(acpisleep_dmi_table);
+ #endif
+ 
+ 	if (acpi_disabled)
