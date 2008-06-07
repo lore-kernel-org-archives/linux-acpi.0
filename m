@@ -1,65 +1,40 @@
-From: "Henrique de Moraes Holschuh" <hmh@hmh.eng.br>
-Subject: Re: bug? acpi p-state + ondemand keeps dropping max freq
-Date: Fri, 06 Jun 2008 16:47:38 -0300
-Message-ID: <1212781658.28267.1257170963@webmail.messagingengine.com>
-References: <48486920.4040006@intel.com>
- <20080606041358.GA3457@khazad-dum.debian.net>
- <48496714.6030005@intel.com>
+From: Thomas Schneider <maxmusterm@googlemail.com>
+Subject: DMI of the md98300 laptop
+Date: Sat, 7 Jun 2008 03:35:34 +0200
+Message-ID: <20080607033534.0886af7f@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:59973 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752298AbYFFTrj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Jun 2008 15:47:39 -0400
-Content-Disposition: inline
-In-Reply-To: <48496714.6030005@intel.com>
+Received: from mu-out-0910.google.com ([209.85.134.188]:36521 "EHLO
+	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757156AbYFGBfi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Jun 2008 21:35:38 -0400
+Received: by mu-out-0910.google.com with SMTP id w8so768510mue.1
+        for <linux-acpi@vger.kernel.org>; Fri, 06 Jun 2008 18:35:37 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Kok, Auke" <auke-jan.h.kok@intel.com>
-Cc: linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>, cpufreq@lists.linux.org.uk, Dave Jones <davej@codemonkey.org.uk>
+To: linux-acpi@vger.kernel.org
 
-On Fri, 06 Jun 2008 09:34:28 -0700, "Kok, Auke" <auke-jan.h.kok@intel.com> said:
-> Henrique de Moraes Holschuh wrote:
-> > On Thu, 05 Jun 2008, Kok, Auke wrote:
-> >> This renders my Dothan to utterly poor speeds. (standard T43)
-> > 
-> > Which ThinkPad T43 model and BIOS revision?
-> > 
-> > I have a T43 2687DDU with the latest BIOS, and I have never seen
-> > anything like that happening.  Is it overheating or something like that?
-> 
-> T43 2668NU3 Version: 1YET59WW (1.24 )
-
-Older version of the planar card, but should be close enough to the
-2687 I have...
-
-Your BIOS is horribly old, and your EC firmware is very old too.  You
-really should upgrade to BIOS 1.29 (1YET65WW) and EC 1.06.  Lenovo has
-CDs you can use to upgrade even without Windows.  thinkwiki.org has the 
-links to the support pages with the downloads.
-
-After you upgrade, go into the BIOS configuration screen, and set everything
-related to Speedstep and performance management to highest performance.  You
-can let the BIOS do BUS power management, and you should let it do screen
-brightness power management, but don't let it mess with the processor speed
-or the disks.   It can have bad interactions with Linux power management.
-
-> hardly overheating:
-> 
->   Thermal zone 1 : ok, 49 C
-
-It is probably a bad interaction from SMBIOS power management with the native
-Linux power management.
-
-BTW: install thinkpad-acpi and lm-sensors 3.0, and you will be able to see the
-11 thermal zones the EC controls in a T43.
+ACPI: Core revision 20070126
+ACPI: Checking initramfs for custom DSDT
+ACPI: bus type pci registered
+ACPI: EC: Look up EC in DSDT
+ACPI: BIOS _OSI(Linux) query ignored
+ACPI: DMI System Vendor: MEDION
+ACPI: DMI Product Name: WAM2030
+ACPI: DMI Product Version:         
+ACPI: DMI Board Name: WAM2030
+ACPI: DMI BIOS Vendor: Phoenix Technologies LTD
+ACPI: DMI BIOS Date: 03/19/2007
 
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
-
+Fan does not work not with don't know what works better acpi_osi=Linux
+or acpi_osi=Windows or acpi_osi=Windows foo will check it out soon.
+LCD works
+FN keys too
+Hotkeys not
+Fan does not work
+Thermal_zone works
+with the asus acpi driver i can control leds
+regards Thomas
