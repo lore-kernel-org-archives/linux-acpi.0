@@ -1,34 +1,37 @@
 From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: Re: RESEND: [PATCH 3/3] Misc: Add HP WMI laptop extras driver
-Date: Sat, 7 Jun 2008 11:00:02 +0100
-Message-ID: <200806071100.03097.carlos@strangeworlds.co.uk>
-References: <20080528132900.GC32646@srcf.ucam.org>
+Subject: Re: PTS ordering / asus P1-AH2 system
+Date: Sat, 7 Jun 2008 11:22:10 +0100
+Message-ID: <200806071122.10951.carlos@strangeworlds.co.uk>
+References: <20080607040650.GA21015@zoy.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20080528132900.GC32646@srcf.ucam.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from phoenix.slamd64.com ([217.10.145.2]:54375 "EHLO
+	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755642AbYFGKWV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Jun 2008 06:22:21 -0400
+In-Reply-To: <20080607040650.GA21015@zoy.org>
 Content-Disposition: inline
-Sender: linux-input-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-input@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Michel Lespinasse <walken@zoy.org>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-On Wednesday 28 May 2008 14:34:25 Matthew Garrett wrote:
-> This driver adds support for reading and configuring certain information
-> on modern HP laptops with WMI BIOS interfaces. It supports enabling and
-> disabling the ambient light sensor, querying attached displays and hard
-> drive temperature, sending events on docking and querying the state of
-> the dock and toggling the state of the wifi, bluetooth and wwan hardware
-> via rfkill. It also makes the little "(i)" button work on machines that
-> send that via WMI rather than via the keyboard controller.
->
-> Signed-off-by: Matthew Garrett <mjg@redhat.com>
+(Adding Rafael to CC)
 
-For the ACPI-WMI bits:
+On Saturday 07 June 2008 05:06:50 Michel Lespinasse wrote:
+> I am wondering, are there patches for 2.6.25.* or 2.6.26-rc* to
+> work around the suspend/resume PTS ordering issue, even using
+> a kernel parameter if needed ?
 
-Acked-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
+See Rafael's patches here: 
+http://www.sisk.pl/kernel/hibernation_and_suspend/2.6.26-rc3/patches/
+
+(They apply fine to the latest 2.6.26 git, and should hit mainline in 2.6.27)
+
+You'll need to boot with acpi_sleep=old_ordering to test.
 
 -Carlos
 -- 
