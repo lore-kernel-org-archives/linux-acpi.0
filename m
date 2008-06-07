@@ -1,52 +1,70 @@
-From: Arjan van de Ven <arjan@infradead.org>
-Subject: Re: bug? acpi p-state + ondemand keeps dropping max freq
-Date: Sat, 7 Jun 2008 14:54:35 -0700
-Message-ID: <20080607145435.4afc9812@infradead.org>
-References: <20080606140846.GA9580@ucw.cz>
-	<20080607213918.GC1746@elf.ucw.cz>
+From: "Justin Mattock" <justinmattock@gmail.com>
+Subject: Re: ACPI: EC: GPE storm detected, disabling EC GPE
+Date: Sat, 7 Jun 2008 23:20:07 +0000
+Message-ID: <dd18b0c30806071620o7b1c591dmf86081eadaa8078c@mail.gmail.com>
+References: <dd18b0c30806062321x2918f6feq7c817bde52ba0c4c@mail.gmail.com>
+	 <20080606235526.783acc83.akpm@linux-foundation.org>
+	 <dd18b0c30806070847t63b8dbc0x8bfcbafc359f7031@mail.gmail.com>
+	 <484AE148.6000204@suse.de>
+	 <dd18b0c30806071335j200daa9t517bf41ab10b2f@mail.gmail.com>
+	 <484AFD3C.7080600@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from pentafluge.infradead.org ([213.146.154.40]:52801 "EHLO
-	pentafluge.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752310AbYFGWNX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Jun 2008 18:13:23 -0400
-In-Reply-To: <20080607213918.GC1746@elf.ucw.cz>
+Received: from an-out-0708.google.com ([209.85.132.240]:60139 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753535AbYFGXUI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Jun 2008 19:20:08 -0400
+Received: by an-out-0708.google.com with SMTP id d40so389842and.103
+        for <linux-acpi@vger.kernel.org>; Sat, 07 Jun 2008 16:20:08 -0700 (PDT)
+In-Reply-To: <484AFD3C.7080600@suse.de>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-Cc: pavel@suse.cz, auke-jan.h.kok@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, len.brown@intel.com, cpufreq@lists.linux.org.uk, davej@codemonkey.org.uk
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-On Sat, 7 Jun 2008 23:39:18 +0200
-Pavel Machek <pavel@suse.cz> wrote:
+On Sat, Jun 7, 2008 at 9:27 PM, Alexey Starikovskiy
+<astarikovskiy@suse.de> wrote:
+> Justin Mattock wrote:
+>>
+>> Interesting, over here I'm using a Macbook Pro ATI chipset. I'm not
+>> experiencing things like missing keys or anything of that nature.
+>> but am concerned with what might happen to the hardware in the long
+>> run. As for the patches I did apply those,
+>> and it did give me a better idea of what is happening., but just to
+>> get a right info, when ACPI: EC: gpe storm detected message appears
+>> does it disable interrupt mode for that moment and then go back to it
+>> original state, or is it once the gpe storm is triggered the interupt
+>> mode is disabled until a reboot is performed. from looking at the data
+>> from the patches that I used from here it looks like something in the
+>> system triggers that message, but then after a few seconds  goes back
+>> to its original state, until another storm is detected.
+>> I don't have a problem with this message if it's triggering and then
+>> returning to it's original state until another storm triggers this
+>> message again, but I am concerned with the message being triggered,
+>> and then the system is stuck in that mode until a reboot.(but if this
+>> is O.K. for the system then that's cool too).
+>
+> If interrupt storm from EC is detected EC interrupt will be disabled
+> permanently.
+> EC driver then starts to poll hardware for events in half-second interval,
+> so it is
+> still fully functional, but may be there is going to be impact on power
+> consumption, etc.
+>
+> Regards,
+> Alex.
+>
 
-> > # echo 1866000 > scaling_max_freq ; cat scaling_max_freq
-> > 800000
-> > # echo 1866000 > scaling_max_freq ; cat scaling_max_freq
-> > 800000
-> > 
-> > 
-> > This renders my Dothan to utterly poor speeds. (standard T43)
-> > 
-> > performance cpufreq governor makes no difference - I still can't
-> > change the frequency upper/lower values.
-> 
-> Hmm, I have similar problem in Novell bugzilla, on very different hw:
-> 
-> https://bugzilla.novell.com/show_bug.cgi?id=396311
-> 
-> 								Pavel
-> 
-
-
-are either of you running gnome-power-manager or kpowersaved ?
-sometimes these programs (and more likely, the patches added by a
-distro maintainer who doesn't fully realize how power works) tend to
-muck with kernel settings around CPU frequency that they have
-absolutely no business touching...
-
+Hmmm, power consumption., well that's not bad, but maybe I should be
+concerned with my battery, maybe I should
+remove my battery, and use it only if I need be., just to be on the
+safe side. (apple already replaced this one for free, without apple
+care, so
+I don't think they want to do that again.)
+regards;
 
 -- 
-If you want to reach me at my work email, use arjan@linux.intel.com
-For development, discussion and tips for power savings, 
-visit http://www.lesswatts.org
+Justin P. Mattock
