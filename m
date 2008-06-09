@@ -1,29 +1,47 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: Version 2: [PATCH 2/3] ACPI: Send switch event on dock events
-Date: Mon, 9 Jun 2008 02:48:23 -0700
-Message-ID: <20080609024823.a8387821.akpm@linux-foundation.org>
-References: <20080528130621.GA32646@srcf.ucam.org>
-	<20080528132152.GB32646@srcf.ucam.org>
-	<20080529082202.GD16444@srcf.ucam.org>
+From: "Kok, Auke" <auke-jan.h.kok@intel.com>
+Subject: Re: bug? acpi p-state + ondemand keeps dropping max freq
+Date: Mon, 09 Jun 2008 09:39:39 -0700
+Message-ID: <484D5CCB.10302@intel.com>
+References: <20080606140846.GA9580@ucw.cz>	<20080607213918.GC1746@elf.ucw.cz> <20080607145435.4afc9812@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33267 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753001AbYFIJs3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jun 2008 05:48:29 -0400
-In-Reply-To: <20080529082202.GD16444@srcf.ucam.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757745AbYFIQli@vger.kernel.org>
+In-Reply-To: <20080607145435.4afc9812@infradead.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arjan van de Ven <arjan@infradead.org>
+Cc: Pavel Machek <pavel@suse.cz>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, len.brown@intel.com, cpufreq@lists.linux.org.uk, davej@codemonkey.org.uk
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-input@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, kristen.c.accardi@intel.com
 
-On Thu, 29 May 2008 09:22:02 +0100 Matthew Garrett <mjg59@srcf.ucam.org> wrote:
+Arjan van de Ven wrote:
+> On Sat, 7 Jun 2008 23:39:18 +0200
+> Pavel Machek <pavel@suse.cz> wrote:
+> 
+>>> # echo 1866000 > scaling_max_freq ; cat scaling_max_freq
+>>> 800000
+>>> # echo 1866000 > scaling_max_freq ; cat scaling_max_freq
+>>> 800000
+>>>
+>>>
+>>> This renders my Dothan to utterly poor speeds. (standard T43)
+>>>
+>>> performance cpufreq governor makes no difference - I still can't
+>>> change the frequency upper/lower values.
+>> Hmm, I have similar problem in Novell bugzilla, on very different hw:
+>>
+>> https://bugzilla.novell.com/show_bug.cgi?id=396311
+>>
+>> 								Pavel
+>>
+> 
+> 
+> are either of you running gnome-power-manager or kpowersaved ?
+> sometimes these programs (and more likely, the patches added by a
+> distro maintainer who doesn't fully realize how power works) tend to
+> muck with kernel settings around CPU frequency that they have
+> absolutely no business touching...
 
-> Send a switch event on docking for consistency with docks that don't 
-> present as a separate device.
+I neither run gnome nor kde. there's nothing running on this box that is managing
+power settings.
 
-It oopses: http://userweb.kernel.org/~akpm/p6096540.jpg
-
-http://userweb.kernel.org/~akpm/config-t61p.txt
+Auke
