@@ -1,302 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: [patch 07/11] acpi: change processors from array to per_cpu variable
-Date: Mon, 09 Jun 2008 16:22:23 -0700
-Message-ID: <200806092322.m59NMNNC013973@imap1.linux-foundation.org>
+Subject: [patch 03/11] acpi: adjust register handling
+Date: Mon, 09 Jun 2008 16:22:19 -0700
+Message-ID: <200806092322.m59NMJkF013961@imap1.linux-foundation.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58685 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44159 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755056AbYFIXXL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jun 2008 19:23:11 -0400
+	by vger.kernel.org with ESMTP id S1754797AbYFIXXE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jun 2008 19:23:04 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, travis@sgi.com, len.brown@intel.com
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, jbeulich@novell.com
 
-From: Mike Travis <travis@sgi.com>
+From: "Jan Beulich" <jbeulich@novell.com>
 
-Change processors from an array sized by NR_CPUS to a per_cpu variable.
+acpi_hw_low_level_{read,write}() have no need to accept a NULL reg argument
+anymore (all callers use addresses of or derived from ACPI globals), and it
+really should always have been considered an error to call these functions in
+such a way.
 
-Cc: Len Brown <len.brown@intel.com>
-Signed-off-by: Mike Travis <travis@sgi.com>
+Additionally acpi_hw_low_level_read() should initialize the value read in all
+cases when it returns successfully.
+
+Also use ACPI_GPE_REGISTER_WIDTH where possible rather than a plain number.
+
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_core.c       |   20 +++++++++-----------
- drivers/acpi/processor_idle.c       |    8 ++++----
- drivers/acpi/processor_perflib.c    |   18 +++++++++---------
- drivers/acpi/processor_throttling.c |   14 +++++++-------
- include/acpi/processor.h            |    2 +-
- 5 files changed, 30 insertions(+), 32 deletions(-)
+ drivers/acpi/hardware/hwgpe.c  |   15 ++++++++-------
+ drivers/acpi/hardware/hwregs.c |    6 +++---
+ 2 files changed, 11 insertions(+), 10 deletions(-)
 
-diff -puN drivers/acpi/processor_core.c~acpi-change-processors-from-array-to-per_cpu-variable drivers/acpi/processor_core.c
---- a/drivers/acpi/processor_core.c~acpi-change-processors-from-array-to-per_cpu-variable
-+++ a/drivers/acpi/processor_core.c
-@@ -119,7 +119,7 @@ static const struct file_operations acpi
- 	.release = single_release,
- };
+diff -puN drivers/acpi/hardware/hwgpe.c~acpi-adjust-register-handling drivers/acpi/hardware/hwgpe.c
+--- a/drivers/acpi/hardware/hwgpe.c~acpi-adjust-register-handling
++++ a/drivers/acpi/hardware/hwgpe.c
+@@ -84,7 +84,8 @@ acpi_hw_write_gpe_enable_reg(struct acpi
  
--struct acpi_processor *processors[NR_CPUS];
-+DEFINE_PER_CPU(struct acpi_processor *, processors);
- struct acpi_processor_errata errata __read_mostly;
+ 	/* Write the entire GPE (runtime) enable register */
  
- /* --------------------------------------------------------------------------
-@@ -615,7 +615,7 @@ static int acpi_processor_get_info(struc
- 	return 0;
- }
+-	status = acpi_hw_low_level_write(8, gpe_register_info->enable_for_run,
++	status = acpi_hw_low_level_write(ACPI_GPE_REGISTER_WIDTH,
++					 gpe_register_info->enable_for_run,
+ 					 &gpe_register_info->enable_address);
  
--static void *processor_device_array[NR_CPUS];
-+static DEFINE_PER_CPU(void *, processor_device_array);
- 
- static int __cpuinit acpi_processor_start(struct acpi_device *device)
- {
-@@ -639,15 +639,15 @@ static int __cpuinit acpi_processor_star
- 	 * ACPI id of processors can be reported wrongly by the BIOS.
- 	 * Don't trust it blindly
+ 	return (status);
+@@ -118,7 +119,7 @@ acpi_status acpi_hw_clear_gpe(struct acp
+ 	 * Write a one to the appropriate bit in the status register to
+ 	 * clear this GPE.
  	 */
--	if (processor_device_array[pr->id] != NULL &&
--	    processor_device_array[pr->id] != device) {
-+	if (per_cpu(processor_device_array, pr->id) != NULL &&
-+	    per_cpu(processor_device_array, pr->id) != device) {
- 		printk(KERN_WARNING "BIOS reported wrong ACPI id "
- 			"for the processor\n");
- 		return -ENODEV;
+-	status = acpi_hw_low_level_write(8, register_bit,
++	status = acpi_hw_low_level_write(ACPI_GPE_REGISTER_WIDTH, register_bit,
+ 					 &gpe_event_info->register_info->
+ 					 status_address);
+ 
+@@ -181,7 +182,7 @@ acpi_hw_get_gpe_status(struct acpi_gpe_e
+ 	/* GPE currently active (status bit == 1)? */
+ 
+ 	status =
+-	    acpi_hw_low_level_read(8, &in_byte,
++	    acpi_hw_low_level_read(ACPI_GPE_REGISTER_WIDTH, &in_byte,
+ 				   &gpe_register_info->status_address);
+ 	if (ACPI_FAILURE(status)) {
+ 		goto unlock_and_exit;
+@@ -226,7 +227,7 @@ acpi_hw_disable_gpe_block(struct acpi_gp
+ 
+ 		/* Disable all GPEs in this register */
+ 
+-		status = acpi_hw_low_level_write(8, 0x00,
++		status = acpi_hw_low_level_write(ACPI_GPE_REGISTER_WIDTH, 0x00,
+ 						 &gpe_block->register_info[i].
+ 						 enable_address);
+ 		if (ACPI_FAILURE(status)) {
+@@ -263,7 +264,7 @@ acpi_hw_clear_gpe_block(struct acpi_gpe_
+ 
+ 		/* Clear status on all GPEs in this register */
+ 
+-		status = acpi_hw_low_level_write(8, 0xFF,
++		status = acpi_hw_low_level_write(ACPI_GPE_REGISTER_WIDTH, 0xFF,
+ 						 &gpe_block->register_info[i].
+ 						 status_address);
+ 		if (ACPI_FAILURE(status)) {
+@@ -307,7 +308,7 @@ acpi_hw_enable_runtime_gpe_block(struct 
+ 		/* Enable all "runtime" GPEs in this register */
+ 
+ 		status =
+-		    acpi_hw_low_level_write(8,
++		    acpi_hw_low_level_write(ACPI_GPE_REGISTER_WIDTH,
+ 					    gpe_block->register_info[i].
+ 					    enable_for_run,
+ 					    &gpe_block->register_info[i].
+@@ -350,7 +351,7 @@ acpi_hw_enable_wakeup_gpe_block(struct a
+ 
+ 		/* Enable all "wake" GPEs in this register */
+ 
+-		status = acpi_hw_low_level_write(8,
++		status = acpi_hw_low_level_write(ACPI_GPE_REGISTER_WIDTH,
+ 						 gpe_block->register_info[i].
+ 						 enable_for_wake,
+ 						 &gpe_block->register_info[i].
+diff -puN drivers/acpi/hardware/hwregs.c~acpi-adjust-register-handling drivers/acpi/hardware/hwregs.c
+--- a/drivers/acpi/hardware/hwregs.c~acpi-adjust-register-handling
++++ a/drivers/acpi/hardware/hwregs.c
+@@ -745,8 +745,9 @@ acpi_hw_low_level_read(u32 width, u32 * 
+ 	 * because the PM1A/B code must not fail if B isn't present.
+ 	 */
+ 	if (!reg) {
+-		return (AE_OK);
++		return (AE_BAD_PARAMETER);
  	}
--	processor_device_array[pr->id] = device;
-+	per_cpu(processor_device_array, pr->id) = device;
++	*value = 0;
  
--	processors[pr->id] = pr;
-+	per_cpu(processors, pr->id) = pr;
+ 	/* Get a local copy of the address. Handles possible alignment issues */
  
- 	result = acpi_processor_add_fs(device);
- 	if (result)
-@@ -753,7 +753,7 @@ static int acpi_cpu_soft_notify(struct n
- 		unsigned long action, void *hcpu)
- {
- 	unsigned int cpu = (unsigned long)hcpu;
--	struct acpi_processor *pr = processors[cpu];
-+	struct acpi_processor *pr = per_cpu(processors, cpu);
+@@ -754,7 +755,6 @@ acpi_hw_low_level_read(u32 width, u32 * 
+ 	if (!address) {
+ 		return (AE_OK);
+ 	}
+-	*value = 0;
  
- 	if (action == CPU_ONLINE && pr) {
- 		acpi_processor_ppc_has_changed(pr);
-@@ -825,8 +825,8 @@ static int acpi_processor_remove(struct 
- 		pr->cdev = NULL;
+ 	/*
+ 	 * Two address spaces supported: Memory or IO.
+@@ -815,7 +815,7 @@ acpi_hw_low_level_write(u32 width, u32 v
+ 	 * because the PM1A/B code must not fail if B isn't present.
+ 	 */
+ 	if (!reg) {
+-		return (AE_OK);
++		return (AE_BAD_PARAMETER);
  	}
  
--	processors[pr->id] = NULL;
--	processor_device_array[pr->id] = NULL;
-+	per_cpu(processors, pr->id) = NULL;
-+	per_cpu(processor_device_array, pr->id) = NULL;
- 	kfree(pr);
- 
- 	return 0;
-@@ -1074,8 +1074,6 @@ static int __init acpi_processor_init(vo
- {
- 	int result = 0;
- 
--
--	memset(&processors, 0, sizeof(processors));
- 	memset(&errata, 0, sizeof(errata));
- 
- #ifdef CONFIG_SMP
-diff -puN drivers/acpi/processor_idle.c~acpi-change-processors-from-array-to-per_cpu-variable drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~acpi-change-processors-from-array-to-per_cpu-variable
-+++ a/drivers/acpi/processor_idle.c
-@@ -419,7 +419,7 @@ static void acpi_processor_idle(void)
- 	 */
- 	local_irq_disable();
- 
--	pr = processors[smp_processor_id()];
-+	pr = __get_cpu_var(processors);
- 	if (!pr) {
- 		local_irq_enable();
- 		return;
-@@ -1450,7 +1450,7 @@ static int acpi_idle_enter_c1(struct cpu
- 	struct acpi_processor *pr;
- 	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
- 
--	pr = processors[smp_processor_id()];
-+	pr = __get_cpu_var(processors);
- 
- 	if (unlikely(!pr))
- 		return 0;
-@@ -1490,7 +1490,7 @@ static int acpi_idle_enter_simple(struct
- 	u32 t1, t2;
- 	int sleep_ticks = 0;
- 
--	pr = processors[smp_processor_id()];
-+	pr = __get_cpu_var(processors);
- 
- 	if (unlikely(!pr))
- 		return 0;
-@@ -1568,7 +1568,7 @@ static int acpi_idle_enter_bm(struct cpu
- 	u32 t1, t2;
- 	int sleep_ticks = 0;
- 
--	pr = processors[smp_processor_id()];
-+	pr = __get_cpu_var(processors);
- 
- 	if (unlikely(!pr))
- 		return 0;
-diff -puN drivers/acpi/processor_perflib.c~acpi-change-processors-from-array-to-per_cpu-variable drivers/acpi/processor_perflib.c
---- a/drivers/acpi/processor_perflib.c~acpi-change-processors-from-array-to-per_cpu-variable
-+++ a/drivers/acpi/processor_perflib.c
-@@ -89,7 +89,7 @@ static int acpi_processor_ppc_notifier(s
- 	if (event != CPUFREQ_INCOMPATIBLE)
- 		goto out;
- 
--	pr = processors[policy->cpu];
-+	pr = per_cpu(processors, policy->cpu);
- 	if (!pr || !pr->performance)
- 		goto out;
- 
-@@ -572,7 +572,7 @@ int acpi_processor_preregister_performan
- 
- 	/* Call _PSD for all CPUs */
- 	for_each_possible_cpu(i) {
--		pr = processors[i];
-+		pr = per_cpu(processors, i);
- 		if (!pr) {
- 			/* Look only at processors in ACPI namespace */
- 			continue;
-@@ -603,7 +603,7 @@ int acpi_processor_preregister_performan
- 	 * domain info.
- 	 */
- 	for_each_possible_cpu(i) {
--		pr = processors[i];
-+		pr = per_cpu(processors, i);
- 		if (!pr)
- 			continue;
- 
-@@ -624,7 +624,7 @@ int acpi_processor_preregister_performan
- 
- 	cpus_clear(covered_cpus);
- 	for_each_possible_cpu(i) {
--		pr = processors[i];
-+		pr = per_cpu(processors, i);
- 		if (!pr)
- 			continue;
- 
-@@ -651,7 +651,7 @@ int acpi_processor_preregister_performan
- 			if (i == j)
- 				continue;
- 
--			match_pr = processors[j];
-+			match_pr = per_cpu(processors, j);
- 			if (!match_pr)
- 				continue;
- 
-@@ -680,7 +680,7 @@ int acpi_processor_preregister_performan
- 			if (i == j)
- 				continue;
- 
--			match_pr = processors[j];
-+			match_pr = per_cpu(processors, j);
- 			if (!match_pr)
- 				continue;
- 
-@@ -697,7 +697,7 @@ int acpi_processor_preregister_performan
- 
- err_ret:
- 	for_each_possible_cpu(i) {
--		pr = processors[i];
-+		pr = per_cpu(processors, i);
- 		if (!pr || !pr->performance)
- 			continue;
- 
-@@ -728,7 +728,7 @@ acpi_processor_register_performance(stru
- 
- 	mutex_lock(&performance_mutex);
- 
--	pr = processors[cpu];
-+	pr = per_cpu(processors, cpu);
- 	if (!pr) {
- 		mutex_unlock(&performance_mutex);
- 		return -ENODEV;
-@@ -766,7 +766,7 @@ acpi_processor_unregister_performance(st
- 
- 	mutex_lock(&performance_mutex);
- 
--	pr = processors[cpu];
-+	pr = per_cpu(processors, cpu);
- 	if (!pr) {
- 		mutex_unlock(&performance_mutex);
- 		return;
-diff -puN drivers/acpi/processor_throttling.c~acpi-change-processors-from-array-to-per_cpu-variable drivers/acpi/processor_throttling.c
---- a/drivers/acpi/processor_throttling.c~acpi-change-processors-from-array-to-per_cpu-variable
-+++ a/drivers/acpi/processor_throttling.c
-@@ -71,7 +71,7 @@ static int acpi_processor_update_tsd_coo
- 	 * coordination between all CPUs.
- 	 */
- 	for_each_possible_cpu(i) {
--		pr = processors[i];
-+		pr = per_cpu(processors, i);
- 		if (!pr)
- 			continue;
- 
-@@ -93,7 +93,7 @@ static int acpi_processor_update_tsd_coo
- 
- 	cpus_clear(covered_cpus);
- 	for_each_possible_cpu(i) {
--		pr = processors[i];
-+		pr = per_cpu(processors, i);
- 		if (!pr)
- 			continue;
- 
-@@ -119,7 +119,7 @@ static int acpi_processor_update_tsd_coo
- 			if (i == j)
- 				continue;
- 
--			match_pr = processors[j];
-+			match_pr = per_cpu(processors, j);
- 			if (!match_pr)
- 				continue;
- 
-@@ -152,7 +152,7 @@ static int acpi_processor_update_tsd_coo
- 			if (i == j)
- 				continue;
- 
--			match_pr = processors[j];
-+			match_pr = per_cpu(processors, j);
- 			if (!match_pr)
- 				continue;
- 
-@@ -172,7 +172,7 @@ static int acpi_processor_update_tsd_coo
- 
- err_ret:
- 	for_each_possible_cpu(i) {
--		pr = processors[i];
-+		pr = per_cpu(processors, i);
- 		if (!pr)
- 			continue;
- 
-@@ -214,7 +214,7 @@ static int acpi_processor_throttling_not
- 	struct acpi_processor_throttling *p_throttling;
- 
- 	cpu = p_tstate->cpu;
--	pr = processors[cpu];
-+	pr = per_cpu(processors, cpu);
- 	if (!pr) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Invalid pr pointer\n"));
- 		return 0;
-@@ -1035,7 +1035,7 @@ int acpi_processor_set_throttling(struct
- 		 * cpus.
- 		 */
- 		for_each_cpu_mask(i, online_throttling_cpus) {
--			match_pr = processors[i];
-+			match_pr = per_cpu(processors, i);
- 			/*
- 			 * If the pointer is invalid, we will report the
- 			 * error message and continue.
-diff -puN include/acpi/processor.h~acpi-change-processors-from-array-to-per_cpu-variable include/acpi/processor.h
---- a/include/acpi/processor.h~acpi-change-processors-from-array-to-per_cpu-variable
-+++ a/include/acpi/processor.h
-@@ -255,7 +255,7 @@ extern void acpi_processor_unregister_pe
- int acpi_processor_notify_smm(struct module *calling_module);
- 
- /* for communication between multiple parts of the processor kernel module */
--extern struct acpi_processor *processors[NR_CPUS];
-+DECLARE_PER_CPU(struct acpi_processor *, processors);
- extern struct acpi_processor_errata errata;
- 
- void arch_acpi_processor_init_pdc(struct acpi_processor *pr);
+ 	/* Get a local copy of the address. Handles possible alignment issues */
 _
