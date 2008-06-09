@@ -1,36 +1,24 @@
-From: akpm@linux-foundation.org
-Subject: [patch 10/11] dock.c remove trailing printk whitespace
-Date: Mon, 09 Jun 2008 16:22:25 -0700
-Message-ID: <200806092322.m59NMPRM013982@imap1.linux-foundation.org>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [patch 09/11] bay: exit if notify handler cannot be installed
+Date: Tue, 10 Jun 2008 00:28:17 +0100
+Message-ID: <20080609232817.GA21101@srcf.ucam.org>
+References: <200806092322.m59NMP01013979@imap1.linux-foundation.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54048 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753507AbYFIXXt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jun 2008 19:23:49 -0400
+Received: from cavan.codon.org.uk ([93.93.128.6]:52887 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753775AbYFIX2Z (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jun 2008 19:28:25 -0400
+Content-Disposition: inline
+In-Reply-To: <200806092322.m59NMP01013979@imap1.linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, lnxninja@linux.vnet.ibm.com
+To: akpm@linux-foundation.org
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, hmacht@suse.de, kristen.c.accardi@intel.com, rui.zhang@intel.com, trenn@suse.de
 
-From: Tim Pepper <lnxninja@linux.vnet.ibm.com>
+It looks like the plan is to subsume the bay driver into the dock 
+driver. I'm not sure if this is needed in the short term until then?
 
-Signed-off-by: Tim Pepper <lnxninja@linux.vnet.ibm.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- drivers/acpi/dock.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff -puN drivers/acpi/dock.c~dockc-remove-trailing-printk-whitespace drivers/acpi/dock.c
---- a/drivers/acpi/dock.c~dockc-remove-trailing-printk-whitespace
-+++ a/drivers/acpi/dock.c
-@@ -834,7 +834,7 @@ static int dock_add(acpi_handle handle)
- 		goto dock_add_err;
- 	}
- 
--	printk(KERN_INFO PREFIX "%s \n", ACPI_DOCK_DRIVER_DESCRIPTION);
-+	printk(KERN_INFO PREFIX "%s\n", ACPI_DOCK_DRIVER_DESCRIPTION);
- 
- 	return 0;
- 
-_
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
