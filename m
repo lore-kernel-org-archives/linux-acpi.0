@@ -1,49 +1,45 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: Re: [PATCH 6/8] libata hotplug to align with dock driver
-Date: Tue, 10 Jun 2008 09:34:36 +0800
-Message-ID: <1213061676.32112.6.camel@sli10-desk.sh.intel.com>
-References: <1212729788.25188.29.camel@sli10-desk.sh.intel.com>
-	 <20080609013719.GA30665@srcf.ucam.org>
+From: Rene Herman <rene.herman@keyaccess.nl>
+Subject: Re: [patch 00/18] PNP: convert resource options to unified dynamic
+ list, v2
+Date: Tue, 10 Jun 2008 05:00:13 +0200
+Message-ID: <484DEE3D.7000705@keyaccess.nl>
+References: <20080604220933.168145536@ldl.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:63215 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752472AbYFJB27 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 9 Jun 2008 21:28:59 -0400
-In-Reply-To: <20080609013719.GA30665@srcf.ucam.org>
+Received: from smtpq2.tilbu1.nb.home.nl ([213.51.146.201]:55578 "EHLO
+	smtpq2.tilbu1.nb.home.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753266AbYFJDAW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jun 2008 23:00:22 -0400
+In-Reply-To: <20080604220933.168145536@ldl.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Accardi, Kristen C" <kristen.c.accardi@intel.com>, Holger Macht <hmacht@suse.de>, Jeff Garzik <jeff@garzik.org>, Tejun Heo <htejun@gmail.com>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>, Takashi Iwai <tiwai@suse.de>
 
-On Mon, 2008-06-09 at 02:37 +0100, Matthew Garrett wrote:
-> On Fri, Jun 06, 2008 at 01:23:08PM +0800, Shaohua Li wrote:
+On 05-06-08 00:09, Bjorn Helgaas wrote:
+
+> This patch series converts the PNP resource option structures
+> to a unified linked list.  This preserves resource order, which
+> is important for some devices.  The bulk of the series is in
+> the last patch, and it has more a more detailed changelog.
 > 
-> >  	case ACPI_NOTIFY_EJECT_REQUEST:
-> >  		ata_ehi_push_desc(ehi, "ACPI event");
-> > -
-> > -		if (!is_dock_event)
-> > -			break;
-> > -
-> > -		/* undock event - immediate unplug */
-> >  		ata_acpi_detach_device(ap, dev);
+> Rene Herman did some testing of ISA devices and reviewed
+> v1 of this series.  I think I addressed all his comments.
+> Any comments would be welcome.
 > 
-> Ok, just to check that I've understood the other patches - this will 
-> only be called if the device has actually been removed, and not if you 
-> merely get an EJECT_REQUEST, right? An EJECT_REQUEST from a bay device 
-> should always just signal userspace, and never actually cause the device 
-> to be deleted. I don't really like the way that you're remapping event 
-> types inside the dock driver - it'd be cleaner if the per-driver 
-> handlers received ADD_DEVICE or REMOVE_DEVICE or something.
-It's not forcely ejected. This patch adds a check in dock.c, if eject
-request is for an ata bay, we just signal userspace. Latter if a
-device/bus check invoked, dock driver will check status, and doing force
-eject. At this time, ata's EJECT_REQUEST handler will be called.
-Remapping event is to make per-driver handlers easy. complex is all in
-dock driver.
+> This depends on some patches that are in -mm, but not yet
+> upstream.  In mmotm, these would probably go after
+> pnp-dont-sort-by-type-in-sys-resources.patch
 
-Thanks,
-Shaohua
+Perhaps it would've been different if I'd been a full-blown git wizzard 
+but this is getting rather painful to test against mainline. Would it be 
+possible for you to repost (privately or publicly) that which this 
+depends on against current mainline?
 
+I had to blow away my local trees here and while rebuilding the needed 
+manual adjustments were just just enough to make me worry that I'd end 
+up with something not entirely correct.
+
+Rene.
