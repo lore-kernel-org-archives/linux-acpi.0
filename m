@@ -1,36 +1,53 @@
 From: Holger Macht <hmacht@suse.de>
-Subject: Re: [patch 09/11] bay: exit if notify handler cannot be installed
-Date: Tue, 10 Jun 2008 10:13:12 +0200
-Message-ID: <20080610081311.GA29300@homac>
-References: <200806092322.m59NMP01013979@imap1.linux-foundation.org> <20080609232817.GA21101@srcf.ucam.org> <20080609165628.90e2cf7b.akpm@linux-foundation.org>
+Subject: Re: [PATCH 6/8] libata hotplug to align with dock driver
+Date: Tue, 10 Jun 2008 10:15:27 +0200
+Message-ID: <20080610081527.GB29300@homac>
+References: <1212729788.25188.29.camel@sli10-desk.sh.intel.com> <20080609013719.GA30665@srcf.ucam.org> <1213061676.32112.6.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:33173 "EHLO mx2.suse.de"
+Received: from cantor2.suse.de ([195.135.220.15]:33356 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753413AbYFJINA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 10 Jun 2008 04:13:00 -0400
+	id S1753550AbYFJIPO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 10 Jun 2008 04:15:14 -0400
 Content-Disposition: inline
-In-Reply-To: <20080609165628.90e2cf7b.akpm@linux-foundation.org>
+In-Reply-To: <1213061676.32112.6.camel@sli10-desk.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, lenb@kernel.org, linux-acpi@vger.kernel.org, kristen.c.accardi@intel.com, rui.zhang@intel.com, trenn@suse.de
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Accardi, Kristen C" <kristen.c.accardi@intel.com>, Jeff Garzik <jeff@garzik.org>, Tejun Heo <htejun@gmail.com>
 
-On Mon 09. Jun - 16:56:28, Andrew Morton wrote:
-> On Tue, 10 Jun 2008 00:28:17 +0100
-> Matthew Garrett <mjg59@srcf.ucam.org> wrote:
-> 
-> > It looks like the plan is to subsume the bay driver into the dock 
-> > driver. I'm not sure if this is needed in the short term until then?
-> 
-> Dunno.
-> 
-> This patch appears to fix a bug, in which case we shouldn't allow
-> larger future plans to get int he way of that?
+On Tue 10. Jun - 09:34:36, Shaohua Li wrote:
+> On Mon, 2008-06-09 at 02:37 +0100, Matthew Garrett wrote:
+> > On Fri, Jun 06, 2008 at 01:23:08PM +0800, Shaohua Li wrote:
+> > 
+> > >  	case ACPI_NOTIFY_EJECT_REQUEST:
+> > >  		ata_ehi_push_desc(ehi, "ACPI event");
+> > > -
+> > > -		if (!is_dock_event)
+> > > -			break;
+> > > -
+> > > -		/* undock event - immediate unplug */
+> > >  		ata_acpi_detach_device(ap, dev);
+> > 
+> > Ok, just to check that I've understood the other patches - this will 
+> > only be called if the device has actually been removed, and not if you 
+> > merely get an EJECT_REQUEST, right? An EJECT_REQUEST from a bay device 
+> > should always just signal userspace, and never actually cause the device 
+> > to be deleted. I don't really like the way that you're remapping event 
+> > types inside the dock driver - it'd be cleaner if the per-driver 
+> > handlers received ADD_DEVICE or REMOVE_DEVICE or something.
+> It's not forcely ejected. This patch adds a check in dock.c, if eject
+> request is for an ata bay, we just signal userspace. Latter if a
+> device/bus check invoked, dock driver will check status, and doing force
+> eject. At this time, ata's EJECT_REQUEST handler will be called.
+> Remapping event is to make per-driver handlers easy. complex is all in
+> dock driver.
 
-Right. I don't think we get the bits sorted for removing the bay driver
-for 2.6.26 IMHO, so this should go in as a bugfix for 2.6.26.
+I still don't get a uevent signalled to userspace for a bay device in my
+dock station when pressing the lever on the bay device. I think I'll get
+to debug this by the end of the week or the weekend if you like...
 
 Regards,
 	Holger
+
