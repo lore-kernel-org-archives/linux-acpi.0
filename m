@@ -1,45 +1,36 @@
-From: Rene Herman <rene.herman@keyaccess.nl>
-Subject: Re: [patch 00/18] PNP: convert resource options to unified dynamic
- list, v2
-Date: Tue, 10 Jun 2008 05:00:13 +0200
-Message-ID: <484DEE3D.7000705@keyaccess.nl>
-References: <20080604220933.168145536@ldl.fc.hp.com>
+From: Holger Macht <hmacht@suse.de>
+Subject: Re: [patch 09/11] bay: exit if notify handler cannot be installed
+Date: Tue, 10 Jun 2008 10:13:12 +0200
+Message-ID: <20080610081311.GA29300@homac>
+References: <200806092322.m59NMP01013979@imap1.linux-foundation.org> <20080609232817.GA21101@srcf.ucam.org> <20080609165628.90e2cf7b.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtpq2.tilbu1.nb.home.nl ([213.51.146.201]:55578 "EHLO
-	smtpq2.tilbu1.nb.home.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753266AbYFJDAW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jun 2008 23:00:22 -0400
-In-Reply-To: <20080604220933.168145536@ldl.fc.hp.com>
+Received: from mx2.suse.de ([195.135.220.15]:33173 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753413AbYFJINA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 10 Jun 2008 04:13:00 -0400
+Content-Disposition: inline
+In-Reply-To: <20080609165628.90e2cf7b.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>, Takashi Iwai <tiwai@suse.de>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, lenb@kernel.org, linux-acpi@vger.kernel.org, kristen.c.accardi@intel.com, rui.zhang@intel.com, trenn@suse.de
 
-On 05-06-08 00:09, Bjorn Helgaas wrote:
-
-> This patch series converts the PNP resource option structures
-> to a unified linked list.  This preserves resource order, which
-> is important for some devices.  The bulk of the series is in
-> the last patch, and it has more a more detailed changelog.
+On Mon 09. Jun - 16:56:28, Andrew Morton wrote:
+> On Tue, 10 Jun 2008 00:28:17 +0100
+> Matthew Garrett <mjg59@srcf.ucam.org> wrote:
 > 
-> Rene Herman did some testing of ISA devices and reviewed
-> v1 of this series.  I think I addressed all his comments.
-> Any comments would be welcome.
+> > It looks like the plan is to subsume the bay driver into the dock 
+> > driver. I'm not sure if this is needed in the short term until then?
 > 
-> This depends on some patches that are in -mm, but not yet
-> upstream.  In mmotm, these would probably go after
-> pnp-dont-sort-by-type-in-sys-resources.patch
+> Dunno.
+> 
+> This patch appears to fix a bug, in which case we shouldn't allow
+> larger future plans to get int he way of that?
 
-Perhaps it would've been different if I'd been a full-blown git wizzard 
-but this is getting rather painful to test against mainline. Would it be 
-possible for you to repost (privately or publicly) that which this 
-depends on against current mainline?
+Right. I don't think we get the bits sorted for removing the bay driver
+for 2.6.26 IMHO, so this should go in as a bugfix for 2.6.26.
 
-I had to blow away my local trees here and while rebuilding the needed 
-manual adjustments were just just enough to make me worry that I'd end 
-up with something not entirely correct.
-
-Rene.
+Regards,
+	Holger
