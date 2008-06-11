@@ -1,111 +1,212 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 10/23] pnpacpi: fix shareable IRQ encode/decode
-Date: Wed, 11 Jun 2008 03:59:13 -0400
-Message-ID: <f90bb36d65335ab4913fd4f5ebc5c190fbea1967.1213171095.git.len.brown@intel.com>
+Subject: [PATCH 02/23] cpuidle acpi driver: fix oops on AC<->DC
+Date: Wed, 11 Jun 2008 03:59:05 -0400
+Message-ID: <83eef286fabf1f1890ef003c310554a5cb2a46d4.1213171095.git.len.brown@intel.com>
 References: <1213171166-3951-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms042pub.verizon.net ([206.46.252.42]:37111 "EHLO
-	vms042pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753393AbYFKH7e (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Jun 2008 03:59:34 -0400
+Received: from vms173003pub.verizon.net ([206.46.173.3]:65151 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753541AbYFKH7i (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Jun 2008 03:59:38 -0400
 Received: from localhost.localdomain ([72.93.254.151])
- by vms042.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0K2A007K7GV947R2@vms042.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 11 Jun 2008 02:59:34 -0500 (CDT)
+ by vms173003.mailsrvcs.net
+ (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+ with ESMTPA id <0K2A00DT8GV3Y9R4@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Wed, 11 Jun 2008 02:59:28 -0500 (CDT)
 In-reply-to: <1213171166-3951-1-git-send-email-lenb@kernel.org>
 In-reply-to: <cfa9e14b544aa588467ff3340e4e5c7d5d97ed50.1213171095.git.len.brown@intel.com>
 References: <cfa9e14b544aa588467ff3340e4e5c7d5d97ed50.1213171095.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-When we encode IRQ resources, we should use the "shareable" flag we got
-from _PRS rather than guessing based on the IRQ trigger mode.
+cpuidle and acpi driver interaction bug with the way cpuidle_register_driver()
+is called. Due to this bug, there will be oops on
+AC<->DC on some systems, where they support C-states in one DC and not in AC.
 
-This is based on a patch by Tom Jaeger:
-    http://bugzilla.kernel.org/show_bug.cgi?id=9487#c32
+The current code does
+ON BOOT:
+	Look at CST and other C-state info to see whether more than C1 is
+	supported. If it is, then acpi processor_idle does a
+	cpuidle_register_driver() call, which internally enables the device.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+ON CST change notification (AC<->DC) and on suspend-resume:
+	acpi driver temporarily disables device, updates the device with
+	any new C-states, and reenables the device.
+
+The problem is is on boot, there are no C2, C3 states supported and we skip
+the register. Later on AC<->DC, we may get a CST notification and we try
+to reevaluate CST and enabled the device, without actually registering it.
+This causes breakage as we try to create /sys fs sub directory, without the
+parent directory which is created at register time.
+
+Thanks to Sanjeev for reporting the problem here.
+http://bugzilla.kernel.org/show_bug.cgi?id=10394
+
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/pnp/pnpacpi/rsparser.c |   27 +++++++++++++--------------
- 1 files changed, 13 insertions(+), 14 deletions(-)
+ drivers/acpi/processor_idle.c |   13 +++++++------
+ drivers/cpuidle/cpuidle.c     |   40 +++++++++++++++++++++++++++++++++++-----
+ include/linux/cpuidle.h       |    1 +
+ 3 files changed, 43 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/pnp/pnpacpi/rsparser.c b/drivers/pnp/pnpacpi/rsparser.c
-index ab09fe6..8681ff6 100644
---- a/drivers/pnp/pnpacpi/rsparser.c
-+++ b/drivers/pnp/pnpacpi/rsparser.c
-@@ -50,14 +50,14 @@ static int irq_flags(int triggering, int polarity, int shareable)
- 			flags = IORESOURCE_IRQ_HIGHEDGE;
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index 2dd2c1f..556ee15 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -1669,6 +1669,7 @@ static int acpi_processor_setup_cpuidle(struct acpi_processor *pr)
+ 		return -EINVAL;
  	}
  
--	if (shareable)
-+	if (shareable == ACPI_SHARED)
- 		flags |= IORESOURCE_IRQ_SHAREABLE;
++	dev->cpu = pr->id;
+ 	for (i = 0; i < CPUIDLE_STATE_MAX; i++) {
+ 		dev->states[i].name[0] = '\0';
+ 		dev->states[i].desc[0] = '\0';
+@@ -1738,7 +1739,7 @@ static int acpi_processor_setup_cpuidle(struct acpi_processor *pr)
  
- 	return flags;
- }
- 
- static void decode_irq_flags(struct pnp_dev *dev, int flags, int *triggering,
--			     int *polarity)
-+			     int *polarity, int *shareable)
+ int acpi_processor_cst_has_changed(struct acpi_processor *pr)
  {
- 	switch (flags & (IORESOURCE_IRQ_LOWLEVEL | IORESOURCE_IRQ_HIGHLEVEL |
- 			 IORESOURCE_IRQ_LOWEDGE  | IORESOURCE_IRQ_HIGHEDGE)) {
-@@ -84,6 +84,11 @@ static void decode_irq_flags(struct pnp_dev *dev, int flags, int *triggering,
- 		*polarity = ACPI_ACTIVE_HIGH;
- 		break;
- 	}
+-	int ret;
++	int ret = 0;
+ 
+ 	if (boot_option_idle_override)
+ 		return 0;
+@@ -1756,8 +1757,10 @@ int acpi_processor_cst_has_changed(struct acpi_processor *pr)
+ 	cpuidle_pause_and_lock();
+ 	cpuidle_disable_device(&pr->power.dev);
+ 	acpi_processor_get_power_info(pr);
+-	acpi_processor_setup_cpuidle(pr);
+-	ret = cpuidle_enable_device(&pr->power.dev);
++	if (pr->flags.power) {
++		acpi_processor_setup_cpuidle(pr);
++		ret = cpuidle_enable_device(&pr->power.dev);
++	}
+ 	cpuidle_resume_and_unlock();
+ 
+ 	return ret;
+@@ -1813,7 +1816,6 @@ int __cpuinit acpi_processor_power_init(struct acpi_processor *pr,
+ 	if (pr->flags.power) {
+ #ifdef CONFIG_CPU_IDLE
+ 		acpi_processor_setup_cpuidle(pr);
+-		pr->power.dev.cpu = pr->id;
+ 		if (cpuidle_register_device(&pr->power.dev))
+ 			return -EIO;
+ #endif
+@@ -1850,8 +1852,7 @@ int acpi_processor_power_exit(struct acpi_processor *pr,
+ 		return 0;
+ 
+ #ifdef CONFIG_CPU_IDLE
+-	if (pr->flags.power)
+-		cpuidle_unregister_device(&pr->power.dev);
++	cpuidle_unregister_device(&pr->power.dev);
+ #endif
+ 	pr->flags.power_setup_done = 0;
+ 
+diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
+index fc555a9..23554b6 100644
+--- a/drivers/cpuidle/cpuidle.c
++++ b/drivers/cpuidle/cpuidle.c
+@@ -38,6 +38,8 @@ static void cpuidle_kick_cpus(void)
+ static void cpuidle_kick_cpus(void) {}
+ #endif
+ 
++static int __cpuidle_register_device(struct cpuidle_device *dev);
 +
-+	if (flags & IORESOURCE_IRQ_SHAREABLE)
-+		*shareable = ACPI_SHARED;
-+	else
-+		*shareable = ACPI_EXCLUSIVE;
- }
+ /**
+  * cpuidle_idle_call - the main idle loop
+  *
+@@ -138,6 +140,12 @@ int cpuidle_enable_device(struct cpuidle_device *dev)
+ 	if (!dev->state_count)
+ 		return -EINVAL;
  
- static void pnpacpi_parse_allocated_irqresource(struct pnp_dev *dev,
-@@ -796,15 +801,12 @@ static void pnpacpi_encode_irq(struct pnp_dev *dev,
- 			       struct resource *p)
++	if (dev->registered == 0) {
++		ret = __cpuidle_register_device(dev);
++		if (ret)
++			return ret;
++	}
++
+ 	if ((ret = cpuidle_add_state_sysfs(dev)))
+ 		return ret;
+ 
+@@ -232,10 +240,13 @@ static void poll_idle_init(struct cpuidle_device *dev) {}
+ #endif /* CONFIG_ARCH_HAS_CPU_RELAX */
+ 
+ /**
+- * cpuidle_register_device - registers a CPU's idle PM feature
++ * __cpuidle_register_device - internal register function called before register
++ * and enable routines
+  * @dev: the cpu
++ *
++ * cpuidle_lock mutex must be held before this is called
+  */
+-int cpuidle_register_device(struct cpuidle_device *dev)
++static int __cpuidle_register_device(struct cpuidle_device *dev)
  {
- 	struct acpi_resource_irq *irq = &resource->data.irq;
--	int triggering, polarity;
-+	int triggering, polarity, shareable;
+ 	int ret;
+ 	struct sys_device *sys_dev = get_cpu_sysdev((unsigned long)dev->cpu);
+@@ -247,18 +258,34 @@ int cpuidle_register_device(struct cpuidle_device *dev)
  
--	decode_irq_flags(dev, p->flags, &triggering, &polarity);
-+	decode_irq_flags(dev, p->flags, &triggering, &polarity, &shareable);
- 	irq->triggering = triggering;
- 	irq->polarity = polarity;
--	if (triggering == ACPI_EDGE_SENSITIVE)
--		irq->sharable = ACPI_EXCLUSIVE;
--	else
--		irq->sharable = ACPI_SHARED;
-+	irq->sharable = shareable;
- 	irq->interrupt_count = 1;
- 	irq->interrupts[0] = p->start;
+ 	init_completion(&dev->kobj_unregister);
  
-@@ -819,16 +821,13 @@ static void pnpacpi_encode_ext_irq(struct pnp_dev *dev,
- 				   struct resource *p)
+-	mutex_lock(&cpuidle_lock);
+-
+ 	poll_idle_init(dev);
+ 
+ 	per_cpu(cpuidle_devices, dev->cpu) = dev;
+ 	list_add(&dev->device_list, &cpuidle_detected_devices);
+ 	if ((ret = cpuidle_add_sysfs(sys_dev))) {
+-		mutex_unlock(&cpuidle_lock);
+ 		module_put(cpuidle_curr_driver->owner);
+ 		return ret;
+ 	}
+ 
++	dev->registered = 1;
++	return 0;
++}
++
++/**
++ * cpuidle_register_device - registers a CPU's idle PM feature
++ * @dev: the cpu
++ */
++int cpuidle_register_device(struct cpuidle_device *dev)
++{
++	int ret;
++
++	mutex_lock(&cpuidle_lock);
++
++	if ((ret = __cpuidle_register_device(dev))) {
++		mutex_unlock(&cpuidle_lock);
++		return ret;
++	}
++
+ 	cpuidle_enable_device(dev);
+ 	cpuidle_install_idle_handler();
+ 
+@@ -278,6 +305,9 @@ void cpuidle_unregister_device(struct cpuidle_device *dev)
  {
- 	struct acpi_resource_extended_irq *extended_irq = &resource->data.extended_irq;
--	int triggering, polarity;
-+	int triggering, polarity, shareable;
+ 	struct sys_device *sys_dev = get_cpu_sysdev((unsigned long)dev->cpu);
  
--	decode_irq_flags(dev, p->flags, &triggering, &polarity);
-+	decode_irq_flags(dev, p->flags, &triggering, &polarity, &shareable);
- 	extended_irq->producer_consumer = ACPI_CONSUMER;
- 	extended_irq->triggering = triggering;
- 	extended_irq->polarity = polarity;
--	if (triggering == ACPI_EDGE_SENSITIVE)
--		extended_irq->sharable = ACPI_EXCLUSIVE;
--	else
--		extended_irq->sharable = ACPI_SHARED;
-+	extended_irq->sharable = shareable;
- 	extended_irq->interrupt_count = 1;
- 	extended_irq->interrupts[0] = p->start;
++	if (dev->registered == 0)
++		return;
++
+ 	cpuidle_pause_and_lock();
+ 
+ 	cpuidle_disable_device(dev);
+diff --git a/include/linux/cpuidle.h b/include/linux/cpuidle.h
+index 51e6b1e..dcf77fa 100644
+--- a/include/linux/cpuidle.h
++++ b/include/linux/cpuidle.h
+@@ -82,6 +82,7 @@ struct cpuidle_state_kobj {
+ };
+ 
+ struct cpuidle_device {
++	unsigned int		registered:1;
+ 	unsigned int		enabled:1;
+ 	unsigned int		cpu;
  
 -- 
 1.5.6.rc2.23.gea81e
