@@ -1,213 +1,135 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 02/23] cpuidle acpi driver: fix oops on AC<->DC
-Date: Wed, 11 Jun 2008 03:59:05 -0400
-Message-ID: <83eef286fabf1f1890ef003c310554a5cb2a46d4.1213171095.git.len.brown@intel.com>
+Subject: [PATCH 05/23] thinkpad-acpi: fix LED handling on older ThinkPads
+Date: Wed, 11 Jun 2008 03:59:08 -0400
+Message-ID: <e0e91ceada6c48546ad124ff2a964db0a0545d8f.1213171095.git.len.brown@intel.com>
 References: <1213171166-3951-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173003pub.verizon.net ([206.46.173.3]:65151 "EHLO
 	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753541AbYFKH7i (ORCPT
+	with ESMTP id S1753577AbYFKH7i (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Jun 2008 03:59:38 -0400
 Received: from localhost.localdomain ([72.93.254.151])
  by vms173003.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K2A00DT8GV3Y9R4@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 11 Jun 2008 02:59:28 -0500 (CDT)
+ with ESMTPA id <0K2A00DTBGV4Y9R4@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Wed, 11 Jun 2008 02:59:29 -0500 (CDT)
 In-reply-to: <1213171166-3951-1-git-send-email-lenb@kernel.org>
 In-reply-to: <cfa9e14b544aa588467ff3340e4e5c7d5d97ed50.1213171095.git.len.brown@intel.com>
 References: <cfa9e14b544aa588467ff3340e4e5c7d5d97ed50.1213171095.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com>
 
-From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-cpuidle and acpi driver interaction bug with the way cpuidle_register_driver()
-is called. Due to this bug, there will be oops on
-AC<->DC on some systems, where they support C-states in one DC and not in AC.
+The less tested codepaths for LED handling, used on ThinkPads 570, 600e/x,
+770e, 770x, A21e, A2xm/p, T20-22, X20 and maybe a few others, would write
+data to kernel memory it had no business touching, for leds number 3 and
+above.  If one is lucky, that illegal write would cause an OOPS, but
+chances are it would silently corrupt a byte.
 
-The current code does
-ON BOOT:
-	Look at CST and other C-state info to see whether more than C1 is
-	supported. If it is, then acpi processor_idle does a
-	cpuidle_register_driver() call, which internally enables the device.
+The problem was introduced in commit af116101, "ACPI: thinkpad-acpi: add
+sysfs led class support to thinkpad leds (v3.2)".
 
-ON CST change notification (AC<->DC) and on suspend-resume:
-	acpi driver temporarily disables device, updates the device with
-	any new C-states, and reenables the device.
+Fix the bug by refactoring the entire code to be far more obvious on what
+it wants to do.  Also do some defensive "constification".
 
-The problem is is on boot, there are no C2, C3 states supported and we skip
-the register. Later on AC<->DC, we may get a CST notification and we try
-to reevaluate CST and enabled the device, without actually registering it.
-This causes breakage as we try to create /sys fs sub directory, without the
-parent directory which is created at register time.
+Issue reported by Karol Lewandowski <lmctlx@gmail.com> (he's an lucky guy
+and got an OOPS instead of silent corruption :-) ).
 
-Thanks to Sanjeev for reporting the problem here.
-http://bugzilla.kernel.org/show_bug.cgi?id=10394
+Root cause of the OOPS identified by Adrian Bunk <bunk@kernel.org>.
+Thanks, Adrian!
 
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Tested-by: Karol Lewandowski <lmctlx@gmail.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/processor_idle.c |   13 +++++++------
- drivers/cpuidle/cpuidle.c     |   40 +++++++++++++++++++++++++++++++++++-----
- include/linux/cpuidle.h       |    1 +
- 3 files changed, 43 insertions(+), 11 deletions(-)
+ drivers/misc/thinkpad_acpi.c |   55 +++++++++++++++++++++--------------------
+ 1 files changed, 28 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index 2dd2c1f..556ee15 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -1669,6 +1669,7 @@ static int acpi_processor_setup_cpuidle(struct acpi_processor *pr)
- 		return -EINVAL;
- 	}
- 
-+	dev->cpu = pr->id;
- 	for (i = 0; i < CPUIDLE_STATE_MAX; i++) {
- 		dev->states[i].name[0] = '\0';
- 		dev->states[i].desc[0] = '\0';
-@@ -1738,7 +1739,7 @@ static int acpi_processor_setup_cpuidle(struct acpi_processor *pr)
- 
- int acpi_processor_cst_has_changed(struct acpi_processor *pr)
- {
--	int ret;
-+	int ret = 0;
- 
- 	if (boot_option_idle_override)
- 		return 0;
-@@ -1756,8 +1757,10 @@ int acpi_processor_cst_has_changed(struct acpi_processor *pr)
- 	cpuidle_pause_and_lock();
- 	cpuidle_disable_device(&pr->power.dev);
- 	acpi_processor_get_power_info(pr);
--	acpi_processor_setup_cpuidle(pr);
--	ret = cpuidle_enable_device(&pr->power.dev);
-+	if (pr->flags.power) {
-+		acpi_processor_setup_cpuidle(pr);
-+		ret = cpuidle_enable_device(&pr->power.dev);
-+	}
- 	cpuidle_resume_and_unlock();
- 
- 	return ret;
-@@ -1813,7 +1816,6 @@ int __cpuinit acpi_processor_power_init(struct acpi_processor *pr,
- 	if (pr->flags.power) {
- #ifdef CONFIG_CPU_IDLE
- 		acpi_processor_setup_cpuidle(pr);
--		pr->power.dev.cpu = pr->id;
- 		if (cpuidle_register_device(&pr->power.dev))
- 			return -EIO;
- #endif
-@@ -1850,8 +1852,7 @@ int acpi_processor_power_exit(struct acpi_processor *pr,
- 		return 0;
- 
- #ifdef CONFIG_CPU_IDLE
--	if (pr->flags.power)
--		cpuidle_unregister_device(&pr->power.dev);
-+	cpuidle_unregister_device(&pr->power.dev);
- #endif
- 	pr->flags.power_setup_done = 0;
- 
-diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
-index fc555a9..23554b6 100644
---- a/drivers/cpuidle/cpuidle.c
-+++ b/drivers/cpuidle/cpuidle.c
-@@ -38,6 +38,8 @@ static void cpuidle_kick_cpus(void)
- static void cpuidle_kick_cpus(void) {}
- #endif
- 
-+static int __cpuidle_register_device(struct cpuidle_device *dev);
-+
- /**
-  * cpuidle_idle_call - the main idle loop
-  *
-@@ -138,6 +140,12 @@ int cpuidle_enable_device(struct cpuidle_device *dev)
- 	if (!dev->state_count)
- 		return -EINVAL;
- 
-+	if (dev->registered == 0) {
-+		ret = __cpuidle_register_device(dev);
-+		if (ret)
-+			return ret;
-+	}
-+
- 	if ((ret = cpuidle_add_state_sysfs(dev)))
- 		return ret;
- 
-@@ -232,10 +240,13 @@ static void poll_idle_init(struct cpuidle_device *dev) {}
- #endif /* CONFIG_ARCH_HAS_CPU_RELAX */
- 
- /**
-- * cpuidle_register_device - registers a CPU's idle PM feature
-+ * __cpuidle_register_device - internal register function called before register
-+ * and enable routines
-  * @dev: the cpu
-+ *
-+ * cpuidle_lock mutex must be held before this is called
-  */
--int cpuidle_register_device(struct cpuidle_device *dev)
-+static int __cpuidle_register_device(struct cpuidle_device *dev)
- {
- 	int ret;
- 	struct sys_device *sys_dev = get_cpu_sysdev((unsigned long)dev->cpu);
-@@ -247,18 +258,34 @@ int cpuidle_register_device(struct cpuidle_device *dev)
- 
- 	init_completion(&dev->kobj_unregister);
- 
--	mutex_lock(&cpuidle_lock);
--
- 	poll_idle_init(dev);
- 
- 	per_cpu(cpuidle_devices, dev->cpu) = dev;
- 	list_add(&dev->device_list, &cpuidle_detected_devices);
- 	if ((ret = cpuidle_add_sysfs(sys_dev))) {
--		mutex_unlock(&cpuidle_lock);
- 		module_put(cpuidle_curr_driver->owner);
- 		return ret;
- 	}
- 
-+	dev->registered = 1;
-+	return 0;
-+}
-+
-+/**
-+ * cpuidle_register_device - registers a CPU's idle PM feature
-+ * @dev: the cpu
-+ */
-+int cpuidle_register_device(struct cpuidle_device *dev)
-+{
-+	int ret;
-+
-+	mutex_lock(&cpuidle_lock);
-+
-+	if ((ret = __cpuidle_register_device(dev))) {
-+		mutex_unlock(&cpuidle_lock);
-+		return ret;
-+	}
-+
- 	cpuidle_enable_device(dev);
- 	cpuidle_install_idle_handler();
- 
-@@ -278,6 +305,9 @@ void cpuidle_unregister_device(struct cpuidle_device *dev)
- {
- 	struct sys_device *sys_dev = get_cpu_sysdev((unsigned long)dev->cpu);
- 
-+	if (dev->registered == 0)
-+		return;
-+
- 	cpuidle_pause_and_lock();
- 
- 	cpuidle_disable_device(dev);
-diff --git a/include/linux/cpuidle.h b/include/linux/cpuidle.h
-index 51e6b1e..dcf77fa 100644
---- a/include/linux/cpuidle.h
-+++ b/include/linux/cpuidle.h
-@@ -82,6 +82,7 @@ struct cpuidle_state_kobj {
+diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
+index 58973da..b596929 100644
+--- a/drivers/misc/thinkpad_acpi.c
++++ b/drivers/misc/thinkpad_acpi.c
+@@ -3853,7 +3853,7 @@ static const char * const tpacpi_led_names[TPACPI_LED_NUMLEDS] = {
+ 	"tpacpi::standby",
  };
  
- struct cpuidle_device {
-+	unsigned int		registered:1;
- 	unsigned int		enabled:1;
- 	unsigned int		cpu;
+-static int led_get_status(unsigned int led)
++static int led_get_status(const unsigned int led)
+ {
+ 	int status;
+ 	enum led_status_t led_s;
+@@ -3877,41 +3877,42 @@ static int led_get_status(unsigned int led)
+ 	/* not reached */
+ }
  
+-static int led_set_status(unsigned int led, enum led_status_t ledstatus)
++static int led_set_status(const unsigned int led,
++			  const enum led_status_t ledstatus)
+ {
+ 	/* off, on, blink. Index is led_status_t */
+-	static const int led_sled_arg1[] = { 0, 1, 3 };
+-	static const int led_exp_hlbl[] = { 0, 0, 1 };	/* led# * */
+-	static const int led_exp_hlcl[] = { 0, 1, 1 };	/* led# * */
+-	static const int led_led_arg1[] = { 0, 0x80, 0xc0 };
++	static const unsigned int led_sled_arg1[] = { 0, 1, 3 };
++	static const unsigned int led_led_arg1[] = { 0, 0x80, 0xc0 };
+ 
+ 	int rc = 0;
+ 
+ 	switch (led_supported) {
+ 	case TPACPI_LED_570:
+-			/* 570 */
+-			led = 1 << led;
+-			if (!acpi_evalf(led_handle, NULL, NULL, "vdd",
+-					led, led_sled_arg1[ledstatus]))
+-				rc = -EIO;
+-			break;
++		/* 570 */
++		if (led > 7)
++			return -EINVAL;
++		if (!acpi_evalf(led_handle, NULL, NULL, "vdd",
++				(1 << led), led_sled_arg1[ledstatus]))
++			rc = -EIO;
++		break;
+ 	case TPACPI_LED_OLD:
+-			/* 600e/x, 770e, 770x, A21e, A2xm/p, T20-22, X20 */
+-			led = 1 << led;
+-			rc = ec_write(TPACPI_LED_EC_HLMS, led);
+-			if (rc >= 0)
+-				rc = ec_write(TPACPI_LED_EC_HLBL,
+-					      led * led_exp_hlbl[ledstatus]);
+-			if (rc >= 0)
+-				rc = ec_write(TPACPI_LED_EC_HLCL,
+-					      led * led_exp_hlcl[ledstatus]);
+-			break;
++		/* 600e/x, 770e, 770x, A21e, A2xm/p, T20-22, X20 */
++		if (led > 7)
++			return -EINVAL;
++		rc = ec_write(TPACPI_LED_EC_HLMS, (1 << led));
++		if (rc >= 0)
++			rc = ec_write(TPACPI_LED_EC_HLBL,
++				      (ledstatus == TPACPI_LED_BLINK) << led);
++		if (rc >= 0)
++			rc = ec_write(TPACPI_LED_EC_HLCL,
++				      (ledstatus != TPACPI_LED_OFF) << led);
++		break;
+ 	case TPACPI_LED_NEW:
+-			/* all others */
+-			if (!acpi_evalf(led_handle, NULL, NULL, "vdd",
+-					led, led_led_arg1[ledstatus]))
+-				rc = -EIO;
+-			break;
++		/* all others */
++		if (!acpi_evalf(led_handle, NULL, NULL, "vdd",
++				led, led_led_arg1[ledstatus]))
++			rc = -EIO;
++		break;
+ 	default:
+ 		rc = -ENXIO;
+ 	}
 -- 
 1.5.6.rc2.23.gea81e
 
