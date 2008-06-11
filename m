@@ -1,17 +1,16 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 19/23] ACPICA: Fix for Load operator,
- load table at the namespace root
-Date: Wed, 11 Jun 2008 03:59:22 -0400
-Message-ID: <415067baafd391c9e82fdf8a0274638ea9cf2108.1213171095.git.len.brown@intel.com>
+Subject: [PATCH 16/23] ACPI: use memory_read_from_buffer()
+Date: Wed, 11 Jun 2008 03:59:19 -0400
+Message-ID: <3e7c8720e1d10da045edd4d758af322ef5ac775e.1213171095.git.len.brown@intel.com>
 References: <1213171166-3951-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms046pub.verizon.net ([206.46.252.46]:57809 "EHLO
 	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753748AbYFKH7l (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Jun 2008 03:59:41 -0400
+	with ESMTP id S1753726AbYFKH7k (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Jun 2008 03:59:40 -0400
 Received: from localhost.localdomain ([72.93.254.151])
  by vms046.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0K2A00KUJGVBESV2@vms046.mailsrvcs.net> for
+ 3 2006)) with ESMTPA id <0K2A00KWNGVA0N8B@vms046.mailsrvcs.net> for
  linux-acpi@vger.kernel.org; Wed, 11 Jun 2008 02:59:35 -0500 (CDT)
 In-reply-to: <1213171166-3951-1-git-send-email-lenb@kernel.org>
 In-reply-to: <cfa9e14b544aa588467ff3340e4e5c7d5d97ed50.1213171095.git.len.brown@intel.com>
@@ -19,44 +18,51 @@ References: <cfa9e14b544aa588467ff3340e4e5c7d5d97ed50.1213171095.git.len.brown@i
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
 
-From: Bob Moore <robert.moore@intel.com>
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-This reverts a change introduced in version 20071019. The table
-is now loaded at the namespace root even though this goes against
-the ACPI specification.  This provides compatibility with other
-ACPI implementations.
-
-Signed-off-by: Lin Ming <ming.m.lin@intel.com>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Acked-by: Zhang Rui <rui.zhang@intel.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/executer/exconfig.c |   10 ++++++++--
- 1 files changed, 8 insertions(+), 2 deletions(-)
+ drivers/acpi/system.c |   15 ++-------------
+ 1 files changed, 2 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/acpi/executer/exconfig.c b/drivers/acpi/executer/exconfig.c
-index 24da921..39d7421 100644
---- a/drivers/acpi/executer/exconfig.c
-+++ b/drivers/acpi/executer/exconfig.c
-@@ -375,9 +375,15 @@ acpi_ex_load_op(union acpi_operand_object *obj_desc,
- 		goto cleanup;
- 	}
+diff --git a/drivers/acpi/system.c b/drivers/acpi/system.c
+index 769f248..5bd2dec 100644
+--- a/drivers/acpi/system.c
++++ b/drivers/acpi/system.c
+@@ -77,7 +77,6 @@ static ssize_t acpi_table_show(struct kobject *kobj,
+ 	    container_of(bin_attr, struct acpi_table_attr, attr);
+ 	struct acpi_table_header *table_header = NULL;
+ 	acpi_status status;
+-	ssize_t ret_count = count;
  
-+	/*
-+	 * Add the table to the namespace.
-+	 *
-+	 * Note: We load the table objects relative to the root of the namespace.
-+	 * This appears to go against the ACPI specification, but we do it for
-+	 * compatibility with other ACPI implementations.
-+	 */
  	status =
--	    acpi_ex_add_table(table_index, walk_state->scope_info->scope.node,
--			      &ddb_handle);
-+	    acpi_ex_add_table(table_index, acpi_gbl_root_node, &ddb_handle);
- 	if (ACPI_FAILURE(status)) {
+ 	    acpi_get_table(table_attr->name, table_attr->instance,
+@@ -85,18 +84,8 @@ static ssize_t acpi_table_show(struct kobject *kobj,
+ 	if (ACPI_FAILURE(status))
+ 		return -ENODEV;
  
- 		/* On error, table_ptr was deallocated above */
+-	if (offset >= table_header->length) {
+-		ret_count = 0;
+-		goto end;
+-	}
+-
+-	if (offset + ret_count > table_header->length)
+-		ret_count = table_header->length - offset;
+-
+-	memcpy(buf, ((char *)table_header) + offset, ret_count);
+-
+-      end:
+-	return ret_count;
++	return memory_read_from_buffer(buf, count, &offset,
++					table_header, table_header->length);
+ }
+ 
+ static void acpi_table_attr_init(struct acpi_table_attr *table_attr,
 -- 
 1.5.6.rc2.23.gea81e
 
