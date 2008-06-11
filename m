@@ -1,503 +1,276 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 2/5] APM emulation: Notify about all suspend events, not just APM invoked ones (v2)
-Date: Wed, 11 Jun 2008 22:03:10 +0200
-Message-ID: <200806112203.10991.rjw@sisk.pl>
+Subject: [PATCH 3/5] Freezer: Introduce PF_FREEZER_NOSIG
+Date: Wed, 11 Jun 2008 22:04:29 +0200
+Message-ID: <200806112204.30435.rjw@sisk.pl>
 References: <200806112158.20806.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:34522 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:34530 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751117AbYFKUIz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 11 Jun 2008 16:08:55 -0400
+	id S1751551AbYFKUI5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 11 Jun 2008 16:08:57 -0400
 In-Reply-To: <200806112158.20806.rjw@sisk.pl>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Johannes Berg <johannes@sipsolutions.net>
+Cc: Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Gautham R Shenoy <ego@in.ibm.com>
 
-From: Johannes Berg <johannes@sipsolutions.net>
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-This revamps the apm-emulation code to get suspend notifications
-regardless of what way pm_suspend() was invoked, whether via the
-apm ioctl or via /sys/power/state. Also do some code cleanup and
-add comments while at it.
+The freezer currently attempts to distinguish kernel threads from
+user space tasks by checking if their mm pointer is unset and it
+does not send fake signals to kernel threads.  However, there are
+kernel threads, mostly related to networking, that behave like
+user space tasks and may want to be sent a fake signal to be frozen.
 
-Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
+Introduce the new process flag PF_FREEZER_NOSIG that will be set
+by default for all kernel threads and make the freezer only send
+fake signals to the tasks having PF_FREEZER_NOSIG unset.  Provide
+the set_freezable_with_signal() function to be called by the kernel
+threads that want to be sent a fake signal for freezing.
+
+This patch should not change the freezer's observable behavior.
+
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@suse.cz>
+Cc: Gautham R Shenoy <ego@in.ibm.com>
 ---
- drivers/char/apm-emulation.c |  346 +++++++++++++++++++++++++------------------
- 1 file changed, 207 insertions(+), 139 deletions(-)
+ include/linux/freezer.h |   10 ++++
+ include/linux/sched.h   |    1 
+ kernel/kthread.c        |    2 
+ kernel/power/process.c  |   97 ++++++++++++++++++++----------------------------
+ 4 files changed, 54 insertions(+), 56 deletions(-)
 
-Index: linux-2.6/drivers/char/apm-emulation.c
+Index: linux-2.6/include/linux/freezer.h
 ===================================================================
---- linux-2.6.orig/drivers/char/apm-emulation.c
-+++ linux-2.6/drivers/char/apm-emulation.c
-@@ -58,6 +58,55 @@ struct apm_queue {
- };
+--- linux-2.6.orig/include/linux/freezer.h
++++ linux-2.6/include/linux/freezer.h
+@@ -128,6 +128,15 @@ static inline void set_freezable(void)
+ }
  
  /*
-+ * thread states (for threads using a writable /dev/apm_bios fd):
-+ *
-+ * SUSPEND_NONE:	nothing happening
-+ * SUSPEND_PENDING:	suspend event queued for thread and pending to be read
-+ * SUSPEND_READ:	suspend event read, pending acknowledgement
-+ * SUSPEND_ACKED:	acknowledgement received from thread (via ioctl),
-+ *			waiting for resume
-+ * SUSPEND_ACKTO:	acknowledgement timeout
-+ * SUSPEND_DONE:	thread had acked suspend and is now notified of
-+ *			resume
-+ *
-+ * SUSPEND_WAIT:	this thread invoked suspend and is waiting for resume
-+ *
-+ * A thread migrates in one of three paths:
-+ * 	NONE -1-> PENDING -2-> READ -3-> ACKED -4-> DONE -5-> NONE
-+ *	                            -6-> ACKTO -7-> NONE
-+ *	NONE -8-> WAIT -9-> NONE
-+ *
-+ * While in PENDING or READ, the thread is accounted for in the
-+ * suspend_acks_pending counter.
-+ *
-+ * The transitions are invoked as follows:
-+ *	1: suspend event is signalled from the core PM code
-+ *	2: the suspend event is read from the fd by the userspace thread
-+ *	3: userspace thread issues the APM_IOC_SUSPEND ioctl (as ack)
-+ *	4: core PM code signals that we have resumed
-+ *	5: APM_IOC_SUSPEND ioctl returns
-+ *
-+ *	6: the notifier invoked from the core PM code timed out waiting
-+ *	   for all relevant threds to enter ACKED state and puts those
-+ *	   that haven't into ACKTO
-+ *	7: those threads issue APM_IOC_SUSPEND ioctl too late,
-+ *	   get an error
-+ *
-+ *	8: userspace thread issues the APM_IOC_SUSPEND ioctl (to suspend),
-+ *	   ioctl code invokes pm_suspend()
-+ *	9: pm_suspend() returns indicating resume
++ * Tell the freezer that the current task should be frozen by it and that it
++ * should send a fake signal to the task to freeze it.
 + */
-+enum apm_suspend_state {
-+	SUSPEND_NONE,
-+	SUSPEND_PENDING,
-+	SUSPEND_READ,
-+	SUSPEND_ACKED,
-+	SUSPEND_ACKTO,
-+	SUSPEND_WAIT,
-+	SUSPEND_DONE,
-+};
-+
-+/*
-  * The per-file APM data
-  */
- struct apm_user {
-@@ -68,13 +117,7 @@ struct apm_user {
- 	unsigned int		reader: 1;
- 
- 	int			suspend_result;
--	unsigned int		suspend_state;
--#define SUSPEND_NONE	0		/* no suspend pending */
--#define SUSPEND_PENDING	1		/* suspend pending read */
--#define SUSPEND_READ	2		/* suspend read, pending ack */
--#define SUSPEND_ACKED	3		/* suspend acked */
--#define SUSPEND_WAIT	4		/* waiting for suspend */
--#define SUSPEND_DONE	5		/* suspend completed */
-+	enum apm_suspend_state	suspend_state;
- 
- 	struct apm_queue	queue;
- };
-@@ -82,7 +125,8 @@ struct apm_user {
- /*
-  * Local variables
-  */
--static int suspends_pending;
-+static atomic_t suspend_acks_pending = ATOMIC_INIT(0);
-+static atomic_t userspace_notification_inhibit = ATOMIC_INIT(0);
- static int apm_disabled;
- static struct task_struct *kapmd_tsk;
- 
-@@ -165,78 +209,6 @@ static void queue_event(apm_event_t even
- 	wake_up_interruptible(&apm_waitqueue);
- }
- 
--/*
-- * queue_suspend_event - queue an APM suspend event.
-- *
-- * Check that we're in a state where we can suspend.  If not,
-- * return -EBUSY.  Otherwise, queue an event to all "writer"
-- * users.  If there are no "writer" users, return '1' to
-- * indicate that we can immediately suspend.
-- */
--static int queue_suspend_event(apm_event_t event, struct apm_user *sender)
--{
--	struct apm_user *as;
--	int ret = 1;
--
--	mutex_lock(&state_lock);
--	down_read(&user_list_lock);
--
--	/*
--	 * If a thread is still processing, we can't suspend, so reject
--	 * the request.
--	 */
--	list_for_each_entry(as, &apm_user_list, list) {
--		if (as != sender && as->reader && as->writer && as->suser &&
--		    as->suspend_state != SUSPEND_NONE) {
--			ret = -EBUSY;
--			goto out;
--		}
--	}
--
--	list_for_each_entry(as, &apm_user_list, list) {
--		if (as != sender && as->reader && as->writer && as->suser) {
--			as->suspend_state = SUSPEND_PENDING;
--			suspends_pending++;
--			queue_add_event(&as->queue, event);
--			ret = 0;
--		}
--	}
-- out:
--	up_read(&user_list_lock);
--	mutex_unlock(&state_lock);
--	wake_up_interruptible(&apm_waitqueue);
--	return ret;
--}
--
--static void apm_suspend(void)
--{
--	struct apm_user *as;
--	int err = pm_suspend(PM_SUSPEND_MEM);
--
--	/*
--	 * Anyone on the APM queues will think we're still suspended.
--	 * Send a message so everyone knows we're now awake again.
--	 */
--	queue_event(APM_NORMAL_RESUME);
--
--	/*
--	 * Finally, wake up anyone who is sleeping on the suspend.
--	 */
--	mutex_lock(&state_lock);
--	down_read(&user_list_lock);
--	list_for_each_entry(as, &apm_user_list, list) {
--		if (as->suspend_state == SUSPEND_WAIT ||
--		    as->suspend_state == SUSPEND_ACKED) {
--			as->suspend_result = err;
--			as->suspend_state = SUSPEND_DONE;
--		}
--	}
--	up_read(&user_list_lock);
--	mutex_unlock(&state_lock);
--
--	wake_up(&apm_suspend_waitqueue);
--}
--
- static ssize_t apm_read(struct file *fp, char __user *buf, size_t count, loff_t *ppos)
- {
- 	struct apm_user *as = fp->private_data;
-@@ -307,25 +279,22 @@ apm_ioctl(struct inode * inode, struct f
- 
- 		as->suspend_result = -EINTR;
- 
--		if (as->suspend_state == SUSPEND_READ) {
--			int pending;
--
-+		switch (as->suspend_state) {
-+		case SUSPEND_READ:
- 			/*
- 			 * If we read a suspend command from /dev/apm_bios,
- 			 * then the corresponding APM_IOC_SUSPEND ioctl is
- 			 * interpreted as an acknowledge.
- 			 */
- 			as->suspend_state = SUSPEND_ACKED;
--			suspends_pending--;
--			pending = suspends_pending == 0;
-+			atomic_dec(&suspend_acks_pending);
- 			mutex_unlock(&state_lock);
- 
- 			/*
--			 * If there are no further acknowledges required,
--			 * suspend the system.
-+			 * suspend_acks_pending changed, the notifier needs to
-+			 * be woken up for this
- 			 */
--			if (pending)
--				apm_suspend();
-+			wake_up(&apm_suspend_waitqueue);
- 
- 			/*
- 			 * Wait for the suspend/resume to complete.  If there
-@@ -341,35 +310,21 @@ apm_ioctl(struct inode * inode, struct f
- 			 * try_to_freeze() in freezer_count() will not trigger
- 			 */
- 			freezer_count();
--		} else {
-+			break;
-+		case SUSPEND_ACKTO:
-+			as->suspend_result = -ETIMEDOUT;
-+			mutex_unlock(&state_lock);
-+			break;
-+		default:
- 			as->suspend_state = SUSPEND_WAIT;
- 			mutex_unlock(&state_lock);
- 
- 			/*
- 			 * Otherwise it is a request to suspend the system.
--			 * Queue an event for all readers, and expect an
--			 * acknowledge from all writers who haven't already
--			 * acknowledged.
--			 */
--			err = queue_suspend_event(APM_USER_SUSPEND, as);
--			if (err < 0) {
--				/*
--				 * Avoid taking the lock here - this
--				 * should be fine.
--				 */
--				as->suspend_state = SUSPEND_NONE;
--				break;
--			}
--
--			if (err > 0)
--				apm_suspend();
--
--			/*
--			 * Wait for the suspend/resume to complete.  If there
--			 * are pending acknowledges, we wait here for them.
-+			 * Just invoke pm_suspend(), we'll handle it from
-+			 * there via the notifier.
- 			 */
--			wait_event_freezable(apm_suspend_waitqueue,
--					 as->suspend_state == SUSPEND_DONE);
-+			as->suspend_result = pm_suspend(PM_SUSPEND_MEM);
- 		}
- 
- 		mutex_lock(&state_lock);
-@@ -385,7 +340,6 @@ apm_ioctl(struct inode * inode, struct f
- static int apm_release(struct inode * inode, struct file * filp)
- {
- 	struct apm_user *as = filp->private_data;
--	int pending = 0;
- 
- 	filp->private_data = NULL;
- 
-@@ -395,18 +349,15 @@ static int apm_release(struct inode * in
- 
- 	/*
- 	 * We are now unhooked from the chain.  As far as new
--	 * events are concerned, we no longer exist.  However, we
--	 * need to balance suspends_pending, which means the
--	 * possibility of sleeping.
-+	 * events are concerned, we no longer exist.
- 	 */
- 	mutex_lock(&state_lock);
--	if (as->suspend_state != SUSPEND_NONE) {
--		suspends_pending -= 1;
--		pending = suspends_pending == 0;
--	}
-+	if (as->suspend_state == SUSPEND_PENDING ||
-+	    as->suspend_state == SUSPEND_READ)
-+		atomic_dec(&suspend_acks_pending);
- 	mutex_unlock(&state_lock);
--	if (pending)
--		apm_suspend();
-+
-+	wake_up(&apm_suspend_waitqueue);
- 
- 	kfree(as);
- 	return 0;
-@@ -542,7 +493,6 @@ static int kapmd(void *arg)
- {
- 	do {
- 		apm_event_t event;
--		int ret;
- 
- 		wait_event_interruptible(kapmd_wait,
- 				!queue_empty(&kapmd_queue) || kthread_should_stop());
-@@ -567,20 +517,13 @@ static int kapmd(void *arg)
- 
- 		case APM_USER_SUSPEND:
- 		case APM_SYS_SUSPEND:
--			ret = queue_suspend_event(event, NULL);
--			if (ret < 0) {
--				/*
--				 * We were busy.  Try again in 50ms.
--				 */
--				queue_add_event(&kapmd_queue, event);
--				msleep(50);
--			}
--			if (ret > 0)
--				apm_suspend();
-+			pm_suspend(PM_SUSPEND_MEM);
- 			break;
- 
- 		case APM_CRITICAL_SUSPEND:
--			apm_suspend();
-+			atomic_inc(&userspace_notification_inhibit);
-+			pm_suspend(PM_SUSPEND_MEM);
-+			atomic_dec(&userspace_notification_inhibit);
- 			break;
- 		}
- 	} while (1);
-@@ -588,6 +531,120 @@ static int kapmd(void *arg)
- 	return 0;
- }
- 
-+static int apm_suspend_notifier(struct notifier_block *nb,
-+				unsigned long event,
-+				void *dummy)
++static inline void set_freezable_with_signal(void)
 +{
-+	struct apm_user *as;
-+	int err;
-+
-+	/* short-cut emergency suspends */
-+	if (atomic_read(&userspace_notification_inhibit))
-+		return NOTIFY_DONE;
-+
-+	switch (event) {
-+	case PM_SUSPEND_PREPARE:
-+		/*
-+		 * Queue an event to all "writer" users that we want
-+		 * to suspend and need their ack.
-+		 */
-+		mutex_lock(&state_lock);
-+		down_read(&user_list_lock);
-+
-+		list_for_each_entry(as, &apm_user_list, list) {
-+			if (as->suspend_state != SUSPEND_WAIT && as->reader &&
-+			    as->writer && as->suser) {
-+				as->suspend_state = SUSPEND_PENDING;
-+				atomic_inc(&suspend_acks_pending);
-+				queue_add_event(&as->queue, APM_USER_SUSPEND);
-+			}
-+		}
-+
-+		up_read(&user_list_lock);
-+		mutex_unlock(&state_lock);
-+		wake_up_interruptible(&apm_waitqueue);
-+
-+		/*
-+		 * Wait for the the suspend_acks_pending variable to drop to
-+		 * zero, meaning everybody acked the suspend event (or the
-+		 * process was killed.)
-+		 *
-+		 * If the app won't answer within a short while we assume it
-+		 * locked up and ignore it.
-+		 */
-+		err = wait_event_interruptible_timeout(
-+			apm_suspend_waitqueue,
-+			atomic_read(&suspend_acks_pending) == 0,
-+			5*HZ);
-+
-+		/* timed out */
-+		if (err == 0) {
-+			/*
-+			 * Move anybody who timed out to "ack timeout" state.
-+			 *
-+			 * We could time out and the userspace does the ACK
-+			 * right after we time out but before we enter the
-+			 * locked section here, but that's fine.
-+			 */
-+			mutex_lock(&state_lock);
-+			down_read(&user_list_lock);
-+			list_for_each_entry(as, &apm_user_list, list) {
-+				if (as->suspend_state == SUSPEND_PENDING ||
-+				    as->suspend_state == SUSPEND_READ) {
-+					as->suspend_state = SUSPEND_ACKTO;
-+					atomic_dec(&suspend_acks_pending);
-+				}
-+			}
-+			up_read(&user_list_lock);
-+			mutex_unlock(&state_lock);
-+		}
-+
-+		/* let suspend proceed */
-+		if (err >= 0)
-+			return NOTIFY_OK;
-+
-+		/* interrupted by signal */
-+		return NOTIFY_BAD;
-+
-+	case PM_POST_SUSPEND:
-+		/*
-+		 * Anyone on the APM queues will think we're still suspended.
-+		 * Send a message so everyone knows we're now awake again.
-+		 */
-+		queue_event(APM_NORMAL_RESUME);
-+
-+		/*
-+		 * Finally, wake up anyone who is sleeping on the suspend.
-+		 */
-+		mutex_lock(&state_lock);
-+		down_read(&user_list_lock);
-+		list_for_each_entry(as, &apm_user_list, list) {
-+			if (as->suspend_state == SUSPEND_ACKED) {
-+				/*
-+				 * TODO: maybe grab error code, needs core
-+				 * changes to push the error to the notifier
-+				 * chain (could use the second parameter if
-+				 * implemented)
-+				 */
-+				as->suspend_result = 0;
-+				as->suspend_state = SUSPEND_DONE;
-+			}
-+		}
-+		up_read(&user_list_lock);
-+		mutex_unlock(&state_lock);
-+
-+		wake_up(&apm_suspend_waitqueue);
-+		return NOTIFY_OK;
-+
-+	default:
-+		return NOTIFY_DONE;
-+	}
++	current->flags &= ~(PF_NOFREEZE | PF_FREEZER_NOSIG);
 +}
 +
-+static struct notifier_block apm_notif_block = {
-+	.notifier_call = apm_suspend_notifier,
-+};
-+
- static int __init apm_init(void)
++/*
+  * Freezer-friendly wrappers around wait_event_interruptible() and
+  * wait_event_interruptible_timeout(), originally defined in <linux/wait.h>
+  */
+@@ -174,6 +183,7 @@ static inline void freezer_do_not_count(
+ static inline void freezer_count(void) {}
+ static inline int freezer_should_skip(struct task_struct *p) { return 0; }
+ static inline void set_freezable(void) {}
++static inline void set_freezable_with_signal(void) {}
+ 
+ #define wait_event_freezable(wq, condition)				\
+ 		wait_event_interruptible(wq, condition)
+Index: linux-2.6/include/linux/sched.h
+===================================================================
+--- linux-2.6.orig/include/linux/sched.h
++++ linux-2.6/include/linux/sched.h
+@@ -1507,6 +1507,7 @@ static inline void put_task_struct(struc
+ #define PF_MEMPOLICY	0x10000000	/* Non-default NUMA mempolicy */
+ #define PF_MUTEX_TESTER	0x20000000	/* Thread belongs to the rt mutex tester */
+ #define PF_FREEZER_SKIP	0x40000000	/* Freezer should not count it as freezeable */
++#define PF_FREEZER_NOSIG 0x80000000	/* Freezer won't send signals to it */
+ 
+ /*
+  * Only the _current_ task can read/write to tsk->flags, but other
+Index: linux-2.6/kernel/power/process.c
+===================================================================
+--- linux-2.6.orig/kernel/power/process.c
++++ linux-2.6/kernel/power/process.c
+@@ -19,9 +19,6 @@
+  */
+ #define TIMEOUT	(20 * HZ)
+ 
+-#define FREEZER_KERNEL_THREADS 0
+-#define FREEZER_USER_SPACE 1
+-
+ static inline int freezeable(struct task_struct * p)
  {
- 	int ret;
-@@ -601,7 +658,7 @@ static int __init apm_init(void)
- 	if (IS_ERR(kapmd_tsk)) {
- 		ret = PTR_ERR(kapmd_tsk);
- 		kapmd_tsk = NULL;
--		return ret;
-+		goto out;
- 	}
- 	wake_up_process(kapmd_tsk);
- 
-@@ -610,16 +667,27 @@ static int __init apm_init(void)
- #endif
- 
- 	ret = misc_register(&apm_device);
--	if (ret != 0) {
--		remove_proc_entry("apm", NULL);
--		kthread_stop(kapmd_tsk);
--	}
-+	if (ret)
-+		goto out_stop;
- 
-+	ret = register_pm_notifier(&apm_notif_block);
-+	if (ret)
-+		goto out_unregister;
-+
-+	return 0;
-+
-+ out_unregister:
-+	misc_deregister(&apm_device);
-+ out_stop:
-+	remove_proc_entry("apm", NULL);
-+	kthread_stop(kapmd_tsk);
-+ out:
- 	return ret;
+ 	if ((p == current) ||
+@@ -84,63 +81,53 @@ static void fake_signal_wake_up(struct t
+ 	spin_unlock_irqrestore(&p->sighand->siglock, flags);
  }
  
- static void __exit apm_exit(void)
+-static int has_mm(struct task_struct *p)
++static inline bool should_send_signal(struct task_struct *p)
  {
-+	unregister_pm_notifier(&apm_notif_block);
- 	misc_deregister(&apm_device);
- 	remove_proc_entry("apm", NULL);
+-	return (p->mm && !(p->flags & PF_BORROWED_MM));
++	return !(p->flags & PF_FREEZER_NOSIG);
+ }
  
+ /**
+  *	freeze_task - send a freeze request to given task
+  *	@p: task to send the request to
+- *	@with_mm_only: if set, the request will only be sent if the task has its
+- *		own mm
+- *	Return value: 0, if @with_mm_only is set and the task has no mm of its
+- *		own or the task is frozen, 1, otherwise
++ *	@sig_only: if set, the request will only be sent if the task has the
++ *		PF_FREEZER_NOSIG flag unset
++ *	Return value: 'false', if @sig_only is set and the task has
++ *		PF_FREEZER_NOSIG set or the task is frozen, 'true', otherwise
+  *
+- *	The freeze request is sent by seting the tasks's TIF_FREEZE flag and
++ *	The freeze request is sent by setting the tasks's TIF_FREEZE flag and
+  *	either sending a fake signal to it or waking it up, depending on whether
+- *	or not it has its own mm (ie. it is a user land task).  If @with_mm_only
+- *	is set and the task has no mm of its own (ie. it is a kernel thread),
+- *	its TIF_FREEZE flag should not be set.
+- *
+- *	The task_lock() is necessary to prevent races with exit_mm() or
+- *	use_mm()/unuse_mm() from occuring.
++ *	or not it has PF_FREEZER_NOSIG set.  If @sig_only is set and the task
++ *	has PF_FREEZER_NOSIG set (ie. it is a typical kernel thread), its
++ *	TIF_FREEZE flag will not be set.
+  */
+-static int freeze_task(struct task_struct *p, int with_mm_only)
++static bool freeze_task(struct task_struct *p, bool sig_only)
+ {
+-	int ret = 1;
++	/*
++	 * We first check if the task is freezing and next if it has already
++	 * been frozen to avoid the race with frozen_process() which first marks
++	 * the task as frozen and next clears its TIF_FREEZE.
++	 */
++	if (!freezing(p)) {
++		rmb();
++		if (frozen(p))
++			return false;
+ 
+-	task_lock(p);
+-	if (freezing(p)) {
+-		if (has_mm(p)) {
+-			if (!signal_pending(p))
+-				fake_signal_wake_up(p);
+-		} else {
+-			if (with_mm_only)
+-				ret = 0;
+-			else
+-				wake_up_state(p, TASK_INTERRUPTIBLE);
+-		}
++		if (!sig_only || should_send_signal(p))
++			set_freeze_flag(p);
++		else
++			return false;
++	}
++
++	if (should_send_signal(p)) {
++		if (!signal_pending(p))
++			fake_signal_wake_up(p);
++	} else if (sig_only) {
++		return false;
+ 	} else {
+-		rmb();
+-		if (frozen(p)) {
+-			ret = 0;
+-		} else {
+-			if (has_mm(p)) {
+-				set_freeze_flag(p);
+-				fake_signal_wake_up(p);
+-			} else {
+-				if (with_mm_only) {
+-					ret = 0;
+-				} else {
+-					set_freeze_flag(p);
+-					wake_up_state(p, TASK_INTERRUPTIBLE);
+-				}
+-			}
+-		}
++		wake_up_state(p, TASK_INTERRUPTIBLE);
+ 	}
+-	task_unlock(p);
+-	return ret;
++
++	return true;
+ }
+ 
+ static void cancel_freezing(struct task_struct *p)
+@@ -156,7 +143,7 @@ static void cancel_freezing(struct task_
+ 	}
+ }
+ 
+-static int try_to_freeze_tasks(int freeze_user_space)
++static int try_to_freeze_tasks(bool sig_only)
+ {
+ 	struct task_struct *g, *p;
+ 	unsigned long end_time;
+@@ -175,7 +162,7 @@ static int try_to_freeze_tasks(int freez
+ 			if (frozen(p) || !freezeable(p))
+ 				continue;
+ 
+-			if (!freeze_task(p, freeze_user_space))
++			if (!freeze_task(p, sig_only))
+ 				continue;
+ 
+ 			/*
+@@ -235,13 +222,13 @@ int freeze_processes(void)
+ 	int error;
+ 
+ 	printk("Freezing user space processes ... ");
+-	error = try_to_freeze_tasks(FREEZER_USER_SPACE);
++	error = try_to_freeze_tasks(true);
+ 	if (error)
+ 		goto Exit;
+ 	printk("done.\n");
+ 
+ 	printk("Freezing remaining freezable tasks ... ");
+-	error = try_to_freeze_tasks(FREEZER_KERNEL_THREADS);
++	error = try_to_freeze_tasks(false);
+ 	if (error)
+ 		goto Exit;
+ 	printk("done.");
+@@ -251,7 +238,7 @@ int freeze_processes(void)
+ 	return error;
+ }
+ 
+-static void thaw_tasks(int thaw_user_space)
++static void thaw_tasks(bool nosig_only)
+ {
+ 	struct task_struct *g, *p;
+ 
+@@ -260,7 +247,7 @@ static void thaw_tasks(int thaw_user_spa
+ 		if (!freezeable(p))
+ 			continue;
+ 
+-		if (!p->mm == thaw_user_space)
++		if (nosig_only && should_send_signal(p))
+ 			continue;
+ 
+ 		thaw_process(p);
+@@ -271,8 +258,8 @@ static void thaw_tasks(int thaw_user_spa
+ void thaw_processes(void)
+ {
+ 	printk("Restarting tasks ... ");
+-	thaw_tasks(FREEZER_KERNEL_THREADS);
+-	thaw_tasks(FREEZER_USER_SPACE);
++	thaw_tasks(true);
++	thaw_tasks(false);
+ 	schedule();
+ 	printk("done.\n");
+ }
+Index: linux-2.6/kernel/kthread.c
+===================================================================
+--- linux-2.6.orig/kernel/kthread.c
++++ linux-2.6/kernel/kthread.c
+@@ -234,7 +234,7 @@ int kthreadd(void *unused)
+ 	set_user_nice(tsk, KTHREAD_NICE_LEVEL);
+ 	set_cpus_allowed(tsk, CPU_MASK_ALL);
+ 
+-	current->flags |= PF_NOFREEZE;
++	current->flags |= PF_NOFREEZE | PF_FREEZER_NOSIG;
+ 
+ 	for (;;) {
+ 		set_current_state(TASK_INTERRUPTIBLE);
+
