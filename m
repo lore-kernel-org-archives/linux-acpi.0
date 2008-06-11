@@ -1,73 +1,41 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [patch 11/11] acpi: use memory_read_from_buffer()
-Date: Thu, 12 Jun 2008 02:07:29 +0800
-Message-ID: <1213207649.3130.0.camel@rzhang-dt.sh.intel.com>
-References: <200806092322.m59NMQld013985@imap1.linux-foundation.org>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: Re: [patch 09/11] bay: exit if notify handler cannot be installed
+Date: Wed, 11 Jun 2008 10:31:25 +0800
+Message-ID: <1213151485.20657.0.camel@sli10-desk.sh.intel.com>
+References: <200806092322.m59NMP01013979@imap1.linux-foundation.org>
+	 <20080609232817.GA21101@srcf.ucam.org>
+	 <20080609165628.90e2cf7b.akpm@linux-foundation.org>
+	 <20080610081311.GA29300@homac>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:38009 "EHLO mga11.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:36511 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754144AbYFKCHg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 10 Jun 2008 22:07:36 -0400
-In-Reply-To: <200806092322.m59NMQld013985@imap1.linux-foundation.org>
+	id S1753589AbYFKCZp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 10 Jun 2008 22:25:45 -0400
+In-Reply-To: <20080610081311.GA29300@homac>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: akpm@linux-foundation.org
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, akinobu.mita@gmail.com, "Moore, Robert" <robert.moore@intel.com>, trenn@suse.de
+To: Holger Macht <hmacht@suse.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Matthew Garrett <mjg59@srcf.ucam.org>, lenb@kernel.org, linux-acpi@vger.kernel.org, "Accardi, Kristen C" <kristen.c.accardi@intel.com>, "Zhang, Rui" <rui.zhang@intel.com>, trenn@suse.de
 
-Acked-by: Zhang Rui <rui.zhang@intel.com>
-
-On Tue, 2008-06-10 at 07:22 +0800, akpm@linux-foundation.org wrote:
-> From: Akinobu Mita <akinobu.mita@gmail.com>
+On Tue, 2008-06-10 at 16:13 +0800, Holger Macht wrote:
+> On Mon 09. Jun - 16:56:28, Andrew Morton wrote:
+> > On Tue, 10 Jun 2008 00:28:17 +0100
+> > Matthew Garrett <mjg59@srcf.ucam.org> wrote:
+> >
+> > > It looks like the plan is to subsume the bay driver into the dock
+> > > driver. I'm not sure if this is needed in the short term until
+> then?
+> >
+> > Dunno.
+> >
+> > This patch appears to fix a bug, in which case we shouldn't allow
+> > larger future plans to get int he way of that?
 > 
-> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-> Cc: Zhang Rui <rui.zhang@intel.com>
-> Cc: Bob Moore <robert.moore@intel.com>
-> Cc: Thomas Renninger <trenn@suse.de>
-> Cc: Len Brown <lenb@kernel.org>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
-> 
->  drivers/acpi/system.c |   15 ++-------------
->  1 file changed, 2 insertions(+), 13 deletions(-)
-> 
-> diff -puN drivers/acpi/system.c~acpi-use-memory_read_from_buffer
-> drivers/acpi/system.c
-> --- a/drivers/acpi/system.c~acpi-use-memory_read_from_buffer
-> +++ a/drivers/acpi/system.c
-> @@ -77,7 +77,6 @@ static ssize_t acpi_table_show(struct ko
->             container_of(bin_attr, struct acpi_table_attr, attr);
->         struct acpi_table_header *table_header = NULL;
->         acpi_status status;
-> -       ssize_t ret_count = count;
-> 
->         status =
->             acpi_get_table(table_attr->name, table_attr->instance,
-> @@ -85,18 +84,8 @@ static ssize_t acpi_table_show(struct ko
->         if (ACPI_FAILURE(status))
->                 return -ENODEV;
-> 
-> -       if (offset >= table_header->length) {
-> -               ret_count = 0;
-> -               goto end;
-> -       }
-> -
-> -       if (offset + ret_count > table_header->length)
-> -               ret_count = table_header->length - offset;
-> -
-> -       memcpy(buf, ((char *)table_header) + offset, ret_count);
-> -
-> -      end:
-> -       return ret_count;
-> +       return memory_read_from_buffer(buf, count, &offset,
-> +                                       table_header,
-> table_header->length);
->  }
-> 
->  static void acpi_table_attr_init(struct acpi_table_attr *table_attr,
-> _
-> 
-> 
+> Right. I don't think we get the bits sorted for removing the bay
+> driver
+> for 2.6.26 IMHO, so this should go in as a bugfix for 2.6.26.
+agree, removing the bay driver isn't 2.6.26 staff.
 
