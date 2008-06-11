@@ -1,65 +1,206 @@
-From: Holger Macht <hmacht@suse.de>
-Subject: Re: [PATCH 6/8] libata hotplug to align with dock driver
-Date: Wed, 11 Jun 2008 14:52:17 +0200
-Message-ID: <20080611125217.GB9377@homac.suse.de>
-References: <1212729788.25188.29.camel@sli10-desk.sh.intel.com> <20080609013719.GA30665@srcf.ucam.org> <1213061676.32112.6.camel@sli10-desk.sh.intel.com> <20080610081527.GB29300@homac> <1213086452.21428.1.camel@sli10-desk.sh.intel.com> <20080610164302.GA4900@homac.suse.de> <1213154621.5075.3.camel@sli10-desk.sh.intel.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: [PATCH] More cleanup of the thermal API
+Date: Wed, 11 Jun 2008 17:42:26 +0100
+Message-ID: <20080611164226.GA27437@srcf.ucam.org>
+References: <20080611100647.GA20013@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns2.suse.de ([195.135.220.15]:33910 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751005AbYFKMwG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 11 Jun 2008 08:52:06 -0400
+Received: from cavan.codon.org.uk ([93.93.128.6]:54414 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753835AbYFKQmb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Jun 2008 12:42:31 -0400
 Content-Disposition: inline
-In-Reply-To: <1213154621.5075.3.camel@sli10-desk.sh.intel.com>
+In-Reply-To: <20080611100647.GA20013@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Accardi, Kristen C" <kristen.c.accardi@intel.com>, Jeff Garzik <jeff@garzik.org>, Tejun Heo <htejun@gmail.com>
+To: rui.zhang@intel.com
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed 11. Jun - 11:23:41, Shaohua Li wrote:
-> On Tue, 2008-06-10 at 18:43 +0200, Holger Macht wrote:
-> > On Tue 10. Jun - 16:27:32, Shaohua Li wrote:
-> > > On Tue, 2008-06-10 at 10:15 +0200, Holger Macht wrote:
-> > > > On Tue 10. Jun - 09:34:36, Shaohua Li wrote:
-> > > > > On Mon, 2008-06-09 at 02:37 +0100, Matthew Garrett wrote:
-> > > > > > On Fri, Jun 06, 2008 at 01:23:08PM +0800, Shaohua Li wrote:
-> > > > > > 
-> > > > > > >  	case ACPI_NOTIFY_EJECT_REQUEST:
-> > > > > > >  		ata_ehi_push_desc(ehi, "ACPI event");
-> > > > > > > -
-> > > > > > > -		if (!is_dock_event)
-> > > > > > > -			break;
-> > > > > > > -
-> > > > > > > -		/* undock event - immediate unplug */
-> > > > > > >  		ata_acpi_detach_device(ap, dev);
-> > > > > > 
-> > > > > > Ok, just to check that I've understood the other patches - this will 
-> > > > > > only be called if the device has actually been removed, and not if you 
-> > > > > > merely get an EJECT_REQUEST, right? An EJECT_REQUEST from a bay device 
-> > > > > > should always just signal userspace, and never actually cause the device 
-> > > > > > to be deleted. I don't really like the way that you're remapping event 
-> > > > > > types inside the dock driver - it'd be cleaner if the per-driver 
-> > > > > > handlers received ADD_DEVICE or REMOVE_DEVICE or something.
-> > > > > It's not forcely ejected. This patch adds a check in dock.c, if eject
-> > > > > request is for an ata bay, we just signal userspace. Latter if a
-> > > > > device/bus check invoked, dock driver will check status, and doing force
-> > > > > eject. At this time, ata's EJECT_REQUEST handler will be called.
-> > > > > Remapping event is to make per-driver handlers easy. complex is all in
-> > > > > dock driver.
-> > > > 
-> > > > I still don't get a uevent signalled to userspace for a bay device in my
-> > > > dock station when pressing the lever on the bay device. I think I'll get
-> > > > to debug this by the end of the week or the weekend if you like...
-> > > can you send me the acpidump output, so I can have a quick check first?
-> Looks my patch didn't handle bay device in a dock station correctly. Can
-> you please try below patch?
+The state management functions in the thermal API also pass strings 
+around. Change them to ints and do the conversion at the sysfs point.
 
-Now I get the uevent, however, when trying with init=/bin/bash, the device
-never comes back once ejected.
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
 
-Furthermore, the must be a race somewhere, when docking, the system
-freezes sporadically. First dock worked, second time didn't.
+---
 
-Regards,
-	Holger
+diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
+index 6cf10cb..f3db49e 100644
+--- a/drivers/acpi/fan.c
++++ b/drivers/acpi/fan.c
+@@ -69,27 +69,30 @@ static struct acpi_driver acpi_fan_driver = {
+ };
+ 
+ /* thermal cooling device callbacks */
+-static int fan_get_max_state(struct thermal_cooling_device *cdev, char *buf)
++static int fan_get_max_state(struct thermal_cooling_device *cdev, unsigned int
++			     *state)
+ {
+ 	/* ACPI fan device only support two states: ON/OFF */
+-	return sprintf(buf, "1\n");
++	*state = 1;
++	return 0;
+ }
+ 
+-static int fan_get_cur_state(struct thermal_cooling_device *cdev, char *buf)
++static int fan_get_cur_state(struct thermal_cooling_device *cdev, unsigned int
++			     *state)
+ {
+ 	struct acpi_device *device = cdev->devdata;
+-	int state;
+ 	int result;
+ 
+ 	if (!device)
+ 		return -EINVAL;
+ 
+-	result = acpi_bus_get_power(device->handle, &state);
++	result = acpi_bus_get_power(device->handle, state);
+ 	if (result)
+ 		return result;
+ 
+-	return sprintf(buf, "%s\n", state == ACPI_STATE_D3 ? "0" :
+-			 (state == ACPI_STATE_D0 ? "1" : "unknown"));
++	*state = (*state == ACPI_STATE_D3 ? 0 : 
++		 (*state == ACPI_STATE_D0 ? 1 : -1));
++	return 0;
+ }
+ 
+ static int
+diff --git a/drivers/acpi/processor_thermal.c b/drivers/acpi/processor_thermal.c
+index ef34b18..2a3721d 100644
+--- a/drivers/acpi/processor_thermal.c
++++ b/drivers/acpi/processor_thermal.c
+@@ -374,7 +374,8 @@ static int acpi_processor_max_state(struct acpi_processor *pr)
+ 	return max_state;
+ }
+ static int
+-processor_get_max_state(struct thermal_cooling_device *cdev, char *buf)
++processor_get_max_state(struct thermal_cooling_device *cdev, unsigned int 
++			*state)
+ {
+ 	struct acpi_device *device = cdev->devdata;
+ 	struct acpi_processor *pr = acpi_driver_data(device);
+@@ -382,24 +383,24 @@ processor_get_max_state(struct thermal_cooling_device *cdev, char *buf)
+ 	if (!device || !pr)
+ 		return -EINVAL;
+ 
+-	return sprintf(buf, "%d\n", acpi_processor_max_state(pr));
++	*state = acpi_processor_max_state(pr);
++	return 0;
+ }
+ 
+ static int
+-processor_get_cur_state(struct thermal_cooling_device *cdev, char *buf)
++processor_get_cur_state(struct thermal_cooling_device *cdev, unsigned int 
++			*cur_state)
+ {
+ 	struct acpi_device *device = cdev->devdata;
+ 	struct acpi_processor *pr = acpi_driver_data(device);
+-	int cur_state;
+ 
+ 	if (!device || !pr)
+ 		return -EINVAL;
+ 
+-	cur_state = cpufreq_get_cur_state(pr->id);
++	*cur_state = cpufreq_get_cur_state(pr->id);
+ 	if (pr->flags.throttling)
+-		cur_state += pr->throttling.state;
+-
+-	return sprintf(buf, "%d\n", cur_state);
++		*cur_state += pr->throttling.state;
++	return 0;
+ }
+ 
+ static int
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index 5e5dda3..d8d7596 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -358,26 +358,30 @@ static struct output_properties acpi_output_properties = {
+ 
+ 
+ /* thermal cooling device callbacks */
+-static int video_get_max_state(struct thermal_cooling_device *cdev, char *buf)
++static int video_get_max_state(struct thermal_cooling_device *cdev, unsigned
++			       int *state)
+ {
+ 	struct acpi_device *device = cdev->devdata;
+ 	struct acpi_video_device *video = acpi_driver_data(device);
+ 
+-	return sprintf(buf, "%d\n", video->brightness->count - 3);
++	*state = video->brightness->count - 3;
++	return 0;
+ }
+ 
+-static int video_get_cur_state(struct thermal_cooling_device *cdev, char *buf)
++static int video_get_cur_state(struct thermal_cooling_device *cdev, unsigned
++			       int *state)
+ {
+ 	struct acpi_device *device = cdev->devdata;
+ 	struct acpi_video_device *video = acpi_driver_data(device);
+ 	unsigned long level;
+-	int state;
++	int offset;
+ 
+ 	acpi_video_device_lcd_get_level_current(video, &level);
+-	for (state = 2; state < video->brightness->count; state++)
+-		if (level == video->brightness->levels[state])
+-			return sprintf(buf, "%d\n",
+-				       video->brightness->count - state - 1);
++	for (offset = 2; offset < video->brightness->count; offset++)
++		if (level == video->brightness->levels[offset]) {
++			*state = video->brightness->count - offset - 1;
++			return 0;
++		}
+ 
+ 	return -EINVAL;
+ }
+diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
+index c537a5b..02abaf0 100644
+--- a/drivers/thermal/thermal_sys.c
++++ b/drivers/thermal/thermal_sys.c
+@@ -249,8 +249,12 @@ thermal_cooling_device_max_state_show(struct device *dev,
+ 				      struct device_attribute *attr, char *buf)
+ {
+ 	struct thermal_cooling_device *cdev = to_cooling_device(dev);
++	int state, ret;
+ 
+-	return cdev->ops->get_max_state(cdev, buf);
++	ret = cdev->ops->get_max_state(cdev, &state);
++	if (ret)
++		return ret;
++	return sprintf(buf, "%d\n", state);
+ }
+ 
+ static ssize_t
+@@ -258,8 +262,12 @@ thermal_cooling_device_cur_state_show(struct device *dev,
+ 				      struct device_attribute *attr, char *buf)
+ {
+ 	struct thermal_cooling_device *cdev = to_cooling_device(dev);
++	int state, ret;
+ 
+-	return cdev->ops->get_cur_state(cdev, buf);
++	ret = cdev->ops->get_cur_state(cdev, &state);
++	if (ret)
++		return ret;
++	return sprintf(buf, "%d\n", state);
+ }
+ 
+ static ssize_t
+diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+index 63e6619..5ddbd4f 100644
+--- a/include/linux/thermal.h
++++ b/include/linux/thermal.h
+@@ -46,8 +46,8 @@ struct thermal_zone_device_ops {
+ };
+ 
+ struct thermal_cooling_device_ops {
+-	int (*get_max_state) (struct thermal_cooling_device *, char *);
+-	int (*get_cur_state) (struct thermal_cooling_device *, char *);
++	int (*get_max_state) (struct thermal_cooling_device *, unsigned int *);
++	int (*get_cur_state) (struct thermal_cooling_device *, unsigned int *);
+ 	int (*set_cur_state) (struct thermal_cooling_device *, unsigned int);
+ };
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
