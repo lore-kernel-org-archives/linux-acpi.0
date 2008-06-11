@@ -1,63 +1,27 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: linux-next Regression: Unable to locate IOAPIC
-Date: Tue, 10 Jun 2008 22:47:53 -0700
-Message-ID: <20080610224753.10ab33c5.akpm@linux-foundation.org>
-References: <200806051100.12885.dex@dragonslave.de>
-	<200806061930.29046.dex@dragonslave.de>
-	<20080606115024.387b5f80.akpm@linux-foundation.org>
-	<200806102229.10512.dex@dragonslave.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <200806102229.10512.dex@dragonslave.de>
-Sender: linux-next-owner@vger.kernel.org
-To: webmaster@dragonslave.de
-Cc: Daniel Exner <dex@dragonslave.de>, linux-kernel@vger.kernel.org, linux-next@vger.kernel.org, linux-acpi@vger.kernel.org
+From: Len Brown <lenb@kernel.org>
+Subject: ACPI patches for 2.6.26-rc5
+Date: Wed, 11 Jun 2008 03:59:03 -0400
+Message-ID: <1213171166-3951-1-git-send-email-lenb@kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms173001pub.verizon.net ([206.46.173.1]:53002 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752102AbYFKH7a (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Jun 2008 03:59:30 -0400
+Received: from localhost.localdomain ([72.93.254.151])
+ by vms173001.mailsrvcs.net
+ (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+ with ESMTPA id <0K2A003KKGV39R62@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Wed, 11 Jun 2008 02:59:27 -0500 (CDT)
+Received: from localhost.localdomain (d975xbx2 [127.0.0.1])
+	by localhost.localdomain (8.14.2/8.14.2) with ESMTP id m5B7xQN1003999	for
+ <linux-acpi@vger.kernel.org>; Wed, 11 Jun 2008 03:59:26 -0400
+Received: (from lenb@localhost)	by localhost.localdomain (8.14.2/8.14.2/Submit)
+ id m5B7xQ64003997	for linux-acpi@vger.kernel.org; Wed,
+ 11 Jun 2008 03:59:26 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Tue, 10 Jun 2008 22:29:10 +0200 Daniel Exner <dex@dragonslave.de> wrote:
+here's the 2.6.25-rc5 queue
 
-> 
-> Andrew Morton wrote:
-> > On Fri, 6 Jun 2008 19:30:28 +0200 Daniel Exner <dex@dragonslave.de> wrote:
-> > > Andrew Morton wrote:
-> > > > (cc linux-acpi)
-> > > >
-> > > > On Thu, 5 Jun 2008 11:00:12 +0200 Daniel Exner <dex@dragonslave.de> 
-> wrote:
-> > > > > Hi!
-> > > > >
-> > > > > (Added myself to CC, because I'm not subscribed)
-> > > > >
-> > > > > with linux-next snapshot 20080604 my Laptop morphes into sitting duck
-> > > > > and I think this is due to this:
-> > > >
-> > > > I assume 2.6.26-rc5 is OK?
-> > >
-> > > Indeed.. just tried it with (nearly) the same config: no unable to locate
-> > > IOAPIC
-> > >
-> > > Will try todays next snapshot above -rc5 now.
-> >
-> > OK, thanks.
-> >
-> > It would be great if you could test 2.6.26-rc5 plus
-> > http://userweb.kernel.org/~akpm/git-acpi.patch.  That'll allow us to
-> > confirm that the regression is due to changes in the acpi tree.
-> Sorry for the delay.. real-life you know ;)
-> 
-> I guess you'd expect me to confirm the behavior on rc5 with this patch aplied, 
-> but .. well this Kernel works!
-> 
-> So I think the regression is NOT in the acpi tree. Perhaps pci subsystem?
-
-There is behind-the-scenes finger-pointing going on ;)
-
-I don't think we know what caused this regression, sorry.
-
-> If I find time I'll try bisecting it..
-
-That would be fantastic, thanks.  Please don't let us merge this
-regression into 2.6.27.  We have a few weeks.
 
