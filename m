@@ -1,135 +1,224 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 1/5] ACPI Hibernation: Use ACPI hardware signature
-Date: Wed, 11 Jun 2008 22:01:47 +0200
-Message-ID: <200806112201.48142.rjw@sisk.pl>
+Subject: [PATCH 5/5] snapshot: Use pm_mutex for mutual exclusion
+Date: Wed, 11 Jun 2008 22:09:45 +0200
+Message-ID: <200806112209.45953.rjw@sisk.pl>
 References: <200806112158.20806.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-2"
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:34523 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:34534 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751553AbYFKUIz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 11 Jun 2008 16:08:55 -0400
+	id S1753195AbYFKUI7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 11 Jun 2008 16:08:59 -0400
 In-Reply-To: <200806112158.20806.rjw@sisk.pl>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Shaohua Li <shaohua.li@intel.com>
+Cc: Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-From: Shaohua Li <shaohua.li@intel.com>
+We can avoid taking the BKL in snapshot_ioctl() if pm_mutex is used to prevent
+the ioctls from being executed concurrently.
 
-ACPI defines a hardware signature.  BIOS calculates the signature
-according to hardware configure and if hardware changes while
-hibernated, the signature will change.  In that case, S4 resume
-should fail.
+In addition, although it is only possible to open /dev/snapshot once, the task
+which has done that may spawn a child that will inherit the open descriptor,
+so in theory they can call snapshot_write(), snapshot_read() and
+snapshot_release() concurrently.  pm_mutex can also be used for mutual
+exclusion in such cases.
 
-Still, there may be systems on which this mechanism does not work
-correctly, so it is better to provide a workaround for them.  For
-this reason, add a new switch to the acpi_sleep= command line
-argument allowing one to disable hardware signature checking.
-
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-Acked-by: Pavel Machek <pavel@suse.cz>
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@suse.cz>
 ---
- Documentation/kernel-parameters.txt |    4 +++-
- arch/x86/kernel/acpi/sleep.c        |    2 ++
- drivers/acpi/sleep/main.c           |   22 ++++++++++++++++++++++
- include/linux/acpi.h                |    3 +++
- 4 files changed, 30 insertions(+), 1 deletion(-)
+ kernel/power/user.c |   68 ++++++++++++++++++++++++++++++++--------------------
+ 1 file changed, 42 insertions(+), 26 deletions(-)
 
-Index: linux-2.6/drivers/acpi/sleep/main.c
+Index: linux-2.6/kernel/power/user.c
 ===================================================================
---- linux-2.6.orig/drivers/acpi/sleep/main.c
-+++ linux-2.6/drivers/acpi/sleep/main.c
-@@ -255,6 +255,15 @@ static struct dmi_system_id __initdata a
- #endif /* CONFIG_SUSPEND */
+--- linux-2.6.orig/kernel/power/user.c
++++ linux-2.6/kernel/power/user.c
+@@ -70,16 +70,22 @@ static int snapshot_open(struct inode *i
+ 	struct snapshot_data *data;
+ 	int error;
  
- #ifdef CONFIG_HIBERNATION
-+static unsigned long s4_hardware_signature;
-+static struct acpi_table_facs *facs;
-+static bool nosigcheck;
+-	if (!atomic_add_unless(&snapshot_device_available, -1, 0))
+-		return -EBUSY;
++	mutex_lock(&pm_mutex);
 +
-+void __init acpi_no_s4_hw_signature(void)
-+{
-+	nosigcheck = true;
-+}
-+
- static int acpi_hibernation_begin(void)
- {
- 	acpi_target_sleep_state = ACPI_STATE_S4;
-@@ -301,6 +310,12 @@ static void acpi_hibernation_leave(void)
- 	acpi_enable();
- 	/* Reprogram control registers and execute _BFS */
- 	acpi_leave_sleep_state_prep(ACPI_STATE_S4);
-+	/* Check the hardware signature */
-+	if (facs && s4_hardware_signature != facs->hardware_signature) {
-+		printk(KERN_EMERG "ACPI: Hardware changed while hibernated, "
-+			"cannot resume!\n");
-+		panic("ACPI S4 hardware signature mismatch");
++	if (!atomic_add_unless(&snapshot_device_available, -1, 0)) {
++		error = -EBUSY;
++		goto Unlock;
 +	}
+ 
+ 	if ((filp->f_flags & O_ACCMODE) == O_RDWR) {
+ 		atomic_inc(&snapshot_device_available);
+-		return -ENOSYS;
++		error = -ENOSYS;
++		goto Unlock;
+ 	}
+ 	if(create_basic_memory_bitmaps()) {
+ 		atomic_inc(&snapshot_device_available);
+-		return -ENOMEM;
++		error = -ENOMEM;
++		goto Unlock;
+ 	}
+ 	nonseekable_open(inode, filp);
+ 	data = &snapshot_state;
+@@ -99,33 +105,36 @@ static int snapshot_open(struct inode *i
+ 		if (error)
+ 			pm_notifier_call_chain(PM_POST_HIBERNATION);
+ 	}
+-	if (error) {
++	if (error)
+ 		atomic_inc(&snapshot_device_available);
+-		return error;
+-	}
+ 	data->frozen = 0;
+ 	data->ready = 0;
+ 	data->platform_support = 0;
+ 
+-	return 0;
++ Unlock:
++	mutex_unlock(&pm_mutex);
++
++	return error;
  }
  
- static void acpi_hibernation_finish(void)
-@@ -501,6 +516,13 @@ int __init acpi_sleep_init(void)
- 		hibernation_set_ops(&acpi_hibernation_ops);
- 		sleep_states[ACPI_STATE_S4] = 1;
- 		printk(" S4");
-+		if (!nosigcheck) {
-+			acpi_get_table_by_index(ACPI_TABLE_INDEX_FACS,
-+				(struct acpi_table_header **)&facs);
-+			if (facs)
-+				s4_hardware_signature =
-+					facs->hardware_signature;
-+		}
+ static int snapshot_release(struct inode *inode, struct file *filp)
+ {
+ 	struct snapshot_data *data;
+ 
++	mutex_lock(&pm_mutex);
++
+ 	swsusp_free();
+ 	free_basic_memory_bitmaps();
+ 	data = filp->private_data;
+ 	free_all_swap_pages(data->swap);
+-	if (data->frozen) {
+-		mutex_lock(&pm_mutex);
++	if (data->frozen)
+ 		thaw_processes();
+-		mutex_unlock(&pm_mutex);
+-	}
+ 	pm_notifier_call_chain(data->mode == O_WRONLY ?
+ 			PM_POST_HIBERNATION : PM_POST_RESTORE);
+ 	atomic_inc(&snapshot_device_available);
++
++	mutex_unlock(&pm_mutex);
++
+ 	return 0;
+ }
+ 
+@@ -135,9 +144,13 @@ static ssize_t snapshot_read(struct file
+ 	struct snapshot_data *data;
+ 	ssize_t res;
+ 
++	mutex_lock(&pm_mutex);
++
+ 	data = filp->private_data;
+-	if (!data->ready)
+-		return -ENODATA;
++	if (!data->ready) {
++		res = -ENODATA;
++		goto Unlock;
++	}
+ 	res = snapshot_read_next(&data->handle, count);
+ 	if (res > 0) {
+ 		if (copy_to_user(buf, data_of(data->handle), res))
+@@ -145,6 +158,10 @@ static ssize_t snapshot_read(struct file
+ 		else
+ 			*offp = data->handle.offset;
  	}
- #endif
- 	status = acpi_get_sleep_type_data(ACPI_STATE_S5, &type_a, &type_b);
-Index: linux-2.6/Documentation/kernel-parameters.txt
-===================================================================
---- linux-2.6.orig/Documentation/kernel-parameters.txt
-+++ linux-2.6/Documentation/kernel-parameters.txt
-@@ -147,10 +147,12 @@ and is between 256 and 4096 characters. 
- 			default: 0
++
++ Unlock:
++	mutex_unlock(&pm_mutex);
++
+ 	return res;
+ }
  
- 	acpi_sleep=	[HW,ACPI] Sleep options
--			Format: { s3_bios, s3_mode, s3_beep }
-+			Format: { s3_bios, s3_mode, s3_beep, s4_nohwsig }
- 			See Documentation/power/video.txt for s3_bios and s3_mode.
- 			s3_beep is for debugging; it makes the PC's speaker beep
- 			as soon as the kernel's real-mode entry point is called.
-+			s4_nohwsig prevents ACPI hardware signature from being
-+			used during resume from hibernation.
+@@ -154,6 +171,8 @@ static ssize_t snapshot_write(struct fil
+ 	struct snapshot_data *data;
+ 	ssize_t res;
  
- 	acpi_sci=	[HW,ACPI] ACPI System Control Interrupt trigger mode
- 			Format: { level | edge | high | low }
-Index: linux-2.6/arch/x86/kernel/acpi/sleep.c
-===================================================================
---- linux-2.6.orig/arch/x86/kernel/acpi/sleep.c
-+++ linux-2.6/arch/x86/kernel/acpi/sleep.c
-@@ -124,6 +124,8 @@ static int __init acpi_sleep_setup(char 
- 			acpi_realmode_flags |= 2;
- 		if (strncmp(str, "s3_beep", 7) == 0)
- 			acpi_realmode_flags |= 4;
-+		if (strncmp(str, "s4_nohwsig", 10) == 0)
-+			acpi_no_s4_hw_signature();
- 		str = strchr(str, ',');
- 		if (str != NULL)
- 			str += strspn(str, ", \t");
-Index: linux-2.6/include/linux/acpi.h
-===================================================================
---- linux-2.6.orig/include/linux/acpi.h
-+++ linux-2.6/include/linux/acpi.h
-@@ -234,6 +234,9 @@ int acpi_check_region(resource_size_t st
- int acpi_check_mem_region(resource_size_t start, resource_size_t n,
- 		      const char *name);
++	mutex_lock(&pm_mutex);
++
+ 	data = filp->private_data;
+ 	res = snapshot_write_next(&data->handle, count);
+ 	if (res > 0) {
+@@ -162,6 +181,9 @@ static ssize_t snapshot_write(struct fil
+ 		else
+ 			*offp = data->handle.offset;
+ 	}
++
++	mutex_unlock(&pm_mutex);
++
+ 	return res;
+ }
  
-+#ifdef CONFIG_PM_SLEEP
-+void __init acpi_no_s4_hw_signature(void);
-+#endif /* CONFIG_PM_SLEEP */
- #else	/* CONFIG_ACPI */
+@@ -180,16 +202,16 @@ static long snapshot_ioctl(struct file *
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return -EPERM;
  
- static inline int early_acpi_boot_init(void)
+-	data = filp->private_data;
++	if (!mutex_trylock(&pm_mutex))
++		return -EBUSY;
+ 
+-	lock_kernel();
++	data = filp->private_data;
+ 
+ 	switch (cmd) {
+ 
+ 	case SNAPSHOT_FREEZE:
+ 		if (data->frozen)
+ 			break;
+-		mutex_lock(&pm_mutex);
+ 		printk("Syncing filesystems ... ");
+ 		sys_sync();
+ 		printk("done.\n");
+@@ -197,7 +219,6 @@ static long snapshot_ioctl(struct file *
+ 		error = freeze_processes();
+ 		if (error)
+ 			thaw_processes();
+-		mutex_unlock(&pm_mutex);
+ 		if (!error)
+ 			data->frozen = 1;
+ 		break;
+@@ -205,9 +226,7 @@ static long snapshot_ioctl(struct file *
+ 	case SNAPSHOT_UNFREEZE:
+ 		if (!data->frozen || data->ready)
+ 			break;
+-		mutex_lock(&pm_mutex);
+ 		thaw_processes();
+-		mutex_unlock(&pm_mutex);
+ 		data->frozen = 0;
+ 		break;
+ 
+@@ -310,16 +329,11 @@ static long snapshot_ioctl(struct file *
+ 			error = -EPERM;
+ 			break;
+ 		}
+-		if (!mutex_trylock(&pm_mutex)) {
+-			error = -EBUSY;
+-			break;
+-		}
+ 		/*
+ 		 * Tasks are frozen and the notifiers have been called with
+ 		 * PM_HIBERNATION_PREPARE
+ 		 */
+ 		error = suspend_devices_and_enter(PM_SUSPEND_MEM);
+-		mutex_unlock(&pm_mutex);
+ 		break;
+ 
+ 	case SNAPSHOT_PLATFORM_SUPPORT:
+@@ -392,7 +406,9 @@ static long snapshot_ioctl(struct file *
+ 		error = -ENOTTY;
+ 
+ 	}
+-	unlock_kernel();
++
++	mutex_unlock(&pm_mutex);
++
+ 	return error;
+ }
+ 
