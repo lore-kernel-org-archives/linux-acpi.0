@@ -1,31 +1,135 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 0/5] Remaining patches for 2.6.27
-Date: Wed, 11 Jun 2008 21:58:20 +0200
-Message-ID: <200806112158.20806.rjw@sisk.pl>
+Subject: [PATCH 1/5] ACPI Hibernation: Use ACPI hardware signature
+Date: Wed, 11 Jun 2008 22:01:47 +0200
+Message-ID: <200806112201.48142.rjw@sisk.pl>
+References: <200806112158.20806.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:34512 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:34523 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750745AbYFKUIp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 11 Jun 2008 16:08:45 -0400
+	id S1751553AbYFKUIz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 11 Jun 2008 16:08:55 -0400
+In-Reply-To: <200806112158.20806.rjw@sisk.pl>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Shaohua Li <shaohua.li@intel.com>
 
-Hi,
+From: Shaohua Li <shaohua.li@intel.com>
 
-The following patches for the suspend branch are targeted at 2.6.27.  All of
-them have been reviewed already.
+ACPI defines a hardware signature.  BIOS calculates the signature
+according to hardware configure and if hardware changes while
+hibernated, the signature will change.  In that case, S4 resume
+should fail.
 
-Thanks,
-Rafael
+Still, there may be systems on which this mechanism does not work
+correctly, so it is better to provide a workaround for them.  For
+this reason, add a new switch to the acpi_sleep= command line
+argument allowing one to disable hardware signature checking.
 
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Acked-by: Pavel Machek <pavel@suse.cz>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ Documentation/kernel-parameters.txt |    4 +++-
+ arch/x86/kernel/acpi/sleep.c        |    2 ++
+ drivers/acpi/sleep/main.c           |   22 ++++++++++++++++++++++
+ include/linux/acpi.h                |    3 +++
+ 4 files changed, 30 insertions(+), 1 deletion(-)
 
--- 
-"Premature optimization is the root of all evil." - Donald Knuth
-
+Index: linux-2.6/drivers/acpi/sleep/main.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/sleep/main.c
++++ linux-2.6/drivers/acpi/sleep/main.c
+@@ -255,6 +255,15 @@ static struct dmi_system_id __initdata a
+ #endif /* CONFIG_SUSPEND */
+ 
+ #ifdef CONFIG_HIBERNATION
++static unsigned long s4_hardware_signature;
++static struct acpi_table_facs *facs;
++static bool nosigcheck;
++
++void __init acpi_no_s4_hw_signature(void)
++{
++	nosigcheck = true;
++}
++
+ static int acpi_hibernation_begin(void)
+ {
+ 	acpi_target_sleep_state = ACPI_STATE_S4;
+@@ -301,6 +310,12 @@ static void acpi_hibernation_leave(void)
+ 	acpi_enable();
+ 	/* Reprogram control registers and execute _BFS */
+ 	acpi_leave_sleep_state_prep(ACPI_STATE_S4);
++	/* Check the hardware signature */
++	if (facs && s4_hardware_signature != facs->hardware_signature) {
++		printk(KERN_EMERG "ACPI: Hardware changed while hibernated, "
++			"cannot resume!\n");
++		panic("ACPI S4 hardware signature mismatch");
++	}
+ }
+ 
+ static void acpi_hibernation_finish(void)
+@@ -501,6 +516,13 @@ int __init acpi_sleep_init(void)
+ 		hibernation_set_ops(&acpi_hibernation_ops);
+ 		sleep_states[ACPI_STATE_S4] = 1;
+ 		printk(" S4");
++		if (!nosigcheck) {
++			acpi_get_table_by_index(ACPI_TABLE_INDEX_FACS,
++				(struct acpi_table_header **)&facs);
++			if (facs)
++				s4_hardware_signature =
++					facs->hardware_signature;
++		}
+ 	}
+ #endif
+ 	status = acpi_get_sleep_type_data(ACPI_STATE_S5, &type_a, &type_b);
+Index: linux-2.6/Documentation/kernel-parameters.txt
+===================================================================
+--- linux-2.6.orig/Documentation/kernel-parameters.txt
++++ linux-2.6/Documentation/kernel-parameters.txt
+@@ -147,10 +147,12 @@ and is between 256 and 4096 characters. 
+ 			default: 0
+ 
+ 	acpi_sleep=	[HW,ACPI] Sleep options
+-			Format: { s3_bios, s3_mode, s3_beep }
++			Format: { s3_bios, s3_mode, s3_beep, s4_nohwsig }
+ 			See Documentation/power/video.txt for s3_bios and s3_mode.
+ 			s3_beep is for debugging; it makes the PC's speaker beep
+ 			as soon as the kernel's real-mode entry point is called.
++			s4_nohwsig prevents ACPI hardware signature from being
++			used during resume from hibernation.
+ 
+ 	acpi_sci=	[HW,ACPI] ACPI System Control Interrupt trigger mode
+ 			Format: { level | edge | high | low }
+Index: linux-2.6/arch/x86/kernel/acpi/sleep.c
+===================================================================
+--- linux-2.6.orig/arch/x86/kernel/acpi/sleep.c
++++ linux-2.6/arch/x86/kernel/acpi/sleep.c
+@@ -124,6 +124,8 @@ static int __init acpi_sleep_setup(char 
+ 			acpi_realmode_flags |= 2;
+ 		if (strncmp(str, "s3_beep", 7) == 0)
+ 			acpi_realmode_flags |= 4;
++		if (strncmp(str, "s4_nohwsig", 10) == 0)
++			acpi_no_s4_hw_signature();
+ 		str = strchr(str, ',');
+ 		if (str != NULL)
+ 			str += strspn(str, ", \t");
+Index: linux-2.6/include/linux/acpi.h
+===================================================================
+--- linux-2.6.orig/include/linux/acpi.h
++++ linux-2.6/include/linux/acpi.h
+@@ -234,6 +234,9 @@ int acpi_check_region(resource_size_t st
+ int acpi_check_mem_region(resource_size_t start, resource_size_t n,
+ 		      const char *name);
+ 
++#ifdef CONFIG_PM_SLEEP
++void __init acpi_no_s4_hw_signature(void);
++#endif /* CONFIG_PM_SLEEP */
+ #else	/* CONFIG_ACPI */
+ 
+ static inline int early_acpi_boot_init(void)
