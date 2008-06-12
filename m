@@ -1,30 +1,106 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH 1/4] x86: Remove obsolete PM definitions from NMI header
-Date: Thu, 12 Jun 2008 11:15:32 +0200
-Message-ID: <20080612091532.GC15312@elte.hu>
-References: <200806121025.24668.rjw@sisk.pl> <200806121027.09085.rjw@sisk.pl>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH - supplement] PM: Remove remaining obsolete definitions from pm.h (was: Re: [PATCH 0/4] Remove some obsolete PM stuff)
+Date: Thu, 12 Jun 2008 11:26:27 +0200
+Message-ID: <200806121126.27862.rjw@sisk.pl>
+References: <200806121025.24668.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.mail.elte.hu ([157.181.151.9]:60586 "EHLO mx2.mail.elte.hu"
+Received: from ogre.sisk.pl ([217.79.144.158]:37268 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754025AbYFLJQN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 12 Jun 2008 05:16:13 -0400
+	id S1754213AbYFLJ1Z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 12 Jun 2008 05:27:25 -0400
+In-Reply-To: <200806121025.24668.rjw@sisk.pl>
 Content-Disposition: inline
-In-Reply-To: <200806121027.09085.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>, Andi Kleen <andi@firstfloor.org>
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>
 
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-* Rafael J. Wysocki <rjw@sisk.pl> wrote:
+Remove the remaining obsolete definitions from
+include/linux/pm.h and move the definitions of PM_SUSPEND and
+PM_RESUME to the header of h3600 which is the only user of them.
 
-> Remove obsolete and no longer used PM-related definitions from 
-> include/asm-x86/nmi.h .
-> 
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ include/asm-arm/arch-sa1100/h3600.h |    5 ++++
+ include/linux/pm.h                  |   41 ------------------------------------
+ 2 files changed, 5 insertions(+), 41 deletions(-)
 
-applied to tip/x86/cleanups, thanks Rafael.
-
-	Ingo
+Index: linux-2.6/include/linux/pm.h
+===================================================================
+--- linux-2.6.orig/include/linux/pm.h
++++ linux-2.6/include/linux/pm.h
+@@ -26,52 +26,6 @@
+ #include <asm/errno.h>
+ 
+ /*
+- * Power management requests... these are passed to pm_send_all() and friends.
+- *
+- * these functions are old and deprecated, see below.
+- */
+-typedef int __bitwise pm_request_t;
+-
+-#define PM_SUSPEND	((__force pm_request_t) 1)	/* enter D1-D3 */
+-#define PM_RESUME	((__force pm_request_t) 2)	/* enter D0 */
+-
+-
+-/*
+- * Device types... these are passed to pm_register
+- */
+-typedef int __bitwise pm_dev_t;
+-
+-#define PM_UNKNOWN_DEV	((__force pm_dev_t) 0)	/* generic */
+-#define PM_SYS_DEV	((__force pm_dev_t) 1)	/* system device (fan, KB controller, ...) */
+-#define PM_PCI_DEV	((__force pm_dev_t) 2)	/* PCI device */
+-#define PM_USB_DEV	((__force pm_dev_t) 3)	/* USB device */
+-#define PM_SCSI_DEV	((__force pm_dev_t) 4)	/* SCSI device */
+-#define PM_ISA_DEV	((__force pm_dev_t) 5)	/* ISA device */
+-#define	PM_MTD_DEV	((__force pm_dev_t) 6)	/* Memory Technology Device */
+-
+-/*
+- * System device hardware ID (PnP) values
+- */
+-enum
+-{
+-	PM_SYS_UNKNOWN = 0x00000000, /* generic */
+-	PM_SYS_KBC =	 0x41d00303, /* keyboard controller */
+-	PM_SYS_COM =	 0x41d00500, /* serial port */
+-	PM_SYS_IRDA =	 0x41d00510, /* IRDA controller */
+-	PM_SYS_FDC =	 0x41d00700, /* floppy controller */
+-	PM_SYS_VGA =	 0x41d00900, /* VGA controller */
+-	PM_SYS_PCMCIA =	 0x41d00e00, /* PCMCIA controller */
+-};
+-
+-/*
+- * Device identifier
+- */
+-#define PM_PCI_ID(dev) ((dev)->bus->number << 16 | (dev)->devfn)
+-
+-/* Functions above this comment are list-based old-style power
+- * management. Please avoid using them.  */
+-
+-/*
+  * Callbacks for platform drivers to implement.
+  */
+ extern void (*pm_idle)(void);
+Index: linux-2.6/include/asm-arm/arch-sa1100/h3600.h
+===================================================================
+--- linux-2.6.orig/include/asm-arm/arch-sa1100/h3600.h
++++ linux-2.6/include/asm-arm/arch-sa1100/h3600.h
+@@ -23,6 +23,11 @@
+ #ifndef _INCLUDE_H3600_H_
+ #define _INCLUDE_H3600_H_
+ 
++typedef int __bitwise pm_request_t;
++
++#define PM_SUSPEND	((__force pm_request_t) 1)	/* enter D1-D3 */
++#define PM_RESUME	((__force pm_request_t) 2)	/* enter D0 */
++
+ /* generalized support for H3xxx series Compaq Pocket PC's */
+ #define machine_is_h3xxx() (machine_is_h3100() || machine_is_h3600() || machine_is_h3800())
+ 
