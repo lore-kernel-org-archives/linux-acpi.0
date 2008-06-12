@@ -1,49 +1,122 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [GIT PATCH] ACPI patches for 2.6.26-rc5
-Date: Wed, 11 Jun 2008 23:08:17 -0400 (EDT)
-Message-ID: <alpine.LFD.1.10.0806112301570.12191@localhost.localdomain>
-References: <alpine.LFD.1.10.0806111942510.12191@localhost.localdomain>
- <alpine.LFD.1.10.0806111718240.3101@woody.linux-foundation.org>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Subject: [PATCH 01/17] ACPICA: Add argument count checking to control method
+ invocation via acpi_evaluate_object
+Date: Thu, 12 Jun 2008 00:35:00 -0400
+Message-ID: <e3f06dd844c1cbaa5b7ef6a971c182db73b8d4e9.1213245200.git.len.brown@intel.com>
+References: <1213245316-20835-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:35544 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753363AbYFLDIZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Jun 2008 23:08:25 -0400
-In-reply-to: <alpine.LFD.1.10.0806111718240.3101@woody.linux-foundation.org>
+Received: from vms044pub.verizon.net ([206.46.252.44]:37228 "EHLO
+	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751248AbYFLEfV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Jun 2008 00:35:21 -0400
+Received: from localhost.localdomain ([72.93.254.151])
+ by vms044.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
+ 3 2006)) with ESMTPA id <0K2C008HE22TBL48@vms044.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Wed, 11 Jun 2008 23:35:18 -0500 (CDT)
+In-reply-to: <1213245316-20835-1-git-send-email-lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Linux Power Management List <linux-pm@lists.osdl.org>
+To: linux-acpi@vger.kernel.org
+Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
 
+From: Bob Moore <robert.moore@intel.com>
 
+Error if too few arguments, warning if too many. This applies
+only to external programmatic control method execution, not
+method-to-method calls within the AML.
 
-> >  27 files changed, 255 insertions(+), 180 deletions(-)
-> 
-> Hmm. I get very different statistics:
-> 
->  27 files changed, 434 insertions(+), 359 deletions(-)
-> 
-> You seem to use "git diff -w" to ignore whitespace changes, which explains 
-> it, but please don't - it makes it harder to compare with expected 
-> results, and it hides some changes entirely.
-> 
-> I do agree that using '-w' is often useful, but especially for the purpose 
-> of letting people know what changed it kind of avoids the point by hiding 
-> many things.
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ drivers/acpi/namespace/nseval.c |   35 +++++++++++++++++++++++++++++++++++
+ include/acpi/acexcep.h          |    6 ++++--
+ include/acpi/acstruct.h         |    1 +
+ 3 files changed, 40 insertions(+), 2 deletions(-)
 
-Yes, I've been using "-b" recently:
+diff --git a/drivers/acpi/namespace/nseval.c b/drivers/acpi/namespace/nseval.c
+index 14bdfa9..d369164 100644
+--- a/drivers/acpi/namespace/nseval.c
++++ b/drivers/acpi/namespace/nseval.c
+@@ -138,6 +138,41 @@ acpi_status acpi_ns_evaluate(struct acpi_evaluate_info * info)
+ 			return_ACPI_STATUS(AE_NULL_OBJECT);
+ 		}
+ 
++		/*
++		 * Calculate the number of arguments being passed to the method
++		 */
++
++		info->param_count = 0;
++		if (info->parameters) {
++			while (info->parameters[info->param_count])
++				info->param_count++;
++		}
++
++		/* Error if too few arguments were passed in */
++
++		if (info->param_count < info->obj_desc->method.param_count) {
++			ACPI_ERROR((AE_INFO,
++				    "Insufficient arguments - "
++				    "method [%4.4s] needs %d, found %d",
++				    acpi_ut_get_node_name(info->resolved_node),
++				    info->obj_desc->method.param_count,
++				    info->param_count));
++			return_ACPI_STATUS(AE_MISSING_ARGUMENTS);
++		}
++
++		/* Just a warning if too many arguments */
++
++		else if (info->param_count >
++				info->obj_desc->method.param_count) {
++			ACPI_WARNING((AE_INFO,
++				      "Excess arguments - "
++				      "method [%4.4s] needs %d, found %d",
++				      acpi_ut_get_node_name(info->
++							    resolved_node),
++				      info->obj_desc->method.param_count,
++				      info->param_count));
++		}
++
+ 		ACPI_DUMP_PATHNAME(info->resolved_node, "Execute Method:",
+ 				   ACPI_LV_INFO, _COMPONENT);
+ 
+diff --git a/include/acpi/acexcep.h b/include/acpi/acexcep.h
+index 1f59117..9c76c18 100644
+--- a/include/acpi/acexcep.h
++++ b/include/acpi/acexcep.h
+@@ -108,8 +108,9 @@
+ #define AE_BAD_HEX_CONSTANT             (acpi_status) (0x0007 | AE_CODE_PROGRAMMER)
+ #define AE_BAD_OCTAL_CONSTANT           (acpi_status) (0x0008 | AE_CODE_PROGRAMMER)
+ #define AE_BAD_DECIMAL_CONSTANT         (acpi_status) (0x0009 | AE_CODE_PROGRAMMER)
++#define AE_MISSING_ARGUMENTS            (acpi_status) (0x000A | AE_CODE_PROGRAMMER)
+ 
+-#define AE_CODE_PGM_MAX                 0x0009
++#define AE_CODE_PGM_MAX                 0x000A
+ 
+ /*
+  * Acpi table exceptions
+@@ -233,7 +234,8 @@ char const *acpi_gbl_exception_names_pgm[] = {
+ 	"AE_ALIGNMENT",
+ 	"AE_BAD_HEX_CONSTANT",
+ 	"AE_BAD_OCTAL_CONSTANT",
+-	"AE_BAD_DECIMAL_CONSTANT"
++	"AE_BAD_DECIMAL_CONSTANT",
++	"AE_MISSING_ARGUMENTS"
+ };
+ 
+ char const *acpi_gbl_exception_names_tbl[] = {
+diff --git a/include/acpi/acstruct.h b/include/acpi/acstruct.h
+index a907c67..1cc7450 100644
+--- a/include/acpi/acstruct.h
++++ b/include/acpi/acstruct.h
+@@ -189,6 +189,7 @@ struct acpi_evaluate_info {
+ 	union acpi_operand_object **parameters;
+ 	struct acpi_namespace_node *resolved_node;
+ 	union acpi_operand_object *return_object;
++	u8 param_count;
+ 	u8 pass_number;
+ 	u8 parameter_type;
+ 	u8 return_object_type;
+-- 
+1.5.6.rc2.26.g8c37
 
-git diff -b -M --stat linus..$RELEASE
-
-and if I remove the "-b", we match:
-
- 27 files changed, 434 insertions(+), 359 deletions(-)
-
-I have a vague memory of having a good reason to cut over to "-b"
-a while back and noting that in my pull request, but if you prefer
-no -b, no problem.
-
-thanks,
--Len
