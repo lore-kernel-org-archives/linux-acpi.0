@@ -1,100 +1,258 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: Re: [PATCH 6/8] libata hotplug to align with dock driver
-Date: Thu, 12 Jun 2008 09:23:48 +0800
-Message-ID: <1213233828.21018.4.camel@sli10-desk.sh.intel.com>
-References: <1212729788.25188.29.camel@sli10-desk.sh.intel.com>
-	 <20080609013719.GA30665@srcf.ucam.org>
-	 <1213061676.32112.6.camel@sli10-desk.sh.intel.com>
-	 <20080610081527.GB29300@homac>
-	 <1213086452.21428.1.camel@sli10-desk.sh.intel.com>
-	 <20080610164302.GA4900@homac.suse.de>
-	 <1213154621.5075.3.camel@sli10-desk.sh.intel.com>
-	 <20080611125217.GB9377@homac.suse.de>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH] Clean up thermal API
+Date: Thu, 12 Jun 2008 09:26:03 +0800
+Message-ID: <1213233963.4867.2.camel@rzhang-dt.sh.intel.com>
+References: <20080611100647.GA20013@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:44600 "EHLO mga02.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:38912 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753826AbYFLBSc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 11 Jun 2008 21:18:32 -0400
-In-Reply-To: <20080611125217.GB9377@homac.suse.de>
+	id S1759167AbYFLB0Z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 11 Jun 2008 21:26:25 -0400
+In-Reply-To: <20080611100647.GA20013@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Holger Macht <hmacht@suse.de>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Accardi, Kristen C" <kristen.c.accardi@intel.com>, Jeff Garzik <jeff@garzik.org>, Tejun Heo <htejun@gmail.com>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, 2008-06-11 at 14:52 +0200, Holger Macht wrote:
-> On Wed 11. Jun - 11:23:41, Shaohua Li wrote:
-> > On Tue, 2008-06-10 at 18:43 +0200, Holger Macht wrote:
-> > > On Tue 10. Jun - 16:27:32, Shaohua Li wrote:
-> > > > On Tue, 2008-06-10 at 10:15 +0200, Holger Macht wrote:
-> > > > > On Tue 10. Jun - 09:34:36, Shaohua Li wrote:
-> > > > > > On Mon, 2008-06-09 at 02:37 +0100, Matthew Garrett wrote:
-> > > > > > > On Fri, Jun 06, 2008 at 01:23:08PM +0800, Shaohua Li wrot=
-e:
-> > > > > > >=20
-> > > > > > > >  	case ACPI_NOTIFY_EJECT_REQUEST:
-> > > > > > > >  		ata_ehi_push_desc(ehi, "ACPI event");
-> > > > > > > > -
-> > > > > > > > -		if (!is_dock_event)
-> > > > > > > > -			break;
-> > > > > > > > -
-> > > > > > > > -		/* undock event - immediate unplug */
-> > > > > > > >  		ata_acpi_detach_device(ap, dev);
-> > > > > > >=20
-> > > > > > > Ok, just to check that I've understood the other patches =
-- this will=20
-> > > > > > > only be called if the device has actually been removed, a=
-nd not if you=20
-> > > > > > > merely get an EJECT_REQUEST, right? An EJECT_REQUEST from=
- a bay device=20
-> > > > > > > should always just signal userspace, and never actually c=
-ause the device=20
-> > > > > > > to be deleted. I don't really like the way that you're re=
-mapping event=20
-> > > > > > > types inside the dock driver - it'd be cleaner if the per=
--driver=20
-> > > > > > > handlers received ADD_DEVICE or REMOVE_DEVICE or somethin=
-g.
-> > > > > > It's not forcely ejected. This patch adds a check in dock.c=
-, if eject
-> > > > > > request is for an ata bay, we just signal userspace. Latter=
- if a
-> > > > > > device/bus check invoked, dock driver will check status, an=
-d doing force
-> > > > > > eject. At this time, ata's EJECT_REQUEST handler will be ca=
-lled.
-> > > > > > Remapping event is to make per-driver handlers easy. comple=
-x is all in
-> > > > > > dock driver.
-> > > > >=20
-> > > > > I still don't get a uevent signalled to userspace for a bay d=
-evice in my
-> > > > > dock station when pressing the lever on the bay device. I thi=
-nk I'll get
-> > > > > to debug this by the end of the week or the weekend if you li=
-ke...
-> > > > can you send me the acpidump output, so I can have a quick chec=
-k first?
-> > Looks my patch didn't handle bay device in a dock station correctly=
-=2E Can
-> > you please try below patch?
->=20
-> Now I get the uevent, however, when trying with init=3D/bin/bash, the=
- device
-> never comes back once ejected.
->=20
-> Furthermore, the must be a race somewhere, when docking, the system
-> freezes sporadically. First dock worked, second time didn't.
-Double checked a T61 here, can't reproduce, please help do some
-debug. =EF=BB=BFDoes this work without my patches?
 
-Thanks,
-Shaohua
+On Wed, 2008-06-11 at 18:06 +0800, Matthew Garrett wrote:
+> The thermal layer passes temperatures around as strings. This is fine
+> for sysfs, but makes it hard to use them for other purposes in-kernel.
+> Change them to longs and do the string conversion in the
+> sysfs-specific
+> code.
+this patch looks okay,
+except that it has some codingstyle problems and failed to pass
+checkpatch.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+thanks,
+rui
+> 
+> Signed-off-by: Matthew Garrett <mjg@redhat.com>
+> 
+> ---
+> 
+> diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+> index 504385b..28b3782 100644
+> --- a/drivers/acpi/thermal.c
+> +++ b/drivers/acpi/thermal.c
+> @@ -886,7 +886,8 @@ static void acpi_thermal_check(void *data)
+>  /* sys I/F for generic thermal sysfs support */
+>  #define KELVIN_TO_MILLICELSIUS(t) (t * 100 - 273200)
+> 
+> -static int thermal_get_temp(struct thermal_zone_device *thermal, char
+> *buf)
+> +static int thermal_get_temp(struct thermal_zone_device *thermal,
+> +                           unsigned long *temp)
+>  {
+>         struct acpi_thermal *tz = thermal->devdata;
+>         int result;
+> @@ -898,7 +899,8 @@ static int thermal_get_temp(struct
+> thermal_zone_device *thermal, char *buf)
+>         if (result)
+>                 return result;
+> 
+> -       return sprintf(buf, "%ld\n",
+> KELVIN_TO_MILLICELSIUS(tz->temperature));
+> +       *temp = KELVIN_TO_MILLICELSIUS(tz->temperature);
+> +       return 0;
+>  }
+> 
+>  static const char enabled[] = "kernel";
+> @@ -982,7 +984,7 @@ static int thermal_get_trip_type(struct
+> thermal_zone_device *thermal,
+>  }
+> 
+>  static int thermal_get_trip_temp(struct thermal_zone_device *thermal,
+> -                                int trip, char *buf)
+> +                                int trip, unsigned long *temp)
+>  {
+>         struct acpi_thermal *tz = thermal->devdata;
+>         int i;
+> @@ -991,31 +993,40 @@ static int thermal_get_trip_temp(struct
+> thermal_zone_device *thermal,
+>                 return -EINVAL;
+> 
+>         if (tz->trips.critical.flags.valid) {
+> -               if (!trip)
+> -                       return sprintf(buf, "%ld\n",
+> KELVIN_TO_MILLICELSIUS(
+> -                               tz->trips.critical.temperature));
+> +               if (!trip) {
+> +                       *temp = KELVIN_TO_MILLICELSIUS(
+> +                               tz->trips.critical.temperature);
+> +                       return 0;
+> +               }
+> +              
+>                 trip--;
+>         }
+> 
+>         if (tz->trips.hot.flags.valid) {
+> -               if (!trip)
+> -                       return sprintf(buf, "%ld\n",
+> KELVIN_TO_MILLICELSIUS(
+> -                                       tz->trips.hot.temperature));
+> +               if (!trip) {
+> +                       *temp = KELVIN_TO_MILLICELSIUS(
+> +                               tz->trips.hot.temperature);
+> +                       return 0;
+> +               }
+>                 trip--;
+>         }
+> 
+>         if (tz->trips.passive.flags.valid) {
+> -               if (!trip)
+> -                       return sprintf(buf, "%ld\n",
+> KELVIN_TO_MILLICELSIUS(
+> -
+> tz->trips.passive.temperature));
+> +               if (!trip) {
+> +                       *temp = KELVIN_TO_MILLICELSIUS(
+> +                               tz->trips.passive.temperature);
+> +                       return 0;
+> +               }
+>                 trip--;
+>         }
+> 
+>         for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE &&
+>                 tz->trips.active[i].flags.valid; i++) {
+> -               if (!trip)
+> -                       return sprintf(buf, "%ld\n",
+> KELVIN_TO_MILLICELSIUS(
+> -
+> tz->trips.active[i].temperature));
+> +               if (!trip) {
+> +                       *temp = KELVIN_TO_MILLICELSIUS(
+> +                               tz->trips.active[i].temperature);
+> +                       return 0;
+> +               }
+>                 trip--;
+>         }
+> 
+> diff --git a/drivers/thermal/thermal_sys.c
+> b/drivers/thermal/thermal_sys.c
+> index 6098787..c537a5b 100644
+> --- a/drivers/thermal/thermal_sys.c
+> +++ b/drivers/thermal/thermal_sys.c
+> @@ -104,11 +104,18 @@ static ssize_t
+>  temp_show(struct device *dev, struct device_attribute *attr, char
+> *buf)
+>  {
+>         struct thermal_zone_device *tz = to_thermal_zone(dev);
+> +       long temperature;
+> +       int ret;
+> 
+>         if (!tz->ops->get_temp)
+>                 return -EPERM;
+> 
+> -       return tz->ops->get_temp(tz, buf);
+> +       ret = tz->ops->get_temp(tz,&temperature);
+> +
+> +       if (ret)
+> +               return ret;
+> +
+> +       return sprintf(buf,"%ld\n",temperature);
+>  }
+> 
+>  static ssize_t
+> @@ -160,7 +167,8 @@ trip_point_temp_show(struct device *dev, struct
+> device_attribute *attr,
+>                      char *buf)
+>  {
+>         struct thermal_zone_device *tz = to_thermal_zone(dev);
+> -       int trip;
+> +       int trip, ret;
+> +       long temperature;
+> 
+>         if (!tz->ops->get_trip_temp)
+>                 return -EPERM;
+> @@ -168,7 +176,12 @@ trip_point_temp_show(struct device *dev, struct
+> device_attribute *attr,
+>         if (!sscanf(attr->attr.name, "trip_point_%d_temp", &trip))
+>                 return -EINVAL;
+> 
+> -       return tz->ops->get_trip_temp(tz, trip, buf);
+> +       ret = tz->ops->get_trip_temp(tz, trip, &temperature);
+> +
+> +       if (ret)
+> +               return ret;
+> +
+> +       return sprintf (buf, "%ld\n", temperature);
+>  }
+> 
+>  static DEVICE_ATTR(type, 0444, type_show, NULL);
+> @@ -312,13 +325,20 @@ static DEVICE_ATTR(name, 0444, name_show, NULL);
+>  static ssize_t
+>  temp_input_show(struct device *dev, struct device_attribute *attr,
+> char *buf)
+>  {
+> +       long temperature;
+> +       int ret;
+>         struct thermal_hwmon_attr *hwmon_attr
+>                         = container_of(attr, struct
+> thermal_hwmon_attr, attr);
+>         struct thermal_zone_device *tz
+>                         = container_of(hwmon_attr, struct
+> thermal_zone_device,
+>                                        temp_input);
+> 
+> -       return tz->ops->get_temp(tz, buf);
+> +       ret = tz->ops->get_temp(tz, &temperature);
+> +
+> +       if (ret)
+> +               return ret;
+> +
+> +       return sprintf(buf, "%ld\n", temperature);
+>  }
+> 
+>  static ssize_t
+> @@ -330,8 +350,14 @@ temp_crit_show(struct device *dev, struct
+> device_attribute *attr,
+>         struct thermal_zone_device *tz
+>                         = container_of(hwmon_attr, struct
+> thermal_zone_device,
+>                                        temp_crit);
+> +       long temperature;
+> +       int ret;
+> +
+> +       ret = tz->ops->get_trip_temp(tz, 0, &temperature);
+> +       if (ret)
+> +               return ret;
+> 
+> -       return tz->ops->get_trip_temp(tz, 0, buf);
+> +       return sprintf(buf, "%ld\n", temperature);
+>  }
+> 
+> 
+> diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+> index 06d3e6e..63e6619 100644
+> --- a/include/linux/thermal.h
+> +++ b/include/linux/thermal.h
+> @@ -36,11 +36,12 @@ struct thermal_zone_device_ops {
+>                      struct thermal_cooling_device *);
+>         int (*unbind) (struct thermal_zone_device *,
+>                        struct thermal_cooling_device *);
+> -       int (*get_temp) (struct thermal_zone_device *, char *);
+> +       int (*get_temp) (struct thermal_zone_device *, unsigned long
+> *);
+>         int (*get_mode) (struct thermal_zone_device *, char *);
+>         int (*set_mode) (struct thermal_zone_device *, const char *);
+>         int (*get_trip_type) (struct thermal_zone_device *, int, char
+> *);
+> -       int (*get_trip_temp) (struct thermal_zone_device *, int, char
+> *);
+> +       int (*get_trip_temp) (struct thermal_zone_device *, int,
+> +                             unsigned long *);
+>         int (*get_crit_temp) (struct thermal_zone_device *, unsigned
+> long *);
+>  };
+> 
+> 
+> --
+> Matthew Garrett | mjg59@srcf.ucam.org
+> 
+> 
+
