@@ -1,19 +1,18 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 13/17] ACPICA: Fix for invalid large array index on 64-bit
- systems
-Date: Thu, 12 Jun 2008 00:35:12 -0400
-Message-ID: <794dfcd9fa23811a425c33ea477741932f4b5584.1213245200.git.len.brown@intel.com>
+Subject: [PATCH 10/17] ACPICA: Workaround for reversed _PRT entries from BIOS
+Date: Thu, 12 Jun 2008 00:35:09 -0400
+Message-ID: <35b95992e9f55117ce7aa6bdcf5b86852c07e202.1213245200.git.len.brown@intel.com>
 References: <1213245316-20835-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173003pub.verizon.net ([206.46.173.3]:55210 "EHLO
 	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751500AbYFLEfh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Jun 2008 00:35:37 -0400
+	with ESMTP id S1751460AbYFLEfd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Jun 2008 00:35:33 -0400
 Received: from localhost.localdomain ([72.93.254.151])
  by vms173003.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K2C008S222ZUR56@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 11 Jun 2008 23:35:23 -0500 (CDT)
+ with ESMTPA id <0K2C008ZQ22XUSDZ@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Wed, 11 Jun 2008 23:35:22 -0500 (CDT)
 In-reply-to: <1213245316-20835-1-git-send-email-lenb@kernel.org>
 In-reply-to: <e3f06dd844c1cbaa5b7ef6a971c182db73b8d4e9.1213245200.git.len.brown@intel.com>
 References: <e3f06dd844c1cbaa5b7ef6a971c182db73b8d4e9.1213245200.git.len.brown@intel.com>
@@ -24,30 +23,45 @@ Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Bro
 
 From: Bob Moore <robert.moore@intel.com>
 
-This problem was introduced in 20080514 as a result of the
-elimination of the acpi_native_uint type. Code uses a negative
-array index, which should be eliminated.
+Some BIOSs erroneously reverse the _PRT SourceName and the
+SourceIndex.  Detect and repair this problem. MS ACPI also allows
+and repairs this problem, thus ACPICA must also.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/executer/exdump.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/acpi/resources/rscreate.c |   17 +++++++++++++++++
+ 1 files changed, 17 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/executer/exdump.c b/drivers/acpi/executer/exdump.c
-index c94638d..f337c3f 100644
---- a/drivers/acpi/executer/exdump.c
-+++ b/drivers/acpi/executer/exdump.c
-@@ -776,7 +776,7 @@ acpi_ex_dump_operands(union acpi_operand_object **operands,
- 		      const char *note,
- 		      const char *module_name, u32 line_number)
- {
--	u32 i;
-+	s32 i;
+diff --git a/drivers/acpi/resources/rscreate.c b/drivers/acpi/resources/rscreate.c
+index faddaee..70c84ec 100644
+--- a/drivers/acpi/resources/rscreate.c
++++ b/drivers/acpi/resources/rscreate.c
+@@ -285,6 +285,23 @@ acpi_rs_create_pci_routing_table(union acpi_operand_object *package_object,
+ 		}
  
- 	ACPI_FUNCTION_NAME(ex_dump_operands);
- 
+ 		/*
++		 * If the BIOS has erroneously reversed the _PRT source_name (index 2)
++		 * and the source_index (index 3), fix it. _PRT is important enough to
++		 * workaround this BIOS error. This also provides compatibility with
++		 * other ACPI implementations.
++		 */
++		obj_desc = sub_object_list[3];
++		if (!obj_desc
++		    || (ACPI_GET_OBJECT_TYPE(obj_desc) != ACPI_TYPE_INTEGER)) {
++			sub_object_list[3] = sub_object_list[2];
++			sub_object_list[2] = obj_desc;
++
++			ACPI_WARNING((AE_INFO,
++				      "(PRT[%X].Source) SourceName and SourceIndex are reversed, fixed",
++				      index));
++		}
++
++		/*
+ 		 * 3) Third subobject: Dereference the PRT.source_name
+ 		 * The name may be unresolved (slack mode), so allow a null object
+ 		 */
 -- 
 1.5.6.rc2.26.g8c37
 
