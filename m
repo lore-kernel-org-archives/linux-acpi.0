@@ -1,50 +1,24 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: acpi thermal sensors not working, laptop overheating
-Date: Fri, 13 Jun 2008 12:19:47 +0100
-Message-ID: <20080613111947.GA2443@srcf.ucam.org>
-References: <BAY114-W23E452D9A025AF7E6A5225FAAC0@phx.gbl>
+From: "Maciej W. Rozycki" <macro@linux-mips.org>
+Subject: Re: linux-next Regression: Unable to locate IOAPIC
+Date: Fri, 13 Jun 2008 16:42:23 +0100 (BST)
+Message-ID: <Pine.LNX.4.55.0806131638320.29380@cliff.in.clinika.pl>
+References: <200806051100.12885.dex@dragonslave.de> <200806102229.10512.dex@dragonslave.de>
+ <4851AA24.7060906@gmail.com> <200806131307.39807.dex@dragonslave.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:43717 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754704AbYFMLTv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Jun 2008 07:19:51 -0400
-Content-Disposition: inline
-In-Reply-To: <BAY114-W23E452D9A025AF7E6A5225FAAC0@phx.gbl>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <200806131307.39807.dex@dragonslave.de>
+Sender: linux-next-owner@vger.kernel.org
+To: webmaster@dragonslave.de
+Cc: Alexey Starikovskiy <aystarik@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-next@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Luke Sharkey <lukesharkey@hotmail.co.uk>
-Cc: linux-acpi@vger.kernel.org
 
-On Fri, Jun 13, 2008 at 12:07:45PM +0100, Luke Sharkey wrote:
+On Fri, 13 Jun 2008, Daniel Exner wrote:
 
-> Example sensors output:
-> k8temp-pci-00c3
-> Adapter: PCI adapter
-> Core0 Temp:  +54.0=B0C                                   =20
+> I attached dmesg and config , both from working 2.6.26-rc5 with git-acpi patch 
+> below and from linux-next snapshot 20080604.
 
-54 degrees is fine.
+ Unfortunately dmesg.rc5.acpi is missing important information at the
+beginning -- please retry with a larger buffer (LOG_BUF_SHIFT).
 
-> state:                   ok
-> temperature:             0 C
-> critical (S5):           94 C
-> passive:                 90 C: tc1=3D2 tc2=3D5 tsp=3D50 devices=3DCPU=
-0=20
-
-Can you attach the output of the acpidump command? The BIOS is=20
-presumably reading the temperature without any trouble, given the fan=20
-behaviour, so it would be nice to check why Linux isn't picking it up.=20
-Do you get the same readings if you don't load the k8temp module? Also,=
-=20
-make sure no other sensors modules are loaded. They can potentially=20
-interfere with ACPI.
-
---=20
-Matthew Garrett | mjg59@srcf.ucam.org
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+  Maciej
