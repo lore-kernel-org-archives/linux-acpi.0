@@ -1,146 +1,100 @@
-From: Alok Kataria <akataria@vmware.com>
-Subject: [RFC PATCH] ACPI: eject device synchronously
-Date: Fri, 13 Jun 2008 13:28:11 -0700
-Message-ID: <1213388891.22105.18.camel@promb-2n-dhcp368.eng.vmware.com>
-Reply-To: akataria@vmware.com
+From: Alexey Starikovskiy <aystarik@gmail.com>
+Subject: Re: linux-next Regression: Unable to locate IOAPIC
+Date: Sat, 14 Jun 2008 11:07:39 +0400
+Message-ID: <48536E3B.4000703@gmail.com>
+References: <200806051100.12885.dex@dragonslave.de> <200806102229.10512.dex@dragonslave.de> <4851AA24.7060906@gmail.com> <200806131307.39807.dex@dragonslave.de>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-outbound-1.vmware.com ([65.113.40.141]:53932 "EHLO
-	smtp-outbound-1.vmware.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752096AbYFMU2N (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 13 Jun 2008 16:28:13 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <200806131307.39807.dex@dragonslave.de>
+Sender: linux-next-owner@vger.kernel.org
+To: webmaster@dragonslave.de
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-next@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, Yinghai Lu <yhlu.kernel@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: len.brown@intel.com, rui.zhang@intel.com
-Cc: linux-acpi@vger.kernel.org
 
-This is w.r.t some ACPI changes, to fix a deadlock when ejecting a cpu.
-In http://bugzilla.kernel.org/show_bug.cgi?id=9772#c31
-Len raises some concerns about a theoretical race. In the current code path we
-could return to the userspace without doing the actual eject of the device. 
-This deferring of device eject and device unregistering was done to fix a
-deadlock at cpu eject time. 
+Hi Ingo, Yinghai,
 
-IMO, we could do with only deferring the device unregistration part to the
-thread. So before we return to the userspace we make sure that we execute the
-_PS3 and _EJ0 objects of the device being removed. So the device is physically
-removed when the write to the sysfile completes. 
+It looks like the code introduced by 
+2944e16b25e7fb8b5ee0dd9dc7197a0f9e523cfd
+is causing this problem. At least it is new between -rc5 (working) and 
+linux-next (not working).
 
-patch on top of acpi-test.
---
-VMware, Inc. is providing the following patch to you under the terms of the GPL
-version 2 and no later version. This patch is provided as is, with no
-warranties or support. VMware disclaims all liability in connection with
-the use/inability to use this patch. Any use of the attached is
-considered acceptance of the above.
+Regards,
+Alex.
 
-Signed-off-by: Alok N Kataria <akataria@vmware.com>
-Cc: Zhang Rui <rui.zhang@intel.com>
 
-Index: linux-2.6/drivers/acpi/scan.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/scan.c	2008-06-13 10:51:16.000000000 -0700
-+++ linux-2.6/drivers/acpi/scan.c	2008-06-13 11:32:14.000000000 -0700
-@@ -96,14 +96,7 @@
- 
- static int acpi_bus_hot_remove_device(void *context)
- {
--	struct acpi_device *device;
--	acpi_handle handle = context;
--	struct acpi_object_list arg_list;
--	union acpi_object arg;
--	acpi_status status = AE_OK;
--
--	if (acpi_bus_get_device(handle, &device))
--		return 0;
-+	struct acpi_device *device = context;
- 
- 	if (!device)
- 		return 0;
-@@ -118,32 +111,6 @@
- 		return -1;
- 	}
- 
--	/* power off device */
--	status = acpi_evaluate_object(handle, "_PS3", NULL, NULL);
--	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND)
--		ACPI_DEBUG_PRINT((ACPI_DB_WARN,
--				"Power-off device failed\n"));
--
--	if (device->flags.lockable) {
--		arg_list.count = 1;
--		arg_list.pointer = &arg;
--		arg.type = ACPI_TYPE_INTEGER;
--		arg.integer.value = 0;
--		acpi_evaluate_object(handle, "_LCK", &arg_list, NULL);
--	}
--
--	arg_list.count = 1;
--	arg_list.pointer = &arg;
--	arg.type = ACPI_TYPE_INTEGER;
--	arg.integer.value = 1;
--
--	/*
--	 * TBD: _EJD support.
--	 */
--	status = acpi_evaluate_object(handle, "_EJ0", &arg_list, NULL);
--	if (ACPI_FAILURE(status))
--		return -ENODEV;
--
- 	return 0;
- }
- 
-@@ -153,6 +120,8 @@
- {
- 	int ret = count;
- 	acpi_status status;
-+	struct acpi_object_list arg_list;
-+	union acpi_object arg;
- 	acpi_object_type type = 0;
- 	struct acpi_device *acpi_device = to_acpi_device(d);
- 	struct task_struct *task;
-@@ -172,9 +141,37 @@
- 		goto err;
- 	}
- 
--	/* remove the device in another thread to fix the deadlock issue */
-+	/* power off device */
-+	status = acpi_evaluate_object(acpi_device->handle, "_PS3", NULL, NULL);
-+	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND)
-+		ACPI_DEBUG_PRINT((ACPI_DB_WARN,
-+				"Power-off device failed\n"));
-+
-+	if (acpi_device->flags.lockable) {
-+		arg_list.count = 1;
-+		arg_list.pointer = &arg;
-+		arg.type = ACPI_TYPE_INTEGER;
-+		arg.integer.value = 0;
-+		acpi_evaluate_object(acpi_device->handle,
-+					"_LCK", &arg_list, NULL);
-+	}
-+
-+	arg_list.count = 1;
-+	arg_list.pointer = &arg;
-+	arg.type = ACPI_TYPE_INTEGER;
-+	arg.integer.value = 1;
-+
-+	/*
-+	 * TBD: _EJD support.
-+	 */
-+	status = acpi_evaluate_object(acpi_device->handle,
-+					"_EJ0", &arg_list, NULL);
-+	if (ACPI_FAILURE(status))
-+		return -ENODEV;
-+
-+	/* unregister the device in another thread to fix the deadlock issue */
- 	task = kthread_run(acpi_bus_hot_remove_device,
--				acpi_device->handle, "acpi_hot_remove_device");
-+				acpi_device, "acpi_hot_remove_device");
- 	if (IS_ERR(task))
- 		ret = PTR_ERR(task);
- err:
-
+Daniel Exner wrote:
+> Hi all,
+>
+> Alexey Starikovskiy wrote:
+>   
+>> Hi Daniel,
+>>
+>> Could you please provide full dmesg and acpidump outputs?
+>>     
+> I attached dmesg and config , both from working 2.6.26-rc5 with git-acpi patch 
+> below and from linux-next snapshot 20080604.
+> I also attached acpidump that was done while using stock 2.6.25-fw5 from my 
+> distro. (But I think that doesnt matter, at least it shouldn't ;)
+>
+>   
+>> Daniel Exner wrote:
+>>     
+>>> Andrew Morton wrote:
+>>>       
+>>>> On Fri, 6 Jun 2008 19:30:28 +0200 Daniel Exner <dex@dragonslave.de> 
+>>>>         
+> wrote:
+>   
+>>>>> Andrew Morton wrote:
+>>>>>           
+>>>>>> (cc linux-acpi)
+>>>>>>
+>>>>>> On Thu, 5 Jun 2008 11:00:12 +0200 Daniel Exner <dex@dragonslave.de>
+>>>>>>             
+>>> wrote:
+>>>       
+>>>>>>> Hi!
+>>>>>>>
+>>>>>>> (Added myself to CC, because I'm not subscribed)
+>>>>>>>
+>>>>>>> with linux-next snapshot 20080604 my Laptop morphes into sitting duck
+>>>>>>> and I think this is due to this:
+>>>>>>>               
+>>>>>> I assume 2.6.26-rc5 is OK?
+>>>>>>             
+>>>>> Indeed.. just tried it with (nearly) the same config: no unable to
+>>>>> locate IOAPIC
+>>>>>
+>>>>> Will try todays next snapshot above -rc5 now.
+>>>>>           
+>>>> OK, thanks.
+>>>>
+>>>> It would be great if you could test 2.6.26-rc5 plus
+>>>> http://userweb.kernel.org/~akpm/git-acpi.patch.  That'll allow us to
+>>>> confirm that the regression is due to changes in the acpi tree.
+>>>>         
+>>> Sorry for the delay.. real-life you know ;)
+>>>
+>>> I guess you'd expect me to confirm the behavior on rc5 with this patch
+>>> aplied, but .. well this Kernel works!
+>>>       
+> To clarify myself:
+> 2.6.25.5:  --> relatively fast no IOAPIC Errors in dmesg
+> 2.6.26-rc5:   --> relatively  no IOAPIC Errors in dmesg
+> 2.6.26-rc5 + git-acpi Patch:   --> relatively  no IOAPIC Errors in dmesg
+> 2.6.26-rc5 +  linux-next snapshot 20080604 --> even slower than before my ide 
+> Patch many "unable to locate IOAPIC" Errors
+>
+>
+> So I think the problem lies not in the acpi tree but somewhre else.
+>
+> Is it possible to tell git to explicitly _exclude_ a specific tree while 
+> bisecting?
+>
+> --
+> Greetings
+> Daniel Exner
+>   
 
