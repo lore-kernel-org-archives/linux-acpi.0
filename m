@@ -1,17 +1,18 @@
 From: Rene Herman <rene.herman@keyaccess.nl>
-Subject: Re: [patch 15/18] PNP: support optional IRQ resources
-Date: Sat, 14 Jun 2008 10:29:01 +0200
-Message-ID: <4853814D.4010309@keyaccess.nl>
-References: <20080604220933.168145536@ldl.fc.hp.com> <20080604221129.758385014@ldl.fc.hp.com>
+Subject: Re: [patch 18/18] PNP: convert resource options to single linked
+ list
+Date: Sat, 14 Jun 2008 12:31:54 +0200
+Message-ID: <48539E1A.90601@keyaccess.nl>
+References: <20080604220933.168145536@ldl.fc.hp.com> <20080604221130.337606204@ldl.fc.hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtpq1.tilbu1.nb.home.nl ([213.51.146.200]:49986 "EHLO
+Received: from smtpq1.tilbu1.nb.home.nl ([213.51.146.200]:49988 "EHLO
 	smtpq1.tilbu1.nb.home.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753553AbYFNKkO (ORCPT
+	with ESMTP id S1753745AbYFNKkO (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Sat, 14 Jun 2008 06:40:14 -0400
-In-Reply-To: <20080604221129.758385014@ldl.fc.hp.com>
+In-Reply-To: <20080604221130.337606204@ldl.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Bjorn Helgaas <bjorn.helgaas@hp.com>
@@ -19,78 +20,59 @@ Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.k
 
 On 05-06-08 00:09, Bjorn Helgaas wrote:
 
-> This patch adds an IORESOURCE_IRQ_OPTIONAL flag for use when
-> assigning resources to a device.  If the flag is set and we are
-> unable to assign an IRQ to the device, we can leave the IRQ
-> disabled but allow the overall resource allocation to succeed.
-> 
-> Some devices request an IRQ, but can run without an IRQ
-> (possibly with degraded performance).  This flag lets us run
-> the device without the IRQ instead of just leaving the
-> device disabled.
-> 
-> This is a reimplementation of this previous change by Rene
-> Herman <rene.herman@gmail.com>:
->     http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=3b73a223661ed137c5d3d2635f954382e94f5a43
-> 
-> I reimplemented this for two reasons:
->     - to prepare for converting all resource options into a single linked
->       list, as opposed to the per-resource-type lists we have now, and
->     - to preserve the order and number of resource options.
-> 
-> In PNPBIOS and ACPI, we configure a device by giving firmware a
-> list of resource assignments.  It is important that this list
-> has exactly the same number of resources, in the same order,
-> as the "template" list we got from the firmware in the first
-> place.
-> 
-> The problem of a sound card MPU401 being left disabled for want of
-> an IRQ was reported by Uwe Bugla <uwe.bugla@gmx.de>.
-> 
-> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+> ISAPNP, PNPBIOS, and ACPI describe the "possible resource settings" of
 
-You rework this again in the later patch doing the final switch over 
-after which things end up right but also already at this point:
-
-> @@ -176,33 +184,10 @@ static void quirk_ad1815_mpu_resources(s
->  	if (!irq || irq->next)
->  		return;
->  
-> -	res = dev->dependent;
-> -	if (!res)
-> -		return;
-> -
-> -	while (1) {
-> -		struct pnp_irq *copy;
-> -
-> -		copy = pnp_alloc(sizeof *copy);
-> -		if (!copy)
-> -			break;
-> -
-> -		bitmap_copy(copy->map.bits, irq->map.bits, PNP_IRQ_NR);
-> -		copy->flags = irq->flags;
-> -
-> -		copy->next = res->irq; /* Yes, this is NULL */
-> -		res->irq = copy;
-> -
-> -		if (!res->next)
-> -			break;
-> -		res = res->next;
-> -	}
-> -	kfree(irq);
-> +	irq->flags |= IORESOURCE_IRQ_OPTIONAL;
-> +	dev_info(&dev->dev, "made independent IRQ optional\n");
->  
->  	res->next = quirk_isapnp_mpu_options(dev);
-
-... this line should just go.
-
-Previously "res" ended up as the last dependent set through the while 
-loop but now it's the independendent set which in this previous setup of 
-things shouldn't even have a ->next. Just deleting this line makes this 
-patch fine and
+[ ... ]
 
 Acked-by: Rene Herman <rene.herman@gmail.com>
+
+Only minor comment:
+
+> +static inline unsigned int pnp_independent_option(void)
+> +{
+> +	return 0;
+> +}
+
+I think this is a somewhat unintuitive name (the function doesn't return 
+an option) and now that the pnp_dependent_option() one has been renamed 
+to pnp_new_dependent_set() even the symmetry doesn't survive.
+
+pnp_independent_option_flags? pnp_independent_flags? Or better yet, just 
+literal 0? That last one unless you have some as of yet unpublished plan 
+for the abstraction ofcourse but this function seems to obscure more 
+than it helps any at the moment.
+
+Even if you agree, obviously also fine as follow-up patch.
+
+Only trivial:
+
+> +static int pnp_assign_resources(struct pnp_dev *dev, int set)
+> {
+
+[ ... ]
+
+> -fail:
+> -	pnp_clean_resource_table(dev);
+>  	mutex_unlock(&pnp_res_mutex);
+> -	dbg_pnp_show_resources(dev, "after pnp_assign_resources (failed)");
+> -	return 0;
+> +	if (ret) {
+> +		dev_dbg(&dev->dev, "pnp_assign_resources failed (%d)\n", ret);
+> +		pnp_clean_resource_table(dev);
+> +	} else
+> +		dbg_pnp_show_resources(dev, "pnp_assign_resources succeeded");
+> +	return ret;
+>  }
+
+if (ret < 0) would agree with the rest.
+
+>  int pnp_auto_config_dev(struct pnp_dev *dev)
+>  {
+> -	struct pnp_option *dep;
+> -	int i = 1;
+> +	int i, ret = 0;
+
+int ret; will do;
 
 Rene.
 
