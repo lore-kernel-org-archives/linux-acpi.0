@@ -1,24 +1,34 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: linux-next Regression: Unable to locate IOAPIC
-Date: Sat, 14 Jun 2008 10:31:59 +0200
-Message-ID: <20080614083159.GA29894@elte.hu>
-References: <200806051100.12885.dex@dragonslave.de> <200806102229.10512.dex@dragonslave.de> <4851AA24.7060906@gmail.com> <200806131307.39807.dex@dragonslave.de> <48536E3B.4000703@gmail.com> <86802c440806140126l7a949783of0fb08d11ae07bef@mail.gmail.com>
+From: Rene Herman <rene.herman@keyaccess.nl>
+Subject: Re: [patch 16/18] PNP: remove extra 0x100 bit from option priority
+Date: Sat, 14 Jun 2008 10:35:54 +0200
+Message-ID: <485382EA.9080809@keyaccess.nl>
+References: <20080604220933.168145536@ldl.fc.hp.com> <20080604221129.955112741@ldl.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-next-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <86802c440806140126l7a949783of0fb08d11ae07bef@mail.gmail.com>
-Sender: linux-next-owner@vger.kernel.org
-To: Yinghai Lu <yhlu.kernel@gmail.com>
-Cc: Alexey Starikovskiy <aystarik@gmail.com>, webmaster@dragonslave.de, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-next@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtpq2.tilbu1.nb.home.nl ([213.51.146.201]:55071 "EHLO
+	smtpq2.tilbu1.nb.home.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753255AbYFNKkO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 14 Jun 2008 06:40:14 -0400
+In-Reply-To: <20080604221129.955112741@ldl.fc.hp.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>, Takashi Iwai <tiwai@suse.de>
 
+On 05-06-08 00:09, Bjorn Helgaas wrote:
 
-* Yinghai Lu <yhlu.kernel@gmail.com> wrote:
+> When building resource options, ISAPNP and PNPBIOS set the priority
+> to something like "0x100 | PNP_RES_PRIORITY_ACCEPTABLE", but we 
+> immediately mask off the 0x100 again in pnp_build_option(), so that
+> bit looks superfluous.
+> 
+> Thanks to Rene Herman <rene.herman@gmail.com> for pointing this out.
+> 
+> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-> can you check if the attached patch fix the problem?
-> it will not check entries before MP_intsrc_info...
+Acked-by: Rene Herman <rene.herman@gmail.com>
 
-applied to tip/x86/mpparse for more testing.
+Rene
 
-	Ingo
