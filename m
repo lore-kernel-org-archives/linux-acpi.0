@@ -1,83 +1,48 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: linux-next: Tree for June 13: IO APIC breakage on HP nx6325
-Date: Tue, 17 Jun 2008 01:05:44 +0200
-Message-ID: <200806170105.45647.rjw@sisk.pl>
-References: <20080613232214.394fd6fd.sfr@canb.auug.org.au> <Pine.LNX.4.55.0806161636510.20218@cliff.in.clinika.pl> <200806170038.37224.rjw@sisk.pl>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 2/3] Introduce acpi_root_table=rsdt boot param and dmi list
+ to force rsdt - also add R51e
+Date: Mon, 16 Jun 2008 19:08:57 -0400 (EDT)
+Message-ID: <alpine.LFD.1.10.0806161902440.12628@localhost.localdomain>
+References: <1210259416.6710.13.camel@hammer1.suse.de>
+ <200805081609.08810.lenb@kernel.org>
+ <1213581031.30416.11.camel@yakui_zhao.sh.intel.com>
+ <200806161719.06184.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <200806170038.37224.rjw@sisk.pl>
-Content-Disposition: inline
-Sender: linux-next-owner@vger.kernel.org
-To: "Maciej W. Rozycki" <macro@linux-mips.org>, Thomas Gleixner <tglx@linutronix.de>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms173003pub.verizon.net ([206.46.173.3]:52299 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757870AbYFPXJK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Jun 2008 19:09:10 -0400
+Received: from localhost.localdomain ([72.93.254.151])
+ by vms173003.mailsrvcs.net
+ (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+ with ESMTPA id <0K2K00BCDWB0O2B4@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Mon, 16 Jun 2008 18:09:01 -0500 (CDT)
+In-reply-to: <200806161719.06184.trenn@suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: trenn <trenn@suse.de>
+Cc: Zhao Yakui <yakui.zhao@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, me@markdoughty.co.uk
 
-On Tuesday, 17 of June 2008, Rafael J. Wysocki wrote:
-> On Monday, 16 of June 2008, Maciej W. Rozycki wrote:
-> > On Mon, 16 Jun 2008, Rafael J. Wysocki wrote:
-> > 
-> > > > > commit 7e3530cd98a0c6ab38f5898e855a5beffab26561
-> > > > > Author: Maciej W. Rozycki <macro@linux-mips.org>
-> > > > > Date:   Tue May 27 21:19:51 2008 +0100
-> > > > > 
-> > > > >     x86: I/O APIC: timer through 8259A second-chance
-> > > > > 
-> > > > >     Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
-> > > > >     Signed-off-by: Ingo Molnar <mingo@elte.hu>
-> > > > 
-> > > >  Can I have .config used and a full bootstrap log from that system with
-> > > > the patch still applied?
-> > > 
-> > > That may be difficult, because with the patch applied the box either doesn't
-> > > boot at all, or works unreliably when booted (depending on the set of patches
-> > > applied on top of it).
-> > 
-> >  Serial console?
-> 
-> No, this box doesn't have any serial ports.  It has a FireWire one, but I don't
-> have a matching cable ...
-> 
-> >  I'm most interested in one from a configuration that 
-> > does not boot at all as that's easier to reproduce, determine the cause
-> > and verify whether a change fixes the problem or not.  Other
-> > configurations may then be tested with the fix in place.
-> 
-> With the -next from today (20080616) I get a different picture.
-> 
-> Without any patches on top it boots, but the fan is turned 100% on as soon as
-> the ACPI modules get loaded, regardless of the temperature (normally it does
-> that above 75^o C, which is impossible to get normally, because there are 3
-> temperature trip points below that level; generally the hardware only does that
-> when overheating).  After that, things start to go _very_ slow, like 10x slower
-> than usually in X and somewhat slower in the fb console, but I was able to get
-> a dmesg output.  This is reproducible 100% of the time.
-> 
-> With commit 7e3530cd98a0c6ab38f5898e855a5beffab26561 reverted the box seems to
-> work normally.  However, while I was writing this message, ACPI decided it was
-> overheating and emergency shut down the box, although that was completely
-> wrong.  Next time I'll try with the C1E patches reverted.
-> 
-> The .config is at: http://www.sisk.pl/kernel/debug/20080616/next-config
-> 
-> dmesg output without any patches is at
-> http://www.sisk.pl/kernel/debug/20080616/dmesg-1.log
-> 
-> dmesg output with commit 7e3530cd98a0c6ab38f5898e855a5beffab26561 reverted is
-> at: http://www.sisk.pl/kernel/debug/20080616/dmesg-2.log
-> 
-> (they look pretty similar to my untrained eye, but well).
 
-BTW, with the C1E patches reverted I don't get the
-WARNING: at /home/rafael/src/linux-next/kernel/smp.c:215 smp_call_function_single+0x3d/0xa2
-in the log.  Thomas?
 
-dmesg with commit 7e3530cd98a0c6ab38f5898e855a5beffab26561 and with the C1E
-commits (the ones between 8750bf598db6a0ea3475d1cf8da922b325941e12 and
-aa83f3f2cfc74d66d01b1d2eb1485ea1103a0f4e inclusive) reverted is at:
-http://www.sisk.pl/kernel/debug/20080616/dmesg-3.log
+> > In fact we have another similar bug:
+> >    http://bugzilla.kernel.org/show_bug.cgi?id=8246
+> >
+> >    The 32/64X address mismatch also exists on the laptop of IBM R51e.
+> ...
+> Thanks.
+> Below is a version with the R51e included.
 
-Thanks,
-Rafael
+Appropriate workaround for a distro release?  Yes.
+Appropriate patch for upstream?  No.
+
+Upstream should fix the root cause, which is to figure out when the RSDT 
+and XSDT disagree, which Windows is using, and use that one.  Littering 
+upstream with DMI entries simply hides the test cases that we know about
+and delays the correct fix.
+
+-Len
+
+
