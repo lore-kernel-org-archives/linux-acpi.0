@@ -1,57 +1,107 @@
-From: Arjan van de Ven <arjan@infradead.org>
-Subject: Re: bug? acpi p-state + ondemand keeps dropping max freq
-Date: Mon, 16 Jun 2008 07:43:37 -0700
-Message-ID: <20080616074337.46d6f411@infradead.org>
-References: <20080606140846.GA9580@ucw.cz>
-	<20080607213918.GC1746@elf.ucw.cz>
-	<20080607145435.4afc9812@infradead.org>
-	<20080616104159.GA28659@elf.ucw.cz>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [patch 15/18] PNP: support optional IRQ resources
+Date: Mon, 16 Jun 2008 09:41:48 -0600
+Message-ID: <200806160941.49959.bjorn.helgaas@hp.com>
+References: <20080604220933.168145536@ldl.fc.hp.com> <20080604221129.758385014@ldl.fc.hp.com> <4853814D.4010309@keyaccess.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:48971 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753898AbYFPOns (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Jun 2008 10:43:48 -0400
-In-Reply-To: <20080616104159.GA28659@elf.ucw.cz>
+Received: from g4t0016.houston.hp.com ([15.201.24.19]:35855 "EHLO
+	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753223AbYFPPmP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Jun 2008 11:42:15 -0400
+In-Reply-To: <4853814D.4010309@keyaccess.nl>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@suse.cz>
-Cc: auke-jan.h.kok@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, len.brown@intel.com, cpufreq@lists.linux.org.uk, davej@codemonkey.org.uk
+To: Rene Herman <rene.herman@keyaccess.nl>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>, Takashi Iwai <tiwai@suse.de>
 
-On Mon, 16 Jun 2008 12:42:00 +0200
-Pavel Machek <pavel@suse.cz> wrote:
-
-> On Sat 2008-06-07 14:54:35, Arjan van de Ven wrote:
-> > On Sat, 7 Jun 2008 23:39:18 +0200
-> > Pavel Machek <pavel@suse.cz> wrote:
+On Saturday 14 June 2008 02:29:01 am Rene Herman wrote:
+> On 05-06-08 00:09, Bjorn Helgaas wrote:
+> 
+> > This patch adds an IORESOURCE_IRQ_OPTIONAL flag for use when
+> > assigning resources to a device.  If the flag is set and we are
+> > unable to assign an IRQ to the device, we can leave the IRQ
+> > disabled but allow the overall resource allocation to succeed.
 > > 
-> > > > # echo 1866000 > scaling_max_freq ; cat scaling_max_freq
-> > > > 800000
-> > > > # echo 1866000 > scaling_max_freq ; cat scaling_max_freq
-> > > > 800000
-> > > > 
-> > > > 
-> > > > This renders my Dothan to utterly poor speeds. (standard T43)
-> > > > 
-> > > > performance cpufreq governor makes no difference - I still can't
-> > > > change the frequency upper/lower values.
-> > > 
-> > > Hmm, I have similar problem in Novell bugzilla, on very different
-> > > hw:
-> > > 
-> > > https://bugzilla.novell.com/show_bug.cgi?id=396311
+> > Some devices request an IRQ, but can run without an IRQ
+> > (possibly with degraded performance).  This flag lets us run
+> > the device without the IRQ instead of just leaving the
+> > device disabled.
+> > 
+> > This is a reimplementation of this previous change by Rene
+> > Herman <rene.herman@gmail.com>:
+> >     http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=3b73a223661ed137c5d3d2635f954382e94f5a43
+> > 
+> > I reimplemented this for two reasons:
+> >     - to prepare for converting all resource options into a single linked
+> >       list, as opposed to the per-resource-type lists we have now, and
+> >     - to preserve the order and number of resource options.
+> > 
+> > In PNPBIOS and ACPI, we configure a device by giving firmware a
+> > list of resource assignments.  It is important that this list
+> > has exactly the same number of resources, in the same order,
+> > as the "template" list we got from the firmware in the first
+> > place.
+> > 
+> > The problem of a sound card MPU401 being left disabled for want of
+> > an IRQ was reported by Uwe Bugla <uwe.bugla@gmx.de>.
+> > 
+> > Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 > 
-> > are either of you running gnome-power-manager or kpowersaved ?
-> > sometimes these programs (and more likely, the patches added by a
-> > distro maintainer who doesn't fully realize how power works) tend to
-> > muck with kernel settings around CPU frequency that they have
-> > absolutely no business touching...
+> You rework this again in the later patch doing the final switch over 
+> after which things end up right but also already at this point:
 > 
-> In novel bugzilla case ignore_ppc=1 helped, so it seems to be BIOS
-> problem, not userland's...
+> > @@ -176,33 +184,10 @@ static void quirk_ad1815_mpu_resources(s
+> >  	if (!irq || irq->next)
+> >  		return;
+> >  
+> > -	res = dev->dependent;
+> > -	if (!res)
+> > -		return;
+> > -
+> > -	while (1) {
+> > -		struct pnp_irq *copy;
+> > -
+> > -		copy = pnp_alloc(sizeof *copy);
+> > -		if (!copy)
+> > -			break;
+> > -
+> > -		bitmap_copy(copy->map.bits, irq->map.bits, PNP_IRQ_NR);
+> > -		copy->flags = irq->flags;
+> > -
+> > -		copy->next = res->irq; /* Yes, this is NULL */
+> > -		res->irq = copy;
+> > -
+> > -		if (!res->next)
+> > -			break;
+> > -		res = res->next;
+> > -	}
+> > -	kfree(irq);
+> > +	irq->flags |= IORESOURCE_IRQ_OPTIONAL;
+> > +	dev_info(&dev->dev, "made independent IRQ optional\n");
+> >  
+> >  	res->next = quirk_isapnp_mpu_options(dev);
+> 
+> ... this line should just go.
 
-well as long as the user doesn't use this for production use... the
-BIOS often reduces frequencies available to deal with thermal
-situations, so it's not a good idea to ignore that.
+You mean I should delete the "res->next = quirk_isapnp_mpu_options(dev)"
+line?
+
+> Previously "res" ended up as the last dependent set through the while 
+> loop but now it's the independendent set which in this previous setup of 
+> things shouldn't even have a ->next. Just deleting this line makes this 
+> patch fine and
+> 
+> Acked-by: Rene Herman <rene.herman@gmail.com>
+
+OK.  This will mean replacing patches 15 and 18 in this series.  If
+I repost those two, is that easy for you to deal with, Andrew?
+
+If I replace these, I'll also update patch 18 to fix the
+pnp_independent_option() comment Rene made.
+
+Bjorn
