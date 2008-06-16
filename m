@@ -1,56 +1,33 @@
-From: Pavel Machek <pavel@suse.cz>
-Subject: Re: bug? acpi p-state + ondemand keeps dropping max freq
-Date: Mon, 16 Jun 2008 12:42:00 +0200
-Message-ID: <20080616104159.GA28659@elf.ucw.cz>
-References: <20080606140846.GA9580@ucw.cz> <20080607213918.GC1746@elf.ucw.cz>
-	<20080607145435.4afc9812@infradead.org>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: kernel panic when plugging in USB device and closing lid
+Date: Mon, 16 Jun 2008 13:36:23 +0100
+Message-ID: <20080616123623.GA21609@srcf.ucam.org>
+References: <20080616123238.GA2852@deprecation.cyrius.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <cpufreq-bounces+glkc-cpufreq=m.gmane.org@lists.linux.org.uk>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:58264 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751086AbYFPMg2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Jun 2008 08:36:28 -0400
 Content-Disposition: inline
-In-Reply-To: <20080607145435.4afc9812@infradead.org>
-List-Unsubscribe: <http://lists.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request@lists.linux.org.uk?subject=unsubscribe>
-List-Archive: <http://lists.linux.org.uk/mailman/private/cpufreq>
-List-Post: <mailto:cpufreq@lists.linux.org.uk>
-List-Help: <mailto:cpufreq-request@lists.linux.org.uk?subject=help>
-List-Subscribe: <http://lists.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request@lists.linux.org.uk?subject=subscribe>
-Sender: cpufreq-bounces@lists.linux.org.uk
-Errors-To: cpufreq-bounces+glkc-cpufreq=m.gmane.org+glkc-cpufreq=m.gmane.org@lists.linux.org.uk
-To: Arjan van de Ven <arjan@infradead.org>
-Cc: davej@codemonkey.org.uk, auke-jan.h.kok@intel.com, len.brown@intel.com, cpufreq@lists.linux.org.uk, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+In-Reply-To: <20080616123238.GA2852@deprecation.cyrius.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Martin Michlmayr <tbm@cyrius.com>
+Cc: linux-kernel@vger.kernel.org, keithp@keithp.com, linux-acpi@vger.kernel.org
 
-On Sat 2008-06-07 14:54:35, Arjan van de Ven wrote:
-> On Sat, 7 Jun 2008 23:39:18 +0200
-> Pavel Machek <pavel@suse.cz> wrote:
-> 
-> > > # echo 1866000 > scaling_max_freq ; cat scaling_max_freq
-> > > 800000
-> > > # echo 1866000 > scaling_max_freq ; cat scaling_max_freq
-> > > 800000
-> > > 
-> > > 
-> > > This renders my Dothan to utterly poor speeds. (standard T43)
-> > > 
-> > > performance cpufreq governor makes no difference - I still can't
-> > > change the frequency upper/lower values.
-> > 
-> > Hmm, I have similar problem in Novell bugzilla, on very different hw:
-> > 
-> > https://bugzilla.novell.com/show_bug.cgi?id=396311
+On Mon, Jun 16, 2008 at 02:32:38PM +0200, Martin Michlmayr wrote:
 
-> are either of you running gnome-power-manager or kpowersaved ?
-> sometimes these programs (and more likely, the patches added by a
-> distro maintainer who doesn't fully realize how power works) tend to
-> muck with kernel settings around CPU frequency that they have
-> absolutely no business touching...
+> I briefly talked to Matthew Garrett on IRC who said this "looks like
+> state corruption".  He asked me to set /proc/acpi/video/blah/DOS to 7
+> and see whether I could still reproduce the problem.  After setting
+> this value, I no longer see the kernel panic.  Matthew: "Right.  The
+> lid-close SMM seems to blow things up some of the time."
 
-In novel bugzilla case ignore_ppc=1 helped, so it seems to be BIOS
-problem, not userland's...
-								Pavel
+If DOS is set to 1, the BIOS seems to do something that makes the kernel 
+massively unhappy. Disabling the automatic display switch control avoids 
+this, which makes me think it's a BIOS bug of some description.
+
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Matthew Garrett | mjg59@srcf.ucam.org
