@@ -1,34 +1,34 @@
-From: Brandon Koepke <bdkoepke@gmail.com>
-Subject: Custom SSDT Cpu0Ist and Cpu1Ist
-Date: Mon, 16 Jun 2008 15:17:14 -0700
-Message-ID: <1213654634.6788.4.camel@brandon-laptop>
+From: Greg KH <greg@kroah.com>
+Subject: Re: Toshiba - Documentation for Linux Developers
+Date: Mon, 16 Jun 2008 15:14:43 -0700
+Message-ID: <20080616221443.GA760@kroah.com>
+References: <4855971D.90004@diamondcut.com.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.233]:37043 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756856AbYFPWRS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Jun 2008 18:17:18 -0400
-Received: by rv-out-0506.google.com with SMTP id k40so3873914rvb.1
-        for <linux-acpi@vger.kernel.org>; Mon, 16 Jun 2008 15:17:18 -0700 (PDT)
+Received: from casper.infradead.org ([85.118.1.10]:47214 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757393AbYFPWab (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Jun 2008 18:30:31 -0400
+Content-Disposition: inline
+In-Reply-To: <4855971D.90004@diamondcut.com.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Renato S. Yamane" <yamane@diamondcut.com.br>
+Cc: linux-acpi@vger.kernel.org
 
-=EF=BB=BFI have created a custom Cpu0Ist and Cpu1Ist and was wondering =
-how I
-would go about using it with the kernel. I heard somewhere that you
-could just append the data to the end of a DSDT and that would be
-enough; however, because using acpidump to get the raw SSDT did not
-contain Cpu0Ist and Cpu1Ist I was not sure how to go about this.=20
+On Sun, Jun 15, 2008 at 07:26:37PM -0300, Renato S. Yamane wrote:
+> Hi for all,
+> 
+> Toshiba have a 'link' between Linux Developers and Head Company, that is:
+> <http://linux.toshiba-dme.co.jp/linux/eng/develop.htm>
+> 
+> If someone need documentation to develop Linux drivers, contact
+> linux@toshiba-dme.co.jp
 
-Thank you for your time.=20
+Are there any known drivers for Toshiba hardware that you need for Linux
+that we should be contacting them about?
 
-Brandon Koepke.=20
+thanks,
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+greg k-h
