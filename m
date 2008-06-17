@@ -1,44 +1,61 @@
-From: "Renato S. Yamane" <yamane@diamondcut.com.br>
-Subject: Re: Toshiba - Documentation for Linux Developers
-Date: Tue, 17 Jun 2008 08:02:14 -0300
-Message-ID: <485799B6.2010302@diamondcut.com.br>
-References: <4855971D.90004@diamondcut.com.br> <20080616221443.GA760@kroah.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] [RFC][PATCH 2/3] PCI PM: Introduce platform_pci_power_manageable
+Date: Tue, 17 Jun 2008 13:47:19 +0200
+Message-ID: <200806171347.20575.rjw@sisk.pl>
+References: <200806170206.26616.rjw@sisk.pl> <200806170214.51160.rjw@sisk.pl> <1213665980.11712.120.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-01.mandic.com.br ([200.225.81.132]:43997 "EHLO
-	smtp-01.mandic.com.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754072AbYFQLC0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jun 2008 07:02:26 -0400
-In-Reply-To: <20080616221443.GA760@kroah.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:35259 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754907AbYFQLqL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Jun 2008 07:46:11 -0400
+In-Reply-To: <1213665980.11712.120.camel@localhost.localdomain>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: linux-acpi@vger.kernel.org
+To: Matt Helsley <matthltc@us.ibm.com>
+Cc: pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>
 
-Greg KH wrote:
-> Renato S. Yamane wrote:
->> Toshiba have a 'link' between Linux Developers and Head Company, that is:
->> <http://linux.toshiba-dme.co.jp/linux/eng/develop.htm>
->>
->> If someone need documentation to develop Linux drivers, contact
->> linux@toshiba-dme.co.jp
+On Tuesday, 17 of June 2008, Matt Helsley wrote:
 > 
-> Are there any known drivers for Toshiba hardware that you need for Linux
-> that we should be contacting them about?
+> On Tue, 2008-06-17 at 02:14 +0200, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rjw@sisk.pl>
+> > 
+> > Introduce function pointer platform_pci_power_manageable to be used
+> > by the platform-related code to point to a function allowing us to
+> > check if given device is power manageable by the platform.
+> > 
+> > Introduce acpi_pci_power_manageable() playing that role for ACPI.
+> > 
+> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> > ---
+> >  drivers/pci/pci-acpi.c |   11 +++++++++++
+> >  drivers/pci/pci.c      |    1 +
+> >  drivers/pci/pci.h      |    1 +
+> >  3 files changed, 13 insertions(+)
+> > 
+> > Index: linux-2.6/drivers/pci/pci-acpi.c
+> > ===================================================================
+> > --- linux-2.6.orig/drivers/pci/pci-acpi.c
+> > +++ linux-2.6/drivers/pci/pci-acpi.c
+> > @@ -315,6 +315,16 @@ static pci_power_t acpi_pci_choose_state
+> >  }
+> >  #endif
+> > 
+> > +static bool acpi_pci_power_manageable(struct pci_dev *dev)
+> > +{
+> > +	acpi_handle handle = DEVICE_ACPI_HANDLE(&dev->dev);
+> > +
+> > +	if (!handle)
+> > +		return -ENODEV;
+> 
+> Seems like a bad idea to pass non-true/false values using a bool.
+> Wouldn't an int return type be more appropriate here?
 
-Greg, in my Toshiba M45-S355, multimedia keys (play, pause, stop, etc)
-and Fn+Fx keys don't work.
+That's a bug actually.  It should be 'false'.
 
-With no Fn keys, I can't change brightness of monitor (Fn+F6/F7) and
-change output video from LCD to VGA (Fn+F5).
-
-I try use "xev" to capture key press, but Fn and Multimedia Keys is not
-recognized.
-
-And other problem is with battery charge, as we can see here:
-<http://bugzilla.kernel.org/show_bug.cgi?id=10797>
-
-Best regards,
-Renato S. Yamane
+Thanks,
+Rafael
