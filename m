@@ -1,76 +1,80 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: [PATCH4/4] ACPI :  Add DMI check to disable mwait for CPU C-states
-Date: Tue, 17 Jun 2008 14:44:43 +0800
-Message-ID: <1213685083.19901.17.camel@yakui_zhao.sh.intel.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: linux-next: Tree for June 13: IO APIC breakage on HP nx6325
+Date: Tue, 17 Jun 2008 09:12:03 +0200 (CEST)
+Message-ID: <alpine.LFD.1.10.0806170905221.3395@apollo.tec.linutronix.de>
+References: <20080613232214.394fd6fd.sfr@canb.auug.org.au> <Pine.LNX.4.55.0806161636510.20218@cliff.in.clinika.pl> <200806170038.37224.rjw@sisk.pl> <200806170105.45647.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:61161 "EHLO mga11.intel.com"
+Received: from www.tglx.de ([62.245.132.106]:48410 "EHLO www.tglx.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752007AbYFQGdz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Jun 2008 02:33:55 -0400
+	id S1752612AbYFQHRE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Jun 2008 03:17:04 -0400
+In-Reply-To: <200806170105.45647.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "Maciej W. Rozycki" <macro@linux-mips.org>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-Subject:[ACPI]:Add DMI check to disable mwait for CPU C-states
-From: Zhao Yakui <yakui.zhao@intel.com>
+On Tue, 17 Jun 2008, Rafael J. Wysocki wrote:
+> 
+> BTW, with the C1E patches reverted I don't get the
+> WARNING: at /home/rafael/src/linux-next/kernel/smp.c:215 smp_call_function_single+0x3d/0xa2
+> in the log.  Thomas?
 
-Add the DMI check to disable mwait for CPU C-states.
-If the board is matched with DMI table, OSPM should not use mwait for CPU 
-C-states even when mwait is supported. In such case the C2C3_FFH access mode 
-will be disabled.
+Yeah, my bad. Fix below.
 
-http://bugzilla.kernel.org/show_bug.cgi?id=10807
+Thanks,
+	tglx
 
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-Signed-off-by: Li Shaohua <shaohua.li@intel.com>
+------------------->
+Subject: x86: c1e_idle, run BROADCAST_FORCE notify with irqs enabled
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Tue, 17 Jun 2008 09:07:53 +0200
 
+The BROADCAST_FORCE notification uses smp_function_call and therefor
+must be run with interrupts enabled.
+
+While at it, add a comment for the BROADCAST_EXIT notifier as well.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 ---
- drivers/acpi/processor_core.c |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
-
-Index: linux-2.6/drivers/acpi/processor_core.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/processor_core.c
-+++ linux-2.6/drivers/acpi/processor_core.c
-@@ -121,6 +121,23 @@ static const struct file_operations acpi
+diff --git a/arch/x86/kernel/process.c b/arch/x86/kernel/process.c
+index 57fa86d..1450e0f 100644
+--- a/arch/x86/kernel/process.c
++++ b/arch/x86/kernel/process.c
+@@ -267,17 +267,29 @@ static void c1e_idle(void)
  
- struct acpi_processor *processors[NR_CPUS];
- struct acpi_processor_errata errata __read_mostly;
-+static int set_no_mwait(const struct dmi_system_id *id)
-+{
-+	printk(KERN_NOTICE PREFIX "%s detected - "
-+		"disable mwait for CPU C-stetes\n", id->ident);
-+	idle_nomwait = 1;
-+	return 0;
-+}
+ 		if (!cpu_isset(cpu, c1e_mask)) {
+ 			cpu_set(cpu, c1e_mask);
+-			/* Force broadcast so ACPI can not interfere */
++			/*
++			 * Force broadcast so ACPI can not interfere. Needs
++			 * to run with interrupts enabled as it uses
++			 * smp_function_call.
++			 */
++			local_irq_enable();
+ 			clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_FORCE,
+ 					   &cpu);
+ 			printk(KERN_INFO "Switch to broadcast mode on CPU%d\n",
+ 			       cpu);
++			local_irq_disable();
+ 		}
+ 		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &cpu);
 +
-+static struct dmi_system_id __cpuinitdata processor_idle_dmi_table[] = {
-+	{
-+	set_no_mwait, "IFL91 board", {
-+	DMI_MATCH(DMI_BIOS_VENDOR, "COMPAL"),
-+	DMI_MATCH(DMI_SYS_VENDOR, "ZEPTO"),
-+	DMI_MATCH(DMI_PRODUCT_VERSION, "3215W"),
-+	DMI_MATCH(DMI_BOARD_NAME, "IFL91") }, NULL},
-+	{},
-+};
- 
- /* --------------------------------------------------------------------------
-                                 Errata Handling
-@@ -1102,6 +1119,11 @@ static int __init acpi_processor_init(vo
- 		return -ENOMEM;
- 	acpi_processor_dir->owner = THIS_MODULE;
- 
-+	/*
-+	 * Check whether the system is DMI table. If yes, OSPM
-+	 * should not use mwait for CPU-states.
-+	 */
-+	dmi_check_system(processor_idle_dmi_table);
- 	result = cpuidle_register_driver(&acpi_idle_driver);
- 	if (result < 0)
- 		goto out_proc;
-
+ 		default_idle();
+-		local_irq_disable();
+-		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &cpu);
+-		local_irq_enable();
++
++		/*
++		 * The switch back from broadcast mode needs to be
++		 * called with interrupts disabled.
++		 */
++		 local_irq_disable();
++		 clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &cpu);
++		 local_irq_enable();
+ 	} else
+ 		default_idle();
+ }
 
