@@ -1,53 +1,35 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: linux-next: Tree for June 13: IO APIC breakage on HP nx6325
-Date: Wed, 18 Jun 2008 10:02:14 +0200 (CEST)
-Message-ID: <alpine.LFD.1.10.0806181000440.3395@apollo.tec.linutronix.de>
-References: <20080613232214.394fd6fd.sfr@canb.auug.org.au> <200806172244.24026.rjw@sisk.pl> <200806180019.49628.rjw@sisk.pl> <200806180025.20504.rjw@sisk.pl>
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: [Patch v2] Implement thermal limiting in the generic thermal class
+Date: Tue, 17 Jun 2008 20:53:45 +0200
+Message-ID: <20080617185345.GA5847@ucw.cz>
+References: <20080611100647.GA20013@srcf.ucam.org> <20080616085544.GA17813@srcf.ucam.org> <20080616092648.GA18506@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <200806180025.20504.rjw@sisk.pl>
-Sender: linux-next-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "Maciej W. Rozycki" <macro@linux-mips.org>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:2392 "EHLO spitz.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751261AbYFRJBx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 18 Jun 2008 05:01:53 -0400
+Content-Disposition: inline
+In-Reply-To: <20080616092648.GA18506@srcf.ucam.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: rui.zhang@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, 18 Jun 2008, Rafael J. Wysocki wrote:
-> On Wednesday, 18 of June 2008, Rafael J. Wysocki wrote:
-> > On Tuesday, 17 of June 2008, Rafael J. Wysocki wrote:
-> > > On Tuesday, 17 of June 2008, Thomas Gleixner wrote:
-> > > > On Tue, 17 Jun 2008, Rafael J. Wysocki wrote:
-> > > > > 
-> > > > > BTW, with the C1E patches reverted I don't get the
-> > > > > WARNING: at /home/rafael/src/linux-next/kernel/smp.c:215 smp_call_function_single+0x3d/0xa2
-> > > > > in the log.  Thomas?
-> > > > 
-> > > > Yeah, my bad. Fix below.
-> > > 
-> > > Thanks, it eliminates the WARNING, but still the box doesn't work with
-> > > the "x86: add C1E aware idle function" patch applied, even with 'highres=off'.
-> > > 
-> > > The main symptom is that CPU loads are computed incorrectly (I got X using 126%
-> > > of CPU time from 'top', for example).  Apart from this, some processes (like
-> > > gkrellm) seem to be 'frozen' and only change their state in 'jumps', as though
-> > > they only got CPU from time to time at random.
-> > > 
-> > > Reverting the above-mentioned patch fixes those problems.
-> > 
-> > Ah.  If your fix is replaced with the appended one, the system happily works
-> > with C1E and highres.
-> 
-> Scratch that.  The symptoms appeared later this time, that's all.  I've just got
-> b43 consuming 90+ % of the CPU time. :-(
+Hi!
 
-I would have been pretty surprised if it had helped :)
+> In the absence of an explicitly defined passive cooling zone any                                                                                                                                        
+> machine unable to manage its thermal profile through active cooling will                                                                                                                                
+> reach its critical shutdown temperature and power off, resulting in                                                                                                                                     
+> potential data loss. Add support to the generic thermal class for                                                                                                                                       
+> initiating passive cooling at a temperature defaulting to just below the                                                                                                                                
+> critical temperature, with this value being overridable by the admin via                                                                                                                                
+> sysfs.                                                                             
 
-Does the box boot when you disable the local apic timer on the kernel
-command line with the patch applied ?
+This means we get two copies of passive cooling code: one generic, and
+one in acpi. Can we make sure we have just one of them?
 
-Also does forcing hpet change anything ?
-
-Thanks,
-	tglx
-
-
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
