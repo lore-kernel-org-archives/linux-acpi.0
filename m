@@ -1,143 +1,189 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 13/28] PNP: make resource option structures private to PNP subsystem
-Date: Tue, 17 Jun 2008 16:58:36 -0600
-Message-ID: <20080617225910.352030211@ldl.fc.hp.com>
+Subject: [patch 18/28] PNP: make resource assignment functions return 0 (success) or -EBUSY (failure)
+Date: Tue, 17 Jun 2008 16:58:41 -0600
+Message-ID: <20080617225911.385015675@ldl.fc.hp.com>
 References: <20080617225823.045233728@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0029.austin.hp.com ([15.216.28.36]:17634 "EHLO
-	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760217AbYFQW7w (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jun 2008 18:59:52 -0400
-Content-Disposition: inline; filename=pnp-make-option-structures-private
+Received: from g4t0016.houston.hp.com ([15.201.24.19]:37043 "EHLO
+	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759362AbYFQXAB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jun 2008 19:00:01 -0400
+Content-Disposition: inline; filename=pnp-change-assignment-return-values
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, Rene Herman <rene.herman@gmail.com>, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>, Takashi Iwai <tiwai@suse.de>, Jiri Slaby <jirislaby@gmail.com>
 
-Nothing outside the PNP subsystem should need access to a
-device's resource options, so this patch moves the option
-structure declarations to a private header file.
+This patch doesn't change any behavior; it just makes the return
+values more conventional.
+
+This changes pnp_assign_dma() from a void function to one that
+returns an int, just like the other assignment functions.  For
+now, at least, pnp_assign_dma() always returns 0 (success), so
+it appears to never fail, just like before.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Acked-by: Rene Herman <rene.herman@gmail.com>
 
-Index: work14/drivers/pnp/base.h
+Index: work10/drivers/pnp/manager.c
 ===================================================================
---- work14.orig/drivers/pnp/base.h	2008-06-17 14:40:28.000000000 -0600
-+++ work14/drivers/pnp/base.h	2008-06-17 14:42:28.000000000 -0600
-@@ -19,6 +19,54 @@ void pnp_remove_card(struct pnp_card *ca
- int pnp_add_card_device(struct pnp_card *card, struct pnp_dev *dev);
- void pnp_remove_card_device(struct pnp_dev *dev);
+--- work10.orig/drivers/pnp/manager.c	2008-05-13 13:27:01.000000000 -0600
++++ work10/drivers/pnp/manager.c	2008-05-13 13:29:05.000000000 -0600
+@@ -26,7 +26,7 @@ static int pnp_assign_port(struct pnp_de
+ 		dev_dbg(&dev->dev, "  io %d already set to %#llx-%#llx "
+ 			"flags %#lx\n", idx, (unsigned long long) res->start,
+ 			(unsigned long long) res->end, res->flags);
+-		return 1;
++		return 0;
+ 	}
  
-+struct pnp_port {
-+	unsigned short min;	/* min base number */
-+	unsigned short max;	/* max base number */
-+	unsigned char align;	/* align boundary */
-+	unsigned char size;	/* size of range */
-+	unsigned char flags;	/* port flags */
-+	unsigned char pad;	/* pad */
-+	struct pnp_port *next;	/* next port */
-+};
-+
-+#define PNP_IRQ_NR 256
-+struct pnp_irq {
-+	DECLARE_BITMAP(map, PNP_IRQ_NR);	/* bitmask for IRQ lines */
-+	unsigned char flags;	/* IRQ flags */
-+	unsigned char pad;	/* pad */
-+	struct pnp_irq *next;	/* next IRQ */
-+};
-+
-+struct pnp_dma {
-+	unsigned char map;	/* bitmask for DMA channels */
-+	unsigned char flags;	/* DMA flags */
-+	struct pnp_dma *next;	/* next port */
-+};
-+
-+struct pnp_mem {
-+	unsigned int min;	/* min base number */
-+	unsigned int max;	/* max base number */
-+	unsigned int align;	/* align boundary */
-+	unsigned int size;	/* size of range */
-+	unsigned char flags;	/* memory flags */
-+	unsigned char pad;	/* pad */
-+	struct pnp_mem *next;	/* next memory resource */
-+};
-+
-+#define PNP_RES_PRIORITY_PREFERRED	0
-+#define PNP_RES_PRIORITY_ACCEPTABLE	1
-+#define PNP_RES_PRIORITY_FUNCTIONAL	2
-+#define PNP_RES_PRIORITY_INVALID	65535
-+
-+struct pnp_option {
-+	unsigned short priority;	/* priority */
-+	struct pnp_port *port;		/* first port */
-+	struct pnp_irq *irq;		/* first IRQ */
-+	struct pnp_dma *dma;		/* first DMA */
-+	struct pnp_mem *mem;		/* first memory resource */
-+	struct pnp_option *next;	/* used to chain dependent resources */
-+};
-+
- struct pnp_option *pnp_build_option(int priority);
- struct pnp_option *pnp_register_independent_option(struct pnp_dev *dev);
- struct pnp_option *pnp_register_dependent_option(struct pnp_dev *dev,
-Index: work14/include/linux/pnp.h
-===================================================================
---- work14.orig/include/linux/pnp.h	2008-06-17 14:41:18.000000000 -0600
-+++ work14/include/linux/pnp.h	2008-06-17 14:42:28.000000000 -0600
-@@ -182,54 +182,6 @@ static inline int pnp_dma_valid(struct p
+ 	res = &local_res;
+@@ -51,13 +51,13 @@ static int pnp_assign_port(struct pnp_de
+ 				"(min %#llx max %#llx)\n", idx,
+ 				(unsigned long long) rule->min,
+ 				(unsigned long long) rule->max);
+-			return 0;
++			return -EBUSY;
+ 		}
+ 	}
+ 
+ __add:
+ 	pnp_add_io_resource(dev, res->start, res->end, res->flags);
+-	return 1;
++	return 0;
  }
  
+ static int pnp_assign_mem(struct pnp_dev *dev, struct pnp_mem *rule, int idx)
+@@ -69,7 +69,7 @@ static int pnp_assign_mem(struct pnp_dev
+ 		dev_dbg(&dev->dev, "  mem %d already set to %#llx-%#llx "
+ 			"flags %#lx\n", idx, (unsigned long long) res->start,
+ 			(unsigned long long) res->end, res->flags);
+-		return 1;
++		return 0;
+ 	}
  
--struct pnp_port {
--	unsigned short min;	/* min base number */
--	unsigned short max;	/* max base number */
--	unsigned char align;	/* align boundary */
--	unsigned char size;	/* size of range */
--	unsigned char flags;	/* port flags */
--	unsigned char pad;	/* pad */
--	struct pnp_port *next;	/* next port */
--};
--
--#define PNP_IRQ_NR 256
--struct pnp_irq {
--	DECLARE_BITMAP(map, PNP_IRQ_NR);	/* bitmask for IRQ lines */
--	unsigned char flags;	/* IRQ flags */
--	unsigned char pad;	/* pad */
--	struct pnp_irq *next;	/* next IRQ */
--};
--
--struct pnp_dma {
--	unsigned char map;	/* bitmask for DMA channels */
--	unsigned char flags;	/* DMA flags */
--	struct pnp_dma *next;	/* next port */
--};
--
--struct pnp_mem {
--	unsigned int min;	/* min base number */
--	unsigned int max;	/* max base number */
--	unsigned int align;	/* align boundary */
--	unsigned int size;	/* size of range */
--	unsigned char flags;	/* memory flags */
--	unsigned char pad;	/* pad */
--	struct pnp_mem *next;	/* next memory resource */
--};
--
--#define PNP_RES_PRIORITY_PREFERRED	0
--#define PNP_RES_PRIORITY_ACCEPTABLE	1
--#define PNP_RES_PRIORITY_FUNCTIONAL	2
--#define PNP_RES_PRIORITY_INVALID	65535
--
--struct pnp_option {
--	unsigned short priority;	/* priority */
--	struct pnp_port *port;		/* first port */
--	struct pnp_irq *irq;		/* first IRQ */
--	struct pnp_dma *dma;		/* first DMA */
--	struct pnp_mem *mem;		/* first memory resource */
--	struct pnp_option *next;	/* used to chain dependent resources */
--};
--
- /*
-  * Device Management
-  */
+ 	res = &local_res;
+@@ -103,13 +103,13 @@ static int pnp_assign_mem(struct pnp_dev
+ 				"(min %#llx max %#llx)\n", idx,
+ 				(unsigned long long) rule->min,
+ 				(unsigned long long) rule->max);
+-			return 0;
++			return -EBUSY;
+ 		}
+ 	}
+ 
+ __add:
+ 	pnp_add_mem_resource(dev, res->start, res->end, res->flags);
+-	return 1;
++	return 0;
+ }
+ 
+ static int pnp_assign_irq(struct pnp_dev *dev, struct pnp_irq *rule, int idx)
+@@ -126,7 +126,7 @@ static int pnp_assign_irq(struct pnp_dev
+ 	if (res) {
+ 		dev_dbg(&dev->dev, "  irq %d already set to %d flags %#lx\n",
+ 			idx, (int) res->start, res->flags);
+-		return 1;
++		return 0;
+ 	}
+ 
+ 	res = &local_res;
+@@ -154,14 +154,14 @@ static int pnp_assign_irq(struct pnp_dev
+ 		}
+ 	}
+ 	dev_dbg(&dev->dev, "  couldn't assign irq %d\n", idx);
+-	return 0;
++	return -EBUSY;
+ 
+ __add:
+ 	pnp_add_irq_resource(dev, res->start, res->flags);
+-	return 1;
++	return 0;
+ }
+ 
+-static void pnp_assign_dma(struct pnp_dev *dev, struct pnp_dma *rule, int idx)
++static int pnp_assign_dma(struct pnp_dev *dev, struct pnp_dma *rule, int idx)
+ {
+ 	struct resource *res, local_res;
+ 	int i;
+@@ -175,7 +175,7 @@ static void pnp_assign_dma(struct pnp_de
+ 	if (res) {
+ 		dev_dbg(&dev->dev, "  dma %d already set to %d flags %#lx\n",
+ 			idx, (int) res->start, res->flags);
+-		return;
++		return 0;
+ 	}
+ 
+ 	res = &local_res;
+@@ -198,6 +198,7 @@ static void pnp_assign_dma(struct pnp_de
+ 
+ __add:
+ 	pnp_add_dma_resource(dev, res->start, res->flags);
++	return 0;
+ }
+ 
+ void pnp_init_resources(struct pnp_dev *dev)
+@@ -243,25 +244,26 @@ static int pnp_assign_resources(struct p
+ 		irq = dev->independent->irq;
+ 		dma = dev->independent->dma;
+ 		while (port) {
+-			if (!pnp_assign_port(dev, port, nport))
++			if (pnp_assign_port(dev, port, nport) < 0)
+ 				goto fail;
+ 			nport++;
+ 			port = port->next;
+ 		}
+ 		while (mem) {
+-			if (!pnp_assign_mem(dev, mem, nmem))
++			if (pnp_assign_mem(dev, mem, nmem) < 0)
+ 				goto fail;
+ 			nmem++;
+ 			mem = mem->next;
+ 		}
+ 		while (irq) {
+-			if (!pnp_assign_irq(dev, irq, nirq))
++			if (pnp_assign_irq(dev, irq, nirq) < 0)
+ 				goto fail;
+ 			nirq++;
+ 			irq = irq->next;
+ 		}
+ 		while (dma) {
+-			pnp_assign_dma(dev, dma, ndma);
++			if (pnp_assign_dma(dev, dma, ndma) < 0)
++				goto fail;
+ 			ndma++;
+ 			dma = dma->next;
+ 		}
+@@ -281,25 +283,26 @@ static int pnp_assign_resources(struct p
+ 		irq = dep->irq;
+ 		dma = dep->dma;
+ 		while (port) {
+-			if (!pnp_assign_port(dev, port, nport))
++			if (pnp_assign_port(dev, port, nport) < 0)
+ 				goto fail;
+ 			nport++;
+ 			port = port->next;
+ 		}
+ 		while (mem) {
+-			if (!pnp_assign_mem(dev, mem, nmem))
++			if (pnp_assign_mem(dev, mem, nmem) < 0)
+ 				goto fail;
+ 			nmem++;
+ 			mem = mem->next;
+ 		}
+ 		while (irq) {
+-			if (!pnp_assign_irq(dev, irq, nirq))
++			if (pnp_assign_irq(dev, irq, nirq) < 0)
+ 				goto fail;
+ 			nirq++;
+ 			irq = irq->next;
+ 		}
+ 		while (dma) {
+-			pnp_assign_dma(dev, dma, ndma);
++			if (pnp_assign_dma(dev, dma, ndma) < 0)
++				goto fail;
+ 			ndma++;
+ 			dma = dma->next;
+ 		}
 
 -- 
