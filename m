@@ -1,70 +1,117 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 25/28] ISAPNP: handle independent options following dependent ones
-Date: Tue, 17 Jun 2008 16:58:48 -0600
-Message-ID: <20080617225912.852426739@ldl.fc.hp.com>
-References: <20080617225823.045233728@ldl.fc.hp.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: CPU temperature not detected
+Date: Tue, 17 Jun 2008 19:01:28 -0400 (EDT)
+Message-ID: <alpine.LFD.1.10.0806171849320.7277@localhost.localdomain>
+References: <BAY114-W5056724B82302477B1226BFAA80@phx.gbl>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0026.austin.hp.com ([15.216.28.33]:15331 "EHLO
-	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760555AbYFQXAL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jun 2008 19:00:11 -0400
-Content-Disposition: inline; filename=isapnp-enddep-bugfix
+Received: from vms046pub.verizon.net ([206.46.252.46]:35699 "EHLO
+	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761255AbYFQXBd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jun 2008 19:01:33 -0400
+Received: from localhost.localdomain ([72.93.254.151])
+ by vms046.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
+ 3 2006)) with ESMTPA id <0K2M00BGQQMK4PG3@vms046.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Tue, 17 Jun 2008 18:01:33 -0500 (CDT)
+In-reply-to: <BAY114-W5056724B82302477B1226BFAA80@phx.gbl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Rene Herman <rene.herman@gmail.com>, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>, Takashi Iwai <tiwai@suse.de>, Jiri Slaby <jirislaby@gmail.com>
+To: Luke Sharkey <lukesharkey@hotmail.co.uk>
+Cc: linux-acpi@vger.kernel.org
 
-The ISAPNP spec recommends that independent options precede
-dependent ones, but this is not actually required.  The current
-ISAPNP code incorrectly puts such trailing independent options
-at the end of the last dependent option list.
 
-This patch fixes that bug by resetting the current option list
-to the independent list when we see an "End Dependent Functions"
-tag.  PNPBIOS and PNPACPI handle this the same way.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Acked-by: Rene Herman <rene.herman@gmail.com>
+> 
+>  I would like to know why /proc/acpi/thermal_zone/THRM/temperature contains a reading of 0 C -
+> 1)   Firstly, does my cpu even have a sensor? (I have _only_ the on-die temperature, which is very hot).
+> 2)    Secondly, can anyone shed some light on why /proc/acpi/fan is an empty directory?
+> 
+> Thank you!!!
+> (my specs:  hp pavilion dv5000 series with AMD turion 64 bit processor ML-32.  Any other details I don't know to provide, please just say.  Thanks)
 
-Index: work10/drivers/pnp/isapnp/core.c
-===================================================================
---- work10.orig/drivers/pnp/isapnp/core.c	2008-06-03 15:45:02.000000000 -0600
-+++ work10/drivers/pnp/isapnp/core.c	2008-06-03 15:49:38.000000000 -0600
-@@ -584,14 +584,14 @@ static int __init isapnp_create_device(s
- {
- 	int number = 0, skip = 0, priority, compat = 0;
- 	unsigned char type, tmp[17];
--	struct pnp_option *option;
-+	struct pnp_option *option, *option_independent;
- 	struct pnp_dev *dev;
- 	u32 eisa_id;
- 	char id[8];
- 
- 	if ((dev = isapnp_parse_device(card, size, number++)) == NULL)
- 		return 1;
--	option = pnp_register_independent_option(dev);
-+	option_independent = option = pnp_register_independent_option(dev);
- 	if (!option) {
- 		kfree(dev);
- 		return 1;
-@@ -613,6 +613,7 @@ static int __init isapnp_create_device(s
- 				size = 0;
- 				skip = 0;
- 				option = pnp_register_independent_option(dev);
-+				option_independent = option;
- 				if (!option) {
- 					kfree(dev);
- 					return 1;
-@@ -662,6 +663,10 @@ static int __init isapnp_create_device(s
- 		case _STAG_ENDDEP:
- 			if (size != 0)
- 				goto __skip;
-+			if (option_independent == option)
-+				dev_warn(&dev->dev, "missing "
-+					 "_STAG_STARTDEP tag\n");
-+			option = option_independent;
- 			dev_dbg(&dev->dev, "end dependent options\n");
- 			break;
- 		case _STAG_IOPORT:
+Thermal zone is below.
+Clearly the EC is responsible for updating EC0.THEM.
+It is possible that the EC is out to lunch.
+Do other EC things work, such as battery status?
+(or maybe ECOK is simply cleared...)
 
--- 
+_TMP adds 2732 to the C it returns -- which linux then translates back 
+from decikelvin to C.  ie. \_SB.PCI0.LPC0.EC0.THEM is returning 0.
+
+_AC0 is an active trip point, and it returns a constant.
+However, the BIOS neglects to aupply an _AL0 -- so there is
+no fan associated with this active trip point -- it is just
+a phantom.  I don't know why that is.  Could be a BIOS bug
+that the fan isn't added in, or a BIOS bug that the fan
+shouldn't be there and the AC0 should be deleted.
+
+I recommend that you verify that you've got the latest BIOS.
+I've got another dump in my archives that claims to be from an
+hp dv-5000, and it looks quite different.
+It has two thermal zones, both with _CRT and _TMP,
+but no _PSV and no _AC0.
+
+-Len
+
+
+Scope (_TZ)
+    {
+        Name (DTMP, 0x0BBA)
+        Name (DAC0, 0x0C3C)
+        Name (DPSV, 0x0E30)
+        Name (TBSE, 0x0AAC)
+        Name (DCRT, 0x0E4E)
+        ThermalZone (THRM)
+        {
+            Method (_TMP, 0, NotSerialized)
+            {
+                If (\_SB.PCI0.LPC0.ECOK ())
+                {
+                    Multiply (\_SB.PCI0.LPC0.EC0.THEM, 0x0A, Local0)
+                    Add (Local0, 0x0AAC, Local0)
+                    Return (Local0)
+                }
+
+                Return (DTMP)
+            }
+
+            Method (_AC0, 0, NotSerialized)
+            {
+                Return (DAC0)
+            }
+
+            Method (_CRT, 0, NotSerialized)
+            {
+                If (\_SB.PCI0.LPC0.ECOK ())
+                {
+                    Multiply (\_SB.PCI0.LPC0.EC0.THSD, 0x0A, Local0)
+                    Add (Local0, 0x0AAC, Local0)
+                    Return (Local0)
+                }
+
+                Return (DCRT)
+            }
+
+            Method (_PSV, 0, NotSerialized)
+            {
+                If (\_SB.PCI0.LPC0.ECOK ())
+                {
+                    Multiply (\_SB.PCI0.LPC0.EC0.THON, 0x0A, Local0)
+                    Add (Local0, 0x0AAC, Local0)
+                    Return (Local0)
+                }
+
+                Return (DPSV)
+            }
+
+            Name (_PSL, Package (0x01)
+            {
+                \_PR.CPU0
+            })
+            Name (_TC1, 0x02)
+            Name (_TC2, 0x05)
+            Name (_TSP, 0x32)
+        }
+    }
+
