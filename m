@@ -1,51 +1,61 @@
-From: Pavel Machek <pavel@suse.cz>
-Subject: Re: [PATCH] Clean up thermal API
-Date: Tue, 17 Jun 2008 17:59:54 +0200
-Message-ID: <20080617155954.GB4891@ucw.cz>
-References: <20080611100647.GA20013@srcf.ucam.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: bug? acpi p-state + ondemand keeps dropping max freq
+Date: Tue, 17 Jun 2008 14:15:38 -0400 (EDT)
+Message-ID: <alpine.LFD.1.10.0806171404370.7277@localhost.localdomain>
+References: <20080606140846.GA9580@ucw.cz> <20080607213918.GC1746@elf.ucw.cz>
+ <20080607145435.4afc9812@infradead.org> <20080616104159.GA28659@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:2325 "EHLO spitz.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755229AbYFQSFo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Jun 2008 14:05:44 -0400
-Content-Disposition: inline
-In-Reply-To: <20080611100647.GA20013@srcf.ucam.org>
+Received: from vms046pub.verizon.net ([206.46.252.46]:34834 "EHLO
+	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755146AbYFQSQH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jun 2008 14:16:07 -0400
+In-reply-to: <20080616104159.GA28659@elf.ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: rui.zhang@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Pavel Machek <pavel@suse.cz>
+Cc: Arjan van de Ven <arjan@infradead.org>, auke-jan.h.kok@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, len.brown@intel.com, cpufreq@lists.linux.org.uk, davej@codemonkey.org.uk
 
-On Wed 2008-06-11 11:06:47, Matthew Garrett wrote:
-> The thermal layer passes temperatures around as strings. This is fine 
-> for sysfs, but makes it hard to use them for other purposes in-kernel. 
-> Change them to longs and do the string conversion in the sysfs-specific 
-> code.
+
+
+> > > > # echo 1866000 > scaling_max_freq ; cat scaling_max_freq
+> > > > 800000
+> > > > # echo 1866000 > scaling_max_freq ; cat scaling_max_freq
+> > > > 800000
+> > > > 
+> > > > 
+> > > > This renders my Dothan to utterly poor speeds. (standard T43)
+> > > > 
+> > > > performance cpufreq governor makes no difference - I still can't
+> > > > change the frequency upper/lower values.
+> > > 
+> > > Hmm, I have similar problem in Novell bugzilla, on very different hw:
+> > > 
+> > > https://bugzilla.novell.com/show_bug.cgi?id=396311
 > 
-> Signed-off-by: Matthew Garrett <mjg@redhat.com>
+> > are either of you running gnome-power-manager or kpowersaved ?
+> > sometimes these programs (and more likely, the patches added by a
+> > distro maintainer who doesn't fully realize how power works) tend to
+> > muck with kernel settings around CPU frequency that they have
+> > absolutely no business touching...
 > 
-> ---
-> 
-> diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-> index 504385b..28b3782 100644
-> --- a/drivers/acpi/thermal.c
-> +++ b/drivers/acpi/thermal.c
-> @@ -886,7 +886,8 @@ static void acpi_thermal_check(void *data)
->  /* sys I/F for generic thermal sysfs support */
->  #define KELVIN_TO_MILLICELSIUS(t) (t * 100 - 273200)
->  
-> -static int thermal_get_temp(struct thermal_zone_device *thermal, char *buf)
-> +static int thermal_get_temp(struct thermal_zone_device *thermal, 
-> +			    unsigned long *temp)
+> In novel bugzilla case ignore_ppc=1 helped, so it seems to be BIOS
+> problem, not userland's...
 
-Hmm, ulong is really wrong:
+Thanks for the pointer to the novell report, Pavel.
+I poked at that one and I think it may actually be a table loading issue
+for which we've just send a patch to 2.6.26.
 
-1) temperature in celsius can easily go below zero.
+Auke,
 
-2) it can hardly go above 2000000C, so int should be enough.
+Please open a signting in bugzilla and attach your dmesg and 
+acpidump output.
 
-							Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Also, please report if processor.ignore_ppc=1 helps.
+
+http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
+
+thanks,
+-Len
+
