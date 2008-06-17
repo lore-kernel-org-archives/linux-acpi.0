@@ -1,65 +1,51 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 00/28] PNP: convert fixed tables to lists, v3
-Date: Tue, 17 Jun 2008 16:58:23 -0600
-Message-ID: <20080617225823.045233728@ldl.fc.hp.com>
+Subject: [patch 03/28] PNP: add pnp_resource_type() internal interface
+Date: Tue, 17 Jun 2008 16:58:26 -0600
+Message-ID: <20080617225908.183042064@ldl.fc.hp.com>
+References: <20080617225823.045233728@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0029.austin.hp.com ([15.216.28.36]:17549 "EHLO
-	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753693AbYFQW7c (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jun 2008 18:59:32 -0400
+Received: from g1t0027.austin.hp.com ([15.216.28.34]:24302 "EHLO
+	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758959AbYFQW7f (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jun 2008 18:59:35 -0400
+Content-Disposition: inline; filename=pnp-add-pnp_resource_type
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>, Takashi Iwai <tiwai@suse.de>, Jiri Slaby <jirislaby@gmail.com>
 
-This patch series contains all my PNP patches that are not yet in Linus'
-tree, including both the "convert resource table to dynamic list" series
-and the "convert resource options to unified dynamic list" series.
+Given a struct resource, this returns the type (IO, MEM, IRQ, DMA).
 
-This series should replace all the PNP patches in -mm from
-    pnp-add-detail-to-debug-resource-dump.patch
-    ...
-    not-for-merging-pnp-changes-suspend-oops.patch
-except for isa-set-24-bit-dma_mask-for-isa-devices.patch, which got
-stuck in the middle but isn't really PNP-related.
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-I'll be on vacation for the rest of the week, so I won't be able to
-respond to any issues until Monday.
+Index: work10/drivers/pnp/base.h
+===================================================================
+--- work10.orig/drivers/pnp/base.h	2008-05-15 15:23:24.000000000 -0600
++++ work10/drivers/pnp/base.h	2008-05-15 15:23:27.000000000 -0600
+@@ -46,6 +46,7 @@ int pnp_check_dma(struct pnp_dev *dev, s
+ void dbg_pnp_show_resources(struct pnp_dev *dev, char *desc);
+ 
+ void pnp_init_resource(struct resource *res);
++int pnp_resource_type(struct resource *res);
+ 
+ struct pnp_resource *pnp_get_pnp_resource(struct pnp_dev *dev,
+ 					  unsigned int type, unsigned int num);
+Index: work10/drivers/pnp/resource.c
+===================================================================
+--- work10.orig/drivers/pnp/resource.c	2008-05-15 15:22:36.000000000 -0600
++++ work10/drivers/pnp/resource.c	2008-05-15 15:23:27.000000000 -0600
+@@ -499,6 +499,12 @@ int pnp_check_dma(struct pnp_dev *dev, s
+ #endif
+ }
+ 
++int pnp_resource_type(struct resource *res)
++{
++	return res->flags & (IORESOURCE_IO  | IORESOURCE_MEM |
++			     IORESOURCE_IRQ | IORESOURCE_DMA);
++}
++
+ struct pnp_resource *pnp_get_pnp_resource(struct pnp_dev *dev,
+ 					  unsigned int type, unsigned int num)
+ {
 
-Here are the significant changes since the last posting:
-
-    - When replacing pnp_resource_table, the PNPACPI resource encoders
-      have to explicitly handle disabled resources; previously any
-      unused slots in the table were implicitly disabled.  This should
-      fix Jiri Slaby's oops on suspend/resume (though he hasn't tested
-      this version).
-      
-      This change is in the patch titled "PNP: replace pnp_resource_table
-      with dynamically allocated resources".
-      
-    - Added a new patch to keep disabled IRQ and DMA resources when parsing
-      current config.  This fixes a bug in the current (2.6.25) PNPACPI
-      code: consider a device with (mem, irq0, irq1, io), where irq0 is
-      disabled.  If we drop irq0 when parsing the _CRS, we will mistakenly
-      put irq1 in the irq0 slot when we encode resources for an _SRS call.
-
-    - Added a new patch to avoid interrupts used by an IDE controller in
-      compatibility mode.  https://bugzilla.novell.com/show_bug.cgi?id=375836
-
-    - Added a new PNPACPI patch to support HP vendor-specific descriptors.
-      This has long been supported by arch/ia64/kernel/acpi-ext.c, which
-      provides an hp_acpi_csr_space() interface, but I think it's better
-      and more generic to support it in PNPACPI.
-
-Changes since v2 of "convert resource options to unified dynamic list":
-
-    - fixed bisection problem in quirk_ad1815_mpu_resources()
-    - fixed checkpatch warning in pnp_show_options()
-      (pnp-convert-resource-options-to-single-linked-list-checkpatch-fixes.patch)
-    - replaced pnp_independent_option() with literal 0
-    - fixed coding style in pnp/manager.c
-    - added EXPORT_SYMBOL(pnp_possible_config)
-      (pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way-fix.patch)
-
-Bjorn
 -- 
