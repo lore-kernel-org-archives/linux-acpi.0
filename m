@@ -1,292 +1,134 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 02/28] PNP: remove pnp_resource.index
-Date: Tue, 17 Jun 2008 16:58:25 -0600
-Message-ID: <20080617225907.945381905@ldl.fc.hp.com>
+Subject: [patch 07/28] PNPACPI: keep disabled resources when parsing current config
+Date: Tue, 17 Jun 2008 16:58:30 -0600
+Message-ID: <20080617225909.062403791@ldl.fc.hp.com>
 References: <20080617225823.045233728@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0028.austin.hp.com ([15.216.28.35]:39710 "EHLO
-	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759290AbYFQW7f (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jun 2008 18:59:35 -0400
-Content-Disposition: inline; filename=pnp-remove-pnp_resource-index
+Received: from g1t0026.austin.hp.com ([15.216.28.33]:15152 "EHLO
+	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759531AbYFQW7k (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jun 2008 18:59:40 -0400
+Content-Disposition: inline; filename=pnp-keep-disabled-resources-when-parsing-current-config
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>, Takashi Iwai <tiwai@suse.de>, Jiri Slaby <jirislaby@gmail.com>
 
-We used pnp_resource.index to keep track of which ISAPNP configuration
-register a resource should be written to.  We needed this only to
-handle the case where a register is disabled but a subsequent register
-in the same set is enabled.
+When we parse a device's _CRS data (the current resource settings),
+we should keep track of everything we find, even if it's currently
+disabled or invalid.
 
-Rather than explicitly maintaining the pnp_resource.index, this patch
-adds a resource every time we read an ISAPNP configuration register
-and marks the resource as IORESOURCE_DISABLED when appropriate.  This
-makes the position in the pnp_resource_table always correspond to the
-config register index.
+This is what we already do for ISAPNP and PNPBIOS, and it helps
+keep things matched up when we subsequently re-encode resources.
+For example, consider a device with (mem, irq0, irq1, io), where
+irq0 is disabled.  If we drop irq0 when parsing the _CRS, we will
+mistakenly put irq1 in the irq0 slot when we encode resources
+for an _SRS call.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
----
- drivers/pnp/base.h        |    1 
- drivers/pnp/interface.c   |   20 ++---------
- drivers/pnp/isapnp/core.c |   80 ++++++++++++++--------------------------------
- drivers/pnp/manager.c     |    4 --
- 4 files changed, 29 insertions(+), 76 deletions(-)
-
-Index: work10/drivers/pnp/base.h
+Index: work14/drivers/pnp/pnpacpi/rsparser.c
 ===================================================================
---- work10.orig/drivers/pnp/base.h	2008-05-15 15:22:36.000000000 -0600
-+++ work10/drivers/pnp/base.h	2008-05-15 15:23:24.000000000 -0600
-@@ -57,7 +57,6 @@ struct pnp_resource *pnp_get_pnp_resourc
+--- work14.orig/drivers/pnp/pnpacpi/rsparser.c	2008-06-17 14:47:29.000000000 -0600
++++ work14/drivers/pnp/pnpacpi/rsparser.c	2008-06-17 15:46:52.000000000 -0600
+@@ -98,8 +98,10 @@ static void pnpacpi_parse_allocated_irqr
+ 	int irq, flags;
+ 	int p, t;
  
- struct pnp_resource {
- 	struct resource res;
--	unsigned int index;		/* ISAPNP config register index */
- };
+-	if (!valid_IRQ(gsi))
++	if (!valid_IRQ(gsi)) {
++		pnp_add_irq_resource(dev, gsi, IORESOURCE_DISABLED);
+ 		return;
++	}
  
- struct pnp_resource_table {
-Index: work10/drivers/pnp/interface.c
-===================================================================
---- work10.orig/drivers/pnp/interface.c	2008-05-15 15:22:36.000000000 -0600
-+++ work10/drivers/pnp/interface.c	2008-05-15 15:23:24.000000000 -0600
-@@ -320,7 +320,6 @@ pnp_set_current_resources(struct device 
- 			  const char *ubuf, size_t count)
- {
- 	struct pnp_dev *dev = to_pnp_dev(dmdev);
--	struct pnp_resource *pnp_res;
- 	char *buf = (void *)ubuf;
- 	int retval = 0;
- 	resource_size_t start, end;
-@@ -368,7 +367,6 @@ pnp_set_current_resources(struct device 
- 		goto done;
- 	}
- 	if (!strnicmp(buf, "set", 3)) {
--		int nport = 0, nmem = 0, nirq = 0, ndma = 0;
- 		if (dev->active)
- 			goto done;
- 		buf += 3;
-@@ -391,10 +389,7 @@ pnp_set_current_resources(struct device 
- 					end = simple_strtoul(buf, &buf, 0);
- 				} else
- 					end = start;
--				pnp_res = pnp_add_io_resource(dev, start, end,
--							      0);
--				if (pnp_res)
--					pnp_res->index = nport++;
-+				pnp_add_io_resource(dev, start, end, 0);
- 				continue;
- 			}
- 			if (!strnicmp(buf, "mem", 3)) {
-@@ -411,10 +406,7 @@ pnp_set_current_resources(struct device 
- 					end = simple_strtoul(buf, &buf, 0);
- 				} else
- 					end = start;
--				pnp_res = pnp_add_mem_resource(dev, start, end,
--							       0);
--				if (pnp_res)
--					pnp_res->index = nmem++;
-+				pnp_add_mem_resource(dev, start, end, 0);
- 				continue;
- 			}
- 			if (!strnicmp(buf, "irq", 3)) {
-@@ -422,9 +414,7 @@ pnp_set_current_resources(struct device 
- 				while (isspace(*buf))
- 					++buf;
- 				start = simple_strtoul(buf, &buf, 0);
--				pnp_res = pnp_add_irq_resource(dev, start, 0);
--				if (pnp_res)
--					pnp_res->index = nirq++;
-+				pnp_add_irq_resource(dev, start, 0);
- 				continue;
- 			}
- 			if (!strnicmp(buf, "dma", 3)) {
-@@ -432,9 +422,7 @@ pnp_set_current_resources(struct device 
- 				while (isspace(*buf))
- 					++buf;
- 				start = simple_strtoul(buf, &buf, 0);
--				pnp_res = pnp_add_dma_resource(dev, start, 0);
--				if (pnp_res)
--					pnp_res->index = ndma++;
-+				pnp_add_dma_resource(dev, start, 0);
- 				continue;
- 			}
- 			break;
-Index: work10/drivers/pnp/isapnp/core.c
-===================================================================
---- work10.orig/drivers/pnp/isapnp/core.c	2008-05-15 15:21:53.000000000 -0600
-+++ work10/drivers/pnp/isapnp/core.c	2008-05-15 15:23:24.000000000 -0600
-@@ -928,7 +928,6 @@ EXPORT_SYMBOL(isapnp_write_byte);
- 
- static int isapnp_get_resources(struct pnp_dev *dev)
- {
--	struct pnp_resource *pnp_res;
- 	int i, ret;
- 
- 	dev_dbg(&dev->dev, "get resources\n");
-@@ -940,35 +939,23 @@ static int isapnp_get_resources(struct p
- 
- 	for (i = 0; i < ISAPNP_MAX_PORT; i++) {
- 		ret = isapnp_read_word(ISAPNP_CFG_PORT + (i << 1));
--		if (ret) {
--			pnp_res = pnp_add_io_resource(dev, ret, ret, 0);
--			if (pnp_res)
--				pnp_res->index = i;
--		}
-+		pnp_add_io_resource(dev, ret, ret,
-+				    ret == 0 ? IORESOURCE_DISABLED : 0);
- 	}
- 	for (i = 0; i < ISAPNP_MAX_MEM; i++) {
- 		ret = isapnp_read_word(ISAPNP_CFG_MEM + (i << 3)) << 8;
--		if (ret) {
--			pnp_res = pnp_add_mem_resource(dev, ret, ret, 0);
--			if (pnp_res)
--				pnp_res->index = i;
--		}
-+		pnp_add_mem_resource(dev, ret, ret,
-+				     ret == 0 ? IORESOURCE_DISABLED : 0);
- 	}
- 	for (i = 0; i < ISAPNP_MAX_IRQ; i++) {
- 		ret = isapnp_read_word(ISAPNP_CFG_IRQ + (i << 1)) >> 8;
--		if (ret) {
--			pnp_res = pnp_add_irq_resource(dev, ret, 0);
--			if (pnp_res)
--				pnp_res->index = i;
--		}
-+		pnp_add_irq_resource(dev, ret,
-+				     ret == 0 ? IORESOURCE_DISABLED : 0);
- 	}
- 	for (i = 0; i < ISAPNP_MAX_DMA; i++) {
- 		ret = isapnp_read_byte(ISAPNP_CFG_DMA + i);
--		if (ret != 4) {
--			pnp_res = pnp_add_dma_resource(dev, ret, 0);
--			if  (pnp_res)
--				pnp_res->index = i;
--		}
-+		pnp_add_dma_resource(dev, ret,
-+				     ret == 4 ? IORESOURCE_DISABLED : 0);
- 	}
- 
- __end:
-@@ -978,62 +965,49 @@ __end:
- 
- static int isapnp_set_resources(struct pnp_dev *dev)
- {
--	struct pnp_resource *pnp_res;
- 	struct resource *res;
--	int tmp, index;
-+	int tmp;
- 
- 	dev_dbg(&dev->dev, "set resources\n");
- 	isapnp_cfg_begin(dev->card->number, dev->number);
- 	dev->active = 1;
- 	for (tmp = 0; tmp < ISAPNP_MAX_PORT; tmp++) {
--		pnp_res = pnp_get_pnp_resource(dev, IORESOURCE_IO, tmp);
--		if (!pnp_res)
--			continue;
--		res = &pnp_res->res;
--		if (pnp_resource_valid(res)) {
--			index = pnp_res->index;
-+		res = pnp_get_resource(dev, IORESOURCE_IO, tmp);
-+		if (res && pnp_resource_valid(res) &&
-+		    !(res->flags & IORESOURCE_DISABLED)) {
- 			dev_dbg(&dev->dev, "  set io  %d to %#llx\n",
--				index, (unsigned long long) res->start);
--			isapnp_write_word(ISAPNP_CFG_PORT + (index << 1),
-+				tmp, (unsigned long long) res->start);
-+			isapnp_write_word(ISAPNP_CFG_PORT + (tmp << 1),
- 					  res->start);
+ 	/*
+ 	 * in IO-APIC mode, use overrided attribute. Two reasons:
+@@ -248,24 +250,39 @@ static acpi_status pnpacpi_allocated_res
+ 		 * _CRS, but some firmware violates this, so parse them all.
+ 		 */
+ 		irq = &res->data.irq;
+-		for (i = 0; i < irq->interrupt_count; i++) {
+-			pnpacpi_parse_allocated_irqresource(dev,
+-				irq->interrupts[i],
+-				irq->triggering,
+-				irq->polarity,
+-				irq->sharable);
++		if (irq->interrupt_count == 0)
++			pnp_add_irq_resource(dev, 0, IORESOURCE_DISABLED);
++		else {
++			for (i = 0; i < irq->interrupt_count; i++) {
++				pnpacpi_parse_allocated_irqresource(dev,
++					irq->interrupts[i],
++					irq->triggering,
++					irq->polarity,
++				    irq->sharable);
++			}
++
++			/*
++			 * The IRQ encoder puts a single interrupt in each
++			 * descriptor, so if a _CRS descriptor has more than
++			 * one interrupt, we won't be able to re-encode it.
++			 */
++			if (pnp_can_write(dev) && irq->interrupt_count > 1) {
++				dev_warn(&dev->dev, "multiple interrupts in "
++					 "_CRS descriptor; configuration can't "
++					 "be changed\n");
++				dev->capabilities &= ~PNP_WRITE;
++			}
  		}
- 	}
- 	for (tmp = 0; tmp < ISAPNP_MAX_IRQ; tmp++) {
--		pnp_res = pnp_get_pnp_resource(dev, IORESOURCE_IRQ, tmp);
--		if (!pnp_res)
--			continue;
--		res = &pnp_res->res;
--		if (pnp_resource_valid(res)) {
-+		res = pnp_get_resource(dev, IORESOURCE_IRQ, tmp);
-+		if (res && pnp_resource_valid(res) &&
-+		    !(res->flags & IORESOURCE_DISABLED)) {
- 			int irq = res->start;
- 			if (irq == 2)
- 				irq = 9;
--			index = pnp_res->index;
--			dev_dbg(&dev->dev, "  set irq %d to %d\n", index, irq);
--			isapnp_write_byte(ISAPNP_CFG_IRQ + (index << 1), irq);
-+			dev_dbg(&dev->dev, "  set irq %d to %d\n", tmp, irq);
-+			isapnp_write_byte(ISAPNP_CFG_IRQ + (tmp << 1), irq);
+ 		break;
+ 
+ 	case ACPI_RESOURCE_TYPE_DMA:
+ 		dma = &res->data.dma;
+-		if (dma->channel_count > 0) {
++		if (dma->channel_count > 0 && dma->channels[0] != (u8) -1)
+ 			flags = dma_flags(dma->type, dma->bus_master,
+ 					  dma->transfer);
+-			if (dma->channels[0] == (u8) -1)
+-				flags |= IORESOURCE_DISABLED;
+-			pnp_add_dma_resource(dev, dma->channels[0], flags);
+-		}
++		else
++			flags = IORESOURCE_DISABLED;
++		pnp_add_dma_resource(dev, dma->channels[0], flags);
+ 		break;
+ 
+ 	case ACPI_RESOURCE_TYPE_IO:
+@@ -331,12 +348,29 @@ static acpi_status pnpacpi_allocated_res
+ 		if (extended_irq->producer_consumer == ACPI_PRODUCER)
+ 			return AE_OK;
+ 
+-		for (i = 0; i < extended_irq->interrupt_count; i++) {
+-			pnpacpi_parse_allocated_irqresource(dev,
+-				extended_irq->interrupts[i],
+-				extended_irq->triggering,
+-				extended_irq->polarity,
+-				extended_irq->sharable);
++		if (extended_irq->interrupt_count == 0)
++			pnp_add_irq_resource(dev, 0, IORESOURCE_DISABLED);
++		else {
++			for (i = 0; i < extended_irq->interrupt_count; i++) {
++				pnpacpi_parse_allocated_irqresource(dev,
++					extended_irq->interrupts[i],
++					extended_irq->triggering,
++					extended_irq->polarity,
++					extended_irq->sharable);
++			}
++
++			/*
++			 * The IRQ encoder puts a single interrupt in each
++			 * descriptor, so if a _CRS descriptor has more than
++			 * one interrupt, we won't be able to re-encode it.
++			 */
++			if (pnp_can_write(dev) &&
++			    extended_irq->interrupt_count > 1) {
++				dev_warn(&dev->dev, "multiple interrupts in "
++					 "_CRS descriptor; configuration can't "
++					 "be changed\n");
++				dev->capabilities &= ~PNP_WRITE;
++			}
  		}
- 	}
- 	for (tmp = 0; tmp < ISAPNP_MAX_DMA; tmp++) {
--		pnp_res = pnp_get_pnp_resource(dev, IORESOURCE_DMA, tmp);
--		if (!pnp_res)
--			continue;
--		res = &pnp_res->res;
--		if (pnp_resource_valid(res)) {
--			index = pnp_res->index;
-+		res = pnp_get_resource(dev, IORESOURCE_DMA, tmp);
-+		if (res && pnp_resource_valid(res) &&
-+		    !(res->flags & IORESOURCE_DISABLED)) {
- 			dev_dbg(&dev->dev, "  set dma %d to %lld\n",
--				index, (unsigned long long) res->start);
--			isapnp_write_byte(ISAPNP_CFG_DMA + index, res->start);
-+				tmp, (unsigned long long) res->start);
-+			isapnp_write_byte(ISAPNP_CFG_DMA + tmp, res->start);
- 		}
- 	}
- 	for (tmp = 0; tmp < ISAPNP_MAX_MEM; tmp++) {
--		pnp_res = pnp_get_pnp_resource(dev, IORESOURCE_MEM, tmp);
--		if (!pnp_res)
--			continue;
--		res = &pnp_res->res;
--		if (pnp_resource_valid(res)) {
--			index = pnp_res->index;
-+		res = pnp_get_resource(dev, IORESOURCE_MEM, tmp);
-+		if (res && pnp_resource_valid(res) &&
-+		    !(res->flags & IORESOURCE_DISABLED)) {
- 			dev_dbg(&dev->dev, "  set mem %d to %#llx\n",
--				index, (unsigned long long) res->start);
--			isapnp_write_word(ISAPNP_CFG_MEM + (index << 3),
-+				tmp, (unsigned long long) res->start);
-+			isapnp_write_word(ISAPNP_CFG_MEM + (tmp << 3),
- 					  (res->start >> 8) & 0xffff);
- 		}
- 	}
-Index: work10/drivers/pnp/manager.c
-===================================================================
---- work10.orig/drivers/pnp/manager.c	2008-05-15 15:21:53.000000000 -0600
-+++ work10/drivers/pnp/manager.c	2008-05-15 15:23:24.000000000 -0600
-@@ -40,7 +40,6 @@ static int pnp_assign_port(struct pnp_de
- 	}
- 
- 	/* set the initial values */
--	pnp_res->index = idx;
- 	res->flags |= rule->flags | IORESOURCE_IO;
- 	res->flags &= ~IORESOURCE_UNSET;
- 
-@@ -90,7 +89,6 @@ static int pnp_assign_mem(struct pnp_dev
- 	}
- 
- 	/* set the initial values */
--	pnp_res->index = idx;
- 	res->flags |= rule->flags | IORESOURCE_MEM;
- 	res->flags &= ~IORESOURCE_UNSET;
- 
-@@ -155,7 +153,6 @@ static int pnp_assign_irq(struct pnp_dev
- 	}
- 
- 	/* set the initial values */
--	pnp_res->index = idx;
- 	res->flags |= rule->flags | IORESOURCE_IRQ;
- 	res->flags &= ~IORESOURCE_UNSET;
- 
-@@ -214,7 +211,6 @@ static void pnp_assign_dma(struct pnp_de
- 	}
- 
- 	/* set the initial values */
--	pnp_res->index = idx;
- 	res->flags |= rule->flags | IORESOURCE_DMA;
- 	res->flags &= ~IORESOURCE_UNSET;
+ 		break;
  
 
 -- 
