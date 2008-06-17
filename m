@@ -1,117 +1,48 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: CPU temperature not detected
-Date: Tue, 17 Jun 2008 19:01:28 -0400 (EDT)
-Message-ID: <alpine.LFD.1.10.0806171849320.7277@localhost.localdomain>
-References: <BAY114-W5056724B82302477B1226BFAA80@phx.gbl>
+From: Greg KH <greg@kroah.com>
+Subject: Re: Toshiba - Documentation for Linux Developers
+Date: Tue, 17 Jun 2008 16:44:37 -0700
+Message-ID: <20080617234437.GA32316@kroah.com>
+References: <4855971D.90004@diamondcut.com.br> <20080616221443.GA760@kroah.com> <485799B6.2010302@diamondcut.com.br>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms046pub.verizon.net ([206.46.252.46]:35699 "EHLO
-	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761255AbYFQXBd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jun 2008 19:01:33 -0400
-Received: from localhost.localdomain ([72.93.254.151])
- by vms046.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0K2M00BGQQMK4PG3@vms046.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Tue, 17 Jun 2008 18:01:33 -0500 (CDT)
-In-reply-to: <BAY114-W5056724B82302477B1226BFAA80@phx.gbl>
+Received: from casper.infradead.org ([85.118.1.10]:37479 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756893AbYFQXuZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jun 2008 19:50:25 -0400
+Content-Disposition: inline
+In-Reply-To: <485799B6.2010302@diamondcut.com.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Luke Sharkey <lukesharkey@hotmail.co.uk>
+To: "Renato S. Yamane" <yamane@diamondcut.com.br>
 Cc: linux-acpi@vger.kernel.org
 
-
-
+On Tue, Jun 17, 2008 at 08:02:14AM -0300, Renato S. Yamane wrote:
+> Greg KH wrote:
+> > Renato S. Yamane wrote:
+> >> Toshiba have a 'link' between Linux Developers and Head Company, that is:
+> >> <http://linux.toshiba-dme.co.jp/linux/eng/develop.htm>
+> >>
+> >> If someone need documentation to develop Linux drivers, contact
+> >> linux@toshiba-dme.co.jp
+> > 
+> > Are there any known drivers for Toshiba hardware that you need for Linux
+> > that we should be contacting them about?
 > 
->  I would like to know why /proc/acpi/thermal_zone/THRM/temperature contains a reading of 0 C -
-> 1)   Firstly, does my cpu even have a sensor? (I have _only_ the on-die temperature, which is very hot).
-> 2)    Secondly, can anyone shed some light on why /proc/acpi/fan is an empty directory?
+> Greg, in my Toshiba M45-S355, multimedia keys (play, pause, stop, etc)
+> and Fn+Fx keys don't work.
 > 
-> Thank you!!!
-> (my specs:  hp pavilion dv5000 series with AMD turion 64 bit processor ML-32.  Any other details I don't know to provide, please just say.  Thanks)
+> With no Fn keys, I can't change brightness of monitor (Fn+F6/F7) and
+> change output video from LCD to VGA (Fn+F5).
+> 
+> I try use "xev" to capture key press, but Fn and Multimedia Keys is not
+> recognized.
+> 
+> And other problem is with battery charge, as we can see here:
+> <http://bugzilla.kernel.org/show_bug.cgi?id=10797>
 
-Thermal zone is below.
-Clearly the EC is responsible for updating EC0.THEM.
-It is possible that the EC is out to lunch.
-Do other EC things work, such as battery status?
-(or maybe ECOK is simply cleared...)
+Have you discussed this with the maintainers that Len pointed out?
 
-_TMP adds 2732 to the C it returns -- which linux then translates back 
-from decikelvin to C.  ie. \_SB.PCI0.LPC0.EC0.THEM is returning 0.
+thanks,
 
-_AC0 is an active trip point, and it returns a constant.
-However, the BIOS neglects to aupply an _AL0 -- so there is
-no fan associated with this active trip point -- it is just
-a phantom.  I don't know why that is.  Could be a BIOS bug
-that the fan isn't added in, or a BIOS bug that the fan
-shouldn't be there and the AC0 should be deleted.
-
-I recommend that you verify that you've got the latest BIOS.
-I've got another dump in my archives that claims to be from an
-hp dv-5000, and it looks quite different.
-It has two thermal zones, both with _CRT and _TMP,
-but no _PSV and no _AC0.
-
--Len
-
-
-Scope (_TZ)
-    {
-        Name (DTMP, 0x0BBA)
-        Name (DAC0, 0x0C3C)
-        Name (DPSV, 0x0E30)
-        Name (TBSE, 0x0AAC)
-        Name (DCRT, 0x0E4E)
-        ThermalZone (THRM)
-        {
-            Method (_TMP, 0, NotSerialized)
-            {
-                If (\_SB.PCI0.LPC0.ECOK ())
-                {
-                    Multiply (\_SB.PCI0.LPC0.EC0.THEM, 0x0A, Local0)
-                    Add (Local0, 0x0AAC, Local0)
-                    Return (Local0)
-                }
-
-                Return (DTMP)
-            }
-
-            Method (_AC0, 0, NotSerialized)
-            {
-                Return (DAC0)
-            }
-
-            Method (_CRT, 0, NotSerialized)
-            {
-                If (\_SB.PCI0.LPC0.ECOK ())
-                {
-                    Multiply (\_SB.PCI0.LPC0.EC0.THSD, 0x0A, Local0)
-                    Add (Local0, 0x0AAC, Local0)
-                    Return (Local0)
-                }
-
-                Return (DCRT)
-            }
-
-            Method (_PSV, 0, NotSerialized)
-            {
-                If (\_SB.PCI0.LPC0.ECOK ())
-                {
-                    Multiply (\_SB.PCI0.LPC0.EC0.THON, 0x0A, Local0)
-                    Add (Local0, 0x0AAC, Local0)
-                    Return (Local0)
-                }
-
-                Return (DPSV)
-            }
-
-            Name (_PSL, Package (0x01)
-            {
-                \_PR.CPU0
-            })
-            Name (_TC1, 0x02)
-            Name (_TC2, 0x05)
-            Name (_TSP, 0x32)
-        }
-    }
-
+greg k-h
