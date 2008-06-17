@@ -1,61 +1,419 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: bug? acpi p-state + ondemand keeps dropping max freq
-Date: Tue, 17 Jun 2008 14:15:38 -0400 (EDT)
-Message-ID: <alpine.LFD.1.10.0806171404370.7277@localhost.localdomain>
-References: <20080606140846.GA9580@ucw.cz> <20080607213918.GC1746@elf.ucw.cz>
- <20080607145435.4afc9812@infradead.org> <20080616104159.GA28659@elf.ucw.cz>
+From: tbo@ruc.dk
+Subject: (unknown)
+Date: Tue, 17 Jun 2008 22:04:24 +0200
+Message-ID: <20080617220424.24ehwirrk0w0cggk@webmail-backend1.ruc.dk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII;
+	DelSp=Yes	format=flowed
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms046pub.verizon.net ([206.46.252.46]:34834 "EHLO
-	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755146AbYFQSQH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jun 2008 14:16:07 -0400
-In-reply-to: <20080616104159.GA28659@elf.ucw.cz>
+Received: from smtp2.ruc.dk ([130.225.220.22]:35037 "EHLO smtp.ruc.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752128AbYFQUcB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jun 2008 16:32:01 -0400
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by smtp.ruc.dk (Postfix) with ESMTP id 6BCA22C371
+	for <linux-acpi@vger.kernel.org>; Tue, 17 Jun 2008 22:04:24 +0200 (CEST)
+Received: from smtp.ruc.dk ([127.0.0.1])
+	by localhost (smtp2.ruc.dk [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id oAu0mwUqGut9 for <linux-acpi@vger.kernel.org>;
+	Tue, 17 Jun 2008 22:04:24 +0200 (CEST)
+Received: from webmail-backend1.ruc.dk (webmail-backend1.ruc.dk [130.225.220.224])
+	by smtp.ruc.dk (Postfix) with ESMTP id 4075C2C36E
+	for <linux-acpi@vger.kernel.org>; Tue, 17 Jun 2008 22:04:24 +0200 (CEST)
+Received: from ruc.dk (localhost.localdomain [127.0.0.1])
+	by webmail-backend1.ruc.dk (Postfix) with ESMTP id 4E52330044
+	for <linux-acpi@vger.kernel.org>; Tue, 17 Jun 2008 22:04:24 +0200 (CEST)
+Subject: 
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@suse.cz>
-Cc: Arjan van de Ven <arjan@infradead.org>, auke-jan.h.kok@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, len.brown@intel.com, cpufreq@lists.linux.org.uk, davej@codemonkey.org.uk
+To: linux-acpi@vger.kernel.org
+
+# dmidecode 2.9
+SMBIOS 2.4 present.
+35 structures occupying 1106 bytes.
+Table at 0x000F1790.
+
+Handle 0x0000, DMI type 0, 24 bytes
+BIOS Information
+	Vendor: Acer
+	Version: v1.3309
+	Release Date: 04/17/07
+	Address: 0xE5230
+	Runtime Size: 110032 bytes
+	ROM Size: 1024 kB
+	Characteristics:
+		ISA is supported
+		PCI is supported
+		PC Card (PCMCIA) is supported
+		PNP is supported
+		BIOS is upgradeable
+		BIOS shadowing is allowed
+		ESCD support is available
+		Boot from CD is supported
+		ACPI is supported
+		USB legacy is supported
+		BIOS boot specification is supported
+		Targeted content distribution is supported
+
+Handle 0x0001, DMI type 1, 27 bytes
+System Information
+	Manufacturer: Acer, inc.
+	Product Name: Aspire 5050
+	Version: Not Applicable
+	Serial Number: LXAV40Y101734072B22502
+	UUID: 60E09727-E6A3-D811-8774-001B246EBF58
+	Wake-up Type: Power Switch
+	SKU Number: Not Specified
+	Family: Not Specified
+
+Handle 0x0002, DMI type 2, 8 bytes
+Base Board Information
+	Manufacturer: Acer, Inc.
+	Product Name: Prespa M
+	Version: Not Applicable
+	Serial Number: LXAV40Y101734072B22502
+
+Handle 0x0003, DMI type 3, 17 bytes
+Chassis Information
+	Manufacturer: Acer, Inc.
+	Type: Other
+	Lock: Not Present
+	Version: N/A
+	Serial Number: None
+	Asset Tag:
+	Boot-up State: Safe
+	Power Supply State: Safe
+	Thermal State: Safe
+	Security Status: None
+	OEM Information: 0x00001234
+
+Handle 0x0004, DMI type 4, 35 bytes
+Processor Information
+	Socket Designation: Socket M2/S1G1
+	Type: Central Processor
+	Family: Opteron
+	Manufacturer: AMD
+	ID: C2 0F 04 00 FF FB 8B 07
+	Signature: Family 15, Model 76, Stepping 2
+	Flags:
+		FPU (Floating-point unit on-chip)
+		VME (Virtual mode extension)
+		DE (Debugging extension)
+		PSE (Page size extension)
+		TSC (Time stamp counter)
+		MSR (Model specific registers)
+		PAE (Physical address extension)
+		MCE (Machine check exception)
+		CX8 (CMPXCHG8 instruction supported)
+		APIC (On-chip APIC hardware supported)
+		SEP (Fast system call)
+		MTRR (Memory type range registers)
+		PGE (Page global enable)
+		MCA (Machine check architecture)
+		CMOV (Conditional move instruction supported)
+		PAT (Page attribute table)
+		PSE-36 (36-bit page size extension)
+		CLFSH (CLFLUSH instruction supported)
+		MMX (MMX technology supported)
+		FXSR (Fast floating-point save and restore)
+		SSE (Streaming SIMD extensions)
+		SSE2 (Streaming SIMD extensions 2)
+	Version: Engineering Sample
+	Voltage: 1.4 V
+	External Clock: 133 MHz
+	Max Speed: 2200 MHz
+	Current Speed: 2200 MHz
+	Status: Populated, Enabled
+	Upgrade: Other
+	L1 Cache Handle: Not Provided
+	L2 Cache Handle: 0x0005
+	L3 Cache Handle: Not Provided
+	Serial Number: Not Specified
+	Asset Tag: Not Specified
+	Part Number: Not Specified
+
+Handle 0x0005, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: L2 Cache
+	Configuration: Enabled, Socketed, Level 2
+	Operational Mode: Write Back
+	Location: Internal
+	Installed Size: 512 KB
+	Maximum Size: 1024 KB
+	Supported SRAM Types:
+		Burst
+		Pipeline Burst
+	Installed SRAM Type: Synchronous
+	Speed: Unknown
+	Error Correction Type: Unknown
+	System Type: Unknown
+	Associativity: Unknown
+
+Handle 0x0006, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J28
+	Internal Connector Type: None
+	External Reference Designator: COM A
+	External Connector Type: DB-9 male
+	Port Type: Serial Port 16550A Compatible
+
+Handle 0x0007, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J28
+	Internal Connector Type: None
+	External Reference Designator: Parallel
+	External Connector Type: DB-25 female
+	Port Type: Parallel Port ECP/EPP
+
+Handle 0x0008, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J28
+	Internal Connector Type: None
+	External Reference Designator: Video
+	External Connector Type: DB-15 female
+	Port Type: Video Port
+
+Handle 0x0009, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J33
+	Internal Connector Type: None
+	External Reference Designator: Keyboard
+	External Connector Type: Circular DIN-8 male
+	Port Type: Keyboard Port
+
+Handle 0x000A, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J33
+	Internal Connector Type: None
+	External Reference Designator: PS/2 Mouse
+	External Connector Type: Circular DIN-8 male
+	Port Type: Keyboard Port
+
+Handle 0x000B, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J31
+	Internal Connector Type: None
+	External Reference Designator: USB 1
+	External Connector Type: Access Bus (USB)
+	Port Type: USB
+
+Handle 0x000C, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J32
+	Internal Connector Type: None
+	External Reference Designator: USB 2
+	External Connector Type: Access Bus (USB)
+	Port Type: USB
+
+Handle 0x000D, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J32
+	Internal Connector Type: None
+	External Reference Designator: USB 3
+	External Connector Type: Access Bus (USB)
+	Port Type: USB
+
+Handle 0x000E, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J31
+	Internal Connector Type: None
+	External Reference Designator: USB 4
+	External Connector Type: Access Bus (USB)
+	Port Type: USB
+
+Handle 0x000F, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J30
+	Internal Connector Type: None
+	External Reference Designator: Microphone In
+	External Connector Type: Mini Jack (headphones)
+	Port Type: Audio Port
+
+Handle 0x0010, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J30
+	Internal Connector Type: None
+	External Reference Designator: Line In
+	External Connector Type: Mini Jack (headphones)
+	Port Type: Audio Port
+
+Handle 0x0011, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J30
+	Internal Connector Type: None
+	External Reference Designator: Speaker Out
+	External Connector Type: Mini Jack (headphones)
+	Port Type: Audio Port
+
+Handle 0x0012, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PCI1
+	Type: 32-bit PCI
+	Current Usage: Unknown
+	Length: Long
+	ID: 0
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+		PME signal is supported
+
+Handle 0x0013, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PCI2
+	Type: 32-bit PCI
+	Current Usage: Unknown
+	Length: Long
+	ID: 0
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+		PME signal is supported
+
+Handle 0x0014, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PCI3
+	Type: 32-bit PCI
+	Current Usage: Unknown
+	Length: Long
+	ID: 0
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+		PME signal is supported
+
+Handle 0x0015, DMI type 10, 6 bytes
+On Board Device Information
+	Type: Video
+	Status: Disabled
+	Description: ATI RS400M
+
+Handle 0x0016, DMI type 10, 6 bytes
+On Board Device Information
+	Type: Sound
+	Status: Disabled
+	Description: ESS 1869
+
+Handle 0x0017, DMI type 11, 5 bytes
+OEM Strings
+	String 1: AMD New Processor Technology
+	String 2: www.amd.com
+	String 3: Have a nice day :)
+
+Handle 0x0018, DMI type 12, 5 bytes
+System Configuration Options
+	Option 1: J13 1-2 Normal Operation, 2-3 Clear CMOS
+
+Handle 0x0019, DMI type 13, 22 bytes
+BIOS Language Information
+	Installable Languages: 1
+		enUS
+	Currently Installed Language: enUS
+
+Handle 0x001A, DMI type 15, 29 bytes
+System Event Log
+	Area Length: 16 bytes
+	Header Start Offset: 0x0000
+	Header Length: 16 bytes
+	Data Start Offset: 0x0010
+	Access Method: General-purpose non-volatile data functions
+	Access Address: 0x0000
+	Status: Valid, Not Full
+	Change Token: 0x00000001
+	Header Format: Type 1
+	Supported Log Type Descriptors: 3
+	Descriptor 1: POST error
+	Data Format 1: POST results bitmap
+	Descriptor 2: Single-bit ECC memory error
+	Data Format 2: Multiple-event
+	Descriptor 3: Multi-bit ECC memory error
+	Data Format 3: Multiple-event
+
+Handle 0x001B, DMI type 16, 15 bytes
+Physical Memory Array
+	Location: System Board Or Motherboard
+	Use: System Memory
+	Error Correction Type: None
+	Maximum Capacity: 4 GB
+	Error Information Handle: Not Provided
+	Number Of Devices: 2
+
+Handle 0x001C, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x001B
+	Error Information Handle: No Error
+	Total Width: 128 bits
+	Data Width: 64 bits
+	Size: 1024 MB
+	Form Factor: DIMM
+	Set: 1
+	Locator: S1
+	Bank Locator: DIMM1
+	Type: DDR2
+	Type Detail: Synchronous
+	Speed: Unknown
+	Manufacturer: Not Specified
+	Serial Number: Not Specified
+	Asset Tag: Not Specified
+	Part Number: Not Specified
+
+Handle 0x001D, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x001B
+	Error Information Handle: No Error
+	Total Width: 128 bits
+	Data Width: 64 bits
+	Size: 1024 MB
+	Form Factor: DIMM
+	Set: 2
+	Locator: S2
+	Bank Locator: DIMM2
+	Type: DDR2
+	Type Detail: Synchronous
+	Speed: Unknown
+	Manufacturer: Not Specified
+	Serial Number: Not Specified
+	Asset Tag: Not Specified
+	Part Number: Not Specified
+
+Handle 0x001E, DMI type 18, 23 bytes
+32-bit Memory Error Information
+	Type: OK
+	Granularity: Unknown
+	Operation: Unknown
+	Vendor Syndrome: Unknown
+	Memory Array Address: Unknown
+	Device Address: Unknown
+	Resolution: Unknown
+
+Handle 0x001F, DMI type 19, 15 bytes
+Memory Array Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x0007FFFFFFF
+	Range Size: 2 GB
+	Physical Array Handle: 0x001B
+	Partition Width: 0
+
+Handle 0x0020, DMI type 20, 19 bytes
+Memory Device Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x0003FFFFFFF
+	Range Size: 1 GB
+	Physical Device Handle: 0x001C
+	Memory Array Mapped Address Handle: 0x001F
+	Partition Row Position: 2
+	Interleave Position: 1
+	Interleaved Data Depth: 6
+
+Handle 0x0021, DMI type 32, 20 bytes
+System Boot Information
+	Status: <OUT OF SPEC>
+
+Handle 0x0022, DMI type 127, 4 bytes
+End Of Table
+
+t-boo@t-boo-laptop:~$
 
 
-
-> > > > # echo 1866000 > scaling_max_freq ; cat scaling_max_freq
-> > > > 800000
-> > > > # echo 1866000 > scaling_max_freq ; cat scaling_max_freq
-> > > > 800000
-> > > > 
-> > > > 
-> > > > This renders my Dothan to utterly poor speeds. (standard T43)
-> > > > 
-> > > > performance cpufreq governor makes no difference - I still can't
-> > > > change the frequency upper/lower values.
-> > > 
-> > > Hmm, I have similar problem in Novell bugzilla, on very different hw:
-> > > 
-> > > https://bugzilla.novell.com/show_bug.cgi?id=396311
-> 
-> > are either of you running gnome-power-manager or kpowersaved ?
-> > sometimes these programs (and more likely, the patches added by a
-> > distro maintainer who doesn't fully realize how power works) tend to
-> > muck with kernel settings around CPU frequency that they have
-> > absolutely no business touching...
-> 
-> In novel bugzilla case ignore_ppc=1 helped, so it seems to be BIOS
-> problem, not userland's...
-
-Thanks for the pointer to the novell report, Pavel.
-I poked at that one and I think it may actually be a table loading issue
-for which we've just send a patch to 2.6.26.
-
-Auke,
-
-Please open a signting in bugzilla and attach your dmesg and 
-acpidump output.
-
-Also, please report if processor.ignore_ppc=1 helps.
-
-http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
-
-thanks,
--Len
 
