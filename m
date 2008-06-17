@@ -1,14 +1,14 @@
 From: Pavel Machek <pavel@suse.cz>
 Subject: Re: [PATCH] Clean up thermal API
-Date: Tue, 17 Jun 2008 17:54:48 +0200
-Message-ID: <20080617155448.GA4891@ucw.cz>
+Date: Tue, 17 Jun 2008 17:59:54 +0200
+Message-ID: <20080617155954.GB4891@ucw.cz>
 References: <20080611100647.GA20013@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:2326 "EHLO spitz.ucw.cz"
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:2325 "EHLO spitz.ucw.cz"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755583AbYFQSFo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1755229AbYFQSFo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Tue, 17 Jun 2008 14:05:44 -0400
 Content-Disposition: inline
 In-Reply-To: <20080611100647.GA20013@srcf.ucam.org>
@@ -17,63 +17,33 @@ List-Id: linux-acpi@vger.kernel.org
 To: Matthew Garrett <mjg59@srcf.ucam.org>
 Cc: rui.zhang@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi!
-
+On Wed 2008-06-11 11:06:47, Matthew Garrett wrote:
 > The thermal layer passes temperatures around as strings. This is fine 
 > for sysfs, but makes it hard to use them for other purposes in-kernel. 
 > Change them to longs and do the string conversion in the sysfs-specific 
 > code.
 > 
 > Signed-off-by: Matthew Garrett <mjg@redhat.com>
-
-Looks mostly ok to me.
-
-
+> 
+> ---
+> 
+> diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+> index 504385b..28b3782 100644
+> --- a/drivers/acpi/thermal.c
+> +++ b/drivers/acpi/thermal.c
+> @@ -886,7 +886,8 @@ static void acpi_thermal_check(void *data)
+>  /* sys I/F for generic thermal sysfs support */
+>  #define KELVIN_TO_MILLICELSIUS(t) (t * 100 - 273200)
+>  
 > -static int thermal_get_temp(struct thermal_zone_device *thermal, char *buf)
 > +static int thermal_get_temp(struct thermal_zone_device *thermal, 
 > +			    unsigned long *temp)
 
-Hmm, it would be cool to create typedef unsigned long milicelsius, so
-that this is self-documenting and possibly sparse-checkable.
+Hmm, ulong is really wrong:
 
+1) temperature in celsius can easily go below zero.
 
-
-> @@ -898,7 +899,8 @@ static int thermal_get_temp(struct thermal_zone_device *thermal, char *buf)
->  	if (result)
->  		return result;
->  
-> -	return sprintf(buf, "%ld\n", KELVIN_TO_MILLICELSIUS(tz->temperature));
-> +	*temp = KELVIN_TO_MILLICELSIUS(tz->temperature);
-> +	return 0;
->  }
-
-Hmmm, if we did interface in miliKelvins, we would be able to do
--errno trick :-).
-
-
->  	if (!tz->ops->get_temp)
->  		return -EPERM;
->  
-> -	return tz->ops->get_temp(tz, buf);
-> +	ret = tz->ops->get_temp(tz,&temperature);
-
-missing space after , .
-
-> +	if (ret)
-> +		return ret;
-> +
-> +	return sprintf(buf,"%ld\n",temperature);
->  }
-
-More mising spaces.
-
-> +	if (ret)
-> +		return ret;
-> +
-> +	return sprintf (buf, "%ld\n", temperature);
->  }
-
-And some extra spaces here: 'sprintf('.
+2) it can hardly go above 2000000C, so int should be enough.
 
 							Pavel
 -- 
