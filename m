@@ -1,80 +1,40 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: linux-next: Tree for June 13: IO APIC breakage on HP nx6325
-Date: Tue, 17 Jun 2008 09:12:03 +0200 (CEST)
-Message-ID: <alpine.LFD.1.10.0806170905221.3395@apollo.tec.linutronix.de>
-References: <20080613232214.394fd6fd.sfr@canb.auug.org.au> <Pine.LNX.4.55.0806161636510.20218@cliff.in.clinika.pl> <200806170038.37224.rjw@sisk.pl> <200806170105.45647.rjw@sisk.pl>
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: bug? acpi p-state + ondemand keeps dropping max freq
+Date: Tue, 17 Jun 2008 10:44:52 +0200
+Message-ID: <20080617084452.GA27101@elf.ucw.cz>
+References: <20080606140846.GA9580@ucw.cz> <20080607213918.GC1746@elf.ucw.cz> <20080607145435.4afc9812@infradead.org> <20080616104159.GA28659@elf.ucw.cz> <20080616074337.46d6f411@infradead.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from www.tglx.de ([62.245.132.106]:48410 "EHLO www.tglx.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752612AbYFQHRE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Jun 2008 03:17:04 -0400
-In-Reply-To: <200806170105.45647.rjw@sisk.pl>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:41685 "EHLO
+	gprs189-60.eurotel.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754064AbYFQKk7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jun 2008 06:40:59 -0400
+Content-Disposition: inline
+In-Reply-To: <20080616074337.46d6f411@infradead.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "Maciej W. Rozycki" <macro@linux-mips.org>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: Arjan van de Ven <arjan@infradead.org>
+Cc: auke-jan.h.kok@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, len.brown@intel.com, cpufreq@lists.linux.org.uk, davej@codemonkey.org.uk
 
-On Tue, 17 Jun 2008, Rafael J. Wysocki wrote:
+Hi!
+
+> > > are either of you running gnome-power-manager or kpowersaved ?
+> > > sometimes these programs (and more likely, the patches added by a
+> > > distro maintainer who doesn't fully realize how power works) tend to
+> > > muck with kernel settings around CPU frequency that they have
+> > > absolutely no business touching...
+> > 
+> > In novel bugzilla case ignore_ppc=1 helped, so it seems to be BIOS
+> > problem, not userland's...
 > 
-> BTW, with the C1E patches reverted I don't get the
-> WARNING: at /home/rafael/src/linux-next/kernel/smp.c:215 smp_call_function_single+0x3d/0xa2
-> in the log.  Thomas?
+> well as long as the user doesn't use this for production use... the
+> BIOS often reduces frequencies available to deal with thermal
+> situations, so it's not a good idea to ignore that.
 
-Yeah, my bad. Fix below.
-
-Thanks,
-	tglx
-
-------------------->
-Subject: x86: c1e_idle, run BROADCAST_FORCE notify with irqs enabled
-From: Thomas Gleixner <tglx@linutronix.de>
-Date: Tue, 17 Jun 2008 09:07:53 +0200
-
-The BROADCAST_FORCE notification uses smp_function_call and therefor
-must be run with interrupts enabled.
-
-While at it, add a comment for the BROADCAST_EXIT notifier as well.
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
----
-diff --git a/arch/x86/kernel/process.c b/arch/x86/kernel/process.c
-index 57fa86d..1450e0f 100644
---- a/arch/x86/kernel/process.c
-+++ b/arch/x86/kernel/process.c
-@@ -267,17 +267,29 @@ static void c1e_idle(void)
- 
- 		if (!cpu_isset(cpu, c1e_mask)) {
- 			cpu_set(cpu, c1e_mask);
--			/* Force broadcast so ACPI can not interfere */
-+			/*
-+			 * Force broadcast so ACPI can not interfere. Needs
-+			 * to run with interrupts enabled as it uses
-+			 * smp_function_call.
-+			 */
-+			local_irq_enable();
- 			clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_FORCE,
- 					   &cpu);
- 			printk(KERN_INFO "Switch to broadcast mode on CPU%d\n",
- 			       cpu);
-+			local_irq_disable();
- 		}
- 		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &cpu);
-+
- 		default_idle();
--		local_irq_disable();
--		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &cpu);
--		local_irq_enable();
-+
-+		/*
-+		 * The switch back from broadcast mode needs to be
-+		 * called with interrupts disabled.
-+		 */
-+		 local_irq_disable();
-+		 clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &cpu);
-+		 local_irq_enable();
- 	} else
- 		default_idle();
- }
-
+Not a good idea, but what's the alternative? It seems like BIOS always
+leaves him at 800MHz unless he ignores it.
+								Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
