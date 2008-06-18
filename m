@@ -1,57 +1,39 @@
-From: Thomas Gleixner <tglx@linutronix.de>
+From: Ingo Molnar <mingo@elte.hu>
 Subject: Re: linux-next: Tree for June 13: IO APIC breakage on HP nx6325
-Date: Wed, 18 Jun 2008 14:41:35 +0200 (CEST)
-Message-ID: <alpine.LFD.1.10.0806181421320.3395@apollo.tec.linutronix.de>
-References: <20080613232214.394fd6fd.sfr@canb.auug.org.au> <200806172244.24026.rjw@sisk.pl> <200806180019.49628.rjw@sisk.pl> <200806180025.20504.rjw@sisk.pl> <alpine.LFD.1.10.0806181000440.3395@apollo.tec.linutronix.de>
+Date: Wed, 18 Jun 2008 15:14:09 +0200
+Message-ID: <20080618131409.GC11501@elte.hu>
+References: <20080613232214.394fd6fd.sfr@canb.auug.org.au> <alpine.LFD.1.10.0806170905221.3395@apollo.tec.linutronix.de> <200806172244.24026.rjw@sisk.pl> <200806180019.49628.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.1.10.0806181000440.3395@apollo.tec.linutronix.de>
+Content-Disposition: inline
+In-Reply-To: <200806180019.49628.rjw@sisk.pl>
 Sender: linux-next-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "Maciej W. Rozycki" <macro@linux-mips.org>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>, "Maciej W. Rozycki" <macro@linux-mips.org>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 18 Jun 2008, Thomas Gleixner wrote:
-> On Wed, 18 Jun 2008, Rafael J. Wysocki wrote:
-> > On Wednesday, 18 of June 2008, Rafael J. Wysocki wrote:
-> > > On Tuesday, 17 of June 2008, Rafael J. Wysocki wrote:
-> > > > On Tuesday, 17 of June 2008, Thomas Gleixner wrote:
-> > > > > On Tue, 17 Jun 2008, Rafael J. Wysocki wrote:
-> > > > > > 
-> > > > > > BTW, with the C1E patches reverted I don't get the
-> > > > > > WARNING: at /home/rafael/src/linux-next/kernel/smp.c:215 smp_call_function_single+0x3d/0xa2
-> > > > > > in the log.  Thomas?
-> > > > > 
-> > > > > Yeah, my bad. Fix below.
-> > > > 
-> > > > Thanks, it eliminates the WARNING, but still the box doesn't work with
-> > > > the "x86: add C1E aware idle function" patch applied, even with 'highres=off'.
-> > > > 
-> > > > The main symptom is that CPU loads are computed incorrectly (I got X using 126%
-> > > > of CPU time from 'top', for example).  Apart from this, some processes (like
-> > > > gkrellm) seem to be 'frozen' and only change their state in 'jumps', as though
-> > > > they only got CPU from time to time at random.
-> > > > 
-> > > > Reverting the above-mentioned patch fixes those problems.
-> > > 
-> > > Ah.  If your fix is replaced with the appended one, the system happily works
-> > > with C1E and highres.
+
+* Rafael J. Wysocki <rjw@sisk.pl> wrote:
+
+> > Thanks, it eliminates the WARNING, but still the box doesn't work 
+> > with the "x86: add C1E aware idle function" patch applied, even with 
+> > 'highres=off'.
 > > 
-> > Scratch that.  The symptoms appeared later this time, that's all.  I've just got
-> > b43 consuming 90+ % of the CPU time. :-(
+> > The main symptom is that CPU loads are computed incorrectly (I got X 
+> > using 126% of CPU time from 'top', for example).  Apart from this, 
+> > some processes (like gkrellm) seem to be 'frozen' and only change 
+> > their state in 'jumps', as though they only got CPU from time to 
+> > time at random.
+> > 
+> > Reverting the above-mentioned patch fixes those problems.
 > 
-> I would have been pretty surprised if it had helped :)
-> 
-> Does the box boot when you disable the local apic timer on the kernel
-> command line with the patch applied ?
-> 
-> Also does forcing hpet change anything ?
+> Ah.  If your fix is replaced with the appended one, the system happily 
+> works with C1E and highres.
 
-I just checked that the original c1e series and the affected code in
-tip are not different. IIRC you confirmed that the C1E patches would
-work on your box. So I wonder what else got changed which causes these
-problems.
+very nice! I have applied your fix to tip/x86/cpu.
 
-Thanks,
-	tglx
+does this resolve all problems on your box, or is the IO-APIC problem 
+still open?
+
+	Ingo
