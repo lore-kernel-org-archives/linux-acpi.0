@@ -1,16 +1,16 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: linux-next: Tree for June 13: IO APIC breakage on HP nx6325
-Date: Wed, 18 Jun 2008 16:37:21 +0200
-Message-ID: <200806181637.22241.rjw@sisk.pl>
+Date: Wed, 18 Jun 2008 16:40:44 +0200
+Message-ID: <200806181640.45595.rjw@sisk.pl>
 References: <20080613232214.394fd6fd.sfr@canb.auug.org.au> <alpine.LFD.1.10.0806181000440.3395@apollo.tec.linutronix.de> <alpine.LFD.1.10.0806181421320.3395@apollo.tec.linutronix.de>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-next-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756208AbYFROjX@vger.kernel.org>
 In-Reply-To: <alpine.LFD.1.10.0806181421320.3395@apollo.tec.linutronix.de>
 Content-Disposition: inline
-Sender: linux-next-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Thomas Gleixner <tglx@linutronix.de>
 Cc: "Maciej W. Rozycki" <macro@linux-mips.org>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
@@ -57,10 +57,7 @@ On Wednesday, 18 of June 2008, Thomas Gleixner wrote:
 > work on your box. So I wonder what else got changed which causes these
 > problems.
 
-Well, probably I didn't test that long enough.
+Well, to eliminate any possible correlations, do you have a version of the
+series or a single patch against the current mainline?
 
-The symptoms do not always appear immediately, they sometimes appear only
-after several minutes.
-
-Thanks,
 Rafael
