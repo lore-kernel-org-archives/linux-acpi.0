@@ -1,67 +1,73 @@
 From: "Maciej W. Rozycki" <macro@linux-mips.org>
 Subject: Re: linux-next: Tree for June 13: IO APIC breakage on HP nx6325
-Date: Wed, 18 Jun 2008 23:36:16 +0100 (BST)
-Message-ID: <Pine.LNX.4.55.0806182308190.7802@cliff.in.clinika.pl>
-References: <20080613232214.394fd6fd.sfr@canb.auug.org.au>
- <Pine.LNX.4.55.0806172206580.28110@cliff.in.clinika.pl> <200806172338.38318.rjw@sisk.pl>
- <200806180053.40044.rjw@sisk.pl> <Pine.LNX.4.55.0806180400070.28110@cliff.in.clinika.pl>
- <20080618190603.GB10431@cvg>
+Date: Thu, 19 Jun 2008 00:39:33 +0100 (BST)
+Message-ID: <Pine.LNX.4.55.0806182345380.7802@cliff.in.clinika.pl>
+References: <20080613232214.394fd6fd.sfr@canb.auug.org.au> <200806180053.40044.rjw@sisk.pl>
+ <Pine.LNX.4.55.0806180400070.28110@cliff.in.clinika.pl> <200806190011.38548.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <20080618190603.GB10431@cvg>
+In-Reply-To: <200806190011.38548.rjw@sisk.pl>
 Sender: linux-next-owner@vger.kernel.org
-To: Cyrill Gorcunov <gorcunov@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Ingo Molnar <mingo@elte.hu>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Ingo Molnar <mingo@elte.hu>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 18 Jun 2008, Cyrill Gorcunov wrote:
+On Thu, 19 Jun 2008, Rafael J. Wysocki wrote:
 
-> | 1. The 8259A interrupt actually escapes to the CPU somehow and is handled
-> |    as an ExtINTA interrupt.  This would make the code in check_timer()  
-> |    decide it has found a working configuration, while actually it has been
-> |    fooled.
+> >  With such a configuration the "x86: I/O APIC: timer through 8259A
+> > second-chance" patch should not matter, because the only change it
+> > introduces is an attempt to try the same I/O APIC pin again, but with the
+> > IRQ0 line of the master 8259A enabled.  That's not a terribly unusual 
+> > configuration and nothing should get confused in the system.
 > 
-> Maciej, that is why we get 'received illegal vector'?
+> But it _does_ get confused, really.
+
+ Something certainly gets confused, but so far I am not sure which bit 
+exactly it is, are you?
+
+> >  Barring the unlikely possibility of the 8259A actually being wired to 
+> > INTIN2 of the I/O APIC I can see two possible explanations:
+> > 
+> > 1. The 8259A interrupt actually escapes to the CPU somehow and is handled
+> >    as an ExtINTA interrupt.  This would make the code in check_timer()  
+> >    decide it has found a working configuration, while actually it has been
+> >    fooled.
+[...]
+> Here you go:
 > 
-> 	[  129.092151] APIC error on CPU1: 00(40)
+> [    0.108006] ..TIMER: vector=0x30 apic1=0 pin1=2 apic2=-1 pin2=-1
+> [    0.108006] ..MP-BIOS bug: 8254 timer not connected to IO-APIC
+> [    0.108006] ...trying to set up timer (IRQ0) through the 8259A ... <3>
+> [    0.108006] ..... (found apic 0 pin 2) ...<3> works.
+> 
+> The full dmesg is at: http://www.sisk.pl/kernel/debug/20080618/dmesg-1.log
 
- No, but that's an interesting observation, thank you -- well spotted!  
+ Thanks.  In this case I suspect the case #1 quoted above happens, that is
+the 8259A manages to deliver its interrupt somehow.  Note at this stage it
+is meant to be in the AEOI mode, so it can happily resubmit the interrupt
+indefinitely with no additional handling as long as it receives INTA
+cycles.
 
- ExtINTA stands for an "External INTA cycle" which is passed through from
-the CPU down to the system bus instead of being intercepted by the local
-APIC unit as usually.  In response to the INTA cycle one of the 8259A
-chips (either the master or the slave, depending on the source of the
-interrupt selected for handling) supplies the vector directly to the CPU
-through PCI (or whatever kind of bus links the legacy bridge with the host
-bridge) and then the FSB.  Therefore the vector bypasses all the APIC
-circuitry and cannot result in an APIC error interrupt.
+ Can you please try the patch below on top of "x86: I/O APIC: timer
+through 8259A second-chance" to see whether my hypothesis is true?  It
+modifies the through-8259A setup path so that the APIC input gets masked,
+but the 8259A has the timer interrupt still enabled.  Let me know how the
+timer interrupt is routed in this case.
 
- Instead the message quoted means an APIC input is misprogrammed
-somewhere.  This error happens if an interrupt is signalled to an unmasked
-APIC input which uses the Fixed or Lowest-Priority delivery mode and its
-vector implies priority below the minimum permitted, that is in the range
-from 0 to 15.
-
- We have code already in place in io_apic_{32,64}.c that can be used to
-find out the offender with a piece of code like this (#if 0 has to be
-deactivated for this to work and they may be bit rot bugs to be fixed):
-
-int __init all_pic_dump(void)
-{
-	int v = apic_verbosity;
-
-	apic_verbosity = APIC_DEBUG;
-	print_IO_APIC();
-	print_all_local_APICs();
-	print_PIC();
-	apic_verbosity = v;
-
-	return 0;
-}
-
-late_initcall(all_pic_dump);
-
-if somebody is willing to aid with debugging this problem.
+ BTW, do we have any piece of technical information about the chipset
+used?  The southbridge used is an ATI SB400, which is where I would
+normally expect two 8259A and an I/O APIC core to be placed.
 
   Maciej
+
+--- a/arch/x86/kernel/io_apic_64.c	2008-06-18 22:53:34.000000000 +0000
++++ b/arch/x86/kernel/io_apic_64.c	2008-06-18 22:58:45.000000000 +0000
+@@ -1714,6 +1714,7 @@ static inline void __init check_timer(vo
+ 		/* replace_pin_at_irq(0, apic1, pin1, apic2, pin2); */
+ 		setup_timer_IRQ0_pin(apic2, pin2, cfg->vector);
+ 		unmask_IO_APIC_irq(0);
++		clear_IO_APIC_pin(apic2, pin2);
+ 		enable_8259A_irq(0);
+ 		if (timer_irq_works()) {
+ 			apic_printk(APIC_VERBOSE," works.\n");
