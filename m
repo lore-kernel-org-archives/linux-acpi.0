@@ -1,39 +1,57 @@
-From: "Renato S. Yamane" <yamane@diamondcut.com.br>
-Subject: Re: Toshiba - Documentation for Linux Developers
-Date: Wed, 18 Jun 2008 09:24:37 -0300
-Message-ID: <4858FE85.2030000@diamondcut.com.br>
-References: <4855971D.90004@diamondcut.com.br> <200806181311.34849.damnshock@gmail.com> <4858EFF7.5000107@diamondcut.com.br> <200806181338.50723.damnshock@gmail.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: linux-next: Tree for June 13: IO APIC breakage on HP nx6325
+Date: Wed, 18 Jun 2008 14:41:35 +0200 (CEST)
+Message-ID: <alpine.LFD.1.10.0806181421320.3395@apollo.tec.linutronix.de>
+References: <20080613232214.394fd6fd.sfr@canb.auug.org.au> <200806172244.24026.rjw@sisk.pl> <200806180019.49628.rjw@sisk.pl> <200806180025.20504.rjw@sisk.pl> <alpine.LFD.1.10.0806181000440.3395@apollo.tec.linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-03.mandic.com.br ([200.225.81.143]:37972 "EHLO
-	smtp-03.mandic.com.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752075AbYFRMY7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Jun 2008 08:24:59 -0400
-In-Reply-To: <200806181338.50723.damnshock@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <alpine.LFD.1.10.0806181000440.3395@apollo.tec.linutronix.de>
+Sender: linux-next-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "Maciej W. Rozycki" <macro@linux-mips.org>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: =?ISO-8859-1?Q?Marc_Deop_i_Argem=ED?= <damnshock@gmail.com>
-Cc: linux-acpi@vger.kernel.org, greg@kroah.com, mjg59@srcf.ucam.org, lenb@kernel.org
 
-Marc Deop i Argem=ED escreveu:
-> On Wednesday 18 June 2008 13:22:31 Renato S. Yamane wrote:
->> # cat /proc/acpi/event
->> cat: /proc/acpi/event: Device or resource is busy
->=20
-> Sorry: I forgot to mention that you have to turn off the acpi daemon.
+On Wed, 18 Jun 2008, Thomas Gleixner wrote:
+> On Wed, 18 Jun 2008, Rafael J. Wysocki wrote:
+> > On Wednesday, 18 of June 2008, Rafael J. Wysocki wrote:
+> > > On Tuesday, 17 of June 2008, Rafael J. Wysocki wrote:
+> > > > On Tuesday, 17 of June 2008, Thomas Gleixner wrote:
+> > > > > On Tue, 17 Jun 2008, Rafael J. Wysocki wrote:
+> > > > > > 
+> > > > > > BTW, with the C1E patches reverted I don't get the
+> > > > > > WARNING: at /home/rafael/src/linux-next/kernel/smp.c:215 smp_call_function_single+0x3d/0xa2
+> > > > > > in the log.  Thomas?
+> > > > > 
+> > > > > Yeah, my bad. Fix below.
+> > > > 
+> > > > Thanks, it eliminates the WARNING, but still the box doesn't work with
+> > > > the "x86: add C1E aware idle function" patch applied, even with 'highres=off'.
+> > > > 
+> > > > The main symptom is that CPU loads are computed incorrectly (I got X using 126%
+> > > > of CPU time from 'top', for example).  Apart from this, some processes (like
+> > > > gkrellm) seem to be 'frozen' and only change their state in 'jumps', as though
+> > > > they only got CPU from time to time at random.
+> > > > 
+> > > > Reverting the above-mentioned patch fixes those problems.
+> > > 
+> > > Ah.  If your fix is replaced with the appended one, the system happily works
+> > > with C1E and highres.
+> > 
+> > Scratch that.  The symptoms appeared later this time, that's all.  I've just got
+> > b43 consuming 90+ % of the CPU time. :-(
+> 
+> I would have been pretty surprised if it had helped :)
+> 
+> Does the box boot when you disable the local apic timer on the kernel
+> command line with the patch applied ?
+> 
+> Also does forcing hpet change anything ?
 
-If I stop acpid, when I run "cat /proc/acpi/event" nothing happens (whe=
-n
-I press Fn+Fx couple keys or multimedia keys) and I can't get out of ca=
-t
-command (if I use VIM, I can't close it too).
+I just checked that the original c1e series and the affected code in
+tip are not different. IIRC you confirmed that the C1E patches would
+work on your box. So I wonder what else got changed which causes these
+problems.
 
-Regards,
-Renato S. Yamane
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+	tglx
