@@ -1,48 +1,88 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: Toshiba - Documentation for Linux Developers
-Date: Tue, 17 Jun 2008 16:44:37 -0700
-Message-ID: <20080617234437.GA32316@kroah.com>
-References: <4855971D.90004@diamondcut.com.br> <20080616221443.GA760@kroah.com> <485799B6.2010302@diamondcut.com.br>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [patch 00/28] PNP: convert fixed tables to lists, v3
+Date: Tue, 17 Jun 2008 20:00:11 -0400 (EDT)
+Message-ID: <alpine.LFD.1.10.0806171956510.7277@localhost.localdomain>
+References: <20080617225823.045233728@ldl.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:37479 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756893AbYFQXuZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jun 2008 19:50:25 -0400
-Content-Disposition: inline
-In-Reply-To: <485799B6.2010302@diamondcut.com.br>
+Received: from vms044pub.verizon.net ([206.46.252.44]:44647 "EHLO
+	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751386AbYFRAA3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jun 2008 20:00:29 -0400
+In-reply-to: <20080617225823.045233728@ldl.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Renato S. Yamane" <yamane@diamondcut.com.br>
-Cc: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>, Takashi Iwai <tiwai@suse.de>, Jiri Slaby <jirislaby@gmail.com>
 
-On Tue, Jun 17, 2008 at 08:02:14AM -0300, Renato S. Yamane wrote:
-> Greg KH wrote:
-> > Renato S. Yamane wrote:
-> >> Toshiba have a 'link' between Linux Developers and Head Company, that is:
-> >> <http://linux.toshiba-dme.co.jp/linux/eng/develop.htm>
-> >>
-> >> If someone need documentation to develop Linux drivers, contact
-> >> linux@toshiba-dme.co.jp
-> > 
-> > Are there any known drivers for Toshiba hardware that you need for Linux
-> > that we should be contacting them about?
-> 
-> Greg, in my Toshiba M45-S355, multimedia keys (play, pause, stop, etc)
-> and Fn+Fx keys don't work.
-> 
-> With no Fn keys, I can't change brightness of monitor (Fn+F6/F7) and
-> change output video from LCD to VGA (Fn+F5).
-> 
-> I try use "xev" to capture key press, but Fn and Multimedia Keys is not
-> recognized.
-> 
-> And other problem is with battery charge, as we can see here:
-> <http://bugzilla.kernel.org/show_bug.cgi?id=10797>
+thanks for the update, bjorn.
 
-Have you discussed this with the maintainers that Len pointed out?
+it applied cleanly to top of linus' tree,
+built cleanly and booted cleanly -- no unexplained dmesg diffs.
 
-thanks,
+there are a couple of checkpatch.pl warnings -- i'll look
+at those after the celtics.
 
-greg k-h
+cheers,
+-len
+
+
+On Tue, 17 Jun 2008, Bjorn Helgaas wrote:
+
+> This patch series contains all my PNP patches that are not yet in Linus'
+> tree, including both the "convert resource table to dynamic list" series
+> and the "convert resource options to unified dynamic list" series.
+> 
+> This series should replace all the PNP patches in -mm from
+>     pnp-add-detail-to-debug-resource-dump.patch
+>     ...
+>     not-for-merging-pnp-changes-suspend-oops.patch
+> except for isa-set-24-bit-dma_mask-for-isa-devices.patch, which got
+> stuck in the middle but isn't really PNP-related.
+> 
+> I'll be on vacation for the rest of the week, so I won't be able to
+> respond to any issues until Monday.
+> 
+> Here are the significant changes since the last posting:
+> 
+>     - When replacing pnp_resource_table, the PNPACPI resource encoders
+>       have to explicitly handle disabled resources; previously any
+>       unused slots in the table were implicitly disabled.  This should
+>       fix Jiri Slaby's oops on suspend/resume (though he hasn't tested
+>       this version).
+>       
+>       This change is in the patch titled "PNP: replace pnp_resource_table
+>       with dynamically allocated resources".
+>       
+>     - Added a new patch to keep disabled IRQ and DMA resources when parsing
+>       current config.  This fixes a bug in the current (2.6.25) PNPACPI
+>       code: consider a device with (mem, irq0, irq1, io), where irq0 is
+>       disabled.  If we drop irq0 when parsing the _CRS, we will mistakenly
+>       put irq1 in the irq0 slot when we encode resources for an _SRS call.
+> 
+>     - Added a new patch to avoid interrupts used by an IDE controller in
+>       compatibility mode.  https://bugzilla.novell.com/show_bug.cgi?id=375836
+> 
+>     - Added a new PNPACPI patch to support HP vendor-specific descriptors.
+>       This has long been supported by arch/ia64/kernel/acpi-ext.c, which
+>       provides an hp_acpi_csr_space() interface, but I think it's better
+>       and more generic to support it in PNPACPI.
+> 
+> Changes since v2 of "convert resource options to unified dynamic list":
+> 
+>     - fixed bisection problem in quirk_ad1815_mpu_resources()
+>     - fixed checkpatch warning in pnp_show_options()
+>       (pnp-convert-resource-options-to-single-linked-list-checkpatch-fixes.patch)
+>     - replaced pnp_independent_option() with literal 0
+>     - fixed coding style in pnp/manager.c
+>     - added EXPORT_SYMBOL(pnp_possible_config)
+>       (pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way-fix.patch)
+> 
+> Bjorn
+> -- 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
