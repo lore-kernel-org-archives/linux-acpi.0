@@ -1,76 +1,67 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+From: "Maciej W. Rozycki" <macro@linux-mips.org>
 Subject: Re: linux-next: Tree for June 13: IO APIC breakage on HP nx6325
-Date: Thu, 19 Jun 2008 00:11:37 +0200
-Message-ID: <200806190011.38548.rjw@sisk.pl>
-References: <20080613232214.394fd6fd.sfr@canb.auug.org.au> <200806180053.40044.rjw@sisk.pl> <Pine.LNX.4.55.0806180400070.28110@cliff.in.clinika.pl>
+Date: Wed, 18 Jun 2008 23:36:16 +0100 (BST)
+Message-ID: <Pine.LNX.4.55.0806182308190.7802@cliff.in.clinika.pl>
+References: <20080613232214.394fd6fd.sfr@canb.auug.org.au>
+ <Pine.LNX.4.55.0806172206580.28110@cliff.in.clinika.pl> <200806172338.38318.rjw@sisk.pl>
+ <200806180053.40044.rjw@sisk.pl> <Pine.LNX.4.55.0806180400070.28110@cliff.in.clinika.pl>
+ <20080618190603.GB10431@cvg>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:45804 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753558AbYFRWK0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 18 Jun 2008 18:10:26 -0400
-In-Reply-To: <Pine.LNX.4.55.0806180400070.28110@cliff.in.clinika.pl>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <20080618190603.GB10431@cvg>
+Sender: linux-next-owner@vger.kernel.org
+To: Cyrill Gorcunov <gorcunov@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Ingo Molnar <mingo@elte.hu>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Maciej W. Rozycki" <macro@linux-mips.org>
-Cc: Ingo Molnar <mingo@elte.hu>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Wednesday, 18 of June 2008, Maciej W. Rozycki wrote:
-> On Wed, 18 Jun 2008, Rafael J. Wysocki wrote:
+On Wed, 18 Jun 2008, Cyrill Gorcunov wrote:
+
+> | 1. The 8259A interrupt actually escapes to the CPU somehow and is handled
+> |    as an ExtINTA interrupt.  This would make the code in check_timer()  
+> |    decide it has found a working configuration, while actually it has been
+> |    fooled.
 > 
-> > Here you go.  Below is the relevant snippet from the yesterday's linux-next
-> > dmesg with the patches:
-> > "x86: I/O APIC: timer through 8259A second-chance"
-> > "x86: add C1E aware idle function"
-> > reverted and the appended debug patch applied.
-> > 
-> > [    0.108006] TIMER: vector=0x30 apic1=0 pin1=2 apic2=-1 pin2=-1
-> > [    0.108006] ..MP-BIOS bug: 8254 timer not connected to IO-APIC
-> > [    0.108006] ...trying to set up timer (IRQ0) through the 8259A ... <2> failed
-> > [    0.108006] ...trying to set up timer as Virtual Wire IRQ...<2> works.
-> > 
-> > The entire dmesg is at: http://www.sisk.pl/kernel/debug/20080616/dmesg-4.log
+> Maciej, that is why we get 'received illegal vector'?
 > 
->  Thanks -- this is very important and useful information as it shows the
-> exact alternative used.
-> 
->  With such a configuration the "x86: I/O APIC: timer through 8259A
-> second-chance" patch should not matter, because the only change it
-> introduces is an attempt to try the same I/O APIC pin again, but with the
-> IRQ0 line of the master 8259A enabled.  That's not a terribly unusual 
-> configuration and nothing should get confused in the system.
+> 	[  129.092151] APIC error on CPU1: 00(40)
 
-But it _does_ get confused, really.
+ No, but that's an interesting observation, thank you -- well spotted!  
 
->  Barring the unlikely possibility of the 8259A actually being wired to 
-> INTIN2 of the I/O APIC I can see two possible explanations:
-> 
-> 1. The 8259A interrupt actually escapes to the CPU somehow and is handled
->    as an ExtINTA interrupt.  This would make the code in check_timer()  
->    decide it has found a working configuration, while actually it has been
->    fooled.
-> 
-> 2. There is a bug in this patch or an assumption it makes which results 
->    in the state of some component not to be restored correctly.  
->    Unfortunately I have no resources to test the 64-bit variation of the 
->    code, so something may have escaped my attention.
-> 
->  I'd like to find out which one is the case -- can you please reapply the
-> patch and send me the corresponding section of the bootstrap log?  If the
-> system hangs before you can retrieve the log, please just place:
+ ExtINTA stands for an "External INTA cycle" which is passed through from
+the CPU down to the system bus instead of being intercepted by the local
+APIC unit as usually.  In response to the INTA cycle one of the 8259A
+chips (either the master or the slave, depending on the source of the
+interrupt selected for handling) supplies the vector directly to the CPU
+through PCI (or whatever kind of bus links the legacy bridge with the host
+bridge) and then the FSB.  Therefore the vector bypasses all the APIC
+circuitry and cannot result in an APIC error interrupt.
 
-Here you go:
+ Instead the message quoted means an APIC input is misprogrammed
+somewhere.  This error happens if an interrupt is signalled to an unmasked
+APIC input which uses the Fixed or Lowest-Priority delivery mode and its
+vector implies priority below the minimum permitted, that is in the range
+from 0 to 15.
 
-[    0.108006] ..TIMER: vector=0x30 apic1=0 pin1=2 apic2=-1 pin2=-1
-[    0.108006] ..MP-BIOS bug: 8254 timer not connected to IO-APIC
-[    0.108006] ...trying to set up timer (IRQ0) through the 8259A ... <3>
-[    0.108006] ..... (found apic 0 pin 2) ...<3> works.
+ We have code already in place in io_apic_{32,64}.c that can be used to
+find out the offender with a piece of code like this (#if 0 has to be
+deactivated for this to work and they may be bit rot bugs to be fixed):
 
-The full dmesg is at: http://www.sisk.pl/kernel/debug/20080618/dmesg-1.log
+int __init all_pic_dump(void)
+{
+	int v = apic_verbosity;
 
-Thanks,
-Rafael
+	apic_verbosity = APIC_DEBUG;
+	print_IO_APIC();
+	print_all_local_APICs();
+	print_PIC();
+	apic_verbosity = v;
+
+	return 0;
+}
+
+late_initcall(all_pic_dump);
+
+if somebody is willing to aid with debugging this problem.
+
+  Maciej
