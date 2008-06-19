@@ -1,47 +1,41 @@
-From: "Jeff Trull" <linmodemstudent@gmail.com>
+From: Pavel Machek <pavel@suse.cz>
 Subject: Re: no self-refresh during S3 - any debug hints?
-Date: Thu, 19 Jun 2008 12:26:46 -0700
-Message-ID: <685450530806191226y7319a92au40afd85111573a40@mail.gmail.com>
-References: <685450530805311215lf463875g8eed40da630b4f96@mail.gmail.com>
-	 <alpine.LFD.1.10.0806191437580.3040@localhost.localdomain>
+Date: Thu, 19 Jun 2008 22:10:52 +0200
+Message-ID: <20080619201052.GA15587@elf.ucw.cz>
+References: <685450530805311215lf463875g8eed40da630b4f96@mail.gmail.com> <alpine.LFD.1.10.0806191437580.3040@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fk-out-0910.google.com ([209.85.128.191]:36286 "EHLO
-	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752320AbYFST0s (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Jun 2008 15:26:48 -0400
-Received: by fk-out-0910.google.com with SMTP id 18so902552fkq.5
-        for <linux-acpi@vger.kernel.org>; Thu, 19 Jun 2008 12:26:46 -0700 (PDT)
-In-Reply-To: <alpine.LFD.1.10.0806191437580.3040@localhost.localdomain>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:36382 "EHLO
+	gprs189-60.eurotel.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751039AbYFSUwl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Jun 2008 16:52:41 -0400
 Content-Disposition: inline
+In-Reply-To: <alpine.LFD.1.10.0806191437580.3040@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Pavel Machek <pavel@suse.cz>
+Cc: Jeff Trull <linmodemstudent@gmail.com>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-On Thu, Jun 19, 2008 at 12:02 PM, Len Brown <lenb@kernel.org> wrote:
+On Thu 2008-06-19 15:02:12, Len Brown wrote:
+> 
+> 
+> On Sat, 31 May 2008, Jeff Trull wrote:
+> 
+> > I made a breakthrough in my s2r debugging last night when I realized
+> > that the sooner I pressed the power button after suspend, the more
+> > life the system exhibited post-resume.  In fact when I attempted to
+> > resume immediately after entering suspend, my system had a successful
+> > resume from memory for the first time ever.  Therefore, I have a new
+> > hypothesis: DRAM self-refresh mode is not being properly entered.
 
->> I'm running kernel 2.6.20 on a laptop with an ATI IGP 320M Northbridge
->> and an Athlon XP.  DSDT has a _PTS but no _GTS.  I'm comfortable
->> recompiling the kernel.  Any suggestions as to how to proceed,
->> experiments to run, etc.?
->
-> Start by running the upstrteam kernel -- now 2.6.26, just out of
-> principle.
->
-> Then, see Documentation/power/basic-pm-debugging.txt
->
-> and try the options in /sys/power/pm_test
+Hmm, or some other hardware... I ve seen machines where video ram was
+not refreshed. If that piece of hw is critical enough, it will break
+resume.
 
-Thanks for the tips, Len.
-
-I previously recompiled my kernel to implement a variant of Rafael's
-patch from last November and was able to use it to determine that only
-the actual S3 state enter/exit (i.e., the writes to the PM1*_CONTROL
-in acpi_enter_sleep_state()) mattered - or, as you said, all the tests
-worked.  I'd like to try 2.6.26 soon, but FWIW I did attempt 2.6.24
-with the same results.
-
--Jeff
+You could try with minimal system, with as little drivers as
+possible... use acpi_sleep=s3_beep to determine where it fails.
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
