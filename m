@@ -1,54 +1,53 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: linux-next: Tree for June 13: IO APIC breakage on HP nx6325
-Date: Thu, 19 Jun 2008 11:35:41 +0200
-Message-ID: <20080619093541.GC15228@elte.hu>
-References: <20080613232214.394fd6fd.sfr@canb.auug.org.au> <200806180053.40044.rjw@sisk.pl> <Pine.LNX.4.55.0806180400070.28110@cliff.in.clinika.pl> <200806190011.38548.rjw@sisk.pl> <Pine.LNX.4.55.0806182345380.7802@cliff.in.clinika.pl>
+From: "Chen, Huacai" <huacai.chen@intel.com>
+Subject: [PATCH]ACPI: Fix CMOS time error after waking up by
+	/proc/acpi/alarm
+Date: Thu, 19 Jun 2008 21:52:02 +0800
+Message-ID: <42DFA526FC41B1429CE7279EF83C6BDC0148CB4C@pdsmsx415.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-next-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.55.0806182345380.7802@cliff.in.clinika.pl>
-Sender: linux-next-owner@vger.kernel.org
-To: "Maciej W. Rozycki" <macro@linux-mips.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+Content-class: urn:content-classes:message
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, lenb@kernel.org
+Cc: linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
+From: Huacai Chen <huacai.chen@intel.com>
 
-* Maciej W. Rozycki <macro@linux-mips.org> wrote:
+When writing /proc/acpi/alarm to wakeup up in adjust mode, this patch
+read the "century" filed and add it to the "year" field before writing.
+This avoids the CMOS time error (2000 years decrement) after waking up.
 
-> --- a/arch/x86/kernel/io_apic_64.c	2008-06-18 22:53:34.000000000 +0000
-> +++ b/arch/x86/kernel/io_apic_64.c	2008-06-18 22:58:45.000000000 +0000
-> @@ -1714,6 +1714,7 @@ static inline void __init check_timer(vo
->  		/* replace_pin_at_irq(0, apic1, pin1, apic2, pin2); */
->  		setup_timer_IRQ0_pin(apic2, pin2, cfg->vector);
->  		unmask_IO_APIC_irq(0);
-> +		clear_IO_APIC_pin(apic2, pin2);
->  		enable_8259A_irq(0);
->  		if (timer_irq_works()) {
->  			apic_printk(APIC_VERBOSE," works.\n");
-
-would it be fine with you if we applied this to tip/x86, as it unbreaks 
-Rafael's box?
-
-does PIT programming matter? One detail which might matter and which 
-touches IRQ0 generation is the clockevent driver on nohz/highres. See 
-arch/x86/kernel/i8253.c:init_pit_timer():
-
-        case CLOCK_EVT_MODE_SHUTDOWN:
-        case CLOCK_EVT_MODE_UNUSED:
-                if (evt->mode == CLOCK_EVT_MODE_PERIODIC ||
-                    evt->mode == CLOCK_EVT_MODE_ONESHOT) {
-                        outb_pit(0x30, PIT_MODE);
-                        outb_pit(0, PIT_CH0);
-                        outb_pit(0, PIT_CH0);
-                }
-                pit_disable_clocksource();
-                break;
-
-        case CLOCK_EVT_MODE_ONESHOT:
-                /* One shot setup */
-                pit_disable_clocksource();
-                outb_pit(0x38, PIT_MODE);
-                break;
-
-	Ingo
+Signed-off-by: Huacai Chen <huacai.chen@intel.com>
+---
+diff --git a/drivers/acpi/sleep/proc.c b/drivers/acpi/sleep/proc.c
+index 224c57c..2a85783 100644
+--- a/drivers/acpi/sleep/proc.c
++++ b/drivers/acpi/sleep/proc.c
+@@ -315,8 +315,11 @@ acpi_system_write_alarm(struct file *file,
+ 		cmos_bcd_write(day, acpi_gbl_FADT.day_alarm,
+rtc_control);
+ 	if (acpi_gbl_FADT.month_alarm)
+ 		cmos_bcd_write(mo, acpi_gbl_FADT.month_alarm,
+rtc_control);
+-	if (acpi_gbl_FADT.century)
++	if (acpi_gbl_FADT.century){
++		if (adjust) 
++			yr += cmos_bcd_read(acpi_gbl_FADT.century,
+rtc_control) * 100;
+ 		cmos_bcd_write(yr / 100, acpi_gbl_FADT.century,
+rtc_control);
++	}
+ 	/* enable the rtc alarm interrupt */
+ 	rtc_control |= RTC_AIE;
+ 	CMOS_WRITE(rtc_control, RTC_CONTROL);
+---
