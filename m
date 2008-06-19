@@ -1,17 +1,17 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFC][PATCH 9/9] PCI PM: Introduce pci_prepare_to_sleep and pci_back_from_sleep
-Date: Fri, 20 Jun 2008 01:57:11 +0200
-Message-ID: <200806200157.12094.rjw@sisk.pl>
+Subject: [RFC][PATCH 8/9] PCI PM: Rework device PM initialization
+Date: Fri, 20 Jun 2008 01:52:45 +0200
+Message-ID: <200806200152.45617.rjw@sisk.pl>
 References: <200806200145.33053.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:52535 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:52536 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754585AbYFSX6O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 19 Jun 2008 19:58:14 -0400
+	id S1754617AbYFSX6P (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 19 Jun 2008 19:58:15 -0400
 In-Reply-To: <200806200145.33053.rjw@sisk.pl>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
@@ -21,132 +21,273 @@ Cc: Alan Stern <stern@rowland.harvard.edu>, Jesse Barnes <jbarnes@virtuousgeek.o
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-PCI PM: Introduce pci_prepare_to_sleep and pci_back_from_sleep
+PCI PM: Rework device PM initialization
 
-Introduce functions pci_prepare_to_sleep() and pci_back_from_sleep(),
-to be used by the PCI drivers that want to place their devices into
-the lowest power state appropiate for them (PCI_D3hot, if the device
-is not supposed to wake up the system, or the deepest state from
-which the wake-up is possible, otherwise) while the system is being
-prepared to go into a sleeping state and to put them back into D0
-during the subsequent transition to the working state.
+Rework PCI device PM initialization so that if given device is capable
+of generating wake-up events, either natively through the PME#
+mechanism, or with the help of the platform, its power.can_wakeup
+and power.should_wakeup flags are set as appropriate.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- drivers/pci/pci.c   |   83 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/pci.h |    2 +
- 2 files changed, 85 insertions(+)
+ drivers/pci/pci.c   |  145 ++++++++++++++++++++++++++++++++--------------------
+ drivers/pci/pci.h   |    1 
+ drivers/pci/probe.c |   45 ----------------
+ 3 files changed, 93 insertions(+), 98 deletions(-)
 
 Index: linux-next/drivers/pci/pci.c
 ===================================================================
 --- linux-next.orig/drivers/pci/pci.c
 +++ linux-next/drivers/pci/pci.c
-@@ -1112,6 +1112,87 @@ int pci_enable_wake(struct pci_dev *dev,
+@@ -1016,6 +1016,53 @@ int pci_set_pcie_reset_state(struct pci_
  }
  
  /**
-+ * pci_prepare_to_sleep - prepare PCI device for system-wide transition into
-+ *                        a sleep state
-+ * @dev: Device to handle.
-+ *
-+ * Choose the power state appropriate for the device depending on whether
-+ * it can wake-up the system and/or is power manageable by the platform
-+ * (PCI_D3hot is the default) and put the device into that state.
++ * pci_pme_capable - check the capability of PCI device to generate PME#
++ * @dev: PCI device to handle.
++ * @pm: PCI PM capability offset of the device.
++ * @state: PCI state from which device will issue PME#.
 + */
-+int pci_prepare_to_sleep(struct pci_dev *dev)
++static bool pci_pme_capable(struct pci_dev *dev, int pm, pci_power_t state)
 +{
-+	pci_power_t target_state = PCI_D3hot;
-+	int pm = pci_find_capability(dev, PCI_CAP_ID_PM);
-+	int error;
++	u16 pmc;
 +
-+	if (platform_pci_power_manageable(dev)) {
-+		/*
-+		 * Call the platform to choose the target state of the device
-+		 * and enable wake-up from this state if supported.
-+		 */
-+		pci_power_t state = platform_pci_choose_state(dev);
++	if (!pm)
++		return false;
 +
-+		switch (state) {
-+		case PCI_POWER_ERROR:
-+		case PCI_UNKNOWN:
-+			break;
-+		case PCI_D1:
-+		case PCI_D2:
-+			if (pci_no_d1d2(dev))
-+				break;
-+		default:
-+			target_state = state;
-+			pci_enable_wake(dev, target_state, true);
-+		}
-+	} else if (device_may_wakeup(&dev->dev)) {
-+		/*
-+		 * Find the deepest state from which the device can generate
-+		 * wake-up events, make it the target state and enable device
-+		 * to generate PME#.
-+		 */
-+		u16 pmc;
++	/* Check device's ability to generate PME# from given state */
++	pci_read_config_word(dev, pm + PCI_PM_PMC, &pmc);
 +
-+		if (!pm)
-+			return -EIO;
++	pmc &= PCI_PM_CAP_PME_MASK;
++	pmc >>= ffs(PCI_PM_CAP_PME_MASK) - 1;   /* First bit of mask */
 +
-+		pci_read_config_word(dev, pm + PCI_PM_PMC, &pmc);
-+		if (pmc & PCI_PM_CAP_PME_MASK) {
-+			if (!(pmc & PCI_PM_CAP_PME_D3)) {
-+				/* Device cannot generate PME# from D3_hot */
-+				if (pmc & PCI_PM_CAP_PME_D2)
-+					target_state = PCI_D2;
-+				else if (pmc & PCI_PM_CAP_PME_D1)
-+					target_state = PCI_D1;
-+				else
-+					target_state = PCI_D0;
-+			}
-+			pci_pme_active(dev, pm, true);
-+		}
-+	}
++	return !!(pmc & (1 << state));
++}
 +
-+	error = pci_set_power_state(dev, target_state);
++/**
++ * pci_pme_active - enable or disable PCI device's PME# function
++ * @dev: PCI device to handle.
++ * @pm: PCI PM capability offset of the device.
++ * @enable: 'true' to enable PME# generation; 'false' to disable it.
++ *
++ * The caller must verify that the device is capable of generating PME# before
++ * calling this function with @enable equal to 'true'.
++ */
++static void pci_pme_active(struct pci_dev *dev, int pm, bool enable)
++{
++	u16 pmcsr;
 +
-+	if (error)
-+		pci_enable_wake(dev, target_state, false);
++	if (!pm)
++		return;
 +
++	pci_read_config_word(dev, pm + PCI_PM_CTRL, &pmcsr);
++	/* Clear PME_Status by writing 1 to it and enable PME# */
++	pmcsr |= PCI_PM_CTRL_PME_STATUS | PCI_PM_CTRL_PME_ENABLE;
++	if (!enable)
++		pmcsr &= ~PCI_PM_CTRL_PME_ENABLE;
++
++	pci_write_config_word(dev, pm + PCI_PM_CTRL, pmcsr);
++}
++
++/**
+  * pci_enable_wake - enable PCI device as wakeup event source
+  * @dev: PCI device affected
+  * @state: PCI state from which device will issue wakeup events
+@@ -1030,77 +1077,67 @@ int pci_set_pcie_reset_state(struct pci_
+  * supporting the standard PCI PME# signal may require such platform hooks;
+  * they always update bits in config space to allow PME# generation.
+  *
+- * -EIO is returned if the device can't be a wakeup event source.
+- * -EINVAL is returned if the device can't generate wakeup events from
+- * the specified PCI state.  Returns zero if the operation is successful.
++ * RETURN VALUE:
++ * 0 is returned on success
++ * -EINVAL is returned if device is not supposed to wake up the system
++ * Error code depending on the platform is returned if both the platform and the
++ * native mechanism fail to enable the generation of wake-up events
+  */
+ int pci_enable_wake(struct pci_dev *dev, pci_power_t state, int enable)
+ {
+ 	int pm;
+-	u16 value = 0;
+-	bool platform_done = false;
++	int error = 0;
+ 
+-	if (enable && platform_pci_can_wakeup(dev)) {
+-		/* Allow the platform to handle the device */
+-		int err = platform_pci_sleep_wake(dev, true);
+-		if (!err)
+-			/*
+-			 * The platform claims to have enabled the device's
+-			 * system wake-up capability as requested, but we are
+-			 * going to enable PME# anyway.
+-			 */
+-			platform_done = true;
+-	}
++	if (!device_may_wakeup(&dev->dev))
++		return -EINVAL;
+ 
+-	/* find PCI PM capability in list */
+-	pm = pci_find_capability(dev, PCI_CAP_ID_PM);
++	if (enable && platform_pci_can_wakeup(dev))
++		error = platform_pci_sleep_wake(dev, true);
+ 
+-	/* If device doesn't support PM Capabilities, but caller wants to
+-	 * disable wake events, it's a NOP.  Otherwise fail unless the
+-	 * platform hooks handled this legacy device already.
++	/*
++	 * We are going to enable/disable the generation of PME# even if the
++	 * platform claims to have handled the device as requested.
+ 	 */
+-	if (!pm) {
++	pm = pci_find_capability(dev, PCI_CAP_ID_PM);
++	if (!enable || pci_pme_capable(dev, pm, state)) {
++		pci_pme_active(dev, pm, enable);
+ 		if (enable)
+-			return platform_done ? 0 : -EIO;
+-		else
+-			goto Platform_disable;
+-	}
+-
+-	/* Check device's ability to generate PME# */
+-	pci_read_config_word(dev, pm + PCI_PM_PMC, &value);
+-
+-	value &= PCI_PM_CAP_PME_MASK;
+-	value >>= ffs(PCI_PM_CAP_PME_MASK) - 1;   /* First bit of mask */
+-
+-	/* Check if it can generate PME# from requested state. */
+-	if (!value || !(value & (1 << state))) {
+-		if (enable) {
+-			return platform_done ? 0 : -EINVAL;
+-		} else {
+-			value = 0;
+-			goto Platform_disable;
+-		}
++			return 0;
+ 	}
+ 
+-	pci_read_config_word(dev, pm + PCI_PM_CTRL, &value);
++	if (!enable && platform_pci_can_wakeup(dev))
++		error = platform_pci_sleep_wake(dev, false);
+ 
+-	/* Clear PME_Status by writing 1 to it and enable PME# */
+-	value |= PCI_PM_CTRL_PME_STATUS | PCI_PM_CTRL_PME_ENABLE;
 +	return error;
 +}
-+
+ 
+-	if (!enable)
+-		value &= ~PCI_PM_CTRL_PME_ENABLE;
 +/**
-+ * pci_back_from_sleep - turn PCI device on during system-wide transition into
-+ *                       the working state a sleep state
-+ * @dev: Device to handle.
-+ *
-+ * Disable device's sytem wake-up capability and put it into D0.
++ * pci_pm_init - Initialize PM functions of given PCI device
++ * @dev: PCI device to handle.
 + */
-+int pci_back_from_sleep(struct pci_dev *dev)
++void pci_pm_init(struct pci_dev *dev)
 +{
-+	pci_enable_wake(dev, PCI_D0, false);
-+	return pci_set_power_state(dev, PCI_D0);
-+}
++	int pm;
++	bool can_wakeup = false;
+ 
+-	pci_write_config_word(dev, pm + PCI_PM_CTRL, value);
++	/* find PCI PM capability in list */
++	pm = pci_find_capability(dev, PCI_CAP_ID_PM);
++	if (pm) {
++		u16 pmc;
+ 
+- Platform_disable:
+-	if (!enable && platform_pci_can_wakeup(dev)) {
+-		/* Allow the platform to finalize the operation */
+-		int err = platform_pci_sleep_wake(dev, false);
+-		if (err && !value)
+-			return -EIO;
++		/* Check device's ability to generate PME# */
++		pci_read_config_word(dev, pm + PCI_PM_PMC, &pmc);
++		if (pmc & PCI_PM_CAP_PME_MASK) {
++			can_wakeup = true;
++			/* Disable the PME# generation capability */
++			pci_pme_active(dev, pm, false);
++		}
+ 	}
+ 
+-	return 0;
++	if (platform_pci_can_wakeup(dev))
++		can_wakeup = true;
 +
-+/**
-  * pci_pm_init - Initialize PM functions of given PCI device
-  * @dev: PCI device to handle.
-  */
-@@ -1809,5 +1890,7 @@ EXPORT_SYMBOL(pci_set_power_state);
- EXPORT_SYMBOL(pci_save_state);
- EXPORT_SYMBOL(pci_restore_state);
- EXPORT_SYMBOL(pci_enable_wake);
-+EXPORT_SYMBOL(pci_prepare_to_sleep);
-+EXPORT_SYMBOL(pci_back_from_sleep);
- EXPORT_SYMBOL_GPL(pci_set_pcie_reset_state);
++	device_init_wakeup(&dev->dev, can_wakeup);
+ }
  
-Index: linux-next/include/linux/pci.h
+ int
+Index: linux-next/drivers/pci/pci.h
 ===================================================================
---- linux-next.orig/include/linux/pci.h
-+++ linux-next/include/linux/pci.h
-@@ -633,6 +633,8 @@ int pci_restore_state(struct pci_dev *de
- int pci_set_power_state(struct pci_dev *dev, pci_power_t state);
- pci_power_t pci_choose_state(struct pci_dev *dev, pm_message_t state);
- int pci_enable_wake(struct pci_dev *dev, pci_power_t state, int enable);
-+int pci_prepare_to_sleep(struct pci_dev *dev);
-+int pci_back_from_sleep(struct pci_dev *dev);
+--- linux-next.orig/drivers/pci/pci.h
++++ linux-next/drivers/pci/pci.h
+@@ -35,6 +35,7 @@ struct pci_platform_pm_ops {
+ };
  
- /* Functions for PCI Hotplug drivers to use */
- int pci_bus_find_capability(struct pci_bus *bus, unsigned int devfn, int cap);
+ extern int pci_set_platform_pm(struct pci_platform_pm_ops *ops);
++extern void pci_pm_init(struct pci_dev *dev);
+ 
+ extern int pci_user_read_config_byte(struct pci_dev *dev, int where, u8 *val);
+ extern int pci_user_read_config_word(struct pci_dev *dev, int where, u16 *val);
+Index: linux-next/drivers/pci/probe.c
+===================================================================
+--- linux-next.orig/drivers/pci/probe.c
++++ linux-next/drivers/pci/probe.c
+@@ -858,49 +858,6 @@ int pci_cfg_space_size_ext(struct pci_de
+ 	return PCI_CFG_SPACE_SIZE;
+ }
+ 
+-/**
+- * pci_disable_pme - Disable the PME function of PCI device
+- * @dev: PCI device affected
+- * -EINVAL is returned if PCI device doesn't support PME.
+- * Zero is returned if the PME is supported and can be disabled.
+- */
+-static int pci_disable_pme(struct pci_dev *dev)
+-{
+-	int pm;
+-	u16 value;
+-
+-	/* find PCI PM capability in list */
+-	pm = pci_find_capability(dev, PCI_CAP_ID_PM);
+-
+-	/* If device doesn't support PM Capabilities, it means that PME is
+-	 * not supported.
+-	 */
+-	if (!pm)
+-		return -EINVAL;
+-	/* Check device's ability to generate PME# */
+-	pci_read_config_word(dev, pm + PCI_PM_PMC, &value);
+-
+-	value &= PCI_PM_CAP_PME_MASK;
+-	/* Check if it can generate PME# */
+-	if (!value) {
+-		/*
+-		 * If it is zero, it means that PME is still unsupported
+-		 * although there exists the PM capability.
+-		 */
+-		return -EINVAL;
+-	}
+-
+-	pci_read_config_word(dev, pm + PCI_PM_CTRL, &value);
+-
+-	/* Clear PME_Status by writing 1 to it */
+-	value |= PCI_PM_CTRL_PME_STATUS ;
+-	/* Disable PME enable bit */
+-	value &= ~PCI_PM_CTRL_PME_ENABLE;
+-	pci_write_config_word(dev, pm + PCI_PM_CTRL, value);
+-
+-	return 0;
+-}
+-
+ int pci_cfg_space_size(struct pci_dev *dev)
+ {
+ 	int pos;
+@@ -1008,7 +965,7 @@ static struct pci_dev *pci_scan_device(s
+ 	}
+ 
+ 	pci_vpd_pci22_init(dev);
+-	pci_disable_pme(dev);
++	pci_pm_init(dev);
+ 
+ 	return dev;
+ }
+
