@@ -1,89 +1,54 @@
-From: "Oliver Pinter" <oliver.pntr@gmail.com>
-Subject: Re: [stable PATCH 2.6.21] ACPICA: Ignore ACPI table signature for Load() operator
-Date: Thu, 19 Jun 2008 10:09:15 +0200
-Message-ID: <6101e8c40806190109u279a713dn5b0264ab235e53c@mail.gmail.com>
-References: <alpine.LFD.1.10.0806182211330.3613@localhost.localdomain>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: linux-next: Tree for June 13: IO APIC breakage on HP nx6325
+Date: Thu, 19 Jun 2008 11:35:41 +0200
+Message-ID: <20080619093541.GC15228@elte.hu>
+References: <20080613232214.394fd6fd.sfr@canb.auug.org.au> <200806180053.40044.rjw@sisk.pl> <Pine.LNX.4.55.0806180400070.28110@cliff.in.clinika.pl> <200806190011.38548.rjw@sisk.pl> <Pine.LNX.4.55.0806182345380.7802@cliff.in.clinika.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.155]:44710 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753739AbYFSIJW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Jun 2008 04:09:22 -0400
-Received: by fg-out-1718.google.com with SMTP id 19so333749fgg.17
-        for <linux-acpi@vger.kernel.org>; Thu, 19 Jun 2008 01:09:20 -0700 (PDT)
-In-Reply-To: <alpine.LFD.1.10.0806182211330.3613@localhost.localdomain>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-next-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <Pine.LNX.4.55.0806182345380.7802@cliff.in.clinika.pl>
+Sender: linux-next-owner@vger.kernel.org
+To: "Maciej W. Rozycki" <macro@linux-mips.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: stable@kernel.org, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-
-thx picked up for 2.6.22
-
-On 6/19/08, Len Brown <lenb@kernel.org> wrote:
-> From: Bob Moore <robert.moore@intel.com>
->
-> upstream bc45b1d39a925b56796bebf8a397a0491489d85c
->
-> Only "SSDT" is acceptable to the ACPI spec, but tables are
-> seen with OEMx and null sigs. Therefore, signature validation
-> is worthless.  Apparently MS ACPI accepts such signatures, ACPICA
-> must be compatible.
->
-> Without this patch booting with acpi_osi="!Windows 2006" is required
-> for several machines to function properly with cpufreq.
->
-> http://bugzilla.kernel.org/show_bug.cgi?id=9919
-> http://bugzilla.kernel.org/show_bug.cgi?id=10383
-> http://bugzilla.kernel.org/show_bug.cgi?id=10454
-> https://bugzilla.novell.com/show_bug.cgi?id=396311
->
-> Signed-off-by: Bob Moore <robert.moore@intel.com>
-> Signed-off-by: Lin Ming <ming.m.lin@intel.com>
-> Signed-off-by: Len Brown <len.brown@intel.com>
-> ---
->  drivers/acpi/tables/tbinstal.c |   25 +++++++------------------
->  1 files changed, 7 insertions(+), 18 deletions(-)
->
-> Index: linux-2.6.21.y/drivers/acpi/tables/tbinstal.c
-> ===================================================================
-> --- linux-2.6.21.y.orig/drivers/acpi/tables/tbinstal.c
-> +++ linux-2.6.21.y/drivers/acpi/tables/tbinstal.c
-> @@ -123,17 +123,13 @@ acpi_tb_add_table(struct acpi_table_desc
->  		}
->  	}
->
-> -	/* The table must be either an SSDT or a PSDT */
-> -
-> -	if ((!ACPI_COMPARE_NAME(table_desc->pointer->signature, ACPI_SIG_PSDT))
-> -	    &&
-> -	    (!ACPI_COMPARE_NAME(table_desc->pointer->signature, ACPI_SIG_SSDT)))
-> -	{
-> -		ACPI_ERROR((AE_INFO,
-> -			    "Table has invalid signature [%4.4s], must be SSDT or PSDT",
-> -			    table_desc->pointer->signature));
-> -		return_ACPI_STATUS(AE_BAD_SIGNATURE);
-> -	}
-> +	/*
-> +	 * Originally, we checked the table signature for "SSDT" or "PSDT" here.
-> +	 * Next, we added support for OEMx tables, signature "OEM".
-> +	 * Valid tables were encountered with a null signature, so we've just
-> +	 * given up on validating the signature, since it seems to be a waste
-> +	 * of code. The original code was removed (05/2008).
-> +	 */
->
->  	(void)acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
->
 
 
--- 
-Thanks,
-Oliver
+* Maciej W. Rozycki <macro@linux-mips.org> wrote:
+
+> --- a/arch/x86/kernel/io_apic_64.c	2008-06-18 22:53:34.000000000 +0000
+> +++ b/arch/x86/kernel/io_apic_64.c	2008-06-18 22:58:45.000000000 +0000
+> @@ -1714,6 +1714,7 @@ static inline void __init check_timer(vo
+>  		/* replace_pin_at_irq(0, apic1, pin1, apic2, pin2); */
+>  		setup_timer_IRQ0_pin(apic2, pin2, cfg->vector);
+>  		unmask_IO_APIC_irq(0);
+> +		clear_IO_APIC_pin(apic2, pin2);
+>  		enable_8259A_irq(0);
+>  		if (timer_irq_works()) {
+>  			apic_printk(APIC_VERBOSE," works.\n");
+
+would it be fine with you if we applied this to tip/x86, as it unbreaks 
+Rafael's box?
+
+does PIT programming matter? One detail which might matter and which 
+touches IRQ0 generation is the clockevent driver on nohz/highres. See 
+arch/x86/kernel/i8253.c:init_pit_timer():
+
+        case CLOCK_EVT_MODE_SHUTDOWN:
+        case CLOCK_EVT_MODE_UNUSED:
+                if (evt->mode == CLOCK_EVT_MODE_PERIODIC ||
+                    evt->mode == CLOCK_EVT_MODE_ONESHOT) {
+                        outb_pit(0x30, PIT_MODE);
+                        outb_pit(0, PIT_CH0);
+                        outb_pit(0, PIT_CH0);
+                }
+                pit_disable_clocksource();
+                break;
+
+        case CLOCK_EVT_MODE_ONESHOT:
+                /* One shot setup */
+                pit_disable_clocksource();
+                outb_pit(0x38, PIT_MODE);
+                break;
+
+	Ingo
