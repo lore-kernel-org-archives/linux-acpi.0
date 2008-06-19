@@ -1,88 +1,71 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: linux-next: Tree for June 13: IO APIC breakage on HP nx6325
-Date: Thu, 19 Jun 2008 02:25:50 +0200
-Message-ID: <200806190225.51088.rjw@sisk.pl>
-References: <20080613232214.394fd6fd.sfr@canb.auug.org.au> <200806190011.38548.rjw@sisk.pl> <Pine.LNX.4.55.0806182345380.7802@cliff.in.clinika.pl>
+From: Len Brown <lenb@kernel.org>
+Subject: [stable PATCH 2.6.22, 2.6.23, 2.6.24,
+ 2.6.25] ACPICA: Ignore ACPI table signature for Load() operator
+Date: Wed, 18 Jun 2008 22:11:31 -0400 (EDT)
+Message-ID: <alpine.LFD.1.10.0806182151270.3074@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.55.0806182345380.7802@cliff.in.clinika.pl>
-Content-Disposition: inline
-Sender: linux-next-owner@vger.kernel.org
-To: "Maciej W. Rozycki" <macro@linux-mips.org>
-Cc: Ingo Molnar <mingo@elte.hu>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms046pub.verizon.net ([206.46.252.46]:58271 "EHLO
+	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750749AbYFSCLn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Jun 2008 22:11:43 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: stable@kernel.org
+Cc: linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Thursday, 19 of June 2008, Maciej W. Rozycki wrote:
-> On Thu, 19 Jun 2008, Rafael J. Wysocki wrote:
-> 
-> > >  With such a configuration the "x86: I/O APIC: timer through 8259A
-> > > second-chance" patch should not matter, because the only change it
-> > > introduces is an attempt to try the same I/O APIC pin again, but with the
-> > > IRQ0 line of the master 8259A enabled.  That's not a terribly unusual 
-> > > configuration and nothing should get confused in the system.
-> > 
-> > But it _does_ get confused, really.
-> 
->  Something certainly gets confused, but so far I am not sure which bit 
-> exactly it is, are you?
+From: Bob Moore <robert.moore@intel.com>
 
-No, I'm not.
+upstream bc45b1d39a925b56796bebf8a397a0491489d85c
 
-> > >  Barring the unlikely possibility of the 8259A actually being wired to 
-> > > INTIN2 of the I/O APIC I can see two possible explanations:
-> > > 
-> > > 1. The 8259A interrupt actually escapes to the CPU somehow and is handled
-> > >    as an ExtINTA interrupt.  This would make the code in check_timer()  
-> > >    decide it has found a working configuration, while actually it has been
-> > >    fooled.
-> [...]
-> > Here you go:
-> > 
-> > [    0.108006] ..TIMER: vector=0x30 apic1=0 pin1=2 apic2=-1 pin2=-1
-> > [    0.108006] ..MP-BIOS bug: 8254 timer not connected to IO-APIC
-> > [    0.108006] ...trying to set up timer (IRQ0) through the 8259A ... <3>
-> > [    0.108006] ..... (found apic 0 pin 2) ...<3> works.
-> > 
-> > The full dmesg is at: http://www.sisk.pl/kernel/debug/20080618/dmesg-1.log
-> 
->  Thanks.  In this case I suspect the case #1 quoted above happens, that is
-> the 8259A manages to deliver its interrupt somehow.  Note at this stage it
-> is meant to be in the AEOI mode, so it can happily resubmit the interrupt
-> indefinitely with no additional handling as long as it receives INTA
-> cycles.
-> 
->  Can you please try the patch below on top of "x86: I/O APIC: timer
-> through 8259A second-chance" to see whether my hypothesis is true?  It
-> modifies the through-8259A setup path so that the APIC input gets masked,
-> but the 8259A has the timer interrupt still enabled.  Let me know how the
-> timer interrupt is routed in this case.
+Without this patch booting with acpi_osi="!Windows 2006" is required
+for several machines to function properly with cpufreq
+due to failure to load a Vista specific table with a bad signature.
 
-That helped a lot, the system seems to work normally now.
+Only "SSDT" is acceptable to the ACPI spec, but tables are
+seen with OEMx and null sigs. Therefore, signature validation
+is worthless.  Apparently MS ACPI accepts such signatures, ACPICA
+must be compatible.
 
-Here's the relevant snippet from dmesg:
+http://bugzilla.kernel.org/show_bug.cgi?id=9919
+http://bugzilla.kernel.org/show_bug.cgi?id=10383
+http://bugzilla.kernel.org/show_bug.cgi?id=10454
+https://bugzilla.novell.com/show_bug.cgi?id=396311
 
-[    0.108006] ..TIMER: vector=0x30 apic1=0 pin1=2 apic2=-1 pin2=-1
-[    0.108006] ..MP-BIOS bug: 8254 timer not connected to IO-APIC
-[    0.108006] ...trying to set up timer (IRQ0) through the 8259A ... <3>
-[    0.108006] ..... (found apic 0 pin 2) ...<3> failed.
-[    0.108006] ...trying to set up timer as Virtual Wire IRQ...<3> works.
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ drivers/acpi/tables/tbinstal.c |   25 +++++++------------------
+ 1 files changed, 7 insertions(+), 18 deletions(-)
 
-and the whole thing is at: http://www.sisk.pl/kernel/debug/20080618/dmesg-2.log
+Index: linux-2.6.25.y/drivers/acpi/tables/tbinstal.c
+===================================================================
+--- linux-2.6.25.y.orig/drivers/acpi/tables/tbinstal.c
++++ linux-2.6.25.y/drivers/acpi/tables/tbinstal.c
+@@ -123,17 +123,13 @@ acpi_tb_add_table(struct acpi_table_desc
+ 		}
+ 	}
  
->  BTW, do we have any piece of technical information about the chipset
-> used?
-
-I, personally, don't have any and AMD only has SB600 documentation on its
-web page (it's still marked as "AMD confidential" ;-)).
-
-> The southbridge used is an ATI SB400, which is where I would 
-> normally expect two 8259A and an I/O APIC core to be placed.
-
-There is an interrupt controller in there, but I'm not sure if there's any
-8259A.  The northbridge is on the CPU, actually.
-
-Thanks,
-Rafael
+-	/* The table must be either an SSDT or a PSDT or an OEMx */
+-
+-	if ((!ACPI_COMPARE_NAME(table_desc->pointer->signature, ACPI_SIG_PSDT))
+-	    &&
+-	    (!ACPI_COMPARE_NAME(table_desc->pointer->signature, ACPI_SIG_SSDT))
+-	    && (strncmp(table_desc->pointer->signature, "OEM", 3))) {
+-		ACPI_ERROR((AE_INFO,
+-			    "Table has invalid signature [%4.4s], must be SSDT, PSDT or OEMx",
+-			    table_desc->pointer->signature));
+-		return_ACPI_STATUS(AE_BAD_SIGNATURE);
+-	}
++	/*
++	 * Originally, we checked the table signature for "SSDT" or "PSDT" here.
++	 * Next, we added support for OEMx tables, signature "OEM".
++	 * Valid tables were encountered with a null signature, so we've just
++	 * given up on validating the signature, since it seems to be a waste
++	 * of code. The original code was removed (05/2008).
++	 */
+ 
+ 	(void)acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
+ 
