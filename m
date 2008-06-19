@@ -1,133 +1,71 @@
-From: Alok Kataria <akataria@vmware.com>
-Subject: [PATCH 2/2] acpi based pci gap caluculation
-Date: Thu, 19 Jun 2008 15:58:06 -0700
-Message-ID: <1213916286.27983.37.camel@promb-2n-dhcp368.eng.vmware.com>
-Reply-To: akataria@vmware.com
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [RFC][PATCH 1/9] ACPI: Introduce acpi_bus_power_manageable function
+Date: Fri, 20 Jun 2008 01:46:30 +0200
+Message-ID: <200806200146.30752.rjw@sisk.pl>
+References: <200806200145.33053.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-outbound-1.vmware.com ([65.113.40.141]:37884 "EHLO
-	smtp-outbound-1.vmware.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752811AbYFSW6I (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 19 Jun 2008 18:58:08 -0400
+Received: from ogre.sisk.pl ([217.79.144.158]:52494 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754567AbYFSX56 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 19 Jun 2008 19:57:58 -0400
+In-Reply-To: <200806200145.33053.rjw@sisk.pl>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>, Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-Evaluates the _CRS object under PCI0 looking for producer resources.
-Then searches the e820 memory space for a gap within these producer resources.
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Allows us to find a gap for the unclaimed pci resources or MMIO resources
-for hotplug devices within the BIOS allowed pci regions.
+ACPI: Introduce acpi_bus_power_manageable function
 
-Signed-off-by: Alok N Kataria <akataria@vmware.com>
+Introduce function acpi_bus_power_manageable() allowing other
+(dependent) subsystems to check if ACPI is able to power manage given
+device.  This may be useful, for example, for PCI device power
+management.
 
-Index: linux-2.6/arch/x86/pci/acpi.c
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/acpi/bus.c      |   11 +++++++++++
+ include/acpi/acpi_bus.h |    1 +
+ 2 files changed, 12 insertions(+)
+
+Index: linux-next/drivers/acpi/bus.c
 ===================================================================
---- linux-2.6.orig/arch/x86/pci/acpi.c	2008-06-13 13:58:53.000000000 -0700
-+++ linux-2.6/arch/x86/pci/acpi.c	2008-06-13 14:10:05.000000000 -0700
-@@ -4,6 +4,7 @@
- #include <linux/irq.h>
- #include <linux/dmi.h>
- #include <asm/numa.h>
-+#include <asm/e820.h>
- #include "pci.h"
+--- linux-next.orig/drivers/acpi/bus.c
++++ linux-next/drivers/acpi/bus.c
+@@ -295,6 +295,17 @@ int acpi_bus_set_power(acpi_handle handl
  
- struct pci_root_info {
-@@ -14,6 +15,11 @@
- 	int busnum;
- };
+ EXPORT_SYMBOL(acpi_bus_set_power);
  
-+struct gap_info {
-+	unsigned long gapstart;
-+	unsigned long gapsize;
-+};
-+
- static acpi_status
- resource_to_addr(struct acpi_resource *resource,
- 			struct acpi_resource_address64 *addr)
-@@ -110,6 +116,70 @@
- 	}
- }
- 
-+static acpi_status search_gap(struct acpi_resource *resource, void *data)
++bool acpi_bus_power_manageable(acpi_handle handle)
 +{
-+	struct acpi_resource_address64 addr;
-+	acpi_status status;
-+	struct gap_info *gap = data;
++	struct acpi_device *device;
++	int result;
 +
-+	status = resource_to_addr(resource, &addr);
-+	if (ACPI_SUCCESS(status) &&
-+	    addr.resource_type == ACPI_MEMORY_RANGE &&
-+	    addr.address_length > gap->gapsize) {
-+		e820_search_gap(&gap->gapstart, &gap->gapsize,
-+				(addr.minimum + addr.translation_offset));
-+	}
-+
-+	return AE_OK;
++	result = acpi_bus_get_device(handle, &device);
++	return result ? false : device->flags.power_manageable;
 +}
 +
-+/*
-+ * Search for a hole in the 32 bit address space for PCI to assign MMIO
-+ * resources for hotplug or unconfigured resources.
-+ * We query the CRS object of the PCI root device to look for possible producer
-+ * resources in the tree and consider these while calulating the start address
-+ * for this hole.
-+ */
-+static void pci_setup_gap(acpi_handle *handle)
-+{
-+	struct gap_info gap;
-+	acpi_status status;
++EXPORT_SYMBOL(acpi_bus_power_manageable);
 +
-+	gap.gapstart = 0;
-+	gap.gapsize = 0x400000;
-+
-+	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
-+				     search_gap, &gap);
-+
-+	if (ACPI_SUCCESS(status)) {
-+		unsigned long round;
-+
-+		if (!gap.gapstart) {
-+			printk(KERN_ERR "ACPI_PCI: Warning: Cannot find a gap "
-+					"in the 32bit address range\n"
-+					"ACPI_PCI: May collide with the "
-+					"hotpluggable memory address range\n");
-+		}
-+		/*
-+		 * Round the gapstart, uses the same logic as in
-+		 * e820_gap_setup
-+		 */
-+		round = 0x100000;
-+		while ((gap.gapsize >> 4) > round)
-+			round += round;
-+		/* Fun with two's complement */
-+		pci_mem_start = (gap.gapstart + round) & -round;
-+
-+		printk(KERN_INFO "ACPI_PCI: PCI resources should "
-+				"start at %lx (gap: %lx:%lx)\n",
-+				pci_mem_start, gap.gapstart, gap.gapsize);
-+	} else {
-+		printk(KERN_ERR "ACPI_PCI: Error while searching for gap in "
-+				"the 32bit address range for PCI\n");
-+	}
-+}
-+
-+
- static void
- get_current_resources(struct acpi_device *device, int busnum,
- 			int domain, struct pci_bus *bus)
-@@ -215,6 +285,8 @@
- 
- 	if (bus && (pci_probe & PCI_USE__CRS))
- 		get_current_resources(device, busnum, domain, bus);
-+
-+	pci_setup_gap(device->handle);
- 	return bus;
- }
- 
-
+ /* --------------------------------------------------------------------------
+                                 Event Management
+    -------------------------------------------------------------------------- */
+Index: linux-next/include/acpi/acpi_bus.h
+===================================================================
+--- linux-next.orig/include/acpi/acpi_bus.h
++++ linux-next/include/acpi/acpi_bus.h
+@@ -335,6 +335,7 @@ void acpi_bus_data_handler(acpi_handle h
+ int acpi_bus_get_status(struct acpi_device *device);
+ int acpi_bus_get_power(acpi_handle handle, int *state);
+ int acpi_bus_set_power(acpi_handle handle, int state);
++bool acpi_bus_power_manageable(acpi_handle handle);
+ #ifdef CONFIG_ACPI_PROC_EVENT
+ int acpi_bus_generate_proc_event(struct acpi_device *device, u8 type, int data);
+ int acpi_bus_generate_proc_event4(const char *class, const char *bid, u8 type,
 
