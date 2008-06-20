@@ -1,56 +1,75 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 36/70] ACPICA: Fixes warning from exconfig.c on 64-bit build.
-Date: Fri, 20 Jun 2008 03:43:38 -0400
-Message-ID: <b16f32d8b814bdabb45ba34f25e6772990403272.1213947350.git.len.brown@intel.com>
+Subject: [PATCH 16/70] ACPICA: Update tracking macros to reduce code/data size
+Date: Fri, 20 Jun 2008 03:43:18 -0400
+Message-ID: <b92dfc6b680824fcb67891eeceb395f45f5a25ba.1213947350.git.len.brown@intel.com>
 References: <1213947852-10924-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms042pub.verizon.net ([206.46.252.42]:38101 "EHLO
-	vms042pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752247AbYFTHot (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 03:44:49 -0400
+Received: from vms173003pub.verizon.net ([206.46.173.3]:62806 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752131AbYFTHos (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 03:44:48 -0400
 Received: from localhost.localdomain ([72.93.254.151])
- by vms042.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0K2R00DOO46DS3P1@vms042.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 20 Jun 2008 02:44:38 -0500 (CDT)
+ by vms173003.mailsrvcs.net
+ (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+ with ESMTPA id <0K2R00A9S4659VK2@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 20 Jun 2008 02:44:30 -0500 (CDT)
 In-reply-to: <1213947852-10924-1-git-send-email-lenb@kernel.org>
 In-reply-to: <087803d18fb8259cb844c075a35fb27c2d80792e.1213947349.git.len.brown@intel.com>
 References: <087803d18fb8259cb844c075a35fb27c2d80792e.1213947349.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Bob Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Jan Beulich <jbeulich@novell.com>, Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Bob Moore <robert.moore@intel.com>
+From: Jan Beulich <jbeulich@novell.com>
 
-drivers/acpi/executer/exconfig.c:99: warning: cast to pointer from integer of different size
+Changed ACPI_MODULE_NAME and ACPI_FUNCTION_NAME to use arrays of
+strings instead of pointers to static strings. Jan Beulich and
+Bob Moore.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/executer/exconfig.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ include/acpi/acmacros.h |   10 ++++------
+ 1 files changed, 4 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/acpi/executer/exconfig.c b/drivers/acpi/executer/exconfig.c
-index dc62bfe..641ed8e 100644
---- a/drivers/acpi/executer/exconfig.c
-+++ b/drivers/acpi/executer/exconfig.c
-@@ -96,7 +96,7 @@ acpi_ex_add_table(u32 table_index,
+diff --git a/include/acpi/acmacros.h b/include/acpi/acmacros.h
+index fb41a3b..4e42f67 100644
+--- a/include/acpi/acmacros.h
++++ b/include/acpi/acmacros.h
+@@ -414,7 +414,7 @@ struct acpi_integer_overlay {
+  * error messages. The __FILE__ macro is not very useful for this, because it
+  * often includes the entire pathname to the module
+  */
+-#define ACPI_MODULE_NAME(name)          static char ACPI_UNUSED_VAR *_acpi_module_name = name;
++#define ACPI_MODULE_NAME(name)          static char ACPI_UNUSED_VAR _acpi_module_name[] = name;
+ #else
+ #define ACPI_MODULE_NAME(name)
+ #endif
+@@ -467,19 +467,17 @@ struct acpi_integer_overlay {
+ /*
+  * If ACPI_GET_FUNCTION_NAME was not defined in the compiler-dependent header,
+  * define it now. This is the case where there the compiler does not support
+- * a __FUNCTION__ macro or equivalent. We save the function name on the
+- * local stack.
++ * a __FUNCTION__ macro or equivalent.
+  */
+ #ifndef ACPI_GET_FUNCTION_NAME
+ #define ACPI_GET_FUNCTION_NAME          _acpi_function_name
+ /*
+  * The Name parameter should be the procedure name as a quoted string.
+- * This is declared as a local string ("MyFunctionName") so that it can
+- * be also used by the function exit macros below.
++ * The function name is also used by the function exit macros below.
+  * Note: (const char) is used to be compatible with the debug interfaces
+  * and macros such as __FUNCTION__.
+  */
+-#define ACPI_FUNCTION_NAME(name)        const char *_acpi_function_name = #name;
++#define ACPI_FUNCTION_NAME(name)        static const char _acpi_function_name[] = #name;
  
- 	/* Install the new table into the local data structures */
- 
--	obj_desc->reference.object = ACPI_CAST_PTR(void, table_index);
-+	obj_desc->reference.object = ACPI_TO_POINTER(table_index);
- 
- 	/* Add the table to the namespace */
- 
-@@ -359,6 +359,7 @@ acpi_ex_load_op(union acpi_operand_object *obj_desc,
- 
- 		ACPI_MEMCPY(table_desc.pointer, obj_desc->buffer.pointer,
- 			    length);
-+		table_desc.address = ACPI_TO_INTEGER (table_desc.pointer);
- 		table_desc.length = length;
- 		table_desc.flags = ACPI_TABLE_ORIGIN_ALLOCATED;
- 		break;
+ #else
+ /* Compiler supports __FUNCTION__ (or equivalent) -- Ignore this macro */
 -- 
 1.5.6
 
