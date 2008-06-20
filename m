@@ -1,68 +1,91 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: linux-next: Tree for June 13: IO APIC breakage on HP nx6325
-Date: Fri, 20 Jun 2008 15:11:23 +0200 (CEST)
-Message-ID: <alpine.LFD.1.10.0806201507190.3395@apollo.tec.linutronix.de>
-References: <20080613232214.394fd6fd.sfr@canb.auug.org.au> <200806180053.40044.rjw@sisk.pl> <Pine.LNX.4.55.0806180400070.28110@cliff.in.clinika.pl> <200806190011.38548.rjw@sisk.pl> <Pine.LNX.4.55.0806182345380.7802@cliff.in.clinika.pl> <20080619093541.GC15228@elte.hu>
- <Pine.LNX.4.55.0806191619560.12929@cliff.in.clinika.pl>
+From: Vegard Nossum <vegard.nossum@gmail.com>
+Subject: [PATCH] ACPI: don't walk tables if ACPI was disabled
+Date: Fri, 20 Jun 2008 15:56:40 +0200
+Message-ID: <20080620135639.GA5073@damson.getinternet.no>
+References: <20080620095247.GA24557@elte.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.55.0806191619560.12929@cliff.in.clinika.pl>
-Sender: linux-next-owner@vger.kernel.org
-To: "Maciej W. Rozycki" <macro@linux-mips.org>
-Cc: Ingo Molnar <mingo@elte.hu>, "Rafael J. Wysocki" <rjw@sisk.pl>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ug-out-1314.google.com ([66.249.92.169]:2452 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753309AbYFTN4x (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 09:56:53 -0400
+Received: by ug-out-1314.google.com with SMTP id h2so1165285ugf.16
+        for <linux-acpi@vger.kernel.org>; Fri, 20 Jun 2008 06:56:51 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20080620095247.GA24557@elte.hu>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Zhao Yakui <yakui.zhao@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alexey Starikovskiy <astarikovskiy@suse.de>, Yinghai Lu <yhlu.kernel@gmail.com>
 
-On Thu, 19 Jun 2008, Maciej W. Rozycki wrote:
-> On Thu, 19 Jun 2008, Ingo Molnar wrote:
-> > * Maciej W. Rozycki <macro@linux-mips.org> wrote:
-> > does PIT programming matter? One detail which might matter and which 
-> > touches IRQ0 generation is the clockevent driver on nohz/highres. See 
-> > arch/x86/kernel/i8253.c:init_pit_timer():
-> > 
-> >         case CLOCK_EVT_MODE_SHUTDOWN:
-> >         case CLOCK_EVT_MODE_UNUSED:
-> >                 if (evt->mode == CLOCK_EVT_MODE_PERIODIC ||
-> >                     evt->mode == CLOCK_EVT_MODE_ONESHOT) {
-> >                         outb_pit(0x30, PIT_MODE);
-> >                         outb_pit(0, PIT_CH0);
-> >                         outb_pit(0, PIT_CH0);
-> >                 }
-> >                 pit_disable_clocksource();
-> >                 break;
-> > 
-> >         case CLOCK_EVT_MODE_ONESHOT:
-> >                 /* One shot setup */
-> >                 pit_disable_clocksource();
-> >                 outb_pit(0x38, PIT_MODE);
-> >                 break;
-> 
->  It does, though not necessarily in this case.  In principle all this
-> 8254-through-APIC timer validation code assumes the source retriggers
-> automatically and if an edge is lost because the APIC input targeted is
-> masked or not configured yet, another one will follow shortly by itself.  
-> It used to be the case when this code was implemented as we never used any
-> of the single-shot modes of the 8254 back then.
-> 
->  Is it now possible at the time check_timer() is called the 8254 has been
-> put in one of the single-shot modes?  If so, then additional code has to
-> be put in place either to switch the timer into the periodic mode for the
-> duration of check_timer() or to rearm the timer if in a single-shot mode
-> each time timer_irq_works() is called.
+Hi Ingo,
 
-At this point the PIT is in periodic mode.
+Can you see if this patch solves your problem? There might be other
+functions that needs this guard as well, though. I wonder if maybe this test
+should just be included at the top of every driver that uses ACPI in some
+way. But I'm pretty sure that this lack of initialization is the root of your
+problem in any case :-)
 
-Let me explain how the timer startup works:
+(By the way, I don't know why this problem popped up at this time, maybe it
+was just bad timing/bad luck... How far back do your AE_BAD_PARAMETER in the
+logs go?)
 
-PIT is started in periodic mode
-... basic CPU bring up
-APIC timer initialization (switches PIT off)
-...
-Highres/Dyntick mode switches local apic timers to one shot mode
 
-When the system has C2/C3 or C1E states, then we restart the PIT in
-one shot mode and reprogram it every time when the system goes into
-idle to replace the local apic timer, which stops in those states.
+Vegard
 
-Thanks,
-	tglx
+
+From: Vegard Nossum <vegard.nossum@gmail.com>
+Date: Fri, 20 Jun 2008 15:39:09 +0200
+Subject: [PATCH] ACPI: don't walk tables if ACPI was disabled
+
+Ingo Molnar wrote:
+> -tip auto-testing started triggering this spinlock corruption message
+> yesterday:
+>
+> [    3.976213] calling  acpi_rtc_init+0x0/0xd3
+> [    3.980213] ACPI Exception (utmutex-0263): AE_BAD_PARAMETER, Thread F7C50000 could not acquire Mutex [3] [20080321]
+> [    3.992213] BUG: spinlock bad magic on CPU#0, swapper/1
+> [    3.992213]  lock: c2508dc4, .magic: 00000000, .owner: swapper/1, .owner_cpu: 0
+
+This is apparently because some parts of ACPI, including mutexes, are not
+initialized when acpi=off is passed to the kernel.
+
+Reported-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Vegard Nossum <vegard.nossum@gmail.com>
+---
+ drivers/acpi/glue.c               |    3 +++
+ drivers/acpi/namespace/nsxfeval.c |    3 +++
+ 2 files changed, 6 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
+index 2808dc6..9b227d4 100644
+--- a/drivers/acpi/glue.c
++++ b/drivers/acpi/glue.c
+@@ -333,6 +333,9 @@ static int __init acpi_rtc_init(void)
+ {
+ 	struct device *dev = get_rtc_dev();
+ 
++	if (acpi_disabled)
++		return 0;
++
+ 	if (dev) {
+ 		rtc_wake_setup();
+ 		rtc_info.wake_on = rtc_wake_on;
+diff --git a/drivers/acpi/namespace/nsxfeval.c b/drivers/acpi/namespace/nsxfeval.c
+index a8d5491..c274d1d 100644
+--- a/drivers/acpi/namespace/nsxfeval.c
++++ b/drivers/acpi/namespace/nsxfeval.c
+@@ -391,6 +391,9 @@ acpi_walk_namespace(acpi_object_type type,
+ 
+ 	ACPI_FUNCTION_TRACE(acpi_walk_namespace);
+ 
++	if (acpi_disabled)
++		return_ACPI_STATUS(AE_NO_NAMESPACE);
++
+ 	/* Parameter validation */
+ 
+ 	if ((type > ACPI_TYPE_LOCAL_MAX) || (!max_depth) || (!user_function)) {
+-- 
+1.5.4.1
+
