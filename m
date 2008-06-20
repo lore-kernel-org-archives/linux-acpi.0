@@ -1,90 +1,61 @@
-From: "Vegard Nossum" <vegard.nossum@gmail.com>
-Subject: Re: [PATCH] ACPI: don't walk tables if ACPI was disabled
-Date: Fri, 20 Jun 2008 23:27:25 +0200
-Message-ID: <19f34abd0806201427h740ca3e7gc2f01c7e34616fd4@mail.gmail.com>
-References: <20080620135639.GA5073@damson.getinternet.no>
-	 <alpine.LFD.1.10.0806201458500.3027@localhost.localdomain>
-	 <19f34abd0806201340t502ce471n578dd2498a5f1992@mail.gmail.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH 04/70] misc,acpi,backlight: compal Laptop Extras
+Date: Fri, 20 Jun 2008 18:59:45 -0300
+Message-ID: <20080620215945.GA3417@khazad-dum.debian.net>
+References: <087803d18fb8259cb844c075a35fb27c2d80792e.1213947349.git.len.brown@intel.com> <45fea4a84325d5724ffe480ae6f0d1658d520141.1213947349.git.len.brown@intel.com> <20080620114804.GA8637@srcf.ucam.org> <alpine.LFD.1.10.0806201449340.3027@localhost.localdomain> <20080620192636.GA15779@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.29]:6124 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754566AbYFTV11 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 17:27:27 -0400
-Received: by yw-out-2324.google.com with SMTP id 9so840080ywe.1
-        for <linux-acpi@vger.kernel.org>; Fri, 20 Jun 2008 14:27:25 -0700 (PDT)
-In-Reply-To: <19f34abd0806201340t502ce471n578dd2498a5f1992@mail.gmail.com>
+Received: from out3.smtp.messagingengine.com ([66.111.4.27]:39261 "EHLO
+	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753357AbYFTV7t (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 20 Jun 2008 17:59:49 -0400
 Content-Disposition: inline
+In-Reply-To: <20080620192636.GA15779@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Zhao Yakui <yakui.zhao@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alexey Starikovskiy <astarikovskiy@suse.de>, Yinghai Lu <yhlu.kernel@gmail.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Alexey Starikovskiy <aystarik@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
 
-On Fri, Jun 20, 2008 at 10:40 PM, Vegard Nossum <vegard.nossum@gmail.com> wrote:
-> On Fri, Jun 20, 2008 at 9:00 PM, Len Brown <lenb@kernel.org> wrote:
->>> @@ -333,6 +333,9 @@ static int __init acpi_rtc_init(void)
->>>  {
->>>       struct device *dev = get_rtc_dev();
->>>
->>> +     if (acpi_disabled)
->>> +             return 0;
->>> +
->>
->> hmm, i would expect dev to be 0 for acpi=off,
->> since pnp_match would fail, no?
->
-> Obviously not. Because Ingo is booting with acpi=off and he still gets
-> a warning about some mutex operation that originates from this very
-> initcall:
->
-> [    3.976213] calling  acpi_rtc_init+0x0/0xd3
-> [    3.980213] ACPI Exception (utmutex-0263): AE_BAD_PARAMETER, Thread
-> F7C50000 could not acquire Mutex [3] [20080321]
->
->
+On Fri, 20 Jun 2008, Matthew Garrett wrote:
+> On Fri, Jun 20, 2008 at 02:52:30PM -0400, Len Brown wrote:
+> > What do you suggest for the best example of rfkill implementation
+> > that should be copied here?
+> 
+> Either thinkpad-acpi or hp-wmi are pretty straightforward.
 
-Aha. The device in question (PNP0b00) is discovered while doing
-pnpbios_init(), NOT pnpacpi_init:
+I haven't sent the thinkpad-acpi rfkill implementation yet.  And I have
+not reviewed hp-wmi to check if it is correct.  If it uses the input
+polldev, I can give you 100% assurance that it is broken.
 
-[    1.712032] initcall pnpacpi_init+0x0/0x80 returned 0 after 3 msecs
-[    1.716032] calling  pnpbios_init+0x0/0x322
-[    1.720032] PnPBIOS: Scanning system for PnP BIOS support...
-[    1.724032] PnPBIOS: Found PnP BIOS installation structure at 0xc00fc550
-[    1.728032] PnPBIOS: PnP BIOS version 1.0, entry 0xf0000:0xc580, dseg 0xf0000
-...
-[    1.876032] pnp 00:03: parse allocated resources
-[    1.880032] pnp 00:03:   add irq 8 flags 0x0
-[    1.884032] pnp 00:03:   add io  0x70-0x71 flags 0x0
-[    1.888032] pnp 00:03: parse resource options
-[    1.892032] pnp 00:03: new independent option
-[    1.896032] device: '00:03': device_add
-[    1.900032] bus: 'pnp': add device 00:03
-[    1.904032] PM: Adding info for pnp:00:03
-[    1.908032] pnp 00:03: Plug and Play BIOS device, IDs PNP0b00 (active)
+You pretty much have to wait for my rfkill patches to get merged before
+you can do something right with rfkill and stuff like thinkpad-acpi that
+has read/write rfkill registers.
 
-So I guess this function, pnpbios_init() needs the check as well. In
-fact, it has this:
+Anyway, if anyone wants to look at the rfkill patches and the
+thinkpad-acpi rfkill implementation, which *is* straightforward like
+Matthew said, please refer to the thinkpad-acpi git trees at:
 
-#ifdef CONFIG_PNPACPI
-        if (!acpi_disabled && !pnpacpi_disabled) {
-                pnpbios_disabled = 1;
-                printk(KERN_INFO "PnPBIOS: Disabled by ACPI PNP\n");
-                return -ENODEV;
-        }
-#endif                          /* CONFIG_ACPI */
+git://repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git
 
-...I guess that should be changed to say if (acpi_disabled ||
-pnpacpi_disabled)? Or... I don't understand the purpose of the
-original test. But it seems to be there since the beginning of time
-(or, well, v2.6.12-rc2).
+branches devel and rfkill.
 
+Note that both branches are in risk of being rebased/rewound, as they
+are tips of stgit branches.  Get whatever you need from them, but don't
+base anything on them without talking to me first.  rfkill, in
+particular, will have to be rebased to the wireless-testing tree soon.
 
-Vegard
+Also, if anyone wants/needs to be added to the cc list for the rfkill
+stuff I am trying to get merged (e.g. because you will also need it for
+your driver), drop me a note.
+
+I am planning to submit the thinkpad-acpi rfkill conversion only after
+the rfkill stuff gets merged in -next or some other tree, but real life
+is getting in the way.
 
 -- 
-"The animistic metaphor of the bug that maliciously sneaked in while
-the programmer was not looking is intellectually dishonest as it
-disguises that the error is the programmer's own creation."
-	-- E. W. Dijkstra, EWD1036
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
