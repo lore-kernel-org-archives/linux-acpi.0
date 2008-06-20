@@ -1,33 +1,35 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [RFC] Allow notifications on method execution
-Date: Fri, 20 Jun 2008 20:58:40 +0100
-Message-ID: <20080620195840.GA16284@srcf.ucam.org>
-References: <20080620152227.GA11828@srcf.ucam.org> <20080620193941.GC20498@khazad-dum.debian.net>
+From: Andi Kleen <andi@firstfloor.org>
+Subject: Re: [PATCH 25/70] ACPICA: Update disassembler for DMAR table changes
+Date: Fri, 20 Jun 2008 21:50:43 +0200
+Message-ID: <87d4mbansc.fsf@basil.nowhere.org>
+References: <087803d18fb8259cb844c075a35fb27c2d80792e.1213947349.git.len.brown@intel.com>
+	<ee61cb033678eaf16901813eb6394dafa51e9c85.1213947350.git.len.brown@intel.com>
+	<20080620115201.GB8637@srcf.ucam.org>
+	<alpine.LFD.1.10.0806201438130.3027@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:43848 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751576AbYFTT6m (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 15:58:42 -0400
-Content-Disposition: inline
-In-Reply-To: <20080620193941.GC20498@khazad-dum.debian.net>
+Received: from smtp-out03.alice-dsl.net ([88.44.63.5]:3199 "EHLO
+	smtp-out03.alice-dsl.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751709AbYFTUBq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 16:01:46 -0400
+In-Reply-To: <alpine.LFD.1.10.0806201438130.3027@localhost.localdomain> (Len Brown's message of "Fri, 20 Jun 2008 14:41:41 -0400 (EDT)")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: linux-acpi@vger.kernel.org, ibm-acpi@hmh.eng.br
+To: Len Brown <lenb@kernel.org>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, luming.yu@intel.com
 
-On Fri, Jun 20, 2008 at 04:39:41PM -0300, Henrique de Moraes Holschuh wrote:
+Len Brown <lenb@kernel.org> writes:
+>
+> But there is actually quite a bit in ACPICA that is not in Linux.
+> The most useful, from a debugging point of view, might be the
+> hooking the ACPICA debug code into the kernel debugger --
+> something that Luming did about 2 years ago.  However, as the
+> debugger was not part of the Linux kernel tree, the changes
+> didn't really have a good path to a customer...
 
-> With such ACPI notifies, you could have HAL do some of the stuff kernel
-> drivers are doing.  So far so good (well, sort of).
+kgdb supports remote function calls, so if you just make a callable
+interface and perhaps supply a standard macro file users could call
+it.
 
-That's not what I was thinking. Right now, older Thinkpads need polling 
-if you want to get some keyboard events. However, the BIOS seems to 
-impleemnt this by calling the ACPI CMOS update methods. Rather than 
-polling, we can therefore make it event driven. The events won't go out 
-to userspace, they'll just call a callback in the driver which then 
-generates input events or uevents or whatever.
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+-Andi
