@@ -1,161 +1,83 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 69/70] ACPI : Create "idle=nomwait" bootparam
-Date: Fri, 20 Jun 2008 03:44:11 -0400
-Message-ID: <5ffc8862cc917ae5107049f3c5fd549fb6c19cac.1213947350.git.len.brown@intel.com>
-References: <1213947852-10924-1-git-send-email-lenb@kernel.org>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: [bug, acpi] BUG: spinlock bad magic on CPU#0, swapper/1, ACPI
+	Exception (utmutex-0263): AE_BAD_PARAMETER
+Date: Fri, 20 Jun 2008 11:52:47 +0200
+Message-ID: <20080620095247.GA24557@elte.hu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:54086 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752900AbYFTHsD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 03:48:03 -0400
-Received: from localhost.localdomain ([72.93.254.151])
- by vms173005.mailsrvcs.net
- (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K2R007AC40E2I91@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 20 Jun 2008 02:41:18 -0500 (CDT)
-In-reply-to: <1213947852-10924-1-git-send-email-lenb@kernel.org>
-In-reply-to: <087803d18fb8259cb844c075a35fb27c2d80792e.1213947349.git.len.brown@intel.com>
-References: <087803d18fb8259cb844c075a35fb27c2d80792e.1213947349.git.len.brown@intel.com>
+Received: from mx2.mail.elte.hu ([157.181.151.9]:40367 "EHLO mx2.mail.elte.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751292AbYFTJxN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 20 Jun 2008 05:53:13 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Zhao Yakui <yakui.zhao@intel.com>, Li Shaohua <shaohua.li@intel.com>, Len Brown <len.brown@intel.com>
+To: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+Cc: Zhao Yakui <yakui.zhao@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alexey Starikovskiy <astarikovskiy@suse.de>, Yinghai Lu <yhlu.kernel@gmail.com>
 
-From: Zhao Yakui <yakui.zhao@intel.com>
 
-Add the boot option of "idle=nomwait" to disable Mwait for CPU C-states.
-If the boot option of "idle=nomwait" is added , Linux should not
-use mwait for cpu idle even when the mwait is supported. In such case the
-C2C3_FFH access mode will be disabled.
+-tip auto-testing started triggering this spinlock corruption message 
+yesterday:
 
-http://bugzilla.kernel.org/show_bug.cgi?id=10807
+[    3.976213] calling  acpi_rtc_init+0x0/0xd3
+[    3.980213] ACPI Exception (utmutex-0263): AE_BAD_PARAMETER, Thread F7C50000 could not acquire Mutex [3] [20080321]
+[    3.992213] BUG: spinlock bad magic on CPU#0, swapper/1
+[    3.992213]  lock: c2508dc4, .magic: 00000000, .owner: swapper/1, .owner_cpu: 0
+[    3.992213] Pid: 1, comm: swapper Not tainted 2.6.26-rc6-00325-gc0793f7-dirty #8570
+[    3.992213]  [<c0521040>] spin_bug+0x7c/0x87
+[    3.992213]  [<c0521064>] _raw_spin_unlock+0x19/0x72
+[    3.992213]  [<c13ee1f2>] _spin_unlock_irqrestore+0x25/0x55
+[    3.992213]  [<c05ae056>] acpi_os_release_lock+0xd/0xf
+[    3.992213]  [<c05c3a23>] acpi_set_register+0x214/0x26c
+[    3.992213]  [<c05b66b5>] acpi_clear_event+0x5e/0x7f
+[    3.992213]  [<c1f58ace>] acpi_rtc_init+0x42/0xd3
+[    3.992213]  [<c1f2b645>] kernel_init+0x128/0x269
+[    3.992213]  [<c1f58a8c>] ? acpi_rtc_init+0x0/0xd3
+[    3.992213]  [<c0513664>] ? trace_hardirqs_on_thunk+0xc/0x10
+[    3.992213]  [<c011abf0>] ? restore_nocheck_notrace+0x0/0xe
+[    3.992213]  [<c1f2b51d>] ? kernel_init+0x0/0x269
+[    3.992213]  [<c1f2b51d>] ? kernel_init+0x0/0x269
+[    3.992213]  [<c011b813>] kernel_thread_helper+0x7/0x10
+[    3.992213]  =======================
+[    3.996213] initcall acpi_rtc_init+0x0/0xd3 returned 0 after 15 msecs
+[    4.004213] calling  acpi_event_init+0x0/0x74
+[    4.008213] initcall acpi_event_init+0x0/0x74 returned 0 after 0 msecs
 
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-Signed-off-by: Li Shaohua <shaohua.li@intel.com>
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- Documentation/kernel-parameters.txt |    4 +++-
- arch/ia64/kernel/process.c          |    2 ++
- arch/x86/kernel/process.c           |   14 ++++++++++++++
- drivers/acpi/processor_core.c       |   12 ++++++++++++
- include/asm-ia64/processor.h        |    1 +
- include/asm-x86/processor.h         |    1 +
- 6 files changed, 33 insertions(+), 1 deletions(-)
+i have found the AE_BAD_PARAMETER in older logs a well, but the spinlock 
+corruption is new and nothing in that area is changed by -tip so i 
+suspect it's a mainline problem as well.
 
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-index 1623c2f..39baaba 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -785,7 +785,7 @@ and is between 256 and 4096 characters. It is defined in the file
- 			See Documentation/ide/ide.txt.
- 
- 	idle=		[X86]
--			Format: idle=poll or idle=mwait, idle = halt
-+			Format: idle=poll or idle=mwait, idle = halt, idle=nomwait
- 			Poll forces a polling idle loop that can slightly improves the performance
- 			of waking up a idle CPU, but will use a lot of power and make the system
- 			run hot. Not recommended.
-@@ -795,6 +795,8 @@ and is between 256 and 4096 characters. It is defined in the file
- 			as idle=poll.
- 			idle = halt . Halt is forced to be used for CPU idle.
- 			In such case C2/C3 won't be used again.
-+			idle = nomwait. disable Mwait for CPU C-state.
-+			In such case C2C3_FFH access mode will be disabled.
- 
- 	ide-pci-generic.all-generic-ide [HW] (E)IDE subsystem
- 			Claim all unknown PCI IDE storage controllers.
-diff --git a/arch/ia64/kernel/process.c b/arch/ia64/kernel/process.c
-index a3a34b4..34249b2 100644
---- a/arch/ia64/kernel/process.c
-+++ b/arch/ia64/kernel/process.c
-@@ -55,6 +55,8 @@ void (*ia64_mark_idle)(int);
- 
- unsigned long boot_option_idle_override = 0;
- EXPORT_SYMBOL(boot_option_idle_override);
-+unsigned long idle_nomwait;
-+EXPORT_SYMBOL(idle_nomwait);
- 
- void
- ia64_do_show_stack (struct unw_frame_info *info, void *arg)
-diff --git a/arch/x86/kernel/process.c b/arch/x86/kernel/process.c
-index 6a35c7d..9ec16e7 100644
---- a/arch/x86/kernel/process.c
-+++ b/arch/x86/kernel/process.c
-@@ -7,6 +7,10 @@
- #include <linux/module.h>
- #include <linux/pm.h>
- #include <asm/system.h>
-+#include <asm/processor.h>
-+
-+unsigned long idle_nomwait;
-+EXPORT_SYMBOL(idle_nomwait);
- 
- struct kmem_cache *task_xstate_cachep;
- 
-@@ -172,6 +176,16 @@ static int __init idle_setup(char *str)
- 		force_mwait = 1;
- 	else if (!strcmp(str, "halt"))
- 		pm_idle = default_idle;
-+	else if (!strcmp(str, "nomwait")) {
-+		/*
-+		 * If the boot option of "idle=nomwait" is added,
-+		 * it means that mwait will be disabled for CPU C2/C3
-+		 * states. In such case it won't touch the variable
-+		 * of boot_option_idle_override.
-+		 */
-+		idle_nomwait = 1;
-+		return 0;
-+	}
- 	else
- 		return -1;
- 
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index 9dd0fa9..9e3c168 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -266,6 +266,18 @@ static int acpi_processor_set_pdc(struct acpi_processor *pr)
- 	if (!pdc_in)
- 		return status;
- 
-+	if (idle_nomwait) {
-+		/*
-+		 * If mwait is disabled for CPU C-states, the C2C3_FFH access
-+		 * mode will be disabled in the parameter of _PDC object.
-+		 */
-+		union acpi_object *obj;
-+		u32 *buffer = NULL;
-+
-+		obj = pdc_in->pointer;
-+		buffer = (u32 *)(obj->buffer.pointer);
-+		buffer[2] &= ~(ACPI_PDC_C_C2C3_FFH);
-+	}
- 	status = acpi_evaluate_object(pr->handle, "_PDC", pdc_in, NULL);
- 
- 	if (ACPI_FAILURE(status))
-diff --git a/include/asm-ia64/processor.h b/include/asm-ia64/processor.h
-index 6aff126..8d893bb 100644
---- a/include/asm-ia64/processor.h
-+++ b/include/asm-ia64/processor.h
-@@ -763,6 +763,7 @@ prefetchw (const void *x)
- #define spin_lock_prefetch(x)	prefetchw(x)
- 
- extern unsigned long boot_option_idle_override;
-+extern unsigned long idle_nomwait;
- 
- #endif /* !__ASSEMBLY__ */
- 
-diff --git a/include/asm-x86/processor.h b/include/asm-x86/processor.h
-index 5591052..33353cf 100644
---- a/include/asm-x86/processor.h
-+++ b/include/asm-x86/processor.h
-@@ -732,6 +732,7 @@ extern int			force_mwait;
- extern void select_idle_routine(const struct cpuinfo_x86 *c);
- 
- extern unsigned long		boot_option_idle_override;
-+extern unsigned long		idle_nomwait;
- 
- extern void enable_sep_cpu(void);
- extern int sysenter_setup(void);
--- 
-1.5.6
+it's not reproducible so it's not bisectable - it happened a few times 
+sporadically, but on a repeated reboot with the same bzImage it does not 
+reproduce. The config, full bootlog and bzImage can be found at:
 
+  http://redhat.com/~mingo/misc/config-Fri_Jun_20_11_19_25_CEST_2008.bad
+  http://redhat.com/~mingo/misc/log-Fri_Jun_20_11_19_25_CEST_2008.bad
+  http://redhat.com/~mingo/misc/bzImage-Fri_Jun_20_11_19_25_CEST_2008.bad
+
+(more info about the system on request.)
+
+NOTE, this is with the following boot parameters:
+
+ maxcpus=1 nosmp no_hz=off highres=0 nmi_watchdog=0 noapic nolapic_timer 
+ hpet=disable idle=mwait idle=poll highmem=512m nopat notsc acpi=off 
+ pci=nomsi
+
+the bzImage i've uploaded adds most of those boot parameters 
+automatically. These boot parameters worked fine in the past.
+
+given that it involves acpi_rtc_init:acpi_rtc_init(), one suspect would 
+be this change:
+
+| commit e1094bfa26e5e94af2fea79e004614dbce42b008
+| Author: Zhao Yakui <yakui.zhao@intel.com>
+| Date:   Wed May 14 11:32:59 2008 +0800
+|
+|    ACPI: Disable Fixed_RTC event when installing RTC handler
+
+given that it's not bisectable, i can only "slow-test" any patch: i.e. i 
+can apply any patch and report whether the spinlock corruption has 
+occured after 2 days of continuous testing.
+
+	Ingo
