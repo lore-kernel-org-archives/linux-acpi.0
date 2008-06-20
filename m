@@ -1,68 +1,174 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [RFC PATCH 1/2] ACPI: allow enable/disable/clear ACPI interrupts
- in user space
-Date: Fri, 20 Jun 2008 02:54:04 -0400 (EDT)
-Message-ID: <alpine.LFD.1.10.0806200252290.22284@localhost.localdomain>
-References: <1213926167.3001.9.camel@rzhang-dt.sh.intel.com>
- <alpine.LFD.1.10.0806200132080.22284@localhost.localdomain>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: Re: [RFC PATCH 2/2] ACPI: detect GPE interrupt storm
+Date: Fri, 20 Jun 2008 10:55:02 +0400
+Message-ID: <485B5446.2040700@suse.de>
+References: <1213926172.3001.10.camel@rzhang-dt.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:43548 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751288AbYFTGyH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 02:54:07 -0400
-Received: from localhost.localdomain ([72.93.254.151])
- by vms173005.mailsrvcs.net
- (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K2R007CX1IY2211@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 20 Jun 2008 01:47:22 -0500 (CDT)
-In-reply-to: <alpine.LFD.1.10.0806200132080.22284@localhost.localdomain>
+Received: from charybdis-ext.suse.de ([195.135.221.2]:55511 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750986AbYFTGyZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 02:54:25 -0400
+In-Reply-To: <1213926172.3001.10.camel@rzhang-dt.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Lin, Ming M" <ming.m.lin@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Lin, Ming M" <ming.m.lin@intel.com>
 
+NAK.
+It is too low level to be useful, and if you will insist on lowering the threshold to something sane,
+it will harm already broken situation, there driver does not know if it's working in interrupt or poll mode.
+
+Regards,
+Alex.
+
+Zhang Rui wrote:
+> From: Ling Ming <ming.m.lin@intel.com>
 > 
-> applied to acpi-test
-
-rats, i lied.
-this conflicts with the acpica branch in acpi-test,
-and I'm too lazy to deal with the conflict at this hour.
-
-I expect the acpica branch to go upstream in 2.6.27, and I'd like to see 
-this feature too.  Any chance you can re-base this patch on top of the 
-current linux-acpi test tree?
-
-thanks,
--Len
-
-> On Fri, 20 Jun 2008, Zhang Rui wrote:
+> Dectect GPE storm and disable a certain GPE if needed.
 > 
-> > From: Zhang Rui <rui.zhang@intel.com>
-> > 
-> > Allow users to enable/disable/clear a specific & valid GPE/Fixed Event in user space.
-> > 
-> > Note: This is useful for debugging, especially for some interrupt storm issues.
-> > 
-> > Note: All wakeup GPEs are disabled and they can not be enabled at runtime, and we mark them as invalid.
-> >       All GPEs that don't have a _Lxx/_Exx method are marked as invalid.
-> >       All Fixed Events that don't have an event handler are marked as invalid and they can't be enabled
-> >       until an event handler is registered.
-> > 
-> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> > Signed-off-by: Ling Ming <ming.m.lin@intel.com>
-> > ---
-> >  Documentation/ABI/testing/sysfs-firmware-acpi |  127 +++++++++++++------
-> >  drivers/acpi/events/evxfevnt.c                |   18 ++
-> >  drivers/acpi/hardware/hwgpe.c                 |    2 
-> >  drivers/acpi/system.c                         |  169 ++++++++++++++++++++++++--
-> >  include/acpi/achware.h                        |    2 
-> >  include/acpi/acpixf.h                         |    4 
-> >  6 files changed, 258 insertions(+), 64 deletions(-)
-> > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Introduce a new module parameter "debug_gpe_storm" as a runtime switch to
+> enable/disable this mechanism. The default value is TRUE, user can
+> "echo 0 > /sys/modules/acpi/parameters/debug_gpe_storm" to disable it.
 > 
+> Note: we try to disable a GPE if it's fired more than 1000 times in a second.
+> 	And this 1000/s is just a wild guess currently. Need more tests to get a
+> 	proper value.
+> 
+> Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> ---
+>  drivers/acpi/events/evgpe.c |   15 +++++++++++-
+>  drivers/acpi/system.c       |   55 ++++++++++++++++++++++++++++++++++++++++----
+>  include/acpi/acpiosxf.h     |    2 -
+>  3 files changed, 65 insertions(+), 7 deletions(-)
+> 
+> Index: linux-2.6/drivers/acpi/events/evgpe.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/events/evgpe.c	2008-06-20 09:27:00.000000000 +0800
+> +++ linux-2.6/drivers/acpi/events/evgpe.c	2008-06-20 09:34:32.000000000 +0800
+> @@ -623,7 +623,20 @@
+>  
+>  	ACPI_FUNCTION_TRACE(ev_gpe_dispatch);
+>  
+> -	acpi_os_gpe_count(gpe_number);
+> +	if (acpi_os_gpe_storm_detect(gpe_number)) {
+> +		/*
+> +		 * GPE storm detected, disable it automatically
+> +		 * To disable gpe storm detection:
+> +		 * "echo 0 > /sys/module/acpi/parameters/debug_gpe_storm"
+> +		 */
+> +		acpi_status status = acpi_ev_disable_gpe(gpe_event_info);
+> +		if (ACPI_FAILURE(status)) {
+> +			ACPI_EXCEPTION((AE_INFO, status,
+> +				"Unable to disable GPE[%2X]", gpe_number));
+> +		}
+> +
+> +		return_UINT32(ACPI_INTERRUPT_NOT_HANDLED);
+> +	}
+>  
+>  	/*
+>  	 * If edge-triggered, clear the GPE status bit now.  Note that
+> Index: linux-2.6/drivers/acpi/system.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/system.c	2008-06-20 09:27:00.000000000 +0800
+> +++ linux-2.6/drivers/acpi/system.c	2008-06-20 09:34:32.000000000 +0800
+> @@ -168,9 +168,14 @@
+>  #define NUM_COUNTERS_EXTRA 3
+>  
+>  #define ACPI_EVENT_VALID	0x01
+> +#define GPE_STORM_INTERVAL     HZ
+> +#define GPE_STORM_THRESHOLD    1000
+> +
+>  struct event_counter {
+>  	u32 count;
+>  	u32 flags;
+> +	u32 storm;
+> +	unsigned long last_time;
+>  };
+>  
+>  static struct event_counter *all_counters;
+> @@ -263,20 +268,60 @@
+>  	return;
+>  }
+>  
+> -void acpi_os_gpe_count(u32 gpe_number)
+> +/*
+> + * acpi_gbl_gpe_lock is already acquired in acpi_ev_gpe_detect
+> + */
+> +int check_gpe_storm(u32 gpe_number)
+>  {
+> +	struct event_counter *gpe_counter;
+> +
+> +	if (gpe_number >= num_gpes)
+> +		return 0;
+> +
+> +	gpe_counter = &all_counters[gpe_number];
+> +
+> +	if (time_after(jiffies, gpe_counter->last_time + GPE_STORM_INTERVAL)) {
+> +		gpe_counter->storm = 0;
+> +		gpe_counter->last_time = jiffies;
+> +	}
+> +
+> +	gpe_counter->storm++;
+> +	if (gpe_counter->storm > GPE_STORM_THRESHOLD) {
+> +		printk(KERN_WARNING "GPE[%2X] storm detected,"
+> +				"%d interrupts in %d milliseconds.\n",
+> +			gpe_number, gpe_counter->storm, GPE_STORM_INTERVAL);
+> +		gpe_counter->storm = 0;
+> +		gpe_counter->last_time = jiffies;
+> +
+> +		return 1;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int debug_gpe_storm = 1;
+> +module_param(debug_gpe_storm, bool, 0644);
+> +
+> +int acpi_os_gpe_storm_detect(u32 gpe_number)
+> +{
+> +	int storm = 0;
+> +
+>  	acpi_gpe_count++;
+>  
+>  	if (!all_counters)
+> -		return;
+> +		return storm;
+>  
+> -	if (gpe_number < num_gpes)
+> +	if (gpe_number < num_gpes) {
+>  		all_counters[gpe_number].count++;
+> +
+> +		/* If debug_gpe_storm enabled, check gpe storm */
+> +		if (debug_gpe_storm)
+> +			storm = check_gpe_storm(gpe_number);
+> +	}
+>  	else
+>  		all_counters[num_gpes + ACPI_NUM_FIXED_EVENTS + COUNT_ERROR].
+>  					count++;
+> -
+> -	return;
+> +	return storm;
+>  }
+>  
+>  void acpi_os_fixed_event_count(u32 event_number)
+> Index: linux-2.6/include/acpi/acpiosxf.h
+> ===================================================================
+> --- linux-2.6.orig/include/acpi/acpiosxf.h	2008-06-20 09:27:00.000000000 +0800
+> +++ linux-2.6/include/acpi/acpiosxf.h	2008-06-20 09:34:32.000000000 +0800
+> @@ -181,7 +181,7 @@
+>  acpi_status
+>  acpi_os_remove_interrupt_handler(u32 gsi, acpi_osd_handler service_routine);
+>  
+> -void acpi_os_gpe_count(u32 gpe_number);
+> +int acpi_os_gpe_storm_detect(u32 gpe_number);
+>  void acpi_os_fixed_event_count(u32 fixed_event_number);
+>  
+>  /*
+> 
+> 
+
