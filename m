@@ -1,29 +1,70 @@
-From: "Ryan Carter" <ryan@ryanccarter.com>
-Subject: DMI info
-Date: Fri, 20 Jun 2008 09:12:34 -0500
-Message-ID: <7fee73c30806200712y38c7f2bclef7c630d64ce8fb3@mail.gmail.com>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [PATCH] ACPI: don't walk tables if ACPI was disabled
+Date: Fri, 20 Jun 2008 16:22:24 +0200
+Message-ID: <20080620142224.GF8135@elte.hu>
+References: <20080620095247.GA24557@elte.hu> <20080620135639.GA5073@damson.getinternet.no>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hu-out-0506.google.com ([72.14.214.226]:23617 "EHLO
-	hu-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754058AbYFTOMg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 10:12:36 -0400
-Received: by hu-out-0506.google.com with SMTP id 28so9072447hub.21
-        for <linux-acpi@vger.kernel.org>; Fri, 20 Jun 2008 07:12:34 -0700 (PDT)
+Received: from mx3.mail.elte.hu ([157.181.1.138]:57856 "EHLO mx3.mail.elte.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751564AbYFTOWv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 20 Jun 2008 10:22:51 -0400
 Content-Disposition: inline
+In-Reply-To: <20080620135639.GA5073@damson.getinternet.no>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Vegard Nossum <vegard.nossum@gmail.com>
+Cc: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Zhao Yakui <yakui.zhao@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alexey Starikovskiy <astarikovskiy@suse.de>, Yinghai Lu <yhlu.kernel@gmail.com>
 
- 1 Time(s): [   48.267997] ACPI: DMI System Vendor: Dell Computer Corporation
- 1 Time(s): [   48.267999] ACPI: DMI Product Name: PowerEdge 840
- 1 Time(s): [   48.268000] ACPI: DMI Product Version:
- 1 Time(s): [   48.268002] ACPI: DMI Board Name: 0XM091
- 1 Time(s): [   48.268003] ACPI: DMI BIOS Vendor: Dell Computer Corporation
- 1 Time(s): [   48.268005] ACPI: DMI BIOS Date: 10/04/2007
 
-If you need/want any more information, let me know.
+* Vegard Nossum <vegard.nossum@gmail.com> wrote:
 
-Ryan
+> Hi Ingo,
+> 
+> Can you see if this patch solves your problem? There might be other 
+> functions that needs this guard as well, though. I wonder if maybe 
+> this test should just be included at the top of every driver that uses 
+> ACPI in some way. But I'm pretty sure that this lack of initialization 
+> is the root of your problem in any case :-)
+
+applied this to tip/out-of-tree for more testing, thanks Vegard.
+
+> (By the way, I don't know why this problem popped up at this time, 
+> maybe it was just bad timing/bad luck... How far back do your 
+> AE_BAD_PARAMETER in the logs go?)
+
+i have hit this warning for the first time in January 2008:
+
+ [    0.000000] Linux version 2.6.24-rc8 (mingo@dione) (gcc version 4.2.2)
+                #452 SMP Sun Jan 20 23:36:28 CET 2008
+
+and it says:
+
+[    0.000000] Calling initcall 0xc050758a: acpi_rtc_init+0x0/0xb8()
+[    0.000000] ACPI Exception (utmutex-0263): AE_BAD_PARAMETER,
+               Thread F7C22000 could not acquire Mutex [3] [20070126]
+[    0.000000] initcall 0xc050758a: acpi_rtc_init+0x0/0xb8() returned 0.
+
+the logs of my auto-tests on this box start at more than a year ago:
+
+ Linux version 2.6.21-rc6 (mingo@dione) (gcc version 4.0.2)
+               #331 SMP Fri Apr 13 10:14:12 CEST 2007
+
+the size of the logs is 16.2 GB, covering the bootup of 58605 uniquely 
+built kernels performing 67065 bootups - so it's a fairly exhaustive 
+history.
+
+that's why WARN_ON()s are so important - there's no way my automated 
+tools (or even i, when taking a casual look at the logs) could have 
+picked up that new ACPI Exception - if each subsystem has different 
+warnings (which change frequently) then it's sheer impossible to 
+automate the answer to the "does that log show any anomaly" question. 
+
+( Even delta analysis would be of little use, due to timing related
+  noise, random data variances and the impact of randconfig booting. )
+
+The only reason i noticed it because this problem escallated into a lock 
+corruption which triggered a WARN_ON().
+
+	Ingo
