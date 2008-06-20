@@ -1,61 +1,232 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 35/70] ACPI: no AC status notification
-Date: Fri, 20 Jun 2008 03:43:37 -0400
-Message-ID: <f163ff5176a8e9c827d8ebe044710d67d40799c3.1213947350.git.len.brown@intel.com>
+Subject: [PATCH 13/70] snapshot: Use pm_mutex for mutual exclusion
+Date: Fri, 20 Jun 2008 03:43:15 -0400
+Message-ID: <56ca8b0af290931c647e23876b75f9fd78cbaa82.1213947349.git.len.brown@intel.com>
 References: <1213947852-10924-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:40470 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751628AbYFTHol (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 03:44:41 -0400
+Received: from vms173003pub.verizon.net ([206.46.173.3]:62806 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752010AbYFTHon (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 03:44:43 -0400
 Received: from localhost.localdomain ([72.93.254.151])
- by vms173001.mailsrvcs.net
+ by vms173003.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K2R00E1C46D20I2@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 20 Jun 2008 02:44:38 -0500 (CDT)
+ with ESMTPA id <0K2R00A9N4649VK2@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 20 Jun 2008 02:44:28 -0500 (CDT)
 In-reply-to: <1213947852-10924-1-git-send-email-lenb@kernel.org>
 In-reply-to: <087803d18fb8259cb844c075a35fb27c2d80792e.1213947349.git.len.brown@intel.com>
 References: <087803d18fb8259cb844c075a35fb27c2d80792e.1213947349.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Len Brown <len.brown@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
 
-From: Len Brown <len.brown@intel.com>
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-http://bugzilla.kernel.org/show_bug.cgi?id=10695
+We can avoid taking the BKL in snapshot_ioctl() if pm_mutex is used to prevent
+the ioctls from being executed concurrently.
 
+In addition, although it is only possible to open /dev/snapshot once, the task
+which has done that may spawn a child that will inherit the open descriptor,
+so in theory they can call snapshot_write(), snapshot_read() and
+snapshot_release() concurrently.  pm_mutex can also be used for mutual
+exclusion in such cases.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@suse.cz>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/ac.c |    8 +++-----
- 1 files changed, 3 insertions(+), 5 deletions(-)
+ kernel/power/user.c |   68 +++++++++++++++++++++++++++++++-------------------
+ 1 files changed, 42 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
-index 5b73f6a..831883b 100644
---- a/drivers/acpi/ac.c
-+++ b/drivers/acpi/ac.c
-@@ -233,6 +233,9 @@ static void acpi_ac_notify(acpi_handle handle, u32 event, void *data)
+diff --git a/kernel/power/user.c b/kernel/power/user.c
+index 658262b..a6332a3 100644
+--- a/kernel/power/user.c
++++ b/kernel/power/user.c
+@@ -70,16 +70,22 @@ static int snapshot_open(struct inode *inode, struct file *filp)
+ 	struct snapshot_data *data;
+ 	int error;
  
- 	device = ac->device;
- 	switch (event) {
-+	default:
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+				  "Unsupported event [0x%x]\n", event));
- 	case ACPI_AC_NOTIFY_STATUS:
- 	case ACPI_NOTIFY_BUS_CHECK:
- 	case ACPI_NOTIFY_DEVICE_CHECK:
-@@ -244,11 +247,6 @@ static void acpi_ac_notify(acpi_handle handle, u32 event, void *data)
- #ifdef CONFIG_ACPI_SYSFS_POWER
- 		kobject_uevent(&ac->charger.dev->kobj, KOBJ_CHANGE);
- #endif
--		break;
--	default:
--		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--				  "Unsupported event [0x%x]\n", event));
--		break;
+-	if (!atomic_add_unless(&snapshot_device_available, -1, 0))
+-		return -EBUSY;
++	mutex_lock(&pm_mutex);
++
++	if (!atomic_add_unless(&snapshot_device_available, -1, 0)) {
++		error = -EBUSY;
++		goto Unlock;
++	}
+ 
+ 	if ((filp->f_flags & O_ACCMODE) == O_RDWR) {
+ 		atomic_inc(&snapshot_device_available);
+-		return -ENOSYS;
++		error = -ENOSYS;
++		goto Unlock;
  	}
+ 	if(create_basic_memory_bitmaps()) {
+ 		atomic_inc(&snapshot_device_available);
+-		return -ENOMEM;
++		error = -ENOMEM;
++		goto Unlock;
+ 	}
+ 	nonseekable_open(inode, filp);
+ 	data = &snapshot_state;
+@@ -99,33 +105,36 @@ static int snapshot_open(struct inode *inode, struct file *filp)
+ 		if (error)
+ 			pm_notifier_call_chain(PM_POST_HIBERNATION);
+ 	}
+-	if (error) {
++	if (error)
+ 		atomic_inc(&snapshot_device_available);
+-		return error;
+-	}
+ 	data->frozen = 0;
+ 	data->ready = 0;
+ 	data->platform_support = 0;
  
- 	return;
+-	return 0;
++ Unlock:
++	mutex_unlock(&pm_mutex);
++
++	return error;
+ }
+ 
+ static int snapshot_release(struct inode *inode, struct file *filp)
+ {
+ 	struct snapshot_data *data;
+ 
++	mutex_lock(&pm_mutex);
++
+ 	swsusp_free();
+ 	free_basic_memory_bitmaps();
+ 	data = filp->private_data;
+ 	free_all_swap_pages(data->swap);
+-	if (data->frozen) {
+-		mutex_lock(&pm_mutex);
++	if (data->frozen)
+ 		thaw_processes();
+-		mutex_unlock(&pm_mutex);
+-	}
+ 	pm_notifier_call_chain(data->mode == O_WRONLY ?
+ 			PM_POST_HIBERNATION : PM_POST_RESTORE);
+ 	atomic_inc(&snapshot_device_available);
++
++	mutex_unlock(&pm_mutex);
++
+ 	return 0;
+ }
+ 
+@@ -135,9 +144,13 @@ static ssize_t snapshot_read(struct file *filp, char __user *buf,
+ 	struct snapshot_data *data;
+ 	ssize_t res;
+ 
++	mutex_lock(&pm_mutex);
++
+ 	data = filp->private_data;
+-	if (!data->ready)
+-		return -ENODATA;
++	if (!data->ready) {
++		res = -ENODATA;
++		goto Unlock;
++	}
+ 	res = snapshot_read_next(&data->handle, count);
+ 	if (res > 0) {
+ 		if (copy_to_user(buf, data_of(data->handle), res))
+@@ -145,6 +158,10 @@ static ssize_t snapshot_read(struct file *filp, char __user *buf,
+ 		else
+ 			*offp = data->handle.offset;
+ 	}
++
++ Unlock:
++	mutex_unlock(&pm_mutex);
++
+ 	return res;
+ }
+ 
+@@ -154,6 +171,8 @@ static ssize_t snapshot_write(struct file *filp, const char __user *buf,
+ 	struct snapshot_data *data;
+ 	ssize_t res;
+ 
++	mutex_lock(&pm_mutex);
++
+ 	data = filp->private_data;
+ 	res = snapshot_write_next(&data->handle, count);
+ 	if (res > 0) {
+@@ -162,6 +181,9 @@ static ssize_t snapshot_write(struct file *filp, const char __user *buf,
+ 		else
+ 			*offp = data->handle.offset;
+ 	}
++
++	mutex_unlock(&pm_mutex);
++
+ 	return res;
+ }
+ 
+@@ -180,16 +202,16 @@ static long snapshot_ioctl(struct file *filp, unsigned int cmd,
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return -EPERM;
+ 
+-	data = filp->private_data;
++	if (!mutex_trylock(&pm_mutex))
++		return -EBUSY;
+ 
+-	lock_kernel();
++	data = filp->private_data;
+ 
+ 	switch (cmd) {
+ 
+ 	case SNAPSHOT_FREEZE:
+ 		if (data->frozen)
+ 			break;
+-		mutex_lock(&pm_mutex);
+ 		printk("Syncing filesystems ... ");
+ 		sys_sync();
+ 		printk("done.\n");
+@@ -197,7 +219,6 @@ static long snapshot_ioctl(struct file *filp, unsigned int cmd,
+ 		error = freeze_processes();
+ 		if (error)
+ 			thaw_processes();
+-		mutex_unlock(&pm_mutex);
+ 		if (!error)
+ 			data->frozen = 1;
+ 		break;
+@@ -205,9 +226,7 @@ static long snapshot_ioctl(struct file *filp, unsigned int cmd,
+ 	case SNAPSHOT_UNFREEZE:
+ 		if (!data->frozen || data->ready)
+ 			break;
+-		mutex_lock(&pm_mutex);
+ 		thaw_processes();
+-		mutex_unlock(&pm_mutex);
+ 		data->frozen = 0;
+ 		break;
+ 
+@@ -310,16 +329,11 @@ static long snapshot_ioctl(struct file *filp, unsigned int cmd,
+ 			error = -EPERM;
+ 			break;
+ 		}
+-		if (!mutex_trylock(&pm_mutex)) {
+-			error = -EBUSY;
+-			break;
+-		}
+ 		/*
+ 		 * Tasks are frozen and the notifiers have been called with
+ 		 * PM_HIBERNATION_PREPARE
+ 		 */
+ 		error = suspend_devices_and_enter(PM_SUSPEND_MEM);
+-		mutex_unlock(&pm_mutex);
+ 		break;
+ 
+ 	case SNAPSHOT_PLATFORM_SUPPORT:
+@@ -392,7 +406,9 @@ static long snapshot_ioctl(struct file *filp, unsigned int cmd,
+ 		error = -ENOTTY;
+ 
+ 	}
+-	unlock_kernel();
++
++	mutex_unlock(&pm_mutex);
++
+ 	return error;
+ }
+ 
 -- 
 1.5.6
 
