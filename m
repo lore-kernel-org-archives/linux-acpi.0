@@ -1,33 +1,68 @@
-From: "Maciej W. Rozycki" <macro@linux-mips.org>
-Subject: Re: linux-next: Tree for June 13: IO APIC breakage on HP nx6325
-Date: Fri, 20 Jun 2008 21:56:18 +0100 (BST)
-Message-ID: <Pine.LNX.4.55.0806202154380.19614@cliff.in.clinika.pl>
-References: <20080613232214.394fd6fd.sfr@canb.auug.org.au> <200806180053.40044.rjw@sisk.pl>
- <Pine.LNX.4.55.0806180400070.28110@cliff.in.clinika.pl> <200806190011.38548.rjw@sisk.pl>
- <Pine.LNX.4.55.0806182345380.7802@cliff.in.clinika.pl> <20080619093541.GC15228@elte.hu>
- <Pine.LNX.4.55.0806191619560.12929@cliff.in.clinika.pl>
- <alpine.LFD.1.10.0806201507190.3395@apollo.tec.linutronix.de>
+From: Alok Kataria <akataria@vmware.com>
+Subject: Re: [PATCH 32/70] ACPI: fix checkpatch.pl complaints in scan.c
+Date: Fri, 20 Jun 2008 13:59:59 -0700
+Message-ID: <1213995600.31598.40.camel@promb-2n-dhcp368.eng.vmware.com>
+References: <1213947852-10924-1-git-send-email-lenb@kernel.org>
+	 <ad7f0d9feee6980a3ab3ea806854f56817d1da8e.1213947350.git.len.brown@intel.com>
+	 <87lk0zanvo.fsf@basil.nowhere.org>
+	 <1213993974.31598.31.camel@promb-2n-dhcp368.eng.vmware.com>
+	 <485C157A.5080803@firstfloor.org>
+Reply-To: akataria@vmware.com
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.1.10.0806201507190.3395@apollo.tec.linutronix.de>
-Sender: linux-next-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>, "Rafael J. Wysocki" <rjw@sisk.pl>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp-outbound-1.vmware.com ([65.113.40.141]:54799 "EHLO
+	smtp-outbound-1.vmware.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751354AbYFTVAG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 20 Jun 2008 17:00:06 -0400
+In-Reply-To: <485C157A.5080803@firstfloor.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andi Kleen <andi@firstfloor.org>
+Cc: Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Len Brown <len.brown@intel.com>
 
-On Fri, 20 Jun 2008, Thomas Gleixner wrote:
-
-> >  Is it now possible at the time check_timer() is called the 8254 has been
-> > put in one of the single-shot modes?  If so, then additional code has to
-> > be put in place either to switch the timer into the periodic mode for the
-> > duration of check_timer() or to rearm the timer if in a single-shot mode
-> > each time timer_irq_works() is called.
+On Fri, 2008-06-20 at 13:39 -0700, Andi Kleen wrote:
+> Alok Kataria wrote:
+> > On Fri, 2008-06-20 at 12:48 -0700, Andi Kleen wrote:
+> >> Len Brown <lenb@kernel.org> writes:
+> >>
+> >>> From: Alok N Kataria <akataria@vmware.com>
+> >>>
+> >>> http://bugzilla.kernel.org/show_bug.cgi?id=9772
+> >> This bug has nothing to do with the patch?
+> >>
+> >> "This patch fixes the return value of acpi_eject_store()"
+> >>
+> >
+> > This patch fixes the checkpatch.pl complaints introduced by patch in
+> > comment 23 in that bug.
+> > Please look here for the checkpatch.pl complaints..
+> > http://bugzilla.kernel.org/show_bug.cgi?id=9772#c33
 > 
-> At this point the PIT is in periodic mode.
+> Well that's still not a very useful description, given that you fix
+> a real bug here, not just the usual checkpatch whitspace nops.
+> 
+Maybe I am overlooking what you are trying to say over here.
+but, Which real bug ?
 
- I had a feeling this was the case -- thanks for your clarification.  
-Nothing to change in check_timer() as far as this property is concerned
-then.
+> Not sure why Len also didn't fast track it. It seems to me like
+> something .26-worthy.
+> 
 
-  Maciej
+This patch modifies the code to use kthread_run instead of
+kernel_thread. The kernel_thread call was introduced by an earlier patch
+from Zhang Rui which is in comment 23. 
+
+Since the patch from Zhang has not reached mainline yet, i fail to
+understand how can this patch be worthy of .26 ?
+
+
+Thanks,
+Alok
+
+> -Andi
+> 
+> 
+
