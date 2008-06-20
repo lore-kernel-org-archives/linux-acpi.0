@@ -1,51 +1,66 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [RFC][PATCH 0/3] PCI PM: Rework pci_set_power_state
-Date: Fri, 20 Jun 2008 01:45:28 -0400 (EDT)
-Message-ID: <alpine.LFD.1.10.0806200143250.22284@localhost.localdomain>
-References: <200806170206.26616.rjw@sisk.pl>
+Subject: Re: [PATCH 0/4]  Disable Mwait for CPU C-states and add the boot
+ option of "idle=nomwait" ,"idle=halt"
+Date: Fri, 20 Jun 2008 02:27:11 -0400 (EDT)
+Message-ID: <alpine.LFD.1.10.0806200225590.22284@localhost.localdomain>
+References: <1213684734.19901.8.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms044pub.verizon.net ([206.46.252.44]:41801 "EHLO
-	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751110AbYFTFqI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 01:46:08 -0400
+Received: from vms042pub.verizon.net ([206.46.252.42]:59110 "EHLO
+	vms042pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750986AbYFTG2A (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 02:28:00 -0400
 Received: from localhost.localdomain ([72.93.254.151])
- by vms044.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0K2Q0034AYOJ7FI2@vms044.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 20 Jun 2008 00:45:56 -0500 (CDT)
-In-reply-to: <200806170206.26616.rjw@sisk.pl>
+ by vms042.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
+ 3 2006)) with ESMTPA id <0K2R00DSE0LCSKK1@vms042.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 20 Jun 2008 01:27:13 -0500 (CDT)
+In-reply-to: <1213684734.19901.8.camel@yakui_zhao.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
 
 
-> I've recently discovered that pci_set_power_state() calls the platform
-> callback intended for changing the state of the device after it has done
-> that using the native PCI mechanism.  In my opinion this is not correct,
-> because, for example, if the device is being put into D0 from a low power
-> state, it may require some platform-controlled power resources to be turned
-> on before that (in theory).
-> 
-> The following series of patches changes this function so that the platform
-> callback is performed first and then the native mechanism is used.
-> Additionally, however, it checks if the devices is power manageable by the
-> platform and only in that case the platform callback is invoked.  For this
-> purpose, I needed to add an ACPI function allowing PCI to check the power
-> manageability of given device.
+On Tue, 17 Jun 2008, Zhao Yakui wrote:
 
-We have 3 cases
-1. device has PCI PM only
-2. device has ACPI PM only
-3. device has both PCI and ACPI PM
+> Hi, all,
+>     This following patch series is to disable mwait for CPU C-states and add the boot option
+> of "idle=nomwait", "idle=halt"
+>     Patch 01:
+> 	Disable the C2C3_FFH access mode if MWAIT is unsupported
 
-For #1 and #2, order is moot.
-For #3, how can we be sure that the new order is better than the old 
-order?  Is this a theoretical patch, or is there a failure case?
+I applied this from bugzilla 10807
+
+>     Patch 02:
+> 	Add the boot option of "idle=halt". If the option of "idle=halt" is added,
+> Halt will be used for CPU idle. In such case CPU C-state won't be used again for CPU idle.
+
+I applied this from bugzilla 10807
+
+>     Patch 03: 
+>        Add boot option of "idle=nomwait" to disable mwait for CPU
+> C-states. If the option of "idle=nomwait" is added, OSPM won't
+> use mwait for CPU C-states. 
+
+I don't see an e-mail with this one,
+and the one in bugzilla 10807 appears to be an outdated patch.
 
 thanks,
 -Len
 
-
+>     Patch 04:
+>        Add DMI check to disable mwait for CPU C-states. For the bogus
+> BIOS the mwait will automatically be disabled for CPU C-states.
+>     
+>     Thanks for the review.
+>    
+> Yakui
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
