@@ -1,70 +1,47 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [GIT PATCH] ACPI patches for 2.6.26-rc6
-Date: Fri, 20 Jun 2008 03:40:24 -0400 (EDT)
-Message-ID: <alpine.LFD.1.10.0806200329450.22284@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Subject: ACPI patch queue for 2.6.27
+Date: Fri, 20 Jun 2008 03:43:02 -0400
+Message-ID: <1213947852-10924-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:52678 "EHLO
+Received: from vms173005pub.verizon.net ([206.46.173.5]:53282 "EHLO
 	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751453AbYFTHk1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 03:40:27 -0400
+	with ESMTP id S1751805AbYFTHoR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 03:44:17 -0400
+Received: from localhost.localdomain ([72.93.254.151])
+ by vms173005.mailsrvcs.net
+ (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+ with ESMTPA id <0K2R007X13UKC1B3@vms173005.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 20 Jun 2008 02:37:33 -0500 (CDT)
+Received: from localhost.localdomain (d975xbx2 [127.0.0.1])
+	by localhost.localdomain (8.14.2/8.14.2) with ESMTP id m5K7iC18011256	for
+ <linux-acpi@vger.kernel.org>; Fri, 20 Jun 2008 03:44:12 -0400
+Received: (from lenb@localhost)	by localhost.localdomain (8.14.2/8.14.2/Submit)
+ id m5K7iCZV011254	for linux-acpi@vger.kernel.org; Fri,
+ 20 Jun 2008 03:44:12 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Linux Power Management List <linux-pm@lists.osdl.org>
+To: linux-acpi@vger.kernel.org
 
-Hi Linus,
+Here is the current ACPI queue for 2.6.27
 
-please pull from: 
+fujitsu-laptop and compal-laptop are new.
 
-git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
+I'll be impressed (and delighted) if Bjorn's PNP-v3 series
+requires no modification before then.
+We know it has a few checkpatch issues...
 
-This will update the files shown below.
+We cherry-picked the important patches out of the ACPICA
+series into 2.6.26 already, so what remains here is
+less exciting.
 
-thanks!
+Per notes on the list, I expect some changes to
+the idle= param patches, but here is what we have now.
 
+I'd also like to see Rui's enhancement to /sys/firmware/acpi/interrupts
+make 2.6.27 -- it is excluded here due to a conflict
+with the ACPICA branch.
+
+thanks,
 -Len
-
-ps. individual patches are available on linux-acpi@vger.kernel.org
-and a consolidated plain patch is available here:
-ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.26/acpi-release-20080609-2.6.26-rc6.diff.gz
-
- drivers/acpi/ac.c    |    8 +++-----
- drivers/acpi/video.c |    3 ++-
- 2 files changed, 5 insertions(+), 6 deletions(-)
-
-through these commits:
-
-Len Brown (1):
-      ACPI: no AC status notification
-
-Zhang Rui (1):
-      ACPI Exception (video-1721): UNKNOWN_STATUS_CODE, Cant attach device
-
-with this log:
-
-commit f163ff5176a8e9c827d8ebe044710d67d40799c3
-Author: Len Brown <len.brown@intel.com>
-Date:   Sat Jun 14 01:26:37 2008 -0400
-
-    ACPI: no AC status notification
-    
-    http://bugzilla.kernel.org/show_bug.cgi?id=10695
-    
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit d385c2a85877f0cb785070094edf9a624c090d68
-Author: Zhang Rui <rui.zhang@intel.com>
-Date:   Sat Jun 14 01:01:18 2008 -0400
-
-    ACPI Exception (video-1721): UNKNOWN_STATUS_CODE, Cant attach device
-    
-    The child of a video bus device is not alway a video device.
-    It should be a warn message rather than an exception here.
-    http://bugzilla.kernel.org/show_bug.cgi?id=9761
-    
-    Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-    Signed-off-by: Len Brown <len.brown@intel.com>
 
 
