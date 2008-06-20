@@ -1,71 +1,50 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFC][PATCH 8.5/9] PCI PM: Add diagnostic statements to PCI device PM initialization
-Date: Fri, 20 Jun 2008 18:07:17 +0200
-Message-ID: <200806201807.17785.rjw@sisk.pl>
-References: <200806200145.33053.rjw@sisk.pl> <200806200152.45617.rjw@sisk.pl> <200806201759.23863.rjw@sisk.pl>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 25/70] ACPICA: Update disassembler for DMAR table changes
+Date: Fri, 20 Jun 2008 14:41:41 -0400 (EDT)
+Message-ID: <alpine.LFD.1.10.0806201438130.3027@localhost.localdomain>
+References: <087803d18fb8259cb844c075a35fb27c2d80792e.1213947349.git.len.brown@intel.com>
+ <ee61cb033678eaf16901813eb6394dafa51e9c85.1213947350.git.len.brown@intel.com>
+ <20080620115201.GB8637@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:56237 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752058AbYFTQFv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 20 Jun 2008 12:05:51 -0400
-In-Reply-To: <200806201759.23863.rjw@sisk.pl>
-Content-Disposition: inline
+Received: from vms046pub.verizon.net ([206.46.252.46]:38353 "EHLO
+	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751083AbYFTSmA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 14:42:00 -0400
+Received: from localhost.localdomain ([72.93.254.151])
+ by vms046.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
+ 3 2006)) with ESMTPA id <0K2R0048RYLKE940@vms046.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 20 Jun 2008 13:41:45 -0500 (CDT)
+In-reply-to: <20080620115201.GB8637@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, luming.yu@intel.com
 
-Also, it seems reasonable to add some diagnostic printk()s to pci_pm_init().
 
-Thanks,
-Rafael
 
----
-From: Rafael J. Wysocki <rjw@sisk.pl>
+On Fri, 20 Jun 2008, Matthew Garrett wrote:
 
-PCI PM: Add diagnostic statements to PCI device PM initialization
+> On Fri, Jun 20, 2008 at 03:43:27AM -0400, Len Brown wrote:
+> >  extern struct acpi_dmtable_info acpi_dm_table_info_dmar1[];
+> > +extern struct acpi_dmtable_info acpi_dm_table_info_dmar2[];
+> >  extern struct acpi_dmtable_info acpi_dm_table_info_ecdt[];
+> 
+> Maybe I'm missing something here, but we don't actually seem to have the 
+> disassembler code in Linux? It would be nice if we did (as a debug 
+> option) - I'd love to be able to dump a disassembled version of what's 
+> actually getting executed in response to events.
 
-Add two diagnostic printk()s to pci_pm_init() allowing us to check
-in the kernel log which PCI devices support generation of PME# and
-from what states as well as which PCI devices can generate wake-up
-events with the help of the platform.
+this patch and others like it are obviously just to keep Linux
+in sync with ACPICA to minimize the diff we must track.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- drivers/pci/pci.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+But there is actually quite a bit in ACPICA that is not in Linux.
+The most useful, from a debugging point of view, might be the
+hooking the ACPICA debug code into the kernel debugger --
+something that Luming did about 2 years ago.  However, as the
+debugger was not part of the Linux kernel tree, the changes
+didn't really have a good path to a customer...
 
-Index: linux-next/drivers/pci/pci.c
-===================================================================
---- linux-next.orig/drivers/pci/pci.c
-+++ linux-next/drivers/pci/pci.c
-@@ -1128,14 +1128,24 @@ void pci_pm_init(struct pci_dev *dev)
- 		/* Check device's ability to generate PME# */
- 		pci_read_config_word(dev, pm + PCI_PM_PMC, &pmc);
- 		if (pmc & PCI_PM_CAP_PME_MASK) {
-+			printk(KERN_INFO "PCI: Device %s can generate PME# from"
-+				"%s%s%s%s%s\n", pci_name(dev),
-+				(pmc & PCI_PM_CAP_PME_D0) ? " D0" : "",
-+				(pmc & PCI_PM_CAP_PME_D1) ? " D1" : "",
-+				(pmc & PCI_PM_CAP_PME_D2) ? " D2" : "",
-+				(pmc & PCI_PM_CAP_PME_D3) ? " D3hot" : "",
-+				(pmc & PCI_PM_CAP_PME_D3cold) ? " D3cold" : "");
- 			can_wakeup = true;
- 			/* Disable the PME# generation capability */
- 			pci_pme_active(dev, pm, false);
- 		}
- 	}
- 
--	if (platform_pci_can_wakeup(dev))
-+	if (platform_pci_can_wakeup(dev)) {
-+		printk(KERN_INFO "PCI: Device %s can generate system wake-up "
-+			"events through the platform\n", pci_name(dev));
- 		can_wakeup = true;
-+	}
- 
- 	device_init_wakeup(&dev->dev, can_wakeup);
- }
+-Len
+
