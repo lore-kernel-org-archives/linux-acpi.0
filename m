@@ -1,136 +1,82 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 66/70] PNPACPI: add support for HP vendor-specific CCSR
- descriptors
-Date: Fri, 20 Jun 2008 03:44:08 -0400
-Message-ID: <f382348d43f80b6267a0881729366be2e5542ace.1213947350.git.len.brown@intel.com>
+Subject: [PATCH 70/70] ACPI : Add DMI check to disable mwait on broken Compal
+Date: Fri, 20 Jun 2008 03:44:12 -0400
+Message-ID: <270597594e25cfb1ecdce1fee7c85bb6236cdb9f.1213947350.git.len.brown@intel.com>
 References: <1213947852-10924-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms046pub.verizon.net ([206.46.252.46]:50423 "EHLO
-	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751556AbYFTHrq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 03:47:46 -0400
+Received: from vms173003pub.verizon.net ([206.46.173.3]:63387 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752834AbYFTHsD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 03:48:03 -0400
 Received: from localhost.localdomain ([72.93.254.151])
- by vms046.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0K2R00EJW4BL8C10@vms046.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 20 Jun 2008 02:47:46 -0500 (CDT)
+ by vms173003.mailsrvcs.net
+ (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+ with ESMTPA id <0K2R00A2W4C29ZO2@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 20 Jun 2008 02:48:02 -0500 (CDT)
 In-reply-to: <1213947852-10924-1-git-send-email-lenb@kernel.org>
 In-reply-to: <087803d18fb8259cb844c075a35fb27c2d80792e.1213947349.git.len.brown@intel.com>
 References: <087803d18fb8259cb844c075a35fb27c2d80792e.1213947349.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <len.brown@intel.com>
+Cc: Zhao Yakui <yakui.zhao@intel.com>, Li Shaohua <shaohua.li@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+From: Zhao Yakui <yakui.zhao@intel.com>
 
-The HP CCSR descriptor describes MMIO address space that should appear
-as a MEM resource.  This patch adds support for parsing these descriptors
-in the _CRS data.
+Add the DMI check to disable mwait for CPU C-states.
+If the board is matched with DMI table, OSPM should not use mwait for CPU
+C-states even when mwait is supported. In such case the C2C3_FFH access mode
+will be disabled.
 
-The visible effect of this is that these MEM resources will appear
-in /sys/devices/pnp0/.../resources, which means that "lspnp -v" will
-report it, user applications can use this to locate device CSR space,
-and kernel drivers can use the normal PNP resource accessors to
-locate them.
+http://bugzilla.kernel.org/show_bug.cgi?id=10807
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+Signed-off-by: Li Shaohua <shaohua.li@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/pnp/pnpacpi/rsparser.c |   60 ++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 60 insertions(+), 0 deletions(-)
+ drivers/acpi/processor_core.c |   22 ++++++++++++++++++++++
+ 1 files changed, 22 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/pnp/pnpacpi/rsparser.c b/drivers/pnp/pnpacpi/rsparser.c
-index 826683f..d2abc87 100644
---- a/drivers/pnp/pnpacpi/rsparser.c
-+++ b/drivers/pnp/pnpacpi/rsparser.c
-@@ -3,6 +3,8 @@
-  *
-  * Copyright (c) 2004 Matthieu Castet <castet.matthieu@free.fr>
-  * Copyright (c) 2004 Li Shaohua <shaohua.li@intel.com>
-+ * Copyright (C) 2008 Hewlett-Packard Development Company, L.P.
-+ *	Bjorn Helgaas <bjorn.helgaas@hp.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-@@ -187,6 +189,61 @@ static void pnpacpi_parse_allocated_ioresource(struct pnp_dev *dev, u64 start,
- 	pnp_add_io_resource(dev, start, end, flags);
- }
+diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+index 9e3c168..67455ad 100644
+--- a/drivers/acpi/processor_core.c
++++ b/drivers/acpi/processor_core.c
+@@ -120,6 +120,23 @@ static const struct file_operations acpi_processor_info_fops = {
  
-+/*
-+ * Device CSRs that do not appear in PCI config space should be described
-+ * via ACPI.  This would normally be done with Address Space Descriptors
-+ * marked as "consumer-only," but old versions of Windows and Linux ignore
-+ * the producer/consumer flag, so HP invented a vendor-defined resource to
-+ * describe the location and size of CSR space.
-+ */
-+static struct acpi_vendor_uuid hp_ccsr_uuid = {
-+	.subtype = 2,
-+	.data = { 0xf9, 0xad, 0xe9, 0x69, 0x4f, 0x92, 0x5f, 0xab, 0xf6, 0x4a,
-+	    0x24, 0xd2, 0x01, 0x37, 0x0e, 0xad },
-+};
-+
-+static int vendor_resource_matches(struct pnp_dev *dev,
-+				   struct acpi_resource_vendor_typed *vendor,
-+				   struct acpi_vendor_uuid *match,
-+				   int expected_len)
+ struct acpi_processor *processors[NR_CPUS];
+ struct acpi_processor_errata errata __read_mostly;
++static int set_no_mwait(const struct dmi_system_id *id)
 +{
-+	int uuid_len = sizeof(vendor->uuid);
-+	u8 uuid_subtype = vendor->uuid_subtype;
-+	u8 *uuid = vendor->uuid;
-+	int actual_len;
-+
-+	/* byte_length includes uuid_subtype and uuid */
-+	actual_len = vendor->byte_length - uuid_len - 1;
-+
-+	if (uuid_subtype == match->subtype &&
-+	    uuid_len == sizeof(match->data) &&
-+	    memcmp(uuid, match->data, uuid_len) == 0) {
-+		if (expected_len && expected_len != actual_len) {
-+			dev_err(&dev->dev, "wrong vendor descriptor size; "
-+				"expected %d, found %d bytes\n",
-+				expected_len, actual_len);
-+			return 0;
-+		}
-+
-+		return 1;
-+	}
-+
++	printk(KERN_NOTICE PREFIX "%s detected - "
++		"disable mwait for CPU C-stetes\n", id->ident);
++	idle_nomwait = 1;
 +	return 0;
 +}
 +
-+static void pnpacpi_parse_allocated_vendor(struct pnp_dev *dev,
-+				    struct acpi_resource_vendor_typed *vendor)
-+{
-+	if (vendor_resource_matches(dev, vendor, &hp_ccsr_uuid, 16)) {
-+		u64 start, length;
-+
-+		memcpy(&start, vendor->byte_data, sizeof(start));
-+		memcpy(&length, vendor->byte_data + 8, sizeof(length));
-+
-+		pnp_add_mem_resource(dev, start, start + length - 1, 0);
-+	}
-+}
-+
- static void pnpacpi_parse_allocated_memresource(struct pnp_dev *dev,
- 						u64 start, u64 len,
- 						int write_protect)
-@@ -237,6 +294,7 @@ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
- 	struct acpi_resource_dma *dma;
- 	struct acpi_resource_io *io;
- 	struct acpi_resource_fixed_io *fixed_io;
-+	struct acpi_resource_vendor_typed *vendor_typed;
- 	struct acpi_resource_memory24 *memory24;
- 	struct acpi_resource_memory32 *memory32;
- 	struct acpi_resource_fixed_memory32 *fixed_memory32;
-@@ -306,6 +364,8 @@ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
- 		break;
++static struct dmi_system_id __cpuinitdata processor_idle_dmi_table[] = {
++	{
++	set_no_mwait, "IFL91 board", {
++	DMI_MATCH(DMI_BIOS_VENDOR, "COMPAL"),
++	DMI_MATCH(DMI_SYS_VENDOR, "ZEPTO"),
++	DMI_MATCH(DMI_PRODUCT_VERSION, "3215W"),
++	DMI_MATCH(DMI_BOARD_NAME, "IFL91") }, NULL},
++	{},
++};
  
- 	case ACPI_RESOURCE_TYPE_VENDOR:
-+		vendor_typed = &res->data.vendor_typed;
-+		pnpacpi_parse_allocated_vendor(dev, vendor_typed);
- 		break;
+ /* --------------------------------------------------------------------------
+                                 Errata Handling
+@@ -1095,6 +1112,11 @@ static int __init acpi_processor_init(void)
+ 		return -ENOMEM;
+ 	acpi_processor_dir->owner = THIS_MODULE;
  
- 	case ACPI_RESOURCE_TYPE_END_TAG:
++	/*
++	 * Check whether the system is DMI table. If yes, OSPM
++	 * should not use mwait for CPU-states.
++	 */
++	dmi_check_system(processor_idle_dmi_table);
+ 	result = cpuidle_register_driver(&acpi_idle_driver);
+ 	if (result < 0)
+ 		goto out_proc;
 -- 
 1.5.6
 
