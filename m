@@ -1,125 +1,60 @@
-From: Alok Kataria <akataria@vmware.com>
-Subject: Re: [PATCH 1/2] cleanup e820_setup_gap
-Date: Fri, 20 Jun 2008 12:38:31 -0700
-Message-ID: <1213990711.31598.22.camel@promb-2n-dhcp368.eng.vmware.com>
-References: <1213916250.27983.35.camel@promb-2n-dhcp368.eng.vmware.com>
-	 <20080620153220.GD17373@elte.hu>
-Reply-To: akataria@vmware.com
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [RFC] Allow notifications on method execution
+Date: Fri, 20 Jun 2008 16:39:41 -0300
+Message-ID: <20080620193941.GC20498@khazad-dum.debian.net>
+References: <20080620152227.GA11828@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-outbound-1.vmware.com ([65.113.40.141]:56904 "EHLO
-	smtp-outbound-1.vmware.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751375AbYFTTic (ORCPT
+Received: from out3.smtp.messagingengine.com ([66.111.4.27]:51248 "EHLO
+	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751218AbYFTTjq (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 20 Jun 2008 15:38:32 -0400
-In-Reply-To: <20080620153220.GD17373@elte.hu>
+	Fri, 20 Jun 2008 15:39:46 -0400
+Content-Disposition: inline
+In-Reply-To: <20080620152227.GA11828@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: "Brown, Len" <len.brown@intel.com>, Andrew Morton <akpm@linux-foundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Yinghai Lu <yhlu.kernel@gmail.com>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-acpi@vger.kernel.org, ibm-acpi@hmh.eng.br
 
-Here is the patch based on tip/master
+On Fri, 20 Jun 2008, Matthew Garrett wrote:
+> Various bits of hardware (some Thinkpads, for example) will execute ACPI 
+> methods in response to events but won't generate any notifications. It 
+> would be nice to be able to receive notifications on those updates in 
+> order to avoid polling. How about something like the following?
 
-Please have a look
+No comment on the code itself, but I have some about the whole idea.  If I
+missed the point, please explain it to me.
 
---
+Let me start pointing out that I am not really opposed to your idea, but I'd
+like to know if it is the best way to go about it, first.
 
-This is a preparatory patch for the next patch in series.
-Moves some code from e820_setup_gap to a new function e820_search_gap.
-This patch is a part of a bug fix where we walk the ACPI table to calculate
-a gap for PCI optional devices.
+With such ACPI notifies, you could have HAL do some of the stuff kernel
+drivers are doing.  So far so good (well, sort of).
 
-Signed-off-by: Alok N Kataria <akataria@vmware.com>
+But that is NOT necessarily the best, or even the correct way to do it.  You
+could use ACPI "traps" sending events to userspace to know brightness
+changed, but the proper way to have those events would be for the backlight
+class to send uevents for such stuff, instead.
 
-Index: linux-trees.git/arch/x86/kernel/e820.c
-===================================================================
---- linux-trees.git.orig/arch/x86/kernel/e820.c	2008-06-20 10:32:44.000000000 -0700
-+++ linux-trees.git/arch/x86/kernel/e820.c	2008-06-20 12:27:58.000000000 -0700
-@@ -442,26 +442,22 @@
- }
- 
- /*
-- * Search for the biggest gap in the low 32 bits of the e820
-- * memory space.  We pass this space to PCI to assign MMIO resources
-- * for hotplug or unconfigured devices in.
-- * Hopefully the BIOS let enough space left.
-+ * Search for a gap in the e820 memory space from start_addr to 2^32.
-  */
--__init void e820_setup_gap(void)
-+__init int e820_search_gap(unsigned long *gapstart, unsigned long *gapsize,
-+		unsigned long start_addr)
- {
--	unsigned long gapstart, gapsize, round;
--	unsigned long long last;
--	int i;
-+	unsigned long last = 0x100000000ull;
-+	int i = e820.nr_map;
- 	int found = 0;
- 
--	last = 0x100000000ull;
--	gapstart = 0x10000000;
--	gapsize = 0x400000;
--	i = e820.nr_map;
- 	while (--i >= 0) {
- 		unsigned long long start = e820.map[i].addr;
- 		unsigned long long end = start + e820.map[i].size;
- 
-+		if (end < start_addr)
-+			continue;
-+
- 		/*
- 		 * Since "last" is at most 4GB, we know we'll
- 		 * fit in 32 bits if this condition is true
-@@ -469,15 +465,32 @@
- 		if (last > end) {
- 			unsigned long gap = last - end;
- 
--			if (gap > gapsize) {
--				gapsize = gap;
--				gapstart = end;
-+			if (gap >= *gapsize) {
-+				*gapsize = gap;
-+				*gapstart = end;
- 				found = 1;
- 			}
- 		}
- 		if (start < last)
- 			last = start;
- 	}
-+	return found;
-+}
-+
-+/*
-+ * Search for the biggest gap in the low 32 bits of the e820
-+ * memory space.  We pass this space to PCI to assign MMIO resources
-+ * for hotplug or unconfigured devices in.
-+ * Hopefully the BIOS let enough space left.
-+ */
-+__init void e820_setup_gap(void)
-+{
-+	unsigned long gapstart, gapsize, round;
-+	int found;
-+
-+	gapstart = 0x10000000;
-+	gapsize = 0x400000;
-+	found  = e820_search_gap(&gapstart, &gapsize, 0);
- 
- #ifdef CONFIG_X86_64
- 	if (!found) {
-Index: linux-trees.git/include/asm-x86/e820.h
-===================================================================
---- linux-trees.git.orig/include/asm-x86/e820.h	2008-06-20 10:32:44.000000000 -0700
-+++ linux-trees.git/include/asm-x86/e820.h	2008-06-20 12:18:40.000000000 -0700
-@@ -69,6 +69,8 @@
- 			       unsigned new_type);
- extern void update_e820(void);
- extern void e820_setup_gap(void);
-+extern int e820_search_gap(unsigned long *gapstart, unsigned long *gapsize,
-+				unsigned long start_addr);
- struct setup_data;
- extern void parse_e820_ext(struct setup_data *data, unsigned long pa_data);
- 
+Remember that if ACPI core sends too much data to userspace directly, we
+can't easily fix stuff in the drivers to present a more or less sanitized
+view of things to userspace.
 
+So I'd really like to know what you need it for?  What sort of hardware
+events you'd like to be notified that thinkpad-acpi is not notifying you
+about, for example?
 
+Avoiding polling is ALWAYS a good thing.  But being careful about what you
+export to userspace is ALWAYS wise as well.  I believe we can do both.
+
+Even if it means we need to go around fixing half-completed sysfs classes
+until they're good enough an API for us and userspace.  rfkill is a prime
+example of the effort that might be needed.
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
