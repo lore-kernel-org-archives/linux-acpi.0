@@ -1,53 +1,188 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 34/70] ACPI Exception (video-1721): UNKNOWN_STATUS_CODE,
- Cant attach device
-Date: Fri, 20 Jun 2008 03:43:36 -0400
-Message-ID: <d385c2a85877f0cb785070094edf9a624c090d68.1213947350.git.len.brown@intel.com>
+Subject: [PATCH 43/70] PNP: make pnp_{port,mem,etc}_start(),
+ et al work for invalid resources
+Date: Fri, 20 Jun 2008 03:43:45 -0400
+Message-ID: <60d14fa0c640bbdb4c58b5426b2bf344090c5ac9.1213947350.git.len.brown@intel.com>
 References: <1213947852-10924-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173003pub.verizon.net ([206.46.173.3]:62806 "EHLO
 	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752536AbYFTHo5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 03:44:57 -0400
+	with ESMTP id S1752559AbYFTHo6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 03:44:58 -0400
 Received: from localhost.localdomain ([72.93.254.151])
  by vms173003.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K2R00AUO46D9SS2@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 20 Jun 2008 02:44:38 -0500 (CDT)
+ with ESMTPA id <0K2R00A5546HA6T2@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 20 Jun 2008 02:44:42 -0500 (CDT)
 In-reply-to: <1213947852-10924-1-git-send-email-lenb@kernel.org>
 In-reply-to: <087803d18fb8259cb844c075a35fb27c2d80792e.1213947349.git.len.brown@intel.com>
 References: <087803d18fb8259cb844c075a35fb27c2d80792e.1213947349.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <len.brown@intel.com>
 
-From: Zhang Rui <rui.zhang@intel.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-The child of a video bus device is not alway a video device.
-It should be a warn message rather than an exception here.
-http://bugzilla.kernel.org/show_bug.cgi?id=9761
+Some callers use pnp_port_start() and similar functions without
+making sure the resource is valid.  This patch makes us fall
+back to returning the initial values if the resource is not
+valid or not even present.
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+This mostly preserves the previous behavior, where we would just
+return the initial values set by pnp_init_resource_table().  The
+original 2.6.25 code didn't range-check the "bar", so it would
+return garbage if the bar exceeded the table size.  This code
+returns sensible values instead.
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/video.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ include/linux/pnp.h |   72 ++++++++++++++++++++++++++++++++++++++++++--------
+ 1 files changed, 60 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index 5e5dda3..d089c45 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -1713,7 +1713,8 @@ acpi_video_bus_get_devices(struct acpi_video_bus *video,
+diff --git a/include/linux/pnp.h b/include/linux/pnp.h
+index 63b128d..8b607ae 100644
+--- a/include/linux/pnp.h
++++ b/include/linux/pnp.h
+@@ -40,19 +40,31 @@ static inline resource_size_t pnp_resource_len(struct resource *res)
+ static inline resource_size_t pnp_port_start(struct pnp_dev *dev,
+ 					     unsigned int bar)
+ {
+-	return pnp_get_resource(dev, IORESOURCE_IO, bar)->start;
++	struct resource *res = pnp_get_resource(dev, IORESOURCE_IO, bar);
++
++	if (pnp_resource_valid(res))
++		return res->start;
++	return 0;
+ }
  
- 		status = acpi_video_bus_get_one_device(dev, video);
- 		if (ACPI_FAILURE(status)) {
--			ACPI_EXCEPTION((AE_INFO, status, "Cant attach device"));
-+			ACPI_DEBUG_PRINT((ACPI_DB_WARN,
-+					"Cant attach device"));
- 			continue;
- 		}
- 	}
+ static inline resource_size_t pnp_port_end(struct pnp_dev *dev,
+ 					   unsigned int bar)
+ {
+-	return pnp_get_resource(dev, IORESOURCE_IO, bar)->end;
++	struct resource *res = pnp_get_resource(dev, IORESOURCE_IO, bar);
++
++	if (pnp_resource_valid(res))
++		return res->end;
++	return 0;
+ }
+ 
+ static inline unsigned long pnp_port_flags(struct pnp_dev *dev,
+ 					   unsigned int bar)
+ {
+-	return pnp_get_resource(dev, IORESOURCE_IO, bar)->flags;
++	struct resource *res = pnp_get_resource(dev, IORESOURCE_IO, bar);
++
++	if (pnp_resource_valid(res))
++		return res->flags;
++	return IORESOURCE_IO | IORESOURCE_AUTO | IORESOURCE_UNSET;
+ }
+ 
+ static inline int pnp_port_valid(struct pnp_dev *dev, unsigned int bar)
+@@ -63,25 +75,41 @@ static inline int pnp_port_valid(struct pnp_dev *dev, unsigned int bar)
+ static inline resource_size_t pnp_port_len(struct pnp_dev *dev,
+ 					   unsigned int bar)
+ {
+-	return pnp_resource_len(pnp_get_resource(dev, IORESOURCE_IO, bar));
++	struct resource *res = pnp_get_resource(dev, IORESOURCE_IO, bar);
++
++	if (pnp_resource_valid(res))
++		return pnp_resource_len(res);
++	return 0;
+ }
+ 
+ 
+ static inline resource_size_t pnp_mem_start(struct pnp_dev *dev,
+ 					    unsigned int bar)
+ {
+-	return pnp_get_resource(dev, IORESOURCE_MEM, bar)->start;
++	struct resource *res = pnp_get_resource(dev, IORESOURCE_MEM, bar);
++
++	if (pnp_resource_valid(res))
++		return res->start;
++	return 0;
+ }
+ 
+ static inline resource_size_t pnp_mem_end(struct pnp_dev *dev,
+ 					  unsigned int bar)
+ {
+-	return pnp_get_resource(dev, IORESOURCE_MEM, bar)->end;
++	struct resource *res = pnp_get_resource(dev, IORESOURCE_MEM, bar);
++
++	if (pnp_resource_valid(res))
++		return res->end;
++	return 0;
+ }
+ 
+ static inline unsigned long pnp_mem_flags(struct pnp_dev *dev, unsigned int bar)
+ {
+-	return pnp_get_resource(dev, IORESOURCE_MEM, bar)->flags;
++	struct resource *res = pnp_get_resource(dev, IORESOURCE_MEM, bar);
++
++	if (pnp_resource_valid(res))
++		return res->flags;
++	return IORESOURCE_MEM | IORESOURCE_AUTO | IORESOURCE_UNSET;
+ }
+ 
+ static inline int pnp_mem_valid(struct pnp_dev *dev, unsigned int bar)
+@@ -92,18 +120,30 @@ static inline int pnp_mem_valid(struct pnp_dev *dev, unsigned int bar)
+ static inline resource_size_t pnp_mem_len(struct pnp_dev *dev,
+ 					  unsigned int bar)
+ {
+-	return pnp_resource_len(pnp_get_resource(dev, IORESOURCE_MEM, bar));
++	struct resource *res = pnp_get_resource(dev, IORESOURCE_MEM, bar);
++
++	if (pnp_resource_valid(res))
++		return pnp_resource_len(res);
++	return 0;
+ }
+ 
+ 
+ static inline resource_size_t pnp_irq(struct pnp_dev *dev, unsigned int bar)
+ {
+-	return pnp_get_resource(dev, IORESOURCE_IRQ, bar)->start;
++	struct resource *res = pnp_get_resource(dev, IORESOURCE_IRQ, bar);
++
++	if (pnp_resource_valid(res))
++		return res->start;
++	return -1;
+ }
+ 
+ static inline unsigned long pnp_irq_flags(struct pnp_dev *dev, unsigned int bar)
+ {
+-	return pnp_get_resource(dev, IORESOURCE_IRQ, bar)->flags;
++	struct resource *res = pnp_get_resource(dev, IORESOURCE_IRQ, bar);
++
++	if (pnp_resource_valid(res))
++		return res->flags;
++	return IORESOURCE_IRQ | IORESOURCE_AUTO | IORESOURCE_UNSET;
+ }
+ 
+ static inline int pnp_irq_valid(struct pnp_dev *dev, unsigned int bar)
+@@ -114,12 +154,20 @@ static inline int pnp_irq_valid(struct pnp_dev *dev, unsigned int bar)
+ 
+ static inline resource_size_t pnp_dma(struct pnp_dev *dev, unsigned int bar)
+ {
+-	return pnp_get_resource(dev, IORESOURCE_DMA, bar)->start;
++	struct resource *res = pnp_get_resource(dev, IORESOURCE_DMA, bar);
++
++	if (pnp_resource_valid(res))
++		return res->start;
++	return -1;
+ }
+ 
+ static inline unsigned long pnp_dma_flags(struct pnp_dev *dev, unsigned int bar)
+ {
+-	return pnp_get_resource(dev, IORESOURCE_DMA, bar)->flags;
++	struct resource *res = pnp_get_resource(dev, IORESOURCE_DMA, bar);
++
++	if (pnp_resource_valid(res))
++		return res->flags;
++	return IORESOURCE_DMA | IORESOURCE_AUTO | IORESOURCE_UNSET;
+ }
+ 
+ static inline int pnp_dma_valid(struct pnp_dev *dev, unsigned int bar)
 -- 
 1.5.6
 
