@@ -1,18 +1,19 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 54/70] PNP: improve resource assignment debug
-Date: Fri, 20 Jun 2008 03:43:56 -0400
-Message-ID: <0c960972bef8fe1c0b767011a4a78526ae74ce69.1213947350.git.len.brown@intel.com>
+Subject: [PATCH 51/70] PNP: make resource option structures private to PNP
+ subsystem
+Date: Fri, 20 Jun 2008 03:43:53 -0400
+Message-ID: <efe2c02e0e190d45307bb3a37287203e787512f3.1213947350.git.len.brown@intel.com>
 References: <1213947852-10924-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:53504 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752155AbYFTHpX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 03:45:23 -0400
+Received: from vms173001pub.verizon.net ([206.46.173.1]:40470 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752422AbYFTHoz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 03:44:55 -0400
 Received: from localhost.localdomain ([72.93.254.151])
- by vms173005.mailsrvcs.net
+ by vms173001.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K2R007IO3VKC733@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 20 Jun 2008 02:38:38 -0500 (CDT)
+ with ESMTPA id <0K2R00DX546LZ9C2@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 20 Jun 2008 02:44:46 -0500 (CDT)
 In-reply-to: <1213947852-10924-1-git-send-email-lenb@kernel.org>
 In-reply-to: <087803d18fb8259cb844c075a35fb27c2d80792e.1213947349.git.len.brown@intel.com>
 References: <087803d18fb8259cb844c075a35fb27c2d80792e.1213947349.git.len.brown@intel.com>
@@ -23,44 +24,136 @@ Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <len.brown@intel.com>
 
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-When we fail to assign an I/O or MEM resource, include the min/max
-in the debug output to help match it with the options.
+Nothing outside the PNP subsystem should need access to a
+device's resource options, so this patch moves the option
+structure declarations to a private header file.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Acked-by: Rene Herman <rene.herman@gmail.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/pnp/manager.c |   10 ++++++++--
- 1 files changed, 8 insertions(+), 2 deletions(-)
+ drivers/pnp/base.h  |   48 ++++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/pnp.h |   48 ------------------------------------------------
+ 2 files changed, 48 insertions(+), 48 deletions(-)
 
-diff --git a/drivers/pnp/manager.c b/drivers/pnp/manager.c
-index e758dd2..c706dd2 100644
---- a/drivers/pnp/manager.c
-+++ b/drivers/pnp/manager.c
-@@ -47,7 +47,10 @@ static int pnp_assign_port(struct pnp_dev *dev, struct pnp_port *rule, int idx)
- 		res->start += rule->align;
- 		res->end = res->start + rule->size - 1;
- 		if (res->start > rule->max || !rule->align) {
--			dev_dbg(&dev->dev, "  couldn't assign io %d\n", idx);
-+			dev_dbg(&dev->dev, "  couldn't assign io %d "
-+				"(min %#llx max %#llx)\n", idx,
-+				(unsigned long long) rule->min,
-+				(unsigned long long) rule->max);
- 			return 0;
- 		}
- 	}
-@@ -96,7 +99,10 @@ static int pnp_assign_mem(struct pnp_dev *dev, struct pnp_mem *rule, int idx)
- 		res->start += rule->align;
- 		res->end = res->start + rule->size - 1;
- 		if (res->start > rule->max || !rule->align) {
--			dev_dbg(&dev->dev, "  couldn't assign mem %d\n", idx);
-+			dev_dbg(&dev->dev, "  couldn't assign mem %d "
-+				"(min %#llx max %#llx)\n", idx,
-+				(unsigned long long) rule->min,
-+				(unsigned long long) rule->max);
- 			return 0;
- 		}
- 	}
+diff --git a/drivers/pnp/base.h b/drivers/pnp/base.h
+index 1667ac3..3126e45 100644
+--- a/drivers/pnp/base.h
++++ b/drivers/pnp/base.h
+@@ -19,6 +19,54 @@ void pnp_remove_card(struct pnp_card *card);
+ int pnp_add_card_device(struct pnp_card *card, struct pnp_dev *dev);
+ void pnp_remove_card_device(struct pnp_dev *dev);
+ 
++struct pnp_port {
++	unsigned short min;	/* min base number */
++	unsigned short max;	/* max base number */
++	unsigned char align;	/* align boundary */
++	unsigned char size;	/* size of range */
++	unsigned char flags;	/* port flags */
++	unsigned char pad;	/* pad */
++	struct pnp_port *next;	/* next port */
++};
++
++#define PNP_IRQ_NR 256
++struct pnp_irq {
++	DECLARE_BITMAP(map, PNP_IRQ_NR);	/* bitmask for IRQ lines */
++	unsigned char flags;	/* IRQ flags */
++	unsigned char pad;	/* pad */
++	struct pnp_irq *next;	/* next IRQ */
++};
++
++struct pnp_dma {
++	unsigned char map;	/* bitmask for DMA channels */
++	unsigned char flags;	/* DMA flags */
++	struct pnp_dma *next;	/* next port */
++};
++
++struct pnp_mem {
++	unsigned int min;	/* min base number */
++	unsigned int max;	/* max base number */
++	unsigned int align;	/* align boundary */
++	unsigned int size;	/* size of range */
++	unsigned char flags;	/* memory flags */
++	unsigned char pad;	/* pad */
++	struct pnp_mem *next;	/* next memory resource */
++};
++
++#define PNP_RES_PRIORITY_PREFERRED	0
++#define PNP_RES_PRIORITY_ACCEPTABLE	1
++#define PNP_RES_PRIORITY_FUNCTIONAL	2
++#define PNP_RES_PRIORITY_INVALID	65535
++
++struct pnp_option {
++	unsigned short priority;	/* priority */
++	struct pnp_port *port;		/* first port */
++	struct pnp_irq *irq;		/* first IRQ */
++	struct pnp_dma *dma;		/* first DMA */
++	struct pnp_mem *mem;		/* first memory resource */
++	struct pnp_option *next;	/* used to chain dependent resources */
++};
++
+ struct pnp_option *pnp_build_option(int priority);
+ struct pnp_option *pnp_register_independent_option(struct pnp_dev *dev);
+ struct pnp_option *pnp_register_dependent_option(struct pnp_dev *dev,
+diff --git a/include/linux/pnp.h b/include/linux/pnp.h
+index b690edb..00fe020 100644
+--- a/include/linux/pnp.h
++++ b/include/linux/pnp.h
+@@ -182,54 +182,6 @@ static inline int pnp_dma_valid(struct pnp_dev *dev, unsigned int bar)
+ }
+ 
+ 
+-struct pnp_port {
+-	unsigned short min;	/* min base number */
+-	unsigned short max;	/* max base number */
+-	unsigned char align;	/* align boundary */
+-	unsigned char size;	/* size of range */
+-	unsigned char flags;	/* port flags */
+-	unsigned char pad;	/* pad */
+-	struct pnp_port *next;	/* next port */
+-};
+-
+-#define PNP_IRQ_NR 256
+-struct pnp_irq {
+-	DECLARE_BITMAP(map, PNP_IRQ_NR);	/* bitmask for IRQ lines */
+-	unsigned char flags;	/* IRQ flags */
+-	unsigned char pad;	/* pad */
+-	struct pnp_irq *next;	/* next IRQ */
+-};
+-
+-struct pnp_dma {
+-	unsigned char map;	/* bitmask for DMA channels */
+-	unsigned char flags;	/* DMA flags */
+-	struct pnp_dma *next;	/* next port */
+-};
+-
+-struct pnp_mem {
+-	unsigned int min;	/* min base number */
+-	unsigned int max;	/* max base number */
+-	unsigned int align;	/* align boundary */
+-	unsigned int size;	/* size of range */
+-	unsigned char flags;	/* memory flags */
+-	unsigned char pad;	/* pad */
+-	struct pnp_mem *next;	/* next memory resource */
+-};
+-
+-#define PNP_RES_PRIORITY_PREFERRED	0
+-#define PNP_RES_PRIORITY_ACCEPTABLE	1
+-#define PNP_RES_PRIORITY_FUNCTIONAL	2
+-#define PNP_RES_PRIORITY_INVALID	65535
+-
+-struct pnp_option {
+-	unsigned short priority;	/* priority */
+-	struct pnp_port *port;		/* first port */
+-	struct pnp_irq *irq;		/* first IRQ */
+-	struct pnp_dma *dma;		/* first DMA */
+-	struct pnp_mem *mem;		/* first memory resource */
+-	struct pnp_option *next;	/* used to chain dependent resources */
+-};
+-
+ /*
+  * Device Management
+  */
 -- 
 1.5.6
 
