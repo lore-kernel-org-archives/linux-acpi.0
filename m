@@ -1,232 +1,115 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 13/70] snapshot: Use pm_mutex for mutual exclusion
-Date: Fri, 20 Jun 2008 03:43:15 -0400
-Message-ID: <56ca8b0af290931c647e23876b75f9fd78cbaa82.1213947349.git.len.brown@intel.com>
+Subject: [PATCH 24/70] ACPICA: Update DMAR and SRAT table definitions
+Date: Fri, 20 Jun 2008 03:43:26 -0400
+Message-ID: <5e3d42c632c715fa3076175c39e834223b10c47a.1213947350.git.len.brown@intel.com>
 References: <1213947852-10924-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:62806 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752010AbYFTHon (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 03:44:43 -0400
+Received: from vms042pub.verizon.net ([206.46.252.42]:38101 "EHLO
+	vms042pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752027AbYFTHor (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 03:44:47 -0400
 Received: from localhost.localdomain ([72.93.254.151])
- by vms173003.mailsrvcs.net
- (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K2R00A9N4649VK2@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 20 Jun 2008 02:44:28 -0500 (CDT)
+ by vms042.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
+ 3 2006)) with ESMTPA id <0K2R00D7Y468SHO1@vms042.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 20 Jun 2008 02:44:33 -0500 (CDT)
 In-reply-to: <1213947852-10924-1-git-send-email-lenb@kernel.org>
 In-reply-to: <087803d18fb8259cb844c075a35fb27c2d80792e.1213947349.git.len.brown@intel.com>
 References: <087803d18fb8259cb844c075a35fb27c2d80792e.1213947349.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
+Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+From: Bob Moore <robert.moore@intel.com>
 
-We can avoid taking the BKL in snapshot_ioctl() if pm_mutex is used to prevent
-the ioctls from being executed concurrently.
+Synchronized tables with current specifications.
 
-In addition, although it is only possible to open /dev/snapshot once, the task
-which has done that may spawn a child that will inherit the open descriptor,
-so in theory they can call snapshot_write(), snapshot_read() and
-snapshot_release() concurrently.  pm_mutex can also be used for mutual
-exclusion in such cases.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@suse.cz>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- kernel/power/user.c |   68 +++++++++++++++++++++++++++++++-------------------
- 1 files changed, 42 insertions(+), 26 deletions(-)
+ arch/x86/kernel/srat_32.c |    3 +--
+ drivers/acpi/numa.c       |    4 ++--
+ include/acpi/actbl1.h     |   19 +++++++++++++++++--
+ 3 files changed, 20 insertions(+), 6 deletions(-)
 
-diff --git a/kernel/power/user.c b/kernel/power/user.c
-index 658262b..a6332a3 100644
---- a/kernel/power/user.c
-+++ b/kernel/power/user.c
-@@ -70,16 +70,22 @@ static int snapshot_open(struct inode *inode, struct file *filp)
- 	struct snapshot_data *data;
- 	int error;
+diff --git a/arch/x86/kernel/srat_32.c b/arch/x86/kernel/srat_32.c
+index a29192f..0142476 100644
+--- a/arch/x86/kernel/srat_32.c
++++ b/arch/x86/kernel/srat_32.c
+@@ -126,9 +126,8 @@ static void __init parse_memory_affinity_structure (char *sratp)
  
--	if (!atomic_add_unless(&snapshot_device_available, -1, 0))
--		return -EBUSY;
-+	mutex_lock(&pm_mutex);
+ 	num_memory_chunks++;
+ 
+-	printk("Memory range 0x%lX to 0x%lX (type 0x%X) in proximity domain 0x%02X %s\n",
++	printk("Memory range 0x%lX to 0x%lX in proximity domain 0x%02X %s\n",
+ 		start_pfn, end_pfn,
+-		memory_affinity->memory_type,
+ 		pxm,
+ 		((memory_affinity->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE) ?
+ 		 "enabled and removable" : "enabled" ) );
+diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
+index 658e5f3..cb9864e 100644
+--- a/drivers/acpi/numa.c
++++ b/drivers/acpi/numa.c
+@@ -120,10 +120,10 @@ acpi_table_print_srat_entry(struct acpi_subtable_header *header)
+ 			struct acpi_srat_mem_affinity *p =
+ 			    (struct acpi_srat_mem_affinity *)header;
+ 			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-					  "SRAT Memory (0x%lx length 0x%lx type 0x%x) in proximity domain %d %s%s\n",
++					  "SRAT Memory (0x%lx length 0x%lx) in proximity domain %d %s%s\n",
+ 					  (unsigned long)p->base_address,
+ 					  (unsigned long)p->length,
+-					  p->memory_type, p->proximity_domain,
++					  p->proximity_domain,
+ 					  (p->flags & ACPI_SRAT_MEM_ENABLED)?
+ 					  "enabled" : "disabled",
+ 					  (p->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE)?
+diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
+index 9af239b..715a489 100644
+--- a/include/acpi/actbl1.h
++++ b/include/acpi/actbl1.h
+@@ -300,6 +300,7 @@ struct acpi_table_dbgp {
+ /*******************************************************************************
+  *
+  * DMAR - DMA Remapping table
++ *        From "Intel Virtualization Technology for Directed I/O", Sept. 2007
+  *
+  ******************************************************************************/
+ 
+@@ -382,6 +383,20 @@ struct acpi_dmar_reserved_memory {
+ 
+ #define ACPI_DMAR_ALLOW_ALL         (1)
+ 
 +
-+	if (!atomic_add_unless(&snapshot_device_available, -1, 0)) {
-+		error = -EBUSY;
-+		goto Unlock;
-+	}
- 
- 	if ((filp->f_flags & O_ACCMODE) == O_RDWR) {
- 		atomic_inc(&snapshot_device_available);
--		return -ENOSYS;
-+		error = -ENOSYS;
-+		goto Unlock;
- 	}
- 	if(create_basic_memory_bitmaps()) {
- 		atomic_inc(&snapshot_device_available);
--		return -ENOMEM;
-+		error = -ENOMEM;
-+		goto Unlock;
- 	}
- 	nonseekable_open(inode, filp);
- 	data = &snapshot_state;
-@@ -99,33 +105,36 @@ static int snapshot_open(struct inode *inode, struct file *filp)
- 		if (error)
- 			pm_notifier_call_chain(PM_POST_HIBERNATION);
- 	}
--	if (error) {
-+	if (error)
- 		atomic_inc(&snapshot_device_available);
--		return error;
--	}
- 	data->frozen = 0;
- 	data->ready = 0;
- 	data->platform_support = 0;
- 
--	return 0;
-+ Unlock:
-+	mutex_unlock(&pm_mutex);
++/* 2: Root Port ATS Capability Reporting Structure */
 +
-+	return error;
- }
- 
- static int snapshot_release(struct inode *inode, struct file *filp)
- {
- 	struct snapshot_data *data;
- 
-+	mutex_lock(&pm_mutex);
++struct acpi_dmar_atsr {
++       struct acpi_dmar_header header;
++       u8 flags;
++       u8 reserved;
++       u16 segment;
++};
 +
- 	swsusp_free();
- 	free_basic_memory_bitmaps();
- 	data = filp->private_data;
- 	free_all_swap_pages(data->swap);
--	if (data->frozen) {
--		mutex_lock(&pm_mutex);
-+	if (data->frozen)
- 		thaw_processes();
--		mutex_unlock(&pm_mutex);
--	}
- 	pm_notifier_call_chain(data->mode == O_WRONLY ?
- 			PM_POST_HIBERNATION : PM_POST_RESTORE);
- 	atomic_inc(&snapshot_device_available);
++/* Flags */
 +
-+	mutex_unlock(&pm_mutex);
++#define ACPI_DMAR_ALL_PORTS         (1)
 +
- 	return 0;
- }
+ /*******************************************************************************
+  *
+  * ECDT - Embedded Controller Boot Resources Table
+@@ -1156,9 +1171,9 @@ struct acpi_srat_mem_affinity {
+ 	u16 reserved;		/* Reserved, must be zero */
+ 	u64 base_address;
+ 	u64 length;
+-	u32 memory_type;	/* See acpi_address_range_id */
++       u32 reserved1;
+ 	u32 flags;
+-	u64 reserved1;		/* Reserved, must be zero */
++       u64 reserved2;          /* Reserved, must be zero */
+ };
  
-@@ -135,9 +144,13 @@ static ssize_t snapshot_read(struct file *filp, char __user *buf,
- 	struct snapshot_data *data;
- 	ssize_t res;
- 
-+	mutex_lock(&pm_mutex);
-+
- 	data = filp->private_data;
--	if (!data->ready)
--		return -ENODATA;
-+	if (!data->ready) {
-+		res = -ENODATA;
-+		goto Unlock;
-+	}
- 	res = snapshot_read_next(&data->handle, count);
- 	if (res > 0) {
- 		if (copy_to_user(buf, data_of(data->handle), res))
-@@ -145,6 +158,10 @@ static ssize_t snapshot_read(struct file *filp, char __user *buf,
- 		else
- 			*offp = data->handle.offset;
- 	}
-+
-+ Unlock:
-+	mutex_unlock(&pm_mutex);
-+
- 	return res;
- }
- 
-@@ -154,6 +171,8 @@ static ssize_t snapshot_write(struct file *filp, const char __user *buf,
- 	struct snapshot_data *data;
- 	ssize_t res;
- 
-+	mutex_lock(&pm_mutex);
-+
- 	data = filp->private_data;
- 	res = snapshot_write_next(&data->handle, count);
- 	if (res > 0) {
-@@ -162,6 +181,9 @@ static ssize_t snapshot_write(struct file *filp, const char __user *buf,
- 		else
- 			*offp = data->handle.offset;
- 	}
-+
-+	mutex_unlock(&pm_mutex);
-+
- 	return res;
- }
- 
-@@ -180,16 +202,16 @@ static long snapshot_ioctl(struct file *filp, unsigned int cmd,
- 	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
- 
--	data = filp->private_data;
-+	if (!mutex_trylock(&pm_mutex))
-+		return -EBUSY;
- 
--	lock_kernel();
-+	data = filp->private_data;
- 
- 	switch (cmd) {
- 
- 	case SNAPSHOT_FREEZE:
- 		if (data->frozen)
- 			break;
--		mutex_lock(&pm_mutex);
- 		printk("Syncing filesystems ... ");
- 		sys_sync();
- 		printk("done.\n");
-@@ -197,7 +219,6 @@ static long snapshot_ioctl(struct file *filp, unsigned int cmd,
- 		error = freeze_processes();
- 		if (error)
- 			thaw_processes();
--		mutex_unlock(&pm_mutex);
- 		if (!error)
- 			data->frozen = 1;
- 		break;
-@@ -205,9 +226,7 @@ static long snapshot_ioctl(struct file *filp, unsigned int cmd,
- 	case SNAPSHOT_UNFREEZE:
- 		if (!data->frozen || data->ready)
- 			break;
--		mutex_lock(&pm_mutex);
- 		thaw_processes();
--		mutex_unlock(&pm_mutex);
- 		data->frozen = 0;
- 		break;
- 
-@@ -310,16 +329,11 @@ static long snapshot_ioctl(struct file *filp, unsigned int cmd,
- 			error = -EPERM;
- 			break;
- 		}
--		if (!mutex_trylock(&pm_mutex)) {
--			error = -EBUSY;
--			break;
--		}
- 		/*
- 		 * Tasks are frozen and the notifiers have been called with
- 		 * PM_HIBERNATION_PREPARE
- 		 */
- 		error = suspend_devices_and_enter(PM_SUSPEND_MEM);
--		mutex_unlock(&pm_mutex);
- 		break;
- 
- 	case SNAPSHOT_PLATFORM_SUPPORT:
-@@ -392,7 +406,9 @@ static long snapshot_ioctl(struct file *filp, unsigned int cmd,
- 		error = -ENOTTY;
- 
- 	}
--	unlock_kernel();
-+
-+	mutex_unlock(&pm_mutex);
-+
- 	return error;
- }
- 
+ /* Flags */
 -- 
 1.5.6
 
