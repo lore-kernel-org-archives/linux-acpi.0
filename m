@@ -1,62 +1,136 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 67/70] ACPI: Disable the C2C3_FFH access mode HW has no MWAIT
- support
-Date: Fri, 20 Jun 2008 03:44:09 -0400
-Message-ID: <a84931f74d8b0329fc303b490c06c5d3f16ccc17.1213947350.git.len.brown@intel.com>
+Subject: [PATCH 66/70] PNPACPI: add support for HP vendor-specific CCSR
+ descriptors
+Date: Fri, 20 Jun 2008 03:44:08 -0400
+Message-ID: <f382348d43f80b6267a0881729366be2e5542ace.1213947350.git.len.brown@intel.com>
 References: <1213947852-10924-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:54035 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751583AbYFTHrq (ORCPT
+Received: from vms046pub.verizon.net ([206.46.252.46]:50423 "EHLO
+	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751556AbYFTHrq (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 03:47:46 -0400
 Received: from localhost.localdomain ([72.93.254.151])
- by vms173005.mailsrvcs.net
- (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K2R0070340DC1C3@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 20 Jun 2008 02:41:02 -0500 (CDT)
+ by vms046.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
+ 3 2006)) with ESMTPA id <0K2R00EJW4BL8C10@vms046.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 20 Jun 2008 02:47:46 -0500 (CDT)
 In-reply-to: <1213947852-10924-1-git-send-email-lenb@kernel.org>
 In-reply-to: <087803d18fb8259cb844c075a35fb27c2d80792e.1213947349.git.len.brown@intel.com>
 References: <087803d18fb8259cb844c075a35fb27c2d80792e.1213947349.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Zhao Yakui <yakui.zhao@intel.com>, Li Shaohua <shaohua.li@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <len.brown@intel.com>
 
-From: Zhao Yakui <yakui.zhao@intel.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-991528d7348667924176f3e29addea0675298944
-(ACPI: Processor native C-states using MWAIT)
-started passing C2C3_FFH to _PDC to tell the BIOS
-that Linux supports MWAIT for deep C-states.
+The HP CCSR descriptor describes MMIO address space that should appear
+as a MEM resource.  This patch adds support for parsing these descriptors
+in the _CRS data.
 
-However, we should first double check with the hardware
-that it actually supports MWAIT before potentially exposing
-a BIOS bug of an MWAIT _CST on HW that doesn't support MWAIT.
+The visible effect of this is that these MEM resources will appear
+in /sys/devices/pnp0/.../resources, which means that "lspnp -v" will
+report it, user applications can use this to locate device CSR space,
+and kernel drivers can use the normal PNP resource accessors to
+locate them.
 
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-Signed-off-by: Li Shaohua <shaohua.li@intel.com>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- arch/x86/kernel/acpi/processor.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+ drivers/pnp/pnpacpi/rsparser.c |   60 ++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 60 insertions(+), 0 deletions(-)
 
-diff --git a/arch/x86/kernel/acpi/processor.c b/arch/x86/kernel/acpi/processor.c
-index de2d2e4..7c074ee 100644
---- a/arch/x86/kernel/acpi/processor.c
-+++ b/arch/x86/kernel/acpi/processor.c
-@@ -56,6 +56,12 @@ static void init_intel_pdc(struct acpi_processor *pr, struct cpuinfo_x86 *c)
- 	if (cpu_has(c, X86_FEATURE_ACPI))
- 		buf[2] |= ACPI_PDC_T_FFH;
+diff --git a/drivers/pnp/pnpacpi/rsparser.c b/drivers/pnp/pnpacpi/rsparser.c
+index 826683f..d2abc87 100644
+--- a/drivers/pnp/pnpacpi/rsparser.c
++++ b/drivers/pnp/pnpacpi/rsparser.c
+@@ -3,6 +3,8 @@
+  *
+  * Copyright (c) 2004 Matthieu Castet <castet.matthieu@free.fr>
+  * Copyright (c) 2004 Li Shaohua <shaohua.li@intel.com>
++ * Copyright (C) 2008 Hewlett-Packard Development Company, L.P.
++ *	Bjorn Helgaas <bjorn.helgaas@hp.com>
+  *
+  * This program is free software; you can redistribute it and/or modify it
+  * under the terms of the GNU General Public License as published by the
+@@ -187,6 +189,61 @@ static void pnpacpi_parse_allocated_ioresource(struct pnp_dev *dev, u64 start,
+ 	pnp_add_io_resource(dev, start, end, flags);
+ }
  
-+	/*
-+	 * If mwait/monitor is unsupported, C2/C3_FFH will be disabled
-+	 */
-+	if (!cpu_has(c, X86_FEATURE_MWAIT))
-+		buf[2] &= ~(ACPI_PDC_C_C2C3_FFH);
++/*
++ * Device CSRs that do not appear in PCI config space should be described
++ * via ACPI.  This would normally be done with Address Space Descriptors
++ * marked as "consumer-only," but old versions of Windows and Linux ignore
++ * the producer/consumer flag, so HP invented a vendor-defined resource to
++ * describe the location and size of CSR space.
++ */
++static struct acpi_vendor_uuid hp_ccsr_uuid = {
++	.subtype = 2,
++	.data = { 0xf9, 0xad, 0xe9, 0x69, 0x4f, 0x92, 0x5f, 0xab, 0xf6, 0x4a,
++	    0x24, 0xd2, 0x01, 0x37, 0x0e, 0xad },
++};
 +
- 	obj->type = ACPI_TYPE_BUFFER;
- 	obj->buffer.length = 12;
- 	obj->buffer.pointer = (u8 *) buf;
++static int vendor_resource_matches(struct pnp_dev *dev,
++				   struct acpi_resource_vendor_typed *vendor,
++				   struct acpi_vendor_uuid *match,
++				   int expected_len)
++{
++	int uuid_len = sizeof(vendor->uuid);
++	u8 uuid_subtype = vendor->uuid_subtype;
++	u8 *uuid = vendor->uuid;
++	int actual_len;
++
++	/* byte_length includes uuid_subtype and uuid */
++	actual_len = vendor->byte_length - uuid_len - 1;
++
++	if (uuid_subtype == match->subtype &&
++	    uuid_len == sizeof(match->data) &&
++	    memcmp(uuid, match->data, uuid_len) == 0) {
++		if (expected_len && expected_len != actual_len) {
++			dev_err(&dev->dev, "wrong vendor descriptor size; "
++				"expected %d, found %d bytes\n",
++				expected_len, actual_len);
++			return 0;
++		}
++
++		return 1;
++	}
++
++	return 0;
++}
++
++static void pnpacpi_parse_allocated_vendor(struct pnp_dev *dev,
++				    struct acpi_resource_vendor_typed *vendor)
++{
++	if (vendor_resource_matches(dev, vendor, &hp_ccsr_uuid, 16)) {
++		u64 start, length;
++
++		memcpy(&start, vendor->byte_data, sizeof(start));
++		memcpy(&length, vendor->byte_data + 8, sizeof(length));
++
++		pnp_add_mem_resource(dev, start, start + length - 1, 0);
++	}
++}
++
+ static void pnpacpi_parse_allocated_memresource(struct pnp_dev *dev,
+ 						u64 start, u64 len,
+ 						int write_protect)
+@@ -237,6 +294,7 @@ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
+ 	struct acpi_resource_dma *dma;
+ 	struct acpi_resource_io *io;
+ 	struct acpi_resource_fixed_io *fixed_io;
++	struct acpi_resource_vendor_typed *vendor_typed;
+ 	struct acpi_resource_memory24 *memory24;
+ 	struct acpi_resource_memory32 *memory32;
+ 	struct acpi_resource_fixed_memory32 *fixed_memory32;
+@@ -306,6 +364,8 @@ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
+ 		break;
+ 
+ 	case ACPI_RESOURCE_TYPE_VENDOR:
++		vendor_typed = &res->data.vendor_typed;
++		pnpacpi_parse_allocated_vendor(dev, vendor_typed);
+ 		break;
+ 
+ 	case ACPI_RESOURCE_TYPE_END_TAG:
 -- 
 1.5.6
 
