@@ -1,60 +1,73 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [RFC] Allow notifications on method execution
-Date: Fri, 20 Jun 2008 16:39:41 -0300
-Message-ID: <20080620193941.GC20498@khazad-dum.debian.net>
-References: <20080620152227.GA11828@srcf.ucam.org>
+From: Andi Kleen <andi@firstfloor.org>
+Subject: Re: [PATCH 25/70] ACPICA: Update disassembler for DMAR table changes
+Date: Fri, 20 Jun 2008 21:49:32 +0200
+Message-ID: <87hcbnanub.fsf@basil.nowhere.org>
+References: <1213947852-10924-1-git-send-email-lenb@kernel.org>
+	<ee61cb033678eaf16901813eb6394dafa51e9c85.1213947350.git.len.brown@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out3.smtp.messagingengine.com ([66.111.4.27]:51248 "EHLO
-	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751218AbYFTTjq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 20 Jun 2008 15:39:46 -0400
-Content-Disposition: inline
-In-Reply-To: <20080620152227.GA11828@srcf.ucam.org>
+Received: from smtp-out01.alice-dsl.net ([88.44.60.11]:4740 "EHLO
+	smtp-out01.alice-dsl.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751695AbYFTTuL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 15:50:11 -0400
+In-Reply-To: <ee61cb033678eaf16901813eb6394dafa51e9c85.1213947350.git.len.brown@intel.com> (Len Brown's message of "Fri, 20 Jun 2008 03:43:27 -0400")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-acpi@vger.kernel.org, ibm-acpi@hmh.eng.br
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
 
-On Fri, 20 Jun 2008, Matthew Garrett wrote:
-> Various bits of hardware (some Thinkpads, for example) will execute ACPI 
-> methods in response to events but won't generate any notifications. It 
-> would be nice to be able to receive notifications on those updates in 
-> order to avoid polling. How about something like the following?
+Len Brown <lenb@kernel.org> writes:
 
-No comment on the code itself, but I have some about the whole idea.  If I
-missed the point, please explain it to me.
+> From: Bob Moore <robert.moore@intel.com>
+>
+> Now supports the 2007 intel Virtualization Technology for Directed
+> I/O specification.
 
-Let me start pointing out that I am not really opposed to your idea, but I'd
-like to know if it is the best way to go about it, first.
+This patch does nothing? It just adds declarations and unused symbols
 
-With such ACPI notifies, you could have HAL do some of the stuff kernel
-drivers are doing.  So far so good (well, sort of).
+-Andi
 
-But that is NOT necessarily the best, or even the correct way to do it.  You
-could use ACPI "traps" sending events to userspace to know brightness
-changed, but the proper way to have those events would be for the backlight
-class to send uevents for such stuff, instead.
-
-Remember that if ACPI core sends too much data to userspace directly, we
-can't easily fix stuff in the drivers to present a more or less sanitized
-view of things to userspace.
-
-So I'd really like to know what you need it for?  What sort of hardware
-events you'd like to be notified that thinkpad-acpi is not notifying you
-about, for example?
-
-Avoiding polling is ALWAYS a good thing.  But being careful about what you
-export to userspace is ALWAYS wise as well.  I believe we can do both.
-
-Even if it means we need to go around fixing half-completed sysfs classes
-until they're good enough an API for us and userspace.  rfkill is a prime
-example of the effort that might be needed.
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+>
+> Signed-off-by: Bob Moore <robert.moore@intel.com>
+> Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+> Signed-off-by: Len Brown <len.brown@intel.com>
+> ---
+>  include/acpi/acdisasm.h |    1 +
+>  include/acpi/actbl1.h   |    4 ++++
+>  2 files changed, 5 insertions(+), 0 deletions(-)
+>
+> diff --git a/include/acpi/acdisasm.h b/include/acpi/acdisasm.h
+> index 788f887..f53faca 100644
+> --- a/include/acpi/acdisasm.h
+> +++ b/include/acpi/acdisasm.h
+> @@ -162,6 +162,7 @@ extern struct acpi_dmtable_info acpi_dm_table_info_dmar_hdr[];
+>  extern struct acpi_dmtable_info acpi_dm_table_info_dmar_scope[];
+>  extern struct acpi_dmtable_info acpi_dm_table_info_dmar0[];
+>  extern struct acpi_dmtable_info acpi_dm_table_info_dmar1[];
+> +extern struct acpi_dmtable_info acpi_dm_table_info_dmar2[];
+>  extern struct acpi_dmtable_info acpi_dm_table_info_ecdt[];
+>  extern struct acpi_dmtable_info acpi_dm_table_info_einj[];
+>  extern struct acpi_dmtable_info acpi_dm_table_info_einj0[];
+> diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
+> index 715a489..bc47ce5 100644
+> --- a/include/acpi/actbl1.h
+> +++ b/include/acpi/actbl1.h
+> @@ -311,6 +311,10 @@ struct acpi_table_dmar {
+>  	u8 reserved[10];
+>  };
+>  
+> +/* Flags */
+> +
+> +#define ACPI_DMAR_INTR_REMAP        (1)
+> +
+>  /* DMAR subtable header */
+>  
+>  struct acpi_dmar_header {
+> -- 
+> 1.5.6
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
