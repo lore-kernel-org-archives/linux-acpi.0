@@ -1,343 +1,181 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 37/70] ACPI: fix processor throttling set error
-Date: Fri, 20 Jun 2008 03:43:39 -0400
-Message-ID: <52f2215da8f6916c2f3a0f1f438822364bf2e645.1213947350.git.len.brown@intel.com>
+Subject: [PATCH 50/70] PNP: define PNP-specific IORESOURCE_IO_* flags alongside
+ IRQ, DMA, MEM
+Date: Fri, 20 Jun 2008 03:43:52 -0400
+Message-ID: <c93eb9184a26e676b8d02fa85af14aee0df0e8f1.1213947350.git.len.brown@intel.com>
 References: <1213947852-10924-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:62806 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752550AbYFTHo5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 03:44:57 -0400
+Received: from vms173001pub.verizon.net ([206.46.173.1]:40470 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752524AbYFTHo4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 03:44:56 -0400
 Received: from localhost.localdomain ([72.93.254.151])
- by vms173003.mailsrvcs.net
+ by vms173001.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K2R00AK246E8LJ2@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 20 Jun 2008 02:44:39 -0500 (CDT)
+ with ESMTPA id <0K2R00EJQ46K14B2@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 20 Jun 2008 02:44:46 -0500 (CDT)
 In-reply-to: <1213947852-10924-1-git-send-email-lenb@kernel.org>
 In-reply-to: <087803d18fb8259cb844c075a35fb27c2d80792e.1213947349.git.len.brown@intel.com>
 References: <087803d18fb8259cb844c075a35fb27c2d80792e.1213947349.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Yi Yang <yi.y.yang@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <len.brown@intel.com>
 
-From: Yi Yang <yi.y.yang@intel.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-http://bugzilla.kernel.org/show_bug.cgi?id=9704
+PNP previously defined PNP_PORT_FLAG_16BITADDR and PNP_PORT_FLAG_FIXED
+in a private header file, but put those flags in struct resource.flags
+fields.  Better to make them IORESOURCE_IO_* flags like the existing
+IRQ, DMA, and MEM flags.
 
-When echo some invalid values to /proc/acpi/processor/*/throttling,
-there isn't any error info returned, on the contray, it sets
-throttling value to some T* successfully, obviously, this is incorrect,
-a correct way should be to let it fail and return error info.
-
-This patch fixed the aforementioned issue, it also enables
-/proc/acpi/processor/*/throttling to accept such values as 't0' and 'T0',
-it also strictly limits /proc/acpi/processor/*/throttling only to accept
- "*", "t*" and "T*", "*" is the throttling state value the processor can
-support, current, it is 0 - 7.
-
-Before applying this patch, the test result is below:
-
-[root@localhost acpi]# cat /proc/acpi/processor/CPU0/throttling
-state count:             8
-active state:            T1
-state available: T0 to T7
-states:
-    T0:                  100%
-   *T1:                  87%
-    T2:                  75%
-    T3:                  62%
-    T4:                  50%
-    T5:                  37%
-    T6:                  25%
-    T7:                  12%
-[root@localhost acpi]# echo "1xxxxxx" > /proc/acpi/processor/CPU0/throttling
-[root@localhost acpi]# cat /proc/acpi/processor/CPU0/throttling
-state count:             8
-active state:            T1
-state available: T0 to T7
-states:
-    T0:                  100%
-   *T1:                  87%
-    T2:                  75%
-    T3:                  62%
-    T4:                  50%
-    T5:                  37%
-    T6:                  25%
-    T7:                  12%
-[root@localhost acpi]# echo "0" > /proc/acpi/processor/CPU0/throttling
-[root@localhost acpi]# cat /proc/acpi/processor/CPU0/throttling
-state count:             8
-active state:            T0
-state available: T0 to T7
-states:
-   *T0:                  100%
-    T1:                  87%
-    T2:                  75%
-    T3:                  62%
-    T4:                  50%
-    T5:                  37%
-    T6:                  25%
-    T7:                  12%
-[root@localhost acpi]# cd /
-[root@localhost /]# cat /proc/acpi/processor/CPU0/throttling
-state count:             8
-active state:            T0
-state available: T0 to T7
-states:
-   *T0:                  100%
-    T1:                  87%
-    T2:                  75%
-    T3:                  62%
-    T4:                  50%
-    T5:                  37%
-    T6:                  25%
-    T7:                  12%
-[root@localhost /]# echo "T0" > /proc/acpi/processor/CPU0/throttling
-[root@localhost /]# cat /proc/acpi/processor/CPU0/throttling
-state count:             8
-active state:            T0
-state available: T0 to T7
-states:
-   *T0:                  100%
-    T1:                  87%
-    T2:                  75%
-    T3:                  62%
-    T4:                  50%
-    T5:                  37%
-    T6:                  25%
-    T7:                  12%
-[root@localhost /]# echo "T7" > /proc/acpi/processor/CPU0/throttling
-[root@localhost /]# cat /proc/acpi/processor/CPU0/throttling
-state count:             8
-active state:            T0
-state available: T0 to T7
-states:
-   *T0:                  100%
-    T1:                  87%
-    T2:                  75%
-    T3:                  62%
-    T4:                  50%
-    T5:                  37%
-    T6:                  25%
-    T7:                  12%
-[root@localhost /]# echo "T100" > /proc/acpi/processor/CPU0/throttling
-[root@localhost /]# cat /proc/acpi/processor/CPU0/throttling
-state count:             8
-active state:            T0
-state available: T0 to T7
-states:
-   *T0:                  100%
-    T1:                  87%
-    T2:                  75%
-    T3:                  62%
-    T4:                  50%
-    T5:                  37%
-    T6:                  25%
-    T7:                  12%
-[root@localhost /]# echo "xxx" > /proc/acpi/processor/CPU0/throttling
-[root@localhost /]# cat /proc/acpi/processor/CPU0/throttling
-state count:             8
-active state:            T0
-state available: T0 to T7
-states:
-   *T0:                  100%
-    T1:                  87%
-    T2:                  75%
-    T3:                  62%
-    T4:                  50%
-    T5:                  37%
-    T6:                  25%
-    T7:                  12%
-[root@localhost /]# echo "2xxxx" > /proc/acpi/processor/CPU0/throttling
-[root@localhost /]# cat /proc/acpi/processor/CPU0/throttling
-state count:             8
-active state:            T2
-state available: T0 to T7
-states:
-    T0:                  100%
-    T1:                  87%
-   *T2:                  75%
-    T3:                  62%
-    T4:                  50%
-    T5:                  37%
-    T6:                  25%
-    T7:                  12%
-[root@localhost /]# echo "" > /proc/acpi/processor/CPU0/throttling
-[root@localhost /]# cat /proc/acpi/processor/CPU0/throttling
-state count:             8
-active state:            T0
-state available: T0 to T7
-states:
-   *T0:                  100%
-    T1:                  87%
-    T2:                  75%
-    T3:                  62%
-    T4:                  50%
-    T5:                  37%
-    T6:                  25%
-    T7:                  12%
-[root@localhost /]# echo "7777" > /proc/acpi/processor/CPU0/throttling
--bash: echo: write error: Invalid argument
-[root@localhost /]# echo "7xxx" > /proc/acpi/processor/CPU0/throttling
-[root@localhost /]# cat /proc/acpi/processor/CPU0/throttling
-state count:             8
-active state:            T7
-state available: T0 to T7
-states:
-    T0:                  100%
-    T1:                  87%
-    T2:                  75%
-    T3:                  62%
-    T4:                  50%
-    T5:                  37%
-    T6:                  25%
-   *T7:                  12%
-[root@localhost /]#
-
-After applying this patch, the test result is below:
-
-[root@localhost linux-2.6.24-rc6]# echo > /proc/acpi/processor/CPU0/throttling
--bash: echo: write error: Invalid argument
-[root@localhost linux-2.6.24-rc6]# echo "" > /proc/acpi/processor/CPU0/throttling
--bash: echo: write error: Invalid argument
-[root@localhost linux-2.6.24-rc6]# echo "0" > /proc/acpi/processor/CPU0/throttling
-[root@localhost linux-2.6.24-rc6]# echo "t0" > /proc/acpi/processor/CPU0/throttling
-[root@localhost linux-2.6.24-rc6]# echo "T0" > /proc/acpi/processor/CPU0/throttling
-[root@localhost linux-2.6.24-rc6]# cat /proc/acpi/processor/CPU0/throttling
-state count:             8
-active state:            T0
-state available: T0 to T7
-states:
-   *T0:                  100%
-    T1:                  87%
-    T2:                  75%
-    T3:                  62%
-    T4:                  50%
-    T5:                  37%
-    T6:                  25%
-    T7:                  12%
-[root@localhost linux-2.6.24-rc6]# echo "T7" > /proc/acpi/processor/CPU0/throttling
-[root@localhost linux-2.6.24-rc6]# cat /proc/acpi/processor/CPU0/throttling
-state count:             8
-active state:            T7
-state available: T0 to T7
-states:
-    T0:                  100%
-    T1:                  87%
-    T2:                  75%
-    T3:                  62%
-    T4:                  50%
-    T5:                  37%
-    T6:                  25%
-   *T7:                  12%
-[root@localhost linux-2.6.24-rc6]# echo "T8" > /proc/acpi/processor/CPU0/throttling
--bash: echo: write error: Invalid argument
-[root@localhost linux-2.6.24-rc6]# vi drivers/acpi/processor_throttling.c
-[root@localhost linux-2.6.24-rc6]# echo "T8" > /proc/acpi/processor/CPU0/throttling
--bash: echo: write error: Invalid argument
-[root@localhost linux-2.6.24-rc6]# echo "t7" > /proc/acpi/processor/CPU0/throttling
-[root@localhost linux-2.6.24-rc6]# echo "t70" > /proc/acpi/processor/CPU0/throttling
--bash: echo: write error: Invalid argument
-[root@localhost linux-2.6.24-rc6]# echo "70" > /proc/acpi/processor/CPU0/throttling
--bash: echo: write error: Invalid argument
-[root@localhost linux-2.6.24-rc6]# echo "7000" > /proc/acpi/processor/CPU0/throttling
--bash: echo: write error: Invalid argument
-[root@localhost linux-2.6.24-rc6]# echo "70" > /proc/acpi/processor/CPU0/throttling
--bash: echo: write error: Invalid argument
-[root@localhost linux-2.6.24-rc6]# echo "xxx" > /proc/acpi/processor/CPU0/throttling
--bash: echo: write error: Invalid argument
-[root@localhost linux-2.6.24-rc6]# echo > /proc/acpi/processor/CPU0/throttling
--bash: echo: write error: Invalid argument
-[root@localhost linux-2.6.24-rc6]# echo -n > /proc/acpi/processor/CPU0/throttling
-[root@localhost linux-2.6.24-rc6]# echo -n "" > /proc/acpi/processor/CPU0/throttling
-[root@localhost linux-2.6.24-rc6]# echo $?
-0
-[root@localhost linux-2.6.24-rc6]# echo -n "" > /proc/acpi/processor/CPU0/throttling
-[root@localhost linux-2.6.24-rc6]# cat /proc/acpi/processor/CPU0/throttling
-state count:             8
-active state:            T7
-state available: T0 to T7
-states:
-    T0:                  100%
-    T1:                  87%
-    T2:                  75%
-    T3:                  62%
-    T4:                  50%
-    T5:                  37%
-    T6:                  25%
-   *T7:                  12%
-[root@localhost linux-2.6.24-rc6]# echo -n "" > /proc/acpi/processor/CPU0/throttling
-[root@localhost linux-2.6.24-rc6]# cat /proc/acpi/processor/CPU0/throttling
-state count:             8
-active state:            T7
-state available: T0 to T7
-states:
-    T0:                  100%
-    T1:                  87%
-    T2:                  75%
-    T3:                  62%
-    T4:                  50%
-    T5:                  37%
-    T6:                  25%
-   *T7:                  12%
-[root@localhost linux-2.6.24-rc6]# echo t0 > /proc/acpi/processor/CPU0/throttling
-[root@localhost linux-2.6.24-rc6]# echo T0 > /proc/acpi/processor/CPU0/throttling
-[root@localhost linux-2.6.24-rc6]# echo Tt0 > /proc/acpi/processor/CPU0/throttling
--bash: echo: write error: Invalid argument
-[root@localhost linux-2.6.24-rc6]# echo T > /proc/acpi/processor/CPU0/throttling
--bash: echo: write error: Invalid argument
-[root@localhost linux-2.6.24-rc6]#
-
-Signed-off-by: Yi Yang <yi.y.yang@intel.com>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Acked-by: Rene Herman <rene.herman@gmail.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/processor_throttling.c |   24 ++++++++++++++++++++----
- 1 files changed, 20 insertions(+), 4 deletions(-)
+ drivers/pnp/interface.c        |    2 +-
+ drivers/pnp/isapnp/core.c      |    4 ++--
+ drivers/pnp/pnpacpi/rsparser.c |   10 +++++-----
+ drivers/pnp/pnpbios/rsparser.c |    4 ++--
+ include/linux/ioport.h         |    4 ++++
+ include/linux/pnp.h            |    3 ---
+ 6 files changed, 14 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
-index bb06738..4d4d8d8 100644
---- a/drivers/acpi/processor_throttling.c
-+++ b/drivers/acpi/processor_throttling.c
-@@ -1232,7 +1232,10 @@ static ssize_t acpi_processor_write_throttling(struct file *file,
- 	int result = 0;
- 	struct seq_file *m = file->private_data;
- 	struct acpi_processor *pr = m->private;
--	char state_string[12] = { '\0' };
-+	char state_string[5] = "";
-+	char *charp = NULL;
-+	size_t state_val = 0;
-+	char tmpbuf[5] = "";
+diff --git a/drivers/pnp/interface.c b/drivers/pnp/interface.c
+index 239923a..c172b6d 100644
+--- a/drivers/pnp/interface.c
++++ b/drivers/pnp/interface.c
+@@ -57,7 +57,7 @@ static void pnp_print_port(pnp_info_buffer_t * buffer, char *space,
+ 		   "%sport 0x%x-0x%x, align 0x%x, size 0x%x, %i-bit address decoding\n",
+ 		   space, port->min, port->max,
+ 		   port->align ? (port->align - 1) : 0, port->size,
+-		   port->flags & PNP_PORT_FLAG_16BITADDR ? 16 : 10);
++		   port->flags & IORESOURCE_IO_16BIT_ADDR ? 16 : 10);
+ }
  
- 	if (!pr || (count > sizeof(state_string) - 1))
- 		return -EINVAL;
-@@ -1241,10 +1244,23 @@ static ssize_t acpi_processor_write_throttling(struct file *file,
- 		return -EFAULT;
+ static void pnp_print_irq(pnp_info_buffer_t * buffer, char *space,
+diff --git a/drivers/pnp/isapnp/core.c b/drivers/pnp/isapnp/core.c
+index ca4457e..c5b9252 100644
+--- a/drivers/pnp/isapnp/core.c
++++ b/drivers/pnp/isapnp/core.c
+@@ -486,7 +486,7 @@ static void __init isapnp_parse_port_resource(struct pnp_dev *dev,
+ 	port->max = (tmp[4] << 8) | tmp[3];
+ 	port->align = tmp[5];
+ 	port->size = tmp[6];
+-	port->flags = tmp[0] ? PNP_PORT_FLAG_16BITADDR : 0;
++	port->flags = tmp[0] ? IORESOURCE_IO_16BIT_ADDR : 0;
+ 	pnp_register_port_resource(dev, option, port);
+ }
  
- 	state_string[count] = '\0';
-+	if ((count > 0) && (state_string[count-1] == '\n'))
-+		state_string[count-1] = '\0';
+@@ -507,7 +507,7 @@ static void __init isapnp_parse_fixed_port_resource(struct pnp_dev *dev,
+ 	port->min = port->max = (tmp[1] << 8) | tmp[0];
+ 	port->size = tmp[2];
+ 	port->align = 0;
+-	port->flags = PNP_PORT_FLAG_FIXED;
++	port->flags = IORESOURCE_IO_FIXED;
+ 	pnp_register_port_resource(dev, option, port);
+ }
  
--	result = acpi_processor_set_throttling(pr,
--					       simple_strtoul(state_string,
--							      NULL, 0));
-+	charp = state_string;
-+	if ((state_string[0] == 't') || (state_string[0] == 'T'))
-+		charp++;
-+
-+	state_val = simple_strtoul(charp, NULL, 0);
-+	if (state_val >= pr->throttling.state_count)
-+		return -EINVAL;
-+
-+	snprintf(tmpbuf, 5, "%d", state_val);
-+
-+	if (strcmp(tmpbuf, charp) != 0)
-+		return -EINVAL;
-+
-+	result = acpi_processor_set_throttling(pr, state_val);
- 	if (result)
- 		return result;
+diff --git a/drivers/pnp/pnpacpi/rsparser.c b/drivers/pnp/pnpacpi/rsparser.c
+index 595252b..46069e6 100644
+--- a/drivers/pnp/pnpacpi/rsparser.c
++++ b/drivers/pnp/pnpacpi/rsparser.c
+@@ -180,7 +180,7 @@ static void pnpacpi_parse_allocated_ioresource(struct pnp_dev *dev, u64 start,
+ 	u64 end = start + len - 1;
  
+ 	if (io_decode == ACPI_DECODE_16)
+-		flags |= PNP_PORT_FLAG_16BITADDR;
++		flags |= IORESOURCE_IO_16BIT_ADDR;
+ 	if (len == 0 || end >= 0x10003)
+ 		flags |= IORESOURCE_DISABLED;
+ 
+@@ -485,7 +485,7 @@ static __init void pnpacpi_parse_port_option(struct pnp_dev *dev,
+ 	port->align = io->alignment;
+ 	port->size = io->address_length;
+ 	port->flags = ACPI_DECODE_16 == io->io_decode ?
+-	    PNP_PORT_FLAG_16BITADDR : 0;
++	    IORESOURCE_IO_16BIT_ADDR : 0;
+ 	pnp_register_port_resource(dev, option, port);
+ }
+ 
+@@ -503,7 +503,7 @@ static __init void pnpacpi_parse_fixed_port_option(struct pnp_dev *dev,
+ 	port->min = port->max = io->address;
+ 	port->size = io->address_length;
+ 	port->align = 0;
+-	port->flags = PNP_PORT_FLAG_FIXED;
++	port->flags = IORESOURCE_IO_FIXED;
+ 	pnp_register_port_resource(dev, option, port);
+ }
+ 
+@@ -609,7 +609,7 @@ static __init void pnpacpi_parse_address_option(struct pnp_dev *dev,
+ 		port->min = port->max = p->minimum;
+ 		port->size = p->address_length;
+ 		port->align = 0;
+-		port->flags = PNP_PORT_FLAG_FIXED;
++		port->flags = IORESOURCE_IO_FIXED;
+ 		pnp_register_port_resource(dev, option, port);
+ 	}
+ }
+@@ -946,7 +946,7 @@ static void pnpacpi_encode_io(struct pnp_dev *dev,
+ 
+ 	if (pnp_resource_enabled(p)) {
+ 		/* Note: pnp_assign_port copies pnp_port->flags into p->flags */
+-		io->io_decode = (p->flags & PNP_PORT_FLAG_16BITADDR) ?
++		io->io_decode = (p->flags & IORESOURCE_IO_16BIT_ADDR) ?
+ 		    ACPI_DECODE_16 : ACPI_DECODE_10;
+ 		io->minimum = p->start;
+ 		io->maximum = p->end;
+diff --git a/drivers/pnp/pnpbios/rsparser.c b/drivers/pnp/pnpbios/rsparser.c
+index 01f0c3d..489fec3 100644
+--- a/drivers/pnp/pnpbios/rsparser.c
++++ b/drivers/pnp/pnpbios/rsparser.c
+@@ -310,7 +310,7 @@ static __init void pnpbios_parse_port_option(struct pnp_dev *dev,
+ 	port->max = (p[5] << 8) | p[4];
+ 	port->align = p[6];
+ 	port->size = p[7];
+-	port->flags = p[1] ? PNP_PORT_FLAG_16BITADDR : 0;
++	port->flags = p[1] ? IORESOURCE_IO_16BIT_ADDR : 0;
+ 	pnp_register_port_resource(dev, option, port);
+ }
+ 
+@@ -326,7 +326,7 @@ static __init void pnpbios_parse_fixed_port_option(struct pnp_dev *dev,
+ 	port->min = port->max = (p[2] << 8) | p[1];
+ 	port->size = p[3];
+ 	port->align = 0;
+-	port->flags = PNP_PORT_FLAG_FIXED;
++	port->flags = IORESOURCE_IO_FIXED;
+ 	pnp_register_port_resource(dev, option, port);
+ }
+ 
+diff --git a/include/linux/ioport.h b/include/linux/ioport.h
+index c6801bf..39db059 100644
+--- a/include/linux/ioport.h
++++ b/include/linux/ioport.h
+@@ -88,6 +88,10 @@ struct resource_list {
+ #define IORESOURCE_MEM_SHADOWABLE	(1<<5)	/* dup: IORESOURCE_SHADOWABLE */
+ #define IORESOURCE_MEM_EXPANSIONROM	(1<<6)
+ 
++/* PnP I/O specific bits (IORESOURCE_BITS) */
++#define IORESOURCE_IO_16BIT_ADDR	(1<<0)
++#define IORESOURCE_IO_FIXED		(1<<1)
++
+ /* PCI ROM control bits (IORESOURCE_BITS) */
+ #define IORESOURCE_ROM_ENABLE		(1<<0)	/* ROM is enabled, same as PCI_ROM_ADDRESS_ENABLE */
+ #define IORESOURCE_ROM_SHADOW		(1<<1)	/* ROM is copy at C000:0 */
+diff --git a/include/linux/pnp.h b/include/linux/pnp.h
+index 86e0e1d..b690edb 100644
+--- a/include/linux/pnp.h
++++ b/include/linux/pnp.h
+@@ -182,9 +182,6 @@ static inline int pnp_dma_valid(struct pnp_dev *dev, unsigned int bar)
+ }
+ 
+ 
+-#define PNP_PORT_FLAG_16BITADDR	(1<<0)
+-#define PNP_PORT_FLAG_FIXED	(1<<1)
+-
+ struct pnp_port {
+ 	unsigned short min;	/* min base number */
+ 	unsigned short max;	/* max base number */
 -- 
 1.5.6
 
