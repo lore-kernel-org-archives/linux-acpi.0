@@ -1,55 +1,40 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 Subject: Re: linux-next: Tree for June 13: IO APIC breakage on HP nx6325
-Date: Fri, 20 Jun 2008 14:22:11 +0200
-Message-ID: <200806201422.12659.rjw@sisk.pl>
-References: <20080613232214.394fd6fd.sfr@canb.auug.org.au> <200806201353.59083.rjw@sisk.pl> <20080620115714.GC8637@srcf.ucam.org>
+Date: Fri, 20 Jun 2008 13:27:14 +0100
+Message-ID: <20080620122714.GA9332@srcf.ucam.org>
+References: <20080613232214.394fd6fd.sfr@canb.auug.org.au> <200806201353.59083.rjw@sisk.pl> <20080620115714.GC8637@srcf.ucam.org> <200806201422.12659.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755341AbYFTMUx@vger.kernel.org>
-In-Reply-To: <20080620115714.GC8637@srcf.ucam.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:58690 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752516AbYFTM1Y (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 08:27:24 -0400
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: "Maciej W. Rozycki" <macro@linux-mips.org>, Ingo Molnar <mingo@elte.hu>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+In-Reply-To: <200806201422.12659.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "Maciej W. Rozycki" <macro@linux-mips.org>, Ingo Molnar <mingo@elte.hu>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Friday, 20 of June 2008, Matthew Garrett wrote:
-> On Fri, Jun 20, 2008 at 01:53:58PM +0200, Rafael J. Wysocki wrote:
-> 
-> > What exactly I observe is that in this case:
-> > 1) The cooling fan is 100% on, as though the box were overheating, which seems
-> >    to indicate some serious confusion of the platform (the mechanism turning
-> >    the fan 100% on is supposed to be transparent to software).
-> > 2) Everything seems to slow down substantially, at least as soon as X is
-> >    started.
-> 
-> What does ACPI claim the trip points are set to in this case? On the 
-> 6125, if IRQ 2 is enabled in the APIC then the DSDT sets all the thermal 
-> trip points to 16 degrees C. I suspect this means that enabling IRQ 2 is 
-> the wrong thing to do on this chipset.
+On Fri, Jun 20, 2008 at 02:22:11PM +0200, Rafael J. Wysocki wrote:
 
-Ah, indeed, thanks for the hint.  This is the output of
+> Ah, indeed, thanks for the hint.  This is the output of
 
-$ cat /proc/acpi/thermal_zone/TZ*/trip_points
+Right. My recollection of this is somewhat hazy, so here's something I 
+wrote a couple of years ago:
 
-in the failing case:
+"If you dig through the DSDT code for the 6125, you'll find a bit where 
+it writes 0x14 to 0xfec00000 and then checks whether offset 0x12 from 
+there is 1. In other words, it's checking if pin 2 of the io-apic is 
+masked. If it's not masked (that is, offset 0x12 is 0 and irq 2 is 
+enabled) it sets another bit in a register. This is then checked by the 
+thermal zone code which as a result sets the thermal trip temperatures 
+to 16 degrees Celsius. This bites when the acpi_skip_timer_override 
+option is used in Linux."
 
-critical (S5):           105 C
-passive:                 16 C: tc1=1 tc2=2 tsp=100 devices=C000 C001 
-active[0]:               16 C: devices=C34F 
-active[1]:               16 C: devices=C350 
-active[2]:               16 C: devices=C351 
-active[3]:               16 C: devices=C352 
-critical (S5):           100 C
-passive:                 16 C: tc1=1 tc2=2 tsp=300 devices=C000 C001 
-critical (S5):           100 C
-passive:                 16 C: tc1=1 tc2=2 tsp=300 devices=C000 C001 
+I have no idea what this code is for, but it's pretty clear that Windows 
+sets it up in such a way that this isn't true.
 
-(also available at: http://www.sisk.pl/kernel/debug/20080620/trip-points.txt).
-
-So, the observed slowdown may be a result of throttling.
-
-Thanks,
-Rafael
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
