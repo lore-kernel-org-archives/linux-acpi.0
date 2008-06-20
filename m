@@ -1,159 +1,61 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 51/70] PNP: make resource option structures private to PNP
- subsystem
-Date: Fri, 20 Jun 2008 03:43:53 -0400
-Message-ID: <efe2c02e0e190d45307bb3a37287203e787512f3.1213947350.git.len.brown@intel.com>
+Subject: [PATCH 29/70] ACPICA: Fix mutex debug code for wrong loop termination
+ value
+Date: Fri, 20 Jun 2008 03:43:31 -0400
+Message-ID: <2213fc1f5c84c2a005a80d3a36625ee730d5d7c6.1213947350.git.len.brown@intel.com>
 References: <1213947852-10924-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:40470 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752422AbYFTHoz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 03:44:55 -0400
+Received: from vms173003pub.verizon.net ([206.46.173.3]:62806 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752479AbYFTHo4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 03:44:56 -0400
 Received: from localhost.localdomain ([72.93.254.151])
- by vms173001.mailsrvcs.net
+ by vms173003.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K2R00DX546LZ9C2@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 20 Jun 2008 02:44:46 -0500 (CDT)
+ with ESMTPA id <0K2R00AKN46A8VP2@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 20 Jun 2008 02:44:34 -0500 (CDT)
 In-reply-to: <1213947852-10924-1-git-send-email-lenb@kernel.org>
 In-reply-to: <087803d18fb8259cb844c075a35fb27c2d80792e.1213947349.git.len.brown@intel.com>
 References: <087803d18fb8259cb844c075a35fb27c2d80792e.1213947349.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <len.brown@intel.com>
+Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+From: Bob Moore <robert.moore@intel.com>
 
-Nothing outside the PNP subsystem should need access to a
-device's resource options, so this patch moves the option
-structure declarations to a private header file.
+Loop was terminating one iteration early, missing one of the
+debugger handshake mutexes. Linn Crosetto.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Acked-by: Rene Herman <rene.herman@gmail.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/pnp/base.h  |   48 ++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/pnp.h |   48 ------------------------------------------------
- 2 files changed, 48 insertions(+), 48 deletions(-)
+ drivers/acpi/utilities/utmutex.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/pnp/base.h b/drivers/pnp/base.h
-index 1667ac3..3126e45 100644
---- a/drivers/pnp/base.h
-+++ b/drivers/pnp/base.h
-@@ -19,6 +19,54 @@ void pnp_remove_card(struct pnp_card *card);
- int pnp_add_card_device(struct pnp_card *card, struct pnp_dev *dev);
- void pnp_remove_card_device(struct pnp_dev *dev);
- 
-+struct pnp_port {
-+	unsigned short min;	/* min base number */
-+	unsigned short max;	/* max base number */
-+	unsigned char align;	/* align boundary */
-+	unsigned char size;	/* size of range */
-+	unsigned char flags;	/* port flags */
-+	unsigned char pad;	/* pad */
-+	struct pnp_port *next;	/* next port */
-+};
-+
-+#define PNP_IRQ_NR 256
-+struct pnp_irq {
-+	DECLARE_BITMAP(map, PNP_IRQ_NR);	/* bitmask for IRQ lines */
-+	unsigned char flags;	/* IRQ flags */
-+	unsigned char pad;	/* pad */
-+	struct pnp_irq *next;	/* next IRQ */
-+};
-+
-+struct pnp_dma {
-+	unsigned char map;	/* bitmask for DMA channels */
-+	unsigned char flags;	/* DMA flags */
-+	struct pnp_dma *next;	/* next port */
-+};
-+
-+struct pnp_mem {
-+	unsigned int min;	/* min base number */
-+	unsigned int max;	/* max base number */
-+	unsigned int align;	/* align boundary */
-+	unsigned int size;	/* size of range */
-+	unsigned char flags;	/* memory flags */
-+	unsigned char pad;	/* pad */
-+	struct pnp_mem *next;	/* next memory resource */
-+};
-+
-+#define PNP_RES_PRIORITY_PREFERRED	0
-+#define PNP_RES_PRIORITY_ACCEPTABLE	1
-+#define PNP_RES_PRIORITY_FUNCTIONAL	2
-+#define PNP_RES_PRIORITY_INVALID	65535
-+
-+struct pnp_option {
-+	unsigned short priority;	/* priority */
-+	struct pnp_port *port;		/* first port */
-+	struct pnp_irq *irq;		/* first IRQ */
-+	struct pnp_dma *dma;		/* first DMA */
-+	struct pnp_mem *mem;		/* first memory resource */
-+	struct pnp_option *next;	/* used to chain dependent resources */
-+};
-+
- struct pnp_option *pnp_build_option(int priority);
- struct pnp_option *pnp_register_independent_option(struct pnp_dev *dev);
- struct pnp_option *pnp_register_dependent_option(struct pnp_dev *dev,
-diff --git a/include/linux/pnp.h b/include/linux/pnp.h
-index b690edb..00fe020 100644
---- a/include/linux/pnp.h
-+++ b/include/linux/pnp.h
-@@ -182,54 +182,6 @@ static inline int pnp_dma_valid(struct pnp_dev *dev, unsigned int bar)
- }
- 
- 
--struct pnp_port {
--	unsigned short min;	/* min base number */
--	unsigned short max;	/* max base number */
--	unsigned char align;	/* align boundary */
--	unsigned char size;	/* size of range */
--	unsigned char flags;	/* port flags */
--	unsigned char pad;	/* pad */
--	struct pnp_port *next;	/* next port */
--};
--
--#define PNP_IRQ_NR 256
--struct pnp_irq {
--	DECLARE_BITMAP(map, PNP_IRQ_NR);	/* bitmask for IRQ lines */
--	unsigned char flags;	/* IRQ flags */
--	unsigned char pad;	/* pad */
--	struct pnp_irq *next;	/* next IRQ */
--};
--
--struct pnp_dma {
--	unsigned char map;	/* bitmask for DMA channels */
--	unsigned char flags;	/* DMA flags */
--	struct pnp_dma *next;	/* next port */
--};
--
--struct pnp_mem {
--	unsigned int min;	/* min base number */
--	unsigned int max;	/* max base number */
--	unsigned int align;	/* align boundary */
--	unsigned int size;	/* size of range */
--	unsigned char flags;	/* memory flags */
--	unsigned char pad;	/* pad */
--	struct pnp_mem *next;	/* next memory resource */
--};
--
--#define PNP_RES_PRIORITY_PREFERRED	0
--#define PNP_RES_PRIORITY_ACCEPTABLE	1
--#define PNP_RES_PRIORITY_FUNCTIONAL	2
--#define PNP_RES_PRIORITY_INVALID	65535
--
--struct pnp_option {
--	unsigned short priority;	/* priority */
--	struct pnp_port *port;		/* first port */
--	struct pnp_irq *irq;		/* first IRQ */
--	struct pnp_dma *dma;		/* first DMA */
--	struct pnp_mem *mem;		/* first memory resource */
--	struct pnp_option *next;	/* used to chain dependent resources */
--};
--
- /*
-  * Device Management
-  */
+diff --git a/drivers/acpi/utilities/utmutex.c b/drivers/acpi/utilities/utmutex.c
+index f7d602b..7331dde 100644
+--- a/drivers/acpi/utilities/utmutex.c
++++ b/drivers/acpi/utilities/utmutex.c
+@@ -218,7 +218,7 @@ acpi_status acpi_ut_acquire_mutex(acpi_mutex_handle mutex_id)
+ 		 * the mutex ordering rule.  This indicates a coding error somewhere in
+ 		 * the ACPI subsystem code.
+ 		 */
+-		for (i = mutex_id; i < ACPI_MAX_MUTEX; i++) {
++		for (i = mutex_id; i < ACPI_NUM_MUTEX; i++) {
+ 			if (acpi_gbl_mutex_info[i].thread_id == this_thread_id) {
+ 				if (i == mutex_id) {
+ 					ACPI_ERROR((AE_INFO,
+@@ -315,7 +315,7 @@ acpi_status acpi_ut_release_mutex(acpi_mutex_handle mutex_id)
+ 		 * ordering rule.  This indicates a coding error somewhere in
+ 		 * the ACPI subsystem code.
+ 		 */
+-		for (i = mutex_id; i < ACPI_MAX_MUTEX; i++) {
++		for (i = mutex_id; i < ACPI_NUM_MUTEX; i++) {
+ 			if (acpi_gbl_mutex_info[i].thread_id == this_thread_id) {
+ 				if (i == mutex_id) {
+ 					continue;
 -- 
 1.5.6
 
