@@ -1,124 +1,73 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 14/70] ACPICA: Add argument count checking to control method
- invocation via acpi_evaluate_object
-Date: Fri, 20 Jun 2008 03:43:16 -0400
-Message-ID: <3a5c60eda969fcc8d34f6bbc8e55ab9331f1ffeb.1213947349.git.len.brown@intel.com>
+Subject: [PATCH 32/70] ACPI: fix checkpatch.pl complaints in scan.c
+Date: Fri, 20 Jun 2008 03:43:34 -0400
+Message-ID: <ad7f0d9feee6980a3ab3ea806854f56817d1da8e.1213947350.git.len.brown@intel.com>
 References: <1213947852-10924-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms046pub.verizon.net ([206.46.252.46]:49887 "EHLO
-	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751707AbYFTHo3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 03:44:29 -0400
+Received: from vms173005pub.verizon.net ([206.46.173.5]:53337 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751906AbYFTHoh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 03:44:37 -0400
 Received: from localhost.localdomain ([72.93.254.151])
- by vms046.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0K2R00KVR464X4E3@vms046.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 20 Jun 2008 02:44:29 -0500 (CDT)
+ by vms173005.mailsrvcs.net
+ (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+ with ESMTPA id <0K2R0076H3V4DMR3@vms173005.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 20 Jun 2008 02:37:53 -0500 (CDT)
 In-reply-to: <1213947852-10924-1-git-send-email-lenb@kernel.org>
 In-reply-to: <087803d18fb8259cb844c075a35fb27c2d80792e.1213947349.git.len.brown@intel.com>
 References: <087803d18fb8259cb844c075a35fb27c2d80792e.1213947349.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Alok N Kataria <akataria@vmware.com>, Len Brown <len.brown@intel.com>
 
-From: Bob Moore <robert.moore@intel.com>
+From: Alok N Kataria <akataria@vmware.com>
 
-Error if too few arguments, warning if too many. This applies
-only to external programmatic control method execution, not
-method-to-method calls within the AML.
+http://bugzilla.kernel.org/show_bug.cgi?id=9772
 
-Signed-off-by: Lin Ming <ming.m.lin@intel.com>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Alok N Kataria <akataria@vmware.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/namespace/nseval.c |   35 +++++++++++++++++++++++++++++++++++
- include/acpi/acexcep.h          |    6 ++++--
- include/acpi/acstruct.h         |    1 +
- 3 files changed, 40 insertions(+), 2 deletions(-)
+ drivers/acpi/scan.c |   12 ++++++++----
+ 1 files changed, 8 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/namespace/nseval.c b/drivers/acpi/namespace/nseval.c
-index 14bdfa9..d369164 100644
---- a/drivers/acpi/namespace/nseval.c
-+++ b/drivers/acpi/namespace/nseval.c
-@@ -138,6 +138,41 @@ acpi_status acpi_ns_evaluate(struct acpi_evaluate_info * info)
- 			return_ACPI_STATUS(AE_NULL_OBJECT);
- 		}
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 00ba4af..fb0c07e 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -6,7 +6,8 @@
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+ #include <linux/acpi.h>
+-#include <asm/signal.h>
++#include <linux/signal.h>
++#include <linux/kthread.h>
  
-+		/*
-+		 * Calculate the number of arguments being passed to the method
-+		 */
-+
-+		info->param_count = 0;
-+		if (info->parameters) {
-+			while (info->parameters[info->param_count])
-+				info->param_count++;
-+		}
-+
-+		/* Error if too few arguments were passed in */
-+
-+		if (info->param_count < info->obj_desc->method.param_count) {
-+			ACPI_ERROR((AE_INFO,
-+				    "Insufficient arguments - "
-+				    "method [%4.4s] needs %d, found %d",
-+				    acpi_ut_get_node_name(info->resolved_node),
-+				    info->obj_desc->method.param_count,
-+				    info->param_count));
-+			return_ACPI_STATUS(AE_MISSING_ARGUMENTS);
-+		}
-+
-+		/* Just a warning if too many arguments */
-+
-+		else if (info->param_count >
-+				info->obj_desc->method.param_count) {
-+			ACPI_WARNING((AE_INFO,
-+				      "Excess arguments - "
-+				      "method [%4.4s] needs %d, found %d",
-+				      acpi_ut_get_node_name(info->
-+							    resolved_node),
-+				      info->obj_desc->method.param_count,
-+				      info->param_count));
-+		}
-+
- 		ACPI_DUMP_PATHNAME(info->resolved_node, "Execute Method:",
- 				   ACPI_LV_INFO, _COMPONENT);
+ #include <acpi/acpi_drivers.h>
+ #include <acpi/acinterp.h>	/* for acpi_ex_eisa_id_to_string() */
+@@ -154,6 +155,7 @@ acpi_eject_store(struct device *d, struct device_attribute *attr,
+ 	acpi_status status;
+ 	acpi_object_type type = 0;
+ 	struct acpi_device *acpi_device = to_acpi_device(d);
++	struct task_struct *task;
  
-diff --git a/include/acpi/acexcep.h b/include/acpi/acexcep.h
-index 1f59117..9c76c18 100644
---- a/include/acpi/acexcep.h
-+++ b/include/acpi/acexcep.h
-@@ -108,8 +108,9 @@
- #define AE_BAD_HEX_CONSTANT             (acpi_status) (0x0007 | AE_CODE_PROGRAMMER)
- #define AE_BAD_OCTAL_CONSTANT           (acpi_status) (0x0008 | AE_CODE_PROGRAMMER)
- #define AE_BAD_DECIMAL_CONSTANT         (acpi_status) (0x0009 | AE_CODE_PROGRAMMER)
-+#define AE_MISSING_ARGUMENTS            (acpi_status) (0x000A | AE_CODE_PROGRAMMER)
+ 	if ((!count) || (buf[0] != '1')) {
+ 		return -EINVAL;
+@@ -171,9 +173,11 @@ acpi_eject_store(struct device *d, struct device_attribute *attr,
+ 	}
  
--#define AE_CODE_PGM_MAX                 0x0009
-+#define AE_CODE_PGM_MAX                 0x000A
+ 	/* remove the device in another thread to fix the deadlock issue */
+-	ret = kernel_thread(acpi_bus_hot_remove_device,
+-				acpi_device->handle, SIGCHLD);
+-      err:
++	task = kthread_run(acpi_bus_hot_remove_device,
++				acpi_device->handle, "acpi_hot_remove_device");
++	if (IS_ERR(task))
++		ret = PTR_ERR(task);
++err:
+ 	return ret;
+ }
  
- /*
-  * Acpi table exceptions
-@@ -233,7 +234,8 @@ char const *acpi_gbl_exception_names_pgm[] = {
- 	"AE_ALIGNMENT",
- 	"AE_BAD_HEX_CONSTANT",
- 	"AE_BAD_OCTAL_CONSTANT",
--	"AE_BAD_DECIMAL_CONSTANT"
-+	"AE_BAD_DECIMAL_CONSTANT",
-+	"AE_MISSING_ARGUMENTS"
- };
- 
- char const *acpi_gbl_exception_names_tbl[] = {
-diff --git a/include/acpi/acstruct.h b/include/acpi/acstruct.h
-index a907c67..1cc7450 100644
---- a/include/acpi/acstruct.h
-+++ b/include/acpi/acstruct.h
-@@ -189,6 +189,7 @@ struct acpi_evaluate_info {
- 	union acpi_operand_object **parameters;
- 	struct acpi_namespace_node *resolved_node;
- 	union acpi_operand_object *return_object;
-+	u8 param_count;
- 	u8 pass_number;
- 	u8 parameter_type;
- 	u8 return_object_type;
 -- 
 1.5.6
 
