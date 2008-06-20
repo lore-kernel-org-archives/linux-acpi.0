@@ -1,53 +1,69 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC][PATCH 0/3] PCI PM: Rework pci_set_power_state
-Date: Fri, 20 Jun 2008 12:20:37 +0200
-Message-ID: <200806201220.37840.rjw@sisk.pl>
-References: <200806170206.26616.rjw@sisk.pl> <alpine.LFD.1.10.0806200143250.22284@localhost.localdomain>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: linux-next: Tree for June 13: IO APIC breakage on HP nx6325
+Date: Fri, 20 Jun 2008 12:44:52 +0200
+Message-ID: <20080620104452.GA7439@elte.hu>
+References: <20080613232214.394fd6fd.sfr@canb.auug.org.au> <200806180053.40044.rjw@sisk.pl> <Pine.LNX.4.55.0806180400070.28110@cliff.in.clinika.pl> <200806190011.38548.rjw@sisk.pl> <Pine.LNX.4.55.0806182345380.7802@cliff.in.clinika.pl> <20080619093541.GC15228@elte.hu> <Pine.LNX.4.55.0806191619560.12929@cliff.in.clinika.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:54442 "EHLO ogre.sisk.pl"
+Received: from mx3.mail.elte.hu ([157.181.1.138]:58054 "EHLO mx3.mail.elte.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751566AbYFTKTj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 20 Jun 2008 06:19:39 -0400
-In-Reply-To: <alpine.LFD.1.10.0806200143250.22284@localhost.localdomain>
+	id S1752038AbYFTKp2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 20 Jun 2008 06:45:28 -0400
 Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.55.0806191619560.12929@cliff.in.clinika.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>
+To: "Maciej W. Rozycki" <macro@linux-mips.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Friday, 20 of June 2008, Len Brown wrote:
-> 
-> > I've recently discovered that pci_set_power_state() calls the platform
-> > callback intended for changing the state of the device after it has done
-> > that using the native PCI mechanism.  In my opinion this is not correct,
-> > because, for example, if the device is being put into D0 from a low power
-> > state, it may require some platform-controlled power resources to be turned
-> > on before that (in theory).
+
+* Maciej W. Rozycki <macro@linux-mips.org> wrote:
+
+>  As expressed before, unfortunately a lot of diagnostic APIC messages 
+> have been disabled in the 64-bit variation.  The result is I was 
+> unable to get good results from my Internet search for bootstrap logs 
+> from other systems using this southbridge.  Fortunately at least ACPI 
+> messages are present and what I noticed is some of the systems do not 
+> provide an IRQ0 override and still work correctly. [...]
+
+okay, so when those files are unified, the diagnostics should remain and 
+be prominent. (or even be put back into the 64-bit version right now.)
+
+> > does PIT programming matter? One detail which might matter and which 
+> > touches IRQ0 generation is the clockevent driver on nohz/highres. See 
+> > arch/x86/kernel/i8253.c:init_pit_timer():
 > > 
-> > The following series of patches changes this function so that the platform
-> > callback is performed first and then the native mechanism is used.
-> > Additionally, however, it checks if the devices is power manageable by the
-> > platform and only in that case the platform callback is invoked.  For this
-> > purpose, I needed to add an ACPI function allowing PCI to check the power
-> > manageability of given device.
+> >         case CLOCK_EVT_MODE_SHUTDOWN:
+> >         case CLOCK_EVT_MODE_UNUSED:
+> >                 if (evt->mode == CLOCK_EVT_MODE_PERIODIC ||
+> >                     evt->mode == CLOCK_EVT_MODE_ONESHOT) {
+> >                         outb_pit(0x30, PIT_MODE);
+> >                         outb_pit(0, PIT_CH0);
+> >                         outb_pit(0, PIT_CH0);
+> >                 }
+> >                 pit_disable_clocksource();
+> >                 break;
+> > 
+> >         case CLOCK_EVT_MODE_ONESHOT:
+> >                 /* One shot setup */
+> >                 pit_disable_clocksource();
+> >                 outb_pit(0x38, PIT_MODE);
+> >                 break;
 > 
-> We have 3 cases
-> 1. device has PCI PM only
-> 2. device has ACPI PM only
-> 3. device has both PCI and ACPI PM
+>  It does, though not necessarily in this case.  In principle all this 
+> 8254-through-APIC timer validation code assumes the source retriggers 
+> automatically and if an edge is lost because the APIC input targeted 
+> is masked or not configured yet, another one will follow shortly by 
+> itself.  It used to be the case when this code was implemented as we 
+> never used any of the single-shot modes of the 8254 back then.
 > 
-> For #1 and #2, order is moot.
-> For #3, how can we be sure that the new order is better than the old 
-> order?  Is this a theoretical patch, or is there a failure case?
+>  Is it now possible at the time check_timer() is called the 8254 has 
+> been put in one of the single-shot modes?  If so, then additional code 
+> has to be put in place either to switch the timer into the periodic 
+> mode for the duration of check_timer() or to rearm the timer if in a 
+> single-shot mode each time timer_irq_works() is called.
 
-This was a theoretical patch, but please see the new series posted.
+that's a question for Thomas i guess, he wrote the PIT single-shot code.
 
-The difference is that in the new series the order is only changed for
-transitions to D0.
-
-Thanks,
-Rafael
+	Ingo
