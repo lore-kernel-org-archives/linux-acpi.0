@@ -1,44 +1,171 @@
 From: Alok Kataria <akataria@vmware.com>
-Subject: Re: [PATCH 32/70] ACPI: fix checkpatch.pl complaints in scan.c
-Date: Fri, 20 Jun 2008 13:32:54 -0700
-Message-ID: <1213993974.31598.31.camel@promb-2n-dhcp368.eng.vmware.com>
-References: <1213947852-10924-1-git-send-email-lenb@kernel.org>
-	 <ad7f0d9feee6980a3ab3ea806854f56817d1da8e.1213947350.git.len.brown@intel.com>
-	 <87lk0zanvo.fsf@basil.nowhere.org>
+Subject: Re: [PATCH 1/2] cleanup e820_setup_gap
+Date: Fri, 20 Jun 2008 13:28:54 -0700
+Message-ID: <1213993734.31598.27.camel@promb-2n-dhcp368.eng.vmware.com>
+References: <1213916250.27983.35.camel@promb-2n-dhcp368.eng.vmware.com>
+	 <20080620153220.GD17373@elte.hu>
+	 <1213990711.31598.22.camel@promb-2n-dhcp368.eng.vmware.com>
+	 <86802c440806201250g706bb062t2d472ee0637cac4e@mail.gmail.com>
 Reply-To: akataria@vmware.com
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-outbound-1.vmware.com ([65.113.40.141]:34762 "EHLO
+Received: from smtp-outbound-1.vmware.com ([65.113.40.141]:34250 "EHLO
 	smtp-outbound-1.vmware.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764784AbYFTUcy (ORCPT
+	by vger.kernel.org with ESMTP id S1764034AbYFTU2y (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 20 Jun 2008 16:32:54 -0400
-In-Reply-To: <87lk0zanvo.fsf@basil.nowhere.org>
+	Fri, 20 Jun 2008 16:28:54 -0400
+In-Reply-To: <86802c440806201250g706bb062t2d472ee0637cac4e@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>
-Cc: Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Len Brown <len.brown@intel.com>
+To: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>, "Brown, Len" <len.brown@intel.com>, Andrew Morton <akpm@linux-foundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Fri, 2008-06-20 at 12:48 -0700, Andi Kleen wrote:
-> Len Brown <lenb@kernel.org> writes:
-> 
-> > From: Alok N Kataria <akataria@vmware.com>
+On Fri, 2008-06-20 at 12:50 -0700, Yinghai Lu wrote:
+> On Fri, Jun 20, 2008 at 12:38 PM, Alok Kataria <akataria@vmware.com> wrote:
+> > Here is the patch based on tip/master
 > >
-> > http://bugzilla.kernel.org/show_bug.cgi?id=9772
+> > Please have a look
+> >
+> > --
+> >
+> > This is a preparatory patch for the next patch in series.
+> > Moves some code from e820_setup_gap to a new function e820_search_gap.
+> > This patch is a part of a bug fix where we walk the ACPI table to calculate
+> > a gap for PCI optional devices.
+> >
+> > Signed-off-by: Alok N Kataria <akataria@vmware.com>
+> >
+> > Index: linux-trees.git/arch/x86/kernel/e820.c
+> > ===================================================================
+> > --- linux-trees.git.orig/arch/x86/kernel/e820.c 2008-06-20 10:32:44.000000000 -0700
+> > +++ linux-trees.git/arch/x86/kernel/e820.c      2008-06-20 12:27:58.000000000 -0700
+> > @@ -442,26 +442,22 @@
+> >  }
+> >
+> >  /*
+> > - * Search for the biggest gap in the low 32 bits of the e820
+> > - * memory space.  We pass this space to PCI to assign MMIO resources
+> > - * for hotplug or unconfigured devices in.
+> > - * Hopefully the BIOS let enough space left.
+> > + * Search for a gap in the e820 memory space from start_addr to 2^32.
+> >  */
+> > -__init void e820_setup_gap(void)
+> > +__init int e820_search_gap(unsigned long *gapstart, unsigned long *gapsize,
+> > +               unsigned long start_addr)
+> >  {
+> > -       unsigned long gapstart, gapsize, round;
+> > -       unsigned long long last;
+> > -       int i;
+> > +       unsigned long last = 0x100000000ull;
 > 
-> This bug has nothing to do with the patch?
-> 
-> "This patch fixes the return value of acpi_eject_store()"
+> why changing "unsigned long long" to "unsigned long" ?
+> it will overflow on 32bit
 > 
 
-This patch fixes the checkpatch.pl complaints introduced by patch in
-comment 23 in that bug.
-Please look here for the checkpatch.pl complaints..
-http://bugzilla.kernel.org/show_bug.cgi?id=9772#c33
+Oops...my bad, it was unsigned long in e820_64.c. Should be more careful
+with these cross ports.
+Thanks for catching it.
+--
 
-Thanks,
-Alok
-> -Andi
+This is a preparatory patch for the next patch in series.
+Moves some code from e820_setup_gap to a new function e820_search_gap.
+This patch is a part of a bug fix where we walk the ACPI table to calculate
+a gap for PCI optional devices.
+
+Signed-off-by: Alok N Kataria <akataria@vmware.com>
+
+Index: linux-trees.git/arch/x86/kernel/e820.c
+===================================================================
+--- linux-trees.git.orig/arch/x86/kernel/e820.c	2008-06-20 10:32:44.000000000 -0700
++++ linux-trees.git/arch/x86/kernel/e820.c	2008-06-20 13:23:32.000000000 -0700
+@@ -442,26 +442,22 @@
+ }
+ 
+ /*
+- * Search for the biggest gap in the low 32 bits of the e820
+- * memory space.  We pass this space to PCI to assign MMIO resources
+- * for hotplug or unconfigured devices in.
+- * Hopefully the BIOS let enough space left.
++ * Search for a gap in the e820 memory space from start_addr to 2^32.
+  */
+-__init void e820_setup_gap(void)
++__init int e820_search_gap(unsigned long *gapstart, unsigned long *gapsize,
++		unsigned long start_addr)
+ {
+-	unsigned long gapstart, gapsize, round;
+-	unsigned long long last;
+-	int i;
++	unsigned long long last = 0x100000000ull;
++	int i = e820.nr_map;
+ 	int found = 0;
+ 
+-	last = 0x100000000ull;
+-	gapstart = 0x10000000;
+-	gapsize = 0x400000;
+-	i = e820.nr_map;
+ 	while (--i >= 0) {
+ 		unsigned long long start = e820.map[i].addr;
+ 		unsigned long long end = start + e820.map[i].size;
+ 
++		if (end < start_addr)
++			continue;
++
+ 		/*
+ 		 * Since "last" is at most 4GB, we know we'll
+ 		 * fit in 32 bits if this condition is true
+@@ -469,15 +465,32 @@
+ 		if (last > end) {
+ 			unsigned long gap = last - end;
+ 
+-			if (gap > gapsize) {
+-				gapsize = gap;
+-				gapstart = end;
++			if (gap >= *gapsize) {
++				*gapsize = gap;
++				*gapstart = end;
+ 				found = 1;
+ 			}
+ 		}
+ 		if (start < last)
+ 			last = start;
+ 	}
++	return found;
++}
++
++/*
++ * Search for the biggest gap in the low 32 bits of the e820
++ * memory space.  We pass this space to PCI to assign MMIO resources
++ * for hotplug or unconfigured devices in.
++ * Hopefully the BIOS let enough space left.
++ */
++__init void e820_setup_gap(void)
++{
++	unsigned long gapstart, gapsize, round;
++	int found;
++
++	gapstart = 0x10000000;
++	gapsize = 0x400000;
++	found  = e820_search_gap(&gapstart, &gapsize, 0);
+ 
+ #ifdef CONFIG_X86_64
+ 	if (!found) {
+Index: linux-trees.git/include/asm-x86/e820.h
+===================================================================
+--- linux-trees.git.orig/include/asm-x86/e820.h	2008-06-20 10:32:44.000000000 -0700
++++ linux-trees.git/include/asm-x86/e820.h	2008-06-20 12:18:40.000000000 -0700
+@@ -69,6 +69,8 @@
+ 			       unsigned new_type);
+ extern void update_e820(void);
+ extern void e820_setup_gap(void);
++extern int e820_search_gap(unsigned long *gapstart, unsigned long *gapsize,
++				unsigned long start_addr);
+ struct setup_data;
+ extern void parse_e820_ext(struct setup_data *data, unsigned long pa_data);
+ 
+
+
+
+
 
