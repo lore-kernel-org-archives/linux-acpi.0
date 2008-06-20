@@ -1,68 +1,90 @@
-From: Alok Kataria <akataria@vmware.com>
-Subject: Re: [PATCH 32/70] ACPI: fix checkpatch.pl complaints in scan.c
-Date: Fri, 20 Jun 2008 13:59:59 -0700
-Message-ID: <1213995600.31598.40.camel@promb-2n-dhcp368.eng.vmware.com>
-References: <1213947852-10924-1-git-send-email-lenb@kernel.org>
-	 <ad7f0d9feee6980a3ab3ea806854f56817d1da8e.1213947350.git.len.brown@intel.com>
-	 <87lk0zanvo.fsf@basil.nowhere.org>
-	 <1213993974.31598.31.camel@promb-2n-dhcp368.eng.vmware.com>
-	 <485C157A.5080803@firstfloor.org>
-Reply-To: akataria@vmware.com
+From: "Vegard Nossum" <vegard.nossum@gmail.com>
+Subject: Re: [PATCH] ACPI: don't walk tables if ACPI was disabled
+Date: Fri, 20 Jun 2008 23:27:25 +0200
+Message-ID: <19f34abd0806201427h740ca3e7gc2f01c7e34616fd4@mail.gmail.com>
+References: <20080620135639.GA5073@damson.getinternet.no>
+	 <alpine.LFD.1.10.0806201458500.3027@localhost.localdomain>
+	 <19f34abd0806201340t502ce471n578dd2498a5f1992@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-outbound-1.vmware.com ([65.113.40.141]:54799 "EHLO
-	smtp-outbound-1.vmware.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751354AbYFTVAG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 20 Jun 2008 17:00:06 -0400
-In-Reply-To: <485C157A.5080803@firstfloor.org>
+Received: from yw-out-2324.google.com ([74.125.46.29]:6124 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754566AbYFTV11 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 17:27:27 -0400
+Received: by yw-out-2324.google.com with SMTP id 9so840080ywe.1
+        for <linux-acpi@vger.kernel.org>; Fri, 20 Jun 2008 14:27:25 -0700 (PDT)
+In-Reply-To: <19f34abd0806201340t502ce471n578dd2498a5f1992@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>
-Cc: Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Len Brown <len.brown@intel.com>
+To: Len Brown <lenb@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Zhao Yakui <yakui.zhao@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alexey Starikovskiy <astarikovskiy@suse.de>, Yinghai Lu <yhlu.kernel@gmail.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-On Fri, 2008-06-20 at 13:39 -0700, Andi Kleen wrote:
-> Alok Kataria wrote:
-> > On Fri, 2008-06-20 at 12:48 -0700, Andi Kleen wrote:
-> >> Len Brown <lenb@kernel.org> writes:
-> >>
-> >>> From: Alok N Kataria <akataria@vmware.com>
-> >>>
-> >>> http://bugzilla.kernel.org/show_bug.cgi?id=9772
-> >> This bug has nothing to do with the patch?
-> >>
-> >> "This patch fixes the return value of acpi_eject_store()"
-> >>
-> >
-> > This patch fixes the checkpatch.pl complaints introduced by patch in
-> > comment 23 in that bug.
-> > Please look here for the checkpatch.pl complaints..
-> > http://bugzilla.kernel.org/show_bug.cgi?id=9772#c33
-> 
-> Well that's still not a very useful description, given that you fix
-> a real bug here, not just the usual checkpatch whitspace nops.
-> 
-Maybe I am overlooking what you are trying to say over here.
-but, Which real bug ?
+On Fri, Jun 20, 2008 at 10:40 PM, Vegard Nossum <vegard.nossum@gmail.com> wrote:
+> On Fri, Jun 20, 2008 at 9:00 PM, Len Brown <lenb@kernel.org> wrote:
+>>> @@ -333,6 +333,9 @@ static int __init acpi_rtc_init(void)
+>>>  {
+>>>       struct device *dev = get_rtc_dev();
+>>>
+>>> +     if (acpi_disabled)
+>>> +             return 0;
+>>> +
+>>
+>> hmm, i would expect dev to be 0 for acpi=off,
+>> since pnp_match would fail, no?
+>
+> Obviously not. Because Ingo is booting with acpi=off and he still gets
+> a warning about some mutex operation that originates from this very
+> initcall:
+>
+> [    3.976213] calling  acpi_rtc_init+0x0/0xd3
+> [    3.980213] ACPI Exception (utmutex-0263): AE_BAD_PARAMETER, Thread
+> F7C50000 could not acquire Mutex [3] [20080321]
+>
+>
 
-> Not sure why Len also didn't fast track it. It seems to me like
-> something .26-worthy.
-> 
+Aha. The device in question (PNP0b00) is discovered while doing
+pnpbios_init(), NOT pnpacpi_init:
 
-This patch modifies the code to use kthread_run instead of
-kernel_thread. The kernel_thread call was introduced by an earlier patch
-from Zhang Rui which is in comment 23. 
+[    1.712032] initcall pnpacpi_init+0x0/0x80 returned 0 after 3 msecs
+[    1.716032] calling  pnpbios_init+0x0/0x322
+[    1.720032] PnPBIOS: Scanning system for PnP BIOS support...
+[    1.724032] PnPBIOS: Found PnP BIOS installation structure at 0xc00fc550
+[    1.728032] PnPBIOS: PnP BIOS version 1.0, entry 0xf0000:0xc580, dseg 0xf0000
+...
+[    1.876032] pnp 00:03: parse allocated resources
+[    1.880032] pnp 00:03:   add irq 8 flags 0x0
+[    1.884032] pnp 00:03:   add io  0x70-0x71 flags 0x0
+[    1.888032] pnp 00:03: parse resource options
+[    1.892032] pnp 00:03: new independent option
+[    1.896032] device: '00:03': device_add
+[    1.900032] bus: 'pnp': add device 00:03
+[    1.904032] PM: Adding info for pnp:00:03
+[    1.908032] pnp 00:03: Plug and Play BIOS device, IDs PNP0b00 (active)
 
-Since the patch from Zhang has not reached mainline yet, i fail to
-understand how can this patch be worthy of .26 ?
+So I guess this function, pnpbios_init() needs the check as well. In
+fact, it has this:
+
+#ifdef CONFIG_PNPACPI
+        if (!acpi_disabled && !pnpacpi_disabled) {
+                pnpbios_disabled = 1;
+                printk(KERN_INFO "PnPBIOS: Disabled by ACPI PNP\n");
+                return -ENODEV;
+        }
+#endif                          /* CONFIG_ACPI */
+
+...I guess that should be changed to say if (acpi_disabled ||
+pnpacpi_disabled)? Or... I don't understand the purpose of the
+original test. But it seems to be there since the beginning of time
+(or, well, v2.6.12-rc2).
 
 
-Thanks,
-Alok
+Vegard
 
-> -Andi
-> 
-> 
-
+-- 
+"The animistic metaphor of the bug that maliciously sneaked in while
+the programmer was not looking is intellectually dishonest as it
+disguises that the error is the programmer's own creation."
+	-- E. W. Dijkstra, EWD1036
