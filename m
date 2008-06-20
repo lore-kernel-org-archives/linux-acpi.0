@@ -1,58 +1,41 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH 04/70] misc,acpi,backlight: compal Laptop Extras
-Date: Fri, 20 Jun 2008 18:59:45 -0300
-Message-ID: <20080620215945.GA3417@khazad-dum.debian.net>
-References: <087803d18fb8259cb844c075a35fb27c2d80792e.1213947349.git.len.brown@intel.com> <45fea4a84325d5724ffe480ae6f0d1658d520141.1213947349.git.len.brown@intel.com> <20080620114804.GA8637@srcf.ucam.org> <alpine.LFD.1.10.0806201449340.3027@localhost.localdomain> <20080620192636.GA15779@srcf.ucam.org>
+Subject: Re: [RFC] Allow notifications on method execution
+Date: Fri, 20 Jun 2008 19:01:20 -0300
+Message-ID: <20080620220120.GB3417@khazad-dum.debian.net>
+References: <20080620152227.GA11828@srcf.ucam.org> <20080620193941.GC20498@khazad-dum.debian.net> <20080620195840.GA16284@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out3.smtp.messagingengine.com ([66.111.4.27]:39261 "EHLO
+Received: from out3.smtp.messagingengine.com ([66.111.4.27]:52148 "EHLO
 	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753357AbYFTV7t (ORCPT
+	by vger.kernel.org with ESMTP id S1755438AbYFTWBY (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 20 Jun 2008 17:59:49 -0400
+	Fri, 20 Jun 2008 18:01:24 -0400
 Content-Disposition: inline
-In-Reply-To: <20080620192636.GA15779@srcf.ucam.org>
+In-Reply-To: <20080620195840.GA16284@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Alexey Starikovskiy <aystarik@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
+Cc: linux-acpi@vger.kernel.org, ibm-acpi@hmh.eng.br
 
 On Fri, 20 Jun 2008, Matthew Garrett wrote:
-> On Fri, Jun 20, 2008 at 02:52:30PM -0400, Len Brown wrote:
-> > What do you suggest for the best example of rfkill implementation
-> > that should be copied here?
+> On Fri, Jun 20, 2008 at 04:39:41PM -0300, Henrique de Moraes Holschuh wrote:
+> > With such ACPI notifies, you could have HAL do some of the stuff kernel
+> > drivers are doing.  So far so good (well, sort of).
 > 
-> Either thinkpad-acpi or hp-wmi are pretty straightforward.
+> That's not what I was thinking. Right now, older Thinkpads need polling 
+> if you want to get some keyboard events. However, the BIOS seems to 
+> impleemnt this by calling the ACPI CMOS update methods. Rather than 
+> polling, we can therefore make it event driven. The events won't go out 
+> to userspace, they'll just call a callback in the driver which then 
+> generates input events or uevents or whatever.
 
-I haven't sent the thinkpad-acpi rfkill implementation yet.  And I have
-not reviewed hp-wmi to check if it is correct.  If it uses the input
-polldev, I can give you 100% assurance that it is broken.
+Sounds like a good idea, but in order to do that, we just need to let
+kernel drivers hook to GPE handlers somehow.  I'd be quite happy to add
+support for it to thinkpad-acpi.
 
-You pretty much have to wait for my rfkill patches to get merged before
-you can do something right with rfkill and stuff like thinkpad-acpi that
-has read/write rfkill registers.
-
-Anyway, if anyone wants to look at the rfkill patches and the
-thinkpad-acpi rfkill implementation, which *is* straightforward like
-Matthew said, please refer to the thinkpad-acpi git trees at:
-
-git://repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git
-
-branches devel and rfkill.
-
-Note that both branches are in risk of being rebased/rewound, as they
-are tips of stgit branches.  Get whatever you need from them, but don't
-base anything on them without talking to me first.  rfkill, in
-particular, will have to be rebased to the wireless-testing tree soon.
-
-Also, if anyone wants/needs to be added to the cc list for the rfkill
-stuff I am trying to get merged (e.g. because you will also need it for
-your driver), drop me a note.
-
-I am planning to submit the thinkpad-acpi rfkill conversion only after
-the rfkill stuff gets merged in -next or some other tree, but real life
-is getting in the way.
+I thought your patch did a lot more than this.  If I am wrong about it,
+I apologise.
 
 -- 
   "One disk to rule them all, One disk to find them. One disk to bring
