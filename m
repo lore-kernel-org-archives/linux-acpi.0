@@ -1,91 +1,29 @@
-From: Vegard Nossum <vegard.nossum@gmail.com>
-Subject: [PATCH] ACPI: don't walk tables if ACPI was disabled
-Date: Fri, 20 Jun 2008 15:56:40 +0200
-Message-ID: <20080620135639.GA5073@damson.getinternet.no>
-References: <20080620095247.GA24557@elte.hu>
+From: "Ryan Carter" <ryan@ryanccarter.com>
+Subject: DMI info
+Date: Fri, 20 Jun 2008 09:12:34 -0500
+Message-ID: <7fee73c30806200712y38c7f2bclef7c630d64ce8fb3@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.169]:2452 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753309AbYFTN4x (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 09:56:53 -0400
-Received: by ug-out-1314.google.com with SMTP id h2so1165285ugf.16
-        for <linux-acpi@vger.kernel.org>; Fri, 20 Jun 2008 06:56:51 -0700 (PDT)
+Received: from hu-out-0506.google.com ([72.14.214.226]:23617 "EHLO
+	hu-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754058AbYFTOMg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 10:12:36 -0400
+Received: by hu-out-0506.google.com with SMTP id 28so9072447hub.21
+        for <linux-acpi@vger.kernel.org>; Fri, 20 Jun 2008 07:12:34 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20080620095247.GA24557@elte.hu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Zhao Yakui <yakui.zhao@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alexey Starikovskiy <astarikovskiy@suse.de>, Yinghai Lu <yhlu.kernel@gmail.com>
+To: linux-acpi@vger.kernel.org
 
-Hi Ingo,
+ 1 Time(s): [   48.267997] ACPI: DMI System Vendor: Dell Computer Corporation
+ 1 Time(s): [   48.267999] ACPI: DMI Product Name: PowerEdge 840
+ 1 Time(s): [   48.268000] ACPI: DMI Product Version:
+ 1 Time(s): [   48.268002] ACPI: DMI Board Name: 0XM091
+ 1 Time(s): [   48.268003] ACPI: DMI BIOS Vendor: Dell Computer Corporation
+ 1 Time(s): [   48.268005] ACPI: DMI BIOS Date: 10/04/2007
 
-Can you see if this patch solves your problem? There might be other
-functions that needs this guard as well, though. I wonder if maybe this test
-should just be included at the top of every driver that uses ACPI in some
-way. But I'm pretty sure that this lack of initialization is the root of your
-problem in any case :-)
+If you need/want any more information, let me know.
 
-(By the way, I don't know why this problem popped up at this time, maybe it
-was just bad timing/bad luck... How far back do your AE_BAD_PARAMETER in the
-logs go?)
-
-
-Vegard
-
-
-From: Vegard Nossum <vegard.nossum@gmail.com>
-Date: Fri, 20 Jun 2008 15:39:09 +0200
-Subject: [PATCH] ACPI: don't walk tables if ACPI was disabled
-
-Ingo Molnar wrote:
-> -tip auto-testing started triggering this spinlock corruption message
-> yesterday:
->
-> [    3.976213] calling  acpi_rtc_init+0x0/0xd3
-> [    3.980213] ACPI Exception (utmutex-0263): AE_BAD_PARAMETER, Thread F7C50000 could not acquire Mutex [3] [20080321]
-> [    3.992213] BUG: spinlock bad magic on CPU#0, swapper/1
-> [    3.992213]  lock: c2508dc4, .magic: 00000000, .owner: swapper/1, .owner_cpu: 0
-
-This is apparently because some parts of ACPI, including mutexes, are not
-initialized when acpi=off is passed to the kernel.
-
-Reported-by: Ingo Molnar <mingo@elte.hu>
-Signed-off-by: Vegard Nossum <vegard.nossum@gmail.com>
----
- drivers/acpi/glue.c               |    3 +++
- drivers/acpi/namespace/nsxfeval.c |    3 +++
- 2 files changed, 6 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
-index 2808dc6..9b227d4 100644
---- a/drivers/acpi/glue.c
-+++ b/drivers/acpi/glue.c
-@@ -333,6 +333,9 @@ static int __init acpi_rtc_init(void)
- {
- 	struct device *dev = get_rtc_dev();
- 
-+	if (acpi_disabled)
-+		return 0;
-+
- 	if (dev) {
- 		rtc_wake_setup();
- 		rtc_info.wake_on = rtc_wake_on;
-diff --git a/drivers/acpi/namespace/nsxfeval.c b/drivers/acpi/namespace/nsxfeval.c
-index a8d5491..c274d1d 100644
---- a/drivers/acpi/namespace/nsxfeval.c
-+++ b/drivers/acpi/namespace/nsxfeval.c
-@@ -391,6 +391,9 @@ acpi_walk_namespace(acpi_object_type type,
- 
- 	ACPI_FUNCTION_TRACE(acpi_walk_namespace);
- 
-+	if (acpi_disabled)
-+		return_ACPI_STATUS(AE_NO_NAMESPACE);
-+
- 	/* Parameter validation */
- 
- 	if ((type > ACPI_TYPE_LOCAL_MAX) || (!max_depth) || (!user_function)) {
--- 
-1.5.4.1
-
+Ryan
