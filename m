@@ -1,107 +1,75 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI: don't walk tables if ACPI was disabled
-Date: Fri, 20 Jun 2008 15:00:58 -0400 (EDT)
-Message-ID: <alpine.LFD.1.10.0806201458500.3027@localhost.localdomain>
-References: <20080620135639.GA5073@damson.getinternet.no>
+Subject: Re: [PATCH] ACPI: fix mutex names
+Date: Fri, 20 Jun 2008 15:03:40 -0400 (EDT)
+Message-ID: <alpine.LFD.1.10.0806201503170.3027@localhost.localdomain>
+References: <20080620115656.GA17426@damson.getinternet.no>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:51860 "EHLO
+Received: from vms173005pub.verizon.net ([206.46.173.5]:54660 "EHLO
 	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752017AbYFTTBZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 15:01:25 -0400
-In-reply-to: <20080620135639.GA5073@damson.getinternet.no>
+	with ESMTP id S1751924AbYFTTDm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 15:03:42 -0400
+In-reply-to: <20080620115656.GA17426@damson.getinternet.no>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Vegard Nossum <vegard.nossum@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Zhao Yakui <yakui.zhao@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alexey Starikovskiy <astarikovskiy@suse.de>, Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
+
+looks good.
+CONFIG_ACPI_DEBUG=y thanks you.
+
+-Len
 
 
 On Fri, 20 Jun 2008, Vegard Nossum wrote:
 
-> Hi Ingo,
+> Hi,
 > 
-> Can you see if this patch solves your problem? There might be other
-> functions that needs this guard as well, though. I wonder if maybe this test
-> should just be included at the top of every driver that uses ACPI in some
-> way. But I'm pretty sure that this lack of initialization is the root of your
-> problem in any case :-)
-> 
-> (By the way, I don't know why this problem popped up at this time, maybe it
-> was just bad timing/bad luck... How far back do your AE_BAD_PARAMETER in the
-> logs go?)
+> I came across this as I was looking at Ingo's report. This looks correct,
+> yeah? (The alternative is to switch the #defines around, but that has
+> more serious implications than changing just what is displayed on the
+> screen!)
 > 
 > 
 > Vegard
 > 
 > 
 > From: Vegard Nossum <vegard.nossum@gmail.com>
-> Date: Fri, 20 Jun 2008 15:39:09 +0200
-> Subject: [PATCH] ACPI: don't walk tables if ACPI was disabled
+> Date: Fri, 20 Jun 2008 13:49:22 +0200
+> Subject: [PATCH] ACPI: fix mutex names
 > 
-> Ingo Molnar wrote:
-> > -tip auto-testing started triggering this spinlock corruption message
-> > yesterday:
-> >
-> > [    3.976213] calling  acpi_rtc_init+0x0/0xd3
-> > [    3.980213] ACPI Exception (utmutex-0263): AE_BAD_PARAMETER, Thread F7C50000 could not acquire Mutex [3] [20080321]
-> > [    3.992213] BUG: spinlock bad magic on CPU#0, swapper/1
-> > [    3.992213]  lock: c2508dc4, .magic: 00000000, .owner: swapper/1, .owner_cpu: 0
+> This patch reorders the mutex names to match the preceding #defines
+> and comment:
 > 
-> This is apparently because some parts of ACPI, including mutexes, are not
-> initialized when acpi=off is passed to the kernel.
+>     /*
+>      * NOTE: any changes here must be reflected in the acpi_gbl_mutex_names
+>      * table below also!
+>      */
+>     #define ACPI_MTX_INTERPRETER            0       /* AML Interpreter, main lock */
+>     #define ACPI_MTX_NAMESPACE              1       /* ACPI Namespace */
+>     #define ACPI_MTX_TABLES                 2       /* Data for ACPI tables */
 > 
-> Reported-by: Ingo Molnar <mingo@elte.hu>
 > Signed-off-by: Vegard Nossum <vegard.nossum@gmail.com>
 > ---
->  drivers/acpi/glue.c               |    3 +++
->  drivers/acpi/namespace/nsxfeval.c |    3 +++
->  2 files changed, 6 insertions(+), 0 deletions(-)
+>  include/acpi/aclocal.h |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
 > 
-> diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
-> index 2808dc6..9b227d4 100644
-> --- a/drivers/acpi/glue.c
-> +++ b/drivers/acpi/glue.c
-> @@ -333,6 +333,9 @@ static int __init acpi_rtc_init(void)
->  {
->  	struct device *dev = get_rtc_dev();
+> diff --git a/include/acpi/aclocal.h b/include/acpi/aclocal.h
+> index c5cdc32..62d7468 100644
+> --- a/include/acpi/aclocal.h
+> +++ b/include/acpi/aclocal.h
+> @@ -98,8 +98,8 @@ union acpi_parse_object;
 >  
-> +	if (acpi_disabled)
-> +		return 0;
-> +
-
-hmm, i would expect dev to be 0 for acpi=off,
-since pnp_match would fail, no?
-
->  	if (dev) {
->  		rtc_wake_setup();
->  		rtc_info.wake_on = rtc_wake_on;
-> diff --git a/drivers/acpi/namespace/nsxfeval.c b/drivers/acpi/namespace/nsxfeval.c
-> index a8d5491..c274d1d 100644
-> --- a/drivers/acpi/namespace/nsxfeval.c
-> +++ b/drivers/acpi/namespace/nsxfeval.c
-> @@ -391,6 +391,9 @@ acpi_walk_namespace(acpi_object_type type,
->  
->  	ACPI_FUNCTION_TRACE(acpi_walk_namespace);
->  
-> +	if (acpi_disabled)
-> +		return_ACPI_STATUS(AE_NO_NAMESPACE);
-> +
-
-We should probably BUG_ON(acpi_disabled) here,
-since it takes a programming bug to hit this case.
-
--Len
-
->  	/* Parameter validation */
->  
->  	if ((type > ACPI_TYPE_LOCAL_MAX) || (!max_depth) || (!user_function)) {
+>  static char *acpi_gbl_mutex_names[ACPI_NUM_MUTEX] = {
+>  	"ACPI_MTX_Interpreter",
+> -	"ACPI_MTX_Tables",
+>  	"ACPI_MTX_Namespace",
+> +	"ACPI_MTX_Tables",
+>  	"ACPI_MTX_Events",
+>  	"ACPI_MTX_Caches",
+>  	"ACPI_MTX_Memory",
 > -- 
 > 1.5.4.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
