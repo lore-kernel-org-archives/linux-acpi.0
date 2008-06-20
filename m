@@ -1,91 +1,95 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 08/70] PCI ACPI: Drop the second argument of
- platform_pci_choose_state
-Date: Fri, 20 Jun 2008 03:43:10 -0400
-Message-ID: <8d2bdf49481b27096e242119e73abe9348c1019b.1213947349.git.len.brown@intel.com>
+Subject: [PATCH 39/70] PNP: add detail to debug resource dump
+Date: Fri, 20 Jun 2008 03:43:41 -0400
+Message-ID: <65c12f10109851268151eb725ac3ebea9b849d08.1213947350.git.len.brown@intel.com>
 References: <1213947852-10924-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:62806 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752001AbYFTHol (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 03:44:41 -0400
+Received: from vms044pub.verizon.net ([206.46.252.44]:35169 "EHLO
+	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751804AbYFTHok (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 03:44:40 -0400
 Received: from localhost.localdomain ([72.93.254.151])
- by vms173003.mailsrvcs.net
- (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K2R00A3445ZA3F2@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 20 Jun 2008 02:44:24 -0500 (CDT)
+ by vms044.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
+ 3 2006)) with ESMTPA id <0K2R003NC46F7I83@vms044.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 20 Jun 2008 02:44:40 -0500 (CDT)
 In-reply-to: <1213947852-10924-1-git-send-email-lenb@kernel.org>
 In-reply-to: <087803d18fb8259cb844c075a35fb27c2d80792e.1213947349.git.len.brown@intel.com>
 References: <087803d18fb8259cb844c075a35fb27c2d80792e.1213947349.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <len.brown@intel.com>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Since the second argument of acpi_pci_choose_state() and
-platform_pci_choose_state() is never used, remove it.
+In the debug resource dump, decode the flags and indicate when
+a resource is disabled or has been automatically assigned.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@suse.cz>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/pci/pci-acpi.c |    3 +--
- drivers/pci/pci.c      |    4 ++--
- drivers/pci/pci.h      |    3 +--
- 3 files changed, 4 insertions(+), 6 deletions(-)
+ drivers/pnp/support.c |   34 ++++++++++++++++++++++++++--------
+ 1 files changed, 26 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-index caabf05..dab9d47 100644
---- a/drivers/pci/pci-acpi.c
-+++ b/drivers/pci/pci-acpi.c
-@@ -293,8 +293,7 @@ EXPORT_SYMBOL(pci_osc_control_set);
-  * 	choose highest power _SxD or any lower power
-  */
- 
--static pci_power_t acpi_pci_choose_state(struct pci_dev *pdev,
--	pm_message_t state)
-+static pci_power_t acpi_pci_choose_state(struct pci_dev *pdev)
- {
- 	int acpi_state;
- 
-diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-index e4548ab..75c6023 100644
---- a/drivers/pci/pci.c
-+++ b/drivers/pci/pci.c
-@@ -508,7 +508,7 @@ pci_set_power_state(struct pci_dev *dev, pci_power_t state)
- 	return 0;
- }
- 
--pci_power_t (*platform_pci_choose_state)(struct pci_dev *dev, pm_message_t state);
-+pci_power_t (*platform_pci_choose_state)(struct pci_dev *dev);
-  
- /**
-  * pci_choose_state - Choose the power state of a PCI device
-@@ -528,7 +528,7 @@ pci_power_t pci_choose_state(struct pci_dev *dev, pm_message_t state)
- 		return PCI_D0;
- 
- 	if (platform_pci_choose_state) {
--		ret = platform_pci_choose_state(dev, state);
-+		ret = platform_pci_choose_state(dev);
- 		if (ret != PCI_POWER_ERROR)
- 			return ret;
+diff --git a/drivers/pnp/support.c b/drivers/pnp/support.c
+index 95b076c..7f594cc 100644
+--- a/drivers/pnp/support.c
++++ b/drivers/pnp/support.c
+@@ -63,28 +63,46 @@ void dbg_pnp_show_resources(struct pnp_dev *dev, char *desc)
+ 	for (i = 0; i < PNP_MAX_IRQ; i++) {
+ 		res = pnp_get_resource(dev, IORESOURCE_IRQ, i);
+ 		if (res && !(res->flags & IORESOURCE_UNSET))
+-			dev_dbg(&dev->dev, "  irq %lld flags %#lx\n",
+-				(unsigned long long) res->start, res->flags);
++			dev_dbg(&dev->dev, "  irq %lld flags %#lx%s%s\n",
++				(unsigned long long) res->start, res->flags,
++				res->flags & IORESOURCE_DISABLED ?
++					" DISABLED" : "",
++				res->flags & IORESOURCE_AUTO ?
++					" AUTO" : "");
  	}
-diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
-index 0a497c1..ff30b3c 100644
---- a/drivers/pci/pci.h
-+++ b/drivers/pci/pci.h
-@@ -6,8 +6,7 @@ extern void pci_remove_sysfs_dev_files(struct pci_dev *pdev);
- extern void pci_cleanup_rom(struct pci_dev *dev);
- 
- /* Firmware callbacks */
--extern pci_power_t (*platform_pci_choose_state)(struct pci_dev *dev,
--						pm_message_t state);
-+extern pci_power_t (*platform_pci_choose_state)(struct pci_dev *dev);
- extern int (*platform_pci_set_power_state)(struct pci_dev *dev,
- 						pci_power_t state);
- 
+ 	for (i = 0; i < PNP_MAX_DMA; i++) {
+ 		res = pnp_get_resource(dev, IORESOURCE_DMA, i);
+ 		if (res && !(res->flags & IORESOURCE_UNSET))
+-			dev_dbg(&dev->dev, "  dma %lld flags %#lx\n",
+-				(unsigned long long) res->start, res->flags);
++			dev_dbg(&dev->dev, "  dma %lld flags %#lx%s%s\n",
++				(unsigned long long) res->start, res->flags,
++				res->flags & IORESOURCE_DISABLED ?
++					" DISABLED" : "",
++				res->flags & IORESOURCE_AUTO ?
++					" AUTO" : "");
+ 	}
+ 	for (i = 0; i < PNP_MAX_PORT; i++) {
+ 		res = pnp_get_resource(dev, IORESOURCE_IO, i);
+ 		if (res && !(res->flags & IORESOURCE_UNSET))
+-			dev_dbg(&dev->dev, "  io  %#llx-%#llx flags %#lx\n",
++			dev_dbg(&dev->dev, "  io  %#llx-%#llx flags %#lx"
++				"%s%s\n",
+ 				(unsigned long long) res->start,
+-				(unsigned long long) res->end, res->flags);
++				(unsigned long long) res->end, res->flags,
++				res->flags & IORESOURCE_DISABLED ?
++					" DISABLED" : "",
++				res->flags & IORESOURCE_AUTO ?
++					" AUTO" : "");
+ 	}
+ 	for (i = 0; i < PNP_MAX_MEM; i++) {
+ 		res = pnp_get_resource(dev, IORESOURCE_MEM, i);
+ 		if (res && !(res->flags & IORESOURCE_UNSET))
+-			dev_dbg(&dev->dev, "  mem %#llx-%#llx flags %#lx\n",
++			dev_dbg(&dev->dev, "  mem %#llx-%#llx flags %#lx"
++				"%s%s\n",
+ 				(unsigned long long) res->start,
+-				(unsigned long long) res->end, res->flags);
++				(unsigned long long) res->end, res->flags,
++				res->flags & IORESOURCE_DISABLED ?
++					" DISABLED" : "",
++				res->flags & IORESOURCE_AUTO ?
++					" AUTO" : "");
+ 	}
+ #endif
+ }
 -- 
 1.5.6
 
