@@ -1,19 +1,17 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 43/70] PNP: make pnp_{port,mem,etc}_start(),
- et al work for invalid resources
-Date: Fri, 20 Jun 2008 03:43:45 -0400
-Message-ID: <60d14fa0c640bbdb4c58b5426b2bf344090c5ac9.1213947350.git.len.brown@intel.com>
+Subject: [PATCH 61/70] PNP: support optional IRQ resources
+Date: Fri, 20 Jun 2008 03:44:03 -0400
+Message-ID: <576d86c7b28bcc931def73d8c1145d32c7a09aa6.1213947350.git.len.brown@intel.com>
 References: <1213947852-10924-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:62806 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752559AbYFTHo6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 03:44:58 -0400
+Received: from vms046pub.verizon.net ([206.46.252.46]:50038 "EHLO
+	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752258AbYFTHpb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 03:45:31 -0400
 Received: from localhost.localdomain ([72.93.254.151])
- by vms173003.mailsrvcs.net
- (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K2R00A5546HA6T2@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 20 Jun 2008 02:44:42 -0500 (CDT)
+ by vms046.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
+ 3 2006)) with ESMTPA id <0K2R00EJN47U8110@vms046.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 20 Jun 2008 02:45:31 -0500 (CDT)
 In-reply-to: <1213947852-10924-1-git-send-email-lenb@kernel.org>
 In-reply-to: <087803d18fb8259cb844c075a35fb27c2d80792e.1213947349.git.len.brown@intel.com>
 References: <087803d18fb8259cb844c075a35fb27c2d80792e.1213947349.git.len.brown@intel.com>
@@ -24,165 +22,208 @@ Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <len.brown@intel.com>
 
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Some callers use pnp_port_start() and similar functions without
-making sure the resource is valid.  This patch makes us fall
-back to returning the initial values if the resource is not
-valid or not even present.
+This patch adds an IORESOURCE_IRQ_OPTIONAL flag for use when
+assigning resources to a device.  If the flag is set and we are
+unable to assign an IRQ to the device, we can leave the IRQ
+disabled but allow the overall resource allocation to succeed.
 
-This mostly preserves the previous behavior, where we would just
-return the initial values set by pnp_init_resource_table().  The
-original 2.6.25 code didn't range-check the "bar", so it would
-return garbage if the bar exceeded the table size.  This code
-returns sensible values instead.
+Some devices request an IRQ, but can run without an IRQ
+(possibly with degraded performance).  This flag lets us run
+the device without the IRQ instead of just leaving the
+device disabled.
+
+This is a reimplementation of this previous change by Rene
+Herman <rene.herman@gmail.com>:
+    http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=3b73a223661ed137c5d3d2635f954382e94f5a43
+
+I reimplemented this for two reasons:
+    - to prepare for converting all resource options into a single linked
+      list, as opposed to the per-resource-type lists we have now, and
+    - to preserve the order and number of resource options.
+
+In PNPBIOS and ACPI, we configure a device by giving firmware a
+list of resource assignments.  It is important that this list
+has exactly the same number of resources, in the same order,
+as the "template" list we got from the firmware in the first
+place.
+
+The problem of a sound card MPU401 being left disabled for want of
+an IRQ was reported by Uwe Bugla <uwe.bugla@gmx.de>.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Acked-by: Rene Herman <rene.herman@gmail.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- include/linux/pnp.h |   72 ++++++++++++++++++++++++++++++++++++++++++--------
- 1 files changed, 60 insertions(+), 12 deletions(-)
+ drivers/pnp/interface.c |    2 +
+ drivers/pnp/manager.c   |    9 ++++++
+ drivers/pnp/quirks.c    |   71 ++++++++++++++++++-----------------------------
+ include/linux/ioport.h  |    1 +
+ 4 files changed, 39 insertions(+), 44 deletions(-)
 
-diff --git a/include/linux/pnp.h b/include/linux/pnp.h
-index 63b128d..8b607ae 100644
---- a/include/linux/pnp.h
-+++ b/include/linux/pnp.h
-@@ -40,19 +40,31 @@ static inline resource_size_t pnp_resource_len(struct resource *res)
- static inline resource_size_t pnp_port_start(struct pnp_dev *dev,
- 					     unsigned int bar)
- {
--	return pnp_get_resource(dev, IORESOURCE_IO, bar)->start;
-+	struct resource *res = pnp_get_resource(dev, IORESOURCE_IO, bar);
-+
-+	if (pnp_resource_valid(res))
-+		return res->start;
-+	return 0;
+diff --git a/drivers/pnp/interface.c b/drivers/pnp/interface.c
+index b09f67d..7a9fb55 100644
+--- a/drivers/pnp/interface.c
++++ b/drivers/pnp/interface.c
+@@ -90,6 +90,8 @@ static void pnp_print_irq(pnp_info_buffer_t * buffer, char *space,
+ 		pnp_printf(buffer, " High-Level");
+ 	if (irq->flags & IORESOURCE_IRQ_LOWLEVEL)
+ 		pnp_printf(buffer, " Low-Level");
++	if (irq->flags & IORESOURCE_IRQ_OPTIONAL)
++		pnp_printf(buffer, " (optional)");
+ 	pnp_printf(buffer, "\n");
  }
  
- static inline resource_size_t pnp_port_end(struct pnp_dev *dev,
- 					   unsigned int bar)
- {
--	return pnp_get_resource(dev, IORESOURCE_IO, bar)->end;
-+	struct resource *res = pnp_get_resource(dev, IORESOURCE_IO, bar);
+diff --git a/drivers/pnp/manager.c b/drivers/pnp/manager.c
+index 7ea9e1e..a20accb 100644
+--- a/drivers/pnp/manager.c
++++ b/drivers/pnp/manager.c
+@@ -153,6 +153,15 @@ static int pnp_assign_irq(struct pnp_dev *dev, struct pnp_irq *rule, int idx)
+ 				goto __add;
+ 		}
+ 	}
 +
-+	if (pnp_resource_valid(res))
-+		return res->end;
-+	return 0;
++	if (rule->flags & IORESOURCE_IRQ_OPTIONAL) {
++		res->start = -1;
++		res->end = -1;
++		res->flags |= IORESOURCE_DISABLED;
++		dev_dbg(&dev->dev, "  irq %d disabled (optional)\n", idx);
++		goto __add;
++	}
++
+ 	dev_dbg(&dev->dev, "  couldn't assign irq %d\n", idx);
+ 	return -EBUSY;
+ 
+diff --git a/drivers/pnp/quirks.c b/drivers/pnp/quirks.c
+index c3ab348..3a93fcf 100644
+--- a/drivers/pnp/quirks.c
++++ b/drivers/pnp/quirks.c
+@@ -118,34 +118,46 @@ static struct pnp_option *quirk_isapnp_mpu_options(struct pnp_dev *dev)
+ 	struct pnp_option *res;
+ 
+ 	/*
+-	 * Build a functional IRQ-less variant of each MPU option.
++	 * Build a functional IRQ-optional variant of each MPU option.
+ 	 */
+ 
+ 	for (res = dev->dependent; res; res = res->next) {
+ 		struct pnp_option *curr;
+ 		struct pnp_port *port;
+-		struct pnp_port *copy;
++		struct pnp_port *copy_port;
++		struct pnp_irq *irq;
++		struct pnp_irq *copy_irq;
+ 
+ 		port = res->port;
+-		if (!port || !res->irq)
++		irq = res->irq;
++		if (!port || !irq)
+ 			continue;
+ 
+-		copy = pnp_alloc(sizeof *copy);
+-		if (!copy)
++		copy_port = pnp_alloc(sizeof *copy_port);
++		if (!copy_port)
++			break;
++
++		copy_irq = pnp_alloc(sizeof *copy_irq);
++		if (!copy_irq) {
++			kfree(copy_port);
+ 			break;
++		}
++
++		*copy_port = *port;
++		copy_port->next = NULL;
+ 
+-		copy->min = port->min;
+-		copy->max = port->max;
+-		copy->align = port->align;
+-		copy->size = port->size;
+-		copy->flags = port->flags;
++		*copy_irq = *irq;
++		copy_irq->flags |= IORESOURCE_IRQ_OPTIONAL;
++		copy_irq->next = NULL;
+ 
+ 		curr = pnp_build_option(PNP_RES_PRIORITY_FUNCTIONAL);
+ 		if (!curr) {
+-			kfree(copy);
++			kfree(copy_port);
++			kfree(copy_irq);
+ 			break;
+ 		}
+-		curr->port = copy;
++		curr->port = copy_port;
++		curr->irq = copy_irq;
+ 
+ 		if (prev)
+ 			prev->next = curr;
+@@ -154,7 +166,7 @@ static struct pnp_option *quirk_isapnp_mpu_options(struct pnp_dev *dev)
+ 		prev = curr;
+ 	}
+ 	if (head)
+-		dev_info(&dev->dev, "adding IRQ-less MPU options\n");
++		dev_info(&dev->dev, "adding IRQ-optional MPU options\n");
+ 
+ 	return head;
+ }
+@@ -164,10 +176,6 @@ static void quirk_ad1815_mpu_resources(struct pnp_dev *dev)
+ 	struct pnp_option *res;
+ 	struct pnp_irq *irq;
+ 
+-	/*
+-	 * Distribute the independent IRQ over the dependent options
+-	 */
+-
+ 	res = dev->independent;
+ 	if (!res)
+ 		return;
+@@ -176,33 +184,8 @@ static void quirk_ad1815_mpu_resources(struct pnp_dev *dev)
+ 	if (!irq || irq->next)
+ 		return;
+ 
+-	res = dev->dependent;
+-	if (!res)
+-		return;
+-
+-	while (1) {
+-		struct pnp_irq *copy;
+-
+-		copy = pnp_alloc(sizeof *copy);
+-		if (!copy)
+-			break;
+-
+-		bitmap_copy(copy->map.bits, irq->map.bits, PNP_IRQ_NR);
+-		copy->flags = irq->flags;
+-
+-		copy->next = res->irq; /* Yes, this is NULL */
+-		res->irq = copy;
+-
+-		if (!res->next)
+-			break;
+-		res = res->next;
+-	}
+-	kfree(irq);
+-
+-	res->next = quirk_isapnp_mpu_options(dev);
+-
+-	res = dev->independent;
+-	res->irq = NULL;
++	irq->flags |= IORESOURCE_IRQ_OPTIONAL;
++	dev_info(&dev->dev, "made independent IRQ optional\n");
  }
  
- static inline unsigned long pnp_port_flags(struct pnp_dev *dev,
- 					   unsigned int bar)
- {
--	return pnp_get_resource(dev, IORESOURCE_IO, bar)->flags;
-+	struct resource *res = pnp_get_resource(dev, IORESOURCE_IO, bar);
-+
-+	if (pnp_resource_valid(res))
-+		return res->flags;
-+	return IORESOURCE_IO | IORESOURCE_AUTO | IORESOURCE_UNSET;
- }
+ static void quirk_isapnp_mpu_resources(struct pnp_dev *dev)
+diff --git a/include/linux/ioport.h b/include/linux/ioport.h
+index 39db059..08c825b 100644
+--- a/include/linux/ioport.h
++++ b/include/linux/ioport.h
+@@ -59,6 +59,7 @@ struct resource_list {
+ #define IORESOURCE_IRQ_HIGHLEVEL	(1<<2)
+ #define IORESOURCE_IRQ_LOWLEVEL		(1<<3)
+ #define IORESOURCE_IRQ_SHAREABLE	(1<<4)
++#define IORESOURCE_IRQ_OPTIONAL		(1<<5)
  
- static inline int pnp_port_valid(struct pnp_dev *dev, unsigned int bar)
-@@ -63,25 +75,41 @@ static inline int pnp_port_valid(struct pnp_dev *dev, unsigned int bar)
- static inline resource_size_t pnp_port_len(struct pnp_dev *dev,
- 					   unsigned int bar)
- {
--	return pnp_resource_len(pnp_get_resource(dev, IORESOURCE_IO, bar));
-+	struct resource *res = pnp_get_resource(dev, IORESOURCE_IO, bar);
-+
-+	if (pnp_resource_valid(res))
-+		return pnp_resource_len(res);
-+	return 0;
- }
- 
- 
- static inline resource_size_t pnp_mem_start(struct pnp_dev *dev,
- 					    unsigned int bar)
- {
--	return pnp_get_resource(dev, IORESOURCE_MEM, bar)->start;
-+	struct resource *res = pnp_get_resource(dev, IORESOURCE_MEM, bar);
-+
-+	if (pnp_resource_valid(res))
-+		return res->start;
-+	return 0;
- }
- 
- static inline resource_size_t pnp_mem_end(struct pnp_dev *dev,
- 					  unsigned int bar)
- {
--	return pnp_get_resource(dev, IORESOURCE_MEM, bar)->end;
-+	struct resource *res = pnp_get_resource(dev, IORESOURCE_MEM, bar);
-+
-+	if (pnp_resource_valid(res))
-+		return res->end;
-+	return 0;
- }
- 
- static inline unsigned long pnp_mem_flags(struct pnp_dev *dev, unsigned int bar)
- {
--	return pnp_get_resource(dev, IORESOURCE_MEM, bar)->flags;
-+	struct resource *res = pnp_get_resource(dev, IORESOURCE_MEM, bar);
-+
-+	if (pnp_resource_valid(res))
-+		return res->flags;
-+	return IORESOURCE_MEM | IORESOURCE_AUTO | IORESOURCE_UNSET;
- }
- 
- static inline int pnp_mem_valid(struct pnp_dev *dev, unsigned int bar)
-@@ -92,18 +120,30 @@ static inline int pnp_mem_valid(struct pnp_dev *dev, unsigned int bar)
- static inline resource_size_t pnp_mem_len(struct pnp_dev *dev,
- 					  unsigned int bar)
- {
--	return pnp_resource_len(pnp_get_resource(dev, IORESOURCE_MEM, bar));
-+	struct resource *res = pnp_get_resource(dev, IORESOURCE_MEM, bar);
-+
-+	if (pnp_resource_valid(res))
-+		return pnp_resource_len(res);
-+	return 0;
- }
- 
- 
- static inline resource_size_t pnp_irq(struct pnp_dev *dev, unsigned int bar)
- {
--	return pnp_get_resource(dev, IORESOURCE_IRQ, bar)->start;
-+	struct resource *res = pnp_get_resource(dev, IORESOURCE_IRQ, bar);
-+
-+	if (pnp_resource_valid(res))
-+		return res->start;
-+	return -1;
- }
- 
- static inline unsigned long pnp_irq_flags(struct pnp_dev *dev, unsigned int bar)
- {
--	return pnp_get_resource(dev, IORESOURCE_IRQ, bar)->flags;
-+	struct resource *res = pnp_get_resource(dev, IORESOURCE_IRQ, bar);
-+
-+	if (pnp_resource_valid(res))
-+		return res->flags;
-+	return IORESOURCE_IRQ | IORESOURCE_AUTO | IORESOURCE_UNSET;
- }
- 
- static inline int pnp_irq_valid(struct pnp_dev *dev, unsigned int bar)
-@@ -114,12 +154,20 @@ static inline int pnp_irq_valid(struct pnp_dev *dev, unsigned int bar)
- 
- static inline resource_size_t pnp_dma(struct pnp_dev *dev, unsigned int bar)
- {
--	return pnp_get_resource(dev, IORESOURCE_DMA, bar)->start;
-+	struct resource *res = pnp_get_resource(dev, IORESOURCE_DMA, bar);
-+
-+	if (pnp_resource_valid(res))
-+		return res->start;
-+	return -1;
- }
- 
- static inline unsigned long pnp_dma_flags(struct pnp_dev *dev, unsigned int bar)
- {
--	return pnp_get_resource(dev, IORESOURCE_DMA, bar)->flags;
-+	struct resource *res = pnp_get_resource(dev, IORESOURCE_DMA, bar);
-+
-+	if (pnp_resource_valid(res))
-+		return res->flags;
-+	return IORESOURCE_DMA | IORESOURCE_AUTO | IORESOURCE_UNSET;
- }
- 
- static inline int pnp_dma_valid(struct pnp_dev *dev, unsigned int bar)
+ /* PnP DMA specific bits (IORESOURCE_BITS) */
+ #define IORESOURCE_DMA_TYPE_MASK	(3<<0)
 -- 
 1.5.6
 
