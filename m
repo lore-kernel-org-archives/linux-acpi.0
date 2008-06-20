@@ -1,36 +1,31 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 0/4]  Disable Mwait for CPU C-states and add the boot
- option of "idle=nomwait" ,"idle=halt"
-Date: Fri, 20 Jun 2008 03:28:51 -0400 (EDT)
-Message-ID: <alpine.LFD.1.10.0806200327170.22284@localhost.localdomain>
-References: <1213684734.19901.8.camel@yakui_zhao.sh.intel.com>
- <alpine.LFD.1.10.0806200225590.22284@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Subject: a pair of small ACPI patches for 2.6.26-rc6
+Date: Fri, 20 Jun 2008 03:35:08 -0400
+Message-ID: <1213947310-10807-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms042pub.verizon.net ([206.46.252.42]:36212 "EHLO
+Received: from vms042pub.verizon.net ([206.46.252.42]:36909 "EHLO
 	vms042pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751470AbYFTH3Y (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 03:29:24 -0400
+	with ESMTP id S1750986AbYFTHfL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2008 03:35:11 -0400
 Received: from localhost.localdomain ([72.93.254.151])
  by vms042.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0K2R00FF83G4KTT2@vms042.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 20 Jun 2008 02:28:53 -0500 (CDT)
-In-reply-to: <alpine.LFD.1.10.0806200225590.22284@localhost.localdomain>
+ 3 2006)) with ESMTPA id <0K2R00DVV3QMS8F1@vms042.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 20 Jun 2008 02:35:11 -0500 (CDT)
+Received: from localhost.localdomain (d975xbx2 [127.0.0.1])
+	by localhost.localdomain (8.14.2/8.14.2) with ESMTP id m5K7ZARv010856	for
+ <linux-acpi@vger.kernel.org>; Fri, 20 Jun 2008 03:35:10 -0400
+Received: (from lenb@localhost)	by localhost.localdomain (8.14.2/8.14.2/Submit)
+ id m5K7ZAP4010854	for linux-acpi@vger.kernel.org; Fri,
+ 20 Jun 2008 03:35:10 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-
-I don't like the idle=halt implementation
-It causes cpuidle to not hook, and thus 
-/sys/devices/system/cpu/cpu*/cpuidle/state*/* vanish
-
-I think it should work more like processor.max_cstate=1 --
-ie. everything is the same, except the upper level software
-simply is limited to -- in this case -- HALT.
+these two going up now.
+Please let me know if I miss anything
+that seems appropriate for rc6.
 
 thanks,
 -Len
+
 
