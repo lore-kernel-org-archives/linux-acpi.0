@@ -1,40 +1,77 @@
-From: "Jeff Trull" <linmodemstudent@gmail.com>
-Subject: Re: no self-refresh during S3 - any debug hints?
-Date: Fri, 20 Jun 2008 23:13:06 -0700
-Message-ID: <685450530806202313v4ec63bc8n5213330d77e1b6d@mail.gmail.com>
-References: <685450530805311215lf463875g8eed40da630b4f96@mail.gmail.com>
-	 <alpine.LFD.1.10.0806191437580.3040@localhost.localdomain>
-	 <20080619201052.GA15587@elf.ucw.cz>
+From: "Vegard Nossum" <vegard.nossum@gmail.com>
+Subject: Re: [PATCH] ACPI: don't walk tables if ACPI was disabled
+Date: Sat, 21 Jun 2008 10:19:38 +0200
+Message-ID: <19f34abd0806210119o64a1c9ban78710651a01530cf@mail.gmail.com>
+References: <20080620135639.GA5073@damson.getinternet.no>
+	 <alpine.LFD.1.10.0806201458500.3027@localhost.localdomain>
+	 <19f34abd0806201340t502ce471n578dd2498a5f1992@mail.gmail.com>
+	 <19f34abd0806201427h740ca3e7gc2f01c7e34616fd4@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fk-out-0910.google.com ([209.85.128.190]:59872 "EHLO
-	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751374AbYFUGNK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 21 Jun 2008 02:13:10 -0400
-Received: by fk-out-0910.google.com with SMTP id 18so1534553fkq.5
-        for <linux-acpi@vger.kernel.org>; Fri, 20 Jun 2008 23:13:07 -0700 (PDT)
-In-Reply-To: <20080619201052.GA15587@elf.ucw.cz>
+Received: from rv-out-0506.google.com ([209.85.198.236]:7497 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751771AbYFUITj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 21 Jun 2008 04:19:39 -0400
+Received: by rv-out-0506.google.com with SMTP id k40so6021281rvb.1
+        for <linux-acpi@vger.kernel.org>; Sat, 21 Jun 2008 01:19:38 -0700 (PDT)
+In-Reply-To: <19f34abd0806201427h740ca3e7gc2f01c7e34616fd4@mail.gmail.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@suse.cz>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: Len Brown <lenb@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Zhao Yakui <yakui.zhao@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alexey Starikovskiy <astarikovskiy@suse.de>, Yinghai Lu <yhlu.kernel@gmail.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-On Thu, Jun 19, 2008 at 1:10 PM, Pavel Machek <pavel@suse.cz> wrote:
-
+On Fri, Jun 20, 2008 at 11:27 PM, Vegard Nossum <vegard.nossum@gmail.com> wrote:
+> So I guess this function, pnpbios_init() needs the check as well. In
+> fact, it has this:
 >
-> Hmm, or some other hardware... I ve seen machines where video ram was
-> not refreshed. If that piece of hw is critical enough, it will break
-> resume.
+> #ifdef CONFIG_PNPACPI
+>        if (!acpi_disabled && !pnpacpi_disabled) {
+>                pnpbios_disabled = 1;
+>                printk(KERN_INFO "PnPBIOS: Disabled by ACPI PNP\n");
+>                return -ENODEV;
+>        }
+> #endif                          /* CONFIG_ACPI */
 >
-> You could try with minimal system, with as little drivers as
-> possible... use acpi_sleep=s3_beep to determine where it fails.
->                                                                        Pavel
+> ...I guess that should be changed to say if (acpi_disabled ||
+> pnpacpi_disabled)? Or... I don't understand the purpose of the
+> original test. But it seems to be there since the beginning of time
+> (or, well, v2.6.12-rc2).
 
-I don't have ready access to 2.6.26, but with 2.6.24 s3_beep produces
-a (endless, loud) tone if I resume immediately after suspend, and
-nothing at all if I wait 10 seconds first.
+Nope. I found the introduction of the change in the historical git repository:
 
-Jeff
+commit 4723ebe898a32262ed49fe677897ccea47e72ff4
+Author: Adam Belay <ambx1@neo.rr.com>
+Date:   Sun Oct 24 15:07:32 2004 -0400
+
+    [PNPBIOS] disable if ACPI is active
+
+    As further ACPI pnp functionaility is implemented it is no longer
+    safe to run ACPI and PNPBIOS concurrently.
+
+    We therefore take the following approach:
+    - attempt to enable ACPI support
+    - if ACPI fails (blacklist etc.) enable pnpbios support
+    - if ACPI support is not compiled in the kernel enable pnpbios support
+
+    Signed-off-by: Adam Belay <ambx1@neo.rr.com>
+
+and now I understand the purpose of the check; pnpbios does not depend
+on ACPI; ACPI/pnpacpi is incompatible with pnpbios.
+
+Yet it remains a fact that pnpbios will discover devices which then
+ACPI code uses erroneously. Which means that my original fix for Ingo
+probably is the right one after all. Should I submit another patch
+which does the right thing for everything under drivers/acpi/, or can
+you do it on your own? :-)
+
+
+Vegard
+
+-- 
+"The animistic metaphor of the bug that maliciously sneaked in while
+the programmer was not looking is intellectually dishonest as it
+disguises that the error is the programmer's own creation."
+	-- E. W. Dijkstra, EWD1036
