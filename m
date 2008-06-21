@@ -1,77 +1,89 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+From: "Maciej W. Rozycki" <macro@linux-mips.org>
 Subject: Re: linux-next: Tree for June 13: IO APIC breakage on HP nx6325
-Date: Sat, 21 Jun 2008 02:40:47 +0100
-Message-ID: <20080621014047.GA20908@srcf.ucam.org>
-References: <20080613232214.394fd6fd.sfr@canb.auug.org.au> <200806201353.59083.rjw@sisk.pl> <20080620115714.GC8637@srcf.ucam.org> <200806201422.12659.rjw@sisk.pl> <20080620122714.GA9332@srcf.ucam.org> <Pine.LNX.4.55.0806202241120.19614@cliff.in.clinika.pl>
+Date: Sat, 21 Jun 2008 02:49:08 +0100 (BST)
+Message-ID: <Pine.LNX.4.55.0806210210060.19614@cliff.in.clinika.pl>
+References: <20080613232214.394fd6fd.sfr@canb.auug.org.au> <200806190225.51088.rjw@sisk.pl>
+ <Pine.LNX.4.55.0806200024170.12929@cliff.in.clinika.pl> <200806201353.59083.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-next-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.55.0806202241120.19614@cliff.in.clinika.pl>
+In-Reply-To: <200806201353.59083.rjw@sisk.pl>
 Sender: linux-next-owner@vger.kernel.org
-To: "Maciej W. Rozycki" <macro@linux-mips.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Ingo Molnar <mingo@elte.hu>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Ingo Molnar <mingo@elte.hu>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Jun 21, 2008 at 02:09:00AM +0100, Maciej W. Rozycki wrote:
+On Fri, 20 Jun 2008, Rafael J. Wysocki wrote:
 
->  Meanwhile we may consider implementing a workaround.  I think one that 
-> does not hurt competent vendors would be preferable.  The DSDT containing 
-> the rubbish described here is marked with an OEM ID: "HP    " and OEM 
-> Table ID: "SB400".  These keys could be used to remove IRQ0 information
-> from the IRQ tables.  Our code is prepared to handle such a case.  
-> Something easy to do for a seasoned ACPI fiddler, I suppose. ;)
+> Tested, doesn't work.  The symptoms are exactly the same as with the unpatched
+> kernel.
 
-Something roughly like the following? Entirely untested, my 6125 is in a 
-box somewhere. My recollection is that skip_timer_override will disable 
-the IRQ 0->2 mapping, which I believe is what's broken here?
+ Thanks.
 
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index 33c5216..6ca5eff 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -1060,6 +1060,16 @@ static int __init force_acpi_ht(const struct dmi_system_id *d)
- 	return 0;
- }
- 
-+#ifdef CONFIG_X86_IO_APIC
-+static int __init force_skip_timer_override(const struct dmi_system_id *d)
-+{
-+	printk(KERN_NOTICE "%s detected: disabling timer overrides",
-+	       d->ident);
-+	acpi_skip_timer_override = 1;
-+	return 0;
-+}
-+#endif
-+
- /*
-  * If your system is blacklisted here, but you find that acpi=force
-  * works for you, please contact acpi-devel@sourceforge.net
-@@ -1227,6 +1237,24 @@ static struct dmi_system_id __initdata acpi_dmi_table[] = {
- 		     DMI_MATCH(DMI_PRODUCT_NAME, "TravelMate 360"),
- 		     },
- 	 },
-+#ifdef CONFIG_X86_IO_APIC
-+	{
-+	 .callback = force_skip_timer_override,
-+	 .ident = "HP NX6125 laptop",
-+	 .matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
-+		     DMI_MATCH(DMI_PRODUCT_NAME, "HP Compaq nx6125"),
-+		     },
-+	 },
-+	{
-+	 .callback = force_skip_timer_override,
-+	 .ident = "HP NX6325 laptop",
-+	 .matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
-+		     DMI_MATCH(DMI_PRODUCT_NAME, "HP Compaq nx6325"),
-+		     },
-+	 },
-+#endif
- 	{}
- };
+> This is the relevant snippet from dmesg:
+> 
+> [    0.108006] ..TIMER: vector=0x30 apic1=0 pin1=2 apic2=-1 pin2=-1
+> [    0.108006] ..MP-BIOS bug: 8254 timer not connected to IO-APIC
+> [    0.108006] ...trying to set up timer (IRQ0) through the 8259A ... <3>
+> [    0.108006] ..... (found apic 0 pin 2) ...<3> works.
+> 
+> and the whole thing is at: http://www.sisk.pl/kernel/debug/20080620/dmesg-1.log
 
+ Hmm, it means INTIN0 is not connected to the output of the 8254.  Which
+in turn means the input is either externally rewirable or internally
+reconfigurable for the use with the 8254, or something else, or nothing at
+all (although it seems a dumb idea not to wire the 8254 to the I/O APIC).  
+It might be interesting to know whether the HPET #0 can be routed to
+INTIN0 on this platform.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+> What exactly I observe is that in this case:
+> 1) The cooling fan is 100% on, as though the box were overheating, which seems
+>    to indicate some serious confusion of the platform (the mechanism turning
+>    the fan 100% on is supposed to be transparent to software).
+> 2) Everything seems to slow down substantially, at least as soon as X is
+>    started.
+> 3) The box cannot reboot, ie. it turns everything off as expected, but when the
+>    BIOS is supposed to restart the box, it just hangs solid.
+
+ OK, as explained by Matthew and investigated by myself, it is not exactly 
+a problem with the timer itself, but broken power-management 
+configuration.
+
+ This could explain the reboot thing too -- our shutdown code is meant to
+revert all the APIC configuration back to the bootstrap default as yours
+would not be the first BIOS that has problems with its reboot vector being
+entered with the APIC infrastructure active.  But the bit that's written 
+to the NVRAM may interact with the BIOS for example.
+
+ OTOH, perhaps something has got broken on the way with the APIC code too
+-- I have had a look and now we have two local APIC shutdown functions:
+disable_local_APIC() and lapic_shutdown() with overlapping functionality,
+plus the I/O APIC is cleared after the local APIC in at least one place,
+so I would not feel terribly confident about this code.
+
+> > What's interesting, the "Virtual Wire IRQ" seems to work for you correctly
+> > (that's quite an odd setup where a local APIC input is used in the native
+> > mode -- please post /proc/interrupts for confirmation),
+> 
+>            CPU0       CPU1       
+>   0:        885      37234   IO-APIC-edge      timer
+[...]
+> (also available at: http://www.sisk.pl/kernel/debug/20080620/interrupts-1.txt).
+
+ One for the other configuration, which reports "Virtual Wire IRQ", i.e.  
+without my "x86: I/O APIC: timer through 8259A second-chance" patch, would
+be more interesting, though perhaps less so now that the reason of the
+misbehaviour is known.
+
+> > which in turn implies the master 8259A drives its INT output as we expect.
+> > Why would the I/O APIC input have problems then?  Hmm...
+> 
+> Because it's wired to something we're not aware of?
+
+ Well, sure, but the question in such a case would be: "What for?"  The
+output of the 8259A has had quite a standard meaning for some 30 years
+now, so I would expect one would not wire it to anything else but the
+interrupt input of a CPU or an APIC input without a purpose.  Or at least
+a reason.
+
+  Maciej
