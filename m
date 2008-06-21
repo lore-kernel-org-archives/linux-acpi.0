@@ -1,8 +1,7 @@
 From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: [PATCH 5/7] acer-wmi: Disable device autodetection on Fujitsu Siemens
-	Amilo Li2732
-Date: Sat, 21 Jun 2008 09:09:48 +0100
-Message-ID: <20080621080948.26920.23365.stgit@pacifica>
+Subject: [PATCH 1/7] acer-wmi: Remove LED colour comment from documentation
+Date: Sat, 21 Jun 2008 09:09:08 +0100
+Message-ID: <20080621080908.26920.87978.stgit@pacifica>
 References: <20080621080903.26920.14225.stgit@pacifica>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,51 +9,35 @@ Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:38509 "EHLO
 	pacifica" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755144AbYFUIgL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 21 Jun 2008 04:36:11 -0400
+	id S1755087AbYFUIgG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 21 Jun 2008 04:36:06 -0400
 In-Reply-To: <20080621080903.26920.14225.stgit@pacifica>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: lenb@kernel.org
 
-The AMW0 (V1) device detection method doesn't work properly on this laptop,
-so disable it, and for other laptops that may have this problem, by
-switching on a strange GUID.
+This should have been removed when the colour was removed from the LED
+device name.
 
 Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
 ---
 
- drivers/misc/acer-wmi.c |   10 ++++++++++
- 1 files changed, 10 insertions(+), 0 deletions(-)
+ Documentation/laptops/acer-wmi.txt |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
 
 
-diff --git a/drivers/misc/acer-wmi.c b/drivers/misc/acer-wmi.c
-index 5b7c5fc..dd0b8d8 100644
---- a/drivers/misc/acer-wmi.c
-+++ b/drivers/misc/acer-wmi.c
-@@ -88,6 +88,7 @@ struct acer_quirks {
-  * Acer ACPI method GUIDs
-  */
- #define AMW0_GUID1		"67C3371D-95A3-4C37-BB61-DD47B491DAAB"
-+#define AMW0_GUID2		"431F16ED-0C2B-444C-B267-27DEB140CF9C"
- #define WMID_GUID1		"6AF4F258-B401-42fd-BE91-3D4AC2D7C0D3"
- #define WMID_GUID2		"95764E09-FB56-4e83-B31A-37761F60994A"
+diff --git a/Documentation/laptops/acer-wmi.txt b/Documentation/laptops/acer-wmi.txt
+index 79b7dbd..69b5dd4 100644
+--- a/Documentation/laptops/acer-wmi.txt
++++ b/Documentation/laptops/acer-wmi.txt
+@@ -174,8 +174,6 @@ The LED is exposed through the LED subsystem, and can be found in:
+ The mail LED is autodetected, so if you don't have one, the LED device won't
+ be registered.
  
-@@ -548,6 +549,15 @@ static acpi_status AMW0_set_capabilities(void)
- 	struct acpi_buffer out = { ACPI_ALLOCATE_BUFFER, NULL };
- 	union acpi_object *obj;
- 
-+	/*
-+	 * On laptops with this strange GUID (non Acer), normal probing doesn't
-+	 * work.
-+	 */
-+	if (wmi_has_guid(AMW0_GUID2)) {
-+		interface->capability |= ACER_CAP_WIRELESS;
-+		return AE_OK;
-+	}
-+
- 	args.eax = ACER_AMW0_WRITE;
- 	args.ecx = args.edx = 0;
+-If you have a mail LED that is not green, please report this to me.
+-
+ Backlight
+ *********
  
 
