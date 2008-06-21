@@ -1,187 +1,41 @@
-From: Julia Jomantaite <julia.jomantaite@gmail.com>
-Subject: [PATCH v2] drivers/acpi/video: fix brightness allocation
-Date: Sat, 21 Jun 2008 11:58:35 +0100
-Message-ID: <485CDEDB.3080101@gmail.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: linux-next: Tree for June 13: IO APIC breakage on HP nx6325
+Date: Sat, 21 Jun 2008 13:38:22 +0100
+Message-ID: <20080621123822.GA27686@srcf.ucam.org>
+References: <20080613232214.394fd6fd.sfr@canb.auug.org.au> <200806201353.59083.rjw@sisk.pl> <20080620115714.GC8637@srcf.ucam.org> <200806201422.12659.rjw@sisk.pl> <20080620122714.GA9332@srcf.ucam.org> <Pine.LNX.4.55.0806202241120.19614@cliff.in.clinika.pl> <20080621014047.GA20908@srcf.ucam.org> <Pine.LNX.4.55.0806210321470.19614@cliff.in.clinika.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wr-out-0506.google.com ([64.233.184.224]:59129 "EHLO
-	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750818AbYFUKyk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 21 Jun 2008 06:54:40 -0400
-Received: by wr-out-0506.google.com with SMTP id 69so1258090wri.5
-        for <linux-acpi@vger.kernel.org>; Sat, 21 Jun 2008 03:54:39 -0700 (PDT)
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-next-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.55.0806210321470.19614@cliff.in.clinika.pl>
+Sender: linux-next-owner@vger.kernel.org
+To: "Maciej W. Rozycki" <macro@linux-mips.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Ingo Molnar <mingo@elte.hu>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: rui.zhang@intel.com, lenb@kernel.org, akpm@linux-foundation.org
 
-This patch is to fix problem with device->brightness allocation.
+On Sat, Jun 21, 2008 at 03:41:37AM +0100, Maciej W. Rozycki wrote:
 
---- orig/drivers/acpi/video.c	2008-06-12 17:15:08.000000000 +0100
-+++ linux-2.6/drivers/acpi/video.c	2008-06-21 11:40:46.000000000 +0100
-@@ -631,6 +631,75 @@
-  *  	device	: video output device (LCD, CRT, ..)
-  *
-  *  Return Value:
-+ *  	Maximum brightness level
-+ *
-+ *  Allocate and initialize device->brightness.
-+ */
-+ 
-+static int
-+acpi_video_init_brightness(struct acpi_video_device *device)
-+{
-+	union acpi_object *obj = NULL;
-+	int i, max_level = 0, count = 0;
-+	union acpi_object *o;
-+	struct acpi_video_device_brightness *br = NULL;
-+
-+	if (!ACPI_SUCCESS(acpi_video_device_lcd_query_levels(device, &obj))) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Could not query available " 
-+						"LCD brightness level\n"));
-+		goto out;
-+	}
-+
-+	if (obj->package.count < 2)
-+		goto out;
-+
-+	br = kzalloc(sizeof(*br), GFP_KERNEL);
-+	if (!br) {
-+		printk(KERN_ERR "can't allocate memory\n");
-+		goto out;
-+	}
-+
-+	br->levels = kmalloc(obj->package.count * sizeof *(br->levels), GFP_KERNEL);
-+	if (!br->levels)
-+		goto out_free;
-+
-+	for (i = 0; i < obj->package.count; i++) {
-+		o = (union acpi_object *)&obj->package.elements[i];
-+		if (o->type != ACPI_TYPE_INTEGER) {
-+			printk(KERN_ERR PREFIX "Invalid data\n");
-+			continue;
-+		}
-+		br->levels[count] = (u32) o->integer.value;
-+
-+		if (br->levels[count] > max_level)
-+			max_level = br->levels[count];
-+		count++;
-+	}
-+
-+	if (count < 2)
-+		goto out_free_levels;
-+
-+	br->count = count;
-+	device->brightness = br;
-+	ACPI_DEBUG_PRINT((ACPI_DB_INFO,	"found %d brightness levels\n",	count));
-+	kfree(obj); 
-+	return max_level;
-+
-+out_free_levels:
-+	kfree(br->levels);
-+out_free:
-+	kfree(br);
-+out:
-+	device->brightness = NULL;
-+	kfree(obj);
-+	return 0;
-+}
-+
-+/*
-+ *  Arg:	
-+ *  	device	: video output device (LCD, CRT, ..)
-+ *
-+ *  Return Value:
-  *  	None
-  *
-  *  Find out all required AML methods defined under the output
-@@ -640,10 +709,7 @@
- static void acpi_video_device_find_cap(struct acpi_video_device *device)
- {
- 	acpi_handle h_dummy1;
--	int i;
- 	u32 max_level = 0;
--	union acpi_object *obj = NULL;
--	struct acpi_video_device_brightness *br = NULL;
- 
- 
- 	memset(&device->cap, 0, sizeof(device->cap));
-@@ -657,8 +723,9 @@
- 	if (ACPI_SUCCESS(acpi_get_handle(device->dev->handle, "_BCM", &h_dummy1))) {
- 		device->cap._BCM = 1;
- 	}
--	if (ACPI_SUCCESS(acpi_get_handle(device->dev->handle,"_BQC",&h_dummy1)))
-+	if (ACPI_SUCCESS(acpi_get_handle(device->dev->handle, "_BQC", &h_dummy1))) {
- 		device->cap._BQC = 1;
-+	}
- 	if (ACPI_SUCCESS(acpi_get_handle(device->dev->handle, "_DDC", &h_dummy1))) {
- 		device->cap._DDC = 1;
- 	}
-@@ -672,54 +739,8 @@
- 		device->cap._DSS = 1;
- 	}
- 
--	if (ACPI_SUCCESS(acpi_video_device_lcd_query_levels(device, &obj))) {
--
--		if (obj->package.count >= 2) {
--			int count = 0;
--			union acpi_object *o;
--
--			br = kzalloc(sizeof(*br), GFP_KERNEL);
--			if (!br) {
--				printk(KERN_ERR "can't allocate memory\n");
--			} else {
--				br->levels = kmalloc(obj->package.count *
--						     sizeof *(br->levels), GFP_KERNEL);
--				if (!br->levels)
--					goto out;
--
--				for (i = 0; i < obj->package.count; i++) {
--					o = (union acpi_object *)&obj->package.
--					    elements[i];
--					if (o->type != ACPI_TYPE_INTEGER) {
--						printk(KERN_ERR PREFIX "Invalid data\n");
--						continue;
--					}
--					br->levels[count] = (u32) o->integer.value;
--
--					if (br->levels[count] > max_level)
--						max_level = br->levels[count];
--					count++;
--				}
--			      out:
--				if (count < 2) {
--					kfree(br->levels);
--					kfree(br);
--				} else {
--					br->count = count;
--					device->brightness = br;
--					ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--							  "found %d brightness levels\n",
--							  count));
--				}
--			}
--		}
--
--	} else {
--		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Could not query available LCD brightness level\n"));
--	}
--
--	kfree(obj);
--
-+	max_level = acpi_video_init_brightness(device);
-+	
- 	if (device->cap._BCL && device->cap._BCM && device->cap._BQC && max_level > 0){
- 		int result;
- 		static int count = 0;
-@@ -1695,6 +1716,8 @@
- acpi_video_switch_brightness(struct acpi_video_device *device, int event)
- {
- 	unsigned long level_current, level_next;
-+	if (!device->brightness) 
-+		return;
- 	acpi_video_device_lcd_get_level_current(device, &level_current);
- 	level_next = acpi_video_get_next_level(device, level_current, event);
- 	acpi_video_device_lcd_set_level(device, level_next);
+>  Maybe, though your code seems to match product IDs rather than the broken
+> DSDT itself.  I think the latter would be preferable as it would cover all
+> the pieces of equipment using the broken piece of firmware rather than
+> ones we have already tracked down.  Perhaps the version could be included
+> too, but that would only make sense if the breakage ever gets fixed -- the
+> use of the through-8259A mode for the 8254 timer would allow this piece of
+> equipment to benefit from the I/O APIC driven NMI watchdog.
+
+I haven't seen any other machines with this issue, so I suspect that 
+this is HP-specific code. I'll look into what would need doing to quirk 
+it off the DSDT strings, though.
+
+>  Not exactly.  The IRQ0->2 mapping is certainly wrong here, but so is the
+> identity IRQ0->0 one.  Which means it should not be recorded in
+> mp_config_acpi_legacy_irqs() at all.  I can cook this part if you'd rather
+> not to, if you do the ACPI part.  If you think there is no easy way to
+> match the DSDT rather than the product ID -- we are trying to cope with
+> outright breakage here after all, so any amount of effort is too much ;)  
+> -- I can update your proposal with what I have in mind.
+
+Ok, that works for me.
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
