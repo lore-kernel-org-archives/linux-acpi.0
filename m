@@ -1,77 +1,154 @@
-From: "Vegard Nossum" <vegard.nossum@gmail.com>
-Subject: Re: [PATCH] ACPI: don't walk tables if ACPI was disabled
-Date: Sat, 21 Jun 2008 10:19:38 +0200
-Message-ID: <19f34abd0806210119o64a1c9ban78710651a01530cf@mail.gmail.com>
-References: <20080620135639.GA5073@damson.getinternet.no>
-	 <alpine.LFD.1.10.0806201458500.3027@localhost.localdomain>
-	 <19f34abd0806201340t502ce471n578dd2498a5f1992@mail.gmail.com>
-	 <19f34abd0806201427h740ca3e7gc2f01c7e34616fd4@mail.gmail.com>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: [PATCH 6/7] acer-wmi: Add debugfs file for device detection
+Date: Sat, 21 Jun 2008 09:09:53 +0100
+Message-ID: <20080621080953.26920.62288.stgit@pacifica>
+References: <20080621080903.26920.14225.stgit@pacifica>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.236]:7497 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751771AbYFUITj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 21 Jun 2008 04:19:39 -0400
-Received: by rv-out-0506.google.com with SMTP id k40so6021281rvb.1
-        for <linux-acpi@vger.kernel.org>; Sat, 21 Jun 2008 01:19:38 -0700 (PDT)
-In-Reply-To: <19f34abd0806201427h740ca3e7gc2f01c7e34616fd4@mail.gmail.com>
-Content-Disposition: inline
+Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:38509 "EHLO
+	pacifica" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755172AbYFUIgQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 21 Jun 2008 04:36:16 -0400
+In-Reply-To: <20080621080903.26920.14225.stgit@pacifica>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Zhao Yakui <yakui.zhao@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alexey Starikovskiy <astarikovskiy@suse.de>, Yinghai Lu <yhlu.kernel@gmail.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>
+To: linux-acpi@vger.kernel.org
+Cc: lenb@kernel.org
 
-On Fri, Jun 20, 2008 at 11:27 PM, Vegard Nossum <vegard.nossum@gmail.com> wrote:
-> So I guess this function, pnpbios_init() needs the check as well. In
-> fact, it has this:
->
-> #ifdef CONFIG_PNPACPI
->        if (!acpi_disabled && !pnpacpi_disabled) {
->                pnpbios_disabled = 1;
->                printk(KERN_INFO "PnPBIOS: Disabled by ACPI PNP\n");
->                return -ENODEV;
->        }
-> #endif                          /* CONFIG_ACPI */
->
-> ...I guess that should be changed to say if (acpi_disabled ||
-> pnpacpi_disabled)? Or... I don't understand the purpose of the
-> original test. But it seems to be there since the beginning of time
-> (or, well, v2.6.12-rc2).
+Add a debugfs file for showing the full results of the method we use to
+detect devices on WMID laptops.
 
-Nope. I found the introduction of the change in the historical git repository:
+This should be useful in the case that a Linux user gets an Acer laptop
+with 3G support (and/ or people who enjoy ripping their wireless cards out)
+so we can get some feedback on how this value changes in these cases.
 
-commit 4723ebe898a32262ed49fe677897ccea47e72ff4
-Author: Adam Belay <ambx1@neo.rr.com>
-Date:   Sun Oct 24 15:07:32 2004 -0400
+(At the moment, we always enable the wireless and 3G control. In the case
+of the former, this is fairly safe. In the case of the latter though,
+trying to toggle this device if it doesn't exist on a laptop causes ACPI
+warnings/ errors).
 
-    [PNPBIOS] disable if ACPI is active
+To summarise: If you have an Acer laptop with a built in 3G card, please
+report back the value from this file.
 
-    As further ACPI pnp functionaility is implemented it is no longer
-    safe to run ACPI and PNPBIOS concurrently.
+Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
+---
 
-    We therefore take the following approach:
-    - attempt to enable ACPI support
-    - if ACPI fails (blacklist etc.) enable pnpbios support
-    - if ACPI support is not compiled in the kernel enable pnpbios support
-
-    Signed-off-by: Adam Belay <ambx1@neo.rr.com>
-
-and now I understand the purpose of the check; pnpbios does not depend
-on ACPI; ACPI/pnpacpi is incompatible with pnpbios.
-
-Yet it remains a fact that pnpbios will discover devices which then
-ACPI code uses erroneously. Which means that my original fix for Ingo
-probably is the right one after all. Should I submit another patch
-which does the right thing for everything under drivers/acpi/, or can
-you do it on your own? :-)
+ drivers/misc/acer-wmi.c |   66 +++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 66 insertions(+), 0 deletions(-)
 
 
-Vegard
+diff --git a/drivers/misc/acer-wmi.c b/drivers/misc/acer-wmi.c
+index dd0b8d8..d8b8574 100644
+--- a/drivers/misc/acer-wmi.c
++++ b/drivers/misc/acer-wmi.c
+@@ -35,6 +35,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/acpi.h>
+ #include <linux/i8042.h>
++#include <linux/debugfs.h>
+ 
+ #include <acpi/acpi_drivers.h>
+ 
+@@ -152,6 +153,12 @@ struct acer_data {
+ 	int brightness;
+ };
+ 
++struct acer_debug {
++	struct dentry *root;
++	struct dentry *devices;
++	u32 wmid_devices;
++};
++
+ /* Each low-level interface must define at least some of the following */
+ struct wmi_interface {
+ 	/* The WMI device type */
+@@ -162,6 +169,9 @@ struct wmi_interface {
+ 
+ 	/* Private data for the current interface */
+ 	struct acer_data data;
++
++	/* debugfs entries associated with this interface */
++	struct acer_debug debug;
+ };
+ 
+ /* The static interface pointer, points to the currently detected interface */
+@@ -956,6 +966,28 @@ static DEVICE_ATTR(interface, S_IWUGO | S_IRUGO | S_IWUSR,
+ 	show_interface, NULL);
+ 
+ /*
++ * debugfs functions
++ */
++static u32 get_wmid_devices(void)
++{
++	struct acpi_buffer out = {ACPI_ALLOCATE_BUFFER, NULL};
++	union acpi_object *obj;
++	acpi_status status;
++
++	status = wmi_query_block(WMID_GUID2, 1, &out);
++	if (ACPI_FAILURE(status))
++		return 0;
++
++	obj = (union acpi_object *) out.pointer;
++	if (obj && obj->type == ACPI_TYPE_BUFFER &&
++		obj->buffer.length == sizeof(u32)) {
++		return *((u32 *) obj->buffer.pointer);
++	} else {
++		return 0;
++	}
++}
++
++/*
+  * Platform device
+  */
+ static int __devinit acer_platform_probe(struct platform_device *device)
+@@ -1114,6 +1146,33 @@ error_sysfs:
+ 	return retval;
+ }
+ 
++static void remove_debugfs(void)
++{
++	debugfs_remove(interface->debug.devices);
++	debugfs_remove(interface->debug.root);
++}
++
++static int create_debugfs(void)
++{
++	interface->debug.root = debugfs_create_dir("acer-wmi", NULL);
++	if (!interface->debug.root) {
++		printk(ACER_ERR "Failed to create debugfs directory");
++		return -ENOMEM;
++	}
++
++	interface->debug.devices = debugfs_create_u32("devices", S_IRUGO,
++					interface->debug.root,
++					&interface->debug.wmid_devices);
++	if (!interface->debug.devices)
++		goto error_debugfs;
++
++	return 0;
++
++error_debugfs:
++		remove_debugfs();
++	return -ENOMEM;
++}
++
+ static int __init acer_wmi_init(void)
+ {
+ 	int err;
+@@ -1173,6 +1232,13 @@ static int __init acer_wmi_init(void)
+ 	if (err)
+ 		return err;
+ 
++	if (wmi_has_guid(WMID_GUID2)) {
++		interface->debug.wmid_devices = get_wmid_devices();
++		err = create_debugfs();
++		if (err)
++			return err;
++	}
++
+ 	/* Override any initial settings with values from the commandline */
+ 	acer_commandline_init();
+ 
 
--- 
-"The animistic metaphor of the bug that maliciously sneaked in while
-the programmer was not looking is intellectually dishonest as it
-disguises that the error is the programmer's own creation."
-	-- E. W. Dijkstra, EWD1036
