@@ -1,41 +1,87 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: linux-next: Tree for June 13: IO APIC breakage on HP nx6325
-Date: Sat, 21 Jun 2008 13:38:22 +0100
-Message-ID: <20080621123822.GA27686@srcf.ucam.org>
-References: <20080613232214.394fd6fd.sfr@canb.auug.org.au> <200806201353.59083.rjw@sisk.pl> <20080620115714.GC8637@srcf.ucam.org> <200806201422.12659.rjw@sisk.pl> <20080620122714.GA9332@srcf.ucam.org> <Pine.LNX.4.55.0806202241120.19614@cliff.in.clinika.pl> <20080621014047.GA20908@srcf.ucam.org> <Pine.LNX.4.55.0806210321470.19614@cliff.in.clinika.pl>
+From: "Robert M. Albrecht" <romal@gmx.de>
+Subject: Re: Toshiba - Documentation for Linux Developers
+Date: Sat, 21 Jun 2008 16:09:14 +0200
+Message-ID: <485D0B8A.9090201@gmx.de>
+References: <4855971D.90004@diamondcut.com.br> <20080616221443.GA760@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-next-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.55.0806210321470.19614@cliff.in.clinika.pl>
-Sender: linux-next-owner@vger.kernel.org
-To: "Maciej W. Rozycki" <macro@linux-mips.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Ingo Molnar <mingo@elte.hu>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.gmx.net ([213.165.64.20]:56112 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1750897AbYFUOJR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 21 Jun 2008 10:09:17 -0400
+In-Reply-To: <20080616221443.GA760@kroah.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: "Renato S. Yamane" <yamane@diamondcut.com.br>, linux-acpi@vger.kernel.org
 
-On Sat, Jun 21, 2008 at 03:41:37AM +0100, Maciej W. Rozycki wrote:
+Hi,
 
->  Maybe, though your code seems to match product IDs rather than the broken
-> DSDT itself.  I think the latter would be preferable as it would cover all
-> the pieces of equipment using the broken piece of firmware rather than
-> ones we have already tracked down.  Perhaps the version could be included
-> too, but that would only make sense if the breakage ever gets fixed -- the
-> use of the through-8259A mode for the 8254 timer would allow this piece of
-> equipment to benefit from the I/O APIC driven NMI watchdog.
+yes, there are some things missing (Bluetooth, ...) . Posted some weeks ago 
+in driver-devel list, but no response :-(
 
-I haven't seen any other machines with this issue, so I suspect that 
-this is HP-specific code. I'll look into what would need doing to quirk 
-it off the DSDT strings, though.
+http://driverdev.linuxdriverproject.org/pipermail/devel/2008-April/000413.html
 
->  Not exactly.  The IRQ0->2 mapping is certainly wrong here, but so is the
-> identity IRQ0->0 one.  Which means it should not be recorded in
-> mp_config_acpi_legacy_irqs() at all.  I can cook this part if you'd rather
-> not to, if you do the ACPI part.  If you think there is no easy way to
-> match the DSDT rather than the product ID -- we are trying to cope with
-> outright breakage here after all, so any amount of effort is too much ;)  
-> -- I can update your proposal with what I have in mind.
+cu romal
 
-Ok, that works for me.
+www.romal.de
+blog.romal.de
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+--------------------
+
+Hi,
+
+the builtin Toshiba Bluetooth adapter is in disabled state by default. It
+works perfectly well if enabled.
+
+There are two families of Toshiba notebooks, the ones made by Compal
+(PhoenixBIOS), and the original Toshiba manufactured.
+
+The Compal-OEMs are supported by the Omnibook kernel module (along with
+some others laptops by HP, ...): http://omnibook.sourceforge.net/doku.php
+
+The Toshiba made notebooks need toshiba_acpi. toshiba_acpi is included in
+the kernel but is outdated and does not work on newer models and x86_64. 
+The newer one works partially an can be downloaded:
+http://memebeam.org/toys/ExperimentalToshibaAcpiDriver
+
+Documentation from Toshiba is available from
+http://linux.toshiba-dme.co.jp/linux/eng/develop.htm
+
+Both drivers are maintained outside the kernel.
+
+http://bugzilla.kernel.org/show_bug.cgi?id=10173
+
+Any chance they might be included ?
+
+As my last coding is several years old, I would not be of great help. But I
+could assist in docs or testing. Our company does buy Toshiba laptops, so I
+have access to various models for testing.
+
+cu romal
+
+
+
+
+Greg KH schrieb:
+> On Sun, Jun 15, 2008 at 07:26:37PM -0300, Renato S. Yamane wrote:
+>> Hi for all,
+>>
+>> Toshiba have a 'link' between Linux Developers and Head Company, that is:
+>> <http://linux.toshiba-dme.co.jp/linux/eng/develop.htm>
+>>
+>> If someone need documentation to develop Linux drivers, contact
+>> linux@toshiba-dme.co.jp
+> 
+> Are there any known drivers for Toshiba hardware that you need for Linux
+> that we should be contacting them about?
+> 
+> thanks,
+> 
+> greg k-h
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
