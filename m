@@ -1,43 +1,41 @@
 From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: [PATCH 1/7] acer-wmi: Remove LED colour comment from documentation
-Date: Sat, 21 Jun 2008 09:09:08 +0100
-Message-ID: <20080621080908.26920.87978.stgit@pacifica>
-References: <20080621080903.26920.14225.stgit@pacifica>
+Subject: [PATCH 0/7] acer-wmi patches for 2.6.27
+Date: Sat, 21 Jun 2008 09:09:03 +0100
+Message-ID: <20080621080903.26920.14225.stgit@pacifica>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:38509 "EHLO
 	pacifica" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755087AbYFUIgG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 21 Jun 2008 04:36:06 -0400
-In-Reply-To: <20080621080903.26920.14225.stgit@pacifica>
+	id S1755107AbYFUIgI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 21 Jun 2008 04:36:08 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: lenb@kernel.org
 
-This should have been removed when the colour was removed from the LED
-device name.
+Len,
 
-Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
+The following series is the latest set of updates for acer-wmi.
+
+For the most part, these are just a few minor tweaks, fixes for Fujitsu Siemens laptops,
+and the addition of some debugfs output for future reverse engineering.
+
+-Carlos
 ---
 
- Documentation/laptops/acer-wmi.txt |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
+Carlos Corbacho (7):
+      acer-wmi: Remove version number
+      acer-wmi: Add debugfs file for device detection
+      acer-wmi: Disable device autodetection on Fujitsu Siemens Amilo Li2732
+      acer-wmi: Add EC quirk for Fujitsu Siemens Amilo Li 1718
+      acer-wmi: Respect framebuffer blanking in backlight
+      acer-wmi: Blacklist backlight on Acer Aspire 1520 & 1360 series
+      acer-wmi: Remove LED colour comment from documentation
 
 
-diff --git a/Documentation/laptops/acer-wmi.txt b/Documentation/laptops/acer-wmi.txt
-index 79b7dbd..69b5dd4 100644
---- a/Documentation/laptops/acer-wmi.txt
-+++ b/Documentation/laptops/acer-wmi.txt
-@@ -174,8 +174,6 @@ The LED is exposed through the LED subsystem, and can be found in:
- The mail LED is autodetected, so if you don't have one, the LED device won't
- be registered.
- 
--If you have a mail LED that is not green, please report this to me.
--
- Backlight
- *********
- 
+ Documentation/laptops/acer-wmi.txt |    2 
+ drivers/misc/acer-wmi.c            |  145 ++++++++++++++++++++++++++++++++++--
+ 2 files changed, 135 insertions(+), 12 deletions(-)
 
