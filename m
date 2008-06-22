@@ -1,43 +1,116 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: linux-next: Tree for June 13: IO APIC breakage on HP nx6325
-Date: Sun, 22 Jun 2008 00:47:00 +0200
-Message-ID: <200806220047.01497.rjw@sisk.pl>
-References: <20080613232214.394fd6fd.sfr@canb.auug.org.au> <200806181640.45595.rjw@sisk.pl> <alpine.LFD.1.10.0806181726400.3395@apollo.tec.linutronix.de>
+From: Rene Herman <rene.herman@keyaccess.nl>
+Subject: [REGRESSION, ABI] Re: [lm-sensors] LMSENSORS: 2.6.26-rc, enabling
+ ACPI Termal Zone support costs sensors
+Date: Sun, 22 Jun 2008 15:15:11 +0200
+Message-ID: <485E505F.8010306@keyaccess.nl>
+References: <485DA11C.7050906@keyaccess.nl> <485DFF35.6080008@hhs.nl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.1.10.0806181726400.3395@apollo.tec.linutronix.de>
-Content-Disposition: inline
-Sender: linux-next-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: "Maciej W. Rozycki" <macro@linux-mips.org>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtpq2.groni1.gr.home.nl ([213.51.130.201]:45585 "EHLO
+	smtpq2.groni1.gr.home.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754095AbYFVNOq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 22 Jun 2008 09:14:46 -0400
+In-Reply-To: <485DFF35.6080008@hhs.nl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hans de Goede <j.w.r.degoede@hhs.nl>
+Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>, Linux Kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>, Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org
 
-On Wednesday, 18 of June 2008, Thomas Gleixner wrote:
-> On Wed, 18 Jun 2008, Rafael J. Wysocki wrote:
-> > > I just checked that the original c1e series and the affected code in
-> > > tip are not different. IIRC you confirmed that the C1E patches would
-> > > work on your box. So I wonder what else got changed which causes these
-> > > problems.
-> > 
-> > Well, to eliminate any possible correlations, do you have a version of the
-> > series or a single patch against the current mainline?
+On 22-06-08 09:28, Hans de Goede wrote:
+
+This is an ABI breakage issue and an unfortunate one at that:
+
+> Rene Herman wrote:
+
+>> On 2.6.26-rc and perhaps earlier, when I enable the ACPI Thermal Zone 
+>> support (CONFIG_ACPI_THERMAL) I see in dmesg:
+
+Note, 2.6.25-rc7 works fine with it enabled.
+
+>> ACPI: LNXTHERM:01 is registered as thermal_zone0
+>> ACPI: Thermal Zone [THRM] (56 C)
+>>
+>> My /sys/class/hwmon/hwmon0 (a W83782D chip) becomes hwmon1, there's a 
+>> new /sys/class/hwmon/hwmon0 and "sensors -s" craps out with:
+>>
+>> # sensors -s
+>> Can't access procfs/sysfs file
+>> Kernel interface access error
+>> For 2.6 kernels, make sure you have mounted sysfs and libsensors
+>> was compiled with sysfs support!
+>>
+>> # sensors --version
+>> sensors version 2.10.6 with libsensors version 2.10.6
+>>
+>> This is the slackware 12.1 (recent) standard version. What's wrong?
+>>
+>> In case it's useful, my /etc/sensors.conf is at:
+>>
+>> http://members.home.nl/rene.herman/sensors.conf
 > 
-> http://userweb.kernel.org/~tglx/952f4a-c1e-apic.patch
-> http://userweb.kernel.org/~tglx/952f4a-c1e.patch
-> 
-> c1e-apic is the forward port of the apic changes and c1e is the pure
-> c1e stuff. On my box it does not work w/o the c1e-apic one, but ....
+> I'm pretty sure this caused by your lm_sensors using space being to old 
+> to support the new thermalzone stuff. You need atleast 3.0.2 to support 
+> the thermalzone driver.
 
-Unfortunately, with the c1e.patch on top of the apic.patch on top of the
-current mainline I get the same symptoms as with -next:
-- processes freeze
-- CPU loads are unreasonably high
-- things generally get stucked if I don't move the mouse or press keys
+I see. I was about to mark this up as Volkerding doing his usual "if it 
+has a lower version number it must be better" thing but in this case it 
+seems it's hwmon or ACPI which is to blame.
 
-Removing the the c1e.patch makes things work again.
+Firstly -- with CONFIG_ACPI_THERMAL selected my sensors work fine on 
+2.6.25-rc7 with the above 2.10.6 lm_sensors userspace. Now, with 
+2.6.26-rc (*) they do not as per above.
 
-Thanks,
-Rafael
+This is ABI breakage. I wouldn't care if my older lm_sensors userspace 
+couldn't handle the ACPI Thermal Zone, but I do care that even having it 
+breaks my other sensors; especially given the CONFIG_ACPI_THERMAL help 
+text which can not be read as recommending to disable it:
+
+   This driver adds support for ACPI thermal zones.  Most mobile and
+   some desktop systems support ACPI thermal zones.  It is HIGHLY
+   recommended that this option be enabled, as your processor(s)
+   may be damaged without it.
+
+Now, I'm actually usally a big fan of not dragging around old gunk 
+forever, ABI be damned, but in this case this really won't do. 2.6.10 is 
+a recent maintenance release and I see for the new 3.0 branch:
+
+http://www.lm-sensors.org/wiki/Download
+
+===
+Most third party monitoring applications do not yet work with the 
+library in this package. We are encouraging authors to port their 
+applications to the new library. We already have patches for xsensors 
+0.60, gkrellm-2.3.0, net-snmp-5.4.1 (configure with 
+--with-mib-modules="ucd-snmp/lmsensorsMib" --with-ldflags="-lsensors"), 
+xfce4-sensors-plugin-0.10.99.2, kdebase-3.5.8(ksysguard), 
+sensors-applet-1.8.1 and ksensors-0.7.3-fedora-14.tar.gz (upstream is 
+dead this tarbal contains a version with all Debian's changes + 2 
+patches from Fedora, including lm_sensors-3.x support).
+===
+
+So it seems we have here a change to the kernel requiring a userspace 
+basically noone is ready for and which at least the (again, recent) 
+slackware 12.1 doesn't ship as a result. This is ABI breakage of the 
+really bad kind.
+
+If there's not just something I'm missing, could someone please get 
+Linus a patch ASAP making whatever breaks lm_sensors 2 optional, 
+disabled by default and with a help text that warns that enabling it 
+requires a new lm_sensors userspace?
+
+I haven't seen other complaints about this and would've expected them so 
+it might ofcourse be possible that I'm just missing something and have a 
+very specific problem; if in that case someone could advice what it 
+might be -- please do.
+
+But if not, .26 is around the corner and requiring libsensors-3.0 must 
+really not be.
+
+(*) 2.6.26-rc7 at least. I actually noticed this early in the -rc stage 
+but had too many other breakage at that point to worry about this one. I 
+just disabled the ACPI Thermal Zone support and forgot about it upto 
+this point.
+
+Rene.
