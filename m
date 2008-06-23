@@ -1,80 +1,84 @@
 From: Rene Herman <rene.herman@keyaccess.nl>
 Subject: Re: [lm-sensors] [REGRESSION, ABI] Re:  LMSENSORS: 2.6.26-rc, enabling
  ACPI Termal Zone support costs sensors
-Date: Mon, 23 Jun 2008 22:07:42 +0200
-Message-ID: <4860028E.5000304@keyaccess.nl>
-References: <485DA11C.7050906@keyaccess.nl> <485DFF35.6080008@hhs.nl> <485E505F.8010306@keyaccess.nl> <485E61DE.6020202@hhs.nl> <485E6F12.4010307@keyaccess.nl> <alpine.LFD.1.10.0806231333030.2984@localhost.localdomain>
+Date: Mon, 23 Jun 2008 22:24:55 +0200
+Message-ID: <48600697.4080800@keyaccess.nl>
+References: <485DA11C.7050906@keyaccess.nl> <485DFF35.6080008@hhs.nl> <485E505F.8010306@keyaccess.nl> <485E61DE.6020202@hhs.nl> <485E6F12.4010307@keyaccess.nl> <alpine.LFD.1.10.0806231333030.2984@localhost.localdomain> <4860028E.5000304@keyaccess.nl>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------010306050100030108010105"
+ boundary="------------060609020005030406050203"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtpq1.tilbu1.nb.home.nl ([213.51.146.200]:49202 "EHLO
+Received: from smtpq1.tilbu1.nb.home.nl ([213.51.146.200]:45208 "EHLO
 	smtpq1.tilbu1.nb.home.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750942AbYFWUHA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Jun 2008 16:07:00 -0400
-In-Reply-To: <alpine.LFD.1.10.0806231333030.2984@localhost.localdomain>
+	with ESMTP id S1754632AbYFWUYO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Jun 2008 16:24:14 -0400
+In-Reply-To: <4860028E.5000304@keyaccess.nl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: Hans de Goede <j.w.r.degoede@hhs.nl>, linux-acpi@vger.kernel.org, Linux Kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, "Mark M. Hoffman" <mhoffman@lightlink.com>, Zhang Rui <rui.zhang@intel.com>, Jean Delvare <khali@linux-fr.org>
 
 This is a multi-part message in MIME format.
---------------010306050100030108010105
+--------------060609020005030406050203
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 
-On 23-06-08 19:54, Len Brown wrote:
+On 23-06-08 22:07, Rene Herman wrote:
 
-> Rene,
-> Thank you for reporting this.
+> On 23-06-08 19:54, Len Brown wrote:
 > 
-> I agree that this failure is an unwelcome surprise to those users
-> who upgrade to 2.6.26 but are still using libsensors <= 2.10.6.
+>> Rene,
+>> Thank you for reporting this.
+>>
+>> I agree that this failure is an unwelcome surprise to those users
+>> who upgrade to 2.6.26 but are still using libsensors <= 2.10.6.
+>>
+>> Jean, Mark, Hans,
+>>
+>> I'm actually fine with adding a temporary kernel config option
+>> along the lines Rene suggested to ease the  migration
+>> to linux-2.6.26 for those users.
+>>
+>> But the config option would need to be scheduled for removal
+>> after a certain period (say 6 months) so we don't have to maintain
+>> it forever.
+>>
+>> More importantly, I think it would also have to be disabled by default
+>> so that it would not have a negative impact on what we think are the
+>> majority of properly configured systems.  After all, we fixed this
+>> bug in user-space about out 4 months ago and as you point out, the
+>> distro upgrade path is actually quite well looked after.
+>>
+>> So I'm not sure how useful it would be to the target users.
+>> After they run into the problem, they'd probably google it
+>> and find that they can either tweak a kernel config option
+>> or upgrade libsensors.  And we'd prefer that they do the
+>> later rather than the former, yes?
+>>
+>> just let me know.
 > 
-> Jean, Mark, Hans,
+> Thank you for the reason. Yes, people upgrading libsensors would be 
+> preferred and this issue should show up in google now.
 > 
-> I'm actually fine with adding a temporary kernel config option
-> along the lines Rene suggested to ease the  migration
-> to linux-2.6.26 for those users.
+> Frankly, if I had gone to the lm-sensors homepage and had seen a fixed 
+> 2.x version available I'd no doubt have shrugged it off then and there 
+> so I might as well do so now that Delvare announced that it's _going_ to 
+> be there real soon. 2.10.7 should be painless enough as an upgrade, it's 
+> needing lm-sensors 3.0(.2) and all its listed accompanying patches to 
+> programs depending on libsensors which triggered this thread.
 > 
-> But the config option would need to be scheduled for removal
-> after a certain period (say 6 months) so we don't have to maintain
-> it forever.
+> So, <shrug>. I know how to fix my own systems, others will be able to 
+> find out and once lm-sensors 2.10.7 is available, it's not a big deal 
+> anymore.
 > 
-> More importantly, I think it would also have to be disabled by default
-> so that it would not have a negative impact on what we think are the
-> majority of properly configured systems.  After all, we fixed this
-> bug in user-space about out 4 months ago and as you point out, the
-> distro upgrade path is actually quite well looked after.
-> 
-> So I'm not sure how useful it would be to the target users.
-> After they run into the problem, they'd probably google it
-> and find that they can either tweak a kernel config option
-> or upgrade libsensors.  And we'd prefer that they do the
-> later rather than the former, yes?
-> 
-> just let me know.
+> That said, here's the "make it optional" patch tweaked according to your 
+> comments. Feel free to drop it on the floor...
 
-Thank you for the reason. Yes, people upgrading libsensors would be 
-preferred and this issue should show up in google now.
-
-Frankly, if I had gone to the lm-sensors homepage and had seen a fixed 
-2.x version available I'd no doubt have shrugged it off then and there 
-so I might as well do so now that Delvare announced that it's _going_ to 
-be there real soon. 2.10.7 should be painless enough as an upgrade, it's 
-needing lm-sensors 3.0(.2) and all its listed accompanying patches to 
-programs depending on libsensors which triggered this thread.
-
-So, <shrug>. I know how to fix my own systems, others will be able to 
-find out and once lm-sensors 2.10.7 is available, it's not a big deal 
-anymore.
-
-That said, here's the "make it optional" patch tweaked according to your 
-comments. Feel free to drop it on the floor...
+Typo(s) in the feature-removal-schedule (only change).
 
 Rene.
 
---------------010306050100030108010105
+--------------060609020005030406050203
 Content-Type: text/plain;
  name="0001-acpi-thermal-allow-disabling-of-thermal-zone-hwmon.patch"
 Content-Transfer-Encoding: 7bit
@@ -82,7 +86,7 @@ Content-Disposition: inline;
  filename*0="0001-acpi-thermal-allow-disabling-of-thermal-zone-hwmon.patc";
  filename*1="h"
 
->From 8023fee88cdbbc755a9ae692803e6292a619d56c Mon Sep 17 00:00:00 2001
+>From 7b41d17346cdd1f9db1223c024bd9f4604ee5c82 Mon Sep 17 00:00:00 2001
 From: Rene Herman <rene.herman@gmail.com>
 Date: Mon, 23 Jun 2008 21:50:25 +0200
 Subject: [PATCH] acpi/thermal: allow disabling of thermal zone hwmon support
@@ -120,7 +124,7 @@ CC: linux-kernel@vger.kernel.org
  4 files changed, 23 insertions(+), 6 deletions(-)
 
 diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
-index 5b3f31f..9e5f86c 100644
+index 5b3f31f..46ece3f 100644
 --- a/Documentation/feature-removal-schedule.txt
 +++ b/Documentation/feature-removal-schedule.txt
 @@ -312,3 +312,12 @@ When:	2.6.26
@@ -131,10 +135,10 @@ index 5b3f31f..9e5f86c 100644
 +---------------------------
 +
 +What:	CONFIG_THERMAL_HWMON
-+When:	Januaru 2009
++When:	January 2009
 +Why:	This option was introduced just to allow older lm-sensors userspace
 +	to keep working over the upgrade to 2.6.26. At the scheduled time of
-+	removal fixed lm-sensors (2.0 or 3.0) should be readily available.
++	removal fixed lm-sensors (2.x or 3.x) should be readily available.
 +Who:	Rene Herman <rene.herman@gmail.com>
 diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
 index 4b62852..0b359ab 100644
@@ -197,4 +201,4 @@ index 06d3e6e..917707e 100644
 1.5.5
 
 
---------------010306050100030108010105--
+--------------060609020005030406050203--
