@@ -1,93 +1,31 @@
-From: Rene Herman <rene.herman@keyaccess.nl>
-Subject: Re: [lm-sensors] [REGRESSION, ABI] Re:  LMSENSORS: 2.6.26-rc, enabling
- ACPI Termal Zone support costs sensors
-Date: Sun, 22 Jun 2008 23:58:59 +0200
-Message-ID: <485ECB23.4010305@keyaccess.nl>
-References: <485DA11C.7050906@keyaccess.nl> <485DFF35.6080008@hhs.nl>	<485E505F.8010306@keyaccess.nl> <485E61DE.6020202@hhs.nl> <485E6F12.4010307@keyaccess.nl> <485E94ED.10602@hhs.nl> <485E992B.8010101@keyaccess.nl>
+From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Subject: Re: ACPI patch queue for 2.6.27
+Date: Mon, 23 Jun 2008 09:54:01 +0930 (CST)
+Message-ID: <200806230024.m5N0O1cv020754@turbo.physics.adelaide.edu.au>
+References: <1213947852-10924-1-git-send-email-lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------070303080305060107030109"
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757344AbYFVV6d@vger.kernel.org>
-In-Reply-To: <485E992B.8010101@keyaccess.nl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hans de Goede <j.w.r.degoede@hhs.nl>
-Cc: linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Linux Kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:45721 "EHLO
+	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752421AbYFWAYW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 22 Jun 2008 20:24:22 -0400
+In-Reply-To: <1213947852-10924-1-git-send-email-lenb@kernel.org> from "Len Brown" at Jun 20, 2008 03:43:02 AM
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------070303080305060107030109
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi Len
 
-On 22-06-08 20:25, Rene Herman wrote:
+> Here is the current ACPI queue for 2.6.27
+> fujitsu-laptop and compal-laptop are new.
 
-> Another way to solve it _could_ be to just make up a device link if 
-> something generic is available so that sensors doesn't trip over it
-> in the first place but I don't know if that's a good option. You
-> might.
+A minor nitpick: fujitsu-laptop isn't new in 2.6.27 (it was new in 2.6.24 I
+think).  It is just getting some major new features in 2.6.27.  Maybe that's
+what you meant.
 
-This also works for me and, if correct, is ofcourse better than the 
-CONFIG option. Wants a comment from the thermal_zone side (for which 
-Zhang Rui seems the correct CC?) though.
-
-Rene
-
---------------070303080305060107030109
-Content-Type: text/plain;
- name="0001-thermal-link-the-virtual-thermal-thermal_zoneN-devi.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename*0="0001-thermal-link-the-virtual-thermal-thermal_zoneN-devi.pat";
- filename*1="ch"
-
->From b51a5f4105f6b5ff52a2819a96dabe2ca3116128 Mon Sep 17 00:00:00 2001
-From: Rene Herman <rene.herman@gmail.com>
-Date: Sun, 22 Jun 2008 23:45:04 +0200
-Subject: [PATCH] thermal: link the virtual/thermal/thermal_zoneN device for hwmon
-
-2.6.26-rc gained a hwmon interface to the ACPI Thermal Zone
-driver which unfortunately breaks lm-sensors 2 userspace and
-renders all other (subsequent) hwmon sensors inoperable also.
-
-Many systems, current slackware systems among them, are still
-using lm-sensors 2 and would be affected.
-
-The problem is userspace tripping over an absent "device"
-link in the ACPI Thermal Zone sysfs /sys/class/hwmon/hwmonN
-directory. This just adds the virtual "thermal/thermal_zoneN"
-device as a device backlink which satisfies lm-sensors again.
-
-Tested and looks fairly obvious, but this wants comment from
-a thermal_zone person, to confirm/deny that this is a proper
-device pointer to use here for one.
-
-Signed-off-by: Rene Herman <rene.herman@gmail.com>
-CC: Hans de Goede <j.w.r.degoede@hhs.nl>
-CC: Zhang Rui <rui.zhang@intel.com>
-CC: Mark M. Hoffman <mhoffman@lightlink.com>
-CC: Jean Delvare <khali@linux-fr.org>
-CC: linux-acpi@vger.kernel.org
-CC: lm-sensors@lm-sensors.org
-CC; linux-kernel@vger.kernal.org
----
- drivers/thermal/thermal_sys.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
-index 6098787..c21e03c 100644
---- a/drivers/thermal/thermal_sys.c
-+++ b/drivers/thermal/thermal_sys.c
-@@ -357,7 +357,7 @@ thermal_add_hwmon_sysfs(struct thermal_zone_device *tz)
- 
- 	INIT_LIST_HEAD(&hwmon->tz_list);
- 	strlcpy(hwmon->type, tz->type, THERMAL_NAME_LENGTH);
--	hwmon->device = hwmon_device_register(NULL);
-+	hwmon->device = hwmon_device_register(&tz->device);
- 	if (IS_ERR(hwmon->device)) {
- 		result = PTR_ERR(hwmon->device);
- 		goto free_mem;
--- 
-1.5.5
-
-
---------------070303080305060107030109--
+Regards
+  jonathan
