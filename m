@@ -1,44 +1,30 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: LMSENSORS: 2.6.26-rc,  enabling ACPI Termal Zone support costs sensors
-Date: Mon, 23 Jun 2008 15:31:12 +0100
-Message-ID: <20080623143112.GA4160@srcf.ucam.org>
-References: <485DA11C.7050906@keyaccess.nl> <485DFF35.6080008@hhs.nl> <485E505F.8010306@keyaccess.nl> <485E61DE.6020202@hhs.nl> <20080623120844.5f722aa6@hyperion.delvare> <485F79C6.20507@keyaccess.nl> <20080623135704.2980078c@hyperion.delvare> <485F9877.1060902@keyaccess.nl>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [patch 01/28] PNP: add detail to debug resource dump
+Date: Mon, 23 Jun 2008 09:00:52 -0600
+Message-ID: <200806230900.53565.bjorn.helgaas@hp.com>
+References: <20080617225823.045233728@ldl.fc.hp.com> <20080617225907.642544594@ldl.fc.hp.com> <bb33bcf20806180419k140f77cdje94892cf2315f429@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:43579 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753952AbYFWObU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Jun 2008 10:31:20 -0400
+Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:40133 "EHLO
+	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753612AbYFWPBU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Jun 2008 11:01:20 -0400
+In-Reply-To: <bb33bcf20806180419k140f77cdje94892cf2315f429@mail.gmail.com>
 Content-Disposition: inline
-In-Reply-To: <485F9877.1060902@keyaccess.nl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rene Herman <rene.herman@keyaccess.nl>
-Cc: Jean Delvare <khali@linux-fr.org>, Hans de Goede <j.w.r.degoede@hhs.nl>, linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Linux Kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
+To: Subrata Modak <tosubrata@gmail.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>, Takashi Iwai <tiwai@suse.de>, Jiri Slaby <jirislaby@gmail.com>
 
-On Mon, Jun 23, 2008 at 02:35:03PM +0200, Rene Herman wrote:
-> libsensors dictated the ABI rule that the hwmon directories must have 
-> device backlinks; the new ACPI Thermal Zone hwmon interface breaks that 
-> bit of ABI. It is not relevant that that ABI may have gotten to be as a 
-> result of unfortunate programming on the userspace side -- the only 
-> thing relevant is that it IS. lm-sensors 2 is on millions of systems out 
-> there. This is not meant agressively, or whatever you guys seem to want 
-> to read in my words, it's un undeniable fact.
+On Wednesday 18 June 2008 5:19:19 am Subrata Modak wrote:
+> I would be interested in test cases that you might have developed for
+> testing this. I would like to know if you can contribute those test cases
+> to LTP (http://ltp.sourceforge.net/) under GPLv2.
 
-No, libsensors made an assumption about the ABI that turns out not to be 
-true. The ABI hasn't changed, libsensors is just being exposed to a case 
-it didn't previously see.
+Sorry, I don't have any test cases.  It's a good idea though, and if
+I develop any, I'll try to remember to send them to you.
 
-We've had this kind of change before. The ACPI backlight code changed in 
-such a way that scripts that blindly wrote values instead of (correctly) 
-reading the maximum brightness value broke. mmap's behaviour changed in 
-such a way that it was no longer possible for vm86 to execute code that 
-wasn't mapped as executable, breaking libx86. The applications in 
-question were undeniably buggy. Those are examples that I was personally 
-involved with - I'm sure there are others. Where userspace has made 
-false assumptions, it's not the kernel's responsibility to continue to 
-support those assumptions.
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Bjorn
