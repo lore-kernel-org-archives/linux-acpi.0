@@ -1,53 +1,60 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [lm-sensors] [REGRESSION, ABI] Re:  LMSENSORS: 2.6.26-rc,
- enabling ACPI Termal Zone support costs sensors
-Date: Mon, 23 Jun 2008 13:54:56 -0400 (EDT)
-Message-ID: <alpine.LFD.1.10.0806231333030.2984@localhost.localdomain>
-References: <485DA11C.7050906@keyaccess.nl> <485DFF35.6080008@hhs.nl>
- <485E505F.8010306@keyaccess.nl> <485E61DE.6020202@hhs.nl>
- <485E6F12.4010307@keyaccess.nl>
+Subject: Re: Via Rhine II Looses Eth0 After ACPI
+Date: Mon, 23 Jun 2008 14:05:05 -0400 (EDT)
+Message-ID: <alpine.LFD.1.10.0806231356200.2984@localhost.localdomain>
+References: <40ef7d130806230513w10727e9cybec253c9cfd0c276@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:64726 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754165AbYFWRz0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Jun 2008 13:55:26 -0400
-In-reply-to: <485E6F12.4010307@keyaccess.nl>
+Received: from vms044pub.verizon.net ([206.46.252.44]:54132 "EHLO
+	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758271AbYFWSFe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Jun 2008 14:05:34 -0400
+Received: from localhost.localdomain ([72.93.254.151])
+ by vms044.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
+ 3 2006)) with ESMTPA id <0K2X00DFNGWINXS0@vms044.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Mon, 23 Jun 2008 13:05:07 -0500 (CDT)
+In-reply-to: <40ef7d130806230513w10727e9cybec253c9cfd0c276@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rene Herman <rene.herman@keyaccess.nl>
-Cc: Hans de Goede <j.w.r.degoede@hhs.nl>, linux-acpi@vger.kernel.org, Linux Kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, "Mark M. Hoffman" <mhoffman@lightlink.com>, Zhang Rui <rui.zhang@intel.com>
+To: Null Ack <nullack@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-Rene,
-Thank you for reporting this.
 
-I agree that this failure is an unwelcome surprise to those users
-who upgrade to 2.6.26 but are still using libsensors <= 2.10.6.
+> irq 23: nobody cared (try
+> booting with the "irqpoll" option)
 
-Jean, Mark, Hans,
 
-I'm actually fine with adding a temporary kernel config option
-along the lines Rene suggested to ease the  migration
-to linux-2.6.26 for those users.
+Please confirm that booting with "irqpoll", as mentioned in the messages,
+works around the problem.
 
-But the config option would need to be scheduled for removal
-after a certain period (say 6 months) so we don't have to maintain
-it forever.
+You might find that "noapic" is a better work around.
+It will disable the IOAPIC and run in legacy PIC mode.
+There may be more interrupt sharing, but most users don't
+notice any difference.
 
-More importantly, I think it would also have to be disabled by default
-so that it would not have a negative impact on what we think are the
-majority of properly configured systems.  After all, we fixed this
-bug in user-space about out 4 months ago and as you point out, the
-distro upgrade path is actually quite well looked after.
+If this is an MP system and has MPS, it would be interesting
+to boot with "acpi=noirq" and see what MPS does with this
+device interrupt.  Though if it is a client system, it will
+likely have no MPS and "acpi=noirq" will just put you into
+PIC mode like "noapic" did.
 
-So I'm not sure how useful it would be to the target users.
-After they run into the problem, they'd probably google it
-and find that they can either tweak a kernel config option
-or upgrade libsensors.  And we'd prefer that they do the
-later rather than the former, yes?
+If the issue goes away with "acpi=off" or "acpi=noirq",
+then please open a sighting here:
 
-just let me know.
+http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
+
+and attach the output from
+acpidump
+lspci -vv
+and for each of the test cases above,
+the output from
+dmesg -s64000
+cat /proc/interrupts
 
 thanks,
 -Len
+
+ps. the dmesg in this case is easier to read/compare
+with CONFIG_PRINTK_TIME=n
+
