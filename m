@@ -1,60 +1,57 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: Via Rhine II Looses Eth0 After ACPI
-Date: Mon, 23 Jun 2008 14:05:05 -0400 (EDT)
-Message-ID: <alpine.LFD.1.10.0806231356200.2984@localhost.localdomain>
-References: <40ef7d130806230513w10727e9cybec253c9cfd0c276@mail.gmail.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [patch 04/10] acpi: adjust
+ _acpi_{module,function}_namedefinitions
+Date: Mon, 23 Jun 2008 12:45:23 -0700
+Message-ID: <20080623124523.76f38d90.akpm@linux-foundation.org>
+References: <200805010952.m419q3Jc031806@imap1.linux-foundation.org>
+	<1209722812.22514.28.camel@linux-2bdv.site>
+	<20080502054113.4e5839d9.akpm@linux-foundation.org>
+	<1209737075.22514.79.camel@linux-2bdv.site>
+	<9D39833986E69849A2A8E74C1078B6B3446FBD@orsmsx415.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms044pub.verizon.net ([206.46.252.44]:54132 "EHLO
-	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758271AbYFWSFe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Jun 2008 14:05:34 -0400
-Received: from localhost.localdomain ([72.93.254.151])
- by vms044.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0K2X00DFNGWINXS0@vms044.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Mon, 23 Jun 2008 13:05:07 -0500 (CDT)
-In-reply-to: <40ef7d130806230513w10727e9cybec253c9cfd0c276@mail.gmail.com>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49640 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755364AbYFWTpb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 23 Jun 2008 15:45:31 -0400
+In-Reply-To: <9D39833986E69849A2A8E74C1078B6B3446FBD@orsmsx415.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Null Ack <nullack@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: trenn@suse.de, linux-acpi@vger.kernel.org, jbeulich@novell.com
 
+On Sun, 4 May 2008 12:14:41 -0700
+"Moore, Robert" <robert.moore@intel.com> wrote:
 
-> irq 23: nobody cared (try
-> booting with the "irqpoll" option)
+> >But in future, such patches should definitely be based against ACPICA
+> >code. Len will probably announce here where to find the very latest
+> >sources, soon. Currently the latest official release linked to on
+> >http://lesswatts.org is still from 2006. AFAIK things will get better
+> >here, soon.
+> >
+> >   Thomas
+> 
+> 
+> The latest ACPICA source can be found at the acpica.org website. In
+> fact, we have converted our source repository from CVS to git, and the
+> actual working git repository is now publicly available at
+> 
+> http://www.acpica.org/repos/acpica.git/
+> 
+> The acpica.org website was created at the end of 2007, and is now the
+> home of the acpica project.
+> 
 
+OK, I'm now peeved.
 
-Please confirm that booting with "irqpoll", as mentioned in the messages,
-works around the problem.
+I've sent this patch ten damned times now and only once was there any
+comment and it was this vague indecisive wafflefest from which I now
+discover I was removed from Cc.
 
-You might find that "noapic" is a better work around.
-It will disable the IOAPIC and run in legacy PIC mode.
-There may be more interrupt sharing, but most users don't
-notice any difference.
+Well someone has now merged something else which wrecked this patch
+whcih I've been maintaining (for you guys!) for over two months. 
 
-If this is an MP system and has MPS, it would be interesting
-to boot with "acpi=noirq" and see what MPS does with this
-device interrupt.  Though if it is a client system, it will
-likely have no MPS and "acpi=noirq" will just put you into
-PIC mode like "noapic" did.
-
-If the issue goes away with "acpi=off" or "acpi=noirq",
-then please open a sighting here:
-
-http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
-
-and attach the output from
-acpidump
-lspci -vv
-and for each of the test cases above,
-the output from
-dmesg -s64000
-cat /proc/interrupts
-
-thanks,
--Len
-
-ps. the dmesg in this case is easier to read/compare
-with CONFIG_PRINTK_TIME=n
-
+I'll drop it.  Please try harder.
