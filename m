@@ -1,192 +1,103 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: Re: [RFC PATCH 2/2] ACPI: detect GPE interrupt storm
-Date: Mon, 23 Jun 2008 13:19:19 +0800
-Message-ID: <1214198359.24423.9.camel@minggr>
-References: <1213926172.3001.10.camel@rzhang-dt.sh.intel.com>
-	 <alpine.LFD.1.10.0806200120230.22284@localhost.localdomain>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: [PATCH3/4] ACPI :  Add boot option of "idle=nomwait" to
+	disable mwait for CPU C-states
+Date: Mon, 23 Jun 2008 14:20:30 +0800
+Message-ID: <1214202030.25786.77.camel@yakui_zhao.sh.intel.com>
+References: <1213685035.19901.15.camel@yakui_zhao.sh.intel.com>
+	 <alpine.LFD.1.10.0806200235260.22284@localhost.localdomain>
+	 <alpine.LFD.1.10.0806200310160.22284@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:44494 "EHLO mga11.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:11631 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751666AbYFWFUD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 23 Jun 2008 01:20:03 -0400
-In-Reply-To: <alpine.LFD.1.10.0806200120230.22284@localhost.localdomain>
+	id S1751888AbYFWGJt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 23 Jun 2008 02:09:49 -0400
+In-Reply-To: <alpine.LFD.1.10.0806200310160.22284@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: Zhang Rui <rui.zhang@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: linux-acpi@vger.kernel.org
 
-
-On Fri, 2008-06-20 at 01:26 -0400, Len Brown wrote:
-> A GPE storm is a bug.
+On Fri, 2008-06-20 at 03:14 -0400, Len Brown wrote:
 > 
-> I think the mechanism in the previous patch to deal with that
-> failure is sufficient.  I don't like embedding heuristic policy
-> into the kernel all for the benefit of broken systems.
-> We'll never know if the heuristic is correct, and there
-> is always the risk that we impact an otherwise working system.
+> I notice on the T61 that this disables MWAIT for C2 and C3,
+> but not for C1.
 > 
-> User-space can detect a GPE storm via /proc/interrupts
-> and /sys/firmware/acpi/interrupts, and handle it that way.
-> (and then we can debug the root cause of the failure,
->  rather than have it hidden by the kernel)
+> While I know that the issue at hand is C2 and C3,
+> it seems misleading to boot with idle=nomwait
+> and see that MWAIT is used for C1.
+What you said is correct. The description is not appropriate.Maybe the
+following title will be appropriate.
+ >Add boot option of "idle=nomwait" to disable mwait for CPU C2/C3
 
-Agree. Just keep this as a "debug patch".
+The boot option of "idle=nomwait" will disable mwait for CPU C2/C3 and
+still use mwait for C1 if mwait is supported. 
+In fact we only hope to disable mwait for CPU C2/C3 on some broken
+system by adding this boot option.
 
-Lin Ming
-
+Thanks.
+> I think we should extend this param to also apply
+> to the MWAIT use for C1.  I don't think the difference
+> between MWAIT and HALT in C1 will be signficant, given
+> that this is a debugging-tool/bug workaround.
 > 
+> thanks,
 > -Len
 > 
+> [lenb@t61 ~]$ grep . /sys/devices/system/cpu/cpu*/cpuidle/*/*
+> /sys/devices/system/cpu/cpu0/cpuidle/state0/desc:<null>
+> /sys/devices/system/cpu/cpu0/cpuidle/state0/latency:0
+> /sys/devices/system/cpu/cpu0/cpuidle/state0/name:<null>
+> /sys/devices/system/cpu/cpu0/cpuidle/state0/power:4294967295
+> /sys/devices/system/cpu/cpu0/cpuidle/state0/time:24103
+> /sys/devices/system/cpu/cpu0/cpuidle/state0/usage:27
+> /sys/devices/system/cpu/cpu0/cpuidle/state1/desc:ACPI FFH INTEL MWAIT 0x0
+> /sys/devices/system/cpu/cpu0/cpuidle/state1/latency:1
+> /sys/devices/system/cpu/cpu0/cpuidle/state1/name:C1
+> /sys/devices/system/cpu/cpu0/cpuidle/state1/power:1000
+> /sys/devices/system/cpu/cpu0/cpuidle/state1/time:0
+> /sys/devices/system/cpu/cpu0/cpuidle/state1/usage:0
+> /sys/devices/system/cpu/cpu0/cpuidle/state2/desc:ACPI IOPORT 0x1014
+> /sys/devices/system/cpu/cpu0/cpuidle/state2/latency:1
+> /sys/devices/system/cpu/cpu0/cpuidle/state2/name:C2
+> /sys/devices/system/cpu/cpu0/cpuidle/state2/power:500
+> /sys/devices/system/cpu/cpu0/cpuidle/state2/time:21905
+> /sys/devices/system/cpu/cpu0/cpuidle/state2/usage:569
+> /sys/devices/system/cpu/cpu0/cpuidle/state3/desc:ACPI IOPORT 0x1015
+> /sys/devices/system/cpu/cpu0/cpuidle/state3/latency:17
+> /sys/devices/system/cpu/cpu0/cpuidle/state3/name:C3
+> /sys/devices/system/cpu/cpu0/cpuidle/state3/power:250
+> /sys/devices/system/cpu/cpu0/cpuidle/state3/time:284208055
+> /sys/devices/system/cpu/cpu0/cpuidle/state3/usage:53661
+> /sys/devices/system/cpu/cpu1/cpuidle/state0/desc:<null>
+> /sys/devices/system/cpu/cpu1/cpuidle/state0/latency:0
+> /sys/devices/system/cpu/cpu1/cpuidle/state0/name:<null>
+> /sys/devices/system/cpu/cpu1/cpuidle/state0/power:4294967295
+> /sys/devices/system/cpu/cpu1/cpuidle/state0/time:237647
+> /sys/devices/system/cpu/cpu1/cpuidle/state0/usage:25
+> /sys/devices/system/cpu/cpu1/cpuidle/state1/desc:ACPI FFH INTEL MWAIT 0x0
+> /sys/devices/system/cpu/cpu1/cpuidle/state1/latency:1
+> /sys/devices/system/cpu/cpu1/cpuidle/state1/name:C1
+> /sys/devices/system/cpu/cpu1/cpuidle/state1/power:1000
+> /sys/devices/system/cpu/cpu1/cpuidle/state1/time:0
+> /sys/devices/system/cpu/cpu1/cpuidle/state1/usage:0
+> /sys/devices/system/cpu/cpu1/cpuidle/state2/desc:ACPI IOPORT 0x1014
+> /sys/devices/system/cpu/cpu1/cpuidle/state2/latency:1
+> /sys/devices/system/cpu/cpu1/cpuidle/state2/name:C2
+> /sys/devices/system/cpu/cpu1/cpuidle/state2/power:500
+> /sys/devices/system/cpu/cpu1/cpuidle/state2/time:32354
+> /sys/devices/system/cpu/cpu1/cpuidle/state2/usage:1042
+> /sys/devices/system/cpu/cpu1/cpuidle/state3/desc:ACPI IOPORT 0x1015
+> /sys/devices/system/cpu/cpu1/cpuidle/state3/latency:17
+> /sys/devices/system/cpu/cpu1/cpuidle/state3/name:C3
+> /sys/devices/system/cpu/cpu1/cpuidle/state3/power:250
+> /sys/devices/system/cpu/cpu1/cpuidle/state3/time:294127944
+> /sys/devices/system/cpu/cpu1/cpuidle/state3/usage:65794
 > 
-> On Fri, 20 Jun 2008, Zhang Rui wrote:
-> 
-> > From: Ling Ming <ming.m.lin@intel.com>
-> > 
-> > Dectect GPE storm and disable a certain GPE if needed.
-> > 
-> > Introduce a new module parameter "debug_gpe_storm" as a runtime switch to
-> > enable/disable this mechanism. The default value is TRUE, user can
-> > "echo 0 > /sys/modules/acpi/parameters/debug_gpe_storm" to disable it.
-> > 
-> > Note: we try to disable a GPE if it's fired more than 1000 times in a second.
-> > 	And this 1000/s is just a wild guess currently. Need more tests to get a
-> > 	proper value.
-> > 
-> > Signed-off-by: Lin Ming <ming.m.lin@intel.com>
-> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> > ---
-> >  drivers/acpi/events/evgpe.c |   15 +++++++++++-
-> >  drivers/acpi/system.c       |   55 ++++++++++++++++++++++++++++++++++++++++----
-> >  include/acpi/acpiosxf.h     |    2 -
-> >  3 files changed, 65 insertions(+), 7 deletions(-)
-> > 
-> > Index: linux-2.6/drivers/acpi/events/evgpe.c
-> > ===================================================================
-> > --- linux-2.6.orig/drivers/acpi/events/evgpe.c	2008-06-20 09:27:00.000000000 +0800
-> > +++ linux-2.6/drivers/acpi/events/evgpe.c	2008-06-20 09:34:32.000000000 +0800
-> > @@ -623,7 +623,20 @@
-> >  
-> >  	ACPI_FUNCTION_TRACE(ev_gpe_dispatch);
-> >  
-> > -	acpi_os_gpe_count(gpe_number);
-> > +	if (acpi_os_gpe_storm_detect(gpe_number)) {
-> > +		/*
-> > +		 * GPE storm detected, disable it automatically
-> > +		 * To disable gpe storm detection:
-> > +		 * "echo 0 > /sys/module/acpi/parameters/debug_gpe_storm"
-> > +		 */
-> > +		acpi_status status = acpi_ev_disable_gpe(gpe_event_info);
-> > +		if (ACPI_FAILURE(status)) {
-> > +			ACPI_EXCEPTION((AE_INFO, status,
-> > +				"Unable to disable GPE[%2X]", gpe_number));
-> > +		}
-> > +
-> > +		return_UINT32(ACPI_INTERRUPT_NOT_HANDLED);
-> > +	}
-> >  
-> >  	/*
-> >  	 * If edge-triggered, clear the GPE status bit now.  Note that
-> > Index: linux-2.6/drivers/acpi/system.c
-> > ===================================================================
-> > --- linux-2.6.orig/drivers/acpi/system.c	2008-06-20 09:27:00.000000000 +0800
-> > +++ linux-2.6/drivers/acpi/system.c	2008-06-20 09:34:32.000000000 +0800
-> > @@ -168,9 +168,14 @@
-> >  #define NUM_COUNTERS_EXTRA 3
-> >  
-> >  #define ACPI_EVENT_VALID	0x01
-> > +#define GPE_STORM_INTERVAL     HZ
-> > +#define GPE_STORM_THRESHOLD    1000
-> > +
-> >  struct event_counter {
-> >  	u32 count;
-> >  	u32 flags;
-> > +	u32 storm;
-> > +	unsigned long last_time;
-> >  };
-> >  
-> >  static struct event_counter *all_counters;
-> > @@ -263,20 +268,60 @@
-> >  	return;
-> >  }
-> >  
-> > -void acpi_os_gpe_count(u32 gpe_number)
-> > +/*
-> > + * acpi_gbl_gpe_lock is already acquired in acpi_ev_gpe_detect
-> > + */
-> > +int check_gpe_storm(u32 gpe_number)
-> >  {
-> > +	struct event_counter *gpe_counter;
-> > +
-> > +	if (gpe_number >= num_gpes)
-> > +		return 0;
-> > +
-> > +	gpe_counter = &all_counters[gpe_number];
-> > +
-> > +	if (time_after(jiffies, gpe_counter->last_time + GPE_STORM_INTERVAL)) {
-> > +		gpe_counter->storm = 0;
-> > +		gpe_counter->last_time = jiffies;
-> > +	}
-> > +
-> > +	gpe_counter->storm++;
-> > +	if (gpe_counter->storm > GPE_STORM_THRESHOLD) {
-> > +		printk(KERN_WARNING "GPE[%2X] storm detected,"
-> > +				"%d interrupts in %d milliseconds.\n",
-> > +			gpe_number, gpe_counter->storm, GPE_STORM_INTERVAL);
-> > +		gpe_counter->storm = 0;
-> > +		gpe_counter->last_time = jiffies;
-> > +
-> > +		return 1;
-> > +	}
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +static int debug_gpe_storm = 1;
-> > +module_param(debug_gpe_storm, bool, 0644);
-> > +
-> > +int acpi_os_gpe_storm_detect(u32 gpe_number)
-> > +{
-> > +	int storm = 0;
-> > +
-> >  	acpi_gpe_count++;
-> >  
-> >  	if (!all_counters)
-> > -		return;
-> > +		return storm;
-> >  
-> > -	if (gpe_number < num_gpes)
-> > +	if (gpe_number < num_gpes) {
-> >  		all_counters[gpe_number].count++;
-> > +
-> > +		/* If debug_gpe_storm enabled, check gpe storm */
-> > +		if (debug_gpe_storm)
-> > +			storm = check_gpe_storm(gpe_number);
-> > +	}
-> >  	else
-> >  		all_counters[num_gpes + ACPI_NUM_FIXED_EVENTS + COUNT_ERROR].
-> >  					count++;
-> > -
-> > -	return;
-> > +	return storm;
-> >  }
-> >  
-> >  void acpi_os_fixed_event_count(u32 event_number)
-> > Index: linux-2.6/include/acpi/acpiosxf.h
-> > ===================================================================
-> > --- linux-2.6.orig/include/acpi/acpiosxf.h	2008-06-20 09:27:00.000000000 +0800
-> > +++ linux-2.6/include/acpi/acpiosxf.h	2008-06-20 09:34:32.000000000 +0800
-> > @@ -181,7 +181,7 @@
-> >  acpi_status
-> >  acpi_os_remove_interrupt_handler(u32 gsi, acpi_osd_handler service_routine);
-> >  
-> > -void acpi_os_gpe_count(u32 gpe_number);
-> > +int acpi_os_gpe_storm_detect(u32 gpe_number);
-> >  void acpi_os_fixed_event_count(u32 fixed_event_number);
-> >  
-> >  /*
-> > 
-> > 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
