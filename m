@@ -1,102 +1,61 @@
-From: Rene Herman <rene.herman@keyaccess.nl>
-Subject: [PATCH 2.6.26-rc] ACPI Thermal Zone driver breaks lm-sensors 2 userspace
-Date: Mon, 23 Jun 2008 17:06:14 +0200
-Message-ID: <485FBBE6.9000104@keyaccess.nl>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: [PATCH -next] fujitsu-laptop: depends on INPUT
+Date: Mon, 23 Jun 2008 09:34:49 -0700
+Message-ID: <20080623093449.b4f19f85.randy.dunlap@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtpq1.groni1.gr.home.nl ([213.51.130.200]:37109 "EHLO
-	smtpq1.groni1.gr.home.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754297AbYFWPFk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Jun 2008 11:05:40 -0400
+Received: from agminet01.oracle.com ([141.146.126.228]:46395 "EHLO
+	agminet01.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751604AbYFWQf2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Jun 2008 12:35:28 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Hans de Goede <j.w.r.degoede@hhs.nl>, Zhang Rui <rui.zhang@intel.com>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Jean Delvare <khali@linux-fr.org>, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, Linux Kernel <linux-kernel@vger.kernel.org>
+To: jwoithe@physics.adelaide.edu.au
+Cc: linux-acpi@vger.kernel.org, linux-next@vger.kernel.org, akpm <akpm@linux-foundation.org>
 
-Hi Linus.
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-2.6.26-rc gained a hwmon interface to the ACPI Thermal Zone driver
-which unfortunately breaks lm-sensors 2 userspace and renders all
-other (subsequent) hwmon sensors inoperable also.
- 
-Many systems, current slackware and derivative systems among them,
-are using lm-sensors 2 and would be affected. A new lm-sensors
-2.10.7 release is needed to fix this from the user side.
+fujitsu-laptop uses input_* functions, so it should depend
+on INPUT.
 
-There's disagreement on how bad the problem is, what it should be
-called and what correct levels of respect and gratitude are.
-Thread at:
+drivers/built-in.o: In function `acpi_fujitsu_add':
+fujitsu-laptop.c:(.text+0xaaec7): undefined reference to `input_allocate_device'
+fujitsu-laptop.c:(.text+0xaaf39): undefined reference to `input_register_device'
+fujitsu-laptop.c:(.text+0xab025): undefined reference to `input_free_device'
+drivers/built-in.o: In function `acpi_fujitsu_notify':
+fujitsu-laptop.c:(.text+0xab0d8): undefined reference to `input_event'
+fujitsu-laptop.c:(.text+0xab0e5): undefined reference to `input_event'
+fujitsu-laptop.c:(.text+0xab0f5): undefined reference to `input_event'
+fujitsu-laptop.c:(.text+0xab102): undefined reference to `input_event'
+drivers/built-in.o: In function `acpi_fujitsu_hotkey_notify':
+fujitsu-laptop.c:(.text+0xab261): undefined reference to `input_event'
+drivers/built-in.o:fujitsu-laptop.c:(.text+0xab26e): more undefined references to `input_event' follow
+drivers/built-in.o: In function `acpi_fujitsu_hotkey_add':
+fujitsu-laptop.c:(.text+0xab49c): undefined reference to `input_allocate_device'
+fujitsu-laptop.c:(.text+0xab51a): undefined reference to `input_register_device'
+fujitsu-laptop.c:(.text+0xab5e4): undefined reference to `input_free_device'
+make[1]: *** [.tmp_vmlinux1] Error 1
 
-http://lkml.org/lkml/2008/6/21/173
-
-Admittedly, with lm-sensors 2.10.7 around the corner now, there's
-opportunity to not care all that deeply but I want to make sure
-that everyone is aware of this as it is definitely going to be
-reported and most importantly -- losing sensors can be a vital
-mistake under some circumstances. Fortunately, it's not silent
-breakage.
-
-A previous patch just made the support optional:
-
-http://lkml.org/lkml/2008/6/22/83
-
-which also works but is not-nicer still.
-
-Off to my shrubbery now...
-
-Rene.
-
->From 303b6d3f407def5aa15bedc1bc7ff3f090025fe5 Mon Sep 17 00:00:00 2001
-From: Rene Herman <rene.herman@gmail.com>
-Date: Sun, 22 Jun 2008 23:45:04 +0200
-Subject: [PATCH] thermal: link the virtual/thermal/thermal_zoneN device for hwmon
-
-2.6.26-rc gained a hwmon interface to the ACPI Thermal Zone
-driver which unfortunately breaks lm-sensors 2 userspace and
-renders all other (subsequent) hwmon sensors inoperable also.
-
-Many systems, current slackware and derivative systems among them,
-are using lm-sensors 2 and would be affected. A new lm-sensors
-2.10.7 release is needed to fix this from the user side.
-
-The problem is userspace tripping over an absent "device"
-link in the ACPI Thermal Zone sysfs /sys/class/hwmon/hwmonN
-directory. This just adds the virtual "thermal/thermal_zoneN"
-device as a device backlink which satisfies lm-sensors again.
-
-Tested and fairly obvious; a downside is that the ACPI Thermal
-Zone driver gathers multiple thermal zones into one hwmon
-interface which means the device link is sensible only for
-the first thermal zone. Point here is just to not trip up
-existing lm-sensors 2 systems though.
-
-Signed-off-by: Rene Herman <rene.herman@gmail.com>
-CC: Hans de Goede <j.w.r.degoede@hhs.nl>
-CC: Zhang Rui <rui.zhang@intel.com>
-CC: Mark M. Hoffman <mhoffman@lightlink.com>
-CC: Jean Delvare <khali@linux-fr.org>
-CC: linux-acpi@vger.kernel.org
-CC: lm-sensors@lm-sensors.org
-CC: linux-kernel@vger.kernel.org
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 ---
- drivers/thermal/thermal_sys.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/misc/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
-index 6098787..c21e03c 100644
---- a/drivers/thermal/thermal_sys.c
-+++ b/drivers/thermal/thermal_sys.c
-@@ -357,7 +357,7 @@ thermal_add_hwmon_sysfs(struct thermal_zone_device *tz)
- 
- 	INIT_LIST_HEAD(&hwmon->tz_list);
- 	strlcpy(hwmon->type, tz->type, THERMAL_NAME_LENGTH);
--	hwmon->device = hwmon_device_register(NULL);
-+	hwmon->device = hwmon_device_register(&tz->device);
- 	if (IS_ERR(hwmon->device)) {
- 		result = PTR_ERR(hwmon->device);
- 		goto free_mem;
--- 
-1.5.5
+--- linux-next-20080623.orig/drivers/misc/Kconfig
++++ linux-next-20080623/drivers/misc/Kconfig
+@@ -179,6 +179,7 @@ config FUJITSU_LAPTOP
+         tristate "Fujitsu Laptop Extras"
+         depends on X86
+         depends on ACPI
++        depends on INPUT
+         depends on BACKLIGHT_CLASS_DEVICE
+         ---help---
+ 	  This is a driver for laptops built by Fujitsu:
 
+
+---
+~Randy
+Linux Plumbers Conference, 17-19 September 2008, Portland, Oregon USA
+http://linuxplumbersconf.org/
