@@ -1,30 +1,102 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [patch 01/28] PNP: add detail to debug resource dump
-Date: Mon, 23 Jun 2008 09:00:52 -0600
-Message-ID: <200806230900.53565.bjorn.helgaas@hp.com>
-References: <20080617225823.045233728@ldl.fc.hp.com> <20080617225907.642544594@ldl.fc.hp.com> <bb33bcf20806180419k140f77cdje94892cf2315f429@mail.gmail.com>
+From: Rene Herman <rene.herman@keyaccess.nl>
+Subject: [PATCH 2.6.26-rc] ACPI Thermal Zone driver breaks lm-sensors 2 userspace
+Date: Mon, 23 Jun 2008 17:06:14 +0200
+Message-ID: <485FBBE6.9000104@keyaccess.nl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:40133 "EHLO
-	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753612AbYFWPBU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Jun 2008 11:01:20 -0400
-In-Reply-To: <bb33bcf20806180419k140f77cdje94892cf2315f429@mail.gmail.com>
-Content-Disposition: inline
+Received: from smtpq1.groni1.gr.home.nl ([213.51.130.200]:37109 "EHLO
+	smtpq1.groni1.gr.home.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754297AbYFWPFk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Jun 2008 11:05:40 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Subrata Modak <tosubrata@gmail.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>, Takashi Iwai <tiwai@suse.de>, Jiri Slaby <jirislaby@gmail.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Hans de Goede <j.w.r.degoede@hhs.nl>, Zhang Rui <rui.zhang@intel.com>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Jean Delvare <khali@linux-fr.org>, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, Linux Kernel <linux-kernel@vger.kernel.org>
 
-On Wednesday 18 June 2008 5:19:19 am Subrata Modak wrote:
-> I would be interested in test cases that you might have developed for
-> testing this. I would like to know if you can contribute those test cases
-> to LTP (http://ltp.sourceforge.net/) under GPLv2.
+Hi Linus.
 
-Sorry, I don't have any test cases.  It's a good idea though, and if
-I develop any, I'll try to remember to send them to you.
+2.6.26-rc gained a hwmon interface to the ACPI Thermal Zone driver
+which unfortunately breaks lm-sensors 2 userspace and renders all
+other (subsequent) hwmon sensors inoperable also.
+ 
+Many systems, current slackware and derivative systems among them,
+are using lm-sensors 2 and would be affected. A new lm-sensors
+2.10.7 release is needed to fix this from the user side.
 
-Bjorn
+There's disagreement on how bad the problem is, what it should be
+called and what correct levels of respect and gratitude are.
+Thread at:
+
+http://lkml.org/lkml/2008/6/21/173
+
+Admittedly, with lm-sensors 2.10.7 around the corner now, there's
+opportunity to not care all that deeply but I want to make sure
+that everyone is aware of this as it is definitely going to be
+reported and most importantly -- losing sensors can be a vital
+mistake under some circumstances. Fortunately, it's not silent
+breakage.
+
+A previous patch just made the support optional:
+
+http://lkml.org/lkml/2008/6/22/83
+
+which also works but is not-nicer still.
+
+Off to my shrubbery now...
+
+Rene.
+
+>From 303b6d3f407def5aa15bedc1bc7ff3f090025fe5 Mon Sep 17 00:00:00 2001
+From: Rene Herman <rene.herman@gmail.com>
+Date: Sun, 22 Jun 2008 23:45:04 +0200
+Subject: [PATCH] thermal: link the virtual/thermal/thermal_zoneN device for hwmon
+
+2.6.26-rc gained a hwmon interface to the ACPI Thermal Zone
+driver which unfortunately breaks lm-sensors 2 userspace and
+renders all other (subsequent) hwmon sensors inoperable also.
+
+Many systems, current slackware and derivative systems among them,
+are using lm-sensors 2 and would be affected. A new lm-sensors
+2.10.7 release is needed to fix this from the user side.
+
+The problem is userspace tripping over an absent "device"
+link in the ACPI Thermal Zone sysfs /sys/class/hwmon/hwmonN
+directory. This just adds the virtual "thermal/thermal_zoneN"
+device as a device backlink which satisfies lm-sensors again.
+
+Tested and fairly obvious; a downside is that the ACPI Thermal
+Zone driver gathers multiple thermal zones into one hwmon
+interface which means the device link is sensible only for
+the first thermal zone. Point here is just to not trip up
+existing lm-sensors 2 systems though.
+
+Signed-off-by: Rene Herman <rene.herman@gmail.com>
+CC: Hans de Goede <j.w.r.degoede@hhs.nl>
+CC: Zhang Rui <rui.zhang@intel.com>
+CC: Mark M. Hoffman <mhoffman@lightlink.com>
+CC: Jean Delvare <khali@linux-fr.org>
+CC: linux-acpi@vger.kernel.org
+CC: lm-sensors@lm-sensors.org
+CC: linux-kernel@vger.kernel.org
+---
+ drivers/thermal/thermal_sys.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
+index 6098787..c21e03c 100644
+--- a/drivers/thermal/thermal_sys.c
++++ b/drivers/thermal/thermal_sys.c
+@@ -357,7 +357,7 @@ thermal_add_hwmon_sysfs(struct thermal_zone_device *tz)
+ 
+ 	INIT_LIST_HEAD(&hwmon->tz_list);
+ 	strlcpy(hwmon->type, tz->type, THERMAL_NAME_LENGTH);
+-	hwmon->device = hwmon_device_register(NULL);
++	hwmon->device = hwmon_device_register(&tz->device);
+ 	if (IS_ERR(hwmon->device)) {
+ 		result = PTR_ERR(hwmon->device);
+ 		goto free_mem;
+-- 
+1.5.5
+
