@@ -1,61 +1,58 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: [PATCH -next] fujitsu-laptop: depends on INPUT
-Date: Mon, 23 Jun 2008 09:34:49 -0700
-Message-ID: <20080623093449.b4f19f85.randy.dunlap@oracle.com>
+From: Rene Herman <rene.herman@keyaccess.nl>
+Subject: Re: LMSENSORS: 2.6.26-rc,  enabling ACPI Termal Zone support costs
+ sensors
+Date: Mon, 23 Jun 2008 19:10:09 +0200
+Message-ID: <485FD8F1.7070307@keyaccess.nl>
+References: <485DA11C.7050906@keyaccess.nl> <485DFF35.6080008@hhs.nl> <485E505F.8010306@keyaccess.nl> <485E61DE.6020202@hhs.nl> <20080623120844.5f722aa6@hyperion.delvare> <485F79C6.20507@keyaccess.nl> <20080623135704.2980078c@hyperion.delvare> <485F9877.1060902@keyaccess.nl> <20080623143112.GA4160@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from agminet01.oracle.com ([141.146.126.228]:46395 "EHLO
-	agminet01.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751604AbYFWQf2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Jun 2008 12:35:28 -0400
+Received: from smtpq1.tilbu1.nb.home.nl ([213.51.146.200]:54962 "EHLO
+	smtpq1.tilbu1.nb.home.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755215AbYFWRJa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Jun 2008 13:09:30 -0400
+In-Reply-To: <20080623143112.GA4160@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: jwoithe@physics.adelaide.edu.au
-Cc: linux-acpi@vger.kernel.org, linux-next@vger.kernel.org, akpm <akpm@linux-foundation.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Jean Delvare <khali@linux-fr.org>, Hans de Goede <j.w.r.degoede@hhs.nl>, linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Linux Kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 
-From: Randy Dunlap <randy.dunlap@oracle.com>
+On 23-06-08 16:31, Matthew Garrett wrote:
 
-fujitsu-laptop uses input_* functions, so it should depend
-on INPUT.
+> On Mon, Jun 23, 2008 at 02:35:03PM +0200, Rene Herman wrote:
+>> libsensors dictated the ABI rule that the hwmon directories must have 
+>> device backlinks; the new ACPI Thermal Zone hwmon interface breaks that 
+>> bit of ABI. It is not relevant that that ABI may have gotten to be as a 
+>> result of unfortunate programming on the userspace side -- the only 
+>> thing relevant is that it IS. lm-sensors 2 is on millions of systems out 
+>> there. This is not meant agressively, or whatever you guys seem to want 
+>> to read in my words, it's un undeniable fact.
+> 
+> No, libsensors made an assumption about the ABI that turns out not to be 
+> true. The ABI hasn't changed, libsensors is just being exposed to a case 
+> it didn't previously see.
+> 
+> We've had this kind of change before. The ACPI backlight code changed in 
+> such a way that scripts that blindly wrote values instead of (correctly) 
+> reading the maximum brightness value broke. mmap's behaviour changed in 
+> such a way that it was no longer possible for vm86 to execute code that 
+> wasn't mapped as executable, breaking libx86. The applications in 
+> question were undeniably buggy. Those are examples that I was personally 
+> involved with - I'm sure there are others. Where userspace has made 
+> false assumptions, it's not the kernel's responsibility to continue to 
+> support those assumptions.
 
-drivers/built-in.o: In function `acpi_fujitsu_add':
-fujitsu-laptop.c:(.text+0xaaec7): undefined reference to `input_allocate_device'
-fujitsu-laptop.c:(.text+0xaaf39): undefined reference to `input_register_device'
-fujitsu-laptop.c:(.text+0xab025): undefined reference to `input_free_device'
-drivers/built-in.o: In function `acpi_fujitsu_notify':
-fujitsu-laptop.c:(.text+0xab0d8): undefined reference to `input_event'
-fujitsu-laptop.c:(.text+0xab0e5): undefined reference to `input_event'
-fujitsu-laptop.c:(.text+0xab0f5): undefined reference to `input_event'
-fujitsu-laptop.c:(.text+0xab102): undefined reference to `input_event'
-drivers/built-in.o: In function `acpi_fujitsu_hotkey_notify':
-fujitsu-laptop.c:(.text+0xab261): undefined reference to `input_event'
-drivers/built-in.o:fujitsu-laptop.c:(.text+0xab26e): more undefined references to `input_event' follow
-drivers/built-in.o: In function `acpi_fujitsu_hotkey_add':
-fujitsu-laptop.c:(.text+0xab49c): undefined reference to `input_allocate_device'
-fujitsu-laptop.c:(.text+0xab51a): undefined reference to `input_register_device'
-fujitsu-laptop.c:(.text+0xab5e4): undefined reference to `input_free_device'
-make[1]: *** [.tmp_vmlinux1] Error 1
+We are not going to agree. In this, it's not a random application, but the
+one and only interface to sensors that's in use that breaks. It is all of
+sensors support that breaks, all user interfaces, as they all depend on the
+one libsensors. Sure, if some random application makes bad assumptions the
+remedy is fixing the random application. If the one and only interface to
+something breaks, it's the ABI that breaks.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
----
- drivers/misc/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+And if people really insist on calling it FNOOZLEGLUM breakage instead of
+ABI breakage, all for it. I love exciting words. Its just that I'm really
+more interested in the "breakage" bit than anyone else in this thread it
+seems.
 
---- linux-next-20080623.orig/drivers/misc/Kconfig
-+++ linux-next-20080623/drivers/misc/Kconfig
-@@ -179,6 +179,7 @@ config FUJITSU_LAPTOP
-         tristate "Fujitsu Laptop Extras"
-         depends on X86
-         depends on ACPI
-+        depends on INPUT
-         depends on BACKLIGHT_CLASS_DEVICE
-         ---help---
- 	  This is a driver for laptops built by Fujitsu:
-
-
----
-~Randy
-Linux Plumbers Conference, 17-19 September 2008, Portland, Oregon USA
-http://linuxplumbersconf.org/
+Rene.
