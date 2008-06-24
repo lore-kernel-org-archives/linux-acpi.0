@@ -1,47 +1,38 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH] ACPI: don't walk tables if ACPI was disabled
-Date: Tue, 24 Jun 2008 09:22:21 -0600
-Message-ID: <200806240922.22300.bjorn.helgaas@hp.com>
-References: <20080620135639.GA5073@damson.getinternet.no> <20080624114139.GC21890@elte.hu> <19f34abd0806240452w2561040uc2b1b1d35562db71@mail.gmail.com>
+From: Patrick Palmer <ppalmer@oskar.uchicago.edu>
+Subject: Report as requested
+Date: Tue, 24 Jun 2008 10:25:28 -0500
+Message-ID: <486111E8.8080209@oskar.uchicago.edu>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0026.austin.hp.com ([15.216.28.33]:2539 "EHLO
-	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755851AbYFXPWs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Jun 2008 11:22:48 -0400
-In-Reply-To: <19f34abd0806240452w2561040uc2b1b1d35562db71@mail.gmail.com>
-Content-Disposition: inline
+Received: from oskar.uchicago.edu ([128.135.4.14]:44104 "EHLO
+	oskar.uchicago.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760249AbYFXPeD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Jun 2008 11:34:03 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by oskar.uchicago.edu (Postfix) with ESMTP id 3C4481BE94
+	for <linux-acpi@vger.kernel.org>; Tue, 24 Jun 2008 10:25:33 -0500 (CDT)
+Received: from oskar.uchicago.edu ([127.0.0.1])
+	by localhost (oskar.uchicago.edu [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id 67kKjrGv1h9U for <linux-acpi@vger.kernel.org>;
+	Tue, 24 Jun 2008 10:25:28 -0500 (CDT)
+Received: from oskar.uchicago.edu (oskar.uchicago.edu [127.0.1.1])
+	by oskar.uchicago.edu (Postfix) with ESMTPSA id BD9421BE8F
+	for <linux-acpi@vger.kernel.org>; Tue, 24 Jun 2008 10:25:28 -0500 (CDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Vegard Nossum <vegard.nossum@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Zhao Yakui <yakui.zhao@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alexey Starikovskiy <astarikovskiy@suse.de>, Yinghai Lu <yhlu.kernel@gmail.com>
+To: linux-acpi@vger.kernel.org
 
-On Tuesday 24 June 2008 5:52:55 am Vegard Nossum wrote:
-> On 6/24/08, Ingo Molnar <mingo@elte.hu> wrote:
-> > i havent seen the warning reappear with your fix after thousands of
-> > bootups - so i guess we can consider it fixed.
-> >
-> > Len, please consider the patch below. (it's in tip/out-of-tree)
->
-> No, please don't :-)
->
-> It fixes your particular case (the acpi_rtc_init() hunk of the patch),
-> but the acpi_walk_namespace() part should be changed to a WARN(). But
-> that is likely to cause a lot of "spurious" reports, so the other acpi
-> drivers should be fixed as well.
->
-> I was waiting for Len to reply, but maybe I can submit the proper fix too.
+As part of the messages on re-booting:
 
-I haven't looked into the acpi_walk_namespace() question.
+  1 Time(s): [   32.093222] ACPI: BIOS _OSI(Linux) query ignored
+  1 Time(s): [   32.093223] ACPI: DMI System Vendor: Dell Inc.
+  1 Time(s): [   32.093225] ACPI: DMI Product Name: OptiPlex 755 
 
-But I did look at the acpi_rtc_init() stuff, and I have to say it
-looks like a really round-about way to accomplish this.  I'd rather
-just fold in the FADT accesses directly into cmos_do_probe() and
-dispense with the stuff in drivers/acpi/glue.c.  I'm working on a
-couple patches along this line, but it will take me a few days to
-finish up.
-
-Bjorn
+  1 Time(s): [   32.093226] ACPI: DMI Product Version:
+  1 Time(s): [   32.093227] ACPI: DMI BIOS Vendor: Dell Inc.
+  1 Time(s): [   32.093227] ACPI: DMI Board Name: 0GM819
+  1 Time(s): [   32.093228] ACPI: DMI BIOS Date: 12/19/2007
+  1 Time(s): [   32.093229] ACPI: Please send DMI info above to 
+linux-acpi@vger.kernel.org
