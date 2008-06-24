@@ -1,79 +1,40 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH] x86 ACPI: normalize segment descriptor register on
- resume
-Date: Thu, 26 Jun 2008 01:17:16 -0700
-Message-ID: <20080626011716.e8c412dd.akpm@linux-foundation.org>
-References: <200806242303.49498.rjw@sisk.pl>
-	<20080624214610.GC18679@elf.ucw.cz>
-	<20080625170126.GA2482@elte.hu>
-	<200806252217.27059.rjw@sisk.pl>
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: [linux-pm] [RFC][PATCH 4/9] ACPI: Introduce acpi_device_sleep_wake function
+Date: Tue, 24 Jun 2008 14:38:53 +0200
+Message-ID: <20080624123852.GF5642@ucw.cz>
+References: <200806200145.33053.rjw@sisk.pl> <200806200149.31090.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58175 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753582AbYFZISh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 26 Jun 2008 04:18:37 -0400
-In-Reply-To: <200806252217.27059.rjw@sisk.pl>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:2578 "EHLO spitz.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1756749AbYFZIS6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 26 Jun 2008 04:18:58 -0400
+Content-Disposition: inline
+In-Reply-To: <200806200149.31090.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Ingo Molnar <mingo@elte.hu>, Pavel Machek <pavel@suse.cz>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Jesse Barnes <jbarnes@virtuousgeek.org>
 
-On Wed, 25 Jun 2008 22:17:26 +0200 "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
-
-> On Wednesday, 25 of June 2008, Ingo Molnar wrote:
-> > 
-> > * Pavel Machek <pavel@suse.cz> wrote:
-> > 
-> > > Acked-by: Pavel Machek <pavel@suse.cz>
-> > > 
-> > > If this could be sneaked into Ingo's tree for some automated testing, 
-> > > that would be good.
-> > 
-> > sure - i have applied it to tip/out-of-tree. I'm equally nervous about 
-> > this change - it affects every suspend+resume cycle that people do on 
-> > those boxes which are working just fine currently.
-> > 
-> > btw., it would get a lot more coverage on my test-systems if this commit 
-> > in tip/out-of-tree:
-> > 
-> > | commit 01259383c345d13b70efcc549439927ae64dc66d
-> > | Author: David Brownell <david-b@pacbell.net>
-> > | Date:   Fri May 16 10:12:36 2008 +0200
-> > |
-> > |     sleepy linux self-test
-> > 
-> > was upstream and if it was enabled more prominently, instead of hidden 
-> > behind the rather obscure condition of:
-> > 
-> >   config PM_TEST_SUSPEND
-> >         bool "Test suspend/resume and wakealarm during bootup"
-> >         depends on SUSPEND && PM_DEBUG && RTC_LIB=y
-> > 
-> > and even then it needs certain other config options related to RTC_LIB 
-> > to actually work during bootup.
-> > 
-> > As a result of all this obstruction, the automated testing i do, which 
-> > builds and boots more than 1 random kernel per minute, will only run 
-> > this self-test once every hour or so.
-> > 
-> > I dont mind if this option breaks boxes (that its purpose: it does the 
-> > same thing that a real suspend+resume does and suspend+resume frequently 
-> > breaks boxes), but right now it's all obscured so heavily which makes 
-> > automated testing a lot harder than it should be.
-> > 
-> > it would be wonderful if this excellent suspend+resume self-test was 
-> > upstream and was more prominent! :-)
+On Fri 2008-06-20 01:49:30, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rjw@sisk.pl>
 > 
-> I thought it was in linux-next, wasn't it?
+> ACPI: Introduce acpi_device_sleep_wake function
 > 
+> The currect ACPI code attempts to execute _PSW at three different
+> places and in one of them only it tries to execute _DSW before _PSW,
+> which is inconsistent with the other two cases.
+> 
+> Move the execution of _DSW and _PSW into a separate function called
+> acpi_device_sleep_wake() and call it wherever appropriate instead of
+> executing _DSW and/or _PSW directly.
+> 
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 
-Len seems to think that Rafael seems to think that Ingo seems to think
-that this patch broke one of his boxes.
+ACK.
 
-Is it so?
 
-Thanks.
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
