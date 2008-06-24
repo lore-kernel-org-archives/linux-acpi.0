@@ -1,196 +1,172 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH 2.6.26-rc] ACPI Thermal Zone driver breaks lm-sensors 2
-	userspace
-Date: Tue, 24 Jun 2008 11:47:38 +0800
-Message-ID: <1214279258.3001.76.camel@rzhang-dt.sh.intel.com>
-References: <fa.4PGqX9CuLbgiTimfCcon+PlAMxk@ifi.uio.no>
-	 <fa.PWu620xEt5OlYdOezvRtQriuNjM@ifi.uio.no> <48605935.5070407@shaw.ca>
-	 <alpine.LFD.1.10.0806232004480.2926@woody.linux-foundation.org>
+Subject: Re: [RFC PATCH] ACPI: eject device synchronously
+Date: Tue, 24 Jun 2008 14:15:40 +0800
+Message-ID: <1214288140.3001.79.camel@rzhang-dt.sh.intel.com>
+References: <1213388891.22105.18.camel@promb-2n-dhcp368.eng.vmware.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:40229 "EHLO mga11.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:16408 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752084AbYFXDrB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 23 Jun 2008 23:47:01 -0400
-In-Reply-To: <alpine.LFD.1.10.0806232004480.2926@woody.linux-foundation.org>
+	id S1757870AbYFXGPB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 24 Jun 2008 02:15:01 -0400
+In-Reply-To: <1213388891.22105.18.camel@promb-2n-dhcp368.eng.vmware.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Robert Hancock <hancockr@shaw.ca>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Rene Herman <rene.herman@keyaccess.nl>, Hans de Goede <j.w.r.degoede@hhs.nl>, Jean Delvare <khali@linux-fr.org>, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, Linux Kernel <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: akataria@vmware.com
+Cc: "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
 
-On Tue, 2008-06-24 at 11:07 +0800, Linus Torvalds wrote:
+On Sat, 2008-06-14 at 04:28 +0800, Alok Kataria wrote:
+> This is w.r.t some ACPI changes, to fix a deadlock when ejecting a
+> cpu.
+> In http://bugzilla.kernel.org/show_bug.cgi?id=9772#c31
+> Len raises some concerns about a theoretical race. In the current code
+> path we
+> could return to the userspace without doing the actual eject of the
+> device.
+> This deferring of device eject and device unregistering was done to
+> fix a
+> deadlock at cpu eject time.
 > 
-> 
-> On Mon, 23 Jun 2008, Robert Hancock wrote:
-> 
-> > Mark M. Hoffman wrote:
-> > >
-> > > 1) The bug is in libsensors (2.10), not the kernel.
-> >
-> > This doesn't matter. Breaking userspace in such a fashion is
-> severely frowned
-> > upon unless essentially unavoidable, even if it is just triggering a
-> bug.
-> 
-> I do tend to agree. If it used to work, it should continue to work,
-> even
-> if it wasn't _meant_ to work.
-> 
-> That's not always 100% possible, but the fact is, neither is updating
-> user
-> space always possible. The kernel needs to try its best to maintain
-> stable
-> interfaces, and no, "..but the interface was broken" is _not_ an
-> acceptable excuse for unbreaking it if it causes problems.
-> 
-> > > - but more importantly -
-> > >
-> > > 2) This patch is broken.
-> >
-> > You didn't indicate what was wrong with the patch.
-> 
-> Yes. Leaving everybody wondering whether it's just an opinionated
-> expression of the former problem, or whether there is a real and
-> understandable reason why it was NACK'ed.
-
-Multiple thermal zone devices may share the same hwmon device.
-here is an example,
-# grep . /sys/class/hwmon/hwmon0/*
-/sys/class/hwmon/hwmon0/name:acpitz
-/sys/class/hwmon/hwmon0/temp1_crit:127000
-/sys/class/hwmon/hwmon0/temp1_input:40000
-/sys/class/hwmon/hwmon0/temp2_crit:100000
-/sys/class/hwmon/hwmon0/temp2_input:44000
-
-temp1 and temp2 stand for different ACPI thermal zones.
-
-This patch will break if the first ACPI thermal zone is unregistered
-before the others, although it only happens theoretically.
-Plus, as this is not a 1:1 binding, a symbol link from the hwmon device
-to thermal zone device doesn't make sense.
-
-Following is a possible solution which is also from Rene,
-while I think CONFIG_THERMAL_HWMON should be "default n".
+> IMO, we could do with only deferring the device unregistration part to
+> the
+> thread. So before we return to the userspace we make sure that we
+> execute the
+> _PS3 and _EJ0 objects of the device being removed. So the device is
+> physically
+> removed when the write to the sysfile completes.
+Acked-by: Zhang Rui <rui.zhang@intel.com>
 
 thanks,
 rui
-
->From 7b41d17346cdd1f9db1223c024bd9f4604ee5c82 Mon Sep 17 00:00:00 2001
-From: Rene Herman <rene.herman@gmail.com>
-Date: Mon, 23 Jun 2008 21:50:25 +0200
-Subject: [PATCH] acpi/thermal: allow disabling of thermal zone hwmon support
-
-2.6.26-rc gained a hwmon interface to the Thermal Zone driver
-which unfortunately breaks lm-sensors 2 userspace and renders
-all other (subsequent) hwmon sensors inoperable also.
-
-Many systems, current slackware and derivative systems among
-them, are using lm-sensors 2 and would be affected. A new
-lm-sensors 2.10.7 release is needed to fix this from the user
-side.
-
-This makes the hwmon support optional (enabled by default) and
-comments that it needs a new enough lm-sensors userspace. This
-also immediately schedules the option for removal again as this
-is only intended to not break systems over the 2.6.26 upgrade
-when new enough lm-sensors is not yet available or widely
-deployed.
-
-Signed-off-by: Rene Herman <rene.herman@gmail.com>
-CC: Len Brown <lenb@kernel.org>
-CC: Hans de Goede <j.w.r.degoede@hhs.nl>
-CC: Zhang Rui <rui.zhang@intel.com>
-CC: Mark M. Hoffman <mhoffman@lightlink.com>
-CC: Jean Delvare <khali@linux-fr.org>
-CC: linux-acpi@vger.kernel.org
-CC: lm-sensors@lm-sensors.org
-CC: linux-kernel@vger.kernel.org
----
- Documentation/feature-removal-schedule.txt |    9 +++++++++
- drivers/thermal/Kconfig                    |   10 ++++++++++
- drivers/thermal/thermal_sys.c              |    4 ++--
- include/linux/thermal.h                    |    6 ++----
- 4 files changed, 23 insertions(+), 6 deletions(-)
-
-diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
-index 5b3f31f..46ece3f 100644
---- a/Documentation/feature-removal-schedule.txt
-+++ b/Documentation/feature-removal-schedule.txt
-@@ -312,3 +312,12 @@ When:	2.6.26
- Why:	Implementation became generic; users should now include
- 	linux/semaphore.h instead.
- Who:	Matthew Wilcox <willy@linux.intel.com>
-+
-+---------------------------
-+
-+What:	CONFIG_THERMAL_HWMON
-+When:	January 2009
-+Why:	This option was introduced just to allow older lm-sensors userspace
-+	to keep working over the upgrade to 2.6.26. At the scheduled time of
-+	removal fixed lm-sensors (2.x or 3.x) should be readily available.
-+Who:	Rene Herman <rene.herman@gmail.com>
-diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
-index 4b62852..0b359ab 100644
---- a/drivers/thermal/Kconfig
-+++ b/drivers/thermal/Kconfig
-@@ -12,3 +12,13 @@ menuconfig THERMAL
- 	  cooling devices.
- 	  All platforms with ACPI thermal support can use this driver.
- 	  If you want this support, you should say Y or M here.
-+
-+config THERMAL_HWMON
-+	bool "Hardware monitoring support"
-+	depends on HWMON=y || HWMON=THERMAL
-+	default y
-+	help
-+	  The generic thermal sysfs driver's hardware monitoring support
-+	  requires a 2.10.7/3.0.2 or later lm-sensors userspace.
-+
-+	  Say Y unless you need support for older lm-sensors.
-diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
-index 6098787..fe07462 100644
---- a/drivers/thermal/thermal_sys.c
-+++ b/drivers/thermal/thermal_sys.c
-@@ -295,8 +295,8 @@ thermal_cooling_device_trip_point_show(struct device *dev,
- 
- /* Device management */
- 
--#if defined(CONFIG_HWMON) ||	\
--	(defined(CONFIG_HWMON_MODULE) && defined(CONFIG_THERMAL_MODULE))
-+#if defined(CONFIG_THERMAL_HWMON)
-+
- /* hwmon sys I/F */
- #include <linux/hwmon.h>
- static LIST_HEAD(thermal_hwmon_list);
-diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-index 06d3e6e..917707e 100644
---- a/include/linux/thermal.h
-+++ b/include/linux/thermal.h
-@@ -66,8 +66,7 @@ struct thermal_cooling_device {
- 				((long)t-2732+5)/10 : ((long)t-2732-5)/10)
- #define CELSIUS_TO_KELVIN(t)	((t)*10+2732)
- 
--#if defined(CONFIG_HWMON) ||	\
--	(defined(CONFIG_HWMON_MODULE) && defined(CONFIG_THERMAL_MODULE))
-+#if defined(CONFIG_THERMAL_HWMON)
- /* thermal zone devices with the same type share one hwmon device */
- struct thermal_hwmon_device {
- 	char type[THERMAL_NAME_LENGTH];
-@@ -94,8 +93,7 @@ struct thermal_zone_device {
- 	struct idr idr;
- 	struct mutex lock;	/* protect cooling devices list */
- 	struct list_head node;
--#if defined(CONFIG_HWMON) ||	\
--	(defined(CONFIG_HWMON_MODULE) && defined(CONFIG_THERMAL_MODULE))
-+#if defined(CONFIG_THERMAL_HWMON)
- 	struct list_head hwmon_node;
- 	struct thermal_hwmon_device *hwmon;
- 	struct thermal_hwmon_attr temp_input;	/* hwmon sys attr */
--- 
-1.5.5
-
-
+> 
+> patch on top of acpi-test.
+> --
+> VMware, Inc. is providing the following patch to you under the terms
+> of the GPL
+> version 2 and no later version. This patch is provided as is, with no
+> warranties or support. VMware disclaims all liability in connection
+> with
+> the use/inability to use this patch. Any use of the attached is
+> considered acceptance of the above.
+> 
+> Signed-off-by: Alok N Kataria <akataria@vmware.com>
+> Cc: Zhang Rui <rui.zhang@intel.com>
+> 
+> Index: linux-2.6/drivers/acpi/scan.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/scan.c  2008-06-13 10:51:16.000000000
+> -0700
+> +++ linux-2.6/drivers/acpi/scan.c       2008-06-13 11:32:14.000000000
+> -0700
+> @@ -96,14 +96,7 @@
+> 
+>  static int acpi_bus_hot_remove_device(void *context)
+>  {
+> -       struct acpi_device *device;
+> -       acpi_handle handle = context;
+> -       struct acpi_object_list arg_list;
+> -       union acpi_object arg;
+> -       acpi_status status = AE_OK;
+> -
+> -       if (acpi_bus_get_device(handle, &device))
+> -               return 0;
+> +       struct acpi_device *device = context;
+> 
+>         if (!device)
+>                 return 0;
+> @@ -118,32 +111,6 @@
+>                 return -1;
+>         }
+> 
+> -       /* power off device */
+> -       status = acpi_evaluate_object(handle, "_PS3", NULL, NULL);
+> -       if (ACPI_FAILURE(status) && status != AE_NOT_FOUND)
+> -               ACPI_DEBUG_PRINT((ACPI_DB_WARN,
+> -                               "Power-off device failed\n"));
+> -
+> -       if (device->flags.lockable) {
+> -               arg_list.count = 1;
+> -               arg_list.pointer = &arg;
+> -               arg.type = ACPI_TYPE_INTEGER;
+> -               arg.integer.value = 0;
+> -               acpi_evaluate_object(handle, "_LCK", &arg_list, NULL);
+> -       }
+> -
+> -       arg_list.count = 1;
+> -       arg_list.pointer = &arg;
+> -       arg.type = ACPI_TYPE_INTEGER;
+> -       arg.integer.value = 1;
+> -
+> -       /*
+> -        * TBD: _EJD support.
+> -        */
+> -       status = acpi_evaluate_object(handle, "_EJ0", &arg_list,
+> NULL);
+> -       if (ACPI_FAILURE(status))
+> -               return -ENODEV;
+> -
+>         return 0;
+>  }
+> 
+> @@ -153,6 +120,8 @@
+>  {
+>         int ret = count;
+>         acpi_status status;
+> +       struct acpi_object_list arg_list;
+> +       union acpi_object arg;
+>         acpi_object_type type = 0;
+>         struct acpi_device *acpi_device = to_acpi_device(d);
+>         struct task_struct *task;
+> @@ -172,9 +141,37 @@
+>                 goto err;
+>         }
+> 
+> -       /* remove the device in another thread to fix the deadlock
+> issue */
+> +       /* power off device */
+> +       status = acpi_evaluate_object(acpi_device->handle, "_PS3",
+> NULL, NULL);
+> +       if (ACPI_FAILURE(status) && status != AE_NOT_FOUND)
+> +               ACPI_DEBUG_PRINT((ACPI_DB_WARN,
+> +                               "Power-off device failed\n"));
+> +
+> +       if (acpi_device->flags.lockable) {
+> +               arg_list.count = 1;
+> +               arg_list.pointer = &arg;
+> +               arg.type = ACPI_TYPE_INTEGER;
+> +               arg.integer.value = 0;
+> +               acpi_evaluate_object(acpi_device->handle,
+> +                                       "_LCK", &arg_list, NULL);
+> +       }
+> +
+> +       arg_list.count = 1;
+> +       arg_list.pointer = &arg;
+> +       arg.type = ACPI_TYPE_INTEGER;
+> +       arg.integer.value = 1;
+> +
+> +       /*
+> +        * TBD: _EJD support.
+> +        */
+> +       status = acpi_evaluate_object(acpi_device->handle,
+> +                                       "_EJ0", &arg_list, NULL);
+> +       if (ACPI_FAILURE(status))
+> +               return -ENODEV;
+> +
+> +       /* unregister the device in another thread to fix the deadlock
+> issue */
+>         task = kthread_run(acpi_bus_hot_remove_device,
+> -                               acpi_device->handle,
+> "acpi_hot_remove_device");
+> +                               acpi_device,
+> "acpi_hot_remove_device");
+>         if (IS_ERR(task))
+>                 ret = PTR_ERR(task);
+>  err:
+> 
+> 
+> 
+> 
 
