@@ -1,70 +1,50 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Subject: Re: [PATCH 2.6.26-rc] ACPI Thermal Zone driver breaks lm-sensors 2 userspace
-Date: Tue, 24 Jun 2008 07:45:01 -0400
-Message-ID: <20080624114501.GL7306@mars.solarsys.private>
-References: <fa.4PGqX9CuLbgiTimfCcon+PlAMxk@ifi.uio.no> <fa.PWu620xEt5OlYdOezvRtQriuNjM@ifi.uio.no> <48605935.5070407@shaw.ca> <alpine.LFD.1.10.0806232004480.2926@woody.linux-foundation.org>
+From: "Vegard Nossum" <vegard.nossum@gmail.com>
+Subject: Re: [PATCH] ACPI: don't walk tables if ACPI was disabled
+Date: Tue, 24 Jun 2008 13:52:55 +0200
+Message-ID: <19f34abd0806240452w2561040uc2b1b1d35562db71@mail.gmail.com>
+References: <20080620135639.GA5073@damson.getinternet.no>
+	 <alpine.LFD.1.10.0806201458500.3027@localhost.localdomain>
+	 <19f34abd0806201340t502ce471n578dd2498a5f1992@mail.gmail.com>
+	 <19f34abd0806201427h740ca3e7gc2f01c7e34616fd4@mail.gmail.com>
+	 <19f34abd0806210119o64a1c9ban78710651a01530cf@mail.gmail.com>
+	 <20080624114139.GC21890@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from emerald.lightlink.com ([64.57.176.19]:3394 "EHLO
-	emerald.lightlink.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752876AbYFXLtM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Jun 2008 07:49:12 -0400
+Received: from rv-out-0506.google.com ([209.85.198.230]:58422 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753146AbYFXLw4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Jun 2008 07:52:56 -0400
+Received: by rv-out-0506.google.com with SMTP id k40so7625991rvb.1
+        for <linux-acpi@vger.kernel.org>; Tue, 24 Jun 2008 04:52:55 -0700 (PDT)
+In-Reply-To: <20080624114139.GC21890@elte.hu>
 Content-Disposition: inline
-In-Reply-To: <alpine.LFD.1.10.0806232004480.2926@woody.linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Robert Hancock <hancockr@shaw.ca>, Rene Herman <rene.herman@keyaccess.nl>, Hans de Goede <j.w.r.degoede@hhs.nl>, Zhang Rui <rui.zhang@intel.com>, Jean Delvare <khali@linux-fr.org>, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, Linux Kernel <linux-kernel@vger.kernel.org>
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Zhao Yakui <yakui.zhao@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alexey Starikovskiy <astarikovskiy@suse.de>, Yinghai Lu <yhlu.kernel@gmail.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Hi Linus:
+On 6/24/08, Ingo Molnar <mingo@elte.hu> wrote:
+> i havent seen the warning reappear with your fix after thousands of
+> bootups - so i guess we can consider it fixed.
+>
+> Len, please consider the patch below. (it's in tip/out-of-tree)
 
-* Linus Torvalds <torvalds@linux-foundation.org> [2008-06-23 20:07:15 -0700]:
-> 
-> 
-> On Mon, 23 Jun 2008, Robert Hancock wrote:
-> 
-> > Mark M. Hoffman wrote:
-> > > 
-> > > 1) The bug is in libsensors (2.10), not the kernel.
-> > 
-> > This doesn't matter. Breaking userspace in such a fashion is severely frowned
-> > upon unless essentially unavoidable, even if it is just triggering a bug.
-> 
-> I do tend to agree. If it used to work, it should continue to work, even 
-> if it wasn't _meant_ to work.
-> 
-> That's not always 100% possible, but the fact is, neither is updating user 
-> space always possible. The kernel needs to try its best to maintain stable 
-> interfaces, and no, "..but the interface was broken" is _not_ an 
-> acceptable excuse for unbreaking it if it causes problems.
+No, please don't :-)
 
-No excuses... it's just a simple case of userspace making a bad assumption.
-(Queue rant about how sysfs interfaces are prone to this sort of thing.)
+It fixes your particular case (the acpi_rtc_init() hunk of the patch),
+but the acpi_walk_namespace() part should be changed to a WARN(). But
+that is likely to cause a lot of "spurious" reports, so the other acpi
+drivers should be fixed as well.
 
-> > > - but more importantly -
-> > > 
-> > > 2) This patch is broken.
-> > 
-> > You didn't indicate what was wrong with the patch.
-> 
-> Yes. Leaving everybody wondering whether it's just an opinionated 
-> expression of the former problem, or whether there is a real and 
-> understandable reason why it was NACK'ed.
+I was waiting for Len to reply, but maybe I can submit the proper fix too.
 
-IMO Jean Delvare and Zhang Rui had explained this well enough elsewhere in the
-thread, but...
 
-In summary: the patch adds a meaningless symbolic link to an arbitrary thermal
-zone device where the was none before.  This keeps (one version of) libsensors
-from tripping over itself.  But if the TZ devices are unregistered in the wrong
-order, OOPS.  Apparently this can't happen in practice; but it's a bad trade
-to add an implicit dependency on the order of device reg/unreg just to wall-
-paper over a bug in userspace (IMHO).
-
-Regards,
+Vegard
 
 -- 
-Mark M. Hoffman
-mhoffman@lightlink.com
-
+"The animistic metaphor of the bug that maliciously sneaked in while
+the programmer was not looking is intellectually dishonest as it
+disguises that the error is the programmer's own creation."
+	-- E. W. Dijkstra, EWD1036
