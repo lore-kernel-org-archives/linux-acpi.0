@@ -1,172 +1,57 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [RFC PATCH] ACPI: eject device synchronously
-Date: Tue, 24 Jun 2008 14:15:40 +0800
-Message-ID: <1214288140.3001.79.camel@rzhang-dt.sh.intel.com>
-References: <1213388891.22105.18.camel@promb-2n-dhcp368.eng.vmware.com>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: [PATCH] RTC: Fix CMOS time error after writing /proc/acpi/alarm
+Date: Tue, 24 Jun 2008 14:37:53 +0800
+Message-ID: <1214289473.31069.1.camel@yakui_zhao.sh.intel.com>
+References: <42DFA526FC41B1429CE7279EF83C6BDC014E42D5@pdsmsx415.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:16408 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757870AbYFXGPB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 24 Jun 2008 02:15:01 -0400
-In-Reply-To: <1213388891.22105.18.camel@promb-2n-dhcp368.eng.vmware.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756867AbYFXG1Z@vger.kernel.org>
+In-Reply-To: <42DFA526FC41B1429CE7279EF83C6BDC014E42D5@pdsmsx415.ccr.corp.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Chen, Huacai" <huacai.chen@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, rtc-linux@googlegroups.com, lenb@kernel.org, p_gortmaker@yahoo.com, a.zummo@towertech.it, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: akataria@vmware.com
-Cc: "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-
-On Sat, 2008-06-14 at 04:28 +0800, Alok Kataria wrote:
-> This is w.r.t some ACPI changes, to fix a deadlock when ejecting a
-> cpu.
-> In http://bugzilla.kernel.org/show_bug.cgi?id=9772#c31
-> Len raises some concerns about a theoretical race. In the current code
-> path we
-> could return to the userspace without doing the actual eject of the
-> device.
-> This deferring of device eject and device unregistering was done to
-> fix a
-> deadlock at cpu eject time.
+On Mon, 2008-06-23 at 18:52 +0800, Chen, Huacai wrote:
+> From: Huacai Chen <huacai.chen@intel.com>
 > 
-> IMO, we could do with only deferring the device unregistration part to
-> the
-> thread. So before we return to the userspace we make sure that we
-> execute the
-> _PS3 and _EJ0 objects of the device being removed. So the device is
-> physically
-> removed when the write to the sysfile completes.
-Acked-by: Zhang Rui <rui.zhang@intel.com>
-
-thanks,
-rui
-> 
-> patch on top of acpi-test.
+> When writing /proc/acpi/alarm in adjust mode, e.g. 
+> 	echo "+0000-00-00 00:00:15" >/proc/acpi/alarm 
+> The "century" field should be read and added to "year" field before
+> writing, otherwise the CMOS time will go back to 2000 years ago, e.g.
+> 	# cat /proc/acpi/alarm
+> 	0008-06-21 11:38:46 
+> Then the system time may be reset to the date of manufacture after
+> rebooting. This patch fixed this issue.
+> Signed-off-by: Huacai Chen <huacai.chen@intel.com>
+> Acked-by: Pavel Machek <pavel@suse.cz>
+> ---
+> diff --git a/drivers/acpi/sleep/proc.c b/drivers/acpi/sleep/proc.c
+> index 224c57c..c9fdf7b 100644
+> --- a/drivers/acpi/sleep/proc.c
+> +++ b/drivers/acpi/sleep/proc.c
+> @@ -315,8 +315,11 @@ acpi_system_write_alarm(struct file *file,
+>  		cmos_bcd_write(day, acpi_gbl_FADT.day_alarm,
+> rtc_control);
+>  	if (acpi_gbl_FADT.month_alarm)
+>  		cmos_bcd_write(mo, acpi_gbl_FADT.month_alarm,
+> rtc_control);
+> -	if (acpi_gbl_FADT.century)
+> +	if (acpi_gbl_FADT.century) {
+> +		if (adjust) 
+> +			yr += cmos_bcd_read(acpi_gbl_FADT.century,
+> rtc_control) * 100;
+>  		cmos_bcd_write(yr / 100, acpi_gbl_FADT.century,
+> rtc_control);
+> +	}
+this is OK. 
+>  	/* enable the rtc alarm interrupt */
+>  	rtc_control |= RTC_AIE;
+>  	CMOS_WRITE(rtc_control, RTC_CONTROL);
+> ---
+> This is for Linux 2.6.26-rc7.
 > --
-> VMware, Inc. is providing the following patch to you under the terms
-> of the GPL
-> version 2 and no later version. This patch is provided as is, with no
-> warranties or support. VMware disclaims all liability in connection
-> with
-> the use/inability to use this patch. Any use of the attached is
-> considered acceptance of the above.
-> 
-> Signed-off-by: Alok N Kataria <akataria@vmware.com>
-> Cc: Zhang Rui <rui.zhang@intel.com>
-> 
-> Index: linux-2.6/drivers/acpi/scan.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/scan.c  2008-06-13 10:51:16.000000000
-> -0700
-> +++ linux-2.6/drivers/acpi/scan.c       2008-06-13 11:32:14.000000000
-> -0700
-> @@ -96,14 +96,7 @@
-> 
->  static int acpi_bus_hot_remove_device(void *context)
->  {
-> -       struct acpi_device *device;
-> -       acpi_handle handle = context;
-> -       struct acpi_object_list arg_list;
-> -       union acpi_object arg;
-> -       acpi_status status = AE_OK;
-> -
-> -       if (acpi_bus_get_device(handle, &device))
-> -               return 0;
-> +       struct acpi_device *device = context;
-> 
->         if (!device)
->                 return 0;
-> @@ -118,32 +111,6 @@
->                 return -1;
->         }
-> 
-> -       /* power off device */
-> -       status = acpi_evaluate_object(handle, "_PS3", NULL, NULL);
-> -       if (ACPI_FAILURE(status) && status != AE_NOT_FOUND)
-> -               ACPI_DEBUG_PRINT((ACPI_DB_WARN,
-> -                               "Power-off device failed\n"));
-> -
-> -       if (device->flags.lockable) {
-> -               arg_list.count = 1;
-> -               arg_list.pointer = &arg;
-> -               arg.type = ACPI_TYPE_INTEGER;
-> -               arg.integer.value = 0;
-> -               acpi_evaluate_object(handle, "_LCK", &arg_list, NULL);
-> -       }
-> -
-> -       arg_list.count = 1;
-> -       arg_list.pointer = &arg;
-> -       arg.type = ACPI_TYPE_INTEGER;
-> -       arg.integer.value = 1;
-> -
-> -       /*
-> -        * TBD: _EJD support.
-> -        */
-> -       status = acpi_evaluate_object(handle, "_EJ0", &arg_list,
-> NULL);
-> -       if (ACPI_FAILURE(status))
-> -               return -ENODEV;
-> -
->         return 0;
->  }
-> 
-> @@ -153,6 +120,8 @@
->  {
->         int ret = count;
->         acpi_status status;
-> +       struct acpi_object_list arg_list;
-> +       union acpi_object arg;
->         acpi_object_type type = 0;
->         struct acpi_device *acpi_device = to_acpi_device(d);
->         struct task_struct *task;
-> @@ -172,9 +141,37 @@
->                 goto err;
->         }
-> 
-> -       /* remove the device in another thread to fix the deadlock
-> issue */
-> +       /* power off device */
-> +       status = acpi_evaluate_object(acpi_device->handle, "_PS3",
-> NULL, NULL);
-> +       if (ACPI_FAILURE(status) && status != AE_NOT_FOUND)
-> +               ACPI_DEBUG_PRINT((ACPI_DB_WARN,
-> +                               "Power-off device failed\n"));
-> +
-> +       if (acpi_device->flags.lockable) {
-> +               arg_list.count = 1;
-> +               arg_list.pointer = &arg;
-> +               arg.type = ACPI_TYPE_INTEGER;
-> +               arg.integer.value = 0;
-> +               acpi_evaluate_object(acpi_device->handle,
-> +                                       "_LCK", &arg_list, NULL);
-> +       }
-> +
-> +       arg_list.count = 1;
-> +       arg_list.pointer = &arg;
-> +       arg.type = ACPI_TYPE_INTEGER;
-> +       arg.integer.value = 1;
-> +
-> +       /*
-> +        * TBD: _EJD support.
-> +        */
-> +       status = acpi_evaluate_object(acpi_device->handle,
-> +                                       "_EJ0", &arg_list, NULL);
-> +       if (ACPI_FAILURE(status))
-> +               return -ENODEV;
-> +
-> +       /* unregister the device in another thread to fix the deadlock
-> issue */
->         task = kthread_run(acpi_bus_hot_remove_device,
-> -                               acpi_device->handle,
-> "acpi_hot_remove_device");
-> +                               acpi_device,
-> "acpi_hot_remove_device");
->         if (IS_ERR(task))
->                 ret = PTR_ERR(task);
->  err:
-> 
-> 
-> 
-> 
-
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
