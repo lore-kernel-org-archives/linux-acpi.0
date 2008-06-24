@@ -1,137 +1,201 @@
-From: Alok Kataria <akataria@vmware.com>
-Subject: [PATCH 2/2] acpi based pci gap caluculation v2
-Date: Tue, 24 Jun 2008 11:48:46 -0700
-Message-ID: <1214333326.27577.28.camel@promb-2n-dhcp368.eng.vmware.com>
-Reply-To: akataria@vmware.com
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH] x86 ACPI: normalize segment descriptor register on resume
+Date: Tue, 24 Jun 2008 23:03:48 +0200
+Message-ID: <200806242303.49498.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-outbound-1.vmware.com ([65.113.40.141]:58062 "EHLO
-	smtp-outbound-1.vmware.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755205AbYFXSsr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 24 Jun 2008 14:48:47 -0400
+Received: from ogre.sisk.pl ([217.79.144.158]:48750 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752526AbYFXVCo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 24 Jun 2008 17:02:44 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, Ingo Molnar <mingo@elte.hu>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>
 
-Evaluates the _CRS object under PCI0 looking for producer resources.
-Then searches the e820 memory space for a gap within these producer resources.
+Hi,
 
-Allows us to find a gap for the unclaimed pci resources or MMIO resources
-for hotplug devices within the BIOS allowed pci regions.
+The patch below fixes the regression described at
+http://bugzilla.kernel.org/show_bug.cgi?id=10927
+which is caused by the fact that some BIOSes call the kernel's resume code with
+post-protected mode garbage in segment registers.
 
-v1->v2: Some changes in the print strings.
-	Also note the prototype for e820_search_gap has changes in this
-	iteration, but the return value is ignored while calling it over here.
+Apart from Dell laptops referred to in the chagelog it has a potential to fix
+some other systems on which resume from suspend to RAM fails in a mysterious
+way and the probability of it breaking things is rather small, so IMO it would
+be nice to have in 2.6.26.
 
-Signed-off-by: Alok N Kataria <akataria@vmware.com>
+Thanks,
+Rafael
 
-Index: linux-x86-tree.git/arch/x86/pci/acpi.c
+
+---
+From: H. Peter Anvin <hpa@zytor.com>
+
+x86 ACPI: normalize segment descriptor register on resume
+
+Some Dell laptops enter resume with apparent garbage in the segment
+descriptor registers (almost certainly the result of a botched
+transition from protected to real mode.)  The only way to clean that
+up is to enter protected mode ourselves and clean out the descriptor
+registers.
+
+This fixes resume on Dell XPS M1210 and Dell D620.
+
+Reference: http://bugzilla.kernel.org/show_bug.cgi?id=10927
+
+Signed-off-by: H. Peter Anvin <hpa@zytor.com>
+Tested-by: Kirill A. Shutemov <kirill@shutemov.name>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ arch/x86/kernel/acpi/realmode/wakeup.S |   38 ++++++++++++++++++++++++++++++++-
+ arch/x86/kernel/acpi/realmode/wakeup.h |    5 ++++
+ arch/x86/kernel/acpi/sleep.c           |   16 +++++++++++++
+ drivers/acpi/sleep/main.c              |    5 +---
+ 4 files changed, 59 insertions(+), 5 deletions(-)
+
+Index: linux-2.6/arch/x86/kernel/acpi/realmode/wakeup.S
 ===================================================================
---- linux-x86-tree.git.orig/arch/x86/pci/acpi.c	2008-06-23 17:24:07.000000000 -0700
-+++ linux-x86-tree.git/arch/x86/pci/acpi.c	2008-06-24 10:57:43.000000000 -0700
-@@ -4,6 +4,7 @@
- #include <linux/irq.h>
- #include <linux/dmi.h>
- #include <asm/numa.h>
-+#include <asm/e820.h>
- #include "pci.h"
+--- linux-2.6.orig/arch/x86/kernel/acpi/realmode/wakeup.S
++++ linux-2.6/arch/x86/kernel/acpi/realmode/wakeup.S
+@@ -5,6 +5,7 @@
+ #include <asm/msr-index.h>
+ #include <asm/page.h>
+ #include <asm/pgtable.h>
++#include <asm/processor-flags.h>
  
- struct pci_root_info {
-@@ -14,6 +15,11 @@
- 	int busnum;
- };
+ 	.code16
+ 	.section ".header", "a"
+@@ -24,6 +25,11 @@ pmode_gdt:	.quad	0
+ realmode_flags:	.long	0
+ real_magic:	.long	0
+ trampoline_segment:	.word 0
++_pad1:		.byte	0
++wakeup_jmp:	.byte	0xea	/* ljmpw */
++wakeup_jmp_off:	.word	3f
++wakeup_jmp_seg:	.word	0
++wakeup_gdt:	.quad	0, 0, 0
+ signature:	.long	0x51ee1111
  
-+struct gap_info {
-+	unsigned long gapstart;
-+	unsigned long gapsize;
-+};
+ 	.text
+@@ -34,11 +40,34 @@ _start:
+ 	cli
+ 	cld
+ 
++	/* Apparently some dimwit BIOS programmers don't know how to
++	   program a PM to RM transition, and we might end up here with
++	   junk in the data segment descriptor registers.  The only way
++	   to repair that is to go into PM and fix it ourselves... */
++	movw	$16, %cx
++	lgdtl	%cs:wakeup_gdt
++	movl	%cr0, %eax
++	orb	$X86_CR0_PE, %al
++	movl	%eax, %cr0
++	jmp	1f
++1:	ljmpw	$8, $2f
++2:
++	movw	%cx, %ds
++	movw	%cx, %es
++	movw	%cx, %ss
++	movw	%cx, %fs
++	movw	%cx, %gs
 +
- static acpi_status
- resource_to_addr(struct acpi_resource *resource,
- 			struct acpi_resource_address64 *addr)
-@@ -110,6 +116,70 @@
++	andb	$~X86_CR0_PE, %al
++	movl	%eax, %cr0
++	jmp	wakeup_jmp
++3:
+ 	/* Set up segments */
+ 	movw	%cs, %ax
+ 	movw	%ax, %ds
+ 	movw	%ax, %es
+ 	movw	%ax, %ss
++	lidtl	wakeup_idt
+ 
+ 	movl	$wakeup_stack_end, %esp
+ 
+@@ -98,7 +127,14 @@ bogus_real_magic:
+ 	jmp	1b
+ 
+ 	.data
+-	.balign	4
++	.balign	8
++
++	/* This is the standard real-mode IDT */
++wakeup_idt:
++	.word	0xffff		/* limit */
++	.long	0		/* address */
++	.word	0
++
+ 	.globl	HEAP, heap_end
+ HEAP:
+ 	.long	wakeup_heap
+Index: linux-2.6/arch/x86/kernel/acpi/realmode/wakeup.h
+===================================================================
+--- linux-2.6.orig/arch/x86/kernel/acpi/realmode/wakeup.h
++++ linux-2.6/arch/x86/kernel/acpi/realmode/wakeup.h
+@@ -24,6 +24,11 @@ struct wakeup_header {
+ 	u32 realmode_flags;
+ 	u32 real_magic;
+ 	u16 trampoline_segment;	/* segment with trampoline code, 64-bit only */
++	u8  _pad1;
++	u8  wakeup_jmp;
++	u16 wakeup_jmp_off;
++	u16 wakeup_jmp_seg;
++	u64 wakeup_gdt[3];
+ 	u32 signature;		/* To check we have correct structure */
+ } __attribute__((__packed__));
+ 
+Index: linux-2.6/arch/x86/kernel/acpi/sleep.c
+===================================================================
+--- linux-2.6.orig/arch/x86/kernel/acpi/sleep.c
++++ linux-2.6/arch/x86/kernel/acpi/sleep.c
+@@ -50,6 +50,20 @@ int acpi_save_state_mem(void)
+ 
+ 	header->video_mode = saved_video_mode;
+ 
++	header->wakeup_jmp_seg = acpi_wakeup_address >> 4;
++	/* GDT[0]: GDT self-pointer */
++	header->wakeup_gdt[0] =
++		(u64)(sizeof(header->wakeup_gdt) - 1) +
++		((u64)(acpi_wakeup_address +
++			((char *)&header->wakeup_gdt - (char *)acpi_realmode))
++				<< 16);
++	/* GDT[1]: real-mode-like code segment */
++	header->wakeup_gdt[1] = (0x009bULL << 40) +
++		((u64)acpi_wakeup_address << 16) + 0xffff;
++	/* GDT[2]: real-mode-like data segment */
++	header->wakeup_gdt[2] = (0x0093ULL << 40) +
++		((u64)acpi_wakeup_address << 16) + 0xffff;
++
+ #ifndef CONFIG_64BIT
+ 	store_gdt((struct desc_ptr *)&header->pmode_gdt);
+ 
+@@ -111,7 +125,7 @@ void __init acpi_reserve_bootmem(void)
+ 		return;
  	}
+ 
+-	acpi_wakeup_address = acpi_realmode;
++	acpi_wakeup_address = virt_to_phys((void *)acpi_realmode);
  }
  
-+static acpi_status search_gap(struct acpi_resource *resource, void *data)
-+{
-+	struct acpi_resource_address64 addr;
-+	acpi_status status;
-+	struct gap_info *gap = data;
-+
-+	status = resource_to_addr(resource, &addr);
-+	if (ACPI_SUCCESS(status) &&
-+	    addr.resource_type == ACPI_MEMORY_RANGE &&
-+	    addr.address_length > gap->gapsize) {
-+		e820_search_gap(&gap->gapstart, &gap->gapsize,
-+				(addr.minimum + addr.translation_offset));
-+	}
-+
-+	return AE_OK;
-+}
-+
-+/*
-+ * Search for a hole in the 32 bit address space for PCI to assign MMIO
-+ * resources for hotplug or unconfigured resources.
-+ * We query the CRS object of the PCI root device to look for possible producer
-+ * resources in the tree and consider these while calulating the start address
-+ * for this hole.
-+ */
-+static void pci_setup_gap(acpi_handle *handle)
-+{
-+	struct gap_info gap;
-+	acpi_status status;
-+
-+	gap.gapstart = 0;
-+	gap.gapsize = 0x400000;
-+
-+	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
-+				     search_gap, &gap);
-+
-+	if (ACPI_SUCCESS(status)) {
-+		unsigned long round;
-+
-+		if (!gap.gapstart) {
-+			printk(KERN_ERR "ACPI: Warning: Cannot find a gap "
-+					"in the 32bit address range for PCI\n"
-+					"ACPI: PCI devices may collide with "
-+					"hotpluggable memory address range\n");
-+		}
-+		/*
-+		 * Round the gapstart, uses the same logic as in
-+		 * e820_gap_setup
-+		 */
-+		round = 0x100000;
-+		while ((gap.gapsize >> 4) > round)
-+			round += round;
-+		/* Fun with two's complement */
-+		pci_mem_start = (gap.gapstart + round) & -round;
-+
-+		printk(KERN_INFO "ACPI: PCI resources should "
-+				"start at %lx (gap: %lx:%lx)\n",
-+				pci_mem_start, gap.gapstart, gap.gapsize);
-+	} else {
-+		printk(KERN_ERR "ACPI: Error while searching for gap in "
-+				"the 32bit address range for PCI\n");
-+	}
-+}
-+
-+
- static void
- get_current_resources(struct acpi_device *device, int busnum,
- 			int domain, struct pci_bus *bus)
-@@ -220,6 +290,8 @@
  
- 	if (bus && (pci_probe & PCI_USE__CRS))
- 		get_current_resources(device, busnum, domain, bus);
-+
-+	pci_setup_gap(device->handle);
- 	return bus;
- }
+Index: linux-2.6/drivers/acpi/sleep/main.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/sleep/main.c
++++ linux-2.6/drivers/acpi/sleep/main.c
+@@ -32,9 +32,8 @@ static int acpi_sleep_prepare(u32 acpi_s
+ 		if (!acpi_wakeup_address) {
+ 			return -EFAULT;
+ 		}
+-		acpi_set_firmware_waking_vector((acpi_physical_address)
+-						virt_to_phys((void *)
+-							     acpi_wakeup_address));
++		acpi_set_firmware_waking_vector(
++				(acpi_physical_address)acpi_wakeup_address);
  
-
-
+ 	}
+ 	ACPI_FLUSH_CPU_CACHE();
