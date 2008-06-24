@@ -1,72 +1,117 @@
-From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-Subject: Re: + fujitsu-laptop-depends-on-input.patch added to -mm tree
-Date: Tue, 24 Jun 2008 10:11:04 +0930 (CST)
-Message-ID: <200806240041.m5O0f46x014878@turbo.physics.adelaide.edu.au>
-References: <200806240001.m5O01M6h023130@imap1.linux-foundation.org>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: Re: [RFC] serio driver: speed up resume
+Date: Tue, 24 Jun 2008 10:02:58 +0800
+Message-ID: <1214272978.29380.2.camel@sli10-desk.sh.intel.com>
+References: <1213607375.31950.2.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:58741 "EHLO
-	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751278AbYFXAoE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 23 Jun 2008 20:44:04 -0400
-Received: from turbo.physics.adelaide.edu.au (IDENT:0@turbo [129.127.102.108])
-	by adelphi.physics.adelaide.edu.au (8.13.7/8.13.7/UofA-Physics-1.0) with ESMTP id m5O0i1GK003319
-	for <linux-acpi@vger.kernel.org>; Tue, 24 Jun 2008 10:14:01 +0930
-Received: from turbo.physics.adelaide.edu.au (IDENT:7157@localhost [127.0.0.1])
-	by turbo.physics.adelaide.edu.au (8.13.4/8.13.4) with ESMTP id m5O0i1J3014964
-	for <linux-acpi@vger.kernel.org>; Tue, 24 Jun 2008 10:14:01 +0930
-Received: (from jwoithe@localhost)
-	by turbo.physics.adelaide.edu.au (8.13.4/8.13.4/Submit) id m5O0i01k014963
-	for linux-acpi@vger.kernel.org; Tue, 24 Jun 2008 10:14:00 +0930
-In-Reply-To: <200806240001.m5O01M6h023130@imap1.linux-foundation.org> from "akpm@linux-foundation.org" at Jun 23, 2008 05:01:22 PM
+Received: from mga02.intel.com ([134.134.136.20]:62485 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752335AbYFXB4h (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 23 Jun 2008 21:56:37 -0400
+In-Reply-To: <1213607375.31950.2.camel@sli10-desk.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: akpm@linux-foundation.org
-Cc: randy.dunlap@oracle.com, jwoithe@physics.adelaide.edu.au, lenb@kernel.org
+To: linux-input@vger.kernel.org
+Cc: dmitry.torokhov@gmail.com, Len Brown <lenb@kernel.org>, linux acpi <linux-acpi@vger.kernel.org>
 
-Hi Len
+On Mon, 2008-06-16 at 17:09 +0800, Shaohua Li wrote:
+> serio_resume will call into psmouse_extensions(). In my test, the
+> routine is very slow, it blocks resume about 1 sec. Below patch (move
+> resume to kseriod, just like boot time probe) cures the issue in my
+> test, and seems no side effect. I'm no familiar with serio driver, so
+> please check.
+Any comments from input guys?
 
-> The patch titled
->      fujitsu-laptop: depends on INPUT
-> has been added to the -mm tree.  Its filename is
->      fujitsu-laptop-depends-on-input.patch
-> :
-> ------------------------------------------------------
-> Subject: fujitsu-laptop: depends on INPUT
-> From: Randy Dunlap <randy.dunlap@oracle.com>
+Thanks,
+Shaohua
+
+
+> Signed-off-by: Shaohua Li <shaohua.li@intel.com>
 > 
-> fujitsu-laptop uses input_* functions, so it should depend on INPUT.
-> :
-> Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-> Cc: <jwoithe@physics.adelaide.edu.au>
-> Cc: Len Brown <lenb@kernel.org>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
+> diff --git a/drivers/input/serio/serio.c b/drivers/input/serio/serio.c
+> index 7f52938..7dad33f 100644
+> --- a/drivers/input/serio/serio.c
+> +++ b/drivers/input/serio/serio.c
+> @@ -163,6 +163,7 @@ enum serio_event_type {
+>         SERIO_RECONNECT_PORT,
+>         SERIO_REGISTER_PORT,
+>         SERIO_ATTACH_DRIVER,
+> +       SERIO_RESUME_PORT,
+>  };
 > 
->  drivers/misc/Kconfig |    1 +
->  1 file changed, 1 insertion(+)
+>  struct serio_event {
+> @@ -287,6 +288,13 @@ static struct serio_event *serio_get_event(void)
+>         return event;
+>  }
 > 
-> diff -puN drivers/misc/Kconfig~fujitsu-laptop-depends-on-input drivers/misc/Kconfig
-> --- a/drivers/misc/Kconfig~fujitsu-laptop-depends-on-input
-> +++ a/drivers/misc/Kconfig
-> @@ -179,6 +179,7 @@ config FUJITSU_LAPTOP
->          tristate "Fujitsu Laptop Extras"
->          depends on X86
->          depends on ACPI
-> +        depends on INPUT
->          depends on BACKLIGHT_CLASS_DEVICE
->          ---help---
->  	  This is a driver for laptops built by Fujitsu:
-
-Ack.
-
-Randy's right - fujitsu-laptop depends on INPUT.  Please apply to ACPI tree.
-
-Signed-off-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-
-Regards
-  jonathan
+> +#ifdef CONFIG_PM
+> +static void serio_resume_port(struct device *dev);
+> +#else
+> +static inline void serio_resume_port(struct device *dev)
+> +{
+> +}
+> +#endif /* CONFIG_PM */
+>  static void serio_handle_event(void)
+>  {
+>         struct serio_event *event;
+> @@ -319,6 +327,10 @@ static void serio_handle_event(void)
+>                                 serio_attach_driver(event->object);
+>                                 break;
+> 
+> +                       case SERIO_RESUME_PORT:
+> +                               serio_resume_port(event->object);
+> +                               break;
+> +
+>                         default:
+>                                 break;
+>                 }
+> @@ -922,21 +934,26 @@ static int serio_suspend(struct device *dev,
+> pm_message_t state)
+>         return 0;
+>  }
+> 
+> -static int serio_resume(struct device *dev)
+> +static void serio_resume_port(struct device *dev)
+>  {
+>         struct serio *serio = to_serio_port(dev);
+> 
+> -       if (dev->power.power_state.event != PM_EVENT_ON &&
+> -           serio_reconnect_driver(serio)) {
+> -               /*
+> -                * Driver re-probing can take a while, so better let
+> kseriod
+> -                * deal with it.
+> -                */
+> -               serio_rescan(serio);
+> +       if (serio_reconnect_driver(serio)) {
+> +               serio_disconnect_port(serio);
+> +               serio_find_driver(serio);
+>         }
+> 
+>         dev->power.power_state = PMSG_ON;
+> +}
+> 
+> +static int serio_resume(struct device *dev)
+> +{
+> +       /*
+> +        * Driver reconnect can take a while, so better let kseriod
+> +        * deal with it.
+> +        */
+> +       if (dev->power.power_state.event != PM_EVENT_ON)
+> +               serio_queue_event(dev, NULL, SERIO_RESUME_PORT);
+>         return 0;
+>  }
+>  #endif /* CONFIG_PM */
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi"
+> in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
 
