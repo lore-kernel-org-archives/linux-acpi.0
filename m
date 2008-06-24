@@ -1,74 +1,55 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [RFC] [PATCH 2/3] x86_64: mark ACPI NVS region
-Date: Tue, 24 Jun 2008 15:43:06 +0800
-Message-ID: <1214293386.3001.110.camel@rzhang-dt.sh.intel.com>
+From: Rene Herman <rene.herman@keyaccess.nl>
+Subject: Re: [PATCH 2.6.26-rc] ACPI Thermal Zone driver breaks lm-sensors
+ 2  userspace
+Date: Tue, 24 Jun 2008 11:28:43 +0200
+Message-ID: <4860BE4B.10100@keyaccess.nl>
+References: <fa.4PGqX9CuLbgiTimfCcon+PlAMxk@ifi.uio.no>	<fa.PWu620xEt5OlYdOezvRtQriuNjM@ifi.uio.no>	<48605935.5070407@shaw.ca>	<alpine.LFD.1.10.0806232004480.2926@woody.linux-foundation.org> <20080624085940.3ee3bf77@hyperion.delvare>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:50858 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751105AbYFXHm2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 24 Jun 2008 03:42:28 -0400
+Received: from smtpq1.tilbu1.nb.home.nl ([213.51.146.200]:37929 "EHLO
+	smtpq1.tilbu1.nb.home.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758166AbYFXJ2K (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Jun 2008 05:28:10 -0400
+In-Reply-To: <20080624085940.3ee3bf77@hyperion.delvare>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-power-mgmt <linux-power-mgmt@linux.intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
-Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, "Zhang, Rui" <rui.zhang@intel.com>, "Li, Shaohua" <shaohua.li@intel.com>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Robert Hancock <hancockr@shaw.ca>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Hans de Goede <j.w.r.degoede@hhs.nl>, Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, Linux Kernel <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
+On 24-06-08 08:59, Jean Delvare wrote:
 
-x86_64: Mark ACPI NVS memory region.
+> On Mon, 23 Jun 2008 20:07:15 -0700 (PDT), Linus Torvalds wrote:
+>> On Mon, 23 Jun 2008, Robert Hancock wrote:
+>>> Mark M. Hoffman wrote:
+>>>> 2) This patch is broken.
+>>> You didn't indicate what was wrong with the patch.
+>> Yes. Leaving everybody wondering whether it's just an opinionated 
+>> expression of the former problem, or whether there is a real and 
+>> understandable reason why it was NACK'ed.
+> 
+> I guess Mark assumed that everybody had read the discussion thread Rene
+> referenced, where I explained why his patch was broken:
+> 
+> http://lkml.org/lkml/2008/6/23/175
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- arch/x86/kernel/e820_64.c |   29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
+You could've known that he himself didn't because in that same thread I 
+explained to you why it wasn't broken in actual real life.
 
-Index: linux-2.6/arch/x86/kernel/e820_64.c
-===================================================================
---- linux-2.6.orig/arch/x86/kernel/e820_64.c	2008-06-19 15:09:52.000000000 +0800
-+++ linux-2.6/arch/x86/kernel/e820_64.c	2008-06-19 15:11:45.000000000 +0800
-@@ -19,6 +19,8 @@
- #include <linux/mm.h>
- #include <linux/suspend.h>
- #include <linux/pfn.h>
-+#include <linux/efi.h>
-+#include <linux/acpi.h>
- 
- #include <asm/pgtable.h>
- #include <asm/page.h>
-@@ -377,6 +379,33 @@
- 	}
- }
- 
-+#ifdef CONFIG_HIBERNATION
-+/* Mark ACPI NVS region, so that OS can save/restore it during hibernation */
-+static int __init e820_mark_nvs_memory(void)
-+{
-+	int i;
-+
-+	if (efi_enabled)
-+		return 0;
-+
-+	for (i = 0; i < e820.nr_map; i++) {
-+		struct e820entry *ei = &e820.map[i];
-+		unsigned long start, end;
-+
-+		if (ei->type != E820_NVS)
-+			continue;
-+		start = round_up(ei->addr, PAGE_SIZE) >> PAGE_SHIFT;
-+		end = round_down(ei->addr + ei->size, PAGE_SIZE) >> PAGE_SHIFT;
-+		if (start >= end)
-+			continue;
-+
-+		acpi_mark_nvs_region(start, end - 1);
-+	}
-+	return 0;
-+}
-+core_initcall(e820_mark_nvs_memory);
-+#endif
-+
- /*
-  * Finds an active region in the address range from start_pfn to end_pfn and
-  * returns its range in ei_startpfn and ei_endpfn for the e820 entry.
+That said, I agree that with the issue of multiple thermal zones sharing 
+a single hwmon interface (as also indicated in the changelog) it's not a 
+nice solution. Len Brown also indicated that the "make it optional" 
+patch (originally nacked as ugly by Hans, which was the only reason I 
+tried getting you people something else again...) that I saw Zhang Rui 
+repost just now would be better than that.
 
+And, as said, now that lm-sensors 2.10.7 is close, I don't actually 
+think it's a huge deal anymore anyway. The breakage is still pretty 
+unfortunate, but that one should be painless enough as an upgrade to 
+shrug this off really. It was the upgrade path to 3.x which would've 
+been much too painful to have this done without any prior warning.
 
+So we're waiting for 2.10.7 now.
+
+Rene.
