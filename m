@@ -1,82 +1,118 @@
-From: Alok Kataria <akataria@vmware.com>
-Subject: Re: [PATCH 2/2] acpi based pci gap caluculation v2
-Date: Wed, 25 Jun 2008 11:22:40 -0700
-Message-ID: <1214418160.27577.87.camel@promb-2n-dhcp368.eng.vmware.com>
-References: <1214333326.27577.28.camel@promb-2n-dhcp368.eng.vmware.com>
-	 <1214362159.9800.28.camel@yakui_zhao.sh.intel.com>
-	 <35f686220806242117p4a442982hb459a6b76312f391@mail.gmail.com>
-	 <1214372365.9800.42.camel@yakui_zhao.sh.intel.com>
-	 <35f686220806242304q43987059xb203dd1ac75b7583@mail.gmail.com>
-	 <1214383095.9800.85.camel@yakui_zhao.sh.intel.com>
-	 <1214413073.27577.67.camel@promb-2n-dhcp368.eng.vmware.com>
-Reply-To: akataria@vmware.com
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC][PATCH 6/9] PCI ACPI: Introduce acpi_pm_device_sleep_wake function
+Date: Wed, 25 Jun 2008 20:57:46 +0200
+Message-ID: <200806252057.47869.rjw@sisk.pl>
+References: <200806200145.33053.rjw@sisk.pl> <1214381467.3001.173.camel@rzhang-dt.sh.intel.com> <1214389766.9800.106.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-outbound-1.vmware.com ([65.113.40.141]:52584 "EHLO
-	smtp-outbound-1.vmware.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751250AbYFYSWl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Jun 2008 14:22:41 -0400
-In-Reply-To: <1214413073.27577.67.camel@promb-2n-dhcp368.eng.vmware.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:54019 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752811AbYFYS4k (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 25 Jun 2008 14:56:40 -0400
+In-Reply-To: <1214389766.9800.106.camel@yakui_zhao.sh.intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>, Ingo Molnar <mingo@elte.hu>, lenb@kernel.org
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Wed, 2008-06-25 at 09:57 -0700, Alok Kataria wrote:
+On Wednesday, 25 of June 2008, Zhao Yakui wrote:
+> On Wed, 2008-06-25 at 16:11 +0800, Zhang Rui wrote:
+> > Hi, Rafael,
+> > 
+> > On Fri, 2008-06-20 at 01:51 +0200, Rafael J. Wysocki wrote:
+> > > From: Rafael J. Wysocki <rjw@sisk.pl>
+> > > 
+> > > PCI ACPI: Introduce acpi_pm_device_sleep_wake function
+> > > 
+> > > Introduce function acpi_pm_device_sleep_wake() for enabling and
+> > > disabling the system wake-up capability of devices that are power
+> > > manageable by ACPI.
+> > > 
+> > > Introduce callback .sleep_wake() in struct pci_platform_pm_ops and
+> > > for the ACPI PCI 'driver' make it use acpi_pm_device_sleep_wake().
+> > 
+> > acpi_pm_device_sleep_wake only enable/disable the power of wakeup
+> > device, right?
+> > If it doesn't set the acpi_device->wakeup.state.enabled, the wake up GPE
+> > will not be enabled, which means the pci devices which have invoked
+> > platform_pci_sleep_wake(dev, true) can not wake up the system as
+> > excepted.
+> > so this patch won't work. Is this what you want? or do I miss something?
+> >From the patch it seems that acpi_dev->wakeup.state.enable is not set in
+> >the function of acpi_pm_device_sleep_wake. If it is not set, it means
+> >that the corresponding GPE won't be enabled. The device still can't wake
+> >up the sleeping system. 
 
-> While writing this mail i figured out that, instead of searching from
-> start_addr of _CRS to 2^32 we should just search till *end_addr* of _CRS resource.
-> I will send a patch to that effect. 
+This is a good point, because I forgot about the GPE.
+
+However, it's not my intention to set acpi_device->wakeup.state.enabled in
+acpi_pm_device_sleep_wake().  Instead, I'd like to use the
+/sys/devices/.../power/wakeup interface and more precisely the
+dev->power.should_wakeup flag that is supposed to have been set/unset as
+needed _before_ acpi_pm_device_sleep_wake() is called.
+
+Still, I'll need to make the code in drivers/acpi/sleep/wakeup.c enable/disable
+the wake-up GPEs for devices that have both dev->power.can_wakeup and
+dev->power.should_wakeup set, as though these devices had
+acpi_device->wakeup.state.enabled set.
+
+> > But what is annoying me is that,
+> > if acpi_device->wakeup.state.enabled is set in
+> > acpi_pm_device_sleep_wake, this may bring some other trouble.
+> > A lot of pci devices will call platform_pci_sleep_wake(dev, true) by
+> > default, they won't wake up the system before because the wake up GPEs
+> > are disabled, but they will do if this patch is applied.
+> > So some of the users may got the "resume immediately after sleep"
+> > problem, that's a regression, isn't it?
+
+That won't happen as long as the devices' dev->power.should_wakeup flags are
+not set.
+
+Note that in the most recent series of patches these flags are unset by default
+for devices that cannot generate PME#, but there are PCI devices that can
+generate both PME# and the ACPI-enabled wake-up events and those devices will
+have dev->power.should_wakeup set by default.  Still, if that may cause any
+problems, we can unset dev->power.should_wakeup for all devices during
+initialization and let the user space set it as desired.
+
+> What Rui said is right. In current kernel when the system enters the
+> sleeping state, the pci_enable_wake(dev,state, 1) will be called for the
+> PCI device. If acpi_dev->wakeup.state.enabled is set in
+> acpi_pm_device_sleep_wake , it means that the wakeup GPE will be
+> enabled. Maybe some systems will be resumed immediately after sleeping.
+> this is not what we expected.
+
+However, pci_enable_wake() calls device_may_wakeup() and immediately aborts if
+that returns 'false', so the user space can control its behavior using the
+/sys/devices/.../power/wakeup interface.
+
+> > 
+> > we have discussed this a couple of times on the list, but we have not
+> > got a solution yet.
+> > IMO, both Dave's and your patches are good, and we can be a little
+> > aggressive to merge them, and fix the drivers once we get any
+> > regressions ASAP.
+> As the acpi_dev->wakeup.state.enabled is not touched in this patch, it
+> will be OK to merge them. 
 > 
-> Thanks,
-> Alok
-> 
+> If acpi_dev->wakeup.state.enable is required to be set/unset in
+> acpi_pm_device_sleep_wake, maybe Rui's suggestion is good. Unless some
+> device is expected to wake up the sleeping system, we will enable the
+> corresponding GPE. Otherwise it will be assumed that the device needn't
+> wake up the sleeping system and unnecessary to enable the device power
+> and the corresponding GPE.
+> > i.e. either change pci_enable_wake(dev, 1) to pci_enable_wake(dev, 0) in
+> > the drivers suspend method, or invoke  device_set_wakeup_enable(dev, 0)
+> > to disable the wakeup ability after the call to device_init_wakeup(dev,
+> > 1).
+> > 
+> > any ideas?
 
-Ingo, Please also apply this patch to the tip/out-of-tree
---
+Please see above. :-)
 
-Incremental patch . This patch passes the pci producer resources
-end_addr (got from _CRS) to the e820_search_gap function. 
-Without this patch the code will always search from the producer regions
-start_address to 2^32, even though the producer region may be smaller. 
-
-Now , we limit the search only within the producer region's address
-space. 
-Also we put a condition to check if the resource lies in the 32bit
-address range. 
-
-Signed-off-by: Alok N Kataria <akataria@vmware.com>
-
-Index: linux-x86-tree.git/arch/x86/pci/acpi.c
-===================================================================
---- linux-x86-tree.git.orig/arch/x86/pci/acpi.c	2008-06-25 10:11:35.000000000 -0700
-+++ linux-x86-tree.git/arch/x86/pci/acpi.c	2008-06-25 11:17:31.000000000 -0700
-@@ -121,13 +121,21 @@
- 	struct acpi_resource_address64 addr;
- 	acpi_status status;
- 	struct gap_info *gap = data;
-+	unsigned long long start_addr, end_addr;
- 
- 	status = resource_to_addr(resource, &addr);
- 	if (ACPI_SUCCESS(status) &&
- 	    addr.resource_type == ACPI_MEMORY_RANGE &&
- 	    addr.address_length > gap->gapsize) {
--		e820_search_gap(&gap->gapstart, &gap->gapsize,
--				(addr.minimum + addr.translation_offset));
-+		start_addr = addr.minimum + addr.translation_offset;
-+		/*
-+		 * We want space only in the 32bit address range
-+		 */
-+		if (start_addr < UINT_MAX) {
-+			end_addr = start_addr + addr.address_length;
-+			e820_search_gap(&gap->gapstart, &gap->gapsize,
-+					start_addr, end_addr);
-+		}
- 	}
- 
- 	return AE_OK;
-
-
+Thanks,
+Rafael
