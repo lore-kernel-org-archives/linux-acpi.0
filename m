@@ -1,72 +1,106 @@
-From: Arjan van de Ven <arjan@infradead.org>
-Subject: Re: [PATCH] ACPI: add standard linux WARN() output to ACPI warnings
-Date: Tue, 24 Jun 2008 19:49:15 -0700
-Message-ID: <20080624194915.11d6aee9@infradead.org>
-References: <20080620095247.GA24557@elte.hu>
-	<20080620135639.GA5073@damson.getinternet.no>
-	<20080620142224.GF8135@elte.hu>
-	<alpine.LFD.1.10.0806242231120.3014@localhost.localdomain>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [RFC] [PATCH 1/3] ACPI: save/restore ACPI NVS memory during
+	hibernation
+Date: Wed, 25 Jun 2008 10:55:00 +0800
+Message-ID: <1214362501.3001.134.camel@rzhang-dt.sh.intel.com>
+References: <1214293383.3001.108.camel@rzhang-dt.sh.intel.com>
+	 <200806241218.25691.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:59541 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750708AbYFYCta (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Jun 2008 22:49:30 -0400
-In-Reply-To: <alpine.LFD.1.10.0806242231120.3014@localhost.localdomain>
+Received: from mga01.intel.com ([192.55.52.88]:10853 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751623AbYFYCyX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 24 Jun 2008 22:54:23 -0400
+In-Reply-To: <200806241218.25691.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>, Vegard Nossum <vegard.nossum@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Zhao Yakui <yakui.zhao@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alexey Starikovskiy <astarikovskiy@suse.de>, Yinghai Lu <yhlu.kernel@gmail.com>
-
-On Tue, 24 Jun 2008 22:34:25 -0400 (EDT)
-Len Brown <lenb@kernel.org> wrote:
-
-> From: Len Brown <len.brown@intel.com>
-> 
-> Signed-off-by: Len Brown <len.brown@intel.com>
-> ---
-> > i have hit this warning for the first time in January 2008:
-> ...
-> > that's why WARN_ON()s are so important - there's no way my
-> > automated tools (or even i, when taking a casual look at the logs)
-> > could have picked up that new ACPI Exception - if each subsystem
-> > has different warnings (which change frequently) then it's sheer
-> > impossible to automate the answer to the "does that log show any
-> > anomaly" question. 
-> 
-> Maybe something like this would help?
-> (totally untested)
-> 
-> -Len
-> 
-> diff --git a/drivers/acpi/utilities/utmisc.c
-> b/drivers/acpi/utilities/utmisc.c index 1f057b7..d53e82c 100644
-> --- a/drivers/acpi/utilities/utmisc.c
-> +++ b/drivers/acpi/utilities/utmisc.c
-> @@ -1028,6 +1028,7 @@ acpi_ut_error(char *module_name, u32
-> line_number, char *format, ...) {
->  	va_list args;
->  
-> +	warn_on_slowpath(module_name, line_number);
->  	acpi_os_printf("ACPI Error (%s-%04d): ", module_name,
-> line_number); 
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-power-mgmt <linux-power-mgmt@linux.intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Li, Shaohua" <shaohua.li@intel.com>
 
 
+On Tue, 2008-06-24 at 18:18 +0800, Rafael J. Wysocki wrote:
+> On Tuesday, 24 of June 2008, Zhang Rui wrote:
+> > According to the ACPI spec, ACPI NVS memory region is required to b=
+e
+> > saved/restored by OS during hibernation.
+> >
+> > Section 15.3.2 ACPI Spec 3.0b,
+> > "OSPM will call the _PTS control method some time before entering a
+> sleeping state,
+> > to allow the platform=E2=80=99s AML code to update this memory imag=
+e before
+> entering the
+> > sleeping state. After the system awakes from an S4 state, OSPM will
+> restore this memory
+> > area and call the _WAK control method to enable the BIOS to reclaim
+> its memory image."
+> >
+> > Add the mechanism to save/restore ACPI NVS memory during
+> hibernation.
+> >
+> > Note: now Linux save ACPI NVS memory in
+> acpi_hibernation_pre_snapshot, and restore it in
+> >       acpi_hibernation_leave. Both of these functions will be
+> invoked only once during
+> >       the hibernate and resume.
+> > Note: in Section 14.3 ACPI spec 3.0b, I only get
+> >       "EfiACPIMemoryNVS: The OS and loader must preserve this memor=
+y
+> range in
+> >       the working and ACPI S1=E2=80=93S3 states."
+> >       whether we should save/restore this piece of memory is not
+> cleared.
+> >
+> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+>=20
+> Well, I know what the specification says, but we tried that in the
+> past and it
+> caused regressions.
+Yes, Shaohua generated the prototype patches a couple of years ago.
+But this is slightly different from the original one, e.g. not touching
+ACPI DATA memory, saving ACPI NVS memory after _PTS and restore it
+before _WAK strictly, etc.
+We generate this patch set and hope it be helpful for some hibernate
+specific issues.
 
-Please do not use warn_on_slowpath() directly!
-Please use WARN_ON() or WARN(). The later has printk semantics so this
-could turn into
+> > +
+> > +static int
+> > +acpi_hibernation_notifier_cb(struct notifier_block *nb,
+> > +                     unsigned long val, void *data)
+> > +{
+> > +     int result =3D 0;
+> > +
+> > +     switch (val) {
+> > +     case PM_HIBERNATION_PREPARE:
+> > +             result =3D acpi_hibernation_allocate_nvs_pages();
+> > +             break;
+> > +     case PM_POST_RESTORE: /* Failed */
+> > +     case PM_POST_HIBERNATION:
+> > +             acpi_hibernation_free_nvs_pages();
+> > +     }
+> > +     return result;
+> > +}
+> > +
+> > +struct notifier_block acpi_hibernation_nb =3D {
+> > +     .notifier_call =3D acpi_hibernation_notifier_cb,
+> > +};
+>=20
+> This is over the top, IMO.  Please put the appropriate call into
+> acpi_hibernation_begin() and create acpi_hibernation_end() with the
+> call to
+> acpi_hibernation_free_nvs_pages() (it must do what acpi_pm_end() does
+> apart
+> from this).
+Pages for ACPI NVS must be allocated before swsusp_shrink_memory.
+And none platform hibernation ops can be used in this case.
 
-WARN(1, "ACPI Error (%s-%0d): \n", module_name, line_number);
+thanks,
+rui
 
-
-and kerneloops.org and various other tools will pick up the printk like
-arguments as part of the warning message.
-
-
--- 
-If you want to reach me at my work email, use arjan@linux.intel.com
-For development, discussion and tips for power savings, 
-visit http://www.lesswatts.org
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
