@@ -1,208 +1,60 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] x86 ACPI: normalize segment descriptor register on resume
-Date: Tue, 24 Jun 2008 17:47:20 -0400 (EDT)
-Message-ID: <alpine.LFD.1.10.0806241747071.3014@localhost.localdomain>
-References: <200806242303.49498.rjw@sisk.pl>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: [PATCH] ACPI: don't walk tables if ACPI was disabled
+Date: Wed, 25 Jun 2008 09:37:37 +0800
+Message-ID: <1214357857.9800.20.camel@yakui_zhao.sh.intel.com>
+References: <20080620135639.GA5073@damson.getinternet.no>
+	 <alpine.LFD.1.10.0806201458500.3027@localhost.localdomain>
+	 <19f34abd0806201340t502ce471n578dd2498a5f1992@mail.gmail.com>
+	 <19f34abd0806201427h740ca3e7gc2f01c7e34616fd4@mail.gmail.com>
+	 <19f34abd0806210119o64a1c9ban78710651a01530cf@mail.gmail.com>
+	 <20080624114139.GC21890@elte.hu>
+	 <19f34abd0806240452w2561040uc2b1b1d35562db71@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms042pub.verizon.net ([206.46.252.42]:54061 "EHLO
-	vms042pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753779AbYFXVrn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Jun 2008 17:47:43 -0400
-In-reply-to: <200806242303.49498.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755518AbYFYB05@vger.kernel.org>
+In-Reply-To: <19f34abd0806240452w2561040uc2b1b1d35562db71@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vegard Nossum <vegard.nossum@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Alexey Starikovskiy <astarikovskiy@suse.de>, Yinghai Lu <yhlu.kernel@gmail.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Andrew Morton <akpm@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>
 
-Applied.
+On Tue, 2008-06-24 at 13:52 +0200, Vegard Nossum wrote:
+> On 6/24/08, Ingo Molnar <mingo@elte.hu> wrote:
+> > i havent seen the warning reappear with your fix after thousands of
+> > bootups - so i guess we can consider it fixed.
+> >
+> > Len, please consider the patch below. (it's in tip/out-of-tree)
+> 
+> No, please don't :-)
+> 
+> It fixes your particular case (the acpi_rtc_init() hunk of the patch),
+> but the acpi_walk_namespace() part should be changed to a WARN(). But
+> that is likely to cause a lot of "spurious" reports, so the other acpi
+> drivers should be fixed as well.
+In fact this issue is related with the following factors:
+   a. when acpi is disabled, OS won't initialize the ACPI mutex, which
+is accessed by many ACPI interface functions. For example:
+acpi_walk_namespace, acpi_install_fixed_event_handler.
+   b. When acpi is disabled, some drivers will call the ACPI interface
+functions. For example: The acpi_walk_namespace is called in
+dock_init/bay_init. The acpi_install_fixed_event_handler is called in
+the acpi_rtc_init.
+   
+  
+   Although the following warning message is harmless, it is still
+confusing.
+   > [    3.980213] ACPI Exception (utmutex-0263): AE_BAD_PARAMETER,
+Thread F7C50000 could not acquire Mutex [3] [20080321]
 
-thanks,
--Len
+   Maybe it is reasonable that the flag of acpi_disabled should be used
+in the drivers using ACPI interface functions. Of course it will be safe
+to use the flag of acpi_disabled in the function of acpi_walk_namespace.
 
-On Tue, 24 Jun 2008, Rafael J. Wysocki wrote:
-
-> Hi,
-> 
-> The patch below fixes the regression described at
-> http://bugzilla.kernel.org/show_bug.cgi?id=10927
-> which is caused by the fact that some BIOSes call the kernel's resume code with
-> post-protected mode garbage in segment registers.
-> 
-> Apart from Dell laptops referred to in the chagelog it has a potential to fix
-> some other systems on which resume from suspend to RAM fails in a mysterious
-> way and the probability of it breaking things is rather small, so IMO it would
-> be nice to have in 2.6.26.
-> 
-> Thanks,
-> Rafael
+Thanks.
+   Yakui.
+> I was waiting for Len to reply, but maybe I can submit the proper fix too.
 > 
 > 
-> ---
-> From: H. Peter Anvin <hpa@zytor.com>
-> 
-> x86 ACPI: normalize segment descriptor register on resume
-> 
-> Some Dell laptops enter resume with apparent garbage in the segment
-> descriptor registers (almost certainly the result of a botched
-> transition from protected to real mode.)  The only way to clean that
-> up is to enter protected mode ourselves and clean out the descriptor
-> registers.
-> 
-> This fixes resume on Dell XPS M1210 and Dell D620.
-> 
-> Reference: http://bugzilla.kernel.org/show_bug.cgi?id=10927
-> 
-> Signed-off-by: H. Peter Anvin <hpa@zytor.com>
-> Tested-by: Kirill A. Shutemov <kirill@shutemov.name>
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> ---
->  arch/x86/kernel/acpi/realmode/wakeup.S |   38 ++++++++++++++++++++++++++++++++-
->  arch/x86/kernel/acpi/realmode/wakeup.h |    5 ++++
->  arch/x86/kernel/acpi/sleep.c           |   16 +++++++++++++
->  drivers/acpi/sleep/main.c              |    5 +---
->  4 files changed, 59 insertions(+), 5 deletions(-)
-> 
-> Index: linux-2.6/arch/x86/kernel/acpi/realmode/wakeup.S
-> ===================================================================
-> --- linux-2.6.orig/arch/x86/kernel/acpi/realmode/wakeup.S
-> +++ linux-2.6/arch/x86/kernel/acpi/realmode/wakeup.S
-> @@ -5,6 +5,7 @@
->  #include <asm/msr-index.h>
->  #include <asm/page.h>
->  #include <asm/pgtable.h>
-> +#include <asm/processor-flags.h>
->  
->  	.code16
->  	.section ".header", "a"
-> @@ -24,6 +25,11 @@ pmode_gdt:	.quad	0
->  realmode_flags:	.long	0
->  real_magic:	.long	0
->  trampoline_segment:	.word 0
-> +_pad1:		.byte	0
-> +wakeup_jmp:	.byte	0xea	/* ljmpw */
-> +wakeup_jmp_off:	.word	3f
-> +wakeup_jmp_seg:	.word	0
-> +wakeup_gdt:	.quad	0, 0, 0
->  signature:	.long	0x51ee1111
->  
->  	.text
-> @@ -34,11 +40,34 @@ _start:
->  	cli
->  	cld
->  
-> +	/* Apparently some dimwit BIOS programmers don't know how to
-> +	   program a PM to RM transition, and we might end up here with
-> +	   junk in the data segment descriptor registers.  The only way
-> +	   to repair that is to go into PM and fix it ourselves... */
-> +	movw	$16, %cx
-> +	lgdtl	%cs:wakeup_gdt
-> +	movl	%cr0, %eax
-> +	orb	$X86_CR0_PE, %al
-> +	movl	%eax, %cr0
-> +	jmp	1f
-> +1:	ljmpw	$8, $2f
-> +2:
-> +	movw	%cx, %ds
-> +	movw	%cx, %es
-> +	movw	%cx, %ss
-> +	movw	%cx, %fs
-> +	movw	%cx, %gs
-> +
-> +	andb	$~X86_CR0_PE, %al
-> +	movl	%eax, %cr0
-> +	jmp	wakeup_jmp
-> +3:
->  	/* Set up segments */
->  	movw	%cs, %ax
->  	movw	%ax, %ds
->  	movw	%ax, %es
->  	movw	%ax, %ss
-> +	lidtl	wakeup_idt
->  
->  	movl	$wakeup_stack_end, %esp
->  
-> @@ -98,7 +127,14 @@ bogus_real_magic:
->  	jmp	1b
->  
->  	.data
-> -	.balign	4
-> +	.balign	8
-> +
-> +	/* This is the standard real-mode IDT */
-> +wakeup_idt:
-> +	.word	0xffff		/* limit */
-> +	.long	0		/* address */
-> +	.word	0
-> +
->  	.globl	HEAP, heap_end
->  HEAP:
->  	.long	wakeup_heap
-> Index: linux-2.6/arch/x86/kernel/acpi/realmode/wakeup.h
-> ===================================================================
-> --- linux-2.6.orig/arch/x86/kernel/acpi/realmode/wakeup.h
-> +++ linux-2.6/arch/x86/kernel/acpi/realmode/wakeup.h
-> @@ -24,6 +24,11 @@ struct wakeup_header {
->  	u32 realmode_flags;
->  	u32 real_magic;
->  	u16 trampoline_segment;	/* segment with trampoline code, 64-bit only */
-> +	u8  _pad1;
-> +	u8  wakeup_jmp;
-> +	u16 wakeup_jmp_off;
-> +	u16 wakeup_jmp_seg;
-> +	u64 wakeup_gdt[3];
->  	u32 signature;		/* To check we have correct structure */
->  } __attribute__((__packed__));
->  
-> Index: linux-2.6/arch/x86/kernel/acpi/sleep.c
-> ===================================================================
-> --- linux-2.6.orig/arch/x86/kernel/acpi/sleep.c
-> +++ linux-2.6/arch/x86/kernel/acpi/sleep.c
-> @@ -50,6 +50,20 @@ int acpi_save_state_mem(void)
->  
->  	header->video_mode = saved_video_mode;
->  
-> +	header->wakeup_jmp_seg = acpi_wakeup_address >> 4;
-> +	/* GDT[0]: GDT self-pointer */
-> +	header->wakeup_gdt[0] =
-> +		(u64)(sizeof(header->wakeup_gdt) - 1) +
-> +		((u64)(acpi_wakeup_address +
-> +			((char *)&header->wakeup_gdt - (char *)acpi_realmode))
-> +				<< 16);
-> +	/* GDT[1]: real-mode-like code segment */
-> +	header->wakeup_gdt[1] = (0x009bULL << 40) +
-> +		((u64)acpi_wakeup_address << 16) + 0xffff;
-> +	/* GDT[2]: real-mode-like data segment */
-> +	header->wakeup_gdt[2] = (0x0093ULL << 40) +
-> +		((u64)acpi_wakeup_address << 16) + 0xffff;
-> +
->  #ifndef CONFIG_64BIT
->  	store_gdt((struct desc_ptr *)&header->pmode_gdt);
->  
-> @@ -111,7 +125,7 @@ void __init acpi_reserve_bootmem(void)
->  		return;
->  	}
->  
-> -	acpi_wakeup_address = acpi_realmode;
-> +	acpi_wakeup_address = virt_to_phys((void *)acpi_realmode);
->  }
->  
->  
-> Index: linux-2.6/drivers/acpi/sleep/main.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/sleep/main.c
-> +++ linux-2.6/drivers/acpi/sleep/main.c
-> @@ -32,9 +32,8 @@ static int acpi_sleep_prepare(u32 acpi_s
->  		if (!acpi_wakeup_address) {
->  			return -EFAULT;
->  		}
-> -		acpi_set_firmware_waking_vector((acpi_physical_address)
-> -						virt_to_phys((void *)
-> -							     acpi_wakeup_address));
-> +		acpi_set_firmware_waking_vector(
-> +				(acpi_physical_address)acpi_wakeup_address);
->  
->  	}
->  	ACPI_FLUSH_CPU_CACHE();
+> Vegard
 > 
