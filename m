@@ -1,60 +1,64 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: Re: [PATCH] ACPI: don't walk tables if ACPI was disabled
-Date: Wed, 25 Jun 2008 09:37:37 +0800
-Message-ID: <1214357857.9800.20.camel@yakui_zhao.sh.intel.com>
-References: <20080620135639.GA5073@damson.getinternet.no>
-	 <alpine.LFD.1.10.0806201458500.3027@localhost.localdomain>
-	 <19f34abd0806201340t502ce471n578dd2498a5f1992@mail.gmail.com>
-	 <19f34abd0806201427h740ca3e7gc2f01c7e34616fd4@mail.gmail.com>
-	 <19f34abd0806210119o64a1c9ban78710651a01530cf@mail.gmail.com>
-	 <20080624114139.GC21890@elte.hu>
-	 <19f34abd0806240452w2561040uc2b1b1d35562db71@mail.gmail.com>
+From: Len Brown <lenb@kernel.org>
+Subject: [PATCH] ACPI: add standard linux WARN() output to ACPI warnings
+Date: Tue, 24 Jun 2008 22:34:25 -0400 (EDT)
+Message-ID: <alpine.LFD.1.10.0806242231120.3014@localhost.localdomain>
+References: <20080620095247.GA24557@elte.hu>
+ <20080620135639.GA5073@damson.getinternet.no> <20080620142224.GF8135@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755518AbYFYB05@vger.kernel.org>
-In-Reply-To: <19f34abd0806240452w2561040uc2b1b1d35562db71@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vegard Nossum <vegard.nossum@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Alexey Starikovskiy <astarikovskiy@suse.de>, Yinghai Lu <yhlu.kernel@gmail.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms044pub.verizon.net ([206.46.252.44]:48487 "EHLO
+	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752462AbYFYCe7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Jun 2008 22:34:59 -0400
+In-reply-to: <20080620142224.GF8135@elte.hu>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Vegard Nossum <vegard.nossum@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Zhao Yakui <yakui.zhao@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alexey Starikovskiy <astarikovskiy@suse.de>, Yinghai Lu <yhlu.kernel@gmail.com>
 
-On Tue, 2008-06-24 at 13:52 +0200, Vegard Nossum wrote:
-> On 6/24/08, Ingo Molnar <mingo@elte.hu> wrote:
-> > i havent seen the warning reappear with your fix after thousands of
-> > bootups - so i guess we can consider it fixed.
-> >
-> > Len, please consider the patch below. (it's in tip/out-of-tree)
-> 
-> No, please don't :-)
-> 
-> It fixes your particular case (the acpi_rtc_init() hunk of the patch),
-> but the acpi_walk_namespace() part should be changed to a WARN(). But
-> that is likely to cause a lot of "spurious" reports, so the other acpi
-> drivers should be fixed as well.
-In fact this issue is related with the following factors:
-   a. when acpi is disabled, OS won't initialize the ACPI mutex, which
-is accessed by many ACPI interface functions. For example:
-acpi_walk_namespace, acpi_install_fixed_event_handler.
-   b. When acpi is disabled, some drivers will call the ACPI interface
-functions. For example: The acpi_walk_namespace is called in
-dock_init/bay_init. The acpi_install_fixed_event_handler is called in
-the acpi_rtc_init.
-   
-  
-   Although the following warning message is harmless, it is still
-confusing.
-   > [    3.980213] ACPI Exception (utmutex-0263): AE_BAD_PARAMETER,
-Thread F7C50000 could not acquire Mutex [3] [20080321]
+From: Len Brown <len.brown@intel.com>
 
-   Maybe it is reasonable that the flag of acpi_disabled should be used
-in the drivers using ACPI interface functions. Of course it will be safe
-to use the flag of acpi_disabled in the function of acpi_walk_namespace.
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+> i have hit this warning for the first time in January 2008:
+...
+> that's why WARN_ON()s are so important - there's no way my automated 
+> tools (or even i, when taking a casual look at the logs) could have 
+> picked up that new ACPI Exception - if each subsystem has different 
+> warnings (which change frequently) then it's sheer impossible to 
+> automate the answer to the "does that log show any anomaly" question. 
 
-Thanks.
-   Yakui.
-> I was waiting for Len to reply, but maybe I can submit the proper fix too.
-> 
-> 
-> Vegard
-> 
+Maybe something like this would help?
+(totally untested)
+
+-Len
+
+diff --git a/drivers/acpi/utilities/utmisc.c b/drivers/acpi/utilities/utmisc.c
+index 1f057b7..d53e82c 100644
+--- a/drivers/acpi/utilities/utmisc.c
++++ b/drivers/acpi/utilities/utmisc.c
+@@ -1028,6 +1028,7 @@ acpi_ut_error(char *module_name, u32 line_number, char *format, ...)
+ {
+ 	va_list args;
+ 
++	warn_on_slowpath(module_name, line_number);
+ 	acpi_os_printf("ACPI Error (%s-%04d): ", module_name, line_number);
+ 
+ 	va_start(args, format);
+@@ -1042,6 +1043,7 @@ acpi_ut_exception(char *module_name,
+ {
+ 	va_list args;
+ 
++	warn_on_slowpath(module_name, line_number);
+ 	acpi_os_printf("ACPI Exception (%s-%04d): %s, ", module_name,
+ 		       line_number, acpi_format_exception(status));
+ 
+@@ -1058,6 +1060,7 @@ acpi_ut_warning(char *module_name, u32 line_number, char *format, ...)
+ {
+ 	va_list args;
+ 
++	warn_on_slowpath(module_name, line_number);
+ 	acpi_os_printf("ACPI Warning (%s-%04d): ", module_name, line_number);
+ 
+ 	va_start(args, format);
