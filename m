@@ -1,64 +1,100 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH] x86 ACPI: normalize segment descriptor register on
-	resume
-Date: Wed, 25 Jun 2008 19:01:26 +0200
-Message-ID: <20080625170126.GA2482@elte.hu>
-References: <200806242303.49498.rjw@sisk.pl> <20080624214610.GC18679@elf.ucw.cz>
+From: Alok Kataria <akataria@vmware.com>
+Subject: Re: [PATCH 1/2] cleanup e820_setup_gap v2
+Date: Wed, 25 Jun 2008 11:02:42 -0700
+Message-ID: <1214416962.27577.74.camel@promb-2n-dhcp368.eng.vmware.com>
+References: <1214333310.27577.26.camel@promb-2n-dhcp368.eng.vmware.com>
+	 <20080625160817.GC24967@elte.hu>
+Reply-To: akataria@vmware.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx3.mail.elte.hu ([157.181.1.138]:40384 "EHLO mx3.mail.elte.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752263AbYFYRBt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Jun 2008 13:01:49 -0400
-Content-Disposition: inline
-In-Reply-To: <20080624214610.GC18679@elf.ucw.cz>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755700AbYFYSEq@vger.kernel.org>
+In-Reply-To: <20080625160817.GC24967@elte.hu>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Yinghai Lu <yhlu.kernel@gmail.com>, the arch/x86 maintainers <x86@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@suse.cz>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-
-* Pavel Machek <pavel@suse.cz> wrote:
-
-> Acked-by: Pavel Machek <pavel@suse.cz>
+On Wed, 2008-06-25 at 09:08 -0700, Ingo Molnar wrote:
+> * Alok Kataria <akataria@vmware.com> wrote:
 > 
-> If this could be sneaked into Ingo's tree for some automated testing, 
-> that would be good.
+> > This is a preparatory patch for the next patch in series.
+> > Moves some code from e820_setup_gap to a new function e820_search_gap.
+> > This patch is a part of a bug fix where we walk the ACPI table to calculate
+> > a gap for PCI optional devices.
+> >
+> > v1->v2: Patch on top of tip/master.
+> >       Fixes a bug introduced in the last patch about the typeof "last".
+> >       Also the new function e820_search_gap now returns if we found a gap in
+> >       e820_map.
+> 
+> applied to tip/x86/setup-memory - thanks Alok.
 
-sure - i have applied it to tip/out-of-tree. I'm equally nervous about 
-this change - it affects every suspend+resume cycle that people do on 
-those boxes which are working just fine currently.
+Hi Ingo,
 
-btw., it would get a lot more coverage on my test-systems if this commit 
-in tip/out-of-tree:
+As mentioned in this mail,
+http://marc.info/?l=linux-kernel&m=121441312409978&w=2
 
-| commit 01259383c345d13b70efcc549439927ae64dc66d
-| Author: David Brownell <david-b@pacbell.net>
-| Date:   Fri May 16 10:12:36 2008 +0200
-|
-|     sleepy linux self-test
+I have also added a end_addr parameter to e820_search_gap to search only
+till the CRS objects end_addr instead of 2^32. In the normal case via
+e820_setup_gap we search till 2^32.
 
-was upstream and if it was enabled more prominently, instead of hidden 
-behind the rather obscure condition of:
+Please apply this too.
+Patch on top of tip/master
+--
 
-  config PM_TEST_SUSPEND
-        bool "Test suspend/resume and wakealarm during bootup"
-        depends on SUSPEND && PM_DEBUG && RTC_LIB=y
+e820_search_gap also take a end_addr parameter to limit search from
+start_addr to end_addr.
 
-and even then it needs certain other config options related to RTC_LIB 
-to actually work during bootup.
+Signed-off-by: AloK N Kataria <akataria@vmware.com>
 
-As a result of all this obstruction, the automated testing i do, which 
-builds and boots more than 1 random kernel per minute, will only run 
-this self-test once every hour or so.
-
-I dont mind if this option breaks boxes (that its purpose: it does the 
-same thing that a real suspend+resume does and suspend+resume frequently 
-breaks boxes), but right now it's all obscured so heavily which makes 
-automated testing a lot harder than it should be.
-
-it would be wonderful if this excellent suspend+resume self-test was 
-upstream and was more prominent! :-)
-
-	Ingo
+Index: linux-x86-tree.git/arch/x86/kernel/e820.c
+===================================================================
+--- linux-x86-tree.git.orig/arch/x86/kernel/e820.c	2008-06-25 10:05:21.000000000 -0700
++++ linux-x86-tree.git/arch/x86/kernel/e820.c	2008-06-25 10:07:30.000000000 -0700
+@@ -486,17 +486,19 @@
+ 	printk(KERN_INFO "modified physical RAM map:\n");
+ 	e820_print_map("modified");
+ }
+-
++#define MAX_GAP_END 0x100000000ull
+ /*
+- * Search for a gap in the e820 memory space from start_addr to 2^32.
++ * Search for a gap in the e820 memory space from start_addr to end_addr.
+  */
+ __init int e820_search_gap(unsigned long *gapstart, unsigned long *gapsize,
+-		unsigned long start_addr)
++		unsigned long start_addr, unsigned long long end_addr)
+ {
+-	unsigned long long last = 0x100000000ull;
++	unsigned long long last;
+ 	int i = e820.nr_map;
+ 	int found = 0;
+ 
++	last = (end_addr && end_addr < MAX_GAP_END) ? end_addr : MAX_GAP_END;
++
+ 	while (--i >= 0) {
+ 		unsigned long long start = e820.map[i].addr;
+ 		unsigned long long end = start + e820.map[i].size;
+@@ -536,7 +538,7 @@
+ 
+ 	gapstart = 0x10000000;
+ 	gapsize = 0x400000;
+-	found  = e820_search_gap(&gapstart, &gapsize, 0);
++	found  = e820_search_gap(&gapstart, &gapsize, 0, MAX_GAP_END);
+ 
+ #ifdef CONFIG_X86_64
+ 	if (!found) {
+Index: linux-x86-tree.git/include/asm-x86/e820.h
+===================================================================
+--- linux-x86-tree.git.orig/include/asm-x86/e820.h	2008-06-25 10:05:21.000000000 -0700
++++ linux-x86-tree.git/include/asm-x86/e820.h	2008-06-25 10:06:17.000000000 -0700
+@@ -72,7 +72,7 @@
+ extern void update_e820(void);
+ extern void e820_setup_gap(void);
+ extern int e820_search_gap(unsigned long *gapstart, unsigned long *gapsize,
+-				unsigned long start_addr);
++			unsigned long start_addr, unsigned long long end_addr);
+ struct setup_data;
+ extern void parse_e820_ext(struct setup_data *data, unsigned long pa_data);
+ 
