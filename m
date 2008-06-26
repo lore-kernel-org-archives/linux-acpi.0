@@ -1,35 +1,38 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [RFC][PATCH 6/9] PCI ACPI: Introduce acpi_pm_device_sleep_wake
- function
-Date: Thu, 26 Jun 2008 16:38:41 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0806261636430.5244-100000@iolanthe.rowland.org>
-References: <200806262231.35375.rjw@sisk.pl>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH 0/8] PCI PM: Handling of PCI devices wake-up functionality (rev. 2)
+Date: Fri, 27 Jun 2008 00:22:23 +0200
+Message-ID: <200806270022.24496.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:52433 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753977AbYFZUin (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Jun 2008 16:38:43 -0400
-In-Reply-To: <200806262231.35375.rjw@sisk.pl>
+Received: from ogre.sisk.pl ([217.79.144.158]:33499 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752439AbYFZWbF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 26 Jun 2008 18:31:05 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Zhao Yakui <yakui.zhao@intel.com>, Zhang Rui <rui.zhang@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, Zhao Yakui <yakui.zhao@intel.com>
 
-On Thu, 26 Jun 2008, Rafael J. Wysocki wrote:
+Hi,
 
-> > > Do you think the core should clear PME# status automatically in that case?
-> > 
-> > Yes.
-> 
-> Okay, but that will require us to add the clearing of PME# to the PCI
-> resume/restore callbacks.  Perfectly doable, but I'd prefer to do that on top
-> of the $subject patch.
+This is a new iteration of the series of patches intended to rework the power
+management of PCI devices so that the handling of their wake-up functionality
+is consistent with the other PM operations and so that the user space can
+manage the wake-up functionality of PCI devices using the
+/sys/devices/.../power/wakeup interface regardless of whether the wake-up
+function is based on the native PCI mechanism (PME#), or it is handled by the
+platform (eg. ACPI).
 
-That's fine.  I wasn't trying to criticize your new patches, just point
-out that overall they are moving in the same direction as this other
-work that was done last year.
+Apart from the ACPI and PCI changes necessary for this purpose, the series
+includes some clean-ups that are not strictly required, but make the code more
+straightforward and (IMHO) easier to follow.
 
-Alan Stern
+Please review.
+
+Thanks,
+Rafael
 
