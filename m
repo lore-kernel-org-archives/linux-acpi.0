@@ -1,73 +1,92 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [RFC][PATCH 6/9] PCI ACPI: Introduce acpi_pm_device_sleep_wake
- function
-Date: Thu, 26 Jun 2008 15:54:53 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0806261538310.3893-100000@iolanthe.rowland.org>
-References: <200806262021.49815.rjw@sisk.pl>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC][PATCH 6/9] PCI ACPI: Introduce acpi_pm_device_sleep_wake function
+Date: Thu, 26 Jun 2008 22:31:34 +0200
+Message-ID: <200806262231.35375.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0806261538310.3893-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:38328 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1757441AbYFZTyy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Jun 2008 15:54:54 -0400
-In-Reply-To: <200806262021.49815.rjw@sisk.pl>
+Received: from ogre.sisk.pl ([217.79.144.158]:33004 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752216AbYFZUaE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 26 Jun 2008 16:30:04 -0400
+In-Reply-To: <Pine.LNX.4.44L0.0806261538310.3893-100000@iolanthe.rowland.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
+To: Alan Stern <stern@rowland.harvard.edu>
 Cc: Zhao Yakui <yakui.zhao@intel.com>, Zhang Rui <rui.zhang@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Thu, 26 Jun 2008, Rafael J. Wysocki wrote:
-
-> > Question: Does the PME Status ever get cleared at any other times?
+On Thursday, 26 of June 2008, Alan Stern wrote:
+> On Thu, 26 Jun 2008, Rafael J. Wysocki wrote:
 > 
-> Currently, PME# status is only cleared when executing pci_pme_active() (for
-> example via pci_enable_wake()).
+> > > Question: Does the PME Status ever get cleared at any other times?
+> > 
+> > Currently, PME# status is only cleared when executing pci_pme_active() (for
+> > example via pci_enable_wake()).
+> > 
+> > > For instance, suppose a PCI device does use PME# to wake up the system.  
+> > > Does its status get cleared?
+> > 
+> > If the driver of the device executes pci_enable_wake(dev, PCI_D0, false) during
+> > resume, then the PME# status will be cleared.
 > 
-> > For instance, suppose a PCI device does use PME# to wake up the system.  
-> > Does its status get cleared?
+> Hmm.  So if the resume routine doesn't get called for some reason then
+> most likely the status won't get cleared.
+
+That's correct.
+
+> > Do you think the core should clear PME# status automatically in that case?
 > 
-> If the driver of the device executes pci_enable_wake(dev, PCI_D0, false) during
-> resume, then the PME# status will be cleared.
+> Yes.
 
-Hmm.  So if the resume routine doesn't get called for some reason then
-most likely the status won't get cleared.
+Okay, but that will require us to add the clearing of PME# to the PCI
+resume/restore callbacks.  Perfectly doable, but I'd prefer to do that on top
+of the $subject patch.
 
-> Do you think the core should clear PME# status automatically in that case?
-
-Yes.
-
-> > Or suppose a PCI device is runtime-suspended and it generates a wakeup
-> > request?  This will turn on PME# at a time when the system isn't asleep
-> > -- what happens then?  Does it get lost somewhere in the bowels of
-> > ACPI?
+> > > Or suppose a PCI device is runtime-suspended and it generates a wakeup
+> > > request?  This will turn on PME# at a time when the system isn't asleep
+> > > -- what happens then?  Does it get lost somewhere in the bowels of
+> > > ACPI?
+> > 
+> > Currently, yes, AFAICS.
 > 
-> Currently, yes, AFAICS.
+> Back around last November some initial patches were posted by Shaohua
+> Li, as part of Bugzilla #6892.
 
-Back around last November some initial patches were posted by Shaohua
-Li, as part of Bugzilla #6892.  You'd probably be interested to read 
-through the entire bug report.  Maybe we should start working on it 
-again.
+OK, I will.
 
-> > Does the PCI core need new code to handle such things? 
+> You'd probably be interested to read through the entire bug report.  Maybe we
+> should start working on it again.
+
+I have nothing against that, but quite frankly I wouldn't like it to become a
+road block for the present patch series.  Thus, I'd like to add new patches on
+top of it rather than to modify it to achieve new goals.
+
+> > > Does the PCI core need new code to handle such things? 
+> > 
+> > Well, I thought of adding such things like the clearing of PME# status to the
+> > PCI bus type suspend/resume callbacks.
+> > 
+> > Apart from this, I think that to implement PCI runtime PM we'll need to add
+> > some new code.  First of all, we need to handle the case when some devices are
+> > in low power states before suspend/hibernation.  Second, we need to handle PME#
+> > generated by devices being in low power states (or even in D0) at run time and
+> > that will certainly require new code.
 > 
-> Well, I thought of adding such things like the clearing of PME# status to the
-> PCI bus type suspend/resume callbacks.
+> Yes it will.  We don't have any runtime PM infrastructure for PCI yet.  
 > 
-> Apart from this, I think that to implement PCI runtime PM we'll need to add
-> some new code.  First of all, we need to handle the case when some devices are
-> in low power states before suspend/hibernation.  Second, we need to handle PME#
-> generated by devices being in low power states (or even in D0) at run time and
-> that will certainly require new code.
+> Although to tell the truth, I'm not sure how important it is.  How much
+> power can we save by doing runtime suspends of PCI devices?  With USB
+> controllers, for example, much or most of the savings comes from
+> disabling the USB portions of the device, which we _are_ doing.  It's
+> not clear how much more would be gained by shutting down the PCI
+> portions as well.
 
-Yes it will.  We don't have any runtime PM infrastructure for PCI yet.  
+That can only be determined by experimentation, IMO, so in fact we'll need a
+prototype implementation to find that out.
 
-Although to tell the truth, I'm not sure how important it is.  How much
-power can we save by doing runtime suspends of PCI devices?  With USB
-controllers, for example, much or most of the savings comes from
-disabling the USB portions of the device, which we _are_ doing.  It's
-not clear how much more would be gained by shutting down the PCI
-portions as well.
-
-Alan Stern
-
+Thanks,
+Rafael
