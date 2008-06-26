@@ -1,50 +1,62 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] x86 ACPI: normalize segment descriptor register on resume
-Date: Thu, 26 Jun 2008 10:56:06 +0200
-Message-ID: <200806261056.07180.rjw@sisk.pl>
-References: <200806242303.49498.rjw@sisk.pl> <200806261040.00646.rjw@sisk.pl> <20080626085110.GA18599@elte.hu>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC][PATCH 6/9] PCI ACPI: Introduce acpi_pm_device_sleep_wake
+ function
+Date: Thu, 26 Jun 2008 10:12:58 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0806261008230.2811-100000@iolanthe.rowland.org>
+References: <200806252331.02963.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:57164 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751926AbYFZIy4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 26 Jun 2008 04:54:56 -0400
-In-Reply-To: <20080626085110.GA18599@elte.hu>
-Content-Disposition: inline
+Received: from iolanthe.rowland.org ([192.131.102.54]:57655 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752116AbYFZOM7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Jun 2008 10:12:59 -0400
+In-Reply-To: <200806252331.02963.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Pavel Machek <pavel@suse.cz>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Zhao Yakui <yakui.zhao@intel.com>, Zhang Rui <rui.zhang@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Thursday, 26 of June 2008, Ingo Molnar wrote:
-> 
-> * Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> 
-> > On Thursday, 26 of June 2008, Ingo Molnar wrote:
-> > > 
-> > > * Andrew Morton <akpm@linux-foundation.org> wrote:
-> > > 
-> > > > Len seems to think that Rafael seems to think that Ingo seems to think 
-> > > > that this patch broke one of his boxes.
-> > > > 
-> > > > Is it so?
-> > > 
-> > > No! :-)
-> > > 
-> > > it found a pre-existing suspend+resume breakage on a testbox. (I.e. 
-> > > the debug patch worked as i'd expect it to work. Every good debug 
-> > > patch starts its lifetime with a sharp spike of breakages it finds.)
-> > 
-> > Does it mean that the $subject patch doesn't break your test box after 
-> > all?
-> 
-> it doesnt break it - i get the same suspend+resume breakage without that 
-> patch as well, if i do it manually.
+On Wed, 25 Jun 2008, Rafael J. Wysocki wrote:
 
-Okay, so I think the $subject patch is good to go, then.
+> Index: linux-2.6/drivers/pci/pci.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/pci/pci.c
+> +++ linux-2.6/drivers/pci/pci.c
 
-Thanks,
-Rafael
+> +/**
+> + * pci_pme_active - enable or disable PCI device's PME# function
+> + * @dev: PCI device to handle.
+> + * @pm: PCI PM capability offset of the device.
+> + * @enable: 'true' to enable PME# generation; 'false' to disable it.
+> + *
+> + * The caller must verify that the device is capable of generating PME# before
+> + * calling this function with @enable equal to 'true'.
+> + */
+> +static void pci_pme_active(struct pci_dev *dev, int pm, bool enable)
+> +{
+> +	u16 pmcsr;
+> +
+> +	if (!pm)
+> +		return;
+> +
+> +	pci_read_config_word(dev, pm + PCI_PM_CTRL, &pmcsr);
+> +	/* Clear PME_Status by writing 1 to it and enable PME# */
+> +	pmcsr |= PCI_PM_CTRL_PME_STATUS | PCI_PM_CTRL_PME_ENABLE;
+> +	if (!enable)
+> +		pmcsr &= ~PCI_PM_CTRL_PME_ENABLE;
+> +
+> +	pci_write_config_word(dev, pm + PCI_PM_CTRL, pmcsr);
+> +}
+
+Question: Does the PME Status ever get cleared at any other times?  For 
+instance, suppose a PCI device does use PME# to wake up the system.  
+Does its status get cleared?
+
+Or suppose a PCI device is runtime-suspended and it generates a wakeup
+request?  This will turn on PME# at a time when the system isn't asleep
+-- what happens then?  Does it get lost somewhere in the bowels of
+ACPI?  Does the PCI core need new code to handle such things?
+
+Alan Stern
+
