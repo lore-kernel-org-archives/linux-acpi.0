@@ -1,87 +1,85 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC][PATCH 6/9] PCI ACPI: Introduce acpi_pm_device_sleep_wake function
-Date: Thu, 26 Jun 2008 20:21:48 +0200
-Message-ID: <200806262021.49815.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0806261008230.2811-100000@iolanthe.rowland.org>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH] ACPI: don't walk tables if ACPI was disabled
+Date: Thu, 26 Jun 2008 10:44:01 -0600
+Message-ID: <200806261044.02285.bjorn.helgaas@hp.com>
+References: <20080620135639.GA5073@damson.getinternet.no> <200806250908.59315.bjorn.helgaas@hp.com> <1214449368.7055.29.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:60536 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760695AbYFZSUG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 26 Jun 2008 14:20:06 -0400
-In-Reply-To: <Pine.LNX.4.44L0.0806261008230.2811-100000@iolanthe.rowland.org>
+Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:46488 "EHLO
+	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751662AbYFZSha (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Jun 2008 14:37:30 -0400
+In-Reply-To: <1214449368.7055.29.camel@yakui_zhao.sh.intel.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Zhao Yakui <yakui.zhao@intel.com>, Zhang Rui <rui.zhang@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: Vegard Nossum <vegard.nossum@gmail.com>, Ingo Molnar <mingo@elte.hu>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Alexey Starikovskiy <astarikovskiy@suse.de>, Yinghai Lu <yhlu.kernel@gmail.com>
 
-On Thursday, 26 of June 2008, Alan Stern wrote:
-> On Wed, 25 Jun 2008, Rafael J. Wysocki wrote:
-> 
-> > Index: linux-2.6/drivers/pci/pci.c
-> > ===================================================================
-> > --- linux-2.6.orig/drivers/pci/pci.c
-> > +++ linux-2.6/drivers/pci/pci.c
-> 
-> > +/**
-> > + * pci_pme_active - enable or disable PCI device's PME# function
-> > + * @dev: PCI device to handle.
-> > + * @pm: PCI PM capability offset of the device.
-> > + * @enable: 'true' to enable PME# generation; 'false' to disable it.
-> > + *
-> > + * The caller must verify that the device is capable of generating PME# before
-> > + * calling this function with @enable equal to 'true'.
-> > + */
-> > +static void pci_pme_active(struct pci_dev *dev, int pm, bool enable)
-> > +{
-> > +	u16 pmcsr;
-> > +
-> > +	if (!pm)
-> > +		return;
-> > +
-> > +	pci_read_config_word(dev, pm + PCI_PM_CTRL, &pmcsr);
-> > +	/* Clear PME_Status by writing 1 to it and enable PME# */
-> > +	pmcsr |= PCI_PM_CTRL_PME_STATUS | PCI_PM_CTRL_PME_ENABLE;
-> > +	if (!enable)
-> > +		pmcsr &= ~PCI_PM_CTRL_PME_ENABLE;
-> > +
-> > +	pci_write_config_word(dev, pm + PCI_PM_CTRL, pmcsr);
-> > +}
-> 
-> Question: Does the PME Status ever get cleared at any other times?
+On Wednesday 25 June 2008 09:02:48 pm Zhao Yakui wrote:
+> On Wed, 2008-06-25 at 09:08 -0600, Bjorn Helgaas wrote:
+> > On Tuesday 24 June 2008 07:37:37 pm Zhao Yakui wrote:
+> > > On Tue, 2008-06-24 at 13:52 +0200, Vegard Nossum wrote:
+> > > > On 6/24/08, Ingo Molnar <mingo@elte.hu> wrote:
+> > > > > i havent seen the warning reappear with your fix after thousands of
+> > > > > bootups - so i guess we can consider it fixed.
+> > > > >
+> > > > > Len, please consider the patch below. (it's in tip/out-of-tree)
+> > > > 
+> > > > No, please don't :-)
+> > > > 
+> > > > It fixes your particular case (the acpi_rtc_init() hunk of the patch),
+> > > > but the acpi_walk_namespace() part should be changed to a WARN(). But
+> > > > that is likely to cause a lot of "spurious" reports, so the other acpi
+> > > > drivers should be fixed as well.
+> > > In fact this issue is related with the following factors:
+> > >    a. when acpi is disabled, OS won't initialize the ACPI mutex, which
+> > > is accessed by many ACPI interface functions. For example:
+> > > acpi_walk_namespace, acpi_install_fixed_event_handler.
+> > >    b. When acpi is disabled, some drivers will call the ACPI interface
+> > > functions. For example: The acpi_walk_namespace is called in
+> > > dock_init/bay_init.
+> > 
+> > I think most current uses of acpi_walk_namespace() are indications
+> > that the ACPI or PNP core is missing something.
+> I don't think so. The acpi_walk_namespace is used to enumerate the ACPI
+> tree and execute some specific operations. For example: Add the device
+> notification function for some type of device; call the INI method for
+> all the device.
 
-Currently, PME# status is only cleared when executing pci_pme_active() (for
-example via pci_enable_wake()).
+There are exceptions, and obviously acpi_walk_namespace() will be
+needed some places.
 
-> For instance, suppose a PCI device does use PME# to wake up the system.  
-> Does its status get cleared?
+One example where I think acpi_walk_namespace() should not be used
+is to register notification functions for device addition/removal.
+I think the ACPI core should be handling those notify events and
+turning them into add()/remove() calls to the driver.
 
-If the driver of the device executes pci_enable_wake(dev, PCI_D0, false) during
-resume, then the PME# status will be cleared.
+> > In dock_init() and bay_init(), it's used to bind a driver to a
+> > device.  I think it would be better if we could figure out how to
+> > use the usual acpi_bus_register_driver() interface.  Actually, it
+> > looks like this is already 90% done: acpi_dock_match() does the
+> > same thing as is_dock(), so it looks like dock_init() could easily
+> > be converted to register as a driver for ACPI_DOCK_HID.
+> Maybe what you said is reasonable if the dock/bay device exists and is
+> added to Linux ACPI device tree. But if the status of bay/dock device
+> doesn't exist , it won't be added into the Linux ACPI device tree. In
+> such case the dock/bay driver won't be loaded for it. So it will be
+> reasonable to enumerate the acpi tree to install the notification
+> function for the dock device so that OS can receive the notification
+> event when the dock device is hotplugged. 
 
-Do you think the core should clear PME# status automatically in that case?
+If the bay/dock device doesn't exist, we shouldn't need a driver
+for it.  The normal scenario for non-ACPI drivers is that we load
+a driver when a device appears.  That doesn't work very well in
+this case because the ACPI core is missing the "TBD: Handle device
+insertion/removal" stuff I mentioned earlier.
 
-> Or suppose a PCI device is runtime-suspended and it generates a wakeup
-> request?  This will turn on PME# at a time when the system isn't asleep
-> -- what happens then?  Does it get lost somewhere in the bowels of
-> ACPI?
+I know it's not very useful for me to talk about this without
+providing any patches, so I'll shut up now.
 
-Currently, yes, AFAICS.
+Bjorn
 
-> Does the PCI core need new code to handle such things? 
-
-Well, I thought of adding such things like the clearing of PME# status to the
-PCI bus type suspend/resume callbacks.
-
-Apart from this, I think that to implement PCI runtime PM we'll need to add
-some new code.  First of all, we need to handle the case when some devices are
-in low power states before suspend/hibernation.  Second, we need to handle PME#
-generated by devices being in low power states (or even in D0) at run time and
-that will certainly require new code.
-
-Thanks,
-Rafael
