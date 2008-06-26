@@ -1,69 +1,79 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: Re: [PATCH3/4] ACPI :  Add boot option of "idle=nomwait" to
-	disable mwait for CPU C-states
-Date: Thu, 26 Jun 2008 14:21:54 +0800
-Message-ID: <1214461314.7055.45.camel@yakui_zhao.sh.intel.com>
-References: <1213685035.19901.15.camel@yakui_zhao.sh.intel.com>
-	 <alpine.LFD.1.10.0806200235260.22284@localhost.localdomain>
-	 <alpine.LFD.1.10.0806200310160.22284@localhost.localdomain>
-	 <1214202030.25786.77.camel@yakui_zhao.sh.intel.com>
-	 <alpine.LFD.1.10.0806260003590.3279@localhost.localdomain>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH] x86 ACPI: normalize segment descriptor register on
+ resume
+Date: Thu, 26 Jun 2008 01:17:16 -0700
+Message-ID: <20080626011716.e8c412dd.akpm@linux-foundation.org>
+References: <200806242303.49498.rjw@sisk.pl>
+	<20080624214610.GC18679@elf.ucw.cz>
+	<20080625170126.GA2482@elte.hu>
+	<200806252217.27059.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:40313 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751513AbYFZGKz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 26 Jun 2008 02:10:55 -0400
-In-Reply-To: <alpine.LFD.1.10.0806260003590.3279@localhost.localdomain>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58175 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753582AbYFZISh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 26 Jun 2008 04:18:37 -0400
+In-Reply-To: <200806252217.27059.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Ingo Molnar <mingo@elte.hu>, Pavel Machek <pavel@suse.cz>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Thu, 2008-06-26 at 00:06 -0400, Len Brown wrote:
-> 
-> On Mon, 23 Jun 2008, Zhao Yakui wrote:
-> 
-> > On Fri, 2008-06-20 at 03:14 -0400, Len Brown wrote:
-> > > 
-> > > I notice on the T61 that this disables MWAIT for C2 and C3,
-> > > but not for C1.
-> > > 
-> > > While I know that the issue at hand is C2 and C3,
-> > > it seems misleading to boot with idle=nomwait
-> > > and see that MWAIT is used for C1.
-> 
-> > What you said is correct. The description is not appropriate.Maybe the
-> > following title will be appropriate.
-> 
-> >  >Add boot option of "idle=nomwait" to disable mwait for CPU C2/C3
+On Wed, 25 Jun 2008 22:17:26 +0200 "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+
+> On Wednesday, 25 of June 2008, Ingo Molnar wrote:
 > > 
-> > The boot option of "idle=nomwait" will disable mwait for CPU C2/C3 and
-> > still use mwait for C1 if mwait is supported. 
-> > In fact we only hope to disable mwait for CPU C2/C3 on some broken
-> > system by adding this boot option.
+> > * Pavel Machek <pavel@suse.cz> wrote:
+> > 
+> > > Acked-by: Pavel Machek <pavel@suse.cz>
+> > > 
+> > > If this could be sneaked into Ingo's tree for some automated testing, 
+> > > that would be good.
+> > 
+> > sure - i have applied it to tip/out-of-tree. I'm equally nervous about 
+> > this change - it affects every suspend+resume cycle that people do on 
+> > those boxes which are working just fine currently.
+> > 
+> > btw., it would get a lot more coverage on my test-systems if this commit 
+> > in tip/out-of-tree:
+> > 
+> > | commit 01259383c345d13b70efcc549439927ae64dc66d
+> > | Author: David Brownell <david-b@pacbell.net>
+> > | Date:   Fri May 16 10:12:36 2008 +0200
+> > |
+> > |     sleepy linux self-test
+> > 
+> > was upstream and if it was enabled more prominently, instead of hidden 
+> > behind the rather obscure condition of:
+> > 
+> >   config PM_TEST_SUSPEND
+> >         bool "Test suspend/resume and wakealarm during bootup"
+> >         depends on SUSPEND && PM_DEBUG && RTC_LIB=y
+> > 
+> > and even then it needs certain other config options related to RTC_LIB 
+> > to actually work during bootup.
+> > 
+> > As a result of all this obstruction, the automated testing i do, which 
+> > builds and boots more than 1 random kernel per minute, will only run 
+> > this self-test once every hour or so.
+> > 
+> > I dont mind if this option breaks boxes (that its purpose: it does the 
+> > same thing that a real suspend+resume does and suspend+resume frequently 
+> > breaks boxes), but right now it's all obscured so heavily which makes 
+> > automated testing a lot harder than it should be.
+> > 
+> > it would be wonderful if this excellent suspend+resume self-test was 
+> > upstream and was more prominent! :-)
 > 
-> How can I tell the system with 3 C-states to use all 3,
-> but not to use MWAIT for any of them?
-In the update patch when the boot option of "idle=nomwait" is added, OS will disable mwait for all the CPU C-states.
-In fact the original purpose of "idle=nomwait" is only to disable mwait
-for C2/C3 states on the broken system(there should be no obvious
-difference between halt and mwait for C1 state.). Now according to your
-suggestion the option "idle=nomwait" will disable mwait for all the CPU
-C-states.
-> idle=halt will not do, since it will delete C2 and C3 completely.
-As you said, "idle=halt" only allows OS to use halt for CPU idle. And in
-the updated patch cpuidle driver will be loaded normally but C1 is the
-upper power level and Halt is for C1.
+> I thought it was in linux-next, wasn't it?
+> 
+
+Len seems to think that Rafael seems to think that Ingo seems to think
+that this patch broke one of his boxes.
+
+Is it so?
 
 Thanks.
-> As I said, I think that "idle=nomwait" should do this.
-> If we have a parameter that disables MWAIT only for C2 and C3,
-> then it should not be called "idle=nomwait".
-> 
-> -Len
-> 
-> 
-
