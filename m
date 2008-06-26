@@ -1,91 +1,152 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: Re: [PATCH] ACPI: don't walk tables if ACPI was disabled
-Date: Thu, 26 Jun 2008 11:02:48 +0800
-Message-ID: <1214449368.7055.29.camel@yakui_zhao.sh.intel.com>
-References: <20080620135639.GA5073@damson.getinternet.no>
-	 <19f34abd0806240452w2561040uc2b1b1d35562db71@mail.gmail.com>
-	 <1214357857.9800.20.camel@yakui_zhao.sh.intel.com>
-	 <200806250908.59315.bjorn.helgaas@hp.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [patch 1/5] ACPI: use dev_printk when possible
+Date: Wed, 25 Jun 2008 23:42:46 -0400 (EDT)
+Message-ID: <alpine.LFD.1.10.0806252333190.3279@localhost.localdomain>
+References: <20080613165209.507694130@ldl.fc.hp.com>
+ <20080613165304.021507599@ldl.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:11276 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752306AbYFZCvv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Jun 2008 22:51:51 -0400
-In-Reply-To: <200806250908.59315.bjorn.helgaas@hp.com>
+Received: from vms173001pub.verizon.net ([206.46.173.1]:43948 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753448AbYFZDmw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Jun 2008 23:42:52 -0400
+In-reply-to: <20080613165304.021507599@ldl.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Vegard Nossum <vegard.nossum@gmail.com>, Ingo Molnar <mingo@elte.hu>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Alexey Starikovskiy <astarikovskiy@suse.de>, Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 
-On Wed, 2008-06-25 at 09:08 -0600, Bjorn Helgaas wrote:
-> On Tuesday 24 June 2008 07:37:37 pm Zhao Yakui wrote:
-> > On Tue, 2008-06-24 at 13:52 +0200, Vegard Nossum wrote:
-> > > On 6/24/08, Ingo Molnar <mingo@elte.hu> wrote:
-> > > > i havent seen the warning reappear with your fix after thousands of
-> > > > bootups - so i guess we can consider it fixed.
-> > > >
-> > > > Len, please consider the patch below. (it's in tip/out-of-tree)
-> > > 
-> > > No, please don't :-)
-> > > 
-> > > It fixes your particular case (the acpi_rtc_init() hunk of the patch),
-> > > but the acpi_walk_namespace() part should be changed to a WARN(). But
-> > > that is likely to cause a lot of "spurious" reports, so the other acpi
-> > > drivers should be fixed as well.
-> > In fact this issue is related with the following factors:
-> >    a. when acpi is disabled, OS won't initialize the ACPI mutex, which
-> > is accessed by many ACPI interface functions. For example:
-> > acpi_walk_namespace, acpi_install_fixed_event_handler.
-> >    b. When acpi is disabled, some drivers will call the ACPI interface
-> > functions. For example: The acpi_walk_namespace is called in
-> > dock_init/bay_init.
-> 
-> I think most current uses of acpi_walk_namespace() are indications
-> that the ACPI or PNP core is missing something.
-I don't think so. The acpi_walk_namespace is used to enumerate the ACPI
-tree and execute some specific operations. For example: Add the device
-notification function for some type of device; call the INI method for
-all the device.
-> In dock_init() and bay_init(), it's used to bind a driver to a
-> device.  I think it would be better if we could figure out how to
-> use the usual acpi_bus_register_driver() interface.  Actually, it
-> looks like this is already 90% done: acpi_dock_match() does the
-> same thing as is_dock(), so it looks like dock_init() could easily
-> be converted to register as a driver for ACPI_DOCK_HID.
-Maybe what you said is reasonable if the dock/bay device exists and is
-added to Linux ACPI device tree. But if the status of bay/dock device
-doesn't exist , it won't be added into the Linux ACPI device tree. In
-such case the dock/bay driver won't be loaded for it. So it will be
-reasonable to enumerate the acpi tree to install the notification
-function for the dock device so that OS can receive the notification
-event when the dock device is hotplugged. 
 
-If acpi is disabled, it is unnecessary for OS to find the dock/bay
-device again. In such case it will be reasonable to use the flag of
-acpi_disabled in the function of dock_init/bay_init.
 
-Best regards.
-   Yakui.
-> bay_init() looks similar, with acpi_bay_match(), is_ejectable_bay(),
-> ACPI_BAY_HID, etc.
-> 
-> Other users of acpi_walk_namespace() are often to install notify
-> handlers to deal with add/remove events.  I think these are telling
-> us that we need to implement the "TBD: Handle device insertion/removal"
-> pieces in acpi_bus_check_device().
-> 
-> > The acpi_install_fixed_event_handler is called in 
-> > the acpi_rtc_init.
-> 
-> Yes (via rtc_wake_setup()).  I think this should be moved into the
-> RTC driver itself.  I have some ideas on how to do this; I'll post
-> a patch in a few days.  But for 2.6.26, I think the minimal fix of
-> checking acpi_disabled in acpi_rtc_init() is better.
-> 
-> Bjorn
-> 
-> 
+On Fri, 13 Jun 2008, Bjorn Helgaas wrote:
 
+> Convert printks to use dev_printk().  The most obvious change will
+> be messages like this:
+> 
+>    -ACPI: PCI Interrupt 0000:00:04.0[A] -> GSI 31 (level, low) -> IRQ 31
+>    +cciss 0000:00:04.0: PCI INTA# -> GSI 31 (level, low) -> IRQ 31
+
+I like the part identifying the driver.
+I'm also okay with having fewer messages tagged with ACPI:
+
+> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+> 
+> Index: work11/drivers/acpi/pci_irq.c
+> ===================================================================
+> --- work11.orig/drivers/acpi/pci_irq.c	2008-06-12 16:53:52.000000000 -0600
+> +++ work11/drivers/acpi/pci_irq.c	2008-06-13 09:32:19.000000000 -0600
+> @@ -162,7 +162,7 @@ do_prt_fixups(struct acpi_prt_entry *ent
+>  		    !strcmp(prt->source, quirk->source) &&
+>  		    strlen(prt->source) >= strlen(quirk->actual_source)) {
+>  			printk(KERN_WARNING PREFIX "firmware reports "
+> -				"%04x:%02x:%02x[%c] connected to %s; "
+> +				"%04x:%02x:%02x PCI INT%c# connected to %s; "
+
+Can we delete the '#' from INTA# in this patch?
+I don't think that using hardware polarity notation in kernel messages
+clarifies anything, particularly since it is hard-coded and thus possibly
+conflicting with the subsequent '(level, low)'...
+
+otherwise,
+Acked-by: Len Brown <len.brown@intel.com>
+
+thanks,
+-Len
+
+>  				"changing to %s\n",
+>  				entry->id.segment, entry->id.bus,
+>  				entry->id.device, 'A' + entry->pin,
+> @@ -429,7 +429,7 @@ acpi_pci_irq_derive(struct pci_dev *dev,
+>  {
+>  	struct pci_dev *bridge = dev;
+>  	int irq = -1;
+> -	u8 bridge_pin = 0;
+> +	u8 bridge_pin = 0, orig_pin = pin;
+>  
+>  
+>  	if (!dev)
+> @@ -463,8 +463,8 @@ acpi_pci_irq_derive(struct pci_dev *dev,
+>  	}
+>  
+>  	if (irq < 0) {
+> -		printk(KERN_WARNING PREFIX "Unable to derive IRQ for device %s\n",
+> -			      pci_name(dev));
+> +		dev_warn(&dev->dev, "can't derive routing for PCI INT%c#\n",
+> +			 'A' + orig_pin);
+>  		return -1;
+>  	}
+>  
+> @@ -487,6 +487,7 @@ int acpi_pci_irq_enable(struct pci_dev *
+>  	int triggering = ACPI_LEVEL_SENSITIVE;
+>  	int polarity = ACPI_ACTIVE_LOW;
+>  	char *link = NULL;
+> +	char link_desc[16];
+>  	int rc;
+>  
+>  
+> @@ -503,7 +504,7 @@ int acpi_pci_irq_enable(struct pci_dev *
+>  	pin--;
+>  
+>  	if (!dev->bus) {
+> -		printk(KERN_ERR PREFIX "Invalid (NULL) 'bus' field\n");
+> +		dev_err(&dev->dev, "invalid (NULL) 'bus' field\n");
+>  		return -ENODEV;
+>  	}
+>  
+> @@ -538,8 +539,7 @@ int acpi_pci_irq_enable(struct pci_dev *
+>  	 * driver reported one, then use it. Exit in any case.
+>  	 */
+>  	if (irq < 0) {
+> -		printk(KERN_WARNING PREFIX "PCI Interrupt %s[%c]: no GSI",
+> -		       pci_name(dev), ('A' + pin));
+> +		dev_warn(&dev->dev, "PCI INT%c#: no GSI", 'A' + pin);
+>  		/* Interrupt Line values above 0xF are forbidden */
+>  		if (dev->irq > 0 && (dev->irq <= 0xF)) {
+>  			printk(" - using IRQ %d\n", dev->irq);
+> @@ -554,21 +554,21 @@ int acpi_pci_irq_enable(struct pci_dev *
+>  
+>  	rc = acpi_register_gsi(irq, triggering, polarity);
+>  	if (rc < 0) {
+> -		printk(KERN_WARNING PREFIX "PCI Interrupt %s[%c]: failed "
+> -		       "to register GSI\n", pci_name(dev), ('A' + pin));
+> +		dev_warn(&dev->dev, "PCI INT%c#: failed to register GSI\n",
+> +			 'A' + pin);
+>  		return rc;
+>  	}
+>  	dev->irq = rc;
+>  
+> -	printk(KERN_INFO PREFIX "PCI Interrupt %s[%c] -> ",
+> -	       pci_name(dev), 'A' + pin);
+> -
+>  	if (link)
+> -		printk("Link [%s] -> ", link);
+> +		snprintf(link_desc, sizeof(link_desc), " -> Link[%s]", link);
+> +	else
+> +		link_desc[0] = '\0';
+>  
+> -	printk("GSI %u (%s, %s) -> IRQ %d\n", irq,
+> -	       (triggering == ACPI_LEVEL_SENSITIVE) ? "level" : "edge",
+> -	       (polarity == ACPI_ACTIVE_LOW) ? "low" : "high", dev->irq);
+> +	dev_info(&dev->dev, "PCI INT%c#%s -> GSI %u (%s, %s) -> IRQ %d\n",
+> +		 'A' + pin, link_desc, irq,
+> +		 (triggering == ACPI_LEVEL_SENSITIVE) ? "level" : "edge",
+> +		 (polarity == ACPI_ACTIVE_LOW) ? "low" : "high", dev->irq);
+>  
+>  	return 0;
+>  }
+> @@ -616,10 +616,6 @@ void acpi_pci_irq_disable(struct pci_dev
+>  	 * (e.g. PCI_UNDEFINED_IRQ).
+>  	 */
+>  
+> -	printk(KERN_INFO PREFIX "PCI interrupt for device %s disabled\n",
+> -	       pci_name(dev));
+> -
+> +	dev_info(&dev->dev, "PCI INT%c# disabled\n", 'A' + pin);
+>  	acpi_unregister_gsi(gsi);
+> -
+> -	return;
+>  }
+> 
+> -- 
+> 
