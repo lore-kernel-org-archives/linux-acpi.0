@@ -1,103 +1,91 @@
-From: Alok Kataria <akataria@vmware.com>
-Subject: Re: [PATCH 2/2] acpi based pci gap caluculation v2
-Date: Wed, 25 Jun 2008 18:18:23 -0700
-Message-ID: <1214443103.27577.120.camel@promb-2n-dhcp368.eng.vmware.com>
-References: <1214333326.27577.28.camel@promb-2n-dhcp368.eng.vmware.com>
-	 <1214362159.9800.28.camel@yakui_zhao.sh.intel.com>
-	 <35f686220806242117p4a442982hb459a6b76312f391@mail.gmail.com>
-	 <1214372365.9800.42.camel@yakui_zhao.sh.intel.com>
-	 <35f686220806242304q43987059xb203dd1ac75b7583@mail.gmail.com>
-	 <1214383095.9800.85.camel@yakui_zhao.sh.intel.com>
-	 <1214413073.27577.67.camel@promb-2n-dhcp368.eng.vmware.com>
-	 <1214442046.7055.9.camel@yakui_zhao.sh.intel.com>
-Reply-To: akataria@vmware.com
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: [PATCH] ACPI: don't walk tables if ACPI was disabled
+Date: Thu, 26 Jun 2008 11:02:48 +0800
+Message-ID: <1214449368.7055.29.camel@yakui_zhao.sh.intel.com>
+References: <20080620135639.GA5073@damson.getinternet.no>
+	 <19f34abd0806240452w2561040uc2b1b1d35562db71@mail.gmail.com>
+	 <1214357857.9800.20.camel@yakui_zhao.sh.intel.com>
+	 <200806250908.59315.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-outbound-1.vmware.com ([65.113.40.141]:40897 "EHLO
-	smtp-outbound-1.vmware.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756571AbYFZBS0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Jun 2008 21:18:26 -0400
-In-Reply-To: <1214442046.7055.9.camel@yakui_zhao.sh.intel.com>
+Received: from mga11.intel.com ([192.55.52.93]:11276 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752306AbYFZCvv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 25 Jun 2008 22:51:51 -0400
+In-Reply-To: <200806250908.59315.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: Alok kataria <alokkataria1@gmail.com>, "lenb@kernel.org" <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, linux-acpi <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Vegard Nossum <vegard.nossum@gmail.com>, Ingo Molnar <mingo@elte.hu>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Alexey Starikovskiy <astarikovskiy@suse.de>, Yinghai Lu <yhlu.kernel@gmail.com>
 
-On Wed, 2008-06-25 at 18:00 -0700, Zhao Yakui wrote:
-> On Wed, 2008-06-25 at 09:57 -0700, Alok Kataria wrote:
-> > On Wed, 2008-06-25 at 01:38 -0700, Zhao Yakui wrote:
-> > > On Tue, 2008-06-24 at 23:04 -0700, Alok kataria wrote:
+On Wed, 2008-06-25 at 09:08 -0600, Bjorn Helgaas wrote:
+> On Tuesday 24 June 2008 07:37:37 pm Zhao Yakui wrote:
+> > On Tue, 2008-06-24 at 13:52 +0200, Vegard Nossum wrote:
+> > > On 6/24/08, Ingo Molnar <mingo@elte.hu> wrote:
+> > > > i havent seen the warning reappear with your fix after thousands of
+> > > > bootups - so i guess we can consider it fixed.
+> > > >
+> > > > Len, please consider the patch below. (it's in tip/out-of-tree)
+> > > 
+> > > No, please don't :-)
+> > > 
+> > > It fixes your particular case (the acpi_rtc_init() hunk of the patch),
+> > > but the acpi_walk_namespace() part should be changed to a WARN(). But
+> > > that is likely to cause a lot of "spurious" reports, so the other acpi
+> > > drivers should be fixed as well.
+> > In fact this issue is related with the following factors:
+> >    a. when acpi is disabled, OS won't initialize the ACPI mutex, which
+> > is accessed by many ACPI interface functions. For example:
+> > acpi_walk_namespace, acpi_install_fixed_event_handler.
+> >    b. When acpi is disabled, some drivers will call the ACPI interface
+> > functions. For example: The acpi_walk_namespace is called in
+> > dock_init/bay_init.
+> 
+> I think most current uses of acpi_walk_namespace() are indications
+> that the ACPI or PNP core is missing something.
+I don't think so. The acpi_walk_namespace is used to enumerate the ACPI
+tree and execute some specific operations. For example: Add the device
+notification function for some type of device; call the INI method for
+all the device.
+> In dock_init() and bay_init(), it's used to bind a driver to a
+> device.  I think it would be better if we could figure out how to
+> use the usual acpi_bus_register_driver() interface.  Actually, it
+> looks like this is already 90% done: acpi_dock_match() does the
+> same thing as is_dock(), so it looks like dock_init() could easily
+> be converted to register as a driver for ACPI_DOCK_HID.
+Maybe what you said is reasonable if the dock/bay device exists and is
+added to Linux ACPI device tree. But if the status of bay/dock device
+doesn't exist , it won't be added into the Linux ACPI device tree. In
+such case the dock/bay driver won't be loaded for it. So it will be
+reasonable to enumerate the acpi tree to install the notification
+function for the dock device so that OS can receive the notification
+event when the dock device is hotplugged. 
 
-> > > The pci_mem_start is still gotten by parsing the E820 table.But the
-> > > input parameter start_addr will be used in the function of
-> > > e820_search_gap.
-> > >   If the following is the resource start address returned by the PCI0
-> > > _CRS object , maybe the different pci_mem_start will be gotten.
-> > >     0xE0000000
-> > >     0xE4000000
-> > >
-> > >   At the same time if several start address is returned by the _CRS
-> > > object, the e820 table will be parsed several times.
-> >
-> > Yes we will parse e820 several times, but we don't initialize
-> > pci_mem_start in every pass.
-> > It will be initialized only twice once via the e820_setup_gap code path
-> > and once via pci_setup_gap.
-> > And i think you agree that both of these are required ?
-> Agree with what you said and IMO it is OK.
-> >
-> > During the gap calculation the previous code or the code now in
-> > e820_setup_gap does this...
-> >       calculates a gap in e820_map from 0 to 2^32.
-> >       Initializes pci_mem_start.
-> >
-> > And now with this patch, the code in pci_setup_gap
-> > does this...
-> >       for each _CRS under PCI0
-> >               search gap from start_addr of _CRS to 2^32 *[1].
-> >       Initialize pci_mem_start with the biggest gap that we could
-> >       find.
-> Yes. But maybe the pci_mem_start obtained in pci_setup_gap will be
-> different with that obtained in e820_setup_gap on some bogus BIOS.
-> If the pci_mem_start obtained in pci_setup_gap can meet the requirement,
-> it is also reasonable.
+If acpi is disabled, it is unnecessary for OS to find the dock/bay
+device again. In such case it will be reasonable to use the flag of
+acpi_disabled in the function of dock_init/bay_init.
 
-Ok, so the whole problem crops up from what if the BIOS itself is bogus.
-Ok in that case too we take proper care that pci_mem_start is within the
-expected limits, i.e. we make sure that 
-1. pci_mem_start is not initialized to an already allocated resource
-address and..
-2. pci_mem_start is within the lower 32bit of address space. 
-
-I assume you also agree that all the checks are in place. 
-Also it would be great if you could ACK both the patches as well.
-
-Thanks for the review.
-Alok
-
-> > Essentially, what we are doing is just limiting the gap calculation to a
-> > smaller address space depending on the ACPI information we get.
-> >
-> > Now then, what problem do you see with this approach ?
-> > *[1]
-> > While writing this mail i figured out that, instead of searching from
-> > start_addr of _CRS to 2^32 we should just search till *end_addr* of _CRS resource.
-> > I will send a patch to that effect.
-> If this, IMO it will be OK.
-> > Thanks,
-> > Alok
-> >
-> >
-> > >
-> > > Thanks.
-> > >   Yakui
-> > >
-> > > > Thanks,
-> > > > Alok
-> > >
-> >
+Best regards.
+   Yakui.
+> bay_init() looks similar, with acpi_bay_match(), is_ejectable_bay(),
+> ACPI_BAY_HID, etc.
+> 
+> Other users of acpi_walk_namespace() are often to install notify
+> handlers to deal with add/remove events.  I think these are telling
+> us that we need to implement the "TBD: Handle device insertion/removal"
+> pieces in acpi_bus_check_device().
+> 
+> > The acpi_install_fixed_event_handler is called in 
+> > the acpi_rtc_init.
+> 
+> Yes (via rtc_wake_setup()).  I think this should be moved into the
+> RTC driver itself.  I have some ideas on how to do this; I'll post
+> a patch in a few days.  But for 2.6.26, I think the minimal fix of
+> checking acpi_disabled in acpi_rtc_init() is better.
+> 
+> Bjorn
+> 
 > 
 
