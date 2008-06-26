@@ -1,71 +1,115 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: [PATCH -next] fujitsu-laptop: depends on INPUT
-Date: Fri, 27 Jun 2008 00:22:28 +1000
-Message-ID: <20080627002228.6e1e2368.sfr@canb.auug.org.au>
-References: <20080623093449.b4f19f85.randy.dunlap@oracle.com>
-	<200806260435.m5Q4ZadJ009415@turbo.physics.adelaide.edu.au>
+From: "Yinghai Lu" <yhlu.kernel@gmail.com>
+Subject: Re: [PATCH 1/2] cleanup e820_setup_gap v2
+Date: Thu, 26 Jun 2008 11:01:12 -0700
+Message-ID: <86802c440806261101k78c5057id8ca0649188bd132@mail.gmail.com>
+References: <1214333310.27577.26.camel@promb-2n-dhcp368.eng.vmware.com>
+	 <20080625160817.GC24967@elte.hu>
+	 <1214416962.27577.74.camel@promb-2n-dhcp368.eng.vmware.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Fri__27_Jun_2008_00_22_28_+1000_r8JNWxS4gEsvHl8/"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from chilli.pcug.org.au ([203.10.76.44]:34881 "EHLO smtps.tip.net.au"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752586AbYFZOWg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 26 Jun 2008 10:22:36 -0400
-In-Reply-To: <200806260435.m5Q4ZadJ009415@turbo.physics.adelaide.edu.au>
+Received: from rv-out-0506.google.com ([209.85.198.239]:29968 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752977AbYFZSBP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Jun 2008 14:01:15 -0400
+Received: by rv-out-0506.google.com with SMTP id k40so137711rvb.1
+        for <linux-acpi@vger.kernel.org>; Thu, 26 Jun 2008 11:01:12 -0700 (PDT)
+In-Reply-To: <1214416962.27577.74.camel@promb-2n-dhcp368.eng.vmware.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>, linux-acpi@vger.kernel.org, linux-next@vger.kernel.org, akpm <akpm@linux-foundation.org>
+To: akataria@vmware.com
+Cc: Ingo Molnar <mingo@elte.hu>, "lenb@kernel.org" <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, the arch/x86 maintainers <x86@kernel.org>
 
---Signature=_Fri__27_Jun_2008_00_22_28_+1000_r8JNWxS4gEsvHl8/
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Thu, 26 Jun 2008 14:05:36 +0930 (CST) Jonathan Woithe <jwoithe@physics.a=
-delaide.edu.au> wrote:
+On Wed, Jun 25, 2008 at 11:02 AM, Alok Kataria <akataria@vmware.com> wrote:
+> On Wed, 2008-06-25 at 09:08 -0700, Ingo Molnar wrote:
+>> * Alok Kataria <akataria@vmware.com> wrote:
+>>
+>> > This is a preparatory patch for the next patch in series.
+>> > Moves some code from e820_setup_gap to a new function e820_search_gap.
+>> > This patch is a part of a bug fix where we walk the ACPI table to calculate
+>> > a gap for PCI optional devices.
+>> >
+>> > v1->v2: Patch on top of tip/master.
+>> >       Fixes a bug introduced in the last patch about the typeof "last".
+>> >       Also the new function e820_search_gap now returns if we found a gap in
+>> >       e820_map.
+>>
+>> applied to tip/x86/setup-memory - thanks Alok.
 >
-> > From: Randy Dunlap <randy.dunlap@oracle.com>
-> >=20
-> > fujitsu-laptop uses input_* functions, so it should depend
-> > on INPUT.
-> :
-> > Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-> > ---
-> >  drivers/misc/Kconfig |    1 +
-> >  1 file changed, 1 insertion(+)
-> >=20
-> > --- linux-next-20080623.orig/drivers/misc/Kconfig
-> > +++ linux-next-20080623/drivers/misc/Kconfig
-> > @@ -179,6 +179,7 @@ config FUJITSU_LAPTOP
-> >          tristate "Fujitsu Laptop Extras"
-> >          depends on X86
-> >          depends on ACPI
-> > +        depends on INPUT
-> >          depends on BACKLIGHT_CLASS_DEVICE
-> >          ---help---
-> >  	  This is a driver for laptops built by Fujitsu:
->=20
-> Ack.
+> Hi Ingo,
+>
+> As mentioned in this mail,
+> http://marc.info/?l=linux-kernel&m=121441312409978&w=2
+>
+> I have also added a end_addr parameter to e820_search_gap to search only
+> till the CRS objects end_addr instead of 2^32. In the normal case via
+> e820_setup_gap we search till 2^32.
+>
+> Please apply this too.
+> Patch on top of tip/master
+> --
+>
+> e820_search_gap also take a end_addr parameter to limit search from
+> start_addr to end_addr.
+>
+> Signed-off-by: AloK N Kataria <akataria@vmware.com>
 
-I have added this to today's linux-next tree.
+Acked-by: Yinghai Lu <yhlu.kernel@gmail.com>
 
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
-
---Signature=_Fri__27_Jun_2008_00_22_28_+1000_r8JNWxS4gEsvHl8/
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAkhjpiQACgkQTgG2atn1QN9BtQCeKBpIeIhEdFxEMSA9fVR/0PSX
-OggAn30OigqqqeC/Nu13flm3DLJsSd7A
-=ss9x
------END PGP SIGNATURE-----
-
---Signature=_Fri__27_Jun_2008_00_22_28_+1000_r8JNWxS4gEsvHl8/--
+>
+> Index: linux-x86-tree.git/arch/x86/kernel/e820.c
+> ===================================================================
+> --- linux-x86-tree.git.orig/arch/x86/kernel/e820.c      2008-06-25 10:05:21.000000000 -0700
+> +++ linux-x86-tree.git/arch/x86/kernel/e820.c   2008-06-25 10:07:30.000000000 -0700
+> @@ -486,17 +486,19 @@
+>        printk(KERN_INFO "modified physical RAM map:\n");
+>        e820_print_map("modified");
+>  }
+> -
+> +#define MAX_GAP_END 0x100000000ull
+>  /*
+> - * Search for a gap in the e820 memory space from start_addr to 2^32.
+> + * Search for a gap in the e820 memory space from start_addr to end_addr.
+>  */
+>  __init int e820_search_gap(unsigned long *gapstart, unsigned long *gapsize,
+> -               unsigned long start_addr)
+> +               unsigned long start_addr, unsigned long long end_addr)
+>  {
+> -       unsigned long long last = 0x100000000ull;
+> +       unsigned long long last;
+>        int i = e820.nr_map;
+>        int found = 0;
+>
+> +       last = (end_addr && end_addr < MAX_GAP_END) ? end_addr : MAX_GAP_END;
+> +
+>        while (--i >= 0) {
+>                unsigned long long start = e820.map[i].addr;
+>                unsigned long long end = start + e820.map[i].size;
+> @@ -536,7 +538,7 @@
+>
+>        gapstart = 0x10000000;
+>        gapsize = 0x400000;
+> -       found  = e820_search_gap(&gapstart, &gapsize, 0);
+> +       found  = e820_search_gap(&gapstart, &gapsize, 0, MAX_GAP_END);
+>
+>  #ifdef CONFIG_X86_64
+>        if (!found) {
+> Index: linux-x86-tree.git/include/asm-x86/e820.h
+> ===================================================================
+> --- linux-x86-tree.git.orig/include/asm-x86/e820.h      2008-06-25 10:05:21.000000000 -0700
+> +++ linux-x86-tree.git/include/asm-x86/e820.h   2008-06-25 10:06:17.000000000 -0700
+> @@ -72,7 +72,7 @@
+>  extern void update_e820(void);
+>  extern void e820_setup_gap(void);
+>  extern int e820_search_gap(unsigned long *gapstart, unsigned long *gapsize,
+> -                               unsigned long start_addr);
+> +                       unsigned long start_addr, unsigned long long end_addr);
+>  struct setup_data;
+>  extern void parse_e820_ext(struct setup_data *data, unsigned long pa_data);
+>
+>
+>
+>
+>
