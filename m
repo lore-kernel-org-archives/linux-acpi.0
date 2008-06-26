@@ -1,26 +1,41 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch 5/5] x86 PCI: use dev_printk when possible
-Date: Wed, 25 Jun 2008 23:48:32 -0400 (EDT)
-Message-ID: <alpine.LFD.1.10.0806252345460.3279@localhost.localdomain>
-References: <20080613165209.507694130@ldl.fc.hp.com>
- <20080613165304.842091464@ldl.fc.hp.com>
+Subject: Re: [PATCH] ACPI: add standard linux WARN() output to ACPI warnings
+Date: Wed, 25 Jun 2008 23:57:54 -0400 (EDT)
+Message-ID: <alpine.LFD.1.10.0806252357300.3279@localhost.localdomain>
+References: <20080620095247.GA24557@elte.hu>
+ <20080620135639.GA5073@damson.getinternet.no> <20080620142224.GF8135@elte.hu>
+ <alpine.LFD.1.10.0806242231120.3014@localhost.localdomain>
+ <20080624194915.11d6aee9@infradead.org>
+ <alpine.LFD.1.10.0806242310000.3014@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-reply-to: <20080613165304.842091464@ldl.fc.hp.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms173001pub.verizon.net ([206.46.173.1]:51357 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751709AbYFZD6R (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Jun 2008 23:58:17 -0400
+In-reply-to: <alpine.LFD.1.10.0806242310000.3014@localhost.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Arjan van de Ven <arjan@infradead.org>
+Cc: Ingo Molnar <mingo@elte.hu>, Vegard Nossum <vegard.nossum@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Zhao Yakui <yakui.zhao@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alexey Starikovskiy <astarikovskiy@suse.de>, Yinghai Lu <yhlu.kernel@gmail.com>
 
-I guess the 'INTA#; rather than 'INTA' syntax I'm not fond of appears in 
-this x86 patch too.  I think if we don't really have anything useful 
-to say about polarity, then we should not add an active low symbol.
 
-thanks,
--Len
 
--       printk(KERN_INFO "PCI: %s IRQ %d for device %s\n", msg, irq, 
-pci_name(dev));
-+       dev_info(&dev->dev, "%s PCI INT%c# -> IRQ %d\n", msg, 'A' + pin, 
-irq);
+On Tue, 24 Jun 2008, Len Brown wrote:
+
+> 
+> 
+> > Please do not use warn_on_slowpath() directly!
+> > Please use WARN_ON() or WARN(). The later has printk semantics so this
+> > could turn into
+> > 
+> > WARN(1, "ACPI Error (%s-%0d): \n", module_name, line_number);
+> 
+> > 
+> > and kerneloops.org and various other tools will pick up the printk like
+> > arguments as part of the warning message.
+> 
+> cool, will do.
+
+that is, will do when WARN() actually gets upstream:-)
