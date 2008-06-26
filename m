@@ -1,65 +1,35 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 4/4] Remove obsolete piece of PM documentation
-Date: Thu, 26 Jun 2008 22:34:08 +0200
-Message-ID: <200806262234.09104.rjw@sisk.pl>
-References: <200806121025.24668.rjw@sisk.pl> <20080612205118.GB11761@elf.ucw.cz> <alpine.LFD.1.10.0806261535140.2988@localhost.localdomain>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC][PATCH 6/9] PCI ACPI: Introduce acpi_pm_device_sleep_wake
+ function
+Date: Thu, 26 Jun 2008 16:38:41 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0806261636430.5244-100000@iolanthe.rowland.org>
+References: <200806262231.35375.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:33028 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753078AbYFZUc1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 26 Jun 2008 16:32:27 -0400
-In-Reply-To: <alpine.LFD.1.10.0806261535140.2988@localhost.localdomain>
-Content-Disposition: inline
+Received: from iolanthe.rowland.org ([192.131.102.54]:52433 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753977AbYFZUin (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Jun 2008 16:38:43 -0400
+In-Reply-To: <200806262231.35375.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Pavel Machek <pavel@suse.cz>, Randy Dunlap <randy.dunlap@oracle.com>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Zhao Yakui <yakui.zhao@intel.com>, Zhang Rui <rui.zhang@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Thursday, 26 of June 2008, Len Brown wrote:
+On Thu, 26 Jun 2008, Rafael J. Wysocki wrote:
+
+> > > Do you think the core should clear PME# status automatically in that case?
+> > 
+> > Yes.
 > 
-> > > > > > -               Linux Power Management Support
-> > > > > > -
-> > > > > > -This document briefly describes how to use power management with your
-> > > > > > -Linux system and how to add power management support to Linux drivers.
-> > > > > > -
-> > > > > > -APM or ACPI?
-> > > > > > -------------
-> > > > > > -If you have a relatively recent x86 mobile, desktop, or server system,
-> > > > > > -odds are it supports either Advanced Power Management (APM) or
-> > > > > > -Advanced Configuration and Power Interface (ACPI).  ACPI is the newer
-> > > > > > -of the two technologies and puts power management in the hands of the
-> > > > > > -operating system, allowing for more intelligent power management than
-> > > > > > -is possible with BIOS controlled APM.
-> > > > > > -
-> > > > > > -The best way to determine which, if either, your system supports is to
-> > > > > > -build a kernel with both ACPI and APM enabled (as of 2.3.x ACPI is
-> > > > > > -enabled by default).  If a working ACPI implementation is found, the
-> > > > > > -ACPI driver will override and disable APM, otherwise the APM driver
-> > > > > > -will be used.
-> > > > > > -
-> > > > > > -No, sorry, you cannot have both ACPI and APM enabled and running at
-> > > > > > -once.  Some people with broken ACPI or broken APM implementations
-> > > > > > -would like to use both to get a full set of working features, but you
-> > > > > > -simply cannot mix and match the two.  Only one power management
-> > > > > > -interface can be in control of the machine at once.  Think about it..
-> > > > > 
-> > > > > I'd keep this; it is still true, and we still support both.
-> > > > > 
-> > > > > Maybe it should be moved into Doc*/power/apm.txt or something.
-> > > > 
-> > > > Yes, if there is a good sub-directory for it, please put it there.
-> 
-> I think this is already covered in the Kconfig help for ACPI and APM
-> and doesn't need a Documentation file.
+> Okay, but that will require us to add the clearing of PME# to the PCI
+> resume/restore callbacks.  Perfectly doable, but I'd prefer to do that on top
+> of the $subject patch.
 
-It won't hurt to have the file, though.
+That's fine.  I wasn't trying to criticize your new patches, just point
+out that overall they are moving in the same direction as this other
+work that was done last year.
 
-I have reworked the patch already and I'd rather not do that again the other
-way around. ;-)
+Alan Stern
 
-Thanks,
-Rafael
