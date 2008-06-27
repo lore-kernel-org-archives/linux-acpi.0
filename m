@@ -1,47 +1,52 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [patch 04/10] acpi: adjust
- _acpi_{module,function}_namedefinitions
-Date: Thu, 26 Jun 2008 22:00:53 -0700
-Message-ID: <20080626220053.0a00a3c3.akpm@linux-foundation.org>
-References: <200805010952.m419q3Jc031806@imap1.linux-foundation.org>
-	<1209722812.22514.28.camel@linux-2bdv.site>
-	<20080502054113.4e5839d9.akpm@linux-foundation.org>
-	<1209737075.22514.79.camel@linux-2bdv.site>
-	<9D39833986E69849A2A8E74C1078B6B3446FBD@orsmsx415.amr.corp.intel.com>
-	<20080623124523.76f38d90.akpm@linux-foundation.org>
-	<alpine.LFD.1.10.0806262210520.2988@localhost.localdomain>
+From: David Howells <dhowells@redhat.com>
+Subject: [PATCH] Fix pnpacpi_parse_irq_option()'s test against PNP_IRQ_NR
+Date: Fri, 27 Jun 2008 13:33:16 +0100
+Message-ID: <20080627123316.8122.15241.stgit@warthog.procyon.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58195 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752235AbYF0FBP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 27 Jun 2008 01:01:15 -0400
-In-Reply-To: <alpine.LFD.1.10.0806262210520.2988@localhost.localdomain>
+Received: from mx1.redhat.com ([66.187.233.31]:44865 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755125AbYF0Mdq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 27 Jun 2008 08:33:46 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: "Moore, Robert" <robert.moore@intel.com>, trenn@suse.de, linux-acpi@vger.kernel.org, jbeulich@novell.com
+To: bjorn.helgaas@hp.com, rene.herman@gmail.com, len.brown@intel.com
+Cc: linux-acpi@vger.kernel.org, dhowells@redhat.com
 
-On Thu, 26 Jun 2008 22:20:26 -0400 (EDT) Len Brown <lenb@kernel.org> wrote:
+Fix the test pnpacpi_parse_irq_option() makes against PNP_IRQ_NR by sticking
+p->interrupt[i] into an unsigned int and then using it in the three places
+that want it.  This gets rid of the warning:
 
-> In the future, please simply do not accept
-> patches to drivers/acpi/*/* (the ACPICA files) into -mm.
+drivers/pnp/pnpacpi/rsparser.c:500: warning: comparison is always true due to limited range of data type
 
-Nope.
+Signed-off-by: David Howells <dhowells@redhat.com>
+---
 
-> Instead, bounce them to the Linux/ACPI maintainer,
-> who will bounce them to the ACPICA maintainer --
-> which is the head of the stream for these sub-directories.
+ drivers/pnp/pnpacpi/rsparser.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
-One of the things I do is to act as backup for leaky maintainers.  Many
-years experience with hundreds of maintainers teaches me that they all
-leak like sieves.  Stuff which we *want* in the kernel would just get
-lost if we relied upon maintainers to be 100% lossless.
 
-Now, if both the Linux/ACPI maintainer and the ACPICA maintainer were
-lossless then OK, but that would be unprecedented in my experience. 
-Even the best of the best (Mauro Chehab) loses stuff occasionally.
+diff --git a/drivers/pnp/pnpacpi/rsparser.c b/drivers/pnp/pnpacpi/rsparser.c
+index d2abc87..b0d89eb 100644
+--- a/drivers/pnp/pnpacpi/rsparser.c
++++ b/drivers/pnp/pnpacpi/rsparser.c
+@@ -497,12 +497,13 @@ static __init void pnpacpi_parse_irq_option(struct pnp_dev *dev,
+ 	bitmap_zero(map.bits, PNP_IRQ_NR);
+ 	for (i = 0; i < p->interrupt_count; i++) {
+ 		if (p->interrupts[i]) {
+-			if (p->interrupts[i] < PNP_IRQ_NR)
+-				__set_bit(p->interrupts[i], map.bits);
++			unsigned irq = p->interrupts[i];
++			if (irq  < PNP_IRQ_NR)
++				__set_bit(irq, map.bits);
+ 			else
+ 				dev_err(&dev->dev, "ignoring IRQ %d option "
+ 					"(too large for %d entry bitmap)\n",
+-					p->interrupts[i], PNP_IRQ_NR);
++					irq, PNP_IRQ_NR);
+ 		}
+ 	}
+ 
 
