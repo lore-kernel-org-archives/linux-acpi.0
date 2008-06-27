@@ -1,30 +1,44 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [RFC] [PATCH 1/3] ACPI: save/restore ACPI NVS memory during
- hibernation
-Date: Fri, 27 Jun 2008 11:52:56 -0400 (EDT)
-Message-ID: <alpine.LFD.1.10.0806271152231.2988@localhost.localdomain>
-References: <1214293383.3001.108.camel@rzhang-dt.sh.intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC] serio driver: speed up resume
+Date: Fri, 27 Jun 2008 18:03:47 +0200
+Message-ID: <200806271803.48164.rjw@sisk.pl>
+References: <1213607375.31950.2.camel@sli10-desk.sh.intel.com> <1214272978.29380.2.camel@sli10-desk.sh.intel.com> <alpine.LFD.1.10.0806271148140.2988@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:45695 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752436AbYF0PxP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Jun 2008 11:53:15 -0400
-Received: from localhost.localdomain ([72.93.254.151])
- by vms173005.mailsrvcs.net
- (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K3400D93P4WVKR0@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 27 Jun 2008 10:46:09 -0500 (CDT)
-In-reply-to: <1214293383.3001.108.camel@rzhang-dt.sh.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <alpine.LFD.1.10.0806271148140.2988@localhost.localdomain>
+Content-Disposition: inline
+Sender: linux-input-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Shaohua Li <shaohua.li@intel.com>, linux-input@vger.kernel.org, dmitry.torokhov@gmail.com, linux acpi <linux-acpi@vger.kernel.org>, Linux Power Management List <linux-pm@lists.osdl.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>
 
-note that linux-pm should be cc'd on suspend patches.
+On Friday, 27 of June 2008, Len Brown wrote:
+> 
+> <rafael and linux-pm cc'd>
+> 
+> On Tue, 24 Jun 2008, Shaohua Li wrote:
+> 
+> > On Mon, 2008-06-16 at 17:09 +0800, Shaohua Li wrote:
+> > > serio_resume will call into psmouse_extensions(). In my test, the
+> > > routine is very slow, it blocks resume about 1 sec. Below patch (move
+> > > resume to kseriod, just like boot time probe) cures the issue in my
+> > > test, and seems no side effect. I'm no familiar with serio driver, so
+> > > please check.
+> 
+> > Any comments from input guys?
+> 
+> none that i can see.
+> 
+> Rafael,
+> can you put this patch in with your suspend test patches?
+> I would do so, but as I'll be out for a bit I'll not
+> be here to babysit it if something breaks.
 
-thanks,
--len
+I will, but my series has been a bit out of order recently.  I'm going to fix
+it up shortly, though.
 
-
+Thanks,
+Rafael
