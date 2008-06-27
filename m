@@ -1,66 +1,57 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 6/8] PCI ACPI: Rework PCI handling of wake-up
-Date: Fri, 27 Jun 2008 17:12:17 +0200
-Message-ID: <200806271712.18694.rjw@sisk.pl>
-References: <200806270022.24496.rjw@sisk.pl> <1214532498.26388.2.camel@sli10-desk.sh.intel.com> <200806271526.46932.rjw@sisk.pl>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH] Fix pnpacpi_parse_irq_option()'s test against PNP_IRQ_NR
+Date: Fri, 27 Jun 2008 09:14:18 -0600
+Message-ID: <200806270914.18564.bjorn.helgaas@hp.com>
+References: <4864ED65.8050009@keyaccess.nl> <31574.1214572588@redhat.com> <16399.1214578444@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:37381 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758029AbYF0PKs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 27 Jun 2008 11:10:48 -0400
-In-Reply-To: <200806271526.46932.rjw@sisk.pl>
+Received: from g1t0028.austin.hp.com ([15.216.28.35]:30357 "EHLO
+	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752000AbYF0POm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Jun 2008 11:14:42 -0400
+In-Reply-To: <16399.1214578444@redhat.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, "Zhang, Rui" <rui.zhang@intel.com>, "Zhao, Yakui" <yakui.zhao@intel.com>
+To: David Howells <dhowells@redhat.com>
+Cc: Rene Herman <rene.herman@keyaccess.nl>, rene.herman@gmail.com, len.brown@intel.com, linux-acpi@vger.kernel.org
 
-On Friday, 27 of June 2008, Rafael J. Wysocki wrote:
-> On Friday, 27 of June 2008, Shaohua Li wrote:
-> > On Fri, 2008-06-27 at 06:28 +0800, Rafael J. Wysocki wrote:
-> [--snip--]
-> > > +
-> > > +       if (pmc & PCI_PM_CAP_PME_MASK) {
-> > > +               dev_printk(KERN_INFO, &dev->dev,
-> > > +                       "PME# supported from%s%s%s%s%s\n",
-> > > +                       (pmc & PCI_PM_CAP_PME_D0) ? " D0" : "",
-> > > +                       (pmc & PCI_PM_CAP_PME_D1) ? " D1" : "",
-> > > +                       (pmc & PCI_PM_CAP_PME_D2) ? " D2" : "",
-> > > +                       (pmc & PCI_PM_CAP_PME_D3) ? " D3hot" : "",
-> > > +                       (pmc & PCI_PM_CAP_PME_D3cold) ? " D3cold" :
-> > > "");
-> > > +               /*
-> > > +                * Make device's PM flags reflect the wake-up
-> > > capability, but
-> > > +                * let the user space enable it to wake up the system
-> > > as needed.
-> > > +                */
-> > > +               device_set_wakeup_capable(&dev->dev, true);
-> > > +               device_set_wakeup_enable(&dev->dev, false);
-> > > +               /* Disable the PME# generation functionality */
-> > > +               pci_pme_active(dev, pm, false);
-> > > +       }
-> > >  }
-> > It appears a lot of drivers will call device_init_wakeup(dev, 1)
-> > regardless if userspace enable wakeup for the device. Will you fix the
-> > drivers?
+On Friday 27 June 2008 08:54:04 am David Howells wrote:
+> Rene Herman <rene.herman@keyaccess.nl> wrote:
 > 
-> Either fix the drivers, or change device_init_wakeup() so that it doesn't
-> set power.should_wakeup to the same value as power.can_wakeup, which IMO is
-> a mistake.
+> > Well, it's been promoted from a u8, so no need for that anyway, but <shrug>.
 > 
-> Perhaps it's better to drop device_init_wakeup() altogether.
+> My logic is that in commit 95b24192cf27631dc11541e97c430389320e7a93 it says
+> the following:
+> 
+> 	ACPI Extended Interrupt Descriptors can encode 32-bit interrupt
+> 	numbers, so an interrupt number may exceed the size of the bitmap
+> 	we use to track possible IRQ settings.
+>  
+> so the field in 'struct acpi_resource_irq' might at some point increase to be
+> a 32-bit unsigned value.  Otherwise there's no point having the check at all,
+> right?
 
-Note, however, that in any case this will only change the default from
-'wake-up enabled' to 'wake-up disabled' and the user space will be able to
-change the value later on anyway.
+There are two flavors of ACPI IRQ descriptors, which the CA puts
+into acpi_resource_irq and acpi_resource_extended_irq.
 
-That said, setting power.can_wakeup for devices that in fact can't wake up is
-plain wrong and the drivers that do such things will have to be fixed.
+struct acpi_resource_irq will never have an IRQ number larger than
+255.  PNP_IRQ_NR is currently 256, so we don't really have a problem
+there.
 
-Thanks,
-Rafael
+struct acpi_resource_extended_irq has a u32 IRQ value, and that's
+where I'm worried.  We already have plenty of devices with GSIs in
+the 2000 range.  In most cases, I think these are PCI devices, so
+these GSIs appear in _PRT (PCI routing tables) rather than in _PRS.
+But there is the possibility that we could see a configurable ACPI
+device with a large GSI, and that's why I added the check.
+
+I think what happened here is that I meant to put this test in
+pnpacpi_parse_ext_irq_option(), but somehow it got into
+pnpacpi_parse_irq_option() instead.  I'll try to sort this out
+today.
+
+Bjorn
