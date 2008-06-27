@@ -1,45 +1,181 @@
-From: "Maciej W. Rozycki" <macro@linux-mips.org>
-Subject: Re: linux-next: Tree for June 13: IO APIC breakage on HP nx6325
-Date: Fri, 27 Jun 2008 02:53:09 +0100 (BST)
-Message-ID: <Pine.LNX.4.55.0806270249490.31618@cliff.in.clinika.pl>
-References: <20080613232214.394fd6fd.sfr@canb.auug.org.au> <200806201353.59083.rjw@sisk.pl>
- <20080620115714.GC8637@srcf.ucam.org> <200806201422.12659.rjw@sisk.pl>
- <20080624091516.GA5642@ucw.cz>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: Re: [PATCH 6/8] PCI ACPI: Rework PCI handling of wake-up
+Date: Fri, 27 Jun 2008 10:08:18 +0800
+Message-ID: <1214532498.26388.2.camel@sli10-desk.sh.intel.com>
+References: <200806270022.24496.rjw@sisk.pl>
+	 <200806270028.29396.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from kirk.serum.com.pl ([213.77.9.205]:63547 "EHLO serum.com.pl"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751409AbYF0Byk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 26 Jun 2008 21:54:40 -0400
-In-Reply-To: <20080624091516.GA5642@ucw.cz>
+Received: from mga01.intel.com ([192.55.52.88]:7602 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751953AbYF0CBv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 26 Jun 2008 22:01:51 -0400
+In-Reply-To: <200806270028.29396.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@suse.cz>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg59@srcf.ucam.org>, Ingo Molnar <mingo@elte.hu>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, "Zhang, Rui" <rui.zhang@intel.com>, "Zhao, Yakui" <yakui.zhao@intel.com>
 
-On Tue, 24 Jun 2008, Pavel Machek wrote:
-
-> > $ cat /proc/acpi/thermal_zone/TZ*/trip_points
-> > 
-> > in the failing case:
-> > 
-> > critical (S5):           105 C
-> > passive:                 16 C: tc1=1 tc2=2 tsp=100 devices=C000 C001 
-> > active[0]:               16 C: devices=C34F 
-> > active[1]:               16 C: devices=C350 
-> > active[2]:               16 C: devices=C351 
-> > active[3]:               16 C: devices=C352 
-> > critical (S5):           100 C
-> > passive:                 16 C: tc1=1 tc2=2 tsp=300 devices=C000 C001 
-> > critical (S5):           100 C
-> > passive:                 16 C: tc1=1 tc2=2 tsp=300 devices=C000 C001 
+On Fri, 2008-06-27 at 06:28 +0800, Rafael J. Wysocki wrote:
+> +
+> +/**
+>   * pci_enable_wake - enable PCI device as wakeup event source
+>   * @dev: PCI device affected
+>   * @state: PCI state from which device will issue wakeup events
+> @@ -1046,66 +1108,84 @@ int pci_set_pcie_reset_state(struct pci_
+>   * called automatically by this routine.
+>   *
+>   * Devices with legacy power management (no standard PCI PM
+> capabilities)
+> - * always require such platform hooks.  Depending on the platform,
+> devices
+> - * supporting the standard PCI PME# signal may require such platform
+> hooks;
+> - * they always update bits in config space to allow PME# generation.
+> - *
+> - * -EIO is returned if the device can't ever be a wakeup event
+> source.
+> - * -EINVAL is returned if the device can't generate wakeup events
+> from
+> - * the specified PCI state.  Returns zero if the operation is
+> successful.
+> + * always require such platform hooks.
+> + *
+> + * RETURN VALUE:
+> + * 0 is returned on success
+> + * -EINVAL is returned if device is not supposed to wake up the
+> system
+> + * Error code depending on the platform is returned if both the
+> platform and
+> + * the native mechanism fail to enable the generation of wake-up
+> events
+>   */
+>  int pci_enable_wake(struct pci_dev *dev, pci_power_t state, int
+> enable)
+>  {
+>         int pm;
+> -       int status;
+> -       u16 value;
+> +       int error = 0;
 > 
-> Can we call the ACPI BIOS to be terminally broken at this point?
+> -       /* Note that drivers should verify
+> device_may_wakeup(&dev->dev)
+> -        * before calling this function.  Platform code should report
+> -        * errors when drivers try to enable wakeup on devices that
+> -        * can't issue wakeups, or on which wakeups were disabled by
+> -        * userspace updating the /sys/devices.../power/wakeup file.
+> -        */
+> +       if (!device_may_wakeup(&dev->dev))
+> +               return -EINVAL;
+> 
+> -       status = call_platform_enable_wakeup(&dev->dev, enable);
+> +       if (enable && platform_pci_can_wakeup(dev)) {
+> +               error = platform_pci_sleep_wake(dev, true);
+> +               if (!error)
+> +                       /*
+> +                        * The platform claims to have handled the
+> device and
+> +                        * we have to trust it to avoid double wake-up
+> events.
+> +                        */
+> +                       return 0;
+> +       }
+> 
+> -       /* find PCI PM capability in list */
+>         pm = pci_find_capability(dev, PCI_CAP_ID_PM);
+> -
+> -       /* If device doesn't support PM Capabilities, but caller wants
+> to
+> -        * disable wake events, it's a NOP.  Otherwise fail unless the
+> -        * platform hooks handled this legacy device already.
+> -        */
+> -       if (!pm)
+> -               return enable ? status : 0;
+> -
+> -       /* Check device's ability to generate PME# */
+> -       pci_read_config_word(dev,pm+PCI_PM_PMC,&value);
+> -
+> -       value &= PCI_PM_CAP_PME_MASK;
+> -       value >>= ffs(PCI_PM_CAP_PME_MASK) - 1;   /* First bit of mask
+> */
+> -
+> -       /* Check if it can generate PME# from requested state. */
+> -       if (!value || !(value & (1 << state))) {
+> -               /* if it can't, revert what the platform hook changed,
+> -                * always reporting the base "EINVAL, can't PME#"
+> error
+> -                */
+> +       if (!enable || pci_pme_capable(dev, pm, state)) {
+> +               pci_pme_active(dev, pm, enable);
+>                 if (enable)
+> -                       call_platform_enable_wakeup(&dev->dev, 0);
+> -               return enable ? -EINVAL : 0;
+> +                       return 0;
+>         }
+> 
+> -       pci_read_config_word(dev, pm + PCI_PM_CTRL, &value);
+> +       if (!enable && platform_pci_can_wakeup(dev))
+> +               error = platform_pci_sleep_wake(dev, false);
+> 
+> -       /* Clear PME_Status by writing 1 to it and enable PME# */
+> -       value |= PCI_PM_CTRL_PME_STATUS | PCI_PM_CTRL_PME_ENABLE;
+> +       return error;
+> +}
+> 
+> -       if (!enable)
+> -               value &= ~PCI_PM_CTRL_PME_ENABLE;
+> +/**
+> + * pci_pm_init - Initialize PM functions of given PCI device
+> + * @dev: PCI device to handle.
+> + */
+> +void pci_pm_init(struct pci_dev *dev)
+> +{
+> +       int pm;
+> +       u16 pmc;
+> 
+> -       pci_write_config_word(dev, pm + PCI_PM_CTRL, value);
+> +       /* find PCI PM capability in list */
+> +       pm = pci_find_capability(dev, PCI_CAP_ID_PM);
+> +       if (!pm)
+> +               return;
+> +       /* Check device's ability to generate PME# */
+> +       pci_read_config_word(dev, pm + PCI_PM_PMC, &pmc);
+> 
+> -       return 0;
+> +       if ((pmc & PCI_PM_CAP_VER_MASK) > 3) {
+> +               dev_err(&dev->dev, "unsupported PM cap regs version (%
+> u)\n",
+> +                       pmc & PCI_PM_CAP_VER_MASK);
+> +               return;
+> +       }
+> +
+> +       if (pmc & PCI_PM_CAP_PME_MASK) {
+> +               dev_printk(KERN_INFO, &dev->dev,
+> +                       "PME# supported from%s%s%s%s%s\n",
+> +                       (pmc & PCI_PM_CAP_PME_D0) ? " D0" : "",
+> +                       (pmc & PCI_PM_CAP_PME_D1) ? " D1" : "",
+> +                       (pmc & PCI_PM_CAP_PME_D2) ? " D2" : "",
+> +                       (pmc & PCI_PM_CAP_PME_D3) ? " D3hot" : "",
+> +                       (pmc & PCI_PM_CAP_PME_D3cold) ? " D3cold" :
+> "");
+> +               /*
+> +                * Make device's PM flags reflect the wake-up
+> capability, but
+> +                * let the user space enable it to wake up the system
+> as needed.
+> +                */
+> +               device_set_wakeup_capable(&dev->dev, true);
+> +               device_set_wakeup_enable(&dev->dev, false);
+> +               /* Disable the PME# generation functionality */
+> +               pci_pme_active(dev, pm, false);
+> +       }
+>  }
+It appears a lot of drivers will call device_init_wakeup(dev, 1)
+regardless if userspace enable wakeup for the device. Will you fix the
+drivers?
 
- Do we have any point of contact at HP and/or ATI/AMD?  I suppose getting 
-hands on a SB400 datasheet could be tricky, but someone may be able to 
-answer questions about the interrupt routing between the 8254, the 8259A 
-and the I/O APIC for this chip and/or fix the DSDT.
+Thanks,
+Shaohua
 
-  Maciej
