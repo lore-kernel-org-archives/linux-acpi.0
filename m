@@ -1,212 +1,56 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH2/4] ACPI :  Add the boot option of "idle=halt" to use halt
- for CPU idle
-Date: Fri, 27 Jun 2008 11:19:36 -0400 (EDT)
-Message-ID: <alpine.LFD.1.10.0806271117000.2988@localhost.localdomain>
-References: <1214301533.31069.7.camel@yakui_zhao.sh.intel.com>
+From: Rene Herman <rene.herman@keyaccess.nl>
+Subject: Re: [PATCH] Fix pnpacpi_parse_irq_option()'s test against PNP_IRQ_NR
+Date: Fri, 27 Jun 2008 17:26:28 +0200
+Message-ID: <486506A4.7060605@keyaccess.nl>
+References: <4864ED65.8050009@keyaccess.nl> <4864E2B1.3040308@keyaccess.nl> <20080627123316.8122.15241.stgit@warthog.procyon.org.uk> <31574.1214572588@redhat.com> <16399.1214578444@redhat.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:61877 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761714AbYF0PT4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Jun 2008 11:19:56 -0400
-Received: from localhost.localdomain ([72.93.254.151])
- by vms173003.mailsrvcs.net
- (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K3400F5CNWSLMX6@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 27 Jun 2008 10:19:41 -0500 (CDT)
-In-reply-to: <1214301533.31069.7.camel@yakui_zhao.sh.intel.com>
+Received: from smtpq1.tilbu1.nb.home.nl ([213.51.146.200]:42455 "EHLO
+	smtpq1.tilbu1.nb.home.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750781AbYF0PZp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Jun 2008 11:25:45 -0400
+In-Reply-To: <16399.1214578444@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: linux-acpi@vger.kernel.org, venkatesh.pallipadi@intel.com, Arjan van de Ven <arjan@infradead.org>
+To: David Howells <dhowells@redhat.com>
+Cc: bjorn.helgaas@hp.com, rene.herman@gmail.com, len.brown@intel.com, linux-acpi@vger.kernel.org
 
+On 27-06-08 16:54, David Howells wrote:
 
-applied.
-thanks,
--len
+> Rene Herman <rene.herman@keyaccess.nl> wrote:
+> 
+>> Well, it's been promoted from a u8, so no need for that anyway, but <shrug>.
+> 
+> My logic is that in commit 95b24192cf27631dc11541e97c430389320e7a93 it says
+> the following:
+> 
+> 	ACPI Extended Interrupt Descriptors can encode 32-bit interrupt
+> 	numbers, so an interrupt number may exceed the size of the bitmap
+> 	we use to track possible IRQ settings.
+>  
+> so the field in 'struct acpi_resource_irq' might at some point increase to be
+> a 32-bit unsigned value.  Otherwise there's no point having the check at all,
+> right?
 
-ps. powertop 1.9 in FC9 apparently still looks in 
-/proc/acpi/processor/*/power
-which still shows C1/C2/C3 even when booted with "idle=halt",
-and it shows no usage C1 with halt, so it shows
-100% C0 time.  Quite confusing.
+Ah, how lovely, there has been a merge error at some point...
 
-Fortunately, powertop 1.11 looks in /sys/devices/system/cpu/cpu*/cpuidle
-and displays both the correct C-states (and their type:-) plus usage.
+No, that larger value would live in a struct acpi_resource_extended_irq. 
+This code was supposed to go in pnpacpi_parse_ext_irq_option() instead.
 
-On Tue, 24 Jun 2008, Zhao Yakui wrote:
+Here's the original posting of this patch:
 
-> Subject: ACPI: Add the boot option of "idle=halt" to use halt for CPU idle
-> From: Zhao Yakui <yakui.zhao@intel.com>
-> 
->     If the boot option of "idle=halt" is added, OSPM will be forced to use
-> Halt for CPU idle. In such case CPU C2/C3 is meaningless and only C1 is used.
-> At the same time halt instruction is used for CPU C1.
-> 
-> Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-> ---
->  Documentation/kernel-parameters.txt |    4 +++-
->  arch/ia64/kernel/process.c          |    2 ++
->  arch/x86/kernel/process.c           |   17 ++++++++++++++++-
->  drivers/acpi/processor_idle.c       |   22 ++++++++++++++++++++++
->  include/asm-ia64/processor.h        |    1 +
->  include/asm-x86/processor.h         |    1 +
->  6 files changed, 45 insertions(+), 2 deletions(-)
-> 
-> Index: linux-2.6/arch/x86/kernel/process.c
-> ===================================================================
-> --- linux-2.6.orig/arch/x86/kernel/process.c
-> +++ linux-2.6/arch/x86/kernel/process.c
-> @@ -6,6 +6,10 @@
->  #include <linux/sched.h>
->  #include <linux/module.h>
->  #include <linux/pm.h>
-> +#include <asm/system.h>
-> +
-> +unsigned long idle_halt;
-> +EXPORT_SYMBOL(idle_halt);
->  
->  struct kmem_cache *task_xstate_cachep;
->  
-> @@ -169,7 +173,18 @@ static int __init idle_setup(char *str)
->  		pm_idle = poll_idle;
->  	} else if (!strcmp(str, "mwait"))
->  		force_mwait = 1;
-> -	else
-> +	else if (!strcmp(str, "halt")) {
-> +		/*
-> +		 * When the boot option of idle=halt is added, halt is
-> +		 * forced to be used for CPU idle. In such case CPU C2/C3
-> +		 * won't be used again.
-> +		 * To continue to load the CPU idle driver, don't touch
-> +		 * the boot_option_idle_override.
-> +		 */
-> +		pm_idle = default_idle;
-> +		idle_halt = 1;
-> +		return 0;
-> +	} else
->  		return -1;
->  
->  	boot_option_idle_override = 1;
-> Index: linux-2.6/Documentation/kernel-parameters.txt
-> ===================================================================
-> --- linux-2.6.orig/Documentation/kernel-parameters.txt
-> +++ linux-2.6/Documentation/kernel-parameters.txt
-> @@ -785,7 +785,7 @@ and is between 256 and 4096 characters. 
->  			See Documentation/ide/ide.txt.
->  
->  	idle=		[X86]
-> -			Format: idle=poll or idle=mwait
-> +			Format: idle=poll or idle=mwait, idle=halt
->  			Poll forces a polling idle loop that can slightly improves the performance
->  			of waking up a idle CPU, but will use a lot of power and make the system
->  			run hot. Not recommended.
-> @@ -793,6 +793,8 @@ and is between 256 and 4096 characters. 
->  			to not use it because it doesn't save as much power as a normal idle
->  			loop use the MONITOR/MWAIT idle loop anyways. Performance should be the same
->  			as idle=poll.
-> +			idle=halt. Halt is forced to be used for CPU idle.
-> +			In such case C2/C3 won't be used again.
->  
->  	ide-pci-generic.all-generic-ide [HW] (E)IDE subsystem
->  			Claim all unknown PCI IDE storage controllers.
-> Index: linux-2.6/arch/ia64/kernel/process.c
-> ===================================================================
-> --- linux-2.6.orig/arch/ia64/kernel/process.c
-> +++ linux-2.6/arch/ia64/kernel/process.c
-> @@ -55,6 +55,8 @@ void (*ia64_mark_idle)(int);
->  
->  unsigned long boot_option_idle_override = 0;
->  EXPORT_SYMBOL(boot_option_idle_override);
-> +unsigned long idle_halt;
-> +EXPORT_SYMBOL(idle_halt);
->  
->  void
->  ia64_do_show_stack (struct unw_frame_info *info, void *arg)
-> Index: linux-2.6/include/asm-ia64/processor.h
-> ===================================================================
-> --- linux-2.6.orig/include/asm-ia64/processor.h
-> +++ linux-2.6/include/asm-ia64/processor.h
-> @@ -763,6 +763,7 @@ prefetchw (const void *x)
->  #define spin_lock_prefetch(x)	prefetchw(x)
->  
->  extern unsigned long boot_option_idle_override;
-> +extern unsigned long idle_halt;
->  
->  #endif /* !__ASSEMBLY__ */
->  
-> Index: linux-2.6/drivers/acpi/processor_idle.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/processor_idle.c
-> +++ linux-2.6/drivers/acpi/processor_idle.c
-> @@ -41,6 +41,7 @@
->  #include <linux/pm_qos_params.h>
->  #include <linux/clockchips.h>
->  #include <linux/cpuidle.h>
-> +#include <linux/cpuidle.h>
->  
->  /*
->   * Include the apic definitions for x86 to have the APIC timer related defines
-> @@ -57,6 +58,7 @@
->  
->  #include <acpi/acpi_bus.h>
->  #include <acpi/processor.h>
-> +#include <asm/processor.h>
->  
->  #define ACPI_PROCESSOR_COMPONENT        0x01000000
->  #define ACPI_PROCESSOR_CLASS            "processor"
-> @@ -955,6 +957,17 @@ static int acpi_processor_get_power_info
->  			} else {
->  				continue;
->  			}
-> +			if (cx.type == ACPI_STATE_C1 && idle_halt) {
-> +				/*
-> +				 * In most cases the C1 space_id obtained from
-> +				 * _CST object is FIXED_HARDWARE access mode.
-> +				 * But when the option of idle=halt is added,
-> +				 * the entry_method type should be changed from
-> +				 * CSTATE_FFH to CSTATE_HALT.
-> +				 */
-> +				cx.entry_method = ACPI_CSTATE_HALT;
-> +				snprintf(cx.desc, ACPI_CX_DESC_LEN, "ACPI HLT");
-> +			}
->  		} else {
->  			snprintf(cx.desc, ACPI_CX_DESC_LEN, "ACPI IOPORT 0x%x",
->  				 cx.address);
-> @@ -1780,6 +1793,15 @@ int __cpuinit acpi_processor_power_init(
->  		return 0;
->  
->  	if (!first_run) {
-> +		if (idle_halt) {
-> +			/*
-> +			 * When the boot option of "idle=halt" is added, halt
-> +			 * is used for CPU IDLE.
-> +			 * In such case C2/C3 is meaningless. So the max_cstate
-> +			 * is set to one.
-> +			 */
-> +			max_cstate = 1;
-> +		}
->  		dmi_check_system(processor_power_dmi_table);
->  		max_cstate = acpi_processor_cstate_check(max_cstate);
->  		if (max_cstate < ACPI_C_STATES_MAX)
-> Index: linux-2.6/include/asm-x86/processor.h
-> ===================================================================
-> --- linux-2.6.orig/include/asm-x86/processor.h
-> +++ linux-2.6/include/asm-x86/processor.h
-> @@ -732,6 +732,7 @@ extern int			force_mwait;
->  extern void select_idle_routine(const struct cpuinfo_x86 *c);
->  
->  extern unsigned long		boot_option_idle_override;
-> +extern unsigned long		idle_halt;
->  
->  extern void enable_sep_cpu(void);
->  extern int sysenter_setup(void);
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+http://lkml.org/lkml/2008/5/30/390
+
+where it indeed is. Here is the last one, where it has mistakingly 
+shifted position to pnpacpi_parse_irq_option():
+
+http://lkml.org/lkml/2008/6/17/337
+
+I was already wondering why I hadn't see that warning myself while I was 
+testing things...
+
+Bjorn?
+
+Rene.
