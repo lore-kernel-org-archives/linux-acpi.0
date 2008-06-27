@@ -1,126 +1,228 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [RFC] serio driver: speed up resume
-Date: Fri, 27 Jun 2008 11:49:23 -0400 (EDT)
-Message-ID: <alpine.LFD.1.10.0806271148140.2988@localhost.localdomain>
-References: <1213607375.31950.2.camel@sli10-desk.sh.intel.com>
- <1214272978.29380.2.camel@sli10-desk.sh.intel.com>
+Subject: Re: [PATCH v3] drivers/acpi/video: fix brightness allocation
+Date: Fri, 27 Jun 2008 11:51:35 -0400 (EDT)
+Message-ID: <alpine.LFD.1.10.0806271151230.2988@localhost.localdomain>
+References: <485CDEDB.3080101@gmail.com>
+ <1214184121.3001.34.camel@rzhang-dt.sh.intel.com>  <48601AB2.30900@gmail.com>
+ <1214274377.3001.52.camel@rzhang-dt.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-input-owner@vger.kernel.org>
-In-reply-to: <1214272978.29380.2.camel@sli10-desk.sh.intel.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: linux-input@vger.kernel.org, dmitry.torokhov@gmail.com, linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Power Management List <linux-pm@lists.osdl.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms046pub.verizon.net ([206.46.252.46]:37965 "EHLO
+	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752222AbYF0Pvy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Jun 2008 11:51:54 -0400
+Received: from localhost.localdomain ([72.93.254.151])
+ by vms046.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
+ 3 2006)) with ESMTPA id <0K3400L86PE1XGH5@vms046.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 27 Jun 2008 10:51:38 -0500 (CDT)
+In-reply-to: <1214274377.3001.52.camel@rzhang-dt.sh.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Julia Jomantaite <julia.jomantaite@gmail.com>, linux-acpi@vger.kernel.org, akpm@linux-foundation.org
 
 
-<rafael and linux-pm cc'd>
 
-On Tue, 24 Jun 2008, Shaohua Li wrote:
+On Tue, 24 Jun 2008, Zhang Rui wrote:
 
-> On Mon, 2008-06-16 at 17:09 +0800, Shaohua Li wrote:
-> > serio_resume will call into psmouse_extensions(). In my test, the
-> > routine is very slow, it blocks resume about 1 sec. Below patch (move
-> > resume to kseriod, just like boot time probe) cures the issue in my
-> > test, and seems no side effect. I'm no familiar with serio driver, so
-> > please check.
+> 
+> On Tue, 2008-06-24 at 05:50 +0800, Julia Jomantaite wrote:
+> > Fix use of uninitialized device->brightness.
+> > 
+> > Signed-off-by: Julia Jomantaite <julia.jomantaite@gmail.com>
 
-> Any comments from input guys?
+> Acked-by: Zhang Rui <rui.zhang@intel.com>
 
-none that i can see.
-
-Rafael,
-can you put this patch in with your suspend test patches?
-I would do so, but as I'll be out for a bit I'll not
-be here to babysit it if something breaks.
-
+applied.
 thanks,
 -Len
 
-> 
-> > Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-> > 
-> > diff --git a/drivers/input/serio/serio.c b/drivers/input/serio/serio.c
-> > index 7f52938..7dad33f 100644
-> > --- a/drivers/input/serio/serio.c
-> > +++ b/drivers/input/serio/serio.c
-> > @@ -163,6 +163,7 @@ enum serio_event_type {
-> >         SERIO_RECONNECT_PORT,
-> >         SERIO_REGISTER_PORT,
-> >         SERIO_ATTACH_DRIVER,
-> > +       SERIO_RESUME_PORT,
-> >  };
-> > 
-> >  struct serio_event {
-> > @@ -287,6 +288,13 @@ static struct serio_event *serio_get_event(void)
-> >         return event;
-> >  }
-> > 
-> > +#ifdef CONFIG_PM
-> > +static void serio_resume_port(struct device *dev);
-> > +#else
-> > +static inline void serio_resume_port(struct device *dev)
-> > +{
-> > +}
-> > +#endif /* CONFIG_PM */
-> >  static void serio_handle_event(void)
-> >  {
-> >         struct serio_event *event;
-> > @@ -319,6 +327,10 @@ static void serio_handle_event(void)
-> >                                 serio_attach_driver(event->object);
-> >                                 break;
-> > 
-> > +                       case SERIO_RESUME_PORT:
-> > +                               serio_resume_port(event->object);
-> > +                               break;
+> > ---
+> > --- orig/drivers/acpi/video.c   2008-06-12 17:15:08.000000000 +0100
+> > +++ linux-2.6/drivers/acpi/video.c      2008-06-23 08:44:35.000000000
+> > +0100
+> > @@ -631,6 +631,76 @@ acpi_video_bus_DOS(struct acpi_video_bus
+> >   *     device  : video output device (LCD, CRT, ..)
+> >   *
+> >   *  Return Value:
+> > + *     Maximum brightness level
+> > + *
+> > + *  Allocate and initialize device->brightness.
+> > + */
 > > +
-> >                         default:
-> >                                 break;
-> >                 }
-> > @@ -922,21 +934,26 @@ static int serio_suspend(struct device *dev,
-> > pm_message_t state)
-> >         return 0;
-> >  }
-> > 
-> > -static int serio_resume(struct device *dev)
-> > +static void serio_resume_port(struct device *dev)
+> > +static int
+> > +acpi_video_init_brightness(struct acpi_video_device *device)
+> > +{
+> > +       union acpi_object *obj = NULL;
+> > +       int i, max_level = 0, count = 0;
+> > +       union acpi_object *o;
+> > +       struct acpi_video_device_brightness *br = NULL;
+> > +
+> > +       if (!ACPI_SUCCESS(acpi_video_device_lcd_query_levels(device,
+> > &obj))) {
+> > +               ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Could not query
+> > available "
+> > +                                               "LCD brightness level
+> > \n"));
+> > +               goto out;
+> > +       }
+> > +
+> > +       if (obj->package.count < 2)
+> > +               goto out;
+> > +
+> > +       br = kzalloc(sizeof(*br), GFP_KERNEL);
+> > +       if (!br) {
+> > +               printk(KERN_ERR "can't allocate memory\n");
+> > +               goto out;
+> > +       }
+> > +
+> > +       br->levels = kmalloc(obj->package.count * sizeof
+> > *(br->levels),
+> > +                               GFP_KERNEL);
+> > +       if (!br->levels)
+> > +               goto out_free;
+> > +
+> > +       for (i = 0; i < obj->package.count; i++) {
+> > +               o = (union acpi_object *)&obj->package.elements[i];
+> > +               if (o->type != ACPI_TYPE_INTEGER) {
+> > +                       printk(KERN_ERR PREFIX "Invalid data\n");
+> > +                       continue;
+> > +               }
+> > +               br->levels[count] = (u32) o->integer.value;
+> > +
+> > +               if (br->levels[count] > max_level)
+> > +                       max_level = br->levels[count];
+> > +               count++;
+> > +       }
+> > +
+> > +       if (count < 2)
+> > +               goto out_free_levels;
+> > +
+> > +       br->count = count;
+> > +       device->brightness = br;
+> > +       ACPI_DEBUG_PRINT((ACPI_DB_INFO, "found %d brightness levels
+> > \n", count));
+> > +       kfree(obj);
+> > +       return max_level;
+> > +
+> > +out_free_levels:
+> > +       kfree(br->levels);
+> > +out_free:
+> > +       kfree(br);
+> > +out:
+> > +       device->brightness = NULL;
+> > +       kfree(obj);
+> > +       return 0;
+> > +}
+> > +
+> > +/*
+> > + *  Arg:
+> > + *     device  : video output device (LCD, CRT, ..)
+> > + *
+> > + *  Return Value:
+> >   *     None
+> >   *
+> >   *  Find out all required AML methods defined under the output
+> > @@ -640,10 +710,7 @@ acpi_video_bus_DOS(struct acpi_video_bus
+> >  static void acpi_video_device_find_cap(struct acpi_video_device
+> > *device)
 > >  {
-> >         struct serio *serio = to_serio_port(dev);
+> >         acpi_handle h_dummy1;
+> > -       int i;
+> >         u32 max_level = 0;
+> > -       union acpi_object *obj = NULL;
+> > -       struct acpi_video_device_brightness *br = NULL;
 > > 
-> > -       if (dev->power.power_state.event != PM_EVENT_ON &&
-> > -           serio_reconnect_driver(serio)) {
-> > -               /*
-> > -                * Driver re-probing can take a while, so better let
-> > kseriod
-> > -                * deal with it.
-> > -                */
-> > -               serio_rescan(serio);
-> > +       if (serio_reconnect_driver(serio)) {
-> > +               serio_disconnect_port(serio);
-> > +               serio_find_driver(serio);
+> > 
+> >         memset(&device->cap, 0, sizeof(device->cap));
+> > @@ -672,53 +739,7 @@ static void acpi_video_device_find_cap(s
+> >                 device->cap._DSS = 1;
 > >         }
 > > 
-> >         dev->power.power_state = PMSG_ON;
-> > +}
+> > -       if (ACPI_SUCCESS(acpi_video_device_lcd_query_levels(device,
+> > &obj))) {
+> > -
+> > -               if (obj->package.count >= 2) {
+> > -                       int count = 0;
+> > -                       union acpi_object *o;
+> > -
+> > -                       br = kzalloc(sizeof(*br), GFP_KERNEL);
+> > -                       if (!br) {
+> > -                               printk(KERN_ERR "can't allocate memory
+> > \n");
+> > -                       } else {
+> > -                               br->levels =
+> > kmalloc(obj->package.count *
+> > -                                                    sizeof
+> > *(br->levels), GFP_KERNEL);
+> > -                               if (!br->levels)
+> > -                                       goto out;
+> > -
+> > -                               for (i = 0; i < obj->package.count; i
+> > ++) {
+> > -                                       o = (union acpi_object
+> > *)&obj->package.
+> > -                                           elements[i];
+> > -                                       if (o->type !=
+> > ACPI_TYPE_INTEGER) {
+> > -                                               printk(KERN_ERR PREFIX
+> > "Invalid data\n");
+> > -                                               continue;
+> > -                                       }
+> > -                                       br->levels[count] = (u32)
+> > o->integer.value;
+> > -
+> > -                                       if (br->levels[count] >
+> > max_level)
+> > -                                               max_level =
+> > br->levels[count];
+> > -                                       count++;
+> > -                               }
+> > -                             out:
+> > -                               if (count < 2) {
+> > -                                       kfree(br->levels);
+> > -                                       kfree(br);
+> > -                               } else {
+> > -                                       br->count = count;
+> > -                                       device->brightness = br;
+> > -
+> > ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+> > -                                                         "found %d
+> > brightness levels\n",
+> > -                                                         count));
+> > -                               }
+> > -                       }
+> > -               }
+> > -
+> > -       } else {
+> > -               ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Could not query
+> > available LCD brightness level\n"));
+> > -       }
+> > -
+> > -       kfree(obj);
+> > +       max_level = acpi_video_init_brightness(device);
 > > 
-> > +static int serio_resume(struct device *dev)
-> > +{
-> > +       /*
-> > +        * Driver reconnect can take a while, so better let kseriod
-> > +        * deal with it.
-> > +        */
-> > +       if (dev->power.power_state.event != PM_EVENT_ON)
-> > +               serio_queue_event(dev, NULL, SERIO_RESUME_PORT);
-> >         return 0;
-> >  }
-> >  #endif /* CONFIG_PM */
+> >         if (device->cap._BCL && device->cap._BCM && device->cap._BQC
+> > && max_level > 0){
+> >                 int result;
+> > @@ -1695,6 +1716,8 @@ static void
+> >  acpi_video_switch_brightness(struct acpi_video_device *device, int
+> > event)
+> >  {
+> >         unsigned long level_current, level_next;
+> > +       if (!device->brightness)
+> > +               return;
+> >         acpi_video_device_lcd_get_level_current(device,
+> > &level_current);
+> >         level_next = acpi_video_get_next_level(device, level_current,
+> > event);
+> >         acpi_video_device_lcd_set_level(device, level_next);
 > > 
 > > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi"
-> > in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
-> > 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
