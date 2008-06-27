@@ -1,63 +1,126 @@
-From: Rene Herman <rene.herman@keyaccess.nl>
-Subject: Re: [PATCH] Fix pnpacpi_parse_irq_option()'s test against PNP_IRQ_NR
-Date: Fri, 27 Jun 2008 17:38:47 +0200
-Message-ID: <48650987.7090103@keyaccess.nl>
-References: <4864ED65.8050009@keyaccess.nl> <4864E2B1.3040308@keyaccess.nl> <20080627123316.8122.15241.stgit@warthog.procyon.org.uk> <31574.1214572588@redhat.com> <16399.1214578444@redhat.com> <486506A4.7060605@keyaccess.nl>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [RFC] serio driver: speed up resume
+Date: Fri, 27 Jun 2008 11:49:23 -0400 (EDT)
+Message-ID: <alpine.LFD.1.10.0806271148140.2988@localhost.localdomain>
+References: <1213607375.31950.2.camel@sli10-desk.sh.intel.com>
+ <1214272978.29380.2.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtpq2.tilbu1.nb.home.nl ([213.51.146.201]:59799 "EHLO
-	smtpq2.tilbu1.nb.home.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753876AbYF0PiG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Jun 2008 11:38:06 -0400
-In-Reply-To: <486506A4.7060605@keyaccess.nl>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-input-owner@vger.kernel.org>
+In-reply-to: <1214272978.29380.2.camel@sli10-desk.sh.intel.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: linux-input@vger.kernel.org, dmitry.torokhov@gmail.com, linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Power Management List <linux-pm@lists.osdl.org>
 List-Id: linux-acpi@vger.kernel.org
-To: David Howells <dhowells@redhat.com>
-Cc: bjorn.helgaas@hp.com, rene.herman@gmail.com, len.brown@intel.com, linux-acpi@vger.kernel.org
 
-On 27-06-08 17:26, Rene Herman wrote:
 
-> On 27-06-08 16:54, David Howells wrote:
-> 
->> Rene Herman <rene.herman@keyaccess.nl> wrote:
->> 
->>> Well, it's been promoted from a u8, so no need for that anyway,
->>> but <shrug>.
->> 
->> My logic is that in commit 95b24192cf27631dc11541e97c430389320e7a93
->> it says the following:
->> 
->> ACPI Extended Interrupt Descriptors can encode 32-bit interrupt 
->> numbers, so an interrupt number may exceed the size of the bitmap 
->> we use to track possible IRQ settings.
->> 
->> so the field in 'struct acpi_resource_irq' might at some point 
->> increase to be a 32-bit unsigned value.  Otherwise there's no point
->> having the check at all, right?
+<rafael and linux-pm cc'd>
 
-(as an aside, we conceptually don't know what PNP_IRQ_NR is -- why the 
-define otherwise -- so the check in itself still makes some sense here 
-as well).
+On Tue, 24 Jun 2008, Shaohua Li wrote:
 
-> Ah, how lovely, there has been a merge error at some point...
-> 
-> No, that larger value would live in a struct acpi_resource_extended_irq. 
-> This code was supposed to go in pnpacpi_parse_ext_irq_option() instead.
-> 
-> Here's the original posting of this patch:
-> 
-> http://lkml.org/lkml/2008/5/30/390
-> 
-> where it indeed is. Here is the last one, where it has mistakingly 
-> shifted position to pnpacpi_parse_irq_option():
-> 
-> http://lkml.org/lkml/2008/6/17/337
-> 
-> I was already wondering why I hadn't see that warning myself while I was 
-> testing things...
-> 
-> Bjorn?
+> On Mon, 2008-06-16 at 17:09 +0800, Shaohua Li wrote:
+> > serio_resume will call into psmouse_extensions(). In my test, the
+> > routine is very slow, it blocks resume about 1 sec. Below patch (move
+> > resume to kseriod, just like boot time probe) cures the issue in my
+> > test, and seems no side effect. I'm no familiar with serio driver, so
+> > please check.
 
-Rene.
+> Any comments from input guys?
+
+none that i can see.
+
+Rafael,
+can you put this patch in with your suspend test patches?
+I would do so, but as I'll be out for a bit I'll not
+be here to babysit it if something breaks.
+
+thanks,
+-Len
+
+> 
+> > Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+> > 
+> > diff --git a/drivers/input/serio/serio.c b/drivers/input/serio/serio.c
+> > index 7f52938..7dad33f 100644
+> > --- a/drivers/input/serio/serio.c
+> > +++ b/drivers/input/serio/serio.c
+> > @@ -163,6 +163,7 @@ enum serio_event_type {
+> >         SERIO_RECONNECT_PORT,
+> >         SERIO_REGISTER_PORT,
+> >         SERIO_ATTACH_DRIVER,
+> > +       SERIO_RESUME_PORT,
+> >  };
+> > 
+> >  struct serio_event {
+> > @@ -287,6 +288,13 @@ static struct serio_event *serio_get_event(void)
+> >         return event;
+> >  }
+> > 
+> > +#ifdef CONFIG_PM
+> > +static void serio_resume_port(struct device *dev);
+> > +#else
+> > +static inline void serio_resume_port(struct device *dev)
+> > +{
+> > +}
+> > +#endif /* CONFIG_PM */
+> >  static void serio_handle_event(void)
+> >  {
+> >         struct serio_event *event;
+> > @@ -319,6 +327,10 @@ static void serio_handle_event(void)
+> >                                 serio_attach_driver(event->object);
+> >                                 break;
+> > 
+> > +                       case SERIO_RESUME_PORT:
+> > +                               serio_resume_port(event->object);
+> > +                               break;
+> > +
+> >                         default:
+> >                                 break;
+> >                 }
+> > @@ -922,21 +934,26 @@ static int serio_suspend(struct device *dev,
+> > pm_message_t state)
+> >         return 0;
+> >  }
+> > 
+> > -static int serio_resume(struct device *dev)
+> > +static void serio_resume_port(struct device *dev)
+> >  {
+> >         struct serio *serio = to_serio_port(dev);
+> > 
+> > -       if (dev->power.power_state.event != PM_EVENT_ON &&
+> > -           serio_reconnect_driver(serio)) {
+> > -               /*
+> > -                * Driver re-probing can take a while, so better let
+> > kseriod
+> > -                * deal with it.
+> > -                */
+> > -               serio_rescan(serio);
+> > +       if (serio_reconnect_driver(serio)) {
+> > +               serio_disconnect_port(serio);
+> > +               serio_find_driver(serio);
+> >         }
+> > 
+> >         dev->power.power_state = PMSG_ON;
+> > +}
+> > 
+> > +static int serio_resume(struct device *dev)
+> > +{
+> > +       /*
+> > +        * Driver reconnect can take a while, so better let kseriod
+> > +        * deal with it.
+> > +        */
+> > +       if (dev->power.power_state.event != PM_EVENT_ON)
+> > +               serio_queue_event(dev, NULL, SERIO_RESUME_PORT);
+> >         return 0;
+> >  }
+> >  #endif /* CONFIG_PM */
+> > 
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-acpi"
+> > in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> > 
+> 
