@@ -1,72 +1,57 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 07/84] ACPI: fix checkpatch.pl complaints in scan.c
-Date: Sat, 28 Jun 2008 01:43:11 -0400
-Message-ID: <ad7f0d9feee6980a3ab3ea806854f56817d1da8e.1214631213.git.len.brown@intel.com>
+Subject: [PATCH 22/84] acer-wmi: Remove version number
+Date: Sat, 28 Jun 2008 01:43:26 -0400
+Message-ID: <1a76b5a83e977cee4cd27c2f45a239a5faa9c1cc.1214631213.git.len.brown@intel.com>
 References: <1214631868-1715-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:34360 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752547AbYF1Foy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Jun 2008 01:44:54 -0400
+Received: from vms042pub.verizon.net ([206.46.252.42]:50708 "EHLO
+	vms042pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752576AbYF1Fo5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Jun 2008 01:44:57 -0400
 Received: from localhost.localdomain ([72.93.254.151])
- by vms173005.mailsrvcs.net
- (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K3500DUQRN1VK93@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sat, 28 Jun 2008 00:37:50 -0500 (CDT)
+ by vms042.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
+ 3 2006)) with ESMTPA id <0K3500BE3RYVAE42@vms042.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 28 Jun 2008 00:44:56 -0500 (CDT)
 In-reply-to: <1214631868-1715-1-git-send-email-lenb@kernel.org>
 In-reply-to: <087803d18fb8259cb844c075a35fb27c2d80792e.1214631213.git.len.brown@intel.com>
 References: <087803d18fb8259cb844c075a35fb27c2d80792e.1214631213.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernrel.org
-Cc: Alok N Kataria <akataria@vmware.com>, Len Brown <len.brown@intel.com>
+Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, Len Brown <len.brown@intel.com>
 
-From: Alok N Kataria <akataria@vmware.com>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
 
-http://bugzilla.kernel.org/show_bug.cgi?id=9772
+It doesn't make much sense these days.
 
-Signed-off-by: Alok N Kataria <akataria@vmware.com>
+Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/scan.c |   12 ++++++++----
- 1 files changed, 8 insertions(+), 4 deletions(-)
+ drivers/misc/acer-wmi.c |    5 +----
+ 1 files changed, 1 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 00ba4af..fb0c07e 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -6,7 +6,8 @@
- #include <linux/init.h>
+diff --git a/drivers/misc/acer-wmi.c b/drivers/misc/acer-wmi.c
+index d8b8574..e7a3fe5 100644
+--- a/drivers/misc/acer-wmi.c
++++ b/drivers/misc/acer-wmi.c
+@@ -22,8 +22,6 @@
+  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  */
+ 
+-#define ACER_WMI_VERSION	"0.1"
+-
  #include <linux/kernel.h>
- #include <linux/acpi.h>
--#include <asm/signal.h>
-+#include <linux/signal.h>
-+#include <linux/kthread.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
+@@ -1177,8 +1175,7 @@ static int __init acer_wmi_init(void)
+ {
+ 	int err;
  
- #include <acpi/acpi_drivers.h>
- #include <acpi/acinterp.h>	/* for acpi_ex_eisa_id_to_string() */
-@@ -154,6 +155,7 @@ acpi_eject_store(struct device *d, struct device_attribute *attr,
- 	acpi_status status;
- 	acpi_object_type type = 0;
- 	struct acpi_device *acpi_device = to_acpi_device(d);
-+	struct task_struct *task;
+-	printk(ACER_INFO "Acer Laptop ACPI-WMI Extras version %s\n",
+-			ACER_WMI_VERSION);
++	printk(ACER_INFO "Acer Laptop ACPI-WMI Extras\n");
  
- 	if ((!count) || (buf[0] != '1')) {
- 		return -EINVAL;
-@@ -171,9 +173,11 @@ acpi_eject_store(struct device *d, struct device_attribute *attr,
- 	}
- 
- 	/* remove the device in another thread to fix the deadlock issue */
--	ret = kernel_thread(acpi_bus_hot_remove_device,
--				acpi_device->handle, SIGCHLD);
--      err:
-+	task = kthread_run(acpi_bus_hot_remove_device,
-+				acpi_device->handle, "acpi_hot_remove_device");
-+	if (IS_ERR(task))
-+		ret = PTR_ERR(task);
-+err:
- 	return ret;
- }
+ 	find_quirks();
  
 -- 
 1.5.6.1.89.gd544
