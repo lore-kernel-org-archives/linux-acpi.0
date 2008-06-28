@@ -1,109 +1,76 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 45/84] ACPICA: Cleanup of _PRT parsing code
-Date: Sat, 28 Jun 2008 01:43:49 -0400
-Message-ID: <4e371fa84c309cc1ffac3b75a4ccaef35d07fa94.1214631214.git.len.brown@intel.com>
+Subject: [PATCH 59/84] PNP: add pnp_resource_type_name() helper function
+Date: Sat, 28 Jun 2008 01:44:03 -0400
+Message-ID: <1c5d72b1d1417dba89a206476a80f757e902c664.1214631214.git.len.brown@intel.com>
 References: <1214631868-1715-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms044pub.verizon.net ([206.46.252.44]:36363 "EHLO
+Received: from vms044pub.verizon.net ([206.46.252.44]:36593 "EHLO
 	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752549AbYF1FpY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Jun 2008 01:45:24 -0400
+	with ESMTP id S1754484AbYF1FqE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Jun 2008 01:46:04 -0400
 Received: from localhost.localdomain ([72.93.254.151])
  by vms044.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0K35003GTRZEVHWD@vms044.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sat, 28 Jun 2008 00:45:15 -0500 (CDT)
+ 3 2006)) with ESMTPA id <0K350036YS01V6VD@vms044.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 28 Jun 2008 00:45:47 -0500 (CDT)
 In-reply-to: <1214631868-1715-1-git-send-email-lenb@kernel.org>
 In-reply-to: <087803d18fb8259cb844c075a35fb27c2d80792e.1214631213.git.len.brown@intel.com>
 References: <087803d18fb8259cb844c075a35fb27c2d80792e.1214631213.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernrel.org
-Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <len.brown@intel.com>
 
-From: Bob Moore <robert.moore@intel.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Removed extraneous else clauses, other general cleanup.
+This patch adds a "pnp_resource_type_name(struct resource *)" that
+returns the string resource type.  This will be used by the sysfs
+"show resources" function and the debug resource dump function.
 
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/resources/rscreate.c |   24 ++++++++++++------------
- 1 files changed, 12 insertions(+), 12 deletions(-)
+ drivers/pnp/base.h    |    1 +
+ drivers/pnp/support.c |   15 +++++++++++++++
+ 2 files changed, 16 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/resources/rscreate.c b/drivers/acpi/resources/rscreate.c
-index 70c84ec..7804a8c 100644
---- a/drivers/acpi/resources/rscreate.c
-+++ b/drivers/acpi/resources/rscreate.c
-@@ -181,9 +181,9 @@ acpi_rs_create_pci_routing_table(union acpi_operand_object *package_object,
- 	}
+diff --git a/drivers/pnp/base.h b/drivers/pnp/base.h
+index 4c2a625..c913158 100644
+--- a/drivers/pnp/base.h
++++ b/drivers/pnp/base.h
+@@ -43,6 +43,7 @@ int pnp_check_mem(struct pnp_dev *dev, struct resource *res);
+ int pnp_check_irq(struct pnp_dev *dev, struct resource *res);
+ int pnp_check_dma(struct pnp_dev *dev, struct resource *res);
  
- 	/*
--	 * Loop through the ACPI_INTERNAL_OBJECTS - Each object
--	 * should be a package that in turn contains an
--	 * acpi_integer Address, a u8 Pin, a Name and a u8 source_index.
-+	 * Loop through the ACPI_INTERNAL_OBJECTS - Each object should be a
-+	 * package that in turn contains an acpi_integer Address, a u8 Pin,
-+	 * a Name, and a u8 source_index.
- 	 */
- 	top_object_list = package_object->package.elements;
- 	number_of_elements = package_object->package.count;
-@@ -240,9 +240,7 @@ acpi_rs_create_pci_routing_table(union acpi_operand_object *package_object,
- 		/* 1) First subobject: Dereference the PRT.Address */
++char *pnp_resource_type_name(struct resource *res);
+ void dbg_pnp_show_resources(struct pnp_dev *dev, char *desc);
  
- 		obj_desc = sub_object_list[0];
--		if (ACPI_GET_OBJECT_TYPE(obj_desc) == ACPI_TYPE_INTEGER) {
--			user_prt->address = obj_desc->integer.value;
--		} else {
-+		if (ACPI_GET_OBJECT_TYPE(obj_desc) != ACPI_TYPE_INTEGER) {
- 			ACPI_ERROR((AE_INFO,
- 				    "(PRT[%X].Address) Need Integer, found %s",
- 				    index,
-@@ -250,12 +248,12 @@ acpi_rs_create_pci_routing_table(union acpi_operand_object *package_object,
- 			return_ACPI_STATUS(AE_BAD_DATA);
- 		}
+ void pnp_init_resource(struct resource *res);
+diff --git a/drivers/pnp/support.c b/drivers/pnp/support.c
+index 7f594cc..eb07345 100644
+--- a/drivers/pnp/support.c
++++ b/drivers/pnp/support.c
+@@ -52,6 +52,21 @@ void pnp_eisa_id_to_string(u32 id, char *str)
+ 	str[7] = '\0';
+ }
  
-+		user_prt->address = obj_desc->integer.value;
++char *pnp_resource_type_name(struct resource *res)
++{
++	switch (pnp_resource_type(res)) {
++	case IORESOURCE_IO:
++		return "io";
++	case IORESOURCE_MEM:
++		return "mem";
++	case IORESOURCE_IRQ:
++		return "irq";
++	case IORESOURCE_DMA:
++		return "dma";
++	}
++	return NULL;
++}
 +
- 		/* 2) Second subobject: Dereference the PRT.Pin */
- 
- 		obj_desc = sub_object_list[1];
--		if (ACPI_GET_OBJECT_TYPE(obj_desc) == ACPI_TYPE_INTEGER) {
--			user_prt->pin = (u32) obj_desc->integer.value;
--		} else {
-+		if (ACPI_GET_OBJECT_TYPE(obj_desc) != ACPI_TYPE_INTEGER) {
- 			ACPI_ERROR((AE_INFO,
- 				    "(PRT[%X].Pin) Need Integer, found %s",
- 				    index,
-@@ -284,6 +282,8 @@ acpi_rs_create_pci_routing_table(union acpi_operand_object *package_object,
- 			}
- 		}
- 
-+		user_prt->pin = (u32) obj_desc->integer.value;
-+
- 		/*
- 		 * If the BIOS has erroneously reversed the _PRT source_name (index 2)
- 		 * and the source_index (index 3), fix it. _PRT is important enough to
-@@ -381,9 +381,7 @@ acpi_rs_create_pci_routing_table(union acpi_operand_object *package_object,
- 		/* 4) Fourth subobject: Dereference the PRT.source_index */
- 
- 		obj_desc = sub_object_list[source_index_index];
--		if (ACPI_GET_OBJECT_TYPE(obj_desc) == ACPI_TYPE_INTEGER) {
--			user_prt->source_index = (u32) obj_desc->integer.value;
--		} else {
-+		if (ACPI_GET_OBJECT_TYPE(obj_desc) != ACPI_TYPE_INTEGER) {
- 			ACPI_ERROR((AE_INFO,
- 				    "(PRT[%X].SourceIndex) Need Integer, found %s",
- 				    index,
-@@ -391,6 +389,8 @@ acpi_rs_create_pci_routing_table(union acpi_operand_object *package_object,
- 			return_ACPI_STATUS(AE_BAD_DATA);
- 		}
- 
-+		user_prt->source_index = (u32) obj_desc->integer.value;
-+
- 		/* Point to the next union acpi_operand_object in the top level package */
- 
- 		top_object_list++;
+ void dbg_pnp_show_resources(struct pnp_dev *dev, char *desc)
+ {
+ #ifdef DEBUG
 -- 
 1.5.6.1.89.gd544
 
