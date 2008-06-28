@@ -1,30 +1,44 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 04/84] misc,acpi,backlight: compal Laptop Extras
-Date: Sat, 28 Jun 2008 15:56:31 +0100
-Message-ID: <20080628145631.GA23803@srcf.ucam.org>
-References: <087803d18fb8259cb844c075a35fb27c2d80792e.1214631213.git.len.brown@intel.com> <45fea4a84325d5724ffe480ae6f0d1658d520141.1214631213.git.len.brown@intel.com>
+From: Joe Perches <joe@perches.com>
+Subject: Re: [patch 11/28] PNP: whitespace/coding style fixes
+Date: Sat, 28 Jun 2008 12:56:23 -0700
+Message-ID: <1214682983.8758.66.camel@localhost>
+References: <20080627225651.663174474@ldl.fc.hp.com>
+	 <20080627225800.517972351@ldl.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:45001 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751256AbYF1O4g (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Jun 2008 10:56:36 -0400
-Content-Disposition: inline
-In-Reply-To: <45fea4a84325d5724ffe480ae6f0d1658d520141.1214631213.git.len.brown@intel.com>
+Received: from 136-022.dsl.labridge.com ([206.117.136.22]:1524 "EHLO
+	mail.perches.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1750928AbYF1T5K (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Jun 2008 15:57:10 -0400
+In-Reply-To: <20080627225800.517972351@ldl.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernrel.org, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Alexey Starikovskiy <aystarik@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Len Brown <lenb@kernel.org>, Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, Rene Herman <rene.herman@gmail.com>, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>, Takashi Iwai <tiwai@suse.de>, Jiri Slaby <jirislaby@gmail.com>, David Howells <dhowells@redhat.com>, Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 
-On Sat, Jun 28, 2008 at 01:43:08AM -0400, Len Brown wrote:
-> This driver exports a few files in /sys/devices/platform/compal-laptop/:
->  lcd_level - screen brightness: contains a single integer in the range 0..7 (rw)
->  wlan - wlan subsystem state: contains 0 or 1 (rw)
->  bluetooth - bluetooth subsystem state: contains 0 or 1 (rw)
->  raw - raw value taken from embedded controller register (ro)
+On Fri, 2008-06-27 at 16:57 -0600, Bjorn Helgaas wrote:
+> Index: work10/drivers/pnp/interface.c
+> ===================================================================
+> --- work10.orig/drivers/pnp/interface.c	2008-05-09 14:42:25.000000000 -0600
+> +++ work10/drivers/pnp/interface.c	2008-05-09 14:45:57.000000000 -0600
+> @@ -216,12 +216,12 @@ static ssize_t pnp_show_options(struct d
+>  				struct device_attribute *attr, char *buf)
+>  {
+>  	struct pnp_dev *dev = to_pnp_dev(dmdev);
+> +	pnp_info_buffer_t *buffer;
+>  	struct pnp_option *independent = dev->independent;
+>  	struct pnp_option *dependent = dev->dependent;
+>  	int ret, dep = 1;
+>  
+> -	pnp_info_buffer_t *buffer = (pnp_info_buffer_t *)
+> -	    pnp_alloc(sizeof(pnp_info_buffer_t));
+> +	buffer = pnp_alloc(sizeof(pnp_info_buffer_t));
+>  	if (!buffer)
+>  		return -ENOMEM;
 
-Can we make sure this is changed to use rfkill before merging?
+Wouldn't it be nicer without the unnecessary cast?
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+	pnp_info_buffer_t *buffer = pnp_alloc(sizeof(*buffer));
+
