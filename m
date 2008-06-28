@@ -1,143 +1,124 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 70/84] PNP: increase I/O port & memory option address sizes
-Date: Sat, 28 Jun 2008 01:44:14 -0400
-Message-ID: <154868e7f2f5ef8bb6d94fd2bc812edd67325a9c.1214631214.git.len.brown@intel.com>
+Subject: [PATCH 31/84] ACPICA: Add argument count checking to control method
+ invocation via acpi_evaluate_object
+Date: Sat, 28 Jun 2008 01:43:35 -0400
+Message-ID: <7e67b83fc1b64cf718c71500ab2b18abec7cddda.1214631213.git.len.brown@intel.com>
 References: <1214631868-1715-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms042pub.verizon.net ([206.46.252.42]:51151 "EHLO
-	vms042pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754121AbYF1FrZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Jun 2008 01:47:25 -0400
+Received: from vms046pub.verizon.net ([206.46.252.46]:62972 "EHLO
+	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752993AbYF1FpZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Jun 2008 01:45:25 -0400
 Received: from localhost.localdomain ([72.93.254.151])
- by vms042.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0K3500BABS2AA872@vms042.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sat, 28 Jun 2008 00:46:59 -0500 (CDT)
+ by vms046.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
+ 3 2006)) with ESMTPA id <0K3500BR5RZ5MY91@vms046.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 28 Jun 2008 00:45:06 -0500 (CDT)
 In-reply-to: <1214631868-1715-1-git-send-email-lenb@kernel.org>
 In-reply-to: <087803d18fb8259cb844c075a35fb27c2d80792e.1214631213.git.len.brown@intel.com>
 References: <087803d18fb8259cb844c075a35fb27c2d80792e.1214631213.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernrel.org
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <len.brown@intel.com>
+Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+From: Bob Moore <robert.moore@intel.com>
 
-ACPI Address Space Descriptors can be up to 64 bits wide.
-We should keep track of the whole thing when parsing resource
-options, so this patch changes PNP port and mem option
-fields from "unsigned short" and "unsigned int" to
-"resource_size_t".
+Error if too few arguments, warning if too many. This applies
+only to external programmatic control method execution, not
+method-to-method calls within the AML.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Acked-by: Rene Herman <rene.herman@gmail.com>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/pnp/base.h      |   16 ++++++++--------
- drivers/pnp/interface.c |   17 +++++++++++------
- drivers/pnp/resource.c  |   14 ++++++++++----
- 3 files changed, 29 insertions(+), 18 deletions(-)
+ drivers/acpi/namespace/nseval.c |   35 +++++++++++++++++++++++++++++++++++
+ include/acpi/acexcep.h          |    6 ++++--
+ include/acpi/acstruct.h         |    1 +
+ 3 files changed, 40 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/pnp/base.h b/drivers/pnp/base.h
-index a9ee0a9..afbeee5 100644
---- a/drivers/pnp/base.h
-+++ b/drivers/pnp/base.h
-@@ -20,10 +20,10 @@ int pnp_add_card_device(struct pnp_card *card, struct pnp_dev *dev);
- void pnp_remove_card_device(struct pnp_dev *dev);
+diff --git a/drivers/acpi/namespace/nseval.c b/drivers/acpi/namespace/nseval.c
+index 14bdfa9..d369164 100644
+--- a/drivers/acpi/namespace/nseval.c
++++ b/drivers/acpi/namespace/nseval.c
+@@ -138,6 +138,41 @@ acpi_status acpi_ns_evaluate(struct acpi_evaluate_info * info)
+ 			return_ACPI_STATUS(AE_NULL_OBJECT);
+ 		}
  
- struct pnp_port {
--	unsigned short min;	/* min base number */
--	unsigned short max;	/* max base number */
--	unsigned char align;	/* align boundary */
--	unsigned char size;	/* size of range */
-+	resource_size_t min;	/* min base number */
-+	resource_size_t max;	/* max base number */
-+	resource_size_t align;	/* align boundary */
-+	resource_size_t size;	/* size of range */
- 	unsigned char flags;	/* port flags */
- 	unsigned char pad;	/* pad */
- 	struct pnp_port *next;	/* next port */
-@@ -46,10 +46,10 @@ struct pnp_dma {
++		/*
++		 * Calculate the number of arguments being passed to the method
++		 */
++
++		info->param_count = 0;
++		if (info->parameters) {
++			while (info->parameters[info->param_count])
++				info->param_count++;
++		}
++
++		/* Error if too few arguments were passed in */
++
++		if (info->param_count < info->obj_desc->method.param_count) {
++			ACPI_ERROR((AE_INFO,
++				    "Insufficient arguments - "
++				    "method [%4.4s] needs %d, found %d",
++				    acpi_ut_get_node_name(info->resolved_node),
++				    info->obj_desc->method.param_count,
++				    info->param_count));
++			return_ACPI_STATUS(AE_MISSING_ARGUMENTS);
++		}
++
++		/* Just a warning if too many arguments */
++
++		else if (info->param_count >
++				info->obj_desc->method.param_count) {
++			ACPI_WARNING((AE_INFO,
++				      "Excess arguments - "
++				      "method [%4.4s] needs %d, found %d",
++				      acpi_ut_get_node_name(info->
++							    resolved_node),
++				      info->obj_desc->method.param_count,
++				      info->param_count));
++		}
++
+ 		ACPI_DUMP_PATHNAME(info->resolved_node, "Execute Method:",
+ 				   ACPI_LV_INFO, _COMPONENT);
+ 
+diff --git a/include/acpi/acexcep.h b/include/acpi/acexcep.h
+index 1f59117..9c76c18 100644
+--- a/include/acpi/acexcep.h
++++ b/include/acpi/acexcep.h
+@@ -108,8 +108,9 @@
+ #define AE_BAD_HEX_CONSTANT             (acpi_status) (0x0007 | AE_CODE_PROGRAMMER)
+ #define AE_BAD_OCTAL_CONSTANT           (acpi_status) (0x0008 | AE_CODE_PROGRAMMER)
+ #define AE_BAD_DECIMAL_CONSTANT         (acpi_status) (0x0009 | AE_CODE_PROGRAMMER)
++#define AE_MISSING_ARGUMENTS            (acpi_status) (0x000A | AE_CODE_PROGRAMMER)
+ 
+-#define AE_CODE_PGM_MAX                 0x0009
++#define AE_CODE_PGM_MAX                 0x000A
+ 
+ /*
+  * Acpi table exceptions
+@@ -233,7 +234,8 @@ char const *acpi_gbl_exception_names_pgm[] = {
+ 	"AE_ALIGNMENT",
+ 	"AE_BAD_HEX_CONSTANT",
+ 	"AE_BAD_OCTAL_CONSTANT",
+-	"AE_BAD_DECIMAL_CONSTANT"
++	"AE_BAD_DECIMAL_CONSTANT",
++	"AE_MISSING_ARGUMENTS"
  };
  
- struct pnp_mem {
--	unsigned int min;	/* min base number */
--	unsigned int max;	/* max base number */
--	unsigned int align;	/* align boundary */
--	unsigned int size;	/* size of range */
-+	resource_size_t min;	/* min base number */
-+	resource_size_t max;	/* max base number */
-+	resource_size_t align;	/* align boundary */
-+	resource_size_t size;	/* size of range */
- 	unsigned char flags;	/* memory flags */
- 	unsigned char pad;	/* pad */
- 	struct pnp_mem *next;	/* next memory resource */
-diff --git a/drivers/pnp/interface.c b/drivers/pnp/interface.c
-index 249b407..b09f67d 100644
---- a/drivers/pnp/interface.c
-+++ b/drivers/pnp/interface.c
-@@ -53,10 +53,12 @@ static int pnp_printf(pnp_info_buffer_t * buffer, char *fmt, ...)
- static void pnp_print_port(pnp_info_buffer_t * buffer, char *space,
- 			   struct pnp_port *port)
- {
--	pnp_printf(buffer,
--		   "%sport 0x%x-0x%x, align 0x%x, size 0x%x, %i-bit address decoding\n",
--		   space, port->min, port->max,
--		   port->align ? (port->align - 1) : 0, port->size,
-+	pnp_printf(buffer, "%sport %#llx-%#llx, align %#llx, size %#llx, "
-+		   "%i-bit address decoding\n", space,
-+		   (unsigned long long) port->min,
-+		   (unsigned long long) port->max,
-+		   port->align ? ((unsigned long long) port->align - 1) : 0,
-+		   (unsigned long long) port->size,
- 		   port->flags & IORESOURCE_IO_16BIT_ADDR ? 16 : 10);
- }
- 
-@@ -148,8 +150,11 @@ static void pnp_print_mem(pnp_info_buffer_t * buffer, char *space,
- {
- 	char *s;
- 
--	pnp_printf(buffer, "%sMemory 0x%x-0x%x, align 0x%x, size 0x%x",
--		   space, mem->min, mem->max, mem->align, mem->size);
-+	pnp_printf(buffer, "%sMemory %#llx-%#llx, align %#llx, size %#llx",
-+		   space, (unsigned long long) mem->min,
-+		   (unsigned long long) mem->max,
-+		   (unsigned long long) mem->align,
-+		   (unsigned long long) mem->size);
- 	if (mem->flags & IORESOURCE_MEM_WRITEABLE)
- 		pnp_printf(buffer, ", writeable");
- 	if (mem->flags & IORESOURCE_MEM_CACHEABLE)
-diff --git a/drivers/pnp/resource.c b/drivers/pnp/resource.c
-index 55a57cd..391828c 100644
---- a/drivers/pnp/resource.c
-+++ b/drivers/pnp/resource.c
-@@ -143,8 +143,11 @@ int pnp_register_port_resource(struct pnp_dev *dev, struct pnp_option *option,
- 		option->port = data;
- 
- 	dev_dbg(&dev->dev, "  io  "
--		"min %#x max %#x align %d size %d flags %#x\n",
--		data->min, data->max, data->align, data->size, data->flags);
-+		"min %#llx max %#llx align %lld size %lld flags %#x\n",
-+		(unsigned long long) data->min,
-+		(unsigned long long) data->max,
-+		(unsigned long long) data->align,
-+		(unsigned long long) data->size, data->flags);
- 	return 0;
- }
- 
-@@ -162,8 +165,11 @@ int pnp_register_mem_resource(struct pnp_dev *dev, struct pnp_option *option,
- 		option->mem = data;
- 
- 	dev_dbg(&dev->dev, "  mem "
--		"min %#x max %#x align %d size %d flags %#x\n",
--		data->min, data->max, data->align, data->size, data->flags);
-+		"min %#llx max %#llx align %lld size %lld flags %#x\n",
-+		(unsigned long long) data->min,
-+		(unsigned long long) data->max,
-+		(unsigned long long) data->align,
-+		(unsigned long long) data->size, data->flags);
- 	return 0;
- }
- 
+ char const *acpi_gbl_exception_names_tbl[] = {
+diff --git a/include/acpi/acstruct.h b/include/acpi/acstruct.h
+index a907c67..1cc7450 100644
+--- a/include/acpi/acstruct.h
++++ b/include/acpi/acstruct.h
+@@ -189,6 +189,7 @@ struct acpi_evaluate_info {
+ 	union acpi_operand_object **parameters;
+ 	struct acpi_namespace_node *resolved_node;
+ 	union acpi_operand_object *return_object;
++	u8 param_count;
+ 	u8 pass_number;
+ 	u8 parameter_type;
+ 	u8 return_object_type;
 -- 
 1.5.6.1.89.gd544
 
