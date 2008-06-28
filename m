@@ -1,17 +1,18 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 64/84] PNP: dont sort by type in /sys/.../resources
-Date: Sat, 28 Jun 2008 01:44:08 -0400
-Message-ID: <997763ddce1f6c67a62b550aa64847a669176e7c.1214631214.git.len.brown@intel.com>
+Subject: [PATCH 58/84] PNP: add pnp_resource_type() internal interface
+Date: Sat, 28 Jun 2008 01:44:02 -0400
+Message-ID: <1e37ae3999afb7e6b713c95cbc0ddc5c4e277333.1214631214.git.len.brown@intel.com>
 References: <1214631868-1715-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms042pub.verizon.net ([206.46.252.42]:50973 "EHLO
-	vms042pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752895AbYF1Fqk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Jun 2008 01:46:40 -0400
+Received: from vms173001pub.verizon.net ([206.46.173.1]:50650 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752329AbYF1Fph (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Jun 2008 01:45:37 -0400
 Received: from localhost.localdomain ([72.93.254.151])
- by vms042.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0K3500BPKS0RPZLB@vms042.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sat, 28 Jun 2008 00:46:04 -0500 (CDT)
+ by vms173001.mailsrvcs.net
+ (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+ with ESMTPA id <0K3500GPDRZRIGI4@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 28 Jun 2008 00:45:28 -0500 (CDT)
 In-reply-to: <1214631868-1715-1-git-send-email-lenb@kernel.org>
 In-reply-to: <087803d18fb8259cb844c075a35fb27c2d80792e.1214631213.git.len.brown@intel.com>
 References: <087803d18fb8259cb844c075a35fb27c2d80792e.1214631213.git.len.brown@intel.com>
@@ -22,114 +23,44 @@ Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <len.brown@intel.com>
 
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Rather than stepping through all IO resources, then stepping through
-all MMIO resources, etc., we can just iterate over the resource list
-once directly.
-
-This can change the order in /sys, e.g.,
-
-    # cat /sys/devices/pnp0/00:07/resources     # OLD
-    state = active
-    io 0x3f8-0x3ff
-    irq 4
-
-    # cat /sys/devices/pnp0/00:07/resources     # NEW
-    state = active
-    irq 4
-    io 0x3f8-0x3ff
-
-The old code artificially sorted resources by type; the new code
-just lists them in the order we read them from the ISAPNP hardware
-or the BIOS.
+Given a struct resource, this returns the type (IO, MEM, IRQ, DMA).
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/pnp/interface.c |   56 ++++++++++++++++++----------------------------
- 1 files changed, 22 insertions(+), 34 deletions(-)
+ drivers/pnp/base.h     |    1 +
+ drivers/pnp/resource.c |    6 ++++++
+ 2 files changed, 7 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/pnp/interface.c b/drivers/pnp/interface.c
-index 7fc86bb..674e8ba 100644
---- a/drivers/pnp/interface.c
-+++ b/drivers/pnp/interface.c
-@@ -248,8 +248,9 @@ static ssize_t pnp_show_current_resources(struct device *dmdev,
- 					  char *buf)
+diff --git a/drivers/pnp/base.h b/drivers/pnp/base.h
+index 6f60097..4c2a625 100644
+--- a/drivers/pnp/base.h
++++ b/drivers/pnp/base.h
+@@ -46,6 +46,7 @@ int pnp_check_dma(struct pnp_dev *dev, struct resource *res);
+ void dbg_pnp_show_resources(struct pnp_dev *dev, char *desc);
+ 
+ void pnp_init_resource(struct resource *res);
++int pnp_resource_type(struct resource *res);
+ 
+ struct pnp_resource *pnp_get_pnp_resource(struct pnp_dev *dev,
+ 					  unsigned int type, unsigned int num);
+diff --git a/drivers/pnp/resource.c b/drivers/pnp/resource.c
+index 390b500..cce341f 100644
+--- a/drivers/pnp/resource.c
++++ b/drivers/pnp/resource.c
+@@ -499,6 +499,12 @@ int pnp_check_dma(struct pnp_dev *dev, struct resource *res)
+ #endif
+ }
+ 
++int pnp_resource_type(struct resource *res)
++{
++	return res->flags & (IORESOURCE_IO  | IORESOURCE_MEM |
++			     IORESOURCE_IRQ | IORESOURCE_DMA);
++}
++
+ struct pnp_resource *pnp_get_pnp_resource(struct pnp_dev *dev,
+ 					  unsigned int type, unsigned int num)
  {
- 	struct pnp_dev *dev = to_pnp_dev(dmdev);
-+	struct pnp_resource *pnp_res;
- 	struct resource *res;
--	int i, ret;
-+	int ret;
- 	pnp_info_buffer_t *buffer;
- 
- 	if (!dev)
-@@ -262,46 +263,33 @@ static ssize_t pnp_show_current_resources(struct device *dmdev,
- 	buffer->buffer = buf;
- 	buffer->curr = buffer->buffer;
- 
--	pnp_printf(buffer, "state = ");
--	if (dev->active)
--		pnp_printf(buffer, "active\n");
--	else
--		pnp_printf(buffer, "disabled\n");
-+	pnp_printf(buffer, "state = %s\n", dev->active ? "active" : "disabled");
- 
--	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_IO, i)); i++) {
--		pnp_printf(buffer, "io");
--		if (res->flags & IORESOURCE_DISABLED)
--			pnp_printf(buffer, " disabled\n");
--		else
--			pnp_printf(buffer, " 0x%llx-0x%llx\n",
--				   (unsigned long long) res->start,
--				   (unsigned long long) res->end);
--	}
--	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_MEM, i)); i++) {
--		pnp_printf(buffer, "mem");
--		if (res->flags & IORESOURCE_DISABLED)
-+	list_for_each_entry(pnp_res, &dev->resources, list) {
-+		res = &pnp_res->res;
-+
-+		pnp_printf(buffer, pnp_resource_type_name(res));
-+
-+		if (res->flags & IORESOURCE_DISABLED) {
- 			pnp_printf(buffer, " disabled\n");
--		else
--			pnp_printf(buffer, " 0x%llx-0x%llx\n",
-+			continue;
-+		}
-+
-+		switch (pnp_resource_type(res)) {
-+		case IORESOURCE_IO:
-+		case IORESOURCE_MEM:
-+			pnp_printf(buffer, " %#llx-%#llx\n",
- 				   (unsigned long long) res->start,
- 				   (unsigned long long) res->end);
--	}
--	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_IRQ, i)); i++) {
--		pnp_printf(buffer, "irq");
--		if (res->flags & IORESOURCE_DISABLED)
--			pnp_printf(buffer, " disabled\n");
--		else
--			pnp_printf(buffer, " %lld\n",
--				   (unsigned long long) res->start);
--	}
--	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_DMA, i)); i++) {
--		pnp_printf(buffer, "dma");
--		if (res->flags & IORESOURCE_DISABLED)
--			pnp_printf(buffer, " disabled\n");
--		else
-+			break;
-+		case IORESOURCE_IRQ:
-+		case IORESOURCE_DMA:
- 			pnp_printf(buffer, " %lld\n",
- 				   (unsigned long long) res->start);
-+			break;
-+		}
- 	}
-+
- 	ret = (buffer->curr - buf);
- 	kfree(buffer);
- 	return ret;
 -- 
 1.5.6.1.89.gd544
 
