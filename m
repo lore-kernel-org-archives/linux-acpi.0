@@ -1,558 +1,510 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 48/84] ACPI: Enhance /sys/firmware/interrupts to allow
- enable/disable/clear from user-space
-Date: Sat, 28 Jun 2008 01:43:52 -0400
-Message-ID: <bb9babebc64541307d2eca41ed8e4c977f4beb10.1214631214.git.len.brown@intel.com>
+Subject: [PATCH 26/84] APM emulation: Notify about all suspend events,
+ not just APM invoked ones (v2)
+Date: Sat, 28 Jun 2008 01:43:30 -0400
+Message-ID: <d3d12c18e2b4dcf2826776e198a573125385f024.1214631213.git.len.brown@intel.com>
 References: <1214631868-1715-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:61962 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752841AbYF1FpS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Jun 2008 01:45:18 -0400
+Received: from vms173001pub.verizon.net ([206.46.173.1]:50650 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753014AbYF1FpZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Jun 2008 01:45:25 -0400
 Received: from localhost.localdomain ([72.93.254.151])
- by vms173003.mailsrvcs.net
+ by vms173001.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K3500F4HRZGLOMB@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sat, 28 Jun 2008 00:45:17 -0500 (CDT)
+ with ESMTPA id <0K35001AORZ188HK@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 28 Jun 2008 00:45:02 -0500 (CDT)
 In-reply-to: <1214631868-1715-1-git-send-email-lenb@kernel.org>
 In-reply-to: <087803d18fb8259cb844c075a35fb27c2d80792e.1214631213.git.len.brown@intel.com>
 References: <087803d18fb8259cb844c075a35fb27c2d80792e.1214631213.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernrel.org
-Cc: Zhang Rui <rui.zhang@intel.com>, Ling Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Johannes Berg <johannes@sipsolutions.net>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
 
-From: Zhang Rui <rui.zhang@intel.com>
+From: Johannes Berg <johannes@sipsolutions.net>
 
-Allow users to enable/disable/clear a specific & valid GPE/Fixed Event
-in user space.
+This revamps the apm-emulation code to get suspend notifications
+regardless of what way pm_suspend() was invoked, whether via the
+apm ioctl or via /sys/power/state. Also do some code cleanup and
+add comments while at it.
 
-This is useful for debugging, especially for some
-interrupt storm issues.
-
-All wakeup GPEs are disabled and they can not be enabled at runtime,
-and we mark them as invalid.
-
-All GPEs that don't have a _Lxx/_Exx method are marked as invalid.
-
-All Fixed Events that don't have an event handler are marked as invalid
-and they can't be enabled until an event handler is registered.
-
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-Signed-off-by: Ling Ming <ming.m.lin@intel.com>
+Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/ABI/testing/sysfs-firmware-acpi |  127 +++++++++++++------
- drivers/acpi/events/evxfevnt.c                |   18 +++-
- drivers/acpi/hardware/hwgpe.c                 |    2 -
- drivers/acpi/system.c                         |  169 +++++++++++++++++++++++--
- include/acpi/achware.h                        |    2 -
- include/acpi/acpixf.h                         |    4 -
- 6 files changed, 258 insertions(+), 64 deletions(-)
+ drivers/char/apm-emulation.c |  346 +++++++++++++++++++++++++-----------------
+ 1 files changed, 207 insertions(+), 139 deletions(-)
 
-diff --git a/Documentation/ABI/testing/sysfs-firmware-acpi b/Documentation/ABI/testing/sysfs-firmware-acpi
-index 9470ed9..fba5e0c 100644
---- a/Documentation/ABI/testing/sysfs-firmware-acpi
-+++ b/Documentation/ABI/testing/sysfs-firmware-acpi
-@@ -29,46 +29,46 @@ Description:
- 
- 		$ cd /sys/firmware/acpi/interrupts
- 		$ grep . *
--		error:0
--		ff_gbl_lock:0
--		ff_pmtimer:0
--		ff_pwr_btn:0
--		ff_rt_clk:0
--		ff_slp_btn:0
--		gpe00:0
--		gpe01:0
--		gpe02:0
--		gpe03:0
--		gpe04:0
--		gpe05:0
--		gpe06:0
--		gpe07:0
--		gpe08:0
--		gpe09:174
--		gpe0A:0
--		gpe0B:0
--		gpe0C:0
--		gpe0D:0
--		gpe0E:0
--		gpe0F:0
--		gpe10:0
--		gpe11:60
--		gpe12:0
--		gpe13:0
--		gpe14:0
--		gpe15:0
--		gpe16:0
--		gpe17:0
--		gpe18:0
--		gpe19:7
--		gpe1A:0
--		gpe1B:0
--		gpe1C:0
--		gpe1D:0
--		gpe1E:0
--		gpe1F:0
--		gpe_all:241
--		sci:241
-+		error:       0
-+		ff_gbl_lock:       0   enable
-+		ff_pmtimer:       0  invalid
-+		ff_pwr_btn:       0   enable
-+		ff_rt_clk:       2  disable
-+		ff_slp_btn:       0  invalid
-+		gpe00:       0  invalid
-+		gpe01:       0   enable
-+		gpe02:     108   enable
-+		gpe03:       0  invalid
-+		gpe04:       0  invalid
-+		gpe05:       0  invalid
-+		gpe06:       0   enable
-+		gpe07:       0   enable
-+		gpe08:       0  invalid
-+		gpe09:       0  invalid
-+		gpe0A:       0  invalid
-+		gpe0B:       0  invalid
-+		gpe0C:       0  invalid
-+		gpe0D:       0  invalid
-+		gpe0E:       0  invalid
-+		gpe0F:       0  invalid
-+		gpe10:       0  invalid
-+		gpe11:       0  invalid
-+		gpe12:       0  invalid
-+		gpe13:       0  invalid
-+		gpe14:       0  invalid
-+		gpe15:       0  invalid
-+		gpe16:       0  invalid
-+		gpe17:    1084   enable
-+		gpe18:       0   enable
-+		gpe19:       0  invalid
-+		gpe1A:       0  invalid
-+		gpe1B:       0  invalid
-+		gpe1C:       0  invalid
-+		gpe1D:       0  invalid
-+		gpe1E:       0  invalid
-+		gpe1F:       0  invalid
-+		gpe_all:    1192
-+		sci:    1194
- 
- 		sci - The total number of times the ACPI SCI
- 		has claimed an interrupt.
-@@ -89,6 +89,13 @@ Description:
- 
- 		error - an interrupt that can't be accounted for above.
- 
-+		invalid: it's either a wakeup GPE or a GPE/Fixed Event that
-+			doesn't have an event handler.
-+
-+		disable: the GPE/Fixed Event is valid but disabled.
-+
-+		enable: the GPE/Fixed Event is valid and enabled.
-+
- 		Root has permission to clear any of these counters.  Eg.
- 		# echo 0 > gpe11
- 
-@@ -97,3 +104,43 @@ Description:
- 
- 		None of these counters has an effect on the function
- 		of the system, they are simply statistics.
-+
-+		Besides this, user can also write specific strings to these files
-+		to enable/disable/clear ACPI interrupts in user space, which can be
-+		used to	debug some ACPI interrupt storm issues.
-+
-+		Note that only writting to VALID GPE/Fixed Event is allowed,
-+		i.e. user can only change the status of runtime GPE and
-+		Fixed Event with event handler installed.
-+
-+		Let's take power button fixed event for example, please kill acpid
-+		and other user space applications so that the machine won't shutdown
-+		when pressing the power button.
-+		# cat ff_pwr_btn
-+		0
-+		# press the power button for 3 times;
-+		# cat ff_pwr_btn
-+		3
-+		# echo disable > ff_pwr_btn
-+		# cat ff_pwr_btn
-+		disable
-+		# press the power button for 3 times;
-+		# cat ff_pwr_btn
-+		disable
-+		# echo enable > ff_pwr_btn
-+		# cat ff_pwr_btn
-+		4
-+		/*
-+		 * this is because the status bit is set even if the enable bit is cleared,
-+		 * and it triggers an ACPI fixed event when the enable bit is set again
-+		 */
-+		# press the power button for 3 times;
-+		# cat ff_pwr_btn
-+		7
-+		# echo disable > ff_pwr_btn
-+		# press the power button for 3 times;
-+		# echo clear > ff_pwr_btn	/* clear the status bit */
-+		# echo disable > ff_pwr_btn
-+		# cat ff_pwr_btn
-+		7
-+
-diff --git a/drivers/acpi/events/evxfevnt.c b/drivers/acpi/events/evxfevnt.c
-index 99a7502..73bfd6b 100644
---- a/drivers/acpi/events/evxfevnt.c
-+++ b/drivers/acpi/events/evxfevnt.c
-@@ -472,7 +472,6 @@ acpi_status acpi_clear_gpe(acpi_handle gpe_device, u32 gpe_number, u32 flags)
- }
- 
- ACPI_EXPORT_SYMBOL(acpi_clear_gpe)
--#ifdef ACPI_FUTURE_USAGE
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_get_event_status
-@@ -489,6 +488,7 @@ ACPI_EXPORT_SYMBOL(acpi_clear_gpe)
- acpi_status acpi_get_event_status(u32 event, acpi_event_status * event_status)
- {
- 	acpi_status status = AE_OK;
-+	u32 value;
- 
- 	ACPI_FUNCTION_TRACE(acpi_get_event_status);
- 
-@@ -506,7 +506,20 @@ acpi_status acpi_get_event_status(u32 event, acpi_event_status * event_status)
- 
- 	status =
- 	    acpi_get_register(acpi_gbl_fixed_event_info[event].
--			      status_register_id, event_status);
-+			      enable_register_id, &value);
-+	if (ACPI_FAILURE(status))
-+		return_ACPI_STATUS(status);
-+
-+	*event_status = value;
-+
-+	status =
-+	    acpi_get_register(acpi_gbl_fixed_event_info[event].
-+			      status_register_id, &value);
-+	if (ACPI_FAILURE(status))
-+		return_ACPI_STATUS(status);
-+
-+	if (value)
-+		*event_status |= ACPI_EVENT_FLAG_SET;
- 
- 	return_ACPI_STATUS(status);
- }
-@@ -566,7 +579,6 @@ acpi_get_gpe_status(acpi_handle gpe_device,
- }
- 
- ACPI_EXPORT_SYMBOL(acpi_get_gpe_status)
--#endif				/*  ACPI_FUTURE_USAGE  */
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_install_gpe_block
-diff --git a/drivers/acpi/hardware/hwgpe.c b/drivers/acpi/hardware/hwgpe.c
-index 14bc4f4..6b4744b 100644
---- a/drivers/acpi/hardware/hwgpe.c
-+++ b/drivers/acpi/hardware/hwgpe.c
-@@ -138,7 +138,6 @@ acpi_status acpi_hw_clear_gpe(struct acpi_gpe_event_info * gpe_event_info)
-  *
-  ******************************************************************************/
- 
--#ifdef ACPI_FUTURE_USAGE
- acpi_status
- acpi_hw_get_gpe_status(struct acpi_gpe_event_info * gpe_event_info,
- 		       acpi_event_status * event_status)
-@@ -198,7 +197,6 @@ acpi_hw_get_gpe_status(struct acpi_gpe_event_info * gpe_event_info,
-       unlock_and_exit:
- 	return (status);
- }
--#endif				/*  ACPI_FUTURE_USAGE  */
- 
- /******************************************************************************
-  *
-diff --git a/drivers/acpi/system.c b/drivers/acpi/system.c
-index 5bd2dec..950fce8 100644
---- a/drivers/acpi/system.c
-+++ b/drivers/acpi/system.c
-@@ -167,7 +167,13 @@ static int acpi_system_sysfs_init(void)
- #define COUNT_ERROR 2	/* other */
- #define NUM_COUNTERS_EXTRA 3
- 
--static u32 *all_counters;
-+#define ACPI_EVENT_VALID	0x01
-+struct event_counter {
-+	u32 count;
-+	u32 flags;
-+};
-+
-+static struct event_counter *all_counters;
- static u32 num_gpes;
- static u32 num_counters;
- static struct attribute **all_attrs;
-@@ -202,9 +208,44 @@ static int count_num_gpes(void)
- 	return count;
- }
- 
-+static int get_gpe_device(int index, acpi_handle *handle)
-+{
-+	struct acpi_gpe_xrupt_info *gpe_xrupt_info;
-+	struct acpi_gpe_block_info *gpe_block;
-+	acpi_cpu_flags flags;
-+	struct acpi_namespace_node *node;
-+
-+	flags = acpi_os_acquire_lock(acpi_gbl_gpe_lock);
-+
-+	gpe_xrupt_info = acpi_gbl_gpe_xrupt_list_head;
-+	while (gpe_xrupt_info) {
-+		gpe_block = gpe_xrupt_info->gpe_block_list_head;
-+		node = gpe_block->node;
-+		while (gpe_block) {
-+			index -= gpe_block->register_count *
-+			    ACPI_GPE_REGISTER_WIDTH;
-+			if (index < 0) {
-+				acpi_os_release_lock(acpi_gbl_gpe_lock, flags);
-+				/* return NULL if it's FADT GPE */
-+				if (node->type != ACPI_TYPE_DEVICE)
-+					*handle = NULL;
-+				else
-+					*handle = node;
-+				return 0;
-+			}
-+			node = gpe_block->node;
-+			gpe_block = gpe_block->next;
-+		}
-+		gpe_xrupt_info = gpe_xrupt_info->next;
-+	}
-+	acpi_os_release_lock(acpi_gbl_gpe_lock, flags);
-+
-+	return -ENODEV;
-+}
-+
- static void delete_gpe_attr_array(void)
- {
--	u32 *tmp = all_counters;
-+	struct event_counter *tmp = all_counters;
- 
- 	all_counters = NULL;
- 	kfree(tmp);
-@@ -230,9 +271,10 @@ void acpi_os_gpe_count(u32 gpe_number)
- 		return;
- 
- 	if (gpe_number < num_gpes)
--		all_counters[gpe_number]++;
-+		all_counters[gpe_number].count++;
- 	else
--		all_counters[num_gpes + ACPI_NUM_FIXED_EVENTS + COUNT_ERROR]++;
-+		all_counters[num_gpes + ACPI_NUM_FIXED_EVENTS + COUNT_ERROR].
-+					count++;
- 
- 	return;
- }
-@@ -243,44 +285,144 @@ void acpi_os_fixed_event_count(u32 event_number)
- 		return;
- 
- 	if (event_number < ACPI_NUM_FIXED_EVENTS)
--		all_counters[num_gpes + event_number]++;
-+		all_counters[num_gpes + event_number].count++;
- 	else
--		all_counters[num_gpes + ACPI_NUM_FIXED_EVENTS + COUNT_ERROR]++;
-+		all_counters[num_gpes + ACPI_NUM_FIXED_EVENTS + COUNT_ERROR].
-+				count++;
- 
- 	return;
- }
- 
-+static int get_status(u32 index, acpi_event_status *status, acpi_handle *handle)
-+{
-+	int result = 0;
-+
-+	if (index >= num_gpes + ACPI_NUM_FIXED_EVENTS)
-+		goto end;
-+
-+	if (index < num_gpes) {
-+		result = get_gpe_device(index, handle);
-+		if (result) {
-+			ACPI_EXCEPTION((AE_INFO, AE_NOT_FOUND,
-+				"Invalid GPE 0x%x\n", index));
-+			goto end;
-+		}
-+		result = acpi_get_gpe_status(*handle, index,
-+						ACPI_NOT_ISR, status);
-+	} else if (index < (num_gpes + ACPI_NUM_FIXED_EVENTS))
-+		result = acpi_get_event_status(index - num_gpes, status);
-+
-+	/*
-+	 * sleep/power button GPE/Fixed Event is enabled after acpi_system_init,
-+	 * check the status at runtime and mark it as valid once it's enabled
-+	 */
-+	if (!result && (*status & ACPI_EVENT_FLAG_ENABLED))
-+		all_counters[index].flags |= ACPI_EVENT_VALID;
-+end:
-+	return result;
-+}
-+
- static ssize_t counter_show(struct kobject *kobj,
- 	struct kobj_attribute *attr, char *buf)
- {
--	all_counters[num_gpes + ACPI_NUM_FIXED_EVENTS + COUNT_SCI] =
-+	int index = attr - counter_attrs;
-+	int size;
-+	acpi_handle handle;
-+	acpi_event_status status;
-+	int result = 0;
-+
-+	all_counters[num_gpes + ACPI_NUM_FIXED_EVENTS + COUNT_SCI].count =
- 		acpi_irq_handled;
--	all_counters[num_gpes + ACPI_NUM_FIXED_EVENTS + COUNT_GPE] =
-+	all_counters[num_gpes + ACPI_NUM_FIXED_EVENTS + COUNT_GPE].count =
- 		acpi_gpe_count;
- 
--	return sprintf(buf, "%d\n", all_counters[attr - counter_attrs]);
-+	size = sprintf(buf, "%8d", all_counters[index].count);
-+
-+	/* "gpe_all" or "sci" */
-+	if (index >= num_gpes + ACPI_NUM_FIXED_EVENTS)
-+		goto end;
-+
-+	result = get_status(index, &status, &handle);
-+	if (result)
-+		goto end;
-+
-+	if (!(all_counters[index].flags & ACPI_EVENT_VALID))
-+		size += sprintf(buf + size, "  invalid");
-+	else if (status & ACPI_EVENT_FLAG_ENABLED)
-+		size += sprintf(buf + size, "   enable");
-+	else
-+		size += sprintf(buf + size, "  disable");
-+
-+end:
-+	size += sprintf(buf + size, "\n");
-+	return result ? result : size;
- }
+diff --git a/drivers/char/apm-emulation.c b/drivers/char/apm-emulation.c
+index cdd876d..97e434e 100644
+--- a/drivers/char/apm-emulation.c
++++ b/drivers/char/apm-emulation.c
+@@ -58,6 +58,55 @@ struct apm_queue {
+ };
  
  /*
-  * counter_set() sets the specified counter.
-  * setting the total "sci" file to any value clears all counters.
-+ * enable/disable/clear a gpe/fixed event in user space.
++ * thread states (for threads using a writable /dev/apm_bios fd):
++ *
++ * SUSPEND_NONE:	nothing happening
++ * SUSPEND_PENDING:	suspend event queued for thread and pending to be read
++ * SUSPEND_READ:	suspend event read, pending acknowledgement
++ * SUSPEND_ACKED:	acknowledgement received from thread (via ioctl),
++ *			waiting for resume
++ * SUSPEND_ACKTO:	acknowledgement timeout
++ * SUSPEND_DONE:	thread had acked suspend and is now notified of
++ *			resume
++ *
++ * SUSPEND_WAIT:	this thread invoked suspend and is waiting for resume
++ *
++ * A thread migrates in one of three paths:
++ * 	NONE -1-> PENDING -2-> READ -3-> ACKED -4-> DONE -5-> NONE
++ *	                            -6-> ACKTO -7-> NONE
++ *	NONE -8-> WAIT -9-> NONE
++ *
++ * While in PENDING or READ, the thread is accounted for in the
++ * suspend_acks_pending counter.
++ *
++ * The transitions are invoked as follows:
++ *	1: suspend event is signalled from the core PM code
++ *	2: the suspend event is read from the fd by the userspace thread
++ *	3: userspace thread issues the APM_IOC_SUSPEND ioctl (as ack)
++ *	4: core PM code signals that we have resumed
++ *	5: APM_IOC_SUSPEND ioctl returns
++ *
++ *	6: the notifier invoked from the core PM code timed out waiting
++ *	   for all relevant threds to enter ACKED state and puts those
++ *	   that haven't into ACKTO
++ *	7: those threads issue APM_IOC_SUSPEND ioctl too late,
++ *	   get an error
++ *
++ *	8: userspace thread issues the APM_IOC_SUSPEND ioctl (to suspend),
++ *	   ioctl code invokes pm_suspend()
++ *	9: pm_suspend() returns indicating resume
++ */
++enum apm_suspend_state {
++	SUSPEND_NONE,
++	SUSPEND_PENDING,
++	SUSPEND_READ,
++	SUSPEND_ACKED,
++	SUSPEND_ACKTO,
++	SUSPEND_WAIT,
++	SUSPEND_DONE,
++};
++
++/*
+  * The per-file APM data
   */
- static ssize_t counter_set(struct kobject *kobj,
- 	struct kobj_attribute *attr, const char *buf, size_t size)
- {
- 	int index = attr - counter_attrs;
-+	acpi_event_status status;
-+	acpi_handle handle;
-+	int result = 0;
+ struct apm_user {
+@@ -68,13 +117,7 @@ struct apm_user {
+ 	unsigned int		reader: 1;
  
- 	if (index == num_gpes + ACPI_NUM_FIXED_EVENTS + COUNT_SCI) {
- 		int i;
- 		for (i = 0; i < num_counters; ++i)
--			all_counters[i] = 0;
-+			all_counters[i].count = 0;
- 		acpi_gpe_count = 0;
- 		acpi_irq_handled = 0;
-+		goto end;
-+	}
+ 	int			suspend_result;
+-	unsigned int		suspend_state;
+-#define SUSPEND_NONE	0		/* no suspend pending */
+-#define SUSPEND_PENDING	1		/* suspend pending read */
+-#define SUSPEND_READ	2		/* suspend read, pending ack */
+-#define SUSPEND_ACKED	3		/* suspend acked */
+-#define SUSPEND_WAIT	4		/* waiting for suspend */
+-#define SUSPEND_DONE	5		/* suspend completed */
++	enum apm_suspend_state	suspend_state;
  
-+	/* show the event status for both GPEs and Fixed Events */
-+	result = get_status(index, &status, &handle);
-+	if (result)
-+		goto end;
-+
-+	if (!(all_counters[index].flags & ACPI_EVENT_VALID)) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_WARN,
-+			"Can not change Invalid GPE/Fixed Event status\n"));
-+		return -EINVAL;
-+	}
-+
-+	if (index < num_gpes) {
-+		if (!strcmp(buf, "disable\n") &&
-+				(status & ACPI_EVENT_FLAG_ENABLED))
-+			result = acpi_disable_gpe(handle, index, ACPI_NOT_ISR);
-+		else if (!strcmp(buf, "enable\n") &&
-+				!(status & ACPI_EVENT_FLAG_ENABLED))
-+			result = acpi_enable_gpe(handle, index,	ACPI_NOT_ISR);
-+		else if (!strcmp(buf, "clear\n") &&
-+				(status & ACPI_EVENT_FLAG_SET))
-+			result = acpi_clear_gpe(handle, index, ACPI_NOT_ISR);
-+		else
-+			all_counters[index].count = strtoul(buf, NULL, 0);
-+	} else if (index < num_gpes + ACPI_NUM_FIXED_EVENTS) {
-+		int event = index - num_gpes;
-+		if (!strcmp(buf, "disable\n") &&
-+				(status & ACPI_EVENT_FLAG_ENABLED))
-+			result = acpi_disable_event(event, ACPI_NOT_ISR);
-+		else if (!strcmp(buf, "enable\n") &&
-+				!(status & ACPI_EVENT_FLAG_ENABLED))
-+			result = acpi_enable_event(event, ACPI_NOT_ISR);
-+		else if (!strcmp(buf, "clear\n") &&
-+				(status & ACPI_EVENT_FLAG_SET))
-+			result = acpi_clear_event(event);
-+		else
-+			all_counters[index].count = strtoul(buf, NULL, 0);
- 	} else
--		all_counters[index] = strtoul(buf, NULL, 0);
-+		all_counters[index].count = strtoul(buf, NULL, 0);
+ 	struct apm_queue	queue;
+ };
+@@ -82,7 +125,8 @@ struct apm_user {
+ /*
+  * Local variables
+  */
+-static int suspends_pending;
++static atomic_t suspend_acks_pending = ATOMIC_INIT(0);
++static atomic_t userspace_notification_inhibit = ATOMIC_INIT(0);
+ static int apm_disabled;
+ static struct task_struct *kapmd_tsk;
  
--	return size;
-+	if (ACPI_FAILURE(result))
-+		result = -EINVAL;
-+end:
-+	return result ? result : size;
+@@ -165,78 +209,6 @@ static void queue_event(apm_event_t event)
+ 	wake_up_interruptible(&apm_waitqueue);
  }
  
- void acpi_irq_stats_init(void)
-@@ -298,7 +440,8 @@ void acpi_irq_stats_init(void)
- 	if (all_attrs == NULL)
- 		return;
+-/*
+- * queue_suspend_event - queue an APM suspend event.
+- *
+- * Check that we're in a state where we can suspend.  If not,
+- * return -EBUSY.  Otherwise, queue an event to all "writer"
+- * users.  If there are no "writer" users, return '1' to
+- * indicate that we can immediately suspend.
+- */
+-static int queue_suspend_event(apm_event_t event, struct apm_user *sender)
+-{
+-	struct apm_user *as;
+-	int ret = 1;
+-
+-	mutex_lock(&state_lock);
+-	down_read(&user_list_lock);
+-
+-	/*
+-	 * If a thread is still processing, we can't suspend, so reject
+-	 * the request.
+-	 */
+-	list_for_each_entry(as, &apm_user_list, list) {
+-		if (as != sender && as->reader && as->writer && as->suser &&
+-		    as->suspend_state != SUSPEND_NONE) {
+-			ret = -EBUSY;
+-			goto out;
+-		}
+-	}
+-
+-	list_for_each_entry(as, &apm_user_list, list) {
+-		if (as != sender && as->reader && as->writer && as->suser) {
+-			as->suspend_state = SUSPEND_PENDING;
+-			suspends_pending++;
+-			queue_add_event(&as->queue, event);
+-			ret = 0;
+-		}
+-	}
+- out:
+-	up_read(&user_list_lock);
+-	mutex_unlock(&state_lock);
+-	wake_up_interruptible(&apm_waitqueue);
+-	return ret;
+-}
+-
+-static void apm_suspend(void)
+-{
+-	struct apm_user *as;
+-	int err = pm_suspend(PM_SUSPEND_MEM);
+-
+-	/*
+-	 * Anyone on the APM queues will think we're still suspended.
+-	 * Send a message so everyone knows we're now awake again.
+-	 */
+-	queue_event(APM_NORMAL_RESUME);
+-
+-	/*
+-	 * Finally, wake up anyone who is sleeping on the suspend.
+-	 */
+-	mutex_lock(&state_lock);
+-	down_read(&user_list_lock);
+-	list_for_each_entry(as, &apm_user_list, list) {
+-		if (as->suspend_state == SUSPEND_WAIT ||
+-		    as->suspend_state == SUSPEND_ACKED) {
+-			as->suspend_result = err;
+-			as->suspend_state = SUSPEND_DONE;
+-		}
+-	}
+-	up_read(&user_list_lock);
+-	mutex_unlock(&state_lock);
+-
+-	wake_up(&apm_suspend_waitqueue);
+-}
+-
+ static ssize_t apm_read(struct file *fp, char __user *buf, size_t count, loff_t *ppos)
+ {
+ 	struct apm_user *as = fp->private_data;
+@@ -307,25 +279,22 @@ apm_ioctl(struct inode * inode, struct file *filp, u_int cmd, u_long arg)
  
--	all_counters = kzalloc(sizeof(u32) * (num_counters), GFP_KERNEL);
-+	all_counters = kzalloc(sizeof(struct event_counter) * (num_counters),
-+				GFP_KERNEL);
- 	if (all_counters == NULL)
- 		goto fail;
+ 		as->suspend_result = -EINTR;
  
-diff --git a/include/acpi/achware.h b/include/acpi/achware.h
-index d4fb9bb..aeeafbf 100644
---- a/include/acpi/achware.h
-+++ b/include/acpi/achware.h
-@@ -100,11 +100,9 @@ acpi_status
- acpi_hw_clear_gpe_block(struct acpi_gpe_xrupt_info *gpe_xrupt_info,
- 			struct acpi_gpe_block_info *gpe_block);
+-		if (as->suspend_state == SUSPEND_READ) {
+-			int pending;
+-
++		switch (as->suspend_state) {
++		case SUSPEND_READ:
+ 			/*
+ 			 * If we read a suspend command from /dev/apm_bios,
+ 			 * then the corresponding APM_IOC_SUSPEND ioctl is
+ 			 * interpreted as an acknowledge.
+ 			 */
+ 			as->suspend_state = SUSPEND_ACKED;
+-			suspends_pending--;
+-			pending = suspends_pending == 0;
++			atomic_dec(&suspend_acks_pending);
+ 			mutex_unlock(&state_lock);
  
--#ifdef	ACPI_FUTURE_USAGE
- acpi_status
- acpi_hw_get_gpe_status(struct acpi_gpe_event_info *gpe_event_info,
- 		       acpi_event_status * event_status);
--#endif				/* ACPI_FUTURE_USAGE */
+ 			/*
+-			 * If there are no further acknowledges required,
+-			 * suspend the system.
++			 * suspend_acks_pending changed, the notifier needs to
++			 * be woken up for this
+ 			 */
+-			if (pending)
+-				apm_suspend();
++			wake_up(&apm_suspend_waitqueue);
  
- acpi_status acpi_hw_disable_all_gpes(void);
+ 			/*
+ 			 * Wait for the suspend/resume to complete.  If there
+@@ -341,35 +310,21 @@ apm_ioctl(struct inode * inode, struct file *filp, u_int cmd, u_long arg)
+ 			 * try_to_freeze() in freezer_count() will not trigger
+ 			 */
+ 			freezer_count();
+-		} else {
++			break;
++		case SUSPEND_ACKTO:
++			as->suspend_result = -ETIMEDOUT;
++			mutex_unlock(&state_lock);
++			break;
++		default:
+ 			as->suspend_state = SUSPEND_WAIT;
+ 			mutex_unlock(&state_lock);
  
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index 2c3806e..0b30406 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -248,9 +248,7 @@ acpi_status acpi_disable_event(u32 event, u32 flags);
+ 			/*
+ 			 * Otherwise it is a request to suspend the system.
+-			 * Queue an event for all readers, and expect an
+-			 * acknowledge from all writers who haven't already
+-			 * acknowledged.
+-			 */
+-			err = queue_suspend_event(APM_USER_SUSPEND, as);
+-			if (err < 0) {
+-				/*
+-				 * Avoid taking the lock here - this
+-				 * should be fine.
+-				 */
+-				as->suspend_state = SUSPEND_NONE;
+-				break;
+-			}
+-
+-			if (err > 0)
+-				apm_suspend();
+-
+-			/*
+-			 * Wait for the suspend/resume to complete.  If there
+-			 * are pending acknowledges, we wait here for them.
++			 * Just invoke pm_suspend(), we'll handle it from
++			 * there via the notifier.
+ 			 */
+-			wait_event_freezable(apm_suspend_waitqueue,
+-					 as->suspend_state == SUSPEND_DONE);
++			as->suspend_result = pm_suspend(PM_SUSPEND_MEM);
+ 		}
  
- acpi_status acpi_clear_event(u32 event);
+ 		mutex_lock(&state_lock);
+@@ -385,7 +340,6 @@ apm_ioctl(struct inode * inode, struct file *filp, u_int cmd, u_long arg)
+ static int apm_release(struct inode * inode, struct file * filp)
+ {
+ 	struct apm_user *as = filp->private_data;
+-	int pending = 0;
  
--#ifdef ACPI_FUTURE_USAGE
- acpi_status acpi_get_event_status(u32 event, acpi_event_status * event_status);
--#endif				/*  ACPI_FUTURE_USAGE  */
+ 	filp->private_data = NULL;
  
- acpi_status acpi_set_gpe_type(acpi_handle gpe_device, u32 gpe_number, u8 type);
+@@ -395,18 +349,15 @@ static int apm_release(struct inode * inode, struct file * filp)
  
-@@ -260,12 +258,10 @@ acpi_status acpi_disable_gpe(acpi_handle gpe_device, u32 gpe_number, u32 flags);
+ 	/*
+ 	 * We are now unhooked from the chain.  As far as new
+-	 * events are concerned, we no longer exist.  However, we
+-	 * need to balance suspends_pending, which means the
+-	 * possibility of sleeping.
++	 * events are concerned, we no longer exist.
+ 	 */
+ 	mutex_lock(&state_lock);
+-	if (as->suspend_state != SUSPEND_NONE) {
+-		suspends_pending -= 1;
+-		pending = suspends_pending == 0;
+-	}
++	if (as->suspend_state == SUSPEND_PENDING ||
++	    as->suspend_state == SUSPEND_READ)
++		atomic_dec(&suspend_acks_pending);
+ 	mutex_unlock(&state_lock);
+-	if (pending)
+-		apm_suspend();
++
++	wake_up(&apm_suspend_waitqueue);
  
- acpi_status acpi_clear_gpe(acpi_handle gpe_device, u32 gpe_number, u32 flags);
+ 	kfree(as);
+ 	return 0;
+@@ -542,7 +493,6 @@ static int kapmd(void *arg)
+ {
+ 	do {
+ 		apm_event_t event;
+-		int ret;
  
--#ifdef ACPI_FUTURE_USAGE
- acpi_status
- acpi_get_gpe_status(acpi_handle gpe_device,
- 		    u32 gpe_number,
- 		    u32 flags, acpi_event_status * event_status);
--#endif				/*  ACPI_FUTURE_USAGE  */
+ 		wait_event_interruptible(kapmd_wait,
+ 				!queue_empty(&kapmd_queue) || kthread_should_stop());
+@@ -567,20 +517,13 @@ static int kapmd(void *arg)
  
- acpi_status
- acpi_install_gpe_block(acpi_handle gpe_device,
+ 		case APM_USER_SUSPEND:
+ 		case APM_SYS_SUSPEND:
+-			ret = queue_suspend_event(event, NULL);
+-			if (ret < 0) {
+-				/*
+-				 * We were busy.  Try again in 50ms.
+-				 */
+-				queue_add_event(&kapmd_queue, event);
+-				msleep(50);
+-			}
+-			if (ret > 0)
+-				apm_suspend();
++			pm_suspend(PM_SUSPEND_MEM);
+ 			break;
+ 
+ 		case APM_CRITICAL_SUSPEND:
+-			apm_suspend();
++			atomic_inc(&userspace_notification_inhibit);
++			pm_suspend(PM_SUSPEND_MEM);
++			atomic_dec(&userspace_notification_inhibit);
+ 			break;
+ 		}
+ 	} while (1);
+@@ -588,6 +531,120 @@ static int kapmd(void *arg)
+ 	return 0;
+ }
+ 
++static int apm_suspend_notifier(struct notifier_block *nb,
++				unsigned long event,
++				void *dummy)
++{
++	struct apm_user *as;
++	int err;
++
++	/* short-cut emergency suspends */
++	if (atomic_read(&userspace_notification_inhibit))
++		return NOTIFY_DONE;
++
++	switch (event) {
++	case PM_SUSPEND_PREPARE:
++		/*
++		 * Queue an event to all "writer" users that we want
++		 * to suspend and need their ack.
++		 */
++		mutex_lock(&state_lock);
++		down_read(&user_list_lock);
++
++		list_for_each_entry(as, &apm_user_list, list) {
++			if (as->suspend_state != SUSPEND_WAIT && as->reader &&
++			    as->writer && as->suser) {
++				as->suspend_state = SUSPEND_PENDING;
++				atomic_inc(&suspend_acks_pending);
++				queue_add_event(&as->queue, APM_USER_SUSPEND);
++			}
++		}
++
++		up_read(&user_list_lock);
++		mutex_unlock(&state_lock);
++		wake_up_interruptible(&apm_waitqueue);
++
++		/*
++		 * Wait for the the suspend_acks_pending variable to drop to
++		 * zero, meaning everybody acked the suspend event (or the
++		 * process was killed.)
++		 *
++		 * If the app won't answer within a short while we assume it
++		 * locked up and ignore it.
++		 */
++		err = wait_event_interruptible_timeout(
++			apm_suspend_waitqueue,
++			atomic_read(&suspend_acks_pending) == 0,
++			5*HZ);
++
++		/* timed out */
++		if (err == 0) {
++			/*
++			 * Move anybody who timed out to "ack timeout" state.
++			 *
++			 * We could time out and the userspace does the ACK
++			 * right after we time out but before we enter the
++			 * locked section here, but that's fine.
++			 */
++			mutex_lock(&state_lock);
++			down_read(&user_list_lock);
++			list_for_each_entry(as, &apm_user_list, list) {
++				if (as->suspend_state == SUSPEND_PENDING ||
++				    as->suspend_state == SUSPEND_READ) {
++					as->suspend_state = SUSPEND_ACKTO;
++					atomic_dec(&suspend_acks_pending);
++				}
++			}
++			up_read(&user_list_lock);
++			mutex_unlock(&state_lock);
++		}
++
++		/* let suspend proceed */
++		if (err >= 0)
++			return NOTIFY_OK;
++
++		/* interrupted by signal */
++		return NOTIFY_BAD;
++
++	case PM_POST_SUSPEND:
++		/*
++		 * Anyone on the APM queues will think we're still suspended.
++		 * Send a message so everyone knows we're now awake again.
++		 */
++		queue_event(APM_NORMAL_RESUME);
++
++		/*
++		 * Finally, wake up anyone who is sleeping on the suspend.
++		 */
++		mutex_lock(&state_lock);
++		down_read(&user_list_lock);
++		list_for_each_entry(as, &apm_user_list, list) {
++			if (as->suspend_state == SUSPEND_ACKED) {
++				/*
++				 * TODO: maybe grab error code, needs core
++				 * changes to push the error to the notifier
++				 * chain (could use the second parameter if
++				 * implemented)
++				 */
++				as->suspend_result = 0;
++				as->suspend_state = SUSPEND_DONE;
++			}
++		}
++		up_read(&user_list_lock);
++		mutex_unlock(&state_lock);
++
++		wake_up(&apm_suspend_waitqueue);
++		return NOTIFY_OK;
++
++	default:
++		return NOTIFY_DONE;
++	}
++}
++
++static struct notifier_block apm_notif_block = {
++	.notifier_call = apm_suspend_notifier,
++};
++
+ static int __init apm_init(void)
+ {
+ 	int ret;
+@@ -601,7 +658,7 @@ static int __init apm_init(void)
+ 	if (IS_ERR(kapmd_tsk)) {
+ 		ret = PTR_ERR(kapmd_tsk);
+ 		kapmd_tsk = NULL;
+-		return ret;
++		goto out;
+ 	}
+ 	wake_up_process(kapmd_tsk);
+ 
+@@ -610,16 +667,27 @@ static int __init apm_init(void)
+ #endif
+ 
+ 	ret = misc_register(&apm_device);
+-	if (ret != 0) {
+-		remove_proc_entry("apm", NULL);
+-		kthread_stop(kapmd_tsk);
+-	}
++	if (ret)
++		goto out_stop;
+ 
++	ret = register_pm_notifier(&apm_notif_block);
++	if (ret)
++		goto out_unregister;
++
++	return 0;
++
++ out_unregister:
++	misc_deregister(&apm_device);
++ out_stop:
++	remove_proc_entry("apm", NULL);
++	kthread_stop(kapmd_tsk);
++ out:
+ 	return ret;
+ }
+ 
+ static void __exit apm_exit(void)
+ {
++	unregister_pm_notifier(&apm_notif_block);
+ 	misc_deregister(&apm_device);
+ 	remove_proc_entry("apm", NULL);
+ 
 -- 
 1.5.6.1.89.gd544
 
