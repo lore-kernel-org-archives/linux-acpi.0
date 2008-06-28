@@ -1,80 +1,90 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 19/84] acer-wmi: Add EC quirk for Fujitsu Siemens Amilo Li 1718
-Date: Sat, 28 Jun 2008 01:43:23 -0400
-Message-ID: <9c392500ce76e7b1c58837f7c69c5fba42e06197.1214631213.git.len.brown@intel.com>
+Subject: [PATCH 24/84] PCI ACPI: Drop the second argument of
+ platform_pci_choose_state
+Date: Sat, 28 Jun 2008 01:43:28 -0400
+Message-ID: <d40f76ca5c165c9ff1490bbbdb34c520d7155c1f.1214631213.git.len.brown@intel.com>
 References: <1214631868-1715-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms044pub.verizon.net ([206.46.252.44]:36217 "EHLO
 	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752646AbYF1FpE (ORCPT
+	with ESMTP id S1752647AbYF1FpE (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Jun 2008 01:45:04 -0400
 Received: from localhost.localdomain ([72.93.254.151])
  by vms044.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0K3500377RYTV4XD@vms044.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sat, 28 Jun 2008 00:44:54 -0500 (CDT)
+ 3 2006)) with ESMTPA id <0K350037IRYYV4XD@vms044.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 28 Jun 2008 00:44:59 -0500 (CDT)
 In-reply-to: <1214631868-1715-1-git-send-email-lenb@kernel.org>
 In-reply-to: <087803d18fb8259cb844c075a35fb27c2d80792e.1214631213.git.len.brown@intel.com>
 References: <087803d18fb8259cb844c075a35fb27c2d80792e.1214631213.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernrel.org
-Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, Len Brown <len.brown@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
 
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-This laptop needs a different EC quirk from the standard Acer one to read
-the wireless status.
+Since the second argument of acpi_pci_choose_state() and
+platform_pci_choose_state() is never used, remove it.
 
-Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@suse.cz>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/acer-wmi.c |   19 +++++++++++++++++++
- 1 files changed, 19 insertions(+), 0 deletions(-)
+ drivers/pci/pci-acpi.c |    3 +--
+ drivers/pci/pci.c      |    4 ++--
+ drivers/pci/pci.h      |    3 +--
+ 3 files changed, 4 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/misc/acer-wmi.c b/drivers/misc/acer-wmi.c
-index e35825f..5b7c5fc 100644
---- a/drivers/misc/acer-wmi.c
-+++ b/drivers/misc/acer-wmi.c
-@@ -212,6 +212,10 @@ static struct quirk_entry quirk_medion_md_98300 = {
- 	.wireless = 1,
- };
+diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+index caabf05..dab9d47 100644
+--- a/drivers/pci/pci-acpi.c
++++ b/drivers/pci/pci-acpi.c
+@@ -293,8 +293,7 @@ EXPORT_SYMBOL(pci_osc_control_set);
+  * 	choose highest power _SxD or any lower power
+  */
  
-+static struct quirk_entry quirk_fujitsu_amilo_li_1718 = {
-+	.wireless = 2,
-+};
-+
- static struct dmi_system_id acer_quirks[] = {
- 	{
- 		.callback = dmi_matched,
-@@ -323,6 +327,15 @@ static struct dmi_system_id acer_quirks[] = {
- 	},
- 	{
- 		.callback = dmi_matched,
-+		.ident = "Fujitsu Siemens Amilo Li 1718",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "FUJITSU SIEMENS"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "AMILO Li 1718"),
-+		},
-+		.driver_data = &quirk_fujitsu_amilo_li_1718,
-+	},
-+	{
-+		.callback = dmi_matched,
- 		.ident = "Medion MD 98300",
- 		.matches = {
- 			DMI_MATCH(DMI_SYS_VENDOR, "MEDION"),
-@@ -416,6 +429,12 @@ struct wmi_interface *iface)
- 				return AE_ERROR;
- 			*value = result & 0x1;
- 			return AE_OK;
-+		case 2:
-+			err = ec_read(0x71, &result);
-+			if (err)
-+				return AE_ERROR;
-+			*value = result & 0x1;
-+			return AE_OK;
- 		default:
- 			err = ec_read(0xA, &result);
- 			if (err)
+-static pci_power_t acpi_pci_choose_state(struct pci_dev *pdev,
+-	pm_message_t state)
++static pci_power_t acpi_pci_choose_state(struct pci_dev *pdev)
+ {
+ 	int acpi_state;
+ 
+diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+index e4548ab..75c6023 100644
+--- a/drivers/pci/pci.c
++++ b/drivers/pci/pci.c
+@@ -508,7 +508,7 @@ pci_set_power_state(struct pci_dev *dev, pci_power_t state)
+ 	return 0;
+ }
+ 
+-pci_power_t (*platform_pci_choose_state)(struct pci_dev *dev, pm_message_t state);
++pci_power_t (*platform_pci_choose_state)(struct pci_dev *dev);
+  
+ /**
+  * pci_choose_state - Choose the power state of a PCI device
+@@ -528,7 +528,7 @@ pci_power_t pci_choose_state(struct pci_dev *dev, pm_message_t state)
+ 		return PCI_D0;
+ 
+ 	if (platform_pci_choose_state) {
+-		ret = platform_pci_choose_state(dev, state);
++		ret = platform_pci_choose_state(dev);
+ 		if (ret != PCI_POWER_ERROR)
+ 			return ret;
+ 	}
+diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
+index 0a497c1..ff30b3c 100644
+--- a/drivers/pci/pci.h
++++ b/drivers/pci/pci.h
+@@ -6,8 +6,7 @@ extern void pci_remove_sysfs_dev_files(struct pci_dev *pdev);
+ extern void pci_cleanup_rom(struct pci_dev *dev);
+ 
+ /* Firmware callbacks */
+-extern pci_power_t (*platform_pci_choose_state)(struct pci_dev *dev,
+-						pm_message_t state);
++extern pci_power_t (*platform_pci_choose_state)(struct pci_dev *dev);
+ extern int (*platform_pci_set_power_state)(struct pci_dev *dev,
+ 						pci_power_t state);
+ 
 -- 
 1.5.6.1.89.gd544
 
