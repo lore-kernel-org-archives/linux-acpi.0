@@ -1,19 +1,19 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 62/84] PNPACPI: keep disabled resources when parsing current
- config
-Date: Sat, 28 Jun 2008 01:44:06 -0400
-Message-ID: <c777a48411a60e6ed37e9b067d7bdbc2a4a3b4a2.1214631214.git.len.brown@intel.com>
+Subject: [PATCH 68/84] PNP: make resource option structures private to PNP
+ subsystem
+Date: Sat, 28 Jun 2008 01:44:12 -0400
+Message-ID: <135d3b86cd304d6a9c79af2f5cd2e185ac883616.1214631214.git.len.brown@intel.com>
 References: <1214631868-1715-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:50822 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753319AbYF1Fpx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Jun 2008 01:45:53 -0400
+Received: from vms173005pub.verizon.net ([206.46.173.5]:35308 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752295AbYF1Fqg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Jun 2008 01:46:36 -0400
 Received: from localhost.localdomain ([72.93.254.151])
- by vms173001.mailsrvcs.net
+ by vms173005.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K3500HACS0GX414@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sat, 28 Jun 2008 00:45:53 -0500 (CDT)
+ with ESMTPA id <0K3500D1CRQ5V1Y2@vms173005.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 28 Jun 2008 00:39:47 -0500 (CDT)
 In-reply-to: <1214631868-1715-1-git-send-email-lenb@kernel.org>
 In-reply-to: <087803d18fb8259cb844c075a35fb27c2d80792e.1214631213.git.len.brown@intel.com>
 References: <087803d18fb8259cb844c075a35fb27c2d80792e.1214631213.git.len.brown@intel.com>
@@ -24,126 +24,136 @@ Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <len.brown@intel.com>
 
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-When we parse a device's _CRS data (the current resource settings),
-we should keep track of everything we find, even if it's currently
-disabled or invalid.
-
-This is what we already do for ISAPNP and PNPBIOS, and it helps
-keep things matched up when we subsequently re-encode resources.
-For example, consider a device with (mem, irq0, irq1, io), where
-irq0 is disabled.  If we drop irq0 when parsing the _CRS, we will
-mistakenly put irq1 in the irq0 slot when we encode resources
-for an _SRS call.
+Nothing outside the PNP subsystem should need access to a
+device's resource options, so this patch moves the option
+structure declarations to a private header file.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Acked-by: Rene Herman <rene.herman@gmail.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/pnp/pnpacpi/rsparser.c |   70 +++++++++++++++++++++++++++++----------
- 1 files changed, 52 insertions(+), 18 deletions(-)
+ drivers/pnp/base.h  |   48 ++++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/pnp.h |   48 ------------------------------------------------
+ 2 files changed, 48 insertions(+), 48 deletions(-)
 
-diff --git a/drivers/pnp/pnpacpi/rsparser.c b/drivers/pnp/pnpacpi/rsparser.c
-index 9a45c25..595252b 100644
---- a/drivers/pnp/pnpacpi/rsparser.c
-+++ b/drivers/pnp/pnpacpi/rsparser.c
-@@ -98,8 +98,10 @@ static void pnpacpi_parse_allocated_irqresource(struct pnp_dev *dev,
- 	int irq, flags;
- 	int p, t;
+diff --git a/drivers/pnp/base.h b/drivers/pnp/base.h
+index 1667ac3..3126e45 100644
+--- a/drivers/pnp/base.h
++++ b/drivers/pnp/base.h
+@@ -19,6 +19,54 @@ void pnp_remove_card(struct pnp_card *card);
+ int pnp_add_card_device(struct pnp_card *card, struct pnp_dev *dev);
+ void pnp_remove_card_device(struct pnp_dev *dev);
  
--	if (!valid_IRQ(gsi))
-+	if (!valid_IRQ(gsi)) {
-+		pnp_add_irq_resource(dev, gsi, IORESOURCE_DISABLED);
- 		return;
-+	}
- 
- 	/*
- 	 * in IO-APIC mode, use overrided attribute. Two reasons:
-@@ -248,24 +250,39 @@ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
- 		 * _CRS, but some firmware violates this, so parse them all.
- 		 */
- 		irq = &res->data.irq;
--		for (i = 0; i < irq->interrupt_count; i++) {
--			pnpacpi_parse_allocated_irqresource(dev,
--				irq->interrupts[i],
--				irq->triggering,
--				irq->polarity,
--				irq->sharable);
-+		if (irq->interrupt_count == 0)
-+			pnp_add_irq_resource(dev, 0, IORESOURCE_DISABLED);
-+		else {
-+			for (i = 0; i < irq->interrupt_count; i++) {
-+				pnpacpi_parse_allocated_irqresource(dev,
-+					irq->interrupts[i],
-+					irq->triggering,
-+					irq->polarity,
-+				    irq->sharable);
-+			}
++struct pnp_port {
++	unsigned short min;	/* min base number */
++	unsigned short max;	/* max base number */
++	unsigned char align;	/* align boundary */
++	unsigned char size;	/* size of range */
++	unsigned char flags;	/* port flags */
++	unsigned char pad;	/* pad */
++	struct pnp_port *next;	/* next port */
++};
 +
-+			/*
-+			 * The IRQ encoder puts a single interrupt in each
-+			 * descriptor, so if a _CRS descriptor has more than
-+			 * one interrupt, we won't be able to re-encode it.
-+			 */
-+			if (pnp_can_write(dev) && irq->interrupt_count > 1) {
-+				dev_warn(&dev->dev, "multiple interrupts in "
-+					 "_CRS descriptor; configuration can't "
-+					 "be changed\n");
-+				dev->capabilities &= ~PNP_WRITE;
-+			}
- 		}
- 		break;
- 
- 	case ACPI_RESOURCE_TYPE_DMA:
- 		dma = &res->data.dma;
--		if (dma->channel_count > 0) {
-+		if (dma->channel_count > 0 && dma->channels[0] != (u8) -1)
- 			flags = dma_flags(dma->type, dma->bus_master,
- 					  dma->transfer);
--			if (dma->channels[0] == (u8) -1)
--				flags |= IORESOURCE_DISABLED;
--			pnp_add_dma_resource(dev, dma->channels[0], flags);
--		}
-+		else
-+			flags = IORESOURCE_DISABLED;
-+		pnp_add_dma_resource(dev, dma->channels[0], flags);
- 		break;
- 
- 	case ACPI_RESOURCE_TYPE_IO:
-@@ -331,12 +348,29 @@ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
- 		if (extended_irq->producer_consumer == ACPI_PRODUCER)
- 			return AE_OK;
- 
--		for (i = 0; i < extended_irq->interrupt_count; i++) {
--			pnpacpi_parse_allocated_irqresource(dev,
--				extended_irq->interrupts[i],
--				extended_irq->triggering,
--				extended_irq->polarity,
--				extended_irq->sharable);
-+		if (extended_irq->interrupt_count == 0)
-+			pnp_add_irq_resource(dev, 0, IORESOURCE_DISABLED);
-+		else {
-+			for (i = 0; i < extended_irq->interrupt_count; i++) {
-+				pnpacpi_parse_allocated_irqresource(dev,
-+					extended_irq->interrupts[i],
-+					extended_irq->triggering,
-+					extended_irq->polarity,
-+					extended_irq->sharable);
-+			}
++#define PNP_IRQ_NR 256
++struct pnp_irq {
++	DECLARE_BITMAP(map, PNP_IRQ_NR);	/* bitmask for IRQ lines */
++	unsigned char flags;	/* IRQ flags */
++	unsigned char pad;	/* pad */
++	struct pnp_irq *next;	/* next IRQ */
++};
 +
-+			/*
-+			 * The IRQ encoder puts a single interrupt in each
-+			 * descriptor, so if a _CRS descriptor has more than
-+			 * one interrupt, we won't be able to re-encode it.
-+			 */
-+			if (pnp_can_write(dev) &&
-+			    extended_irq->interrupt_count > 1) {
-+				dev_warn(&dev->dev, "multiple interrupts in "
-+					 "_CRS descriptor; configuration can't "
-+					 "be changed\n");
-+				dev->capabilities &= ~PNP_WRITE;
-+			}
- 		}
- 		break;
++struct pnp_dma {
++	unsigned char map;	/* bitmask for DMA channels */
++	unsigned char flags;	/* DMA flags */
++	struct pnp_dma *next;	/* next port */
++};
++
++struct pnp_mem {
++	unsigned int min;	/* min base number */
++	unsigned int max;	/* max base number */
++	unsigned int align;	/* align boundary */
++	unsigned int size;	/* size of range */
++	unsigned char flags;	/* memory flags */
++	unsigned char pad;	/* pad */
++	struct pnp_mem *next;	/* next memory resource */
++};
++
++#define PNP_RES_PRIORITY_PREFERRED	0
++#define PNP_RES_PRIORITY_ACCEPTABLE	1
++#define PNP_RES_PRIORITY_FUNCTIONAL	2
++#define PNP_RES_PRIORITY_INVALID	65535
++
++struct pnp_option {
++	unsigned short priority;	/* priority */
++	struct pnp_port *port;		/* first port */
++	struct pnp_irq *irq;		/* first IRQ */
++	struct pnp_dma *dma;		/* first DMA */
++	struct pnp_mem *mem;		/* first memory resource */
++	struct pnp_option *next;	/* used to chain dependent resources */
++};
++
+ struct pnp_option *pnp_build_option(int priority);
+ struct pnp_option *pnp_register_independent_option(struct pnp_dev *dev);
+ struct pnp_option *pnp_register_dependent_option(struct pnp_dev *dev,
+diff --git a/include/linux/pnp.h b/include/linux/pnp.h
+index e1454da..785126f 100644
+--- a/include/linux/pnp.h
++++ b/include/linux/pnp.h
+@@ -182,54 +182,6 @@ static inline int pnp_dma_valid(struct pnp_dev *dev, unsigned int bar)
+ }
  
+ 
+-struct pnp_port {
+-	unsigned short min;	/* min base number */
+-	unsigned short max;	/* max base number */
+-	unsigned char align;	/* align boundary */
+-	unsigned char size;	/* size of range */
+-	unsigned char flags;	/* port flags */
+-	unsigned char pad;	/* pad */
+-	struct pnp_port *next;	/* next port */
+-};
+-
+-#define PNP_IRQ_NR 256
+-struct pnp_irq {
+-	DECLARE_BITMAP(map, PNP_IRQ_NR);	/* bitmask for IRQ lines */
+-	unsigned char flags;	/* IRQ flags */
+-	unsigned char pad;	/* pad */
+-	struct pnp_irq *next;	/* next IRQ */
+-};
+-
+-struct pnp_dma {
+-	unsigned char map;	/* bitmask for DMA channels */
+-	unsigned char flags;	/* DMA flags */
+-	struct pnp_dma *next;	/* next port */
+-};
+-
+-struct pnp_mem {
+-	unsigned int min;	/* min base number */
+-	unsigned int max;	/* max base number */
+-	unsigned int align;	/* align boundary */
+-	unsigned int size;	/* size of range */
+-	unsigned char flags;	/* memory flags */
+-	unsigned char pad;	/* pad */
+-	struct pnp_mem *next;	/* next memory resource */
+-};
+-
+-#define PNP_RES_PRIORITY_PREFERRED	0
+-#define PNP_RES_PRIORITY_ACCEPTABLE	1
+-#define PNP_RES_PRIORITY_FUNCTIONAL	2
+-#define PNP_RES_PRIORITY_INVALID	65535
+-
+-struct pnp_option {
+-	unsigned short priority;	/* priority */
+-	struct pnp_port *port;		/* first port */
+-	struct pnp_irq *irq;		/* first IRQ */
+-	struct pnp_dma *dma;		/* first DMA */
+-	struct pnp_mem *mem;		/* first memory resource */
+-	struct pnp_option *next;	/* used to chain dependent resources */
+-};
+-
+ /*
+  * Device Management
+  */
 -- 
 1.5.6.1.89.gd544
 
