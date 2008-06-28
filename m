@@ -1,112 +1,60 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [GIT PATCH] ACPI patches for 2.6.26-rc8
-Date: Sat, 28 Jun 2008 01:30:12 -0400 (EDT)
-Message-ID: <alpine.LFD.1.10.0806280126160.14731@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Subject: [PATCH 2/3] ACPI: don't walk tables if ACPI was disabled
+Date: Sat, 28 Jun 2008 01:32:44 -0400
+Message-ID: <4389ed2ff61de2b1485b31bf342da913dd342f59.1214631090.git.len.brown@intel.com>
+References: <1214631165-1436-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms042pub.verizon.net ([206.46.252.42]:44182 "EHLO
+Received: from vms042pub.verizon.net ([206.46.252.42]:44622 "EHLO
 	vms042pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751682AbYF1Fat (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Jun 2008 01:30:49 -0400
+	with ESMTP id S1751401AbYF1Fcv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Jun 2008 01:32:51 -0400
+Received: from localhost.localdomain ([72.93.254.151])
+ by vms042.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
+ 3 2006)) with ESMTPA id <0K3500BS3REQQ8YB@vms042.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 28 Jun 2008 00:32:51 -0500 (CDT)
+In-reply-to: <1214631165-1436-1-git-send-email-lenb@kernel.org>
+In-reply-to: <16d752397301b95abaa95cbaf9e785d221872311.1214631090.git.len.brown@intel.com>
+References: <16d752397301b95abaa95cbaf9e785d221872311.1214631090.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Andi Kleen <ak@linux.intel.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernrel.org
+Cc: Vegard Nossum <vegard.nossum@gmail.com>, Len Brown <len.brown@intel.com>
 
-Hi Linus,
+From: Vegard Nossum <vegard.nossum@gmail.com>
 
-please pull from: 
+Ingo Molnar wrote:
+> -tip auto-testing started triggering this spinlock corruption message
+> yesterday:
+>
+> [    3.976213] calling  acpi_rtc_init+0x0/0xd3
+> [    3.980213] ACPI Exception (utmutex-0263): AE_BAD_PARAMETER, Thread F7C50000 could not acquire Mutex [3] [20080321]
+> [    3.992213] BUG: spinlock bad magic on CPU#0, swapper/1
+> [    3.992213]  lock: c2508dc4, .magic: 00000000, .owner: swapper/1, .owner_cpu: 0
 
-git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
+This is apparently because some parts of ACPI, including mutexes, are not
+initialized when acpi=off is passed to the kernel.
 
-This will update the files shown below.
+Reported-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Vegard Nossum <vegard.nossum@gmail.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ drivers/acpi/glue.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-Note that I will be taking a sabbatical from Intel this summer.
-Andi Kleen will maintain Linux/ACPI while I'm away.
+diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
+index 2808dc6..9b227d4 100644
+--- a/drivers/acpi/glue.c
++++ b/drivers/acpi/glue.c
+@@ -333,6 +333,9 @@ static int __init acpi_rtc_init(void)
+ {
+ 	struct device *dev = get_rtc_dev();
+ 
++	if (acpi_disabled)
++		return 0;
++
+ 	if (dev) {
+ 		rtc_wake_setup();
+ 		rtc_info.wake_on = rtc_wake_on;
+-- 
+1.5.6.1.89.gd544
 
-thanks!
-
--Len
-
-ps. individual patches are available on linux-acpi@vger.kernel.org
-and a consolidated plain patch is available here:
-ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.26/acpi-release-20080609-2.6.26-rc8.diff.gz
-
- Documentation/feature-removal-schedule.txt |    9 +++++++++
- drivers/acpi/bay.c                         |    3 +++
- drivers/acpi/dock.c                        |    3 +++
- drivers/acpi/glue.c                        |    3 +++
- drivers/thermal/Kconfig                    |    9 +++++++++
- drivers/thermal/thermal_sys.c              |    4 ++--
- include/linux/thermal.h                    |    6 ++----
- 7 files changed, 31 insertions(+), 6 deletions(-)
-
-through these commits:
-
-Len Brown (1):
-      dock: bay: Don't call acpi_walk_namespace() when ACPI is disabled.
-
-Rene Herman (1):
-      thermal: Create CONFIG_THERMAL_HWMON=n
-
-Vegard Nossum (1):
-      ACPI: don't walk tables if ACPI was disabled
-
-with this log:
-
-commit c4e6a2e64e948de42473e9c829181d768b1258c3
-Merge: 816c2ed... 16d7523...
-Author: Len Brown <len.brown@intel.com>
-Date:   Thu Jun 26 01:56:35 2008 -0400
-
-    Merge branches 'release', 'acpi_disabled' and 'bugzilla-10958' into release
-
-commit 816c2eda3ce8fa7eb62f22e01e2ec7a3f7d677c0
-Author: Len Brown <len.brown@intel.com>
-Date:   Tue Jun 24 22:57:12 2008 -0400
-
-    dock: bay: Don't call acpi_walk_namespace() when ACPI is disabled.
-    
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 4389ed2ff61de2b1485b31bf342da913dd342f59
-Author: Vegard Nossum <vegard.nossum@gmail.com>
-Date:   Fri Jun 20 15:39:09 2008 +0200
-
-    ACPI: don't walk tables if ACPI was disabled
-    
-    Ingo Molnar wrote:
-    > -tip auto-testing started triggering this spinlock corruption message
-    > yesterday:
-    >
-    > [    3.976213] calling  acpi_rtc_init+0x0/0xd3
-    > [    3.980213] ACPI Exception (utmutex-0263): AE_BAD_PARAMETER, Thread F7C50000 could not acquire Mutex [3] [20080321]
-    > [    3.992213] BUG: spinlock bad magic on CPU#0, swapper/1
-    > [    3.992213]  lock: c2508dc4, .magic: 00000000, .owner: swapper/1, .owner_cpu: 0
-    
-    This is apparently because some parts of ACPI, including mutexes, are not
-    initialized when acpi=off is passed to the kernel.
-    
-    Reported-by: Ingo Molnar <mingo@elte.hu>
-    Signed-off-by: Vegard Nossum <vegard.nossum@gmail.com>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 16d752397301b95abaa95cbaf9e785d221872311
-Author: Rene Herman <rene.herman@keyaccess.nl>
-Date:   Tue Jun 24 19:38:56 2008 +0200
-
-    thermal: Create CONFIG_THERMAL_HWMON=n
-    
-    A bug in libsensors <= 2.10.6 is exposed
-    when this new hwmon I/F is enabled.
-    Create CONFIG_THERMAL_HWMON=n
-    until some time after libsensors 2.10.7 ships
-    so those users can run the latest kernel.
-    
-    libsensors 3.x is already fixed -- those users
-    can use CONFIG_THERMAL_HWMON=y now.
-    
-    Signed-off-by: Rene Herman <rene.herman@gmail.com>
-    Acked-by: Mark M. Hoffman <mhoffman@lightlink.com>
-    Signed-off-by: Len Brown <len.brown@intel.com>
