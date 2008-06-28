@@ -1,49 +1,95 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 39/84] ACPICA: Update version to 20080514
-Date: Sat, 28 Jun 2008 01:43:43 -0400
-Message-ID: <cd4e41a129e4755a65a267dfd6c7567fe0ddfc9f.1214631214.git.len.brown@intel.com>
+Subject: [PATCH 56/84] PNP: add detail to debug resource dump
+Date: Sat, 28 Jun 2008 01:44:00 -0400
+Message-ID: <0780c696bf9bf74f7a12ff538be1d19cb2bbbe4b.1214631214.git.len.brown@intel.com>
 References: <1214631868-1715-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms044pub.verizon.net ([206.46.252.44]:36363 "EHLO
-	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752857AbYF1FpV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Jun 2008 01:45:21 -0400
+Received: from vms042pub.verizon.net ([206.46.252.42]:50759 "EHLO
+	vms042pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752950AbYF1FpY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Jun 2008 01:45:24 -0400
 Received: from localhost.localdomain ([72.93.254.151])
- by vms044.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0K350032XRZAWWHD@vms044.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sat, 28 Jun 2008 00:45:11 -0500 (CDT)
+ by vms042.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
+ 3 2006)) with ESMTPA id <0K3500BH4RZL9T12@vms042.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 28 Jun 2008 00:45:22 -0500 (CDT)
 In-reply-to: <1214631868-1715-1-git-send-email-lenb@kernel.org>
 In-reply-to: <087803d18fb8259cb844c075a35fb27c2d80792e.1214631213.git.len.brown@intel.com>
 References: <087803d18fb8259cb844c075a35fb27c2d80792e.1214631213.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernrel.org
-Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <len.brown@intel.com>
 
-From: Bob Moore <robert.moore@intel.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Update version to 20080514
+In the debug resource dump, decode the flags and indicate when
+a resource is disabled or has been automatically assigned.
 
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- include/acpi/acconfig.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/pnp/support.c |   34 ++++++++++++++++++++++++++--------
+ 1 files changed, 26 insertions(+), 8 deletions(-)
 
-diff --git a/include/acpi/acconfig.h b/include/acpi/acconfig.h
-index 28fe8ba..2ced0e1 100644
---- a/include/acpi/acconfig.h
-+++ b/include/acpi/acconfig.h
-@@ -63,7 +63,7 @@
- 
- /* Current ACPICA subsystem version in YYYYMMDD format */
- 
--#define ACPI_CA_VERSION                 0x20080321
-+#define ACPI_CA_VERSION                 0x20080514
- 
- /*
-  * OS name, used for the _OS object.  The _OS object is essentially obsolete,
+diff --git a/drivers/pnp/support.c b/drivers/pnp/support.c
+index 95b076c..7f594cc 100644
+--- a/drivers/pnp/support.c
++++ b/drivers/pnp/support.c
+@@ -63,28 +63,46 @@ void dbg_pnp_show_resources(struct pnp_dev *dev, char *desc)
+ 	for (i = 0; i < PNP_MAX_IRQ; i++) {
+ 		res = pnp_get_resource(dev, IORESOURCE_IRQ, i);
+ 		if (res && !(res->flags & IORESOURCE_UNSET))
+-			dev_dbg(&dev->dev, "  irq %lld flags %#lx\n",
+-				(unsigned long long) res->start, res->flags);
++			dev_dbg(&dev->dev, "  irq %lld flags %#lx%s%s\n",
++				(unsigned long long) res->start, res->flags,
++				res->flags & IORESOURCE_DISABLED ?
++					" DISABLED" : "",
++				res->flags & IORESOURCE_AUTO ?
++					" AUTO" : "");
+ 	}
+ 	for (i = 0; i < PNP_MAX_DMA; i++) {
+ 		res = pnp_get_resource(dev, IORESOURCE_DMA, i);
+ 		if (res && !(res->flags & IORESOURCE_UNSET))
+-			dev_dbg(&dev->dev, "  dma %lld flags %#lx\n",
+-				(unsigned long long) res->start, res->flags);
++			dev_dbg(&dev->dev, "  dma %lld flags %#lx%s%s\n",
++				(unsigned long long) res->start, res->flags,
++				res->flags & IORESOURCE_DISABLED ?
++					" DISABLED" : "",
++				res->flags & IORESOURCE_AUTO ?
++					" AUTO" : "");
+ 	}
+ 	for (i = 0; i < PNP_MAX_PORT; i++) {
+ 		res = pnp_get_resource(dev, IORESOURCE_IO, i);
+ 		if (res && !(res->flags & IORESOURCE_UNSET))
+-			dev_dbg(&dev->dev, "  io  %#llx-%#llx flags %#lx\n",
++			dev_dbg(&dev->dev, "  io  %#llx-%#llx flags %#lx"
++				"%s%s\n",
+ 				(unsigned long long) res->start,
+-				(unsigned long long) res->end, res->flags);
++				(unsigned long long) res->end, res->flags,
++				res->flags & IORESOURCE_DISABLED ?
++					" DISABLED" : "",
++				res->flags & IORESOURCE_AUTO ?
++					" AUTO" : "");
+ 	}
+ 	for (i = 0; i < PNP_MAX_MEM; i++) {
+ 		res = pnp_get_resource(dev, IORESOURCE_MEM, i);
+ 		if (res && !(res->flags & IORESOURCE_UNSET))
+-			dev_dbg(&dev->dev, "  mem %#llx-%#llx flags %#lx\n",
++			dev_dbg(&dev->dev, "  mem %#llx-%#llx flags %#lx"
++				"%s%s\n",
+ 				(unsigned long long) res->start,
+-				(unsigned long long) res->end, res->flags);
++				(unsigned long long) res->end, res->flags,
++				res->flags & IORESOURCE_DISABLED ?
++					" DISABLED" : "",
++				res->flags & IORESOURCE_AUTO ?
++					" AUTO" : "");
+ 	}
+ #endif
+ }
 -- 
 1.5.6.1.89.gd544
 
