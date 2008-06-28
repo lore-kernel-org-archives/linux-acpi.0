@@ -1,47 +1,30 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: ACPI patches on test branch
-Date: Sat, 28 Jun 2008 11:21:45 -0300
-Message-ID: <20080628142145.GE871@khazad-dum.debian.net>
-References: <1214633197-3344-1-git-send-email-lenb@kernel.org>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH 04/84] misc,acpi,backlight: compal Laptop Extras
+Date: Sat, 28 Jun 2008 15:56:31 +0100
+Message-ID: <20080628145631.GA23803@srcf.ucam.org>
+References: <087803d18fb8259cb844c075a35fb27c2d80792e.1214631213.git.len.brown@intel.com> <45fea4a84325d5724ffe480ae6f0d1658d520141.1214631213.git.len.brown@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:40237 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751988AbYF1OVt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 28 Jun 2008 10:21:49 -0400
+Received: from cavan.codon.org.uk ([93.93.128.6]:45001 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751256AbYF1O4g (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Jun 2008 10:56:36 -0400
 Content-Disposition: inline
-In-Reply-To: <1214633197-3344-1-git-send-email-lenb@kernel.org>
+In-Reply-To: <45fea4a84325d5724ffe480ae6f0d1658d520141.1214631213.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernrel.org, Andi Kleen <ak@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernrel.org, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Alexey Starikovskiy <aystarik@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
 
-On Sat, 28 Jun 2008, Len Brown wrote:
-> git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git test
-> 
-> This test branch, which is pulled into linux-next
-> and -mm, is a superset of the "release-2.6.27" branch.
+On Sat, Jun 28, 2008 at 01:43:08AM -0400, Len Brown wrote:
+> This driver exports a few files in /sys/devices/platform/compal-laptop/:
+>  lcd_level - screen brightness: contains a single integer in the range 0..7 (rw)
+>  wlan - wlan subsystem state: contains 0 or 1 (rw)
+>  bluetooth - bluetooth subsystem state: contains 0 or 1 (rw)
+>  raw - raw value taken from embedded controller register (ro)
 
-Len,
-
-I just got a bunch of net/rfkill changes merged into -next through
-linux-wireless.
-
-And I have a stack of thinkpad-acpi patches that depend on those, which I'd
-like to see in 2.6.27.
-
-The thinkpad-acpi changes are being field-tested for more than a month now,
-not just by me, but also by the users of my thinkpad-acpi devel backports,
-and it is working fine.
-
-So, how could we do it?  Should I send the thinkpad-acpi patches to you guys
-now for review, and we merge them a bit late (after the rfkill work has
-already landed on mainline)?
+Can we make sure this is changed to use rfkill before merging?
 
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Matthew Garrett | mjg59@srcf.ucam.org
