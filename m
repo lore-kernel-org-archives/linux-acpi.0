@@ -1,49 +1,144 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 14/84] ACPICA: fix mutex names in debug code.
-Date: Sat, 28 Jun 2008 01:43:18 -0400
-Message-ID: <71fcfdef557afcccdefc9421b57d15b0bfd5c8ed.1214631213.git.len.brown@intel.com>
+Subject: [PATCH 08/84] ACPI: fix acpi fan state set error
+Date: Sat, 28 Jun 2008 01:43:12 -0400
+Message-ID: <009733ab59c05c4331c5504001587562e66a0d2b.1214631213.git.len.brown@intel.com>
 References: <1214631868-1715-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms046pub.verizon.net ([206.46.252.46]:62858 "EHLO
-	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752462AbYF1Fox (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Jun 2008 01:44:53 -0400
+Received: from vms042pub.verizon.net ([206.46.252.42]:50668 "EHLO
+	vms042pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752311AbYF1Fon (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Jun 2008 01:44:43 -0400
 Received: from localhost.localdomain ([72.93.254.151])
- by vms046.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0K3500BO3RYPN3F1@vms046.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sat, 28 Jun 2008 00:44:50 -0500 (CDT)
+ by vms042.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
+ 3 2006)) with ESMTPA id <0K3500BJHRYFA2A2@vms042.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 28 Jun 2008 00:44:39 -0500 (CDT)
 In-reply-to: <1214631868-1715-1-git-send-email-lenb@kernel.org>
 In-reply-to: <087803d18fb8259cb844c075a35fb27c2d80792e.1214631213.git.len.brown@intel.com>
 References: <087803d18fb8259cb844c075a35fb27c2d80792e.1214631213.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernrel.org
-Cc: Vegard Nossum <vegard.nossum@gmail.com>, Len Brown <len.brown@intel.com>
+Cc: Yi Yang <yi.y.yang@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Vegard Nossum <vegard.nossum@gmail.com>
+From: Yi Yang <yi.y.yang@intel.com>
 
-Reorder the mutex names to match the preceding #defines
+Under /proc/acpi, there is a fan control interface, a user can
+set 0 or 3 to /proc/acpi/fan/*/state, 0 denotes D0 state, 3
+denotes D3 state, but in current implementation, a user can
+set a fan to D1 state by any char excluding '1', '2' and '3'.
 
-Signed-off-by: Vegard Nossum <vegard.nossum@gmail.com>
+For example:
+
+[root@localhost acpi]# cat /proc/acpi/fan/C31B/state
+status:                  off
+[root@localhost acpi]# echo "" > /proc/acpi/fan/C31B/state
+[root@localhost acpi]# cat /proc/acpi/fan/C31B/state
+status:                  on
+[root@localhost acpi]# echo "3" > /proc/acpi/fan/C31B/state
+[root@localhost acpi]# cat /proc/acpi/fan/C31B/state
+status:                  off
+[root@localhost acpi]# echo "xxxxx" > /proc/acpi/fan/C31B/state
+[root@localhost acpi]# cat /proc/acpi/fan/C31B/state
+status:                  on
+
+Obviously, such inputs as "" and "xxxxx" are invalid for fan state.
+
+This patch fixes this issue, it strictly limits fan state only to
+accept 0, 1, 2 and 3, any other inputs are invalid.
+
+Before applying this patch, the test result is:
+
+[root@localhost acpi]# cat /proc/acpi/fan/C31B/state
+status:                  off
+[root@localhost acpi]# echo "" > /proc/acpi/fan/C31B/state
+[root@localhost acpi]# cat /proc/acpi/fan/C31B/state
+status:                  on
+[root@localhost acpi]# echo "3" > /proc/acpi/fan/C31B/state
+[root@localhost acpi]# cat /proc/acpi/fan/C31B/state
+status:                  off
+[root@localhost acpi]# echo "xxxxx" > /proc/acpi/fan/C31B/state
+[root@localhost acpi]# cat /proc/acpi/fan/C31B/state
+status:                  on
+[root@localhost acpi]# echo "3" > /proc/acpi/fan/C31B/state
+[root@localhost acpi]# cat /proc/acpi/fan/C31B/state
+status:                  off
+[root@localhost acpi]# echo "3x" > /proc/acpi/fan/C31B/state
+[root@localhost acpi]# cat /proc/acpi/fan/C31B/state
+status:                  off
+[root@localhost acpi]# echo "-1x" > /proc/acpi/fan/C31B/state
+[root@localhost acpi]# cat /proc/acpi/fan/C31B/state
+status:                  on
+[root@localhost acpi]#
+
+After applying this patch, the test result is:
+
+[root@localhost ~]# cat /proc/acpi/fan/C31B/state
+status:                  off
+[root@localhost ~]# echo "" > /proc/acpi/fan/C31B/state
+-bash: echo: write error: Invalid argument
+[root@localhost ~]# cat /proc/acpi/fan/C31B/state
+status:                  off
+[root@localhost ~]# echo "3" > /proc/acpi/fan/C31B/state
+[root@localhost ~]# cat /proc/acpi/fan/C31B/state
+status:                  off
+[root@localhost ~]# echo "xxxxx" > /proc/acpi/fan/C31B/state
+-bash: echo: write error: Invalid argument
+[root@localhost ~]# cat /proc/acpi/fan/C31B/state
+status:                  off
+[root@localhost ~]# echo "-1x" > /proc/acpi/fan/C31B/state
+-bash: echo: write error: Invalid argument
+[root@localhost ~]# cat /proc/acpi/fan/C31B/state
+status:                  off
+[root@localhost ~]# echo "0" > //proc/acpi/fan/C31B/state
+[root@localhost ~]# cat /proc/acpi/fan/C31B/state
+status:                  on
+[root@localhost ~]# echo "4" > //proc/acpi/fan/C31B/state
+-bash: echo: write error: Invalid argument
+[root@localhost ~]# cat /proc/acpi/fan/C31B/state
+status:                  on
+[root@localhost ~]# echo "3" > //proc/acpi/fan/C31B/state
+[root@localhost ~]# cat /proc/acpi/fan/C31B/state
+status:                  off
+[root@localhost ~]# echo "0" > //proc/acpi/fan/C31B/state
+[root@localhost ~]# cat /proc/acpi/fan/C31B/state
+status:                  on
+[root@localhost ~]# echo "3x" > //proc/acpi/fan/C31B/state
+-bash: echo: write error: Invalid argument
+[root@localhost ~]#
+
+Signed-off-by: Yi Yang <yi.y.yang@intel.com>
+Acked-by: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- include/acpi/aclocal.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/acpi/fan.c |    8 +++++++-
+ 1 files changed, 7 insertions(+), 1 deletions(-)
 
-diff --git a/include/acpi/aclocal.h b/include/acpi/aclocal.h
-index c5cdc32..62d7468 100644
---- a/include/acpi/aclocal.h
-+++ b/include/acpi/aclocal.h
-@@ -98,8 +98,8 @@ union acpi_parse_object;
+diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
+index 6cf10cb..55c17af 100644
+--- a/drivers/acpi/fan.c
++++ b/drivers/acpi/fan.c
+@@ -148,7 +148,7 @@ acpi_fan_write_state(struct file *file, const char __user * buffer,
+ 	int result = 0;
+ 	struct seq_file *m = file->private_data;
+ 	struct acpi_device *device = m->private;
+-	char state_string[12] = { '\0' };
++	char state_string[3] = { '\0' };
  
- static char *acpi_gbl_mutex_names[ACPI_NUM_MUTEX] = {
- 	"ACPI_MTX_Interpreter",
--	"ACPI_MTX_Tables",
- 	"ACPI_MTX_Namespace",
-+	"ACPI_MTX_Tables",
- 	"ACPI_MTX_Events",
- 	"ACPI_MTX_Caches",
- 	"ACPI_MTX_Memory",
+ 	if (count > sizeof(state_string) - 1)
+ 		return -EINVAL;
+@@ -157,6 +157,12 @@ acpi_fan_write_state(struct file *file, const char __user * buffer,
+ 		return -EFAULT;
+ 
+ 	state_string[count] = '\0';
++	if ((state_string[0] < '0') || (state_string[0] > '3'))
++		return -EINVAL;
++	if (state_string[1] == '\n')
++		state_string[1] = '\0';
++	if (state_string[1] != '\0')
++		return -EINVAL;
+ 
+ 	result = acpi_bus_set_power(device->handle,
+ 				    simple_strtoul(state_string, NULL, 0));
 -- 
 1.5.6.1.89.gd544
 
