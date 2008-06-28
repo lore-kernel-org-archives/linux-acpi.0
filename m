@@ -1,18 +1,18 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 41/84] ACPICA: Update DMAR and SRAT table definitions
-Date: Sat, 28 Jun 2008 01:43:45 -0400
-Message-ID: <fd64eb6efd9807558121409771dc1db1b61dd4c4.1214631214.git.len.brown@intel.com>
+Subject: [PATCH 34/84] ACPICA: Fix possible negative array index in
+ acpi_ut_validate_exception
+Date: Sat, 28 Jun 2008 01:43:38 -0400
+Message-ID: <7a9715db07d6176bd7deb02c7bd130a53586f670.1214631213.git.len.brown@intel.com>
 References: <1214631868-1715-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:34533 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752811AbYF1FpS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Jun 2008 01:45:18 -0400
+Received: from vms042pub.verizon.net ([206.46.252.42]:50759 "EHLO
+	vms042pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752758AbYF1FpO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Jun 2008 01:45:14 -0400
 Received: from localhost.localdomain ([72.93.254.151])
- by vms173005.mailsrvcs.net
- (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K3500DAXRNYVC73@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sat, 28 Jun 2008 00:38:23 -0500 (CDT)
+ by vms042.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
+ 3 2006)) with ESMTPA id <0K3500BBHRZ79U22@vms042.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 28 Jun 2008 00:45:07 -0500 (CDT)
 In-reply-to: <1214631868-1715-1-git-send-email-lenb@kernel.org>
 In-reply-to: <087803d18fb8259cb844c075a35fb27c2d80792e.1214631213.git.len.brown@intel.com>
 References: <087803d18fb8259cb844c075a35fb27c2d80792e.1214631213.git.len.brown@intel.com>
@@ -23,94 +23,103 @@ Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Bro
 
 From: Bob Moore <robert.moore@intel.com>
 
-Synchronized tables with current specifications.
+Added NULL fields to the exception string arrays to eliminate
+the -1 subtraction on the SubStatus field.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- arch/x86/kernel/srat_32.c |    3 +--
- drivers/acpi/numa.c       |    4 ++--
- include/acpi/actbl1.h     |   19 +++++++++++++++++--
- 3 files changed, 20 insertions(+), 6 deletions(-)
+ drivers/acpi/utilities/utmisc.c |   14 +++++---------
+ include/acpi/acexcep.h          |    4 ++++
+ 2 files changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/arch/x86/kernel/srat_32.c b/arch/x86/kernel/srat_32.c
-index a29192f..0142476 100644
---- a/arch/x86/kernel/srat_32.c
-+++ b/arch/x86/kernel/srat_32.c
-@@ -126,9 +126,8 @@ static void __init parse_memory_affinity_structure (char *sratp)
- 
- 	num_memory_chunks++;
- 
--	printk("Memory range 0x%lX to 0x%lX (type 0x%X) in proximity domain 0x%02X %s\n",
-+	printk("Memory range 0x%lX to 0x%lX in proximity domain 0x%02X %s\n",
- 		start_pfn, end_pfn,
--		memory_affinity->memory_type,
- 		pxm,
- 		((memory_affinity->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE) ?
- 		 "enabled and removable" : "enabled" ) );
-diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-index 658e5f3..cb9864e 100644
---- a/drivers/acpi/numa.c
-+++ b/drivers/acpi/numa.c
-@@ -120,10 +120,10 @@ acpi_table_print_srat_entry(struct acpi_subtable_header *header)
- 			struct acpi_srat_mem_affinity *p =
- 			    (struct acpi_srat_mem_affinity *)header;
- 			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--					  "SRAT Memory (0x%lx length 0x%lx type 0x%x) in proximity domain %d %s%s\n",
-+					  "SRAT Memory (0x%lx length 0x%lx) in proximity domain %d %s%s\n",
- 					  (unsigned long)p->base_address,
- 					  (unsigned long)p->length,
--					  p->memory_type, p->proximity_domain,
-+					  p->proximity_domain,
- 					  (p->flags & ACPI_SRAT_MEM_ENABLED)?
- 					  "enabled" : "disabled",
- 					  (p->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE)?
-diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
-index 9af239b..715a489 100644
---- a/include/acpi/actbl1.h
-+++ b/include/acpi/actbl1.h
-@@ -300,6 +300,7 @@ struct acpi_table_dbgp {
- /*******************************************************************************
-  *
-  * DMAR - DMA Remapping table
-+ *        From "Intel Virtualization Technology for Directed I/O", Sept. 2007
-  *
+diff --git a/drivers/acpi/utilities/utmisc.c b/drivers/acpi/utilities/utmisc.c
+index 1f057b7..47354d9 100644
+--- a/drivers/acpi/utilities/utmisc.c
++++ b/drivers/acpi/utilities/utmisc.c
+@@ -64,7 +64,7 @@ ACPI_MODULE_NAME("utmisc")
   ******************************************************************************/
+ const char *acpi_ut_validate_exception(acpi_status status)
+ {
+-	acpi_status sub_status;
++	u32 sub_status;
+ 	const char *exception = NULL;
  
-@@ -382,6 +383,20 @@ struct acpi_dmar_reserved_memory {
+ 	ACPI_FUNCTION_ENTRY();
+@@ -85,32 +85,28 @@ const char *acpi_ut_validate_exception(acpi_status status)
+ 	case AE_CODE_PROGRAMMER:
  
- #define ACPI_DMAR_ALLOW_ALL         (1)
+ 		if (sub_status <= AE_CODE_PGM_MAX) {
+-			exception =
+-			    acpi_gbl_exception_names_pgm[sub_status - 1];
++			exception = acpi_gbl_exception_names_pgm[sub_status];
+ 		}
+ 		break;
  
-+
-+/* 2: Root Port ATS Capability Reporting Structure */
-+
-+struct acpi_dmar_atsr {
-+       struct acpi_dmar_header header;
-+       u8 flags;
-+       u8 reserved;
-+       u16 segment;
-+};
-+
-+/* Flags */
-+
-+#define ACPI_DMAR_ALL_PORTS         (1)
-+
- /*******************************************************************************
-  *
-  * ECDT - Embedded Controller Boot Resources Table
-@@ -1156,9 +1171,9 @@ struct acpi_srat_mem_affinity {
- 	u16 reserved;		/* Reserved, must be zero */
- 	u64 base_address;
- 	u64 length;
--	u32 memory_type;	/* See acpi_address_range_id */
-+       u32 reserved1;
- 	u32 flags;
--	u64 reserved1;		/* Reserved, must be zero */
-+       u64 reserved2;          /* Reserved, must be zero */
+ 	case AE_CODE_ACPI_TABLES:
+ 
+ 		if (sub_status <= AE_CODE_TBL_MAX) {
+-			exception =
+-			    acpi_gbl_exception_names_tbl[sub_status - 1];
++			exception = acpi_gbl_exception_names_tbl[sub_status];
+ 		}
+ 		break;
+ 
+ 	case AE_CODE_AML:
+ 
+ 		if (sub_status <= AE_CODE_AML_MAX) {
+-			exception =
+-			    acpi_gbl_exception_names_aml[sub_status - 1];
++			exception = acpi_gbl_exception_names_aml[sub_status];
+ 		}
+ 		break;
+ 
+ 	case AE_CODE_CONTROL:
+ 
+ 		if (sub_status <= AE_CODE_CTRL_MAX) {
+-			exception =
+-			    acpi_gbl_exception_names_ctrl[sub_status - 1];
++			exception = acpi_gbl_exception_names_ctrl[sub_status];
+ 		}
+ 		break;
+ 
+diff --git a/include/acpi/acexcep.h b/include/acpi/acexcep.h
+index 9c76c18..772fe06 100644
+--- a/include/acpi/acexcep.h
++++ b/include/acpi/acexcep.h
+@@ -226,6 +226,7 @@ char const *acpi_gbl_exception_names_env[] = {
  };
  
- /* Flags */
+ char const *acpi_gbl_exception_names_pgm[] = {
++	NULL,
+ 	"AE_BAD_PARAMETER",
+ 	"AE_BAD_CHARACTER",
+ 	"AE_BAD_PATHNAME",
+@@ -239,6 +240,7 @@ char const *acpi_gbl_exception_names_pgm[] = {
+ };
+ 
+ char const *acpi_gbl_exception_names_tbl[] = {
++	NULL,
+ 	"AE_BAD_SIGNATURE",
+ 	"AE_BAD_HEADER",
+ 	"AE_BAD_CHECKSUM",
+@@ -248,6 +250,7 @@ char const *acpi_gbl_exception_names_tbl[] = {
+ };
+ 
+ char const *acpi_gbl_exception_names_aml[] = {
++	NULL,
+ 	"AE_AML_ERROR",
+ 	"AE_AML_PARSE",
+ 	"AE_AML_BAD_OPCODE",
+@@ -285,6 +288,7 @@ char const *acpi_gbl_exception_names_aml[] = {
+ };
+ 
+ char const *acpi_gbl_exception_names_ctrl[] = {
++	NULL,
+ 	"AE_CTRL_RETURN_VALUE",
+ 	"AE_CTRL_PENDING",
+ 	"AE_CTRL_TERMINATE",
 -- 
 1.5.6.1.89.gd544
 
