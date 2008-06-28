@@ -1,142 +1,112 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch 1/6] ACPI: use dev_printk when possible
-Date: Sat, 28 Jun 2008 00:45:17 -0400 (EDT)
-Message-ID: <alpine.LFD.1.10.0806280044460.14731@localhost.localdomain>
-References: <20080627144538.743154341@ldl.fc.hp.com>
- <20080627144752.915511934@ldl.fc.hp.com>
+Subject: [GIT PATCH] ACPI patches for 2.6.26-rc8
+Date: Sat, 28 Jun 2008 01:30:12 -0400 (EDT)
+Message-ID: <alpine.LFD.1.10.0806280126160.14731@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:33897 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751948AbYF1Epd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Jun 2008 00:45:33 -0400
-In-reply-to: <20080627144752.915511934@ldl.fc.hp.com>
+Received: from vms042pub.verizon.net ([206.46.252.42]:44182 "EHLO
+	vms042pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751682AbYF1Fat (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Jun 2008 01:30:49 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Andi Kleen <andi@firstfloor.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Andi Kleen <ak@linux.intel.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
+Hi Linus,
 
-1/6 applied to acpi test tree -- thanks for the update.
-I assume jesse will take 2-6.
+please pull from: 
 
-thanks,
+git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
+
+This will update the files shown below.
+
+Note that I will be taking a sabbatical from Intel this summer.
+Andi Kleen will maintain Linux/ACPI while I'm away.
+
+thanks!
+
 -Len
 
-On Fri, 27 Jun 2008, Bjorn Helgaas wrote:
+ps. individual patches are available on linux-acpi@vger.kernel.org
+and a consolidated plain patch is available here:
+ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.26/acpi-release-20080609-2.6.26-rc8.diff.gz
 
-> Convert printks to use dev_printk().  The most obvious change will
-> be messages like this:
-> 
->    -ACPI: PCI Interrupt 0000:00:04.0[A] -> GSI 31 (level, low) -> IRQ 31
->    +cciss 0000:00:04.0: PCI INT A -> GSI 31 (level, low) -> IRQ 31
-> 
-> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> 
-> Index: work11/drivers/acpi/pci_irq.c
-> ===================================================================
-> --- work11.orig/drivers/acpi/pci_irq.c	2008-06-26 12:27:39.000000000 -0600
-> +++ work11/drivers/acpi/pci_irq.c	2008-06-26 12:29:30.000000000 -0600
-> @@ -162,7 +162,7 @@ do_prt_fixups(struct acpi_prt_entry *ent
->  		    !strcmp(prt->source, quirk->source) &&
->  		    strlen(prt->source) >= strlen(quirk->actual_source)) {
->  			printk(KERN_WARNING PREFIX "firmware reports "
-> -				"%04x:%02x:%02x[%c] connected to %s; "
-> +				"%04x:%02x:%02x PCI INT %c connected to %s; "
->  				"changing to %s\n",
->  				entry->id.segment, entry->id.bus,
->  				entry->id.device, 'A' + entry->pin,
-> @@ -429,7 +429,7 @@ acpi_pci_irq_derive(struct pci_dev *dev,
->  {
->  	struct pci_dev *bridge = dev;
->  	int irq = -1;
-> -	u8 bridge_pin = 0;
-> +	u8 bridge_pin = 0, orig_pin = pin;
->  
->  
->  	if (!dev)
-> @@ -463,8 +463,8 @@ acpi_pci_irq_derive(struct pci_dev *dev,
->  	}
->  
->  	if (irq < 0) {
-> -		printk(KERN_WARNING PREFIX "Unable to derive IRQ for device %s\n",
-> -			      pci_name(dev));
-> +		dev_warn(&dev->dev, "can't derive routing for PCI INT %c\n",
-> +			 'A' + orig_pin);
->  		return -1;
->  	}
->  
-> @@ -487,6 +487,7 @@ int acpi_pci_irq_enable(struct pci_dev *
->  	int triggering = ACPI_LEVEL_SENSITIVE;
->  	int polarity = ACPI_ACTIVE_LOW;
->  	char *link = NULL;
-> +	char link_desc[16];
->  	int rc;
->  
->  
-> @@ -503,7 +504,7 @@ int acpi_pci_irq_enable(struct pci_dev *
->  	pin--;
->  
->  	if (!dev->bus) {
-> -		printk(KERN_ERR PREFIX "Invalid (NULL) 'bus' field\n");
-> +		dev_err(&dev->dev, "invalid (NULL) 'bus' field\n");
->  		return -ENODEV;
->  	}
->  
-> @@ -538,8 +539,7 @@ int acpi_pci_irq_enable(struct pci_dev *
->  	 * driver reported one, then use it. Exit in any case.
->  	 */
->  	if (irq < 0) {
-> -		printk(KERN_WARNING PREFIX "PCI Interrupt %s[%c]: no GSI",
-> -		       pci_name(dev), ('A' + pin));
-> +		dev_warn(&dev->dev, "PCI INT %c: no GSI", 'A' + pin);
->  		/* Interrupt Line values above 0xF are forbidden */
->  		if (dev->irq > 0 && (dev->irq <= 0xF)) {
->  			printk(" - using IRQ %d\n", dev->irq);
-> @@ -554,21 +554,21 @@ int acpi_pci_irq_enable(struct pci_dev *
->  
->  	rc = acpi_register_gsi(irq, triggering, polarity);
->  	if (rc < 0) {
-> -		printk(KERN_WARNING PREFIX "PCI Interrupt %s[%c]: failed "
-> -		       "to register GSI\n", pci_name(dev), ('A' + pin));
-> +		dev_warn(&dev->dev, "PCI INT %c: failed to register GSI\n",
-> +			 'A' + pin);
->  		return rc;
->  	}
->  	dev->irq = rc;
->  
-> -	printk(KERN_INFO PREFIX "PCI Interrupt %s[%c] -> ",
-> -	       pci_name(dev), 'A' + pin);
-> -
->  	if (link)
-> -		printk("Link [%s] -> ", link);
-> +		snprintf(link_desc, sizeof(link_desc), " -> Link[%s]", link);
-> +	else
-> +		link_desc[0] = '\0';
->  
-> -	printk("GSI %u (%s, %s) -> IRQ %d\n", irq,
-> -	       (triggering == ACPI_LEVEL_SENSITIVE) ? "level" : "edge",
-> -	       (polarity == ACPI_ACTIVE_LOW) ? "low" : "high", dev->irq);
-> +	dev_info(&dev->dev, "PCI INT %c%s -> GSI %u (%s, %s) -> IRQ %d\n",
-> +		 'A' + pin, link_desc, irq,
-> +		 (triggering == ACPI_LEVEL_SENSITIVE) ? "level" : "edge",
-> +		 (polarity == ACPI_ACTIVE_LOW) ? "low" : "high", dev->irq);
->  
->  	return 0;
->  }
-> @@ -616,10 +616,6 @@ void acpi_pci_irq_disable(struct pci_dev
->  	 * (e.g. PCI_UNDEFINED_IRQ).
->  	 */
->  
-> -	printk(KERN_INFO PREFIX "PCI interrupt for device %s disabled\n",
-> -	       pci_name(dev));
-> -
-> +	dev_info(&dev->dev, "PCI INT %c disabled\n", 'A' + pin);
->  	acpi_unregister_gsi(gsi);
-> -
-> -	return;
->  }
-> 
-> -- 
-> 
+ Documentation/feature-removal-schedule.txt |    9 +++++++++
+ drivers/acpi/bay.c                         |    3 +++
+ drivers/acpi/dock.c                        |    3 +++
+ drivers/acpi/glue.c                        |    3 +++
+ drivers/thermal/Kconfig                    |    9 +++++++++
+ drivers/thermal/thermal_sys.c              |    4 ++--
+ include/linux/thermal.h                    |    6 ++----
+ 7 files changed, 31 insertions(+), 6 deletions(-)
+
+through these commits:
+
+Len Brown (1):
+      dock: bay: Don't call acpi_walk_namespace() when ACPI is disabled.
+
+Rene Herman (1):
+      thermal: Create CONFIG_THERMAL_HWMON=n
+
+Vegard Nossum (1):
+      ACPI: don't walk tables if ACPI was disabled
+
+with this log:
+
+commit c4e6a2e64e948de42473e9c829181d768b1258c3
+Merge: 816c2ed... 16d7523...
+Author: Len Brown <len.brown@intel.com>
+Date:   Thu Jun 26 01:56:35 2008 -0400
+
+    Merge branches 'release', 'acpi_disabled' and 'bugzilla-10958' into release
+
+commit 816c2eda3ce8fa7eb62f22e01e2ec7a3f7d677c0
+Author: Len Brown <len.brown@intel.com>
+Date:   Tue Jun 24 22:57:12 2008 -0400
+
+    dock: bay: Don't call acpi_walk_namespace() when ACPI is disabled.
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 4389ed2ff61de2b1485b31bf342da913dd342f59
+Author: Vegard Nossum <vegard.nossum@gmail.com>
+Date:   Fri Jun 20 15:39:09 2008 +0200
+
+    ACPI: don't walk tables if ACPI was disabled
+    
+    Ingo Molnar wrote:
+    > -tip auto-testing started triggering this spinlock corruption message
+    > yesterday:
+    >
+    > [    3.976213] calling  acpi_rtc_init+0x0/0xd3
+    > [    3.980213] ACPI Exception (utmutex-0263): AE_BAD_PARAMETER, Thread F7C50000 could not acquire Mutex [3] [20080321]
+    > [    3.992213] BUG: spinlock bad magic on CPU#0, swapper/1
+    > [    3.992213]  lock: c2508dc4, .magic: 00000000, .owner: swapper/1, .owner_cpu: 0
+    
+    This is apparently because some parts of ACPI, including mutexes, are not
+    initialized when acpi=off is passed to the kernel.
+    
+    Reported-by: Ingo Molnar <mingo@elte.hu>
+    Signed-off-by: Vegard Nossum <vegard.nossum@gmail.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 16d752397301b95abaa95cbaf9e785d221872311
+Author: Rene Herman <rene.herman@keyaccess.nl>
+Date:   Tue Jun 24 19:38:56 2008 +0200
+
+    thermal: Create CONFIG_THERMAL_HWMON=n
+    
+    A bug in libsensors <= 2.10.6 is exposed
+    when this new hwmon I/F is enabled.
+    Create CONFIG_THERMAL_HWMON=n
+    until some time after libsensors 2.10.7 ships
+    so those users can run the latest kernel.
+    
+    libsensors 3.x is already fixed -- those users
+    can use CONFIG_THERMAL_HWMON=y now.
+    
+    Signed-off-by: Rene Herman <rene.herman@gmail.com>
+    Acked-by: Mark M. Hoffman <mhoffman@lightlink.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
