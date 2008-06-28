@@ -1,75 +1,60 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 33/84] ACPICA: Update tracking macros to reduce code/data size
-Date: Sat, 28 Jun 2008 01:43:37 -0400
-Message-ID: <28fef454bd6cedfead5a1d220a67943572e526a0.1214631213.git.len.brown@intel.com>
+Subject: [PATCH 46/84] ACPICA: Fix mutex debug code for wrong loop termination
+ value
+Date: Sat, 28 Jun 2008 01:43:50 -0400
+Message-ID: <e80894d988fdd8e896f5df8f1b706aa12ed3c45b.1214631214.git.len.brown@intel.com>
 References: <1214631868-1715-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:34533 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752705AbYF1FpO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Jun 2008 01:45:14 -0400
+Received: from vms042pub.verizon.net ([206.46.252.42]:50759 "EHLO
+	vms042pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752838AbYF1FpS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Jun 2008 01:45:18 -0400
 Received: from localhost.localdomain ([72.93.254.151])
- by vms173005.mailsrvcs.net
- (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K3500JBRRNU2JS8@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sat, 28 Jun 2008 00:38:18 -0500 (CDT)
+ by vms042.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
+ 3 2006)) with ESMTPA id <0K3500BI9RZEAD12@vms042.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 28 Jun 2008 00:45:15 -0500 (CDT)
 In-reply-to: <1214631868-1715-1-git-send-email-lenb@kernel.org>
 In-reply-to: <087803d18fb8259cb844c075a35fb27c2d80792e.1214631213.git.len.brown@intel.com>
 References: <087803d18fb8259cb844c075a35fb27c2d80792e.1214631213.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernrel.org
-Cc: Jan Beulich <jbeulich@novell.com>, Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Jan Beulich <jbeulich@novell.com>
+From: Bob Moore <robert.moore@intel.com>
 
-Changed ACPI_MODULE_NAME and ACPI_FUNCTION_NAME to use arrays of
-strings instead of pointers to static strings. Jan Beulich and
-Bob Moore.
+Loop was terminating one iteration early, missing one of the
+debugger handshake mutexes. Linn Crosetto.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- include/acpi/acmacros.h |   10 ++++------
- 1 files changed, 4 insertions(+), 6 deletions(-)
+ drivers/acpi/utilities/utmutex.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/include/acpi/acmacros.h b/include/acpi/acmacros.h
-index fb41a3b..4e42f67 100644
---- a/include/acpi/acmacros.h
-+++ b/include/acpi/acmacros.h
-@@ -414,7 +414,7 @@ struct acpi_integer_overlay {
-  * error messages. The __FILE__ macro is not very useful for this, because it
-  * often includes the entire pathname to the module
-  */
--#define ACPI_MODULE_NAME(name)          static char ACPI_UNUSED_VAR *_acpi_module_name = name;
-+#define ACPI_MODULE_NAME(name)          static char ACPI_UNUSED_VAR _acpi_module_name[] = name;
- #else
- #define ACPI_MODULE_NAME(name)
- #endif
-@@ -467,19 +467,17 @@ struct acpi_integer_overlay {
- /*
-  * If ACPI_GET_FUNCTION_NAME was not defined in the compiler-dependent header,
-  * define it now. This is the case where there the compiler does not support
-- * a __FUNCTION__ macro or equivalent. We save the function name on the
-- * local stack.
-+ * a __FUNCTION__ macro or equivalent.
-  */
- #ifndef ACPI_GET_FUNCTION_NAME
- #define ACPI_GET_FUNCTION_NAME          _acpi_function_name
- /*
-  * The Name parameter should be the procedure name as a quoted string.
-- * This is declared as a local string ("MyFunctionName") so that it can
-- * be also used by the function exit macros below.
-+ * The function name is also used by the function exit macros below.
-  * Note: (const char) is used to be compatible with the debug interfaces
-  * and macros such as __FUNCTION__.
-  */
--#define ACPI_FUNCTION_NAME(name)        const char *_acpi_function_name = #name;
-+#define ACPI_FUNCTION_NAME(name)        static const char _acpi_function_name[] = #name;
- 
- #else
- /* Compiler supports __FUNCTION__ (or equivalent) -- Ignore this macro */
+diff --git a/drivers/acpi/utilities/utmutex.c b/drivers/acpi/utilities/utmutex.c
+index f7d602b..7331dde 100644
+--- a/drivers/acpi/utilities/utmutex.c
++++ b/drivers/acpi/utilities/utmutex.c
+@@ -218,7 +218,7 @@ acpi_status acpi_ut_acquire_mutex(acpi_mutex_handle mutex_id)
+ 		 * the mutex ordering rule.  This indicates a coding error somewhere in
+ 		 * the ACPI subsystem code.
+ 		 */
+-		for (i = mutex_id; i < ACPI_MAX_MUTEX; i++) {
++		for (i = mutex_id; i < ACPI_NUM_MUTEX; i++) {
+ 			if (acpi_gbl_mutex_info[i].thread_id == this_thread_id) {
+ 				if (i == mutex_id) {
+ 					ACPI_ERROR((AE_INFO,
+@@ -315,7 +315,7 @@ acpi_status acpi_ut_release_mutex(acpi_mutex_handle mutex_id)
+ 		 * ordering rule.  This indicates a coding error somewhere in
+ 		 * the ACPI subsystem code.
+ 		 */
+-		for (i = mutex_id; i < ACPI_MAX_MUTEX; i++) {
++		for (i = mutex_id; i < ACPI_NUM_MUTEX; i++) {
+ 			if (acpi_gbl_mutex_info[i].thread_id == this_thread_id) {
+ 				if (i == mutex_id) {
+ 					continue;
 -- 
 1.5.6.1.89.gd544
 
