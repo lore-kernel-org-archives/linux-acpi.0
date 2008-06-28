@@ -1,19 +1,18 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 80/84] ISAPNP: handle independent options following dependent
- ones
-Date: Sat, 28 Jun 2008 01:44:24 -0400
-Message-ID: <293fd622a24f9976249b9b2901659fed0d5df964.1214631214.git.len.brown@intel.com>
+Subject: [PATCH 67/84] PNP: define PNP-specific IORESOURCE_IO_* flags alongside
+ IRQ, DMA, MEM
+Date: Sat, 28 Jun 2008 01:44:11 -0400
+Message-ID: <b564691ed49faab7b098784214657f45e1581998.1214631214.git.len.brown@intel.com>
 References: <1214631868-1715-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:51457 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754153AbYF1FsF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Jun 2008 01:48:05 -0400
+Received: from vms044pub.verizon.net ([206.46.252.44]:36909 "EHLO
+	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753319AbYF1Fqu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Jun 2008 01:46:50 -0400
 Received: from localhost.localdomain ([72.93.254.151])
- by vms173001.mailsrvcs.net
- (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K35001S0S3U83AI@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sat, 28 Jun 2008 00:48:05 -0500 (CDT)
+ by vms044.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
+ 3 2006)) with ESMTPA id <0K35003CFS1CV4XD@vms044.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 28 Jun 2008 00:46:25 -0500 (CDT)
 In-reply-to: <1214631868-1715-1-git-send-email-lenb@kernel.org>
 In-reply-to: <087803d18fb8259cb844c075a35fb27c2d80792e.1214631213.git.len.brown@intel.com>
 References: <087803d18fb8259cb844c075a35fb27c2d80792e.1214631213.git.len.brown@intel.com>
@@ -24,62 +23,158 @@ Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <len.brown@intel.com>
 
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-The ISAPNP spec recommends that independent options precede
-dependent ones, but this is not actually required.  The current
-ISAPNP code incorrectly puts such trailing independent options
-at the end of the last dependent option list.
-
-This patch fixes that bug by resetting the current option list
-to the independent list when we see an "End Dependent Functions"
-tag.  PNPBIOS and PNPACPI handle this the same way.
+PNP previously defined PNP_PORT_FLAG_16BITADDR and PNP_PORT_FLAG_FIXED
+in a private header file, but put those flags in struct resource.flags
+fields.  Better to make them IORESOURCE_IO_* flags like the existing
+IRQ, DMA, and MEM flags.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Acked-by: Rene Herman <rene.herman@gmail.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/pnp/isapnp/core.c |    9 +++++++--
- 1 files changed, 7 insertions(+), 2 deletions(-)
+ drivers/pnp/interface.c        |    2 +-
+ drivers/pnp/isapnp/core.c      |    4 ++--
+ drivers/pnp/pnpacpi/rsparser.c |   10 +++++-----
+ drivers/pnp/pnpbios/rsparser.c |    4 ++--
+ include/linux/ioport.h         |    4 ++++
+ include/linux/pnp.h            |    3 ---
+ 6 files changed, 14 insertions(+), 13 deletions(-)
 
+diff --git a/drivers/pnp/interface.c b/drivers/pnp/interface.c
+index 239923a..c172b6d 100644
+--- a/drivers/pnp/interface.c
++++ b/drivers/pnp/interface.c
+@@ -57,7 +57,7 @@ static void pnp_print_port(pnp_info_buffer_t * buffer, char *space,
+ 		   "%sport 0x%x-0x%x, align 0x%x, size 0x%x, %i-bit address decoding\n",
+ 		   space, port->min, port->max,
+ 		   port->align ? (port->align - 1) : 0, port->size,
+-		   port->flags & PNP_PORT_FLAG_16BITADDR ? 16 : 10);
++		   port->flags & IORESOURCE_IO_16BIT_ADDR ? 16 : 10);
+ }
+ 
+ static void pnp_print_irq(pnp_info_buffer_t * buffer, char *space,
 diff --git a/drivers/pnp/isapnp/core.c b/drivers/pnp/isapnp/core.c
-index 90718be..53cc4d6 100644
+index ca4457e..c5b9252 100644
 --- a/drivers/pnp/isapnp/core.c
 +++ b/drivers/pnp/isapnp/core.c
-@@ -584,14 +584,14 @@ static int __init isapnp_create_device(struct pnp_card *card,
- {
- 	int number = 0, skip = 0, priority, compat = 0;
- 	unsigned char type, tmp[17];
--	struct pnp_option *option;
-+	struct pnp_option *option, *option_independent;
- 	struct pnp_dev *dev;
- 	u32 eisa_id;
- 	char id[8];
+@@ -486,7 +486,7 @@ static void __init isapnp_parse_port_resource(struct pnp_dev *dev,
+ 	port->max = (tmp[4] << 8) | tmp[3];
+ 	port->align = tmp[5];
+ 	port->size = tmp[6];
+-	port->flags = tmp[0] ? PNP_PORT_FLAG_16BITADDR : 0;
++	port->flags = tmp[0] ? IORESOURCE_IO_16BIT_ADDR : 0;
+ 	pnp_register_port_resource(dev, option, port);
+ }
  
- 	if ((dev = isapnp_parse_device(card, size, number++)) == NULL)
- 		return 1;
--	option = pnp_register_independent_option(dev);
-+	option_independent = option = pnp_register_independent_option(dev);
- 	if (!option) {
- 		kfree(dev);
- 		return 1;
-@@ -613,6 +613,7 @@ static int __init isapnp_create_device(struct pnp_card *card,
- 				size = 0;
- 				skip = 0;
- 				option = pnp_register_independent_option(dev);
-+				option_independent = option;
- 				if (!option) {
- 					kfree(dev);
- 					return 1;
-@@ -662,6 +663,10 @@ static int __init isapnp_create_device(struct pnp_card *card,
- 		case _STAG_ENDDEP:
- 			if (size != 0)
- 				goto __skip;
-+			if (option_independent == option)
-+				dev_warn(&dev->dev, "missing "
-+					 "_STAG_STARTDEP tag\n");
-+			option = option_independent;
- 			dev_dbg(&dev->dev, "end dependent options\n");
- 			break;
- 		case _STAG_IOPORT:
+@@ -507,7 +507,7 @@ static void __init isapnp_parse_fixed_port_resource(struct pnp_dev *dev,
+ 	port->min = port->max = (tmp[1] << 8) | tmp[0];
+ 	port->size = tmp[2];
+ 	port->align = 0;
+-	port->flags = PNP_PORT_FLAG_FIXED;
++	port->flags = IORESOURCE_IO_FIXED;
+ 	pnp_register_port_resource(dev, option, port);
+ }
+ 
+diff --git a/drivers/pnp/pnpacpi/rsparser.c b/drivers/pnp/pnpacpi/rsparser.c
+index 595252b..46069e6 100644
+--- a/drivers/pnp/pnpacpi/rsparser.c
++++ b/drivers/pnp/pnpacpi/rsparser.c
+@@ -180,7 +180,7 @@ static void pnpacpi_parse_allocated_ioresource(struct pnp_dev *dev, u64 start,
+ 	u64 end = start + len - 1;
+ 
+ 	if (io_decode == ACPI_DECODE_16)
+-		flags |= PNP_PORT_FLAG_16BITADDR;
++		flags |= IORESOURCE_IO_16BIT_ADDR;
+ 	if (len == 0 || end >= 0x10003)
+ 		flags |= IORESOURCE_DISABLED;
+ 
+@@ -485,7 +485,7 @@ static __init void pnpacpi_parse_port_option(struct pnp_dev *dev,
+ 	port->align = io->alignment;
+ 	port->size = io->address_length;
+ 	port->flags = ACPI_DECODE_16 == io->io_decode ?
+-	    PNP_PORT_FLAG_16BITADDR : 0;
++	    IORESOURCE_IO_16BIT_ADDR : 0;
+ 	pnp_register_port_resource(dev, option, port);
+ }
+ 
+@@ -503,7 +503,7 @@ static __init void pnpacpi_parse_fixed_port_option(struct pnp_dev *dev,
+ 	port->min = port->max = io->address;
+ 	port->size = io->address_length;
+ 	port->align = 0;
+-	port->flags = PNP_PORT_FLAG_FIXED;
++	port->flags = IORESOURCE_IO_FIXED;
+ 	pnp_register_port_resource(dev, option, port);
+ }
+ 
+@@ -609,7 +609,7 @@ static __init void pnpacpi_parse_address_option(struct pnp_dev *dev,
+ 		port->min = port->max = p->minimum;
+ 		port->size = p->address_length;
+ 		port->align = 0;
+-		port->flags = PNP_PORT_FLAG_FIXED;
++		port->flags = IORESOURCE_IO_FIXED;
+ 		pnp_register_port_resource(dev, option, port);
+ 	}
+ }
+@@ -946,7 +946,7 @@ static void pnpacpi_encode_io(struct pnp_dev *dev,
+ 
+ 	if (pnp_resource_enabled(p)) {
+ 		/* Note: pnp_assign_port copies pnp_port->flags into p->flags */
+-		io->io_decode = (p->flags & PNP_PORT_FLAG_16BITADDR) ?
++		io->io_decode = (p->flags & IORESOURCE_IO_16BIT_ADDR) ?
+ 		    ACPI_DECODE_16 : ACPI_DECODE_10;
+ 		io->minimum = p->start;
+ 		io->maximum = p->end;
+diff --git a/drivers/pnp/pnpbios/rsparser.c b/drivers/pnp/pnpbios/rsparser.c
+index 01f0c3d..489fec3 100644
+--- a/drivers/pnp/pnpbios/rsparser.c
++++ b/drivers/pnp/pnpbios/rsparser.c
+@@ -310,7 +310,7 @@ static __init void pnpbios_parse_port_option(struct pnp_dev *dev,
+ 	port->max = (p[5] << 8) | p[4];
+ 	port->align = p[6];
+ 	port->size = p[7];
+-	port->flags = p[1] ? PNP_PORT_FLAG_16BITADDR : 0;
++	port->flags = p[1] ? IORESOURCE_IO_16BIT_ADDR : 0;
+ 	pnp_register_port_resource(dev, option, port);
+ }
+ 
+@@ -326,7 +326,7 @@ static __init void pnpbios_parse_fixed_port_option(struct pnp_dev *dev,
+ 	port->min = port->max = (p[2] << 8) | p[1];
+ 	port->size = p[3];
+ 	port->align = 0;
+-	port->flags = PNP_PORT_FLAG_FIXED;
++	port->flags = IORESOURCE_IO_FIXED;
+ 	pnp_register_port_resource(dev, option, port);
+ }
+ 
+diff --git a/include/linux/ioport.h b/include/linux/ioport.h
+index c6801bf..39db059 100644
+--- a/include/linux/ioport.h
++++ b/include/linux/ioport.h
+@@ -88,6 +88,10 @@ struct resource_list {
+ #define IORESOURCE_MEM_SHADOWABLE	(1<<5)	/* dup: IORESOURCE_SHADOWABLE */
+ #define IORESOURCE_MEM_EXPANSIONROM	(1<<6)
+ 
++/* PnP I/O specific bits (IORESOURCE_BITS) */
++#define IORESOURCE_IO_16BIT_ADDR	(1<<0)
++#define IORESOURCE_IO_FIXED		(1<<1)
++
+ /* PCI ROM control bits (IORESOURCE_BITS) */
+ #define IORESOURCE_ROM_ENABLE		(1<<0)	/* ROM is enabled, same as PCI_ROM_ADDRESS_ENABLE */
+ #define IORESOURCE_ROM_SHADOW		(1<<1)	/* ROM is copy at C000:0 */
+diff --git a/include/linux/pnp.h b/include/linux/pnp.h
+index e033e1b..e1454da 100644
+--- a/include/linux/pnp.h
++++ b/include/linux/pnp.h
+@@ -182,9 +182,6 @@ static inline int pnp_dma_valid(struct pnp_dev *dev, unsigned int bar)
+ }
+ 
+ 
+-#define PNP_PORT_FLAG_16BITADDR	(1<<0)
+-#define PNP_PORT_FLAG_FIXED	(1<<1)
+-
+ struct pnp_port {
+ 	unsigned short min;	/* min base number */
+ 	unsigned short max;	/* max base number */
 -- 
 1.5.6.1.89.gd544
 
