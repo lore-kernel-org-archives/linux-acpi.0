@@ -1,160 +1,164 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 21/84] acer-wmi: Add debugfs file for device detection
-Date: Sat, 28 Jun 2008 01:43:25 -0400
-Message-ID: <7c1eb15f1fb87ff6ee18902639b5f379d488340b.1214631213.git.len.brown@intel.com>
+Subject: [PATCH 13/84] Make GPE disable more robust
+Date: Sat, 28 Jun 2008 01:43:17 -0400
+Message-ID: <a7f34ae2abc9cb51a5b906f2da0aaa697f1a8883.1214631213.git.len.brown@intel.com>
 References: <1214631868-1715-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173001pub.verizon.net ([206.46.173.1]:50450 "EHLO
 	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752613AbYF1FpA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Jun 2008 01:45:00 -0400
+	with ESMTP id S1752590AbYF1Fo7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Jun 2008 01:44:59 -0400
 Received: from localhost.localdomain ([72.93.254.151])
  by vms173001.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K350013TRYV7N3I@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sat, 28 Jun 2008 00:44:56 -0500 (CDT)
+ with ESMTPA id <0K35001ZIRYP7OTH@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 28 Jun 2008 00:44:50 -0500 (CDT)
 In-reply-to: <1214631868-1715-1-git-send-email-lenb@kernel.org>
 In-reply-to: <087803d18fb8259cb844c075a35fb27c2d80792e.1214631213.git.len.brown@intel.com>
 References: <087803d18fb8259cb844c075a35fb27c2d80792e.1214631213.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernrel.org
-Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, Len Brown <len.brown@intel.com>
+Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+From: Bob Moore <robert.moore@intel.com>
 
-Add a debugfs file for showing the full results of the method we use to
-detect devices on WMID laptops.
+Implemented another change for the GPE disable. We now perform a
+read-change-write of the enable register instead of simply writing out the
+cached enable mask. This will prevent inadvertent enabling of GPEs if a rogue
+GPE is received during initialization (before GPE handlers are installed.)
 
-This should be useful in the case that a Linux user gets an Acer laptop
-with 3G support (and/ or people who enjoy ripping their wireless cards out)
-so we can get some feedback on how this value changes in these cases.
+http://bugzilla.kernel.org/show_bug.cgi?id=6217
 
-(At the moment, we always enable the wireless and 3G control. In the case
-of the former, this is fairly safe. In the case of the latter though,
-trying to toggle this device if it doesn't exist on a laptop causes ACPI
-warnings/ errors).
-
-To summarise: If you have an Acer laptop with a built in 3G card, please
-report back the value from this file.
-
-Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/acer-wmi.c |   66 +++++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 66 insertions(+), 0 deletions(-)
+ drivers/acpi/events/evgpe.c   |   18 +++++++++++---
+ drivers/acpi/hardware/hwgpe.c |   50 ++++++++++++++++++++++++++++++++++++++++-
+ include/acpi/achware.h        |    2 +
+ 3 files changed, 65 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/misc/acer-wmi.c b/drivers/misc/acer-wmi.c
-index dd0b8d8..d8b8574 100644
---- a/drivers/misc/acer-wmi.c
-+++ b/drivers/misc/acer-wmi.c
-@@ -35,6 +35,7 @@
- #include <linux/platform_device.h>
- #include <linux/acpi.h>
- #include <linux/i8042.h>
-+#include <linux/debugfs.h>
+diff --git a/drivers/acpi/events/evgpe.c b/drivers/acpi/events/evgpe.c
+index 5354be4..e0339d4 100644
+--- a/drivers/acpi/events/evgpe.c
++++ b/drivers/acpi/events/evgpe.c
+@@ -256,7 +256,7 @@ acpi_status acpi_ev_disable_gpe(struct acpi_gpe_event_info *gpe_event_info)
+ 		return_ACPI_STATUS(status);
+ 	}
  
- #include <acpi/acpi_drivers.h>
+-	/* Mark wake-disabled or HW disable, or both */
++	/* Clear the appropriate enabled flags for this GPE */
  
-@@ -152,6 +153,12 @@ struct acer_data {
- 	int brightness;
- };
+ 	switch (gpe_event_info->flags & ACPI_GPE_TYPE_MASK) {
+ 	case ACPI_GPE_TYPE_WAKE:
+@@ -273,13 +273,23 @@ acpi_status acpi_ev_disable_gpe(struct acpi_gpe_event_info *gpe_event_info)
+ 		/* Disable the requested runtime GPE */
  
-+struct acer_debug {
-+	struct dentry *root;
-+	struct dentry *devices;
-+	u32 wmid_devices;
-+};
+ 		ACPI_CLEAR_BIT(gpe_event_info->flags, ACPI_GPE_RUN_ENABLED);
+-
+-		/* fallthrough */
++		break;
+ 
+ 	default:
+-		acpi_hw_write_gpe_enable_reg(gpe_event_info);
++		break;
+ 	}
+ 
++	/*
++	 * Even if we don't know the GPE type, make sure that we always
++	 * disable it. low_disable_gpe will just clear the enable bit for this
++	 * GPE and write it. It will not write out the current GPE enable mask,
++	 * since this may inadvertently enable GPEs too early, if a rogue GPE has
++	 * come in during ACPICA initialization - possibly as a result of AML or
++	 * other code that has enabled the GPE.
++	 */
++	status = acpi_hw_low_disable_gpe(gpe_event_info);
++	return_ACPI_STATUS(status);
 +
- /* Each low-level interface must define at least some of the following */
- struct wmi_interface {
- 	/* The WMI device type */
-@@ -162,6 +169,9 @@ struct wmi_interface {
- 
- 	/* Private data for the current interface */
- 	struct acer_data data;
-+
-+	/* debugfs entries associated with this interface */
-+	struct acer_debug debug;
- };
- 
- /* The static interface pointer, points to the currently detected interface */
-@@ -956,6 +966,28 @@ static DEVICE_ATTR(interface, S_IWUGO | S_IRUGO | S_IWUSR,
- 	show_interface, NULL);
- 
- /*
-+ * debugfs functions
-+ */
-+static u32 get_wmid_devices(void)
-+{
-+	struct acpi_buffer out = {ACPI_ALLOCATE_BUFFER, NULL};
-+	union acpi_object *obj;
-+	acpi_status status;
-+
-+	status = wmi_query_block(WMID_GUID2, 1, &out);
-+	if (ACPI_FAILURE(status))
-+		return 0;
-+
-+	obj = (union acpi_object *) out.pointer;
-+	if (obj && obj->type == ACPI_TYPE_BUFFER &&
-+		obj->buffer.length == sizeof(u32)) {
-+		return *((u32 *) obj->buffer.pointer);
-+	} else {
-+		return 0;
-+	}
-+}
-+
-+/*
-  * Platform device
-  */
- static int __devinit acer_platform_probe(struct platform_device *device)
-@@ -1114,6 +1146,33 @@ error_sysfs:
- 	return retval;
+ 	return_ACPI_STATUS(AE_OK);
  }
  
-+static void remove_debugfs(void)
-+{
-+	debugfs_remove(interface->debug.devices);
-+	debugfs_remove(interface->debug.root);
-+}
-+
-+static int create_debugfs(void)
-+{
-+	interface->debug.root = debugfs_create_dir("acer-wmi", NULL);
-+	if (!interface->debug.root) {
-+		printk(ACER_ERR "Failed to create debugfs directory");
-+		return -ENOMEM;
-+	}
-+
-+	interface->debug.devices = debugfs_create_u32("devices", S_IRUGO,
-+					interface->debug.root,
-+					&interface->debug.wmid_devices);
-+	if (!interface->debug.devices)
-+		goto error_debugfs;
-+
-+	return 0;
-+
-+error_debugfs:
-+		remove_debugfs();
-+	return -ENOMEM;
-+}
-+
- static int __init acer_wmi_init(void)
- {
- 	int err;
-@@ -1173,6 +1232,13 @@ static int __init acer_wmi_init(void)
- 	if (err)
- 		return err;
+diff --git a/drivers/acpi/hardware/hwgpe.c b/drivers/acpi/hardware/hwgpe.c
+index 14bc4f4..6a14832 100644
+--- a/drivers/acpi/hardware/hwgpe.c
++++ b/drivers/acpi/hardware/hwgpe.c
+@@ -55,6 +55,54 @@ acpi_hw_enable_wakeup_gpe_block(struct acpi_gpe_xrupt_info *gpe_xrupt_info,
  
-+	if (wmi_has_guid(WMID_GUID2)) {
-+		interface->debug.wmid_devices = get_wmid_devices();
-+		err = create_debugfs();
-+		if (err)
-+			return err;
+ /******************************************************************************
+  *
++ * FUNCTION:    acpi_hw_low_disable_gpe
++ *
++ * PARAMETERS:  gpe_event_info      - Info block for the GPE to be disabled
++ *
++ * RETURN:      Status
++ *
++ * DESCRIPTION: Disable a single GPE in the enable register.
++ *
++ ******************************************************************************/
++
++acpi_status acpi_hw_low_disable_gpe(struct acpi_gpe_event_info *gpe_event_info)
++{
++	struct acpi_gpe_register_info *gpe_register_info;
++	acpi_status status;
++	u32 enable_mask;
++
++	/* Get the info block for the entire GPE register */
++
++	gpe_register_info = gpe_event_info->register_info;
++	if (!gpe_register_info) {
++		return (AE_NOT_EXIST);
 +	}
 +
- 	/* Override any initial settings with values from the commandline */
- 	acer_commandline_init();
++	/* Get current value of the enable register that contains this GPE */
++
++	status = acpi_hw_low_level_read(ACPI_GPE_REGISTER_WIDTH, &enable_mask,
++					&gpe_register_info->enable_address);
++	if (ACPI_FAILURE(status)) {
++		return (status);
++	}
++
++	/* Clear just the bit that corresponds to this GPE */
++
++	ACPI_CLEAR_BIT(enable_mask,
++		       ((u32) 1 <<
++			(gpe_event_info->gpe_number -
++			 gpe_register_info->base_gpe_number)));
++
++	/* Write the updated enable mask */
++
++	status = acpi_hw_low_level_write(ACPI_GPE_REGISTER_WIDTH, enable_mask,
++					 &gpe_register_info->enable_address);
++
++	return (status);
++}
++
++/******************************************************************************
++ *
+  * FUNCTION:    acpi_hw_write_gpe_enable_reg
+  *
+  * PARAMETERS:  gpe_event_info      - Info block for the GPE to be enabled
+@@ -68,7 +116,7 @@ acpi_hw_enable_wakeup_gpe_block(struct acpi_gpe_xrupt_info *gpe_xrupt_info,
+  ******************************************************************************/
+ 
+ acpi_status
+-acpi_hw_write_gpe_enable_reg(struct acpi_gpe_event_info *gpe_event_info)
++acpi_hw_write_gpe_enable_reg(struct acpi_gpe_event_info * gpe_event_info)
+ {
+ 	struct acpi_gpe_register_info *gpe_register_info;
+ 	acpi_status status;
+diff --git a/include/acpi/achware.h b/include/acpi/achware.h
+index d4fb9bb..45e9859 100644
+--- a/include/acpi/achware.h
++++ b/include/acpi/achware.h
+@@ -87,6 +87,8 @@ acpi_status acpi_hw_clear_acpi_status(void);
+ /*
+  * hwgpe - GPE support
+  */
++acpi_status acpi_hw_low_disable_gpe(struct acpi_gpe_event_info *gpe_event_info);
++
+ acpi_status
+ acpi_hw_write_gpe_enable_reg(struct acpi_gpe_event_info *gpe_event_info);
  
 -- 
 1.5.6.1.89.gd544
