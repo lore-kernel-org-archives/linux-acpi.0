@@ -1,38 +1,36 @@
-From: Ingo Molnar <mingo@elte.hu>
+From: "Maciej W. Rozycki" <macro@linux-mips.org>
 Subject: Re: linux-next: Tree for June 13: IO APIC breakage on HP nx6325
-Date: Sun, 29 Jun 2008 22:02:10 +0200
-Message-ID: <20080629200210.GB31633@elte.hu>
-References: <20080613232214.394fd6fd.sfr@canb.auug.org.au> <200806291600.29059.rjw@sisk.pl> <Pine.LNX.4.55.0806291952590.22548@cliff.in.clinika.pl> <200806292123.16237.rjw@sisk.pl> <Pine.LNX.4.55.0806292023320.22548@cliff.in.clinika.pl>
+Date: Sun, 29 Jun 2008 21:03:29 +0100 (BST)
+Message-ID: <Pine.LNX.4.55.0806292057270.22548@cliff.in.clinika.pl>
+References: <20080613232214.394fd6fd.sfr@canb.auug.org.au> <200806262152.02099.rjw@sisk.pl>
+ <Pine.LNX.4.55.0806270102051.31618@cliff.in.clinika.pl> <200806291600.29059.rjw@sisk.pl>
+ <Pine.LNX.4.55.0806291952590.22548@cliff.in.clinika.pl>
+ <20080629192353.GA9132@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.mail.elte.hu ([157.181.151.9]:41551 "EHLO mx2.mail.elte.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753870AbYF2UCw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Jun 2008 16:02:52 -0400
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.55.0806292023320.22548@cliff.in.clinika.pl>
+Received: from kirk.serum.com.pl ([213.77.9.205]:62395 "EHLO serum.com.pl"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1760379AbYF2UE3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Jun 2008 16:04:29 -0400
+In-Reply-To: <20080629192353.GA9132@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Maciej W. Rozycki" <macro@linux-mips.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg59@srcf.ucam.org>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Andi Kleen <andi-suse@firstfloor.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Ingo Molnar <mingo@elte.hu>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
+On Sun, 29 Jun 2008, Matthew Garrett wrote:
 
-* Maciej W. Rozycki <macro@linux-mips.org> wrote:
+> The DSDT can't be updated without the BIOS being updated, and the DMI 
+> information gives us a BIOS version string that can be matched against 
+> if a fixed version is ever released. I'd be in favour of doing it with 
+> DMI on the grounds that it's how we already handle machine-specific 
+> quirks rather than adding new code to do it.
 
->  You may argue this is a regression, but this is simply the cost paid 
-> for progress -- the kernel stays within the spec as defined both by 
-> ACPI and MPS, we have just started using a different configuration now 
-> and an interrupt source override provided by the manufacturer 
-> explicitly states INTIN2 is good to use.  In a sense you were simply 
-> lucky previously the kernel was bad enough with the way it configured 
-> the timer through the I/O APIC it failed completely avoiding the bug 
-> in your firmware.  Now the bug has got uncovered.
+ Is the DMI ID *guaranteed* to be changed with an update to the DSDT?  
+Anyway, you cannot imply from a given DMI ID a broken DSDT is present, so
+you will have to repeat the experience of adding another DMI ID whenever a
+user hits this broken DSDT with another piece of hardware.  As long as you
+are able to pull this piece of information from that user, that is...
 
-well as long as we eliminate the bad effects around via DMI exceptions 
-nobody will feel the need to argue whether it's a regression ;-) [this 
-problem could be argued to be a regression, even if it's caused by prior 
-luck/stupidity of Linux. We have to live with the effects of our 
-mistakes.]
-
-	Ingo
+  Maciej
