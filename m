@@ -1,78 +1,38 @@
-From: "Maciej W. Rozycki" <macro@linux-mips.org>
+From: Ingo Molnar <mingo@elte.hu>
 Subject: Re: linux-next: Tree for June 13: IO APIC breakage on HP nx6325
-Date: Sun, 29 Jun 2008 20:56:30 +0100 (BST)
-Message-ID: <Pine.LNX.4.55.0806292023320.22548@cliff.in.clinika.pl>
-References: <20080613232214.394fd6fd.sfr@canb.auug.org.au> <200806291600.29059.rjw@sisk.pl>
- <Pine.LNX.4.55.0806291952590.22548@cliff.in.clinika.pl> <200806292123.16237.rjw@sisk.pl>
+Date: Sun, 29 Jun 2008 22:02:10 +0200
+Message-ID: <20080629200210.GB31633@elte.hu>
+References: <20080613232214.394fd6fd.sfr@canb.auug.org.au> <200806291600.29059.rjw@sisk.pl> <Pine.LNX.4.55.0806291952590.22548@cliff.in.clinika.pl> <200806292123.16237.rjw@sisk.pl> <Pine.LNX.4.55.0806292023320.22548@cliff.in.clinika.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <200806292123.16237.rjw@sisk.pl>
-Sender: linux-next-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Ingo Molnar <mingo@elte.hu>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Andi Kleen <andi-suse@firstfloor.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx2.mail.elte.hu ([157.181.151.9]:41551 "EHLO mx2.mail.elte.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753870AbYF2UCw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Jun 2008 16:02:52 -0400
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.55.0806292023320.22548@cliff.in.clinika.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Maciej W. Rozycki" <macro@linux-mips.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg59@srcf.ucam.org>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Andi Kleen <andi-suse@firstfloor.org>
 
-On Sun, 29 Jun 2008, Rafael J. Wysocki wrote:
 
-> >  It is the reverse -- checking the DSDT ID is coarser, matching all the
-> > systems that use the broken firmware.
-> 
-> How can you tell which DSDTs are broken until somebody reports them?
+* Maciej W. Rozycki <macro@linux-mips.org> wrote:
 
- We know the DSDT matching OEM ID: "HP ", OEM Table ID: "SB400" and OEM
-Revision: 10000 is broken, because it has already been reported.  If these
-properties are checked, there is no need to for further reports providing
-us with DMI IDs of systems using the same DSDT.  The revision can be used
-to make sure a good one is not selected inadvertently.
+>  You may argue this is a regression, but this is simply the cost paid 
+> for progress -- the kernel stays within the spec as defined both by 
+> ACPI and MPS, we have just started using a different configuration now 
+> and an interrupt source override provided by the manufacturer 
+> explicitly states INTIN2 is good to use.  In a sense you were simply 
+> lucky previously the kernel was bad enough with the way it configured 
+> the timer through the I/O APIC it failed completely avoiding the bug 
+> in your firmware.  Now the bug has got uncovered.
 
-> > With DMI we may face both false positives and false negatives which imply
-> > further maintenance actions.   
-> 
-> With DSDT matching you're likely to end up breaking systems the users of
-> which have not reported problems.
+well as long as we eliminate the bad effects around via DMI exceptions 
+nobody will feel the need to argue whether it's a regression ;-) [this 
+problem could be argued to be a regression, even if it's caused by prior 
+luck/stupidity of Linux. We have to live with the effects of our 
+mistakes.]
 
- s/breaking/fixing/
-
- Besides, there is nothing to break here -- the mixed interrupt mode will
-be used when the workaround is selected and the mode has to work or pieces
-of legacy software, such as DOS, which make use of the 8259A would not
-work.
-
-> >  Have you tried to report the issue through the usual manufacturer's
-> > support channels, BTW?
-> 
-> My experience with HP indicates that it would have been a loss of time.
-
- Well, if you do not report problems, they may never know of their
-existence and obviously will have no way to fix them.  They may ignore
-your report, but at least you can say you have done your part.  Based on
-the experience the next time you may choose another manufacturer when
-making a purchase decision.
-
-> Apart from this, I've always been against forcing people to upgrade their
-> BIOSes just because we just had a briliant idea that made the kernel stop
-> working on their systems.  IMO it's extremely user-unfriendly and plain wrong.
-
- The BIOS is broken and should be fixed -- it is not our mission to fix up
-somebody else's faults.  As a courtesy to users we may try to work around
-problems that are hard for them to cope with, but in a sense this is
-promoting bad quality of hardware: "Don't bother doing this properly --
-they will fix it up somehow in the OS anyway."
-
- You may argue this is a regression, but this is simply the cost paid for
-progress -- the kernel stays within the spec as defined both by ACPI and
-MPS, we have just started using a different configuration now and an
-interrupt source override provided by the manufacturer explicitly states
-INTIN2 is good to use.  In a sense you were simply lucky previously the
-kernel was bad enough with the way it configured the timer through the I/O
-APIC it failed completely avoiding the bug in your firmware.  Now the bug
-has got uncovered.
-
- And last but not least, you can always specify "noapic" to get away --
-that's a perfectly good workaround.
-
- I'll cook up the part I promised shortly and leave it up to the others to
-"wire" it to some breakage detection logic.
-
-  Maciej
+	Ingo
