@@ -1,41 +1,31 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: linux-next: Tree for June 13: IO APIC breakage on HP nx6325
-Date: Sun, 29 Jun 2008 16:00:27 +0200
-Message-ID: <200806291600.29059.rjw@sisk.pl>
-References: <20080613232214.394fd6fd.sfr@canb.auug.org.au> <200806262152.02099.rjw@sisk.pl> <Pine.LNX.4.55.0806270102051.31618@cliff.in.clinika.pl>
+From: Enno Fennema <e.fennema@tiscali.nl>
+Subject: RTC or button wakeup
+Date: Sun, 29 Jun 2008 18:10:42 +0200
+Message-ID: <4867B402.2070104@tiscali.nl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:44679 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755689AbYF2N6i (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Jun 2008 09:58:38 -0400
-In-Reply-To: <Pine.LNX.4.55.0806270102051.31618@cliff.in.clinika.pl>
-Content-Disposition: inline
+Received: from smtp-out2.tiscali.nl ([195.241.79.177]:57477 "EHLO
+	smtp-out2.tiscali.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753292AbYF2Q0B (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 29 Jun 2008 12:26:01 -0400
+Received: from [212.182.149.132] (helo=[192.168.1.34])
+	by smtp-out2.tiscali.nl with esmtp
+	id 1KCzTV-00079w-Hy
+	for <linux-acpi@vger.kernel.org>; Sun, 29 Jun 2008 18:10:01 +0200
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Maciej W. Rozycki" <macro@linux-mips.org>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Ingo Molnar <mingo@elte.hu>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: linux-acpi@vger.kernel.org
 
-On Friday, 27 of June 2008, Maciej W. Rozycki wrote:
-> On Thu, 26 Jun 2008, Rafael J. Wysocki wrote:
-> 
-> > Well, actually, I'm not sure that will work.  I have only found
-> > acpi_skip_timer_override being set to 1 in two places, but it doesn't seem to
-> > be read anywhere.  What am I missing?
-> 
->  I believe I removed all the occurences.  I am waiting for a proposal of a
-> quirk based on the DSDT ID -- my time is a bit too limited to study the
-> internals of our ACPI code at the moment; sorry about that.  I will
-> complement it with a change to remove IRQ0 from I/O APIC tables as
-> promised then; this piece of code I am quite familiar with.
+Could anyone suggest a way to determine in a (shell) program whether my 
+computer was switched on by RTC alarm or by me pressing the power button.
 
-Well, why don't we use the DMI identification as suggested by Matthew?
+Normally RTC wakes my computer every evening to do daily routine work 
+and switches back to soft-off thereafter. If I switched on my computer 
+manually and am working on it it should not switch off. My best, but 
+clumsy, effort is at the end of the daily work comparing boot time and 
+login times.
 
-I think we can safely assume that all of these boxes are broken for now and we
-can use a more fine grained identification in the future, if necessary.
-
-Thanks,
-Rafael
+Thanks in advance,
+Enno
