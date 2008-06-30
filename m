@@ -1,62 +1,192 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: GPE storm detected, disabling EC GPE
-Date: Mon, 30 Jun 2008 21:59:50 +0200
-Message-ID: <200806302159.51768.rjw@sisk.pl>
-References: <dd18b0c30806051401j28a57871ke4e1c76a4c8ea425@mail.gmail.com> <20080630123454.7f48b7e0.akpm@linux-foundation.org>
+From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+Subject: [RFT] x86 acpi: normalize segment descriptor register on resume
+Date: Tue, 1 Jul 2008 01:48:01 +0200
+Message-ID: <200807010148.02135.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:51959 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752031AbYF3T6j (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 30 Jun 2008 15:58:39 -0400
-In-Reply-To: <20080630123454.7f48b7e0.akpm@linux-foundation.org>
+Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andi Kleen <andi-Vw/NltI1exuRpAAqCnN02g@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, pm list <linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Justin Mattock <justinmattock@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>, Andi Kleen <andi@firstfloor.org>
 
-On Monday, 30 of June 2008, Andrew Morton wrote:
-> On Thu, 5 Jun 2008 21:01:55 +0000
-> "Justin Mattock" <justinmattock@gmail.com> wrote:
-> 
-> > FWIW I noticed a post where the person had changed 5 to 20, and it
-> > seemed to work for them;
-> > So with that in mind I decide to give that a go, here is the location:
-> > drivers/acpi/ec.c
-> > @@ -527,47 +488,51 @@ static u32 acpi_ec_gpe_handler(void *data)
-> >  {
-> >         acpi_status status = AE_OK;
-> >         struct acpi_ec *ec = data;
-> >        u8 state = acpi_ec_read_status(ec);
-> > 
-> >         pr_debug(PREFIX "~~~> interrupt\n");
-> >        atomic_inc(&ec->irq_count);
-> > -       if (atomic_read(&ec->irq_count) > 5) {
-> > +       if (atomic_read(&ec->irq_count) > 20) {
-> >                pr_err(PREFIX "GPE storm detected, disabling EC GPE\n");
-> >                ec_switch_to_poll_mode(ec);
-> >                goto end;
-> >        }
-> > 
-> > Now I don't know if this will work for other brands, but for
-> > me(Macbook Pro ATI chipset) I have not received the
-> > GPE storm detected, disabling EC GPE message, but it's only been an
-> > hour, maybe after two or three this might appear.
-> > Also is this good or bad to set 5 to 20 for the system?
-> > regards;
-> 
-> We've had a few reports of this GPE-storm problem and I've rather lost
-> track of what's happening.  Has anyone looked into it?
+Hi,
 
-Yes, the problem is still being worked on, AFAICS.
+The appended patch fixes a regression and is considered as 2.6.26 material.
+Everyone having a box with working suspend to RAM is gently requested to test
+it and verify if it doesn't break things.
 
-> If not, do we have a bugzilla report where we can work on this?
-
-There's a bugzilla entry at http://bugzilla.kernel.org/show_bug.cgi?id=10724 .
+The patch applies to the current -git.
 
 Thanks,
 Rafael
+
+---
+From: H. Peter Anvin <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>
+
+x86 acpi: normalize segment descriptor register on resume
+
+Some Dell laptops enter resume with apparent garbage in the segment
+descriptor registers (almost certainly the result of a botched
+transition from protected to real mode.)  The only way to clean that
+up is to enter protected mode ourselves and clean out the descriptor
+registers.
+
+This fixes resume on Dell XPS M1210 and Dell D620.
+
+Reference: http://bugzilla.kernel.org/show_bug.cgi?id=10927
+
+Signed-off-by: H. Peter Anvin <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>
+Tested-by: Kirill A. Shutemov <kirill-oKw7cIdHH8eLwutG50LtGA@public.gmane.org>
+Signed-off-by: Rafael J. Wysocki <rjw-KKrjLPT3xs0@public.gmane.org>
+---
+ arch/x86/kernel/acpi/realmode/wakeup.S |   38 ++++++++++++++++++++++++++++++++-
+ arch/x86/kernel/acpi/realmode/wakeup.h |    5 ++++
+ arch/x86/kernel/acpi/sleep.c           |   16 +++++++++++++
+ drivers/acpi/sleep/main.c              |    5 +---
+ 4 files changed, 59 insertions(+), 5 deletions(-)
+
+Index: linux-2.6/arch/x86/kernel/acpi/realmode/wakeup.S
+===================================================================
+--- linux-2.6.orig/arch/x86/kernel/acpi/realmode/wakeup.S
++++ linux-2.6/arch/x86/kernel/acpi/realmode/wakeup.S
+@@ -5,6 +5,7 @@
+ #include <asm/msr-index.h>
+ #include <asm/page.h>
+ #include <asm/pgtable.h>
++#include <asm/processor-flags.h>
+ 
+ 	.code16
+ 	.section ".header", "a"
+@@ -24,6 +25,11 @@ pmode_gdt:	.quad	0
+ realmode_flags:	.long	0
+ real_magic:	.long	0
+ trampoline_segment:	.word 0
++_pad1:		.byte	0
++wakeup_jmp:	.byte	0xea	/* ljmpw */
++wakeup_jmp_off:	.word	3f
++wakeup_jmp_seg:	.word	0
++wakeup_gdt:	.quad	0, 0, 0
+ signature:	.long	0x51ee1111
+ 
+ 	.text
+@@ -34,11 +40,34 @@ _start:
+ 	cli
+ 	cld
+ 
++	/* Apparently some dimwit BIOS programmers don't know how to
++	   program a PM to RM transition, and we might end up here with
++	   junk in the data segment descriptor registers.  The only way
++	   to repair that is to go into PM and fix it ourselves... */
++	movw	$16, %cx
++	lgdtl	%cs:wakeup_gdt
++	movl	%cr0, %eax
++	orb	$X86_CR0_PE, %al
++	movl	%eax, %cr0
++	jmp	1f
++1:	ljmpw	$8, $2f
++2:
++	movw	%cx, %ds
++	movw	%cx, %es
++	movw	%cx, %ss
++	movw	%cx, %fs
++	movw	%cx, %gs
++
++	andb	$~X86_CR0_PE, %al
++	movl	%eax, %cr0
++	jmp	wakeup_jmp
++3:
+ 	/* Set up segments */
+ 	movw	%cs, %ax
+ 	movw	%ax, %ds
+ 	movw	%ax, %es
+ 	movw	%ax, %ss
++	lidtl	wakeup_idt
+ 
+ 	movl	$wakeup_stack_end, %esp
+ 
+@@ -98,7 +127,14 @@ bogus_real_magic:
+ 	jmp	1b
+ 
+ 	.data
+-	.balign	4
++	.balign	8
++
++	/* This is the standard real-mode IDT */
++wakeup_idt:
++	.word	0xffff		/* limit */
++	.long	0		/* address */
++	.word	0
++
+ 	.globl	HEAP, heap_end
+ HEAP:
+ 	.long	wakeup_heap
+Index: linux-2.6/arch/x86/kernel/acpi/realmode/wakeup.h
+===================================================================
+--- linux-2.6.orig/arch/x86/kernel/acpi/realmode/wakeup.h
++++ linux-2.6/arch/x86/kernel/acpi/realmode/wakeup.h
+@@ -24,6 +24,11 @@ struct wakeup_header {
+ 	u32 realmode_flags;
+ 	u32 real_magic;
+ 	u16 trampoline_segment;	/* segment with trampoline code, 64-bit only */
++	u8  _pad1;
++	u8  wakeup_jmp;
++	u16 wakeup_jmp_off;
++	u16 wakeup_jmp_seg;
++	u64 wakeup_gdt[3];
+ 	u32 signature;		/* To check we have correct structure */
+ } __attribute__((__packed__));
+ 
+Index: linux-2.6/arch/x86/kernel/acpi/sleep.c
+===================================================================
+--- linux-2.6.orig/arch/x86/kernel/acpi/sleep.c
++++ linux-2.6/arch/x86/kernel/acpi/sleep.c
+@@ -50,6 +50,20 @@ int acpi_save_state_mem(void)
+ 
+ 	header->video_mode = saved_video_mode;
+ 
++	header->wakeup_jmp_seg = acpi_wakeup_address >> 4;
++	/* GDT[0]: GDT self-pointer */
++	header->wakeup_gdt[0] =
++		(u64)(sizeof(header->wakeup_gdt) - 1) +
++		((u64)(acpi_wakeup_address +
++			((char *)&header->wakeup_gdt - (char *)acpi_realmode))
++				<< 16);
++	/* GDT[1]: real-mode-like code segment */
++	header->wakeup_gdt[1] = (0x009bULL << 40) +
++		((u64)acpi_wakeup_address << 16) + 0xffff;
++	/* GDT[2]: real-mode-like data segment */
++	header->wakeup_gdt[2] = (0x0093ULL << 40) +
++		((u64)acpi_wakeup_address << 16) + 0xffff;
++
+ #ifndef CONFIG_64BIT
+ 	store_gdt((struct desc_ptr *)&header->pmode_gdt);
+ 
+@@ -111,7 +125,7 @@ void __init acpi_reserve_bootmem(void)
+ 		return;
+ 	}
+ 
+-	acpi_wakeup_address = acpi_realmode;
++	acpi_wakeup_address = virt_to_phys((void *)acpi_realmode);
+ }
+ 
+ 
+Index: linux-2.6/drivers/acpi/sleep/main.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/sleep/main.c
++++ linux-2.6/drivers/acpi/sleep/main.c
+@@ -32,9 +32,8 @@ static int acpi_sleep_prepare(u32 acpi_s
+ 		if (!acpi_wakeup_address) {
+ 			return -EFAULT;
+ 		}
+-		acpi_set_firmware_waking_vector((acpi_physical_address)
+-						virt_to_phys((void *)
+-							     acpi_wakeup_address));
++		acpi_set_firmware_waking_vector(
++				(acpi_physical_address)acpi_wakeup_address);
+ 
+ 	}
+ 	ACPI_FLUSH_CPU_CACHE();
