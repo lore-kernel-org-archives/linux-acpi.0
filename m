@@ -1,53 +1,55 @@
-From: Andi Kleen <andi@firstfloor.org>
-Subject: Temporary ACPI maintainer for this summer
-Date: Mon, 30 Jun 2008 15:43:33 +0200
-Message-ID: <871w2fujga.fsf@basil.nowhere.org>
+From: Enno Fennema <e.fennema@tiscali.nl>
+Subject: Re: RTC or button wakeup
+Date: Mon, 30 Jun 2008 16:23:10 +0200
+Message-ID: <4868EC4E.8020804@tiscali.nl>
+References: <4867B402.2070104@tiscali.nl> <1214788019.26947.2.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out04.alice-dsl.net ([88.44.63.6]:55593 "EHLO
-	smtp-out04.alice-dsl.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760923AbYF3NoN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Jun 2008 09:44:13 -0400
+Received: from smtp-out0.tiscali.nl ([195.241.79.175]:41557 "EHLO
+	smtp-out0.tiscali.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752031AbYF3OWN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Jun 2008 10:22:13 -0400
+Received: from [212.182.149.132] (helo=[192.168.1.34])
+	by smtp-out0.tiscali.nl with esmtp
+	id 1KDKGh-0000jW-JJ
+	for <linux-acpi@vger.kernel.org>; Mon, 30 Jun 2008 16:22:11 +0200
+In-Reply-To: <1214788019.26947.2.camel@yakui_zhao.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: lenb@kernel.org, torvalds@osdl.org, akpm@osdl.org, acpi@linux.intel.com
+To: linux-acpi@vger.kernel.org
+
+Zhao Yakui wrote:
+> On Sun, 2008-06-29 at 18:10 +0200, Enno Fennema wrote:
+>> Could anyone suggest a way to determine in a (shell) program whether my 
+>> computer was switched on by RTC alarm or by me pressing the power button.
+>>
+>     ACPI: Disable Fixed_RTC event when installing RTC handler
+> 
+> In fact the commit is already merged into upstream kernel. Will you
+
+Thanks for yor reply but ... you are streets ahead of me.
+
+I have RTC alarm enabled in BIOS and the alarm starts my machine from 
+Soft-off and boots correctly at, in my case, 23:05 every evening, and 
+not at 00:00 or any other time. At 23:10 cron starts my daily jobs.
+
+I think I am not interested in any further RTC alarms, which will not
+happen for 24 hours anyway.
+
+My problem is to decide at the end of the daily jobs whether to switch
+off the machine with /sbin/halt (if RTC started my machine) or not to
+switch off (if pressing the power button had started the machine).
+
+Are you saying that testing (after installing the patch) either RTC_STS 
+or RTC_ENA would give me my answer.
+
+Before installing the patch I see no both bits look identical when 
+switched on by hand or by RTC. Sorry, I am an acpi-newbie and probably 
+missing something.
+
+Regards,
+Enno
 
 
-Len Brown is on sabbatical from Intel this summer. While he's away
-I'm serving as the temporary ACPI maintainer. Please send all ACPI
-mails and patches you would normally send to Len to me, ideally cc
-linux-acpi@vger.kernel.org.
-
-As usual please put all ACPI bug reports into http://bugzilla.kernel.org.
-
-First (in case he still reads that) I would like to thank Len (and all
-the other ACPI hackers of course) for all the great work done on the ACPI
-code in the last years, turning it from a problem child to a quite
-respectable kernel subsystem.
-
-I'm not as deep in all things ACPI as Len is, so I'll often rely on
-the various other ACPI hackers for specific issues.
-
-My main goal will be to merge patches from the usual contributors and
-try to keep the ACPI bugs and regressions under control. I don't plan
-many new features, but features already in progress will be processed
-as they are ready.
-
-I'm also not full time working on ACPI, but also active in other areas.
-This means I will not write that many ACPI patches myself
-or do extensive testing on my own, but mostly focus on review and merging 
-and bug triage.
-
-The git tree setup for the merges will be announced later.  I won't
-directly use Len's tree.
-
-I'll take over all patches Len has already queued, so no need to
-resubmit them.  But if he doesn't have something acknowledged already
-you want to be included, please retransmit it to me.
-
-The .27 merge will be primarily patches Len has already queued
-in his release tree.
-
--Andi
