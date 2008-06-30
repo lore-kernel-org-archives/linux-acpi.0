@@ -1,39 +1,76 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: linux-next: Tree for June 13: IO APIC breakage on HP nx6325
-Date: Mon, 30 Jun 2008 16:35:22 +0100
-Message-ID: <20080630153522.GA26185@srcf.ucam.org>
-References: <20080613232214.394fd6fd.sfr@canb.auug.org.au> <200806292123.16237.rjw@sisk.pl> <Pine.LNX.4.55.0806292023320.22548@cliff.in.clinika.pl> <200806300056.16399.rjw@sisk.pl> <Pine.LNX.4.55.0806300003080.22548@cliff.in.clinika.pl> <20080630090607.GA18856@srcf.ucam.org> <Pine.LNX.4.55.0806301607290.30785@cliff.in.clinika.pl>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: Temporary ACPI maintainer for this summer
+Date: Mon, 30 Jun 2008 13:50:37 -0300
+Message-ID: <20080630165037.GA30779@khazad-dum.debian.net>
+References: <871w2fujga.fsf@basil.nowhere.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:56916 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1763012AbYF3Pfd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Jun 2008 11:35:33 -0400
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:46478 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751800AbYF3Qun (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 30 Jun 2008 12:50:43 -0400
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.55.0806301607290.30785@cliff.in.clinika.pl>
+In-Reply-To: <871w2fujga.fsf@basil.nowhere.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Maciej W. Rozycki" <macro@linux-mips.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Ingo Molnar <mingo@elte.hu>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Andi Kleen <andi-suse@firstfloor.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
+To: Andi Kleen <andi@firstfloor.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, torvalds@osdl.org, akpm@osdl.org, acpi@linux.intel.com
 
-On Mon, Jun 30, 2008 at 04:29:33PM +0100, Maciej W. Rozycki wrote:
+On Mon, 30 Jun 2008, Andi Kleen wrote:
+> My main goal will be to merge patches from the usual contributors and
+> try to keep the ACPI bugs and regressions under control. I don't plan
+> many new features, but features already in progress will be processed
+> as they are ready.
+> 
+> I'm also not full time working on ACPI, but also active in other areas.
+> This means I will not write that many ACPI patches myself
+> or do extensive testing on my own, but mostly focus on review and merging 
+> and bug triage.
+> 
+> The git tree setup for the merges will be announced later.  I won't
+> directly use Len's tree.
 
->  Now I did a search of the Internet and have become puzzled.  Apparently
-> there *are* other devices using this DSDT.  See for example a thread at:  
-> "http://bbs.archlinux.org/viewtopic.php?pid=359559" where an owner of an
-> HP Compaq 6715s has some other problems with a DSDT which coincidentally
-> is the very same HP/SB400/10000 (though built with a different ASL
-> compiler, hmm...).
+Andi,
 
-Hm. It'd be interesting to know whether the bizarre debug code is in 
-there. What's even more interesting is that the 6715s is an SB600, not 
-an SB400...
+Len usually stores all changes from different sub-maintainers in separate
+topic branches, and as long as the tree had not been sent to Linus for
+mainline merge yet, he would even let us resubmit patchsets (instead of
+asking for incremental fixes):  he'd just drop the old topic branch with
+that patchset, and create it anew using the new patchset.
 
->  Matthew, where did you get these DMI IDs from? -- I cannot see them being 
-> reported in any bootstrap log.
+Not every sub-maintainer took advantage of this, but some of us did.  It
+would be nice to know beforehand how you're going to handle these issues
+(i.e. do you prefer incremental fixing on stuff already staged for
+submission, or a cleaned-up resubmission for re-staging?)
 
-dmidecode or /sys/class/dmi. They're not reported on boot.
+Also, as you should know, Len is the upstream path for some "platform
+drivers" that are big ACPI users but not ACPI drivers in itself (mostly
+laptop firmware drivers that live in drivers/misc).
+
+These drivers have ties to subsystems spread all over the kernel (major ACPI
+ties, but also leds, input, rfkill, gpio, hwmon...), so they often get
+patches that require late merging (end of the merge window, early -rc1)
+because of dependencies to subsystems outside ACPI.  Len was fine with it,
+as long as the changes were local to the drivers (very low breakage risk for
+anything else in the kernel).
+
+> I'll take over all patches Len has already queued, so no need to
+> resubmit them.  But if he doesn't have something acknowledged already
+> you want to be included, please retransmit it to me.
+
+You will get a bunch of thinkpad-acpi patches that depend upon net-next-2.6
+soon...  I was waiting for some rfkill improvements to land on net-next-2.6
+before submitting code that needs them.
+
+That's something else I'd like to know.  Do you prefer to get such changes
+[that depend on stuff still being submitted to other subsystems] early, or
+only after their dependencies are already on a (mostly) assured path to
+mainline?
 
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
