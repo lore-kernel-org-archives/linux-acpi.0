@@ -1,46 +1,44 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 04/84] misc,acpi,backlight: compal Laptop Extras
-Date: Mon, 30 Jun 2008 16:21:32 +0100
-Message-ID: <20080630152132.GA25915@srcf.ucam.org>
-References: <087803d18fb8259cb844c075a35fb27c2d80792e.1214631213.git.len.brown@intel.com> <45fea4a84325d5724ffe480ae6f0d1658d520141.1214631213.git.len.brown@intel.com> <20080628145631.GA23803@srcf.ucam.org> <20080630171941.270dbd75@debian>
+From: "Maciej W. Rozycki" <macro@linux-mips.org>
+Subject: Re: linux-next: Tree for June 13: IO APIC breakage on HP nx6325
+Date: Mon, 30 Jun 2008 16:29:33 +0100 (BST)
+Message-ID: <Pine.LNX.4.55.0806301607290.30785@cliff.in.clinika.pl>
+References: <20080613232214.394fd6fd.sfr@canb.auug.org.au> <200806292123.16237.rjw@sisk.pl>
+ <Pine.LNX.4.55.0806292023320.22548@cliff.in.clinika.pl> <200806300056.16399.rjw@sisk.pl>
+ <Pine.LNX.4.55.0806300003080.22548@cliff.in.clinika.pl>
+ <20080630090607.GA18856@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:34012 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751308AbYF3PVn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Jun 2008 11:21:43 -0400
-Content-Disposition: inline
-In-Reply-To: <20080630171941.270dbd75@debian>
+Received: from kirk.serum.com.pl ([213.77.9.205]:63946 "EHLO serum.com.pl"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1762503AbYF3PbT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 30 Jun 2008 11:31:19 -0400
+In-Reply-To: <20080630090607.GA18856@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Cezary Jackiewicz <cezary.jackiewicz@gmail.com>
-Cc: ak@linux.intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernrel.org, Richard Purdie <rpurdie@rpsys.net>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Alexey Starikovskiy <aystarik@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Ingo Molnar <mingo@elte.hu>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Andi Kleen <andi-suse@firstfloor.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
 
-On Mon, Jun 30, 2008 at 05:19:41PM +0200, Cezary Jackiewicz wrote:
-> Dnia 2008-06-28, o godz. 15:56:31
-> Matthew Garrett <mjg59@srcf.ucam.org> napisa=C5=82(a):
->=20
-> > On Sat, Jun 28, 2008 at 01:43:08AM -0400, Len Brown wrote:
-> > > This driver exports a few files in /sys/devices/platform/compal-l=
-aptop/:
-> > >  lcd_level - screen brightness: contains a single integer in the =
-range 0..7 (rw)
-> > >  wlan - wlan subsystem state: contains 0 or 1 (rw)
-> > >  bluetooth - bluetooth subsystem state: contains 0 or 1 (rw)
-> > >  raw - raw value taken from embedded controller register (ro)
-> >=20
-> > Can we make sure this is changed to use rfkill before merging?
->=20
-> I changed already driver to use rfkill. I need some time to test=20
-> and will send the appropriate patch.=20
+On Mon, 30 Jun 2008, Matthew Garrett wrote:
 
-Wonderful, thanks!
---=20
-Matthew Garrett | mjg59@srcf.ucam.org
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >  Note that Matthew's made a point here, that apparently there are only two 
+> > models using this southbridge and new ones are unlikely to be released, so 
+> > my note is for a reference only.
+> 
+> No, there's many other systems using the same southbridge that don't 
+> have the bizarre DSDT code and so don't show this behaviour.
+
+ I meant "... two models [of HP laptops] using this southbridge..." of 
+course. :)
+
+ Now I did a search of the Internet and have become puzzled.  Apparently
+there *are* other devices using this DSDT.  See for example a thread at:  
+"http://bbs.archlinux.org/viewtopic.php?pid=359559" where an owner of an
+HP Compaq 6715s has some other problems with a DSDT which coincidentally
+is the very same HP/SB400/10000 (though built with a different ASL
+compiler, hmm...).
+
+ Matthew, where did you get these DMI IDs from? -- I cannot see them being 
+reported in any bootstrap log.
+
+  Maciej
