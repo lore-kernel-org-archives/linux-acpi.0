@@ -1,91 +1,71 @@
-From: "Justin Mattock" <justinmattock@gmail.com>
-Subject: Re: GPE storm detected, disabling EC GPE
-Date: Tue, 1 Jul 2008 02:10:44 +0000
-Message-ID: <dd18b0c30806301910j32668e9ufad8ec04a3784152@mail.gmail.com>
-References: <dd18b0c30806051401j28a57871ke4e1c76a4c8ea425@mail.gmail.com>
-	 <20080630123454.7f48b7e0.akpm@linux-foundation.org>
-	 <200806302159.51768.rjw@sisk.pl>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: [PATCH 6/8] PCI ACPI: Rework PCI handling of wake-up (rev. 3)
+Date: Tue, 01 Jul 2008 10:26:40 +0800
+Message-ID: <1214879200.31478.10.camel@yakui_zhao.sh.intel.com>
+References: <200806270022.24496.rjw@sisk.pl>
+	 <200806280240.13939.rjw@sisk.pl>
+	 <1214791528.26947.12.camel@yakui_zhao.sh.intel.com>
+	 <200806301219.02189.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.249]:34275 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754476AbYGACKs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Jun 2008 22:10:48 -0400
-Received: by an-out-0708.google.com with SMTP id d40so356335and.103
-        for <linux-acpi@vger.kernel.org>; Mon, 30 Jun 2008 19:10:45 -0700 (PDT)
-In-Reply-To: <200806302159.51768.rjw@sisk.pl>
-Content-Disposition: inline
+Received: from mga01.intel.com ([192.55.52.88]:61943 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755153AbYGACPR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 30 Jun 2008 22:15:17 -0400
+In-Reply-To: <200806301219.02189.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>, Andi Kleen <andi@firstfloor.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>
 
-On Mon, Jun 30, 2008 at 7:59 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Monday, 30 of June 2008, Andrew Morton wrote:
->> On Thu, 5 Jun 2008 21:01:55 +0000
->> "Justin Mattock" <justinmattock@gmail.com> wrote:
->>
->> > FWIW I noticed a post where the person had changed 5 to 20, and it
->> > seemed to work for them;
->> > So with that in mind I decide to give that a go, here is the location:
->> > drivers/acpi/ec.c
->> > @@ -527,47 +488,51 @@ static u32 acpi_ec_gpe_handler(void *data)
->> >  {
->> >         acpi_status status = AE_OK;
->> >         struct acpi_ec *ec = data;
->> >        u8 state = acpi_ec_read_status(ec);
->> >
->> >         pr_debug(PREFIX "~~~> interrupt\n");
->> >        atomic_inc(&ec->irq_count);
->> > -       if (atomic_read(&ec->irq_count) > 5) {
->> > +       if (atomic_read(&ec->irq_count) > 20) {
->> >                pr_err(PREFIX "GPE storm detected, disabling EC GPE\n");
->> >                ec_switch_to_poll_mode(ec);
->> >                goto end;
->> >        }
->> >
->> > Now I don't know if this will work for other brands, but for
->> > me(Macbook Pro ATI chipset) I have not received the
->> > GPE storm detected, disabling EC GPE message, but it's only been an
->> > hour, maybe after two or three this might appear.
->> > Also is this good or bad to set 5 to 20 for the system?
->> > regards;
->>
->> We've had a few reports of this GPE-storm problem and I've rather lost
->> track of what's happening.  Has anyone looked into it?
->
-> Yes, the problem is still being worked on, AFAICS.
->
->> If not, do we have a bugzilla report where we can work on this?
->
-> There's a bugzilla entry at http://bugzilla.kernel.org/show_bug.cgi?id=10724 .
->
+On Mon, 2008-06-30 at 12:19 +0200, Rafael J. Wysocki wrote:
+> On Monday, 30 of June 2008, Zhao Yakui wrote:
+> > On Sat, 2008-06-28 at 02:40 +0200, Rafael J. Wysocki wrote:
+> > > On Friday, 27 of June 2008, Rafael J. Wysocki wrote:
+> > > > From: Rafael J. Wysocki <rjw@sisk.pl>
+> 
+> > > @@ -107,10 +113,15 @@ void acpi_disable_wakeup_device(u8 sleep
+> > >  	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+> > >  		struct acpi_device *dev =
+> > >  		    container_of(node, struct acpi_device, wakeup_list);
+> > > +		struct device *ldev;
+> > > +		bool wakeup_enabled;
+> > >  
+> > >  		if (!dev->wakeup.flags.valid)
+> > >  			continue;
+> > > -		if (!dev->wakeup.state.enabled ||
+> > > +		ldev = acpi_get_physical_device(dev->handle);
+> > > +		wakeup_enabled = dev->wakeup.state.enabled ||
+> > > +			(ldev ? device_may_wakeup(ldev) : false);
+> > > +		if (!wakeup_enabled ||
+> > >  		    sleep_state > (u32) dev->wakeup.sleep_state) {
+> > >  			if (dev->wakeup.flags.run_wake) {
+> > >  				spin_unlock(&acpi_device_lock);
+> > It seems that the device_init_wakeup(dev,1) will be called in many
+> > drivers regardless of userspace, which will enable the corresponding
+> > GPE. Maybe some laptops will be resumed immediately from the sleeping
+> > state.
+> > 
+> > Is it more reasonable that default state is set as "wake-up disabled" in
+> > driver and userspace can change it from "disabled" to "enabled"?
+> 
+> Yes, it is, IMO.
+> 
+> One possible way to make it happen is to modify device_init_wakeup() so that
+> it always clears power.should_wakeup.
+> 
+> Still, that may lead to functional "regressions", ie. if we do that, some
+> people will have to manually write "enable" to /sys/devices/.../power/wakeup to
+> make their usual wake-up devices work.
+What you said is right. If the power.should_wakeup is clear in
+device_init_wakeup, some people need to write "enable" so that the
+device can wake up the sleeping system. 
+But it can avoid that some system will be resumed immediately from the
+sleeping state.
+> Either way, there is possibility of breaking something.
+> 
 > Thanks,
 > Rafael
->
 
-Hello; I must be honest I'm not real sure on what Is happening with
-this. The above: if (atomic_read(&ec->irq_count) > 20) {
-just prolongs the message from going off(doesn't deal with the main problem).
-Now it is interesting from over here with a macbook, due to this message having
-to deal with the battery(if that's the case) i.g. removing the battery
-results in no gpe storm being detected(or not too many interrupts), on
-the contrary the other laptops acer or whatever was experiencing the
-same issue, was in something completely different. Now just out of
-curiosity
-I was thinking back to when this wasn't happening and it must have
-been around april or so, after looking at the activity with acpi the
-only
-real scenario I saw that might have led to this would be:
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=cf7acfab032ff262f42954328cdfd20a5d9aaaac
-/ but like I said out of curiosity maybe this was what might be
-triggering
-the interrupts to fire this message off, but could be something
-completely in an other location.
-As for right now I'm open to any ideas.
-regards;
-
--- 
-Justin P. Mattock
