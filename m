@@ -1,71 +1,98 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: Re: [PATCH 6/8] PCI ACPI: Rework PCI handling of wake-up (rev. 3)
-Date: Tue, 01 Jul 2008 10:26:40 +0800
-Message-ID: <1214879200.31478.10.camel@yakui_zhao.sh.intel.com>
-References: <200806270022.24496.rjw@sisk.pl>
-	 <200806280240.13939.rjw@sisk.pl>
-	 <1214791528.26947.12.camel@yakui_zhao.sh.intel.com>
-	 <200806301219.02189.rjw@sisk.pl>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Re: [PATCH 1/2] mpparse: Add a knob to disable IRQ 0 through I/O
+ APIC
+Date: Mon, 30 Jun 2008 21:57:46 -0700
+Message-ID: <20080630215746.84ffb0f4.randy.dunlap@oracle.com>
+References: <Pine.LNX.4.55.0807010041030.30785@cliff.in.clinika.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:61943 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755153AbYGACPR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 30 Jun 2008 22:15:17 -0400
-In-Reply-To: <200806301219.02189.rjw@sisk.pl>
+Received: from agminet01.oracle.com ([141.146.126.228]:46268 "EHLO
+	agminet01.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750826AbYGAFGx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Jul 2008 01:06:53 -0400
+In-Reply-To: <Pine.LNX.4.55.0807010041030.30785@cliff.in.clinika.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>
+To: "Maciej W. Rozycki" <macro@linux-mips.org>
+Cc: Ingo Molnar <mingo@elte.hu>, Matthew Garrett <mjg59@srcf.ucam.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-next@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, 2008-06-30 at 12:19 +0200, Rafael J. Wysocki wrote:
-> On Monday, 30 of June 2008, Zhao Yakui wrote:
-> > On Sat, 2008-06-28 at 02:40 +0200, Rafael J. Wysocki wrote:
-> > > On Friday, 27 of June 2008, Rafael J. Wysocki wrote:
-> > > > From: Rafael J. Wysocki <rjw@sisk.pl>
-> 
-> > > @@ -107,10 +113,15 @@ void acpi_disable_wakeup_device(u8 sleep
-> > >  	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
-> > >  		struct acpi_device *dev =
-> > >  		    container_of(node, struct acpi_device, wakeup_list);
-> > > +		struct device *ldev;
-> > > +		bool wakeup_enabled;
-> > >  
-> > >  		if (!dev->wakeup.flags.valid)
-> > >  			continue;
-> > > -		if (!dev->wakeup.state.enabled ||
-> > > +		ldev = acpi_get_physical_device(dev->handle);
-> > > +		wakeup_enabled = dev->wakeup.state.enabled ||
-> > > +			(ldev ? device_may_wakeup(ldev) : false);
-> > > +		if (!wakeup_enabled ||
-> > >  		    sleep_state > (u32) dev->wakeup.sleep_state) {
-> > >  			if (dev->wakeup.flags.run_wake) {
-> > >  				spin_unlock(&acpi_device_lock);
-> > It seems that the device_init_wakeup(dev,1) will be called in many
-> > drivers regardless of userspace, which will enable the corresponding
-> > GPE. Maybe some laptops will be resumed immediately from the sleeping
-> > state.
-> > 
-> > Is it more reasonable that default state is set as "wake-up disabled" in
-> > driver and userspace can change it from "disabled" to "enabled"?
-> 
-> Yes, it is, IMO.
-> 
-> One possible way to make it happen is to modify device_init_wakeup() so that
-> it always clears power.should_wakeup.
-> 
-> Still, that may lead to functional "regressions", ie. if we do that, some
-> people will have to manually write "enable" to /sys/devices/.../power/wakeup to
-> make their usual wake-up devices work.
-What you said is right. If the power.should_wakeup is clear in
-device_init_wakeup, some people need to write "enable" so that the
-device can wake up the sleeping system. 
-But it can avoid that some system will be resumed immediately from the
-sleeping state.
-> Either way, there is possibility of breaking something.
-> 
-> Thanks,
-> Rafael
+On Tue, 1 Jul 2008 01:11:35 +0100 (BST) Maciej W. Rozycki wrote:
 
+>  As discovered recently some systems exhibit problems when the 8254 timer 
+> IRQ is routed through the I/O APIC.  These problems do not affect the 
+> timer IRQ itself and therefore cannot be detected when the correctness of 
+> operation of the interrupt is verified in check_timer().  Therefore the 
+> I/O APIC path of the timer IRQ has to be disabled entirely.
+> 
+>  This is a change that lets platforms ask for the timer IRQ not to be 
+> registered in the I/O APIC interrupt tables.  The local APIC and ExtINTA 
+> paths are unaffected.  This request is only taken into account for ACPI 
+> platforms as MP table systems seem unaffected so far.
+> 
+> Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
+> ---
+> patch-2.6.26-rc1-20080505-mpparse-acpi-noirq0-2
+> diff -up --recursive --new-file linux-2.6.26-rc1-20080505.macro/arch/x86/kernel/mpparse.c linux-2.6.26-rc1-20080505/arch/x86/kernel/mpparse.c
+> --- linux-2.6.26-rc1-20080505.macro/arch/x86/kernel/mpparse.c	2008-05-05 02:56:19.000000000 +0000
+> +++ linux-2.6.26-rc1-20080505/arch/x86/kernel/mpparse.c	2008-06-30 21:53:33.000000000 +0000
+> @@ -50,6 +50,8 @@ static int mp_current_pci_id;
+>  
+>  int pic_mode;
+>  
+> +int disable_irq0_through_ioapic __initdata;
+> +
+>  /*
+>   * Intel MP BIOS table parsing routines:
+>   */
+> @@ -887,6 +889,10 @@ void __init mp_override_legacy_irq(u8 bu
+>  	int ioapic = -1;
+>  	int pin = -1;
+>  
+> +	/* Skip the 8254 timer interrupt (IRQ 0) if requested.  */
+> +	if (bus_irq == 0 && disable_irq0_through_ioapic)
+> +		return;
+> +
+>  	/*
+>  	 * Convert 'gsi' to 'ioapic.pin'.
+>  	 */
+> @@ -955,6 +961,10 @@ void __init mp_config_acpi_legacy_irqs(v
+>  	for (i = 0; i < 16; i++) {
+>  		int idx;
+>  
+> +		/* Skip the 8254 timer interrupt (IRQ 0) if requested.  */
+> +		if (i == 0 && disable_irq0_through_ioapic)
+> +			continue;
+> +
+>  		for (idx = 0; idx < mp_irq_entries; idx++) {
+>  			struct mpc_config_intsrc *irq = mp_irqs + idx;
+>  
+> diff -up --recursive --new-file linux-2.6.26-rc1-20080505.macro/include/asm-x86/mpspec.h linux-2.6.26-rc1-20080505/include/asm-x86/mpspec.h
+> --- linux-2.6.26-rc1-20080505.macro/include/asm-x86/mpspec.h	2008-05-05 02:55:57.000000000 +0000
+> +++ linux-2.6.26-rc1-20080505/include/asm-x86/mpspec.h	2008-06-30 22:29:23.000000000 +0000
+> @@ -113,4 +113,15 @@ typedef struct physid_mask physid_mask_t
+>  
+>  extern physid_mask_t phys_cpu_present_map;
+>  
+> +#ifdef CONFIG_X86_MPPARSE
+> +static inline void set_disable_irq0_through_ioapic(int v)
+> +{
+> +	extern int disable_irq0_through_ioapic;
+> +
+> +	disable_irq0_through_ioapic = v;
+> +}
+> +#else
+> +static inline void set_disable_irq0_through_ioapic(int v) { }
+> +#endif
+> +
+>  #endif
+
+
+What calls set_disable_irq0_through_ioapic() ?
+
+
+---
+~Randy
+Linux Plumbers Conference, 17-19 September 2008, Portland, Oregon USA
+http://linuxplumbersconf.org/
