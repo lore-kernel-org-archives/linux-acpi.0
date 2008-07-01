@@ -1,8 +1,8 @@
 From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: [PATCH 1/7] ACPI: thinkpad-acpi: minor refactor on
-	radio switch init
-Date: Tue,  1 Jul 2008 15:27:49 -0300
-Message-ID: <1214936875-4812-2-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 2/7] ACPI: thinkpad-acpi: consolidate wlsw
+	notification function
+Date: Tue,  1 Jul 2008 15:27:50 -0300
+Message-ID: <1214936875-4812-3-git-send-email-hmh@hmh.eng.br>
 References: <1214936875-4812-1-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,92 +22,93 @@ To: Andi Kleen <andi-Vw/NltI1exuRpAAqCnN02g@public.gmane.org>
 Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Change the code of hotkey_init, wan_init and bluetooth_init a bit to make it
-much easier to add some Kconfig-selected debugging code later.
+Rename tpacpi_input_send_radiosw() to tpacpi_send_radiosw_update(), and
+make it a central point to issue "radio switch changed state" notifications
+by consolidating also the poll() notification in the same function.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
 ---
- drivers/misc/thinkpad_acpi.c |   49 ++++++++++++++++++++++-------------------
- 1 files changed, 26 insertions(+), 23 deletions(-)
+ drivers/misc/thinkpad_acpi.c |   39 +++++++++++++++++++--------------------
+ 1 files changed, 19 insertions(+), 20 deletions(-)
 
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index b596929..c800855 100644
+index c800855..9179f23 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -2167,9 +2167,10 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
- 		printk(TPACPI_INFO
- 			"radio switch found; radios are %s\n",
- 			enabled(status, 0));
-+	}
-+	if (tp_features.hotkey_wlsw)
- 		res = add_to_attr_set(hotkey_dev_attributes,
- 				&dev_attr_hotkey_radio_sw.attr);
+@@ -1285,21 +1285,6 @@ static int hotkey_status_set(int status)
+ 	return 0;
+ }
+ 
+-static void tpacpi_input_send_radiosw(void)
+-{
+-	int wlsw;
+-
+-	if (tp_features.hotkey_wlsw && !hotkey_get_wlsw(&wlsw)) {
+-		mutex_lock(&tpacpi_inputdev_send_mutex);
+-
+-		input_report_switch(tpacpi_inputdev,
+-				    SW_RFKILL_ALL, !!wlsw);
+-		input_sync(tpacpi_inputdev);
+-
+-		mutex_unlock(&tpacpi_inputdev_send_mutex);
 -	}
+-}
+-
+ static void tpacpi_input_send_tabletsw(void)
+ {
+ 	int state;
+@@ -1921,6 +1906,22 @@ static struct attribute *hotkey_mask_attributes[] __initdata = {
+ 	&dev_attr_hotkey_wakeup_hotunplug_complete.attr,
+ };
  
- 	/* For X41t, X60t, X61t Tablets... */
- 	if (!res && acpi_evalf(hkey_handle, &status, "MHKG", "qd")) {
-@@ -2646,18 +2647,19 @@ static int __init bluetooth_init(struct ibm_init_struct *iibm)
- 		str_supported(tp_features.bluetooth),
- 		status);
- 
-+	if (tp_features.bluetooth &&
-+	    !(status & TP_ACPI_BLUETOOTH_HWPRESENT)) {
-+		/* no bluetooth hardware present in system */
-+		tp_features.bluetooth = 0;
-+		dbg_printk(TPACPI_DBG_INIT,
-+			   "bluetooth hardware not installed\n");
-+	}
++static void tpacpi_send_radiosw_update(void)
++{
++	int wlsw;
 +
- 	if (tp_features.bluetooth) {
--		if (!(status & TP_ACPI_BLUETOOTH_HWPRESENT)) {
--			/* no bluetooth hardware present in system */
--			tp_features.bluetooth = 0;
--			dbg_printk(TPACPI_DBG_INIT,
--				   "bluetooth hardware not installed\n");
--		} else {
--			res = sysfs_create_group(&tpacpi_pdev->dev.kobj,
--					&bluetooth_attr_group);
--			if (res)
--				return res;
--		}
-+		res = sysfs_create_group(&tpacpi_pdev->dev.kobj,
-+				&bluetooth_attr_group);
-+		if (res)
-+			return res;
- 	}
- 
- 	return (tp_features.bluetooth)? 0 : 1;
-@@ -2818,18 +2820,19 @@ static int __init wan_init(struct ibm_init_struct *iibm)
- 		str_supported(tp_features.wan),
- 		status);
- 
-+	if (tp_features.wan &&
-+	    !(status & TP_ACPI_WANCARD_HWPRESENT)) {
-+		/* no wan hardware present in system */
-+		tp_features.wan = 0;
-+		dbg_printk(TPACPI_DBG_INIT,
-+			   "wan hardware not installed\n");
-+	}
++	if (tp_features.hotkey_wlsw && !hotkey_get_wlsw(&wlsw)) {
++		mutex_lock(&tpacpi_inputdev_send_mutex);
 +
- 	if (tp_features.wan) {
--		if (!(status & TP_ACPI_WANCARD_HWPRESENT)) {
--			/* no wan hardware present in system */
--			tp_features.wan = 0;
--			dbg_printk(TPACPI_DBG_INIT,
--				   "wan hardware not installed\n");
--		} else {
--			res = sysfs_create_group(&tpacpi_pdev->dev.kobj,
--					&wan_attr_group);
--			if (res)
--				return res;
--		}
-+		res = sysfs_create_group(&tpacpi_pdev->dev.kobj,
-+				&wan_attr_group);
-+		if (res)
-+			return res;
- 	}
++		input_report_switch(tpacpi_inputdev,
++				    SW_RFKILL_ALL, !!wlsw);
++		input_sync(tpacpi_inputdev);
++
++		mutex_unlock(&tpacpi_inputdev_send_mutex);
++	}
++	hotkey_radio_sw_notify_change();
++}
++
+ static void hotkey_exit(void)
+ {
+ #ifdef CONFIG_THINKPAD_ACPI_HOTKEY_POLL
+@@ -2288,7 +2289,7 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+ 	tpacpi_inputdev->close = &hotkey_inputdev_close;
  
- 	return (tp_features.wan)? 0 : 1;
+ 	hotkey_poll_setup_safe(1);
+-	tpacpi_input_send_radiosw();
++	tpacpi_send_radiosw_update();
+ 	tpacpi_input_send_tabletsw();
+ 
+ 	return 0;
+@@ -2420,8 +2421,7 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
+ 		case 7:
+ 			/* 0x7000-0x7FFF: misc */
+ 			if (tp_features.hotkey_wlsw && hkey == 0x7000) {
+-				tpacpi_input_send_radiosw();
+-				hotkey_radio_sw_notify_change();
++				tpacpi_send_radiosw_update();
+ 				send_acpi_ev = 0;
+ 				break;
+ 			}
+@@ -2464,8 +2464,7 @@ static void hotkey_resume(void)
+ 		printk(TPACPI_ERR
+ 		       "error while trying to read hot key mask "
+ 		       "from firmware\n");
+-	tpacpi_input_send_radiosw();
+-	hotkey_radio_sw_notify_change();
++	tpacpi_send_radiosw_update();
+ 	hotkey_tablet_mode_notify_change();
+ 	hotkey_wakeup_reason_notify_change();
+ 	hotkey_wakeup_hotunplug_complete_notify_change();
 -- 
 1.5.5.4
 
