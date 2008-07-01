@@ -1,45 +1,32 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: [PATCH -next] acpi utmisc.c: include bug.h
-Date: Tue, 1 Jul 2008 10:30:57 -0700
-Message-ID: <20080701103057.198c50be.randy.dunlap@oracle.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: RTC or button wakeup
+Date: Tue, 1 Jul 2008 14:40:31 -0300
+Message-ID: <20080701174031.GC24605@khazad-dum.debian.net>
+References: <4867B402.2070104@tiscali.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from agminet01.oracle.com ([141.146.126.228]:64612 "EHLO
-	agminet01.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751024AbYGARb2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Jul 2008 13:31:28 -0400
+Received: from out3.smtp.messagingengine.com ([66.111.4.27]:37068 "EHLO
+	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751234AbYGARkp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Jul 2008 13:40:45 -0400
+Content-Disposition: inline
+In-Reply-To: <4867B402.2070104@tiscali.nl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: andi@firstfloor.org, len.brown@intel.com
+To: Enno Fennema <e.fennema@tiscali.nl>
 Cc: linux-acpi@vger.kernel.org
 
-From: Randy Dunlap <randy.dunlap@oracle.com>
+On Sun, 29 Jun 2008, Enno Fennema wrote:
+> Could anyone suggest a way to determine in a (shell) program whether my  
+> computer was switched on by RTC alarm or by me pressing the power button.
 
-acpi utmisc.c needs to include bug.h:
+Check the wakeup reason in dmidecode.  There is a very low, but non-zero
+chance that the BIOS implemented it properly, and it would tell you if it
+was a power-button wakeup, or rtc wakeup.
 
-linux-next-20080701/drivers/acpi/utilities/utmisc.c: In function 'acpi_ut_error':
-linux-next-20080701/drivers/acpi/utilities/utmisc.c:1028: error: implicit declaration of function 'warn_on_slowpath'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
----
- drivers/acpi/utilities/utmisc.c |    1 +
- 1 file changed, 1 insertion(+)
-
---- linux-next-20080701.orig/drivers/acpi/utilities/utmisc.c
-+++ linux-next-20080701/drivers/acpi/utilities/utmisc.c
-@@ -42,6 +42,7 @@
-  */
- 
- #include <linux/module.h>
-+#include <asm-generic/bug.h>
- 
- #include <acpi/acpi.h>
- #include <acpi/acnamesp.h>
-
-
----
-~Randy
-Linux Plumbers Conference, 17-19 September 2008, Portland, Oregon USA
-http://linuxplumbersconf.org/
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
