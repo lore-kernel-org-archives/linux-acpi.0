@@ -1,182 +1,102 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH 1/2] mpparse: Add a knob to disable IRQ 0 through I/O
-	APIC
-Date: Tue, 1 Jul 2008 10:27:42 +0200
-Message-ID: <20080701082742.GA31725@elte.hu>
-References: <Pine.LNX.4.55.0807010041030.30785@cliff.in.clinika.pl>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Check for BIOS bugs - Original Subject: Re: [PATCH 23/70] ACPICA: Workaround for reversed _PRT entries from BIOS
+Date: Tue, 1 Jul 2008 10:33:26 +0200
+Message-ID: <200807011033.27887.trenn@suse.de>
+References: <1213947852-10924-1-git-send-email-lenb@kernel.org> <deade3c973eb9c98d2a6cfed658bbb49e693894a.1213947350.git.len.brown@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.mail.elte.hu ([157.181.151.9]:48744 "EHLO mx2.mail.elte.hu"
+Received: from ns.suse.de ([195.135.220.2]:60437 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757409AbYGAI2K (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 1 Jul 2008 04:28:10 -0400
+	id S1752190AbYGAIda (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 1 Jul 2008 04:33:30 -0400
+In-Reply-To: <deade3c973eb9c98d2a6cfed658bbb49e693894a.1213947350.git.len.brown@intel.com>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.55.0807010041030.30785@cliff.in.clinika.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Maciej W. Rozycki" <macro@linux-mips.org>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-next@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Huang Cheng <cheng.huang@intel.com>, firmwarekit-discuss@bughost.org, Arjan van de Ven <arjan@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+
+On Friday 20 June 2008 09:43:25 Len Brown wrote:
+> From: Bob Moore <robert.moore@intel.com>
+>
+> Some BIOSs erroneously reverse the _PRT SourceName and the
+> SourceIndex.  Detect and repair this problem. MS ACPI also allows
+> and repairs this problem, thus ACPICA must also.
+
+It would be great to have an interface to report this as a BIOS defect.
+
+Something like:
+
+FIRMWARE_BUG_ON(FIRM_WARN, "erroneously reversed the _PRT source_name", ACPI_ 
+Bug);
+
+FIRMWARE_BUG_ON(severity, description, component);
+
+If say CONFIG_FIRMWARE_DEBUG is set this could send a netlink event to 
+userspace and e.g. linuxfirmwarekit can grab it.
+linuxfirmwarekit currently implements it's own scripts and even worse, parses 
+dmesg to find BIOS bugs, which is not really maintenable.
+
+IMO the kernel developers themselves need an interface where they can report 
+bugs while seeing and fixing them.
+
+Huang Cheng posted a nice patch on the linuxfirmwarekit list a while ago 
+(unfortunately the patch was attached not inlined):
+http://www.bughost.org/pipermail/firmwarekit-discuss/2008-March/000166.html
+
+I mean it needs some cleanup (e.g. the file name was the bug number, there 
+need to be a general interface created, e.g. as  shown above, etc.).
+But this is IMO a good idea and might be worth adding to the kernel (when 
+written :) ).
+Comments?
+
+        Thomas
+
+PS: I added Bjorn as in the PNP parts BIOSes are pretty much messed up.
+One reason is that AFAIK ACPI parts are glued together. Having dozens/hundreds 
+of device declarations in a BIOS of which huge parts have not been written by 
+yourself, it is very hard for vendors to check for correctness.
+While Bjorn and others are adding quirks and workarounds for specific devices, 
+machines or general BIOS bugs it would be great to be able to point vendors 
+to these bugs by a simple tool.
+
+> Signed-off-by: Bob Moore <robert.moore@intel.com>
+> Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+> Signed-off-by: Len Brown <len.brown@intel.com>
+> ---
+>  drivers/acpi/resources/rscreate.c |   17 +++++++++++++++++
+>  1 files changed, 17 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/acpi/resources/rscreate.c
+> b/drivers/acpi/resources/rscreate.c index faddaee..70c84ec 100644
+> --- a/drivers/acpi/resources/rscreate.c
+> +++ b/drivers/acpi/resources/rscreate.c
+> @@ -285,6 +285,23 @@ acpi_rs_create_pci_routing_table(union
+> acpi_operand_object *package_object, }
+>
+>  		/*
+> +		 * If the BIOS has erroneously reversed the _PRT source_name (index 2)
+> +		 * and the source_index (index 3), fix it. _PRT is important enough to
+> +		 * workaround this BIOS error. This also provides compatibility with
+> +		 * other ACPI implementations.
+> +		 */
+> +		obj_desc = sub_object_list[3];
+> +		if (!obj_desc
+> +		    || (ACPI_GET_OBJECT_TYPE(obj_desc) != ACPI_TYPE_INTEGER)) {
+> +			sub_object_list[3] = sub_object_list[2];
+> +			sub_object_list[2] = obj_desc;
+> +
+> +			ACPI_WARNING((AE_INFO,
+> +				      "(PRT[%X].Source) SourceName and SourceIndex are reversed,
+> fixed", +				      index));
+> +		}
+> +
+> +		/*
+>  		 * 3) Third subobject: Dereference the PRT.source_name
+>  		 * The name may be unresolved (slack mode), so allow a null object
+>  		 */
 
 
-* Maciej W. Rozycki <macro@linux-mips.org> wrote:
-
->  As discovered recently some systems exhibit problems when the 8254 
-> timer IRQ is routed through the I/O APIC.  These problems do not 
-> affect the timer IRQ itself and therefore cannot be detected when the 
-> correctness of operation of the interrupt is verified in 
-> check_timer().  Therefore the I/O APIC path of the timer IRQ has to be 
-> disabled entirely.
-> 
->  This is a change that lets platforms ask for the timer IRQ not to be 
-> registered in the I/O APIC interrupt tables.  The local APIC and 
-> ExtINTA paths are unaffected.  This request is only taken into account 
-> for ACPI platforms as MP table systems seem unaffected so far.
-
-applied to tip/x86/mpparse - thanks Maciej.
-
-Note, since mp_config_acpi_legacy_irqs moved to acpi/boot.c i 
-restructured and simplified it slightly - please double-check the form 
-below.
-
-	Ingo
-
---------------->
-commit e38502eb8aa82314d5ab0eba45f50e6790dadd88
-Author: Matthew Garrett <mjg59@srcf.ucam.org>
-Date:   Tue Jul 1 01:12:06 2008 +0100
-
-    x86, ioapic, acpi quirk: disable IRQ 0 through I/O APIC for some HP systems
-    
-    Some HP laptops have a problem with their DSDT reporting as
-    HP/SB400/10000, which includes some code which overrides all temperature
-    trip points to 16C if the INTIN2 input of the I/O APIC is enabled.  This
-    input is incorrectly designated the ISA IRQ 0 via an interrupt source
-    override even though it is wired to the output of the master 8259A and
-    INTIN0 is not connected at all.  So far two models have been identified,
-    namely nx6125 and nx6325.
-    
-    Use a knob provided by the I/O APIC interrupt registration code to
-    abandon any attempts to route IRQ 0 through the I/O APIC for these
-    systems.
-    
-    Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
-    Cc: Len Brown <lenb@kernel.org>
-    Cc: Matthew Garrett <mjg59@srcf.ucam.org>
-    Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-    Signed-off-by: Ingo Molnar <mingo@elte.hu>
-
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index 92a5426..9908ef4 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -1427,6 +1427,17 @@ static int __init force_acpi_ht(const struct dmi_system_id *d)
- }
- 
- /*
-+ * Don't register any I/O APIC entries for the 8254 timer IRQ.
-+ */
-+static int __init
-+dmi_disable_irq0_through_ioapic(const struct dmi_system_id *d)
-+{
-+	pr_notice("%s detected: disabling IRQ 0 through I/O APIC\n", d->ident);
-+	disable_irq0_through_ioapic = 1;
-+	return 0;
-+}
-+
-+/*
-  * If your system is blacklisted here, but you find that acpi=force
-  * works for you, please contact acpi-devel@sourceforge.net
-  */
-@@ -1593,6 +1604,32 @@ static struct dmi_system_id __initdata acpi_dmi_table[] = {
- 		     DMI_MATCH(DMI_PRODUCT_NAME, "TravelMate 360"),
- 		     },
- 	 },
-+	/*
-+	 * HP laptops which use a DSDT reporting as HP/SB400/10000,
-+	 * which includes some code which overrides all temperature
-+	 * trip points to 16C if the INTIN2 input of the I/O APIC
-+	 * is enabled.  This input is incorrectly designated the
-+	 * ISA IRQ 0 via an interrupt source override even though
-+	 * it is wired to the output of the master 8259A and INTIN0
-+	 * is not connected at all.  Abandon any attempts to route
-+	 * IRQ 0 through the I/O APIC therefore.
-+	 */
-+	{
-+	 .callback = dmi_disable_irq0_through_ioapic,
-+	 .ident = "HP NX6125 laptop",
-+	 .matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
-+		     DMI_MATCH(DMI_PRODUCT_NAME, "HP Compaq nx6125"),
-+		     },
-+	 },
-+	{
-+	 .callback = dmi_disable_irq0_through_ioapic,
-+	 .ident = "HP NX6325 laptop",
-+	 .matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
-+		     DMI_MATCH(DMI_PRODUCT_NAME, "HP Compaq nx6325"),
-+		     },
-+	 },
- 	{}
- };
- 
-
-commit 0b3d81ad4f765513347a04434efc15cbdc4e1c54
-Author: Maciej W. Rozycki <macro@linux-mips.org>
-Date:   Tue Jul 1 01:11:35 2008 +0100
-
-    x86, ioapic, acpi: add a knob to disable IRQ 0 through I/O APIC
-    
-    As discovered recently some systems exhibit problems when the 8254 timer
-    IRQ is routed through the I/O APIC.  These problems do not affect the
-    timer IRQ itself and therefore cannot be detected when the correctness of
-    operation of the interrupt is verified in check_timer().  Therefore the
-    I/O APIC path of the timer IRQ has to be disabled entirely.
-    
-    This is a change that lets platforms ask for the timer IRQ not to be
-    registered in the I/O APIC interrupt tables.  The local APIC and ExtINTA
-    paths are unaffected.  This request is only taken into account for ACPI
-    platforms as MP table systems seem unaffected so far.
-    
-    Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
-    Cc: Len Brown <lenb@kernel.org>
-    Cc: Matthew Garrett <mjg59@srcf.ucam.org>
-    Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-    Signed-off-by: Ingo Molnar <mingo@elte.hu>
-
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index 91bb9a9..92a5426 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -83,6 +83,8 @@ int acpi_lapic;
- int acpi_ioapic;
- int acpi_strict;
- 
-+static int disable_irq0_through_ioapic __initdata;
-+
- u8 acpi_sci_flags __initdata;
- int acpi_sci_override_gsi __initdata;
- int acpi_skip_timer_override __initdata;
-@@ -992,6 +994,10 @@ void __init mp_override_legacy_irq(u8 bus_irq, u8 polarity, u8 trigger, u32 gsi)
- 	int pin;
- 	struct mp_config_intsrc mp_irq;
- 
-+	/* Skip the 8254 timer interrupt (IRQ 0) if requested.  */
-+	if (bus_irq == 0 && disable_irq0_through_ioapic)
-+		return;
-+
- 	/*
- 	 * Convert 'gsi' to 'ioapic.pin'.
- 	 */
-@@ -1058,6 +1064,10 @@ void __init mp_config_acpi_legacy_irqs(void)
- 	for (i = 0; i < 16; i++) {
- 		int idx;
- 
-+		/* Skip the 8254 timer interrupt (IRQ 0) if requested.  */
-+		if (i == 0 && disable_irq0_through_ioapic)
-+			continue;
-+
- 		for (idx = 0; idx < mp_irq_entries; idx++) {
- 			struct mp_config_intsrc *irq = mp_irqs + idx;
- 
