@@ -1,42 +1,78 @@
-From: Andi Kleen <andi@firstfloor.org>
-Subject: Re: [RFT] x86 acpi: normalize segment descriptor register on resume
-Date: Tue, 01 Jul 2008 15:01:55 +0200
-Message-ID: <486A2AC3.2060107@firstfloor.org>
-References: <200807010148.02135.rjw@sisk.pl> <20080701063133.GC16642@elte.hu> <4869D67B.4060902@zytor.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 6/8] PCI ACPI: Rework PCI handling of wake-up (rev. 3)
+Date: Tue, 1 Jul 2008 15:57:20 +0200
+Message-ID: <200807011557.21707.rjw@sisk.pl>
+References: <200806270022.24496.rjw@sisk.pl> <200806301219.02189.rjw@sisk.pl> <1214879200.31478.10.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from one.firstfloor.org ([213.235.205.2]:34659 "EHLO
-	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755772AbYGANCC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Jul 2008 09:02:02 -0400
-In-Reply-To: <4869D67B.4060902@zytor.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:58263 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752465AbYGANzZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 1 Jul 2008 09:55:25 -0400
+In-Reply-To: <1214879200.31478.10.camel@yakui_zhao.sh.intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>, "Rafael J. Wysocki" <rjw@sisk.pl>, kernel-testers@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Pavel Machek <pavel@ucw.cz>
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, Andi Kleen <andi@firstfloor.org>
 
+On Tuesday, 1 of July 2008, Zhao Yakui wrote:
+> On Mon, 2008-06-30 at 12:19 +0200, Rafael J. Wysocki wrote:
+> > On Monday, 30 of June 2008, Zhao Yakui wrote:
+> > > On Sat, 2008-06-28 at 02:40 +0200, Rafael J. Wysocki wrote:
+> > > > On Friday, 27 of June 2008, Rafael J. Wysocki wrote:
+> > > > > From: Rafael J. Wysocki <rjw@sisk.pl>
+> > 
+> > > > @@ -107,10 +113,15 @@ void acpi_disable_wakeup_device(u8 sleep
+> > > >  	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+> > > >  		struct acpi_device *dev =
+> > > >  		    container_of(node, struct acpi_device, wakeup_list);
+> > > > +		struct device *ldev;
+> > > > +		bool wakeup_enabled;
+> > > >  
+> > > >  		if (!dev->wakeup.flags.valid)
+> > > >  			continue;
+> > > > -		if (!dev->wakeup.state.enabled ||
+> > > > +		ldev = acpi_get_physical_device(dev->handle);
+> > > > +		wakeup_enabled = dev->wakeup.state.enabled ||
+> > > > +			(ldev ? device_may_wakeup(ldev) : false);
+> > > > +		if (!wakeup_enabled ||
+> > > >  		    sleep_state > (u32) dev->wakeup.sleep_state) {
+> > > >  			if (dev->wakeup.flags.run_wake) {
+> > > >  				spin_unlock(&acpi_device_lock);
+> > > It seems that the device_init_wakeup(dev,1) will be called in many
+> > > drivers regardless of userspace, which will enable the corresponding
+> > > GPE. Maybe some laptops will be resumed immediately from the sleeping
+> > > state.
+> > > 
+> > > Is it more reasonable that default state is set as "wake-up disabled" in
+> > > driver and userspace can change it from "disabled" to "enabled"?
+> > 
+> > Yes, it is, IMO.
+> > 
+> > One possible way to make it happen is to modify device_init_wakeup() so that
+> > it always clears power.should_wakeup.
+> > 
+> > Still, that may lead to functional "regressions", ie. if we do that, some
+> > people will have to manually write "enable" to /sys/devices/.../power/wakeup to
+> > make their usual wake-up devices work.
+> What you said is right. If the power.should_wakeup is clear in
+> device_init_wakeup, some people need to write "enable" so that the
+> device can wake up the sleeping system. 
+> But it can avoid that some system will be resumed immediately from the
+> sleeping state.
 
-> 
-> It still seems incredibly risky to push this for 2.6.26, especially
-> given the Elan revelation.
+I think I can override this issue by using the 'prepared' bit introduced in one
+of the previous patches to check whether the GPE should be enabled.
 
-Do Elans even support S3?
+While this won't solve the problem entirely, it will restrict it to the devices
+that call pci_enable_wake(dev, state, true).
 
->  I think it needs to be tested on the 2.6.27
-> track, and then possibly be pushed back via the 2.6.26-stable route.
+Please have a look at the next iteration of the patchset that I'm going to send
+later today.
 
-I'm just not sure how many suspend/resume cycles people really do
-on a early (pre -rc) mainline kernel (or in linux-next for that
-matter). You usually have to install on a laptop and actually
-use it.
-
-Since this code is only executed on resume some directed testing
-would be better. That is what Rafael asked for in this mail.
-
-I think it would be ok for .26 if we can get confirmation it works
-on a few systems with S3 suspend/resume.
-
--Andi
-
+Thanks,
+Rafael
