@@ -1,8 +1,8 @@
 From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: [PATCH 2/7] ACPI: thinkpad-acpi: consolidate wlsw
-	notification function
-Date: Tue,  1 Jul 2008 15:27:50 -0300
-Message-ID: <1214936875-4812-3-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 7/7] ACPI: thinkpad-acpi: don't misdetect
+	in get_thinkpad_model_data() on -ENOMEM
+Date: Tue,  1 Jul 2008 15:27:55 -0300
+Message-ID: <1214936875-4812-8-git-send-email-hmh@hmh.eng.br>
 References: <1214936875-4812-1-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,93 +22,112 @@ To: Andi Kleen <andi-Vw/NltI1exuRpAAqCnN02g@public.gmane.org>
 Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Rename tpacpi_input_send_radiosw() to tpacpi_send_radiosw_update(), and
-make it a central point to issue "radio switch changed state" notifications
-by consolidating also the poll() notification in the same function.
+Explicitly check for memory allocation failures, and return status to
+indicate that we could not collect data due to errors.
+
+This lets the driver have a far more predictable failure mode on ENOMEM in
+that codepath: it will refuse to load.  This is far better than trying to
+proceed with missing data which is used to detect quirks, etc.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
 ---
- drivers/misc/thinkpad_acpi.c |   39 +++++++++++++++++++--------------------
- 1 files changed, 19 insertions(+), 20 deletions(-)
+ drivers/misc/thinkpad_acpi.c |   47 +++++++++++++++++++++++++++++------------
+ 1 files changed, 33 insertions(+), 14 deletions(-)
 
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index c800855..9179f23 100644
+index 3eb01af..d3eb790 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -1285,21 +1285,6 @@ static int hotkey_status_set(int status)
- 	return 0;
+@@ -6340,13 +6340,18 @@ err_out:
+ 
+ /* Probing */
+ 
+-static void __init get_thinkpad_model_data(struct thinkpad_id_data *tp)
++/* returns 0 - probe ok, or < 0 - probe error.
++ * Probe ok doesn't mean thinkpad found.
++ * On error, kfree() cleanup on tp->* is not performed, caller must do it */
++static int __must_check __init get_thinkpad_model_data(
++						struct thinkpad_id_data *tp)
+ {
+ 	const struct dmi_device *dev = NULL;
+ 	char ec_fw_string[18];
++	char const *s;
+ 
+ 	if (!tp)
+-		return;
++		return -EINVAL;
+ 
+ 	memset(tp, 0, sizeof(*tp));
+ 
+@@ -6355,12 +6360,14 @@ static void __init get_thinkpad_model_data(struct thinkpad_id_data *tp)
+ 	else if (dmi_name_in_vendors("LENOVO"))
+ 		tp->vendor = PCI_VENDOR_ID_LENOVO;
+ 	else
+-		return;
++		return 0;
+ 
+-	tp->bios_version_str = kstrdup(dmi_get_system_info(DMI_BIOS_VERSION),
+-					GFP_KERNEL);
++	s = dmi_get_system_info(DMI_BIOS_VERSION);
++	tp->bios_version_str = kstrdup(s, GFP_KERNEL);
++	if (s && !tp->bios_version_str)
++		return -ENOMEM;
+ 	if (!tp->bios_version_str)
+-		return;
++		return 0;
+ 	tp->bios_model = tp->bios_version_str[0]
+ 			 | (tp->bios_version_str[1] << 8);
+ 
+@@ -6379,21 +6386,27 @@ static void __init get_thinkpad_model_data(struct thinkpad_id_data *tp)
+ 			ec_fw_string[strcspn(ec_fw_string, " ]")] = 0;
+ 
+ 			tp->ec_version_str = kstrdup(ec_fw_string, GFP_KERNEL);
++			if (!tp->ec_version_str)
++				return -ENOMEM;
+ 			tp->ec_model = ec_fw_string[0]
+ 					| (ec_fw_string[1] << 8);
+ 			break;
+ 		}
+ 	}
+ 
+-	tp->model_str = kstrdup(dmi_get_system_info(DMI_PRODUCT_VERSION),
+-					GFP_KERNEL);
+-	if (tp->model_str && strnicmp(tp->model_str, "ThinkPad", 8) != 0) {
+-		kfree(tp->model_str);
+-		tp->model_str = NULL;
++	s = dmi_get_system_info(DMI_PRODUCT_VERSION);
++	if (s && !strnicmp(s, "ThinkPad", 8)) {
++		tp->model_str = kstrdup(s, GFP_KERNEL);
++		if (!tp->model_str)
++			return -ENOMEM;
+ 	}
+ 
+-	tp->nummodel_str = kstrdup(dmi_get_system_info(DMI_PRODUCT_NAME),
+-					GFP_KERNEL);
++	s = dmi_get_system_info(DMI_PRODUCT_NAME);
++	tp->nummodel_str = kstrdup(s, GFP_KERNEL);
++	if (s && !tp->nummodel_str)
++		return -ENOMEM;
++
++	return 0;
  }
  
--static void tpacpi_input_send_radiosw(void)
--{
--	int wlsw;
--
--	if (tp_features.hotkey_wlsw && !hotkey_get_wlsw(&wlsw)) {
--		mutex_lock(&tpacpi_inputdev_send_mutex);
--
--		input_report_switch(tpacpi_inputdev,
--				    SW_RFKILL_ALL, !!wlsw);
--		input_sync(tpacpi_inputdev);
--
--		mutex_unlock(&tpacpi_inputdev_send_mutex);
--	}
--}
--
- static void tpacpi_input_send_tabletsw(void)
- {
- 	int state;
-@@ -1921,6 +1906,22 @@ static struct attribute *hotkey_mask_attributes[] __initdata = {
- 	&dev_attr_hotkey_wakeup_hotunplug_complete.attr,
- };
+ static int __init probe_for_thinkpad(void)
+@@ -6656,7 +6669,13 @@ static int __init thinkpad_acpi_module_init(void)
  
-+static void tpacpi_send_radiosw_update(void)
-+{
-+	int wlsw;
-+
-+	if (tp_features.hotkey_wlsw && !hotkey_get_wlsw(&wlsw)) {
-+		mutex_lock(&tpacpi_inputdev_send_mutex);
-+
-+		input_report_switch(tpacpi_inputdev,
-+				    SW_RFKILL_ALL, !!wlsw);
-+		input_sync(tpacpi_inputdev);
-+
-+		mutex_unlock(&tpacpi_inputdev_send_mutex);
+ 	/* Driver-level probe */
+ 
+-	get_thinkpad_model_data(&thinkpad_id);
++	ret = get_thinkpad_model_data(&thinkpad_id);
++	if (ret) {
++		printk(TPACPI_ERR
++			"unable to get DMI data: %d\n", ret);
++		thinkpad_acpi_module_exit();
++		return ret;
 +	}
-+	hotkey_radio_sw_notify_change();
-+}
-+
- static void hotkey_exit(void)
- {
- #ifdef CONFIG_THINKPAD_ACPI_HOTKEY_POLL
-@@ -2288,7 +2289,7 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
- 	tpacpi_inputdev->close = &hotkey_inputdev_close;
- 
- 	hotkey_poll_setup_safe(1);
--	tpacpi_input_send_radiosw();
-+	tpacpi_send_radiosw_update();
- 	tpacpi_input_send_tabletsw();
- 
- 	return 0;
-@@ -2420,8 +2421,7 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- 		case 7:
- 			/* 0x7000-0x7FFF: misc */
- 			if (tp_features.hotkey_wlsw && hkey == 0x7000) {
--				tpacpi_input_send_radiosw();
--				hotkey_radio_sw_notify_change();
-+				tpacpi_send_radiosw_update();
- 				send_acpi_ev = 0;
- 				break;
- 			}
-@@ -2464,8 +2464,7 @@ static void hotkey_resume(void)
- 		printk(TPACPI_ERR
- 		       "error while trying to read hot key mask "
- 		       "from firmware\n");
--	tpacpi_input_send_radiosw();
--	hotkey_radio_sw_notify_change();
-+	tpacpi_send_radiosw_update();
- 	hotkey_tablet_mode_notify_change();
- 	hotkey_wakeup_reason_notify_change();
- 	hotkey_wakeup_hotunplug_complete_notify_change();
+ 	ret = probe_for_thinkpad();
+ 	if (ret) {
+ 		thinkpad_acpi_module_exit();
 -- 
 1.5.5.4
 
