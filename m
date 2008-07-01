@@ -1,71 +1,82 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 2/9] ACPI: Introduce acpi_bus_power_manageable function
-Date: Wed, 2 Jul 2008 00:03:01 +0200
-Message-ID: <200807020003.02193.rjw@sisk.pl>
+Subject: [PATCH 1/9] PCI ACPI: Remove acpi_platform_enable_wakeup
+Date: Wed, 2 Jul 2008 00:00:11 +0200
+Message-ID: <200807020000.12964.rjw@sisk.pl>
 References: <200807012356.26669.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:60724 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:60718 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754493AbYGAWN5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 1 Jul 2008 18:13:57 -0400
+	id S1754070AbYGAWNz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 1 Jul 2008 18:13:55 -0400
 In-Reply-To: <200807012356.26669.rjw@sisk.pl>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Andi Kleen <andi@firstfloor.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, pm list <linux-pm@lists.linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, Zhao Yakui <yakui.zhao@intel.com>, Pavel Machek <pavel@suse.cz>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Andi Kleen <andi@firstfloor.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, pm list <linux-pm@lists.linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, Zhao Yakui <yakui.zhao@intel.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Tobias Diedrich <ranma@tdiedrich.de>, Jeff Garzik <jeff@garzik.org>
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-ACPI: Introduce acpi_bus_power_manageable function
+PCI ACPI: Remove acpi_platform_enable_wakeup
 
-Introduce function acpi_bus_power_manageable() allowing other
-(dependent) subsystems to check if ACPI is able to power manage given
-device.  This may be useful, for example, for PCI device power
-management.
+This patch removes "Fix forcedeth hibernate/wake-on-lan problems",
+commit f5ccbcfacaae57e3312e623432a79d5f1f079cf5 in linux-next,
+which is incorrect, because it directly manipulates the
+wakeup.state.enabled flags of ACPI devices while these flags are
+supposed to be used by the user space to control wake-up.  Moreover,
+it affects not only the device it is supposed to fix (forcedeth), but
+also every PCI device that happens to call
+device_init_wakeup(dev, 1).
+
+Apart from this, it has been pushed as a network driver fix, while it should
+have gone through either ACPI or PCI tree.  Also, the other patches in this
+series are intended to fix the issue it was supposed to fix, but in a more
+complete way.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@suse.cz>
 ---
- drivers/acpi/bus.c      |   11 +++++++++++
- include/acpi/acpi_bus.h |    1 +
- 2 files changed, 12 insertions(+)
+ drivers/pci/pci-acpi.c |   20 --------------------
+ 1 file changed, 20 deletions(-)
 
-Index: linux-next/drivers/acpi/bus.c
+Index: linux-next/drivers/pci/pci-acpi.c
 ===================================================================
---- linux-next.orig/drivers/acpi/bus.c
-+++ linux-next/drivers/acpi/bus.c
-@@ -295,6 +295,17 @@ int acpi_bus_set_power(acpi_handle handl
+--- linux-next.orig/drivers/pci/pci-acpi.c
++++ linux-next/drivers/pci/pci-acpi.c
+@@ -259,25 +259,6 @@ static pci_power_t acpi_pci_choose_state
+ 	}
+ 	return PCI_POWER_ERROR;
+ }
+-
+-static int acpi_platform_enable_wakeup(struct device *dev, int is_on)
+-{
+-	struct acpi_device	*adev;
+-	int			status;
+-
+-	if (!device_can_wakeup(dev))
+-		return -EINVAL;
+-
+-	if (is_on && !device_may_wakeup(dev))
+-		return -EINVAL;
+-
+-	status = acpi_bus_get_device(DEVICE_ACPI_HANDLE(dev), &adev);
+-	if (status < 0)
+-		return status;
+-
+-	adev->wakeup.state.enabled = !!is_on;
+-	return 0;
+-}
+ #endif
  
- EXPORT_SYMBOL(acpi_bus_set_power);
- 
-+bool acpi_bus_power_manageable(acpi_handle handle)
-+{
-+	struct acpi_device *device;
-+	int result;
-+
-+	result = acpi_bus_get_device(handle, &device);
-+	return result ? false : device->flags.power_manageable;
-+}
-+
-+EXPORT_SYMBOL(acpi_bus_power_manageable);
-+
- /* --------------------------------------------------------------------------
-                                 Event Management
-    -------------------------------------------------------------------------- */
-Index: linux-next/include/acpi/acpi_bus.h
-===================================================================
---- linux-next.orig/include/acpi/acpi_bus.h
-+++ linux-next/include/acpi/acpi_bus.h
-@@ -335,6 +335,7 @@ void acpi_bus_data_handler(acpi_handle h
- int acpi_bus_get_status(struct acpi_device *device);
- int acpi_bus_get_power(acpi_handle handle, int *state);
- int acpi_bus_set_power(acpi_handle handle, int state);
-+bool acpi_bus_power_manageable(acpi_handle handle);
- #ifdef CONFIG_ACPI_PROC_EVENT
- int acpi_bus_generate_proc_event(struct acpi_device *device, u8 type, int data);
- int acpi_bus_generate_proc_event4(const char *class, const char *bid, u8 type, int data);
+ static int acpi_pci_set_power_state(struct pci_dev *dev, pci_power_t state)
+@@ -362,7 +343,6 @@ static int __init acpi_pci_init(void)
+ 		return 0;
+ #ifdef	CONFIG_ACPI_SLEEP
+ 	platform_pci_choose_state = acpi_pci_choose_state;
+-	platform_enable_wakeup = acpi_platform_enable_wakeup;
+ #endif
+ 	platform_pci_set_power_state = acpi_pci_set_power_state;
+ 	return 0;
