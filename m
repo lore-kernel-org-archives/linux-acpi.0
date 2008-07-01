@@ -1,40 +1,45 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [RFT] x86 acpi: normalize segment descriptor register on resume
-Date: Tue, 01 Jul 2008 10:28:48 -0700
-Message-ID: <486A6950.6050507@zytor.com>
-References: <200807010148.02135.rjw@sisk.pl> <20080701063133.GC16642@elte.hu> <4869D67B.4060902@zytor.com> <486A2AC3.2060107@firstfloor.org> <486A5378.7020601@zytor.com> <486A5977.8020905@firstfloor.org>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: [PATCH -next] acpi utmisc.c: include bug.h
+Date: Tue, 1 Jul 2008 10:30:57 -0700
+Message-ID: <20080701103057.198c50be.randy.dunlap@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from terminus.zytor.com ([198.137.202.10]:45270 "EHLO
-	terminus.zytor.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751096AbYGAR3c (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Jul 2008 13:29:32 -0400
-In-Reply-To: <486A5977.8020905@firstfloor.org>
+Received: from agminet01.oracle.com ([141.146.126.228]:64612 "EHLO
+	agminet01.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751024AbYGARb2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Jul 2008 13:31:28 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>
-Cc: Ingo Molnar <mingo@elte.hu>, "Rafael J. Wysocki" <rjw@sisk.pl>, kernel-testers@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Pavel Machek <pavel@ucw.cz>
+To: andi@firstfloor.org, len.brown@intel.com
+Cc: linux-acpi@vger.kernel.org
 
-Andi Kleen wrote:
-> H. Peter Anvin wrote:
->> Andi Kleen wrote:
->>>> It still seems incredibly risky to push this for 2.6.26, especially
->>>> given the Elan revelation.
->>> Do Elans even support S3?
->> I don't know if they do, but I don't know offhand the extent of machines
->> that may have that problem, especially since Intel now document it as
->> "failures are readily seen".
-> 
-> What document is that exactly?
-> 
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Per Jeremy's recent email, volume 3a, section 8.9.1:
+acpi utmisc.c needs to include bug.h:
 
->    Random failures can occur if other instructions exist between steps
->    3 and 4 above.  Failures will be readily seen in some situations,
->    such as when instructions that reference memory are inserted between
->    steps 3 and 4 while in system management mode. 
+linux-next-20080701/drivers/acpi/utilities/utmisc.c: In function 'acpi_ut_error':
+linux-next-20080701/drivers/acpi/utilities/utmisc.c:1028: error: implicit declaration of function 'warn_on_slowpath'
 
-	-hpa
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+---
+ drivers/acpi/utilities/utmisc.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+--- linux-next-20080701.orig/drivers/acpi/utilities/utmisc.c
++++ linux-next-20080701/drivers/acpi/utilities/utmisc.c
+@@ -42,6 +42,7 @@
+  */
+ 
+ #include <linux/module.h>
++#include <asm-generic/bug.h>
+ 
+ #include <acpi/acpi.h>
+ #include <acpi/acnamesp.h>
+
+
+---
+~Randy
+Linux Plumbers Conference, 17-19 September 2008, Portland, Oregon USA
+http://linuxplumbersconf.org/
