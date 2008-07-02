@@ -1,66 +1,68 @@
-From: "Justin Mattock" <justinmattock@gmail.com>
-Subject: Re: dsdt buggy acpi
-Date: Wed, 2 Jul 2008 17:37:56 +0000
-Message-ID: <dd18b0c30807021037g3faffa6kd1ef26f888f36d11@mail.gmail.com>
-References: <dd18b0c30806302339q7b3effybf8a7f619b009262@mail.gmail.com>
-	 <200807011619.53339.rjw@sisk.pl>
-	 <dd18b0c30807010918p48cfbe2bnb7e4a2bf00a01638@mail.gmail.com>
-	 <20080702082555.0959ef2b@linux360.ro>
-	 <20080702100935.GA699@srcf.ucam.org>
-	 <20080702144820.29f7d43d@linux360.ro>
-	 <20080702115527.GA3396@srcf.ucam.org>
-	 <dd18b0c30807020930u43405fd5v2e328b6b76b833b0@mail.gmail.com>
-	 <20080702163510.GA8912@srcf.ucam.org>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: [PATCH -next] acpi utmisc: use WARN_ON() instead of
+ warn_on_slowpath()
+Date: Wed, 2 Jul 2008 11:28:52 -0700
+Message-ID: <20080702112852.05f30950.randy.dunlap@oracle.com>
+References: <20080701103339.b5acc1f3.randy.dunlap@oracle.com>
+	<20080701131714.5093fa49.akpm@linux-foundation.org>
+	<23433248.1214943818230.JavaMail.oracle@acsmt302.oracle.com>
+	<20080701133535.f92a673c.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.246]:28721 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751862AbYGBRh6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Jul 2008 13:37:58 -0400
-Received: by an-out-0708.google.com with SMTP id d40so90585and.103
-        for <linux-acpi@vger.kernel.org>; Wed, 02 Jul 2008 10:37:57 -0700 (PDT)
-In-Reply-To: <20080702163510.GA8912@srcf.ucam.org>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <20080701133535.f92a673c.akpm@linux-foundation.org>
+Sender: linux-next-owner@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: andi@firstfloor.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-next@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Eduard - Gabriel Munteanu <eduard.munteanu@linux360.ro>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Wed, Jul 2, 2008 at 4:35 PM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
-> On Wed, Jul 02, 2008 at 04:30:11PM +0000, Justin Mattock wrote:
->
->> Hello; what info is supplied with EFI i.g. I'm using a macbook pro.
->> After looking at:
->> http://acpi.sourceforge.net/dsdt/view.php I was unable to locate
->> anything with apple, or at least
->> couldn't find the manufacture number.
->> If somebody has already done this, I was wondering if it would be O.K.
->> if I can attached my dsdt.dsl with the errors,
->> and my explanation of what I changed, just so If I did something
->> completely wrong
->
-> iasl will complain about code that the Linux interpreter will happily
-> accept. If the only reason you've made changes is that iasl complains,
-> then it's unlikely that there's any functional difference as a result.
-> Otherwise, work out which changes fix which Linux bugs and file a bug
-> at bugzilla.kernel.org against acpi.
->
-> --
-> Matthew Garrett | mjg59@srcf.ucam.org
->
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Hello; I modified dsdt because iasl was complaining, As a result like
-what you said
-"then it's unlikely that there's any functional difference as a
-result" is probably
-what I'm seeing. As for a bug report I already have one filed. As to
-why I'm messing with
-the dsdt, just trying to isolate the problem with the bug I have
-already filed., or at least
-get a better idea of what is happening. Anyways thanks for the info.
-regards;
+utmisc.c needs to include asm-generic/bug.h for warn()/WARN() functions,
+but it should use WARN_ON() instead of warn_on_slowpath() since
+arches can provide their own implementation of WARN_ON(), which does
+not have to use/provide/implement warn_on_slowpath() at all.
+Just use the front door (WARN_ON).
 
--- 
-Justin P. Mattock
+linux-next-20080702/drivers/acpi/utilities/utmisc.c:1027: error: implicit declaration of function 'warn_on_slowpath'
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+---
+ drivers/acpi/utilities/utmisc.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+--- linux-next-20080702.orig/drivers/acpi/utilities/utmisc.c
++++ linux-next-20080702/drivers/acpi/utilities/utmisc.c
+@@ -42,6 +42,7 @@
+  */
+ 
+ #include <linux/module.h>
++#include <asm-generic/bug.h>
+ 
+ #include <acpi/acpi.h>
+ #include <acpi/acnamesp.h>
+@@ -1024,7 +1025,7 @@ acpi_ut_error(const char *module_name, u
+ {
+ 	va_list args;
+ 
+-	warn_on_slowpath(module_name, line_number);
++	WARN_ON(1);
+ 	acpi_os_printf("ACPI Error (%s-%04d): ", module_name, line_number);
+ 
+ 	va_start(args, format);
+@@ -1039,7 +1040,7 @@ acpi_ut_exception(const char *module_nam
+ {
+ 	va_list args;
+ 
+-	warn_on_slowpath(module_name, line_number);
++	WARN_ON(1);
+ 	acpi_os_printf("ACPI Exception (%s-%04d): %s, ", module_name,
+ 		       line_number, acpi_format_exception(status));
+ 
+
+
+---
+~Randy
+Linux Plumbers Conference, 17-19 September 2008, Portland, Oregon USA
+http://linuxplumbersconf.org/
