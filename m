@@ -1,57 +1,36 @@
-From: Tejun Heo <htejun@gmail.com>
-Subject: Re: 2.6.25 to 2.6.26-rc8 regression  (related to ahci and acpi _GTF)
-Date: Wed, 02 Jul 2008 11:55:37 +0900
-Message-ID: <486AEE29.2010506@gmail.com>
-References: <4869FB3C.4060509@crans.org> <200807011614.21491.rjw@sisk.pl>
+From: Eduard - Gabriel Munteanu <eduard.munteanu@linux360.ro>
+Subject: Re: dsdt buggy acpi
+Date: Wed, 2 Jul 2008 08:25:55 +0300
+Message-ID: <20080702082555.0959ef2b@linux360.ro>
+References: <dd18b0c30806302339q7b3effybf8a7f619b009262@mail.gmail.com>
+	<200807011619.53339.rjw@sisk.pl>
+	<dd18b0c30807010918p48cfbe2bnb7e4a2bf00a01638@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.171]:40664 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758874AbYGBCz6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Jul 2008 22:55:58 -0400
-Received: by wf-out-1314.google.com with SMTP id 27so173992wfd.4
-        for <linux-acpi@vger.kernel.org>; Tue, 01 Jul 2008 19:55:58 -0700 (PDT)
-In-Reply-To: <200807011614.21491.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1762286AbYGBF0t@vger.kernel.org>
+In-Reply-To: <dd18b0c30807010918p48cfbe2bnb7e4a2bf00a01638@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Justin Mattock <justinmattock@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-kernel@vger.kernel.org, =?ISO-8859-15?Q?Mathieu_B=E9rard?= <Mathieu.Berard@crans.org>, linux-ide@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Andi Kleen <andi@firstfloor.org>, Jeff Garzik <jeff@garzik.org>
 
-Rafael J. Wysocki wrote:
-> [Adding CCs.]
->=20
-> On Tuesday, 1 of July 2008, Mathieu B=E9rard wrote:
->> Hi,
->> I have a laptop with an ICH6M SATA Controller and a Hitachi hard dri=
-ve.
->> While it worked well using the ahci module and Linux 2.6.25,=20
->> it get randomly 'stuck' for several seconds to several minutes with =
-2.6.26-rc8.
->> Successive errors progressively reduce the ATA link speed.
->>
->> Passing the libata.noacpi parameter is an effective workaround.
->>
->> Please note that it's not the first time i have this kind of issue, =
-see:
->> http://marc.info/?l=3Dlinux-ide&m=3D117305595312399&w=3D2
->> This was found to be a bad interaction between my _GTF taskfile, whi=
-ch enable the
->> "Enable Device-Initiated Interface Power State Transitions" feature,=
- and NCQ.
->> The driver was later NCQ blacklisted to correct the problem.
+On Tue, 1 Jul 2008 16:18:45 +0000
+"Justin Mattock" <justinmattock@gmail.com> wrote:
 
-Can you please post the result of "hdparm -I /dev/sda" and full kernel
-boot log?  0xca is not a NCQ command so the it's not related to NCQ at
-all.  It seems we'll need to filter out DIPM commands from _GTF.
+> Cool; thanks.
+> I'll check that out and see where and how I can locate the dsdt
+> manufacture number,  then see if I can fix the broken dsdt error and
+> apply this to the kernel and see what happens.
+> regards;
 
-Thanks.
+Just one note here: DSDTs have nothing to do with the kernel. This is
+just broken firmware. The most one can do _in-kernel_ is blacklist some
+functionality or create a workaround, but this only happens for widely
+used stuff. Broken DSDTs aren't widely used stuff, they are written by
+the machine's vendor (the laptop's manufacturer for example, but this
+could be different for desktops) and differ a lot from one machine to
+another.
 
---=20
-tejun
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+	Eduard
