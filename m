@@ -1,45 +1,70 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] Panasonic Let's Note laptop extras driver
-Date: Wed, 2 Jul 2008 14:17:59 +0100
-Message-ID: <20080702131759.GA5419@srcf.ucam.org>
-References: <20080702090044.GB12272@prithivi.gnumonks.org> <20080702101919.GB699@srcf.ucam.org> <20080702130315.GA4064@prithivi.gnumonks.org>
+From: "Justin Mattock" <justinmattock@gmail.com>
+Subject: Re: dsdt buggy acpi
+Date: Wed, 2 Jul 2008 16:30:11 +0000
+Message-ID: <dd18b0c30807020930u43405fd5v2e328b6b76b833b0@mail.gmail.com>
+References: <dd18b0c30806302339q7b3effybf8a7f619b009262@mail.gmail.com>
+	 <200807011619.53339.rjw@sisk.pl>
+	 <dd18b0c30807010918p48cfbe2bnb7e4a2bf00a01638@mail.gmail.com>
+	 <20080702082555.0959ef2b@linux360.ro>
+	 <20080702100935.GA699@srcf.ucam.org>
+	 <20080702144820.29f7d43d@linux360.ro>
+	 <20080702115527.GA3396@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:42843 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753548AbYGBNSF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Jul 2008 09:18:05 -0400
+Received: from an-out-0708.google.com ([209.85.132.248]:10153 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754845AbYGBQaN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Jul 2008 12:30:13 -0400
+Received: by an-out-0708.google.com with SMTP id d40so85438and.103
+        for <linux-acpi@vger.kernel.org>; Wed, 02 Jul 2008 09:30:12 -0700 (PDT)
+In-Reply-To: <20080702115527.GA3396@srcf.ucam.org>
 Content-Disposition: inline
-In-Reply-To: <20080702130315.GA4064@prithivi.gnumonks.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Harald Welte <laforge@gnumonks.org>
-Cc: linux-acpi@vger.kernel.org, Hiroshi Miura <miura@da-cha.org>, hadi@cyberus.ca
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Eduard - Gabriel Munteanu <eduard.munteanu@linux360.ro>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Wed, Jul 02, 2008 at 09:03:15PM +0800, Harald Welte wrote:
-> Hi Matthew,
-> > 
-> > Hm. Does this mean that the keymap isn't changable at runtime?
-> 
-> i wasn't aware that those kind of keymaps could be changeable at
-> runtime.  Will read up on my homework ;)
+On Wed, Jul 2, 2008 at 11:55 AM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
+> On Wed, Jul 02, 2008 at 02:48:20PM +0300, Eduard - Gabriel Munteanu wrote:
+>> On Wed, 2 Jul 2008 11:09:35 +0100
+>> Matthew Garrett <mjg59@srcf.ucam.org> wrote:
+>> > We've made a huge number of workarounds for buggy DSDT
+>> > implementations.
+>>
+>> Of course, I myself used a custom DSDT for my laptop. But I was saying
+>> that these workarounds generally do not belong to the kernel realm.
+>
+> Of course they do. Nothing else is going to fix them up.
+>
+>> This isn't the regular "Pentium F00F bug" stuff; instead bugs in DSDTs
+>> consist of compiling issues, non-standard compliant, plainly bad
+>> code, Windows-only stuff, which can all be unique for every model of a
+>> laptop for example. While the kernel may be able to get around some of
+>> that stuff, the kernel won't have any Asus, Acer etc. specific
+>> workarounds.
+>
+> Windows doesn't have any Asus/Acer/whatever workarounds either. We just
+> need to be compatible with the Windows implementation. There's a
+> minority of cases where that isn't good enough, but almost every DSDT
+> issue can (and should) be handled by Linux if the machine works under
+> Windows.
+>
+> --
+> Matthew Garrett | mjg59@srcf.ucam.org
+>
 
-Especially when you have a case where there's a scancode that isn't 
-mapped to anything by default, it's helpful to let it be changed at 
-runtime. I usually just copy the code from wistron_btns whenever I'm 
-implementing this.
-
-> > And shouldn't be adding any new files to /proc. Anything that can't be 
-> > expressed via the existing generic sysfs classes should be an attribute 
-> > on a sysfs platform device.
-> 
-> that's what I generally know from other drivers (and how I do it in
-> other kernel code).  But I wasn't sure what the policy with regard to
-> this was for ACPI.
-
-The long-term goal is to kill off /proc/acpi entirely, so adding new 
-things is kind of frowned upon :)
-
+Hello; what info is supplied with EFI i.g. I'm using a macbook pro.
+After looking at:
+http://acpi.sourceforge.net/dsdt/view.php I was unable to locate
+anything with apple, or at least
+couldn't find the manufacture number.
+If somebody has already done this, I was wondering if it would be O.K.
+if I can attached my dsdt.dsl with the errors,
+and my explanation of what I changed, just so If I did something
+completely wrong
+I can  adjust it, So I can feel at ease knowing that it's correct.
+regards;
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Justin P. Mattock
