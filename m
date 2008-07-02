@@ -1,57 +1,49 @@
-From: David Howells <dhowells@redhat.com>
-Subject: [PATCH] Fix a cast of a 32-bit int to a pointer in ACPI
-Date: Wed, 02 Jul 2008 12:21:46 +0100
-Message-ID: <20080702112146.5332.53087.stgit@warthog.procyon.org.uk>
+From: Eduard - Gabriel Munteanu <eduard.munteanu@linux360.ro>
+Subject: Re: dsdt buggy acpi
+Date: Wed, 2 Jul 2008 14:48:20 +0300
+Message-ID: <20080702144820.29f7d43d@linux360.ro>
+References: <dd18b0c30806302339q7b3effybf8a7f619b009262@mail.gmail.com>
+	<200807011619.53339.rjw@sisk.pl>
+	<dd18b0c30807010918p48cfbe2bnb7e4a2bf00a01638@mail.gmail.com>
+	<20080702082555.0959ef2b@linux360.ro>
+	<20080702100935.GA699@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([66.187.233.31]:37238 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755501AbYGBLVy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 2 Jul 2008 07:21:54 -0400
+Received: from [194.117.236.238] ([194.117.236.238]:37616 "EHLO
+	heracles.linux360.ro" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1759066AbYGBLtZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Jul 2008 07:49:25 -0400
+In-Reply-To: <20080702100935.GA699@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: robert.moore@intel.com, ming.m.lin@intel.com, len.brown@intel.com, ak@linux.intel.com
-Cc: linux-acpi@vger.kernel.org, dhowells@redhat.com
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Justin Mattock <justinmattock@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-Fix a cast of a 32-bit int to a pointer in ACPI to avoid a compiler warning.
+On Wed, 2 Jul 2008 11:09:35 +0100
+Matthew Garrett <mjg59@srcf.ucam.org> wrote:
 
-This problem was introduced by the following patch:
+> On Wed, Jul 02, 2008 at 08:25:55AM +0300, Eduard - Gabriel Munteanu
+> wrote:
+> 
+> > Just one note here: DSDTs have nothing to do with the kernel. This
+> > is just broken firmware. The most one can do _in-kernel_ is
+> > blacklist some functionality or create a workaround, but this only
+> > happens for widely used stuff. Broken DSDTs aren't widely used
+> > stuff, they are written by the machine's vendor (the laptop's
+> > manufacturer for example, but this could be different for desktops)
+> > and differ a lot from one machine to another.
+> 
+> We've made a huge number of workarounds for buggy DSDT
+> implementations.
 
-	commit 1f3ee987b56d6354cdbbe8faa90079886a464b9c
-	Author: Bob Moore <robert.moore@intel.com>
-	Date:   Tue Jun 10 13:42:13 2008 +0800
+Of course, I myself used a custom DSDT for my laptop. But I was saying
+that these workarounds generally do not belong to the kernel realm.
 
-	    ACPICA: Eliminate acpi_native_uint type
-
-	    No longer needed; replaced mostly with u32, but also acpi_size
-	    where a type that changes 32/64 bit on 32/64-bit platforms is
-	    required.
-
-	    Signed-off-by: Bob Moore <robert.moore@intel.com>
-	    Signed-off-by: Lin Ming <ming.m.lin@intel.com>
-	    Signed-off-by: Len Brown <len.brown@intel.com>
-
-Signed-off-by: David Howells <dhowells@redhat.com>
----
-
- drivers/acpi/executer/exconfig.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
-
-
-diff --git a/drivers/acpi/executer/exconfig.c b/drivers/acpi/executer/exconfig.c
-index b8ee161..4f7edce 100644
---- a/drivers/acpi/executer/exconfig.c
-+++ b/drivers/acpi/executer/exconfig.c
-@@ -96,7 +96,8 @@ acpi_ex_add_table(u32 table_index,
- 
- 	/* Install the new table into the local data structures */
- 
--	obj_desc->reference.object = ACPI_CAST_PTR(void, table_index);
-+	obj_desc->reference.object =
-+		ACPI_CAST_PTR(void, (unsigned long) table_index);
- 
- 	/* Add the table to the namespace */
- 
-
+This isn't the regular "Pentium F00F bug" stuff; instead bugs in DSDTs
+consist of compiling issues, non-standard compliant, plainly bad
+code, Windows-only stuff, which can all be unique for every model of a
+laptop for example. While the kernel may be able to get around some of
+that stuff, the kernel won't have any Asus, Acer etc. specific
+workarounds.
