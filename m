@@ -1,52 +1,33 @@
-From: Andi Kleen <andi@firstfloor.org>
-Subject: Re: linux-next: Tree for June 13: IO APIC breakage on HP nx6325
-Date: Wed, 02 Jul 2008 11:35:22 +0200
-Message-ID: <486B4BDA.4060203@firstfloor.org>
-References: <20080613232214.394fd6fd.sfr@canb.auug.org.au> <200806300106.38414.rjw@sisk.pl> <Pine.LNX.4.55.0806300205180.22548@cliff.in.clinika.pl> <200806301241.57781.rjw@sisk.pl> <Pine.LNX.4.55.0807020223140.6284@cliff.in.clinika.pl>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: dsdt buggy acpi
+Date: Wed, 2 Jul 2008 11:09:35 +0100
+Message-ID: <20080702100935.GA699@srcf.ucam.org>
+References: <dd18b0c30806302339q7b3effybf8a7f619b009262@mail.gmail.com> <200807011619.53339.rjw@sisk.pl> <dd18b0c30807010918p48cfbe2bnb7e4a2bf00a01638@mail.gmail.com> <20080702082555.0959ef2b@linux360.ro>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from one.firstfloor.org ([213.235.205.2]:34613 "EHLO
-	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752612AbYGBJf1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Jul 2008 05:35:27 -0400
-In-Reply-To: <Pine.LNX.4.55.0807020223140.6284@cliff.in.clinika.pl>
+Received: from cavan.codon.org.uk ([93.93.128.6]:48212 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1763201AbYGBKJk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Jul 2008 06:09:40 -0400
+Content-Disposition: inline
+In-Reply-To: <20080702082555.0959ef2b@linux360.ro>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Maciej W. Rozycki" <macro@linux-mips.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Ingo Molnar <mingo@elte.hu>, Matthew Garrett <mjg59@srcf.ucam.org>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Andi Kleen <andi-suse@firstfloor.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
+To: Eduard - Gabriel Munteanu <eduard.munteanu@linux360.ro>
+Cc: Justin Mattock <justinmattock@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-Maciej W. Rozycki wrote:
-> On Mon, 30 Jun 2008, Rafael J. Wysocki wrote:
-> 
->> Well, there are lots of pieces of hardware that are not up to the
->> specifications, more or less, and I don't think that's a good enough reason
->> for us to refuse to support them.  The same applies to BIOSes IMO.
-> 
->  Refusing to support broken hardware would provide some incentive to
-> manufacturers to improve it, because people would rather not buy
-> unsupported pieces of junk. 
+On Wed, Jul 02, 2008 at 08:25:55AM +0300, Eduard - Gabriel Munteanu wrote:
 
-For most consumer level hardware the vendors generally don't
-really care if Linux runs on it or not.
+> Just one note here: DSDTs have nothing to do with the kernel. This is
+> just broken firmware. The most one can do _in-kernel_ is blacklist some
+> functionality or create a workaround, but this only happens for widely
+> used stuff. Broken DSDTs aren't widely used stuff, they are written by
+> the machine's vendor (the laptop's manufacturer for example, but this
+> could be different for desktops) and differ a lot from one machine to
+> another.
 
-Also they very rarely fix anything after release anyways because
-they don't make enough money on it.
+We've made a huge number of workarounds for buggy DSDT implementations.
 
-For server hardware that is different (vendors care about Linux,
-but typically not about mainline, but about given RHEL/SLES  releases),
-but even there we generally try to work around BIOS bugs
-(at least as long as it is possible)
-because it tends to be quite difficult logistically to require
-a BIOS update. In the end it just hurts the user.
-
-> I realise that may be impractical though 
-
-It is.
-
-> we would get the blame anyway, because "it runs the other OS just fine."
-
-That is exactly what happens.
-
--Andi
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
