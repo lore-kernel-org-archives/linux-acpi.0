@@ -1,54 +1,57 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: [patch 5/5] x86 PCI: use dev_printk when possible
-Date: Tue, 1 Jul 2008 18:57:41 -0700
-Message-ID: <200807011857.42384.jbarnes@virtuousgeek.org>
-References: <20080613165209.507694130@ldl.fc.hp.com> <20080613165304.842091464@ldl.fc.hp.com> <20080630165737.2f9735f0.akpm@linux-foundation.org>
+From: Tejun Heo <htejun@gmail.com>
+Subject: Re: 2.6.25 to 2.6.26-rc8 regression  (related to ahci and acpi _GTF)
+Date: Wed, 02 Jul 2008 11:55:37 +0900
+Message-ID: <486AEE29.2010506@gmail.com>
+References: <4869FB3C.4060509@crans.org> <200807011614.21491.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outbound-mail-135.bluehost.com ([67.222.39.25]:46867 "HELO
-	outbound-mail-135.bluehost.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1758134AbYGBB6E (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Jul 2008 21:58:04 -0400
-In-Reply-To: <20080630165737.2f9735f0.akpm@linux-foundation.org>
-Content-Disposition: inline
+Received: from wf-out-1314.google.com ([209.85.200.171]:40664 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758874AbYGBCz6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Jul 2008 22:55:58 -0400
+Received: by wf-out-1314.google.com with SMTP id 27so173992wfd.4
+        for <linux-acpi@vger.kernel.org>; Tue, 01 Jul 2008 19:55:58 -0700 (PDT)
+In-Reply-To: <200807011614.21491.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, lenb@kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-kernel@vger.kernel.org, =?ISO-8859-15?Q?Mathieu_B=E9rard?= <Mathieu.Berard@crans.org>, linux-ide@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Andi Kleen <andi@firstfloor.org>, Jeff Garzik <jeff@garzik.org>
 
-On Monday, June 30, 2008 4:57 pm Andrew Morton wrote:
-> On Fri, 13 Jun 2008 10:52:14 -0600
->
-> Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
-> > I converted DBG() to dev_dbg().  This DBG() is from arch/x86/pci/pci.h
-> > and requires source-code modification to enable, so dev_dbg() seems
-> > roughly equivalent.
-> >
-> > The printks in arch/x86/pci/irq.c were a little hairy, with lines
-> > printed in several pieces.  I straightened it out a little, but
-> > another set of eyes would be good.
-> >
-> > Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> >
-> > ---
-> >  arch/x86/pci/fixup.c |    3 +
-> >  arch/x86/pci/i386.c  |   26 ++++++--------
-> >  arch/x86/pci/irq.c   |   91
-> > ++++++++++++++++++++++----------------------------- arch/x86/pci/numa.c 
-> > |    5 +-
->
-> Got a bunch of rejects in arch/x86/pci/irq.c due to pending whitespace
-> fixes.  I fixed a couple of them but then I got bored, so the
-> conversion in there is only partial.
->
-> Please prefer to raise patches against linux-next if poss, especially
-> during late -rc's.
+Rafael J. Wysocki wrote:
+> [Adding CCs.]
+>=20
+> On Tuesday, 1 of July 2008, Mathieu B=E9rard wrote:
+>> Hi,
+>> I have a laptop with an ICH6M SATA Controller and a Hitachi hard dri=
+ve.
+>> While it worked well using the ahci module and Linux 2.6.25,=20
+>> it get randomly 'stuck' for several seconds to several minutes with =
+2.6.26-rc8.
+>> Successive errors progressively reduce the ATA link speed.
+>>
+>> Passing the libata.noacpi parameter is an effective workaround.
+>>
+>> Please note that it's not the first time i have this kind of issue, =
+see:
+>> http://marc.info/?l=3Dlinux-ide&m=3D117305595312399&w=3D2
+>> This was found to be a bad interaction between my _GTF taskfile, whi=
+ch enable the
+>> "Enable Device-Initiated Interface Power State Transitions" feature,=
+ and NCQ.
+>> The driver was later NCQ blacklisted to correct the problem.
 
-Yeah, the x86 tree(s) move too fast for me to keep up with.  The change seems 
-worthwhile though, maybe Ingo or one of the x86 team could just search & 
-replace?
+Can you please post the result of "hdparm -I /dev/sda" and full kernel
+boot log?  0xca is not a NCQ command so the it's not related to NCQ at
+all.  It seems we'll need to filter out DIPM commands from _GTF.
 
-Jesse
+Thanks.
+
+--=20
+tejun
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
