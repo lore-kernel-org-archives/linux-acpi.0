@@ -1,32 +1,41 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH 1/2] cleanup e820_setup_gap v2
-Date: Thu, 3 Jul 2008 14:52:27 +0200
-Message-ID: <20080703125227.GA14082@elte.hu>
-References: <1214333310.27577.26.camel@promb-2n-dhcp368.eng.vmware.com> <20080625160817.GC24967@elte.hu> <1214416962.27577.74.camel@promb-2n-dhcp368.eng.vmware.com> <86802c440806261101k78c5057id8ca0649188bd132@mail.gmail.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH 1/1] ACPI: compal-laptop: use rfkill switch subsystem
+Date: Thu, 3 Jul 2008 09:54:28 -0300
+Message-ID: <20080703125428.GE17823@khazad-dum.debian.net>
+References: <20080702214524.2ba4a001@debian> <20080703021433.GC20410@khazad-dum.debian.net> <20080703070528.2f0603a5@debian>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.mail.elte.hu ([157.181.151.9]:34601 "EHLO mx2.mail.elte.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753507AbYGCMww (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 3 Jul 2008 08:52:52 -0400
+Received: from out3.smtp.messagingengine.com ([66.111.4.27]:60916 "EHLO
+	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753340AbYGCMyc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Jul 2008 08:54:32 -0400
 Content-Disposition: inline
-In-Reply-To: <86802c440806261101k78c5057id8ca0649188bd132@mail.gmail.com>
+In-Reply-To: <20080703070528.2f0603a5@debian>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yhlu.kernel@gmail.com>
-Cc: akataria@vmware.com, "lenb@kernel.org" <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, the arch/x86 maintainers <x86@kernel.org>
+To: Cezary Jackiewicz <cezary.jackiewicz@gmail.com>
+Cc: linux-netdev@vger.kernel.org, Ivo van Doorn <ivdoorn@gmail.com>, linux-acpi@vger.kernel.org
 
-
-* Yinghai Lu <yhlu.kernel@gmail.com> wrote:
-
-> > e820_search_gap also take a end_addr parameter to limit search from 
-> > start_addr to end_addr.
-> >
-> > Signed-off-by: AloK N Kataria <akataria@vmware.com>
+On Thu, 03 Jul 2008, Cezary Jackiewicz wrote:
+> Dnia 2008-07-02, o godz. 23:14:33
+> Henrique de Moraes Holschuh <hmh@hmh.eng.br> napisa?(a):
+> > BTW, it is a good idea to Cc linux-wireless on rfkill patches, and you
+> > *really* should be CCing the rfkill maintainer on any patches dealing with
+> > rfkill IMHO.  That way, you get more reviews, rfkill isn't (unfortunately)
+> > easy to use.
 > 
-> Acked-by: Yinghai Lu <yhlu.kernel@gmail.com>
+> Is there any reason why rfkill_unregister switches off radio rather than 
+> leaving it in the current status?
 
-applied to tip/x86/unify-setup - thanks!
+Probably the same reason why backlight powers off the backlight, etc.  We
+basically try to power down and secure what we can when we are going out and
+locking the door ;-)
 
-	Ingo
+Ivo?
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
