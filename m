@@ -1,108 +1,156 @@
-From: Jiri Slaby <jirislaby@gmail.com>
-Subject: Re: WARNING at acpi/.../utmisc.c:1043 [Was: 2.6.26-rc8-mm1]
-Date: Thu, 03 Jul 2008 17:24:36 +0200
-Message-ID: <486CEF34.4000702@gmail.com>
-References: <20080703020236.adaa51fa.akpm@linux-foundation.org> <486CE1A7.4030009@gmail.com> <486CE46C.6040700@linux.intel.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: [PATCH 1/2] ACPI Video: Ignore devices that aren't present in hardware
+Date: Thu, 3 Jul 2008 18:05:51 +0200
+Message-ID: <200807031805.52883.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.29]:22147 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751359AbYGCPZK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Jul 2008 11:25:10 -0400
-Received: by yx-out-2324.google.com with SMTP id 8so269343yxm.1
-        for <linux-acpi@vger.kernel.org>; Thu, 03 Jul 2008 08:25:09 -0700 (PDT)
-In-Reply-To: <486CE46C.6040700@linux.intel.com>
+Received: from mail.suse.de ([195.135.220.2]:45658 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750869AbYGCQF4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 3 Jul 2008 12:05:56 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <ak@linux.intel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+To: ak@linux.intel.com
+Cc: linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>, linux-next@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Julia Jomantaite <julia.jomantaite@gmail.com>, marcus@better.se, dannybaumann@web.de, corsac@debian.org
 
-Andi Kleen napsal(a):
-> Jiri Slaby wrote:
->> Andrew Morton napsal(a):
->>> ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.26-rc8/2.6.26-rc8-mm1/ 
->>>
->>
->> Running this in qemu shows up these 3 warnings while booting (It's 
->> tainted due to previous MTRR warning which was there for ever):
->>
->> PCI: Using configuration type 1 for base access
->> ------------[ cut here ]------------
->> WARNING: at /home/latest/xxx/drivers/acpi/utilities/utmisc.c:1043 
-> 
-> Not sure where that is coming from. My tree and my copy of linux-next
-> doesn't have a WARN_ON in this function.
+Can these two go to linux-next or -mm, pls.
+If they got some testing, maybe it's even possible to still queue them
+for 2.6.27?
 
-It's from
-acpi-utmisc-use-warn_on-instead-of-warn_on_slowpath.patch
+Be aware that they depend on a patch that got queued up for 2.6.27 in
+the ACPI tree:
+Subject: fix brightness allocation
+By: Julia Jomantaite <julia.jomantaite@gmail.com>
 
-> Anyways, I assume you always saw this message right?
+Both are compile tested.
 
-Yes (almost, see below), I've checked this now.
 
->> ACPI Exception (evxface-0645): AE_BAD_PARAMETER, Installing notify 
->> handler failed [20080609]
->> ACPI: Interpreter enabled
-> 
-> And the only thing new is the backtrace right?
+Before I adjusted them a bit to Julia's patch and reordered the functions a 
+bit I tested them on a Lenovo T61 with an internal Intel Graphics card with 
+IGD BIOS support and a T61 with a Nvidida card.
+In both cases the correct ACPI graphics device is used and brightness worked 
+out of the box.
 
-In the two cases. The thermal one is new:
+---
+ACPI: video: Ignore devices that aren't present in hardware
 
-  processor ACPI0007:00: registered as cooling_device0
--thermal LNXTHERM:01: registered as thermal_zone0
--ACPI: Critical trip point
--Critical temperature reached (60 C), shutting down.
--ACPI: Thermal Zone [THRM] (60 C)
-+------------[ cut here ]------------
-+WARNING: at /home/latest/xxx/drivers/acpi/utilities/utmisc.c:1043 
-acpi_ut_exception+0x3c/0xb9()
-+Modules linked in:
-+Pid: 1, comm: swapper Tainted: G       AW 2.6.26-rc8-mm1-nohz #9
+This is a reimplemention of commit
+0119509c4fbc9adcef1472817fda295334612976
+from Matthew Garrett <mjg59@srcf.ucam.org>
+
+This patch got removed because of a regression: ThinkPads with a
+Intel graphics card and an Integrated Graphics Device BIOS implementation
+stopped working.
+In fact, they only worked because the wrong ACPI device  
+was used (via int10). So ACPI functions were poking on the wrong
+hardware which is a sever bug.
+The next patch provides support for above ThinkPads to be able to
+switch brightness via the legacy thinkpad_acpi driver and automatically
+detect when to use it.
+
+Original commit message from Matthew Garrett:
+    Vendors often ship machines with a choice of integrated or discrete
+    graphics, and use the same DSDT for both. As a result, the ACPI video
+    module will locate devices that may not exist on this specific platform.
+    Attempt to determine whether the device exists or not, and abort the
+    device creation if it doesn't.
+
+http://bugzilla.kernel.org/show_bug.cgi?id=9614
+
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+---
+ drivers/acpi/glue.c     |   40 ++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/video.c    |    7 ++++++-
+ include/acpi/acpi_bus.h |    2 ++
+ 3 files changed, 48 insertions(+), 1 deletion(-)
+
+Index: linux-2.6.25/drivers/acpi/glue.c
+===================================================================
+--- linux-2.6.25.orig/drivers/acpi/glue.c
++++ linux-2.6.25/drivers/acpi/glue.c
+@@ -140,6 +140,46 @@ struct device *acpi_get_physical_device(
+ 
+ EXPORT_SYMBOL(acpi_get_physical_device);
+ 
++/* ToDo: When a PCI bridge is found, return the PCI device behind the bridge
++ *       This should work in general, but did not on a Lenovo T61 for the
++ *	 graphics card. But this must be fixed when the PCI device is
++ *       bound and the kernel device struct is attached to the acpi device
++ * Note: A success call will increase reference count by one
++ *       Do call put_device(dev) on the returned device then
++ */
++struct device *acpi_get_physical_pci_device(acpi_handle handle)
++{
++	struct device *dev;
++	long device_id;
++	acpi_status status;
 +
-+Call Trace:
-+ [<ffffffff8023c2df>] warn_on_slowpath+0x5f/0x90
-+ [<ffffffff80257a74>] ? up+0x34/0x50
-+ [<ffffffff803576d6>] ? acpi_os_release_object+0x9/0xd
-+ [<ffffffff8036f92c>] ? acpi_ut_delete_object_desc+0x48/0x4c
-+ [<ffffffff8036f103>] ? acpi_ut_delete_internal_obj+0x167/0x16f
-+ [<ffffffff8036f162>] ? acpi_ut_update_ref_count+0x57/0xa3
-+ [<ffffffff8036f2a5>] ? acpi_ut_update_object_reference+0xf7/0x153
-+ [<ffffffff8036e24e>] acpi_ut_exception+0x3c/0xb9
-+ [<ffffffff80357912>] ? acpi_os_signal_semaphore+0x23/0x27
-+ [<ffffffff8036719c>] ? acpi_evaluate_object+0x1ea/0x1fe
-+ [<ffffffff8036f103>] ? acpi_ut_delete_internal_obj+0x167/0x16f
-+ [<ffffffff803582e2>] ? acpi_evaluate_integer+0xbf/0xd1
-+ [<ffffffff8037cbb6>] acpi_thermal_trips_update+0x6a/0x56c
-+ [<ffffffff8036719c>] ? acpi_evaluate_object+0x1ea/0x1fe
-+ [<ffffffff802fe7c0>] ? sysfs_ilookup_test+0x0/0x20
-+ [<ffffffff8052b27e>] ? _spin_unlock+0x2e/0x40
-+ [<ffffffff803582e2>] ? acpi_evaluate_integer+0xbf/0xd1
-+ [<ffffffff8037d9e8>] acpi_thermal_add+0x3cf/0x43e
-+ [<ffffffff80372312>] acpi_device_probe+0x49/0x8c
-+ [<ffffffff803b2892>] driver_probe_device+0xa2/0x1e0
-+ [<ffffffff803b2a5b>] __driver_attach+0x8b/0x90
-+ [<ffffffff803b29d0>] ? __driver_attach+0x0/0x90
-+ [<ffffffff803b204b>] bus_for_each_dev+0x6b/0xa0
-+ [<ffffffff80339dca>] ? kobject_get+0x1a/0x30
-+ [<ffffffff803b26dc>] driver_attach+0x1c/0x20
-+ [<ffffffff803b18d8>] bus_add_driver+0x208/0x280
-+ [<ffffffff8071032f>] ? acpi_thermal_init+0x0/0x83
-+ [<ffffffff803b2c40>] driver_register+0x70/0x160
-+ [<ffffffff8071032f>] ? acpi_thermal_init+0x0/0x83
-+ [<ffffffff8037264a>] acpi_bus_register_driver+0x3e/0x40
-+ [<ffffffff80710390>] acpi_thermal_init+0x61/0x83
-+ [<ffffffff806f95b7>] do_one_initcall+0x35/0x15d
-+ [<ffffffff802719f8>] ? register_irq_proc+0xe8/0x110
-+ [<ffffffff802f0000>] ? __inode_dir_notify+0x30/0xf0
-+ [<ffffffff806f987a>] kernel_init+0x19b/0x1a6
-+ [<ffffffff802396f7>] ? schedule_tail+0x27/0x60
-+ [<ffffffff8020c788>] child_rip+0xa/0x12
-+ [<ffffffff806f96df>] ? kernel_init+0x0/0x1a6
-+ [<ffffffff8020c77e>] ? child_rip+0x0/0x12
++	status =
++		acpi_evaluate_integer(handle, "_ADR", NULL, &device_id);
 +
-+---[ end trace 4eaa2a86a8e2da22 ]---
-+ACPI Exception (thermal-0377): AE_OK, No or invalid critical threshold 
-[20080609]
-  Real Time Clock Driver v1.12ac
++	if (ACPI_FAILURE(status))
++		return NULL;
++
++	/* We need to attempt to determine whether the _ADR refers to a
++	   PCI device or not. There's no terribly good way to do this,
++	   so the best we can hope for is to assume that there'll never
++	   be a device in the host bridge */
++	if (device_id >= 0x10000) {
++		/* It looks like a PCI device. Does it exist? */
++		dev = acpi_get_physical_device(handle);
++	} else {
++		/* It doesn't look like a PCI device. Does its parent
++		   exist? */
++		acpi_handle phandle;
++		if (acpi_get_parent(handle, &phandle))
++			return NULL;
++		dev = acpi_get_physical_device(phandle);
++	}
++	if (!dev)
++		return NULL;
++	return dev;
++}
++EXPORT_SYMBOL(acpi_get_physical_pci_device);
++
+ static int acpi_bind_one(struct device *dev, acpi_handle handle)
+ {
+ 	struct acpi_device *acpi_dev;
+Index: linux-2.6.25/drivers/acpi/video.c
+===================================================================
+--- linux-2.6.25.orig/drivers/acpi/video.c
++++ linux-2.6.25/drivers/acpi/video.c
+@@ -833,11 +833,16 @@ static void acpi_video_bus_find_cap(stru
+ static int acpi_video_bus_check(struct acpi_video_bus *video)
+ {
+ 	acpi_status status = -ENOENT;
+-
++	struct device *dev;
+ 
+ 	if (!video)
+ 		return -EINVAL;
+ 
++	dev = acpi_get_physical_pci_device(video->device->handle);
++	if (!dev)
++		return -ENODEV;
++	put_device(dev);
++
+ 	/* Since there is no HID, CID and so on for VGA driver, we have
+ 	 * to check well known required nodes.
+ 	 */
+Index: linux-2.6.25/include/acpi/acpi_bus.h
+===================================================================
+--- linux-2.6.25.orig/include/acpi/acpi_bus.h
++++ linux-2.6.25/include/acpi/acpi_bus.h
+@@ -370,6 +370,8 @@ struct acpi_bus_type {
+ int register_acpi_bus_type(struct acpi_bus_type *);
+ int unregister_acpi_bus_type(struct acpi_bus_type *);
+ struct device *acpi_get_physical_device(acpi_handle);
++struct device *acpi_get_physical_pci_device(acpi_handle);
++
+ /* helper */
+ acpi_handle acpi_get_child(acpi_handle, acpi_integer);
+ acpi_handle acpi_get_pci_rootbridge_handle(unsigned int, unsigned int);
