@@ -1,28 +1,41 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 2/2] ACPI Check for backlight support via ACPI video.ko otherwise use vendor ACPI drivers
-Date: Thu, 3 Jul 2008 17:21:52 +0100
-Message-ID: <20080703162152.GC29110@srcf.ucam.org>
-References: <200807031809.03172.trenn@suse.de>
+From: Yves-Alexis Perez <corsac@debian.org>
+Subject: Re: [PATCH 1/2] ACPI Video: Ignore devices that aren't present in
+	hardware
+Date: Thu, 3 Jul 2008 18:21:34 +0200
+Message-ID: <20080703162134.GI6755@corsac.net>
+References: <200807031805.52883.trenn@suse.de> <20080703160822.GA29110@srcf.ucam.org> <200807031815.13291.trenn@suse.de> <20080703161643.GB29110@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-next-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <200807031809.03172.trenn@suse.de>
+In-Reply-To: <20080703161643.GB29110@srcf.ucam.org>
 Sender: linux-next-owner@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: ak@linux.intel.com, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, malattia@linux.it, stelian@popies.net, linux-next@vger.kernel.org, Corentin CHARY <corentincj@iksaif.net>, Lennart Poettering <mzxreary@0pointer.de>, Julia Jomantaite <julia.jomantaite@gmail.com>, corsac@debian.org, dannybaumann@web.de, marcus@better.se, Zhang Rui <rui.zhang@intel.com>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Thomas Renninger <trenn@suse.de>, ak@linux.intel.com, linux-acpi@vger.kernel.org, linux-next@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Julia Jomantaite <julia.jomantaite@gmail.com>, marcus@better.se, dannybaumann@web.de
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Jul 03, 2008 at 06:08:59PM +0200, Thomas Renninger wrote:
+On Thu, Jul 03, 2008 at 05:16:43PM +0100, Matthew Garrett wrote:
+> > Try the next patch, it works for the T61.
+> > These IGD parts could take quite a while still, while Toshibas and others
+> > remain broken (and T61 poke on wrong hardware which could cause
+> > all kind of badness).
+> 
+> The code's written and works, it just has a 750ms latency for reasons I 
+> don't understand.
 
-> +	if (ACPI_SUCCESS(acpi_get_handle(device->handle, "DRDY", &h_dummy))) {
-> +		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found IGD device\n"));
-> +		video_caps |= ACPI_VIDEO_IGD;
-> +	}
+I dont know if it's the same thing, but I remember at one time that when
+pressing my brightness keys (on a T61, intel graphics), the acpi event
+appeared in /proc/acpi/event like 1 second later. I didn't check
+precisely, but it could really be those 750ms. Irrc, this was only
+happening after first suspend to ram.
 
-In principle, it's possible for a vendor to implement opregion but not 
-actually use it until the tche flags are set. If anyone's done that then 
-you've just broken backlight control on their system.
+Do these patches mean that, maybe in 2.6.27, brightness keys would work
+directly from kernel, without needing hal, gnome-power-manager or
+anything else, like X?
 
+I can try those patches and report back, but on which kernel should I
+apply them? 2.6.26-rc8? Or some git?
+
+Cheers,
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Yves-Alexis
