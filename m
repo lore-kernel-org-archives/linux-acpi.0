@@ -1,41 +1,70 @@
-From: Yves-Alexis Perez <corsac@debian.org>
-Subject: Re: [PATCH 1/2] ACPI Video: Ignore devices that aren't present in
-	hardware
-Date: Thu, 3 Jul 2008 18:21:34 +0200
-Message-ID: <20080703162134.GI6755@corsac.net>
-References: <200807031805.52883.trenn@suse.de> <20080703160822.GA29110@srcf.ucam.org> <200807031815.13291.trenn@suse.de> <20080703161643.GB29110@srcf.ucam.org>
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: [PATCH] Panasonic Let's Note laptop extras driver
+Date: Fri, 4 Jul 2008 00:52:19 +0800
+Message-ID: <20080703165219.GE4172@prithivi.gnumonks.org>
+References: <20080702090044.GB12272@prithivi.gnumonks.org> <20080702101919.GB699@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-next-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="4Epv4kl9IRBfg3rk"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ganesha.gnumonks.org ([213.95.27.120]:53840 "EHLO
+	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751714AbYGCRAS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Jul 2008 13:00:18 -0400
 Content-Disposition: inline
-In-Reply-To: <20080703161643.GB29110@srcf.ucam.org>
-Sender: linux-next-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Thomas Renninger <trenn@suse.de>, ak@linux.intel.com, linux-acpi@vger.kernel.org, linux-next@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Julia Jomantaite <julia.jomantaite@gmail.com>, marcus@better.se, dannybaumann@web.de
+In-Reply-To: <20080702101919.GB699@srcf.ucam.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-acpi@vger.kernel.org, Hiroshi Miura <miura@da-cha.org>, hadi@cyberus.ca
 
-On Thu, Jul 03, 2008 at 05:16:43PM +0100, Matthew Garrett wrote:
-> > Try the next patch, it works for the T61.
-> > These IGD parts could take quite a while still, while Toshibas and others
-> > remain broken (and T61 poke on wrong hardware which could cause
-> > all kind of badness).
-> 
-> The code's written and works, it just has a 750ms latency for reasons I 
-> don't understand.
 
-I dont know if it's the same thing, but I remember at one time that when
-pressing my brightness keys (on a T61, intel graphics), the acpi event
-appeared in /proc/acpi/event like 1 second later. I didn't check
-precisely, but it could really be those 750ms. Irrc, this was only
-happening after first suspend to ram.
+--4Epv4kl9IRBfg3rk
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Do these patches mean that, maybe in 2.6.27, brightness keys would work
-directly from kernel, without needing hal, gnome-power-manager or
-anything else, like X?
+On Wed, Jul 02, 2008 at 11:19:19AM +0100, Matthew Garrett wrote:
 
-I can try those patches and report back, but on which kernel should I
-apply them? 2.6.26-rc8? Or some git?
+> > +		if (acpi_pcc_hotkey_get_key(hotkey)) {
+> > +			/* generate event like '"pcc HKEY 00000080 00000084"'
+> > +			 * when Fn+F4 pressed */
+>=20
+> Probably better not to add further events to /proc now - we'd like to=20
+> deprecate the interface.
 
-Cheers,
--- 
-Yves-Alexis
+the userspace scripts that acpid ships already support those events.  So
+if the kernel driver provides events in this way, the brightness changes
+will work out-of-the-box.
+
+So I vote for keeping those events in the driver - just as long as there
+is no new standard mechanism for signalling brightness up/down button
+events to userspace.
+
+I was pondering to emulate the events that the "video" acpi class
+driver sends to userspace.  But that also doesn't really seems right the
+correct solution.
+
+--=20
+- Harald Welte <laforge@gnumonks.org>           http://laforge.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+"Privacy in residential applications is a desirable marketing option."
+                                                  (ETSI EN 300 175-7 Ch. A6)
+
+--4Epv4kl9IRBfg3rk
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iD8DBQFIbQPDXaXGVTD0i/8RArpPAJ9m4j3e8cJ4h52SVMitKaY1OFeTLgCgnyYx
+i4bEa+r3hVQjEIDY2VYQIg8=
+=cx8A
+-----END PGP SIGNATURE-----
+
+--4Epv4kl9IRBfg3rk--
