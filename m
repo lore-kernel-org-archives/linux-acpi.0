@@ -1,57 +1,32 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Handling of suspend/hibernation patches
-Date: Thu, 3 Jul 2008 23:18:40 +0200
-Message-ID: <200807032318.41446.rjw@sisk.pl>
-References: <200807032247.34049.rjw@sisk.pl> <20080703140154.18876f5a.akpm@linux-foundation.org>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH 2/2] ACPI Check for backlight support via ACPI video.ko otherwise use vendor ACPI drivers
+Date: Thu, 3 Jul 2008 23:29:27 +0100
+Message-ID: <20080703222927.GA2701@srcf.ucam.org>
+References: <200807031809.03172.trenn@suse.de> <20080703162152.GC29110@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:44063 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752953AbYGCVRD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 3 Jul 2008 17:17:03 -0400
-In-Reply-To: <20080703140154.18876f5a.akpm@linux-foundation.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-next-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20080703162152.GC29110@srcf.ucam.org>
+Sender: linux-next-owner@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: ak@linux.intel.com, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, malattia@linux.it, stelian@popies.net, linux-next@vger.kernel.org, Corentin CHARY <corentincj@iksaif.net>, Lennart Poettering <mzxreary@0pointer.de>, Julia Jomantaite <julia.jomantaite@gmail.com>, corsac@debian.org, dannybaumann@web.de, marcus@better.se, Zhang Rui <rui.zhang@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu, andi@firstfloor.org, greg@kroah.com, jbarnes@virtuousgeek.org, lenb@kernel.org, torvalds@linux-foundation.org, linux-pm@lists.linux-foundation.org, sfr@canb.auug.org.au, pavel@suse.cz, mingo@elte.hu
 
-On Thursday, 3 of July 2008, Andrew Morton wrote:
-> On Thu, 3 Jul 2008 22:47:32 +0200
-> "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+On Thu, Jul 03, 2008 at 05:21:52PM +0100, Matthew Garrett wrote:
+> On Thu, Jul 03, 2008 at 06:08:59PM +0200, Thomas Renninger wrote:
 > 
-> > Hi,
-> > 
-> > Recently, we've had some problems with the handling of suspend/hibernation
-> > patches, because they tend to touch multiple subsystems at a time.  As a
-> > result, it usually is not clear which tree they should be included in and at
-> > the moment there are suspend/hibernation patches in the PCI, ACPI, x86
-> > trees, as well as in -mm.  Of course the resulting dependencies between those
-> > trees are a pain to Stephen and their maintainers.
-> > 
-> > After the last Kernel Summit we tried to create a branch in the ACPI tree for
-> > suspend/hibernation patches (thanks Len!) and that had worked quite well until
-> > we started to work on the core device power management.  This coincided with
-> > the creation of linux-next and collecting suspend/hibernation patches in the
-> > ACPI tree became inconvenient.
-> > 
-> > Now, we could go back to the old way of handling suspend/hibernation patches,
-> > which was to merge them through -mm, but the disadvantage of this would be that
-> > the patches wouldn't go through linux-next.  However, I'd like
-> > suspend/hibernation patches to be included in linux-next, so that they can get
-> > as much testing as possible.
+> > +	if (ACPI_SUCCESS(acpi_get_handle(device->handle, "DRDY", &h_dummy))) {
+> > +		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found IGD device\n"));
+> > +		video_caps |= ACPI_VIDEO_IGD;
+> > +	}
 > 
-> I need to get butt into gear and get most-of-mm into linux-next.  I'll
-> be picking that up when 2.6.27-rc1 is done.
-> 
-> So we can just keep this tree in -mm (and hence linux-next) if you like.
+> In principle, it's possible for a vendor to implement opregion but not 
+> actually use it until the tche flags are set. If anyone's done that then 
+> you've just broken backlight control on their system.
 
-Well, that will save me quite a bit patch management work. :-)
+I've just had it confirmed that recent Panasonics behave this way. I 
+suspect the same's true of many 965 systems.
 
-Let's keep that in -mm, then.
-
-Thanks,
-Rafael
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
