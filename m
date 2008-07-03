@@ -1,41 +1,50 @@
-From: Robert Hancock <hancockr@shaw.ca>
-Subject: Re: [PATCH 2/2] acpi: Disable IRQ 0 through I/O APIC for some HP
- systems
-Date: Wed, 02 Jul 2008 23:44:09 -0600
-Message-ID: <486C6729.4020903@shaw.ca>
-References: <fa.OuKI5CNmq3HqeBQCfWOUtrq4+oA@ifi.uio.no>
+From: Cezary Jackiewicz <cezary.jackiewicz@gmail.com>
+Subject: Re: [PATCH 1/1] ACPI: compal-laptop: use rfkill switch subsystem
+Date: Thu, 3 Jul 2008 06:48:18 +0200
+Message-ID: <20080703064818.35ee2532@debian>
+References: <20080702214524.2ba4a001@debian>
+	<20080703021433.GC20410@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-next-owner@vger.kernel.org>
-In-reply-to: <fa.OuKI5CNmq3HqeBQCfWOUtrq4+oA@ifi.uio.no>
-Sender: linux-next-owner@vger.kernel.org
-To: "Maciej W. Rozycki" <macro@linux-mips.org>
-Cc: Ingo Molnar <mingo@elte.hu>, Matthew Garrett <mjg59@srcf.ucam.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-next@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fg-out-1718.google.com ([72.14.220.159]:45180 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752260AbYGCEsZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Jul 2008 00:48:25 -0400
+Received: by fg-out-1718.google.com with SMTP id 19so258363fgg.17
+        for <linux-acpi@vger.kernel.org>; Wed, 02 Jul 2008 21:48:23 -0700 (PDT)
+In-Reply-To: <20080703021433.GC20410@khazad-dum.debian.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: ak@linux.intel.com, Len Brown <lenb@kernel.org>, Richard Purdie <rpurdie@rpsys.net>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 
-Maciej W. Rozycki wrote:
-> From: Matthew Garrett <mjg59@srcf.ucam.org>
-> 
->  Some HP laptops have a problem with their DSDT reporting as
-> HP/SB400/10000, which includes some code which overrides all temperature
-> trip points to 16C if the INTIN2 input of the I/O APIC is enabled.  This
-> input is incorrectly designated the ISA IRQ 0 via an interrupt source
-> override even though it is wired to the output of the master 8259A and
-> INTIN0 is not connected at all.  So far two models have been identified, 
-> namely nx6125 and nx6325.
-> 
->  Use a knob provided by the I/O APIC interrupt registration code to
-> abandon any attempts to route IRQ 0 through the I/O APIC for these
-> systems.
+Dnia 2008-07-02, o godz. 23:14:33
+Henrique de Moraes Holschuh <hmh@hmh.eng.br> napisa=B3(a):
 
-Just a thought.. has anyone recently looked into using the RTC timer 
-instead of the PIT as the default clockevent source? There still seem to 
-be systems like these seeping through with broken PIT through IOAPIC 
-since Windows apparently doesn't use that config at all. If we could use 
-the RTC instead (which is apparently what Windows does) we could avoid 
-that problem.
+[...]
+> That doesn't look like a new-style (i.e. what is in net-next-2.6) rfk=
+ill
+> support.  Could you take a look on the new (and I sure hope, vastly
+> improved) Documentation/rfkill.txt in net-next-2.6, and switch the dr=
+iver to
+> RFKILL_STATE_UNBLOCKED, RFKILL_STATE_SOFT_BLOCKED, etc?  After a quic=
+k look,
+> it looks like Compal won't need RFKILL_STATE_HARD_BLOCKED  (thinkpad-=
+acpi
+> does, because some thinkpads have a master wireless kill switch), but
+> still...
 
-The last I read on the subject, the issue was that the RTC timer 
-frequencies didn't match the existing Linux HZ values, but I'm not sure 
-if that's still an issue with the current clockevents infrastructure..
+Compal has hardware wireless kill switch (without software it kill all =
+radios
+rf and disconnecting bluetooth from usb bus). Does he should generate
+SW_RFKILL_ALL or something like this?
+
+--=20
+ Cezary Jackiewicz
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
