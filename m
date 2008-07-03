@@ -1,30 +1,61 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] Panasonic Let's Note laptop extras driver
-Date: Thu, 3 Jul 2008 18:08:57 +0100
-Message-ID: <20080703170857.GA30135@srcf.ucam.org>
-References: <20080702090044.GB12272@prithivi.gnumonks.org> <20080702101919.GB699@srcf.ucam.org> <20080703165219.GE4172@prithivi.gnumonks.org>
+From: Alok Kataria <akataria@vmware.com>
+Subject: Re: [PATCH 1/2] cleanup e820_setup_gap v2
+Date: Thu, 03 Jul 2008 10:10:12 -0700
+Message-ID: <1215105012.20655.2.camel@promb-2n-dhcp368.eng.vmware.com>
+References: <1214333310.27577.26.camel@promb-2n-dhcp368.eng.vmware.com>
+	 <20080625160817.GC24967@elte.hu>
+	 <1214416962.27577.74.camel@promb-2n-dhcp368.eng.vmware.com>
+	 <86802c440806261101k78c5057id8ca0649188bd132@mail.gmail.com>
+	 <20080703125227.GA14082@elte.hu>  <20080703130035.GA23060@elte.hu>
+Reply-To: akataria@vmware.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:46184 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752608AbYGCRJB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Jul 2008 13:09:01 -0400
-Content-Disposition: inline
-In-Reply-To: <20080703165219.GE4172@prithivi.gnumonks.org>
+Received: from smtp-outbound-1.vmware.com ([65.113.40.141]:50502 "EHLO
+	smtp-outbound-1.vmware.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752771AbYGCRKP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Jul 2008 13:10:15 -0400
+In-Reply-To: <20080703130035.GA23060@elte.hu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Harald Welte <laforge@gnumonks.org>
-Cc: linux-acpi@vger.kernel.org, Hiroshi Miura <miura@da-cha.org>, hadi@cyberus.ca
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Yinghai Lu <yhlu.kernel@gmail.com>, "lenb@kernel.org" <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, the arch/x86 maintainers <x86@kernel.org>
 
-On Fri, Jul 04, 2008 at 12:52:19AM +0800, Harald Welte wrote:
+On Thu, 2008-07-03 at 06:00 -0700, Ingo Molnar wrote:
+> * Ingo Molnar <mingo@elte.hu> wrote:
+> 
+> > > > e820_search_gap also take a end_addr parameter to limit search
+> > > > from start_addr to end_addr.
+> > > >
+> > > > Signed-off-by: AloK N Kataria <akataria@vmware.com>
+> > >
+> > > Acked-by: Yinghai Lu <yhlu.kernel@gmail.com>
+> >
+> > applied to tip/x86/unify-setup - thanks!
+> 
+> hm, it doesnt work too well:
+> 
+>   arch/x86/pci/acpi.c: In function 'search_gap':
+>   arch/x86/pci/acpi.c:130: error: too few arguments to function 'e820_search_gap'
+> 
+> was i supposed to revert:
+> 
+> | commit 2c0262493239814b06a8aaabd1cf09b2f8fa3519
+> | Author: Alok Kataria <akataria@vmware.com>
+> | Date:   Tue Jun 24 11:48:46 2008 -0700
+> |
+> |    acpi based pci gap caluculation v2
+> 
+> ?
 
-> So I vote for keeping those events in the driver - just as long as there
-> is no new standard mechanism for signalling brightness up/down button
-> events to userspace.
+No...I had sent a incremental patch to the above patch..
+http://marc.info/?l=linux-kernel&m=121441818818598&w=2
 
-There is - they should just be sent as KEY_BRIGHTNESSUP and 
-KEY_BRIGHTNESSDOWN.
+Please apply this one too.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Thanks,
+Alok
+> 
+>         Ingo
+
