@@ -1,40 +1,38 @@
 From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] Panasonic Let's Note laptop extras driver v0.93
-Date: Thu, 3 Jul 2008 20:23:03 +0100
-Message-ID: <20080703192303.GA32260@srcf.ucam.org>
-References: <20080702090044.GB12272@prithivi.gnumonks.org> <20080703173542.GA5118@prithivi.gnumonks.org>
+Subject: Re: [PATCH 1/2] ACPI Video: Ignore devices that aren't present in hardware
+Date: Thu, 3 Jul 2008 20:24:05 +0100
+Message-ID: <20080703192405.GB32260@srcf.ucam.org>
+References: <200807031805.52883.trenn@suse.de> <20080703160822.GA29110@srcf.ucam.org> <200807031815.13291.trenn@suse.de> <20080703161643.GB29110@srcf.ucam.org> <20080703162134.GI6755@corsac.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:54515 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752145AbYGCTXH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Jul 2008 15:23:07 -0400
+Return-path: <linux-next-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20080703173542.GA5118@prithivi.gnumonks.org>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20080703162134.GI6755@corsac.net>
+Sender: linux-next-owner@vger.kernel.org
+To: Yves-Alexis Perez <corsac@debian.org>
+Cc: Thomas Renninger <trenn@suse.de>, ak@linux.intel.com, linux-acpi@vger.kernel.org, linux-next@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Julia Jomantaite <julia.jomantaite@gmail.com>, marcus@better.se, dannybaumann@web.de
 List-Id: linux-acpi@vger.kernel.org
-To: Harald Welte <laforge@gnumonks.org>
-Cc: linux-acpi@vger.kernel.org, Hiroshi Miura <miura@da-cha.org>
 
-On Fri, Jul 04, 2008 at 01:35:42AM +0800, Harald Welte wrote:
-> +
-> +static int pcc_setkeycode(struct input_dev *dev, int scancode, int keycode)
-> +{
-> +	struct pcc_acpi *pcc = input_get_drvdata(dev);
-> +
-> +	if (scancode > ARRAY_SIZE(pcc->keymap))
-> +		return -EINVAL;
-> +
-> +	if (keycode < 0 || keycode > KEY_MAX)
-> +		return -EINVAL;
-> +
-> +	pcc->keymap[scancode] = keycode;
+On Thu, Jul 03, 2008 at 06:21:34PM +0200, Yves-Alexis Perez wrote:
 
-You probably want to set_bit the input device here, and also clean up 
-any now-unused keycodes from there. I'd also suggest sending KEY_PROG1 
-by default on the CPU throttle button - some users will find it easier 
-if it already generates a keycode. Other than that, looks good.
+> I dont know if it's the same thing, but I remember at one time that when
+> pressing my brightness keys (on a T61, intel graphics), the acpi event
+> appeared in /proc/acpi/event like 1 second later. I didn't check
+> precisely, but it could really be those 750ms. Irrc, this was only
+> happening after first suspend to ram.
+
+Yes, it's the same issue.
+
+> Do these patches mean that, maybe in 2.6.27, brightness keys would work
+> directly from kernel, without needing hal, gnome-power-manager or
+> anything else, like X?
+
+Right.
+
+> I can try those patches and report back, but on which kernel should I
+> apply them? 2.6.26-rc8? Or some git?
+
+It's against drm git - search the dri-devel archives for the patch.
 
 -- 
 Matthew Garrett | mjg59@srcf.ucam.org
