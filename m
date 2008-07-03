@@ -1,49 +1,43 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH 1/1] ACPI: compal-laptop: use rfkill switch subsystem
-Date: Thu, 3 Jul 2008 09:52:06 -0300
-Message-ID: <20080703125206.GD17823@khazad-dum.debian.net>
-References: <20080702214524.2ba4a001@debian> <20080703021433.GC20410@khazad-dum.debian.net> <20080703064818.35ee2532@debian>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [PATCH 1/2] cleanup e820_setup_gap v2
+Date: Thu, 3 Jul 2008 15:00:35 +0200
+Message-ID: <20080703130035.GA23060@elte.hu>
+References: <1214333310.27577.26.camel@promb-2n-dhcp368.eng.vmware.com> <20080625160817.GC24967@elte.hu> <1214416962.27577.74.camel@promb-2n-dhcp368.eng.vmware.com> <86802c440806261101k78c5057id8ca0649188bd132@mail.gmail.com> <20080703125227.GA14082@elte.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out3.smtp.messagingengine.com ([66.111.4.27]:47768 "EHLO
-	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752790AbYGCMwL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Jul 2008 08:52:11 -0400
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1761551AbYGCNBV@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20080703064818.35ee2532@debian>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20080703125227.GA14082@elte.hu>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: akataria@vmware.com, "lenb@kernel.org" <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, the arch/x86 maintainers <x86@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Cezary Jackiewicz <cezary.jackiewicz@gmail.com>
-Cc: ak@linux.intel.com, Len Brown <lenb@kernel.org>, Richard Purdie <rpurdie@rpsys.net>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 
-On Thu, 03 Jul 2008, Cezary Jackiewicz wrote:
-> Dnia 2008-07-02, o godz. 23:14:33
-> Henrique de Moraes Holschuh <hmh@hmh.eng.br> napisa?(a):
+
+* Ingo Molnar <mingo@elte.hu> wrote:
+
+> > > e820_search_gap also take a end_addr parameter to limit search 
+> > > from start_addr to end_addr.
+> > >
+> > > Signed-off-by: AloK N Kataria <akataria@vmware.com>
+> > 
+> > Acked-by: Yinghai Lu <yhlu.kernel@gmail.com>
 > 
-> [...]
-> > That doesn't look like a new-style (i.e. what is in net-next-2.6) rfkill
-> > support.  Could you take a look on the new (and I sure hope, vastly
-> > improved) Documentation/rfkill.txt in net-next-2.6, and switch the driver to
-> > RFKILL_STATE_UNBLOCKED, RFKILL_STATE_SOFT_BLOCKED, etc?  After a quick look,
-> > it looks like Compal won't need RFKILL_STATE_HARD_BLOCKED  (thinkpad-acpi
-> > does, because some thinkpads have a master wireless kill switch), but
-> > still...
-> 
-> Compal has hardware wireless kill switch (without software it kill all radios
-> rf and disconnecting bluetooth from usb bus). Does he should generate
-> SW_RFKILL_ALL or something like this?
+> applied to tip/x86/unify-setup - thanks!
 
-Look at the thinkpad-acpi code.  I don't know for sure if Compal's
-firmware/hardware acts like the thinkpad one, but if it does, you will find
-your answer on thinkpad-acpi since what you describe is pretty much what a
-thinkpad does.
+hm, it doesnt work too well:
 
-So, yes, usually master wireless switches like what you describe for Compal
-are input devices (see the new rfkill docs), and issue SW_RFKILL_ALL events.
+  arch/x86/pci/acpi.c: In function 'search_gap':
+  arch/x86/pci/acpi.c:130: error: too few arguments to function 'e820_search_gap'
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+was i supposed to revert:
+
+| commit 2c0262493239814b06a8aaabd1cf09b2f8fa3519
+| Author: Alok Kataria <akataria@vmware.com>
+| Date:   Tue Jun 24 11:48:46 2008 -0700
+|
+|    acpi based pci gap caluculation v2
+
+?
+
+	Ingo
