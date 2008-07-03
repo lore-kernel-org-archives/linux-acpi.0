@@ -1,23 +1,51 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 1/1] ACPI: compal-laptop: use rfkill switch subsystem
-Date: Thu, 3 Jul 2008 01:17:15 +0100
-Message-ID: <20080703001715.GA15988@srcf.ucam.org>
-References: <20080702214524.2ba4a001@debian>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [RFC PATCH 1/4] swsusp: call platform_begin
+	before	swsusp_shrink_memory
+Date: Thu, 03 Jul 2008 10:24:31 +0800
+Message-ID: <1215051871.5628.33.camel@rzhang-dt.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:47634 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751714AbYGCARX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Jul 2008 20:17:23 -0400
-Content-Disposition: inline
-In-Reply-To: <20080702214524.2ba4a001@debian>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: linux-pm <linux-pm@lists.linux-foundation.org>, linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Cezary Jackiewicz <cezary.jackiewicz@gmail.com>
-Cc: ak@linux.intel.com, Len Brown <lenb@kernel.org>, Richard Purdie <rpurdie@rpsys.net>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 
-Handwavily looks good. I don't have hardware to test it, though.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+call platform_begin before swsusp shrink memory so that
+we can allocate enough pages for ACPI NVS memory region
+in platform_begin.
+
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ kernel/power/disk.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+Index: linux-2.6/kernel/power/disk.c
+===================================================================
+--- linux-2.6.orig/kernel/power/disk.c	2008-07-01 09:32:36.000000000 +0800
++++ linux-2.6/kernel/power/disk.c	2008-07-03 09:08:20.000000000 +0800
+@@ -243,12 +243,12 @@
+ {
+ 	int error;
+ 
+-	/* Free memory before shutting down devices. */
+-	error = swsusp_shrink_memory();
++	error = platform_begin(platform_mode);
+ 	if (error)
+ 		return error;
+ 
+-	error = platform_begin(platform_mode);
++	/* Free memory before shutting down devices. */
++	error = swsusp_shrink_memory();
+ 	if (error)
+ 		goto Close;
+ 
