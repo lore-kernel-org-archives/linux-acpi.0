@@ -1,92 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [patch 2/4] acpi: fix FADT parsing
-Date: Fri, 04 Jul 2008 00:05:30 -0700
-Message-ID: <200807040705.m6475U3I018513@imap1.linux-foundation.org>
+Subject: [patch 3/4] acpi: add the abity to reset the system using RESET_REG in FADT table
+Date: Fri, 04 Jul 2008 00:05:31 -0700
+Message-ID: <200807040705.m6475V7S018516@imap1.linux-foundation.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33843 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37768 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752232AbYGDHFp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Jul 2008 03:05:45 -0400
+	by vger.kernel.org with ESMTP id S1752834AbYGDHFt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Jul 2008 03:05:49 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: andi@firstfloor.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, jbeulich@novell.com, lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, adurbin@google.com, lenb@kernel.org
 
-From: "Jan Beulich" <jbeulich@novell.com>
+From: Aaron Durbin <adurbin@google.com>
 
-The (1.0 inherited) separate length fields in the FADT are byte granular. 
-Further, PM1a/b may have distinct lengths and live in distinct address spaces.
- acpi_tb_convert_fadt() should account for all of these conditions.
+Add the ability to reset the machine using the RESET_REG in ACPI's FADT table.
 
-Apart from these changes I'm puzzled by the fact that, not just for
-acpi_gbl_xpm1{a,b}_enable, acpi_hw_low_level_{read,write}() get an explicit
-size passed rather than using the size found in the passed GAS.  What happens
-on a platform that defines PM1{a,b} wider than 16 bits?  Of course,
-acpi_hw_low_level_{read,write}() at present are entirely un-prepared to deal
-with sizes other than 8, 16, or 32, not to speak of a non-zero bit_offset or
-access_width...
-
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Signed-off-by: Aaron Durbin <adurbin@google.com>
 Cc: Len Brown <lenb@kernel.org>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/tables/tbfadt.c |   17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ drivers/acpi/Makefile |    2 -
+ drivers/acpi/reboot.c |   50 ++++++++++++++++++++++++++++++++++++++++
+ include/acpi/reboot.h |   14 ++++++-----
+ 3 files changed, 59 insertions(+), 7 deletions(-)
 
-diff -puN drivers/acpi/tables/tbfadt.c~acpi-fix-fadt-parsing drivers/acpi/tables/tbfadt.c
---- a/drivers/acpi/tables/tbfadt.c~acpi-fix-fadt-parsing
-+++ a/drivers/acpi/tables/tbfadt.c
-@@ -124,7 +124,7 @@ static struct acpi_fadt_info fadt_info_t
+diff -puN drivers/acpi/Makefile~acpi-add-the-abity-to-reset-the-system-using-reset_reg-in-fadt-table drivers/acpi/Makefile
+--- a/drivers/acpi/Makefile~acpi-add-the-abity-to-reset-the-system-using-reset_reg-in-fadt-table
++++ a/drivers/acpi/Makefile
+@@ -21,7 +21,7 @@ obj-$(CONFIG_X86)		+= blacklist.o
+ #
+ # ACPI Core Subsystem (Interpreter)
+ #
+-obj-y				+= osl.o utils.o \
++obj-y				+= osl.o utils.o reboot.o\
+ 				   dispatcher/ events/ executer/ hardware/ \
+ 				   namespace/ parser/ resources/ tables/ \
+ 				   utilities/
+diff -puN /dev/null drivers/acpi/reboot.c
+--- /dev/null
++++ a/drivers/acpi/reboot.c
+@@ -0,0 +1,50 @@
++
++#include <linux/pci.h>
++#include <linux/acpi.h>
++#include <acpi/reboot.h>
++
++void acpi_reboot(void)
++{
++	struct acpi_generic_address *rr;
++	struct pci_bus *bus0;
++	u8 reset_value;
++	unsigned int devfn;
++
++	if (acpi_disabled)
++		return;
++
++	rr = &acpi_gbl_FADT.reset_register;
++
++	/* Is the reset register supported? */
++	if (!(acpi_gbl_FADT.flags & ACPI_FADT_RESET_REGISTER) ||
++	    rr->bit_width != 8 || rr->bit_offset != 0)
++		return;
++
++	reset_value = acpi_gbl_FADT.reset_value;
++
++	/* The reset register can only exist in I/O, Memory or PCI config space
++	 * on a device on bus 0. */
++	switch (rr->space_id) {
++	case ACPI_ADR_SPACE_PCI_CONFIG:
++		/* The reset register can only live on bus 0. */
++		bus0 = pci_find_bus(0, 0);
++		if (!bus0)
++			return;
++		/* Form PCI device/function pair. */
++		devfn = PCI_DEVFN((rr->address >> 32) & 0xffff,
++				  (rr->address >> 16) & 0xffff);
++		printk(KERN_DEBUG "Resetting with ACPI PCI RESET_REG.");
++		/* Write the value that resets us. */
++		pci_bus_write_config_byte(bus0, devfn,
++				(rr->address & 0xffff), reset_value);
++		break;
++
++	case ACPI_ADR_SPACE_SYSTEM_MEMORY:
++	case ACPI_ADR_SPACE_SYSTEM_IO:
++		printk(KERN_DEBUG "ACPI MEMORY or I/O RESET_REG.\n");
++		acpi_hw_low_level_write(8, reset_value, rr);
++		break;
++	}
++	/* Wait ten seconds */
++	acpi_os_stall(10000000);
++}
+diff -puN include/acpi/reboot.h~acpi-add-the-abity-to-reset-the-system-using-reset_reg-in-fadt-table include/acpi/reboot.h
+--- a/include/acpi/reboot.h~acpi-add-the-abity-to-reset-the-system-using-reset_reg-in-fadt-table
++++ a/include/acpi/reboot.h
+@@ -1,9 +1,11 @@
++#ifndef __ACPI_REBOOT_H
++#define __ACPI_REBOOT_H
++
++#ifdef CONFIG_ACPI
++extern void acpi_reboot(void);
++#else
++static inline void acpi_reboot(void) { }
++#endif
  
- static void inline
- acpi_tb_init_generic_address(struct acpi_generic_address *generic_address,
--			     u8 bit_width, u64 address)
-+			     u8 byte_width, u64 address)
- {
- 
- 	/*
-@@ -136,7 +136,7 @@ acpi_tb_init_generic_address(struct acpi
- 	/* All other fields are byte-wide */
- 
- 	generic_address->space_id = ACPI_ADR_SPACE_SYSTEM_IO;
--	generic_address->bit_width = bit_width;
-+	generic_address->bit_width = byte_width << 3;
- 	generic_address->bit_offset = 0;
- 	generic_address->access_width = 0;
- }
-@@ -343,9 +343,11 @@ static void acpi_tb_convert_fadt(void)
- 	 *
- 	 * The PM event blocks are split into two register blocks, first is the
- 	 * PM Status Register block, followed immediately by the PM Enable Register
--	 * block. Each is of length (pm1_event_length/2)
-+	 * block. Each is of length (xpm1x_event_block.bit_width/2)
- 	 */
--	pm1_register_length = (u8) ACPI_DIV_2(acpi_gbl_FADT.pm1_event_length);
-+	WARN_ON(ACPI_MOD_16(acpi_gbl_FADT.xpm1a_event_block.bit_width));
-+	pm1_register_length = (u8) ACPI_DIV_16(acpi_gbl_FADT
-+					       .xpm1a_event_block.bit_width);
- 
- 	/* The PM1A register block is required */
- 
-@@ -360,14 +362,17 @@ static void acpi_tb_convert_fadt(void)
- 	/* The PM1B register block is optional, ignore if not present */
- 
- 	if (acpi_gbl_FADT.xpm1b_event_block.address) {
-+		WARN_ON(ACPI_MOD_16(acpi_gbl_FADT.xpm1b_event_block.bit_width));
-+		pm1_register_length = (u8) ACPI_DIV_16(acpi_gbl_FADT
-+						       .xpm1b_event_block
-+						       .bit_width);
- 		acpi_tb_init_generic_address(&acpi_gbl_xpm1b_enable,
- 					     pm1_register_length,
- 					     (acpi_gbl_FADT.xpm1b_event_block.
- 					      address + pm1_register_length));
- 		/* Don't forget to copy space_id of the GAS */
- 		acpi_gbl_xpm1b_enable.space_id =
--		    acpi_gbl_FADT.xpm1a_event_block.space_id;
--
-+		    acpi_gbl_FADT.xpm1b_event_block.space_id;
- 	}
- }
+-/*
+- * Dummy placeholder to make the EFI patches apply to the x86 tree.
+- * Andrew/Len, please just kill this file if you encounter it.
+- */
+-#ifndef acpi_reboot
+-# define acpi_reboot() do { } while (0)
+ #endif
  
 _
