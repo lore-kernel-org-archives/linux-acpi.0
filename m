@@ -1,36 +1,31 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH 1/2] ACPI Video: Ignore devices that aren't present in
-	hardware
-Date: Fri, 4 Jul 2008 08:55:19 -0300
-Message-ID: <20080704115519.GA7435@khazad-dum.debian.net>
-References: <200807031805.52883.trenn@suse.de> <20080703160822.GA29110@srcf.ucam.org> <20080704030948.GB31908@khazad-dum.debian.net> <20080704091307.GB8905@srcf.ucam.org>
+Subject: Re: [PATCH] Panasonic Let's Note laptop extras driver
+Date: Fri, 4 Jul 2008 08:55:57 -0300
+Message-ID: <20080704115557.GB7435@khazad-dum.debian.net>
+References: <20080702090044.GB12272@prithivi.gnumonks.org> <20080702101919.GB699@srcf.ucam.org> <20080703165219.GE4172@prithivi.gnumonks.org> <20080703170857.GA30135@srcf.ucam.org> <20080704031404.GC31908@khazad-dum.debian.net> <20080704044317.GH4381@prithivi.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-next-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out3.smtp.messagingengine.com ([66.111.4.27]:43551 "EHLO
+	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752600AbYGDL4D (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Jul 2008 07:56:03 -0400
 Content-Disposition: inline
-In-Reply-To: <20080704091307.GB8905@srcf.ucam.org>
-Sender: linux-next-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Thomas Renninger <trenn@suse.de>, ak@linux.intel.com, linux-acpi@vger.kernel.org, linux-next@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Julia Jomantaite <julia.jomantaite@gmail.com>, marcus@better.se, dannybaumann@web.de, corsac@debian.org
+In-Reply-To: <20080704044317.GH4381@prithivi.gnumonks.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Harald Welte <laforge@gnumonks.org>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, Hiroshi Miura <miura@da-cha.org>, hadi@cyberus.ca
 
-On Fri, 04 Jul 2008, Matthew Garrett wrote:
-> On Fri, Jul 04, 2008 at 12:09:49AM -0300, Henrique de Moraes Holschuh wrote:
-> > On Thu, 03 Jul 2008, Matthew Garrett wrote:
-> > > Not until the opregion code is merged, no. If you'd like that to happen 
-> > > faster, then figuring out why it triggers a 750ms delay on brightness 
-> > > changes on the T61 would be a great help, because I haven't a clue why 
-> > > it's broken...
-> > 
-> > I have never really tried finding out WTF in the firmware causes this, but:
-> > 
-> > 1. The backlight-change firmware runs in SMM.
-> > 2. The calls happen in ACPI DSDT
-> > 3. The SMM code DOES take care of the CMOS NVRAM
+On Fri, 04 Jul 2008, Harald Welte wrote:
+> > Once bitten, twice shy.  I understand these buttons in the Panasonic Let's
+> > Note do NOTHING in firmware/hardware (i.e. if you don't hook something to
+> > them, brightness is NOT changed)?
 > 
-> As far as I can tell, it's sleeping in the DSDT. But all the ready flags 
+> no, they don't do anything in firmware/hardware.  They just generate
+> events, and the OS/driver need to take care of any action to perform.
 
-Which probably means the SMI trap was botched :(
+Ah, good.  That's much easier to deal with, yes.
 
 -- 
   "One disk to rule them all, One disk to find them. One disk to bring
