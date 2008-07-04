@@ -1,32 +1,90 @@
-From: =?ISO-8859-15?Q?Mathieu_B=E9rard?= <Mathieu.Berard@crans.org>
-Subject: Re: 2.6.25 to 2.6.26-rc8 regression  (related to ahci and acpi _GTF)
-Date: Fri, 04 Jul 2008 18:08:08 +0200
-Message-ID: <486E4AE8.1040108@crans.org>
-References: <4869FB3C.4060509@crans.org> <200807011614.21491.rjw@sisk.pl> <486AEE29.2010506@gmail.com> <486B4490.7080904@crans.org> <486DA8DA.4070601@gmail.com>
+From: "Justin Mattock" <justinmattock@gmail.com>
+Subject: Re: dsdt buggy acpi
+Date: Fri, 4 Jul 2008 16:23:32 +0000
+Message-ID: <dd18b0c30807040923v37e2d8c3id680d76b9cf494bf@mail.gmail.com>
+References: <dd18b0c30806302339q7b3effybf8a7f619b009262@mail.gmail.com>
+	 <dd18b0c30807010918p48cfbe2bnb7e4a2bf00a01638@mail.gmail.com>
+	 <20080702082555.0959ef2b@linux360.ro>
+	 <20080702100935.GA699@srcf.ucam.org>
+	 <20080702144820.29f7d43d@linux360.ro>
+	 <20080702115527.GA3396@srcf.ucam.org>
+	 <dd18b0c30807020930u43405fd5v2e328b6b76b833b0@mail.gmail.com>
+	 <20080702163510.GA8912@srcf.ucam.org>
+	 <dd18b0c30807021037g3faffa6kd1ef26f888f36d11@mail.gmail.com>
+	 <486E0A64.5020903@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756035AbYGDQKQ@vger.kernel.org>
-In-Reply-To: <486DA8DA.4070601@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757325AbYGDQXp@vger.kernel.org>
+In-Reply-To: <486E0A64.5020903@gmail.com>
+Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tejun Heo <htejun@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Andi Kleen <andi@firstfloor.org>, Jeff Garzik <jeff@garzik.org>
+To: Alexey Starikovskiy <aystarik@gmail.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Eduard - Gabriel Munteanu <eduard.munteanu@linux360.ro>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Tejun Heo a =E9crit :
+On Fri, Jul 4, 2008 at 11:32 AM, Alexey Starikovskiy <aystarik@gmail.com> wrote:
+> Justin Mattock wrote:
+>>
+>> On Wed, Jul 2, 2008 at 4:35 PM, Matthew Garrett <mjg59@srcf.ucam.org>
+>> wrote:
+>>
+>>>
+>>> On Wed, Jul 02, 2008 at 04:30:11PM +0000, Justin Mattock wrote:
+>>>
+>>>
+>>>>
+>>>> Hello; what info is supplied with EFI i.g. I'm using a macbook pro.
+>>>> After looking at:
+>>>> http://acpi.sourceforge.net/dsdt/view.php I was unable to locate
+>>>> anything with apple, or at least
+>>>> couldn't find the manufacture number.
+>>>> If somebody has already done this, I was wondering if it would be O.K.
+>>>> if I can attached my dsdt.dsl with the errors,
+>>>> and my explanation of what I changed, just so If I did something
+>>>> completely wrong
+>>>>
+>>>
+>>> iasl will complain about code that the Linux interpreter will happily
+>>> accept. If the only reason you've made changes is that iasl complains,
+>>> then it's unlikely that there's any functional difference as a result.
+>>> Otherwise, work out which changes fix which Linux bugs and file a bug
+>>> at bugzilla.kernel.org against acpi.
+>>>
+>>> --
+>>> Matthew Garrett | mjg59@srcf.ucam.org
+>>>
+>>>
+>>
+>> Hello; I modified dsdt because iasl was complaining, As a result like
+>> what you said
+>> "then it's unlikely that there's any functional difference as a
+>> result" is probably
+>> what I'm seeing. As for a bug report I already have one filed. As to
+>> why I'm messing with
+>> the dsdt, just trying to isolate the problem with the bug I have
+>> already filed., or at least
+>> get a better idea of what is happening. Anyways thanks for the info.
+>> regards;
+>>
+>>
+>
+> For difference, you should look for "Darwin", this is how MacOS X identifies
+> itself to hardware.
 >
 >
-> Can you please test the attached patch?
+> Regards,
+> Alex.
 >
->  =20
-Hi,
-tested again latest git: It works.
 
-I am yet to test more fragile features such as suspend or hibernation,
-but the obvious regression is gone.
-(Yet I still doesn't understand why it used to work with DIPM)
+Hello;
+So adding acpi_osi=Darwin will work for boot parameter. Also I wanted
+to apologize If I pissed you off,
+I didn't quite understand what was really happening, and now after
+looking into the scenario, I think I need to find out
+what is going on with my GPE's, this way you're detector(ec.c) won't
+be going off so frequently.
+regards;
 
-Thanks.
-
---=20
-Mathieu
+-- 
+Justin P. Mattock
