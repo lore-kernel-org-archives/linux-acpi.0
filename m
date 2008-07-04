@@ -1,69 +1,43 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [PATCH] Panasonic Let's Note laptop extras driver v0.93
-Date: Fri, 4 Jul 2008 09:31:21 +0800
-Message-ID: <20080704013121.GB4381@prithivi.gnumonks.org>
-References: <20080702090044.GB12272@prithivi.gnumonks.org> <20080703173542.GA5118@prithivi.gnumonks.org> <20080703192303.GA32260@srcf.ucam.org>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH 1/2] ACPI Video: Ignore devices that aren't present in
+	hardware
+Date: Fri, 4 Jul 2008 00:09:49 -0300
+Message-ID: <20080704030948.GB31908@khazad-dum.debian.net>
+References: <200807031805.52883.trenn@suse.de> <20080703160822.GA29110@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="VrqPEDrXMn8OVzN4"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:57978 "EHLO
-	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753050AbYGDBkK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Jul 2008 21:40:10 -0400
-Content-Disposition: inline
-In-Reply-To: <20080703192303.GA32260@srcf.ucam.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-acpi@vger.kernel.org, Hiroshi Miura <miura@da-cha.org>
-
-
---VrqPEDrXMn8OVzN4
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-next-owner@vger.kernel.org>
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20080703160822.GA29110@srcf.ucam.org>
+Sender: linux-next-owner@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Thomas Renninger <trenn@suse.de>, ak@linux.intel.com, linux-acpi@vger.kernel.org, linux-next@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Julia Jomantaite <julia.jomantaite@gmail.com>, marcus@better.se, dannybaumann@web.de, corsac@debian.org
+List-Id: linux-acpi@vger.kernel.org
 
-Hi Matthew,
+Hi Matthew!
 
-On Thu, Jul 03, 2008 at 08:23:03PM +0100, Matthew Garrett wrote:
-> On Fri, Jul 04, 2008 at 01:35:42AM +0800, Harald Welte wrote:
-> > +
-> > +static int pcc_setkeycode(struct input_dev *dev, int scancode, int key=
-code)
-> > [...]
->=20
-> You probably want to set_bit the input device here, and also clean up=20
-> any now-unused keycodes from there. I'd also suggest sending KEY_PROG1=20
-> by default on the CPU throttle button - some users will find it easier=20
-> if it already generates a keycode. Other than that, looks good.
+On Thu, 03 Jul 2008, Matthew Garrett wrote:
 
-Ok, I've added this.  Thanks for noticing.  I'm waiting on your feedback
-with regard to the /proc events vs. input event device and acpid
-handling.  Once I am clear on this, I'll submit the hopefully final
-version that can be merged.
+> On Thu, Jul 03, 2008 at 06:05:51PM +0200, Thomas Renninger wrote:
+> > Can these two go to linux-next or -mm, pls.
+> 
+> Not until the opregion code is merged, no. If you'd like that to happen 
+> faster, then figuring out why it triggers a 750ms delay on brightness 
+> changes on the T61 would be a great help, because I haven't a clue why 
+> it's broken...
 
-Cheers,
---=20
-- Harald Welte <laforge@gnumonks.org>           http://laforge.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-"Privacy in residential applications is a desirable marketing option."
-                                                  (ETSI EN 300 175-7 Ch. A6)
+I have never really tried finding out WTF in the firmware causes this, but:
 
---VrqPEDrXMn8OVzN4
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+1. The backlight-change firmware runs in SMM.
+2. The calls happen in ACPI DSDT
+3. The SMM code DOES take care of the CMOS NVRAM
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
+You could well find something interesting if you dissect what happens to the
+NVRAM.  Maybe changing it before/after/during the ACPI call has something to
+do with it, etc.
 
-iD8DBQFIbX1pXaXGVTD0i/8RAovTAJ4vTbEXUZJ+LyOY1ydQHHAk+8wDGwCeKmZM
-npQWBVH6mLGyDHcQGX5BFuo=
-=bPSb
------END PGP SIGNATURE-----
-
---VrqPEDrXMn8OVzN4--
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
