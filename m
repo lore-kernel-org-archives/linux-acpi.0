@@ -1,85 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [patch 1/4] acpi: enable C3 Power State on Dell Inspiron 8200
-Date: Fri, 04 Jul 2008 00:05:27 -0700
-Message-ID: <200807040705.m6475R65018507@imap1.linux-foundation.org>
+Subject: [patch 4/4] acpi utmisc: use WARN_ON() instead of warn_on_slowpath()
+Date: Fri, 04 Jul 2008 00:05:32 -0700
+Message-ID: <200807040705.m6475WXV018519@imap1.linux-foundation.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58249 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49045 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752890AbYGDHFw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Jul 2008 03:05:52 -0400
+	by vger.kernel.org with ESMTP id S1753027AbYGDHFz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Jul 2008 03:05:55 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: andi@firstfloor.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, dag@bakke.com, arjan@infradead.org, lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, randy.dunlap@oracle.com, lenb@kernel.org
 
-From: Dag Bakke <dag@bakke.com>
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Taken from http://bugzilla.kernel.org/show_bug.cgi?id=8703
+utmisc.c needs to include asm-generic/bug.h for warn()/WARN() functions,
+but it should use WARN_ON() instead of warn_on_slowpath() since arches can
+provide their own implementation of WARN_ON(), which does not have to
+use/provide/implement warn_on_slowpath() at all.  Just use the front door
+(WARN_ON).
 
-[akpm@linux-foundation.org: fix warning]
-Cc: Arjan van de Ven <arjan@infradead.org>
+linux-next-20080702/drivers/acpi/utilities/utmisc.c:1027: error: implicit declaration of function 'warn_on_slowpath'
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Andi Kleen <andi@firstfloor.org>
 Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_idle.c |   23 +++++++++++++++++++++--
- 1 file changed, 21 insertions(+), 2 deletions(-)
+ drivers/acpi/utilities/utmisc.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/processor_idle.c~acpi-enable-c3-power-state-on-dell-inspiron-8200 drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~acpi-enable-c3-power-state-on-dell-inspiron-8200
-+++ a/drivers/acpi/processor_idle.c
-@@ -105,6 +105,8 @@ static unsigned int latency_factor __rea
- module_param(latency_factor, uint, 0644);
- #endif
+diff -puN drivers/acpi/utilities/utmisc.c~acpi-utmisc-use-warn_on-instead-of-warn_on_slowpath drivers/acpi/utilities/utmisc.c
+--- a/drivers/acpi/utilities/utmisc.c~acpi-utmisc-use-warn_on-instead-of-warn_on_slowpath
++++ a/drivers/acpi/utilities/utmisc.c
+@@ -42,6 +42,7 @@
+  */
  
-+static int forced_c3;
-+
- /*
-  * IBM ThinkPad R40e crashes mysteriously when going into C2 or C3.
-  * For now disable this. Probably a bug somewhere else.
-@@ -125,6 +127,19 @@ static int set_max_cstate(const struct d
- 	return 0;
- }
+ #include <linux/module.h>
++#include <asm-generic/bug.h>
  
-+/*
-+ * Some (Dell) machines set the C3 latency to a value which effectively says:
-+ * "Don't use C3." Still, C3 works if we force it.
-+ * This enables C3 on Dell Inspiron 8200 machines.
-+ */
-+static int dmi_force_c3(const struct dmi_system_id *id)
-+{
-+	forced_c3 = 1;
-+	printk(KERN_NOTICE PREFIX "%s detected - Force enabling C3.",
-+			id->ident);
-+	return 0;
-+}
-+
- /* Actually this shouldn't be __cpuinitdata, would be better to fix the
-    callers to only run once -AK */
- static struct dmi_system_id __cpuinitdata processor_power_dmi_table[] = {
-@@ -183,6 +198,9 @@ static struct dmi_system_id __cpuinitdat
- 	  DMI_MATCH(DMI_BIOS_VENDOR,"Phoenix Technologies LTD"),
- 	  DMI_MATCH(DMI_BIOS_VERSION,"SHE845M0.86C.0013.D.0302131307")},
- 	 (void *)2},
-+	{ dmi_force_c3, "Dell Inspiron 8200", {
-+	  DMI_MATCH(DMI_SYS_VENDOR,"Dell Computer Corporation"),
-+	  DMI_MATCH(DMI_PRODUCT_NAME,"Inspiron 8200") }, NULL},
- 	{},
- };
+ #include <acpi/acpi.h>
+ #include <acpi/acnamesp.h>
+@@ -1024,7 +1025,7 @@ acpi_ut_error(const char *module_name, u
+ {
+ 	va_list args;
  
-@@ -1067,11 +1085,12 @@ static void acpi_processor_power_verify_
- 	 * C3 latency must be less than or equal to 1000
- 	 * microseconds.
- 	 */
--	else if (cx->latency > ACPI_PROCESSOR_MAX_C3_LATENCY) {
-+	if (cx->latency > ACPI_PROCESSOR_MAX_C3_LATENCY && !forced_c3) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 				  "latency too large [%d]\n", cx->latency));
- 		return;
--	}
-+	} else if (forced_c3)
-+		cx->latency = ACPI_PROCESSOR_MAX_C3_LATENCY;
+-	warn_on_slowpath(module_name, line_number);
++	WARN_ON(1);
+ 	acpi_os_printf("ACPI Error (%s-%04d): ", module_name, line_number);
  
- 	/*
- 	 * PIIX4 Erratum #18: We don't support C3 when Type-F (fast)
+ 	va_start(args, format);
+@@ -1039,7 +1040,7 @@ acpi_ut_exception(const char *module_nam
+ {
+ 	va_list args;
+ 
+-	warn_on_slowpath(module_name, line_number);
++	WARN_ON(1);
+ 	acpi_os_printf("ACPI Exception (%s-%04d): %s, ", module_name,
+ 		       line_number, acpi_format_exception(status));
+ 
 _
