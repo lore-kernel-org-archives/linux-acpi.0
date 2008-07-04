@@ -1,90 +1,46 @@
-From: "Justin Mattock" <justinmattock@gmail.com>
-Subject: Re: dsdt buggy acpi
-Date: Fri, 4 Jul 2008 16:23:32 +0000
-Message-ID: <dd18b0c30807040923v37e2d8c3id680d76b9cf494bf@mail.gmail.com>
-References: <dd18b0c30806302339q7b3effybf8a7f619b009262@mail.gmail.com>
-	 <dd18b0c30807010918p48cfbe2bnb7e4a2bf00a01638@mail.gmail.com>
-	 <20080702082555.0959ef2b@linux360.ro>
-	 <20080702100935.GA699@srcf.ucam.org>
-	 <20080702144820.29f7d43d@linux360.ro>
-	 <20080702115527.GA3396@srcf.ucam.org>
-	 <dd18b0c30807020930u43405fd5v2e328b6b76b833b0@mail.gmail.com>
-	 <20080702163510.GA8912@srcf.ucam.org>
-	 <dd18b0c30807021037g3faffa6kd1ef26f888f36d11@mail.gmail.com>
-	 <486E0A64.5020903@gmail.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH 1/2] ACPI Video: Ignore devices that aren't present in hardware
+Date: Fri, 4 Jul 2008 18:39:10 +0100
+Message-ID: <20080704173910.GA16595@srcf.ucam.org>
+References: <200807031805.52883.trenn@suse.de> <20080703160822.GA29110@srcf.ucam.org> <20080704030948.GB31908@khazad-dum.debian.net> <20080704091307.GB8905@srcf.ucam.org> <20080704115519.GA7435@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757325AbYGDQXp@vger.kernel.org>
-In-Reply-To: <486E0A64.5020903@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-next-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Eduard - Gabriel Munteanu <eduard.munteanu@linux360.ro>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+In-Reply-To: <20080704115519.GA7435@khazad-dum.debian.net>
+Sender: linux-next-owner@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Thomas Renninger <trenn@suse.de>, ak@linux.intel.com, linux-acpi@vger.kernel.org, linux-next@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Julia Jomantaite <julia.jomantaite@gmail.com>, marcus@better.se, dannybaumann@web.de, corsac@debian.org, jesse.barnes@intel.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jul 4, 2008 at 11:32 AM, Alexey Starikovskiy <aystarik@gmail.com> wrote:
-> Justin Mattock wrote:
->>
->> On Wed, Jul 2, 2008 at 4:35 PM, Matthew Garrett <mjg59@srcf.ucam.org>
->> wrote:
->>
->>>
->>> On Wed, Jul 02, 2008 at 04:30:11PM +0000, Justin Mattock wrote:
->>>
->>>
->>>>
->>>> Hello; what info is supplied with EFI i.g. I'm using a macbook pro.
->>>> After looking at:
->>>> http://acpi.sourceforge.net/dsdt/view.php I was unable to locate
->>>> anything with apple, or at least
->>>> couldn't find the manufacture number.
->>>> If somebody has already done this, I was wondering if it would be O.K.
->>>> if I can attached my dsdt.dsl with the errors,
->>>> and my explanation of what I changed, just so If I did something
->>>> completely wrong
->>>>
->>>
->>> iasl will complain about code that the Linux interpreter will happily
->>> accept. If the only reason you've made changes is that iasl complains,
->>> then it's unlikely that there's any functional difference as a result.
->>> Otherwise, work out which changes fix which Linux bugs and file a bug
->>> at bugzilla.kernel.org against acpi.
->>>
->>> --
->>> Matthew Garrett | mjg59@srcf.ucam.org
->>>
->>>
->>
->> Hello; I modified dsdt because iasl was complaining, As a result like
->> what you said
->> "then it's unlikely that there's any functional difference as a
->> result" is probably
->> what I'm seeing. As for a bug report I already have one filed. As to
->> why I'm messing with
->> the dsdt, just trying to isolate the problem with the bug I have
->> already filed., or at least
->> get a better idea of what is happening. Anyways thanks for the info.
->> regards;
->>
->>
->
-> For difference, you should look for "Darwin", this is how MacOS X identifies
-> itself to hardware.
->
->
-> Regards,
-> Alex.
->
+Got it. The reason for the delay is that BRTO sits in a loop for no 
+obvious reason unless BRTF is cleared. The only thing that clears BRTF 
+is the PWMS function, which isn't called anywhere in the ACPI tables. 
+The NetBSD driver has the following code:
 
-Hello;
-So adding acpi_osi=Darwin will work for boot parameter. Also I wanted
-to apologize If I pissed you off,
-I didn't quite understand what was really happening, and now after
-looking into the scenario, I think I need to find out
-what is going on with my GPE's, this way you're detector(ec.c) won't
-be going off so frequently.
-regards;
+	/* Claim ownership of brightness control */
+	param[0].Integer.Value = 0;
+	(void)AcpiEvaluateObject(sc->sc_node->ad_handle, "PWMS", &params, NULL);
+
+and doing this in thinkpad_acpi means my brightness control works in an 
+acceptably speedy manner with opregion. Henrique, any thoughts on this? 
+If you're happy with it, we can get opregion support into .27 and add 
+the patch to remove duplicate ACPI video devices and everything will 
+work in a beautiful and harmonious manner.
+
+diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
+index b596929..bbc45c8 100644
+--- a/drivers/misc/thinkpad_acpi.c
++++ b/drivers/misc/thinkpad_acpi.c
+@@ -899,6 +899,9 @@ static int __init tpacpi_check_std_acpi_brightness_support(void)
+ 
+ 	if (ACPI_SUCCESS(status) && bcl_levels > 2) {
+ 		tp_features.bright_acpimode = 1;
++		/* Set ACPI mode */
++		if (!acpi_evalf(hkey_handle, NULL, "PWMS", "vd", 0))
++			printk(TPACPI_INFO "Failed to claim backlight\n");
+ 		return (bcl_levels - 2);
+ 	}
 
 -- 
-Justin P. Mattock
+Matthew Garrett | mjg59@srcf.ucam.org
