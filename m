@@ -1,40 +1,38 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH 1/2] ACPI Video: Ignore devices that aren't present in
-	hardware
-Date: Fri, 4 Jul 2008 00:09:49 -0300
-Message-ID: <20080704030948.GB31908@khazad-dum.debian.net>
-References: <200807031805.52883.trenn@suse.de> <20080703160822.GA29110@srcf.ucam.org>
+Subject: Re: [PATCH] Panasonic Let's Note laptop extras driver
+Date: Fri, 4 Jul 2008 00:14:04 -0300
+Message-ID: <20080704031404.GC31908@khazad-dum.debian.net>
+References: <20080702090044.GB12272@prithivi.gnumonks.org> <20080702101919.GB699@srcf.ucam.org> <20080703165219.GE4172@prithivi.gnumonks.org> <20080703170857.GA30135@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-next-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out3.smtp.messagingengine.com ([66.111.4.27]:33099 "EHLO
+	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755067AbYGDDOL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Jul 2008 23:14:11 -0400
 Content-Disposition: inline
-In-Reply-To: <20080703160822.GA29110@srcf.ucam.org>
-Sender: linux-next-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Thomas Renninger <trenn@suse.de>, ak@linux.intel.com, linux-acpi@vger.kernel.org, linux-next@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Julia Jomantaite <julia.jomantaite@gmail.com>, marcus@better.se, dannybaumann@web.de, corsac@debian.org
+In-Reply-To: <20080703170857.GA30135@srcf.ucam.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-
-Hi Matthew!
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Harald Welte <laforge@gnumonks.org>, linux-acpi@vger.kernel.org, Hiroshi Miura <miura@da-cha.org>, hadi@cyberus.ca
 
 On Thu, 03 Jul 2008, Matthew Garrett wrote:
-
-> On Thu, Jul 03, 2008 at 06:05:51PM +0200, Thomas Renninger wrote:
-> > Can these two go to linux-next or -mm, pls.
+> On Fri, Jul 04, 2008 at 12:52:19AM +0800, Harald Welte wrote:
+> > So I vote for keeping those events in the driver - just as long as there
+> > is no new standard mechanism for signalling brightness up/down button
+> > events to userspace.
 > 
-> Not until the opregion code is merged, no. If you'd like that to happen 
-> faster, then figuring out why it triggers a 750ms delay on brightness 
-> changes on the T61 would be a great help, because I haven't a clue why 
-> it's broken...
+> There is - they should just be sent as KEY_BRIGHTNESSUP and 
+> KEY_BRIGHTNESSDOWN.
 
-I have never really tried finding out WTF in the firmware causes this, but:
+Once bitten, twice shy.  I understand these buttons in the Panasonic Let's
+Note do NOTHING in firmware/hardware (i.e. if you don't hook something to
+them, brightness is NOT changed)?
 
-1. The backlight-change firmware runs in SMM.
-2. The calls happen in ACPI DSDT
-3. The SMM code DOES take care of the CMOS NVRAM
-
-You could well find something interesting if you dissect what happens to the
-NVRAM.  Maybe changing it before/after/during the ACPI call has something to
-do with it, etc.
+Because if they DO anything else than just staying there prettly and telling
+you they have been pressed, then you are **NOT** to issue
+KEY_BRIGHTNESSUP/DOWN.
 
 -- 
   "One disk to rule them all, One disk to find them. One disk to bring
