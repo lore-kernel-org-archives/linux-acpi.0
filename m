@@ -1,116 +1,76 @@
-From: Tejun Heo <htejun@gmail.com>
-Subject: Re: 2.6.25 to 2.6.26-rc8 regression  (related to ahci and acpi _GTF)
-Date: Fri, 04 Jul 2008 13:36:42 +0900
-Message-ID: <486DA8DA.4070601@gmail.com>
-References: <4869FB3C.4060509@crans.org> <200807011614.21491.rjw@sisk.pl> <486AEE29.2010506@gmail.com> <486B4490.7080904@crans.org>
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: [PATCH] Panasonic Let's Note laptop extras driver
+Date: Fri, 4 Jul 2008 12:43:17 +0800
+Message-ID: <20080704044317.GH4381@prithivi.gnumonks.org>
+References: <20080702090044.GB12272@prithivi.gnumonks.org> <20080702101919.GB699@srcf.ucam.org> <20080703165219.GE4172@prithivi.gnumonks.org> <20080703170857.GA30135@srcf.ucam.org> <20080704031404.GC31908@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------000206040509040606090109"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="cYtjc4pxslFTELvY"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.234]:13988 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751213AbYGDEhh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Jul 2008 00:37:37 -0400
-Received: by rv-out-0506.google.com with SMTP id k40so1345200rvb.1
-        for <linux-acpi@vger.kernel.org>; Thu, 03 Jul 2008 21:37:37 -0700 (PDT)
-In-Reply-To: <486B4490.7080904@crans.org>
+Received: from ganesha.gnumonks.org ([213.95.27.120]:53357 "EHLO
+	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751154AbYGDEuP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Jul 2008 00:50:15 -0400
+Content-Disposition: inline
+In-Reply-To: <20080704031404.GC31908@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?ISO-8859-15?Q?Mathieu_B=E9rard?= <Mathieu.Berard@crans.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Andi Kleen <andi@firstfloor.org>, Jeff Garzik <jeff@garzik.org>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, Hiroshi Miura <miura@da-cha.org>, hadi@cyberus.ca
 
-This is a multi-part message in MIME format.
---------------000206040509040606090109
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 8bit
 
-Mathieu Bérard wrote:
-> Tejun Heo a écrit :
->> Rafael J. Wysocki wrote:
->>   
->>> [Adding CCs.]
->>>
->>> On Tuesday, 1 of July 2008, Mathieu Bérard wrote:
->>>     
->>>> Hi,
->>>> I have a laptop with an ICH6M SATA Controller and a Hitachi hard drive.
->>>> While it worked well using the ahci module and Linux 2.6.25, 
->>>> it get randomly 'stuck' for several seconds to several minutes with 2.6.26-rc8.
->>>> Successive errors progressively reduce the ATA link speed.
->>>>
->>>> Passing the libata.noacpi parameter is an effective workaround.
->>>>
->>>> Please note that it's not the first time i have this kind of issue, see:
->>>> http://marc.info/?l=linux-ide&m=117305595312399&w=2
->>>> This was found to be a bad interaction between my _GTF taskfile, which enable the
->>>> "Enable Device-Initiated Interface Power State Transitions" feature, and NCQ.
->>>> The driver was later NCQ blacklisted to correct the problem.
->>>>       
->> Can you please post the result of "hdparm -I /dev/sda" and full kernel
->> boot log?  0xca is not a NCQ command so the it's not related to NCQ at
->> all.  It seems we'll need to filter out DIPM commands from _GTF.
->>
->>   
-> Hi,
-> hdparm and dmesg output attached.
-> 
-> I was not expecting anything related to NCQ as my drive is blacklisted,
-> I was just mentioning previous issue with that hardware.
-> 
-> Do you know what has changed in this version that is now causing failure
-> with DIPM ?  I could bisect to try to find out, but this will be painful
-> as the
-> device hang may only appears after several minutes of disk activity.
+--cYtjc4pxslFTELvY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Can you please test the attached patch?
+On Fri, Jul 04, 2008 at 12:14:04AM -0300, Henrique de Moraes Holschuh wrote:
+> On Thu, 03 Jul 2008, Matthew Garrett wrote:
+> > On Fri, Jul 04, 2008 at 12:52:19AM +0800, Harald Welte wrote:
+> > > So I vote for keeping those events in the driver - just as long as th=
+ere
+> > > is no new standard mechanism for signalling brightness up/down button
+> > > events to userspace.
+> >=20
+> > There is - they should just be sent as KEY_BRIGHTNESSUP and=20
+> > KEY_BRIGHTNESSDOWN.
+>=20
+> Once bitten, twice shy.  I understand these buttons in the Panasonic Let's
+> Note do NOTHING in firmware/hardware (i.e. if you don't hook something to
+> them, brightness is NOT changed)?
 
--- 
-tejun
+no, they don't do anything in firmware/hardware.  They just generate
+events, and the OS/driver need to take care of any action to perform.
 
---------------000206040509040606090109
-Content-Type: text/x-patch;
- name="filter-dipm.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="filter-dipm.patch"
+> Because if they DO anything else than just staying there prettly and tell=
+ing
+> you they have been pressed, then you are **NOT** to issue
+> KEY_BRIGHTNESSUP/DOWN.
 
-diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c
-index 3ff8b14..abea74b 100644
---- a/drivers/ata/libata-acpi.c
-+++ b/drivers/ata/libata-acpi.c
-@@ -29,14 +29,16 @@
- enum {
- 	ATA_ACPI_FILTER_SETXFER	= 1 << 0,
- 	ATA_ACPI_FILTER_LOCK	= 1 << 1,
-+	ATA_ACPI_FILTER_DIPM	= 1 << 2,
- 
- 	ATA_ACPI_FILTER_DEFAULT	= ATA_ACPI_FILTER_SETXFER |
--				  ATA_ACPI_FILTER_LOCK,
-+				  ATA_ACPI_FILTER_LOCK |
-+				  ATA_ACPI_FILTER_DIPM,
- };
- 
- static unsigned int ata_acpi_gtf_filter = ATA_ACPI_FILTER_DEFAULT;
- module_param_named(acpi_gtf_filter, ata_acpi_gtf_filter, int, 0644);
--MODULE_PARM_DESC(acpi_gtf_filter, "filter mask for ACPI _GTF commands, set to filter out (0x1=set xfermode, 0x2=lock/freeze lock)");
-+MODULE_PARM_DESC(acpi_gtf_filter, "filter mask for ACPI _GTF commands, set to filter out (0x1=set xfermode, 0x2=lock/freeze lock, 0x4=DIPM)");
- 
- #define NO_PORT_MULT		0xffff
- #define SATA_ADR(root, pmp)	(((root) << 16) | (pmp))
-@@ -690,6 +692,14 @@ static int ata_acpi_filter_tf(const struct ata_taskfile *tf,
- 			return 1;
- 	}
- 
-+	if (ata_acpi_gtf_filter & ATA_ACPI_FILTER_DIPM) {
-+		/* inhibit enabling DIPM */
-+		if (tf->command == ATA_CMD_SET_FEATURES &&
-+		    tf->feature == SETFEATURES_SATA_ENABLE &&
-+		    tf->nsect == SATA_DIPM)
-+			return 1;
-+	}
-+
- 	return 0;
- }
- 
+thanks for making this clear.  However, this doesn't apply to the
+panasonic laptop hotkeys.  They really don't do anything unless the
+os/driver takes care of it.
 
---------------000206040509040606090109--
+--=20
+- Harald Welte <laforge@gnumonks.org>           http://laforge.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+"Privacy in residential applications is a desirable marketing option."
+                                                  (ETSI EN 300 175-7 Ch. A6)
+
+--cYtjc4pxslFTELvY
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iD8DBQFIbaplXaXGVTD0i/8RAuS5AJ99daeXw3kcVrl8X/X5ouNosJk+3gCfSNmv
+6FK5UIMAa2lR/0lfOkT07EM=
+=Esm3
+-----END PGP SIGNATURE-----
+
+--cYtjc4pxslFTELvY--
