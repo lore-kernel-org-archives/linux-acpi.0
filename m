@@ -1,65 +1,65 @@
-From: "Felipe Balbi" <felipebalbi@users.sourceforge.net>
+From: Arjan van de Ven <arjan@infradead.org>
 Subject: Re: Battery life difference
-Date: Sat, 5 Jul 2008 17:00:26 +0300
-Message-ID: <31e679430807050700q765dc45ft198fcf1c0b91a9cc@mail.gmail.com>
+Date: Sat, 5 Jul 2008 08:23:52 -0700
+Message-ID: <20080705082352.4b6be669@infradead.org>
 References: <31e679430807050617u3fc706fasee9bb43a151c501f@mail.gmail.com>
-	 <20080705133601.GA20240@mit.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.176]:10742 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753129AbYGEOAa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 5 Jul 2008 10:00:30 -0400
-Received: by wa-out-1112.google.com with SMTP id j37so1009185waf.23
-        for <linux-acpi@vger.kernel.org>; Sat, 05 Jul 2008 07:00:27 -0700 (PDT)
-In-Reply-To: <20080705133601.GA20240@mit.edu>
-Content-Disposition: inline
+Received: from casper.infradead.org ([85.118.1.10]:54210 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750959AbYGEPXv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 5 Jul 2008 11:23:51 -0400
+In-Reply-To: <31e679430807050617u3fc706fasee9bb43a151c501f@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Theodore Tso <tytso@mit.edu>, Felipe Balbi <felipebalbi@users.sourceforge.net>, Kernel development list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: Felipe Balbi <felipebalbi@users.sourceforge.net>
+Cc: Kernel development list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-Hi,
+On Sat, 5 Jul 2008 16:17:01 +0300
+"Felipe Balbi" <felipebalbi@users.sourceforge.net> wrote:
 
-On Sat, Jul 5, 2008 at 4:36 PM, Theodore Tso <tytso@mit.edu> wrote:
-> You didn't say which battery you are using; I'm guessing you are using
-> the 4 cell slim-line battery, which is rated at 28.8 Watt-hours?
+> Hello all,
+> 
+> I bought two x61s for testing purposes. One of them is running
+> windows XP and the other one is running clean ubuntu 8.04 with kernel
+> 2.6.24-19. The problem is that on windows that battery lasts around
+> 3h30min and with linux 1h30min.
+> 
+> 2 hours is a huge difference. Here's the scenario:
+> 
+> . x61s with windows xp
+> wifi on but not connected to any network, bluetooth on,
+> display is in the less brighten state.
+> 
+> . x61s with ubuntu 8.04
+> all radios off (modules removed and hw switch off),
 
-yeah, the normal slim-battery.
+Which wireless is this? Same for graphics
 
-> How many Watts is Powertop reporting that you are using?  I'm down to
+> 
+> Anyways, do we reach D2/D3 states anywhere ? I mean without
+> context save/restore we can't reach D3 and almost no D2 as well.
 
-eheh, it's only 15.5w :-p
+these don't give you all that much nowadays
+> 
+> Any comments ?
+> 
 
-> around 8-9 watts, and around 9.5 watts in "airplane mail reading mail"
-> (wireless disabled, USB modules unloaded, screen brightness turned way
-> down, laptop_mode enabled, all mail messages pulled into memory, and
-> reading/deleting mail using mutt, a character-mode based mail reader
-> --- if you use Evolution, your energy usage will definitely be higher  :-).
+There's a few things you can do to help stuff along; make sure you're
+using AHCI.
 
-no crappy evolution, I use fluxbox and mutt. This ubuntu machine is
-for testing purposes only :-p
+Also take a look at 
+http://kerneltrap.org/mailarchive/linux-kernel/2008/5/8/1771024 because
+these patches save like 0.75W in our lab.
 
-Anyways, it's bad that we have to manually unload several modules,
-specially usb. I'm sure windows reaches 9 watts consumption without
-breaking functionality. And that's the big thing. I think that's something
-we should be aiming. Dontcha think?
+To be honest, I'm surprised at your results; in our testing (with a
+different distro though) we don't see such a difference and Linux is
+doing rather well.
 
-> See http://thunk.org/tytso/blog/2007/10/29/tip-o-the-hat-wag-o-the-finger-linux-power-savings-for-laptop-users/
-
-Good article, but still. On the end user point of view, it's difficult to do
-rmmod/insmod operations. Recently I sent a patch to the bluez team
-adding a checkbox to bluetooth-properties that would send the SetMode("off")
-dbus message (which is the same as running hciconfig hci0 down).
-
-That helps a bit, but still the driver is not been used and keeps generating
-wakeup events. Why if it's not been used ?
-
-Maybe this is something we should start thinking about, right ?
 
 -- 
-Best Regards,
-
-Felipe Balbi
-felipebalbi@users.sourceforge.net
+If you want to reach me at my work email, use arjan@linux.intel.com
+For development, discussion and tips for power savings, 
+visit http://www.lesswatts.org
