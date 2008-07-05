@@ -1,65 +1,61 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH 1/2] ACPI Video: Ignore devices that aren't present in
-	hardware
-Date: Sat, 5 Jul 2008 12:46:15 -0300
-Message-ID: <20080705154615.GA10772@khazad-dum.debian.net>
-References: <200807031805.52883.trenn@suse.de> <20080703160822.GA29110@srcf.ucam.org> <20080704030948.GB31908@khazad-dum.debian.net> <20080704091307.GB8905@srcf.ucam.org> <20080704115519.GA7435@khazad-dum.debian.net> <20080704173910.GA16595@srcf.ucam.org>
+From: Arjan van de Ven <arjan@infradead.org>
+Subject: Re: Battery life difference
+Date: Sat, 5 Jul 2008 08:54:32 -0700
+Message-ID: <20080705085432.2f9b2964@infradead.org>
+References: <31e679430807050617u3fc706fasee9bb43a151c501f@mail.gmail.com>
+	<20080705082352.4b6be669@infradead.org>
+	<31e679430807050844r30ff74fby7e15641573b42d82@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4.smtp.messagingengine.com ([66.111.4.28]:47932 "EHLO
-	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751415AbYGEPqV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 5 Jul 2008 11:46:21 -0400
-Content-Disposition: inline
-In-Reply-To: <20080704173910.GA16595@srcf.ucam.org>
+Received: from casper.infradead.org ([85.118.1.10]:36987 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751534AbYGEPyc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 5 Jul 2008 11:54:32 -0400
+In-Reply-To: <31e679430807050844r30ff74fby7e15641573b42d82@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Thomas Renninger <trenn@suse.de>, ak@linux.intel.com, linux-acpi@vger.kernel.org, linux-next@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Julia Jomantaite <julia.jomantaite@gmail.com>, marcus@better.se, dannybaumann@web.de, corsac@debian.org, jesse.barnes@intel.com
+To: Felipe Balbi <felipebalbi@users.sourceforge.net>
+Cc: Kernel development list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-On Fri, 04 Jul 2008, Matthew Garrett wrote:
-> Got it. The reason for the delay is that BRTO sits in a loop for no 
-> obvious reason unless BRTF is cleared. The only thing that clears BRTF 
-> is the PWMS function, which isn't called anywhere in the ACPI tables. 
-> The NetBSD driver has the following code:
+On Sat, 5 Jul 2008 18:44:21 +0300
+"Felipe Balbi" <felipebalbi@users.sourceforge.net> wrote:
+> hmm... interesting :-)
+> where should i look for more info ? Any pointers would be nice
+> 
+> > There's a few things you can do to help stuff along; make sure
+> > you're using AHCI.
+> 
+> not loaded. Thanks
 
-PWMS: missing from X300, X61t, X61... is this a new thing that Lenovo
-recently added to the firmware?  I don't have very new dumps, particularly,
-none taken without OSI(Linux) -- might do something to the SSDTs -- so I
-might not have the full view of this.
+you may also need to toggle your bios to enable AHCI btw
 
-Anyway, if it is that new AND we need it to work well, it means we need to
-warn the user to upgrade the firmware when it is missing (and of course, add
-your code to use it when it is not missing :p).
+> 
+> > Also take a look at
+> > http://kerneltrap.org/mailarchive/linux-kernel/2008/5/8/1771024
+> > because these patches save like 0.75W in our lab.
+> 
+> cool, is it merged upstream ?
+> I'll build current git kernel and reply again with new linux results.
+> It could be that ubuntu 2.6.24 is broken somehow...
+> 
+> > To be honest, I'm surprised at your results; in our testing (with a
+> > different distro though) we don't see such a difference and Linux is
+> > doing rather well.
+> 
+> can you get powertop results in a 2.6.24 distro kernel and current git
+> kernel ?
 
-BRTO, BRTF: these are around for a while already.  But I can't find anything
-that calls BRTO.  What is NetBSD doing with BRTO?
+most of my measurement machines are in the office ;(
 
-Can you send me your acpidump (and censored dmidecode) output so that I can
-look at a new enough dump with PWMS support?
+Anyway, also make sure you use the 0.11 version of powertop; we added
+some newer stuff into that version...
 
-> and doing this in thinkpad_acpi means my brightness control works in an 
-> acceptably speedy manner with opregion. Henrique, any thoughts on this? 
+> 
 
-I'd like to have newer versions of the tables, before giving an opinion. Can
-you send me the dump for your thinkpad?
-
-> If you're happy with it, we can get opregion support into .27 and add 
-> the patch to remove duplicate ACPI video devices and everything will 
-> work in a beautiful and harmonious manner.
-
-I didn't look much at the code for removing duplicate ACPI video yet, but I
-am fine with the basic idea.
-
-However, if we are going to be disabling the entire firmware brightness
-change system (which will include ACPI BCM, probably... need the tables to
-know), that's something the X server needs to be able to enable/disable.
-Otherwise, we break all such changes outside of a X display, which is not
-acceptable.
 
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+If you want to reach me at my work email, use arjan@linux.intel.com
+For development, discussion and tips for power savings, 
+visit http://www.lesswatts.org
