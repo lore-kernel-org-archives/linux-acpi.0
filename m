@@ -1,66 +1,48 @@
-From: "Felipe Balbi" <felipebalbi@users.sourceforge.net>
-Subject: Battery life difference
-Date: Sat, 5 Jul 2008 16:17:01 +0300
-Message-ID: <31e679430807050617u3fc706fasee9bb43a151c501f@mail.gmail.com>
+From: Theodore Tso <tytso@mit.edu>
+Subject: Re: Battery life difference
+Date: Sat, 5 Jul 2008 09:36:01 -0400
+Message-ID: <20080705133601.GA20240@mit.edu>
+References: <31e679430807050617u3fc706fasee9bb43a151c501f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.177]:2286 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752803AbYGENRC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 5 Jul 2008 09:17:02 -0400
-Received: by wa-out-1112.google.com with SMTP id j37so1003695waf.23
-        for <linux-acpi@vger.kernel.org>; Sat, 05 Jul 2008 06:17:01 -0700 (PDT)
+Received: from www.church-of-our-saviour.ORG ([69.25.196.31]:58883 "EHLO
+	thunker.thunk.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752043AbYGENgK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 5 Jul 2008 09:36:10 -0400
 Content-Disposition: inline
+In-Reply-To: <31e679430807050617u3fc706fasee9bb43a151c501f@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kernel development list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: Felipe Balbi <felipebalbi@users.sourceforge.net>
+Cc: Kernel development list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-Hello all,
+On Sat, Jul 05, 2008 at 04:17:01PM +0300, Felipe Balbi wrote:
+> 
+> . x61s with windows xp
+> wifi on but not connected to any network, bluetooth on,
+> display is in the less brighten state.
+> 
+> . x61s with ubuntu 8.04
+> all radios off (modules removed and hw switch off),
+> display is in the less brighten state.
+> powertop runned and I did what it suggested me
+> to do. Also did some other stuff from thinkwiki on
+> how to reduce power consumption.
 
-I bought two x61s for testing purposes. One of them is running windows XP and
-the other one is running clean ubuntu 8.04 with kernel 2.6.24-19. The problem
-is that on windows that battery lasts around 3h30min and with linux 1h30min.
+You didn't say which battery you are using; I'm guessing you are using
+the 4 cell slim-line battery, which is rated at 28.8 Watt-hours?
 
-2 hours is a huge difference. Here's the scenario:
+How many Watts is Powertop reporting that you are using?  I'm down to
+around 8-9 watts, and around 9.5 watts in "airplane mail reading mail"
+(wireless disabled, USB modules unloaded, screen brightness turned way
+down, laptop_mode enabled, all mail messages pulled into memory, and
+reading/deleting mail using mutt, a character-mode based mail reader
+--- if you use Evolution, your energy usage will definitely be higher  :-).
 
-. x61s with windows xp
-wifi on but not connected to any network, bluetooth on,
-display is in the less brighten state.
+> Well, what could still be using the system power so
+> much ?
 
-. x61s with ubuntu 8.04
-all radios off (modules removed and hw switch off),
-display is in the less brighten state.
-powertop runned and I did what it suggested me
-to do. Also did some other stuff from thinkwiki on
-how to reduce power consumption.
+See http://thunk.org/tytso/blog/2007/10/29/tip-o-the-hat-wag-o-the-finger-linux-power-savings-for-laptop-users/
 
-Well, what could still be using the system power so
-much ?
-
-Are we missing anything on the acpi implementation or
-is it related to acpi integration to bus and device drivers ?
-
-Anything I could help testing and maybe even coding, I
-started reading the acpi specs and some notes on the
-linux-acpi website.
-
-One thing that called my attention is that D2 and D3 states
-would require context save/restore opperations (not always
-true in D2) and I can't see such feature in almost any drivers.
-
-We're starting to plan it for omap drivers though due to omap3's
-pm feature been able to reach off-states, but that's another
-point and has nothing to do with x86.
-
-Anyways, do we reach D2/D3 states anywhere ? I mean without
-context save/restore we can't reach D3 and almost no D2 as well.
-
-Any comments ?
-
--- 
-Best Regards,
-
-Felipe Balbi
-felipebalbi@users.sourceforge.net
+					- Ted
