@@ -1,34 +1,37 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH] x86 ACPI: Fix resume from suspend to RAM on
-	uniprocessor x86-64
-Date: Sat, 5 Jul 2008 08:44:04 +0200
-Message-ID: <20080705064404.GB12991@elte.hu>
-References: <200807050005.31272.rjw@sisk.pl> <200807050008.30497.Rafal.Wysocki@fuw.edu.pl>
+From: Andrey Borzenkov <arvidjaar@mail.ru>
+Subject: Re: Toshiba - Documentation for Linux Developers
+Date: Sat, 05 Jul 2008 12:46:53 +0400
+Message-ID: <20080705084655.07CE7B00838@smtp01.mtu.ru>
+References: <4855971D.90004@diamondcut.com.br> <20080616221443.GA760@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.mail.elte.hu ([157.181.151.9]:60792 "EHLO mx2.mail.elte.hu"
+Received: from smtp01.mtu.ru ([62.5.255.48]:56925 "EHLO smtp01.mtu.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750898AbYGEGoa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 5 Jul 2008 02:44:30 -0400
-Content-Disposition: inline
-In-Reply-To: <200807050008.30497.Rafal.Wysocki@fuw.edu.pl>
+	id S1750774AbYGEI4u (ORCPT <rfc822; linux-acpi@vger.kernel.org>);
+	Sat, 5 Jul 2008 04:56:50 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "R. J. Wysocki" <Rafal.Wysocki@fuw.edu.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Dionisus Torimens <djtm@gmx.net>
+To: Greg KH <greg@kroah.com>, linux-acpi@vger.kernel.org
 
+Greg KH wrote:
 
-* R. J. Wysocki <Rafal.Wysocki@fuw.edu.pl> wrote:
+> On Sun, Jun 15, 2008 at 07:26:37PM -0300, Renato S. Yamane wrote:
+>> Hi for all,
+>> 
+>> Toshiba have a 'link' between Linux Developers and Head Company, that is:
+>> <http://linux.toshiba-dme.co.jp/linux/eng/develop.htm>
+>> 
+>> If someone need documentation to develop Linux drivers, contact
+>> linux@toshiba-dme.co.jp
+> 
+> Are there any known drivers for Toshiba hardware that you need for Linux
+> that we should be contacting them about?
+> 
 
-> On Saturday, 5 of July 2008, Rafael J. Wysocki wrote:
-> > Hi Ingo,
-> > 
-> > This is a regression fix, please push to Linus ASAP.
+Support for SD card reader would be nice :)
 
-> Reported-by: Dionisus Torimens <djtm@gmx.net>
+00:12.0 System peripheral [0880]: Toshiba America Info Systems SD TypA
+Controller [1179:0805] (rev 03)
 
-applied to tip/x86/urgent - thanks Rafael. I also queued up Peter's "x86 
-ACPI: normalize segment descriptor register on resume" fix.
-
-	Ingo
