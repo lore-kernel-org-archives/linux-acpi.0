@@ -1,65 +1,60 @@
-From: Arjan van de Ven <arjan@infradead.org>
+From: "Felipe Balbi" <felipebalbi@users.sourceforge.net>
 Subject: Re: Battery life difference
-Date: Sat, 5 Jul 2008 08:23:52 -0700
-Message-ID: <20080705082352.4b6be669@infradead.org>
+Date: Sat, 5 Jul 2008 18:44:21 +0300
+Message-ID: <31e679430807050844r30ff74fby7e15641573b42d82@mail.gmail.com>
 References: <31e679430807050617u3fc706fasee9bb43a151c501f@mail.gmail.com>
+	 <20080705082352.4b6be669@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:54210 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750959AbYGEPXv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 5 Jul 2008 11:23:51 -0400
-In-Reply-To: <31e679430807050617u3fc706fasee9bb43a151c501f@mail.gmail.com>
+Received: from rv-out-0506.google.com ([209.85.198.239]:34166 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751187AbYGEPoW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 5 Jul 2008 11:44:22 -0400
+Received: by rv-out-0506.google.com with SMTP id k40so1974853rvb.1
+        for <linux-acpi@vger.kernel.org>; Sat, 05 Jul 2008 08:44:21 -0700 (PDT)
+In-Reply-To: <20080705082352.4b6be669@infradead.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Felipe Balbi <felipebalbi@users.sourceforge.net>
+To: Arjan van de Ven <arjan@infradead.org>
 Cc: Kernel development list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-On Sat, 5 Jul 2008 16:17:01 +0300
-"Felipe Balbi" <felipebalbi@users.sourceforge.net> wrote:
+Hi,
 
-> Hello all,
-> 
-> I bought two x61s for testing purposes. One of them is running
-> windows XP and the other one is running clean ubuntu 8.04 with kernel
-> 2.6.24-19. The problem is that on windows that battery lasts around
-> 3h30min and with linux 1h30min.
-> 
-> 2 hours is a huge difference. Here's the scenario:
-> 
-> . x61s with windows xp
-> wifi on but not connected to any network, bluetooth on,
-> display is in the less brighten state.
-> 
-> . x61s with ubuntu 8.04
-> all radios off (modules removed and hw switch off),
+On Sat, Jul 5, 2008 at 6:23 PM, Arjan van de Ven <arjan@infradead.org> wrote:
+> Which wireless is this? Same for graphics
 
-Which wireless is this? Same for graphics
+intel iwl4965 and intel mobile bm965/GL960 (graphics)
 
-> 
-> Anyways, do we reach D2/D3 states anywhere ? I mean without
-> context save/restore we can't reach D3 and almost no D2 as well.
+> these don't give you all that much nowadays
 
-these don't give you all that much nowadays
-> 
-> Any comments ?
-> 
+hmm... interesting :-)
+where should i look for more info ? Any pointers would be nice
 
-There's a few things you can do to help stuff along; make sure you're
-using AHCI.
+> There's a few things you can do to help stuff along; make sure you're
+> using AHCI.
 
-Also take a look at 
-http://kerneltrap.org/mailarchive/linux-kernel/2008/5/8/1771024 because
-these patches save like 0.75W in our lab.
+not loaded. Thanks
 
-To be honest, I'm surprised at your results; in our testing (with a
-different distro though) we don't see such a difference and Linux is
-doing rather well.
+> Also take a look at
+> http://kerneltrap.org/mailarchive/linux-kernel/2008/5/8/1771024 because
+> these patches save like 0.75W in our lab.
 
+cool, is it merged upstream ?
+I'll build current git kernel and reply again with new linux results.
+It could be that ubuntu 2.6.24 is broken somehow...
+
+> To be honest, I'm surprised at your results; in our testing (with a
+> different distro though) we don't see such a difference and Linux is
+> doing rather well.
+
+can you get powertop results in a 2.6.24 distro kernel and current git
+kernel ?
 
 -- 
-If you want to reach me at my work email, use arjan@linux.intel.com
-For development, discussion and tips for power savings, 
-visit http://www.lesswatts.org
+Best Regards,
+
+Felipe Balbi
+felipebalbi@users.sourceforge.net
