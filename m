@@ -1,81 +1,34 @@
-From: "R. J. Wysocki" <Rafal.Wysocki@fuw.edu.pl>
-Subject: Re: [PATCH] x86 ACPI: Fix resume from suspend to RAM on uniprocessor x86-64
-Date: Sat, 5 Jul 2008 00:08:29 +0200
-Message-ID: <200807050008.30497.Rafal.Wysocki@fuw.edu.pl>
-References: <200807050005.31272.rjw@sisk.pl>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [PATCH] x86 ACPI: Fix resume from suspend to RAM on
+	uniprocessor x86-64
+Date: Sat, 5 Jul 2008 08:44:04 +0200
+Message-ID: <20080705064404.GB12991@elte.hu>
+References: <200807050005.31272.rjw@sisk.pl> <200807050008.30497.Rafal.Wysocki@fuw.edu.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.fuw.edu.pl ([193.0.80.14]:41108 "EHLO mail.fuw.edu.pl"
+Received: from mx2.mail.elte.hu ([157.181.151.9]:60792 "EHLO mx2.mail.elte.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752145AbYGDWH4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 4 Jul 2008 18:07:56 -0400
-In-Reply-To: <200807050005.31272.rjw@sisk.pl>
+	id S1750898AbYGEGoa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 5 Jul 2008 02:44:30 -0400
 Content-Disposition: inline
+In-Reply-To: <200807050008.30497.Rafal.Wysocki@fuw.edu.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
+To: "R. J. Wysocki" <Rafal.Wysocki@fuw.edu.pl>
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Dionisus Torimens <djtm@gmx.net>
 
-On Saturday, 5 of July 2008, Rafael J. Wysocki wrote:
-> Hi Ingo,
-> 
-> This is a regression fix, please push to Linus ASAP.
-> 
-> Thanks,
-> Rafael
-> 
-> ---
-> From: Rafael J. Wysocki <rjw@sisk.pl>
-> 
-> Since the trampoline code is now used for ACPI resume from suspend to RAM,
-> the trampoline page tables have to be fixed up during boot not only on SMP
-> systems, but also on UP systems that use the trampoline.
-> 
-> Reference: http://bugzilla.kernel.org/show_bug.cgi?id=10923
-> 
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 
-I should have added:
+* R. J. Wysocki <Rafal.Wysocki@fuw.edu.pl> wrote:
 
-Reported-by: Dionisus Torimens <djtm@gmx.net>
+> On Saturday, 5 of July 2008, Rafael J. Wysocki wrote:
+> > Hi Ingo,
+> > 
+> > This is a regression fix, please push to Linus ASAP.
 
-> ---
->  arch/x86/kernel/head_64.S |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> Index: linux-2.6/arch/x86/kernel/head_64.S
-> ===================================================================
-> --- linux-2.6.orig/arch/x86/kernel/head_64.S
-> +++ linux-2.6/arch/x86/kernel/head_64.S
-> @@ -128,7 +128,7 @@ ident_complete:
->  	/* Fixup phys_base */
->  	addq	%rbp, phys_base(%rip)
->  
-> -#ifdef CONFIG_SMP
-> +#ifdef CONFIG_X86_TRAMPOLINE
->  	addq	%rbp, trampoline_level4_pgt + 0(%rip)
->  	addq	%rbp, trampoline_level4_pgt + (511*8)(%rip)
->  #endif
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+> Reported-by: Dionisus Torimens <djtm@gmx.net>
 
+applied to tip/x86/urgent - thanks Rafael. I also queued up Peter's "x86 
+ACPI: normalize segment descriptor register on resume" fix.
 
-
--- 
-Rafael J. Wysocki, Ph.D.
-Institute of Theoretical Physics
-Faculty of Physics of Warsaw University
-ul. Hoza 69, 00-681 Warsaw
-[tel: +48 22 55 32 263]
-[mob: +48 60 50 53 693]
-----------------------------
-One should not increase, beyond what is necessary,
-the number of entities required to explain anything.
-			-- William of Ockham
+	Ingo
