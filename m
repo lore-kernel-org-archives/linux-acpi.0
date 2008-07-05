@@ -1,53 +1,134 @@
-From: "Felipe Balbi" <felipebalbi@users.sourceforge.net>
-Subject: Re: Battery life difference
-Date: Sat, 5 Jul 2008 22:44:35 +0300
-Message-ID: <31e679430807051244k55efa331rdb57673db5ac37cf@mail.gmail.com>
-References: <31e679430807050617u3fc706fasee9bb43a151c501f@mail.gmail.com>
-	 <20080705082352.4b6be669@infradead.org>
-	 <31e679430807050844r30ff74fby7e15641573b42d82@mail.gmail.com>
-	 <20080705085432.2f9b2964@infradead.org>
-	 <31e679430807051041w6dd9b917xc51f31f66fbd65d3@mail.gmail.com>
-	 <20080705123438.15c8de40@infradead.org>
+From: =?iso-8859-1?Q?Bj=F6rn?= Steinbrink <B.Steinbrink@gmx.de>
+Subject: Re: bug? acpi p-state + ondemand keeps dropping max freq
+Date: Sat, 5 Jul 2008 21:49:08 +0200
+Message-ID: <20080705194908.GA13149@atjola.homenet>
+References: <20080606140846.GA9580@ucw.cz> <20080607213918.GC1746@elf.ucw.cz> <20080607145435.4afc9812@infradead.org> <20080616104159.GA28659@elf.ucw.cz> <20080616074337.46d6f411@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.179]:11361 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752533AbYGETof (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 5 Jul 2008 15:44:35 -0400
-Received: by wa-out-1112.google.com with SMTP id j37so1052424waf.23
-        for <linux-acpi@vger.kernel.org>; Sat, 05 Jul 2008 12:44:35 -0700 (PDT)
-In-Reply-To: <20080705123438.15c8de40@infradead.org>
+Received: from mail.gmx.net ([213.165.64.20]:44241 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752118AbYGETtN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 5 Jul 2008 15:49:13 -0400
 Content-Disposition: inline
+In-Reply-To: <20080616074337.46d6f411@infradead.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Arjan van de Ven <arjan@infradead.org>
-Cc: Kernel development list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+Cc: Pavel Machek <pavel@suse.cz>, auke-jan.h.kok@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, len.brown@intel.com, cpufreq@lists.linux.org.uk, davej@codemonkey.org.uk
 
-Hi,
+On 2008.06.16 07:43:37 -0700, Arjan van de Ven wrote:
+> On Mon, 16 Jun 2008 12:42:00 +0200
+> Pavel Machek <pavel@suse.cz> wrote:
+>=20
+> > On Sat 2008-06-07 14:54:35, Arjan van de Ven wrote:
+> > > On Sat, 7 Jun 2008 23:39:18 +0200
+> > > Pavel Machek <pavel@suse.cz> wrote:
+> > >=20
+> > > > > # echo 1866000 > scaling_max_freq ; cat scaling_max_freq
+> > > > > 800000
+> > > > > # echo 1866000 > scaling_max_freq ; cat scaling_max_freq
+> > > > > 800000
+> > > > >=20
+> > > > >=20
+> > > > > This renders my Dothan to utterly poor speeds. (standard T43)
+> > > > >=20
+> > > > > performance cpufreq governor makes no difference - I still ca=
+n't
+> > > > > change the frequency upper/lower values.
+> > > >=20
+> > > > Hmm, I have similar problem in Novell bugzilla, on very differe=
+nt
+> > > > hw:
+> > > >=20
+> > > > https://bugzilla.novell.com/show_bug.cgi?id=3D396311
+> >=20
+> > > are either of you running gnome-power-manager or kpowersaved ?
+> > > sometimes these programs (and more likely, the patches added by a
+> > > distro maintainer who doesn't fully realize how power works) tend=
+ to
+> > > muck with kernel settings around CPU frequency that they have
+> > > absolutely no business touching...
+> >=20
+> > In novel bugzilla case ignore_ppc=3D1 helped, so it seems to be BIO=
+S
+> > problem, not userland's...
+>=20
+> well as long as the user doesn't use this for production use... the
+> BIOS often reduces frequencies available to deal with thermal
+> situations, so it's not a good idea to ignore that.
 
-On Sat, Jul 5, 2008 at 10:34 PM, Arjan van de Ven <arjan@infradead.org> wrote:
-> actually.. it needs to/is moving into the driver. This sort of decision
-> needs to just happen locally in the driver; the idea that you can make
-> power decisions (rather than policy decisions) on a global level is
-> just no longer true (if it ever was).
+Yep, seems to be a thermal thing. I managed to find some time to play
+around with it a bit, and running a cpu hog for a short period of time,
+while watching temperature and scaling_max_freq showed this:
 
-Got your point. Just like in omap, we're putting everything in the driver
-itself.
+cpufreq# cat /proc/acpi/thermal_zone/THM0/temperature
+temperature:             49 C
+cpufreq# cat scaling_max_freq
+1866000
 
-> Actually I thought this was already in the 2.6.26-rc kernel series
-> driver...
+cpufreq# cat /proc/acpi/thermal_zone/THM0/temperature
+temperature:             51 C
+cpufreq# cat scaling_max_freq
+1866000
 
-At least powertop still complains about it. Maybe it's queued for
-2.6.27 ?
+cpufreq# cat /proc/acpi/thermal_zone/THM0/temperature
+temperature:             52 C
+cpufreq# cat scaling_max_freq
+1866000
 
-btw, do you know if any company is selling x-series power adapters
-to be attached to controlled power supplies or would I have to cut one of
-my power supply cords (not willing to do that :-p)?
+cpufreq# cat /proc/acpi/thermal_zone/THM0/temperature
+temperature:             53 C
+cpufreq# cat scaling_max_freq
+1866000
 
--- 
-Best Regards,
+cpufreq# cat /proc/acpi/thermal_zone/THM0/temperature
+temperature:             54 C
+cpufreq# cat scaling_max_freq
+800000
 
-Felipe Balbi
-felipebalbi@users.sourceforge.net
+cpufreq# cat /proc/acpi/thermal_zone/THM0/temperature
+temperature:             53 C
+cpufreq# cat scaling_max_freq
+800000
+
+cpufreq# cat /proc/acpi/thermal_zone/THM0/temperature
+temperature:             51 C
+cpufreq# cat scaling_max_freq
+800000
+
+cpufreq# cat /proc/acpi/thermal_zone/THM0/temperature
+temperature:             51 C
+cpufreq# cat scaling_max_freq
+800000
+
+cpufreq# cat /proc/acpi/thermal_zone/THM0/temperature
+temperature:             50 C
+cpufreq# cat scaling_max_freq
+800000
+
+cpufreq# cat /proc/acpi/thermal_zone/THM0/temperature
+temperature:             49 C
+cpufreq# cat scaling_max_freq
+1866000
+
+
+So upon reaching 54=B0C some throttling kicks in and only when going ba=
+ck
+to less then 50=B0C, that limit is lifted again. Too bad that with Linu=
+x,
+this T43 already runs at about 47=B0C when idle, so as soon as there's =
+any
+load on the cpu, it will scale up for a few seconds and then get
+throttled :-(
+
+There's no userspace powersave foo involved here, just the plain
+ondemand scaling governor, same happens with the performance governor.
+
+Bj=F6rn
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
