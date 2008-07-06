@@ -1,115 +1,72 @@
-From: "Vegard Nossum" <vegard.nossum@gmail.com>
-Subject: v2.6.26-rc9: ACPI PCI irq routing on NUMA? + early_ioremap trouble
-Date: Sun, 6 Jul 2008 15:47:19 +0200
-Message-ID: <19f34abd0807060647k54490088uf8859d8a1646fd41@mail.gmail.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH -next] acpi utmisc: use WARN_ON() instead of
+ warn_on_slowpath()
+Date: Sun, 06 Jul 2008 13:18:56 -0400 (EDT)
+Message-ID: <alpine.LFD.1.10.0807061307280.24417@localhost.localdomain>
+References: <20080701103339.b5acc1f3.randy.dunlap@oracle.com>
+ <20080701131714.5093fa49.akpm@linux-foundation.org>
+ <23433248.1214943818230.JavaMail.oracle@acsmt302.oracle.com>
+ <20080701133535.f92a673c.akpm@linux-foundation.org>
+ <20080702112852.05f30950.randy.dunlap@oracle.com>
+ <486BCDDC.1000709@firstfloor.org>
+ <20080702121424.a3451eae.akpm@linux-foundation.org>
+ <486BD785.5050207@firstfloor.org>
+ <20080702124316.61cc76e9.akpm@linux-foundation.org>
+ <486BE0DA.2090108@firstfloor.org>
+ <20080702133540.20d578cd.akpm@linux-foundation.org>
+ <486BEA68.7000801@firstfloor.org>
+ <20080702140216.334011a4.akpm@linux-foundation.org>
+ <486BEE0D.3030901@firstfloor.org>
+ <20080702141459.e6d6feaa.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.174]:20161 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756667AbYGFNrU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Jul 2008 09:47:20 -0400
-Received: by wf-out-1314.google.com with SMTP id 27so1767234wfd.4
-        for <linux-acpi@vger.kernel.org>; Sun, 06 Jul 2008 06:47:20 -0700 (PDT)
-Content-Disposition: inline
+Received: from vms046pub.verizon.net ([206.46.252.46]:47918 "EHLO
+	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750779AbYGFRTu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Jul 2008 13:19:50 -0400
+In-reply-to: <20080702141459.e6d6feaa.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>, Alexey Starikovskiy <astarikovskiy@suse.de>, Thomas Gleixner <tglx@linutronix.de>, venkatesh.pallipadi@intel.com, Huang Ying <ying.huang@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-
-Hi,
-
-I have produced a config which doesn't boot correctly on either of my
-computers with v2.6.26-rc9.
-
-The first problem is with my laptop, which hangs on boot, see
-screenshot (sorry for the bad quality, I was in a hurry):
-http://folk.uio.no/vegardno/linux/DSCF3026.JPG
-
-I figured there's something wrong with ACPI PCI irq routing as I'm
-missing a message that shows up in my usual configs:
-
-calling  ide_scan_pcibus+0x0/0xf0
-ICH8M: IDE controller (0x8086:0x2850 rev 0x03) at  PCI slot 0000:00:1f.1
-    --- HERE: ---
-ACPI: PCI Interrupt 0000:00:1f.1[A] -> GSI 18 (level, low) -> IRQ 18
-    ----
-ICH8M: not 100% native mode: will probe irqs later
-
-...and as can be seen in the screenshot, ide-cd "lost interrupt".
-Unfortunately, I don't have a serial line on this machine, so it's
-hard to get the full log. (Maybe I can try netconsole, it seems to be
-up by the time this happens.)
-
-(I also tried booting with acpi=off, acpi=noirq, pci=noacpi, to no avail.)
-
-Note that this does not seem to be a regression; I get the same thing
-with -rc8 as well. I'm guessing it's config-induced, here are my
-config changes that triggered it:
-http://folk.uio.no/vegardno/linux/config-diff
-
-I'll make a guess for the NUMA/ACPI stuff. And this is the full
-config: http://folk.uio.no/vegardno/linux/config-bisect
-
-I decided to also try this kernel with my desktop machine. This one
-boots (probably because ACPI is disabled?), but I get the following
-warning:
-
-[    0.000000] Begin SRAT table scan....
-[    0.000000] ------------[ cut here ]------------
-[    0.000000] WARNING: at arch/x86/mm/ioremap.c:553 early_ioremap+0x1c1/0x200()
-[    0.000000] Pid: 0, comm: swapper Not tainted 2.6.26-rc9 #201
-[    0.000000]  [<c0157d6f>] warn_on_slowpath+0x4f/0x70
-[    0.000000]  [<c01708db>] ? up+0x2b/0x40
-[    0.000000]  [<c01586f1>] ? release_console_sem+0x1c1/0x1f0
-[    0.000000]  [<c05c0132>] ? _spin_unlock_irqrestore+0x32/0x70
-[    0.000000]  [<c05c0143>] ? _spin_unlock_irqrestore+0x43/0x70
-[    0.000000]  [<c0158705>] ? release_console_sem+0x1d5/0x1f0
-[    0.000000]  [<c0158aff>] ? vprintk+0x1cf/0x430
-[    0.000000]  [<c0158b0b>] ? vprintk+0x1db/0x430
-[    0.000000]  [<c07c0b24>] ? __early_set_fixmap+0xb4/0xd0
-[    0.000000]  [<c07c1231>] early_ioremap+0x1c1/0x200
-[    0.000000]  [<c07bd48e>] get_memcfg_from_srat+0x15e/0x6d0
-[    0.000000]  [<c01314be>] ? post_set+0x4e/0x50
-[    0.000000]  [<c01315fa>] ? generic_get_mtrr+0x2a/0x100
-[    0.000000]  [<c07c154d>] setup_memory+0xd/0x280
-[    0.000000]  [<c07b3c7e>] setup_arch+0x2ee/0x4e0
-[    0.000000]  [<c0158d7b>] ? printk+0x1b/0x20
-[    0.000000]  [<c07ab842>] start_kernel+0x82/0x390
-[    0.000000]  [<c07ab028>] i386_start_kernel+0x8/0x10
-[    0.000000]  =======================
-[    0.000000] ---[ end trace 4eaa2a86a8e2da22 ]---
-[    0.000000] failed to get NUMA memory information from SRAT table
-[    0.000000] NUMA - single node, flat memory mode
-
-What really puzzles me is the line number of the WARN -- it says
-arch/x86/mm/ioremap.c:553. But this line does not contain any WARNs.
-In fact, it's not even the right function. But this is a clean
-v2.6.26-rc9 compile, as can be seen from the kernel version above.
-
-There's also one a bit later:
-
-[    7.746346] please boot with early_ioremap_debug and report the dmesg.
-[    7.746460] ------------[ cut here ]------------
-[    7.746569] WARNING: at arch/x86/mm/ioremap.c:524
-check_early_ioremap_leak+0x3f/0x50()
-
-See full dmesg at: http://folk.uio.no/vegardno/linux/dmesg-2.6.26-rc9
-With early_ioremap_debug enabled:
-http://folk.uio.no/vegardno/linux/dmesg-early_ioremap_debug
-
-My apologies if I got the recipients wrong; I picked them off the
-git-log for relevant files. Please Cc in the right direction if needed
-:-)
-
-Thanks!
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andi Kleen <andi@firstfloor.org>, randy.dunlap@oracle.com, linux-acpi@vger.kernel.org, linux-next@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, Arjan van de Ven <arjan@infradead.org>
 
 
-Vegard
+for background...
 
--- 
-"The animistic metaphor of the bug that maliciously sneaked in while
-the programmer was not looking is intellectually dishonest as it
-disguises that the error is the programmer's own creation."
-	-- E. W. Dijkstra, EWD1036
+Ingo pointed out that automated testing wasn't finding
+ACPI exceptions because we were not using the standard
+Linux format for oops etc.
+
+I put this hack patch on the debug-test branch in the acpi tree,
+and pulled it into the test branch for linux-next to mine
+for previously ignored errors.
+
+This commit isn't intended for 2.6.27.
+(and thus is not on the release-2.6.27 branch)
+hopefully that isn't abuse of linux-next...
+
+Arjan tells me that we'll have a real WARN()
+with prink semantics in 2.6.27 and so we can
+simplify/standardize this when that happens.
+
+Oh, and since I'm on sabbatical, I'm obviously
+fine with whatever Andi Kleen does (or does not do here)
+in my absence.
+
+thanks,
+-Len
+
+
+commit 9e030ab0bffdc8b6d8be663b639bd5e2374537f0
+Author: Len Brown <len.brown@intel.com>
+Date:   Tue Jun 24 22:47:09 2008 -0400
+
+    ACPI: add standard linux WARN_ON() output to ACPI errors and 
+exceptions
+    
+    In linux-2.6.27, we expect WARN() with printk semantics
+    to become available, and we'll be able to simplify
+    this code.
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
