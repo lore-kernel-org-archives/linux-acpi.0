@@ -1,54 +1,101 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [PATCH 2/2] acpi: Disable IRQ 0 through I/O APIC for some HP systems
-Date: Mon, 7 Jul 2008 20:03:47 +0200
-Message-ID: <200807072003.48228.rjw@sisk.pl>
-References: <Pine.LNX.4.55.0807010055070.30785@cliff.in.clinika.pl> <200807071423.48425.rjw@sisk.pl> <Pine.LNX.4.55.0807071435160.16767@cliff.in.clinika.pl>
+Date: Mon, 7 Jul 2008 20:09:32 +0200
+Message-ID: <200807072009.33513.rjw@sisk.pl>
+References: <Pine.LNX.4.55.0807010055070.30785@cliff.in.clinika.pl> <200807071428.53598.rjw@sisk.pl> <Pine.LNX.4.55.0807071743280.20615@cliff.in.clinika.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754144AbYGGSB7@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.55.0807071435160.16767@cliff.in.clinika.pl>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:34046 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754431AbYGGSH3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 7 Jul 2008 14:07:29 -0400
+In-Reply-To: <Pine.LNX.4.55.0807071743280.20615@cliff.in.clinika.pl>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "Maciej W. Rozycki" <macro@linux-mips.org>
 Cc: Ingo Molnar <mingo@elte.hu>, Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-next@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>
-List-Id: linux-acpi@vger.kernel.org
 
 On Monday, 7 of July 2008, Maciej W. Rozycki wrote:
 > On Mon, 7 Jul 2008, Rafael J. Wysocki wrote:
 > 
-> > >  It makes absolutely no sense and should be harmful to call
-> > > clear_IO_APIC_pin(apic1, pin1) here, because both apic1 and pin1 should be
-> > > equal to -1 here.  If it has to be called, then I suppose the DMI matching 
-> > > did not work and the workaround has not been enabled.
-> > 
-> > Do you realize that the clear_IO_APIC_pin(apic1, pin1) thing is _only_ called
-> > _IF_ the DMI matching did work?
+> > BTW, did you even to look at the code _as_ _is_ in linux-next?
 > 
->  Well, it is the very intent of the DMI quirk to set apic1 and pin1 both
-> to -1, as a result of IRQ0 being absent from our I/O APIC interrupt
-> routing table.  Therefore if the quirk did indeed work, a call to
-> clear_IO_APIC_pin() is useless and likely harmful as its callees don't do
-> range checking (my understanding of code is it results in random poking at
-> the local APIC through the FIX_APIC_BASE fixmap).  There should be nothing
-> to clear too, as interrupt redirection entries for all the I/O APIC inputs
-> are cleared (the mask is set to 1 and the remaining fields zeroed) when
-> clear_IO_APIC() is called from enable_IO_APIC() upon initialization and
-> all the unused ones (not referred to from anywhere in the interrupt
-> routing table) are never touched afterwards.
+>  Well, I hope it has not changed too much since my recent work in this 
+> area...
 
-Sorry, the patch I posted was _instead_ of your previous patch with the quirk,
-because that patch didn't work.  I don't know why it didn't work, however, I
-can only say it didn't work after removing the __i386__ dependency of
-acpi_dmi_table[].
+Please look at it.
 
-My patch is on top of the linux-next tree that didn't contain your patch.
-So, my patch adds a quirk that sets disable_irq0_through_ioapic to 1 (this
-variable is defined differently in my patch) and uses it to skip the part of
-check_timer() that breaks my box.
+> > In fact, it is _impossible_ that either apic1 or pin1 are equal to -1 at this
+> > point, because of this part:
+> 
+>  With the workaround activated it is virtually certain.
 
-I hope that makes things clear.
+Which workaround?
+
+There are no any workarounds related to this problem in the 20080704 linux-next
+and that's what my patch was against.
+
+> > 	/*
+> > 	 * Some BIOS writers are clueless and report the ExtINTA
+> > 	 * I/O APIC input from the cascaded 8259A as the timer
+> > 	 * interrupt input.  So just in case, if only one pin
+> > 	 * was found above, try it both directly and through the
+> > 	 * 8259A.
+> > 	 */
+> > 	if (pin1 == -1) {
+> > 		pin1 = pin2;
+> > 		apic1 = apic2;
+> > 		no_pin1 = 1;
+> > 	} else if (pin2 == -1) {
+> > 		pin2 = pin1;
+> > 		apic2 = apic1;
+> > 	}
+> > 
+> > that originates from your patch.
+> 
+>  And the conclusion is?  If we leave MP-table setups aside as irrelevant
+> for this configuration, we can be almost certain apic2 and pin2 are both
+> equal to -1 at this point.  This is because (unlike the MP table) ACPI has
+> no provisions in its tables for ExtINTA APIC interrupt inputs.  Therefore
+> the only case apic2 and pin2 may not be equal -1 here is when the firmware
+> had set up one of the inputs as such in the hardware before initiating
+> bootstrap which has been subsequently noted by a piece of code in
+> enable_IO_APIC() which examines the I/O APIC for such a condition.
+> 
+>  I have taken these circumstances very much into account when preparing
+> the workaround, based on the assumption that if the firmware has set up an
+> I/O APIC line as an ExtINTA interrupt, then it means it considers it
+> suitable to use in such a manner.  This furthermore implies the line
+> should be safe to be used in any valid 8259A mode of operation, such as
+> one we use to forward IRQ0 transparently through the 8259A (we
+> double-check it just in case though, as workarounds for hardware bugs in
+> the past made it not always true).  The workaround therefore applies to
+> genuine IRQ0 routing as reported by ACPI only and not any possible legacy
+> ExtINTA fallback that we may attempt to use.
+> 
+>  Of course, as determined previously, the ExtINTA line is not safe to be
+> used on your box, but it has not been set up by the firmware as an ExtINTA
+> interrupt either, so the assumption mentioned above remains valid and has
+> no negative impact on your system.  At this point all of apic1, apic2,
+> pin1 and pin2 should be equal -1, which means the reassignments you quoted
+> make no changes to the variables.
+> 
+> > End even without this part apic1 and pin1 are _not_ equal to -1 on this box
+> > (apic2 and pin2 are, but that's a different matter).
+> 
+>  Which means the workaround has not triggered and the rest of cosideration 
+> is therefore irrelevant.  Please get us these DMI IDs, so that we can see 
+> what's wrong with the quirk.
+
+I used those DMI IDs and your quirk didn't work, even after removing the
+dependency of acpi_dmi_table[] from __i386__.  For this reason, I prepared an
+alternative patch that did work and posted it for your information.
+
+Now, you're saying that my patch couldn't work, while in fact it did.
 
 Thanks,
 Rafael
