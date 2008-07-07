@@ -1,190 +1,295 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 2/2] acpi: Disable IRQ 0 through I/O APIC for some HP systems
-Date: Mon, 7 Jul 2008 03:19:28 +0200
-Message-ID: <200807070319.29470.rjw@sisk.pl>
-References: <Pine.LNX.4.55.0807010055070.30785@cliff.in.clinika.pl> <20080701202453.GD4896@elte.hu> <200807070102.38854.rjw@sisk.pl>
+Subject: [PATCH 4/8] ACPI: Introduce acpi_device_sleep_wake function
+Date: Mon, 7 Jul 2008 03:33:34 +0200
+Message-ID: <200807070333.35794.rjw@sisk.pl>
+References: <200807012356.26669.rjw@sisk.pl> <200807070330.02849.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:56972 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:57075 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757443AbYGGBSE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 6 Jul 2008 21:18:04 -0400
-In-Reply-To: <200807070102.38854.rjw@sisk.pl>
+	id S1751224AbYGGBe5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 6 Jul 2008 21:34:57 -0400
+In-Reply-To: <200807070330.02849.rjw@sisk.pl>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "Maciej W. Rozycki" <macro@linux-mips.org>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-next@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Andi Kleen <andi@firstfloor.org>, pm list <linux-pm@lists.linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, Zhao Yakui <yakui.zhao@intel.com>, Pavel Machek <pavel@suse.cz>
 
-On Monday, 7 of July 2008, Rafael J. Wysocki wrote:
-> On Tuesday, 1 of July 2008, Ingo Molnar wrote:
-> > 
-> > * Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > 
-> > > On Tuesday, 1 of July 2008, Ingo Molnar wrote:
-> > > > 
-> > > > * Matthew Garrett <mjg59@srcf.ucam.org> wrote:
-> > > > 
-> > > > > Assuming it works for Rafael (still haven't had time to pull my nx6125 
-> > > > > out of storage):
-> > > > > 
-> > > > > Signed-off-by: mjg@redhat.com
-> > > > 
-> > > > Rafael, could you please try the latest tip/master that i've just pushed 
-> > > > out:
-> > > > 
-> > > >   http://people.redhat.com/mingo/tip.git/README
-> > > > 
-> > > > it has the final form of these changes integrated - it should in 
-> > > > theory work out of box on your system, with no boot parameters or 
-> > > > other explicit quirks needed anywhere.
-> > > 
-> > > I tested patches [1/2] (your version) and [2/2] on top of today's 
-> > > linux-next and they work just fine.
-> > 
-> > thanks Rafael!
-> 
-> Well, I'm afraid that my information wasn't correct.  The patches actually
-> don't work, but I had my own additional patch that fixed the problem applied,
-> which I've only just discovered.  Sorry for the confusion and the issue is
-> still unfixed.
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Appended is a patch that actually works for me (it's missing the i386 part,
-but I can't test that anyway).
+ACPI: Introduce acpi_device_sleep_wake function
 
-Please note two things:
-(1) The whole acpi_dmi_table[] thing originally depended on __i386__, so it
-    wouldn't work on x86-64 no matter what.  I removed that dependecy, but
-    I have no idea why it was there and so I'm not sure if that's correct. 
-(2) The clear_IO_APIC_pin(apic1, pin1) done if disable_irq0_through_ioapic is
-    true is absolutely essential.  The symptoms are 100% reproducible without it.
+The currect ACPI code attempts to execute _PSW at three different
+places and in one of them only it tries to execute _DSW before _PSW,
+which is inconsistent with the other two cases.
 
-Thanks,
-Rafael
+Move the execution of _DSW and _PSW into a separate function called
+acpi_device_sleep_wake() and call it wherever appropriate instead of
+executing _DSW and/or _PSW directly.
 
-
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@suse.cz>
 ---
- arch/x86/kernel/acpi/boot.c  |   43 +++++++++++++++++++++++++++++++++++++------
- arch/x86/kernel/io_apic_64.c |   19 ++++++++++++++-----
- 2 files changed, 51 insertions(+), 11 deletions(-)
+ drivers/acpi/power.c        |  118 ++++++++++++++++++++++++++++++--------------
+ drivers/acpi/scan.c         |   42 ++-------------
+ drivers/acpi/sleep/wakeup.c |    2 
+ include/acpi/acpi_drivers.h |    4 +
+ 4 files changed, 92 insertions(+), 74 deletions(-)
 
-Index: linux-next/arch/x86/kernel/acpi/boot.c
+Index: linux-pci/drivers/acpi/power.c
 ===================================================================
---- linux-next.orig/arch/x86/kernel/acpi/boot.c
-+++ linux-next/arch/x86/kernel/acpi/boot.c
-@@ -1363,8 +1363,6 @@ static void __init acpi_process_madt(voi
- 	return;
+--- linux-pci.orig/drivers/acpi/power.c
++++ linux-pci/drivers/acpi/power.c
+@@ -292,69 +292,115 @@ static int acpi_power_off_device(acpi_ha
+ 	return 0;
  }
  
--#ifdef __i386__
--
- static int __init disable_acpi_irq(const struct dmi_system_id *d)
- {
- 	if (!acpi_force) {
-@@ -1415,6 +1413,17 @@ static int __init force_acpi_ht(const st
- }
- 
- /*
-+ * Don't register any I/O APIC entries for the 8254 timer IRQ.
++/**
++ * acpi_device_sleep_wake - execute _DSW (Device Sleep Wake) or (deprecated in
++ *                          ACPI 3.0) _PSW (Power State Wake)
++ * @dev: Device to handle.
++ * @enable: 0 - disable, 1 - enable the wake capabilities of the device.
++ * @sleep_state: Target sleep state of the system.
++ * @dev_state: Target power state of the device.
++ *
++ * Execute _DSW (Device Sleep Wake) or (deprecated in ACPI 3.0) _PSW (Power
++ * State Wake) for the device, if present.  On failure reset the device's
++ * wakeup.flags.valid flag.
++ *
++ * RETURN VALUE:
++ * 0 if either _DSW or _PSW has been successfully executed
++ * 0 if neither _DSW nor _PSW has been found
++ * -ENODEV if the execution of either _DSW or _PSW has failed
 + */
-+static int __init
-+dmi_disable_irq0_through_ioapic(const struct dmi_system_id *d)
++int acpi_device_sleep_wake(struct acpi_device *dev,
++                           int enable, int sleep_state, int dev_state)
 +{
-+	pr_notice("%s detected: disabling IRQ 0 through I/O APIC\n", d->ident);
-+	force_disable_irq0_through_ioapic();
++	union acpi_object in_arg[3];
++	struct acpi_object_list arg_list = { 3, in_arg };
++	acpi_status status = AE_OK;
++
++	/*
++	 * Try to execute _DSW first.
++	 *
++	 * Three agruments are needed for the _DSW object:
++	 * Argument 0: enable/disable the wake capabilities
++	 * Argument 1: target system state
++	 * Argument 2: target device state
++	 * When _DSW object is called to disable the wake capabilities, maybe
++	 * the first argument is filled. The values of the other two agruments
++	 * are meaningless.
++	 */
++	in_arg[0].type = ACPI_TYPE_INTEGER;
++	in_arg[0].integer.value = enable;
++	in_arg[1].type = ACPI_TYPE_INTEGER;
++	in_arg[1].integer.value = sleep_state;
++	in_arg[2].type = ACPI_TYPE_INTEGER;
++	in_arg[2].integer.value = dev_state;
++	status = acpi_evaluate_object(dev->handle, "_DSW", &arg_list, NULL);
++	if (ACPI_SUCCESS(status)) {
++		return 0;
++	} else if (status != AE_NOT_FOUND) {
++		printk(KERN_ERR PREFIX "_DSW execution failed\n");
++		dev->wakeup.flags.valid = 0;
++		return -ENODEV;
++	}
++
++	/* Execute _PSW */
++	arg_list.count = 1;
++	in_arg[0].integer.value = enable;
++	status = acpi_evaluate_object(dev->handle, "_PSW", &arg_list, NULL);
++	if (ACPI_FAILURE(status) && (status != AE_NOT_FOUND)) {
++		printk(KERN_ERR PREFIX "_PSW execution failed\n");
++		dev->wakeup.flags.valid = 0;
++		return -ENODEV;
++	}
++
 +	return 0;
 +}
 +
-+/*
-  * If your system is blacklisted here, but you find that acpi=force
-  * works for you, please contact acpi-devel@sourceforge.net
-  */
-@@ -1581,11 +1590,35 @@ static struct dmi_system_id __initdata a
- 		     DMI_MATCH(DMI_PRODUCT_NAME, "TravelMate 360"),
- 		     },
- 	 },
-+	/*
-+	 * HP laptops which use a DSDT reporting as HP/SB400/10000,
-+	 * which includes some code which overrides all temperature
-+	 * trip points to 16C if the INTIN2 input of the I/O APIC
-+	 * is enabled.  This input is incorrectly designated the
-+	 * ISA IRQ 0 via an interrupt source override even though
-+	 * it is wired to the output of the master 8259A and INTIN0
-+	 * is not connected at all.  Abandon any attempts to route
-+	 * IRQ 0 through the I/O APIC therefore.
-+	 */
-+	{
-+	 .callback = dmi_disable_irq0_through_ioapic,
-+	 .ident = "HP NX6125 laptop",
-+	 .matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
-+		     DMI_MATCH(DMI_PRODUCT_NAME, "HP Compaq nx6125"),
-+		     },
-+	 },
-+	{
-+	 .callback = dmi_disable_irq0_through_ioapic,
-+	 .ident = "HP NX6325 laptop",
-+	 .matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
-+		     DMI_MATCH(DMI_PRODUCT_NAME, "HP Compaq nx6325"),
-+		     },
-+	 },
- 	{}
- };
- 
--#endif				/* __i386__ */
--
  /*
-  * acpi_boot_table_init() and acpi_boot_init()
-  *  called from setup_arch(), always.
-@@ -1613,9 +1646,7 @@ int __init acpi_boot_table_init(void)
+  * Prepare a wakeup device, two steps (Ref ACPI 2.0:P229):
+  * 1. Power on the power resources required for the wakeup device 
+- * 2. Enable _PSW (power state wake) for the device if present
++ * 2. Execute _DSW (Device Sleep Wake) or (deprecated in ACPI 3.0) _PSW (Power
++ *    State Wake) for the device, if present
+  */
+-int acpi_enable_wakeup_device_power(struct acpi_device *dev)
++int acpi_enable_wakeup_device_power(struct acpi_device *dev, int sleep_state)
  {
- 	int error;
+-	union acpi_object arg = { ACPI_TYPE_INTEGER };
+-	struct acpi_object_list arg_list = { 1, &arg };
+-	acpi_status status = AE_OK;
+ 	int i;
+-	int ret = 0;
  
--#ifdef __i386__
- 	dmi_check_system(acpi_dmi_table);
--#endif
+ 	if (!dev || !dev->wakeup.flags.valid)
+-		return -1;
++		return -EINVAL;
  
- 	/*
- 	 * If acpi_disabled, bail out
-Index: linux-next/arch/x86/kernel/io_apic_64.c
-===================================================================
---- linux-next.orig/arch/x86/kernel/io_apic_64.c
-+++ linux-next/arch/x86/kernel/io_apic_64.c
-@@ -94,6 +94,13 @@ static int no_timer_check;
- 
- static int disable_timer_pin_1 __initdata;
- 
-+static bool disable_irq0_through_ioapic __initdata;
-+
-+void __init force_disable_irq0_through_ioapic(void)
-+{
-+	disable_irq0_through_ioapic = true;
-+}
-+
- int timer_through_8259 __initdata;
- 
- /* Where if anywhere is the i8259 connect in external int mode */
-@@ -1714,12 +1721,14 @@ static inline void __init check_timer(vo
- 		apic2 = apic1;
+-	arg.integer.value = 1;
+ 	/* Open power resource */
+ 	for (i = 0; i < dev->wakeup.resources.count; i++) {
+-		ret = acpi_power_on(dev->wakeup.resources.handles[i], dev);
++		int ret = acpi_power_on(dev->wakeup.resources.handles[i], dev);
+ 		if (ret) {
+ 			printk(KERN_ERR PREFIX "Transition power state\n");
+ 			dev->wakeup.flags.valid = 0;
+-			return -1;
++			return -ENODEV;
+ 		}
  	}
  
--	replace_pin_at_irq(0, 0, 0, apic1, pin1);
--	apic1 = 0;
--	pin1 = 0;
--	setup_timer_IRQ0_pin(apic1, pin1, cfg->vector);
-+	if (disable_irq0_through_ioapic) {
-+		clear_IO_APIC_pin(apic1, pin1);
-+	} else {
-+		replace_pin_at_irq(0, 0, 0, apic1, pin1);
-+		apic1 = 0;
-+		pin1 = 0;
-+		setup_timer_IRQ0_pin(apic1, pin1, cfg->vector);
+-	/* Execute PSW */
+-	status = acpi_evaluate_object(dev->handle, "_PSW", &arg_list, NULL);
+-	if (ACPI_FAILURE(status) && (status != AE_NOT_FOUND)) {
+-		printk(KERN_ERR PREFIX "Evaluate _PSW\n");
+-		dev->wakeup.flags.valid = 0;
+-		ret = -1;
+-	}
+-
+-	return ret;
++	/*
++	 * Passing 3 as the third argument below means the device may be placed
++	 * in arbitrary power state afterwards.
++	 */
++	return acpi_device_sleep_wake(dev, 1, sleep_state, 3);
+ }
  
--	if (pin1 != -1) {
- 		/*
- 		 * Ok, does IRQ0 through the IOAPIC work?
- 		 */
+ /*
+  * Shutdown a wakeup device, counterpart of above method
+- * 1. Disable _PSW (power state wake)
++ * 1. Execute _DSW (Device Sleep Wake) or (deprecated in ACPI 3.0) _PSW (Power
++ *    State Wake) for the device, if present
+  * 2. Shutdown down the power resources
+  */
+ int acpi_disable_wakeup_device_power(struct acpi_device *dev)
+ {
+-	union acpi_object arg = { ACPI_TYPE_INTEGER };
+-	struct acpi_object_list arg_list = { 1, &arg };
+-	acpi_status status = AE_OK;
+-	int i;
+-	int ret = 0;
+-
++	int i, ret;
+ 
+ 	if (!dev || !dev->wakeup.flags.valid)
+-		return -1;
++		return -EINVAL;
+ 
+-	arg.integer.value = 0;
+-	/* Execute PSW */
+-	status = acpi_evaluate_object(dev->handle, "_PSW", &arg_list, NULL);
+-	if (ACPI_FAILURE(status) && (status != AE_NOT_FOUND)) {
+-		printk(KERN_ERR PREFIX "Evaluate _PSW\n");
+-		dev->wakeup.flags.valid = 0;
+-		return -1;
+-	}
++	ret = acpi_device_sleep_wake(dev, 0, 0, 0);
++	if (ret)
++		return ret;
+ 
+ 	/* Close power resource */
+ 	for (i = 0; i < dev->wakeup.resources.count; i++) {
+@@ -362,7 +408,7 @@ int acpi_disable_wakeup_device_power(str
+ 		if (ret) {
+ 			printk(KERN_ERR PREFIX "Transition power state\n");
+ 			dev->wakeup.flags.valid = 0;
+-			return -1;
++			return -ENODEV;
+ 		}
+ 	}
+ 
+Index: linux-pci/drivers/acpi/sleep/wakeup.c
+===================================================================
+--- linux-pci.orig/drivers/acpi/sleep/wakeup.c
++++ linux-pci/drivers/acpi/sleep/wakeup.c
+@@ -42,7 +42,7 @@ void acpi_enable_wakeup_device_prep(u8 s
+ 			continue;
+ 
+ 		spin_unlock(&acpi_device_lock);
+-		acpi_enable_wakeup_device_power(dev);
++		acpi_enable_wakeup_device_power(dev, sleep_state);
+ 		spin_lock(&acpi_device_lock);
+ 	}
+ 	spin_unlock(&acpi_device_lock);
+Index: linux-pci/include/acpi/acpi_drivers.h
+===================================================================
+--- linux-pci.orig/include/acpi/acpi_drivers.h
++++ linux-pci/include/acpi/acpi_drivers.h
+@@ -87,7 +87,9 @@ struct pci_bus *pci_acpi_scan_root(struc
+    -------------------------------------------------------------------------- */
+ 
+ #ifdef CONFIG_ACPI_POWER
+-int acpi_enable_wakeup_device_power(struct acpi_device *dev);
++int acpi_device_sleep_wake(struct acpi_device *dev,
++                           int enable, int sleep_state, int dev_state);
++int acpi_enable_wakeup_device_power(struct acpi_device *dev, int sleep_state);
+ int acpi_disable_wakeup_device_power(struct acpi_device *dev);
+ int acpi_power_get_inferred_state(struct acpi_device *device);
+ int acpi_power_transition(struct acpi_device *device, int state);
+Index: linux-pci/drivers/acpi/scan.c
+===================================================================
+--- linux-pci.orig/drivers/acpi/scan.c
++++ linux-pci/drivers/acpi/scan.c
+@@ -691,9 +691,7 @@ static int acpi_bus_get_wakeup_device_fl
+ 	acpi_status status = 0;
+ 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+ 	union acpi_object *package = NULL;
+-	union acpi_object in_arg[3];
+-	struct acpi_object_list arg_list = { 3, in_arg };
+-	acpi_status psw_status = AE_OK;
++	int psw_error;
+ 
+ 	struct acpi_device_id button_device_ids[] = {
+ 		{"PNP0C0D", 0},
+@@ -725,39 +723,11 @@ static int acpi_bus_get_wakeup_device_fl
+ 	 * So it is necessary to call _DSW object first. Only when it is not
+ 	 * present will the _PSW object used.
+ 	 */
+-	/*
+-	 * Three agruments are needed for the _DSW object.
+-	 * Argument 0: enable/disable the wake capabilities
+-	 * When _DSW object is called to disable the wake capabilities, maybe
+-	 * the first argument is filled. The value of the other two agruments
+-	 * is meaningless.
+-	 */
+-	in_arg[0].type = ACPI_TYPE_INTEGER;
+-	in_arg[0].integer.value = 0;
+-	in_arg[1].type = ACPI_TYPE_INTEGER;
+-	in_arg[1].integer.value = 0;
+-	in_arg[2].type = ACPI_TYPE_INTEGER;
+-	in_arg[2].integer.value = 0;
+-	psw_status = acpi_evaluate_object(device->handle, "_DSW",
+-						&arg_list, NULL);
+-	if (ACPI_FAILURE(psw_status) && (psw_status != AE_NOT_FOUND))
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "error in evaluate _DSW\n"));
+-	/*
+-	 * When the _DSW object is not present, OSPM will call _PSW object.
+-	 */
+-	if (psw_status == AE_NOT_FOUND) {
+-		/*
+-		 * Only one agruments is required for the _PSW object.
+-		 * agrument 0: enable/disable the wake capabilities
+-		 */
+-		arg_list.count = 1;
+-		in_arg[0].integer.value = 0;
+-		psw_status = acpi_evaluate_object(device->handle, "_PSW",
+-						&arg_list, NULL);
+-		if (ACPI_FAILURE(psw_status) && (psw_status != AE_NOT_FOUND))
+-			ACPI_DEBUG_PRINT((ACPI_DB_INFO, "error in "
+-						"evaluate _PSW\n"));
+-	}
++	psw_error = acpi_device_sleep_wake(device, 0, 0, 0);
++	if (psw_error)
++		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
++				"error in _DSW or _PSW evaluation\n"));
++
+ 	/* Power button, Lid switch always enable wakeup */
+ 	if (!acpi_match_device_ids(device, button_device_ids))
+ 		device->wakeup.flags.run_wake = 1;
+
