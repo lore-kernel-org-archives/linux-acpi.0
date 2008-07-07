@@ -1,48 +1,54 @@
-From: "Ray Lee" <ray-lk@madrabbit.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [PATCH 2/2] acpi: Disable IRQ 0 through I/O APIC for some HP systems
-Date: Mon, 7 Jul 2008 10:51:37 -0700
-Message-ID: <2c0942db0807071051v68bd2a28kc6617de7d414f06d@mail.gmail.com>
-References: <Pine.LNX.4.55.0807010055070.30785@cliff.in.clinika.pl>
-	 <20080707071706.GA3326@elte.hu>
-	 <Pine.LNX.4.55.0807071224491.16767@cliff.in.clinika.pl>
-	 <200807071428.53598.rjw@sisk.pl>
-	 <Pine.LNX.4.55.0807071743280.20615@cliff.in.clinika.pl>
+Date: Mon, 7 Jul 2008 20:03:47 +0200
+Message-ID: <200807072003.48228.rjw@sisk.pl>
+References: <Pine.LNX.4.55.0807010055070.30785@cliff.in.clinika.pl> <200807071423.48425.rjw@sisk.pl> <Pine.LNX.4.55.0807071435160.16767@cliff.in.clinika.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.55.0807071743280.20615@cliff.in.clinika.pl>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754144AbYGGSB7@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.55.0807071435160.16767@cliff.in.clinika.pl>
 Content-Disposition: inline
-Sender: linux-next-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Maciej W. Rozycki" <macro@linux-mips.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Ingo Molnar <mingo@elte.hu>, Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-next@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>
+Cc: Ingo Molnar <mingo@elte.hu>, Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-next@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jul 7, 2008 at 10:10 AM, Maciej W. Rozycki <macro@linux-mips.org> wrote:
->  Which means the workaround has not triggered and the rest of cosideration
-> is therefore irrelevant.  Please get us these DMI IDs, so that we can see
-> what's wrong with the quirk.
+On Monday, 7 of July 2008, Maciej W. Rozycki wrote:
+> On Mon, 7 Jul 2008, Rafael J. Wysocki wrote:
+> 
+> > >  It makes absolutely no sense and should be harmful to call
+> > > clear_IO_APIC_pin(apic1, pin1) here, because both apic1 and pin1 should be
+> > > equal to -1 here.  If it has to be called, then I suppose the DMI matching 
+> > > did not work and the workaround has not been enabled.
+> > 
+> > Do you realize that the clear_IO_APIC_pin(apic1, pin1) thing is _only_ called
+> > _IF_ the DMI matching did work?
+> 
+>  Well, it is the very intent of the DMI quirk to set apic1 and pin1 both
+> to -1, as a result of IRQ0 being absent from our I/O APIC interrupt
+> routing table.  Therefore if the quirk did indeed work, a call to
+> clear_IO_APIC_pin() is useless and likely harmful as its callees don't do
+> range checking (my understanding of code is it results in random poking at
+> the local APIC through the FIX_APIC_BASE fixmap).  There should be nothing
+> to clear too, as interrupt redirection entries for all the I/O APIC inputs
+> are cleared (the mask is set to 1 and the remaining fields zeroed) when
+> clear_IO_APIC() is called from enable_IO_APIC() upon initialization and
+> all the unused ones (not referred to from anywhere in the interrupt
+> routing table) are never touched afterwards.
 
-I have the nx6125 version of the laptop, though it's not long for this
-world. Regardless, dmi data below. Earlier, I looked at your DMI match
-strings up-thread and they seemed good, so you may be barking up the
-wrong tree here.
+Sorry, the patch I posted was _instead_ of your previous patch with the quirk,
+because that patch didn't work.  I don't know why it didn't work, however, I
+can only say it didn't work after removing the __i386__ dependency of
+acpi_dmi_table[].
 
-ray@phoenix:~$ sudo grep . /sys/class/dmi/id/*
-/sys/class/dmi/id/bios_date:03/10/2006
-/sys/class/dmi/id/bios_vendor:Hewlett-Packard
-/sys/class/dmi/id/bios_version:68DTT Ver. F.0E
-/sys/class/dmi/id/board_name:308B
-/sys/class/dmi/id/board_vendor:Hewlett-Packard
-/sys/class/dmi/id/board_version:KBC Version 45.26
-/sys/class/dmi/id/chassis_asset_tag:
-/sys/class/dmi/id/chassis_serial:CND5500R4K
-/sys/class/dmi/id/chassis_type:10
-/sys/class/dmi/id/chassis_vendor:Hewlett-Packard
-/sys/class/dmi/id/modalias:dmi:bvnHewlett-Packard:bvr68DTTVer.F.0E:bd03/10/2006:svnHewlett-Packard:pnHPCompaqnx6125(PZ880UA#ABA):pvrF.0E:rvnHewlett-Packard:rn308B:rvrKBCVersion45.26:cvnHewlett-Packard:ct10:cvr:
-/sys/class/dmi/id/product_name:HP Compaq nx6125 (PZ880UA#ABA)
-/sys/class/dmi/id/product_serial:CND5500R4K
-/sys/class/dmi/id/product_uuid:4D0AF52B-ED6E-DA11-1880-66990A524D29
-/sys/class/dmi/id/product_version:F.0E
-/sys/class/dmi/id/sys_vendor:Hewlett-Packard
-/sys/class/dmi/id/uevent:MODALIAS=dmi:bvnHewlett-Packard:bvr68DTTVer.F.0E:bd03/10/2006:svnHewlett-Packard:pnHPCompaqnx6125(PZ880UA#ABA):pvrF.0E:rvnHewlett-Packard:rn308B:rvrKBCVersion45.26:cvnHewlett-Packard:ct10:cvr:
+My patch is on top of the linux-next tree that didn't contain your patch.
+So, my patch adds a quirk that sets disable_irq0_through_ioapic to 1 (this
+variable is defined differently in my patch) and uses it to skip the part of
+check_timer() that breaks my box.
+
+I hope that makes things clear.
+
+Thanks,
+Rafael
