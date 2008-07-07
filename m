@@ -1,56 +1,52 @@
 From: "Maciej W. Rozycki" <macro@linux-mips.org>
 Subject: Re: [PATCH 2/2] acpi: Disable IRQ 0 through I/O APIC for some HP
  systems
-Date: Mon, 7 Jul 2008 20:59:47 +0100 (BST)
-Message-ID: <Pine.LNX.4.55.0807072054310.20615@cliff.in.clinika.pl>
+Date: Mon, 7 Jul 2008 21:10:56 +0100 (BST)
+Message-ID: <Pine.LNX.4.55.0807072101070.20615@cliff.in.clinika.pl>
 References: <Pine.LNX.4.55.0807010055070.30785@cliff.in.clinika.pl>
- <20080701202453.GD4896@elte.hu> <200807070102.38854.rjw@sisk.pl>
- <200807070319.29470.rjw@sisk.pl>
+ <200807071423.48425.rjw@sisk.pl> <Pine.LNX.4.55.0807071435160.16767@cliff.in.clinika.pl>
+ <200807072003.48228.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <200807070319.29470.rjw@sisk.pl>
+In-Reply-To: <200807072003.48228.rjw@sisk.pl>
 Sender: linux-next-owner@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>, "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-next@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Ingo Molnar <mingo@elte.hu>, Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-next@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>
 List-Id: linux-acpi@vger.kernel.org
 
 On Mon, 7 Jul 2008, Rafael J. Wysocki wrote:
 
-> @@ -1714,12 +1721,14 @@ static inline void __init check_timer(vo
->  		apic2 = apic1;
->  	}
->  
-> -	replace_pin_at_irq(0, 0, 0, apic1, pin1);
-> -	apic1 = 0;
-> -	pin1 = 0;
-> -	setup_timer_IRQ0_pin(apic1, pin1, cfg->vector);
-> +	if (disable_irq0_through_ioapic) {
-> +		clear_IO_APIC_pin(apic1, pin1);
-> +	} else {
-> +		replace_pin_at_irq(0, 0, 0, apic1, pin1);
-> +		apic1 = 0;
-> +		pin1 = 0;
-> +		setup_timer_IRQ0_pin(apic1, pin1, cfg->vector);
->  
-> -	if (pin1 != -1) {
->  		/*
->  		 * Ok, does IRQ0 through the IOAPIC work?
->  		 */
+> Sorry, the patch I posted was _instead_ of your previous patch with the quirk,
+> because that patch didn't work.  I don't know why it didn't work, however, I
+> can only say it didn't work after removing the __i386__ dependency of
+> acpi_dmi_table[].
 
- This is completely broken -- you cannot blindly assume IRQ0 is wired to
-the pin #0 of the I/O APIC #0.  You have to respect routing information
-provided by the system.
+ I don't recall seeing a note that my patch was reverted.  I had a careful
+look at yours now and it applies on top of some diagnostic code which
+should never have been applied to the tree in the first place as it was
+not meant to and would also break the majority of systems out there.  I am
+fairly sure this piece of code is the reason my implementation of the
+workaround did not work for you.
 
- Ingo, from the sequence above, I gather this code is currently in the 
-tree:
+> My patch is on top of the linux-next tree that didn't contain your patch.
+> So, my patch adds a quirk that sets disable_irq0_through_ioapic to 1 (this
+> variable is defined differently in my patch) and uses it to skip the part of
+> check_timer() that breaks my box.
+> 
+> I hope that makes things clear.
 
--	replace_pin_at_irq(0, 0, 0, apic1, pin1);
--	apic1 = 0;
--	pin1 = 0;
+ It does, thanks.  However I insist on getting this issue dealt with the
+way I proposed -- check_timer() is too complicated and too fragile to mess
+with as our history has already shown.  If IRQ0 is not to be routed
+through the I/O APIC, then it should never be registered as an I/O APIC
+interrupt in the first place.
 
-Please revert the change which introduced it.  While I recall posting a
-patch which added code like this, I clearly stated it was solely for
-diagnostics of Rafael's system and not to apply to any tree.
+ I am fairly with the offending change removed my fix will work for you as
+expected as I went through the effort of checking at the run time that
+once activated it makes the kernel correctly avoid the sequence in
+check_timer() that hits your system, so it is only the DMI ID matching
+that could have gone wrong, but your change indicates this is actually not
+the case.
 
   Maciej
