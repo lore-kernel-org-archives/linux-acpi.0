@@ -1,70 +1,45 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [PATCH 2/2] acpi: Disable IRQ 0 through I/O APIC for some HP systems
-Date: Mon, 7 Jul 2008 14:28:52 +0200
-Message-ID: <200807071428.53598.rjw@sisk.pl>
-References: <Pine.LNX.4.55.0807010055070.30785@cliff.in.clinika.pl> <20080707071706.GA3326@elte.hu> <Pine.LNX.4.55.0807071224491.16767@cliff.in.clinika.pl>
+Date: Mon, 7 Jul 2008 14:34:09 +0200
+Message-ID: <200807071434.10754.rjw@sisk.pl>
+References: <Pine.LNX.4.55.0807010055070.30785@cliff.in.clinika.pl> <ac8af0be0807062054nbced6b0pd378aeda91a3c538@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.55.0807071224491.16767@cliff.in.clinika.pl>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:60496 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752628AbYGGMc1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 7 Jul 2008 08:32:27 -0400
+In-Reply-To: <ac8af0be0807062054nbced6b0pd378aeda91a3c538@mail.gmail.com>
 Content-Disposition: inline
-Sender: linux-next-owner@vger.kernel.org
-To: "Maciej W. Rozycki" <macro@linux-mips.org>
-Cc: Ingo Molnar <mingo@elte.hu>, Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-next@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Zhao Forrest <forrest.zhao@gmail.com>
+Cc: "Maciej W. Rozycki" <macro@linux-mips.org>, Ingo Molnar <mingo@elte.hu>, Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-next@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Monday, 7 of July 2008, Maciej W. Rozycki wrote:
-> On Mon, 7 Jul 2008, Ingo Molnar wrote:
+On Monday, 7 of July 2008, Zhao Forrest wrote:
+> > Hello,
+> >
+> >  Matthew, you have not added your sign-off with the original patch, please
+> > do so now.
+> >
+> >  Rafael, please try this change together with
+> > patch-2.6.26-rc1-20080505-mpparse-acpi-noirq0-2 and see if this fixes your
+> > system.
+> >
+> >  I have tried the patches with a wildcard entry added to acpi_dmi_table[]
+> > so that it trips for my system.  The result is as follows:
 > 
-> > > Please note two things:
-> > > (1) The whole acpi_dmi_table[] thing originally depended on __i386__, so it
-> > >     wouldn't work on x86-64 no matter what.  I removed that dependecy, but
-> > >     I have no idea why it was there and so I'm not sure if that's correct. 
-> 
->  Well spottedd -- perhaps the x86-64 was though to be perfect. ;)
-> 
-> > > (2) The clear_IO_APIC_pin(apic1, pin1) done if 
-> > >     disable_irq0_through_ioapic is true is absolutely essential.  The 
-> > >     symptoms are 100% reproducible without it.
-> > 
-> > thanks, applied to tip/x86, to give this some more testing.
-> > 
-> > the clear_IO_APIC_pin() is the most worrisome aspect of the change - but 
-> > since we are already in limited quirk mode, does it hurt? Maciej, any 
-> > preferences?
-> 
->  It makes absolutely no sense and should be harmful to call
-> clear_IO_APIC_pin(apic1, pin1) here, because both apic1 and pin1 should be
-> equal to -1 here.  If it has to be called, then I suppose the DMI matching 
-> did not work and the workaround has not been enabled.
+> Since we add a new entry to acpi_dmi_table[], I think it's necessary
+> for this new entry to preserve the semantics of this table, that is
+> "acpi=force overrules DMI blacklist", am I right?
 
-BTW, did you even to look at the code _as_ _is_ in linux-next?
+Can you please elaborate?
 
-In fact, it is _impossible_ that either apic1 or pin1 are equal to -1 at this
-point, because of this part:
-
-	/*
-	 * Some BIOS writers are clueless and report the ExtINTA
-	 * I/O APIC input from the cascaded 8259A as the timer
-	 * interrupt input.  So just in case, if only one pin
-	 * was found above, try it both directly and through the
-	 * 8259A.
-	 */
-	if (pin1 == -1) {
-		pin1 = pin2;
-		apic1 = apic2;
-		no_pin1 = 1;
-	} else if (pin2 == -1) {
-		pin2 = pin1;
-		apic2 = apic1;
-	}
-
-that originates from your patch.
-
-End even without this part apic1 and pin1 are _not_ equal to -1 on this box
-(apic2 and pin2 are, but that's a different matter).
+What exactly are we supposed to do apart from adding the new entries to the
+table?
 
 Thanks,
 Rafael
