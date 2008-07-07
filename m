@@ -1,40 +1,37 @@
-From: "Maciej W. Rozycki" <macro@linux-mips.org>
-Subject: Re: [PATCH 2/2] acpi: Disable IRQ 0 through I/O APIC for some HP
- systems
-Date: Mon, 7 Jul 2008 15:01:31 +0100 (BST)
-Message-ID: <Pine.LNX.4.55.0807071435160.16767@cliff.in.clinika.pl>
-References: <Pine.LNX.4.55.0807010055070.30785@cliff.in.clinika.pl>
- <20080707071706.GA3326@elte.hu> <Pine.LNX.4.55.0807071224491.16767@cliff.in.clinika.pl>
- <200807071423.48425.rjw@sisk.pl>
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: [PATCH 5/8] ACPI: Introduce new device wakeup flag 'prepared'
+Date: Mon, 7 Jul 2008 16:08:25 +0200
+Message-ID: <20080707140825.GB23667@elf.ucw.cz>
+References: <200807012356.26669.rjw@sisk.pl> <200807070330.02849.rjw@sisk.pl> <200807070334.12948.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <200807071423.48425.rjw@sisk.pl>
-Sender: linux-next-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Ingo Molnar <mingo@elte.hu>, Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-next@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:52039 "EHLO
+	gprs189-60.eurotel.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754477AbYGGRA0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Jul 2008 13:00:26 -0400
+Content-Disposition: inline
+In-Reply-To: <200807070334.12948.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Andi Kleen <andi@firstfloor.org>, pm list <linux-pm@lists.linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, Zhao Yakui <yakui.zhao@intel.com>
 
-On Mon, 7 Jul 2008, Rafael J. Wysocki wrote:
-
-> >  It makes absolutely no sense and should be harmful to call
-> > clear_IO_APIC_pin(apic1, pin1) here, because both apic1 and pin1 should be
-> > equal to -1 here.  If it has to be called, then I suppose the DMI matching 
-> > did not work and the workaround has not been enabled.
+On Mon 2008-07-07 03:34:11, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rjw@sisk.pl>
 > 
-> Do you realize that the clear_IO_APIC_pin(apic1, pin1) thing is _only_ called
-> _IF_ the DMI matching did work?
+> ACPI: Introduce new device wakeup flag 'prepared'
+> 
+> Introduce additional flag 'prepared' in
+> struct acpi_device_wakeup_flags and use it to prevent devices from
+> being enable/disabled do wake up the system multiple times in a row
+> (this does not happen currently, but will be possible after some of
+> the following patches).
+> 
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 
- Well, it is the very intent of the DMI quirk to set apic1 and pin1 both
-to -1, as a result of IRQ0 being absent from our I/O APIC interrupt
-routing table.  Therefore if the quirk did indeed work, a call to
-clear_IO_APIC_pin() is useless and likely harmful as its callees don't do
-range checking (my understanding of code is it results in random poking at
-the local APIC through the FIX_APIC_BASE fixmap).  There should be nothing
-to clear too, as interrupt redirection entries for all the I/O APIC inputs
-are cleared (the mask is set to 1 and the remaining fields zeroed) when
-clear_IO_APIC() is called from enable_IO_APIC() upon initialization and
-all the unused ones (not referred to from anywhere in the interrupt
-routing table) are never touched afterwards.
+ACK.
 
-  Maciej
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
