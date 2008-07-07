@@ -1,41 +1,44 @@
 From: Pavel Machek <pavel@suse.cz>
-Subject: Re: [PATCH 01/11] ACPI: Introduce
-	acpi_bus_power_manageable function
-Date: Mon, 7 Jul 2008 09:03:30 +0200
-Message-ID: <20080707070330.GB5643@ucw.cz>
-References: <200806231934.08565.rjw@sisk.pl> <200806231945.19574.rjw@sisk.pl>
+Subject: Re: Check for BIOS bugs - Original Subject: Re: [PATCH 23/70] ACPICA: Workaround for reversed _PRT entries from BIOS
+Date: Mon, 7 Jul 2008 13:12:08 +0200
+Message-ID: <20080707111207.GH5643@ucw.cz>
+References: <1213947852-10924-1-git-send-email-lenb@kernel.org> <deade3c973eb9c98d2a6cfed658bbb49e693894a.1213947350.git.len.brown@intel.com> <200807011033.27887.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:2494 "EHLO spitz.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1756107AbYGHNi7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 8 Jul 2008 09:38:59 -0400
 Content-Disposition: inline
-In-Reply-To: <200806231945.19574.rjw@sisk.pl>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Jesse Barnes <jbarnes@virtuousgeek.org>
+In-Reply-To: <200807011033.27887.trenn@suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Huang Cheng <cheng.huang@intel.com>, firmwarekit-discuss@bughost.org, Arjan van de Ven <arjan@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Mon 2008-06-23 19:45:18, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rjw@sisk.pl>
-> 
-> ACPI: Introduce acpi_bus_power_manageable function
-> 
-> Introduce function acpi_bus_power_manageable() allowing other
-> (dependent) subsystems to check if ACPI is able to power manage given
-> device.  This may be useful, for example, for PCI device power
-> management.
-> 
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Hi!
 
-ACK.
+> > Some BIOSs erroneously reverse the _PRT SourceName and the
+> > SourceIndex.  Detect and repair this problem. MS ACPI also allows
+> > and repairs this problem, thus ACPICA must also.
+> 
+> It would be great to have an interface to report this as a BIOS defect.
+> 
+> Something like:
+> 
+> FIRMWARE_BUG_ON(FIRM_WARN, "erroneously reversed the _PRT source_name", ACPI_ 
+> Bug);
+> 
+> FIRMWARE_BUG_ON(severity, description, component);
+
+Yes, please.
+
+I'd also like HARDWARE_BUG_ON(), with similar usage.
+
+With all the preload-linux-on-foo project, we have some chance to make
+BIOS vendors fix their stuff if we can easily diagnose errors in
+there.
 
 -- 
 (english) http://www.livejournal.com/~pavelmachek
