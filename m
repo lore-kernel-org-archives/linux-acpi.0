@@ -1,101 +1,62 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 2/2] acpi: Disable IRQ 0 through I/O APIC for some HP systems
-Date: Mon, 7 Jul 2008 20:09:32 +0200
-Message-ID: <200807072009.33513.rjw@sisk.pl>
-References: <Pine.LNX.4.55.0807010055070.30785@cliff.in.clinika.pl> <200807071428.53598.rjw@sisk.pl> <Pine.LNX.4.55.0807071743280.20615@cliff.in.clinika.pl>
+From: Alok Kataria <akataria@vmware.com>
+Subject: Re: [PATCH 1/2] cleanup e820_setup_gap v2
+Date: Mon, 07 Jul 2008 11:34:55 -0700
+Message-ID: <1215455695.32752.2.camel@promb-2n-dhcp368.eng.vmware.com>
+References: <1214333310.27577.26.camel@promb-2n-dhcp368.eng.vmware.com>
+	 <20080625160817.GC24967@elte.hu>
+	 <1214416962.27577.74.camel@promb-2n-dhcp368.eng.vmware.com>
+	 <86802c440806261101k78c5057id8ca0649188bd132@mail.gmail.com>
+	 <20080703125227.GA14082@elte.hu>  <20080703130035.GA23060@elte.hu>
+	 <1215105012.20655.2.camel@promb-2n-dhcp368.eng.vmware.com>
+Reply-To: akataria@vmware.com
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:34046 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754431AbYGGSH3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 7 Jul 2008 14:07:29 -0400
-In-Reply-To: <Pine.LNX.4.55.0807071743280.20615@cliff.in.clinika.pl>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756591AbYGGSpv@vger.kernel.org>
+In-Reply-To: <1215105012.20655.2.camel@promb-2n-dhcp368.eng.vmware.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Yinghai Lu <yhlu.kernel@gmail.com>, "lenb@kernel.org" <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, the arch/x86 maintainers <x86@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Maciej W. Rozycki" <macro@linux-mips.org>
-Cc: Ingo Molnar <mingo@elte.hu>, Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-next@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>
 
-On Monday, 7 of July 2008, Maciej W. Rozycki wrote:
-> On Mon, 7 Jul 2008, Rafael J. Wysocki wrote:
-> 
-> > BTW, did you even to look at the code _as_ _is_ in linux-next?
-> 
->  Well, I hope it has not changed too much since my recent work in this 
-> area...
-
-Please look at it.
-
-> > In fact, it is _impossible_ that either apic1 or pin1 are equal to -1 at this
-> > point, because of this part:
-> 
->  With the workaround activated it is virtually certain.
-
-Which workaround?
-
-There are no any workarounds related to this problem in the 20080704 linux-next
-and that's what my patch was against.
-
-> > 	/*
-> > 	 * Some BIOS writers are clueless and report the ExtINTA
-> > 	 * I/O APIC input from the cascaded 8259A as the timer
-> > 	 * interrupt input.  So just in case, if only one pin
-> > 	 * was found above, try it both directly and through the
-> > 	 * 8259A.
-> > 	 */
-> > 	if (pin1 == -1) {
-> > 		pin1 = pin2;
-> > 		apic1 = apic2;
-> > 		no_pin1 = 1;
-> > 	} else if (pin2 == -1) {
-> > 		pin2 = pin1;
-> > 		apic2 = apic1;
-> > 	}
+On Thu, 2008-07-03 at 10:10 -0700, Alok Kataria wrote:
+> On Thu, 2008-07-03 at 06:00 -0700, Ingo Molnar wrote:
+> > * Ingo Molnar <mingo@elte.hu> wrote:
 > > 
-> > that originates from your patch.
+> > > > > e820_search_gap also take a end_addr parameter to limit search
+> > > > > from start_addr to end_addr.
+> > > > >
+> > > > > Signed-off-by: AloK N Kataria <akataria@vmware.com>
+> > > >
+> > > > Acked-by: Yinghai Lu <yhlu.kernel@gmail.com>
+> > >
+> > > applied to tip/x86/unify-setup - thanks!
+> > 
+> > hm, it doesnt work too well:
+> > 
+> >   arch/x86/pci/acpi.c: In function 'search_gap':
+> >   arch/x86/pci/acpi.c:130: error: too few arguments to function 'e820_search_gap'
+> > 
+> > was i supposed to revert:
+> > 
+> > | commit 2c0262493239814b06a8aaabd1cf09b2f8fa3519
+> > | Author: Alok Kataria <akataria@vmware.com>
+> > | Date:   Tue Jun 24 11:48:46 2008 -0700
+> > |
+> > |    acpi based pci gap caluculation v2
+> > 
+> > ?
 > 
->  And the conclusion is?  If we leave MP-table setups aside as irrelevant
-> for this configuration, we can be almost certain apic2 and pin2 are both
-> equal to -1 at this point.  This is because (unlike the MP table) ACPI has
-> no provisions in its tables for ExtINTA APIC interrupt inputs.  Therefore
-> the only case apic2 and pin2 may not be equal -1 here is when the firmware
-> had set up one of the inputs as such in the hardware before initiating
-> bootstrap which has been subsequently noted by a piece of code in
-> enable_IO_APIC() which examines the I/O APIC for such a condition.
+> No...I had sent a incremental patch to the above patch..
+> http://marc.info/?l=linux-kernel&m=121441818818598&w=2
 > 
->  I have taken these circumstances very much into account when preparing
-> the workaround, based on the assumption that if the firmware has set up an
-> I/O APIC line as an ExtINTA interrupt, then it means it considers it
-> suitable to use in such a manner.  This furthermore implies the line
-> should be safe to be used in any valid 8259A mode of operation, such as
-> one we use to forward IRQ0 transparently through the 8259A (we
-> double-check it just in case though, as workarounds for hardware bugs in
-> the past made it not always true).  The workaround therefore applies to
-> genuine IRQ0 routing as reported by ACPI only and not any possible legacy
-> ExtINTA fallback that we may attempt to use.
+> Please apply this one too.
 > 
->  Of course, as determined previously, the ExtINTA line is not safe to be
-> used on your box, but it has not been set up by the firmware as an ExtINTA
-> interrupt either, so the assumption mentioned above remains valid and has
-> no negative impact on your system.  At this point all of apic1, apic2,
-> pin1 and pin2 should be equal -1, which means the reassignments you quoted
-> make no changes to the variables.
-> 
-> > End even without this part apic1 and pin1 are _not_ equal to -1 on this box
-> > (apic2 and pin2 are, but that's a different matter).
-> 
->  Which means the workaround has not triggered and the rest of cosideration 
-> is therefore irrelevant.  Please get us these DMI IDs, so that we can see 
-> what's wrong with the quirk.
 
-I used those DMI IDs and your quirk didn't work, even after removing the
-dependency of acpi_dmi_table[] from __i386__.  For this reason, I prepared an
-alternative patch that did work and posted it for your information.
+Hi Ingo, 
 
-Now, you're saying that my patch couldn't work, while in fact it did.
+Please let me know if you need a single patch instead of this
+incremental patch. 
 
 Thanks,
-Rafael
+Alok
