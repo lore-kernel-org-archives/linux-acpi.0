@@ -1,64 +1,193 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [PATCH 2/2] acpi: Disable IRQ 0 through I/O APIC for some HP systems
-Date: Mon, 7 Jul 2008 22:17:23 +0200
-Message-ID: <200807072217.24590.rjw@sisk.pl>
-References: <Pine.LNX.4.55.0807010055070.30785@cliff.in.clinika.pl> <200807070319.29470.rjw@sisk.pl> <Pine.LNX.4.55.0807072054310.20615@cliff.in.clinika.pl>
+Date: Mon, 7 Jul 2008 22:31:56 +0200
+Message-ID: <200807072231.57925.rjw@sisk.pl>
+References: <Pine.LNX.4.55.0807010055070.30785@cliff.in.clinika.pl> <200807072003.48228.rjw@sisk.pl> <Pine.LNX.4.55.0807072101070.20615@cliff.in.clinika.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:34596 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:34665 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755513AbYGGUPj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 7 Jul 2008 16:15:39 -0400
-In-Reply-To: <Pine.LNX.4.55.0807072054310.20615@cliff.in.clinika.pl>
+	id S1755604AbYGGU35 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 7 Jul 2008 16:29:57 -0400
+In-Reply-To: <Pine.LNX.4.55.0807072101070.20615@cliff.in.clinika.pl>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Maciej W. Rozycki" <macro@linux-mips.org>
-Cc: Ingo Molnar <mingo@elte.hu>, Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-next@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>
+Cc: Ingo Molnar <mingo@elte.hu>, Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-next@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, Andreas Herrmann <andreas.herrmann3@amd.com>
 
 On Monday, 7 of July 2008, Maciej W. Rozycki wrote:
 > On Mon, 7 Jul 2008, Rafael J. Wysocki wrote:
 > 
-> > @@ -1714,12 +1721,14 @@ static inline void __init check_timer(vo
-> >  		apic2 = apic1;
-> >  	}
-> >  
-> > -	replace_pin_at_irq(0, 0, 0, apic1, pin1);
-> > -	apic1 = 0;
-> > -	pin1 = 0;
-> > -	setup_timer_IRQ0_pin(apic1, pin1, cfg->vector);
-> > +	if (disable_irq0_through_ioapic) {
-> > +		clear_IO_APIC_pin(apic1, pin1);
-> > +	} else {
-> > +		replace_pin_at_irq(0, 0, 0, apic1, pin1);
-> > +		apic1 = 0;
-> > +		pin1 = 0;
-> > +		setup_timer_IRQ0_pin(apic1, pin1, cfg->vector);
-> >  
-> > -	if (pin1 != -1) {
-> >  		/*
-> >  		 * Ok, does IRQ0 through the IOAPIC work?
-> >  		 */
+> > Sorry, the patch I posted was _instead_ of your previous patch with the quirk,
+> > because that patch didn't work.  I don't know why it didn't work, however, I
+> > can only say it didn't work after removing the __i386__ dependency of
+> > acpi_dmi_table[].
 > 
->  This is completely broken -- you cannot blindly assume IRQ0 is wired to
-> the pin #0 of the I/O APIC #0.  You have to respect routing information
-> provided by the system.
+>  I don't recall seeing a note that my patch was reverted.  I had a careful
+> look at yours now and it applies on top of some diagnostic code which
+> should never have been applied to the tree in the first place as it was
+> not meant to and would also break the majority of systems out there.  I am
+> fairly sure this piece of code is the reason my implementation of the
+> workaround did not work for you.
 > 
->  Ingo, from the sequence above, I gather this code is currently in the 
-> tree:
+> > My patch is on top of the linux-next tree that didn't contain your patch.
+> > So, my patch adds a quirk that sets disable_irq0_through_ioapic to 1 (this
+> > variable is defined differently in my patch) and uses it to skip the part of
+> > check_timer() that breaks my box.
+> > 
+> > I hope that makes things clear.
 > 
-> -	replace_pin_at_irq(0, 0, 0, apic1, pin1);
-> -	apic1 = 0;
-> -	pin1 = 0;
+>  It does, thanks.  However I insist on getting this issue dealt with the
+> way I proposed -- check_timer() is too complicated and too fragile to mess
+> with as our history has already shown.  If IRQ0 is not to be routed
+> through the I/O APIC, then it should never be registered as an I/O APIC
+> interrupt in the first place.
 > 
-> Please revert the change which introduced it.  While I recall posting a
-> patch which added code like this, I clearly stated it was solely for
-> diagnostics of Rafael's system and not to apply to any tree.
+>  I am fairly with the offending change removed my fix will work for you as
+> expected as I went through the effort of checking at the run time that
+> once activated it makes the kernel correctly avoid the sequence in
+> check_timer() that hits your system, so it is only the DMI ID matching
+> that could have gone wrong, but your change indicates this is actually not
+> the case.
 
-Shouldn't the setup_timer_IRQ0_pin(apic1, pin1, cfg->vector) be removed as
-well?
+So I'm going to apply the appended combined patch on top of linux-next and
+retest.
 
+Thanks,
 Rafael
+
+---
+ arch/x86/kernel/acpi/boot.c  |   53 ++++++++++++++++++++++++++++++++++++++-----
+ arch/x86/kernel/io_apic_64.c |    5 ----
+ 2 files changed, 47 insertions(+), 11 deletions(-)
+
+Index: linux-next/arch/x86/kernel/acpi/boot.c
+===================================================================
+--- linux-next.orig/arch/x86/kernel/acpi/boot.c
++++ linux-next/arch/x86/kernel/acpi/boot.c
+@@ -83,6 +83,8 @@ int acpi_lapic;
+ int acpi_ioapic;
+ int acpi_strict;
+ 
++static int disable_irq0_through_ioapic __initdata;
++
+ u8 acpi_sci_flags __initdata;
+ int acpi_sci_override_gsi __initdata;
+ int acpi_skip_timer_override __initdata;
+@@ -990,6 +992,10 @@ void __init mp_override_legacy_irq(u8 bu
+ 	int pin;
+ 	struct mp_config_intsrc mp_irq;
+ 
++	/* Skip the 8254 timer interrupt (IRQ 0) if requested.  */
++	if (bus_irq == 0 && disable_irq0_through_ioapic)
++		return;
++
+ 	/*
+ 	 * Convert 'gsi' to 'ioapic.pin'.
+ 	 */
+@@ -1056,6 +1062,10 @@ void __init mp_config_acpi_legacy_irqs(v
+ 	for (i = 0; i < 16; i++) {
+ 		int idx;
+ 
++		/* Skip the 8254 timer interrupt (IRQ 0) if requested.  */
++		if (i == 0 && disable_irq0_through_ioapic)
++			continue;
++
+ 		for (idx = 0; idx < mp_irq_entries; idx++) {
+ 			struct mp_config_intsrc *irq = mp_irqs + idx;
+ 
+@@ -1363,8 +1373,6 @@ static void __init acpi_process_madt(voi
+ 	return;
+ }
+ 
+-#ifdef __i386__
+-
+ static int __init disable_acpi_irq(const struct dmi_system_id *d)
+ {
+ 	if (!acpi_force) {
+@@ -1415,6 +1423,17 @@ static int __init force_acpi_ht(const st
+ }
+ 
+ /*
++ * Don't register any I/O APIC entries for the 8254 timer IRQ.
++ */
++static int __init
++dmi_disable_irq0_through_ioapic(const struct dmi_system_id *d)
++{
++	pr_notice("%s detected: disabling IRQ 0 through I/O APIC\n", d->ident);
++	disable_irq0_through_ioapic = 1;
++	return 0;
++}
++
++/*
+  * If your system is blacklisted here, but you find that acpi=force
+  * works for you, please contact acpi-devel@sourceforge.net
+  */
+@@ -1581,11 +1600,35 @@ static struct dmi_system_id __initdata a
+ 		     DMI_MATCH(DMI_PRODUCT_NAME, "TravelMate 360"),
+ 		     },
+ 	 },
++	/*
++	 * HP laptops which use a DSDT reporting as HP/SB400/10000,
++	 * which includes some code which overrides all temperature
++	 * trip points to 16C if the INTIN2 input of the I/O APIC
++	 * is enabled.  This input is incorrectly designated the
++	 * ISA IRQ 0 via an interrupt source override even though
++	 * it is wired to the output of the master 8259A and INTIN0
++	 * is not connected at all.  Abandon any attempts to route
++	 * IRQ 0 through the I/O APIC therefore.
++	 */
++	{
++	 .callback = dmi_disable_irq0_through_ioapic,
++	 .ident = "HP NX6125 laptop",
++	 .matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
++		     DMI_MATCH(DMI_PRODUCT_NAME, "HP Compaq nx6125"),
++		     },
++	 },
++	{
++	 .callback = dmi_disable_irq0_through_ioapic,
++	 .ident = "HP NX6325 laptop",
++	 .matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
++		     DMI_MATCH(DMI_PRODUCT_NAME, "HP Compaq nx6325"),
++		     },
++	 },
+ 	{}
+ };
+ 
+-#endif				/* __i386__ */
+-
+ /*
+  * acpi_boot_table_init() and acpi_boot_init()
+  *  called from setup_arch(), always.
+@@ -1613,9 +1656,7 @@ int __init acpi_boot_table_init(void)
+ {
+ 	int error;
+ 
+-#ifdef __i386__
+ 	dmi_check_system(acpi_dmi_table);
+-#endif
+ 
+ 	/*
+ 	 * If acpi_disabled, bail out
+Index: linux-next/arch/x86/kernel/io_apic_64.c
+===================================================================
+--- linux-next.orig/arch/x86/kernel/io_apic_64.c
++++ linux-next/arch/x86/kernel/io_apic_64.c
+@@ -1714,11 +1714,6 @@ static inline void __init check_timer(vo
+ 		apic2 = apic1;
+ 	}
+ 
+-	replace_pin_at_irq(0, 0, 0, apic1, pin1);
+-	apic1 = 0;
+-	pin1 = 0;
+-	setup_timer_IRQ0_pin(apic1, pin1, cfg->vector);
+-
+ 	if (pin1 != -1) {
+ 		/*
+ 		 * Ok, does IRQ0 through the IOAPIC work?
