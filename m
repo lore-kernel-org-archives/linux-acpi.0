@@ -1,49 +1,51 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: Re: Curious ACPI thermal_zone handling.
-Date: Mon, 07 Jul 2008 18:11:44 +0800
-Message-ID: <1215425504.18507.21.camel@yakui_zhao.sh.intel.com>
-References: <4871E06E.80209@rol.ru>
+From: "Maciej W. Rozycki" <macro@linux-mips.org>
+Subject: Re: [PATCH 2/2] acpi: Disable IRQ 0 through I/O APIC for some HP
+ systems
+Date: Mon, 7 Jul 2008 12:41:53 +0100 (BST)
+Message-ID: <Pine.LNX.4.55.0807071224491.16767@cliff.in.clinika.pl>
+References: <Pine.LNX.4.55.0807010055070.30785@cliff.in.clinika.pl>
+ <20080701202453.GD4896@elte.hu> <200807070102.38854.rjw@sisk.pl>
+ <200807070319.29470.rjw@sisk.pl> <20080707071706.GA3326@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:49166 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750934AbYGGKBB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 7 Jul 2008 06:01:01 -0400
-In-Reply-To: <4871E06E.80209@rol.ru>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <20080707071706.GA3326@elte.hu>
+Sender: linux-next-owner@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-next@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Kirill Berezin <kyb22@rol.ru>
-Cc: linux-acpi@vger.kernel.org
 
-On Mon, 2008-07-07 at 13:22 +0400, Kirill Berezin wrote:
-> Hi!
-> 
-> Linux ACPI system exhibits a vary curious behavior  on my 
-> Fujitsu-Siemens  pa1538 laptop. After an initial boot my laptop runs 
-> with slowly rotating fan. Fan continues rotating during the linux boot, 
-> gnome start and stops only when the temperature reaches active_trip 
-> point and fells below passive_trip. IMHO it is a little bit strange to 
-> hear rotating fan for a  core temperature less then 40 Celsius degrees.
-> 
-> google shows a lot of links, but I still cannot get what part of a 
-> system is responsible for fan start/stop -- hardware, kernel of some 
-> application?
-> 
-> And my second question is what is the preferable way to set trip points 
-> for current kernels?
-> 
-> I appreciate any help.
-Will you please attach the output of acpidump,dmesg?
-Of course you can open a new bug in bugzilla and attach the output of
-dmesg, acpidump.
+On Mon, 7 Jul 2008, Ingo Molnar wrote:
 
-http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
+> > Please note two things:
+> > (1) The whole acpi_dmi_table[] thing originally depended on __i386__, so it
+> >     wouldn't work on x86-64 no matter what.  I removed that dependecy, but
+> >     I have no idea why it was there and so I'm not sure if that's correct. 
 
-Thanks.
-> 
-> Kirill.
-> 
-> 
+ Well spottedd -- perhaps the x86-64 was though to be perfect. ;)
 
+> > (2) The clear_IO_APIC_pin(apic1, pin1) done if 
+> >     disable_irq0_through_ioapic is true is absolutely essential.  The 
+> >     symptoms are 100% reproducible without it.
+> 
+> thanks, applied to tip/x86, to give this some more testing.
+> 
+> the clear_IO_APIC_pin() is the most worrisome aspect of the change - but 
+> since we are already in limited quirk mode, does it hurt? Maciej, any 
+> preferences?
+
+ It makes absolutely no sense and should be harmful to call
+clear_IO_APIC_pin(apic1, pin1) here, because both apic1 and pin1 should be
+equal to -1 here.  If it has to be called, then I suppose the DMI matching 
+did not work and the workaround has not been enabled.
+
+ Rafael, can you please provide a full bootstrap log obtained with all the
+changes, but *without* this part?  Also, can you please verify DMI IDs of
+your system (dmidecode or /sys/class/dmi, I am told)?
+
+ I do think we should record DMI vendor and name information in the
+bootstrap log.  It won't take a lot of space and will be more useful than
+some other IDs we never use for anything else, which we obtain from some
+other tables.
+
+  Maciej
