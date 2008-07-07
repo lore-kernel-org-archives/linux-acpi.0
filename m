@@ -1,74 +1,72 @@
-From: Kirill Berezin <kyb22@rol.ru>
-Subject: Curious ACPI thermal_zone handling.
-Date: Mon, 07 Jul 2008 13:22:54 +0400
-Message-ID: <4871E06E.80209@rol.ru>
+From: Filippo Zangheri <filippo.zangheri@yahoo.it>
+Subject: Re: Battery life difference
+Date: Mon, 07 Jul 2008 11:48:42 +0200
+Message-ID: <4871E67A.1040600@yahoo.it>
+References: <31e679430807050617u3fc706fasee9bb43a151c501f@mail.gmail.com> <20080705082352.4b6be669@infradead.org> <31e679430807050844r30ff74fby7e15641573b42d82@mail.gmail.com> <20080706172159.GA12736@x61>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------080600040607000305050101"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enigA532BFD3741BA59E2091A315"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.rol.ru ([194.67.1.9]:48753 "EHLO smtp.rol.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751272AbYGGJ0O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 7 Jul 2008 05:26:14 -0400
-Received: from pontus.sovam.com ([194.67.3.4]:42249 "EHLO [194.67.3.4]"
-	smtp-auth: <none> TLS-CIPHER: <none> TLS-PEER-CN1: <none>
-	rhost-flags-OK-OK-OK-FAIL) by gnome03.net.rol.ru with ESMTP
-	id S5129541AbYGGJSp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 7 Jul 2008 13:18:45 +0400
+Received: from n26.bullet.mail.mud.yahoo.com ([68.142.206.221]:30492 "HELO
+	n26.bullet.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751908AbYGGJyQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Jul 2008 05:54:16 -0400
+In-Reply-To: <20080706172159.GA12736@x61>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Felipe Balbi <felipebalbi@users.sourceforge.net>, Kernel development list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------080600040607000305050101
-Content-Type: text/plain; charset=KOI8-R; format=flowed
-Content-Transfer-Encoding: 7bit
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enigA532BFD3741BA59E2091A315
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-Hi!
+On 06/07/2008 19:21, Tino Keitel wrote:
+> On Sat, Jul 05, 2008 at 18:44:21 +0300, Felipe Balbi wrote:
+>> Hi,
+>>
+>> On Sat, Jul 5, 2008 at 6:23 PM, Arjan van de Ven <arjan@infradead.org>=
+ wrote:
+>=20
+> [...]
+>=20
+>>> Also take a look at
+>>> http://kerneltrap.org/mailarchive/linux-kernel/2008/5/8/1771024 becau=
+se
+>>> these patches save like 0.75W in our lab.
+>> cool, is it merged upstream ?
+>=20
+> If I got this right, at least Linux 2.6.25 allows to control this via
+> "/sys/class/scsi_host/host*/link_power_management_policy". Setting it
+> to "min_power" does the trick. This is also covered by powertop 1.10
+> and later.
 
-Linux ACPI system exhibits a vary curious behavior  on my 
-Fujitsu-Siemens  pa1538 laptop. After an initial boot my laptop runs 
-with slowly rotating fan. Fan continues rotating during the linux boot, 
-gnome start and stops only when the temperature reaches active_trip 
-point and fells below passive_trip. IMHO it is a little bit strange to 
-hear rotating fan for a  core temperature less then 40 Celsius degrees.
+I cannot see this on 2.6.25.9. Is there a particular configuration option=
 
-google shows a lot of links, but I still cannot get what part of a 
-system is responsible for fan start/stop -- hardware, kernel of some 
-application?
+you must enable, or it just didn't make it to 2.6.25?
 
-And my second question is what is the preferable way to set trip points 
-for current kernels?
+Thanks.
+Regards.
 
-I appreciate any help.
+--=20
+Filippo Zangheri
 
-Kirill.
-
-
-
---------------080600040607000305050101
-Content-Type: text/x-vcard; charset=utf-8;
- name="kyb22.vcf"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="kyb22.vcf"
-
-begin:vcard
-fn;quoted-printable:=D0=9A=D0=B8=D1=80=D0=B8=D0=BB=D0=BB =D0=91=D0=B5=D1=80=D0=B5=D0=B7=D0=B8=
-	=D0=BD
-n;quoted-printable:;=D0=9A=D0=B8=D1=80=D0=B8=D0=BB=D0=BB =D0=91=D0=B5=D1=80=D0=B5=D0=B7=D0=B8=
-	=D0=BD
-org;quoted-printable:Golden Telecom;=D0=93=D1=80=D1=83=D0=BF=D0=BF=D0=B0 =D1=80=D0=B0=D0=B7=D0=B2=D0=B8=D1=82=
-	=D0=B8=D1=8F ISP =D1=81=D0=B8=D1=81=D1=82=D0=B5=D0=BC, =D0=A1=D0=BE=D0=B2=
-	=D0=B8=D0=BD=D1=82=D0=B5=D0=BB
-email;internet:kyb22@rol.ru
-title;quoted-printable:=D0=A1=D1=82=D0=B0=D1=80=D1=88=D0=B8=D0=B9 =D0=B8=D0=BD=D0=B6=D0=B5=D0=BD=
-	=D0=B5=D1=80-=D0=BF=D1=80=D0=BE=D0=B3=D1=80=D0=B0=D0=BC=D0=BC=D0=B8=D1=81=
-	=D1=82
-tel;work:+7 495 787 1345
-x-mozilla-html:FALSE
-version:2.1
-end:vcard
+GPG key ID: 0x6C1F2F2F
 
 
---------------080600040607000305050101--
+--------------enigA532BFD3741BA59E2091A315
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFIceaAjzxMG2wfLy8RAqsUAJ9pEDT8CVG28VSO9H8YfcUJvPbqrgCeOUiG
+YvEuPTwS5Di8hpdMylXRERQ=
+=PrjA
+-----END PGP SIGNATURE-----
+
+--------------enigA532BFD3741BA59E2091A315--
+
