@@ -1,72 +1,190 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: ACPI git trees and vacation
-Date: Mon, 7 Jul 2008 10:03:56 +1000
-Message-ID: <20080707100356.fddcce73.sfr@canb.auug.org.au>
-References: <48711391.6090608@firstfloor.org>
-	<20080707095659.a1b486e1.sfr@canb.auug.org.au>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 2/2] acpi: Disable IRQ 0 through I/O APIC for some HP systems
+Date: Mon, 7 Jul 2008 03:19:28 +0200
+Message-ID: <200807070319.29470.rjw@sisk.pl>
+References: <Pine.LNX.4.55.0807010055070.30785@cliff.in.clinika.pl> <20080701202453.GD4896@elte.hu> <200807070102.38854.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Mon__7_Jul_2008_10_03_56_+1000_Jx1O+Uu_mAKfNJlY"
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <20080707095659.a1b486e1.sfr@canb.auug.org.au>
-Sender: linux-next-owner@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, linux-next@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-
---Signature=_Mon__7_Jul_2008_10_03_56_+1000_Jx1O+Uu_mAKfNJlY
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:56972 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757443AbYGGBSE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 6 Jul 2008 21:18:04 -0400
+In-Reply-To: <200807070102.38854.rjw@sisk.pl>
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "Maciej W. Rozycki" <macro@linux-mips.org>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-next@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>
 
-Hi Andi,
+On Monday, 7 of July 2008, Rafael J. Wysocki wrote:
+> On Tuesday, 1 of July 2008, Ingo Molnar wrote:
+> > 
+> > * Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > 
+> > > On Tuesday, 1 of July 2008, Ingo Molnar wrote:
+> > > > 
+> > > > * Matthew Garrett <mjg59@srcf.ucam.org> wrote:
+> > > > 
+> > > > > Assuming it works for Rafael (still haven't had time to pull my nx6125 
+> > > > > out of storage):
+> > > > > 
+> > > > > Signed-off-by: mjg@redhat.com
+> > > > 
+> > > > Rafael, could you please try the latest tip/master that i've just pushed 
+> > > > out:
+> > > > 
+> > > >   http://people.redhat.com/mingo/tip.git/README
+> > > > 
+> > > > it has the final form of these changes integrated - it should in 
+> > > > theory work out of box on your system, with no boot parameters or 
+> > > > other explicit quirks needed anywhere.
+> > > 
+> > > I tested patches [1/2] (your version) and [2/2] on top of today's 
+> > > linux-next and they work just fine.
+> > 
+> > thanks Rafael!
+> 
+> Well, I'm afraid that my information wasn't correct.  The patches actually
+> don't work, but I had my own additional patch that fixed the problem applied,
+> which I've only just discovered.  Sorry for the confusion and the issue is
+> still unfixed.
 
-On Mon, 7 Jul 2008 09:56:59 +1000 Stephen Rothwell <sfr@canb.auug.org.au> w=
-rote:
->
-> On Sun, 06 Jul 2008 20:48:49 +0200 Andi Kleen <andi@firstfloor.org> wrote:
-> >
-> > The trees for the next ACPI merge are at git.kernel.org now
-> > These are based on Len's branches with some additional patches.
-> >=20
-> > (based on Linus' tree aka 2.6.26rc9)
-> > git://git.kernel.org/pub/scm/linux/kernel/git/ak/linux-acpi-2.6.git rel=
-ease
-> > Intended for the 2.6.27 merge
->=20
-> If that is true ..
->=20
-> > git://git.kernel.org/pub/scm/git/linux/kernel/ak/linux-acpi-2.6.git test
->=20
-> Then why is linux-next tracking that?
+Appended is a patch that actually works for me (it's missing the i386 part,
+but I can't test that anyway).
 
-So maybe I read that wrong.  It appears that the release branch is
-already a subset Linus' tree and you meant that comment ("Intended for
-the 2.6.27 merge") was meant to apply to the test branch.  Right?
+Please note two things:
+(1) The whole acpi_dmi_table[] thing originally depended on __i386__, so it
+    wouldn't work on x86-64 no matter what.  I removed that dependecy, but
+    I have no idea why it was there and so I'm not sure if that's correct. 
+(2) The clear_IO_APIC_pin(apic1, pin1) done if disable_irq0_through_ioapic is
+    true is absolutely essential.  The symptoms are 100% reproducible without it.
 
-> > (based on Linux next for patches with dependencies)
-> > git://git.kernel.org/pub/scm/linux/kernel/git/ak/linux-next-acpi.git
->=20
-> Is there something we can do about those dependencies?
+Thanks,
+Rafael
 
-This is still a valid question as I have been trying to push trivial
-dependencies into Linus' tree ...
 
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
+---
+ arch/x86/kernel/acpi/boot.c  |   43 +++++++++++++++++++++++++++++++++++++------
+ arch/x86/kernel/io_apic_64.c |   19 ++++++++++++++-----
+ 2 files changed, 51 insertions(+), 11 deletions(-)
 
---Signature=_Mon__7_Jul_2008_10_03_56_+1000_Jx1O+Uu_mAKfNJlY
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAkhxXWwACgkQjjKRsyhoI8xMKACgvGY/t0Pe4RrD70uPsIue230l
-zkEAn1/uWc3d4m4ZD6wj7QIgC/CnHt6K
-=e91t
------END PGP SIGNATURE-----
-
---Signature=_Mon__7_Jul_2008_10_03_56_+1000_Jx1O+Uu_mAKfNJlY--
+Index: linux-next/arch/x86/kernel/acpi/boot.c
+===================================================================
+--- linux-next.orig/arch/x86/kernel/acpi/boot.c
++++ linux-next/arch/x86/kernel/acpi/boot.c
+@@ -1363,8 +1363,6 @@ static void __init acpi_process_madt(voi
+ 	return;
+ }
+ 
+-#ifdef __i386__
+-
+ static int __init disable_acpi_irq(const struct dmi_system_id *d)
+ {
+ 	if (!acpi_force) {
+@@ -1415,6 +1413,17 @@ static int __init force_acpi_ht(const st
+ }
+ 
+ /*
++ * Don't register any I/O APIC entries for the 8254 timer IRQ.
++ */
++static int __init
++dmi_disable_irq0_through_ioapic(const struct dmi_system_id *d)
++{
++	pr_notice("%s detected: disabling IRQ 0 through I/O APIC\n", d->ident);
++	force_disable_irq0_through_ioapic();
++	return 0;
++}
++
++/*
+  * If your system is blacklisted here, but you find that acpi=force
+  * works for you, please contact acpi-devel@sourceforge.net
+  */
+@@ -1581,11 +1590,35 @@ static struct dmi_system_id __initdata a
+ 		     DMI_MATCH(DMI_PRODUCT_NAME, "TravelMate 360"),
+ 		     },
+ 	 },
++	/*
++	 * HP laptops which use a DSDT reporting as HP/SB400/10000,
++	 * which includes some code which overrides all temperature
++	 * trip points to 16C if the INTIN2 input of the I/O APIC
++	 * is enabled.  This input is incorrectly designated the
++	 * ISA IRQ 0 via an interrupt source override even though
++	 * it is wired to the output of the master 8259A and INTIN0
++	 * is not connected at all.  Abandon any attempts to route
++	 * IRQ 0 through the I/O APIC therefore.
++	 */
++	{
++	 .callback = dmi_disable_irq0_through_ioapic,
++	 .ident = "HP NX6125 laptop",
++	 .matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
++		     DMI_MATCH(DMI_PRODUCT_NAME, "HP Compaq nx6125"),
++		     },
++	 },
++	{
++	 .callback = dmi_disable_irq0_through_ioapic,
++	 .ident = "HP NX6325 laptop",
++	 .matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
++		     DMI_MATCH(DMI_PRODUCT_NAME, "HP Compaq nx6325"),
++		     },
++	 },
+ 	{}
+ };
+ 
+-#endif				/* __i386__ */
+-
+ /*
+  * acpi_boot_table_init() and acpi_boot_init()
+  *  called from setup_arch(), always.
+@@ -1613,9 +1646,7 @@ int __init acpi_boot_table_init(void)
+ {
+ 	int error;
+ 
+-#ifdef __i386__
+ 	dmi_check_system(acpi_dmi_table);
+-#endif
+ 
+ 	/*
+ 	 * If acpi_disabled, bail out
+Index: linux-next/arch/x86/kernel/io_apic_64.c
+===================================================================
+--- linux-next.orig/arch/x86/kernel/io_apic_64.c
++++ linux-next/arch/x86/kernel/io_apic_64.c
+@@ -94,6 +94,13 @@ static int no_timer_check;
+ 
+ static int disable_timer_pin_1 __initdata;
+ 
++static bool disable_irq0_through_ioapic __initdata;
++
++void __init force_disable_irq0_through_ioapic(void)
++{
++	disable_irq0_through_ioapic = true;
++}
++
+ int timer_through_8259 __initdata;
+ 
+ /* Where if anywhere is the i8259 connect in external int mode */
+@@ -1714,12 +1721,14 @@ static inline void __init check_timer(vo
+ 		apic2 = apic1;
+ 	}
+ 
+-	replace_pin_at_irq(0, 0, 0, apic1, pin1);
+-	apic1 = 0;
+-	pin1 = 0;
+-	setup_timer_IRQ0_pin(apic1, pin1, cfg->vector);
++	if (disable_irq0_through_ioapic) {
++		clear_IO_APIC_pin(apic1, pin1);
++	} else {
++		replace_pin_at_irq(0, 0, 0, apic1, pin1);
++		apic1 = 0;
++		pin1 = 0;
++		setup_timer_IRQ0_pin(apic1, pin1, cfg->vector);
+ 
+-	if (pin1 != -1) {
+ 		/*
+ 		 * Ok, does IRQ0 through the IOAPIC work?
+ 		 */
