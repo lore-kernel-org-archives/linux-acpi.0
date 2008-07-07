@@ -1,62 +1,56 @@
-From: Alok Kataria <akataria@vmware.com>
-Subject: Re: [PATCH 1/2] cleanup e820_setup_gap v2
-Date: Mon, 07 Jul 2008 11:34:55 -0700
-Message-ID: <1215455695.32752.2.camel@promb-2n-dhcp368.eng.vmware.com>
-References: <1214333310.27577.26.camel@promb-2n-dhcp368.eng.vmware.com>
-	 <20080625160817.GC24967@elte.hu>
-	 <1214416962.27577.74.camel@promb-2n-dhcp368.eng.vmware.com>
-	 <86802c440806261101k78c5057id8ca0649188bd132@mail.gmail.com>
-	 <20080703125227.GA14082@elte.hu>  <20080703130035.GA23060@elte.hu>
-	 <1215105012.20655.2.camel@promb-2n-dhcp368.eng.vmware.com>
-Reply-To: akataria@vmware.com
+From: "Maciej W. Rozycki" <macro@linux-mips.org>
+Subject: Re: [PATCH 2/2] acpi: Disable IRQ 0 through I/O APIC for some HP
+ systems
+Date: Mon, 7 Jul 2008 20:59:47 +0100 (BST)
+Message-ID: <Pine.LNX.4.55.0807072054310.20615@cliff.in.clinika.pl>
+References: <Pine.LNX.4.55.0807010055070.30785@cliff.in.clinika.pl>
+ <20080701202453.GD4896@elte.hu> <200807070102.38854.rjw@sisk.pl>
+ <200807070319.29470.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756591AbYGGSpv@vger.kernel.org>
-In-Reply-To: <1215105012.20655.2.camel@promb-2n-dhcp368.eng.vmware.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Yinghai Lu <yhlu.kernel@gmail.com>, "lenb@kernel.org" <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, the arch/x86 maintainers <x86@kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <200807070319.29470.rjw@sisk.pl>
+Sender: linux-next-owner@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-next@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2008-07-03 at 10:10 -0700, Alok Kataria wrote:
-> On Thu, 2008-07-03 at 06:00 -0700, Ingo Molnar wrote:
-> > * Ingo Molnar <mingo@elte.hu> wrote:
-> > 
-> > > > > e820_search_gap also take a end_addr parameter to limit search
-> > > > > from start_addr to end_addr.
-> > > > >
-> > > > > Signed-off-by: AloK N Kataria <akataria@vmware.com>
-> > > >
-> > > > Acked-by: Yinghai Lu <yhlu.kernel@gmail.com>
-> > >
-> > > applied to tip/x86/unify-setup - thanks!
-> > 
-> > hm, it doesnt work too well:
-> > 
-> >   arch/x86/pci/acpi.c: In function 'search_gap':
-> >   arch/x86/pci/acpi.c:130: error: too few arguments to function 'e820_search_gap'
-> > 
-> > was i supposed to revert:
-> > 
-> > | commit 2c0262493239814b06a8aaabd1cf09b2f8fa3519
-> > | Author: Alok Kataria <akataria@vmware.com>
-> > | Date:   Tue Jun 24 11:48:46 2008 -0700
-> > |
-> > |    acpi based pci gap caluculation v2
-> > 
-> > ?
-> 
-> No...I had sent a incremental patch to the above patch..
-> http://marc.info/?l=linux-kernel&m=121441818818598&w=2
-> 
-> Please apply this one too.
-> 
+On Mon, 7 Jul 2008, Rafael J. Wysocki wrote:
 
-Hi Ingo, 
+> @@ -1714,12 +1721,14 @@ static inline void __init check_timer(vo
+>  		apic2 = apic1;
+>  	}
+>  
+> -	replace_pin_at_irq(0, 0, 0, apic1, pin1);
+> -	apic1 = 0;
+> -	pin1 = 0;
+> -	setup_timer_IRQ0_pin(apic1, pin1, cfg->vector);
+> +	if (disable_irq0_through_ioapic) {
+> +		clear_IO_APIC_pin(apic1, pin1);
+> +	} else {
+> +		replace_pin_at_irq(0, 0, 0, apic1, pin1);
+> +		apic1 = 0;
+> +		pin1 = 0;
+> +		setup_timer_IRQ0_pin(apic1, pin1, cfg->vector);
+>  
+> -	if (pin1 != -1) {
+>  		/*
+>  		 * Ok, does IRQ0 through the IOAPIC work?
+>  		 */
 
-Please let me know if you need a single patch instead of this
-incremental patch. 
+ This is completely broken -- you cannot blindly assume IRQ0 is wired to
+the pin #0 of the I/O APIC #0.  You have to respect routing information
+provided by the system.
 
-Thanks,
-Alok
+ Ingo, from the sequence above, I gather this code is currently in the 
+tree:
+
+-	replace_pin_at_irq(0, 0, 0, apic1, pin1);
+-	apic1 = 0;
+-	pin1 = 0;
+
+Please revert the change which introduced it.  While I recall posting a
+patch which added code like this, I clearly stated it was solely for
+diagnostics of Rafael's system and not to apply to any tree.
+
+  Maciej
