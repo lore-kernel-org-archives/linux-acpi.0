@@ -1,96 +1,55 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: ACPI git trees and vacation
-Date: Mon, 7 Jul 2008 16:45:29 +1000
-Message-ID: <20080707164529.8e42bd73.sfr@canb.auug.org.au>
-References: <48711391.6090608@firstfloor.org>
-	<20080707095659.a1b486e1.sfr@canb.auug.org.au>
-	<4871B4FB.5020205@firstfloor.org>
+From: Arjan van de Ven <arjan@infradead.org>
+Subject: Re: [PATCH -next] acpi utmisc: use WARN_ON() instead of
+ warn_on_slowpath()
+Date: Mon, 7 Jul 2008 00:03:20 -0700
+Message-ID: <20080707000320.25341603@infradead.org>
+References: <20080701103339.b5acc1f3.randy.dunlap@oracle.com>
+	<20080701131714.5093fa49.akpm@linux-foundation.org>
+	<23433248.1214943818230.JavaMail.oracle@acsmt302.oracle.com>
+	<20080701133535.f92a673c.akpm@linux-foundation.org>
+	<20080702112852.05f30950.randy.dunlap@oracle.com>
+	<486BCDDC.1000709@firstfloor.org>
+	<20080702121424.a3451eae.akpm@linux-foundation.org>
+	<486BD785.5050207@firstfloor.org>
+	<20080702124316.61cc76e9.akpm@linux-foundation.org>
+	<486BE0DA.2090108@firstfloor.org>
+	<20080702133540.20d578cd.akpm@linux-foundation.org>
+	<486BEA68.7000801@firstfloor.org>
+	<20080702140216.334011a4.akpm@linux-foundation.org>
+	<486BEE0D.3030901@firstfloor.org>
+	<20080702141459.e6d6feaa.akpm@linux-foundation.org>
+	<alpine.LFD.1.10.0807061307280.24417@localhost.localdomain>
+	<20080706115221.582e905a@infradead.org>
+	<4871B55C.7040009@firstfloor.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Mon__7_Jul_2008_16_45_29_+1000_W90.tbRRoCiKKy/1"
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <4871B4FB.5020205@firstfloor.org>
-Sender: linux-next-owner@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, linux-next@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-
---Signature=_Mon__7_Jul_2008_16_45_29_+1000_W90.tbRRoCiKKy/1
 Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from casper.infradead.org ([85.118.1.10]:33370 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750858AbYGGHDo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Jul 2008 03:03:44 -0400
+In-Reply-To: <4871B55C.7040009@firstfloor.org>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
+To: Andi Kleen <andi@firstfloor.org>
+Cc: Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, randy.dunlap@oracle.com, linux-acpi@vger.kernel.org, linux-next@vger.kernel.org, Ingo Molnar <mingo@elte.hu>
 
-Hi Andi,
+On Mon, 07 Jul 2008 08:19:08 +0200
+Andi Kleen <andi@firstfloor.org> wrote:
 
-On Mon, 07 Jul 2008 08:17:31 +0200 Andi Kleen <andi@firstfloor.org> wrote:
->
-> Stephen Rothwell wrote:
-> >=20
-> > On Sun, 06 Jul 2008 20:48:49 +0200 Andi Kleen <andi@firstfloor.org> wro=
-te:
-> >> The trees for the next ACPI merge are at git.kernel.org now
-> >> These are based on Len's branches with some additional patches.
-> >>
-> >> (based on Linus' tree aka 2.6.26rc9)
-> >> git://git.kernel.org/pub/scm/linux/kernel/git/ak/linux-acpi-2.6.git re=
-lease
-> >> Intended for the 2.6.27 merge
-> >=20
-> > If that is true ..
-> >=20
-> >> git://git.kernel.org/pub/scm/git/linux/kernel/ak/linux-acpi-2.6.git te=
-st
-> >=20
-> > Then why is linux-next tracking that?
->=20
-> It is tracking Len's tree not mine, right?
+> I'm dropping the ACPI part because we're getting too many
+> reports of scary looking backtraces and ACPI exceptions are actually
+> not that exceptional.
 
-/me hits himself in the head :-)
+when I talked to Len about it he implied/said that these would only
+happen for ACPI code bugs (and not bios bugs). Maybe he was
+overestimating what the code would actually do; if so it would imo be
+well worth splitting out ACPI code assertions versions things that are
+BIOS caused (if only to be able to inform the user more consistently)
 
-Sorry about that.
 
-> Or did you switch already to mine?
-
-No, I only do what is asked of me :-)
-
-Time I got my glasses replaced :-)
-
-> > Is there something we can do about those dependencies?
->=20
-> It's some patches from Henrique that require rfkill changes
-> in the net tree. I'm also not happy about that (it complicates
-> everything here), but cannot do much about it.
-
-OK,  yeah that is a pain.
-
-> > So what is missing, and why should we merge stuff in 2.6.27 that we don=
-'t
-> > see until the merge window?  (Not trying to be antagonistic, just asking
-> > about procedure and wondering why stuff for 2.6.27 is still not in
-> > linux-next.)
->=20
-> Because they're small fixes and would go in later anyways.
->=20
-> And because I haven't gone through all of them yet due to time
-> reasons, but I cannot say categorically I'll delay them all.
-
-OK.  This is all not so relevant since I misread above.
-
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
-
---Signature=_Mon__7_Jul_2008_16_45_29_+1000_W90.tbRRoCiKKy/1
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAkhxu4kACgkQjjKRsyhoI8xx/gCfX8eYJfpoKveay9/+gpJBqZ/p
-4eIAn2F5li58gWXOGMuBVby/mgOkCIwJ
-=x765
------END PGP SIGNATURE-----
-
---Signature=_Mon__7_Jul_2008_16_45_29_+1000_W90.tbRRoCiKKy/1--
+-- 
+If you want to reach me at my work email, use arjan@linux.intel.com
+For development, discussion and tips for power savings, 
+visit http://www.lesswatts.org
