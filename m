@@ -1,43 +1,39 @@
-From: "Alexander Beregalov" <a.beregalov@gmail.com>
-Subject: next-0708: build failure at drivers/pci/pci-acpi.c
-Date: Tue, 8 Jul 2008 16:18:02 +0400
-Message-ID: <a4423d670807080518g31402f60j2f624a2ac2db03aa@mail.gmail.com>
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: [linux-pm] [PATCH 04/11] ACPI: Introduce acpi_device_sleep_wake function
+Date: Mon, 7 Jul 2008 09:18:22 +0200
+Message-ID: <20080707071822.GE5643@ucw.cz>
+References: <200806231934.08565.rjw@sisk.pl> <200806231945.39951.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wr-out-0506.google.com ([64.233.184.224]:23623 "EHLO
-	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756422AbYGHMSE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Jul 2008 08:18:04 -0400
-Received: by wr-out-0506.google.com with SMTP id 69so1774586wri.5
-        for <linux-acpi@vger.kernel.org>; Tue, 08 Jul 2008 05:18:03 -0700 (PDT)
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:2449 "EHLO spitz.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751380AbYGHNiQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 8 Jul 2008 09:38:16 -0400
 Content-Disposition: inline
+In-Reply-To: <200806231945.39951.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, jbarnes@virtuousgeek.org, ak@linux.intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-next@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Jesse Barnes <jbarnes@virtuousgeek.org>
 
-Hi Rafael
+On Mon 2008-06-23 19:45:39, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rjw@sisk.pl>
+> 
+> ACPI: Introduce acpi_device_sleep_wake function
+> 
+> The currect ACPI code attempts to execute _PSW at three different
+> places and in one of them only it tries to execute _DSW before _PSW,
+> which is inconsistent with the other two cases.
+> 
+> Move the execution of _DSW and _PSW into a separate function called
+> acpi_device_sleep_wake() and call it wherever appropriate instead of
+> executing _DSW and/or _PSW directly.
+> 
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 
-drivers/pci/pci-acpi.c: In function 'acpi_pci_sleep_wake':
-drivers/pci/pci-acpi.c:311: error: implicit declaration of function
-'acpi_pm_device_sleep_wake'
+ACK.
 
-drivers/pci/pci-acpi.c:
-309-static int acpi_pci_sleep_wake(struct pci_dev *dev, bool enable)
-310-{
-311:    int error = acpi_pm_device_sleep_wake(&dev->dev, enable);
-
-
-include/acpi/acpi_bus.h:
-381-#ifdef CONFIG_PM_SLEEP
-382-int acpi_pm_device_sleep_state(struct device *, int *);
-383:int acpi_pm_device_sleep_wake(struct device *, bool);
-384-#else /* !CONFIG_PM_SLEEP */
-385-static inline int acpi_pm_device_sleep_state(struct device *d, int *p)
-386-{
-387-    if (p)
-388-            *p = ACPI_STATE_D0;
-389-    return ACPI_STATE_D3;
-390-}
-391-#endif /* !CONFIG_PM_SLEEP */
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
