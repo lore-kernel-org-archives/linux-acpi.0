@@ -1,36 +1,74 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH 2/2] acpi: Disable IRQ 0 through I/O APIC for some HP
-	systems
-Date: Mon, 7 Jul 2008 09:36:35 +0200
-Message-ID: <20080707073635.GA22946@elte.hu>
-References: <Pine.LNX.4.55.0807010055070.30785@cliff.in.clinika.pl> <20080701202453.GD4896@elte.hu> <200807070102.38854.rjw@sisk.pl> <200807070319.29470.rjw@sisk.pl> <20080707071706.GA3326@elte.hu>
+From: Kirill Berezin <kyb22@rol.ru>
+Subject: Curious ACPI thermal_zone handling.
+Date: Mon, 07 Jul 2008 13:22:54 +0400
+Message-ID: <4871E06E.80209@rol.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754449AbYGGHhL@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20080707071706.GA3326@elte.hu>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "Maciej W. Rozycki" <macro@linux-mips.org>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-next@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>
+Content-Type: multipart/mixed;
+ boundary="------------080600040607000305050101"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.rol.ru ([194.67.1.9]:48753 "EHLO smtp.rol.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751272AbYGGJ0O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 7 Jul 2008 05:26:14 -0400
+Received: from pontus.sovam.com ([194.67.3.4]:42249 "EHLO [194.67.3.4]"
+	smtp-auth: <none> TLS-CIPHER: <none> TLS-PEER-CN1: <none>
+	rhost-flags-OK-OK-OK-FAIL) by gnome03.net.rol.ru with ESMTP
+	id S5129541AbYGGJSp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 7 Jul 2008 13:18:45 +0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+
+This is a multi-part message in MIME format.
+--------------080600040607000305050101
+Content-Type: text/plain; charset=KOI8-R; format=flowed
+Content-Transfer-Encoding: 7bit
+
+Hi!
+
+Linux ACPI system exhibits a vary curious behavior  on my 
+Fujitsu-Siemens  pa1538 laptop. After an initial boot my laptop runs 
+with slowly rotating fan. Fan continues rotating during the linux boot, 
+gnome start and stops only when the temperature reaches active_trip 
+point and fells below passive_trip. IMHO it is a little bit strange to 
+hear rotating fan for a  core temperature less then 40 Celsius degrees.
+
+google shows a lot of links, but I still cannot get what part of a 
+system is responsible for fan start/stop -- hardware, kernel of some 
+application?
+
+And my second question is what is the preferable way to set trip points 
+for current kernels?
+
+I appreciate any help.
+
+Kirill.
 
 
-* Ingo Molnar <mingo@elte.hu> wrote:
 
-> > Please note two things:
-> > (1) The whole acpi_dmi_table[] thing originally depended on __i386__, so it
-> >     wouldn't work on x86-64 no matter what.  I removed that dependecy, but
-> >     I have no idea why it was there and so I'm not sure if that's correct. 
-> 
-> > (2) The clear_IO_APIC_pin(apic1, pin1) done if 
-> >     disable_irq0_through_ioapic is true is absolutely essential.  The 
-> >     symptoms are 100% reproducible without it.
-> 
-> thanks, applied to tip/x86, to give this some more testing.
+--------------080600040607000305050101
+Content-Type: text/x-vcard; charset=utf-8;
+ name="kyb22.vcf"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="kyb22.vcf"
 
-i know you havent submitted this for inclusion yet, but FYI it wont 
-build on 32-bit with a config like:
+begin:vcard
+fn;quoted-printable:=D0=9A=D0=B8=D1=80=D0=B8=D0=BB=D0=BB =D0=91=D0=B5=D1=80=D0=B5=D0=B7=D0=B8=
+	=D0=BD
+n;quoted-printable:;=D0=9A=D0=B8=D1=80=D0=B8=D0=BB=D0=BB =D0=91=D0=B5=D1=80=D0=B5=D0=B7=D0=B8=
+	=D0=BD
+org;quoted-printable:Golden Telecom;=D0=93=D1=80=D1=83=D0=BF=D0=BF=D0=B0 =D1=80=D0=B0=D0=B7=D0=B2=D0=B8=D1=82=
+	=D0=B8=D1=8F ISP =D1=81=D0=B8=D1=81=D1=82=D0=B5=D0=BC, =D0=A1=D0=BE=D0=B2=
+	=D0=B8=D0=BD=D1=82=D0=B5=D0=BB
+email;internet:kyb22@rol.ru
+title;quoted-printable:=D0=A1=D1=82=D0=B0=D1=80=D1=88=D0=B8=D0=B9 =D0=B8=D0=BD=D0=B6=D0=B5=D0=BD=
+	=D0=B5=D1=80-=D0=BF=D1=80=D0=BE=D0=B3=D1=80=D0=B0=D0=BC=D0=BC=D0=B8=D1=81=
+	=D1=82
+tel;work:+7 495 787 1345
+x-mozilla-html:FALSE
+version:2.1
+end:vcard
 
- http://redhat.com/~mingo/misc/config-Mon_Jul__7_09_22_45_CEST_2008.bad
 
-	Ingo
+--------------080600040607000305050101--
