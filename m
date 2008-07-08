@@ -1,55 +1,65 @@
-From: garkein@mailueberfall.de
-Subject: Re: Thinkpad T61 consuming more power on AC
-Date: Tue, 08 Jul 2008 20:06:13 +0200
-Message-ID: <1215540373.5364.7.camel@thinkpad>
-References: <1215293883.5545.19.camel@thinkpad>
-	 <1215480699.6121.25.camel@yakui_zhao.sh.intel.com>
-Reply-To: garkein@mailueberfall.de
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: Check for BIOS bugs - Original Subject: Re: [PATCH 23/70] ACPICA: Workaround for reversed _PRT entries from BIOS
+Date: Tue, 8 Jul 2008 12:34:55 -0700
+Message-ID: <960B77DF2E6D974DBE24FD066EAEE8DAD90886@azsmsx422.amr.corp.intel.com>
+References: <1213947852-10924-1-git-send-email-lenb@kernel.org> <deade3c973eb9c98d2a6cfed658bbb49e693894a.1213947350.git.len.brown@intel.com> <200807011033.27887.trenn@suse.de> <20080707111207.GH5643@ucw.cz> <48738A65.9060905@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:49816 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752739AbYGHSGr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 8 Jul 2008 14:06:47 -0400
-In-Reply-To: <1215480699.6121.25.camel@yakui_zhao.sh.intel.com>
+Received: from mga01.intel.com ([192.55.52.88]:53018 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752378AbYGHTe4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Jul 2008 15:34:56 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <48738A65.9060905@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: Arjan van de Ven <arjan@linux.intel.com>, Pavel Machek <pavel@suse.cz>
+Cc: Thomas Renninger <trenn@suse.de>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, "Moore, Robert" <robert.moore@intel.com>, "Lin, Ming M" <ming.m.lin@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Huang Cheng <cheng.huang@intel.com>, firmwarekit-discuss@bughost.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Am Dienstag, den 08.07.2008, 09:31 +0800 schrieb Zhao Yakui:
-> The C-state mapping between CPU C3/C4/C5/C6 and ACPI C3 is defined
-> in ACPI tables, which is related with the BIOS. In order to use CPU C6
-> state in AC mode, we must modify the C-state mapping in ACPI tables. It
-> is not easy. And IMO it is meaningless(CPU C6 can save more power than
-> CPU C3. But it is not obvious). So not recommend to do so.
->    Of course if still hope to do so, please refer to the _CST object
-> defined in section 8 of ACPI 3.0 spec and custom DSDT should be used.
+ 
 
-Thanks Yakui. I have to say that I don't have any ACPI knowledge other
-than common hearsay so I have to learn ACPI from the beginning and I
-hope I could find some spare time to get and idea, at least.
->From what I understood so far, the way to go would be the following:
+>>>> Some BIOSs erroneously reverse the _PRT SourceName and the
+>>>> SourceIndex.  Detect and repair this problem. MS ACPI also allows
+>>>> and repairs this problem, thus ACPICA must also.
+>>> It would be great to have an interface to report this as a 
+>BIOS defect.
+>>>
+>>> Something like:
+>>>
+>>> FIRMWARE_BUG_ON(FIRM_WARN, "erroneously reversed the _PRT 
+>source_name", ACPI_ 
+>>> Bug);
+>>>
+>>> FIRMWARE_BUG_ON(severity, description, component);
+>> 
+>> Yes, please.
 
-- Extract the ACPI tables of my notebook
-- Read the spec and tweak the right entry
-- Convince the kernel to use the customized table
+I'm not excited about maintaining
+maintaining linux-as-a-firmware-diagnostic --
+particularly when...
 
-Probably I could also read the ACPI tables when on battery just to load
-it when in AC mode? (I could then skip step 2 of understanding what I'm
-doing... ;-)
+1. it clutters the code for normail machines
+2. finding the bug is pointless, because even
+   if you fix one machine, you are guaranteed to
+   not fix all machines and thus must maintain
+   the workaround anyway.
 
-For the effectiveness:
-I cannot say whether the power consumption is that big, the difference
-of the fan (not) getting on my nerves _is_ significant however.
-I just had the idea that the behaviour of the embedded controller for
-controlling the fan may also be different in AC vs. battery mode (the
-threshold temperatures), so I it's indeed not garantueed that using C6
-vs. C3 alone does the trick. But I do hope so.
+>> I'd also like HARDWARE_BUG_ON(), with similar usage.
+>> 
+>> With all the preload-linux-on-foo project, we have some 
+>> chance to make
+>> BIOS vendors fix their stuff if we can easily diagnose errors in
+>> there.
 
-Thanks,
-Daniel
+These customers should be running 
+http://linuxfirmwarekit.org/
 
+We do maintain some degree of "high-road ACPI spec checking"
+with the "acpi=strict" boot option.  If we do more of this,
+I think it should stay under that option.
 
+thanks,
+-Len
