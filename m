@@ -1,322 +1,114 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [Bugme-new] [Bug 11045] New: Bug in MPT Fusion 2.6.26-rc7
- unbootable
-Date: Tue, 8 Jul 2008 01:57:56 -0700
-Message-ID: <20080708015756.baec287c.akpm@linux-foundation.org>
-References: <bug-11045-10286@http.bugzilla.kernel.org/>
-	<20080706123417.c1e2bebc.akpm@linux-foundation.org>
-	<C5679C710E19AF4C8D9C02FF5C72E3C133C9C76A@cosmail01.lsi.com>
+From: Andreas Herrmann <andreas.herrmann3@amd.com>
+Subject: Re: [PATCH 2/2] acpi: Disable IRQ 0 through I/O APIC for some HP
+	systems
+Date: Tue, 8 Jul 2008 13:24:02 +0200
+Message-ID: <20080708112402.GA2301@alberich.amd.com>
+References: <Pine.LNX.4.55.0807010055070.30785@cliff.in.clinika.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55835 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751057AbYGHJDf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Jul 2008 05:03:35 -0400
-In-Reply-To: <C5679C710E19AF4C8D9C02FF5C72E3C133C9C76A@cosmail01.lsi.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-next-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.55.0807010055070.30785@cliff.in.clinika.pl>
+Sender: linux-next-owner@vger.kernel.org
+To: "Maciej W. Rozycki" <macro@linux-mips.org>
+Cc: Ingo Molnar <mingo@elte.hu>, Matthew Garrett <mjg59@srcf.ucam.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-next@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-Cc: linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org, bugme-daemon@bugzilla.kernel.org, "Moore, Eric Dean" <Eric.Moore@lsi.com>, support@lsi.com, kurk@shiftmail.org
+
+On Tue, Jul 01, 2008 at 01:12:06AM +0100, Maciej W. Rozycki wrote:
+> From: Matthew Garrett <mjg59@srcf.ucam.org>
+> 
+>  Some HP laptops have a problem with their DSDT reporting as
+> HP/SB400/10000, which includes some code which overrides all temperature
+> trip points to 16C if the INTIN2 input of the I/O APIC is enabled.  This
+> input is incorrectly designated the ISA IRQ 0 via an interrupt source
+> override even though it is wired to the output of the master 8259A and
+> INTIN0 is not connected at all.  So far two models have been identified, 
+> namely nx6125 and nx6325.
+
+Out of sheer curiosity. What makes you think that IRQ0 is not
+connected to INT0 of IO APIC? The IRQ0 pin2 override?
+
+Why would we trust that BIOS information if the broken BIOS does
+weird things if INT2 of IO APIC is _not_ masked?
+
+IMHO on those HP systems we should skip the (bogus?) timer override,
+leave IRQ0 -> IOAPIC/INT0 and mask IOAPIC/INT2. Or at least we should
+test that configuration.
+
+I admit that I have lost track of who has provided which patches,
+which patch does exactly what ((IO|L)A)PIC configuration, and who has
+tested what combinations, and what the results were.
+
+So I've just done the following (based on x86/master as of yesterday):
+
+Booting an HP nx6325
+
+(1)  with "acpi_skip_timer_override" to avoid configuration
+     of IOAPIC/INT2 and to avoid masking of IOAPIC/INT0.
+
+  plus
+
+(2) adding (hardcoded in check_timer()) some code to explicitly mask
+    IOAPIC/INT2 to quiesce the fan (work around the DSDT issue).
+
+With that setup my test box boots w/o problems (no fan noise, no
+throttling, no stablity problems so far). Here the relevant dmesg
+parts:
+
+Command line: root=/dev/sda2 video=radeonfb:noaccel debug apic=debug acpi_skip_timer_override
+  ...
+IOAPIC[0]: apic_id 2, version 0, address 0xfec00000, GSI 
+  ...
+ACPI: INT_SRC_OVR (bus 0 bus_irq 0 global_irq 2 dfl dfl)
+ACPI: BIOS IRQ0 pin2 override ignored.
+  ...
+using C1E aware idle routine
+  ...
+init IO_APIC IRQs
+IOAPIC[0]: Set routing entry (2-0 -> 0x30 -> IRQ 0 Mode:0 Active:0)
+IOAPIC[0]: Set routing entry (2-1 -> 0x31 -> IRQ 1 Mode:0 Active:0)
+IOAPIC[0]: Set routing entry (2-2 -> 0x32 -> IRQ 2 Mode:0 Active:0)
+  ...
+IO-APIC (apicid-pin) 2-16, 2-17, 2-18, 2-19, 2-20 not connected.
+IOAPIC[0]: Set routing entry (2-21 -> 0x49 -> IRQ 21 Mode:1 Active:1)
+IO-APIC (apicid-pin) 2-22, 2-23 not connected.
+..TIMER: vector=0x30 apic1=0 pin1=0 apic2=-1 pin2=-1
+CPU0: AMD Turion(tm) 64 X2 Mobile Technology TL-60 stepping 02
+Using local APIC timer interrupts.
+  ...
+IO APIC #2......
+  ...
+NR Dst Mask Trig IRR Pol Stat Dmod Deli Vect:   
+00 003 0    0    0   0   0    1    1    30
+01 003 0    0    0   0   0    1    1    31
+02 003 1    0    0   0   0    1    1    32
 
 
-You removed everyone from cc.  Please don't do that - there's not much
-point in asking me to do things - this bug is reported by
-kurk@shiftmail.org.
+I think we have 3 alternatives to setup timer interrupt on those machines
 
-I don't know what "we do not assist with compiling drivers" can possibly
-mean.  Eric, can you please help here?
+(A) Setup timer as Virtual Wire IRQ.
+    (that's the way the old code used to configure it, e.g. in 2.6.25)
+(B) The current approach to setup timer as ExtINT.
+(C) Use IOAPIC/INT0.
+
+Shouldn't be that hard to find the best solution here:
+
+(A) proved to work (and even "accidentially" masked IOAPIC/INT2 which
+    avoided the DSDT problem)
+
+(B) ??? who tested this, Rafael -- The stability issues, did they happen
+    with a kernel based on that solution?
+
+(C) ... is my preferred solution. I tested it and I've not seen problems
+    with it (so far) -- maybe it's naive but I think it's the most
+    obvious solution (*)
 
 
-On Mon, 7 Jul 2008 07:28:00 -0600 "Support, Software" <support@lsi.com> wrote:
+Regards,
 
->  Unfortunately,  we do not assist with compiling drivers.
-> 
-> I would recommend updating the firmware and BIOS on the controllers you are using, so that the compiled driver could communicate with the controller better.
-> 
-> In order to point you to the correct package for the controller that is not taking the compiled driver, I will need for you to send me all of the numbers off of the front and back of the controller.
-> 
-> -----Original Message-----
-> From: Andrew Morton [mailto:akpm@linux-foundation.org]
-> Sent: Sunday, July 06, 2008 3:34 PM
-> To: linux-scsi@vger.kernel.org; linux-acpi@vger.kernel.org
-> Cc: bugme-daemon@bugzilla.kernel.org; Moore, Eric; Support, Software
-> Subject: Re: [Bugme-new] [Bug 11045] New: Bug in MPT Fusion 2.6.26-rc7 unbootable
-> 
-> 
-> (switched to email.  Please respond via emailed reply-to-all, not via the bugzilla web interface).
-> 
-> On Sun,  6 Jul 2008 11:22:08 -0700 (PDT) bugme-daemon@bugzilla.kernel.org wrote:
-> 
-> > http://bugzilla.kernel.org/show_bug.cgi?id=11045
-> >
-> >            Summary: Bug in MPT Fusion 2.6.26-rc7 unbootable
-> >            Product: Drivers
-> >            Version: 2.5
-> >      KernelVersion: 2.6.26-rc7
-> >           Platform: All
-> >         OS/Version: Linux
-> >               Tree: Mainline
-> >             Status: NEW
-> >           Severity: normal
-> >           Priority: P1
-> >          Component: Other
-> >         AssignedTo: drivers_other@kernel-bugs.osdl.org
-> >         ReportedBy: kurk@shiftmail.org
-> >
-> >
-> > Latest working kernel version: 2.6.25
-> > Earliest failing kernel version: 2.6.26-rc7
-> > Distribution: Debian (but vanilla kernel) Hardware Environment: IBM
-> > xSeries 335 Software Environment: error and hangup at boot Problem
-> > Description: MPT Fusion error, unbootable, see below Steps to
-> > reproduce: see below
-> 
-> We have two bugs here.  One in mpt-fusion and what I suspect is a
-> post-2.6.25 regression in ACPI.
-> 
-> 
-> > Detailed description:
-> >
-> > Hi all,
-> > I'm no kernel expert, I hope I made no mistakes in this report. It
-> > seems to me that a bug was added to the MPT Fusion driver in 2.6.26 (rc7).
-> >
-> > I compiled 2.6.26-rc7 on a machine with controller LSI53C1080 and it
-> > cannot boot. Doing the same with 2.6.25, basically the same config
-> > file, boots without problems.
-> >
-> > I tried to forward-port the Fusion driver from 2.6.25 to 2.6.26-rc7 by
-> > simply copying over the directory drivers/message/fusion/ from 2.6.25
-> > to 2.6.26-rc7 but unfortunately this doesn't compile, so I am stuck
-> > not being able to use
-> > 2.6.26 on this machine (actually I have not tried versions of 2.6.26
-> > earlier than rc7... I don't have much time now).
-> >
-> > I connected a serial cable in order to obtain the boot error message.
-> > I obtained two of those on different boots. I will paste these at the
-> > end of this post.
-> >
-> >
-> > This is the verbose lspci of the controller (obtained with 2.6.25):
-> > ----------------------------------------
-> > 01:01.0 SCSI storage controller: LSI Logic / Symbios Logic 53c1030
-> > PCI-X Fusion-MPT Dual Ultra320 SCSI (rev 07)
-> >         Subsystem: IBM Unknown device 026d
-> >         Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop-
-> > ParErr+
-> > Stepping- SERR+ FastB2B- DisINTx-
-> >         Status: Cap+ 66MHz+ UDF- FastB2B- ParErr- DEVSEL=medium
-> > >TAbort-
-> > <TAbort- <MAbort- >SERR- <PERR- INTx-
-> >         Latency: 72 (4250ns min, 4500ns max), Cache Line Size: 32 bytes
-> >         Interrupt: pin A routed to IRQ 22
-> >         Region 0: I/O ports at 2300 [size=256]
-> >         Region 1: Memory at fbff0000 (64-bit, non-prefetchable) [size=64K]
-> >         Region 3: Memory at fbfe0000 (64-bit, non-prefetchable) [size=64K]
-> >         Capabilities: [50] Power Management version 2
-> >                 Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA
-> > PME(D0-,D1-,D2-,D3hot-,D3cold-)
-> >                 Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-> >         Capabilities: [58] Message Signalled Interrupts: Mask- 64bit+
-> > Queue=0/0
-> > Enable-
-> >                 Address: 0000000000000000  Data: 0000
-> >         Capabilities: [68] PCI-X non-bridge device
-> >                 Command: DPERE- ERO- RBC=512 OST=1
-> >                 Status: Dev=01:01.0 64bit+ 133MHz+ SCD- USC- DC=simple
-> > DMMRBC=2048 DMOST=8 DMCRS=16 RSCEM- 266MHz- 533MHz-
-> >         Kernel driver in use: mptspi
-> >         Kernel modules: mptspi
-> > ----------------------------------------
-> >
-> >
-> > This is an excerpt of the dmesg on 2.6.25 where the controller WORKS:
-> > --------------------------------------------------------------------
-> > Fusion MPT base driver 3.04.06
-> > Copyright (c) 1999-2007 LSI Corporation Fusion MPT SPI Host driver
-> > 3.04.06 ...
-> > mptbase: ioc0: Initiating bringup
-> > ...
-> > ioc0: LSI53C1030 B2: Capabilities={Initiator} Probing IDE interface
-> > ide1...
-> > hdc: LG CD-ROM CRN-8245B, ATAPI CD/DVD-ROM drive scsi0 : ioc0:
-> > LSI53C1030 B2, FwRev=01000e00h, Ports=1, MaxQ=222, IRQ=22 ...
-> > scsi0 : ioc0: LSI53C1030 B2, FwRev=01000e00h, Ports=1, MaxQ=222,
-> > IRQ=22
-> > hdc: host max PIO4 wanted PIO255(auto-tune) selected PIO4
-> > hdc: UDMA/33 mode selected
-> > ide1 at 0x170-0x177,0x376 on irq 15
-> > tg3.c:v3.90 (April 12, 2008)
-> > ACPI: PCI Interrupt 0000:02:01.0[A] -> GSI 24 (level, low) -> IRQ 24
-> > scsi 0:0:0:0: Direct-Access     IBM-ESXS DTN018C1UCDY10F  S23J PQ: 0 ANSI: 3
-> >  target0:0:0: Beginning Domain Validation
-> >  target0:0:0: Ending Domain Validation
-> >  target0:0:0: FAST-80 WIDE SCSI 160.0 MB/s DT (12.5 ns, offset 127)
-> > scsi 0:0:1:0: Direct-Access     IBM-ESXS DTN018C1UCDY10F  S23J PQ: 0 ANSI: 3
-> >  target0:0:1: Beginning Domain Validation ...
-> > ACPI: PCI Interrupt 0000:02:02.0[A] -> GSI 25 (level, low) -> IRQ 25
-> >  target0:0:1: Ending Domain Validation
-> >  target0:0:1: FAST-80 WIDE SCSI 160.0 MB/s DT (12.5 ns, offset 127)
-> > ...
-> > hdc: ATAPI 24X CD-ROM drive, 128kB Cache Uniform CD-ROM driver
-> > Revision: 3.20
-> > scsi 0:0:8:0: Processor         IBM      25P3495a S320  1 1    PQ: 0 ANSI: 2
-> >  target0:0:8: Beginning Domain Validation
-> >  target0:0:8: Ending Domain Validation
-> >  target0:0:8: asynchronous
-> > Driver 'sd' needs updating - please use bus_type methods sd 0:0:0:0:
-> > [sda] 35548320 512-byte hardware sectors (18201 MB) sd 0:0:0:0: [sda]
-> > Write Protect is off sd 0:0:0:0: [sda] Mode Sense: cb 00 00 08 sd
-> > 0:0:0:0: Attached scsi generic sg0 type 0 scsi 0:0:1:0: Attached scsi
-> > generic sg1 type 0 scsi 0:0:8:0: Attached scsi generic sg2 type 3
-> > --------------------------------------------------------------------
-> >
-> >
-> > It is an x86 32bit PC compile. This is the excerpt of the .config file
-> > grepping for FUSION
-> > ------------------------------------
-> > CONFIG_FUSION=y
-> > CONFIG_FUSION_SPI=m
-> > CONFIG_FUSION_FC=m
-> > CONFIG_FUSION_SAS=m
-> > CONFIG_FUSION_MAX_SGE=40
-> > CONFIG_FUSION_CTL=m
-> > CONFIG_FUSION_LAN=m
-> > # CONFIG_FUSION_LOGGING is not set
-> > ------------------------------------
-> >
-> >
-> >
-> > This is the boot error message obtained with serial cable. I left it
-> > running for 8 minutes for this. It loops so the message never ends.
-> > --------------------------------------------------------------------
-> >
-> > ACPI: Resource is not an IRQ entry
-> >
-> > ACPI: Resource is not an IRQ entry
-> >
-> > ACPI: Resource is not an IRQ entry
-> >
-> > ACPI: Resource is not an IRQ entry
-> >
-> > ACPI: Resource is not an IRQ entry
-> >
-> > ACPI: Resource is not an IRQ entry
-> >
-> > ACPI: Resource is not an IRQ entry
-> >
-> > ACPI: Resource is not an IRQ entry
-> >
-> > ACPI: Resource is not an IRQ entry
-> >
-> > ACPI: Resource is not an IRQ entry
-> >
-> > ACPI: Resource is not an IRQ entry
-> >
-> > ACPI: Resource is not an IRQ entry
-> >
-> > ACPI: Resource is not an IRQ entry
-> >
-> > ACPI: Resource is not an IRQ entry
-> >
-> > ACPI: Resource is not an IRQ entry
-> >
-> > ACPI: Resource is not an IRQ entry
-> >
-> > ACPI: Resource is not an IRQ entry
-> >
-> > ACPI: Resource is not an IRQ entry
-> >
-> > ACPI: Resource is not an IRQ entry
-> >
-> > ACPI: Resource is not an IRQ entry
-> >
-> > ACPI: Resource is not an IRQ entry
-> >
-> > ACPI: Resource is not an IRQ entry
-> >
-> > ACPI: Resource is not an IRQ entry
-> >
-> > ACPI: Resource is not an IRQ entry
-> >
-> > ACPI: Resource is not an IRQ entry
-> >
-> > ACPI: Resource is not an IRQ entry
-> >
-> > ACPI: Resource is not an IRQ entry
-> 
-> The acpi problem.
-> 
-> > mptbase: ioc0: ERROR - Doorbell ACK timeout (count=4999), IntStatus=80000009!
-> >
-> > BUG: unable to handle kernel NULL pointer dereference at 0000034c
-> >
-> > IP: [<f885cc5e>] :mptspi:mptspi_dv_renegotiate_work+0xa/0x9f
-> >
-> > Oops: 0000 [#1] SMP
-> >
-> > Modules linked in: ide_pci_generic(+) floppy mptspi(+) mptscsih
-> > ohci_hcd tg3 mptbase scsi_transport_spi usbcore serverworks ide_core
-> > ata_generic libata scsi_mod dock thermal processor fan thermal_sys
-> >
-> >
-> >
-> > Pid: 9, comm: events/0 Not tainted (2.6.26-rc7 #1)
-> >
-> > EIP: 0060:[<f885cc5e>] EFLAGS: 00010282 CPU: 0
-> >
-> > EIP is at mptspi_dv_renegotiate_work+0xa/0x9f [mptspi]
-> >
-> > EAX: f7a447c0 EBX: f7429900 ECX: f7a447c4 EDX: c1908988
-> >
-> > ESI: f7a447c0 EDI: 0000034c EBP: f7429904 ESP: f7477f80
-> >
-> >  DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
-> >
-> > Process events/0 (pid: 9, ti=f7476000 task=f744d770 task.ti=f7476000)
-> >
-> > Stack: f744d8e0 c190b260 00000000 c1908984 f7429900 f7a447c0 f885cc54
-> > f7429904
-> >
-> >        c012f253 f7429900 c012f934 f742990c 00000000 c012f9e8 00000000
-> > f744d770
-> >
-> >        c0131bdc f7477fc4 f7477fc4 f7429900 c012f934 00000000 c0131b1b
-> > c0131ae3
-> >
-> > Call Trace:
-> >
-> >  [<f885cc54>] mptspi_dv_renegotiate_work+0x0/0x9f [mptspi]
-> >
-> >  [<c012f253>] run_workqueue+0x75/0xf6
-> >
-> >  [<c012f934>] worker_thread+0x0/0xbf
-> >
-> >  [<c012f9e8>] worker_thread+0xb4/0xbf
-> >
-> >  [<c0131bdc>] autoremove_wake_function+0x0/0x2b
-> >
-> >  [<c012f934>] worker_thread+0x0/0xbf
-> >
-> >  [<c0131b1b>] kthread+0x38/0x5d
-> >
-> >  [<c0131ae3>] kthread+0x0/0x5d
-> >
-> >  [<c0104573>] kernel_thread_helper+0x7/0x10
-> >
-> >  =======================
-> >
-> > Code: 70 e8 9e f8 ff ff 8b 47 70 e8 44 b7 fe ff 8b 47 70 5a 5b 5e 5f
-> > 5d e9 89
-> > f8 ff ff 58 5b 5e 5f 5d c3 55 57 56 53 83 ec 10 8b 78 10 <8b> 2f e8 c7
-> > 98 90 c7
-> > 66 83 bf 96 02 00 00 00 8b 85 3c 01 00 00
-> >
-> > EIP: [<f885cc5e>] mptspi_dv_renegotiate_work+0xa/0x9f [mptspi] SS:ESP
-> > 0068:f7477f80
-> >
-> > ---[ end trace e311270f757682e4 ]---
-> 
-> mpt-fusion shouldn't oops, no matter what acpi did to it.
-> 
+Andreas
+
+(*) BTW, default for SB400 is to route IRQ0 to IOAPIC/INT0 and output
+    of PIC to IOAPIC/INT2. On my test box this wasn't configured
+    differently. Thus I don't understand why the BIOS provided an
+    IRQ0/INT2 override at all.
