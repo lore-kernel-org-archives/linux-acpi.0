@@ -1,50 +1,53 @@
-From: James Bottomley <James.Bottomley@HansenPartnership.com>
-Subject: Re: [Bugme-new] [Bug 11045] New: Bug in MPT Fusion 2.6.26-rc7
-	unbootable
-Date: Tue, 08 Jul 2008 12:23:33 -0500
-Message-ID: <1215537813.3214.22.camel@localhost.localdomain>
-References: <bug-11045-10286@http.bugzilla.kernel.org/>
-	 <20080708015756.baec287c.akpm@linux-foundation.org>
-	 <1215526126.3214.8.camel@localhost.localdomain>
-	 <200807081051.33892.bjorn.helgaas@hp.com>
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: Re: next-0708: build failure at drivers/pci/pci-acpi.c
+Date: Tue, 8 Jul 2008 10:40:38 -0700
+Message-ID: <200807081040.38777.jbarnes@virtuousgeek.org>
+References: <a4423d670807080518g31402f60j2f624a2ac2db03aa@mail.gmail.com> <a4423d670807080929t3254393jc501e703d6ffb26e@mail.gmail.com> <200807081858.16321.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <200807081051.33892.bjorn.helgaas@hp.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, "Support, Software" <support@lsi.com>, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org, bugme-daemon@bugzilla.kernel.org, "Moore, Eric Dean" <Eric.Moore@lsi.com>, kurk@shiftmail.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from outbound-mail-134.bluehost.com ([67.222.39.24]:35541 "HELO
+	outbound-mail-134.bluehost.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753522AbYGHRk7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Jul 2008 13:40:59 -0400
+In-Reply-To: <200807081858.16321.rjw@sisk.pl>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Alexander Beregalov <a.beregalov@gmail.com>, ak@linux.intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-next@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, David Howells <dhowells@redhat.com>
 
-On Tue, 2008-07-08 at 10:51 -0600, Bjorn Helgaas wrote:
-> On Tuesday 08 July 2008 08:08:46 am James Bottomley wrote:
-> > That said, this line:
-> > 
-> > mptbase: ioc0: ERROR - Doorbell ACK timeout (count=4999), IntStatus=80000009!
-> > 
-> > is absolutely characteristic of a lost interrupt.
-> > 
-> > With the current LSI driver, we have two possible causes for this.  One
-> > is the usual ACPI screw up that we never seem to be able to fix.
-> 
-> Which ACPI screw up is that?  And what's the usual recipe?
+On Tuesday, July 08, 2008 9:58 am Rafael J. Wysocki wrote:
+> On Tuesday, 8 of July 2008, Alexander Beregalov wrote:
+> > 2008/7/8 Rafael J. Wysocki <rjw@sisk.pl>:
+> > > On Tuesday, 8 of July 2008, Alexander Beregalov wrote:
+> > >> Hi Rafael
+> > >>
+> > >> drivers/pci/pci-acpi.c: In function 'acpi_pci_sleep_wake':
+> > >> drivers/pci/pci-acpi.c:311: error: implicit declaration of function
+> > >> 'acpi_pm_device_sleep_wake'
+> > >
+> > > I guess this is a compilation with CONFIG_ACPI=y and CONFIG_PM_SLEEP
+> > > unset.
+> >
+> > Indeed.
+> >
+> > > In that case the appended patch should help.  Please test and report
+> > > back (I can't test linux-next compilation at the moment).
+> >
+> > Compilation test passed and the kernel can boot.
+>
+> Thanks!
+>
+> Jesse, could you please apply the patch below to the linux-next branch, on
+> top of the PCI wake-up patchset?
+>
+> Rafael
 
-The usual screw up where subtle ACPI breakage from release to release
-causes some IRQs to get misrouted.
+David sent me one just like this at 7am this morning, just applied and pushed 
+(along with Alexander's tested-by).
 
-Usually you start with noacpi and cycle through the pci routing options
-
-> I know about the ancient "pci=routeirq" recipe, but as far as I know,
-> there are no current problems that require that.
-
-If you actually read this bug report, you'll see there was a message
-
-ACPI: Resource is not an IRQ entry
-
-Just before the fusion IRQ failed to get delivered, so I think it's a
-good indicator that there *are* ACPI problems ...
-
-James
-
-
+Thanks,
+Jesse
