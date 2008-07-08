@@ -1,63 +1,56 @@
-From: James Bottomley <James.Bottomley@HansenPartnership.com>
-Subject: Re: [Bugme-new] [Bug 11045] New: Bug in MPT Fusion 2.6.26-rc7
-	unbootable
-Date: Tue, 08 Jul 2008 09:08:46 -0500
-Message-ID: <1215526126.3214.8.camel@localhost.localdomain>
-References: <bug-11045-10286@http.bugzilla.kernel.org/>
-	 <20080706123417.c1e2bebc.akpm@linux-foundation.org>
-	 <C5679C710E19AF4C8D9C02FF5C72E3C133C9C76A@cosmail01.lsi.com>
-	 <20080708015756.baec287c.akpm@linux-foundation.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 0/8] PCI PM: Handling of PCI devices wake-up functionality (rev. 4)
+Date: Tue, 8 Jul 2008 16:42:50 +0200
+Message-ID: <200807081642.51219.rjw@sisk.pl>
+References: <200807012356.26669.rjw@sisk.pl> <200807070330.02849.rjw@sisk.pl> <200807071749.23894.jbarnes@virtuousgeek.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from accolon.hansenpartnership.com ([76.243.235.52]:46435 "EHLO
-	accolon.hansenpartnership.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753955AbYGHOIv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Jul 2008 10:08:51 -0400
-In-Reply-To: <20080708015756.baec287c.akpm@linux-foundation.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:39901 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752698AbYGHOkx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 8 Jul 2008 10:40:53 -0400
+In-Reply-To: <200807071749.23894.jbarnes@virtuousgeek.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: "Support, Software" <support@lsi.com>, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org, bugme-daemon@bugzilla.kernel.org, "Moore, Eric Dean" <Eric.Moore@lsi.com>, kurk@shiftmail.org
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Andi Kleen <andi@firstfloor.org>, pm list <linux-pm@lists.linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, Zhao Yakui <yakui.zhao@intel.com>, Pavel Machek <pavel@suse.cz>
 
-On Tue, 2008-07-08 at 01:57 -0700, Andrew Morton wrote:
-> You removed everyone from cc.  Please don't do that - there's not much
-> point in asking me to do things - this bug is reported by
-> kurk@shiftmail.org.
+On Tuesday, 8 of July 2008, Jesse Barnes wrote:
+> On Sunday, July 06, 2008 6:30 pm Rafael J. Wysocki wrote:
+> > Hi Jesse,
+> >
+> > This is a new (4th) iteration of the series of patches intended to rework
+> > the power management of PCI devices so that the handling of their wake-up
+> > functionality is consistent with the other PM operations and so that the
+> > user space can manage the wake-up functionality of PCI devices using the
+> > /sys/devices/.../power/wakeup interface regardless of whether the wake-up
+> > function is based on the native PCI mechanism (PME#), or it is handled by
+> > the platform (eg. ACPI).
+> >
+> > Apart from the ACPI and PCI changes necessary for this purpose, the series
+> > includes some clean-ups that are not strictly required, but make the code
+> > more straightforward and (IMHO) easier to follow.
+> >
+> > The patchset is on top of the linux-next branch of the PCI tree and is
+> > regarded as 2.6.27 material.
 > 
-> I don't know what "we do not assist with compiling drivers" can possibly
-> mean.  Eric, can you please help here?
+> I just tested on one of my 965 based platforms.  Suspend/resume works as well 
+> as I'd expect normally, but if I use wake-on-lan (using the wakeup code from 
+> this patchset) the machine wakes up but never seems to finish resuming; it 
+> stays off the network with video off and the console is unresponsive.
 
-heh, well, cc'ing a support line on a technical bug report isn't
-necessarily conducive to producing useful results ... what we're
-discussing is probably already at level 4 or 5 (the real engineering
-problems).  Support calls go in at levels 1-3 (as in consult manual and
-spit out canned response before triaging for escalation).
+What network adapter is there in the box with this symptoms and which driver
+is it handled by?
 
-That said, this line:
+> I'll try some more tests (including older kernels to see if this is actually 
+> regression or not), but it would be good if other people could give this 
+> patch set some attention too.
 
-mptbase: ioc0: ERROR - Doorbell ACK timeout (count=4999), IntStatus=80000009!
+Certainly.
 
-is absolutely characteristic of a lost interrupt.
-
-With the current LSI driver, we have two possible causes for this.  One
-is the usual ACPI screw up that we never seem to be able to fix.  The
-other is that the driver recently enabled MSI (commit
-23a274c8a5adafc74a66f16988776fc7dd6f6e51 in v2.6.26-rc1).  For the
-former, just follow the usual ACPI screw up recipe.  For the latter, you
-should see this message in the boot up:
-
-mptbase: ioc0: PCI-MSI enabled
-
-MSI can be turned off again by using the module parameter
-mpt_msi_enable=0.
-
-Unfortunately, the true fix is to find out if the motherboard really has
-a global MSI problem (and I know MSI works with the LSI because I have a
-1030 in an ia64 system here working just fine) and add it to the PCI
-quirks file as unable to use MSI.
-
-James
-
-
+Thanks,
+Rafael
