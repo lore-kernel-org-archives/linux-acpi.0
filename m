@@ -1,74 +1,56 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: next-0708: build failure at drivers/pci/pci-acpi.c
-Date: Tue, 8 Jul 2008 18:58:15 +0200
-Message-ID: <200807081858.16321.rjw@sisk.pl>
-References: <a4423d670807080518g31402f60j2f624a2ac2db03aa@mail.gmail.com> <200807081712.23937.rjw@sisk.pl> <a4423d670807080929t3254393jc501e703d6ffb26e@mail.gmail.com>
+From: The Holy ettlz <theholyettlz@googlemail.com>
+Subject: DMI Info for Clevo M720R w/ 2008-01-10 BIOS
+Date: Tue, 08 Jul 2008 18:15:30 +0100
+Message-ID: <1215537330.8440.2.camel@rhapsody>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-xOluu0Ma22nxaioTW1Nm"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:40752 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753939AbYGHQ43 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 8 Jul 2008 12:56:29 -0400
-In-Reply-To: <a4423d670807080929t3254393jc501e703d6ffb26e@mail.gmail.com>
-Content-Disposition: inline
+Received: from py-out-1112.google.com ([64.233.166.183]:37493 "EHLO
+	py-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752739AbYGHRS5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Jul 2008 13:18:57 -0400
+Received: by py-out-1112.google.com with SMTP id p76so1256404pyb.10
+        for <linux-acpi@vger.kernel.org>; Tue, 08 Jul 2008 10:18:56 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexander Beregalov <a.beregalov@gmail.com>, jbarnes@virtuousgeek.org
-Cc: ak@linux.intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-next@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: linux-acpi@vger.kernel.org
 
-On Tuesday, 8 of July 2008, Alexander Beregalov wrote:
-> 2008/7/8 Rafael J. Wysocki <rjw@sisk.pl>:
-> > On Tuesday, 8 of July 2008, Alexander Beregalov wrote:
-> >> Hi Rafael
-> >>
-> >> drivers/pci/pci-acpi.c: In function 'acpi_pci_sleep_wake':
-> >> drivers/pci/pci-acpi.c:311: error: implicit declaration of function
-> >> 'acpi_pm_device_sleep_wake'
-> >
-> > I guess this is a compilation with CONFIG_ACPI=y and CONFIG_PM_SLEEP unset.
-> Indeed.
-> >
-> > In that case the appended patch should help.  Please test and report back (I
-> > can't test linux-next compilation at the moment).
-> 
-> Compilation test passed and the kernel can boot.
 
-Thanks!
+--=-xOluu0Ma22nxaioTW1Nm
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-Jesse, could you please apply the patch below to the linux-next branch, on top
-of the PCI wake-up patchset?
+Hello,
 
-Rafael
+$ dmesg | grep DMI
+DMI present.
+ACPI: DMI System Vendor: CLEVO Co.
+ACPI: DMI Product Name: M720R
+ACPI: DMI Product Version: Not Applicable
+ACPI: DMI Board Name: M720R
+ACPI: DMI BIOS Vendor: Phoenix Technologies LTD
+ACPI: DMI BIOS Date: 01/10/2008
+ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
 
----
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Regards,
+James Ettle.
 
-PCI ACPI: Fix compilation of pci-acpi.c
+--=20
+The Holy ettlz                              TheHolyettlz@googlemail.com
+PGP key ID: 03F94B5D
+-----------------------------------------------------------------------
 
-Fix compilation of pci-acpi.c with CONFIG_ACPI set and
-CONFIG_PM_SLEEP unset.
+--=-xOluu0Ma22nxaioTW1Nm
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Tested-by: Alexander Beregalov <a.beregalov@gmail.com>
----
- include/acpi/acpi_bus.h |    4 ++++
- 1 file changed, 4 insertions(+)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
 
-Index: linux-next/include/acpi/acpi_bus.h
-===================================================================
---- linux-next.orig/include/acpi/acpi_bus.h
-+++ linux-next/include/acpi/acpi_bus.h
-@@ -388,6 +388,10 @@ static inline int acpi_pm_device_sleep_s
- 		*p = ACPI_STATE_D0;
- 	return ACPI_STATE_D3;
- }
-+static inline int acpi_pm_device_sleep_wake(struct device *d, bool b)
-+{
-+	return -ENOSYS;
-+}
- #endif /* !CONFIG_PM_SLEEP */
- 
- #endif				/* CONFIG_ACPI */
+iD8DBQBIc6CyL/Is9AP5S10RAiEjAJ9FpNrLTvtYgUunjoI2XOZnbD5RygCggzTU
+9kMlva8emhIZ2in8u14PB6E=
+=1gKn
+-----END PGP SIGNATURE-----
+
+--=-xOluu0Ma22nxaioTW1Nm--
+
