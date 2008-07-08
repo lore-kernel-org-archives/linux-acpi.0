@@ -1,83 +1,152 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: [patch 10/10] add 'type' sysfs file for dock
-Date: Tue, 08 Jul 2008 13:51:19 +0800
-Message-ID: <1215496279.17826.44.camel@sli10-desk.sh.intel.com>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: [PATCH] ACPI : Load device driver according to the status of acpi
+	device
+Date: Tue, 08 Jul 2008 14:59:14 +0800
+Message-ID: <1215500354.6121.40.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:43163 "EHLO mga01.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:50235 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751312AbYGHFoM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 8 Jul 2008 01:44:12 -0400
+	id S1751475AbYGHGs1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 8 Jul 2008 02:48:27 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux acpi <linux-acpi@vger.kernel.org>
-Cc: Len Brown <lenb@kernel.org>, Andi Kleen <andi@firstfloor.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Holger Macht <hmacht@suse.de>, mjg59 <mjg59@srcf.ucam.org>, Tejun Heo <htejun@gmail.com>, Jeff Garzik <jeff@garzik.org>, "Accardi, Kristen C" <kristen.c.accardi@intel.com>
+To: Andi Kleen <andi@firstfloor.org>
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.orga
 
-add a sysfs file to present dock type. Suggested by Holger.
+>From : Zhao Yakui <yakui.zhao@intel.com>
 
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+According to ACPI spec when the status of some device is not present 
+but functional, the device is valid and the children of this device 
+should be enumerated. It means that the device should be added to 
+linux acpi device tree.
+But the device driver for this device should not be loaded. 
+
+http://bugzilla.kernel.org/show_bug.cgi?id=3358
+
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+Signed-off-by: Li Shaohua <shaohua.li@intel.com>
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- drivers/acpi/dock.c |   32 ++++++++++++++++++++++++++++++++
- 1 file changed, 32 insertions(+)
+ drivers/acpi/bus.c         |   16 ++++++++--------
+ drivers/acpi/scan.c        |   35 +++++++++++++++++++++++++----------
+ drivers/pnp/pnpacpi/core.c |    6 +++++-
+ 3 files changed, 38 insertions(+), 19 deletions(-)
 
-Index: linux/drivers/acpi/dock.c
+Index: linux-2.6/drivers/acpi/bus.c
 ===================================================================
---- linux.orig/drivers/acpi/dock.c	2008-07-07 11:52:34.000000000 +0800
-+++ linux/drivers/acpi/dock.c	2008-07-07 11:53:08.000000000 +0800
-@@ -904,6 +904,25 @@ static ssize_t show_dock_uid(struct devi
- }
- static DEVICE_ATTR(uid, S_IRUGO, show_dock_uid, NULL);
- 
-+static ssize_t show_dock_type(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct dock_station *dock_station = *((struct dock_station **)dev->platform_data);
-+	char *type;
-+
-+	if (dock_station->flags & DOCK_IS_DOCK)
-+		type = "dock_station";
-+	else if (dock_station->flags & DOCK_IS_ATA)
-+		type = "ata_bay";
-+	else if (dock_station->flags & DOCK_IS_BAT)
-+		type = "battery_bay";
-+	else
-+		type = "unknown";
-+
-+	return snprintf(buf, PAGE_SIZE, "%s\n", type);
-+}
-+static DEVICE_ATTR(type, S_IRUGO, show_dock_type, NULL);
-+
- /**
-  * dock_add - add a new dock station
-  * @handle: the dock station handle
-@@ -991,6 +1010,18 @@ static int dock_add(acpi_handle handle)
- 		dock_station = NULL;
- 		return ret;
+--- linux-2.6.orig/drivers/acpi/bus.c
++++ linux-2.6/drivers/acpi/bus.c
+@@ -95,21 +95,21 @@ int acpi_bus_get_status(struct acpi_devi
  	}
-+	ret = device_create_file(&dock_device->dev, &dev_attr_type);
-+	if (ret) {
-+		printk("Error %d adding sysfs file\n", ret);
-+		device_remove_file(&dock_device->dev, &dev_attr_docked);
-+		device_remove_file(&dock_device->dev, &dev_attr_undock);
-+		device_remove_file(&dock_device->dev, &dev_attr_uid);
-+		device_remove_file(&dock_device->dev, &dev_attr_flags);
-+		platform_device_unregister(dock_device);
-+		kfree(dock_station);
-+		dock_station = NULL;
-+		return ret;
-+	}
  
- 	/* Find dependent devices */
- 	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
-@@ -1012,6 +1043,7 @@ static int dock_add(acpi_handle handle)
- 	return 0;
+ 	/*
+-	 * Otherwise we assume the status of our parent (unless we don't
+-	 * have one, in which case status is implied).
++	 * According to ACPI spec some device can be present and functional
++	 * even if the parent is not present but functional.
++	 * In such conditions the child device should not inherit the status
++	 * from the parent.
+ 	 */
+-	else if (device->parent)
+-		device->status = device->parent->status;
+ 	else
+ 		STRUCT_TO_INT(device->status) =
+ 		    ACPI_STA_DEVICE_PRESENT | ACPI_STA_DEVICE_ENABLED |
+ 		    ACPI_STA_DEVICE_UI      | ACPI_STA_DEVICE_FUNCTIONING;
  
- dock_add_err_unregister:
-+	device_remove_file(&dock_device->dev, &dev_attr_type);
- 	device_remove_file(&dock_device->dev, &dev_attr_docked);
- 	device_remove_file(&dock_device->dev, &dev_attr_undock);
- 	device_remove_file(&dock_device->dev, &dev_attr_uid);
+ 	if (device->status.functional && !device->status.present) {
+-		printk(KERN_WARNING PREFIX "Device [%s] status [%08x]: "
+-		       "functional but not present; setting present\n",
+-		       device->pnp.bus_id, (u32) STRUCT_TO_INT(device->status));
+-		device->status.present = 1;
++		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] status [%08x]: "
++		       "functional but not present;\n",
++			device->pnp.bus_id,
++			(u32) STRUCT_TO_INT(device->status)));
+ 	}
+ 
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] status [%08x]\n",
+Index: linux-2.6/drivers/acpi/scan.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/scan.c
++++ linux-2.6/drivers/acpi/scan.c
+@@ -264,6 +264,13 @@ int acpi_match_device_ids(struct acpi_de
+ {
+ 	const struct acpi_device_id *id;
+ 
++	/*
++	 * If the device is not present, it is unnecessary to load device
++	 * driver for it.
++	 */
++	if (!device->status.present)
++		return -ENODEV;
++
+ 	if (device->flags.hardware_id) {
+ 		for (id = ids; id->id[0]; id++) {
+ 			if (!strcmp((char*)id->id, device->pnp.hardware_id))
+@@ -1239,15 +1246,18 @@ acpi_add_single_object(struct acpi_devic
+ 			result = -ENODEV;
+ 			goto end;
+ 		}
+-		if (!device->status.present) {
+-			/* Bay and dock should be handled even if absent */
+-			if (!ACPI_SUCCESS(
+-			     acpi_is_child_device(device, acpi_bay_match)) &&
+-			    !ACPI_SUCCESS(
+-			     acpi_is_child_device(device, acpi_dock_match))) {
+-					result = -ENODEV;
+-					goto end;
+-			}
++		/*
++		 * When the device is neither present nor functional, the
++		 * device should not be added to Linux ACPI device tree.
++		 * When the status of the device is not present but functinal,
++		 * it should be added to Linux ACPI tree. For example : bay
++		 * device , dock device.
++		 * In such conditions it is unncessary to check whether it is
++		 * bay device or dock device.
++		 */
++		if (!device->status.present && !device->status.functional) {
++			result = -ENODEV;
++			goto end;
+ 		}
+ 		break;
+ 	default:
+@@ -1420,7 +1430,12 @@ static int acpi_bus_scan(struct acpi_dev
+ 		 * TBD: Need notifications and other detection mechanisms
+ 		 *      in place before we can fully implement this.
+ 		 */
+-		if (child->status.present) {
++		 /*
++		 * When the device is not present but functional, it is also
++		 * necessary to scan the children of this device.
++		 */
++		if (child->status.present || (!child->status.present &&
++					child->status.functional)) {
+ 			status = acpi_get_next_object(ACPI_TYPE_ANY, chandle,
+ 						      NULL, NULL);
+ 			if (ACPI_SUCCESS(status)) {
+Index: linux-2.6/drivers/pnp/pnpacpi/core.c
+===================================================================
+--- linux-2.6.orig/drivers/pnp/pnpacpi/core.c
++++ linux-2.6/drivers/pnp/pnpacpi/core.c
+@@ -150,9 +150,13 @@ static int __init pnpacpi_add_device(str
+ 	acpi_status status;
+ 	struct pnp_dev *dev;
+ 
++	/*
++	 * If a PnPacpi device is not present , the device
++	 * driver should not be loaded.
++	 */
+ 	status = acpi_get_handle(device->handle, "_CRS", &temp);
+ 	if (ACPI_FAILURE(status) || !ispnpidacpi(acpi_device_hid(device)) ||
+-	    is_exclusive_device(device))
++	    is_exclusive_device(device) || (!device->status.present))
+ 		return 0;
+ 
+ 	dev = pnp_alloc_dev(&pnpacpi_protocol, num, acpi_device_hid(device));
 
 
