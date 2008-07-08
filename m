@@ -1,192 +1,238 @@
 From: Shaohua Li <shaohua.li@intel.com>
-Subject: [patch 4/10]FIx duplicate notification handler register
-Date: Tue, 08 Jul 2008 13:50:38 +0800
-Message-ID: <1215496238.17826.38.camel@sli10-desk.sh.intel.com>
+Subject: [patch 6/10] libata hotplug to align with dock driver
+Date: Tue, 08 Jul 2008 13:50:46 +0800
+Message-ID: <1215496246.17826.40.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:58592 "EHLO mga03.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:29528 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751276AbYGHFnc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 8 Jul 2008 01:43:32 -0400
+	id S1751340AbYGHFnk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 8 Jul 2008 01:43:40 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux acpi <linux-acpi@vger.kernel.org>
 Cc: Len Brown <lenb@kernel.org>, Andi Kleen <andi@firstfloor.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Holger Macht <hmacht@suse.de>, mjg59 <mjg59@srcf.ucam.org>, Tejun Heo <htejun@gmail.com>, Jeff Garzik <jeff@garzik.org>, "Accardi, Kristen C" <kristen.c.accardi@intel.com>
 
-=EF=BB=BF=EF=BB=BFBattery driver already registers notification handler=
-=2E To avoid register
-notification handler again, the patch introduced a notifier chain in
-global system notifier handler and use it in dock driver, so we can
-avoid register notification handler.
+=EF=BB=BF=EF=BB=BFdock driver can handle ata(bay) hotplug now. dock dri=
+ver already handles
+_EJ0 and _STA, so remove them. Also libata doesn't need register
+notification handler anymore.=20
 
 Signed-off-by: Shaohua Li <shaohua.li@intel.com>=20
 ---
- drivers/acpi/bus.c      |   15 +++++++++++++++
- drivers/acpi/dock.c     |   46 ++++++++++++++++++++++++---------------=
--------
- include/acpi/acpi_bus.h |    3 +++
- 3 files changed, 42 insertions(+), 22 deletions(-)
+ drivers/acpi/dock.c       |    3 -
+ drivers/ata/libata-acpi.c |  105 ++++++-------------------------------=
+---------
+ 2 files changed, 16 insertions(+), 92 deletions(-)
 
-Index: linux/drivers/acpi/bus.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux.orig/drivers/acpi/bus.c	2008-07-01 09:20:57.000000000 +0800
-+++ linux/drivers/acpi/bus.c	2008-07-07 11:49:48.000000000 +0800
-@@ -474,6 +474,19 @@ static int acpi_bus_check_scope(struct a
- 	return 0;
- }
-=20
-+static BLOCKING_NOTIFIER_HEAD(acpi_bus_notify_list);
-+int register_acpi_bus_notifier(struct notifier_block *nb)
-+{
-+	return blocking_notifier_chain_register(&acpi_bus_notify_list, nb);
-+}
-+EXPORT_SYMBOL_GPL(register_acpi_bus_notifier);
-+
-+void unregister_acpi_bus_notifier(struct notifier_block *nb)
-+{
-+	blocking_notifier_chain_unregister(&acpi_bus_notify_list, nb);
-+}
-+EXPORT_SYMBOL_GPL(unregister_acpi_bus_notifier);
-+
- /**
-  * acpi_bus_notify
-  * ---------------
-@@ -484,6 +497,8 @@ static void acpi_bus_notify(acpi_handle=20
- 	int result =3D 0;
- 	struct acpi_device *device =3D NULL;
-=20
-+	blocking_notifier_call_chain(&acpi_bus_notify_list,
-+		type, (void *)handle);
-=20
- 	if (acpi_bus_get_device(handle, &device))
- 		return;
 Index: linux/drivers/acpi/dock.c
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux.orig/drivers/acpi/dock.c	2008-07-07 11:48:11.000000000 +0800
-+++ linux/drivers/acpi/dock.c	2008-07-07 11:49:48.000000000 +0800
-@@ -746,6 +746,28 @@ static void dock_notify(acpi_handle hand
- 	}
- }
-=20
-+static int acpi_dock_notifier_call(struct notifier_block *this,
-+	unsigned long event, void *data)
-+{
-+	struct dock_station *dock_station;
-+	acpi_handle handle =3D (acpi_handle)data;
-+
-+	if (event !=3D ACPI_NOTIFY_BUS_CHECK && event !=3D ACPI_NOTIFY_DEVICE=
-_CHECK
-+	   && event !=3D ACPI_NOTIFY_EJECT_REQUEST)
-+		return 0;
-+	list_for_each_entry(dock_station, &dock_stations, sibiling) {
-+		if (dock_station->handle =3D=3D handle) {
-+			dock_notify(handle, event, dock_station);
-+			return 0 ;
-+		}
-+	}
-+	return 0;
-+}
-+
-+static struct notifier_block dock_acpi_notifier =3D {
-+	.notifier_call =3D acpi_dock_notifier_call,
-+};
-+
- /**
-  * find_dock_devices - find devices on the dock station
-  * @handle: the handle of the device we are examining
-@@ -855,7 +877,6 @@ static DEVICE_ATTR(uid, S_IRUGO, show_do
- static int dock_add(acpi_handle handle)
- {
- 	int ret;
--	acpi_status status;
- 	struct dock_dependent_device *dd;
- 	struct dock_station *dock_station;
- 	struct platform_device *dock_device;
-@@ -949,23 +970,10 @@ static int dock_add(acpi_handle handle)
- 	}
- 	add_dock_dependent_device(dock_station, dd);
-=20
--	/* register for dock events */
--	status =3D acpi_install_notify_handler(dock_station->handle,
--					     ACPI_SYSTEM_NOTIFY,
--					     dock_notify, dock_station);
--
--	if (ACPI_FAILURE(status)) {
--		printk(KERN_ERR PREFIX "Error installing notify handler\n");
--		ret =3D -ENODEV;
--		goto dock_add_err;
--	}
--
- 	dock_station_count++;
- 	list_add(&dock_station->sibiling, &dock_stations);
- 	return 0;
-=20
--dock_add_err:
--	kfree(dd);
- dock_add_err_unregister:
- 	device_remove_file(&dock_device->dev, &dev_attr_docked);
- 	device_remove_file(&dock_device->dev, &dev_attr_undock);
-@@ -983,7 +991,6 @@ dock_add_err_unregister:
- static int dock_remove(struct dock_station *dock_station)
- {
- 	struct dock_dependent_device *dd, *tmp;
--	acpi_status status;
- 	struct platform_device *dock_device =3D dock_station->dock_device;
-=20
- 	if (!dock_station_count)
-@@ -994,13 +1001,6 @@ static int dock_remove(struct dock_stati
- 				 list)
- 	    kfree(dd);
-=20
--	/* remove dock notify handler */
--	status =3D acpi_remove_notify_handler(dock_station->handle,
--					    ACPI_SYSTEM_NOTIFY,
--					    dock_notify);
--	if (ACPI_FAILURE(status))
--		printk(KERN_ERR "Error removing notify handler\n");
--
- 	/* cleanup sysfs */
- 	device_remove_file(&dock_device->dev, &dev_attr_docked);
- 	device_remove_file(&dock_device->dev, &dev_attr_undock);
-@@ -1062,6 +1062,7 @@ static int __init dock_init(void)
- 		return 0;
- 	}
-=20
-+	register_acpi_bus_notifier(&dock_acpi_notifier);
- 	printk(KERN_INFO PREFIX "%s: %d docks/bays found\n",
- 		ACPI_DOCK_DRIVER_DESCRIPTION, dock_station_count);
- 	return 0;
-@@ -1071,6 +1072,7 @@ static void __exit dock_exit(void)
- {
- 	struct dock_station *dock_station;
-=20
-+	unregister_acpi_bus_notifier(&dock_acpi_notifier);
- 	list_for_each_entry(dock_station, &dock_stations, sibiling)
- 		dock_remove(dock_station);
- }
-Index: linux/include/acpi/acpi_bus.h
+--- linux.orig/drivers/acpi/dock.c	2008-07-07 11:50:23.000000000 +0800
++++ linux/drivers/acpi/dock.c	2008-07-07 11:50:29.000000000 +0800
+@@ -736,7 +736,8 @@ static void dock_notify(acpi_handle hand
+ 		/* Fall back */
+ 	case ACPI_NOTIFY_EJECT_REQUEST:
+ 		begin_undock(ds);
+-		if (immediate_undock || surprise_removal)
++		if ((immediate_undock && !(ds->flags & DOCK_IS_ATA))
++		   || surprise_removal)
+ 			handle_eject_request(ds, event);
+ 		else
+ 			dock_event(ds, event, UNDOCK_EVENT);
+Index: linux/drivers/ata/libata-acpi.c
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux.orig/include/acpi/acpi_bus.h	2008-07-01 09:20:57.000000000 +0=
-800
-+++ linux/include/acpi/acpi_bus.h	2008-07-07 11:49:48.000000000 +0800
-@@ -326,6 +326,9 @@ int acpi_bus_get_private_data(acpi_handl
- extern int acpi_notifier_call_chain(struct acpi_device *, u32, u32);
- extern int register_acpi_notifier(struct notifier_block *);
- extern int unregister_acpi_notifier(struct notifier_block *);
-+
-+extern int register_acpi_bus_notifier(struct notifier_block *nb);
-+extern void unregister_acpi_bus_notifier(struct notifier_block *nb);
- /*
-  * External Functions
+--- linux.orig/drivers/ata/libata-acpi.c	2008-06-30 16:03:09.000000000 =
++0800
++++ linux/drivers/ata/libata-acpi.c	2008-07-07 11:50:29.000000000 +0800
+@@ -118,21 +118,6 @@ static void ata_acpi_associate_ide_port(
+ 		ap->pflags |=3D ATA_PFLAG_INIT_GTM_VALID;
+ }
+=20
+-static void ata_acpi_eject_device(acpi_handle handle)
+-{
+-	struct acpi_object_list arg_list;
+-	union acpi_object arg;
+-
+-	arg_list.count =3D 1;
+-	arg_list.pointer =3D &arg;
+-	arg.type =3D ACPI_TYPE_INTEGER;
+-	arg.integer.value =3D 1;
+-
+-	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_EJ0",
+-					      &arg_list, NULL)))
+-		printk(KERN_ERR "Failed to evaluate _EJ0!\n");
+-}
+-
+ /* @ap and @dev are the same as ata_acpi_handle_hotplug() */
+ static void ata_acpi_detach_device(struct ata_port *ap, struct ata_dev=
+ice *dev)
+ {
+@@ -155,7 +140,6 @@ static void ata_acpi_detach_device(struc
+  * @ap: ATA port ACPI event occurred
+  * @dev: ATA device ACPI event occurred (can be NULL)
+  * @event: ACPI event which occurred
+- * @is_dock_event: boolean indicating whether the event was a dock one
+  *
+  * All ACPI bay / device realted events end up in this function.  If
+  * the event is port-wide @dev is NULL.  If the event is specific to a
+@@ -169,112 +153,57 @@ static void ata_acpi_detach_device(struc
+  * ACPI notify handler context.  May sleep.
   */
+ static void ata_acpi_handle_hotplug(struct ata_port *ap, struct ata_de=
+vice *dev,
+-				    u32 event, int is_dock_event)
++				    u32 event)
+ {
+-	char event_string[12];
+-	char *envp[] =3D { event_string, NULL };
+ 	struct ata_eh_info *ehi =3D &ap->link.eh_info;
+-	struct kobject *kobj =3D NULL;
+ 	int wait =3D 0;
+ 	unsigned long flags;
+-	acpi_handle handle, tmphandle;
+-	unsigned long sta;
+-	acpi_status status;
++	acpi_handle handle;
+=20
+-	if (dev) {
+-		if (dev->sdev)
+-			kobj =3D &dev->sdev->sdev_gendev.kobj;
++	if (dev)
+ 		handle =3D dev->acpi_handle;
+-	} else {
+-		kobj =3D &ap->dev->kobj;
++	else
+ 		handle =3D ap->acpi_handle;
+-	}
+-
+-	status =3D acpi_get_handle(handle, "_EJ0", &tmphandle);
+-	if (ACPI_FAILURE(status))
+-		/* This device does not support hotplug */
+-		return;
+=20
+ 	spin_lock_irqsave(ap->lock, flags);
+=20
++	/*
++	 * When dock driver calls into the routine, it will always use
++	 * ACPI_NOTIFY_BUS_CHECK/ACPI_NOTIFY_DEVICE_CHECK for add and
++	 * ACPI_NOTIFY_EJECT_REQUEST for remove
++	 */
+ 	switch (event) {
+ 	case ACPI_NOTIFY_BUS_CHECK:
+ 	case ACPI_NOTIFY_DEVICE_CHECK:
+ 		ata_ehi_push_desc(ehi, "ACPI event");
+-
+-		status =3D acpi_evaluate_integer(handle, "_STA", NULL, &sta);
+-		if (ACPI_FAILURE(status)) {
+-			ata_port_printk(ap, KERN_ERR,
+-				"acpi: failed to determine bay status (0x%x)\n",
+-				status);
+-			break;
+-		}
+-
+-		if (sta) {
+-			ata_ehi_hotplugged(ehi);
+-			ata_port_freeze(ap);
+-		} else {
+-			/* The device has gone - unplug it */
+-			ata_acpi_detach_device(ap, dev);
+-			wait =3D 1;
+-		}
++		ata_ehi_hotplugged(ehi);
++		ata_port_freeze(ap);
+ 		break;
+ 	case ACPI_NOTIFY_EJECT_REQUEST:
+ 		ata_ehi_push_desc(ehi, "ACPI event");
+-
+-		if (!is_dock_event)
+-			break;
+-
+-		/* undock event - immediate unplug */
+ 		ata_acpi_detach_device(ap, dev);
+ 		wait =3D 1;
+ 		break;
+ 	}
+=20
+-	/* make sure kobj doesn't go away while ap->lock is released */
+-	kobject_get(kobj);
+-
+ 	spin_unlock_irqrestore(ap->lock, flags);
+=20
+-	if (wait) {
++	if (wait)
+ 		ata_port_wait_eh(ap);
+-		ata_acpi_eject_device(handle);
+-	}
+-
+-	if (kobj && !is_dock_event) {
+-		sprintf(event_string, "BAY_EVENT=3D%d", event);
+-		kobject_uevent_env(kobj, KOBJ_CHANGE, envp);
+-	}
+-
+-	kobject_put(kobj);
+ }
+=20
+ static void ata_acpi_dev_notify_dock(acpi_handle handle, u32 event, vo=
+id *data)
+ {
+ 	struct ata_device *dev =3D data;
+=20
+-	ata_acpi_handle_hotplug(dev->link->ap, dev, event, 1);
++	ata_acpi_handle_hotplug(dev->link->ap, dev, event);
+ }
+=20
+ static void ata_acpi_ap_notify_dock(acpi_handle handle, u32 event, voi=
+d *data)
+ {
+ 	struct ata_port *ap =3D data;
+=20
+-	ata_acpi_handle_hotplug(ap, NULL, event, 1);
+-}
+-
+-static void ata_acpi_dev_notify(acpi_handle handle, u32 event, void *d=
+ata)
+-{
+-	struct ata_device *dev =3D data;
+-
+-	ata_acpi_handle_hotplug(dev->link->ap, dev, event, 0);
+-}
+-
+-static void ata_acpi_ap_notify(acpi_handle handle, u32 event, void *da=
+ta)
+-{
+-	struct ata_port *ap =3D data;
+-
+-	ata_acpi_handle_hotplug(ap, NULL, event, 0);
++	ata_acpi_handle_hotplug(ap, NULL, event);
+ }
+=20
+ /**
+@@ -310,9 +239,6 @@ void ata_acpi_associate(struct ata_host=20
+ 			ata_acpi_associate_ide_port(ap);
+=20
+ 		if (ap->acpi_handle) {
+-			acpi_install_notify_handler(ap->acpi_handle,
+-						    ACPI_SYSTEM_NOTIFY,
+-						    ata_acpi_ap_notify, ap);
+ 			/* we might be on a docking station */
+ 			register_hotplug_dock_device(ap->acpi_handle,
+ 					     ata_acpi_ap_notify_dock, ap);
+@@ -322,9 +248,6 @@ void ata_acpi_associate(struct ata_host=20
+ 			struct ata_device *dev =3D &ap->link.device[j];
+=20
+ 			if (dev->acpi_handle) {
+-				acpi_install_notify_handler(dev->acpi_handle,
+-						ACPI_SYSTEM_NOTIFY,
+-						ata_acpi_dev_notify, dev);
+ 				/* we might be on a docking station */
+ 				register_hotplug_dock_device(dev->acpi_handle,
+ 					     ata_acpi_dev_notify_dock, dev);
 
 
 --
