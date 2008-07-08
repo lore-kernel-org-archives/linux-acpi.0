@@ -1,39 +1,42 @@
-From: Pavel Machek <pavel@suse.cz>
-Subject: Re: [linux-pm] [PATCH 10/11] PCI PM: Introduce pci_prepare_to_sleep and pci_back_from_sleep
-Date: Mon, 7 Jul 2008 09:02:47 +0200
-Message-ID: <20080707070247.GA5643@ucw.cz>
-References: <200806231934.08565.rjw@sisk.pl> <200806231945.00404.rjw@sisk.pl>
+From: David Howells <dhowells@redhat.com>
+Subject: [PATCH] Fix acpi_pm_device_sleep_wake()
+Date: Tue, 08 Jul 2008 15:00:54 +0100
+Message-ID: <20080708140053.4835.96139.stgit@warthog.procyon.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:2469 "EHLO spitz.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751656AbYGHNip (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 8 Jul 2008 09:38:45 -0400
-Content-Disposition: inline
-In-Reply-To: <200806231945.00404.rjw@sisk.pl>
+Received: from mx1.redhat.com ([66.187.233.31]:48381 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754062AbYGHOBs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 8 Jul 2008 10:01:48 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Jesse Barnes <jbarnes@virtuousgeek.org>
+To: rjw@sisk.pl, jbarnes@virtuousgeek.org, akpm@linux-foundation.org
+Cc: dhowells@redhat.com, linux-acpi@vger.kernel.org
 
-On Mon 2008-06-23 19:44:59, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rjw@sisk.pl>
-> 
-> PCI PM: Introduce pci_prepare_to_sleep and pci_back_from_sleep
-> 
-> Introduce functions pci_prepare_to_sleep() and pci_back_from_sleep(),
-> to be used by the PCI drivers that want to place their devices into
-> the lowest power state appropiate for them (PCI_D3hot, if the device
-> is not supposed to wake up the system, or the deepest state from
-> which the wake-up is possible, otherwise) while the system is being
-> prepared to go into a sleeping state and to put them back into D0
-> during the subsequent transition to the working state.
-> 
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Fix acpi_pm_device_sleep_wake() by providing a stub for CONFIG_PM_SLEEP=n.
 
-Looks ok to me, ACK.
+Signed-off-by: David Howells <dhowells@redhat.com>
+---
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+ include/acpi/acpi_bus.h |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
+
+
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 7ab5a61..a5ac0bc 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -388,6 +388,10 @@ static inline int acpi_pm_device_sleep_state(struct device *d, int *p)
+ 		*p = ACPI_STATE_D0;
+ 	return ACPI_STATE_D3;
+ }
++static inline int acpi_pm_device_sleep_wake(struct device *dev, bool enable)
++{
++	return -ENODEV;
++}
+ #endif /* !CONFIG_PM_SLEEP */
+ 
+ #endif				/* CONFIG_ACPI */
+
