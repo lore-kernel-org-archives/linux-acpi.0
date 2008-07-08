@@ -1,53 +1,83 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: [PATCH 0/8] PCI PM: Handling of PCI devices wake-up
-	functionality (rev. 4)
-Date: Mon, 7 Jul 2008 17:49:23 -0700
-Message-ID: <200807071749.23894.jbarnes@virtuousgeek.org>
-References: <200807012356.26669.rjw@sisk.pl> <200807070330.02849.rjw@sisk.pl>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: Thinkpad T61 consuming more power on AC
+Date: Tue, 08 Jul 2008 09:31:39 +0800
+Message-ID: <1215480699.6121.25.camel@yakui_zhao.sh.intel.com>
+References: <1215293883.5545.19.camel@thinkpad>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <200807070330.02849.rjw@sisk.pl>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Zhao Yakui <yakui.zhao@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Pavel Machek <pavel@suse.cz>, Andi Kleen <andi@firstfloor.org>, pm list <linux-pm@lists.linux-foundation.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:59671 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753896AbYGHBUw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 7 Jul 2008 21:20:52 -0400
+In-Reply-To: <1215293883.5545.19.camel@thinkpad>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: garkein@mailueberfall.de
+Cc: linux-acpi@vger.kernel.org
 
-On Sunday, July 06, 2008 6:30 pm Rafael J. Wysocki wrote:
-> Hi Jesse,
->
-> This is a new (4th) iteration of the series of patches intended to rework
-> the power management of PCI devices so that the handling of their wake-up
-> functionality is consistent with the other PM operations and so that the
-> user space can manage the wake-up functionality of PCI devices using the
-> /sys/devices/.../power/wakeup interface regardless of whether the wake-up
-> function is based on the native PCI mechanism (PME#), or it is handled by
-> the platform (eg. ACPI).
->
-> Apart from the ACPI and PCI changes necessary for this purpose, the series
-> includes some clean-ups that are not strictly required, but make the code
-> more straightforward and (IMHO) easier to follow.
->
-> The patchset is on top of the linux-next branch of the PCI tree and is
-> regarded as 2.6.27 material.
+On Sat, 2008-07-05 at 23:38 +0200, garkein@mailueberfall.de wrote:
+> =EF=BB=BFHello,
+> may I please again ask for your help regarding this issue:
+> I notice, with 2.6.25, that my T61 runs rather quiet on battery while=
+ in
+> AC mode the fan runs far often, if not all the time.
+>=20
+> With recent powertop I could find out the most likely reason:
+>=20
+> (Kernel 2.6.25)
+>=20
+> AC:
+> Your CPU supports the following C-states : C1 C2 C3 C4 C5 C6=20
+> Your BIOS reports the following C-states : C1 C2 C3
+>=20
+> Battery:
+> Your CPU supports the following C-states : C1 C2 C3 C4 C5 C6=20
+> Your BIOS reports the following C-states : C1 C2 C6
+>=20
+> Powertop then shows me it's actually using the processor states as
+> listed as reported from BIOS.
+> So obviously it doesn't use the low power state C6 when on AC while i=
+t
+> does on battery.
+> I already tried all reasonable as well as non reasonable BIOS setting=
+s
+> to see if that changes something, but no, I can only get it worse in
+> battery mode, but not any better in AC mode.
+>=20
+> Is it possible, maybe with some slight tweaks (setpci...), to convice
+> the kernel (or BIOS?) to also use that C6 state when in AC mode?
+Understand what you said. In fact OS won't use the CPU C3/C4/C5/C6
+directly. In different cases they will be mapped to ACPI C3 state ,
+which means the low power state that is used by OS. For example: On the
+T61 laptop: In AC mode, CPU C3 is mapped to ACPI C3; In battery mode:
+CPU C6 is mapped to ACPI C3.
+    The C-state mapping between CPU C3/C4/C5/C6 and ACPI C3 is defined
+in ACPI tables, which is related with the BIOS. In order to use CPU C6
+state in AC mode, we must modify the C-state mapping in ACPI tables. It
+is not easy. And IMO it is meaningless(CPU C6 can save more power than
+CPU C3. But it is not obvious). So not recommend to do so.
+   Of course if still hope to do so, please refer to the _CST object
+defined in section 8 of ACPI 3.0 spec and custom DSDT should be used.
 
-I just tested on one of my 965 based platforms.  Suspend/resume works as well 
-as I'd expect normally, but if I use wake-on-lan (using the wakeup code from 
-this patchset) the machine wakes up but never seems to finish resuming; it 
-stays off the network with video off and the console is unresponsive.  I'll 
-try some more tests (including older kernels to see if this is actually 
-regression or not), but it would be good if other people could give this 
-patch set some attention too.
+Thanks.
+   Yakui
+> I would love to!
+>=20
+> Thanks,
+> Daniel
+>=20
+>=20
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Thanks,
-Jesse
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
