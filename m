@@ -1,39 +1,44 @@
 From: Pavel Machek <pavel@suse.cz>
-Subject: Re: [PATCH] x86 ACPI: Fix resume from suspend to RAM on uniprocessor x86-64
-Date: Wed, 9 Jul 2008 11:35:05 +0200
-Message-ID: <20080709093504.GA10023@ucw.cz>
-References: <200807050005.31272.rjw@sisk.pl> <200807050008.30497.Rafal.Wysocki@fuw.edu.pl> <20080705064404.GB12991@elte.hu>
+Subject: Re: [linux-pm] [RFC PATCH 0/4] save and restore ACPI NVS memory during hibernation
+Date: Tue, 8 Jul 2008 21:37:53 +0200
+Message-ID: <20080708193752.GD8694@ucw.cz>
+References: <1215051868.5628.32.camel@rzhang-dt.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:1131 "EHLO spitz.ucw.cz"
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:1137 "EHLO spitz.ucw.cz"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753224AbYGIOiR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 9 Jul 2008 10:38:17 -0400
+	id S1754212AbYGIOi3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 9 Jul 2008 10:38:29 -0400
 Content-Disposition: inline
-In-Reply-To: <20080705064404.GB12991@elte.hu>
+In-Reply-To: <1215051868.5628.32.camel@rzhang-dt.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: "R. J. Wysocki" <Rafal.Wysocki@fuw.edu.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Dionisus Torimens <djtm@gmx.net>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 
-On Sat 2008-07-05 08:44:04, Ingo Molnar wrote:
-> 
-> * R. J. Wysocki <Rafal.Wysocki@fuw.edu.pl> wrote:
-> 
-> > On Saturday, 5 of July 2008, Rafael J. Wysocki wrote:
-> > > Hi Ingo,
-> > > 
-> > > This is a regression fix, please push to Linus ASAP.
-> 
-> > Reported-by: Dionisus Torimens <djtm@gmx.net>
-> 
-> applied to tip/x86/urgent - thanks Rafael. I also queued up Peter's "x86 
-> ACPI: normalize segment descriptor register on resume" fix.
+Hi!
 
-You can add my acked-by... and sorry for the error.
+> According to the ACPI spec, ACPI NVS memory region is required to
+> be saved/restored by OS during hibernation.
+> 
+> Section 15.3.2 ACPI Spec 3.0b,
+> "OSPM will call the _PTS control method some time before entering
+> a sleeping state, to allow the platform???s AML code to update
+> this memory image before entering the sleeping state.
+> After the system awakes from an S4 state, OSPM will restore this
+> memory area and call the _WAK control method to enable the BIOS
+> to reclaim its memory image."
+> 
+> This patch set add the mechanism to save/restore ACPI NVS memory
+> during hibernation.
+> 
+> Patch 01: call platform_begin before swsusp_shrink_memory.
+> 	So that we can allocate enough pages for ACPI NVS memory
+> 	before shrink the memory.
 
-							Pavel
+Why is it neccessary to allocate memory for a copy? We should be able
+to save ACPI NVS area same way we are saving kernel pages, no?
 -- 
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
