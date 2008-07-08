@@ -1,20 +1,20 @@
 From: Zhao Yakui <yakui.zhao@intel.com>
 Subject: [PATCH] ACPI : Load device driver according to the status of acpi
 	device
-Date: Tue, 08 Jul 2008 14:59:14 +0800
-Message-ID: <1215500354.6121.40.camel@yakui_zhao.sh.intel.com>
+Date: Tue, 08 Jul 2008 15:04:52 +0800
+Message-ID: <1215500692.6121.41.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:50235 "EHLO mga11.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:64600 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751475AbYGHGs1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 8 Jul 2008 02:48:27 -0400
+	id S1751453AbYGHGyE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 8 Jul 2008 02:54:04 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Andi Kleen <andi@firstfloor.org>
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.orga
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
 
 >From : Zhao Yakui <yakui.zhao@intel.com>
 
