@@ -1,75 +1,60 @@
-From: James Bottomley <James.Bottomley@HansenPartnership.com>
-Subject: Re: [Bugme-new] [Bug 11045] New: Bug in MPT Fusion 2.6.26-rc7
-	unbootable
-Date: Tue, 08 Jul 2008 16:57:35 -0500
-Message-ID: <1215554255.3214.48.camel@localhost.localdomain>
-References: <bug-11045-10286@http.bugzilla.kernel.org/>
-	 <200807081051.33892.bjorn.helgaas@hp.com>
-	 <1215537813.3214.22.camel@localhost.localdomain>
-	 <200807081456.53460.bjorn.helgaas@hp.com>
-	 <20080708144720.998a13f2.akpm@linux-foundation.org>
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: Check for BIOS bugs - Original Subject: Re: [PATCH 23/70]
+	ACPICA: Workaround for reversed _PRT entries from BIOS
+Date: Wed, 9 Jul 2008 00:11:10 +0200
+Message-ID: <20080708221110.GC18195@elf.ucw.cz>
+References: <1213947852-10924-1-git-send-email-lenb@kernel.org> <deade3c973eb9c98d2a6cfed658bbb49e693894a.1213947350.git.len.brown@intel.com> <200807011033.27887.trenn@suse.de> <20080707111207.GH5643@ucw.cz> <48738A65.9060905@linux.intel.com> <960B77DF2E6D974DBE24FD066EAEE8DAD90886@azsmsx422.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from accolon.hansenpartnership.com ([76.243.235.52]:39093 "EHLO
-	accolon.hansenpartnership.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751940AbYGHV5k (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Jul 2008 17:57:40 -0400
-In-Reply-To: <20080708144720.998a13f2.akpm@linux-foundation.org>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:60344 "EHLO
+	gprs189-60.eurotel.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752696AbYGHWKQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Jul 2008 18:10:16 -0400
+Content-Disposition: inline
+In-Reply-To: <960B77DF2E6D974DBE24FD066EAEE8DAD90886@azsmsx422.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, "Support, Software" <support@lsi.com>, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org, bugme-daemon@bugzilla.kernel.org, "Moore, Eric Dean" <Eric.Moore@lsi.com>, kurk@shiftmail.org
+To: "Brown, Len" <len.brown@intel.com>
+Cc: Arjan van de Ven <arjan@linux.intel.com>, Thomas Renninger <trenn@suse.de>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, "Moore, Robert" <robert.moore@intel.com>, "Lin, Ming M" <ming.m.lin@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Huang Cheng <cheng.huang@intel.com>, firmwarekit-discuss@bughost.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Tue, 2008-07-08 at 14:47 -0700, Andrew Morton wrote:
-> On Tue, 8 Jul 2008 14:56:53 -0600 Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
+Hi!
+
+> >>> FIRMWARE_BUG_ON(severity, description, component);
+> >> 
+> >> Yes, please.
 > 
-> > On Tuesday 08 July 2008 11:23:33 am James Bottomley wrote:
-> > > On Tue, 2008-07-08 at 10:51 -0600, Bjorn Helgaas wrote:
-> > > > Which ACPI screw up is that?  And what's the usual recipe?
-> > > 
-> > > The usual screw up where subtle ACPI breakage from release to release
-> > > causes some IRQs to get misrouted.
-> > > 
-> > > Usually you start with noacpi and cycle through the pci routing options
-> > 
-> > Don't worry, I wasn't trying to talk you out of an ACPI bug report;
-> > I just wanted to get enough specifics so I could see whether it was
-> > something I could fix.
-> > 
-> > > If you actually read this bug report, you'll see there was a message
-> > > 
-> > > ACPI: Resource is not an IRQ entry
-> > > 
-> > > Just before the fusion IRQ failed to get delivered, so I think it's a
-> > > good indicator that there *are* ACPI problems ...
-> > 
-> > These messages also happen with 2.6.25, where the MPT Fusion driver
-> > worked, so Kurk opened a separate bugzilla,
-> >   http://bugzilla.kernel.org/show_bug.cgi?id=11049
-> > for them.
-> > 
-> > Yakui Zhao thinks the messages are harmless because they're
-> > related to interrupt link devices that we don't use in IOAPIC mode,
-> > and given that the driver works in 2.6.25, that seems plausible
-> > to me.
-> > 
-> > Regardless, the messages are alarming and annoying.  I'd like
-> > to understand them better, but I'll pursue that in the 11049
-> > bugzilla.
-> > 
+> I'm not excited about maintaining
+> maintaining linux-as-a-firmware-diagnostic --
+> particularly when...
 > 
-> Let us not forget the other part of this report:
+> 1. it clutters the code for normail machines
+> 2. finding the bug is pointless, because even
+>    if you fix one machine, you are guaranteed to
+>    not fix all machines and thus must maintain
+>    the workaround anyway.
+
+Well, at least we can make sure new machines are okay.
+
+Plus, it is nice to know how common hw/BIOS problems are.
+
+> >> I'd also like HARDWARE_BUG_ON(), with similar usage.
+> >> 
+> >> With all the preload-linux-on-foo project, we have some 
+> >> chance to make
+> >> BIOS vendors fix their stuff if we can easily diagnose errors in
+> >> there.
 > 
-> BUG: unable to handle kernel NULL pointer dereference at 0000034c
-> IP: [<f885cc5e>] :mptspi:mptspi_dv_renegotiate_work+0xa/0x9f
-> Oops: 0000 [#1] SMP
+> These customers should be running 
+> http://linuxfirmwarekit.org/
+> 
+> We do maintain some degree of "high-road ACPI spec checking"
+> with the "acpi=strict" boot option.  If we do more of this,
+> I think it should stay under that option.
 
-That's fixed in the scsi-rc-fixes tree ... but it's a symptom, not a
-cause.  If essential storage is on this adapter, the system will still
-be unbootable.
-
-James
-
-
+That's okay with me, but it would be nice to have printk() markup, so
+that we can tell BIOS/hw bugs from normal kernel messages.
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
