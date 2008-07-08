@@ -1,42 +1,63 @@
-From: David Howells <dhowells@redhat.com>
-Subject: [PATCH] Fix acpi_pm_device_sleep_wake()
-Date: Tue, 08 Jul 2008 15:00:54 +0100
-Message-ID: <20080708140053.4835.96139.stgit@warthog.procyon.org.uk>
+From: James Bottomley <James.Bottomley@HansenPartnership.com>
+Subject: Re: [Bugme-new] [Bug 11045] New: Bug in MPT Fusion 2.6.26-rc7
+	unbootable
+Date: Tue, 08 Jul 2008 09:08:46 -0500
+Message-ID: <1215526126.3214.8.camel@localhost.localdomain>
+References: <bug-11045-10286@http.bugzilla.kernel.org/>
+	 <20080706123417.c1e2bebc.akpm@linux-foundation.org>
+	 <C5679C710E19AF4C8D9C02FF5C72E3C133C9C76A@cosmail01.lsi.com>
+	 <20080708015756.baec287c.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([66.187.233.31]:48381 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754062AbYGHOBs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 8 Jul 2008 10:01:48 -0400
+Received: from accolon.hansenpartnership.com ([76.243.235.52]:46435 "EHLO
+	accolon.hansenpartnership.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753955AbYGHOIv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Jul 2008 10:08:51 -0400
+In-Reply-To: <20080708015756.baec287c.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@sisk.pl, jbarnes@virtuousgeek.org, akpm@linux-foundation.org
-Cc: dhowells@redhat.com, linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: "Support, Software" <support@lsi.com>, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org, bugme-daemon@bugzilla.kernel.org, "Moore, Eric Dean" <Eric.Moore@lsi.com>, kurk@shiftmail.org
 
-Fix acpi_pm_device_sleep_wake() by providing a stub for CONFIG_PM_SLEEP=n.
+On Tue, 2008-07-08 at 01:57 -0700, Andrew Morton wrote:
+> You removed everyone from cc.  Please don't do that - there's not much
+> point in asking me to do things - this bug is reported by
+> kurk@shiftmail.org.
+> 
+> I don't know what "we do not assist with compiling drivers" can possibly
+> mean.  Eric, can you please help here?
 
-Signed-off-by: David Howells <dhowells@redhat.com>
----
+heh, well, cc'ing a support line on a technical bug report isn't
+necessarily conducive to producing useful results ... what we're
+discussing is probably already at level 4 or 5 (the real engineering
+problems).  Support calls go in at levels 1-3 (as in consult manual and
+spit out canned response before triaging for escalation).
 
- include/acpi/acpi_bus.h |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+That said, this line:
 
+mptbase: ioc0: ERROR - Doorbell ACK timeout (count=4999), IntStatus=80000009!
 
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 7ab5a61..a5ac0bc 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -388,6 +388,10 @@ static inline int acpi_pm_device_sleep_state(struct device *d, int *p)
- 		*p = ACPI_STATE_D0;
- 	return ACPI_STATE_D3;
- }
-+static inline int acpi_pm_device_sleep_wake(struct device *dev, bool enable)
-+{
-+	return -ENODEV;
-+}
- #endif /* !CONFIG_PM_SLEEP */
- 
- #endif				/* CONFIG_ACPI */
+is absolutely characteristic of a lost interrupt.
+
+With the current LSI driver, we have two possible causes for this.  One
+is the usual ACPI screw up that we never seem to be able to fix.  The
+other is that the driver recently enabled MSI (commit
+23a274c8a5adafc74a66f16988776fc7dd6f6e51 in v2.6.26-rc1).  For the
+former, just follow the usual ACPI screw up recipe.  For the latter, you
+should see this message in the boot up:
+
+mptbase: ioc0: PCI-MSI enabled
+
+MSI can be turned off again by using the module parameter
+mpt_msi_enable=0.
+
+Unfortunately, the true fix is to find out if the motherboard really has
+a global MSI problem (and I know MSI works with the LSI because I have a
+1030 in an ia64 system here working just fine) and add it to the PCI
+quirks file as unable to use MSI.
+
+James
+
 
