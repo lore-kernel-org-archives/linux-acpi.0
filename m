@@ -1,80 +1,45 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: Re: Thinkpad T61 consuming more power on AC
-Date: Tue, 08 Jul 2008 09:31:39 +0800
-Message-ID: <1215480699.6121.25.camel@yakui_zhao.sh.intel.com>
-References: <1215293883.5545.19.camel@thinkpad>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: [patch 0/10]docking realted fixes -- takes 3
+Date: Tue, 08 Jul 2008 13:50:18 +0800
+Message-ID: <1215496218.17826.33.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:59671 "EHLO mga11.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:44738 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753896AbYGHBUw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 7 Jul 2008 21:20:52 -0400
-In-Reply-To: <1215293883.5545.19.camel@thinkpad>
+	id S1751227AbYGHFnM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 8 Jul 2008 01:43:12 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: garkein@mailueberfall.de
-Cc: linux-acpi@vger.kernel.org
+To: linux acpi <linux-acpi@vger.kernel.org>
+Cc: Len Brown <lenb@kernel.org>, Andi Kleen <andi@firstfloor.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Holger Macht <hmacht@suse.de>, mjg59 <mjg59@srcf.ucam.org>, Tejun Heo <htejun@gmail.com>, Jeff Garzik <jeff@garzik.org>, "Accardi, Kristen C" <kristen.c.accardi@intel.com>
 
-On Sat, 2008-07-05 at 23:38 +0200, garkein@mailueberfall.de wrote:
-> =EF=BB=BFHello,
-> may I please again ask for your help regarding this issue:
-> I notice, with 2.6.25, that my T61 runs rather quiet on battery while=
- in
-> AC mode the fan runs far often, if not all the time.
->=20
-> With recent powertop I could find out the most likely reason:
->=20
-> (Kernel 2.6.25)
->=20
-> AC:
-> Your CPU supports the following C-states : C1 C2 C3 C4 C5 C6=20
-> Your BIOS reports the following C-states : C1 C2 C3
->=20
-> Battery:
-> Your CPU supports the following C-states : C1 C2 C3 C4 C5 C6=20
-> Your BIOS reports the following C-states : C1 C2 C6
->=20
-> Powertop then shows me it's actually using the processor states as
-> listed as reported from BIOS.
-> So obviously it doesn't use the low power state C6 when on AC while i=
-t
-> does on battery.
-> I already tried all reasonable as well as non reasonable BIOS setting=
-s
-> to see if that changes something, but no, I can only get it worse in
-> battery mode, but not any better in AC mode.
->=20
-> Is it possible, maybe with some slight tweaks (setpci...), to convice
-> the kernel (or BIOS?) to also use that C6 state when in AC mode?
-Understand what you said. In fact OS won't use the CPU C3/C4/C5/C6
-directly. In different cases they will be mapped to ACPI C3 state ,
-which means the low power state that is used by OS. For example: On the
-T61 laptop: In AC mode, CPU C3 is mapped to ACPI C3; In battery mode:
-CPU C6 is mapped to ACPI C3.
-    The C-state mapping between CPU C3/C4/C5/C6 and ACPI C3 is defined
-in ACPI tables, which is related with the BIOS. In order to use CPU C6
-state in AC mode, we must modify the C-state mapping in ACPI tables. It
-is not easy. And IMO it is meaningless(CPU C6 can save more power than
-CPU C3. But it is not obvious). So not recommend to do so.
-   Of course if still hope to do so, please refer to the _CST object
-defined in section 8 of ACPI 3.0 spec and custom DSDT should be used.
+=EF=BB=BFDocking station, bay, battery hotplug follows the same princip=
+le. we
+currently have a lot of duplicate code for each of the hotplug (we
+currently don't support battery hotplug yet). The patch series try to
+make ACPI dock driver support all above hotplug. This simplified things
+and removed a lot of code.
 
-Thanks.
-   Yakui
-> I would love to!
->=20
-> Thanks,
-> Daniel
->=20
->=20
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+patch 1: fix a bug. the patch isn't related with follow patches
+patch 2: add _LCK method support
+patch 3, 4, 5: merge bay driver into dock driver. dock driver can handl=
+e
+battery and bay.
+patch 6, 7: make libata work well with dock driver
+patch 8: cleanup
+patch 9: fix for eject bay in a dock station. Tested by Holger.
+patch 10: added a type for dock, like battery, docking station and
+ata_bay as Holger suggested.
+
+I tested in a T43 with bay and battery hotplug, please review. =EF=BB=BF=
+I had a
+lot of discussion with Holger and a lot of issues are fixed. hopes this
+series can be merged.
+
+Thanks,
+Shaohua
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
