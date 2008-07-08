@@ -1,56 +1,50 @@
-From: The Holy ettlz <theholyettlz@googlemail.com>
-Subject: DMI Info for Clevo M720R w/ 2008-01-10 BIOS
-Date: Tue, 08 Jul 2008 18:15:30 +0100
-Message-ID: <1215537330.8440.2.camel@rhapsody>
+From: James Bottomley <James.Bottomley@HansenPartnership.com>
+Subject: Re: [Bugme-new] [Bug 11045] New: Bug in MPT Fusion 2.6.26-rc7
+	unbootable
+Date: Tue, 08 Jul 2008 12:23:33 -0500
+Message-ID: <1215537813.3214.22.camel@localhost.localdomain>
+References: <bug-11045-10286@http.bugzilla.kernel.org/>
+	 <20080708015756.baec287c.akpm@linux-foundation.org>
+	 <1215526126.3214.8.camel@localhost.localdomain>
+	 <200807081051.33892.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-xOluu0Ma22nxaioTW1Nm"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from py-out-1112.google.com ([64.233.166.183]:37493 "EHLO
-	py-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752739AbYGHRS5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Jul 2008 13:18:57 -0400
-Received: by py-out-1112.google.com with SMTP id p76so1256404pyb.10
-        for <linux-acpi@vger.kernel.org>; Tue, 08 Jul 2008 10:18:56 -0700 (PDT)
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-
-
---=-xOluu0Ma22nxaioTW1Nm
 Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <200807081051.33892.bjorn.helgaas@hp.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, "Support, Software" <support@lsi.com>, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org, bugme-daemon@bugzilla.kernel.org, "Moore, Eric Dean" <Eric.Moore@lsi.com>, kurk@shiftmail.org
+List-Id: linux-acpi@vger.kernel.org
 
-Hello,
+On Tue, 2008-07-08 at 10:51 -0600, Bjorn Helgaas wrote:
+> On Tuesday 08 July 2008 08:08:46 am James Bottomley wrote:
+> > That said, this line:
+> > 
+> > mptbase: ioc0: ERROR - Doorbell ACK timeout (count=4999), IntStatus=80000009!
+> > 
+> > is absolutely characteristic of a lost interrupt.
+> > 
+> > With the current LSI driver, we have two possible causes for this.  One
+> > is the usual ACPI screw up that we never seem to be able to fix.
+> 
+> Which ACPI screw up is that?  And what's the usual recipe?
 
-$ dmesg | grep DMI
-DMI present.
-ACPI: DMI System Vendor: CLEVO Co.
-ACPI: DMI Product Name: M720R
-ACPI: DMI Product Version: Not Applicable
-ACPI: DMI Board Name: M720R
-ACPI: DMI BIOS Vendor: Phoenix Technologies LTD
-ACPI: DMI BIOS Date: 01/10/2008
-ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
+The usual screw up where subtle ACPI breakage from release to release
+causes some IRQs to get misrouted.
 
-Regards,
-James Ettle.
+Usually you start with noacpi and cycle through the pci routing options
 
---=20
-The Holy ettlz                              TheHolyettlz@googlemail.com
-PGP key ID: 03F94B5D
------------------------------------------------------------------------
+> I know about the ancient "pci=routeirq" recipe, but as far as I know,
+> there are no current problems that require that.
 
---=-xOluu0Ma22nxaioTW1Nm
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
+If you actually read this bug report, you'll see there was a message
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.7 (GNU/Linux)
+ACPI: Resource is not an IRQ entry
 
-iD8DBQBIc6CyL/Is9AP5S10RAiEjAJ9FpNrLTvtYgUunjoI2XOZnbD5RygCggzTU
-9kMlva8emhIZ2in8u14PB6E=
-=1gKn
------END PGP SIGNATURE-----
+Just before the fusion IRQ failed to get delivered, so I think it's a
+good indicator that there *are* ACPI problems ...
 
---=-xOluu0Ma22nxaioTW1Nm--
+James
+
 
