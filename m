@@ -1,53 +1,55 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: next-0708: build failure at drivers/pci/pci-acpi.c
-Date: Tue, 8 Jul 2008 10:40:38 -0700
-Message-ID: <200807081040.38777.jbarnes@virtuousgeek.org>
-References: <a4423d670807080518g31402f60j2f624a2ac2db03aa@mail.gmail.com> <a4423d670807080929t3254393jc501e703d6ffb26e@mail.gmail.com> <200807081858.16321.rjw@sisk.pl>
+From: garkein@mailueberfall.de
+Subject: Re: Thinkpad T61 consuming more power on AC
+Date: Tue, 08 Jul 2008 20:06:13 +0200
+Message-ID: <1215540373.5364.7.camel@thinkpad>
+References: <1215293883.5545.19.camel@thinkpad>
+	 <1215480699.6121.25.camel@yakui_zhao.sh.intel.com>
+Reply-To: garkein@mailueberfall.de
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outbound-mail-134.bluehost.com ([67.222.39.24]:35541 "HELO
-	outbound-mail-134.bluehost.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753522AbYGHRk7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Jul 2008 13:40:59 -0400
-In-Reply-To: <200807081858.16321.rjw@sisk.pl>
-Content-Disposition: inline
+Received: from mail.gmx.net ([213.165.64.20]:49816 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752739AbYGHSGr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 8 Jul 2008 14:06:47 -0400
+In-Reply-To: <1215480699.6121.25.camel@yakui_zhao.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alexander Beregalov <a.beregalov@gmail.com>, ak@linux.intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-next@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, David Howells <dhowells@redhat.com>
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Tuesday, July 08, 2008 9:58 am Rafael J. Wysocki wrote:
-> On Tuesday, 8 of July 2008, Alexander Beregalov wrote:
-> > 2008/7/8 Rafael J. Wysocki <rjw@sisk.pl>:
-> > > On Tuesday, 8 of July 2008, Alexander Beregalov wrote:
-> > >> Hi Rafael
-> > >>
-> > >> drivers/pci/pci-acpi.c: In function 'acpi_pci_sleep_wake':
-> > >> drivers/pci/pci-acpi.c:311: error: implicit declaration of function
-> > >> 'acpi_pm_device_sleep_wake'
-> > >
-> > > I guess this is a compilation with CONFIG_ACPI=y and CONFIG_PM_SLEEP
-> > > unset.
-> >
-> > Indeed.
-> >
-> > > In that case the appended patch should help.  Please test and report
-> > > back (I can't test linux-next compilation at the moment).
-> >
-> > Compilation test passed and the kernel can boot.
->
-> Thanks!
->
-> Jesse, could you please apply the patch below to the linux-next branch, on
-> top of the PCI wake-up patchset?
->
-> Rafael
+Am Dienstag, den 08.07.2008, 09:31 +0800 schrieb Zhao Yakui:
+> The C-state mapping between CPU C3/C4/C5/C6 and ACPI C3 is defined
+> in ACPI tables, which is related with the BIOS. In order to use CPU C6
+> state in AC mode, we must modify the C-state mapping in ACPI tables. It
+> is not easy. And IMO it is meaningless(CPU C6 can save more power than
+> CPU C3. But it is not obvious). So not recommend to do so.
+>    Of course if still hope to do so, please refer to the _CST object
+> defined in section 8 of ACPI 3.0 spec and custom DSDT should be used.
 
-David sent me one just like this at 7am this morning, just applied and pushed 
-(along with Alexander's tested-by).
+Thanks Yakui. I have to say that I don't have any ACPI knowledge other
+than common hearsay so I have to learn ACPI from the beginning and I
+hope I could find some spare time to get and idea, at least.
+>From what I understood so far, the way to go would be the following:
+
+- Extract the ACPI tables of my notebook
+- Read the spec and tweak the right entry
+- Convince the kernel to use the customized table
+
+Probably I could also read the ACPI tables when on battery just to load
+it when in AC mode? (I could then skip step 2 of understanding what I'm
+doing... ;-)
+
+For the effectiveness:
+I cannot say whether the power consumption is that big, the difference
+of the fan (not) getting on my nerves _is_ significant however.
+I just had the idea that the behaviour of the embedded controller for
+controlling the fan may also be different in AC vs. battery mode (the
+threshold temperatures), so I it's indeed not garantueed that using C6
+vs. C3 alone does the trick. But I do hope so.
 
 Thanks,
-Jesse
+Daniel
+
+
