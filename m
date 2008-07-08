@@ -1,159 +1,49 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH -next] acpi utmisc: use WARN_ON() instead of warn_on_slowpath()
-Date: Tue, 8 Jul 2008 17:44:51 +0200
-Message-ID: <200807081744.53992.trenn@suse.de>
-References: <20080701103339.b5acc1f3.randy.dunlap@oracle.com> <4871B55C.7040009@firstfloor.org> <20080707000320.25341603@infradead.org>
+From: "Maciej W. Rozycki" <macro@linux-mips.org>
+Subject: Re: [PATCH 2/2] acpi: Disable IRQ 0 through I/O APIC for some HP
+ systems
+Date: Tue, 8 Jul 2008 17:25:26 +0100 (BST)
+Message-ID: <Pine.LNX.4.55.0807081646270.27931@cliff.in.clinika.pl>
+References: <Pine.LNX.4.55.0807010055070.30785@cliff.in.clinika.pl>
+ <20080708112402.GA2301@alberich.amd.com> <200807081727.40605.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <20080707000320.25341603@infradead.org>
-Content-Disposition: inline
+In-Reply-To: <200807081727.40605.rjw@sisk.pl>
 Sender: linux-next-owner@vger.kernel.org
-To: Arjan van de Ven <arjan@infradead.org>
-Cc: Andi Kleen <andi@firstfloor.org>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, randy.dunlap@oracle.com, linux-acpi@vger.kernel.org, linux-next@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, Bob Moore <robert.moore@intel.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Andreas Herrmann <andreas.herrmann3@amd.com>, Ingo Molnar <mingo@elte.hu>, Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-next@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday 07 July 2008 09:03:20 Arjan van de Ven wrote:
-> On Mon, 07 Jul 2008 08:19:08 +0200
->
-> Andi Kleen <andi@firstfloor.org> wrote:
-> > I'm dropping the ACPI part because we're getting too many
-> > reports of scary looking backtraces and ACPI exceptions are actually
-> > not that exceptional.
->
-> when I talked to Len about it he implied/said that these would only
-> happen for ACPI code bugs (and not bios bugs).
+On Tue, 8 Jul 2008, Rafael J. Wysocki wrote:
 
-drivers/acpi/processor_core.c:852:              ACPI_EXCEPTION((AE_INFO, status,
-drivers/acpi/processor_core.c-853-                              "Processor Device is not present"));
+> > (B) The current approach to setup timer as ExtINT.
+[...]
+> > (B) ??? who tested this, Rafael
+> 
+> Yes, I tested this.
 
-and
+ There is some confusion here apparently -- you certainly have not tested
+the timer as an ExtINTA interrupt during the course of this discussion,
+because the "8259A Virtual Wire" through the local APIC has always worked
+for you.  ExtINTA would be the next, fourth and final attempt before a
+panic().
 
-drivers/acpi/parser/psloop.c-895-                                       if (status == AE_AML_NO_RETURN_VALUE) {
-drivers/acpi/parser/psloop.c:896:                                               ACPI_EXCEPTION((AE_INFO, status,
-drivers/acpi/parser/psloop.c-897-                                                               "Invoked method did not return a value"));
+ For a reference, here is the list of configurations of the 8254 timer
+interrupt in the order they are tried:
 
-do very much look like BIOS bugs.
+1. Native I/O APIC interrupt.
 
-> Maybe he was 
-> overestimating what the code would actually do; if so it would imo be
-> well worth splitting out ACPI code assertions versions things that are
-> BIOS caused (if only to be able to inform the user more consistently)
+2. "8259A Virtual Wire" through the I/O APIC.
 
-You want to split BIOS bug and kernel bug ACPI messages?
-This is a good idea.
-But this should be started in ACPICA code first.
-ACPI_EXCEPTION is an ACPICA interface having an
-ACPI_FIRMWARE_BUG for relevant messages would be nice.
-There are probably also a lot ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-info messages suppressing bugs.
-Being able to mark them with a ACPI_FIRMWARE_BUG interface, 
-would be great.
+3. "8259A Virtual Wire" through the local APIC of the bootstrap processor.
 
-As suggested some days ago, I'd like to have an interface in the kernel
-to report firmware bugs via printk, netlink, both (or compiled out) to
-userspace.
-As soon as ACPICA can differ and invoke e.g.
-ACPI_FIRMWARE_BUG, it can easily be extended to use a kernel
-interface to send firmware bugs to userspace as such.
+4. ExtINTA ("Virtual Wire") through the local APIC of the BSP.
 
-If you are already working in this area or have suggestions, please let me
-know or keep me in CC.
-Otherwise I will try to come up with some patches sooner or later.
+The configurations #1 and #2 are only tried if the firmware has supplied
+information about how the IRQ0 or 8259A have been wired.  The #4 is only
+reached in very rare cases where there is some special glue logic between
+the 8259A and the APIC (seen before as a workaround for broken hardware;  
+unlock_ExtINT_logic() is needed for that) or a given implementation of the
+8259A is not a full one (hypothetical).
 
-Thanks,
-
-         Thomas
-
-BTW: I saw a lot people used:
-ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-again in linux (not ACPICA code!) which is wrong.
-
-These are suppressed if ACPI_DEBUG is not compiled in.
-It does not make sense to use a debug interface for errors.
-IMO ACPI_DB_ERROR and ACPI_DB_WARN
-should be reverted or somehow enforced that
-it cannot be used in kernel code anymore, maybe they should be renamed
-into DB_DEBUG and DB_WHATEVER?
-
-Here these are again used, some look like sever errors (on a first glance),
-some not:
-
-grep -n1 DB_ERROR drivers/acpi/*
-drivers/acpi/acpi_memhotplug.c-456-             if (result)
-drivers/acpi/acpi_memhotplug.c:457:                     ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-drivers/acpi/acpi_memhotplug.c-458-                             "Error in acpi_memory_enable_device\n"));
---
-drivers/acpi/cm_sbs.c-54-       } else {
-drivers/acpi/cm_sbs.c:55:               ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-drivers/acpi/cm_sbs.c-56-                                 "Cannot create %s\n", ACPI_AC_CLASS));
---
-drivers/acpi/cm_sbs.c-85-       } else {
-drivers/acpi/cm_sbs.c:86:               ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-drivers/acpi/cm_sbs.c-87-                                 "Cannot create %s\n", ACPI_BATTERY_CLASS));
---
-drivers/acpi/fan.c-323- if (result) {
-drivers/acpi/fan.c:324:         ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-drivers/acpi/fan.c-325-                           "Error reading fan power state\n"));
---
-drivers/acpi/osl.c-726- if (!queue_work(queue, &dpc->work)) {
-drivers/acpi/osl.c:727:         ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-drivers/acpi/osl.c-728-                   "Call to queue_work() failed.\n"));
---
-drivers/acpi/processor_perflib.c-515-   if (!psd || (psd->type != ACPI_TYPE_PACKAGE)) {
-drivers/acpi/processor_perflib.c:516:           ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid _PSD data\n"));
-drivers/acpi/processor_perflib.c-517-           result = -EFAULT;
---
-drivers/acpi/processor_perflib.c-521-   if (psd->package.count != 1) {
-drivers/acpi/processor_perflib.c:522:           ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid _PSD data\n"));
-drivers/acpi/processor_perflib.c-523-           result = -EFAULT;
---
-drivers/acpi/processor_perflib.c-534-   if (ACPI_FAILURE(status)) {
-drivers/acpi/processor_perflib.c:535:           ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid _PSD data\n"));
-drivers/acpi/processor_perflib.c-536-           result = -EFAULT;
---
-drivers/acpi/processor_perflib.c-540-   if (pdomain->num_entries != ACPI_PSD_REV0_ENTRIES) {
-drivers/acpi/processor_perflib.c:541:           ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Unknown _PSD:num_entries\n"));
-drivers/acpi/processor_perflib.c-542-           result = -EFAULT;
---
-drivers/acpi/processor_perflib.c-546-   if (pdomain->revision != ACPI_PSD_REV0_REVISION) {
-drivers/acpi/processor_perflib.c:547:           ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Unknown _PSD:revision\n"));
-drivers/acpi/processor_perflib.c-548-           result = -EFAULT;
---
-drivers/acpi/processor_throttling.c-530-        if (!tsd || (tsd->type != ACPI_TYPE_PACKAGE)) {
-drivers/acpi/processor_throttling.c:531:                ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid _TSD data\n"));
-drivers/acpi/processor_throttling.c-532-                result = -EFAULT;
---
-drivers/acpi/processor_throttling.c-536-        if (tsd->package.count != 1) {
-drivers/acpi/processor_throttling.c:537:                ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid _TSD data\n"));
-drivers/acpi/processor_throttling.c-538-                result = -EFAULT;
---
-drivers/acpi/processor_throttling.c-549-        if (ACPI_FAILURE(status)) {
-drivers/acpi/processor_throttling.c:550:                ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid _TSD data\n"));
-drivers/acpi/processor_throttling.c-551-                result = -EFAULT;
---
-drivers/acpi/processor_throttling.c-555-        if (pdomain->num_entries != ACPI_TSD_REV0_ENTRIES) {
-drivers/acpi/processor_throttling.c:556:                ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Unknown _TSD:num_entries\n"));
-drivers/acpi/processor_throttling.c-557-                result = -EFAULT;
---
-drivers/acpi/processor_throttling.c-561-        if (pdomain->revision != ACPI_TSD_REV0_REVISION) {
-drivers/acpi/processor_throttling.c:562:                ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Unknown _TSD:revision\n"));
-drivers/acpi/processor_throttling.c-563-                result = -EFAULT;
---
-drivers/acpi/scan.c-467-        if(result)
-drivers/acpi/scan.c:468:                ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Error creating sysfs interface for device %s\n", device->dev.bus_id));
-drivers/acpi/scan.c-469-
---
-drivers/acpi/thermal.c-1174-    if (ACPI_FAILURE(status)) {
-drivers/acpi/thermal.c:1175:            ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-drivers/acpi/thermal.c-1176-                            "Error attaching device data\n"));
---
-drivers/acpi/video.c-1532-              if (ACPI_FAILURE(status)) {
-drivers/acpi/video.c:1533:                      ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-drivers/acpi/video.c-1534-                                        "Error installing notify handler\n"));
---
-drivers/acpi/video.c-2005-      if (ACPI_FAILURE(status)) {
-drivers/acpi/video.c:2006:              ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-drivers/acpi/video.c-2007-                                "Error installing notify handler\n"));
+  Maciej
