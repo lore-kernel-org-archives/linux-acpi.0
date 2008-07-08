@@ -1,65 +1,54 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: Check for BIOS bugs - Original Subject: Re: [PATCH 23/70] ACPICA: Workaround for reversed _PRT entries from BIOS
-Date: Tue, 8 Jul 2008 12:34:55 -0700
-Message-ID: <960B77DF2E6D974DBE24FD066EAEE8DAD90886@azsmsx422.amr.corp.intel.com>
-References: <1213947852-10924-1-git-send-email-lenb@kernel.org> <deade3c973eb9c98d2a6cfed658bbb49e693894a.1213947350.git.len.brown@intel.com> <200807011033.27887.trenn@suse.de> <20080707111207.GH5643@ucw.cz> <48738A65.9060905@linux.intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: next-0708: build failure at drivers/pci/pci-acpi.c
+Date: Tue, 8 Jul 2008 22:29:31 +0200
+Message-ID: <200807082229.33016.rjw@sisk.pl>
+References: <a4423d670807080518g31402f60j2f624a2ac2db03aa@mail.gmail.com> <200807081858.16321.rjw@sisk.pl> <200807081040.38777.jbarnes@virtuousgeek.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:53018 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752378AbYGHTe4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Jul 2008 15:34:56 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <48738A65.9060905@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <200807081040.38777.jbarnes@virtuousgeek.org>
+Content-Disposition: inline
+Sender: linux-next-owner@vger.kernel.org
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Alexander Beregalov <a.beregalov@gmail.com>, ak@linux.intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-next@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, David Howells <dhowells@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Arjan van de Ven <arjan@linux.intel.com>, Pavel Machek <pavel@suse.cz>
-Cc: Thomas Renninger <trenn@suse.de>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, "Moore, Robert" <robert.moore@intel.com>, "Lin, Ming M" <ming.m.lin@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Huang Cheng <cheng.huang@intel.com>, firmwarekit-discuss@bughost.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
- 
+On Tuesday, 8 of July 2008, Jesse Barnes wrote:
+> On Tuesday, July 08, 2008 9:58 am Rafael J. Wysocki wrote:
+> > On Tuesday, 8 of July 2008, Alexander Beregalov wrote:
+> > > 2008/7/8 Rafael J. Wysocki <rjw@sisk.pl>:
+> > > > On Tuesday, 8 of July 2008, Alexander Beregalov wrote:
+> > > >> Hi Rafael
+> > > >>
+> > > >> drivers/pci/pci-acpi.c: In function 'acpi_pci_sleep_wake':
+> > > >> drivers/pci/pci-acpi.c:311: error: implicit declaration of function
+> > > >> 'acpi_pm_device_sleep_wake'
+> > > >
+> > > > I guess this is a compilation with CONFIG_ACPI=y and CONFIG_PM_SLEEP
+> > > > unset.
+> > >
+> > > Indeed.
+> > >
+> > > > In that case the appended patch should help.  Please test and report
+> > > > back (I can't test linux-next compilation at the moment).
+> > >
+> > > Compilation test passed and the kernel can boot.
+> >
+> > Thanks!
+> >
+> > Jesse, could you please apply the patch below to the linux-next branch, on
+> > top of the PCI wake-up patchset?
+> >
+> > Rafael
+> 
+> David sent me one just like this at 7am this morning, just applied and pushed 
+> (along with Alexander's tested-by).
 
->>>> Some BIOSs erroneously reverse the _PRT SourceName and the
->>>> SourceIndex.  Detect and repair this problem. MS ACPI also allows
->>>> and repairs this problem, thus ACPICA must also.
->>> It would be great to have an interface to report this as a 
->BIOS defect.
->>>
->>> Something like:
->>>
->>> FIRMWARE_BUG_ON(FIRM_WARN, "erroneously reversed the _PRT 
->source_name", ACPI_ 
->>> Bug);
->>>
->>> FIRMWARE_BUG_ON(severity, description, component);
->> 
->> Yes, please.
+OK, thanks.
 
-I'm not excited about maintaining
-maintaining linux-as-a-firmware-diagnostic --
-particularly when...
+Would you like me to send the Stephen's fix for compilation on ppc64 (CONFIG_PM
+unset)?
 
-1. it clutters the code for normail machines
-2. finding the bug is pointless, because even
-   if you fix one machine, you are guaranteed to
-   not fix all machines and thus must maintain
-   the workaround anyway.
-
->> I'd also like HARDWARE_BUG_ON(), with similar usage.
->> 
->> With all the preload-linux-on-foo project, we have some 
->> chance to make
->> BIOS vendors fix their stuff if we can easily diagnose errors in
->> there.
-
-These customers should be running 
-http://linuxfirmwarekit.org/
-
-We do maintain some degree of "high-road ACPI spec checking"
-with the "acpi=strict" boot option.  If we do more of this,
-I think it should stay under that option.
-
-thanks,
--Len
+Rafael
