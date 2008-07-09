@@ -1,45 +1,54 @@
-From: John Keller <jpk@sgi.com>
-Subject: [PATCH] x86: Allow MMCONFIG above 4GB on x86_64
-Date: Wed,  9 Jul 2008 15:41:27 -0500 (CDT)
-Message-ID: <20080709204127.1458.5727.77728@attica.americas.sgi.com>
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: Battery life difference
+Date: Wed, 9 Jul 2008 22:29:20 +0200
+Message-ID: <20080709202920.GE11006@ucw.cz>
+References: <31e679430807050617u3fc706fasee9bb43a151c501f@mail.gmail.com> <20080705133601.GA20240@mit.edu> <31e679430807050700q765dc45ft198fcf1c0b91a9cc@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay1.sgi.com ([192.48.171.29]:35257 "EHLO relay.sgi.com"
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:1518 "EHLO spitz.ucw.cz"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753144AbYGIUl2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 9 Jul 2008 16:41:28 -0400
+	id S1751504AbYGIUze (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 9 Jul 2008 16:55:34 -0400
+Content-Disposition: inline
+In-Reply-To: <31e679430807050700q765dc45ft198fcf1c0b91a9cc@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, John Keller <jpk@sgi.com>, takayoshi.kochi@gmail.com
+To: Felipe Balbi <felipebalbi@users.sourceforge.net>
+Cc: Theodore Tso <tytso@mit.edu>, Kernel development list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-SGI UV will have MMCFG base addresses that are greater than 4GB (32 bits).
+Hi!
 
-Signed-off-by: John Keller <jpk@sgi.com>
----
+> > You didn't say which battery you are using; I'm guessing you are using
+> > the 4 cell slim-line battery, which is rated at 28.8 Watt-hours?
+> 
+> yeah, the normal slim-battery.
+> 
+> > How many Watts is Powertop reporting that you are using?  I'm down to
+> 
+> eheh, it's only 15.5w :-p
+> 
+> > around 8-9 watts, and around 9.5 watts in "airplane mail reading mail"
+> > (wireless disabled, USB modules unloaded, screen brightness turned way
+> > down, laptop_mode enabled, all mail messages pulled into memory, and
+> > reading/deleting mail using mutt, a character-mode based mail reader
+> > --- if you use Evolution, your energy usage will definitely be higher  :-).
+> 
+> no crappy evolution, I use fluxbox and mutt. This ubuntu machine is
+> for testing purposes only :-p
+> 
+> Anyways, it's bad that we have to manually unload several modules,
+> specially usb. I'm sure windows reaches 9 watts consumption without
+> breaking functionality. And that's the big thing. I think that's something
+> we should be aiming. Dontcha think?
 
-A similar patch was submitted over a year ago, but apparently was not
-merged in.
+Can you test Ted's suggestion to see if we have nailed the problem,
+first?
 
-   http://marc.info/?l=linux-acpi&m=117283388212912&w=2
+9W vs. 15W does not explain 1h30 vs 3h30 difference, afaict.
 
+(Of course, we are working on usb autosuspend. Try 2.6.26).
 
-Index: linux-2.6/arch/x86/kernel/acpi/boot.c
-===================================================================
---- linux-2.6.orig/arch/x86/kernel/acpi/boot.c	2008-07-09 13:02:54.000000000 -0500
-+++ linux-2.6/arch/x86/kernel/acpi/boot.c	2008-07-09 15:25:32.000000000 -0500
-@@ -200,6 +200,7 @@ int __init acpi_parse_mcfg(struct acpi_t
- 	}
- 
- 	memcpy(pci_mmcfg_config, &mcfg[1], config_size);
-+#ifndef CONFIG_X86_64
- 	for (i = 0; i < pci_mmcfg_config_num; ++i) {
- 		if (pci_mmcfg_config[i].address > 0xFFFFFFFF) {
- 			printk(KERN_ERR PREFIX
-@@ -209,6 +210,7 @@ int __init acpi_parse_mcfg(struct acpi_t
- 			return -ENODEV;
- 		}
- 	}
-+#endif
- 
- 	return 0;
- }
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
