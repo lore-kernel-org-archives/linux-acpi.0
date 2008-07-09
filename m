@@ -1,54 +1,55 @@
 From: Pavel Machek <pavel@suse.cz>
 Subject: Re: Battery life difference
-Date: Wed, 9 Jul 2008 22:29:20 +0200
-Message-ID: <20080709202920.GE11006@ucw.cz>
-References: <31e679430807050617u3fc706fasee9bb43a151c501f@mail.gmail.com> <20080705133601.GA20240@mit.edu> <31e679430807050700q765dc45ft198fcf1c0b91a9cc@mail.gmail.com>
+Date: Wed, 9 Jul 2008 22:32:17 +0200
+Message-ID: <20080709203216.GF11006@ucw.cz>
+References: <31e679430807050617u3fc706fasee9bb43a151c501f@mail.gmail.com> <20080705082352.4b6be669@infradead.org> <31e679430807050844r30ff74fby7e15641573b42d82@mail.gmail.com> <20080705085432.2f9b2964@infradead.org> <31e679430807051041w6dd9b917xc51f31f66fbd65d3@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:1518 "EHLO spitz.ucw.cz"
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:1525 "EHLO spitz.ucw.cz"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751504AbYGIUze (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 9 Jul 2008 16:55:34 -0400
+	id S1754914AbYGIUzh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 9 Jul 2008 16:55:37 -0400
 Content-Disposition: inline
-In-Reply-To: <31e679430807050700q765dc45ft198fcf1c0b91a9cc@mail.gmail.com>
+In-Reply-To: <31e679430807051041w6dd9b917xc51f31f66fbd65d3@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Felipe Balbi <felipebalbi@users.sourceforge.net>
-Cc: Theodore Tso <tytso@mit.edu>, Kernel development list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+Cc: Arjan van de Ven <arjan@infradead.org>, Kernel development list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-Hi!
+On Sat 2008-07-05 20:41:07, Felipe Balbi wrote:
+> Hi,
+> 
+> On Sat, Jul 5, 2008 at 6:54 PM, Arjan van de Ven <arjan@infradead.org> wrote:
+> > you may also need to toggle your bios to enable AHCI btw
+> >
+> >>
+> >> > Also take a look at
+> >> > http://kerneltrap.org/mailarchive/linux-kernel/2008/5/8/1771024
+> >> > because these patches save like 0.75W in our lab.
+> >>
+> >> cool, is it merged upstream ?
+> >> I'll build current git kernel and reply again with new linux results.
+> >> It could be that ubuntu 2.6.24 is broken somehow...
+> >>
+> >> > To be honest, I'm surprised at your results; in our testing (with a
+> >> > different distro though) we don't see such a difference and Linux is
+> >> > doing rather well.
+> >>
+> >> can you get powertop results in a 2.6.24 distro kernel and current git
+> >> kernel ?
+> >
+> > most of my measurement machines are in the office ;(
+> >
+> > Anyway, also make sure you use the 0.11 version of powertop; we added
+> > some newer stuff into that version...
+> 
+> Cool, now I'm using current linux 2.6.26-rc8 from git
+> b8a0b6ccf2ba2519ace65d782b41ee91bf3c3778
+> 
+> Now I'm reaching 9.8w consumption :-)
 
-> > You didn't say which battery you are using; I'm guessing you are using
-> > the 4 cell slim-line battery, which is rated at 28.8 Watt-hours?
-> 
-> yeah, the normal slim-battery.
-> 
-> > How many Watts is Powertop reporting that you are using?  I'm down to
-> 
-> eheh, it's only 15.5w :-p
-> 
-> > around 8-9 watts, and around 9.5 watts in "airplane mail reading mail"
-> > (wireless disabled, USB modules unloaded, screen brightness turned way
-> > down, laptop_mode enabled, all mail messages pulled into memory, and
-> > reading/deleting mail using mutt, a character-mode based mail reader
-> > --- if you use Evolution, your energy usage will definitely be higher  :-).
-> 
-> no crappy evolution, I use fluxbox and mutt. This ubuntu machine is
-> for testing purposes only :-p
-> 
-> Anyways, it's bad that we have to manually unload several modules,
-> specially usb. I'm sure windows reaches 9 watts consumption without
-> breaking functionality. And that's the big thing. I think that's something
-> we should be aiming. Dontcha think?
-
-Can you test Ted's suggestion to see if we have nailed the problem,
-first?
-
-9W vs. 15W does not explain 1h30 vs 3h30 difference, afaict.
-
-(Of course, we are working on usb autosuspend. Try 2.6.26).
-
+Cool... how low can Windows go?
 -- 
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
