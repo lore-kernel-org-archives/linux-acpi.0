@@ -1,55 +1,167 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH 2/2] ACPI Check for backlight support via ACPI video.ko otherwise use vendor ACPI drivers
-Date: Wed, 9 Jul 2008 18:00:23 +0200
-Message-ID: <200807091800.27608.trenn@suse.de>
-References: <200807031809.03172.trenn@suse.de> <200807091649.52605.trenn@suse.de> <20080709145758.GA22147@srcf.ucam.org>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH] ACPI : Load device driver according to the status of acpi device
+Date: Wed, 9 Jul 2008 10:48:23 -0600
+Message-ID: <200807091048.23584.bjorn.helgaas@hp.com>
+References: <1215500692.6121.41.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:53887 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757922AbYGIQAc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 9 Jul 2008 12:00:32 -0400
-In-Reply-To: <20080709145758.GA22147@srcf.ucam.org>
+Received: from g1t0027.austin.hp.com ([15.216.28.34]:38661 "EHLO
+	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751525AbYGIQsq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Jul 2008 12:48:46 -0400
+In-Reply-To: <1215500692.6121.41.camel@yakui_zhao.sh.intel.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: ak@linux.intel.com, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, malattia@linux.it, stelian@popies.net, linux-next@vger.kernel.org, Corentin CHARY <corentincj@iksaif.net>, Lennart Poettering <mzxreary@0pointer.de>, Julia Jomantaite <julia.jomantaite@gmail.com>, corsac@debian.org, dannybaumann@web.de, marcus@better.se, Zhang Rui <rui.zhang@intel.com>, Hong Liu <hong.liu@intel.com>
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, lenb@kernel.org
 
-...
-> For this to work, the ACPI video driver needs to work as it currently
-> does. It is not correct for it to disable itself on IGD systems.
-Right, now I got it. It is only the T61/Lenovo you must have the opregion 
-driver ready or you better fallback to thinkpad_acpi...
-Is that correct?
-I will add a dmi check for Lenovo in video_detect.c.
-That would be:
-  - If ACPI Appendix B video brightness functions are found
-  |     -> use video.ko
-  |     |
-  |     -> If it's a ThinkPad, check for Opregion BIOS support
-  |           -> Use video.ko if IGD parts are implemented (and the one
-  |           |   ThinkPad specific func you had the 750ms delay is available)
-  |           -> otherwise go back to thinkpad_acpi
-  |
-  ->  Use vendor specific driver
+On Tuesday 08 July 2008 01:04:52 am Zhao Yakui wrote:
+> >From : Zhao Yakui <yakui.zhao@intel.com>
+> 
+> According to ACPI spec when the status of some device is not present 
+> but functional, the device is valid and the children of this device 
+> should be enumerated. It means that the device should be added to 
+> linux acpi device tree.
+> But the device driver for this device should not be loaded. 
 
-FWIW, the IGD part to switch to vendor specific drivers can be deleted anyway 
-if you say the IGD parts are working with your upcoming patches.
+This is an obscure detail; can you add a specific spec reference
+to your commit log?  I think the relevant section is 6.3.7 of
+the 3.0b spec.
 
-This would then be to use video.ko when detecting general brightness functions 
-and otherwise let vendor specific drivers do it. No IGD check is necessary at 
-all anymore.
-The check for IGD was because ThinkPads did not work with video.ko then and 
-this blocked the "check for physical graphics device" patch fixing a lot 
-others.
+> http://bugzilla.kernel.org/show_bug.cgi?id=3358
+> 
+> Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+> Signed-off-by: Li Shaohua <shaohua.li@intel.com>
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> ---
+>  drivers/acpi/bus.c         |   16 ++++++++--------
+>  drivers/acpi/scan.c        |   35 +++++++++++++++++++++++++----------
+>  drivers/pnp/pnpacpi/core.c |    6 +++++-
+>  3 files changed, 38 insertions(+), 19 deletions(-)
+> 
+> Index: linux-2.6/drivers/acpi/bus.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/bus.c
+> +++ linux-2.6/drivers/acpi/bus.c
+> @@ -95,21 +95,21 @@ int acpi_bus_get_status(struct acpi_devi
+>  	}
+>  
+>  	/*
+> -	 * Otherwise we assume the status of our parent (unless we don't
+> -	 * have one, in which case status is implied).
+> +	 * According to ACPI spec some device can be present and functional
+> +	 * even if the parent is not present but functional.
+> +	 * In such conditions the child device should not inherit the status
+> +	 * from the parent.
+>  	 */
+> -	else if (device->parent)
+> -		device->status = device->parent->status;
+>  	else
+>  		STRUCT_TO_INT(device->status) =
+>  		    ACPI_STA_DEVICE_PRESENT | ACPI_STA_DEVICE_ENABLED |
+>  		    ACPI_STA_DEVICE_UI      | ACPI_STA_DEVICE_FUNCTIONING;
+>  
+>  	if (device->status.functional && !device->status.present) {
+> -		printk(KERN_WARNING PREFIX "Device [%s] status [%08x]: "
+> -		       "functional but not present; setting present\n",
+> -		       device->pnp.bus_id, (u32) STRUCT_TO_INT(device->status));
+> -		device->status.present = 1;
+> +		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] status [%08x]: "
+> +		       "functional but not present;\n",
+> +			device->pnp.bus_id,
+> +			(u32) STRUCT_TO_INT(device->status)));
+>  	}
+>  
+>  	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] status [%08x]\n",
+> Index: linux-2.6/drivers/acpi/scan.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/scan.c
+> +++ linux-2.6/drivers/acpi/scan.c
+> @@ -264,6 +264,13 @@ int acpi_match_device_ids(struct acpi_de
+>  {
+>  	const struct acpi_device_id *id;
+>  
+> +	/*
+> +	 * If the device is not present, it is unnecessary to load device
+> +	 * driver for it.
+> +	 */
+> +	if (!device->status.present)
+> +		return -ENODEV;
+> +
+>  	if (device->flags.hardware_id) {
+>  		for (id = ids; id->id[0]; id++) {
+>  			if (!strcmp((char*)id->id, device->pnp.hardware_id))
+> @@ -1239,15 +1246,18 @@ acpi_add_single_object(struct acpi_devic
+>  			result = -ENODEV;
+>  			goto end;
+>  		}
+> -		if (!device->status.present) {
+> -			/* Bay and dock should be handled even if absent */
+> -			if (!ACPI_SUCCESS(
+> -			     acpi_is_child_device(device, acpi_bay_match)) &&
+> -			    !ACPI_SUCCESS(
+> -			     acpi_is_child_device(device, acpi_dock_match))) {
+> -					result = -ENODEV;
+> -					goto end;
+> -			}
+> +		/*
+> +		 * When the device is neither present nor functional, the
+> +		 * device should not be added to Linux ACPI device tree.
+> +		 * When the status of the device is not present but functinal,
+> +		 * it should be added to Linux ACPI tree. For example : bay
+> +		 * device , dock device.
+> +		 * In such conditions it is unncessary to check whether it is
+> +		 * bay device or dock device.
+> +		 */
+> +		if (!device->status.present && !device->status.functional) {
+> +			result = -ENODEV;
+> +			goto end;
+>  		}
+>  		break;
+>  	default:
+> @@ -1420,7 +1430,12 @@ static int acpi_bus_scan(struct acpi_dev
+>  		 * TBD: Need notifications and other detection mechanisms
+>  		 *      in place before we can fully implement this.
+>  		 */
+> -		if (child->status.present) {
+> +		 /*
+> +		 * When the device is not present but functional, it is also
+> +		 * necessary to scan the children of this device.
+> +		 */
+> +		if (child->status.present || (!child->status.present &&
+> +					child->status.functional)) {
+>  			status = acpi_get_next_object(ACPI_TYPE_ANY, chandle,
+>  						      NULL, NULL);
+>  			if (ACPI_SUCCESS(status)) {
+> Index: linux-2.6/drivers/pnp/pnpacpi/core.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/pnp/pnpacpi/core.c
+> +++ linux-2.6/drivers/pnp/pnpacpi/core.c
+> @@ -150,9 +150,13 @@ static int __init pnpacpi_add_device(str
+>  	acpi_status status;
+>  	struct pnp_dev *dev;
+>  
+> +	/*
+> +	 * If a PnPacpi device is not present , the device
+> +	 * driver should not be loaded.
+> +	 */
+>  	status = acpi_get_handle(device->handle, "_CRS", &temp);
+>  	if (ACPI_FAILURE(status) || !ispnpidacpi(acpi_device_hid(device)) ||
+> -	    is_exclusive_device(device))
+> +	    is_exclusive_device(device) || (!device->status.present))
+>  		return 0;
+>  
+>  	dev = pnp_alloc_dev(&pnpacpi_protocol, num, acpi_device_hid(device));
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Please also provide an OSI string with your video opregion code parts, so that 
-BIOS can check whether the kernel is capable of serving IGD devices. Just 
-choose a random string you like, e.g. let OSI("Opregion Video Support") 
-return true.
 
-    Thomas
