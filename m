@@ -1,167 +1,50 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH] ACPI : Load device driver according to the status of acpi device
-Date: Wed, 9 Jul 2008 10:48:23 -0600
-Message-ID: <200807091048.23584.bjorn.helgaas@hp.com>
-References: <1215500692.6121.41.camel@yakui_zhao.sh.intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] [RFC PATCH 0/4] save and restore ACPI NVS memory during hibernation
+Date: Wed, 9 Jul 2008 21:37:18 +0200
+Message-ID: <200807092137.18966.rjw@sisk.pl>
+References: <1215051868.5628.32.camel@rzhang-dt.sh.intel.com> <20080708193752.GD8694@ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-15"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0027.austin.hp.com ([15.216.28.34]:38661 "EHLO
-	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751525AbYGIQsq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Jul 2008 12:48:46 -0400
-In-Reply-To: <1215500692.6121.41.camel@yakui_zhao.sh.intel.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:47818 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751483AbYGITfc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 9 Jul 2008 15:35:32 -0400
+In-Reply-To: <20080708193752.GD8694@ucw.cz>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, lenb@kernel.org
+To: Pavel Machek <pavel@suse.cz>
+Cc: Zhang Rui <rui.zhang@intel.com>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 
-On Tuesday 08 July 2008 01:04:52 am Zhao Yakui wrote:
-> >From : Zhao Yakui <yakui.zhao@intel.com>
+On Tuesday, 8 of July 2008, Pavel Machek wrote:
+> Hi!
 > 
-> According to ACPI spec when the status of some device is not present 
-> but functional, the device is valid and the children of this device 
-> should be enumerated. It means that the device should be added to 
-> linux acpi device tree.
-> But the device driver for this device should not be loaded. 
+> > According to the ACPI spec, ACPI NVS memory region is required to
+> > be saved/restored by OS during hibernation.
+> > 
+> > Section 15.3.2 ACPI Spec 3.0b,
+> > "OSPM will call the _PTS control method some time before entering
+> > a sleeping state, to allow the platform???s AML code to update
+> > this memory image before entering the sleeping state.
+> > After the system awakes from an S4 state, OSPM will restore this
+> > memory area and call the _WAK control method to enable the BIOS
+> > to reclaim its memory image."
+> > 
+> > This patch set add the mechanism to save/restore ACPI NVS memory
+> > during hibernation.
+> > 
+> > Patch 01: call platform_begin before swsusp_shrink_memory.
+> > 	So that we can allocate enough pages for ACPI NVS memory
+> > 	before shrink the memory.
+> 
+> Why is it neccessary to allocate memory for a copy? We should be able
+> to save ACPI NVS area same way we are saving kernel pages, no?
 
-This is an obscure detail; can you add a specific spec reference
-to your commit log?  I think the relevant section is 6.3.7 of
-the 3.0b spec.
+Because we want to restore it from the hibernated kernel (when it gets control
+back again).
 
-> http://bugzilla.kernel.org/show_bug.cgi?id=3358
-> 
-> Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-> Signed-off-by: Li Shaohua <shaohua.li@intel.com>
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> ---
->  drivers/acpi/bus.c         |   16 ++++++++--------
->  drivers/acpi/scan.c        |   35 +++++++++++++++++++++++++----------
->  drivers/pnp/pnpacpi/core.c |    6 +++++-
->  3 files changed, 38 insertions(+), 19 deletions(-)
-> 
-> Index: linux-2.6/drivers/acpi/bus.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/bus.c
-> +++ linux-2.6/drivers/acpi/bus.c
-> @@ -95,21 +95,21 @@ int acpi_bus_get_status(struct acpi_devi
->  	}
->  
->  	/*
-> -	 * Otherwise we assume the status of our parent (unless we don't
-> -	 * have one, in which case status is implied).
-> +	 * According to ACPI spec some device can be present and functional
-> +	 * even if the parent is not present but functional.
-> +	 * In such conditions the child device should not inherit the status
-> +	 * from the parent.
->  	 */
-> -	else if (device->parent)
-> -		device->status = device->parent->status;
->  	else
->  		STRUCT_TO_INT(device->status) =
->  		    ACPI_STA_DEVICE_PRESENT | ACPI_STA_DEVICE_ENABLED |
->  		    ACPI_STA_DEVICE_UI      | ACPI_STA_DEVICE_FUNCTIONING;
->  
->  	if (device->status.functional && !device->status.present) {
-> -		printk(KERN_WARNING PREFIX "Device [%s] status [%08x]: "
-> -		       "functional but not present; setting present\n",
-> -		       device->pnp.bus_id, (u32) STRUCT_TO_INT(device->status));
-> -		device->status.present = 1;
-> +		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] status [%08x]: "
-> +		       "functional but not present;\n",
-> +			device->pnp.bus_id,
-> +			(u32) STRUCT_TO_INT(device->status)));
->  	}
->  
->  	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] status [%08x]\n",
-> Index: linux-2.6/drivers/acpi/scan.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/scan.c
-> +++ linux-2.6/drivers/acpi/scan.c
-> @@ -264,6 +264,13 @@ int acpi_match_device_ids(struct acpi_de
->  {
->  	const struct acpi_device_id *id;
->  
-> +	/*
-> +	 * If the device is not present, it is unnecessary to load device
-> +	 * driver for it.
-> +	 */
-> +	if (!device->status.present)
-> +		return -ENODEV;
-> +
->  	if (device->flags.hardware_id) {
->  		for (id = ids; id->id[0]; id++) {
->  			if (!strcmp((char*)id->id, device->pnp.hardware_id))
-> @@ -1239,15 +1246,18 @@ acpi_add_single_object(struct acpi_devic
->  			result = -ENODEV;
->  			goto end;
->  		}
-> -		if (!device->status.present) {
-> -			/* Bay and dock should be handled even if absent */
-> -			if (!ACPI_SUCCESS(
-> -			     acpi_is_child_device(device, acpi_bay_match)) &&
-> -			    !ACPI_SUCCESS(
-> -			     acpi_is_child_device(device, acpi_dock_match))) {
-> -					result = -ENODEV;
-> -					goto end;
-> -			}
-> +		/*
-> +		 * When the device is neither present nor functional, the
-> +		 * device should not be added to Linux ACPI device tree.
-> +		 * When the status of the device is not present but functinal,
-> +		 * it should be added to Linux ACPI tree. For example : bay
-> +		 * device , dock device.
-> +		 * In such conditions it is unncessary to check whether it is
-> +		 * bay device or dock device.
-> +		 */
-> +		if (!device->status.present && !device->status.functional) {
-> +			result = -ENODEV;
-> +			goto end;
->  		}
->  		break;
->  	default:
-> @@ -1420,7 +1430,12 @@ static int acpi_bus_scan(struct acpi_dev
->  		 * TBD: Need notifications and other detection mechanisms
->  		 *      in place before we can fully implement this.
->  		 */
-> -		if (child->status.present) {
-> +		 /*
-> +		 * When the device is not present but functional, it is also
-> +		 * necessary to scan the children of this device.
-> +		 */
-> +		if (child->status.present || (!child->status.present &&
-> +					child->status.functional)) {
->  			status = acpi_get_next_object(ACPI_TYPE_ANY, chandle,
->  						      NULL, NULL);
->  			if (ACPI_SUCCESS(status)) {
-> Index: linux-2.6/drivers/pnp/pnpacpi/core.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/pnp/pnpacpi/core.c
-> +++ linux-2.6/drivers/pnp/pnpacpi/core.c
-> @@ -150,9 +150,13 @@ static int __init pnpacpi_add_device(str
->  	acpi_status status;
->  	struct pnp_dev *dev;
->  
-> +	/*
-> +	 * If a PnPacpi device is not present , the device
-> +	 * driver should not be loaded.
-> +	 */
->  	status = acpi_get_handle(device->handle, "_CRS", &temp);
->  	if (ACPI_FAILURE(status) || !ispnpidacpi(acpi_device_hid(device)) ||
-> -	    is_exclusive_device(device))
-> +	    is_exclusive_device(device) || (!device->status.present))
->  		return 0;
->  
->  	dev = pnp_alloc_dev(&pnpacpi_protocol, num, acpi_device_hid(device));
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
-
+Thanks,
+Rafael
