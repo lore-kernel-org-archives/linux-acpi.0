@@ -1,55 +1,58 @@
-From: Pavel Machek <pavel@suse.cz>
-Subject: Re: Battery life difference
-Date: Wed, 9 Jul 2008 22:32:17 +0200
-Message-ID: <20080709203216.GF11006@ucw.cz>
-References: <31e679430807050617u3fc706fasee9bb43a151c501f@mail.gmail.com> <20080705082352.4b6be669@infradead.org> <31e679430807050844r30ff74fby7e15641573b42d82@mail.gmail.com> <20080705085432.2f9b2964@infradead.org> <31e679430807051041w6dd9b917xc51f31f66fbd65d3@mail.gmail.com>
+From: "Yinghai Lu" <yhlu.kernel@gmail.com>
+Subject: Re: [PATCH] x86: Allow MMCONFIG above 4GB on x86_64
+Date: Wed, 9 Jul 2008 14:02:33 -0700
+Message-ID: <86802c440807091402x7042c25dnb20a6d00d0f55307@mail.gmail.com>
+References: <20080709204127.1458.5727.77728@attica.americas.sgi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:1525 "EHLO spitz.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754914AbYGIUzh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 9 Jul 2008 16:55:37 -0400
+Received: from rv-out-0506.google.com ([209.85.198.228]:42122 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753087AbYGIVCd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Jul 2008 17:02:33 -0400
+Received: by rv-out-0506.google.com with SMTP id k40so3708721rvb.1
+        for <linux-acpi@vger.kernel.org>; Wed, 09 Jul 2008 14:02:33 -0700 (PDT)
+In-Reply-To: <20080709204127.1458.5727.77728@attica.americas.sgi.com>
 Content-Disposition: inline
-In-Reply-To: <31e679430807051041w6dd9b917xc51f31f66fbd65d3@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Felipe Balbi <felipebalbi@users.sourceforge.net>
-Cc: Arjan van de Ven <arjan@infradead.org>, Kernel development list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: John Keller <jpk@sgi.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, takayoshi.kochi@gmail.com
 
-On Sat 2008-07-05 20:41:07, Felipe Balbi wrote:
-> Hi,
-> 
-> On Sat, Jul 5, 2008 at 6:54 PM, Arjan van de Ven <arjan@infradead.org> wrote:
-> > you may also need to toggle your bios to enable AHCI btw
-> >
-> >>
-> >> > Also take a look at
-> >> > http://kerneltrap.org/mailarchive/linux-kernel/2008/5/8/1771024
-> >> > because these patches save like 0.75W in our lab.
-> >>
-> >> cool, is it merged upstream ?
-> >> I'll build current git kernel and reply again with new linux results.
-> >> It could be that ubuntu 2.6.24 is broken somehow...
-> >>
-> >> > To be honest, I'm surprised at your results; in our testing (with a
-> >> > different distro though) we don't see such a difference and Linux is
-> >> > doing rather well.
-> >>
-> >> can you get powertop results in a 2.6.24 distro kernel and current git
-> >> kernel ?
-> >
-> > most of my measurement machines are in the office ;(
-> >
-> > Anyway, also make sure you use the 0.11 version of powertop; we added
-> > some newer stuff into that version...
-> 
-> Cool, now I'm using current linux 2.6.26-rc8 from git
-> b8a0b6ccf2ba2519ace65d782b41ee91bf3c3778
-> 
-> Now I'm reaching 9.8w consumption :-)
+On Wed, Jul 9, 2008 at 1:41 PM, John Keller <jpk@sgi.com> wrote:
+> SGI UV will have MMCFG base addresses that are greater than 4GB (32 bits).
+>
+> Signed-off-by: John Keller <jpk@sgi.com>
+> ---
+>
+> A similar patch was submitted over a year ago, but apparently was not
+> merged in.
+>
+>   http://marc.info/?l=linux-acpi&m=117283388212912&w=2
+>
+>
+> Index: linux-2.6/arch/x86/kernel/acpi/boot.c
+> ===================================================================
+> --- linux-2.6.orig/arch/x86/kernel/acpi/boot.c  2008-07-09 13:02:54.000000000 -0500
+> +++ linux-2.6/arch/x86/kernel/acpi/boot.c       2008-07-09 15:25:32.000000000 -0500
+> @@ -200,6 +200,7 @@ int __init acpi_parse_mcfg(struct acpi_t
+>        }
+>
+>        memcpy(pci_mmcfg_config, &mcfg[1], config_size);
+> +#ifndef CONFIG_X86_64
+>        for (i = 0; i < pci_mmcfg_config_num; ++i) {
+>                if (pci_mmcfg_config[i].address > 0xFFFFFFFF) {
+>                        printk(KERN_ERR PREFIX
+> @@ -209,6 +210,7 @@ int __init acpi_parse_mcfg(struct acpi_t
+>                        return -ENODEV;
+>                }
+>        }
+> +#endif
+>
+>        return 0;
+>  }
 
-Cool... how low can Windows go?
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+CONFIG_RESOURCES_64BIT ?
+
+YH
