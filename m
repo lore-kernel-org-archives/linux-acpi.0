@@ -1,56 +1,110 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH -mm 6/8] Schedule sysrq poweroff on boot cpu
-Date: Thu, 10 Jul 2008 02:04:24 +0200
-Message-ID: <200807100204.25010.rjw@sisk.pl>
+Subject: [PATCH -mm 4/8] serio: Speed-up resume
+Date: Thu, 10 Jul 2008 02:01:55 +0200
+Message-ID: <200807100201.56232.rjw@sisk.pl>
 References: <200807100152.17755.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:49043 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:49038 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756130AbYGJAGk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 9 Jul 2008 20:06:40 -0400
+	id S1756037AbYGJAGi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 9 Jul 2008 20:06:38 -0400
 In-Reply-To: <200807100152.17755.rjw@sisk.pl>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Andrew Morton <akpm@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@suse.cz>, pm list <linux-pm@lists.linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, Rus <harbour@sfinx.od.ua>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@suse.cz>, pm list <linux-pm@lists.linux-foundation.org>, Shaohua Li <shaohua.li@intel.com>, Len Brown <lenb@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
 
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Schedule sysrq poweroff on boot cpu
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: serio: Speed-up resume
 
-schedule sysrq poweroff on boot cpu.
+serio_resume will call into psmouse_extensions(). In my test, the
+routine is very slow, it blocks resume about 1 sec. Below patch (move
+resume to kseriod, just like boot time probe) cures the issue in my
+test, and seems no side effect. I'm no familiar with serio driver, so
+please check. 
 
-sysrq poweroff needs to disable nonboot cpus, and we need to run this
-on boot cpu to avoid any recursion.
-http://bugzilla.kernel.org/show_bug.cgi?id=10897
-
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-tested-by: Rus <harbour@sfinx.od.ua>
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Acked-by: Len Brown <lenb@kernel.org>
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- kernel/power/poweroff.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/input/serio/serio.c |   33 +++++++++++++++++++++++++--------
+ 1 file changed, 25 insertions(+), 8 deletions(-)
 
-Index: linux-2.6/kernel/power/poweroff.c
+Index: linux-next/drivers/input/serio/serio.c
 ===================================================================
---- linux-2.6.orig/kernel/power/poweroff.c	2008-06-30 16:01:35.000000000 +0800
-+++ linux-2.6/kernel/power/poweroff.c	2008-07-03 10:50:05.000000000 +0800
-@@ -25,7 +25,8 @@
+--- linux-next.orig/drivers/input/serio/serio.c
++++ linux-next/drivers/input/serio/serio.c
+@@ -163,6 +163,7 @@ enum serio_event_type {
+ 	SERIO_RECONNECT_PORT,
+ 	SERIO_REGISTER_PORT,
+ 	SERIO_ATTACH_DRIVER,
++	SERIO_RESUME_PORT,
+ };
  
- static void handle_poweroff(int key, struct tty_struct *tty)
- {
--	schedule_work(&poweroff_work);
-+	/* run sysrq poweroff on boot cpu */
-+	schedule_work_on(first_cpu(cpu_online_map), &poweroff_work);
+ struct serio_event {
+@@ -287,6 +288,13 @@ static struct serio_event *serio_get_eve
+ 	return event;
  }
  
- static struct sysrq_key_op	sysrq_poweroff_op = {
-
-
-
-
++#ifdef CONFIG_PM
++static void serio_resume_port(struct device *dev);
++#else
++static inline void serio_resume_port(struct device *dev)
++{
++}
++#endif /* CONFIG_PM */
+ static void serio_handle_event(void)
+ {
+ 	struct serio_event *event;
+@@ -319,6 +327,10 @@ static void serio_handle_event(void)
+ 				serio_attach_driver(event->object);
+ 				break;
+ 
++			case SERIO_RESUME_PORT:
++				serio_resume_port(event->object);
++				break;
++
+ 			default:
+ 				break;
+ 		}
+@@ -925,21 +937,26 @@ static int serio_suspend(struct device *
+ 	return 0;
+ }
+ 
+-static int serio_resume(struct device *dev)
++static void serio_resume_port(struct device *dev)
+ {
+ 	struct serio *serio = to_serio_port(dev);
+ 
+-	if (dev->power.power_state.event != PM_EVENT_ON &&
+-	    serio_reconnect_driver(serio)) {
+-		/*
+-		 * Driver re-probing can take a while, so better let kseriod
+-		 * deal with it.
+-		 */
+-		serio_rescan(serio);
++	if (serio_reconnect_driver(serio)) {
++		serio_disconnect_port(serio);
++		serio_find_driver(serio);
+ 	}
+ 
+ 	dev->power.power_state = PMSG_ON;
++}
+ 
++static int serio_resume(struct device *dev)
++{
++	/*
++	 * Driver reconnect can take a while, so better let kseriod
++	 * deal with it.
++	 */
++	if (dev->power.power_state.event != PM_EVENT_ON)
++		serio_queue_event(dev, NULL, SERIO_RESUME_PORT);
+ 	return 0;
+ }
+ #endif /* CONFIG_PM */
 
