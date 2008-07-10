@@ -1,18 +1,17 @@
 From: trenn@suse.de
-Subject: [PATCH 6/9] msi-laptop: fingers off backlight if video.ko is serving this functionality
-Date: Thu, 10 Jul 2008 16:31:02 +0200
-Message-ID: <1215700265-24908-6-git-send-email-trenn@suse.de>
+Subject: [PATCH 5/9] fujitsu-laptop: fingers off backlight if video.ko is serving this functionality
+Date: Thu, 10 Jul 2008 16:31:01 +0200
+Message-ID: <1215700265-24908-5-git-send-email-trenn@suse.de>
 References: <1215700265-24908-1-git-send-email-trenn@suse.de>
  <1215700265-24908-2-git-send-email-trenn@suse.de>
  <1215700265-24908-3-git-send-email-trenn@suse.de>
  <1215700265-24908-4-git-send-email-trenn@suse.de>
- <1215700265-24908-5-git-send-email-trenn@suse.de>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:51092 "EHLO mx2.suse.de"
+Received: from cantor2.suse.de ([195.135.220.15]:51107 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754659AbYGJObL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1754724AbYGJObL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Thu, 10 Jul 2008 10:31:11 -0400
-In-Reply-To: <1215700265-24908-5-git-send-email-trenn@suse.de>
+In-Reply-To: <1215700265-24908-4-git-send-email-trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: andi@firstfloor.org
@@ -21,36 +20,60 @@ Cc: mjg59@srcf.ucam.org, rui.zhang@intel.com, jwoithe@physics.adelaide.edu.au, m
 From: Thomas Renninger <trenn@suse.de>
 
 ---
- drivers/misc/msi-laptop.c |   16 ++++++++++------
- 1 files changed, 10 insertions(+), 6 deletions(-)
+ drivers/misc/fujitsu-laptop.c |   26 ++++++++++++++------------
+ 1 files changed, 14 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/misc/msi-laptop.c b/drivers/misc/msi-laptop.c
-index de898c6..759763d 100644
---- a/drivers/misc/msi-laptop.c
-+++ b/drivers/misc/msi-laptop.c
-@@ -347,12 +347,16 @@ static int __init msi_init(void)
+diff --git a/drivers/misc/fujitsu-laptop.c b/drivers/misc/fujitsu-laptop.c
+index 3601224..7306776 100644
+--- a/drivers/misc/fujitsu-laptop.c
++++ b/drivers/misc/fujitsu-laptop.c
+@@ -963,16 +963,16 @@ static int __init fujitsu_init(void)
  
  	/* Register backlight stuff */
  
--	msibl_device = backlight_device_register("msi-laptop-bl", NULL, NULL,
--						&msibl_ops);
--	if (IS_ERR(msibl_device))
--		return PTR_ERR(msibl_device);
+-	fujitsu->bl_device =
+-	    backlight_device_register("fujitsu-laptop", NULL, NULL,
+-				      &fujitsubl_ops);
+-	if (IS_ERR(fujitsu->bl_device))
+-		return PTR_ERR(fujitsu->bl_device);
 -
--	msibl_device->props.max_brightness = MSI_LCD_LEVEL_MAX-1;
-+	if (acpi_video_backlight_support()) {
-+		printk(KERN_INFO "MSI: Brightness ignored, must be controlled "
-+		       "by ACPI video driver\n");
-+	} else {
-+		msibl_device = backlight_device_register("msi-laptop-bl", NULL,
-+							 NULL, &msibl_ops);
-+		if (IS_ERR(msibl_device))
-+			return PTR_ERR(msibl_device);
-+		msibl_device->props.max_brightness = MSI_LCD_LEVEL_MAX-1;
+-	max_brightness = fujitsu->max_brightness;
+-
+-	fujitsu->bl_device->props.max_brightness = max_brightness - 1;
+-	fujitsu->bl_device->props.brightness = fujitsu->brightness_level;
++	if (!acpi_video_backlight_support()) {
++		fujitsu->bl_device =
++			backlight_device_register("fujitsu-laptop", NULL, NULL,
++						  &fujitsubl_ops);
++		if (IS_ERR(fujitsu->bl_device))
++			return PTR_ERR(fujitsu->bl_device);
++		max_brightness = fujitsu->max_brightness;
++		fujitsu->bl_device->props.max_brightness = max_brightness - 1;
++		fujitsu->bl_device->props.brightness = fujitsu->brightness_level;
 +	}
  
- 	ret = platform_driver_register(&msipf_driver);
+ 	ret = platform_driver_register(&fujitsupf_driver);
  	if (ret)
+@@ -1008,7 +1008,8 @@ fail_hotkey:
+ 
+ fail_backlight:
+ 
+-	backlight_device_unregister(fujitsu->bl_device);
++	if (fujitsu->bl_device)
++		backlight_device_unregister(fujitsu->bl_device);
+ 
+ fail_platform_device2:
+ 
+@@ -1035,7 +1036,8 @@ static void __exit fujitsu_cleanup(void)
+ 			   &fujitsupf_attribute_group);
+ 	platform_device_unregister(fujitsu->pf_device);
+ 	platform_driver_unregister(&fujitsupf_driver);
+-	backlight_device_unregister(fujitsu->bl_device);
++	if (fujitsu->bl_device)
++		backlight_device_unregister(fujitsu->bl_device);
+ 
+ 	acpi_bus_unregister_driver(&acpi_fujitsu_driver);
+ 
 -- 
 1.5.4.5
 
