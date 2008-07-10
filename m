@@ -1,38 +1,39 @@
 From: Pavel Machek <pavel@suse.cz>
-Subject: Re: [PATCH -mm 3/8] Hibernation: Simplify memory bitmap
-Date: Thu, 10 Jul 2008 13:34:41 +0200
-Message-ID: <20080710113441.GC15412@elf.ucw.cz>
-References: <200807100152.17755.rjw@sisk.pl> <200807100200.55473.rjw@sisk.pl>
+Subject: Re: [PATCH -mm 2/8] AHCI: Speed-up resume
+Date: Thu, 10 Jul 2008 13:34:20 +0200
+Message-ID: <20080710113420.GB15412@elf.ucw.cz>
+References: <200807100152.17755.rjw@sisk.pl> <200807100158.49341.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:44408 "EHLO
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:44406 "EHLO
 	gprs189-60.eurotel.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755424AbYGJPDm (ORCPT
+	with ESMTP id S1755175AbYGJPDm (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Jul 2008 11:03:42 -0400
 Content-Disposition: inline
-In-Reply-To: <200807100200.55473.rjw@sisk.pl>
+In-Reply-To: <200807100158.49341.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Andrew Morton <akpm@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Tejun Heo <tj@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Jeff Garzik <jeff@garzik.org>
 
-On Thu 2008-07-10 02:00:54, Rafael J. Wysocki wrote:
-> From: Akinobu Mita <akinobu.mita@gmail.com>
-> Subject: Hibernation: Simplify memory bitmap
+On Thu 2008-07-10 01:58:48, Rafael J. Wysocki wrote:
+> From: Zhang Rui <rui.zhang@intel.com>
+> Subject: AHCI: Speed-up resume
 > 
-> This patch simplifies the memory bitmap manipulations.
+> During resume, sleep 1 second to wait for the HBA reset
+> to finish is a waste of time.
 > 
-> - remove the member size in struct bm_block
+> According to the AHCI 1.2 spec,
+> We should poll the HOST_CTL register,
+> and return error if the host reset is not
+> finished within 1 second.
 > 
-> It is not necessary for struct bm_block to have the number of bit chunks
-> that can be calculated by using end_pfn and start_pfn.
+> Test results show that the HBA reset can be done quickly(in usecs).
+> And this patch may save nearly 1 second during resume.
 > 
-> - use find_next_bit() for memory_bm_next_pfn
-> 
-> No need to invent the bitmap library only for the memory bitmap.
-> 
-> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> Acked-by: Tejun Heo <tj@kernel.org>
 > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 
 ACK.
