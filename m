@@ -1,38 +1,40 @@
 From: Pavel Machek <pavel@suse.cz>
-Subject: Re: [PATCH -mm 5/8] Introduce new interface schedule_work_on
-Date: Thu, 10 Jul 2008 13:36:00 +0200
-Message-ID: <20080710113600.GE15412@elf.ucw.cz>
-References: <200807100152.17755.rjw@sisk.pl> <200807100203.27170.rjw@sisk.pl>
+Subject: Re: [PATCH -mm 4/8] serio: Speed-up resume
+Date: Thu, 10 Jul 2008 13:35:35 +0200
+Message-ID: <20080710113535.GD15412@elf.ucw.cz>
+References: <200807100152.17755.rjw@sisk.pl> <200807100201.56232.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:44412 "EHLO
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:44410 "EHLO
 	gprs189-60.eurotel.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755629AbYGJPDf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Jul 2008 11:03:35 -0400
+	with ESMTP id S1755515AbYGJPDx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Jul 2008 11:03:53 -0400
 Content-Disposition: inline
-In-Reply-To: <200807100203.27170.rjw@sisk.pl>
+In-Reply-To: <200807100201.56232.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Andrew Morton <akpm@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, Rus <harbour@sfinx.od.ua>
+Cc: Andrew Morton <akpm@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Shaohua Li <shaohua.li@intel.com>, Len Brown <lenb@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, jikos@suse.cz
 
-On Thu 2008-07-10 02:03:26, Rafael J. Wysocki wrote:
-> From: Zhang Rui <rui.zhang@intel.com>
-> Subject: Introduce new interface schedule_work_on
+On Thu 2008-07-10 02:01:55, Rafael J. Wysocki wrote:
+> From: Shaohua Li <shaohua.li@intel.com>
+> Subject: serio: Speed-up resume
 > 
-> This interface allows adding a job on a specific cpu.
+> serio_resume will call into psmouse_extensions(). In my test, the
+> routine is very slow, it blocks resume about 1 sec. Below patch (move
+> resume to kseriod, just like boot time probe) cures the issue in my
+> test, and seems no side effect. I'm no familiar with serio driver, so
+> please check. 
 > 
-> Although a work struct on a cpu will be scheduled to other cpu if the cpu dies,
-> there is a recursion if a work task tries to offline the cpu it's running on.
-> we need to schedule the task to a specific cpu in this case.
-> http://bugzilla.kernel.org/show_bug.cgi?id=10897
-> 
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> Tested-by: Rus <harbour@sfinx.od.ua>
+> Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+> Acked-by: Len Brown <lenb@kernel.org>
 > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 
-ACK.
+Cc: Jiri Kosina <jikos@suse.cz>
+
+ACK from me, but I'm not a serio expert.
+								Pavel
 
 -- 
 (english) http://www.livejournal.com/~pavelmachek
