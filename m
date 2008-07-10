@@ -1,66 +1,40 @@
-From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Subject: Re: [PATCH] x86: Allow MMCONFIG above 4GB on x86_64
-Date: Thu, 10 Jul 2008 16:28:25 +0900
-Message-ID: <4875BA19.3060101@jp.fujitsu.com>
-References: <20080709204127.1458.5727.77728@attica.americas.sgi.com>
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: [PATCH -mm 7/8] ACPI hibernation: Utilize hardware signature
+Date: Thu, 10 Jul 2008 10:34:23 +0200
+Message-ID: <20080710083423.GD5629@elf.ucw.cz>
+References: <200807100152.17755.rjw@sisk.pl> <200807100205.52308.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:41823 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751354AbYGJH3S (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Jul 2008 03:29:18 -0400
-In-Reply-To: <20080709204127.1458.5727.77728@attica.americas.sgi.com>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:37077 "EHLO
+	gprs189-60.eurotel.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750955AbYGJIda (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Jul 2008 04:33:30 -0400
+Content-Disposition: inline
+In-Reply-To: <200807100205.52308.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: John Keller <jpk@sgi.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, takayoshi.kochi@gmail.com
-
-John Keller wrote:
-> SGI UV will have MMCFG base addresses that are greater than 4GB (32 bits).
-> 
-> Signed-off-by: John Keller <jpk@sgi.com>
-
-Fujitsu servers also will need this change.
-
-Thanks,
-Kenji Kaneshige
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Andrew Morton <akpm@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Shaohua Li <shaohua.li@intel.com>, Andi Kleen <andi@firstfloor.org>
 
 
-> ---
+> Subject: ACPI hibernation: Utilize hardware signature
 > 
-> A similar patch was submitted over a year ago, but apparently was not
-> merged in.
+> ACPI defines a hardware signature.  BIOS calculates the signature
+> according to hardware configure and if hardware changes while
+> hibernated, the signature will change.  In that case, S4 resume
+> should fail.
 > 
->    http://marc.info/?l=linux-acpi&m=117283388212912&w=2
+> Still, there may be systems on which this mechanism does not work
+> correctly, so it is better to provide a workaround for them.  For
+> this reason, add a new switch to the acpi_sleep= command line
+> argument allowing one to disable hardware signature checking.
 > 
-> 
-> Index: linux-2.6/arch/x86/kernel/acpi/boot.c
-> ===================================================================
-> --- linux-2.6.orig/arch/x86/kernel/acpi/boot.c	2008-07-09 13:02:54.000000000 -0500
-> +++ linux-2.6/arch/x86/kernel/acpi/boot.c	2008-07-09 15:25:32.000000000 -0500
-> @@ -200,6 +200,7 @@ int __init acpi_parse_mcfg(struct acpi_t
->  	}
->  
->  	memcpy(pci_mmcfg_config, &mcfg[1], config_size);
-> +#ifndef CONFIG_X86_64
->  	for (i = 0; i < pci_mmcfg_config_num; ++i) {
->  		if (pci_mmcfg_config[i].address > 0xFFFFFFFF) {
->  			printk(KERN_ERR PREFIX
-> @@ -209,6 +210,7 @@ int __init acpi_parse_mcfg(struct acpi_t
->  			return -ENODEV;
->  		}
->  	}
-> +#endif
->  
->  	return 0;
->  }
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+> Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 
+ACK.
 
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
