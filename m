@@ -1,79 +1,72 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH -mm 8/8] ACPI PM: Add DMI quirk list for ACPI 1.0 suspend ordering
-Date: Thu, 10 Jul 2008 02:07:02 +0200
-Message-ID: <200807100207.03636.rjw@sisk.pl>
-References: <200807100152.17755.rjw@sisk.pl>
+Subject: Re: next-0708: build failure at drivers/pci/pci-acpi.c
+Date: Thu, 10 Jul 2008 02:16:44 +0200
+Message-ID: <200807100216.45690.rjw@sisk.pl>
+References: <a4423d670807080518g31402f60j2f624a2ac2db03aa@mail.gmail.com> <200807082229.33016.rjw@sisk.pl> <200807091621.37697.jbarnes@virtuousgeek.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-2"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:49059 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756496AbYGJAGs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 9 Jul 2008 20:06:48 -0400
-In-Reply-To: <200807100152.17755.rjw@sisk.pl>
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <200807091621.37697.jbarnes@virtuousgeek.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-next-owner@vger.kernel.org
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Alexander Beregalov <a.beregalov@gmail.com>, ak@linux.intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-next@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, David Howells <dhowells@redhat.com>, Stephen Rothwell <sfr@canb.auug.org.au>
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@suse.cz>, pm list <linux-pm@lists.linux-foundation.org>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Andi Kleen <andi@firstfloor.org>
 
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: ACPI PM: Add DMI quirk list for ACPI 1.0 suspend ordering
+On Thursday, 10 of July 2008, Jesse Barnes wrote:
+> On Tuesday, July 8, 2008 1:29:31 pm Rafael J. Wysocki wrote:
+> > On Tuesday, 8 of July 2008, Jesse Barnes wrote:
+> > > David sent me one just like this at 7am this morning, just applied and
+> > > pushed (along with Alexander's tested-by).
+> >
+> > OK, thanks.
+> >
+> > Would you like me to send the Stephen's fix for compilation on ppc64
+> > (CONFIG_PM unset)?
+> 
+> Sure, unless it's already in the ppc tree...
 
-There are a few BIOS' that we know of already that need to use the
-ACPI 1.0 suspend order. This appears to be only be a small minority of
-mostly nVidia based systems.
+It looks like Stephen had to apply it today too, so I guess it isn't.
 
-Based on observation of Windows behaviour, it's clear that Windows is
-also doing maintaining its own list of broken hardware that needs this
-workaround.
+Thanks,
+Rafael
 
-Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
+---
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: [PATCH] pci: include linux/pm_wakeup.h for device_set_wakeup_capable
+
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
+ drivers/pci/pci.c         |    1 +
+ include/linux/pm_wakeup.h |    2 ++
+ 2 files changed, 3 insertions(+), 0 deletions(-)
 
- drivers/acpi/sleep/main.c |   20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
-
-
-Index: linux-next/drivers/acpi/sleep/main.c
-===================================================================
---- linux-next.orig/drivers/acpi/sleep/main.c
-+++ linux-next/drivers/acpi/sleep/main.c
-@@ -280,6 +280,24 @@ static struct platform_suspend_ops acpi_
- 	.end = acpi_pm_end,
- 	.recover = acpi_pm_finish,
- };
-+
-+static int __init init_old_suspend_ordering(const struct dmi_system_id *d)
-+{
-+	old_suspend_ordering = true;
-+	return 0;
-+}
-+
-+static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
-+	{
-+	.callback = init_old_suspend_ordering,
-+	.ident = "Abit KN9 (nForce4 variant)",
-+	.matches = {
-+		DMI_MATCH(DMI_BOARD_VENDOR, "http://www.abit.com.tw/"),
-+		DMI_MATCH(DMI_BOARD_NAME, "KN9 Series(NF-CK804)"),
-+		},
-+	},
-+	{},
-+};
- #endif /* CONFIG_SUSPEND */
+diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+index e632a58..3d92b71 100644
+--- a/drivers/pci/pci.c
++++ b/drivers/pci/pci.c
+@@ -17,6 +17,7 @@
+ #include <linux/string.h>
+ #include <linux/log2.h>
+ #include <linux/pci-aspm.h>
++#include <linux/pm_wakeup.h>
+ #include <asm/dma.h>	/* isa_dma_bridge_buggy */
+ #include "pci.h"
  
- #ifdef CONFIG_HIBERNATION
-@@ -531,6 +549,8 @@ int __init acpi_sleep_init(void)
- 	u8 type_a, type_b;
- #ifdef CONFIG_SUSPEND
- 	int i = 0;
-+
-+	dmi_check_system(acpisleep_dmi_table);
- #endif
+diff --git a/include/linux/pm_wakeup.h b/include/linux/pm_wakeup.h
+index 3af0c8d..0aae777 100644
+--- a/include/linux/pm_wakeup.h
++++ b/include/linux/pm_wakeup.h
+@@ -63,6 +63,8 @@ static inline void device_init_wakeup(struct device *dev, int val)
+ 	dev->power.can_wakeup = !!val;
+ }
  
- 	if (acpi_disabled)
-
++static inline void device_set_wakeup_capable(struct device *dev, int val) { }
++
+ static inline int device_can_wakeup(struct device *dev)
+ {
+ 	return dev->power.can_wakeup;
+-- 
