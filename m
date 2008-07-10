@@ -1,27 +1,66 @@
-From: "Alexander Beregalov" <a.beregalov@gmail.com>
-Subject: Re: 2.6.26-rc: host can not shutdown: ata problem
-Date: Thu, 10 Jul 2008 09:38:17 +0400
-Message-ID: <a4423d670807092238g336ae7fdk1e72dfa578398892@mail.gmail.com>
-References: <a4423d670807031443v73def4d2g97c9d6acc4b4e941@mail.gmail.com>
-	 <200807052213.02098.rjw@sisk.pl>
-	 <20080709182852.c22ca65a.akpm@linux-foundation.org>
+From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Subject: Re: [PATCH] x86: Allow MMCONFIG above 4GB on x86_64
+Date: Thu, 10 Jul 2008 16:28:25 +0900
+Message-ID: <4875BA19.3060101@jp.fujitsu.com>
+References: <20080709204127.1458.5727.77728@attica.americas.sgi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-2022-JP
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wx-out-0506.google.com ([66.249.82.233]:14797 "EHLO
-	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751300AbYGJFiS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Jul 2008 01:38:18 -0400
-Received: by wx-out-0506.google.com with SMTP id h29so1367734wxd.4
-        for <linux-acpi@vger.kernel.org>; Wed, 09 Jul 2008 22:38:17 -0700 (PDT)
-In-Reply-To: <20080709182852.c22ca65a.akpm@linux-foundation.org>
-Content-Disposition: inline
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:41823 "EHLO
+	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751354AbYGJH3S (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Jul 2008 03:29:18 -0400
+In-Reply-To: <20080709204127.1458.5727.77728@attica.americas.sgi.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Tejun Heo <htejun@gmail.com>, linux-acpi@vger.kernel.org
+To: John Keller <jpk@sgi.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, takayoshi.kochi@gmail.com
 
-2008/7/10 Andrew Morton <akpm@linux-foundation.org>:
-> Alexander, is this a regression?  Was 2.6.25 OK?
-Yes, it is a regression, 2.6.25 worked better.
+John Keller wrote:
+> SGI UV will have MMCFG base addresses that are greater than 4GB (32 bits).
+> 
+> Signed-off-by: John Keller <jpk@sgi.com>
+
+Fujitsu servers also will need this change.
+
+Thanks,
+Kenji Kaneshige
+
+
+> ---
+> 
+> A similar patch was submitted over a year ago, but apparently was not
+> merged in.
+> 
+>    http://marc.info/?l=linux-acpi&m=117283388212912&w=2
+> 
+> 
+> Index: linux-2.6/arch/x86/kernel/acpi/boot.c
+> ===================================================================
+> --- linux-2.6.orig/arch/x86/kernel/acpi/boot.c	2008-07-09 13:02:54.000000000 -0500
+> +++ linux-2.6/arch/x86/kernel/acpi/boot.c	2008-07-09 15:25:32.000000000 -0500
+> @@ -200,6 +200,7 @@ int __init acpi_parse_mcfg(struct acpi_t
+>  	}
+>  
+>  	memcpy(pci_mmcfg_config, &mcfg[1], config_size);
+> +#ifndef CONFIG_X86_64
+>  	for (i = 0; i < pci_mmcfg_config_num; ++i) {
+>  		if (pci_mmcfg_config[i].address > 0xFFFFFFFF) {
+>  			printk(KERN_ERR PREFIX
+> @@ -209,6 +210,7 @@ int __init acpi_parse_mcfg(struct acpi_t
+>  			return -ENODEV;
+>  		}
+>  	}
+> +#endif
+>  
+>  	return 0;
+>  }
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
+
+
