@@ -1,79 +1,39 @@
-From: trenn@suse.de
-Subject: [PATCH 5/9] fujitsu-laptop: fingers off backlight if video.ko is serving this functionality
-Date: Thu, 10 Jul 2008 16:31:01 +0200
-Message-ID: <1215700265-24908-5-git-send-email-trenn@suse.de>
-References: <1215700265-24908-1-git-send-email-trenn@suse.de>
- <1215700265-24908-2-git-send-email-trenn@suse.de>
- <1215700265-24908-3-git-send-email-trenn@suse.de>
- <1215700265-24908-4-git-send-email-trenn@suse.de>
+From: kurk <kurk@shiftmail.org>
+Subject: Re: [Bugme-new] [Bug 11045] New: Bug in MPT Fusion 2.6.26-rc7
+ unbootable
+Date: Thu, 10 Jul 2008 16:24:41 +0200
+Message-ID: <48761BA9.9020704@shiftmail.org>
+References: <bug-11045-10286@http.bugzilla.kernel.org/>
+ <200807081051.33892.bjorn.helgaas@hp.com>
+ <1215537813.3214.22.camel@localhost.localdomain>
+ <200807081456.53460.bjorn.helgaas@hp.com>
+ <20080708144720.998a13f2.akpm@linux-foundation.org>
+ <1215554255.3214.48.camel@localhost.localdomain>
+ <20080709080814.GA801@lsil.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:51107 "EHLO mx2.suse.de"
+Received: from unimix2.unimi.it ([159.149.10.82]:53124 "EHLO unimix2.unimi.it"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754724AbYGJObL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 10 Jul 2008 10:31:11 -0400
-In-Reply-To: <1215700265-24908-4-git-send-email-trenn@suse.de>
+	id S1751828AbYGJOsM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 10 Jul 2008 10:48:12 -0400
+In-reply-to: <20080709080814.GA801@lsil.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: andi@firstfloor.org
-Cc: mjg59@srcf.ucam.org, rui.zhang@intel.com, jwoithe@physics.adelaide.edu.au, malattia@linux.it, corentincj@iksaif.net, mzxreary@0pointer.de, hmh@hmh.eng.br, carlos@strangeworlds.co.uk, linux-acpi@vger.kernel.org, dannybaumann@web.de, marcus@better.se, corsac@debian.org, Thomas Renninger <trenn@suse.de>
+To: "Prakash, Sathya" <sathya.prakash@lsi.com>, James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, "Support, Software" <support@lsi.com>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "bugme-daemon@bugzilla.kernel.org" <bugme-daemon@bugzilla.kernel.org>, "Moore, Eric" <Eric.Moore@lsi.com>
 
-From: Thomas Renninger <trenn@suse.de>
+Hi all,
+Good news! James and Sathya were correct, the bug is related to MSI: 
+specifying mpt_msi_enable=0 as option for the mptbase module solves the 
+problem and the system can boot as usual.
 
----
- drivers/misc/fujitsu-laptop.c |   26 ++++++++++++++------------
- 1 files changed, 14 insertions(+), 12 deletions(-)
+Having said this, do you still want me to try a patch, or perform some 
+additional test?
 
-diff --git a/drivers/misc/fujitsu-laptop.c b/drivers/misc/fujitsu-laptop.c
-index 3601224..7306776 100644
---- a/drivers/misc/fujitsu-laptop.c
-+++ b/drivers/misc/fujitsu-laptop.c
-@@ -963,16 +963,16 @@ static int __init fujitsu_init(void)
- 
- 	/* Register backlight stuff */
- 
--	fujitsu->bl_device =
--	    backlight_device_register("fujitsu-laptop", NULL, NULL,
--				      &fujitsubl_ops);
--	if (IS_ERR(fujitsu->bl_device))
--		return PTR_ERR(fujitsu->bl_device);
--
--	max_brightness = fujitsu->max_brightness;
--
--	fujitsu->bl_device->props.max_brightness = max_brightness - 1;
--	fujitsu->bl_device->props.brightness = fujitsu->brightness_level;
-+	if (!acpi_video_backlight_support()) {
-+		fujitsu->bl_device =
-+			backlight_device_register("fujitsu-laptop", NULL, NULL,
-+						  &fujitsubl_ops);
-+		if (IS_ERR(fujitsu->bl_device))
-+			return PTR_ERR(fujitsu->bl_device);
-+		max_brightness = fujitsu->max_brightness;
-+		fujitsu->bl_device->props.max_brightness = max_brightness - 1;
-+		fujitsu->bl_device->props.brightness = fujitsu->brightness_level;
-+	}
- 
- 	ret = platform_driver_register(&fujitsupf_driver);
- 	if (ret)
-@@ -1008,7 +1008,8 @@ fail_hotkey:
- 
- fail_backlight:
- 
--	backlight_device_unregister(fujitsu->bl_device);
-+	if (fujitsu->bl_device)
-+		backlight_device_unregister(fujitsu->bl_device);
- 
- fail_platform_device2:
- 
-@@ -1035,7 +1036,8 @@ static void __exit fujitsu_cleanup(void)
- 			   &fujitsupf_attribute_group);
- 	platform_device_unregister(fujitsu->pf_device);
- 	platform_driver_unregister(&fujitsupf_driver);
--	backlight_device_unregister(fujitsu->bl_device);
-+	if (fujitsu->bl_device)
-+		backlight_device_unregister(fujitsu->bl_device);
- 
- 	acpi_bus_unregister_driver(&acpi_fujitsu_driver);
- 
--- 
-1.5.4.5
+Just out of curiosity: do you intend to eventually modify the kernel so 
+to "support" and work around buggy hardware like the one we have (IBM 
+xSeries 335), so that Linux can work out of the box even on this hardware?
 
+Thank everybody for your help
