@@ -1,54 +1,161 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH] libata-acpi: don't call sleeping function from invalid
-	context
-Date: Thu, 10 Jul 2008 10:10:37 +0800
-Message-ID: <1215655837.1617.7.camel@rzhang-dt>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: [Resend] [PATCH] ACPI : Load device driver according to the status
+	of acpi device
+Date: Thu, 10 Jul 2008 10:30:52 +0800
+Message-ID: <1215657052.21393.12.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:34722 "EHLO mga09.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:32881 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750818AbYGJCLW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 9 Jul 2008 22:11:22 -0400
+	id S1753042AbYGJCTz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 9 Jul 2008 22:19:55 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: hmacht@suse.de, jeff@garzik.org, Andi Kleen <andi@firstfloor.org>
+To: Andi Kleen <andi@firstfloor.org>
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
 
+update the commit log based on Bjorn's advice.
 
-The problem is introduced by commit
-664d080c41463570b95717b5ad86e79dc1be0877.
+Subject: ACPI : Load device driver according to the status of acpi device
+>From : Zhao Yakui <yakui.zhao@intel.com>
 
-acpi_evaluate_integer is a sleeping function,
-and it should not be called with spin_lock_irqsave.
-https://bugzilla.redhat.com/show_bug.cgi?id=451399
+According to ACPI spec when the status of some device is not present 
+but functional, the device is valid and the children of this device 
+should be enumerated. It means that the device should be added to 
+linux acpi device tree. But the device driver for this device should not 
+be loaded. 
+    The detailed info can be found in the section 6.3.7 of ACPI 3.0b spec.
+    _STA may return bit 0 clear (not present) with bit 3 set (device is 
+functional). This case is used to indicate a valid device for which no 
+device driver should be loaded (for example, a bridge device.).
+Children of this device may be present and valid. OS should continue 
+enumeration below a device whose _STA returns this bit combination
 
-Sighed-off-by: Zhang Rui <rui.zhang@intel.com>
+http://bugzilla.kernel.org/show_bug.cgi?id=3358
+
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+Signed-off-by: Li Shaohua <shaohua.li@intel.com>
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- drivers/ata/libata-acpi.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/acpi/bus.c         |   16 ++++++++--------
+ drivers/acpi/scan.c        |   35 +++++++++++++++++++++++++----------
+ drivers/pnp/pnpacpi/core.c |    6 +++++-
+ 3 files changed, 38 insertions(+), 19 deletions(-)
 
-Index: linux-2.6/drivers/ata/libata-acpi.c
+Index: linux-2.6/drivers/acpi/bus.c
 ===================================================================
---- linux-2.6.orig/drivers/ata/libata-acpi.c	2007-05-04 10:57:08.000000000 +0800
-+++ linux-2.6/drivers/ata/libata-acpi.c	2008-07-07 11:15:02.000000000 +0800
-@@ -195,6 +195,8 @@
- 		/* This device does not support hotplug */
- 		return;
+--- linux-2.6.orig/drivers/acpi/bus.c
++++ linux-2.6/drivers/acpi/bus.c
+@@ -95,21 +95,21 @@ int acpi_bus_get_status(struct acpi_devi
+ 	}
  
-+	status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
+ 	/*
+-	 * Otherwise we assume the status of our parent (unless we don't
+-	 * have one, in which case status is implied).
++	 * According to ACPI spec some device can be present and functional
++	 * even if the parent is not present but functional.
++	 * In such conditions the child device should not inherit the status
++	 * from the parent.
+ 	 */
+-	else if (device->parent)
+-		device->status = device->parent->status;
+ 	else
+ 		STRUCT_TO_INT(device->status) =
+ 		    ACPI_STA_DEVICE_PRESENT | ACPI_STA_DEVICE_ENABLED |
+ 		    ACPI_STA_DEVICE_UI      | ACPI_STA_DEVICE_FUNCTIONING;
+ 
+ 	if (device->status.functional && !device->status.present) {
+-		printk(KERN_WARNING PREFIX "Device [%s] status [%08x]: "
+-		       "functional but not present; setting present\n",
+-		       device->pnp.bus_id, (u32) STRUCT_TO_INT(device->status));
+-		device->status.present = 1;
++		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] status [%08x]: "
++		       "functional but not present;\n",
++			device->pnp.bus_id,
++			(u32) STRUCT_TO_INT(device->status)));
+ 	}
+ 
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] status [%08x]\n",
+Index: linux-2.6/drivers/acpi/scan.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/scan.c
++++ linux-2.6/drivers/acpi/scan.c
+@@ -264,6 +264,13 @@ int acpi_match_device_ids(struct acpi_de
+ {
+ 	const struct acpi_device_id *id;
+ 
++	/*
++	 * If the device is not present, it is unnecessary to load device
++	 * driver for it.
++	 */
++	if (!device->status.present)
++		return -ENODEV;
 +
- 	spin_lock_irqsave(ap->lock, flags);
+ 	if (device->flags.hardware_id) {
+ 		for (id = ids; id->id[0]; id++) {
+ 			if (!strcmp((char*)id->id, device->pnp.hardware_id))
+@@ -1239,15 +1246,18 @@ acpi_add_single_object(struct acpi_devic
+ 			result = -ENODEV;
+ 			goto end;
+ 		}
+-		if (!device->status.present) {
+-			/* Bay and dock should be handled even if absent */
+-			if (!ACPI_SUCCESS(
+-			     acpi_is_child_device(device, acpi_bay_match)) &&
+-			    !ACPI_SUCCESS(
+-			     acpi_is_child_device(device, acpi_dock_match))) {
+-					result = -ENODEV;
+-					goto end;
+-			}
++		/*
++		 * When the device is neither present nor functional, the
++		 * device should not be added to Linux ACPI device tree.
++		 * When the status of the device is not present but functinal,
++		 * it should be added to Linux ACPI tree. For example : bay
++		 * device , dock device.
++		 * In such conditions it is unncessary to check whether it is
++		 * bay device or dock device.
++		 */
++		if (!device->status.present && !device->status.functional) {
++			result = -ENODEV;
++			goto end;
+ 		}
+ 		break;
+ 	default:
+@@ -1420,7 +1430,12 @@ static int acpi_bus_scan(struct acpi_dev
+ 		 * TBD: Need notifications and other detection mechanisms
+ 		 *      in place before we can fully implement this.
+ 		 */
+-		if (child->status.present) {
++		 /*
++		 * When the device is not present but functional, it is also
++		 * necessary to scan the children of this device.
++		 */
++		if (child->status.present || (!child->status.present &&
++					child->status.functional)) {
+ 			status = acpi_get_next_object(ACPI_TYPE_ANY, chandle,
+ 						      NULL, NULL);
+ 			if (ACPI_SUCCESS(status)) {
+Index: linux-2.6/drivers/pnp/pnpacpi/core.c
+===================================================================
+--- linux-2.6.orig/drivers/pnp/pnpacpi/core.c
++++ linux-2.6/drivers/pnp/pnpacpi/core.c
+@@ -150,9 +150,13 @@ static int __init pnpacpi_add_device(str
+ 	acpi_status status;
+ 	struct pnp_dev *dev;
  
- 	switch (event) {
-@@ -202,7 +204,6 @@
- 	case ACPI_NOTIFY_DEVICE_CHECK:
- 		ata_ehi_push_desc(ehi, "ACPI event");
++	/*
++	 * If a PnPacpi device is not present , the device
++	 * driver should not be loaded.
++	 */
+ 	status = acpi_get_handle(device->handle, "_CRS", &temp);
+ 	if (ACPI_FAILURE(status) || !ispnpidacpi(acpi_device_hid(device)) ||
+-	    is_exclusive_device(device))
++	    is_exclusive_device(device) || (!device->status.present))
+ 		return 0;
  
--		status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
- 		if (ACPI_FAILURE(status)) {
- 			ata_port_printk(ap, KERN_ERR,
- 				"acpi: failed to determine bay status (0x%x)\n",
+ 	dev = pnp_alloc_dev(&pnpacpi_protocol, num, acpi_device_hid(device));
 
 
