@@ -1,103 +1,64 @@
-From: Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: ACPI Error under 2.6.26-rc*
-Date: Fri, 11 Jul 2008 09:28:02 +0800
-Message-ID: <1215739682.1617.32.camel@rzhang-dt>
-References: <20080709083829.GA5748@linux.int.dgn.ag>
-	 <200807102255.23090.rjw@sisk.pl>  <1215739210.1617.28.camel@rzhang-dt>
+From: "Prakash, Sathya" <Sathya.Prakash@lsi.com>
+Subject: RE: [Bugme-new] [Bug 11045] New: Bug in MPT Fusion 2.6.26-rc7
+	unbootable
+Date: Fri, 11 Jul 2008 12:33:53 +0800
+Message-ID: <6A4D764DC1BDE14495DA8DC60A3D69531E95D72503@hkgmail01.lsi.com>
+References: <1215736925.3353.111.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1215739210.1617.28.camel@rzhang-dt>
-Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Cc: ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andre Prendel <andre_prendel-Mmb7MZpHnFY@public.gmane.org>, kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andi Kleen <andi-Vw/NltI1exuRpAAqCnN02g@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail0.lsil.com ([147.145.40.20]:33247 "EHLO mail0.lsil.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751472AbYGKEgE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Jul 2008 00:36:04 -0400
+In-Reply-To: <1215736925.3353.111.camel@localhost.localdomain>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: James Bottomley <James.Bottomley@HansenPartnership.com>, Andrew Morton <akpm@linux-foundation.org>
+Cc: kurk <kurk@shiftmail.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, "Support, Software" <support@lsi.com>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "bugme-daemon@bugzilla.kernel.org" <bugme-daemon@bugzilla.kernel.org>, "Moore, Eric" <Eric.Moore@lsi.com>
 
-On Fri, 2008-07-11 at 09:20 +0800, Zhang Rui wrote:
-> On Fri, 2008-07-11 at 04:55 +0800, Rafael J. Wysocki wrote:
-> > [Adding CCs.]
-> > 
-> > On Wednesday, 9 of July 2008, Andre Prendel wrote:
-> > > Hi,
+I did a recheck on this, except FC 919X and 929X boards, everything else should work fine with MSI. Hence the SPI boards (1030) should work with MSI and the problem might be with the motherboard.
+But we would like to keep the MSI disabled for SPI controllers since we have not tested internally with MSI and FC enabled by default for them in our recent drivers.
+So I would like to request to pull in the patch to disable MSI for SPI & FC.
+-Thanks
+Sathya
+
+-----Original Message-----
+From: James Bottomley [mailto:James.Bottomley@HansenPartnership.com]
+Sent: Friday, July 11, 2008 6:12 AM
+To: Andrew Morton
+Cc: kurk; Prakash, Sathya; Bjorn Helgaas; Support, Software; linux-scsi@vger.kernel.org; linux-acpi@vger.kernel.org; bugme-daemon@bugzilla.kernel.org; Moore, Eric
+Subject: Re: [Bugme-new] [Bug 11045] New: Bug in MPT Fusion 2.6.26-rc7 unbootable
+
+On Thu, 2008-07-10 at 16:44 -0700, Andrew Morton wrote:
+> On Thu, 10 Jul 2008 16:52:01 +0200 kurk <kurk@shiftmail.org> wrote:
+>
+> > Prakash, Sathya wrote:
+> > > This may  be a problem due to enabling MSI for SPI controllers. I have posted another message in the list providing the correction patch which is already in scsi-misc tree.
+> > > If the problem is gone with changing the module parameter mpt_msi_enable=0 or by applying the patch http://marc.info/?l=linux-scsi&m=121131228827682&w=4 then it might be due to MSI enabling.
 > > >
-> > > I have had some ACPI Problems working under the 2.6.26-rc's in the
-> > last weeks.
-> > > Power off does not work well. "System halted" is the last output,
-> > but power is
-> > > not switch off. The lastest stable kernel (2.6.25.10) works fine for
-> > me. After
-> > > that I tried 2.6.26-rc1 and the error occurs. AFAIR I had these
-> > problems with
-> > > all 2.6.26-rc's until 2.6.26-rc8-git4. I did not tested newer ones.
-> > >
-> > > Dmesg output is attached.
-> > >
-> > > Andre
-> > >
-> > > ----------------------------------
-> > > [    0.000000] Linux version 2.6.26-rc1 (andre@ubuntu) (gcc version
-> > 4.1.3 20070929 (prerelease) (Ubuntu 4.1.2-16ubuntu2)) #8 SMP Tue Jul 8
-> > 22:28:14 CEST 2008
-> > > [    0.000000] BIOS-provided physical RAM map:
-> > > [    0.000000]  BIOS-e820: 0000000000000000 - 000000000009fc00
-> > (usable)
-> > > [    0.000000]  BIOS-e820: 000000000009fc00 - 00000000000a0000
-> > (reserved)
-> > > [    0.000000]  BIOS-e820: 00000000000f0000 - 0000000000100000
-> > (reserved)
-> > > [    0.000000]  BIOS-e820: 0000000000100000 - 000000001fff0000
-> > (usable)
-> > > [    0.000000]  BIOS-e820: 0000000021ff0000 - 0000000021ff8000 (ACPI
-> > data)
-> > > [    0.000000]  BIOS-e820: 0000000021ff8000 - 0000000022000000 (ACPI
-> > NVS)
-> > > [    0.000000]  BIOS-e820: 00000000fec00000 - 00000000fec01000
-> > (reserved)
-> > > [    0.000000]  BIOS-e820: 00000000fee00000 - 00000000fee01000
-> > (reserved)
-> > > [    0.000000]  BIOS-e820: 00000000ffee0000 - 00000000fff00000
-> > (reserved)
-> > > [    0.000000]  BIOS-e820: 00000000fffc0000 - 0000000100000000
-> > (reserved)
-> > > [    0.000000] x86: PAT support disabled.
-> > > [    0.000000] 511MB LOWMEM available.
-> > > [    0.000000] Entering add_active_range(0, 0, 131056) 0 entries of
-> > 256 used
-> > > [    0.000000] Zone PFN ranges:
-> > > [    0.000000]   DMA             0 ->     4096
-> > > [    0.000000]   Normal       4096 ->   131056
-> > > [    0.000000] Movable zone start PFN for each node
-> > > [    0.000000] early_node_map[1] active PFN ranges
-> > > [    0.000000]     0:        0 ->   131056
-> > > [    0.000000] On node 0 totalpages: 131056
-> > > [    0.000000]   DMA zone: 32 pages used for memmap
-> > > [    0.000000]   DMA zone: 0 pages reserved
-> > > [    0.000000]   DMA zone: 4064 pages, LIFO batch:0
-> > > [    0.000000]   Normal zone: 991 pages used for memmap
-> > > [    0.000000]   Normal zone: 125969 pages, LIFO batch:31
-> > > [    0.000000]   Movable zone: 0 pages used for memmap
-> > > [    0.000000] DMI 2.3 present.
-> > > [    0.000000] ACPI: RSDP 000FA340, 0014 (r0 AMI   )
-> > > [    0.000000] ACPI:      21FF0000, 0000 (r0
-> > 0             0)
-> > > [    0.000000] ACPI Error (tbutils-0472): Invalid length 0x0 in
-> > RSDT/XSDT [20080321]
-> 
-> Please attach the acpidump output using the latest pmtools at
-> http://www.lesswatts.org/patches/linux_acpi/
-> 
-Please also attach the dmesg output of a working kernel.
+> > Another good news: I confirm that yes, the problem is also fixed by
+> > the patch linked above by Sathya, and in that case it is not needed
+> > to specify option mpt_msi_enable=0 for mptbase. Any one of the two
+> > (patch or option) is enough to fix the problem.
+> > It would be nice to see this patch in the final release of the
+> > 2.6.26 kernel Thank you
+>
+> James, shouldn't we put that into 2.6.26?
+
+I'm still not sure ... if it's a fault on the board with MSI, then yes, we need it in ... although the form would then be wrong because we probably should be identifying the faulty parts and blacklisting them.
+
+If it's actually a fault on the motherboard with MSI, then no, this isn't the patch series that should be in we need the motherboard strings to blacklist it.
+
+Unfortunately, I can't seem to get an answer out of LSI on this question, It looks like the commit will cherry pick easily enough ...
+although now I look at it the parameter's description is wrong.
+
+> That whole patch series looks pretty desirable actually..
+
+Well, it was billed as a driver update ... and it has a lot more than just trivial changes, so on an eve of release quality issue, I'd tend to say that wouldn't be a good idea.
+
+James
 
 
-> thanks,
-> rui
-> > 
-> > 
-> > 
-> > 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
