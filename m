@@ -1,64 +1,67 @@
-From: "Prakash, Sathya" <Sathya.Prakash@lsi.com>
-Subject: RE: [Bugme-new] [Bug 11045] New: Bug in MPT Fusion 2.6.26-rc7
-	unbootable
-Date: Fri, 11 Jul 2008 12:33:53 +0800
-Message-ID: <6A4D764DC1BDE14495DA8DC60A3D69531E95D72503@hkgmail01.lsi.com>
-References: <1215736925.3353.111.camel@localhost.localdomain>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [linux-next] [PATCH V2 0/4] ACPI: save/restore ACPI NVS memory
+	during hiberntion
+Date: Fri, 11 Jul 2008 13:29:05 +0800
+Message-ID: <1215754145.1617.57.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail0.lsil.com ([147.145.40.20]:33247 "EHLO mail0.lsil.com"
+Received: from mga02.intel.com ([134.134.136.20]:31383 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751472AbYGKEgE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Jul 2008 00:36:04 -0400
-In-Reply-To: <1215736925.3353.111.camel@localhost.localdomain>
-Content-Language: en-US
+	id S1752260AbYGKF3z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 11 Jul 2008 01:29:55 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: James Bottomley <James.Bottomley@HansenPartnership.com>, Andrew Morton <akpm@linux-foundation.org>
-Cc: kurk <kurk@shiftmail.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, "Support, Software" <support@lsi.com>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "bugme-daemon@bugzilla.kernel.org" <bugme-daemon@bugzilla.kernel.org>, "Moore, Eric" <Eric.Moore@lsi.com>
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Pavel Machek <pavel@suse.cz>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Andi Kleen <andi@firstfloor.org>, Ingo Molnar <mingo@elte.hu>
 
-I did a recheck on this, except FC 919X and 929X boards, everything else should work fine with MSI. Hence the SPI boards (1030) should work with MSI and the problem might be with the motherboard.
-But we would like to keep the MSI disabled for SPI controllers since we have not tested internally with MSI and FC enabled by default for them in our recent drivers.
-So I would like to request to pull in the patch to disable MSI for SPI & FC.
--Thanks
-Sathya
+=EF=BB=BFHi,
 
------Original Message-----
-From: James Bottomley [mailto:James.Bottomley@HansenPartnership.com]
-Sent: Friday, July 11, 2008 6:12 AM
-To: Andrew Morton
-Cc: kurk; Prakash, Sathya; Bjorn Helgaas; Support, Software; linux-scsi@vger.kernel.org; linux-acpi@vger.kernel.org; bugme-daemon@bugzilla.kernel.org; Moore, Eric
-Subject: Re: [Bugme-new] [Bug 11045] New: Bug in MPT Fusion 2.6.26-rc7 unbootable
+This is the second version of patches which save/restore ACPI NVS memor=
+y
+during hibernation.
 
-On Thu, 2008-07-10 at 16:44 -0700, Andrew Morton wrote:
-> On Thu, 10 Jul 2008 16:52:01 +0200 kurk <kurk@shiftmail.org> wrote:
->
-> > Prakash, Sathya wrote:
-> > > This may  be a problem due to enabling MSI for SPI controllers. I have posted another message in the list providing the correction patch which is already in scsi-misc tree.
-> > > If the problem is gone with changing the module parameter mpt_msi_enable=0 or by applying the patch http://marc.info/?l=linux-scsi&m=121131228827682&w=4 then it might be due to MSI enabling.
-> > >
-> > Another good news: I confirm that yes, the problem is also fixed by
-> > the patch linked above by Sathya, and in that case it is not needed
-> > to specify option mpt_msi_enable=0 for mptbase. Any one of the two
-> > (patch or option) is enough to fix the problem.
-> > It would be nice to see this patch in the final release of the
-> > 2.6.26 kernel Thank you
->
-> James, shouldn't we put that into 2.6.26?
+According to the ACPI spec, ACPI NVS memory region is required to
+be saved/restored by OS during hibernation.
 
-I'm still not sure ... if it's a fault on the board with MSI, then yes, we need it in ... although the form would then be wrong because we probably should be identifying the faulty parts and blacklisting them.
+Section 15.3.2 ACPI Spec 3.0b,
+"OSPM will call the _PTS control method some time before entering
+a sleeping state, to allow the platform=E2=80=99s AML code to update
+this memory image before entering the sleeping state.
+After the system awakes from an S4 state, OSPM will restore this
+memory area and call the _WAK control method to enable the BIOS
+to reclaim its memory image."
 
-If it's actually a fault on the motherboard with MSI, then no, this isn't the patch series that should be in we need the motherboard strings to blacklist it.
+This patch set add the mechanism to save/restore ACPI NVS memory
+during hibernation.
 
-Unfortunately, I can't seem to get an answer out of LSI on this question, It looks like the commit will cherry pick easily enough ...
-although now I look at it the parameter's description is wrong.
+Patch 01: call platform_begin before swsusp_shrink_memory.
+        So that we can allocate enough pages for ACPI NVS memory
+        before shrink the memory.
 
-> That whole patch series looks pretty desirable actually..
+Patch 02: introduce the mechanism to save/restore ACPI NVS memory.
+       =20
+Patch 03: mark the ACPI NVS memory region during startup.
 
-Well, it was billed as a driver update ... and it has a lot more than just trivial changes, so on an eve of release quality issue, I'd tend to say that wouldn't be a good idea.
+Patch 04: introduce kernel parameter acpi_sleep=3Ds4_nvs_nosave
+	  which prevents OS from saving/restoring ACPI NVS memory.
 
-James
+As patch 01 changes the generic code, I don't know if there are
+any side effects introduced by this patch, and I'm not able to
+test on other platforms.
+But with Rafael's suggestion, patch 01 can be optionally dropped
+because we can use the the I/O and spare pages reserved, which is
+5MB at present and the NVS memory is usually tens of pages during
+my test.
 
+Any comments are welcome. :)
 
+thanks,
+rui
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
