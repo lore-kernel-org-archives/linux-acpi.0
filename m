@@ -1,40 +1,69 @@
 From: Pavel Machek <pavel@suse.cz>
-Subject: Re: [PATCH 7/8] PCI PM: Introduce pci_prepare_to_sleep and
-	pci_back_from_sleep
-Date: Fri, 11 Jul 2008 22:31:33 +0200
-Message-ID: <20080711203133.GC6843@elf.ucw.cz>
-References: <200807012356.26669.rjw@sisk.pl> <200807070330.02849.rjw@sisk.pl> <200807070335.27309.rjw@sisk.pl>
+Subject: Re: [PATCH 8/8] PCI: Simplify PCI device PM code (rev. 4)
+Date: Fri, 11 Jul 2008 22:37:30 +0200
+Message-ID: <20080711203730.GD6843@elf.ucw.cz>
+References: <200807012356.26669.rjw@sisk.pl> <200807070330.02849.rjw@sisk.pl> <200807070336.25004.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:41139 "EHLO
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:32954 "EHLO
 	gprs189-60.eurotel.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751337AbYGKUbA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Jul 2008 16:31:00 -0400
+	with ESMTP id S1756446AbYGKUgy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Jul 2008 16:36:54 -0400
 Content-Disposition: inline
-In-Reply-To: <200807070335.27309.rjw@sisk.pl>
+In-Reply-To: <200807070336.25004.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Andi Kleen <andi@firstfloor.org>, pm list <linux-pm@lists.linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, Zhao Yakui <yakui.zhao@intel.com>
 
-On Mon 2008-07-07 03:35:26, Rafael J. Wysocki wrote:
+Hi!
+
 > From: Rafael J. Wysocki <rjw@sisk.pl>
 > 
-> PCI PM: Introduce pci_prepare_to_sleep and pci_back_from_sleep
+> PCI: Simplify PCI device PM code (rev. 4)
 > 
-> Introduce functions pci_prepare_to_sleep() and pci_back_from_sleep(),
-> to be used by the PCI drivers that want to place their devices into
-> the lowest power state appropiate for them (PCI_D3hot, if the device
-> is not supposed to wake up the system, or the deepest state from
-> which the wake-up is possible, otherwise) while the system is being
-> prepared to go into a sleeping state and to put them back into D0
-> during the subsequent transition to the working state.
+> If the offset of PCI device's PM capability in its configuration
+> space, the mask of states that the device supports PME# from and the
+> D1 and D2 support bits are cached in the corresponding
+> struct pci_dev, the PCI device PM code can be simplified quite a bit.
 > 
 > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> ---
+>  drivers/pci/pci.c        |  118 ++++++++++++++++++++---------------------------
+>  include/linux/pci.h      |    8 ++-
+>  include/linux/pci_regs.h |    1 
+>  3 files changed, 60 insertions(+), 67 deletions(-)
+> 
+> Index: linux-pci/include/linux/pci.h
+> ===================================================================
+> --- linux-pci.orig/include/linux/pci.h
+> +++ linux-pci/include/linux/pci.h
+> @@ -177,6 +177,13 @@ struct pci_dev {
+>  	pci_power_t     current_state;  /* Current operating state. In ACPI-speak,
+>  					   this is D0-D3, D0 being fully functional,
+>  					   and D3 being off. */
+> +	int		pm_cap;		/* PM capability offset in the
+> +					   configuration space */
+> +	unsigned int	pme_support:5;	/* Bitmask of states from which PME#
+> +					   can be generated */
+> +	unsigned int	d1_support:1;	/* Low power state D1 is supported */
+> +	unsigned int	d2_support:1;	/* Low power state D2 is supported */
+> +	unsigned int	no_d1d2:1;	/* Only allow D0 and D3 */
 
-ACK.
+Uh, "D1", "D2", then "no D1D2" ?
 
+>  	}
+>  
+> -	if (pmc & PCI_PM_CAP_PME_MASK) {
+> +	dev->pm_cap = pm;
+> +
+> +	dev->d1_support = false;
+> +	dev->d2_support = false;
+
+I thought d1_support is unsigned int, not bool?
+
+									Pavel
 -- 
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
