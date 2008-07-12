@@ -1,32 +1,36 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] Panasonic Let's Note laptop extras driver v0.94
-Date: Sat, 12 Jul 2008 11:56:01 +0100
-Message-ID: <20080712105601.GA13679@srcf.ucam.org>
-References: <20080702090044.GB12272@prithivi.gnumonks.org> <20080704034419.GG4381@prithivi.gnumonks.org> <20080704091031.GA8905@srcf.ucam.org> <20080712103648.GX25710@prithivi.gnumonks.org>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Re: [PATCH 1/2] eeepc-laptop: add bt support
+Date: Sat, 12 Jul 2008 12:07:15 +0100
+Message-ID: <20080712110715.GA13767@srcf.ucam.org>
+References: <200807121159.03034.corentincj@iksaif.net>
+	<200807121203.06561.corentincj@iksaif.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:53387 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752237AbYGLK4H (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Jul 2008 06:56:07 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20080712103648.GX25710@prithivi.gnumonks.org>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <200807121203.06561.corentincj-EjuBZuxMvz2sTnJN9+BGXg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi4asus-user>,
+	<mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=acpi4asus-user>
+List-Post: <mailto:acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi4asus-user>,
+	<mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Corentin CHARY <corentincj-EjuBZuxMvz2sTnJN9+BGXg@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, eeecommunity-donated-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Harald Welte <laforge@gnumonks.org>
-Cc: linux-acpi@vger.kernel.org, Hiroshi Miura <miura@da-cha.org>
 
-On Sat, Jul 12, 2008 at 06:36:48PM +0800, Harald Welte wrote:
-
-> so how do we proceed from here?  I've already asked for its inclusion
-> but have not heard any statement from the ACPI maintainer[s].  Should I
-> re-submit it to some other e-mail address?
-> 
-> Or are there still issues that I should address?
-
-Andi's the ACPI maintainer while Len's on sabbatical, so you might want 
-to Cc: him?
+Please use the rfkill interface for this, rather than adding another 
+special-cased attribute.
 
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+
+-------------------------------------------------------------------------
+Sponsored by: SourceForge.net Community Choice Awards: VOTE NOW!
+Studies have shown that voting for your favorite open source project,
+along with a healthy diet, reduces your potential for chronic lameness
+and boredom. Vote Now at http://www.sourceforge.net/community/cca08
