@@ -1,79 +1,142 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] [RFC PATCH 0/4] save and restore ACPI NVS memory during hibernation
-Date: Sat, 12 Jul 2008 02:40:20 +0200
-Message-ID: <200807120240.21477.rjw@sisk.pl>
-References: <1215051868.5628.32.camel@rzhang-dt.sh.intel.com> <200807112259.56263.rjw@sisk.pl> <86802c440807111456k5d46a46co18bee343541fed8c@mail.gmail.com>
+Subject: Re: today's linux-next fails to boot
+Date: Sat, 12 Jul 2008 02:50:15 +0200
+Message-ID: <200807120250.16459.rjw@sisk.pl>
+References: <4877400B.1000400@gmail.com> <20080711190749.GB21758@elte.hu> <200807112306.39455.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:32975 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:33003 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755343AbYGLAih (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 11 Jul 2008 20:38:37 -0400
-In-Reply-To: <86802c440807111456k5d46a46co18bee343541fed8c@mail.gmail.com>
+	id S1751233AbYGLAsk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 11 Jul 2008 20:48:40 -0400
+In-Reply-To: <200807112306.39455.rjw@sisk.pl>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yhlu.kernel@gmail.com>
-Cc: Pavel Machek <pavel@suse.cz>, Zhang Rui <rui.zhang@intel.com>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, =?iso-8859-1?q?T=F6r=F6k_Edwin?= <edwintorok@gmail.com>, linux-next@vger.kernel.org, Linux Kernel <linux-kernel@vger.kernel.org>, Vegard Nossum <vegard.nossum@gmail.com>, Andreas Herrmann <andreas.herrmann3@amd.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Friday, 11 of July 2008, Yinghai Lu wrote:
-> On Fri, Jul 11, 2008 at 1:59 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > On Friday, 11 of July 2008, Pavel Machek wrote:
-> >> On Fri 2008-07-11 21:18:34, Rafael J. Wysocki wrote:
-> >> > On Friday, 11 of July 2008, Pavel Machek wrote:
-> >> > > On Wed 2008-07-09 21:37:18, Rafael J. Wysocki wrote:
-> >> > > > On Tuesday, 8 of July 2008, Pavel Machek wrote:
-> >> > > > > Hi!
-> >> > > > >
-> >> > > > > > According to the ACPI spec, ACPI NVS memory region is required to
-> >> > > > > > be saved/restored by OS during hibernation.
-> >> > > > > >
-> >> > > > > > Section 15.3.2 ACPI Spec 3.0b,
-> >> > > > > > "OSPM will call the _PTS control method some time before entering
-> >> > > > > > a sleeping state, to allow the platform???s AML code to update
-> >> > > > > > this memory image before entering the sleeping state.
-> >> > > > > > After the system awakes from an S4 state, OSPM will restore this
-> >> > > > > > memory area and call the _WAK control method to enable the BIOS
-> >> > > > > > to reclaim its memory image."
-> >> > > > > >
-> >> > > > > > This patch set add the mechanism to save/restore ACPI NVS memory
-> >> > > > > > during hibernation.
-> >> > > > > >
-> >> > > > > > Patch 01: call platform_begin before swsusp_shrink_memory.
-> >> > > > > >     So that we can allocate enough pages for ACPI NVS memory
-> >> > > > > >     before shrink the memory.
-> >> > > > >
-> >> > > > > Why is it neccessary to allocate memory for a copy? We should be able
-> >> > > > > to save ACPI NVS area same way we are saving kernel pages, no?
-> >> > > >
-> >> > > > Because we want to restore it from the hibernated kernel (when it gets control
-> >> > > > back again).
-> >> > >
-> >> > > Why is that important? So we can run some ACPI methods from hibernated
-> >> > > kernel before restoring it?
-> >> >
-> >> > We're supposed to restore it right prior to executing _WAK, which is after
-> >> > we've executed _BFS.  This is a bit theoretical, because no one seems to
-> >> > actaully implement _BFS, but well.
-> >>
-> >> Could we just call _BFS from the "loading" kernel, instead? That would
-> >> save us that copying code...
-> >
-> > I'd prefer not to, because that would require the boot kernel to support ACPI,
-> > which need not (and in fact should not IMO) be the case at present.
-> >
-> > Anyway, we'd have to either copy the NVS data into memory which is mapped and
-> > can be saved, or to map the NVS area in order to save/restore it, which I
-> > wouldn't like to do.
+Hi Ingo,
+
+On Friday, 11 of July 2008, Rafael J. Wysocki wrote:
+> On Friday, 11 of July 2008, Ingo Molnar wrote:
+> > 
+> > * Rafael J. Wysocki <rjw@sisk.pl> wrote:
+[--snip--]
 > 
-> io_remap doesn't work at that time?
+> Well, it turns out that linux-next from today doesn't boot on my box too
+> (64-bit) and I don't see anything obviously suspicious.  Bisection time.
 
-Yes, it does, but to use it, we would have to add extra information to the
-image header describing the location of the NVS data within the image.
-I prefer the Zhang Rui's approach to this.
+I have identified the source of the breakage on my box, but I don't really
+think it's the same problem that Edwin is observing.
+
+Namely, it turns out that some code in arch/x86/kernel/acpi/boot.c, as in
+today's linux-next, doesn't really make sense, because we have two conflicting
+DMA-based quirks in there for the same set of boxes (HP nx6325 and nx6125) and
+one of them actually breaks my box.
+
+I have reported that already, but it probably got lost somewhere.
+
+Below is a patch that fixes things for me, on top of today's linux-next.
+Please apply.
 
 Thanks,
 Rafael
+
+---
+Remove some code that breaks my HP nx6325 from arch/x86/kernel/acpi/boot.c.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ arch/x86/kernel/acpi/boot.c |   47 --------------------------------------------
+ 1 file changed, 47 deletions(-)
+
+Index: linux-next/arch/x86/kernel/acpi/boot.c
+===================================================================
+--- linux-next.orig/arch/x86/kernel/acpi/boot.c
++++ linux-next/arch/x86/kernel/acpi/boot.c
+@@ -84,8 +84,6 @@ int acpi_lapic;
+ int acpi_ioapic;
+ int acpi_strict;
+ 
+-static int disable_irq0_through_ioapic __initdata;
+-
+ u8 acpi_sci_flags __initdata;
+ int acpi_sci_override_gsi __initdata;
+ int acpi_skip_timer_override __initdata;
+@@ -982,10 +980,6 @@ void __init mp_override_legacy_irq(u8 bu
+ 	int pin;
+ 	struct mp_config_intsrc mp_irq;
+ 
+-	/* Skip the 8254 timer interrupt (IRQ 0) if requested.  */
+-	if (bus_irq == 0 && disable_irq0_through_ioapic)
+-		return;
+-
+ 	/*
+ 	 * Convert 'gsi' to 'ioapic.pin'.
+ 	 */
+@@ -1052,10 +1046,6 @@ void __init mp_config_acpi_legacy_irqs(v
+ 	for (i = 0; i < 16; i++) {
+ 		int idx;
+ 
+-		/* Skip the 8254 timer interrupt (IRQ 0) if requested.  */
+-		if (i == 0 && disable_irq0_through_ioapic)
+-			continue;
+-
+ 		for (idx = 0; idx < mp_irq_entries; idx++) {
+ 			struct mp_config_intsrc *irq = mp_irqs + idx;
+ 
+@@ -1413,17 +1403,6 @@ static int __init force_acpi_ht(const st
+ }
+ 
+ /*
+- * Don't register any I/O APIC entries for the 8254 timer IRQ.
+- */
+-static int __init
+-dmi_disable_irq0_through_ioapic(const struct dmi_system_id *d)
+-{
+-	pr_notice("%s detected: disabling IRQ 0 through I/O APIC\n", d->ident);
+-	disable_irq0_through_ioapic = 1;
+-	return 0;
+-}
+-
+-/*
+  * Force ignoring BIOS IRQ0 pin2 override
+  */
+ static int __init dmi_ignore_irq0_timer_override(const struct dmi_system_id *d)
+@@ -1608,32 +1587,6 @@ static struct dmi_system_id __initdata a
+ 	 * is enabled.  This input is incorrectly designated the
+ 	 * ISA IRQ 0 via an interrupt source override even though
+ 	 * it is wired to the output of the master 8259A and INTIN0
+-	 * is not connected at all.  Abandon any attempts to route
+-	 * IRQ 0 through the I/O APIC therefore.
+-	 */
+-	{
+-	 .callback = dmi_disable_irq0_through_ioapic,
+-	 .ident = "HP NX6125 laptop",
+-	 .matches = {
+-		     DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+-		     DMI_MATCH(DMI_PRODUCT_NAME, "HP Compaq nx6125"),
+-		     },
+-	 },
+-	{
+-	 .callback = dmi_disable_irq0_through_ioapic,
+-	 .ident = "HP NX6325 laptop",
+-	 .matches = {
+-		     DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+-		     DMI_MATCH(DMI_PRODUCT_NAME, "HP Compaq nx6325"),
+-		     },
+-	 },
+-	/*
+-	 * HP laptops which use a DSDT reporting as HP/SB400/10000,
+-	 * which includes some code which overrides all temperature
+-	 * trip points to 16C if the INTIN2 input of the I/O APIC
+-	 * is enabled.  This input is incorrectly designated the
+-	 * ISA IRQ 0 via an interrupt source override even though
+-	 * it is wired to the output of the master 8259A and INTIN0
+ 	 * is not connected at all.  Force ignoring BIOS IRQ0 pin2
+ 	 * override in that cases.
+ 	 */
