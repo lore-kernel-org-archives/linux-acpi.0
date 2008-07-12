@@ -1,38 +1,33 @@
-From: Kyler Laird <kyler-dated-1216295104.2e2eca@lairds.com>
-Subject: re: [PATCH] Panasonic Let's Note laptop extras driver v0.94
-Date: Sat, 12 Jul 2008 07:53:45 -0400
-Message-ID: <20080712115345.GD8673@lairds.com>
+From: Andy Lutomirski <luto-YSGFQ8SKJZVDPfheJLI6IQ@public.gmane.org>
+Subject: Re: [RFT] x86 acpi: normalize segment descriptor register on resume
+Date: Sat, 12 Jul 2008 11:08:05 -0400
+Message-ID: <4878C8D5.9030707@myrealbox.com>
+References: <200807010148.02135.rjw@sisk.pl> <20080701063133.GC16642@elte.hu> <4869D4A3.3020000@zytor.com> <200807012239.44105.rjw@sisk.pl> <486A96C1.2020106@firstfloor.org> <48784F51.1010407@myrealbox.com> <48789EC3.2070701@firstfloor.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.phaseit.net ([66.90.70.200]:52333 "EHLO smtp.phaseit.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751037AbYGLMns (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 12 Jul 2008 08:43:48 -0400
-Received: from [127.0.0.1] (helo=flews.lairds.us)
-	by smtp.phaseit.net with esmtp (Exim 4.62)
-	(envelope-from <kyler-dated-1216295104.2e2eca@lairds.com>)
-	id 1KHdfd-0002ah-AT
-	for linux-acpi@vger.kernel.org; Sat, 12 Jul 2008 11:53:45 +0000
-Received: from kyler by flews.lairds.us with local (Exim 4.69)
-	(envelope-from <kyler-dated-1216295104.2e2eca@lairds.com>)
-	id 1KHdfd-00082U-Lc
-	for linux-acpi@vger.kernel.org; Sat, 12 Jul 2008 07:53:45 -0400
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <48789EC3.2070701-Vw/NltI1exuRpAAqCnN02g@public.gmane.org>
+Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Andi Kleen <andi-Vw/NltI1exuRpAAqCnN02g@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>, kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, pm list <linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-I just applied the 2008-07-04 3:44:19 to 2.6.26-rc9 and it seems to work
-well for my Panasonic CF-74.  It'll be wonderful to have this in the
-mainline kernel!  (I won't need to add anything now.  Yea!)
+Andi Kleen wrote:
+> Andy Lutomirski wrote:
+>> My Lenovo X61s fails to resume if I suspend it from within X, on both
+>> 2.6.26-rc9 and recent wireless-testing.  2.6.26-rc8 is fine, as is
+>> wireless-testing with 4b4f7280 reverted.  My in-progress bisect between
+>> -rc8 and -rc9 is also consistent with this being the problem.
+> 
+> With "this" do you mean the patch being applied or not applied?
+> 
+> As in does it fail with the patch applied?
+> 
+> You can confirm that by only applying the patch and testing.
 
-In userspace, note that this requires a change from the proc interface
-to sys for /etc/acpi/panabright.sh.  In Ubuntu Hardy I also disabled
-/etc/acpi/mutebtn.sh (by setting the first line to "#!/bin/true")
-because there seems to be a mute toggle elsewhere and the two toggle
-events were canceling each other.
+The tree as of 4b4f2780 (the title patch of this thread) fails to 
+resume.  Its parent works fine.  Which makes this patch the culprit.  (I 
+just tried both.)
 
-Thanks!
-
---kyler
+--Andy
