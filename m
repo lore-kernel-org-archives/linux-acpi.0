@@ -1,23 +1,38 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFT] x86 acpi: normalize segment descriptor register on resume
-Date: Sat, 12 Jul 2008 22:53:31 +0200
-Message-ID: <200807122253.32382.rjw@sisk.pl>
-References: <200807010148.02135.rjw@sisk.pl> <200807122051.25634.rjw@sisk.pl> <48791675.6060805@myrealbox.com>
+From: "H. Peter Anvin" <hpa@zytor.com>
+Subject: Re: [RFT] x86 acpi: normalize segment descriptor
+	register on resume
+Date: Sat, 12 Jul 2008 16:07:29 -0700
+Message-ID: <200807122307.m6CN7Le0031003@terminus.zytor.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:36069 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751925AbYGLUvJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 12 Jul 2008 16:51:09 -0400
-In-Reply-To: <48791675.6060805@myrealbox.com>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+content-class: 
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, Andy Lutomirski <luto@myrealbox.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, public-kernel-testers-u79uwXL29TY76Z2rM5mHXA@lo.gmane.org, Ingo Molnar <mingo@elte.hu>, pm list <linux-pm@lists.linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Lutomirski <luto@myrealbox.com>, "H. Peter Anvin" <hpa@zytor.com>
-Cc: Andi Kleen <andi@firstfloor.org>, Ingo Molnar <mingo@elte.hu>, public-kernel-testers-u79uwXL29TY76Z2rM5mHXA@lo.gmane.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Pavel Machek <pavel@ucw.cz>
+
+It seems like a reasonable guess at least.  I won't have a chance to dig into the details until late this evening or tomorrow, depending on when I get home tonight.
+
+-- 
+Sent from my mobile phone (pardon any lack of formatting)
+
+
+-----Original Message-----
+From: Rafael J. Wysocki <rjw@sisk.pl>
+Sent: Saturday, July 12, 2008 13:53
+To: Andy Lutomirski <luto@myrealbox.com>; H. Peter Anvin <hpa@zytor.com>
+Cc: Andi Kleen <andi@firstfloor.org>; Ingo Molnar <mingo@elte.hu>; kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; ACPI Devel Maling List <linux-acpi@vger.kernel.org>; LKML <linux-kernel@vger.kernel.org>; pm list <linux-pm@lists.linux-foundation.org>; Pavel Machek <pavel@ucw.cz>
+Subject: Re: [RFT] x86 acpi: normalize segment descriptor register on resume
 
 On Saturday, 12 of July 2008, Andy Lutomirski wrote:
 > Rafael J. Wysocki wrote:
