@@ -1,48 +1,42 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: today's linux-next fails to boot
-Date: Sat, 12 Jul 2008 06:47:07 +0200
-Message-ID: <20080712044707.GA6675@elte.hu>
-References: <4877400B.1000400@gmail.com> <20080711190749.GB21758@elte.hu> <200807112306.39455.rjw@sisk.pl> <200807120250.16459.rjw@sisk.pl>
+From: Andy Lutomirski <luto-YSGFQ8SKJZVDPfheJLI6IQ@public.gmane.org>
+Subject: Re: [RFT] x86 acpi: normalize segment descriptor register on resume
+Date: Sat, 12 Jul 2008 02:29:37 -0400
+Message-ID: <48784F51.1010407@myrealbox.com>
+References: <200807010148.02135.rjw@sisk.pl> <20080701063133.GC16642@elte.hu> <4869D4A3.3020000@zytor.com> <200807012239.44105.rjw@sisk.pl> <486A96C1.2020106@firstfloor.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-next-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <200807120250.16459.rjw@sisk.pl>
-Sender: linux-next-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, =?iso-8859-1?B?VPZy9ms=?= Edwin <edwintorok@gmail.com>, linux-next@vger.kernel.org, Linux Kernel <linux-kernel@vger.kernel.org>, Vegard Nossum <vegard.nossum@gmail.com>, Andreas Herrmann <andreas.herrmann3@amd.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <486A96C1.2020106-Vw/NltI1exuRpAAqCnN02g@public.gmane.org>
+Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Andi Kleen <andi-Vw/NltI1exuRpAAqCnN02g@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>, kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, pm list <linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+My Lenovo X61s fails to resume if I suspend it from within X, on both 
+2.6.26-rc9 and recent wireless-testing.  2.6.26-rc8 is fine, as is 
+wireless-testing with 4b4f7280 reverted.  My in-progress bisect between 
+-rc8 and -rc9 is also consistent with this being the problem.
 
-* Rafael J. Wysocki <rjw@sisk.pl> wrote:
+The symptom is that, when I push the power button to resume, the hard 
+drive light turns on, the fan turns on, then the hard drive light turns 
+off, the sleep light stays on, and the fan keeps running.  Sometimes the 
+battery light will blink off very briefly (1/4 sec, maybe) every few 
+seconds.  The system is locked hard at this point.
 
-> Hi Ingo,
-> 
-> On Friday, 11 of July 2008, Rafael J. Wysocki wrote:
-> > On Friday, 11 of July 2008, Ingo Molnar wrote:
-> > > 
-> > > * Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> [--snip--]
-> > 
-> > Well, it turns out that linux-next from today doesn't boot on my box too
-> > (64-bit) and I don't see anything obviously suspicious.  Bisection time.
-> 
-> I have identified the source of the breakage on my box, but I don't 
-> really think it's the same problem that Edwin is observing.
-> 
-> Namely, it turns out that some code in arch/x86/kernel/acpi/boot.c, as 
-> in today's linux-next, doesn't really make sense, because we have two 
-> conflicting DMA-based quirks in there for the same set of boxes (HP 
-> nx6325 and nx6125) and one of them actually breaks my box.
-> 
-> I have reported that already, but it probably got lost somewhere.
-> 
-> Below is a patch that fixes things for me, on top of today's 
-> linux-next. Please apply.
+I'm using Ubuntu Hardy userspace.
 
-thanks Rafael, i have applied your fix to tip/x86/core and to 
-auto-x86-next as well.
+--Andy
 
-what happened is a case of too many fixes for the same problem :-/
-
-	Ingo
+Andi Kleen wrote:
+>> I have tested it on the nx6325 (64-bit) on top of the today's linux-next.  It
+>> works fine for me.
+> 
+> Could a few more people with different laptops please test too?
+> 
+> -Andi
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
