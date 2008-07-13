@@ -1,51 +1,86 @@
-From: Andi Kleen <andi@firstfloor.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [RFT] x86 acpi: normalize segment descriptor register on resume
-Date: Sun, 13 Jul 2008 22:21:38 +0200
-Message-ID: <487A63D2.9040006@firstfloor.org>
-References: <200807010148.02135.rjw@sisk.pl> <200807122253.32382.rjw@sisk.pl> <48793A0E.3050803@myrealbox.com> <200807130133.12324.rjw@sisk.pl> <20080713091524.GA29907@elte.hu> <20080713120253.GA27582@srcf.ucam.org> <487A2431.2050103@myrealbox.com> <487A4CB7.1080001@firstfloor.org> <487A62B3.8010207@zytor.com>
+Date: Sun, 13 Jul 2008 22:29:41 +0200
+Message-ID: <200807132229.43140.rjw@sisk.pl>
+References: <200807010148.02135.rjw@sisk.pl> <200807132115.08230.rjw@sisk.pl> <487A617B.80707@firstfloor.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from one.firstfloor.org ([213.235.205.2]:34312 "EHLO
-	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754468AbYGMUVl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 13 Jul 2008 16:21:41 -0400
-In-Reply-To: <487A62B3.8010207@zytor.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:40046 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754889AbYGMU1f (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 13 Jul 2008 16:27:35 -0400
+In-Reply-To: <487A617B.80707@firstfloor.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Andy Lutomirski <luto@myrealbox.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Ingo Molnar <mingo@elte.hu>, "Rafael J. Wysocki" <rjw@sisk.pl>, public-kernel-testers-u79uwXL29TY76Z2rM5mHXA@lo.gmane.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Pavel Machek <pavel@ucw.cz>
+To: Andi Kleen <andi@firstfloor.org>
+Cc: Andy Lutomirski <luto@myrealbox.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, public-kernel-testers-u79uwXL29TY76Z2rM5mHXA@lo.gmane.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Pavel Machek <pavel@ucw.cz>
 
-H. Peter Anvin wrote:
-> Andi Kleen wrote:
->>
->> Hmm, but the change was not supposed to break the s3 bios. Something
->> fishy is going on. It sounds like the s3 bios relies on some earlier
->> segment register setup.
->>
->> If true this means the segment register reset would need to be moved
->> later after S3 bios ran. Saving/restoring is unfortunately not possible
->> because we cannot save/restore the hidden state loaded from the GDT
->> earlier.
->>
+On Sunday, 13 of July 2008, Andi Kleen wrote:
+> Rafael J. Wysocki wrote:
+> > On Sunday, 13 of July 2008, Andi Kleen wrote:
+> >> Andy Lutomirski wrote:
+> >>> Matthew Garrett wrote:
+> >>>> On Sun, Jul 13, 2008 at 11:15:24AM +0200, Ingo Molnar wrote:
+> >>>>
+> >>>>> we still need to find the HAL quirk and disable it, right?
+> >>>> Not without understanding what the cause is. If the video BIOS calls
+> >>>> are generically broken, then we have a problem.
+> >>>>
+> >>> The HAL quirk is the very first one here:
+> >>>
+> >>> http://gitweb.freedesktop.org/?p=hal-info.git;a=blob;f=fdi/information/10freedesktop/20-video-quirk-pm-lenovo.fdi
+> >>>
+> >>>
+> >>> I removed it from the HAL config and suspending w/ the hardware button
+> >>> works fine now with -rc9-wl and on Ubuntu's stock .24 kernel.
+> >> Hmm, but the change was not supposed to break the s3 bios. Something
+> >> fishy is going on. It sounds like the s3 bios relies on some earlier
+> >> segment register setup.
+> > 
+> > Well, we changed the (visible) parts of the segment registers before anyway.
+> > 
+> > This means that it could only depend on the hidden parts.  However, in that
+> > case if it depended on the hidden part of SS, our stack would be broken,
 > 
-> That really doesn't make sense, though.  The VESA BIOS has to be entered
-> in clean real mode; it's designed to be entered from reset, after all.
-> There is definitely something fishy going on, but I don't think this
-> particular aspect is it.
+> We're in real mode for now nd should not care about the hidden state.
 
-It probably switches to protected mode. I noticed this on my old
-Fujitsu laptop when I tried to make the S3 wakeup run in the s2ram x86 emulator
-and found it entered protected mode at some point, which x86emu
-didn't support.
+That's the point of commit 4b4f7280.
 
-I guess Lenovo is doing the same.
+Without that commit we used to reset segment registers, but there were
+some post-protected mode garbage in the hidden part of SS on some systems, so
+things broke.
 
-And that protected mode code relies on some GDT values that have been
-loaded earlier when the BIOS also went into protected mode.
+We now make sure the hidden parts of all segment registers are reset.
+If anything fails as a result of that, it's broken beyond repair IMO.
 
-It seems the BIOS programmers really don't like real mode anymore.
-Somehow understandable.
+> > so the quirk wouldn't work (it uses 'call' to run a BIOS routine).  In turn, if it
+> > depended on the hidden part of DS, our data register would be broken, so the
+> > resume code itself wouldn't work.
+> > 
+> > This means it could only depend on the hidden part of ES.
+> >  
+> >> If true this means the segment register reset would need to be moved
+> >> later after S3 bios ran.
+> > 
+> > We can't do that.  If SS contains garbage, the BIOS call itself will reboot
+> > the box and if DS contains garbage, well ...
+> 
+> But it's apparently not garbage for the s3 bios. So somehow the "garbage"
+> needs to be kept impact until the S3 BIOS ran.
 
--Andi
+We can't do that on all systems, because some (I'd say many) of them don't
+work if we do.
+
+If s3_bios depends on the (invalid) contents of the hidden part of any segment
+register, it's just terminally broken.
+
+But.
+
+We didn't modify %cx before - may that matter?
+
+Thanks,
+Rafael
