@@ -1,28 +1,32 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [RFT] x86 acpi: normalize segment descriptor register on resume
-Date: Sun, 13 Jul 2008 13:02:53 +0100
-Message-ID: <20080713120253.GA27582@srcf.ucam.org>
-References: <200807010148.02135.rjw@sisk.pl> <200807122253.32382.rjw@sisk.pl> <48793A0E.3050803@myrealbox.com> <200807130133.12324.rjw@sisk.pl> <20080713091524.GA29907@elte.hu>
+From: "=?UTF-8?Q?Rafa=C5=82_Mi=C5=82ecki?=" <zajec5@gmail.com>
+Subject: Re: Toshiba - Documentation for Linux Developers
+Date: Sun, 13 Jul 2008 15:54:59 +0200
+Message-ID: <b170af450807130654m2f800b10ybcba4b2c5c7cf329@mail.gmail.com>
+References: <4855971D.90004@diamondcut.com.br> <20080616221443.GA760@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:50635 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752802AbYGMMDi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 13 Jul 2008 08:03:38 -0400
+Received: from nf-out-0910.google.com ([64.233.182.187]:18064 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753277AbYGMNzB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 13 Jul 2008 09:55:01 -0400
+Received: by nf-out-0910.google.com with SMTP id d3so1375082nfc.21
+        for <linux-acpi@vger.kernel.org>; Sun, 13 Jul 2008 06:55:00 -0700 (PDT)
+In-Reply-To: <20080616221443.GA760@kroah.com>
 Content-Disposition: inline
-In-Reply-To: <20080713091524.GA29907@elte.hu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Andy Lutomirski <luto@myrealbox.com>, "H. Peter Anvin" <hpa@zytor.com>, Andi Kleen <andi@firstfloor.org>, public-kernel-testers-u79uwXL29TY76Z2rM5mHXA@lo.gmane.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Pavel Machek <pavel@ucw.cz>
+To: Greg KH <greg@kroah.com>
+Cc: "Renato S. Yamane" <yamane@diamondcut.com.br>, linux-acpi@vger.kernel.org
 
-On Sun, Jul 13, 2008 at 11:15:24AM +0200, Ingo Molnar wrote:
-
-> we still need to find the HAL quirk and disable it, right?
-
-Not without understanding what the cause is. If the video BIOS calls are 
-generically broken, then we have a problem.
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+MjAwOC82LzE3LCBHcmVnIEtIIDxncmVnQGtyb2FoLmNvbT46Cj4gQXJlIHRoZXJlIGFueSBrbm93
+biBkcml2ZXJzIGZvciBUb3NoaWJhIGhhcmR3YXJlIHRoYXQgeW91IG5lZWQgZm9yIExpbnV4Cj4g
+IHRoYXQgd2Ugc2hvdWxkIGJlIGNvbnRhY3RpbmcgdGhlbSBhYm91dD8KCkkgaGF2ZSBUb3NoaWJh
+IEExMDAgd2l0aCBQaG9lbml4IEJJT1MuIFRoaXMgbWVhbnMgdG9zaGliYV9hY3BpIGRvZXNuJ3QK
+d29yayBmb3IgbWUgYW5kIEkgY2FuIGNoYW5nZSBMQ0QgYnJpZ2h0bmVzcy4KCk9uIHBhZ2UgaHR0
+cDovL3d3dy5idXp6YXJkLm1lLnVrL3Rvc2hpYmEvZG9jcy5odG1sIHRoZXJlIGlzIGFsc28gbGlu
+awp0byBwZGYgd2l0aCByZWdpc3RlcnMgaW5mbzoKaHR0cDovL3d3dy5idXp6YXJkLm1lLnVrL3Rv
+c2hpYmEvZG93bmxvYWRzL2hjaS5wZGYKCkhvd2V2ZXIgSSBhbSBub3QgcHJvZ3JhbW1lciBhbmQg
+SSBoYXZlIG5vIGlkZWEgaWYgdGhpcyBpcyBzb21lCmludGVyZXNnaW5nIGluZm8gZm9yIGRldmVs
+b3Bycy4KCi0tIApSYWZhxYIgTWnFgmVja2kK
