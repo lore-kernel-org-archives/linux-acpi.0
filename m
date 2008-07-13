@@ -1,37 +1,50 @@
-From: Andi Kleen <andi@firstfloor.org>
-Subject: Re: [PATCH] x86: Allow MMCONFIG above 4GB on x86_64
-Date: Sun, 13 Jul 2008 17:36:18 +0200
-Message-ID: <87r69xzthp.fsf@basil.nowhere.org>
-References: <20080709204127.1458.5727.77728@attica.americas.sgi.com>
+From: Andy Lutomirski <luto@myrealbox.com>
+Subject: Re: [RFT] x86 acpi: normalize segment descriptor register on resume
+Date: Sun, 13 Jul 2008 11:50:09 -0400
+Message-ID: <487A2431.2050103@myrealbox.com>
+References: <200807010148.02135.rjw@sisk.pl> <200807122253.32382.rjw@sisk.pl> <48793A0E.3050803@myrealbox.com> <200807130133.12324.rjw@sisk.pl> <20080713091524.GA29907@elte.hu> <20080713120253.GA27582@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out04.alice-dsl.net ([88.44.63.6]:50493 "EHLO
-	smtp-out04.alice-dsl.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754700AbYGMPgV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 13 Jul 2008 11:36:21 -0400
-In-Reply-To: <20080709204127.1458.5727.77728@attica.americas.sgi.com> (John Keller's message of "Wed,  9 Jul 2008 15:41:27 -0500 (CDT)")
+Received: from THAUM.MIT.EDU ([18.95.3.27]:59577 "EHLO luto.stanford.edu"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751482AbYGMPuL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 13 Jul 2008 11:50:11 -0400
+In-Reply-To: <20080713120253.GA27582@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: John Keller <jpk@sgi.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, takayoshi.kochi@gmail.com
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Ingo Molnar <mingo@elte.hu>, "Rafael J. Wysocki" <rjw@sisk.pl>, "H. Peter Anvin" <hpa@zytor.com>, Andi Kleen <andi@firstfloor.org>, public-kernel-testers-u79uwXL29TY76Z2rM5mHXA@lo.gmane.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Pavel Machek <pavel@ucw.cz>
 
-John Keller <jpk@sgi.com> writes:
->
-> A similar patch was submitted over a year ago, but apparently was not
-> merged in.
+Matthew Garrett wrote:
+> On Sun, Jul 13, 2008 at 11:15:24AM +0200, Ingo Molnar wrote:
+> 
+>> we still need to find the HAL quirk and disable it, right?
+> 
+> Not without understanding what the cause is. If the video BIOS calls are 
+> generically broken, then we have a problem.
+> 
 
-There's no reason at all to make this 64bit only. A PAE 32bit kernel
-can also access data above 4GB. So an ifdef is the wrong way.
+The HAL quirk is the very first one here:
 
-The reason the check is there is that there are lots of 
-x86 BIOS that report wrong mmconfig and this way there's another
-sanity check.
+http://gitweb.freedesktop.org/?p=hal-info.git;a=blob;f=fdi/information/10freedesktop/20-video-quirk-pm-lenovo.fdi
 
-You'll need either to find a way to preserve this check
-on kernels not running on your system or show that the 
-sanity check is not needed anymore. The later would 
-be likely tricky.
+I removed it from the HAL config and suspending w/ the hardware button 
+works fine now with -rc9-wl and on Ubuntu's stock .24 kernel.
 
--Andi
+I'll file the obvious bug report against HAL, but it might annoy users 
+if new kernel + old HAL = broken system, when the old kernel worked 
+fine.  An alternative might be to make the change in 4b4f7280 
+conditional on a new acpi_video_flags quirk so that previously-working 
+systems keep working.
 
+The quirk that actually breaks is s3_bios.  s3_mode still works, and 
+power/video.txt says:
+
+(2) systems where it is possible to call the video BIOS during S3
+   resume. Unfortunately, it is not correct to call the video BIOS at
+   that point, but it happens to work on some machines. Use
+   acpi_sleep=s3_bios.
+
+--Andy
