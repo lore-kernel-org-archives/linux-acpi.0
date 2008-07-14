@@ -1,73 +1,39 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: [PATCH 3/4]  ACPI: Add DMI check to disable power state check in
-	power transition
-Date: Mon, 14 Jul 2008 15:41:40 +0800
-Message-ID: <1216021300.32159.26.camel@yakui_zhao.sh.intel.com>
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: [RFT] x86 acpi: normalize segment descriptor register on resume
+Date: Mon, 14 Jul 2008 09:39:16 +0200
+Message-ID: <20080714073916.GC1796@elf.ucw.cz>
+References: <200807010148.02135.rjw@sisk.pl> <487A2431.2050103@myrealbox.com> <487A4CB7.1080001@firstfloor.org> <200807132115.08230.rjw@sisk.pl> <487A617B.80707@firstfloor.org> <487A67C3.50000@zytor.com> <487AD37A.2050903@zytor.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:62350 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756855AbYGNHaV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Jul 2008 03:30:21 -0400
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:54284 "EHLO
+	gprs189-60.eurotel.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754829AbYGNHi3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Jul 2008 03:38:29 -0400
+Content-Disposition: inline
+In-Reply-To: <487AD37A.2050903@zytor.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Andi Kleen <andi@firstfloor.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Andy Lutomirski <luto@myrealbox.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Ingo Molnar <mingo@elte.hu>, public-kernel-testers-u79uwXL29TY76Z2rM5mHXA@lo.gmane.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-From: Zhao Yakui <yakui.zhao@intel.com>
+On Sun 2008-07-13 21:18:02, H. Peter Anvin wrote:
+> H. Peter Anvin wrote:
+>>
+>> The most likely explanation for this is that the VESA BIOS expects to be 
+>> entered in Big Real Mode (*.limit = 0xffffffff) instead of ordinary Real 
+>> Mode.  Here is a completely untested patch which changes the segment 
+>> descriptors to Big Real Mode instead.  It would be worth testing out.
+>>
+>
+> ... and here is one that actually has a prayer of actually working.
 
-Add the DMI check to disable power state check in the course of device 
-power transition.
+I tried 2.6.26, but it does not seem to be broken here :-(. Thinkpad
+x60. So it does not seem _all_ thinkpads have this problem... 
 
-http://bugzilla.kernel.org/show_bug.cgi?id=11000
-
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
----
- drivers/acpi/bus.c |   23 ++++++++++++++++++++++-
- 1 file changed, 22 insertions(+), 1 deletion(-)
-
-Index: linux-2.6/drivers/acpi/bus.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/bus.c
-+++ linux-2.6/drivers/acpi/bus.c
-@@ -48,6 +48,23 @@ EXPORT_SYMBOL(acpi_root_dir);
- 
- #define STRUCT_TO_INT(s)	(*((int*)&s))
- 
-+static int set_power_nocheck(const struct dmi_system_id *id)
-+{
-+	printk(KERN_NOTICE PREFIX "%s detected - "
-+		"disable power check in power transistion\n", id->ident);
-+	acpi_power_nocheck = 1;
-+	return 0;
-+}
-+static struct dmi_system_id __cpuinitdata power_nocheck_dmi_table[] = {
-+	{
-+	set_power_nocheck, "HP Pavilion 05", {
-+	DMI_MATCH(DMI_BIOS_VENDOR, "Phoenix Technologies LTD"),
-+	DMI_MATCH(DMI_SYS_VENDOR, "HP Pavilion 05"),
-+	DMI_MATCH(DMI_PRODUCT_VERSION, "2001211RE101GLEND") }, NULL},
-+	{},
-+};
-+
-+
- /* --------------------------------------------------------------------------
-                                 Device Management
-    -------------------------------------------------------------------------- */
-@@ -808,7 +825,11 @@ static int __init acpi_init(void)
- 		}
- 	} else
- 		disable_acpi();
--
-+	/*
-+	 * If the laptop falls into the DMI check table, the power state check
-+	 * will be disabled in the course of device power transistion.
-+	 */
-+	dmi_check_system(power_nocheck_dmi_table);
- 	return result;
- }
- 
+									Pavel
 
 
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
