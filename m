@@ -1,69 +1,41 @@
-From: =?ISO-8859-2?Q?=22Hal=E1sz_L=E1szl=F3_=28Sziv=E1rv=E1nyNet_Kf?=
-	 =?ISO-8859-2?Q?t=29=22?= <sdg@szivarvanynet.hu>
-Subject: ACPI information request
-Date: Mon, 14 Jul 2008 14:56:38 +0200
-Message-ID: <487B4D06.4000505@szivarvanynet.hu>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH 0/9] Check whether ACPI graphics device is physically present
+Date: Mon, 14 Jul 2008 18:51:03 +0200
+Message-ID: <200807141851.06003.trenn@suse.de>
+References: <1215700265-24908-1-git-send-email-trenn@suse.de> <200807102106.27944.trenn@suse.de> <20080711090652.GC24714@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------040006080304060108080104"
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from styx.szivarvanynet.hu ([193.30.164.13]:55734 "EHLO
-	styx.szivarvanynet.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753087AbYGNN2g (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Jul 2008 09:28:36 -0400
-Received: from [212.92.15.12] (sdg.szivarvanynet.hu [212.92.15.12])
-	by styx.szivarvanynet.hu (Postfix) with ESMTP id E6C671459E7B
-	for <linux-acpi@vger.kernel.org>; Mon, 14 Jul 2008 14:56:02 +0200 (CEST)
+Received: from cantor2.suse.de ([195.135.220.15]:40526 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752241AbYGNQvL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Jul 2008 12:51:11 -0400
+In-Reply-To: <20080711090652.GC24714@srcf.ucam.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: andi@firstfloor.org, rui.zhang@intel.com, jwoithe@physics.adelaide.edu.au, malattia@linux.it, corentincj@iksaif.net, mzxreary@0pointer.de, hmh@hmh.eng.br, carlos@strangeworlds.co.uk, linux-acpi@vger.kernel.org, dannybaumann@web.de, marcus@better.se, corsac@debian.org
 
-This is a multi-part message in MIME format.
---------------040006080304060108080104
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: 7bit
+On Friday 11 July 2008 11:06:52 Matthew Garrett wrote:
+> On Thu, Jul 10, 2008 at 09:06:24PM +0200, Thomas Renninger wrote:
+> > This one is needed also.
+> > Matthew made me a bit nervous about it,but to detect video capabilities
+> > it is necessary to know whether the ACPI graphics device is really there.
+> > The IGD problems should be solved now and this can be added, right? IMO
+> > it could have been added before also because the other patches took care
+> > about the reported regression.
+>
+> The patch is good, but the comment still indicates that you want to
+> force control over to thinkpad_acpi. We're not going to do that, so
+> either resend it without that inference or I can resend it when I get
+> back home next week.
 
-Hi,
+Yep, sorry for the long delay, something else seem to not work anymore since 
+my last changes.
 
-You're requested....
+I will repost soon.
 
-Kernel:2.6.26, Debian etch.
-
-ACPI: EC: Look up EC in DSDT
-ACPI: BIOS _OSI(Linux) query ignored
-ACPI: DMI System Vendor: Dell Inc.
-ACPI: DMI Product Name: PowerEdge 2970
-ACPI: DMI Product Version:
-ACPI: DMI Board Name: 0CY813
-ACPI: DMI BIOS Vendor: Dell Inc.
-ACPI: DMI BIOS Date: 03/21/2008
-ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
-
-
-Greetings from Hungary.
-
-Laszlo Halasz
-
-
---------------040006080304060108080104
-Content-Type: text/x-vcard; charset=utf-8;
- name="sdg.vcf"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="sdg.vcf"
-
-begin:vcard
-fn;quoted-printable:Hal=C3=A1sz, L=C3=A1szl=C3=B3
-n;quoted-printable;quoted-printable:Hal=C3=A1sz;L=C3=A1szl=C3=B3
-org;quoted-printable:Sziv=C3=A1rv=C3=A1nyNet Kft
-adr;quoted-printable;quoted-printable;quoted-printable:;;Ber=C3=A9nyi =C3=BAt 101 I/35;Sz=C3=A9kesfeh=C3=A9rv=C3=A1r;Fej=C3=A9r;8000;Magyar
-email;internet:sdg@szivarvanynet.hu
-title;quoted-printable:=C3=9Cgyvezet=C5=91
-tel;work:+36(22)506-555, +36(22)310-848
-tel;fax:+36(22)506-554
-url:http://www.szivarvanynet.hu
-version:2.1
-end:vcard
-
-
---------------040006080304060108080104--
+      Thomas
