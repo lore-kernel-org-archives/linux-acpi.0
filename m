@@ -1,166 +1,125 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: ACPI Error under 2.6.26-rc*
-Date: Mon, 14 Jul 2008 17:11:41 +0800
-Message-ID: <1216026701.1617.82.camel@rzhang-dt>
-References: <20080709083829.GA5748@linux.int.dgn.ag>
-	 <200807102255.23090.rjw@sisk.pl> <1215739210.1617.28.camel@rzhang-dt>
-	 <1215739682.1617.32.camel@rzhang-dt>
-	 <20080714080914.GA4965@linux.int.dgn.ag>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Subject: ACPI: Add the abity to reset the system using RESET_REG
+	in FADT table
+Date: Mon, 14 Jul 2008 17:49:27 +0800
+Message-ID: <1216028967.32159.28.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:25172 "EHLO mga02.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:9291 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755826AbYGNJMn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Jul 2008 05:12:43 -0400
-In-Reply-To: <20080714080914.GA4965@linux.int.dgn.ag>
+	id S1757140AbYGNJiS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Jul 2008 05:38:18 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andre Prendel <andre_prendel@gmx.de>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, kernel-testers@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>
+To: Andi Kleen <andi@firstfloor.org>
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, adurbin@google.com, lenb@kernel.org
 
-On Mon, 2008-07-14 at 16:09 +0800, Andre Prendel wrote:
-> On Fri, Jul 11, 2008 at 09:28:02AM +0800, Zhang Rui wrote:
-> > On Fri, 2008-07-11 at 09:20 +0800, Zhang Rui wrote:
-> > > On Fri, 2008-07-11 at 04:55 +0800, Rafael J. Wysocki wrote:
-> > > > [Adding CCs.]
-> > > >
-> > > > On Wednesday, 9 of July 2008, Andre Prendel wrote:
-> > > > > Hi,
-> > > > >
-> > > > > I have had some ACPI Problems working under the 2.6.26-rc's i=
-n
-> the
-> > > > last weeks.
-> > > > > Power off does not work well. "System halted" is the last
-> output,
-> > > > but power is
-> > > > > not switch off. The lastest stable kernel (2.6.25.10) works
-> fine for
-> > > > me. After
-> > > > > that I tried 2.6.26-rc1 and the error occurs. AFAIR I had
-> these
-> > > > problems with
-> > > > > all 2.6.26-rc's until 2.6.26-rc8-git4. I did not tested newer
-> ones.
-> > > > >
-> > > > > Dmesg output is attached.
-> > > > >
-> > > > > Andre
-> > > > >
-> > > > > ----------------------------------
-> > > > > [    0.000000] Linux version 2.6.26-rc1 (andre@ubuntu) (gcc
-> version
-> > > > 4.1.3 20070929 (prerelease) (Ubuntu 4.1.2-16ubuntu2)) #8 SMP Tu=
-e
-> Jul 8
-> > > > 22:28:14 CEST 2008
-> > > > > [    0.000000] BIOS-provided physical RAM map:
-> > > > > [    0.000000]  BIOS-e820: 0000000000000000 - 000000000009fc0=
-0
-> > > > (usable)
-> > > > > [    0.000000]  BIOS-e820: 000000000009fc00 - 00000000000a000=
-0
-> > > > (reserved)
-> > > > > [    0.000000]  BIOS-e820: 00000000000f0000 - 000000000010000=
-0
-> > > > (reserved)
-> > > > > [    0.000000]  BIOS-e820: 0000000000100000 - 000000001fff000=
-0
-> > > > (usable)
-> > > > > [    0.000000]  BIOS-e820: 0000000021ff0000 - 0000000021ff800=
-0
-> (ACPI
-> > > > data)
-> > > > > [    0.000000]  BIOS-e820: 0000000021ff8000 - 000000002200000=
-0
-> (ACPI
-> > > > NVS)
-> > > > > [    0.000000]  BIOS-e820: 00000000fec00000 - 00000000fec0100=
-0
-> > > > (reserved)
-> > > > > [    0.000000]  BIOS-e820: 00000000fee00000 - 00000000fee0100=
-0
-> > > > (reserved)
-> > > > > [    0.000000]  BIOS-e820: 00000000ffee0000 - 00000000fff0000=
-0
-> > > > (reserved)
-> > > > > [    0.000000]  BIOS-e820: 00000000fffc0000 - 000000010000000=
-0
-> > > > (reserved)
-> > > > > [    0.000000] x86: PAT support disabled.
-> > > > > [    0.000000] 511MB LOWMEM available.
-> > > > > [    0.000000] Entering add_active_range(0, 0, 131056) 0
-> entries of
-> > > > 256 used
-> > > > > [    0.000000] Zone PFN ranges:
-> > > > > [    0.000000]   DMA             0 ->     4096
-> > > > > [    0.000000]   Normal       4096 ->   131056
-> > > > > [    0.000000] Movable zone start PFN for each node
-> > > > > [    0.000000] early_node_map[1] active PFN ranges
-> > > > > [    0.000000]     0:        0 ->   131056
-> > > > > [    0.000000] On node 0 totalpages: 131056
-> > > > > [    0.000000]   DMA zone: 32 pages used for memmap
-> > > > > [    0.000000]   DMA zone: 0 pages reserved
-> > > > > [    0.000000]   DMA zone: 4064 pages, LIFO batch:0
-> > > > > [    0.000000]   Normal zone: 991 pages used for memmap
-> > > > > [    0.000000]   Normal zone: 125969 pages, LIFO batch:31
-> > > > > [    0.000000]   Movable zone: 0 pages used for memmap
-> > > > > [    0.000000] DMI 2.3 present.
-> > > > > [    0.000000] ACPI: RSDP 000FA340, 0014 (r0 AMI   )
-> > > > > [    0.000000] ACPI:      21FF0000, 0000 (r0
-> > > > 0             0)
-> > > > > [    0.000000] ACPI Error (tbutils-0472): Invalid length 0x0
-> in
-> > > > RSDT/XSDT [20080321]
-> > >
-> > > Please attach the acpidump output using the latest pmtools at
-> > > http://www.lesswatts.org/patches/linux_acpi/
-> > >
-> > Please also attach the dmesg output of a working kernel.
->=20
-> Hello Rui,
->=20
-> that's quite strange. Booting the system to get an acpidump I have
-> looked at the dmesg output and there is no ACPI Error like the one
-> above. There is only an ACPI Exeption.
->=20
-> [...]
-> Jul 13 22:00:18 ubuntu kernel: [    0.104111] ACPI: Core revision
-> 20080321
-> Jul 13 22:00:18 ubuntu kernel: [    0.104259] ACPI Exception
-> (tbxface-0629): AE_NO_ACPI_TABLES, While loading namespace from ACPI
-> tables [20080321]
-> [...]
->=20
-> Booting again I found the error again
->=20
-> [...]
-> Jul 13 22:10:50 ubuntu kernel: [    0.000000] ACPI Error
-> (tbutils-0472): Invalid length 0x0 in RSDT/XSDT [20080321]
-> [...]
->=20
-> and acpidump says:
-> root@ubuntu:/home/andre/src/acpi/pmtools-20071116/acpidump#
-> ./acpidumpACPI tables were not found. If you know location of RSD PTR
-> table (from dmesg, etc), supply it with either --addr or -a option
->=20
-> Linux 2.6.25.10 always works.
+Subject: ACPI: Add the abity to reset the system using RESET_REG in FADT table
+From: Aaron Durbin <adurbin@google.com>
 
-It seems that OS failed to get the correct RSDT address (0x1fff0000),
-although the RSDP is found correctly. (=EF=BB=BFACPI: RSDP 000FA340, 00=
-14)
+Add the ability to reset the machine using the RESET_REG in ACPI's FADT table.
 
-please run "./acpidump --addr 0xFA340 --length 0x14 > rsdp_xxx",
-and attach the rsdp for all of the three cases (good, ACPI Error, ACPI
-Exception).
+Signed-off-by: Aaron Durbin <adurbin@google.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
-thanks,
-rui
+---
+ drivers/acpi/Makefile |    2 +-
+ drivers/acpi/reboot.c |   50 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ include/acpi/reboot.h |   13 +++++++------
+ 3 files changed, 58 insertions(+), 7 deletions(-)
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Index: linux-2.6/include/acpi/reboot.h
+===================================================================
+--- linux-2.6.orig/include/acpi/reboot.h
++++ linux-2.6/include/acpi/reboot.h
+@@ -1,9 +1,10 @@
++#ifndef __ACPI_REBOOT_H
++#define __ACPI_REBOOT_H
+ 
+-/*
+- * Dummy placeholder to make the EFI patches apply to the x86 tree.
+- * Andrew/Len, please just kill this file if you encounter it.
+- */
+-#ifndef acpi_reboot
+-# define acpi_reboot() do { } while (0)
++#ifdef CONFIG_ACPI
++extern void acpi_reboot(void);
++#else
++static inline void acpi_reboot(void) { }
+ #endif
+ 
++#endif
+Index: linux-2.6/drivers/acpi/reboot.c
+===================================================================
+--- /dev/null
++++ linux-2.6/drivers/acpi/reboot.c
+@@ -0,0 +1,50 @@
++
++#include <linux/pci.h>
++#include <linux/acpi.h>
++#include <acpi/reboot.h>
++
++void acpi_reboot(void)
++{
++	struct acpi_generic_address *rr;
++	struct pci_bus *bus0;
++	u8 reset_value;
++	unsigned int devfn;
++
++	if (acpi_disabled)
++		return;
++
++	rr = &acpi_gbl_FADT.reset_register;
++
++	/* Is the reset register supported? */
++	if (!(acpi_gbl_FADT.flags & ACPI_FADT_RESET_REGISTER) ||
++	    rr->bit_width != 8 || rr->bit_offset != 0)
++		return;
++
++	reset_value = acpi_gbl_FADT.reset_value;
++
++	/* The reset register can only exist in I/O, Memory or PCI config space
++	 * on a device on bus 0. */
++	switch (rr->space_id) {
++	case ACPI_ADR_SPACE_PCI_CONFIG:
++		/* The reset register can only live on bus 0. */
++		bus0 = pci_find_bus(0, 0);
++		if (!bus0)
++			return;
++		/* Form PCI device/function pair. */
++		devfn = PCI_DEVFN((rr->address >> 32) & 0xffff,
++				  (rr->address >> 16) & 0xffff);
++		printk(KERN_DEBUG "Resetting with ACPI PCI RESET_REG.");
++		/* Write the value that resets us. */
++		pci_bus_write_config_byte(bus0, devfn,
++				(rr->address & 0xffff), reset_value);
++		break;
++
++	case ACPI_ADR_SPACE_SYSTEM_MEMORY:
++	case ACPI_ADR_SPACE_SYSTEM_IO:
++		printk(KERN_DEBUG "ACPI MEMORY or I/O RESET_REG.\n");
++		acpi_hw_low_level_write(8, reset_value, rr);
++		break;
++	}
++	/* Wait ten seconds */
++	acpi_os_stall(10000000);
++}
+Index: linux-2.6/drivers/acpi/Makefile
+===================================================================
+--- linux-2.6.orig/drivers/acpi/Makefile
++++ linux-2.6/drivers/acpi/Makefile
+@@ -21,7 +21,7 @@ obj-$(CONFIG_X86)		+= blacklist.o
+ #
+ # ACPI Core Subsystem (Interpreter)
+ #
+-obj-y				+= osl.o utils.o \
++obj-y				+= osl.o utils.o reboot.o\
+ 				   dispatcher/ events/ executer/ hardware/ \
+ 				   namespace/ parser/ resources/ tables/ \
+ 				   utilities/
+
+
