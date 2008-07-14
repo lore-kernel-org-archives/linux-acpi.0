@@ -1,16 +1,16 @@
 From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: [PATCH 2/4]  ACPI: Get the device power state in the course of
-	scanning device
-Date: Mon, 14 Jul 2008 15:37:56 +0800
-Message-ID: <1216021076.32159.20.camel@yakui_zhao.sh.intel.com>
+Subject: [PATCH 3/4]  ACPI: Add "acpi.power_nocheck=1" to disable power
+	state check in power transitio
+Date: Mon, 14 Jul 2008 15:39:34 +0800
+Message-ID: <1216021174.32159.22.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:44947 "EHLO mga01.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:60070 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754570AbYGNH0h (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Jul 2008 03:26:37 -0400
+	id S1756434AbYGNH2P (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Jul 2008 03:28:15 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Andi Kleen <andi@firstfloor.org>
@@ -18,143 +18,151 @@ Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
 
 From: Zhao Yakui <yakui.zhao@intel.com>
 
-Get the device power state in the course of scanning device if the device 
-power flag is power_managable. i.e. The device has the _PSx/_PRx object.
+   Maybe the incorrect power state is returned on the bogus bios, which 
+is different with the real power state. For example: the bios returns D0 
+state and the real power state is D3. OS expects to set the device to D0 
+state. In  such case if OS uses the power state returned by the BIOS and 
+checks the device power state very strictly in power transition, the device 
+can't be transited to the correct power state.
 
-At the same time before the drivers/acpi/power module is loaded, there is no
-relation between acpi_power_resource and acpi device. So the first parameter type
-of acpi_power_get_state is changed from acpi_power_resource to acpi_handle.
+   So the boot option of "acpi.power_nocheck=1" is added to avoid checking
+the device power state in the course of device power transition.
 
 http://bugzilla.kernel.org/show_bug.cgi?id=8049
 http://bugzilla.kernel.org/show_bug.cgi?id=11000
 
 Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Li Shaohua <shaohua.li@intel.com>
 
 ---
- drivers/acpi/power.c |   30 ++++++++++++++++--------------
- drivers/acpi/scan.c  |    3 +--
- 2 files changed, 17 insertions(+), 16 deletions(-)
+ Documentation/kernel-parameters.txt |    7 ++++++
+ drivers/acpi/bus.c                  |   14 +++++++++++-
+ drivers/acpi/power.c                |   42 ++++++++++++++++++++++++++----------
+ include/acpi/acpi_drivers.h         |    1 
+ 4 files changed, 52 insertions(+), 12 deletions(-)
 
+Index: linux-2.6/Documentation/kernel-parameters.txt
+===================================================================
+--- linux-2.6.orig/Documentation/kernel-parameters.txt
++++ linux-2.6/Documentation/kernel-parameters.txt
+@@ -224,6 +224,13 @@ and is between 256 and 4096 characters. 
+ 			The number can be in decimal or prefixed with 0x in hex.
+ 			Warning: Many of these options can produce a lot of
+ 			output and make your system unusable. Be very careful.
++	acpi.power_nocheck=	[HW,ACPI]
++			Format: 1/0 enable/disable the check of power state.
++			On some bogus BIOS the _PSC object/_STA object of
++			power resource can't return the correct device power
++			state. In such case it is unneccessary to check its
++			power state again in power transition.
++			1 : disable the power state check
+ 
+ 	acpi_pm_good	[X86-32,X86-64]
+ 			Override the pmtimer bug detection: force the kernel
 Index: linux-2.6/drivers/acpi/power.c
 ===================================================================
 --- linux-2.6.orig/drivers/acpi/power.c
 +++ linux-2.6/drivers/acpi/power.c
-@@ -128,16 +128,16 @@ acpi_power_get_context(acpi_handle handl
- 	return 0;
- }
- 
--static int acpi_power_get_state(struct acpi_power_resource *resource, int *state)
-+static int acpi_power_get_state(acpi_handle handle, int *state)
- {
- 	acpi_status status = AE_OK;
- 	unsigned long sta = 0;
- 
- 
--	if (!resource || !state)
-+	if (!handle || !state)
- 		return -EINVAL;
- 
--	status = acpi_evaluate_integer(resource->device->handle, "_STA", NULL, &sta);
-+	status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
+@@ -54,6 +54,14 @@ ACPI_MODULE_NAME("power");
+ #define ACPI_POWER_RESOURCE_STATE_OFF	0x00
+ #define ACPI_POWER_RESOURCE_STATE_ON	0x01
+ #define ACPI_POWER_RESOURCE_STATE_UNKNOWN 0xFF
++
++#ifdef MODULE_PARAM_PREFIX
++#undef MODULE_PARAM_PREFIX
++#endif
++#define MODULE_PARAM_PREFIX "acpi."
++int acpi_power_nocheck;
++module_param_named(power_nocheck, acpi_power_nocheck, bool, 000);
++
+ static int acpi_power_add(struct acpi_device *device);
+ static int acpi_power_remove(struct acpi_device *device, int type);
+ static int acpi_power_resume(struct acpi_device *device);
+@@ -228,12 +236,18 @@ static int acpi_power_on(acpi_handle han
  	if (ACPI_FAILURE(status))
  		return -ENODEV;
  
-@@ -145,7 +145,7 @@ static int acpi_power_get_state(struct a
- 			      ACPI_POWER_RESOURCE_STATE_OFF;
- 
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Resource [%s] is %s\n",
--			  resource->name, state ? "on" : "off"));
-+			  acpi_ut_get_node_name(handle), state ? "on" : "off"));
- 
- 	return 0;
- }
-@@ -153,7 +153,6 @@ static int acpi_power_get_state(struct a
- static int acpi_power_get_list_state(struct acpi_handle_list *list, int *state)
- {
- 	int result = 0, state1;
--	struct acpi_power_resource *resource = NULL;
- 	u32 i = 0;
- 
- 
-@@ -161,12 +160,15 @@ static int acpi_power_get_list_state(str
- 		return -EINVAL;
- 
- 	/* The state of the list is 'on' IFF all resources are 'on'. */
-+	/* */
- 
- 	for (i = 0; i < list->count; i++) {
--		result = acpi_power_get_context(list->handles[i], &resource);
--		if (result)
--			return result;
--		result = acpi_power_get_state(resource, &state1);
-+		/*
-+		 * The state of the power resource can be obtained by
-+		 * using the ACPI handle. In such case it is unnecessary to
-+		 * get the Power resource first and then get its state again.
-+		 */
-+		result = acpi_power_get_state(list->handles[i], &state1);
- 		if (result)
- 			return result;
- 
-@@ -226,7 +228,7 @@ static int acpi_power_on(acpi_handle han
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
- 
--	result = acpi_power_get_state(resource, &state);
-+	result = acpi_power_get_state(resource->device->handle, &state);
- 	if (result)
- 		return result;
- 	if (state != ACPI_POWER_RESOURCE_STATE_ON)
-@@ -277,7 +279,7 @@ static int acpi_power_off_device(acpi_ha
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
- 
--	result = acpi_power_get_state(resource, &state);
-+	result = acpi_power_get_state(handle, &state);
- 	if (result)
- 		return result;
- 	if (state != ACPI_POWER_RESOURCE_STATE_OFF)
-@@ -489,7 +491,7 @@ static int acpi_power_seq_show(struct se
- 	if (!resource)
- 		goto end;
- 
--	result = acpi_power_get_state(resource, &state);
-+	result = acpi_power_get_state(resource->device->handle, &state);
- 	if (result)
- 		goto end;
- 
-@@ -602,7 +604,7 @@ static int acpi_power_add(struct acpi_de
- 	resource->system_level = acpi_object.power_resource.system_level;
- 	resource->order = acpi_object.power_resource.resource_order;
- 
--	result = acpi_power_get_state(resource, &state);
-+	result = acpi_power_get_state(device->handle, &state);
- 	if (result)
- 		goto end;
- 
-@@ -669,7 +671,7 @@ static int acpi_power_resume(struct acpi
- 
- 	resource = (struct acpi_power_resource *)acpi_driver_data(device);
- 
--	result = acpi_power_get_state(resource, &state);
-+	result = acpi_power_get_state(device->handle, &state);
- 	if (result)
- 		return result;
- 
-Index: linux-2.6/drivers/acpi/scan.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/scan.c
-+++ linux-2.6/drivers/acpi/scan.c
-@@ -823,8 +823,7 @@ static int acpi_bus_get_power_flags(stru
- 	device->power.states[ACPI_STATE_D3].power = 0;
- 
- 	/* TBD: System wake support and resource requirements. */
+-	result = acpi_power_get_state(resource->device->handle, &state);
+-	if (result)
+-		return result;
+-	if (state != ACPI_POWER_RESOURCE_STATE_ON)
+-		return -ENOEXEC;
 -
--	device->power.state = ACPI_STATE_UNKNOWN;
-+	acpi_bus_get_power(device->handle, &(device->power.state));
++	if (!acpi_power_nocheck) {
++		/*
++		 * If acpi_power_nocheck is set, it is unnecessary to check
++		 * the power state after power transition.
++		 */
++		result = acpi_power_get_state(resource->device->handle,
++				&state);
++		if (result)
++			return result;
++		if (state != ACPI_POWER_RESOURCE_STATE_ON)
++			return -ENOEXEC;
++	}
+ 	/* Update the power resource's _device_ power state */
+ 	resource->device->power.state = ACPI_STATE_D0;
  
- 	return 0;
- }
+@@ -279,11 +293,17 @@ static int acpi_power_off_device(acpi_ha
+ 	if (ACPI_FAILURE(status))
+ 		return -ENODEV;
+ 
+-	result = acpi_power_get_state(handle, &state);
+-	if (result)
+-		return result;
+-	if (state != ACPI_POWER_RESOURCE_STATE_OFF)
+-		return -ENOEXEC;
++	if (!acpi_power_nocheck) {
++		/*
++		 * If acpi_power_nocheck is set, it is unnecessary to check
++		 * the power state after power transition.
++		 */
++		result = acpi_power_get_state(handle, &state);
++		if (result)
++			return result;
++		if (state != ACPI_POWER_RESOURCE_STATE_OFF)
++			return -ENOEXEC;
++	}
+ 
+ 	/* Update the power resource's _device_ power state */
+ 	resource->device->power.state = ACPI_STATE_D3;
+Index: linux-2.6/include/acpi/acpi_drivers.h
+===================================================================
+--- linux-2.6.orig/include/acpi/acpi_drivers.h
++++ linux-2.6/include/acpi/acpi_drivers.h
+@@ -91,6 +91,7 @@ int acpi_enable_wakeup_device_power(stru
+ int acpi_disable_wakeup_device_power(struct acpi_device *dev);
+ int acpi_power_get_inferred_state(struct acpi_device *device);
+ int acpi_power_transition(struct acpi_device *device, int state);
++extern int acpi_power_nocheck;
+ #endif
+ 
+ /* --------------------------------------------------------------------------
+Index: linux-2.6/drivers/acpi/bus.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/bus.c
++++ linux-2.6/drivers/acpi/bus.c
+@@ -223,7 +223,19 @@ int acpi_bus_set_power(acpi_handle handl
+ 	/*
+ 	 * Get device's current power state
+ 	 */
+-	acpi_bus_get_power(device->handle, &device->power.state);
++	if (!acpi_power_nocheck) {
++		/*
++		 * Maybe the incorrect power state is returned on the bogus
++		 * bios, which is different with the real power state.
++		 * For example: the bios returns D0 state and the real power
++		 * state is D3. OS expects to set the device to D0 state. In
++		 * such case if OS uses the power state returned by the BIOS,
++		 * the device can't be transisted to the correct power state.
++		 * So if the acpi_power_nocheck is set, it is unnecessary to
++		 * get the power state by calling acpi_bus_get_power.
++		 */
++		acpi_bus_get_power(device->handle, &device->power.state);
++	}
+ 	if ((state == device->power.state) && !device->flags.force_power_state) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device is already at D%d\n",
+ 				  state));
 
 
