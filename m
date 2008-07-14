@@ -1,291 +1,84 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH 3/4]  ACPI: Add "acpi.power_nocheck=1" to disable power state check in power transitio
-Date: Mon, 14 Jul 2008 12:39:04 +0200
-Message-ID: <200807141239.04993.trenn@suse.de>
-References: <1216021174.32159.22.camel@yakui_zhao.sh.intel.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [RFT] x86 acpi: normalize segment descriptor register on resume
+Date: Mon, 14 Jul 2008 08:22:29 -0300
+Message-ID: <20080714112229.GA20593@khazad-dum.debian.net>
+References: <48793A0E.3050803@myrealbox.com> <200807130133.12324.rjw@sisk.pl> <20080713091524.GA29907@elte.hu> <20080713120253.GA27582@srcf.ucam.org> <487A2431.2050103@myrealbox.com> <487A4CB7.1080001@firstfloor.org> <487A62B3.8010207@zytor.com> <487A63D2.9040006@firstfloor.org> <20080714012206.GA11882@khazad-dum.debian.net> <20080714061429.GF20258@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:43915 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753325AbYGNKjI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Jul 2008 06:39:08 -0400
-In-Reply-To: <1216021174.32159.22.camel@yakui_zhao.sh.intel.com>
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:54369 "EHLO
+	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753636AbYGNLWg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Jul 2008 07:22:36 -0400
 Content-Disposition: inline
+In-Reply-To: <20080714061429.GF20258@elf.ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, lenb@kernel.org
+To: Pavel Machek <pavel@suse.cz>
+Cc: Andi Kleen <andi@firstfloor.org>, "H. Peter Anvin" <hpa@zytor.com>, Andy Lutomirski <luto@myrealbox.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Ingo Molnar <mingo@elte.hu>, "Rafael J. Wysocki" <rjw@sisk.pl>, public-kernel-testers-u79uwXL29TY76Z2rM5mHXA@lo.gmane.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Monday 14 July 2008 09:39:34 Zhao Yakui wrote:
-> From: Zhao Yakui <yakui.zhao@intel.com>
->
->    Maybe the incorrect power state is returned on the bogus bios, which
-> is different with the real power state. For example: the bios returns D0
-> state and the real power state is D3. OS expects to set the device to D0
-> state. In  such case if OS uses the power state returned by the BIOS and
-> checks the device power state very strictly in power transition, the device
-> can't be transited to the correct power state.
->
->    So the boot option of "acpi.power_nocheck=1" is added to avoid checking
-> the device power state in the course of device power transition.
->
-> http://bugzilla.kernel.org/show_bug.cgi?id=8049
-> http://bugzilla.kernel.org/show_bug.cgi?id=11000
->
-> Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> Signed-off-by: Li Shaohua <shaohua.li@intel.com>
->
-> ---
->  Documentation/kernel-parameters.txt |    7 ++++++
->  drivers/acpi/bus.c                  |   14 +++++++++++-
->  drivers/acpi/power.c                |   42
-> ++++++++++++++++++++++++++---------- include/acpi/acpi_drivers.h         | 
->   1
->  4 files changed, 52 insertions(+), 12 deletions(-)
->
-> Index: linux-2.6/Documentation/kernel-parameters.txt
-> ===================================================================
-> --- linux-2.6.orig/Documentation/kernel-parameters.txt
-> +++ linux-2.6/Documentation/kernel-parameters.txt
-> @@ -224,6 +224,13 @@ and is between 256 and 4096 characters.
->  			The number can be in decimal or prefixed with 0x in hex.
->  			Warning: Many of these options can produce a lot of
->  			output and make your system unusable. Be very careful.
-> +	acpi.power_nocheck=	[HW,ACPI]
-> +			Format: 1/0 enable/disable the check of power state.
-> +			On some bogus BIOS the _PSC object/_STA object of
-> +			power resource can't return the correct device power
-> +			state. In such case it is unneccessary to check its
-> +			power state again in power transition.
-> +			1 : disable the power state check
->
->  	acpi_pm_good	[X86-32,X86-64]
->  			Override the pmtimer bug detection: force the kernel
-> Index: linux-2.6/drivers/acpi/power.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/power.c
-> +++ linux-2.6/drivers/acpi/power.c
-> @@ -54,6 +54,14 @@ ACPI_MODULE_NAME("power");
->  #define ACPI_POWER_RESOURCE_STATE_OFF	0x00
->  #define ACPI_POWER_RESOURCE_STATE_ON	0x01
->  #define ACPI_POWER_RESOURCE_STATE_UNKNOWN 0xFF
-> +
-> +#ifdef MODULE_PARAM_PREFIX
-> +#undef MODULE_PARAM_PREFIX
-> +#endif
-> +#define MODULE_PARAM_PREFIX "acpi."
-> +int acpi_power_nocheck;
-> +module_param_named(power_nocheck, acpi_power_nocheck, bool, 000);
-> +
->  static int acpi_power_add(struct acpi_device *device);
->  static int acpi_power_remove(struct acpi_device *device, int type);
->  static int acpi_power_resume(struct acpi_device *device);
-> @@ -228,12 +236,18 @@ static int acpi_power_on(acpi_handle han
->  	if (ACPI_FAILURE(status))
->  		return -ENODEV;
->
-> -	result = acpi_power_get_state(resource->device->handle, &state);
-> -	if (result)
-> -		return result;
-> -	if (state != ACPI_POWER_RESOURCE_STATE_ON)
-> -		return -ENOEXEC;
-> -
-> +	if (!acpi_power_nocheck) {
-> +		/*
-> +		 * If acpi_power_nocheck is set, it is unnecessary to check
-> +		 * the power state after power transition.
-> +		 */
-> +		result = acpi_power_get_state(resource->device->handle,
-> +				&state);
-> +		if (result)
-> +			return result;
-> +		if (state != ACPI_POWER_RESOURCE_STATE_ON)
-> +			return -ENOEXEC;
-> +	}
->  	/* Update the power resource's _device_ power state */
->  	resource->device->power.state = ACPI_STATE_D0;
+On Mon, 14 Jul 2008, Pavel Machek wrote:
+> On Sun 2008-07-13 22:22:06, Henrique de Moraes Holschuh wrote:
+> > On Sun, 13 Jul 2008, Andi Kleen wrote:
+> > > It probably switches to protected mode. I noticed this on my old
+> > > Fujitsu laptop when I tried to make the S3 wakeup run in the s2ram x86 emulator
+> > > and found it entered protected mode at some point, which x86emu
+> > > didn't support.
+> > > 
+> > > I guess Lenovo is doing the same.
+> > > 
+> > > And that protected mode code relies on some GDT values that have been
+> > > loaded earlier when the BIOS also went into protected mode.
+> > > 
+> > > It seems the BIOS programmers really don't like real mode anymore.
+> > > Somehow understandable.
+> > 
+> > If it were just Lenovo, it shouldn't be too difficult to get them to fix the
+> > BIOS.  But since other vendors have the same problem, that won't fly as a
+> > solution.
+> 
+> With all the BIOSes in field, practically impossible to update? (My
+> x60 has no CDrom..) No, I don't think we can expect fix from BIOS vendors.
 
-A fat ACPI_EXCEPTION that the power state is bogus and already point to the 
-acpi.power_nocheck boot param before returning -ENOEXEC would help to find 
-this boot param for affected machines?
+I explicitly said it wouldn't fly as a solution, because I doubt we could
+expect a fix from EVERY BIOS vendor that has such problems.  That sort of
+account for machines that have not been updated, too.
 
-I wonder whether this (acpi.power_nocheck=1) could even get the default, maybe 
-after waiting for reponse about how many machines really show this and why...
+But I do think "your BIOS is broken and there is an update available from
+the vendor, apply it" *IS* a valid response if a workaround is not
+desireable for some reason (e.g. it is too complex, or it would make the
+kernel worse for a lot of others that did things right and don't have the
+bug).  I don't think we need to fear that happening on this particular
+issue, but still...
 
-The current implementation sets:
-               device->power.state = ACPI_STATE_UNKNOWN;
-if -ENOEXEC is returned (or other errors happen) thermal management is rather 
-blown up then? Setting a sane default (as you did if the boot param is 
-passed) if things go wrong and print a warning sounds reasonable in general? 
+As for your X60, you can use a USB mass storage device like a pendrive.
+Someone already did all the hard work:
+http://thinkwiki.org/wiki/BIOS_Upgrade/X_Series
 
-While going through power.c it looks like there could be more warnings or more 
-better fallbacks added:
-in acpi_power_add():
-       switch (state) {
-        case ACPI_POWER_RESOURCE_STATE_ON:
-                device->power.state = ACPI_STATE_D0;
-                break;
-        case ACPI_POWER_RESOURCE_STATE_OFF:
-                device->power.state = ACPI_STATE_D3;
-                break;
-        default:
-                device->power.state = ACPI_STATE_UNKNOWN;
-                break;
-        }
-The last one is a BIOS bug.
-Also the power state must never be ACPI_STATE_UNKNOWN or the whole driver is 
-rather useless?
-E.g. the check in acpi_power_transition() indicates that if the state is 
-ACPI_STATE_UNKNOWN things are rather broken:
-        if ((device->power.state < ACPI_STATE_D0)
-            || (device->power.state > ACPI_STATE_D3))
-                return -ENODEV;
+In fact, as I rule, I cannot recommend using anything but the latest BIOS
+and EC releases on a ThinkPad.  That thing is too complex to live without
+updates, just like the kernel (even if, just like the kernel, upgrading the
+BIOS and EC can cause new bugs).  Look at the changelog for your X60 BIOS
+and EC firmware at
+http://www-307.ibm.com/pc/support/site.wss/MIGR-65345.html.  It has some
+scary stuff fixed, and that's just what Lenovo decided to disclose, those
+changelogs are NOT complete and often fail to list changes that are of
+interest to Linux (such as fixes to the ACPI tables).
 
-What do you think about this cleanup patch.
-I wonder whether it makes sense to not only throw an error message at places 
-where ACPI_STATE_UNKNOWN is set, but also set ACPI_STATE_D3 (or 
-ACPI_STATE_D0, whatever is expected) and try to keep power resource 
-management up, even on bogus BIOS values?
+In fact, look at this interesting entry on the X60 BIOS changelog:
+Version 7BETD3WW (2.14):
+	(Fix) Memory address more than 4GB can't be accessed under Vista
+	WindowsPE. (BIOS)
 
----
- drivers/acpi/power.c |   20 ++++++++++++++++----
- 1 file changed, 16 insertions(+), 4 deletions(-)
+It is also listed for the X61 and the tablets on their BIOS updates.  Maybe
+that 4GB change could be related to the issue at hand?
 
-Index: pci-2.6/drivers/acpi/power.c
-===================================================================
---- pci-2.6.orig/drivers/acpi/power.c
-+++ pci-2.6/drivers/acpi/power.c
-@@ -337,7 +337,7 @@ int acpi_device_sleep_wake(struct acpi_d
- 	if (ACPI_SUCCESS(status)) {
- 		return 0;
- 	} else if (status != AE_NOT_FOUND) {
--		printk(KERN_ERR PREFIX "_DSW execution failed\n");
-+		ACPI_EXCEPTION((AE_INFO, status, "_DSW execution failed\n"));
- 		dev->wakeup.flags.valid = 0;
- 		return -ENODEV;
- 	}
-@@ -347,7 +347,7 @@ int acpi_device_sleep_wake(struct acpi_d
- 	in_arg[0].integer.value = enable;
- 	status = acpi_evaluate_object(dev->handle, "_PSW", &arg_list, NULL);
- 	if (ACPI_FAILURE(status) && (status != AE_NOT_FOUND)) {
--		printk(KERN_ERR PREFIX "_PSW execution failed\n");
-+		ACPI_EXCEPTION((AE_INFO, status, "_PSW execution failed\n"));
- 		dev->wakeup.flags.valid = 0;
- 		return -ENODEV;
- 	}
-@@ -379,7 +379,11 @@ int acpi_enable_wakeup_device_power(stru
- 	for (i = 0; i < dev->wakeup.resources.count; i++) {
- 		int ret = acpi_power_on(dev->wakeup.resources.handles[i], dev);
- 		if (ret) {
--			printk(KERN_ERR PREFIX "Transition power state\n");
-+			/* ToDo make use of acpi_status in acpi_power_on and
-+			 *  others for better error tracking
-+			 */
-+			ACPI_EXCEPTION((AE_INFO, AE_ERROR,
-+					"Transition power state\n"));
- 			dev->wakeup.flags.valid = 0;
- 			return -ENODEV;
- 		}
-@@ -462,8 +466,13 @@ int acpi_power_get_inferred_state(struct
- 			continue;
- 
- 		result = acpi_power_get_list_state(list, &list_state);
--		if (result)
-+		if (result) {
-+			ACPI_EXCEPTION((AE_INFO, AE_ERROR,
-+					"Could not infer state for"
-+					"power resource [%s]\n",
-+					acpi_device_bid(device)));
- 			return result;
-+		}
- 
- 		if (list_state == ACPI_POWER_RESOURCE_STATE_ON) {
- 			device->power.state = i;
-@@ -680,6 +689,9 @@ static int acpi_power_add(struct acpi_de
- 		device->power.state = ACPI_STATE_D3;
- 		break;
- 	default:
-+		ACPI_EXCEPTION((AE_INFO, AE_ERROR,
-+				"Power resource [%s] returned bogus value\n",
-+				acpi_device_bid(device)));
- 		device->power.state = ACPI_STATE_UNKNOWN;
- 		break;
- 	}
+It would be nice to get a report on the Big Realmote patch, and also know
+the BIOS version of ThinkPads that have (and don't have) the bug.
 
-
-       Thomas
-
->
-> @@ -279,11 +293,17 @@ static int acpi_power_off_device(acpi_ha
->  	if (ACPI_FAILURE(status))
->  		return -ENODEV;
->
-> -	result = acpi_power_get_state(handle, &state);
-> -	if (result)
-> -		return result;
-> -	if (state != ACPI_POWER_RESOURCE_STATE_OFF)
-> -		return -ENOEXEC;
-> +	if (!acpi_power_nocheck) {
-> +		/*
-> +		 * If acpi_power_nocheck is set, it is unnecessary to check
-> +		 * the power state after power transition.
-> +		 */
-> +		result = acpi_power_get_state(handle, &state);
-> +		if (result)
-> +			return result;
-> +		if (state != ACPI_POWER_RESOURCE_STATE_OFF)
-> +			return -ENOEXEC;
-> +	}
->
->  	/* Update the power resource's _device_ power state */
->  	resource->device->power.state = ACPI_STATE_D3;
-> Index: linux-2.6/include/acpi/acpi_drivers.h
-> ===================================================================
-> --- linux-2.6.orig/include/acpi/acpi_drivers.h
-> +++ linux-2.6/include/acpi/acpi_drivers.h
-> @@ -91,6 +91,7 @@ int acpi_enable_wakeup_device_power(stru
->  int acpi_disable_wakeup_device_power(struct acpi_device *dev);
->  int acpi_power_get_inferred_state(struct acpi_device *device);
->  int acpi_power_transition(struct acpi_device *device, int state);
-> +extern int acpi_power_nocheck;
->  #endif
->
->  /*
-> --------------------------------------------------------------------------
-> Index: linux-2.6/drivers/acpi/bus.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/bus.c
-> +++ linux-2.6/drivers/acpi/bus.c
-> @@ -223,7 +223,19 @@ int acpi_bus_set_power(acpi_handle handl
->  	/*
->  	 * Get device's current power state
->  	 */
-> -	acpi_bus_get_power(device->handle, &device->power.state);
-> +	if (!acpi_power_nocheck) {
-> +		/*
-> +		 * Maybe the incorrect power state is returned on the bogus
-> +		 * bios, which is different with the real power state.
-> +		 * For example: the bios returns D0 state and the real power
-> +		 * state is D3. OS expects to set the device to D0 state. In
-> +		 * such case if OS uses the power state returned by the BIOS,
-> +		 * the device can't be transisted to the correct power state.
-> +		 * So if the acpi_power_nocheck is set, it is unnecessary to
-> +		 * get the power state by calling acpi_bus_get_power.
-> +		 */
-> +		acpi_bus_get_power(device->handle, &device->power.state);
-> +	}
->  	if ((state == device->power.state) && !device->flags.force_power_state) {
->  		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device is already at D%d\n",
->  				  state));
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
