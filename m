@@ -1,36 +1,56 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFT] x86 acpi: normalize segment descriptor register on resume
-Date: Mon, 14 Jul 2008 22:10:41 +0200
-Message-ID: <200807142210.43035.rjw@sisk.pl>
-References: <200807010148.02135.rjw@sisk.pl> <200807132229.43140.rjw@sisk.pl> <487ABB81.8020100@zytor.com>
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: Re: PCI PM: Fix pci_prepare_to_sleep
+Date: Mon, 14 Jul 2008 14:27:33 -0700
+Message-ID: <200807141427.34022.jbarnes@virtuousgeek.org>
+References: <200807012356.26669.rjw@sisk.pl> <200807070330.02849.rjw@sisk.pl>
+	<200807132245.07414.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:45916 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756367AbYGNUIR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Jul 2008 16:08:17 -0400
-In-Reply-To: <487ABB81.8020100@zytor.com>
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <200807132245.07414.rjw@sisk.pl>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Zhao Yakui <yakui.zhao@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Pavel Machek <pavel@suse.cz>, Andi Kleen <andi@firstfloor.org>, pm list <linux-pm@lists.linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Andi Kleen <andi@firstfloor.org>, Andy Lutomirski <luto@myrealbox.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Ingo Molnar <mingo@elte.hu>, public-kernel-testers-u79uwXL29TY76Z2rM5mHXA@lo.gmane.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Pavel Machek <pavel@ucw.cz>
 
-On Monday, 14 of July 2008, H. Peter Anvin wrote:
-> Rafael J. Wysocki wrote:
-> > 
-> > If s3_bios depends on the (invalid) contents of the hidden part of any segment
-> > register, it's just terminally broken.
-> > 
-> 
-> Depending on it being in Big Real Mode isn't all that broken, however, 
-> especially on laptops where the vendor has control over the system 
-> BIOS/video BIOS.
-> 
-> Enabling BRM by default *shouldn't* break anything, so it might be what 
-> we want to do anyway.
+On Sunday, July 13, 2008 1:45 pm Rafael J. Wysocki wrote:
+> Hi Jesse,
+>
+> The recently introduced pci_prepare_to_sleep() needs the following fix,
+> because there are systems which are not power manageable by ACPI (ie. ACPI
+> doesn't provide methods to put the device into low power states and back),
+> but require ACPI hooks to be executed for wake-up to work.
+>
+> Please apply.
+>
+> Thanks,
+> Rafael
+>
+> ---
+> From: Rafael J. Wysocki <rjw@sisk.pl>
+>
+> Fix pci_prepare_to_sleep() to work on systems that are not power
+> manageable by ACPI (ie. ACPI doesn't provide methods to put the
+> device into low power states and back into the full power state), but
+> require ACPI hooks to be executed for wake-up to work.
+>
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 
-Agreed.
+Based on what you've told me so far about the number of ACPI vs. native wakeup 
+methods & problems, I'm starting to get a little worried that making this 
+stuff work right will require lots of platform specific quirks.  I guess 
+that's just par for the course though, and this patch looks fine, so I just 
+applied it to my linux-next branch.
+
+Thanks,
+Jesse
