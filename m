@@ -1,53 +1,85 @@
-From: Andi Kleen <ak@linux.intel.com>
-Subject: Re: [PATCH 14/14] ACPI: Provide /sys/devices/system/cpu/cpuN/deconfigure
-Date: Tue, 15 Jul 2008 19:06:32 +0200
-Message-ID: <487CD918.6060405@linux.intel.com>
-References: <20080715023344.2528.1836.stgit@blender.achiang> <20080715023455.2528.16193.stgit@blender.achiang>
+From: Alex Chiang <achiang@hp.com>
+Subject: Re: [PATCH 01/14] Introduce cpu_enabled_map and friends
+Date: Tue, 15 Jul 2008 11:57:40 -0600
+Message-ID: <20080715175740.GB10919@ldl.fc.hp.com>
+References: <20080715023344.2528.1836.stgit@blender.achiang> <20080715023349.2528.9423.stgit@blender.achiang> <20080715031512.GF14894@parisc-linux.org> <87wsjnxy4w.fsf@basil.nowhere.org> <20080715102130.GA22866@flint.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga12.intel.com ([143.182.124.36]:45069 "EHLO
-	azsmga102.ch.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751818AbYGORGm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Jul 2008 13:06:42 -0400
-In-Reply-To: <20080715023455.2528.16193.stgit@blender.achiang>
+Received: from g1t0028.austin.hp.com ([15.216.28.35]:12986 "EHLO
+	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752157AbYGOR5l (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Jul 2008 13:57:41 -0400
+Content-Disposition: inline
+In-Reply-To: <20080715102130.GA22866@flint.arm.linux.org.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Chiang <achiang@hp.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Andi Kleen <andi@firstfloor.org>, Matthew Wilcox <matthew@wil.cx>, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Alex Chiang wrote:
-> Provide a new sysfs interface for CPU deconfiguration.
+* Russell King <rmk+lkml@arm.linux.org.uk>:
+> On Tue, Jul 15, 2008 at 12:03:27PM +0200, Andi Kleen wrote:
+> > Matthew Wilcox <matthew@wil.cx> writes:
+> > >
+> > > I don't understand why we want to know about these CPUs.
+> > > Surely they should be 'possible', but not 'present'?  What
+> > > useful thing can Linux do with them?
+> > 
+> > He explained it in the intro, near the end (I nearly
+> > complained about this too when I hadn't finished reading it
+> > completely :):
+> > 
+> > |The big picture implication is that we can allow userspace
+> > |to interact with disabled CPUs. In this particular example,
+> > |we provide a knob that lets a sysadmin schedule any present
+> > |CPU for firmware deconfiguration or enablement.
+> > 
+> > The reason sounds pretty exotic, but ok.
 > 
-> Since no vendors can agree on terminology for related but slightly
-> different features, provide a method for a platform to implement
-> its own version of what it thinks 'deconfiguring' a CPU might be.
-> 
-> Provide an HP-specific CPU deconfiguration implementation.
+> I don't see why this needs to be cross architecture then -
+> shouldn't the generic kernel only be concerning itself with
+> things that are possible, present and/or online?
 
-Why are you ccing this to linux-arch? Dropped.
+I suppose that's a fair statement. Touching all the archs for
+something 'exotic' like this does seem to be a bit of an
+overkill.
 
-What is the standard status of these new SCFG and ECFG tables? Have they
-been submitted for possible inclusion in ACPI? And is there a spec
-available? I can't say I'm really thrilled with having HP specific
-support in there.
+My thought was that big SMP systems like ia64, possibly sparc and
+ppc, and increasingly, x86, might find something like this
+useful, as systems get larger and larger, and vendors are going
+to want to do RAS-ish features, like the ability to keep CPUs in
+firmware across reboots until told otherwise by the sysadmin.
 
-It would be better at least if you could reserve the table names and 
-then drop the HP DMI check. This is needed anyways, otherwise the 
-standard at some point could add different ECFG/SCFG tables.
+Right now, a 'present' CPU strongly implies 'online' as well,
+since we're calling cpu_up() for all 'present' CPUs in
+smp_init(). But this hurts if:
 
-> + * After echo'ing 0 or 1 into deconfigure, cat'ing the file will
-> + * return the next boot's status. However, the CPU will not actually
-> + * be deconfigured until the next boot.
+	- you don't actually want to bring up all 'present' CPUs
+	- you still want to interact with these weirdo zombie
+	  CPUs that are 'present' but not 'online'
 
-Now that seems like weird semantics for a public fixed API. What happens
-when some other vendor adds hot deconfiguration?
+That second item refers to creating a sysfs interface for each
+'present' CPU in topology_init().
 
-My feeling is that this seems to be overly specific to your BIOS
-and might better belong into some separate management tool. At least
-until we can define a nice general API for this with clear semantics. 
-For what systems is this anyways?
+This feature puts a tax on smaller archs like arm, but maybe I
+could be smarter about it by using a 
 
--Andi
+#define cpu_enabled_mask cpu_online_mask
+
+Hrm?
+
+> If you have an interface which allows you to change the
+> machines configuration in a machine specific way, shouldn't
+> that be something for that machine to support and forced upon
+> the entire kernel?
+
+I think that the generic kernel would be the appropriate place to
+create a place for these zombie CPUs, and give the vendor specific
+stuff a way to hook in.
+
+I'd be interested in learning if any of the other 'big' archs
+would have a use for something like this.
+
+Thanks.
+
+/ac
 
