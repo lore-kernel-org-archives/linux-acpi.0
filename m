@@ -1,41 +1,109 @@
-From: "=?UTF-8?Q?Rafa=C5=82_Mi=C5=82ecki?=" <zajec5@gmail.com>
-Subject: Re: Toshiba - Documentation for Linux Developers
-Date: Tue, 15 Jul 2008 13:46:29 +0200
-Message-ID: <b170af450807150446l555e9bbfx3f388d3ebe9cb11f@mail.gmail.com>
-References: <4855971D.90004@diamondcut.com.br> <20080616221443.GA760@kroah.com>
-	 <b170af450807130654m2f800b10ybcba4b2c5c7cf329@mail.gmail.com>
-	 <487A1534.3000307@diamondcut.com.br>
-	 <b170af450807150017u248d4255i3800c10cb11df319@mail.gmail.com>
-	 <487C865C.5060303@diamondcut.com.br>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH 5/9] fujitsu-laptop: fingers off backlight if video.ko is serving this functionality
+Date: Tue, 15 Jul 2008 14:46:30 +0200
+Message-ID: <200807151446.31799.trenn@suse.de>
+References: <1215700265-24908-1-git-send-email-trenn@suse.de> <1215700265-24908-5-git-send-email-trenn@suse.de> <1216114700.1940.12.camel@earth.gruber.myown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gv-out-0910.google.com ([216.239.58.184]:16249 "EHLO
-	gv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754811AbYGOLqb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Jul 2008 07:46:31 -0400
-Received: by gv-out-0910.google.com with SMTP id e6so937872gvc.37
-        for <linux-acpi@vger.kernel.org>; Tue, 15 Jul 2008 04:46:30 -0700 (PDT)
-In-Reply-To: <487C865C.5060303@diamondcut.com.br>
+Received: from cantor2.suse.de ([195.135.220.15]:54225 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756149AbYGOMqf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Jul 2008 08:46:35 -0400
+In-Reply-To: <1216114700.1940.12.camel@earth.gruber.myown>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Renato S. Yamane" <yamane@diamondcut.com.br>
-Cc: Greg KH <greg@kroah.com>, linux-acpi@vger.kernel.org, pavel@suse.cz, linux-kernel@vger.kernel.org
+To: nokos@gmx.net
+Cc: jwoithe@physics.adelaide.edu.au, linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>
 
-MjAwOC83LzE1LCBSZW5hdG8gUy4gWWFtYW5lIDx5YW1hbmVAZGlhbW9uZGN1dC5jb20uYnI+Ogo+
-IFJhZmHFgiBNacWCZWNraSB3cm90ZToKPiAgPiBUaGUgbmV3ZXN0IHZlcnNpb24gaXMgcGFja2Vk
-IGZvciBvcGVuU1VTRSBmb3J0dW5hdGVseS4gQnV0IGl0IGRvZXNuJ3QKPiAgPiBmb3IgbXkgbm90
-ZWJvb2sKPgo+IFRyeSBjb21waWxlIFNWTiB2ZXJzaW9uIGFzIGNvbW1lbnRlZCBpbiBteSBsYXN0
-IGUtbWFpbAoKT0ssIEkgdHJpZWQgdmVyc2lvbiBmcm9tIFNWTi4gTm90aGluZyBjaGFuZ2VkIDp8
-CgoKPiAgPiBkbWVzZyBpczoKPiAgPiBvbW5pYm9vazogRHJpdmVyIHZlcnNpb24gMi4yMDA3MDIx
-MS10cnVuay4KPiAgPiBvbW5pYm9vazogVW5rbm93biBtb2RlbC4KPgo+Cj4gVHJ5IGZvcmNlIHJl
-Y29nbml6ZSB3aXRoIGVjdHlwZSBwYXJhbWV0ZXIuCj4gICNtb2Rwcm9iZSBvbW5pYm9vayBlY3R5
-cGU9eAoKU3VyZSwgSSB0cmllZCBldmVyeSBlY3R5cGUgYmV0d2VlbiAxIGFuZCAxNSBiZWZvcmUg
-KG9tbmlib29rIGZyb20KcGFja2FnZSkgYW5kIG5vdyAodmVyc2lvbiBmcm9tIFNWTikgYWdhaW4u
-IEkgY2hlY2tlZCB0d28gZmlsZXMgKHdoZW4KZXhpc3RlZCk6IGxjZCBhbmQgdGVtcGVyYXR1cmUu
-IFRlbXBlcmF0dXJlIChpZiBmaWxlIGV4aXN0ZWQgZm9yIGZvcmNlZAplY3R5cGUpIHdhcyBhbHdh
-eXMgMCBhbmQgbGNkIGFsd2F5cyBoYWQgc29tZSByYW5kb20gdmFsdWVzLiBJbnNlcnRpbmcKb3Ro
-ZXIgdmFsdWVzICgxLCA3KSBkaWRuJ3QgY2hhbmdlIGFueXRoaW5nLgoKLS0gClJhZmHFgiBNacWC
-ZWNraQo=
+On Tuesday 15 July 2008 11:38:20 nokos@gmx.net wrote:
+> Hi there,
+>
+> on the S6410 this prevents brightness control from working correctly.
+> the ACPI BIOS provides non-functional _BCM/_BQC so the video.ko is
+> registering backlight functions but does not work. Unfortunately not
+> loading video.ko isn't a solution since with
+> bc45b1d39a925b56796bebf8a397a0491489d85c the brightness keys are only
+> reported through video.ko.
+Is this an Intel graphics card?
+Then you should also try Matthew's/Hong's IGD extensions.
+It is likely that everything works out with video.ko then.
+If not, with a patch I sent recently you should switch off Windows osi strings 
+with:
+acpi_osi=windows_false   (preferred)
+or (already works)
+acpi_osi="!Windows 2006"
+
+If it still does not work, then there is a driver missing which was  a 
+proprietary one on XP and which has not been fully re-engeeniered for Linux.
+
+Using ACPI video events and pass them to the Fujitsu driver to change 
+backlight (is this how it works? Is this done through userspace?), mixes up 
+everything.
+Either you have video.ko or fujitsu_acpi.ko or you are in trouble of double 
+touching the HW.
+
+         Thomas
+
+> Am Donnerstag, den 10.07.2008, 16:31 +0200 schrieb trenn@suse.de:
+> > From: Thomas Renninger <trenn@suse.de>
+> >
+> > ---
+> >  drivers/misc/fujitsu-laptop.c |   26 ++++++++++++++------------
+> >  1 files changed, 14 insertions(+), 12 deletions(-)
+> >
+> > diff --git a/drivers/misc/fujitsu-laptop.c
+> > b/drivers/misc/fujitsu-laptop.c index 3601224..7306776 100644
+> > --- a/drivers/misc/fujitsu-laptop.c
+> > +++ b/drivers/misc/fujitsu-laptop.c
+> > @@ -963,16 +963,16 @@ static int __init fujitsu_init(void)
+> >
+> >  	/* Register backlight stuff */
+> >
+> > -	fujitsu->bl_device =
+> > -	    backlight_device_register("fujitsu-laptop", NULL, NULL,
+> > -				      &fujitsubl_ops);
+> > -	if (IS_ERR(fujitsu->bl_device))
+> > -		return PTR_ERR(fujitsu->bl_device);
+> > -
+> > -	max_brightness = fujitsu->max_brightness;
+> > -
+> > -	fujitsu->bl_device->props.max_brightness = max_brightness - 1;
+> > -	fujitsu->bl_device->props.brightness = fujitsu->brightness_level;
+> > +	if (!acpi_video_backlight_support()) {
+> > +		fujitsu->bl_device =
+> > +			backlight_device_register("fujitsu-laptop", NULL, NULL,
+> > +						  &fujitsubl_ops);
+> > +		if (IS_ERR(fujitsu->bl_device))
+> > +			return PTR_ERR(fujitsu->bl_device);
+> > +		max_brightness = fujitsu->max_brightness;
+> > +		fujitsu->bl_device->props.max_brightness = max_brightness - 1;
+> > +		fujitsu->bl_device->props.brightness = fujitsu->brightness_level;
+> > +	}
+> >
+> >  	ret = platform_driver_register(&fujitsupf_driver);
+> >  	if (ret)
+> > @@ -1008,7 +1008,8 @@ fail_hotkey:
+> >
+> >  fail_backlight:
+> >
+> > -	backlight_device_unregister(fujitsu->bl_device);
+> > +	if (fujitsu->bl_device)
+> > +		backlight_device_unregister(fujitsu->bl_device);
+> >
+> >  fail_platform_device2:
+> >
+> > @@ -1035,7 +1036,8 @@ static void __exit fujitsu_cleanup(void)
+> >  			   &fujitsupf_attribute_group);
+> >  	platform_device_unregister(fujitsu->pf_device);
+> >  	platform_driver_unregister(&fujitsupf_driver);
+> > -	backlight_device_unregister(fujitsu->bl_device);
+> > +	if (fujitsu->bl_device)
+> > +		backlight_device_unregister(fujitsu->bl_device);
+> >
+> >  	acpi_bus_unregister_driver(&acpi_fujitsu_driver);
+
+
