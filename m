@@ -1,63 +1,68 @@
-From: Alex Chiang <achiang@hp.com>
-Subject: Re: [PATCH 01/14] Introduce cpu_enabled_map and friends
-Date: Tue, 15 Jul 2008 13:15:15 -0600
-Message-ID: <20080715191515.GE10919@ldl.fc.hp.com>
-References: <20080715023344.2528.1836.stgit@blender.achiang> <20080715023349.2528.9423.stgit@blender.achiang> <20080715031512.GF14894@parisc-linux.org> <87wsjnxy4w.fsf@basil.nowhere.org> <20080715102130.GA22866@flint.arm.linux.org.uk> <20080715175740.GB10919@ldl.fc.hp.com> <20080715181632.GG14894@parisc-linux.org> <20080715184822.GB29991@flint.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-arch-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20080715184822.GB29991@flint.arm.linux.org.uk>
-Sender: linux-arch-owner@vger.kernel.org
-To: Matthew Wilcox <matthew@wil.cx>, Andi Kleen <andi@firstfloor.org>, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, linux-acpi@vger.kernel.org
+From: John Keller <jpk@sgi.com>
+Subject: [RESEND] [PATCH] x86: Allow MMCONFIG above 4GB on x86_64
+Date: Tue, 15 Jul 2008 14:47:14 -0500 (CDT)
+Message-ID: <20080715194714.1437.92354.57492@attica.americas.sgi.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from relay2.sgi.com ([192.48.171.30]:38617 "EHLO relay.sgi.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1759060AbYGOTrP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Jul 2008 15:47:15 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, John Keller <jpk@sgi.com>
 
-* Russell King <rmk+lkml@arm.linux.org.uk>:
-> On Tue, Jul 15, 2008 at 12:16:32PM -0600, Matthew Wilcox wrote:
-> > On Tue, Jul 15, 2008 at 11:57:40AM -0600, Alex Chiang wrote:
-> > > My thought was that big SMP systems like ia64, possibly sparc and
-> > > ppc, and increasingly, x86, might find something like this
-> > > useful, as systems get larger and larger, and vendors are going
-> > > to want to do RAS-ish features, like the ability to keep CPUs in
-> > > firmware across reboots until told otherwise by the sysadmin.
-> > > 
-> > > Right now, a 'present' CPU strongly implies 'online' as well,
-> > > since we're calling cpu_up() for all 'present' CPUs in
-> > > smp_init(). But this hurts if:
-> > > 
-> > > 	- you don't actually want to bring up all 'present' CPUs
-> > > 	- you still want to interact with these weirdo zombie
-> > > 	  CPUs that are 'present' but not 'online'
-> > 
-> > Have you considered simply failing __cpu_up() for CPUs that are
-> > deconfigured by firmware?
-> 
-> But what if you want to have a system boot with, say, 4 CPUs and
-> then decide at run time to bring up another 4 CPUs when required?
-> 
-> How about having smp_init() call into arch code to query whether
-> it should bring up a not-already-online CPU?  Architectures that
-> want to do something special can then make the decision there and
-> everyone else can define the test completely away.
+SGI UV will have MMCFG base addresses that are greater than 4GB (32 bits).
 
-So this is exactly what I'm doing. The ia64 patch has this hunk:
+Signed-off-by: John Keller <jpk@sgi.com>
+---
 
-@@ -820,6 +824,9 @@ __cpu_up (unsigned int cpu)
-        if (cpu_isset(cpu, cpu_callin_map))
-                return -EINVAL;
+Resend #2: Create a flag, that is set by platform specific code,
+           to disable the > 4GB check.
 
-+       if (!cpu_isset(cpu, cpu_enabled_map))
-+               return -EINVAL;
+Resend #1: Use CONFIG_RESOURCES_64BIT instead of CONFIG_X86_64.
+
+
+
+Index: linux-2.6/arch/x86/kernel/acpi/boot.c
+===================================================================
+--- linux-2.6.orig/arch/x86/kernel/acpi/boot.c	2008-07-15 11:04:14.000000000 -0500
++++ linux-2.6/arch/x86/kernel/acpi/boot.c	2008-07-15 11:08:11.000000000 -0500
+@@ -97,6 +97,8 @@ static u64 acpi_lapic_addr __initdata = 
+ #warning ACPI uses CMPXCHG, i486 and later hardware
+ #endif
+ 
++static int acpi_mcfg_64bit_base_addr __initdata = FALSE;
 +
-        per_cpu(cpu_state, cpu) = CPU_UP_PREPARE;
-        /* Processor goes to start_secondary(), sets online flag */
-        ret = do_boot_cpu(sapicid, cpu);
-
-That was the easiest, most-straightforward solution I could think
-of. If you have an idea for a version with lower taxes (doesn't
-touch all the archs or can be #define'd out), I'm happy to hear
-it.
-
-Thanks.
-
-/ac
+ /* --------------------------------------------------------------------------
+                               Boot-time Configuration
+    -------------------------------------------------------------------------- */
+@@ -158,6 +160,14 @@ char *__init __acpi_map_table(unsigned l
+ struct acpi_mcfg_allocation *pci_mmcfg_config;
+ int pci_mmcfg_config_num;
+ 
++static int __init acpi_mcfg_oem_check(struct acpi_table_mcfg *mcfg)
++{
++	if (!strcmp(mcfg->header.oem_id, "SGI"))
++		acpi_mcfg_64bit_base_addr = TRUE;
++
++	return 0;
++}
++
+ int __init acpi_parse_mcfg(struct acpi_table_header *header)
+ {
+ 	struct acpi_table_mcfg *mcfg;
+@@ -190,8 +200,12 @@ int __init acpi_parse_mcfg(struct acpi_t
+ 	}
+ 
+ 	memcpy(pci_mmcfg_config, &mcfg[1], config_size);
++
++	acpi_mcfg_oem_check(mcfg);
++
+ 	for (i = 0; i < pci_mmcfg_config_num; ++i) {
+-		if (pci_mmcfg_config[i].address > 0xFFFFFFFF) {
++		if ((pci_mmcfg_config[i].address > 0xFFFFFFFF) &&
++		    !acpi_mcfg_64bit_base_addr) {
+ 			printk(KERN_ERR PREFIX
+ 			       "MMCONFIG not in low 4GB of memory\n");
+ 			kfree(pci_mmcfg_config);
