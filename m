@@ -1,142 +1,152 @@
-From: nokos@gmx.net
-Subject: Re: [PATCH 5/9] fujitsu-laptop: fingers off backlight if video.ko
-	is serving this functionality
-Date: Tue, 15 Jul 2008 17:21:25 +0200
-Message-ID: <1216135285.5033.19.camel@earth.gruber.myown>
-References: <1215700265-24908-1-git-send-email-trenn@suse.de>
-	 <1215700265-24908-5-git-send-email-trenn@suse.de>
-	 <1216114700.1940.12.camel@earth.gruber.myown>
-	 <200807151446.31799.trenn@suse.de>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: [patch] ACPI: stop complaints about interrupt link End Tags and blank IRQ descriptors
+Date: Tue, 15 Jul 2008 09:42:57 -0600
+Message-ID: <200807150942.57756.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-in-10.arcor-online.net ([151.189.21.50]:53676 "EHLO
-	mail-in-10.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753544AbYGOPVc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Jul 2008 11:21:32 -0400
-In-Reply-To: <200807151446.31799.trenn@suse.de>
+Received: from g1t0026.austin.hp.com ([15.216.28.33]:38015 "EHLO
+	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752094AbYGOPnr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Jul 2008 11:43:47 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: jwoithe@physics.adelaide.edu.au, linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>
+To: Andi Kleen <andi@firstfloor.org>, Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Gabriele Trombetti <g.trombetti.lkrnl1213@logicschema.com>, yakui.zhao@intel.com
 
-Am Dienstag, den 15.07.2008, 14:46 +0200 schrieb Thomas Renninger:
-> On Tuesday 15 July 2008 11:38:20 nokos@gmx.net wrote:
-> > Hi there,
-> >
-> > on the S6410 this prevents brightness control from working correctly.
-> > the ACPI BIOS provides non-functional _BCM/_BQC so the video.ko is
-> > registering backlight functions but does not work. Unfortunately not
-> > loading video.ko isn't a solution since with
-> > bc45b1d39a925b56796bebf8a397a0491489d85c the brightness keys are only
-> > reported through video.ko.
-> Is this an Intel graphics card?
-> Then you should also try Matthew's/Hong's IGD extensions.
+Silently ignore _PRS End Tags.  We already ignore Start Dependent Functions in
+_PRS, and we already ignore End Tags in _CRS, so we might as well ignore End
+Tags in _PRS as well.
 
-where can I find those?
+Silently ignore _PRS IRQ descriptors that mention no interrupts.  The spec
+allows this (section 6.4.2.1 in ACPI 3.0b spec), and it probably means the
+interrupt link can't be configured at all.
 
-> It is likely that everything works out with video.ko then.
-> If not, with a patch I sent recently you should switch off Windows osi strings 
-> with:
-> acpi_osi=windows_false   (preferred)
-> or (already works)
-> acpi_osi="!Windows 2006"
+This patch doesn't change any functional behavior; it just removes confusing
+complaints like these:
 
-disabling windows_osi disables backlight through video.ko and everything
-works fine with fujitsu_laptop (also brightness-buttons since ACPI then
-generates events on the fujitsu device) but some other ACPI stuff is
-disabled too (extended battery status etc...)
+    ACPI: Blank IRQ resource
+    ACPI: Resource is not an IRQ entry
 
-> If it still does not work, then there is a driver missing which was  a 
-> proprietary one on XP and which has not been fully re-engeeniered for Linux.
-> 
-> Using ACPI video events and pass them to the Fujitsu driver to change 
-> backlight (is this how it works? Is this done through userspace?), mixes up 
-> everything.
+when parsing _PRS data "23 00 00 18 79 00" from an IBM xSeries 335 dual
+Pentium IV Xeon 2.40 GHz machine.  For more details, see
+    http://bugzilla.kernel.org/show_bug.cgi?id=11049
 
-without acpi_osi="!Windows 2006" the buttons just produce ACPI video
-events (recieved by video.ko) and hal does the adjustment through
-fujitsu_laptop.ko
-with acpi_osi="!Windows 2006" ACPI does the adjustment itself and no
-direct event is generated (fujitsu_laptop gets an "something changed,
-find out what" event)
+The "23 00 00 18" part is a three-byte-long small IRQ resource with no bits set
+in the IRQ mask ("00 00"), and level-triggered, active low, shareable ("18").
 
-> Either you have video.ko or fujitsu_acpi.ko or you are in trouble of double 
-> touching the HW.
+The "79 00" is an End Tag (type 0x7).  It is superfluous since there is no
+Start Dependent Function tag and there are no resources after it, but it is
+harmless.
 
-The Problem is that video.ko only touches an otherwise unused ACPI
-register but does not change the brightness... (you can just store a
-number between 0 and 7 there)
-Perhaps there is a way to disable the dysfunctional backlight stuff in 
-video.ko but retain the ACPI video event handling?!
+Thanks to Gabriele Trombetti <g.trombetti.lkrnl1213@logicschema.com>
+(aka Kurk) for reporting this and testing the patch.
 
-Peter
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
->          Thomas
-> 
-> > Am Donnerstag, den 10.07.2008, 16:31 +0200 schrieb trenn@suse.de:
-> > > From: Thomas Renninger <trenn@suse.de>
-> > >
-> > > ---
-> > >  drivers/misc/fujitsu-laptop.c |   26 ++++++++++++++------------
-> > >  1 files changed, 14 insertions(+), 12 deletions(-)
-> > >
-> > > diff --git a/drivers/misc/fujitsu-laptop.c
-> > > b/drivers/misc/fujitsu-laptop.c index 3601224..7306776 100644
-> > > --- a/drivers/misc/fujitsu-laptop.c
-> > > +++ b/drivers/misc/fujitsu-laptop.c
-> > > @@ -963,16 +963,16 @@ static int __init fujitsu_init(void)
-> > >
-> > >  	/* Register backlight stuff */
-> > >
-> > > -	fujitsu->bl_device =
-> > > -	    backlight_device_register("fujitsu-laptop", NULL, NULL,
-> > > -				      &fujitsubl_ops);
-> > > -	if (IS_ERR(fujitsu->bl_device))
-> > > -		return PTR_ERR(fujitsu->bl_device);
-> > > -
-> > > -	max_brightness = fujitsu->max_brightness;
-> > > -
-> > > -	fujitsu->bl_device->props.max_brightness = max_brightness - 1;
-> > > -	fujitsu->bl_device->props.brightness = fujitsu->brightness_level;
-> > > +	if (!acpi_video_backlight_support()) {
-> > > +		fujitsu->bl_device =
-> > > +			backlight_device_register("fujitsu-laptop", NULL, NULL,
-> > > +						  &fujitsubl_ops);
-> > > +		if (IS_ERR(fujitsu->bl_device))
-> > > +			return PTR_ERR(fujitsu->bl_device);
-> > > +		max_brightness = fujitsu->max_brightness;
-> > > +		fujitsu->bl_device->props.max_brightness = max_brightness - 1;
-> > > +		fujitsu->bl_device->props.brightness = fujitsu->brightness_level;
-> > > +	}
-> > >
-> > >  	ret = platform_driver_register(&fujitsupf_driver);
-> > >  	if (ret)
-> > > @@ -1008,7 +1008,8 @@ fail_hotkey:
-> > >
-> > >  fail_backlight:
-> > >
-> > > -	backlight_device_unregister(fujitsu->bl_device);
-> > > +	if (fujitsu->bl_device)
-> > > +		backlight_device_unregister(fujitsu->bl_device);
-> > >
-> > >  fail_platform_device2:
-> > >
-> > > @@ -1035,7 +1036,8 @@ static void __exit fujitsu_cleanup(void)
-> > >  			   &fujitsupf_attribute_group);
-> > >  	platform_device_unregister(fujitsu->pf_device);
-> > >  	platform_driver_unregister(&fujitsupf_driver);
-> > > -	backlight_device_unregister(fujitsu->bl_device);
-> > > +	if (fujitsu->bl_device)
-> > > +		backlight_device_unregister(fujitsu->bl_device);
-> > >
-> > >  	acpi_bus_unregister_driver(&acpi_fujitsu_driver);
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Index: work14/drivers/acpi/pci_link.c
+===================================================================
+--- work14.orig/drivers/acpi/pci_link.c	2008-07-10 15:23:38.000000000 -0600
++++ work14/drivers/acpi/pci_link.c	2008-07-10 15:23:52.000000000 -0600
+@@ -113,20 +113,23 @@ acpi_pci_link_check_possible(struct acpi
+ 
+ 	switch (resource->type) {
+ 	case ACPI_RESOURCE_TYPE_START_DEPENDENT:
++	case ACPI_RESOURCE_TYPE_END_TAG:
+ 		return AE_OK;
+ 	case ACPI_RESOURCE_TYPE_IRQ:
+ 		{
+ 			struct acpi_resource_irq *p = &resource->data.irq;
+ 			if (!p || !p->interrupt_count) {
+-				printk(KERN_WARNING PREFIX "Blank IRQ resource\n");
++				ACPI_DEBUG_PRINT((ACPI_DB_INFO,
++						  "Blank _PRS IRQ resource\n"));
+ 				return AE_OK;
+ 			}
+ 			for (i = 0;
+ 			     (i < p->interrupt_count
+ 			      && i < ACPI_PCI_LINK_MAX_POSSIBLE); i++) {
+ 				if (!p->interrupts[i]) {
+-					printk(KERN_WARNING PREFIX "Invalid IRQ %d\n",
+-						      p->interrupts[i]);
++					printk(KERN_WARNING PREFIX
++					       "Invalid _PRS IRQ %d\n",
++					       p->interrupts[i]);
+ 					continue;
+ 				}
+ 				link->irq.possible[i] = p->interrupts[i];
+@@ -143,15 +146,16 @@ acpi_pci_link_check_possible(struct acpi
+ 			    &resource->data.extended_irq;
+ 			if (!p || !p->interrupt_count) {
+ 				printk(KERN_WARNING PREFIX
+-					      "Blank EXT IRQ resource\n");
++					      "Blank _PRS EXT IRQ resource\n");
+ 				return AE_OK;
+ 			}
+ 			for (i = 0;
+ 			     (i < p->interrupt_count
+ 			      && i < ACPI_PCI_LINK_MAX_POSSIBLE); i++) {
+ 				if (!p->interrupts[i]) {
+-					printk(KERN_WARNING PREFIX "Invalid IRQ %d\n",
+-						      p->interrupts[i]);
++					printk(KERN_WARNING PREFIX
++					       "Invalid _PRS IRQ %d\n",
++					       p->interrupts[i]);
+ 					continue;
+ 				}
+ 				link->irq.possible[i] = p->interrupts[i];
+@@ -163,7 +167,8 @@ acpi_pci_link_check_possible(struct acpi
+ 			break;
+ 		}
+ 	default:
+-		printk(KERN_ERR PREFIX "Resource is not an IRQ entry\n");
++		printk(KERN_ERR PREFIX "_PRS resource type 0x%x isn't an IRQ\n",
++		       resource->type);
+ 		return AE_OK;
+ 	}
+ 
+@@ -199,6 +204,9 @@ acpi_pci_link_check_current(struct acpi_
+ 
+ 
+ 	switch (resource->type) {
++	case ACPI_RESOURCE_TYPE_START_DEPENDENT:
++	case ACPI_RESOURCE_TYPE_END_TAG:
++		return AE_OK;
+ 	case ACPI_RESOURCE_TYPE_IRQ:
+ 		{
+ 			struct acpi_resource_irq *p = &resource->data.irq;
+@@ -208,7 +216,7 @@ acpi_pci_link_check_current(struct acpi_
+ 				 * particularly those those w/ _STA disabled
+ 				 */
+ 				ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-						  "Blank IRQ resource\n"));
++						  "Blank _CRS IRQ resource\n"));
+ 				return AE_OK;
+ 			}
+ 			*irq = p->interrupts[0];
+@@ -224,7 +232,7 @@ acpi_pci_link_check_current(struct acpi_
+ 				 * return at least 1 IRQ
+ 				 */
+ 				printk(KERN_WARNING PREFIX
+-					      "Blank EXT IRQ resource\n");
++					      "Blank _CRS EXT IRQ resource\n");
+ 				return AE_OK;
+ 			}
+ 			*irq = p->interrupts[0];
+@@ -232,10 +240,11 @@ acpi_pci_link_check_current(struct acpi_
+ 		}
+ 		break;
+ 	default:
+-		printk(KERN_ERR PREFIX "Resource %d isn't an IRQ\n", resource->type);
+-	case ACPI_RESOURCE_TYPE_END_TAG:
++		printk(KERN_ERR PREFIX "_CRS resource type 0x%x isn't an IRQ\n",
++		       resource->type);
+ 		return AE_OK;
+ 	}
++
+ 	return AE_CTRL_TERMINATE;
+ }
+ 
