@@ -1,62 +1,77 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: linux-next: Tree for July 14
-Date: Tue, 15 Jul 2008 01:35:37 +0200
-Message-ID: <200807150135.38701.rjw@sisk.pl>
-References: <20080714201249.947400d0.sfr@canb.auug.org.au>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: BIOS-controlled FN keys works only with "acpi={off | ht}" on
+	Samsung P500
+Date: Tue, 15 Jul 2008 08:49:57 +0800
+Message-ID: <1216082997.1617.87.camel@rzhang-dt>
+References: <20080714213755.7e892550@paolo-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:46777 "EHLO ogre.sisk.pl"
+Received: from mga02.intel.com ([134.134.136.20]:62407 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759409AbYGNXdm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Jul 2008 19:33:42 -0400
-In-Reply-To: <20080714201249.947400d0.sfr@canb.auug.org.au>
-Content-Disposition: inline
+	id S1759747AbYGOAvB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Jul 2008 20:51:01 -0400
+In-Reply-To: <20080714213755.7e892550@paolo-laptop>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Kernel Testers List <kernel-testers@vger.kernel.org>
+To: Paolo Ornati <ornati@fastwebnet.it>
+Cc: Linux Kernel <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-On Monday, 14 of July 2008, Stephen Rothwell wrote:
-> Hi all,
+On Mon, 2008-07-14 at 21:37 +0200, Paolo Ornati wrote:
+> Hello,
+> 
+> on this laptop, Samsung NP-P500Y, some function keys are
+> BIOS-controlled (they work before Linux boots).
+> 
+> As soon as Linux boots they stop working. Trying some boot options I've
+> found that "acpi=off" makes them work and the less drastic "acpi=ht"
+> works too.
+> 
+> I'm mostly interested in brightness adjusting... and since both
+> xbacklight and radeontool fail I've to use "acpi=ht".
 
-Hi,
+Please file a bug report at
+http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
+and attach the dmesg, acpidump output.
 
-> With the opening of the merge window, I am hoping my job becomes easier
-> again ... :-)
+Please run "grep . /sys/firmware/acpi/interrupts/*" both before and
+after pressing the brightness hotkey and attach the test result as well.
 
-I get something like this on one of my test boxes (full dmesg at
-http://www.sisk.pl/kernel/debug/20080714/dmesg-asus_L5D.log):
+thanks,
+rui
 
-------------[ cut here ]------------
-WARNING: at /home/rafael/src/linux-next/arch/x86/mm/pageattr.c:592 __change_page_attr_set_clr+0x8bf/0x9d0()
-Modules linked in: snd_pcm_oss snd_mixer_oss snd_seq snd_seq_device dm_crypt reiserfs dm_mod arc4 ecb crypto_blkcipher b43 rfkill pcmcia mac80211 cfg80211 input_polldev ppdev snd_intel8x0 snd_ac97_codec ac97_bus snd_pcm joydev yenta_socket rtc_cmos sr_mod ohci1394 snd_timer rsrc_nonstatic snd skge pcmcia_core ieee1394 ssb asus_laptop cdrom sg video i2c_nforce2 parport_pc soundcore output backlight parport ac battery button snd_page_alloc led_class i2c_core evdev usbhid ff_memless sd_mod ehci_hcd ohci_hcd amd74xx ext3 jbd fan pata_amd libata scsi_mod dock thermal processor
-Pid: 3873, comm: acpidump Not tainted 2.6.26-next #21
+> 
+> Disabling ACPI is not a good idea on a laptop... so other boot
+> options/patches to try are welcomed :)
+> 
+> 
+> tested kernels: 2.6.22 / 2.6.24 (Ubuntu)
+> 	2.6.18 - 2.6.26-rc9 (vanilla)
+> 
+> 
+> lspci:
+> 00:00.0 Host bridge: ATI Technologies Inc Unknown device 7930
+> 00:01.0 PCI bridge: ATI Technologies Inc Unknown device 7932
+> 00:05.0 PCI bridge: ATI Technologies Inc Unknown device 7935
+> 00:06.0 PCI bridge: ATI Technologies Inc Unknown device 7936
+> 00:07.0 PCI bridge: ATI Technologies Inc Unknown device 7937
+> 00:12.0 SATA controller: ATI Technologies Inc SB600 Non-Raid-5 SATA
+> 00:13.0 USB Controller: ATI Technologies Inc SB600 USB (OHCI0)
+> 00:13.1 USB Controller: ATI Technologies Inc SB600 USB (OHCI1)
+> 00:13.2 USB Controller: ATI Technologies Inc SB600 USB (OHCI2)
+> 00:13.3 USB Controller: ATI Technologies Inc SB600 USB (OHCI3)
+> 00:13.4 USB Controller: ATI Technologies Inc SB600 USB (OHCI4)
+> 00:13.5 USB Controller: ATI Technologies Inc SB600 USB Controller (EHCI)
+> 00:14.0 SMBus: ATI Technologies Inc SBx00 SMBus Controller (rev 14)
+> 00:14.1 IDE interface: ATI Technologies Inc SB600 IDE
+> 00:14.2 Audio device: ATI Technologies Inc SBx00 Azalia
+> 00:14.3 ISA bridge: ATI Technologies Inc SB600 PCI to LPC Bridge
+> 00:14.4 PCI bridge: ATI Technologies Inc SBx00 PCI to PCI Bridge
+> 01:05.0 VGA compatible controller: ATI Technologies Inc Radeon Xpress 1250
+> 02:00.0 Ethernet controller: Atheros Communications Inc. AR242x 802.11abg Wireless PCI Express Adapter (rev 01)
+> 05:00.0 Ethernet controller: Marvell Technology Group Ltd. 88E8039 PCI-E Fast Ethernet Controller (rev 15)
+> 
+> 
+> dmidecode and dmesg attached
 
-Call Trace:
- [<ffffffff8023ab6f>] warn_on_slowpath+0x5f/0x80
- [<ffffffff8023bd67>] ? printk+0x67/0x70
- [<ffffffff802c52dd>] ? __d_lookup+0xcd/0x190
- [<ffffffff80225c9f>] __change_page_attr_set_clr+0x8bf/0x9d0
- [<ffffffff802b9b34>] ? do_lookup+0x84/0x210
- [<ffffffff802b9587>] ? permission+0xc7/0x130
- [<ffffffff802c5d71>] ? dput+0x81/0x110
- [<ffffffff802ab621>] ? check_poison_obj+0x31/0x1f0
- [<ffffffff80226c28>] ? reserve_memtype+0xf8/0x310
- [<ffffffff80225e4f>] change_page_attr_set_clr+0x9f/0x1d0
- [<ffffffff8049dbb6>] ? _spin_unlock+0x26/0x30
- [<ffffffff80226073>] _set_memory_uc+0x13/0x20
- [<ffffffff80224b45>] ioremap_change_attr+0x25/0x40
- [<ffffffff80226f49>] phys_mem_access_prot_allowed+0x109/0x170
- [<ffffffff802abea9>] ? cache_alloc_debugcheck_after+0x99/0x230
- [<ffffffff803915a5>] mmap_mem+0x35/0xb0
- [<ffffffff8029c09a>] mmap_region+0x17a/0x4c0
- [<ffffffff8049d6ba>] ? __down_write_nested+0x1a/0xc0
- [<ffffffff8029cb6b>] do_mmap_pgoff+0x3ab/0x3d0
- [<ffffffff80210e1c>] sys_mmap+0xfc/0x130
- [<ffffffff8020b6ab>] system_call_after_swapgs+0x7b/0x80
-
----[ end trace f1b1c6f21f48e09f ]---
-acpidump:3873 /dev/mem ioremap_change_attr failed uncached-minus for 5ff40000-5ff41000
