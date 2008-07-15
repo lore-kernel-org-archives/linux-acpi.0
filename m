@@ -1,185 +1,63 @@
-From: Alok Kataria <akataria@vmware.com>
-Subject: acpi based pci gap calculation  - v3
-Date: Tue, 15 Jul 2008 11:59:42 -0700
-Message-ID: <1216148382.6135.21.camel@alok-dev1>
-Reply-To: akataria@vmware.com
+From: Alex Chiang <achiang@hp.com>
+Subject: Re: [PATCH 01/14] Introduce cpu_enabled_map and friends
+Date: Tue, 15 Jul 2008 13:15:15 -0600
+Message-ID: <20080715191515.GE10919@ldl.fc.hp.com>
+References: <20080715023344.2528.1836.stgit@blender.achiang> <20080715023349.2528.9423.stgit@blender.achiang> <20080715031512.GF14894@parisc-linux.org> <87wsjnxy4w.fsf@basil.nowhere.org> <20080715102130.GA22866@flint.arm.linux.org.uk> <20080715175740.GB10919@ldl.fc.hp.com> <20080715181632.GG14894@parisc-linux.org> <20080715184822.GB29991@flint.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-outbound-2.vmware.com ([65.115.85.73]:35035 "EHLO
-	smtp-outbound-2.vmware.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761971AbYGOS7n (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Jul 2008 14:59:43 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-arch-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20080715184822.GB29991@flint.arm.linux.org.uk>
+Sender: linux-arch-owner@vger.kernel.org
+To: Matthew Wilcox <matthew@wil.cx>, Andi Kleen <andi@firstfloor.org>, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ak@linux.intel.com, Ingo Molnar <mingo@elte.hu>, "Brown, Len" <len.brown@intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 
+* Russell King <rmk+lkml@arm.linux.org.uk>:
+> On Tue, Jul 15, 2008 at 12:16:32PM -0600, Matthew Wilcox wrote:
+> > On Tue, Jul 15, 2008 at 11:57:40AM -0600, Alex Chiang wrote:
+> > > My thought was that big SMP systems like ia64, possibly sparc and
+> > > ppc, and increasingly, x86, might find something like this
+> > > useful, as systems get larger and larger, and vendors are going
+> > > to want to do RAS-ish features, like the ability to keep CPUs in
+> > > firmware across reboots until told otherwise by the sysadmin.
+> > > 
+> > > Right now, a 'present' CPU strongly implies 'online' as well,
+> > > since we're calling cpu_up() for all 'present' CPUs in
+> > > smp_init(). But this hurts if:
+> > > 
+> > > 	- you don't actually want to bring up all 'present' CPUs
+> > > 	- you still want to interact with these weirdo zombie
+> > > 	  CPUs that are 'present' but not 'online'
+> > 
+> > Have you considered simply failing __cpu_up() for CPUs that are
+> > deconfigured by firmware?
+> 
+> But what if you want to have a system boot with, say, 4 CPUs and
+> then decide at run time to bring up another 4 CPUs when required?
+> 
+> How about having smp_init() call into arch code to query whether
+> it should bring up a not-already-online CPU?  Architectures that
+> want to do something special can then make the decision there and
+> everyone else can define the test completely away.
 
-Hi Andi,
+So this is exactly what I'm doing. The ia64 patch has this hunk:
 
-I don't see this patch being applied in any of the tree yet.
-Resending this incase you guys might have missed it. 
-I assume this will go through the ACPI tree. 
+@@ -820,6 +824,9 @@ __cpu_up (unsigned int cpu)
+        if (cpu_isset(cpu, cpu_callin_map))
+                return -EINVAL;
 
-The need for this patch was explained in 
-http://marc.info/?l=linux-kernel&m=121441818818598&w=2
-
-The v2 patch was discussed in 
-http://marc.info/?l=linux-acpi&m=121433339619175&w=2
-
-I then sent a incremental patch on top of v2 to fix some conditions and
-handle the change in the e820_search_gap interface. 
-
-In this v3 patch, i have folded the incremental fix into the v2 patch.
-Please apply this.
-
-Thanks,
-Alok
-
---
-acpi based pci gap calculation - v3
-
-From: Alok N Kataria <akataria@vmware.com>
-
-Evaluates the _CRS object under PCI0 looking for producer resources.
-Then searches the e820 memory space for a gap within these producer resources.
-
-Allows us to find a gap for the unclaimed pci resources or MMIO resources
-for hotplug devices within the BIOS allowed pci regions.
-
-v1->v2: Some changes in the print strings.
-    	Also note the prototype for e820_search_gap has changed in this
-    	iteration, but the return value is ignored while calling it over here.
-v2->v3: Pass the pci producer resources end_addr (got from _CRS) to the
-	e820_search_gap function.
-	We limit the search only within the producer region's address space.
-	Also add a condition to check if the resource lies in the 32bit
-	address range.
-
-Signed-off-by: Alok N Kataria <akataria@vmware.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
----
-
- arch/x86/pci/acpi.c |   80 +++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 80 insertions(+), 0 deletions(-)
-
-
-diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-index 19af069..fff2c42 100644
---- a/arch/x86/pci/acpi.c
-+++ b/arch/x86/pci/acpi.c
-@@ -4,6 +4,7 @@
- #include <linux/irq.h>
- #include <linux/dmi.h>
- #include <asm/numa.h>
-+#include <asm/e820.h>
- #include "pci.h"
- 
- struct pci_root_info {
-@@ -14,6 +15,11 @@ struct pci_root_info {
- 	int busnum;
- };
- 
-+struct gap_info {
-+	unsigned long gapstart;
-+	unsigned long gapsize;
-+};
++       if (!cpu_isset(cpu, cpu_enabled_map))
++               return -EINVAL;
 +
- static acpi_status
- resource_to_addr(struct acpi_resource *resource,
- 			struct acpi_resource_address64 *addr)
-@@ -110,6 +116,78 @@ adjust_transparent_bridge_resources(struct pci_bus *bus)
- 	}
- }
- 
-+static acpi_status search_gap(struct acpi_resource *resource, void *data)
-+{
-+	struct acpi_resource_address64 addr;
-+	acpi_status status;
-+	struct gap_info *gap = data;
-+	unsigned long long start_addr, end_addr;
-+
-+	status = resource_to_addr(resource, &addr);
-+	if (ACPI_SUCCESS(status) &&
-+	    addr.resource_type == ACPI_MEMORY_RANGE &&
-+	    addr.address_length > gap->gapsize) {
-+		start_addr = addr.minimum + addr.translation_offset;
-+		/*
-+		 * We want space only in the 32bit address range
-+		 */
-+		if (start_addr < UINT_MAX) {
-+			end_addr = start_addr + addr.address_length;
-+			e820_search_gap(&gap->gapstart, &gap->gapsize,
-+					start_addr, end_addr);
-+		}
-+	}
-+
-+	return AE_OK;
-+}
-+
-+/*
-+ * Search for a hole in the 32 bit address space for PCI to assign MMIO
-+ * resources, for hotplug or unconfigured resources.
-+ * We query the CRS object of the PCI root device to look for possible producer
-+ * resources in the tree and consider these while calulating the start address
-+ * for this hole.
-+ */
-+static void pci_setup_gap(acpi_handle *handle)
-+{
-+	struct gap_info gap;
-+	acpi_status status;
-+
-+	gap.gapstart = 0;
-+	gap.gapsize = 0x400000;
-+
-+	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
-+				     search_gap, &gap);
-+
-+	if (ACPI_SUCCESS(status)) {
-+		unsigned long round;
-+
-+		if (!gap.gapstart) {
-+			printk(KERN_ERR "ACPI: Warning: Cannot find a gap "
-+					"in the 32bit address range for PCI\n"
-+					"ACPI: PCI devices may collide with "
-+					"hotpluggable memory address range\n");
-+		}
-+		/*
-+		 * Round the gapstart, uses the same logic as in
-+		 * e820_gap_setup
-+		 */
-+		round = 0x100000;
-+		while ((gap.gapsize >> 4) > round)
-+			round += round;
-+		/* Fun with two's complement */
-+		pci_mem_start = (gap.gapstart + round) & -round;
-+
-+		printk(KERN_INFO "ACPI: PCI resources should "
-+				"start at %lx (gap: %lx:%lx)\n",
-+				pci_mem_start, gap.gapstart, gap.gapsize);
-+	} else {
-+		printk(KERN_ERR "ACPI: Error while searching for gap in "
-+				"the 32bit address range for PCI\n");
-+	}
-+}
-+
-+
- static void
- get_current_resources(struct acpi_device *device, int busnum,
- 			int domain, struct pci_bus *bus)
-@@ -220,6 +298,8 @@ struct pci_bus * __devinit pci_acpi_scan_root(struct acpi_device *device, int do
- 
- 	if (bus && (pci_probe & PCI_USE__CRS))
- 		get_current_resources(device, busnum, domain, bus);
-+
-+	pci_setup_gap(device->handle);
- 	return bus;
- }
- 
+        per_cpu(cpu_state, cpu) = CPU_UP_PREPARE;
+        /* Processor goes to start_secondary(), sets online flag */
+        ret = do_boot_cpu(sapicid, cpu);
 
+That was the easiest, most-straightforward solution I could think
+of. If you have an idea for a version with lower taxes (doesn't
+touch all the archs or can be #define'd out), I'm happy to hear
+it.
 
+Thanks.
+
+/ac
