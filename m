@@ -1,89 +1,46 @@
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Subject: Re: [PATCH 07/14] [POWERPC] Populate cpu_enabled_map
-Date: Tue, 15 Jul 2008 15:51:35 +1000
-Message-ID: <1216101095.7740.74.camel@pasglop>
-References: <20080715023344.2528.1836.stgit@blender.achiang>
-	 <20080715023420.2528.44404.stgit@blender.achiang>
-Reply-To: benh@kernel.crashing.org
+From: "=?UTF-8?Q?Rafa=C5=82_Mi=C5=82ecki?=" <zajec5@gmail.com>
+Subject: Re: Toshiba - Documentation for Linux Developers
+Date: Tue, 15 Jul 2008 09:17:17 +0200
+Message-ID: <b170af450807150017u248d4255i3800c10cb11df319@mail.gmail.com>
+References: <4855971D.90004@diamondcut.com.br> <20080616221443.GA760@kroah.com>
+	 <b170af450807130654m2f800b10ybcba4b2c5c7cf329@mail.gmail.com>
+	 <487A1534.3000307@diamondcut.com.br>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arch-owner@vger.kernel.org>
-In-Reply-To: <20080715023420.2528.44404.stgit@blender.achiang>
-Sender: linux-arch-owner@vger.kernel.org
-To: Alex Chiang <achiang@hp.com>
-Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, linux-acpi@vger.kernel.org, Paul Mackerras <paulus@samba.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from nf-out-0910.google.com ([64.233.182.184]:8570 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752320AbYGOHRU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Jul 2008 03:17:20 -0400
+Received: by nf-out-0910.google.com with SMTP id d3so1629279nfc.21
+        for <linux-acpi@vger.kernel.org>; Tue, 15 Jul 2008 00:17:18 -0700 (PDT)
+In-Reply-To: <487A1534.3000307@diamondcut.com.br>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Renato S. Yamane" <yamane@diamondcut.com.br>
+Cc: Greg KH <greg@kroah.com>, linux-acpi@vger.kernel.org, pavel@suse.cz, linux-kernel@vger.kernel.org
 
-On Mon, 2008-07-14 at 20:34 -0600, Alex Chiang wrote:
-> Populate the cpu_enabled_map correctly.
-> 
-> Note that this patch does not actually make any decisions based
-> on the contents of the map.
-> 
-> However, as the map is presented via sysfs in:
-> 
-> 	/sys/devices/system/cpu/
-> 
-> It should be populated correctly.
-
-Care to educate me on the difference between online_map and
-enabled_map ?
-
-Cheers,
-Ben.
-
-> Signed-off-by: Alex Chiang <achiang@hp.com>
-> Cc: Paul Mackerras <paulus@samba.org>
-> Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-> ---
-> 
->  arch/powerpc/kernel/setup-common.c           |    1 +
->  arch/powerpc/platforms/powermac/smp.c        |    1 +
->  arch/powerpc/platforms/pseries/hotplug-cpu.c |    2 ++
->  3 files changed, 4 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/powerpc/kernel/setup-common.c b/arch/powerpc/kernel/setup-common.c
-> index db540ea..a4c894a 100644
-> --- a/arch/powerpc/kernel/setup-common.c
-> +++ b/arch/powerpc/kernel/setup-common.c
-> @@ -413,6 +413,7 @@ void __init smp_setup_cpu_maps(void)
->  			DBG("    thread %d -> cpu %d (hard id %d)\n",
->  			    j, cpu, intserv[j]);
->  			cpu_set(cpu, cpu_present_map);
-> +			cpu_set(cpu, cpu_enabled_map);
->  			set_hard_smp_processor_id(cpu, intserv[j]);
->  			cpu_set(cpu, cpu_possible_map);
->  			cpu++;
-> diff --git a/arch/powerpc/platforms/powermac/smp.c b/arch/powerpc/platforms/powermac/smp.c
-> index cb2d894..a74dada 100644
-> --- a/arch/powerpc/platforms/powermac/smp.c
-> +++ b/arch/powerpc/platforms/powermac/smp.c
-> @@ -317,6 +317,7 @@ static int __init smp_psurge_probe(void)
->  		ncpus = NR_CPUS;
->  	for (i = 1; i < ncpus ; ++i) {
->  		cpu_set(i, cpu_present_map);
-> +		cpu_set(i, cpu_enabled_map);
->  		set_hard_smp_processor_id(i, i);
->  	}
->  
-> diff --git a/arch/powerpc/platforms/pseries/hotplug-cpu.c b/arch/powerpc/platforms/pseries/hotplug-cpu.c
-> index 1f03248..e738b07 100644
-> --- a/arch/powerpc/platforms/pseries/hotplug-cpu.c
-> +++ b/arch/powerpc/platforms/pseries/hotplug-cpu.c
-> @@ -186,6 +186,7 @@ static int pseries_add_processor(struct device_node *np)
->  	for_each_cpu_mask(cpu, tmp) {
->  		BUG_ON(cpu_isset(cpu, cpu_present_map));
->  		cpu_set(cpu, cpu_present_map);
-> +		cpu_set(cpu, cpu_enabled_map);
->  		set_hard_smp_processor_id(cpu, *intserv++);
->  	}
->  	err = 0;
-> @@ -218,6 +219,7 @@ static void pseries_remove_processor(struct device_node *np)
->  				continue;
->  			BUG_ON(cpu_online(cpu));
->  			cpu_clear(cpu, cpu_present_map);
-> +			cpu_clear(cpu, cpu_enabled_map);
->  			set_hard_smp_processor_id(cpu, -1);
->  			break;
->  		}
+MjAwOC83LzEzLCBSZW5hdG8gUy4gWWFtYW5lIDx5YW1hbmVAZGlhbW9uZGN1dC5jb20uYnI+Ogo+
+IFJhZmHFgiBNacWCZWNraSB3cm90ZToKPiA+IEkgaGF2ZSBUb3NoaWJhIEExMDAgd2l0aCBQaG9l
+bml4IEJJT1MuIFRoaXMgbWVhbnMgdG9zaGliYV9hY3BpIGRvZXNuJ3QKPiAgPiB3b3JrIGZvciBt
+ZSBhbmQgSSBjYW4gY2hhbmdlIExDRCBicmlnaHRuZXNzLgo+Cj4gUmFmYWwsIHRyeSB1c2Ugb21u
+aWJvb2sgZHJpdmVyLgo+ICBHZXQgaXQgd2l0aCBzdWJ2ZXJzaW9uOgo+ICAkIHN2biBjbwo+ICBo
+dHRwczovL29tbmlib29rLnN2bi5zb3VyY2Vmb3JnZS5uZXQvc3Zucm9vdC9vbW5pYm9vay9vbW5p
+Ym9vay90cnVuawo+Cj4gIFVzZSAibWFrZSBpbnN0YWxsIiBhbmQgIm1ha2UgbG9hZCIuCj4KPiAg
+QWZ0ZXIgdGhpcywgbWF5YmUgaXMgcG9zc2libGUgY2hhbmdlIGJyaWdodG5lc3Mgd3JpdGluZyBp
+bgo+ICAvcHJvYy9vbW5pYm9vay9sY2QgKDAgaXMgbWluaW11biBhbmQgNyBpcyBtYXggYnJpZ2h0
+bmVzcykKClRoZSBuZXdlc3QgdmVyc2lvbiBpcyBwYWNrZWQgZm9yIG9wZW5TVVNFIGZvcnR1bmF0
+ZWx5LiBCdXQgaXQgZG9lc24ndApmb3IgbXkgbm90ZWJvb2suIGRtZXNnIGlzOgoKb21uaWJvb2s6
+IERyaXZlciB2ZXJzaW9uIDIuMjAwNzAyMTEtdHJ1bmsuCm9tbmlib29rOiBVbmtub3duIG1vZGVs
+LgpvbW5pYm9vazogZG1pIGZlYXR1cmUgaGFzIG5vIGJhY2tlbmQgdGFibGUsIGlvX29wIG5vdCBp
+bml0aWFsaXplZC4Kb21uaWJvb2s6IHZlcnNpb24gZmVhdHVyZSBoYXMgbm8gYmFja2VuZCB0YWJs
+ZSwgaW9fb3Agbm90IGluaXRpYWxpemVkLgpvbW5pYm9vazogRW5hYmxlZCBmZWF0dXJlczogZG1p
+IHZlcnNpb24uCgpTbyBldmVyeXRoaW5nIEkgY2FuIGRvIGlzCnRvc2hpYmE6L3Byb2Mvb21uaWJv
+b2sgIyBjYXQgZG1pCkJJT1MgVmVuZG9yOiAgIFBob2VuaXggVGVjaG5vbG9naWVzIExURApCSU9T
+IFZlcnNpb246ICAyLjAwCkJJT1MgUmVsZWFzZTogIDA4LzMwLzIwMDYKU3lzdGVtIFZlbmRvcjog
+VE9TSElCQQpQcm9kdWN0IE5hbWU6ICBTQVRFTExJVEUgQTEwMApWZXJzaW9uOiAgICAgICBQU0FB
+OUUtMFIxMDFWUEwKU2VyaWFsIE51bWJlcjogWDY2MjMwOTJHCkJvYXJkIFZlbmRvcjogIEludGVs
+IENvcnBvcmF0aW9uCkJvYXJkIE5hbWU6ICAgIE5vdCBBcHBsaWNhYmxlCgotLSAKUmFmYcWCIE1p
+xYJlY2tpCg==
