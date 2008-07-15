@@ -1,119 +1,95 @@
-From: Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: ACPI Error under 2.6.26-rc*
-Date: Tue, 15 Jul 2008 16:41:00 +0800
-Message-ID: <1216111260.1617.131.camel@rzhang-dt>
-References: <20080709083829.GA5748@linux.int.dgn.ag>
-	 <200807102255.23090.rjw@sisk.pl> <1215739210.1617.28.camel@rzhang-dt>
-	 <1215739682.1617.32.camel@rzhang-dt>
-	 <20080714080914.GA4965@linux.int.dgn.ag>
-	 <1216026701.1617.82.camel@rzhang-dt>
-	 <20080715074130.GA4724@linux.int.dgn.ag>
+From: nokos@gmx.net
+Subject: Re: [PATCH 5/9] fujitsu-laptop: fingers off backlight if video.ko
+	is serving this functionality
+Date: Tue, 15 Jul 2008 11:38:20 +0200
+Message-ID: <1216114700.1940.12.camel@earth.gruber.myown>
+References: <1215700265-24908-1-git-send-email-trenn@suse.de>
+	 <1215700265-24908-2-git-send-email-trenn@suse.de>
+	 <1215700265-24908-3-git-send-email-trenn@suse.de>
+	 <1215700265-24908-4-git-send-email-trenn@suse.de>
+	 <1215700265-24908-5-git-send-email-trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20080715074130.GA4724-VuQAYsv1561O042OENdYwQ@public.gmane.org>
-Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andre Prendel <andre_prendel-Mmb7MZpHnFY@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andi Kleen <andi-Vw/NltI1exuRpAAqCnN02g@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Zhao, Yakui" <yakui.zhao-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-in-01.arcor-online.net ([151.189.21.41]:57889 "EHLO
+	mail-in-01.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754524AbYGOJia (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Jul 2008 05:38:30 -0400
+In-Reply-To: <1215700265-24908-5-git-send-email-trenn@suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: trenn@suse.de
+Cc: jwoithe@physics.adelaide.edu.au, linux-acpi@vger.kernel.org
 
-On Tue, 2008-07-15 at 15:41 +0800, Andre Prendel wrote:
-> On Mon, Jul 14, 2008 at 05:11:41PM +0800, Zhang Rui wrote:
-> > > Hello Rui,
-> > >
-> > > that's quite strange. Booting the system to get an acpidump I hav=
-e
-> > > looked at the dmesg output and there is no ACPI Error like the on=
-e
-> > > above. There is only an ACPI Exeption.
-> > >
-> > > [...]
-> > > Jul 13 22:00:18 ubuntu kernel: [    0.104111] ACPI: Core revision
-> > > 20080321
-> > > Jul 13 22:00:18 ubuntu kernel: [    0.104259] ACPI Exception
-> > > (tbxface-0629): AE_NO_ACPI_TABLES, While loading namespace from
-> ACPI
-> > > tables [20080321]
-> > > [...]
-> > >
-> > > Booting again I found the error again
-> > >
-> > > [...]
-> > > Jul 13 22:10:50 ubuntu kernel: [    0.000000] ACPI Error
-> > > (tbutils-0472): Invalid length 0x0 in RSDT/XSDT [20080321]
-> > > [...]
-> > >
-> > > and acpidump says:
-> > > root@ubuntu:/home/andre/src/acpi/pmtools-20071116/acpidump#
-> > > ./acpidumpACPI tables were not found. If you know location of RSD
-> PTR
-> > > table (from dmesg, etc), supply it with either --addr or -a optio=
-n
-> > >
-> > > Linux 2.6.25.10 always works.
-> >
-> > It seems that OS failed to get the correct RSDT address
-> (0x1fff0000),
-> > although the RSDP is found correctly. (=EF=BB=BFACPI: RSDP 000FA340=
-, 0014)
-> >
-> > please run "./acpidump --addr 0xFA340 --length 0x14 > rsdp_xxx",
-> > and attach the rsdp for all of the three cases (good, ACPI Error,
-> ACPI
-> > Exception).
->=20
-> Hello Rui,
->=20
-> here is the output of the three cases. The dump files are attached
-> too.
->=20
-> ----
-> good
-> ----
-> andre@ubuntu:~/src/acpi/pmtools-20071116/acpidump$ hexdump rsdp_good
-> 0000000 5352 2044 5450 2052 418c 494d 2020 0020
-> 0000010 0000 1fff                            =20
-> 0000014
->=20
-> -----
-> error
-> -----
-> andre@ubuntu:~/src/acpi/pmtools-20071116/acpidump$ hexdump rsdp_error
-> 0000000 5352 2044 5450 2052 418a 494d 2020 0020
-> 0000010 0000 21ff                            =20
-> 0000014
->=20
-> ---------
-> exception
-> ---------
-> andre@ubuntu:~/src/acpi/pmtools-20071116/acpidump$ hexdump
-> rsdp_exception
-> 0000000 5352 2044 5450 2052 417c 494d 2020 0020
-> 0000010 0000 2fff                            =20
-> 0000014
+Hi there,
 
-Weird.
-The dmesg shows that the memory map gotten from e820 table is changed.
-And the file attached shows that rsdp points to different rsdt address.
->=20
-> Now I see the ACPI Error under the 2.6.25.10 kernel sometimes too, bu=
-t
-> power off works well. So I also attach the two configs. Maybe the
-> different config is the reason why power off works under 2.6.25.10.
-so you may get different e820 table when running 2.6.25.10 as well?
-could you please attach the dmesg output of a 2.6.25.10 kernel which ha=
-s
-the ACPI error?
+on the S6410 this prevents brightness control from working correctly. 
+the ACPI BIOS provides non-functional _BCM/_BQC so the video.ko is
+registering backlight functions but does not work. Unfortunately not
+loading video.ko isn't a solution since with
+bc45b1d39a925b56796bebf8a397a0491489d85c the brightness keys are only
+reported through video.ko.
 
-> Is it possible that it is a hardware related issue?
-Don't know. :(
-It looks like a hardware issue as BIOS export different e820 tables.
-But from your description, it seems to be a software regression.
-please try to revert c3965bd15118742d72b4bc1a290d37b3f081eb98 and see i=
-f
-it helps.
-Please re-attach the kernel config files as attachments.
 
-thanks,
-rui
+
+Am Donnerstag, den 10.07.2008, 16:31 +0200 schrieb trenn@suse.de: 
+> From: Thomas Renninger <trenn@suse.de>
+> 
+> ---
+>  drivers/misc/fujitsu-laptop.c |   26 ++++++++++++++------------
+>  1 files changed, 14 insertions(+), 12 deletions(-)
+> 
+> diff --git a/drivers/misc/fujitsu-laptop.c b/drivers/misc/fujitsu-laptop.c
+> index 3601224..7306776 100644
+> --- a/drivers/misc/fujitsu-laptop.c
+> +++ b/drivers/misc/fujitsu-laptop.c
+> @@ -963,16 +963,16 @@ static int __init fujitsu_init(void)
+>  
+>  	/* Register backlight stuff */
+>  
+> -	fujitsu->bl_device =
+> -	    backlight_device_register("fujitsu-laptop", NULL, NULL,
+> -				      &fujitsubl_ops);
+> -	if (IS_ERR(fujitsu->bl_device))
+> -		return PTR_ERR(fujitsu->bl_device);
+> -
+> -	max_brightness = fujitsu->max_brightness;
+> -
+> -	fujitsu->bl_device->props.max_brightness = max_brightness - 1;
+> -	fujitsu->bl_device->props.brightness = fujitsu->brightness_level;
+> +	if (!acpi_video_backlight_support()) {
+> +		fujitsu->bl_device =
+> +			backlight_device_register("fujitsu-laptop", NULL, NULL,
+> +						  &fujitsubl_ops);
+> +		if (IS_ERR(fujitsu->bl_device))
+> +			return PTR_ERR(fujitsu->bl_device);
+> +		max_brightness = fujitsu->max_brightness;
+> +		fujitsu->bl_device->props.max_brightness = max_brightness - 1;
+> +		fujitsu->bl_device->props.brightness = fujitsu->brightness_level;
+> +	}
+>  
+>  	ret = platform_driver_register(&fujitsupf_driver);
+>  	if (ret)
+> @@ -1008,7 +1008,8 @@ fail_hotkey:
+>  
+>  fail_backlight:
+>  
+> -	backlight_device_unregister(fujitsu->bl_device);
+> +	if (fujitsu->bl_device)
+> +		backlight_device_unregister(fujitsu->bl_device);
+>  
+>  fail_platform_device2:
+>  
+> @@ -1035,7 +1036,8 @@ static void __exit fujitsu_cleanup(void)
+>  			   &fujitsupf_attribute_group);
+>  	platform_device_unregister(fujitsu->pf_device);
+>  	platform_driver_unregister(&fujitsupf_driver);
+> -	backlight_device_unregister(fujitsu->bl_device);
+> +	if (fujitsu->bl_device)
+> +		backlight_device_unregister(fujitsu->bl_device);
+>  
+>  	acpi_bus_unregister_driver(&acpi_fujitsu_driver);
+>  
+
