@@ -1,68 +1,66 @@
-From: Alex Chiang <achiang@hp.com>
-Subject: Re: [PATCH 01/14] Introduce cpu_enabled_map and friends
-Date: Tue, 15 Jul 2008 19:11:42 -0600
-Message-ID: <20080716011142.GI10919@ldl.fc.hp.com>
-References: <20080715023344.2528.1836.stgit@blender.achiang> <20080715023349.2528.9423.stgit@blender.achiang> <20080715031512.GF14894@parisc-linux.org> <87wsjnxy4w.fsf@basil.nowhere.org> <20080715102130.GA22866@flint.arm.linux.org.uk> <20080715175740.GB10919@ldl.fc.hp.com> <20080715181632.GG14894@parisc-linux.org> <20080715184822.GB29991@flint.arm.linux.org.uk>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: ACPI Problems on Sony Vaio SZ61MN, no brightness ctrl, no
+	power button
+Date: Wed, 16 Jul 2008 09:38:19 +0800
+Message-ID: <1216172299.1617.145.camel@rzhang-dt>
+References: <487CA418.6060103@uni-koblenz.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:6819 "EHLO
-	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752326AbYGPBLn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Jul 2008 21:11:43 -0400
-Content-Disposition: inline
-In-Reply-To: <20080715184822.GB29991@flint.arm.linux.org.uk>
+Received: from mga01.intel.com ([192.55.52.88]:55498 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751186AbYGPBj1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Jul 2008 21:39:27 -0400
+In-Reply-To: <487CA418.6060103@uni-koblenz.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Wilcox <matthew@wil.cx>, Andi Kleen <andi@firstfloor.org>, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org
+To: Sebastian Pohl <sebastianp@uni-koblenz.de>
+Cc: linux-acpi@vger.kernel.org, malattia@linux.it
 
-* Russell King <rmk+lkml@arm.linux.org.uk>:
-> On Tue, Jul 15, 2008 at 12:16:32PM -0600, Matthew Wilcox wrote:
-> > On Tue, Jul 15, 2008 at 11:57:40AM -0600, Alex Chiang wrote:
-> > > My thought was that big SMP systems like ia64, possibly sparc and
-> > > ppc, and increasingly, x86, might find something like this
-> > > useful, as systems get larger and larger, and vendors are going
-> > > to want to do RAS-ish features, like the ability to keep CPUs in
-> > > firmware across reboots until told otherwise by the sysadmin.
-> > > 
-> > > Right now, a 'present' CPU strongly implies 'online' as well,
-> > > since we're calling cpu_up() for all 'present' CPUs in
-> > > smp_init(). But this hurts if:
-> > > 
-> > > 	- you don't actually want to bring up all 'present' CPUs
-> > > 	- you still want to interact with these weirdo zombie
-> > > 	  CPUs that are 'present' but not 'online'
-> > 
-> > Have you considered simply failing __cpu_up() for CPUs that are
-> > deconfigured by firmware?
+Hi, Sebastian,
+
+Please file a new bug report for each of the problem (power button and
+brightness) at http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
+and attach the files listed below. :)
+
+On Tue, 2008-07-15 at 15:20 +0200, Sebastian Pohl wrote:
+> Hi there!
 > 
-> But what if you want to have a system boot with, say, 4 CPUs and
-> then decide at run time to bring up another 4 CPUs when required?
+> First i hope my other messages have realy disappereard. I send them 
+> yesterday from a windows machine and as described in the FAQ it seemed 
+> to be blocked because of the charset. If by any chance that message 
+> arrives please excuse it and ignore it!
 > 
-> How about having smp_init() call into arch code to query whether
-> it should bring up a not-already-online CPU?  Architectures that
-> want to do something special can then make the decision there and
-> everyone else can define the test completely away.
+> My Problem exists on a Sony Vaio Laptop with the modelcode SZ61MN/B. I 
+> am currently running Archlinux with a 2.6.25.11-1 kernel. Most things on 
+> the notebook seem to be working, even the lidswitch is recognized.
+> 
+> Problems are the non-working power button,
+what do you mean by non-working power button?
+Pressing the power button doesn't power off the laptop, right?
+what if you press it for four seconds?
 
-I experimented today with an ia64-only solution, keeping track of
-'present' vs 'enabled' vs 'online' all in arch-specific code.
+please run "grep . /sys/firmware/acpi/interrupts/*" both before and
+after pressing the power button and attach the result.
 
-The arch-specific stuff turns out to be more or less a wash; that
-is, it's not too hard to keep it all in ia64.
+>  thats a real problem, just 
+> annoying, and what realy is a pain, the backlight brigthness is not 
+> adjustable, so i always get a nice suntan from the screen. That realy 
+> sucks at night...
+please attach the acpidump output with the latest pmtools at
+http://www.lesswatts.org/patches/linux_acpi/
 
-However, the problem is, I would still need a generic
-'enabled_map' to control whether 'online' and 'crash_notes'
-entries get created for /sys/devices/system/cpu/cpuN/.
+> 
+> I tried for about a week now to find a solution and i worked my way 
+> through all of the possible solutions called sony-laptop, sonypi, 
+> sony-acpi but none of them worked for me.
+what did you get?
+empty /sys/class/backlight/ entry with any of these drivers loaded?
+or the backlight I/F exists but they don't work for you?
 
-So if other archs are at least neutral on this class of CPUs, I
-can work on another patchset that lowers the tax to a simple
-#define for archs that don't care.
+cc Mattia, who is the maintainer of sony-laptop driver. :)
 
-But if people hate this idea of a new map, I'd like to know so
-that I'm not wasting my time and can work on a different solution
-(what that would be, I have no idea at the moment).
-
-Thanks.
-
-/ac
+thanks,
+rui
 
