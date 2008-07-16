@@ -1,66 +1,61 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: ACPI Problems on Sony Vaio SZ61MN, no brightness ctrl, no
-	power button
-Date: Wed, 16 Jul 2008 09:38:19 +0800
-Message-ID: <1216172299.1617.145.camel@rzhang-dt>
-References: <487CA418.6060103@uni-koblenz.de>
+Subject: Re: [PATCH 5/9] fujitsu-laptop: fingers off backlight if video.ko
+	is serving this functionality
+Date: Wed, 16 Jul 2008 09:57:00 +0800
+Message-ID: <1216173420.1617.160.camel@rzhang-dt>
+References: <1215700265-24908-1-git-send-email-trenn@suse.de>
+	 <1215700265-24908-5-git-send-email-trenn@suse.de>
+	 <1216114700.1940.12.camel@earth.gruber.myown>
+	 <200807151446.31799.trenn@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:55498 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:55838 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751186AbYGPBj1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Jul 2008 21:39:27 -0400
-In-Reply-To: <487CA418.6060103@uni-koblenz.de>
+	id S1750870AbYGPB6S (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Jul 2008 21:58:18 -0400
+In-Reply-To: <200807151446.31799.trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sebastian Pohl <sebastianp@uni-koblenz.de>
-Cc: linux-acpi@vger.kernel.org, malattia@linux.it
+To: Thomas Renninger <trenn@suse.de>
+Cc: nokos@gmx.net, jwoithe@physics.adelaide.edu.au, linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>
 
-Hi, Sebastian,
-
-Please file a new bug report for each of the problem (power button and
-brightness) at http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
-and attach the files listed below. :)
-
-On Tue, 2008-07-15 at 15:20 +0200, Sebastian Pohl wrote:
-> Hi there!
+On Tue, 2008-07-15 at 14:46 +0200, Thomas Renninger wrote:
+> On Tuesday 15 July 2008 11:38:20 nokos@gmx.net wrote:
+> > Hi there,
+> >
+> > on the S6410 this prevents brightness control from working correctly.
+> > the ACPI BIOS provides non-functional _BCM/_BQC so the video.ko is
+> > registering backlight functions but does not work. Unfortunately not
+> > loading video.ko isn't a solution since with
+> > bc45b1d39a925b56796bebf8a397a0491489d85c the brightness keys are only
+> > reported through video.ko.
+> Is this an Intel graphics card?
+> Then you should also try Matthew's/Hong's IGD extensions.
+> It is likely that everything works out with video.ko then.
+> If not, with a patch I sent recently you should switch off Windows osi strings 
+> with:
+> acpi_osi=windows_false   (preferred)
+> or (already works)
+> acpi_osi="!Windows 2006"
 > 
-> First i hope my other messages have realy disappereard. I send them 
-> yesterday from a windows machine and as described in the FAQ it seemed 
-> to be blocked because of the charset. If by any chance that message 
-> arrives please excuse it and ignore it!
+> If it still does not work, then there is a driver missing which was  a 
+> proprietary one on XP and which has not been fully re-engeeniered for Linux.
 > 
-> My Problem exists on a Sony Vaio Laptop with the modelcode SZ61MN/B. I 
-> am currently running Archlinux with a 2.6.25.11-1 kernel. Most things on 
-> the notebook seem to be working, even the lidswitch is recognized.
-> 
-> Problems are the non-working power button,
-what do you mean by non-working power button?
-Pressing the power button doesn't power off the laptop, right?
-what if you press it for four seconds?
-
-please run "grep . /sys/firmware/acpi/interrupts/*" both before and
-after pressing the power button and attach the result.
-
->  thats a real problem, just 
-> annoying, and what realy is a pain, the backlight brigthness is not 
-> adjustable, so i always get a nice suntan from the screen. That realy 
-> sucks at night...
-please attach the acpidump output with the latest pmtools at
-http://www.lesswatts.org/patches/linux_acpi/
-
-> 
-> I tried for about a week now to find a solution and i worked my way 
-> through all of the possible solutions called sony-laptop, sonypi, 
-> sony-acpi but none of them worked for me.
-what did you get?
-empty /sys/class/backlight/ entry with any of these drivers loaded?
-or the backlight I/F exists but they don't work for you?
-
-cc Mattia, who is the maintainer of sony-laptop driver. :)
+> Using ACPI video events and pass them to the Fujitsu driver to change 
+> backlight (is this how it works? Is this done through userspace?), mixes up 
+> everything.
+No. The platform drivers have nothing to do with ACPI Video driver, they
+have platform specific events/control methods.
+Maybe you mixed it up with the IGD stuff.
+In IGD mode, ACPI video works together with graphics driver,
+And in this case, ACPI video exports ACPI video events, graphics driver
+gets the events (acpi_notifier_chain) and do the actual work. The ACPI
+control method (_BCM) is not used any more so that only the graphics
+driver touches the hardware. :)
 
 thanks,
 rui
+
 
