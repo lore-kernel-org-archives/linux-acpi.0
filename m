@@ -1,95 +1,138 @@
-From: nokos@gmx.net
-Subject: Re: [PATCH 5/9] fujitsu-laptop: fingers off backlight if video.ko
-Date: Wed, 16 Jul 2008 16:30:11 +0200
-Message-ID: <1216218611.15766.15.camel@earth.gruber.myown>
-References: <200807152355.m6FNtMO7026981@turbo.physics.adelaide.edu.au>
+From: Sebastian Pohl <sebastianp@uni-koblenz.de>
+Subject: Re: ACPI Problems on Sony Vaio SZ61MN, no brightness ctrl, no power
+ button
+Date: Wed, 16 Jul 2008 17:25:05 +0200
+Message-ID: <487E12D1.4080005@uni-koblenz.de>
+References: <487CA418.6060103@uni-koblenz.de> <1216172299.1617.145.camel@rzhang-dt> <487DC015.6070704@uni-koblenz.de> <20080716112707.GA3777@inferi.kami.home>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-in-02.arcor-online.net ([151.189.21.42]:57795 "EHLO
-	mail-in-02.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751087AbYGPOaS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Jul 2008 10:30:18 -0400
-In-Reply-To: <200807152355.m6FNtMO7026981@turbo.physics.adelaide.edu.au>
+Received: from deliver.uni-koblenz.de ([141.26.64.15]:22198 "EHLO
+	deliver.uni-koblenz.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756045AbYGPPZJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Jul 2008 11:25:09 -0400
+In-Reply-To: <20080716112707.GA3777@inferi.kami.home>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-Cc: Thomas Renninger <trenn@suse.de>, jwoithe@physics.adelaide.edu.au, linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>
+To: Mattia Dongili <malattia@linux.it>
+Cc: Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org
 
-Am Mittwoch, den 16.07.2008, 09:25 +0930 schrieb Jonathan Woithe:
-> > > It is likely that everything works out with video.ko then.
-> > > If not, with a patch I sent recently you should switch off Windows osi strings 
-> > > with:
-> > > acpi_osi=windows_false   (preferred)
-> > > or (already works)
-> > > acpi_osi="!Windows 2006"
-> > 
-> > disabling windows_osi disables backlight through video.ko and everything
-> > works fine with fujitsu_laptop (also brightness-buttons since ACPI then
-> > generates events on the fujitsu device) but some other ACPI stuff is
-> > disabled too (extended battery status etc...)
-> 
-> As per my previous email, the fact that this works is probably because in
-> this instance acpi_video_backlight_support() returns false and allows
-> fujitsu-laptop to set up its backlight control functions.
-> 
-> > > If it still does not work, then there is a driver missing which was  a 
-> > > proprietary one on XP and which has not been fully re-engeeniered for Linux.
-> > > 
-> > > Using ACPI video events and pass them to the Fujitsu driver to change 
-> > > backlight (is this how it works? Is this done through userspace?), mixes up 
-> > > everything.
-> > 
-> > without acpi_osi="!Windows 2006" the buttons just produce ACPI video
-> > events (recieved by video.ko) and hal does the adjustment through
-> > fujitsu_laptop.ko
-> 
-> I guess video.ko receives them because they are ACPI video events.  However,
-> as previously determined it doesn't do anything useful with them.  I'm a
-> little surprised that the physical brightness adjustment comes from hal
-> though.  On my S7020 the brightness changes brought about by the brightness
-> buttons are seemingly done in hardware - the buttons have an effect even
-> when fujitsu-laptop isn't loaded.  The brightness control functions in
-> fujitsu-laptop were added primarily to allow *software* control of the
-> brightness - something which definitely doesn't work without fujitsu-laptop.
-> The generation of ACPI video brightness keypress events was added to
-> fujitsu-laptop so userspace could keep track of changes instigated by the
-> hardware buttons.
+Hi!
 
-This behavior seems to be a recent change to the ACPI BIOS
-implementation (its in the VIST table, and only takes effect if
-osi("Windows 2006") returns true) ... its only my guess thats its hal
-who is doing it (with debug="0xffff" on fujitsu_laptop I can verify that
-somebody writes to /sys/class/backlight/fujitsu-laptop/brightness and
-since it also happens without running windowing environment I suspect
-hal). On the S6410 the acpi_osi="!Windows 2006" case probably resembled
-the S7020 behavior.
+Mattia Dongili wrote:
+> Hey there,
+>
+> sorry for being late... as usually happens recently.
+>
+>   
+:)
+> On Wed, Jul 16, 2008 at 11:32:05AM +0200, Sebastian Pohl wrote:
+>   
+>> Hi!
+>>     
+> ...
+>   
+>>> Please file a new bug report for each of the problem (power button and
+>>> brightness) at http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
+>>> and attach the files listed below. :)
+>>>
+>>>   
+>>>       
+>> Submitted both, after checking for existing, similar bugs :)
+>>
+>> http://bugzilla.kernel.org/show_bug.cgi?id=11095
+>> http://bugzilla.kernel.org/show_bug.cgi?id=11096
+>>     
+>>> On Tue, 2008-07-15 at 15:20 +0200, Sebastian Pohl wrote:
+>>>   
+>>>       
+>>>> Hi there!
+>>>>
+>>>> First i hope my other messages have realy disappereard. I send them  
+>>>> yesterday from a windows machine and as described in the FAQ it 
+>>>> seemed to be blocked because of the charset. If by any chance that 
+>>>> message arrives please excuse it and ignore it!
+>>>>
+>>>> My Problem exists on a Sony Vaio Laptop with the modelcode SZ61MN/B. 
+>>>> I am currently running Archlinux with a 2.6.25.11-1 kernel. Most 
+>>>> things on the notebook seem to be working, even the lidswitch is 
+>>>> recognized.
+>>>>
+>>>> Problems are the non-working power button,
+>>>>     
+>>>>         
+>>> what do you mean by non-working power button?
+>>> Pressing the power button doesn't power off the laptop, right?
+>>> what if you press it for four seconds?
+>>>
+>>> please run "grep . /sys/firmware/acpi/interrupts/*" both before and
+>>> after pressing the power button and attach the result.
+>>>
+>>>   
+>>>       
+>> Yes, youre right, pressing the button has no effect. Pressing 4 seconds  
+>> powers off the laptop. Is that done via acpi too? Thought that was a  
+>> hardwarething.
+>> Uploaded both outputs here:  
+>> http://www.twisted-artwork.de/vault/linux/powerbutton.txt
+>>     
+>
+> this is interesting, I never saw something like that for vaios and
+> linux.
+>
+>   
+Its not a big problem, its just annoying...
+>>>>  thats a real problem, just annoying, and what realy is a pain, the 
+>>>> backlight brigthness is not adjustable, so i always get a nice suntan 
+>>>> from the screen. That realy sucks at night...
+>>>>         
+> ...
+>   
+>>>> I tried for about a week now to find a solution and i worked my way  
+>>>> through all of the possible solutions called sony-laptop, sonypi,  
+>>>> sony-acpi but none of them worked for me.
+>>>>     
+>>>>         
+>>> what did you get?
+>>> empty /sys/class/backlight/ entry with any of these drivers loaded?
+>>> or the backlight I/F exists but they don't work for you?
+>>>
+>>>   
+>>>       
+>> The backlight files exist but they dont change anything. When i use the  
+>> sonypi driver
+>> i can change some of the stuff with the program spicctrl. Powering of  
+>> the internal devices
+>> works, adjusting fanspeed works, adjusting backlight just has no effects.
+>>     
+>
+> The SZ series have a stamina/speed switch switch between 2 video cards.
+> Usually one is an NVidia (for speed) and one is an Intel (for stamina).
+> On the NVidia there is nothing we can do (you can try nvclock or any
+> nvidia proprietary tool as documented on my wiki[1]), while for the
+> Intel card it's a different story (again documented on my wiki).
+> If you have no luck with the sony-laptop provided backlight control you
+> can try xbacklight that, as far as I can see[2], should work on your
+> Intel chipset.
+>
+> hope this helps
+>
+> [1]: http://www.linux.it/~malattia/wiki/index.php/Sony-laptop#Brightness
+> [2]: https://bugs.launchpad.net/ubuntu/+source/xbacklight/+bug/173652
+>   
 
-> > The Problem is that video.ko only touches an otherwise unused ACPI
-> > register but does not change the brightness... (you can just store a
-> > number between 0 and 7 there)
-> 
-> Yes, which is why I'm fairly sure there's no risk of double-touching the
-> hardware.  video.ko and fujitsu-laptop.ko are driving different hardware.
-> 
-> > Perhaps there is a way to disable the dysfunctional backlight stuff in 
-> > video.ko but retain the ACPI video event handling?!
-> 
-> The problem with doing this is that it's only the platform-specific drivers
-> which have the knowledge as to whether this is necessary or not.  video.ko
-> would therefore have to query each loaded platform-specific module which
-> seems messy to me.  If video.ko was loaded before the relevant
-> platform-specific module it gets even messier.  I guess we could add a
-> video.ko function like acpi_video_backlight_disable() which platform modules
-> could call if they choose to handle the backlight.  However, this seems
-> suboptimal to since it means video.ko sets up a backlight interface only to
-> have to tear it down again soon after.  I guess it's no worse than setting
-> up a backlight interface which never gets used though.
+GREAT! [2] helped! Now i can change the backlight with xbacklight -set 
+value.
+As you said this only works for the intel chipset with is the graphic 
+adapter i use when i am using the laptop mobile. So its annoying that i 
+cant change the brightness wit the nvidia card but not as much of a 
+problem as it was with the intel chipset. As the nvidia driver is a 
+propietrary one, i dont think that is a thing i or anyone here can solve?
+ 
+Thank you so much! Is the brigthness issue now still a bug or should i 
+delete it from bugzilla?
 
-perhaps this can be done with a DMI based blacklist in video.ko, which
-dis/enables the different parts of the module (backlight control, video
-events ...)
+regards
 
-Peter
-
+         Sebastian
