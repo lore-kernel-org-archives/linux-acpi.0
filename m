@@ -1,43 +1,50 @@
-From: Yves-Alexis Perez <corsac@debian.org>
-Subject: Re: [PATCH 10/11] thinkpad_acpi: fingers off backlight if video.ko
-	is serving this functionality
-Date: Wed, 16 Jul 2008 17:49:44 +0200
-Message-ID: <20080716154944.GB21956@corsac.net>
-References: <1216205553-8486-1-git-send-email-trenn@suse.de> <20080716124703.GA376@srcf.ucam.org> <20080716133839.GB3329@khazad-dum.debian.net> <200807161727.57026.trenn@suse.de> <20080716152938.GA8676@srcf.ucam.org>
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: Re: acpi based pci gap calculation  - v3
+Date: Wed, 16 Jul 2008 09:06:43 -0700
+Message-ID: <200807160906.43632.jbarnes@virtuousgeek.org>
+References: <1216148382.6135.21.camel@alok-dev1> <200807151553.41403.jbarnes@virtuousgeek.org> <487D89E3.9070604@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from molly.corsac.net ([81.57.48.219]:34531 "EHLO molly.corsac.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752814AbYGPPts (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Jul 2008 11:49:48 -0400
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <487D89E3.9070604@linux.intel.com>
 Content-Disposition: inline
-In-Reply-To: <20080716152938.GA8676@srcf.ucam.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
+To: Andi Kleen <ak@linux.intel.com>
+Cc: akataria@vmware.com, Ingo Molnar <mingo@elte.hu>, "Brown, Len" <len.brown@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, TJ <linux@tjworld.net>
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Thomas Renninger <trenn@suse.de>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, ak@linux.intel.com, jwoithe@physics.adelaide.edu.au, rui.zhang@intel.com, corentincj@iksaif.net, linux-acpi@vger.kernel.org, dannybaumann@web.de, marcus@better.se, mzxreary@0pointer.de, carlos@strangeworlds.co.uk, malattia@linux.it
 
-On Wed, Jul 16, 2008 at 04:29:39PM +0100, Matthew Garrett wrote:
-> On Wed, Jul 16, 2008 at 05:27:55PM +0200, Thomas Renninger wrote:
-> > On Wednesday 16 July 2008 15:38:39 Henrique de Moraes Holschuh wrote:
-> > > On Wed, 16 Jul 2008, Matthew Garrett wrote:
-> > > > On Wed, Jul 16, 2008 at 09:40:44AM -0300, Henrique de Moraes Holschuh 
-> > wrote:
-> > > > > One question: is there a good reason to actually have the hotkey
-> > > > > handling for IGD mode directly in thinkpad-acpi?  We don't do it for
-> > > > > Vista BIOS, video.ko doesn't do it either (anymore)... and I would make
-> > > > > it configurable for IBM firmware if I could.
-> > > >
-> > > > No. There's no reason to have IGD handling in thinkpad-acpi at all.
-> > I haven't seen the video driver on a T61 with Intel card doing proper 
-> > backlight switching on the correct device yet.
-> 
-> The patch is queued and will be in 2.6.27. It's fine.
+On Tuesday, July 15, 2008 10:40 pm Andi Kleen wrote:
+> Jesse Barnes wrote:
+> > On Tuesday, July 15, 2008 1:54 pm Alok Kataria wrote:
+> >> I have tested it with couple of different BIOS settings and it seems to
+> >> work as it should.
+> >>
+> >>> Most of the PCI bugs we
+> >>> have at the moment are related to PCI resource allocation failures.  My
+> >>> hope is that finding more space will fix most of them.  Assuming this
+> >>> patch doesn't have any dependencies, I can put it in my linux-next
+> >>> branch.
+> >>
+> >> No dependencies, I had added a function e820_search_gap which is used by
+> >> this patch. This function is already in the mainline tree.
+> >> Thanks for applying.
+> >
+> > Ok, I stuffed it in my linux-next branch.  I'll let it sit there for a
+> > day or so though, just to shake out any build problems etc. in linux-next
+> > before asking Linus to pull the whole lot.
+>
+> For me it seems a little risky to push up that early. I think it would
+> be better to let it sit longer in linux-next for this. After all this is
+> a major change how IO resources are allocated. That is why I didn't pull
+> it into the ACPI release branch.
 
-Does this mean that linux-next + the 2 generic patches + (fixed)
-thinkpad-acpi one would be enough to test?
+The only problem there is that linux-next doesn't get nearly the sort of 
+testing coverage we need for this kind of change.  It's also small, and 
+reverting it is easy, so if we run into big problems that we can't fix we can 
+always back it out...
 
-Cheers,
--- 
-Yves-Alexis
+I'm interested in hearing people's thoughts on this.
+
+Jesse
