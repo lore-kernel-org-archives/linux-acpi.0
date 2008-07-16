@@ -1,138 +1,101 @@
-From: Sebastian Pohl <sebastianp@uni-koblenz.de>
-Subject: Re: ACPI Problems on Sony Vaio SZ61MN, no brightness ctrl, no power
- button
-Date: Wed, 16 Jul 2008 17:25:05 +0200
-Message-ID: <487E12D1.4080005@uni-koblenz.de>
-References: <487CA418.6060103@uni-koblenz.de> <1216172299.1617.145.camel@rzhang-dt> <487DC015.6070704@uni-koblenz.de> <20080716112707.GA3777@inferi.kami.home>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH 10/11] thinkpad_acpi: fingers off backlight if video.ko is serving this functionality
+Date: Wed, 16 Jul 2008 17:27:55 +0200
+Message-ID: <200807161727.57026.trenn@suse.de>
+References: <1216205553-8486-1-git-send-email-trenn@suse.de> <20080716124703.GA376@srcf.ucam.org> <20080716133839.GB3329@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from deliver.uni-koblenz.de ([141.26.64.15]:22198 "EHLO
-	deliver.uni-koblenz.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756045AbYGPPZJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Jul 2008 11:25:09 -0400
-In-Reply-To: <20080716112707.GA3777@inferi.kami.home>
+Received: from cantor.suse.de ([195.135.220.2]:42373 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753172AbYGPP2A (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Jul 2008 11:28:00 -0400
+In-Reply-To: <20080716133839.GB3329@khazad-dum.debian.net>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mattia Dongili <malattia@linux.it>
-Cc: Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, ak@linux.intel.com, jwoithe@physics.adelaide.edu.au, rui.zhang@intel.com, corentincj@iksaif.net, linux-acpi@vger.kernel.org, dannybaumann@web.de, marcus@better.se, corsac@debian.org, mzxreary@0pointer.de, carlos@strangeworlds.co.uk, malattia@linux.it
 
-Hi!
+On Wednesday 16 July 2008 15:38:39 Henrique de Moraes Holschuh wrote:
+> On Wed, 16 Jul 2008, Matthew Garrett wrote:
+> > On Wed, Jul 16, 2008 at 09:40:44AM -0300, Henrique de Moraes Holschuh 
+wrote:
+> > > One question: is there a good reason to actually have the hotkey
+> > > handling for IGD mode directly in thinkpad-acpi?  We don't do it for
+> > > Vista BIOS, video.ko doesn't do it either (anymore)... and I would make
+> > > it configurable for IBM firmware if I could.
+> >
+> > No. There's no reason to have IGD handling in thinkpad-acpi at all.
+I haven't seen the video driver on a T61 with Intel card doing proper 
+backlight switching on the correct device yet.
 
-Mattia Dongili wrote:
-> Hey there,
->
-> sorry for being late... as usually happens recently.
->
->   
-:)
-> On Wed, Jul 16, 2008 at 11:32:05AM +0200, Sebastian Pohl wrote:
->   
->> Hi!
->>     
-> ...
->   
->>> Please file a new bug report for each of the problem (power button and
->>> brightness) at http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
->>> and attach the files listed below. :)
->>>
->>>   
->>>       
->> Submitted both, after checking for existing, similar bugs :)
->>
->> http://bugzilla.kernel.org/show_bug.cgi?id=11095
->> http://bugzilla.kernel.org/show_bug.cgi?id=11096
->>     
->>> On Tue, 2008-07-15 at 15:20 +0200, Sebastian Pohl wrote:
->>>   
->>>       
->>>> Hi there!
->>>>
->>>> First i hope my other messages have realy disappereard. I send them  
->>>> yesterday from a windows machine and as described in the FAQ it 
->>>> seemed to be blocked because of the charset. If by any chance that 
->>>> message arrives please excuse it and ignore it!
->>>>
->>>> My Problem exists on a Sony Vaio Laptop with the modelcode SZ61MN/B. 
->>>> I am currently running Archlinux with a 2.6.25.11-1 kernel. Most 
->>>> things on the notebook seem to be working, even the lidswitch is 
->>>> recognized.
->>>>
->>>> Problems are the non-working power button,
->>>>     
->>>>         
->>> what do you mean by non-working power button?
->>> Pressing the power button doesn't power off the laptop, right?
->>> what if you press it for four seconds?
->>>
->>> please run "grep . /sys/firmware/acpi/interrupts/*" both before and
->>> after pressing the power button and attach the result.
->>>
->>>   
->>>       
->> Yes, youre right, pressing the button has no effect. Pressing 4 seconds  
->> powers off the laptop. Is that done via acpi too? Thought that was a  
->> hardwarething.
->> Uploaded both outputs here:  
->> http://www.twisted-artwork.de/vault/linux/powerbutton.txt
->>     
->
-> this is interesting, I never saw something like that for vaios and
-> linux.
->
->   
-Its not a big problem, its just annoying...
->>>>  thats a real problem, just annoying, and what realy is a pain, the 
->>>> backlight brigthness is not adjustable, so i always get a nice suntan 
->>>> from the screen. That realy sucks at night...
->>>>         
-> ...
->   
->>>> I tried for about a week now to find a solution and i worked my way  
->>>> through all of the possible solutions called sony-laptop, sonypi,  
->>>> sony-acpi but none of them worked for me.
->>>>     
->>>>         
->>> what did you get?
->>> empty /sys/class/backlight/ entry with any of these drivers loaded?
->>> or the backlight I/F exists but they don't work for you?
->>>
->>>   
->>>       
->> The backlight files exist but they dont change anything. When i use the  
->> sonypi driver
->> i can change some of the stuff with the program spicctrl. Powering of  
->> the internal devices
->> works, adjusting fanspeed works, adjusting backlight just has no effects.
->>     
->
-> The SZ series have a stamina/speed switch switch between 2 video cards.
-> Usually one is an NVidia (for speed) and one is an Intel (for stamina).
-> On the NVidia there is nothing we can do (you can try nvclock or any
-> nvidia proprietary tool as documented on my wiki[1]), while for the
-> Intel card it's a different story (again documented on my wiki).
-> If you have no luck with the sony-laptop provided backlight control you
-> can try xbacklight that, as far as I can see[2], should work on your
-> Intel chipset.
->
-> hope this helps
->
-> [1]: http://www.linux.it/~malattia/wiki/index.php/Sony-laptop#Brightness
-> [2]: https://bugs.launchpad.net/ubuntu/+source/xbacklight/+bug/173652
->   
+> Then please leave that part out of the final patch.  It will make the
+> patch a LOT simpler (no need to muck with anything hotkey_*).
+Ok. Attached.
 
-GREAT! [2] helped! Now i can change the backlight with xbacklight -set 
-value.
-As you said this only works for the intel chipset with is the graphic 
-adapter i use when i am using the laptop mobile. So its annoying that i 
-cant change the brightness wit the nvidia card but not as much of a 
-problem as it was with the intel chipset. As the nvidia driver is a 
-propietrary one, i dont think that is a thing i or anyone here can solve?
+> But the observation about extending brightness_mode to
+> force-select/unselect igdmode stands anyway.
+Ok, that's fair enough.
+
+I wonder whether we still need the BCL queries in thinkpad_acpi.c?
+Shouldn't (at least in theory) all ThinkPads with generic backlight
+functions work with video.ko now?
+
+Maybe now it's a bit too soon, but getting rid of these functions would
+be a nice cleanup.
+
+Below one is compile tested...
+
+        Thomas
+
+----
+thinkpad_acpi: fingers off backlight if video.ko is serving this functionality
+
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+
+diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
+index b596929..50da049 100644
+--- a/drivers/misc/thinkpad_acpi.c
++++ b/drivers/misc/thinkpad_acpi.c
+@@ -4750,17 +4750,26 @@ static int __init brightness_init(struct 
+ibm_init_struct *iibm)
+ 	 */
+ 	b = tpacpi_check_std_acpi_brightness_support();
+ 	if (b > 0) {
+-		if (thinkpad_id.vendor == PCI_VENDOR_ID_LENOVO) {
+-			printk(TPACPI_NOTICE
+-			       "Lenovo BIOS switched to ACPI backlight "
+-			       "control mode\n");
+-		}
+-		if (brightness_enable > 1) {
+-			printk(TPACPI_NOTICE
+-			       "standard ACPI backlight interface "
+-			       "available, not loading native one...\n");
+-			return 1;
+-		}
++
++		if (acpi_video_backlight_support()) {
++			if (brightness_enable > 1) {
++				printk(TPACPI_NOTICE
++				       "Standard ACPI backlight interface "
++				       "available, not loading native one.\n");
++				return 1;
++			} else if (brightness_enable == 1) {
++				printk(TPACPI_NOTICE
++				       "Backlight control force, even standard "
++				       "ACPI backlight interface available\n");
++			}
++		} else {
++			if (brightness_enable > 1) {
++				printk(TPACPI_NOTICE
++				       "Standard ACPI backlight interface not "
++				       "available, thinkpad_acpi driver "
++				       "will take over control\n");
++			}
++ 		}
+ 	}
  
-Thank you so much! Is the brigthness issue now still a bug or should i 
-delete it from bugzilla?
-
-regards
-
-         Sebastian
+ 	if (!brightness_enable) {
