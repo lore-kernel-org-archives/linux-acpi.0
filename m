@@ -1,44 +1,42 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
 Subject: Re: Please pull ACPI updates
-Date: Wed, 16 Jul 2008 16:45:32 -0700 (PDT)
-Message-ID: <alpine.LFD.1.10.0807161639090.2835@woody.linux-foundation.org>
-References: <20080716214516.GA10777@basil.nowhere.org> <200807170011.12184.rjw@sisk.pl> <200807161633.01375.jbarnes@virtuousgeek.org>
+Date: Wed, 16 Jul 2008 16:51:44 -0700
+Message-ID: <200807161651.44990.jbarnes@virtuousgeek.org>
+References: <20080716214516.GA10777@basil.nowhere.org> <200807161633.01375.jbarnes@virtuousgeek.org> <alpine.LFD.1.10.0807161639090.2835@woody.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36227 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753314AbYGPXqL (ORCPT
+Received: from outbound-mail-104.bluehost.com ([69.89.22.14]:35436 "HELO
+	outbound-mail-104.bluehost.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753716AbYGPXvw (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Jul 2008 19:46:11 -0400
-In-Reply-To: <200807161633.01375.jbarnes@virtuousgeek.org>
+	Wed, 16 Jul 2008 19:51:52 -0400
+In-Reply-To: <alpine.LFD.1.10.0807161639090.2835@woody.linux-foundation.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Andi Kleen <andi@firstfloor.org>, torvalds@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Andi Kleen <andi@firstfloor.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
+On Wednesday, July 16, 2008 4:45 pm Linus Torvalds wrote:
+> On Wed, 16 Jul 2008, Jesse Barnes wrote:
+> > Yeah, they're interdependent (I pulled from Len's tree, hopefully Andi
+> > preserved the changesets).
+>
+> Andi did not. The whole series I pulled was rebased today at 2PM.
 
+Ugg, when Andi took over we talked about it; I thought we had agreed that he 
+would stick with Len's tree.  I guess I was wrong.
 
-On Wed, 16 Jul 2008, Jesse Barnes wrote:
-> 
-> Yeah, they're interdependent (I pulled from Len's tree, hopefully Andi 
-> preserved the changesets).
+> I was going to complain about it, because Len's trees were always a
+> pleasure to pull with clearly delineated topic branches etc, and pulling
+> from Andi was such a let-down in comparison.
 
-Andi did not. The whole series I pulled was rebased today at 2PM.
+Is a topic branch flow like what Len uses documented somewhere that you know 
+of?  I know my process could use some improvement; I'd rather not have to 
+wait for Len to come back to ask him. :)
 
-I was going to complain about it, because Len's trees were always a 
-pleasure to pull with clearly delineated topic branches etc, and pulling 
-from Andi was such a let-down in comparison.
-
-But I decided to let it slide, because quite frankly, Len had done better 
-than the average bear, and I didn't realize that the commits Andi had 
-rebased had actually been in Len's tree in the _good_ format.
-
-It seems I was wrong - I should _not_ have let it slide, and it appears 
-that Andi had actually destroyed Len's pretty tree.
-
-Andi. This can _not_ continue. You need to learn how to use topic 
-branches, and how to not screw up other peoples trees. Otherwise I'll just 
-have to stop pulling from you. AGAIN.
-
-			Linus
+Thanks,
+Jesse
