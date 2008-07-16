@@ -1,27 +1,55 @@
-From: Andi Kleen <ak@linux.intel.com>
-Subject: Re: acpi based pci gap calculation  - v3
-Date: Wed, 16 Jul 2008 18:33:46 +0200
-Message-ID: <487E22EA.8030005@linux.intel.com>
-References: <1216148382.6135.21.camel@alok-dev1> <200807151553.41403.jbarnes@virtuousgeek.org> <487D89E3.9070604@linux.intel.com> <200807160906.43632.jbarnes@virtuousgeek.org>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: Re: [PATCH 03/11] Acer-WMI: fingers off backlight if video.ko is serving this functionality
+Date: Wed, 16 Jul 2008 18:42:48 +0100
+Message-ID: <200807161842.50160.carlos@strangeworlds.co.uk>
+References: <1216205553-8486-1-git-send-email-trenn@suse.de> <1216205553-8486-4-git-send-email-trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <200807160906.43632.jbarnes@virtuousgeek.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: akataria@vmware.com, Ingo Molnar <mingo@elte.hu>, "Brown, Len" <len.brown@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, TJ <linux@tjworld.net>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from phoenix.slamd64.com ([217.10.145.2]:54637 "EHLO
+	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752182AbYGPSLP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Jul 2008 14:11:15 -0400
+In-Reply-To: <1216205553-8486-4-git-send-email-trenn@suse.de>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: ak@linux.intel.com, mjg59@srcf.ucam.org, jwoithe@physics.adelaide.edu.au, hmh@hmh.eng.br, rui.zhang@intel.com, corentincj@iksaif.net, linux-acpi@vger.kernel.org, dannybaumann@web.de, marcus@better.se, corsac@debian.org, mzxreary@0pointer.de, malattia@linux.it
+
+On Wednesday 16 July 2008 11:52:25 Thomas Renninger wrote:
+> Signed-off-by: Thomas Renninger <trenn@suse.de>
+> Signed-off-by: Thomas Renninger <trenn@stravinsky.suse.de>
+
+Acked-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
+
+> ---
+>  drivers/misc/acer-wmi.c |    6 ++++++
+>  1 files changed, 6 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/misc/acer-wmi.c b/drivers/misc/acer-wmi.c
+> index e7a3fe5..a843ac2 100644
+> --- a/drivers/misc/acer-wmi.c
+> +++ b/drivers/misc/acer-wmi.c
+> @@ -1218,6 +1218,12 @@ static int __init acer_wmi_init(void)
+>  		return -ENODEV;
+>  	}
+>
+> +	if (!acpi_video_backlight_support() && has_cap(ACER_CAP_BRIGHTNESS)) {
+> +		interface->capability &= ~ACER_CAP_BRIGHTNESS;
+> +		printk(ACER_INFO "Brightness must be controlled by "
+> +		       "generic video driver\n");
+> +	}
+> +
+>  	if (platform_driver_register(&acer_platform_driver)) {
+>  		printk(ACER_ERR "Unable to register platform driver.\n");
+>  		goto error_platform_register;
 
 
-> The only problem there is that linux-next doesn't get nearly the sort of 
-> testing coverage we need for this kind of change.
 
-Normally I tend to wait for one -mm release, which seems to be tested
-by a reasonable number of people. If it survives that it is good
-to be tested in Linus' tree.
-
-Just stuffing this in in literally the last minute doesn't seem
-like a good idea.
-
--Andi
+-- 
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
