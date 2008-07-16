@@ -1,105 +1,87 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: ACPI Problems on Sony Vaio SZ61MN, no brightness ctrl, no power
-	button
-Date: Wed, 16 Jul 2008 20:27:08 +0900
-Message-ID: <20080716112707.GA3777@inferi.kami.home>
-References: <487CA418.6060103@uni-koblenz.de> <1216172299.1617.145.camel@rzhang-dt> <487DC015.6070704@uni-koblenz.de>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH 10/11] thinkpad_acpi: fingers off backlight if video.ko
+	is serving this functionality
+Date: Wed, 16 Jul 2008 09:40:44 -0300
+Message-ID: <20080716124044.GA3329@khazad-dum.debian.net>
+References: <1216205553-8486-1-git-send-email-trenn@suse.de> <1216205553-8486-11-git-send-email-trenn@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:35937
-	"EHLO tadamune.kami.home" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752147AbYGPL5j (ORCPT
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:52287 "EHLO
+	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753794AbYGPMks (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Jul 2008 07:57:39 -0400
+	Wed, 16 Jul 2008 08:40:48 -0400
 Content-Disposition: inline
-In-Reply-To: <487DC015.6070704@uni-koblenz.de>
+In-Reply-To: <1216205553-8486-11-git-send-email-trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sebastian Pohl <sebastianp@uni-koblenz.de>
-Cc: Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: ak@linux.intel.com, mjg59@srcf.ucam.org, jwoithe@physics.adelaide.edu.au, rui.zhang@intel.com, corentincj@iksaif.net, linux-acpi@vger.kernel.org, dannybaumann@web.de, marcus@better.se, corsac@debian.org, mzxreary@0pointer.de, carlos@strangeworlds.co.uk, malattia@linux.it
 
-Hey there,
+On Wed, 16 Jul 2008, Thomas Renninger wrote:
+> @@ -2337,6 +2341,28 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
+>  		case 1:
+>  			/* 0x1000-0x1FFF: key presses */
+>  			scancode = hkey & 0xfff;
+> +			if (tp_features.bright_igdmode) {
+> +				/* ToDo:
+> +				 * Is there an already defined key?
+> +				 */
+> +				if (hkey == 0x1011) {
+> +					if (ibm_backlight_device->
+> +					    props.brightness > 0) {
+> +						ibm_backlight_device->
+> +							props.brightness--;
+> +					}
+> +				} else if (hkey == 0x1010) {
+> +					if (ibm_backlight_device->
+> +					    props.brightness <
+> +					    ibm_backlight_device->
+> +					    props.max_brightness) {
+> +						ibm_backlight_device->
+> +							props.brightness++;
+> +					}
+> +				}
+> +				brightness_update_status(ibm_backlight_device);
+> +			}
+> +
 
-sorry for being late... as usually happens recently.
+NAK.   Sorry I didn't look it over in detail the last time you posted
+this.
 
-On Wed, Jul 16, 2008 at 11:32:05AM +0200, Sebastian Pohl wrote:
-> Hi!
-...
->> Please file a new bug report for each of the problem (power button and
->> brightness) at http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
->> and attach the files listed below. :)
->>
->>   
-> Submitted both, after checking for existing, similar bugs :)
->
-> http://bugzilla.kernel.org/show_bug.cgi?id=11095
-> http://bugzilla.kernel.org/show_bug.cgi?id=11096
->> On Tue, 2008-07-15 at 15:20 +0200, Sebastian Pohl wrote:
->>   
->>> Hi there!
->>>
->>> First i hope my other messages have realy disappereard. I send them  
->>> yesterday from a windows machine and as described in the FAQ it 
->>> seemed to be blocked because of the charset. If by any chance that 
->>> message arrives please excuse it and ignore it!
->>>
->>> My Problem exists on a Sony Vaio Laptop with the modelcode SZ61MN/B. 
->>> I am currently running Archlinux with a 2.6.25.11-1 kernel. Most 
->>> things on the notebook seem to be working, even the lidswitch is 
->>> recognized.
->>>
->>> Problems are the non-working power button,
->>>     
->> what do you mean by non-working power button?
->> Pressing the power button doesn't power off the laptop, right?
->> what if you press it for four seconds?
->>
->> please run "grep . /sys/firmware/acpi/interrupts/*" both before and
->> after pressing the power button and attach the result.
->>
->>   
-> Yes, youre right, pressing the button has no effect. Pressing 4 seconds  
-> powers off the laptop. Is that done via acpi too? Thought that was a  
-> hardwarething.
-> Uploaded both outputs here:  
-> http://www.twisted-artwork.de/vault/linux/powerbutton.txt
+As per my golden rule for thinkpad-acpi (always have some way to let the
+user disable such stuff, because it WILL break in some thinkpad), these
+need to be configurable as a module parameter.
 
-this is interesting, I never saw something like that for vaios and
-linux.
+Extending brightness_mode (it is a bitmap) to let one force igd_mode
+on and off would solve this detail.
 
->>>  thats a real problem, just annoying, and what realy is a pain, the 
->>> backlight brigthness is not adjustable, so i always get a nice suntan 
->>> from the screen. That realy sucks at night...
-...
->>> I tried for about a week now to find a solution and i worked my way  
->>> through all of the possible solutions called sony-laptop, sonypi,  
->>> sony-acpi but none of them worked for me.
->>>     
->> what did you get?
->> empty /sys/class/backlight/ entry with any of these drivers loaded?
->> or the backlight I/F exists but they don't work for you?
->>
->>   
-> The backlight files exist but they dont change anything. When i use the  
-> sonypi driver
-> i can change some of the stuff with the program spicctrl. Powering of  
-> the internal devices
-> works, adjusting fanspeed works, adjusting backlight just has no effects.
+Also, usually I would veto such automatic hotkey handling in the driver,
+but since the firmware ALREADY does it on every IBM thinkpad anyway (and
+I can't fix it since hotpatching DSDT in code is absolutely forbidden),
+the driver has all facilities needed to deal with it.
 
-The SZ series have a stamina/speed switch switch between 2 video cards.
-Usually one is an NVidia (for speed) and one is an Intel (for stamina).
-On the NVidia there is nothing we can do (you can try nvclock or any
-nvidia proprietary tool as documented on my wiki[1]), while for the
-Intel card it's a different story (again documented on my wiki).
-If you have no luck with the sony-laptop provided backlight control you
-can try xbacklight that, as far as I can see[2], should work on your
-Intel chipset.
+One question: is there a good reason to actually have the hotkey
+handling for IGD mode directly in thinkpad-acpi?  We don't do it for
+Vista BIOS, video.ko doesn't do it either (anymore)... and I would make
+it configurable for IBM firmware if I could.
 
-hope this helps
+Anyway, that means hotkey-driven igd_mode brightness change, if handled
+by thinkpad-acpi without going through userspace, HAS to mask off the
+relevant hotkeys in hotkey_init and set to KEY_RESERVED the relevant
+keymap entries.   The code is there already, but it does mean you
+need to factor out brightness_mode autodetection into a function
+of its own, and have it run BEFORE hotkey_init and brightness_init
+have a chance to run, because both will have to be in sync.
 
-[1]: http://www.linux.it/~malattia/wiki/index.php/Sony-laptop#Brightness
-[2]: https://bugs.launchpad.net/ubuntu/+source/xbacklight/+bug/173652
+If you'd rather not have all that work, just add minimal support for igd
+and the video stuff to thinkpad-acpi so that it doesn't get in the way
+of your work, and I will follow up with whatever else enhancements are
+needed.
+
 -- 
-mattia
-:wq!
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
