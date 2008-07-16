@@ -1,55 +1,44 @@
-From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-Subject: Re: [PATCH 5/9] fujitsu-laptop: fingers off backlight if video.ko
-Date: Wed, 16 Jul 2008 12:00:32 +0930 (CST)
-Message-ID: <200807160230.m6G2UWKj001807@turbo.physics.adelaide.edu.au>
-References: <1216174369.1617.169.camel@rzhang-dt>
+From: Andi Kleen <ak@linux.intel.com>
+Subject: Re: acpi based pci gap calculation  - v3
+Date: Wed, 16 Jul 2008 07:40:51 +0200
+Message-ID: <487D89E3.9070604@linux.intel.com>
+References: <1216148382.6135.21.camel@alok-dev1> <200807151328.00739.jbarnes@virtuousgeek.org> <1216155256.6135.25.camel@alok-dev1> <200807151553.41403.jbarnes@virtuousgeek.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:57958 "EHLO
-	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751382AbYGPCbJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Jul 2008 22:31:09 -0400
-In-Reply-To: <1216174369.1617.169.camel@rzhang-dt> from "Zhang Rui" at Jul 16, 2008 10:12:49 AM
+Received: from mga06.intel.com ([134.134.136.21]:41901 "EHLO
+	orsmga101.jf.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751716AbYGPFkw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Jul 2008 01:40:52 -0400
+In-Reply-To: <200807151553.41403.jbarnes@virtuousgeek.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, nokos@gmx.net, Thomas Renninger <trenn@suse.de>, linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: akataria@vmware.com, Ingo Molnar <mingo@elte.hu>, "Brown, Len" <len.brown@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, TJ <linux@tjworld.net>
 
-> > > Perhaps there is a way to disable the dysfunctional backlight stuff in 
-> > > video.ko but retain the ACPI video event handling?!
-> > 
-> > The problem with doing this is that it's only the platform-specific drivers
-> > which have the knowledge as to whether this is necessary or not.  video.ko
-> > would therefore have to query each loaded platform-specific module which
-> > seems messy to me.  If video.ko was loaded before the relevant
-> > platform-specific module it gets even messier.  I guess we could add a
-> > video.ko function like acpi_video_backlight_disable() which platform modules
-> > could call if they choose to handle the backlight.  However, this seems
-> > suboptimal to since it means video.ko sets up a backlight interface only to
-> > have to tear it down again soon after.  I guess it's no worse than setting
-> > up a backlight interface which never gets used though.
-> > 
-> > The fundamental problem as I see at this point it is that the new
-> > acpi_video_backlight_support() function returns true on Fujitsu S-series
-> > laptops because the ACPI environment looks "right" from video.ko's point of
-> > view.  However, it's clear that the desired registers/methods - although
-> > present - are completely non-functional in these laptops so in reality
-> > video.ko cannot handle the backlight in this case.  Unless video.ko
-> > hooks into the Fujitsu-specific registers (which defeats the modularity of
-> > hardware-specific modules) this won't change.
+Jesse Barnes wrote:
+> On Tuesday, July 15, 2008 1:54 pm Alok Kataria wrote:
+>> I have tested it with couple of different BIOS settings and it seems to
+>> work as it should.
+>>
+>>> Most of the PCI bugs we
+>>> have at the moment are related to PCI resource allocation failures.  My
+>>> hope is that finding more space will fix most of them.  Assuming this
+>>> patch doesn't have any dependencies, I can put it in my linux-next
+>>> branch.
+>> No dependencies, I had added a function e820_search_gap which is used by
+>> this patch. This function is already in the mainline tree.
+>> Thanks for applying.
 > 
-> IMO, In this case, we should add a dmi check in video_detect.c and set
-> acpi_backlight=vendor for this laptop, both before acpi video and
-> fujitsu laptop driver is loaded.
+> Ok, I stuffed it in my linux-next branch.  I'll let it sit there for a day or 
+> so though, just to shake out any build problems etc. in linux-next before 
+> asking Linus to pull the whole lot.
 
-That could work.  Keeping in mind that I'm yet to test the S7020 against
-this patch though, what if it turns out that this problem affects most
-Fujitsu laptops?  One wouldn't want dozens of model-specific checks in
-video_detect.c, but I guess it may be possible to come up with a
-sufficiently general DMI check that matched all such laptops.
+For me it seems a little risky to push up that early. I think it would 
+be better to let it sit longer in linux-next for this. After all this is 
+a major change how IO resources are allocated. That is why I didn't pull
+it into the ACPI release branch.
 
-Regards
-  jonathan
+-Andi
+
