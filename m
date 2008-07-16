@@ -1,39 +1,24 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Please pull ACPI updates
-Date: Thu, 17 Jul 2008 00:11:11 +0200
-Message-ID: <200807170011.12184.rjw@sisk.pl>
-References: <20080716214516.GA10777@basil.nowhere.org>
+From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Subject: Re: [PATCH 06/11] fujitsu-laptop: fingers off backlight if video.ko is serving this functionality
+Date: Thu, 17 Jul 2008 08:41:01 +0930 (CST)
+Message-ID: <200807162311.m6GNB1ao007193@turbo.physics.adelaide.edu.au>
+References: <1216205553-8486-7-git-send-email-trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:59060 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756023AbYGPWJG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Jul 2008 18:09:06 -0400
-In-Reply-To: <20080716214516.GA10777@basil.nowhere.org>
-Content-Disposition: inline
+Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:33250 "EHLO
+	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755623AbYGPXL7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Jul 2008 19:11:59 -0400
+In-Reply-To: <1216205553-8486-7-git-send-email-trenn@suse.de> from "Thomas Renninger" at Jul 16, 2008 12:52:28 PM
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>
-Cc: torvalds@osdl.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: ak@linux.intel.com, mjg59@srcf.ucam.org, jwoithe@physics.adelaide.edu.au, hmh@hmh.eng.br, rui.zhang@intel.com, corentincj@iksaif.net, linux-acpi@vger.kernel.org, dannybaumann@web.de, marcus@better.se, corsac@debian.org, mzxreary@0pointer.de, carlos@strangeworlds.co.uk, malattia@linux.it, Thomas Renninger <trenn@suse.de>
 
-On Wednesday, 16 of July 2008, Andi Kleen wrote:
-> 
-> Linus,
-> 
-> Please pull from
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/ak/linux-acpi-merge-2.6 release-2.6.27
-> 
-> to get the initial ACPI updates for 2.6.27. We got a few more changes
-> dependent on yet unpulled trees and some other candidate patches,
-> but that's the bulk for the changes intended for 2.6.27. Most of that
-> has been collected by Len Brown before he went on sabbatical. I was
-> relatively conservative with additional changes so far.
+I will try to get some time to test this version tonight on the S7020, with
+and without the IGD stuff.
 
-Well, IMO it would be better to merge PCI first.
-
-Thanks,
-Rafael
+Regards
+  jonathan
