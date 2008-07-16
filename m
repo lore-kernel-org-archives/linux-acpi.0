@@ -1,48 +1,45 @@
-From: nokos@gmx.net
-Subject: Re: [PATCH 5/9] fujitsu-laptop: fingers off backlight if video.ko
-Date: Wed, 16 Jul 2008 16:12:20 +0200
-Message-ID: <1216217540.15766.2.camel@earth.gruber.myown>
-References: <200807152355.m6FNtMO7026981@turbo.physics.adelaide.edu.au>
-	 <1216174369.1617.169.camel@rzhang-dt>
+From: "Andrew Lutomirski" <luto@myrealbox.com>
+Subject: Re: [RFT] x86 acpi: normalize segment descriptor register on resume
+Date: Wed, 16 Jul 2008 10:13:54 -0400
+Message-ID: <cb0375e10807160713r5aa2bb82md1e0b3b349ca8115@mail.gmail.com>
+References: <200807010148.02135.rjw@sisk.pl> <487A2431.2050103@myrealbox.com>
+	 <487A4CB7.1080001@firstfloor.org> <200807132115.08230.rjw@sisk.pl>
+	 <487A617B.80707@firstfloor.org> <487A67C3.50000@zytor.com>
+	 <487AD37A.2050903@zytor.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-in-13.arcor-online.net ([151.189.21.53]:34383 "EHLO
-	mail-in-13.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753491AbYGPOM2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Jul 2008 10:12:28 -0400
-In-Reply-To: <1216174369.1617.169.camel@rzhang-dt>
+Received: from nf-out-0910.google.com ([64.233.182.185]:46772 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755704AbYGPON4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Jul 2008 10:13:56 -0400
+Received: by nf-out-0910.google.com with SMTP id d3so1823022nfc.21
+        for <linux-acpi@vger.kernel.org>; Wed, 16 Jul 2008 07:13:54 -0700 (PDT)
+In-Reply-To: <487AD37A.2050903@zytor.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: nokos@gmx.net, Thomas Renninger <trenn@suse.de>, linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Andi Kleen <andi@firstfloor.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg59@srcf.ucam.org>, Ingo Molnar <mingo@elte.hu>, public-kernel-testers-u79uwXL29TY76Z2rM5mHXA@lo.gmane.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Pavel Machek <pavel@ucw.cz>
 
-Am Mittwoch, den 16.07.2008, 10:12 +0800 schrieb Zhang Rui:
-> On Wed, 2008-07-16 at 09:25 +0930, Jonathan Woithe wrote:
-> > > > It is likely that everything works out with video.ko then.
-> > > > If not, with a patch I sent recently you should switch off Windows osi strings 
-> > > > with:
-> > > > acpi_osi=windows_false   (preferred)
-> > > > or (already works)
-> > > > acpi_osi="!Windows 2006"
-> > > 
-> > > disabling windows_osi disables backlight through video.ko and everything
-> > > works fine with fujitsu_laptop (also brightness-buttons since ACPI then
-> > > generates events on the fujitsu device) but some other ACPI stuff is
-> > > disabled too (extended battery status etc...)
-> > 
-> > As per my previous email, the fact that this works is probably because in
-> > this instance acpi_video_backlight_support() returns false and allows
-> > fujitsu-laptop to set up its backlight control functions.
-> 
-> Peter,
-> can you attach the acpidump output please?
-> you can use the latest pmtools at
-> http://www.lesswatts.org/patches/linux_acpi/
+Sorry for the delay in testing.  This appears to work and fix the problem.
 
-already in http://bugzilla.kernel.org/show_bug.cgi?id=10454
+--Andy
 
-
-
+On Mon, Jul 14, 2008 at 12:18 AM, H. Peter Anvin <hpa@zytor.com> wrote:
+> H. Peter Anvin wrote:
+>>
+>> The most likely explanation for this is that the VESA BIOS expects to be
+>> entered in Big Real Mode (*.limit = 0xffffffff) instead of ordinary Real
+>> Mode.  Here is a completely untested patch which changes the segment
+>> descriptors to Big Real Mode instead.  It would be worth testing out.
+>>
+>
+> ... and here is one that actually has a prayer of actually working.
+>
+>        -hpa
+>
+>
+> --- AV & Spam Filtering by M+Guardian - Risk Free Email (TM) ---
+>
