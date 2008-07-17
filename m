@@ -1,52 +1,37 @@
 From: Andi Kleen <andi@firstfloor.org>
-Subject: Re: [patch] ACPI: stop complaints about interrupt link End Tags and
- blank IRQ descriptors
-Date: Thu, 17 Jul 2008 14:41:28 +0200
-Message-ID: <487F3DF8.60305@firstfloor.org>
-References: <200807150942.57756.bjorn.helgaas@hp.com>
+Subject: Re: [PATCH]  ACPI:  Ignore _BQC object when registering backlight
+ device
+Date: Thu, 17 Jul 2008 14:44:54 +0200
+Message-ID: <487F3EC6.8070406@firstfloor.org>
+References: <1216262765.7169.36.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from one.firstfloor.org ([213.235.205.2]:59590 "EHLO
+Received: from one.firstfloor.org ([213.235.205.2]:40540 "EHLO
 	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752861AbYGQMld (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Jul 2008 08:41:33 -0400
-In-Reply-To: <200807150942.57756.bjorn.helgaas@hp.com>
+	with ESMTP id S1754052AbYGQMo5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Jul 2008 08:44:57 -0400
+In-Reply-To: <1216262765.7169.36.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Gabriele Trombetti <g.trombetti.lkrnl1213@logicschema.com>, yakui.zhao@intel.com
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
 
-Bjorn Helgaas wrote:
-> Silently ignore _PRS End Tags.  We already ignore Start Dependent Functions in
-> _PRS, and we already ignore End Tags in _CRS, so we might as well ignore End
-> Tags in _PRS as well.
+Zhao Yakui wrote:
+>>From : Zhao Yakui <yakui.zhao@intel.com>
 > 
-> Silently ignore _PRS IRQ descriptors that mention no interrupts.  The spec
-> allows this (section 6.4.2.1 in ACPI 3.0b spec), and it probably means the
-> interrupt link can't be configured at all.
+> According to acpi spec , the objectes of  _BCL and _BCM are required if
+> integrated LCD is present and supports brightness level and the _BQC is
+> the optional object. So the _BQC object will be ignored when the backlight 
+> device is registered.
+> At the same time when there is no _BQC object, the current brightness will be
+> set to the maximum.
 > 
-> This patch doesn't change any functional behavior; it just removes confusing
-> complaints like these:
-> 
->     ACPI: Blank IRQ resource
->     ACPI: Resource is not an IRQ entry
-> 
-> when parsing _PRS data "23 00 00 18 79 00" from an IBM xSeries 335 dual
-> Pentium IV Xeon 2.40 GHz machine.  For more details, see
->     http://bugzilla.kernel.org/show_bug.cgi?id=11049
-> 
-> The "23 00 00 18" part is a three-byte-long small IRQ resource with no bits set
-> in the IRQ mask ("00 00"), and level-triggered, active low, shareable ("18").
-> 
-> The "79 00" is an End Tag (type 0x7).  It is superfluous since there is no
-> Start Dependent Function tag and there are no resources after it, but it is
-> harmless.
-> 
-> Thanks to Gabriele Trombetti <g.trombetti.lkrnl1213@logicschema.com>
-> (aka Kurk) for reporting this and testing the patch.
+> http://bugzilla.kernel.org/show_bug.cgi?id=10206
 
-Looks good, thanks.
+
+Hmm, but the original patch was reverted. How is this patch better
+than the patch that was reverted by Linus?
 
 -Andi
