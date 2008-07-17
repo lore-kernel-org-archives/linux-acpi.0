@@ -1,54 +1,68 @@
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Subject: Re: [PATCH] acpi: Avoid dropping rapid hotkey events (or other GPEs)
- on Asus EeePC
-Date: Thu, 17 Jul 2008 17:02:54 +0100
-Message-ID: <487F6D2E.2040501@tuffmail.co.uk>
-References: <487D23C3.5070301@student.cs.york.ac.uk> <487F58B6.5040309@suse.de>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: Please pull ACPI updates
+Date: Thu, 17 Jul 2008 09:02:38 -0700 (PDT)
+Message-ID: <alpine.LFD.1.10.0807170850470.2959@woody.linux-foundation.org>
+References: <20080716214516.GA10777@basil.nowhere.org> <200807170011.12184.rjw@sisk.pl> <200807161633.01375.jbarnes@virtuousgeek.org> <487EEAEB.4050009@firstfloor.org> <alpine.LFD.1.10.0807170807040.2959@woody.linux-foundation.org>
+ <alpine.LFD.1.10.0807170835320.2959@woody.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.184]:3434 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760620AbYGQQCj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Jul 2008 12:02:39 -0400
-Received: by nf-out-0910.google.com with SMTP id d3so1993806nfc.21
-        for <linux-acpi@vger.kernel.org>; Thu, 17 Jul 2008 09:02:37 -0700 (PDT)
-In-Reply-To: <487F58B6.5040309@suse.de>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50006 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1761085AbYGQQCq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 Jul 2008 12:02:46 -0400
+In-Reply-To: <alpine.LFD.1.10.0807170835320.2959@woody.linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
-
-Alexey Starikovskiy wrote:
-> Hi Alan,
->
-> Could you please test if your patch works with the last patch in #10919?
->
-> Thanks,
-> Alex.
-Vacuously so.
-
-My patch still applies, but #10919 makes it obsolete.  My patch fixed a
-bug that shows up in polling mode.  #10919 kills polling mode.
-
-I've tested v2.6.26 + #10919 and it works fine (except for spamming the
-kernel log - please read my Bugzilla comment).
+To: Andi Kleen <andi@firstfloor.org>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
 
-It appears that interrupt mode suffered from a race which is very
-similar to my original problem.  If two GPE interrupts arrive before the
-workqueue runs, then the second interrupt will be ignored because
-EC_FLAGS_QUERY_PENDING is still set.  This will happen with any EC if
-interrupts are very close together, right?
 
-I think my patch also fixes this theoretical problem.  But I'd rather
-you took over on this.  I was already confused by ec.c in v2.6.26, and
-with #10919 I understand it even less.  E.g. why is
-ec_switch_to_poll_mode() still present; what does it do now do_ec_poll()
-is removed?
+On Thu, 17 Jul 2008, Linus Torvalds wrote:
+> 
+> But I *really* hate pulling from somebody, and seeing commit dates that 
+> are from five minutes ago, and based on something that I had just pushed 
+> out (which was essentially the case for this round of ACPI changes).
 
-I'm happy to work on this with you, but I'd need to be able understand
-the code first :-(.
+And Andi, before this goes any further, I'd like to say that (a) no, I 
+don't hate you and (b) sorry in advance and in retrospect for my obviously 
+abrasive personality and just being harsh.
 
-Alan
+In particular, this is something that I have gone through with a _lot_ of 
+maintainers. So you don't need to feel bad about it. Ingo and Thomas 
+obviously did the very same thing not that long ago.
+
+And Davem had the same issue in the networking tree - most of the times 
+when I pulled, I could tell that he had _just_ rebased the whole series, 
+and I just knew that it had gotten effectively zero testing in that 
+particular configuration.
+
+For other trees it's still ongoing: you can generally trivially tell by 
+looking at the merges and the dates of the commits relative to them and 
+'base' they are done on top of. 
+
+So you're definitely not alone. There are people who have done the same 
+thing, and in many cases they did it for months. I'll happily try to help 
+you with any git issues, and we can even change git itself to help with 
+some things (historically we certainly have - I certainly hope that the 
+need for it is going away, though). 
+
+And I can also report that the people who then re-learnt their workflow 
+and got used to maintaining several queues and not always working at the 
+top of the tree and rebasing on top of whatever "random Linus kernel of 
+the moment" (in order to actually work with and test what they eventually 
+ask me to pull!) have so far been pretty enthusiastic about the workflow 
+they learn once they pick it up.
+
+And to give them credit for being smarter them me, others (like Jeff) 
+started doing the whole "many different branches" thing long before I 
+personally even realized how helpful it is.
+
+And as mentioned, some still use the "queue on top of the most recent 
+version" model, and when it's something fairly far away in the periphery 
+and doesn't impact others, I don't really care. If it hadn't been for the 
+PCI merge bringing up the issue, I'd have ignored the ACPI case too.
+
+			Linus
