@@ -1,124 +1,56 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH] ACPI: Provide a spec conform OSI interface to the BIOS
-Date: Thu, 17 Jul 2008 19:37:48 +0200
-Message-ID: <1216316268-24042-1-git-send-email-trenn@suse.de>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [Openipmi-developer] acpi_find_bmc() and acpi_get_table()
+Date: Thu, 17 Jul 2008 12:32:10 -0600
+Message-ID: <200807171232.11183.bjorn.helgaas@hp.com>
+References: <200702102327.28312.lenb@kernel.org> <200707181319.41081.bjorn.helgaas@hp.com> <5DDAB7BA7BDB58439DD0EED0B8E9A3AE53C94D@ausx3mpc102.aus.amer.dell.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.suse.de ([195.135.220.2]:58998 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756952AbYGQRhu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Jul 2008 13:37:50 -0400
+Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:21546 "EHLO
+	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757604AbYGQSdK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Jul 2008 14:33:10 -0400
+In-Reply-To: <5DDAB7BA7BDB58439DD0EED0B8E9A3AE53C94D@ausx3mpc102.aus.amer.dell.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ak@linux.intel.com
-Cc: linux-acpi@vger.kernel.org, Thomas Renninger <trenn@suse.de>
+To: Jordan_Hargrave@dell.com
+Cc: Matt_Domsch@dell.com, minyard@acm.org, alexey.y.starikovskiy@linux.intel.com, linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net, lenb@kernel.org
 
-Introduce acpi_osi=windows_false boot parameter
-Introduce CONFIG_ACPI_OSI_SPEC_CONFORM config option
+On Thursday 19 July 2007 10:32:11 am Jordan_Hargrave@dell.com wrote:
+> From Bjorn:
+> >> In RHEL5 there was a change made to the acpi motherboard driver to
+> >> not attach if any of the _CRS values are not I/O ports.
+> 
+> >Yes.  This is part of linux-2.6-x86_64-memory-hotplug.patch, and it
+> >apparently helps fix a bug:
+> >  https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=208445,
+> >But I can't read the bugzilla, so I don't know exactly how.  I suspect
+> >some hot-addable memory device also had a _CID of PNP0C01, and they
+> >had the same problem you now have with IPMI.
+> 
+> >But making the motherboard driver ignore devices if they have any
+> >non-I/O port resources seems like the wrong fix.
+> 
+> Yeah but it gets even better, that bugfix has a bug itself.. the acpi_walk_resources 
+> function also passes the end-of-list (79 00) marker into the callback.  This isn't a
+> resource I/O type, so the motherboard object is failing to attach to any PNP0C01
+> device.  This is why the IPMI driver can find the IPI0001 device on RHEL5 but not on 
+> RHEL4/SLES10/SLES9.
 
-This will return false to _OSI("Windows XY") calls.
+Hi Jordan,
 
-Signed-off-by: Thomas Renninger <trenn@suse.de>
----
- Documentation/kernel-parameters.txt |    1 +
- drivers/acpi/Kconfig                |   12 ++++++++++++
- drivers/acpi/osl.c                  |   28 ++++++++++++++++++++++------
- 3 files changed, 35 insertions(+), 6 deletions(-)
+This is ancient history now.  But I've been doing some PNP work
+recently, and I'd like to resurrect your work towards making the
+IPMI driver a real PNP driver rather than relying on the static
+SPMI table as it does today.
 
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-index c657339..6acfe8e 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -178,6 +178,7 @@ and is between 256 and 4096 characters. It is defined in the file
- 	acpi_osi=	[HW,ACPI] Modify list of supported OS interface strings
- 			acpi_osi="string1"	# add string1 -- only one string
- 			acpi_osi="!string2"	# remove built-in string2
-+			acpi_osi="windows_false"# remove all Windows strings
- 			acpi_osi=		# disable all strings
- 
- 	acpi_serialize	[HW,ACPI] force serialization of AML methods
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index c52fca8..5fac9c9 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -314,6 +314,18 @@ config ACPI_BLACKLIST_YEAR
- 	  Enter 0 to disable this mechanism and allow ACPI to
- 	  run by default no matter what the year.  (default)
- 
-+config ACPI_OSI_WINDOWS_FALSE
-+	bool "Return false for Window strings for OSI(\"string\") BIOS calls"
-+	default n
-+	help
-+	  By default Linux tries to stay transparent to Windows OSes to the
-+	  BIOS and returns true for all currently known Windows OS strings and
-+	  false for Linux.
-+	  With this option set, OSI will return false for Windows strings.
-+	  The kernel will still return false for _OSI("Linux") BIOS calls
-+	  by default, but eventually return true for _OSI("Linux"), depending
-+	  on a blacklist.
-+
- config ACPI_DEBUG
- 	bool "Debug Statements"
- 	default n
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 235a138..bf951f6 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -194,11 +194,6 @@ static int __init acpi_reserve_resources(void)
- }
- device_initcall(acpi_reserve_resources);
- 
--acpi_status __init acpi_os_initialize(void)
--{
--	return AE_OK;
--}
--
- acpi_status acpi_os_initialize1(void)
- {
- 	kacpid_wq = create_singlethread_workqueue("kacpid");
-@@ -943,7 +938,7 @@ static void __init set_osi_linux(unsigned int enable)
- 	if (osi_linux.enable != enable) {
- 		osi_linux.enable = enable;
- 		printk(KERN_NOTICE PREFIX "%sed _OSI(Linux)\n",
--			enable ? "Add": "Delet");
-+			enable ? "Add": "Delete");
- 	}
- 	return;
- }
-@@ -972,6 +967,25 @@ void __init acpi_dmi_osi_linux(int enable, const struct dmi_system_id *d)
- 	return;
- }
- 
-+static void __init acpi_osi_windows_false(void) {
-+
-+	acpi_osi_invalidate("Windows 2000");
-+	acpi_osi_invalidate("Windows 2001");
-+	acpi_osi_invalidate("Windows 2001 SP1");
-+	acpi_osi_invalidate("Windows 2001 SP2");
-+	acpi_osi_invalidate("Windows 2001.1");
-+	acpi_osi_invalidate("Windows 2001.1 SP1");
-+	acpi_osi_invalidate("Windows 2006");
-+}
-+
-+acpi_status __init acpi_os_initialize(void)
-+{
-+#ifdef CONFIG_ACPI_OSI_WINDOWS_FALSE
-+	acpi_osi_windows_false();
-+#endif
-+	return AE_OK;
-+}
-+
- /*
-  * Modify the list of "OS Interfaces" reported to BIOS via _OSI
-  *
-@@ -984,6 +998,8 @@ int __init acpi_osi_setup(char *str)
- 	if (str == NULL || *str == '\0') {
- 		printk(KERN_INFO PREFIX "_OSI method disabled\n");
- 		acpi_gbl_create_osi_method = FALSE;
-+	} else if (strcmp("windows_false", str)) {
-+		acpi_osi_windows_false();
- 	} else if (!strcmp("!Linux", str)) {
- 		acpi_cmdline_osi_linux(0);	/* !enable */
- 	} else if (*str == '!') {
--- 
-1.5.4.5
+What's the current status of your work?  If you don't want to
+continue it yourself, I'd like to pick it up (unless there's some
+show-stopper reason why it can't ever work, of course).  Do you
+have any work-in-progress that you could post?
 
+Thanks,
+  Bjorn
