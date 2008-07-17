@@ -1,60 +1,44 @@
 From: Linus Torvalds <torvalds@linux-foundation.org>
 Subject: Re: Please pull ACPI updates
-Date: Thu, 17 Jul 2008 08:03:26 -0700 (PDT)
-Message-ID: <alpine.LFD.1.10.0807170752190.2959@woody.linux-foundation.org>
-References: <20080716214516.GA10777@basil.nowhere.org> <200807170011.12184.rjw@sisk.pl> <200807161633.01375.jbarnes@virtuousgeek.org> <alpine.LFD.1.10.0807161639090.2835@woody.linux-foundation.org> <487EE940.1050007@firstfloor.org>
+Date: Thu, 17 Jul 2008 08:06:55 -0700 (PDT)
+Message-ID: <alpine.LFD.1.10.0807170803460.2959@woody.linux-foundation.org>
+References: <20080716214516.GA10777@basil.nowhere.org> <200807161633.01375.jbarnes@virtuousgeek.org> <alpine.LFD.1.10.0807161639090.2835@woody.linux-foundation.org> <200807161651.44990.jbarnes@virtuousgeek.org> <alpine.LFD.1.10.0807161728560.2835@woody.linux-foundation.org>
+ <487EEA9B.4030808@firstfloor.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55112 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46226 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755969AbYGQPDl (ORCPT
+	by vger.kernel.org with ESMTP id S1753104AbYGQPHE (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Jul 2008 11:03:41 -0400
-In-Reply-To: <487EE940.1050007@firstfloor.org>
+	Thu, 17 Jul 2008 11:07:04 -0400
+In-Reply-To: <487EEA9B.4030808@firstfloor.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Andi Kleen <andi@firstfloor.org>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
 
 
 On Thu, 17 Jul 2008, Andi Kleen wrote:
 > 
-> My plan was to keep everything in quilt and just regenerate for the pull.
-> Please let me know if it's now not allowed anymore to use quilt.
+> I originally started with topic branches and imported a few patches
+> this way, but then eventually realized they don't really match my
+> working style.
 
-End-point developers can use quilt all thei like.
+That still doesn't excuse then breaking _other_ peoples work.
 
-But people cannot and *MUST NOT* destroy other peoples work with quilt, 
-nor make it harder for people to share commits.
+> What I did then was to export Len's tree to quilt, do all the touchups
+> etc, merged some more patches and then regenerated a quilt tree for
+> the merge request. That is how the old x86-64 tree used to work.
 
-Len had apparently left a nice topic tree for you. You took that work, and 
-then destroyed it. And yes, it is noticeable: Jesse had shared some of the 
-work from Len by pulling one of the branches (the 'suspend' branch), and 
-then you literally re-wrote _public_ history, so now tohose patches are 
-duplicated.
+Right. 
 
-Now, duplicate patches happen, and that's not a huge technical issue (most 
-of the time it all merges cleanly, and it was just three patches this 
-time), but if you're going to rebase stuff, you're basically making it 
-impossible for people to share work with you. They can never rely on your 
-git trees, because your git threes are all throw-away.
+And Andi, remember the problems with that one? Remember how I ended up 
+refusing to 'git pull' from you? (Also look at how it failed to work well 
+for Ingo and Thomas as well, and how people complained about that? It's 
+not just you.)
 
-Btw, being throw-away also means that they get essentially no testing. 
-They get rewritten each time, so even if you expose them to something like 
-linux-next and they get testing there, when you rebase them, the end 
-result is something *different*, and a lot of the test coverage goes away.
+In other words, "That is how the old x86-64 tree used to NOT work".
 
-See the discussion from May about the x86 tree. I don't have it online in 
-my archives any more, but google finds
-
-	http://kerneltrap.org/Linux/Git_Management
-
-which has at least a big part of the discussion in one readable page.
-
-So no, there's nothing wrong with a quilt interface. But there _is_ 
-something wrong with a maintainer that makes it harder for other people 
-(in this case Jesse) to work with him, because he destroys history.
-
-		Linus
+			Linus
