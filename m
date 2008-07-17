@@ -1,84 +1,69 @@
-From: "Vegard Nossum" <vegard.nossum@gmail.com>
-Subject: Re: v2.6.26-rc9: ACPI PCI irq routing on NUMA? + early_ioremap trouble
-Date: Thu, 17 Jul 2008 22:58:56 +0200
-Message-ID: <19f34abd0807171358p3c5a44f9i91ab23d3f5e9671f@mail.gmail.com>
-References: <19f34abd0807060647k54490088uf8859d8a1646fd41@mail.gmail.com>
-	 <200807171245.31641.bjorn.helgaas@hp.com>
+From: "J. Bruce Fields" <bfields@fieldses.org>
+Subject: Re: Please pull ACPI updates
+Date: Thu, 17 Jul 2008 17:15:34 -0400
+Message-ID: <20080717211534.GB19066@fieldses.org>
+References: <20080716214516.GA10777@basil.nowhere.org> <200807170011.12184.rjw@sisk.pl> <200807161633.01375.jbarnes@virtuousgeek.org> <alpine.LFD.1.10.0807161639090.2835@woody.linux-foundation.org> <487EE940.1050007@firstfloor.org> <alpine.LFD.1.10.0807170752190.2959@woody.linux-foundation.org> <alpine.LFD.1.10.0807171402110.2965@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.169]:27845 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756405AbYGQU65 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Jul 2008 16:58:57 -0400
-Received: by wf-out-1314.google.com with SMTP id 27so85705wfd.4
-        for <linux-acpi@vger.kernel.org>; Thu, 17 Jul 2008 13:58:56 -0700 (PDT)
-In-Reply-To: <200807171245.31641.bjorn.helgaas@hp.com>
+Received: from mail.fieldses.org ([66.93.2.214]:60374 "EHLO fieldses.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932814AbYGQVQe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 Jul 2008 17:16:34 -0400
 Content-Disposition: inline
+In-Reply-To: <alpine.LFD.1.10.0807171402110.2965@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Ingo Molnar <mingo@elte.hu>, Alexey Starikovskiy <astarikovskiy@suse.de>, Thomas Gleixner <tglx@linutronix.de>, venkatesh.pallipadi@intel.com, Huang Ying <ying.huang@intel.com>, Andi Kleen <andi@firstfloor.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andi Kleen <andi@firstfloor.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-On Thu, Jul 17, 2008 at 8:45 PM, Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
-> On Sunday 06 July 2008 07:47:19 am Vegard Nossum wrote:
->> I have produced a config which doesn't boot correctly on either of my
->> computers with v2.6.26-rc9.
->>
->> The first problem is with my laptop, which hangs on boot, see
->> screenshot (sorry for the bad quality, I was in a hurry):
->> http://folk.uio.no/vegardno/linux/DSCF3026.JPG
->>
->> I figured there's something wrong with ACPI PCI irq routing as I'm
->> missing a message that shows up in my usual configs:
->>
->> calling  ide_scan_pcibus+0x0/0xf0
->> ICH8M: IDE controller (0x8086:0x2850 rev 0x03) at  PCI slot 0000:00:1f.1
->>     --- HERE: ---
->> ACPI: PCI Interrupt 0000:00:1f.1[A] -> GSI 18 (level, low) -> IRQ 18
->>     ----
->> ICH8M: not 100% native mode: will probe irqs later
->>
->> ...and as can be seen in the screenshot, ide-cd "lost interrupt".
->> Unfortunately, I don't have a serial line on this machine, so it's
->> hard to get the full log. (Maybe I can try netconsole, it seems to be
->> up by the time this happens.)
->
-> If you could get netconsole working and collect the complete
-> console log from both the working config and the broken one,
-> that would help a lot.
+On Thu, Jul 17, 2008 at 02:49:04PM -0400, Len Brown wrote:
+> One thing I wish I had in git is a way to make this sequence easier...
 
-Hah, I actually managed to get netconsole working. This is the log
-that fails (v2.6.26):
+Linus's answer (with rebase -i) is probably better, but my habit is to
+do what you describe, with some minor shortcuts:
 
-http://folk.uio.no/vegardno/linux/numa-netconsole.txt
+> Say I have a big topic branch with 30 patches in it.
+> The 3rd patch turns out to have a bug in it, but the
+> rest of the series is okay.  Today I invoke gitk on
+> the branch and keep that open.
+> Then I create a new topic branch at the broken patch.
+> 
+> I always consult ~/src/git/Documentation/git-reset.txt
+> so I can remember the following sequence...
+> 
+> $ git reset --soft HEAD^
+> $ edit
+> $ git commit -a -c ORIG_HEAD
 
-I think this looks really interesting:
+Instead of the above three steps, you can do just:
 
-[    0.093562] ExtINT not setup in hardware but reported by MP table
-[    0.093854] ENABLING IO-APIC IRQs
-[    0.094244] ..TIMER: vector=0x31 apic1=-1 pin1=2 apic2=-1 pin2=0
-[    0.094985] ..MP-BIOS bug: 8254 timer not connected to IO-APIC
-[    0.094985] ...trying to set up timer (IRQ0) through the 8259A ...
-[    0.094985] ..... (found pin 0) ...<7>APIC error on CPU0: 00(80)
-[    0.094985]  failed.
-[    0.094985] ...trying to set up timer as Virtual Wire IRQ...<7>APIC
-error on CPU0: 80(80)
-[    0.105761]  works.
+  $ edit
+  $ git commit -a --amend
 
-This error would be:
-           7: Illegal register address
+> Now I've got the fixed 3rd patch checked in,
+> but 27 patches in the original branch are hanging
+> off the original broken 3rd patch.
+> So I git-cherry-pick 27 patches
+> I hope I get them in the right order and don't miss any...
+> 
+> It would be nice if we could somehow git rebase those
+> 27 patches in a single command, but if we do,
+> that pulls with it the broken 3rd patch.
 
-Looks like APIC was misconfigured, which might explain IRQ routing weirdness?
+At this point I do
 
-Will try to provide the booting one later. Now zZz...
+	git rebase --onto HEAD old-sha1 name-of-branch-to-rebase
 
+(where old-sha1 is the name of the commit we just replaced, which I
+usually cut-n-paste out of gitk).  That rebases the commits in the range
+old-sha1...name-of-branch-to-rebase onto the new HEAD commit that you
+just created, and replaces the named branch with the result.
 
-Vegard
+> come to think of it, I can probably export 4..27 as
+> an mbox and then import it on top of the new 3,
+> maybe that is what others do.
 
--- 
-"The animistic metaphor of the bug that maliciously sneaked in while
-the programmer was not looking is intellectually dishonest as it
-disguises that the error is the programmer's own creation."
-	-- E. W. Dijkstra, EWD1036
+That works too.
+
+--b.
