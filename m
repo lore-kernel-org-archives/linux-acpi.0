@@ -1,69 +1,79 @@
-From: "J. Bruce Fields" <bfields@fieldses.org>
-Subject: Re: Please pull ACPI updates
-Date: Thu, 17 Jul 2008 17:15:34 -0400
-Message-ID: <20080717211534.GB19066@fieldses.org>
-References: <20080716214516.GA10777@basil.nowhere.org> <200807170011.12184.rjw@sisk.pl> <200807161633.01375.jbarnes@virtuousgeek.org> <alpine.LFD.1.10.0807161639090.2835@woody.linux-foundation.org> <487EE940.1050007@firstfloor.org> <alpine.LFD.1.10.0807170752190.2959@woody.linux-foundation.org> <alpine.LFD.1.10.0807171402110.2965@localhost.localdomain>
+From: Len Brown <lenb@kernel.org>
+Subject: Linux Power Management Mini-Summit -- Ottawa -- July 22, 2008
+Date: Thu, 17 Jul 2008 17:27:32 -0400 (EDT)
+Message-ID: <alpine.LFD.1.10.0807171724070.16742@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.fieldses.org ([66.93.2.214]:60374 "EHLO fieldses.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932814AbYGQVQe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Jul 2008 17:16:34 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.1.10.0807171402110.2965@localhost.localdomain>
+Received: from vms042pub.verizon.net ([206.46.252.42]:62500 "EHLO
+	vms042pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760609AbYGQV2B (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Jul 2008 17:28:01 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andi Kleen <andi@firstfloor.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: Linux Power Management List <linux-pm@lists.osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-On Thu, Jul 17, 2008 at 02:49:04PM -0400, Len Brown wrote:
-> One thing I wish I had in git is a way to make this sequence easier...
+We'll be in The Rideau Suite in Les-Suites
+Tuesday July 22nd 8:30-18:30.
 
-Linus's answer (with rebase -i) is probably better, but my habit is to
-do what you describe, with some minor shortcuts:
+Thanks to HP for sponsoring
+lunch at 12:30 as well as snacks at 10:00 and 15:30.
+We'll wing it for dinner.
 
-> Say I have a big topic branch with 30 patches in it.
-> The 3rd patch turns out to have a bug in it, but the
-> rest of the series is okay.  Today I invoke gitk on
-> the branch and keep that open.
-> Then I create a new topic branch at the broken patch.
-> 
-> I always consult ~/src/git/Documentation/git-reset.txt
-> so I can remember the following sequence...
-> 
-> $ git reset --soft HEAD^
-> $ edit
-> $ git commit -a -c ORIG_HEAD
+On linux-pm (sorry, on sabbatical I've been
+bad about keeping up on email) I've seen
+intent to attend from:
 
-Instead of the above three steps, you can do just:
+Len Brown <len.brown@intel.com>
+Alan Stern <stern@rowland.harvard.edu>
+Dipankar Sarma <dipankar@in.ibm.com>
+Rafael J. Wysocki <rjw@sisk.pl>
+"Woodruff, Richard" <r-woodruff2@ti.com>
+Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
+Matt Domsch <Matt_Domsch@dell.com>
+Jarod Wilson <jwilson@redhat.com>
+Tim Bird <tim.bird@am.sony.com>
+Paul Mundt <lethal@linux-sh.org>
+Hiroyuki Machida <Hiroyuki.Mach@gmail.com>
 
-  $ edit
-  $ git commit -a --amend
+Several send their regrets:
+Dave Jones
+Pavel Machek
+Arjan van de Ven
 
-> Now I've got the fixed 3rd patch checked in,
-> but 27 patches in the original branch are hanging
-> off the original broken 3rd patch.
-> So I git-cherry-pick 27 patches
-> I hope I get them in the right order and don't miss any...
-> 
-> It would be nice if we could somehow git rebase those
-> 27 patches in a single command, but if we do,
-> that pulls with it the broken 3rd patch.
+If you plan to attend, please let me know,
+because the folks at OLS want to know,
+to simplify OLS registration.
 
-At this point I do
+thanks,
+-Len
+---
 
-	git rebase --onto HEAD old-sha1 name-of-branch-to-rebase
+We are again planning a Linux Power Management Mini-Summit preceding OLS.
+This year we are looking at a single day, Tuesday July 22nd.
 
-(where old-sha1 is the name of the commit we just replaced, which I
-usually cut-n-paste out of gitk).  That rebases the commits in the range
-old-sha1...name-of-branch-to-rebase onto the new HEAD commit that you
-just created, and replaces the named branch with the result.
+OLS is generously supporting mini-summits by providing the room
+and projector: http://www.linuxsymposium.org/2008/minisummits.php
 
-> come to think of it, I can probably export 4..27 as
-> an mbox and then import it on top of the new 3,
-> maybe that is what others do.
+If you are interested in sponsoring the food or
+other forum needs, please let me know.
 
-That works too.
+Minutes from last year's meeting can be found here:
+http://lwn.net/Articles/249019
 
---b.
+If you have feedback on last year's meeting that
+we can use to improve this year's, please speak up.
+
+The feedback at the time was pretty positive, so I'm thinking
+that unless there are new best-known-methods, that we'll stick
+with the same open method of self-nominated attendees,
+an agenda provoked by discussion on linux-pm ahead of time
+and consensus of attendees, and a forum small enough to support
+a single focused discussion.
+
+(yes, one improvement I plan on this year is to publish minutes immediately.
+ OLS was sort of hectic for me last year and that caused a delay)
+
+thanks,
+-Len
+
