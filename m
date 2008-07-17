@@ -1,68 +1,84 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
+From: Andi Kleen <andi@firstfloor.org>
 Subject: Re: Please pull ACPI updates
-Date: Thu, 17 Jul 2008 09:02:38 -0700 (PDT)
-Message-ID: <alpine.LFD.1.10.0807170850470.2959@woody.linux-foundation.org>
-References: <20080716214516.GA10777@basil.nowhere.org> <200807170011.12184.rjw@sisk.pl> <200807161633.01375.jbarnes@virtuousgeek.org> <487EEAEB.4050009@firstfloor.org> <alpine.LFD.1.10.0807170807040.2959@woody.linux-foundation.org>
- <alpine.LFD.1.10.0807170835320.2959@woody.linux-foundation.org>
+Date: Thu, 17 Jul 2008 18:23:04 +0200
+Message-ID: <487F71E8.9050705@firstfloor.org>
+References: <20080716214516.GA10777@basil.nowhere.org> <200807170011.12184.rjw@sisk.pl> <200807161633.01375.jbarnes@virtuousgeek.org> <487EEAEB.4050009@firstfloor.org> <alpine.LFD.1.10.0807170807040.2959@woody.linux-foundation.org> <alpine.LFD.1.10.0807170835320.2959@woody.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50006 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761085AbYGQQCq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Jul 2008 12:02:46 -0400
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1760094AbYGQQX0@vger.kernel.org>
 In-Reply-To: <alpine.LFD.1.10.0807170835320.2959@woody.linux-foundation.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, torvalds@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
+Linus Torvalds wrote:
+> 
+> On Thu, 17 Jul 2008, Linus Torvalds wrote:
+>> That's the whole point of topic branches. They allow you to separate out 
+>> work to different areas, so that people who are interested in (say) the 
+>> PCI-impacting ones can merge with one part, without having to wait for the 
+>> other parts to stabilize.
+> 
+> Btw, you don't really have to have a lot of them.
+> 
+> When it comes to ACPI in particular, I would really prefer to see at least 
+> the ACPICA stuff in a separate topic branch. It comes in from a different 
+> source, it's maintained separately, and when it causes problems(*) it ends 
+> up usually being handled differently too.
 
+Ok I can do that one separately.
 
-On Thu, 17 Jul 2008, Linus Torvalds wrote:
+I think my main problem was that it seemed so painful to change old
+commits and I ended up accumulating ugly reverts and incremental changes,
+but perhaps I just need to do better frontend scripts to make
+that easier.
+
+> So one reason I reacted strongly to the ACPI change was definitely just 
+> that ACPI used to be one of the really nicely done subsystems (not just 
+> from a git standpoint, but the whole git flow was part of it). There were 
+> some issues very early on in git usage, but I gave a shout-out to Len at 
+> the last kernel summit for a reason.
+
+Well, at least for this summer the ACPI tree will have some Andi flavor.
+
+> And in that sense it's definitely unfair to require quite _that_ level of 
+> separation. I'm really not expecting it. 
 > 
 > But I *really* hate pulling from somebody, and seeing commit dates that 
 > are from five minutes ago, and based on something that I had just pushed 
 > out (which was essentially the case for this round of ACPI changes).
+> 
+> That literally shows that the code was hardly tested _at_all_ in that 
+> exact configuration. It may have gotten testing based on some earlier 
+> kernel version, but then it very clearly got rebased (or just quilt 
+> imported) on top of a totally new kernel base, and was not tested in that 
+> version very much if at all.
 
-And Andi, before this goes any further, I'd like to say that (a) no, I 
-don't hate you and (b) sorry in advance and in retrospect for my obviously 
-abrasive personality and just being harsh.
+Hmm, perhaps I'm thick, but for me the only difference seems to be
+that the submitter does the merge that you would do (and safes
+himself a yelling at if it doesn't build or crashes at boot or similar...).
 
-In particular, this is something that I have gone through with a _lot_ of 
-maintainers. So you don't need to feel bad about it. Ingo and Thomas 
-obviously did the very same thing not that long ago.
+In both  cases there's a "untested in that configuration" end configuration
+in the end, but there's nothing much that can be done against it,
+can't it?
 
-And Davem had the same issue in the networking tree - most of the times 
-when I pulled, I could tell that he had _just_ rebased the whole series, 
-and I just knew that it had gotten effectively zero testing in that 
-particular configuration.
+> 
+> So even if you end up using quilt, I'd suggest you do so on a specific 
+> base, rather than on some random "kernel-of-the-moment-in-the-middle- 
+> of-the-merge-window". 
 
-For other trees it's still ongoing: you can generally trivially tell by 
-looking at the merges and the dates of the commits relative to them and 
-'base' they are done on top of. 
+That is what I usually do. I use the last -git* snapshot. I just updated
+the git tree shortly before I generate the merge tree just to make
+sure it still builds in your current tree.
 
-So you're definitely not alone. There are people who have done the same 
-thing, and in many cases they did it for months. I'll happily try to help 
-you with any git issues, and we can even change git itself to help with 
-some things (historically we certainly have - I certainly hope that the 
-need for it is going away, though). 
+Given it won't be tested much in that newer configuration then (I actually
+test booted it on a few systems at least[1]), but that would be the same on your
+side, wouldn't it?
 
-And I can also report that the people who then re-learnt their workflow 
-and got used to maintaining several queues and not always working at the 
-top of the tree and rebasing on top of whatever "random Linus kernel of 
-the moment" (in order to actually work with and test what they eventually 
-ask me to pull!) have so far been pretty enthusiastic about the workflow 
-they learn once they pick it up.
+-Andi
 
-And to give them credit for being smarter them me, others (like Jeff) 
-started doing the whole "many different branches" thing long before I 
-personally even realized how helpful it is.
-
-And as mentioned, some still use the "queue on top of the most recent 
-version" model, and when it's something fairly far away in the periphery 
-and doesn't impact others, I don't really care. If it hadn't been for the 
-PCI merge bringing up the issue, I'd have ignored the ACPI case too.
-
-			Linus
+[1] which was quite painful this time because I ran into several problems
+outside ACPI. e.g. DMAR oopsed and the x86 defconfigs were totally broken
+and some other issues.
