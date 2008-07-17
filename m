@@ -1,89 +1,36 @@
-From: "Ray Lee" <ray-lk@madrabbit.org>
+From: Andi Kleen <andi@firstfloor.org>
 Subject: Re: Please pull ACPI updates
-Date: Thu, 17 Jul 2008 13:11:59 -0700
-Message-ID: <2c0942db0807171311hae9b3e7v811e024990b05fe4@mail.gmail.com>
-References: <20080716214516.GA10777@basil.nowhere.org>
-	 <200807170011.12184.rjw@sisk.pl>
-	 <200807161633.01375.jbarnes@virtuousgeek.org>
-	 <487EEAEB.4050009@firstfloor.org>
-	 <alpine.LFD.1.10.0807170807040.2959@woody.linux-foundation.org>
-	 <alpine.LFD.1.10.0807170835320.2959@woody.linux-foundation.org>
-	 <487F71E8.9050705@firstfloor.org>
-	 <2c0942db0807171211s39e2653fwdc50f92d9c3020d2@mail.gmail.com>
-	 <487FA24B.9060803@firstfloor.org>
+Date: Thu, 17 Jul 2008 22:14:14 +0200
+Message-ID: <487FA816.6070208@firstfloor.org>
+References: <20080716214516.GA10777@basil.nowhere.org>  <200807170011.12184.rjw@sisk.pl>  <200807161633.01375.jbarnes@virtuousgeek.org>  <487EEAEB.4050009@firstfloor.org>  <alpine.LFD.1.10.0807170807040.2959@woody.linux-foundation.org>  <alpine.LFD.1.10.0807170835320.2959@woody.linux-foundation.org>  <487F71E8.9050705@firstfloor.org> <2c0942db0807171211s39e2653fwdc50f92d9c3020d2@mail.gmail.com> <487FA24B.9060803@firstfloor.org> <alpine.LFD.1.10.0807171259010.2959@woody.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from py-out-1112.google.com ([64.233.166.176]:22697 "EHLO
-	py-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756220AbYGQUMA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Jul 2008 16:12:00 -0400
-Received: by py-out-1112.google.com with SMTP id p76so54392pyb.10
-        for <linux-acpi@vger.kernel.org>; Thu, 17 Jul 2008 13:11:59 -0700 (PDT)
-In-Reply-To: <487FA24B.9060803@firstfloor.org>
-Content-Disposition: inline
+Received: from one.firstfloor.org ([213.235.205.2]:33649 "EHLO
+	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759781AbYGQUOS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Jul 2008 16:14:18 -0400
+In-Reply-To: <alpine.LFD.1.10.0807171259010.2959@woody.linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, torvalds@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Ray Lee <ray-lk@madrabbit.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, torvalds@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Thu, Jul 17, 2008 at 12:49 PM, Andi Kleen <andi@firstfloor.org> wrote:
-> Why would you care about the merge and not about the individual patches?
-> Note that these quilt merges don't have conflicts.
+Linus Torvalds wrote:
+> On Thu, 17 Jul 2008, Andi Kleen wrote:
+>> The whole point of the exercise of cleaning up/rewriting the history is to make
+>> the tree as bisectable as possible.
+> 
+> No.
+> 
+> "git bisect" is perfetly able to handle merges. They are _fine_.
 
-Because sometimes merges are non-trivial. If you roll that merge
-conflict resolution back into the original patch, then the patch is
-now different. And in all these rebasings, who's to say there won't be
-a typo that accidentally changes the original patch that has had more
-testing? We'er all human, y'know?
+The issue I worry about is it hitting between changes and their fixup.
 
->> It's the difference between having tested patches and an untested
->> merge, or untested new patches
->
-> The patches are as tested individually as they were before. I don't see
-> how you can call something that was in linux-next for some time and also
-> in my test tree "untested".
+e.g. for example if I find that specific change doesn't compile in some special
+configuration then I amend it to fix that. Alternatively I could put in a fixup
+commit  afterwards, but then if someone did bisect and the bisect hit inbetween
+the change and the fixup they might end up with a tree that doesn't compile.
 
-Surely you agree that more testing is better? A rebased patch has had
-less testing than the original patch, by definition.
-
-> The completely merged tree is not tested
-> well [1] in both cases (unless after some time of course) as far as I can see,
-> no difference.
->
-> [1] I do some basic testing as in building and test booting on a few
-> machines on each merge, so calling it completely untested is not
-> true.
-
-Andi, no offense was intended here. I'm just asking you to walk
-through a thought experiment with me, okay?
-
->> and an untested merge.
->
-> So when I do a rebase versus Linus doing a merge (end result
-> the same code base) how is that more untested?
-
-If you rebase, you're creating new patches that have less testing than
-the originals. You're also tossing away a history of the changesets,
-which means that any external testers can no longer point to a
-historical potion of a tree and say "I tested that".
-
-Maybe the merging is trivial in all the cases you've hit so far,
-great. What happens when it isn't? That's the larger point here.
-
->> Your point is
->> the end result is untested either way. The other way to look at it is
->> *how much* untested history ends up in the tree. In Linus' version,
->> just the point from the merge onward is untested. In your version,
->> everything is new.
->
-> Sorry I still don't see the difference. AFAIK the only difference
-> is that I do the merge vs Linus doing it and that it looks slightly
-> different in the history, but apart from that (as in what
-> actually ends up in the source tree) it's all the same.
-
-Uhm, the history is the whole point of using source control and git.
-If all we cared about was the end result and not the history, there'd
-be little point to using source management other than to help speed
-merging.
+-Andi
