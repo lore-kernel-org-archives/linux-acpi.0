@@ -1,44 +1,64 @@
 From: Linus Torvalds <torvalds@linux-foundation.org>
 Subject: Re: Please pull ACPI updates
-Date: Thu, 17 Jul 2008 08:06:55 -0700 (PDT)
-Message-ID: <alpine.LFD.1.10.0807170803460.2959@woody.linux-foundation.org>
-References: <20080716214516.GA10777@basil.nowhere.org> <200807161633.01375.jbarnes@virtuousgeek.org> <alpine.LFD.1.10.0807161639090.2835@woody.linux-foundation.org> <200807161651.44990.jbarnes@virtuousgeek.org> <alpine.LFD.1.10.0807161728560.2835@woody.linux-foundation.org>
- <487EEA9B.4030808@firstfloor.org>
+Date: Thu, 17 Jul 2008 08:18:48 -0700 (PDT)
+Message-ID: <alpine.LFD.1.10.0807170807040.2959@woody.linux-foundation.org>
+References: <20080716214516.GA10777@basil.nowhere.org> <200807170011.12184.rjw@sisk.pl> <200807161633.01375.jbarnes@virtuousgeek.org> <487EEAEB.4050009@firstfloor.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46226 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43433 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753104AbYGQPHE (ORCPT
+	by vger.kernel.org with ESMTP id S1752636AbYGQPS6 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Jul 2008 11:07:04 -0400
-In-Reply-To: <487EEA9B.4030808@firstfloor.org>
+	Thu, 17 Jul 2008 11:18:58 -0400
+In-Reply-To: <487EEAEB.4050009@firstfloor.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Andi Kleen <andi@firstfloor.org>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, torvalds@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
 
 
 On Thu, 17 Jul 2008, Andi Kleen wrote:
 > 
-> I originally started with topic branches and imported a few patches
-> this way, but then eventually realized they don't really match my
-> working style.
+> Hmm, but if you're dependent ACPI needs to go in first anyways, doesn't it?
 
-That still doesn't excuse then breaking _other_ peoples work.
+Umm. The particular PART of ACPI you depend on needs to go in first, yes.
 
-> What I did then was to export Len's tree to quilt, do all the touchups
-> etc, merged some more patches and then regenerated a quilt tree for
-> the merge request. That is how the old x86-64 tree used to work.
+That's the whole point of topic branches. They allow you to separate out 
+work to different areas, so that people who are interested in (say) the 
+PCI-impacting ones can merge with one part, without having to wait for the 
+other parts to stabilize.
 
-Right. 
+> I don't think the ACPI tree is dependent on PCI at least. Or at least I didn't
+> notice any problems in this area.
 
-And Andi, remember the problems with that one? Remember how I ended up 
-refusing to 'git pull' from you? (Also look at how it failed to work well 
-for Ingo and Thomas as well, and how people complained about that? It's 
-not just you.)
+The PCI tree merged the suspend branch from the ACPI tree. You can see it 
+by lookin gat the PCI merge in gitk:
 
-In other words, "That is how the old x86-64 tree used to NOT work".
+	gitk dc7c65db^..dc7c65db
+
+and roughly in the middle there you'll find Jesse's commit 53eb2fbe, in 
+which he merges branch 'suspend' from Len's ACPI tree. 
+
+So Jesse got these three commits:
+
+	0e6859d... ACPI PM: Remove obsolete Toshiba workaround
+	8d2bdf4... PCI ACPI: Drop the second argument of platform_pci_choose_state
+	0616678... ACPI PM: acpi_pm_device_sleep_state() cleanup
+
+from Len's tree. Then look at these three commits that I got when I 
+actually merged from you:
+
+	741438b... ACPI PM: Remove obsolete Toshiba workaround
+	a80a6da... PCI ACPI: Drop the second argument of platform_pci_choose_state
+	2fe2de5... ACPI PM: acpi_pm_device_sleep_state() cleanup
+
+Look familiar? It's the same patches - just different commit ID's. You 
+rebased and moved them around, so they're not really the "same" at all, 
+and they don't show the shared history any more, and the fact that they 
+were pulled earlier into the PCI tree (and then into mine).
+
+This is what rebasing causes.
 
 			Linus
