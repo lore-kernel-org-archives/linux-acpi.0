@@ -1,87 +1,86 @@
-From: "Renato S. Yamane" <yamane@diamondcut.com.br>
-Subject: Re: Toshiba - Documentation for Linux Developers
-Date: Thu, 17 Jul 2008 08:57:27 -0300
-Message-ID: <487F33A7.4040809@diamondcut.com.br>
-References: <4855971D.90004@diamondcut.com.br> <20080616221443.GA760@kroah.com>	 <b170af450807130654m2f800b10ybcba4b2c5c7cf329@mail.gmail.com>	 <487A1534.3000307@diamondcut.com.br>	 <b170af450807150017u248d4255i3800c10cb11df319@mail.gmail.com>	 <487C865C.5060303@diamondcut.com.br> <b170af450807150446l555e9bbfx3f388d3ebe9cb11f@mail.gmail.com> <487E5130.9040208@gmx.de>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH] acpi: Avoid dropping rapid hotkey events (or other
+	GPEs) on Asus EeePC
+Date: Thu, 17 Jul 2008 09:13:09 -0300
+Message-ID: <20080717121309.GF31732@khazad-dum.debian.net>
+References: <487D23C3.5070301@student.cs.york.ac.uk> <487F31D7.30803@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-01.mandic.com.br ([200.225.81.132]:36246 "EHLO
-	smtp-01.mandic.com.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752531AbYGQL5r (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Jul 2008 07:57:47 -0400
-In-Reply-To: <487E5130.9040208@gmx.de>
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:50129 "EHLO
+	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754951AbYGQMNP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 Jul 2008 08:13:15 -0400
+Content-Disposition: inline
+In-Reply-To: <487F31D7.30803@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Robert M. Albrecht" <romal@gmx.de>
-Cc: linux-acpi@vger.kernel.org, pavel@suse.cz, linux-kernel@vger.kernel.org, gregkh@suse.de
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: alan-jenkins@tuffmail.co.uk, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-[cc'ed Greg KH]
+On Thu, 17 Jul 2008, Alexey Starikovskiy wrote:
+> Thanks for the patch, ACK.
 
-Only to remember: Toshiba website to Linux Developers is:
-<http://linux.toshiba-dme.co.jp/linux/eng/develop.htm>
+This one fixes a potentially bad problem, since we could ignore more than
+just hot key EC events by accident.  Maybe it should go to -stable?
 
-Best regards,
-Renato S. Yamane
-
-
-Robert M. Albrecht wrote:
-> Hi,
->=20
-> both Toshiba types (original and compal-oem machines) are basically
-> unsupported for Linux.
->=20
-> The omnibook-module for compal-systems was maintained outside the ker=
-nel
-> and stalled for some time now.
->=20
-> The toshiba_acpi included in the kernel is outdated (there is a newer
-> release, that fixes some bugs). Toshiba_acpi does only work on 32 bit
-> systems, it breaks on 64 bit systems.
->=20
-> If anyone is interested in some hacking I can provide shell-access to
-> both types of machines.
->=20
-> For some Tecra machines, Toshiba has provided some Vista-compatible
-> BIOSes, they seem to enhance acpi-stuff for Linux too. So you might l=
-ook
-> for a bios-update.
->=20
-> cu romal
->=20
-> www.romal.de
-> blog.romal.de
->=20
-> Rafa=C5=82 Mi=C5=82ecki schrieb:
->> 2008/7/15, Renato S. Yamane <yamane@diamondcut.com.br>:
->>> Rafa=C5=82 Mi=C5=82ecki wrote:
->>>  > The newest version is packed for openSUSE fortunately. But it do=
-esn't
->>>  > for my notebook
->>>
->>> Try compile SVN version as commented in my last e-mail
+> Alan Jenkins wrote:
+>> It looks like this EC clears the SMI_EVT bit after every query, even if there
+>> are more events pending.  The workaround is to repeatedly query the EC until
+>> it reports that no events remain.
 >>
->> OK, I tried version from SVN. Nothing changed :|
+>> This fixes a regression in 2.6.26 (from 2.6.25.3).  Initially reported as
+>> "Asus Eee PC hotkeys stop working if pressed quickly" in bugzilla
+>> <http://bugzilla.kernel.org/show_bug.cgi?id=11089>.
 >>
+>> The regression was caused by a recently added check for interrupt storms.
+>> The Eee PC triggers this check and switches to polling.  When multiple events
+>> arrive between polling intervals, only one is fetched from the EC.  This causes
+>> erroneous behaviour; ultimately events stop being delivered altogether when the
+>> EC buffer overflows.
 >>
->>>  > dmesg is:
->>>  > omnibook: Driver version 2.20070211-trunk.
->>>  > omnibook: Unknown model.
->>>
->>>
->>> Try force recognize with ectype parameter.
->>>  #modprobe omnibook ectype=3Dx
+>> Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 >>
->> Sure, I tried every ectype between 1 and 15 before (omnibook from
->> package) and now (version from SVN) again. I checked two files (when
->> existed): lcd and temperature. Temperature (if file existed for forc=
-ed
->> ectype) was always 0 and lcd always had some random values. Insertin=
-g
->> other values (1, 7) didn't change anything.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> ---
+>> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+>> index 5622aee..2b4c5a2 100644
+>> --- a/drivers/acpi/ec.c
+>> +++ b/drivers/acpi/ec.c
+>> @@ -459,14 +459,10 @@ void acpi_ec_remove_query_handler(struct acpi_ec *ec, u8 query_bit)
+>>   EXPORT_SYMBOL_GPL(acpi_ec_remove_query_handler);
+>>  -static void acpi_ec_gpe_query(void *ec_cxt)
+>> +static void acpi_ec_gpe_run_handler(struct acpi_ec *ec, u8 value)
+>>  {
+>> -	struct acpi_ec *ec = ec_cxt;
+>> -	u8 value = 0;
+>>  	struct acpi_ec_query_handler *handler, copy;
+>>  -	if (!ec || acpi_ec_query(ec, &value))
+>> -		return;
+>>  	mutex_lock(&ec->lock);
+>>  	list_for_each_entry(handler, &ec->list, node) {
+>>  		if (value == handler->query_bit) {
+>> @@ -484,6 +480,18 @@ static void acpi_ec_gpe_query(void *ec_cxt)
+>>  	mutex_unlock(&ec->lock);
+>>  }
+>>  +static void acpi_ec_gpe_query(void *ec_cxt)
+>> +{
+>> +	struct acpi_ec *ec = ec_cxt;
+>> +	u8 value = 0;
+>> +
+>> +	if (!ec)
+>> +		return;
+>> +
+>> +	while (!acpi_ec_query(ec, &value))
+>> +		acpi_ec_gpe_run_handler(ec, value);
+>> +}
+>> +
+>>  static u32 acpi_ec_gpe_handler(void *data)
+>>  {
+>>  	acpi_status status = AE_OK;
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
