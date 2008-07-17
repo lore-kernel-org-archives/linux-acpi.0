@@ -1,13 +1,13 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH 06/11] fujitsu-laptop: fingers off backlight if video.ko is serving this functionality
-Date: Thu, 17 Jul 2008 19:32:10 +0200
-Message-ID: <1216315935-20998-7-git-send-email-trenn@suse.de>
+Subject: [PATCH 11/11] compal: fingers off backlight if video.ko is serving this functionality
+Date: Thu, 17 Jul 2008 19:32:15 +0200
+Message-ID: <1216315935-20998-12-git-send-email-trenn@suse.de>
 References: <1216315935-20998-1-git-send-email-trenn@suse.de>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:58576 "EHLO mx1.suse.de"
+Received: from mx1.suse.de ([195.135.220.2]:58581 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757722AbYGQRcR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Jul 2008 13:32:17 -0400
+	id S1757897AbYGQRcS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 Jul 2008 13:32:18 -0400
 In-Reply-To: <1216315935-20998-1-git-send-email-trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,60 +16,34 @@ Cc: linux-acpi@vger.kernel.org, Thomas Renninger <trenn@suse.de>
 
 Signed-off-by: Thomas Renninger <trenn@suse.de>
 ---
- drivers/misc/fujitsu-laptop.c |   26 ++++++++++++++------------
- 1 files changed, 14 insertions(+), 12 deletions(-)
+ drivers/misc/compal-laptop.c |   14 ++++++++------
+ 1 files changed, 8 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/misc/fujitsu-laptop.c b/drivers/misc/fujitsu-laptop.c
-index 3601224..4f873cb 100644
---- a/drivers/misc/fujitsu-laptop.c
-+++ b/drivers/misc/fujitsu-laptop.c
-@@ -963,16 +963,16 @@ static int __init fujitsu_init(void)
+diff --git a/drivers/misc/compal-laptop.c b/drivers/misc/compal-laptop.c
+index 971e59a..f03cfbf 100644
+--- a/drivers/misc/compal-laptop.c
++++ b/drivers/misc/compal-laptop.c
+@@ -326,12 +326,14 @@ static int __init compal_init(void)
  
  	/* Register backlight stuff */
  
--	fujitsu->bl_device =
--	    backlight_device_register("fujitsu-laptop", NULL, NULL,
--				      &fujitsubl_ops);
--	if (IS_ERR(fujitsu->bl_device))
--		return PTR_ERR(fujitsu->bl_device);
+-	compalbl_device = backlight_device_register("compal-laptop", NULL, NULL,
+-						&compalbl_ops);
+-	if (IS_ERR(compalbl_device))
+-		return PTR_ERR(compalbl_device);
 -
--	max_brightness = fujitsu->max_brightness;
--
--	fujitsu->bl_device->props.max_brightness = max_brightness - 1;
--	fujitsu->bl_device->props.brightness = fujitsu->brightness_level;
+-	compalbl_device->props.max_brightness = COMPAL_LCD_LEVEL_MAX-1;
 +	if (!acpi_video_backlight_support()) {
-+		fujitsu->bl_device =
-+			backlight_device_register("fujitsu-laptop", NULL, NULL,
-+						  &fujitsubl_ops);
-+		if (IS_ERR(fujitsu->bl_device))
-+			return PTR_ERR(fujitsu->bl_device);
-+		max_brightness = fujitsu->max_brightness;
-+		fujitsu->bl_device->props.max_brightness = max_brightness - 1;
-+		fujitsu->bl_device->props.brightness = fujitsu->brightness_level;
++		compalbl_device = backlight_device_register("compal-laptop", NULL, NULL,
++							    &compalbl_ops);
++		if (IS_ERR(compalbl_device))
++			return PTR_ERR(compalbl_device);
++		
++		compalbl_device->props.max_brightness = COMPAL_LCD_LEVEL_MAX-1;
 +	}
  
- 	ret = platform_driver_register(&fujitsupf_driver);
+ 	ret = platform_driver_register(&compal_driver);
  	if (ret)
-@@ -1008,7 +1008,8 @@ fail_hotkey:
- 
- fail_backlight:
- 
--	backlight_device_unregister(fujitsu->bl_device);
-+	if (fujitsu->bl_device)
-+		backlight_device_unregister(fujitsu->bl_device);
- 
- fail_platform_device2:
- 
-@@ -1035,7 +1036,8 @@ static void __exit fujitsu_cleanup(void)
- 			   &fujitsupf_attribute_group);
- 	platform_device_unregister(fujitsu->pf_device);
- 	platform_driver_unregister(&fujitsupf_driver);
--	backlight_device_unregister(fujitsu->bl_device);
-+	if (fujitsu->bl_device)
-+		backlight_device_unregister(fujitsu->bl_device);
- 
- 	acpi_bus_unregister_driver(&acpi_fujitsu_driver);
- 
 -- 
 1.5.4.5
 
