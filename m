@@ -1,28 +1,42 @@
-From: Andi Kleen <andi@firstfloor.org>
+From: Linus Torvalds <torvalds@linux-foundation.org>
 Subject: Re: Please pull ACPI updates
-Date: Thu, 17 Jul 2008 21:50:18 +0200
-Message-ID: <487FA27A.6030903@firstfloor.org>
-References: <20080716214516.GA10777@basil.nowhere.org>	 <200807170011.12184.rjw@sisk.pl>	 <200807161633.01375.jbarnes@virtuousgeek.org>	 <alpine.LFD.1.10.0807161639090.2835@woody.linux-foundation.org>	 <487EE940.1050007@firstfloor.org>	 <alpine.LFD.1.10.0807170752190.2959@woody.linux-foundation.org>	 <alpine.LFD.1.10.0807171402110.2965@localhost.localdomain> <1216321931.6029.1.camel@brick>
+Date: Thu, 17 Jul 2008 13:01:17 -0700 (PDT)
+Message-ID: <alpine.LFD.1.10.0807171259010.2959@woody.linux-foundation.org>
+References: <20080716214516.GA10777@basil.nowhere.org>  <200807170011.12184.rjw@sisk.pl>  <200807161633.01375.jbarnes@virtuousgeek.org>  <487EEAEB.4050009@firstfloor.org>  <alpine.LFD.1.10.0807170807040.2959@woody.linux-foundation.org>
+ <alpine.LFD.1.10.0807170835320.2959@woody.linux-foundation.org>  <487F71E8.9050705@firstfloor.org> <2c0942db0807171211s39e2653fwdc50f92d9c3020d2@mail.gmail.com> <487FA24B.9060803@firstfloor.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from one.firstfloor.org ([213.235.205.2]:59120 "EHLO
-	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759182AbYGQTuU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Jul 2008 15:50:20 -0400
-In-Reply-To: <1216321931.6029.1.camel@brick>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932572AbYGQUBl@vger.kernel.org>
+In-Reply-To: <487FA24B.9060803@firstfloor.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andi Kleen <andi@firstfloor.org>
+Cc: Ray Lee <ray-lk@madrabbit.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, torvalds@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-Harvey Harrison wrote:
 
-> git rebase --interactive
+On Thu, 17 Jul 2008, Andi Kleen wrote:
 > 
-> sounds like exactly what you are asking for.
+> The whole point of the exercise of cleaning up/rewriting the history is to make
+> the tree as bisectable as possible.
 
-Sounds like a nice feature. Thanks for the pointer.
+No.
 
--Andi
+"git bisect" is perfetly able to handle merges. They are _fine_.
+
+The problem with rebasing is that it *changes* something that was already 
+tested (and possibly merged into somebody elses tree) into SOMETHING ELSE.
+
+And that means that a large portion of the previous testing is basically 
+thrown away.
+
+In particular, if something worked for somebody before, it also removes 
+the "known good state" from a bisection standpoint, so rebasing actually 
+makes things _harder_ to bisect - because now you cannot sanely bisect 
+between two versions of the tree (when you mark the old tree "good", it 
+has no relevance to the new tree that had all the old history rewritten).
+
+So no, rebasing does _not_ make bisection easier. It makes it easier to 
+understand, perhaps, but it actually makes many things much much harder, 
+and removes all trace of any testing coverage that the old commit had.
+
+			Linus
