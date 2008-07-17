@@ -1,13 +1,13 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH 09/11] sony-laptop: fingers off backlight if video.ko is serving this functionality
-Date: Thu, 17 Jul 2008 19:32:13 +0200
-Message-ID: <1216315935-20998-10-git-send-email-trenn@suse.de>
+Subject: [PATCH 07/11] fujitsu-laptop: Fix section mismatch
+Date: Thu, 17 Jul 2008 19:32:11 +0200
+Message-ID: <1216315935-20998-8-git-send-email-trenn@suse.de>
 References: <1216315935-20998-1-git-send-email-trenn@suse.de>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:58580 "EHLO mx1.suse.de"
+Received: from ns2.suse.de ([195.135.220.15]:39667 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757879AbYGQRcS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Jul 2008 13:32:18 -0400
+	id S1757199AbYGQRcR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 Jul 2008 13:32:17 -0400
 In-Reply-To: <1216315935-20998-1-git-send-email-trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,26 +16,22 @@ Cc: linux-acpi@vger.kernel.org, Thomas Renninger <trenn@suse.de>
 
 Signed-off-by: Thomas Renninger <trenn@suse.de>
 ---
- drivers/misc/sony-laptop.c |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletions(-)
+ drivers/misc/fujitsu-laptop.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/misc/sony-laptop.c b/drivers/misc/sony-laptop.c
-index 00e48e2..32675cb 100644
---- a/drivers/misc/sony-laptop.c
-+++ b/drivers/misc/sony-laptop.c
-@@ -1037,7 +1037,11 @@ static int sony_nc_add(struct acpi_device *device)
- 		goto outinput;
- 	}
+diff --git a/drivers/misc/fujitsu-laptop.c b/drivers/misc/fujitsu-laptop.c
+index 4f873cb..754ec38 100644
+--- a/drivers/misc/fujitsu-laptop.c
++++ b/drivers/misc/fujitsu-laptop.c
+@@ -455,7 +455,7 @@ static int dmi_check_cb_s6410(const struct dmi_system_id *id)
+ 	return 0;
+ }
  
--	if (ACPI_SUCCESS(acpi_get_handle(sony_nc_acpi_handle, "GBRT", &handle))) {
-+	if (!acpi_video_backlight_support()) {
-+		printk(KERN_INFO DRV_PFX "Sony: Brightness ignored, must be "
-+		       "controlled by ACPI video driver\n");
-+	} else if (ACPI_SUCCESS(acpi_get_handle(sony_nc_acpi_handle, "GBRT",
-+						&handle))) {
- 		sony_backlight_device = backlight_device_register("sony", NULL,
- 								  NULL,
- 								  &sony_backlight_ops);
+-static struct dmi_system_id __initdata fujitsu_dmi_table[] = {
++static struct dmi_system_id fujitsu_dmi_table[] = {
+ 	{
+ 	 .ident = "Fujitsu Siemens",
+ 	 .matches = {
 -- 
 1.5.4.5
 
