@@ -1,51 +1,70 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: Please pull ACPI updates
-Date: Wed, 16 Jul 2008 19:26:45 -0700
-Message-ID: <200807161926.45975.jbarnes@virtuousgeek.org>
-References: <20080716214516.GA10777@basil.nowhere.org> <alpine.LFD.1.10.0807161728560.2835@woody.linux-foundation.org> <alpine.LFD.1.10.0807161751490.2959@woody.linux-foundation.org>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: [PATCH]  ACPI:  Ignore _BQC object when registering backlight
+	device
+Date: Thu, 17 Jul 2008 10:46:05 +0800
+Message-ID: <1216262765.7169.36.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outbound-mail-07.bluehost.com ([69.89.17.207]:59526 "HELO
-	outbound-mail-07.bluehost.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752738AbYGQC0z (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Jul 2008 22:26:55 -0400
-In-Reply-To: <alpine.LFD.1.10.0807161751490.2959@woody.linux-foundation.org>
-Content-Disposition: inline
+Received: from mga11.intel.com ([192.55.52.93]:15243 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753884AbYGQCei (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Jul 2008 22:34:38 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Andi Kleen <andi@firstfloor.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Andi Kleen <andi@firstfloor.org>
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
 
-On Wednesday, July 16, 2008 5:53:55 pm Linus Torvalds wrote:
-> On Wed, 16 Jul 2008, Linus Torvalds wrote:
-> > Well, I haven't actually seen Len's original tree, so maybe the stuff
-> > Andi pushed was just the stuff he had queued up independently. I guess I
-> > shouldn't judge before I'm sure.
->
-> No, he rebased it - the three commits you shared are now separate ones.
+>From : Zhao Yakui <yakui.zhao@intel.com>
 
-Well, I could have misunderstood what we talked about; I guess I just assumed 
-Andi & I would chat before sending out our pull requests.  I'll be sure to 
-coordinate better next time.
+According to acpi spec , the objectes of  _BCL and _BCM are required if
+integrated LCD is present and supports brightness level and the _BQC is
+the optional object. So the _BQC object will be ignored when the backlight 
+device is registered.
+At the same time when there is no _BQC object, the current brightness will be
+set to the maximum.
 
-> Most of the conflicts seem to have been due tot he x86 tree changes
-> though. But it seems I didn't mess up too much: at least the result booted
-> for me without complaints. So I pushed out my resolution.
->
-> Jesse, can you please double-check it?
+http://bugzilla.kernel.org/show_bug.cgi?id=10206
 
-Just looked, seems fine.  I'd pat you on the head to reassure you about it, 
-but my arms aren't quite long enough...
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+Signed-off-by: Zhang Rui  <rui.zhang@intel.com>
 
-I'll dig around some more for git best practices too.  Based on what I've seen 
-of the x86 tree I don't have nearly enough branches (though on the plus side, 
-I almost never rebase since I don't want to hose any downstream users, and I 
-don't merge from your tree until after you've pulled to avoid cluttering up 
-the log).
+---
+ drivers/acpi/video.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-Thanks,
-Jesse
+Index: linux-2.6/drivers/acpi/video.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/video.c
++++ linux-2.6/drivers/acpi/video.c
+@@ -741,7 +741,7 @@ static void acpi_video_device_find_cap(s
+ 
+ 	max_level = acpi_video_init_brightness(device);
+ 
+-	if (device->cap._BCL && device->cap._BCM && device->cap._BQC && max_level > 0){
++	if (device->cap._BCL && device->cap._BCM && max_level > 0) {
+ 		int result;
+ 		static int count = 0;
+ 		char *name;
+@@ -753,7 +753,17 @@ static void acpi_video_device_find_cap(s
+ 		device->backlight = backlight_device_register(name,
+ 			NULL, device, &acpi_backlight_ops);
+ 		device->backlight->props.max_brightness = device->brightness->count-3;
+-		device->backlight->props.brightness = acpi_video_get_brightness(device->backlight);
++		/*
++		 * If there exists the _BQC object, the _BQC object will be
++		 * called to get the current backlight brightness. Otherwise
++		 * the brightness will be set to the maximum.
++		 */
++		if (device->cap._BQC)
++			device->backlight->props.brightness =
++				acpi_video_get_brightness(device->backlight);
++		else
++			device->backlight->props.brightness =
++				device->backlight->props.max_brightness;
+ 		backlight_update_status(device->backlight);
+ 		kfree(name);
+ 
+
+
