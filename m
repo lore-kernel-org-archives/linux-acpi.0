@@ -1,73 +1,54 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: Please pull ACPI updates
-Date: Thu, 17 Jul 2008 08:47:43 -0700 (PDT)
-Message-ID: <alpine.LFD.1.10.0807170835320.2959@woody.linux-foundation.org>
-References: <20080716214516.GA10777@basil.nowhere.org> <200807170011.12184.rjw@sisk.pl> <200807161633.01375.jbarnes@virtuousgeek.org> <487EEAEB.4050009@firstfloor.org> <alpine.LFD.1.10.0807170807040.2959@woody.linux-foundation.org>
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Subject: Re: [PATCH] acpi: Avoid dropping rapid hotkey events (or other GPEs)
+ on Asus EeePC
+Date: Thu, 17 Jul 2008 17:02:54 +0100
+Message-ID: <487F6D2E.2040501@tuffmail.co.uk>
+References: <487D23C3.5070301@student.cs.york.ac.uk> <487F58B6.5040309@suse.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58146 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754793AbYGQPrv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Jul 2008 11:47:51 -0400
-In-Reply-To: <alpine.LFD.1.10.0807170807040.2959@woody.linux-foundation.org>
+Received: from nf-out-0910.google.com ([64.233.182.184]:3434 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760620AbYGQQCj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Jul 2008 12:02:39 -0400
+Received: by nf-out-0910.google.com with SMTP id d3so1993806nfc.21
+        for <linux-acpi@vger.kernel.org>; Thu, 17 Jul 2008 09:02:37 -0700 (PDT)
+In-Reply-To: <487F58B6.5040309@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, torvalds@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
+
+Alexey Starikovskiy wrote:
+> Hi Alan,
+>
+> Could you please test if your patch works with the last patch in #10919?
+>
+> Thanks,
+> Alex.
+Vacuously so.
+
+My patch still applies, but #10919 makes it obsolete.  My patch fixed a
+bug that shows up in polling mode.  #10919 kills polling mode.
+
+I've tested v2.6.26 + #10919 and it works fine (except for spamming the
+kernel log - please read my Bugzilla comment).
 
 
+It appears that interrupt mode suffered from a race which is very
+similar to my original problem.  If two GPE interrupts arrive before the
+workqueue runs, then the second interrupt will be ignored because
+EC_FLAGS_QUERY_PENDING is still set.  This will happen with any EC if
+interrupts are very close together, right?
 
-On Thu, 17 Jul 2008, Linus Torvalds wrote:
-> 
-> That's the whole point of topic branches. They allow you to separate out 
-> work to different areas, so that people who are interested in (say) the 
-> PCI-impacting ones can merge with one part, without having to wait for the 
-> other parts to stabilize.
+I think my patch also fixes this theoretical problem.  But I'd rather
+you took over on this.  I was already confused by ec.c in v2.6.26, and
+with #10919 I understand it even less.  E.g. why is
+ec_switch_to_poll_mode() still present; what does it do now do_ec_poll()
+is removed?
 
-Btw, you don't really have to have a lot of them.
+I'm happy to work on this with you, but I'd need to be able understand
+the code first :-(.
 
-When it comes to ACPI in particular, I would really prefer to see at least 
-the ACPICA stuff in a separate topic branch. It comes in from a different 
-source, it's maintained separately, and when it causes problems(*) it ends 
-up usually being handled differently too.
-
-Len additionally split things like bugzilla entries up into individual 
-topics, and that was really nice to see when merging, but I have to say 
-that it was also "above and beyond" what I've ever expected of any 
-maintainer. That said, I think ACPI has been rather bugzilla-driven (many 
-other areas are feature-driven), and I do think it makes tons of sense to 
-put fixes in different branches, and then you can merge them when you 
-actualyl close the bug when the fix has been verified.
-
-So one reason I reacted strongly to the ACPI change was definitely just 
-that ACPI used to be one of the really nicely done subsystems (not just 
-from a git standpoint, but the whole git flow was part of it). There were 
-some issues very early on in git usage, but I gave a shout-out to Len at 
-the last kernel summit for a reason.
-
-And in that sense it's definitely unfair to require quite _that_ level of 
-separation. I'm really not expecting it. 
-
-But I *really* hate pulling from somebody, and seeing commit dates that 
-are from five minutes ago, and based on something that I had just pushed 
-out (which was essentially the case for this round of ACPI changes).
-
-That literally shows that the code was hardly tested _at_all_ in that 
-exact configuration. It may have gotten testing based on some earlier 
-kernel version, but then it very clearly got rebased (or just quilt 
-imported) on top of a totally new kernel base, and was not tested in that 
-version very much if at all.
-
-So even if you end up using quilt, I'd suggest you do so on a specific 
-base, rather than on some random "kernel-of-the-moment-in-the-middle- 
-of-the-merge-window". Because then at least I feel like the people 
-involved have been doing their own development without having the rug 
-pulled out from them all the time by using a different kernel as a base.
-
-		Linus
-
-(*) Which is happily fairly rare these days! I obviously detest the 
-complexity that is ACPI, but even if I detest it, Intel should get cudos 
-for getting it to work.
+Alan
