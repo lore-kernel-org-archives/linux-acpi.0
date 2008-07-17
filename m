@@ -1,33 +1,87 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 10/11] thinkpad_acpi: fingers off backlight if video.ko is serving this functionality
-Date: Thu, 17 Jul 2008 12:25:30 +0100
-Message-ID: <20080717112530.GA25454@srcf.ucam.org>
-References: <1216205553-8486-1-git-send-email-trenn@suse.de> <20080716124703.GA376@srcf.ucam.org> <20080716133839.GB3329@khazad-dum.debian.net> <200807161727.57026.trenn@suse.de> <20080716152938.GA8676@srcf.ucam.org> <487F0C9B.4010502@linux.intel.com> <20080717104622.GA24906@srcf.ucam.org> <20080717111808.GC16009@corsac.net>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: Re: [PATCH] acpi: Avoid dropping rapid hotkey events (or other GPEs)
+ on Asus EeePC
+Date: Thu, 17 Jul 2008 15:49:43 +0400
+Message-ID: <487F31D7.30803@suse.de>
+References: <487D23C3.5070301@student.cs.york.ac.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:33568 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751202AbYGQLZk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Jul 2008 07:25:40 -0400
-Content-Disposition: inline
-In-Reply-To: <20080717111808.GC16009@corsac.net>
+Received: from charybdis-ext.suse.de ([195.135.221.2]:33751 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752951AbYGQLtq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Jul 2008 07:49:46 -0400
+In-Reply-To: <487D23C3.5070301@student.cs.york.ac.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yves-Alexis Perez <corsac@debian.org>
-Cc: Andi Kleen <ak@linux.intel.com>, Thomas Renninger <trenn@suse.de>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, jwoithe@physics.adelaide.edu.au, rui.zhang@intel.com, corentincj@iksaif.net, linux-acpi@vger.kernel.org, dannybaumann@web.de, marcus@better.se, mzxreary@0pointer.de, carlos@strangeworlds.co.uk, malattia@linux.it
+To: alan-jenkins@tuffmail.co.uk
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, Jul 17, 2008 at 01:18:08PM +0200, Yves-Alexis Perez wrote:
-> On Thu, Jul 17, 2008 at 11:46:22AM +0100, Matthew Garrett wrote:
-> > The opregion brightness control code is part of the DRM tree, not ACPI. 
-> > It ought to be entirely orthogonal to Thomas' patches.
+Hi Alan,
+
+Thanks for the patch, ACK.
+
+Regards,
+Alex.
+
+Alan Jenkins wrote:
+> It looks like this EC clears the SMI_EVT bit after every query, even if there
+> are more events pending.  The workaround is to repeatedly query the EC until
+> it reports that no events remain.
 > 
-> For an "end user", what does this mean? What patches should we apply,
-> against which tree, in order to be able to test and validate Thomas's
-> patches?
+> This fixes a regression in 2.6.26 (from 2.6.25.3).  Initially reported as
+> "Asus Eee PC hotkeys stop working if pressed quickly" in bugzilla
+> <http://bugzilla.kernel.org/show_bug.cgi?id=11089>.
+> 
+> The regression was caused by a recently added check for interrupt storms.
+> The Eee PC triggers this check and switches to polling.  When multiple events
+> arrive between polling intervals, only one is fetched from the EC.  This causes
+> erroneous behaviour; ultimately events stop being delivered altogether when the
+> EC buffer overflows.
+> 
+> Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+> 
+> ---
+> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+> index 5622aee..2b4c5a2 100644
+> --- a/drivers/acpi/ec.c
+> +++ b/drivers/acpi/ec.c
+> @@ -459,14 +459,10 @@ void acpi_ec_remove_query_handler(struct acpi_ec *ec, u8 query_bit)
+>  
+>  EXPORT_SYMBOL_GPL(acpi_ec_remove_query_handler);
+>  
+> -static void acpi_ec_gpe_query(void *ec_cxt)
+> +static void acpi_ec_gpe_run_handler(struct acpi_ec *ec, u8 value)
+>  {
+> -	struct acpi_ec *ec = ec_cxt;
+> -	u8 value = 0;
+>  	struct acpi_ec_query_handler *handler, copy;
+>  
+> -	if (!ec || acpi_ec_query(ec, &value))
+> -		return;
+>  	mutex_lock(&ec->lock);
+>  	list_for_each_entry(handler, &ec->list, node) {
+>  		if (value == handler->query_bit) {
+> @@ -484,6 +480,18 @@ static void acpi_ec_gpe_query(void *ec_cxt)
+>  	mutex_unlock(&ec->lock);
+>  }
+>  
+> +static void acpi_ec_gpe_query(void *ec_cxt)
+> +{
+> +	struct acpi_ec *ec = ec_cxt;
+> +	u8 value = 0;
+> +
+> +	if (!ec)
+> +		return;
+> +
+> +	while (!acpi_ec_query(ec, &value))
+> +		acpi_ec_gpe_run_handler(ec, value);
+> +}
+> +
+>  static u32 acpi_ec_gpe_handler(void *data)
+>  {
+>  	acpi_status status = AE_OK;
+> 
+> 
 
-Easiest is to wait for the DRM tree to be merged. The patch is against 
-DRM master, which doesn't apply directly to Linux - it needs some 
-post-processing first.
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
