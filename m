@@ -1,68 +1,45 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: Re: [PATCH] acpi: Avoid dropping rapid hotkey events (or other GPEs)
- on Asus EeePC
-Date: Thu, 17 Jul 2008 20:45:32 +0400
-Message-ID: <487F772C.1070806@suse.de>
-References: <487D23C3.5070301@student.cs.york.ac.uk> <487F58B6.5040309@suse.de> <487F6D2E.2040501@tuffmail.co.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1759962AbYGQQps@vger.kernel.org>
-In-Reply-To: <487F6D2E.2040501@tuffmail.co.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Cc: linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
+From: Thomas Renninger <trenn@suse.de>
+Subject: [PATCH 04/11] asus-acpi: fingers off backlight if video.ko is serving this functionality
+Date: Thu, 17 Jul 2008 19:32:08 +0200
+Message-ID: <1216315935-20998-5-git-send-email-trenn@suse.de>
+References: <1216315935-20998-1-git-send-email-trenn@suse.de>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.suse.de ([195.135.220.2]:58566 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756927AbYGQRcR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 Jul 2008 13:32:17 -0400
+In-Reply-To: <1216315935-20998-1-git-send-email-trenn@suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: ak@linux.intel.com
+Cc: linux-acpi@vger.kernel.org, Thomas Renninger <trenn@suse.de>
 
-Alan Jenkins wrote:
-> Alexey Starikovskiy wrote:
->> Hi Alan,
->>
->> Could you please test if your patch works with the last patch in #10919?
->>
->> Thanks,
->> Alex.
-> Vacuously so.
-> 
-> My patch still applies, but #10919 makes it obsolete.
-Not so, there are two polls in ec.c, first is poll for change in status register,
-which gave the name to the mode, and still exists; the other is for event
-in embedded controller, which was introduced to properly solve #9998, and part of
-it is removed by patch in #10919.
->  My patch fixed a
-> bug that shows up in polling mode.  #10919 kills polling mode.
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+---
+ drivers/misc/asus-laptop.c |   10 +++++++---
+ 1 files changed, 7 insertions(+), 3 deletions(-)
 
-> 
-> I've tested v2.6.26 + #10919 and it works fine (except for spamming the
-> kernel log - please read my Bugzilla comment).
-> 
-> 
-> It appears that interrupt mode suffered from a race which is very
-> similar to my original problem.  If two GPE interrupts arrive before the
-> workqueue runs, then the second interrupt will be ignored because
-> EC_FLAGS_QUERY_PENDING is still set.  This will happen with any EC if
-> interrupts are very close together, right?
-The notion of queue in embedded controller is new, it was never mentioned in
-ACPI spec, so the driver was written with assumption that new query interrupt should
-not arrive before we service previous one. There is even a chart in how interrupts
-should occur near the EC query command...
-> 
-> I think my patch also fixes this theoretical problem.
-I think, this is not a theoretical problem, but the problem we've tried to solve in
-#9998, #10724, and so on.
-> But I'd rather
-> you took over on this.  I was already confused by ec.c in v2.6.26, and
-> with #10919 I understand it even less.  E.g. why is
-> ec_switch_to_poll_mode() still present; what does it do now do_ec_poll()
-> is removed?
-See above, I still disable EC GPE for the time than we have pending query,
-so we better not wait for it to check the status register
-> 
-> I'm happy to work on this with you, but I'd need to be able understand
-> the code first :-(.
-Well, with this patch of yours, I guess, we will not have too many problems in EC left :-)
-> 
-> Alan
+diff --git a/drivers/misc/asus-laptop.c b/drivers/misc/asus-laptop.c
+index 7c6dfd0..a9a823b 100644
+--- a/drivers/misc/asus-laptop.c
++++ b/drivers/misc/asus-laptop.c
+@@ -1207,9 +1207,13 @@ static int __init asus_laptop_init(void)
+ 
+ 	dev = acpi_get_physical_device(hotk->device->handle);
+ 
+-	result = asus_backlight_init(dev);
+-	if (result)
+-		goto fail_backlight;
++	if (!acpi_video_backlight_support()) {
++		result = asus_backlight_init(dev);
++		if (result)
++			goto fail_backlight;
++	} else
++		printk(ASUS_INFO "Brightness ignored, must be controlled by "
++		       "ACPI video driver\n");
+ 
+ 	result = asus_led_init(dev);
+ 	if (result)
+-- 
+1.5.4.5
 
-Thanks again,
-Alex.
