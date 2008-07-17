@@ -1,44 +1,48 @@
 From: Andi Kleen <andi@firstfloor.org>
 Subject: Re: Please pull ACPI updates
-Date: Thu, 17 Jul 2008 08:45:47 +0200
-Message-ID: <487EEA9B.4030808@firstfloor.org>
-References: <20080716214516.GA10777@basil.nowhere.org> <200807161633.01375.jbarnes@virtuousgeek.org> <alpine.LFD.1.10.0807161639090.2835@woody.linux-foundation.org> <200807161651.44990.jbarnes@virtuousgeek.org> <alpine.LFD.1.10.0807161728560.2835@woody.linux-foundation.org>
+Date: Thu, 17 Jul 2008 08:47:07 +0200
+Message-ID: <487EEAEB.4050009@firstfloor.org>
+References: <20080716214516.GA10777@basil.nowhere.org> <200807170011.12184.rjw@sisk.pl> <200807161633.01375.jbarnes@virtuousgeek.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from one.firstfloor.org ([213.235.205.2]:60800 "EHLO
+Received: from one.firstfloor.org ([213.235.205.2]:60805 "EHLO
 	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752788AbYGQGpt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Jul 2008 02:45:49 -0400
-In-Reply-To: <alpine.LFD.1.10.0807161728560.2835@woody.linux-foundation.org>
+	with ESMTP id S1751296AbYGQGrL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Jul 2008 02:47:11 -0400
+In-Reply-To: <200807161633.01375.jbarnes@virtuousgeek.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, torvalds@osdl.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Linus Torvalds wrote:
+Jesse Barnes wrote:
+> On Wednesday, July 16, 2008 3:11 pm Rafael J. Wysocki wrote:
+>> On Wednesday, 16 of July 2008, Andi Kleen wrote:
+>>> Linus,
+>>>
+>>> Please pull from
+>>>
+>>>   git://git.kernel.org/pub/scm/linux/kernel/git/ak/linux-acpi-merge-2.6
+>>> release-2.6.27
+>>>
+>>> to get the initial ACPI updates for 2.6.27. We got a few more changes
+>>> dependent on yet unpulled trees and some other candidate patches,
+>>> but that's the bulk for the changes intended for 2.6.27. Most of that
+>>> has been collected by Len Brown before he went on sabbatical. I was
+>>> relatively conservative with additional changes so far.
+>> Well, IMO it would be better to merge PCI first.
 > 
-> On Wed, 16 Jul 2008, Jesse Barnes wrote:
->>> Andi did not. The whole series I pulled was rebased today at 2PM.
->> Ugg, when Andi took over we talked about it; I thought we had agreed that he 
->> would stick with Len's tree.  I guess I was wrong.
-> 
-> Well, I haven't actually seen Len's original tree, so maybe the stuff Andi 
-> pushed was just the stuff he had queued up independently. I guess I 
-> shouldn't judge before I'm sure.
+> Yeah, they're interdependent (I pulled from Len's tree, hopefully Andi 
+> preserved the changesets).  I had wanted to do a little more testing of what 
+> I've got, but I haven't heard any huge complaints so far so maybe things are 
+> ok.  I'll generate a pull request now.
 
-I originally started with topic branches and imported a few patches
-this way, but then eventually realized they don't really match my
-working style. In particular I tend to edit and sometimes
-delete old patches and that seems to be quite painful with
-the topic branch setup (or perhaps I just haven't figured out
-how to do it nicely). Also tried it with guilt, but that
-also ran into some issues (in particular after merges one
-cannot manage the patches as a guilt stack anymore)
+Hmm, but if you're dependent ACPI needs to go in first anyways, doesn't it?
 
-What I did then was to export Len's tree to quilt, do all the touchups
-etc, merged some more patches and then regenerated a quilt tree for
-the merge request. That is how the old x86-64 tree used to work.
+I don't think the ACPI tree is dependent on PCI at least. Or at least I didn't
+notice any problems in this area.
 
 -Andi
+
