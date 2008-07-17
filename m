@@ -1,50 +1,31 @@
-From: Sebastian Pohl <sebastianp@uni-koblenz.de>
-Subject: Re: ACPI Problems on Sony Vaio SZ61MN, no brightness ctrl, no power
- button
-Date: Thu, 17 Jul 2008 14:51:24 +0200
-Message-ID: <487F404C.6020805@uni-koblenz.de>
-References: <487CA418.6060103@uni-koblenz.de> <1216172299.1617.145.camel@rzhang-dt> <487DC015.6070704@uni-koblenz.de> <20080716112707.GA3777@inferi.kami.home>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH]  ACPI:  Ignore _BQC object when registering backlight device
+Date: Thu, 17 Jul 2008 14:09:31 +0100
+Message-ID: <20080717130931.GA27135@srcf.ucam.org>
+References: <1216262765.7169.36.camel@localhost.localdomain> <487F3EC6.8070406@firstfloor.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from deliver.uni-koblenz.de ([141.26.64.15]:4044 "EHLO
-	deliver.uni-koblenz.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753238AbYGQMwU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Jul 2008 08:52:20 -0400
-In-Reply-To: <20080716112707.GA3777@inferi.kami.home>
+Received: from cavan.codon.org.uk ([93.93.128.6]:34442 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755843AbYGQNJg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Jul 2008 09:09:36 -0400
+Content-Disposition: inline
+In-Reply-To: <487F3EC6.8070406@firstfloor.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mattia Dongili <malattia@linux.it>
-Cc: Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org
+To: Andi Kleen <andi@firstfloor.org>
+Cc: Zhao Yakui <yakui.zhao@intel.com>, linux-acpi@vger.kernel.org, lenb@kernel.org
 
-Mattia Dongili wrote:
->
-> The SZ series have a stamina/speed switch switch between 2 video cards.
-> Usually one is an NVidia (for speed) and one is an Intel (for stamina).
-> On the NVidia there is nothing we can do (you can try nvclock or any
-> nvidia proprietary tool as documented on my wiki[1]), while for the
-> Intel card it's a different story (again documented on my wiki).
-> If you have no luck with the sony-laptop provided backlight control you
-> can try xbacklight that, as far as I can see[2], should work on your
-> Intel chipset.
->
-> hope this helps
->
-> [1]: http://www.linux.it/~malattia/wiki/index.php/Sony-laptop#Brightness
-> [2]: https://bugs.launchpad.net/ubuntu/+source/xbacklight/+bug/173652
->   
+On Thu, Jul 17, 2008 at 02:44:54PM +0200, Andi Kleen wrote:
 
-Hi,
+> Hmm, but the original patch was reverted. How is this patch better
+> than the patch that was reverted by Linus?
 
-the backlight now is working with the Intel chipset. But the workaround 
-had some sideeffects: Now the lidswitch is unfunctional. :/
+The initial patch would have resulted in the screen brightness being set 
+to minimum (which may be off on some hardware). The new one sets it to 
+maximum brightness if it's not possible to determine the current 
+brightness.
 
-I tried to find out if it works by running acpi_listen but the lidswitch 
-generates no events...
-
-Any ideas?
-
-regards
-
-       sebastian
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
