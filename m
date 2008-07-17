@@ -1,56 +1,49 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [Openipmi-developer] acpi_find_bmc() and acpi_get_table()
-Date: Thu, 17 Jul 2008 12:32:10 -0600
-Message-ID: <200807171232.11183.bjorn.helgaas@hp.com>
-References: <200702102327.28312.lenb@kernel.org> <200707181319.41081.bjorn.helgaas@hp.com> <5DDAB7BA7BDB58439DD0EED0B8E9A3AE53C94D@ausx3mpc102.aus.amer.dell.com>
+Subject: Re: v2.6.26-rc9: ACPI PCI irq routing on NUMA? + early_ioremap trouble
+Date: Thu, 17 Jul 2008 12:45:31 -0600
+Message-ID: <200807171245.31641.bjorn.helgaas@hp.com>
+References: <19f34abd0807060647k54490088uf8859d8a1646fd41@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:21546 "EHLO
-	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757604AbYGQSdK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Jul 2008 14:33:10 -0400
-In-Reply-To: <5DDAB7BA7BDB58439DD0EED0B8E9A3AE53C94D@ausx3mpc102.aus.amer.dell.com>
+Received: from g4t0017.houston.hp.com ([15.201.24.20]:7516 "EHLO
+	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755879AbYGQSqM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Jul 2008 14:46:12 -0400
+In-Reply-To: <19f34abd0807060647k54490088uf8859d8a1646fd41@mail.gmail.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jordan_Hargrave@dell.com
-Cc: Matt_Domsch@dell.com, minyard@acm.org, alexey.y.starikovskiy@linux.intel.com, linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net, lenb@kernel.org
+To: Vegard Nossum <vegard.nossum@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>, Alexey Starikovskiy <astarikovskiy@suse.de>, Thomas Gleixner <tglx@linutronix.de>, venkatesh.pallipadi@intel.com, Huang Ying <ying.huang@intel.com>, Andi Kleen <andi@firstfloor.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Thursday 19 July 2007 10:32:11 am Jordan_Hargrave@dell.com wrote:
-> From Bjorn:
-> >> In RHEL5 there was a change made to the acpi motherboard driver to
-> >> not attach if any of the _CRS values are not I/O ports.
+On Sunday 06 July 2008 07:47:19 am Vegard Nossum wrote:
+> I have produced a config which doesn't boot correctly on either of my
+> computers with v2.6.26-rc9.
 > 
-> >Yes.  This is part of linux-2.6-x86_64-memory-hotplug.patch, and it
-> >apparently helps fix a bug:
-> >  https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=208445,
-> >But I can't read the bugzilla, so I don't know exactly how.  I suspect
-> >some hot-addable memory device also had a _CID of PNP0C01, and they
-> >had the same problem you now have with IPMI.
+> The first problem is with my laptop, which hangs on boot, see
+> screenshot (sorry for the bad quality, I was in a hurry):
+> http://folk.uio.no/vegardno/linux/DSCF3026.JPG
 > 
-> >But making the motherboard driver ignore devices if they have any
-> >non-I/O port resources seems like the wrong fix.
+> I figured there's something wrong with ACPI PCI irq routing as I'm
+> missing a message that shows up in my usual configs:
 > 
-> Yeah but it gets even better, that bugfix has a bug itself.. the acpi_walk_resources 
-> function also passes the end-of-list (79 00) marker into the callback.  This isn't a
-> resource I/O type, so the motherboard object is failing to attach to any PNP0C01
-> device.  This is why the IPMI driver can find the IPI0001 device on RHEL5 but not on 
-> RHEL4/SLES10/SLES9.
+> calling  ide_scan_pcibus+0x0/0xf0
+> ICH8M: IDE controller (0x8086:0x2850 rev 0x03) at  PCI slot 0000:00:1f.1
+>     --- HERE: ---
+> ACPI: PCI Interrupt 0000:00:1f.1[A] -> GSI 18 (level, low) -> IRQ 18
+>     ----
+> ICH8M: not 100% native mode: will probe irqs later
+> 
+> ...and as can be seen in the screenshot, ide-cd "lost interrupt".
+> Unfortunately, I don't have a serial line on this machine, so it's
+> hard to get the full log. (Maybe I can try netconsole, it seems to be
+> up by the time this happens.)
 
-Hi Jordan,
+If you could get netconsole working and collect the complete
+console log from both the working config and the broken one,
+that would help a lot.
 
-This is ancient history now.  But I've been doing some PNP work
-recently, and I'd like to resurrect your work towards making the
-IPMI driver a real PNP driver rather than relying on the static
-SPMI table as it does today.
-
-What's the current status of your work?  If you don't want to
-continue it yourself, I'd like to pick it up (unless there's some
-show-stopper reason why it can't ever work, of course).  Do you
-have any work-in-progress that you could post?
-
-Thanks,
-  Bjorn
+Bjorn
