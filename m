@@ -1,147 +1,212 @@
-From: Alok Kataria <akataria@vmware.com>
-Subject: Re: acpi based pci gap calculation  - v3
-Date: Thu, 17 Jul 2008 14:31:12 -0700
-Message-ID: <1216330272.32324.26.camel@alok-dev1>
-References: <1216148382.6135.21.camel@alok-dev1>
-	 <200807160906.43632.jbarnes@virtuousgeek.org>
-	 <487E22EA.8030005@linux.intel.com>
-	 <200807161703.11572.jbarnes@virtuousgeek.org>
-Reply-To: akataria@vmware.com
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH] Re: cpufreq limits avilable frequencies to 800MHz on
+ git kernel
+Date: Thu, 17 Jul 2008 14:40:00 -0700
+Message-ID: <20080717144000.5a577985.akpm@linux-foundation.org>
+References: <200805231944.57320.arekm@maven.pl>
+	<200805261815.40601.arekm@maven.pl>
+	<200805261823.03140.arekm@maven.pl>
+	<200807171548.04584.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-outbound-2.vmware.com ([65.115.85.73]:49102 "EHLO
-	smtp-outbound-2.vmware.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757762AbYGQVbP (ORCPT
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53368 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758219AbYGQVlq (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Jul 2008 17:31:15 -0400
-In-Reply-To: <200807161703.11572.jbarnes@virtuousgeek.org>
+	Thu, 17 Jul 2008 17:41:46 -0400
+In-Reply-To: <200807171548.04584.trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Andi Kleen <ak@linux.intel.com>, Ingo Molnar <mingo@elte.hu>, "Brown, Len" <len.brown@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, TJ <linux@tjworld.net>
+To: Thomas Renninger <trenn@suse.de>
+Cc: arekm@maven.pl, linux-kernel@vger.kernel.org, cpufreq@lists.linux.org.uk, gnorton@novell.com, miguel@novell.com, linux-acpi@vger.kernel.org, davej@redhat.com, stable@kernel.org
 
-Hi Jesse,
+On Thu, 17 Jul 2008 15:48:02 +0200
+Thomas Renninger <trenn@suse.de> wrote:
 
-On Wed, 2008-07-16 at 17:03 -0700, Jesse Barnes wrote:
-> On Wednesday, July 16, 2008 9:33 am Andi Kleen wrote:
-> > > The only problem there is that linux-next doesn't get nearly the sort of
-> > > testing coverage we need for this kind of change.
-> >
-> > Normally I tend to wait for one -mm release, which seems to be tested
-> > by a reasonable number of people. If it survives that it is good
-> > to be tested in Linus' tree.
-> >
-> > Just stuffing this in in literally the last minute doesn't seem
-> > like a good idea.
+> Hi,
 > 
-> Well it's hardly last minute given that the merge window only opened a couple
-> of days ago...
+> maybe I found something..., can someone review/test this.
 > 
-> But beyond that, now that I've thought about it a bit more I'm not even sure
-> the patch is really correct (though it works on my test machines).  Shouldn't
-> we be looking at _PRS not _CRS? 
-
-IMO, the current resource allocations will give us a better idea of
-which region is free.
-Besides, from what i read PRS is optional and not all BIOS's may export
-that.
-
->  And ideally we should try to find even more
-> space, not less.  This patch made one of my machines lose quite a bit of
-> space:
+> Thanks,
 > 
-> ...
-> Allocating PCI resources starting at c0000000 (gap: bf000000:40f00000)
-> ...
-> ACPI: PCI resources should start at c0000000 (gap: bf000000:31000000)
-> ...
+>          Thomas
 > 
+> ------------
+> CPUFREQ ACPI: Only call _PPC after cpufreq ACPI init funcs got called already
+> 
+> Ingo Molnar provided a fix to not call _PPC at processor driver initialization 
+> time.
+> Git commit #e4233dec749a3519069d9390561b5636a75c7579
+> 
+> But it can still happen that _PPC is called at  processor driver 
+> initialization time.
+> 
+> This patch should make sure that this is not possible anymore.
 
-Yep, we should try to find more space but we should also make sure that
-this space doesn't clash with any other resource.
-As explained in my first mail while posting v1 of these patches, the
-kernel ignores the memory hotplug range while calculating this gap for
-PCI, and consequently these regions collide. 
-With this patch we have put some constraints like looking only in the
-producer regions rather than all regions which are right now not
-reserved/used by the e820 map.
+There is no actual description of what this fixes, is there?  Do
+machines go oops, or what?
 
-However, looking back again i think we can improve this further in some
-cases.
-I have made some more changes in the e820_search_gap algorithm to find
-the *biggest* un-utilized gap in the 32bit address range, and have added
-some debug print messages.
-Can you please try this patch on your system and mail me your full
-dmesg.
+How do we proceed from here with this patch?  Who should review it, who
+should test it, who should ack it and who should merge it?
 
-Thanks,
-Alok
+e4233dec749a3519069d9390561b5636a75c7579 was in January so this patch
+is applicable to 2.6.25.x and to 2.6.26.x.  But is it needed there? 
+Insufficient info.
 
+Ho hum.  I queued it, tagged as needed-in-2.6.25.x and 2.6.26.x.  But I
+am unsure about that.
+
+Please help to clarify these things.
+
+> Signed-off-by: Thomas Renninger <trenn@suse.de>
+> ---
+>  arch/powerpc/platforms/cell/cbe_cpufreq_pmi.c |    6 ++++++
+>  drivers/acpi/processor_perflib.c              |   13 ++++++++++++-
+>  drivers/cpufreq/cpufreq.c                     |    3 +++
+>  include/linux/cpufreq.h                       |    1 +
+>  4 files changed, 22 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/powerpc/platforms/cell/cbe_cpufreq_pmi.c 
+> b/arch/powerpc/platforms/cell/cbe_cpufreq_pmi.c
+> index 69288f6..3233fe8 100644
+> --- a/arch/powerpc/platforms/cell/cbe_cpufreq_pmi.c
+> +++ b/arch/powerpc/platforms/cell/cbe_cpufreq_pmi.c
+> @@ -96,6 +96,12 @@ static int pmi_notifier(struct notifier_block *nb,
+>  	struct cpufreq_frequency_table *cbe_freqs;
+>  	u8 node;
+>  
+> +	/* Should this really be called for CPUFREQ_ADJUST, CPUFREQ_INCOMPATIBLE
+> +	 * and CPUFREQ_NOTIFY policy events?)
+> +	 */
+> +	if (event == CPUFREQ_START)
+> +		return 0;
+> +
+>  	cbe_freqs = cpufreq_frequency_get_table(policy->cpu);
+>  	node = cbe_cpu_to_node(policy->cpu);
+>  
+> diff --git a/drivers/acpi/processor_perflib.c 
+> b/drivers/acpi/processor_perflib.c
+> index b474996..63ccf80 100644
+> --- a/drivers/acpi/processor_perflib.c
+> +++ b/drivers/acpi/processor_perflib.c
+> @@ -72,7 +72,13 @@ MODULE_PARM_DESC(ignore_ppc, "If the frequency of your 
+> machine gets wrongly" \
+>  #define PPC_REGISTERED   1
+>  #define PPC_IN_USE       2
+>  
+> -static int acpi_processor_ppc_status = 0;
+> +/* ignore_ppc:
+> + * -1 -> cpufreq low level drivers not initialized -> _PSS, etc. not called 
+> yet
+
+I am going to start hanging around in dark alleys in the hope of
+meeting the person who invented wordwrapping.
+
+
+Here it is again, fixed:
+
+
+From: Thomas Renninger <trenn@suse.de>
+
+Ingo Molnar provided a fix to not call _PPC at processor driver
+initialization time.  Git commit #e4233dec749a3519069d9390561b5636a75c7579
+
+But it can still happen that _PPC is called at processor driver
+initialization time.
+
+This patch should make sure that this is not possible anymore.
+
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Chandra Seetharaman <sekharan@us.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Arkadiusz Miskiewicz <arekm@maven.pl>
+Cc: <gnorton@novell.com>
+Cc: <miguel@novell.com>
+Cc: <stable@kernel.org>		[2.6.25.x, 2.6.26.x]
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/e820.c |   19 +++++++++++++++++++
- arch/x86/pci/acpi.c    |    4 ++++
- 2 files changed, 23 insertions(+), 0 deletions(-)
+ arch/powerpc/platforms/cell/cbe_cpufreq_pmi.c |    6 ++++++
+ drivers/acpi/processor_perflib.c              |   13 ++++++++++++-
+ drivers/cpufreq/cpufreq.c                     |    3 +++
+ include/linux/cpufreq.h                       |    1 +
+ 4 files changed, 22 insertions(+), 1 deletion(-)
 
-
-diff --git a/arch/x86/kernel/e820.c b/arch/x86/kernel/e820.c
-index a5383ae..298aeec 100644
---- a/arch/x86/kernel/e820.c
-+++ b/arch/x86/kernel/e820.c
-@@ -539,6 +539,8 @@ __init int e820_search_gap(unsigned long *gapstart, unsigned long *gapsize,
+diff -puN arch/powerpc/platforms/cell/cbe_cpufreq_pmi.c~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already arch/powerpc/platforms/cell/cbe_cpufreq_pmi.c
+--- a/arch/powerpc/platforms/cell/cbe_cpufreq_pmi.c~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already
++++ a/arch/powerpc/platforms/cell/cbe_cpufreq_pmi.c
+@@ -96,6 +96,12 @@ static int pmi_notifier(struct notifier_
+ 	struct cpufreq_frequency_table *cbe_freqs;
+ 	u8 node;
  
- 	last = (end_addr && end_addr < MAX_GAP_END) ? end_addr : MAX_GAP_END;
++	/* Should this really be called for CPUFREQ_ADJUST, CPUFREQ_INCOMPATIBLE
++	 * and CPUFREQ_NOTIFY policy events?)
++	 */
++	if (event == CPUFREQ_START)
++		return 0;
++
+ 	cbe_freqs = cpufreq_frequency_get_table(policy->cpu);
+ 	node = cbe_cpu_to_node(policy->cpu);
  
-+	printk("E820_DEBUG: Searching for gap between (0x%08lx - 0x%08llx)\n",
-+							 start_addr, end_addr);
- 	while (--i >= 0) {
- 		unsigned long long start = e820.map[i].addr;
- 		unsigned long long end = start + e820.map[i].size;
-@@ -556,9 +558,26 @@ __init int e820_search_gap(unsigned long *gapstart, unsigned long *gapsize,
- 			if (gap >= *gapsize) {
- 				*gapsize = gap;
- 				*gapstart = end;
-+				printk("E820_DEBUG: Found gap starting at "
-+					"0x%08llx size 0x%08llx\n", end, gap);
- 				found = 1;
- 			}
- 		}
-+		if (start > start_addr) {
-+			unsigned long gap, prev_end;
-+			prev_end = e820.map[i-1].addr + e820.map[i-1].size;
-+			if (start_addr > prev_end) {
-+				gap = start - start_addr;
-+				if (gap >=*gapsize) {
-+					*gapsize = gap;
-+                                *gapstart = start_addr;
-+                                printk("E820_DEBUG: Found gap at start starting at "
-+                                        "0x%08llx size 0x%08llx\n", end, gap);
-+                                found = 1;
-+				start = start_addr;
-+                        	}
-+			}
-+		}
- 		if (start < last)
- 			last = start;
- 	}
-diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-index fff2c42..1a88149 100644
---- a/arch/x86/pci/acpi.c
-+++ b/arch/x86/pci/acpi.c
-@@ -131,8 +131,12 @@ static acpi_status search_gap(struct acpi_resource *resource, void *data)
- 		/*
- 		 * We want space only in the 32bit address range
- 		 */
-+		printk("ACPI_DEBUG start_addr 0x%08lx gapsize 0x%08lx "
-+			"address_length 0x%08lx\n", start_addr, gap->gapsize,
-+			addr.address_length);
- 		if (start_addr < UINT_MAX) {
- 			end_addr = start_addr + addr.address_length;
-+			printk("\t\tend_addr is 0x%08lx\n", end_addr);
- 			e820_search_gap(&gap->gapstart, &gap->gapsize,
- 					start_addr, end_addr);
- 		}
-
+diff -puN drivers/acpi/processor_perflib.c~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already drivers/acpi/processor_perflib.c
+--- a/drivers/acpi/processor_perflib.c~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already
++++ a/drivers/acpi/processor_perflib.c
+@@ -72,7 +72,13 @@ MODULE_PARM_DESC(ignore_ppc, "If the fre
+ #define PPC_REGISTERED   1
+ #define PPC_IN_USE       2
+ 
+-static int acpi_processor_ppc_status = 0;
++/* ignore_ppc:
++ * -1 -> cpufreq low level drivers not initialized -> _PSS, etc. not called yet
++ *       ignore _PPC
++ *  0 -> cpufreq low level drivers initialized -> consider _PPC values
++ *  1 -> ignore _PPC totally -> forced by user through boot param
++ */
++static int acpi_processor_ppc_status = -1;
+ 
+ static int acpi_processor_ppc_notifier(struct notifier_block *nb,
+ 				       unsigned long event, void *data)
+@@ -81,6 +87,11 @@ static int acpi_processor_ppc_notifier(s
+ 	struct acpi_processor *pr;
+ 	unsigned int ppc = 0;
+ 
++	if (event == CPUFREQ_START && ignore_ppc <= 0) {
++		ignore_ppc = 0;
++		return 0;
++	}
++
+ 	if (ignore_ppc)
+ 		return 0;
+ 
+diff -puN drivers/cpufreq/cpufreq.c~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already drivers/cpufreq/cpufreq.c
+--- a/drivers/cpufreq/cpufreq.c~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already
++++ a/drivers/cpufreq/cpufreq.c
+@@ -825,6 +825,9 @@ static int cpufreq_add_dev(struct sys_de
+ 	policy->user_policy.min = policy->cpuinfo.min_freq;
+ 	policy->user_policy.max = policy->cpuinfo.max_freq;
+ 
++	blocking_notifier_call_chain(&cpufreq_policy_notifier_list,
++				     CPUFREQ_START, policy);
++
+ #ifdef CONFIG_SMP
+ 
+ #ifdef CONFIG_HOTPLUG_CPU
+diff -puN include/linux/cpufreq.h~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already include/linux/cpufreq.h
+--- a/include/linux/cpufreq.h~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already
++++ a/include/linux/cpufreq.h
+@@ -106,6 +106,7 @@ struct cpufreq_policy {
+ #define CPUFREQ_ADJUST		(0)
+ #define CPUFREQ_INCOMPATIBLE	(1)
+ #define CPUFREQ_NOTIFY		(2)
++#define CPUFREQ_START		(3)
+ 
+ #define CPUFREQ_SHARED_TYPE_NONE (0) /* None */
+ #define CPUFREQ_SHARED_TYPE_HW	 (1) /* HW does needed coordination */
+_
 
