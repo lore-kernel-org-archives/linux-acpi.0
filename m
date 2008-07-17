@@ -1,70 +1,72 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: [PATCH]  ACPI:  Ignore _BQC object when registering backlight
-	device
-Date: Thu, 17 Jul 2008 10:46:05 +0800
-Message-ID: <1216262765.7169.36.camel@localhost.localdomain>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: Please pull ACPI updates
+Date: Wed, 16 Jul 2008 19:56:44 -0700 (PDT)
+Message-ID: <alpine.LFD.1.10.0807161948180.2959@woody.linux-foundation.org>
+References: <20080716214516.GA10777@basil.nowhere.org> <alpine.LFD.1.10.0807161728560.2835@woody.linux-foundation.org> <alpine.LFD.1.10.0807161751490.2959@woody.linux-foundation.org> <200807161926.45975.jbarnes@virtuousgeek.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:15243 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753884AbYGQCei (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Jul 2008 22:34:38 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757211AbYGQC5Y@vger.kernel.org>
+In-Reply-To: <200807161926.45975.jbarnes@virtuousgeek.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Andi Kleen <andi@firstfloor.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
-
->From : Zhao Yakui <yakui.zhao@intel.com>
-
-According to acpi spec , the objectes of  _BCL and _BCM are required if
-integrated LCD is present and supports brightness level and the _BQC is
-the optional object. So the _BQC object will be ignored when the backlight 
-device is registered.
-At the same time when there is no _BQC object, the current brightness will be
-set to the maximum.
-
-http://bugzilla.kernel.org/show_bug.cgi?id=10206
-
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-Signed-off-by: Zhang Rui  <rui.zhang@intel.com>
-
----
- drivers/acpi/video.c |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
-
-Index: linux-2.6/drivers/acpi/video.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/video.c
-+++ linux-2.6/drivers/acpi/video.c
-@@ -741,7 +741,7 @@ static void acpi_video_device_find_cap(s
- 
- 	max_level = acpi_video_init_brightness(device);
- 
--	if (device->cap._BCL && device->cap._BCM && device->cap._BQC && max_level > 0){
-+	if (device->cap._BCL && device->cap._BCM && max_level > 0) {
- 		int result;
- 		static int count = 0;
- 		char *name;
-@@ -753,7 +753,17 @@ static void acpi_video_device_find_cap(s
- 		device->backlight = backlight_device_register(name,
- 			NULL, device, &acpi_backlight_ops);
- 		device->backlight->props.max_brightness = device->brightness->count-3;
--		device->backlight->props.brightness = acpi_video_get_brightness(device->backlight);
-+		/*
-+		 * If there exists the _BQC object, the _BQC object will be
-+		 * called to get the current backlight brightness. Otherwise
-+		 * the brightness will be set to the maximum.
-+		 */
-+		if (device->cap._BQC)
-+			device->backlight->props.brightness =
-+				acpi_video_get_brightness(device->backlight);
-+		else
-+			device->backlight->props.brightness =
-+				device->backlight->props.max_brightness;
- 		backlight_update_status(device->backlight);
- 		kfree(name);
- 
 
 
+
+On Wed, 16 Jul 2008, Jesse Barnes wrote:
+> 
+> I'll dig around some more for git best practices too.  Based on what I've seen 
+> of the x86 tree I don't have nearly enough branches
+
+Don't worry about it. Start small. I think the x86 tree took up some 
+pretty extreme limits, as can be seen by their 29-way merge or whatever it 
+was. They also obviously have a lot more stuff going on than the PCI tree 
+would be expected to have.
+
+For most people, I'd expect that a small handful of branches is good. It 
+might be just one, but it might be a couple of independent issues.
+
+The point where a topic branch is _really_ useful is when you ask yourself 
+whether that particular change is something that you (or somebody else!) 
+might want to delay or test separately from some other change - that's 
+when "oh, let's just use a separate branch for it" is really appropriate.
+
+Len, for example, often did topic branches for individual bugzilla 
+entries, and obviously for big conceptually separate things like ACPICA, 
+which really _is_ a totally disjoint development track.
+
+Other people, like rmk, use topic branches for particular hardware 
+platforms.
+
+On the other hand, if it's a trivial and obvious thing, there's no point 
+in putting it into a separate branch. A number people who keep topic 
+branches for all their major development then end up having a "misc" 
+branch for just random things.
+
+And remember: in git, topic branches are temporary things. You can rename 
+them, you can delete them, you can ignore them. And before you've pushed 
+things out, you can even decide to create a topic branch of a set of 
+commits _after_ the fact. So you can commit _first_, and then decide that 
+that commit was probably best to keep separate, so you create a topic 
+branch with that commit on it, an go back to the pre-commit state on your 
+regular branch.
+
+BUT!
+
+ - Not everybody _has_ to use topic branches. If you are maintaining 
+   something that is very specific to begin with, _all_ your maintenance 
+   is basically one topic to start with, so you'd never have separate 
+   topic branches.
+
+   The filesystem people, for example, do not tend to use topic branches 
+   for this reason. They do their filesystem. They seldom have issues that 
+   crop up on just certain platforms etc.
+
+ - And more importantly - play around with it. Get used to it first. Look 
+   at what other people do. Start small, with perhaps just one special 
+   topic branch to test the waters with.
+
+So don't worry _too_ much.
+
+			Linus
