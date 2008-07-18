@@ -1,52 +1,46 @@
-From: "Ray Lee" <ray-lk@madrabbit.org>
-Subject: Re: Please pull ACPI updates
-Date: Fri, 18 Jul 2008 08:57:08 -0700
-Message-ID: <2c0942db0807180857v54748277ja4b330537309a861@mail.gmail.com>
-References: <200807161633.01375.jbarnes@virtuousgeek.org>
-	 <alpine.LFD.1.10.0807170807040.2959@woody.linux-foundation.org>
-	 <alpine.LFD.1.10.0807170835320.2959@woody.linux-foundation.org>
-	 <487F71E8.9050705@firstfloor.org>
-	 <2c0942db0807171211s39e2653fwdc50f92d9c3020d2@mail.gmail.com>
-	 <487FA24B.9060803@firstfloor.org>
-	 <alpine.LFD.1.10.0807171259010.2959@woody.linux-foundation.org>
-	 <alpine.LFD.1.10.0807171304220.2959@woody.linux-foundation.org>
-	 <alpine.LFD.1.10.0807171323320.2959@woody.linux-foundation.org>
-	 <20080718132521.GA94799@dspnet.fr.eu.org>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH] ACPI: Provide a spec conform OSI interface to the BIOS
+Date: Fri, 18 Jul 2008 19:22:11 +0200
+Message-ID: <200807181922.11728.trenn@suse.de>
+References: <1216316268-24042-1-git-send-email-trenn@suse.de> <48804349.607@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from el-out-1112.google.com ([209.85.162.176]:5202 "EHLO
-	el-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750967AbYGRP5K (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Jul 2008 11:57:10 -0400
-Received: by el-out-1112.google.com with SMTP id z25so88797ele.1
-        for <linux-acpi@vger.kernel.org>; Fri, 18 Jul 2008 08:57:09 -0700 (PDT)
-In-Reply-To: <20080718132521.GA94799@dspnet.fr.eu.org>
+Received: from mx2.suse.de ([195.135.220.15]:48236 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752183AbYGRR4R (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 18 Jul 2008 13:56:17 -0400
+In-Reply-To: <48804349.607@linux.intel.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Olivier Galibert <galibert@pobox.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andi Kleen <andi@firstfloor.org>, Ray Lee <ray-lk@madrabbit.org>, Jesse Barnes <jbarn>
+To: Andi Kleen <ak@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Fri, Jul 18, 2008 at 6:25 AM, Olivier Galibert <galibert@pobox.com> wrote:
-> You say "don't rebase on the most recent kernel version".  Andi seems
-> to accept that going forwards.  You say "use topic branches that are
-> based on whatever kernel version you had at the time, I'll do the
-> merge".  That's ok too.  His remaining question is "what do I do with
-> broken patches _in_the_topic_branch_?".  He wants to
-> amend/merge/split/reorder within the topic branch so that the branch
-> itself is bisectable.  So what should be done there?
+On Friday 18 July 2008 09:16:25 am Andi Kleen wrote:
+> Thomas Renninger wrote:
+> > Introduce acpi_osi=windows_false boot parameter
+> > Introduce CONFIG_ACPI_OSI_SPEC_CONFORM config option
+>
+> Why are you adding the CONFIG option? 
+> In what circumstances would one 
+> set it? If anything I think this should be a boot option only for now.
+E.g. for OEMs that do not need to support all BIOSes in the world who 
+can just check for the config option and then know it behaves as written in 
+the spec and being able to support Linux and Windows through the same BIOS.
 
-If the patches have problems, then make a new topic branch and redo
-them there, or reorder, amend, squash, whatever inside the original
-branch. The problem comes once you open that branch out for other
-people to pull from, or if that branch had pulled patches from someone
-else. At that point you're destroying the history that other people
-are now already sharing, in a meta-data sense (changing the sha1), as
-well as invalidating whatever test points that people may have had on
-those commits.
+But you are right, the compile option only makes sense if acpi_osi="Windows 
+2006" can be used to simulate a specific Windows OS via boot param, which is 
+not the case.
 
-In short, don't rewrite public history. If you want to share out your
-works-in-progress, just let people know that those branches of yours
-are volatile and not to be trusted. But you can't pull someone else's
-public history, and then make it volatile; subtle trouble ensues.
+But I want the boot param. This one makes very much sense to test BIOSes 
+whether they stick to the ACPI spec and work fine on Linux without Windows 
+simulation. Is that ok?
+
+> Probably needs more discussion first.
+I always wanted to write down the arguments again, but this takes a lot time.
+Will you accept the boot param only?
+
+       Thomas
