@@ -1,58 +1,72 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [PATCH] Revert duplicate "ACPI: don't walk tables if ACPI was
- disabled" commit (was: Please pull ACPI updates)
-Date: Fri, 18 Jul 2008 02:07:02 +0200 (CEST)
-Message-ID: <alpine.LFD.1.10.0807180159270.4316@apollo.tec.linutronix.de>
-References: <20080716214516.GA10777@basil.nowhere.org> <200807170011.12184.rjw@sisk.pl> <200807161633.01375.jbarnes@virtuousgeek.org> <alpine.LFD.1.10.0807161639090.2835@woody.linux-foundation.org> <487EE940.1050007@firstfloor.org>
- <alpine.LFD.1.10.0807170752190.2959@woody.linux-foundation.org> <alpine.LFD.1.10.0807180013190.4316@apollo.tec.linutronix.de>
+From: "Maciej W. Rozycki" <macro@linux-mips.org>
+Subject: Re: v2.6.26-rc9: ACPI PCI irq routing on NUMA? + early_ioremap
+ trouble
+Date: Fri, 18 Jul 2008 01:47:44 +0100 (BST)
+Message-ID: <Pine.LNX.4.55.0807180117320.6536@cliff.in.clinika.pl>
+References: <19f34abd0807060647k54490088uf8859d8a1646fd41@mail.gmail.com>
+ <200807171245.31641.bjorn.helgaas@hp.com> <19f34abd0807171358p3c5a44f9i91ab23d3f5e9671f@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from www.tglx.de ([62.245.132.106]:37208 "EHLO www.tglx.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759570AbYGRAH7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Jul 2008 20:07:59 -0400
-In-Reply-To: <alpine.LFD.1.10.0807180013190.4316@apollo.tec.linutronix.de>
+Received: from kirk.serum.com.pl ([213.77.9.205]:61881 "EHLO serum.com.pl"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1757769AbYGRAsp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 Jul 2008 20:48:45 -0400
+In-Reply-To: <19f34abd0807171358p3c5a44f9i91ab23d3f5e9671f@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andi Kleen <andi@firstfloor.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>
+To: Vegard Nossum <vegard.nossum@gmail.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Ingo Molnar <mingo@elte.hu>, Alexey Starikovskiy <astarikovskiy@suse.de>, Thomas Gleixner <tglx@linutronix.de>, venkatesh.pallipadi@intel.com, Huang Ying <ying.huang@intel.com>, Andi Kleen <andi@firstfloor.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Fri, 18 Jul 2008, Thomas Gleixner wrote:
+On Thu, 17 Jul 2008, Vegard Nossum wrote:
+
+> Hah, I actually managed to get netconsole working. This is the log
+> that fails (v2.6.26):
 > 
-> Please revert the one I happened to notice. Patch below.
+> http://folk.uio.no/vegardno/linux/numa-netconsole.txt
+> 
+> I think this looks really interesting:
+> 
+> [    0.093562] ExtINT not setup in hardware but reported by MP table
+> [    0.093854] ENABLING IO-APIC IRQs
+> [    0.094244] ..TIMER: vector=0x31 apic1=-1 pin1=2 apic2=-1 pin2=0
+> [    0.094985] ..MP-BIOS bug: 8254 timer not connected to IO-APIC
+> [    0.094985] ...trying to set up timer (IRQ0) through the 8259A ...
+> [    0.094985] ..... (found pin 0) ...<7>APIC error on CPU0: 00(80)
+> [    0.094985]  failed.
+> [    0.094985] ...trying to set up timer as Virtual Wire IRQ...<7>APIC
+> error on CPU0: 80(80)
+> [    0.105761]  works.
+> 
+> This error would be:
+>            7: Illegal register address
+> 
+> Looks like APIC was misconfigured, which might explain IRQ routing weirdness?
 
-Another one.
+ Here pin1 and pin2 have been correctly initialised, but apic1 and apic2
+are both set to -1.  This is an "impossible scenario."  Because of that
+I/O APIC code actually pokes at random registers of the local APIC which
+immediately precedes I/O APIC #0 in the fixmap.  Results may be arbitrary.
 
-Thanks,
+> Will try to provide the booting one later. Now zZz...
+
+ Your system uses an MP table and there were quite a lot of changes in its
+support code recently.  A bug must have crept in.  Please try the appended
+patch and the "apic=debug" option for both cases and the resulting logs
+may shed some light.
+
+  Maciej
+
+patch-next-2.6.26-rc9-20080711-apic-dprintk-0
+diff -up --recursive --new-file linux-next-2.6.26-rc9-20080711.macro/include/asm-x86/apic.h linux-next-2.6.26-rc9-20080711/include/asm-x86/apic.h
+--- linux-next-2.6.26-rc9-20080711.macro/include/asm-x86/apic.h	2008-07-16 14:50:07.000000000 +0000
++++ linux-next-2.6.26-rc9-20080711/include/asm-x86/apic.h	2008-07-18 00:33:19.000000000 +0000
+@@ -10,7 +10,7 @@
  
- 	tglx
+ #define ARCH_APICTIMER_STOPS_ON_C3	1
  
------------>
-Subject: APCI: revert another duplicated patch
-From: Thomas Gleixner <tglx@linutronix.de>
-
-commit d1857056904d5f313f11184fcfa624652ff9620a
-
-is another superfluous duplicate commit caused by
-git -> quilt -> git conversion.
-
-Revert it.
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de> 
-
----
-diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
-index 6d18ca3..9b227d4 100644
---- a/drivers/acpi/glue.c
-+++ b/drivers/acpi/glue.c
-@@ -336,9 +336,6 @@ static int __init acpi_rtc_init(void)
- 	if (acpi_disabled)
- 		return 0;
+-#define Dprintk(x...)
++#define Dprintk printk
  
--	if (acpi_disabled)
--		return 0;
--
- 	if (dev) {
- 		rtc_wake_setup();
- 		rtc_info.wake_on = rtc_wake_on;
+ /*
+  * Debugging macros
