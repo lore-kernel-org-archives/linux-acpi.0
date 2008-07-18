@@ -1,77 +1,53 @@
-From: Alex Chiang <achiang@hp.com>
-Subject: Re: [PATCH 01/14] Introduce cpu_enabled_map and friends
-Date: Fri, 18 Jul 2008 17:08:37 -0600
-Message-ID: <20080718230837.GC20344@ldl.fc.hp.com>
-References: <20080715023344.2528.1836.stgit@blender.achiang> <20080715023349.2528.9423.stgit@blender.achiang> <20080715031512.GF14894@parisc-linux.org> <87wsjnxy4w.fsf@basil.nowhere.org> <20080715102130.GA22866@flint.arm.linux.org.uk> <20080715175740.GB10919@ldl.fc.hp.com> <20080715181632.GG14894@parisc-linux.org> <20080715184822.GB29991@flint.arm.linux.org.uk> <20080715191515.GE10919@ldl.fc.hp.com> <20080718214454.GD25816@flint.arm.linux.org.uk>
+From: Yinghai Lu <yhlu.kernel@gmail.com>
+Subject: [PATCH] acpi: remove have_arch_parse_srat in acpi.h
+Date: Fri, 18 Jul 2008 16:22:15 -0700
+Message-ID: <200807181622.15595.yhlu.kernel@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0014.houston.hp.com ([15.201.24.17]:45339 "EHLO
-	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754184AbYGRXIi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Jul 2008 19:08:38 -0400
+Received: from wa-out-1112.google.com ([209.85.146.179]:9203 "EHLO
+	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754394AbYGRXWq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Jul 2008 19:22:46 -0400
+Received: by wa-out-1112.google.com with SMTP id j37so251299waf.23
+        for <linux-acpi@vger.kernel.org>; Fri, 18 Jul 2008 16:22:46 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20080718214454.GD25816@flint.arm.linux.org.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Wilcox <matthew@wil.cx>, Andi Kleen <andi@firstfloor.org>, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Andi Kleen <andi@firstfloor.org>, Ingo Molnar <mingo@elte.hu>, "lenb@kernel.org" <lenb@kernel.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-* Russell King <rmk+lkml@arm.linux.org.uk>:
-> On Tue, Jul 15, 2008 at 01:15:15PM -0600, Alex Chiang wrote:
-> > * Russell King <rmk+lkml@arm.linux.org.uk>:
-> > > 
-> > > How about having smp_init() call into arch code to query whether
-> > > it should bring up a not-already-online CPU?  Architectures that
-> > > want to do something special can then make the decision there and
-> > > everyone else can define the test completely away.
-> > 
-> > So this is exactly what I'm doing. The ia64 patch has this hunk:
-> > 
-> > @@ -820,6 +824,9 @@ __cpu_up (unsigned int cpu)
-> >         if (cpu_isset(cpu, cpu_callin_map))
-> >                 return -EINVAL;
-> > 
-> > +       if (!cpu_isset(cpu, cpu_enabled_map))
-> > +               return -EINVAL;
-> > +
-> >         per_cpu(cpu_state, cpu) = CPU_UP_PREPARE;
-> >         /* Processor goes to start_secondary(), sets online flag */
-> >         ret = do_boot_cpu(sapicid, cpu);
-> > 
-> > That was the easiest, most-straightforward solution I could think
-> > of. If you have an idea for a version with lower taxes (doesn't
-> > touch all the archs or can be #define'd out), I'm happy to hear
-> > it.
-> 
-> I think I did make a suggestion in the bit you quote from me above.
-> 
-> Let me be more explicit:
 
-Thanks, sorry for being dense.
+32bit don't need that anymore
 
-> static void __init smp_init(void)
-> {
->         unsigned int cpu;
-> 
->         /* FIXME: This should be done in userspace --RR */
->         for_each_present_cpu(cpu) {
->                 if (num_online_cpus() >= setup_max_cpus)
->                         break;
-> -		if (!cpu_online(cpu))
-> +		if (smp_cpu_enabled(cpu) && !cpu_online(cpu))
->                         cpu_up(cpu);
->         }
-> 
->         /* Any cleanup work */
->         printk(KERN_INFO "Brought up %ld CPUs\n", (long)num_online_cpus());
->         smp_cpus_done(setup_max_cpus);
-> }
-> 
-> and have architectures provide 'smp_cpu_enabled(cpu)' which can either
-> be a function, inline function or a macro (and therefore possible to be
-> completely eliminated.)
+Signed-off-by: Yinghai Lu <yhlu.kernel@gmail.com>
 
-Yup, this is nicer. I'll try this.
+---
+ include/linux/acpi.h |    8 --------
+ 1 file changed, 8 deletions(-)
 
-/ac
-
+Index: linux-2.6/include/linux/acpi.h
+===================================================================
+--- linux-2.6.orig/include/linux/acpi.h
++++ linux-2.6/include/linux/acpi.h
+@@ -94,18 +94,10 @@ int acpi_parse_mcfg (struct acpi_table_h
+ void acpi_table_print_madt_entry (struct acpi_subtable_header *madt);
+ 
+ /* the following four functions are architecture-dependent */
+-#ifdef CONFIG_HAVE_ARCH_PARSE_SRAT
+-#define NR_NODE_MEMBLKS MAX_NUMNODES
+-#define acpi_numa_slit_init(slit) do {} while (0)
+-#define acpi_numa_processor_affinity_init(pa) do {} while (0)
+-#define acpi_numa_memory_affinity_init(ma) do {} while (0)
+-#define acpi_numa_arch_fixup() do {} while (0)
+-#else
+ void acpi_numa_slit_init (struct acpi_table_slit *slit);
+ void acpi_numa_processor_affinity_init (struct acpi_srat_cpu_affinity *pa);
+ void acpi_numa_memory_affinity_init (struct acpi_srat_mem_affinity *ma);
+ void acpi_numa_arch_fixup(void);
+-#endif
+ 
+ #ifdef CONFIG_ACPI_HOTPLUG_CPU
+ /* Arch dependent functions for cpu hotplug support */
