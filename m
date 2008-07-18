@@ -1,56 +1,55 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH 01/11] ACPI: video: Ignore devices that aren't present
-	in hardware
-Date: Fri, 18 Jul 2008 15:48:18 +0800
-Message-ID: <1216367298.1617.221.camel@rzhang-fc9.sh.intel.com>
-References: <1216315935-20998-1-git-send-email-trenn@suse.de>
-	 <1216315935-20998-2-git-send-email-trenn@suse.de>
+From: "Vegard Nossum" <vegard.nossum@gmail.com>
+Subject: Re: v2.6.26-rc9: ACPI PCI irq routing on NUMA? + early_ioremap trouble
+Date: Fri, 18 Jul 2008 09:51:02 +0200
+Message-ID: <19f34abd0807180051i544367b7s64f32d601af31296@mail.gmail.com>
+References: <19f34abd0807060647k54490088uf8859d8a1646fd41@mail.gmail.com>
+	 <200807171245.31641.bjorn.helgaas@hp.com>
+	 <19f34abd0807171358p3c5a44f9i91ab23d3f5e9671f@mail.gmail.com>
+	 <Pine.LNX.4.55.0807180117320.6536@cliff.in.clinika.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:62910 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751856AbYGRHtf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 18 Jul 2008 03:49:35 -0400
-In-Reply-To: <1216315935-20998-2-git-send-email-trenn@suse.de>
+Received: from yw-out-2324.google.com ([74.125.46.28]:48130 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751461AbYGRHvE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Jul 2008 03:51:04 -0400
+Received: by yw-out-2324.google.com with SMTP id 9so74092ywe.1
+        for <linux-acpi@vger.kernel.org>; Fri, 18 Jul 2008 00:51:02 -0700 (PDT)
+In-Reply-To: <Pine.LNX.4.55.0807180117320.6536@cliff.in.clinika.pl>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: ak@linux.intel.com, linux-acpi@vger.kernel.org
+To: "Maciej W. Rozycki" <macro@linux-mips.org>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Ingo Molnar <mingo@elte.hu>, Alexey Starikovskiy <astarikovskiy@suse.de>, Thomas Gleixner <tglx@linutronix.de>, venkatesh.pallipadi@intel.com, Huang Ying <ying.huang@intel.com>, Andi Kleen <andi@firstfloor.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Thu, 2008-07-17 at 19:32 +0200, Thomas Renninger wrote:
-> This is a reimplemention of commit
-> 0119509c4fbc9adcef1472817fda295334612976
-> from Matthew Garrett <mjg59@srcf.ucam.org>
-> 
-> This patch got removed because of a regression: ThinkPads with a
-> Intel graphics card and an Integrated Graphics Device BIOS implementation
-> stopped working.
-> In fact, they only worked because the ACPI device of the discrete, the
-> wrong one, got used (via int10). So ACPI functions were poking on the wrong
-> hardware used which is a sever bug.
-> The next patch provides support for above ThinkPads to be able to
-> switch brightness via the legacy thinkpad_acpi driver and automatically
-> detect when to use it.
+On Fri, Jul 18, 2008 at 2:47 AM, Maciej W. Rozycki <macro@linux-mips.org> wrote:
+>> Looks like APIC was misconfigured, which might explain IRQ routing weirdness?
+>
+>  Here pin1 and pin2 have been correctly initialised, but apic1 and apic2
+> are both set to -1.  This is an "impossible scenario."  Because of that
+> I/O APIC code actually pokes at random registers of the local APIC which
+> immediately precedes I/O APIC #0 in the fixmap.  Results may be arbitrary.
+>
+>> Will try to provide the booting one later. Now zZz...
+>
+>  Your system uses an MP table and there were quite a lot of changes in its
+> support code recently.  A bug must have crept in.  Please try the appended
+> patch and the "apic=debug" option for both cases and the resulting logs
+> may shed some light.
 
-Sorry, but I still can't find the code to detect thinkpad laptops.
-there should be a dmi check in video_detect.c, right?
-Or do I miss something?
+I have done this for the bad case:
+http://folk.uio.no/vegardno/linux/netconsole2.txt
 
-thanks,
-rui
-
-> 
-> Original commit message from Matthew Garrett:
->     Vendors often ship machines with a choice of integrated or discrete
->     graphics, and use the same DSDT for both. As a result, the ACPI video
->     module will locate devices that may not exist on this specific platform.
->     Attempt to determine whether the device exists or not, and abort the
->     device creation if it doesn't.
-> 
-> http://bugzilla.kernel.org/show_bug.cgi?id=9614
-> 
-> Signed-off-by: Thomas Renninger <trenn@suse.de>
+(I added a warning for certain APIC errors as well. Not that it adds
+much in this particular case, but I think it would be good to have in
+mainline anyway, to highlight these error cases in the future...)
 
 
+Vegard
+
+-- 
+"The animistic metaphor of the bug that maliciously sneaked in while
+the programmer was not looking is intellectually dishonest as it
+disguises that the error is the programmer's own creation."
+	-- E. W. Dijkstra, EWD1036
