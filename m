@@ -1,46 +1,51 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH] ACPI: Provide a spec conform OSI interface to the BIOS
-Date: Fri, 18 Jul 2008 19:22:11 +0200
-Message-ID: <200807181922.11728.trenn@suse.de>
-References: <1216316268-24042-1-git-send-email-trenn@suse.de> <48804349.607@linux.intel.com>
+From: "H. Peter Anvin" <hpa@zytor.com>
+Subject: Re: [PATCH 11/14] x86: Populate cpu_enabled_map
+Date: Fri, 18 Jul 2008 13:00:23 -0700
+Message-ID: <4880F657.8050508@zytor.com>
+References: <20080715025656.GC15452@ldl.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:48236 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752183AbYGRR4R (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 18 Jul 2008 13:56:17 -0400
-In-Reply-To: <48804349.607@linux.intel.com>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1760308AbYGRUBP@vger.kernel.org>
+In-Reply-To: <20080715025656.GC15452@ldl.fc.hp.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alex Chiang <achiang@hp.com>, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <ak@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org
 
-On Friday 18 July 2008 09:16:25 am Andi Kleen wrote:
-> Thomas Renninger wrote:
-> > Introduce acpi_osi=windows_false boot parameter
-> > Introduce CONFIG_ACPI_OSI_SPEC_CONFORM config option
->
-> Why are you adding the CONFIG option? 
-> In what circumstances would one 
-> set it? If anything I think this should be a boot option only for now.
-E.g. for OEMs that do not need to support all BIOSes in the world who 
-can just check for the config option and then know it behaves as written in 
-the spec and being able to support Linux and Windows through the same BIOS.
+Alex Chiang wrote:
+> Populate the cpu_enabled_map correctly.
+> 
+> Note that this patch does not actually make any decisions based
+> on the contents of the map.
+> 
+> However, as the map is presented via sysfs in:
+> 
+> 	/sys/devices/system/cpu/
+> 
+> It should be populated correctly.
+> 
+> There will be a user-visible change under the above directory.
+> cpuN/ entries for firmware-disabled CPUs will now appear, whereas
+> before, they did not due to a check against ACPI_MADT_ENABLED.
+> 
+> The cpuN/ entries will be empty, and the online file in the
+> above directory will reflect which CPUs are actually schedulable.
+> 
+> Signed-off-by: Alex Chiang <achiang@hp.com>
+> Cc: Ingo Molnar <mingo@redhat.com>
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> Cc: H. Peter Anvin <hpa@zytor.com>
 
-But you are right, the compile option only makes sense if acpi_osi="Windows 
-2006" can be used to simulate a specific Windows OS via boot param, which is 
-not the case.
+ From an x86 standpoint this patchset seems reasonable to me.
 
-But I want the boot param. This one makes very much sense to test BIOSes 
-whether they stick to the ACPI spec and work fine on Linux without Windows 
-simulation. Is that ok?
+Acked-by: H. Peter Anvin <hpa@zytor.com>
 
-> Probably needs more discussion first.
-I always wanted to write down the arguments again, but this takes a lot time.
-Will you accept the boot param only?
+Since it is a panarch patchset it presumably should go via -mm rather 
+than in the arch trees, so I'm not going to add it to -tip.
 
-       Thomas
+Obviously, if the sematics of the operations don't make sense for other 
+architectures -- which I will leave up to the affected maintainers -- 
+then that should be carefully considered if the generic operations can 
+be done better.
+
+	-hpa
