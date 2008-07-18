@@ -1,55 +1,104 @@
-From: "Vegard Nossum" <vegard.nossum@gmail.com>
-Subject: Re: v2.6.26-rc9: ACPI PCI irq routing on NUMA? + early_ioremap trouble
-Date: Fri, 18 Jul 2008 09:51:02 +0200
-Message-ID: <19f34abd0807180051i544367b7s64f32d601af31296@mail.gmail.com>
-References: <19f34abd0807060647k54490088uf8859d8a1646fd41@mail.gmail.com>
-	 <200807171245.31641.bjorn.helgaas@hp.com>
-	 <19f34abd0807171358p3c5a44f9i91ab23d3f5e9671f@mail.gmail.com>
-	 <Pine.LNX.4.55.0807180117320.6536@cliff.in.clinika.pl>
+From: Gautham R Shenoy <ego@in.ibm.com>
+Subject: Re: [linux-pm] Linux Power Management Mini-Summit -- Ottawa --
+	July 22, 2008
+Date: Fri, 18 Jul 2008 04:50:00 -0500
+Message-ID: <20080718095000.GA5017@in.ibm.com>
+References: <alpine.LFD.1.10.0807171724070.16742@localhost.localdomain>
+Reply-To: ego@in.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.28]:48130 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751461AbYGRHvE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Jul 2008 03:51:04 -0400
-Received: by yw-out-2324.google.com with SMTP id 9so74092ywe.1
-        for <linux-acpi@vger.kernel.org>; Fri, 18 Jul 2008 00:51:02 -0700 (PDT)
-In-Reply-To: <Pine.LNX.4.55.0807180117320.6536@cliff.in.clinika.pl>
+Received: from e28smtp07.in.ibm.com ([59.145.155.7]:48027 "EHLO
+	e28esmtp07.in.ibm.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752976AbYGRJud (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Jul 2008 05:50:33 -0400
 Content-Disposition: inline
+In-Reply-To: <alpine.LFD.1.10.0807171724070.16742@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Maciej W. Rozycki" <macro@linux-mips.org>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Ingo Molnar <mingo@elte.hu>, Alexey Starikovskiy <astarikovskiy@suse.de>, Thomas Gleixner <tglx@linutronix.de>, venkatesh.pallipadi@intel.com, Huang Ying <ying.huang@intel.com>, Andi Kleen <andi@firstfloor.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Linux Power Management List <linux-pm@lists.osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-On Fri, Jul 18, 2008 at 2:47 AM, Maciej W. Rozycki <macro@linux-mips.org> wrote:
->> Looks like APIC was misconfigured, which might explain IRQ routing weirdness?
->
->  Here pin1 and pin2 have been correctly initialised, but apic1 and apic2
-> are both set to -1.  This is an "impossible scenario."  Because of that
-> I/O APIC code actually pokes at random registers of the local APIC which
-> immediately precedes I/O APIC #0 in the fixmap.  Results may be arbitrary.
->
->> Will try to provide the booting one later. Now zZz...
->
->  Your system uses an MP table and there were quite a lot of changes in its
-> support code recently.  A bug must have crept in.  Please try the appended
-> patch and the "apic=debug" option for both cases and the resulting logs
-> may shed some light.
+On Thu, Jul 17, 2008 at 05:27:32PM -0400, Len Brown wrote:
+> We'll be in The Rideau Suite in Les-Suites
+> Tuesday July 22nd 8:30-18:30.
+> 
+> Thanks to HP for sponsoring
+> lunch at 12:30 as well as snacks at 10:00 and 15:30.
+> We'll wing it for dinner.
+> 
+> On linux-pm (sorry, on sabbatical I've been
+> bad about keeping up on email) I've seen
+> intent to attend from:
+> 
+> Len Brown <len.brown@intel.com>
+> Alan Stern <stern@rowland.harvard.edu>
+> Dipankar Sarma <dipankar@in.ibm.com>
+> Rafael J. Wysocki <rjw@sisk.pl>
+> "Woodruff, Richard" <r-woodruff2@ti.com>
+> Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
+> Matt Domsch <Matt_Domsch@dell.com>
+> Jarod Wilson <jwilson@redhat.com>
+> Tim Bird <tim.bird@am.sony.com>
+> Paul Mundt <lethal@linux-sh.org>
+> Hiroyuki Machida <Hiroyuki.Mach@gmail.com>
+> 
+Hi Len,
+I would like to attend the pm-mini summit if there's a slot available. I
+am interested in discussing:
 
-I have done this for the bad case:
-http://folk.uio.no/vegardno/linux/netconsole2.txt
+a) the improvements to idle load balancing
+algorithm on multi-node multi-core systems, for better power savings.
 
-(I added a warning for certain APIC errors as well. Not that it adds
-much in this particular case, but I think it would be good to have in
-mainline anyway, to highlight these error cases in the future...)
+b) Use of some kind of light-weight CPU-Hotplug for power-management
+on server systems.
 
-
-Vegard
+> Several send their regrets:
+> Dave Jones
+> Pavel Machek
+> Arjan van de Ven
+> 
+> If you plan to attend, please let me know,
+> because the folks at OLS want to know,
+> to simplify OLS registration.
+> 
+> thanks,
+> -Len
+> ---
+> 
+> We are again planning a Linux Power Management Mini-Summit preceding OLS.
+> This year we are looking at a single day, Tuesday July 22nd.
+> 
+> OLS is generously supporting mini-summits by providing the room
+> and projector: http://www.linuxsymposium.org/2008/minisummits.php
+> 
+> If you are interested in sponsoring the food or
+> other forum needs, please let me know.
+> 
+> Minutes from last year's meeting can be found here:
+> http://lwn.net/Articles/249019
+> 
+> If you have feedback on last year's meeting that
+> we can use to improve this year's, please speak up.
+> 
+> The feedback at the time was pretty positive, so I'm thinking
+> that unless there are new best-known-methods, that we'll stick
+> with the same open method of self-nominated attendees,
+> an agenda provoked by discussion on linux-pm ahead of time
+> and consensus of attendees, and a forum small enough to support
+> a single focused discussion.
+> 
+> (yes, one improvement I plan on this year is to publish minutes immediately.
+>  OLS was sort of hectic for me last year and that caused a delay)
+> 
+> thanks,
+> -Len
+> 
+> _______________________________________________
+> linux-pm mailing list
+> linux-pm@lists.linux-foundation.org
+> https://lists.linux-foundation.org/mailman/listinfo/linux-pm
 
 -- 
-"The animistic metaphor of the bug that maliciously sneaked in while
-the programmer was not looking is intellectually dishonest as it
-disguises that the error is the programmer's own creation."
-	-- E. W. Dijkstra, EWD1036
+Thanks and Regards
+gautham
