@@ -1,72 +1,63 @@
-From: "Maciej W. Rozycki" <macro@linux-mips.org>
-Subject: Re: v2.6.26-rc9: ACPI PCI irq routing on NUMA? + early_ioremap
- trouble
-Date: Fri, 18 Jul 2008 01:47:44 +0100 (BST)
-Message-ID: <Pine.LNX.4.55.0807180117320.6536@cliff.in.clinika.pl>
-References: <19f34abd0807060647k54490088uf8859d8a1646fd41@mail.gmail.com>
- <200807171245.31641.bjorn.helgaas@hp.com> <19f34abd0807171358p3c5a44f9i91ab23d3f5e9671f@mail.gmail.com>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: [PATCH 3/4]  ACPI: Add "acpi.power_nocheck=1" to disable power
+	state check in power transitio
+Date: Fri, 18 Jul 2008 09:17:54 +0800
+Message-ID: <1216343874.4135.11.camel@yakui_zhao.sh.intel.com>
+References: <1216021174.32159.22.camel@yakui_zhao.sh.intel.com>
+	 <487F3F98.8000305@firstfloor.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from kirk.serum.com.pl ([213.77.9.205]:61881 "EHLO serum.com.pl"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1757769AbYGRAsp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Jul 2008 20:48:45 -0400
-In-Reply-To: <19f34abd0807171358p3c5a44f9i91ab23d3f5e9671f@mail.gmail.com>
+Received: from mga01.intel.com ([192.55.52.88]:34362 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751659AbYGRBGN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 Jul 2008 21:06:13 -0400
+In-Reply-To: <487F3F98.8000305@firstfloor.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Vegard Nossum <vegard.nossum@gmail.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Ingo Molnar <mingo@elte.hu>, Alexey Starikovskiy <astarikovskiy@suse.de>, Thomas Gleixner <tglx@linutronix.de>, venkatesh.pallipadi@intel.com, Huang Ying <ying.huang@intel.com>, Andi Kleen <andi@firstfloor.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Andi Kleen <andi@firstfloor.org>
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
 
-On Thu, 17 Jul 2008, Vegard Nossum wrote:
+On Thu, 2008-07-17 at 14:48 +0200, Andi Kleen wrote:
+> As a general  comment I wonder if this problem is really wide spread enough
+> to deserve an own command line option or if that could be just done
+> with quirks.
+Our target is that no power state check becomes the default. But maybe
+it is too aggressive before more tests. 
+When some people complain the similar problem, they can add the boot
+option to confirm whether the problem can be fixed by the boot option. 
+If the problem can be fixed, we can add the laptop/desktop to DMI check
+table firstly.  After more tests, we expect that no power state check
+becomes the default. In such case we can delete the DMI check table.
 
-> Hah, I actually managed to get netconsole working. This is the log
-> that fails (v2.6.26):
+So now it is reasonable to deserve the command option.
 > 
-> http://folk.uio.no/vegardno/linux/numa-netconsole.txt
+> > --- linux-2.6.orig/drivers/acpi/power.c
+> > +++ linux-2.6/drivers/acpi/power.c
+> > @@ -54,6 +54,14 @@ ACPI_MODULE_NAME("power");
+> >  #define ACPI_POWER_RESOURCE_STATE_OFF	0x00
+> >  #define ACPI_POWER_RESOURCE_STATE_ON	0x01
+> >  #define ACPI_POWER_RESOURCE_STATE_UNKNOWN 0xFF
+> > +
+> > +#ifdef MODULE_PARAM_PREFIX
+> > +#undef MODULE_PARAM_PREFIX
+> > +#endif
 > 
-> I think this looks really interesting:
-> 
-> [    0.093562] ExtINT not setup in hardware but reported by MP table
-> [    0.093854] ENABLING IO-APIC IRQs
-> [    0.094244] ..TIMER: vector=0x31 apic1=-1 pin1=2 apic2=-1 pin2=0
-> [    0.094985] ..MP-BIOS bug: 8254 timer not connected to IO-APIC
-> [    0.094985] ...trying to set up timer (IRQ0) through the 8259A ...
-> [    0.094985] ..... (found pin 0) ...<7>APIC error on CPU0: 00(80)
-> [    0.094985]  failed.
-> [    0.094985] ...trying to set up timer as Virtual Wire IRQ...<7>APIC
-> error on CPU0: 80(80)
-> [    0.105761]  works.
-> 
-> This error would be:
->            7: Illegal register address
-> 
-> Looks like APIC was misconfigured, which might explain IRQ routing weirdness?
+> How can MODULE_PARAM_PREFIX be set here?
+There exists the following macro definition in the
+include/linux/moduleparam.h
 
- Here pin1 and pin2 have been correctly initialised, but apic1 and apic2
-are both set to -1.  This is an "impossible scenario."  Because of that
-I/O APIC code actually pokes at random registers of the local APIC which
-immediately precedes I/O APIC #0 in the fixmap.  Results may be arbitrary.
+#ifdef MODULE
+#define MODULE_PARAM_PREFIX /* empty */
+#else
+#define MODULE_PARAM_PREFIX KBUILD_MODNAME "."
+#endif
 
-> Will try to provide the booting one later. Now zZz...
+When this file is included, there will exist the macro defintion of
+"MODULE_PARAM_PREFIX". So it is necessary to override it.
 
- Your system uses an MP table and there were quite a lot of changes in its
-support code recently.  A bug must have crept in.  Please try the appended
-patch and the "apic=debug" option for both cases and the resulting logs
-may shed some light.
+Thanks 
+  Yakui
+> -Andi
 
-  Maciej
-
-patch-next-2.6.26-rc9-20080711-apic-dprintk-0
-diff -up --recursive --new-file linux-next-2.6.26-rc9-20080711.macro/include/asm-x86/apic.h linux-next-2.6.26-rc9-20080711/include/asm-x86/apic.h
---- linux-next-2.6.26-rc9-20080711.macro/include/asm-x86/apic.h	2008-07-16 14:50:07.000000000 +0000
-+++ linux-next-2.6.26-rc9-20080711/include/asm-x86/apic.h	2008-07-18 00:33:19.000000000 +0000
-@@ -10,7 +10,7 @@
- 
- #define ARCH_APICTIMER_STOPS_ON_C3	1
- 
--#define Dprintk(x...)
-+#define Dprintk printk
- 
- /*
-  * Debugging macros
