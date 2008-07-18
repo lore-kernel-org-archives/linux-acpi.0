@@ -1,121 +1,94 @@
-From: Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>
-Subject: Re: [PATCH 02/11] Check for ACPI backlight support otherwise use
-	vendor ACPI drivers
-Date: Fri, 18 Jul 2008 04:52:51 +0100
-Message-ID: <1216353172.3779.11.camel@segulix.localdomain>
-References: <1216205553-8486-1-git-send-email-trenn@suse.de>
-	 <200807171552.12974.trenn@suse.de>
-	 <1216351113.26321.35.camel@segulix.localdomain>
-	 <200807180454.43347.trenn@suse.de>
+From: david@lang.hm
+Subject: Re: Please pull ACPI updates
+Date: Thu, 17 Jul 2008 23:39:57 -0700 (PDT)
+Message-ID: <alpine.DEB.1.10.0807172318400.6370@asgard>
+References: <20080716214516.GA10777@basil.nowhere.org>  <200807170011.12184.rjw@sisk.pl>  <200807161633.01375.jbarnes@virtuousgeek.org>  <487EEAEB.4050009@firstfloor.org>  <alpine.LFD.1.10.0807170807040.2959@woody.linux-foundation.org>
+ <alpine.LFD.1.10.0807170835320.2959@woody.linux-foundation.org>  <487F71E8.9050705@firstfloor.org>  <2c0942db0807171211s39e2653fwdc50f92d9c3020d2@mail.gmail.com>  <487FA24B.9060803@firstfloor.org> <2c0942db0807171311hae9b3e7v811e024990b05fe4@mail.gmail.com>
+ <487FABBA.5060009@firstfloor.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=sha1; protocol="application/x-pkcs7-signature"; boundary="=-X70A32Yw+TnUD77Sdd5F"
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay2.ptmail.sapo.pt ([212.55.154.22]:54885 "HELO sapo.pt"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1750903AbYGRDwz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Jul 2008 23:52:55 -0400
-In-Reply-To: <200807180454.43347.trenn@suse.de>
+Received: from mail.lang.hm ([64.81.33.126]:53231 "EHLO bifrost.lang.hm"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752321AbYGRGjP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 18 Jul 2008 02:39:15 -0400
+In-Reply-To: <487FABBA.5060009@firstfloor.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, ak@linux.intel.com, jwoithe@physics.adelaide.edu.au, hmh@hmh.eng.br, rui.zhang@intel.com, corentincj@iksaif.net, linux-acpi@vger.kernel.org, dannybaumann@web.de, marcus@better.se, corsac@debian.org, mzxreary@0pointer.de, carlos@strangeworlds.co.uk, malattia@linux.it
+To: Andi Kleen <andi@firstfloor.org>
+Cc: Ray Lee <ray-lk@madrabbit.org>, Linus Torvalds <torvalds@linux-foundation.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, torvalds@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+
+On Thu, 17 Jul 2008, Andi Kleen wrote:
+
+> Ray Lee wrote:
+>> On Thu, Jul 17, 2008 at 12:49 PM, Andi Kleen <andi@firstfloor.org> wrote:
+>>> Why would you care about the merge and not about the individual patches?
+>>> Note that these quilt merges don't have conflicts.
+>>
+>> Because sometimes merges are non-trivial. If you roll that merge
+>> conflict resolution back into the original patch, then the patch is
+>> now different. And in all these rebasings, who's to say there won't be
+>> a typo that accidentally changes the original patch that has had more
+>> testing? We'er all human, y'know?
+>
+> You only focus only on the merges, but I focus on all the other changes too.
+> The reason I maintain patches in quilt is that it's quite easy to
+> fix them up.
+>
+> Besides as a subsystem maintainer the actual conflict points are
+> very rare because normally people don't change drivers/acpi without
+> going through me.
+>
+>>>> It's the difference between having tested patches and an untested
+>>>> merge, or untested new patches
+>>> The patches are as tested individually as they were before. I don't see
+>>> how you can call something that was in linux-next for some time and also
+>>> in my test tree "untested".
+>>
+>> Surely you agree that more testing is better? A rebased patch has had
+>> less testing than the original patch, by definition.
+>
+> What I don't agree on is that a rebased patch had less testing than
+> a patch that got merged by someone else (in this case Linus) into
+> their tree when my tree wasn't at exactly the same point. In both
+> cases it's a merge and yes it is untested initially, but not less
+> so in both of the cases.
+>
+
+Andi,
+
+say you create patch P1 against tree version T1 creating tree T2
+
+you then rebase patch P1 against tree version T5 creating tree T6
+
+people tested tree T2, they didn't test tree T6. while the changes made by 
+patch P1 are still the same, there may be other changes that interact with 
+things (and not nessasarily by chnaging the same area of the code, they 
+may change memory layouts, timing, etc)
+
+when someone is trying to track things down they can no longer recreate 
+the state of tree T2, you've wiped the record of that from history. all 
+they can do is to test version T5 and T6.
+
+the other approach is that you create patch P1 against tree version T1 
+creating tree T2, this then gets merged with tree version T5 upstream 
+creating tree T6.
+
+now when someone goes to track down a problem they can see all four tree 
+versions, T1, T2, T5, and T6. they can not only test that T5 works but T6 
+doesn't, but they can test that T2 works as well. They then can immediatly 
+start looking for other interactions that are the result of the merge (and 
+what's different between T1 and T5) rather then focusing just on 'what did 
+patch P1 change'
 
 
---=-X70A32Yw+TnUD77Sdd5F
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+now, it's also not good to have large areas of non-bisectable trees and 
+bugs with their fixes a lot later, but with distributed testing and 
+development you will never completely eliminate this.
 
+there are things that you can do to minimize that, and using some number 
+of topic branches seems to be one of the big ones (and I'll point you at 
+the other explinations from this thread that have focused on what those 
+are)
 
-On Fri, 2008-07-18 at 04:54 +0200, Thomas Renninger wrote:
-> On Friday 18 July 2008 05:18:32 am Sergio Monteiro Basto wrote:
-> > On Thu, 2008-07-17 at 15:52 +0200, Thomas Renninger wrote:
-> > > I just had a quick look on each, do not give much on above statements=
-.
-> > > If there is any outcome on 9642 (_DOS=3D1 works, _DOS=3D0 fails on HP=
-s and
-> > > LID),
-> > > pls let me know.
-> >
-> > 9642 , is about my laptop, I will happily try yours patches , and repor=
-t
-> > back
-> Wait..., these patches are unrelated to this one.
-
-ok=20
-
-> I meant: if you come further and find out something, pls tell me.
-> (Theoretically we could blacklist them easily to not use display output=20
-> switching with the patch, but better still try a bit).
-> I know about a lot HP and others having problems with _DOS=3D0 and freezi=
-ng on=20
-> LID:
-> https://bugzilla.novell.com/show_bug.cgi?id=3D378917 (-> a lot duplicates=
-)
-> https://bugzilla.novell.com/show_bug.cgi?id=3D290219
-
-the bug=20
-http://bugzilla.kernel.org/show_bug.cgi?id=3D6001=20
-explain why _DOS is, by default, 0 and not 1.=20
-
-Has I write there ,
-http://bugzilla.kernel.org/show_bug.cgi?id=3D6001#c47=20
-we should back to DOS=3D1 by default
-
-Seems that you have same opinion that we should set _DOS to 1, by
-default.=20
-
-I patch the kernel myself , because fix the problem on my compaq
-nx6110 , the other S=C3=A9rgio on bug 6001 , don't reply ... =20
-
-Thanks,=20
---=20
-S=C3=A9rgio M. B.
-
---=-X70A32Yw+TnUD77Sdd5F
-Content-Type: application/x-pkcs7-signature; name=smime.p7s
-Content-Disposition: attachment; filename=smime.p7s
-Content-Transfer-Encoding: base64
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIGVjCCAw8w
-ggJ4oAMCAQICECv58J8+j9G8Y7r6tize4dAwDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UEBhMCWkEx
-JTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQ
-ZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA3MTAxMzIyMjE1NFoXDTA4MTAxMjIyMjE1
-NFowSzEfMB0GA1UEAxMWVGhhd3RlIEZyZWVtYWlsIE1lbWJlcjEoMCYGCSqGSIb3DQEJARYZc2Vy
-Z2lvQHNlcmdpb21iLm5vLWlwLm9yZzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALmR
-do8nLKka6p0NNur5o8znYir80AaybL3nuKDDeY2CNjm8JdpJPea9KmXurRU9Q/jnsmgtn2UH9blF
-1qUDxzUvFrZ8fEFkMBht+DJMPShJIa885JyggTvRg+ZUEPdjvb7pHrvpEhxlDcJ9vpYnB4M06D2p
-lefGl9TVq9srUCUMc/4/G/OLaLz0f6Nhc0Gb7YcUDIRINHR0pWuCpxl8wxOU8YSx43KbNgPOo3Kn
-jtdcgGRoy7kAKN2rQmU4tgLDh8F+f9a3mMc3YRs0CfkPq7RSGMWcNagkEWCcoh0f5tDYjq1iQEWD
-5fK1esWmiR5onZ+QyUd+kU7IycY68iMD5BMCAwEAAaNZMFcwDgYDVR0PAQH/BAQDAgSQMBEGCWCG
-SAGG+EIBAQQEAwIFoDAkBgNVHREEHTAbgRlzZXJnaW9Ac2VyZ2lvbWIubm8taXAub3JnMAwGA1Ud
-EwEB/wQCMAAwDQYJKoZIhvcNAQEFBQADgYEAetiCq+dKlfTpFybx+lLoL7A/ep10fER7eHDGB6MQ
-9n8HDqz2eOXMZrw0WSYfWXhG+fnrpUE85DseFXQFJDf6gBdD/KlYqnmaDY0nK9LdFHA3hapRARvB
-el9wYF60z+1yI69bFzyoZpCnY3+1oFQGews7kwT6u77QVdj6Y8v+Ai0wggM/MIICqKADAgECAgEN
-MA0GCSqGSIb3DQEBBQUAMIHRMQswCQYDVQQGEwJaQTEVMBMGA1UECBMMV2VzdGVybiBDYXBlMRIw
-EAYDVQQHEwlDYXBlIFRvd24xGjAYBgNVBAoTEVRoYXd0ZSBDb25zdWx0aW5nMSgwJgYDVQQLEx9D
-ZXJ0aWZpY2F0aW9uIFNlcnZpY2VzIERpdmlzaW9uMSQwIgYDVQQDExtUaGF3dGUgUGVyc29uYWwg
-RnJlZW1haWwgQ0ExKzApBgkqhkiG9w0BCQEWHHBlcnNvbmFsLWZyZWVtYWlsQHRoYXd0ZS5jb20w
-HhcNMDMwNzE3MDAwMDAwWhcNMTMwNzE2MjM1OTU5WjBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMc
-VGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZy
-ZWVtYWlsIElzc3VpbmcgQ0EwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMSmPFVzVftOucqZ
-Wh5owHUEcJ3f6f+jHuy9zfVb8hp2vX8MOmHyv1HOAdTlUAow1wJjWiyJFXCO3cnwK4Vaqj9xVsuv
-PAsH5/EfkTYkKhPPK9Xzgnc9A74r/rsYPge/QIACZNenprufZdHFKlSFD0gEf6e20TxhBEAeZBly
-YLf7AgMBAAGjgZQwgZEwEgYDVR0TAQH/BAgwBgEB/wIBADBDBgNVHR8EPDA6MDigNqA0hjJodHRw
-Oi8vY3JsLnRoYXd0ZS5jb20vVGhhd3RlUGVyc29uYWxGcmVlbWFpbENBLmNybDALBgNVHQ8EBAMC
-AQYwKQYDVR0RBCIwIKQeMBwxGjAYBgNVBAMTEVByaXZhdGVMYWJlbDItMTM4MA0GCSqGSIb3DQEB
-BQUAA4GBAEiM0VCD6gsuzA2jZqxnD3+vrL7CF6FDlpSdf0whuPg2H6otnzYvwPQcUCCTcDz9reFh
-YsPZOhl+hLGZGwDFGguCdJ4lUJRix9sncVcljd2pnDmOjCBPZV+V2vf3h9bGCE6u9uo05RAaWzVN
-d+NWIXiC3CEZNd4ksdMdRv9dX2VPMYIB/DCCAfgCAQEwdjBiMQswCQYDVQQGEwJaQTElMCMGA1UE
-ChMcVGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFs
-IEZyZWVtYWlsIElzc3VpbmcgQ0ECECv58J8+j9G8Y7r6tize4dAwCQYFKw4DAhoFAKBdMBgGCSqG
-SIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTA4MDcxODAzNTI0N1owIwYJKoZI
-hvcNAQkEMRYEFODCRiuQNebdML/V+svn9ElENkV+MA0GCSqGSIb3DQEBAQUABIIBAEoJwbmh4b/Z
-w/OGczYlUd4xQbrmgTOr1ZDNSjeDnDvBvhIyzlTi12+hrr/eI4eyedGB8VC8NEJ1n/YBL/RKLptN
-ghjJXPfO0Dno2/6DYudpes19u5ZxDIrbgbJHRmKn6bUxmS+ELexMUCou+lk/fppYGxm6qkxGUvdU
-Uh3lGKhyAAsFUSt8X57cP1x2yT+zqSkzIv62sXcT41nuca6EQTTZN7AHA1Ovvpx121Q+drCMcdw9
-t2GjujNWvGDv3Ih5L2G44xF7CkDCzfRkQpRjdBqRKcio+Ugdj0XIuW8GgZAXTyJE1mndnwsT1oJ+
-FqXqzZ3bTTjCHR46EknQE23PfMgAAAAAAAA=
-
-
---=-X70A32Yw+TnUD77Sdd5F--
-
+David Lang
