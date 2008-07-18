@@ -1,51 +1,40 @@
-From: John Keller <jpk@sgi.com>
-Subject: Re: [PATCH] x86: Allow MMCONFIG above 4GB on x86_64
-Date: Fri, 18 Jul 2008 08:02:48 -0500 (CDT)
-Message-ID: <200807181302.m6ID2nCX447826@fcbayern.americas.sgi.com>
-References: <20080718123858.GR6875@elte.hu>
+From: Olivier Galibert <galibert@pobox.com>
+Subject: Re: Please pull ACPI updates
+Date: Fri, 18 Jul 2008 15:25:21 +0200
+Message-ID: <20080718132521.GA94799@dspnet.fr.eu.org>
+References: <200807161633.01375.jbarnes@virtuousgeek.org> <487EEAEB.4050009@firstfloor.org> <alpine.LFD.1.10.0807170807040.2959@woody.linux-foundation.org> <alpine.LFD.1.10.0807170835320.2959@woody.linux-foundation.org> <487F71E8.9050705@firstfloor.org> <2c0942db0807171211s39e2653fwdc50f92d9c3020d2@mail.gmail.com> <487FA24B.9060803@firstfloor.org> <alpine.LFD.1.10.0807171259010.2959@woody.linux-foundation.org> <alpine.LFD.1.10.0807171304220.2959@woody.linux-foundation.org> <alpine.LFD.1.10.0807171323320.2959@woody.linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay1.sgi.com ([192.48.171.29]:60761 "EHLO relay.sgi.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751465AbYGRNCy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 18 Jul 2008 09:02:54 -0400
-In-Reply-To: <20080718123858.GR6875@elte.hu> from "Ingo Molnar" at Jul 18, 2008 02:38:58 PM
+Received: from dspnet.fr.eu.org ([213.186.44.138]:2160 "EHLO dspnet.fr.eu.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756049AbYGRNZX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 18 Jul 2008 09:25:23 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.1.10.0807171323320.2959@woody.linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: John Keller <jpk@sgi.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, takayoshi.kochi@gmail.com, Yinghai Lu <yhlu.kernel@gmail.com>, Jesse Barnes <jbarnes@virtuousgeek.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andi Kleen <andi@firstfloor.org>, Ray Lee <ray-lk@madrabbit.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, torvalds@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-> 
-> 
-> * John Keller <jpk@sgi.com> wrote:
-> 
-> > SGI UV will have MMCFG base addresses that are greater than 4GB (32 
-> > bits).
-> 
-> > +++ linux-2.6/arch/x86/kernel/acpi/boot.c	2008-07-09 15:25:32.000000000 -0500
-> > @@ -200,6 +200,7 @@ int __init acpi_parse_mcfg(struct acpi_t
-> >  	}
-> >  
-> >  	memcpy(pci_mmcfg_config, &mcfg[1], config_size);
-> > +#ifndef CONFIG_X86_64
-> >  	for (i = 0; i < pci_mmcfg_config_num; ++i) {
-> >  		if (pci_mmcfg_config[i].address > 0xFFFFFFFF) {
-> >  			printk(KERN_ERR PREFIX
-> > @@ -209,6 +210,7 @@ int __init acpi_parse_mcfg(struct acpi_t
-> >  			return -ENODEV;
-> >  		}
-> >  	}
-> > +#endif
-> 
-> hm. If then it should be enabled very carefully and initially probably 
-> on a per system (i.e. DMI driven whitelist) basis.
-> 
-> 	Ingo
+On Thu, Jul 17, 2008 at 01:28:20PM -0700, Linus Torvalds wrote:
+> One final note on this: the above is obviously not a problem for simple 
+> code that only really does one thing, and in particular for code that you 
+> wrote yourself. Moving your own commits around to make them make more 
+> sense - or splitting them up etc - is often a _good_ thing, even if it 
+> obviously does change history.
 
-I've also posted a revised patch that is platform specific.
+You seem to be talking of subtly different things Andi and you, and
+since I'm quite interested in the answer I'll try to rephrase what I
+understood.
 
-http://marc.info/?l=linux-acpi&m=121615159014404&w=2
+You say "don't rebase on the most recent kernel version".  Andi seems
+to accept that going forwards.  You say "use topic branches that are
+based on whatever kernel version you had at the time, I'll do the
+merge".  That's ok too.  His remaining question is "what do I do with
+broken patches _in_the_topic_branch_?".  He wants to
+amend/merge/split/reorder within the topic branch so that the branch
+itself is bisectable.  So what should be done there?
 
-John
+  OG.
+
