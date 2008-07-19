@@ -1,60 +1,41 @@
-From: Yves-Alexis Perez <corsac@debian.org>
-Subject: Re: Check for ACPI backlight support otherwise use vendor ACPI
-	drivers - version 2
-Date: Sat, 19 Jul 2008 08:01:19 +0200
-Message-ID: <1216447279.3935.1.camel@hidalgo>
-References: <1216205553-8486-1-git-send-email-trenn@suse.de>
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Subject: [PATCH 0/3] acpi: GPE fixes
+Date: Sat, 19 Jul 2008 12:37:41 +0100
+Message-ID: <4881D205.1000901@tuffmail.co.uk>
+References: <487D23C3.5070301@student.cs.york.ac.uk> <487F31D7.30803@suse.de> <20080717121309.GF31732@khazad-dum.debian.net> <487F3B6D.3090507@suse.de> <20080717162628.GB18457@khazad-dum.debian.net> <487F7724.5080905@tuffmail.co.uk> <20080717185032.GD18457@khazad-dum.debian.net> <487F986A.3070504@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-OEr17OValGAC0T8HWHz5"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp6-g19.free.fr ([212.27.42.36]:44228 "EHLO smtp6-g19.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750945AbYGSGC0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 19 Jul 2008 02:02:26 -0400
-Received: from smtp6-g19.free.fr (localhost.localdomain [127.0.0.1])
-	by smtp6-g19.free.fr (Postfix) with ESMTP id 29B355FD59
-	for <linux-acpi@vger.kernel.org>; Sat, 19 Jul 2008 08:02:25 +0200 (CEST)
-Received: from molly.corsac.net (molly.corsac.net [81.57.48.219])
-	by smtp6-g19.free.fr (Postfix) with ESMTP id 0C2B15FD3A
-	for <linux-acpi@vger.kernel.org>; Sat, 19 Jul 2008 08:02:25 +0200 (CEST)
-In-Reply-To: <1216205553-8486-1-git-send-email-trenn@suse.de>
+Received: from nf-out-0910.google.com ([64.233.182.187]:7150 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752440AbYGSLhW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 19 Jul 2008 07:37:22 -0400
+Received: by nf-out-0910.google.com with SMTP id d3so237665nfc.21
+        for <linux-acpi@vger.kernel.org>; Sat, 19 Jul 2008 04:37:21 -0700 (PDT)
+In-Reply-To: <487F986A.3070504@tuffmail.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: ak@linux.intel.com, mjg59@srcf.ucam.org, jwoithe@physics.adelaide.edu.au, hmh@hmh.eng.br, rui.zhang@intel.com, corentincj@iksaif.net, linux-acpi@vger.kernel.org, dannybaumann@web.de, marcus@better.se, mzxreary@0pointer.de, carlos@strangeworlds.co.uk, malattia@linux.it
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
+Here's what I came up with -
 
---=-OEr17OValGAC0T8HWHz5
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+1.  I was fighting against EC_FLAGS_QUERY_PENDING.  This was used to ignore
+    multiple successive GPE interrupts and treat them as a single GPE instead.
+    That's the exact opposite of what we want to do.  Let's get rid of it.
 
-On mer, 2008-07-16 at 12:52 +0200, Thomas Renninger wrote:
-> It is highly recommended that these patches are tried out together
-> with
-> Matthew's/Hong's IGD driver changes.
-> I do not know whether they are already in the dri tree or in
-> linux-next,
-> whether they will be accepted for .27 etc. I hope Matthew will answer
-> on
-> this mail and tell us.
+2.  Then we can apply my original patch to fix GPE polling on the Asus EeePC,
+    by repeatedly querying for GPEs until there are none left.
 
-Ok, I tried to apply them to linux-next/stable (which should be 2.6.26,
-I guess) and it didn't work. Patches apply fine, but the kernel is
-unbootable (I guess it's the same error than previously, but didn't yet
-rebuild with ACPI_DEBUG). Patch doesn't apply to linux-next/master.
---=20
-Yves-Alexis
+3.  Finally, if I'm right then we now know how to handle "GPE interrupt storms".
+    Some EC's are raising multiple interrupts before we acknowledge them. but
+    they're just telling us how many events are pending.  There's no harm in
+    that, so we don't ever need to disable GPE interrupts.  Let's get rid of
+    GPE polling mode.  (Code mainly stolen from Alexey).
 
---=-OEr17OValGAC0T8HWHz5
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
+Patch 3 would benefit from wider testing.  Fortunately there are several open
+bugs about GPEs so it should be easy to find testers :-).
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
+Alan
 
-iEYEABECAAYFAkiBgysACgkQTUTAIMXAW65tzACfe4a3ejJoWopHvBWG7rK/ifVa
-hHoAn0wz7MiKHIMZG5zcoKOTl098hif/
-=XZHO
------END PGP SIGNATURE-----
-
---=-OEr17OValGAC0T8HWHz5--
