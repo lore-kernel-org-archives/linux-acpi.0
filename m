@@ -1,154 +1,62 @@
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Subject: [PATCH 3/3] acpi: remove GPE polling
-Date: Sat, 19 Jul 2008 12:39:31 +0100
-Message-ID: <4881D273.9010004@tuffmail.co.uk>
-References: <487D23C3.5070301@student.cs.york.ac.uk> <487F31D7.30803@suse.de> <20080717121309.GF31732@khazad-dum.debian.net> <487F3B6D.3090507@suse.de> <20080717162628.GB18457@khazad-dum.debian.net> <487F7724.5080905@tuffmail.co.uk> <20080717185032.GD18457@khazad-dum.debian.net> <487F986A.3070504@tuffmail.co.uk> <4881CE72.1090401@tuffmail.co.uk>
+From: Alan Jenkins <aj504@cs.york.ac.uk>
+Subject: Re: [Bug #10724] ACPI: EC: GPE storm detected, disabling EC GPE
+Date: Sat, 19 Jul 2008 05:22:18 -0700 (PDT)
+Message-ID: <50b515e4-6cd1-4b18-93e3-ecfab5925f02@34g2000hsf.googlegroups.com>
+References: <aPfh5-7kW-5@gated-at.bofh.it> <aPfhe-7kW-31@gated-at.bofh.it>
+	<aQUio-2qG-25@gated-at.bofh.it> <aR0nM-6kd-15@gated-at.bofh.it>
+	<aR3vi-3MV-15@gated-at.bofh.it> <aR4Ur-6c7-27@gated-at.bofh.it>
+	<aReqy-5vm-1@gated-at.bofh.it>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ik-out-1112.google.com ([66.249.90.181]:47263 "EHLO
-	ik-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751980AbYGSLjN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 19 Jul 2008 07:39:13 -0400
-Received: by ik-out-1112.google.com with SMTP id c28so415193ika.5
-        for <linux-acpi@vger.kernel.org>; Sat, 19 Jul 2008 04:39:11 -0700 (PDT)
-In-Reply-To: <4881CE72.1090401@tuffmail.co.uk>
+Received: from yw-out-2122.google.com ([74.125.46.26]:8274 "EHLO
+	yw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753382AbYGSMWT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 19 Jul 2008 08:22:19 -0400
+Received: by yw-out-2122.google.com with SMTP id 1so628653ywp.1
+        for <linux-acpi@vger.kernel.org>; Sat, 19 Jul 2008 05:22:18 -0700 (PDT)
+In-Reply-To: <aReqy-5vm-1@gated-at.bofh.it>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Fabio Comolli <fabio.comolli@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Alexey Starikovskiy <astarikovskiy@suse.de>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Fabio Comolli wrote:
+> Hi Alex.
+> Well, I read the bug report but still can't understand why in any
+> kernels < 2.6.26 I don't have any problems with battery reports and in
+> 2.6.26 as soon as the message appears g-p-m starts to behave
+> incorrectly.
+>
+> Anyway, I got back to 25.11 for now, if you have any other workarounds
+> for me to test please let me know.
 
-This should fix "[regression] display dimming is slow and laggy",
-<http://bugzilla.kernel.org/show_bug.cgi?id=10919>.  It has a similar effect
-on my Asus EeePC.
+Hi Fabio.
 
-Much of this is stolen from Alexey Starikovskiy's fix (see Bugzilla).  But
-the previous two GPE fixes should have avoided the need to disable GPE
-interrupts.
+I wrote some GPE fixes for my Asus laptop and they need some wider
+testing :-).  I think I found why we get GPE storms and how to deal
+with them.
 
-Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Tested-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+I posted them on the lists a series of three patches, but I neglected
+to CC any potential testers.  For convenience I squished them into a
+single patch and posted them in Bugzilla.
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index e764011..1088903 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -79,7 +79,6 @@ enum {
- 	EC_FLAGS_WAIT_GPE = 0,		/* Don't check status until GPE arrives */
- 	EC_FLAGS_GPE_MODE,		/* Expect GPE to be sent for status change */
- 	EC_FLAGS_NO_GPE,		/* Don't use GPE mode */
--	EC_FLAGS_RESCHEDULE_POLL	/* Re-schedule poll */
- };
- 
- /* If we find an EC via the ECDT, we need to keep a ptr to its context */
-@@ -105,7 +104,6 @@ static struct acpi_ec {
- 	wait_queue_head_t wait;
- 	struct list_head list;
- 	struct delayed_work work;
--	atomic_t irq_count;
- 	u8 handlers_installed;
- } *boot_ec, *first_ec;
- 
-@@ -154,24 +152,14 @@ static inline int acpi_ec_check_status(struct acpi_ec *ec, enum ec_event event)
- 	return 0;
- }
- 
--static void ec_schedule_ec_poll(struct acpi_ec *ec)
--{
--	if (test_bit(EC_FLAGS_RESCHEDULE_POLL, &ec->flags))
--		schedule_delayed_work(&ec->work,
--				      msecs_to_jiffies(ACPI_EC_DELAY));
--}
--
- static void ec_switch_to_poll_mode(struct acpi_ec *ec)
- {
- 	set_bit(EC_FLAGS_NO_GPE, &ec->flags);
- 	clear_bit(EC_FLAGS_GPE_MODE, &ec->flags);
--	acpi_disable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
--	set_bit(EC_FLAGS_RESCHEDULE_POLL, &ec->flags);
- }
- 
- static int acpi_ec_wait(struct acpi_ec *ec, enum ec_event event, int force_poll)
- {
--	atomic_set(&ec->irq_count, 0);
- 	if (likely(test_bit(EC_FLAGS_GPE_MODE, &ec->flags)) &&
- 	    likely(!force_poll)) {
- 		if (wait_event_timeout(ec->wait, acpi_ec_check_status(ec, event),
-@@ -184,7 +172,6 @@ static int acpi_ec_wait(struct acpi_ec *ec, enum ec_event event, int force_poll)
- 				pr_info(PREFIX "missing confirmations, "
- 						"switch off interrupt mode.\n");
- 			ec_switch_to_poll_mode(ec);
--			ec_schedule_ec_poll(ec);
- 			return 0;
- 		}
- 	} else {
-@@ -497,12 +484,6 @@ static u32 acpi_ec_gpe_handler(void *data)
- 	u8 state = acpi_ec_read_status(ec);
- 
- 	pr_debug(PREFIX "~~~> interrupt\n");
--	atomic_inc(&ec->irq_count);
--	if (atomic_read(&ec->irq_count) > 5) {
--		pr_err(PREFIX "GPE storm detected, disabling EC GPE\n");
--		ec_switch_to_poll_mode(ec);
--		goto end;
--	}
- 	clear_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
- 	if (test_bit(EC_FLAGS_GPE_MODE, &ec->flags))
- 		wake_up(&ec->wait);
-@@ -519,10 +500,8 @@ static u32 acpi_ec_gpe_handler(void *data)
- 			pr_info(PREFIX "non-query interrupt received,"
- 				" switching to interrupt mode\n");
- 		set_bit(EC_FLAGS_GPE_MODE, &ec->flags);
--		clear_bit(EC_FLAGS_RESCHEDULE_POLL, &ec->flags);
- 	}
--end:
--	ec_schedule_ec_poll(ec);
-+
- 	return ACPI_SUCCESS(status) ?
- 	    ACPI_INTERRUPT_HANDLED : ACPI_INTERRUPT_NOT_HANDLED;
- }
-@@ -530,7 +509,6 @@ end:
- static void do_ec_poll(struct work_struct *work)
- {
- 	struct acpi_ec *ec = container_of(work, struct acpi_ec, work.work);
--	atomic_set(&ec->irq_count, 0);
- 	(void)acpi_ec_gpe_handler(ec);
- }
- 
-@@ -675,7 +653,6 @@ static struct acpi_ec *make_acpi_ec(void)
- 	init_waitqueue_head(&ec->wait);
- 	INIT_LIST_HEAD(&ec->list);
- 	INIT_DELAYED_WORK_DEFERRABLE(&ec->work, do_ec_poll);
--	atomic_set(&ec->irq_count, 0);
- 	return ec;
- }
- 
-@@ -714,15 +691,8 @@ ec_parse_device(acpi_handle handle, u32 Level, void *context, void **retval)
- 	return AE_CTRL_TERMINATE;
- }
- 
--static void ec_poll_stop(struct acpi_ec *ec)
--{
--	clear_bit(EC_FLAGS_RESCHEDULE_POLL, &ec->flags);
--	cancel_delayed_work(&ec->work);
--}
--
- static void ec_remove_handlers(struct acpi_ec *ec)
- {
--	ec_poll_stop(ec);
- 	if (ACPI_FAILURE(acpi_remove_address_space_handler(ec->handle,
- 				ACPI_ADR_SPACE_EC, &acpi_ec_space_handler)))
- 		pr_err(PREFIX "failed to remove space handler\n");
-@@ -863,7 +833,6 @@ static int acpi_ec_start(struct acpi_device *device)
- 
- 	ret = ec_install_handlers(ec);
- 
--	ec_schedule_ec_poll(ec);
- 	return ret;
- }
- 
+My bug: <http://bugzilla.kernel.org/show_bug.cgi?id=11089>
+Patch: <http://bugzilla.kernel.org/attachment.cgi?
+id=16886&action=view>
 
+The risky part of the fixes removes the GPE interrupt storm check and
+the GPE polling mode. So you won't see the "disabling EC GPE" message,
+and I'm hoping this will stop g-p-m  misbehaving for you.
 
+I'm not sure what could happen if it's broken somehow :-).  If you
+have ACPI hotkeys (i.e. running acpi_listen shows events when you
+press hotkeys), please check they still work.  If not, you should have
+at least one button that generates an ACPI event - the power button.
+So it would be great if you could check the power button still works
+as normal.  (On my computer, g-p-m handles the power button and pops
+up a logout/shutdown prompt).
+
+Thanks
+Alan
