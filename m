@@ -1,422 +1,79 @@
-From: Chris Collins <chris@eorbit.net>
-Subject: Re: hwapci-0142 error (dmidecode)
-Date: Sat, 19 Jul 2008 19:33:27 -0700
-Message-ID: <20080720023327.GA6026@eorbit.net>
-References: <20080720001417.GA22429@eorbit.net>
+From: "Fabio Comolli" <fabio.comolli@gmail.com>
+Subject: Re: [Bug #10724] ACPI: EC: GPE storm detected, disabling EC GPE
+Date: Sun, 20 Jul 2008 09:26:18 +0200
+Message-ID: <b637ec0b0807200026j3a2694acw7c964e1c23a7b57c@mail.gmail.com>
+References: <aPfh5-7kW-5@gated-at.bofh.it> <aPfhe-7kW-31@gated-at.bofh.it>
+	 <aQUio-2qG-25@gated-at.bofh.it> <aR0nM-6kd-15@gated-at.bofh.it>
+	 <aR3vi-3MV-15@gated-at.bofh.it> <aR4Ur-6c7-27@gated-at.bofh.it>
+	 <aReqy-5vm-1@gated-at.bofh.it>
+	 <50b515e4-6cd1-4b18-93e3-ecfab5925f02@34g2000hsf.googlegroups.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from boojiboy.eorbit.net ([66.135.54.188]:21821 "EHLO
-	boojiboy.eorbit.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755201AbYGTCda (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 19 Jul 2008 22:33:30 -0400
+Received: from yw-out-2324.google.com ([74.125.46.28]:39816 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751767AbYGTH0T (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 20 Jul 2008 03:26:19 -0400
+Received: by yw-out-2324.google.com with SMTP id 9so326508ywe.1
+        for <linux-acpi@vger.kernel.org>; Sun, 20 Jul 2008 00:26:18 -0700 (PDT)
+In-Reply-To: <50b515e4-6cd1-4b18-93e3-ecfab5925f02@34g2000hsf.googlegroups.com>
 Content-Disposition: inline
-In-Reply-To: <20080720001417.GA22429@eorbit.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Alan Jenkins <aj504@cs.york.ac.uk>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Alexey Starikovskiy <astarikovskiy@suse.de>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Sat, Jul 19, 2008 at 05:14:17PM -0700, Chris Collins wrote:
-> Hello,
-> 
-> ACPI doesn't work on my desktop, a VIA Apollo MVP3 chipset.
+Well, I read in another thread that there are some issues with this
+patches. Anyway, I'm now running .26 with your patch since yesterday,
+tried 3 suspend/resume cycles and 2 hibernate/resume cycles and
+everything seems to be fine.
 
-Hello, 
+It looks that it's really solving the problem for me.
 
-In re-reading the ACPI-HOWTO I see that the output from 
-dmidecode is helpful, so here you go:
-(I've never seen this before...cool.)
+Thanks for your work. Cheers,
+Fabio
 
-******dmidecode******
 
-chris@darkstar:/home/chris# cat dmi.txt
-# dmidecode 2.9
-SMBIOS 2.1 present.
-33 structures occupying 870 bytes.
-Table at 0x000F0800.
 
-Handle 0x0000, DMI type 0, 19 bytes
-BIOS Information
-        Vendor: Award Software International, Inc.
-        Version: 4.51 PG
-        Release Date: 12/21/00
-        Address: 0xE0000
-        Runtime Size: 128 kB
-        ROM Size: 256 kB
-        Characteristics:
-                ISA is supported
-                PCI is supported
-                PNP is supported
-                APM is supported
-                BIOS is upgradeable
-                BIOS shadowing is allowed
-                ESCD support is available
-                Boot from CD is supported
-                Selectable boot is supported
-                BIOS ROM is socketed
-                EDD is supported
-                5.25"/360 KB floppy services are supported (int 13h)
-                5.25"/1.2 MB floppy services are supported (int 13h)
-                3.5"/720 KB floppy services are supported (int 13h)
-                3.5"/2.88 MB floppy services are supported (int 13h)
-                Print screen service is supported (int 5h)
-                8042 keyboard services are supported (int 9h)
-                Serial services are supported (int 14h)
-                Printer services are supported (int 17h)
-                CGA/mono video services are supported (int 10h)
-                ACPI is supported
-                USB legacy is supported
-                AGP is supported
-                LS-120 boot is supported
-                ATAPI Zip drive boot is supported
 
-Handle 0x0001, DMI type 1, 25 bytes
-System Information
-        Manufacturer: VIA Technologies, Inc.
-        Product Name: VT82C597
-        Version:
-        Serial Number:
-        UUID: Not Settable
-        Wake-up Type: Reserved
-
-Handle 0x0002, DMI type 2, 8 bytes
-Base Board Information
-        Manufacturer:
-        Product Name: MVP3-596-W877
-        Version:
-        Serial Number:
-
-Handle 0x0003, DMI type 3, 13 bytes
-Chassis Information
-        Manufacturer:
-        Type: Unknown
-        Lock: Not Present
-        Version:
-        Serial Number:
-        Asset Tag:
-        Boot-up State: Unknown
-        Power Supply State: Unknown
-        Thermal State: Unknown
-        Security Status: Unknown
-
-Handle 0x0004, DMI type 4, 32 bytes
-Processor Information
-        Socket Designation: Socket 7
-        Type: Central Processor
-        Family: K5
-        Manufacturer: AMD
-        ID: D0 05 00 00 BF 21 80 00
-        Signature: Family 5, Model 13, Stepping 0
-        Flags:
-                FPU (Floating-point unit on-chip)
-                VME (Virtual mode extension)
-                DE (Debugging extension)
-                PSE (Page size extension)
-                TSC (Time stamp counter)
-                MSR (Model specific registers)
-                MCE (Machine check exception)
-                CX8 (CMPXCHG8 instruction supported)
-                PGE (Page global enable)
-                MMX (MMX technology supported)
-        Version: AMD-K6
-        Voltage: 3.3 V
-        External Clock: 100 MHz
-        Max Speed: 266 MHz
-        Current Speed: 194 MHz
-        Status: Populated, Enabled
-        Upgrade: ZIF Socket
-        L1 Cache Handle: 0x0000
-        L2 Cache Handle: 0x0000
-        L3 Cache Handle: 0x0000
-
-Handle 0x0005, DMI type 5, 28 bytes
-Memory Controller Information
-        Error Detecting Method: None
-        Error Correcting Capabilities:
-                Single-bit Error Correcting
-        Supported Interleave: Four-way Interleave
-        Current Interleave: One-way Interleave
-        Maximum Memory Module Size: 256 MB
-        Maximum Total Memory Size: 1536 MB
-        Supported Speeds:
-                70 ns
-                60 ns
-        Supported Memory Types:
-                Other
-                Unknown
-                Standard
-                FPM
-                EDO
-                Parity
-                ECC
-                SIMM
-                DIMM
-                SDRAM
-        Memory Module Voltage: 5.0 V 3.3 V
-        Associated Memory Slots: 6
-                0x0006
-                0x0007
-                0x0008
-                0x0009
-                0x000A
-                0x000B
-        Enabled Error Correcting Capabilities: None
-
-Handle 0x0006, DMI type 6, 12 bytes
-Memory Module Information
-        Socket Designation: BANK_0
-        Bank Connections: 1
-        Current Speed: 60 ns
-        Type: DIMM SDRAM
-        Installed Size: 128 MB (Single-bank Connection)
-        Enabled Size: 128 MB (Single-bank Connection)
-        Error Status: OK
-
-Handle 0x0007, DMI type 6, 12 bytes
-Memory Module Information
-        Socket Designation: BANK_1
-        Bank Connections: 2
-        Current Speed: 60 ns
-        Type: DIMM SDRAM
-        Installed Size: Not Installed
-        Enabled Size: Not Installed
-        Error Status: OK
-
-Handle 0x0008, DMI type 6, 12 bytes
-Memory Module Information
-        Socket Designation: BANK_2
-        Bank Connections: 3
-        Current Speed: 60 ns
-        Type: DIMM SDRAM
-        Installed Size: 128 MB (Single-bank Connection)
-        Enabled Size: 128 MB (Single-bank Connection)
-        Error Status: OK
-
-Handle 0x0009, DMI type 6, 12 bytes
-Memory Module Information
-        Socket Designation: BANK_3
-        Bank Connections: 4
-        Current Speed: 60 ns
-        Type: DIMM SDRAM
-        Installed Size: Not Installed
-        Enabled Size: Not Installed
-        Error Status: OK
-
-Handle 0x000A, DMI type 6, 12 bytes
-Memory Module Information
-        Socket Designation: BANK_4
-        Bank Connections: 5
-        Current Speed: 60 ns
-        Type: DIMM SDRAM
-        Installed Size: 128 MB (Single-bank Connection)
-        Enabled Size: 128 MB (Single-bank Connection)
-        Error Status: OK
-
-Handle 0x000B, DMI type 6, 12 bytes
-Memory Module Information
-        Socket Designation: BANK_5
-        Bank Connections: 6
-        Current Speed: 60 ns
-        Type: DIMM SDRAM
-        Installed Size: Not Installed
-        Enabled Size: Not Installed
-        Error Status: OK
-
-Handle 0x000C, DMI type 7, 19 bytes
-Cache Information
-        Socket Designation: Internal Cache
-        Configuration: Enabled, Not Socketed, Level 1
-        Operational Mode: Write Back
-        Location: Internal
-        Installed Size: 64 KB
-        Maximum Size: 64 KB
-        Supported SRAM Types:
-                Synchronous
-        Installed SRAM Type: Synchronous
-        Speed: Unknown
-        Error Correction Type: Unknown
-        System Type: Unknown
-        Associativity: Unknown
-
-Handle 0x000D, DMI type 7, 19 bytes
-Cache Information
-        Socket Designation: External Cache
-        Configuration: Enabled, Not Socketed, Level 2
-        Operational Mode: Write Through
-        Location: External
-        Installed Size: 2048 KB
-        Maximum Size: 2048 KB
-        Supported SRAM Types:
-                Synchronous
-        Installed SRAM Type: Synchronous
-        Speed: Unknown
-        Error Correction Type: Unknown
-        System Type: Unknown
-        Associativity: Unknown
-
-Handle 0x000E, DMI type 8, 9 bytes
-Port Connector Information
-        Internal Reference Designator: PRIMARY IDE
-        Internal Connector Type: On Board IDE
-        External Reference Designator:
-        External Connector Type: None
-        Port Type: Other
-
-Handle 0x000F, DMI type 8, 9 bytes
-Port Connector Information
-        Internal Reference Designator: SECONDARY IDE
-        Internal Connector Type: On Board IDE
-        External Reference Designator:
-        External Connector Type: None
-        Port Type: Other
-
-Handle 0x0010, DMI type 8, 9 bytes
-Port Connector Information
-        Internal Reference Designator: FDD
-        Internal Connector Type: On Board Floppy
-        External Reference Designator:
-        External Connector Type: None
-        Port Type: 8251 FIFO Compatible
-
-Handle 0x0011, DMI type 8, 9 bytes
-Port Connector Information
-        Internal Reference Designator: COM1
-        Internal Connector Type: 9 Pin Dual Inline (pin 10 cut)
-        External Reference Designator:
-        External Connector Type: DB-9 male
-        Port Type: Serial Port 16450 Compatible
-
-Handle 0x0012, DMI type 8, 9 bytes
-Port Connector Information
-        Internal Reference Designator: COM2
-        Internal Connector Type: 9 Pin Dual Inline (pin 10 cut)
-        External Reference Designator:
-        External Connector Type: DB-9 male
-        Port Type: Serial Port 16450 Compatible
-
-Handle 0x0013, DMI type 8, 9 bytes
-Port Connector Information
-        Internal Reference Designator: LPT1
-        Internal Connector Type: DB-25 female
-        External Reference Designator:
-        External Connector Type: DB-25 female
-        Port Type: Parallel Port ECP/EPP
-
-Handle 0x0014, DMI type 8, 9 bytes
-Port Connector Information
-        Internal Reference Designator: Keyboard
-        Internal Connector Type: Other
-        External Reference Designator:
-        External Connector Type: PS/2
-        Port Type: Keyboard Port
-
-Handle 0x0015, DMI type 8, 9 bytes
-Port Connector Information
-        Internal Reference Designator: PS/2 Mouse
-        Internal Connector Type: PS/2
-        External Reference Designator: Detected
-        External Connector Type: PS/2
-        Port Type: Mouse Port
-
-Handle 0x0016, DMI type 9, 13 bytes
-System Slot Information
-        Designation: ISA
-        Type: 16-bit ISA
-        Current Usage: Unknown
-        Length: Long
-        Characteristics:
-                5.0 V is provided
-
-Handle 0x0017, DMI type 9, 13 bytes
-System Slot Information
-        Designation: ISA
-        Type: 16-bit ISA
-        Current Usage: Unknown
-        Length: Long
-        Characteristics:
-                5.0 V is provided
-
-Handle 0x0018, DMI type 9, 13 bytes
-System Slot Information
-        Designation: ISA
-        Type: 16-bit ISA
-        Current Usage: Unknown
-        Length: Long
-        Characteristics:
-                5.0 V is provided
-
-Handle 0x0019, DMI type 9, 13 bytes
-System Slot Information
-        Designation: ISA
-        Type: 16-bit ISA
-        Current Usage: Unknown
-        Length: Long
-        Characteristics:
-                5.0 V is provided
-
-Handle 0x001A, DMI type 9, 13 bytes
-System Slot Information
-        Designation: PCI
-        Type: 32-bit PCI
-        Current Usage: In Use
-        Length: Long
-        ID: 8
-        Characteristics:
-                5.0 V is provided
-
-Handle 0x001B, DMI type 9, 13 bytes
-System Slot Information
-        Designation: PCI
-        Type: 32-bit PCI
-        Current Usage: Available
-        Length: Long
-        ID: 9
-        Characteristics:
-                5.0 V is provided
-
-Handle 0x001C, DMI type 9, 13 bytes
-System Slot Information
-        Designation: PCI
-        Type: 32-bit PCI
-        Current Usage: In Use
-        Length: Long
-        ID: 10
-        Characteristics:
-                5.0 V is provided
-
-Handle 0x001D, DMI type 9, 13 bytes
-System Slot Information
-        Designation: PCI
-        Type: 32-bit PCI
-        Current Usage: In Use
-        Length: Long
-        ID: 11
-        Characteristics:
-                5.0 V is provided
-
-Handle 0x001E, DMI type 9, 13 bytes
-System Slot Information
-        Designation: AGP
-        Type: 32-bit AGP
-        Current Usage: Available
-        Length: Long
-        ID: 8
-        Characteristics:
-                5.0 V is provided
-
-Handle 0x001F, DMI type 8, 9 bytes
-Port Connector Information
-        Internal Reference Designator: USB
-        Internal Connector Type: None
-        External Reference Designator:
-        External Connector Type: Other
-        Port Type: USB
-
-Handle 0x0020, DMI type 13, 22 bytes
-BIOS Language Information
-        Installable Languages: 3
-                n|US|iso8859-1
-                r|CA|iso8859-1
-                a|JP|unicode
-        Currently Installed Language: n|US|iso8859-1
-
+On Sat, Jul 19, 2008 at 2:22 PM, Alan Jenkins <aj504@cs.york.ac.uk> wrote:
+> Fabio Comolli wrote:
+>> Hi Alex.
+>> Well, I read the bug report but still can't understand why in any
+>> kernels < 2.6.26 I don't have any problems with battery reports and in
+>> 2.6.26 as soon as the message appears g-p-m starts to behave
+>> incorrectly.
+>>
+>> Anyway, I got back to 25.11 for now, if you have any other workarounds
+>> for me to test please let me know.
+>
+> Hi Fabio.
+>
+> I wrote some GPE fixes for my Asus laptop and they need some wider
+> testing :-).  I think I found why we get GPE storms and how to deal
+> with them.
+>
+> I posted them on the lists a series of three patches, but I neglected
+> to CC any potential testers.  For convenience I squished them into a
+> single patch and posted them in Bugzilla.
+>
+> My bug: <http://bugzilla.kernel.org/show_bug.cgi?id=11089>
+> Patch: <http://bugzilla.kernel.org/attachment.cgi?
+> id=16886&action=view>
+>
+> The risky part of the fixes removes the GPE interrupt storm check and
+> the GPE polling mode. So you won't see the "disabling EC GPE" message,
+> and I'm hoping this will stop g-p-m  misbehaving for you.
+>
+> I'm not sure what could happen if it's broken somehow :-).  If you
+> have ACPI hotkeys (i.e. running acpi_listen shows events when you
+> press hotkeys), please check they still work.  If not, you should have
+> at least one button that generates an ACPI event - the power button.
+> So it would be great if you could check the power button still works
+> as normal.  (On my computer, g-p-m handles the power button and pops
+> up a logout/shutdown prompt).
+>
+> Thanks
+> Alan
+>
