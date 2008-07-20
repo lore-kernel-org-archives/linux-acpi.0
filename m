@@ -1,61 +1,422 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI: Provide a spec conform OSI interface to the BIOS
-Date: Sat, 19 Jul 2008 22:27:19 -0400 (EDT)
-Message-ID: <alpine.LFD.1.10.0807192224300.3543@localhost.localdomain>
-References: <1216316268-24042-1-git-send-email-trenn@suse.de>
- <48804349.607@linux.intel.com> <200807181922.11728.trenn@suse.de>
+From: Chris Collins <chris@eorbit.net>
+Subject: Re: hwapci-0142 error (dmidecode)
+Date: Sat, 19 Jul 2008 19:33:27 -0700
+Message-ID: <20080720023327.GA6026@eorbit.net>
+References: <20080720001417.GA22429@eorbit.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms044pub.verizon.net ([206.46.252.44]:34830 "EHLO
-	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755168AbYGTC1l (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 19 Jul 2008 22:27:41 -0400
-Received: from localhost.localdomain ([96.252.122.168])
- by vms044.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0K4A0070T9HLMY58@vms044.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sat, 19 Jul 2008 21:27:22 -0500 (CDT)
-In-reply-to: <200807181922.11728.trenn@suse.de>
+Received: from boojiboy.eorbit.net ([66.135.54.188]:21821 "EHLO
+	boojiboy.eorbit.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755201AbYGTCda (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 19 Jul 2008 22:33:30 -0400
+Content-Disposition: inline
+In-Reply-To: <20080720001417.GA22429@eorbit.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Andi Kleen <ak@linux.intel.com>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-
-
-On Fri, 18 Jul 2008, Thomas Renninger wrote:
-
-> On Friday 18 July 2008 09:16:25 am Andi Kleen wrote:
-> > Thomas Renninger wrote:
-> > > Introduce acpi_osi=windows_false boot parameter
-> > > Introduce CONFIG_ACPI_OSI_SPEC_CONFORM config option
-> >
-> > Why are you adding the CONFIG option? 
-> > In what circumstances would one 
-> > set it? If anything I think this should be a boot option only for now.
-> E.g. for OEMs that do not need to support all BIOSes in the world who 
-> can just check for the config option and then know it behaves as written in 
-> the spec and being able to support Linux and Windows through the same BIOS.
+On Sat, Jul 19, 2008 at 05:14:17PM -0700, Chris Collins wrote:
+> Hello,
 > 
-> But you are right, the compile option only makes sense if acpi_osi="Windows 
-> 2006" can be used to simulate a specific Windows OS via boot param, which is 
-> not the case.
-> 
-> But I want the boot param. This one makes very much sense to test BIOSes 
-> whether they stick to the ACPI spec and work fine on Linux without Windows 
-> simulation. Is that ok?
-> 
-> > Probably needs more discussion first.
-> I always wanted to write down the arguments again, but this takes a lot time.
+> ACPI doesn't work on my desktop, a VIA Apollo MVP3 chipset.
 
-> Will you accept the boot param only?
+Hello, 
 
-I don't see a case for this.
+In re-reading the ACPI-HOWTO I see that the output from 
+dmidecode is helpful, so here you go:
+(I've never seen this before...cool.)
 
-This workaround is needed only if there is a Linux bug.
-I'd rather expose and fix that Linux bug than open
-the door to sweeping it under the rug and making
-Linux harder to maintain.
+******dmidecode******
 
--Len
+chris@darkstar:/home/chris# cat dmi.txt
+# dmidecode 2.9
+SMBIOS 2.1 present.
+33 structures occupying 870 bytes.
+Table at 0x000F0800.
+
+Handle 0x0000, DMI type 0, 19 bytes
+BIOS Information
+        Vendor: Award Software International, Inc.
+        Version: 4.51 PG
+        Release Date: 12/21/00
+        Address: 0xE0000
+        Runtime Size: 128 kB
+        ROM Size: 256 kB
+        Characteristics:
+                ISA is supported
+                PCI is supported
+                PNP is supported
+                APM is supported
+                BIOS is upgradeable
+                BIOS shadowing is allowed
+                ESCD support is available
+                Boot from CD is supported
+                Selectable boot is supported
+                BIOS ROM is socketed
+                EDD is supported
+                5.25"/360 KB floppy services are supported (int 13h)
+                5.25"/1.2 MB floppy services are supported (int 13h)
+                3.5"/720 KB floppy services are supported (int 13h)
+                3.5"/2.88 MB floppy services are supported (int 13h)
+                Print screen service is supported (int 5h)
+                8042 keyboard services are supported (int 9h)
+                Serial services are supported (int 14h)
+                Printer services are supported (int 17h)
+                CGA/mono video services are supported (int 10h)
+                ACPI is supported
+                USB legacy is supported
+                AGP is supported
+                LS-120 boot is supported
+                ATAPI Zip drive boot is supported
+
+Handle 0x0001, DMI type 1, 25 bytes
+System Information
+        Manufacturer: VIA Technologies, Inc.
+        Product Name: VT82C597
+        Version:
+        Serial Number:
+        UUID: Not Settable
+        Wake-up Type: Reserved
+
+Handle 0x0002, DMI type 2, 8 bytes
+Base Board Information
+        Manufacturer:
+        Product Name: MVP3-596-W877
+        Version:
+        Serial Number:
+
+Handle 0x0003, DMI type 3, 13 bytes
+Chassis Information
+        Manufacturer:
+        Type: Unknown
+        Lock: Not Present
+        Version:
+        Serial Number:
+        Asset Tag:
+        Boot-up State: Unknown
+        Power Supply State: Unknown
+        Thermal State: Unknown
+        Security Status: Unknown
+
+Handle 0x0004, DMI type 4, 32 bytes
+Processor Information
+        Socket Designation: Socket 7
+        Type: Central Processor
+        Family: K5
+        Manufacturer: AMD
+        ID: D0 05 00 00 BF 21 80 00
+        Signature: Family 5, Model 13, Stepping 0
+        Flags:
+                FPU (Floating-point unit on-chip)
+                VME (Virtual mode extension)
+                DE (Debugging extension)
+                PSE (Page size extension)
+                TSC (Time stamp counter)
+                MSR (Model specific registers)
+                MCE (Machine check exception)
+                CX8 (CMPXCHG8 instruction supported)
+                PGE (Page global enable)
+                MMX (MMX technology supported)
+        Version: AMD-K6
+        Voltage: 3.3 V
+        External Clock: 100 MHz
+        Max Speed: 266 MHz
+        Current Speed: 194 MHz
+        Status: Populated, Enabled
+        Upgrade: ZIF Socket
+        L1 Cache Handle: 0x0000
+        L2 Cache Handle: 0x0000
+        L3 Cache Handle: 0x0000
+
+Handle 0x0005, DMI type 5, 28 bytes
+Memory Controller Information
+        Error Detecting Method: None
+        Error Correcting Capabilities:
+                Single-bit Error Correcting
+        Supported Interleave: Four-way Interleave
+        Current Interleave: One-way Interleave
+        Maximum Memory Module Size: 256 MB
+        Maximum Total Memory Size: 1536 MB
+        Supported Speeds:
+                70 ns
+                60 ns
+        Supported Memory Types:
+                Other
+                Unknown
+                Standard
+                FPM
+                EDO
+                Parity
+                ECC
+                SIMM
+                DIMM
+                SDRAM
+        Memory Module Voltage: 5.0 V 3.3 V
+        Associated Memory Slots: 6
+                0x0006
+                0x0007
+                0x0008
+                0x0009
+                0x000A
+                0x000B
+        Enabled Error Correcting Capabilities: None
+
+Handle 0x0006, DMI type 6, 12 bytes
+Memory Module Information
+        Socket Designation: BANK_0
+        Bank Connections: 1
+        Current Speed: 60 ns
+        Type: DIMM SDRAM
+        Installed Size: 128 MB (Single-bank Connection)
+        Enabled Size: 128 MB (Single-bank Connection)
+        Error Status: OK
+
+Handle 0x0007, DMI type 6, 12 bytes
+Memory Module Information
+        Socket Designation: BANK_1
+        Bank Connections: 2
+        Current Speed: 60 ns
+        Type: DIMM SDRAM
+        Installed Size: Not Installed
+        Enabled Size: Not Installed
+        Error Status: OK
+
+Handle 0x0008, DMI type 6, 12 bytes
+Memory Module Information
+        Socket Designation: BANK_2
+        Bank Connections: 3
+        Current Speed: 60 ns
+        Type: DIMM SDRAM
+        Installed Size: 128 MB (Single-bank Connection)
+        Enabled Size: 128 MB (Single-bank Connection)
+        Error Status: OK
+
+Handle 0x0009, DMI type 6, 12 bytes
+Memory Module Information
+        Socket Designation: BANK_3
+        Bank Connections: 4
+        Current Speed: 60 ns
+        Type: DIMM SDRAM
+        Installed Size: Not Installed
+        Enabled Size: Not Installed
+        Error Status: OK
+
+Handle 0x000A, DMI type 6, 12 bytes
+Memory Module Information
+        Socket Designation: BANK_4
+        Bank Connections: 5
+        Current Speed: 60 ns
+        Type: DIMM SDRAM
+        Installed Size: 128 MB (Single-bank Connection)
+        Enabled Size: 128 MB (Single-bank Connection)
+        Error Status: OK
+
+Handle 0x000B, DMI type 6, 12 bytes
+Memory Module Information
+        Socket Designation: BANK_5
+        Bank Connections: 6
+        Current Speed: 60 ns
+        Type: DIMM SDRAM
+        Installed Size: Not Installed
+        Enabled Size: Not Installed
+        Error Status: OK
+
+Handle 0x000C, DMI type 7, 19 bytes
+Cache Information
+        Socket Designation: Internal Cache
+        Configuration: Enabled, Not Socketed, Level 1
+        Operational Mode: Write Back
+        Location: Internal
+        Installed Size: 64 KB
+        Maximum Size: 64 KB
+        Supported SRAM Types:
+                Synchronous
+        Installed SRAM Type: Synchronous
+        Speed: Unknown
+        Error Correction Type: Unknown
+        System Type: Unknown
+        Associativity: Unknown
+
+Handle 0x000D, DMI type 7, 19 bytes
+Cache Information
+        Socket Designation: External Cache
+        Configuration: Enabled, Not Socketed, Level 2
+        Operational Mode: Write Through
+        Location: External
+        Installed Size: 2048 KB
+        Maximum Size: 2048 KB
+        Supported SRAM Types:
+                Synchronous
+        Installed SRAM Type: Synchronous
+        Speed: Unknown
+        Error Correction Type: Unknown
+        System Type: Unknown
+        Associativity: Unknown
+
+Handle 0x000E, DMI type 8, 9 bytes
+Port Connector Information
+        Internal Reference Designator: PRIMARY IDE
+        Internal Connector Type: On Board IDE
+        External Reference Designator:
+        External Connector Type: None
+        Port Type: Other
+
+Handle 0x000F, DMI type 8, 9 bytes
+Port Connector Information
+        Internal Reference Designator: SECONDARY IDE
+        Internal Connector Type: On Board IDE
+        External Reference Designator:
+        External Connector Type: None
+        Port Type: Other
+
+Handle 0x0010, DMI type 8, 9 bytes
+Port Connector Information
+        Internal Reference Designator: FDD
+        Internal Connector Type: On Board Floppy
+        External Reference Designator:
+        External Connector Type: None
+        Port Type: 8251 FIFO Compatible
+
+Handle 0x0011, DMI type 8, 9 bytes
+Port Connector Information
+        Internal Reference Designator: COM1
+        Internal Connector Type: 9 Pin Dual Inline (pin 10 cut)
+        External Reference Designator:
+        External Connector Type: DB-9 male
+        Port Type: Serial Port 16450 Compatible
+
+Handle 0x0012, DMI type 8, 9 bytes
+Port Connector Information
+        Internal Reference Designator: COM2
+        Internal Connector Type: 9 Pin Dual Inline (pin 10 cut)
+        External Reference Designator:
+        External Connector Type: DB-9 male
+        Port Type: Serial Port 16450 Compatible
+
+Handle 0x0013, DMI type 8, 9 bytes
+Port Connector Information
+        Internal Reference Designator: LPT1
+        Internal Connector Type: DB-25 female
+        External Reference Designator:
+        External Connector Type: DB-25 female
+        Port Type: Parallel Port ECP/EPP
+
+Handle 0x0014, DMI type 8, 9 bytes
+Port Connector Information
+        Internal Reference Designator: Keyboard
+        Internal Connector Type: Other
+        External Reference Designator:
+        External Connector Type: PS/2
+        Port Type: Keyboard Port
+
+Handle 0x0015, DMI type 8, 9 bytes
+Port Connector Information
+        Internal Reference Designator: PS/2 Mouse
+        Internal Connector Type: PS/2
+        External Reference Designator: Detected
+        External Connector Type: PS/2
+        Port Type: Mouse Port
+
+Handle 0x0016, DMI type 9, 13 bytes
+System Slot Information
+        Designation: ISA
+        Type: 16-bit ISA
+        Current Usage: Unknown
+        Length: Long
+        Characteristics:
+                5.0 V is provided
+
+Handle 0x0017, DMI type 9, 13 bytes
+System Slot Information
+        Designation: ISA
+        Type: 16-bit ISA
+        Current Usage: Unknown
+        Length: Long
+        Characteristics:
+                5.0 V is provided
+
+Handle 0x0018, DMI type 9, 13 bytes
+System Slot Information
+        Designation: ISA
+        Type: 16-bit ISA
+        Current Usage: Unknown
+        Length: Long
+        Characteristics:
+                5.0 V is provided
+
+Handle 0x0019, DMI type 9, 13 bytes
+System Slot Information
+        Designation: ISA
+        Type: 16-bit ISA
+        Current Usage: Unknown
+        Length: Long
+        Characteristics:
+                5.0 V is provided
+
+Handle 0x001A, DMI type 9, 13 bytes
+System Slot Information
+        Designation: PCI
+        Type: 32-bit PCI
+        Current Usage: In Use
+        Length: Long
+        ID: 8
+        Characteristics:
+                5.0 V is provided
+
+Handle 0x001B, DMI type 9, 13 bytes
+System Slot Information
+        Designation: PCI
+        Type: 32-bit PCI
+        Current Usage: Available
+        Length: Long
+        ID: 9
+        Characteristics:
+                5.0 V is provided
+
+Handle 0x001C, DMI type 9, 13 bytes
+System Slot Information
+        Designation: PCI
+        Type: 32-bit PCI
+        Current Usage: In Use
+        Length: Long
+        ID: 10
+        Characteristics:
+                5.0 V is provided
+
+Handle 0x001D, DMI type 9, 13 bytes
+System Slot Information
+        Designation: PCI
+        Type: 32-bit PCI
+        Current Usage: In Use
+        Length: Long
+        ID: 11
+        Characteristics:
+                5.0 V is provided
+
+Handle 0x001E, DMI type 9, 13 bytes
+System Slot Information
+        Designation: AGP
+        Type: 32-bit AGP
+        Current Usage: Available
+        Length: Long
+        ID: 8
+        Characteristics:
+                5.0 V is provided
+
+Handle 0x001F, DMI type 8, 9 bytes
+Port Connector Information
+        Internal Reference Designator: USB
+        Internal Connector Type: None
+        External Reference Designator:
+        External Connector Type: Other
+        Port Type: USB
+
+Handle 0x0020, DMI type 13, 22 bytes
+BIOS Language Information
+        Installable Languages: 3
+                n|US|iso8859-1
+                r|CA|iso8859-1
+                a|JP|unicode
+        Currently Installed Language: n|US|iso8859-1
 
