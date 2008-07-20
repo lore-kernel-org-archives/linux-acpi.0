@@ -1,79 +1,66 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: Re: [PATCH 1/3] acpi: Rip out EC_FLAGS_QUERY_PENDING (prevent race
- condition)
-Date: Sun, 20 Jul 2008 01:12:49 +0400
-Message-ID: <488258D1.4030506@suse.de>
-References: <487D23C3.5070301@student.cs.york.ac.uk> <487F31D7.30803@suse.de> <20080717121309.GF31732@khazad-dum.debian.net> <487F3B6D.3090507@suse.de> <20080717162628.GB18457@khazad-dum.debian.net> <487F7724.5080905@tuffmail.co.uk> <20080717185032.GD18457@khazad-dum.debian.net> <487F986A.3070504@tuffmail.co.uk> <4881CE72.1090401@tuffmail.co.uk> <4881D239.4010402@tuffmail.co.uk> <48821D7B.1080209@suse.de> <4882517F.6080407@tuffmail.co.uk>
+From: Chris Collins <chris@eorbit.net>
+Subject: hwapci-0142 error
+Date: Sat, 19 Jul 2008 17:14:17 -0700
+Message-ID: <20080720001417.GA22429@eorbit.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:34539 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753790AbYGSVMe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 19 Jul 2008 17:12:34 -0400
-In-Reply-To: <4882517F.6080407@tuffmail.co.uk>
+Received: from boojiboy.eorbit.net ([66.135.54.188]:18120 "EHLO
+	boojiboy.eorbit.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754372AbYGTAcp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 19 Jul 2008 20:32:45 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Alan Jenkins wrote:
->     /* moved here from acpi_ec_transaction_unlocked() */
->     clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
-> 
->     while (acpi_ec_query(ec, &value) == 0)
->         acpi_ec_gpe_run_handler(ec, value);
-> }
-> 
-> The PENDING flag then reflects whether or not there's an item on the
-> workqueue.  Does that make sense?
-Yes, this is what the flag was made for -- 
-to guard workqueue from being filled up.
-> 
->> Your second patch is redundant if you add queue entry for each
->> interrupt, and as it does not
->> require any investments into memory, I like it more.
->>
-> It's not quite redundant with the first patch.  We still have GPE
-> polling mode - patch #1 doesn't affect that.  In polling mode, it's
-> essential to query all the pending events - otherwise, if they arrive
-> more frequently than the polling interval then you will inevitably drop
-> events.
-I meant that if we have patch #3, which drops poll mode, we only need
-one of the first two, not both. And in this case I like #2 more than #1.
-> 
-> Patch #2 is also required to fix my buggy hardware.  My laptop's EC
-> buffers multiple events, but clears SCI_EVT after every query.  This
-> caused problems in polling mode; with multiple events between polling
-> intervals only one gets queried - and after a while the buffer overflows
-> and it breaks completely.
-I fully agree here, it would be great to make sure that EC buffers are empty.
->> Also, it is very cool to rip of things you don't care for, but that
->> essentially reverts a fix done for 9998,
->> so at least, you should ask these people if you broke their setups.
->>
-> I assume you're referring to the "would benefit from wider testing"
-> patch #3. Thanks for identifying the bugzilla entry - I had difficulty
-> separating the different entries on GPEs.  I'm optimistic that we can
-> fix all these crazy buffering EC's without having to disable GPE interrupts.
-I would say, we should test pair of #2 and #3, or your original patch + my patch.
-I still like the option to not have any new interrupts until I'm done with current one --
-much like the PENDING bit.
-> 
-> The reason I like my proposed fix is that it makes the code simple
-> enough that I can understand it, without making any assumptions about
-> how many interrupts arrive per GPE.  The EC can be broken in lots of
-> ways, so long as:
-> 
-> 1. We receive interrupts when one or more GPE's are pending.
-> 2. We don't get a constant interrupt storm.
-> 
-> I don't think I missed anything.  Is there anything else I should check
-> before I try to get testing?
-Well, there is Keith Packard with concern that either high number of interrupts or long
-spins on polling status register could push battery life down the drain...
-One more argument to disable GPE until we service previous. 
+Hello,
 
-Regards,
-Alex.
+ACPI doesn't work on my desktop, a VIA Apollo MVP3 chipset.
+
+I have a 12/20/2000 dated award BIOS.
+
+I've installed a current slackware distro, 12.1.
+
+In my BIOS setup I enabled ACPI, and disabled APM
+
+In my kernel parameters, in Lilo I have tried each 
+of these in succession to see what happens:
+
+
+******************************************
+image = /boot/vmlinuz-huge-2.6.24.5
+  root = /dev/hda1
+  label = Linux1
+# append="acpi=ht"
+# append="pci=noacpi"
+# append="acpi=noirq"
+# append="pnpacpi=off"
+# append="noapic"
+# append="nolapic"
+  read-only
+******************************************
+
+Here is what happens from bootup
+
+chrie@darkstar:~# grep -i ACPI /var/log/dmesg
+ BIOS-e820: 0000000017ff0000 - 0000000017ff3000 (ACPI NVS)
+ BIOS-e820: 0000000017ff3000 - 0000000018000000 (ACPI data)
+ACPI: RSDP 000F6FF0, 0014 (r0 AWARD )
+ACPI: RSDT 17FF3000, 0028 (r1 AWARD  AWRDACPI 42302E31 AWRD        0)
+ACPI: FACP 17FF3040, 0074 (r1 AWARD  AWRDACPI 42302E31 AWRD        0)
+ACPI: DSDT 17FF30C0, 1EA8 (r1 AWARD  AWRDACPI     1000 MSFT  100000B)
+ACPI: FACS 17FF0000, 0040
+ACPI: DMI BIOS year==0, assuming ACPI-capable machine
+ACPI: PM-Timer IO Port: 0x4008
+ACPI: Core revision 20070126
+ACPI: setting ELCR to 0200 (from 0e20)
+ACPI Error (hwacpi-0142): Hardware did not change modes [20070126]
+ACPI Error (evxfevnt-0086): Could not transition to ACPI mode [20070126]
+ACPI Warning (utxface-0139): AcpiEnable failed [20070126]
+ACPI: Unable to enable ACPI
+ACPI: Interpreter disabled.
+pnp: PnP ACPI: disabled
+
+
+--Chris
