@@ -1,66 +1,61 @@
-From: Chris Collins <chris@eorbit.net>
-Subject: hwapci-0142 error
-Date: Sat, 19 Jul 2008 17:14:17 -0700
-Message-ID: <20080720001417.GA22429@eorbit.net>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] ACPI: Provide a spec conform OSI interface to the BIOS
+Date: Sat, 19 Jul 2008 22:27:19 -0400 (EDT)
+Message-ID: <alpine.LFD.1.10.0807192224300.3543@localhost.localdomain>
+References: <1216316268-24042-1-git-send-email-trenn@suse.de>
+ <48804349.607@linux.intel.com> <200807181922.11728.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from boojiboy.eorbit.net ([66.135.54.188]:18120 "EHLO
-	boojiboy.eorbit.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754372AbYGTAcp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 19 Jul 2008 20:32:45 -0400
-Content-Disposition: inline
+Received: from vms044pub.verizon.net ([206.46.252.44]:34830 "EHLO
+	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755168AbYGTC1l (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 19 Jul 2008 22:27:41 -0400
+Received: from localhost.localdomain ([96.252.122.168])
+ by vms044.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
+ 3 2006)) with ESMTPA id <0K4A0070T9HLMY58@vms044.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 19 Jul 2008 21:27:22 -0500 (CDT)
+In-reply-to: <200807181922.11728.trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-
-Hello,
-
-ACPI doesn't work on my desktop, a VIA Apollo MVP3 chipset.
-
-I have a 12/20/2000 dated award BIOS.
-
-I've installed a current slackware distro, 12.1.
-
-In my BIOS setup I enabled ACPI, and disabled APM
-
-In my kernel parameters, in Lilo I have tried each 
-of these in succession to see what happens:
+To: Thomas Renninger <trenn@suse.de>
+Cc: Andi Kleen <ak@linux.intel.com>, linux-acpi@vger.kernel.org
 
 
-******************************************
-image = /boot/vmlinuz-huge-2.6.24.5
-  root = /dev/hda1
-  label = Linux1
-# append="acpi=ht"
-# append="pci=noacpi"
-# append="acpi=noirq"
-# append="pnpacpi=off"
-# append="noapic"
-# append="nolapic"
-  read-only
-******************************************
 
-Here is what happens from bootup
+On Fri, 18 Jul 2008, Thomas Renninger wrote:
 
-chrie@darkstar:~# grep -i ACPI /var/log/dmesg
- BIOS-e820: 0000000017ff0000 - 0000000017ff3000 (ACPI NVS)
- BIOS-e820: 0000000017ff3000 - 0000000018000000 (ACPI data)
-ACPI: RSDP 000F6FF0, 0014 (r0 AWARD )
-ACPI: RSDT 17FF3000, 0028 (r1 AWARD  AWRDACPI 42302E31 AWRD        0)
-ACPI: FACP 17FF3040, 0074 (r1 AWARD  AWRDACPI 42302E31 AWRD        0)
-ACPI: DSDT 17FF30C0, 1EA8 (r1 AWARD  AWRDACPI     1000 MSFT  100000B)
-ACPI: FACS 17FF0000, 0040
-ACPI: DMI BIOS year==0, assuming ACPI-capable machine
-ACPI: PM-Timer IO Port: 0x4008
-ACPI: Core revision 20070126
-ACPI: setting ELCR to 0200 (from 0e20)
-ACPI Error (hwacpi-0142): Hardware did not change modes [20070126]
-ACPI Error (evxfevnt-0086): Could not transition to ACPI mode [20070126]
-ACPI Warning (utxface-0139): AcpiEnable failed [20070126]
-ACPI: Unable to enable ACPI
-ACPI: Interpreter disabled.
-pnp: PnP ACPI: disabled
+> On Friday 18 July 2008 09:16:25 am Andi Kleen wrote:
+> > Thomas Renninger wrote:
+> > > Introduce acpi_osi=windows_false boot parameter
+> > > Introduce CONFIG_ACPI_OSI_SPEC_CONFORM config option
+> >
+> > Why are you adding the CONFIG option? 
+> > In what circumstances would one 
+> > set it? If anything I think this should be a boot option only for now.
+> E.g. for OEMs that do not need to support all BIOSes in the world who 
+> can just check for the config option and then know it behaves as written in 
+> the spec and being able to support Linux and Windows through the same BIOS.
+> 
+> But you are right, the compile option only makes sense if acpi_osi="Windows 
+> 2006" can be used to simulate a specific Windows OS via boot param, which is 
+> not the case.
+> 
+> But I want the boot param. This one makes very much sense to test BIOSes 
+> whether they stick to the ACPI spec and work fine on Linux without Windows 
+> simulation. Is that ok?
+> 
+> > Probably needs more discussion first.
+> I always wanted to write down the arguments again, but this takes a lot time.
 
+> Will you accept the boot param only?
 
---Chris
+I don't see a case for this.
+
+This workaround is needed only if there is a Linux bug.
+I'd rather expose and fix that Linux bug than open
+the door to sweeping it under the rug and making
+Linux harder to maintain.
+
+-Len
+
