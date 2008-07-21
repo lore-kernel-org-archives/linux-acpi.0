@@ -1,119 +1,126 @@
-From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: [PATCH 1/7] ACPI: thinkpad-acpi: minor refactor on
-	radio switch init
-Date: Mon, 21 Jul 2008 09:42:14 -0300
-Message-ID: <1216644140-13284-1-git-send-email-hmh@hmh.eng.br>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: [PATCH 7/7] ACPI: thinkpad-acpi: don't misdetect in get_thinkpad_model_data() on -ENOMEM
+Date: Mon, 21 Jul 2008 09:42:20 -0300
+Message-ID: <1216644140-13284-7-git-send-email-hmh@hmh.eng.br>
 References: <20080721122935.GA12972@khazad-dum.debian.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20080721122935.GA12972-ZGHd14iZgfaRjzvQDGKj+xxZW9W5cXbT@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Andi Kleen <andi-Vw/NltI1exuRpAAqCnN02g@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:51803 "EHLO
+	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751478AbYGUMm2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 Jul 2008 08:42:28 -0400
+In-Reply-To: <20080721122935.GA12972@khazad-dum.debian.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andi Kleen <andi@firstfloor.org>
+Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Change the code of hotkey_init, wan_init and bluetooth_init a bit to make it
-much easier to add some Kconfig-selected debugging code later.
+Explicitly check for memory allocation failures, and return status to
+indicate that we could not collect data due to errors.
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+This lets the driver have a far more predictable failure mode on ENOMEM in
+that codepath: it will refuse to load.  This is far better than trying to
+proceed with missing data which is used to detect quirks, etc.
+
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 ---
- drivers/misc/thinkpad_acpi.c |   49 ++++++++++++++++++++++-------------------
- 1 files changed, 26 insertions(+), 23 deletions(-)
+ drivers/misc/thinkpad_acpi.c |   47 +++++++++++++++++++++++++++++------------
+ 1 files changed, 33 insertions(+), 14 deletions(-)
 
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index b596929..c800855 100644
+index 3eb01af..d3eb790 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -2167,9 +2167,10 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
- 		printk(TPACPI_INFO
- 			"radio switch found; radios are %s\n",
- 			enabled(status, 0));
-+	}
-+	if (tp_features.hotkey_wlsw)
- 		res = add_to_attr_set(hotkey_dev_attributes,
- 				&dev_attr_hotkey_radio_sw.attr);
--	}
+@@ -6340,13 +6340,18 @@ err_out:
  
- 	/* For X41t, X60t, X61t Tablets... */
- 	if (!res && acpi_evalf(hkey_handle, &status, "MHKG", "qd")) {
-@@ -2646,18 +2647,19 @@ static int __init bluetooth_init(struct ibm_init_struct *iibm)
- 		str_supported(tp_features.bluetooth),
- 		status);
+ /* Probing */
  
-+	if (tp_features.bluetooth &&
-+	    !(status & TP_ACPI_BLUETOOTH_HWPRESENT)) {
-+		/* no bluetooth hardware present in system */
-+		tp_features.bluetooth = 0;
-+		dbg_printk(TPACPI_DBG_INIT,
-+			   "bluetooth hardware not installed\n");
-+	}
-+
- 	if (tp_features.bluetooth) {
--		if (!(status & TP_ACPI_BLUETOOTH_HWPRESENT)) {
--			/* no bluetooth hardware present in system */
--			tp_features.bluetooth = 0;
--			dbg_printk(TPACPI_DBG_INIT,
--				   "bluetooth hardware not installed\n");
--		} else {
--			res = sysfs_create_group(&tpacpi_pdev->dev.kobj,
--					&bluetooth_attr_group);
--			if (res)
--				return res;
--		}
-+		res = sysfs_create_group(&tpacpi_pdev->dev.kobj,
-+				&bluetooth_attr_group);
-+		if (res)
-+			return res;
+-static void __init get_thinkpad_model_data(struct thinkpad_id_data *tp)
++/* returns 0 - probe ok, or < 0 - probe error.
++ * Probe ok doesn't mean thinkpad found.
++ * On error, kfree() cleanup on tp->* is not performed, caller must do it */
++static int __must_check __init get_thinkpad_model_data(
++						struct thinkpad_id_data *tp)
+ {
+ 	const struct dmi_device *dev = NULL;
+ 	char ec_fw_string[18];
++	char const *s;
+ 
+ 	if (!tp)
+-		return;
++		return -EINVAL;
+ 
+ 	memset(tp, 0, sizeof(*tp));
+ 
+@@ -6355,12 +6360,14 @@ static void __init get_thinkpad_model_data(struct thinkpad_id_data *tp)
+ 	else if (dmi_name_in_vendors("LENOVO"))
+ 		tp->vendor = PCI_VENDOR_ID_LENOVO;
+ 	else
+-		return;
++		return 0;
+ 
+-	tp->bios_version_str = kstrdup(dmi_get_system_info(DMI_BIOS_VERSION),
+-					GFP_KERNEL);
++	s = dmi_get_system_info(DMI_BIOS_VERSION);
++	tp->bios_version_str = kstrdup(s, GFP_KERNEL);
++	if (s && !tp->bios_version_str)
++		return -ENOMEM;
+ 	if (!tp->bios_version_str)
+-		return;
++		return 0;
+ 	tp->bios_model = tp->bios_version_str[0]
+ 			 | (tp->bios_version_str[1] << 8);
+ 
+@@ -6379,21 +6386,27 @@ static void __init get_thinkpad_model_data(struct thinkpad_id_data *tp)
+ 			ec_fw_string[strcspn(ec_fw_string, " ]")] = 0;
+ 
+ 			tp->ec_version_str = kstrdup(ec_fw_string, GFP_KERNEL);
++			if (!tp->ec_version_str)
++				return -ENOMEM;
+ 			tp->ec_model = ec_fw_string[0]
+ 					| (ec_fw_string[1] << 8);
+ 			break;
+ 		}
  	}
  
- 	return (tp_features.bluetooth)? 0 : 1;
-@@ -2818,18 +2820,19 @@ static int __init wan_init(struct ibm_init_struct *iibm)
- 		str_supported(tp_features.wan),
- 		status);
- 
-+	if (tp_features.wan &&
-+	    !(status & TP_ACPI_WANCARD_HWPRESENT)) {
-+		/* no wan hardware present in system */
-+		tp_features.wan = 0;
-+		dbg_printk(TPACPI_DBG_INIT,
-+			   "wan hardware not installed\n");
-+	}
-+
- 	if (tp_features.wan) {
--		if (!(status & TP_ACPI_WANCARD_HWPRESENT)) {
--			/* no wan hardware present in system */
--			tp_features.wan = 0;
--			dbg_printk(TPACPI_DBG_INIT,
--				   "wan hardware not installed\n");
--		} else {
--			res = sysfs_create_group(&tpacpi_pdev->dev.kobj,
--					&wan_attr_group);
--			if (res)
--				return res;
--		}
-+		res = sysfs_create_group(&tpacpi_pdev->dev.kobj,
-+				&wan_attr_group);
-+		if (res)
-+			return res;
+-	tp->model_str = kstrdup(dmi_get_system_info(DMI_PRODUCT_VERSION),
+-					GFP_KERNEL);
+-	if (tp->model_str && strnicmp(tp->model_str, "ThinkPad", 8) != 0) {
+-		kfree(tp->model_str);
+-		tp->model_str = NULL;
++	s = dmi_get_system_info(DMI_PRODUCT_VERSION);
++	if (s && !strnicmp(s, "ThinkPad", 8)) {
++		tp->model_str = kstrdup(s, GFP_KERNEL);
++		if (!tp->model_str)
++			return -ENOMEM;
  	}
  
- 	return (tp_features.wan)? 0 : 1;
+-	tp->nummodel_str = kstrdup(dmi_get_system_info(DMI_PRODUCT_NAME),
+-					GFP_KERNEL);
++	s = dmi_get_system_info(DMI_PRODUCT_NAME);
++	tp->nummodel_str = kstrdup(s, GFP_KERNEL);
++	if (s && !tp->nummodel_str)
++		return -ENOMEM;
++
++	return 0;
+ }
+ 
+ static int __init probe_for_thinkpad(void)
+@@ -6656,7 +6669,13 @@ static int __init thinkpad_acpi_module_init(void)
+ 
+ 	/* Driver-level probe */
+ 
+-	get_thinkpad_model_data(&thinkpad_id);
++	ret = get_thinkpad_model_data(&thinkpad_id);
++	if (ret) {
++		printk(TPACPI_ERR
++			"unable to get DMI data: %d\n", ret);
++		thinkpad_acpi_module_exit();
++		return ret;
++	}
+ 	ret = probe_for_thinkpad();
+ 	if (ret) {
+ 		thinkpad_acpi_module_exit();
 -- 
 1.5.6.2
 
-
--------------------------------------------------------------------------
-This SF.Net email is sponsored by the Moblin Your Move Developer's challenge
-Build the coolest Linux based applications with Moblin SDK & win great prizes
-Grand prize is a trip for two to an Open Source event anywhere in the world
-http://moblin-contest.org/redirect.php?banner_id=100&url=/
