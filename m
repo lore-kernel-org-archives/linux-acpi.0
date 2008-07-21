@@ -1,51 +1,50 @@
-From: Andi Kleen <andi@firstfloor.org>
-Subject: Please pull ACPI tree
-Date: Mon, 21 Jul 2008 13:43:21 +0200
-Message-ID: <20080721114321.GA28786@basil.nowhere.org>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [ibm-acpi-devel] [GIT PATCH] thinkpad-acpi changes for 2.6.27
+	merge window
+Date: Mon, 21 Jul 2008 09:29:35 -0300
+Message-ID: <20080721122935.GA12972@khazad-dum.debian.net>
+References: <1214936875-4812-1-git-send-email-hmh@hmh.eng.br> <20080721113217.GA28188@basil.nowhere.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out04.alice-dsl.net ([88.44.63.6]:49431 "EHLO
-	smtp-out04.alice-dsl.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750698AbYGULoY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Jul 2008 07:44:24 -0400
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:50697 "EHLO
+	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750989AbYGUM3k (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 Jul 2008 08:29:40 -0400
 Content-Disposition: inline
+In-Reply-To: <20080721113217.GA28188@basil.nowhere.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: torvalds@osdl.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Andi Kleen <andi@firstfloor.org>
+Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
 
+On Mon, 21 Jul 2008, Andi Kleen wrote:
+> On Tue, Jul 01, 2008 at 03:27:48PM -0300, Henrique de Moraes Holschuh wrote:
+> > Here a patchset with the thinkpad-acpi changes scheduled for 2.6.27.
+> 
+> I tried to apply them to current Linus head (last change
+> to thinkpad-acpi 24e45bbe695719dca8c20e03d386eb6ea86526b5), but there were 
+> tons of conflicts. Some patches still missing? 
+> 
+> I tried to merge the manually, but gave up when there were some
+> non trivial changes.
+> 
+> Please send a tree that actually applies.
 
-This reverts some double commits and a trouble some FADT patch.
+Weird.  The stgit patch stack I used to send those certianly applies here
+on top of mainline (using git/stgit).
 
-Also some last minute patches.
+I have the tree rebased (and had zero conflicts) on top of latest mainline
+(14b395e35d1afdd8019d11b92e28041fad591b71).  If you want, you can pull it to
+a topic branch from:
 
-The following changes since commit 5b664cb235e97afbf34db9c4d77f08ebd725335e:
-  Linus Torvalds (1):
-        Merge branch 'upstream-linus' of git://git.kernel.org/.../mfasheh/ocfs2
+git://repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git for-upstream/acpi-test
 
-are available in the git repository at:
+I will also re-send the stack as a reply to this email, just in case.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/ak/linux-acpi-merge-2.6 release-2.6.27
-
-Andi Kleen (4):
-      Revert "Fix FADT parsing"
-      Revert "dock: bay: Don't call acpi_walk_namespace() when ACPI is disabled."
-      Merge branch 'merge' into release-2.6.27
-      Revert "ACPI: don't walk tables if ACPI was disabled"
-
-Bjorn Helgaas (1):
-      ACPI: stop complaints about interrupt link End Tags and blank IRQ descriptors
-
-Zhao Yakui (2):
-      ACPI: Ignore _BQC object when registering backlight device
-      ACPI : Set FAN device to correct state in boot phase
-
- drivers/acpi/bay.c           |    3 --
- drivers/acpi/dock.c          |    3 --
- drivers/acpi/glue.c          |    3 --
- drivers/acpi/pci_link.c      |   31 +++++++++++++++++++----------
- drivers/acpi/tables/tbfadt.c |   17 +++++----------
- drivers/acpi/thermal.c       |   43 ++++++++++++++++++++++++++++++++++++++++++
- drivers/acpi/video.c         |   14 +++++++++++-
- 7 files changed, 81 insertions(+), 33 deletions(-)
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
