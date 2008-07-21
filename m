@@ -1,68 +1,89 @@
-From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: [PATCH 6/7] ACPI: thinkpad-acpi: bump up version
-	to 0.21
-Date: Mon, 21 Jul 2008 09:42:19 -0300
-Message-ID: <1216644140-13284-6-git-send-email-hmh@hmh.eng.br>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: [PATCH 4/7] ACPI: thinkpad-acpi: WLSW overrides other rfkill switches
+Date: Mon, 21 Jul 2008 09:42:17 -0300
+Message-ID: <1216644140-13284-4-git-send-email-hmh@hmh.eng.br>
 References: <20080721122935.GA12972@khazad-dum.debian.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20080721122935.GA12972-ZGHd14iZgfaRjzvQDGKj+xxZW9W5cXbT@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Andi Kleen <andi-Vw/NltI1exuRpAAqCnN02g@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:44364 "EHLO
+	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751419AbYGUMm2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 Jul 2008 08:42:28 -0400
+In-Reply-To: <20080721122935.GA12972@khazad-dum.debian.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andi Kleen <andi@firstfloor.org>
+Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-rfkill support deserves a new version checkpoint...
+On ThinkPads where the WLSW switch exists, the firmware or the hardware
+ANDs the WLSW state with the device-specific switches (WWAN, Bluetooth).
+It is downright impossible to enable WWAN or Bluetooth when WLSW is
+blocking the radios.
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+This reality does not necessarily carry over to the WWAN and Bluetooth
+firmware interfaces, though... so the state thinkpad-acpi was reporting
+could be incorrect.
+
+Tie the three switches in the driver so that we keep their state sane.
+When WLSL is off, force the other switches to off as well.
+
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 ---
- Documentation/laptops/thinkpad-acpi.txt |    4 ++--
- drivers/misc/thinkpad_acpi.c            |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/misc/thinkpad_acpi.c |   20 ++++++++++++++++++++
+ 1 files changed, 20 insertions(+), 0 deletions(-)
 
-diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
-index 1c1c021..02dc748 100644
---- a/Documentation/laptops/thinkpad-acpi.txt
-+++ b/Documentation/laptops/thinkpad-acpi.txt
-@@ -1,7 +1,7 @@
- 		     ThinkPad ACPI Extras Driver
- 
--                            Version 0.20
--                          April 09th, 2008
-+                            Version 0.21
-+                           May 29th, 2008
- 
-                Borislav Deianov <borislav-iA+eEnwkJgzk1uMJSBkQmQ@public.gmane.org>
-              Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index dc8d00a..3eb01af 100644
+index 743a4d6..202d63e 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -21,7 +21,7 @@
-  *  02110-1301, USA.
-  */
+@@ -2588,6 +2588,10 @@ static int bluetooth_get_radiosw(void)
+ 	if (!tp_features.bluetooth)
+ 		return -ENODEV;
  
--#define TPACPI_VERSION "0.20"
-+#define TPACPI_VERSION "0.21"
- #define TPACPI_SYSFS_VERSION 0x020200
++	/* WLSW overrides bluetooth in firmware/hardware, reflect that */
++	if (tp_features.hotkey_wlsw && !hotkey_get_wlsw(&status) && !status)
++		return 0;
++
+ 	if (!acpi_evalf(hkey_handle, &status, "GBDC", "d"))
+ 		return -EIO;
  
- /*
+@@ -2601,6 +2605,12 @@ static int bluetooth_set_radiosw(int radio_on)
+ 	if (!tp_features.bluetooth)
+ 		return -ENODEV;
+ 
++	/* WLSW overrides bluetooth in firmware/hardware, but there is no
++	 * reason to risk weird behaviour. */
++	if (tp_features.hotkey_wlsw && !hotkey_get_wlsw(&status) && !status
++	    && radio_on)
++		return -EPERM;
++
+ 	if (!acpi_evalf(hkey_handle, &status, "GBDC", "d"))
+ 		return -EIO;
+ 	if (radio_on)
+@@ -2760,6 +2770,10 @@ static int wan_get_radiosw(void)
+ 	if (!tp_features.wan)
+ 		return -ENODEV;
+ 
++	/* WLSW overrides WWAN in firmware/hardware, reflect that */
++	if (tp_features.hotkey_wlsw && !hotkey_get_wlsw(&status) && !status)
++		return 0;
++
+ 	if (!acpi_evalf(hkey_handle, &status, "GWAN", "d"))
+ 		return -EIO;
+ 
+@@ -2773,6 +2787,12 @@ static int wan_set_radiosw(int radio_on)
+ 	if (!tp_features.wan)
+ 		return -ENODEV;
+ 
++	/* WLSW overrides bluetooth in firmware/hardware, but there is no
++	 * reason to risk weird behaviour. */
++	if (tp_features.hotkey_wlsw && !hotkey_get_wlsw(&status) && !status
++	    && radio_on)
++		return -EPERM;
++
+ 	if (!acpi_evalf(hkey_handle, &status, "GWAN", "d"))
+ 		return -EIO;
+ 	if (radio_on)
 -- 
 1.5.6.2
 
-
--------------------------------------------------------------------------
-This SF.Net email is sponsored by the Moblin Your Move Developer's challenge
-Build the coolest Linux based applications with Moblin SDK & win great prizes
-Grand prize is a trip for two to an Open Source event anywhere in the world
-http://moblin-contest.org/redirect.php?banner_id=100&url=/
