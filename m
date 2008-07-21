@@ -1,8 +1,8 @@
 From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: [PATCH 3/7] ACPI: thinkpad-acpi: prepare for
-	bluetooth and wwan rfkill support
-Date: Mon, 21 Jul 2008 09:42:16 -0300
-Message-ID: <1216644140-13284-3-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 6/7] ACPI: thinkpad-acpi: bump up version
+	to 0.21
+Date: Mon, 21 Jul 2008 09:42:19 -0300
+Message-ID: <1216644140-13284-6-git-send-email-hmh@hmh.eng.br>
 References: <20080721122935.GA12972@khazad-dum.debian.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,214 +22,41 @@ To: Andi Kleen <andi-Vw/NltI1exuRpAAqCnN02g@public.gmane.org>
 Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Get rid of some forward definitions by moving code around, this will make
-the rfkill conversion of wwan and bluetooth a bit cleaner.
+rfkill support deserves a new version checkpoint...
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
 ---
- drivers/misc/thinkpad_acpi.c |  154 ++++++++++++++++++++----------------------
- 1 files changed, 74 insertions(+), 80 deletions(-)
+ Documentation/laptops/thinkpad-acpi.txt |    4 ++--
+ drivers/misc/thinkpad_acpi.c            |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
+diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
+index 1c1c021..02dc748 100644
+--- a/Documentation/laptops/thinkpad-acpi.txt
++++ b/Documentation/laptops/thinkpad-acpi.txt
+@@ -1,7 +1,7 @@
+ 		     ThinkPad ACPI Extras Driver
+ 
+-                            Version 0.20
+-                          April 09th, 2008
++                            Version 0.21
++                           May 29th, 2008
+ 
+                Borislav Deianov <borislav-iA+eEnwkJgzk1uMJSBkQmQ@public.gmane.org>
+              Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 9179f23..743a4d6 100644
+index dc8d00a..3eb01af 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -2581,8 +2581,37 @@ enum {
- 	TP_ACPI_BLUETOOTH_UNK		= 0x04,	/* unknown function */
- };
+@@ -21,7 +21,7 @@
+  *  02110-1301, USA.
+  */
  
--static int bluetooth_get_radiosw(void);
--static int bluetooth_set_radiosw(int radio_on);
-+static int bluetooth_get_radiosw(void)
-+{
-+	int status;
-+
-+	if (!tp_features.bluetooth)
-+		return -ENODEV;
-+
-+	if (!acpi_evalf(hkey_handle, &status, "GBDC", "d"))
-+		return -EIO;
-+
-+	return (status & TP_ACPI_BLUETOOTH_RADIOSSW) != 0;
-+}
-+
-+static int bluetooth_set_radiosw(int radio_on)
-+{
-+	int status;
-+
-+	if (!tp_features.bluetooth)
-+		return -ENODEV;
-+
-+	if (!acpi_evalf(hkey_handle, &status, "GBDC", "d"))
-+		return -EIO;
-+	if (radio_on)
-+		status |= TP_ACPI_BLUETOOTH_RADIOSSW;
-+	else
-+		status &= ~TP_ACPI_BLUETOOTH_RADIOSSW;
-+	if (!acpi_evalf(hkey_handle, NULL, "SBDC", "vd", status))
-+		return -EIO;
-+
-+	return 0;
-+}
+-#define TPACPI_VERSION "0.20"
++#define TPACPI_VERSION "0.21"
+ #define TPACPI_SYSFS_VERSION 0x020200
  
- /* sysfs bluetooth enable ---------------------------------------------- */
- static ssize_t bluetooth_enable_show(struct device *dev,
-@@ -2628,6 +2657,12 @@ static const struct attribute_group bluetooth_attr_group = {
- 	.attrs = bluetooth_attributes,
- };
- 
-+static void bluetooth_exit(void)
-+{
-+	sysfs_remove_group(&tpacpi_pdev->dev.kobj,
-+			&bluetooth_attr_group);
-+}
-+
- static int __init bluetooth_init(struct ibm_init_struct *iibm)
- {
- 	int res;
-@@ -2664,44 +2699,6 @@ static int __init bluetooth_init(struct ibm_init_struct *iibm)
- 	return (tp_features.bluetooth)? 0 : 1;
- }
- 
--static void bluetooth_exit(void)
--{
--	sysfs_remove_group(&tpacpi_pdev->dev.kobj,
--			&bluetooth_attr_group);
--}
--
--static int bluetooth_get_radiosw(void)
--{
--	int status;
--
--	if (!tp_features.bluetooth)
--		return -ENODEV;
--
--	if (!acpi_evalf(hkey_handle, &status, "GBDC", "d"))
--		return -EIO;
--
--	return ((status & TP_ACPI_BLUETOOTH_RADIOSSW) != 0);
--}
--
--static int bluetooth_set_radiosw(int radio_on)
--{
--	int status;
--
--	if (!tp_features.bluetooth)
--		return -ENODEV;
--
--	if (!acpi_evalf(hkey_handle, &status, "GBDC", "d"))
--		return -EIO;
--	if (radio_on)
--		status |= TP_ACPI_BLUETOOTH_RADIOSSW;
--	else
--		status &= ~TP_ACPI_BLUETOOTH_RADIOSSW;
--	if (!acpi_evalf(hkey_handle, NULL, "SBDC", "vd", status))
--		return -EIO;
--
--	return 0;
--}
--
- /* procfs -------------------------------------------------------------- */
- static int bluetooth_read(char *p)
- {
-@@ -2756,8 +2753,37 @@ enum {
- 	TP_ACPI_WANCARD_UNK		= 0x04,	/* unknown function */
- };
- 
--static int wan_get_radiosw(void);
--static int wan_set_radiosw(int radio_on);
-+static int wan_get_radiosw(void)
-+{
-+	int status;
-+
-+	if (!tp_features.wan)
-+		return -ENODEV;
-+
-+	if (!acpi_evalf(hkey_handle, &status, "GWAN", "d"))
-+		return -EIO;
-+
-+	return (status & TP_ACPI_WANCARD_RADIOSSW) != 0;
-+}
-+
-+static int wan_set_radiosw(int radio_on)
-+{
-+	int status;
-+
-+	if (!tp_features.wan)
-+		return -ENODEV;
-+
-+	if (!acpi_evalf(hkey_handle, &status, "GWAN", "d"))
-+		return -EIO;
-+	if (radio_on)
-+		status |= TP_ACPI_WANCARD_RADIOSSW;
-+	else
-+		status &= ~TP_ACPI_WANCARD_RADIOSSW;
-+	if (!acpi_evalf(hkey_handle, NULL, "SWAN", "vd", status))
-+		return -EIO;
-+
-+	return 0;
-+}
- 
- /* sysfs wan enable ---------------------------------------------------- */
- static ssize_t wan_enable_show(struct device *dev,
-@@ -2803,6 +2829,12 @@ static const struct attribute_group wan_attr_group = {
- 	.attrs = wan_attributes,
- };
- 
-+static void wan_exit(void)
-+{
-+	sysfs_remove_group(&tpacpi_pdev->dev.kobj,
-+		&wan_attr_group);
-+}
-+
- static int __init wan_init(struct ibm_init_struct *iibm)
- {
- 	int res;
-@@ -2837,44 +2869,6 @@ static int __init wan_init(struct ibm_init_struct *iibm)
- 	return (tp_features.wan)? 0 : 1;
- }
- 
--static void wan_exit(void)
--{
--	sysfs_remove_group(&tpacpi_pdev->dev.kobj,
--		&wan_attr_group);
--}
--
--static int wan_get_radiosw(void)
--{
--	int status;
--
--	if (!tp_features.wan)
--		return -ENODEV;
--
--	if (!acpi_evalf(hkey_handle, &status, "GWAN", "d"))
--		return -EIO;
--
--	return ((status & TP_ACPI_WANCARD_RADIOSSW) != 0);
--}
--
--static int wan_set_radiosw(int radio_on)
--{
--	int status;
--
--	if (!tp_features.wan)
--		return -ENODEV;
--
--	if (!acpi_evalf(hkey_handle, &status, "GWAN", "d"))
--		return -EIO;
--	if (radio_on)
--		status |= TP_ACPI_WANCARD_RADIOSSW;
--	else
--		status &= ~TP_ACPI_WANCARD_RADIOSSW;
--	if (!acpi_evalf(hkey_handle, NULL, "SWAN", "vd", status))
--		return -EIO;
--
--	return 0;
--}
--
- /* procfs -------------------------------------------------------------- */
- static int wan_read(char *p)
- {
+ /*
 -- 
 1.5.6.2
 
