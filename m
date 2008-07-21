@@ -1,43 +1,37 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH 1/3] acpi: add real mutex function calls
-Date: Mon, 21 Jul 2008 11:24:57 +0200
-Message-ID: <1216632297.7257.31.camel@twins>
-References: <1216491411-24080-1-git-send-email-dwalker@mvista.com>
-	 <1216491411-24080-2-git-send-email-dwalker@mvista.com>
-	 <1216605078.4135.23.camel@yakui_zhao.sh.intel.com>
-	 <1216631698.7257.29.camel@twins>  <48845425.9000607@linux.intel.com>
+From: Andi Kleen <andi@firstfloor.org>
+Subject: Re: [GIT PATCH] thinkpad-acpi changes for 2.6.27 merge window
+Date: Mon, 21 Jul 2008 13:32:17 +0200
+Message-ID: <20080721113217.GA28188@basil.nowhere.org>
+References: <1214936875-4812-1-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:33064 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755171AbYGUJY6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Jul 2008 05:24:58 -0400
-In-Reply-To: <48845425.9000607@linux.intel.com>
+Received: from smtp-out01.alice-dsl.net ([88.44.60.11]:54479 "EHLO
+	smtp-out01.alice-dsl.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758492AbYGULcU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Jul 2008 07:32:20 -0400
+Content-Disposition: inline
+In-Reply-To: <1214936875-4812-1-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <ak@linux.intel.com>
-Cc: Zhao Yakui <yakui.zhao@intel.com>, Daniel Walker <dwalker@mvista.com>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, len.brown@intel.com
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
 
-On Mon, 2008-07-21 at 11:17 +0200, Andi Kleen wrote:
-> Peter Zijlstra wrote:
-> > On Mon, 2008-07-21 at 09:51 +0800, Zhao Yakui wrote:
-> >> On Sat, 2008-07-19 at 11:16 -0700, Daniel Walker wrote:
-> >>> Instead of re-using semaphores for the mutex operation, I've
-> >>> added usage of the kernel mutex for the os mutex implementation.
-> >>>
-> >> What is the advantage that the kernel mutex is used for the ACPI mutex
-> >> implementation instead of using semaphore?
-> >> And it seems that too much ACPICA source code is touched.
-> > 
-> > You get help from lockdep, and also our goal is to fully eradicate
-> > semaphore usage.
+On Tue, Jul 01, 2008 at 03:27:48PM -0300, Henrique de Moraes Holschuh wrote:
 > 
-> Issue is that ACPICA is shared with other OS source code and to replace 
-> a major interface like this would mean replacing it for everyone. It 
-> might end up with ACPICA just reimplementing a semaphore like wrapper if 
-> semaphores really go away, but I don't really see that coming anyways.
+> Andi,
+> 
+> Here a patchset with the thinkpad-acpi changes scheduled for 2.6.27.
 
-Andi, you know better than that.
+I tried to apply them to current Linus head (last change
+to thinkpad-acpi 24e45bbe695719dca8c20e03d386eb6ea86526b5), but there were 
+tons of conflicts. Some patches still missing? 
 
+I tried to merge the manually, but gave up when there were some
+non trivial changes.
+
+Please send a tree that actually applies.
+
+Thanks,
+
+-Andi
