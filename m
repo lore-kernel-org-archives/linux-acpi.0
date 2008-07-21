@@ -1,47 +1,60 @@
-From: Andi Kleen <andi@firstfloor.org>
-Subject: Re: Please pull ACPI tree
-Date: Mon, 21 Jul 2008 17:09:21 +0200
-Message-ID: <20080721150921.GA29543@basil.nowhere.org>
-References: <20080721114321.GA28786@basil.nowhere.org> <20080721142343.GA11345@elte.hu>
+From: Andi Kleen <ak@linux.intel.com>
+Subject: Re: [PATCH 1/3] acpi: add real mutex function calls
+Date: Mon, 21 Jul 2008 21:15:47 +0200
+Message-ID: <4884E063.8080908@linux.intel.com>
+References: <1216491411-24080-1-git-send-email-dwalker@mvista.com>	 <1216491411-24080-2-git-send-email-dwalker@mvista.com>	 <1216605078.4135.23.camel@yakui_zhao.sh.intel.com>	 <1216631698.7257.29.camel@twins>  <48845425.9000607@linux.intel.com> <1216632297.7257.31.camel@twins>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out01.alice-dsl.net ([88.44.60.11]:9786 "EHLO
-	smtp-out01.alice-dsl.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753024AbYGUPJ0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Jul 2008 11:09:26 -0400
-Content-Disposition: inline
-In-Reply-To: <20080721142343.GA11345@elte.hu>
+Received: from mga06.intel.com ([134.134.136.21]:50822 "EHLO
+	orsmga101.jf.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754848AbYGUTPx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Jul 2008 15:15:53 -0400
+In-Reply-To: <1216632297.7257.31.camel@twins>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Andi Kleen <andi@firstfloor.org>, torvalds@osdl.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Zhao Yakui <yakui.zhao@intel.com>, Daniel Walker <dwalker@mvista.com>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, len.brown@intel.com
 
-On Mon, Jul 21, 2008 at 04:23:43PM +0200, Ingo Molnar wrote:
+Peter Zijlstra wrote:
+> On Mon, 2008-07-21 at 11:17 +0200, Andi Kleen wrote:
+>> Peter Zijlstra wrote:
+>>> On Mon, 2008-07-21 at 09:51 +0800, Zhao Yakui wrote:
+>>>> On Sat, 2008-07-19 at 11:16 -0700, Daniel Walker wrote:
+>>>>> Instead of re-using semaphores for the mutex operation, I've
+>>>>> added usage of the kernel mutex for the os mutex implementation.
+>>>>>
+>>>> What is the advantage that the kernel mutex is used for the ACPI mutex
+>>>> implementation instead of using semaphore?
+>>>> And it seems that too much ACPICA source code is touched.
+>>> You get help from lockdep, and also our goal is to fully eradicate
+>>> semaphore usage.
+>> Issue is that ACPICA is shared with other OS source code and to replace 
+>> a major interface like this would mean replacing it for everyone. It 
+>> might end up with ACPICA just reimplementing a semaphore like wrapper if 
+>> semaphores really go away, but I don't really see that coming anyways.
 > 
-> * Andi Kleen <andi@firstfloor.org> wrote:
-> 
-> > This reverts some double commits and a trouble some FADT patch.
-> 
-> > Andi Kleen (4):
-> >       Revert "dock: bay: Don't call acpi_walk_namespace() when ACPI is disabled."
-> 
-> in that commit log you say:
-> 
->    Revert "dock: bay: Don't call acpi_walk_namespace() when ACPI is disabled."
->    Revert double commit by mistake. Noticed by Thomas Gleixner.
-> 
-> it wasnt just "noticed" by Thomas, he sent a reverter patch with commit 
-> message and patch included. Why didnt you simply apply the patch from 
-> Thomas?
+> Andi, you know better than that.
 
-Of course so that you have something to complain about. I know
-that is your favorite pastime in the last months, so I didn't want to deny
-you the fun.
+Know better than what?
 
-Seriously, typing in git revert is the way to apply a revert.
-I could have cut'n'pasted his commit message, but it didn't seem
-to make much difference.
+My understanding was that there are a few areas
+in the kernel who really use true semaphore semantics and I don't see it 
+as particularly useful to force them to use something else that doesn't 
+fit them as well.  And there are areas like ACPICA where semaphores are 
+an useful abstraction because of other consideration (in ACPICA's case 
+due to portability).
 
--Andi (who is amazed he has to write emails on trivialities like this) 
+Especially now that semaphores are not duplicated per architecture 
+anymore so actually keeping them around is not that costly. Yes they are 
+incompatible to lockdep, but lockdep support is only one consideration 
+among others and not the master of all code.
+
+Especially adding own semaphore wrappers to some code like ACPICA
+when there are already perfectly usable generic semaphores wouldn't
+strike me as an improvement and that ugliness of that would IMHO far 
+outweight the benefit of lockdep support.
+
+-Andi
 
