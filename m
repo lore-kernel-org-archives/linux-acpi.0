@@ -1,112 +1,81 @@
-From: Alex Chiang <achiang@hp.com>
-Subject: Re: [PATCH] fix warning in pci_slot
-Date: Tue, 22 Jul 2008 14:56:02 -0600
-Message-ID: <20080722205602.GA7657@ldl.fc.hp.com>
-References: <20080722183717.GF7337@parisc-linux.org>
+From: Alok Kataria <akataria@vmware.com>
+Subject: Re: acpi based pci gap calculation  - v3
+Date: Tue, 22 Jul 2008 15:52:48 -0700
+Message-ID: <1216767168.5693.31.camel@alok-dev1>
+References: <1216148382.6135.21.camel@alok-dev1>
+	 <1216330272.32324.26.camel@alok-dev1> <1216663147.26169.5.camel@alok-dev1>
+	 <200807221450.52114.jbarnes@virtuousgeek.org>
+Reply-To: akataria@vmware.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0028.austin.hp.com ([15.216.28.35]:35211 "EHLO
-	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755301AbYGVU4E (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Jul 2008 16:56:04 -0400
-Content-Disposition: inline
-In-Reply-To: <20080722183717.GF7337@parisc-linux.org>
+Received: from smtp-outbound-2.vmware.com ([65.115.85.73]:51939 "EHLO
+	smtp-outbound-2.vmware.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754762AbYGVWww (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 22 Jul 2008 18:52:52 -0400
+In-Reply-To: <200807221450.52114.jbarnes@virtuousgeek.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Wilcox <matthew@wil.cx>, jbarnes@virtuousgeek.org
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Andi Kleen <ak@linux.intel.com>, Ingo Molnar <mingo@elte.hu>, Brown@vger.kernel.org, Len <len.brown@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, TJ <linux@tjworld.net>
 
-* Matthew Wilcox <matthew@wil.cx>:
+On Tue, 2008-07-22 at 14:50 -0700, Jesse Barnes wrote:
+> On Monday, July 21, 2008 10:59 am Alok Kataria wrote:
+> > Hi Jesse,
+> >
+> > Did you get a chance to try this patch on your box. Let me know what are
+> > the values you get now.
 > 
-> I get warnings about 'device' possibly being used uninitialised.  While I
-> can deduce this is not true, it seems that GCC can't.  This patch changes
-> `check_slot' to return device on success and -1 on error, which shuts
-> GCC up.
+> Here's the dmesg from my box with the ACPI gap stuff applied.
 > 
-> Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+> I'm still more inclined to TJ's approach though; it should give us a lot more
+> space for PCI devices; though you're right that avoiding conflicts is
+> definitely important too...
 
-Perhaps a more meaningful patch title, like:
+Hi Jesse,
 
-	fix bogus "'device' may be used uninitialized" warning in pci_slot
+Thanks for sending the log.
 
-But otherwise,
+In the log that you sent me, please note the following debug messages
+-------
+E820_DEBUG: Searching for gap between (0x00000000 - 0x100000000)
+E820_DEBUG: Found gap starting at 0xbf000000 size 0x40f00000
+Allocating PCI resources starting at c0000000 (gap: bf000000:40f00000)
+-------
 
-Acked-by: Alex Chiang <achiang@hp.com>
+This is the gap that was allocated by walking just the e820_map
 
-Thanks.
+With my changes we query the _CRS resource and get following info
+------
+ACPI_DEBUG start_addr 0xf8000000 gapsize 0x00400000 address_length 0x06b00000
+                end_addr is 0xfeb00000
+E820_DEBUG: Searching for gap between (0xf8000000 - 0xfeb00000)
+E820_DEBUG: Found gap at start starting at 0x100000000 size 0x07f00000
+ACPI_DEBUG start_addr 0xbf000000 gapsize 0x07f00000 address_length 0x31000000
+                end_addr is 0xf0000000
+E820_DEBUG: Searching for gap between (0xbf000000 - 0xf0000000)
+E820_DEBUG: Found gap starting at 0xbf000000 size 0x31000000
+------
 
-/ac
+So there are 2 producer regions one from [0xBF000000 - 0xF0000000] and
+another from [0xF8000000 - 0xFEB00000]. That means BIOS has reserved the
+area from [0xF0000000 - 0xF7FFFFFF] for some other resource.
+If you look a little below in the log there is this
 
-> 
-> I couldn't say I've tested this in any meaningful way.
-> 
-> diff --git a/drivers/acpi/pci_slot.c b/drivers/acpi/pci_slot.c
-> index b9ab030..61bac61 100644
-> --- a/drivers/acpi/pci_slot.c
-> +++ b/drivers/acpi/pci_slot.c
-> @@ -76,9 +76,9 @@ static struct acpi_pci_driver acpi_pci_slot_driver = {
->  };
->  
->  static int
-> -check_slot(acpi_handle handle, int *device, unsigned long *sun)
-> +check_slot(acpi_handle handle, unsigned long *sun)
->  {
-> -	int retval = 0;
-> +	int device = -1;
->  	unsigned long adr, sta;
->  	acpi_status status;
->  	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-> @@ -89,32 +89,27 @@ check_slot(acpi_handle handle, int *device, unsigned long *sun)
->  	if (check_sta_before_sun) {
->  		/* If SxFy doesn't have _STA, we just assume it's there */
->  		status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
-> -		if (ACPI_SUCCESS(status) && !(sta & ACPI_STA_DEVICE_PRESENT)) {
-> -			retval = -1;
-> +		if (ACPI_SUCCESS(status) && !(sta & ACPI_STA_DEVICE_PRESENT))
->  			goto out;
-> -		}
->  	}
->  
->  	status = acpi_evaluate_integer(handle, "_ADR", NULL, &adr);
->  	if (ACPI_FAILURE(status)) {
->  		dbg("_ADR returned %d on %s\n", status, (char *)buffer.pointer);
-> -		retval = -1;
->  		goto out;
->  	}
->  
-> -	*device = (adr >> 16) & 0xffff;
-> -
->  	/* No _SUN == not a slot == bail */
->  	status = acpi_evaluate_integer(handle, "_SUN", NULL, sun);
->  	if (ACPI_FAILURE(status)) {
->  		dbg("_SUN returned %d on %s\n", status, (char *)buffer.pointer);
-> -		retval = -1;
->  		goto out;
->  	}
->  
-> +	device = (adr >> 16) & 0xffff;
->  out:
->  	kfree(buffer.pointer);
-> -	return retval;
-> +	return device;
->  }
->  
->  struct callback_args {
-> @@ -144,7 +139,8 @@ register_slot(acpi_handle handle, u32 lvl, void *context, void **rv)
->  	struct callback_args *parent_context = context;
->  	struct pci_bus *pci_bus = parent_context->pci_bus;
->  
-> -	if (check_slot(handle, &device, &sun))
-> +	device = check_slot(handle, &sun);
-> +	if (device < 0)
->  		return AE_OK;
->  
->  	slot = kmalloc(sizeof(*slot), GFP_KERNEL);
-> 
-> -- 
-> Intel are signing my paycheques ... these opinions are still mine
-> "Bill, look, we understand that you're interested in selling us this
-> operating system, but compare it to ours.  We can't possibly take such
-> a retrograde step."
-> 
+----
+system 00:01: iomem range 0xf0000000-0xf7ffffff has been reserved
+----
+
+So the gap that we had calculated first i.e. from e820_setup_gap did
+contain a collision i.e. though a resource was reserved from 
+[0xf0000000 - 0xf7ffffff] our gap calculation doesn't take that into
+account.  My patch fixes this issue.
+
+So, IMHO this is a BUG and should be fixed. Please let me know your
+views. 
+
+Thanks,
+Alok
+
