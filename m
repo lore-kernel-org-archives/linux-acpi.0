@@ -1,74 +1,77 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
+From: Alok Kataria <akataria@vmware.com>
 Subject: Re: acpi based pci gap calculation  - v3
-Date: Wed, 23 Jul 2008 09:58:32 -0700
-Message-ID: <200807230958.32898.jbarnes@virtuousgeek.org>
-References: <1216148382.6135.21.camel@alok-dev1> <200807221450.52114.jbarnes@virtuousgeek.org> <1216767168.5693.31.camel@alok-dev1>
+Date: Wed, 23 Jul 2008 10:10:34 -0700
+Message-ID: <1216833034.6354.12.camel@alok-dev1>
+References: <1216148382.6135.21.camel@alok-dev1>
+	 <200807221450.52114.jbarnes@virtuousgeek.org>
+	 <1216767168.5693.31.camel@alok-dev1>
+	 <200807230958.32898.jbarnes@virtuousgeek.org>
+Reply-To: akataria@vmware.com
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1216767168.5693.31.camel@alok-dev1>
-Content-Disposition: inline
-Sender: linux-pci-owner@vger.kernel.org
-To: akataria@vmware.com
-Cc: Andi Kleen <ak@linux.intel.com>, Ingo Molnar <mingo@elte.hu>, Brown@vger.kernel.org, Len <len.brown@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, TJ <linux@tjworld.net>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp-outbound-1.vmware.com ([65.113.40.141]:45139 "EHLO
+	smtp-outbound-1.vmware.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751797AbYGWRKf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 23 Jul 2008 13:10:35 -0400
+In-Reply-To: <200807230958.32898.jbarnes@virtuousgeek.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Andi Kleen <ak@linux.intel.com>, Ingo Molnar <mingo@elte.hu>, Len <len.brown@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, TJ <linux@tjworld.net>
 
-On Tuesday, July 22, 2008 3:52 pm Alok Kataria wrote:
-> In the log that you sent me, please note the following debug messages
-> -------
-> E820_DEBUG: Searching for gap between (0x00000000 - 0x100000000)
-> E820_DEBUG: Found gap starting at 0xbf000000 size 0x40f00000
-> Allocating PCI resources starting at c0000000 (gap: bf000000:40f00000)
-> -------
->
-> This is the gap that was allocated by walking just the e820_map
->
-> With my changes we query the _CRS resource and get following info
-> ------
-> ACPI_DEBUG start_addr 0xf8000000 gapsize 0x00400000 address_length
-> 0x06b00000 end_addr is 0xfeb00000
-> E820_DEBUG: Searching for gap between (0xf8000000 - 0xfeb00000)
-> E820_DEBUG: Found gap at start starting at 0x100000000 size 0x07f00000
-> ACPI_DEBUG start_addr 0xbf000000 gapsize 0x07f00000 address_length
-> 0x31000000 end_addr is 0xf0000000
-> E820_DEBUG: Searching for gap between (0xbf000000 - 0xf0000000)
-> E820_DEBUG: Found gap starting at 0xbf000000 size 0x31000000
-> ------
->
-> So there are 2 producer regions one from [0xBF000000 - 0xF0000000] and
-> another from [0xF8000000 - 0xFEB00000]. That means BIOS has reserved the
-> area from [0xF0000000 - 0xF7FFFFFF] for some other resource.
-> If you look a little below in the log there is this
->
-> ----
-> system 00:01: iomem range 0xf0000000-0xf7ffffff has been reserved
-> ----
->
-> So the gap that we had calculated first i.e. from e820_setup_gap did
-> contain a collision i.e. though a resource was reserved from
-> [0xf0000000 - 0xf7ffffff] our gap calculation doesn't take that into
-> account.  My patch fixes this issue.
->
-> So, IMHO this is a BUG and should be fixed. Please let me know your
-> views.
+Hi Jesse,
 
-Yes, there's a conflict there, but on many machines it's probably a harmless 
-one.  My main concerns are these:
-  1) it changes long standing behavior and doesn't fix any real reported bugs
-     I'm aware of (feel free to point me at some)
-  2) it looks like it will dramatically reduce the available PCI resource
-     space on at least some platforms, and that space is already scarce in our
-     current scheme
+On Wed, 2008-07-23 at 09:58 -0700, Jesse Barnes wrote:
+> On Tuesday, July 22, 2008 3:52 pm Alok Kataria wrote:
+> > So the gap that we had calculated first i.e. from e820_setup_gap did
+> > contain a collision i.e. though a resource was reserved from
+> > [0xf0000000 - 0xf7ffffff] our gap calculation doesn't take that into
+> > account.  My patch fixes this issue.
+> >
+> > So, IMHO this is a BUG and should be fixed. Please let me know your
+> > views.
+> 
+> Yes, there's a conflict there, but on many machines it's probably a harmless
+> one.  My main concerns are these:
+>   1) it changes long standing behavior and doesn't fix any real reported bugs
+>      I'm aware of (feel free to point me at some)
 
-So basically, I'm just feeling very conservative about any changes to resource 
-allocation, that's all.
+The problem that I see is with Memory Hotadd, though my BIOS exports the
+correct SRAT table and tells the OS that some regions are hot pluggable,
+PCI gap calculation ignores that info and assigns some "option ROMS" in
+hot pluggable memory region. 
 
-If this change were coupled with one that allowed us to exploit more available 
-address space for PCI resources I'd feel much more comfortable about it, 
-which is why I'm so interested in TJ's work (/me goes off to read his wiki 
-now).
+Because of this when i try to hot add memory, the OS sees a resource
+allocation conflict and bails out. Which shouldn't have happened,
+right ?
+
+>   2) it looks like it will dramatically reduce the available PCI resource
+>      space on at least some platforms, and that space is already scarce in our
+>      current scheme
+
+IMO, these gaps are used only for the option ROMS or hot pluggable
+devices which in itself are rare. So its not like we are reducing the
+whole available PCI resource space, but only the space that is needed by
+these optional ROMS.
+And i think its inevitable if we have to remove these conflicts with any
+other subsystem. 
+> 
+> So basically, I'm just feeling very conservative about any changes to resource
+> allocation, that's all.
+> 
+> If this change were coupled with one that allowed us to exploit more available
+> address space for PCI resources I'd feel much more comfortable about it,
+> which is why I'm so interested in TJ's work (/me goes off to read his wiki
+> now).
+
+/me to having a look.
 
 Thanks,
-Jesse
+Alok
+> 
+> Thanks,
+> Jesse
+
