@@ -1,41 +1,61 @@
 From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: Re: Acer Aspire One (Intel Atom's Motherboard) CPU Temp & Fan Speed
-Date: Fri, 25 Jul 2008 09:38:39 +0800
-Message-ID: <1216949919.1831.38.camel@yakui_zhao.sh.intel.com>
-References: <f4897e880807240800n3c02c6bdw44c4827e098f61c2@mail.gmail.com>
-	 <f4897e880807240932q33f3919et1d24cb8f98e8598e@mail.gmail.com>
-	 <200807242302.04782.carlos@strangeworlds.co.uk>
-	 <f4897e880807241628j4d557e91w1955044d43451247@mail.gmail.com>
+Subject: Re: hwapci-0142 error
+Date: Thu, 24 Jul 2008 09:04:12 +0800
+Message-ID: <1216861452.1831.4.camel@yakui_zhao.sh.intel.com>
+References: <20080720001417.GA22429@eorbit.net>
+	 <20080720023327.GA6026@eorbit.net> <200807231256.05113.trenn@suse.de>
+	 <20080723231734.GA29832@eorbit.net>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:43346 "EHLO mga14.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:47266 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753765AbYGYB3i (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 24 Jul 2008 21:29:38 -0400
-In-Reply-To: <f4897e880807241628j4d557e91w1955044d43451247@mail.gmail.com>
+	id S1750729AbYGYFbm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 25 Jul 2008 01:31:42 -0400
+In-Reply-To: <20080723231734.GA29832@eorbit.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Simon Depiets <sdepiets@gmail.com>
-Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, acpi@linux.intel.com, linux-acpi@vger.kernel.org
+To: Chris Collins <chris@eorbit.net>
+Cc: linux-acpi@vger.kernel.org, trenn@suse.de
 
-On Fri, 2008-07-25 at 01:28 +0200, Simon Depiets wrote:
-> 2008/7/25 Carlos Corbacho <carlos@strangeworlds.co.uk>:
-> > We'll also need the output of acpidump.
-> >
-> > -Carlos
-> Hi,
-> I've uploaded it here
-> http://www.mmo-tools.com/acpi/acpidump.txt
->From the attached acpidump it seems that there is no defintion of
-thermal_zone, FAN device or power resource device.
-So we can't get any info about the temperature of thermal_zone or FAN
-speed through ACPI interface.
-Will you please check whether there is available bios to upgrade?
-Will you please check whether the CPU temperature can be obtained by the
-coretemp driver?
-
-Thanks.
+On Wed, 2008-07-23 at 16:17 -0700, Chris Collins wrote:
+> Hello,
 > 
+> On Wed, Jul 23, 2008 at 12:56:04PM +0200, Thomas Renninger wrote:
+> 
+> > This machine/BIOS is rather old?
+> > You should better stay with ACPI switched off.
+I agree with what Thomas said. Maybe the bios is too old and can't
+support ACPI.
+>From the dmesg log it seems that the system fails in switch from legacy
+mode to ACPI mode.
+   > ACPI: setting ELCR to 0200 (from 0e20)
+   > ACPI Error (hwacpi-0142): Hardware did not change modes [20070126]
+   > ACPI Error (evxfevnt-0086): Could not transition to ACPI mode
+[20070126]
+   > ACPI Warning (utxface-0139): AcpiEnable failed [20070126]
+
+Had better confirm whether the ACPI is supported on Windows.
+Thanks.
+> I believe there are no newer updates for this BIOS.
+> 
+> I will try to test this with a Windows installation. 
+> Is it the case that this BIOS which clearly has
+> some kind of an ACPI capability should be written off.
+> 
+> How can I test the capabilities, or seek help in 
+> solving of the kinks or idiosyncrasies of this 
+> BIOS.  Is Award/Phoenix represented on this forum?
+> Do they support the work of making ACPI function
+> on Linux?
+> 
+> Thanks,
+> 
+> --Chris
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
