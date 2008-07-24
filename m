@@ -1,62 +1,43 @@
-From: Andi Kleen <andi@firstfloor.org>
-Subject: Please pull ACPI updates
-Date: Thu, 24 Jul 2008 22:36:36 +0200
-Message-ID: <20080724203636.GA22485@basil.nowhere.org>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: Re: Acer Aspire One (Intel Atom's Motherboard) CPU Temp & Fan Speed
+Date: Thu, 24 Jul 2008 23:02:04 +0100
+Message-ID: <200807242302.04782.carlos@strangeworlds.co.uk>
+References: <f4897e880807240800n3c02c6bdw44c4827e098f61c2@mail.gmail.com> <f4897e880807240932q33f3919et1d24cb8f98e8598e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out01.alice-dsl.net ([88.44.60.11]:55531 "EHLO
-	smtp-out01.alice-dsl.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751244AbYGXUhG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Jul 2008 16:37:06 -0400
+Received: from phoenix.slamd64.com ([217.10.145.2]:55649 "EHLO
+	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750930AbYGXWCM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Jul 2008 18:02:12 -0400
+In-Reply-To: <f4897e880807240932q33f3919et1d24cb8f98e8598e@mail.gmail.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: torvalds@osdl.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Simon Depiets <sdepiets@gmail.com>
+Cc: acpi@linux.intel.com, linux-acpi@vger.kernel.org
 
+On Thursday 24 July 2008 17:32:44 Simon Depiets wrote:
+> Hi,
+>
+> I'm experiencing problems with my Acer Aspire One, i can't get any
+> info on the CPU Temperature or Fan Speed, nor control them.
+> My /proc/acpi/thermal_zone and /proc/acpi/power_resource folders are empty
+> You can find my lscpi result here
+> http://www.mmo-tools.com/acpi/lspci.txt and my lsmod here
+> http://www.mmo-tools.com/acpi/lsmod.txt
+> I hope i'm posting on the good mailing list, I tried on lm-sensors too
+> but had no answers
+> (http://marc.info/?l=lm-sensors&m=121621319411521&w=2)
+>
+> Thanks a Lot
 
-Linus,
+We'll also need the output of acpidump.
 
-Please pull ACPI updates from 
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/ak/linux-acpi-2.6.git release-2.6.27
-
-which contains
-
-Andi Kleen (5):
-      Revert "Fix FADT parsing"
-      Revert "dock: bay: Don't call acpi_walk_namespace() when ACPI is disabled."
-      Merge branch 'merge' into release-2.6.27
-      Revert "ACPI: don't walk tables if ACPI was disabled"
-      Merge branch 'for-upstream/acpi-test' of git://repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6 into release-2.6.27
-
-Bjorn Helgaas (1):
-      ACPI: stop complaints about interrupt link End Tags and blank IRQ descriptors
-
-Henrique de Moraes Holschuh (7):
-      ACPI: thinkpad-acpi: minor refactor on radio switch init
-      ACPI: thinkpad-acpi: consolidate wlsw notification function
-      ACPI: thinkpad-acpi: prepare for bluetooth and wwan rfkill support
-      ACPI: thinkpad-acpi: WLSW overrides other rfkill switches
-      ACPI: thinkpad-acpi: add bluetooth and WWAN rfkill support
-      ACPI: thinkpad-acpi: bump up version to 0.21
-      ACPI: thinkpad-acpi: don't misdetect in get_thinkpad_model_data() on -ENOMEM
-
-Ingo Molnar (1):
-      acpi: fix crash in core ACPI code, triggered by CONFIG_ACPI_PCI_SLOT=y
-
-Zhao Yakui (2):
-      ACPI: Ignore _BQC object when registering backlight device
-      ACPI : Set FAN device to correct state in boot phase
-
- Documentation/laptops/thinkpad-acpi.txt |   26 ++-
- drivers/acpi/namespace/nsnames.c        |    8 +
- drivers/acpi/pci_link.c                 |   31 ++-
- drivers/acpi/tables/tbfadt.c            |   17 +-
- drivers/acpi/thermal.c                  |   43 +++
- drivers/acpi/utilities/utalloc.c        |    4 +
- drivers/acpi/video.c                    |   14 +-
- drivers/misc/Kconfig                    |    2 +
- drivers/misc/thinkpad_acpi.c            |  475 ++++++++++++++++++++++---------
- 9 files changed, 446 insertions(+), 174 deletions(-)
+-Carlos
+-- 
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
