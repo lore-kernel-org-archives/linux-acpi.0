@@ -1,46 +1,35 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+From: Andi Kleen <andi@firstfloor.org>
 Subject: Re: git-acpi in linux-next
-Date: Thu, 24 Jul 2008 14:31:45 -0300
-Message-ID: <20080724173145.GC6184@khazad-dum.debian.net>
-References: <20080723134643.dbf1e1a1.akpm@linux-foundation.org> <20080724101217.56f7f8f5.sfr@canb.auug.org.au>
+Date: Thu, 24 Jul 2008 22:09:26 +0200
+Message-ID: <20080724200926.GG20882@one.firstfloor.org>
+References: <20080723134643.dbf1e1a1.akpm@linux-foundation.org> <20080724101217.56f7f8f5.sfr@canb.auug.org.au> <20080724140136.cc3fb2e5.sfr@canb.auug.org.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4.smtp.messagingengine.com ([66.111.4.28]:50726 "EHLO
-	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751439AbYGXRbx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 24 Jul 2008 13:31:53 -0400
+Received: from one.firstfloor.org ([213.235.205.2]:39027 "EHLO
+	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754385AbYGXUJ4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Jul 2008 16:09:56 -0400
 Content-Disposition: inline
-In-Reply-To: <20080724101217.56f7f8f5.sfr@canb.auug.org.au>
+In-Reply-To: <20080724140136.cc3fb2e5.sfr@canb.auug.org.au>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Stephen Rothwell <sfr@canb.auug.org.au>
 Cc: Andrew Morton <akpm@linux-foundation.org>, Andi Kleen <andi@firstfloor.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On Thu, 24 Jul 2008, Stephen Rothwell wrote:
-> On Wed, 23 Jul 2008 13:46:43 -0700 Andrew Morton <akpm@linux-foundation.org> wrote:
-> > For the past few days I've been seeing a substantial amount of material
-> > in
-> > git+ssh://master.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git#test
-> > which is not in linux-next.
-> > 
-> > Is this known about and deliberate?
+On Thu, Jul 24, 2008 at 02:01:36PM +1000, Stephen Rothwell wrote:
+> Hi all,
 > 
-> Noone seems capable of answering a simple question about what tree I
-> should be fetching.  Len's tree (last I tried) had significant conflicts
-> with what Andi put into Linus' tree.  I have asked at least twice for
-> direction from the acpi folks.
+> On Thu, 24 Jul 2008 10:12:17 +1000 Stephen Rothwell <sfr@canb.auug.org.au> wrote:
+> >
+> > I will try Len's tree again today (though the last update there is June
+> > 28 so I am not hopeful).
 > 
-> I will try Len's tree again today (though the last update there is June
-> 28 so I am not hopeful).
+> I merged Len's tree and fixed all the conflicts and the final diff from
+> before to after the merge is below.
 
-Len's tree is "deactivated" while he is on sabbatical...  I can't tell you
-what tree you should merge into -next, but I can tell you Len's tree is not
-it...
+Sorry for the trouble. Len's tree is still the current one, but I haven't
+fully fixed up yet for post 2.6.27. I'll prepare a new one for you soon
+The git URL will be different, but I'm sending you details.
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+-Andi
