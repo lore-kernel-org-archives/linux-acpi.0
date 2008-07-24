@@ -1,43 +1,40 @@
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+From: "Simon Depiets" <sdepiets@gmail.com>
 Subject: Re: Acer Aspire One (Intel Atom's Motherboard) CPU Temp & Fan Speed
-Date: Thu, 24 Jul 2008 23:02:04 +0100
-Message-ID: <200807242302.04782.carlos@strangeworlds.co.uk>
-References: <f4897e880807240800n3c02c6bdw44c4827e098f61c2@mail.gmail.com> <f4897e880807240932q33f3919et1d24cb8f98e8598e@mail.gmail.com>
+Date: Fri, 25 Jul 2008 01:28:18 +0200
+Message-ID: <f4897e880807241628j4d557e91w1955044d43451247@mail.gmail.com>
+References: <f4897e880807240800n3c02c6bdw44c4827e098f61c2@mail.gmail.com>
+	 <f4897e880807240932q33f3919et1d24cb8f98e8598e@mail.gmail.com>
+	 <200807242302.04782.carlos@strangeworlds.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from phoenix.slamd64.com ([217.10.145.2]:55649 "EHLO
-	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750930AbYGXWCM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Jul 2008 18:02:12 -0400
-In-Reply-To: <f4897e880807240932q33f3919et1d24cb8f98e8598e@mail.gmail.com>
+Received: from fk-out-0910.google.com ([209.85.128.191]:52172 "EHLO
+	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756405AbYGXX2V (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Jul 2008 19:28:21 -0400
+Received: by fk-out-0910.google.com with SMTP id 18so2130837fkq.5
+        for <linux-acpi@vger.kernel.org>; Thu, 24 Jul 2008 16:28:18 -0700 (PDT)
+In-Reply-To: <200807242302.04782.carlos@strangeworlds.co.uk>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Simon Depiets <sdepiets@gmail.com>
+To: Carlos Corbacho <carlos@strangeworlds.co.uk>
 Cc: acpi@linux.intel.com, linux-acpi@vger.kernel.org
 
-On Thursday 24 July 2008 17:32:44 Simon Depiets wrote:
-> Hi,
+2008/7/25 Carlos Corbacho <carlos@strangeworlds.co.uk>:
+> We'll also need the output of acpidump.
 >
-> I'm experiencing problems with my Acer Aspire One, i can't get any
-> info on the CPU Temperature or Fan Speed, nor control them.
-> My /proc/acpi/thermal_zone and /proc/acpi/power_resource folders are empty
-> You can find my lscpi result here
-> http://www.mmo-tools.com/acpi/lspci.txt and my lsmod here
-> http://www.mmo-tools.com/acpi/lsmod.txt
-> I hope i'm posting on the good mailing list, I tried on lm-sensors too
-> but had no answers
-> (http://marc.info/?l=lm-sensors&m=121621319411521&w=2)
->
-> Thanks a Lot
+> -Carlos
+Hi,
+I've uploaded it here
+http://www.mmo-tools.com/acpi/acpidump.txt
 
-We'll also need the output of acpidump.
-
--Carlos
 -- 
-E-Mail: carlos@strangeworlds.co.uk
-Web: strangeworlds.co.uk
-GPG Key ID: 0x23EE722D
+Lliane aka Simon Depiets
+Epita Promo 2011,42
+http://www.lliane.com
+A man is smoking with his girlfriend. She angers herslef : "don't you
+see the warning on the box ?!"
+To which the man replies, "I am a programmer. I don't worry about
+warnings. I only worry about errors."
