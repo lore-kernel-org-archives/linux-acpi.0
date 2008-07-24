@@ -1,39 +1,42 @@
-From: Arjan van de Ven <arjan@linux.intel.com>
-Subject: Re: ACPI OSI disaster on latest HP laptops - critical temperature
- shutdowns
-Date: Thu, 24 Jul 2008 08:42:56 -0700
-Message-ID: <4888A300.1080808@linux.intel.com>
-References: <200807241727.41715.trenn@suse.de>
+From: "Simon Depiets" <sdepiets@gmail.com>
+Subject: Acer Aspire One (Intel Atom's Motherboard) CPU Temp & Fan Speed
+Date: Thu, 24 Jul 2008 18:32:44 +0200
+Message-ID: <f4897e880807240932q33f3919et1d24cb8f98e8598e@mail.gmail.com>
+References: <f4897e880807240800n3c02c6bdw44c4827e098f61c2@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([143.182.124.22]:56989 "EHLO
-	azsmga101.ch.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751727AbYGXPm7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Jul 2008 11:42:59 -0400
-In-Reply-To: <200807241727.41715.trenn@suse.de>
+Received: from fk-out-0910.google.com ([209.85.128.191]:60125 "EHLO
+	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751117AbYGXQcq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Jul 2008 12:32:46 -0400
+Received: by fk-out-0910.google.com with SMTP id 18so2024384fkq.5
+        for <linux-acpi@vger.kernel.org>; Thu, 24 Jul 2008 09:32:45 -0700 (PDT)
+In-Reply-To: <f4897e880807240800n3c02c6bdw44c4827e098f61c2@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, Len Brown <lenb@kernel.org>, Christian Kornacker <ckornacker@suse.de>
+To: acpi@linux.intel.com, linux-acpi@vger.kernel.org
 
-Thomas Renninger wrote:
-> This is the fix for this from Arjan:
-> 
->     ACPI: Reject below-freezing temperatures as invalid critical temperatures
-> 
->     My laptop thinks that it's a good idea to give -73C as the critical
->     CPU temperature.... which isn't the best thing since it causes a shutdown
->     right at bootup.
-> 
->     Temperatures below freezing are clearly invalid critical thresholds
->     so just reject these as such.
-> 
+Hi,
 
-btw on my laptop, it wasn't 0 that was returned, but 2007.
-This is suspected to be related to how windows finds some random other ACPI state to return,
-but it significantly was an AML issue on the bios side.
-Just the effect was a trainwreck so I added a check to the kernel (in addition to getting
-full info to Robert for the ACPICA side of the issue).
+I'm experiencing problems with my Acer Aspire One, i can't get any
+info on the CPU Temperature or Fan Speed, nor control them.
+My /proc/acpi/thermal_zone and /proc/acpi/power_resource folders are empty
+You can find my lscpi result here
+http://www.mmo-tools.com/acpi/lspci.txt and my lsmod here
+http://www.mmo-tools.com/acpi/lsmod.txt
+I hope i'm posting on the good mailing list, I tried on lm-sensors too
+but had no answers
+(http://marc.info/?l=lm-sensors&m=121621319411521&w=2)
 
+Thanks a Lot
+-- 
+Lliane aka Simon Depiets
+Epita Promo 2011,42
+http://www.lliane.com
+A man is smoking with his girlfriend. She angers herslef : "don't you
+see the warning on the box ?!"
+To which the man replies, "I am a programmer. I don't worry about
+warnings. I only worry about errors."
