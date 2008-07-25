@@ -1,48 +1,49 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: ACPI OSI disaster on latest HP laptops - critical temperature shutdown
-Date: Fri, 25 Jul 2008 17:26:13 +0200
-Message-ID: <200807251726.14366.rjw@sisk.pl>
-References: <200807241727.41715.trenn@suse.de> <alpine.LFD.1.10.0807241952270.6098@localhost.localdomain> <200807251319.12786.trenn@suse.de>
+From: Eric Piel <eric.piel@tremplin-utc.net>
+Subject: Re: ACPI OSI disaster on latest HP laptops - critical temperature
+ shutdown
+Date: Sat, 26 Jul 2008 00:10:56 +0200
+Message-ID: <488A4F70.4010208@tremplin-utc.net>
+References: <200807241727.41715.trenn@suse.de> <alpine.LFD.1.10.0807241952270.6098@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:49241 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750730AbYGYPYD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 25 Jul 2008 11:24:03 -0400
-In-Reply-To: <200807251319.12786.trenn@suse.de>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755944AbYGYWLV@vger.kernel.org>
+In-Reply-To: <alpine.LFD.1.10.0807241952270.6098@localhost.localdomain>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Thomas Renninger <trenn@suse.de>, Arjan van de Ven <arjan@linux.intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, Christian Kornacker <ckornacker@suse.de>
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Len Brown <lenb@kernel.org>, Arjan van de Ven <arjan@linux.intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, Christian Kornacker <ckornacker@suse.de>
 
-On Friday, 25 of July 2008, Thomas Renninger wrote:
-> On Friday 25 July 2008 02:04:32 Len Brown wrote:
-[--snip--]
+Len Brown schreef:
+> Thomas,
 > 
-> Len, this is not about the thermal zone, it is just
-> a real-world example of something I told you will happen
-> if Linux stays _OSI transparent with Windows.
+> re: OSI(Windows...)
 > 
-> This is about that they have to provide a BIOS hot-fix for
-> VISTA or VISTA SP and thus breaking Linux because there
-> is no way to distinguish anymore.
-> Windows 2007 likely will have that fixed and they provide
-> a sane _CRT trip point again.
-> This is an example of Windows versions workarounds that could
-> get much more complex, like initializing HW differently or
-> whatever.
-> _OSI is used by vendors as a convenient possibility to
-> adjust/workaround Windows bugs in their BIOSes, without
-> the need to pay Millions to Microsoft to fix their things.
+> Linux will continue to claim OSI compatibility with Windows
+> until the day when the majority of Linux systems
+> have passed a Linux compatibility test rather than
+> a Windows compatibility test.
+> 
+> Re: OSI(Linux)
+> 
+> I've looked at O(100) DSDT's that look at OSI(Linux),
+> and all but serveral systems from two vendors do it by mistake.
+> They simply copied it from the bugged Intel reference code.
+> 
+> OSI(Linux) will _never_ be restored to Linux, ever.
+> 
+Just out of curiosity, let's imagine that today HP decides to fix its 
+BIOS. What would be the way to do it? Of course, without putting 
+additional problems when Windows is booted.
 
-This is a valid point, IMO.
+What they would want is to provide workarounds for each given version of 
+Windows and provide a completely ACPI-compliant version when Linux is 
+running. I fail to see how it is possible possible to do that today.
+Well... they could detect Linux by checking that several OSI's for 
+Windows pass, but that would be really a nasty kludge.
 
-If vendors use _OSI(Windows) to work around Windows bugs, we get broken
-automatically on those systems unless we put in some DMI-based hacks.
+So, am I understanding correctly that we are in a desperate need for a 
+good OSI solution? Until then, we can only bash and complain at the BIOS 
+developers, but they have no way to fix the problems.
 
-Thanks,
-Rafael
+Eric
