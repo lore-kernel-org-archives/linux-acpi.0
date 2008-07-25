@@ -1,50 +1,95 @@
-From: Andi Kleen <ak@linux.intel.com>
-Subject: Re: ACPI OSI disaster on latest HP laptops - critical temperature
- shutdown
-Date: Fri, 25 Jul 2008 03:44:35 -0700
-Message-ID: <4889AE93.4090601@linux.intel.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: ACPI OSI disaster on latest HP laptops - critical temperature shutdown
+Date: Fri, 25 Jul 2008 13:19:11 +0200
+Message-ID: <200807251319.12786.trenn@suse.de>
 References: <200807241727.41715.trenn@suse.de> <alpine.LFD.1.10.0807241952270.6098@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga10.intel.com ([192.55.52.92]:14473 "EHLO
-	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753674AbYGYKod (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Jul 2008 06:44:33 -0400
+Received: from cantor.suse.de ([195.135.220.2]:40468 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754080AbYGYLTQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 25 Jul 2008 07:19:16 -0400
 In-Reply-To: <alpine.LFD.1.10.0807241952270.6098@localhost.localdomain>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: Thomas Renninger <trenn@suse.de>, Arjan van de Ven <arjan@linux.intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Christian Kornacker <ckornacker@suse.de>
+Cc: Arjan van de Ven <arjan@linux.intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, Christian Kornacker <ckornacker@suse.de>
 
-Len Brown wrote:
+On Friday 25 July 2008 02:04:32 Len Brown wrote:
 > Thomas,
-> 
+>
 > re: OSI(Windows...)
+>
+> Linux will continue to claim OSI compatibility with Windows
+> until the day when the majority of Linux systems
+> have passed a Linux compatibility test rather than
+> a Windows compatibility test.
+And to try that out we need the acpi_osi=windows_false boot
+param I sent recently. So will you accept that one?
 
-Thomas,
+Also we need this documented.
+Will you accept a Documentation/acpi/known_osi_vendor_hooks.txt
+file. Like that we get an idea of what kind of features come
+in through which Windows version and more important, what kind of
+ugly Windows bug workarounds exist (the latter will probably be more).
 
-I discussed this with Len here in Ottawa. First I fully agree with his 
-reasoning for the current behaviour.
+> Re: OSI(Linux)
+>
+> I've looked at O(100) DSDT's that look at OSI(Linux),
+> and all but serveral systems from two vendors do it by mistake.
+> They simply copied it from the bugged Intel reference code.
+>
+> OSI(Linux) will _never_ be restored to Linux, ever.
+But it should not have been removed without announcing it half a
+year before. It silently moved distributions and vendors into a
+situation where they cannot support Linux and Windows with
+the same BIOS anymore.
 
-The main problem with OSI(Linux) is that it would be a quickly moving 
-target so checking for it wouldn't really help the BIOSes.
+_OSI is mainly not used for interfaces/features in
+reality (as you stated in the other mail), but to workaround very
+specific Windows version bugs.
 
-Still there might be special cases where BIOSes will still check (e.g.
-if they intend to work with specific distribution releases which might 
-have specific bugs). Or to check for specific Linux features.
+While the mainline kernel stays transparent to _OSI you
+advise distributions to exactly not do that and provide e.g.
+a "SLE 11" or "RHEL X" _OSI string to be able to
+support the system on Linux and Windows, is that correct?
+Or do you advise them to provide two separate BIOSes?
+The last option, "do not implement Windows version bug
+fixes" we cannot influence.
+I do not see more options with the current implementation.
 
-One way to do the later would be to define new OSI flags for specific
-features. Haven't got a good proposal for that currently, but it's a 
-possibility.
+> re: the HP BIOS bug at hand.
+>
+> Linux deletes the entire thermal zone when we see this.
+OpenSUSE 11.0 (2.6.25) and SLES10-SP2 (2.6.16) shut down when
+the thermal driver is loaded. Probably every kernel in every
+distribution out there currently is doing that.
+> (arguably, we could have just disabled the CRT
+> and kept the rest of the thermal zone).
+> If HP cared about testing Linux on this laptop
+> and had tools such that they could actually
+> test Linux compatiblity, it would be pretty clear
+> from user-space that their thermal zone was missing.
 
-The other thing that could be done is to define OSI flags specific for
-special distribution releases so BIOSes could potentially check for bugs
-in SLED10 or RHWS5 or something like this, which are hopefully stable
-in that behaviour doesn't move as quickly. The way to do that wouldn't
-be to change the kernel though, but just specify them on the command 
-line using acpi_osi=...
+Len, this is not about the thermal zone, it is just
+a real-world example of something I told you will happen
+if Linux stays _OSI transparent with Windows.
 
--Andi
+This is about that they have to provide a BIOS hot-fix for
+VISTA or VISTA SP and thus breaking Linux because there
+is no way to distinguish anymore.
+Windows 2007 likely will have that fixed and they provide
+a sane _CRT trip point again.
+This is an example of Windows versions workarounds that could
+get much more complex, like initializing HW differently or
+whatever.
+_OSI is used by vendors as a convenient possibility to
+adjust/workaround Windows bugs in their BIOSes, without
+the need to pay Millions to Microsoft to fix their things.
 
+
+          Thomas
