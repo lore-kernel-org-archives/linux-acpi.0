@@ -1,55 +1,50 @@
-From: "Simon Depiets" <sdepiets@gmail.com>
-Subject: Re : Acer Aspire One (Intel Atom's Motherboard) CPU Temp & Fan Speed
-Date: Fri, 25 Jul 2008 09:51:15 +0200
-Message-ID: <f4897e880807250051y6367852fkcdc606809c79c661@mail.gmail.com>
-References: <f4897e880807240800n3c02c6bdw44c4827e098f61c2@mail.gmail.com>
-	 <f4897e880807240932q33f3919et1d24cb8f98e8598e@mail.gmail.com>
-	 <200807242302.04782.carlos@strangeworlds.co.uk>
-	 <f4897e880807241628j4d557e91w1955044d43451247@mail.gmail.com>
-	 <1216949919.1831.38.camel@yakui_zhao.sh.intel.com>
+From: Andi Kleen <ak@linux.intel.com>
+Subject: Re: ACPI OSI disaster on latest HP laptops - critical temperature
+ shutdown
+Date: Fri, 25 Jul 2008 03:44:35 -0700
+Message-ID: <4889AE93.4090601@linux.intel.com>
+References: <200807241727.41715.trenn@suse.de> <alpine.LFD.1.10.0807241952270.6098@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fk-out-0910.google.com ([209.85.128.190]:60030 "EHLO
-	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751594AbYGYHvR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Jul 2008 03:51:17 -0400
-Received: by fk-out-0910.google.com with SMTP id 18so2272863fkq.5
-        for <linux-acpi@vger.kernel.org>; Fri, 25 Jul 2008 00:51:15 -0700 (PDT)
-In-Reply-To: <1216949919.1831.38.camel@yakui_zhao.sh.intel.com>
-Content-Disposition: inline
+Received: from mga10.intel.com ([192.55.52.92]:14473 "EHLO
+	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753674AbYGYKod (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Jul 2008 06:44:33 -0400
+In-Reply-To: <alpine.LFD.1.10.0807241952270.6098@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: acpi@linux.intel.com, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Thomas Renninger <trenn@suse.de>, Arjan van de Ven <arjan@linux.intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Christian Kornacker <ckornacker@suse.de>
 
-2008/7/25, Zhao Yakui <yakui.zhao@intel.com>:
-> On Fri, 2008-07-25 at 01:28 +0200, Simon Depiets wrote:
->> 2008/7/25 Carlos Corbacho <carlos@strangeworlds.co.uk>:
->> > We'll also need the output of acpidump.
->> >
->> > -Carlos
->> Hi,
->> I've uploaded it here
->> http://www.mmo-tools.com/acpi/acpidump.txt
-> >From the attached acpidump it seems that there is no defintion of
-> thermal_zone, FAN device or power resource device.
-> So we can't get any info about the temperature of thermal_zone or FAN
-> speed through ACPI interface.
-> Will you please check whether there is available bios to upgrade?
-no there isn't
-> Will you please check whether the CPU temperature can be obtained by the
-> coretemp driver?
-coretemp: Unknown CPU model 1c
+Len Brown wrote:
+> Thomas,
+> 
+> re: OSI(Windows...)
 
-I'm building my kernel again to check if I missed something
+Thomas,
 
--- 
-Lliane aka Simon Depiets
-Epita Promo 2011,42
-http://www.lliane.com
-A man is smoking with his girlfriend. She angers herslef : "don't you
-see the warning on the box ?!"
-To which the man replies, "I am a programmer. I don't worry about
-warnings. I only worry about errors."
+I discussed this with Len here in Ottawa. First I fully agree with his 
+reasoning for the current behaviour.
+
+The main problem with OSI(Linux) is that it would be a quickly moving 
+target so checking for it wouldn't really help the BIOSes.
+
+Still there might be special cases where BIOSes will still check (e.g.
+if they intend to work with specific distribution releases which might 
+have specific bugs). Or to check for specific Linux features.
+
+One way to do the later would be to define new OSI flags for specific
+features. Haven't got a good proposal for that currently, but it's a 
+possibility.
+
+The other thing that could be done is to define OSI flags specific for
+special distribution releases so BIOSes could potentially check for bugs
+in SLED10 or RHWS5 or something like this, which are hopefully stable
+in that behaviour doesn't move as quickly. The way to do that wouldn't
+be to change the kernel though, but just specify them on the command 
+line using acpi_osi=...
+
+-Andi
+
