@@ -1,51 +1,41 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: ACPI OSI disaster on latest HP laptops - critical temperature
- shutdown
-Date: Thu, 24 Jul 2008 20:04:32 -0400 (EDT)
-Message-ID: <alpine.LFD.1.10.0807241952270.6098@localhost.localdomain>
-References: <200807241727.41715.trenn@suse.de>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: Acer Aspire One (Intel Atom's Motherboard) CPU Temp & Fan Speed
+Date: Fri, 25 Jul 2008 09:38:39 +0800
+Message-ID: <1216949919.1831.38.camel@yakui_zhao.sh.intel.com>
+References: <f4897e880807240800n3c02c6bdw44c4827e098f61c2@mail.gmail.com>
+	 <f4897e880807240932q33f3919et1d24cb8f98e8598e@mail.gmail.com>
+	 <200807242302.04782.carlos@strangeworlds.co.uk>
+	 <f4897e880807241628j4d557e91w1955044d43451247@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms046pub.verizon.net ([206.46.252.46]:42422 "EHLO
-	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751835AbYGYAFN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Jul 2008 20:05:13 -0400
-In-reply-to: <200807241727.41715.trenn@suse.de>
+Received: from mga14.intel.com ([143.182.124.37]:43346 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753765AbYGYB3i (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 24 Jul 2008 21:29:38 -0400
+In-Reply-To: <f4897e880807241628j4d557e91w1955044d43451247@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Arjan van de Ven <arjan@linux.intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, Christian Kornacker <ckornacker@suse.de>
+To: Simon Depiets <sdepiets@gmail.com>
+Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, acpi@linux.intel.com, linux-acpi@vger.kernel.org
 
-Thomas,
+On Fri, 2008-07-25 at 01:28 +0200, Simon Depiets wrote:
+> 2008/7/25 Carlos Corbacho <carlos@strangeworlds.co.uk>:
+> > We'll also need the output of acpidump.
+> >
+> > -Carlos
+> Hi,
+> I've uploaded it here
+> http://www.mmo-tools.com/acpi/acpidump.txt
+>From the attached acpidump it seems that there is no defintion of
+thermal_zone, FAN device or power resource device.
+So we can't get any info about the temperature of thermal_zone or FAN
+speed through ACPI interface.
+Will you please check whether there is available bios to upgrade?
+Will you please check whether the CPU temperature can be obtained by the
+coretemp driver?
 
-re: OSI(Windows...)
-
-Linux will continue to claim OSI compatibility with Windows
-until the day when the majority of Linux systems
-have passed a Linux compatibility test rather than
-a Windows compatibility test.
-
-Re: OSI(Linux)
-
-I've looked at O(100) DSDT's that look at OSI(Linux),
-and all but serveral systems from two vendors do it by mistake.
-They simply copied it from the bugged Intel reference code.
-
-OSI(Linux) will _never_ be restored to Linux, ever.
-
-re: the HP BIOS bug at hand.
-
-Linux deletes the entire thermal zone when we see this.
-(arguably, we could have just disabled the CRT
-and kept the rest of the thermal zone).
-If HP cared about testing Linux on this laptop
-and had tools such that they could actually
-test Linux compatiblity, it would be pretty clear
-from user-space that their thermal zone was missing.
-
-thanks,
--Len
-
-
+Thanks.
+> 
 
