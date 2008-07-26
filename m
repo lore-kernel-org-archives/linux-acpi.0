@@ -1,28 +1,32 @@
-From: Graeme Brett Houston BSc <graemebrett.houston@btopenworld.com>
-Subject: ACPI DMI Data
-Date: Sat, 26 Jul 2008 12:25:33 +0100
-Message-ID: <1217071533.7273.0.camel@BlackBox.home>
+From: Andi Kleen <ak@linux.intel.com>
+Subject: Re: ACPI OSI disaster on latest HP laptops - critical temperature
+ shutdown
+Date: Sat, 26 Jul 2008 05:42:27 -0700
+Message-ID: <488B1BB3.7010602@linux.intel.com>
+References: <200807241727.41715.trenn@suse.de> <alpine.LFD.1.10.0807241952270.6098@localhost.localdomain> <200807251319.12786.trenn@suse.de> <200807251726.14366.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp809.mail.ird.yahoo.com ([217.146.188.69]:39696 "HELO
-	smtp809.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751772AbYGZLcQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 26 Jul 2008 07:32:16 -0400
+Received: from mga10.intel.com ([192.55.52.92]:1602 "EHLO
+	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751818AbYGZMmZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 26 Jul 2008 08:42:25 -0400
+In-Reply-To: <200807251726.14366.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Thomas Renninger <trenn@suse.de>, Len Brown <lenb@kernel.org>, Arjan van de Ven <arjan@linux.intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Christian Kornacker <ckornacker@suse.de>
 
-Initializing Device/Processor/Thermal objects by executing _INI
-methods:.<5>ACPI: BIOS _OSI(Linux) query ignored
-ACPI: DMI System Vendor: Dell Inc.                
-ACPI: DMI Product Name: Dimension 8400               
-ACPI: DMI Product Version: 
-ACPI: DMI Board Name: 0J3492
-ACPI: DMI BIOS Vendor: Dell Inc.                
-ACPI: DMI BIOS Date: 11/08/2005
-ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
 
+> If vendors use _OSI(Windows) to work around Windows bugs, we get broken
+> automatically on those systems unless we put in some DMI-based hacks.
+
+The general goal of ACPICA is to be bug-to-bug compatible with Windows.
+So it might be needed for ACPICA to just emulate the respective bugs.
+
+That said for this case I don't think that's needed, Linux just has to
+detect the workarounds (which it already does I think)
+
+-Andi
 
