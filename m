@@ -1,54 +1,73 @@
-From: Jeff Trull <linmodemstudent@gmail.com>
-Subject: Re: no self-refresh during S3 - any debug hints?
-Date: Sun, 27 Jul 2008 13:22:53 -0700
-Message-ID: <200807271322.53904.linmodemstudent@gmail.com>
-References: <685450530805311215lf463875g8eed40da630b4f96@mail.gmail.com> <20080619150947.GA19908@srcf.ucam.org> <685450530806190940g7bd9edb9q3d98050755aee345@mail.gmail.com>
-Reply-To: linmodemstudent@gmail.com
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: [PATCH]  ACPI:  Ignore AE_NOT_FOUND error of EC _REG method and
+	continue to initialize EC
+Date: Mon, 28 Jul 2008 11:25:50 +0800
+Message-ID: <1217215550.4016.6.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.179]:58708 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757740AbYG0UXu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 27 Jul 2008 16:23:50 -0400
-Received: by wa-out-1112.google.com with SMTP id j37so2762463waf.23
-        for <linux-acpi@vger.kernel.org>; Sun, 27 Jul 2008 13:23:50 -0700 (PDT)
-In-Reply-To: <685450530806190940g7bd9edb9q3d98050755aee345@mail.gmail.com>
-Content-Disposition: inline
+Received: from mga11.intel.com ([192.55.52.93]:65324 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751589AbYG1DNQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 27 Jul 2008 23:13:16 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-acpi@vger.kernel.org
+To: AndiKleen <andi@firstfloor.org>
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
 
-Hi Matthew,
+Subject:ACPI: Ignore AE_NOT_FOUND error of EC _REG method and continue to initialize EC 
+From: Zhao Yakui <yakui.zhao@intel.com>
 
-Did this data provide any insights?
+On some broken BIOS the ACPI object in EC _REG method can't be found in
+ACPI namespace, which causes that the AE_NOT_FOUND status code is returned by
+the EC _REG object. In such case the EC device can't be initialized correctly, 
+which causes that battery/AC adapter can't work normally. As the EC address
+space handler is not removed and the memory pointed by its input argument is
+already free, sometimes the kernel will also be panic when EC internal register
+is still accessed. But the windows can work well on such broken BIOS.
 
-If it seems like a hopeless case that's all right, I guess - I've moved on to 
-a laptop with fully-supported hardware (courtesy Zareason) but if there's any 
-chance of finding root cause I'll keep the old one for testing potential 
-patches, etc.
+Maybe it will be reasonable that OS ignores the AE_NOT_FOUND error 
+returned by the EC _REG object and continues to initialize EC device 
+for some broken BIOS. Of course the warning message will be printed.
+For example: the ACPI object in EC _REG method can't be found and status error
+code is AE_NOT_FOUND. 
 
-Thanks and Regards,
-Jeff Trull
+http://bugzilla.kernel.org/show_bug.cgi?id=8953
+http://bugzilla.kernel.org/show_bug.cgi?id=10237
 
-On Thursday 19 June 2008 09:40:30 Jeff Trull wrote:
-> Delighted to!
->
-> On Thu, Jun 19, 2008 at 8:09 AM, Matthew Garrett <mjg59@srcf.ucam.org> 
-wrote:
-> > On Sat, May 31, 2008 at 12:15:50PM -0700, Jeff Trull wrote:
-> >> I'm running kernel 2.6.20 on a laptop with an ATI IGP 320M Northbridge
-> >> and an Athlon XP.  DSDT has a _PTS but no _GTS.  I'm comfortable
-> >> recompiling the kernel.  Any suggestions as to how to proceed,
-> >> experiments to run, etc.?
-> >
-> > Hi Jeff,
-> >
-> > Could you attach the output of lspci -vxxx -s 0:0.0 ? Needs to be run as
-> > root.
-> >
-> > --
-> > Matthew Garrett | mjg59@srcf.ucam.org
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+
+---
+ drivers/acpi/ec.c |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
+
+Index: linux-2.6/drivers/acpi/ec.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/ec.c
++++ linux-2.6/drivers/acpi/ec.c
+@@ -835,8 +835,19 @@ static int ec_install_handlers(struct ac
+ 						    &acpi_ec_space_handler,
+ 						    NULL, ec);
+ 	if (ACPI_FAILURE(status)) {
+-		acpi_remove_gpe_handler(NULL, ec->gpe, &acpi_ec_gpe_handler);
+-		return -ENODEV;
++		if (status == AE_NOT_FOUND) {
++			/*
++			 * Maybe OS fails in evaluating the _REG object.
++			 * The AE_NOT_FOUND error will be ignored and OS
++			 * continue to initialize EC.
++			 */
++			printk(KERN_ERR "Fail in evaluating _REG object."
++				" It is broken BIOS.\n");
++		} else {
++			acpi_remove_gpe_handler(NULL, ec->gpe,
++				&acpi_ec_gpe_handler);
++			return -ENODEV;
++		}
+ 	}
+ 
+ 	ec->handlers_installed = 1;
+
+
