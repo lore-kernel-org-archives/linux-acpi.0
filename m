@@ -1,73 +1,31 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: [PATCH]  ACPI:  Ignore AE_NOT_FOUND error of EC _REG method and
-	continue to initialize EC
-Date: Mon, 28 Jul 2008 11:25:50 +0800
-Message-ID: <1217215550.4016.6.camel@yakui_zhao.sh.intel.com>
+From: Andi Kleen <andi@firstfloor.org>
+Subject: Re: [PATCH]  ACPI:  Ignore AE_NOT_FOUND error of EC _REG method and continue to initialize EC
+Date: Mon, 28 Jul 2008 16:59:26 +0200
+Message-ID: <20080728145926.GG28253@one.firstfloor.org>
+References: <1217215550.4016.6.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:65324 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751589AbYG1DNQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 27 Jul 2008 23:13:16 -0400
+Received: from one.firstfloor.org ([213.235.205.2]:38318 "EHLO
+	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751717AbYG1O7k (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Jul 2008 10:59:40 -0400
+Content-Disposition: inline
+In-Reply-To: <1217215550.4016.6.camel@yakui_zhao.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: AndiKleen <andi@firstfloor.org>
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: AndiKleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, lenb@kernel.org
 
-Subject:ACPI: Ignore AE_NOT_FOUND error of EC _REG method and continue to initialize EC 
-From: Zhao Yakui <yakui.zhao@intel.com>
+On Mon, Jul 28, 2008 at 11:25:50AM +0800, Zhao Yakui wrote:
+> Subject:ACPI: Ignore AE_NOT_FOUND error of EC _REG method and continue to initialize EC 
+> From: Zhao Yakui <yakui.zhao@intel.com>
+> 
+> On some broken BIOS the ACPI object in EC _REG method can't be found in
+> ACPI namespace, which causes that the AE_NOT_FOUND status code is returned by
+> the EC _REG object. In such case the EC device can't be initialized correctly, 
 
-On some broken BIOS the ACPI object in EC _REG method can't be found in
-ACPI namespace, which causes that the AE_NOT_FOUND status code is returned by
-the EC _REG object. In such case the EC device can't be initialized correctly, 
-which causes that battery/AC adapter can't work normally. As the EC address
-space handler is not removed and the memory pointed by its input argument is
-already free, sometimes the kernel will also be panic when EC internal register
-is still accessed. But the windows can work well on such broken BIOS.
+Thanks. Queued for test. How urgent is this? Do we need to consider it 
+for .27?
 
-Maybe it will be reasonable that OS ignores the AE_NOT_FOUND error 
-returned by the EC _REG object and continues to initialize EC device 
-for some broken BIOS. Of course the warning message will be printed.
-For example: the ACPI object in EC _REG method can't be found and status error
-code is AE_NOT_FOUND. 
-
-http://bugzilla.kernel.org/show_bug.cgi?id=8953
-http://bugzilla.kernel.org/show_bug.cgi?id=10237
-
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-Signed-off-by: Lin Ming <ming.m.lin@intel.com>
-
----
- drivers/acpi/ec.c |   15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
-
-Index: linux-2.6/drivers/acpi/ec.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/ec.c
-+++ linux-2.6/drivers/acpi/ec.c
-@@ -835,8 +835,19 @@ static int ec_install_handlers(struct ac
- 						    &acpi_ec_space_handler,
- 						    NULL, ec);
- 	if (ACPI_FAILURE(status)) {
--		acpi_remove_gpe_handler(NULL, ec->gpe, &acpi_ec_gpe_handler);
--		return -ENODEV;
-+		if (status == AE_NOT_FOUND) {
-+			/*
-+			 * Maybe OS fails in evaluating the _REG object.
-+			 * The AE_NOT_FOUND error will be ignored and OS
-+			 * continue to initialize EC.
-+			 */
-+			printk(KERN_ERR "Fail in evaluating _REG object."
-+				" It is broken BIOS.\n");
-+		} else {
-+			acpi_remove_gpe_handler(NULL, ec->gpe,
-+				&acpi_ec_gpe_handler);
-+			return -ENODEV;
-+		}
- 	}
- 
- 	ec->handlers_installed = 1;
-
-
+-Andi
