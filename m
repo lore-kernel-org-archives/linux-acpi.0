@@ -1,84 +1,77 @@
-From: John Keller <jpk@sgi.com>
-Subject: [RESEND] [PATCH] x86: Allow MMCONFIG above 4GB on x86_64
-Date: Tue, 29 Jul 2008 14:34:16 -0500 (CDT)
-Message-ID: <200807291934.m6TJYGai478010@fcbayern.americas.sgi.com>
-References: <20080715194714.1437.92354.57492@attica.americas.sgi.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: [PATCH] PNP: update kernel parameter documentation
+Date: Tue, 29 Jul 2008 15:30:11 -0600
+Message-ID: <20080729212959.26772.99685.stgit@tigger.helgaas>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay1.sgi.com ([192.48.171.29]:43880 "EHLO relay.sgi.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751958AbYG2TeT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 29 Jul 2008 15:34:19 -0400
-In-Reply-To: <20080715194714.1437.92354.57492@attica.americas.sgi.com> from "John Keller" at Jul 15, 2008 02:47:14 PM
+Received: from g1t0028.austin.hp.com ([15.216.28.35]:42530 "EHLO
+	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752436AbYG2Va2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Jul 2008 17:30:28 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: jpk@sgi.com
-
-Just checking on the status of this patch.
-If there are no issues, please apply.
-
-Thanks,
-John
-
-================================
+To: Andi Kleen <andi@firstfloor.org>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, linux-acpi@vger.kernel.org
 
 
-SGI UV will have MMCFG base addresses that are greater than 4GB (32 bits).
+Remove obsolete "pnpbios=res" and "pnpbios=no-res" options, note that
+"pnp_reserve_{irq,dma,io,mem}=" work for all PNP (not just ISAPNP) and
+add formats.
 
-Signed-off-by: John Keller <jpk@sgi.com>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 ---
 
-Resend #2: Create a flag, that is set by platform specific code,
-           to disable the > 4GB check.
-
-Resend #1: Use CONFIG_RESOURCES_64BIT instead of CONFIG_X86_64.
+ Documentation/kernel-parameters.txt |   27 +++++++++++++++++----------
+ 1 files changed, 17 insertions(+), 10 deletions(-)
 
 
-
-Index: linux-2.6/arch/x86/kernel/acpi/boot.c
-===================================================================
---- linux-2.6.orig/arch/x86/kernel/acpi/boot.c	2008-07-15 11:04:14.000000000 -0500
-+++ linux-2.6/arch/x86/kernel/acpi/boot.c	2008-07-15 11:08:11.000000000 -0500
-@@ -97,6 +97,8 @@ static u64 acpi_lapic_addr __initdata = 
- #warning ACPI uses CMPXCHG, i486 and later hardware
- #endif
+diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+index e7bea3e..3cba6ed 100644
+--- a/Documentation/kernel-parameters.txt
++++ b/Documentation/kernel-parameters.txt
+@@ -1655,25 +1655,32 @@ and is between 256 and 4096 characters. It is defined in the file
+ 			Override pmtimer IOPort with a hex value.
+ 			e.g. pmtmr=0x508
  
-+static int acpi_mcfg_64bit_base_addr __initdata = FALSE;
-+
- /* --------------------------------------------------------------------------
-                               Boot-time Configuration
-    -------------------------------------------------------------------------- */
-@@ -158,6 +160,14 @@ char *__init __acpi_map_table(unsigned l
- struct acpi_mcfg_allocation *pci_mmcfg_config;
- int pci_mmcfg_config_num;
+-	pnpacpi=	[ACPI]
++	pnpacpi=	[PNP && ACPI]
+ 			{ off }
  
-+static int __init acpi_mcfg_oem_check(struct acpi_table_mcfg *mcfg)
-+{
-+	if (!strcmp(mcfg->header.oem_id, "SGI"))
-+		acpi_mcfg_64bit_base_addr = TRUE;
-+
-+	return 0;
-+}
-+
- int __init acpi_parse_mcfg(struct acpi_table_header *header)
- {
- 	struct acpi_table_mcfg *mcfg;
-@@ -190,8 +200,12 @@ int __init acpi_parse_mcfg(struct acpi_t
- 	}
+-	pnpbios=	[ISAPNP]
+-			{ on | off | curr | res | no-curr | no-res }
++	pnpbios=option[,option...]	[PNPBIOS]
++		off		Disable PNPBIOS
++		no-curr		Use static device configuration, i.e., how
++				the device will be configured on the next boot
  
- 	memcpy(pci_mmcfg_config, &mcfg[1], config_size);
-+
-+	acpi_mcfg_oem_check(mcfg);
-+
- 	for (i = 0; i < pci_mmcfg_config_num; ++i) {
--		if (pci_mmcfg_config[i].address > 0xFFFFFFFF) {
-+		if ((pci_mmcfg_config[i].address > 0xFFFFFFFF) &&
-+		    !acpi_mcfg_64bit_base_addr) {
- 			printk(KERN_ERR PREFIX
- 			       "MMCONFIG not in low 4GB of memory\n");
- 			kfree(pci_mmcfg_config);
-
+ 	pnp_reserve_irq=
+-			[ISAPNP] Exclude IRQs for the autoconfiguration
++			[PNP] Keep Linux from assigning listed IRQs
++			to PNP devices
++			Format: <irq>[,<irq>,...]
+ 
+ 	pnp_reserve_dma=
+-			[ISAPNP] Exclude DMAs for the autoconfiguration
++			[PNP] Keep Linux from assigning listed DMA channels
++			to PNP devices
++			Format: <dma>[,<dma>,...]
+ 
+-	pnp_reserve_io=	[ISAPNP] Exclude I/O ports for the autoconfiguration
+-			Ranges are in pairs (I/O port base and size).
++	pnp_reserve_io=	[PNP] Keep Linux from assigning listed I/O port ranges
++			to PNP devices
++			Format: <io>,<size>[,<io>,<size>,...]
+ 
+ 	pnp_reserve_mem=
+-			[ISAPNP] Exclude memory regions for the
+-			autoconfiguration.
+-			Ranges are in pairs (memory base and size).
++			[PNP] Keep Linux from assigning listed memory ranges
++			to PNP devices
++			Format: <mem>,<size>[,<mem>,<size>,...]
+ 
+ 	print-fatal-signals=
+ 			[KNL] debug: print fatal signals
 
