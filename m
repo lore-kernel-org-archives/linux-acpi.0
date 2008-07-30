@@ -1,47 +1,28 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: Debug interface used for error message cleanups
-Date: Wed, 30 Jul 2008 13:29:19 -0700
-Message-ID: <9D39833986E69849A2A8E74C1078B6B3BFA624@orsmsx415.amr.corp.intel.com>
-References: <1217449342-20312-1-git-send-email-trenn@suse.de>
+From: "Chris Hanson" <cph@chris-hanson.org>
+Subject: Re: [ibm-acpi-devel] Avoid critical temp shutdowns on specific ThinkPad T4x(p) and R50p
+Date: Wed, 30 Jul 2008 13:39:47 -0700
+Message-ID: <f62196f50807301339r10bbb17do4bb2345b688011a3@mail.gmail.com>
+References: <200807301556.01815.trenn@suse.de>
+	 <20080730175227.GA13850@khazad-dum.debian.net>
+	 <200807302103.39536.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:6157 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753586AbYG3U3V (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 Jul 2008 16:29:21 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <1217449342-20312-1-git-send-email-trenn@suse.de>
+Received: from py-out-1112.google.com ([64.233.166.181]:58700 "EHLO
+	py-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751367AbYG3Ujt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Jul 2008 16:39:49 -0400
+Received: by py-out-1112.google.com with SMTP id p76so145235pyb.10
+        for <linux-acpi@vger.kernel.org>; Wed, 30 Jul 2008 13:39:47 -0700 (PDT)
+In-Reply-To: <200807302103.39536.trenn@suse.de>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>, ak@linux.intel.com
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi@vger.kernel.org, ak@linux.intel.com, lenb@kernel.org, ibm-acpi-devel@lists.sourceforge.net
 
-SSdtIGdvaW5nIHRvIGdvIGFoZWFkIGFuZCByZW1vdmUgdGhlc2UgZnJvbSBBQ1BJQ0EuDQoNCldl
-IGFkZGVkIGFuICJvYnNvbGV0ZSIgd2FybmluZyBpbiB0aGUgaGVhZGVyIGZpbGUgc29tZSB0aW1l
-IGFnbywgYW5kIEkgdGhpbmsgdGhlIHRpbWUgaGFzIGNvbWUgdG8gcmVtb3ZlIHRoZW0sIGVzcGVj
-aWFsbHkgaW4gbGlnaHQgb2YgdGhlc2UgcGF0Y2hlcyB0byBMaW51eC4NCg0KQm9iDQoNCg0KPi0t
-LS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+RnJvbTogVGhvbWFzIFJlbm5pbmdlciBbbWFpbHRv
-OnRyZW5uQHN1c2UuZGVdDQo+U2VudDogV2VkbmVzZGF5LCBKdWx5IDMwLCAyMDA4IDE6MjIgUE0N
-Cj5UbzogYWtAbGludXguaW50ZWwuY29tDQo+Q2M6IGxlbmJAa2VybmVsLm9yZzsgbGludXgtYWNw
-aUB2Z2VyLmtlcm5lbC5vcmc7IE1vb3JlLCBSb2JlcnQNCj5TdWJqZWN0OiBEZWJ1ZyBpbnRlcmZh
-Y2UgdXNlZCBmb3IgZXJyb3IgbWVzc2FnZSBjbGVhbnVwcw0KPg0KPlRoaXMgcmVtb3ZlcyBhbGwg
-REJfV0FSTiBhbmQgREJfRVJST1IgaW5zdGFuY2VzIGZyb20gdGhlIGtlcm5lbC4NCj4NCj5JdCBp
-cyBzdGlsbCBvbmUgdGltZSB1c2VkIGluIEFDUElDQSBjb2RlIGluIHRoZSBuYW1lc3BhY2UgZGly
-Lg0KPkl0IHdvdWxkIGJlIGdyZWF0IHRvIHJlbW92ZSB0aGlzIGZyb20gQUNQSUNBIHRvIGZpbmFs
-bHkgYXZvaWQNCj5wZW9wbGUgZnJvbSBtaXMtdXNpbmcgaXQuDQo+DQo+UGF0Y2hlcyBhcmUgY29t
-cGlsZSB0ZXN0ZWQuDQo+DQo+SG1tLCB0aGVyZSBzZWVtIHRvIGJlIGEgY29tcGlsZSBlcnJvciBp
-biB0aGUgd2lyZWxlc3MgYXJlYSwgYnV0DQo+bXkgdG91Y2hlZCBmaWxlcyBoYXZlIGNvbXBpbGVk
-IGFscmVhZHksIG5vIHRpbWUgdG8gbG9vaw0KPmF0IHRoaXMgcmlnaHQgbm93LCBJIGV4cGVjdCBp
-dCdzIGtub3duIGFscmVhZHk6DQo+ICBDQyBbTV0gIGRyaXZlcnMvbmV0L3dpcmVsZXNzL2l3bHdp
-ZmkvaXdsLWxlZC5vDQo+ZHJpdmVycy9uZXQvd2lyZWxlc3MvaXdsd2lmaS9pd2wtbGVkLmM6IElu
-IGZ1bmN0aW9uDQo+w6LigqzLnGl3bF9sZWRfYnJpZ2h0bmVzc19zZXTDouKCrOKEojoNCj5kcml2
-ZXJzL25ldC93aXJlbGVzcy9pd2x3aWZpL2l3bC1sZWQuYzoxOTg6IGVycm9yOiDDouKCrMucbGVk
-X3R5cGVfc3Ryw6LigqzihKINCj51bmRlY2xhcmVkIChmaXJzdCB1c2UgaW4gdGhpcyBmdW5jdGlv
-bikNCj5kcml2ZXJzL25ldC93aXJlbGVzcy9pd2x3aWZpL2l3bC1sZWQuYzoxOTg6IGVycm9yOiAo
-RWFjaCB1bmRlY2xhcmVkDQo+aWRlbnRpZmllciBpcyByZXBvcnRlZCBvbmx5IG9uY2UNCj5kcml2
-ZXJzL25ldC93aXJlbGVzcy9pd2x3aWZpL2l3bC1sZWQuYzoxOTg6IGVycm9yOiBmb3IgZWFjaCBm
-dW5jdGlvbiBpdA0KPmFwcGVhcnMgaW4uKQ0KPm1ha2VbNF06ICoqKiBbZHJpdmVycy9uZXQvd2ly
-ZWxlc3MvaXdsd2lmaS9pd2wtbGVkLm9dIEVycm9yIDENCj4NCg0K
+I'm wondering if this thread is about something similar to a problem
+I've seen.  My T61p often locks up when the outside temperature is
+high or when it is humid, and the CPU temperature is high (but less
+than 85C).  Is this like the symptom you're addressing?
