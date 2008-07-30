@@ -1,38 +1,47 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH 7/9] ACPI osl: Debug interface used for error message cleanup
-Date: Wed, 30 Jul 2008 22:22:20 +0200
-Message-ID: <1217449342-20312-8-git-send-email-trenn@suse.de>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: Debug interface used for error message cleanups
+Date: Wed, 30 Jul 2008 13:29:19 -0700
+Message-ID: <9D39833986E69849A2A8E74C1078B6B3BFA624@orsmsx415.amr.corp.intel.com>
 References: <1217449342-20312-1-git-send-email-trenn@suse.de>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:48269 "EHLO mx1.suse.de"
+Received: from mga09.intel.com ([134.134.136.24]:6157 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756326AbYG3UWY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 Jul 2008 16:22:24 -0400
+	id S1753586AbYG3U3V (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 30 Jul 2008 16:29:21 -0400
+Content-class: urn:content-classes:message
 In-Reply-To: <1217449342-20312-1-git-send-email-trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ak@linux.intel.com
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, robert.moore@intel.com, Thomas Renninger <trenn@suse.de>
+To: Thomas Renninger <trenn@suse.de>, ak@linux.intel.com
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
 
-Signed-off-by: Thomas Renninger <trenn@suse.de>
----
- drivers/acpi/osl.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index bf42ef1..0841c07 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -729,8 +729,7 @@ acpi_status acpi_os_execute(acpi_execute_type type,
- 	INIT_WORK(&dpc->work, acpi_os_execute_deferred);
- 	queue = (type == OSL_NOTIFY_HANDLER) ? kacpi_notify_wq : kacpid_wq;
- 	if (!queue_work(queue, &dpc->work)) {
--		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
--			  "Call to queue_work() failed.\n"));
-+		printk(KERN_ERR "Call to queue_work() failed.\n");
- 		status = AE_ERROR;
- 		kfree(dpc);
- 	}
--- 
-1.5.4.5
-
+SSdtIGdvaW5nIHRvIGdvIGFoZWFkIGFuZCByZW1vdmUgdGhlc2UgZnJvbSBBQ1BJQ0EuDQoNCldl
+IGFkZGVkIGFuICJvYnNvbGV0ZSIgd2FybmluZyBpbiB0aGUgaGVhZGVyIGZpbGUgc29tZSB0aW1l
+IGFnbywgYW5kIEkgdGhpbmsgdGhlIHRpbWUgaGFzIGNvbWUgdG8gcmVtb3ZlIHRoZW0sIGVzcGVj
+aWFsbHkgaW4gbGlnaHQgb2YgdGhlc2UgcGF0Y2hlcyB0byBMaW51eC4NCg0KQm9iDQoNCg0KPi0t
+LS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+RnJvbTogVGhvbWFzIFJlbm5pbmdlciBbbWFpbHRv
+OnRyZW5uQHN1c2UuZGVdDQo+U2VudDogV2VkbmVzZGF5LCBKdWx5IDMwLCAyMDA4IDE6MjIgUE0N
+Cj5UbzogYWtAbGludXguaW50ZWwuY29tDQo+Q2M6IGxlbmJAa2VybmVsLm9yZzsgbGludXgtYWNw
+aUB2Z2VyLmtlcm5lbC5vcmc7IE1vb3JlLCBSb2JlcnQNCj5TdWJqZWN0OiBEZWJ1ZyBpbnRlcmZh
+Y2UgdXNlZCBmb3IgZXJyb3IgbWVzc2FnZSBjbGVhbnVwcw0KPg0KPlRoaXMgcmVtb3ZlcyBhbGwg
+REJfV0FSTiBhbmQgREJfRVJST1IgaW5zdGFuY2VzIGZyb20gdGhlIGtlcm5lbC4NCj4NCj5JdCBp
+cyBzdGlsbCBvbmUgdGltZSB1c2VkIGluIEFDUElDQSBjb2RlIGluIHRoZSBuYW1lc3BhY2UgZGly
+Lg0KPkl0IHdvdWxkIGJlIGdyZWF0IHRvIHJlbW92ZSB0aGlzIGZyb20gQUNQSUNBIHRvIGZpbmFs
+bHkgYXZvaWQNCj5wZW9wbGUgZnJvbSBtaXMtdXNpbmcgaXQuDQo+DQo+UGF0Y2hlcyBhcmUgY29t
+cGlsZSB0ZXN0ZWQuDQo+DQo+SG1tLCB0aGVyZSBzZWVtIHRvIGJlIGEgY29tcGlsZSBlcnJvciBp
+biB0aGUgd2lyZWxlc3MgYXJlYSwgYnV0DQo+bXkgdG91Y2hlZCBmaWxlcyBoYXZlIGNvbXBpbGVk
+IGFscmVhZHksIG5vIHRpbWUgdG8gbG9vaw0KPmF0IHRoaXMgcmlnaHQgbm93LCBJIGV4cGVjdCBp
+dCdzIGtub3duIGFscmVhZHk6DQo+ICBDQyBbTV0gIGRyaXZlcnMvbmV0L3dpcmVsZXNzL2l3bHdp
+ZmkvaXdsLWxlZC5vDQo+ZHJpdmVycy9uZXQvd2lyZWxlc3MvaXdsd2lmaS9pd2wtbGVkLmM6IElu
+IGZ1bmN0aW9uDQo+w6LigqzLnGl3bF9sZWRfYnJpZ2h0bmVzc19zZXTDouKCrOKEojoNCj5kcml2
+ZXJzL25ldC93aXJlbGVzcy9pd2x3aWZpL2l3bC1sZWQuYzoxOTg6IGVycm9yOiDDouKCrMucbGVk
+X3R5cGVfc3Ryw6LigqzihKINCj51bmRlY2xhcmVkIChmaXJzdCB1c2UgaW4gdGhpcyBmdW5jdGlv
+bikNCj5kcml2ZXJzL25ldC93aXJlbGVzcy9pd2x3aWZpL2l3bC1sZWQuYzoxOTg6IGVycm9yOiAo
+RWFjaCB1bmRlY2xhcmVkDQo+aWRlbnRpZmllciBpcyByZXBvcnRlZCBvbmx5IG9uY2UNCj5kcml2
+ZXJzL25ldC93aXJlbGVzcy9pd2x3aWZpL2l3bC1sZWQuYzoxOTg6IGVycm9yOiBmb3IgZWFjaCBm
+dW5jdGlvbiBpdA0KPmFwcGVhcnMgaW4uKQ0KPm1ha2VbNF06ICoqKiBbZHJpdmVycy9uZXQvd2ly
+ZWxlc3MvaXdsd2lmaS9pd2wtbGVkLm9dIEVycm9yIDENCj4NCg0K
