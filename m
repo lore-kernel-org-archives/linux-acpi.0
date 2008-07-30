@@ -1,12 +1,12 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH 1/9] ACPI cm_sbs: Debug interface used for error message cleanup
-Date: Wed, 30 Jul 2008 22:22:14 +0200
-Message-ID: <1217449342-20312-2-git-send-email-trenn@suse.de>
+Subject: [PATCH 6/9] ACPI fan: Debug interface used for error message cleanup
+Date: Wed, 30 Jul 2008 22:22:19 +0200
+Message-ID: <1217449342-20312-7-git-send-email-trenn@suse.de>
 References: <1217449342-20312-1-git-send-email-trenn@suse.de>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.suse.de ([195.135.220.2]:48270 "EHLO mx1.suse.de"
+Received: from mx2.suse.de ([195.135.220.15]:49436 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756302AbYG3UWY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1756406AbYG3UWY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Wed, 30 Jul 2008 16:22:24 -0400
 In-Reply-To: <1217449342-20312-1-git-send-email-trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -16,33 +16,23 @@ Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, robert.moore@intel.com, Thomas 
 
 Signed-off-by: Thomas Renninger <trenn@suse.de>
 ---
- drivers/acpi/cm_sbs.c |    6 ++----
- 1 files changed, 2 insertions(+), 4 deletions(-)
+ drivers/acpi/fan.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/cm_sbs.c b/drivers/acpi/cm_sbs.c
-index f9db4f4..58dc367 100644
---- a/drivers/acpi/cm_sbs.c
-+++ b/drivers/acpi/cm_sbs.c
-@@ -52,8 +52,7 @@ struct proc_dir_entry *acpi_lock_ac_dir(void)
- 	if (acpi_ac_dir) {
- 		lock_ac_dir_cnt++;
- 	} else {
+diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
+index 55c17af..e3fa9a5 100644
+--- a/drivers/acpi/fan.c
++++ b/drivers/acpi/fan.c
+@@ -327,8 +327,7 @@ static int acpi_fan_resume(struct acpi_device *device)
+ 
+ 	result = acpi_bus_get_power(device->handle, &power_state);
+ 	if (result) {
 -		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
--				  "Cannot create %s\n", ACPI_AC_CLASS));
-+		printk(KERN_ERR "Cannot create %s\n", ACPI_AC_CLASS);
+-				  "Error reading fan power state\n"));
++		printk("Error reading fan power state [%d]\n", result);
+ 		return result;
  	}
- 	mutex_unlock(&cm_sbs_mutex);
- 	return acpi_ac_dir;
-@@ -83,8 +82,7 @@ struct proc_dir_entry *acpi_lock_battery_dir(void)
- 	if (acpi_battery_dir) {
- 		lock_battery_dir_cnt++;
- 	} else {
--		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
--				  "Cannot create %s\n", ACPI_BATTERY_CLASS));
-+		printk(KERN_ERR "Cannot create %s\n", ACPI_BATTERY_CLASS);
- 	}
- 	mutex_unlock(&cm_sbs_mutex);
- 	return acpi_battery_dir;
+ 
 -- 
 1.5.4.5
 
