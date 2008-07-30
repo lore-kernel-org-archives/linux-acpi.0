@@ -1,13 +1,13 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH 3/9] ACPI processor: Debug interface used for error message cleanup
-Date: Wed, 30 Jul 2008 22:22:16 +0200
-Message-ID: <1217449342-20312-4-git-send-email-trenn@suse.de>
+Subject: [PATCH 1/9] ACPI cm_sbs: Debug interface used for error message cleanup
+Date: Wed, 30 Jul 2008 22:22:14 +0200
+Message-ID: <1217449342-20312-2-git-send-email-trenn@suse.de>
 References: <1217449342-20312-1-git-send-email-trenn@suse.de>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:49433 "EHLO mx2.suse.de"
+Received: from mx1.suse.de ([195.135.220.2]:48270 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756398AbYG3UWZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 Jul 2008 16:22:25 -0400
+	id S1756302AbYG3UWY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 30 Jul 2008 16:22:24 -0400
 In-Reply-To: <1217449342-20312-1-git-send-email-trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,104 +16,33 @@ Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, robert.moore@intel.com, Thomas 
 
 Signed-off-by: Thomas Renninger <trenn@suse.de>
 ---
- drivers/acpi/processor_perflib.c    |   21 ++++++++++-----------
- drivers/acpi/processor_throttling.c |   17 ++++++-----------
- 2 files changed, 16 insertions(+), 22 deletions(-)
+ drivers/acpi/cm_sbs.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
-index b474996..f643068 100644
---- a/drivers/acpi/processor_perflib.c
-+++ b/drivers/acpi/processor_perflib.c
-@@ -512,14 +512,13 @@ static int acpi_processor_get_psd(struct acpi_processor	*pr)
+diff --git a/drivers/acpi/cm_sbs.c b/drivers/acpi/cm_sbs.c
+index f9db4f4..58dc367 100644
+--- a/drivers/acpi/cm_sbs.c
++++ b/drivers/acpi/cm_sbs.c
+@@ -52,8 +52,7 @@ struct proc_dir_entry *acpi_lock_ac_dir(void)
+ 	if (acpi_ac_dir) {
+ 		lock_ac_dir_cnt++;
+ 	} else {
+-		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
+-				  "Cannot create %s\n", ACPI_AC_CLASS));
++		printk(KERN_ERR "Cannot create %s\n", ACPI_AC_CLASS);
  	}
- 
- 	psd = buffer.pointer;
--	if (!psd || (psd->type != ACPI_TYPE_PACKAGE)) {
--		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid _PSD data\n"));
--		result = -EFAULT;
--		goto end;
--	}
--
--	if (psd->package.count != 1) {
--		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid _PSD data\n"));
-+	if (!psd || (psd->type != ACPI_TYPE_PACKAGE)
-+	    || psd->package.count != 1) {
-+		/*
-+		 * ToDo: Mark it as BIOS bug as soon as there is an interface
-+		 *        for it
-+		 */
-+		printk(KERN_ERR "Invalid _PSD data\n");
- 		result = -EFAULT;
- 		goto end;
+ 	mutex_unlock(&cm_sbs_mutex);
+ 	return acpi_ac_dir;
+@@ -83,8 +82,7 @@ struct proc_dir_entry *acpi_lock_battery_dir(void)
+ 	if (acpi_battery_dir) {
+ 		lock_battery_dir_cnt++;
+ 	} else {
+-		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
+-				  "Cannot create %s\n", ACPI_BATTERY_CLASS));
++		printk(KERN_ERR "Cannot create %s\n", ACPI_BATTERY_CLASS);
  	}
-@@ -532,19 +531,19 @@ static int acpi_processor_get_psd(struct acpi_processor	*pr)
- 	status = acpi_extract_package(&(psd->package.elements[0]),
- 		&format, &state);
- 	if (ACPI_FAILURE(status)) {
--		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid _PSD data\n"));
-+		ACPI_ERROR((DB_INFO, status, "Invalid _PSD data\n"));
- 		result = -EFAULT;
- 		goto end;
- 	}
- 
- 	if (pdomain->num_entries != ACPI_PSD_REV0_ENTRIES) {
--		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Unknown _PSD:num_entries\n"));
-+		printk(KERN_ERR "Unknown _PSD:num_entries\n");
- 		result = -EFAULT;
- 		goto end;
- 	}
- 
- 	if (pdomain->revision != ACPI_PSD_REV0_REVISION) {
--		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Unknown _PSD:revision\n"));
-+		printk(KERN_ERR "Unknown _PSD:revision\n"));
- 		result = -EFAULT;
- 		goto end;
- 	}
-diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
-index 0622ace..95de498 100644
---- a/drivers/acpi/processor_throttling.c
-+++ b/drivers/acpi/processor_throttling.c
-@@ -527,14 +527,9 @@ static int acpi_processor_get_tsd(struct acpi_processor *pr)
- 	}
- 
- 	tsd = buffer.pointer;
--	if (!tsd || (tsd->type != ACPI_TYPE_PACKAGE)) {
--		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid _TSD data\n"));
--		result = -EFAULT;
--		goto end;
--	}
--
--	if (tsd->package.count != 1) {
--		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid _TSD data\n"));
-+	if (!tsd || (tsd->type != ACPI_TYPE_PACKAGE)
-+	    || tsd->package.count != 1) {
-+		printk(KERN_INFO "Invalid _TSD data\n");
- 		result = -EFAULT;
- 		goto end;
- 	}
-@@ -547,19 +542,19 @@ static int acpi_processor_get_tsd(struct acpi_processor *pr)
- 	status = acpi_extract_package(&(tsd->package.elements[0]),
- 				      &format, &state);
- 	if (ACPI_FAILURE(status)) {
--		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid _TSD data\n"));
-+		ACPI_ERROR(DB_INFO, status, "Invalid _TSD data\n"));
- 		result = -EFAULT;
- 		goto end;
- 	}
- 
- 	if (pdomain->num_entries != ACPI_TSD_REV0_ENTRIES) {
--		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Unknown _TSD:num_entries\n"));
-+		printk(KERN_ERR "Unknown _TSD:num_entries\n"));
- 		result = -EFAULT;
- 		goto end;
- 	}
- 
- 	if (pdomain->revision != ACPI_TSD_REV0_REVISION) {
--		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Unknown _TSD:revision\n"));
-+		printk(KERN_ERR "Unknown _TSD:revision\n"));
- 		result = -EFAULT;
- 		goto end;
- 	}
+ 	mutex_unlock(&cm_sbs_mutex);
+ 	return acpi_battery_dir;
 -- 
 1.5.4.5
 
