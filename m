@@ -1,227 +1,88 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: Fwd: Re: 2.6.27-rc1 oops on boot -- cs423x? (Corrected subject)
-Date: Wed, 30 Jul 2008 12:14:30 -0600
-Message-ID: <200807301214.30788.bjorn.helgaas@hp.com>
-References: <200807300839.18425.bjorn.helgaas@hp.com> <20080730164044.GM23938@one.firstfloor.org>
+From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: Avoid critical temp shutdowns on specific
+	ThinkPad T4x(p) and R50p
+Date: Wed, 30 Jul 2008 21:03:38 +0200
+Message-ID: <200807302103.39536.trenn@suse.de>
+References: <200807301556.01815.trenn@suse.de>
+	<20080730175227.GA13850@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0027.austin.hp.com ([15.216.28.34]:13601 "EHLO
-	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751877AbYG3SOt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Jul 2008 14:14:49 -0400
-In-Reply-To: <20080730164044.GM23938@one.firstfloor.org>
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20080730175227.GA13850-ZGHd14iZgfaRjzvQDGKj+xxZW9W5cXbT@public.gmane.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ak-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>
-Cc: linux-acpi@vger.kernel.org, Pete Clements <clem@clem.clem-digital.net>, Rene Herman <rene.herman@keyaccess.nl>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel <linux-kernel@vger.kernel.org>
 
-On Wednesday 30 July 2008 10:40:44 am Andi Kleen wrote:
-> On Wed, Jul 30, 2008 at 08:39:18AM -0600, Bjorn Helgaas wrote:
-> > Hi Andi,
-> > 
-> > Can you put the patch below in your acpi tree?  It fixes an issue
-> > in 2.6.27-rc1 (URL below).  Thanks.
-> 
-> Does that actually fix an oops or is it just a cosmetic problem?
+On Wednesday 30 July 2008 19:52:27 Henrique de Moraes Holschuh wrote:
+> On Wed, 30 Jul 2008, Thomas Renninger wrote:
+> > frequency (what we probably will do again soon). It has been tested that
+> > specific ThinkPads do not throw a thermal event when exceeding the
+> > passive trip point. Even thermal polling was not enough...
+>
+> Urgh.
+>
+> > +			DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
+> > +			DMI_MATCH(DMI_PRODUCT_VERSION,"ThinkPad T41"),
+> > +			DMI_MATCH(DMI_PRODUCT_VERSION,"ThinkPad T42"),
+> > +			DMI_MATCH(DMI_PRODUCT_VERSION,"ThinkPad T41p"),
+> > +			DMI_MATCH(DMI_PRODUCT_VERSION,"ThinkPad T42p"),
+> > +			DMI_MATCH(DMI_PRODUCT_VERSION,"ThinkPad R50p"),
+>
+> Just match BIOS 1R* with VENDOR IBM.  The T40 is affected as well for sure.
+> It uses the same BIOS and EC firmware, it *has* to be.  And it is missing
+> on this list.
+>
+> For IBM ThinkPads, it is *always* better to match on BIOS version than on
+> product version.
+>
+> See here for model-BIOS table:
+> http://www.thinkwiki.org/wiki/BIOS_Upgrade_Downloads
+>
+> and here for DMI info table:
+> http://www.thinkwiki.org/wiki/List_of_DMI_IDs
+>
+> > +			DMI_MATCH(DMI_PRODUCT_VERSION,"ThinkPad T43"),
+> > +			DMI_MATCH(DMI_PRODUCT_VERSION,"ThinkPad T43p"),
+I thought they tested the T43 or T43p and it threw thermal events and did not 
+shut down.
+I will have a look at the bug again, I have to touch this one anyway.
+Or just lower passive to around 80 C for all of them as you suggested below.
 
-OK, I looked into it a little more.  Moving the "len = 0" inside the
-loop "fixed" the warning, but left the more serious problem that
-I had misused snprintf.  The updated patch below fixes both problems.
-Thanks for keeping me honest!
+Thanks for the comments..., give me some time and I repost.
 
-Andrew, this should replace this -mm patch:
-  pnp-fix-formatting-of-dbg_pnp_show_resources-output.patch
-
-
-
-PNP: fix formatting of dbg_pnp_show_resources() output
-
-Each resource should be printed on its own line, so start snprintf'ing
-at the beginning of the buffer every time through the loop.
-
-Also, use scnprintf() rather than snprintf() when building up the
-buffer to print.  scnprintf() returns the number of characters
-actually written into the buffer (not including the trailing NULL).
-
-snprintf() returns the number of characters that *would be* written,
-assuming everything would fit in the buffer.  That's nice if we want
-to resize the buffer to make sure everything fits, but in this case,
-I just want to keep from overflowing the buffer, and it's OK if the
-output is truncated.
-
-Using snprintf() meant that my "len" could grow to be more than the
-the buffer size, which makes "sizeof(buf) - len" negative, which causes
-this alarming WARN_ON:
-    http://marc.info/?l=linux-kernel&m=121736480005656&w=2
-
-More useful snprintf/scnprintf discussion:
-    http://lwn.net/Articles/69419/
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
----
-
- drivers/pnp/support.c |   96 +++++++++++++++++++++++++------------------------
- 1 files changed, 49 insertions(+), 47 deletions(-)
+       Thomas
+>
+> > +	if (dmi_check_system(thermal_psv_dmi_table)) {
+> > +		if (tz->trips.passive.flags.valid &&
+> > +		    tz->trips.passive.temperature > CELSIUS_TO_KELVIN(85)) {
+> > +			printk (KERN_INFO "Adjust passive trip point from %lu"
+> > +				" to %lu\n",
+> > +				KELVIN_TO_CELSIUS(tz->trips.passive.temperature),
+> > +				KELVIN_TO_CELSIUS(tz->trips.passive.temperature - 150));
+> > +			tz->trips.passive.temperature -= 150;
+> > +			acpi_thermal_set_polling(tz, 5);
+> > +		}
+> > +	}
+>
+> If this is a safe test that won't misstrigger or cause issues, maybe just
+> enable it on anything with BIOS_VENDOR IBM, and PRODUCT_VERSION "ThinkPad
+> [TR]*" ?  None of them have CPUs that should go over 85C, AFAIK.
 
 
-diff --git a/drivers/pnp/support.c b/drivers/pnp/support.c
-index bbf78ef..b42df16 100644
---- a/drivers/pnp/support.c
-+++ b/drivers/pnp/support.c
-@@ -77,7 +77,7 @@ void dbg_pnp_show_resources(struct pnp_dev *dev, char *desc)
- {
- #ifdef DEBUG
- 	char buf[128];
--	int len = 0;
-+	int len;
- 	struct pnp_resource *pnp_res;
- 	struct resource *res;
- 
-@@ -89,9 +89,10 @@ void dbg_pnp_show_resources(struct pnp_dev *dev, char *desc)
- 	dev_dbg(&dev->dev, "%s: current resources:\n", desc);
- 	list_for_each_entry(pnp_res, &dev->resources, list) {
- 		res = &pnp_res->res;
-+		len = 0;
- 
--		len += snprintf(buf + len, sizeof(buf) - len, "  %-3s ",
--				pnp_resource_type_name(res));
-+		len += scnprintf(buf + len, sizeof(buf) - len, "  %-3s ",
-+				 pnp_resource_type_name(res));
- 
- 		if (res->flags & IORESOURCE_DISABLED) {
- 			dev_dbg(&dev->dev, "%sdisabled\n", buf);
-@@ -101,18 +102,18 @@ void dbg_pnp_show_resources(struct pnp_dev *dev, char *desc)
- 		switch (pnp_resource_type(res)) {
- 		case IORESOURCE_IO:
- 		case IORESOURCE_MEM:
--			len += snprintf(buf + len, sizeof(buf) - len,
--					"%#llx-%#llx flags %#lx",
--					(unsigned long long) res->start,
--					(unsigned long long) res->end,
--					res->flags);
-+			len += scnprintf(buf + len, sizeof(buf) - len,
-+					 "%#llx-%#llx flags %#lx",
-+					 (unsigned long long) res->start,
-+					 (unsigned long long) res->end,
-+					 res->flags);
- 			break;
- 		case IORESOURCE_IRQ:
- 		case IORESOURCE_DMA:
--			len += snprintf(buf + len, sizeof(buf) - len,
--					"%lld flags %#lx",
--					(unsigned long long) res->start,
--					res->flags);
-+			len += scnprintf(buf + len, sizeof(buf) - len,
-+					 "%lld flags %#lx",
-+					 (unsigned long long) res->start,
-+					 res->flags);
- 			break;
- 		}
- 		dev_dbg(&dev->dev, "%s\n", buf);
-@@ -144,66 +145,67 @@ void dbg_pnp_show_option(struct pnp_dev *dev, struct pnp_option *option)
- 	struct pnp_dma *dma;
- 
- 	if (pnp_option_is_dependent(option))
--		len += snprintf(buf + len, sizeof(buf) - len,
--				"  dependent set %d (%s) ",
--				pnp_option_set(option),
--				pnp_option_priority_name(option));
-+		len += scnprintf(buf + len, sizeof(buf) - len,
-+				 "  dependent set %d (%s) ",
-+				 pnp_option_set(option),
-+				 pnp_option_priority_name(option));
- 	else
--		len += snprintf(buf + len, sizeof(buf) - len, "  independent ");
-+		len += scnprintf(buf + len, sizeof(buf) - len,
-+				 "  independent ");
- 
- 	switch (option->type) {
- 	case IORESOURCE_IO:
- 		port = &option->u.port;
--		len += snprintf(buf + len, sizeof(buf) - len, "io  min %#llx "
--				"max %#llx align %lld size %lld flags %#x",
--				(unsigned long long) port->min,
--				(unsigned long long) port->max,
--				(unsigned long long) port->align,
--				(unsigned long long) port->size, port->flags);
-+		len += scnprintf(buf + len, sizeof(buf) - len, "io  min %#llx "
-+				 "max %#llx align %lld size %lld flags %#x",
-+				 (unsigned long long) port->min,
-+				 (unsigned long long) port->max,
-+				 (unsigned long long) port->align,
-+				 (unsigned long long) port->size, port->flags);
- 		break;
- 	case IORESOURCE_MEM:
- 		mem = &option->u.mem;
--		len += snprintf(buf + len, sizeof(buf) - len, "mem min %#llx "
--				"max %#llx align %lld size %lld flags %#x",
--				(unsigned long long) mem->min,
--				(unsigned long long) mem->max,
--				(unsigned long long) mem->align,
--				(unsigned long long) mem->size, mem->flags);
-+		len += scnprintf(buf + len, sizeof(buf) - len, "mem min %#llx "
-+				 "max %#llx align %lld size %lld flags %#x",
-+				 (unsigned long long) mem->min,
-+				 (unsigned long long) mem->max,
-+				 (unsigned long long) mem->align,
-+				 (unsigned long long) mem->size, mem->flags);
- 		break;
- 	case IORESOURCE_IRQ:
- 		irq = &option->u.irq;
--		len += snprintf(buf + len, sizeof(buf) - len, "irq");
-+		len += scnprintf(buf + len, sizeof(buf) - len, "irq");
- 		if (bitmap_empty(irq->map.bits, PNP_IRQ_NR))
--			len += snprintf(buf + len, sizeof(buf) - len,
--					" <none>");
-+			len += scnprintf(buf + len, sizeof(buf) - len,
-+					 " <none>");
- 		else {
- 			for (i = 0; i < PNP_IRQ_NR; i++)
- 				if (test_bit(i, irq->map.bits))
--					len += snprintf(buf + len,
--							sizeof(buf) - len,
--							" %d", i);
-+					len += scnprintf(buf + len,
-+							 sizeof(buf) - len,
-+							 " %d", i);
- 		}
--		len += snprintf(buf + len, sizeof(buf) - len, " flags %#x",
--				irq->flags);
-+		len += scnprintf(buf + len, sizeof(buf) - len, " flags %#x",
-+				 irq->flags);
- 		if (irq->flags & IORESOURCE_IRQ_OPTIONAL)
--			len += snprintf(buf + len, sizeof(buf) - len,
--					" (optional)");
-+			len += scnprintf(buf + len, sizeof(buf) - len,
-+					 " (optional)");
- 		break;
- 	case IORESOURCE_DMA:
- 		dma = &option->u.dma;
--		len += snprintf(buf + len, sizeof(buf) - len, "dma");
-+		len += scnprintf(buf + len, sizeof(buf) - len, "dma");
- 		if (!dma->map)
--			len += snprintf(buf + len, sizeof(buf) - len,
--					" <none>");
-+			len += scnprintf(buf + len, sizeof(buf) - len,
-+					 " <none>");
- 		else {
- 			for (i = 0; i < 8; i++)
- 				if (dma->map & (1 << i))
--					len += snprintf(buf + len,
--							sizeof(buf) - len,
--							" %d", i);
-+					len += scnprintf(buf + len,
-+							 sizeof(buf) - len,
-+							 " %d", i);
- 		}
--		len += snprintf(buf + len, sizeof(buf) - len, " (bitmask %#x) "
--				"flags %#x", dma->map, dma->flags);
-+		len += scnprintf(buf + len, sizeof(buf) - len, " (bitmask %#x) "
-+				 "flags %#x", dma->map, dma->flags);
- 		break;
- 	}
- 	dev_dbg(&dev->dev, "%s\n", buf);
+
+-------------------------------------------------------------------------
+This SF.Net email is sponsored by the Moblin Your Move Developer's challenge
+Build the coolest Linux based applications with Moblin SDK & win great prizes
+Grand prize is a trip for two to an Open Source event anywhere in the world
+http://moblin-contest.org/redirect.php?banner_id=100&url=/
