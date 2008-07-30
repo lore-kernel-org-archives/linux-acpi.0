@@ -1,26 +1,175 @@
-From: Patrik Axelsson <patrik@megaburken.net>
-Subject: DMI Info
-Date: Wed, 30 Jul 2008 11:18:48 +0200 (CEST)
-Message-ID: <Pine.LNX.4.63.0807301117450.22786@megaburken.net>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH] ACPI: update debug parameter documentation
+Date: Wed, 30 Jul 2008 12:05:23 +0200
+Message-ID: <200807301205.24322.trenn@suse.de>
+References: <20080729214338.27086.27534.stgit@tigger.helgaas>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from h81172167040.kund.kommunicera.umea.se ([81.172.167.40]:54788
-	"EHLO megaburken.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759010AbYG3KCH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Jul 2008 06:02:07 -0400
-Received: from patrik (helo=localhost)
-	by megaburken.net with local-esmtp (Exim 4.63)
-	(envelope-from <patrik@megaburken.net>)
-	id 1KO7qL-0005vX-Ju
-	for linux-acpi@vger.kernel.org; Wed, 30 Jul 2008 11:19:37 +0200
+Received: from ns1.suse.de ([195.135.220.2]:43737 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1761020AbYG3KF2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 30 Jul 2008 06:05:28 -0400
+In-Reply-To: <20080729214338.27086.27534.stgit@tigger.helgaas>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, "Moore, Robert" <robert.moore@intel.com>
 
-ACPI: DMI System Vendor: Dell Inc.
-ACPI: DMI Product Name: OptiPlex GX520
-ACPI: DMI Product Version:
-ACPI: DMI Board Name: 0H8052
-ACPI: DMI BIOS Vendor: Dell Inc.
-ACPI: DMI BIOS Date: 08/05/2005
+Hi,
+
+the patch should be fine, just a little comment below.
+
+On Tuesday 29 July 2008 23:43:56 Bjorn Helgaas wrote:
+> Reformat acpi.debug_layer and acpi.debug_level documentation so it's
+> readable, add some clues about how to figure out the mask bits that
+> enable a given ACPI_DEBUG_PRINT statement, and include a couple useful
+> examples.
+>
+> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+> ---
+>
+>  Documentation/kernel-parameters.txt |   94
+> +++++++++++++++++++++++++---------- 1 files changed, 67 insertions(+), 27
+> deletions(-)
+>
+>
+> diff --git a/Documentation/kernel-parameters.txt
+> b/Documentation/kernel-parameters.txt index 3cba6ed..76b2e97 100644
+> --- a/Documentation/kernel-parameters.txt
+> +++ b/Documentation/kernel-parameters.txt
+> @@ -200,37 +200,77 @@ and is between 256 and 4096 characters. It is defined
+> in the file acpi.debug_layer=	[HW,ACPI]
+>  			Format: <int>
+>  			Each bit of the <int> indicates an ACPI debug layer,
+> -			1: enable, 0: disable. It is useful for boot time
+> -			debugging. After system has booted up, it can be set
+> -			via /sys/module/acpi/parameters/debug_layer.
+> -			CONFIG_ACPI_DEBUG must be enabled for this to produce any output.
+> -			Available bits (add the numbers together) to enable debug output
+> -			for specific parts of the ACPI subsystem:
+> -			0x01 utilities 0x02 hardware 0x04 events 0x08 tables
+> -			0x10 namespace 0x20 parser 0x40 dispatcher
+> -			0x80 executer 0x100 resources 0x200 acpica debugger
+> -			0x400 os services 0x800 acpica disassembler.
+> -			The number can be in decimal or prefixed with 0x in hex.
+> -			Warning: Many of these options can produce a lot of
+> -			output and make your system unusable. Be very careful.
+> +			which corresponds to the _COMPONENT definition in
+> +			ACPI source files.  After system has booted, this mask
+> +			can be set via /sys/module/acpi/parameters/debug_layer.
+> +
+> +			CONFIG_ACPI_DEBUG must be enabled for this to produce
+> +			any output.  The number can be in decimal or prefixed
+> +			with 0x in hex.  Some of these options produce so much
+> +			output that the system is unusable.
+> +
+> +			The following are some of the global components
+> +			defined by the ACPI CA and the Linux OSPM:
+> +				0x01 utilities
+> +				0x02 hardware
+> +				0x04 events
+> +				0x08 tables
+> +				0x10 namespace
+> +				0x20 parser
+> +				0x40 dispatcher
+> +				0x80 executer
+> +			       0x100 resources
+> +			       0x200 ACPI CA debugger
+> +			       0x400 OS services
+> +			       0x800 ACPI CA disassembler
+> +			     0x40000 battery
+> +			     0x80000 button
+> +			    0x200000 fan
+> +			    0x400000 PCI
+> +			  0x10000000 bay
+> +
+> +			Many others, e.g., ACPI_BUS_COMPONENT and
+> +			ACPI_AC_COMPONENT, are defined by the Linux OSPM and
+> +			individual drivers.
+> +
+> +			For debugging PCI/_PRT issues (PCI, info msgs):
+> +			    acpi.debug_layer=0x400000 acpi.debug_level=0x10
+> +			For ACPI hardware issues (hardware, all msgs):
+> +			    acpi.debug_layer=0x2 acpi.debug_level=0xffffffff
+>
+>  	acpi.debug_level=	[HW,ACPI]
+>  			Format: <int>
+>  			Each bit of the <int> indicates an ACPI debug level,
+> -			1: enable, 0: disable. It is useful for boot time
+> -			debugging. After system has booted up, it can be set
+> -			via /sys/module/acpi/parameters/debug_level.
+> -			CONFIG_ACPI_DEBUG must be enabled for this to produce any output.
+> -			Available bits (add the numbers together) to enable different
+> -			debug output levels of the ACPI subsystem:
+> -			0x01 error 0x02 warn 0x04 init 0x08 debug object
+> -			0x10 info 0x20 init names 0x40 parse 0x80 load
+> -			0x100 dispatch 0x200 execute 0x400 names 0x800 operation region
+> -			0x1000 bfield 0x2000 tables 0x4000 values 0x8000 objects
+> -			0x10000 resources 0x20000 user requests 0x40000 package.
+> -			The number can be in decimal or prefixed with 0x in hex.
+> -			Warning: Many of these options can produce a lot of
+> -			output and make your system unusable. Be very careful.
+> +			which corresponds to the level in an ACPI_DEBUG_PRINT
+> +			statement.  After system has booted up, this mask
+> +			can be set via /sys/module/acpi/parameters/debug_level.
+> +
+> +			CONFIG_ACPI_DEBUG must be enabled for this to produce
+> +			any output.  The number can be in decimal or prefixed
+> +			with 0x in hex.  Some of these options produce so much
+> +			output that the system is unusable.
+Maybe a pointer to log_buf_len to increase buffers if there is too much output 
+could help people to still find early boot messages:
+
+                        If early boot messages are not available anymore
+                        because of too much ACPI debug output, have a look
+                        at the log_buf_len= boot param to increase the
+                        log buffer.
+
+> +
+> +			The following global components are defined by the
+> +			ACPI CA:
+> +			       0x01 error
+> +			       0x02 warn
+(Unrelated to the patch itself):
+warn and error should be eleminated.
+Warn/error as debug messages must never be used. ACPI_ERROR and
+ACPI_EXCEPTION have to be used instead.
+As some of these have slipped into kernel drivers again, those must
+be reverted first, then (not sure whether it works that simple, Bob?)
+they could get removed from ACPICA code to prevent people from mis-using
+those.
+
+IMO a GPE level would make sense, but this is some extra work...
+
+       Thomas
+> +			       0x04 init
+> +			       0x08 debug object
+> +			       0x10 info
+> +			       0x20 init names
+> +			       0x40 parse
+> +			       0x80 load
+> +			      0x100 dispatch
+> +			      0x200 execute
+> +			      0x400 names
+> +			      0x800 operation region
+> +			     0x1000 bfield
+> +			     0x2000 tables
+> +			     0x4000 values
+> +			     0x8000 objects
+> +			    0x10000 resources
+> +			    0x20000 user requests
+> +			    0x40000 package
+>
+>  	acpi_pm_good	[X86-32,X86-64]
+>  			Override the pmtimer bug detection: force the kernel
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
