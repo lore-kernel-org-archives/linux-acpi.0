@@ -1,143 +1,150 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH] ACPI: update debug parameter documentation
-Date: Wed, 30 Jul 2008 15:42:20 +0200
-Message-ID: <200807301542.21146.trenn@suse.de>
-References: <20080729214338.27086.27534.stgit@tigger.helgaas> <200807301205.24322.trenn@suse.de> <20080730122544.GH23938@one.firstfloor.org>
+From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Subject: Avoid critical temp shutdowns on specific ThinkPad
+	T4x(p) and R50p
+Date: Wed, 30 Jul 2008 15:56:01 +0200
+Message-ID: <200807301556.01815.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns1.suse.de ([195.135.220.2]:40026 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753116AbYG3NmX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 Jul 2008 09:42:23 -0400
-In-Reply-To: <20080730122544.GH23938@one.firstfloor.org>
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ak-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, linux-acpi@vger.kernel.org, "Moore, Robert" <robert.moore@intel.com>
 
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+This came in in OpenSUSE 10.3. When we still had overriden thermal polling
+frequency (what we probably will do again soon). It has been tested that
+specific ThinkPads do not throw a thermal event when exceeding the passive
+trip point. Even thermal polling was not enough...
+As no other solution has been found meanwhile and it seems Windows is also
+using a virtual passive trip point:
+[Bug 10658] thermal shutdown - Dell Precision M20, Latitude D610
+http://bugzilla.kernel.org/show_bug.cgi?id=10658
+it would be great to get this integrated into the mainline kernel.
 
-Reformat acpi.debug_layer and acpi.debug_level documentation so it's
-readable, add some clues about how to figure out the mask bits that
-enable a given ACPI_DEBUG_PRINT statement, and include a couple useful
-examples.
+BTW, the patch from Matthew in above bug, will this in some way be
+integerated mainline? Otherwise we'll have to maintain this one ourself.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-index c1e397e..5b228d0 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -211,37 +211,82 @@ and is between 256 and 4096 characters. It is defined in the file
- 	acpi.debug_layer=	[HW,ACPI]
- 			Format: <int>
- 			Each bit of the <int> indicates an ACPI debug layer,
--			1: enable, 0: disable. It is useful for boot time
--			debugging. After system has booted up, it can be set
--			via /sys/module/acpi/parameters/debug_layer.
--			CONFIG_ACPI_DEBUG must be enabled for this to produce any output.
--			Available bits (add the numbers together) to enable debug output
--			for specific parts of the ACPI subsystem:
--			0x01 utilities 0x02 hardware 0x04 events 0x08 tables
--			0x10 namespace 0x20 parser 0x40 dispatcher
--			0x80 executer 0x100 resources 0x200 acpica debugger
--			0x400 os services 0x800 acpica disassembler.
--			The number can be in decimal or prefixed with 0x in hex.
--			Warning: Many of these options can produce a lot of
--			output and make your system unusable. Be very careful.
-+			which corresponds to the _COMPONENT definition in
-+			ACPI source files.  After system has booted, this mask
-+			can be set via /sys/module/acpi/parameters/debug_layer.
-+
-+			CONFIG_ACPI_DEBUG must be enabled for this to produce
-+			any output.  The number can be in decimal or prefixed
-+			with 0x in hex.  Some of these options produce so much
-+			output that the system is unusable.
-+
-+			The following are some of the global components
-+			defined by the ACPI CA and the Linux OSPM:
-+				0x01 utilities
-+				0x02 hardware
-+				0x04 events
-+				0x08 tables
-+				0x10 namespace
-+				0x20 parser
-+				0x40 dispatcher
-+				0x80 executer
-+			       0x100 resources
-+			       0x200 ACPI CA debugger
-+			       0x400 OS services
-+			       0x800 ACPI CA disassembler
-+			     0x40000 battery
-+			     0x80000 button
-+			    0x200000 fan
-+			    0x400000 PCI
-+			  0x10000000 bay
-+
-+			Many others, e.g., ACPI_BUS_COMPONENT and
-+			ACPI_AC_COMPONENT, are defined by the Linux OSPM and
-+			individual drivers.
-+
-+			For debugging PCI/_PRT issues (PCI, info msgs):
-+			    acpi.debug_layer=0x400000 acpi.debug_level=0x10
-+			For ACPI hardware issues (hardware, all msgs):
-+			    acpi.debug_layer=0x2 acpi.debug_level=0xffffffff
+         Thomas
+
+From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Subject: Avoid critical temp shutdowns on specific ThinkPad T4x(p) and R50p
+References: https://bugzilla.novell.com/show_bug.cgi?id=333043
+
+---
+ drivers/acpi/thermal.c |   73 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 73 insertions(+)
+
+Index: linux-2.6.25-SL110_BRANCH/drivers/acpi/thermal.c
+===================================================================
+--- linux-2.6.25-SL110_BRANCH.orig/drivers/acpi/thermal.c
++++ linux-2.6.25-SL110_BRANCH/drivers/acpi/thermal.c
+@@ -42,6 +42,7 @@
+ #include <linux/kmod.h>
+ #include <linux/seq_file.h>
+ #include <linux/reboot.h>
++#include <linux/dmi.h>
+ #include <asm/uaccess.h>
+ #include <linux/thermal.h>
+ #include <acpi/acpi_bus.h>
+@@ -1576,6 +1577,66 @@ static int acpi_thermal_get_info(struct
+ 	return 0;
+ }
  
- 	acpi.debug_level=	[HW,ACPI]
- 			Format: <int>
- 			Each bit of the <int> indicates an ACPI debug level,
--			1: enable, 0: disable. It is useful for boot time
--			debugging. After system has booted up, it can be set
--			via /sys/module/acpi/parameters/debug_level.
--			CONFIG_ACPI_DEBUG must be enabled for this to produce any output.
--			Available bits (add the numbers together) to enable different
--			debug output levels of the ACPI subsystem:
--			0x01 error 0x02 warn 0x04 init 0x08 debug object
--			0x10 info 0x20 init names 0x40 parse 0x80 load
--			0x100 dispatch 0x200 execute 0x400 names 0x800 operation region
--			0x1000 bfield 0x2000 tables 0x4000 values 0x8000 objects
--			0x10000 resources 0x20000 user requests 0x40000 package.
--			The number can be in decimal or prefixed with 0x in hex.
--			Warning: Many of these options can produce a lot of
--			output and make your system unusable. Be very careful.
-+			which corresponds to the level in an ACPI_DEBUG_PRINT
-+			statement.  After system has booted up, this mask
-+			can be set via /sys/module/acpi/parameters/debug_level.
++static struct dmi_system_id thermal_psv_dmi_table[] = {
++	{
++		.ident = "IBM ThinkPad T41",
++		.matches = {
++			DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
++			DMI_MATCH(DMI_PRODUCT_VERSION,"ThinkPad T41"),
++		},
++	},
++	{
++		.ident = "IBM ThinkPad T42",
++		.matches = {
++			DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
++			DMI_MATCH(DMI_PRODUCT_VERSION,"ThinkPad T42"),
++		},
++	},
++	{
++		.ident = "IBM ThinkPad T43",
++		.matches = {
++			DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
++			DMI_MATCH(DMI_PRODUCT_VERSION,"ThinkPad T43"),
++		},
++	},
++	{
++		.ident = "IBM ThinkPad T41p",
++		.matches = {
++			DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
++			DMI_MATCH(DMI_PRODUCT_VERSION,"ThinkPad T41p"),
++		},
++	},
++	{
++		.ident = "IBM ThinkPad T42p",
++		.matches = {
++			DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
++			DMI_MATCH(DMI_PRODUCT_VERSION,"ThinkPad T42p"),
++		},
++	},
++	{
++		.ident = "IBM ThinkPad T43p",
++		.matches = {
++			DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
++			DMI_MATCH(DMI_PRODUCT_VERSION,"ThinkPad T43p"),
++		},
++	},
++	{
++		.ident = "IBM ThinkPad R40",
++		.matches = {
++			DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
++			DMI_MATCH(DMI_PRODUCT_VERSION,"ThinkPad R40"),
++		},
++	},
++	{
++		.ident = "IBM ThinkPad R50p",
++		.matches = {
++			DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
++			DMI_MATCH(DMI_PRODUCT_VERSION,"ThinkPad R50p"),
++		},
++	},
++	{},
++};
 +
-+			CONFIG_ACPI_DEBUG must be enabled for this to produce
-+			any output.  The number can be in decimal or prefixed
-+			with 0x in hex.  Some of these options produce so much
-+			output that the system is unusable.
-+
-+			If early boot messages are not available anymore
-+			because of too much ACPI debug output, have a look
-+			at the log_buf_len= boot param to increase the
-+			log buffer.
-+
-+			The following global components are defined by the
-+			ACPI CA:
-+			       0x01 error
-+			       0x02 warn
-+			       0x04 init
-+			       0x08 debug object
-+			       0x10 info
-+			       0x20 init names
-+			       0x40 parse
-+			       0x80 load
-+			      0x100 dispatch
-+			      0x200 execute
-+			      0x400 names
-+			      0x800 operation region
-+			     0x1000 bfield
-+			     0x2000 tables
-+			     0x4000 values
-+			     0x8000 objects
-+			    0x10000 resources
-+			    0x20000 user requests
-+			    0x40000 package
+ static int acpi_thermal_add(struct acpi_device *device)
+ {
+ 	int result = 0;
+@@ -1606,6 +1667,18 @@ static int acpi_thermal_add(struct acpi_
+ 	if (result)
+ 		goto free_memory;
  
- 	acpi_pm_good	[X86-32,X86-64]
- 			Override the pmtimer bug detection: force the kernel
++	if (dmi_check_system(thermal_psv_dmi_table)) {
++		if (tz->trips.passive.flags.valid &&
++		    tz->trips.passive.temperature > CELSIUS_TO_KELVIN(85)) {
++			printk (KERN_INFO "Adjust passive trip point from %lu"
++				" to %lu\n",
++				KELVIN_TO_CELSIUS(tz->trips.passive.temperature),
++				KELVIN_TO_CELSIUS(tz->trips.passive.temperature - 150));
++			tz->trips.passive.temperature -= 150;
++			acpi_thermal_set_polling(tz, 5);
++		}
++	}
++
+ 	result = acpi_thermal_add_fs(device);
+ 	if (result)
+ 		goto unregister_thermal_zone;
+
+-------------------------------------------------------------------------
+This SF.Net email is sponsored by the Moblin Your Move Developer's challenge
+Build the coolest Linux based applications with Moblin SDK & win great prizes
+Grand prize is a trip for two to an Open Source event anywhere in the world
+http://moblin-contest.org/redirect.php?banner_id=100&url=/
