@@ -1,150 +1,31 @@
-From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Subject: Avoid critical temp shutdowns on specific ThinkPad
-	T4x(p) and R50p
-Date: Wed, 30 Jul 2008 15:56:01 +0200
-Message-ID: <200807301556.01815.trenn@suse.de>
+From: Andi Kleen <andi@firstfloor.org>
+Subject: Re: [PATCH] ACPI: update debug parameter documentation
+Date: Wed, 30 Jul 2008 16:07:39 +0200
+Message-ID: <20080730140739.GJ23938@one.firstfloor.org>
+References: <20080729214338.27086.27534.stgit@tigger.helgaas> <200807301205.24322.trenn@suse.de> <20080730122544.GH23938@one.firstfloor.org> <200807301542.21146.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from one.firstfloor.org ([213.235.205.2]:45411 "EHLO
+	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751661AbYG3OHm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Jul 2008 10:07:42 -0400
 Content-Disposition: inline
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: ak-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+In-Reply-To: <200807301542.21146.trenn@suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: Andi Kleen <andi@firstfloor.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, linux-acpi@vger.kernel.org, "Moore, Robert" <robert.moore@intel.com>
 
-This came in in OpenSUSE 10.3. When we still had overriden thermal polling
-frequency (what we probably will do again soon). It has been tested that
-specific ThinkPads do not throw a thermal event when exceeding the passive
-trip point. Even thermal polling was not enough...
-As no other solution has been found meanwhile and it seems Windows is also
-using a virtual passive trip point:
-[Bug 10658] thermal shutdown - Dell Precision M20, Latitude D610
-http://bugzilla.kernel.org/show_bug.cgi?id=10658
-it would be great to get this integrated into the mainline kernel.
+On Wed, Jul 30, 2008 at 03:42:20PM +0200, Thomas Renninger wrote:
+> From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+> 
+> Reformat acpi.debug_layer and acpi.debug_level documentation so it's
+> readable, add some clues about how to figure out the mask bits that
+> enable a given ACPI_DEBUG_PRINT statement, and include a couple useful
+> examples.
 
-BTW, the patch from Matthew in above bug, will this in some way be
-integerated mainline? Otherwise we'll have to maintain this one ourself.
+Sorry I meant an incremental patch on top of Bjorns patch. Never mind
+I'll fix it up. Thanks.
 
-         Thomas
-
-From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Subject: Avoid critical temp shutdowns on specific ThinkPad T4x(p) and R50p
-References: https://bugzilla.novell.com/show_bug.cgi?id=333043
-
----
- drivers/acpi/thermal.c |   73 +++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 73 insertions(+)
-
-Index: linux-2.6.25-SL110_BRANCH/drivers/acpi/thermal.c
-===================================================================
---- linux-2.6.25-SL110_BRANCH.orig/drivers/acpi/thermal.c
-+++ linux-2.6.25-SL110_BRANCH/drivers/acpi/thermal.c
-@@ -42,6 +42,7 @@
- #include <linux/kmod.h>
- #include <linux/seq_file.h>
- #include <linux/reboot.h>
-+#include <linux/dmi.h>
- #include <asm/uaccess.h>
- #include <linux/thermal.h>
- #include <acpi/acpi_bus.h>
-@@ -1576,6 +1577,66 @@ static int acpi_thermal_get_info(struct
- 	return 0;
- }
- 
-+static struct dmi_system_id thermal_psv_dmi_table[] = {
-+	{
-+		.ident = "IBM ThinkPad T41",
-+		.matches = {
-+			DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
-+			DMI_MATCH(DMI_PRODUCT_VERSION,"ThinkPad T41"),
-+		},
-+	},
-+	{
-+		.ident = "IBM ThinkPad T42",
-+		.matches = {
-+			DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
-+			DMI_MATCH(DMI_PRODUCT_VERSION,"ThinkPad T42"),
-+		},
-+	},
-+	{
-+		.ident = "IBM ThinkPad T43",
-+		.matches = {
-+			DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
-+			DMI_MATCH(DMI_PRODUCT_VERSION,"ThinkPad T43"),
-+		},
-+	},
-+	{
-+		.ident = "IBM ThinkPad T41p",
-+		.matches = {
-+			DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
-+			DMI_MATCH(DMI_PRODUCT_VERSION,"ThinkPad T41p"),
-+		},
-+	},
-+	{
-+		.ident = "IBM ThinkPad T42p",
-+		.matches = {
-+			DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
-+			DMI_MATCH(DMI_PRODUCT_VERSION,"ThinkPad T42p"),
-+		},
-+	},
-+	{
-+		.ident = "IBM ThinkPad T43p",
-+		.matches = {
-+			DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
-+			DMI_MATCH(DMI_PRODUCT_VERSION,"ThinkPad T43p"),
-+		},
-+	},
-+	{
-+		.ident = "IBM ThinkPad R40",
-+		.matches = {
-+			DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
-+			DMI_MATCH(DMI_PRODUCT_VERSION,"ThinkPad R40"),
-+		},
-+	},
-+	{
-+		.ident = "IBM ThinkPad R50p",
-+		.matches = {
-+			DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
-+			DMI_MATCH(DMI_PRODUCT_VERSION,"ThinkPad R50p"),
-+		},
-+	},
-+	{},
-+};
-+
- static int acpi_thermal_add(struct acpi_device *device)
- {
- 	int result = 0;
-@@ -1606,6 +1667,18 @@ static int acpi_thermal_add(struct acpi_
- 	if (result)
- 		goto free_memory;
- 
-+	if (dmi_check_system(thermal_psv_dmi_table)) {
-+		if (tz->trips.passive.flags.valid &&
-+		    tz->trips.passive.temperature > CELSIUS_TO_KELVIN(85)) {
-+			printk (KERN_INFO "Adjust passive trip point from %lu"
-+				" to %lu\n",
-+				KELVIN_TO_CELSIUS(tz->trips.passive.temperature),
-+				KELVIN_TO_CELSIUS(tz->trips.passive.temperature - 150));
-+			tz->trips.passive.temperature -= 150;
-+			acpi_thermal_set_polling(tz, 5);
-+		}
-+	}
-+
- 	result = acpi_thermal_add_fs(device);
- 	if (result)
- 		goto unregister_thermal_zone;
-
--------------------------------------------------------------------------
-This SF.Net email is sponsored by the Moblin Your Move Developer's challenge
-Build the coolest Linux based applications with Moblin SDK & win great prizes
-Grand prize is a trip for two to an Open Source event anywhere in the world
-http://moblin-contest.org/redirect.php?banner_id=100&url=/
+-Andi
