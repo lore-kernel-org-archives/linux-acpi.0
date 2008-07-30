@@ -1,249 +1,99 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] ACPI: update debug parameter documentation
-Date: Wed, 30 Jul 2008 10:46:52 -0700
-Message-ID: <9D39833986E69849A2A8E74C1078B6B3BFA441@orsmsx415.amr.corp.intel.com>
-References: <20080729214338.27086.27534.stgit@tigger.helgaas> <200807301205.24322.trenn@suse.de>
+From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Subject: Re: Avoid critical temp shutdowns on
+	specific	ThinkPad T4x(p) and R50p
+Date: Wed, 30 Jul 2008 14:52:27 -0300
+Message-ID: <20080730175227.GA13850@khazad-dum.debian.net>
+References: <200807301556.01815.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:37073 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753013AbYG3RrZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Jul 2008 13:47:25 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <200807301205.24322.trenn@suse.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <200807301556.01815.trenn-l3A5Bk7waGM@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ak-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>, Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org
 
->(Unrelated to the patch itself):
->warn and error should be eleminated.
->Warn/error as debug messages must never be used. ACPI_ERROR and
->ACPI_EXCEPTION have to be used instead.
->As some of these have slipped into kernel drivers again, those must
->be reverted first, then (not sure whether it works that simple, Bob?)
->they could get removed from ACPICA code to prevent people from
-mis-using
->those.
+On Wed, 30 Jul 2008, Thomas Renninger wrote:
+> frequency (what we probably will do again soon). It has been tested that
+> specific ThinkPads do not throw a thermal event when exceeding the passive
+> trip point. Even thermal polling was not enough...
 
-Yes, I believe that these are obsolete and should be removed. I'll put
-it on the list to investigate and remove if necessary.
+Urgh.
 
-Bob
+> +			DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
+> +			DMI_MATCH(DMI_PRODUCT_VERSION,"ThinkPad T41"),
+> +			DMI_MATCH(DMI_PRODUCT_VERSION,"ThinkPad T42"),
+> +			DMI_MATCH(DMI_PRODUCT_VERSION,"ThinkPad T41p"),
+> +			DMI_MATCH(DMI_PRODUCT_VERSION,"ThinkPad T42p"),
+> +			DMI_MATCH(DMI_PRODUCT_VERSION,"ThinkPad R50p"),
 
+Just match BIOS 1R* with VENDOR IBM.  The T40 is affected as well for sure.
+It uses the same BIOS and EC firmware, it *has* to be.  And it is missing on
+this list.
 
->-----Original Message-----
->From: Thomas Renninger [mailto:trenn@suse.de]
->Sent: Wednesday, July 30, 2008 3:05 AM
->To: Bjorn Helgaas
->Cc: Andi Kleen; linux-acpi@vger.kernel.org; Moore, Robert
->Subject: Re: [PATCH] ACPI: update debug parameter documentation
->
->Hi,
->
->the patch should be fine, just a little comment below.
->
->On Tuesday 29 July 2008 23:43:56 Bjorn Helgaas wrote:
->> Reformat acpi.debug_layer and acpi.debug_level documentation so it's
->> readable, add some clues about how to figure out the mask bits that
->> enable a given ACPI_DEBUG_PRINT statement, and include a couple
-useful
->> examples.
->>
->> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
->> ---
->>
->>  Documentation/kernel-parameters.txt |   94
->> +++++++++++++++++++++++++---------- 1 files changed, 67
-insertions(+), 27
->> deletions(-)
->>
->>
->> diff --git a/Documentation/kernel-parameters.txt
->> b/Documentation/kernel-parameters.txt index 3cba6ed..76b2e97 100644
->> --- a/Documentation/kernel-parameters.txt
->> +++ b/Documentation/kernel-parameters.txt
->> @@ -200,37 +200,77 @@ and is between 256 and 4096 characters. It is
->defined
->> in the file acpi.debug_layer=	[HW,ACPI]
->>  			Format: <int>
->>  			Each bit of the <int> indicates an ACPI debug
-layer,
->> -			1: enable, 0: disable. It is useful for boot
-time
->> -			debugging. After system has booted up, it can be
-set
->> -			via /sys/module/acpi/parameters/debug_layer.
->> -			CONFIG_ACPI_DEBUG must be enabled for this to
-produce any
->output.
->> -			Available bits (add the numbers together) to
-enable debug
->output
->> -			for specific parts of the ACPI subsystem:
->> -			0x01 utilities 0x02 hardware 0x04 events 0x08
-tables
->> -			0x10 namespace 0x20 parser 0x40 dispatcher
->> -			0x80 executer 0x100 resources 0x200 acpica
-debugger
->> -			0x400 os services 0x800 acpica disassembler.
->> -			The number can be in decimal or prefixed with 0x
-in hex.
->> -			Warning: Many of these options can produce a lot
-of
->> -			output and make your system unusable. Be very
-careful.
->> +			which corresponds to the _COMPONENT definition
-in
->> +			ACPI source files.  After system has booted,
-this mask
->> +			can be set via
-/sys/module/acpi/parameters/debug_layer.
->> +
->> +			CONFIG_ACPI_DEBUG must be enabled for this to
-produce
->> +			any output.  The number can be in decimal or
-prefixed
->> +			with 0x in hex.  Some of these options produce
-so much
->> +			output that the system is unusable.
->> +
->> +			The following are some of the global components
->> +			defined by the ACPI CA and the Linux OSPM:
->> +				0x01 utilities
->> +				0x02 hardware
->> +				0x04 events
->> +				0x08 tables
->> +				0x10 namespace
->> +				0x20 parser
->> +				0x40 dispatcher
->> +				0x80 executer
->> +			       0x100 resources
->> +			       0x200 ACPI CA debugger
->> +			       0x400 OS services
->> +			       0x800 ACPI CA disassembler
->> +			     0x40000 battery
->> +			     0x80000 button
->> +			    0x200000 fan
->> +			    0x400000 PCI
->> +			  0x10000000 bay
->> +
->> +			Many others, e.g., ACPI_BUS_COMPONENT and
->> +			ACPI_AC_COMPONENT, are defined by the Linux OSPM
-and
->> +			individual drivers.
->> +
->> +			For debugging PCI/_PRT issues (PCI, info msgs):
->> +			    acpi.debug_layer=0x400000
-acpi.debug_level=0x10
->> +			For ACPI hardware issues (hardware, all msgs):
->> +			    acpi.debug_layer=0x2
-acpi.debug_level=0xffffffff
->>
->>  	acpi.debug_level=	[HW,ACPI]
->>  			Format: <int>
->>  			Each bit of the <int> indicates an ACPI debug
-level,
->> -			1: enable, 0: disable. It is useful for boot
-time
->> -			debugging. After system has booted up, it can be
-set
->> -			via /sys/module/acpi/parameters/debug_level.
->> -			CONFIG_ACPI_DEBUG must be enabled for this to
-produce any
->output.
->> -			Available bits (add the numbers together) to
-enable
->different
->> -			debug output levels of the ACPI subsystem:
->> -			0x01 error 0x02 warn 0x04 init 0x08 debug object
->> -			0x10 info 0x20 init names 0x40 parse 0x80 load
->> -			0x100 dispatch 0x200 execute 0x400 names 0x800
-operation
->region
->> -			0x1000 bfield 0x2000 tables 0x4000 values 0x8000
-objects
->> -			0x10000 resources 0x20000 user requests 0x40000
-package.
->> -			The number can be in decimal or prefixed with 0x
-in hex.
->> -			Warning: Many of these options can produce a lot
-of
->> -			output and make your system unusable. Be very
-careful.
->> +			which corresponds to the level in an
-ACPI_DEBUG_PRINT
->> +			statement.  After system has booted up, this
-mask
->> +			can be set via
-/sys/module/acpi/parameters/debug_level.
->> +
->> +			CONFIG_ACPI_DEBUG must be enabled for this to
-produce
->> +			any output.  The number can be in decimal or
-prefixed
->> +			with 0x in hex.  Some of these options produce
-so much
->> +			output that the system is unusable.
->Maybe a pointer to log_buf_len to increase buffers if there is too much
->output
->could help people to still find early boot messages:
->
->                        If early boot messages are not available
-anymore
->                        because of too much ACPI debug output, have a
-look
->                        at the log_buf_len= boot param to increase the
->                        log buffer.
->
->> +
->> +			The following global components are defined by
-the
->> +			ACPI CA:
->> +			       0x01 error
->> +			       0x02 warn
->(Unrelated to the patch itself):
->warn and error should be eleminated.
->Warn/error as debug messages must never be used. ACPI_ERROR and
->ACPI_EXCEPTION have to be used instead.
->As some of these have slipped into kernel drivers again, those must
->be reverted first, then (not sure whether it works that simple, Bob?)
->they could get removed from ACPICA code to prevent people from
-mis-using
->those.
->
->IMO a GPE level would make sense, but this is some extra work...
->
->       Thomas
->> +			       0x04 init
->> +			       0x08 debug object
->> +			       0x10 info
->> +			       0x20 init names
->> +			       0x40 parse
->> +			       0x80 load
->> +			      0x100 dispatch
->> +			      0x200 execute
->> +			      0x400 names
->> +			      0x800 operation region
->> +			     0x1000 bfield
->> +			     0x2000 tables
->> +			     0x4000 values
->> +			     0x8000 objects
->> +			    0x10000 resources
->> +			    0x20000 user requests
->> +			    0x40000 package
->>
->>  	acpi_pm_good	[X86-32,X86-64]
->>  			Override the pmtimer bug detection: force the
-kernel
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi"
-in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+For IBM ThinkPads, it is *always* better to match on BIOS version than on
+product version.
 
+See here for model-BIOS table:
+http://www.thinkwiki.org/wiki/BIOS_Upgrade_Downloads
+
+and here for DMI info table:
+http://www.thinkwiki.org/wiki/List_of_DMI_IDs
+
+> +			DMI_MATCH(DMI_PRODUCT_VERSION,"ThinkPad T43"),
+> +			DMI_MATCH(DMI_PRODUCT_VERSION,"ThinkPad T43p"),
+
+Two possible BIOS: 1Y and 70 for the T43, and BIOS 1Y for the T43p.  Are you
+sure all of these machines have the bug?  Is there a common factor in the
+DSDT tables we can check to root out the buggy ones?
+
+> +		.ident = "IBM ThinkPad R40",
+> +		.matches = {
+> +			DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
+> +			DMI_MATCH(DMI_PRODUCT_VERSION,"ThinkPad R40"),
+> +		},
+
+Two possible BIOSes: 1O and 1P...  and many other ThinkPad BIOSes exist in
+the time window from the 1O/1P to the 1Y.  Shouldn't all of them be suspect?
+
+No X models have these issues? (the X models always had a slightly more
+advanced BIOS, so it is indeed possible that the bug was never on that
+branch of the code).
+
+> +	if (dmi_check_system(thermal_psv_dmi_table)) {
+> +		if (tz->trips.passive.flags.valid &&
+> +		    tz->trips.passive.temperature > CELSIUS_TO_KELVIN(85)) {
+> +			printk (KERN_INFO "Adjust passive trip point from %lu"
+> +				" to %lu\n",
+> +				KELVIN_TO_CELSIUS(tz->trips.passive.temperature),
+> +				KELVIN_TO_CELSIUS(tz->trips.passive.temperature - 150));
+> +			tz->trips.passive.temperature -= 150;
+> +			acpi_thermal_set_polling(tz, 5);
+> +		}
+> +	}
+
+If this is a safe test that won't misstrigger or cause issues, maybe just
+enable it on anything with BIOS_VENDOR IBM, and PRODUCT_VERSION "ThinkPad
+[TR]*" ?  None of them have CPUs that should go over 85C, AFAIK.
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
+
+-------------------------------------------------------------------------
+This SF.Net email is sponsored by the Moblin Your Move Developer's challenge
+Build the coolest Linux based applications with Moblin SDK & win great prizes
+Grand prize is a trip for two to an Open Source event anywhere in the world
+http://moblin-contest.org/redirect.php?banner_id=100&url=/
