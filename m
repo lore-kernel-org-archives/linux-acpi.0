@@ -1,13 +1,13 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH 4/9] ACPI video: Debug interface used for error message cleanup
-Date: Wed, 30 Jul 2008 22:22:17 +0200
-Message-ID: <1217449342-20312-5-git-send-email-trenn@suse.de>
+Subject: [PATCH 5/9] ACPI scan: Debug interface used for error message cleanup
+Date: Wed, 30 Jul 2008 22:22:18 +0200
+Message-ID: <1217449342-20312-6-git-send-email-trenn@suse.de>
 References: <1217449342-20312-1-git-send-email-trenn@suse.de>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:49432 "EHLO mx2.suse.de"
+Received: from cantor2.suse.de ([195.135.220.15]:49443 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756461AbYG3UWZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 Jul 2008 16:22:25 -0400
+	id S1756590AbYG3UW0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 30 Jul 2008 16:22:26 -0400
 In-Reply-To: <1217449342-20312-1-git-send-email-trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,45 +16,42 @@ Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, robert.moore@intel.com, Thomas 
 
 Signed-off-by: Thomas Renninger <trenn@suse.de>
 ---
- drivers/acpi/video.c |   11 +++++------
- 1 files changed, 5 insertions(+), 6 deletions(-)
+ drivers/acpi/scan.c |    9 +++++----
+ 1 files changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index 7abd326..90ab74a 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -1540,8 +1540,8 @@ acpi_video_bus_get_one_device(struct acpi_device *device,
- 						     acpi_video_device_notify,
- 						     data);
- 		if (ACPI_FAILURE(status)) {
--			ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
--					  "Error installing notify handler\n"));
-+			ACPI_EXCEPTION((DB_INFO, status,
-+					"Error installing notify handler\n"));
- 			if(data->brightness)
- 				kfree(data->brightness->levels);
- 			kfree(data->brightness);
-@@ -1755,8 +1755,7 @@ acpi_video_bus_get_devices(struct acpi_video_bus *video,
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 2dcb953..ffbf8f6 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -113,15 +113,15 @@ static int acpi_bus_hot_remove_device(void *context)
  
- 		status = acpi_video_bus_get_one_device(dev, video);
- 		if (ACPI_FAILURE(status)) {
--			ACPI_DEBUG_PRINT((ACPI_DB_WARN,
--					"Cant attach device"));
-+			printk(KERN_ERR "Cant attach device [%d]\n", status);
- 			continue;
- 		}
- 	}
-@@ -2013,8 +2012,8 @@ static int acpi_video_bus_add(struct acpi_device *device)
- 					     ACPI_DEVICE_NOTIFY,
- 					     acpi_video_bus_notify, video);
- 	if (ACPI_FAILURE(status)) {
+ 
+ 	if (acpi_bus_trim(device, 1)) {
 -		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
--				  "Error installing notify handler\n"));
-+		ACPI_EXCEPTION((DB_INFO, status,
-+				"Error installing notify handler\n"));
- 		error = -ENODEV;
- 		goto err_stop_video;
+-				"Removing device failed\n"));
++		printk(KERN_ERR "Removing device [%s] failed\n",
++		       acpi_device_bid(device));
+ 		return -1;
  	}
+ 
+ 	/* power off device */
+ 	status = acpi_evaluate_object(handle, "_PS3", NULL, NULL);
+ 	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND)
+-		ACPI_DEBUG_PRINT((ACPI_DB_WARN,
++		ACPI_EXCEPTION((DB_INFO, status,
+ 				"Power-off device failed\n"));
+ 
+ 	if (device->flags.lockable) {
+@@ -477,7 +477,8 @@ static int acpi_device_register(struct acpi_device *device,
+ 
+ 	result = acpi_device_setup_files(device);
+ 	if(result)
+-		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Error creating sysfs interface for device %s\n", device->dev.bus_id));
++		printk(KERN_ERR "Error creating sysfs interface for device"
++		       " %s [%d]\n", device->dev.bus_id), result);
+ 
+ 	device->removal_type = ACPI_BUS_REMOVAL_NORMAL;
+ 	return 0;
 -- 
 1.5.4.5
 
