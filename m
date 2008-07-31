@@ -1,73 +1,62 @@
-From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: Critical temp shutdowns on ThinkPad X60
-	1706-GMG (was Re: Avoid critical temp shutdowns on specific
-	ThinkPad T4x(p) and R50p)
-Date: Thu, 31 Jul 2008 14:39:45 +0200
-Message-ID: <200807311439.46393.trenn@suse.de>
-References: <200807301556.01815.trenn@suse.de>
-	<20080730175227.GA13850@khazad-dum.debian.net>
-	<87zlnyv14h.fsf_-_@gismo.pca.it>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: kdump bugs with rt kernels
+Date: Thu, 31 Jul 2008 09:01:29 -0400
+Message-ID: <20080731130129.GA26782@redhat.com>
+References: <48909108.6070106@in.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <87zlnyv14h.fsf_-_-vpnYUZh4Q8kL5bzFcGmneg@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([66.187.233.31]:44198 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752314AbYGaNBd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 31 Jul 2008 09:01:33 -0400
 Content-Disposition: inline
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ak-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+In-Reply-To: <48909108.6070106@in.ibm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Sachin P. Sant" <sachinp@in.ibm.com>
+Cc: Maneesh Soni <maneesh@in.ibm.com>, sripathik@in.ibm.com, linux-acpi@vger.kernel.org
 
-T24gVGh1cnNkYXkgMzEgSnVseSAyMDA4IDExOjQ0OjQ2IEx1Y2EgQ2FwZWxsbyB3cm90ZToKPiBI
-aSBIZW5yaXF1ZSEKPgo+IE9uIFdlZCwgMzAgSnVsIDIwMDggMTk6NTI6MjcgKzAyMDAsIEhlbnJp
-cXVlIGRlIE1vcmFlcyBIb2xzY2h1aCB3cm90ZToKPiA+IE5vIFggbW9kZWxzIGhhdmUgdGhlc2Ug
-aXNzdWVzPyAodGhlIFggbW9kZWxzIGFsd2F5cyBoYWQgYSBzbGlnaHRseSBtb3JlCj4gPiBhZHZh
-bmNlZCBCSU9TLCBzbyBpdCBpcyBpbmRlZWQgcG9zc2libGUgdGhhdCB0aGUgYnVnIHdhcyBuZXZl
-ciBvbiB0aGF0Cj4gPiBicmFuY2ggb2YgdGhlIGNvZGUpLgo+Cj4gSSd2ZSBleHBlcmllbmNlZCBj
-cml0aWNhbCB0ZW1wIHNodXRkb3ducyBvbiBteSBYNjAsIG1vZGVsIDE3MDYtR01HLCBCSU9TCj4g
-N0JFVEQ1V1cgKDIuMTYpLiAgVGhlIGZpcnN0IEkndmUgaW4gbXkgL3Zhci9sb2cvc3lzbG9nIGRh
-dGluZyBNYXIgMzFzdAo+IGFuZCB3YXMgb24gYSBEZWJpYW4gc2lkLWFtZDY0LCBrZXJuZWw6Cj4K
-PiAgIDIuNi4yNS1yYzctYW1kNjQgKERlYmlhbiAyLjYuMjV+cmM3LTF+ZXhwZXJpbWVudGFsLjF+
-c25hcHNob3QuMTA5NzQpCj4gICAod2FsZGlAZGViaWFuLm9yZykgKGdjYyB2ZXJzaW9uIDQuMS4z
-IDIwMDcwNzE4IChwcmVyZWxlYXNlKSAoRGViaWFuCj4gICA0LjEuMi0xNCsxKSkgIzEgU01QIFRo
-dSBNYXIgMjcgMDc6NTk6MDEgVVRDIDIwMDgKPgo+IFNpbmNlIHRoZW4sIEkgaGFkIDE4IG1vcmUg
-c2h1dGRvd25zIGNhdXNlZCBieSBjcml0aWNhbCB0ZW1wZXJhdHVyZSwgd2l0aAo+IGRpZmZlcmVu
-dCBrZXJuZWxzLCB1cCB0byB0aGUgbGF0ZXN0IDIuNi4yNiAoc3RpbGwgRGViaWFuIGtlcm5lbHMs
-IG5vdAo+IHVwc3RyZWFtIG9uZXMpLgo+Cj4gSSd2ZSBub3cgYSB0ZXN0IGNhc2Ugd2hpY2ggc2h1
-dGRvd25zIG15IFg2MDogaXQncyBhIGBkYXJjcyBwdWxsYCBwcm9jZXNzCj4gd2hpY2ggaGFuZ3Mg
-YW5kIHRoZW4gdGhlIHRlbXBlcmF0dXJlIHJhaXNlcyB1bnRpbCAxMjjCsEMsIHNvIHRoZSBsYXB0
-b3AKPiBzaHV0ZG93bnMuCj4KPiBJZiBhbnlvbmUgaGFzIGFueSBzcGVjaWZpYyBzdWdnZXN0aW9u
-LCBzdGFydGluZyBmcm9tIG5leHQgV2VkbmVzZGF5LCBBdWcKPiA2dGgsIEkgY2FuIHBlcmZvcm0g
-dGVzdHMgb24gYSBjbGVhbiBEZWJpYW4gc2lkLWFtZDY0IChpZiBuZWVkZWQsIEkgY2FuCj4gaW5z
-dGFsbCBhbiBpMzg2KSBhbmQgd2l0aCB2YW5pbGxhIGtlcm5lbHMuCgpZb3Ugc2hvdWxkIGZpcnN0
-IHRyeSB0byByZXByb2R1Y2UgdGhpcyBvbiBhIG1haW5saW5lIGtlcm5lbC4KSXMgdGhlIHRoZXJt
-YWwgZHJpdmVyIGxvYWRlZD8KCklmIGl0J3MgYSBEZWJpYW4gc3BlY2lmaWMgcGF0Y2guLi4sIEkg
-ZG9uJ3Qga25vdyBob3cgdG8gYmlzZWN0IHRoZW0gYnV0IHlvdSAKc2hvdWxkIHRyeSB0byBmaW5k
-IG91dCB3aGljaCBvbmUgaXMgdGhlIG9mZmVuZGVyIGFuZCBwb3N0IG9uIGEgZGViaWFuIHNpdGUu
-CgpJZiB0aGlzIGlzIGEgbWFpbmxpbmUgcHJvYmxlbSB5b3UgbWlnaHQgd2FudCB0byByZXZlcnQg
-YWxsIF9PU0koV2luZG93cykgZnJvbSAKT1MuIE9yIGJldHRlciBvbmx5IHJldHVybiB0cnVlIGZv
-ciBfT1NJKCJXaW5kb3dzIDIwMDYiKS4gVGhpbmtQYWRzIHN0b3JlIHRoZSAKcnVubmluZyBPUyBp
-biBzZXBhcmF0ZSB2YXJpYWJsZXMgYW5kIGRvIG5vdCB1c2UgdGhlIEludGVsIE9TSSB0ZW1wbGF0
-ZS4KVGhlcmVmb3JlIHlvdSBsaWtlbHkgcnVuIGluIHVudGVzdGVkIFZJU1RBICsgWFAgKyBOVCAr
-IFhZIERTRFQgcGF0aHMuCgpUaGlzIGN1cnJlbnRseSBpcyBoYXJkbHkgcG9zc2libGUsIEkgcGxh
-biB0byBibGFja2xpc3QgTGVub3ZvcyB0byBvbmx5IHJldHVybiAKdHJ1ZSBmb3IgIldpbmRvd3Mg
-MjAwNiIsIHRoZXkgYWxsIHN1cHBvcnQgVmlzdGEuCklmIHlvdSBoYXZlIGEgbWFpbmxpbmUga2Vy
-bmVsIHByb2JsZW0sIHdhdGNoIHRoZSBsaXN0LCBtYXliZSB0aGlzIHBhdGNoIHdpbGwgCmhlbHAg
-eW91LgoKICAgICBUaG9tYXMKCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KVGhpcyBTRi5OZXQgZW1haWwgaXMg
-c3BvbnNvcmVkIGJ5IHRoZSBNb2JsaW4gWW91ciBNb3ZlIERldmVsb3BlcidzIGNoYWxsZW5nZQpC
-dWlsZCB0aGUgY29vbGVzdCBMaW51eCBiYXNlZCBhcHBsaWNhdGlvbnMgd2l0aCBNb2JsaW4gU0RL
-ICYgd2luIGdyZWF0IHByaXplcwpHcmFuZCBwcml6ZSBpcyBhIHRyaXAgZm9yIHR3byB0byBhbiBP
-cGVuIFNvdXJjZSBldmVudCBhbnl3aGVyZSBpbiB0aGUgd29ybGQKaHR0cDovL21vYmxpbi1jb250
-ZXN0Lm9yZy9yZWRpcmVjdC5waHA/YmFubmVyX2lkPTEwMCZ1cmw9LwpfX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwppYm0tYWNwaS1kZXZlbCBtYWlsaW5nIGxp
-c3QKaWJtLWFjcGktZGV2ZWxAbGlzdHMuc291cmNlZm9yZ2UubmV0Cmh0dHBzOi8vbGlzdHMuc291
-cmNlZm9yZ2UubmV0L2xpc3RzL2xpc3RpbmZvL2libS1hY3BpLWRldmVsCg==
+On Wed, Jul 30, 2008 at 09:34:24PM +0530, Sachin P. Sant wrote:
+> Hi Vivek,
+>
+> There have been few kdump bugs reported against rt kernels.
+> I think Ankita would have sent out a mail regarding this.
+>
+> I had been debugging one of that problem which involves
+> LS21 hardware. What i found was kdump kernel hangs during
+> ACPI initialization. (acpi_sleep_init() function from
+> drivers/acpi/sleep/main.c file)
+>
+> I also found that rt kernel ignores irqpoll option. So can
+> this be the reason for these IRQ related problems during
+> kdump kernel ?
+>
+
+I think it might not be related to irqpoll. irqpoll will make system
+work if kernel has explicitly disabled the irq.
+
+> I remember some time back you had debugged a similar issue
+> related to interrupts not being properly routed during kdump
+> boot. Could you throw some light on what could be happening ?
+>
+> If i disable ACPI using pci=noacpi or acpi=noirq kdump kernel
+> boots fine. Also if i use plain vanilla kernel or RHEL kernels
+> kdump works fine. So this is rt specific issue.
+>
+
+Ok, so as long as acpi is removed from the picture, things seems to be
+fine. So it definitely looks something related to acpi data structures
+and initialization.
+
+Have you made sure that kexec-tools are parsing ACPI tables and ACPI
+non volatile RAM area from /proc/iomem and passing it to second kernel?
+
+Other than that I would think of diving deeper into the acpi code to find
+out where it is hanging.
+
+CCing ACPI mailing list. Hopefully we might get some ideas about what's
+wrong here.
+
+Thanks
+Vivek
