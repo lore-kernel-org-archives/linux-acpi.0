@@ -1,51 +1,59 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: Sony Vaio SZ61MN - no fanspeed control
-Date: Thu, 31 Jul 2008 07:36:49 +0900
-Message-ID: <20080730223649.GB23998@inferi.kami.home>
-References: <4890BC45.2000807@uni-koblenz.de>
+From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Subject: Re: Check for ACPI backlight support otherwise use vendor ACPI drivers - version 2
+Date: Thu, 31 Jul 2008 10:05:21 +0930 (CST)
+Message-ID: <200807310035.m6V0ZLOU022072@turbo.physics.adelaide.edu.au>
+References: <200807301106.40521.trenn@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:43069
-	"EHLO tadamune.kami.home" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752001AbYG3Wgw (ORCPT
+Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:53293 "EHLO
+	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751923AbYGaAg2 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 Jul 2008 18:36:52 -0400
-Content-Disposition: inline
-In-Reply-To: <4890BC45.2000807@uni-koblenz.de>
+	Wed, 30 Jul 2008 20:36:28 -0400
+In-Reply-To: <200807301106.40521.trenn@suse.de> from "Thomas Renninger" at Jul 30, 2008 11:06:37 AM
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sebastian Pohl <sebastianp@uni-koblenz.de>
-Cc: linux-acpi@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: Yves-Alexis Perez <corsac@debian.org>, ak@linux.intel.com, mjg59@srcf.ucam.org, jwoithe@physics.adelaide.edu.au, hmh@hmh.eng.br, rui.zhang@intel.com, corentincj@iksaif.net, linux-acpi@vger.kernel.org, dannybaumann@web.de, marcus@better.se, mzxreary@0pointer.de, carlos@strangeworlds.co.uk, malattia@linux.it, nokos@gmx.net
 
-On Wed, Jul 30, 2008 at 09:08:53PM +0200, Sebastian Pohl wrote:
-> Hi there!
->
-> In the process of havin multiple issues with acpi and drivers on my Sony  
-> laptop i stepped into another. The internal fan is always running at a  
-> fixed speed. If theres much CPU load it also speeds up. But i have no  
+Hi Thomas
 
-the fan is controlled by the bios on most (all those that I know of)
-vaios.
+> > On mer, 2008-07-16 at 12:52 +0200, Thomas Renninger wrote:
+> > > It is highly recommended that these patches are tried out together with
+> > > Matthew's/Hong's IGD driver changes.
+> > > I do not know whether they are already in the dri tree or in linux-next,
+> > > whether they will be accepted for .27 etc. I hope Matthew will answer on
+> > > this mail and tell us.
+> > > AFAIK on thinkpads they already need an additional patch to work?
+> > > Chances are high that other laptop families also need a bit of a special
+> > > treatment to get the very new IGD parts to work.
+> > > If people test both patches together we could get a matrix like this:
+> >
+> > What is the status of those patches wrt. 2.6.27-rc1?
+> 
+> Matthew and Rui accepted or signed them off AFAIK.
+> On Peter's system (nokos@gmx.de, fujitsu with IGD support) it returns that
+> there is no video support which looks wrong.
+> I contacted him a bit late, after getting pointed to acpidump it still looks
+> odd/wrong, and I need acpi.debug_level=0x1f log_buf_len=16777216 output to 
+> hopefully see what it is.
+> 
+> A comment from Andi/Len would be great.
+> Maybe this could already be sent to linux-next to make testing easier.
+> :
+> PS: and this is version 2, I already sent version 3 which had some cleanups.
 
-> way to alter the speed. It always changes back to some sort of default  
-> value. Are there other ways to change the fanspeed than spicctrl with  
-> the sonypi module or direct echoing to the fan files made by the acpi  
-> stuff?
+I'm trying to sort out the status of this myself.  Is the expectation that
+your patches *with* the IGD work from Matthew/Hong should mean that Fujitsus
+implementing IGD should not need fujitsu-laptop in order to provide working
+software backlight brightness control?  Or shouldn't Matthew/Hong's
+patchset be necessary with your patch in theory?
 
-the bios doesn't expose any fancontrol feature, with sonypi or
-sony-laptop you can use spicctrl or, with sony-laptop only,
-/sys/devices/platform/sony-laptop/fanspeed to increase the fan speed for
-a while but the bios usually brings it back to the required speed.
+AFAIK even IGD Fujitsus will need fujitsu-laptop to support other hotkeys,
+so allowing fujitsu-laptop to co-exist with video.ko handling the backlight
+(as your patches allow) is the right thing to do.
 
-> This could be dangerous for the hardware as it seems like it doesnt  
-> speed up to the highest level so the laptop gets very hot. Also it  
-> negatively affects the battery uptime.
-
-does the laptop shuts down because of overheating?
-What temperature reading do you get from the acpi thermal zones?
-
-cheers
--- 
-mattia
-:wq!
+Regards
+  jonathan
