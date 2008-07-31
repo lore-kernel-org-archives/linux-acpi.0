@@ -1,42 +1,73 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: Debug interface used for error message cleanups
-Date: Thu, 31 Jul 2008 11:59:09 +0200
-Message-ID: <200807311159.11276.trenn@suse.de>
-References: <1217449342-20312-1-git-send-email-trenn@suse.de> <9D39833986E69849A2A8E74C1078B6B3BFA624@orsmsx415.amr.corp.intel.com>
+From: Luca Capello <luca@pca.it>
+Subject: Critical temp shutdowns on ThinkPad X60 1706-GMG (was Re:
+ [ibm-acpi-devel] Avoid critical temp shutdowns on specific ThinkPad T4x(p) and
+ R50p)
+Date: Thu, 31 Jul 2008 11:44:46 +0200
+Message-ID: <87zlnyv14h.fsf_-_@gismo.pca.it>
+References: <200807301556.01815.trenn@suse.de>
+ <20080730175227.GA13850@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; boundary="=-=-="; micalg=pgp-sha1;
+ protocol="application/pgp-signature"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.suse.de ([195.135.220.2]:53174 "EHLO mx1.suse.de"
+Received: from victor.unige.ch ([129.194.9.224]:53380 "EHLO victor.unige.ch"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751531AbYGaJ7N (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 31 Jul 2008 05:59:13 -0400
-In-Reply-To: <9D39833986E69849A2A8E74C1078B6B3BFA624@orsmsx415.amr.corp.intel.com>
-Content-Disposition: inline
+	id S1751110AbYGaKIG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 31 Jul 2008 06:08:06 -0400
+Received: from gismo.pca.it ([129.194.56.110])
+ by victor.unige.ch (Sun Java(tm) System Messaging Server 6.3-5.02 (built Oct
+ 12 2007; 32bit)) with ESMTPSA id <0K4V00J0872VXU00@victor.unige.ch> for
+ linux-acpi@vger.kernel.org; Thu, 31 Jul 2008 11:44:55 +0200 (MEST)
+In-reply-to: <20080730175227.GA13850@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: ak@linux.intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, rui.zhang@intel.com
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Thomas Renninger <trenn@suse.de>, ak@linux.intel.com, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, lenb@kernel.org
 
-On Wednesday 30 July 2008 22:29:19 Moore, Robert wrote:
-> I'm going to go ahead and remove these from ACPICA.
->
-> We added an "obsolete" warning in the header file some time ago, and I
-> think the time has come to remove them, especially in light of these
-> patches to Linux.
+--=-=-=
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Great thanks.
-If you are at that, do you think it makes sense to intruduce a GPE
-bit?
-Just leaving it unused for now?
+Hi Henrique!
 
-I didn't play with these much yet, Rui, do you think this makes sense? The 
-fact there were several sever problems recently and GPEs possibly
-must get debugged by people writting other device drivers who do not know
-and do not want to know about the output of the other debug flags I thought 
-this could make sense.
+On Wed, 30 Jul 2008 19:52:27 +0200, Henrique de Moraes Holschuh wrote:
+> No X models have these issues? (the X models always had a slightly more
+> advanced BIOS, so it is indeed possible that the bug was never on that
+> branch of the code).
 
-Just an idea...,
+I've experienced critical temp shutdowns on my X60, model 1706-GMG, BIOS
+7BETD5WW (2.16).  The first I've in my /var/log/syslog dating Mar 31st
+and was on a Debian sid-amd64, kernel:
 
-       Thomas
+  2.6.25-rc7-amd64 (Debian 2.6.25~rc7-1~experimental.1~snapshot.10974)
+  (waldi@debian.org) (gcc version 4.1.3 20070718 (prerelease) (Debian
+  4.1.2-14+1)) #1 SMP Thu Mar 27 07:59:01 UTC 2008
+
+Since then, I had 18 more shutdowns caused by critical temperature, with
+different kernels, up to the latest 2.6.26 (still Debian kernels, not
+upstream ones).
+
+I've now a test case which shutdowns my X60: it's a `darcs pull` process
+which hangs and then the temperature raises until 128=C2=B0C, so the laptop
+shutdowns.
+
+If anyone has any specific suggestion, starting from next Wednesday, Aug
+6th, I can perform tests on a clean Debian sid-amd64 (if needed, I can
+install an i386) and with vanilla kernels.
+
+Thx, bye,
+Gismo / Luca
+
+--=-=-=
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iJwEAQECAAYFAkiRiY4ACgkQZwOMsWhEDTPyfAP+LO436reecxgm3VBkBp5rvNj8
+4AbUcUqA0aD/eu25vCAWc//WPfDn3PFqIyqqXpEl2c61h2SS1Ouv65oHyfOF12YY
+iS+NWTzFlVvyp2LquzmG4zxLPfR/IX6GUIIOC7xoBm+F6roogvgTHhUxc3QIBR2L
+B4a0/Ba4bXKTW/azZw4=
+=VWBO
+-----END PGP SIGNATURE-----
+--=-=-=--
