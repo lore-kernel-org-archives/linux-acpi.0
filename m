@@ -1,104 +1,33 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: Re: [PATCH] ACPI: Ignore AE_NOT_FOUND error of EC _REG method and
- continue to initialize EC
-Date: Thu, 31 Jul 2008 23:13:36 +0400
-Message-ID: <48920EE0.6030808@gmail.com>
-References: <5f6f8c5f0807301903p5018e656y743d131822b4056e@mail.gmail.com>	 <9D39833986E69849A2A8E74C1078B6B3BFA98A@orsmsx415.amr.corp.intel.com> <1217485738.4006.73.camel@yakui_zhao.sh.intel.com>
+From: "Kleen, Andi" <andi.kleen@intel.com>
+Subject: RE: [PATCH] ACPI: Ignore AE_NOT_FOUND error of EC _REG method and continue to initialize EC
+Date: Thu, 31 Jul 2008 21:04:26 +0100
+Message-ID: <38E5333AA17D0A4DABBB33D71000D2907CB700@swsmsx411.ger.corp.intel.com>
+References: <5f6f8c5f0807301903p5018e656y743d131822b4056e@mail.gmail.com>	 <9D39833986E69849A2A8E74C1078B6B3BFA98A@orsmsx415.amr.corp.intel.com> <1217485738.4006.73.camel@yakui_zhao.sh.intel.com> <48920EE0.6030808@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.174]:31144 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754468AbYGaTMo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Jul 2008 15:12:44 -0400
-Received: by ug-out-1314.google.com with SMTP id h2so424336ugf.16
-        for <linux-acpi@vger.kernel.org>; Thu, 31 Jul 2008 12:12:42 -0700 (PDT)
-In-Reply-To: <1217485738.4006.73.camel@yakui_zhao.sh.intel.com>
+Received: from mga02.intel.com ([134.134.136.20]:36451 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751704AbYGaUE0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Jul 2008 16:04:26 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <48920EE0.6030808@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: "Moore, Robert" <robert.moore@intel.com>, "Joshua C." <joshuacov@googlemail.com>, linux-acpi@vger.kernel.org, "Lin, Ming M" <ming.m.lin@intel.com>, "Kleen, Andi" <andi.kleen@intel.com>
+To: Alexey Starikovskiy <aystarik@gmail.com>, "Zhao, Yakui" <yakui.zhao@intel.com>
+Cc: "Moore, Robert" <robert.moore@intel.com>, "Joshua C." <joshuacov@googlemail.com>, linux-acpi@vger.kernel.org, "Lin, Ming M" <ming.m.lin@intel.com>
 
-NAK.
+ 
 
-As already mentioned, there is no point to put this workaround in ec.c.
-Instead, it should be placed into acpi_register_operation_region, or may 
-be even
-higher (like a flag to ignore errors during execution of the method).
+>As already mentioned, there is no point to put this workaround in ec.c.
+>Instead, it should be placed into 
+>acpi_register_operation_region, or may 
+>be even
+>higher (like a flag to ignore errors during execution of the method).
 
-Regards,
-Alex.
+Ok I will remove the patch again.  But we'll need an replacement patch
+that does all this in a general way.
 
-Zhao Yakui wrote:
-> On Wed, 2008-07-30 at 19:11 -0700, Moore, Robert wrote:
->   
->> Looking at this patch, I see that it solves a very specific case, namely
->> the AE_NOT_FOUND exception. However, this is just one of many exceptions
->> that we may want to ignore. In fact, I wonder if in the general case we
->> should just ignore all exceptions from _REG methods, other than printing
->> some kind of message.
->>     
-> Yes.  This patch only solves the specific case. For example: in the bug
-> 8953, 10237.
->
-> But if all the exceptions from the _REG methods are ignored, it will be
-> too aggressive. Maybe some potential problems will be hidden. We had
-> better wait for that more people complain the similar bugs.
->
-> Thanks.
->
->   
->> Bob
->>
->>
->>     
->>> -----Original Message-----
->>> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
->>> owner@vger.kernel.org] On Behalf Of Joshua C.
->>> Sent: Wednesday, July 30, 2008 7:03 PM
->>> To: linux-acpi@vger.kernel.org
->>> Subject: Re: [PATCH] ACPI: Ignore AE_NOT_FOUND error of EC _REG method
->>>       
->> and
->>     
->>> continue to initialize EC
->>>
->>> On Mon, Jul 28, 2008 at 14:59:26AM +0800, Andi Kleen wrote:
->>>       
->>>>> Subject:ACPI: Ignore AE_NOT_FOUND error of EC _REG method and
->>>>>           
->> continue
->>     
->>> to initialize EC
->>>       
->>>>> From: Zhao Yakui <yakui.zhao@intel.com>
->>>>>           
->>>> Thanks. Queued for test. How urgent is this? Do we need to consider it
->>>> for .27?
->>>>
->>>> -Andi
->>>>         
->>> It will be great if you can put this in .27.
->>>
->>> --joshua
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-acpi"
->>>       
->> in
->>     
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>       
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>     
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->   
-
+-Andi
