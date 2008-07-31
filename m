@@ -1,44 +1,60 @@
-From: Theodore Tso <tytso@mit.edu>
-Subject: Re: Critical temp shutdowns on ThinkPad X60 1706-GMG
-Date: Thu, 31 Jul 2008 09:15:12 -0400
-Message-ID: <20080731131512.GI5347@mit.edu>
-References: <200807301556.01815.trenn@suse.de> <20080730175227.GA13850@khazad-dum.debian.net> <87zlnyv14h.fsf_-_@gismo.pca.it> <200807311439.46393.trenn@suse.de> <871w1aurwc.fsf@gismo.pca.it>
+From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Subject: Re: Avoid critical temp shutdowns on
+	specific	ThinkPad T4x(p) and R50p
+Date: Thu, 31 Jul 2008 10:19:41 -0300
+Message-ID: <20080731131941.GA19665@khazad-dum.debian.net>
+References: <200807301556.01815.trenn@suse.de>
+	<20080730175227.GA13850@khazad-dum.debian.net>
+	<200807302103.39536.trenn@suse.de>
+	<f62196f50807301339r10bbb17do4bb2345b688011a3@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from www.church-of-our-saviour.ORG ([69.25.196.31]:57278 "EHLO
-	thunker.thunk.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751264AbYGaNPV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Jul 2008 09:15:21 -0400
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <871w1aurwc.fsf@gismo.pca.it>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <f62196f50807301339r10bbb17do4bb2345b688011a3-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Chris Hanson <cph-gcVWojuH27S2kH9Ulgv/9g@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ak-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Luca Capello <luca@pca.it>
-Cc: Thomas Renninger <trenn@suse.de>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, ak@linux.intel.com, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, lenb@kernel.org
 
-On Thu, Jul 31, 2008 at 03:04:03PM +0200, Luca Capello wrote:
-> I read the list, thanks.  I was so surprised that no one reported this
-> issue before and I've already planned to deal with it during
-> DebCamp8/DebConf8 (starting on Sunday, Aug 3rd [2]).
+On Wed, 30 Jul 2008, Chris Hanson wrote:
+> I'm wondering if this thread is about something similar to a problem
+> I've seen.  My T61p often locks up when the outside temperature is
+> high or when it is humid, and the CPU temperature is high (but less
+> than 85C).  Is this like the symptom you're addressing?
 
-One possibility is that it's a hardware problem; for example, it could
-be that your heat sink on the CPU or GPU didn't have enough thermal
-compound installed, or some such.
+No.  I can't tell you why your T61p is locking up, it could be either a
+hardware, firmware or softare problem.  But it is not an issue with the
+termal limits on ACPI.
 
-I have an X61s, which has a different BIOS series and a low-voltage
-CPU chip, so it's not directly comparable, but I can say that I've not
-had any problems even when I've loaded the CPU significantly.
+But DO keep an eye on *all* the thermal readings you get from thinkpad-acpi.
+I have seen some ThinkPads with a defective heat sink let the GPU exceed
+85=B0C, etc.
 
-Of course, I also use mainline kernels and not Debian kernels.  One
-thing that you might try to do while you are at DebConf is to see if
-you can find other people with the same laptop model and see if they
-can duplicate the problem on their machine, so you can try varying
-both the Debian/non-debian kernel, as well as trying to see if you can
-reproduce the problem on multiple laptops.
+You should ask around in the linux-thinkpad ML and the thinkpad forums to
+check if others have the same problem.
 
-Regards,
+And, by all means, update your BIOS and EC firmware to the latest.
 
-        		      	   	       - Ted
+-- =
 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
 
+-------------------------------------------------------------------------
+This SF.Net email is sponsored by the Moblin Your Move Developer's challenge
+Build the coolest Linux based applications with Moblin SDK & win great priz=
+es
+Grand prize is a trip for two to an Open Source event anywhere in the world
+http://moblin-contest.org/redirect.php?banner_id=3D100&url=3D/
