@@ -1,44 +1,53 @@
-From: "Kay Sievers" <kay.sievers@vrfy.org>
-Subject: Re: linux-next: Tree for August 14 (sysfs/acpi errors)
-Date: Fri, 15 Aug 2008 13:27:00 +0200
-Message-ID: <3ae72650808150427q364842ccicf0a0978b30ca98c@mail.gmail.com>
-References: <20080814172945.250a27f2.sfr@canb.auug.org.au>
-	 <20080814083828.d10e126d.randy.dunlap@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <20080814083828.d10e126d.randy.dunlap@oracle.com>
-Content-Disposition: inline
-Sender: linux-next-owner@vger.kernel.org
-To: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, gregkh <greg@kroah.com>, ak@linux.intel.com, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+From: Thomas Rosner <kernel-bugs@digital-trauma.de>
+Subject: [PATCH] IBM R40e blacklist for C2/C3 states: sort & remove duplicate
+Date: Thu, 31 Jul 2008 23:35:35 +0200
+Message-ID: <20080815160657.25828.qmail@serverkommune.de>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from serverkommune.de ([88.198.12.136]:43466 "EHLO serverkommune.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752973AbYHOQNk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 15 Aug 2008 12:13:40 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Len Brown <len.brown@intel.com>, Andie Kleen <ak@linux.intel.com>, Thomas Rosner <kernel-bugs@digital-trauma.de>
 
-On Thu, Aug 14, 2008 at 17:38, Randy Dunlap <randy.dunlap@oracle.com> wrote:
-> calling  param_sysfs_init+0x0/0x1e7
-> ------------[ cut here ]------------
-> WARNING: at fs/sysfs/dir.c:463 sysfs_add_one+0x35/0x3d()
-> sysfs: duplicate filename 'acpi' can not be created
+Sort the entries in the IBM R40e C2/C3-states blacklist and remove a duplicate. Please apply.
 
-Hi Randy,
-care to add a printk to the module sysfs setup, and post dmesg again?
+Signed-off-by: Thomas Rosner <kernel-bugs@digital-trauma.de>
+CC: Len Brown <len.brown@intel.com>
+CC: Andie Kleen <ak@linux.intel.com>
+---
+ drivers/acpi/processor_idle.c |    9 +++------
+ 1 files changed, 3 insertions(+), 6 deletions(-)
 
---- a/kernel/params.c
-+++ b/kernel/params.c
-@@ -603,6 +603,8 @@ static void __init param_sysfs_builtin(void)
- 		}
- 		name_len = dot - kp->name;
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index 556ee15..3e9f59d 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -128,12 +128,6 @@ static int set_max_cstate(const struct dmi_system_id *id)
+ static struct dmi_system_id __cpuinitdata processor_power_dmi_table[] = {
+ 	{ set_max_cstate, "IBM ThinkPad R40e", {
+ 	  DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
+-	  DMI_MATCH(DMI_BIOS_VERSION,"1SET70WW")}, (void *)1},
+-	{ set_max_cstate, "IBM ThinkPad R40e", {
+-	  DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
+-	  DMI_MATCH(DMI_BIOS_VERSION,"1SET60WW")}, (void *)1},
+-	{ set_max_cstate, "IBM ThinkPad R40e", {
+-	  DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
+ 	  DMI_MATCH(DMI_BIOS_VERSION,"1SET43WW") }, (void*)1},
+ 	{ set_max_cstate, "IBM ThinkPad R40e", {
+ 	  DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
+@@ -174,6 +168,9 @@ static struct dmi_system_id __cpuinitdata processor_power_dmi_table[] = {
+ 	{ set_max_cstate, "IBM ThinkPad R40e", {
+ 	  DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
+ 	  DMI_MATCH(DMI_BIOS_VERSION,"1SET68WW") }, (void*)1},
++	{ set_max_cstate, "IBM ThinkPad R40e", {
++	  DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
++	  DMI_MATCH(DMI_BIOS_VERSION,"1SET70WW")}, (void *)1},
+ 	{ set_max_cstate, "Medion 41700", {
+ 	  DMI_MATCH(DMI_BIOS_VENDOR,"Phoenix Technologies LTD"),
+ 	  DMI_MATCH(DMI_BIOS_VERSION,"R01-A1J")}, (void *)1},
+-- 
+1.5.4.5
 
-+		printk("XXX adding modparam:'%s' %i (%p)\n", kp->name, i, kp);
-+
-  		/* new kbuild_modname? */
- 		if (strlen(modname) != name_len
- 		    || strncmp(modname, kp->name, name_len) != 0) {
-
-I might show the order of registering the /sys/modules/ directory, and
-if there is possibly another "acpi" section, which tries to add
-parameter names.
-
-Thanks,
-Kay
