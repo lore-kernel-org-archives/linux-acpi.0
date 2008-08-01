@@ -1,54 +1,77 @@
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: Re: [PATCH 03/10] Acer-WMI: fingers off backlight if video.ko is serving this functionality
-Date: Fri, 1 Aug 2008 22:52:00 +0100
-Message-ID: <200808012252.01602.carlos@strangeworlds.co.uk>
-References: <1217605083-31003-1-git-send-email-trenn@suse.de> <1217605083-31003-4-git-send-email-trenn@suse.de>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: [PATCH] ACPI: bounds check IRQ to prevent memory corruption
+Date: Fri, 01 Aug 2008 15:58:17 -0600
+Message-ID: <20080801215755.4761.92512.stgit@tigger.helgaas>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from phoenix.slamd64.com ([217.10.145.2]:33189 "EHLO
-	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751355AbYHAVwU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Aug 2008 17:52:20 -0400
-In-Reply-To: <1217605083-31003-4-git-send-email-trenn@suse.de>
-Content-Disposition: inline
+Received: from g4t0014.houston.hp.com ([15.201.24.17]:12347 "EHLO
+	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753109AbYHAV6e (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Aug 2008 17:58:34 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: ak@linux.intel.com, rui.zhang@intel.com, nokos@gmx.net, linux-acpi@vger.kernel.org, mjg59@srcf.ucam.org
-
-On Friday 01 August 2008 16:37:56 Thomas Renninger wrote:
-> Signed-off-by: Thomas Renninger <trenn@suse.de>
-
-Acked-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
-
-> ---
->  drivers/misc/acer-wmi.c |    6 ++++++
->  1 files changed, 6 insertions(+), 0 deletions(-)
->
-> diff --git a/drivers/misc/acer-wmi.c b/drivers/misc/acer-wmi.c
-> index e7a3fe5..a843ac2 100644
-> --- a/drivers/misc/acer-wmi.c
-> +++ b/drivers/misc/acer-wmi.c
-> @@ -1218,6 +1218,12 @@ static int __init acer_wmi_init(void)
->  		return -ENODEV;
->  	}
->
-> +	if (!acpi_video_backlight_support() && has_cap(ACER_CAP_BRIGHTNESS)) {
-> +		interface->capability &= ~ACER_CAP_BRIGHTNESS;
-> +		printk(ACER_INFO "Brightness must be controlled by "
-> +		       "generic video driver\n");
-> +	}
-> +
->  	if (platform_driver_register(&acer_platform_driver)) {
->  		printk(ACER_ERR "Unable to register platform driver.\n");
->  		goto error_platform_register;
+To: Andi Kleen <andi@firstfloor.org>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Andrew Morton <akpm@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Jack Steiner <steiner@sgi.com>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
+acpi_penalize_isa_irq() should validate irq before using it to
+index the acpi_irq_penalty[] table.
 
--- 
-E-Mail: carlos@strangeworlds.co.uk
-Web: strangeworlds.co.uk
-GPG Key ID: 0x23EE722D
+Here's the path I'm concerned about:
+
+    pnpacpi_parse_allocated_irqresource()
+    {
+	...
+	irq = acpi_register_gsi(gsi, triggering, polarity);
+	if (irq >= 0)
+		pcibios_penalize_isa_irq(irq, 1);
+
+There's no guarantee that acpi_register_gsi() will return an IRQ
+within the bounds of acpi_irq_penalty[].
+
+I have not seen a failure I can attribute to this.  However,
+ACPI_MAX_IRQS is only 256, and I'm pretty sure ia64 can have
+IRQs larger than that.
+
+I think this should go in 2.6.27.
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+---
+
+ drivers/acpi/pci_link.c |   12 +++++++-----
+ 1 files changed, 7 insertions(+), 5 deletions(-)
+
+
+diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+index 89f3b2a..cf47805 100644
+--- a/drivers/acpi/pci_link.c
++++ b/drivers/acpi/pci_link.c
+@@ -849,7 +849,7 @@ static int __init acpi_irq_penalty_update(char *str, int used)
+ 		if (irq < 0)
+ 			continue;
+ 
+-		if (irq >= ACPI_MAX_IRQS)
++		if (irq >= ARRAY_SIZE(acpi_irq_penalty))
+ 			continue;
+ 
+ 		if (used)
+@@ -872,10 +872,12 @@ static int __init acpi_irq_penalty_update(char *str, int used)
+  */
+ void acpi_penalize_isa_irq(int irq, int active)
+ {
+-	if (active)
+-		acpi_irq_penalty[irq] += PIRQ_PENALTY_ISA_USED;
+-	else
+-		acpi_irq_penalty[irq] += PIRQ_PENALTY_PCI_USING;
++	if (irq >= 0 && irq < ARRAY_SIZE(acpi_irq_penalty)) {
++		if (active)
++			acpi_irq_penalty[irq] += PIRQ_PENALTY_ISA_USED;
++		else
++			acpi_irq_penalty[irq] += PIRQ_PENALTY_PCI_USING;
++	}
+ }
+ 
+ /*
+
