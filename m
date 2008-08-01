@@ -1,77 +1,36 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH] ACPI: bounds check IRQ to prevent memory corruption
-Date: Fri, 01 Aug 2008 15:58:17 -0600
-Message-ID: <20080801215755.4761.92512.stgit@tigger.helgaas>
+From: Rabin Vincent <rabin@rab.in>
+Subject: Re: Kernel (2.6.26 final) Oops, problem?
+Date: Sat, 2 Aug 2008 03:28:23 +0530
+Message-ID: <20080801215823.GA4818@debian>
+References: <200807312218.39479.gene.heskett@gmail.com> <200807312359.13737.gene.heskett@gmail.com> <20080801190428.GA2828@debian> <200808011722.28961.gene.heskett@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0014.houston.hp.com ([15.201.24.17]:12347 "EHLO
-	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753109AbYHAV6e (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Aug 2008 17:58:34 -0400
+Received: from rv-out-0506.google.com ([209.85.198.239]:42002 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751236AbYHAWCP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Aug 2008 18:02:15 -0400
+Received: by rv-out-0506.google.com with SMTP id k40so1276897rvb.1
+        for <linux-acpi@vger.kernel.org>; Fri, 01 Aug 2008 15:02:14 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <200808011722.28961.gene.heskett@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Andrew Morton <akpm@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Jack Steiner <steiner@sgi.com>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Gene Heskett <gene.heskett@gmail.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, ming.m.lin@intel.com
 
+On Fri, Aug 01, 2008 at 05:22:28PM -0400, Gene Heskett wrote:
+> On Friday 01 August 2008, Rabin Vincent wrote:
+> 
+> [...]
+> >f88133d76ea38761b7379d6233b752ed82250a4a in current git appears to be a
+> >fix for this.
+> >
+> >Rabin
+> 
+> So I assume that it will be in 2.6.27-rc2?
+> [...]
 
-acpi_penalize_isa_irq() should validate irq before using it to
-index the acpi_irq_penalty[] table.
+It's already in 2.6.27-rc1.
 
-Here's the path I'm concerned about:
-
-    pnpacpi_parse_allocated_irqresource()
-    {
-	...
-	irq = acpi_register_gsi(gsi, triggering, polarity);
-	if (irq >= 0)
-		pcibios_penalize_isa_irq(irq, 1);
-
-There's no guarantee that acpi_register_gsi() will return an IRQ
-within the bounds of acpi_irq_penalty[].
-
-I have not seen a failure I can attribute to this.  However,
-ACPI_MAX_IRQS is only 256, and I'm pretty sure ia64 can have
-IRQs larger than that.
-
-I think this should go in 2.6.27.
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
----
-
- drivers/acpi/pci_link.c |   12 +++++++-----
- 1 files changed, 7 insertions(+), 5 deletions(-)
-
-
-diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-index 89f3b2a..cf47805 100644
---- a/drivers/acpi/pci_link.c
-+++ b/drivers/acpi/pci_link.c
-@@ -849,7 +849,7 @@ static int __init acpi_irq_penalty_update(char *str, int used)
- 		if (irq < 0)
- 			continue;
- 
--		if (irq >= ACPI_MAX_IRQS)
-+		if (irq >= ARRAY_SIZE(acpi_irq_penalty))
- 			continue;
- 
- 		if (used)
-@@ -872,10 +872,12 @@ static int __init acpi_irq_penalty_update(char *str, int used)
-  */
- void acpi_penalize_isa_irq(int irq, int active)
- {
--	if (active)
--		acpi_irq_penalty[irq] += PIRQ_PENALTY_ISA_USED;
--	else
--		acpi_irq_penalty[irq] += PIRQ_PENALTY_PCI_USING;
-+	if (irq >= 0 && irq < ARRAY_SIZE(acpi_irq_penalty)) {
-+		if (active)
-+			acpi_irq_penalty[irq] += PIRQ_PENALTY_ISA_USED;
-+		else
-+			acpi_irq_penalty[irq] += PIRQ_PENALTY_PCI_USING;
-+	}
- }
- 
- /*
-
+Rabin
