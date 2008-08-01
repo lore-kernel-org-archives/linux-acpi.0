@@ -1,13 +1,13 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH 09/10] sony-laptop: fingers off backlight if video.ko is serving this functionality
-Date: Fri,  1 Aug 2008 17:38:02 +0200
-Message-ID: <1217605083-31003-10-git-send-email-trenn@suse.de>
+Subject: [PATCH 08/10] msi-laptop: fingers off backlight if video.ko is serving this functionality
+Date: Fri,  1 Aug 2008 17:38:01 +0200
+Message-ID: <1217605083-31003-9-git-send-email-trenn@suse.de>
 References: <1217605083-31003-1-git-send-email-trenn@suse.de>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:59126 "EHLO mx2.suse.de"
+Received: from mx2.suse.de ([195.135.220.15]:59132 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751964AbYHAPiR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 1 Aug 2008 11:38:17 -0400
+	id S1752003AbYHAPiS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 1 Aug 2008 11:38:18 -0400
 In-Reply-To: <1217605083-31003-1-git-send-email-trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,26 +16,36 @@ Cc: rui.zhang@intel.com, nokos@gmx.net, linux-acpi@vger.kernel.org, mjg59@srcf.u
 
 Signed-off-by: Thomas Renninger <trenn@suse.de>
 ---
- drivers/misc/sony-laptop.c |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletions(-)
+ drivers/misc/msi-laptop.c |   16 ++++++++++------
+ 1 files changed, 10 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/misc/sony-laptop.c b/drivers/misc/sony-laptop.c
-index 60775be..3d178ab 100644
---- a/drivers/misc/sony-laptop.c
-+++ b/drivers/misc/sony-laptop.c
-@@ -1038,7 +1038,11 @@ static int sony_nc_add(struct acpi_device *device)
- 		goto outinput;
- 	}
+diff --git a/drivers/misc/msi-laptop.c b/drivers/misc/msi-laptop.c
+index de898c6..759763d 100644
+--- a/drivers/misc/msi-laptop.c
++++ b/drivers/misc/msi-laptop.c
+@@ -347,12 +347,16 @@ static int __init msi_init(void)
  
--	if (ACPI_SUCCESS(acpi_get_handle(sony_nc_acpi_handle, "GBRT", &handle))) {
-+	if (!acpi_video_backlight_support()) {
-+		printk(KERN_INFO DRV_PFX "Sony: Brightness ignored, must be "
-+		       "controlled by ACPI video driver\n");
-+	} else if (ACPI_SUCCESS(acpi_get_handle(sony_nc_acpi_handle, "GBRT",
-+						&handle))) {
- 		sony_backlight_device = backlight_device_register("sony", NULL,
- 								  NULL,
- 								  &sony_backlight_ops);
+ 	/* Register backlight stuff */
+ 
+-	msibl_device = backlight_device_register("msi-laptop-bl", NULL, NULL,
+-						&msibl_ops);
+-	if (IS_ERR(msibl_device))
+-		return PTR_ERR(msibl_device);
+-
+-	msibl_device->props.max_brightness = MSI_LCD_LEVEL_MAX-1;
++	if (acpi_video_backlight_support()) {
++		printk(KERN_INFO "MSI: Brightness ignored, must be controlled "
++		       "by ACPI video driver\n");
++	} else {
++		msibl_device = backlight_device_register("msi-laptop-bl", NULL,
++							 NULL, &msibl_ops);
++		if (IS_ERR(msibl_device))
++			return PTR_ERR(msibl_device);
++		msibl_device->props.max_brightness = MSI_LCD_LEVEL_MAX-1;
++	}
+ 
+ 	ret = platform_driver_register(&msipf_driver);
+ 	if (ret)
 -- 
 1.5.4.5
 
