@@ -1,117 +1,53 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: ACPI OSI disaster on latest HP laptops - critical temperature
- shutdown
-Date: Fri, 01 Aug 2008 17:08:30 -0400 (EDT)
-Message-ID: <alpine.LFD.1.10.0808011708230.3011@localhost.localdomain>
-References: <200807241727.41715.trenn@suse.de>
- <alpine.LFD.1.10.0807241952270.6098@localhost.localdomain>
- <200807251319.12786.trenn@suse.de>
- <alpine.LFD.1.10.0807261409290.2958@localhost.localdomain>
+From: Gene Heskett <gene.heskett@gmail.com>
+Subject: Re: Kernel (2.6.26 final) Oops, problem?
+Date: Fri, 01 Aug 2008 17:22:28 -0400
+Message-ID: <200808011722.28961.gene.heskett@gmail.com>
+References: <200807312218.39479.gene.heskett@gmail.com>
+ <200807312359.13737.gene.heskett@gmail.com> <20080801190428.GA2828@debian>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms044pub.verizon.net ([206.46.252.44]:56665 "EHLO
-	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760505AbYHAVIf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Aug 2008 17:08:35 -0400
-In-reply-to: <alpine.LFD.1.10.0807261409290.2958@localhost.localdomain>
+Received: from vms042pub.verizon.net ([206.46.252.42]:41311 "EHLO
+	vms042pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1763602AbYHAVWa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Aug 2008 17:22:30 -0400
+In-reply-to: <20080801190428.GA2828@debian>
+Content-disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Arjan van de Ven <arjan@linux.intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, Christian Kornacker <ckornacker@suse.de>
+To: Rabin Vincent <rabin@rab.in>
+Cc: Zhang Rui <rui.zhang@intel.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, ming.m.lin@intel.com
 
-[yet another resend]
+On Friday 01 August 2008, Rabin Vincent wrote:
 
-On Sat, 26 Jul 2008, Len Brown wrote:
+[...]
+>f88133d76ea38761b7379d6233b752ed82250a4a in current git appears to be a
+>fix for this.
+>
+>Rabin
 
-> > > re: OSI(Windows...)
-> > >
-> > > Linux will continue to claim OSI compatibility with Windows
-> > > until the day when the majority of Linux systems
-> > > have passed a Linux compatibility test rather than
-> > > a Windows compatibility test.
-> 
-> > And to try that out we need the acpi_osi=windows_false boot
-> > param I sent recently. So will you accept that one?
-> 
-> I believe that adding and using such a parameter would make
-> Linux worse, not better.  So it is unlikely that I'd accept it.
-> 
-> > Also we need this documented.
-> > Will you accept a Documentation/acpi/known_osi_vendor_hooks.txt
-> > file. Like that we get an idea of what kind of features come
-> > in through which Windows version and more important, what kind of
-> > ugly Windows bug workarounds exist (the latter will probably be more).
-> 
-> I believe that this thread illustrates a BIOS bug that Vista
-> doesn't catch.  That doens't mean it is a Vista bug, or or
-> a BIOS workaround for a Vista bug.
-> 
-> I believe that there are many such holes in Windows testing.
-> They don't have to do a good job validating ACPI --
-> they just care if Windows works or not.
-> 
-> If we should document every BIOS issue that is worked
-> around by Linux is an interesting idea for a project.
-> It sounds like a pretty big project to me.
-> I guess I'd wonder what the return on investment would be
-> and if that is the best way to apply our resources.
-> 
-> > > Re: OSI(Linux)
-> > >
-> > > I've looked at O(100) DSDT's that look at OSI(Linux),
-> > > and all but serveral systems from two vendors do it by mistake.
-> > > They simply copied it from the bugged Intel reference code.
-> > >
-> > > OSI(Linux) will _never_ be restored to Linux, ever.
-> 
-> > But it should not have been removed without announcing it half a
-> > year before. It silently moved distributions and vendors into a
-> > situation where they cannot support Linux and Windows with
-> > the same BIOS anymore.
-> 
-> Linux started complaining about OSI(Linux) in 2.6.22, a year ago.
-> Linux changed the default to disable OSI(Linux) in 2.6.23 --
-> 3 months after the warning started.
-> 
-> If I were to do it again, I would have changed faster, not slower,
-> for allowing the spread of OSI(Linux) use is bad for Linux,
-> not good.
-> 
-> Of course a distro is free to maintain whatever OSI strings
-> that they think they can their OEMs can support.
-> 
-> > _OSI is mainly not used for interfaces/features in
-> > reality (as you stated in the other mail), but to workaround very
-> > specific Windows version bugs.
-> > 
-> > While the mainline kernel stays transparent to _OSI you
-> > advise distributions to exactly not do that and provide e.g.
-> > a "SLE 11" or "RHEL X" _OSI string to be able to
-> > support the system on Linux and Windows, is that correct?
-> > Or do you advise them to provide two separate BIOSes?
-> > The last option, "do not implement Windows version bug
-> > fixes" we cannot influence.
-> > I do not see more options with the current implementation.
-> > 
-> > > re: the HP BIOS bug at hand.
-> > >
-> > > Linux deletes the entire thermal zone when we see this.
-> > OpenSUSE 11.0 (2.6.25) and SLES10-SP2 (2.6.16) shut down when
-> > the thermal driver is loaded. Probably every kernel in every
-> > distribution out there currently is doing that.
-> 
-> Clearly Arjan's patch nees to be backported to the stable releases --
-> even though it would have no benefit on Arjan's machine,
-> it would benefit the HP that you have.
-> 
-> Andi,
-> Please send 39a2d7c72b358c6253a2ec28e17b023b7f6f41c
-> (ACPI: Reject below-freezing temperatures as invalid critical 
-> temperatures)
-> to 2.6.25.stable (and any stable release that will take it)
-> 
-> thanks,
-> -Len
-> 
-> 
+So I assume that it will be in 2.6.27-rc2?
+
+I've not seen it again, and the machine ran fine till I rebooted after fixing 
+the httpd error.log permissions problem in 2.6.27-rc1.
+
+However, I do see in the log that it is loading the rv200 microcode for 
+something, but my video card is an rv280 based card, a Radeon 9200SE, using 
+that radeon driver.
+
+Does anyone know if this is correct?
+
+The card seems to be ok, and glxgears says its in the low 600 fps at the 
+default image size.  Just barely fast enough for google-earth if one isn't 
+super-picky.  I also have a 2400-HD, but its not any faster with the radeonhd 
+driver.  Neither driver has been updated recently that yumex has told me 
+about.
+
+-- 
+Cheers, Gene
+"There are four boxes to be used in defense of liberty:
+ soap, ballot, jury, and ammo. Please use in that order."
+-Ed Howdershelt (Author)
+Circumstances rule men; men do not rule circumstances.
+		-- Herodotus
