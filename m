@@ -1,41 +1,31 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: ACPI OSI disaster on latest HP laptops - critical temperature
-	shutdown
-Date: Fri, 1 Aug 2008 19:36:57 -0300
-Message-ID: <20080801223657.GD23558@khazad-dum.debian.net>
-References: <200807241727.41715.trenn@suse.de> <alpine.LFD.1.10.0807241952270.6098@localhost.localdomain> <200807251319.12786.trenn@suse.de> <alpine.LFD.1.10.0807250948320.3884@localhost.localdomain> <alpine.LFD.1.10.0808011706350.3011@localhost.localdomain>
+From: Andi Kleen <andi@firstfloor.org>
+Subject: Re: [PATCH] ACPI: bounds check IRQ to prevent memory corruption
+Date: Sat, 2 Aug 2008 00:52:36 +0200
+Message-ID: <20080801225236.GA15372@one.firstfloor.org>
+References: <20080801215755.4761.92512.stgit@tigger.helgaas>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:53266 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756110AbYHAWhD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Aug 2008 18:37:03 -0400
+Received: from one.firstfloor.org ([213.235.205.2]:36389 "EHLO
+	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751726AbYHAWwY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Aug 2008 18:52:24 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.LFD.1.10.0808011706350.3011@localhost.localdomain>
+In-Reply-To: <20080801215755.4761.92512.stgit@tigger.helgaas>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Thomas Renninger <trenn@suse.de>, Arjan van de Ven <arjan@linux.intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, Christian Kornacker <ckornacker@suse.de>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Andi Kleen <andi@firstfloor.org>, Andrew Morton <akpm@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Jack Steiner <steiner@sgi.com>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, 01 Aug 2008, Len Brown wrote:
-> It is better to expose ourselves to the known tested Windows functionality
-> -- even if it seems arbitrary, at least it is tested.  The !Windows case
-> results in running _completely_ untested BIOS code.
+On Fri, Aug 01, 2008 at 03:58:17PM -0600, Bjorn Helgaas wrote:
+> 
+> acpi_penalize_isa_irq() should validate irq before using it to
+> index the acpi_irq_penalty[] table.
 
-Actually, we should masquerade properly as the latest Windows version
-available for that machine, then.  AFAIK, Windows does not set ALL the OSI
-strings, just one.  We ARE running untested code in some BIOSes because of
-it.
+Applied to test thanks.
 
-Maybe it would be better if every ACPICA-using OS defined a
-_OSI(NotWindows), plus the relevant Windows OSI string they want to support,
-and Intel would send word that this string is to be used ONLY to disable all
-Windows bug workarounds, not to activate or deactivate any specific
-functionality?
+> I think this should go in 2.6.27.
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Agreed.
+
+-Andi
