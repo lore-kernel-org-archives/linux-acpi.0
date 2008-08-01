@@ -1,187 +1,469 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: ACPI OSI disaster on latest HP laptops - critical temperature
- shutdowns
-Date: Fri, 01 Aug 2008 17:02:16 -0400 (EDT)
-Message-ID: <alpine.LFD.1.10.0808011701500.3011@localhost.localdomain>
-References: <200807241727.41715.trenn@suse.de>
- <alpine.LFD.1.10.0807261434380.2958@localhost.localdomain>
+Subject: Ottawa Linux Power Management Summit, July 22, 2008 - Minutes
+Date: Fri, 01 Aug 2008 17:05:44 -0400 (EDT)
+Message-ID: <alpine.LFD.1.10.0808011704490.3011@localhost.localdomain>
+References: <alpine.LFD.1.10.0807260205300.24819@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:40469 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756536AbYHAVCV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Aug 2008 17:02:21 -0400
-In-reply-to: <alpine.LFD.1.10.0807261434380.2958@localhost.localdomain>
+Received: from vms044pub.verizon.net ([206.46.252.44]:54249 "EHLO
+	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754954AbYHAVF5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Aug 2008 17:05:57 -0400
+In-reply-to: <alpine.LFD.1.10.0807260205300.24819@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Arjan van de Ven <arjan@linux.intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, Christian Kornacker <ckornacker@suse.de>
+To: Linux Power Management List <linux-pm@lists.osdl.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
->From lenb@kernel.org Sat Jul 26 14:40:36 2008
-Date: Sat, 26 Jul 2008 14:40:35 -0400 (EDT)
-From: Len Brown <lenb@kernel.org>
-To: Thomas Renninger <trenn@suse.de>
-Cc: Arjan van de Ven <arjan@linux.intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, Christian Kornacker <ckornacker@suse.de>
-Subject: Re: ACPI OSI disaster on latest HP laptops - critical temperature shutdowns
+A Linux Power Management "mini-summit" was held on July 22, 2008,
+immediately preceding the Ottawa Linux Symposium (OLS).
 
-Thomas,
+Thanks to OLS for supplying the facilities,
+and thanks to Hewlett Packard for sponsoring food.
 
-Thank you for debugging and reporting this issue.
-I agree with some of your observations and conclusions,
-but not with others, so lets review this carefully.
+We followed the process we used in 2007.
+The invitation to the meeting was open --
+sent to linux-pm@lists.linux-foundation.org.
+Agenda topics were nominated on the list, and
+the attendees formed the agenda by consensus
+at the start of the session.
 
-39a2d7c72b358c6253a2ec28e17b023b7f6f41c
-(ACPI: Reject below-freezing temperatures as invalid critical temperatures)
-was general workaround resulting from a specific HP machine
-with a BIOS bug.
+Attendees
+---------
+Pictured (left to right):
+http://userweb.kernel.org/~lenb/Linux-PM-mini-summit-2008.jpg
 
-The machine functioned properly in 2.6.25, but shutdown
-in 2.6.26-rc1.  Arjan and I debugged this together.
-Unfortunately, we both neglected to put the bug URL
-in the commit-it, so here it is:
+Magnus Damm <magnus.damm@gmail.com>
+        SH clock framework
+Kai Svahn <kai.svahn@nokia.com>
+        Nokia n800 product line
+Matt Domsch <Matt_Domsch@dell.com>
+        Server Power Management, Dell CTO Office
+Tim Bird <tim.bird@am.sony.com>
+        CELF, Sony Embedded
+Paul Mundt <lethal@linux-sh.org>
+        SH Maintainer
+Jarod Wilson <jwilson@redhat.com>
+        Red Hat cpufreq
+Dipankar Sarma <dipankar@in.ibm.com>
+        IBM, Server Power Management - RCU fame
+Len Brown <len.brown@intel.com>
+        Intel, ACPI and Suspend Maintainer
+Gautham R Shenoy <ego@in.ibm.com>
+        IBM, Server Power Management
+Richard Woodruff <r-woodruff2@ti.com>
+        Texas Instruments, Embedded, OMAP
+Alan Stern <stern@rowland.harvard.edu>
+        USB Maintainer
+Rafael J. Wysocki <rjw@sisk.pl>
+        Linux Kernel PM - Hibernate and Suspend Maintainer
+Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
+        IBM Server Power Management
 
-http://bugzilla.kernel.org/show_bug.cgi?id=10686
+not in photo:
 
-The failure in bug 10686 is similar, but not identical
-to the one you reported here with CRT returning 0.
-Arjan's HP has a _CRT with no return statement at all.
-In Linux-2.6.25, this _CRT was rejected with
+Sujith Thomas <sujith.thomas@intel.com>,
+        Intel Ultra-Mobile Group
+Hiroyuki Machida <Hiroyuki.Mach@gmail.com>
+        Sony Embedded
 
-ACPI Exception (thermal-0365): AE_BAD_DATA, No critical threshold [20070126]
+Linux Power Management on OMAP3
+-------------------------------
 
-and the entire thermal zone was rejected.
+Richard Woodruff (Texas Instruments) presented highlights
+from his recent CELF presentation:
 
-4e3156b183aa087bc19804b3295c7c1a71f64752
-(ACPICA: changed order of interpretation of operand objects)
-ironically, a MS bug compatibility patch,
-had the side effect of causing the implicit return
-workaround applied to _CRT to return 2006 rather than bombing out.
-This was interpreted as 200.7K, or -73C.
+http://www.celinux.org/elc08_presentations/TI_OMAP3430_Linux_PM_reference.ppt
 
-Bob looked into this one, and determined that the latest
-ACPICA will return 0 here.
+Richard enables TI processors during hardware development
+via emulation and simulation.
+TI's goal is to be prepared for high-level use cases at power-on.
 
-http://bugzilla.kernel.org/show_bug.cgi?id=10686#c9
+OMAP3 is sampling today, customers have prototypes.
+The OMAP3 Technical Reference Manual is now public.
+http://focus.ti.com/general/docs/wtbu/wtbudocumentcenter.tsp?templateId=6123&navigationId=12667 (SWPU114I_PrelimFinalEPDF_06_10_2008.pdf)
 
-Bob,
-It may be helpful if you can elaborate on "latest ACPICA"
-in this comment -- ie what release, or better yet, what patch
-will cause Linux behavior to change on this code fragment?
+OMAP3430 Open Source targeted development boards:
+Labrador available to public ~$500 - runs android etc.
+Beagle board available to public ~$150
 
-If we suddenly start returning 0 there, we'll still be okay
-because Arjan's patch above will still catch it.
+Current efforts focused on OMAP3, which is targeted
+at a broader marketplace than OMAP2.
 
-Anyway, we had a choice of simple fixes for Arjan's HP.
-At the time, the question was whether to reject
-the entire thermal zone -- failing like 2.6.25
-(a thermal zone w/o a _CRT is invalid per spec)
-or to reject just the _CRT (ala thermal.nocrt).
+TI 65nm, 45nm silicon leakage has increased,
+so SW power management is even more critical than in OMAP2.
+In particular aggressive use of software-off mode is necessary.
 
-We decided to keep it simple (and similar to 2.6.25)
-and reject the entire thermal zone.  Thinking about this more,
-I think it would be a good idea to instead go
-the thermal.nocrt route -- for if this machine
-had ACPI fan control (this one doesn't),
-the rest of the thermal zone
-would be pretty important to normal use....
+Linux is shipped in many commercial OMAP cell phones,
+but little code flow from these products flows upstream.
+So it is promising that TI is both using and
+contributing to very recent upstream software.
 
-Rui,
-as maintainer of ACPI_THERMAL, perhaps you can look into that,
-if Thomas doesn't beat you to it?
+On OMAP3, he is working with Linux kernel 2.6.24 and later.
 
-In light of Thomas' sighting and Bob's mention that the
-latest interpreter will return 0 here...
+OMAP3 runs CPUIDLE.  OMAP defines 6 idle-states,
+and makes use of the Bus-Master check to disqualify
+some states at run-time based on OMAP3 hardware.
+However, he reports the CPUIDLE bug that if target
+is avoided due to BM activity the original
+target state is still accounted the time.
 
-ALL THIS TELLS US is that Vista doesn't fail certification
-when _CRT returns 0.
+OMAP3 runs CONFIG_NO_HZ=y.
 
-IT DOES NOT TELL US that Vista has any sort of _CRT bug,
-or that Vista mandates _CRT=0.
-The T61 I'm typing on has a valid _CRT and a Vista sticker...
+OMAP3 runs powertop.  1.5 sec idle periods have been reported,
+longer if slab accounting is modified.
 
-The AML Thomas' showed did this:
+OMAP3 runs cpufreq and its ondemand governor via
+an OMAP3 cpufreq driver.
 
-                If (_OSI ("Windows 2006")) {
-                    Store (0x40, TPOS)
-                }
+OMAP3 runs Linux's new pm_qos infrastructure.
+Richard thinks it was a good idea to generalize latency framework
+into pm_qos.  But expects it not to have a material effect on
+basic course-grained systems that the says are often
+rushed to market.  Rather it should benefit mainly
+highly optimized systems.
 
-            Method (_CRT, 0, Serialized) {
-                If (LLess (TPOS, 0x40)) {
-                    Return (...valid...)
-                }
-                Else {
-                    Return (Zero)
-		}
+Re: resume latency requirement
+Richard sees a less than ~30ms requirement for exiting off mode
+to handle limited modem buffering.
 
-I draw a totally different conclusion than Thomas does.
+While suspend-to-RAM works on OMAP3, it isn't very useful
+because device tree latency is too high.
+Further, it currently resumes devices that do not
+need to be resumed.
 
-This does not look like a Vista workaround to me,
-it looks like a simple BIOS bug that Vista doesn't catch.
+OMAP3 device drivers are smart enough to go idle
+and save power by themselves w/o any global manager.
 
-We've seen BIOS bugs like this many times.
-They are consistent with this conversation:
+Finally, the clock framework tracks functional clocks
+so power domains are powered off when possible.
 
-Morning:
-BIOS Manager: "please quickly update this platform to support Vista"
-BIOS writer: "I'm busy today, but have 30 minutes if I work through lunch..."
+CPUIDLE thresholds
+they may be variable depending on P-state,
+but CPUIDLE uses constant thresholds
 
-Afternoon:
-BIOS Manager: "did you look at that Vista update yet?"
-BIOS Writer: "yes, I think I did it in only 20 minutes"
-BIOS Manager: "you're awesome!  lets send it through WHQL,
-	as I've got something else for you to do."
+CPUIDLE guesses wrong on interrupt-heavy workloads
+doesn't choose idle-poll for 100% interrupt workload
 
-The BIOS passes WHQL and nobody with a brain ever looks
-at the source code again...
+CPUFREQ vs core/DSP dependency
+Nokia wants to extend cpufreq to handle this case.
+TI simply uses CPUFREQ as an input
+which is overridden by the resource dependency code.
 
-It would be useful to find out what Vista actually _does_
-with _CRT=0.  ie. do they throw out the thermal zone,
-or just the _CRT.  Linux should ideally do the same.
-However, the fact that plenty of systems with Vista stickers
-are shipping with valid _CRT proves that it isn't Vista that
-is mandating _CRT=0.
+Run Time Device Power Management
+--------------------------------
 
-So I DO NOT BELIEVE that this sighting is proof that we should disable
-OSI compatibility with Vista or any other version of Windows.
-I feel STRONGLY that it is better to be compatible with the
-tested path through the BIOS -- even if that tested
-path includes workarounds for BIOS bugs that Windows
-doesn't catch.  (or workarounds for real Windows bugs --
-though I don't believe this thread isn't an example of one)
-The alternative would be the FAR GREATER EVIL of trying
-to be compatible with an entirely untested path
-through the BIOS.  We've been there before and it
-was horrific.
+Last year we talked about PPM (Power Policy Manager)
+and OHM (Open Hardware Manager) handling device
+power policy states from user-space.
+User-space would handle "dumb" devices, while
+devices with "smart" drivers (eg. USB) would
+autonomously recognize idle power savings opportunities
+and act on their own.
 
-I think we all agree that the LONG term solution is to have
-tools where OEMs can CERTIFY compatibility with Linux
-and a large portion of the machines that Linux runs on
-having passed that certification.  When that happens,
-that is the time to re-visit our current strategy of
-being bug compatible with Windows.  While I believe that
-this is a realistic and valuable goal in some markets,
-is seems unrealistic in the foreseeable future
-in other markets.  ie. I think it is valuable and worth pursuing,
-but I would not expect universal success in the foreseeable
-future.
+Per above, Richard has abandoned the smart-user-space model
+on OMAP3, favoring the smart-driver model which is necessary
+to get the maximum benefit of off mode.
+So TI is pushing for all devices on the SOC
+to have drivers with intelligent autonomous
+power management.
 
-Andi,
-I ACK Thomas' suggestion to check for <= 0C for HOT,
-PSV and ACx trip points.  While we don't have such a
-failure in hand and thus this is not urgent, it can
-only make Linux more bomb proof.  We might dress it
-up a bit, however.  I think that with acpi=strict,
-we should complain loudly if this workaround is invoked,
-if not disable it altogether.  Thus an OEM who can
-boot with acpi=strict and not get warnings or failures
-knows that they're not requiring any of our out-of-spec
-workarounds.
+Snapshot Boot
+-------------
+Hiroyuki Machida (Sony) presented a summary of shapshot
+boot, which was presented at OLS 2006.
+This technique has been employed by other embedded
+OSs for some time.  These devices tend to have flash drives.
 
-Further, Thomas' sighting demonstrates that it is important
-to get Arjan's patch back into the .stable releases.
+shapshot boot eliminates:
+        hibernate save image (re-use same image always)
+        hibernate 1st kernel boot on resume
+                by loading image directly from boot loader
 
-thanks,
--Len
+file systems are mounted
+
+Somebody observed that the kexec jump patches just went upstream.
+However, this isn't an alternative to snapshot boot --
+as it addresses the jump only, not the image load.
+
+Runtime Power Management in the USB Subsystem
+---------------------------------------------
+
+Alan Stern (Harvard) presented a review of USB Power Management.
+
+USB anatomy and lingo:
+
+UHCI    original Intel implementation, dumb, requires 250ms timers
+OHCI    smarter
+EHCI    smarter and faster
+
+The uhci-hcd (host controller driver) binds to the UHCI host controller.
+
+USB "devices" hang off USB buses eg. flash drive or kbd.
+
+However, a USB device may be split into multiple "interfaces".
+eg. a kbd/mouse combination.  Thus while power management
+acts on devices, there may be multiple interfaces per device
+and thus multiple drivers per device.
+
+Further, the USB host controller typically plugs into PCI on one side,
+and USB bus on other appearing as 2 devices in sysfs!
+So it is possible to suspend the USB part w/o suspending the PCI part.
+
+Fortunately, most of power savings in USB is achieved
+by suspending USB part anyway....
+
+USB has 2 power states:
+1. on
+2. suspended (or unplugged)
+
+Leave out (or unplugged).  It isn't really a state, even though the spec
+lists it as one.
+
+USB PM can not happen in atomic or interrupt context
+b/c upstream hub involved.  Thus work queue used.
+
+Initial USB PM Implementation:
+
+Open = autoresume
+Close = autosuspend
+
+Worked well for USB scanner
+Doesn't work for keyboard, which is always open.
+
+Three possible suspend initiators:
+1. pm-core: suspend
+2. user initiated suspend request
+3. suspend events from driver itself (autosuspend)
+
+resume events may come from PM, user,
+or remote device (eg use modem)
+
+keyboards are problematic:
+        suspend current is insufficient to drive caps-lock LED
+	also, suspended keyboards tend to lose the first few
+	keystrokes before they can be resumed.
+
+plug-in (and un-plug) are wakeup events.
+Oops, what if you unplug while suspending -- wakeup!
+
+Autosuspend today depends on 2 parameters
+1. is_used counter (open ++, close --)
+2. timestamp of last device access
+
+USB suspend latency: O(1ms)
+USB resume latency: O(10ms)
+
+sysfs interface:
+
+/sys/.../power/autospend  = delay time
+/sys/.../power/level = [on], auto, suspend
+
+"on" is default b/c many USB devices don't
+implement suspend properly.
+
+set it to auto in HAL via whitelist
+If no driver, auto will suspend device.
+
+USB autosuspend techniques may be generic in future.
+
+Alan prototyped auto-suspend on SCSI devices (logical units),
+though should be at SCSI target level.
+Need USB transport class for SCSI.
+
+future:
+an atomic API that can be be used from interrupt context.
+
+issue:
+if PCI host controller suspended and USB plugged in,
+PME lost by kernel
+
+PCI Run Time Power Management
+-----------------------------
+
+Rafael J. Wysocki (University of Warsaw) led a discussion
+on Run Time power management specific to PCI.
+
+issue:
+wakeup of individual devices does not work.
+
+existing framework is for _system_ suspend only.
+Linux needs bridge driver to track dependencies of
+subordinate bus etc.
+
+PME handling for wakeup events:
+
+Sometimes an ACPI GPE fires on the PME,
+and it appears to be system specific.
+
+bus/power/state ACPI needed to track bus power states.
+
+device/power/state file
+non-standard
+useful for experiments
+no agreement on bus and device class syntax for file contents.
+
+We should restore a read-only bus-specific sysfs state file to USB and to PCI
+Otherwise, even for smart devices, it is difficult or impossible for
+user-space to even observe the device power state.
+
+Memory power management
+-----------------------
+
+We discussed the challenges to memory power management
+on servers.  Specifically, power-friendly interleaving
+and the inability to migrate/free pages used by the kernel.
+
+HSuperH may benefit soonest here b/c
+not stopped by interleaving issue.
+NUMA memory node for accounting.
+
+Paul Mundt, using on SH
+needs to be dynamic b/c cores turned on/off dynamically.
+
+This is a common requirement between embedded and server platform
+Consensus was to work on a common framework for page
+placement based on frequency of reference.
+
+Physical address to memory module (DIMM) information needs to be
+exported by the platform to get started on any memory PM techniques.
+Currently there is no information about fine grain memory topology
+except for NUMA systems at node level.
+
+
+Server Power Management
+-----------------------
+Dipankar Sarma (IBM) and Vaidyanathan Srinivasan
+presented some observations on scheduling and C-states
+on multi-socket servers.
+
+"CPU consolidation" -- the strategy of grouping a
+partially idle workload on fewer sockets to allow
+the other sockets to go totally idle.
+
+CPU hot plug
+        ~1sec resume deemed large & heavyweight
+
+CPUIDLE & PM_QOS & irq_balance & sched_mc
+can conflict are system-wide on a big SMP,
+this can waste power.
+
+Specifically PM_QOS is system-wide and in the long run we may
+want to have different policies for different sets of CPUs in
+an SMP server.
+
+PM QoS infrastructure needs to be granular.
+
+Richard mentioned that timer and tick coalescing help in embedded
+platforms. It may help on server and vitalized environments also.
+
+logical CPU numbers are (physically) arbitrary,
+yet irqbalance uses them.  Thus, it chooses
+arbitrary physical processors for IRQ targets.
+Hence irqbalance can work against sched_mc_power_savings
+consolidation.
+
+workloads to show this problem:
+
+ebizzy (Val Henson) hacked to show issues.
+kernbench
+make -j2 on quad cores
+
+sched_mc_power_savings=1 helps (Thank you Suresh)
+
+see power vs performance RFC on lkml
+
+per-task power nice deemed too high overhead for many tasks,
+per-system seems realistic and sufficient.
+
+sched_mc_power_savings=N
+
+what if Asymmetric MP?
+
+sched-mc=0 load balancer spread all
+sched-mc=1 pull into fewest packages
+
+if 3 jobs on dual socket dual core
+
+wakeup biasing -- helps consolidate for low utilization
+
+add_timer_on() used by ondemand
+makes it difficult to pick up and move timers
+
+queued_delayed_work_on() -- same problem.
+Can't do power savings when these are used.
+
+JAVA vs power
+not "well behaved" -- lots of locking chatter
+but JAVA is fact of life on web servers.
+Java applications by nature generate a lot of wakeups. We need to
+look at JVM and java apps from this angle and see if something
+can be done to reduce those.
+
+Accounting vs CPUFREQ
+---------------------
+
+Two issues:
+1. charge back
+        wall-clock vs cycle count
+2. capacity planning & workload management
+
+need better granularity than jiffies
+(sys/tasks/utime)
+need APERF/MPERF average to qualify idle time
+ideally need data per task
+
+Powerpc has scaled accounting infrastructure via task stats
+        should we hook tools/utilities to it?
+        videy proposed patch for x86 to behave like power
+
+The APERF/MPERF based scaled chargeback accounting patch is
+in lkml - http://lkml.org/lkml/2008/5/26/154.
+
+No easy solution for the CPU capacity accounting - this will
+require more thinking.
+
+powertop/tools discussion
+-------------------------
+
+Tim Bird asked if powertop was useful for embedded and
+if other tools were useful.  Richard is finding powertop
+useful on OMAP3 (and Richard also showed some very powerful
+tracing tools to see where time goes).  We brainstormed
+on ways to make powertop even more useful.
+
+show stats per core?
+ability to dig into problem application code?
+Decided to take this discussion to IRC #powertop
+
+powertop 1.11 seems to mis-behave when AC is removed --
+the ACPI battery estimate decays and becomes huge
+after a few minutes, before going away.
+
+Virtualization PM implications
+------------------------------
+
+hosted virtualization model (KVM, UML) get power management for free
+hypervisor virtualization model (Xen) gets to re-implement Linux
+
+Xen on NUMA box -- what info to export to guest?
+sched_mc capability for Xen?
+
+hard binding of guests to HW in use today
+
+ie. same situation as last year.
+
+The hard binding should change to dynamic binding for power in future.
+
+suspend driver API update
+-------------------------
+
+Rafael J. Wysocki (University of Warsaw) described
+the changes in driver callbacks for suspend.
+
+They support a multi-pass suspend sequence, and split
+callbacks w/ parameters into simpler callbacks w/o
+parameters.
 
 
