@@ -1,110 +1,85 @@
-From: "Cihula, Joseph" <joseph.cihula@intel.com>
-Subject: [PATCH] acpi: Add support for AddressRangeUnusuable ACPI memory type
-Date: Fri, 1 Aug 2008 10:50:23 -0700
-Message-ID: <D936D925018D154694D8A362EEB08920050E2B52@orsmsx416.amr.corp.intel.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH 10/10] thinkpad_acpi: fingers off backlight if video.ko
+	is serving this functionality
+Date: Fri, 1 Aug 2008 14:50:33 -0300
+Message-ID: <20080801175033.GE14352@khazad-dum.debian.net>
+References: <1217605083-31003-1-git-send-email-trenn@suse.de> <1217605083-31003-11-git-send-email-trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----_=_NextPart_001_01C8F3FF.14BB2A36"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:3248 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751934AbYHARu2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 1 Aug 2008 13:50:28 -0400
-Content-class: urn:content-classes:message
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:52157 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757054AbYHARuj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Aug 2008 13:50:39 -0400
+Content-Disposition: inline
+In-Reply-To: <1217605083-31003-11-git-send-email-trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org
-Cc: "Kleen, Andi" <andi.kleen@intel.com>, "Wang, Shane" <shane.wang@intel.com>, "Wei, Gang" <gang.wei@intel.com>, "Brown, Len" <len.brown@intel.com>
+To: Thomas Renninger <trenn@suse.de>
+Cc: ak@linux.intel.com, rui.zhang@intel.com, nokos@gmx.net, linux-acpi@vger.kernel.org, mjg59@srcf.ucam.org
 
-This is a multi-part message in MIME format.
+On Fri, 01 Aug 2008, Thomas Renninger wrote:
+> Signed-off-by: Thomas Renninger <trenn@suse.de>
+> ---
+>  drivers/misc/thinkpad_acpi.c |   31 ++++++++++++++++++++-----------
+>  1 files changed, 20 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
+> index d3eb790..a71ecd2 100644
+> --- a/drivers/misc/thinkpad_acpi.c
+> +++ b/drivers/misc/thinkpad_acpi.c
+> @@ -4922,17 +4922,26 @@ static int __init brightness_init(struct ibm_init_struct *iibm)
+>  	 */
+>  	b = tpacpi_check_std_acpi_brightness_support();
+>  	if (b > 0) {
+> -		if (thinkpad_id.vendor == PCI_VENDOR_ID_LENOVO) {
+> -			printk(TPACPI_NOTICE
+> -			       "Lenovo BIOS switched to ACPI backlight "
+> -			       "control mode\n");
+> -		}
+> -		if (brightness_enable > 1) {
+> -			printk(TPACPI_NOTICE
+> -			       "standard ACPI backlight interface "
+> -			       "available, not loading native one...\n");
+> -			return 1;
+> -		}
+> +
+> +		if (acpi_video_backlight_support()) {
+> +			if (brightness_enable > 1) {
+> +				printk(TPACPI_NOTICE
+> +				       "Standard ACPI backlight interface "
+> +				       "available, not loading native one.\n");
+> +				return 1;
+> +			} else if (brightness_enable == 1) {
+> +				printk(TPACPI_NOTICE
+> +				       "Backlight control force, even standard "
+> +				       "ACPI backlight interface available\n");
+> +			}
 
-------_=_NextPart_001_01C8F3FF.14BB2A36
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+EPARSE.  "Backlight control force, even standard ACPI backlight interface
+available" is no good.  Maybe you want to change that to "Backlight control
+force enabled, even if standard ACPI backlight interface is available" ?
 
-Add support for the E820_UNUSABLE memory type, which is defined in
-Revision 3.0b (Oct. 10, 2006) of the ACPI Specification on p. 394 Table
-14-1:
-	AddressRangeUnusuable
-	This range of address contains memory in which errors have been
-detected. This range must not be used by the OSPM.
+> +		} else {
+> +			if (brightness_enable > 1) {
+> +				printk(TPACPI_NOTICE
+> +				       "Standard ACPI backlight interface not "
+> +				       "available, thinkpad_acpi driver "
+> +				       "will take over control\n");
 
-This patch applies cleanly to the tip of the current git tree (with the
-merged 32/64b e820.c file).
+"thinkpad-acpi native brightness control enabled", perhaps?
 
-Signed-off-by:  Joseph Cihula <joseph.cihula@intel.com>
-Signed-off-by:  Shane Wang <shane.wang@intel.com>
-Signed-off-by:  Gang Wei <gang.wei@intel.com>
+> +			}
+> + 		}
+>  	}
+>  
+>  	if (!brightness_enable) {
 
-diff -uprN linux.trees.git/arch/x86/kernel/e820.c
-acpi-linux/arch/x86/kernel/e820.c
---- linux.trees.git/arch/x86/kernel/e820.c	2008-08-01
-08:14:10.000000000 -0700
-+++ acpi-linux/arch/x86/kernel/e820.c	2008-08-01 08:24:19.000000000
--0700
-@@ -148,6 +148,9 @@ void __init e820_print_map(char *who)
- 		case E820_NVS:
- 			printk(KERN_CONT "(ACPI NVS)\n");
- 			break;
-+		case E820_UNUSABLE:
-+			printk("(unusable)\n");
-+			break;
- 		default:
- 			printk(KERN_CONT "type %u\n", e820.map[i].type);
- 			break;
-@@ -1260,6 +1263,7 @@ static inline const char *e820_type_to_s
- 	case E820_RAM:	return "System RAM";
- 	case E820_ACPI:	return "ACPI Tables";
- 	case E820_NVS:	return "ACPI Non-volatile Storage";
-+	case E820_UNUSABLE:	return "Unusable memory";
- 	default:	return "reserved";
- 	}
- }
-diff -uprN linux.trees.git/include/asm-x86/e820.h
-acpi-linux/include/asm-x86/e820.h
---- linux.trees.git/include/asm-x86/e820.h	2008-08-01
-08:14:24.000000000 -0700
-+++ acpi-linux/include/asm-x86/e820.h	2008-08-01 08:25:55.000000000
--0700
-@@ -43,6 +43,7 @@
- #define E820_RESERVED	2
- #define E820_ACPI	3
- #define E820_NVS	4
-+#define E820_UNUSABLE	5
-=20
- /* reserved RAM used by kernel itself */
- #define E820_RESERVED_KERN        128
+Provided that you clarify the printk I marked with EPARSE:
+Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-------_=_NextPart_001_01C8F3FF.14BB2A36
-Content-Type: application/octet-stream;
-	name="linux-acpi-tip.patch"
-Content-Transfer-Encoding: base64
-Content-Description: linux-acpi-tip.patch
-Content-Disposition: attachment;
-	filename="linux-acpi-tip.patch"
-
-ZGlmZiAtdXByTiBsaW51eC50cmVlcy5naXQvYXJjaC94ODYva2VybmVsL2U4MjAuYyBhY3BpLWxp
-bnV4L2FyY2gveDg2L2tlcm5lbC9lODIwLmMKLS0tIGxpbnV4LnRyZWVzLmdpdC9hcmNoL3g4Ni9r
-ZXJuZWwvZTgyMC5jCTIwMDgtMDgtMDEgMDg6MTQ6MTAuMDAwMDAwMDAwIC0wNzAwCisrKyBhY3Bp
-LWxpbnV4L2FyY2gveDg2L2tlcm5lbC9lODIwLmMJMjAwOC0wOC0wMSAwODoyNDoxOS4wMDAwMDAw
-MDAgLTA3MDAKQEAgLTE0OCw2ICsxNDgsOSBAQCB2b2lkIF9faW5pdCBlODIwX3ByaW50X21hcChj
-aGFyICp3aG8pCiAJCWNhc2UgRTgyMF9OVlM6CiAJCQlwcmludGsoS0VSTl9DT05UICIoQUNQSSBO
-VlMpXG4iKTsKIAkJCWJyZWFrOworCQljYXNlIEU4MjBfVU5VU0FCTEU6CisJCQlwcmludGsoIih1
-bnVzYWJsZSlcbiIpOworCQkJYnJlYWs7CiAJCWRlZmF1bHQ6CiAJCQlwcmludGsoS0VSTl9DT05U
-ICJ0eXBlICV1XG4iLCBlODIwLm1hcFtpXS50eXBlKTsKIAkJCWJyZWFrOwpAQCAtMTI2MCw2ICsx
-MjYzLDcgQEAgc3RhdGljIGlubGluZSBjb25zdCBjaGFyICplODIwX3R5cGVfdG9fcwogCWNhc2Ug
-RTgyMF9SQU06CXJldHVybiAiU3lzdGVtIFJBTSI7CiAJY2FzZSBFODIwX0FDUEk6CXJldHVybiAi
-QUNQSSBUYWJsZXMiOwogCWNhc2UgRTgyMF9OVlM6CXJldHVybiAiQUNQSSBOb24tdm9sYXRpbGUg
-U3RvcmFnZSI7CisJY2FzZSBFODIwX1VOVVNBQkxFOglyZXR1cm4gIlVudXNhYmxlIG1lbW9yeSI7
-CiAJZGVmYXVsdDoJcmV0dXJuICJyZXNlcnZlZCI7CiAJfQogfQpkaWZmIC11cHJOIGxpbnV4LnRy
-ZWVzLmdpdC9pbmNsdWRlL2FzbS14ODYvZTgyMC5oIGFjcGktbGludXgvaW5jbHVkZS9hc20teDg2
-L2U4MjAuaAotLS0gbGludXgudHJlZXMuZ2l0L2luY2x1ZGUvYXNtLXg4Ni9lODIwLmgJMjAwOC0w
-OC0wMSAwODoxNDoyNC4wMDAwMDAwMDAgLTA3MDAKKysrIGFjcGktbGludXgvaW5jbHVkZS9hc20t
-eDg2L2U4MjAuaAkyMDA4LTA4LTAxIDA4OjI1OjU1LjAwMDAwMDAwMCAtMDcwMApAQCAtNDMsNiAr
-NDMsNyBAQAogI2RlZmluZSBFODIwX1JFU0VSVkVECTIKICNkZWZpbmUgRTgyMF9BQ1BJCTMKICNk
-ZWZpbmUgRTgyMF9OVlMJNAorI2RlZmluZSBFODIwX1VOVVNBQkxFCTUKIAogLyogcmVzZXJ2ZWQg
-UkFNIHVzZWQgYnkga2VybmVsIGl0c2VsZiAqLwogI2RlZmluZSBFODIwX1JFU0VSVkVEX0tFUk4g
-ICAgICAgIDEyOAo=
-
-------_=_NextPart_001_01C8F3FF.14BB2A36--
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
