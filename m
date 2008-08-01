@@ -1,53 +1,32 @@
-From: Gene Heskett <gene.heskett@gmail.com>
-Subject: Re: Kernel (2.6.26 final) Oops, problem?
-Date: Fri, 01 Aug 2008 17:22:28 -0400
-Message-ID: <200808011722.28961.gene.heskett@gmail.com>
-References: <200807312218.39479.gene.heskett@gmail.com>
- <200807312359.13737.gene.heskett@gmail.com> <20080801190428.GA2828@debian>
+From: Andi Kleen <andi@firstfloor.org>
+Subject: current ACPI test tree status
+Date: Fri, 1 Aug 2008 23:32:34 +0200
+Message-ID: <20080801213234.GE23938@one.firstfloor.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms042pub.verizon.net ([206.46.252.42]:41311 "EHLO
-	vms042pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1763602AbYHAVWa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Aug 2008 17:22:30 -0400
-In-reply-to: <20080801190428.GA2828@debian>
-Content-disposition: inline
+Received: from one.firstfloor.org ([213.235.205.2]:37435 "EHLO
+	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752527AbYHAVcV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Aug 2008 17:32:21 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rabin Vincent <rabin@rab.in>
-Cc: Zhang Rui <rui.zhang@intel.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, ming.m.lin@intel.com
+To: linux-acpi@vger.kernel.org
 
-On Friday 01 August 2008, Rabin Vincent wrote:
 
-[...]
->f88133d76ea38761b7379d6233b752ed82250a4a in current git appears to be a
->fix for this.
->
->Rabin
+The current ACPI next tree for post .27 patches is 
 
-So I assume that it will be in 2.6.27-rc2?
+git://git.kernel.org/pub/scm/linux/kernel/git/ak/linux-acpi-2.6.git test
 
-I've not seen it again, and the machine ran fine till I rebooted after fixing 
-the httpd error.log permissions problem in 2.6.27-rc1.
+If there is something missing in there that should be in there please
+complain.  This should hit linux-next soon too.
 
-However, I do see in the log that it is loading the rv200 microcode for 
-something, but my video card is an rv280 based card, a Radeon 9200SE, using 
-that radeon driver.
+This right now also contains the bug fixes that should still go
+into .27. I haven't pulled them on a separate branch yet, but will
+do that later after they have cooked a bit.
 
-Does anyone know if this is correct?
+Also as a personal note I'll be away for most of next week 
+and might slow answering email.
 
-The card seems to be ok, and glxgears says its in the low 600 fps at the 
-default image size.  Just barely fast enough for google-earth if one isn't 
-super-picky.  I also have a 2400-HD, but its not any faster with the radeonhd 
-driver.  Neither driver has been updated recently that yumex has told me 
-about.
-
--- 
-Cheers, Gene
-"There are four boxes to be used in defense of liberty:
- soap, ballot, jury, and ammo. Please use in that order."
--Ed Howdershelt (Author)
-Circumstances rule men; men do not rule circumstances.
-		-- Herodotus
+-Andi
