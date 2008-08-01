@@ -1,3767 +1,1383 @@
-From: Vivek Goyal <vgoyal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: kdump kernel hangs on 4-way Opteron Blade
-Date: Thu, 31 Jul 2008 09:48:15 -0400
-Message-ID: <20080731134815.GE26782@redhat.com>
-References: <20080730120026.GA30011@in.ibm.com>
-	<20080730120143.GB30011@in.ibm.com>
-	<20080731134128.GC26782@redhat.com>
+From: Gene Heskett <gene.heskett@gmail.com>
+Subject: Re: Kernel (2.6.26 final) Oops, problem?
+Date: Thu, 31 Jul 2008 23:59:13 -0400
+Message-ID: <200807312359.13737.gene.heskett@gmail.com>
+References: <200807312218.39479.gene.heskett@gmail.com>
+ <20080731193715.60e389ba.akpm@linux-foundation.org>
+ <1217558803.2969.173.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20080731134128.GC26782-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/listinfo/kexec>,
-	<mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/kexec>
-List-Post: <mailto:kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Help: <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/kexec>,
-	<mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
-Sender: kexec-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-Errors-To: kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-To: Ankita Garg <ankita-xthvdsQ13ZrQT0dZR+AlfA@public.gmane.org>
-Cc: Darren Hart <dvhltc-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, Chirag Jog <chirag-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sripathi Kodi <sripathik-xthvdsQ13ZrQT0dZR+AlfA@public.gmane.org>, "Sachin P. Sant" <sachinp-xthvdsQ13ZrQT0dZR+AlfA@public.gmane.org>, Maneesh Soni <maneesh-xthvdsQ13ZrQT0dZR+AlfA@public.gmane.org>, Dinakar Guniguntala <dino-xthvdsQ13ZrQT0dZR+AlfA@public.gmane.org>
+Content-Type: Multipart/Mixed; boundary="Boundary-00=_RookIvV3pjCtVkU"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms042pub.verizon.net ([206.46.252.42]:57699 "EHLO
+	vms042pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751525AbYHAD7x (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Jul 2008 23:59:53 -0400
+In-reply-to: <1217558803.2969.173.camel@rzhang-dt>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, ming.m.lin@intel.com
 
-On Thu, Jul 31, 2008 at 09:41:28AM -0400, Vivek Goyal wrote:
-> On Wed, Jul 30, 2008 at 05:31:43PM +0530, Ankita Garg wrote:
-> > Hi,
-> > 
-> > We have been using RT kernel as the kdump kernel for most of our work.
-> > This was working fine on 2.6.21.4-rt10 RT kernel. After which, we moved
-> > over to 2.6.24-rt1 RT kernel. Now, the kdump kernel hangs with the
-> > following message:
-> > 
-> 
-> Hi Ankita,
-> 
-> Looking at the logs, last message was from ACPI and passing acpi=noirq
-> makes the problem go away. That makes me suspicious something not being
-> right w.r.t ACPI. 
-> 
-> Ccing ACPI mailing list for ideas.
-> 
+--Boundary-00=_RookIvV3pjCtVkU
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Oops. Forgot to CC ACPI list. Doing it now.
+On Thursday 31 July 2008, Zhang Rui wrote:
+[...]
 
-> ACPI: Interpreter enabled
-> 
-> Thanks
-> Vivek
-> 
-> > (With "quiet" param specified to the kdump kernel)
-> > ysRq : Trigger a crashdump
-> > irq 9: nobody cared (try booting with the "irqpoll" option)
-> > irq 9: Some systems using an IO-APIC require a special quirk to
-> > workaround
-> > irq 9: problems with interrupt routing. If your system requires such a
-> > quirk,
-> > irq 9: please try booting with the "ioapic_level_quirk=1" option.
-> > handlers:
-> > [<ffffffff811660a0>] (acpi_irq+0x0/0x1b)
-> > turning off IO-APIC fast mode.
-> > irq 9: nobody cared (try booting with the "irqpoll" option)
-> > irq 9: Some systems using an IO-APIC require a special quirk to
-> > workaround
-> > irq 9: problems with interrupt routing. If your system requires such a
-> > quirk,
-> > irq 9: please try booting with the "ioapic_level_quirk=1" option.
-> > handlers:
-> > 
-> > Attaching the complete kdump kernel boot log without 'quiet' parameter.
-> > With
-> > acpi=noirq passed to the With acpi=noirq passed to the second kernel,
-> > this issue is not seen. The RT kernel is a relocatable kernel, thus the
-> > same kernel is being used for kdump.
-> > 
-> > Output of /proc/cpuinfo and lspci are attached. So also the kernel
-> > config
-> > file.
-> > 
-> > #cat /proc/cmdline
-> > root=/dev/sda3 ro rhgb quiet crashkernel=128M@16M  console=tty1
-> > console=ttyS1,19200
-> > 
-> > Pl do let me know if I need to provide additional information.
-> > 
-> > -- 
-> > Regards,
-> > Ankita Garg (ankita-xthvdsQ13ZrQT0dZR+AlfA@public.gmane.org)
-> > Linux Technology Center
-> > IBM India Systems & Technology Labs, 
-> > Bangalore, India   
-> 
-> >  SysRq : Trigger a crashdump
-> > Initializing cgroup subsys cpuset
-> > Linux version 2.6.24.7-74ibmrt2.5 (root-OiGfnfLfY6PkOmf+N4b0O9FgqiXiwxn+0E9HWUfgJXw@public.gmane.org) (gcc
-> > version 4.1.2 20071124 (Red Hat 4.1.2-42)) #1 SMP PREEMPT RT Wed Jul 23
-> > 17:26:13 EDT 2008
-> > Command line: root=/dev/sda3 ro rhgb  console=tty1 console=ttyS1,19200 irqpoll
-> > maxcpus=1 reset_devices memmap=exactmap memmap=640K@0K memmap=130416K@17024K
-> > elfcorehdr=147440K memmap=15K#3407502K
-> > BIOS-provided physical RAM map:
-> >  BIOS-e820: 0000000000000100 - 000000000009c000 (usable)
-> >  BIOS-e820: 000000000009c000 - 00000000000a0000 (reserved)
-> >  BIOS-e820: 00000000000e0000 - 0000000000100000 (reserved)
-> >  BIOS-e820: 0000000000100000 - 00000000cffa3a00 (usable)
-> >  BIOS-e820: 00000000cffa3a00 - 00000000cffa7400 (ACPI data)
-> >  BIOS-e820: 00000000cffa7400 - 00000000d0000000 (reserved)
-> >  BIOS-e820: 00000000f4000000 - 00000000fc000000 (reserved)
-> >  BIOS-e820: 0000000100000000 - 0000000230000000 (usable)
-> > end_pfn_map = 2293760
-> > user-defined physical RAM map:
-> >  user: 0000000000000000 - 00000000000a0000 (usable)
-> >  user: 00000000010a0000 - 0000000008ffc000 (usable)
-> >  user: 00000000cffa3800 - 00000000cffa7400 (ACPI data)
-> > end_pfn_map = 851879
-> > DMI 2.4 present.
-> > ACPI: RSDP 000FDFE0, 0014 (r0 IBM   )
-> > ACPI: RSDT CFFA7380, 0030 (r1 IBM    SERLEWIS     1000 IBM  45444F43)
-> > ACPI: FACP CFFA72C0, 0084 (r2 IBM    SERLEWIS     1000 IBM  45444F43)
-> > ACPI: DSDT CFFA3A00, 35FC (r1 IBM    SERLEWIS     1000 INTL 20060912)
-> > ACPI: FACS CFFA7080, 0040
-> > ACPI: APIC CFFA7200, 0090 (r1 IBM    SERLEWIS     1000 IBM  45444F43)
-> > ACPI: SRAT CFFA70C0, 0110 (r1 AMD    HAMMER          1 AMD         1)
-> > SRAT: PXM 0 -> APIC 0 -> Node 0
-> > SRAT: PXM 0 -> APIC 1 -> Node 0
-> > SRAT: PXM 1 -> APIC 2 -> Node 1
-> > SRAT: PXM 1 -> APIC 3 -> Node 1
-> > SRAT: Node 0 PXM 0 0-a0000
-> > SRAT: Node 0 PXM 0 0-d0000000
-> > SRAT: Node 0 PXM 0 0-130000000
-> > SRAT: Node 1 PXM 1 130000000-230000000
-> > Bootmem setup node 0 0000000000000000-0000000008ffc000
-> > Zone PFN ranges:
-> >   DMA             0 ->     4096
-> >   DMA32        4096 ->  1048576
-> >   Normal    1048576 ->  1048576
-> > Movable zone start PFN for each node
-> > early_node_map[2] active PFN ranges
-> >     0:        0 ->      160
-> >     0:     4256 ->    36860
-> > ACPI: PM-Timer IO Port: 0x488
-> > ACPI: LAPIC (acpi_id[0x00] lapic_id[0x00] enabled)
-> > Processor #0 (Bootup-CPU)
-> > ACPI: LAPIC (acpi_id[0x01] lapic_id[0x02] enabled)
-> > Processor #2
-> > ACPI: LAPIC (acpi_id[0x02] lapic_id[0x01] enabled)
-> > Processor #1
-> > ACPI: LAPIC (acpi_id[0x03] lapic_id[0x03] enabled)
-> > Processor #3
-> > ACPI: LAPIC_NMI (acpi_id[0x00] dfl dfl lint[0x1])
-> > ACPI: LAPIC_NMI (acpi_id[0x01] dfl dfl lint[0x1])
-> > ACPI: LAPIC_NMI (acpi_id[0x02] dfl dfl lint[0x1])
-> > ACPI: LAPIC_NMI (acpi_id[0x03] dfl dfl lint[0x1])
-> > ACPI: IOAPIC (id[0x0e] address[0xfec00000] gsi_base[0])
-> > IOAPIC[0]: apic_id 14, address 0xfec00000, GSI 0-15
-> > ACPI: IOAPIC (id[0x0d] address[0xfec02000] gsi_base[16])
-> > IOAPIC[1]: apic_id 13, address 0xfec02000, GSI 16-31
-> > ACPI: INT_SRC_OVR (bus 0 bus_irq 0 global_irq 2 dfl dfl)
-> > ACPI: INT_SRC_OVR (bus 0 bus_irq 9 global_irq 9 low level)
-> > Setting APIC routing to flat
-> > Using ACPI (MADT) for SMP configuration information
-> > swsusp: Registered nosave memory region: 00000000000a0000 - 00000000010a0000
-> > Allocating PCI resources starting at 10000000 (gap: 8ffc000:c6fa7800)
-> > SMP: Allowing 4 CPUs, 0 hotplug CPUs
-> > PERCPU: Allocating 41456 bytes of per cpu data
-> > Real-Time Preemption Support (C) 2004-2007 Ingo Molnar
-> > Built 1 zonelists in Node order, mobility grouping on.  Total pages: 31889
-> > Policy zone: DMA32
-> > Kernel command line: root=/dev/sda3 ro rhgb  console=tty1 console=ttyS1,19200
-> > irqpoll maxcpus=1 reset_devices memmap=exactmap memmap=640K@0K
-> > memmap=130416K@17024K elfcorehdr=147440K memmap=15K#3407502K
-> > irqpoll boot option not supported w/ CONFIG_PREEMPT_RT
-> > Initializing CPU#0
-> > PID hash table entries: 512 (order: 9, 4096 bytes)
-> > TSC calibrated against PM_TIMER
-> > Marking TSC unstable due to TSCs unsynchronized
-> > time.c: Detected 2200.073 MHz processor.
-> > Spurious LAPIC timer interrupt on cpu 0
-> > Console: colour VGA+ 80x25
-> > console [tty1] enabled
-> > console [ttyS1] enabled
-> > Checking aperture...
-> > CPU 0: aperture @ 14000000 size 64 MB
-> > CPU 1: aperture @ 14000000 size 64 MB
-> > Memory: 116344k/147440k available (2613k kernel code, 14712k reserved, 1413k
-> > data, 364k init)
-> > Calibrating delay using timer specific routine.. 4402.06 BogoMIPS
-> > (lpj=2201032)
-> > Security Framework initialized
-> > SELinux:  Initializing.
-> > selinux_register_security:  Registering secondary module capability
-> > Capability LSM initialized as secondary
-> > Dentry cache hash table entries: 16384 (order: 5, 131072 bytes)
-> > Inode-cache hash table entries: 8192 (order: 4, 65536 bytes)
-> > Mount-cache hash table entries: 256
-> > Initializing cgroup subsys ns
-> > Initializing cgroup subsys cpuacct
-> > CPU: L1 I Cache: 64K (64 bytes/line), D cache 64K (64 bytes/line)
-> > CPU: L2 Cache: 1024K (64 bytes/line)
-> > CPU 0/0 -> Node 0
-> > CPU: Physical Processor ID: 0
-> > CPU: Processor Core ID: 0
-> > SMP alternatives: switching to UP code
-> > ACPI: Core revision 20070126
-> > Using local APIC timer interrupts.
-> > Detected 12.500 MHz APIC timer.
-> > Brought up 1 CPUs
-> > net_namespace: 144 bytes
-> > Time: 11:37:02  Date: 07/30/08
-> > NET: Registered protocol family 16
-> > ACPI: bus type pci registered
-> > PCI: Using configuration type 1
-> > ACPI: Interpreter enabled
-> > 
-> 
-> > #cat /proc/cpuinfo
-> > processor       : 0
-> > vendor_id       : AuthenticAMD
-> > cpu family      : 15
-> > model           : 65
-> > model name      : Dual-Core AMD Opteron(tm) Processor 2218
-> > stepping        : 2
-> > cpu MHz         : 2200.085
-> > cache size      : 1024 KB
-> > physical id     : 0
-> > siblings        : 2
-> > core id         : 0
-> > cpu cores       : 2
-> > fpu             : yes
-> > fpu_exception   : yes
-> > cpuid level     : 1
-> > wp              : yes
-> > flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca
-> > cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt rdtscp
-> > lm 3dnowext 3dnow rep_good pni cx16 lahf_lm cmp_legacy svm extapic cr8_legacy
-> > bogomips        : 4401.97
-> > TLB size        : 1024 4K pages
-> > clflush size    : 64
-> > cache_alignment : 64
-> > address sizes   : 40 bits physical, 48 bits virtual
-> > power management: ts fid vid ttp tm stc
-> > 
-> > processor       : 1
-> > vendor_id       : AuthenticAMD
-> > cpu family      : 15
-> > model           : 65
-> > model name      : Dual-Core AMD Opteron(tm) Processor 2218
-> > stepping        : 2
-> > cpu MHz         : 2200.085
-> > cache size      : 1024 KB
-> > physical id     : 1
-> > siblings        : 2
-> > core id         : 0
-> > cpu cores       : 2
-> > fpu             : yes
-> > fpu_exception   : yes
-> > cpuid level     : 1
-> > wp              : yes
-> > flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca
-> > cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt rdtscp
-> > lm 3dnowext 3dnow rep_good pni cx16 lahf_lm cmp_legacy svm extapic cr8_legacy
-> > bogomips        : 4400.09
-> > TLB size        : 1024 4K pages
-> > clflush size    : 64
-> > cache_alignment : 64
-> > address sizes   : 40 bits physical, 48 bits virtual
-> > power management: ts fid vid ttp tm stc
-> > 
-> > processor       : 2
-> > vendor_id       : AuthenticAMD
-> > cpu family      : 15
-> > model           : 65
-> > model name      : Dual-Core AMD Opteron(tm) Processor 2218
-> > stepping        : 2
-> > cpu MHz         : 2200.085
-> > cache size      : 1024 KB
-> > physical id     : 0
-> > siblings        : 2
-> > core id         : 1
-> > cpu cores       : 2
-> > fpu             : yes
-> > fpu_exception   : yes
-> > cpuid level     : 1
-> > wp              : yes
-> > flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca
-> > cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt rdtscp
-> > lm 3dnowext 3dnow rep_good pni cx16 lahf_lm cmp_legacy svm extapic cr8_legacy
-> > bogomips        : 4400.09
-> > TLB size        : 1024 4K pages
-> > clflush size    : 64
-> > cache_alignment : 64
-> > address sizes   : 40 bits physical, 48 bits virtual
-> > power management: ts fid vid ttp tm stc
-> > 
-> > processor       : 3
-> > vendor_id       : AuthenticAMD
-> > cpu family      : 15
-> > model           : 65
-> > model name      : Dual-Core AMD Opteron(tm) Processor 2218
-> > stepping        : 2
-> > cpu MHz         : 2200.085
-> > cache size      : 1024 KB
-> > physical id     : 1
-> > siblings        : 2
-> > core id         : 1
-> > cpu cores       : 2
-> > fpu             : yes
-> > fpu_exception   : yes
-> > cpuid level     : 1
-> > wp              : yes
-> > flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca
-> > cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt rdtscp
-> > lm 3dnowext 3dnow rep_good pni cx16 lahf_lm cmp_legacy svm extapic cr8_legacy
-> > bogomips        : 4400.09
-> > TLB size        : 1024 4K pages
-> > clflush size    : 64
-> > cache_alignment : 64
-> > address sizes   : 40 bits physical, 48 bits virtual
-> > power management: ts fid vid ttp tm stc
-> > 
-> > 
-> > #lspci
-> > 00:01.0 PCI bridge: Broadcom BCM5785 [HT1000] PCI/PCI-X Bridge
-> > 00:02.0 Host bridge: Broadcom BCM5785 [HT1000] Legacy South Bridge
-> > 00:02.2 ISA bridge: Broadcom BCM5785 [HT1000] LPC
-> > 00:03.0 USB Controller: Broadcom BCM5785 [HT1000] USB (rev 01)
-> > 00:03.1 USB Controller: Broadcom BCM5785 [HT1000] USB (rev 01)
-> > 00:03.2 USB Controller: Broadcom BCM5785 [HT1000] USB (rev 01)
-> > 00:05.0 VGA compatible controller: ATI Technologies Inc ES1000 (rev 02)
-> > 00:06.0 PCI bridge: Broadcom BCM5780 [HT2000] PCI-X bridge (rev b0)
-> > 00:07.0 PCI bridge: Broadcom BCM5780 [HT2000] PCI-X bridge (rev b0)
-> > 00:08.0 PCI bridge: Broadcom BCM5780 [HT2000] PCI-Express Bridge (rev b0)
-> > 00:09.0 PCI bridge: Broadcom BCM5780 [HT2000] PCI-Express Bridge (rev b0)
-> > 00:0a.0 PCI bridge: Broadcom BCM5780 [HT2000] PCI-Express Bridge (rev b0)
-> > 00:0b.0 PCI bridge: Broadcom BCM5780 [HT2000] PCI-Express Bridge (rev b0)
-> > 00:18.0 Host bridge: Advanced Micro Devices [AMD] K8 [Athlon64/Opteron]
-> > HyperTransport Technology Configuration
-> > 00:18.1 Host bridge: Advanced Micro Devices [AMD] K8 [Athlon64/Opteron]
-> > Address Map
-> > 00:18.2 Host bridge: Advanced Micro Devices [AMD] K8 [Athlon64/Opteron] DRAM
-> > Controller
-> > 00:18.3 Host bridge: Advanced Micro Devices [AMD] K8 [Athlon64/Opteron]
-> > Miscellaneous Control
-> > 00:19.0 Host bridge: Advanced Micro Devices [AMD] K8 [Athlon64/Opteron]
-> > HyperTransport Technology Configuration
-> > 00:19.1 Host bridge: Advanced Micro Devices [AMD] K8 [Athlon64/Opteron]
-> > Address Map
-> > 00:19.2 Host bridge: Advanced Micro Devices [AMD] K8 [Athlon64/Opteron] DRAM
-> > Controller
-> > 00:19.3 Host bridge: Advanced Micro Devices [AMD] K8 [Athlon64/Opteron]
-> > Miscellaneous Control
-> > 01:0d.0 PCI bridge: Broadcom BCM5785 [HT1000] PCI/PCI-X Bridge (rev c0)
-> > 02:04.0 Ethernet controller: Broadcom Corporation NetXtreme II BCM5706S
-> > Gigabit Ethernet (rev 02)
-> > 02:05.0 Ethernet controller: Broadcom Corporation NetXtreme II BCM5706S
-> > Gigabit Ethernet (rev 02)
-> > 03:04.0 SCSI storage controller: LSI Logic / Symbios Logic SAS1064 PCI-X
-> > Fusion-MPT SAS (rev 02)
-> > 
-> 
-> > #
-> > # Automatically generated make config: don't edit
-> > # Linux kernel version: 2.6.24.7-74ibmrt2.5
-> > # Wed Jul 23 17:24:24 2008
-> > #
-> > CONFIG_64BIT=y
-> > # CONFIG_X86_32 is not set
-> > CONFIG_X86_64=y
-> > CONFIG_X86=y
-> > CONFIG_GENERIC_TIME=y
-> > CONFIG_GENERIC_CMOS_UPDATE=y
-> > CONFIG_CLOCKSOURCE_WATCHDOG=y
-> > CONFIG_GENERIC_CLOCKEVENTS=y
-> > CONFIG_GENERIC_CLOCKEVENTS_BROADCAST=y
-> > CONFIG_LOCKDEP_SUPPORT=y
-> > CONFIG_STACKTRACE_SUPPORT=y
-> > CONFIG_SEMAPHORE_SLEEPERS=y
-> > CONFIG_MMU=y
-> > CONFIG_ZONE_DMA=y
-> > # CONFIG_QUICKLIST is not set
-> > CONFIG_GENERIC_ISA_DMA=y
-> > CONFIG_GENERIC_IOMAP=y
-> > CONFIG_GENERIC_BUG=y
-> > CONFIG_GENERIC_HWEIGHT=y
-> > CONFIG_ARCH_MAY_HAVE_PC_FDC=y
-> > CONFIG_DMI=y
-> > CONFIG_RWSEM_GENERIC_SPINLOCK=y
-> > CONFIG_ASM_SEMAPHORES=y
-> > # CONFIG_ARCH_HAS_ILOG2_U32 is not set
-> > # CONFIG_ARCH_HAS_ILOG2_U64 is not set
-> > CONFIG_GENERIC_CALIBRATE_DELAY=y
-> > CONFIG_GENERIC_TIME_VSYSCALL=y
-> > CONFIG_ARCH_SUPPORTS_OPROFILE=y
-> > CONFIG_ZONE_DMA32=y
-> > CONFIG_ARCH_POPULATES_NODE_MAP=y
-> > CONFIG_AUDIT_ARCH=y
-> > CONFIG_GENERIC_HARDIRQS=y
-> > CONFIG_GENERIC_IRQ_PROBE=y
-> > CONFIG_GENERIC_PENDING_IRQ=y
-> > CONFIG_X86_HT=y
-> > # CONFIG_KTIME_SCALAR is not set
-> > CONFIG_DEFCONFIG_LIST="/lib/modules/$UNAME_RELEASE/.config"
-> > 
-> > #
-> > # General setup
-> > #
-> > CONFIG_EXPERIMENTAL=y
-> > CONFIG_LOCK_KERNEL=y
-> > CONFIG_INIT_ENV_ARG_LIMIT=32
-> > CONFIG_LOCALVERSION=""
-> > # CONFIG_LOCALVERSION_AUTO is not set
-> > CONFIG_SWAP=y
-> > CONFIG_SYSVIPC=y
-> > CONFIG_SYSVIPC_SYSCTL=y
-> > CONFIG_POSIX_MQUEUE=y
-> > CONFIG_BSD_PROCESS_ACCT=y
-> > # CONFIG_BSD_PROCESS_ACCT_V3 is not set
-> > CONFIG_TASKSTATS=y
-> > CONFIG_TASK_DELAY_ACCT=y
-> > CONFIG_TASK_XACCT=y
-> > CONFIG_TASK_IO_ACCOUNTING=y
-> > CONFIG_USER_NS=y
-> > CONFIG_PID_NS=y
-> > CONFIG_AUDIT=y
-> > CONFIG_AUDITSYSCALL=y
-> > CONFIG_AUDIT_TREE=y
-> > # CONFIG_IKCONFIG is not set
-> > CONFIG_LOG_BUF_SHIFT=17
-> > CONFIG_CGROUPS=y
-> > # CONFIG_CGROUP_DEBUG is not set
-> > CONFIG_CGROUP_NS=y
-> > CONFIG_CPUSETS=y
-> > # CONFIG_FAIR_GROUP_SCHED is not set
-> > CONFIG_CGROUP_CPUACCT=y
-> > CONFIG_SYSFS_DEPRECATED=y
-> > CONFIG_PROC_PID_CPUSET=y
-> > CONFIG_RELAY=y
-> > CONFIG_BLK_DEV_INITRD=y
-> > CONFIG_INITRAMFS_SOURCE=""
-> > CONFIG_CC_OPTIMIZE_FOR_SIZE=y
-> > CONFIG_SYSCTL=y
-> > CONFIG_RADIX_TREE_CONCURRENT=y
-> > CONFIG_RADIX_TREE_OPTIMISTIC=y
-> > # CONFIG_EMBEDDED is not set
-> > CONFIG_UID16=y
-> > CONFIG_SYSCTL_SYSCALL=y
-> > CONFIG_KALLSYMS=y
-> > CONFIG_KALLSYMS_ALL=y
-> > CONFIG_KALLSYMS_EXTRA_PASS=y
-> > CONFIG_HOTPLUG=y
-> > CONFIG_PRINTK=y
-> > CONFIG_BUG=y
-> > CONFIG_ELF_CORE=y
-> > CONFIG_BASE_FULL=y
-> > CONFIG_FUTEX=y
-> > CONFIG_ANON_INODES=y
-> > CONFIG_EPOLL=y
-> > CONFIG_SIGNALFD=y
-> > CONFIG_EVENTFD=y
-> > CONFIG_SHMEM=y
-> > CONFIG_VM_EVENT_COUNTERS=y
-> > CONFIG_SLAB=y
-> > # CONFIG_SLUB is not set
-> > # CONFIG_SLOB is not set
-> > CONFIG_SLABINFO=y
-> > CONFIG_RT_MUTEXES=y
-> > # CONFIG_TINY_SHMEM is not set
-> > CONFIG_BASE_SMALL=0
-> > CONFIG_MODULES=y
-> > CONFIG_MODULE_UNLOAD=y
-> > # CONFIG_MODULE_FORCE_UNLOAD is not set
-> > # CONFIG_MODVERSIONS is not set
-> > CONFIG_MODULE_SRCVERSION_ALL=y
-> > CONFIG_KMOD=y
-> > CONFIG_STOP_MACHINE=y
-> > CONFIG_BLOCK=y
-> > CONFIG_BLK_DEV_IO_TRACE=y
-> > CONFIG_BLK_DEV_BSG=y
-> > CONFIG_BLOCK_COMPAT=y
-> > 
-> > #
-> > # IO Schedulers
-> > #
-> > CONFIG_IOSCHED_NOOP=y
-> > CONFIG_IOSCHED_AS=y
-> > CONFIG_IOSCHED_DEADLINE=y
-> > CONFIG_IOSCHED_CFQ=y
-> > # CONFIG_DEFAULT_AS is not set
-> > # CONFIG_DEFAULT_DEADLINE is not set
-> > CONFIG_DEFAULT_CFQ=y
-> > # CONFIG_DEFAULT_NOOP is not set
-> > CONFIG_DEFAULT_IOSCHED="cfq"
-> > CONFIG_PREEMPT_NOTIFIERS=y
-> > 
-> > #
-> > # Processor type and features
-> > #
-> > CONFIG_TICK_ONESHOT=y
-> > CONFIG_NO_HZ=y
-> > CONFIG_HIGH_RES_TIMERS=y
-> > CONFIG_GENERIC_CLOCKEVENTS_BUILD=y
-> > CONFIG_SMP=y
-> > CONFIG_X86_PC=y
-> > # CONFIG_X86_ELAN is not set
-> > # CONFIG_X86_VOYAGER is not set
-> > # CONFIG_X86_NUMAQ is not set
-> > # CONFIG_X86_SUMMIT is not set
-> > # CONFIG_X86_BIGSMP is not set
-> > # CONFIG_X86_VISWS is not set
-> > # CONFIG_X86_GENERICARCH is not set
-> > # CONFIG_X86_ES7000 is not set
-> > # CONFIG_X86_VSMP is not set
-> > # CONFIG_M386 is not set
-> > # CONFIG_M486 is not set
-> > # CONFIG_M586 is not set
-> > # CONFIG_M586TSC is not set
-> > # CONFIG_M586MMX is not set
-> > # CONFIG_M686 is not set
-> > # CONFIG_MPENTIUMII is not set
-> > # CONFIG_MPENTIUMIII is not set
-> > # CONFIG_MPENTIUMM is not set
-> > # CONFIG_MPENTIUM4 is not set
-> > # CONFIG_MK6 is not set
-> > # CONFIG_MK7 is not set
-> > # CONFIG_MK8 is not set
-> > # CONFIG_MCRUSOE is not set
-> > # CONFIG_MEFFICEON is not set
-> > # CONFIG_MWINCHIPC6 is not set
-> > # CONFIG_MWINCHIP2 is not set
-> > # CONFIG_MWINCHIP3D is not set
-> > # CONFIG_MGEODEGX1 is not set
-> > # CONFIG_MGEODE_LX is not set
-> > # CONFIG_MCYRIXIII is not set
-> > # CONFIG_MVIAC3_2 is not set
-> > # CONFIG_MVIAC7 is not set
-> > # CONFIG_MPSC is not set
-> > # CONFIG_MCORE2 is not set
-> > CONFIG_GENERIC_CPU=y
-> > CONFIG_X86_L1_CACHE_BYTES=128
-> > CONFIG_X86_INTERNODE_CACHE_BYTES=128
-> > CONFIG_X86_CMPXCHG=y
-> > CONFIG_X86_L1_CACHE_SHIFT=7
-> > CONFIG_X86_GOOD_APIC=y
-> > CONFIG_X86_TSC=y
-> > CONFIG_X86_MINIMUM_CPU_FAMILY=64
-> > CONFIG_HPET_TIMER=y
-> > CONFIG_GART_IOMMU=y
-> > CONFIG_CALGARY_IOMMU=y
-> > CONFIG_CALGARY_IOMMU_ENABLED_BY_DEFAULT=y
-> > CONFIG_SWIOTLB=y
-> > CONFIG_NR_CPUS=64
-> > CONFIG_SCHED_SMT=y
-> > CONFIG_SCHED_MC=y
-> > # CONFIG_PREEMPT_NONE is not set
-> > # CONFIG_PREEMPT_VOLUNTARY is not set
-> > # CONFIG_PREEMPT_DESKTOP is not set
-> > CONFIG_PREEMPT_RT=y
-> > CONFIG_PREEMPT=y
-> > CONFIG_PREEMPT_SOFTIRQS=y
-> > CONFIG_PREEMPT_HARDIRQS=y
-> > CONFIG_PREEMPT_BKL=y
-> > # CONFIG_CLASSIC_RCU is not set
-> > CONFIG_PREEMPT_RCU=y
-> > CONFIG_PREEMPT_RCU_BOOST=y
-> > # CONFIG_RCU_TRACE is not set
-> > CONFIG_X86_LOCAL_APIC=y
-> > CONFIG_X86_IO_APIC=y
-> > CONFIG_X86_MCE=y
-> > CONFIG_X86_MCE_INTEL=y
-> > CONFIG_X86_MCE_AMD=y
-> > CONFIG_MICROCODE=m
-> > CONFIG_MICROCODE_OLD_INTERFACE=y
-> > CONFIG_X86_MSR=y
-> > CONFIG_X86_CPUID=y
-> > CONFIG_NUMA=y
-> > CONFIG_K8_NUMA=y
-> > CONFIG_X86_64_ACPI_NUMA=y
-> > # CONFIG_NUMA_EMU is not set
-> > CONFIG_NODES_SHIFT=6
-> > CONFIG_ARCH_DISCONTIGMEM_ENABLE=y
-> > CONFIG_ARCH_DISCONTIGMEM_DEFAULT=y
-> > CONFIG_ARCH_SPARSEMEM_ENABLE=y
-> > CONFIG_SELECT_MEMORY_MODEL=y
-> > # CONFIG_FLATMEM_MANUAL is not set
-> > # CONFIG_DISCONTIGMEM_MANUAL is not set
-> > CONFIG_SPARSEMEM_MANUAL=y
-> > CONFIG_SPARSEMEM=y
-> > CONFIG_NEED_MULTIPLE_NODES=y
-> > CONFIG_HAVE_MEMORY_PRESENT=y
-> > # CONFIG_SPARSEMEM_STATIC is not set
-> > CONFIG_SPARSEMEM_EXTREME=y
-> > CONFIG_SPARSEMEM_VMEMMAP_ENABLE=y
-> > CONFIG_SPARSEMEM_VMEMMAP=y
-> > 
-> > #
-> > # Memory hotplug is currently incompatible with Software Suspend
-> > #
-> > CONFIG_SPLIT_PTLOCK_CPUS=4
-> > CONFIG_MIGRATION=y
-> > CONFIG_RESOURCES_64BIT=y
-> > CONFIG_ZONE_DMA_FLAG=1
-> > CONFIG_BOUNCE=y
-> > CONFIG_VIRT_TO_BUS=y
-> > CONFIG_MTRR=y
-> > CONFIG_SECCOMP=y
-> > CONFIG_CC_STACKPROTECTOR=y
-> > # CONFIG_CC_STACKPROTECTOR_ALL is not set
-> > # CONFIG_HZ_100 is not set
-> > # CONFIG_HZ_250 is not set
-> > # CONFIG_HZ_300 is not set
-> > CONFIG_HZ_1000=y
-> > CONFIG_HZ=1000
-> > CONFIG_KEXEC=y
-> > CONFIG_CRASH_DUMP=y
-> > CONFIG_PHYSICAL_START=0x1000000
-> > CONFIG_RELOCATABLE=y
-> > CONFIG_PHYSICAL_ALIGN=0x200000
-> > CONFIG_HOTPLUG_CPU=y
-> > CONFIG_ARCH_ENABLE_MEMORY_HOTPLUG=y
-> > CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID=y
-> > CONFIG_HARDIRQS_SW_RESEND=y
-> > 
-> > #
-> > # Power management options
-> > #
-> > CONFIG_ARCH_HIBERNATION_HEADER=y
-> > CONFIG_PM=y
-> > CONFIG_PM_LEGACY=y
-> > CONFIG_PM_DEBUG=y
-> > # CONFIG_PM_VERBOSE is not set
-> > CONFIG_PM_TRACE=y
-> > CONFIG_PM_SLEEP_SMP=y
-> > CONFIG_PM_SLEEP=y
-> > CONFIG_SUSPEND_SMP_POSSIBLE=y
-> > CONFIG_SUSPEND=y
-> > CONFIG_HIBERNATION_SMP_POSSIBLE=y
-> > CONFIG_HIBERNATION=y
-> > CONFIG_PM_STD_PARTITION=""
-> > CONFIG_ACPI=y
-> > CONFIG_ACPI_SLEEP=y
-> > CONFIG_ACPI_PROCFS=y
-> > CONFIG_ACPI_PROCFS_POWER=y
-> > CONFIG_ACPI_SYSFS_POWER=y
-> > CONFIG_ACPI_PROC_EVENT=y
-> > CONFIG_ACPI_AC=m
-> > CONFIG_ACPI_BATTERY=m
-> > CONFIG_ACPI_BUTTON=m
-> > CONFIG_ACPI_VIDEO=m
-> > CONFIG_ACPI_FAN=y
-> > # CONFIG_ACPI_DOCK is not set
-> > CONFIG_ACPI_PROCESSOR=y
-> > CONFIG_ACPI_HOTPLUG_CPU=y
-> > CONFIG_ACPI_THERMAL=y
-> > CONFIG_ACPI_NUMA=y
-> > CONFIG_ACPI_ASUS=m
-> > CONFIG_ACPI_TOSHIBA=m
-> > CONFIG_ACPI_BLACKLIST_YEAR=0
-> > # CONFIG_ACPI_DEBUG is not set
-> > CONFIG_ACPI_EC=y
-> > CONFIG_ACPI_POWER=y
-> > CONFIG_ACPI_SYSTEM=y
-> > CONFIG_X86_PM_TIMER=y
-> > CONFIG_ACPI_CONTAINER=y
-> > CONFIG_ACPI_SBS=m
-> > 
-> > #
-> > # CPU Frequency scaling
-> > #
-> > CONFIG_CPU_FREQ=y
-> > CONFIG_CPU_FREQ_TABLE=y
-> > CONFIG_CPU_FREQ_DEBUG=y
-> > CONFIG_CPU_FREQ_STAT=m
-> > CONFIG_CPU_FREQ_STAT_DETAILS=y
-> > # CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE is not set
-> > CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE=y
-> > # CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND is not set
-> > # CONFIG_CPU_FREQ_DEFAULT_GOV_CONSERVATIVE is not set
-> > CONFIG_CPU_FREQ_GOV_PERFORMANCE=y
-> > CONFIG_CPU_FREQ_GOV_POWERSAVE=m
-> > CONFIG_CPU_FREQ_GOV_USERSPACE=y
-> > CONFIG_CPU_FREQ_GOV_ONDEMAND=m
-> > CONFIG_CPU_FREQ_GOV_CONSERVATIVE=m
-> > 
-> > #
-> > # CPUFreq processor drivers
-> > #
-> > CONFIG_X86_ACPI_CPUFREQ=m
-> > CONFIG_X86_POWERNOW_K8=y
-> > CONFIG_X86_POWERNOW_K8_ACPI=y
-> > # CONFIG_X86_SPEEDSTEP_CENTRINO is not set
-> > # CONFIG_X86_P4_CLOCKMOD is not set
-> > 
-> > #
-> > # shared options
-> > #
-> > # CONFIG_X86_ACPI_CPUFREQ_PROC_INTF is not set
-> > # CONFIG_X86_SPEEDSTEP_LIB is not set
-> > CONFIG_CPU_IDLE=y
-> > CONFIG_CPU_IDLE_GOV_LADDER=y
-> > CONFIG_CPU_IDLE_GOV_MENU=y
-> > 
-> > #
-> > # Bus options (PCI etc.)
-> > #
-> > CONFIG_PCI=y
-> > CONFIG_PCI_DIRECT=y
-> > CONFIG_PCI_MMCONFIG=y
-> > CONFIG_PCI_DOMAINS=y
-> > # CONFIG_DMAR is not set
-> > CONFIG_PCIEPORTBUS=y
-> > CONFIG_HOTPLUG_PCI_PCIE=m
-> > CONFIG_PCIEAER=y
-> > CONFIG_ARCH_SUPPORTS_MSI=y
-> > CONFIG_PCI_MSI=y
-> > # CONFIG_PCI_LEGACY is not set
-> > # CONFIG_PCI_DEBUG is not set
-> > CONFIG_HT_IRQ=y
-> > CONFIG_ISA_DMA_API=y
-> > CONFIG_K8_NB=y
-> > CONFIG_PCCARD=y
-> > # CONFIG_PCMCIA_DEBUG is not set
-> > CONFIG_PCMCIA=y
-> > CONFIG_PCMCIA_LOAD_CIS=y
-> > CONFIG_PCMCIA_IOCTL=y
-> > CONFIG_CARDBUS=y
-> > 
-> > #
-> > # PC-card bridges
-> > #
-> > # CONFIG_YENTA is not set
-> > CONFIG_PD6729=m
-> > CONFIG_I82092=m
-> > CONFIG_PCCARD_NONSTATIC=m
-> > CONFIG_HOTPLUG_PCI=y
-> > CONFIG_HOTPLUG_PCI_FAKE=m
-> > CONFIG_HOTPLUG_PCI_ACPI=m
-> > CONFIG_HOTPLUG_PCI_ACPI_IBM=m
-> > # CONFIG_HOTPLUG_PCI_CPCI is not set
-> > CONFIG_HOTPLUG_PCI_SHPC=m
-> > 
-> > #
-> > # Executable file formats / Emulations
-> > #
-> > CONFIG_BINFMT_ELF=y
-> > CONFIG_BINFMT_MISC=y
-> > CONFIG_IA32_EMULATION=y
-> > # CONFIG_IA32_AOUT is not set
-> > CONFIG_COMPAT=y
-> > CONFIG_COMPAT_FOR_U64_ALIGNMENT=y
-> > CONFIG_SYSVIPC_COMPAT=y
-> > 
-> > #
-> > # Networking
-> > #
-> > CONFIG_NET=y
-> > 
-> > #
-> > # Networking options
-> > #
-> > CONFIG_PACKET=y
-> > CONFIG_PACKET_MMAP=y
-> > CONFIG_UNIX=y
-> > CONFIG_XFRM=y
-> > CONFIG_XFRM_USER=y
-> > CONFIG_XFRM_SUB_POLICY=y
-> > CONFIG_XFRM_MIGRATE=y
-> > CONFIG_NET_KEY=m
-> > CONFIG_NET_KEY_MIGRATE=y
-> > CONFIG_INET=y
-> > CONFIG_IP_MULTICAST=y
-> > CONFIG_IP_ADVANCED_ROUTER=y
-> > CONFIG_ASK_IP_FIB_HASH=y
-> > # CONFIG_IP_FIB_TRIE is not set
-> > CONFIG_IP_FIB_HASH=y
-> > CONFIG_IP_MULTIPLE_TABLES=y
-> > CONFIG_IP_ROUTE_MULTIPATH=y
-> > CONFIG_IP_ROUTE_VERBOSE=y
-> > # CONFIG_IP_PNP is not set
-> > CONFIG_NET_IPIP=m
-> > CONFIG_NET_IPGRE=m
-> > CONFIG_NET_IPGRE_BROADCAST=y
-> > CONFIG_IP_MROUTE=y
-> > CONFIG_IP_PIMSM_V1=y
-> > CONFIG_IP_PIMSM_V2=y
-> > # CONFIG_ARPD is not set
-> > CONFIG_SYN_COOKIES=y
-> > CONFIG_INET_AH=m
-> > CONFIG_INET_ESP=m
-> > CONFIG_INET_IPCOMP=m
-> > CONFIG_INET_XFRM_TUNNEL=m
-> > CONFIG_INET_TUNNEL=m
-> > CONFIG_INET_XFRM_MODE_TRANSPORT=m
-> > CONFIG_INET_XFRM_MODE_TUNNEL=m
-> > CONFIG_INET_XFRM_MODE_BEET=m
-> > CONFIG_INET_LRO=y
-> > CONFIG_INET_DIAG=m
-> > CONFIG_INET_TCP_DIAG=m
-> > CONFIG_TCP_CONG_ADVANCED=y
-> > CONFIG_TCP_CONG_BIC=m
-> > CONFIG_TCP_CONG_CUBIC=y
-> > CONFIG_TCP_CONG_WESTWOOD=m
-> > CONFIG_TCP_CONG_HTCP=m
-> > CONFIG_TCP_CONG_HSTCP=m
-> > CONFIG_TCP_CONG_HYBLA=m
-> > CONFIG_TCP_CONG_VEGAS=m
-> > CONFIG_TCP_CONG_SCALABLE=m
-> > CONFIG_TCP_CONG_LP=m
-> > CONFIG_TCP_CONG_VENO=m
-> > CONFIG_TCP_CONG_YEAH=m
-> > CONFIG_TCP_CONG_ILLINOIS=m
-> > # CONFIG_DEFAULT_BIC is not set
-> > CONFIG_DEFAULT_CUBIC=y
-> > # CONFIG_DEFAULT_HTCP is not set
-> > # CONFIG_DEFAULT_VEGAS is not set
-> > # CONFIG_DEFAULT_WESTWOOD is not set
-> > # CONFIG_DEFAULT_RENO is not set
-> > CONFIG_DEFAULT_TCP_CONG="cubic"
-> > CONFIG_TCP_MD5SIG=y
-> > CONFIG_IP_VS=m
-> > # CONFIG_IP_VS_DEBUG is not set
-> > CONFIG_IP_VS_TAB_BITS=12
-> > 
-> > #
-> > # IPVS transport protocol load balancing support
-> > #
-> > CONFIG_IP_VS_PROTO_TCP=y
-> > CONFIG_IP_VS_PROTO_UDP=y
-> > CONFIG_IP_VS_PROTO_ESP=y
-> > CONFIG_IP_VS_PROTO_AH=y
-> > 
-> > #
-> > # IPVS scheduler
-> > #
-> > CONFIG_IP_VS_RR=m
-> > CONFIG_IP_VS_WRR=m
-> > CONFIG_IP_VS_LC=m
-> > CONFIG_IP_VS_WLC=m
-> > CONFIG_IP_VS_LBLC=m
-> > CONFIG_IP_VS_LBLCR=m
-> > CONFIG_IP_VS_DH=m
-> > CONFIG_IP_VS_SH=m
-> > CONFIG_IP_VS_SED=m
-> > CONFIG_IP_VS_NQ=m
-> > 
-> > #
-> > # IPVS application helper
-> > #
-> > CONFIG_IP_VS_FTP=m
-> > CONFIG_IPV6=m
-> > CONFIG_IPV6_PRIVACY=y
-> > CONFIG_IPV6_ROUTER_PREF=y
-> > CONFIG_IPV6_ROUTE_INFO=y
-> > CONFIG_IPV6_OPTIMISTIC_DAD=y
-> > CONFIG_INET6_AH=m
-> > CONFIG_INET6_ESP=m
-> > CONFIG_INET6_IPCOMP=m
-> > CONFIG_IPV6_MIP6=m
-> > CONFIG_INET6_XFRM_TUNNEL=m
-> > CONFIG_INET6_TUNNEL=m
-> > CONFIG_INET6_XFRM_MODE_TRANSPORT=m
-> > CONFIG_INET6_XFRM_MODE_TUNNEL=m
-> > CONFIG_INET6_XFRM_MODE_BEET=m
-> > CONFIG_INET6_XFRM_MODE_ROUTEOPTIMIZATION=m
-> > CONFIG_IPV6_SIT=m
-> > CONFIG_IPV6_TUNNEL=m
-> > CONFIG_IPV6_MULTIPLE_TABLES=y
-> > CONFIG_IPV6_SUBTREES=y
-> > CONFIG_NETLABEL=y
-> > CONFIG_NETWORK_SECMARK=y
-> > CONFIG_NETFILTER=y
-> > # CONFIG_NETFILTER_DEBUG is not set
-> > CONFIG_BRIDGE_NETFILTER=y
-> > 
-> > #
-> > # Core Netfilter Configuration
-> > #
-> > CONFIG_NETFILTER_NETLINK=m
-> > CONFIG_NETFILTER_NETLINK_QUEUE=m
-> > CONFIG_NETFILTER_NETLINK_LOG=m
-> > CONFIG_NF_CONNTRACK_ENABLED=m
-> > CONFIG_NF_CONNTRACK=m
-> > CONFIG_NF_CT_ACCT=y
-> > CONFIG_NF_CONNTRACK_MARK=y
-> > CONFIG_NF_CONNTRACK_SECMARK=y
-> > CONFIG_NF_CONNTRACK_EVENTS=y
-> > CONFIG_NF_CT_PROTO_GRE=m
-> > CONFIG_NF_CT_PROTO_SCTP=m
-> > CONFIG_NF_CT_PROTO_UDPLITE=m
-> > CONFIG_NF_CONNTRACK_AMANDA=m
-> > CONFIG_NF_CONNTRACK_FTP=m
-> > CONFIG_NF_CONNTRACK_H323=m
-> > CONFIG_NF_CONNTRACK_IRC=m
-> > CONFIG_NF_CONNTRACK_NETBIOS_NS=m
-> > CONFIG_NF_CONNTRACK_PPTP=m
-> > CONFIG_NF_CONNTRACK_SANE=m
-> > CONFIG_NF_CONNTRACK_SIP=m
-> > CONFIG_NF_CONNTRACK_TFTP=m
-> > CONFIG_NF_CT_NETLINK=m
-> > CONFIG_NETFILTER_XTABLES=m
-> > CONFIG_NETFILTER_XT_TARGET_CLASSIFY=m
-> > CONFIG_NETFILTER_XT_TARGET_CONNMARK=m
-> > CONFIG_NETFILTER_XT_TARGET_DSCP=m
-> > CONFIG_NETFILTER_XT_TARGET_MARK=m
-> > CONFIG_NETFILTER_XT_TARGET_NFQUEUE=m
-> > CONFIG_NETFILTER_XT_TARGET_NFLOG=m
-> > CONFIG_NETFILTER_XT_TARGET_NOTRACK=m
-> > CONFIG_NETFILTER_XT_TARGET_TRACE=m
-> > CONFIG_NETFILTER_XT_TARGET_SECMARK=m
-> > CONFIG_NETFILTER_XT_TARGET_CONNSECMARK=m
-> > CONFIG_NETFILTER_XT_TARGET_TCPMSS=m
-> > CONFIG_NETFILTER_XT_MATCH_COMMENT=m
-> > CONFIG_NETFILTER_XT_MATCH_CONNBYTES=m
-> > CONFIG_NETFILTER_XT_MATCH_CONNLIMIT=m
-> > CONFIG_NETFILTER_XT_MATCH_CONNMARK=m
-> > CONFIG_NETFILTER_XT_MATCH_CONNTRACK=m
-> > CONFIG_NETFILTER_XT_MATCH_DCCP=m
-> > CONFIG_NETFILTER_XT_MATCH_DSCP=m
-> > CONFIG_NETFILTER_XT_MATCH_ESP=m
-> > CONFIG_NETFILTER_XT_MATCH_HELPER=m
-> > CONFIG_NETFILTER_XT_MATCH_LENGTH=m
-> > CONFIG_NETFILTER_XT_MATCH_LIMIT=m
-> > CONFIG_NETFILTER_XT_MATCH_MAC=m
-> > CONFIG_NETFILTER_XT_MATCH_MARK=m
-> > CONFIG_NETFILTER_XT_MATCH_POLICY=m
-> > CONFIG_NETFILTER_XT_MATCH_MULTIPORT=m
-> > CONFIG_NETFILTER_XT_MATCH_PHYSDEV=m
-> > CONFIG_NETFILTER_XT_MATCH_PKTTYPE=m
-> > CONFIG_NETFILTER_XT_MATCH_QUOTA=m
-> > CONFIG_NETFILTER_XT_MATCH_REALM=m
-> > CONFIG_NETFILTER_XT_MATCH_SCTP=m
-> > CONFIG_NETFILTER_XT_MATCH_STATE=m
-> > CONFIG_NETFILTER_XT_MATCH_STATISTIC=m
-> > CONFIG_NETFILTER_XT_MATCH_STRING=m
-> > CONFIG_NETFILTER_XT_MATCH_TCPMSS=m
-> > CONFIG_NETFILTER_XT_MATCH_TIME=m
-> > CONFIG_NETFILTER_XT_MATCH_U32=m
-> > CONFIG_NETFILTER_XT_MATCH_HASHLIMIT=m
-> > 
-> > #
-> > # IP: Netfilter Configuration
-> > #
-> > CONFIG_NF_CONNTRACK_IPV4=m
-> > # CONFIG_NF_CONNTRACK_PROC_COMPAT is not set
-> > CONFIG_IP_NF_QUEUE=m
-> > CONFIG_IP_NF_IPTABLES=m
-> > CONFIG_IP_NF_MATCH_IPRANGE=m
-> > CONFIG_IP_NF_MATCH_TOS=m
-> > CONFIG_IP_NF_MATCH_RECENT=m
-> > CONFIG_IP_NF_MATCH_ECN=m
-> > CONFIG_IP_NF_MATCH_AH=m
-> > CONFIG_IP_NF_MATCH_TTL=m
-> > CONFIG_IP_NF_MATCH_OWNER=m
-> > CONFIG_IP_NF_MATCH_ADDRTYPE=m
-> > CONFIG_IP_NF_FILTER=m
-> > CONFIG_IP_NF_TARGET_REJECT=m
-> > CONFIG_IP_NF_TARGET_LOG=m
-> > CONFIG_IP_NF_TARGET_ULOG=m
-> > CONFIG_NF_NAT=m
-> > CONFIG_NF_NAT_NEEDED=y
-> > CONFIG_IP_NF_TARGET_MASQUERADE=m
-> > CONFIG_IP_NF_TARGET_REDIRECT=m
-> > CONFIG_IP_NF_TARGET_NETMAP=m
-> > CONFIG_IP_NF_TARGET_SAME=m
-> > CONFIG_NF_NAT_SNMP_BASIC=m
-> > CONFIG_NF_NAT_PROTO_GRE=m
-> > CONFIG_NF_NAT_FTP=m
-> > CONFIG_NF_NAT_IRC=m
-> > CONFIG_NF_NAT_TFTP=m
-> > CONFIG_NF_NAT_AMANDA=m
-> > CONFIG_NF_NAT_PPTP=m
-> > CONFIG_NF_NAT_H323=m
-> > CONFIG_NF_NAT_SIP=m
-> > CONFIG_IP_NF_MANGLE=m
-> > CONFIG_IP_NF_TARGET_TOS=m
-> > CONFIG_IP_NF_TARGET_ECN=m
-> > CONFIG_IP_NF_TARGET_TTL=m
-> > CONFIG_IP_NF_TARGET_CLUSTERIP=m
-> > CONFIG_IP_NF_RAW=m
-> > CONFIG_IP_NF_ARPTABLES=m
-> > CONFIG_IP_NF_ARPFILTER=m
-> > CONFIG_IP_NF_ARP_MANGLE=m
-> > 
-> > #
-> > # IPv6: Netfilter Configuration (EXPERIMENTAL)
-> > #
-> > CONFIG_NF_CONNTRACK_IPV6=m
-> > CONFIG_IP6_NF_QUEUE=m
-> > CONFIG_IP6_NF_IPTABLES=m
-> > CONFIG_IP6_NF_MATCH_RT=m
-> > CONFIG_IP6_NF_MATCH_OPTS=m
-> > CONFIG_IP6_NF_MATCH_FRAG=m
-> > CONFIG_IP6_NF_MATCH_HL=m
-> > CONFIG_IP6_NF_MATCH_OWNER=m
-> > CONFIG_IP6_NF_MATCH_IPV6HEADER=m
-> > CONFIG_IP6_NF_MATCH_AH=m
-> > CONFIG_IP6_NF_MATCH_MH=m
-> > CONFIG_IP6_NF_MATCH_EUI64=m
-> > CONFIG_IP6_NF_FILTER=m
-> > CONFIG_IP6_NF_TARGET_LOG=m
-> > CONFIG_IP6_NF_TARGET_REJECT=m
-> > CONFIG_IP6_NF_MANGLE=m
-> > CONFIG_IP6_NF_TARGET_HL=m
-> > CONFIG_IP6_NF_RAW=m
-> > 
-> > #
-> > # DECnet: Netfilter Configuration
-> > #
-> > # CONFIG_DECNET_NF_GRABULATOR is not set
-> > 
-> > #
-> > # Bridge: Netfilter Configuration
-> > #
-> > CONFIG_BRIDGE_NF_EBTABLES=m
-> > CONFIG_BRIDGE_EBT_BROUTE=m
-> > CONFIG_BRIDGE_EBT_T_FILTER=m
-> > CONFIG_BRIDGE_EBT_T_NAT=m
-> > CONFIG_BRIDGE_EBT_802_3=m
-> > CONFIG_BRIDGE_EBT_AMONG=m
-> > CONFIG_BRIDGE_EBT_ARP=m
-> > CONFIG_BRIDGE_EBT_IP=m
-> > CONFIG_BRIDGE_EBT_LIMIT=m
-> > CONFIG_BRIDGE_EBT_MARK=m
-> > CONFIG_BRIDGE_EBT_PKTTYPE=m
-> > CONFIG_BRIDGE_EBT_STP=m
-> > CONFIG_BRIDGE_EBT_VLAN=m
-> > CONFIG_BRIDGE_EBT_ARPREPLY=m
-> > CONFIG_BRIDGE_EBT_DNAT=m
-> > CONFIG_BRIDGE_EBT_MARK_T=m
-> > CONFIG_BRIDGE_EBT_REDIRECT=m
-> > CONFIG_BRIDGE_EBT_SNAT=m
-> > CONFIG_BRIDGE_EBT_LOG=m
-> > CONFIG_BRIDGE_EBT_ULOG=m
-> > CONFIG_IP_DCCP=m
-> > CONFIG_INET_DCCP_DIAG=m
-> > CONFIG_IP_DCCP_ACKVEC=y
-> > 
-> > #
-> > # DCCP CCIDs Configuration (EXPERIMENTAL)
-> > #
-> > CONFIG_IP_DCCP_CCID2=m
-> > # CONFIG_IP_DCCP_CCID2_DEBUG is not set
-> > CONFIG_IP_DCCP_CCID3=m
-> > CONFIG_IP_DCCP_TFRC_LIB=m
-> > # CONFIG_IP_DCCP_CCID3_DEBUG is not set
-> > CONFIG_IP_DCCP_CCID3_RTO=100
-> > 
-> > #
-> > # DCCP Kernel Hacking
-> > #
-> > # CONFIG_IP_DCCP_DEBUG is not set
-> > CONFIG_NET_DCCPPROBE=m
-> > CONFIG_IP_SCTP=m
-> > # CONFIG_SCTP_DBG_MSG is not set
-> > # CONFIG_SCTP_DBG_OBJCNT is not set
-> > # CONFIG_SCTP_HMAC_NONE is not set
-> > # CONFIG_SCTP_HMAC_SHA1 is not set
-> > CONFIG_SCTP_HMAC_MD5=y
-> > CONFIG_TIPC=m
-> > # CONFIG_TIPC_ADVANCED is not set
-> > # CONFIG_TIPC_DEBUG is not set
-> > CONFIG_ATM=m
-> > CONFIG_ATM_CLIP=m
-> > # CONFIG_ATM_CLIP_NO_ICMP is not set
-> > CONFIG_ATM_LANE=m
-> > # CONFIG_ATM_MPOA is not set
-> > CONFIG_ATM_BR2684=m
-> > # CONFIG_ATM_BR2684_IPFILTER is not set
-> > CONFIG_BRIDGE=m
-> > CONFIG_VLAN_8021Q=m
-> > CONFIG_DECNET=m
-> > CONFIG_DECNET_ROUTER=y
-> > CONFIG_LLC=y
-> > # CONFIG_LLC2 is not set
-> > CONFIG_IPX=m
-> > # CONFIG_IPX_INTERN is not set
-> > CONFIG_ATALK=m
-> > CONFIG_DEV_APPLETALK=m
-> > CONFIG_IPDDP=m
-> > CONFIG_IPDDP_ENCAP=y
-> > CONFIG_IPDDP_DECAP=y
-> > # CONFIG_X25 is not set
-> > # CONFIG_LAPB is not set
-> > # CONFIG_ECONET is not set
-> > CONFIG_WAN_ROUTER=m
-> > CONFIG_NET_SCHED=y
-> > 
-> > #
-> > # Queueing/Scheduling
-> > #
-> > CONFIG_NET_SCH_CBQ=m
-> > CONFIG_NET_SCH_HTB=m
-> > CONFIG_NET_SCH_HFSC=m
-> > CONFIG_NET_SCH_ATM=m
-> > CONFIG_NET_SCH_PRIO=m
-> > CONFIG_NET_SCH_RR=m
-> > CONFIG_NET_SCH_RED=m
-> > CONFIG_NET_SCH_SFQ=m
-> > CONFIG_NET_SCH_TEQL=m
-> > CONFIG_NET_SCH_TBF=m
-> > CONFIG_NET_SCH_GRED=m
-> > CONFIG_NET_SCH_DSMARK=m
-> > CONFIG_NET_SCH_NETEM=m
-> > CONFIG_NET_SCH_INGRESS=m
-> > 
-> > #
-> > # Classification
-> > #
-> > CONFIG_NET_CLS=y
-> > CONFIG_NET_CLS_BASIC=m
-> > CONFIG_NET_CLS_TCINDEX=m
-> > CONFIG_NET_CLS_ROUTE4=m
-> > CONFIG_NET_CLS_ROUTE=y
-> > CONFIG_NET_CLS_FW=m
-> > CONFIG_NET_CLS_U32=m
-> > CONFIG_CLS_U32_PERF=y
-> > CONFIG_CLS_U32_MARK=y
-> > CONFIG_NET_CLS_RSVP=m
-> > CONFIG_NET_CLS_RSVP6=m
-> > CONFIG_NET_EMATCH=y
-> > CONFIG_NET_EMATCH_STACK=32
-> > CONFIG_NET_EMATCH_CMP=m
-> > CONFIG_NET_EMATCH_NBYTE=m
-> > CONFIG_NET_EMATCH_U32=m
-> > CONFIG_NET_EMATCH_META=m
-> > CONFIG_NET_EMATCH_TEXT=m
-> > CONFIG_NET_CLS_ACT=y
-> > CONFIG_NET_ACT_POLICE=y
-> > CONFIG_NET_ACT_GACT=m
-> > CONFIG_GACT_PROB=y
-> > CONFIG_NET_ACT_MIRRED=m
-> > CONFIG_NET_ACT_IPT=m
-> > CONFIG_NET_ACT_NAT=m
-> > CONFIG_NET_ACT_PEDIT=m
-> > CONFIG_NET_ACT_SIMP=m
-> > CONFIG_NET_CLS_POLICE=y
-> > CONFIG_NET_CLS_IND=y
-> > CONFIG_NET_SCH_FIFO=y
-> > 
-> > #
-> > # Network testing
-> > #
-> > CONFIG_NET_PKTGEN=m
-> > # CONFIG_NET_TCPPROBE is not set
-> > # CONFIG_HAMRADIO is not set
-> > # CONFIG_IRDA is not set
-> > CONFIG_BT=m
-> > CONFIG_BT_L2CAP=m
-> > CONFIG_BT_SCO=m
-> > CONFIG_BT_RFCOMM=m
-> > CONFIG_BT_RFCOMM_TTY=y
-> > CONFIG_BT_BNEP=m
-> > CONFIG_BT_BNEP_MC_FILTER=y
-> > CONFIG_BT_BNEP_PROTO_FILTER=y
-> > CONFIG_BT_CMTP=m
-> > CONFIG_BT_HIDP=m
-> > 
-> > #
-> > # Bluetooth device drivers
-> > #
-> > CONFIG_BT_HCIUSB=m
-> > CONFIG_BT_HCIUSB_SCO=y
-> > CONFIG_BT_HCIBTSDIO=m
-> > CONFIG_BT_HCIUART=m
-> > CONFIG_BT_HCIUART_H4=y
-> > CONFIG_BT_HCIUART_BCSP=y
-> > CONFIG_BT_HCIUART_LL=y
-> > CONFIG_BT_HCIBCM203X=m
-> > CONFIG_BT_HCIBPA10X=m
-> > CONFIG_BT_HCIBFUSB=m
-> > CONFIG_BT_HCIDTL1=m
-> > CONFIG_BT_HCIBT3C=m
-> > CONFIG_BT_HCIBLUECARD=m
-> > CONFIG_BT_HCIBTUART=m
-> > CONFIG_BT_HCIVHCI=m
-> > CONFIG_AF_RXRPC=m
-> > # CONFIG_AF_RXRPC_DEBUG is not set
-> > CONFIG_RXKAD=m
-> > CONFIG_FIB_RULES=y
-> > 
-> > #
-> > # Wireless
-> > #
-> > CONFIG_CFG80211=m
-> > CONFIG_NL80211=y
-> > CONFIG_WIRELESS_EXT=y
-> > CONFIG_MAC80211=m
-> > CONFIG_MAC80211_RCSIMPLE=y
-> > CONFIG_MAC80211_LEDS=y
-> > CONFIG_MAC80211_DEBUGFS=y
-> > # CONFIG_MAC80211_DEBUG is not set
-> > CONFIG_IEEE80211=m
-> > # CONFIG_IEEE80211_DEBUG is not set
-> > CONFIG_IEEE80211_CRYPT_WEP=m
-> > CONFIG_IEEE80211_CRYPT_CCMP=m
-> > CONFIG_IEEE80211_CRYPT_TKIP=m
-> > CONFIG_IEEE80211_SOFTMAC=m
-> > CONFIG_IEEE80211_SOFTMAC_DEBUG=y
-> > CONFIG_RFKILL=m
-> > CONFIG_RFKILL_INPUT=m
-> > CONFIG_RFKILL_LEDS=y
-> > CONFIG_NET_9P=m
-> > CONFIG_NET_9P_FD=m
-> > # CONFIG_NET_9P_DEBUG is not set
-> > 
-> > #
-> > # Device Drivers
-> > #
-> > 
-> > #
-> > # Generic Driver Options
-> > #
-> > CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
-> > CONFIG_STANDALONE=y
-> > CONFIG_PREVENT_FIRMWARE_BUILD=y
-> > CONFIG_FW_LOADER=y
-> > # CONFIG_DEBUG_DRIVER is not set
-> > CONFIG_DEBUG_DEVRES=y
-> > # CONFIG_SYS_HYPERVISOR is not set
-> > CONFIG_CONNECTOR=y
-> > CONFIG_PROC_EVENTS=y
-> > CONFIG_MTD=m
-> > # CONFIG_MTD_DEBUG is not set
-> > CONFIG_MTD_CONCAT=m
-> > CONFIG_MTD_PARTITIONS=y
-> > CONFIG_MTD_REDBOOT_PARTS=m
-> > CONFIG_MTD_REDBOOT_DIRECTORY_BLOCK=-1
-> > # CONFIG_MTD_REDBOOT_PARTS_UNALLOCATED is not set
-> > # CONFIG_MTD_REDBOOT_PARTS_READONLY is not set
-> > 
-> > #
-> > # User Modules And Translation Layers
-> > #
-> > CONFIG_MTD_CHAR=m
-> > CONFIG_MTD_BLKDEVS=m
-> > CONFIG_MTD_BLOCK=m
-> > CONFIG_MTD_BLOCK_RO=m
-> > CONFIG_FTL=m
-> > CONFIG_NFTL=m
-> > CONFIG_NFTL_RW=y
-> > CONFIG_INFTL=m
-> > CONFIG_RFD_FTL=m
-> > CONFIG_SSFDC=m
-> > CONFIG_MTD_OOPS=m
-> > 
-> > #
-> > # RAM/ROM/Flash chip drivers
-> > #
-> > CONFIG_MTD_CFI=m
-> > CONFIG_MTD_JEDECPROBE=m
-> > CONFIG_MTD_GEN_PROBE=m
-> > # CONFIG_MTD_CFI_ADV_OPTIONS is not set
-> > CONFIG_MTD_MAP_BANK_WIDTH_1=y
-> > CONFIG_MTD_MAP_BANK_WIDTH_2=y
-> > CONFIG_MTD_MAP_BANK_WIDTH_4=y
-> > # CONFIG_MTD_MAP_BANK_WIDTH_8 is not set
-> > # CONFIG_MTD_MAP_BANK_WIDTH_16 is not set
-> > # CONFIG_MTD_MAP_BANK_WIDTH_32 is not set
-> > CONFIG_MTD_CFI_I1=y
-> > CONFIG_MTD_CFI_I2=y
-> > # CONFIG_MTD_CFI_I4 is not set
-> > # CONFIG_MTD_CFI_I8 is not set
-> > CONFIG_MTD_CFI_INTELEXT=m
-> > CONFIG_MTD_CFI_AMDSTD=m
-> > CONFIG_MTD_CFI_STAA=m
-> > CONFIG_MTD_CFI_UTIL=m
-> > CONFIG_MTD_RAM=m
-> > CONFIG_MTD_ROM=m
-> > CONFIG_MTD_ABSENT=m
-> > 
-> > #
-> > # Mapping drivers for chip access
-> > #
-> > CONFIG_MTD_COMPLEX_MAPPINGS=y
-> > # CONFIG_MTD_PHYSMAP is not set
-> > # CONFIG_MTD_PNC2000 is not set
-> > CONFIG_MTD_SC520CDP=m
-> > CONFIG_MTD_NETSC520=m
-> > CONFIG_MTD_TS5500=m
-> > # CONFIG_MTD_SBC_GXX is not set
-> > # CONFIG_MTD_AMD76XROM is not set
-> > # CONFIG_MTD_ICHXROM is not set
-> > CONFIG_MTD_ESB2ROM=m
-> > # CONFIG_MTD_CK804XROM is not set
-> > CONFIG_MTD_SCB2_FLASH=m
-> > # CONFIG_MTD_NETtel is not set
-> > # CONFIG_MTD_DILNETPC is not set
-> > # CONFIG_MTD_L440GX is not set
-> > CONFIG_MTD_PCI=m
-> > # CONFIG_MTD_INTEL_VR_NOR is not set
-> > # CONFIG_MTD_PLATRAM is not set
-> > 
-> > #
-> > # Self-contained MTD device drivers
-> > #
-> > CONFIG_MTD_PMC551=m
-> > # CONFIG_MTD_PMC551_BUGFIX is not set
-> > # CONFIG_MTD_PMC551_DEBUG is not set
-> > # CONFIG_MTD_SLRAM is not set
-> > # CONFIG_MTD_PHRAM is not set
-> > CONFIG_MTD_MTDRAM=m
-> > CONFIG_MTDRAM_TOTAL_SIZE=4096
-> > CONFIG_MTDRAM_ERASE_SIZE=128
-> > CONFIG_MTD_BLOCK2MTD=m
-> > 
-> > #
-> > # Disk-On-Chip Device Drivers
-> > #
-> > # CONFIG_MTD_DOC2000 is not set
-> > # CONFIG_MTD_DOC2001 is not set
-> > # CONFIG_MTD_DOC2001PLUS is not set
-> > CONFIG_MTD_NAND=m
-> > # CONFIG_MTD_NAND_VERIFY_WRITE is not set
-> > CONFIG_MTD_NAND_ECC_SMC=y
-> > # CONFIG_MTD_NAND_MUSEUM_IDS is not set
-> > CONFIG_MTD_NAND_IDS=m
-> > CONFIG_MTD_NAND_DISKONCHIP=m
-> > # CONFIG_MTD_NAND_DISKONCHIP_PROBE_ADVANCED is not set
-> > CONFIG_MTD_NAND_DISKONCHIP_PROBE_ADDRESS=0
-> > # CONFIG_MTD_NAND_DISKONCHIP_BBTWRITE is not set
-> > # CONFIG_MTD_NAND_CAFE is not set
-> > CONFIG_MTD_NAND_NANDSIM=m
-> > # CONFIG_MTD_NAND_PLATFORM is not set
-> > CONFIG_MTD_ALAUDA=m
-> > # CONFIG_MTD_ONENAND is not set
-> > 
-> > #
-> > # UBI - Unsorted block images
-> > #
-> > CONFIG_MTD_UBI=m
-> > CONFIG_MTD_UBI_WL_THRESHOLD=4096
-> > CONFIG_MTD_UBI_BEB_RESERVE=1
-> > # CONFIG_MTD_UBI_GLUEBI is not set
-> > 
-> > #
-> > # UBI debugging options
-> > #
-> > # CONFIG_MTD_UBI_DEBUG is not set
-> > CONFIG_PARPORT=m
-> > CONFIG_PARPORT_PC=m
-> > CONFIG_PARPORT_SERIAL=m
-> > # CONFIG_PARPORT_PC_FIFO is not set
-> > # CONFIG_PARPORT_PC_SUPERIO is not set
-> > CONFIG_PARPORT_PC_PCMCIA=m
-> > # CONFIG_PARPORT_GSC is not set
-> > # CONFIG_PARPORT_AX88796 is not set
-> > CONFIG_PARPORT_1284=y
-> > CONFIG_PARPORT_NOT_PC=y
-> > CONFIG_PNP=y
-> > # CONFIG_PNP_DEBUG is not set
-> > 
-> > #
-> > # Protocols
-> > #
-> > CONFIG_PNPACPI=y
-> > CONFIG_BLK_DEV=y
-> > CONFIG_BLK_DEV_FD=m
-> > CONFIG_PARIDE=m
-> > 
-> > #
-> > # Parallel IDE high-level drivers
-> > #
-> > CONFIG_PARIDE_PD=m
-> > CONFIG_PARIDE_PCD=m
-> > CONFIG_PARIDE_PF=m
-> > CONFIG_PARIDE_PT=m
-> > CONFIG_PARIDE_PG=m
-> > 
-> > #
-> > # Parallel IDE protocol modules
-> > #
-> > CONFIG_PARIDE_ATEN=m
-> > CONFIG_PARIDE_BPCK=m
-> > CONFIG_PARIDE_COMM=m
-> > CONFIG_PARIDE_DSTR=m
-> > CONFIG_PARIDE_FIT2=m
-> > CONFIG_PARIDE_FIT3=m
-> > CONFIG_PARIDE_EPAT=m
-> > CONFIG_PARIDE_EPATC8=y
-> > CONFIG_PARIDE_EPIA=m
-> > CONFIG_PARIDE_FRIQ=m
-> > CONFIG_PARIDE_FRPW=m
-> > CONFIG_PARIDE_KBIC=m
-> > CONFIG_PARIDE_KTTI=m
-> > CONFIG_PARIDE_ON20=m
-> > CONFIG_PARIDE_ON26=m
-> > CONFIG_BLK_CPQ_DA=m
-> > CONFIG_BLK_CPQ_CISS_DA=m
-> > CONFIG_CISS_SCSI_TAPE=y
-> > CONFIG_BLK_DEV_DAC960=m
-> > CONFIG_BLK_DEV_UMEM=m
-> > # CONFIG_BLK_DEV_COW_COMMON is not set
-> > CONFIG_BLK_DEV_LOOP=m
-> > CONFIG_BLK_DEV_CRYPTOLOOP=m
-> > CONFIG_BLK_DEV_NBD=m
-> > CONFIG_BLK_DEV_SX8=m
-> > # CONFIG_BLK_DEV_UB is not set
-> > CONFIG_BLK_DEV_RAM=y
-> > CONFIG_BLK_DEV_RAM_COUNT=16
-> > CONFIG_BLK_DEV_RAM_SIZE=16384
-> > CONFIG_BLK_DEV_RAM_BLOCKSIZE=4096
-> > CONFIG_CDROM_PKTCDVD=m
-> > CONFIG_CDROM_PKTCDVD_BUFFERS=8
-> > # CONFIG_CDROM_PKTCDVD_WCACHE is not set
-> > CONFIG_ATA_OVER_ETH=m
-> > CONFIG_MISC_DEVICES=y
-> > CONFIG_IBM_RTL=m
-> > CONFIG_IBM_ASM=m
-> > # CONFIG_PHANTOM is not set
-> > CONFIG_EEPROM_93CX6=m
-> > CONFIG_SGI_IOC4=m
-> > CONFIG_TIFM_CORE=m
-> > CONFIG_TIFM_7XX1=m
-> > CONFIG_ASUS_LAPTOP=m
-> > CONFIG_FUJITSU_LAPTOP=m
-> > CONFIG_MSI_LAPTOP=m
-> > CONFIG_SONY_LAPTOP=m
-> > CONFIG_SONYPI_COMPAT=y
-> > CONFIG_THINKPAD_ACPI=m
-> > # CONFIG_THINKPAD_ACPI_DEBUG is not set
-> > # CONFIG_THINKPAD_ACPI_DOCK is not set
-> > CONFIG_THINKPAD_ACPI_BAY=y
-> > # CONFIG_IDE is not set
-> > 
-> > #
-> > # SCSI device support
-> > #
-> > CONFIG_RAID_ATTRS=m
-> > CONFIG_SCSI=m
-> > CONFIG_SCSI_DMA=y
-> > CONFIG_SCSI_TGT=m
-> > CONFIG_SCSI_NETLINK=y
-> > CONFIG_SCSI_PROC_FS=y
-> > 
-> > #
-> > # SCSI support type (disk, tape, CD-ROM)
-> > #
-> > CONFIG_BLK_DEV_SD=m
-> > CONFIG_CHR_DEV_ST=m
-> > CONFIG_CHR_DEV_OSST=m
-> > CONFIG_BLK_DEV_SR=m
-> > CONFIG_BLK_DEV_SR_VENDOR=y
-> > CONFIG_CHR_DEV_SG=m
-> > CONFIG_CHR_DEV_SCH=m
-> > 
-> > #
-> > # Some SCSI devices (e.g. CD jukebox) support multiple LUNs
-> > #
-> > CONFIG_SCSI_MULTI_LUN=y
-> > CONFIG_SCSI_CONSTANTS=y
-> > CONFIG_SCSI_LOGGING=y
-> > # CONFIG_SCSI_SCAN_ASYNC is not set
-> > CONFIG_SCSI_WAIT_SCAN=m
-> > 
-> > #
-> > # SCSI Transports
-> > #
-> > CONFIG_SCSI_SPI_ATTRS=m
-> > CONFIG_SCSI_FC_ATTRS=m
-> > CONFIG_SCSI_FC_TGT_ATTRS=y
-> > CONFIG_SCSI_ISCSI_ATTRS=m
-> > CONFIG_SCSI_SAS_ATTRS=m
-> > CONFIG_SCSI_SAS_LIBSAS=m
-> > CONFIG_SCSI_SAS_ATA=y
-> > # CONFIG_SCSI_SAS_LIBSAS_DEBUG is not set
-> > CONFIG_SCSI_SRP_ATTRS=m
-> > CONFIG_SCSI_SRP_TGT_ATTRS=y
-> > CONFIG_SCSI_LOWLEVEL=y
-> > CONFIG_ISCSI_TCP=m
-> > CONFIG_BLK_DEV_3W_XXXX_RAID=m
-> > CONFIG_SCSI_3W_9XXX=m
-> > CONFIG_SCSI_ACARD=m
-> > CONFIG_SCSI_AACRAID=m
-> > CONFIG_SCSI_AIC7XXX=m
-> > CONFIG_AIC7XXX_CMDS_PER_DEVICE=4
-> > CONFIG_AIC7XXX_RESET_DELAY_MS=15000
-> > # CONFIG_AIC7XXX_DEBUG_ENABLE is not set
-> > CONFIG_AIC7XXX_DEBUG_MASK=0
-> > # CONFIG_AIC7XXX_REG_PRETTY_PRINT is not set
-> > CONFIG_SCSI_AIC7XXX_OLD=m
-> > CONFIG_SCSI_AIC79XX=m
-> > CONFIG_AIC79XX_CMDS_PER_DEVICE=4
-> > CONFIG_AIC79XX_RESET_DELAY_MS=15000
-> > # CONFIG_AIC79XX_DEBUG_ENABLE is not set
-> > CONFIG_AIC79XX_DEBUG_MASK=0
-> > # CONFIG_AIC79XX_REG_PRETTY_PRINT is not set
-> > CONFIG_SCSI_AIC94XX=m
-> > # CONFIG_AIC94XX_DEBUG is not set
-> > # CONFIG_SCSI_ADVANSYS is not set
-> > CONFIG_SCSI_ARCMSR=m
-> > CONFIG_SCSI_ARCMSR_AER=y
-> > CONFIG_MEGARAID_NEWGEN=y
-> > CONFIG_MEGARAID_MM=m
-> > CONFIG_MEGARAID_MAILBOX=m
-> > CONFIG_MEGARAID_LEGACY=m
-> > CONFIG_MEGARAID_SAS=m
-> > CONFIG_SCSI_HPTIOP=m
-> > CONFIG_SCSI_BUSLOGIC=m
-> > # CONFIG_SCSI_OMIT_FLASHPOINT is not set
-> > # CONFIG_SCSI_DMX3191D is not set
-> > # CONFIG_SCSI_EATA is not set
-> > # CONFIG_SCSI_FUTURE_DOMAIN is not set
-> > CONFIG_SCSI_IPS=m
-> > CONFIG_SCSI_INITIO=m
-> > CONFIG_SCSI_INIA100=m
-> > CONFIG_SCSI_PPA=m
-> > CONFIG_SCSI_IMM=m
-> > # CONFIG_SCSI_IZIP_EPP16 is not set
-> > # CONFIG_SCSI_IZIP_SLOW_CTR is not set
-> > CONFIG_SCSI_STEX=m
-> > CONFIG_SCSI_SYM53C8XX_2=m
-> > CONFIG_SCSI_SYM53C8XX_DMA_ADDRESSING_MODE=1
-> > CONFIG_SCSI_SYM53C8XX_DEFAULT_TAGS=16
-> > CONFIG_SCSI_SYM53C8XX_MAX_TAGS=64
-> > CONFIG_SCSI_SYM53C8XX_MMIO=y
-> > # CONFIG_SCSI_IPR is not set
-> > CONFIG_SCSI_QLOGIC_1280=m
-> > CONFIG_SCSI_QLA_FC=m
-> > CONFIG_SCSI_QLA_ISCSI=m
-> > CONFIG_SCSI_LPFC=m
-> > CONFIG_SCSI_DC395x=m
-> > CONFIG_SCSI_DC390T=m
-> > # CONFIG_SCSI_DEBUG is not set
-> > CONFIG_SCSI_SRP=m
-> > CONFIG_SCSI_LOWLEVEL_PCMCIA=y
-> > # CONFIG_PCMCIA_FDOMAIN is not set
-> > CONFIG_PCMCIA_QLOGIC=m
-> > CONFIG_PCMCIA_SYM53C500=m
-> > CONFIG_SCSI_DH=m
-> > CONFIG_SCSI_DH_RDAC=m
-> > CONFIG_ATA=m
-> > # CONFIG_ATA_NONSTANDARD is not set
-> > CONFIG_ATA_ACPI=y
-> > CONFIG_SATA_AHCI=m
-> > CONFIG_SATA_SVW=m
-> > CONFIG_ATA_PIIX=m
-> > CONFIG_SATA_MV=m
-> > CONFIG_SATA_NV=m
-> > CONFIG_PDC_ADMA=m
-> > CONFIG_SATA_QSTOR=m
-> > CONFIG_SATA_PROMISE=m
-> > CONFIG_SATA_SX4=m
-> > CONFIG_SATA_SIL=m
-> > CONFIG_SATA_SIL24=m
-> > CONFIG_SATA_SIS=m
-> > CONFIG_SATA_ULI=m
-> > CONFIG_SATA_VIA=m
-> > CONFIG_SATA_VITESSE=m
-> > CONFIG_SATA_INIC162X=m
-> > CONFIG_PATA_ACPI=m
-> > CONFIG_PATA_ALI=m
-> > CONFIG_PATA_AMD=m
-> > CONFIG_PATA_ARTOP=m
-> > CONFIG_PATA_ATIIXP=m
-> > CONFIG_PATA_CMD640_PCI=m
-> > CONFIG_PATA_CMD64X=m
-> > CONFIG_PATA_CS5520=m
-> > CONFIG_PATA_CS5530=m
-> > CONFIG_PATA_CYPRESS=m
-> > CONFIG_PATA_EFAR=m
-> > CONFIG_ATA_GENERIC=m
-> > CONFIG_PATA_HPT366=m
-> > CONFIG_PATA_HPT37X=m
-> > CONFIG_PATA_HPT3X2N=m
-> > CONFIG_PATA_HPT3X3=m
-> > CONFIG_PATA_HPT3X3_DMA=y
-> > CONFIG_PATA_IT821X=m
-> > CONFIG_PATA_IT8213=m
-> > CONFIG_PATA_JMICRON=m
-> > CONFIG_PATA_TRIFLEX=m
-> > CONFIG_PATA_MARVELL=m
-> > CONFIG_PATA_MPIIX=m
-> > CONFIG_PATA_OLDPIIX=m
-> > CONFIG_PATA_NETCELL=m
-> > CONFIG_PATA_NS87410=m
-> > CONFIG_PATA_NS87415=m
-> > CONFIG_PATA_OPTI=m
-> > CONFIG_PATA_OPTIDMA=m
-> > CONFIG_PATA_PCMCIA=m
-> > CONFIG_PATA_PDC_OLD=m
-> > # CONFIG_PATA_RADISYS is not set
-> > # CONFIG_PATA_RZ1000 is not set
-> > # CONFIG_PATA_SC1200 is not set
-> > CONFIG_PATA_SERVERWORKS=m
-> > CONFIG_PATA_PDC2027X=m
-> > CONFIG_PATA_SIL680=m
-> > CONFIG_PATA_SIS=m
-> > CONFIG_PATA_VIA=m
-> > CONFIG_PATA_WINBOND=m
-> > CONFIG_MD=y
-> > CONFIG_BLK_DEV_MD=y
-> > CONFIG_MD_LINEAR=m
-> > CONFIG_MD_RAID0=m
-> > CONFIG_MD_RAID1=m
-> > CONFIG_MD_RAID10=m
-> > CONFIG_MD_RAID456=m
-> > CONFIG_MD_RAID5_RESHAPE=y
-> > CONFIG_MD_MULTIPATH=m
-> > CONFIG_MD_FAULTY=m
-> > CONFIG_BLK_DEV_DM=m
-> > CONFIG_DM_DEBUG=y
-> > CONFIG_DM_CRYPT=m
-> > CONFIG_DM_SNAPSHOT=m
-> > CONFIG_DM_MIRROR=m
-> > CONFIG_DM_ZERO=m
-> > CONFIG_DM_MULTIPATH=m
-> > # CONFIG_DM_DELAY is not set
-> > CONFIG_DM_UEVENT=y
-> > CONFIG_FUSION=y
-> > CONFIG_FUSION_SPI=m
-> > CONFIG_FUSION_FC=m
-> > CONFIG_FUSION_SAS=m
-> > CONFIG_FUSION_MAX_SGE=40
-> > CONFIG_FUSION_CTL=m
-> > CONFIG_FUSION_LAN=m
-> > CONFIG_FUSION_LOGGING=y
-> > 
-> > #
-> > # IEEE 1394 (FireWire) support
-> > #
-> > CONFIG_FIREWIRE=m
-> > CONFIG_FIREWIRE_OHCI=m
-> > CONFIG_FIREWIRE_SBP2=m
-> > # CONFIG_IEEE1394 is not set
-> > CONFIG_I2O=m
-> > # CONFIG_I2O_LCT_NOTIFY_ON_CHANGES is not set
-> > CONFIG_I2O_EXT_ADAPTEC=y
-> > CONFIG_I2O_EXT_ADAPTEC_DMA64=y
-> > CONFIG_I2O_CONFIG=m
-> > CONFIG_I2O_CONFIG_OLD_IOCTL=y
-> > CONFIG_I2O_BUS=m
-> > CONFIG_I2O_BLOCK=m
-> > CONFIG_I2O_SCSI=m
-> > CONFIG_I2O_PROC=m
-> > CONFIG_MACINTOSH_DRIVERS=y
-> > CONFIG_MAC_EMUMOUSEBTN=y
-> > CONFIG_NETDEVICES=y
-> > # CONFIG_NETDEVICES_MULTIQUEUE is not set
-> > CONFIG_IFB=m
-> > CONFIG_DUMMY=m
-> > CONFIG_BONDING=m
-> > CONFIG_MACVLAN=m
-> > CONFIG_EQUALIZER=m
-> > CONFIG_TUN=m
-> > CONFIG_VETH=m
-> > CONFIG_NET_SB1000=m
-> > # CONFIG_ARCNET is not set
-> > CONFIG_PHYLIB=m
-> > 
-> > #
-> > # MII PHY device drivers
-> > #
-> > CONFIG_MARVELL_PHY=m
-> > CONFIG_DAVICOM_PHY=m
-> > CONFIG_QSEMI_PHY=m
-> > CONFIG_LXT_PHY=m
-> > CONFIG_CICADA_PHY=m
-> > CONFIG_VITESSE_PHY=m
-> > CONFIG_SMSC_PHY=m
-> > CONFIG_BROADCOM_PHY=m
-> > CONFIG_ICPLUS_PHY=m
-> > CONFIG_FIXED_PHY=m
-> > CONFIG_FIXED_MII_10_FDX=y
-> > CONFIG_FIXED_MII_100_FDX=y
-> > CONFIG_FIXED_MII_1000_FDX=y
-> > CONFIG_FIXED_MII_AMNT=1
-> > CONFIG_MDIO_BITBANG=m
-> > CONFIG_NET_ETHERNET=y
-> > CONFIG_MII=m
-> > CONFIG_HAPPYMEAL=m
-> > CONFIG_SUNGEM=m
-> > CONFIG_CASSINI=m
-> > CONFIG_NET_VENDOR_3COM=y
-> > CONFIG_VORTEX=m
-> > CONFIG_TYPHOON=m
-> > CONFIG_NET_TULIP=y
-> > CONFIG_DE2104X=m
-> > CONFIG_TULIP=m
-> > # CONFIG_TULIP_MWI is not set
-> > CONFIG_TULIP_MMIO=y
-> > # CONFIG_TULIP_NAPI is not set
-> > CONFIG_DE4X5=m
-> > CONFIG_WINBOND_840=m
-> > CONFIG_DM9102=m
-> > CONFIG_ULI526X=m
-> > CONFIG_PCMCIA_XIRCOM=m
-> > # CONFIG_HP100 is not set
-> > # CONFIG_IBM_NEW_EMAC_ZMII is not set
-> > # CONFIG_IBM_NEW_EMAC_RGMII is not set
-> > # CONFIG_IBM_NEW_EMAC_TAH is not set
-> > # CONFIG_IBM_NEW_EMAC_EMAC4 is not set
-> > CONFIG_NET_PCI=y
-> > CONFIG_PCNET32=m
-> > CONFIG_PCNET32_NAPI=y
-> > CONFIG_AMD8111_ETH=m
-> > CONFIG_AMD8111E_NAPI=y
-> > CONFIG_ADAPTEC_STARFIRE=m
-> > CONFIG_ADAPTEC_STARFIRE_NAPI=y
-> > CONFIG_B44=m
-> > CONFIG_B44_PCI_AUTOSELECT=y
-> > CONFIG_B44_PCICORE_AUTOSELECT=y
-> > CONFIG_B44_PCI=y
-> > CONFIG_FORCEDETH=m
-> > CONFIG_FORCEDETH_NAPI=y
-> > # CONFIG_EEPRO100 is not set
-> > CONFIG_E100=m
-> > CONFIG_FEALNX=m
-> > CONFIG_NATSEMI=m
-> > CONFIG_NE2K_PCI=m
-> > CONFIG_8139CP=m
-> > CONFIG_8139TOO=m
-> > # CONFIG_8139TOO_PIO is not set
-> > # CONFIG_8139TOO_TUNE_TWISTER is not set
-> > CONFIG_8139TOO_8129=y
-> > # CONFIG_8139_OLD_RX_RESET is not set
-> > CONFIG_SIS900=m
-> > CONFIG_EPIC100=m
-> > CONFIG_SUNDANCE=m
-> > # CONFIG_SUNDANCE_MMIO is not set
-> > CONFIG_VIA_RHINE=m
-> > CONFIG_VIA_RHINE_MMIO=y
-> > CONFIG_VIA_RHINE_NAPI=y
-> > CONFIG_SC92031=m
-> > CONFIG_NET_POCKET=y
-> > CONFIG_ATP=m
-> > CONFIG_DE600=m
-> > CONFIG_DE620=m
-> > CONFIG_NETDEV_1000=y
-> > CONFIG_ACENIC=m
-> > # CONFIG_ACENIC_OMIT_TIGON_I is not set
-> > CONFIG_DL2K=m
-> > CONFIG_E1000=m
-> > CONFIG_E1000_NAPI=y
-> > # CONFIG_E1000_DISABLE_PACKET_SPLIT is not set
-> > CONFIG_E1000E=m
-> > CONFIG_IP1000=m
-> > CONFIG_NS83820=m
-> > CONFIG_HAMACHI=m
-> > CONFIG_YELLOWFIN=m
-> > CONFIG_R8169=m
-> > CONFIG_R8169_NAPI=y
-> > CONFIG_R8169_VLAN=y
-> > CONFIG_SIS190=m
-> > CONFIG_SKGE=m
-> > # CONFIG_SKGE_DEBUG is not set
-> > CONFIG_SKY2=m
-> > # CONFIG_SKY2_DEBUG is not set
-> > # CONFIG_SK98LIN is not set
-> > CONFIG_VIA_VELOCITY=m
-> > CONFIG_TIGON3=m
-> > CONFIG_BNX2=m
-> > CONFIG_QLA3XXX=m
-> > CONFIG_ATL1=m
-> > CONFIG_NETDEV_10000=y
-> > CONFIG_CHELSIO_T1=m
-> > CONFIG_CHELSIO_T1_1G=y
-> > CONFIG_CHELSIO_T1_NAPI=y
-> > CONFIG_CHELSIO_T3=m
-> > CONFIG_IXGBE=m
-> > CONFIG_IXGB=m
-> > CONFIG_IXGB_NAPI=y
-> > CONFIG_S2IO=m
-> > CONFIG_S2IO_NAPI=y
-> > CONFIG_MYRI10GE=m
-> > CONFIG_NETXEN_NIC=m
-> > CONFIG_NIU=m
-> > CONFIG_MLX4_CORE=m
-> > CONFIG_MLX4_DEBUG=y
-> > CONFIG_TEHUTI=m
-> > CONFIG_SFC=m
-> > CONFIG_TR=y
-> > CONFIG_IBMOL=m
-> > CONFIG_3C359=m
-> > # CONFIG_TMS380TR is not set
-> > 
-> > #
-> > # Wireless LAN
-> > #
-> > CONFIG_WLAN_PRE80211=y
-> > # CONFIG_STRIP is not set
-> > CONFIG_PCMCIA_WAVELAN=m
-> > CONFIG_PCMCIA_NETWAVE=m
-> > CONFIG_WLAN_80211=y
-> > # CONFIG_PCMCIA_RAYCS is not set
-> > CONFIG_IPW2100=m
-> > CONFIG_IPW2100_MONITOR=y
-> > # CONFIG_IPW2100_DEBUG is not set
-> > CONFIG_IPW2200=m
-> > CONFIG_IPW2200_MONITOR=y
-> > CONFIG_IPW2200_RADIOTAP=y
-> > CONFIG_IPW2200_PROMISCUOUS=y
-> > CONFIG_IPW2200_QOS=y
-> > # CONFIG_IPW2200_DEBUG is not set
-> > CONFIG_LIBERTAS=m
-> > CONFIG_LIBERTAS_USB=m
-> > CONFIG_LIBERTAS_CS=m
-> > CONFIG_LIBERTAS_SDIO=m
-> > CONFIG_LIBERTAS_DEBUG=y
-> > CONFIG_AIRO=m
-> > CONFIG_HERMES=m
-> > CONFIG_PLX_HERMES=m
-> > CONFIG_TMD_HERMES=m
-> > CONFIG_NORTEL_HERMES=m
-> > CONFIG_PCI_HERMES=m
-> > CONFIG_PCMCIA_HERMES=m
-> > CONFIG_PCMCIA_SPECTRUM=m
-> > CONFIG_ATMEL=m
-> > CONFIG_PCI_ATMEL=m
-> > CONFIG_PCMCIA_ATMEL=m
-> > CONFIG_AIRO_CS=m
-> > CONFIG_PCMCIA_WL3501=m
-> > CONFIG_PRISM54=m
-> > CONFIG_USB_ZD1201=m
-> > CONFIG_RTL8187=m
-> > CONFIG_ADM8211=m
-> > CONFIG_P54_COMMON=m
-> > CONFIG_P54_USB=m
-> > CONFIG_P54_PCI=m
-> > CONFIG_IWLWIFI=y
-> > CONFIG_IWLWIFI_DEBUG=y
-> > CONFIG_IWLWIFI_SENSITIVITY=y
-> > CONFIG_IWLWIFI_SPECTRUM_MEASUREMENT=y
-> > CONFIG_IWLWIFI_QOS=y
-> > CONFIG_IWL4965=m
-> > CONFIG_IWL3945=m
-> > CONFIG_HOSTAP=m
-> > CONFIG_HOSTAP_FIRMWARE=y
-> > CONFIG_HOSTAP_FIRMWARE_NVRAM=y
-> > CONFIG_HOSTAP_PLX=m
-> > CONFIG_HOSTAP_PCI=m
-> > CONFIG_HOSTAP_CS=m
-> > CONFIG_BCM43XX=m
-> > CONFIG_BCM43XX_DEBUG=y
-> > CONFIG_BCM43XX_DMA=y
-> > CONFIG_BCM43XX_PIO=y
-> > CONFIG_BCM43XX_DMA_AND_PIO_MODE=y
-> > # CONFIG_BCM43XX_DMA_MODE is not set
-> > # CONFIG_BCM43XX_PIO_MODE is not set
-> > CONFIG_B43=m
-> > CONFIG_B43_PCI_AUTOSELECT=y
-> > CONFIG_B43_PCICORE_AUTOSELECT=y
-> > CONFIG_B43_PCMCIA=y
-> > CONFIG_B43_LEDS=y
-> > CONFIG_B43_RFKILL=y
-> > # CONFIG_B43_DEBUG is not set
-> > CONFIG_B43_DMA=y
-> > CONFIG_B43_PIO=y
-> > CONFIG_B43_DMA_AND_PIO_MODE=y
-> > # CONFIG_B43_DMA_MODE is not set
-> > # CONFIG_B43_PIO_MODE is not set
-> > CONFIG_B43LEGACY=m
-> > CONFIG_B43LEGACY_PCI_AUTOSELECT=y
-> > CONFIG_B43LEGACY_PCICORE_AUTOSELECT=y
-> > CONFIG_B43LEGACY_DEBUG=y
-> > CONFIG_B43LEGACY_DMA=y
-> > CONFIG_B43LEGACY_PIO=y
-> > CONFIG_B43LEGACY_DMA_AND_PIO_MODE=y
-> > # CONFIG_B43LEGACY_DMA_MODE is not set
-> > # CONFIG_B43LEGACY_PIO_MODE is not set
-> > CONFIG_ZD1211RW=m
-> > # CONFIG_ZD1211RW_DEBUG is not set
-> > CONFIG_RT2X00=m
-> > CONFIG_RT2X00_LIB=m
-> > CONFIG_RT2X00_LIB_PCI=m
-> > CONFIG_RT2X00_LIB_USB=m
-> > CONFIG_RT2X00_LIB_FIRMWARE=y
-> > CONFIG_RT2X00_LIB_RFKILL=y
-> > CONFIG_RT2400PCI=m
-> > CONFIG_RT2400PCI_RFKILL=y
-> > CONFIG_RT2500PCI=m
-> > CONFIG_RT2500PCI_RFKILL=y
-> > CONFIG_RT61PCI=m
-> > CONFIG_RT61PCI_RFKILL=y
-> > CONFIG_RT2500USB=m
-> > CONFIG_RT73USB=m
-> > CONFIG_RT2X00_LIB_DEBUGFS=y
-> > # CONFIG_RT2X00_DEBUG is not set
-> > 
-> > #
-> > # USB Network Adapters
-> > #
-> > CONFIG_USB_CATC=m
-> > CONFIG_USB_KAWETH=m
-> > CONFIG_USB_PEGASUS=m
-> > CONFIG_USB_RTL8150=m
-> > CONFIG_USB_USBNET=m
-> > CONFIG_USB_NET_AX8817X=m
-> > CONFIG_USB_NET_CDCETHER=m
-> > CONFIG_USB_NET_DM9601=m
-> > CONFIG_USB_NET_GL620A=m
-> > CONFIG_USB_NET_NET1080=m
-> > CONFIG_USB_NET_PLUSB=m
-> > CONFIG_USB_NET_MCS7830=m
-> > CONFIG_USB_NET_RNDIS_HOST=m
-> > CONFIG_USB_NET_CDC_SUBSET=m
-> > CONFIG_USB_ALI_M5632=y
-> > CONFIG_USB_AN2720=y
-> > CONFIG_USB_BELKIN=y
-> > CONFIG_USB_ARMLINUX=y
-> > CONFIG_USB_EPSON2888=y
-> > CONFIG_USB_KC2190=y
-> > CONFIG_USB_NET_ZAURUS=m
-> > CONFIG_NET_PCMCIA=y
-> > CONFIG_PCMCIA_3C589=m
-> > CONFIG_PCMCIA_3C574=m
-> > CONFIG_PCMCIA_FMVJ18X=m
-> > CONFIG_PCMCIA_PCNET=m
-> > CONFIG_PCMCIA_NMCLAN=m
-> > CONFIG_PCMCIA_SMC91C92=m
-> > CONFIG_PCMCIA_XIRC2PS=m
-> > CONFIG_PCMCIA_AXNET=m
-> > # CONFIG_WAN is not set
-> > CONFIG_ATM_DRIVERS=y
-> > # CONFIG_ATM_DUMMY is not set
-> > CONFIG_ATM_TCP=m
-> > CONFIG_ATM_LANAI=m
-> > CONFIG_ATM_ENI=m
-> > # CONFIG_ATM_ENI_DEBUG is not set
-> > # CONFIG_ATM_ENI_TUNE_BURST is not set
-> > CONFIG_ATM_FIRESTREAM=m
-> > # CONFIG_ATM_ZATM is not set
-> > CONFIG_ATM_IDT77252=m
-> > # CONFIG_ATM_IDT77252_DEBUG is not set
-> > # CONFIG_ATM_IDT77252_RCV_ALL is not set
-> > CONFIG_ATM_IDT77252_USE_SUNI=y
-> > CONFIG_ATM_AMBASSADOR=m
-> > # CONFIG_ATM_AMBASSADOR_DEBUG is not set
-> > CONFIG_ATM_HORIZON=m
-> > # CONFIG_ATM_HORIZON_DEBUG is not set
-> > CONFIG_ATM_FORE200E_MAYBE=m
-> > # CONFIG_ATM_FORE200E_PCA is not set
-> > CONFIG_ATM_HE=m
-> > # CONFIG_ATM_HE_USE_SUNI is not set
-> > CONFIG_FDDI=y
-> > # CONFIG_DEFXX is not set
-> > CONFIG_SKFP=m
-> > # CONFIG_HIPPI is not set
-> > CONFIG_PLIP=m
-> > CONFIG_PPP=m
-> > CONFIG_PPP_MULTILINK=y
-> > CONFIG_PPP_FILTER=y
-> > CONFIG_PPP_ASYNC=m
-> > CONFIG_PPP_SYNC_TTY=m
-> > CONFIG_PPP_DEFLATE=m
-> > # CONFIG_PPP_BSDCOMP is not set
-> > CONFIG_PPP_MPPE=m
-> > CONFIG_PPPOE=m
-> > CONFIG_PPPOATM=m
-> > CONFIG_PPPOL2TP=m
-> > CONFIG_SLIP=m
-> > CONFIG_SLIP_COMPRESSED=y
-> > CONFIG_SLHC=m
-> > CONFIG_SLIP_SMART=y
-> > # CONFIG_SLIP_MODE_SLIP6 is not set
-> > CONFIG_NET_FC=y
-> > # CONFIG_SHAPER is not set
-> > CONFIG_NETCONSOLE=m
-> > CONFIG_NETCONSOLE_DYNAMIC=y
-> > CONFIG_NETPOLL=y
-> > CONFIG_NETPOLL_TRAP=y
-> > CONFIG_NET_POLL_CONTROLLER=y
-> > CONFIG_ISDN=m
-> > CONFIG_ISDN_I4L=m
-> > CONFIG_ISDN_PPP=y
-> > CONFIG_ISDN_PPP_VJ=y
-> > CONFIG_ISDN_MPP=y
-> > CONFIG_IPPP_FILTER=y
-> > # CONFIG_ISDN_PPP_BSDCOMP is not set
-> > CONFIG_ISDN_AUDIO=y
-> > CONFIG_ISDN_TTY_FAX=y
-> > 
-> > #
-> > # ISDN feature submodules
-> > #
-> > CONFIG_ISDN_DIVERSION=m
-> > 
-> > #
-> > # ISDN4Linux hardware drivers
-> > #
-> > 
-> > #
-> > # Passive cards
-> > #
-> > CONFIG_ISDN_DRV_HISAX=m
-> > 
-> > #
-> > # D-channel protocol features
-> > #
-> > CONFIG_HISAX_EURO=y
-> > CONFIG_DE_AOC=y
-> > CONFIG_HISAX_NO_SENDCOMPLETE=y
-> > CONFIG_HISAX_NO_LLC=y
-> > CONFIG_HISAX_NO_KEYPAD=y
-> > CONFIG_HISAX_1TR6=y
-> > CONFIG_HISAX_NI1=y
-> > CONFIG_HISAX_MAX_CARDS=8
-> > 
-> > #
-> > # HiSax supported cards
-> > #
-> > CONFIG_HISAX_16_3=y
-> > CONFIG_HISAX_S0BOX=y
-> > CONFIG_HISAX_FRITZPCI=y
-> > CONFIG_HISAX_AVM_A1_PCMCIA=y
-> > CONFIG_HISAX_ELSA=y
-> > CONFIG_HISAX_DIEHLDIVA=y
-> > CONFIG_HISAX_SEDLBAUER=y
-> > CONFIG_HISAX_NICCY=y
-> > CONFIG_HISAX_GAZEL=y
-> > CONFIG_HISAX_HFC_SX=y
-> > # CONFIG_HISAX_DEBUG is not set
-> > 
-> > #
-> > # HiSax PCMCIA card service modules
-> > #
-> > CONFIG_HISAX_SEDLBAUER_CS=m
-> > CONFIG_HISAX_ELSA_CS=m
-> > CONFIG_HISAX_AVM_A1_CS=m
-> > CONFIG_HISAX_TELES_CS=m
-> > 
-> > #
-> > # HiSax sub driver modules
-> > #
-> > CONFIG_HISAX_ST5481=m
-> > # CONFIG_HISAX_HFCUSB is not set
-> > CONFIG_HISAX_HFC4S8S=m
-> > CONFIG_HISAX_HDLC=y
-> > 
-> > #
-> > # Active cards
-> > #
-> > CONFIG_ISDN_DRV_GIGASET=m
-> > CONFIG_GIGASET_BASE=m
-> > CONFIG_GIGASET_M105=m
-> > CONFIG_GIGASET_M101=m
-> > # CONFIG_GIGASET_DEBUG is not set
-> > # CONFIG_GIGASET_UNDOCREQ is not set
-> > CONFIG_ISDN_CAPI=m
-> > CONFIG_ISDN_DRV_AVMB1_VERBOSE_REASON=y
-> > # CONFIG_CAPI_TRACE is not set
-> > CONFIG_ISDN_CAPI_MIDDLEWARE=y
-> > CONFIG_ISDN_CAPI_CAPI20=m
-> > CONFIG_ISDN_CAPI_CAPIFS_BOOL=y
-> > CONFIG_ISDN_CAPI_CAPIFS=m
-> > CONFIG_ISDN_CAPI_CAPIDRV=m
-> > 
-> > #
-> > # CAPI hardware drivers
-> > #
-> > CONFIG_CAPI_AVM=y
-> > CONFIG_ISDN_DRV_AVMB1_B1PCI=m
-> > CONFIG_ISDN_DRV_AVMB1_B1PCIV4=y
-> > CONFIG_ISDN_DRV_AVMB1_B1PCMCIA=m
-> > CONFIG_ISDN_DRV_AVMB1_AVM_CS=m
-> > CONFIG_ISDN_DRV_AVMB1_T1PCI=m
-> > CONFIG_ISDN_DRV_AVMB1_C4=m
-> > # CONFIG_CAPI_EICON is not set
-> > # CONFIG_PHONE is not set
-> > 
-> > #
-> > # Input device support
-> > #
-> > CONFIG_INPUT=y
-> > CONFIG_INPUT_FF_MEMLESS=y
-> > CONFIG_INPUT_POLLDEV=m
-> > 
-> > #
-> > # Userland interfaces
-> > #
-> > CONFIG_INPUT_MOUSEDEV=y
-> > # CONFIG_INPUT_MOUSEDEV_PSAUX is not set
-> > CONFIG_INPUT_MOUSEDEV_SCREEN_X=1024
-> > CONFIG_INPUT_MOUSEDEV_SCREEN_Y=768
-> > CONFIG_INPUT_JOYDEV=m
-> > CONFIG_INPUT_EVDEV=y
-> > # CONFIG_INPUT_EVBUG is not set
-> > 
-> > #
-> > # Input Device Drivers
-> > #
-> > CONFIG_INPUT_KEYBOARD=y
-> > CONFIG_KEYBOARD_ATKBD=y
-> > # CONFIG_KEYBOARD_SUNKBD is not set
-> > # CONFIG_KEYBOARD_LKKBD is not set
-> > # CONFIG_KEYBOARD_XTKBD is not set
-> > # CONFIG_KEYBOARD_NEWTON is not set
-> > # CONFIG_KEYBOARD_STOWAWAY is not set
-> > CONFIG_INPUT_MOUSE=y
-> > CONFIG_MOUSE_PS2=y
-> > CONFIG_MOUSE_PS2_ALPS=y
-> > CONFIG_MOUSE_PS2_LOGIPS2PP=y
-> > CONFIG_MOUSE_PS2_SYNAPTICS=y
-> > CONFIG_MOUSE_PS2_LIFEBOOK=y
-> > CONFIG_MOUSE_PS2_TRACKPOINT=y
-> > # CONFIG_MOUSE_PS2_TOUCHKIT is not set
-> > CONFIG_MOUSE_SERIAL=m
-> > CONFIG_MOUSE_APPLETOUCH=m
-> > CONFIG_MOUSE_VSXXXAA=m
-> > CONFIG_INPUT_JOYSTICK=y
-> > CONFIG_JOYSTICK_ANALOG=m
-> > CONFIG_JOYSTICK_A3D=m
-> > CONFIG_JOYSTICK_ADI=m
-> > CONFIG_JOYSTICK_COBRA=m
-> > CONFIG_JOYSTICK_GF2K=m
-> > CONFIG_JOYSTICK_GRIP=m
-> > CONFIG_JOYSTICK_GRIP_MP=m
-> > CONFIG_JOYSTICK_GUILLEMOT=m
-> > CONFIG_JOYSTICK_INTERACT=m
-> > CONFIG_JOYSTICK_SIDEWINDER=m
-> > CONFIG_JOYSTICK_TMDC=m
-> > CONFIG_JOYSTICK_IFORCE=m
-> > CONFIG_JOYSTICK_IFORCE_USB=y
-> > CONFIG_JOYSTICK_IFORCE_232=y
-> > CONFIG_JOYSTICK_WARRIOR=m
-> > CONFIG_JOYSTICK_MAGELLAN=m
-> > CONFIG_JOYSTICK_SPACEORB=m
-> > CONFIG_JOYSTICK_SPACEBALL=m
-> > CONFIG_JOYSTICK_STINGER=m
-> > CONFIG_JOYSTICK_TWIDJOY=m
-> > CONFIG_JOYSTICK_DB9=m
-> > CONFIG_JOYSTICK_GAMECON=m
-> > CONFIG_JOYSTICK_TURBOGRAFX=m
-> > CONFIG_JOYSTICK_JOYDUMP=m
-> > CONFIG_JOYSTICK_XPAD=m
-> > CONFIG_JOYSTICK_XPAD_FF=y
-> > CONFIG_JOYSTICK_XPAD_LEDS=y
-> > CONFIG_INPUT_TABLET=y
-> > CONFIG_TABLET_USB_ACECAD=m
-> > CONFIG_TABLET_USB_AIPTEK=m
-> > CONFIG_TABLET_USB_GTCO=m
-> > CONFIG_TABLET_USB_KBTAB=m
-> > CONFIG_TABLET_USB_WACOM=m
-> > CONFIG_INPUT_TOUCHSCREEN=y
-> > CONFIG_TOUCHSCREEN_FUJITSU=m
-> > CONFIG_TOUCHSCREEN_GUNZE=m
-> > CONFIG_TOUCHSCREEN_ELO=m
-> > CONFIG_TOUCHSCREEN_MTOUCH=m
-> > CONFIG_TOUCHSCREEN_MK712=m
-> > CONFIG_TOUCHSCREEN_PENMOUNT=m
-> > CONFIG_TOUCHSCREEN_TOUCHRIGHT=m
-> > CONFIG_TOUCHSCREEN_TOUCHWIN=m
-> > CONFIG_TOUCHSCREEN_UCB1400=m
-> > CONFIG_TOUCHSCREEN_USB_COMPOSITE=m
-> > CONFIG_TOUCHSCREEN_USB_EGALAX=y
-> > CONFIG_TOUCHSCREEN_USB_PANJIT=y
-> > CONFIG_TOUCHSCREEN_USB_3M=y
-> > CONFIG_TOUCHSCREEN_USB_ITM=y
-> > CONFIG_TOUCHSCREEN_USB_ETURBO=y
-> > CONFIG_TOUCHSCREEN_USB_GUNZE=y
-> > CONFIG_TOUCHSCREEN_USB_DMC_TSC10=y
-> > CONFIG_TOUCHSCREEN_USB_IRTOUCH=y
-> > CONFIG_TOUCHSCREEN_USB_IDEALTEK=y
-> > CONFIG_TOUCHSCREEN_USB_GENERAL_TOUCH=y
-> > CONFIG_TOUCHSCREEN_USB_GOTOP=y
-> > CONFIG_INPUT_MISC=y
-> > CONFIG_INPUT_PCSPKR=m
-> > CONFIG_INPUT_ATLAS_BTNS=m
-> > CONFIG_INPUT_ATI_REMOTE=m
-> > CONFIG_INPUT_ATI_REMOTE2=m
-> > CONFIG_INPUT_KEYSPAN_REMOTE=m
-> > CONFIG_INPUT_POWERMATE=m
-> > CONFIG_INPUT_YEALINK=m
-> > CONFIG_INPUT_UINPUT=m
-> > 
-> > #
-> > # Hardware I/O ports
-> > #
-> > CONFIG_SERIO=y
-> > CONFIG_SERIO_I8042=y
-> > CONFIG_SERIO_SERPORT=y
-> > # CONFIG_SERIO_CT82C710 is not set
-> > # CONFIG_SERIO_PARKBD is not set
-> > # CONFIG_SERIO_PCIPS2 is not set
-> > CONFIG_SERIO_LIBPS2=y
-> > CONFIG_SERIO_RAW=m
-> > CONFIG_GAMEPORT=m
-> > CONFIG_GAMEPORT_NS558=m
-> > CONFIG_GAMEPORT_L4=m
-> > CONFIG_GAMEPORT_EMU10K1=m
-> > CONFIG_GAMEPORT_FM801=m
-> > 
-> > #
-> > # Character devices
-> > #
-> > CONFIG_VT=y
-> > CONFIG_VT_CONSOLE=y
-> > CONFIG_HW_CONSOLE=y
-> > CONFIG_VT_HW_CONSOLE_BINDING=y
-> > CONFIG_SERIAL_NONSTANDARD=y
-> > # CONFIG_COMPUTONE is not set
-> > CONFIG_ROCKETPORT=m
-> > CONFIG_CYCLADES=m
-> > # CONFIG_CYZ_INTR is not set
-> > # CONFIG_DIGIEPCA is not set
-> > # CONFIG_MOXA_INTELLIO is not set
-> > # CONFIG_MOXA_SMARTIO is not set
-> > # CONFIG_MOXA_SMARTIO_NEW is not set
-> > # CONFIG_ISI is not set
-> > CONFIG_SYNCLINK=m
-> > CONFIG_SYNCLINKMP=m
-> > CONFIG_SYNCLINK_GT=m
-> > CONFIG_N_HDLC=m
-> > # CONFIG_SPECIALIX is not set
-> > # CONFIG_SX is not set
-> > # CONFIG_RIO is not set
-> > # CONFIG_STALDRV is not set
-> > 
-> > #
-> > # Serial drivers
-> > #
-> > CONFIG_SERIAL_8250=y
-> > CONFIG_SERIAL_8250_CONSOLE=y
-> > CONFIG_FIX_EARLYCON_MEM=y
-> > CONFIG_SERIAL_8250_PCI=y
-> > CONFIG_SERIAL_8250_PNP=y
-> > CONFIG_SERIAL_8250_CS=m
-> > CONFIG_SERIAL_8250_NR_UARTS=32
-> > CONFIG_SERIAL_8250_RUNTIME_UARTS=4
-> > CONFIG_SERIAL_8250_EXTENDED=y
-> > CONFIG_SERIAL_8250_MANY_PORTS=y
-> > CONFIG_SERIAL_8250_SHARE_IRQ=y
-> > CONFIG_SERIAL_8250_DETECT_IRQ=y
-> > CONFIG_SERIAL_8250_RSA=y
-> > 
-> > #
-> > # Non-8250 serial port support
-> > #
-> > CONFIG_SERIAL_CORE=y
-> > CONFIG_SERIAL_CORE_CONSOLE=y
-> > CONFIG_SERIAL_JSM=m
-> > CONFIG_UNIX98_PTYS=y
-> > # CONFIG_LEGACY_PTYS is not set
-> > CONFIG_PRINTER=m
-> > CONFIG_LP_CONSOLE=y
-> > CONFIG_PPDEV=m
-> > CONFIG_IPMI_HANDLER=m
-> > # CONFIG_IPMI_PANIC_EVENT is not set
-> > CONFIG_IPMI_DEVICE_INTERFACE=m
-> > CONFIG_IPMI_SI=m
-> > CONFIG_IPMI_WATCHDOG=m
-> > CONFIG_IPMI_POWEROFF=m
-> > CONFIG_HW_RANDOM=y
-> > CONFIG_HW_RANDOM_INTEL=m
-> > CONFIG_HW_RANDOM_AMD=m
-> > CONFIG_NVRAM=y
-> > # CONFIG_RTC is not set
-> > CONFIG_BLOCKER=m
-> > CONFIG_LPPTEST=m
-> > # CONFIG_GEN_RTC is not set
-> > CONFIG_R3964=m
-> > # CONFIG_APPLICOM is not set
-> > 
-> > #
-> > # PCMCIA character devices
-> > #
-> > # CONFIG_SYNCLINK_CS is not set
-> > CONFIG_CARDMAN_4000=m
-> > CONFIG_CARDMAN_4040=m
-> > CONFIG_MWAVE=m
-> > # CONFIG_PC8736x_GPIO is not set
-> > # CONFIG_RAW_DRIVER is not set
-> > CONFIG_HPET=y
-> > # CONFIG_HPET_RTC_IRQ is not set
-> > # CONFIG_HPET_MMAP is not set
-> > CONFIG_HANGCHECK_TIMER=m
-> > CONFIG_TCG_TPM=m
-> > CONFIG_TCG_TIS=m
-> > CONFIG_TCG_NSC=m
-> > CONFIG_TCG_ATMEL=m
-> > CONFIG_TCG_INFINEON=m
-> > CONFIG_TELCLOCK=m
-> > CONFIG_RMEM=m
-> > CONFIG_ALLOC_RTSJ_MEM=y
-> > CONFIG_DEVPORT=y
-> > CONFIG_I2C=m
-> > CONFIG_I2C_BOARDINFO=y
-> > CONFIG_I2C_CHARDEV=m
-> > 
-> > #
-> > # I2C Algorithms
-> > #
-> > CONFIG_I2C_ALGOBIT=m
-> > CONFIG_I2C_ALGOPCF=m
-> > CONFIG_I2C_ALGOPCA=m
-> > 
-> > #
-> > # I2C Hardware Bus support
-> > #
-> > # CONFIG_I2C_ALI1535 is not set
-> > # CONFIG_I2C_ALI1563 is not set
-> > # CONFIG_I2C_ALI15X3 is not set
-> > CONFIG_I2C_AMD756=m
-> > CONFIG_I2C_AMD756_S4882=m
-> > CONFIG_I2C_AMD8111=m
-> > CONFIG_I2C_I801=m
-> > # CONFIG_I2C_I810 is not set
-> > # CONFIG_I2C_PIIX4 is not set
-> > CONFIG_I2C_NFORCE2=m
-> > # CONFIG_I2C_OCORES is not set
-> > CONFIG_I2C_PARPORT=m
-> > CONFIG_I2C_PARPORT_LIGHT=m
-> > CONFIG_I2C_PROSAVAGE=m
-> > CONFIG_I2C_SAVAGE4=m
-> > CONFIG_I2C_SIMTEC=m
-> > # CONFIG_I2C_SIS5595 is not set
-> > # CONFIG_I2C_SIS630 is not set
-> > CONFIG_I2C_SIS96X=m
-> > # CONFIG_I2C_TAOS_EVM is not set
-> > CONFIG_I2C_STUB=m
-> > # CONFIG_I2C_TINY_USB is not set
-> > CONFIG_I2C_VIA=m
-> > CONFIG_I2C_VIAPRO=m
-> > CONFIG_I2C_VOODOO3=m
-> > 
-> > #
-> > # Miscellaneous I2C Chip support
-> > #
-> > CONFIG_SENSORS_DS1337=m
-> > CONFIG_SENSORS_DS1374=m
-> > # CONFIG_DS1682 is not set
-> > CONFIG_SENSORS_EEPROM=m
-> > CONFIG_SENSORS_PCF8574=m
-> > CONFIG_SENSORS_PCA9539=m
-> > CONFIG_SENSORS_PCF8591=m
-> > CONFIG_SENSORS_MAX6875=m
-> > CONFIG_SENSORS_TSL2550=m
-> > # CONFIG_I2C_DEBUG_CORE is not set
-> > # CONFIG_I2C_DEBUG_ALGO is not set
-> > # CONFIG_I2C_DEBUG_BUS is not set
-> > # CONFIG_I2C_DEBUG_CHIP is not set
-> > 
-> > #
-> > # SPI support
-> > #
-> > # CONFIG_SPI is not set
-> > # CONFIG_SPI_MASTER is not set
-> > # CONFIG_W1 is not set
-> > CONFIG_POWER_SUPPLY=y
-> > # CONFIG_POWER_SUPPLY_DEBUG is not set
-> > # CONFIG_PDA_POWER is not set
-> > # CONFIG_BATTERY_DS2760 is not set
-> > CONFIG_HWMON=m
-> > CONFIG_HWMON_VID=m
-> > CONFIG_SENSORS_ABITUGURU=m
-> > CONFIG_SENSORS_ABITUGURU3=m
-> > CONFIG_SENSORS_AD7418=m
-> > CONFIG_SENSORS_ADM1021=m
-> > CONFIG_SENSORS_ADM1025=m
-> > CONFIG_SENSORS_ADM1026=m
-> > CONFIG_SENSORS_ADM1029=m
-> > CONFIG_SENSORS_ADM1031=m
-> > CONFIG_SENSORS_ADM9240=m
-> > CONFIG_SENSORS_ADT7470=m
-> > CONFIG_SENSORS_K8TEMP=m
-> > CONFIG_SENSORS_ASB100=m
-> > CONFIG_SENSORS_ATXP1=m
-> > CONFIG_SENSORS_DS1621=m
-> > CONFIG_SENSORS_I5K_AMB=m
-> > CONFIG_SENSORS_F71805F=m
-> > CONFIG_SENSORS_F71882FG=m
-> > CONFIG_SENSORS_F75375S=m
-> > CONFIG_SENSORS_FSCHER=m
-> > CONFIG_SENSORS_FSCPOS=m
-> > CONFIG_SENSORS_FSCHMD=m
-> > CONFIG_SENSORS_GL518SM=m
-> > CONFIG_SENSORS_GL520SM=m
-> > CONFIG_SENSORS_CORETEMP=m
-> > CONFIG_SENSORS_IBMPEX=m
-> > CONFIG_SENSORS_IT87=m
-> > CONFIG_SENSORS_LM63=m
-> > CONFIG_SENSORS_LM75=m
-> > CONFIG_SENSORS_LM77=m
-> > CONFIG_SENSORS_LM78=m
-> > CONFIG_SENSORS_LM80=m
-> > CONFIG_SENSORS_LM83=m
-> > CONFIG_SENSORS_LM85=m
-> > CONFIG_SENSORS_LM87=m
-> > CONFIG_SENSORS_LM90=m
-> > CONFIG_SENSORS_LM92=m
-> > CONFIG_SENSORS_LM93=m
-> > CONFIG_SENSORS_MAX1619=m
-> > CONFIG_SENSORS_MAX6650=m
-> > CONFIG_SENSORS_PC87360=m
-> > CONFIG_SENSORS_PC87427=m
-> > CONFIG_SENSORS_SIS5595=m
-> > CONFIG_SENSORS_DME1737=m
-> > CONFIG_SENSORS_SMSC47M1=m
-> > CONFIG_SENSORS_SMSC47M192=m
-> > CONFIG_SENSORS_SMSC47B397=m
-> > CONFIG_SENSORS_THMC50=m
-> > CONFIG_SENSORS_VIA686A=m
-> > CONFIG_SENSORS_VT1211=m
-> > CONFIG_SENSORS_VT8231=m
-> > CONFIG_SENSORS_W83781D=m
-> > CONFIG_SENSORS_W83791D=m
-> > CONFIG_SENSORS_W83792D=m
-> > CONFIG_SENSORS_W83793=m
-> > CONFIG_SENSORS_W83L785TS=m
-> > CONFIG_SENSORS_W83627HF=m
-> > CONFIG_SENSORS_W83627EHF=m
-> > CONFIG_SENSORS_HDAPS=m
-> > CONFIG_SENSORS_APPLESMC=m
-> > # CONFIG_HWMON_DEBUG_CHIP is not set
-> > CONFIG_WATCHDOG=y
-> > # CONFIG_WATCHDOG_NOWAYOUT is not set
-> > 
-> > #
-> > # Watchdog Device Drivers
-> > #
-> > CONFIG_SOFT_WATCHDOG=m
-> > # CONFIG_ACQUIRE_WDT is not set
-> > # CONFIG_ADVANTECH_WDT is not set
-> > CONFIG_ALIM1535_WDT=m
-> > CONFIG_ALIM7101_WDT=m
-> > # CONFIG_SC520_WDT is not set
-> > # CONFIG_EUROTECH_WDT is not set
-> > # CONFIG_IB700_WDT is not set
-> > CONFIG_IBMASR=m
-> > # CONFIG_WAFER_WDT is not set
-> > CONFIG_I6300ESB_WDT=m
-> > CONFIG_ITCO_WDT=m
-> > CONFIG_ITCO_VENDOR_SUPPORT=y
-> > CONFIG_IT8712F_WDT=m
-> > # CONFIG_SC1200_WDT is not set
-> > # CONFIG_PC87413_WDT is not set
-> > # CONFIG_60XX_WDT is not set
-> > # CONFIG_SBC8360_WDT is not set
-> > # CONFIG_CPU5_WDT is not set
-> > # CONFIG_SMSC37B787_WDT is not set
-> > CONFIG_W83627HF_WDT=m
-> > CONFIG_W83697HF_WDT=m
-> > CONFIG_W83877F_WDT=m
-> > CONFIG_W83977F_WDT=m
-> > CONFIG_MACHZ_WDT=m
-> > # CONFIG_SBC_EPX_C3_WATCHDOG is not set
-> > 
-> > #
-> > # PCI-based Watchdog Cards
-> > #
-> > CONFIG_PCIPCWATCHDOG=m
-> > CONFIG_WDTPCI=m
-> > CONFIG_WDT_501_PCI=y
-> > 
-> > #
-> > # USB-based Watchdog Cards
-> > #
-> > CONFIG_USBPCWATCHDOG=m
-> > 
-> > #
-> > # Sonics Silicon Backplane
-> > #
-> > CONFIG_SSB_POSSIBLE=y
-> > CONFIG_SSB=m
-> > CONFIG_SSB_PCIHOST_POSSIBLE=y
-> > CONFIG_SSB_PCIHOST=y
-> > CONFIG_SSB_PCMCIAHOST_POSSIBLE=y
-> > CONFIG_SSB_PCMCIAHOST=y
-> > # CONFIG_SSB_DEBUG is not set
-> > CONFIG_SSB_DRIVER_PCICORE_POSSIBLE=y
-> > CONFIG_SSB_DRIVER_PCICORE=y
-> > 
-> > #
-> > # Multifunction device drivers
-> > #
-> > CONFIG_MFD_SM501=m
-> > 
-> > #
-> > # Multimedia devices
-> > #
-> > CONFIG_VIDEO_DEV=m
-> > CONFIG_VIDEO_V4L1=y
-> > CONFIG_VIDEO_V4L1_COMPAT=y
-> > CONFIG_VIDEO_V4L2=y
-> > CONFIG_VIDEO_CAPTURE_DRIVERS=y
-> > # CONFIG_VIDEO_ADV_DEBUG is not set
-> > # CONFIG_VIDEO_HELPER_CHIPS_AUTO is not set
-> > 
-> > #
-> > # Encoders/decoders and other helper chips
-> > #
-> > 
-> > #
-> > # Audio decoders
-> > #
-> > CONFIG_VIDEO_TVAUDIO=m
-> > CONFIG_VIDEO_TDA7432=m
-> > CONFIG_VIDEO_TDA9840=m
-> > CONFIG_VIDEO_TDA9875=m
-> > CONFIG_VIDEO_TEA6415C=m
-> > CONFIG_VIDEO_TEA6420=m
-> > CONFIG_VIDEO_MSP3400=m
-> > CONFIG_VIDEO_CS53L32A=m
-> > CONFIG_VIDEO_TLV320AIC23B=m
-> > CONFIG_VIDEO_WM8775=m
-> > CONFIG_VIDEO_WM8739=m
-> > CONFIG_VIDEO_VP27SMPX=m
-> > 
-> > #
-> > # Video decoders
-> > #
-> > CONFIG_VIDEO_BT819=m
-> > CONFIG_VIDEO_BT856=m
-> > CONFIG_VIDEO_BT866=m
-> > CONFIG_VIDEO_KS0127=m
-> > CONFIG_VIDEO_OV7670=m
-> > CONFIG_VIDEO_TCM825X=m
-> > CONFIG_VIDEO_SAA7110=m
-> > CONFIG_VIDEO_SAA7111=m
-> > CONFIG_VIDEO_SAA7114=m
-> > CONFIG_VIDEO_SAA711X=m
-> > CONFIG_VIDEO_SAA7191=m
-> > CONFIG_VIDEO_TVP5150=m
-> > CONFIG_VIDEO_VPX3220=m
-> > 
-> > #
-> > # Video and audio decoders
-> > #
-> > CONFIG_VIDEO_CX25840=m
-> > 
-> > #
-> > # MPEG video encoders
-> > #
-> > CONFIG_VIDEO_CX2341X=m
-> > 
-> > #
-> > # Video encoders
-> > #
-> > CONFIG_VIDEO_SAA7127=m
-> > CONFIG_VIDEO_SAA7185=m
-> > CONFIG_VIDEO_ADV7170=m
-> > CONFIG_VIDEO_ADV7175=m
-> > 
-> > #
-> > # Video improvement chips
-> > #
-> > CONFIG_VIDEO_UPD64031A=m
-> > CONFIG_VIDEO_UPD64083=m
-> > # CONFIG_VIDEO_VIVI is not set
-> > CONFIG_VIDEO_BT848=m
-> > CONFIG_VIDEO_BT848_DVB=y
-> > CONFIG_VIDEO_SAA6588=m
-> > CONFIG_VIDEO_BWQCAM=m
-> > CONFIG_VIDEO_CQCAM=m
-> > CONFIG_VIDEO_W9966=m
-> > CONFIG_VIDEO_CPIA=m
-> > CONFIG_VIDEO_CPIA_PP=m
-> > CONFIG_VIDEO_CPIA_USB=m
-> > CONFIG_VIDEO_CPIA2=m
-> > CONFIG_VIDEO_SAA5246A=m
-> > CONFIG_VIDEO_SAA5249=m
-> > CONFIG_TUNER_3036=m
-> > CONFIG_VIDEO_STRADIS=m
-> > CONFIG_VIDEO_ZORAN_ZR36060=m
-> > CONFIG_VIDEO_ZORAN=m
-> > CONFIG_VIDEO_ZORAN_BUZ=m
-> > CONFIG_VIDEO_ZORAN_DC10=m
-> > CONFIG_VIDEO_ZORAN_DC30=m
-> > CONFIG_VIDEO_ZORAN_LML33=m
-> > CONFIG_VIDEO_ZORAN_LML33R10=m
-> > CONFIG_VIDEO_ZORAN_AVS6EYES=m
-> > CONFIG_VIDEO_MEYE=m
-> > CONFIG_VIDEO_SAA7134=m
-> > CONFIG_VIDEO_SAA7134_ALSA=m
-> > CONFIG_VIDEO_SAA7134_DVB=m
-> > CONFIG_VIDEO_MXB=m
-> > CONFIG_VIDEO_DPC=m
-> > CONFIG_VIDEO_HEXIUM_ORION=m
-> > CONFIG_VIDEO_HEXIUM_GEMINI=m
-> > CONFIG_VIDEO_CX88=m
-> > CONFIG_VIDEO_CX88_ALSA=m
-> > CONFIG_VIDEO_CX88_BLACKBIRD=m
-> > CONFIG_VIDEO_CX88_DVB=m
-> > CONFIG_VIDEO_CX88_VP3054=m
-> > CONFIG_VIDEO_CX23885=m
-> > CONFIG_VIDEO_IVTV=m
-> > CONFIG_VIDEO_FB_IVTV=m
-> > # CONFIG_VIDEO_CAFE_CCIC is not set
-> > CONFIG_V4L_USB_DRIVERS=y
-> > CONFIG_VIDEO_PVRUSB2=m
-> > CONFIG_VIDEO_PVRUSB2_29XXX=y
-> > CONFIG_VIDEO_PVRUSB2_24XXX=y
-> > CONFIG_VIDEO_PVRUSB2_SYSFS=y
-> > # CONFIG_VIDEO_PVRUSB2_DEBUGIFC is not set
-> > CONFIG_VIDEO_EM28XX=m
-> > CONFIG_VIDEO_USBVISION=m
-> > CONFIG_VIDEO_USBVIDEO=m
-> > CONFIG_USB_VICAM=m
-> > CONFIG_USB_IBMCAM=m
-> > CONFIG_USB_KONICAWC=m
-> > CONFIG_USB_QUICKCAM_MESSENGER=m
-> > CONFIG_USB_ET61X251=m
-> > CONFIG_VIDEO_OVCAMCHIP=m
-> > CONFIG_USB_W9968CF=m
-> > CONFIG_USB_OV511=m
-> > CONFIG_USB_SE401=m
-> > CONFIG_USB_SN9C102=m
-> > CONFIG_USB_STV680=m
-> > CONFIG_USB_ZC0301=m
-> > CONFIG_USB_PWC=m
-> > # CONFIG_USB_PWC_DEBUG is not set
-> > CONFIG_USB_ZR364XX=m
-> > CONFIG_RADIO_ADAPTERS=y
-> > CONFIG_RADIO_GEMTEK_PCI=m
-> > CONFIG_RADIO_MAXIRADIO=m
-> > CONFIG_RADIO_MAESTRO=m
-> > CONFIG_USB_DSBR=m
-> > CONFIG_DVB_CORE=m
-> > CONFIG_DVB_CORE_ATTACH=y
-> > CONFIG_DVB_CAPTURE_DRIVERS=y
-> > 
-> > #
-> > # Supported SAA7146 based PCI Adapters
-> > #
-> > CONFIG_DVB_AV7110=m
-> > CONFIG_DVB_AV7110_OSD=y
-> > CONFIG_DVB_BUDGET=m
-> > CONFIG_DVB_BUDGET_CI=m
-> > CONFIG_DVB_BUDGET_AV=m
-> > CONFIG_DVB_BUDGET_PATCH=m
-> > 
-> > #
-> > # Supported USB Adapters
-> > #
-> > CONFIG_DVB_USB=m
-> > # CONFIG_DVB_USB_DEBUG is not set
-> > CONFIG_DVB_USB_A800=m
-> > CONFIG_DVB_USB_DIBUSB_MB=m
-> > # CONFIG_DVB_USB_DIBUSB_MB_FAULTY is not set
-> > CONFIG_DVB_USB_DIBUSB_MC=m
-> > CONFIG_DVB_USB_DIB0700=m
-> > CONFIG_DVB_USB_UMT_010=m
-> > CONFIG_DVB_USB_CXUSB=m
-> > CONFIG_DVB_USB_M920X=m
-> > CONFIG_DVB_USB_GL861=m
-> > CONFIG_DVB_USB_AU6610=m
-> > CONFIG_DVB_USB_DIGITV=m
-> > CONFIG_DVB_USB_VP7045=m
-> > CONFIG_DVB_USB_VP702X=m
-> > CONFIG_DVB_USB_GP8PSK=m
-> > CONFIG_DVB_USB_NOVA_T_USB2=m
-> > CONFIG_DVB_USB_TTUSB2=m
-> > CONFIG_DVB_USB_DTT200U=m
-> > CONFIG_DVB_USB_OPERA1=m
-> > CONFIG_DVB_USB_AF9005=m
-> > CONFIG_DVB_USB_AF9005_REMOTE=m
-> > CONFIG_DVB_TTUSB_BUDGET=m
-> > CONFIG_DVB_TTUSB_DEC=m
-> > CONFIG_DVB_CINERGYT2=m
-> > CONFIG_DVB_CINERGYT2_TUNING=y
-> > CONFIG_DVB_CINERGYT2_STREAM_URB_COUNT=32
-> > CONFIG_DVB_CINERGYT2_STREAM_BUF_SIZE=512
-> > CONFIG_DVB_CINERGYT2_QUERY_INTERVAL=250
-> > CONFIG_DVB_CINERGYT2_ENABLE_RC_INPUT_DEVICE=y
-> > CONFIG_DVB_CINERGYT2_RC_QUERY_INTERVAL=100
-> > 
-> > #
-> > # Supported FlexCopII (B2C2) Adapters
-> > #
-> > CONFIG_DVB_B2C2_FLEXCOP=m
-> > CONFIG_DVB_B2C2_FLEXCOP_PCI=m
-> > CONFIG_DVB_B2C2_FLEXCOP_USB=m
-> > # CONFIG_DVB_B2C2_FLEXCOP_DEBUG is not set
-> > 
-> > #
-> > # Supported BT878 Adapters
-> > #
-> > CONFIG_DVB_BT8XX=m
-> > 
-> > #
-> > # Supported Pluto2 Adapters
-> > #
-> > CONFIG_DVB_PLUTO2=m
-> > 
-> > #
-> > # Supported DVB Frontends
-> > #
-> > 
-> > #
-> > # Customise DVB Frontends
-> > #
-> > # CONFIG_DVB_FE_CUSTOMISE is not set
-> > 
-> > #
-> > # DVB-S (satellite) frontends
-> > #
-> > CONFIG_DVB_STV0299=m
-> > CONFIG_DVB_CX24110=m
-> > CONFIG_DVB_CX24123=m
-> > CONFIG_DVB_TDA8083=m
-> > CONFIG_DVB_MT312=m
-> > CONFIG_DVB_VES1X93=m
-> > CONFIG_DVB_S5H1420=m
-> > CONFIG_DVB_TDA10086=m
-> > 
-> > #
-> > # DVB-T (terrestrial) frontends
-> > #
-> > CONFIG_DVB_SP8870=m
-> > CONFIG_DVB_SP887X=m
-> > CONFIG_DVB_CX22700=m
-> > CONFIG_DVB_CX22702=m
-> > CONFIG_DVB_L64781=m
-> > CONFIG_DVB_TDA1004X=m
-> > CONFIG_DVB_NXT6000=m
-> > CONFIG_DVB_MT352=m
-> > CONFIG_DVB_ZL10353=m
-> > CONFIG_DVB_DIB3000MB=m
-> > CONFIG_DVB_DIB3000MC=m
-> > CONFIG_DVB_DIB7000M=m
-> > CONFIG_DVB_DIB7000P=m
-> > 
-> > #
-> > # DVB-C (cable) frontends
-> > #
-> > CONFIG_DVB_VES1820=m
-> > CONFIG_DVB_TDA10021=m
-> > CONFIG_DVB_TDA10023=m
-> > CONFIG_DVB_STV0297=m
-> > 
-> > #
-> > # ATSC (North American/Korean Terrestrial/Cable DTV) frontends
-> > #
-> > CONFIG_DVB_NXT200X=m
-> > CONFIG_DVB_OR51211=m
-> > CONFIG_DVB_OR51132=m
-> > CONFIG_DVB_BCM3510=m
-> > CONFIG_DVB_LGDT330X=m
-> > CONFIG_DVB_S5H1409=m
-> > 
-> > #
-> > # Tuners/PLL support
-> > #
-> > CONFIG_DVB_PLL=m
-> > CONFIG_DVB_TDA826X=m
-> > CONFIG_DVB_TDA827X=m
-> > CONFIG_DVB_TUNER_QT1010=m
-> > CONFIG_DVB_TUNER_MT2060=m
-> > CONFIG_DVB_TUNER_MT2266=m
-> > CONFIG_DVB_TUNER_MT2131=m
-> > CONFIG_DVB_TUNER_DIB0070=m
-> > 
-> > #
-> > # Miscellaneous devices
-> > #
-> > CONFIG_DVB_LNBP21=m
-> > CONFIG_DVB_ISL6421=m
-> > CONFIG_DVB_TUA6100=m
-> > CONFIG_VIDEO_SAA7146=m
-> > CONFIG_VIDEO_SAA7146_VV=m
-> > CONFIG_VIDEO_TUNER=m
-> > # CONFIG_VIDEO_TUNER_CUSTOMIZE is not set
-> > CONFIG_TUNER_MT20XX=m
-> > CONFIG_TUNER_TDA8290=m
-> > CONFIG_TUNER_TEA5761=m
-> > CONFIG_TUNER_TEA5767=m
-> > CONFIG_TUNER_SIMPLE=m
-> > CONFIG_VIDEOBUF_GEN=m
-> > CONFIG_VIDEOBUF_DMA_SG=m
-> > CONFIG_VIDEOBUF_DVB=m
-> > CONFIG_VIDEO_BTCX=m
-> > CONFIG_VIDEO_IR_I2C=m
-> > CONFIG_VIDEO_IR=m
-> > CONFIG_VIDEO_TVEEPROM=m
-> > CONFIG_DAB=y
-> > CONFIG_USB_DABUSB=m
-> > 
-> > #
-> > # Graphics support
-> > #
-> > CONFIG_AGP=y
-> > CONFIG_AGP_AMD64=y
-> > CONFIG_AGP_INTEL=m
-> > CONFIG_AGP_SIS=m
-> > CONFIG_AGP_VIA=m
-> > CONFIG_DRM=m
-> > CONFIG_DRM_TDFX=m
-> > CONFIG_DRM_R128=m
-> > CONFIG_DRM_RADEON=m
-> > CONFIG_DRM_I810=m
-> > CONFIG_DRM_I830=m
-> > CONFIG_DRM_I915=m
-> > CONFIG_DRM_MGA=m
-> > CONFIG_DRM_SIS=m
-> > CONFIG_DRM_VIA=m
-> > CONFIG_DRM_SAVAGE=m
-> > CONFIG_VGASTATE=m
-> > CONFIG_VIDEO_OUTPUT_CONTROL=m
-> > CONFIG_FB=y
-> > # CONFIG_FIRMWARE_EDID is not set
-> > CONFIG_FB_DDC=m
-> > CONFIG_FB_CFB_FILLRECT=y
-> > CONFIG_FB_CFB_COPYAREA=y
-> > CONFIG_FB_CFB_IMAGEBLIT=y
-> > # CONFIG_FB_CFB_REV_PIXELS_IN_BYTE is not set
-> > CONFIG_FB_SYS_FILLRECT=m
-> > CONFIG_FB_SYS_COPYAREA=m
-> > CONFIG_FB_SYS_IMAGEBLIT=m
-> > CONFIG_FB_SYS_FOPS=m
-> > CONFIG_FB_DEFERRED_IO=y
-> > CONFIG_FB_SVGALIB=m
-> > # CONFIG_FB_MACMODES is not set
-> > CONFIG_FB_BACKLIGHT=y
-> > CONFIG_FB_MODE_HELPERS=y
-> > CONFIG_FB_TILEBLITTING=y
-> > 
-> > #
-> > # Frame buffer hardware drivers
-> > #
-> > CONFIG_FB_CIRRUS=m
-> > # CONFIG_FB_PM2 is not set
-> > # CONFIG_FB_CYBER2000 is not set
-> > # CONFIG_FB_ARC is not set
-> > # CONFIG_FB_ASILIANT is not set
-> > # CONFIG_FB_IMSTT is not set
-> > CONFIG_FB_VGA16=m
-> > # CONFIG_FB_UVESA is not set
-> > CONFIG_FB_VESA=y
-> > CONFIG_FB_EFI=y
-> > # CONFIG_FB_HECUBA is not set
-> > # CONFIG_FB_HGA is not set
-> > # CONFIG_FB_S1D13XXX is not set
-> > CONFIG_FB_NVIDIA=m
-> > CONFIG_FB_NVIDIA_I2C=y
-> > # CONFIG_FB_NVIDIA_DEBUG is not set
-> > CONFIG_FB_NVIDIA_BACKLIGHT=y
-> > CONFIG_FB_RIVA=m
-> > # CONFIG_FB_RIVA_I2C is not set
-> > # CONFIG_FB_RIVA_DEBUG is not set
-> > CONFIG_FB_RIVA_BACKLIGHT=y
-> > # CONFIG_FB_LE80578 is not set
-> > CONFIG_FB_INTEL=m
-> > # CONFIG_FB_INTEL_DEBUG is not set
-> > CONFIG_FB_INTEL_I2C=y
-> > CONFIG_FB_MATROX=m
-> > CONFIG_FB_MATROX_MILLENIUM=y
-> > CONFIG_FB_MATROX_MYSTIQUE=y
-> > CONFIG_FB_MATROX_G=y
-> > CONFIG_FB_MATROX_I2C=m
-> > CONFIG_FB_MATROX_MAVEN=m
-> > CONFIG_FB_MATROX_MULTIHEAD=y
-> > CONFIG_FB_RADEON=m
-> > CONFIG_FB_RADEON_I2C=y
-> > CONFIG_FB_RADEON_BACKLIGHT=y
-> > # CONFIG_FB_RADEON_DEBUG is not set
-> > CONFIG_FB_ATY128=m
-> > CONFIG_FB_ATY128_BACKLIGHT=y
-> > CONFIG_FB_ATY=m
-> > CONFIG_FB_ATY_CT=y
-> > CONFIG_FB_ATY_GENERIC_LCD=y
-> > CONFIG_FB_ATY_GX=y
-> > CONFIG_FB_ATY_BACKLIGHT=y
-> > CONFIG_FB_S3=m
-> > CONFIG_FB_SAVAGE=m
-> > CONFIG_FB_SAVAGE_I2C=y
-> > CONFIG_FB_SAVAGE_ACCEL=y
-> > # CONFIG_FB_SIS is not set
-> > CONFIG_FB_NEOMAGIC=m
-> > CONFIG_FB_KYRO=m
-> > CONFIG_FB_3DFX=m
-> > CONFIG_FB_3DFX_ACCEL=y
-> > CONFIG_FB_VOODOO1=m
-> > # CONFIG_FB_VT8623 is not set
-> > CONFIG_FB_TRIDENT=m
-> > CONFIG_FB_TRIDENT_ACCEL=y
-> > # CONFIG_FB_ARK is not set
-> > # CONFIG_FB_PM3 is not set
-> > # CONFIG_FB_GEODE is not set
-> > CONFIG_FB_SM501=m
-> > # CONFIG_FB_VIRTUAL is not set
-> > CONFIG_BACKLIGHT_LCD_SUPPORT=y
-> > CONFIG_LCD_CLASS_DEVICE=m
-> > CONFIG_BACKLIGHT_CLASS_DEVICE=y
-> > CONFIG_BACKLIGHT_CORGI=m
-> > CONFIG_BACKLIGHT_PROGEAR=m
-> > 
-> > #
-> > # Display device support
-> > #
-> > CONFIG_DISPLAY_SUPPORT=m
-> > 
-> > #
-> > # Display hardware drivers
-> > #
-> > 
-> > #
-> > # Console display driver support
-> > #
-> > CONFIG_VGA_CONSOLE=y
-> > CONFIG_VGACON_SOFT_SCROLLBACK=y
-> > CONFIG_VGACON_SOFT_SCROLLBACK_SIZE=64
-> > CONFIG_VIDEO_SELECT=y
-> > CONFIG_DUMMY_CONSOLE=y
-> > CONFIG_FRAMEBUFFER_CONSOLE=y
-> > CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY=y
-> > CONFIG_FRAMEBUFFER_CONSOLE_ROTATION=y
-> > # CONFIG_FONTS is not set
-> > CONFIG_FONT_8x8=y
-> > CONFIG_FONT_8x16=y
-> > CONFIG_LOGO=y
-> > # CONFIG_LOGO_LINUX_MONO is not set
-> > # CONFIG_LOGO_LINUX_VGA16 is not set
-> > CONFIG_LOGO_LINUX_CLUT224=y
-> > 
-> > #
-> > # Sound
-> > #
-> > CONFIG_SOUND=m
-> > 
-> > #
-> > # Advanced Linux Sound Architecture
-> > #
-> > CONFIG_SND=m
-> > CONFIG_SND_TIMER=m
-> > CONFIG_SND_PCM=m
-> > CONFIG_SND_HWDEP=m
-> > CONFIG_SND_RAWMIDI=m
-> > CONFIG_SND_SEQUENCER=m
-> > CONFIG_SND_SEQ_DUMMY=m
-> > CONFIG_SND_OSSEMUL=y
-> > CONFIG_SND_MIXER_OSS=m
-> > CONFIG_SND_PCM_OSS=m
-> > CONFIG_SND_PCM_OSS_PLUGINS=y
-> > CONFIG_SND_SEQUENCER_OSS=y
-> > CONFIG_SND_DYNAMIC_MINORS=y
-> > # CONFIG_SND_SUPPORT_OLD_API is not set
-> > CONFIG_SND_VERBOSE_PROCFS=y
-> > # CONFIG_SND_VERBOSE_PRINTK is not set
-> > # CONFIG_SND_DEBUG is not set
-> > 
-> > #
-> > # Generic devices
-> > #
-> > CONFIG_SND_MPU401_UART=m
-> > CONFIG_SND_OPL3_LIB=m
-> > CONFIG_SND_VX_LIB=m
-> > CONFIG_SND_AC97_CODEC=m
-> > CONFIG_SND_DUMMY=m
-> > CONFIG_SND_VIRMIDI=m
-> > CONFIG_SND_MTPAV=m
-> > CONFIG_SND_MTS64=m
-> > # CONFIG_SND_SERIAL_U16550 is not set
-> > CONFIG_SND_MPU401=m
-> > CONFIG_SND_PORTMAN2X4=m
-> > CONFIG_SND_SB_COMMON=m
-> > CONFIG_SND_SB16_DSP=m
-> > 
-> > #
-> > # PCI devices
-> > #
-> > CONFIG_SND_AD1889=m
-> > CONFIG_SND_ALS300=m
-> > CONFIG_SND_ALS4000=m
-> > CONFIG_SND_ALI5451=m
-> > CONFIG_SND_ATIIXP=m
-> > CONFIG_SND_ATIIXP_MODEM=m
-> > CONFIG_SND_AU8810=m
-> > CONFIG_SND_AU8820=m
-> > CONFIG_SND_AU8830=m
-> > CONFIG_SND_AZT3328=m
-> > CONFIG_SND_BT87X=m
-> > # CONFIG_SND_BT87X_OVERCLOCK is not set
-> > CONFIG_SND_CA0106=m
-> > CONFIG_SND_CMIPCI=m
-> > CONFIG_SND_CS4281=m
-> > CONFIG_SND_CS46XX=m
-> > CONFIG_SND_CS46XX_NEW_DSP=y
-> > CONFIG_SND_CS5530=m
-> > CONFIG_SND_DARLA20=m
-> > CONFIG_SND_GINA20=m
-> > CONFIG_SND_LAYLA20=m
-> > CONFIG_SND_DARLA24=m
-> > CONFIG_SND_GINA24=m
-> > CONFIG_SND_LAYLA24=m
-> > CONFIG_SND_MONA=m
-> > CONFIG_SND_MIA=m
-> > CONFIG_SND_ECHO3G=m
-> > CONFIG_SND_INDIGO=m
-> > CONFIG_SND_INDIGOIO=m
-> > CONFIG_SND_INDIGODJ=m
-> > CONFIG_SND_EMU10K1=m
-> > CONFIG_SND_EMU10K1X=m
-> > CONFIG_SND_ENS1370=m
-> > CONFIG_SND_ENS1371=m
-> > CONFIG_SND_ES1938=m
-> > CONFIG_SND_ES1968=m
-> > CONFIG_SND_FM801=m
-> > CONFIG_SND_FM801_TEA575X_BOOL=y
-> > CONFIG_SND_FM801_TEA575X=m
-> > CONFIG_SND_HDA_INTEL=m
-> > CONFIG_SND_HDA_HWDEP=y
-> > CONFIG_SND_HDA_CODEC_REALTEK=y
-> > CONFIG_SND_HDA_CODEC_ANALOG=y
-> > CONFIG_SND_HDA_CODEC_SIGMATEL=y
-> > CONFIG_SND_HDA_CODEC_VIA=y
-> > CONFIG_SND_HDA_CODEC_ATIHDMI=y
-> > CONFIG_SND_HDA_CODEC_CONEXANT=y
-> > CONFIG_SND_HDA_CODEC_CMEDIA=y
-> > CONFIG_SND_HDA_CODEC_SI3054=y
-> > CONFIG_SND_HDA_GENERIC=y
-> > CONFIG_SND_HDA_POWER_SAVE=y
-> > CONFIG_SND_HDA_POWER_SAVE_DEFAULT=5
-> > CONFIG_SND_HDSP=m
-> > CONFIG_SND_HDSPM=m
-> > CONFIG_SND_ICE1712=m
-> > CONFIG_SND_ICE1724=m
-> > CONFIG_SND_INTEL8X0=m
-> > CONFIG_SND_INTEL8X0M=m
-> > CONFIG_SND_KORG1212=m
-> > CONFIG_SND_KORG1212_FIRMWARE_IN_KERNEL=y
-> > CONFIG_SND_MAESTRO3=m
-> > CONFIG_SND_MAESTRO3_FIRMWARE_IN_KERNEL=y
-> > CONFIG_SND_MIXART=m
-> > CONFIG_SND_NM256=m
-> > CONFIG_SND_PCXHR=m
-> > CONFIG_SND_RIPTIDE=m
-> > CONFIG_SND_RME32=m
-> > CONFIG_SND_RME96=m
-> > CONFIG_SND_RME9652=m
-> > CONFIG_SND_SONICVIBES=m
-> > CONFIG_SND_TRIDENT=m
-> > CONFIG_SND_VIA82XX=m
-> > CONFIG_SND_VIA82XX_MODEM=m
-> > CONFIG_SND_VX222=m
-> > CONFIG_SND_YMFPCI=m
-> > CONFIG_SND_YMFPCI_FIRMWARE_IN_KERNEL=y
-> > CONFIG_SND_AC97_POWER_SAVE=y
-> > CONFIG_SND_AC97_POWER_SAVE_DEFAULT=5
-> > 
-> > #
-> > # USB devices
-> > #
-> > CONFIG_SND_USB_AUDIO=m
-> > CONFIG_SND_USB_USX2Y=m
-> > CONFIG_SND_USB_CAIAQ=m
-> > CONFIG_SND_USB_CAIAQ_INPUT=y
-> > 
-> > #
-> > # PCMCIA devices
-> > #
-> > # CONFIG_SND_VXPOCKET is not set
-> > # CONFIG_SND_PDAUDIOCF is not set
-> > 
-> > #
-> > # System on Chip audio support
-> > #
-> > # CONFIG_SND_SOC is not set
-> > 
-> > #
-> > # SoC Audio support for SuperH
-> > #
-> > 
-> > #
-> > # Open Sound System
-> > #
-> > # CONFIG_SOUND_PRIME is not set
-> > CONFIG_AC97_BUS=m
-> > CONFIG_HID_SUPPORT=y
-> > CONFIG_HID=y
-> > CONFIG_HID_DEBUG=y
-> > CONFIG_HIDRAW=y
-> > 
-> > #
-> > # USB Input Devices
-> > #
-> > CONFIG_USB_HID=y
-> > # CONFIG_USB_HIDINPUT_POWERBOOK is not set
-> > CONFIG_HID_FF=y
-> > CONFIG_HID_PID=y
-> > CONFIG_LOGITECH_FF=y
-> > CONFIG_PANTHERLORD_FF=y
-> > CONFIG_THRUSTMASTER_FF=y
-> > CONFIG_ZEROPLUS_FF=y
-> > CONFIG_USB_HIDDEV=y
-> > CONFIG_USB_SUPPORT=y
-> > CONFIG_USB_ARCH_HAS_HCD=y
-> > CONFIG_USB_ARCH_HAS_OHCI=y
-> > CONFIG_USB_ARCH_HAS_EHCI=y
-> > CONFIG_USB=y
-> > # CONFIG_USB_DEBUG is not set
-> > 
-> > #
-> > # Miscellaneous USB options
-> > #
-> > CONFIG_USB_DEVICEFS=y
-> > # CONFIG_USB_DEVICE_CLASS is not set
-> > # CONFIG_USB_DYNAMIC_MINORS is not set
-> > CONFIG_USB_SUSPEND=y
-> > # CONFIG_USB_PERSIST is not set
-> > # CONFIG_USB_OTG is not set
-> > 
-> > #
-> > # USB Host Controller Drivers
-> > #
-> > CONFIG_USB_EHCI_HCD=m
-> > CONFIG_USB_EHCI_SPLIT_ISO=y
-> > CONFIG_USB_EHCI_ROOT_HUB_TT=y
-> > CONFIG_USB_EHCI_TT_NEWSCHED=y
-> > CONFIG_USB_ISP116X_HCD=m
-> > CONFIG_USB_OHCI_HCD=m
-> > # CONFIG_USB_OHCI_HCD_SSB is not set
-> > # CONFIG_USB_OHCI_BIG_ENDIAN_DESC is not set
-> > # CONFIG_USB_OHCI_BIG_ENDIAN_MMIO is not set
-> > CONFIG_USB_OHCI_LITTLE_ENDIAN=y
-> > CONFIG_USB_UHCI_HCD=m
-> > CONFIG_USB_U132_HCD=m
-> > CONFIG_USB_SL811_HCD=m
-> > # CONFIG_USB_SL811_CS is not set
-> > # CONFIG_USB_R8A66597_HCD is not set
-> > 
-> > #
-> > # USB Device Class drivers
-> > #
-> > CONFIG_USB_ACM=m
-> > CONFIG_USB_PRINTER=m
-> > 
-> > #
-> > # NOTE: USB_STORAGE enables SCSI, and 'SCSI disk support'
-> > #
-> > 
-> > #
-> > # may also be needed; see USB_STORAGE Help for more information
-> > #
-> > CONFIG_USB_STORAGE=m
-> > # CONFIG_USB_STORAGE_DEBUG is not set
-> > CONFIG_USB_STORAGE_DATAFAB=y
-> > CONFIG_USB_STORAGE_FREECOM=y
-> > CONFIG_USB_STORAGE_ISD200=y
-> > CONFIG_USB_STORAGE_DPCM=y
-> > CONFIG_USB_STORAGE_USBAT=y
-> > CONFIG_USB_STORAGE_SDDR09=y
-> > CONFIG_USB_STORAGE_SDDR55=y
-> > CONFIG_USB_STORAGE_JUMPSHOT=y
-> > CONFIG_USB_STORAGE_ALAUDA=y
-> > CONFIG_USB_STORAGE_KARMA=y
-> > CONFIG_USB_LIBUSUAL=y
-> > 
-> > #
-> > # USB Imaging devices
-> > #
-> > CONFIG_USB_MDC800=m
-> > CONFIG_USB_MICROTEK=m
-> > CONFIG_USB_MON=y
-> > 
-> > #
-> > # USB port drivers
-> > #
-> > CONFIG_USB_USS720=m
-> > 
-> > #
-> > # USB Serial Converter support
-> > #
-> > CONFIG_USB_SERIAL=m
-> > CONFIG_USB_SERIAL_GENERIC=y
-> > CONFIG_USB_SERIAL_AIRCABLE=m
-> > CONFIG_USB_SERIAL_AIRPRIME=m
-> > CONFIG_USB_SERIAL_ARK3116=m
-> > CONFIG_USB_SERIAL_BELKIN=m
-> > CONFIG_USB_SERIAL_CH341=m
-> > CONFIG_USB_SERIAL_WHITEHEAT=m
-> > CONFIG_USB_SERIAL_DIGI_ACCELEPORT=m
-> > CONFIG_USB_SERIAL_CP2101=m
-> > CONFIG_USB_SERIAL_CYPRESS_M8=m
-> > CONFIG_USB_SERIAL_EMPEG=m
-> > CONFIG_USB_SERIAL_FTDI_SIO=m
-> > CONFIG_USB_SERIAL_FUNSOFT=m
-> > CONFIG_USB_SERIAL_VISOR=m
-> > CONFIG_USB_SERIAL_IPAQ=m
-> > CONFIG_USB_SERIAL_IR=m
-> > CONFIG_USB_SERIAL_EDGEPORT=m
-> > CONFIG_USB_SERIAL_EDGEPORT_TI=m
-> > CONFIG_USB_SERIAL_GARMIN=m
-> > CONFIG_USB_SERIAL_IPW=m
-> > CONFIG_USB_SERIAL_KEYSPAN_PDA=m
-> > CONFIG_USB_SERIAL_KEYSPAN=m
-> > CONFIG_USB_SERIAL_KEYSPAN_MPR=y
-> > CONFIG_USB_SERIAL_KEYSPAN_USA28=y
-> > CONFIG_USB_SERIAL_KEYSPAN_USA28X=y
-> > CONFIG_USB_SERIAL_KEYSPAN_USA28XA=y
-> > CONFIG_USB_SERIAL_KEYSPAN_USA28XB=y
-> > CONFIG_USB_SERIAL_KEYSPAN_USA19=y
-> > CONFIG_USB_SERIAL_KEYSPAN_USA18X=y
-> > CONFIG_USB_SERIAL_KEYSPAN_USA19W=y
-> > CONFIG_USB_SERIAL_KEYSPAN_USA19QW=y
-> > CONFIG_USB_SERIAL_KEYSPAN_USA19QI=y
-> > CONFIG_USB_SERIAL_KEYSPAN_USA49W=y
-> > CONFIG_USB_SERIAL_KEYSPAN_USA49WLC=y
-> > CONFIG_USB_SERIAL_KLSI=m
-> > CONFIG_USB_SERIAL_KOBIL_SCT=m
-> > CONFIG_USB_SERIAL_MCT_U232=m
-> > CONFIG_USB_SERIAL_MOS7720=m
-> > CONFIG_USB_SERIAL_MOS7840=m
-> > CONFIG_USB_SERIAL_NAVMAN=m
-> > CONFIG_USB_SERIAL_PL2303=m
-> > CONFIG_USB_SERIAL_OTI6858=m
-> > CONFIG_USB_SERIAL_HP4X=m
-> > CONFIG_USB_SERIAL_SAFE=m
-> > CONFIG_USB_SERIAL_SAFE_PADDED=y
-> > CONFIG_USB_SERIAL_SIERRAWIRELESS=m
-> > CONFIG_USB_SERIAL_TI=m
-> > CONFIG_USB_SERIAL_CYBERJACK=m
-> > CONFIG_USB_SERIAL_XIRCOM=m
-> > CONFIG_USB_SERIAL_OPTION=m
-> > CONFIG_USB_SERIAL_OMNINET=m
-> > CONFIG_USB_SERIAL_DEBUG=m
-> > CONFIG_USB_EZUSB=y
-> > 
-> > #
-> > # USB Miscellaneous drivers
-> > #
-> > CONFIG_USB_EMI62=m
-> > CONFIG_USB_EMI26=m
-> > CONFIG_USB_ADUTUX=m
-> > CONFIG_USB_AUERSWALD=m
-> > CONFIG_USB_RIO500=m
-> > CONFIG_USB_LEGOTOWER=m
-> > CONFIG_USB_LCD=m
-> > CONFIG_USB_BERRY_CHARGE=m
-> > CONFIG_USB_LED=m
-> > # CONFIG_USB_CYPRESS_CY7C63 is not set
-> > # CONFIG_USB_CYTHERM is not set
-> > CONFIG_USB_PHIDGET=m
-> > CONFIG_USB_PHIDGETKIT=m
-> > CONFIG_USB_PHIDGETMOTORCONTROL=m
-> > CONFIG_USB_PHIDGETSERVO=m
-> > CONFIG_USB_IDMOUSE=m
-> > CONFIG_USB_FTDI_ELAN=m
-> > CONFIG_USB_APPLEDISPLAY=m
-> > CONFIG_USB_SISUSBVGA=m
-> > CONFIG_USB_SISUSBVGA_CON=y
-> > CONFIG_USB_LD=m
-> > CONFIG_USB_TRANCEVIBRATOR=m
-> > CONFIG_USB_IOWARRIOR=m
-> > # CONFIG_USB_TEST is not set
-> > 
-> > #
-> > # USB DSL modem support
-> > #
-> > CONFIG_USB_ATM=m
-> > CONFIG_USB_SPEEDTOUCH=m
-> > CONFIG_USB_CXACRU=m
-> > CONFIG_USB_UEAGLEATM=m
-> > CONFIG_USB_XUSBATM=m
-> > 
-> > #
-> > # USB Gadget Support
-> > #
-> > # CONFIG_USB_GADGET is not set
-> > CONFIG_MMC=m
-> > # CONFIG_MMC_DEBUG is not set
-> > # CONFIG_MMC_UNSAFE_RESUME is not set
-> > 
-> > #
-> > # MMC/SD Card Drivers
-> > #
-> > CONFIG_MMC_BLOCK=m
-> > CONFIG_MMC_BLOCK_BOUNCE=y
-> > CONFIG_SDIO_UART=m
-> > 
-> > #
-> > # MMC/SD Host Controller Drivers
-> > #
-> > CONFIG_MMC_SDHCI=m
-> > CONFIG_MMC_RICOH_MMC=m
-> > CONFIG_MMC_WBSD=m
-> > CONFIG_MMC_TIFM_SD=m
-> > CONFIG_NEW_LEDS=y
-> > CONFIG_LEDS_CLASS=y
-> > 
-> > #
-> > # LED drivers
-> > #
-> > 
-> > #
-> > # LED Triggers
-> > #
-> > CONFIG_LEDS_TRIGGERS=y
-> > CONFIG_LEDS_TRIGGER_TIMER=m
-> > CONFIG_LEDS_TRIGGER_HEARTBEAT=m
-> > CONFIG_INFINIBAND=m
-> > CONFIG_INFINIBAND_USER_MAD=m
-> > CONFIG_INFINIBAND_USER_ACCESS=m
-> > CONFIG_INFINIBAND_USER_MEM=y
-> > CONFIG_INFINIBAND_ADDR_TRANS=y
-> > CONFIG_INFINIBAND_MTHCA=m
-> > CONFIG_INFINIBAND_MTHCA_DEBUG=y
-> > CONFIG_INFINIBAND_IPATH=m
-> > CONFIG_INFINIBAND_AMSO1100=m
-> > # CONFIG_INFINIBAND_AMSO1100_DEBUG is not set
-> > CONFIG_INFINIBAND_CXGB3=m
-> > # CONFIG_INFINIBAND_CXGB3_DEBUG is not set
-> > CONFIG_INFINIBAND_NES=m
-> > # CONFIG_INFINIBAND_NES_DEBUG is not set
-> > CONFIG_MLX4_INFINIBAND=m
-> > CONFIG_INFINIBAND_IPOIB=m
-> > CONFIG_INFINIBAND_IPOIB_CM=y
-> > CONFIG_INFINIBAND_IPOIB_DEBUG=y
-> > # CONFIG_INFINIBAND_IPOIB_DEBUG_DATA is not set
-> > CONFIG_INFINIBAND_SRP=m
-> > CONFIG_INFINIBAND_ISER=m
-> > CONFIG_INFINIBAND_SDP=m
-> > # CONFIG_INFINIBAND_SDP_DEBUG is not set
-> > CONFIG_INFINIBAND_QLGC_VNIC=m
-> > # CONFIG_INFINIBAND_QLGC_VNIC_DEBUG is not set
-> > CONFIG_INFINIBAND_QLGC_VNIC_STATS=y
-> > CONFIG_INFINIBAND_MADEYE=m
-> > CONFIG_EDAC=y
-> > 
-> > #
-> > # Reporting subsystems
-> > #
-> > # CONFIG_EDAC_DEBUG is not set
-> > CONFIG_EDAC_MM_EDAC=m
-> > CONFIG_EDAC_E752X=m
-> > CONFIG_EDAC_I82975X=m
-> > CONFIG_EDAC_K8=m
-> > CONFIG_EDAC_I5000=m
-> > CONFIG_RTC_LIB=y
-> > CONFIG_RTC_CLASS=y
-> > # CONFIG_RTC_HCTOSYS is not set
-> > # CONFIG_RTC_DEBUG is not set
-> > 
-> > #
-> > # RTC interfaces
-> > #
-> > CONFIG_RTC_INTF_SYSFS=y
-> > CONFIG_RTC_INTF_PROC=y
-> > CONFIG_RTC_INTF_DEV=y
-> > # CONFIG_RTC_INTF_DEV_UIE_EMUL is not set
-> > # CONFIG_RTC_DRV_TEST is not set
-> > 
-> > #
-> > # I2C RTC drivers
-> > #
-> > CONFIG_RTC_DRV_DS1307=m
-> > CONFIG_RTC_DRV_DS1374=m
-> > CONFIG_RTC_DRV_DS1672=m
-> > CONFIG_RTC_DRV_MAX6900=m
-> > CONFIG_RTC_DRV_RS5C372=m
-> > CONFIG_RTC_DRV_ISL1208=m
-> > CONFIG_RTC_DRV_X1205=m
-> > CONFIG_RTC_DRV_PCF8563=m
-> > CONFIG_RTC_DRV_PCF8583=m
-> > CONFIG_RTC_DRV_M41T80=m
-> > CONFIG_RTC_DRV_M41T80_WDT=y
-> > 
-> > #
-> > # SPI RTC drivers
-> > #
-> > 
-> > #
-> > # Platform RTC drivers
-> > #
-> > CONFIG_RTC_DRV_CMOS=y
-> > CONFIG_RTC_DRV_DS1553=m
-> > CONFIG_RTC_DRV_STK17TA8=m
-> > CONFIG_RTC_DRV_DS1742=m
-> > # CONFIG_RTC_DRV_M48T86 is not set
-> > CONFIG_RTC_DRV_M48T59=m
-> > CONFIG_RTC_DRV_V3020=m
-> > 
-> > #
-> > # on-CPU RTC drivers
-> > #
-> > CONFIG_DMADEVICES=y
-> > 
-> > #
-> > # DMA Devices
-> > #
-> > CONFIG_INTEL_IOATDMA=m
-> > CONFIG_DMA_ENGINE=y
-> > 
-> > #
-> > # DMA Clients
-> > #
-> > CONFIG_NET_DMA=y
-> > CONFIG_DCA=m
-> > CONFIG_AUXDISPLAY=y
-> > CONFIG_KS0108=m
-> > CONFIG_KS0108_PORT=0x378
-> > CONFIG_KS0108_DELAY=2
-> > CONFIG_CFAG12864B=m
-> > CONFIG_CFAG12864B_RATE=20
-> > CONFIG_VIRTUALIZATION=y
-> > CONFIG_KVM=m
-> > CONFIG_KVM_INTEL=m
-> > CONFIG_KVM_AMD=m
-> > 
-> > #
-> > # Userspace I/O
-> > #
-> > CONFIG_UIO=m
-> > CONFIG_UIO_CIF=m
-> > 
-> > #
-> > # Firmware Drivers
-> > #
-> > CONFIG_EDD=m
-> > CONFIG_DELL_RBU=m
-> > CONFIG_DCDBAS=m
-> > CONFIG_DMIID=y
-> > 
-> > #
-> > # File systems
-> > #
-> > CONFIG_EXT2_FS=m
-> > CONFIG_EXT2_FS_XATTR=y
-> > CONFIG_EXT2_FS_POSIX_ACL=y
-> > CONFIG_EXT2_FS_SECURITY=y
-> > CONFIG_EXT2_FS_XIP=y
-> > CONFIG_FS_XIP=y
-> > CONFIG_EXT3_FS=m
-> > CONFIG_EXT3_FS_XATTR=y
-> > CONFIG_EXT3_FS_POSIX_ACL=y
-> > CONFIG_EXT3_FS_SECURITY=y
-> > # CONFIG_EXT4DEV_FS is not set
-> > CONFIG_JBD=m
-> > # CONFIG_JBD_DEBUG is not set
-> > CONFIG_FS_MBCACHE=m
-> > # CONFIG_REISERFS_FS is not set
-> > # CONFIG_JFS_FS is not set
-> > CONFIG_FS_POSIX_ACL=y
-> > # CONFIG_XFS_FS is not set
-> > # CONFIG_GFS2_FS is not set
-> > CONFIG_OCFS2_FS=m
-> > # CONFIG_OCFS2_DEBUG_MASKLOG is not set
-> > # CONFIG_OCFS2_DEBUG_FS is not set
-> > CONFIG_MINIX_FS=m
-> > CONFIG_ROMFS_FS=m
-> > CONFIG_INOTIFY=y
-> > CONFIG_INOTIFY_USER=y
-> > CONFIG_QUOTA=y
-> > CONFIG_QUOTA_NETLINK_INTERFACE=y
-> > CONFIG_PRINT_QUOTA_WARNING=y
-> > # CONFIG_QFMT_V1 is not set
-> > CONFIG_QFMT_V2=y
-> > CONFIG_QUOTACTL=y
-> > CONFIG_DNOTIFY=y
-> > CONFIG_AUTOFS_FS=m
-> > CONFIG_AUTOFS4_FS=m
-> > CONFIG_FUSE_FS=m
-> > CONFIG_GENERIC_ACL=y
-> > 
-> > #
-> > # CD-ROM/DVD Filesystems
-> > #
-> > CONFIG_ISO9660_FS=y
-> > CONFIG_JOLIET=y
-> > CONFIG_ZISOFS=y
-> > CONFIG_UDF_FS=m
-> > CONFIG_UDF_NLS=y
-> > 
-> > #
-> > # DOS/FAT/NT Filesystems
-> > #
-> > CONFIG_FAT_FS=m
-> > CONFIG_MSDOS_FS=m
-> > CONFIG_VFAT_FS=m
-> > CONFIG_FAT_DEFAULT_CODEPAGE=437
-> > CONFIG_FAT_DEFAULT_IOCHARSET="ascii"
-> > # CONFIG_NTFS_FS is not set
-> > 
-> > #
-> > # Pseudo filesystems
-> > #
-> > CONFIG_PROC_FS=y
-> > CONFIG_PROC_KCORE=y
-> > CONFIG_PROC_VMCORE=y
-> > CONFIG_PROC_SYSCTL=y
-> > CONFIG_SYSFS=y
-> > CONFIG_TMPFS=y
-> > CONFIG_TMPFS_POSIX_ACL=y
-> > CONFIG_HUGETLBFS=y
-> > CONFIG_HUGETLB_PAGE=y
-> > CONFIG_CONFIGFS_FS=m
-> > 
-> > #
-> > # Miscellaneous filesystems
-> > #
-> > # CONFIG_ADFS_FS is not set
-> > # CONFIG_AFFS_FS is not set
-> > # CONFIG_ECRYPT_FS is not set
-> > # CONFIG_HFS_FS is not set
-> > # CONFIG_HFSPLUS_FS is not set
-> > # CONFIG_BEFS_FS is not set
-> > # CONFIG_BFS_FS is not set
-> > # CONFIG_EFS_FS is not set
-> > # CONFIG_JFFS2_FS is not set
-> > CONFIG_CRAMFS=m
-> > # CONFIG_VXFS_FS is not set
-> > # CONFIG_HPFS_FS is not set
-> > # CONFIG_QNX4FS_FS is not set
-> > # CONFIG_SYSV_FS is not set
-> > # CONFIG_UFS_FS is not set
-> > CONFIG_NETWORK_FILESYSTEMS=y
-> > CONFIG_NFS_FS=m
-> > CONFIG_NFS_V3=y
-> > CONFIG_NFS_V3_ACL=y
-> > CONFIG_NFS_V4=y
-> > CONFIG_NFS_DIRECTIO=y
-> > CONFIG_NFSD=m
-> > CONFIG_NFSD_V2_ACL=y
-> > CONFIG_NFSD_V3=y
-> > CONFIG_NFSD_V3_ACL=y
-> > CONFIG_NFSD_V4=y
-> > CONFIG_NFSD_TCP=y
-> > CONFIG_LOCKD=m
-> > CONFIG_LOCKD_V4=y
-> > CONFIG_EXPORTFS=m
-> > CONFIG_NFS_ACL_SUPPORT=m
-> > CONFIG_NFS_COMMON=y
-> > CONFIG_SUNRPC=m
-> > CONFIG_SUNRPC_GSS=m
-> > CONFIG_SUNRPC_XPRT_RDMA=m
-> > CONFIG_SUNRPC_BIND34=y
-> > CONFIG_RPCSEC_GSS_KRB5=m
-> > CONFIG_RPCSEC_GSS_SPKM3=m
-> > # CONFIG_SMB_FS is not set
-> > CONFIG_CIFS=m
-> > # CONFIG_CIFS_STATS is not set
-> > CONFIG_CIFS_WEAK_PW_HASH=y
-> > CONFIG_CIFS_XATTR=y
-> > CONFIG_CIFS_POSIX=y
-> > # CONFIG_CIFS_DEBUG2 is not set
-> > # CONFIG_CIFS_EXPERIMENTAL is not set
-> > CONFIG_NCP_FS=m
-> > CONFIG_NCPFS_PACKET_SIGNING=y
-> > CONFIG_NCPFS_IOCTL_LOCKING=y
-> > CONFIG_NCPFS_STRONG=y
-> > CONFIG_NCPFS_NFS_NS=y
-> > CONFIG_NCPFS_OS2_NS=y
-> > CONFIG_NCPFS_SMALLDOS=y
-> > CONFIG_NCPFS_NLS=y
-> > CONFIG_NCPFS_EXTRAS=y
-> > CONFIG_CODA_FS=m
-> > # CONFIG_CODA_FS_OLD_API is not set
-> > # CONFIG_AFS_FS is not set
-> > # CONFIG_9P_FS is not set
-> > 
-> > #
-> > # Partition Types
-> > #
-> > CONFIG_PARTITION_ADVANCED=y
-> > # CONFIG_ACORN_PARTITION is not set
-> > CONFIG_OSF_PARTITION=y
-> > CONFIG_AMIGA_PARTITION=y
-> > # CONFIG_ATARI_PARTITION is not set
-> > CONFIG_MAC_PARTITION=y
-> > CONFIG_MSDOS_PARTITION=y
-> > CONFIG_BSD_DISKLABEL=y
-> > CONFIG_MINIX_SUBPARTITION=y
-> > CONFIG_SOLARIS_X86_PARTITION=y
-> > CONFIG_UNIXWARE_DISKLABEL=y
-> > # CONFIG_LDM_PARTITION is not set
-> > CONFIG_SGI_PARTITION=y
-> > # CONFIG_ULTRIX_PARTITION is not set
-> > CONFIG_SUN_PARTITION=y
-> > CONFIG_KARMA_PARTITION=y
-> > CONFIG_EFI_PARTITION=y
-> > # CONFIG_SYSV68_PARTITION is not set
-> > CONFIG_NLS=y
-> > CONFIG_NLS_DEFAULT="utf8"
-> > CONFIG_NLS_CODEPAGE_437=y
-> > CONFIG_NLS_CODEPAGE_737=m
-> > CONFIG_NLS_CODEPAGE_775=m
-> > CONFIG_NLS_CODEPAGE_850=m
-> > CONFIG_NLS_CODEPAGE_852=m
-> > CONFIG_NLS_CODEPAGE_855=m
-> > CONFIG_NLS_CODEPAGE_857=m
-> > CONFIG_NLS_CODEPAGE_860=m
-> > CONFIG_NLS_CODEPAGE_861=m
-> > CONFIG_NLS_CODEPAGE_862=m
-> > CONFIG_NLS_CODEPAGE_863=m
-> > CONFIG_NLS_CODEPAGE_864=m
-> > CONFIG_NLS_CODEPAGE_865=m
-> > CONFIG_NLS_CODEPAGE_866=m
-> > CONFIG_NLS_CODEPAGE_869=m
-> > CONFIG_NLS_CODEPAGE_936=m
-> > CONFIG_NLS_CODEPAGE_950=m
-> > CONFIG_NLS_CODEPAGE_932=m
-> > CONFIG_NLS_CODEPAGE_949=m
-> > CONFIG_NLS_CODEPAGE_874=m
-> > CONFIG_NLS_ISO8859_8=m
-> > CONFIG_NLS_CODEPAGE_1250=m
-> > CONFIG_NLS_CODEPAGE_1251=m
-> > CONFIG_NLS_ASCII=y
-> > CONFIG_NLS_ISO8859_1=m
-> > CONFIG_NLS_ISO8859_2=m
-> > CONFIG_NLS_ISO8859_3=m
-> > CONFIG_NLS_ISO8859_4=m
-> > CONFIG_NLS_ISO8859_5=m
-> > CONFIG_NLS_ISO8859_6=m
-> > CONFIG_NLS_ISO8859_7=m
-> > CONFIG_NLS_ISO8859_9=m
-> > CONFIG_NLS_ISO8859_13=m
-> > CONFIG_NLS_ISO8859_14=m
-> > CONFIG_NLS_ISO8859_15=m
-> > CONFIG_NLS_KOI8_R=m
-> > CONFIG_NLS_KOI8_U=m
-> > CONFIG_NLS_UTF8=m
-> > CONFIG_DLM=m
-> > CONFIG_DLM_DEBUG=y
-> > CONFIG_INSTRUMENTATION=y
-> > CONFIG_PROFILING=y
-> > CONFIG_OPROFILE=m
-> > CONFIG_PROFILE_NMI=y
-> > CONFIG_KPROBES=y
-> > CONFIG_MARKERS=y
-> > 
-> > #
-> > # Kernel hacking
-> > #
-> > CONFIG_TRACE_IRQFLAGS_SUPPORT=y
-> > # CONFIG_PRINTK_TIME is not set
-> > # CONFIG_ENABLE_WARN_DEPRECATED is not set
-> > # CONFIG_ENABLE_MUST_CHECK is not set
-> > CONFIG_MAGIC_SYSRQ=y
-> > # CONFIG_UNUSED_SYMBOLS is not set
-> > CONFIG_DEBUG_FS=y
-> > CONFIG_HEADERS_CHECK=y
-> > CONFIG_DEBUG_KERNEL=y
-> > CONFIG_DEBUG_SHIRQ=y
-> > CONFIG_DETECT_SOFTLOCKUP=y
-> > CONFIG_SCHED_DEBUG=y
-> > CONFIG_SCHEDSTATS=y
-> > CONFIG_TIMER_STATS=y
-> > # CONFIG_DEBUG_SLAB is not set
-> > # CONFIG_DEBUG_PREEMPT is not set
-> > # CONFIG_DEBUG_RT_MUTEXES is not set
-> > # CONFIG_RT_MUTEX_TESTER is not set
-> > # CONFIG_DEBUG_SPINLOCK is not set
-> > CONFIG_RWLOCK_TORTURE_TEST=m
-> > # CONFIG_DEBUG_LOCK_ALLOC is not set
-> > # CONFIG_PROVE_LOCKING is not set
-> > # CONFIG_LOCK_STAT is not set
-> > # CONFIG_DEBUG_SPINLOCK_SLEEP is not set
-> > # CONFIG_DEBUG_LOCKING_API_SELFTESTS is not set
-> > # CONFIG_DEBUG_KOBJECT is not set
-> > CONFIG_DEBUG_BUGVERBOSE=y
-> > CONFIG_DEBUG_INFO=y
-> > # CONFIG_DEBUG_VM is not set
-> > # CONFIG_DEBUG_LIST is not set
-> > # CONFIG_DEBUG_SG is not set
-> > CONFIG_FRAME_POINTER=y
-> > # CONFIG_FORCED_INLINING is not set
-> > CONFIG_BOOT_PRINTK_DELAY=y
-> > # CONFIG_RCU_TORTURE_TEST is not set
-> > # CONFIG_BACKTRACE_SELF_TEST is not set
-> > # CONFIG_LKDTM is not set
-> > # CONFIG_FAULT_INJECTION is not set
-> > CONFIG_HAVE_FTRACE=y
-> > CONFIG_HAVE_DYNAMIC_FTRACE=y
-> > # CONFIG_FTRACE is not set
-> > # CONFIG_IRQSOFF_TRACER is not set
-> > # CONFIG_PREEMPT_TRACER is not set
-> > # CONFIG_SCHED_TRACER is not set
-> > # CONFIG_EVENT_TRACER is not set
-> > # CONFIG_CONTEXT_SWITCH_TRACER is not set
-> > # CONFIG_WAKEUP_LATENCY_HIST is not set
-> > # CONFIG_PREEMPT_TRACE is not set
-> > # CONFIG_SAMPLES is not set
-> > CONFIG_EARLY_PRINTK=y
-> > CONFIG_DEBUG_STACKOVERFLOW=y
-> > # CONFIG_DEBUG_STACK_USAGE is not set
-> > CONFIG_DEBUG_RODATA=y
-> > # CONFIG_IOMMU_DEBUG is not set
-> > 
-> > #
-> > # Security options
-> > #
-> > CONFIG_KEYS=y
-> > CONFIG_KEYS_DEBUG_PROC_KEYS=y
-> > CONFIG_SECURITY=y
-> > CONFIG_SECURITY_NETWORK=y
-> > CONFIG_SECURITY_NETWORK_XFRM=y
-> > CONFIG_SECURITY_CAPABILITIES=y
-> > CONFIG_SECURITY_FILE_CAPABILITIES=y
-> > # CONFIG_SECURITY_ROOTPLUG is not set
-> > CONFIG_SECURITY_SELINUX=y
-> > CONFIG_SECURITY_SELINUX_BOOTPARAM=y
-> > CONFIG_SECURITY_SELINUX_BOOTPARAM_VALUE=1
-> > CONFIG_SECURITY_SELINUX_DISABLE=y
-> > CONFIG_SECURITY_SELINUX_DEVELOP=y
-> > CONFIG_SECURITY_SELINUX_AVC_STATS=y
-> > CONFIG_SECURITY_SELINUX_CHECKREQPROT_VALUE=1
-> > CONFIG_SECURITY_SELINUX_ENABLE_SECMARK_DEFAULT=y
-> > # CONFIG_SECURITY_SELINUX_POLICYDB_VERSION_MAX is not set
-> > CONFIG_XOR_BLOCKS=m
-> > CONFIG_ASYNC_CORE=m
-> > CONFIG_ASYNC_MEMCPY=m
-> > CONFIG_ASYNC_XOR=m
-> > CONFIG_CRYPTO=y
-> > CONFIG_CRYPTO_ALGAPI=y
-> > CONFIG_CRYPTO_AEAD=m
-> > CONFIG_CRYPTO_BLKCIPHER=m
-> > CONFIG_CRYPTO_HASH=y
-> > CONFIG_CRYPTO_MANAGER=y
-> > CONFIG_CRYPTO_HMAC=y
-> > CONFIG_CRYPTO_XCBC=m
-> > CONFIG_CRYPTO_NULL=m
-> > CONFIG_CRYPTO_MD4=m
-> > CONFIG_CRYPTO_MD5=y
-> > CONFIG_CRYPTO_SHA1=y
-> > CONFIG_CRYPTO_SHA256=m
-> > CONFIG_CRYPTO_SHA512=m
-> > CONFIG_CRYPTO_WP512=m
-> > CONFIG_CRYPTO_TGR192=m
-> > CONFIG_CRYPTO_GF128MUL=m
-> > CONFIG_CRYPTO_ECB=m
-> > CONFIG_CRYPTO_CBC=m
-> > CONFIG_CRYPTO_PCBC=m
-> > CONFIG_CRYPTO_LRW=m
-> > CONFIG_CRYPTO_XTS=m
-> > # CONFIG_CRYPTO_CRYPTD is not set
-> > CONFIG_CRYPTO_DES=m
-> > CONFIG_CRYPTO_FCRYPT=m
-> > CONFIG_CRYPTO_BLOWFISH=m
-> > CONFIG_CRYPTO_TWOFISH=m
-> > CONFIG_CRYPTO_TWOFISH_COMMON=m
-> > CONFIG_CRYPTO_TWOFISH_X86_64=m
-> > CONFIG_CRYPTO_SERPENT=m
-> > CONFIG_CRYPTO_AES=m
-> > CONFIG_CRYPTO_AES_X86_64=m
-> > CONFIG_CRYPTO_CAST5=m
-> > CONFIG_CRYPTO_CAST6=m
-> > CONFIG_CRYPTO_TEA=m
-> > CONFIG_CRYPTO_ARC4=m
-> > CONFIG_CRYPTO_KHAZAD=m
-> > CONFIG_CRYPTO_ANUBIS=m
-> > CONFIG_CRYPTO_SEED=m
-> > CONFIG_CRYPTO_DEFLATE=m
-> > CONFIG_CRYPTO_MICHAEL_MIC=m
-> > CONFIG_CRYPTO_CRC32C=m
-> > CONFIG_CRYPTO_CAMELLIA=m
-> > CONFIG_CRYPTO_TEST=m
-> > CONFIG_CRYPTO_AUTHENC=m
-> > CONFIG_CRYPTO_HW=y
-> > 
-> > #
-> > # Library routines
-> > #
-> > CONFIG_BITREVERSE=y
-> > CONFIG_CRC_CCITT=m
-> > CONFIG_CRC16=m
-> > CONFIG_CRC_ITU_T=m
-> > CONFIG_CRC32=y
-> > # CONFIG_CRC7 is not set
-> > CONFIG_LIBCRC32C=m
-> > CONFIG_ZLIB_INFLATE=y
-> > CONFIG_ZLIB_DEFLATE=m
-> > CONFIG_GENERIC_ALLOCATOR=y
-> > CONFIG_REED_SOLOMON=m
-> > CONFIG_REED_SOLOMON_DEC16=y
-> > CONFIG_TEXTSEARCH=y
-> > CONFIG_TEXTSEARCH_KMP=m
-> > CONFIG_TEXTSEARCH_BM=m
-> > CONFIG_TEXTSEARCH_FSM=m
-> > CONFIG_PLIST=y
-> > CONFIG_HAS_IOMEM=y
-> > CONFIG_HAS_IOPORT=y
-> > CONFIG_HAS_DMA=y
-> 
-> > _______________________________________________
-> > kexec mailing list
-> > kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-> > http://lists.infradead.org/mailman/listinfo/kexec
-> 
+Word wrap off, Oops pasted again:
+
+Jul 31 21:36:03 coyote kernel: [11130.112101] ACPI Error (psargs-0358): [SENF] Namespace lookup failure, AE_NOT_FOUND
+Jul 31 21:36:03 coyote kernel: [11130.112112] ACPI Error (psparse-0530): ACPI Error (nsnames-0186): Invalid NS Node 
+(f7811f90) while traversing path [20080321]
+Jul 31 21:36:03 coyote kernel: [11130.112145] BUG: unable to handle kernel NULL pointer dereference at 0000000f
+Jul 31 21:36:03 coyote kernel: [11130.112148] IP: [<c05279d5>] acpi_ns_build_external_path+0x1e/0x7b
+Jul 31 21:36:03 coyote kernel: [11130.112159] *pde = 00000000
+Jul 31 21:36:03 coyote kernel: [11130.112162] Oops: 0002 [#1] PREEMPT
+Jul 31 21:36:03 coyote kernel: [11130.112165] Modules linked in: radeon drm eeprom autofs4 w83627hf hwmon_vid hwmon fuse 
+sunrpc ipv6 cx88_dvb cx88_vp3054_i2c mt352 dvb_pll s5h1411 or51132 videobuf_dvb nxt200x isl6421 zl10353 cx24123 lgdt330x 
+snd_intel8x0 dvb_core snd_emu10k1_synth cx22702 tuner tda8290 tda18271 tda827x tda9887 tuner_simple tuner_types 
+snd_emux_synth snd_seq_virmidi snd_seq_midi_emul snd_emu10k1 snd_ac97_codec ac97_bus snd_seq_dummy snd_seq_oss 
+snd_seq_midi_event snd_seq cx8800 snd_pcm_oss snd_mixer_oss snd_pcm cx8802 snd_mpu401 snd_mpu401_uart snd_rawmidi cx88xx 
+snd_seq_device videodev snd_timer floppy snd_util_mem snd_hwdep snd ir_common i2c_algo_bit tveeprom firewire_ohci pcspkr 
+v4l1_compat compat_ioctl32 v4l2_common btcx_risc videobuf_dma_sg firewire_core crc_itu_t soundcore videobuf_core 
+snd_page_alloc forcedeth ftdi_sio usbserial i2c_nforce2 i2c_core usblp sg sr_mod cdrom sata_sil ata_generic pata_acpi 
+pata_amd libata dock sd_mod scsi_mod ext3 jbd mbcache uhci_hcd ohci_hcd ehci_hcd [last un
+Jul 31 21:36:03 coyote kernel: loaded: scsi_wait_scan]
+Jul 31 21:36:03 coyote kernel: [11130.112210]
+Jul 31 21:36:03 coyote kernel: [11130.112213] Pid: 2670, comm: ksensors Not tainted (2.6.26 #2)
+Jul 31 21:36:03 coyote kernel: [11130.112215] EIP: 0060:[<c05279d5>] EFLAGS: 00010286 CPU: 0
+Jul 31 21:36:03 coyote kernel: [11130.112220] EIP is at acpi_ns_build_external_path+0x1e/0x7b
+Jul 31 21:36:03 coyote kernel: [11130.112222] EAX: f7813078 EBX: ffffffff ECX: 00000010 EDX: f7813078
+Jul 31 21:36:03 coyote kernel: [11130.112225] ESI: 00000010 EDI: 00000010 EBP: 00000000 ESP: f1210e28
+Jul 31 21:36:03 coyote kernel: [11130.112227]  DS: 007b ES: 007b FS: 0000 GS: 0033 SS: 0068
+Jul 31 21:36:03 coyote kernel: [11130.112229] Process ksensors (pid: 2670, ti=f1210000 task=f11413b0 task.ti=f1210000)
+Jul 31 21:36:03 coyote kernel: [11130.112232] Stack: f7813078 00000000 00000000 f1210e50 c0527a6a f7813078 c0688619 
+c0688619
+Jul 31 21:36:03 coyote kernel: [11130.112237]        00000005 c0527f94 00000000 00000010 00000000 f7813078 c0528017 
+f7813078
+Jul 31 21:36:03 coyote kernel: [11130.112241]        00000000 f1027400 f7b02810 c05292b5 f7813078 00000000 00000005 
+00000000
+Jul 31 21:36:03 coyote kernel: [11130.112246] Call Trace:
+Jul 31 21:36:03 coyote kernel: [11130.112251]  [<c0527a6a>] acpi_ns_handle_to_pathname+0x38/0x42
+Jul 31 21:36:03 coyote kernel: [11130.112258]  [<c0527f94>] acpi_ns_print_node_pathname+0x28/0x5d
+Jul 31 21:36:03 coyote kernel: [11130.112264]  [<c0528017>] acpi_ns_report_method_error+0x4e/0x69
+Jul 31 21:36:03 coyote kernel: [11130.112270]  [<c05292b5>] acpi_ps_parse_aml+0xcf/0x26b
+Jul 31 21:36:03 coyote kernel: [11130.112278]  [<c052a47b>] acpi_ps_execute_method+0x10a/0x1a7
+Jul 31 21:36:03 coyote kernel: [11130.112285]  [<c0527918>] acpi_ns_evaluate+0x90/0xe4
+Jul 31 21:36:03 coyote kernel: [11130.112290]  [<c052759f>] acpi_evaluate_object+0x124/0x1c9
+Jul 31 21:36:03 coyote kernel: [11130.112298]  [<c051a1e6>] acpi_evaluate_integer+0x78/0xac
+Jul 31 21:36:03 coyote kernel: [11130.112307]  [<c0535e2f>] acpi_thermal_get_temperature+0x26/0x33
+Jul 31 21:36:03 coyote kernel: [11130.112313]  [<c0537325>] acpi_thermal_temp_seq_show+0x12/0x4a
+Jul 31 21:36:03 coyote kernel: [11130.112318]  [<c0494ea5>] seq_read+0x65/0x2a0
+Jul 31 21:36:03 coyote kernel: [11130.112324]  [<c04d7374>] selinux_file_permission+0x104/0x150
+Jul 31 21:36:03 coyote kernel: [11130.112332]  [<c0494e40>] seq_read+0x0/0x2a0
+Jul 31 21:36:03 coyote kernel: [11130.112336]  [<c04ae3de>] proc_reg_read+0x6e/0xc0
+Jul 31 21:36:03 coyote kernel: [11130.112346]  [<c0479081>] vfs_read+0xa1/0x160
+Jul 31 21:36:03 coyote kernel: [11130.112353]  [<c04ae370>] proc_reg_read+0x0/0xc0
+Jul 31 21:36:03 coyote kernel: [11130.112358]  [<c0479511>] sys_read+0x41/0x70
+Jul 31 21:36:03 coyote kernel: [11130.112365]  [<c0403006>] syscall_call+0x7/0xb
+Jul 31 21:36:03 coyote kernel: [11130.112378]  =======================
+Jul 31 21:36:03 coyote kernel: [11130.112380] Code: 00 00 00 85 db 0f 44 d8 8d 43 01 5b c3 55 89 d5 57 56 89 ce 53 8d 5a 
+ff 83 fb 03 77 09 c6 01 5c c6 41 01 00 eb 5d 8d 3c 11 89 c2 <c6> 04 19 00 eb 15 8b 42 08 83 eb 05 89 07 89 d0 e8 e3 01 00 
+00
+Jul 31 21:36:03 coyote kernel: [11130.112400] EIP: [<c05279d5>] acpi_ns_build_external_path+0x1e/0x7b SS:ESP 0068:f1210e28
+Jul 31 21:36:03 coyote kernel: [11130.112406] ---[ end trace 0d63271c2d334fd8 ]---
+
+
+>It seems like a BIOS/ACPICA  issue, cc Ming.
+>
+>Gene,
+>Please attach the acpidump using the latest pmtools at
+>http://www.lesswatts.org/patches/linux_acpi/
+>
+>thanks,
+>rui
+
+Attached, thank you.
+
+-- 
+Cheers, Gene
+"There are four boxes to be used in defense of liberty:
+ soap, ballot, jury, and ammo. Please use in that order."
+-Ed Howdershelt (Author)
+Some people have parts that are so private they themselves have no
+knowledge of them.
+
+--Boundary-00=_RookIvV3pjCtVkU
+Content-Type: text/plain;
+  charset="utf-8";
+  name="acpidump.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="acpidump.txt"
+
+DSDT @ 0x3fff30c0
+  0000: 44 53 44 54 c4 4c 00 00 01 60 4e 56 49 44 49 41  DSDT.L...`NVIDIA
+  0010: 41 57 52 44 41 43 50 49 00 10 00 00 4d 53 46 54  AWRDACPI....MSFT
+  0020: 0e 00 00 01 10 19 5c 5f 50 52 5f 5b 83 11 5c 2e  ......\_PR_[..\.
+  0030: 5f 50 52 5f 43 50 55 30 00 00 00 00 00 00 08 5c  _PR_CPU0.......\
+  0040: 5f 53 30 5f 12 0a 04 0a 00 0a 00 0a 00 0a 00 08  _S0_............
+  0050: 5c 5f 53 31 5f 12 0a 04 0a 01 0a 01 0a 00 0a 00  \_S1_...........
+  0060: 08 5c 53 53 33 5f 12 0a 04 0a 05 0a 05 0a 00 0a  .\SS3_..........
+  0070: 00 08 5c 5f 53 34 5f 12 0a 04 0a 06 0a 06 0a 00  ..\_S4_.........
+  0080: 0a 00 08 5c 5f 53 35 5f 12 0a 04 0a 07 0a 07 0a  ...\_S5_........
+  0090: 00 0a 00 5b 80 5c 44 45 42 47 01 0a 80 0a 01 5b  ...[.\DEBG.....[
+  00a0: 81 0c 5c 44 45 42 47 01 44 42 47 31 08 5b 80 5a  ..\DEBG.DBG1.[.Z
+  00b0: 30 30 32 01 0a 21 0a 01 5b 81 0b 5a 30 30 32 01  002..!..[..Z002.
+  00c0: 5a 30 30 30 08 5b 80 4b 42 43 5f 01 0a 64 0a 01  Z000.[.KBC_..d..
+  00d0: 5b 81 0b 4b 42 43 5f 01 4b 43 4d 44 08 5b 80 45  [..KBC_.KCMD.[.E
+  00e0: 58 54 4d 00 0c 30 f8 0f 00 0a 10 5b 81 29 45 58  XTM..0.....[.)EX
+  00f0: 54 4d 02 52 4f 4d 31 10 52 4d 53 31 10 52 4f 4d  TM.ROM1.RMS1.ROM
+  0100: 32 10 52 4d 53 32 10 52 4f 4d 33 10 52 4d 53 33  2.RMS2.ROM3.RMS3
+  0110: 10 41 4d 45 4d 20 5b 80 5c 50 4d 31 53 01 0b 00  .AMEM [.\PM1S...
+  0120: 40 0a 02 5b 81 1c 5c 50 4d 31 53 01 00 08 50 42  @..[..\PM1S...PB
+  0130: 54 53 01 00 01 52 54 43 53 01 00 04 57 41 4b 53  TS...RTCS...WAKS
+  0140: 01 5b 80 45 4c 43 52 01 0b d0 04 0a 02 5b 81 10  .[.ELCR......[..
+  0150: 45 4c 43 52 01 45 4c 43 31 08 45 4c 43 32 08 5b  ELCR.ELC1.ELC2.[
+  0160: 80 5c 53 54 55 53 01 0b 00 44 0a 04 5b 81 0c 5c  .\STUS...D..[..\
+  0170: 53 54 55 53 01 47 5f 53 54 20 5b 80 5c 53 4d 49  STUS.G_ST [.\SMI
+  0180: 53 01 0b 20 40 0a 04 5b 81 0c 5c 53 4d 49 53 01  S.. @..[..\SMIS.
+  0190: 50 5f 32 30 20 5b 80 5c 53 4d 49 43 01 0b 2e 44  P_20 [.\SMIC...D
+  01a0: 0a 01 5b 81 0c 5c 53 4d 49 43 01 53 43 50 5f 08  ..[..\SMIC.SCP_.
+  01b0: 5b 80 5c 47 50 31 5f 01 0b c0 44 0a 32 5b 81 4f  [.\GP1_...D.2[.O
+  01c0: 0f 5c 47 50 31 5f 01 47 50 30 30 08 47 50 30 31  .\GP1_.GP00.GP01
+  01d0: 08 47 50 30 32 08 47 50 30 33 08 47 50 30 34 08  .GP02.GP03.GP04.
+  01e0: 47 50 30 35 08 47 50 30 36 08 47 50 30 37 08 47  GP05.GP06.GP07.G
+  01f0: 50 30 38 08 47 50 30 39 08 47 50 31 30 08 47 50  P08.GP09.GP10.GP
+  0200: 31 31 08 47 50 31 32 08 47 50 31 33 08 47 50 31  11.GP12.GP13.GP1
+  0210: 34 08 47 50 31 35 08 47 50 31 36 08 47 50 31 37  4.GP15.GP16.GP17
+  0220: 08 47 50 31 38 08 47 50 31 39 08 47 50 32 30 08  .GP18.GP19.GP20.
+  0230: 47 50 32 31 08 47 50 32 32 08 00 08 47 50 32 34  GP21.GP22...GP24
+  0240: 08 47 50 32 35 08 47 50 32 36 08 47 50 32 37 08  .GP25.GP26.GP27.
+  0250: 47 50 32 38 08 47 50 32 39 08 47 50 33 30 08 47  GP28.GP29.GP30.G
+  0260: 50 33 31 08 47 50 33 32 08 47 50 33 33 08 47 50  P31.GP32.GP33.GP
+  0270: 33 34 08 47 50 33 35 08 47 50 33 36 08 47 50 33  34.GP35.GP36.GP3
+  0280: 37 08 47 50 33 38 08 47 50 33 39 08 47 50 34 30  7.GP38.GP39.GP40
+  0290: 08 47 50 34 31 08 47 50 34 32 08 47 50 34 33 08  .GP41.GP42.GP43.
+  02a0: 47 50 34 34 08 47 50 34 35 08 47 50 34 36 08 47  GP44.GP45.GP46.G
+  02b0: 50 34 37 08 47 50 34 38 08 47 50 34 39 08 08 4f  P47.GP48.GP49..O
+  02c0: 53 46 4c 0a 01 14 41 05 53 54 52 43 02 a0 0a 92  SFL...A.STRC....
+  02d0: 93 87 68 87 69 a4 0a 00 72 87 68 0a 01 60 08 42  ..h.i...r.h..`.B
+  02e0: 55 46 30 11 02 60 08 42 55 46 31 11 02 60 70 68  UF0..`.BUF1..`ph
+  02f0: 42 55 46 30 70 69 42 55 46 31 a2 1a 60 76 60 a0  BUF0piBUF1..`v`.
+  0300: 15 92 93 83 88 42 55 46 30 60 00 83 88 42 55 46  .....BUF0`...BUF
+  0310: 31 60 00 a4 00 a4 01 5b 80 52 54 43 4d 01 0a 70  1`.....[.RTCM..p
+  0320: 0a 02 5b 81 10 52 54 43 4d 01 43 4d 49 4e 08 43  ..[..RTCM.CMIN.C
+  0330: 4d 44 41 08 5b 86 12 43 4d 49 4e 43 4d 44 41 01  MDA.[..CMINCMDA.
+  0340: 00 48 07 53 48 55 54 08 5b 80 49 4e 46 4f 00 0c  .H.SHUT.[.INFO..
+  0350: 40 f8 0f 00 0a 01 5b 81 24 49 4e 46 4f 01 4b 42  @.....[.$INFO.KB
+  0360: 44 49 01 52 54 43 57 01 50 53 32 46 01 49 52 46  DI.RTCW.PS2F.IRF
+  0370: 4c 02 44 49 53 45 01 53 53 48 55 01 5b 80 42 45  L.DISE.SSHU.[.BE
+  0380: 45 50 01 0a 61 0a 01 5b 81 0b 42 45 45 50 01 53  EP..a..[..BEEP.S
+  0390: 31 42 5f 08 5b 80 43 4f 4e 54 01 0a 40 0a 04 5b  1B_.[.CONT..@..[
+  03a0: 81 1a 43 4f 4e 54 01 43 4e 54 30 08 43 4e 54 31  ..CONT.CNT0.CNT1
+  03b0: 08 43 4e 54 32 08 43 54 52 4c 08 14 43 06 53 50  .CNT2.CTRL..C.SP
+  03c0: 4b 52 01 70 53 31 42 5f 60 70 0a b6 43 54 52 4c  KR.pS1B_`p..CTRL
+  03d0: 70 0a 55 43 4e 54 32 70 0a 03 43 4e 54 32 70 68  p.UCNT2p..CNT2ph
+  03e0: 62 a2 37 94 62 0a 00 7d 53 31 42 5f 0a 03 53 31  b.7.b..}S1B_..S1
+  03f0: 42 5f 70 0b ff 5f 63 a2 07 94 63 0a 00 76 63 7b  B_p.._c...c..vc{
+  0400: 53 31 42 5f 0a fc 53 31 42 5f 70 0b ff 0e 63 a2  S1B_..S1B_p...c.
+  0410: 07 94 63 0a 00 76 63 76 62 70 60 53 31 42 5f 10  ..c..vcvbp`S1B_.
+  0420: 17 5c 00 08 50 49 43 46 0a 00 14 0c 5f 50 49 43  .\..PICF...._PIC
+  0430: 01 70 68 50 49 43 46 08 53 49 44 34 0a 00 08 53  .phPICF.SID4...S
+  0440: 4c 47 30 0a 00 08 53 4c 47 31 0a 00 08 53 4c 47  LG0...SLG1...SLG
+  0450: 32 0a 00 08 53 4c 47 33 0a 00 08 53 4c 47 34 0a  2...SLG3...SLG4.
+  0460: 00 08 53 4c 47 35 0a 00 08 53 4c 47 36 0a 00 08  ..SLG5...SLG6...
+  0470: 53 4c 47 37 0a 00 08 53 4c 47 38 0a 00 08 53 4c  SLG7...SLG8...SL
+  0480: 47 39 0a 00 08 53 4c 47 41 0a 00 08 53 49 44 35  G9...SLGA...SID5
+  0490: 0a 00 08 53 53 4d 30 0a 00 08 53 53 4d 31 0a 00  ...SSM0...SSM1..
+  04a0: 08 53 53 4d 32 0a 00 08 53 53 4d 33 0a 00 08 53  .SSM2...SSM3...S
+  04b0: 53 4d 34 0a 00 08 53 55 41 30 0a 00 08 53 55 42  SM4...SUA0...SUB
+  04c0: 30 0a 00 08 53 58 5f 5f 0a 00 08 53 46 4c 47 0a  0...SX__...SFLG.
+  04d0: 00 08 53 49 44 30 0a 00 08 53 49 44 31 0a 00 08  ..SID0...SID1...
+  04e0: 53 49 44 32 0a 00 08 53 49 44 33 0a 00 14 48 18  SID2...SID3...H.
+  04f0: 5c 5f 50 54 53 01 a0 10 93 47 50 33 34 0a 08 70  \_PTS....GP34..p
+  0500: 68 60 53 41 4c 44 60 a1 01 70 68 60 70 60 53 58  h`SALD`..ph`p`SX
+  0510: 5f 5f 7d 68 0a f0 60 70 60 44 42 47 31 4f 53 54  __}h..`p`DBG1OST
+  0520: 50 70 5c 2f 04 5f 53 42 5f 50 43 49 30 49 44 45  Pp\/._SB_PCI0IDE
+  0530: 30 49 44 32 30 53 49 44 30 70 5c 2f 04 5f 53 42  0ID20SID0p\/._SB
+  0540: 5f 50 43 49 30 49 44 45 30 49 44 54 53 53 49 44  _PCI0IDE0IDTSSID
+  0550: 31 70 5c 2f 04 5f 53 42 5f 50 43 49 30 49 44 45  1p\/._SB_PCI0IDE
+  0560: 30 49 44 54 50 53 49 44 32 70 5c 2f 04 5f 53 42  0IDTPSID2p\/._SB
+  0570: 5f 50 43 49 30 49 44 45 30 49 44 32 32 53 49 44  _PCI0IDE0ID22SID
+  0580: 33 70 5c 2f 04 5f 53 42 5f 50 43 49 30 49 44 45  3p\/._SB_PCI0IDE
+  0590: 30 55 4d 53 53 53 49 44 34 70 5c 2f 04 5f 53 42  0UMSSSID4p\/._SB
+  05a0: 5f 50 43 49 30 49 44 45 30 55 4d 53 50 53 49 44  _PCI0IDE0UMSPSID
+  05b0: 35 a0 43 04 93 68 0a 01 a0 10 93 47 50 33 34 0a  5.C..h.....GP34.
+  05c0: 08 70 68 60 53 41 4c 44 60 a1 01 70 5c 2f 03 5f  .ph`SALD`..p\/._
+  05d0: 53 42 5f 50 43 49 30 43 54 4c 30 60 7d 60 0c 00  SB_PCI0CTL0`}`..
+  05e0: 00 00 04 60 70 60 5c 2f 03 5f 53 42 5f 50 43 49  ...`p`\/._SB_PCI
+  05f0: 30 43 54 4c 30 a0 43 04 93 68 0a 03 a0 10 93 47  0CTL0.C..h.....G
+  0600: 50 33 34 0a 08 70 68 60 53 41 4c 44 60 a1 01 70  P34..ph`SALD`..p
+  0610: 5c 2f 03 5f 53 42 5f 50 43 49 30 43 54 4c 30 60  \/._SB_PCI0CTL0`
+  0620: 7d 60 0c 00 00 00 04 60 70 60 5c 2f 03 5f 53 42  }`.....`p`\/._SB
+  0630: 5f 50 43 49 30 43 54 4c 30 a0 14 93 68 0a 04 a0  _PCI0CTL0...h...
+  0640: 0e 92 93 4f 53 46 4c 0a 00 5b 22 0b f4 01 a0 27  ...OSFL..["....'
+  0650: 93 68 0a 05 a0 10 93 47 50 33 34 0a 08 70 68 60  .h.....GP34..ph`
+  0660: 53 41 4c 44 60 a1 01 a0 0e 92 93 4f 53 46 4c 0a  SALD`......OSFL.
+  0670: 00 5b 22 0b f4 01 14 42 0e 5c 5f 57 41 4b 01 a0  .["....B.\_WAK..
+  0680: 0e 93 47 50 33 34 0a 08 53 41 4c 44 0a 00 a1 01  ..GP34..SALD....
+  0690: 70 0a ff 44 42 47 31 70 0a 00 53 46 4c 47 86 5c  p..DBG1p..SFLG.\
+  06a0: 2e 5f 53 42 5f 50 57 52 42 0a 02 86 5c 2f 03 5f  ._SB_PWRB...\/._
+  06b0: 53 42 5f 50 43 49 30 55 53 42 30 0a 00 86 5c 2f  SB_PCI0USB0...\/
+  06c0: 03 5f 53 42 5f 50 43 49 30 55 53 42 31 0a 00 70  ._SB_PCI0USB1..p
+  06d0: 5c 2f 03 5f 53 42 5f 50 43 49 30 43 54 4c 30 60  \/._SB_PCI0CTL0`
+  06e0: 7b 60 0c ff ff ff fb 60 70 60 5c 2f 03 5f 53 42  {`.....`p`\/._SB
+  06f0: 5f 50 43 49 30 43 54 4c 30 a0 0e 93 47 50 33 34  _PCI0CTL0...GP34
+  0700: 0a 08 53 41 4c 44 0a 00 a1 01 a0 4e 04 92 95 4f  ..SALD.....N...O
+  0710: 53 46 4c 0a 01 70 0a 00 5c 2f 04 5f 53 42 5f 50  SFL..p..\/._SB_P
+  0720: 43 49 30 53 4d 42 30 53 4d 50 4d 70 0b 00 50 5c  CI0SMB0SMPMp..P\
+  0730: 2f 04 5f 53 42 5f 50 43 49 30 53 4d 42 30 53 42  /._SB_PCI0SMB0SB
+  0740: 31 5f 70 0b 00 51 5c 2f 04 5f 53 42 5f 50 43 49  1_p..Q\/._SB_PCI
+  0750: 30 53 4d 42 30 53 42 32 5f 10 49 04 5c 5f 53 49  0SMB0SB2_.I.\_SI
+  0760: 5f 14 20 5f 4d 53 47 01 70 0d 3d 3d 3d 3d 20 4d  _. _MSG.p.==== M
+  0770: 53 47 20 57 6f 72 6b 69 6e 67 20 3d 3d 3d 3d 00  SG Working ====.
+  0780: 5b 31 14 20 5f 53 53 54 01 70 0d 3d 3d 3d 3d 20  [1. _SST.p.==== 
+  0790: 53 53 54 20 57 6f 72 6b 69 6e 67 20 3d 3d 3d 3d  SST Working ====
+  07a0: 00 5b 31 5b 80 54 45 4d 4d 00 0c 10 f8 0f 00 0a  .[1[.TEMM.......
+  07b0: 0c 5b 81 24 54 45 4d 4d 02 54 50 31 48 10 54 50  .[.$TEMM.TP1H.TP
+  07c0: 31 4c 10 54 50 32 48 10 54 50 32 4c 10 54 52 50  1L.TP2H.TP2L.TRP
+  07d0: 43 10 53 45 4e 46 10 08 54 56 41 52 11 08 0a 05  C.SENF..TVAR....
+  07e0: 00 00 00 00 00 8c 54 56 41 52 0a 00 50 4c 43 59  ......TVAR..PLCY
+  07f0: 8b 54 56 41 52 0a 01 43 54 4f 53 8b 54 56 41 52  .TVAR..CTOS.TVAR
+  0800: 0a 03 43 54 48 59 08 54 42 55 46 11 07 0a 04 00  ..CTHY.TBUF.....
+  0810: 00 00 00 8c 54 42 55 46 0a 00 44 42 30 30 8c 54  ....TBUF..DB00.T
+  0820: 42 55 46 0a 01 44 42 30 31 8b 54 42 55 46 0a 00  BUF..DB01.TBUF..
+  0830: 44 57 30 30 8b 54 42 55 46 0a 02 44 57 30 31 8a  DW00.TBUF..DW01.
+  0840: 54 42 55 46 0a 00 44 41 54 44 5b 80 49 50 5f 5f  TBUF..DATD[.IP__
+  0850: 01 0b 95 02 0a 02 5b 81 10 49 50 5f 5f 01 49 4e  ......[..IP__.IN
+  0860: 44 53 08 44 41 54 53 08 14 0d 53 43 46 47 01 53  DS.DATS...SCFG.S
+  0870: 42 59 54 0a 40 68 14 2f 53 54 4f 53 03 70 47 42  BYT.@h./STOS.pGB
+  0880: 59 54 0a 4e 60 7d 60 0a 01 61 53 42 59 54 0a 4e  YT.N`}`..aSBYT.N
+  0890: 61 53 42 59 54 0a 55 69 53 42 59 54 0a 56 68 53  aSBYT.UiSBYT.VhS
+  08a0: 42 59 54 0a 4e 60 14 2f 53 54 48 59 03 70 47 42  BYT.N`./STHY.pGB
+  08b0: 59 54 0a 4e 60 7d 60 0a 01 61 53 42 59 54 0a 4e  YT.N`}`..aSBYT.N
+  08c0: 61 53 42 59 54 0a 53 69 53 42 59 54 0a 54 68 53  aSBYT.SiSBYT.ThS
+  08d0: 42 59 54 0a 4e 60 14 4d 05 52 54 4d 50 00 70 47  BYT.N`.M.RTMP.pG
+  08e0: 42 59 54 0a 4e 60 7d 60 0a 01 61 53 42 59 54 0a  BYT.N`}`..aSBYT.
+  08f0: 4e 61 70 47 42 59 54 0a 50 61 70 47 42 59 54 0a  NapGBYT.PapGBYT.
+  0900: 51 62 79 61 0a 08 61 7d 61 62 63 7a 63 0a 07 63  Qbya..a}abczc..c
+  0910: 79 63 0a 02 61 72 63 61 63 72 63 0b ac 0a 63 a0  yc..arcacrc...c.
+  0920: 0b 94 63 0b 8a 0e 70 0b ac 0a 63 53 42 59 54 0a  ..c...p...cSBYT.
+  0930: 4e 60 a4 63 14 12 53 42 59 54 02 70 68 49 4e 44  N`.c..SBYT.phIND
+  0940: 53 70 69 44 41 54 53 14 14 47 42 59 54 01 70 68  SpiDATS..GBYT.ph
+  0950: 49 4e 44 53 70 44 41 54 53 67 a4 67 10 4d 12 5c  INDSpDATSg.g.M.\
+  0960: 5f 54 5a 5f 5b 82 28 46 41 4e 5f 08 5f 48 49 44  _TZ_[.(FAN_._HID
+  0970: 0c 41 d0 0c 0b 14 18 5f 49 4e 49 00 70 54 50 31  .A....._INI.pTP1
+  0980: 48 43 54 4f 53 70 54 50 31 4c 43 54 48 59 5b 85  HCTOSpTP1LCTHY[.
+  0990: 4a 0f 54 48 52 4d 08 5f 41 4c 30 12 06 01 46 41  J.THRM._AL0...FA
+  09a0: 4e 5f 14 1e 5f 41 43 30 00 a0 10 7d 50 4c 43 59  N_.._AC0...}PLCY
+  09b0: 50 4c 43 59 67 a4 54 50 32 48 a1 06 a4 54 50 31  PLCYg.TP2H...TP1
+  09c0: 48 08 5f 50 53 4c 12 0c 01 5c 2e 5f 50 52 5f 43  H._PSL...\._PR_C
+  09d0: 50 55 30 08 5f 54 53 50 0a 3c 08 5f 54 43 31 0a  PU0._TSP.<._TC1.
+  09e0: 04 08 5f 54 43 32 0a 03 14 1e 5f 50 53 56 00 a0  .._TC2...._PSV..
+  09f0: 10 7d 50 4c 43 59 50 4c 43 59 67 a4 54 50 31 48  .}PLCYPLCYg.TP1H
+  0a00: a1 06 a4 54 50 32 48 14 0b 5f 43 52 54 00 a4 54  ...TP2H.._CRT..T
+  0a10: 52 50 43 14 1f 5f 54 4d 50 00 7b 53 45 4e 46 0a  RPC.._TMP.{SENF.
+  0a20: 01 66 a0 0a 93 66 0a 01 a4 52 54 4d 50 a1 05 a4  .f...f...RTMP...
+  0a30: 0b 86 0b 14 24 5f 53 43 50 01 a0 08 68 70 01 50  ....$_SCP...hp.P
+  0a40: 4c 43 59 a1 07 70 00 50 4c 43 59 86 5c 2e 5f 54  LCY..p.PLCY.\._T
+  0a50: 5a 5f 54 48 52 4d 0a 81 14 31 53 54 4d 50 02 70  Z_THRM...1STMP.p
+  0a60: 69 44 57 30 30 a0 12 68 53 54 48 59 44 42 30 30  iDW00..hSTHYDB00
+  0a70: 44 42 30 31 44 57 30 30 a1 11 53 54 4f 53 44 42  DB01DW00..STOSDB
+  0a80: 30 30 44 42 30 31 44 57 30 30 10 4c 0f 5c 5f 47  00DB01DW00.L.\_G
+  0a90: 50 45 14 18 5f 4c 30 30 00 86 5c 2f 03 5f 53 42  PE.._L00..\/._SB
+  0aa0: 5f 50 43 49 30 48 55 42 30 0a 02 14 18 5f 4c 30  _PCI0HUB0...._L0
+  0ab0: 33 00 86 5c 2f 03 5f 53 42 5f 50 43 49 30 55 41  3..\/._SB_PCI0UA
+  0ac0: 52 31 0a 02 14 18 5f 4c 30 42 00 86 5c 2f 03 5f  R1...._L0B..\/._
+  0ad0: 53 42 5f 50 43 49 30 4d 4d 41 43 0a 02 14 18 5f  SB_PCI0MMAC...._
+  0ae0: 4c 30 44 00 86 5c 2f 03 5f 53 42 5f 50 43 49 30  L0D..\/._SB_PCI0
+  0af0: 55 53 42 30 0a 02 14 18 5f 4c 30 43 00 86 5c 2f  USB0...._L0C..\/
+  0b00: 03 5f 53 42 5f 50 43 49 30 55 53 42 31 0a 02 14  ._SB_PCI0USB1...
+  0b10: 18 5f 4c 30 35 00 86 5c 2f 03 5f 53 42 5f 50 43  ._L05..\/._SB_PC
+  0b20: 49 30 55 53 42 32 0a 02 14 18 5f 4c 30 46 00 86  I0USB2...._L0F..
+  0b30: 5c 2f 03 5f 53 42 5f 50 43 49 30 46 31 33 39 0a  \/._SB_PCI0F139.
+  0b40: 02 14 18 5f 4c 30 41 00 86 5c 2f 03 5f 53 42 5f  ..._L0A..\/._SB_
+  0b50: 50 43 49 30 48 55 42 31 0a 02 14 13 5f 4c 30 31  PCI0HUB1...._L01
+  0b60: 00 86 5c 2e 5f 53 42 5f 53 4c 50 42 0a 80 14 18  ..\._SB_SLPB....
+  0b70: 5f 4c 30 37 00 86 5c 2f 03 5f 53 42 5f 50 43 49  _L07..\/._SB_PCI
+  0b80: 30 4d 4d 43 49 0a 02 10 8c 13 04 5c 5f 53 42 5f  0MMCI......\_SB_
+  0b90: 5b 82 42 18 50 4d 49 4f 08 5f 48 49 44 0c 41 d0  [.B.PMIO._HID.A.
+  0ba0: 0c 02 08 5f 55 49 44 0a 03 14 4a 16 5f 43 52 53  ..._UID...J._CRS
+  0bb0: 00 08 49 4f 44 4d 11 0d 0a 0a 47 01 00 00 00 00  ..IODM....G.....
+  0bc0: 00 00 79 00 08 49 4f 52 54 11 35 0a 32 47 01 00  ..y..IORT.5.2G..
+  0bd0: 00 00 00 01 80 47 01 00 00 00 00 01 80 47 01 00  .....G.......G..
+  0be0: 00 00 00 01 80 47 01 00 00 00 00 01 80 47 01 00  .....G.......G..
+  0bf0: 00 00 00 01 80 47 01 00 00 00 00 01 80 79 00 8b  .....G.......y..
+  0c00: 49 4f 52 54 0a 02 49 31 4d 4e 8b 49 4f 52 54 0a  IORT..I1MN.IORT.
+  0c10: 04 49 31 4d 58 8b 49 4f 52 54 0a 0a 49 32 4d 4e  .I1MX.IORT..I2MN
+  0c20: 8b 49 4f 52 54 0a 0c 49 32 4d 58 8b 49 4f 52 54  .IORT..I2MX.IORT
+  0c30: 0a 12 49 33 4d 4e 8b 49 4f 52 54 0a 14 49 33 4d  ..I3MN.IORT..I3M
+  0c40: 58 8b 49 4f 52 54 0a 1a 49 34 4d 4e 8b 49 4f 52  X.IORT..I4MN.IOR
+  0c50: 54 0a 1c 49 34 4d 58 8b 49 4f 52 54 0a 22 49 35  T..I4MX.IORT."I5
+  0c60: 4d 4e 8b 49 4f 52 54 0a 24 49 35 4d 58 8b 49 4f  MN.IORT.$I5MX.IO
+  0c70: 52 54 0a 2a 49 36 4d 4e 8b 49 4f 52 54 0a 2c 49  RT.*I6MN.IORT.,I
+  0c80: 36 4d 58 7b 50 4d 42 52 0b fc ff 49 31 4d 4e 70  6MX{PMBR...I1MNp
+  0c90: 49 31 4d 4e 49 31 4d 58 72 49 31 4d 4e 0a 80 60  I1MNI1MXrI1MN..`
+  0ca0: 70 60 49 32 4d 4e 70 60 49 32 4d 58 7b 4e 56 53  p`I2MNp`I2MX{NVS
+  0cb0: 42 0b fc ff 49 33 4d 4e 70 49 33 4d 4e 49 33 4d  B...I3MNpI3MNI3M
+  0cc0: 58 72 49 33 4d 4e 0a 80 60 70 60 49 34 4d 4e 70  XrI3MN..`p`I4MNp
+  0cd0: 60 49 34 4d 58 7b 41 4e 4c 47 0b fc ff 49 35 4d  `I4MX{ANLG...I5M
+  0ce0: 4e 70 49 35 4d 4e 49 35 4d 58 72 49 35 4d 4e 0a  NpI5MNI5MXrI5MN.
+  0cf0: 80 60 70 60 49 36 4d 4e 70 60 49 36 4d 58 a0 0b  .`p`I6MNp`I6MX..
+  0d00: 49 31 4d 4e 70 49 4f 52 54 60 a1 07 70 49 4f 44  I1MNpIORT`..pIOD
+  0d10: 4d 60 a4 60 5b 82 31 53 4d 49 4f 08 5f 48 49 44  M`.`[.1SMIO._HID
+  0d20: 0c 41 d0 0c 02 08 5f 55 49 44 0a 04 08 5f 43 52  .A...._UID..._CR
+  0d30: 53 11 15 0a 12 47 01 00 50 00 50 01 40 47 01 00  S....G..P.P.@G..
+  0d40: 51 00 51 01 40 79 00 5b 82 19 50 57 52 42 08 5f  Q.Q.@y.[..PWRB._
+  0d50: 48 49 44 0c 41 d0 0c 0c 14 09 5f 53 54 41 00 a4  HID.A....._STA..
+  0d60: 0a 0b 5b 82 25 53 4c 50 42 08 5f 48 49 44 0c 41  ..[.%SLPB._HID.A
+  0d70: d0 0c 0e 14 09 5f 53 54 41 00 a4 0a 0b 08 5f 50  ....._STA....._P
+  0d80: 52 57 12 06 02 0a 01 0a 05 5b 82 4a 1c 4d 45 4d  RW.......[.J.MEM
+  0d90: 5f 08 5f 48 49 44 0c 41 d0 0c 01 14 49 1b 5f 43  _._HID.A....I._C
+  0da0: 52 53 00 08 42 55 46 30 11 4e 07 0a 7a 86 09 00  RS..BUF0.N..z...
+  0db0: 01 00 00 0f 00 00 40 00 00 86 09 00 01 00 40 0f  ......@.......@.
+  0dc0: 00 00 40 00 00 86 09 00 01 00 80 0f 00 00 40 00  ..@...........@.
+  0dd0: 00 86 09 00 01 00 c0 0f 00 00 40 00 00 86 09 00  ..........@.....
+  0de0: 01 00 00 00 00 00 00 01 00 86 09 00 01 00 00 ff  ................
+  0df0: ff 00 00 01 00 86 09 00 01 00 00 00 00 00 00 0a  ................
+  0e00: 00 86 09 00 01 00 00 10 00 00 00 00 00 86 09 00  ................
+  0e10: 01 00 00 c0 fe 00 10 00 00 86 09 00 01 00 00 e0  ................
+  0e20: fe 00 10 00 00 79 00 8a 42 55 46 30 0a 34 41 43  .....y..BUF0.4AC
+  0e30: 4d 4d 8a 42 55 46 30 0a 04 52 4d 41 31 8a 42 55  MM.BUF0..RMA1.BU
+  0e40: 46 30 0a 08 52 53 53 31 8a 42 55 46 30 0a 10 52  F0..RSS1.BUF0..R
+  0e50: 4d 41 32 8a 42 55 46 30 0a 14 52 53 53 32 8a 42  MA2.BUF0..RSS2.B
+  0e60: 55 46 30 0a 1c 52 4d 41 33 8a 42 55 46 30 0a 20  UF0..RMA3.BUF0. 
+  0e70: 52 53 53 33 8a 42 55 46 30 0a 28 52 4d 41 34 8a  RSS3.BUF0.(RMA4.
+  0e80: 42 55 46 30 0a 2c 52 53 53 34 8a 42 55 46 30 0a  BUF0.,RSS4.BUF0.
+  0e90: 5c 45 58 54 4d 74 41 4d 45 4d 0c 00 00 10 00 45  \EXTMtAMEM.....E
+  0ea0: 58 54 4d a0 35 92 93 52 4f 4d 31 00 70 52 4d 41  XTM.5..ROM1.pRMA
+  0eb0: 31 52 4d 41 32 79 52 4f 4d 31 0a 08 60 70 60 52  1RMA2yROM1..`p`R
+  0ec0: 4d 41 31 79 52 4d 53 31 0a 08 60 70 60 52 53 53  MA1yRMS1..`p`RSS
+  0ed0: 31 70 0b 00 80 52 53 53 32 a0 35 92 93 52 4f 4d  1p...RSS2.5..ROM
+  0ee0: 32 00 70 52 4d 41 32 52 4d 41 33 79 52 4f 4d 32  2.pRMA2RMA3yROM2
+  0ef0: 0a 08 60 70 60 52 4d 41 32 79 52 4d 53 32 0a 08  ..`p`RMA2yRMS2..
+  0f00: 60 70 60 52 53 53 32 70 0b 00 c0 52 53 53 33 a0  `p`RSS2p...RSS3.
+  0f10: 37 92 93 52 4f 4d 33 00 70 52 4d 41 33 52 4d 41  7..ROM3.pRMA3RMA
+  0f20: 34 79 52 4f 4d 33 0a 08 60 70 60 52 4d 41 33 79  4yROM3..`p`RMA3y
+  0f30: 52 4d 53 33 0a 08 60 70 60 52 53 53 33 70 0c 00  RMS3..`p`RSS3p..
+  0f40: 00 01 00 52 53 53 34 70 41 4d 45 4d 41 43 4d 4d  ...RSS4pAMEMACMM
+  0f50: a4 42 55 46 30 5b 82 8d d6 03 50 43 49 30 08 5f  .BUF0[....PCI0._
+  0f60: 48 49 44 0c 41 d0 0a 03 08 5f 41 44 52 0a 00 08  HID.A...._ADR...
+  0f70: 5f 55 49 44 0a 01 08 5f 42 42 4e 0a 00 08 4e 41  _UID..._BBN...NA
+  0f80: 54 41 12 07 01 0c 00 00 09 00 14 17 53 53 33 44  TA..........SS3D
+  0f90: 00 a0 0b 93 4f 53 46 4c 0a 02 a4 0a 02 a1 04 a4  ....OSFL........
+  0fa0: 0a 03 14 09 5f 53 54 41 00 a4 0a 0f 5b 80 4c 44  ...._STA....[.LD
+  0fb0: 54 33 02 0a 6c 0a 04 5b 81 0b 4c 44 54 33 03 55  T3..l..[..LDT3.U
+  0fc0: 43 46 47 20 5b 80 53 32 4b 43 02 0a e4 0a 04 5b  CFG [.S2KC.....[
+  0fd0: 81 0b 53 32 4b 43 03 43 54 4c 30 20 14 48 0d 5f  ..S2KC.CTL0 .H._
+  0fe0: 43 52 53 00 08 42 55 46 30 11 44 09 0a 90 88 0d  CRS..BUF0.D.....
+  0ff0: 00 02 01 00 00 00 00 00 ff 00 00 00 00 01 47 01  ..............G.
+  1000: f8 0c f8 0c 01 08 47 01 f0 0c f0 0c 01 04 88 0d  ......G.........
+  1010: 00 01 0c 03 00 00 00 00 f7 0c 00 00 f8 0c 88 0d  ................
+  1020: 00 01 0c 03 00 00 00 0d ff ff 00 00 00 f3 87 17  ................
+  1030: 00 00 0c 03 00 00 00 00 00 00 0a 00 ff ff 0b 00  ................
+  1040: 00 00 00 00 00 00 02 00 87 17 00 00 0c 03 00 00  ................
+  1050: 00 00 00 00 0c 00 ff ff 0d 00 00 00 00 00 00 00  ................
+  1060: 02 00 87 17 00 00 0c 03 00 00 00 00 00 00 10 00  ................
+  1070: ff ff bf fe 00 00 00 00 00 00 f0 ff 79 00 8a 42  ............y..B
+  1080: 55 46 30 0a 7e 54 43 4d 4d 8a 42 55 46 30 0a 8a  UF0.~TCMM.BUF0..
+  1090: 54 4f 4d 4d 72 41 4d 45 4d 0c 00 00 01 00 54 43  TOMMrAMEM.....TC
+  10a0: 4d 4d 74 0c 00 00 c0 fe 54 43 4d 4d 54 4f 4d 4d  MMt.....TCMMTOMM
+  10b0: a4 42 55 46 30 08 50 49 43 4d 12 4e 1e 13 12 0f  .BUF0.PICM.N....
+  10c0: 04 0c ff ff 01 00 0a 00 4c 53 4d 42 0a 00 12 0f  ........LSMB....
+  10d0: 04 0c ff ff 01 00 0a 01 4c 53 4d 42 0a 00 12 1a  ........LSMB....
+  10e0: 04 0c ff ff 02 00 0a 00 5c 2f 03 5f 53 42 5f 50  ........\/._SB_P
+  10f0: 43 49 30 4c 55 42 41 0a 00 12 1a 04 0c ff ff 02  CI0LUBA.........
+  1100: 00 0a 01 5c 2f 03 5f 53 42 5f 50 43 49 30 4c 55  ...\/._SB_PCI0LU
+  1110: 42 42 0a 00 12 1a 04 0c ff ff 02 00 0a 02 5c 2f  BB............\/
+  1120: 03 5f 53 42 5f 50 43 49 30 4c 55 42 32 0a 00 12  ._SB_PCI0LUB2...
+  1130: 1a 04 0c ff ff 04 00 0a 00 5c 2f 03 5f 53 42 5f  .........\/._SB_
+  1140: 50 43 49 30 4c 4d 41 43 0a 00 12 1a 04 0c ff ff  PCI0LMAC........
+  1150: 05 00 0a 00 5c 2f 03 5f 53 42 5f 50 43 49 30 4c  ....\/._SB_PCI0L
+  1160: 41 50 55 0a 00 12 1a 04 0c ff ff 06 00 0a 00 5c  APU............\
+  1170: 2f 03 5f 53 42 5f 50 43 49 30 4c 41 43 49 0a 00  /._SB_PCI0LACI..
+  1180: 12 1a 04 0c ff ff 06 00 0a 01 5c 2f 03 5f 53 42  ..........\/._SB
+  1190: 5f 50 43 49 30 4c 4d 43 49 0a 00 12 1a 04 0c ff  _PCI0LMCI.......
+  11a0: ff 0d 00 0a 00 5c 2f 03 5f 53 42 5f 50 43 49 30  .....\/._SB_PCI0
+  11b0: 4c 46 49 52 0a 00 12 1a 04 0c ff ff 09 00 0a 00  LFIR............
+  11c0: 5c 2f 03 5f 53 42 5f 50 43 49 30 4c 49 44 45 0a  \/._SB_PCI0LIDE.
+  11d0: 00 12 1a 04 0c ff ff 08 00 0a 00 5c 2f 03 5f 53  ...........\/._S
+  11e0: 42 5f 50 43 49 30 4c 4e 4b 31 0a 00 12 1a 04 0c  B_PCI0LNK1......
+  11f0: ff ff 08 00 0a 01 5c 2f 03 5f 53 42 5f 50 43 49  ......\/._SB_PCI
+  1200: 30 4c 4e 4b 32 0a 00 12 1a 04 0c ff ff 08 00 0a  0LNK2...........
+  1210: 02 5c 2f 03 5f 53 42 5f 50 43 49 30 4c 4e 4b 33  .\/._SB_PCI0LNK3
+  1220: 0a 00 12 1a 04 0c ff ff 08 00 0a 03 5c 2f 03 5f  ............\/._
+  1230: 53 42 5f 50 43 49 30 4c 4e 4b 34 0a 00 12 1a 04  SB_PCI0LNK4.....
+  1240: 0c ff ff 1e 00 0a 00 5c 2f 03 5f 53 42 5f 50 43  .......\/._SB_PC
+  1250: 49 30 4c 4e 4b 35 0a 00 12 1a 04 0c ff ff 1e 00  I0LNK5..........
+  1260: 0a 01 5c 2f 03 5f 53 42 5f 50 43 49 30 4c 4e 4b  ..\/._SB_PCI0LNK
+  1270: 35 0a 00 12 1a 04 0c ff ff 1e 00 0a 02 5c 2f 03  5............\/.
+  1280: 5f 53 42 5f 50 43 49 30 4c 4e 4b 35 0a 00 12 1a  _SB_PCI0LNK5....
+  1290: 04 0c ff ff 1e 00 0a 03 5c 2f 03 5f 53 42 5f 50  ........\/._SB_P
+  12a0: 43 49 30 4c 4e 4b 35 0a 00 08 41 50 49 43 12 4c  CI0LNK5...APIC.L
+  12b0: 12 0b 12 1a 04 0c ff ff 01 00 0a 00 5c 2f 03 5f  ............\/._
+  12c0: 53 42 5f 50 43 49 30 41 50 43 53 0a 00 12 1a 04  SB_PCI0APCS.....
+  12d0: 0c ff ff 01 00 0a 01 5c 2f 03 5f 53 42 5f 50 43  .......\/._SB_PC
+  12e0: 49 30 41 50 43 53 0a 00 12 1a 04 0c ff ff 02 00  I0APCS..........
+  12f0: 0a 00 5c 2f 03 5f 53 42 5f 50 43 49 30 41 50 43  ..\/._SB_PCI0APC
+  1300: 46 0a 00 12 1a 04 0c ff ff 02 00 0a 01 5c 2f 03  F............\/.
+  1310: 5f 53 42 5f 50 43 49 30 41 50 43 47 0a 00 12 1a  _SB_PCI0APCG....
+  1320: 04 0c ff ff 02 00 0a 02 5c 2f 03 5f 53 42 5f 50  ........\/._SB_P
+  1330: 43 49 30 41 50 43 4c 0a 00 12 1a 04 0c ff ff 04  CI0APCL.........
+  1340: 00 0a 00 5c 2f 03 5f 53 42 5f 50 43 49 30 41 50  ...\/._SB_PCI0AP
+  1350: 43 48 0a 00 12 1a 04 0c ff ff 05 00 0a 00 5c 2f  CH............\/
+  1360: 03 5f 53 42 5f 50 43 49 30 41 50 43 49 0a 00 12  ._SB_PCI0APCI...
+  1370: 1a 04 0c ff ff 06 00 0a 00 5c 2f 03 5f 53 42 5f  .........\/._SB_
+  1380: 50 43 49 30 41 50 43 4a 0a 00 12 1a 04 0c ff ff  PCI0APCJ........
+  1390: 06 00 0a 01 5c 2f 03 5f 53 42 5f 50 43 49 30 41  ....\/._SB_PCI0A
+  13a0: 50 43 4b 0a 00 12 1a 04 0c ff ff 0d 00 0a 00 5c  PCK............\
+  13b0: 2f 03 5f 53 42 5f 50 43 49 30 41 50 43 4d 0a 00  /._SB_PCI0APCM..
+  13c0: 12 1a 04 0c ff ff 09 00 0a 00 5c 2f 03 5f 53 42  ..........\/._SB
+  13d0: 5f 50 43 49 30 41 50 43 5a 0a 00 14 19 5f 50 52  _PCI0APCZ...._PR
+  13e0: 54 00 a0 0b 92 50 49 43 46 a4 50 49 43 4d a1 06  T....PICF.PICM..
+  13f0: a4 41 50 49 43 5b 82 4a 63 48 55 42 30 08 5f 41  .APIC[.JcHUB0._A
+  1400: 44 52 0c 00 00 08 00 14 09 5f 53 54 41 00 a4 0a  DR......._STA...
+  1410: 0f 08 50 49 43 4d 12 47 2f 1c 12 1a 04 0c ff ff  ..PICM.G/.......
+  1420: 06 00 0a 00 5c 2f 03 5f 53 42 5f 50 43 49 30 4c  ....\/._SB_PCI0L
+  1430: 4e 4b 31 0a 00 12 1a 04 0c ff ff 06 00 0a 01 5c  NK1............\
+  1440: 2f 03 5f 53 42 5f 50 43 49 30 4c 4e 4b 32 0a 00  /._SB_PCI0LNK2..
+  1450: 12 1a 04 0c ff ff 06 00 0a 02 5c 2f 03 5f 53 42  ..........\/._SB
+  1460: 5f 50 43 49 30 4c 4e 4b 33 0a 00 12 1a 04 0c ff  _PCI0LNK3.......
+  1470: ff 06 00 0a 03 5c 2f 03 5f 53 42 5f 50 43 49 30  .....\/._SB_PCI0
+  1480: 4c 4e 4b 34 0a 00 12 1a 04 0c ff ff 07 00 0a 00  LNK4............
+  1490: 5c 2f 03 5f 53 42 5f 50 43 49 30 4c 4e 4b 32 0a  \/._SB_PCI0LNK2.
+  14a0: 00 12 1a 04 0c ff ff 07 00 0a 01 5c 2f 03 5f 53  ...........\/._S
+  14b0: 42 5f 50 43 49 30 4c 4e 4b 33 0a 00 12 1a 04 0c  B_PCI0LNK3......
+  14c0: ff ff 07 00 0a 02 5c 2f 03 5f 53 42 5f 50 43 49  ......\/._SB_PCI
+  14d0: 30 4c 4e 4b 34 0a 00 12 1a 04 0c ff ff 07 00 0a  0LNK4...........
+  14e0: 03 5c 2f 03 5f 53 42 5f 50 43 49 30 4c 4e 4b 31  .\/._SB_PCI0LNK1
+  14f0: 0a 00 12 1a 04 0c ff ff 08 00 0a 00 5c 2f 03 5f  ............\/._
+  1500: 53 42 5f 50 43 49 30 4c 4e 4b 33 0a 00 12 1a 04  SB_PCI0LNK3.....
+  1510: 0c ff ff 08 00 0a 01 5c 2f 03 5f 53 42 5f 50 43  .......\/._SB_PC
+  1520: 49 30 4c 4e 4b 34 0a 00 12 1a 04 0c ff ff 08 00  I0LNK4..........
+  1530: 0a 02 5c 2f 03 5f 53 42 5f 50 43 49 30 4c 4e 4b  ..\/._SB_PCI0LNK
+  1540: 31 0a 00 12 1a 04 0c ff ff 08 00 0a 03 5c 2f 03  1............\/.
+  1550: 5f 53 42 5f 50 43 49 30 4c 4e 4b 32 0a 00 12 1a  _SB_PCI0LNK2....
+  1560: 04 0c ff ff 09 00 0a 00 5c 2f 03 5f 53 42 5f 50  ........\/._SB_P
+  1570: 43 49 30 4c 4e 4b 34 0a 00 12 1a 04 0c ff ff 09  CI0LNK4.........
+  1580: 00 0a 01 5c 2f 03 5f 53 42 5f 50 43 49 30 4c 4e  ...\/._SB_PCI0LN
+  1590: 4b 31 0a 00 12 1a 04 0c ff ff 09 00 0a 02 5c 2f  K1............\/
+  15a0: 03 5f 53 42 5f 50 43 49 30 4c 4e 4b 32 0a 00 12  ._SB_PCI0LNK2...
+  15b0: 1a 04 0c ff ff 09 00 0a 03 5c 2f 03 5f 53 42 5f  .........\/._SB_
+  15c0: 50 43 49 30 4c 4e 4b 33 0a 00 12 1a 04 0c ff ff  PCI0LNK3........
+  15d0: 0a 00 0a 00 5c 2f 03 5f 53 42 5f 50 43 49 30 4c  ....\/._SB_PCI0L
+  15e0: 4e 4b 31 0a 00 12 1a 04 0c ff ff 0a 00 0a 01 5c  NK1............\
+  15f0: 2f 03 5f 53 42 5f 50 43 49 30 4c 4e 4b 32 0a 00  /._SB_PCI0LNK2..
+  1600: 12 1a 04 0c ff ff 0a 00 0a 02 5c 2f 03 5f 53 42  ..........\/._SB
+  1610: 5f 50 43 49 30 4c 4e 4b 33 0a 00 12 1a 04 0c ff  _PCI0LNK3.......
+  1620: ff 0a 00 0a 03 5c 2f 03 5f 53 42 5f 50 43 49 30  .....\/._SB_PCI0
+  1630: 4c 4e 4b 34 0a 00 12 1a 04 0c ff ff 0b 00 0a 00  LNK4............
+  1640: 5c 2f 03 5f 53 42 5f 50 43 49 30 4c 4e 4b 32 0a  \/._SB_PCI0LNK2.
+  1650: 00 12 1a 04 0c ff ff 0b 00 0a 01 5c 2f 03 5f 53  ...........\/._S
+  1660: 42 5f 50 43 49 30 4c 4e 4b 33 0a 00 12 1a 04 0c  B_PCI0LNK3......
+  1670: ff ff 0b 00 0a 02 5c 2f 03 5f 53 42 5f 50 43 49  ......\/._SB_PCI
+  1680: 30 4c 4e 4b 34 0a 00 12 1a 04 0c ff ff 0b 00 0a  0LNK4...........
+  1690: 03 5c 2f 03 5f 53 42 5f 50 43 49 30 4c 4e 4b 31  .\/._SB_PCI0LNK1
+  16a0: 0a 00 12 1a 04 0c ff ff 0c 00 0a 00 5c 2f 03 5f  ............\/._
+  16b0: 53 42 5f 50 43 49 30 4c 4e 4b 33 0a 00 12 1a 04  SB_PCI0LNK3.....
+  16c0: 0c ff ff 0c 00 0a 01 5c 2f 03 5f 53 42 5f 50 43  .......\/._SB_PC
+  16d0: 49 30 4c 4e 4b 34 0a 00 12 1a 04 0c ff ff 0c 00  I0LNK4..........
+  16e0: 0a 02 5c 2f 03 5f 53 42 5f 50 43 49 30 4c 4e 4b  ..\/._SB_PCI0LNK
+  16f0: 31 0a 00 12 1a 04 0c ff ff 0c 00 0a 03 5c 2f 03  1............\/.
+  1700: 5f 53 42 5f 50 43 49 30 4c 4e 4b 32 0a 00 08 41  _SB_PCI0LNK2...A
+  1710: 50 49 43 12 47 2f 1c 12 1a 04 0c ff ff 06 00 0a  PIC.G/..........
+  1720: 00 5c 2f 03 5f 53 42 5f 50 43 49 30 41 50 43 31  .\/._SB_PCI0APC1
+  1730: 0a 00 12 1a 04 0c ff ff 06 00 0a 01 5c 2f 03 5f  ............\/._
+  1740: 53 42 5f 50 43 49 30 41 50 43 32 0a 00 12 1a 04  SB_PCI0APC2.....
+  1750: 0c ff ff 06 00 0a 02 5c 2f 03 5f 53 42 5f 50 43  .......\/._SB_PC
+  1760: 49 30 41 50 43 33 0a 00 12 1a 04 0c ff ff 06 00  I0APC3..........
+  1770: 0a 03 5c 2f 03 5f 53 42 5f 50 43 49 30 41 50 43  ..\/._SB_PCI0APC
+  1780: 34 0a 00 12 1a 04 0c ff ff 07 00 0a 00 5c 2f 03  4............\/.
+  1790: 5f 53 42 5f 50 43 49 30 41 50 43 32 0a 00 12 1a  _SB_PCI0APC2....
+  17a0: 04 0c ff ff 07 00 0a 01 5c 2f 03 5f 53 42 5f 50  ........\/._SB_P
+  17b0: 43 49 30 41 50 43 33 0a 00 12 1a 04 0c ff ff 07  CI0APC3.........
+  17c0: 00 0a 02 5c 2f 03 5f 53 42 5f 50 43 49 30 41 50  ...\/._SB_PCI0AP
+  17d0: 43 34 0a 00 12 1a 04 0c ff ff 07 00 0a 03 5c 2f  C4............\/
+  17e0: 03 5f 53 42 5f 50 43 49 30 41 50 43 31 0a 00 12  ._SB_PCI0APC1...
+  17f0: 1a 04 0c ff ff 08 00 0a 00 5c 2f 03 5f 53 42 5f  .........\/._SB_
+  1800: 50 43 49 30 41 50 43 33 0a 00 12 1a 04 0c ff ff  PCI0APC3........
+  1810: 08 00 0a 01 5c 2f 03 5f 53 42 5f 50 43 49 30 41  ....\/._SB_PCI0A
+  1820: 50 43 34 0a 00 12 1a 04 0c ff ff 08 00 0a 02 5c  PC4............\
+  1830: 2f 03 5f 53 42 5f 50 43 49 30 41 50 43 31 0a 00  /._SB_PCI0APC1..
+  1840: 12 1a 04 0c ff ff 08 00 0a 03 5c 2f 03 5f 53 42  ..........\/._SB
+  1850: 5f 50 43 49 30 41 50 43 32 0a 00 12 1a 04 0c ff  _PCI0APC2.......
+  1860: ff 09 00 0a 00 5c 2f 03 5f 53 42 5f 50 43 49 30  .....\/._SB_PCI0
+  1870: 41 50 43 34 0a 00 12 1a 04 0c ff ff 09 00 0a 01  APC4............
+  1880: 5c 2f 03 5f 53 42 5f 50 43 49 30 41 50 43 31 0a  \/._SB_PCI0APC1.
+  1890: 00 12 1a 04 0c ff ff 09 00 0a 02 5c 2f 03 5f 53  ...........\/._S
+  18a0: 42 5f 50 43 49 30 41 50 43 32 0a 00 12 1a 04 0c  B_PCI0APC2......
+  18b0: ff ff 09 00 0a 03 5c 2f 03 5f 53 42 5f 50 43 49  ......\/._SB_PCI
+  18c0: 30 41 50 43 33 0a 00 12 1a 04 0c ff ff 0a 00 0a  0APC3...........
+  18d0: 00 5c 2f 03 5f 53 42 5f 50 43 49 30 41 50 43 31  .\/._SB_PCI0APC1
+  18e0: 0a 00 12 1a 04 0c ff ff 0a 00 0a 01 5c 2f 03 5f  ............\/._
+  18f0: 53 42 5f 50 43 49 30 41 50 43 32 0a 00 12 1a 04  SB_PCI0APC2.....
+  1900: 0c ff ff 0a 00 0a 02 5c 2f 03 5f 53 42 5f 50 43  .......\/._SB_PC
+  1910: 49 30 41 50 43 33 0a 00 12 1a 04 0c ff ff 0a 00  I0APC3..........
+  1920: 0a 03 5c 2f 03 5f 53 42 5f 50 43 49 30 41 50 43  ..\/._SB_PCI0APC
+  1930: 34 0a 00 12 1a 04 0c ff ff 0b 00 0a 00 5c 2f 03  4............\/.
+  1940: 5f 53 42 5f 50 43 49 30 41 50 43 32 0a 00 12 1a  _SB_PCI0APC2....
+  1950: 04 0c ff ff 0b 00 0a 01 5c 2f 03 5f 53 42 5f 50  ........\/._SB_P
+  1960: 43 49 30 41 50 43 33 0a 00 12 1a 04 0c ff ff 0b  CI0APC3.........
+  1970: 00 0a 02 5c 2f 03 5f 53 42 5f 50 43 49 30 41 50  ...\/._SB_PCI0AP
+  1980: 43 34 0a 00 12 1a 04 0c ff ff 0b 00 0a 03 5c 2f  C4............\/
+  1990: 03 5f 53 42 5f 50 43 49 30 41 50 43 31 0a 00 12  ._SB_PCI0APC1...
+  19a0: 1a 04 0c ff ff 0c 00 0a 00 5c 2f 03 5f 53 42 5f  .........\/._SB_
+  19b0: 50 43 49 30 41 50 43 33 0a 00 12 1a 04 0c ff ff  PCI0APC3........
+  19c0: 0c 00 0a 01 5c 2f 03 5f 53 42 5f 50 43 49 30 41  ....\/._SB_PCI0A
+  19d0: 50 43 34 0a 00 12 1a 04 0c ff ff 0c 00 0a 02 5c  PC4............\
+  19e0: 2f 03 5f 53 42 5f 50 43 49 30 41 50 43 31 0a 00  /._SB_PCI0APC1..
+  19f0: 12 1a 04 0c ff ff 0c 00 0a 03 5c 2f 03 5f 53 42  ..........\/._SB
+  1a00: 5f 50 43 49 30 41 50 43 32 0a 00 14 19 5f 50 52  _PCI0APC2...._PR
+  1a10: 54 00 a0 0b 92 50 49 43 46 a4 50 49 43 4d a1 06  T....PICF.PICM..
+  1a20: a4 41 50 49 43 08 5f 50 52 57 12 06 02 0a 00 0a  .APIC._PRW......
+  1a30: 05 5b 82 48 70 49 44 45 30 08 5f 41 44 52 0c 00  .[.HpIDE0._ADR..
+  1a40: 00 09 00 5b 80 41 30 39 30 02 0a 48 0a 20 5b 81  ...[.A090..H. [.
+  1a50: 2d 41 30 39 30 03 49 52 45 47 02 00 3e 49 44 32  -A090.IREG..>ID2
+  1a60: 30 10 00 30 49 44 54 53 10 49 44 54 50 10 49 44  0..0IDTS.IDTP.ID
+  1a70: 32 32 20 55 4d 53 53 10 55 4d 53 50 10 08 49 44  22 UMSS.UMSP..ID
+  1a80: 41 54 00 08 49 46 4c 47 0a 01 5b 84 43 05 49 53  AT..IFLG..[.C.IS
+  1a90: 41 56 00 00 00 14 0b 5f 53 54 41 00 a4 49 46 4c  AV....._STA..IFL
+  1aa0: 47 14 26 5f 4f 4e 5f 00 a0 1f 93 49 46 4c 47 0a  G.&_ON_....IFLG.
+  1ab0: 00 70 0a 00 49 52 45 47 70 49 44 41 54 49 44 32  .p..IREGpIDATID2
+  1ac0: 30 70 0a 01 49 46 4c 47 14 16 5f 4f 46 46 00 70  0p..IFLG.._OFF.p
+  1ad0: 49 44 32 30 49 44 41 54 70 0a 00 49 46 4c 47 08  ID20IDATp..IFLG.
+  1ae0: 5f 50 52 30 12 06 01 49 53 41 56 08 49 44 45 50  _PR0...ISAV.IDEP
+  1af0: 11 03 0a 14 08 49 44 45 53 11 03 0a 14 14 48 16  .....IDES.....H.
+  1b00: 47 54 4d 5f 01 a0 19 93 53 58 5f 5f 0a 01 a0 10  GTM_....SX__....
+  1b10: 4f 53 46 4c 7d 5a 30 30 30 0a 01 5a 30 30 30 a0  OSFL}Z000..Z000.
+  1b20: 17 93 68 0a 00 70 49 44 54 50 60 70 55 4d 53 50  ..h..pIDTP`pUMSP
+  1b30: 61 70 49 44 45 50 62 a1 13 70 49 44 54 53 60 70  apIDEPb..pIDTS`p
+  1b40: 55 4d 53 53 61 70 49 44 45 53 62 8a 62 0a 00 50  UMSSapIDESb.b..P
+  1b50: 49 4f 30 8a 62 0a 04 44 4d 41 30 8a 62 0a 08 50  IO0.b..DMA0.b..P
+  1b60: 49 4f 31 8a 62 0a 0c 44 4d 41 31 8a 62 0a 10 46  IO1.b..DMA1.b..F
+  1b70: 4c 41 47 70 0a 10 46 4c 41 47 7b 60 0b 00 0f 63  LAGp..FLAG{`...c
+  1b80: 7b 60 0b 00 f0 64 7a 63 0a 08 63 7a 64 0a 0c 64  {`...dzc..czd..d
+  1b90: 72 63 64 63 77 72 63 0a 02 00 0a 1e 50 49 4f 30  rcdcwrc.....PIO0
+  1ba0: a0 14 92 94 50 49 4f 30 0a b4 7d 46 4c 41 47 0a  ....PIO0..}FLAG.
+  1bb0: 02 46 4c 41 47 a0 27 7b 61 0b 00 40 00 7d 46 4c  .FLAG.'{a..@.}FL
+  1bc0: 41 47 0a 01 46 4c 41 47 7b 61 0b 00 07 63 7a 63  AG..FLAG{a...czc
+  1bd0: 0a 08 63 70 55 32 54 5f 63 44 4d 41 30 a1 0a 70  ..cpU2T_cDMA0..p
+  1be0: 50 49 4f 30 44 4d 41 30 7b 60 0a 0f 63 7b 60 0a  PIO0DMA0{`..c{`.
+  1bf0: f0 64 7a 64 0a 04 64 72 63 64 63 77 72 63 0a 02  .dzd..drcdcwrc..
+  1c00: 00 0a 1e 50 49 4f 31 a0 14 92 94 50 49 4f 31 0a  ...PIO1....PIO1.
+  1c10: b4 7d 46 4c 41 47 0a 08 46 4c 41 47 a0 20 7b 61  .}FLAG..FLAG. {a
+  1c20: 0a 40 00 7d 46 4c 41 47 0a 04 46 4c 41 47 7b 61  .@.}FLAG..FLAG{a
+  1c30: 0a 07 63 70 55 32 54 5f 63 44 4d 41 31 a1 0a 70  ..cpU2T_cDMA1..p
+  1c40: 50 49 4f 31 44 4d 41 31 a0 10 93 68 0a 00 70 62  PIO1DMA1...h..pb
+  1c50: 49 44 45 50 a4 49 44 45 50 a1 0c 70 62 49 44 45  IDEP.IDEP..pbIDE
+  1c60: 53 a4 49 44 45 53 14 49 04 55 32 54 5f 01 a0 08  S.IDES.I.U2T_...
+  1c70: 93 68 0a 00 a4 0a 3c a0 08 93 68 0a 01 a4 0a 5a  .h....<...h....Z
+  1c80: a0 08 93 68 0a 02 a4 0a 78 a0 08 93 68 0a 03 a4  ...h....x...h...
+  1c90: 0a 96 a0 08 93 68 0a 04 a4 0a 2d a0 08 93 68 0a  .....h....-...h.
+  1ca0: 05 a4 0a 1e a0 08 93 68 0a 06 a4 0a 14 a4 0a 0f  .......h........
+  1cb0: 14 49 04 54 32 55 5f 01 a0 08 94 68 0a 78 a4 0a  .I.T2U_....h.x..
+  1cc0: 03 a0 08 94 68 0a 5a a4 0a 02 a0 08 94 68 0a 3c  ....h.Z......h.<
+  1cd0: a4 0a 01 a0 08 94 68 0a 2d a4 0a 00 a0 08 94 68  ......h.-......h
+  1ce0: 0a 1e a4 0a 04 a0 08 94 68 0a 14 a4 0a 05 a0 08  ........h.......
+  1cf0: 94 68 0a 0f a4 0a 06 a4 0a 07 14 42 04 54 32 44  .h.........B.T2D
+  1d00: 5f 01 a0 09 94 68 0b e0 01 a4 0a a8 a0 09 94 68  _....h.........h
+  1d10: 0b 86 01 a4 0a 77 a0 08 94 68 0a f0 a4 0a 47 a0  .....w...h....G.
+  1d20: 08 94 68 0a b4 a4 0a 33 a0 08 94 68 0a 96 a4 0a  ..h....3...h....
+  1d30: 22 a0 08 94 68 0a 78 a4 0a 21 a4 0a 20 14 43 1b  "...h.x..!.. .C.
+  1d40: 53 54 4d 5f 04 a0 3b 53 58 5f 5f 70 53 49 44 30  STM_..;SX__pSID0
+  1d50: 49 44 32 30 70 53 49 44 31 49 44 54 53 70 53 49  ID20pSID1IDTSpSI
+  1d60: 44 32 49 44 54 50 70 53 49 44 33 49 44 32 32 70  D2IDTPpSID3ID22p
+  1d70: 53 49 44 34 55 4d 53 53 70 53 49 44 35 55 4d 53  SID4UMSSpSID5UMS
+  1d80: 50 a1 37 70 49 44 32 30 53 49 44 30 70 49 44 54  P.7pID20SID0pIDT
+  1d90: 53 53 49 44 31 70 49 44 54 50 53 49 44 32 70 49  SSID1pIDTPSID2pI
+  1da0: 44 32 32 53 49 44 33 70 55 4d 53 53 53 49 44 34  D22SID3pUMSSSID4
+  1db0: 70 55 4d 53 50 53 49 44 35 70 0a 00 53 58 5f 5f  pUMSPSID5p..SX__
+  1dc0: 8a 68 0a 00 50 49 4f 30 8a 68 0a 04 44 4d 41 30  .h..PIO0.h..DMA0
+  1dd0: 8a 68 0a 08 50 49 4f 31 8a 68 0a 0c 44 4d 41 31  .h..PIO1.h..DMA1
+  1de0: 8a 68 0a 10 46 4c 41 47 a0 11 93 6b 0a 00 70 53  .h..FLAG...k..pS
+  1df0: 49 44 32 60 70 53 49 44 35 61 a1 0d 70 53 49 44  ID2`pSID5a..pSID
+  1e00: 31 60 70 53 49 44 34 61 a0 21 92 93 50 49 4f 30  1`pSID4a.!..PIO0
+  1e10: 0c ff ff ff ff 7b 60 0a ff 60 79 54 32 44 5f 50  .....{`..`yT2D_P
+  1e20: 49 4f 30 0a 08 62 7d 60 62 60 a0 1d 92 93 50 49  IO0..b}`b`....PI
+  1e30: 4f 31 0c ff ff ff ff 7b 60 0b 00 ff 60 7d 60 54  O1.....{`...`}`T
+  1e40: 32 44 5f 50 49 4f 31 60 a0 24 7b 46 4c 41 47 0a  2D_PIO1`.${FLAG.
+  1e50: 01 00 7b 61 0a ff 61 79 54 32 55 5f 44 4d 41 30  ..{a..ayT2U_DMA0
+  1e60: 0a 08 62 7d 0b 00 c0 62 62 7d 62 61 61 a1 23 a0  ..b}...bb}baa.#.
+  1e70: 21 92 93 44 4d 41 30 0c ff ff ff ff 7b 60 0a ff  !..DMA0.....{`..
+  1e80: 60 79 54 32 44 5f 44 4d 41 30 0a 08 62 7d 60 62  `yT2D_DMA0..b}`b
+  1e90: 60 a0 1f 7b 46 4c 41 47 0a 04 00 7b 61 0b 00 ff  `..{FLAG...{a...
+  1ea0: 61 7d 0a c0 54 32 55 5f 44 4d 41 31 62 7d 62 61  a}..T2U_DMA1b}ba
+  1eb0: 61 a1 1f a0 1d 92 93 44 4d 41 31 0c ff ff ff ff  a......DMA1.....
+  1ec0: 7b 60 0b 00 ff 60 7d 60 54 32 44 5f 44 4d 41 31  {`...`}`T2D_DMA1
+  1ed0: 60 a0 11 93 6b 0a 00 70 60 49 44 54 50 70 61 55  `...k..p`IDTPpaU
+  1ee0: 4d 53 50 a1 0d 70 60 49 44 54 53 70 61 55 4d 53  MSP..p`IDTSpaUMS
+  1ef0: 53 14 47 17 47 54 46 5f 02 70 11 0a 0a 07 03 00  S.G.GTF_.p......
+  1f00: 00 00 00 a0 ef 60 8c 60 0a 01 4d 4f 44 45 8c 60  .....`.`..MODE.`
+  1f10: 0a 05 44 52 49 56 70 69 44 52 49 56 a0 0b 93 68  ..DRIVpiDRIV...h
+  1f20: 0a 00 70 49 44 45 50 61 a1 07 70 49 44 45 53 61  ..pIDEPa..pIDESa
+  1f30: 8a 61 0a 00 50 49 4f 30 8a 61 0a 04 44 4d 41 30  .a..PIO0.a..DMA0
+  1f40: 8a 61 0a 08 50 49 4f 31 8a 61 0a 0c 44 4d 41 31  .a..PIO1.a..DMA1
+  1f50: 8a 61 0a 10 46 4c 47 58 a0 1c 93 69 0a a0 70 50  .a..FLGX...i..pP
+  1f60: 49 4f 30 62 70 44 4d 41 30 63 7b 46 4c 47 58 0a  IO0bpDMA0c{FLGX.
+  1f70: 01 46 4c 47 58 a1 18 70 50 49 4f 31 62 70 44 4d  .FLGX..pPIO1bpDM
+  1f80: 41 31 63 7b 46 4c 47 58 0a 04 46 4c 47 58 70 46  A1c{FLGX..FLGXpF
+  1f90: 4c 47 58 61 a0 0a 94 62 0b 86 01 70 0a 00 62 a1  LGXa...b...p..b.
+  1fa0: 29 a0 09 94 62 0a f0 70 0a 01 62 a1 1d a0 09 94  )...b..p..b.....
+  1fb0: 62 0a b4 70 0a 02 62 a1 11 a0 09 94 62 0a 78 70  b..p..b.....b.xp
+  1fc0: 0a 03 62 a1 05 70 0a 04 62 7d 0a 08 62 4d 4f 44  ..b..p..b}..bMOD
+  1fd0: 45 70 60 62 a0 4b 05 46 4c 47 58 a0 09 94 63 0a  Ep`b.K.FLGX...c.
+  1fe0: 5a 70 0a 00 63 a1 42 04 a0 09 94 63 0a 3c 70 0a  Zp..c.B....c.<p.
+  1ff0: 01 63 a1 35 a0 09 94 63 0a 2d 70 0a 02 63 a1 29  .c.5...c.-p..c.)
+  2000: a0 09 94 63 0a 1e 70 0a 03 63 a1 1d a0 09 94 63  ...c..p..c.....c
+  2010: 0a 14 70 0a 04 63 a1 11 a0 09 94 63 0a 0f 70 0a  ..p..c.....c..p.
+  2020: 05 63 a1 05 70 0a 06 63 7d 0a 40 63 4d 4f 44 45  .c..p..c}.@cMODE
+  2030: a1 32 a0 0a 93 63 0c ff ff ff ff a4 60 a1 25 a0  .2...c......`.%.
+  2040: 09 94 63 0a 96 70 0a 00 63 a1 11 a0 09 94 63 0a  ..c..p..c.....c.
+  2050: 78 70 0a 01 63 a1 05 70 0a 02 63 7d 0a 20 63 4d  xp..c..p..c}. cM
+  2060: 4f 44 45 73 60 62 61 a4 61 5b 82 47 06 50 52 49  ODEs`ba.a[.G.PRI
+  2070: 30 08 5f 41 44 52 0a 00 14 0d 5f 47 54 4d 00 a4  0._ADR...._GTM..
+  2080: 47 54 4d 5f 0a 00 14 0f 5f 53 54 4d 03 53 54 4d  GTM_...._STM.STM
+  2090: 5f 68 69 6a 0a 00 5b 82 1c 4d 41 53 54 08 5f 41  _hij..[..MAST._A
+  20a0: 44 52 0a 00 14 0f 5f 47 54 46 00 a4 47 54 46 5f  DR...._GTF..GTF_
+  20b0: 0a 00 0a a0 5b 82 1c 53 4c 41 56 08 5f 41 44 52  ....[..SLAV._ADR
+  20c0: 0a 01 14 0f 5f 47 54 46 00 a4 47 54 46 5f 0a 00  ...._GTF..GTF_..
+  20d0: 0a b0 5b 82 47 06 53 45 43 30 08 5f 41 44 52 0a  ..[.G.SEC0._ADR.
+  20e0: 01 14 0d 5f 47 54 4d 00 a4 47 54 4d 5f 0a 01 14  ..._GTM..GTM_...
+  20f0: 0f 5f 53 54 4d 03 53 54 4d 5f 68 69 6a 0a 01 5b  ._STM.STM_hij..[
+  2100: 82 1c 4d 41 53 54 08 5f 41 44 52 0a 00 14 0f 5f  ..MAST._ADR...._
+  2110: 47 54 46 00 a4 47 54 46 5f 0a 01 0a a0 5b 82 1c  GTF..GTF_....[..
+  2120: 53 4c 41 56 08 5f 41 44 52 0a 01 14 0f 5f 47 54  SLAV._ADR...._GT
+  2130: 46 00 a4 47 54 46 5f 0a 01 0a b0 5b 82 43 0e 41  F..GTF_....[.C.A
+  2140: 47 50 42 08 5f 41 44 52 0c 00 00 1e 00 08 4f 4e  GPB._ADR......ON
+  2150: 42 56 0a 00 08 50 49 43 4d 12 1b 01 12 18 04 0b  BV...PICM.......
+  2160: ff ff 0a 00 5c 2f 03 5f 53 42 5f 50 43 49 30 4c  ....\/._SB_PCI0L
+  2170: 4e 4b 35 0a 00 08 41 50 49 43 12 1b 01 12 18 04  NK5...APIC......
+  2180: 0b ff ff 0a 00 5c 2f 03 5f 53 42 5f 50 43 49 30  .....\/._SB_PCI0
+  2190: 41 50 43 35 0a 00 08 41 47 50 30 12 1b 01 12 18  APC5...AGP0.....
+  21a0: 04 0b ff ff 0a 00 5c 2f 03 5f 53 42 5f 50 43 49  ......\/._SB_PCI
+  21b0: 30 4c 4e 4b 34 0a 00 08 41 47 50 31 12 1b 01 12  0LNK4...AGP1....
+  21c0: 18 04 0b ff ff 0a 00 5c 2f 03 5f 53 42 5f 50 43  .......\/._SB_PC
+  21d0: 49 30 41 50 43 34 0a 00 14 39 5f 50 52 54 00 a0  I0APC4...9_PRT..
+  21e0: 1b 92 50 49 43 46 a0 0d 93 4f 4e 42 56 0a 01 a4  ..PICF...ONBV...
+  21f0: 50 49 43 4d a1 06 a4 41 47 50 30 a1 16 a0 0d 93  PICM...AGP0.....
+  2200: 4f 4e 42 56 0a 01 a4 41 50 49 43 a1 06 a4 41 47  ONBV...APIC...AG
+  2210: 50 31 5b 82 0c 56 47 41 47 08 5f 41 44 52 0a 00  P1[..VGAG._ADR..
+  2220: 5b 82 40 12 48 55 42 31 08 5f 41 44 52 0c 00 00  [.@.HUB1._ADR...
+  2230: 0c 00 08 50 49 43 4d 12 4f 06 04 12 1a 04 0c ff  ...PICM.O.......
+  2240: ff 01 00 0a 00 5c 2f 03 5f 53 42 5f 50 43 49 30  .....\/._SB_PCI0
+  2250: 4c 33 43 4d 0a 00 12 1a 04 0c ff ff 01 00 0a 01  L3CM............
+  2260: 5c 2f 03 5f 53 42 5f 50 43 49 30 4c 33 43 4d 0a  \/._SB_PCI0L3CM.
+  2270: 00 12 1a 04 0c ff ff 01 00 0a 02 5c 2f 03 5f 53  ...........\/._S
+  2280: 42 5f 50 43 49 30 4c 33 43 4d 0a 00 12 1a 04 0c  B_PCI0L3CM......
+  2290: ff ff 01 00 0a 03 5c 2f 03 5f 53 42 5f 50 43 49  ......\/._SB_PCI
+  22a0: 30 4c 33 43 4d 0a 00 08 41 50 49 43 12 4f 06 04  0L3CM...APIC.O..
+  22b0: 12 1a 04 0c ff ff 01 00 0a 00 5c 2f 03 5f 53 42  ..........\/._SB
+  22c0: 5f 50 43 49 30 41 50 33 43 0a 00 12 1a 04 0c ff  _PCI0AP3C.......
+  22d0: ff 01 00 0a 01 5c 2f 03 5f 53 42 5f 50 43 49 30  .....\/._SB_PCI0
+  22e0: 41 50 33 43 0a 00 12 1a 04 0c ff ff 01 00 0a 02  AP3C............
+  22f0: 5c 2f 03 5f 53 42 5f 50 43 49 30 41 50 33 43 0a  \/._SB_PCI0AP3C.
+  2300: 00 12 1a 04 0c ff ff 01 00 0a 03 5c 2f 03 5f 53  ...........\/._S
+  2310: 42 5f 50 43 49 30 41 50 33 43 0a 00 14 19 5f 50  B_PCI0AP3C...._P
+  2320: 52 54 00 a0 0b 92 50 49 43 46 a4 50 49 43 4d a1  RT....PICF.PICM.
+  2330: 06 a4 41 50 49 43 08 5f 50 52 57 12 06 02 0a 0a  ..APIC._PRW.....
+  2340: 0a 04 5b 82 4e 04 53 4d 42 30 08 5f 41 44 52 0c  ..[.N.SMB0._ADR.
+  2350: 01 00 01 00 5b 80 53 4d 43 46 02 0a 48 0a 10 5b  ....[.SMCF..H..[
+  2360: 81 1f 53 4d 43 46 03 53 4d 50 4d 04 53 4d 54 31  ..SMCF.SMPM.SMT1
+  2370: 1c 53 4d 54 32 20 53 42 31 5f 20 53 42 32 5f 20  .SMT2 SB1_ SB2_ 
+  2380: 14 11 53 4d 42 42 00 7b 53 42 31 5f 0b fe ff 60  ..SMBB.{SB1_...`
+  2390: a4 60 5b 82 47 17 56 54 38 36 08 5f 41 44 52 0c  .`[.G.VT86._ADR.
+  23a0: 00 00 01 00 5b 80 50 49 4f 30 02 0a 04 0a 20 10  ....[.PIO0.... .
+  23b0: 29 5c 00 5b 81 24 5c 2f 04 5f 53 42 5f 50 43 49  )\.[.$\/._SB_PCI
+  23c0: 30 56 54 38 36 50 49 4f 30 01 53 4d 45 4e 08 00  0VT86PIO0.SMEN..
+  23d0: 48 05 00 08 53 4d 49 4f 08 10 46 0a 5c 00 5b 80  H...SMIO..F.\.[.
+  23e0: 5c 2f 04 5f 53 42 5f 50 43 49 30 56 54 38 36 50  \/._SB_PCI0VT86P
+  23f0: 36 30 5f 02 0a 60 0a 02 5b 81 1a 5c 2f 04 5f 53  60_..`..[..\/._S
+  2400: 42 5f 50 43 49 30 56 54 38 36 50 36 30 5f 00 50  B_PCI0VT86P60_.P
+  2410: 4d 42 52 10 5b 80 5c 2f 04 5f 53 42 5f 50 43 49  MBR.[.\/._SB_PCI
+  2420: 30 56 54 38 36 50 36 34 5f 02 0a 64 0a 02 5b 81  0VT86P64_..d..[.
+  2430: 1a 5c 2f 04 5f 53 42 5f 50 43 49 30 56 54 38 36  .\/._SB_PCI0VT86
+  2440: 50 36 34 5f 00 4e 56 53 42 10 5b 80 5c 2f 04 5f  P64_.NVSB.[.\/._
+  2450: 53 42 5f 50 43 49 30 56 54 38 36 50 36 38 5f 02  SB_PCI0VT86P68_.
+  2460: 0a 68 0a 02 5b 81 1a 5c 2f 04 5f 53 42 5f 50 43  .h..[..\/._SB_PC
+  2470: 49 30 56 54 38 36 50 36 38 5f 00 41 4e 4c 47 10  I0VT86P68_.ANLG.
+  2480: 5b 80 50 49 52 51 02 0a 7c 0a 0c 10 4f 07 5c 00  [.PIRQ..|...O.\.
+  2490: 5b 81 49 07 5c 2f 04 5f 53 42 5f 50 43 49 30 56  [.I.\/._SB_PCI0V
+  24a0: 54 38 36 50 49 52 51 00 49 4e 54 41 04 49 4e 54  T86PIRQ.INTA.INT
+  24b0: 42 04 49 4e 54 43 04 49 4e 54 44 04 49 4e 54 45  B.INTC.INTD.INTE
+  24c0: 04 00 0c 53 43 49 49 04 54 43 4f 49 04 49 4e 54  ...SCII.TCOI.INT
+  24d0: 46 04 49 4e 54 51 04 49 4e 54 55 04 49 4e 54 53  F.INTQ.INTU.INTS
+  24e0: 04 00 08 49 4e 54 47 04 49 4e 54 48 04 49 4e 54  ...INTG.INTH.INT
+  24f0: 4a 04 49 4e 54 4b 04 49 4e 54 4c 04 49 4e 54 4d  J.INTK.INTL.INTM
+  2500: 04 49 4e 54 4e 04 49 4e 54 50 04 10 18 5c 00 14  .INTN.INTP...\..
+  2510: 06 44 49 53 44 01 14 06 43 4b 49 4f 02 14 06 53  .DISD...CKIO...S
+  2520: 4c 44 4d 02 5b 82 3d 55 53 42 30 08 5f 41 44 52  LDM.[.=USB0._ADR
+  2530: 0c 00 00 02 00 14 09 5f 53 31 44 00 a4 0a 01 14  ......._S1D.....
+  2540: 17 53 53 33 44 00 a0 0b 93 4f 53 46 4c 0a 02 a4  .SS3D....OSFL...
+  2550: 0a 02 a1 04 a4 0a 03 08 5f 50 52 57 12 06 02 0a  ........_PRW....
+  2560: 0d 0a 03 5b 82 3d 55 53 42 31 08 5f 41 44 52 0c  ...[.=USB1._ADR.
+  2570: 01 00 02 00 14 09 5f 53 31 44 00 a4 0a 01 14 17  ......_S1D......
+  2580: 53 53 33 44 00 a0 0b 93 4f 53 46 4c 0a 02 a4 0a  SS3D....OSFL....
+  2590: 02 a1 04 a4 0a 03 08 5f 50 52 57 12 06 02 0a 0c  ......._PRW.....
+  25a0: 0a 03 5b 82 42 06 55 53 42 32 08 5f 41 44 52 0c  ..[.B.USB2._ADR.
+  25b0: 02 00 02 00 5b 80 50 30 32 30 02 0a 49 0a 01 5b  ....[.P020..I..[
+  25c0: 81 0b 50 30 32 30 00 55 30 57 4b 01 14 19 5f 50  ..P020.U0WK..._P
+  25d0: 53 57 01 a0 09 68 70 0a 01 55 30 57 4b a1 08 70  SW...hp..U0WK..p
+  25e0: 0a 00 55 30 57 4b 14 09 5f 53 31 44 00 a4 0a 01  ..U0WK.._S1D....
+  25f0: 14 09 53 53 33 44 00 a4 0a 01 08 5f 50 52 57 12  ..SS3D....._PRW.
+  2600: 06 02 0a 05 0a 03 5b 82 3d 46 31 33 39 08 5f 41  ......[.=F139._A
+  2610: 44 52 0c 00 00 0d 00 14 09 5f 53 31 44 00 a4 0a  DR......._S1D...
+  2620: 01 14 17 53 53 33 44 00 a0 0b 93 4f 53 46 4c 0a  ...SS3D....OSFL.
+  2630: 02 a4 0a 02 a1 04 a4 0a 03 08 5f 50 52 57 12 06  .........._PRW..
+  2640: 02 0a 0f 0a 03 5b 82 1b 4d 4d 41 43 08 5f 41 44  .....[..MMAC._AD
+  2650: 52 0c 00 00 04 00 08 5f 50 52 57 12 06 02 0a 0b  R......_PRW.....
+  2660: 0a 05 5b 82 0f 4d 41 50 55 08 5f 41 44 52 0c 00  ..[..MAPU._ADR..
+  2670: 00 05 00 5b 82 0f 4d 41 43 49 08 5f 41 44 52 0c  ...[..MACI._ADR.
+  2680: 00 00 06 00 5b 82 1b 4d 4d 43 49 08 5f 41 44 52  ....[..MMCI._ADR
+  2690: 0c 01 00 06 00 08 5f 50 52 57 12 06 02 0a 07 0a  ......_PRW......
+  26a0: 05 08 42 55 46 41 11 09 0a 06 23 f8 dc 18 79 00  ..BUFA....#...y.
+  26b0: 08 42 55 46 42 11 09 0a 06 23 00 00 18 79 00 8b  .BUFB....#...y..
+  26c0: 42 55 46 42 0a 01 49 52 51 56 14 1e 43 52 53 5f  BUFB..IRQV..CRS_
+  26d0: 01 a0 0a 68 79 0a 01 68 49 52 51 56 a1 07 70 00  ...hy..hIRQV..p.
+  26e0: 49 52 51 56 a4 42 55 46 42 14 18 53 52 53 5f 01  IRQV.BUFB..SRS_.
+  26f0: 8b 68 0a 01 49 52 51 30 82 49 52 51 30 60 76 60  .h..IRQ0.IRQ0`v`
+  2700: a4 60 14 43 05 43 52 53 41 09 70 0a 00 60 a0 09  .`.C.CRSA.p..`..
+  2710: 93 68 0a 08 70 0a 14 60 a0 09 93 68 0a 0d 70 0a  .h..p..`...h..p.
+  2720: 15 60 a0 09 93 68 0a 02 70 0a 16 60 08 49 52 5a  .`...h..p..`.IRZ
+  2730: 35 11 0e 0a 0b 89 06 00 09 01 07 00 00 00 79 00  5.............y.
+  2740: 8b 49 52 5a 35 0a 05 49 4e 5a 35 70 60 49 4e 5a  .IRZ5..INZ5p`INZ
+  2750: 35 a4 49 52 5a 35 14 3b 53 52 53 41 09 8b 68 0a  5.IRZ5.;SRSA..h.
+  2760: 05 49 4e 5a 36 70 0a 08 60 a0 0c 93 49 4e 5a 36  .INZ6p..`...INZ6
+  2770: 0a 14 70 0a 08 60 a0 0c 93 49 4e 5a 36 0a 15 70  ..p..`...INZ6..p
+  2780: 0a 0d 60 a0 0c 93 49 4e 5a 36 0a 16 70 0a 02 60  ..`...INZ6..p..`
+  2790: a4 60 5b 82 47 06 4c 4e 4b 31 08 5f 48 49 44 0c  .`[.G.LNK1._HID.
+  27a0: 41 d0 0c 0f 08 5f 55 49 44 0a 01 14 14 5f 53 54  A...._UID...._ST
+  27b0: 41 00 a0 08 49 4e 54 41 a4 0a 0b a1 04 a4 0a 09  A...INTA........
+  27c0: 14 0b 5f 50 52 53 00 a4 42 55 46 41 14 0d 5f 44  .._PRS..BUFA.._D
+  27d0: 49 53 00 70 0a 00 49 4e 54 41 14 0f 5f 43 52 53  IS.p..INTA.._CRS
+  27e0: 00 a4 43 52 53 5f 49 4e 54 41 14 10 5f 53 52 53  ..CRS_INTA.._SRS
+  27f0: 01 70 53 52 53 5f 68 49 4e 54 41 5b 82 47 06 4c  .pSRS_hINTA[.G.L
+  2800: 4e 4b 32 08 5f 48 49 44 0c 41 d0 0c 0f 08 5f 55  NK2._HID.A...._U
+  2810: 49 44 0a 02 14 14 5f 53 54 41 00 a0 08 49 4e 54  ID...._STA...INT
+  2820: 42 a4 0a 0b a1 04 a4 0a 09 14 0b 5f 50 52 53 00  B.........._PRS.
+  2830: a4 42 55 46 41 14 0d 5f 44 49 53 00 70 0a 00 49  .BUFA.._DIS.p..I
+  2840: 4e 54 42 14 0f 5f 43 52 53 00 a4 43 52 53 5f 49  NTB.._CRS..CRS_I
+  2850: 4e 54 42 14 10 5f 53 52 53 01 70 53 52 53 5f 68  NTB.._SRS.pSRS_h
+  2860: 49 4e 54 42 5b 82 47 06 4c 4e 4b 33 08 5f 48 49  INTB[.G.LNK3._HI
+  2870: 44 0c 41 d0 0c 0f 08 5f 55 49 44 0a 03 14 14 5f  D.A...._UID...._
+  2880: 53 54 41 00 a0 08 49 4e 54 43 a4 0a 0b a1 04 a4  STA...INTC......
+  2890: 0a 09 14 0b 5f 50 52 53 00 a4 42 55 46 41 14 0d  ...._PRS..BUFA..
+  28a0: 5f 44 49 53 00 70 0a 00 49 4e 54 43 14 0f 5f 43  _DIS.p..INTC.._C
+  28b0: 52 53 00 a4 43 52 53 5f 49 4e 54 43 14 10 5f 53  RS..CRS_INTC.._S
+  28c0: 52 53 01 70 53 52 53 5f 68 49 4e 54 43 5b 82 47  RS.pSRS_hINTC[.G
+  28d0: 06 4c 4e 4b 34 08 5f 48 49 44 0c 41 d0 0c 0f 08  .LNK4._HID.A....
+  28e0: 5f 55 49 44 0a 04 14 14 5f 53 54 41 00 a0 08 49  _UID...._STA...I
+  28f0: 4e 54 44 a4 0a 0b a1 04 a4 0a 09 14 0b 5f 50 52  NTD.........._PR
+  2900: 53 00 a4 42 55 46 41 14 0d 5f 44 49 53 00 70 0a  S..BUFA.._DIS.p.
+  2910: 00 49 4e 54 44 14 0f 5f 43 52 53 00 a4 43 52 53  .INTD.._CRS..CRS
+  2920: 5f 49 4e 54 44 14 10 5f 53 52 53 01 70 53 52 53  _INTD.._SRS.pSRS
+  2930: 5f 68 49 4e 54 44 5b 82 47 06 4c 4e 4b 35 08 5f  _hINTD[.G.LNK5._
+  2940: 48 49 44 0c 41 d0 0c 0f 08 5f 55 49 44 0a 05 14  HID.A...._UID...
+  2950: 14 5f 53 54 41 00 a0 08 49 4e 54 45 a4 0a 0b a1  ._STA...INTE....
+  2960: 04 a4 0a 09 14 0b 5f 50 52 53 00 a4 42 55 46 41  ......_PRS..BUFA
+  2970: 14 0d 5f 44 49 53 00 70 0a 00 49 4e 54 45 14 0f  .._DIS.p..INTE..
+  2980: 5f 43 52 53 00 a4 43 52 53 5f 49 4e 54 45 14 10  _CRS..CRS_INTE..
+  2990: 5f 53 52 53 01 70 53 52 53 5f 68 49 4e 54 45 5b  _SRS.pSRS_hINTE[
+  29a0: 82 47 06 4c 55 42 41 08 5f 48 49 44 0c 41 d0 0c  .G.LUBA._HID.A..
+  29b0: 0f 08 5f 55 49 44 0a 06 14 14 5f 53 54 41 00 a0  .._UID...._STA..
+  29c0: 08 49 4e 54 47 a4 0a 0b a1 04 a4 0a 09 14 0b 5f  .INTG.........._
+  29d0: 50 52 53 00 a4 42 55 46 41 14 0d 5f 44 49 53 00  PRS..BUFA.._DIS.
+  29e0: 70 0a 00 49 4e 54 47 14 0f 5f 43 52 53 00 a4 43  p..INTG.._CRS..C
+  29f0: 52 53 5f 49 4e 54 47 14 10 5f 53 52 53 01 70 53  RS_INTG.._SRS.pS
+  2a00: 52 53 5f 68 49 4e 54 47 5b 82 47 06 4c 55 42 42  RS_hINTG[.G.LUBB
+  2a10: 08 5f 48 49 44 0c 41 d0 0c 0f 08 5f 55 49 44 0a  ._HID.A...._UID.
+  2a20: 07 14 14 5f 53 54 41 00 a0 08 49 4e 54 48 a4 0a  ..._STA...INTH..
+  2a30: 0b a1 04 a4 0a 09 14 0b 5f 50 52 53 00 a4 42 55  ........_PRS..BU
+  2a40: 46 41 14 0d 5f 44 49 53 00 70 0a 00 49 4e 54 48  FA.._DIS.p..INTH
+  2a50: 14 0f 5f 43 52 53 00 a4 43 52 53 5f 49 4e 54 48  .._CRS..CRS_INTH
+  2a60: 14 10 5f 53 52 53 01 70 53 52 53 5f 68 49 4e 54  .._SRS.pSRS_hINT
+  2a70: 48 5b 82 47 06 4c 4d 41 43 08 5f 48 49 44 0c 41  H[.G.LMAC._HID.A
+  2a80: d0 0c 0f 08 5f 55 49 44 0a 08 14 14 5f 53 54 41  ...._UID...._STA
+  2a90: 00 a0 08 49 4e 54 4a a4 0a 0b a1 04 a4 0a 09 14  ...INTJ.........
+  2aa0: 0b 5f 50 52 53 00 a4 42 55 46 41 14 0d 5f 44 49  ._PRS..BUFA.._DI
+  2ab0: 53 00 70 0a 00 49 4e 54 4a 14 0f 5f 43 52 53 00  S.p..INTJ.._CRS.
+  2ac0: a4 43 52 53 5f 49 4e 54 4a 14 10 5f 53 52 53 01  .CRS_INTJ.._SRS.
+  2ad0: 70 53 52 53 5f 68 49 4e 54 4a 5b 82 47 06 4c 41  pSRS_hINTJ[.G.LA
+  2ae0: 50 55 08 5f 48 49 44 0c 41 d0 0c 0f 08 5f 55 49  PU._HID.A...._UI
+  2af0: 44 0a 09 14 14 5f 53 54 41 00 a0 08 49 4e 54 4b  D...._STA...INTK
+  2b00: a4 0a 0b a1 04 a4 0a 09 14 0b 5f 50 52 53 00 a4  .........._PRS..
+  2b10: 42 55 46 41 14 0d 5f 44 49 53 00 70 0a 00 49 4e  BUFA.._DIS.p..IN
+  2b20: 54 4b 14 0f 5f 43 52 53 00 a4 43 52 53 5f 49 4e  TK.._CRS..CRS_IN
+  2b30: 54 4b 14 10 5f 53 52 53 01 70 53 52 53 5f 68 49  TK.._SRS.pSRS_hI
+  2b40: 4e 54 4b 5b 82 47 06 4c 41 43 49 08 5f 48 49 44  NTK[.G.LACI._HID
+  2b50: 0c 41 d0 0c 0f 08 5f 55 49 44 0a 0a 14 14 5f 53  .A...._UID...._S
+  2b60: 54 41 00 a0 08 49 4e 54 4c a4 0a 0b a1 04 a4 0a  TA...INTL.......
+  2b70: 09 14 0b 5f 50 52 53 00 a4 42 55 46 41 14 0d 5f  ..._PRS..BUFA.._
+  2b80: 44 49 53 00 70 0a 00 49 4e 54 4c 14 0f 5f 43 52  DIS.p..INTL.._CR
+  2b90: 53 00 a4 43 52 53 5f 49 4e 54 4c 14 10 5f 53 52  S..CRS_INTL.._SR
+  2ba0: 53 01 70 53 52 53 5f 68 49 4e 54 4c 5b 82 47 06  S.pSRS_hINTL[.G.
+  2bb0: 4c 4d 43 49 08 5f 48 49 44 0c 41 d0 0c 0f 08 5f  LMCI._HID.A...._
+  2bc0: 55 49 44 0a 0b 14 14 5f 53 54 41 00 a0 08 49 4e  UID...._STA...IN
+  2bd0: 54 4d a4 0a 0b a1 04 a4 0a 09 14 0b 5f 50 52 53  TM.........._PRS
+  2be0: 00 a4 42 55 46 41 14 0d 5f 44 49 53 00 70 0a 00  ..BUFA.._DIS.p..
+  2bf0: 49 4e 54 4d 14 0f 5f 43 52 53 00 a4 43 52 53 5f  INTM.._CRS..CRS_
+  2c00: 49 4e 54 4d 14 10 5f 53 52 53 01 70 53 52 53 5f  INTM.._SRS.pSRS_
+  2c10: 68 49 4e 54 4d 5b 82 47 06 4c 53 4d 42 08 5f 48  hINTM[.G.LSMB._H
+  2c20: 49 44 0c 41 d0 0c 0f 08 5f 55 49 44 0a 0c 14 14  ID.A...._UID....
+  2c30: 5f 53 54 41 00 a0 08 49 4e 54 46 a4 0a 0b a1 04  _STA...INTF.....
+  2c40: a4 0a 09 14 0b 5f 50 52 53 00 a4 42 55 46 41 14  ....._PRS..BUFA.
+  2c50: 0d 5f 44 49 53 00 70 0a 00 49 4e 54 46 14 0f 5f  ._DIS.p..INTF.._
+  2c60: 43 52 53 00 a4 43 52 53 5f 49 4e 54 46 14 10 5f  CRS..CRS_INTF.._
+  2c70: 53 52 53 01 70 53 52 53 5f 68 49 4e 54 46 5b 82  SRS.pSRS_hINTF[.
+  2c80: 47 06 4c 55 42 32 08 5f 48 49 44 0c 41 d0 0c 0f  G.LUB2._HID.A...
+  2c90: 08 5f 55 49 44 0a 0d 14 14 5f 53 54 41 00 a0 08  ._UID...._STA...
+  2ca0: 49 4e 54 51 a4 0a 0b a1 04 a4 0a 09 14 0b 5f 50  INTQ.........._P
+  2cb0: 52 53 00 a4 42 55 46 41 14 0d 5f 44 49 53 00 70  RS..BUFA.._DIS.p
+  2cc0: 0a 00 49 4e 54 51 14 0f 5f 43 52 53 00 a4 43 52  ..INTQ.._CRS..CR
+  2cd0: 53 5f 49 4e 54 51 14 10 5f 53 52 53 01 70 53 52  S_INTQ.._SRS.pSR
+  2ce0: 53 5f 68 49 4e 54 51 5b 82 47 06 4c 46 49 52 08  S_hINTQ[.G.LFIR.
+  2cf0: 5f 48 49 44 0c 41 d0 0c 0f 08 5f 55 49 44 0a 0e  _HID.A...._UID..
+  2d00: 14 14 5f 53 54 41 00 a0 08 49 4e 54 55 a4 0a 0b  .._STA...INTU...
+  2d10: a1 04 a4 0a 09 14 0b 5f 50 52 53 00 a4 42 55 46  ......._PRS..BUF
+  2d20: 41 14 0d 5f 44 49 53 00 70 0a 00 49 4e 54 55 14  A.._DIS.p..INTU.
+  2d30: 0f 5f 43 52 53 00 a4 43 52 53 5f 49 4e 54 55 14  ._CRS..CRS_INTU.
+  2d40: 10 5f 53 52 53 01 70 53 52 53 5f 68 49 4e 54 55  ._SRS.pSRS_hINTU
+  2d50: 5b 82 47 06 4c 33 43 4d 08 5f 48 49 44 0c 41 d0  [.G.L3CM._HID.A.
+  2d60: 0c 0f 08 5f 55 49 44 0a 0f 14 14 5f 53 54 41 00  ..._UID...._STA.
+  2d70: a0 08 49 4e 54 53 a4 0a 0b a1 04 a4 0a 09 14 0b  ..INTS..........
+  2d80: 5f 50 52 53 00 a4 42 55 46 41 14 0d 5f 44 49 53  _PRS..BUFA.._DIS
+  2d90: 00 70 0a 00 49 4e 54 53 14 0f 5f 43 52 53 00 a4  .p..INTS.._CRS..
+  2da0: 43 52 53 5f 49 4e 54 53 14 10 5f 53 52 53 01 70  CRS_INTS.._SRS.p
+  2db0: 53 52 53 5f 68 49 4e 54 53 5b 82 48 07 4c 49 44  SRS_hINTS[.H.LID
+  2dc0: 45 08 5f 48 49 44 0c 41 d0 0c 0f 08 5f 55 49 44  E._HID.A...._UID
+  2dd0: 0a 10 14 14 5f 53 54 41 00 a0 08 49 4e 54 4e a4  ...._STA...INTN.
+  2de0: 0a 0b a1 04 a4 0a 09 14 0b 5f 50 52 53 00 a4 42  ........._PRS..B
+  2df0: 55 46 41 14 14 5f 44 49 53 00 70 0a 00 49 4e 54  UFA.._DIS.p..INT
+  2e00: 4e 70 0a 00 49 4e 54 50 14 0f 5f 43 52 53 00 a4  Np..INTP.._CRS..
+  2e10: 43 52 53 5f 49 4e 54 4e 14 1a 5f 53 52 53 01 70  CRS_INTN.._SRS.p
+  2e20: 53 52 53 5f 68 49 4e 54 4e 70 53 52 53 5f 68 49  SRS_hINTNpSRS_hI
+  2e30: 4e 54 50 08 42 55 46 31 11 0e 0a 0b 89 06 00 09  NTP.BUF1........
+  2e40: 01 10 00 00 00 79 00 08 42 55 46 32 11 0e 0a 0b  .....y..BUF2....
+  2e50: 89 06 00 09 01 11 00 00 00 79 00 08 42 55 46 33  .........y..BUF3
+  2e60: 11 0e 0a 0b 89 06 00 09 01 12 00 00 00 79 00 08  .............y..
+  2e70: 42 55 46 34 11 0e 0a 0b 89 06 00 09 01 13 00 00  BUF4............
+  2e80: 00 79 00 08 42 55 46 46 11 16 0a 13 89 0e 00 09  .y..BUFF........
+  2e90: 03 14 00 00 00 15 00 00 00 16 00 00 00 79 00 08  .............y..
+  2ea0: 42 55 46 49 11 0e 0a 0b 89 06 00 09 01 17 00 00  BUFI............
+  2eb0: 00 79 00 08 49 52 5a 31 11 0e 0a 0b 89 06 00 09  .y..IRZ1........
+  2ec0: 01 07 00 00 00 79 00 5b 82 42 07 41 50 43 31 08  .....y.[.B.APC1.
+  2ed0: 5f 48 49 44 0c 41 d0 0c 0f 08 5f 55 49 44 0a 0b  _HID.A...._UID..
+  2ee0: 14 14 5f 53 54 41 00 a0 08 49 4e 54 41 a4 0a 0b  .._STA...INTA...
+  2ef0: a1 04 a4 0a 09 14 0b 5f 50 52 53 00 a4 42 55 46  ......._PRS..BUF
+  2f00: 31 14 0d 5f 44 49 53 00 70 0a 00 49 4e 54 41 14  1.._DIS.p..INTA.
+  2f10: 1d 5f 43 52 53 00 8b 49 52 5a 31 0a 05 49 52 51  ._CRS..IRZ1..IRQ
+  2f20: 31 70 0a 10 49 52 51 31 a4 49 52 5a 31 14 0d 5f  1p..IRQ1.IRZ1.._
+  2f30: 53 52 53 01 70 0a 08 49 4e 54 41 5b 82 42 07 41  SRS.p..INTA[.B.A
+  2f40: 50 43 32 08 5f 48 49 44 0c 41 d0 0c 0f 08 5f 55  PC2._HID.A...._U
+  2f50: 49 44 0a 0c 14 14 5f 53 54 41 00 a0 08 49 4e 54  ID...._STA...INT
+  2f60: 42 a4 0a 0b a1 04 a4 0a 09 14 0b 5f 50 52 53 00  B.........._PRS.
+  2f70: a4 42 55 46 32 14 0d 5f 44 49 53 00 70 0a 00 49  .BUF2.._DIS.p..I
+  2f80: 4e 54 42 14 1d 5f 43 52 53 00 8b 49 52 5a 31 0a  NTB.._CRS..IRZ1.
+  2f90: 05 49 52 51 31 70 0a 11 49 52 51 31 a4 49 52 5a  .IRQ1p..IRQ1.IRZ
+  2fa0: 31 14 0d 5f 53 52 53 01 70 0a 01 49 4e 54 42 5b  1.._SRS.p..INTB[
+  2fb0: 82 42 07 41 50 43 33 08 5f 48 49 44 0c 41 d0 0c  .B.APC3._HID.A..
+  2fc0: 0f 08 5f 55 49 44 0a 0d 14 14 5f 53 54 41 00 a0  .._UID...._STA..
+  2fd0: 08 49 4e 54 43 a4 0a 0b a1 04 a4 0a 09 14 0b 5f  .INTC.........._
+  2fe0: 50 52 53 00 a4 42 55 46 33 14 0d 5f 44 49 53 00  PRS..BUF3.._DIS.
+  2ff0: 70 0a 00 49 4e 54 43 14 1d 5f 43 52 53 00 8b 49  p..INTC.._CRS..I
+  3000: 52 5a 31 0a 05 49 52 51 31 70 0a 12 49 52 51 31  RZ1..IRQ1p..IRQ1
+  3010: a4 49 52 5a 31 14 0d 5f 53 52 53 01 70 0a 02 49  .IRZ1.._SRS.p..I
+  3020: 4e 54 43 5b 82 40 08 41 50 43 34 08 5f 48 49 44  NTC[.@.APC4._HID
+  3030: 0c 41 d0 0c 0f 08 5f 55 49 44 0a 0e 14 14 5f 53  .A...._UID...._S
+  3040: 54 41 00 a0 08 49 4e 54 44 a4 0a 0b a1 04 a4 0a  TA...INTD.......
+  3050: 09 14 0b 5f 50 52 53 00 a4 42 55 46 34 14 14 5f  ..._PRS..BUF4.._
+  3060: 44 49 53 00 70 0a 00 49 4e 54 44 70 0a 00 49 4e  DIS.p..INTDp..IN
+  3070: 54 45 14 1d 5f 43 52 53 00 8b 49 52 5a 31 0a 05  TE.._CRS..IRZ1..
+  3080: 49 52 51 31 70 0a 13 49 52 51 31 a4 49 52 5a 31  IRQ1p..IRQ1.IRZ1
+  3090: 14 14 5f 53 52 53 01 70 0a 0d 49 4e 54 44 70 0a  .._SRS.p..INTDp.
+  30a0: 0d 49 4e 54 45 5b 82 42 07 41 50 43 35 08 5f 48  .INTE[.B.APC5._H
+  30b0: 49 44 0c 41 d0 0c 0f 08 5f 55 49 44 0a 0f 14 14  ID.A...._UID....
+  30c0: 5f 53 54 41 00 a0 08 49 4e 54 45 a4 0a 0b a1 04  _STA...INTE.....
+  30d0: a4 0a 09 14 0b 5f 50 52 53 00 a4 42 55 46 31 14  ....._PRS..BUF1.
+  30e0: 0d 5f 44 49 53 00 70 0a 00 49 4e 54 45 14 1d 5f  ._DIS.p..INTE.._
+  30f0: 43 52 53 00 8b 49 52 5a 31 0a 05 49 52 51 31 70  CRS..IRZ1..IRQ1p
+  3100: 0a 10 49 52 51 31 a4 49 52 5a 31 14 0d 5f 53 52  ..IRQ1.IRZ1.._SR
+  3110: 53 01 70 0a 08 49 4e 54 45 5b 82 47 06 41 50 43  S.p..INTE[.G.APC
+  3120: 46 08 5f 48 49 44 0c 41 d0 0c 0f 08 5f 55 49 44  F._HID.A...._UID
+  3130: 0a 10 14 14 5f 53 54 41 00 a0 08 49 4e 54 47 a4  ...._STA...INTG.
+  3140: 0a 0b a1 04 a4 0a 09 14 0b 5f 50 52 53 00 a4 42  ........._PRS..B
+  3150: 55 46 46 14 0d 5f 44 49 53 00 70 0a 00 49 4e 54  UFF.._DIS.p..INT
+  3160: 47 14 0f 5f 43 52 53 00 a4 43 52 53 41 49 4e 54  G.._CRS..CRSAINT
+  3170: 47 14 10 5f 53 52 53 01 70 53 52 53 41 68 49 4e  G.._SRS.pSRSAhIN
+  3180: 54 47 5b 82 47 06 41 50 43 47 08 5f 48 49 44 0c  TG[.G.APCG._HID.
+  3190: 41 d0 0c 0f 08 5f 55 49 44 0a 11 14 14 5f 53 54  A...._UID...._ST
+  31a0: 41 00 a0 08 49 4e 54 48 a4 0a 0b a1 04 a4 0a 09  A...INTH........
+  31b0: 14 0b 5f 50 52 53 00 a4 42 55 46 46 14 0d 5f 44  .._PRS..BUFF.._D
+  31c0: 49 53 00 70 0a 00 49 4e 54 48 14 0f 5f 43 52 53  IS.p..INTH.._CRS
+  31d0: 00 a4 43 52 53 41 49 4e 54 48 14 10 5f 53 52 53  ..CRSAINTH.._SRS
+  31e0: 01 70 53 52 53 41 68 49 4e 54 48 5b 82 47 06 41  .pSRSAhINTH[.G.A
+  31f0: 50 43 48 08 5f 48 49 44 0c 41 d0 0c 0f 08 5f 55  PCH._HID.A...._U
+  3200: 49 44 0a 12 14 14 5f 53 54 41 00 a0 08 49 4e 54  ID...._STA...INT
+  3210: 4a a4 0a 0b a1 04 a4 0a 09 14 0b 5f 50 52 53 00  J.........._PRS.
+  3220: a4 42 55 46 46 14 0d 5f 44 49 53 00 70 0a 00 49  .BUFF.._DIS.p..I
+  3230: 4e 54 4a 14 0f 5f 43 52 53 00 a4 43 52 53 41 49  NTJ.._CRS..CRSAI
+  3240: 4e 54 4a 14 10 5f 53 52 53 01 70 53 52 53 41 68  NTJ.._SRS.pSRSAh
+  3250: 49 4e 54 4a 5b 82 47 06 41 50 43 49 08 5f 48 49  INTJ[.G.APCI._HI
+  3260: 44 0c 41 d0 0c 0f 08 5f 55 49 44 0a 1a 14 14 5f  D.A...._UID...._
+  3270: 53 54 41 00 a0 08 49 4e 54 4b a4 0a 0b a1 04 a4  STA...INTK......
+  3280: 0a 09 14 0b 5f 50 52 53 00 a4 42 55 46 46 14 0d  ...._PRS..BUFF..
+  3290: 5f 44 49 53 00 70 0a 00 49 4e 54 4b 14 0f 5f 43  _DIS.p..INTK.._C
+  32a0: 52 53 00 a4 43 52 53 41 49 4e 54 4b 14 10 5f 53  RS..CRSAINTK.._S
+  32b0: 52 53 01 70 53 52 53 41 68 49 4e 54 4b 5b 82 47  RS.pSRSAhINTK[.G
+  32c0: 06 41 50 43 4a 08 5f 48 49 44 0c 41 d0 0c 0f 08  .APCJ._HID.A....
+  32d0: 5f 55 49 44 0a 1b 14 14 5f 53 54 41 00 a0 08 49  _UID...._STA...I
+  32e0: 4e 54 4c a4 0a 0b a1 04 a4 0a 09 14 0b 5f 50 52  NTL.........._PR
+  32f0: 53 00 a4 42 55 46 46 14 0d 5f 44 49 53 00 70 0a  S..BUFF.._DIS.p.
+  3300: 00 49 4e 54 4c 14 0f 5f 43 52 53 00 a4 43 52 53  .INTL.._CRS..CRS
+  3310: 41 49 4e 54 4c 14 10 5f 53 52 53 01 70 53 52 53  AINTL.._SRS.pSRS
+  3320: 41 68 49 4e 54 4c 5b 82 47 06 41 50 43 4b 08 5f  AhINTL[.G.APCK._
+  3330: 48 49 44 0c 41 d0 0c 0f 08 5f 55 49 44 0a 1c 14  HID.A...._UID...
+  3340: 14 5f 53 54 41 00 a0 08 49 4e 54 4d a4 0a 0b a1  ._STA...INTM....
+  3350: 04 a4 0a 09 14 0b 5f 50 52 53 00 a4 42 55 46 46  ......_PRS..BUFF
+  3360: 14 0d 5f 44 49 53 00 70 0a 00 49 4e 54 4d 14 0f  .._DIS.p..INTM..
+  3370: 5f 43 52 53 00 a4 43 52 53 41 49 4e 54 4d 14 10  _CRS..CRSAINTM..
+  3380: 5f 53 52 53 01 70 53 52 53 41 68 49 4e 54 4d 5b  _SRS.pSRSAhINTM[
+  3390: 82 42 07 41 50 43 53 08 5f 48 49 44 0c 41 d0 0c  .B.APCS._HID.A..
+  33a0: 0f 08 5f 55 49 44 0a 1d 14 14 5f 53 54 41 00 a0  .._UID...._STA..
+  33b0: 08 49 4e 54 46 a4 0a 0b a1 04 a4 0a 09 14 0b 5f  .INTF.........._
+  33c0: 50 52 53 00 a4 42 55 46 49 14 0d 5f 44 49 53 00  PRS..BUFI.._DIS.
+  33d0: 70 0a 00 49 4e 54 46 14 1d 5f 43 52 53 00 8b 49  p..INTF.._CRS..I
+  33e0: 52 5a 31 0a 05 49 52 51 31 70 0a 17 49 52 51 31  RZ1..IRQ1p..IRQ1
+  33f0: a4 49 52 5a 31 14 0d 5f 53 52 53 01 70 0a 02 49  .IRZ1.._SRS.p..I
+  3400: 4e 54 46 5b 82 47 06 41 50 43 4c 08 5f 48 49 44  NTF[.G.APCL._HID
+  3410: 0c 41 d0 0c 0f 08 5f 55 49 44 0a 1e 14 14 5f 53  .A...._UID...._S
+  3420: 54 41 00 a0 08 49 4e 54 51 a4 0a 0b a1 04 a4 0a  TA...INTQ.......
+  3430: 09 14 0b 5f 50 52 53 00 a4 42 55 46 46 14 0d 5f  ..._PRS..BUFF.._
+  3440: 44 49 53 00 70 0a 00 49 4e 54 51 14 0f 5f 43 52  DIS.p..INTQ.._CR
+  3450: 53 00 a4 43 52 53 41 49 4e 54 51 14 10 5f 53 52  S..CRSAINTQ.._SR
+  3460: 53 01 70 53 52 53 41 68 49 4e 54 51 5b 82 47 06  S.pSRSAhINTQ[.G.
+  3470: 41 50 43 4d 08 5f 48 49 44 0c 41 d0 0c 0f 08 5f  APCM._HID.A...._
+  3480: 55 49 44 0a 1f 14 14 5f 53 54 41 00 a0 08 49 4e  UID...._STA...IN
+  3490: 54 55 a4 0a 0b a1 04 a4 0a 09 14 0b 5f 50 52 53  TU.........._PRS
+  34a0: 00 a4 42 55 46 46 14 0d 5f 44 49 53 00 70 0a 00  ..BUFF.._DIS.p..
+  34b0: 49 4e 54 55 14 0f 5f 43 52 53 00 a4 43 52 53 41  INTU.._CRS..CRSA
+  34c0: 49 4e 54 55 14 10 5f 53 52 53 01 70 53 52 53 41  INTU.._SRS.pSRSA
+  34d0: 68 49 4e 54 55 5b 82 47 06 41 50 33 43 08 5f 48  hINTU[.G.AP3C._H
+  34e0: 49 44 0c 41 d0 0c 0f 08 5f 55 49 44 0a 20 14 14  ID.A...._UID. ..
+  34f0: 5f 53 54 41 00 a0 08 49 4e 54 53 a4 0a 0b a1 04  _STA...INTS.....
+  3500: a4 0a 09 14 0b 5f 50 52 53 00 a4 42 55 46 46 14  ....._PRS..BUFF.
+  3510: 0d 5f 44 49 53 00 70 0a 00 49 4e 54 53 14 0f 5f  ._DIS.p..INTS.._
+  3520: 43 52 53 00 a4 43 52 53 41 49 4e 54 53 14 10 5f  CRS..CRSAINTS.._
+  3530: 53 52 53 01 70 53 52 53 41 68 49 4e 54 53 5b 82  SRS.pSRSAhINTS[.
+  3540: 48 07 41 50 43 5a 08 5f 48 49 44 0c 41 d0 0c 0f  H.APCZ._HID.A...
+  3550: 08 5f 55 49 44 0a 21 14 14 5f 53 54 41 00 a0 08  ._UID.!.._STA...
+  3560: 49 4e 54 4e a4 0a 0b a1 04 a4 0a 09 14 0b 5f 50  INTN.........._P
+  3570: 52 53 00 a4 42 55 46 46 14 14 5f 44 49 53 00 70  RS..BUFF.._DIS.p
+  3580: 0a 00 49 4e 54 4e 70 0a 00 49 4e 54 50 14 0f 5f  ..INTNp..INTP.._
+  3590: 43 52 53 00 a4 43 52 53 41 49 4e 54 4e 14 1a 5f  CRS..CRSAINTN.._
+  35a0: 53 52 53 01 70 53 52 53 41 68 49 4e 54 4e 70 53  SRS.pSRSAhINTNpS
+  35b0: 52 53 41 68 49 4e 54 50 10 1e 5c 00 5b 80 5c 53  RSAhINTP..\.[.\S
+  35c0: 43 50 50 01 0b 2e 44 0a 01 5b 81 0c 5c 53 43 50  CPP...D..[..\SCP
+  35d0: 50 01 53 4d 49 50 08 14 49 07 5c 2f 03 5f 53 42  P.SMIP..I.\/._SB
+  35e0: 5f 50 43 49 30 5f 49 4e 49 00 a0 24 53 54 52 43  _PCI0_INI..$STRC
+  35f0: 5c 5f 4f 53 5f 0d 4d 69 63 72 6f 73 6f 66 74 20  \_OS_.Microsoft 
+  3600: 57 69 6e 64 6f 77 73 00 70 0a 56 53 4d 49 50 a1  Windows.p.VSMIP.
+  3610: 41 04 a0 2e 53 54 52 43 5c 5f 4f 53 5f 0d 4d 69  A...STRC\_OS_.Mi
+  3620: 63 72 6f 73 6f 66 74 20 57 69 6e 64 6f 77 73 20  crosoft Windows 
+  3630: 4e 54 00 70 0a 58 53 4d 49 50 70 0a 00 4f 53 46  NT.p.XSMIPp..OSF
+  3640: 4c a1 0f 70 0a 57 53 4d 49 50 70 0a 02 4f 53 46  L..p.WSMIPp..OSF
+  3650: 4c 10 3a 5c 00 14 36 4f 53 54 50 00 a0 0f 93 4f  L.:\..6OSTP....O
+  3660: 53 46 4c 0a 01 70 0a 56 53 4d 49 50 a0 0f 93 4f  SFL..p.VSMIP...O
+  3670: 53 46 4c 0a 02 70 0a 57 53 4d 49 50 a0 0f 93 4f  SFL..p.WSMIP...O
+  3680: 53 46 4c 0a 00 70 0a 58 53 4d 49 50 5b 82 4b 0a  SFL..p.XSMIP[.K.
+  3690: 53 59 53 52 08 5f 48 49 44 0c 41 d0 0c 02 08 5f  SYSR._HID.A...._
+  36a0: 55 49 44 0a 01 08 5f 43 52 53 11 4e 08 0a 8a 47  UID..._CRS.N...G
+  36b0: 01 10 00 10 00 01 10 47 01 22 00 22 00 01 1e 47  .......G."."...G
+  36c0: 01 44 00 44 00 01 1c 47 01 62 00 62 00 01 02 47  .D.D...G.b.b...G
+  36d0: 01 65 00 65 00 01 0b 47 01 74 00 74 00 01 0c 47  .e.e...G.t.t...G
+  36e0: 01 91 00 91 00 01 03 47 01 a2 00 a2 00 01 1e 47  .......G.......G
+  36f0: 01 e0 00 e0 00 01 10 47 01 78 0b 78 0b 04 04 47  .......G.x.x...G
+  3700: 01 78 0f 78 0f 04 04 47 01 78 0a 78 0a 04 04 47  .x.x...G.x.x...G
+  3710: 01 78 0e 78 0e 04 04 47 01 bc 0b bc 0b 04 04 47  .x.x...G.......G
+  3720: 01 bc 0f bc 0f 04 04 47 01 d0 04 d0 04 01 02 47  .......G.......G
+  3730: 01 94 02 94 02 01 04 79 00 5b 82 2b 50 49 43 5f  .......y.[.+PIC_
+  3740: 08 5f 48 49 44 0b 41 d0 08 5f 43 52 53 11 18 0a  ._HID.A.._CRS...
+  3750: 15 47 01 20 00 20 00 01 02 47 01 a0 00 a0 00 01  .G. . ...G......
+  3760: 02 22 04 00 79 00 5b 82 3d 44 4d 41 31 08 5f 48  ."..y.[.=DMA1._H
+  3770: 49 44 0c 41 d0 02 00 08 5f 43 52 53 11 28 0a 25  ID.A...._CRS.(.%
+  3780: 2a 10 04 47 01 00 00 00 00 01 10 47 01 80 00 80  *..G.......G....
+  3790: 00 01 11 47 01 94 00 94 00 01 0c 47 01 c0 00 c0  ...G.......G....
+  37a0: 00 01 20 79 00 5b 82 25 54 4d 52 5f 08 5f 48 49  .. y.[.%TMR_._HI
+  37b0: 44 0c 41 d0 01 00 08 5f 43 52 53 11 10 0a 0d 47  D.A...._CRS....G
+  37c0: 01 40 00 40 00 01 04 22 01 00 79 00 5b 82 25 52  .@.@..."..y.[.%R
+  37d0: 54 43 5f 08 5f 48 49 44 0c 41 d0 0b 00 08 5f 43  TC_._HID.A...._C
+  37e0: 52 53 11 10 0a 0d 47 01 70 00 70 00 04 04 22 00  RS....G.p.p...".
+  37f0: 01 79 00 5b 82 22 53 50 4b 52 08 5f 48 49 44 0c  .y.[."SPKR._HID.
+  3800: 41 d0 08 00 08 5f 43 52 53 11 0d 0a 0a 47 01 61  A...._CRS....G.a
+  3810: 00 61 00 01 01 79 00 5b 82 25 43 4f 50 52 08 5f  .a...y.[.%COPR._
+  3820: 48 49 44 0c 41 d0 0c 04 08 5f 43 52 53 11 10 0a  HID.A...._CRS...
+  3830: 0d 47 01 f0 00 f0 00 01 10 22 00 20 79 00 10 47  .G.......". y..G
+  3840: 0f 5c 00 5b 80 57 49 4e 31 01 0a 2e 0a 02 5b 81  .\.[.WIN1.....[.
+  3850: 10 57 49 4e 31 01 49 4e 44 50 08 44 41 54 41 08  .WIN1.INDP.DATA.
+  3860: 5b 86 41 0b 49 4e 44 50 44 41 54 41 01 00 10 43  [.A.INDPDATA...C
+  3870: 46 47 5f 08 00 20 4c 44 4e 5f 08 00 40 0c 49 44  FG_.. LDN_..@.ID
+  3880: 48 49 08 49 44 4c 4f 08 50 4f 57 43 08 00 48 06  HI.IDLO.POWC..H.
+  3890: 41 43 54 52 08 00 48 17 49 4f 41 48 08 49 4f 41  ACTR..H.IOAH.IOA
+  38a0: 4c 08 49 4f 32 48 08 49 4f 32 4c 08 00 40 06 49  L.IO2H.IO2L..@.I
+  38b0: 4e 54 52 08 00 08 49 4e 54 31 08 00 08 44 4d 43  NTR...INT1...DMC
+  38c0: 48 08 00 48 35 43 52 45 30 08 43 52 45 31 08 43  H..H5CRE0.CRE1.C
+  38d0: 52 45 32 08 43 52 45 33 08 43 52 45 34 08 00 48  RE2.CRE3.CRE4..H
+  38e0: 05 4f 50 54 31 08 4f 50 54 32 08 4f 50 54 33 08  .OPT1.OPT2.OPT3.
+  38f0: 4f 50 54 34 08 4f 50 54 35 08 4f 50 54 36 08 4f  OPT4.OPT5.OPT6.O
+  3900: 50 54 37 08 4f 50 54 38 08 4f 50 54 39 08 4f 50  PT7.OPT8.OPT9.OP
+  3910: 54 41 08 14 14 45 4e 46 47 00 70 0a 87 49 4e 44  TA...ENFG.p..IND
+  3920: 50 70 0a 87 49 4e 44 50 14 0d 45 58 46 47 00 70  Pp..INDP..EXFG.p
+  3930: 0a aa 49 4e 44 50 5b 80 43 4f 4d 31 01 0b f8 03  ..INDP[.COM1....
+  3940: 0a 08 5b 81 2e 43 4f 4d 31 01 50 33 46 38 08 50  ..[..COM1.P3F8.P
+  3950: 33 46 39 08 50 33 46 41 08 50 33 46 42 08 50 33  3F9.P3FA.P3FB.P3
+  3960: 46 43 08 50 33 46 44 08 50 33 46 45 08 50 33 46  FC.P3FD.P3FE.P3F
+  3970: 46 08 5b 80 43 4f 4d 32 01 0b f8 02 0a 08 5b 81  F.[.COM2......[.
+  3980: 2e 43 4f 4d 32 01 50 32 46 38 08 50 32 46 39 08  .COM2.P2F8.P2F9.
+  3990: 50 32 46 41 08 50 32 46 42 08 50 32 46 43 08 50  P2FA.P2FB.P2FC.P
+  39a0: 32 46 44 08 50 32 46 45 08 50 32 46 46 08 5b 80  2FD.P2FE.P2FF.[.
+  39b0: 43 4f 4d 33 01 0b e8 03 0a 08 5b 81 2e 43 4f 4d  COM3......[..COM
+  39c0: 33 01 50 33 45 38 08 50 33 45 39 08 50 33 45 41  3.P3E8.P3E9.P3EA
+  39d0: 08 50 33 45 42 08 50 33 45 43 08 50 33 45 44 08  .P3EB.P3EC.P3ED.
+  39e0: 50 33 45 45 08 50 33 45 46 08 5b 80 43 4f 4d 34  P3EE.P3EF.[.COM4
+  39f0: 01 0b e8 02 0a 08 5b 81 2e 43 4f 4d 34 01 50 32  ......[..COM4.P2
+  3a00: 45 38 08 50 32 45 39 08 50 32 45 41 08 50 32 45  E8.P2E9.P2EA.P2E
+  3a10: 42 08 50 32 45 43 08 50 32 45 44 08 50 32 45 45  B.P2EC.P2ED.P2EE
+  3a20: 08 50 32 45 46 08 14 4a 0b 49 43 4f 4d 01 70 68  .P2EF..J.ICOM.ph
+  3a30: 60 a0 29 93 60 0b f8 03 70 50 33 46 44 60 70 50  `.).`...pP3FD`pP
+  3a40: 33 46 44 60 70 0a c3 50 33 46 41 a2 0f 92 93 50  3FD`p..P3FA....P
+  3a50: 33 46 41 0a c1 70 50 33 46 45 60 a1 45 08 a0 29  3FA..pP3FE`.E..)
+  3a60: 93 60 0b f8 02 70 50 32 46 44 60 70 50 32 46 44  .`...pP2FD`pP2FD
+  3a70: 60 70 0a c3 50 32 46 41 a2 0f 92 93 50 32 46 41  `p..P2FA....P2FA
+  3a80: 0a c1 70 50 32 46 45 60 a1 48 05 a0 29 93 60 0b  ..pP2FE`.H..).`.
+  3a90: e8 03 70 50 33 45 44 60 70 50 33 45 44 60 70 0a  ..pP3ED`pP3ED`p.
+  3aa0: c3 50 33 45 41 a2 0f 92 93 50 33 45 41 0a c1 70  .P3EA....P3EA..p
+  3ab0: 50 33 45 45 60 a1 2b a0 29 93 60 0b e8 02 70 50  P3EE`.+.).`...pP
+  3ac0: 32 45 44 60 70 50 32 45 44 60 70 0a c3 50 32 45  2ED`pP2ED`p..P2E
+  3ad0: 41 a2 0f 92 93 50 32 45 41 0a c1 70 50 32 45 45  A....P2EA..pP2EE
+  3ae0: 60 5b 82 46 15 46 44 43 30 08 5f 48 49 44 0c 41  `[.F.FDC0._HID.A
+  3af0: d0 07 00 14 3a 5f 53 54 41 00 45 4e 46 47 70 00  ....:_STA.ENFGp.
+  3b00: 4c 44 4e 5f a0 0c 41 43 54 52 45 58 46 47 a4 0a  LDN_..ACTREXFG..
+  3b10: 0f a1 1c a0 11 91 49 4f 41 48 49 4f 41 4c 45 58  ......IOAHIOALEX
+  3b20: 46 47 a4 0a 0d a1 08 45 58 46 47 a4 0a 00 14 2b  FG.....EXFG....+
+  3b30: 5f 44 49 53 00 45 4e 46 47 70 0a 00 4c 44 4e 5f  _DIS.ENFGp..LDN_
+  3b40: 70 00 41 43 54 52 53 4c 44 4d 44 4d 43 48 0a 04  p.ACTRSLDMDMCH..
+  3b50: 45 58 46 47 44 49 53 44 0a 03 14 41 06 5f 43 52  EXFGDISD...A._CR
+  3b60: 53 00 08 42 55 46 30 11 1b 0a 18 47 01 f0 03 f0  S..BUF0....G....
+  3b70: 03 01 06 47 01 f7 03 f7 03 01 01 22 40 00 2a 04  ...G......."@.*.
+  3b80: 00 79 00 8c 42 55 46 30 0a 02 49 4f 4c 4f 8c 42  .y..BUF0..IOLO.B
+  3b90: 55 46 30 0a 03 49 4f 48 49 8c 42 55 46 30 0a 04  UF0..IOHI.BUF0..
+  3ba0: 49 4f 52 4c 8c 42 55 46 30 0a 05 49 4f 52 48 45  IORL.BUF0..IORHE
+  3bb0: 4e 46 47 45 58 46 47 a4 42 55 46 30 08 5f 50 52  NFGEXFG.BUF0._PR
+  3bc0: 53 11 1d 0a 1a 30 47 01 f0 03 f0 03 01 06 47 01  S....0G.......G.
+  3bd0: f7 03 f7 03 01 01 22 40 00 2a 04 00 38 79 00 14  ......"@.*..8y..
+  3be0: 49 05 5f 53 52 53 01 8c 68 0a 02 49 4f 4c 4f 8c  I._SRS..h..IOLO.
+  3bf0: 68 0a 03 49 4f 48 49 8b 68 0a 02 49 4f 41 44 8b  h..IOHI.h..IOAD.
+  3c00: 68 0a 19 49 52 51 4c 8c 68 0a 1c 44 4d 41 56 45  h..IRQL.h..DMAVE
+  3c10: 4e 46 47 70 00 4c 44 4e 5f 70 01 41 43 54 52 53  NFGp.LDN_p.ACTRS
+  3c20: 4c 44 4d 44 4d 43 48 44 4d 43 48 45 58 46 47 43  LDMDMCHDMCHEXFGC
+  3c30: 4b 49 4f 49 4f 41 44 0a 03 5b 82 46 1b 55 41 52  KIOIOAD..[.F.UAR
+  3c40: 31 08 5f 48 49 44 0c 41 d0 05 01 08 5f 55 49 44  1._HID.A...._UID
+  3c50: 0a 01 14 3f 5f 53 54 41 00 45 4e 46 47 70 0a 02  ...?_STA.ENFGp..
+  3c60: 4c 44 4e 5f a0 0c 41 43 54 52 45 58 46 47 a4 0a  LDN_..ACTREXFG..
+  3c70: 0f a1 1c a0 11 91 49 4f 41 48 49 4f 41 4c 45 58  ......IOAHIOALEX
+  3c80: 46 47 a4 0a 0d a1 08 45 58 46 47 a4 0a 00 45 58  FG.....EXFG...EX
+  3c90: 46 47 14 21 5f 44 49 53 00 45 4e 46 47 70 0a 02  FG.!_DIS.ENFGp..
+  3ca0: 4c 44 4e 5f 70 00 41 43 54 52 45 58 46 47 44 49  LDN_p.ACTREXFGDI
+  3cb0: 53 44 0a 00 14 49 09 5f 43 52 53 00 08 42 55 46  SD...I._CRS..BUF
+  3cc0: 31 11 10 0a 0d 47 01 00 00 00 00 01 08 22 00 00  1....G......."..
+  3cd0: 79 00 8c 42 55 46 31 0a 02 49 4f 4c 4f 8c 42 55  y..BUF1..IOLO.BU
+  3ce0: 46 31 0a 03 49 4f 48 49 8c 42 55 46 31 0a 04 49  F1..IOHI.BUF1..I
+  3cf0: 4f 52 4c 8c 42 55 46 31 0a 05 49 4f 52 48 8b 42  ORL.BUF1..IORH.B
+  3d00: 55 46 31 0a 09 49 52 51 57 45 4e 46 47 70 0a 02  UF1..IRQWENFGp..
+  3d10: 4c 44 4e 5f 70 49 4f 41 4c 49 4f 4c 4f 70 49 4f  LDN_pIOALIOLOpIO
+  3d20: 41 4c 49 4f 52 4c 70 49 4f 41 48 49 4f 48 49 70  ALIORLpIOAHIOHIp
+  3d30: 49 4f 41 48 49 4f 52 48 70 01 60 79 60 49 4e 54  IOAHIORHp.`y`INT
+  3d40: 52 49 52 51 57 45 58 46 47 a4 42 55 46 31 08 5f  RIRQWEXFG.BUF1._
+  3d50: 50 52 53 11 36 0a 33 30 47 01 f8 03 f8 03 01 08  PRS.6.30G.......
+  3d60: 22 b8 1e 30 47 01 f8 02 f8 02 01 08 22 b8 1e 30  "..0G......."..0
+  3d70: 47 01 e8 03 e8 03 01 08 22 b8 1e 30 47 01 e8 02  G......."..0G...
+  3d80: e8 02 01 08 22 b8 1e 38 79 00 14 46 06 5f 53 52  ...."..8y..F._SR
+  3d90: 53 01 8c 68 0a 02 49 4f 4c 4f 8c 68 0a 03 49 4f  S..h..IOLO.h..IO
+  3da0: 48 49 8b 68 0a 02 49 4f 41 44 8b 68 0a 09 49 52  HI.h..IOAD.h..IR
+  3db0: 51 57 45 4e 46 47 70 0a 02 4c 44 4e 5f 70 01 41  QWENFGp..LDN_p.A
+  3dc0: 43 54 52 70 49 4f 4c 4f 49 4f 41 4c 70 49 4f 48  CTRpIOLOIOALpIOH
+  3dd0: 49 49 4f 41 48 82 49 52 51 57 60 74 60 0a 01 49  IIOAH.IRQW`t`..I
+  3de0: 4e 54 52 45 58 46 47 43 4b 49 4f 49 4f 41 44 0a  NTREXFGCKIOIOAD.
+  3df0: 00 5b 82 49 1d 55 41 52 32 08 5f 48 49 44 0c 41  .[.I.UAR2._HID.A
+  3e00: d0 05 01 08 5f 55 49 44 0a 02 14 44 05 5f 53 54  ...._UID...D._ST
+  3e10: 41 00 45 4e 46 47 70 0a 03 4c 44 4e 5f 7b 4f 50  A.ENFGp..LDN_{OP
+  3e20: 54 32 0a 30 60 a0 30 92 93 60 0a 10 a0 0c 41 43  T2.0`.0..`....AC
+  3e30: 54 52 45 58 46 47 a4 0a 0f a1 1c a0 11 91 49 4f  TREXFG........IO
+  3e40: 41 48 49 4f 41 4c 45 58 46 47 a4 0a 0d a1 08 45  AHIOALEXFG.....E
+  3e50: 58 46 47 a4 0a 00 a1 08 45 58 46 47 a4 0a 00 14  XFG.....EXFG....
+  3e60: 2f 5f 44 49 53 00 45 4e 46 47 70 0a 03 4c 44 4e  /_DIS.ENFGp..LDN
+  3e70: 5f 7b 4f 50 54 32 0a 38 60 a0 0b 93 60 0a 00 70  _{OPT2.8`...`..p
+  3e80: 00 41 43 54 52 45 58 46 47 44 49 53 44 0a 01 14  .ACTREXFGDISD...
+  3e90: 49 09 5f 43 52 53 00 08 42 55 46 32 11 10 0a 0d  I._CRS..BUF2....
+  3ea0: 47 01 00 00 00 00 01 08 22 10 00 79 00 8c 42 55  G......."..y..BU
+  3eb0: 46 32 0a 02 49 4f 4c 4f 8c 42 55 46 32 0a 03 49  F2..IOLO.BUF2..I
+  3ec0: 4f 48 49 8c 42 55 46 32 0a 04 49 4f 52 4c 8c 42  OHI.BUF2..IORL.B
+  3ed0: 55 46 32 0a 05 49 4f 52 48 8b 42 55 46 32 0a 09  UF2..IORH.BUF2..
+  3ee0: 49 52 51 57 45 4e 46 47 70 0a 03 4c 44 4e 5f 70  IRQWENFGp..LDN_p
+  3ef0: 49 4f 41 4c 49 4f 4c 4f 70 49 4f 41 4c 49 4f 52  IOALIOLOpIOALIOR
+  3f00: 4c 70 49 4f 41 48 49 4f 48 49 70 49 4f 41 48 49  LpIOAHIOHIpIOAHI
+  3f10: 4f 52 48 70 01 60 79 60 49 4e 54 52 49 52 51 57  ORHp.`y`INTRIRQW
+  3f20: 45 58 46 47 a4 42 55 46 32 08 5f 50 52 53 11 36  EXFG.BUF2._PRS.6
+  3f30: 0a 33 30 47 01 f8 03 f8 03 01 08 22 b8 1e 30 47  .30G......."..0G
+  3f40: 01 f8 02 f8 02 01 08 22 b8 1e 30 47 01 e8 03 e8  ......."..0G....
+  3f50: 03 01 08 22 b8 1e 30 47 01 e8 02 e8 02 01 08 22  ..."..0G......."
+  3f60: b8 1e 38 79 00 14 46 06 5f 53 52 53 01 8c 68 0a  ..8y..F._SRS..h.
+  3f70: 02 49 4f 4c 4f 8c 68 0a 03 49 4f 48 49 8b 68 0a  .IOLO.h..IOHI.h.
+  3f80: 02 49 4f 41 44 8b 68 0a 09 49 52 51 57 45 4e 46  .IOAD.h..IRQWENF
+  3f90: 47 70 0a 03 4c 44 4e 5f 70 01 41 43 54 52 70 49  Gp..LDN_p.ACTRpI
+  3fa0: 4f 4c 4f 49 4f 41 4c 70 49 4f 48 49 49 4f 41 48  OLOIOALpIOHIIOAH
+  3fb0: 82 49 52 51 57 60 74 60 0a 01 49 4e 54 52 45 58  .IRQW`t`..INTREX
+  3fc0: 46 47 43 4b 49 4f 49 4f 41 44 0a 01 5b 82 4c 1d  FGCKIOIOAD..[.L.
+  3fd0: 49 52 44 41 08 5f 48 49 44 0c 41 d0 05 10 14 43  IRDA._HID.A....C
+  3fe0: 05 5f 53 54 41 00 45 4e 46 47 70 0a 03 4c 44 4e  ._STA.ENFGp..LDN
+  3ff0: 5f 7b 4f 50 54 32 0a 30 60 a0 2f 93 60 0a 10 a0  _{OPT2.0`./.`...
+  4000: 0c 41 43 54 52 45 58 46 47 a4 0a 0f a1 1c a0 11  .ACTREXFG.......
+  4010: 91 49 4f 41 48 49 4f 41 4c 45 58 46 47 a4 0a 0d  .IOAHIOALEXFG...
+  4020: a1 08 45 58 46 47 a4 0a 00 a1 08 45 58 46 47 a4  ..EXFG.....EXFG.
+  4030: 0a 00 14 3c 5f 44 49 53 00 a0 32 93 44 49 53 45  ...<_DIS..2.DISE
+  4040: 0a 01 45 4e 46 47 70 0a 03 4c 44 4e 5f 7b 4f 50  ..ENFGp..LDN_{OP
+  4050: 54 32 0a 38 60 a0 0c 92 93 60 0a 00 70 00 41 43  T2.8`....`..p.AC
+  4060: 54 52 45 58 46 47 44 49 53 44 0a 01 70 60 60 14  TREXFGDISD..p``.
+  4070: 47 09 5f 43 52 53 00 08 42 55 46 34 11 10 0a 0d  G._CRS..BUF4....
+  4080: 47 01 00 00 00 00 01 08 22 00 00 79 00 8c 42 55  G......."..y..BU
+  4090: 46 34 0a 02 49 4f 4c 4f 8c 42 55 46 34 0a 03 49  F4..IOLO.BUF4..I
+  40a0: 4f 48 49 8c 42 55 46 34 0a 04 49 4f 52 4c 8c 42  OHI.BUF4..IORL.B
+  40b0: 55 46 34 0a 05 49 4f 52 48 8b 42 55 46 34 0a 09  UF4..IORH.BUF4..
+  40c0: 49 52 51 57 45 4e 46 47 70 0a 03 4c 44 4e 5f 70  IRQWENFGp..LDN_p
+  40d0: 49 4f 41 4c 49 4f 4c 4f 70 49 4f 41 4c 49 4f 52  IOALIOLOpIOALIOR
+  40e0: 4c 70 49 4f 41 48 49 4f 48 49 70 49 4f 41 48 49  LpIOAHIOHIpIOAHI
+  40f0: 4f 52 48 79 0a 01 49 4e 54 52 49 52 51 57 45 58  ORHy..INTRIRQWEX
+  4100: 46 47 a4 42 55 46 34 08 5f 50 52 53 11 36 0a 33  FG.BUF4._PRS.6.3
+  4110: 30 47 01 f8 03 f8 03 01 08 22 b8 1e 30 47 01 f8  0G......."..0G..
+  4120: 02 f8 02 01 08 22 b8 1e 30 47 01 e8 03 e8 03 01  ....."..0G......
+  4130: 08 22 b8 1e 30 47 01 e8 02 e8 02 01 08 22 b8 1e  ."..0G......."..
+  4140: 38 79 00 14 46 06 5f 53 52 53 01 8c 68 0a 02 49  8y..F._SRS..h..I
+  4150: 4f 4c 4f 8c 68 0a 03 49 4f 48 49 8b 68 0a 02 49  OLO.h..IOHI.h..I
+  4160: 4f 41 44 8b 68 0a 09 49 52 51 57 45 4e 46 47 70  OAD.h..IRQWENFGp
+  4170: 0a 03 4c 44 4e 5f 70 01 41 43 54 52 70 49 4f 4c  ..LDN_p.ACTRpIOL
+  4180: 4f 49 4f 41 4c 70 49 4f 48 49 49 4f 41 48 82 49  OIOALpIOHIIOAH.I
+  4190: 52 51 57 60 74 60 0a 01 49 4e 54 52 45 58 46 47  RQW`t`..INTREXFG
+  41a0: 43 4b 49 4f 49 4f 41 44 0a 01 5b 82 4d 26 4c 50  CKIOIOAD..[.M&LP
+  41b0: 54 31 08 5f 48 49 44 0c 41 d0 04 00 14 44 05 5f  T1._HID.A....D._
+  41c0: 53 54 41 00 45 4e 46 47 70 0a 01 4c 44 4e 5f 7b  STA.ENFGp..LDN_{
+  41d0: 4f 50 54 31 0a 02 60 a0 30 92 93 60 0a 02 a0 0c  OPT1..`.0..`....
+  41e0: 41 43 54 52 45 58 46 47 a4 0a 0f a1 1c a0 11 91  ACTREXFG........
+  41f0: 49 4f 41 48 49 4f 41 4c 45 58 46 47 a4 0a 0d a1  IOAHIOALEXFG....
+  4200: 08 45 58 46 47 a4 0a 00 a1 08 45 58 46 47 a4 0a  .EXFG.....EXFG..
+  4210: 00 14 21 5f 44 49 53 00 45 4e 46 47 70 0a 01 4c  ..!_DIS.ENFGp..L
+  4220: 44 4e 5f 70 00 41 43 54 52 45 58 46 47 44 49 53  DN_p.ACTREXFGDIS
+  4230: 44 0a 02 14 42 12 5f 43 52 53 00 08 42 55 46 35  D...B._CRS..BUF5
+  4240: 11 18 0a 15 47 01 00 00 00 00 01 08 47 01 00 00  ....G.......G...
+  4250: 00 00 01 04 22 00 00 79 00 8c 42 55 46 35 0a 02  ...."..y..BUF5..
+  4260: 49 4f 4c 4f 8c 42 55 46 35 0a 03 49 4f 48 49 8c  IOLO.BUF5..IOHI.
+  4270: 42 55 46 35 0a 04 49 4f 52 4c 8c 42 55 46 35 0a  BUF5..IORL.BUF5.
+  4280: 05 49 4f 52 48 8c 42 55 46 35 0a 07 49 4f 4c 45  .IORH.BUF5..IOLE
+  4290: 8c 42 55 46 35 0a 0a 49 4f 32 31 8c 42 55 46 35  .BUF5..IO21.BUF5
+  42a0: 0a 0b 49 4f 32 32 8c 42 55 46 35 0a 0c 49 4f 32  ..IO22.BUF5..IO2
+  42b0: 33 8c 42 55 46 35 0a 0d 49 4f 32 34 8b 42 55 46  3.BUF5..IO24.BUF
+  42c0: 35 0a 11 49 52 51 57 45 4e 46 47 70 0a 01 4c 44  5..IRQWENFGp..LD
+  42d0: 4e 5f 70 49 4f 41 4c 49 4f 4c 4f 70 49 4f 4c 4f  N_pIOALIOLOpIOLO
+  42e0: 49 4f 52 4c 70 49 4f 41 48 49 4f 48 49 70 49 4f  IORLpIOAHIOHIpIO
+  42f0: 48 49 49 4f 52 48 70 49 4f 41 4c 49 4f 32 31 70  HIIORHpIOALIO21p
+  4300: 49 4f 41 4c 49 4f 32 33 72 49 4f 41 48 0a 04 49  IOALIO23rIOAH..I
+  4310: 4f 32 32 72 49 4f 41 48 0a 04 49 4f 32 34 a0 0f  O22rIOAH..IO24..
+  4320: 93 49 4f 4c 4f 0a bc 70 0a 04 49 4f 4c 45 a1 08  .IOLO..p..IOLE..
+  4330: 70 0a 08 49 4f 4c 45 70 01 60 70 49 4e 54 52 65  p..IOLEp.`pINTRe
+  4340: 79 60 65 49 52 51 57 70 01 41 43 54 52 45 58 46  y`eIRQWp.ACTREXF
+  4350: 47 a4 42 55 46 35 08 5f 50 52 53 11 43 04 0a 3f  G.BUF5._PRS.C..?
+  4360: 30 47 01 78 03 78 03 01 08 47 01 78 07 78 07 01  0G.x.x...G.x.x..
+  4370: 04 22 b8 1e 30 47 01 78 02 78 02 01 08 47 01 78  ."..0G.x.x...G.x
+  4380: 06 78 06 01 04 22 b8 1e 30 47 01 bc 03 bc 03 01  .x..."..0G......
+  4390: 04 47 01 bc 07 bc 07 01 04 22 b8 1e 38 79 00 14  .G......."..8y..
+  43a0: 49 07 5f 53 52 53 01 8c 68 0a 02 49 4f 4c 4f 8c  I._SRS..h..IOLO.
+  43b0: 68 0a 03 49 4f 48 49 8b 68 0a 02 49 4f 41 44 8c  h..IOHI.h..IOAD.
+  43c0: 68 0a 04 49 4f 52 4c 8c 68 0a 05 49 4f 52 48 8b  h..IORL.h..IORH.
+  43d0: 68 0a 11 49 52 51 57 45 4e 46 47 70 0a 01 4c 44  h..IRQWENFGp..LD
+  43e0: 4e 5f 70 01 41 43 54 52 70 49 4f 4c 4f 49 4f 41  N_p.ACTRpIOLOIOA
+  43f0: 4c 70 49 4f 48 49 49 4f 41 48 81 49 52 51 57 60  LpIOHIIOAH.IRQW`
+  4400: 74 60 0a 01 60 70 60 49 4e 54 52 45 58 46 47 43  t`..`p`INTREXFGC
+  4410: 4b 49 4f 49 4f 41 44 0a 02 5b 82 43 2b 45 43 50  KIOIOAD..[.C+ECP
+  4420: 31 08 5f 48 49 44 0c 41 d0 04 01 14 43 05 5f 53  1._HID.A....C._S
+  4430: 54 41 00 45 4e 46 47 70 0a 01 4c 44 4e 5f 7b 4f  TA.ENFGp..LDN_{O
+  4440: 50 54 31 0a 02 60 a0 2f 93 60 0a 02 a0 0c 41 43  PT1..`./.`....AC
+  4450: 54 52 45 58 46 47 a4 0a 0f a1 1c a0 11 91 49 4f  TREXFG........IO
+  4460: 41 48 49 4f 41 4c 45 58 46 47 a4 0a 0d a1 08 45  AHIOALEXFG.....E
+  4470: 58 46 47 a4 0a 00 a1 08 45 58 46 47 a4 0a 00 14  XFG.....EXFG....
+  4480: 2b 5f 44 49 53 00 45 4e 46 47 70 0a 01 4c 44 4e  +_DIS.ENFGp..LDN
+  4490: 5f 70 00 41 43 54 52 53 4c 44 4d 44 4d 43 48 0a  _p.ACTRSLDMDMCH.
+  44a0: 04 45 58 46 47 44 49 53 44 0a 02 14 41 14 5f 43  .EXFGDISD...A._C
+  44b0: 52 53 00 08 42 55 46 36 11 1b 0a 18 47 01 00 00  RS..BUF6....G...
+  44c0: 00 00 01 08 47 01 00 00 00 00 01 04 22 00 00 2a  ....G......."..*
+  44d0: 00 00 79 00 8c 42 55 46 36 0a 02 49 4f 4c 4f 8c  ..y..BUF6..IOLO.
+  44e0: 42 55 46 36 0a 03 49 4f 48 49 8c 42 55 46 36 0a  BUF6..IOHI.BUF6.
+  44f0: 04 49 4f 52 4c 8c 42 55 46 36 0a 05 49 4f 52 48  .IORL.BUF6..IORH
+  4500: 8c 42 55 46 36 0a 0a 49 4f 45 4c 8c 42 55 46 36  .BUF6..IOEL.BUF6
+  4510: 0a 0b 49 4f 45 48 8c 42 55 46 36 0a 0c 49 4f 4d  ..IOEH.BUF6..IOM
+  4520: 4c 8c 42 55 46 36 0a 0d 49 4f 4d 48 8c 42 55 46  L.BUF6..IOMH.BUF
+  4530: 36 0a 07 49 4f 4c 45 8b 42 55 46 36 0a 11 49 52  6..IOLE.BUF6..IR
+  4540: 51 57 8c 42 55 46 36 0a 14 44 4d 41 43 45 4e 46  QW.BUF6..DMACENF
+  4550: 47 70 0a 01 4c 44 4e 5f 70 01 41 43 54 52 70 49  Gp..LDN_p.ACTRpI
+  4560: 4f 41 4c 62 70 62 49 4f 4c 4f 70 49 4f 41 48 63  OALbpbIOLOpIOAHc
+  4570: 70 63 49 4f 48 49 7d 63 0a 04 63 70 63 49 4f 45  pcIOHI}c..cpcIOE
+  4580: 48 70 63 49 4f 4d 48 70 49 4f 4c 4f 49 4f 52 4c  HpcIOMHpIOLOIORL
+  4590: 70 49 4f 4c 4f 49 4f 45 4c 70 49 4f 4c 4f 49 4f  pIOLOIOELpIOLOIO
+  45a0: 4d 4c 70 49 4f 48 49 49 4f 52 48 a0 0f 93 49 4f  MLpIOHIIORH...IO
+  45b0: 4c 4f 0a bc 70 0a 04 49 4f 4c 45 a1 08 70 0a 08  LO..p..IOLE..p..
+  45c0: 49 4f 4c 45 70 01 60 70 49 4e 54 52 65 79 60 65  IOLEp.`pINTRey`e
+  45d0: 49 52 51 57 70 01 60 70 44 4d 43 48 65 79 60 65  IRQWp.`pDMCHey`e
+  45e0: 44 4d 41 43 45 58 46 47 a4 42 55 46 36 08 5f 50  DMACEXFG.BUF6._P
+  45f0: 52 53 11 4c 04 0a 48 30 47 01 78 03 78 03 01 08  RS.L..H0G.x.x...
+  4600: 47 01 78 07 78 07 01 04 22 b8 1e 2a 0a 00 30 47  G.x.x..."..*..0G
+  4610: 01 78 02 78 02 01 08 47 01 78 06 78 06 01 04 22  .x.x...G.x.x..."
+  4620: b8 1e 2a 0a 00 30 47 01 bc 03 bc 03 01 04 47 01  ..*..0G.......G.
+  4630: bc 07 bc 07 01 04 22 b8 1e 2a 0a 00 38 79 00 14  ......"..*..8y..
+  4640: 4e 08 5f 53 52 53 01 8c 68 0a 02 49 4f 4c 4f 8c  N._SRS..h..IOLO.
+  4650: 68 0a 03 49 4f 48 49 8b 68 0a 02 49 4f 41 44 8b  h..IOHI.h..IOAD.
+  4660: 68 0a 11 49 52 51 57 8c 68 0a 14 44 4d 41 43 45  h..IRQW.h..DMACE
+  4670: 4e 46 47 70 0a 01 4c 44 4e 5f 70 01 41 43 54 52  NFGp..LDN_p.ACTR
+  4680: 70 49 4f 4c 4f 49 4f 41 4c 70 49 4f 48 49 49 4f  pIOLOIOALpIOHIIO
+  4690: 41 48 81 49 52 51 57 60 74 60 0a 01 60 70 60 49  AH.IRQW`t`..`p`I
+  46a0: 4e 54 52 81 44 4d 41 43 61 70 44 4d 43 48 60 74  NTR.DMACapDMCH`t
+  46b0: 61 0a 01 44 4d 43 48 53 4c 44 4d 60 44 4d 43 48  a..DMCHSLDM`DMCH
+  46c0: 45 58 46 47 43 4b 49 4f 49 4f 41 44 0a 02 5b 80  EXFGCKIOIOAD..[.
+  46d0: 4b 42 43 54 01 0a 60 0a 05 5b 81 12 4b 42 43 54  KBCT..`..[..KBCT
+  46e0: 01 50 30 36 30 08 00 18 50 30 36 34 08 5b 82 4f  .P060...P064.[.O
+  46f0: 08 50 53 32 4d 08 5f 48 49 44 0c 41 d0 0f 13 14  .PS2M._HID.A....
+  4700: 17 5f 53 54 41 00 a0 0b 93 50 53 32 46 0a 00 a4  ._STA....PS2F...
+  4710: 0a 0f a1 04 a4 0a 00 14 46 06 5f 43 52 53 00 08  ........F._CRS..
+  4720: 42 55 46 31 11 08 0a 05 22 00 10 79 00 08 42 55  BUF1...."..y..BU
+  4730: 46 32 11 18 0a 15 47 01 60 00 60 00 01 01 47 01  F2....G.`.`...G.
+  4740: 64 00 64 00 01 01 22 00 10 79 00 a0 2b 93 4b 42  d.d..."..y..+.KB
+  4750: 44 49 0a 01 a0 0d 93 4f 53 46 4c 0a 02 a4 42 55  DI.....OSFL...BU
+  4760: 46 31 a0 0d 93 4f 53 46 4c 0a 01 a4 42 55 46 31  F1...OSFL...BUF1
+  4770: a1 06 a4 42 55 46 32 a1 06 a4 42 55 46 31 5b 82  ...BUF2...BUF1[.
+  4780: 40 05 50 53 32 4b 08 5f 48 49 44 0c 41 d0 03 03  @.PS2K._HID.A...
+  4790: 08 5f 43 49 44 0c 41 d0 03 0b 14 17 5f 53 54 41  ._CID.A....._STA
+  47a0: 00 a0 0b 93 4b 42 44 49 0a 01 a4 0a 00 a1 04 a4  ....KBDI........
+  47b0: 0a 0f 08 5f 43 52 53 11 18 0a 15 47 01 60 00 60  ..._CRS....G.`.`
+  47c0: 00 01 01 47 01 64 00 64 00 01 01 22 02 00 79 00  ...G.d.d..."..y.
+  47d0: 5b 82 4c 06 50 53 4d 52 08 5f 48 49 44 0c 41 d0  [.L.PSMR._HID.A.
+  47e0: 0c 02 08 5f 55 49 44 0a 03 14 39 5f 53 54 41 00  ..._UID...9_STA.
+  47f0: a0 0b 93 4b 42 44 49 0a 00 a4 0a 00 a0 23 93 50  ...KBDI......#.P
+  4800: 53 32 46 0a 00 a0 0b 93 4f 53 46 4c 0a 02 a4 0a  S2F.....OSFL....
+  4810: 0f a0 0b 93 4f 53 46 4c 0a 01 a4 0a 0f a4 0a 00  ....OSFL........
+  4820: a4 0a 00 08 5f 43 52 53 11 15 0a 12 47 01 60 00  ...._CRS....G.`.
+  4830: 60 00 01 01 47 01 64 00 64 00 01 01 79 00 5b 82  `...G.d.d...y.[.
+  4840: 40 17 47 41 4d 45 08 5f 48 49 44 0c 41 d0 b0 2f  @.GAME._HID.A../
+  4850: 14 44 04 5f 53 54 41 00 45 4e 46 47 70 0a 07 4c  .D._STA.ENFGp..L
+  4860: 44 4e 5f a0 11 91 49 4f 41 48 49 4f 41 4c 45 58  DN_...IOAHIOALEX
+  4870: 46 47 a4 0a 0f a1 1f 7b 41 43 54 52 0a 02 60 a0  FG.....{ACTR..`.
+  4880: 0c 93 60 0a 02 45 58 46 47 a4 0a 0d a1 08 45 58  ..`..EXFG.....EX
+  4890: 46 47 a4 0a 00 14 27 5f 44 49 53 00 45 4e 46 47  FG....'_DIS.ENFG
+  48a0: 70 0a 07 4c 44 4e 5f 70 00 49 4f 41 48 70 00 49  p..LDN_p.IOAHp.I
+  48b0: 4f 41 4c 45 58 46 47 44 49 53 44 0a 04 14 4e 07  OALEXFGDISD...N.
+  48c0: 5f 43 52 53 00 08 42 55 46 31 11 0d 0a 0a 47 01  _CRS..BUF1....G.
+  48d0: 00 00 00 00 01 08 79 00 8c 42 55 46 31 0a 02 49  ......y..BUF1..I
+  48e0: 4f 4c 4f 8c 42 55 46 31 0a 03 49 4f 48 49 8c 42  OLO.BUF1..IOHI.B
+  48f0: 55 46 31 0a 04 49 4f 52 4c 8c 42 55 46 31 0a 05  UF1..IORL.BUF1..
+  4900: 49 4f 52 48 45 4e 46 47 70 0a 07 4c 44 4e 5f 70  IORHENFGp..LDN_p
+  4910: 49 4f 41 4c 49 4f 4c 4f 70 49 4f 41 4c 49 4f 52  IOALIOLOpIOALIOR
+  4920: 4c 70 49 4f 41 48 49 4f 48 49 70 49 4f 41 48 49  LpIOAHIOHIpIOAHI
+  4930: 4f 52 48 45 58 46 47 a4 42 55 46 31 08 5f 50 52  ORHEXFG.BUF1._PR
+  4940: 53 11 18 0a 15 30 47 01 01 02 01 02 01 01 30 47  S....0G.......0G
+  4950: 01 09 02 09 02 01 01 38 79 00 14 45 05 5f 53 52  .......8y..E._SR
+  4960: 53 01 8c 68 0a 02 49 4f 4c 4f 8c 68 0a 03 49 4f  S..h..IOLO.h..IO
+  4970: 48 49 8b 68 0a 02 49 4f 41 44 45 4e 46 47 70 0a  HI.h..IOADENFGp.
+  4980: 07 4c 44 4e 5f 7d 41 43 54 52 0a 02 41 43 54 52  .LDN_}ACTR..ACTR
+  4990: 70 49 4f 4c 4f 49 4f 41 4c 70 49 4f 48 49 49 4f  pIOLOIOALpIOHIIO
+  49a0: 41 48 45 58 46 47 43 4b 49 4f 49 4f 41 44 0a 04  AHEXFGCKIOIOAD..
+  49b0: 5b 82 43 28 4d 49 44 49 08 5f 48 49 44 0c 41 d0  [.C(MIDI._HID.A.
+  49c0: b0 06 5b 80 4d 49 44 31 01 0b 90 02 0a 02 5b 81  ..[.MID1......[.
+  49d0: 10 4d 49 44 31 01 4d 44 31 5f 08 53 54 31 5f 08  .MID1.MD1_.ST1_.
+  49e0: 5b 80 4d 49 44 32 01 0b 00 03 0a 02 5b 81 10 4d  [.MID2......[..M
+  49f0: 49 44 32 01 4d 44 32 5f 08 53 54 32 5f 08 5b 80  ID2.MD2_.ST2_.[.
+  4a00: 4d 49 44 33 01 0b 30 03 0a 02 5b 81 10 4d 49 44  MID3..0...[..MID
+  4a10: 33 01 4d 44 33 5f 08 53 54 33 5f 08 14 44 04 5f  3.MD3_.ST3_..D._
+  4a20: 53 54 41 00 45 4e 46 47 70 0a 07 4c 44 4e 5f a0  STA.ENFGp..LDN_.
+  4a30: 11 91 49 4f 32 48 49 4f 32 4c 45 58 46 47 a4 0a  ..IO2HIO2LEXFG..
+  4a40: 0f a1 1f 7b 41 43 54 52 0a 04 60 a0 0c 93 60 0a  ...{ACTR..`...`.
+  4a50: 04 45 58 46 47 a4 0a 0d a1 08 45 58 46 47 a4 0a  .EXFG.....EXFG..
+  4a60: 00 14 2d 5f 44 49 53 00 45 4e 46 47 70 0a 07 4c  ..-_DIS.ENFGp..L
+  4a70: 44 4e 5f 70 00 49 4f 32 48 70 00 49 4f 32 4c 70  DN_p.IO2Hp.IO2Lp
+  4a80: 00 49 4e 54 52 45 58 46 47 44 49 53 44 0a 05 14  .INTREXFGDISD...
+  4a90: 49 09 5f 43 52 53 00 08 42 55 46 31 11 10 0a 0d  I._CRS..BUF1....
+  4aa0: 47 01 00 00 00 00 01 02 22 00 00 79 00 8c 42 55  G......."..y..BU
+  4ab0: 46 31 0a 02 49 4f 4c 4f 8c 42 55 46 31 0a 03 49  F1..IOLO.BUF1..I
+  4ac0: 4f 48 49 8c 42 55 46 31 0a 04 49 4f 52 4c 8c 42  OHI.BUF1..IORL.B
+  4ad0: 55 46 31 0a 05 49 4f 52 48 8b 42 55 46 31 0a 09  UF1..IORH.BUF1..
+  4ae0: 49 52 51 57 45 4e 46 47 70 0a 07 4c 44 4e 5f 70  IRQWENFGp..LDN_p
+  4af0: 49 4f 32 4c 49 4f 4c 4f 70 49 4f 32 4c 49 4f 52  IO2LIOLOpIO2LIOR
+  4b00: 4c 70 49 4f 32 48 49 4f 48 49 70 49 4f 32 48 49  LpIO2HIOHIpIO2HI
+  4b10: 4f 52 48 70 01 60 79 60 49 4e 54 52 49 52 51 57  ORHp.`y`INTRIRQW
+  4b20: 45 58 46 47 a4 42 55 46 31 08 5f 50 52 53 11 2a  EXFG.BUF1._PRS.*
+  4b30: 0a 27 30 47 01 30 03 30 03 01 02 22 b8 1e 30 47  .'0G.0.0..."..0G
+  4b40: 01 00 03 00 03 01 02 22 b8 1e 30 47 01 90 02 90  ......."..0G....
+  4b50: 02 01 02 22 b8 1e 38 79 00 14 4b 0d 5f 53 52 53  ..."..8y..K._SRS
+  4b60: 01 8c 68 0a 02 49 4f 4c 4f 8c 68 0a 03 49 4f 48  ..h..IOLO.h..IOH
+  4b70: 49 8b 68 0a 02 49 4f 41 44 8b 68 0a 09 49 52 51  I.h..IOAD.h..IRQ
+  4b80: 57 45 4e 46 47 70 0a 07 4c 44 4e 5f 7d 41 43 54  WENFGp..LDN_}ACT
+  4b90: 52 0a 04 41 43 54 52 70 49 4f 4c 4f 49 4f 32 4c  R..ACTRpIOLOIO2L
+  4ba0: 70 49 4f 48 49 49 4f 32 48 81 49 52 51 57 60 74  pIOHIIO2H.IRQW`t
+  4bb0: 60 0a 01 60 70 60 49 4e 54 52 45 58 46 47 43 4b  `..`p`INTREXFGCK
+  4bc0: 49 4f 49 4f 41 44 0a 05 a0 25 93 49 4f 41 44 0b  IOIOAD...%.IOAD.
+  4bd0: 90 02 7b 53 54 31 5f 0a 40 60 a2 13 93 60 0a 40  ..{ST1_.@`...`.@
+  4be0: 70 4d 44 31 5f 60 7b 53 54 31 5f 0a 40 60 a1 46  pMD1_`{ST1_.@`.F
+  4bf0: 04 a0 25 93 49 4f 41 44 0b 00 03 7b 53 54 32 5f  ..%.IOAD...{ST2_
+  4c00: 0a 40 60 a2 13 93 60 0a 40 70 4d 44 32 5f 60 7b  .@`...`.@pMD2_`{
+  4c10: 53 54 32 5f 0a 40 60 a1 1d 7b 53 54 33 5f 0a 40  ST2_.@`..{ST3_.@
+  4c20: 60 a2 13 93 60 0a 40 70 4d 44 33 5f 60 7b 53 54  `...`.@pMD3_`{ST
+  4c30: 33 5f 0a 40 60 10 47 04 5c 00 14 42 04 53 41 4c  3_.@`.G.\..B.SAL
+  4c40: 44 01 a0 09 93 68 0a 00 70 0a 40 60 a0 09 93 68  D....h..p.@`...h
+  4c50: 0a 01 70 0a 80 60 a0 09 93 68 0a 03 70 0a c0 60  ..p..`...h..p..`
+  4c60: a0 0b 93 68 0a 04 7f 0a 40 0a 40 60 a0 0b 93 68  ...h....@.@`...h
+  4c70: 0a 05 7f 0a 40 0a 40 60 53 4c 45 44 60 10 28 5c  ....@.@`SLED`.(\
+  4c80: 00 14 24 53 4c 45 44 01 45 4e 46 47 70 0a 09 4c  ..$SLED.ENFGp..L
+  4c90: 44 4e 5f 7b 4f 50 54 34 0a 3f 60 7d 60 68 4f 50  DN_{OPT4.?`}`hOP
+  4ca0: 54 34 45 58 46 47 14 1d 5c 2f 04 5f 53 42 5f 50  T4EXFG..\/._SB_P
+  4cb0: 43 49 30 55 41 52 31 5f 50 52 57 00 a4 12 06 02  CI0UAR1_PRW.....
+  4cc0: 0a 03 0a 05                                      ....
+
+FACS @ 0x3fff0000
+  0000: 46 41 43 53 40 00 00 00 00 00 00 00 00 00 00 00  FACS@...........
+  0010: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  0020: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  0030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+
+FACP @ 0x3fff3040
+  0000: 46 41 43 50 74 00 00 00 01 49 4e 76 69 64 69 61  FACPt....INvidia
+  0010: 41 57 52 44 41 43 50 49 31 2e 30 42 41 57 52 44  AWRDACPI1.0BAWRD
+  0020: 00 00 00 00 00 00 ff 3f c0 30 ff 3f 01 00 09 00  .......?.0.?....
+  0030: 2e 44 00 00 a1 a0 00 00 00 40 00 00 00 00 00 00  .D.......@......
+  0040: 04 40 00 00 00 00 00 00 00 00 00 00 08 40 00 00  .@...........@..
+  0050: 20 40 00 00 a0 44 00 00 04 02 00 04 08 10 20 00   @...D........ .
+  0060: 65 00 e9 03 00 00 00 00 01 00 7d 7e 32 00 00 00  e.........}~2...
+  0070: 85 04 00 00                                      ....
+
+APIC @ 0x3fff7dc0
+  0000: 41 50 49 43 6e 00 00 00 01 75 4e 76 69 64 69 61  APICn....uNvidia
+  0010: 41 57 52 44 41 43 50 49 31 2e 30 42 41 57 52 44  AWRDACPI1.0BAWRD
+  0020: 00 00 00 00 00 00 e0 fe 01 00 00 00 00 08 00 00  ................
+  0030: 01 00 00 00 01 0c 02 00 00 00 c0 fe 00 00 00 00  ................
+  0040: 02 0a 00 00 02 00 00 00 00 00 02 0a 00 09 09 00  ................
+  0050: 00 00 0d 00 02 0a 00 0e 0e 00 00 00 05 00 02 0a  ................
+  0060: 00 0f 0f 00 00 00 05 00 04 06 00 05 00 01        ..............
+
+RSDT @ 0x3fff3000
+  0000: 52 53 44 54 2c 00 00 00 01 c8 4e 76 69 64 69 61  RSDT,.....Nvidia
+  0010: 41 57 52 44 41 43 50 49 31 2e 30 42 41 57 52 44  AWRDACPI1.0BAWRD
+  0020: 00 00 00 00 40 30 ff 3f c0 7d ff 3f              ....@0.?.}.?
+
+RSD PTR @ 0xf7220
+  0000: 52 53 44 20 50 54 52 20 18 4e 76 69 64 69 61 00  RSD PTR .Nvidia.
+  0010: 00 30 ff 3f                                      .0.?
+
+
+--Boundary-00=_RookIvV3pjCtVkU--
