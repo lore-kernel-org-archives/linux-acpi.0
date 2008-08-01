@@ -1,31 +1,74 @@
-From: Andi Kleen <andi@firstfloor.org>
-Subject: Re: [PATCH] ACPI: bounds check IRQ to prevent memory corruption
-Date: Sat, 2 Aug 2008 00:52:36 +0200
-Message-ID: <20080801225236.GA15372@one.firstfloor.org>
-References: <20080801215755.4761.92512.stgit@tigger.helgaas>
+From: Igor Stoppa <igor.stoppa@nokia.com>
+Subject: Memory Power Management - Was: Re: [linux-pm] Ottawa Linux Power
+	Management Summit, July 22, 2008 - Minutes
+Date: Sat, 02 Aug 2008 02:50:17 +0300
+Message-ID: <1217634617.28090.82.camel@localhost>
+References: <alpine.LFD.1.10.0807260205300.24819@localhost.localdomain>
+	 <alpine.LFD.1.10.0808011704490.3011@localhost.localdomain>
+Reply-To: igor.stoppa@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from one.firstfloor.org ([213.235.205.2]:36389 "EHLO
-	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751726AbYHAWwY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Aug 2008 18:52:24 -0400
-Content-Disposition: inline
-In-Reply-To: <20080801215755.4761.92512.stgit@tigger.helgaas>
+Received: from smtp.nokia.com ([192.100.105.134]:26002 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752090AbYHBAcy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Aug 2008 20:32:54 -0400
+In-Reply-To: <alpine.LFD.1.10.0808011704490.3011@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Andi Kleen <andi@firstfloor.org>, Andrew Morton <akpm@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Jack Steiner <steiner@sgi.com>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Paul Mundt <lethal@linux-sh.org>
+Cc: Linux Power Management List <linux-pm@lists.osdl.org>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Fri, Aug 01, 2008 at 03:58:17PM -0600, Bjorn Helgaas wrote:
+Hi,
+On Fri, 2008-08-01 at 17:05 -0400, ext Len Brown wrote:
+
+[snip]
+
+> Memory power management
+> -----------------------
 > 
-> acpi_penalize_isa_irq() should validate irq before using it to
-> index the acpi_irq_penalty[] table.
+> We discussed the challenges to memory power management
+> on servers.  Specifically, power-friendly interleaving
+> and the inability to migrate/free pages used by the kernel.
+> 
+> HSuperH may benefit soonest here b/c
+> not stopped by interleaving issue.
+> NUMA memory node for accounting.
+> 
+> Paul Mundt, using on SH
+> needs to be dynamic b/c cores turned on/off dynamically.
+> 
+> This is a common requirement between embedded and server platform
+> Consensus was to work on a common framework for page
+> placement based on frequency of reference.
+> 
+> Physical address to memory module (DIMM) information needs to be
+> exported by the platform to get started on any memory PM techniques.
+> Currently there is no information about fine grain memory topology
+> except for NUMA systems at node level.
 
-Applied to test thanks.
+I am interested about the embedded part: last year Nokia had an
+evaluation done on the memory chip used for n800, which can be set to
+perform self refresh of 1/4, 1/2 and 1/1 of the available SDRAM.
 
-> I think this should go in 2.6.27.
+The finding was that on average the energy spent for rearranging the
+pages so that those going to be preserved would be in the memory area
+kept in self refresh + the energy spent for reloading the other pages
+from flash was significantly higher than just using self refresh for the
+entire SDRAM.
 
-Agreed.
+I can dig out the details if there is interest, however the SDRAM used
+is the mobile type with relatively low leakages and speed (133MHz).
 
--Andi
+I'd be interested to know what's the case with SH and if there has been
+any study/verification.
+
+-- 
+
+Cheers, Igor
+
+---
+
+Igor Stoppa
+Maemo Software - Nokia Devices R&D - Helsinki
