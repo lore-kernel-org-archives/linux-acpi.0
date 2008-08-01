@@ -1,58 +1,50 @@
-From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-Subject: Re: Check for ACPI backlight support otherwise use vendor ACPI
-Date: Fri, 1 Aug 2008 08:30:11 +0930 (CST)
-Message-ID: <200807312300.m6VN0BY3015796@turbo.physics.adelaide.edu.au>
-References: <1217518335.12217.24.camel@earth.gruber.myown>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH 02/11] Check for ACPI backlight support otherwise use
+	vendor ACPI drivers
+Date: Fri, 01 Aug 2008 09:27:36 +0800
+Message-ID: <1217554056.2969.149.camel@rzhang-dt>
+References: <1216205553-8486-1-git-send-email-trenn@suse.de>
+	 <1216205553-8486-3-git-send-email-trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:55378 "EHLO
-	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754399AbYGaXA4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 31 Jul 2008 19:00:56 -0400
-In-Reply-To: <1217518335.12217.24.camel@earth.gruber.myown> from "nokos@gmx.net" at Jul 31, 2008 05:32:15 PM
+Received: from mga02.intel.com ([134.134.136.20]:32589 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753337AbYHAB3x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 31 Jul 2008 21:29:53 -0400
+In-Reply-To: <1216205553-8486-3-git-send-email-trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: nokos@gmx.net
-Cc: Thomas Renninger <trenn@suse.de>, ak@linux.intel.com, mjg59@srcf.ucam.org, jwoithe@physics.adelaide.edu.au, hmh@hmh.eng.br, rui.zhang@intel.com, corentincj@iksaif.net, linux-acpi@vger.kernel.org, dannybaumann@web.de, marcus@better.se, mzxreary@0pointer.de, carlos@strangeworlds.co.uk, malattia@linux.it
+To: Thomas Renninger <trenn@suse.de>
+Cc: ak@linux.intel.com, mjg59@srcf.ucam.org, jwoithe@physics.adelaide.edu.au, hmh@hmh.eng.br, corentincj@iksaif.net, linux-acpi@vger.kernel.org, dannybaumann@web.de, marcus@better.se, corsac@debian.org, mzxreary@0pointer.de, carlos@strangeworlds.co.uk, malattia@linux.it
 
-Hi gyys
+On Wed, 2008-07-16 at 18:52 +0800, Thomas Renninger wrote:
 
-> I didi some testing and found whats wrong with the backlight detection
-> in video_detect.c you should change:
-> 
-> --- video_detect.c 2008-07-31 17:20:59.540059897 +0200
-> +++ video_detect.c 2008-07-31 17:22:15.752034851 +0200
-> @@ -45,9 +45,9 @@
->  		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found generic backlight "
->  				  "support\n"));
->  		*cap |= ACPI_VIDEO_BACKLIGHT;
-> -		return 0;
-> +		return -ENODEV;
->  	}
-> -	return -ENODEV;
-> +	return 0;
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 5b049cd..fb8e2df 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -931,36 +931,6 @@ static void acpi_device_get_busid(struct
+> acpi_device *device,
+>         }
 >  }
->  
 > 
-> otherwise it stops walking the subtree at the first device which does
-> not contain backlight (in my case GFX0 has CRT_ as first child which
-> does not support backlight).
+> -static int
+> -acpi_video_bus_match(struct acpi_device *device)
+> -{
+> -       acpi_handle h_dummy;
+> -
+> -       if (!device)
+> -               return -EINVAL;
+> -
+> -       /* Since there is no HID, CID for ACPI Video drivers, we have
+> -        * to check well known required nodes for each feature we
+> support.
+> -        */
+This comment is wrong.
+CID for ACPI video bus device is LNXVIDEO.
 
-Makes sense to me (although admittedly I haven't looked deeply into it). 
-Are there likely to be any obscure side effects on other hardware which
-for some reason assumes backlight support is on the first device scanned?
+thanks,
+rui
 
-I'll try to find some time over the weekend to make sure this causes no
-ill-effects on the S7020.  It shouldn't, but you never know.
-
-> BTW. the DRDY detection (for IGD) works ... now I have to find the IGD
-> patches ... couldn't find them on the list and the version of linux-next
-> I tried didn't contain anything which looked like it.
-
-Unfortunately I don't know of a definitive source for these either.
-
-Regards
-  jonathan
