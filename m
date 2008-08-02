@@ -1,35 +1,60 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: Do not return true to all kind of Windows OSI calls
-Date: Sat, 2 Aug 2008 17:59:52 +0100
-Message-ID: <20080802165952.GA30580@srcf.ucam.org>
-References: <1217632817.4610.6.camel@hidalgo> <1217696279-23848-1-git-send-email-trenn@suse.de>
+From: Sven Wegener <sven.wegener@stealer.net>
+Subject: Re: acer-wmi broken in latest git kernel on TravelMate 6492
+ (Insufficient arguments - method [WQAA])
+Date: Sat, 2 Aug 2008 19:01:48 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0808021859590.2294@titan.stealer.net>
+References: <alpine.LNX.1.10.0808021640310.2294@titan.stealer.net> <200808021728.46046.carlos@strangeworlds.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:36929 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754818AbYHBQ75 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 2 Aug 2008 12:59:57 -0400
-Content-Disposition: inline
-In-Reply-To: <1217696279-23848-1-git-send-email-trenn@suse.de>
+Received: from smtp1.stealer.net ([88.198.224.204]:50055 "EHLO
+	smtp1.stealer.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754786AbYHBRB7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 2 Aug 2008 13:01:59 -0400
+In-Reply-To: <200808021728.46046.carlos@strangeworlds.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: corsac@debian.org, ak@linux.intel.com, rui.zhang@intel.com, nokos@gmx.net, linux-acpi@vger.kernel.org, hmh@debian.org
+To: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Cc: Bob Moore <robert.moore@intel.com>, Andi Kleen <ak@linux.intel.com>, Lin Ming <ming.m.lin@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Sat, Aug 02, 2008 at 06:57:57PM +0200, Thomas Renninger wrote:
-> ThinkPads store OSI calls in separate variables and later
-> check for NT/XP/VISTA specific code to process.
+On Sat, 2 Aug 2008, Carlos Corbacho wrote:
+
+> On Saturday 02 August 2008 16:50:54 Sven Wegener wrote:
+> > Is it a bug in acer-wmi or in Acer's ACPI implementation? I can provide 
+> > more information as necessary.
 > 
-> I lately saw a line on a ThinkPad checking for XP and VISTA
-> at video device specific code.
+> Neither - it's a bug in wmi.c
 > 
-> So currently some ThinkPads run into code paths which should
-> either run on XP or VISTA, but Linux might execute them both
-> or in a way that is not intended by BIOS developers.
+> Try the following patch:
+> ---
+> ACPI: WMI: Set instance for query block calls
+> 
+> From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+> 
+> Although the necessary data structure was set up, it was never actually
+> passed in, so data block calls have only been working by sheer chance.
+> 
+> (On Acer laptops. the data block methods we've been calling never look at
+> the instance value, hence acer-wmi never triggered this before).
+> 
+> f3454ae8104efb2dbf0d08ec42c6f5d0fe9225bc brought this to light.
+> 
+> Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
 
-Could you please show the code in question? I think you're misdiagnosing 
-the issue.
+Yep, that fixes it, thanks.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Tested-by: Sven Wegener <sven.wegener@stealer.net>
+
+> diff --git a/drivers/acpi/wmi.c b/drivers/acpi/wmi.c
+> index c33b1c6..cfe2c83 100644
+> --- a/drivers/acpi/wmi.c
+> +++ b/drivers/acpi/wmi.c
+> @@ -347,7 +347,7 @@ struct acpi_buffer *out)
+>  	strcpy(method, "WQ");
+>  	strncat(method, block->object_id, 2);
+>  
+> -	status = acpi_evaluate_object(handle, method, NULL, out);
+> +	status = acpi_evaluate_object(handle, method, &input, out);
+>  
+>  	/*
+>  	 * If ACPI_WMI_EXPENSIVE, call the relevant WCxx method, even if
