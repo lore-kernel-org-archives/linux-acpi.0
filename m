@@ -1,41 +1,61 @@
-From: Sven Wegener <sven.wegener@stealer.net>
-Subject: acer-wmi broken in latest git kernel on TravelMate 6492 (Insufficient
- arguments - method [WQAA])
-Date: Sat, 2 Aug 2008 17:50:54 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0808021640310.2294@titan.stealer.net>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: Re: acer-wmi broken in latest git kernel on TravelMate 6492 (Insufficient arguments - method [WQAA])
+Date: Sat, 2 Aug 2008 17:28:45 +0100
+Message-ID: <200808021728.46046.carlos@strangeworlds.co.uk>
+References: <alpine.LNX.1.10.0808021640310.2294@titan.stealer.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.stealer.net ([88.198.224.204]:33289 "EHLO
-	smtp1.stealer.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755692AbYHBPvI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 2 Aug 2008 11:51:08 -0400
+Received: from phoenix.slamd64.com ([217.10.145.2]:33073 "EHLO
+	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753352AbYHBQ26 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 2 Aug 2008 12:28:58 -0400
+In-Reply-To: <alpine.LNX.1.10.0808021640310.2294@titan.stealer.net>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Carlos Corbacho <carlos@strangeworlds.co.uk>
+To: Sven Wegener <sven.wegener@stealer.net>
 Cc: Bob Moore <robert.moore@intel.com>, Andi Kleen <ak@linux.intel.com>, Lin Ming <ming.m.lin@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi all,
+On Saturday 02 August 2008 16:50:54 Sven Wegener wrote:
+> Is it a bug in acer-wmi or in Acer's ACPI implementation? I can provide 
+> more information as necessary.
 
-running Linus' latest (2b12a4c) git kernel, acer-wmi triggers the 
-following ACPI Error on my Acer TravelMate 6492:
+Neither - it's a bug in wmi.c
 
-acer-wmi: Acer Laptop ACPI-WMI Extras
-ACPI Error (nseval-0159): Insufficient arguments - method [WQAA] needs 1, found 0 [20080609]
-acer-wmi: Unable to detect available WMID devices
+Try the following patch:
+---
+ACPI: WMI: Set instance for query block calls
 
-Reverting commit f3454ae8104efb2dbf0d08ec42c6f5d0fe9225bc (ACPICA: Add 
-argument count checking to control method invocation via 
-acpi_evaluate_object) makes acer_wmi work as before.
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
 
-Doing a little debugging the call trace starting at acer_wmi_init() is:
+Although the necessary data structure was set up, it was never actually
+passed in, so data block calls have only been working by sheer chance.
 
-WMID_set_capabilities() (called from drivers/misc/acer-wmi.c:1192)
-wmi_query_block(WMID_GUID2, 1, &out) (called from drivers/misc/acer-wmi.c:747)
-acpi_evaluate_object(handle, method, NULL, out) (called from drivers/acpi/wmi.c:350)
-acpi_ns_evaluate(info) (called from drivers/acpi/namespace/nsxfeval.c:258)
+(On Acer laptops. the data block methods we've been calling never look at
+the instance value, hence acer-wmi never triggered this before).
 
-Is it a bug in acer-wmi or in Acer's ACPI implementation? I can provide 
-more information as necessary.
+f3454ae8104efb2dbf0d08ec42c6f5d0fe9225bc brought this to light.
 
-Sven
+Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
+---
+
+ drivers/acpi/wmi.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+
+diff --git a/drivers/acpi/wmi.c b/drivers/acpi/wmi.c
+index c33b1c6..cfe2c83 100644
+--- a/drivers/acpi/wmi.c
++++ b/drivers/acpi/wmi.c
+@@ -347,7 +347,7 @@ struct acpi_buffer *out)
+ 	strcpy(method, "WQ");
+ 	strncat(method, block->object_id, 2);
+ 
+-	status = acpi_evaluate_object(handle, method, NULL, out);
++	status = acpi_evaluate_object(handle, method, &input, out);
+ 
+ 	/*
+ 	 * If ACPI_WMI_EXPENSIVE, call the relevant WCxx method, even if
