@@ -1,73 +1,41 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: ACPI OSI disaster on latest HP laptops - critical temperature shutdown
-Date: Sat, 2 Aug 2008 16:41:14 +0100
-Message-ID: <20080802154114.GA28879@srcf.ucam.org>
-References: <200807241727.41715.trenn@suse.de> <alpine.LFD.1.10.0807241952270.6098@localhost.localdomain> <200807251319.12786.trenn@suse.de> <alpine.LFD.1.10.0807250948320.3884@localhost.localdomain> <alpine.LFD.1.10.0808011706350.3011@localhost.localdomain> <20080801223657.GD23558@khazad-dum.debian.net> <20080802054204.GB12646@srcf.ucam.org> <20080802143833.GC14069@khazad-dum.debian.net>
+From: Sven Wegener <sven.wegener@stealer.net>
+Subject: acer-wmi broken in latest git kernel on TravelMate 6492 (Insufficient
+ arguments - method [WQAA])
+Date: Sat, 2 Aug 2008 17:50:54 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0808021640310.2294@titan.stealer.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:36634 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753481AbYHBPlX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 2 Aug 2008 11:41:23 -0400
-Content-Disposition: inline
-In-Reply-To: <20080802143833.GC14069@khazad-dum.debian.net>
+Received: from smtp1.stealer.net ([88.198.224.204]:33289 "EHLO
+	smtp1.stealer.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755692AbYHBPvI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 2 Aug 2008 11:51:08 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Len Brown <lenb@kernel.org>, Thomas Renninger <trenn@suse.de>, Arjan van de Ven <arjan@linux.intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, Christian Kornacker <ckornacker@suse.de>
+To: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Cc: Bob Moore <robert.moore@intel.com>, Andi Kleen <ak@linux.intel.com>, Lin Ming <ming.m.lin@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Sat, Aug 02, 2008 at 11:38:33AM -0300, Henrique de Moraes Holschuh wrote:
+Hi all,
 
-> Yes.  IBM ThinkPads store the result of each version test separately, and I
-> recall I saw at least one DSDT code path that didn't test all of them in
-> order to select a branch of code to run.
+running Linus' latest (2b12a4c) git kernel, acer-wmi triggers the 
+following ACPI Error on my Acer TravelMate 6492:
 
-As an example, here's a section from the T61:
+acer-wmi: Acer Laptop ACPI-WMI Extras
+ACPI Error (nseval-0159): Insufficient arguments - method [WQAA] needs 1, found 0 [20080609]
+acer-wmi: Unable to detect available WMID devices
 
-                    If (\_OSI ("Windows 2001"))
-                    {
-                        Store (0x01, \WNTF)
-                        Store (0x01, \WXPF)
-                        Store (0x00, \WSPV)
-                    }
+Reverting commit f3454ae8104efb2dbf0d08ec42c6f5d0fe9225bc (ACPICA: Add 
+argument count checking to control method invocation via 
+acpi_evaluate_object) makes acer_wmi work as before.
 
-                    If (\_OSI ("Windows 2001 SP1"))
-                    {
-                        Store (0x01, \WSPV)
-                    }
+Doing a little debugging the call trace starting at acer_wmi_init() is:
 
-                    If (\_OSI ("Windows 2001 SP2"))
-                    {
-                        Store (0x02, \WSPV)
-                    }
+WMID_set_capabilities() (called from drivers/misc/acer-wmi.c:1192)
+wmi_query_block(WMID_GUID2, 1, &out) (called from drivers/misc/acer-wmi.c:747)
+acpi_evaluate_object(handle, method, NULL, out) (called from drivers/acpi/wmi.c:350)
+acpi_ns_evaluate(info) (called from drivers/acpi/namespace/nsxfeval.c:258)
 
-And then later:
+Is it a bug in acer-wmi or in Acer's ACPI implementation? I can provide 
+more information as necessary.
 
-           If (LAnd (\WXPF, LGreaterEqual (\WSPV, 0x01)))
-            {
-                PPMS (0x02)
-            }
-
-The only way WXPF can be non-zero and WSPV can be greater or equal to 
-one is if more than one of those tests succeeded.
-
-> > Not all BIOSes would support this, so we'd need to support the Windows 
-> > workarounds anyway. At that point, there's no real benefit in having 
-> > multiple codepaths.
-> 
-> Sorry, but I will disagree.
-> 
-> Anything that can help in the future with the vendors that are better at
-> Linux support is a good thing.  You are right that we will still have to
-> deal with the others, but there are such things as vendor-specific windows
-> workarounds (they didn't want to change their firmware, or they couldn't, or
-> the others didn't care to add the workaround, etc).  If that vendor uses the
-> "NotWindows" OSI correctly, we would not need to take any special action.
-
-Allowing vendors to special-case Linux means that we have to have a 
-special-case path for the minority of vendors who ask for this. It's 
-added complexity and we don't actually gain anything from it.
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Sven
