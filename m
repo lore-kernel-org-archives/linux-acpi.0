@@ -1,44 +1,32 @@
-From: Thomas Renninger <trenn@suse.de>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 Subject: Re: Do not return true to all kind of Windows OSI calls
-Date: Sat, 2 Aug 2008 19:30:04 +0200
-Message-ID: <200808021930.05643.trenn@suse.de>
-References: <1217632817.4610.6.camel@hidalgo> <200808021848.16457.trenn@suse.de> <20080802173146.GA31166@srcf.ucam.org>
+Date: Sat, 2 Aug 2008 20:48:43 +0100
+Message-ID: <20080802194843.GA1168@srcf.ucam.org>
+References: <1217632817.4610.6.camel@hidalgo> <200808021848.16457.trenn@suse.de> <20080802173146.GA31166@srcf.ucam.org> <200808021930.05643.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.suse.de ([195.135.220.2]:59928 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752476AbYHBSF0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 2 Aug 2008 14:05:26 -0400
-In-Reply-To: <20080802173146.GA31166@srcf.ucam.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:48429 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754286AbYHBTst (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 2 Aug 2008 15:48:49 -0400
 Content-Disposition: inline
+In-Reply-To: <200808021930.05643.trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
+To: Thomas Renninger <trenn@suse.de>
 Cc: corsac@debian.org, ak@linux.intel.com, rui.zhang@intel.com, nokos@gmx.net, linux-acpi@vger.kernel.org, hmh@debian.org
 
-On Saturday 02 August 2008 07:31:46 pm Matthew Garrett wrote:
-> On Sat, Aug 02, 2008 at 06:48:15PM +0200, Thomas Renninger wrote:
-> > On Saturday 02 August 2008 06:59:52 pm Matthew Garrett wrote:
-> > # Only process this on XP, not on Linux and Vista
-> >                            If (LAnd (\WXPF, LNot (\WVIS)))
->
-> The only way this statement makes sense is if both WXPF and WVIS can be
-> true, which is only possible if Vista responds to all of the _OSI
-> requests.
-No.
-The machines are Linux pre-loaded. They do support Linux!
-There is no need to check for both variables for Windows specific code (
-there are tons of \WVIS and \WXPF only checking).
-The only way this statement makes sense is that they *do* check for Linux.
+http://www.microsoft.com/whdc/archive/_OSI-method.mspx :
 
-> > # Only process this on XP, not on Linux and Vista
-> >                         If (LAnd (LNot (\WXPF), \WNTF))
->
-> Actually, this is "Only execute on 2000, not on XP or higher".
-Yes I mixed up XP and NT.
+"Any follow-on operating system from Microsoft that can support the 
+Windows XP feature set will also return TRUE for Windows 2001. For 
+example, if Microsoft released a follow-on operating system in 2003, it 
+will probably be assigned a string of Windows 2003. This operating 
+system would then return TRUE for the strings Windows 2001 and Windows 
+2003, and it would return FALSE for all other strings."
 
-
-       Thomas
+So, no, it is not a test for Linux. Windows reports all versions, not 
+just the current one.
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
