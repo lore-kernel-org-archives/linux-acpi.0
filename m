@@ -1,63 +1,42 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Subject: Re: ACPI OSI disaster on latest HP laptops - critical temperature
 	shutdown
-Date: Sat, 2 Aug 2008 11:38:33 -0300
-Message-ID: <20080802143833.GC14069@khazad-dum.debian.net>
-References: <200807241727.41715.trenn@suse.de> <alpine.LFD.1.10.0807241952270.6098@localhost.localdomain> <200807251319.12786.trenn@suse.de> <alpine.LFD.1.10.0807250948320.3884@localhost.localdomain> <alpine.LFD.1.10.0808011706350.3011@localhost.localdomain> <20080801223657.GD23558@khazad-dum.debian.net> <20080802054204.GB12646@srcf.ucam.org>
+Date: Sat, 2 Aug 2008 11:51:41 -0300
+Message-ID: <20080802145141.GA14626@khazad-dum.debian.net>
+References: <200807241727.41715.trenn@suse.de> <alpine.LFD.1.10.0807241952270.6098@localhost.localdomain> <200807251319.12786.trenn@suse.de> <alpine.LFD.1.10.0807250948320.3884@localhost.localdomain> <alpine.LFD.1.10.0808011706350.3011@localhost.localdomain> <20080801223657.GD23558@khazad-dum.debian.net> <20080802054204.GB12646@srcf.ucam.org> <20080802143833.GC14069@khazad-dum.debian.net> <20080802144452.GA25565@gamma.logic.tuwien.ac.at>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:45401 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:42253 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752476AbYHBOii (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 2 Aug 2008 10:38:38 -0400
+	by vger.kernel.org with ESMTP id S1752476AbYHBOvr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 2 Aug 2008 10:51:47 -0400
 Content-Disposition: inline
-In-Reply-To: <20080802054204.GB12646@srcf.ucam.org>
+In-Reply-To: <20080802144452.GA25565@gamma.logic.tuwien.ac.at>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Len Brown <lenb@kernel.org>, Thomas Renninger <trenn@suse.de>, Arjan van de Ven <arjan@linux.intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, Christian Kornacker <ckornacker@suse.de>
+To: Norbert Preining <preining@logic.at>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, Thomas Renninger <trenn@suse.de>, Arjan van de Ven <arjan@linux.intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, Christian Kornacker <ckornacker@suse.de>
 
-On Sat, 02 Aug 2008, Matthew Garrett wrote:
-> On Fri, Aug 01, 2008 at 07:36:57PM -0300, Henrique de Moraes Holschuh wrote:
-> > On Fri, 01 Aug 2008, Len Brown wrote:
-> > > It is better to expose ourselves to the known tested Windows functionality
-> > > -- even if it seems arbitrary, at least it is tested.  The !Windows case
-> > > results in running _completely_ untested BIOS code.
-> > 
-> > Actually, we should masquerade properly as the latest Windows version
-> > available for that machine, then.  AFAIK, Windows does not set ALL the OSI
-> > strings, just one.  We ARE running untested code in some BIOSes because of
-> > it.
-> 
-> The BIOSes I've tested check _OSI in order of Windows release, which is 
-> consistent with Windows returning OSI strings for all previous versions. 
-> Do you have any examples that suggest this isn't the case?
+On Sat, 02 Aug 2008, Norbert Preining wrote:
+> There something else strange, no idea if that is related, sometimes it
+> just hangs after 
+> 	Setting the clock.
+> That is a message of Debian/sid and probably calls hwclock or something
+> similar.
 
-Yes.  IBM ThinkPads store the result of each version test separately, and I
-recall I saw at least one DSDT code path that didn't test all of them in
-order to select a branch of code to run.
+Yes, it is a call to hwclock.  It recently started to cause lockups on my
+ThinkPad T43 too (it is a regression of some sort, either in hwclock or the
+kernel), but I was too busy to care.  I just removed the hwclock calls on
+the init path completely, since my clock is in UTC anyway and they were just
+wasting boot time.
 
-It will be hard to find that DSDT, though. It was sometime ago :(
+Interestingly enough, the hwclock call to SET the clock on the shutdown path
+never causes any problems.   This could be a Debian userspace issue, or
+hwclock reading of the RTC is broken, but writes are not.
 
-> > Maybe it would be better if every ACPICA-using OS defined a
-> > _OSI(NotWindows), plus the relevant Windows OSI string they want to support,
-> > and Intel would send word that this string is to be used ONLY to disable all
-> > Windows bug workarounds, not to activate or deactivate any specific
-> > functionality?
-> 
-> Not all BIOSes would support this, so we'd need to support the Windows 
-> workarounds anyway. At that point, there's no real benefit in having 
-> multiple codepaths.
-
-Sorry, but I will disagree.
-
-Anything that can help in the future with the vendors that are better at
-Linux support is a good thing.  You are right that we will still have to
-deal with the others, but there are such things as vendor-specific windows
-workarounds (they didn't want to change their firmware, or they couldn't, or
-the others didn't care to add the workaround, etc).  If that vendor uses the
-"NotWindows" OSI correctly, we would not need to take any special action.
+But the thermal hang is something else entirely.  You have at least two
+different bugs causing you grief.
 
 -- 
   "One disk to rule them all, One disk to find them. One disk to bring
