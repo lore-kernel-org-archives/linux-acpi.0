@@ -1,73 +1,110 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH 2/2] patch acpi_lenovo_thinkpad_only_return_vista.patch
-Date: Sat, 2 Aug 2008 18:28:46 +0200
-Message-ID: <200808021828.47888.trenn@suse.de>
-References: <1217632817.4610.6.camel@hidalgo> <1217696279-23848-3-git-send-email-trenn@suse.de>
+Subject: Re: Do not return true to all kind of Windows OSI calls
+Date: Sat, 2 Aug 2008 18:48:15 +0200
+Message-ID: <200808021848.16457.trenn@suse.de>
+References: <1217632817.4610.6.camel@hidalgo> <1217696279-23848-1-git-send-email-trenn@suse.de> <20080802165952.GA30580@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="utf-8"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:60648 "EHLO mx2.suse.de"
+Received: from mx1.suse.de ([195.135.220.2]:56876 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755673AbYHBREO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 2 Aug 2008 13:04:14 -0400
-In-Reply-To: <1217696279-23848-3-git-send-email-trenn@suse.de>
+	id S1751006AbYHBRXi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 2 Aug 2008 13:23:38 -0400
+In-Reply-To: <20080802165952.GA30580@srcf.ucam.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: corsac@debian.org
-Cc: ak@linux.intel.com, rui.zhang@intel.com, nokos@gmx.net, linux-acpi@vger.kernel.org, mjg59@srcf.ucam.org, hmh@debian.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: corsac@debian.org, ak@linux.intel.com, rui.zhang@intel.com, nokos@gmx.net, linux-acpi@vger.kernel.org, hmh@debian.org
 
-On Saturday 02 August 2008 06:57:59 pm Thomas Renninger wrote:
-> Signed-off-by: Thomas Renninger <trenn@suse.de>
-> ---
->  drivers/acpi/osl.c                     |   11 +++++++++++
->  drivers/net/wireless/iwlwifi/iwl-led.c |    2 --
->  2 files changed, 11 insertions(+), 2 deletions(-)
+On Saturday 02 August 2008 06:59:52 pm Matthew Garrett wrote:
+> On Sat, Aug 02, 2008 at 06:57:57PM +0200, Thomas Renninger wrote:
+> > ThinkPads store OSI calls in separate variables and later
+> > check for NT/XP/VISTA specific code to process.
+> >
+> > I lately saw a line on a ThinkPad checking for XP and VISTA
+> > at video device specific code.
+> >
+> > So currently some ThinkPads run into code paths which should
+> > either run on XP or VISTA, but Linux might execute them both
+> > or in a way that is not intended by BIOS developers.
 >
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index bf42ef1..0d9e174 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -201,6 +201,17 @@ acpi_status __init acpi_os_initialize(void)
->
->  acpi_status acpi_os_initialize1(void)
->  {
-> +	/* Only return Vista 2006 for Lenovo ThinkPads */
-> +	if (dmi_name_in_vendors("LENOVO")) {
-> +		acpi_osi_invalidate("Windows 2000");
-> +		acpi_osi_invalidate("Windows 2001");
-> +		acpi_osi_invalidate("Windows 2001 SP1");
-> +		acpi_osi_invalidate("Windows 2001 SP2");
-> +		acpi_osi_invalidate("Windows 2001.1");
-> +		acpi_osi_invalidate("Windows 2001.1 SP1");
-> +		/* acpi_osi_invalidate("Windows 2006"); */
-> +	}
-> +
->  	kacpid_wq = create_singlethread_workqueue("kacpid");
->  	kacpi_notify_wq = create_singlethread_workqueue("kacpi_notify");
->  	BUG_ON(!kacpid_wq);
+> Could you please show the code in question? I think you're misdiagnosing
+> the issue.
 
-Ops, the stuff below is unrelated.
 
-> diff --git a/drivers/net/wireless/iwlwifi/iwl-led.c
-> b/drivers/net/wireless/iwlwifi/iwl-led.c index 899d7a2..34de711 100644
-> --- a/drivers/net/wireless/iwlwifi/iwl-led.c
-> +++ b/drivers/net/wireless/iwlwifi/iwl-led.c
-> @@ -195,8 +195,6 @@ static void iwl_led_brightness_set(struct led_classdev
-> *led_cdev, return;
->
->
-> -	IWL_DEBUG_LED("Led type = %s brightness = %d\n",
-> -			led_type_str[led->type], brightness);
->  	switch (brightness) {
->  	case LED_FULL:
->  		if (led->type == IWL_LED_TRG_ASSOC)
+If (CondRefOf (\_OSI, Local0))
+                {
+                    If (\_OSI ("Windows 2001"))
+                    {
+                        Store (0x01, \WNTF)
+                        Store (0x01, \WXPF)
+                        Store (0x00, \WSPV)
+                    }
 
-Also the first patch probably disables video.ko brightness switching and 
-thinkpad_acpi has to be used then. The way it worked before Vista...
+                    If (\_OSI ("Windows 2001 SP1"))
+                    {
+                        Store (0x01, \WSPV)
+                    }
 
-But only returning true to Windows 2006, is worth a try IMO.
+                    If (\_OSI ("Windows 2001 SP2"))
+                    {
+                        Store (0x02, \WSPV)
+                    }
 
-       Thomas
+                    If (\_OSI ("Windows 2006"))
+                    {
+                        Store (0x01, \WVIS)
+                    }
+                }
+
+...
+# Only process this on XP, not on Linux and Vista
+                           If (LAnd (\WXPF, LNot (\WVIS)))
+                            {
+                                Notify (\_SB.PCI0, Arg1)
+                            }
+                            Else
+                            {
+                                Notify (\_SB.PCI0.VID, Arg1)
+                            }
+                        }
+...
+
+# Only process this on XP, not on Linux and Vista
+                        If (LAnd (LNot (\WXPF), \WNTF))
+                        {
+                            Store (0x00, \_SB.PCI0.LPC.C4C3)
+                        }
+...
+                Device (HPET)
+                {
+                    Name (_HID, EisaId ("PNP0103"))
+                    Method (_STA, 0, NotSerialized)
+                    {
+  ...
+# Only disable HPET on NT, not on Linux
+                          If (LAnd (\WNTF, LNot (\WXPF)))
+                            {
+                                Return (0x00)
+                            }
+
+
+Amazing, it looks like they already check for Linux by checking if
+OSI returned true on two major Windows versions which would indicate
+Linux running.
+
+So yes, everything looks fine and it seems this was not luck, but
+they already realized Linux does not return true for OSI(Linux)
+anymore.
+
+Why must we force vendors to implement such a madness, the OSI
+implementation is so wrong.
+
+So this seems to get the state-of-the-art then..., check whether several
+Windows versions return true and you do not need to process broken code
+which is only intended to run on a very specific broken Windows version.
+
+     Thomas
