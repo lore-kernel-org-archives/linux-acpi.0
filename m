@@ -1,56 +1,73 @@
-From: Norbert Preining <preining@logic.at>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 Subject: Re: ACPI OSI disaster on latest HP laptops - critical temperature shutdown
-Date: Sat, 2 Aug 2008 16:44:52 +0200
-Message-ID: <20080802144452.GA25565__3451.34740132398$1217690752$gmane$org@gamma.logic.tuwien.ac.at>
+Date: Sat, 2 Aug 2008 16:41:14 +0100
+Message-ID: <20080802154114.GA28879@srcf.ucam.org>
 References: <200807241727.41715.trenn@suse.de> <alpine.LFD.1.10.0807241952270.6098@localhost.localdomain> <200807251319.12786.trenn@suse.de> <alpine.LFD.1.10.0807250948320.3884@localhost.localdomain> <alpine.LFD.1.10.0808011706350.3011@localhost.localdomain> <20080801223657.GD23558@khazad-dum.debian.net> <20080802054204.GB12646@srcf.ucam.org> <20080802143833.GC14069@khazad-dum.debian.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:51142 "EHLO
-	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753302AbYHBPYo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 2 Aug 2008 11:24:44 -0400
+Received: from cavan.codon.org.uk ([93.93.128.6]:36634 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753481AbYHBPlX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 2 Aug 2008 11:41:23 -0400
 Content-Disposition: inline
 In-Reply-To: <20080802143833.GC14069@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, Thomas Renninger <trenn@suse.de>, Arjan van de Ven <arjan@linux.intel>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Len Brown <lenb@kernel.org>, Thomas Renninger <trenn@suse.de>, Arjan van de Ven <arjan@linux.intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, Christian Kornacker <ckornacker@suse.de>
 
-Hi everyone,
+On Sat, Aug 02, 2008 at 11:38:33AM -0300, Henrique de Moraes Holschuh wrote:
 
-(please Cc or leave linux-acpi on the recipient list, thanks)
+> Yes.  IBM ThinkPads store the result of each version test separately, and I
+> recall I saw at least one DSDT code path that didn't test all of them in
+> order to select a branch of code to run.
 
-sorry to chime in so late, but I am experiencing something similar: My
-Acer TravelMate 3012 sometimes shuts down at the boot sequence telling
-me something like "critical temperature" (more I cannot read, it is
-quite fast in turning of the laptop.
+As an example, here's a section from the T61:
 
-That happens at strange times (couldn't find a pattern), and after being
-switched off for hours, so the laptop is definitely not hot.
+                    If (\_OSI ("Windows 2001"))
+                    {
+                        Store (0x01, \WNTF)
+                        Store (0x01, \WXPF)
+                        Store (0x00, \WSPV)
+                    }
 
-Using 2.6.27-rc1, but I am relatively sure that I had similar things in
-the past.
+                    If (\_OSI ("Windows 2001 SP1"))
+                    {
+                        Store (0x01, \WSPV)
+                    }
 
-There something else strange, no idea if that is related, sometimes it
-just hangs after 
-	Setting the clock.
-That is a message of Debian/sid and probably calls hwclock or something
-similar.
+                    If (\_OSI ("Windows 2001 SP2"))
+                    {
+                        Store (0x02, \WSPV)
+                    }
 
-If all that is something else, sorry for disturbing.
+And then later:
 
-If you need .config, dmesg, acpidump, dmidecode, whatever, let me know.
+           If (LAnd (\WXPF, LGreaterEqual (\WSPV, 0x01)))
+            {
+                PPMS (0x02)
+            }
 
-Best wishes
+The only way WXPF can be non-zero and WSPV can be greater or equal to 
+one is if more than one of those tests succeeded.
 
-Norbert
+> > Not all BIOSes would support this, so we'd need to support the Windows 
+> > workarounds anyway. At that point, there's no real benefit in having 
+> > multiple codepaths.
+> 
+> Sorry, but I will disagree.
+> 
+> Anything that can help in the future with the vendors that are better at
+> Linux support is a good thing.  You are right that we will still have to
+> deal with the others, but there are such things as vendor-specific windows
+> workarounds (they didn't want to change their firmware, or they couldn't, or
+> the others didn't care to add the workaround, etc).  If that vendor uses the
+> "NotWindows" OSI correctly, we would not need to take any special action.
 
--------------------------------------------------------------------------------
-Dr. Norbert Preining <preining@logic.at>        Vienna University of Technology
-Debian Developer <preining@debian.org>                         Debian TeX Group
-gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
--------------------------------------------------------------------------------
-You step in the stream,
-But the water has moved on.
-This page is not here.
-                       --- Windows Error Haiku
+Allowing vendors to special-case Linux means that we have to have a 
+special-case path for the minority of vendors who ask for this. It's 
+added complexity and we don't actually gain anything from it.
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
