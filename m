@@ -1,42 +1,65 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: Re: Do not return true to all kind of Windows OSI calls
-Date: Sun, 3 Aug 2008 18:24:05 +0200
-Message-ID: <200808031824.06670.trenn@suse.de>
-References: <1217632817.4610.6.camel@hidalgo> <200808031531.54725.trenn@suse.de> <20080803141231.GA14272@srcf.ucam.org>
+Subject: Re: ACPI OSI disaster on latest HP laptops - critical temperature shutdown
+Date: Sun, 3 Aug 2008 19:23:08 +0200
+Message-ID: <200808031923.09414.trenn@suse.de>
+References: <200807241727.41715.trenn@suse.de> <alpine.LFD.1.10.0807261406230.2958@localhost.localdomain> <alpine.LFD.1.10.0808011708010.3011@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns.suse.de ([195.135.220.2]:45806 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756421AbYHCQWh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 3 Aug 2008 12:22:37 -0400
-In-Reply-To: <20080803141231.GA14272@srcf.ucam.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758725AbYHCRVw@vger.kernel.org>
+In-Reply-To: <alpine.LFD.1.10.0808011708010.3011@localhost.localdomain>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Arjan van de Ven <arjan@linux.intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, Christian Kornacker <ckornacker@suse.de>
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: corsac@debian.org, ak@linux.intel.com, rui.zhang@intel.com, nokos@gmx.net, linux-acpi@vger.kernel.org, hmh@debian.org
 
-On Sunday 03 August 2008 04:12:31 pm Matthew Garrett wrote:
-> On Sun, Aug 03, 2008 at 03:31:53PM +0200, Thomas Renninger wrote:
-> > This is even worse, because that means that Lenovo and everyone
-> > else who has to add Windows hotfixes to their BIOS and potentially
-> > have to break their Linux supported OS by that cannot guarantee
-> > their customers full Linux support (without providing a separate
-> > Linux BIOS).
+On Friday 01 August 2008 11:08:08 pm Len Brown wrote:
+> [yet another resend]
 >
-> That's fine. Where we diverge from the Windows behaviour we already have
-> a bug.
+> On Sat, 26 Jul 2008, Len Brown wrote:
+> > On Fri, 25 Jul 2008, Rafael J. Wysocki wrote:
+> > > On Friday, 25 of July 2008, Thomas Renninger wrote:
+> > > > On Friday 25 July 2008 02:04:32 Len Brown wrote:
+> > >
+> > > [--snip--]
+> > >
+> > > > Len, this is not about the thermal zone, it is just
+> > > > a real-world example of something I told you will happen
+> > > > if Linux stays _OSI transparent with Windows.
+> > > >
+> > > > This is about that they have to provide a BIOS hot-fix for
+> > > > VISTA or VISTA SP and thus breaking Linux because there
+> > > > is no way to distinguish anymore.
+> > > > Windows 2007 likely will have that fixed and they provide
+> > > > a sane _CRT trip point again.
+If Windows is returning true for all ever existing OSI(Windows XY) versions as 
+Linux is doing it and they stick to that in the future, then my above 
+assumption is not true.
 
-Yes.
-I take above statement back.
-This Windows behaviour very much de-escalates the situation.
+Thanks to Matthew Garret pointing to the relevant Microsoft documentation.
 
-If Windows sticks to this then there is no urgent need for OSI(notWindows)
-or OSI(Linux).
+> > > > This is an example of Windows versions workarounds that could
+> > > > get much more complex, like initializing HW differently or
+> > > > whatever.
+> > > > _OSI is used by vendors as a convenient possibility to
+> > > > adjust/workaround Windows bugs in their BIOSes, without
+> > > > the need to pay Millions to Microsoft to fix their things.
 
-Thanks for pointing this out.
+If the next Windows version also returns true for the one for which the 
+workaround applies to, they have to take care that only the one OS is 
+matching in a follow up update, e.g.:
+And(brokenOS, !new_OSes)
+So this should make half way sure that vendors do not mis-use this too often.
+Also it is ensured that the next Linux kernel generation returning 
+OSI(newOSes) will get the correct AML code again.
 
-       Thomas
+And distributions can still offer OSI(supported dist) for emergencies.
+
+Sorry for the loud noise.
+I am convinced now that it is not that bad as it first looked like.
+
+Thanks for all the input/feedback,
+
+          Thomas
