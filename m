@@ -1,59 +1,46 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH 2/2] eeepc-laptop: Use standard interfaces
-Date: Mon, 4 Aug 2008 18:29:52 -0300
-Message-ID: <20080804212952.GC24927@khazad-dum.debian.net>
-References: <20080804170833.GA9513@srcf.ucam.org> <20080804171504.GB9513@srcf.ucam.org>
+From: Norbert Preining <preining@logic.at>
+Subject: Re: ACPI OSI disaster on latest HP laptops - critical temperature shutdown
+Date: Mon, 4 Aug 2008 23:33:30 +0200
+Message-ID: <20080804213330.GA18123@gamma.logic.tuwien.ac.at>
+References: <200807241727.41715.trenn@suse.de> <alpine.LFD.1.10.0807241952270.6098@localhost.localdomain> <200807251319.12786.trenn@suse.de> <alpine.LFD.1.10.0807250948320.3884@localhost.localdomain> <alpine.LFD.1.10.0808011706350.3011@localhost.localdomain> <20080801223657.GD23558@khazad-dum.debian.net> <20080802054204.GB12646@srcf.ucam.org> <20080802143833.GC14069@khazad-dum.debian.net> <20080802144452.GA25565@gamma.logic.tuwien.ac.at> <20080802145141.GA14626@khazad-dum.debian.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:56486 "EHLO
-	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763145AbYHDV35 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Aug 2008 17:29:57 -0400
+Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:42269 "EHLO
+	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1764994AbYHDVdm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Aug 2008 17:33:42 -0400
 Content-Disposition: inline
-In-Reply-To: <20080804171504.GB9513@srcf.ucam.org>
+In-Reply-To: <20080802145141.GA14626@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: corentincj@iksaif.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, IvDoorn@gmail.com
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, Thomas Renninger <trenn@suse.de>, Arjan van de Ven <arjan@linux.intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, Christian Kornacker <ckornacker@suse.de>
 
-On Mon, 04 Aug 2008, Matthew Garrett wrote:
-> +static int eeepc_wlan_rfkill_set(void *data, enum rfkill_state state)
-> +{
-> +	return set_acpi(CM_ASL_WLAN, state);
-> +}
-> +
-> +static int eeepc_wlan_rfkill_state(void *data, enum rfkill_state *state)
-> +{
-> +	*state = get_acpi(CM_ASL_WLAN);
-> +	return 0;
-> +}
+Hi Nerique,
 
-This might just be style, but I'd rather you didn't do this unless get_acpi
-and set_acpi do take enum rfkill_state...  Doing state conversion would be a
-lot more future-proof, as well:
+On Sa, 02 Aug 2008, Henrique de Moraes Holschuh wrote:
+> Yes, it is a call to hwclock.  It recently started to cause lockups on my
+> ThinkPad T43 too (it is a regression of some sort, either in hwclock or the
 
-Something like:
-	set_acpi(CM_ASL_WLAN, (state == RFKILL_STATE_UNBLOCKED) ? 0 : 1);
+Thanks a lot for that bit, didn't know and was already scared that my
+laptop was nearing its end. 
 
-And:
+> But the thermal hang is something else entirely.  You have at least two
+> different bugs causing you grief.
 
-	*state = get_acpi(CM_ASL_WLAN) ? RFKILL_STATE_SOFT_BLOCKED :
-						RFKILL_STATE_UNBLOCKED;
+We will see how rc2++ behave. Thanks a lot.
 
-Adjust as needed.
+Best wishes
 
-> +		ehotk->eeepc_wlan_rfkill->user_claim_unsupported = 0;
+Norbert
 
-This is not needed, and if we get rid of user_claim_unsupported later, your
-code wouldn't need changes if you get rid of that line.
-
-I have not paid much attention to it yet, but so far I have failed to
-understand what user_claim_unsupported is good for in the new style rfkill
-interface.
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+-------------------------------------------------------------------------------
+Dr. Norbert Preining <preining@logic.at>        Vienna University of Technology
+Debian Developer <preining@debian.org>                         Debian TeX Group
+gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
+-------------------------------------------------------------------------------
+LISTOWEL (n.)
+The small mat on the bar designed to be more absorbent than the bar,
+but not as absorbent as your elbows.
+			--- Douglas Adams, The Meaning of Liff
