@@ -1,606 +1,385 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH 02/10] Check for ACPI backlight support otherwise use
-	vendor ACPI drivers
-Date: Mon, 04 Aug 2008 09:56:13 +0800
-Message-ID: <1217814973.31694.2.camel@rzhang-dt>
-References: <1217605083-31003-1-git-send-email-trenn@suse.de>
-	 <1217605083-31003-3-git-send-email-trenn@suse.de>
+From: Ankita Garg <ankita@in.ibm.com>
+Subject: Re: kdump kernel hangs on 4-way Opteron Blade
+Date: Mon, 4 Aug 2008 10:09:03 +0530
+Message-ID: <20080804043903.GB11608@in.ibm.com>
+References: <20080730120026.GA30011@in.ibm.com> <20080730120143.GB30011@in.ibm.com>
+Reply-To: Ankita Garg <ankita@in.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="+pHx0qQiF2pBVqBT"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:52653 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753776AbYHDB6r (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 3 Aug 2008 21:58:47 -0400
-In-Reply-To: <1217605083-31003-3-git-send-email-trenn@suse.de>
+Received: from e28smtp02.in.ibm.com ([59.145.155.2]:42226 "EHLO
+	e28esmtp02.in.ibm.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751173AbYHDEjJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Aug 2008 00:39:09 -0400
+Received: from d28relay04.in.ibm.com (d28relay04.in.ibm.com [9.184.220.61])
+	by e28esmtp02.in.ibm.com (8.13.1/8.13.1) with ESMTP id m744d40Q025112
+	for <linux-acpi@vger.kernel.org>; Mon, 4 Aug 2008 10:09:04 +0530
+Received: from d28av03.in.ibm.com (d28av03.in.ibm.com [9.184.220.65])
+	by d28relay04.in.ibm.com (8.13.8/8.13.8/NCO v9.0) with ESMTP id m744d4J01544442
+	for <linux-acpi@vger.kernel.org>; Mon, 4 Aug 2008 10:09:04 +0530
+Received: from d28av03.in.ibm.com (loopback [127.0.0.1])
+	by d28av03.in.ibm.com (8.13.1/8.13.3) with ESMTP id m744d3gk030208
+	for <linux-acpi@vger.kernel.org>; Mon, 4 Aug 2008 10:09:04 +0530
+Content-Disposition: inline
+In-Reply-To: <20080730120143.GB30011@in.ibm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: ak@linux.intel.com, nokos@gmx.net, linux-acpi@vger.kernel.org, mjg59@srcf.ucam.org
+To: kexec@lists.infradead.org
+Cc: Darren Hart <dvhltc@us.ibm.com>, Sripathi Kodi <sripathik@in.ibm.com>, Chirag Jog <chirag@linux.vnet.ibm.com>, "Sachin P. Sant" <sachinp@in.ibm.com>, Maneesh Soni <maneesh@in.ibm.com>, Dinakar Guniguntala <dino@in.ibm.com>, linux-acpi@vger.kernel.org, Vivek Goyal <vgoyal@redhat.com>
 
-On Fri, 2008-08-01 at 23:37 +0800, Thomas Renninger wrote:
-> If an ACPI graphics device supports backlight brightness functions
-> (cmp. with
-> latest ACPI spec Appendix B), let the ACPI video driver control
-> backlight and
-> switch backlight control off in vendor specific ACPI drivers
-> (asus_acpi,
-> thinkpad_acpi, eeepc, fujitsu_laptop, msi_laptop, sony_laptop,
-> acer-wmi).
-> 
-> Currently it is possible to load above drivers and let both poke on
-> the
-> brightness HW registers, the video and vendor specific ACPI drivers ->
-> bad.
-> 
-> This patch provides the basic support to check for BIOS capabilities
-> before
-> driver loading time. Driver specific modifications are in separate
-> follow up
-> patches.
-> 
-> acpi_backlight=vendor/video
->       boot params forces video.ko or vendor specific drivers to keep
-> its
->       fingers off backlight control even it would find needed
-> functions.
->       The corresponding vendor specific driver be used then.
-> 
-> Signed-off-by: Thomas Renninger <trenn@suse.de>
-Acked-by: Zhang Rui <rui.zhang@intel.com>
 
-> ---
->  Documentation/kernel-parameters.txt |   13 ++
->  drivers/acpi/Makefile               |    5 +
->  drivers/acpi/scan.c                 |   32 +----
->  drivers/acpi/video.c                |   28 ++--
->  drivers/acpi/video_detect.c         |  268
-> +++++++++++++++++++++++++++++++++++
->  include/linux/acpi.h                |   44 ++++++
->  6 files changed, 347 insertions(+), 43 deletions(-)
->  create mode 100644 drivers/acpi/video_detect.c
-> 
-> diff --git a/Documentation/kernel-parameters.txt
-> b/Documentation/kernel-parameters.txt
-> index 09ad745..0fea7c2 100644
-> --- a/Documentation/kernel-parameters.txt
-> +++ b/Documentation/kernel-parameters.txt
-> @@ -194,6 +194,19 @@ and is between 256 and 4096 characters. It is
-> defined in the file
->                         that require a timer override, but don't have
->                         HPET
-> 
-> +       acpi_backlight= [HW,ACPI]
-> +                       acpi_backlight=vendor
-> +                       acpi_backlight=video
-> +                       If set to vendor, it enforces the use of a
-> +                       vendor specific ACPI driver for backlight
-> switching
-> +                       (e.g. thinkpad_acpi, sony_acpi, etc.) instead
-> +                       of the video.ko driver.
-> +
-> +       acpi_display_output=    [HW,ACPI]
-> +                       acpi_display_output=vendor
-> +                       acpi_display_output=video
-> +                       See above.
-> +
->         acpi.debug_layer=       [HW,ACPI]
->                         Format: <int>
->                         Each bit of the <int> indicates an ACPI debug
-> layer,
-> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> index 52a4cd4..6b7ad0f 100644
-> --- a/drivers/acpi/Makefile
-> +++ b/drivers/acpi/Makefile
-> @@ -46,7 +46,12 @@ obj-$(CONFIG_ACPI_BUTTON)    += button.o
->  obj-$(CONFIG_ACPI_FAN)         += fan.o
->  obj-$(CONFIG_ACPI_DOCK)                += dock.o
->  obj-$(CONFIG_ACPI_BAY)         += bay.o
-> +
->  obj-$(CONFIG_ACPI_VIDEO)       += video.o
-> +ifdef CONFIG_ACPI_VIDEO
-> +obj-y                          += video_detect.o
-> +endif
-> +
->  obj-y                          += pci_root.o pci_link.o pci_irq.o
-> pci_bind.o
->  obj-$(CONFIG_ACPI_PCI_SLOT)    += pci_slot.o
->  obj-$(CONFIG_ACPI_POWER)       += power.o
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index f3132aa..2dcb953 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -901,36 +901,6 @@ static void acpi_device_get_busid(struct
-> acpi_device *device,
->         }
->  }
-> 
-> -static int
-> -acpi_video_bus_match(struct acpi_device *device)
-> -{
-> -       acpi_handle h_dummy;
-> -
-> -       if (!device)
-> -               return -EINVAL;
-> -
-> -       /* Since there is no HID, CID for ACPI Video drivers, we have
-> -        * to check well known required nodes for each feature we
-> support.
-> -        */
-> -
-> -       /* Does this device able to support video switching ? */
-> -       if (ACPI_SUCCESS(acpi_get_handle(device->handle, "_DOD",
-> &h_dummy)) &&
-> -           ACPI_SUCCESS(acpi_get_handle(device->handle, "_DOS",
-> &h_dummy)))
-> -               return 0;
-> -
-> -       /* Does this device able to retrieve a video ROM ? */
-> -       if (ACPI_SUCCESS(acpi_get_handle(device->handle, "_ROM",
-> &h_dummy)))
-> -               return 0;
-> -
-> -       /* Does this device able to configure which video head to be
-> POSTed ? */
-> -       if (ACPI_SUCCESS(acpi_get_handle(device->handle, "_VPO",
-> &h_dummy)) &&
-> -           ACPI_SUCCESS(acpi_get_handle(device->handle, "_GPD",
-> &h_dummy)) &&
-> -           ACPI_SUCCESS(acpi_get_handle(device->handle, "_SPD",
-> &h_dummy)))
-> -               return 0;
-> -
-> -       return -ENODEV;
-> -}
-> -
->  /*
->   * acpi_bay_match - see if a device is an ejectable driver bay
->   *
-> @@ -1013,7 +983,7 @@ static void acpi_device_set_id(struct acpi_device
-> *device,
->                    will get autoloaded and the device might still
-> match
->                    against another driver.
->                 */
-> -               if (ACPI_SUCCESS(acpi_video_bus_match(device)))
-> +               if (acpi_is_video_device(device))
->                         cid_add = ACPI_VIDEO_HID;
->                 else if (ACPI_SUCCESS(acpi_bay_match(device)))
->                         cid_add = ACPI_BAY_HID;
-> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> index 649888a..7abd326 100644
-> --- a/drivers/acpi/video.c
-> +++ b/drivers/acpi/video.c
-> @@ -739,7 +739,8 @@ static void acpi_video_device_find_cap(struct
-> acpi_video_device *device)
->                 device->cap._DSS = 1;
->         }
-> 
-> -       max_level = acpi_video_init_brightness(device);
-> +       if (acpi_video_backlight_support())
-> +               max_level = acpi_video_init_brightness(device);
-> 
->         if (device->cap._BCL && device->cap._BCM && max_level > 0) {
->                 int result;
-> @@ -786,18 +787,21 @@ static void acpi_video_device_find_cap(struct
-> acpi_video_device *device)
->                         printk(KERN_ERR PREFIX "Create sysfs link\n");
-> 
->         }
-> -       if (device->cap._DCS && device->cap._DSS){
-> -               static int count = 0;
-> -               char *name;
-> -               name = kzalloc(MAX_NAME_LEN, GFP_KERNEL);
-> -               if (!name)
-> -                       return;
-> -               sprintf(name, "acpi_video%d", count++);
-> -               device->output_dev = video_output_register(name,
-> -                               NULL, device,
-> &acpi_output_properties);
-> -               kfree(name);
-> +
-> +       if (acpi_video_display_switch_support()) {
-> +
-> +               if (device->cap._DCS && device->cap._DSS) {
-> +                       static int count;
-> +                       char *name;
-> +                       name = kzalloc(MAX_NAME_LEN, GFP_KERNEL);
-> +                       if (!name)
-> +                               return;
-> +                       sprintf(name, "acpi_video%d", count++);
-> +                       device->output_dev =
-> video_output_register(name,
-> +                                       NULL, device,
-> &acpi_output_properties);
-> +                       kfree(name);
-> +               }
->         }
-> -       return;
->  }
-> 
->  /*
-> diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-> new file mode 100644
-> index 0000000..85c3d2c
-> --- /dev/null
-> +++ b/drivers/acpi/video_detect.c
-> @@ -0,0 +1,268 @@
-> +/*
-> + *  Copyright (C) 2008       SuSE Linux Products GmbH
-> + *                           Thomas Renninger <trenn@suse.de>
-> + *
-> + *  May be copied or modified under the terms of the GNU General
-> Public License
-> + *
-> + * video_detect.c:
-> + * Provides acpi_is_video_device() for early scanning of ACPI devices
-> in scan.c
-> + * There a Linux specific (Spec does not provide a HID for video
-> devices) is
-> + * assinged
-> + *
-> + * After PCI devices are glued with ACPI devices
-> + * acpi_get_physical_pci_device() can be called to identify ACPI
-> graphics
-> + * devices for which a real graphics card is plugged in
-> + *
-> + * Now acpi_video_get_capabilities() can be called to check which
-> + * capabilities the graphics cards plugged in support. The check for
-> general
-> + * video capabilities will be triggered by the first caller of
-> + * acpi_video_get_capabilities(NULL); which will happen when the
-> first
-> + * backlight (or display output) switching supporting driver calls:
-> + * acpi_video_backlight_support();
-> + *
-> + * Depending on whether ACPI graphics extensions (cmp. ACPI spec
-> Appendix B)
-> + * are available, video.ko should be used to handle the device.
-> + *
-> + * Otherwise vendor specific drivers like thinkpad_acpi, asus_acpi,
-> + * sony_acpi,... can take care about backlight brightness and display
-> output
-> + * switching.
-> + *
-> + * If CONFIG_ACPI_VIDEO is neither set as "compiled in" (y) nor as a
-> module (m)
-> + * this file will not be compiled, acpi_video_get_capabilities() and
-> + * acpi_video_backlight_support() will always return 0 and vendor
-> specific
-> + * drivers always can handle backlight.
-> + *
-> + */
-> +
-> +#include <linux/acpi.h>
-> +#include <linux/dmi.h>
-> +
-> +ACPI_MODULE_NAME("video");
-> +#define ACPI_VIDEO_COMPONENT           0x08000000
-> +#define _COMPONENT             ACPI_VIDEO_COMPONENT
-> +
-> +static long acpi_video_support;
-> +static bool acpi_video_caps_checked;
-> +
-> +static acpi_status
-> +acpi_backlight_cap_match(acpi_handle handle, u32 level, void
-> *context,
-> +                         void **retyurn_value)
-> +{
-> +       long *cap = context;
-> +       acpi_handle h_dummy;
-> +
-> +       if (ACPI_SUCCESS(acpi_get_handle(handle, "_BCM", &h_dummy)) &&
-> +           ACPI_SUCCESS(acpi_get_handle(handle, "_BCL", &h_dummy))) {
-> +               ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found generic
-> backlight "
-> +                                 "support\n"));
-> +               *cap |= ACPI_VIDEO_BACKLIGHT;
-> +               /* We have backlight support, no need to scan further
-> */
-> +               return AE_CTRL_TERMINATE;
-> +       }
-> +       return 0;
-> +}
-> +
-> +/* Returns true if the device is a video device which can be handled
-> by
-> + * video.ko.
-> + * The device will get a Linux specific CID added in scan.c to
-> + * identify the device as an ACPI graphics device
-> + * Be aware that the graphics device may not be physically present
-> + * Use acpi_video_get_capabilities() to detect general ACPI video
-> + * capabilities of present cards
-> + */
-> +long acpi_is_video_device(struct acpi_device *device)
-> +{
-> +       acpi_handle h_dummy;
-> +       long video_caps = 0;
-> +
-> +       if (!device)
-> +               return 0;
-> +
-> +       /* Does this device able to support video switching ? */
-> +       if (ACPI_SUCCESS(acpi_get_handle(device->handle, "_DOD",
-> &h_dummy)) &&
-> +           ACPI_SUCCESS(acpi_get_handle(device->handle, "_DOS",
-> &h_dummy)))
-> +               video_caps |= ACPI_VIDEO_OUTPUT_SWITCHING;
-> +
-> +       /* Does this device able to retrieve a video ROM ? */
-> +       if (ACPI_SUCCESS(acpi_get_handle(device->handle, "_ROM",
-> &h_dummy)))
-> +               video_caps |= ACPI_VIDEO_ROM_AVAILABLE;
-> +
-> +       /* Does this device able to configure which video head to be
-> POSTed ? */
-> +       if (ACPI_SUCCESS(acpi_get_handle(device->handle, "_VPO",
-> &h_dummy)) &&
-> +           ACPI_SUCCESS(acpi_get_handle(device->handle, "_GPD",
-> &h_dummy)) &&
-> +           ACPI_SUCCESS(acpi_get_handle(device->handle, "_SPD",
-> &h_dummy)))
-> +               video_caps |= ACPI_VIDEO_DEVICE_POSTING;
-> +
-> +       /* Only check for backlight functionality if one of the above
-> hit. */
-> +       if (video_caps)
-> +               acpi_walk_namespace(ACPI_TYPE_DEVICE, device->handle,
-> +                                   ACPI_UINT32_MAX,
-> acpi_backlight_cap_match,
-> +                                   &video_caps, NULL);
-> +
-> +       return video_caps;
-> +}
-> +EXPORT_SYMBOL(acpi_is_video_device);
-> +
-> +static acpi_status
-> +find_video(acpi_handle handle, u32 lvl, void *context, void **rv)
-> +{
-> +       long *cap = context;
-> +       struct device *dev;
-> +       struct acpi_device *acpi_dev;
-> +
-> +       const struct acpi_device_id video_ids[] = {
-> +               {ACPI_VIDEO_HID, 0},
-> +               {"", 0},
-> +       };
-> +       if (acpi_bus_get_device(handle, &acpi_dev))
-> +               return AE_OK;
-> +
-> +       if (!acpi_match_device_ids(acpi_dev, video_ids)) {
-> +               dev = acpi_get_physical_pci_device(handle);
-> +               if (!dev)
-> +                       return AE_OK;
-> +               put_device(dev);
-> +               *cap |= acpi_is_video_device(acpi_dev);
-> +       }
-> +       return AE_OK;
-> +}
-> +
-> +/*
-> + * Returns the video capabilities of a specific ACPI graphics device
-> + *
-> + * if NULL is passed as argument all ACPI devices are enumerated and
-> + * all graphics capabilities of physically present devices are
-> + * summerized and returned. This is cached and done only once.
-> + */
-> +long acpi_video_get_capabilities(acpi_handle graphics_handle)
-> +{
-> +       long caps = 0;
-> +       struct acpi_device *tmp_dev;
-> +       acpi_status status;
-> +
-> +       if (acpi_video_caps_checked && graphics_handle == NULL)
-> +               return acpi_video_support;
-> +
-> +       if (!graphics_handle) {
-> +               /* Only do the global walk through all graphics
-> devices once */
-> +               acpi_walk_namespace(ACPI_TYPE_DEVICE,
-> ACPI_ROOT_OBJECT,
-> +                                   ACPI_UINT32_MAX, find_video,
-> +                                   &caps, NULL);
-> +               /* There might be boot param flags set already... */
-> +               acpi_video_support |= caps;
-> +               acpi_video_caps_checked = 1;
-> +               /* Add blacklists here. Be careful to use the right
-> *DMI* bits
-> +                * to still be able to override logic via boot params,
-> e.g.:
-> +                *
-> +                *   if (dmi_name_in_vendors("XY")) {
-> +                *      acpi_video_support |=
-> +                *
-> ACPI_VIDEO_OUTPUT_SWITCHING_DMI_VENDOR;
-> +                *      acpi_video_support |=
-> +                *              ACPI_VIDEO_BACKLIGHT_DMI_VENDOR;
-> +                *}
-> +                */
-> +       } else {
-> +               status = acpi_bus_get_device(graphics_handle,
-> &tmp_dev);
-> +               if (ACPI_FAILURE(status)) {
-> +                       ACPI_EXCEPTION((AE_INFO, status, "Invalid
-> device"));
-> +                       return 0;
-> +               }
-> +               acpi_walk_namespace(ACPI_TYPE_DEVICE, graphics_handle,
-> +                                   ACPI_UINT32_MAX, find_video,
-> +                                   &caps, NULL);
-> +       }
-> +       ACPI_DEBUG_PRINT((ACPI_DB_INFO, "We have 0x%lX video support %
-> s %s\n",
-> +                         graphics_handle ? caps : acpi_video_support,
-> +                         graphics_handle ? "on device " : "in
-> general",
-> +                         graphics_handle ? acpi_device_bid(tmp_dev) :
-> ""));
-> +       return caps;
-> +}
-> +EXPORT_SYMBOL(acpi_video_get_capabilities);
-> +
-> +/* Returns true if video.ko can do backlight switching */
-> +int acpi_video_backlight_support(void)
-> +{
-> +       /*
-> +        * We must check whether the ACPI graphics device is
-> physically plugged
-> +        * in. Therefore this must be called after binding PCI and
-> ACPI devices
-> +        */
-> +       if (!acpi_video_caps_checked)
-> +               acpi_video_get_capabilities(NULL);
-> +
-> +       /* First check for boot param -> highest prio */
-> +       if (acpi_video_support & ACPI_VIDEO_BACKLIGHT_FORCE_VENDOR)
-> +               return 0;
-> +       else if (acpi_video_support &
-> ACPI_VIDEO_BACKLIGHT_FORCE_VIDEO)
-> +               return 1;
-> +
-> +       /* Then check for DMI blacklist -> second highest prio */
-> +       if (acpi_video_support & ACPI_VIDEO_BACKLIGHT_DMI_VENDOR)
-> +               return 0;
-> +       else if (acpi_video_support & ACPI_VIDEO_BACKLIGHT_DMI_VIDEO)
-> +               return 1;
-> +
-> +       /* Then go the default way */
-> +       return acpi_video_support & ACPI_VIDEO_BACKLIGHT;
-> +}
-> +EXPORT_SYMBOL(acpi_video_backlight_support);
-> +
-> +/*
-> + * Returns true if video.ko can do display output switching.
-> + * This does not work well/at all with binary graphics drivers
-> + * which disable system io ranges and do it on their own.
-> + */
-> +int acpi_video_display_switch_support(void)
-> +{
-> +       if (!acpi_video_caps_checked)
-> +               acpi_video_get_capabilities(NULL);
-> +
-> +       if (acpi_video_support &
-> ACPI_VIDEO_OUTPUT_SWITCHING_FORCE_VENDOR)
-> +               return 0;
-> +       else if (acpi_video_support &
-> ACPI_VIDEO_OUTPUT_SWITCHING_FORCE_VIDEO)
-> +               return 1;
-> +
-> +       if (acpi_video_support &
-> ACPI_VIDEO_OUTPUT_SWITCHING_DMI_VENDOR)
-> +               return 0;
-> +       else if (acpi_video_support &
-> ACPI_VIDEO_OUTPUT_SWITCHING_DMI_VIDEO)
-> +               return 1;
-> +
-> +       return acpi_video_support & ACPI_VIDEO_OUTPUT_SWITCHING;
-> +}
-> +EXPORT_SYMBOL(acpi_video_display_switch_support);
-> +
-> +/*
-> + * Use acpi_display_output=vendor/video or
-> acpi_backlight=vendor/video
-> + * To force that backlight or display output switching is processed
-> by vendor
-> + * specific acpi drivers or video.ko driver.
-> + */
-> +int __init acpi_backlight(char *str)
-> +{
-> +       if (str == NULL || *str == '\0')
-> +               return 1;
-> +       else {
-> +               if (!strcmp("vendor", str))
-> +                       acpi_video_support |=
-> +                               ACPI_VIDEO_BACKLIGHT_FORCE_VENDOR;
-> +               if (!strcmp("video", str))
-> +                       acpi_video_support |=
-> +
-> ACPI_VIDEO_OUTPUT_SWITCHING_FORCE_VIDEO;
-> +       }
-> +       return 1;
-> +}
-> +__setup("acpi_backlight=", acpi_backlight);
-> +
-> +int __init acpi_display_output(char *str)
-> +{
-> +       if (str == NULL || *str == '\0')
-> +               return 1;
-> +       else {
-> +               if (!strcmp("vendor", str))
-> +                       acpi_video_support |=
-> +
-> ACPI_VIDEO_OUTPUT_SWITCHING_FORCE_VENDOR;
-> +               if (!strcmp("video", str))
-> +                       acpi_video_support |=
-> +
-> ACPI_VIDEO_OUTPUT_SWITCHING_FORCE_VIDEO;
-> +       }
-> +       return 1;
-> +}
-> +__setup("acpi_display_output=", acpi_display_output);
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index a171776..eb51726 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -202,6 +202,50 @@ extern bool wmi_has_guid(const char *guid);
-> 
->  #endif /* CONFIG_ACPI_WMI */
-> 
-> +#define ACPI_VIDEO_OUTPUT_SWITCHING                    0x0001
-> +#define ACPI_VIDEO_DEVICE_POSTING                      0x0002
-> +#define ACPI_VIDEO_ROM_AVAILABLE                       0x0004
-> +#define ACPI_VIDEO_BACKLIGHT                           0x0008
-> +#define ACPI_VIDEO_BACKLIGHT_FORCE_VENDOR              0x0010
-> +#define ACPI_VIDEO_BACKLIGHT_FORCE_VIDEO               0x0020
-> +#define ACPI_VIDEO_OUTPUT_SWITCHING_FORCE_VENDOR       0x0040
-> +#define ACPI_VIDEO_OUTPUT_SWITCHING_FORCE_VIDEO                0x0080
-> +#define ACPI_VIDEO_BACKLIGHT_DMI_VENDOR                        0x0100
-> +#define ACPI_VIDEO_BACKLIGHT_DMI_VIDEO                 0x0200
-> +#define ACPI_VIDEO_OUTPUT_SWITCHING_DMI_VENDOR         0x0400
-> +#define ACPI_VIDEO_OUTPUT_SWITCHING_DMI_VIDEO          0x0800
-> +
-> +#if defined(CONFIG_ACPI_VIDEO) || defined(CONFIG_ACPI_VIDEO_MODULE)
-> +
-> +extern long acpi_video_get_capabilities(acpi_handle
-> graphics_dev_handle);
-> +extern long acpi_is_video_device(struct acpi_device *device);
-> +extern int acpi_video_backlight_support(void);
-> +extern int acpi_video_display_switch_support(void);
-> +
-> +#else
-> +
-> +static inline long acpi_video_get_capabilities(acpi_handle
-> graphics_dev_handle)
-> +{
-> +       return 0;
-> +}
-> +
-> +static inline long acpi_is_video_device(struct acpi_device *device)
-> +{
-> +       return 0;
-> +}
-> +
-> +static inline int acpi_video_backlight_support(void)
-> +{
-> +       return 0;
-> +}
-> +
-> +static inline int acpi_video_display_switch_support(void)
-> +{
-> +       return 0;
-> +}
-> +
-> +#endif /* defined(CONFIG_ACPI_VIDEO) ||
-> defined(CONFIG_ACPI_VIDEO_MODULE) */
-> +
->  extern int acpi_blacklisted(void);
->  #ifdef CONFIG_DMI
->  extern void acpi_dmi_osi_linux(int enable, const struct dmi_system_id
-> *d);
-> --
-> 1.5.4.5
-> 
-> 
-> 
+--+pHx0qQiF2pBVqBT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
+Hi,
+
+On Wed, Jul 30, 2008 at 05:31:43PM +0530, Ankita Garg wrote:
+> Hi,
+> 
+> We have been using RT kernel as the kdump kernel for most of our work.
+> This was working fine on 2.6.21.4-rt10 RT kernel. After which, we moved
+> over to 2.6.24-rt1 RT kernel. Now, the kdump kernel hangs with the
+> following message:
+> 
+> (With "quiet" param specified to the kdump kernel)
+> ysRq : Trigger a crashdump
+> irq 9: nobody cared (try booting with the "irqpoll" option)
+> irq 9: Some systems using an IO-APIC require a special quirk to
+> workaround
+> irq 9: problems with interrupt routing. If your system requires such a
+> quirk,
+> irq 9: please try booting with the "ioapic_level_quirk=1" option.
+> handlers:
+> [<ffffffff811660a0>] (acpi_irq+0x0/0x1b)
+> turning off IO-APIC fast mode.
+> irq 9: nobody cared (try booting with the "irqpoll" option)
+> irq 9: Some systems using an IO-APIC require a special quirk to
+> workaround
+> irq 9: problems with interrupt routing. If your system requires such a
+> quirk,
+> irq 9: please try booting with the "ioapic_level_quirk=1" option.
+> handlers:
+>
+
+With CONFIG_PCI_DEBUG on and initcall_debug param passed to the kdump
+kernel, I find that the kernel hung in acpi_init() routine. Attaching
+the kdump boot log. Any ideas on what could be going wrong ?
+ 
+-- 
+Regards,
+Ankita Garg (ankita@in.ibm.com)
+Linux Technology Center
+IBM India Systems & Technology Labs, 
+Bangalore, India   
+
+--+pHx0qQiF2pBVqBT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=ls21_kdump_debug_boot_log
+
+SysRq : Trigger a crashdump
+Initializing cgroup subsys cpuset
+Linux version 2.6.24-prep (root@llm52.in.ibm.com) (gcc version 4.1.2 20071124
+(Red Hat 4.1.2-42)) #1 SMP PREEMPT RT Fri Aug 1 05:48:48 EDT 2008
+Command line: root=/dev/sda3 ro rhgb quiet  console=tty1 console=ttyS1,19200
+irqpoll maxcpus=1 reset_devices acpi.debug_level=acpi acpi.debug_layer=acpi
+debug initcall_debug memmap=exactmap memmap=640K@0K memmap=130416K@17024K
+elfcorehdr=147440K memmap=15K#3407502K
+BIOS-provided physical RAM map:
+ BIOS-e820: 0000000000000100 - 000000000009c000 (usable)
+ BIOS-e820: 000000000009c000 - 00000000000a0000 (reserved)
+ BIOS-e820: 00000000000e0000 - 0000000000100000 (reserved)
+ BIOS-e820: 0000000000100000 - 00000000cffa39c0 (usable)
+ BIOS-e820: 00000000cffa39c0 - 00000000cffa7400 (ACPI data)
+ BIOS-e820: 00000000cffa7400 - 00000000d0000000 (reserved)
+ BIOS-e820: 00000000f4000000 - 00000000fc000000 (reserved)
+ BIOS-e820: 0000000100000000 - 0000000230000000 (usable)
+Entering add_active_range(0, 1, 156) 0 entries of 3200 used
+Entering add_active_range(0, 256, 851875) 1 entries of 3200 used
+Entering add_active_range(0, 1048576, 2293760) 2 entries of 3200 used
+end_pfn_map = 2293760
+user-defined physical RAM map:
+ user: 0000000000000000 - 00000000000a0000 (usable)
+ user: 00000000010a0000 - 0000000008ffc000 (usable)
+ user: 00000000cffa3800 - 00000000cffa7400 (ACPI data)
+Entering add_active_range(0, 0, 160) 0 entries of 3200 used
+Entering add_active_range(0, 4256, 36860) 1 entries of 3200 used
+end_pfn_map = 851879
+DMI 2.4 present.
+ACPI: RSDP 000FDFE0, 0014 (r0 IBM   )
+ACPI: RSDT CFFA7380, 0034 (r1 IBM    SERLEWIS     1000 IBM  45444F43)
+ACPI: FACP CFFA72C0, 0084 (r2 IBM    SERLEWIS     1000 IBM  45444F43)
+ACPI: DSDT CFFA39C0, 35FC (r1 IBM    SERLEWIS     1000 INTL 20060912)
+ACPI: FACS CFFA7040, 0040
+ACPI: APIC CFFA7200, 0090 (r1 IBM    SERLEWIS     1000 IBM  45444F43)
+ACPI: SRAT CFFA70C0, 0110 (r1 AMD    HAMMER          1 AMD         1)
+ACPI: HPET CFFA7080, 0038 (r1 IBM    SERLEWIS     1000 IBM  45444F43)
+SRAT: PXM 0 -> APIC 0 -> Node 0
+SRAT: PXM 0 -> APIC 1 -> Node 0
+SRAT: PXM 1 -> APIC 2 -> Node 1
+SRAT: PXM 1 -> APIC 3 -> Node 1
+SRAT: Node 0 PXM 0 0-a0000
+Entering add_active_range(0, 0, 160) 0 entries of 3200 used
+SRAT: Node 0 PXM 0 0-d0000000
+Entering add_active_range(0, 0, 160) 1 entries of 3200 used
+Entering add_active_range(0, 4256, 36860) 1 entries of 3200 used
+SRAT: Node 0 PXM 0 0-130000000
+Entering add_active_range(0, 0, 160) 2 entries of 3200 used
+Entering add_active_range(0, 4256, 36860) 2 entries of 3200 used
+SRAT: Node 1 PXM 1 130000000-230000000
+NUMA: Using 63 for the hash shift.
+Bootmem setup node 0 0000000000000000-0000000008ffc000
+ [ffffe20000000000-ffffe200001fffff] PMD ->ffff810001800000 on node 0
+ [ffffe20000200000-ffffe200003fffff] PMD ->ffff810001a00000 on node 0
+ [ffffe20000400000-ffffe200005fffff] PMD ->ffff810001e00000 on node 0
+Zone PFN ranges:
+  DMA             0 ->     4096
+  DMA32        4096 ->  1048576
+  Normal    1048576 ->  1048576
+Movable zone start PFN for each node
+early_node_map[2] active PFN ranges
+    0:        0 ->      160
+    0:     4256 ->    36860
+On node 0 totalpages: 32764
+  DMA zone: 96 pages used for memmap
+  DMA zone: 12 pages reserved
+  DMA zone: 52 pages, LIFO batch:0
+  DMA32 zone: 767 pages used for memmap
+  DMA32 zone: 31837 pages, LIFO batch:7
+  Normal zone: 0 pages used for memmap
+  Movable zone: 0 pages used for memmap
+ACPI: PM-Timer IO Port: 0x488
+ACPI: Local APIC address 0xfee00000
+ACPI: LAPIC (acpi_id[0x00] lapic_id[0x00] enabled)
+Processor #0
+ACPI: LAPIC (acpi_id[0x01] lapic_id[0x02] enabled)
+Processor #2
+ACPI: LAPIC (acpi_id[0x02] lapic_id[0x01] enabled)
+Processor #1 (Bootup-CPU)
+ACPI: LAPIC (acpi_id[0x03] lapic_id[0x03] enabled)
+Processor #3
+ACPI: LAPIC_NMI (acpi_id[0x00] dfl dfl lint[0x1])
+ACPI: LAPIC_NMI (acpi_id[0x01] dfl dfl lint[0x1])
+ACPI: LAPIC_NMI (acpi_id[0x02] dfl dfl lint[0x1])
+ACPI: LAPIC_NMI (acpi_id[0x03] dfl dfl lint[0x1])
+ACPI: IOAPIC (id[0x0e] address[0xfec00000] gsi_base[0])
+IOAPIC[0]: apic_id 14, address 0xfec00000, GSI 0-15
+ACPI: IOAPIC (id[0x0d] address[0xfec02000] gsi_base[16])
+IOAPIC[1]: apic_id 13, address 0xfec02000, GSI 16-31
+ACPI: INT_SRC_OVR (bus 0 bus_irq 0 global_irq 2 dfl dfl)
+ACPI: INT_SRC_OVR (bus 0 bus_irq 9 global_irq 9 low level)
+ACPI: IRQ0 used by override.
+ACPI: IRQ2 used by override.
+ACPI: IRQ9 used by override.
+Setting APIC routing to flat
+ACPI: HPET id: 0x1166a201 base: 0xfed00000
+Using ACPI (MADT) for SMP configuration information
+swsusp: Registered nosave memory region: 00000000000a0000 - 00000000010a0000
+Allocating PCI resources starting at 10000000 (gap: 8ffc000:c6fa7800)
+SMP: Allowing 4 CPUs, 0 hotplug CPUs
+PERCPU: Allocating 41456 bytes of per cpu data
+Real-Time Preemption Support (C) 2004-2007 Ingo Molnar
+Built 1 zonelists in Node order, mobility grouping on.  Total pages: 31889
+Policy zone: DMA32
+Kernel command line: root=/dev/sda3 ro rhgb quiet  console=tty1
+console=ttyS1,19200 irqpoll maxcpus=1 reset_devices acpi.debug_level=acpi
+acpi.debug_layer=acpi debug initcall_debug memmap=exactmap memmap=640K@0K
+memmap=130416K@17024K elfcorehdr=147440K memmap=15K#3407502K
+irqpoll boot option not supported w/ CONFIG_PREEMPT_RT
+Unknown boot option `acpi.debug_level=acpi': ignoring
+Unknown boot option `acpi.debug_layer=acpi': ignoring
+Initializing CPU#0
+PID hash table entries: 512 (order: 9, 4096 bytes)
+hpet clockevent registered
+TSC calibrated against HPET
+Marking TSC unstable due to TSCs unsynchronized
+time.c: Detected 2200.077 MHz processor.
+Spurious LAPIC timer interrupt on cpu 0
+do_IRQ: 0.73 No irq handler for vector
+Console: colour VGA+ 80x25
+console [tty1] enabled
+console [ttyS1] enabled
+Checking aperture...
+CPU 0: aperture @ 14000000 size 64 MB
+CPU 1: aperture @ 14000000 size 64 MB
+Memory: 116344k/147440k available (2612k kernel code, 14712k reserved, 1414k
+data, 364k init)
+Calibrating delay using timer specific routine.. 241682.83 BogoMIPS
+(lpj=120841419)
+Security Framework initialized
+SELinux:  Initializing.
+SELinux:  Starting in permissive mode
+selinux_register_security:  Registering secondary module capability
+Capability LSM initialized as secondary
+Dentry cache hash table entries: 16384 (order: 5, 131072 bytes)
+Inode-cache hash table entries: 8192 (order: 4, 65536 bytes)
+Mount-cache hash table entries: 256
+Initializing cgroup subsys ns
+Initializing cgroup subsys cpuacct
+CPU: L1 I Cache: 64K (64 bytes/line), D cache 64K (64 bytes/line)
+CPU: L2 Cache: 1024K (64 bytes/line)
+CPU 0/1 -> Node 0
+CPU: Physical Processor ID: 0
+CPU: Processor Core ID: 1
+SMP alternatives: switching to UP code
+ACPI: Core revision 20070126
+Using local APIC timer interrupts.
+APIC timer calibration result 12500438
+Detected 12.500 MHz APIC timer.
+Brought up 1 CPUs
+CPU0 attaching sched-domain:
+ domain 0: span 00000000,00000001
+  groups: 00000000,00000001
+Calling initcall 0xffffffff814c4ad6:
+init_cpufreq_transition_notifier_list+0x0/0x14()
+initcall 0xffffffff814c4ad6: init_cpufreq_transition_notifier_list+0x0/0x14()
+returned 0.
+initcall 0xffffffff814c4ad6 ran for 0 msecs:
+init_cpufreq_transition_notifier_list+0x0/0x14()
+Calling initcall 0xffffffff814c7101: net_ns_init+0x0/0x13a()
+net_namespace: 144 bytes
+initcall 0xffffffff814c7101: net_ns_init+0x0/0x13a() returned 0.
+initcall 0xffffffff814c7101 ran for 13 msecs: net_ns_init+0x0/0x13a()
+Calling initcall 0xffffffff814acacc: cpufreq_tsc+0x0/0x16()
+initcall 0xffffffff814acacc: cpufreq_tsc+0x0/0x16() returned 0.
+initcall 0xffffffff814acacc ran for 0 msecs: cpufreq_tsc+0x0/0x16()
+Calling initcall 0xffffffff8101e52a: init_smp_flush+0x0/0x4a()
+initcall 0xffffffff8101e52a: init_smp_flush+0x0/0x4a() returned 0.
+initcall 0xffffffff8101e52a ran for 0 msecs: init_smp_flush+0x0/0x4a()
+Calling initcall 0xffffffff814b5101: init_elf32_binfmt+0x0/0x12()
+initcall 0xffffffff814b5101: init_elf32_binfmt+0x0/0x12() returned 0.
+initcall 0xffffffff814b5101 ran for 0 msecs: init_elf32_binfmt+0x0/0x12()
+Calling initcall 0xffffffff814b6249: sysctl_init+0x0/0x22()
+initcall 0xffffffff814b6249: sysctl_init+0x0/0x22() returned 0.
+initcall 0xffffffff814b6249 ran for 0 msecs: sysctl_init+0x0/0x22()
+Calling initcall 0xffffffff814b6d31: init_jiffies_clocksource+0x0/0x12()
+initcall 0xffffffff814b6d31: init_jiffies_clocksource+0x0/0x12() returned 0.
+initcall 0xffffffff814b6d31 ran for 0 msecs:
+init_jiffies_clocksource+0x0/0x12()
+Calling initcall 0xffffffff814b6f73: pm_init+0x0/0x29()
+initcall 0xffffffff814b6f73: pm_init+0x0/0x29() returned 0.
+initcall 0xffffffff814b6f73 ran for 0 msecs: pm_init+0x0/0x29()
+Calling initcall 0xffffffff814b6fb1: pm_disk_init+0x0/0x19()
+initcall 0xffffffff814b6fb1: pm_disk_init+0x0/0x19() returned 0.
+initcall 0xffffffff814b6fb1 ran for 0 msecs: pm_disk_init+0x0/0x19()
+Calling initcall 0xffffffff81067a6c: swsusp_header_init+0x0/0x2c()
+initcall 0xffffffff81067a6c: swsusp_header_init+0x0/0x2c() returned 0.
+initcall 0xffffffff81067a6c ran for 0 msecs: swsusp_header_init+0x0/0x2c()
+Calling initcall 0xffffffff814b7d15: ksysfs_init+0x0/0x5a()
+initcall 0xffffffff814b7d15: ksysfs_init+0x0/0x5a() returned 0.
+initcall 0xffffffff814b7d15 ran for 0 msecs: ksysfs_init+0x0/0x5a()
+Calling initcall 0xffffffff814bb19c: filelock_init+0x0/0x2e()
+initcall 0xffffffff814bb19c: filelock_init+0x0/0x2e() returned 0.
+initcall 0xffffffff814bb19c ran for 0 msecs: filelock_init+0x0/0x2e()
+Calling initcall 0xffffffff814bbc97: init_misc_binfmt+0x0/0x3f()
+initcall 0xffffffff814bbc97: init_misc_binfmt+0x0/0x3f() returned 0.
+initcall 0xffffffff814bbc97 ran for 0 msecs: init_misc_binfmt+0x0/0x3f()
+Calling initcall 0xffffffff814bbcd6: init_script_binfmt+0x0/0x12()
+initcall 0xffffffff814bbcd6: init_script_binfmt+0x0/0x12() returned 0.
+initcall 0xffffffff814bbcd6 ran for 0 msecs: init_script_binfmt+0x0/0x12()
+Calling initcall 0xffffffff814bbce8: init_elf_binfmt+0x0/0x12()
+initcall 0xffffffff814bbce8: init_elf_binfmt+0x0/0x12() returned 0.
+initcall 0xffffffff814bbce8 ran for 0 msecs: init_elf_binfmt+0x0/0x12()
+Calling initcall 0xffffffff814bce78: debugfs_init+0x0/0x4a()
+initcall 0xffffffff814bce78: debugfs_init+0x0/0x4a() returned 0.
+initcall 0xffffffff814bce78 ran for 0 msecs: debugfs_init+0x0/0x4a()
+Calling initcall 0xffffffff814bd2df: securityfs_init+0x0/0x4a()
+initcall 0xffffffff814bd2df: securityfs_init+0x0/0x4a() returned 0.
+initcall 0xffffffff814bd2df ran for 0 msecs: securityfs_init+0x0/0x4a()
+Calling initcall 0xffffffff814bde21: random32_init+0x0/0x58()
+initcall 0xffffffff814bde21: random32_init+0x0/0x58() returned 0.
+initcall 0xffffffff814bde21 ran for 0 msecs: random32_init+0x0/0x58()
+Calling initcall 0xffffffff811b5a6a: early_resume_init+0x0/0x1cf()
+Time: 12:22:58  Date: 08/01/08
+initcall 0xffffffff811b5a6a: early_resume_init+0x0/0x1cf() returned 0.
+initcall 0xffffffff811b5a6a ran for 16 msecs: early_resume_init+0x0/0x1cf()
+Calling initcall 0xffffffff814c4aea: cpufreq_core_init+0x0/0x75()
+initcall 0xffffffff814c4aea: cpufreq_core_init+0x0/0x75() returned 0.
+initcall 0xffffffff814c4aea ran for 0 msecs: cpufreq_core_init+0x0/0x75()
+Calling initcall 0xffffffff814c4b83: cpuidle_init+0x0/0x3b()
+initcall 0xffffffff814c4b83: cpuidle_init+0x0/0x3b() returned 0.
+initcall 0xffffffff814c4b83 ran for 0 msecs: cpuidle_init+0x0/0x3b()
+Calling initcall 0xffffffff814c6fd0: sock_init+0x0/0x5e()
+initcall 0xffffffff814c6fd0: sock_init+0x0/0x5e() returned 0.
+initcall 0xffffffff814c6fd0 ran for 0 msecs: sock_init+0x0/0x5e()
+Calling initcall 0xffffffff814c7952: netpoll_init+0x0/0x41()
+initcall 0xffffffff814c7952: netpoll_init+0x0/0x41() returned 0.
+initcall 0xffffffff814c7952 ran for 0 msecs: netpoll_init+0x0/0x41()
+Calling initcall 0xffffffff814c7cac: netlink_proto_init+0x0/0x159()
+NET: Registered protocol family 16
+initcall 0xffffffff814c7cac: netlink_proto_init+0x0/0x159() returned 0.
+initcall 0xffffffff814c7cac ran for 18 msecs: netlink_proto_init+0x0/0x159()
+Calling initcall 0xffffffff814bdd27: kobject_uevent_init+0x0/0x45()
+initcall 0xffffffff814bdd27: kobject_uevent_init+0x0/0x45() returned 0.
+initcall 0xffffffff814bdd27 ran for 0 msecs: kobject_uevent_init+0x0/0x45()
+Calling initcall 0xffffffff814be105: pcibus_class_init+0x0/0x12()
+initcall 0xffffffff814be105: pcibus_class_init+0x0/0x12() returned 0.
+initcall 0xffffffff814be105 ran for 0 msecs: pcibus_class_init+0x0/0x12()
+Calling initcall 0xffffffff814be62c: pci_driver_init+0x0/0x12()
+initcall 0xffffffff814be62c: pci_driver_init+0x0/0x12() returned 0.
+initcall 0xffffffff814be62c ran for 0 msecs: pci_driver_init+0x0/0x12()
+Calling initcall 0xffffffff814becf6: backlight_class_init+0x0/0x49()
+initcall 0xffffffff814becf6: backlight_class_init+0x0/0x49() returned 0.
+initcall 0xffffffff814becf6 ran for 0 msecs: backlight_class_init+0x0/0x49()
+Calling initcall 0xffffffff814c1da5: tty_class_init+0x0/0x2a()
+initcall 0xffffffff814c1da5: tty_class_init+0x0/0x2a() returned 0.
+initcall 0xffffffff814c1da5 ran for 0 msecs: tty_class_init+0x0/0x2a()
+Calling initcall 0xffffffff814c27bd: vtconsole_class_init+0x0/0xba()
+initcall 0xffffffff814c27bd: vtconsole_class_init+0x0/0xba() returned 0.
+initcall 0xffffffff814c27bd ran for 0 msecs: vtconsole_class_init+0x0/0xba()
+Calling initcall 0xffffffff814c37b3: register_node_type+0x0/0x6b()
+initcall 0xffffffff814c37b3: register_node_type+0x0/0x6b() returned 0.
+initcall 0xffffffff814c37b3 ran for 0 msecs: register_node_type+0x0/0x6b()
+Calling initcall 0xffffffff814ad2ea: mtrr_if_init+0x0/0x6c()
+initcall 0xffffffff814ad2ea: mtrr_if_init+0x0/0x6c() returned 0.
+initcall 0xffffffff814ad2ea ran for 0 msecs: mtrr_if_init+0x0/0x6c()
+Calling initcall 0xffffffff814ae2bc: ffh_cstate_init+0x0/0x31()
+initcall 0xffffffff814ae2bc: ffh_cstate_init+0x0/0x31() returned -1.
+initcall 0xffffffff814ae2bc ran for 0 msecs: ffh_cstate_init+0x0/0x31()
+initcall at 0xffffffff814ae2bc: ffh_cstate_init+0x0/0x31(): returned with
+error code -1
+Calling initcall 0xffffffff814be81e: acpi_pci_init+0x0/0x4a()
+ACPI: bus type pci registered
+initcall 0xffffffff814be81e: acpi_pci_init+0x0/0x4a() returned 0.
+initcall 0xffffffff814be81e ran for 16 msecs: acpi_pci_init+0x0/0x4a()
+Calling initcall 0xffffffff814c0a02: init_acpi_device_notify+0x0/0x4b()
+initcall 0xffffffff814c0a02: init_acpi_device_notify+0x0/0x4b() returned 0.
+initcall 0xffffffff814c0a02 ran for 0 msecs:
+init_acpi_device_notify+0x0/0x4b()
+Calling initcall 0xffffffff814c5392: dmi_id_init+0x0/0x2e9()
+initcall 0xffffffff814c5392: dmi_id_init+0x0/0x2e9() returned 0.
+initcall 0xffffffff814c5392 ran for 0 msecs: dmi_id_init+0x0/0x2e9()
+Calling initcall 0xffffffff814c5dd5: pci_access_init+0x0/0x46()
+PCI: Using configuration type 1
+initcall 0xffffffff814c5dd5: pci_access_init+0x0/0x46() returned 0.
+initcall 0xffffffff814c5dd5 ran for 17 msecs: pci_access_init+0x0/0x46()
+Calling initcall 0xffffffff814ad12d: mtrr_init_finialize+0x0/0x34()
+initcall 0xffffffff814ad12d: mtrr_init_finialize+0x0/0x34() returned 0.
+initcall 0xffffffff814ad12d ran for 0 msecs: mtrr_init_finialize+0x0/0x34()
+Calling initcall 0xffffffff814b3117: topology_init+0x0/0x89()
+initcall 0xffffffff814b3117: topology_init+0x0/0x89() returned 0.
+initcall 0xffffffff814b3117 ran for 0 msecs: topology_init+0x0/0x89()
+Calling initcall 0xffffffff814b669f: param_sysfs_init+0x0/0x1b1()
+initcall 0xffffffff814b669f: param_sysfs_init+0x0/0x1b1() returned 0.
+initcall 0xffffffff814b669f ran for 0 msecs: param_sysfs_init+0x0/0x1b1()
+Calling initcall 0xffffffff81068dc4: pm_sysrq_init+0x0/0x19()
+initcall 0xffffffff81068dc4: pm_sysrq_init+0x0/0x19() returned 0.
+initcall 0xffffffff81068dc4 ran for 0 msecs: pm_sysrq_init+0x0/0x19()
+Calling initcall 0xffffffff814ba07c: readahead_init+0x0/0x12()
+initcall 0xffffffff814ba07c: readahead_init+0x0/0x12() returned 0.
+initcall 0xffffffff814ba07c ran for 0 msecs: readahead_init+0x0/0x12()
+Calling initcall 0xffffffff814bb860: init_bio+0x0/0xc5()
+initcall 0xffffffff814bb860: init_bio+0x0/0xc5() returned 0.
+initcall 0xffffffff814bb860 ran for 0 msecs: init_bio+0x0/0xc5()
+Calling initcall 0xffffffff814bd989: genhd_device_init+0x0/0x57()
+initcall 0xffffffff814bd989: genhd_device_init+0x0/0x57() returned 0.
+initcall 0xffffffff814bd989 ran for 0 msecs: genhd_device_init+0x0/0x57()
+Calling initcall 0xffffffff814be868: fbmem_init+0x0/0x95()
+initcall 0xffffffff814be868: fbmem_init+0x0/0x95() returned 0.
+initcall 0xffffffff814be868 ran for 0 msecs: fbmem_init+0x0/0x95()
+Calling initcall 0xffffffff814c0800: acpi_init+0x0/0x202()
+ACPI: EC: Look up 
+
+
+
+--+pHx0qQiF2pBVqBT--
