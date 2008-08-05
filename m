@@ -1,46 +1,119 @@
-From: Norbert Preining <preining@logic.at>
-Subject: Re: ACPI OSI disaster on latest HP laptops - critical temperature shutdown
-Date: Mon, 4 Aug 2008 23:33:30 +0200
-Message-ID: <20080804213330.GA18123@gamma.logic.tuwien.ac.at>
-References: <200807241727.41715.trenn@suse.de> <alpine.LFD.1.10.0807241952270.6098@localhost.localdomain> <200807251319.12786.trenn@suse.de> <alpine.LFD.1.10.0807250948320.3884@localhost.localdomain> <alpine.LFD.1.10.0808011706350.3011@localhost.localdomain> <20080801223657.GD23558@khazad-dum.debian.net> <20080802054204.GB12646@srcf.ucam.org> <20080802143833.GC14069@khazad-dum.debian.net> <20080802144452.GA25565@gamma.logic.tuwien.ac.at> <20080802145141.GA14626@khazad-dum.debian.net>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: Check for ACPI backlight support otherwise use vendor
+	ACPIdrivers - version 4
+Date: Mon, 4 Aug 2008 21:01:52 -0300
+Message-ID: <20080805000151.GJ24927@khazad-dum.debian.net>
+References: <1217605083-31003-1-git-send-email-trenn@suse.de> <1217812580.2969.184.camel@rzhang-dt> <1217830192.4580.8.camel@hidalgo> <200808041220.29892.trenn@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:42269 "EHLO
-	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1764994AbYHDVdm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Aug 2008 17:33:42 -0400
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:56432 "EHLO
+	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755790AbYHEAB6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Aug 2008 20:01:58 -0400
 Content-Disposition: inline
-In-Reply-To: <20080802145141.GA14626@khazad-dum.debian.net>
+In-Reply-To: <200808041220.29892.trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, Thomas Renninger <trenn@suse.de>, Arjan van de Ven <arjan@linux.intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, Christian Kornacker <ckornacker@suse.de>
+To: Thomas Renninger <trenn@suse.de>
+Cc: Yves-Alexis Perez <corsac@debian.org>, Zhang Rui <rui.zhang@intel.com>, ak@linux.intel.com, nokos@gmx.net, linux-acpi@vger.kernel.org, mjg59@srcf.ucam.org
 
-Hi Nerique,
+On Mon, 04 Aug 2008, Thomas Renninger wrote:
+> On Monday 04 August 2008 08:09:52 Yves-Alexis Perez wrote:
+> > On lun, 2008-08-04 at 09:16 +0800, Zhang Rui wrote:
+> > > I think you're using the laptop that this patch does break.
+> > > Please try acpi_backlight=vendor.
+> >
+> > When booting to single user with acpi_backlight=vendor, thinkpad-acpi
+> > takes over backlight:
+> >
+> > Aug  4 07:54:38 hidalgo kernel:
+> > thinkpad_acpi: Disabling thinkpad-acpi brightness events by default...
 
-On Sa, 02 Aug 2008, Henrique de Moraes Holschuh wrote:
-> Yes, it is a call to hwclock.  It recently started to cause lockups on my
-> ThinkPad T43 too (it is a regression of some sort, either in hwclock or the
+See that one?
 
-Thanks a lot for that bit, didn't know and was already scared that my
-laptop was nearing its end. 
+> > But when in user mode, brightness keys doesn't do anything either.
+> > Echo'ing to /proc/acpi/ibm/brightness doesn't work, but echoing
+> > to /sys/class/backlight/thinkpad_screen/brightness works.
+> That /proc/acpi/ibm/brightness does not and
+> /sys/class/backlight/thinkpad_screen/brightness 
+> works is strange, this should be a bug?
 
-> But the thermal hang is something else entirely.  You have at least two
-> different bugs causing you grief.
+No.  It is just that the driver expects ACPI video to be sending the events,
+and it isn't, so you need to change some code in hotkey_init to stop
+disabling brightness events in the (ACPI video support in DSDT, ACPI video
+disabled and thinkpad-acpi is to handle the backlight) case.
 
-We will see how rc2++ behave. Thanks a lot.
+> I wonder whether /proc/acpi/ibm/brightness can be removed soon, people had
+> some time to make use of the generic interface.
 
-Best wishes
+It will go when everything else in /proc/acpi/ibm goes.  Which will happen
+when /proc/acpi goes, or when it is intolerable to keep supporting it for
+some good reason.
 
-Norbert
+> Attached patch might help you (with acpi_backlight=vendor)?
+> You should be able to apply this on my latest patchset, but use this patch
+> instead of the thinkpad_acpi one.
 
--------------------------------------------------------------------------------
-Dr. Norbert Preining <preining@logic.at>        Vienna University of Technology
-Debian Developer <preining@debian.org>                         Debian TeX Group
-gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
--------------------------------------------------------------------------------
-LISTOWEL (n.)
-The small mat on the bar designed to be more absorbent than the bar,
-but not as absorbent as your elbows.
-			--- Douglas Adams, The Meaning of Liff
+HEAVY NAK on the thinkpad-acpi hunks in this one.  It is good for testing,
+but I don't want any automated handling of the brightness hotkeys in
+thinkpad-acpi unless we absolutely HAVE to emulate the older non-Vista
+firmware for some weird reason.  More on this at the end of this post.
+
+Please check if updating hotkey_init doesn't solve the issue.  I am sorry I
+didn't recall that detail to remind you about it when I looked your patches
+over.
+
+> > Cat'ing /proc/acpi/events still gives:
+> > video LCD0 00000086 00000000
+> > video LCD0 00000087 00000000
+> >
+> > At one time I get the 750ms delay, but I don't have the
+> > ibm/hotkey HKEY 00000080 00005010 at all.
+
+This is caused by EC+ACPI DSDT access.  Switch thinkpad-acpi brightness_mode
+to use only ACPI DSDT ("CMOS" mode), and it should go away.  This should be
+the default on all Lenovo, though.
+
+Of course, this also mean you have nothing in userspace messing with the
+RTC NVRAM's brightness bits, because if you do, you will still get bugs.
+
+> @@ -2391,6 +2395,28 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
+>  		case 1:
+>  			/* 0x1000-0x1FFF: key presses */
+>  			scancode = hkey & 0xfff;
+> +			if (tp_features.bright_igdmode) {
+> +				/* ToDo:
+> +				 * Is there an already defined key?
+> +				 */
+> +				if (hkey == 0x1011) {
+> +					if (ibm_backlight_device->
+> +					    props.brightness > 0) {
+> +						ibm_backlight_device->
+> +							props.brightness--;
+> +					}
+> +				} else if (hkey == 0x1010) {
+> +					if (ibm_backlight_device->
+> +					    props.brightness <
+> +					    ibm_backlight_device->
+> +					    props.max_brightness) {
+> +						ibm_backlight_device->
+> +							props.brightness++;
+> +					}
+> +				}
+> +				brightness_update_status(ibm_backlight_device);
+> +			}
+> +
+>  			if (scancode > 0 && scancode < 0x21) {
+>  				scancode--;
+>  				if (!(hotkey_source_mask & (1 << scancode))) {
+
+As I said, the above is NAK'd, except for the call to
+brightness_update_status(ibm_backlight_device), which you should keep if it
+is really needed.
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
