@@ -1,56 +1,52 @@
-From: Yves-Alexis Perez <corsac@debian.org>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 Subject: Re: [PATCH] Add Intel ACPI IGD OpRegion support
-Date: Wed, 06 Aug 2008 07:44:45 +0200
-Message-ID: <1218001485.4540.15.camel@hidalgo>
-References: <20080805183725.GA4468@srcf.ucam.org>
-	 <1217965470.5449.4.camel@hidalgo> <1217972874.4540.3.camel@hidalgo>
-	 <20080806001301.GA10630@srcf.ucam.org>
-	 <20080806023247.GA4665@khazad-dum.debian.net>
+Date: Wed, 6 Aug 2008 07:34:41 +0100
+Message-ID: <20080806063441.GA14455@srcf.ucam.org>
+References: <20080805183725.GA4468@srcf.ucam.org> <1217965470.5449.4.camel@hidalgo> <1217972874.4540.3.camel@hidalgo> <20080806001301.GA10630@srcf.ucam.org> <20080806023247.GA4665@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-RpCPsGp50FHDMkYD7GWa"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from molly.corsac.net ([81.57.48.219]:58973 "EHLO molly.corsac.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751586AbYHFFoo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 6 Aug 2008 01:44:44 -0400
+Received: from cavan.codon.org.uk ([93.93.128.6]:42739 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753369AbYHFGer (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Aug 2008 02:34:47 -0400
+Content-Disposition: inline
 In-Reply-To: <20080806023247.GA4665@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, airlied@linux.ie, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Yves-Alexis Perez <corsac@debian.org>, airlied@linux.ie, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-
---=-RpCPsGp50FHDMkYD7GWa
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
-
-On mar, 2008-08-05 at 23:32 -0300, Henrique de Moraes Holschuh wrote:
-> Well, for what is it worth, thinkpad-acpi has a knob (brightness_mode)
-> which
-> can be used.  Set it to CMOS mode (see docs).  From what I recall, it
-> should
+On Tue, Aug 05, 2008 at 11:32:48PM -0300, Henrique de Moraes Holschuh wrote:
+> On Wed, 06 Aug 2008, Matthew Garrett wrote:
+> > The 750ms delay is from thinkpad-acpi. I sent a patch to Henrique which 
+> > makes it go away, but I'm not entirely sure what the ACPI method 
+> > concerned is supposed to be doing. The opregion code won't currently run 
+> > until X is started because the drm layer requires X to be the foreground 
+> > vt before handling IRQs.
+> 
+> Well, for what is it worth, thinkpad-acpi has a knob (brightness_mode) which
+> can be used.  Set it to CMOS mode (see docs).  From what I recall, it should
 > do what your patch does.
 
-It's worth noting that I get the 750 ms delay even when I reload
-thinkpad-acpi with brightness_mode=3D2 it got it (but maybe I should
-reboot before to be sure no one messed with EC).
-What's strange too is that brightness keys work fine when thinkpad-acpi
-isn't loaded, so everything seems done in video.ko.
+It doesn't seem to, no. I should have been clearer - the delay is in the 
+DSDT (not thinkpad-acpi itself), but there's a Thinkpad-specific ACPI 
+call that seems to be needed in order to delay it. Here's the patch 
+again.
 
-Cheers,
---=20
-Yves-Alexis
+diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
+index b596929..bbc45c8 100644
+--- a/drivers/misc/thinkpad_acpi.c
++++ b/drivers/misc/thinkpad_acpi.c
+@@ -899,6 +899,9 @@ static int __init tpacpi_check_std_acpi_brightness_support(void)
+ 
+ 	if (ACPI_SUCCESS(status) && bcl_levels > 2) {
+ 		tp_features.bright_acpimode = 1;
++		/* Set ACPI mode */
++		if (!acpi_evalf(hkey_handle, NULL, "PWMS", "vd", 0))
++			printk(TPACPI_INFO "Failed to claim backlight\n");
+ 		return (bcl_levels - 2);
+ 	}
 
---=-RpCPsGp50FHDMkYD7GWa
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEABECAAYFAkiZOkcACgkQTUTAIMXAW67+PwCgg6CHAk9Y23tz8UpOUmOryvFA
-WBYAoI4qsRlJhGu/ZW/Y+VUVz2gLiv8L
-=jNYA
------END PGP SIGNATURE-----
-
---=-RpCPsGp50FHDMkYD7GWa--
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
