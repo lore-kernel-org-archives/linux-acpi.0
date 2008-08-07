@@ -1,80 +1,86 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: a problem about the EC mode switch
-Date: Thu, 07 Aug 2008 12:12:54 +0800
-Message-ID: <1218082374.6671.23.camel@yakui_zhao.sh.intel.com>
+From: "S K" <nospamnoham@gmail.com>
+Subject: Re: cpufreq doesn't seem to work in Intel Q9300
+Date: Thu, 7 Aug 2008 02:35:02 -0700
+Message-ID: <514e099a0808070235qd36628cta191018763875422@mail.gmail.com>
+References: <514e099a0808030300u140a0ae7m92a2e7294f39f7b7@mail.gmail.com>
+	 <48958901.06a0100a.35d6.2df9@mx.google.com>
+	 <514e099a0808032206n192fc973u24b31def6555dbec@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:65165 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752321AbYHGD7U (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 6 Aug 2008 23:59:20 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755234AbYHGMZA@vger.kernel.org>
+In-Reply-To: <514e099a0808032206n192fc973u24b31def6555dbec@mail.gmail.com>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: none <aj504@student.cs.york.ac.uk>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: astarikovskiy@suse.de
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
 
-Hi, Alexey
-    There is a question about EC mode switch and I expect to discuss it with you.
-    I am not sure whether the following is appropriate.
+Anyone care to help?
 
-Subject: ACPI: Avoid bogus EC mode switch from interrupt to polling
->From : Zhao Yakui <yakui.zhao@intel.com>
+-SK
 
-When EC works in GPE interrupt mode, sometimes it will be switched from
-interrupt mode to polling mode when EC timeout happens.
-     if (wait_event_timeout(ec->wait, acpi_ec_check_status(ec, event),
-                msecs_to_jiffies(ACPI_EC_DELAY)))
-	      return 0;
-	
-In fact in Linux although one process is already by wakeup by some events
-(For example: interrupt wakeup, timeout wakeup), it won't be scheduled
-immediately. Maybe it will have to wait for some time before it is scheduled
-on some CPU. In such case maybe the following phenomena will happen.
-       OS will check the EC status before the process is added to sleeping 
-        waitqueue.If the EC status is not what we expect, it will be added to
-	the sleeping waitqueue. Of course the state of the process will be
-	changed to TASK_UNINTERRUPTIBLE.When the EC GPE interrupt is triggered,
-        the waiting process will be waked up in the GPE interrupt service routine. 
-        But as the process can't be scheduled immediately, maybe the wait_event_timeout will 
-	also return 0, which means that timeout happens and EC will be 
-	switched from interrupt mode to polling mode. 
-
-As when the EC_FLAGS_WAIT_GPE bit will be cleared in GPE handler, Maybe it 
-will be appropriate that OS check the EC_FLAGS_WAIT_GPE bit of EC flag and 
-EC status before mode switch although timeout happens. If the bit of 
-EC_FLAGS_WAIT_GPE is cleared and EC status is what we expect, OS won't
-switch EC work mode even when the timeout happens. Otherwise it will continue
-the orignal routine.
-
----
- drivers/acpi/ec.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
-
-Index: linux-2.6/drivers/acpi/ec.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/ec.c
-+++ linux-2.6/drivers/acpi/ec.c
-@@ -178,6 +178,15 @@ static int acpi_ec_wait(struct acpi_ec *
- 		if (wait_event_timeout(ec->wait, acpi_ec_check_status(ec, event),
- 				       msecs_to_jiffies(ACPI_EC_DELAY)))
- 			return 0;
-+		/*
-+		 * If the EC_FLAGS_WAI_GPE bit is already clear and EC status
-+		 * is what OS expects, it won't be switched interrupt mode to
-+		 * polling mode.
-+		 */
-+		if (!test_bit(EC_FLAGS_WAIT_GPE, &ec->flags) &&
-+			acpi_ec_check_status(ec, event))
-+			return 0;
-+
- 		clear_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
- 		if (acpi_ec_check_status(ec, event)) {
- 			/* missing GPEs, switch back to poll mode */
-
-   
-     
-
-    
-
+2008/8/3 S K <nospamnoham@gmail.com>:
+> Hi,
+>
+>  I'm attaching the acpidump output. Can someone (ACPI guys??) please
+> me help figure this out?
+> Is there any other info that's needed to debug this?
+>
+> I can be a tester for this and even do some development within the
+> limits of my understanding.
+>
+> Thanks,
+> SK
+>
+> On Sun, Aug 3, 2008 at 3:31 AM, none <aj504@student.cs.york.ac.uk> wrote:
+>> S K wrote:
+>>> Hi,
+>>>
+>>>   I have an Intel Core 2 Quad and running kernel
+>>> 2.6.25.11-97.fc9.i686. cpufreq doesn't seem to work. The cpufreq
+>>> scaling monitor in Gnome says CPU Freq scaling is not supported in my
+>>> CPU. The CPU can run at 2.0 and 2.5 GHz but mine always runs at 2.5
+>>> GHz in Linux.
+>>>
+>>> So I checked  /sys and there is no cpufreq dir in /sys/...
+>>>
+>>> # ls /sys/devices/system/cpu/
+>>> cpu0  cpu1  cpu2  cpu3  cpuidle  sched_mc_power_savings
+>>> # ls /sys/devices/system/cpu/cpuidle/
+>>> current_driver  current_governor_ro
+>>>
+>>> I have no clue what cpuidle directory is for.
+>>>
+>>> I added cpufreq.debug=7 in kernel boot params and saw the following in
+>>> the dmesg:
+>>>
+>>> speedstep-smi: No supported Intel CPU detected.
+>>> cpufreq-core: CPU 0: _PPC is 0 - frequency not limited
+>>> cpufreq-core: CPU 3: _PPC is 0 - frequency not limited
+>>> cpufreq-core: CPU 1: _PPC is 0 - frequency not limited
+>>> cpufreq-core: CPU 2: _PPC is 0 - frequency not limited
+>>> cpuidle: using governor ladder
+>>> cpuidle: using governor menu
+>>>
+>>> I looked at arch/x86/kernel/cpu/cpufreq/speedstep-smi.c and it seems
+>>> to detect only Pentium IIIs.
+>>>
+>>> Anyone know what files have the cpufreq code for Intel Core 2?
+>>> Does cpufreq support Intel Core 2 Quads? Especially the Q9300? If not,
+>>> anything I can do to help?
+>>
+>> I have an Intel Core 2 Duo and it uses the ACPI cpufreq driver; your
+>> Quad should do the same.  So this is likely an ACPI/BIOS issue.
+>>
+>> If you ask ACPI people they will ask you to post the output of acpidump.
+>> Also you should probably check if you have a BIOS option that needs to be
+>> enabled for this to work.
+>>
+>> BTW, cpuidle is something quite different, it is about how to save power
+>> when CPU is doing nothing (i.e. idle :-).  Cpu frequency scaling is how to
+>> save power when CPU is working (but doesn't need to run flat out).
+>>
+>> Alan
+>>
+>
