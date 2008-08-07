@@ -1,53 +1,73 @@
-From: "Kleen, Andi" <andi.kleen@intel.com>
-Subject: RE: ACPICA patch set, release 20080701 & 20080729
-Date: Thu, 7 Aug 2008 22:10:29 +0100
-Message-ID: <38E5333AA17D0A4DABBB33D71000D2908037BB@swsmsx411.ger.corp.intel.com>
-References: <1217837747.2569.22.camel@minggr>
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: 2.6.27-rc1: critical thermal shutdown on thinkpad x60
+Date: Thu, 7 Aug 2008 12:38:18 +0200
+Message-ID: <20080807103818.GA1576@elf.ucw.cz>
+References: <20080806090246.GA1572@elf.ucw.cz> <20080807091318.GA1585@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:44947 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750769AbYHGVKm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Aug 2008 17:10:42 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <1217837747.2569.22.camel@minggr>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:45537 "EHLO
+	gprs189-60.eurotel.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753907AbYHGVMZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Aug 2008 17:12:25 -0400
+Content-Disposition: inline
+In-Reply-To: <20080807091318.GA1585@elf.ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Lin, Ming M" <ming.m.lin@intel.com>, "Moore, Robert" <robert.moore@intel.com>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>
+To: kernel list <linux-kernel@vger.kernel.org>, ACPI mailing list <linux-acpi@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
 
+Hi!
 
- 
+> > Aug  6 11:00:10 amd kernel: ACPI: Critical trip point
+> > Aug  6 11:00:10 amd kernel: Critical temperature reached (128 C),
+> > shutting down.
+> > Aug  6 11:00:10 amd shutdown[24414]: shutting down for system halt
+> > 
+> > ...and machine went down at that point :-(.
+> 
+> This one is quite repeatable:
+> 
+> Aug  7 10:46:24 amd dhclient: DHCPACK from 10.20.0.2
+> Aug  7 10:46:24 amd dhclient: bound to 10.20.5.28 -- renewal in 7200
+> seconds.
+> Aug  7 10:50:46 amd kernel: thinkpad_acpi: unhandled HKEY event 0x6022
+> Aug  7 10:51:03 amd last message repeated 48 times
+> Aug  7 10:51:05 amd kernel: ACPI: Critical trip point
+> Aug  7 10:51:05 amd kernel: Critical temperature reached (128 C),
+> shutting down.
+> Aug  7 10:51:05 amd shutdown[1928]: shutting down for system halt
+> Aug  7 10:51:06 amd init: Switching to runlevel: 0
+> Aug  7 10:51:06 amd kernel: thinkpad_acpi: unhandled HKEY event 0x6022
+> Aug  7 10:51:09 amd last message repeated 7 times
+> Aug  7 10:51:09 amd kernel: ACPI: Critical trip point
+> Aug  7 10:51:09 amd kernel: Critical temperature reached (128 C),
+> shutting down.
+> Aug  7 10:51:12 amd exiting on signal 15
+> Aug  7 10:54:01 amd syslogd 1.5.0#1: restart.
+> Aug  7 10:54:01 amd kernel: klogd 1.5.0#1, log source = /proc/kmsg
+> started.
+> 
+> ...and it does not seem to be stray reading from the sensor: cat
+> /proc/acpi/therm*/*/* shows the bogus value in like 5 consecutive
+> readings.
+> 
+> Plus the temperature rises up to 95C before this triggers, and machine
+> is so hot it refuses to start again. Trip points seem to assume 128C,
+> too:
+> 
+> root@amd:~# cat /proc/acpi/thermal_zone/THM*/trip*
+> critical (S5):           127 C
+> critical (S5):           97 C
+> passive:                 93 C: tc1=5 tc2=4 tsp=600 devices=CPU0 CPU1
+> root@amd:~#
 
->-----Original Message-----
->From: Lin, Ming M 
->Sent: Monday, August 04, 2008 10:16 AM
->To: Kleen, Andi; Moore, Robert
->Cc: linux-acpi
->Subject: ACPICA patch set, release 20080701 & 20080729
->
->Hi, Andi
->
->ACPICA release 20080701 & 20080729 patch set for linux attached.
->I generated this patch set on top of Linus tree.
->
->To apply,
->
->#git-pull linus tree
->#git-am R07_29_08.mbox
->
->We now have gaps of 2 release, 20080701 & 20080729, between standard
->acpica and linux acpica.
->
->Would you please apply this patch set for 2.6.27-rc2?
+while true; do echo -n; done &
+while true; do echo -n; done &
 
-Does this one actually apply? The last one didn't.
+is enough to trigger this. According to /proc/acpi/ibm, fan is running
+too slowly...?
+									Pavel
 
-And it's far too late for feature patches at this point. Can you 
-extract only the bug fixes and non intrusive cleanups?
-
--Andi
-
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
