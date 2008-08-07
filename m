@@ -1,48 +1,53 @@
-From: Daniel Walker <dwalker@mvista.com>
-Subject: RE: [PATCH 4/5] acpi: remove interpreter lock
-Date: Thu, 07 Aug 2008 14:09:00 -0700
-Message-ID: <1218143340.19162.40.camel@localhost.localdomain>
-References: <1218121178-13779-1-git-send-email-dwalker@mvista.com>
-	 <1218121178-13779-2-git-send-email-dwalker@mvista.com>
-	 <1218121178-13779-3-git-send-email-dwalker@mvista.com>
-	 <1218121178-13779-4-git-send-email-dwalker@mvista.com>
-	 <1218121178-13779-5-git-send-email-dwalker@mvista.com>
-	 <9D39833986E69849A2A8E74C1078B6B3CE1334@orsmsx415.amr.corp.intel.com>
+From: "Kleen, Andi" <andi.kleen@intel.com>
+Subject: RE: ACPICA patch set, release 20080701 & 20080729
+Date: Thu, 7 Aug 2008 22:10:29 +0100
+Message-ID: <38E5333AA17D0A4DABBB33D71000D2908037BB@swsmsx411.ger.corp.intel.com>
+References: <1217837747.2569.22.camel@minggr>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gateway-1237.mvista.com ([63.81.120.158]:24745 "EHLO
-	gateway-1237.mvista.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752563AbYHGVJT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Aug 2008 17:09:19 -0400
-In-Reply-To: <9D39833986E69849A2A8E74C1078B6B3CE1334@orsmsx415.amr.corp.intel.com>
+Received: from mga11.intel.com ([192.55.52.93]:44947 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750769AbYHGVKm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Aug 2008 17:10:42 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <1217837747.2569.22.camel@minggr>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: linux-acpi@vger.kernel.org, Andi Kleen <ak@linux.intel.com>, Matthew Wilcox <matthew@wil.cx>, Peter Zijlstra <peterz@infradead.org>, "Zhao, Yakui" <yakui.zhao@intel.com>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@elte.hu>
+To: "Lin, Ming M" <ming.m.lin@intel.com>, "Moore, Robert" <robert.moore@intel.com>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>
 
-On Thu, 2008-08-07 at 13:32 -0700, Moore, Robert wrote:
-> I believe the point was to allow the handler to execute methods, even
-> from other threads and to not block the interpreter for an unknown
-> amount of time.
-> 
 
-Could you elaborate on this more, I'm not following you.. What do you
-mean by "handler"? The name "interpreter lock" to me sort of indicates
-that it's protecting the interpreter. So I'm guessing the point was to
-stop multiple threads from being inside the interpreter at once.
+ 
 
-If that's the case it doesn't make sense to release the mutex while your
-inside the interpreter. That means another thread could then enter and
-the protection doesn't hold.
+>-----Original Message-----
+>From: Lin, Ming M 
+>Sent: Monday, August 04, 2008 10:16 AM
+>To: Kleen, Andi; Moore, Robert
+>Cc: linux-acpi
+>Subject: ACPICA patch set, release 20080701 & 20080729
+>
+>Hi, Andi
+>
+>ACPICA release 20080701 & 20080729 patch set for linux attached.
+>I generated this patch set on top of Linus tree.
+>
+>To apply,
+>
+>#git-pull linus tree
+>#git-am R07_29_08.mbox
+>
+>We now have gaps of 2 release, 20080701 & 20080729, between standard
+>acpica and linux acpica.
+>
+>Would you please apply this patch set for 2.6.27-rc2?
 
-It looked like most if the interpreter functions allocate their own
-memory, then use that memory without sharing it with other instances of
-the interpreter. So it's all contained into the one thread. 
+Does this one actually apply? The last one didn't.
 
-You also have the mutexes embedded in the AML , which seem to indicate
-the AML is thread safe (might be a big assumption tho).
+And it's far too late for feature patches at this point. Can you 
+extract only the bug fixes and non intrusive cleanups?
 
-Daniel
+-Andi
 
