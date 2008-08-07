@@ -1,81 +1,48 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: 2.6.27-rc0 Power Bugs with HP/Compaq Laptops
-Date: Thu, 7 Aug 2008 23:00:20 +0200
-Message-ID: <200808072300.21771.rjw@sisk.pl>
-References: <680ad8bc0808070757u49e13b3br1f69fb4881dc44ce@mail.gmail.com>
+From: Daniel Walker <dwalker@mvista.com>
+Subject: RE: [PATCH 4/5] acpi: remove interpreter lock
+Date: Thu, 07 Aug 2008 14:09:00 -0700
+Message-ID: <1218143340.19162.40.camel@localhost.localdomain>
+References: <1218121178-13779-1-git-send-email-dwalker@mvista.com>
+	 <1218121178-13779-2-git-send-email-dwalker@mvista.com>
+	 <1218121178-13779-3-git-send-email-dwalker@mvista.com>
+	 <1218121178-13779-4-git-send-email-dwalker@mvista.com>
+	 <1218121178-13779-5-git-send-email-dwalker@mvista.com>
+	 <9D39833986E69849A2A8E74C1078B6B3CE1334@orsmsx415.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:36605 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753807AbYHGU5u (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 Aug 2008 16:57:50 -0400
-In-Reply-To: <680ad8bc0808070757u49e13b3br1f69fb4881dc44ce@mail.gmail.com>
-Content-Disposition: inline
+Received: from gateway-1237.mvista.com ([63.81.120.158]:24745 "EHLO
+	gateway-1237.mvista.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752563AbYHGVJT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Aug 2008 17:09:19 -0400
+In-Reply-To: <9D39833986E69849A2A8E74C1078B6B3CE1334@orsmsx415.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matt Parnell <mparnell@gmail.com>
-Cc: linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, pm list <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: linux-acpi@vger.kernel.org, Andi Kleen <ak@linux.intel.com>, Matthew Wilcox <matthew@wil.cx>, Peter Zijlstra <peterz@infradead.org>, "Zhao, Yakui" <yakui.zhao@intel.com>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@elte.hu>
 
-[Adding CCs]
-
-On Thursday, 7 of August 2008, Matt Parnell wrote:
-> I have had a long ongoing ordeal dealing with the problems associated
-> with the HP Pavilion Laptops, mine being a dv9000 series. It seems
-> that these either have a broken HPET table, a missing HPET table, or
-> some other ACPI issue, as this thing has always had many issues
-> regarding ACPI. First, C1E was broken until I totally disabled it with
-> a patch, but since .27, that code has been rewritten, and now for some
-> reason HPET isn't working anymore, as I have to set the
-> clocksource=tsc. On top of that, the tsc clocksource is unstable, and
-> with or without dynticks the .27 kernels on my laptop feel slower, and
-> laggy, as even KDE slows down whilest using it. Everything works fine
-> if I disable the local apic (lapic), but when I do, only one of my CPU
-> cores is detected and used, and the CPU frequency scaling doesn't work
-> either. No matter what I do with .27, it just won't work.
-> 
-> I've tried with the linux next kernel as suggested by Eduard Munteanu,
-> to no avail with the same problem. He said this:
-> 
-> "This is not the right fix. Instead, HPET should be used as a timer
-> source for dynticks. This is not in 2.6.26, but I tried the linux-next
-> tree (google it) and it looked like dynticks worked fine, without
-> disabling C1E. Can't place my finger on the exact commit, but you could
-> check."
-> 
-> Apparently, it's either this or something closely related that is
-> causing such calamity for users of these HP/Compaq laptops as myself.
-> I say this not just for me, as there are many thousands who have
-> issues with these laptops and their crappy bios implementations. Most
-> are n00bs using Ubuntu, who can't even voice what's wrong, as they are
-> new to linux anyway.
-> 
-> That said, here are system specifics regarding the motherboard and make.
-> 
-> HP Pavilion dv9205us
-> Motherboard: Quanta 30B7
-> Processor: AMD Turion 64 x2 3.2ghz, TL-50
-> Bios: Phoenix (this is known to be buggy, but until now I had no
-> problems since 2.6.24. Compiled on Windows, this bios is.)
-> 
-> Other than that, I have no pertinent information, at least until
-> someone asks something specific. I wouldn't be contacting you all if I
-> wasn't at the end of my own resources, as I am part of the Zen kernel
-> community, and they can usually help out with these sorts of things.
-> (zen-sources.org).
-> 
-> Anyway, I appreciate any help/response I can get out of this.
-> 
-> Thanks!
-> Matt Parnell
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
+On Thu, 2008-08-07 at 13:32 -0700, Moore, Robert wrote:
+> I believe the point was to allow the handler to execute methods, even
+> from other threads and to not block the interpreter for an unknown
+> amount of time.
 > 
 
+Could you elaborate on this more, I'm not following you.. What do you
+mean by "handler"? The name "interpreter lock" to me sort of indicates
+that it's protecting the interpreter. So I'm guessing the point was to
+stop multiple threads from being inside the interpreter at once.
+
+If that's the case it doesn't make sense to release the mutex while your
+inside the interpreter. That means another thread could then enter and
+the protection doesn't hold.
+
+It looked like most if the interpreter functions allocate their own
+memory, then use that memory without sharing it with other instances of
+the interpreter. So it's all contained into the one thread. 
+
+You also have the mutexes embedded in the AML , which seem to indicate
+the AML is thread safe (might be a big assumption tho).
+
+Daniel
 
