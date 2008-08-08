@@ -1,68 +1,52 @@
 From: Daniel Walker <dwalker@mvista.com>
 Subject: Re: [PATCH 5/5] acpi: semaphore removal
-Date: Thu, 07 Aug 2008 20:35:37 -0700
-Message-ID: <1218166537.19162.122.camel@localhost.localdomain>
+Date: Thu, 07 Aug 2008 20:47:45 -0700
+Message-ID: <1218167265.19162.132.camel@localhost.localdomain>
 References: <1218121178-13779-1-git-send-email-dwalker@mvista.com>
 	 <1218121178-13779-2-git-send-email-dwalker@mvista.com>
 	 <1218121178-13779-3-git-send-email-dwalker@mvista.com>
 	 <1218121178-13779-4-git-send-email-dwalker@mvista.com>
 	 <1218121178-13779-5-git-send-email-dwalker@mvista.com>
 	 <1218121178-13779-6-git-send-email-dwalker@mvista.com>
-	 <489BB2F4.9010408@linux.intel.com>
+	 <20080808003408.GA8618@parisc-linux.org> <20080808012849.GC24344@disturbed>
+	 <20080808025303.GB8618@parisc-linux.org>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gateway-1237.mvista.com ([63.81.120.158]:58576 "EHLO
+Received: from gateway-1237.mvista.com ([63.81.120.158]:59837 "EHLO
 	gateway-1237.mvista.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753312AbYHHDf6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Aug 2008 23:35:58 -0400
-In-Reply-To: <489BB2F4.9010408@linux.intel.com>
+	with ESMTP id S1751918AbYHHDsG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Aug 2008 23:48:06 -0400
+In-Reply-To: <20080808025303.GB8618@parisc-linux.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <ak@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, Robert Moore <robert.moore@intel.com>, Matthew Wilcox <matthew@wil.cx>, Peter Zijlstra <peterz@infradead.org>, Zhao Yakui <yakui.zhao@intel.com>, Dave Chinner <david@fromorbit.com>, Ingo Molnar <mingo@elte.hu>
+To: Matthew Wilcox <matthew@wil.cx>
+Cc: Dave Chinner <david@fromorbit.com>, linux-acpi@vger.kernel.org, Robert Moore <robert.moore@intel.com>, Andi Kleen <ak@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Zhao Yakui <yakui.zhao@intel.com>, Ingo Molnar <mingo@elte.hu>
 
-On Fri, 2008-08-08 at 04:44 +0200, Andi Kleen wrote:
-> Daniel Walker wrote:
-> > The semaphore usage in ACPI is more like completions. The ASL
-> > functions getting implemented here are signals which follow a
-> > "wait for", signaled, or reset format.
+On Thu, 2008-08-07 at 20:53 -0600, Matthew Wilcox wrote:
+> On Fri, Aug 08, 2008 at 11:28:49AM +1000, Dave Chinner wrote:
+> > > completion_done is an abomination.  Stop this.
 > > 
-> > This implements the ACPI signaling methods with the Linux
-> > completion API, instead of using semaphores.
+> > Say what?
 > > 
-> > completion_done() taken from Dave Chinner.
+> > You've had several opportunities to comment on that *you suggested*
+> > [1]. You did not respond to any of them when it was being discussed
+> > 6 weeks ago  and subsequent resends [2] and now you're saying what
+> > you suggested is an abortion?
 > 
-> I agree with Matthew's earlier criticism. It doesn't make sense to
-> reinvent semaphores using completions when we really need semaphores
-> here for several cases (e.g. the AML locks by themselves)
+> Sorry, I had it confused with these:
+> 
+> http://oss.sgi.com/archives/xfs/2008-06/msg00372.html
 
-Not following you .. The AML locks are strict mutexes (I was happily
-surprised to find out how strict).. The AML signals are just strict
-completions .. I didn't have to mod the completion API to make this
-work, the one API addition could be removed without any ill effects
-(except less debug checking).
 
-It's really a clean replacement .. ACPI has it's own mutex API which now
-just calls the Linux mutex, and that change leaves AML signals as the
-only semaphore user which are completions ..
+I was just saying that completions should be used for resource counting.
+Like the usage in drivers/usb/usb-skeleton.c,
 
-Everything should be fine if Bob just uses two types of locking either
-he uses a mutex, or he uses a semaphore with an initial unit of 0..
-Which appears to be what he's been doing for a while anyway..
+sema_init(&dev->limit_sem, WRITES_IN_FLIGHT);
 
-> So I'm not going to apply this patch.
-
-Ok .. I think the interpreter locking needs to get straightened out
-before it's even considered to be applied ..
-
-> What I'm open for is to convert specific non AML instances
-> of the ACPICA semaphores to mutexes. Such changes would need
-> to be coordinated with Bob of course though because it would affect
-> his codebase. In fact that has been already done for some.
-
-You don't want lockdep checking the AML mutexes?
+This writes in flight usage happens 5-10 times in Linux, and completion
+can fit that usage model .. It's not really locking, it's just counting.
 
 Daniel
 
