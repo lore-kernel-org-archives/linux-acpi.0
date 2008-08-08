@@ -1,49 +1,39 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Regression in 2.6.27-rc2 in acpi_processor_init()
-Date: Fri, 8 Aug 2008 23:02:10 +0200
-Message-ID: <200808082302.11358.rjw@sisk.pl>
-References: <6453C3CB8E2B3646B0D020C112613273C5AC59@sausexmb4.amd.com>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: Re: [PATCH] acpi: replace AE_BAD_ADDRESS exception code with AE_ERROR
+Date: Fri, 8 Aug 2008 22:14:20 +0100
+Message-ID: <200808082214.21230.carlos@strangeworlds.co.uk>
+References: <1218167831.4978.11.camel@minggr.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:42544 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753770AbYHHU7l (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 8 Aug 2008 16:59:41 -0400
-In-Reply-To: <6453C3CB8E2B3646B0D020C112613273C5AC59@sausexmb4.amd.com>
+Received: from phoenix.slamd64.com ([217.10.145.2]:33454 "EHLO
+	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758030AbYHHVOb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Aug 2008 17:14:31 -0400
+In-Reply-To: <1218167831.4978.11.camel@minggr.sh.intel.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Langsdorf, Mark" <mark.langsdorf@amd.com>
-Cc: lkml <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, Andrew Morton <akpm@linux-foundation.org>
+To: Lin Ming <ming.m.lin@intel.com>
+Cc: ak@linux.intel.com, linux-acpi <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-[Adding CCs]
+On Friday 08 August 2008 04:57:11 Lin Ming wrote:
+> Hi, Andi
+>
+> The AE_BAD_ADDRESS exception code is now unused in ACPICA.
+> For linux, it's only used at wmi.c and acer-wmi.c.
+> I checked both wmi.c and acer-wmi.c, the AE_BAD_ADDRESS exception code
+> has no special meaning. The parent functions just call AE_SUCCESS() or
+> AE_FAILURE() to check the return status.
+> So it's safe to replace AE_BAD_ADDRESS with AE_ERROR.
+>
+> Signed-off-by Lin Ming <ming.m.lin@intel.com>
 
-On Friday, 8 of August 2008, Langsdorf, Mark wrote:
-> I got a regression when updated from 2.6.27-rc1 ro
-> 2.6.27-rc2.  The noticeable symptom is the powernow-k8
-> driver stopped working because the call to 
-> acpi_processor_register_performance() is returning
-> -EINVAL.
-> 
-> Digging into the code a bit more, that's occurring
-> because acpi_processor_ppc_status is not set.
-> That should be set in acpi_processor_init(), but
-> that function is failing to register the ACPI
-> processor driver.
-> 
-> I've dug through the code and can't see why 
-> that call would fail.  It doesn't look like there
-> were any changes between 2.6.27-rc1 and 2.6.27-rc2,
-> but I may have missed something.
-> 
-> Any advice or suggestions in debugging this 
-> appreciated.
-> 
-> -Mark Langsdorf
-> Operating System Research Center
-> AMD
+Acked-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
 
-
+-- 
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
