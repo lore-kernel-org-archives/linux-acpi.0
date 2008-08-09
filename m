@@ -1,35 +1,60 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: disk problem at resume on 2.6.27-rc
-Date: Sat, 9 Aug 2008 13:47:31 +0200
-Message-ID: <200808091347.31661.rjw@sisk.pl>
-References: <1218277099.5571.4.camel@hidalgo> <1218278487.5571.6.camel@hidalgo>
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: [linux-pm] Linux Power Management Mini-Summit -- Ottawa -- July 22, 2008
+Date: Sat, 9 Aug 2008 13:09:10 +0200
+Message-ID: <20080809110909.GA12539@ucw.cz>
+References: <alpine.LFD.1.10.0807171724070.16742@localhost.localdomain> <20080718095000.GA5017@in.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:45124 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751466AbYHILpO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 9 Aug 2008 07:45:14 -0400
-In-Reply-To: <1218278487.5571.6.camel@hidalgo>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:2309 "EHLO spitz.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751338AbYHILql (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 9 Aug 2008 07:46:41 -0400
 Content-Disposition: inline
+In-Reply-To: <20080718095000.GA5017@in.ibm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yves-Alexis Perez <corsac@debian.org>
-Cc: linux-acpi@vger.kernel.org
+To: Gautham R Shenoy <ego@in.ibm.com>
+Cc: Len Brown <lenb@kernel.org>, Linux Power Management List <linux-pm@lists.osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-On Saturday, 9 of August 2008, Yves-Alexis Perez wrote:
-> On sam, 2008-08-09 at 12:18 +0200, Yves-Alexis Perez wrote:
-> > At resume, first it takes some time before anything appears on the
-> > screen, then I guess some scary errors about sda.
+On Fri 2008-07-18 04:50:00, Gautham R Shenoy wrote:
+> On Thu, Jul 17, 2008 at 05:27:32PM -0400, Len Brown wrote:
+> > We'll be in The Rideau Suite in Les-Suites
+> > Tuesday July 22nd 8:30-18:30.
+> > 
+> > Thanks to HP for sponsoring
+> > lunch at 12:30 as well as snacks at 10:00 and 15:30.
+> > We'll wing it for dinner.
+> > 
+> > On linux-pm (sorry, on sabbatical I've been
+> > bad about keeping up on email) I've seen
+> > intent to attend from:
+> > 
+> > Len Brown <len.brown@intel.com>
+> > Alan Stern <stern@rowland.harvard.edu>
+> > Dipankar Sarma <dipankar@in.ibm.com>
+> > Rafael J. Wysocki <rjw@sisk.pl>
+> > "Woodruff, Richard" <r-woodruff2@ti.com>
+> > Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
+> > Matt Domsch <Matt_Domsch@dell.com>
+> > Jarod Wilson <jwilson@redhat.com>
+> > Tim Bird <tim.bird@am.sony.com>
+> > Paul Mundt <lethal@linux-sh.org>
+> > Hiroyuki Machida <Hiroyuki.Mach@gmail.com>
+> > 
+> Hi Len,
+> I would like to attend the pm-mini summit if there's a slot available. I
+> am interested in discussing:
 > 
-> Maybe the right thing to do (tm) would be to open a bug report on kernel
-> bugzilla, but I'm not sure against what? ACPI or SATA stuff?
+> a) the improvements to idle load balancing
+> algorithm on multi-node multi-core systems, for better power savings.
+> 
+> b) Use of some kind of light-weight CPU-Hotplug for power-management
+> on server systems.
 
-Please first check if the patch from
-http://bugzilla.kernel.org/show_bug.cgi?id=11178#c10
-fixes the problem for you.
+Step one, fix cpu hotplug not to eat more power than idle cpu...?
 
-Thanks,
-Rafael
+I wonder, how can cpu hotplug help, relative to inteligent scheduler?
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
