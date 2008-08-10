@@ -1,141 +1,60 @@
-From: Dominik Brodowski <linux@dominikbrodowski.net>
+From: Arjan van de Ven <arjan@infradead.org>
 Subject: Re: ACPI PM-Timer on K6-3 SiS5591: Houston...
-Date: Sun, 10 Aug 2008 18:29:20 +0200
-Message-ID: <20080810162920.GA9860@comet.dominikbrodowski.net>
+Date: Sun, 10 Aug 2008 09:40:38 -0700
+Message-ID: <20080810094038.141480b4@infradead.org>
 References: <20080810101730.GA10024@rhlx01.hs-esslingen.de>
+	<20080810162920.GA9860@comet.dominikbrodowski.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from isilmar.linta.de ([213.133.102.198]:37950 "EHLO linta.de"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752104AbYHJQ3a (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 10 Aug 2008 12:29:30 -0400
-Content-Disposition: inline
-In-Reply-To: <20080810101730.GA10024@rhlx01.hs-esslingen.de>
+Received: from casper.infradead.org ([85.118.1.10]:49107 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751472AbYHJQkd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 10 Aug 2008 12:40:33 -0400
+In-Reply-To: <20080810162920.GA9860@comet.dominikbrodowski.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andreas Mohr <andi@lisas.de>
-Cc: LKML <linux-kernel@vger.kernel.org>, john stultz <johnstul@us.ibm.com>, OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>, Alan Cox <alan@lxorguk.ukuu.org.uk>, linux-acpi@vger.kernel.org
+To: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: Andreas Mohr <andi@lisas.de>, LKML <linux-kernel@vger.kernel.org>, john stultz <johnstul@us.ibm.com>, OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>, Alan Cox <alan@lxorguk.ukuu.org.uk>, linux-acpi@vger.kernel.org
 
-Hi Andreas,
+On Sun, 10 Aug 2008 18:29:20 +0200
+Dominik Brodowski <linux@dominikbrodowski.net> wrote:
 
-On Sun, Aug 10, 2008 at 12:17:30PM +0200, Andreas Mohr wrote:
-> Result: catastrophic timer behaviour (a large backwards skip is possible),
-> even in case we do a triple-read workaround, due to a floating bit at
-> 0x0400 (possibly caused by underclocking from 400 to 150, but whatever...).
+> Hi Andreas,
+> 
+> On Sun, Aug 10, 2008 at 12:17:30PM +0200, Andreas Mohr wrote:
+> > Result: catastrophic timer behaviour (a large backwards skip is
+> > possible), even in case we do a triple-read workaround, due to a
+> > floating bit at 0x0400 (possibly caused by underclocking from 400
+> > to 150, but whatever...).
+> 
+> this isn't the bug which is handled by the
+> read-three-times-workaround. Instead, that handels the following
+> PIIX4 errata:
+> 
+>  * PIIX4 Errata:
+>  *
+>  * The power management timer may return improper results when read.
+>  * Although the timer value settles properly after incrementing,
+>  * while incrementing there is a 3 ns window every 69.8 ns where the
+>  * timer value is indeterminate (a 4.2% chance that the data will be
+>  * incorrect when read). As a result, the ACPI free running count up
+>  * timer specification is violated due to erroneous reads.
+> 
+> > And my system does pass the bootup PM-Timer check quite often
+> > despite this severe defect (2 in 4 bootups _did_ register my
+> > defective acpi_pm clocksource).
+> 
+> No surprise there -- it is the first time I see such an error; and it
+> might actually be a bug specific to your computer's motherboard. 
+> 
 
-this isn't the bug which is handled by the read-three-times-workaround.
-Instead, that handels the following PIIX4 errata:
-
- * PIIX4 Errata:
- *
- * The power management timer may return improper results when read.
- * Although the timer value settles properly after incrementing,
- * while incrementing there is a 3 ns window every 69.8 ns where the
- * timer value is indeterminate (a 4.2% chance that the data will be
- * incorrect when read). As a result, the ACPI free running count up
- * timer specification is violated due to erroneous reads.
-
-> And my system does pass the bootup PM-Timer check quite often despite
-> this severe defect (2 in 4 bootups _did_ register my defective
-> acpi_pm clocksource).
-
-No surprise there -- it is the first time I see such an error; and it might
-actually be a bug specific to your computer's motherboard. 
-
-> I realized that in historic versions (e.g. 2.6.12) read_pmtmr()
-> encompassed the _entire_ "triple-reading due to latch bug" logic.
-> Nowadays read_pmtmr() is the raw inline version of a single inl() only!
-> However despite this large change, the initial hardware check
-> (at init_acpi_pm_clocksource()) _kept using_ the now single-read read_pmtmr()
-> as if nothing had happened.
-
-See patch below. Is there a proper format modifier for cycle_t ?
-
-> Both issues are caused by very weak monotony verification in
-> init_acpi_pm_clocksource(), thus that init check should get improved
-> by leaps and bounds instead of stupidly exiting at the very first sign of a
-> working timer (or maybe even create a generic "verify counter increment" function to be used for all sorts of hardware counters of a configurable counter width?).
-> I.e. something like
-> if (timer_ok(timeout_loops, num_checks, counter_width, read_val_func()))
-> 	"everything's ok"
-
-Well, we could do something like this for sure, but I haven't seen any other
-such bug report before...
-
-> - "known good workaround" systems should provide workaround from the beginning
-=> see patch below.
-> - initial timer check should then do at least 10 increment checks with
->   10 of 10 successful
-=> might do this, but currently I'm not yet convinced whether we really need
-it.
-
-Best,
-	Dominik
+if it's really only one board that's faulty... a dmi blacklist might be
+appropriate.
 
 
-acpi_pm.c: use proper read function also in errata mode.
-
-When acpi_pm is used in errata mode (three reads instead of one), also the
-acpi_pm init functions need to use three reads instead of just one.
-
-Thanks to Andreas Mohr for spotting this issue.
-
-Signed-off-by: Dominik Brodowski <linux@dominikbrodowski.de>
-
-diff --git a/drivers/clocksource/acpi_pm.c b/drivers/clocksource/acpi_pm.c
-index 5ca1d80..2c00edd 100644
---- a/drivers/clocksource/acpi_pm.c
-+++ b/drivers/clocksource/acpi_pm.c
-@@ -151,13 +151,13 @@ DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_SERVERWORKS, PCI_DEVICE_ID_SERVERWORKS_LE,
-  */
- static int verify_pmtmr_rate(void)
- {
--	u32 value1, value2;
-+	cycle_t value1, value2;
- 	unsigned long count, delta;
- 
- 	mach_prepare_counter();
--	value1 = read_pmtmr();
-+	value1 = clocksource_acpi_pm.read()
- 	mach_countup(&count);
--	value2 = read_pmtmr();
-+	value2 = clocksource_acpi_pm.read()
- 	delta = (value2 - value1) & ACPI_PM_MASK;
- 
- 	/* Check that the PMTMR delta is within 5% of what we expect */
-@@ -177,7 +177,7 @@ static int verify_pmtmr_rate(void)
- 
- static int __init init_acpi_pm_clocksource(void)
- {
--	u32 value1, value2;
-+	cycle_t value1, value2;
- 	unsigned int i;
- 
- 	if (!pmtmr_ioport)
-@@ -187,9 +187,9 @@ static int __init init_acpi_pm_clocksource(void)
- 						clocksource_acpi_pm.shift);
- 
- 	/* "verify" this timing source: */
--	value1 = read_pmtmr();
-+	value1 = clocksource_acpi_pm.read();
- 	for (i = 0; i < 10000; i++) {
--		value2 = read_pmtmr();
-+		value2 = clocksource_acpi_pm.read();
- 		if (value2 == value1)
- 			continue;
- 		if (value2 > value1)
-@@ -197,11 +197,11 @@ static int __init init_acpi_pm_clocksource(void)
- 		if ((value2 < value1) && ((value2) < 0xFFF))
- 			goto pm_good;
- 		printk(KERN_INFO "PM-Timer had inconsistent results:"
--			" 0x%#x, 0x%#x - aborting.\n", value1, value2);
-+			" 0x%#llx, 0x%#llx - aborting.\n", value1, value2);
- 		return -EINVAL;
- 	}
- 	printk(KERN_INFO "PM-Timer had no reasonable result:"
--			" 0x%#x - aborting.\n", value1);
-+			" 0x%#llx - aborting.\n", value1);
- 	return -ENODEV;
- 
- pm_good:
+-- 
+If you want to reach me at my work email, use arjan@linux.intel.com
+For development, discussion and tips for power savings, 
+visit http://www.lesswatts.org
