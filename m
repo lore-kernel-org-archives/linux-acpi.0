@@ -1,64 +1,46 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: Re: Regression in 2.6.27-rc2 in acpi_processor_init()
-Date: Sun, 10 Aug 2008 11:34:36 +0800
-Message-ID: <1218339276.6671.43.camel@yakui_zhao.sh.intel.com>
-References: <6453C3CB8E2B3646B0D020C112613273C5AC59@sausexmb4.amd.com>
-	 <200808082302.11358.rjw@sisk.pl>
+From: "S K" <nospamnoham@gmail.com>
+Subject: Re: cpufreq doesn't seem to work in Intel Q9300
+Date: Sun, 10 Aug 2008 01:28:00 -0700
+Message-ID: <514e099a0808100128u303207clcb22292db2f0cc59@mail.gmail.com>
+References: <514e099a0808030300u140a0ae7m92a2e7294f39f7b7@mail.gmail.com>
+	 <200808081430.43012.trenn@suse.de>
+	 <aff5deaf0808081123s1fbe6a5cn7847e9cb053c1f5a@mail.gmail.com>
+	 <200808092059.47863.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:3790 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753583AbYHJDUu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 9 Aug 2008 23:20:50 -0400
-In-Reply-To: <200808082302.11358.rjw@sisk.pl>
+Received: from wr-out-0506.google.com ([64.233.184.236]:45655 "EHLO
+	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751713AbYHJI2B (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 10 Aug 2008 04:28:01 -0400
+Received: by wr-out-0506.google.com with SMTP id 69so1128356wri.5
+        for <linux-acpi@vger.kernel.org>; Sun, 10 Aug 2008 01:28:00 -0700 (PDT)
+In-Reply-To: <200808092059.47863.trenn@suse.de>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "Langsdorf, Mark" <mark.langsdorf@amd.com>, lkml <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andi Kleen <andi@firstfloor.org>, Andrew Morton <akpm@linux-foundation.org>
+To: Thomas Renninger <trenn@suse.de>
+Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>, Zhao Yakui <yakui.zhao@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Fri, 2008-08-08 at 23:02 +0200, Rafael J. Wysocki wrote:
-> [Adding CCs]
-> 
-Hi, Mark
-   Will you please attach the output of acpidump on bug 11287?
-   Of course it will be great if you can enable CONFIG_ACPI_DEBUG and
-CONFIG_CPUFREQ_DEBUG in kernel configuration  and boot the system with
-the option of "cpufreq.debug=7 acpi.debug_layer=0x01010000
-acpi.debug_level=0x17".
-   After the system is booted, please attach the output of dmesg.
-   Please do the above test on both kernel 2.6.27-rc1 and 2.6.27-rc2.
+On Sat, Aug 9, 2008 at 11:59 AM, Thomas Renninger <trenn@suse.de> wrote:
+> On Friday 08 August 2008 08:23:25 pm S K wrote:
+>> > Try updating the BIOS.
+>> > I expect your CPU is too new and the BIOS cannot export the correct freq
+>> > values for the specific CPU yet.
+>> >
+>> >      Thomas
+>>
+>> The BIOS is already at the latest version :( Is the above comment the
+>> only possible reason for the issue?
+>
+> It is very likely.
 
-Thanks.
-> On Friday, 8 of August 2008, Langsdorf, Mark wrote:
-> > I got a regression when updated from 2.6.27-rc1 ro
-> > 2.6.27-rc2.  The noticeable symptom is the powernow-k8
-> > driver stopped working because the call to 
-> > acpi_processor_register_performance() is returning
-> > -EINVAL.
-> >
-> > Digging into the code a bit more, that's occurring
-> > because acpi_processor_ppc_status is not set.
-> > That should be set in acpi_processor_init(), but
-> > that function is failing to register the ACPI
-> > processor driver.
-> > 
-> > I've dug through the code and can't see why 
-> > that call would fail.  It doesn't look like there
-> > were any changes between 2.6.27-rc1 and 2.6.27-rc2,
-> > but I may have missed something.
-> > 
-> > Any advice or suggestions in debugging this 
-> > appreciated.
-> > 
-> > -Mark Langsdorf
-> > Operating System Research Center
-> > AMD
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+But Windows XP is able to do the scaling properly. So how can it be a
+BIOS issue? While reading about the Foxconn BIOS fiasco that happened
+recently a kernel dev (forgot his name) stated that Linux tries to
+emulate Windows for ACPI operations.
 
+So I'm guessing this is a kernel bug.
+
+-SK
