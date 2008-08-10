@@ -1,95 +1,106 @@
-From: Andreas Mohr <andi@lisas.de>
+From: Dominik Brodowski <linux@dominikbrodowski.net>
 Subject: Re: ACPI PM-Timer on K6-3 SiS5591: Houston...
-Date: Sun, 10 Aug 2008 21:08:02 +0200
-Message-ID: <20080810190759.GA1879@rhlx01.hs-esslingen.de>
-References: <20080810101730.GA10024@rhlx01.hs-esslingen.de> <20080810162920.GA9860@comet.dominikbrodowski.net>
+Date: Sun, 10 Aug 2008 22:02:24 +0200
+Message-ID: <20080810200224.GA6551@comet.dominikbrodowski.net>
+References: <20080810101730.GA10024@rhlx01.hs-esslingen.de> <20080810162920.GA9860@comet.dominikbrodowski.net> <20080810190759.GA1879@rhlx01.hs-esslingen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rhlx01.hs-esslingen.de ([129.143.116.10]:32890 "EHLO
-	rhlx01.hs-esslingen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753225AbYHJTIG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 10 Aug 2008 15:08:06 -0400
+Received: from isilmar.linta.de ([213.133.102.198]:41722 "EHLO linta.de"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753391AbYHJUCf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 10 Aug 2008 16:02:35 -0400
 Content-Disposition: inline
-In-Reply-To: <20080810162920.GA9860@comet.dominikbrodowski.net>
+In-Reply-To: <20080810190759.GA1879@rhlx01.hs-esslingen.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dominik Brodowski <linux@dominikbrodowski.net>, Andreas Mohr <andi@lisas.de>, LKML <linux-kernel@vger.kernel.org>, john stultz <johnstul@us.ibm.com>, OGAWA Hirofumi <hirofumi@mail.pa>
+To: Andreas Mohr <andi@lisas.de>
+Cc: LKML <linux-kernel@vger.kernel.org>, john stultz <johnstul@us.ibm.com>, OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>, Alan Cox <alan@lxorguk.ukuu.org.uk>, linux-acpi@vger.kernel.org, Arjan van de Ven <arjan@infradead.org>
 
-On Sun, Aug 10, 2008 at 06:29:20PM +0200, Dominik Brodowski wrote:
-> Hi Andreas,
-> 
-> On Sun, Aug 10, 2008 at 12:17:30PM +0200, Andreas Mohr wrote:
-> > Result: catastrophic timer behaviour (a large backwards skip is possible),
-> > even in case we do a triple-read workaround, due to a floating bit at
-> > 0x0400 (possibly caused by underclocking from 400 to 150, but whatever...).
-> 
-> this isn't the bug which is handled by the read-three-times-workaround.
-> Instead, that handels the following PIIX4 errata:
+Hi Andreas,
 
-OK, right, technically this workaround is not related to this
-different bug.
-And it's in fact not this triple-read which has any weakness here but rather
-the init check.
+On Sun, Aug 10, 2008 at 09:08:02PM +0200, Andreas Mohr wrote:
+> And it's in fact not this triple-read which has any weakness here but rather
+> the init check.
 
-> > And my system does pass the bootup PM-Timer check quite often despite
-> > this severe defect (2 in 4 bootups _did_ register my defective
-> > acpi_pm clocksource).
-> 
-> No surprise there -- it is the first time I see such an error; and it might
-> actually be a bug specific to your computer's motherboard. 
+right.
 
-Yeah, might be motherboard only, but likely still chipset-global,
-since probably not too many people tried this beast with ACPI / acpi_pm even
-(we're not even talking about the usual Linux ACPI 2001 blacklist limit
-with this board, more like 1999, 1998 or even 1997 stoneage).
+> IMHO the current init check is too weak, it will catch the very simplest
+> types of problems only, and that's not a good thing.
 
-OK, dmidecode said:
-        Vendor: Award Software International, Inc.
-        Version: 4.51 PG
-        Release Date: 07/05/99
+what about this?
 
-Might be a generic Award date value in this case, but still quite stoneage.
+Best,
+	Dominik
 
 
-> > I realized that in historic versions (e.g. 2.6.12) read_pmtmr()
-> > encompassed the _entire_ "triple-reading due to latch bug" logic.
-> > Nowadays read_pmtmr() is the raw inline version of a single inl() only!
-> > However despite this large change, the initial hardware check
-> > (at init_acpi_pm_clocksource()) _kept using_ the now single-read read_pmtmr()
-> > as if nothing had happened.
-> 
-> See patch below. Is there a proper format modifier for cycle_t ?
+acpi_pm.c: check for monotonicity
 
-_DAMN_ you're fast! ;)
+Expand the check for monotonicity by doing ten tests instead of one. 
 
-Technically it's related to the base type of cycle_t (i.e., u64 and thus
-probably "unsigned long long"), thus %llx is the format specifier
-that I'd have chosen as well.
+Applies on top of "acpi_pm.c: use proper read function also in errata mode."
 
-> Well, we could do something like this for sure, but I haven't seen any other
-> such bug report before...
+Signed-off-by: Dominik Brodowski <linux@dominikbrodowski.de>
 
-I guess I'm treading on new land here...
-
-> > - "known good workaround" systems should provide workaround from the beginning
-> => see patch below.
-> > - initial timer check should then do at least 10 increment checks with
-> >   10 of 10 successful
-> => might do this, but currently I'm not yet convinced whether we really need
-> it.
-
-Even if it's not a systematic chipset / layout error, then I'm sure there's always
-the occasional custom-broken (read: damaged) system which would need a
-useful check to avoid counter-related lockups.
-
-IMHO the current init check is too weak, it will catch the very simplest
-types of problems only, and that's not a good thing.
-
-About Arjan's suggestion to use DMI blacklisting here: not the right
-method here IMHO since one could easily catch such problems generically
-and thus much more reliably than maintaining an ever-growing and thus
-always-incomplete blacklist collection.
-Anyway, he provided important input still ;)
-
-Andreas Mohr
+diff --git a/drivers/clocksource/acpi_pm.c b/drivers/clocksource/acpi_pm.c
+index 2c00edd..f05c4fb 100644
+--- a/drivers/clocksource/acpi_pm.c
++++ b/drivers/clocksource/acpi_pm.c
+@@ -178,7 +178,7 @@ static int verify_pmtmr_rate(void)
+ static int __init init_acpi_pm_clocksource(void)
+ {
+ 	cycle_t value1, value2;
+-	unsigned int i;
++	unsigned int i, j, good = 0;
+ 
+ 	if (!pmtmr_ioport)
+ 		return -ENODEV;
+@@ -187,24 +187,32 @@ static int __init init_acpi_pm_clocksource(void)
+ 						clocksource_acpi_pm.shift);
+ 
+ 	/* "verify" this timing source: */
+-	value1 = clocksource_acpi_pm.read();
+-	for (i = 0; i < 10000; i++) {
+-		value2 = clocksource_acpi_pm.read();
+-		if (value2 == value1)
+-			continue;
+-		if (value2 > value1)
+-			goto pm_good;
+-		if ((value2 < value1) && ((value2) < 0xFFF))
+-			goto pm_good;
+-		printk(KERN_INFO "PM-Timer had inconsistent results:"
+-			" 0x%#llx, 0x%#llx - aborting.\n", value1, value2);
+-		return -EINVAL;
++	for (j = 0; j < 10; j++) {
++		value1 = clocksource_acpi_pm.read();
++		for (i = 0; i < 10000; i++) {
++			value2 = clocksource_acpi_pm.read();
++			if (value2 == value1)
++				continue;
++			if (value2 > value1)
++				good++;
++				break;
++			if ((value2 < value1) && ((value2) < 0xFFF))
++				good++;
++				break;
++			printk(KERN_INFO "PM-Timer had inconsistent results:"
++			       " 0x%#llx, 0x%#llx - aborting.\n",
++			       value1, value2);
++			return -EINVAL;
++		}
++		udelay(300 * i);
++	}
++
++	if (good != 10) {
++		printk(KERN_INFO "PM-Timer had no reasonable result:"
++		       " 0x%#llx - aborting.\n", value1);
++		return -ENODEV;
+ 	}
+-	printk(KERN_INFO "PM-Timer had no reasonable result:"
+-			" 0x%#llx - aborting.\n", value1);
+-	return -ENODEV;
+ 
+-pm_good:
+ 	if (verify_pmtmr_rate() != 0)
+ 		return -ENODEV;
+ 
