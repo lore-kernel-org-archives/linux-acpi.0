@@ -1,49 +1,44 @@
-From: Yves-Alexis Perez <corsac@debian.org>
-Subject: Re: disk problem at resume on 2.6.27-rc
-Date: Sun, 10 Aug 2008 17:41:41 +0200
-Message-ID: <1218382901.9201.0.camel@hidalgo>
-References: <1218277099.5571.4.camel@hidalgo>
-	 <1218278487.5571.6.camel@hidalgo>  <200808091347.31661.rjw@sisk.pl>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Unsupportet Asus Laptop /proc/acpi/dsdt 2.6.26
+Date: Sun, 10 Aug 2008 18:31:50 +0200
+Message-ID: <200808101831.50668.rjw@sisk.pl>
+References: <20080810144723.90840@gmx.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-+sw29Dbjko+AFyxRC9/0"
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from molly.corsac.net ([81.57.48.219]:52967 "EHLO molly.corsac.net"
+Received: from ogre.sisk.pl ([217.79.144.158]:50060 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756796AbYHJPll (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 10 Aug 2008 11:41:41 -0400
-In-Reply-To: <200808091347.31661.rjw@sisk.pl>
+	id S1751501AbYHJQ3A (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 10 Aug 2008 12:29:00 -0400
+In-Reply-To: <20080810144723.90840@gmx.net>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org
+To: wickey@gmx.at
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
+On Sunday, 10 of August 2008, you wrote:
+> Hi!
 
---=-+sw29Dbjko+AFyxRC9/0
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-On sam, 2008-08-09 at 13:47 +0200, Rafael J. Wysocki wrote:
->=20
-> Please first check if the patch from
-> http://bugzilla.kernel.org/show_bug.cgi?id=3D11178#c10
-> fixes the problem for you.
+> dmesg:
+> [   10.084802] Asus Laptop ACPI Extras version 0.30
+> [   10.088918]   unsupported model X55SV, trying default values
+> [   10.088918]   send /proc/acpi/dsdt to the developers
+> 
+> My Laptop is a Asus X55SV-AP166C running with Debian testing with Kernel 2.6.26-1-686 from the Debian unstable repository.
+> 
+> OK, there is a 
+> cat /proc/acpi/dsdt > dsdt
+> in the attachment
+> 
+> I hope it helps you to support this.
+> If you need somthing else, please send a mail to me.
 
-Yes it does! Thanks :)
+You should have posted this message to linux-acpi.
 
-Cheers,
---=20
-Yves-Alexis
-
---=-+sw29Dbjko+AFyxRC9/0
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEABECAAYFAkifDDAACgkQTUTAIMXAW66HjQCfSLxMZTR7QGswIlUngF6KwFuF
-1MQAnRo939+XidBbtxec3S2MGGUNCHfb
-=xs6Q
------END PGP SIGNATURE-----
-
---=-+sw29Dbjko+AFyxRC9/0--
+Thanks,
+Rafael
