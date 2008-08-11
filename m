@@ -1,35 +1,55 @@
-From: "=?ISO-8859-1?Q?Dieter_Sch=F6n?=" <tshinbum@gmail.com>
-Subject: expicitly use XT_PIC interrupt for an old device?
-Date: Mon, 11 Aug 2008 15:24:45 +0200
-Message-ID: <cae665fd0808110624m3c8fe48cp5864d68daba5de76@mail.gmail.com>
+From: Adrian Bunk <bunk@kernel.org>
+Subject: Re: cpufreq doesn't seem to work in Intel Q9300
+Date: Mon, 11 Aug 2008 17:02:06 +0300
+Message-ID: <20080811140206.GB3338@cs181140183.pp.htv.fi>
+References: <514e099a0808030300u140a0ae7m92a2e7294f39f7b7@mail.gmail.com> <200808081430.43012.trenn@suse.de> <aff5deaf0808081123s1fbe6a5cn7847e9cb053c1f5a@mail.gmail.com> <200808092059.47863.trenn@suse.de> <514e099a0808100128u303207clcb22292db2f0cc59@mail.gmail.com> <1218418431.6671.52.camel@yakui_zhao.sh.intel.com> <514e099a0808102144n241c8e9ak255bded0a80744f1@mail.gmail.com> <20080811042244.469f8e1d@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.28]:28927 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751558AbYHKNYq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Aug 2008 09:24:46 -0400
-Received: by yx-out-2324.google.com with SMTP id 8so688556yxm.1
-        for <linux-acpi@vger.kernel.org>; Mon, 11 Aug 2008 06:24:45 -0700 (PDT)
+Received: from smtp4.pp.htv.fi ([213.243.153.38]:36288 "EHLO smtp4.pp.htv.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751700AbYHKODs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 11 Aug 2008 10:03:48 -0400
 Content-Disposition: inline
+In-Reply-To: <20080811042244.469f8e1d@infradead.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Arjan van de Ven <arjan@infradead.org>
+Cc: S K <nospamnoham@gmail.com>, Zhao Yakui <yakui.zhao@intel.com>, Thomas Renninger <trenn@suse.de>, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-hi group,
+On Mon, Aug 11, 2008 at 04:22:44AM -0700, Arjan van de Ven wrote:
+> On Sun, 10 Aug 2008 21:44:50 -0700
+> "S K" <nospamnoham@gmail.com> wrote:
+> 
+> > > But it is very strange that cpufreq scaling can work on Windows XP.
+> > > Will you please try the P4 clock cpufreq driver and see whether the
+> > > scaling can work ? In fact P4 clock cpufreq driver is already
+> > > replaced by acpi_cpufreq driver for the latest cpu.
+> > > Anyway please try p4 clock cpufreq driver.
+> > 
+> > What is the name of the driver? I'm not able to find any such driver
+> > in Fedora 9 installed modules. There is only acpi-cpufreq and
+> > powernow-k8.
+> 
+> yeah don't bother with p4-clockmod, it's not something that saves you
+> energy... it only gives you a fake feeling that you would.
 
-i have to migrate a character device driver for an old synchronus
-serial PCI board (Moxa C502/PCI)
-from 2.2.something to 2.6.5-smp x86_64.
-the problem is, that no interrupts are routed to the driver.
-i was able to get interrupts when i used a non-SMP kernel and the
-"noapic" boot option.
+This statement is only true for HPC environments and when you measure 
+Watts per work done.
 
-is there a way to explicitly force the use of the 8259 when i request
-an interrupt to get the interrupts for this card not routed via the
-APIC?
-any pointers are appreciated.
+But if you have some desktop or server with a load that is determined by 
+when it gets used, then p4-clockmod can actually save energy when the 
+computer is not under high load or even idle.
 
-thanks in advance,
-dieter
+Or do I miss anything?
+
+cu
+Adrian
+
+-- 
+
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
+
