@@ -1,36 +1,72 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH] Clear WAK_STS on resume
-Date: Mon, 11 Aug 2008 14:51:04 +0200
-Message-ID: <200808111451.06343.trenn@suse.de>
-References: <20080806175818.GA27134@srcf.ucam.org> <48A0219B.9070907@linux.intel.com>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Re: Avoid critical temp shutdowns on specific
+	ThinkPad T4x(p) and R50p
+Date: Mon, 11 Aug 2008 13:55:19 +0100
+Message-ID: <20080811125519.GA26308@srcf.ucam.org>
+References: <200807301556.01815.trenn@suse.de>
+	<200808011318.02875.trenn@suse.de>
+	<48A022BD.2040908@linux.intel.com>
+	<200808111433.25275.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.suse.de ([195.135.220.2]:47183 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751419AbYHKMvJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 11 Aug 2008 08:51:09 -0400
-In-Reply-To: <48A0219B.9070907@linux.intel.com>
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <200808111433.25275.trenn-l3A5Bk7waGM@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andi Kleen <ak-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <ak@linux.intel.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, len.brown@intel.com, pavel@suse.cz, rjw@sisk.pl
 
-On Monday 11 August 2008 13:25:15 Andi Kleen wrote:
-> Matthew Garrett wrote:
-> > The leading other brand OS appears to clear the WAK_STS flag on resume.
-> > When rebooted, certain BIOSes assume that the system is actually
-> > resuming if it's still set and so fail to reboot correctly. Make sure
-> > that it's cleared at resume time.
->
-> Queued for test thanks.
+On Mon, Aug 11, 2008 at 02:33:22PM +0200, Thomas Renninger wrote:
+> ---------------
+> include/linux/thermal.h
+> struct thermal_zone_device_ops {
+> ..
+> 	int (*get_temp) (struct thermal_zone_device *, char *);
+> ..
+> }
 
-This sounds like a bug fix, depending on what "fail to reboot correctly" 
-exactly means, it sounds like a critical bug.
-Shouldn't this still be queued for .27?
-Test means for next .28-rc1 cycle?
+You're missing the cleanup patches for the thermal layer that I posted 
+at the same time.
 
-       Thomas
+> So Matthew's patch more looks like a suggestion/proof of concept patch.
+> Another bug I saw by looking over this one:
+> +			tz->ops->get_crit_temp(tz, &crit_temp);
+> +			tz->force_passive_temp = crit_temp-5000;
+> It must get checked whether a critical trip point exists at all.
+
+Yes, the return value for get_crit_temp should be checked. I think 5 
+degrees is safe enough, though - I haven't been able to cause a system 
+to respond too quickly at that point. The polling frequency is increased 
+if the temperature gets within 5 degrees of the new passive trip point.
+
+> This might also have to do with the fact that his first attempts have been 
+> rejected...
+
+?
+
+> If Matthew already has something newer it would be great if we could somehow 
+> coordinate work. Otherwise I will start over on this one. Probably beginning 
+> with a cleanup patch to use long for get_temp and get_trip_temp functions 
+> instead of using char* in struct thermal_zone_device_ops {...}.
+> Zhang: Would that be ok or have I overseen something?
+
+Like I said, that's already done.
+
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+
+-------------------------------------------------------------------------
+This SF.Net email is sponsored by the Moblin Your Move Developer's challenge
+Build the coolest Linux based applications with Moblin SDK & win great prizes
+Grand prize is a trip for two to an Open Source event anywhere in the world
+http://moblin-contest.org/redirect.php?banner_id=100&url=/
