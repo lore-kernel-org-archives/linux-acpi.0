@@ -1,80 +1,51 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: a problem about the EC mode switch
-Date: Mon, 11 Aug 2008 10:35:46 +0800
-Message-ID: <1218422146.6671.66.camel@yakui_zhao.sh.intel.com>
+From: "S K" <nospamnoham@gmail.com>
+Subject: Re: cpufreq doesn't seem to work in Intel Q9300
+Date: Sun, 10 Aug 2008 21:44:50 -0700
+Message-ID: <514e099a0808102144n241c8e9ak255bded0a80744f1@mail.gmail.com>
+References: <514e099a0808030300u140a0ae7m92a2e7294f39f7b7@mail.gmail.com>
+	 <200808081430.43012.trenn@suse.de>
+	 <aff5deaf0808081123s1fbe6a5cn7847e9cb053c1f5a@mail.gmail.com>
+	 <200808092059.47863.trenn@suse.de>
+	 <514e099a0808100128u303207clcb22292db2f0cc59@mail.gmail.com>
+	 <1218418431.6671.52.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:19599 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753510AbYHKCVw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 10 Aug 2008 22:21:52 -0400
+Received: from wr-out-0506.google.com ([64.233.184.239]:32457 "EHLO
+	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750695AbYHKEov (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Aug 2008 00:44:51 -0400
+Received: by wr-out-0506.google.com with SMTP id 69so1275040wri.5
+        for <linux-acpi@vger.kernel.org>; Sun, 10 Aug 2008 21:44:50 -0700 (PDT)
+In-Reply-To: <1218418431.6671.52.camel@yakui_zhao.sh.intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: astarikovskiy@suse.de
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: Thomas Renninger <trenn@suse.de>, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi, Alexey
-    There is a question about EC mode switch and I expect to discuss it with you.
-    I am not sure whether the following is appropriate.
+>> So I'm guessing this is a kernel bug.
+> >From the attached acpidump it seems that there is no definition of
+> _PCT,_PSS, _PPC. So acpi_cpufreq driver can't be used on your machine.
+> This is a BIOS issue.
 
-Subject: ACPI: Avoid bogus EC mode switch from interrupt to polling
->From : Zhao Yakui <yakui.zhao@intel.com>
+Yakui, Did you actually check if the above was true?
 
-When EC works in GPE interrupt mode, sometimes it will be switched from
-interrupt mode to polling mode when EC timeout happens.
-     if (wait_event_timeout(ec->wait, acpi_ec_check_status(ec, event),
-                msecs_to_jiffies(ACPI_EC_DELAY)))
-	      return 0;
-	
-In fact in Linux although one process is already by wakeup by some events
-(For example: interrupt wakeup, timeout wakeup), it won't be scheduled
-immediately. Maybe it will have to wait for some time before it is scheduled
-on some CPU. In such case maybe the following phenomena will happen.
-       OS will check the EC status before the process is added to sleeping 
-        waitqueue.If the EC status is not what we expect, it will be added to
-	the sleeping waitqueue. Of course the state of the process will be
-	changed to TASK_UNINTERRUPTIBLE.When the EC GPE interrupt is triggered,
-        the waiting process will be waked up in the GPE interrupt service routine. 
-        But as the process can't be scheduled immediately, maybe the wait_event_timeout will 
-	also return 0, which means that timeout happens and EC will be 
-	switched from interrupt mode to polling mode. 
+>
+> But it is very strange that cpufreq scaling can work on Windows XP.
+> Will you please try the P4 clock cpufreq driver and see whether the
+> scaling can work ? In fact P4 clock cpufreq driver is already replaced
+> by acpi_cpufreq driver for the latest cpu.
+> Anyway please try p4 clock cpufreq driver.
 
-As when the EC_FLAGS_WAIT_GPE bit will be cleared in GPE handler, Maybe it 
-will be appropriate that OS check the EC_FLAGS_WAIT_GPE bit of EC flag and 
-EC status before mode switch although timeout happens. If the bit of 
-EC_FLAGS_WAIT_GPE is cleared and EC status is what we expect, OS won't
-switch EC work mode even when the timeout happens. Otherwise it will continue
-the orignal routine.
+What is the name of the driver? I'm not able to find any such driver
+in Fedora 9 installed modules. There is only acpi-cpufreq and powernow-k8.
 
----
- drivers/acpi/ec.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+Also, If someone doesn't mind, can they tell me what all files I need to
+replace in Fedora 9 once I get a kernel.org kernel compiled? I know
+how to edit grub.conf,
+and that I should replace vmlinuz, but do I need to replace initrd too?
 
-Index: linux-2.6/drivers/acpi/ec.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/ec.c
-+++ linux-2.6/drivers/acpi/ec.c
-@@ -178,6 +178,15 @@ static int acpi_ec_wait(struct acpi_ec *
- 		if (wait_event_timeout(ec->wait, acpi_ec_check_status(ec, event),
- 				       msecs_to_jiffies(ACPI_EC_DELAY)))
- 			return 0;
-+		/*
-+		 * If the EC_FLAGS_WAI_GPE bit is already clear and EC status
-+		 * is what OS expects, it won't be switched interrupt mode to
-+		 * polling mode.
-+		 */
-+		if (!test_bit(EC_FLAGS_WAIT_GPE, &ec->flags) &&
-+			acpi_ec_check_status(ec, event))
-+			return 0;
-+
- 		clear_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
- 		if (acpi_ec_check_status(ec, event)) {
- 			/* missing GPEs, switch back to poll mode */
-
-   
-     
-
-    
-
+Thanks,
+SK
