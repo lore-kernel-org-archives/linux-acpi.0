@@ -1,31 +1,34 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: Avoid critical temp shutdowns on specific ThinkPad T4x(p) and R50p
-Date: Mon, 11 Aug 2008 15:15:52 +0100
-Message-ID: <20080811141552.GA28294@srcf.ucam.org>
-References: <200807301556.01815.trenn@suse.de> <200808111433.25275.trenn@suse.de> <20080811125519.GA26308@srcf.ucam.org> <200808111614.17161.trenn@suse.de>
+From: =?ISO-8859-15?Q?Dieter_Sch=F6n?= <tshinbum@gmail.com>
+Subject: expicitly use XT_PIC interrupt for an old device?
+Date: Mon, 11 Aug 2008 16:59:51 +0200
+Message-ID: <48A053E7.3090305@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:43326 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751658AbYHKOP7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Aug 2008 10:15:59 -0400
-Content-Disposition: inline
-In-Reply-To: <200808111614.17161.trenn@suse.de>
+Received: from fk-out-0910.google.com ([209.85.128.184]:19030 "EHLO
+	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751189AbYHKPAD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Aug 2008 11:00:03 -0400
+Received: by fk-out-0910.google.com with SMTP id 18so1816828fkq.5
+        for <linux-acpi@vger.kernel.org>; Mon, 11 Aug 2008 08:00:02 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Andi Kleen <ak@linux.intel.com>, Zhang Rui <rui.zhang@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
+To: linux-acpi@vger.kernel.org
 
-On Mon, Aug 11, 2008 at 04:14:14PM +0200, Thomas Renninger wrote:
+hi group,
 
-> So what is the status here, how should we proceed?
-> This isn't applied to any tree yet?
-> IMO you should send those two with below fixed and Andi could queue them on 
-> the test branch and keep it a while there.
+i have to migrate a character device driver for an old synchronus
+serial PCI board (Moxa C502/PCI)
+from 2.2.something to 2.6.5-smp x86_64.
+the problem is, that no interrupts are routed to the driver.
+i was able to get interrupts when i used a non-SMP kernel and the
+"noapic" boot option.
 
-I posted them, got a small amount of feedback and no further acks. I can 
-push them again.
+is there a way to explicitly force the use of the 8259 when i request
+an interrupt to get the interrupts for this card not routed via the
+APIC?
+any pointers are appreciated.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+thanks in advance,
+dieter
