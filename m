@@ -1,69 +1,31 @@
-From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: Avoid critical temp shutdowns on specific
-	ThinkPad T4x(p) and R50p
-Date: Mon, 11 Aug 2008 16:14:14 +0200
-Message-ID: <200808111614.17161.trenn@suse.de>
-References: <200807301556.01815.trenn@suse.de>
-	<200808111433.25275.trenn@suse.de>
-	<20080811125519.GA26308@srcf.ucam.org>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: Avoid critical temp shutdowns on specific ThinkPad T4x(p) and R50p
+Date: Mon, 11 Aug 2008 15:15:52 +0100
+Message-ID: <20080811141552.GA28294@srcf.ucam.org>
+References: <200807301556.01815.trenn@suse.de> <200808111433.25275.trenn@suse.de> <20080811125519.GA26308@srcf.ucam.org> <200808111614.17161.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20080811125519.GA26308-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:43326 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751658AbYHKOP7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Aug 2008 10:15:59 -0400
 Content-Disposition: inline
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andi Kleen <ak-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+In-Reply-To: <200808111614.17161.trenn@suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: Andi Kleen <ak@linux.intel.com>, Zhang Rui <rui.zhang@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
 
-On Monday 11 August 2008 14:55:19 Matthew Garrett wrote:
-> On Mon, Aug 11, 2008 at 02:33:22PM +0200, Thomas Renninger wrote:
-> > ---------------
-> > include/linux/thermal.h
-> > struct thermal_zone_device_ops {
-> > ..
-> > 	int (*get_temp) (struct thermal_zone_device *, char *);
-> > ..
-> > }
->
-> You're missing the cleanup patches for the thermal layer that I posted
-> at the same time.
-So what is the status here, how should we proceed?
-This isn't applied to any tree yet?
-IMO you should send those two with below fixed and Andi could queue them on 
-the test branch and keep it a while there.
+On Mon, Aug 11, 2008 at 04:14:14PM +0200, Thomas Renninger wrote:
 
-I could then try to get the ThinkPad thermal shutdown fixed in a generic way 
-on top.
+> So what is the status here, how should we proceed?
+> This isn't applied to any tree yet?
+> IMO you should send those two with below fixed and Andi could queue them on 
+> the test branch and keep it a while there.
 
-> > So Matthew's patch more looks like a suggestion/proof of concept patch.
-> > Another bug I saw by looking over this one:
-> > +			tz->ops->get_crit_temp(tz, &crit_temp);
-> > +			tz->force_passive_temp = crit_temp-5000;
-> > It must get checked whether a critical trip point exists at all.
->
-> Yes, the return value for get_crit_temp should be checked. I think 5
-> degrees is safe enough, though - I haven't been able to cause a system
-> to respond too quickly at that point.
-The temperature of some ThinkPads can raise very quickly.
-> The polling frequency is increased 
-> if the temperature gets within 5 degrees of the new passive trip point.
-Not sure whether this is enough, but I have some people at hand who would 
-thankfully try it out if things could finally be solved for ever in mainline.
+I posted them, got a small amount of feedback and no further acks. I can 
+push them again.
 
-     Thomas
-
--------------------------------------------------------------------------
-This SF.Net email is sponsored by the Moblin Your Move Developer's challenge
-Build the coolest Linux based applications with Moblin SDK & win great prizes
-Grand prize is a trip for two to an Open Source event anywhere in the world
-http://moblin-contest.org/redirect.php?banner_id=100&url=/
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
