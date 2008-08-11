@@ -1,48 +1,29 @@
-From: Arjan van de Ven <arjan@infradead.org>
-Subject: Re: cpufreq doesn't seem to work in Intel Q9300
-Date: Mon, 11 Aug 2008 04:22:44 -0700
-Message-ID: <20080811042244.469f8e1d@infradead.org>
-References: <514e099a0808030300u140a0ae7m92a2e7294f39f7b7@mail.gmail.com>
-	<200808081430.43012.trenn@suse.de>
-	<aff5deaf0808081123s1fbe6a5cn7847e9cb053c1f5a@mail.gmail.com>
-	<200808092059.47863.trenn@suse.de>
-	<514e099a0808100128u303207clcb22292db2f0cc59@mail.gmail.com>
-	<1218418431.6671.52.camel@yakui_zhao.sh.intel.com>
-	<514e099a0808102144n241c8e9ak255bded0a80744f1@mail.gmail.com>
+From: Andi Kleen <ak@linux.intel.com>
+Subject: Re: [PATCH] Clear WAK_STS on resume
+Date: Mon, 11 Aug 2008 13:25:15 +0200
+Message-ID: <48A0219B.9070907@linux.intel.com>
+References: <20080806175818.GA27134@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:36296 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751221AbYHKLWk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Aug 2008 07:22:40 -0400
-In-Reply-To: <514e099a0808102144n241c8e9ak255bded0a80744f1@mail.gmail.com>
+Received: from mga09.intel.com ([134.134.136.24]:41253 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751221AbYHKLZK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 11 Aug 2008 07:25:10 -0400
+In-Reply-To: <20080806175818.GA27134@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: S K <nospamnoham@gmail.com>
-Cc: Zhao Yakui <yakui.zhao@intel.com>, Thomas Renninger <trenn@suse.de>, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-acpi@vger.kernel.org, len.brown@intel.com, pavel@suse.cz, rjw@sisk.pl
 
-On Sun, 10 Aug 2008 21:44:50 -0700
-"S K" <nospamnoham@gmail.com> wrote:
+Matthew Garrett wrote:
+> The leading other brand OS appears to clear the WAK_STS flag on resume. 
+> When rebooted, certain BIOSes assume that the system is actually 
+> resuming if it's still set and so fail to reboot correctly. Make sure 
+> that it's cleared at resume time.
 
+Queued for test thanks.
 
-> >
-> > But it is very strange that cpufreq scaling can work on Windows XP.
-> > Will you please try the P4 clock cpufreq driver and see whether the
-> > scaling can work ? In fact P4 clock cpufreq driver is already
-> > replaced by acpi_cpufreq driver for the latest cpu.
-> > Anyway please try p4 clock cpufreq driver.
-> 
-> What is the name of the driver? I'm not able to find any such driver
-> in Fedora 9 installed modules. There is only acpi-cpufreq and
-> powernow-k8.
-> 
+-Andi
 
-yeah don't bother with p4-clockmod, it's not something that saves you
-energy... it only gives you a fake feeling that you would.
-
--- 
-If you want to reach me at my work email, use arjan@linux.intel.com
-For development, discussion and tips for power savings, 
-visit http://www.lesswatts.org
