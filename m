@@ -1,44 +1,65 @@
 From: Andi Kleen <andi@firstfloor.org>
-Subject: Re: [RESEND] [PATCH 2/4]  ACPI: Get the device power state in the course of scanning device
-Date: Mon, 11 Aug 2008 12:48:59 +0200
-Message-ID: <20080811104859.GN9038@one.firstfloor.org>
-References: <1218437705.6671.84.camel@yakui_zhao.sh.intel.com> <20080811064513.GJ9038@one.firstfloor.org> <1218438140.6671.96.camel@yakui_zhao.sh.intel.com> <20080811065245.GK9038@one.firstfloor.org> <1218441074.6671.113.camel@yakui_zhao.sh.intel.com> <20080811075611.GL9038@one.firstfloor.org> <1218450075.6671.135.camel@yakui_zhao.sh.intel.com>
+Subject: Re: cpufreq doesn't seem to work in Intel Q9300
+Date: Mon, 11 Aug 2008 12:55:11 +0200
+Message-ID: <874p5r3jow.fsf@basil.nowhere.org>
+References: <514e099a0808030300u140a0ae7m92a2e7294f39f7b7@mail.gmail.com>
+	<200808081430.43012.trenn@suse.de>
+	<aff5deaf0808081123s1fbe6a5cn7847e9cb053c1f5a@mail.gmail.com>
+	<200808092059.47863.trenn@suse.de>
+	<514e099a0808100128u303207clcb22292db2f0cc59@mail.gmail.com>
+	<1218418431.6671.52.camel@yakui_zhao.sh.intel.com>
+	<514e099a0808102144n241c8e9ak255bded0a80744f1@mail.gmail.com>
+	<1218432270.6671.75.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from one.firstfloor.org ([213.235.205.2]:37068 "EHLO
+Received: from one.firstfloor.org ([213.235.205.2]:48037 "EHLO
 	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751218AbYHKKrz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Aug 2008 06:47:55 -0400
-Content-Disposition: inline
-In-Reply-To: <1218450075.6671.135.camel@yakui_zhao.sh.intel.com>
+	with ESMTP id S1751338AbYHKKzN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Aug 2008 06:55:13 -0400
+In-Reply-To: <1218432270.6671.75.camel@yakui_zhao.sh.intel.com> (Zhao Yakui's message of "Mon, 11 Aug 2008 13:24:30 +0800")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, lenb@kernel.org
+Cc: S K <nospamnoham@gmail.com>, Thomas Renninger <trenn@suse.de>, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Mon, Aug 11, 2008 at 06:21:15PM +0800, Zhao Yakui wrote:
-> On Mon, 2008-08-11 at 09:56 +0200, Andi Kleen wrote:
-> > > After the patch is applied, Linux will still do the power state check
-> > > unless the boot option of "acpi.power_nocheck=1" is added.  In such case
-> > > it won't affect anything. 
-> > 
-> > Understood that.
-> > 
-> > > In fact we expect that the boot option of "acpi.power_nocheck=1" becomes
-> > > the default. But we will have to wait for more response. Only after more
-> > > tests are done, it will be OK.
-> > 
-> > Ok. 
-> > 
-> > > what the init sequence ordering for .27 means? 
-> > 
-> > The first patch moved acpi_device_set_context to be earlier, so 
-> > the init sequence is different. All the other changes are optional,
-> > as in conditional on the flag, but that one is not.
-> Although the acpi_device_set_context is moved to the earlier in the
-> first patch, it won't break anything.
+Zhao Yakui <yakui.zhao@intel.com> writes:
 
-Well they always say that :) But I'll double check.
+> On Sun, 2008-08-10 at 21:44 -0700, S K wrote:
+>> >> So I'm guessing this is a kernel bug.
+>> > >From the attached acpidump it seems that there is no definition of
+>> > _PCT,_PSS, _PPC. So acpi_cpufreq driver can't be used on your machine.
+>> > This is a BIOS issue.
+>> 
+>> Yakui, Did you actually check if the above was true?
+> Yes. There is no definition of _PSS,_PCT,_PPC in DSDT table, which are
+> required by acpi_cpufreq driver.At the same time there is no extra SSDT
+> table. 
+
+It sounds like the BIOS just doesn't support frequency scaling. 
+Perhaps it's disabled in the BIOS setup. Or the system doesn't
+support it at all. 
+
+If he can't find an option to enable it there he'll have to update it
+and if there is no update he's out of luck.
+
+I don't think Linux should be blamed for it.
+
+>
+>> >
+>> > But it is very strange that cpufreq scaling can work on Windows XP.
+>> > Will you please try the P4 clock cpufreq driver and see whether the
+>> > scaling can work ? In fact P4 clock cpufreq driver is already replaced
+>> > by acpi_cpufreq driver for the latest cpu.
+>> > Anyway please try p4 clock cpufreq driver.
+>> 
+>> What is the name of the driver? I'm not able to find any such driver
+>> in Fedora 9 installed modules. There is only acpi-cpufreq and powernow-k8.
+> The driver is P4-clockmod, which is located in the directory of
+> arch/x86/kernel/cpu/cpufreq
+
+Using p4 clockmod doesn't make sense because it doesn't really
+safe any power and is often very slow.
 
 -Andi
+>> 
