@@ -1,36 +1,38 @@
-From: Andrew Morton <akpm@linux-foundation.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: Panic on boot for x86_64
-Date: Tue, 12 Aug 2008 13:10:45 -0700
-Message-ID: <20080812131045.b89e98b1.akpm@linux-foundation.org>
+Date: Tue, 12 Aug 2008 22:14:53 +0200
+Message-ID: <200808122214.54762.rjw@sisk.pl>
 References: <33307c790808121251t79af0fajf44cebffa8938051@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38764 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751305AbYHLULK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 12 Aug 2008 16:11:10 -0400
+Received: from ogre.sisk.pl ([217.79.144.158]:34463 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751973AbYHLUMM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 Aug 2008 16:12:12 -0400
 In-Reply-To: <33307c790808121251t79af0fajf44cebffa8938051@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Martin Bligh <mbligh@google.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>
+Cc: linux-kernel@vger.kernel.org, Andrew Morton <akpm@google.com>, Andi Kleen <andi@firstfloor.org>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@elte.hu>, "Maciej W. Rozycki" <macro@linux-mips.org>, Thomas Gleixner <tglx@linutronix.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Tue, 12 Aug 2008 12:51:17 -0700
-"Martin Bligh" <mbligh@google.com> wrote:
+[Adding CCs]
 
+On Tuesday, 12 of August 2008, Martin Bligh wrote:
 > x86_64 seems to panic on boot, since 2.6.26-git2 (or maybe -git1,
 > which wouldn't compile)
+
+Well, I use x86_64s all the time and nothing like this happens for me.  A link
+to the failing .config might be helpful.
+
 > 2.6.26 works.
 > 
 > http://test.kernel.org/results/IBM/186461/debug/console
 > 
 > kernel BUG at arch/x86/kernel/io_apic_64.c:356!
-
-add_pin_to_irq() doesn't seem to have changed in three years.
-
 > invalid opcode: 0000 [1] SMP
 > CPU 24
 > Modules linked in:
@@ -87,6 +89,3 @@ add_pin_to_irq() doesn't seem to have changed in three years.
 > 0b eb fe 66 90 48 c7 c7 28 a4 5c 80 31 c0 e8 b2 7d 01 00 66
 > RIP  [<ffffffff8021bb1a>] add_pin_to_irq+0x7a/0x90
 >  RSP <ffff88032e4b9b40>
-
-So this looks like ACPI breakage?
-
