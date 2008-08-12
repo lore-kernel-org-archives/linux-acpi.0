@@ -1,68 +1,47 @@
-From: Dominik Brodowski <linux@dominikbrodowski.net>
+From: Adrian Bunk <bunk@kernel.org>
 Subject: Re: cpufreq doesn't seem to work in Intel Q9300
-Date: Tue, 12 Aug 2008 21:03:02 +0200
-Message-ID: <20080812190302.GA26751@isilmar.linta.de>
-References: <aff5deaf0808081123s1fbe6a5cn7847e9cb053c1f5a@mail.gmail.com> <200808092059.47863.trenn@suse.de> <514e099a0808100128u303207clcb22292db2f0cc59@mail.gmail.com> <1218418431.6671.52.camel@yakui_zhao.sh.intel.com> <514e099a0808102144n241c8e9ak255bded0a80744f1@mail.gmail.com> <20080811042244.469f8e1d@infradead.org> <20080811140206.GB3338@cs181140183.pp.htv.fi> <20080811071128.0165be50@infradead.org> <20080811193316.GA16631@isilmar.linta.de> <20080811165816.679cfdb9@infradead.org>
+Date: Tue, 12 Aug 2008 22:27:21 +0300
+Message-ID: <20080812192721.GB13880@cs181140183.pp.htv.fi>
+References: <514e099a0808100128u303207clcb22292db2f0cc59@mail.gmail.com> <1218418431.6671.52.camel@yakui_zhao.sh.intel.com> <514e099a0808102144n241c8e9ak255bded0a80744f1@mail.gmail.com> <20080811042244.469f8e1d@infradead.org> <20080811140206.GB3338@cs181140183.pp.htv.fi> <20080811071128.0165be50@infradead.org> <20080811160346.GB21292@cs181140183.pp.htv.fi> <20080811092047.42bf716b@infradead.org> <20080811162839.GA22450@cs181140183.pp.htv.fi> <20080811094428.6b69d744@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from isilmar.linta.de ([213.133.102.198]:57250 "EHLO linta.de"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751751AbYHLTDE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 12 Aug 2008 15:03:04 -0400
+Received: from smtp5.pp.htv.fi ([213.243.153.39]:55325 "EHLO smtp5.pp.htv.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751390AbYHLT3I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 Aug 2008 15:29:08 -0400
 Content-Disposition: inline
-In-Reply-To: <20080811165816.679cfdb9@infradead.org>
+In-Reply-To: <20080811094428.6b69d744@infradead.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Arjan van de Ven <arjan@infradead.org>
-Cc: Adrian Bunk <bunk@kernel.org>, S K <nospamnoham@gmail.com>, Zhao Yakui <yakui.zhao@intel.com>, Thomas Renninger <trenn@suse.de>, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: S K <nospamnoham@gmail.com>, Zhao Yakui <yakui.zhao@intel.com>, Thomas Renninger <trenn@suse.de>, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi Arjan,
-
-On Mon, Aug 11, 2008 at 04:58:16PM -0700, Arjan van de Ven wrote:
-> > Hi,
-> > 
-> > On Mon, Aug 11, 2008 at 07:11:28AM -0700, Arjan van de Ven wrote:
-> > > 1) when the cpu is idle (as in "idle loop C states/hlt"; p4_clockmod
-> > > doesn't mean anything.. the clock is stopped not just skipped.
-> > > 2) when the cpu is executing code (eg non-idle), it takes more power
-> > > for a unit of time than it takes when it's idle
-> > 
-> > This statement might be true, but might also be wrong:
-> > 	a) on systems where only C1 is exported, p4-clockmod most
-> > often equals the state the CPU is in when in C1[*], 
+On Mon, Aug 11, 2008 at 09:44:28AM -0700, Arjan van de Ven wrote:
+> On Mon, 11 Aug 2008 19:28:39 +0300
+> Adrian Bunk <bunk@kernel.org> wrote:
 > 
-> that's.. not entirely true btw.
-
-well, the spec isn't really clear about this. It says (IA32 Intel
-Architecture Software Developer's Manual, Volume 3, section 13.14.3) that
-P6 family processors did this using STPCLK#. And STPCLK# was also used by the
-chipset to force the CPU to enter C2, IIRC.
-Do P4s only do an C1-equivalent (or even less than that) now, as they do the
-thermal throttling internally instead of externally using STPCLK#?
-
-> >so we're in a 
-> > 	   win-win, or lose-lose situation.
+> > > 
+> > > yes there is.. for cases where there is overtemperature. Think of
+> > > it as the emergency break in the subway. You really don't want to
+> > > use it but when you need it you're glad it's there.
+> > 
+> > But this only helps when the cooling is working but not good enough,
+> > for the classic "fan broken" case it won't cool down enough.
 > 
-> even if it were EXACTLY identical (which it isn't).. you would be at
-> BEST a tie... not a savings. so it's lose-lose or tie-tie, but never win
+> I would call this an unclassified statement for which you have no data
+> to show that it's correct, at least for Intel cpus in general.
+>...
+ 
+Sorry, I was a bit too surprised after your description.
 
-If it's C2-equivalent vs. C1, it's a win. So throttling would be a win from
-this perspective on a only C1-capable PIII, but not on a P4? Is that what
-you're trying to hint at here?
+cu
+Adrian
 
-To summarize:
+-- 
 
-(1) p6 family processors use STPCLK# initiated by the chipset for thermal
-    throttling.
-(2) STPCLK# is also used by the chipset to make the CPU enter C2.
-(3) p4-clockmod uses the STPCLK#-equivalent in p4 CPUs.
-(4) Therefore, it is as effective as STPCLK#, and as effective as C2.
-(5) STPCLK#/C2 has higher energy savings than hlt/C1.
-(6) therefore, p4-clockmod might make sense on systems which only export C1
-    as an idle state.
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
 
-Where's my mistake?
-
-Thanks,
-	Dominik
