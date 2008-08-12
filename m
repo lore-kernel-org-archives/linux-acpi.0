@@ -1,84 +1,64 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: [PATCH] ACPI : Add the EC dmi table to fix the incorrect ECDT table
-Date: Tue, 12 Aug 2008 10:40:10 +0800
-Message-ID: <1218508810.3998.17.camel@yakui_zhao.sh.intel.com>
+From: "S K" <nospamnoham@gmail.com>
+Subject: Re: cpufreq doesn't seem to work in Intel Q9300
+Date: Mon, 11 Aug 2008 22:43:38 -0700
+Message-ID: <514e099a0808112243r78a79e3ck19a1440962b5cb0@mail.gmail.com>
+References: <514e099a0808030300u140a0ae7m92a2e7294f39f7b7@mail.gmail.com>
+	 <aff5deaf0808081123s1fbe6a5cn7847e9cb053c1f5a@mail.gmail.com>
+	 <200808092059.47863.trenn@suse.de>
+	 <514e099a0808100128u303207clcb22292db2f0cc59@mail.gmail.com>
+	 <1218418431.6671.52.camel@yakui_zhao.sh.intel.com>
+	 <514e099a0808102144n241c8e9ak255bded0a80744f1@mail.gmail.com>
+	 <1218432270.6671.75.camel@yakui_zhao.sh.intel.com>
+	 <874p5r3jow.fsf@basil.nowhere.org>
+	 <514e099a0808110615i42ade5dctc31d87b483095e35@mail.gmail.com>
+	 <20080811132332.GR9038@one.firstfloor.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:32188 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751087AbYHLC0K (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 11 Aug 2008 22:26:10 -0400
+Received: from wr-out-0506.google.com ([64.233.184.238]:48147 "EHLO
+	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751195AbYHLFnk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Aug 2008 01:43:40 -0400
+Received: by wr-out-0506.google.com with SMTP id 69so1744460wri.5
+        for <linux-acpi@vger.kernel.org>; Mon, 11 Aug 2008 22:43:39 -0700 (PDT)
+In-Reply-To: <20080811132332.GR9038@one.firstfloor.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Andi Kleen <andi@firstfloor.org>
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
+Cc: Zhao Yakui <yakui.zhao@intel.com>, Thomas Renninger <trenn@suse.de>, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-SUBJECT: ACPI : Add the EC dmi table to fix the incorrect ECDT table
->From : Zhao Yakui <yakui.zhao@intel.com>
+Wow! Didn't mean to start a "tech war" here (point's at the long
+thread arguing the use of p4-clockmod).
 
-On some ASUS laptops the ECDT gives the incorrect command/status & Data I/O
-register address. In such case it will cause that EC device can't be 
-initialized correctly.
-To add the EC dmi table is to fix this issue. If the laptop falls into the 
-EC dmi table, the EC command/data I/O address will be fixed.
+>> It works in Windows XP, so I'm not sure if it's only a BIOS issue.
+>
+> On Windows platform drivers sometimes provide a replacement DSDT
+> that might enable cpufreq. If that's the case there's nothing
+> we can do really on the Linux side. You might be able to extract
+> that DSDT from somewhere and supply it to Linux as a replacement
+> DSDT, but that's not a supported configuration in the kernel.
 
-http://bugzilla.kernel.org/show_bug.cgi?id=9399
+I don't remember installing any special driver for Windows XP.
+Since you claim that as a possibility, is there something that I can look
+for to check if this is the case?
 
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-tested-by    : Jan Kasprzak  <kas@fi.muni.cz>
----
- drivers/acpi/ec.c |   30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+The reason I'm questioning this so much is because I plan to contact
+Shuttle tech support and try to get them to fix this if it really is a BIOS
+issue. But I need valid points to make sure they don't pass on the
+blame and slip away. They do seem to release BIOS updates now and then
+so I'm hoping I can coax them to release one.
 
-Index: linux-2.6/drivers/acpi/ec.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/ec.c
-+++ linux-2.6/drivers/acpi/ec.c
-@@ -110,6 +110,27 @@ static struct acpi_ec {
- 	u8 handlers_installed;
- } *boot_ec, *first_ec;
- 
-+static int print_ecdt_error(const struct dmi_system_id *id)
-+{
-+	printk(KERN_NOTICE PREFIX "%s detected - "
-+		"ECDT gives the incorrect command/data I/O address\n",
-+		id->ident);
-+	return 0;
-+}
-+static struct dmi_system_id __cpuinitdata ec_dmi_table[] = {
-+	{
-+	print_ecdt_error, "Asus L4R", {
-+	DMI_MATCH(DMI_BIOS_VERSION, "1008.006"),
-+	DMI_MATCH(DMI_PRODUCT_NAME, "L4R"),
-+	DMI_MATCH(DMI_BOARD_NAME, "L4R") }, NULL},
-+	{
-+	print_ecdt_error, "Asus M6R", {
-+	DMI_MATCH(DMI_BIOS_VERSION, "0207"),
-+	DMI_MATCH(DMI_PRODUCT_NAME, "M6R"),
-+	DMI_MATCH(DMI_BOARD_NAME, "M6R") }, NULL},
-+	{},
-+};
-+
- /* --------------------------------------------------------------------------
-                              Transaction Management
-    -------------------------------------------------------------------------- */
-@@ -911,6 +932,15 @@ int __init acpi_ec_ecdt_probe(void)
- 		pr_info(PREFIX "EC description table is found, configuring boot EC\n");
- 		boot_ec->command_addr = ecdt_ptr->control.address;
- 		boot_ec->data_addr = ecdt_ptr->data.address;
-+		if (dmi_check_system(ec_dmi_table)) {
-+			/*
-+			 * If the board falls into ec_dmi_table, it means
-+			 * that ECDT table gives the incorrect command/status
-+			 * & data I/O address. Just fix it.
-+			 */
-+			boot_ec->data_addr = ecdt_ptr->control.address;
-+			boot_ec->command_addr = ecdt_ptr->data.address;
-+		}
- 		boot_ec->gpe = ecdt_ptr->gpe;
- 		boot_ec->handle = ACPI_ROOT_OBJECT;
- 		acpi_get_handle(ACPI_ROOT_OBJECT, ecdt_ptr->id, &boot_ec->handle);
+>> If it's not that simple, then care to impart some knowledge?
+>
+> If you can't get your BIOS to provide the necessary methods
+> then useful Linux cpufreq won't work. It's that simple.
+> p4-clockmod aka throttling might work, but it doesn't actually
+> save energy and often causes severe performance problems.
 
+I definitely don't want to use anything that will have a drastic
+effect on performance.
 
+Thanks,
+SK
