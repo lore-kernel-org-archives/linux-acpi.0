@@ -1,51 +1,41 @@
-From: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
-Subject: [PATCH] x86: acpi: move acpi_mcfg_64bit_base_addr into CONFIG_PCI_MMCONFIG
-Date: Tue, 12 Aug 2008 16:33:42 -0700
-Message-ID: <48A21DD6.8010509@ct.jp.nec.com>
+From: "Martin Bligh" <mbligh@google.com>
+Subject: Re: Panic on boot for x86_64
+Date: Tue, 12 Aug 2008 16:47:15 -0700
+Message-ID: <33307c790808121647j4feef841i23638dba40197648@mail.gmail.com>
+References: <33307c790808121251t79af0fajf44cebffa8938051@mail.gmail.com>
+	 <20080812131045.b89e98b1.akpm@linux-foundation.org>
+	 <86802c440808121313x26e46c00m9ec6cd73b3bdbf22@mail.gmail.com>
+	 <200808122223.29022.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gateway-1237.mvista.com ([63.81.120.158]:42819 "EHLO
-	gateway-1237.mvista.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752170AbYHLXdc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Aug 2008 19:33:32 -0400
+Received: from smtp-out.google.com ([216.239.33.17]:7385 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752123AbYHLXrW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Aug 2008 19:47:22 -0400
+Received: from spaceape7.eur.corp.google.com (spaceape7.eur.corp.google.com [172.28.16.141])
+	by smtp-out.google.com with ESMTP id m7CNlGGU018079
+	for <linux-acpi@vger.kernel.org>; Wed, 13 Aug 2008 00:47:16 +0100
+Received: from wf-out-1314.google.com (wfd27.prod.google.com [10.142.4.27])
+	by spaceape7.eur.corp.google.com with ESMTP id m7CNkrCh015298
+	for <linux-acpi@vger.kernel.org>; Tue, 12 Aug 2008 16:47:15 -0700
+Received: by wf-out-1314.google.com with SMTP id 27so2376142wfd.17
+        for <linux-acpi@vger.kernel.org>; Tue, 12 Aug 2008 16:47:15 -0700 (PDT)
+In-Reply-To: <200808122223.29022.rjw@sisk.pl>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>
-Cc: John Keller <jpk@sgi.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Yinghai Lu <yhlu.kernel@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>
 
-From: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
+>> please try tip/master, or wait a while after linus pull fix from tip x86 fix.
+>
+> The fix is in the mainline already.
 
-acpi_mcfg_64bit_base_addr is used when CONFIG_PCI_MMCONFIG is enabled.
 
-Signed-off-by: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
----
- arch/x86/kernel/acpi/boot.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+Still looks broken to me (rc2-git5)
 
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index 5c89f1e..267e684 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -96,8 +96,6 @@ static u64 acpi_lapic_addr __initdata = APIC_DEFAULT_PHYS_BASE;
- #warning ACPI uses CMPXCHG, i486 and later hardware
- #endif
- 
--static int acpi_mcfg_64bit_base_addr __initdata = FALSE;
--
- /* --------------------------------------------------------------------------
-                               Boot-time Configuration
-    -------------------------------------------------------------------------- */
-@@ -159,6 +157,8 @@ char *__init __acpi_map_table(unsigned long phys, unsigned long size)
- struct acpi_mcfg_allocation *pci_mmcfg_config;
- int pci_mmcfg_config_num;
- 
-+static int acpi_mcfg_64bit_base_addr __initdata = FALSE;
-+
- static int __init acpi_mcfg_oem_check(struct acpi_table_mcfg *mcfg)
- {
- 	if (!strcmp(mcfg->header.oem_id, "SGI"))
--- 
-1.5.6
+http://test.kernel.org/results/IBM/188946/debug/console
 
+It got in since yesterday?
