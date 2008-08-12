@@ -1,105 +1,92 @@
-From: Arjan van de Ven <arjan@infradead.org>
-Subject: Re: cpufreq doesn't seem to work in Intel Q9300
-Date: Tue, 12 Aug 2008 12:59:46 -0700
-Message-ID: <20080812125946.59a0669c@infradead.org>
-References: <aff5deaf0808081123s1fbe6a5cn7847e9cb053c1f5a@mail.gmail.com>
-	<200808092059.47863.trenn@suse.de>
-	<514e099a0808100128u303207clcb22292db2f0cc59@mail.gmail.com>
-	<1218418431.6671.52.camel@yakui_zhao.sh.intel.com>
-	<514e099a0808102144n241c8e9ak255bded0a80744f1@mail.gmail.com>
-	<20080811042244.469f8e1d@infradead.org>
-	<20080811140206.GB3338@cs181140183.pp.htv.fi>
-	<20080811071128.0165be50@infradead.org>
-	<20080811193316.GA16631@isilmar.linta.de>
-	<20080811165816.679cfdb9@infradead.org>
-	<20080812190302.GA26751@isilmar.linta.de>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: Panic on boot for x86_64
+Date: Tue, 12 Aug 2008 13:10:45 -0700
+Message-ID: <20080812131045.b89e98b1.akpm@linux-foundation.org>
+References: <33307c790808121251t79af0fajf44cebffa8938051@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:38871 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751913AbYHLT7v (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Aug 2008 15:59:51 -0400
-In-Reply-To: <20080812190302.GA26751@isilmar.linta.de>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38764 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751305AbYHLULK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 Aug 2008 16:11:10 -0400
+In-Reply-To: <33307c790808121251t79af0fajf44cebffa8938051@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dominik Brodowski <linux@dominikbrodowski.net>
-Cc: Adrian Bunk <bunk@kernel.org>, S K <nospamnoham@gmail.com>, Zhao Yakui <yakui.zhao@intel.com>, Thomas Renninger <trenn@suse.de>, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Martin Bligh <mbligh@google.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>
 
-On Tue, 12 Aug 2008 21:03:02 +0200
-Dominik Brodowski <linux@dominikbrodowski.net> wrote:
+On Tue, 12 Aug 2008 12:51:17 -0700
+"Martin Bligh" <mbligh@google.com> wrote:
 
-> Hi Arjan,
+> x86_64 seems to panic on boot, since 2.6.26-git2 (or maybe -git1,
+> which wouldn't compile)
+> 2.6.26 works.
 > 
-> On Mon, Aug 11, 2008 at 04:58:16PM -0700, Arjan van de Ven wrote:
-> > > Hi,
-> > > 
-> > > On Mon, Aug 11, 2008 at 07:11:28AM -0700, Arjan van de Ven wrote:
-> > > > 1) when the cpu is idle (as in "idle loop C states/hlt";
-> > > > p4_clockmod doesn't mean anything.. the clock is stopped not
-> > > > just skipped. 2) when the cpu is executing code (eg non-idle),
-> > > > it takes more power for a unit of time than it takes when it's
-> > > > idle
-> > > 
-> > > This statement might be true, but might also be wrong:
-> > > 	a) on systems where only C1 is exported, p4-clockmod most
-> > > often equals the state the CPU is in when in C1[*], 
-> > 
-> > that's.. not entirely true btw.
+> http://test.kernel.org/results/IBM/186461/debug/console
 > 
-> well, the spec isn't really clear about this. It says (IA32 Intel
-> Architecture Software Developer's Manual, Volume 3, section 13.14.3)
-> that P6 family processors did this using STPCLK#. And STPCLK# was
-> also used by the chipset to force the CPU to enter C2, IIRC.
+> kernel BUG at arch/x86/kernel/io_apic_64.c:356!
 
-not quite.. if it does for a certain cpu, then it's only for cpus that
-support C2.
+add_pin_to_irq() doesn't seem to have changed in three years.
 
-
-> Do P4s only do an C1-equivalent (or even less than that) now, as they
-> do the thermal throttling internally instead of externally using
-> STPCLK#?
-
-it's basically always less (or really best case equal) than c1 just due
-to the really short duration
+> invalid opcode: 0000 [1] SMP
+> CPU 24
+> Modules linked in:
+> Pid: 1, comm: swapper Not tainted 2.6.27-rc1-git2-autotest #1
+> RIP: 0010:[<ffffffff8021bb1a>]  [<ffffffff8021bb1a>] add_pin_to_irq+0x7a/0x90
+> RSP: 0018:ffff88032e4b9b40  EFLAGS: 00010216
+> RAX: 00000000000000f0 RBX: 00000000000000f0 RCX: 0000000000000001
+> RDX: 0000000000000018 RSI: 0000000000000006 RDI: 00000000000000f0
+> RBP: 0000000000000006 R08: 0000000000000018 R09: 0000000000000006
+> R10: 0000000000000008 R11: ffffffff8038f8dd R12: 0000000000000001
+> R13: 0000000000000001 R14: 0000000000000018 R15: 0000000000000000
+> FS:  0000000000000000(0000) GS:ffff880bfe733540(0000) knlGS:0000000000000000
+> CS:  0010 DS: 0018 ES: 0018 CR0: 000000008005003b
+> CR2: 0000000000000000 CR3: 0000000000201000 CR4: 00000000000006e0
+> DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+> DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+> Process swapper (pid: 1, threadinfo ffff88032e4b8000, task ffff880bfe4ca050)
+> Stack:  ffff88032e4b9be0 ffffffff8021bbae 00000000000000f0 0000000000000001
+>  0000000000000000 ffff88032e4b9c0c 00000000000000f0 ffffffff80218d81
+>  00000000000000f0 0000000000000000 0000000000000001 ffffffff80218e0c
+> Call Trace:
+>  [<ffffffff8021bbae>] ? io_apic_set_pci_routing+0x7e/0xa0
+>  [<ffffffff80218d81>] ? mp_register_gsi+0xb1/0xd0
+>  [<ffffffff80218e0c>] ? acpi_register_gsi+0x6c/0x70
+>  [<ffffffff8038fb30>] ? acpi_pci_irq_enable+0x178/0x260
+>  [<ffffffff8038f8dd>] ? acpi_pci_allocate_irq+0x0/0x4c
+>  [<ffffffff8036d257>] ? pci_enable_resources+0x27/0x160
+>  [<ffffffff80368a6a>] ? do_pci_enable_device+0x4a/0x70
+>  [<ffffffff80368ae1>] ? __pci_enable_device_flags+0x51/0x60
+>  [<ffffffff804dce18>] ? tg3_init_one+0x58/0x1640
+>  [<ffffffff8022a950>] ? default_wake_function+0x0/0x10
+>  [<ffffffff8022efa8>] ? set_cpus_allowed_ptr+0xe8/0x110
+>  [<ffffffff8036ae8f>] ? pci_device_probe+0xdf/0x130
+>  [<ffffffff803bf016>] ? driver_probe_device+0x96/0x1a0
+>  [<ffffffff803bf1a9>] ? __driver_attach+0x89/0x90
+>  [<ffffffff803bf120>] ? __driver_attach+0x0/0x90
+>  [<ffffffff803be68d>] ? bus_for_each_dev+0x4d/0x80
+>  [<ffffffff8028afa8>] ? kmem_cache_alloc+0xc8/0xf0
+>  [<ffffffff803beb7e>] ? bus_add_driver+0xae/0x220
+>  [<ffffffff803bf436>] ? driver_register+0x56/0x130
+>  [<ffffffff8036b148>] ? __pci_register_driver+0x68/0xb0
+>  [<ffffffff806cb610>] ? tg3_init+0x0/0x20
+>  [<ffffffff806ad5b1>] ? do_one_initcall+0x41/0x180
+>  [<ffffffff802d5798>] ? create_proc_entry+0x58/0xa0
+>  [<ffffffff8025eae4>] ? register_irq_proc+0xd4/0xf0
+>  [<ffffffff806adb53>] ? kernel_init+0x133/0x190
+>  [<ffffffff8020c529>] ? child_rip+0xa/0x11
+>  [<ffffffff806ada20>] ? kernel_init+0x0/0x190
+>  [<ffffffff8020c51f>] ? child_rip+0x0/0x11
 > 
-
-> If it's C2-equivalent vs. C1, it's a win. 
-
-it's not. 
-
->So throttling would be a
-> win from this perspective on a only C1-capable PIII, but not on a P4?
-> Is that what you're trying to hint at here?
-
-not even on PIII is it a win.. it's just too short a duration 
-and your C2 theory.. not sure I believe it.
-
-
 > 
-> To summarize:
-> 
-> (1) p6 family processors use STPCLK# initiated by the chipset for
-> thermal throttling.
-> (2) STPCLK# is also used by the chipset to make the CPU enter C2.
+> Code: 89 05 3f 24 42 00 7f 29 48 0f bf c1 48 8d 14 00 48 c1 e0 03 48
+> 29 d0 48 8d 90 c0 0e 73 80 66 89 32 66 44 89 42 02 48 83 c4 08 c3 <0f>
+> 0b eb fe 66 90 48 c7 c7 28 a4 5c 80 31 c0 e8 b2 7d 01 00 66
+> RIP  [<ffffffff8021bb1a>] add_pin_to_irq+0x7a/0x90
+>  RSP <ffff88032e4b9b40>
 
-well.... sometimes. It's more complex generally.
+So this looks like ACPI breakage?
 
-> (3) p4-clockmod uses the STPCLK#-equivalent in p4 CPUs.
-> (4) Therefore, it is as effective as STPCLK#, and as effective as C2.
-
-This is not correct. C2 is only effective if you stay in it "long
-enough". Otherwise you pay the transition cost twice.
-
-
-> (5) STPCLK#/C2 has higher energy savings than hlt/C1.
-
-incorrect
-
-
-
--- 
-If you want to reach me at my work email, use arjan@linux.intel.com
-For development, discussion and tips for power savings, 
-visit http://www.lesswatts.org
