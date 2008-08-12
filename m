@@ -1,79 +1,28 @@
-From: Milan Broz <mbroz@redhat.com>
-Subject: Re: 2.6.27-rc1: critical thermal shutdown on thinkpad x60 (bisected)
-Date: Tue, 12 Aug 2008 16:57:58 +0200
-Message-ID: <48A1A4F6.9080706@redhat.com>
+From: Matthew Garrett <mjg@redhat.com>
+Subject: Re: 2.6.27-rc1: critical thermal shutdown on thinkpad x60
+Date: Tue, 12 Aug 2008 16:32:05 +0100
+Message-ID: <20080812153205.GA19070@srcf.ucam.org>
 References: <20080806090246.GA1572@elf.ucw.cz> <48A1779B.5020303@redhat.com> <20080812115530.GB8806@elf.ucw.cz> <200808121634.34634.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([66.187.233.31]:59165 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751993AbYHLO63 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 12 Aug 2008 10:58:29 -0400
+Received: from cavan.codon.org.uk ([93.93.128.6]:56566 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752569AbYHLPcT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Aug 2008 11:32:19 -0400
+Content-Disposition: inline
 In-Reply-To: <200808121634.34634.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Pavel Machek <pavel@suse.cz>, Andi Kleen <andi@firstfloor.org>, kernel list <linux-kernel@vger.kernel.org>, ACPI mailing list <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, Thomas Renninger <trenn@suse.de>
+Cc: Pavel Machek <pavel@suse.cz>, Milan Broz <mbroz@redhat.com>, Andi Kleen <andi@firstfloor.org>, kernel list <linux-kernel@vger.kernel.org>, ACPI mailing list <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>
 
-Rafael J. Wysocki wrote:
-> On Tuesday, 12 of August 2008, Pavel Machek wrote:
->> On Tue 2008-08-12 13:44:27, Milan Broz wrote:
->>> Pavel Machek wrote:
->>>> Hi!
->>>>>> On Tue, Aug 12, 2008 at 11:41:35AM +0200, Pavel Machek wrote:
->>>>>>>>> Aug  6 11:00:10 amd kernel: ACPI: Critical trip point
->>>>>>>>> Aug  6 11:00:10 amd kernel: Critical temperature reached (128 C),
->>>>>>>>> shutting down.
->>>>>>>>> Aug  6 11:00:10 amd shutdown[24414]: shutting down for system halt
->>>>>>>>>
->>>>>>>>> ...and machine went down at that point :-(.
->>>>>>>> I hope you can easily reproduce it?
->>>>>>>>
->>>>>>>> So it's new in 2.6.27rc1 and wasn't in 2.6.26? Can you please
->>>>>>> Yes, I'm very sure. It makes machine basically unusable.
->>>>>> Does this mean you can easily reproduce it?  
->>>>>> Please do a bisect then. 
->>>>>>
->>>>>>> Not that one :-(. Thinkpad does not even have fan device: it is
->>>>>>> controlled by hardware.
->>>>> Hi,
->>>>> I see exactly the same on my x60s, but during upgrade to 2.6.26.2.
->>>> Are you sure?
->>> yes. maybe some userspace tool controlling frequency is involved, no idea yet.
->>> But it is 2.6.26 tree for sure.
->> So it definitely is in 2.6.26.2, and it definitely is in 2.6.26?
+On Tue, Aug 12, 2008 at 04:34:33PM +0200, Rafael J. Wysocki wrote:
 
+> Pavel, can you check if the state of the fan(s) change while the thermal trip
+> points are being passed?
 
-The bug is _not_ in 2.6.26, it was introduced in 2.6.26.1.
-
-The problem is, that now the CPU frequency doesn't decrease at some
-temperature level and fan is unable to cool it properly.
-
-bisect on 2.6.26.y tree finished in this patch:
-(I expect similar patch in 2.6.27-rc)
-
-commit 04f496871e8af87a1e40c504371a206fd7389193
-Author: Thomas Renninger <trenn@suse.de>
-Date:   Wed Jul 30 18:20:10 2008 +0000
-
-    cpufreq acpi: only call _PPC after cpufreq ACPI init funcs got called already
-
-    commit a1531acd43310a7e4571d52e8846640667f4c74b upstream
-
-    Ingo Molnar provided a fix to not call _PPC at processor driver
-    initialization time in "[PATCH] ACPI: fix cpufreq regression" (git
-    commit e4233dec749a3519069d9390561b5636a75c7579)
-
-    But it can still happen that _PPC is called at processor driver
-    initialization time.
-
-    This patch should make sure that this is not possible anymore.
-
-
-
-That seems strange to me... please could anyone verify that it 
-on some other x60?
-
-Milan
+Thinkpads don't expose fans as ACPI devices, so there's no active trip 
+points.
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
