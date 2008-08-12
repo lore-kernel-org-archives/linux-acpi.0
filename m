@@ -1,77 +1,44 @@
-From: Pavel Machek <pavel@suse.cz>
-Subject: acpi: trivial cleanups
-Date: Tue, 12 Aug 2008 12:24:34 +0200
-Message-ID: <20080812102434.GA2676@elf.ucw.cz>
+From: Andi Kleen <andi@firstfloor.org>
+Subject: Re: 2.6.27-rc1: critical thermal shutdown on thinkpad x60
+Date: Tue, 12 Aug 2008 12:54:09 +0200
+Message-ID: <20080812105409.GA1366@one.firstfloor.org>
+References: <20080806090246.GA1572@elf.ucw.cz> <87bq046cht.fsf@basil.nowhere.org> <20080812094135.GA1565@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:39948 "EHLO
-	gprs189-60.eurotel.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751630AbYHLKXU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Aug 2008 06:23:20 -0400
+Received: from one.firstfloor.org ([213.235.205.2]:53473 "EHLO
+	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751650AbYHLKw7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Aug 2008 06:52:59 -0400
 Content-Disposition: inline
+In-Reply-To: <20080812094135.GA1565@elf.ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>, kernel list <linux-kernel@vger.kernel.org>, ACPI mailing list <linux-acpi@vger.kernel.org>, Trivial patch monkey <trivial@kernel.org>, Andrew
+To: Pavel Machek <pavel@suse.cz>
+Cc: Andi Kleen <andi@firstfloor.org>, kernel list <linux-kernel@vger.kernel.org>, ACPI mailing list <linux-acpi@vger.kernel.org>
 
+On Tue, Aug 12, 2008 at 11:41:35AM +0200, Pavel Machek wrote:
+> Hi!
+> 
+> > > Aug  6 11:00:10 amd kernel: ACPI: Critical trip point
+> > > Aug  6 11:00:10 amd kernel: Critical temperature reached (128 C),
+> > > shutting down.
+> > > Aug  6 11:00:10 amd shutdown[24414]: shutting down for system halt
+> > >
+> > > ...and machine went down at that point :-(.
+> > 
+> > I hope you can easily reproduce it?
+> > 
+> > So it's new in 2.6.27rc1 and wasn't in 2.6.26? Can you please
+> 
+> Yes, I'm very sure. It makes machine basically unusable.
 
-Trivial cleanups for ACPI. Fix misspelling in printk(), fix mismerge,
-add file header.
+Does this mean you can easily reproduce it?  
+Please do a bisect then. 
 
-Signed-off-by: Pavel Machek <pavel@suse.cz>
+> Not that one :-(. Thinkpad does not even have fan device: it is
+> controlled by hardware.
 
----
-commit 2d81db56ce92e04b57b76c0ca6a9b57432bf8fce
-tree e3c47f9a5448b5be5f64224229d6eac3320d12e4
-parent 7f8e83c414b78ee89b8e59c1a1cb74937f519be4
-author Pavel <pavel@amd.ucw.cz> Tue, 12 Aug 2008 12:20:29 +0200
-committer Pavel <pavel@amd.ucw.cz> Tue, 12 Aug 2008 12:20:29 +0200
+Ok it was just a long shot anyways.
 
- drivers/acpi/processor_core.c |    2 +-
- drivers/acpi/processor_idle.c |    1 -
- drivers/acpi/reboot.c         |    6 +++++-
- 3 files changed, 6 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index e36422a..d3f0a62 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -123,7 +123,7 @@ struct acpi_processor_errata errata __re
- static int set_no_mwait(const struct dmi_system_id *id)
- {
- 	printk(KERN_NOTICE PREFIX "%s detected - "
--		"disable mwait for CPU C-stetes\n", id->ident);
-+		"disabling mwait for CPU C-states\n", id->ident);
- 	idle_nomwait = 1;
- 	return 0;
- }
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index 283c08f..cf5b1b7 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -41,7 +41,6 @@ #include <linux/sched.h>	/* need_resched
- #include <linux/pm_qos_params.h>
- #include <linux/clockchips.h>
- #include <linux/cpuidle.h>
--#include <linux/cpuidle.h>
- 
- /*
-  * Include the apic definitions for x86 to have the APIC timer related defines
-diff --git a/drivers/acpi/reboot.c b/drivers/acpi/reboot.c
-index a6b662c..b4d9cb3 100644
---- a/drivers/acpi/reboot.c
-+++ b/drivers/acpi/reboot.c
-@@ -1,4 +1,8 @@
--
-+/*
-+ * Reset the machine using the RESET_REG
-+ *
-+ * Distribute under GPL.
-+ */
- #include <linux/pci.h>
- #include <linux/acpi.h>
- #include <acpi/reboot.h>
-
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+-Andi
