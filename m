@@ -1,47 +1,39 @@
-From: Adrian Bunk <bunk@kernel.org>
-Subject: Re: cpufreq doesn't seem to work in Intel Q9300
-Date: Tue, 12 Aug 2008 22:27:21 +0300
-Message-ID: <20080812192721.GB13880@cs181140183.pp.htv.fi>
-References: <514e099a0808100128u303207clcb22292db2f0cc59@mail.gmail.com> <1218418431.6671.52.camel@yakui_zhao.sh.intel.com> <514e099a0808102144n241c8e9ak255bded0a80744f1@mail.gmail.com> <20080811042244.469f8e1d@infradead.org> <20080811140206.GB3338@cs181140183.pp.htv.fi> <20080811071128.0165be50@infradead.org> <20080811160346.GB21292@cs181140183.pp.htv.fi> <20080811092047.42bf716b@infradead.org> <20080811162839.GA22450@cs181140183.pp.htv.fi> <20080811094428.6b69d744@infradead.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: 2.6.27-rc1: critical thermal shutdown on thinkpad x60 (bisected)
+Date: Tue, 12 Aug 2008 21:56:08 +0200
+Message-ID: <200808122156.09850.rjw@sisk.pl>
+References: <20080806090246.GA1572@elf.ucw.cz> <20080812183004.GA24211@isilmar.linta.de> <20080812185941.GE1366@one.firstfloor.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp5.pp.htv.fi ([213.243.153.39]:55325 "EHLO smtp5.pp.htv.fi"
+Received: from ogre.sisk.pl ([217.79.144.158]:34357 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751390AbYHLT3I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 12 Aug 2008 15:29:08 -0400
+	id S1751433AbYHLTxO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 Aug 2008 15:53:14 -0400
+In-Reply-To: <20080812185941.GE1366@one.firstfloor.org>
 Content-Disposition: inline
-In-Reply-To: <20080811094428.6b69d744@infradead.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arjan van de Ven <arjan@infradead.org>
-Cc: S K <nospamnoham@gmail.com>, Zhao Yakui <yakui.zhao@intel.com>, Thomas Renninger <trenn@suse.de>, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Andi Kleen <andi@firstfloor.org>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>, Milan Broz <mbroz@redhat.com>, Pavel Machek <pavel@suse.cz>, kernel list <linux-kernel@vger.kernel.org>, ACPI mailing list <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, Thomas Renninger <trenn@suse.de>
 
-On Mon, Aug 11, 2008 at 09:44:28AM -0700, Arjan van de Ven wrote:
-> On Mon, 11 Aug 2008 19:28:39 +0300
-> Adrian Bunk <bunk@kernel.org> wrote:
-> 
-> > > 
-> > > yes there is.. for cases where there is overtemperature. Think of
-> > > it as the emergency break in the subway. You really don't want to
-> > > use it but when you need it you're glad it's there.
+On Tuesday, 12 of August 2008, Andi Kleen wrote:
+> On Tue, Aug 12, 2008 at 08:30:04PM +0200, Dominik Brodowski wrote:
+> > Hi,
 > > 
-> > But this only helps when the cooling is working but not good enough,
-> > for the classic "fan broken" case it won't cool down enough.
+> > On Tue, Aug 12, 2008 at 05:48:27PM +0200, Milan Broz wrote:
+> > > -static unsigned int ignore_ppc = -1;
+> > > +static int ignore_ppc = -1;
+> > >  module_param(ignore_ppc, uint, 0644);
+> > 			    ^^^^
+> > follow-up change?
 > 
-> I would call this an unclassified statement for which you have no data
-> to show that it's correct, at least for Intel cpus in general.
->...
- 
-Sorry, I was a bit too surprised after your description.
+> I'll fix it in the patch, thanks.
 
-cu
-Adrian
+Is the complete patch available anywhere?  I need a link to it for the list of
+regressions.
 
--- 
-
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
-
+Thanks,
+Rafael
