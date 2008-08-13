@@ -1,177 +1,45 @@
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Subject: Re: [PATCH] acpi: Avoid dropping rapid hotkey events (or other GPEs)
- on Asus EeePC
-Date: Wed, 13 Aug 2008 12:51:06 +0100
-Message-ID: <48A2CAAA.7010405@tuffmail.co.uk>
-References: <487D23C3.5070301@student.cs.york.ac.uk>	<487F58B6.5040309@suse.de>	<487F6D2E.2040501@tuffmail.co.uk>	<487F772C.1070806@suse.de>	<487F9592.1060003@tuffmail.co.uk>	<487F9677.4060001@suse.de>	<20080812162854.d6907c95.akpm@linux-foundation.org>	<48A2B596.3050401@tuffmail.co.uk> <20080813034628.0ef51866.akpm@linux-foundation.org>
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: acpi: trivial cleanups
+Date: Wed, 13 Aug 2008 14:45:29 +0200
+Message-ID: <20080813124529.GA6995@ucw.cz>
+References: <20080812102434.GA2676@elf.ucw.cz> <20080812162013.b139035b.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------000405000306070004020803"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ik-out-1112.google.com ([66.249.90.177]:20137 "EHLO
-	ik-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753141AbYHMLvO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Aug 2008 07:51:14 -0400
-Received: by ik-out-1112.google.com with SMTP id c28so3316849ika.5
-        for <linux-acpi@vger.kernel.org>; Wed, 13 Aug 2008 04:51:12 -0700 (PDT)
-In-Reply-To: <20080813034628.0ef51866.akpm@linux-foundation.org>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:4475 "EHLO spitz.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752543AbYHMMpk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 13 Aug 2008 08:45:40 -0400
+Content-Disposition: inline
+In-Reply-To: <20080812162013.b139035b.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, hmh@hmh.eng.br, Maximilian Engelhardt <maxi@daemonizer.de>, stable@kernel.org
+Cc: andi@firstfloor.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, trivial@kernel.org
 
-This is a multi-part message in MIME format.
---------------000405000306070004020803
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+On Tue 2008-08-12 16:20:13, Andrew Morton wrote:
+> On Tue, 12 Aug 2008 12:24:34 +0200
+> Pavel Machek <pavel@suse.cz> wrote:
+> 
+> > 
+> > Trivial cleanups for ACPI. Fix misspelling in printk(), fix mismerge,
+> > add file header.
+...
+> > +++ b/drivers/acpi/reboot.c
+> > @@ -1,4 +1,8 @@
+> > -
+> > +/*
+> > + * Reset the machine using the RESET_REG
+> > + *
+> > + * Distribute under GPL.
+> > + */
+> 
+> That was a trivial dirtyup.  Should at least be "Distributed under the
+> GPL" but I suspect that the policy in drivers/acpi/ is to add fancier
+> copyright text than this.
 
-[Dupe apology: CC'd to stable@kernel.org, with the right address this time]
-
-Andrew Morton wrote:
-> On Wed, 13 Aug 2008 11:21:10 +0100 Alan Jenkins <alan-jenkins@tuffmail.co.uk> wrote:
->
->   
->> Andrew Morton wrote:
->>     
->>> Did this get fixed yet?
->>>
->>> I have an patch in -mm which I just restored (I had to tempdrop it
->>> because the acpi tree was busted for some time).  But it seems to be
->>> old.
->>>
->>> http://bugzilla.kernel.org/show_bug.cgi?id=10919 is marked "resolved"
->>> but the reporter (Maximilian) seems to think otherwise.  2.6.26.x is,
->>> afaik, still unfixed, as is 2.6.27-rc.
->>>   
->>>       
->> That's correct.  I think this specific patch should go in 2.6.27 and
->> 2.6.26-stable.  No objections have been raised so far.
->>
->> I still need this patch to make my brightness and volume control keys
->> usable in 2.6.27-rc3.  (They auto-repeat fast enough to trigger the
->> bug).  This is true even after applying the latest patches from bug
->> 10919 (#25 + #27).
->>
->>     
->
-> Confusing.  Please send the patch which you think we should apply.
->
->   
->> I think the 10919 fix makes it harder to reproduce, but it definitely
->> still happens.  I guess this is because the polling-driven EC
->> transactions add 1ms delays between each byte.  The slower timings leave
->> a window where the buggy behaviour of my EC can make a difference.  (It
->> has been seen to clear the "pending event" bit after a single event is
->> read, despite having more events pending).
->>
->> There are more serious consequences of this bug.  After a while it can
->> confuse the EC enough to cause lockups or reboots during boot, or after
->> pressing a single hotkey.  This bad state is preserved over reboots,
->> even into known good kernels.  Fortunately the badness clears when power
->> is removed for a long enough period.  For a while I was worried that
->> something had physically burnt out.
->>     
->
-> Oh gad.  And there's no workaround?
->
-Sorry, that was confusing.
-
-The patch in currently in -mm _is_ the workaround for this damage.  It
-was not initially obvious just how important it was :-).  I've
-re-attached it as requested.
-
-10919, "laggy hotkeys" is just what it says; ACPI EC events are slower
-because of polling.  It appears to be a more cosmetic issue which is
-orthogonal to the _dropping_ of events.
-
-Thanks
-Alan
-
-
---------------000405000306070004020803
-Content-Type: message/rfc822;
- name="Attached Message"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="Attached Message"
-
-Return-Path: <alan.christopher.jenkins@googlemail.com>
-Received: from ?10.222.147.177? ( [86.53.68.233])
-        by mx.google.com with ESMTPS id q9sm4420015gve.5.2008.07.15.15.24.46
-        (version=SSLv3 cipher=RC4-MD5);
-        Tue, 15 Jul 2008 15:24:47 -0700 (PDT)
-Message-ID: <487D23C3.5070301@student.cs.york.ac.uk>
-Date: Tue, 15 Jul 2008 23:25:07 +0100
-From: Alan Jenkins <aj504@student.cs.york.ac.uk>
-Reply-To: alan-jenkins@tuffmail.co.uk
-User-Agent: Thunderbird 2.0.0.14 (X11/20080505)
-MIME-Version: 1.0
-To: astarikovskiy@suse.de
-CC: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] acpi: Avoid dropping rapid hotkey events (or other GPEs)
- on Asus EeePC
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Sender: Alan Jenkins <alan.christopher.jenkins@googlemail.com>
-
-It looks like this EC clears the SMI_EVT bit after every query, even if there
-are more events pending.  The workaround is to repeatedly query the EC until
-it reports that no events remain.
-
-This fixes a regression in 2.6.26 (from 2.6.25.3).  Initially reported as
-"Asus Eee PC hotkeys stop working if pressed quickly" in bugzilla
-<http://bugzilla.kernel.org/show_bug.cgi?id=11089>.
-
-The regression was caused by a recently added check for interrupt storms.
-The Eee PC triggers this check and switches to polling.  When multiple events
-arrive between polling intervals, only one is fetched from the EC.  This causes
-erroneous behaviour; ultimately events stop being delivered altogether when the
-EC buffer overflows.
-
-Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-
----
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 5622aee..2b4c5a2 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -459,14 +459,10 @@ void acpi_ec_remove_query_handler(struct acpi_ec *ec, u8 query_bit)
- 
- EXPORT_SYMBOL_GPL(acpi_ec_remove_query_handler);
- 
--static void acpi_ec_gpe_query(void *ec_cxt)
-+static void acpi_ec_gpe_run_handler(struct acpi_ec *ec, u8 value)
- {
--	struct acpi_ec *ec = ec_cxt;
--	u8 value = 0;
- 	struct acpi_ec_query_handler *handler, copy;
- 
--	if (!ec || acpi_ec_query(ec, &value))
--		return;
- 	mutex_lock(&ec->lock);
- 	list_for_each_entry(handler, &ec->list, node) {
- 		if (value == handler->query_bit) {
-@@ -484,6 +480,18 @@ static void acpi_ec_gpe_query(void *ec_cxt)
- 	mutex_unlock(&ec->lock);
- }
- 
-+static void acpi_ec_gpe_query(void *ec_cxt)
-+{
-+	struct acpi_ec *ec = ec_cxt;
-+	u8 value = 0;
-+
-+	if (!ec)
-+		return;
-+
-+	while (!acpi_ec_query(ec, &value))
-+		acpi_ec_gpe_run_handler(ec, value);
-+}
-+
- static u32 acpi_ec_gpe_handler(void *data)
- {
- 	acpi_status status = AE_OK;
-
-
-
-
---------------000405000306070004020803--
+Ok, sorry about that.
+							Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
