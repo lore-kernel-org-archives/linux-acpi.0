@@ -1,212 +1,159 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: 2.6.27-rc1: critical thermal shutdown on thinkpad x60
-Date: Wed, 13 Aug 2008 08:55:04 +0800
-Message-ID: <1218588904.3209.13.camel@rzhang-dt>
-References: <20080806090246.GA1572@elf.ucw.cz>
-	 <87bq046cht.fsf@basil.nowhere.org>  <20080812094135.GA1565@elf.ucw.cz>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: expicitly use XT_PIC interrupt for an old device?
+Date: Wed, 13 Aug 2008 09:18:52 +0800
+Message-ID: <1218590332.3998.27.camel@yakui_zhao.sh.intel.com>
+References: <48A053E7.3090305@googlemail.com>
+	 <1218503362.6671.143.camel@yakui_zhao.sh.intel.com>
+	 <48A135E4.1090707@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:25373 "EHLO mga14.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:26335 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752834AbYHMAzT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 12 Aug 2008 20:55:19 -0400
-In-Reply-To: <20080812094135.GA1565@elf.ucw.cz>
+	id S1755211AbYHMBEq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 Aug 2008 21:04:46 -0400
+In-Reply-To: <48A135E4.1090707@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@suse.cz>
-Cc: Andi Kleen <andi@firstfloor.org>, kernel list <linux-kernel@vger.kernel.org>, ACPI mailing list <linux-acpi@vger.kernel.org>
+To: Dieter =?ISO-8859-1?Q?Sch=F6n?= <tshinbum@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Tue, 2008-08-12 at 11:41 +0200, Pavel Machek wrote:
-> Hi!
-> 
-> > > Aug  6 11:00:10 amd kernel: ACPI: Critical trip point
-> > > Aug  6 11:00:10 amd kernel: Critical temperature reached (128 C),
-> > > shutting down.
-> > > Aug  6 11:00:10 amd shutdown[24414]: shutting down for system halt
-> > >
-> > > ...and machine went down at that point :-(.
-> > 
-> > I hope you can easily reproduce it?
-> > 
-> > So it's new in 2.6.27rc1 and wasn't in 2.6.26? Can you please
-> 
-> Yes, I'm very sure. It makes machine basically unusable.
-> 
-> > double check that? Are there are new warnings in the boot logs
-> > from ACPI compared to .26?
-> 
-> Will take a look.... ... I don't see anything obvious, diff is below.
-> 
-> > I looked through the pile of patches that went in for ACPI and the 
-> > only candidate that might have imho caused this would be 
-> > ea51011a27db48ea0a80a5e20de3969b292d5d4d. Can you please 
-> > try reverting that. If that doesn't help a full bisect will be needed.
-> 
-> Not that one :-(. Thinkpad does not even have fan device: it is
-> controlled by hardware.
-> 									Pavel
-> 
-> --- /tmp/dmesg.26	2008-08-12 11:38:44.000000000 +0200
-> +++ /tmp/dmesg.rc2	2008-08-12 11:15:44.000000000 +0200
-> @@ -1,4 +1,4 @@
-> -Linux version 2.6.26 (pavel@amd) (gcc version 4.1.3 20071209 (prerelease) (Debian 4.1.2-18)) #313 SMP Mon Jul 14 08:33:14 CEST 2008
-> +Linux version 2.6.27-rc2 (pavel@amd) (gcc version 4.1.3 20071209 (prerelease) (Debian 4.1.2-18)) #322 SMP Thu Aug 7 11:58:09 CEST 2008
->  PAT disabled. Not yet verified on this CPU type.
->  BIOS-provided physical RAM map:
->   BIOS-e820: 0000000000000000 - 000000000009f000 (usable)
-> @@ -16,31 +16,13 @@
->   BIOS-e820: 00000000fed1c000 - 00000000fed90000 (reserved)
->   BIOS-e820: 00000000fee00000 - 00000000fee01000 (reserved)
->   BIOS-e820: 00000000ff800000 - 0000000100000000 (reserved)
-> -1142MB HIGHMEM available.
-> -896MB LOWMEM available.
-> -found SMP MP-table at [c00f67f0] 000f67f0
-> -Entering add_active_range(0, 0, 521936) 0 entries of 256 used
-> -Zone PFN ranges:
-> -  DMA             0 ->     4096
-> -  Normal       4096 ->   229376
-> -  HighMem    229376 ->   521936
-> -Movable zone start PFN for each node
-> -early_node_map[1] active PFN ranges
-> -    0:        0 ->   521936
-> -On node 0 totalpages: 521936
-> -  DMA zone: 32 pages used for memmap
-> -  DMA zone: 0 pages reserved
-> -  DMA zone: 4064 pages, LIFO batch:0
-> -  Normal zone: 1760 pages used for memmap
-> -  Normal zone: 223520 pages, LIFO batch:31
-> -  HighMem zone: 2286 pages used for memmap
-> -  HighMem zone: 290274 pages, LIFO batch:31
-> -  Movable zone: 0 pages used for memmap
-> +last_pfn = 0x7f6d0 max_arch_pfn = 0x100000
-> +kernel direct mapping tables up to 38000000 @ 7000-c000
->  DMI present.
->  ACPI: RSDP 000F67C0, 0024 (r2 LENOVO)
->  ACPI: XSDT 7F6D191C, 0084 (r1 LENOVO TP-7B        2140  LTP        0)
->  ACPI: FACP 7F6D1A00, 00F4 (r3 LENOVO TP-7B        2140 LNVO        1)
-> -ACPI Warning (tbfadt-0442): Optional field "Gpe1Block" has zero address or length: 000000000000102C/0 [20080321]
-> +ACPI Warning (tbfadt-0442): Optional field "Gpe1Block" has zero address or length: 000000000000102C/0 [20080609]
->  ACPI: DSDT 7F6D1D90, CFB9 (r1 LENOVO TP-7B        2140 MSFT  100000E)
->  ACPI: FACS 7F6F4000, 0040
->  ACPI: SSDT 7F6D1BB4, 01DC (r1 LENOVO TP-7B        2140 MSFT  100000E)
-> @@ -54,6 +36,37 @@
->  ACPI: SSDT 7F6F28A4, 00A6 (r1 LENOVO TP-7B        2140 INTL 20050513)
->  ACPI: SSDT 7F6F294A, 04F7 (r1 LENOVO TP-7B        2140 INTL 20050513)
->  ACPI: SSDT 7F6F2E41, 01D8 (r1 LENOVO TP-7B        2140 INTL 20050513)
-> +1142MB HIGHMEM available.
-> +896MB LOWMEM available.
-> +  mapped low ram: 0 - 38000000
-> +  low ram: 00000000 - 38000000
-> +  bootmap 00008000 - 0000f000
-> +(8 early reservations) ==> bootmem [0000000000 - 0038000000]
-> +  #0 [0000000000 - 0000001000]   BIOS data page ==> [0000000000 - 0000001000]
-> +  #1 [0000001000 - 0000002000]    EX TRAMPOLINE ==> [0000001000 - 0000002000]
-> +  #2 [0000006000 - 0000007000]       TRAMPOLINE ==> [0000006000 - 0000007000]
-> +  #3 [0000200000 - 0000c07128]    TEXT DATA BSS ==> [0000200000 - 0000c07128]
-> +  #4 [0000c08000 - 0000c1d000]    INIT_PG_TABLE ==> [0000c08000 - 0000c1d000]
-> +  #5 [000009f000 - 0000100000]    BIOS reserved ==> [000009f000 - 0000100000]
-> +  #6 [0000007000 - 0000008000]          PGTABLE ==> [0000007000 - 0000008000]
-> +  #7 [0000008000 - 000000f000]          BOOTMAP ==> [0000008000 - 000000f000]
-> +Scan SMP from c0000000 for 1024 bytes.
-> +Scan SMP from c009fc00 for 1024 bytes.
-> +Scan SMP from c00f0000 for 65536 bytes.
-> +found SMP MP-table at [c00f67f0] 000f67f0
-> +Zone PFN ranges:
-> +  DMA      0x00000000 -> 0x00001000
-> +  Normal   0x00001000 -> 0x00038000
-> +  HighMem  0x00038000 -> 0x0007f6d0
-> +Movable zone start PFN for each node
-> +early_node_map[2] active PFN ranges
-> +    0: 0x00000000 -> 0x0000009f
-> +    0: 0x00000100 -> 0x0007f6d0
-> +On node 0 totalpages: 521839
-> +free_area_init_node: node 0, pgdat c0942e80, node_mem_map c1001000
-> +  DMA zone: 3967 pages, LIFO batch:0
-> +  Normal zone: 223520 pages, LIFO batch:31
-> +  HighMem zone: 290274 pages, LIFO batch:31
->  ACPI: PM-Timer IO Port: 0x1008
->  ACPI: Local APIC address 0xfee00000
->  ACPI: LAPIC (acpi_id[0x00] lapic_id[0x00] enabled)
-> @@ -70,26 +83,27 @@
->  Enabling APIC mode:  Flat.  Using 1 I/O APICs
->  ACPI: HPET id: 0x8086a201 base: 0xfed00000
->  Using ACPI (MADT) for SMP configuration information
-> -Allocating PCI resources starting at 88000000 (gap: 80000000:70000000)
-> +SMP: Allowing 2 CPUs, 0 hotplug CPUs
-> +mapped APIC to ffffb000 (fee00000)
-> +mapped IOAPIC to ffffa000 (fec00000)
->  PM: Registered nosave memory: 000000000009f000 - 00000000000a0000
->  PM: Registered nosave memory: 00000000000a0000 - 00000000000d2000
->  PM: Registered nosave memory: 00000000000d2000 - 00000000000d4000
->  PM: Registered nosave memory: 00000000000d4000 - 00000000000dc000
->  PM: Registered nosave memory: 00000000000dc000 - 0000000000100000
-> -SMP: Allowing 2 CPUs, 0 hotplug CPUs
-> -PERCPU: Allocating 37800 bytes of per cpu data
-> -NR_CPUS: 2, nr_cpu_ids: 2
-> -Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 517858
-> +Allocating PCI resources starting at 88000000 (gap: 80000000:70000000)
-> +PERCPU: Allocating 37552 bytes of per cpu data
-> +NR_CPUS: 2, nr_cpu_ids: 2, nr_node_ids 1
-> +Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 517761
->  Kernel command line: root=/dev/sda4 resume=/dev/sda1 psmouse.psmouse_proto=imps psmouse_proto=imps psmouse.proto=imps vga=791 init=/tmp/swsusp-init acpi_sleep=s3_bios,s3_mode no_console_suspend
->  Unknown boot option `psmouse.psmouse_proto=imps': ignoring
-> -mapped APIC to ffffb000 (fee00000)
-> -mapped IOAPIC to ffffa000 (fec00000)
->  Enabling fast FPU save and restore... done.
->  Enabling unmasked SIMD FPU exception support... done.
->  Initializing CPU#0
->  PID hash table entries: 4096 (order: 12, 16384 bytes)
->  Extended CMOS year: 2000
-> -Detected 1828.792 MHz processor.
-> +TSC calibrated against PM_TIMER
-> +Detected 1828.748 MHz processor.
->  Console: colour dummy device 80x25
->  console [tty0] enabled
->  Lock dependency validator: Copyright (c) 2006 Red Hat, Inc., Ingo Molnar
-> @@ -100,23 +114,23 @@
->  ... MAX_LOCKDEP_ENTRIES:     8192
->  ... MAX_LOCKDEP_CHAINS:      16384
->  ... CHAINHASH_SIZE:          8192
-> - memory used by lock dependency info: 992 kB
-> + memory used by lock dependency info: 1056 kB
->   per task-struct memory footprint: 1920 bytes
->  Dentry cache hash table entries: 131072 (order: 7, 524288 bytes)
->  Inode-cache hash table entries: 65536 (order: 6, 262144 bytes)
-> -Memory: 2059068k/2087744k available (5320k kernel code, 27516k reserved, 2458k data, 320k init, 1170240k highmem)
-> +Memory: 2058760k/2087744k available (5438k kernel code, 27692k reserved, 2511k data, 344k init, 1170240k highmem)
->  virtual kernel memory layout:
-> -    fixmap  : 0xfff7f000 - 0xfffff000   ( 512 kB)
-> +    fixmap  : 0xfff83000 - 0xfffff000   ( 496 kB)
->      pkmap   : 0xff800000 - 0xffc00000   (4096 kB)
->      vmalloc : 0xf8800000 - 0xff7fe000   ( 111 MB)
->      lowmem  : 0xc0000000 - 0xf8000000   ( 896 MB)
-> -      .init : 0xc09a1000 - 0xc09f1000   ( 320 kB)
-> -      .data : 0xc0732166 - 0xc0998a08   (2458 kB)
-> -      .text : 0xc0200000 - 0xc0732166   (5320 kB)
-> +      .init : 0xc09cb000 - 0xc0a21000   ( 344 kB)
-> +      .data : 0xc074fbc6 - 0xc09c38f0   (2511 kB)
-> +      .text : 0xc0200000 - 0xc074fbc6   (5438 kB)
->  Checking if this processor honours the WP bit even in supervisor mode...Ok.
->  CPA: page pool initialized 32 of 32 pages preallocated
->  hpet clockevent registered
-> -Calibrating delay using timer specific routine.. 3662.04 BogoMIPS (lpj=7324080)
-> +Calibrating delay loop (skipped), value calculated using timer frequency.. 3657.49 BogoMIPS (lpj=7314992)
->  Mount-cache hash table entries: 512
->  CPU: L1 I cache: 32K, L1 D cache: 32K
->  CPU: L2 cache: 2048K
-> @@ -124,7 +138,7 @@
->  CPU: Processor Core ID: 0
->  using mwait in idle threads.
->  Checking 'hlt' instruction... OK.
-> -ACPI: Core revision 20080321
-> +ACPI: Core revision 20080609
+On Tue, 2008-08-12 at 09:04 +0200, Dieter Sch=C3=B6n wrote:
+> hi,
+>=20
+> thanks for the answer,
+>=20
+> Zhao Yakui schrieb:
+> > On Mon, 2008-08-11 at 16:59 +0200, Dieter Sch=C3=B6n wrote:
+> >> hi group,
+> >>
+> >> i have to migrate a character device driver for an old synchronus
+> >> serial PCI board (Moxa C502/PCI)
+> >> from 2.2.something to 2.6.5-smp x86_64.
+> >> the problem is, that no interrupts are routed to the driver.
+> >> i was able to get interrupts when i used a non-SMP kernel and the
+> >> "noapic" boot option.
+> >>
+> >> is there a way to explicitly force the use of the 8259 when i requ=
+est
+> >> an interrupt to get the interrupts for this card not routed via th=
+e
+> >> APIC?
+> >> any pointers are appreciated.
+> > doubt whether the I8259 and I/O APIC can be used at the same time.
+> > When the non-smp kernel is used and boot option of "noapic" is adde=
+d,
+> > there exists the interrupt for PCI UART card.=20
+> > Do you try it with the boot option of "noapic" on smp kernel?
+> > Can you try it on the latest kernel?
+>=20
+> i have tried it with 2.6.25 on suse11, and also on another hardware=20
+> platform (i have heard that some motherboards/BIOSes have problems wi=
+th=20
+> the APIC) to rule that out.
+>=20
+> and it seems that it is possible to operate both ways at the same tim=
+e:
+> the cascade driver seems to use the 8259.
+> my driver is one line below, the Moxa. another idea: would it be=20
+> possible to force a IO-APIC-level interrupt instead of an edge-trigge=
+red?
+If the interrupt for Moxa is below 16, you can try to use it as
+edge-triggered. But you should confirm that it won't be shared by other
+devices.=20
 
-that's weird.
-ACPICA should be 20080609 in 2.6.26.
-Pavel, can you please make a double check? :)
+Maybe after you do so, the Moxa still can't work unless you can confirm
+that the interrupt Pin of Moxa card is already connected with the I/O
+APIC input pin.
 
-thanks,
-rui
+Have you tried it with the boot option of "noapic" on smp-kernel?
+Thanks.
+>=20
+> user@host $ cat /proc/interrupts
+>             CPU0       CPU1
+>    0:     145319     102178    IO-APIC-edge  timer
+>    1:        368        485    IO-APIC-edge  i8042
+>    2:          0          0          XT-PIC  cascade
+>    6:          0          0    IO-APIC-edge  Moxa
+>    8:          0          0    IO-APIC-edge  rtc
+>    9:          0          0   IO-APIC-level  acpi
+>   12:        668       1190    IO-APIC-edge  i8042
+>   14:        494        624    IO-APIC-edge  ide0
+>   16:          0          0   IO-APIC-level  eth0, ehci_hcd, uhci_hcd
+>   17:          0          0   IO-APIC-level  eth1, uhci_hcd
+>   18:       6783       3973   IO-APIC-level  libata
+> NMI:     247349     247309
+> LOC:     246859     247246
+> ERR:          0
+> MIS:          0
+>=20
+> user@host $ uname -a
+> Linux host 2.6.5-7.244-smp #1 SMP Mon Dec 12 18:32:25 UTC 2005 x86_64=
+=20
+> x86_64 x86_64 GNU/Linux
+>=20
+> user@host $ cat /proc/cpuinfo
+> processor       : 0
+> vendor_id       : GenuineIntel
+> cpu family      : 15
+> model           : 6
+> model name      :               Intel(R) Pentium(R) D CPU 3.40GHz
+> stepping        : 4
+> cpu MHz         : 3400.280
+> cache size      : 2048 KB
+> physical id     : 0
+> siblings        : 2
+> core id         : 0
+> cpu cores       : 2
+> fpu             : yes
+> fpu_exception   : yes
+> cpuid level     : 6
+> wp              : yes
+> flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pg=
+e=20
+> mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm syscal=
+l=20
+> lm pni monitor ds_cpl tm2 cid cmpxchg16b lahf_lm
+> bogomips        : 6717.44
+> clflush size    : 64
+> cache_alignment : 128
+> address sizes   : 36 bits physical, 48 bits virtual
+> power management:
+>=20
+> processor       : 1
+> vendor_id       : GenuineIntel
+> cpu family      : 15
+> model           : 6
+> model name      :               Intel(R) Pentium(R) D CPU 3.40GHz
+> stepping        : 4
+> cpu MHz         : 3400.280
+> cache size      : 2048 KB
+> physical id     : 0
+> siblings        : 2
+> core id         : 1
+> cpu cores       : 2
+> fpu             : yes
+> fpu_exception   : yes
+> cpuid level     : 6
+> wp              : yes
+> flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pg=
+e=20
+> mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm syscal=
+l=20
+> lm pni monitor ds_cpl tm2 cid cmpxchg16b lahf_lm
+> bogomips        : 6782.97
+> clflush size    : 64
+> cache_alignment : 128
+> address sizes   : 36 bits physical, 48 bits virtual
+> power management:
+>=20
+>=20
+> kind regards,
+> dieter
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
