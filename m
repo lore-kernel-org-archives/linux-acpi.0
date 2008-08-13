@@ -1,29 +1,31 @@
 From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 Subject: Re: [PATCH] acpi: Avoid dropping rapid hotkey events (or other GPEs)
  on Asus EeePC
-Date: Wed, 13 Aug 2008 12:45:34 +0100
-Message-ID: <48A2C95E.3050807@tuffmail.co.uk>
+Date: Wed, 13 Aug 2008 12:51:06 +0100
+Message-ID: <48A2CAAA.7010405@tuffmail.co.uk>
 References: <487D23C3.5070301@student.cs.york.ac.uk>	<487F58B6.5040309@suse.de>	<487F6D2E.2040501@tuffmail.co.uk>	<487F772C.1070806@suse.de>	<487F9592.1060003@tuffmail.co.uk>	<487F9677.4060001@suse.de>	<20080812162854.d6907c95.akpm@linux-foundation.org>	<48A2B596.3050401@tuffmail.co.uk> <20080813034628.0ef51866.akpm@linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------010001010402060900030101"
+ boundary="------------000405000306070004020803"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.189]:64763 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752099AbYHMLpm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Aug 2008 07:45:42 -0400
-Received: by nf-out-0910.google.com with SMTP id d3so1058800nfc.21
-        for <linux-acpi@vger.kernel.org>; Wed, 13 Aug 2008 04:45:40 -0700 (PDT)
+Received: from ik-out-1112.google.com ([66.249.90.177]:20137 "EHLO
+	ik-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753141AbYHMLvO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Aug 2008 07:51:14 -0400
+Received: by ik-out-1112.google.com with SMTP id c28so3316849ika.5
+        for <linux-acpi@vger.kernel.org>; Wed, 13 Aug 2008 04:51:12 -0700 (PDT)
 In-Reply-To: <20080813034628.0ef51866.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, hmh@hmh.eng.br, Maximilian Engelhardt <maxi@daemonizer.de>, linux-stable@vger.kernel.org
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, hmh@hmh.eng.br, Maximilian Engelhardt <maxi@daemonizer.de>, stable@kernel.org
 
 This is a multi-part message in MIME format.
---------------010001010402060900030101
+--------------000405000306070004020803
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
+
+[Dupe apology: CC'd to stable@kernel.org, with the right address this time]
 
 Andrew Morton wrote:
 > On Wed, 13 Aug 2008 11:21:10 +0100 Alan Jenkins <alan-jenkins@tuffmail.co.uk> wrote:
@@ -71,7 +73,7 @@ Andrew Morton wrote:
 >>     
 >
 > Oh gad.  And there's no workaround?
->   
+>
 Sorry, that was confusing.
 
 The patch in currently in -mm _is_ the workaround for this damage.  It
@@ -85,7 +87,8 @@ orthogonal to the _dropping_ of events.
 Thanks
 Alan
 
---------------010001010402060900030101
+
+--------------000405000306070004020803
 Content-Type: message/rfc822;
  name="Attached Message"
 Content-Transfer-Encoding: 7bit
@@ -170,4 +173,5 @@ index 5622aee..2b4c5a2 100644
 
 
 
---------------010001010402060900030101--
+
+--------------000405000306070004020803--
