@@ -1,45 +1,43 @@
-From: Pavel Machek <pavel@suse.cz>
-Subject: Re: acpi: trivial cleanups
-Date: Wed, 13 Aug 2008 14:45:29 +0200
-Message-ID: <20080813124529.GA6995@ucw.cz>
-References: <20080812102434.GA2676@elf.ucw.cz> <20080812162013.b139035b.akpm@linux-foundation.org>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: Panic on boot for x86_64
+Date: Wed, 13 Aug 2008 16:12:50 +0200
+Message-ID: <20080813141250.GB19397@elte.hu>
+References: <33307c790808121251t79af0fajf44cebffa8938051@mail.gmail.com> <20080812131045.b89e98b1.akpm@linux-foundation.org> <86802c440808121313x26e46c00m9ec6cd73b3bdbf22@mail.gmail.com> <200808122223.29022.rjw@sisk.pl> <33307c790808121647j4feef841i23638dba40197648@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:4475 "EHLO spitz.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752543AbYHMMpk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 13 Aug 2008 08:45:40 -0400
+Received: from mx2.mail.elte.hu ([157.181.151.9]:36454 "EHLO mx2.mail.elte.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752580AbYHMONj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 13 Aug 2008 10:13:39 -0400
 Content-Disposition: inline
-In-Reply-To: <20080812162013.b139035b.akpm@linux-foundation.org>
+In-Reply-To: <33307c790808121647j4feef841i23638dba40197648@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: andi@firstfloor.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, trivial@kernel.org
+To: Martin Bligh <mbligh@google.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Yinghai Lu <yhlu.kernel@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>
 
-On Tue 2008-08-12 16:20:13, Andrew Morton wrote:
-> On Tue, 12 Aug 2008 12:24:34 +0200
-> Pavel Machek <pavel@suse.cz> wrote:
-> 
-> > 
-> > Trivial cleanups for ACPI. Fix misspelling in printk(), fix mismerge,
-> > add file header.
-...
-> > +++ b/drivers/acpi/reboot.c
-> > @@ -1,4 +1,8 @@
-> > -
-> > +/*
-> > + * Reset the machine using the RESET_REG
-> > + *
-> > + * Distribute under GPL.
-> > + */
-> 
-> That was a trivial dirtyup.  Should at least be "Distributed under the
-> GPL" but I suspect that the policy in drivers/acpi/ is to add fancier
-> copyright text than this.
 
-Ok, sorry about that.
-							Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+* Martin Bligh <mbligh@google.com> wrote:
+
+> >> please try tip/master, or wait a while after linus pull fix from tip x86 fix.
+> >
+> > The fix is in the mainline already.
+> 
+> Still looks broken to me (rc2-git5)
+> 
+> http://test.kernel.org/results/IBM/188946/debug/console
+> 
+> It got in since yesterday?
+
+make sure you've got:
+
+| commit 3c7569b284e1be55d086b61a70d9f545326f6d74
+| Author: Eric W. Biederman <ebiederm@xmission.com>
+| Date:   Sun Aug 10 00:35:50 2008 -0700
+|
+|    x86_64: restore the proper NR_IRQS define so larger systems work.
+
+is it still broken even with that applied?
+
+	Ingo
