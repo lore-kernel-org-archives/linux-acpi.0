@@ -1,69 +1,67 @@
-From: Milan Broz <mbroz@redhat.com>
-Subject: Re: 2.6.27-rc1: critical thermal shutdown on thinkpad x60 (bisected)
-Date: Wed, 13 Aug 2008 12:39:20 +0200
-Message-ID: <48A2B9D8.2020603@redhat.com>
-References: <20080806090246.GA1572@elf.ucw.cz> <48A1779B.5020303@redhat.com> <20080812115530.GB8806@elf.ucw.cz> <200808121634.34634.rjw@sisk.pl> <48A1A4F6.9080706@redhat.com> <48A1B0CB.9050908@redhat.com> <20080812183004.GA24211@isilmar.linta.de> <20080812185941.GE1366@one.firstfloor.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH] acpi: Avoid dropping rapid hotkey events (or other
+ GPEs) on Asus EeePC
+Date: Wed, 13 Aug 2008 03:46:28 -0700
+Message-ID: <20080813034628.0ef51866.akpm@linux-foundation.org>
+References: <487D23C3.5070301@student.cs.york.ac.uk>
+	<487F58B6.5040309@suse.de>
+	<487F6D2E.2040501@tuffmail.co.uk>
+	<487F772C.1070806@suse.de>
+	<487F9592.1060003@tuffmail.co.uk>
+	<487F9677.4060001@suse.de>
+	<20080812162854.d6907c95.akpm@linux-foundation.org>
+	<48A2B596.3050401@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([66.187.233.31]:60117 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752583AbYHMKjs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 13 Aug 2008 06:39:48 -0400
-In-Reply-To: <20080812185941.GE1366@one.firstfloor.org>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45758 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753428AbYHMKrT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 13 Aug 2008 06:47:19 -0400
+In-Reply-To: <48A2B596.3050401@tuffmail.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>, "Rafael J. Wysocki" <rjw@sisk.pl>, Pavel Machek <pavel@suse.cz>, kernel list <linux-kernel@vger.kernel.org>, ACPI mailing list <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, Thomas Renninger <trenn@suse.de>
+To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, hmh@hmh.eng.br, Maximilian Engelhardt <maxi@daemonizer.de>, linux-stable@vger.kernel.org
 
-Andi Kleen wrote:
+On Wed, 13 Aug 2008 11:21:10 +0100 Alan Jenkins <alan-jenkins@tuffmail.co.uk> wrote:
 
-> On Tue, Aug 12, 2008 at 08:30:04PM +0200, Dominik Brodowski wrote:
->   
->> Hi,
->>
->> On Tue, Aug 12, 2008 at 05:48:27PM +0200, Milan Broz wrote:
->>     
->>> -static unsigned int ignore_ppc = -1;
->>> +static int ignore_ppc = -1;
->>>  module_param(ignore_ppc, uint, 0644);
->>>       
->> 			    ^^^^
->> follow-up change?
->>     
-yep, thanks.
-I am running my x60s with this patch now:
+> Andrew Morton wrote:
+> > Did this get fixed yet?
+> >
+> > I have an patch in -mm which I just restored (I had to tempdrop it
+> > because the acpi tree was busted for some time).  But it seems to be
+> > old.
+> >
+> > http://bugzilla.kernel.org/show_bug.cgi?id=10919 is marked "resolved"
+> > but the reporter (Maximilian) seems to think otherwise.  2.6.26.x is,
+> > afaik, still unfixed, as is 2.6.27-rc.
+> >   
+> That's correct.  I think this specific patch should go in 2.6.27 and
+> 2.6.26-stable.  No objections have been raised so far.
+> 
+> I still need this patch to make my brightness and volume control keys
+> usable in 2.6.27-rc3.  (They auto-repeat fast enough to trigger the
+> bug).  This is true even after applying the latest patches from bug
+> 10919 (#25 + #27).
+>
 
---
+Confusing.  Please send the patch which you think we should apply.
 
-Fix signed parameter in ACPI frequency notifier.
+> I think the 10919 fix makes it harder to reproduce, but it definitely
+> still happens.  I guess this is because the polling-driven EC
+> transactions add 1ms delays between each byte.  The slower timings leave
+> a window where the buggy behaviour of my EC can make a difference.  (It
+> has been seen to clear the "pending event" bit after a single event is
+> read, despite having more events pending).
+> 
+> There are more serious consequences of this bug.  After a while it can
+> confuse the EC enough to cause lockups or reboots during boot, or after
+> pressing a single hotkey.  This bad state is preserved over reboots,
+> even into known good kernels.  Fortunately the badness clears when power
+> is removed for a long enough period.  For a while I was worried that
+> something had physically burnt out.
 
-  static unsigned int ignore_ppc = -1;
-...
-       if (event == CPUFREQ_START && ignore_ppc <= 0) {
-               ignore_ppc = 0;
-...
-
-Signed-off-by: Milan Broz <mbroz@redhat.com>
----
- drivers/acpi/processor_perflib.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-Index: linux-2.6.26.y/drivers/acpi/processor_perflib.c
-===================================================================
---- linux-2.6.26.y.orig/drivers/acpi/processor_perflib.c	2008-08-12 17:20:07.000000000 +0200
-+++ linux-2.6.26.y/drivers/acpi/processor_perflib.c	2008-08-13 09:32:38.000000000 +0200
-@@ -70,8 +70,8 @@ static DEFINE_MUTEX(performance_mutex);
-  *  0 -> cpufreq low level drivers initialized -> consider _PPC values
-  *  1 -> ignore _PPC totally -> forced by user through boot param
-  */
--static unsigned int ignore_ppc = -1;
--module_param(ignore_ppc, uint, 0644);
-+static int ignore_ppc = -1;
-+module_param(ignore_ppc, int, 0644);
- MODULE_PARM_DESC(ignore_ppc, "If the frequency of your machine gets wrongly" \
- 		 "limited by BIOS, this should help");
- 
-
-
+Oh gad.  And there's no workaround?
