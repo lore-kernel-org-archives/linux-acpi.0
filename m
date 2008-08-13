@@ -1,79 +1,39 @@
-From: "Simon Depiets" <sdepiets@gmail.com>
-Subject: Re: Acer Aspire One (Intel Atom's Motherboard) CPU Temp & Fan Speed
-Date: Thu, 14 Aug 2008 11:48:06 +0200
-Message-ID: <f4897e880808140248xc6f918dlca01b42fb9762d10@mail.gmail.com>
-References: <f4897e880807240800n3c02c6bdw44c4827e098f61c2@mail.gmail.com>
-	 <f4897e880807240932q33f3919et1d24cb8f98e8598e@mail.gmail.com>
-	 <200807242302.04782.carlos@strangeworlds.co.uk>
-	 <f4897e880807241628j4d557e91w1955044d43451247@mail.gmail.com>
-	 <1216949919.1831.38.camel@yakui_zhao.sh.intel.com>
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: ACPI OSI disaster on latest HP laptops - critical temperature shutdowns
+Date: Wed, 13 Aug 2008 21:22:48 +0200
+Message-ID: <20080813192247.GF6995@ucw.cz>
+References: <200807241727.41715.trenn@suse.de> <alpine.LFD.1.10.0807261434380.2958@localhost.localdomain> <alpine.LFD.1.10.0808011701500.3011@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.227]:47856 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751407AbYHNJsH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Aug 2008 05:48:07 -0400
-Received: by rv-out-0506.google.com with SMTP id k40so322202rvb.1
-        for <linux-acpi@vger.kernel.org>; Thu, 14 Aug 2008 02:48:07 -0700 (PDT)
-In-Reply-To: <1216949919.1831.38.camel@yakui_zhao.sh.intel.com>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:1258 "EHLO spitz.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752683AbYHNLEp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 14 Aug 2008 07:04:45 -0400
 Content-Disposition: inline
+In-Reply-To: <alpine.LFD.1.10.0808011701500.3011@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, acpi@linux.intel.com, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Thomas Renninger <trenn@suse.de>, Arjan van de Ven <arjan@linux.intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, Christian Kornacker <ckornacker@suse.de>
 
-2008/7/25 Zhao Yakui <yakui.zhao@intel.com>:
-> On Fri, 2008-07-25 at 01:28 +0200, Simon Depiets wrote:
->> 2008/7/25 Carlos Corbacho <carlos@strangeworlds.co.uk>:
->> > We'll also need the output of acpidump.
->> >
->> > -Carlos
->> Hi,
->> I've uploaded it here
->> http://www.mmo-tools.com/acpi/acpidump.txt
-> >From the attached acpidump it seems that there is no defintion of
-> thermal_zone, FAN device or power resource device.
-> So we can't get any info about the temperature of thermal_zone or FAN
-> speed through ACPI interface.
-> Will you please check whether there is available bios to upgrade?
-> Will you please check whether the CPU temperature can be obtained by =
-the
-> coretemp driver?
->
-> Thanks.
-Hi,
-there is still no bios update available, but we did some progress on
-CPU temperature, coretemp should be upgraded in 2.6.27 to support Atom
-(model 0x1C), I tested the patch submitted my Rudolf Marek and it
-works : http://bugzilla.kernel.org/show_bug.cgi?id=3D11161
-So now sensors produces the following correct output
-#sensors
-coretemp-isa-0000
-Adapter: ISA adapter
-Core 0:      +29.0=B0C  (crit =3D +95.0=B0C)
+Hi!
 
-coretemp-isa-0001
-Adapter: ISA adapter
-Core 1:      +29.0=B0C  (crit =3D +95.0=B0C)
+> I ACK Thomas' suggestion to check for <= 0C for HOT,
+> PSV and ACx trip points.  While we don't have such a
 
-I still don't know what to do with fancontrol/fanspeed
-I've uploaded a new dsdt.dsl here : http://www.mmo-tools.com/acpi/dsdt.=
-dsl.txt
-and a new "tree /proc/acpi" here : http://www.mmo-tools.com/acpi/acpi_t=
-ree.txt
-Thanks a lot
---=20
-Lliane aka Simon Depiets
-Epita Promo 2011,42
-http://www.lliane.com
-A man is smoking with his girlfriend. She angers herself : "don't you
-see the warning on the box ?!"
-To which the man replies, "I am a programmer. I don't worry about
-warnings. I only worry about errors."
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hmm, I don't think that's good idea. 0Celsius is not special value.
+
+While having _CRT below 25Celsius would be quite strange (machine
+that can not run on room temperature?), I could imagine it (cryogenic
+cooling, cpu is overclocked, needs -10C to work).
+
+Machine with AC0 == -10C is very easy to imagine, OTOH. It is normal
+notebook that needs fans during normal temperatures, but does not need
+it if it is really cold.
+
+							Pavel
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
