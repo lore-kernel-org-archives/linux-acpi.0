@@ -1,89 +1,90 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: kernel BUG at arch/x86/mm/pat.c:233 in 2.6.27-rc3-git2
-Date: Thu, 14 Aug 2008 16:18:52 +0200
-Message-ID: <20080814161852.2dce7c21@hyperion.delvare>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Re: linux-next: Tree for August 14 (sysfs/acpi errors)
+Date: Thu, 14 Aug 2008 08:38:28 -0700
+Message-ID: <20080814083828.d10e126d.randy.dunlap@oracle.com>
+References: <20080814172945.250a27f2.sfr@canb.auug.org.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:17663 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751332AbYHNOTD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Aug 2008 10:19:03 -0400
+Received: from rgminet01.oracle.com ([148.87.113.118]:12185 "EHLO
+	rgminet01.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750735AbYHNPi1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Aug 2008 11:38:27 -0400
+In-Reply-To: <20080814172945.250a27f2.sfr@canb.auug.org.au>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-mm@kvack.org, linux-acpi@vger.kernel.org
-Cc: Andi Kleen <ak@linux.intel.com>, lenb@kernel.org
+To: Stephen Rothwell <sfr@canb.auug.org.au>, gregkh <greg@kroah.com>, ak@linux.intel.com
+Cc: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-Hi all,
+calling  param_sysfs_init+0x0/0x1e7
+------------[ cut here ]------------
+WARNING: at fs/sysfs/dir.c:463 sysfs_add_one+0x35/0x3d()
+sysfs: duplicate filename 'acpi' can not be created
+Modules linked in:
+Pid: 1, comm: swapper Not tainted 2.6.27-rc3-next-20080814 #1
 
-I have hit this bug with kernel 2.6.27-rc3 and 2.6.27-rc3-git2 on one
-of my test machines:
+Call Trace:
+ [<ffffffff802358cb>] warn_slowpath+0xae/0xdd
+ [<ffffffff8036a6be>] ? number+0x115/0x21f
+ [<ffffffff8036574d>] ? __next_cpu+0x19/0x26
+ [<ffffffff8022d575>] ? find_busiest_group+0x25b/0x6ee
+ [<ffffffff8036aefc>] ? string+0x3d/0xa2
+ [<ffffffff80365e02>] ? idr_get_empty_slot+0x161/0x24e
+ [<ffffffff8036b2ea>] ? vsnprintf+0x389/0x678
+ [<ffffffff802def96>] ? sysfs_ilookup_test+0x0/0x14
+ [<ffffffff802aa5bf>] ? ifind+0x3d/0xac
+ [<ffffffff802df1bd>] ? sysfs_find_dirent+0x1c/0x31
+ [<ffffffff802df1f1>] ? __sysfs_add_one+0x1f/0x7c
+ [<ffffffff802df283>] sysfs_add_one+0x35/0x3d
+ [<ffffffff802df7d2>] create_dir+0x58/0x93
+ [<ffffffff802df845>] sysfs_create_dir+0x38/0x4f
+ [<ffffffff80366b8a>] kobject_add_internal+0xce/0x18f
+ [<ffffffff80366d17>] kobject_add_varg+0x41/0x4d
+ [<ffffffff80366d91>] kobject_init_and_add+0x6e/0x7c
+ [<ffffffff803676e5>] ? kobject_uevent_env+0x350/0x37f
+ [<ffffffff802455bf>] ? param_sysfs_setup+0xe1/0x104
+ [<ffffffff80764a30>] kernel_param_sysfs_setup+0x6b/0xc6
+ [<ffffffff80764bee>] param_sysfs_init+0x163/0x1e7
+ [<ffffffff80249b00>] ? ktime_get_ts+0x14/0x4e
+ [<ffffffff80764a8b>] ? param_sysfs_init+0x0/0x1e7
+ [<ffffffff80209047>] _stext+0x47/0x13f
+ [<ffffffff80269f25>] ? register_irq_proc+0xb7/0xd3
+ [<ffffffff807508e5>] kernel_init+0x11b/0x171
+ [<ffffffff802311ef>] ? schedule_tail+0x28/0x60
+ [<ffffffff8020ce49>] child_rip+0xa/0x11
+ [<ffffffff807507ca>] ? kernel_init+0x0/0x171
+ [<ffffffff8020ce3f>] ? child_rip+0x0/0x11
 
-Aug 14 15:58:23 test kernel: ------------[ cut here ]------------
-Aug 14 15:58:23 test kernel: kernel BUG at arch/x86/mm/pat.c:233!
-Aug 14 15:58:23 test kernel: invalid opcode: 0000 [#1]
-Aug 14 15:58:23 test kernel: Modules linked in: processor(+) ehci_hcd(+) i2c_i801 usbcore rng_core parport_pc parport
-Aug 14 15:58:23 test kernel:
-Aug 14 15:58:23 test kernel: Pid: 1627, comm: modprobe Not tainted (2.6.27-rc3-git2 #8)
-Aug 14 15:58:23 test kernel: EIP: 0060:[<c0111262>] EFLAGS: 00010286 CPU: 0
-Aug 14 15:58:23 test kernel: EIP is at reserve_memtype+0x392/0x3a0
-Aug 14 15:58:23 test kernel: EAX: ffff0000 EBX: 00010000 ECX: 00000000 EDX: 00000000
-Aug 14 15:58:23 test kernel: ESI: ffff0000 EDI: 00000000 EBP: 00000010 ESP: c5836cb0
-Aug 14 15:58:23 test kernel:  DS: 007b ES: 007b FS: 0000 GS: 0033 SS: 0068
-Aug 14 15:58:23 test kernel: Process modprobe (pid: 1627, ti=c5836000 task=c68537e0 task.ti=c5836000)
-Aug 14 15:58:23 test kernel: Stack: 00000001 c01ffb1c c6818338 c01ffb7f c5836d1c 00000003 c681889c c5836d1c
-Aug 14 15:58:23 test kernel:        00000000 00000009 00010000 ffff0000 00000000 00000010 c010f96d 00000000
-Aug 14 15:58:23 test kernel:        00000000 00000010 c5836d10 00000000 00000003 c5836d1c 00000003 00000000
-Aug 14 15:58:23 test kernel: Call Trace:
-Aug 14 15:58:23 test kernel:  [<c01ffb1c>] acpi_ns_search_one_scope+0x14/0x37
-Aug 14 15:58:23 test kernel:  [<c01ffb7f>] acpi_ns_search_parent_tree+0x40/0x5e
-Aug 14 15:58:23 test kernel:  [<c010f96d>] __ioremap_caller+0xed/0x2a0
-Aug 14 15:58:23 test kernel:  [<c010fb34>] ioremap_nocache+0x14/0x20
-Aug 14 15:58:23 test kernel:  [<c0204b34>] acpi_tb_verify_table+0x20/0x4a
-Aug 14 15:58:23 test kernel:  [<c0204b34>] acpi_tb_verify_table+0x20/0x4a
-Aug 14 15:58:23 test kernel:  [<c0204b73>] acpi_tb_add_table+0x15/0xdc
-Aug 14 15:58:23 test kernel:  [<c01f9039>] acpi_ex_load_op+0xe8/0x15a
-Aug 14 15:58:23 test kernel:  [<c01faf82>] acpi_ex_opcode_1A_1T_0R+0x22/0x41
-Aug 14 15:58:23 test kernel:  [<c01f3fc7>] acpi_ds_exec_end_op+0xc4/0x339
-Aug 14 15:58:23 test kernel:  [<c0202cdc>] acpi_ps_parse_loop+0x27b/0x2b3
-Aug 14 15:58:23 test kernel:  [<c02021cf>] acpi_ps_parse_aml+0x66/0x243
-Aug 14 15:58:23 test kernel:  [<c0203252>] acpi_ps_execute_method+0x9e/0xd1
-Aug 14 15:58:23 test kernel:  [<c0200528>] acpi_ns_evaluate+0x124/0x174
-Aug 14 15:58:23 test kernel:  [<c01ffe02>] acpi_evaluate_object+0x13a/0x1dd
-Aug 14 15:58:23 test kernel:  [<c790a162>] acpi_processor_set_pdc+0x33/0x36 [processor]
-Aug 14 15:58:23 test kernel:  [<c790d23c>] acpi_processor_start+0xbc/0x1ac [processor]
-Aug 14 15:58:23 test kernel:  [<c02095ad>] acpi_start_single_object+0x21/0x3d
-Aug 14 15:58:23 test kernel:  [<c0209209>] acpi_device_probe+0x34/0x41
-Aug 14 15:58:23 test kernel:  [<c023d5f9>] really_probe+0x99/0x130
-Aug 14 15:58:23 test kernel:  [<c02090c1>] acpi_match_device_ids+0x1f/0x65
-Aug 14 15:58:23 test kernel:  [<c023d6df>] driver_probe_device+0x3f/0x60
-Aug 14 15:58:23 test kernel:  [<c023d849>] __driver_attach+0x89/0xc0
-Aug 14 15:58:23 test kernel:  [<c023c63a>] bus_for_each_dev+0x3a/0x60
-Aug 14 15:58:23 test kernel:  [<c023d896>] driver_attach+0x16/0x20
-Aug 14 15:58:23 test kernel:  [<c023d7c0>] __driver_attach+0x0/0xc0
-Aug 14 15:58:23 test kernel:  [<c023ce49>] bus_add_driver+0x109/0x1a0
-Aug 14 15:58:23 test kernel:  [<c0209274>] acpi_device_shutdown+0x0/0x1c
-Aug 14 15:58:23 test kernel:  [<c786a000>] acpi_processor_init+0x0/0x7b [processor]
-Aug 14 15:58:23 test kernel:  [<c023dcff>] driver_register+0x3f/0xd0
-Aug 14 15:58:23 test kernel:  [<c025ebbc>] dmi_check_system+0x4c/0x70
-Aug 14 15:58:23 test kernel:  [<c786a04b>] acpi_processor_init+0x4b/0x7b [processor]
-Aug 14 15:58:23 test kernel:  [<c0101033>] _stext+0x33/0x190
-Aug 14 15:58:23 test kernel:  [<c01368f6>] sys_init_module+0xe6/0x1a0
-Aug 14 15:58:23 test kernel:  [<c015b901>] sys_read+0x41/0x70
-Aug 14 15:58:23 test kernel:  [<c0102fb6>] syscall_call+0x7/0xb
-Aug 14 15:58:23 test kernel:  =======================
-Aug 14 15:58:23 test kernel: Code: 8b 53 04 c7 04 24 ff bb 30 c0 89 44 24 04 89 54 24 08 e8 e2 72 00 00 8d 4b 14 e9 e6 fd ff ff 77 0a 3b 44 24 3c 0f 82 83 fc ff ff <0f> 0b eb fe 8d 76 00 8d bc 27 00 00 00 00 83 ec 30 89 5c 24 20
-Aug 14 15:58:23 test kernel: EIP: [<c0111262>] reserve_memtype+0x392/0x3a0 SS:ESP 0068:c5836cb0
-Aug 14 15:58:23 test kernel: ---[ end trace e2df639a3eac4cc1 ]---
+---[ end trace 4eaa2a86a8e2da22 ]---
+kobject_add_internal failed for acpi with -EEXIST, don't try to register things with the same name in the same directory.
+Pid: 1, comm: swapper Tainted: G        W 2.6.27-rc3-next-20080814 #1
 
-The boot then completes, but network doesn't work. Kernel 2.6.26.1
-works fine on that machine, and I seem to recall that 2.6.27-rc2 did as
-well (but I'm not 100% sure.)
+Call Trace:
+ [<ffffffff8036698f>] ? kobject_put+0x47/0x4b
+ [<ffffffff80366c08>] kobject_add_internal+0x14c/0x18f
+ [<ffffffff80366d17>] kobject_add_varg+0x41/0x4d
+ [<ffffffff80366d91>] kobject_init_and_add+0x6e/0x7c
+ [<ffffffff803676e5>] ? kobject_uevent_env+0x350/0x37f
+ [<ffffffff802455bf>] ? param_sysfs_setup+0xe1/0x104
+ [<ffffffff80764a30>] kernel_param_sysfs_setup+0x6b/0xc6
+ [<ffffffff80764bee>] param_sysfs_init+0x163/0x1e7
+ [<ffffffff80249b00>] ? ktime_get_ts+0x14/0x4e
+ [<ffffffff80764a8b>] ? param_sysfs_init+0x0/0x1e7
+ [<ffffffff80209047>] _stext+0x47/0x13f
+ [<ffffffff80269f25>] ? register_irq_proc+0xb7/0xd3
+ [<ffffffff807508e5>] kernel_init+0x11b/0x171
+ [<ffffffff802311ef>] ? schedule_tail+0x28/0x60
+ [<ffffffff8020ce49>] child_rip+0xa/0x11
+ [<ffffffff807507ca>] ? kernel_init+0x0/0x171
+ [<ffffffff8020ce3f>] ? child_rip+0x0/0x11
 
-The board is an Intel D865GSA. I can provide additional information on
-request. I can also create an entry in bugzilla if needed.
+Module 'acpi' failed to be added to sysfs, error number -17
+The system will be unstable now.
+initcall param_sysfs_init+0x0/0x1e7 returned 0 after 19 msecs
 
-Thanks,
--- 
-Jean Delvare
+
+---
+~Randy
+Linux Plumbers Conference, 17-19 September 2008, Portland, Oregon USA
+http://linuxplumbersconf.org/
