@@ -1,39 +1,72 @@
-From: Pavel Machek <pavel@suse.cz>
-Subject: Re: ACPI OSI disaster on latest HP laptops - critical temperature shutdowns
-Date: Wed, 13 Aug 2008 21:22:48 +0200
-Message-ID: <20080813192247.GF6995@ucw.cz>
-References: <200807241727.41715.trenn@suse.de> <alpine.LFD.1.10.0807261434380.2958@localhost.localdomain> <alpine.LFD.1.10.0808011701500.3011@localhost.localdomain>
+From: Milan Broz <mbroz@redhat.com>
+Subject: Re: 2.6.27-rc1: critical thermal shutdown on thinkpad x60 (bisected)
+Date: Thu, 14 Aug 2008 15:56:12 +0200
+Message-ID: <48A4397C.8070602@redhat.com>
+References: <20080806090246.GA1572@elf.ucw.cz> <48A1779B.5020303@redhat.com> <20080812115530.GB8806@elf.ucw.cz> <200808121634.34634.rjw@sisk.pl> <48A1A4F6.9080706@redhat.com> <48A1B0CB.9050908@redhat.com> <20080812183004.GA24211@isilmar.linta.de> <20080812185941.GE1366@one.firstfloor.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:1258 "EHLO spitz.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752683AbYHNLEp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 14 Aug 2008 07:04:45 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.1.10.0808011701500.3011@localhost.localdomain>
+Received: from mx1.redhat.com ([66.187.233.31]:55274 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750757AbYHNODD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 14 Aug 2008 10:03:03 -0400
+In-Reply-To: <20080812185941.GE1366@one.firstfloor.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Thomas Renninger <trenn@suse.de>, Arjan van de Ven <arjan@linux.intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, Christian Kornacker <ckornacker@suse.de>
+To: Andi Kleen <andi@firstfloor.org>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>, "Rafael J. Wysocki" <rjw@sisk.pl>, Pavel Machek <pavel@suse.cz>, kernel list <linux-kernel@vger.kernel.org>, ACPI mailing list <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, Thomas Renninger <trenn@suse.de>, stable@kernel.org
 
-Hi!
+(adding cc: stable, the bug is also in 2.6.26.2)
 
-> I ACK Thomas' suggestion to check for <= 0C for HOT,
-> PSV and ACx trip points.  While we don't have such a
+Andi Kleen wrote:
 
-Hmm, I don't think that's good idea. 0Celsius is not special value.
+> On Tue, Aug 12, 2008 at 08:30:04PM +0200, Dominik Brodowski wrote:
+>   
+>> Hi,
+>>
+>> On Tue, Aug 12, 2008 at 05:48:27PM +0200, Milan Broz wrote:
+>>     
+>>> -static unsigned int ignore_ppc = -1;
+>>> +static int ignore_ppc = -1;
+>>>  module_param(ignore_ppc, uint, 0644);
+>>>       
+>> 			    ^^^^
+>> follow-up change?
+>>     
+yep, thanks.
+I am running my x60s with this patch now:
 
-While having _CRT below 25Celsius would be quite strange (machine
-that can not run on room temperature?), I could imagine it (cryogenic
-cooling, cpu is overclocked, needs -10C to work).
+--
 
-Machine with AC0 == -10C is very easy to imagine, OTOH. It is normal
-notebook that needs fans during normal temperatures, but does not need
-it if it is really cold.
+Fix signed parameter in ACPI frequency notifier.
 
-							Pavel
+  static unsigned int ignore_ppc = -1;
+...
+       if (event == CPUFREQ_START && ignore_ppc <= 0) {
+               ignore_ppc = 0;
+...
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Signed-off-by: Milan Broz <mbroz@redhat.com>
+---
+ drivers/acpi/processor_perflib.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+Index: linux-2.6.26.y/drivers/acpi/processor_perflib.c
+===================================================================
+--- linux-2.6.26.y.orig/drivers/acpi/processor_perflib.c	2008-08-12 17:20:07.000000000 +0200
++++ linux-2.6.26.y/drivers/acpi/processor_perflib.c	2008-08-13 09:32:38.000000000 +0200
+@@ -70,8 +70,8 @@ static DEFINE_MUTEX(performance_mutex);
+  *  0 -> cpufreq low level drivers initialized -> consider _PPC values
+  *  1 -> ignore _PPC totally -> forced by user through boot param
+  */
+-static unsigned int ignore_ppc = -1;
+-module_param(ignore_ppc, uint, 0644);
++static int ignore_ppc = -1;
++module_param(ignore_ppc, int, 0644);
+ MODULE_PARM_DESC(ignore_ppc, "If the frequency of your machine gets wrongly" \
+ 		 "limited by BIOS, this should help");
+ 
+
+
+
