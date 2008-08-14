@@ -1,70 +1,150 @@
-From: Tony Battersby <tonyb@cybernetics.com>
-Subject: [PATCH] [DMAR] Fix endless "Unknown DMAR structure type" loop
-Date: Thu, 14 Aug 2008 14:34:35 -0400
-Message-ID: <48A47ABB.1090805@cybernetics.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: kernel BUG at arch/x86/mm/pat.c:233 in 2.6.27-rc3-git2
+Date: Thu, 14 Aug 2008 12:59:45 -0700
+Message-ID: <9D39833986E69849A2A8E74C1078B6B3D7A7CD@orsmsx415.amr.corp.intel.com>
+References: <20080814161852.2dce7c21@hyperion.delvare>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from host64.cybernetics.com ([98.174.209.230]:3823 "EHLO
-	mail.cybernetics.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750822AbYHNTFG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Aug 2008 15:05:06 -0400
+Received: from mga11.intel.com ([192.55.52.93]:40736 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753868AbYHNT7r convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Aug 2008 15:59:47 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <20080814161852.2dce7c21@hyperion.delvare>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, ashok.raj@intel.com, shaohua.li@intel.com, anil.s.keshavamurthy@intel.com
+To: Jean Delvare <khali@linux-fr.org>, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Cc: Andi Kleen <ak@linux.intel.com>, lenb@kernel.org
 
-I have a SuperMicro C2SBX motherboard with BIOS revision 1.0b.  With
-vt-d enabled in the BIOS, Linux gets into an endless loop printing
-"DMAR:Unknown DMAR structure type" when booting.  Here is the DMAR ACPI
-table:
+Please open a bugzilla and attach the acpidump for the machine.
 
-DMAR @ 0x7fe86dec
-  0000: 44 4d 41 52 98 00 00 00 01 6f 49 6e 74 65 6c 20  DMAR.....oIntel 
-  0010: 4f 45 4d 44 4d 41 52 20 00 00 04 06 4c 4f 48 52  OEMDMAR ....LOHR
-  0020: 01 00 00 00 23 00 00 00 00 00 00 00 00 00 00 00  ....#...........
-  0030: 01 00 58 00 00 00 00 00 00 a0 e8 7f 00 00 00 00  ..X.............
-  0040: ff ff ef 7f 00 00 00 00 01 08 00 00 00 00 1d 00  ................
-  0050: 01 08 00 00 00 00 1d 01 01 08 00 00 00 00 1d 02  ................
-  0060: 01 08 00 00 00 00 1d 07 01 08 00 00 00 00 1a 00  ................
-  0070: 01 08 00 00 00 00 1a 01 01 08 00 00 00 00 1a 02  ................
-  0080: 01 08 00 00 00 00 1a 07 01 08 00 00 00 00 1a 07  ................
-  0090: c0 00 68 00 04 10 66 60                          ..h...f`
-
-Here are the messages printed by the kernel:
-
-DMAR:Host address width 36
-DMAR:RMRR base: 0x000000007fe8a000 end: 0x000000007fefffff
-DMAR:Unknown DMAR structure type
-DMAR:Unknown DMAR structure type
-DMAR:Unknown DMAR structure type
-...
-
-Although I not very familiar with ACPI, to me it looks like
-struct acpi_dmar_header::length == 0x0058 is incorrect, causing
-parse_dmar_table() to look at an invalid offset on the next loop.  This
-offset happens to have struct acpi_dmar_header::length == 0x0000, which
-prevents the loop from ever terminating.  This patch checks for this
-condition and bails out instead of looping forever.
-
-Signed-off-by: Tony Battersby <tonyb@cybernetics.com>
----
---- linux-2.6.27-rc3-git2/drivers/pci/dmar.c.orig	2008-08-14 13:29:32.000000000 -0400
-+++ linux-2.6.27-rc3-git2/drivers/pci/dmar.c	2008-08-14 14:14:13.000000000 -0400
-@@ -277,6 +277,14 @@ parse_dmar_table(void)
- 	entry_header = (struct acpi_dmar_header *)(dmar + 1);
- 	while (((unsigned long)entry_header) <
- 			(((unsigned long)dmar) + dmar_tbl->length)) {
-+		/* Avoid looping forever on bad ACPI tables */
-+		if (entry_header->length == 0) {
-+			printk(KERN_WARNING PREFIX
-+				"Invalid 0-length structure\n");
-+			ret = -EINVAL;
-+			break;
-+		}
-+
- 		dmar_table_print_dmar_entry(entry_header);
- 
- 		switch (entry_header->type) {
-
-
+>-----Original Message-----
+>From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+>owner@vger.kernel.org] On Behalf Of Jean Delvare
+>Sent: Thursday, August 14, 2008 7:19 AM
+>To: linux-mm@kvack.org; linux-acpi@vger.kernel.org
+>Cc: Andi Kleen; lenb@kernel.org
+>Subject: kernel BUG at arch/x86/mm/pat.c:233 in 2.6.27-rc3-git2
+>
+>Hi all,
+>
+>I have hit this bug with kernel 2.6.27-rc3 and 2.6.27-rc3-git2 on one
+>of my test machines:
+>
+>Aug 14 15:58:23 test kernel: ------------[ cut here ]------------
+>Aug 14 15:58:23 test kernel: kernel BUG at arch/x86/mm/pat.c:233!
+>Aug 14 15:58:23 test kernel: invalid opcode: 0000 [#1]
+>Aug 14 15:58:23 test kernel: Modules linked in: processor(+)
+ehci_hcd(+)
+>i2c_i801 usbcore rng_core parport_pc parport
+>Aug 14 15:58:23 test kernel:
+>Aug 14 15:58:23 test kernel: Pid: 1627, comm: modprobe Not tainted
+(2.6.27-
+>rc3-git2 #8)
+>Aug 14 15:58:23 test kernel: EIP: 0060:[<c0111262>] EFLAGS: 00010286
+CPU: 0
+>Aug 14 15:58:23 test kernel: EIP is at reserve_memtype+0x392/0x3a0
+>Aug 14 15:58:23 test kernel: EAX: ffff0000 EBX: 00010000 ECX: 00000000
+EDX:
+>00000000
+>Aug 14 15:58:23 test kernel: ESI: ffff0000 EDI: 00000000 EBP: 00000010
+ESP:
+>c5836cb0
+>Aug 14 15:58:23 test kernel:  DS: 007b ES: 007b FS: 0000 GS: 0033 SS:
+0068
+>Aug 14 15:58:23 test kernel: Process modprobe (pid: 1627, ti=c5836000
+>task=c68537e0 task.ti=c5836000)
+>Aug 14 15:58:23 test kernel: Stack: 00000001 c01ffb1c c6818338 c01ffb7f
+>c5836d1c 00000003 c681889c c5836d1c
+>Aug 14 15:58:23 test kernel:        00000000 00000009 00010000 ffff0000
+>00000000 00000010 c010f96d 00000000
+>Aug 14 15:58:23 test kernel:        00000000 00000010 c5836d10 00000000
+>00000003 c5836d1c 00000003 00000000
+>Aug 14 15:58:23 test kernel: Call Trace:
+>Aug 14 15:58:23 test kernel:  [<c01ffb1c>]
+>acpi_ns_search_one_scope+0x14/0x37
+>Aug 14 15:58:23 test kernel:  [<c01ffb7f>]
+>acpi_ns_search_parent_tree+0x40/0x5e
+>Aug 14 15:58:23 test kernel:  [<c010f96d>] __ioremap_caller+0xed/0x2a0
+>Aug 14 15:58:23 test kernel:  [<c010fb34>] ioremap_nocache+0x14/0x20
+>Aug 14 15:58:23 test kernel:  [<c0204b34>]
+acpi_tb_verify_table+0x20/0x4a
+>Aug 14 15:58:23 test kernel:  [<c0204b34>]
+acpi_tb_verify_table+0x20/0x4a
+>Aug 14 15:58:23 test kernel:  [<c0204b73>] acpi_tb_add_table+0x15/0xdc
+>Aug 14 15:58:23 test kernel:  [<c01f9039>] acpi_ex_load_op+0xe8/0x15a
+>Aug 14 15:58:23 test kernel:  [<c01faf82>]
+>acpi_ex_opcode_1A_1T_0R+0x22/0x41
+>Aug 14 15:58:23 test kernel:  [<c01f3fc7>]
+acpi_ds_exec_end_op+0xc4/0x339
+>Aug 14 15:58:23 test kernel:  [<c0202cdc>]
+acpi_ps_parse_loop+0x27b/0x2b3
+>Aug 14 15:58:23 test kernel:  [<c02021cf>] acpi_ps_parse_aml+0x66/0x243
+>Aug 14 15:58:23 test kernel:  [<c0203252>]
+acpi_ps_execute_method+0x9e/0xd1
+>Aug 14 15:58:23 test kernel:  [<c0200528>] acpi_ns_evaluate+0x124/0x174
+>Aug 14 15:58:23 test kernel:  [<c01ffe02>]
+acpi_evaluate_object+0x13a/0x1dd
+>Aug 14 15:58:23 test kernel:  [<c790a162>]
+acpi_processor_set_pdc+0x33/0x36
+>[processor]
+>Aug 14 15:58:23 test kernel:  [<c790d23c>]
+acpi_processor_start+0xbc/0x1ac
+>[processor]
+>Aug 14 15:58:23 test kernel:  [<c02095ad>]
+>acpi_start_single_object+0x21/0x3d
+>Aug 14 15:58:23 test kernel:  [<c0209209>] acpi_device_probe+0x34/0x41
+>Aug 14 15:58:23 test kernel:  [<c023d5f9>] really_probe+0x99/0x130
+>Aug 14 15:58:23 test kernel:  [<c02090c1>]
+acpi_match_device_ids+0x1f/0x65
+>Aug 14 15:58:23 test kernel:  [<c023d6df>]
+driver_probe_device+0x3f/0x60
+>Aug 14 15:58:23 test kernel:  [<c023d849>] __driver_attach+0x89/0xc0
+>Aug 14 15:58:23 test kernel:  [<c023c63a>] bus_for_each_dev+0x3a/0x60
+>Aug 14 15:58:23 test kernel:  [<c023d896>] driver_attach+0x16/0x20
+>Aug 14 15:58:23 test kernel:  [<c023d7c0>] __driver_attach+0x0/0xc0
+>Aug 14 15:58:23 test kernel:  [<c023ce49>] bus_add_driver+0x109/0x1a0
+>Aug 14 15:58:23 test kernel:  [<c0209274>]
+acpi_device_shutdown+0x0/0x1c
+>Aug 14 15:58:23 test kernel:  [<c786a000>] acpi_processor_init+0x0/0x7b
+>[processor]
+>Aug 14 15:58:23 test kernel:  [<c023dcff>] driver_register+0x3f/0xd0
+>Aug 14 15:58:23 test kernel:  [<c025ebbc>] dmi_check_system+0x4c/0x70
+>Aug 14 15:58:23 test kernel:  [<c786a04b>]
+acpi_processor_init+0x4b/0x7b
+>[processor]
+>Aug 14 15:58:23 test kernel:  [<c0101033>] _stext+0x33/0x190
+>Aug 14 15:58:23 test kernel:  [<c01368f6>] sys_init_module+0xe6/0x1a0
+>Aug 14 15:58:23 test kernel:  [<c015b901>] sys_read+0x41/0x70
+>Aug 14 15:58:23 test kernel:  [<c0102fb6>] syscall_call+0x7/0xb
+>Aug 14 15:58:23 test kernel:  =======================
+>Aug 14 15:58:23 test kernel: Code: 8b 53 04 c7 04 24 ff bb 30 c0 89 44
+24
+>04 89 54 24 08 e8 e2 72 00 00 8d 4b 14 e9 e6 fd ff ff 77 0a 3b 44 24 3c
+0f
+>82 83 fc ff ff <0f> 0b eb fe 8d 76 00 8d bc 27 00 00 00 00 83 ec 30 89
+5c
+>24 20
+>Aug 14 15:58:23 test kernel: EIP: [<c0111262>]
+reserve_memtype+0x392/0x3a0
+>SS:ESP 0068:c5836cb0
+>Aug 14 15:58:23 test kernel: ---[ end trace e2df639a3eac4cc1 ]---
+>
+>The boot then completes, but network doesn't work. Kernel 2.6.26.1
+>works fine on that machine, and I seem to recall that 2.6.27-rc2 did as
+>well (but I'm not 100% sure.)
+>
+>The board is an Intel D865GSA. I can provide additional information on
+>request. I can also create an entry in bugzilla if needed.
+>
+>Thanks,
+>--
+>Jean Delvare
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-acpi"
+in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
