@@ -1,49 +1,34 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: Re: a problem about the function of acpi_ec_read_data
-Date: Sat, 16 Aug 2008 00:38:58 +0400
-Message-ID: <48A5E962.7030204@suse.de>
-References: <1218699173.3998.60.camel@yakui_zhao.sh.intel.com>
+From: Andi Kleen <ak@linux.intel.com>
+Subject: Re: [PATCH 2/4] acpi: add real mutex function calls
+Date: Sat, 16 Aug 2008 00:16:15 +0200
+Message-ID: <48A6002F.6070706@linux.intel.com>
+References: <1218831242-27618-1-git-send-email-dwalker@mvista.com> <1218831242-27618-2-git-send-email-dwalker@mvista.com> <1218831242-27618-3-git-send-email-dwalker@mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:42761 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751722AbYHOUjG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Aug 2008 16:39:06 -0400
-In-Reply-To: <1218699173.3998.60.camel@yakui_zhao.sh.intel.com>
+Received: from mga10.intel.com ([192.55.52.92]:21555 "EHLO
+	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751605AbYHOWQL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Aug 2008 18:16:11 -0400
+In-Reply-To: <1218831242-27618-3-git-send-email-dwalker@mvista.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
+To: Daniel Walker <dwalker@mvista.com>
+Cc: linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, Peter Zijlstra <peterz@infradead.org>, Len Brown <len.brown@intel.com>, Robert Moore <robert.moore@intel.com>
 
-Hi Zhao,
-Good catch, it is probably debug patch gone bad. it is definitely needs to read "return x;"
-Please submit patch, I ACK it.
-Thanks,
-Alex.
+Daniel Walker wrote:
+> Instead of re-using semaphores for the mutex operation, I've
+> added usage of the kernel mutex for the acpi os mutex
+> implementation.
 
+This still implies that we'll get lockdep warnings if the AML
+does something dodgy with mutexes, right?
 
-Zhao Yakui wrote:
-> Hi, Alexey
->     There is a question about the function of acpi_ec_read_data.
->  
->     When the data is ready for OS, OS will check the OBF flag of EC status and then call the following
-> function to read the data returned by EC controller.
-> 
-> static inline u8 acpi_ec_read_data(struct acpi_ec *ec)
-> {
->         u8 x = inb(ec->data_addr);
->         pr_debug(PREFIX "---> data = 0x%2.2x\n", x);
->         return inb(ec->data_addr);
-> }
-> 
->     Why is the EC data I/O address accessed twice to get the data returned by EC controller?
->     Does there exist some specific reason about it?
->  
-> Thanks for the comments.
-> 
-> Best regards.
->    Yakui
-> 
+I don't like that. We cannot generally fix the AML, the only
+way would be to time out on a deadlock and let it handle that.
+Also it's not that we don't get enough ACPI reports already.
 
+Is there a way to just turn lockdep always off for these mutexes?
+
+-Andi
