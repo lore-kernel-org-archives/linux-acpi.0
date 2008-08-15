@@ -1,74 +1,45 @@
 From: Andi Kleen <andi@firstfloor.org>
-Subject: Please pull ACPI fixes
-Date: Fri, 15 Aug 2008 04:07:13 +0200
-Message-ID: <20080815020713.GA8111@basil.nowhere.org>
+Subject: Re: ACPI-related bug caused poor responsitivity (2.6.26.x line)
+Date: Fri, 15 Aug 2008 04:20:11 +0200
+Message-ID: <8763q3yq78.fsf@basil.nowhere.org>
+References: <20080814211348.GA6268@sarge.my.own.domain.no-net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from one.firstfloor.org ([213.235.205.2]:45541 "EHLO
+Received: from one.firstfloor.org ([213.235.205.2]:32881 "EHLO
 	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752403AbYHOCHQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Aug 2008 22:07:16 -0400
-Content-Disposition: inline
+	with ESMTP id S1752166AbYHOCUO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Aug 2008 22:20:14 -0400
+In-Reply-To: <20080814211348.GA6268@sarge.my.own.domain.no-net> (Zbigniew Baniewski's message of "Thu, 14 Aug 2008 23:13:49 +0200")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: torvalds@osdl.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Zbigniew Baniewski <zb@ispid.com.pl>
+Cc: linux-acpi@vger.kernel.org
+
+Zbigniew Baniewski <zb@ispid.com.pl> writes:
 
 
-Linus,
+> There are so many issues reported during last 3 months, that I'm not sure,
+> whether (or not) someone wrote about the problem. But few words anyway:
+>
+> I noticed, that using new kernels (tested 2.6.26 and 2.6.26.2), there are
+> typical for ACPI-related problems troubles with responsitivity. For example:
+> if I'm opening "bloated" web page using Opera, one can't move the mouse
+> cursor smoothly around the screen; there is a "jitter" during the movement,
+> and any output (like GKrellm's diagrams created in real time) for that 2-3
+> seconds is "frozen". As I've found googling around, these are rather typical
+> ACPI-related problems, and indeed: forcing "acpi=off" was the cure.
 
-Please pull the latest ACPI fixes from 
+I assume you double checked that? As in you removed the option again
+and the problem reappeared? And you add it again and it disappeared
+again? If not do so please.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/ak/linux-acpi-2.6.git release-2.6.27
+If it's checked please put a full report into http://bugzilla.kernel.org
 
-Now finally with a octopus merge, hopefully I'm a cool kid too now.
+Might be some kind of power saving issue. Does it happen when 
+you boot with processor.max_cstate=1? (without acpi=off) Does it happen when you
+disable CPUIDLE in the config?
+
+Thanks
 
 -Andi
-
-Andi Kleen (1):
-      Merge branches 'acpica-release-fixes', 'ec-fix', 'dock', 'irq-bounds', 'thermal-fix', 'wmi' and 'acpi-cleanups' into release-2.6.27
-
-Bjorn Helgaas (1):
-      ACPI: bounds check IRQ to prevent memory corruption
-
-Bob Moore (2):
-      ACPICA: Fix memory leak when deleting thermal/processor objects
-      ACPICA: Additional error checking for pathname utilities
-
-Carlos Corbacho (2):
-      ACPI: WMI: Set instance for query block calls
-      acer-wmi: Fix wireless and bluetooth on early AMW0 v2 laptops
-
-Holger Macht (1):
-      ACPI: Properly clear flags on false-positives and send uevent on sudden unplug
-
-Lin Ming (1):
-      ACPICA: Fix possible memory leak in Unload() operator
-
-Milan Broz (1):
-      ACPI: Fix thermal shutdowns
-
-Pavel Machek (1):
-      acpi: trivial cleanups
-
-Zhao Yakui (2):
-      ACPI : Add the EC dmi table to fix the incorrect ECDT table
-      ACPI: Avoid bogus EC timeout when EC is in Polling mode
-
- drivers/acpi/dock.c               |   11 ++++++++---
- drivers/acpi/ec.c                 |   36 ++++++++++++++++++++++++++++++++++++
- drivers/acpi/executer/exconfig.c  |    3 +++
- drivers/acpi/namespace/nsnames.c  |   34 ++++++++++++++++++++++------------
- drivers/acpi/pci_link.c           |   12 +++++++-----
- drivers/acpi/processor_core.c     |    2 +-
- drivers/acpi/processor_idle.c     |    1 -
- drivers/acpi/processor_perflib.c  |    2 +-
- drivers/acpi/resources/rscalc.c   |    3 +++
- drivers/acpi/utilities/utalloc.c  |    8 +++++---
- drivers/acpi/utilities/utdelete.c |   13 +++++++++++--
- drivers/acpi/utilities/utobject.c |   13 +++++++++----
- drivers/acpi/wmi.c                |    2 +-
- drivers/misc/acer-wmi.c           |   19 +++++++++++++++++++
- include/acpi/acnamesp.h           |    2 +-
- 15 files changed, 127 insertions(+), 34 deletions(-)
-
