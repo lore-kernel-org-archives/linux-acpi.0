@@ -1,349 +1,49 @@
-From: Daniel Walker <dwalker@mvista.com>
-Subject: [PATCH 1/4] add mutex_lock_timeout()
-Date: Fri, 15 Aug 2008 13:14:03 -0700
-Message-ID: <1218831242-27618-2-git-send-email-dwalker@mvista.com>
-References: <1218831242-27618-1-git-send-email-dwalker@mvista.com>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: Re: a problem about the function of acpi_ec_read_data
+Date: Sat, 16 Aug 2008 00:38:58 +0400
+Message-ID: <48A5E962.7030204@suse.de>
+References: <1218699173.3998.60.camel@yakui_zhao.sh.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gateway-1237.mvista.com ([63.81.120.158]:60331 "EHLO
-	gateway-1237.mvista.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751219AbYHOUOH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Aug 2008 16:14:07 -0400
-In-Reply-To: <1218831242-27618-1-git-send-email-dwalker@mvista.com>
+Received: from charybdis-ext.suse.de ([195.135.221.2]:42761 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751722AbYHOUjG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Aug 2008 16:39:06 -0400
+In-Reply-To: <1218699173.3998.60.camel@yakui_zhao.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <ak@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, Peter Zijlstra <peterz@infradead.org>, Len Brown <len.brown@intel.com>, Robert Moore <robert.moore@intel.com>
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
 
-Adds mutex_lock_timeout() and mutex_lock_timeout_nested() used inside ACPI.
+Hi Zhao,
+Good catch, it is probably debug patch gone bad. it is definitely needs to read "return x;"
+Please submit patch, I ACK it.
+Thanks,
+Alex.
 
-Cc: linux-acpi@vger.kernel.org
-Signed-off-by: Daniel Walker <dwalker@mvista.com>
----
- include/asm-generic/mutex-dec.h  |   23 ++++++++++++
- include/asm-generic/mutex-null.h |    3 ++
- include/asm-generic/mutex-xchg.h |   23 ++++++++++++
- include/asm-x86/mutex_32.h       |   21 +++++++++++
- include/asm-x86/mutex_64.h       |   21 +++++++++++
- include/linux/mutex.h            |    8 ++++
- kernel/mutex.c                   |   71 +++++++++++++++++++++++++++++++++-----
- 7 files changed, 161 insertions(+), 9 deletions(-)
 
-diff --git a/include/asm-generic/mutex-dec.h b/include/asm-generic/mutex-dec.h
-index ed108be..eddc8c4 100644
---- a/include/asm-generic/mutex-dec.h
-+++ b/include/asm-generic/mutex-dec.h
-@@ -109,4 +109,27 @@ __mutex_fastpath_trylock(atomic_t *count, int (*fail_fn)(atomic_t *))
- #endif
- }
- 
-+/**
-+ *  __mutex_fastpath_lock_timeout - try to take the lock by moving the count
-+ *                                  from 1 to a 0 value
-+ *  @count: pointer of type atomic_t
-+ *  @fail_fn: function to call if the original value was not 1
-+ *  	      This function will need to accept two arguments.
-+ *  @timeout: Timeout value as second argument to fail_fn.
-+ *
-+ * Change the count from 1 to a value lower than 1, and call <fail_fn> if
-+ * it wasn't 1 originally. This function returns 0 if the fastpath succeeds,
-+ * or anything the slow path function returns.
-+ */
-+static inline int
-+__mutex_fastpath_lock_timeout(atomic_t *count, long timeout,
-+					int (*fail_fn)(atomic_t *, long))
-+{
-+	if (unlikely(atomic_dec_return(count) < 0))
-+		return fail_fn(count, timeout);
-+	else {
-+		smp_mb();
-+		return 0;
-+	}
-+}
- #endif
-diff --git a/include/asm-generic/mutex-null.h b/include/asm-generic/mutex-null.h
-index e1bbbc7..192a756 100644
---- a/include/asm-generic/mutex-null.h
-+++ b/include/asm-generic/mutex-null.h
-@@ -14,6 +14,9 @@
- #define __mutex_fastpath_lock_retval(count, fail_fn)	fail_fn(count)
- #define __mutex_fastpath_unlock(count, fail_fn)		fail_fn(count)
- #define __mutex_fastpath_trylock(count, fail_fn)	fail_fn(count)
-+
-+#define __mutex_fastpath_timeout(count, timeout, fail_fn) \
-+	fail_fn(count, timeout)
- #define __mutex_slowpath_needs_to_unlock()		1
- 
- #endif
-diff --git a/include/asm-generic/mutex-xchg.h b/include/asm-generic/mutex-xchg.h
-index 7b9cd2c..34ccdd3 100644
---- a/include/asm-generic/mutex-xchg.h
-+++ b/include/asm-generic/mutex-xchg.h
-@@ -115,4 +115,27 @@ __mutex_fastpath_trylock(atomic_t *count, int (*fail_fn)(atomic_t *))
- 	return prev;
- }
- 
-+/**
-+ *  __mutex_fastpath_lock_timeout - try to take the lock by moving the count
-+ *                                  from 1 to a 0 value
-+ *  @count: pointer of type atomic_t
-+ *  @fail_fn: function to call if the original value was not 1
-+ *	      This function will need to accept two arguments.
-+ *  @timeout: Timeout value as second argument to fail_fn.
-+ *
-+ * Change the count from 1 to a value lower than 1, and call <fail_fn> if it
-+ * wasn't 1 originally. This function returns 0 if the fastpath succeeds,
-+ * or anything the slow path function returns
-+ */
-+static inline int
-+__mutex_fastpath_lock_timeout(atomic_t *count, timeout,
-+			      int (*fail_fn)(atomic_t *, long))
-+{
-+	if (unlikely(atomic_xchg(count, 0) != 1))
-+		return fail_fn(count, timeout);
-+	else {
-+		smp_mb();
-+		return 0;
-+	}
-+}
- #endif
-diff --git a/include/asm-x86/mutex_32.h b/include/asm-x86/mutex_32.h
-index 73e928e..7d4696d 100644
---- a/include/asm-x86/mutex_32.h
-+++ b/include/asm-x86/mutex_32.h
-@@ -122,4 +122,25 @@ static inline int __mutex_fastpath_trylock(atomic_t *count,
- #endif
- }
- 
-+/**
-+ *  __mutex_fastpath_lock_timeout - try to take the lock by moving the count
-+ *                                  from 1 to a 0 value
-+ *  @count: pointer of type atomic_t
-+ *  @fail_fn: function to call if the original value was not 1
-+ *	      This function will need to accept two arguments.
-+ *  @timeout: Timeout value as second argument to fail_fn.
-+ *
-+ * Change the count from 1 to a value lower than 1, and call <fail_fn> if it
-+ * wasn't 1 originally. This function returns 0 if the fastpath succeeds,
-+ * or anything the slow path function returns
-+ */
-+static inline int
-+__mutex_fastpath_lock_timeout(atomic_t *count, long timeout,
-+			      int (*fail_fn)(atomic_t *, long))
-+{
-+	if (unlikely(atomic_dec_return(count) < 0))
-+		return fail_fn(count, timeout);
-+	else
-+		return 0;
-+}
- #endif
-diff --git a/include/asm-x86/mutex_64.h b/include/asm-x86/mutex_64.h
-index f3fae9b..3e63b61 100644
---- a/include/asm-x86/mutex_64.h
-+++ b/include/asm-x86/mutex_64.h
-@@ -97,4 +97,25 @@ static inline int __mutex_fastpath_trylock(atomic_t *count,
- 		return 0;
- }
- 
-+/**
-+ *  __mutex_fastpath_lock_timeout - try to take the lock by moving the count
-+ *                                  from 1 to a 0 value
-+ *  @count: pointer of type atomic_t
-+ *  @fail_fn: function to call if the original value was not 1
-+ *	      This function will need to accept two arguments.
-+ *  @timeout: Timeout value as second argument to fail_fn.
-+ *
-+ * Change the count from 1 to a value lower than 1, and call <fail_fn> if
-+ * it wasn't 1 originally. This function returns 0 if the fastpath succeeds,
-+ * or anything the slow path function returns
-+ */
-+static inline int
-+__mutex_fastpath_lock_timeout(atomic_t *count, long timeout,
-+			      int (*fail_fn)(atomic_t *, long))
-+{
-+	if (unlikely(atomic_dec_return(count) < 0))
-+		return fail_fn(count, timeout);
-+	else
-+		return 0;
-+}
- #endif
-diff --git a/include/linux/mutex.h b/include/linux/mutex.h
-index bc6da10..bb84cd4 100644
---- a/include/linux/mutex.h
-+++ b/include/linux/mutex.h
-@@ -127,18 +127,26 @@ extern int __must_check mutex_lock_interruptible_nested(struct mutex *lock,
- 					unsigned int subclass);
- extern int __must_check mutex_lock_killable_nested(struct mutex *lock,
- 					unsigned int subclass);
-+extern int __must_check
-+mutex_lock_timeout_nested(struct mutex *lock, long jiffies,
-+			  unsigned int subclass);
- 
- #define mutex_lock(lock) mutex_lock_nested(lock, 0)
- #define mutex_lock_interruptible(lock) mutex_lock_interruptible_nested(lock, 0)
- #define mutex_lock_killable(lock) mutex_lock_killable_nested(lock, 0)
-+#define mutex_lock_timeout(lock, jiffies) \
-+	mutex_lock_timeout_nested(lock, jiffies, 0)
- #else
- extern void mutex_lock(struct mutex *lock);
- extern int __must_check mutex_lock_interruptible(struct mutex *lock);
- extern int __must_check mutex_lock_killable(struct mutex *lock);
-+extern int __must_check mutex_lock_timeout(struct mutex *lock, long jiffies);
- 
- # define mutex_lock_nested(lock, subclass) mutex_lock(lock)
- # define mutex_lock_interruptible_nested(lock, subclass) mutex_lock_interruptible(lock)
- # define mutex_lock_killable_nested(lock, subclass) mutex_lock_killable(lock)
-+# define mutex_lock_timeout_nested(lock, jiffies, subclass) \
-+	mutex_lock_timeout(lock, jiffies)
- #endif
- 
- /*
-diff --git a/kernel/mutex.c b/kernel/mutex.c
-index 12c779d..cf06f62 100644
---- a/kernel/mutex.c
-+++ b/kernel/mutex.c
-@@ -124,8 +124,8 @@ EXPORT_SYMBOL(mutex_unlock);
-  * Lock a mutex (possibly interruptible), slowpath:
-  */
- static inline int __sched
--__mutex_lock_common(struct mutex *lock, long state, unsigned int subclass,
--	       	unsigned long ip)
-+__mutex_lock_common(struct mutex *lock, long state, long timeout,
-+		    unsigned int subclass, unsigned long ip)
- {
- 	struct task_struct *task = current;
- 	struct mutex_waiter waiter;
-@@ -179,7 +179,22 @@ __mutex_lock_common(struct mutex *lock, long state, unsigned int subclass,
- 
- 		/* didnt get the lock, go to sleep: */
- 		spin_unlock_mutex(&lock->wait_lock, flags);
--		schedule();
-+		if (timeout == MAX_SCHEDULE_TIMEOUT)
-+			schedule();
-+		else {
-+			timeout = schedule_timeout(timeout);
-+
-+			if (timeout == 0) {
-+				spin_lock_mutex(&lock->wait_lock, flags);
-+				mutex_remove_waiter(lock, &waiter,
-+						    task_thread_info(task));
-+				mutex_release(&lock->dep_map, 1, ip);
-+				spin_unlock_mutex(&lock->wait_lock, flags);
-+
-+				debug_mutex_free_waiter(&waiter);
-+				return -ETIME;
-+			}
-+		}
- 		spin_lock_mutex(&lock->wait_lock, flags);
- 	}
- 
-@@ -205,7 +220,8 @@ void __sched
- mutex_lock_nested(struct mutex *lock, unsigned int subclass)
- {
- 	might_sleep();
--	__mutex_lock_common(lock, TASK_UNINTERRUPTIBLE, subclass, _RET_IP_);
-+	__mutex_lock_common(lock, TASK_UNINTERRUPTIBLE, MAX_SCHEDULE_TIMEOUT,
-+			    subclass, _RET_IP_);
- }
- 
- EXPORT_SYMBOL_GPL(mutex_lock_nested);
-@@ -214,7 +230,8 @@ int __sched
- mutex_lock_killable_nested(struct mutex *lock, unsigned int subclass)
- {
- 	might_sleep();
--	return __mutex_lock_common(lock, TASK_KILLABLE, subclass, _RET_IP_);
-+	return __mutex_lock_common(lock, TASK_KILLABLE, MAX_SCHEDULE_TIMEOUT,
-+				   subclass, _RET_IP_);
- }
- EXPORT_SYMBOL_GPL(mutex_lock_killable_nested);
- 
-@@ -222,10 +239,23 @@ int __sched
- mutex_lock_interruptible_nested(struct mutex *lock, unsigned int subclass)
- {
- 	might_sleep();
--	return __mutex_lock_common(lock, TASK_INTERRUPTIBLE, subclass, _RET_IP_);
-+	return __mutex_lock_common(lock, TASK_INTERRUPTIBLE, MAX_SCHEDULE_TIMEOUT,
-+				   subclass, _RET_IP_);
- }
- 
- EXPORT_SYMBOL_GPL(mutex_lock_interruptible_nested);
-+
-+
-+int __sched
-+mutex_lock_timeout_nested(struct mutex *lock, long timeout,
-+			  unsigned int subclass)
-+{
-+	might_sleep();
-+	return __mutex_lock_common(lock, TASK_UNINTERRUPTIBLE, timeout,
-+				   subclass, _RET_IP_);
-+}
-+EXPORT_SYMBOL_GPL(mutex_lock_timeout_nested);
-+
- #endif
- 
- /*
-@@ -285,6 +315,9 @@ __mutex_lock_killable_slowpath(atomic_t *lock_count);
- static noinline int __sched
- __mutex_lock_interruptible_slowpath(atomic_t *lock_count);
- 
-+static noinline int __sched
-+__mutex_lock_timeout_slowpath(atomic_t *lock_count, long timeout);
-+
- /***
-  * mutex_lock_interruptible - acquire the mutex, interruptable
-  * @lock: the mutex to be acquired
-@@ -313,12 +346,21 @@ int __sched mutex_lock_killable(struct mutex *lock)
- }
- EXPORT_SYMBOL(mutex_lock_killable);
- 
-+int __sched mutex_lock_timeout(struct mutex *lock, long timeout)
-+{
-+	might_sleep();
-+	return __mutex_fastpath_lock_timeout
-+			(&lock->count, timeout, __mutex_lock_timeout_slowpath);
-+}
-+EXPORT_SYMBOL(mutex_lock_timeout);
-+
- static noinline void __sched
- __mutex_lock_slowpath(atomic_t *lock_count)
- {
- 	struct mutex *lock = container_of(lock_count, struct mutex, count);
- 
--	__mutex_lock_common(lock, TASK_UNINTERRUPTIBLE, 0, _RET_IP_);
-+	__mutex_lock_common(lock, TASK_UNINTERRUPTIBLE, MAX_SCHEDULE_TIMEOUT,
-+			    _RET_IP_);
- }
- 
- static noinline int __sched
-@@ -326,7 +368,8 @@ __mutex_lock_killable_slowpath(atomic_t *lock_count)
- {
- 	struct mutex *lock = container_of(lock_count, struct mutex, count);
- 
--	return __mutex_lock_common(lock, TASK_KILLABLE, 0, _RET_IP_);
-+	return __mutex_lock_common(lock, TASK_KILLABLE, MAX_SCHEDULE_TIMEOUT,
-+				   _RET_IP_);
- }
- 
- static noinline int __sched
-@@ -334,7 +377,17 @@ __mutex_lock_interruptible_slowpath(atomic_t *lock_count)
- {
- 	struct mutex *lock = container_of(lock_count, struct mutex, count);
- 
--	return __mutex_lock_common(lock, TASK_INTERRUPTIBLE, 0, _RET_IP_);
-+	return __mutex_lock_common(lock, TASK_INTERRUPTIBLE,
-+				   MAX_SCHEDULE_TIMEOUT, _RET_IP_);
-+}
-+
-+static noinline int __sched
-+__mutex_lock_timeout_slowpath(atomic_t *lock_count, long timeout)
-+{
-+	struct mutex *lock = container_of(lock_count, struct mutex, count);
-+
-+	return __mutex_lock_common(lock, TASK_INTERRUPTIBLE, timeout,
-+				   _RET_IP_);
- }
- #endif
- 
--- 
-1.5.5.1.32.gba7d2
-
+Zhao Yakui wrote:
+> Hi, Alexey
+>     There is a question about the function of acpi_ec_read_data.
+>  
+>     When the data is ready for OS, OS will check the OBF flag of EC status and then call the following
+> function to read the data returned by EC controller.
+> 
+> static inline u8 acpi_ec_read_data(struct acpi_ec *ec)
+> {
+>         u8 x = inb(ec->data_addr);
+>         pr_debug(PREFIX "---> data = 0x%2.2x\n", x);
+>         return inb(ec->data_addr);
+> }
+> 
+>     Why is the EC data I/O address accessed twice to get the data returned by EC controller?
+>     Does there exist some specific reason about it?
+>  
+> Thanks for the comments.
+> 
+> Best regards.
+>    Yakui
+> 
 
