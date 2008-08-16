@@ -1,55 +1,70 @@
-From: Greg KH <greg@kroah.com>
+From: Sam Ravnborg <sam@ravnborg.org>
 Subject: Re: linux-next: Tree for August 14 (sysfs/acpi errors)
-Date: Fri, 15 Aug 2008 21:47:14 -0700
-Message-ID: <20080816044714.GA19886@kroah.com>
-References: <20080814172945.250a27f2.sfr@canb.auug.org.au> <20080814083828.d10e126d.randy.dunlap@oracle.com> <3ae72650808150427q364842ccicf0a0978b30ca98c@mail.gmail.com> <20080815085836.67e420f1.randy.dunlap@oracle.com> <1218854219.3629.30.camel@lgn.site> <48A64235.2030108@linux.intel.com> <1218856798.3629.45.camel@lgn.site> <48A64E0A.8090408@linux.intel.com>
+Date: Sat, 16 Aug 2008 07:25:52 +0200
+Message-ID: <20080816052552.GA21668@uranus.ravnborg.org>
+References: <20080814172945.250a27f2.sfr@canb.auug.org.au> <1218854219.3629.30.camel@lgn.site> <48A64235.2030108@linux.intel.com> <200808161347.41253.rusty@rustcorp.com.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:33401 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751070AbYHPEs2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 16 Aug 2008 00:48:28 -0400
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-next-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <48A64E0A.8090408@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <200808161347.41253.rusty@rustcorp.com.au>
+Sender: linux-next-owner@vger.kernel.org
+To: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Andi Kleen <ak@linux.intel.com>, Kay Sievers <kay.sievers@vrfy.org>, Randy Dunlap <randy.dunlap@oracle.com>, Stephen Rothwell <sfr@canb.auug.org.au>, gregkh <greg@kroah.com>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <ak@linux.intel.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>, Randy Dunlap <randy.dunlap@oracle.com>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, rusty@rustcorp.com.au
 
-On Sat, Aug 16, 2008 at 05:48:26AM +0200, Andi Kleen wrote:
->
->> They have been module options, not prefixed kernel parameters so far=
-,
->> and the prefix was just the module name.
->> So it just strikes back, that acpi uses generic names for the module=
-s,
->> there would have been no problem if "power" would be called "acpi_po=
-wer"
->> and the options would just be =EF=BB=BF"acpi.acpica_version" and
->> "acpi_power.nocheck".
->> But well, there are driver modules just called "option", so acpi is =
-not
->> that bad. :)
->>> I think the generic params code should be fixed to handle this.
->> We could try to look up existing directories to use instead of expec=
-ting
->> that we need to create and own them. I guess,
->
-> sysfs does this anyways, doesn't it. We would just need to teach it
-> to not BUG() in this case, perhaps with a special entry point.
-> Also a BUG() in general seems a little harsh for this, surely a WARN_=
-ON
-> should be enough.
+On Sat, Aug 16, 2008 at 01:47:40PM +1000, Rusty Russell wrote:
+> On Saturday 16 August 2008 12:57:57 Andi Kleen wrote:
+> > >> Extract is:
+> > >>
+> > >> XXX adding modparam:'acpi.power_nocheck' 34 (ffffffff806a4cf0)
+> > >
+> > > ...
+> > >
+> > >> XXX adding modparam:'acpi.acpica_version' 45 (ffffffff806a4ea8)
+> > >
+> > > Two different "modules" use the same prefix, which does not work with
+> > > the current logic, they need to live next to each other in the sequence
+> > > of options.
+> >
+> > Sequence of options being defined by link order?
+> 
+> Simplest fix is to shuffle Makefile.  But better is to create an acpi "module"
+> so the namespacing just works, something like below.  Overriding MODULE_PREFIX
+> only works for builtin code anyway.  (Which makes sense: moving a parameter
+> from one module to another isn't a change we can cover up).
+> 
+> (Sam: foo-objs-y would make this neater)
 
-It is a WARN() call, not a BUG().
+foo-y is even neater and works today.
 
-thanks,
+> 
+> diff -r 5f7194400572 drivers/acpi/Makefile
+> --- a/drivers/acpi/Makefile	Sat Aug 16 13:23:26 2008 +1000
+> +++ b/drivers/acpi/Makefile	Sat Aug 16 13:44:17 2008 +1000
+> @@ -21,10 +21,18 @@ obj-$(CONFIG_X86)		+= blacklist.o
+>  #
+>  # ACPI Core Subsystem (Interpreter)
+>  #
+> -obj-y				+= osl.o utils.o reboot.o\
+> +obj-y				+= osl.o utils.o reboot.o acpi.o \
+>  				   dispatcher/ events/ executer/ hardware/ \
+>  				   namespace/ parser/ resources/ tables/ \
+>  				   utilities/
+> +
+> +# "acpi." module_param namespace.
+> +ifdef CONFIG_ACPI_POWER
+> +acpi-objs	+= power.o
+> +endif
 
-greg k-h
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+becomes:
+acpi-y += power.o
+
+> +ifdef CONFIG_ACPI_SYSTEM
+> +acpi-objs	+= system.o event.o
+> +endif
+acpi-y += system.o event.o
+
+[Assuming both config symbols are bool]
+
+	Sam
