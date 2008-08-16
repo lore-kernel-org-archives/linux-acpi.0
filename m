@@ -1,77 +1,88 @@
-From: Kay Sievers <kay.sievers@vrfy.org>
+From: Rusty Russell <rusty@rustcorp.com.au>
 Subject: Re: linux-next: Tree for August 14 (sysfs/acpi errors)
-Date: Sat, 16 Aug 2008 05:19:58 +0200
-Message-ID: <1218856798.3629.45.camel@lgn.site>
-References: <20080814172945.250a27f2.sfr@canb.auug.org.au>
-	 <20080814083828.d10e126d.randy.dunlap@oracle.com>
-	 <3ae72650808150427q364842ccicf0a0978b30ca98c@mail.gmail.com>
-	 <20080815085836.67e420f1.randy.dunlap@oracle.com>
-	 <1218854219.3629.30.camel@lgn.site>  <48A64235.2030108@linux.intel.com>
+Date: Sat, 16 Aug 2008 13:47:40 +1000
+Message-ID: <200808161347.41253.rusty@rustcorp.com.au>
+References: <20080814172945.250a27f2.sfr@canb.auug.org.au> <1218854219.3629.30.camel@lgn.site> <48A64235.2030108@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-next-owner@vger.kernel.org>
 In-Reply-To: <48A64235.2030108@linux.intel.com>
+Content-Disposition: inline
 Sender: linux-next-owner@vger.kernel.org
 To: Andi Kleen <ak@linux.intel.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>, Stephen Rothwell <sfr@canb.auug.org.au>, gregkh <greg@kroah.com>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, rusty@rustcorp.com.au
+Cc: Kay Sievers <kay.sievers@vrfy.org>, Randy Dunlap <randy.dunlap@oracle.com>, Stephen Rothwell <sfr@canb.auug.org.au>, gregkh <greg@kroah.com>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Sam Ravnborg <sam@ravnborg.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, 2008-08-16 at 04:57 +0200, Andi Kleen wrote:
+On Saturday 16 August 2008 12:57:57 Andi Kleen wrote:
 > >> Extract is:
 > >>
 > >> XXX adding modparam:'acpi.power_nocheck' 34 (ffffffff806a4cf0)
+> >
 > > ...
+> >
 > >> XXX adding modparam:'acpi.acpica_version' 45 (ffffffff806a4ea8)
-> >=20
-> > Two different "modules" use the same prefix, which does not work wi=
-th
-> > the current logic, they need to live next to each other in the sequ=
-ence
+> >
+> > Two different "modules" use the same prefix, which does not work with
+> > the current logic, they need to live next to each other in the sequence
 > > of options.
->=20
+>
 > Sequence of options being defined by link order?
 
-Yeah, they are stored in a global array __start___param, and the curren=
-t
-code expects the prefixes to be sorted, so the sysfs directories can be
-created for every first new prefix.
+Simplest fix is to shuffle Makefile.  But better is to create an acpi "module"
+so the namespacing just works, something like below.  Overriding MODULE_PREFIX
+only works for builtin code anyway.  (Which makes sense: moving a parameter
+from one module to another isn't a change we can cover up).
 
-> > This adds a new option:
-> >   http://git.kernel.org/?p=3Dlinux/kernel/git/sfr/linux-next.git;a=3D=
-commitdiff;h=3D1382827e93799ec07790849e361267993cfe549e
-> > =EF=BB=BFwhich specifies =EF=BB=BFMODULE_PARAM_PREFIX=3D"acpi." in:
-> >   drivers/acpi/power.c
-> > In the same way as:
-> >   drivers/acpi/system.c
-> >=20
-> > Seems, two different modules should not declare parameters in diffe=
-rent
-> > locations, and use the same MODULE_PARAM_PREFIX.
->=20
-> That seems bogus to me. Assuming we have some code in a module and th=
-en split
-> it out into two different modules. Or move an option from one file to=
- another.
-> Would we need to change the option name then?
+(Sam: foo-objs-y would make this neater)
 
-They have been module options, not prefixed kernel parameters so far,
-and the prefix was just the module name.
-So it just strikes back, that acpi uses generic names for the modules,
-there would have been no problem if "power" would be called "acpi_power=
-"
-and the options would just be =EF=BB=BF"acpi.acpica_version" and
-"acpi_power.nocheck".
-
-But well, there are driver modules just called "option", so acpi is not
-that bad. :)
-
-> I think the generic params code should be fixed to handle this.
-
-We could try to look up existing directories to use instead of expectin=
-g
-that we need to create and own them. I guess, we have the same issue if
-we compile the code as a module and load it later, while some other
-built-in code or module has already used the same prefix.
-
-Kay
+diff -r 5f7194400572 drivers/acpi/Makefile
+--- a/drivers/acpi/Makefile	Sat Aug 16 13:23:26 2008 +1000
++++ b/drivers/acpi/Makefile	Sat Aug 16 13:44:17 2008 +1000
+@@ -21,10 +21,18 @@ obj-$(CONFIG_X86)		+= blacklist.o
+ #
+ # ACPI Core Subsystem (Interpreter)
+ #
+-obj-y				+= osl.o utils.o reboot.o\
++obj-y				+= osl.o utils.o reboot.o acpi.o \
+ 				   dispatcher/ events/ executer/ hardware/ \
+ 				   namespace/ parser/ resources/ tables/ \
+ 				   utilities/
++
++# "acpi." module_param namespace.
++ifdef CONFIG_ACPI_POWER
++acpi-objs	+= power.o
++endif
++ifdef CONFIG_ACPI_SYSTEM
++acpi-objs	+= system.o event.o
++endif
+ 
+ #
+ # ACPI Bus and Device Drivers
+@@ -49,11 +57,9 @@ obj-$(CONFIG_ACPI_VIDEO)	+= video.o
+ obj-$(CONFIG_ACPI_VIDEO)	+= video.o
+ obj-y				+= pci_root.o pci_link.o pci_irq.o pci_bind.o
+ obj-$(CONFIG_ACPI_PCI_SLOT)	+= pci_slot.o
+-obj-$(CONFIG_ACPI_POWER)	+= power.o
+ obj-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
+ obj-$(CONFIG_ACPI_CONTAINER)	+= container.o
+ obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
+-obj-$(CONFIG_ACPI_SYSTEM)	+= system.o event.o
+ obj-$(CONFIG_ACPI_DEBUG)	+= debug.o
+ obj-$(CONFIG_ACPI_NUMA)		+= numa.o
+ obj-$(CONFIG_ACPI_WMI)		+= wmi.o
+diff -r 5f7194400572 drivers/acpi/system.c
+--- a/drivers/acpi/system.c	Sat Aug 16 13:23:26 2008 +1000
++++ b/drivers/acpi/system.c	Sat Aug 16 13:44:17 2008 +1000
+@@ -33,10 +33,6 @@
+ 
+ #define _COMPONENT		ACPI_SYSTEM_COMPONENT
+ ACPI_MODULE_NAME("system");
+-#ifdef MODULE_PARAM_PREFIX
+-#undef MODULE_PARAM_PREFIX
+-#endif
+-#define MODULE_PARAM_PREFIX "acpi."
+ 
+ #define ACPI_SYSTEM_CLASS		"system"
+ #define ACPI_SYSTEM_DEVICE_NAME		"System"
