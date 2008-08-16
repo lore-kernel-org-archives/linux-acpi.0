@@ -1,60 +1,72 @@
-From: Andi Kleen <ak@linux.intel.com>
-Subject: Re: [PATCH 2/4] acpi: add real mutex function calls
-Date: Sat, 16 Aug 2008 04:16:58 +0200
-Message-ID: <48A6389A.5020604@linux.intel.com>
-References: <1218831242-27618-1-git-send-email-dwalker@mvista.com>	 <1218831242-27618-2-git-send-email-dwalker@mvista.com>	 <1218831242-27618-3-git-send-email-dwalker@mvista.com>	 <48A6002F.6070706@linux.intel.com> <1218841806.6166.96.camel@dhcp32.mvista.com>
+From: Kay Sievers <kay.sievers@vrfy.org>
+Subject: Re: linux-next: Tree for August 14 (sysfs/acpi errors)
+Date: Sat, 16 Aug 2008 04:36:59 +0200
+Message-ID: <1218854219.3629.30.camel@lgn.site>
+References: <20080814172945.250a27f2.sfr@canb.auug.org.au>
+	 <20080814083828.d10e126d.randy.dunlap@oracle.com>
+	 <3ae72650808150427q364842ccicf0a0978b30ca98c@mail.gmail.com>
+	 <20080815085836.67e420f1.randy.dunlap@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.89]:2531 "EHLO
-	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751857AbYHPCQy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Aug 2008 22:16:54 -0400
-In-Reply-To: <1218841806.6166.96.camel@dhcp32.mvista.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <20080815085836.67e420f1.randy.dunlap@oracle.com>
+Sender: linux-next-owner@vger.kernel.org
+To: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, gregkh <greg@kroah.com>, ak@linux.intel.com, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Walker <dwalker@mvista.com>
-Cc: linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, Peter Zijlstra <peterz@infradead.org>, Len Brown <len.brown@intel.com>, Robert Moore <robert.moore@intel.com>
 
+On Fri, 2008-08-15 at 08:58 -0700, Randy Dunlap wrote:
+> On Fri, 15 Aug 2008 13:27:00 +0200 Kay Sievers wrote:
+>=20
+> > On Thu, Aug 14, 2008 at 17:38, Randy Dunlap <randy.dunlap@oracle.co=
+m> wrote:
+> > > calling  param_sysfs_init+0x0/0x1e7
+> > > ------------[ cut here ]------------
+> > > WARNING: at fs/sysfs/dir.c:463 sysfs_add_one+0x35/0x3d()
+> > > sysfs: duplicate filename 'acpi' can not be created
+> >=20
+> > Hi Randy,
+> > care to add a printk to the module sysfs setup, and post dmesg agai=
+n?
+> >=20
+> > --- a/kernel/params.c
+> > +++ b/kernel/params.c
+> > @@ -603,6 +603,8 @@ static void __init param_sysfs_builtin(void)
+> >  		}
+> >  		name_len =3D dot - kp->name;
+> >=20
+> > +		printk("XXX adding modparam:'%s' %i (%p)\n", kp->name, i, kp);
+> > +
+> >   		/* new kbuild_modname? */
+> >  		if (strlen(modname) !=3D name_len
+> >  		    || strncmp(modname, kp->name, name_len) !=3D 0) {
+> >=20
+> > I might show the order of registering the /sys/modules/ directory, =
+and
+> > if there is possibly another "acpi" section, which tries to add
+> > parameter names.
 
-> "To prevent deadlocks, wherever more than one synchronization object
-> must be owned, the synchronization
-> objects must always be released in the order opposite the order in which
-> they were acquired."
-> 
-> I think the ASL compiler should (does?) validate that. 
+> Extract is:
+>=20
+> XXX adding modparam:'acpi.power_nocheck' 34 (ffffffff806a4cf0)
+=2E..
+> XXX adding modparam:'acpi.acpica_version' 45 (ffffffff806a4ea8)
 
-Bob should comment, but before we could rely on that it would also
-need to be ensured that _all_ AML compilers do that, including
-the one from Microsoft.
+Two different "modules" use the same prefix, which does not work with
+the current logic, they need to live next to each other in the sequence
+of options.
 
-> With all that, and the fact that I don't see much of a reason to have
-> deep synchronization inside these AML's ,
+This adds a new option:
+  http://git.kernel.org/?p=3Dlinux/kernel/git/sfr/linux-next.git;a=3Dco=
+mmitdiff;h=3D1382827e93799ec07790849e361267993cfe549e
+=EF=BB=BFwhich specifies =EF=BB=BFMODULE_PARAM_PREFIX=3D"acpi." in:
+  drivers/acpi/power.c
+In the same way as:
+  drivers/acpi/system.c
 
-I'm sure BIOS writers come up with things we never thought about.
+Seems, two different modules should not declare parameters in different
+locations, and use the same MODULE_PARAM_PREFIX.
 
-> I think it's going to be a
-> very rare occasion that we find a lockdep warning inside the AML ..Even
-> if we did find a problem, that's something we would want to know about
-> and/or try to get fixed I would think.
-
-I don't see a clear path to fix those if they happen. And just
-processing them would already tie up precious bughandling resources.
-It borders towards Steinbach's rule.
-
-Now one possibility would be to figure out how to disable lockdep
-for them (perhaps optional with default to off).
-
-But on the other hand your patch is non trivial amount of code.
-
-Without the checking (which would seem more like a disadvantage in this case)
-the only advantage I can see of the mutexes would be PI handling in RT
-kernels, but that's clearly an out of tree usage right now (and also
-since AML is not executed in normal operation it's unlikely
-that PI for those is really critical for anyone)
-
-Any other reasons right now we would want that in tree?
-
--Andi
-
+Thanks,
+Kay
