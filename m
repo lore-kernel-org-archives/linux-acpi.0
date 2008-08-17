@@ -1,41 +1,59 @@
-From: Andi Kleen <andi@firstfloor.org>
+From: Rusty Russell <rusty@rustcorp.com.au>
 Subject: Re: linux-next: Tree for August 14 (sysfs/acpi errors)
-Date: Sun, 17 Aug 2008 05:53:07 +0200
-Message-ID: <87hc9kxpp8.fsf@basil.nowhere.org>
-References: <20080814172945.250a27f2.sfr@canb.auug.org.au>
-	<20080814083828.d10e126d.randy.dunlap@oracle.com>
-	<3ae72650808150427q364842ccicf0a0978b30ca98c@mail.gmail.com>
-	<20080815085836.67e420f1.randy.dunlap@oracle.com>
-	<1218854219.3629.30.camel@lgn.site> <48A64235.2030108@linux.intel.com>
-	<1218856798.3629.45.camel@lgn.site> <48A64E0A.8090408@linux.intel.com>
-	<20080816044714.GA19886@kroah.com> <48A78D4A.70609@linux.intel.com>
-	<20080817034051.GA26849@kroah.com>
+Date: Sun, 17 Aug 2008 15:13:13 +1000
+Message-ID: <200808171513.13611.rusty@rustcorp.com.au>
+References: <20080814172945.250a27f2.sfr@canb.auug.org.au> <20080816044714.GA19886@kroah.com> <48A78D4A.70609@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from one.firstfloor.org ([213.235.205.2]:60014 "EHLO
-	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751501AbYHQDxM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 16 Aug 2008 23:53:12 -0400
-In-Reply-To: <20080817034051.GA26849@kroah.com> (Greg KH's message of "Sat, 16 Aug 2008 20:40:51 -0700")
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <48A78D4A.70609@linux.intel.com>
+Content-Disposition: inline
+Sender: linux-next-owner@vger.kernel.org
+To: Andi Kleen <ak@linux.intel.com>
+Cc: Greg KH <greg@kroah.com>, Kay Sievers <kay.sievers@vrfy.org>, Randy Dunlap <randy.dunlap@oracle.com>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>, Randy Dunlap <randy.dunlap@oracle.com>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, rusty@rustcorp.com.au
 
-Greg KH <greg@kroah.com> writes:
->> No!
+On Sunday 17 August 2008 12:30:34 Andi Kleen wrote:
+> Greg KH wrote:
+> > On Sat, Aug 16, 2008 at 05:48:26AM +0200, Andi Kleen wrote:
+> >>> They have been module options, not prefixed kernel parameters so =
+far,
+> >>> and the prefix was just the module name.
+> >>> So it just strikes back, that acpi uses generic names for the mod=
+ules,
+> >>> there would have been no problem if "power" would be called
+> >>> "acpi_power" and the options would just be =EF=BB=BF"acpi.acpica_=
+version" and
+> >>> "acpi_power.nocheck".
+> >>> But well, there are driver modules just called "option", so acpi =
+is not
+> >>> that bad. :)
+> >>>
+> >>>> I think the generic params code should be fixed to handle this.
+> >>>
+> >>> We could try to look up existing directories to use instead of
+> >>> expecting that we need to create and own them. I guess,
+> >>
+> >> sysfs does this anyways, doesn't it. We would just need to teach i=
+t
+> >> to not BUG() in this case, perhaps with a special entry point.
+> >> Also a BUG() in general seems a little harsh for this, surely a WA=
+RN_ON
+> >> should be enough.
+> >
+> > It is a WARN() call, not a BUG().
 >
-> What you are doing here is wrong, trying to create two files with the
-> same name.  You just should not be doing that at all, it's that simple.
-> Fix the broken code/link order, don't paper it over in the sysfs layer.
+> Ok. Can we remove it? Or add a new entry point that allows to disable=
+ it?
+>
+> I don't think relying on link order like Rusty proposes is a good lon=
+g term
+> solution.
 
-Sorry, but relying on link order for anything is a mistake. It is subtle
-and fragile and just means it'll eventually break again because it's
-near impossible to properly maintain.
+To be clear, I agree with Andi.  If this is for current kernel I'd just=
+ fix=20
+link order, for longer term we need something cleverer.
 
-The alternative is to always check if the file exists in the params.c
-code before creating it. We can do that too, but it's somewhat dumb
-because sysfs is already doing that.
-
--Andi
+Cheers,
+Rusty.
