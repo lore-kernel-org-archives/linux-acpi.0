@@ -1,91 +1,61 @@
-From: Dominik Brodowski <linux@dominikbrodowski.net>
-Subject: Re: [PATCH 2/2] acpi_pm.c: check for monotonicity
-Date: Mon, 18 Aug 2008 22:42:10 +0200
-Message-ID: <20080818204210.GA21678@comet.dominikbrodowski.net>
-References: <20080810162920.GA9860@comet.dominikbrodowski.net> <20080810190759.GA1879@rhlx01.hs-esslingen.de> <20080818190325.GA12581@comet.dominikbrodowski.net> <20080818121924.6b61f7af.akpm@linux-foundation.org> <20080818193517.GA22097@isilmar.linta.de> <20080818124755.162f24d1.akpm@linux-foundation.org> <20080818200916.GA18209@comet.dominikbrodowski.net> <20080818201115.GC18209@comet.dominikbrodowski.net> <20080818201844.GA3506@rhlx01.hs-esslingen.de> <20080818132858.b844a1d4.akpm@linux-foundation.org>
+From: "Vedran Rodic" <vrodic@gmail.com>
+Subject: Thinkpad X60s power usage on battery - Windows/Linux comparison
+Date: Tue, 19 Aug 2008 00:54:58 +0200
+Message-ID: <8ccf2e9c0808181554o930f235maa79bdb365cd808d@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from isilmar.linta.de ([213.133.102.198]:42373 "EHLO linta.de"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1758399AbYHRUmU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 18 Aug 2008 16:42:20 -0400
+Received: from wf-out-1314.google.com ([209.85.200.172]:38257 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751750AbYHRWy7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Aug 2008 18:54:59 -0400
+Received: by wf-out-1314.google.com with SMTP id 27so3376469wfd.4
+        for <linux-acpi@vger.kernel.org>; Mon, 18 Aug 2008 15:54:58 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20080818132858.b844a1d4.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andreas Mohr <andi@lisas.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, johnstul@us.ibm.com, hirofumi@mail.parknet.co.jp, alan@lxorguk.ukuu.org.uk, arjan@infradead.org
+To: linux-acpi@vger.kernel.org
 
-Hi,
+I've decided to write up something that I've been aware of for some time,
+but that didn't really bother me that much, since I've been waiting for the
+situation to improve quietly.
 
-On Mon, Aug 18, 2008 at 01:28:58PM -0700, Andrew Morton wrote:
-> > On Mon, Aug 18, 2008 at 10:11:15PM +0200, Dominik Brodowski wrote:
-> > > +	if (good != 10) {
-> > > +		printk(KERN_INFO "PM-Timer had no reasonable result:"
-> > > +		       " 0x%#llx - aborting.\n", value1);
-> > > +		return -ENODEV;
-> > >  	}
-> > > -	printk(KERN_INFO "PM-Timer had no reasonable result:"
-> > > -			" 0x%#llx - aborting.\n", value1);
-> > > -	return -ENODEV;
-> > 
-> > Technically spoken this log message could now be considered partially
-> > outdated... (we're doing 10 evaluations after all, not one with a
-> > precise end result).
-> > 
-> > 
-> > Seeing a define for those several open-coded 10 loops values would be nice.
-> > 
-> 
-> Also it's a bit dodgy printing a cycle_t with %llx.  We don't _know_
-> that cycle_t was implemented with `long long' - if this was always
-> true, we wouldn't (or shouldn't) have a cycle_t at all.
-> 
-> But it seems that it happens to work for all architectures which
-> implement acpi.
+The basic observation is: My trusty X60s uses less power when on battery
+on Windows than on Linux.
 
-Well, adding a format modifier just for this isn't necessary IMO, especially
-as all acpi-implementing architectures seem to be fine. Regarding the other
-issues: well, I don't care all that much about a define for something used
-twice and this comment; but if you want to squash it into the other patch
-I'm fine with it.
+This situation hasn't changed significantly despite the appearance of powertop
+to trim the number of processor wakeups per second thus enabling the
+processor to stay in deep sleep states for longer time and improvements in
+the Xorg intel video driver.
 
-Signed-off-by: Dominik Brodowski <linux@dominikbrodowski.net>
+I get arround 3.3 wakeups per second minimally when
+my Xorg/KDE is not active, with laptop using 9.1 W (as reported by
+powertop). When Xorg/KDE is running, with one konsole to monitor usage with
+powertop, I get arround 13 wakeups per second and power usage of 9.4 W. All
+the measurements are done with LCD brightness on the lowest level, wireless
+interfaces disabled, and all power saving features that powertop can detect
+enabled. Processor is in C3 state 99.9% of the time. I tried removing
+various driver modules that I didn't use at the time (irda, pcmcia,
+ethernet, sound), but no change.
 
-diff --git a/drivers/clocksource/acpi_pm.c b/drivers/clocksource/acpi_pm.c
-index f05c4fb..09d4650 100644
---- a/drivers/clocksource/acpi_pm.c
-+++ b/drivers/clocksource/acpi_pm.c
-@@ -175,6 +175,9 @@ static int verify_pmtmr_rate(void)
- #define verify_pmtmr_rate() (0)
- #endif
- 
-+/* Number of monotonicity checks to perform during initialization */
-+#define ACPI_PM_MONOTONICITY_CHECKS 10
-+
- static int __init init_acpi_pm_clocksource(void)
- {
- 	cycle_t value1, value2;
-@@ -187,7 +190,7 @@ static int __init init_acpi_pm_clocksource(void)
- 						clocksource_acpi_pm.shift);
- 
- 	/* "verify" this timing source: */
--	for (j = 0; j < 10; j++) {
-+	for (j = 0; j < ACPI_PM_MONOTONICITY_CHECKS; j++) {
- 		value1 = clocksource_acpi_pm.read();
- 		for (i = 0; i < 10000; i++) {
- 			value2 = clocksource_acpi_pm.read();
-@@ -207,9 +210,9 @@ static int __init init_acpi_pm_clocksource(void)
- 		udelay(300 * i);
- 	}
- 
--	if (good != 10) {
--		printk(KERN_INFO "PM-Timer had no reasonable result:"
--		       " 0x%#llx - aborting.\n", value1);
-+	if (good != ACPI_PM_MONOTONICITY_CHECKS) {
-+		printk(KERN_INFO "PM-Timer failed consistency check "
-+		       " (0x%#llx) - aborting.\n", value1);
- 		return -ENODEV;
- 	}
- 
+Windows power monitoring tool from Lenovo reports power usage of 6.5 W under
+the same LCD brightness level and with wireless disabled.
+
+This was tested under Linux 2.6.26-rc8 (some git level after the rc8
+release). Older
+versions of the kernel didn't show any statistically significant
+differences. powertop
+is version 1.10, and the software used under Windows XP
+is Lenovo ThinkVantage Power Manager.
+
+Since I doubt that Windows XP has less wakeups per second than my
+Linux setup, I guess
+there are still a couple of IBM specific power saving
+registers/controls that can be
+tweaked so that the laptop uses less power. Does anybody have any idea
+on what would that
+be? Any friendly contacts at lenovo?
+
+Thanks
+Vedran Rodic
