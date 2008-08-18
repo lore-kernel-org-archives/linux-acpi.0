@@ -1,31 +1,88 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] IBM R40e blacklist for C2/C3 states: sort & remove duplicate
-Date: Mon, 18 Aug 2008 17:04:49 +0100
-Message-ID: <20080818160449.GA27214@srcf.ucam.org>
-References: <20080815160657.25828.qmail@serverkommune.de> <200808181710.18456.trenn@suse.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Dominik Brodowski <linux@dominikbrodowski.net>
+Subject: [PATCH 1/2] acpi_pm.c: use proper read function also in errata mode.
+Date: Mon, 18 Aug 2008 21:05:10 +0200
+Message-ID: <1219086311-13365-1-git-send-email-linux@dominikbrodowski.net>
+References: <20080818190325.GA12581@comet.dominikbrodowski.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:42261 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752727AbYHRQE4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Aug 2008 12:04:56 -0400
-Content-Disposition: inline
-In-Reply-To: <200808181710.18456.trenn@suse.de>
+Received: from isilmar.linta.de ([213.133.102.198]:40477 "EHLO linta.de"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1762825AbYHRTFU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 18 Aug 2008 15:05:20 -0400
+In-Reply-To: <20080818190325.GA12581@comet.dominikbrodowski.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Thomas Rosner <kernel-bugs@digital-trauma.de>, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Andi Kleen <ak@linux.intel.com>
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>, John Stultz <johnstul@us.ibm.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>
 
-On Mon, Aug 18, 2008 at 05:10:17PM +0200, Thomas Renninger wrote:
+When acpi_pm is used in errata mode (three reads instead of one), also the
+acpi_pm init functions need to use three reads instead of just one.
 
-> I can repost if people think that the root cause cannot be fixed for .27 
-> anymore and above is considered as a workaround that should be taken for now.
+Thanks to Andreas Mohr for spotting this issue.
 
-The existing workaround (of just disabling C-state transitions on this 
-hardware) is fine for .27. We just need to determine how windows chooses 
-to use the RSDT over the XSDT. Is it simply that values that are present 
-in the XSDT are ignored if they're also in the RSDT?
+CC: John Stultz <johnstul@us.ibm.com>
+CC: Thomas Gleixner <tglx@linutronix.de>
+CC: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Dominik Brodowski <linux@dominikbrodowski.net>
+---
+ drivers/clocksource/acpi_pm.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
 
+diff --git a/drivers/clocksource/acpi_pm.c b/drivers/clocksource/acpi_pm.c
+index 5ca1d80..2c00edd 100644
+--- a/drivers/clocksource/acpi_pm.c
++++ b/drivers/clocksource/acpi_pm.c
+@@ -151,13 +151,13 @@ DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_SERVERWORKS, PCI_DEVICE_ID_SERVERWORKS_LE,
+  */
+ static int verify_pmtmr_rate(void)
+ {
+-	u32 value1, value2;
++	cycle_t value1, value2;
+ 	unsigned long count, delta;
+ 
+ 	mach_prepare_counter();
+-	value1 = read_pmtmr();
++	value1 = clocksource_acpi_pm.read()
+ 	mach_countup(&count);
+-	value2 = read_pmtmr();
++	value2 = clocksource_acpi_pm.read()
+ 	delta = (value2 - value1) & ACPI_PM_MASK;
+ 
+ 	/* Check that the PMTMR delta is within 5% of what we expect */
+@@ -177,7 +177,7 @@ static int verify_pmtmr_rate(void)
+ 
+ static int __init init_acpi_pm_clocksource(void)
+ {
+-	u32 value1, value2;
++	cycle_t value1, value2;
+ 	unsigned int i;
+ 
+ 	if (!pmtmr_ioport)
+@@ -187,9 +187,9 @@ static int __init init_acpi_pm_clocksource(void)
+ 						clocksource_acpi_pm.shift);
+ 
+ 	/* "verify" this timing source: */
+-	value1 = read_pmtmr();
++	value1 = clocksource_acpi_pm.read();
+ 	for (i = 0; i < 10000; i++) {
+-		value2 = read_pmtmr();
++		value2 = clocksource_acpi_pm.read();
+ 		if (value2 == value1)
+ 			continue;
+ 		if (value2 > value1)
+@@ -197,11 +197,11 @@ static int __init init_acpi_pm_clocksource(void)
+ 		if ((value2 < value1) && ((value2) < 0xFFF))
+ 			goto pm_good;
+ 		printk(KERN_INFO "PM-Timer had inconsistent results:"
+-			" 0x%#x, 0x%#x - aborting.\n", value1, value2);
++			" 0x%#llx, 0x%#llx - aborting.\n", value1, value2);
+ 		return -EINVAL;
+ 	}
+ 	printk(KERN_INFO "PM-Timer had no reasonable result:"
+-			" 0x%#x - aborting.\n", value1);
++			" 0x%#llx - aborting.\n", value1);
+ 	return -ENODEV;
+ 
+ pm_good:
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+1.5.4.3
+
