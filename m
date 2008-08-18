@@ -1,51 +1,117 @@
-From: Kay Sievers <kay.sievers@vrfy.org>
-Subject: Re: linux-next: Tree for August 14 (sysfs/acpi errors)
-Date: Mon, 18 Aug 2008 12:58:44 +0200
-Message-ID: <1219057124.21867.6.camel@lgn.site>
-References: <3ae72650808150427q364842ccicf0a0978b30ca98c@mail.gmail.com>
-	 <87hc9kxpp8.fsf@basil.nowhere.org> <20080818034851.GB30843@kroah.com>
-	 <200808181943.23034.rusty@rustcorp.com.au>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH] IBM R40e blacklist for C2/C3 states: sort & remove duplicate
+Date: Mon, 18 Aug 2008 17:10:17 +0200
+Message-ID: <200808181710.18456.trenn@suse.de>
+References: <20080815160657.25828.qmail@serverkommune.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.177]:59118 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751243AbYHRK7N (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Aug 2008 06:59:13 -0400
-In-Reply-To: <200808181943.23034.rusty@rustcorp.com.au>
+Received: from ns.suse.de ([195.135.220.2]:46301 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750924AbYHRPKW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Aug 2008 11:10:22 -0400
+In-Reply-To: <20080815160657.25828.qmail@serverkommune.de>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Greg KH <greg@kroah.com>, Andi Kleen <andi@firstfloor.org>, Randy Dunlap <randy.dunlap@oracle.com>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: Thomas Rosner <kernel-bugs@digital-trauma.de>
+Cc: linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Andi Kleen <ak@linux.intel.com>
 
-On Mon, 2008-08-18 at 19:43 +1000, Rusty Russell wrote:
-> On Monday 18 August 2008 13:48:51 Greg KH wrote:
-> > On Sun, Aug 17, 2008 at 05:53:07AM +0200, Andi Kleen wrote:
-> > > Greg KH <greg@kroah.com> writes:
-> > > >> No!
-> > > >
-> > > > What you are doing here is wrong, trying to create two files with the
-> > > > same name.  You just should not be doing that at all, it's that simple.
-> > > > Fix the broken code/link order, don't paper it over in the sysfs layer.
-> > >
-> > > Sorry, but relying on link order for anything is a mistake. It is subtle
-> > > and fragile and just means it'll eventually break again because it's
-> > > near impossible to properly maintain.
-> >
-> > We rely on link order for all sorts of things, this isn't new at all.
-> 
-> Sure, but this code should be rewritten to check if the directory exists,
-> rather assuming it based on "previous prefix was the same".
-> 
-> It's relying on a horribly undocumented assumption, and it broke.
-> 
-> We need to change kernel_param_sysfs_setup() to do something
-> like "kobject_find(module_kset, name)" and only allocate a new mk if that
-> fails.
+On Thursday 31 July 2008 23:35:35 Thomas Rosner wrote:
+> Sort the entries in the IBM R40e C2/C3-states blacklist and remove a
+> duplicate. Please apply.
+=46WIW, the R40e can do c-state switching, but must use the RSDT instea=
+d of the=20
+XSDT.
+The patchseries (posted on linux-acpi a while ago):
+[PATCH 1/3] ACPICA: Add acpi_gbl_force_rsdt variable
+Re: [PATCH 2/3] Introduce acpi_root_table=3Drsdt boot param and dmi lis=
+t to=20
+force rsdt
+[PATCH 3/3] Remove R40e c-state blacklist
 
-kobj = kset_find_obj(module_kset, name) should return an existing object
-with that name (and take a reference on it, which needs to be dropped).
+did introduce a switch to be able to load blacklisted machines to use t=
+he RSDT
+(only some rare specific T4x or T5x are known which need it) instead of=
+ the=20
+XSDT and moves the R40e blacklist to use the RSDT and thus enables c-st=
+ates=20
+for these machines.
 
-Kay
+The patch has not been taken:
+--------------------
+Appropriate workaround for a distro release? =C2=A0Yes.
+Appropriate patch for upstream? =C2=A0No.
 
+Upstream should fix the root cause, which is to figure out when the RSD=
+T=20
+and XSDT disagree, which Windows is using, and use that one. =C2=A0Litt=
+ering=20
+upstream with DMI entries simply hides the test cases that we know abou=
+t
+and delays the correct fix.
+--------------------
+
+IMO it's time to repost above patchset and take it until the "root caus=
+e" is=20
+found.
+
+The blacklist should also just match:
+> -	  DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
+> -	  DMI_MATCH(DMI_BIOS_VERSION,"1SET")}, (void *)1},
+all other entries can vanish.
+
+I can repost if people think that the root cause cannot be fixed for .2=
+7=20
+anymore and above is considered as a workaround that should be taken fo=
+r now.
+
+      Thomas
+
+
+> Signed-off-by: Thomas Rosner <kernel-bugs@digital-trauma.de>
+> CC: Len Brown <len.brown@intel.com>
+> CC: Andie Kleen <ak@linux.intel.com>
+> ---
+>  drivers/acpi/processor_idle.c |    9 +++------
+>  1 files changed, 3 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_i=
+dle.c
+> index 556ee15..3e9f59d 100644
+> --- a/drivers/acpi/processor_idle.c
+> +++ b/drivers/acpi/processor_idle.c
+> @@ -128,12 +128,6 @@ static int set_max_cstate(const struct dmi_syste=
+m_id
+> *id) static struct dmi_system_id __cpuinitdata processor_power_dmi_ta=
+ble[]
+> =3D { { set_max_cstate, "IBM ThinkPad R40e", {
+>  	  DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
+> -	  DMI_MATCH(DMI_BIOS_VERSION,"1SET70WW")}, (void *)1},
+> -	{ set_max_cstate, "IBM ThinkPad R40e", {
+> -	  DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
+> -	  DMI_MATCH(DMI_BIOS_VERSION,"1SET60WW")}, (void *)1},
+> -	{ set_max_cstate, "IBM ThinkPad R40e", {
+> -	  DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
+>  	  DMI_MATCH(DMI_BIOS_VERSION,"1SET43WW") }, (void*)1},
+>  	{ set_max_cstate, "IBM ThinkPad R40e", {
+>  	  DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
+> @@ -174,6 +168,9 @@ static struct dmi_system_id __cpuinitdata
+> processor_power_dmi_table[] =3D { { set_max_cstate, "IBM ThinkPad R40=
+e", {
+>  	  DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
+>  	  DMI_MATCH(DMI_BIOS_VERSION,"1SET68WW") }, (void*)1},
+> +	{ set_max_cstate, "IBM ThinkPad R40e", {
+> +	  DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
+> +	  DMI_MATCH(DMI_BIOS_VERSION,"1SET70WW")}, (void *)1},
+>  	{ set_max_cstate, "Medion 41700", {
+>  	  DMI_MATCH(DMI_BIOS_VENDOR,"Phoenix Technologies LTD"),
+>  	  DMI_MATCH(DMI_BIOS_VERSION,"R01-A1J")}, (void *)1},
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
