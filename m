@@ -1,34 +1,32 @@
-From: Andi Kleen <andi@firstfloor.org>
-Subject: Re: [PATCH] ACPI : Avoid twice read access to EC data I/O port
-Date: Mon, 18 Aug 2008 05:28:15 +0200
-Message-ID: <20080818032815.GB9807@one.firstfloor.org>
-References: <1219029274.3998.66.camel@yakui_zhao.sh.intel.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: linux-next: Tree for August 14 (sysfs/acpi errors)
+Date: Sun, 17 Aug 2008 20:48:51 -0700
+Message-ID: <20080818034851.GB30843@kroah.com>
+References: <3ae72650808150427q364842ccicf0a0978b30ca98c@mail.gmail.com> <20080815085836.67e420f1.randy.dunlap@oracle.com> <1218854219.3629.30.camel@lgn.site> <48A64235.2030108@linux.intel.com> <1218856798.3629.45.camel@lgn.site> <48A64E0A.8090408@linux.intel.com> <20080816044714.GA19886@kroah.com> <48A78D4A.70609@linux.intel.com> <20080817034051.GA26849@kroah.com> <87hc9kxpp8.fsf@basil.nowhere.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from one.firstfloor.org ([213.235.205.2]:43715 "EHLO
-	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751002AbYHRD0g (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 17 Aug 2008 23:26:36 -0400
+Return-path: <linux-next-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1219029274.3998.66.camel@yakui_zhao.sh.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <87hc9kxpp8.fsf@basil.nowhere.org>
+Sender: linux-next-owner@vger.kernel.org
+To: Andi Kleen <andi@firstfloor.org>
+Cc: Kay Sievers <kay.sievers@vrfy.org>, Randy Dunlap <randy.dunlap@oracle.com>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, rusty@rustcorp.com.au
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, lenb@kernel.org, astarikovskiy@suse.de
 
-On Mon, Aug 18, 2008 at 11:14:34AM +0800, Zhao Yakui wrote:
-> Subject: ACPI: Avoid twice read access to EC data I/O port 
-> >From : Zhao Yakui <yakui.zhao@intel.com>
+On Sun, Aug 17, 2008 at 05:53:07AM +0200, Andi Kleen wrote:
+> Greg KH <greg@kroah.com> writes:
+> >> No!
+> >
+> > What you are doing here is wrong, trying to create two files with the
+> > same name.  You just should not be doing that at all, it's that simple.
+> > Fix the broken code/link order, don't paper it over in the sysfs layer.
 > 
-> In current kernel when OS reads the data returned by the EC controller, the 
-> EC data I/O port is accessed twice. In fact is is meaningless.
-> Only once access to EC data I/O port is enough to get data returned by EC 
-> controller.
-> 
-> Signed-off-by : Zhao Yakui <yakui.zhao@intel.com>
-> Acked-by      : Alexey Starikovskiy <astarikovskiy@suse.de>
+> Sorry, but relying on link order for anything is a mistake. It is subtle
+> and fragile and just means it'll eventually break again because it's
+> near impossible to properly maintain.
 
-Added to test for 2.6.28 thanks.
+We rely on link order for all sorts of things, this isn't new at all.
 
--Andi
+thanks,
+
+greg k-h
