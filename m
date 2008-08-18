@@ -1,32 +1,38 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Question about acpi_pci_irq_disable()
-Date: Sun, 17 Aug 2008 20:01:23 +0200
-Message-ID: <200808172001.24313.rjw@sisk.pl>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: a problem about the function of acpi_ec_read_data
+Date: Mon, 18 Aug 2008 10:37:11 +0800
+Message-ID: <1219027032.3998.62.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:40903 "EHLO ogre.sisk.pl"
+Received: from mga11.intel.com ([192.55.52.93]:30072 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751593AbYHQR6H (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 17 Aug 2008 13:58:07 -0400
-Content-Disposition: inline
+	id S1751167AbYHRCWk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 17 Aug 2008 22:22:40 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Andi Kleen <andi@firstfloor.org>, Ingo Molnar <mingo@elte.hu>, Jesse Barnes <jbarnes@virtuousgeek.org>
+To: astarikovskiy@suse.de
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
 
-Hi,
+Hi, Alexey
+    There is a question about the function of acpi_ec_read_data.
+ 
+    When the data is ready for OS, OS will check the OBF flag of EC status and then call the following
+function to read the data returned by EC controller.
 
-Recently I have been looking at acpi_pci_irq_disable() and it seems to me
-that on x86 it actually doesn't do anything useful.
+static inline u8 acpi_ec_read_data(struct acpi_ec *ec)
+{
+        u8 x = inb(ec->data_addr);
+        pr_debug(PREFIX "---> data = 0x%2.2x\n", x);
+        return inb(ec->data_addr);
+}
 
-Namely, it may trigger acpi_pci_link_free_irq(), but that only does error
-checking because of the '#ifdef FUTURE_USE'.  Then, it may call
-acpi_unregister_gsi(), but on x86 that is a NOP.
+    Why is the EC data I/O address accessed twice to get the data returned by EC controller?
+    Does there exist some specific reason about it?
+ 
+Thanks for the comments.
 
-So, is my observation (that acpi_pci_irq_disable() doesn't do anything useful
-on x86) correct?
+Best regards.
+   Yakui
 
-Rafael
