@@ -1,93 +1,39 @@
 From: Dominik Brodowski <linux@dominikbrodowski.net>
-Subject: [PATCH 2/2] acpi_pm.c: check for monotonicity
-Date: Mon, 18 Aug 2008 21:05:11 +0200
-Message-ID: <1219086311-13365-2-git-send-email-linux@dominikbrodowski.net>
-References: <20080818190325.GA12581@comet.dominikbrodowski.net>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from isilmar.linta.de ([213.133.102.198]:40471 "EHLO linta.de"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1756595AbYHRTFU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 18 Aug 2008 15:05:20 -0400
-In-Reply-To: <20080818190325.GA12581@comet.dominikbrodowski.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Subject: [git pull?] clocksource: ACPI pmtmr bugfixes [Was: Re: ACPI
+	PM-Timer on K6-3 SiS5591: Houston...]
+Date: Mon, 18 Aug 2008 21:03:25 +0200
+Message-ID: <20080818190325.GA12581@comet.dominikbrodowski.net>
+References: <20080810101730.GA10024@rhlx01.hs-esslingen.de> <20080810162920.GA9860@comet.dominikbrodowski.net> <20080810190759.GA1879@rhlx01.hs-esslingen.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932825AbYHRTJx@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20080810190759.GA1879@rhlx01.hs-esslingen.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, akpm@linux-foundation.org
+Cc: john stultz <johnstul@us.ibm.com>, OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Arjan van de Ven <arjan@infradead.org>, Andreas Mohr <andi@lisas.de>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>, John Stultz <johnstul@us.ibm.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>
 
-Expand the check for monotonicity by doing ten tests instead of one.
+Hi,
 
-Applies on top of "acpi_pm.c: use proper read function also in errata mode."
+anyone willing to take these two patches? Possibly 2.6.27 material; hasn't
+been in -next or -mm.
 
-CC: John Stultz <johnstul@us.ibm.com>
-CC: Thomas Gleixner <tglx@linutronix.de>
-CC: Ingo Molnar <mingo@elte.hu>
-Signed-off-by: Dominik Brodowski <linux@dominikbrodowski.net>
----
- drivers/clocksource/acpi_pm.c |   42 ++++++++++++++++++++++++----------------
- 1 files changed, 25 insertions(+), 17 deletions(-)
+Best,
+	Dominik
 
-diff --git a/drivers/clocksource/acpi_pm.c b/drivers/clocksource/acpi_pm.c
-index 2c00edd..f05c4fb 100644
---- a/drivers/clocksource/acpi_pm.c
-+++ b/drivers/clocksource/acpi_pm.c
-@@ -178,7 +178,7 @@ static int verify_pmtmr_rate(void)
- static int __init init_acpi_pm_clocksource(void)
- {
- 	cycle_t value1, value2;
--	unsigned int i;
-+	unsigned int i, j, good = 0;
- 
- 	if (!pmtmr_ioport)
- 		return -ENODEV;
-@@ -187,24 +187,32 @@ static int __init init_acpi_pm_clocksource(void)
- 						clocksource_acpi_pm.shift);
- 
- 	/* "verify" this timing source: */
--	value1 = clocksource_acpi_pm.read();
--	for (i = 0; i < 10000; i++) {
--		value2 = clocksource_acpi_pm.read();
--		if (value2 == value1)
--			continue;
--		if (value2 > value1)
--			goto pm_good;
--		if ((value2 < value1) && ((value2) < 0xFFF))
--			goto pm_good;
--		printk(KERN_INFO "PM-Timer had inconsistent results:"
--			" 0x%#llx, 0x%#llx - aborting.\n", value1, value2);
--		return -EINVAL;
-+	for (j = 0; j < 10; j++) {
-+		value1 = clocksource_acpi_pm.read();
-+		for (i = 0; i < 10000; i++) {
-+			value2 = clocksource_acpi_pm.read();
-+			if (value2 == value1)
-+				continue;
-+			if (value2 > value1)
-+				good++;
-+				break;
-+			if ((value2 < value1) && ((value2) < 0xFFF))
-+				good++;
-+				break;
-+			printk(KERN_INFO "PM-Timer had inconsistent results:"
-+			       " 0x%#llx, 0x%#llx - aborting.\n",
-+			       value1, value2);
-+			return -EINVAL;
-+		}
-+		udelay(300 * i);
-+	}
-+
-+	if (good != 10) {
-+		printk(KERN_INFO "PM-Timer had no reasonable result:"
-+		       " 0x%#llx - aborting.\n", value1);
-+		return -ENODEV;
- 	}
--	printk(KERN_INFO "PM-Timer had no reasonable result:"
--			" 0x%#llx - aborting.\n", value1);
--	return -ENODEV;
- 
--pm_good:
- 	if (verify_pmtmr_rate() != 0)
- 		return -ENODEV;
- 
--- 
-1.5.4.3
 
+The following changes since commit 796aadeb1b2db9b5d463946766c5bbfd7717158c:
+  Linus Torvalds (1):
+        Merge branch 'fixes' of git://git.kernel.org/.../davej/cpufreq
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/brodo/pcmcia-2.6.git clocksource
+
+Dominik Brodowski (2):
+      acpi_pm.c: use proper read function also in errata mode.
+      acpi_pm.c: check for monotonicity
+
+ drivers/clocksource/acpi_pm.c |   50 +++++++++++++++++++++++-----------------
+ 1 files changed, 29 insertions(+), 21 deletions(-)
