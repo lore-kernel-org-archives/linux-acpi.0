@@ -1,16 +1,16 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH 6/8] PNP: add CONFIG_PNP_DEBUG_MESSAGES and pnp_dbg()
-Date: Tue, 19 Aug 2008 16:53:41 -0600
-Message-ID: <20080819225341.28206.83384.stgit@tigger.helgaas>
+Subject: [PATCH 5/8] PNP: remove some uses of DEBUG ifdef
+Date: Tue, 19 Aug 2008 16:53:36 -0600
+Message-ID: <20080819225336.28206.87621.stgit@tigger.helgaas>
 References: <20080819225310.28206.1011.stgit@tigger.helgaas>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:13681 "EHLO
-	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753160AbYHSWxp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Aug 2008 18:53:45 -0400
+Received: from g1t0028.austin.hp.com ([15.216.28.35]:29095 "EHLO
+	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755021AbYHSWxj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Aug 2008 18:53:39 -0400
 In-Reply-To: <20080819225310.28206.1011.stgit@tigger.helgaas>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -18,97 +18,90 @@ To: Andi Kleen <andi@firstfloor.org>
 Cc: Len Brown <lenb@kernel.org>, Adam M Belay <abelay@mit.edu>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Dave Jones <davej@redhat.com>, Ben Collins <bcollins@ubuntu.com>, Dann Frazier <dannf@debian.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-This adds the core function pnp_dbg() and a new config option to
-enable it.
+Use scnprintf() to build up a buffer of PNP IDs to print.  This
+makes the printk atomic and helps get rid of an #ifdef.
 
-The PNP core debugging messages can be enabled at boot-time with the
-"pnp.debug" kernel parameter.
+Also remove an "#ifdef DEBUG" from some debug functions.  The
+functions only produce debug output, so it's OK to run the
+function and just have the output be dropped at the end.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 ---
 
- Documentation/kernel-parameters.txt |    4 ++++
- drivers/pnp/Kconfig                 |   14 ++++++++++++++
- drivers/pnp/base.h                  |   10 ++++++++++
- drivers/pnp/core.c                  |   11 +++++++++++
- 4 files changed, 39 insertions(+), 0 deletions(-)
+ drivers/pnp/core.c    |   18 ++++++++----------
+ drivers/pnp/support.c |    4 ----
+ 2 files changed, 8 insertions(+), 14 deletions(-)
 
 
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-index e7bea3e..2c45c97 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -1655,6 +1655,10 @@ and is between 256 and 4096 characters. It is defined in the file
- 			Override pmtimer IOPort with a hex value.
- 			e.g. pmtmr=0x508
- 
-+	pnp.debug	[PNP]
-+			Enable PNP debug messages.  This depends on the
-+			CONFIG_PNP_DEBUG_MESSAGES option.
-+
- 	pnpacpi=	[ACPI]
- 			{ off }
- 
-diff --git a/drivers/pnp/Kconfig b/drivers/pnp/Kconfig
-index 821933f..8a3237f 100644
---- a/drivers/pnp/Kconfig
-+++ b/drivers/pnp/Kconfig
-@@ -20,6 +20,20 @@ menuconfig PNP
- 
- 	  If unsure, say Y.
- 
-+config PNP_DEBUG_MESSAGES
-+	default y
-+	bool "PNP debugging messages"
-+	depends on PNP
-+	help
-+	  Say Y here if you want the PNP layer to be able to produce debugging
-+	  messages if needed.  The messages can be enabled at boot-time with
-+	  the pnp.debug kernel parameter.
-+
-+	  This option allows you to save a bit of space if you do not want
-+	  the messages to even be built into the kernel.
-+
-+	  If you have any doubts about this, say Y here.
-+
- if PNP
- 
- config PNP_DEBUG
-diff --git a/drivers/pnp/base.h b/drivers/pnp/base.h
-index 9fd7bb9..5e4e82c 100644
---- a/drivers/pnp/base.h
-+++ b/drivers/pnp/base.h
-@@ -166,3 +166,13 @@ struct pnp_resource *pnp_add_io_resource(struct pnp_dev *dev,
- struct pnp_resource *pnp_add_mem_resource(struct pnp_dev *dev,
- 					  resource_size_t start,
- 					  resource_size_t end, int flags);
-+
-+extern int pnp_debug;
-+
-+#if defined(CONFIG_PNP_DEBUG_MESSAGES)
-+#define pnp_dbg(dev, format, arg...)					\
-+	({ if (pnp_debug) dev_printk(KERN_DEBUG, dev, format, ## arg); 0; })
-+#else
-+#define pnp_dbg(dev, format, arg...)					\
-+	({ if (0) dev_printk(KERN_DEBUG, dev, format, ## arg); 0; })
-+#endif
 diff --git a/drivers/pnp/core.c b/drivers/pnp/core.c
-index 7cb1ffc..61291b5 100644
+index a411582..7cb1ffc 100644
 --- a/drivers/pnp/core.c
 +++ b/drivers/pnp/core.c
-@@ -221,3 +221,14 @@ static int __init pnp_init(void)
+@@ -185,6 +185,9 @@ int __pnp_add_device(struct pnp_dev *dev)
+ int pnp_add_device(struct pnp_dev *dev)
+ {
+ 	int ret;
++	char buf[128];
++	int len = 0;
++	struct pnp_id *id;
+ 
+ 	if (dev->card)
+ 		return -EINVAL;
+@@ -193,17 +196,12 @@ int pnp_add_device(struct pnp_dev *dev)
+ 	if (ret)
+ 		return ret;
+ 
+-#ifdef CONFIG_PNP_DEBUG
+-	{
+-		struct pnp_id *id;
++	buf[0] = '\0';
++	for (id = dev->id; id; id = id->next)
++		len += scnprintf(buf + len, sizeof(buf) - len, " %s", id->id);
+ 
+-		dev_printk(KERN_DEBUG, &dev->dev, "%s device, IDs",
+-			dev->protocol->name);
+-		for (id = dev->id; id; id = id->next)
+-			printk(" %s", id->id);
+-		printk(" (%s)\n", dev->active ? "active" : "disabled");
+-	}
+-#endif
++	dev_dbg(&dev->dev, "%s device, IDs%s (%s)\n",
++		dev->protocol->name, buf, dev->active ? "active" : "disabled");
+ 	return 0;
  }
  
- subsys_initcall(pnp_init);
-+
-+int pnp_debug;
-+
-+#if defined(CONFIG_PNP_DEBUG_MESSAGES)
-+static int __init pnp_debug_setup(char *__unused)
-+{
-+	pnp_debug = 1;
-+	return 1;
-+}
-+__setup("pnp.debug", pnp_debug_setup);
-+#endif
+diff --git a/drivers/pnp/support.c b/drivers/pnp/support.c
+index b42df16..7149186 100644
+--- a/drivers/pnp/support.c
++++ b/drivers/pnp/support.c
+@@ -75,7 +75,6 @@ char *pnp_resource_type_name(struct resource *res)
+ 
+ void dbg_pnp_show_resources(struct pnp_dev *dev, char *desc)
+ {
+-#ifdef DEBUG
+ 	char buf[128];
+ 	int len;
+ 	struct pnp_resource *pnp_res;
+@@ -118,7 +117,6 @@ void dbg_pnp_show_resources(struct pnp_dev *dev, char *desc)
+ 		}
+ 		dev_dbg(&dev->dev, "%s\n", buf);
+ 	}
+-#endif
+ }
+ 
+ char *pnp_option_priority_name(struct pnp_option *option)
+@@ -136,7 +134,6 @@ char *pnp_option_priority_name(struct pnp_option *option)
+ 
+ void dbg_pnp_show_option(struct pnp_dev *dev, struct pnp_option *option)
+ {
+-#ifdef DEBUG
+ 	char buf[128];
+ 	int len = 0, i;
+ 	struct pnp_port *port;
+@@ -209,5 +206,4 @@ void dbg_pnp_show_option(struct pnp_dev *dev, struct pnp_option *option)
+ 		break;
+ 	}
+ 	dev_dbg(&dev->dev, "%s\n", buf);
+-#endif
+ }
 
