@@ -1,355 +1,106 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH v2 2/2] eeepc-laptop: Use standard interfaces
-Date: Tue, 19 Aug 2008 12:13:20 +0100
-Message-ID: <20080819111320.GA19223@srcf.ucam.org>
-References: <20080804170833.GA9513@srcf.ucam.org> <20080806092352.GA17801@srcf.ucam.org> <20080806092523.GB17801@srcf.ucam.org> <20080819025815.b5ec1a4c.akpm@linux-foundation.org>
+From: Dan Vratil <progdan@progdansoft.com>
+Subject: ACPI failure
+Date: Tue, 19 Aug 2008 13:48:07 +0200
+Message-ID: <200808191348.07644.progdan@progdansoft.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:38249 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753046AbYHSLNZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Aug 2008 07:13:25 -0400
+Received: from antispam.gigant.cz ([88.208.119.5]:45218 "EHLO
+	antispam.gigant.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751270AbYHSMGY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Aug 2008 08:06:24 -0400
+Received: from notas.localnet (ip-89-102-154-41.karneval.cz [89.102.154.41])
+	by antispam.gigant.cz (Postfix) with ESMTP id E93BF17CC74F
+	for <linux-acpi@vger.kernel.org>; Tue, 19 Aug 2008 13:48:08 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20080819025815.b5ec1a4c.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: corentincj@iksaif.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-eeepc-laptop currently only sends key events via ACPI and has 
-non-standard rfkill control. Add an input device and use the rfkill 
-infrastructure.
+Hi there,
+this mailing list is probably my last chance to get some help. I have M=
+SI=20
+laptop. It's Windows Vista compatible laptop. But I have problems with =
+ACPI -=20
+since I use Linux on it.
+I'm running Linux on this laptop since 2.6.22. In this version I had pr=
+oblems=20
+with "crashing" ACPI . But with almost every new version, ACPI has bein=
+g fixed=20
+and improved and in 2.6.25 it was working pretty well. Everything was w=
+orking,=20
+then, for about a minute ACPI crashed (showing no battery, no AC, tempe=
+rature=20
+@ 146 C) and then it just restored and kept running. I haven't found an=
+y=20
+regularity in the crashing, I think it was absolutely random.
+Then in one version (i think it was 2.6.25.6, but not sure) ACPI tables=
+ were=20
+updated to be compatible with Windows Vista, but it has broken down my =
+ACPI=20
+(strange, isn't it? Vista tables not working on Vista compatible notebo=
+ok), so=20
+I returned to lower version.
+=46ew days ago I updated to 2.6.26.2. Still same - after some time ACPI=
+ crashes,=20
+but does not restore anymore (untill reboot). There is absolutely nothi=
+ng=20
+about it in dmesg and logs.
+I've decided to check, if my DSDT is buggy or not. It was. I fixed it. =
+I have=20
+also compiled kernel with ACPI debug statement enabled. Even with my fi=
+xed=20
+DSDT, ACPI is still broken, but I have some strange errors in dmesg dur=
+ing=20
+boot:
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
+ACPI: Interpreter enabled
+ACPI: (supports S0 S1 S3 S4 S5)
+ACPI: Using IOAPIC for interrupt routing
+PCI: MCFG configuration 0: base e0000000 segment 0 buses 0 - 255
+ACPI Error (evregion-0316): No handler for Region [EC__] (ffff81007f817=
+5e8)=20
+[EmbeddedControl] [20080321]
+ACPI Error (exfldio-0290): Region EmbeddedControl(3) has no handler [20=
+080321]
+ACPI Error (psparse-0530): Method parse/execution failed=20
+[\_SB_.PCI0.SBRG.EC__.BAT1._STA] (Node ffff81007f81a000), AE_NOT_EXIST
+ACPI Error (uteval-0233): Method execution failed=20
+[\_SB_.PCI0.SBRG.EC__.BAT1._STA] (Node ffff81007f81a000), AE_NOT_EXIST
+ACPI Error (evregion-0316): No handler for Region [EC__] (ffff81007f817=
+5e8)=20
+[EmbeddedControl] [20080321]
+ACPI Error (exfldio-0290): Region EmbeddedControl(3) has no handler [20=
+080321]
+ACPI Error (psparse-0530): Method parse/execution failed=20
+[\_SB_.PCI0.SBRG.EC__.BAT1._STA] (Node ffff81007f81a000), AE_NOT_EXIST
+ACPI Error (uteval-0233): Method execution failed=20
+[\_SB_.PCI0.SBRG.EC__.BAT1._STA] (Node ffff81007f81a000), AE_NOT_EXIST
 
----
+=46ull DMESG output i've uploaded here: http://pastebin.com/m1359a16
 
-Sorry, managed to send the wrong version before. This one actually 
-builds.
+I'm not ACPI expert, so I have no idea about what this means, or if it'=
+s=20
+important, but I hope, there is someone here who will have an idea and =
+will be=20
+able to tell me what should I do to fix it.
 
-diff --git a/drivers/misc/eeepc-laptop.c b/drivers/misc/eeepc-laptop.c
-index facdb98..017fa89 100644
---- a/drivers/misc/eeepc-laptop.c
-+++ b/drivers/misc/eeepc-laptop.c
-@@ -28,6 +28,8 @@
- #include <acpi/acpi_drivers.h>
- #include <acpi/acpi_bus.h>
- #include <linux/uaccess.h>
-+#include <linux/input.h>
-+#include <linux/rfkill.h>
- 
- #define EEEPC_LAPTOP_VERSION	"0.1"
- 
-@@ -125,6 +127,10 @@ struct eeepc_hotk {
- 					   by this BIOS */
- 	uint init_flag;			/* Init flags */
- 	u16 event_count[128];		/* count for each event */
-+	struct input_dev *inputdev;
-+	u16 *keycode_map;
-+	struct rfkill *eeepc_wlan_rfkill;
-+	struct rfkill *eeepc_bluetooth_rfkill;
- };
- 
- /* The actual device the driver binds to */
-@@ -140,6 +146,27 @@ static struct platform_driver platform_driver = {
- 
- static struct platform_device *platform_device;
- 
-+struct key_entry {
-+	char type;
-+	u8 code;
-+	u16 keycode;
-+};
-+
-+enum { KE_KEY, KE_END };
-+
-+static struct key_entry eeepc_keymap[] = {
-+	/* Sleep already handled via generic ACPI code */
-+	{KE_KEY, 0x10, KEY_WLAN },
-+	{KE_KEY, 0x12, KEY_PROG1 },
-+	{KE_KEY, 0x13, KEY_MUTE },
-+	{KE_KEY, 0x14, KEY_VOLUMEDOWN },
-+	{KE_KEY, 0x15, KEY_VOLUMEUP },
-+	{KE_KEY, 0x30, KEY_SWITCHVIDEOMODE },
-+	{KE_KEY, 0x31, KEY_SWITCHVIDEOMODE },
-+	{KE_KEY, 0x32, KEY_SWITCHVIDEOMODE },
-+	{KE_END, 0},
-+};
-+
- /*
-  * The hotkey driver declaration
-  */
-@@ -261,6 +288,44 @@ static int update_bl_status(struct backlight_device *bd)
- }
- 
- /*
-+ * Rfkill helpers
-+ */
-+
-+static int eeepc_wlan_rfkill_set(void *data, enum rfkill_state state)
-+{
-+	if (state == RFKILL_STATE_SOFT_BLOCKED)
-+		return set_acpi(CM_ASL_WLAN, 0);
-+	else
-+		return set_acpi(CM_ASL_WLAN, 1);
-+}
-+
-+static int eeepc_wlan_rfkill_state(void *data, enum rfkill_state *state)
-+{
-+	if (get_acpi(CM_ASL_WLAN) == 1)
-+		*state = RFKILL_STATE_UNBLOCKED;
-+	else
-+		*state = RFKILL_STATE_SOFT_BLOCKED;
-+	return 0;
-+}
-+
-+static int eeepc_bluetooth_rfkill_set(void *data, enum rfkill_state state)
-+{
-+	if (state == RFKILL_STATE_SOFT_BLOCKED)
-+		return set_acpi(CM_ASL_BLUETOOTH, 0);
-+	else
-+		return set_acpi(CM_ASL_BLUETOOTH, 1);
-+}
-+
-+static int eeepc_bluetooth_rfkill_state(void *data, enum rfkill_state *state)
-+{
-+	if (get_acpi(CM_ASL_BLUETOOTH) == 1)
-+		*state = RFKILL_STATE_UNBLOCKED;
-+	else
-+		*state = RFKILL_STATE_SOFT_BLOCKED;
-+	return 0;
-+}
-+
-+/*
-  * Sys helpers
-  */
- static int parse_arg(const char *buf, unsigned long count, int *val)
-@@ -311,13 +376,11 @@ static ssize_t show_sys_acpi(int cm, char *buf)
- EEEPC_CREATE_DEVICE_ATTR(camera, CM_ASL_CAMERA);
- EEEPC_CREATE_DEVICE_ATTR(cardr, CM_ASL_CARDREADER);
- EEEPC_CREATE_DEVICE_ATTR(disp, CM_ASL_DISPLAYSWITCH);
--EEEPC_CREATE_DEVICE_ATTR(wlan, CM_ASL_WLAN);
- 
- static struct attribute *platform_attributes[] = {
- 	&dev_attr_camera.attr,
- 	&dev_attr_cardr.attr,
- 	&dev_attr_disp.attr,
--	&dev_attr_wlan.attr,
- 	NULL
- };
- 
-@@ -328,8 +391,64 @@ static struct attribute_group platform_attribute_group = {
- /*
-  * Hotkey functions
-  */
-+static struct key_entry *eepc_get_entry_by_scancode(int code)
-+{
-+	struct key_entry *key;
-+
-+	for (key = eeepc_keymap; key->type != KE_END; key++)
-+		if (code == key->code)
-+			return key;
-+
-+	return NULL;
-+}
-+
-+static struct key_entry *eepc_get_entry_by_keycode(int code)
-+{
-+	struct key_entry *key;
-+
-+	for (key = eeepc_keymap; key->type != KE_END; key++)
-+		if (code == key->keycode && key->type == KE_KEY)
-+			return key;
-+
-+	return NULL;
-+}
-+
-+static int eeepc_getkeycode(struct input_dev *dev, int scancode, int *keycode)
-+{
-+	struct key_entry *key = eepc_get_entry_by_scancode(scancode);
-+
-+	if (key && key->type == KE_KEY) {
-+		*keycode = key->keycode;
-+		return 0;
-+	}
-+
-+	return -EINVAL;
-+}
-+
-+static int eeepc_setkeycode(struct input_dev *dev, int scancode, int keycode)
-+{
-+	struct key_entry *key;
-+	int old_keycode;
-+
-+	if (keycode < 0 || keycode > KEY_MAX)
-+		return -EINVAL;
-+
-+	key = eepc_get_entry_by_scancode(scancode);
-+	if (key && key->type == KE_KEY) {
-+		old_keycode = key->keycode;
-+		key->keycode = keycode;
-+		set_bit(keycode, dev->keybit);
-+		if (!eepc_get_entry_by_keycode(old_keycode))
-+			clear_bit(old_keycode, dev->keybit);
-+		return 0;
-+	}
-+
-+	return -EINVAL;
-+}
-+
- static int eeepc_hotk_check(void)
- {
-+	const struct key_entry *key;
- 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
- 	int result;
- 
-@@ -356,6 +475,31 @@ static int eeepc_hotk_check(void)
- 			       "Get control methods supported: 0x%x\n",
- 			       ehotk->cm_supported);
- 		}
-+		ehotk->inputdev = input_allocate_device();
-+		if (!ehotk->inputdev) {
-+			printk(EEEPC_INFO "Unable to allocate input device\n");
-+			return 0;
-+		}
-+		ehotk->inputdev->name = "Asus EeePC extra buttons";
-+		ehotk->inputdev->phys = EEEPC_HOTK_FILE "/input0";
-+		ehotk->inputdev->id.bustype = BUS_HOST;
-+		ehotk->inputdev->getkeycode = eeepc_getkeycode;
-+		ehotk->inputdev->setkeycode = eeepc_setkeycode;
-+
-+		for (key = eeepc_keymap; key->type != KE_END; key++) {
-+			switch (key->type) {
-+			case KE_KEY:
-+				set_bit(EV_KEY, ehotk->inputdev->evbit);
-+				set_bit(key->keycode, ehotk->inputdev->keybit);
-+				break;
-+			}
-+		}
-+		result = input_register_device(ehotk->inputdev);
-+		if (result) {
-+			printk(EEEPC_INFO "Unable to register input device\n");
-+			input_free_device(ehotk->inputdev);
-+			return 0;
-+		}
- 	} else {
- 		printk(EEEPC_ERR "Hotkey device not present, aborting\n");
- 		return -EINVAL;
-@@ -363,21 +507,6 @@ static int eeepc_hotk_check(void)
- 	return 0;
- }
- 
--static void notify_wlan(u32 *event)
--{
--	/* if DISABLE_ASL_WLAN is set, the notify code for fn+f2
--	   will always be 0x10 */
--	if (ehotk->cm_supported & (0x1 << CM_ASL_WLAN)) {
--		const char *method = cm_getv[CM_ASL_WLAN];
--		int value;
--		if (read_acpi_int(ehotk->handle, method, &value))
--			printk(EEEPC_WARNING "Error reading %s\n",
--			       method);
--		else if (value == 1)
--			*event = 0x11;
--	}
--}
--
- static void notify_brn(void)
- {
- 	struct backlight_device *bd = eeepc_backlight_device;
-@@ -386,14 +515,28 @@ static void notify_brn(void)
- 
- static void eeepc_hotk_notify(acpi_handle handle, u32 event, void *data)
- {
-+	static struct key_entry *key;
- 	if (!ehotk)
- 		return;
--	if (event == NOTIFY_WLAN_ON && (DISABLE_ASL_WLAN & ehotk->init_flag))
--		notify_wlan(&event);
- 	if (event >= NOTIFY_BRN_MIN && event <= NOTIFY_BRN_MAX)
- 		notify_brn();
- 	acpi_bus_generate_proc_event(ehotk->device, event,
- 				     ehotk->event_count[event % 128]++);
-+	if (ehotk->inputdev) {
-+		key = eepc_get_entry_by_scancode(event);
-+		if (key) {
-+			switch (key->type) {
-+			case KE_KEY:
-+				input_report_key(ehotk->inputdev, key->keycode,
-+						 1);
-+				input_sync(ehotk->inputdev);
-+				input_report_key(ehotk->inputdev, key->keycode,
-+						 0);
-+				input_sync(ehotk->inputdev);
-+				break;
-+			}
-+		}
-+	}
- }
- 
- static int eeepc_hotk_add(struct acpi_device *device)
-@@ -420,6 +563,47 @@ static int eeepc_hotk_add(struct acpi_device *device)
- 					     eeepc_hotk_notify, ehotk);
- 	if (ACPI_FAILURE(status))
- 		printk(EEEPC_ERR "Error installing notify handler\n");
-+
-+	if (get_acpi(CM_ASL_WLAN) != -1) {
-+		ehotk->eeepc_wlan_rfkill = rfkill_allocate(&device->dev,
-+							   RFKILL_TYPE_WLAN);
-+
-+		if (!ehotk->eeepc_wlan_rfkill)
-+			goto end;
-+
-+		ehotk->eeepc_wlan_rfkill->name = "eeepc-wlan";
-+		ehotk->eeepc_wlan_rfkill->toggle_radio = eeepc_wlan_rfkill_set;
-+		ehotk->eeepc_wlan_rfkill->get_state = eeepc_wlan_rfkill_state;
-+		if (get_acpi(CM_ASL_WLAN) == 1)
-+			ehotk->eeepc_wlan_rfkill->state =
-+				RFKILL_STATE_UNBLOCKED;
-+		else
-+			ehotk->eeepc_wlan_rfkill->state =
-+				RFKILL_STATE_SOFT_BLOCKED;
-+		rfkill_register(ehotk->eeepc_wlan_rfkill);
-+	}
-+
-+	if (get_acpi(CM_ASL_BLUETOOTH) != -1) {
-+		ehotk->eeepc_bluetooth_rfkill =
-+			rfkill_allocate(&device->dev, RFKILL_TYPE_BLUETOOTH);
-+
-+		if (!ehotk->eeepc_bluetooth_rfkill)
-+			goto end;
-+
-+		ehotk->eeepc_bluetooth_rfkill->name = "eeepc-bluetooth";
-+		ehotk->eeepc_bluetooth_rfkill->toggle_radio =
-+			eeepc_bluetooth_rfkill_set;
-+		ehotk->eeepc_bluetooth_rfkill->get_state =
-+			eeepc_bluetooth_rfkill_state;
-+		if (get_acpi(CM_ASL_BLUETOOTH) == 1)
-+			ehotk->eeepc_bluetooth_rfkill->state =
-+				RFKILL_STATE_UNBLOCKED;
-+		else
-+			ehotk->eeepc_bluetooth_rfkill->state =
-+				RFKILL_STATE_SOFT_BLOCKED;
-+		rfkill_register(ehotk->eeepc_bluetooth_rfkill);
-+	}
-+
-  end:
- 	if (result) {
- 		kfree(ehotk);
-@@ -543,6 +727,12 @@ static void eeepc_backlight_exit(void)
- {
- 	if (eeepc_backlight_device)
- 		backlight_device_unregister(eeepc_backlight_device);
-+	if (ehotk->inputdev)
-+		input_unregister_device(ehotk->inputdev);
-+	if (ehotk->eeepc_wlan_rfkill)
-+		rfkill_unregister(ehotk->eeepc_wlan_rfkill);
-+	if (ehotk->eeepc_bluetooth_rfkill)
-+		rfkill_unregister(ehotk->eeepc_bluetooth_rfkill);
- 	eeepc_backlight_device = NULL;
- }
- 
+Thanks for any response
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+With regards
+Dan Vratil
+
+
+
+---------------------------------
+Dan Vr=E1til
+progdan@progdansoft.com
+ICQ 249163429
+Jabber progdan@jabber.cz
+Tel. +420 732 326 870
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
