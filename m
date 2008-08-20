@@ -1,47 +1,46 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH v2 2/2] eeepc-laptop: Use standard interfaces
-Date: Tue, 19 Aug 2008 22:32:14 -0300
-Message-ID: <20080820013214.GF29336@khazad-dum.debian.net>
-References: <20080804170833.GA9513@srcf.ucam.org> <20080806092352.GA17801@srcf.ucam.org> <20080806092523.GB17801@srcf.ucam.org> <20080819025815.b5ec1a4c.akpm@linux-foundation.org> <20080819111320.GA19223@srcf.ucam.org> <20080819230950.GC29336@khazad-dum.debian.net> <20080819232411.GA5421@srcf.ucam.org> <20080820011828.GD29336@khazad-dum.debian.net> <20080820012846.GA7467@srcf.ucam.org>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Awkward rfkill corner cases
+Date: Wed, 20 Aug 2008 02:42:11 +0100
+Message-ID: <20080820014211.GA7592@srcf.ucam.org>
+References: <20080804170833.GA9513@srcf.ucam.org> <20080806092352.GA17801@srcf.ucam.org> <20080806092523.GB17801@srcf.ucam.org> <20080819025815.b5ec1a4c.akpm@linux-foundation.org> <20080819111320.GA19223@srcf.ucam.org> <20080819230950.GC29336@khazad-dum.debian.net> <20080819232411.GA5421@srcf.ucam.org> <20080820011828.GD29336@khazad-dum.debian.net> <20080820012846.GA7467@srcf.ucam.org> <20080820013214.GF29336@khazad-dum.debian.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out3.smtp.messagingengine.com ([66.111.4.27]:38435 "EHLO
-	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751442AbYHTBcY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 Aug 2008 21:32:24 -0400
+Received: from cavan.codon.org.uk ([93.93.128.6]:34668 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751034AbYHTBmQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Aug 2008 21:42:16 -0400
 Content-Disposition: inline
-In-Reply-To: <20080820012846.GA7467@srcf.ucam.org>
+In-Reply-To: <20080820013214.GF29336@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Cc: Andrew Morton <akpm@linux-foundation.org>, corentincj@iksaif.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi Matthew!
+On Tue, Aug 19, 2008 at 10:32:14PM -0300, Henrique de Moraes Holschuh wrote:
 
-On Wed, 20 Aug 2008, Matthew Garrett wrote:
+> Then, I have no futher comments.  Looks good to me.
 
-> On Tue, Aug 19, 2008 at 10:18:29PM -0300, Henrique de Moraes Holschuh wrote:
-> 
-> > 1. If the event has no bearing on compulsory hardware state changes (i.e.
-> > the hardware won't change state by itself when the event happens, it is
-> > really just reporting a simple key press that will do nothing by itself),
-> > you just report the key as an event.
-> 
-> Yes. That's all I do.
-> 
-> > 2. If the hardware/firmware *ALSO* compulsory changes the rfkill state (i.e.
-> > the event also means the real rfkill controller state probably changed), you
-> > take the opportunity to do a forced immediate state poll and
-> > rfkill_force_state() the new state.
-> 
-> The firmware does not perform any compulsory change.
+Excellent, glad I've got that right.
 
-Then, I have no futher comments.  Looks good to me.
+One completely unrelated question. In the following situation (relevant 
+to Dells, not the Eee)
+
+* The system has a key (not a switch) that in firmware disables the 
+hardware (HARD_BLOCKED)
+* That key generates an event through the keyboard controller, but not 
+through any other obviously detectable means
+* The radio control is also controllable through software (SOFT_BLOCKED)
+
+Should pressing the key generate a KEY_WLAN event?
+
+I note that rfkill-input will, if the device is in HARD_BLOCKED state, 
+attempt to set it to UNBLOCKED. This sounds like generating the keycode 
+is the wrong thing to do, since it'll cause rfkill-input to try to undo 
+the change that's just been made. However, if the key isn't mapped 
+there's no obvious way for any of the stack to determine that a change 
+has been made and propagate that to userspace. What should we be doing 
+here?
 
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Matthew Garrett | mjg59@srcf.ucam.org
