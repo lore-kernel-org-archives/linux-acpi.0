@@ -1,43 +1,89 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH 0/8] PNP debugging rework
-Date: Wed, 20 Aug 2008 08:57:42 -0600
-Message-ID: <200808200857.44056.bjorn.helgaas@hp.com>
-References: <20080819225310.28206.1011.stgit@tigger.helgaas> <20080820025427.GQ9807@one.firstfloor.org>
+From: "Randy.Dunlap" <rdunlap@xenotime.net>
+Subject: Re: [-mm] sysfs: duplicate filename 'acpi' can not be created
+Date: Wed, 20 Aug 2008 08:04:48 -0700 (PDT)
+Message-ID: <Pine.LNX.4.64.0808200804130.23549@shark.he.net>
+References: <48ABACF2.4060503@cn.fujitsu.com> <20080819224732.5b1393c1.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0029.austin.hp.com ([15.216.28.36]:25301 "EHLO
-	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750828AbYHTO5s (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Aug 2008 10:57:48 -0400
-In-Reply-To: <20080820025427.GQ9807@one.firstfloor.org>
-Content-Disposition: inline
+Received: from xenotime.net ([66.160.160.81]:48518 "HELO xenotime.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1758010AbYHTPEu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 Aug 2008 11:04:50 -0400
+Received: from shark.he.net ([66.160.160.2]) by xenotime.net for <linux-acpi@vger.kernel.org>; Wed, 20 Aug 2008 08:04:48 -0700
+In-Reply-To: <20080819224732.5b1393c1.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>
-Cc: Len Brown <lenb@kernel.org>, Adam M Belay <abelay@mit.edu>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Dave Jones <davej@redhat.com>, Ben Collins <bcollins@ubuntu.com>, Dann Frazier <dannf@debian.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Li Zefan <lizf@cn.fujitsu.com>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-On Tuesday 19 August 2008 08:54:27 pm Andi Kleen wrote:
-> On Tue, Aug 19, 2008 at 04:53:10PM -0600, Bjorn Helgaas wrote:
-> > These patches add support for a boot-time switch to enable PNP debug
-> > messages.  Currently, users have to recompile with CONFIG_PNP_DEBUG=y
-> > to get PNP debug messages.
-> > 
-> > I copied the implementation strategy from Greg KH's USB patches:
-> >     http://lkml.org/lkml/2008/8/8/529
-> > 
-> > These patches don't fix any bugs, and I know it's pretty late to
-> > consider new stuff for 2.6.27.  The only reason to even consider them
-> > is that 2.6.27 includes a significant PNP rewrite, and if 2.6.27 ends
-> > up in a distro kernel, it will be much easier to work on problems if
-> > users can collect debug information without rebuilding the kernel.
+On Tue, 19 Aug 2008, Andrew Morton wrote:
+
+> On Wed, 20 Aug 2008 13:34:42 +0800 Li Zefan <lizf@cn.fujitsu.com> wrote:
 > 
-> I would have pushed them up because they look harmless enough,
-> but after Linus' recent rant on merging windows on linux-kernel I've 
-> reconsidered.  Will queue them for .28 in test.
+> > When I compiled latest -mm and booted up:
 
-Fair enough, thanks!
+See this thread, although there has not been any clear resolution to it:
 
-Bjorn
+http://marc.info/?l=linux-next&m=121872830921819&w=2
+
+
+> > ------------[ cut here ]------------
+> > WARNING: at fs/sysfs/dir.c:463 sysfs_add_one+0x27/0x2f()
+> > sysfs: duplicate filename 'acpi' can not be created
+> > Modules linked in:
+> > Pid: 1, comm: swapper Not tainted 2.6.27-rc3-mm1 #2
+> >  [<c0421173>] warn_slowpath+0x61/0x83
+> >  [<c043b422>] __lock_acquire+0x601/0x658
+> >  [<c047ea0d>] ifind+0x13/0x79
+> >  [<c05c2ce9>] _spin_unlock+0x14/0x1c
+> >  [<c047ea6d>] ifind+0x73/0x79
+> >  [<c04a5a32>] sysfs_find_dirent+0x13/0x23
+> >  [<c04a5ac5>] sysfs_add_one+0x27/0x2f
+> >  [<c04a5f83>] create_dir+0x3c/0x81
+> >  [<c04a5ff1>] sysfs_create_dir+0x29/0x3b
+> >  [<c05c2ce9>] _spin_unlock+0x14/0x1c
+> >  [<c04c466d>] kobject_add_internal+0xb1/0x14a
+> >  [<c04c490b>] kobject_init_and_add+0x29/0x2c
+> >  [<c06ea613>] kernel_param_sysfs_setup+0x4f/0x9f
+> >  [<c06ea753>] param_sysfs_init+0xf0/0x147
+> >  [<c0401122>] _stext+0x3a/0x12f
+> >  [<c06ea663>] param_sysfs_init+0x0/0x147
+> >  [<c041b3ee>] try_to_wake_up+0x146/0x14f
+> >  [<c042d9f5>] __create_workqueue_key+0xa0/0x13c
+> >  [<c06d9550>] kernel_init+0x18d/0x1f1
+> >  [<c06d93c3>] kernel_init+0x0/0x1f1
+> >  [<c04044ff>] kernel_thread_helper+0x7/0x10
+> >  =======================
+> > ---[ end trace 4eaa2a86a8e2da22 ]---
+> > kobject_add_internal failed for acpi with -EEXIST, don't try to register things with the same name in the same directory.
+> > Pid: 1, comm: swapper Tainted: G        W 2.6.27-rc3-mm1 #2
+> >  [<c04c46d0>] kobject_add_internal+0x114/0x14a
+> >  [<c04c490b>] kobject_init_and_add+0x29/0x2c
+> >  [<c06ea613>] kernel_param_sysfs_setup+0x4f/0x9f
+> >  [<c06ea753>] param_sysfs_init+0xf0/0x147
+> >  [<c0401122>] _stext+0x3a/0x12f
+> >  [<c06ea663>] param_sysfs_init+0x0/0x147
+> >  [<c041b3ee>] try_to_wake_up+0x146/0x14f
+> >  [<c042d9f5>] __create_workqueue_key+0xa0/0x13c
+> >  [<c06d9550>] kernel_init+0x18d/0x1f1
+> >  [<c06d93c3>] kernel_init+0x0/0x1f1
+> >  [<c04044ff>] kernel_thread_helper+0x7/0x10
+> >  =======================
+> > Module 'acpi' failed to be added to sysfs, error number -17
+> > The system will be unstable now.
+> 
+> The only acpi-specific patches in mm(otm) are
+> 
+> acpi-add-checking-for-null-early-param.patch
+> acpi-avoid-dropping-rapid-hotkey-events-or-other-gpes-on-asus-eeepc.patch
+> mm-only-enforce-acpi-resource-conflict-checks.patch
+> 
+> so I'd say you've hit a linux-next regression there.
+> 
+> Random-possible-feel-it-in-my-water-guess: do you have CONFIG_FASTBOOT
+> set and if so, does unsetting it fix things?
+> --
+
+-- 
+~Randy
