@@ -1,42 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [patch 1/2] acpi: add checking for NULL early param
-Date: Wed, 20 Aug 2008 16:41:45 -0700
-Message-ID: <200808202341.m7KNfkb8005410@imap1.linux-foundation.org>
+Subject: [patch 2/2] acpi: Avoid dropping rapid hotkey events (or other GPEs) on Asus EeePC
+Date: Wed, 20 Aug 2008 16:41:47 -0700
+Message-ID: <200808202341.m7KNflv7005413@imap1.linux-foundation.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36326 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39209 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750824AbYHTXmI (ORCPT
+	by vger.kernel.org with ESMTP id S1751471AbYHTXml (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 Aug 2008 19:42:08 -0400
+	Wed, 20 Aug 2008 19:42:41 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: andi@firstfloor.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, gorcunov@gmail.com
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, alan-jenkins@tuffmail.co.uk, astarikovskiy@suse.de, hmh@hmh.eng.br, maxi@daemonizer.de, stable@kernel.org
 
-From: Cyrill Gorcunov <gorcunov@gmail.com>
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 
-The early_param handling function could recieve NULL pointer as argument
-in case if user didn't enter parameter value.  So we have to be ready for
-a such situation and do check for NULL pointer if needed.
+It looks like this EC clears the SMI_EVT bit after every query, even if
+there are more events pending.  The workaround is to repeatedly query the
+EC until it reports that no events remain.
 
-Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
+This fixes a regression in 2.6.26 (from 2.6.25.3).  Initially reported as
+"Asus Eee PC hotkeys stop working if pressed quickly" in bugzilla
+<http://bugzilla.kernel.org/show_bug.cgi?id=11089>.
+
+The regression was caused by a recently added check for interrupt storms. 
+The Eee PC triggers this check and switches to polling.  When multiple
+events arrive between polling intervals, only one is fetched from the EC. 
+This causes erroneous behaviour; ultimately events stop being delivered
+altogether when the EC buffer overflows.
+
+Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Maximilian Engelhardt <maxi@daemonizer.de>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Cc: Andi Kleen <andi@firstfloor.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/tables.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/acpi/ec.c |   18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN drivers/acpi/tables.c~acpi-add-checking-for-null-early-param drivers/acpi/tables.c
---- a/drivers/acpi/tables.c~acpi-add-checking-for-null-early-param
-+++ a/drivers/acpi/tables.c
-@@ -300,6 +300,8 @@ int __init acpi_table_init(void)
+diff -puN drivers/acpi/ec.c~acpi-avoid-dropping-rapid-hotkey-events-or-other-gpes-on-asus-eeepc drivers/acpi/ec.c
+--- a/drivers/acpi/ec.c~acpi-avoid-dropping-rapid-hotkey-events-or-other-gpes-on-asus-eeepc
++++ a/drivers/acpi/ec.c
+@@ -486,14 +486,10 @@ void acpi_ec_remove_query_handler(struct
  
- static int __init acpi_parse_apic_instance(char *str)
+ EXPORT_SYMBOL_GPL(acpi_ec_remove_query_handler);
+ 
+-static void acpi_ec_gpe_query(void *ec_cxt)
++static void acpi_ec_gpe_run_handler(struct acpi_ec *ec, u8 value)
  {
-+	if (!str)
-+		return -EINVAL;
+-	struct acpi_ec *ec = ec_cxt;
+-	u8 value = 0;
+ 	struct acpi_ec_query_handler *handler, copy;
  
- 	acpi_apic_instance = simple_strtoul(str, NULL, 0);
+-	if (!ec || acpi_ec_query(ec, &value))
+-		return;
+ 	mutex_lock(&ec->lock);
+ 	list_for_each_entry(handler, &ec->list, node) {
+ 		if (value == handler->query_bit) {
+@@ -511,6 +507,18 @@ static void acpi_ec_gpe_query(void *ec_c
+ 	mutex_unlock(&ec->lock);
+ }
  
++static void acpi_ec_gpe_query(void *ec_cxt)
++{
++	struct acpi_ec *ec = ec_cxt;
++	u8 value = 0;
++
++	if (!ec)
++		return;
++
++	while (!acpi_ec_query(ec, &value))
++		acpi_ec_gpe_run_handler(ec, value);
++}
++
+ static u32 acpi_ec_gpe_handler(void *data)
+ {
+ 	acpi_status status = AE_OK;
 _
