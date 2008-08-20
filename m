@@ -1,16 +1,16 @@
 From: Li Zefan <lizf@cn.fujitsu.com>
 Subject: Re: [-mm] sysfs: duplicate filename 'acpi' can not be created
-Date: Wed, 20 Aug 2008 13:48:53 +0800
-Message-ID: <48ABB045.3040800@cn.fujitsu.com>
+Date: Wed, 20 Aug 2008 14:25:27 +0800
+Message-ID: <48ABB8D7.3020808@cn.fujitsu.com>
 References: <48ABACF2.4060503@cn.fujitsu.com> <20080819224732.5b1393c1.akpm@linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:58717 "EHLO song.cn.fujitsu.com"
+Received: from cn.fujitsu.com ([222.73.24.84]:50555 "EHLO song.cn.fujitsu.com"
 	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1751364AbYHTFuZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 Aug 2008 01:50:25 -0400
+	id S1750788AbYHTG0w (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 Aug 2008 02:26:52 -0400
 In-Reply-To: <20080819224732.5b1393c1.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -75,10 +75,13 @@ Andrew Morton wrote:
 > 
 > so I'd say you've hit a linux-next regression there.
 > 
+
+You are right.
+
+after 'quilt push linux-next.patch', I still saw the regression, and then
+it's ok after 'quilt pop 1'
+
 > Random-possible-feel-it-in-my-water-guess: do you have CONFIG_FASTBOOT
 > set and if so, does unsetting it fix things?
 > 
-
-I've just looked into my config file:
-
-# CONFIG_FASTBOOT is not set
+> 
