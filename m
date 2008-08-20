@@ -1,89 +1,161 @@
-From: "Randy.Dunlap" <rdunlap@xenotime.net>
-Subject: Re: [-mm] sysfs: duplicate filename 'acpi' can not be created
-Date: Wed, 20 Aug 2008 08:04:48 -0700 (PDT)
-Message-ID: <Pine.LNX.4.64.0808200804130.23549@shark.he.net>
-References: <48ABACF2.4060503@cn.fujitsu.com> <20080819224732.5b1393c1.akpm@linux-foundation.org>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Thomas Renninger <trenn@suse.de>
+Subject: [PATCH 2/3] Powernow-k8: Make use of firmware bug report interface
+Date: Wed, 20 Aug 2008 19:02:05 +0200
+Message-ID: <1219251726-24746-3-git-send-email-trenn@suse.de>
+References: <1219251726-24746-1-git-send-email-trenn@suse.de>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from xenotime.net ([66.160.160.81]:48518 "HELO xenotime.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1758010AbYHTPEu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 Aug 2008 11:04:50 -0400
-Received: from shark.he.net ([66.160.160.2]) by xenotime.net for <linux-acpi@vger.kernel.org>; Wed, 20 Aug 2008 08:04:48 -0700
-In-Reply-To: <20080819224732.5b1393c1.akpm@linux-foundation.org>
+Received: from cantor2.suse.de ([195.135.220.15]:56289 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754240AbYHTRCI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 Aug 2008 13:02:08 -0400
+In-Reply-To: <1219251726-24746-1-git-send-email-trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Li Zefan <lizf@cn.fujitsu.com>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: ak@linux.intel.com, len.brown@intel.com, arjan@linux.intel.com, bjorn.helgaas@hp.com, linux-acpi@vger.kernel.org, Thomas Renninger <trenn@suse.de>
 
-On Tue, 19 Aug 2008, Andrew Morton wrote:
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+---
+ arch/x86/kernel/cpu/cpufreq/powernow-k8.c |   45 ++++++++++++++++-------------
+ 1 files changed, 25 insertions(+), 20 deletions(-)
 
-> On Wed, 20 Aug 2008 13:34:42 +0800 Li Zefan <lizf@cn.fujitsu.com> wrote:
-> 
-> > When I compiled latest -mm and booted up:
-
-See this thread, although there has not been any clear resolution to it:
-
-http://marc.info/?l=linux-next&m=121872830921819&w=2
-
-
-> > ------------[ cut here ]------------
-> > WARNING: at fs/sysfs/dir.c:463 sysfs_add_one+0x27/0x2f()
-> > sysfs: duplicate filename 'acpi' can not be created
-> > Modules linked in:
-> > Pid: 1, comm: swapper Not tainted 2.6.27-rc3-mm1 #2
-> >  [<c0421173>] warn_slowpath+0x61/0x83
-> >  [<c043b422>] __lock_acquire+0x601/0x658
-> >  [<c047ea0d>] ifind+0x13/0x79
-> >  [<c05c2ce9>] _spin_unlock+0x14/0x1c
-> >  [<c047ea6d>] ifind+0x73/0x79
-> >  [<c04a5a32>] sysfs_find_dirent+0x13/0x23
-> >  [<c04a5ac5>] sysfs_add_one+0x27/0x2f
-> >  [<c04a5f83>] create_dir+0x3c/0x81
-> >  [<c04a5ff1>] sysfs_create_dir+0x29/0x3b
-> >  [<c05c2ce9>] _spin_unlock+0x14/0x1c
-> >  [<c04c466d>] kobject_add_internal+0xb1/0x14a
-> >  [<c04c490b>] kobject_init_and_add+0x29/0x2c
-> >  [<c06ea613>] kernel_param_sysfs_setup+0x4f/0x9f
-> >  [<c06ea753>] param_sysfs_init+0xf0/0x147
-> >  [<c0401122>] _stext+0x3a/0x12f
-> >  [<c06ea663>] param_sysfs_init+0x0/0x147
-> >  [<c041b3ee>] try_to_wake_up+0x146/0x14f
-> >  [<c042d9f5>] __create_workqueue_key+0xa0/0x13c
-> >  [<c06d9550>] kernel_init+0x18d/0x1f1
-> >  [<c06d93c3>] kernel_init+0x0/0x1f1
-> >  [<c04044ff>] kernel_thread_helper+0x7/0x10
-> >  =======================
-> > ---[ end trace 4eaa2a86a8e2da22 ]---
-> > kobject_add_internal failed for acpi with -EEXIST, don't try to register things with the same name in the same directory.
-> > Pid: 1, comm: swapper Tainted: G        W 2.6.27-rc3-mm1 #2
-> >  [<c04c46d0>] kobject_add_internal+0x114/0x14a
-> >  [<c04c490b>] kobject_init_and_add+0x29/0x2c
-> >  [<c06ea613>] kernel_param_sysfs_setup+0x4f/0x9f
-> >  [<c06ea753>] param_sysfs_init+0xf0/0x147
-> >  [<c0401122>] _stext+0x3a/0x12f
-> >  [<c06ea663>] param_sysfs_init+0x0/0x147
-> >  [<c041b3ee>] try_to_wake_up+0x146/0x14f
-> >  [<c042d9f5>] __create_workqueue_key+0xa0/0x13c
-> >  [<c06d9550>] kernel_init+0x18d/0x1f1
-> >  [<c06d93c3>] kernel_init+0x0/0x1f1
-> >  [<c04044ff>] kernel_thread_helper+0x7/0x10
-> >  =======================
-> > Module 'acpi' failed to be added to sysfs, error number -17
-> > The system will be unstable now.
-> 
-> The only acpi-specific patches in mm(otm) are
-> 
-> acpi-add-checking-for-null-early-param.patch
-> acpi-avoid-dropping-rapid-hotkey-events-or-other-gpes-on-asus-eeepc.patch
-> mm-only-enforce-acpi-resource-conflict-checks.patch
-> 
-> so I'd say you've hit a linux-next regression there.
-> 
-> Random-possible-feel-it-in-my-water-guess: do you have CONFIG_FASTBOOT
-> set and if so, does unsetting it fix things?
-> --
-
+diff --git a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c b/arch/x86/kernel/cpu/cpufreq/powernow-k8.c
+index 4e72719..f05025f 100644
+--- a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c
++++ b/arch/x86/kernel/cpu/cpufreq/powernow-k8.c
+@@ -25,6 +25,7 @@
+  */
+ 
+ #include <linux/kernel.h>
++#include <linux/firmware_error.h>
+ #include <linux/smp.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
+@@ -45,7 +46,6 @@
+ #endif
+ 
+ #define PFX "powernow-k8: "
+-#define BFX PFX "BIOS error: "
+ #define VERSION "version 2.20.00"
+ #include "powernow-k8.h"
+ 
+@@ -536,35 +536,39 @@ static int check_pst_table(struct powernow_k8_data *data, struct pst_s *pst, u8
+ 
+ 	for (j = 0; j < data->numps; j++) {
+ 		if (pst[j].vid > LEAST_VID) {
+-			printk(KERN_ERR PFX "vid %d invalid : 0x%x\n", j, pst[j].vid);
++			FW_PRINT_CRIT(FW_ERR, PFX "vid %d invalid : 0x%x", j, pst[j].vid);
+ 			return -EINVAL;
+ 		}
+ 		if (pst[j].vid < data->rvo) {	/* vid + rvo >= 0 */
+-			printk(KERN_ERR BFX "0 vid exceeded with pstate %d\n", j);
++			FW_PRINT_CRIT(FW_ERR, PFX "0 vid exceeded with pstate"
++				      " %d", j);
+ 			return -ENODEV;
+ 		}
+ 		if (pst[j].vid < maxvid + data->rvo) {	/* vid + rvo >= maxvid */
+-			printk(KERN_ERR BFX "maxvid exceeded with pstate %d\n", j);
++			FW_PRINT_CRIT(FW_ERR, PFX "maxvid exceeded with "
++				      "pstate %d", j);
+ 			return -ENODEV;
+ 		}
+ 		if (pst[j].fid > MAX_FID) {
+-			printk(KERN_ERR BFX "maxfid exceeded with pstate %d\n", j);
++			FW_PRINT_CRIT(FW_ERR, PFX "maxfid exceeded with pstate "
++				      "%d", j);
+ 			return -ENODEV;
+ 		}
+ 		if (j && (pst[j].fid < HI_FID_TABLE_BOTTOM)) {
+ 			/* Only first fid is allowed to be in "low" range */
+-			printk(KERN_ERR BFX "two low fids - %d : 0x%x\n", j, pst[j].fid);
++			FW_PRINT_CRIT(FW_ERR, PFX "two low fids - %d : 0x%x",
++				      j, pst[j].fid);
+ 			return -EINVAL;
+ 		}
+ 		if (pst[j].fid < lastfid)
+ 			lastfid = pst[j].fid;
+ 	}
+ 	if (lastfid & 1) {
+-		printk(KERN_ERR BFX "lastfid invalid\n");
++		FW_PRINT_CRIT(FW_ERR, PFX "lastfid invalid");
+ 		return -EINVAL;
+ 	}
+ 	if (lastfid > LO_FID_TABLE_TOP)
+-		printk(KERN_INFO BFX  "first fid not from lo freq table\n");
++		FW_PRINT_CRIT(FW_ERR, PFX  "first fid not from lo freq table");
+ 
+ 	return 0;
+ }
+@@ -672,13 +676,13 @@ static int find_psb_table(struct powernow_k8_data *data)
+ 
+ 		dprintk("table vers: 0x%x\n", psb->tableversion);
+ 		if (psb->tableversion != PSB_VERSION_1_4) {
+-			printk(KERN_ERR BFX "PSB table is not v1.4\n");
++			FW_PRINT_CRIT(FW_ERR, PFX "PSB table is not v1.4");
+ 			return -ENODEV;
+ 		}
+ 
+ 		dprintk("flags: 0x%x\n", psb->flags1);
+ 		if (psb->flags1) {
+-			printk(KERN_ERR BFX "unknown flags\n");
++			FW_PRINT_CRIT(FW_ERR, PFX "unknown flags");
+ 			return -ENODEV;
+ 		}
+ 
+@@ -705,7 +709,7 @@ static int find_psb_table(struct powernow_k8_data *data)
+ 			}
+ 		}
+ 		if (cpst != 1) {
+-			printk(KERN_ERR BFX "numpst must be 1\n");
++			FW_PRINT_CRIT(FW_ERR, PFX "numpst must be 1");
+ 			return -ENODEV;
+ 		}
+ 
+@@ -730,7 +734,7 @@ static int find_psb_table(struct powernow_k8_data *data)
+ 	 * BIOS and Kernel Developer's Guide, which is available on
+ 	 * www.amd.com
+ 	 */
+-	printk(KERN_ERR PFX "BIOS error - no PSB or ACPI _PSS objects\n");
++	FW_PRINT_CRIT(FW_ERR, PFX "BIOS error - no PSB or ACPI _PSS objects");
+ 	return -ENODEV;
+ }
+ 
+@@ -860,8 +864,7 @@ static int fill_powernow_table_pstate(struct powernow_k8_data *data, struct cpuf
+ 
+ 		index = data->acpi_data->states[i].control & HW_PSTATE_MASK;
+ 		if (index > data->max_hw_pstate) {
+-			printk(KERN_ERR PFX "invalid pstate %d - bad value %d.\n", i, index);
+-			printk(KERN_ERR PFX "Please report to BIOS manufacturer\n");
++			FW_PRINT_CRIT(FW_ERR, PFX "invalid pstate %d - bad value %d", i, index);
+ 			powernow_table[i].frequency = CPUFREQ_ENTRY_INVALID;
+ 			continue;
+ 		}
+@@ -1165,17 +1168,19 @@ static int __cpuinit powernowk8_cpu_init(struct cpufreq_policy *pol)
+ 			       "ACPI Processor module before starting this "
+ 			       "driver.\n");
+ #else
+-			printk(KERN_ERR PFX "Your BIOS does not provide ACPI "
+-			       "_PSS objects in a way that Linux understands. "
+-			       "Please report this to the Linux ACPI maintainers"
+-			       " and complain to your BIOS vendor.\n");
++			FW_PRINT_CRIT(FW_ERR, PFX "Your BIOS does not provide "
++				      "ACPI _PSS objects in a way that Linux "
++				      "understands. Please report this to the "
++				      "Linux ACPI maintainers and complain to "
++				      "your BIOS vendor");
+ #endif
+ 			kfree(data);
+ 			return -ENODEV;
+ 		}
+ 		if (pol->cpu != 0) {
+-			printk(KERN_ERR PFX "No ACPI _PSS objects for CPU other than "
+-			       "CPU0. Complain to your BIOS vendor.\n");
++			FW_PRINT_CRIT(FW_ERR, PFX "No ACPI _PSS objects for CPU"
++				      " other than CPU0. Complain to your BIOS"
++				      " vendor");
+ 			kfree(data);
+ 			return -ENODEV;
+ 		}
 -- 
-~Randy
+1.5.4.5
+
