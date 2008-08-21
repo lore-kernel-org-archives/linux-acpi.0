@@ -1,58 +1,28 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: Thermal zone names
-Date: Thu, 21 Aug 2008 09:36:20 +0800
-Message-ID: <1219282580.3209.140.camel@rzhang-dt>
-References: <20080820223423.37f31780@hyperion.delvare>
+From: "Dennis Jansen" <Dennis.Jansen@web.de>
+Subject: Please queue for 2.6.27 Re: [PATCH] ACPI: Fix typo in "Disable MWAIT via DMI on broken Compal board"
+Date: Thu, 21 Aug 2008 08:28:05 +0200
+Message-ID: <e678b6ed0808202328j3cf53c6jafa103de142a956c@mail.gmail.com>
+Reply-To: d.g.jansen@googlemail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:21340 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751718AbYHUBgv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 Aug 2008 21:36:51 -0400
-In-Reply-To: <20080820223423.37f31780@hyperion.delvare>
+Received: from wr-out-0506.google.com ([64.233.184.224]:18715 "EHLO
+	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753432AbYHUG2G (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Aug 2008 02:28:06 -0400
+Received: by wr-out-0506.google.com with SMTP id 69so711069wri.5
+        for <linux-acpi@vger.kernel.org>; Wed, 20 Aug 2008 23:28:05 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jean Delvare <khali@linux-fr.org>
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Thu, 2008-08-21 at 04:34 +0800, Jean Delvare wrote:
-> Hi Rui,
->=20
-> The ACPI thermal zones in /proc/acpi/thermal_zone have a name. The
-> ACPI
-> thermal zones in /sys/class/thermal do not.
-=46irst, the name used in procfs doesn't make sense.
-It just uses the arbitrary stings exported by BIOS. Some of them is
-meaningless, and even there may be duplicate names.
-The only benefit is that we can easily figure out which device in the
-ACPI namespace this interface is for.
+On 8/20/08, Dennis Jansen <Dennis.Jansen@web.de> wrote:
+> This fixes a typo in commit 2a2a64714d9c40f7705c4de1e79a5b855c7211a9
+>  "Disable MWAIT via DMI on broken Compal board".
+>
+>  It allows the nomwait dmi check to actually detect the Acer 5220.
 
-Second, /sys/class/thermal/thermal_zoneX/device is the symbol link to
-the real device node, and there is a sysfs I/F named "path" which can b=
-e
-used for the same purpose (find corresponding devices in ACPI namespace=
-)
-
-so it's okay that the ACPI thermal zones in /sys/class/thermal doesn't
-have a name.
-
->  Would it be possible to add
-> it there? When these thermal zones are exported to libsensors, the
-> temperatures appear with their default labels (temp1, temp2, etc...)
-> Users sometimes wonder what these temperatures correspond to.
-Do you mean making use of "temp[1-*]_label"?
-As we already know the BIOS name (procfs name) of an ACPI thermal sysfs
-class device, we can export the name of thermal sysfs class device in
-"=EF=BB=BF=EF=BB=BFtemp[1-*]_label", something like "thermal_zoneX".
-what do you think?
-
-thanks,
-rui
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I should add that it should go into 2.6.27, as the commit it fixes is
+also just in.
