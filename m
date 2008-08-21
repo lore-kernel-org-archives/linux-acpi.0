@@ -1,62 +1,58 @@
-From: "Vedran Rodic" <vrodic@gmail.com>
-Subject: Re: Thinkpad X60s power usage on battery - Windows/Linux comparison
-Date: Thu, 21 Aug 2008 02:05:43 +0200
-Message-ID: <8ccf2e9c0808201705v7d4edc81kde5b6b8e7090e335@mail.gmail.com>
-References: <8ccf2e9c0808181554o930f235maa79bdb365cd808d@mail.gmail.com>
-	 <87bpzp231z.fsf@basil.nowhere.org>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: Thermal zone names
+Date: Thu, 21 Aug 2008 09:36:20 +0800
+Message-ID: <1219282580.3209.140.camel@rzhang-dt>
+References: <20080820223423.37f31780@hyperion.delvare>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.170]:20651 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752838AbYHUAFn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Aug 2008 20:05:43 -0400
-Received: by wf-out-1314.google.com with SMTP id 27so851650wfd.4
-        for <linux-acpi@vger.kernel.org>; Wed, 20 Aug 2008 17:05:43 -0700 (PDT)
-In-Reply-To: <87bpzp231z.fsf@basil.nowhere.org>
-Content-Disposition: inline
+Received: from mga11.intel.com ([192.55.52.93]:21340 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751718AbYHUBgv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 Aug 2008 21:36:51 -0400
+In-Reply-To: <20080820223423.37f31780@hyperion.delvare>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>
+To: Jean Delvare <khali@linux-fr.org>
 Cc: linux-acpi@vger.kernel.org
 
-On Tue, Aug 19, 2008 at 3:42 AM, Andi Kleen <andi@firstfloor.org> wrote:
-> "Vedran Rodic" <vrodic@gmail.com> writes:
->>
->> Windows power monitoring tool from Lenovo reports power usage of 6.5 W under
->> the same LCD brightness level and with wireless disabled.
->
-> It would be better if you compared using the same "neutral" method.
->
-> Most cheap power measurements tend to quite inaccurate and who
-> knows in which direction this Windows power monitoring tool is wrong.
-> It might be wrong in a different direction than what you used
-> under Linux.
+On Thu, 2008-08-21 at 04:34 +0800, Jean Delvare wrote:
+> Hi Rui,
+>=20
+> The ACPI thermal zones in /proc/acpi/thermal_zone have a name. The
+> ACPI
+> thermal zones in /sys/class/thermal do not.
+=46irst, the name used in procfs doesn't make sense.
+It just uses the arbitrary stings exported by BIOS. Some of them is
+meaningless, and even there may be duplicate names.
+The only benefit is that we can easily figure out which device in the
+ACPI namespace this interface is for.
 
-Yeah, or they might not be wrong and my eyes could be :( It turns out
-that Windows can get the LCD brightness down more than thinkpad-acpi,
-or whatever is turning down the brightnes when I press the Fn-End
-combination (both in X and in the console - I guess it's the BIOS).
+Second, /sys/class/thermal/thermal_zoneX/device is the symbol link to
+the real device node, and there is a sysfs I/F named "path" which can b=
+e
+used for the same purpose (find corresponding devices in ACPI namespace=
+)
 
->
-> A reasonable accurate method might be to just measure the time how
-> long the battery lasts in both cases using a similar workload
-> (e.g. keeping it completely idle)
+so it's okay that the ACPI thermal zones in /sys/class/thermal doesn't
+have a name.
 
-Difference between lowest Windows LCD brightness levels and Linux
-brightness levels:
+>  Would it be possible to add
+> it there? When these thermal zones are exported to libsensors, the
+> temperatures appear with their default labels (temp1, temp2, etc...)
+> Users sometimes wonder what these temperatures correspond to.
+Do you mean making use of "temp[1-*]_label"?
+As we already know the BIOS name (procfs name) of an ACPI thermal sysfs
+class device, we can export the name of thermal sysfs class device in
+"=EF=BB=BF=EF=BB=BFtemp[1-*]_label", something like "thermal_zoneX".
+what do you think?
 
-3:40h on Windows (it hibernated the laptop when the battery was
-arround 5% percent, did arround 10 more minutes sitting on the grub
-screen).
-2:36 on Linux.
+thanks,
+rui
 
-Now the question is how do I get the LCD brightness down even more on
-X, but this may already be solved in the latest Xorg intel driver,
-just not with the Fn keys.
-
-If I see any more surprising battery life differences when I manage to
-get the same low brightness level on both OS-es, I'll let you know.
-
-Vedran
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
