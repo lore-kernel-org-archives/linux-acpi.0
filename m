@@ -1,30 +1,36 @@
 From: Andi Kleen <andi@firstfloor.org>
-Subject: Re: [PATCH] ACPI: Fix typo in "Disable MWAIT via DMI on broken Compal board"
-Date: Thu, 21 Aug 2008 08:44:04 +0200
-Message-ID: <87abf6n9zf.fsf@basil.nowhere.org>
-References: <e678b6ed0808200744k14429ab4sf8e636d0a97ca2e4@mail.gmail.com>
+Subject: Re: [patch 1/2] acpi: add checking for NULL early param
+Date: Thu, 21 Aug 2008 08:46:12 +0200
+Message-ID: <8763pun9vv.fsf@basil.nowhere.org>
+References: <200808202341.m7KNfkb8005410@imap1.linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from one.firstfloor.org ([213.235.205.2]:56751 "EHLO
+Received: from one.firstfloor.org ([213.235.205.2]:56756 "EHLO
 	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755639AbYHUGoH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Aug 2008 02:44:07 -0400
-In-Reply-To: <e678b6ed0808200744k14429ab4sf8e636d0a97ca2e4@mail.gmail.com> (Dennis Jansen's message of "Wed, 20 Aug 2008 16:44:03 +0200")
+	with ESMTP id S1757806AbYHUGqO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Aug 2008 02:46:14 -0400
+In-Reply-To: <200808202341.m7KNfkb8005410@imap1.linux-foundation.org> (akpm@linux-foundation.org's message of "Wed, 20 Aug 2008 16:41:45 -0700")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: d.g.jansen@googlemail.com
-Cc: linux-acpi@vger.kernel.org
+To: akpm@linux-foundation.org
+Cc: linux-acpi@vger.kernel.org, gorcunov@gmail.com
 
-"Dennis Jansen" <Dennis.Jansen@web.de> writes:
+akpm@linux-foundation.org writes:
 
-> This fixes a typo in commit 2a2a64714d9c40f7705c4de1e79a5b855c7211a9
-> "Disable MWAIT via DMI on broken Compal board".
+> From: Cyrill Gorcunov <gorcunov@gmail.com>
 >
-> It allows the nomwait dmi check to actually detect the Acer 5220.
+> The early_param handling function could recieve NULL pointer as argument
+> in case if user didn't enter parameter value.  So we have to be ready for
+> a such situation and do check for NULL pointer if needed.
+>
+> Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
+> Cc: Andi Kleen <andi@firstfloor.org>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
-Queued for 2.6.27 thanks. The patch was word-wrapped, please see
-Documentation/email-clients.txt on how to avoid it in the future.
-I fixed it up for now.
+Queued for 2.6.27. Thanks.
+
+But I wonder if it wouldn't be generally safer for the caller to just pass
+an empty string instead of NULL in this case?
 
 -Andi
