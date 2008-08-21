@@ -1,53 +1,80 @@
-From: Cyrill Gorcunov <gorcunov@gmail.com>
-Subject: Re: [patch 1/2] acpi: add checking for NULL early param
-Date: Thu, 21 Aug 2008 19:34:12 +0400
-Message-ID: <20080821153412.GB7214@lenovo>
-References: <200808202341.m7KNfkb8005410@imap1.linux-foundation.org> <8763pun9vv.fsf@basil.nowhere.org>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: Thermal zone names
+Date: Thu, 21 Aug 2008 17:48:52 +0200
+Message-ID: <20080821174852.0689681d@hyperion.delvare>
+References: <20080820223423.37f31780@hyperion.delvare>
+	<1219282580.3209.140.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.156]:64080 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760527AbYHUPds (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Aug 2008 11:33:48 -0400
-Received: by fg-out-1718.google.com with SMTP id 19so26551fgg.17
-        for <linux-acpi@vger.kernel.org>; Thu, 21 Aug 2008 08:33:46 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <8763pun9vv.fsf@basil.nowhere.org>
+Received: from zone0.gcu-squad.org ([212.85.147.21]:6507 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751146AbYHUPtF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Aug 2008 11:49:05 -0400
+In-Reply-To: <1219282580.3209.140.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>
-Cc: akpm@linux-foundation.org, linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-[Andi Kleen - Thu, Aug 21, 2008 at 08:46:12AM +0200]
-| akpm@linux-foundation.org writes:
-| 
-| > From: Cyrill Gorcunov <gorcunov@gmail.com>
-| >
-| > The early_param handling function could recieve NULL pointer as argument
-| > in case if user didn't enter parameter value.  So we have to be ready for
-| > a such situation and do check for NULL pointer if needed.
-| >
-| > Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
-| > Cc: Andi Kleen <andi@firstfloor.org>
-| > Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-| 
-| Queued for 2.6.27. Thanks.
-| 
-| But I wonder if it wouldn't be generally safer for the caller to just pass
-| an empty string instead of NULL in this case?
-| 
-| -Andi
-| 
+Hi Rui,
 
-Actually this would require to patch kernel code not in
-one place. There was some discusion about this	
+On Thu, 21 Aug 2008 09:36:20 +0800, Zhang Rui wrote:
+> On Thu, 2008-08-21 at 04:34 +0800, Jean Delvare wrote:
+> > Hi Rui,
+> >=20
+> > The ACPI thermal zones in /proc/acpi/thermal_zone have a name. The
+> > ACPI
+> > thermal zones in /sys/class/thermal do not.
+> First, the name used in procfs doesn't make sense.
+> It just uses the arbitrary stings exported by BIOS. Some of them is
+> meaningless, and even there may be duplicate names.
 
-	http://lkml.org/lkml/2008/8/12/229
-	
+I thought that these names were unique identifiers for ACPI?
 
-- in short it could lead to hidden bug since not all
-users of early_param are ready for this and they have
-to be checked.
+> The only benefit is that we can easily figure out which device in the
+> ACPI namespace this interface is for.
+>=20
+> Second, /sys/class/thermal/thermal_zoneX/device is the symbol link to
+> the real device node, and there is a sysfs I/F named "path" which can=
+ be
+> used for the same purpose (find corresponding devices in ACPI namespa=
+ce)
+>=20
+> so it's okay that the ACPI thermal zones in /sys/class/thermal doesn'=
+t
+> have a name.
 
-		- Cyrill -
+=46or lm-sensors users, the fact that the information is available
+somewhere in sysfs isn't too interesting. Either the name is used as
+the default label, or it's not.
+
+> >  Would it be possible to add
+> > it there? When these thermal zones are exported to libsensors, the
+> > temperatures appear with their default labels (temp1, temp2, etc...=
+)
+> > Users sometimes wonder what these temperatures correspond to.
+> Do you mean making use of "temp[1-*]_label"?
+
+Yes, exactly.
+
+> As we already know the BIOS name (procfs name) of an ACPI thermal sys=
+fs
+> class device, we can export the name of thermal sysfs class device in
+> "=EF=BB=BF=EF=BB=BFtemp[1-*]_label", something like "thermal_zoneX".
+> what do you think?
+
+The name "thermal_zoneX" is not useful at all for the user. It's no
+more informative than "tempX". What I wanted to print was the ACPI
+name. Now you say that it's not meaningful. In that case there's simply
+nothing we can do, sorry for the noise.
+
+Thanks,
+--=20
+Jean Delvare
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
