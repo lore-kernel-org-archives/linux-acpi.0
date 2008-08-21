@@ -1,62 +1,37 @@
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Subject: Re: [patch 2/2] acpi: Avoid dropping rapid hotkey events (or other
- GPEs) on Asus EeePC
-Date: Thu, 21 Aug 2008 15:42:05 +0100
-Message-ID: <48AD7EBD.9030507@tuffmail.co.uk>
-References: <200808202341.m7KNflv7005413@imap1.linux-foundation.org> <48AD5BBB.2050701@suse.de> <48AD6F14.9080700@tuffmail.co.uk> <48AD73E9.9090904@suse.de>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: Thinkpad X60s power usage on battery - Windows/Linux comparison
+Date: Thu, 21 Aug 2008 12:07:34 -0300
+Message-ID: <20080821150734.GF11198@khazad-dum.debian.net>
+References: <8ccf2e9c0808181554o930f235maa79bdb365cd808d@mail.gmail.com> <87bpzp231z.fsf@basil.nowhere.org> <8ccf2e9c0808201705v7d4edc81kde5b6b8e7090e335@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.174]:26048 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756049AbYHUOmL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Aug 2008 10:42:11 -0400
-Received: by ug-out-1314.google.com with SMTP id c2so9124ugf.37
-        for <linux-acpi@vger.kernel.org>; Thu, 21 Aug 2008 07:42:09 -0700 (PDT)
-In-Reply-To: <48AD73E9.9090904@suse.de>
+Received: from out3.smtp.messagingengine.com ([66.111.4.27]:47584 "EHLO
+	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1760231AbYHUPHj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Aug 2008 11:07:39 -0400
+Content-Disposition: inline
+In-Reply-To: <8ccf2e9c0808201705v7d4edc81kde5b6b8e7090e335@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: akpm@linux-foundation.org, andi@firstfloor.org, linux-acpi@vger.kernel.org, hmh@hmh.eng.br, maxi@daemonizer.de, stable@kernel.org
+To: Vedran Rodic <vrodic@gmail.com>
+Cc: Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org
 
-Alexey Starikovskiy wrote:
-> Alan Jenkins wrote:
->> Alexey Starikovskiy wrote:
->>> Hi Andrew,
->>>
->>> As I understand, this patch is wrong according to comment #65 in bug
->>> #9998.
->>>
->>> Regards,
->>> Alex.
->>
->> That's more likely to have been a problem with my other patches, ripping
->> out the QUERY_PENDING flag and GPE polling, with (what were to Alex)
->> predictably bad results.
-> Hi Alan,
-> I checked QUERY_PENDING removal, and it makes system with broken EC
-> unusable, so you might stop considering it as an option.
->
-In hindsight, the bad results were predictable to me also.  I don't
-advocate that any more.
+On Thu, 21 Aug 2008, Vedran Rodic wrote:
+> Yeah, or they might not be wrong and my eyes could be :( It turns out
+> that Windows can get the LCD brightness down more than thinkpad-acpi,
+> or whatever is turning down the brightnes when I press the Fn-End
+> combination (both in X and in the console - I guess it's the BIOS).
 
->>
->> You're right this patch needs testing on it's own.  But the current code
->> is definitely wrong.
->>
->> If the "GPE polling" workaround is triggered, and there is a series of
->> events > one every 0.5s, the EC buffer can overflow.  All it needs is an
->> ACPI hotkey with fast enough autorepeat.  And I bet it's not just my EC
->> that breaks horribly when that happens.
-> Right now I am going to remove automatic switch to poll mode, so user
-> could
-> choose, which EC mode is more tolerable.
+Intel embedded graphics?  You will need something that is not in the kernel
+yet, but it is in the works (IGD ioregion support).
 
-Sounds sensible.  Hopefully we're right that most systems with these
-broken EC's don't want the workaround.  I assume you will still notify
-the user automatically, something like "acpi: ec: GPE storm detected,
-try booting with ec=poll".
+ThinkPad-acpi really can't to much more than what it is doing already,
+AFAIK.
 
-Thanks
-Alan
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
