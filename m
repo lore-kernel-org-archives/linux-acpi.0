@@ -1,37 +1,46 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: Thinkpad X60s power usage on battery - Windows/Linux comparison
-Date: Thu, 21 Aug 2008 12:07:34 -0300
-Message-ID: <20080821150734.GF11198@khazad-dum.debian.net>
-References: <8ccf2e9c0808181554o930f235maa79bdb365cd808d@mail.gmail.com> <87bpzp231z.fsf@basil.nowhere.org> <8ccf2e9c0808201705v7d4edc81kde5b6b8e7090e335@mail.gmail.com>
+From: "Oafkpw" <szfan009@gmail.com>
+Subject: Products updated info weekly
+Date: Thu, 21 Aug 2008 23:12:07 +0800
+Message-ID: <48ad85d0.02066e0a.0afe.1348@mx.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="GB2312"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out3.smtp.messagingengine.com ([66.111.4.27]:47584 "EHLO
-	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760231AbYHUPHj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 Aug 2008 11:07:39 -0400
-Content-Disposition: inline
-In-Reply-To: <8ccf2e9c0808201705v7d4edc81kde5b6b8e7090e335@mail.gmail.com>
+Received: from ag-out-0708.google.com ([72.14.246.250]:55056 "EHLO
+	ag-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754063AbYHUPMT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Aug 2008 11:12:19 -0400
+Received: by ag-out-0708.google.com with SMTP id 31so87752agc.10
+        for <linux-acpi@vger.kernel.org>; Thu, 21 Aug 2008 08:12:18 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Vedran Rodic <vrodic@gmail.com>
-Cc: Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Thu, 21 Aug 2008, Vedran Rodic wrote:
-> Yeah, or they might not be wrong and my eyes could be :( It turns out
-> that Windows can get the LCD brightness down more than thinkpad-acpi,
-> or whatever is turning down the brightnes when I press the Fn-End
-> combination (both in X and in the console - I guess it's the BIOS).
-
-Intel embedded graphics?  You will need something that is not in the kernel
-yet, but it is in the works (IGD ioregion support).
-
-ThinkPad-acpi really can't to much more than what it is doing already,
-AFAIK.
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+NjAzMCBJUFBIT05FIHNvbWUgaW50cm9kdWN0aW9uIA0KDQoxIFN1cHBvcnQgU0lQIHRyYW5zcG9y
+dCB2aWEgVENQIGFuZCBVRFANCjIgIFN1cHBvcnQgQ2FsbCBwaWNrIHVwIGFuZCBqb2luIGNhbGwg
+LGNsaWNrIHRvIGRpYWwgKCBSZWZlcmVuY2UgdG8gdGVjaC1pbnZpdGUpDQozIFN1cHBvcnQgVnBv
+cnQgLHNpbWlsYXIgbWluaSBwYnggZnVuY3Rpb24gLg0KNCBSZWFsaXplIGNvbmZlcmVuY2UgL3Ry
+YW5zZmVyIC9jYWxsIGZvcndhcmQgYmV0d2VlbiBkaWZmZXJlbnQgc2lwIGxpbmUNCjUgU3VwcG9y
+dCByZWRpYWwgYW5kIHVucmVkaWFsIEV4YW1wbGU6IEEgY2FsbHRvICBCICAsIElmIEIgbGluZSBh
+cmUgYnVzeSx0aGVuIEEgcHV0IGRvd24gICxBIHdpbGwgc3Vic2NyaWJlIEIgIHN0YXR1cyBieSBl
+YWNoICAgNjAgc2Vjb25kcyxhbmQgQSB3aWxsIHJpbmcgdG8gcmVtaW5kIHdoZW4gQiBjYW4gYmUg
+Y2FsbGVkICAuU28gQSBwaWNrIHVwIHBob25lIGFuZCBhdXRvbWF0aWNhbGx5IGNhbGwgQiAuDQoN
+Cg0KSVBQaG9uZSBGVjYwMjAgDQoNCjEgU3VwcG9ydCAyU0lQIGFuZCBJQVgyIKGhICgoKCBDYW4g
+b3BlbiBmaXJtd2FyZSBhY2NvcmRpbmcgdG8geW91ciBWb0lQIHN5c3RlbSApKSkNCjIgV29ybGQg
+d2lkZSBjb21wYXRpYmlsaXR5ICgoKCBDb21wYXRpYmxlIHdpdGggdmFyaW91cyBzb2Z0c3dpdGNo
+IHN5c3RlbSBhbmQgb3RoZXIgYnJhbmQgQ1BFKSkpDQozIEV4ZWxsZW50IHZvaWNlIHF1YWxpdHkg
+KCgoRXhjZWxlbnQgaW4gdm9pY2UgY2FuY2VsbGF0aW9uLCBTcGVha2VyIG1vZGUuKQ0KNCBTdXBw
+b3J0IGJyaWRnZSBhbmQgcm91dGVyIKGhKCgoIGRhdGEgYW5kIHZvaWNlIHZsYW4gaW4gYnJpZGdl
+ICwgbWFuYWdlIGRhdGEgaW4gcm91dGVyICkpKQ0KNSBMZXQgbWUgdGVzdCB5b3VyIHJlcXVpcmVt
+ZW50IGl0ZW0goaEoKChEaWZmZXJlbnQgU0lQIHNlcnZlciBtYXkgaGF2ZSBkaWZmZXJlbnQgcmVx
+dWlyZW1lbnQpKSkNCjahoVRhbGsgTVNOIG9ubGluZSBsdWRhbm1pZ2FpQGhvdG1haWwuY29tDQoN
+CioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKg0KDQpDb250YWN0
+IDogRGF2aWQgSHVhbmcgDQoNClRlbDogKzg2LTE1OTE0MTA2NTc1IA0KDQpGYXg6ICs4Ni03NTUt
+MjY1MDU4NTgNCg0Kd2Vic2l0ZSA6IHd3dy5mYW52aWwuY29tDQoNCkVtYWlsOiBhMTU5MTQxMDY1
+NzVAZ21haWwuY29tIA0KDQpFbWFpbCA6IGRhdmlkLmh1YW5nQGZhbnZpbC5jb20NCg0KQ2xpY2sg
+Zm9yIHF1aWNrIHNlcnZpY2Ugb25saW5lIA0KDQpNU046IGx1ZGFubWlnYWlAaG90bWFpbC5jb20N
+Cg0KU2t5cGU6IGFiYzMzMzQ1OTA1IA0KDQpRUTogODE4Njc1NTQNCioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKg0KMw0K
