@@ -1,46 +1,81 @@
-From: "Oafkpw" <szfan009@gmail.com>
-Subject: Products updated info weekly
-Date: Thu, 21 Aug 2008 23:12:07 +0800
-Message-ID: <48ad85d0.02066e0a.0afe.1348@mx.google.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH 1/3] Introduce interface to report BIOS bugs
+Date: Thu, 21 Aug 2008 09:19:07 -0600
+Message-ID: <200808210919.07642.bjorn.helgaas@hp.com>
+References: <1219251726-24746-1-git-send-email-trenn@suse.de> <200808201237.43338.bjorn.helgaas@hp.com> <200808211552.06054.trenn@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="GB2312"
-Content-Transfer-Encoding: base64
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ag-out-0708.google.com ([72.14.246.250]:55056 "EHLO
-	ag-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754063AbYHUPMT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Aug 2008 11:12:19 -0400
-Received: by ag-out-0708.google.com with SMTP id 31so87752agc.10
-        for <linux-acpi@vger.kernel.org>; Thu, 21 Aug 2008 08:12:18 -0700 (PDT)
+Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:23771 "EHLO
+	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760476AbYHUPTL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Aug 2008 11:19:11 -0400
+In-Reply-To: <200808211552.06054.trenn@suse.de>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: linux-kernel@vger.kernel.org, ak@linux.intel.com, len.brown@intel.com, arjan@linux.intel.com, linux-acpi@vger.kernel.org, Christian Kornacker <ckornacker@suse.de>
 
-NjAzMCBJUFBIT05FIHNvbWUgaW50cm9kdWN0aW9uIA0KDQoxIFN1cHBvcnQgU0lQIHRyYW5zcG9y
-dCB2aWEgVENQIGFuZCBVRFANCjIgIFN1cHBvcnQgQ2FsbCBwaWNrIHVwIGFuZCBqb2luIGNhbGwg
-LGNsaWNrIHRvIGRpYWwgKCBSZWZlcmVuY2UgdG8gdGVjaC1pbnZpdGUpDQozIFN1cHBvcnQgVnBv
-cnQgLHNpbWlsYXIgbWluaSBwYnggZnVuY3Rpb24gLg0KNCBSZWFsaXplIGNvbmZlcmVuY2UgL3Ry
-YW5zZmVyIC9jYWxsIGZvcndhcmQgYmV0d2VlbiBkaWZmZXJlbnQgc2lwIGxpbmUNCjUgU3VwcG9y
-dCByZWRpYWwgYW5kIHVucmVkaWFsIEV4YW1wbGU6IEEgY2FsbHRvICBCICAsIElmIEIgbGluZSBh
-cmUgYnVzeSx0aGVuIEEgcHV0IGRvd24gICxBIHdpbGwgc3Vic2NyaWJlIEIgIHN0YXR1cyBieSBl
-YWNoICAgNjAgc2Vjb25kcyxhbmQgQSB3aWxsIHJpbmcgdG8gcmVtaW5kIHdoZW4gQiBjYW4gYmUg
-Y2FsbGVkICAuU28gQSBwaWNrIHVwIHBob25lIGFuZCBhdXRvbWF0aWNhbGx5IGNhbGwgQiAuDQoN
-Cg0KSVBQaG9uZSBGVjYwMjAgDQoNCjEgU3VwcG9ydCAyU0lQIGFuZCBJQVgyIKGhICgoKCBDYW4g
-b3BlbiBmaXJtd2FyZSBhY2NvcmRpbmcgdG8geW91ciBWb0lQIHN5c3RlbSApKSkNCjIgV29ybGQg
-d2lkZSBjb21wYXRpYmlsaXR5ICgoKCBDb21wYXRpYmxlIHdpdGggdmFyaW91cyBzb2Z0c3dpdGNo
-IHN5c3RlbSBhbmQgb3RoZXIgYnJhbmQgQ1BFKSkpDQozIEV4ZWxsZW50IHZvaWNlIHF1YWxpdHkg
-KCgoRXhjZWxlbnQgaW4gdm9pY2UgY2FuY2VsbGF0aW9uLCBTcGVha2VyIG1vZGUuKQ0KNCBTdXBw
-b3J0IGJyaWRnZSBhbmQgcm91dGVyIKGhKCgoIGRhdGEgYW5kIHZvaWNlIHZsYW4gaW4gYnJpZGdl
-ICwgbWFuYWdlIGRhdGEgaW4gcm91dGVyICkpKQ0KNSBMZXQgbWUgdGVzdCB5b3VyIHJlcXVpcmVt
-ZW50IGl0ZW0goaEoKChEaWZmZXJlbnQgU0lQIHNlcnZlciBtYXkgaGF2ZSBkaWZmZXJlbnQgcmVx
-dWlyZW1lbnQpKSkNCjahoVRhbGsgTVNOIG9ubGluZSBsdWRhbm1pZ2FpQGhvdG1haWwuY29tDQoN
-CioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKg0KDQpDb250YWN0
-IDogRGF2aWQgSHVhbmcgDQoNClRlbDogKzg2LTE1OTE0MTA2NTc1IA0KDQpGYXg6ICs4Ni03NTUt
-MjY1MDU4NTgNCg0Kd2Vic2l0ZSA6IHd3dy5mYW52aWwuY29tDQoNCkVtYWlsOiBhMTU5MTQxMDY1
-NzVAZ21haWwuY29tIA0KDQpFbWFpbCA6IGRhdmlkLmh1YW5nQGZhbnZpbC5jb20NCg0KQ2xpY2sg
-Zm9yIHF1aWNrIHNlcnZpY2Ugb25saW5lIA0KDQpNU046IGx1ZGFubWlnYWlAaG90bWFpbC5jb20N
-Cg0KU2t5cGU6IGFiYzMzMzQ1OTA1IA0KDQpRUTogODE4Njc1NTQNCioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKg0KMw0K
+On Thursday 21 August 2008 07:52:04 am Thomas Renninger wrote:
+> On Wednesday 20 August 2008 20:37:42 Bjorn Helgaas wrote:
+
+> > Maybe even something as simple as:
+> >
+> >     #define FW_BUG	"[FW bug]: "
+> >
+> > would be sufficient, with the idea that people could do this:
+> >
+> >     dev_err(&dev->dev, FW_BUG "interrupts left enabled\n");
+> >
+> > I think the user-space value derives from having a consistent string
+> > to grep for, so this gives you that.  I'm not sure what value we get
+> > from adding the new FW_PRINT_CRIT()/FW_PRINT_WARN() interfaces in the
+> > kernel.
+> 
+> What about this one:
+> pr_fw_err() or dev_fw_err() on harmful firmware bugs
+> and
+> pr_fw_info() on non-harmful but ugly BIOS constructs
+> which should not exist, violate the spec or could make
+> trouble in the future (maybe Firmware is really better...):
+> 
+> diff --git a/include/linux/device.h b/include/linux/device.h
+> index d24a47f..3204cea 100644
+> --- a/include/linux/device.h
+> +++ b/include/linux/device.h
+> @@ -538,6 +538,9 @@ extern const char *dev_driver_string(struct device *dev);
+>  #define dev_info(dev, format, arg...)		\
+>  	dev_printk(KERN_INFO , dev , format , ## arg)
+>  
+> +#define dev_fw_err(dev, format, arg...)		\
+> +	dev_printk(KERN_ERR "[BIOS Bug] ", dev , format , ## arg)
+> +
+>  #ifdef DEBUG
+>  #define dev_dbg(dev, format, arg...)		\
+>  	dev_printk(KERN_DEBUG , dev , format , ## arg)
+> diff --git a/include/linux/kernel.h b/include/linux/kernel.h
+> index 2651f80..b20f618 100644
+> --- a/include/linux/kernel.h
+> +++ b/include/linux/kernel.h
+> @@ -303,6 +303,12 @@ static inline char *pack_hex_byte(char *buf, u8 byte)
+>  #define pr_info(fmt, arg...) \
+>  	printk(KERN_INFO fmt, ##arg)
+>  
+> +#define pr_fw_err(fmt, arg...) \
+> +	printk(KERN_ERR "[BIOS Bug]" fmt, ##arg)
+> +
+> +#define pr_fw_info(fmt, arg...) \
+> +	printk(KERN_INFO "[BIOS]" fmt, ##arg)
+> +
+>  #ifdef DEBUG
+>  /* If you are writing a driver, please use dev_dbg instead */
+>  #define pr_debug(fmt, arg...) \
+
+What value do we gain by defining dev_fw_err(), pr_fw_err(), and
+pr_fw_info(), versus just defining FW_BUG?  If they're useful
+for something, fine; it's just that I don't know yet what they add.
+
+Bjorn
