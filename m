@@ -1,44 +1,64 @@
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Subject: Re: [patch 2/2] acpi: Avoid dropping rapid hotkey events (or other
- GPEs) on Asus EeePC
-Date: Fri, 22 Aug 2008 11:50:11 +0100
-Message-ID: <48AE99E3.7090702@tuffmail.co.uk>
-References: <200808202341.m7KNflv7005413@imap1.linux-foundation.org> <48AD5BBB.2050701@suse.de> <48AD6F14.9080700@tuffmail.co.uk> <48AD73E9.9090904@suse.de> <48AD7EBD.9030507@tuffmail.co.uk> <48AD9160.90005@suse.de>
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: [PATCH] [REPOST] Add Panasonic Laptop ACPI extras driver
+Date: Fri, 22 Aug 2008 18:58:20 +0800
+Message-ID: <20080822105820.GC27101@prithivi.gnumonks.org>
+References: <20080822030044.GT27587@prithivi.gnumonks.org> <48AE7FDE.3060907@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="SUOF0GtieIMvvwua"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wr-out-0506.google.com ([64.233.184.235]:46396 "EHLO
-	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754121AbYHVKuS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Aug 2008 06:50:18 -0400
-Received: by wr-out-0506.google.com with SMTP id 69so339554wri.5
-        for <linux-acpi@vger.kernel.org>; Fri, 22 Aug 2008 03:50:17 -0700 (PDT)
-In-Reply-To: <48AD9160.90005@suse.de>
+Received: from ganesha.gnumonks.org ([213.95.27.120]:47273 "EHLO
+	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753248AbYHVLAK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Aug 2008 07:00:10 -0400
+Content-Disposition: inline
+In-Reply-To: <48AE7FDE.3060907@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: akpm@linux-foundation.org, andi@firstfloor.org, linux-acpi@vger.kernel.org, hmh@hmh.eng.br, maxi@daemonizer.de, stable@kernel.org
+To: Andi Kleen <ak@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-Alexey Starikovskiy wrote:
-> Here is the patch.
+
+--SUOF0GtieIMvvwua
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi Andi,
+
+On Fri, Aug 22, 2008 at 10:59:10AM +0200, Andi Kleen wrote:
+> Harald Welte wrote:
+>> [PATCH] Add Panasonic Laptop ACPI extras driver
 >
-> Please try/review.
->
-Sorry, I can't help with testing this any more.  The "bad state" I
-complained about earlier seems to be permanent now.
+> The driver has long been merged and is in linux-next. No need to repost.
 
-I left the laptop with AC and battery disconnected last night.  This
-morning both 2.6.22 and 2.6.24-19-generic (ubuntu) are locking up or
-rebooting as soon as I press a hotkey.  The patch resets the default
-behaviour back to 2.6.24, so it won't make any difference.
+oh, sorry for my ignorance.  I just never got any confirmation and didn't s=
+ee
+it in linux-2.6.git.  Probably I should start adding linux-next to my workf=
+low.
 
-None of these kernels should have the GPE polling problem.  There are
-many people using Ubuntu on the EeePC without complaint; I must have
-damaged the hardware or firmware.
+sorry once again for bothering you.
 
-OTOH 2.6.21.4-eeepc (the pre-installed kernel from Xandros/Asus) is
-immune.  I will work on it, but don't expect anything soon.
+--=20
+- Harald Welte <laforge@gnumonks.org>           http://laforge.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+"Privacy in residential applications is a desirable marketing option."
+                                                  (ETSI EN 300 175-7 Ch. A6)
 
-Thanks for your help
-Alan
+--SUOF0GtieIMvvwua
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iD8DBQFIrpvMXaXGVTD0i/8RAskMAKCYKHWzpr48mkWkIikOvwY9zlh6PQCePzYg
+aiicaIotyIsMUQDIu59sfiA=
+=vGtt
+-----END PGP SIGNATURE-----
+
+--SUOF0GtieIMvvwua--
