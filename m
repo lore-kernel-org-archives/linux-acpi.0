@@ -1,81 +1,103 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch] PNPACPI: ignore the producer/consumer bit for extended IRQ descriptors
-Date: Fri, 22 Aug 2008 09:47:17 -0600
-Message-ID: <200808220947.18253.bjorn.helgaas@hp.com>
+From: Dominik Brodowski <linux@dominikbrodowski.net>
+Subject: [PATCH v2 1/2] acpi_pm.c: use proper read function also in errata mode
+Date: Sat, 23 Aug 2008 00:22:33 +0200
+Message-ID: <20080822222233.GA547@isilmar.linta.de>
+References: <20080810190759.GA1879@rhlx01.hs-esslingen.de> <20080818190325.GA12581@comet.dominikbrodowski.net> <20080818121924.6b61f7af.akpm@linux-foundation.org> <20080818193517.GA22097@isilmar.linta.de> <20080818124755.162f24d1.akpm@linux-foundation.org> <20080818200916.GA18209@comet.dominikbrodowski.net> <20080818201033.GB18209@comet.dominikbrodowski.net> <20080819024334.2f3e69fa.akpm@linux-foundation.org> <20080819094938.GA21126@isilmar.linta.de> <20080819025915.c34951b6.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0026.austin.hp.com ([15.216.28.33]:24640 "EHLO
-	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752106AbYHVPrV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Aug 2008 11:47:21 -0400
+Received: from isilmar.linta.de ([213.133.102.198]:35024 "EHLO linta.de"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754492AbYHVWWg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 22 Aug 2008 18:22:36 -0400
 Content-Disposition: inline
+In-Reply-To: <20080819025915.c34951b6.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>
-Cc: Adam M Belay <abelay@mit.edu>, Matthieu CASTET <matthieu.castet@parrot.com>, Li Shaohua <shaohua.li@intel.com>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andreas Mohr <andi@lisas.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, johnstul@us.ibm.com, hirofumi@mail.parknet.co.jp, alan@lxorguk.ukuu.org.uk, arjan@infradead.org
 
-The Extended Interrupt descriptor has a producer/consumer bit, but
-it's not clear what that would mean, and existing BIOSes use the bit
-inconsistently.  This patch makes Linux PNPACPI ignore the bit.
+next try...
 
-The ACPI spec contains examples of PCI Interrupt Link devices marked
-as ResourceProducers, but many BIOSes mark them as ResourceConsumers.
 
-I also checked with a Windows contact, who said:
+From: Dominik Brodowski <linux@dominikbrodowski.net>
+Date: Fri, 22 Aug 2008 23:49:21 +0200
+Subject: [PATCH 1/2] acpi_pm.c: use proper read function also in errata mode.
 
-    Windows uses only "resource consumer" when dealing with
-    interrupts.  There's no useful way of looking at a resource
-    producer of interrupts.
+On all hardware (some Intel ICH4, PIIX4 and PIIX4E chipsets) affected by a
+hardware errata there's about a 4.2% chance that initialization of the ACPI
+PMTMR fails. On those chipsets, we need to read out the timer value at least
+three times to get a correct result, for every once in a while (i.e. within
+a 3 ns window every 69.8 ns) the read returns a bogus result. During normal
+operation we work around this issue, but during initialization reading a
+bogus value may lead to -EINVAL even though the hardware is usable.
 
-    ... NT-based Windows largely infers the producer/consumer stuff
-    from the device type and ignores the bits in the namespace.  This
-    was necessary because Windows 98 ignored them and early namespaces
-    contained random junk.
+Thanks to Andreas Mohr for spotting this issue.
 
-The reason I want to change this is because if PNPACPI devices exclude
-ResourceProducer IRQ resources, we can't write PNP drivers for those
-devices.
-
-For example, on machines such as the the HP rx7620, rx7640, rx8620,
-rx8640, and Superdome, HPET interrupts are ResourceProducers.  The
-HPET driver currently has to use acpi_bus_register_driver() and do its
-own _CRS parsing, even though it requires absolutely no ACPI-specific
-functionality.
-
-It would be better if the HPET driver were a PNP driver and took
-advantage of the _CRS parsing built into PNPACPI.
-
-This producer/consumer check was originally added here:
-    http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=2b8de5f50e4a302b83ebcd5b0120621336d50bd6
-
-to fix this bug:
-    http://bugzilla.kernel.org/show_bug.cgi?id=6292
-
-However, the bug was related only to memory and I/O port resources,
-where the distinction is sensible and important to Linux.  Given that
-the distinction is muddled for IRQ resources, I think it was a mistake
-to add the check there.
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+CC: John Stultz <johnstul@us.ibm.com>
+CC: Thomas Gleixner <tglx@linutronix.de>
+CC: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Dominik Brodowski <linux@dominikbrodowski.net>
 ---
+ drivers/clocksource/acpi_pm.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
 
- drivers/pnp/pnpacpi/rsparser.c |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
-
-
-diff --git a/drivers/pnp/pnpacpi/rsparser.c b/drivers/pnp/pnpacpi/rsparser.c
-index 85baf16..adf1785 100644
---- a/drivers/pnp/pnpacpi/rsparser.c
-+++ b/drivers/pnp/pnpacpi/rsparser.c
-@@ -406,8 +406,6 @@ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
+diff --git a/drivers/clocksource/acpi_pm.c b/drivers/clocksource/acpi_pm.c
+index 5ca1d80..860d033 100644
+--- a/drivers/clocksource/acpi_pm.c
++++ b/drivers/clocksource/acpi_pm.c
+@@ -151,13 +151,13 @@ DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_SERVERWORKS, PCI_DEVICE_ID_SERVERWORKS_LE,
+  */
+ static int verify_pmtmr_rate(void)
+ {
+-	u32 value1, value2;
++	cycle_t value1, value2;
+ 	unsigned long count, delta;
  
- 	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
- 		extended_irq = &res->data.extended_irq;
--		if (extended_irq->producer_consumer == ACPI_PRODUCER)
--			return AE_OK;
+ 	mach_prepare_counter();
+-	value1 = read_pmtmr();
++	value1 = clocksource_acpi_pm.read();
+ 	mach_countup(&count);
+-	value2 = read_pmtmr();
++	value2 = clocksource_acpi_pm.read();
+ 	delta = (value2 - value1) & ACPI_PM_MASK;
  
- 		if (extended_irq->interrupt_count == 0)
- 			pnp_add_irq_resource(dev, 0, IORESOURCE_DISABLED);
+ 	/* Check that the PMTMR delta is within 5% of what we expect */
+@@ -177,7 +177,7 @@ static int verify_pmtmr_rate(void)
+ 
+ static int __init init_acpi_pm_clocksource(void)
+ {
+-	u32 value1, value2;
++	cycle_t value1, value2;
+ 	unsigned int i;
+ 
+ 	if (!pmtmr_ioport)
+@@ -187,9 +187,9 @@ static int __init init_acpi_pm_clocksource(void)
+ 						clocksource_acpi_pm.shift);
+ 
+ 	/* "verify" this timing source: */
+-	value1 = read_pmtmr();
++	value1 = clocksource_acpi_pm.read();
+ 	for (i = 0; i < 10000; i++) {
+-		value2 = read_pmtmr();
++		value2 = clocksource_acpi_pm.read();
+ 		if (value2 == value1)
+ 			continue;
+ 		if (value2 > value1)
+@@ -197,11 +197,11 @@ static int __init init_acpi_pm_clocksource(void)
+ 		if ((value2 < value1) && ((value2) < 0xFFF))
+ 			goto pm_good;
+ 		printk(KERN_INFO "PM-Timer had inconsistent results:"
+-			" 0x%#x, 0x%#x - aborting.\n", value1, value2);
++			" 0x%#llx, 0x%#llx - aborting.\n", value1, value2);
+ 		return -EINVAL;
+ 	}
+ 	printk(KERN_INFO "PM-Timer had no reasonable result:"
+-			" 0x%#x - aborting.\n", value1);
++			" 0x%#llx - aborting.\n", value1);
+ 	return -ENODEV;
+ 
+ pm_good:
+-- 
+1.5.2.5
+
