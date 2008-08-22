@@ -1,64 +1,51 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [PATCH] [REPOST] Add Panasonic Laptop ACPI extras driver
-Date: Fri, 22 Aug 2008 18:58:20 +0800
-Message-ID: <20080822105820.GC27101@prithivi.gnumonks.org>
-References: <20080822030044.GT27587@prithivi.gnumonks.org> <48AE7FDE.3060907@linux.intel.com>
+From: "Mr.William  Juwais" <williamjuwais90@jmail.co.za>
+Subject: FROM  MR.WILLIAM  JUWAIS
+Date: Fri, 22 Aug 2008 12:59:12 +0200
+Message-ID: <20080822125912.15416ap5dwf0gbwo@webmail-html.freesurf.fr>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="SUOF0GtieIMvvwua"
+Content-Type: text/plain;
+	charset=ISO-8859-1;
+	DelSp="Yes";
+	format="flowed"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:47273 "EHLO
-	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753248AbYHVLAK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Aug 2008 07:00:10 -0400
+Received: from orne.fr.clara.net ([212.43.206.200]:49803 "EHLO
+	smtp-defer.fr.clara.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751004AbYHVLN6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Aug 2008 07:13:58 -0400
+Received: from smtp-out.freesurf.fr (messidor.freesurf.fr [212.43.206.29])
+	by smtp-defer.fr.clara.net (Postfix) with ESMTP id 82EA02D0B3E
+	for <linux-acpi@vger.kernel.org>; Fri, 22 Aug 2008 13:09:32 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <48AE7FDE.3060907@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <ak@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org
 
 
---SUOF0GtieIMvvwua
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-Hi Andi,
+Respected Sir,
 
-On Fri, Aug 22, 2008 at 10:59:10AM +0200, Andi Kleen wrote:
-> Harald Welte wrote:
->> [PATCH] Add Panasonic Laptop ACPI extras driver
->
-> The driver has long been merged and is in linux-next. No need to repost.
+With all due respect,My name is William Juwais, an accountant with a  
+Government owned Gold Refinery Company here in South Africa. I wish  
+you to help me lay claims to balance funds derived from a contract  
+executed to our company by one of our contractors. The total contract  
+sum was US$158,109,000 and US$140,000,000 has already been paid.  
+Leaving a balance of US$18,109,000.
 
-oh, sorry for my ignorance.  I just never got any confirmation and didn't s=
-ee
-it in linux-2.6.git.  Probably I should start adding linux-next to my workf=
-low.
+It is my intention to form a company with you when the funds are  
+paid.My area of interest is Real Estate or any other investment of  
+your great idea, I also desire absolute confidentiality and  
+professionalism in this transaction. For more information, write to me  
+via (williamjuwais90@jmail.co.za) with the following:
 
-sorry once again for bothering you.
+(1) FULL NAMES:
+(2) DIRECT TELEPHONE NO:
+(3) HOME OR OFFICE ADDRESS
+(4) AGE AND OCCUPATION:
 
---=20
-- Harald Welte <laforge@gnumonks.org>           http://laforge.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-"Privacy in residential applications is a desirable marketing option."
-                                                  (ETSI EN 300 175-7 Ch. A6)
+I wait to hear from you soonest.
 
---SUOF0GtieIMvvwua
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+Best Regard,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
+Mr.William Juwais.
 
-iD8DBQFIrpvMXaXGVTD0i/8RAskMAKCYKHWzpr48mkWkIikOvwY9zlh6PQCePzYg
-aiicaIotyIsMUQDIu59sfiA=
-=vGtt
------END PGP SIGNATURE-----
 
---SUOF0GtieIMvvwua--
