@@ -1,26 +1,44 @@
-From: Pavel Machek <pavel@suse.cz>
-Subject: Re: [PATCH 2/3] Powernow-k8: Make use of firmware bug report interface
-Date: Fri, 22 Aug 2008 12:19:47 +0200
-Message-ID: <20080822101947.GI6542@atrey.karlin.mff.cuni.cz>
-References: <1219251726-24746-1-git-send-email-trenn@suse.de> <1219251726-24746-3-git-send-email-trenn@suse.de>
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Subject: Re: [patch 2/2] acpi: Avoid dropping rapid hotkey events (or other
+ GPEs) on Asus EeePC
+Date: Fri, 22 Aug 2008 11:50:11 +0100
+Message-ID: <48AE99E3.7090702@tuffmail.co.uk>
+References: <200808202341.m7KNflv7005413@imap1.linux-foundation.org> <48AD5BBB.2050701@suse.de> <48AD6F14.9080700@tuffmail.co.uk> <48AD73E9.9090904@suse.de> <48AD7EBD.9030507@tuffmail.co.uk> <48AD9160.90005@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:43110 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752878AbYHVKTs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Aug 2008 06:19:48 -0400
-Content-Disposition: inline
-In-Reply-To: <1219251726-24746-3-git-send-email-trenn@suse.de>
+Received: from wr-out-0506.google.com ([64.233.184.235]:46396 "EHLO
+	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754121AbYHVKuS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Aug 2008 06:50:18 -0400
+Received: by wr-out-0506.google.com with SMTP id 69so339554wri.5
+        for <linux-acpi@vger.kernel.org>; Fri, 22 Aug 2008 03:50:17 -0700 (PDT)
+In-Reply-To: <48AD9160.90005@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: linux-kernel@vger.kernel.org, ak@linux.intel.com, len.brown@intel.com, arjan@linux.intel.com, bjorn.helgaas@hp.com, linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: akpm@linux-foundation.org, andi@firstfloor.org, linux-acpi@vger.kernel.org, hmh@hmh.eng.br, maxi@daemonizer.de, stable@kernel.org
 
-> Signed-off-by: Thomas Renninger <trenn@suse.de>
+Alexey Starikovskiy wrote:
+> Here is the patch.
+>
+> Please try/review.
+>
+Sorry, I can't help with testing this any more.  The "bad state" I
+complained about earlier seems to be permanent now.
 
-ACK.
+I left the laptop with AC and battery disconnected last night.  This
+morning both 2.6.22 and 2.6.24-19-generic (ubuntu) are locking up or
+rebooting as soon as I press a hotkey.  The patch resets the default
+behaviour back to 2.6.24, so it won't make any difference.
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+None of these kernels should have the GPE polling problem.  There are
+many people using Ubuntu on the EeePC without complaint; I must have
+damaged the hardware or firmware.
+
+OTOH 2.6.21.4-eeepc (the pre-installed kernel from Xandros/Asus) is
+immune.  I will work on it, but don't expect anything soon.
+
+Thanks for your help
+Alan
