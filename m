@@ -1,73 +1,53 @@
-From: "=?ISO-8859-1?Q?Jochen_Vo=DF?=" <jochen.voss@googlemail.com>
-Subject: Re: [PATCH v2 2/2] acpi_pm.c: check for monotonicity
-Date: Sat, 23 Aug 2008 09:48:08 +0100
-Message-ID: <ef1cd66f0808230148u317eb063xac80a319414c9f33@mail.gmail.com>
-References: <20080810190759.GA1879@rhlx01.hs-esslingen.de>
-	 <20080818121924.6b61f7af.akpm@linux-foundation.org>
-	 <20080818193517.GA22097@isilmar.linta.de>
-	 <20080818124755.162f24d1.akpm@linux-foundation.org>
-	 <20080818200916.GA18209@comet.dominikbrodowski.net>
-	 <20080818201033.GB18209@comet.dominikbrodowski.net>
-	 <20080819024334.2f3e69fa.akpm@linux-foundation.org>
-	 <20080819094938.GA21126@isilmar.linta.de>
-	 <20080819025915.c34951b6.akpm@linux-foundation.org>
-	 <20080822222604.GA704@isilmar.linta.de>
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Subject: Re: [patch 2/2] acpi: Avoid dropping rapid hotkey events (or other
+ GPEs) on Asus EeePC
+Date: Sat, 23 Aug 2008 12:31:35 +0100
+Message-ID: <48AFF517.90205@tuffmail.co.uk>
+References: <200808202341.m7KNflv7005413@imap1.linux-foundation.org> <48AD5BBB.2050701@suse.de> <48AD6F14.9080700@tuffmail.co.uk> <48AD73E9.9090904@suse.de> <48AD7EBD.9030507@tuffmail.co.uk> <48AD9160.90005@suse.de> <48AE99E3.7090702@tuffmail.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.175]:64633 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752066AbYHWIsJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 23 Aug 2008 04:48:09 -0400
-Received: by wf-out-1314.google.com with SMTP id 27so1054143wfd.4
-        for <linux-acpi@vger.kernel.org>; Sat, 23 Aug 2008 01:48:09 -0700 (PDT)
-In-Reply-To: <20080822222604.GA704@isilmar.linta.de>
-Content-Disposition: inline
+Received: from nf-out-0910.google.com ([64.233.182.185]:46186 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752585AbYHWLbl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 23 Aug 2008 07:31:41 -0400
+Received: by nf-out-0910.google.com with SMTP id d3so404836nfc.21
+        for <linux-acpi@vger.kernel.org>; Sat, 23 Aug 2008 04:31:39 -0700 (PDT)
+In-Reply-To: <48AE99E3.7090702@tuffmail.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dominik Brodowski <linux@dominikbrodowski.net>, Andrew Morton <akpm@linux-foundation.org>, Andreas Mohr <andi@lisas.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: akpm@linux-foundation.org, andi@firstfloor.org, linux-acpi@vger.kernel.org, hmh@hmh.eng.br, maxi@daemonizer.de, stable@kernel.org
 
-Hi,
+Alan Jenkins wrote:
+> Alexey Starikovskiy wrote:
+>   
+>> Here is the patch.
+>>
+>> Please try/review.
+>>
+>>     
+> Sorry, I can't help with testing this any more.  The "bad state" I
+> complained about earlier seems to be permanent now.
+>
+> I left the laptop with AC and battery disconnected last night.  This
+> morning both 2.6.22 and 2.6.24-19-generic (ubuntu) are locking up or
+> rebooting as soon as I press a hotkey.  The patch resets the default
+> behaviour back to 2.6.24, so it won't make any difference.
+>
+> None of these kernels should have the GPE polling problem.  There are
+> many people using Ubuntu on the EeePC without complaint; I must have
+> damaged the hardware or firmware.
+>
+> OTOH 2.6.21.4-eeepc (the pre-installed kernel from Xandros/Asus) is
+> immune.  I will work on it, but don't expect anything soon.
+>   
+I was able to bisect this to a config option, X86_UP_IOAPIC.  I can get
+rid of it on all kernels by just booting with noapic.
 
-some minor comments:
+I was then able to try your patch, which works fine.  I see the warning
+in the kernel log, but no hotkey keypresses are lost.
 
-2008/8/22 Dominik Brodowski <linux@dominikbrodowski.net>:
-> +       for (j = 0; j < ACPI_PM_MONOTONICITY_CHECKS; j++) {
-> +               value1 = clocksource_acpi_pm.read();
-> +               for (i = 0; i < 10000; i++) {
-> +                       value2 = clocksource_acpi_pm.read();
-> +                       if (value2 == value1)
-> +                               continue;
-> +                       if (value2 > value1)
-> +                               good++;
-> +                               break;
-> +                       if ((value2 < value1) && ((value2) < 0xFFF))
-The brackets arout value2 are not needed and look strange.
-
-> +                               good++;
-> +                               break;
-> +                       printk(KERN_INFO "PM-Timer had inconsistent results:"
-> +                              " 0x%#llx, 0x%#llx - aborting.\n",
-> +                              value1, value2);
-> +                       return -EINVAL;
-> +               }
-> +               udelay(300 * i);
-300*10000 microseconds seems like a long time to me.  Is this the
-intended maximal delay?
-
-> +       }
-> +
-> +       if (good != ACPI_PM_MONOTONICITY_CHECKS) {
-> +               printk(KERN_INFO "PM-Timer failed consistency check "
-> +                      " (0x%#llx) - aborting.\n", value1);
-> +               return -ENODEV;
-If the inner loop runs out once, you alreay know that you will later
-abort here.  Maybe move the check directly after the inner loop to
-avoid the additional delay (10*10000*300 microseconds = 30 seconds) in
-case of failure?
-
-I hope this helps,
-Jochen
--- 
-http://seehuhn.de/
+Thanks
+Alan
