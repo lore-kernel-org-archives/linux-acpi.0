@@ -1,53 +1,63 @@
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Subject: Re: [patch 2/2] acpi: Avoid dropping rapid hotkey events (or other
- GPEs) on Asus EeePC
-Date: Sat, 23 Aug 2008 12:31:35 +0100
-Message-ID: <48AFF517.90205@tuffmail.co.uk>
-References: <200808202341.m7KNflv7005413@imap1.linux-foundation.org> <48AD5BBB.2050701@suse.de> <48AD6F14.9080700@tuffmail.co.uk> <48AD73E9.9090904@suse.de> <48AD7EBD.9030507@tuffmail.co.uk> <48AD9160.90005@suse.de> <48AE99E3.7090702@tuffmail.co.uk>
+From: =?ISO-8859-2?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+Subject: LID switch and /dev/input/event*
+Date: Sat, 23 Aug 2008 23:43:55 +0200
+Message-ID: <48B0849B.7070800@freemail.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.185]:46186 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752585AbYHWLbl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 23 Aug 2008 07:31:41 -0400
-Received: by nf-out-0910.google.com with SMTP id d3so404836nfc.21
-        for <linux-acpi@vger.kernel.org>; Sat, 23 Aug 2008 04:31:39 -0700 (PDT)
-In-Reply-To: <48AE99E3.7090702@tuffmail.co.uk>
+Received: from mail02a.mail.t-online.hu ([84.2.40.7]:65015 "EHLO
+	mail02a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751980AbYHWVoX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 23 Aug 2008 17:44:23 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: akpm@linux-foundation.org, andi@firstfloor.org, linux-acpi@vger.kernel.org, hmh@hmh.eng.br, maxi@daemonizer.de, stable@kernel.org
+To: linux-acpi <linux-acpi@vger.kernel.org>, linux-input@vger.kernel.org
 
-Alan Jenkins wrote:
-> Alexey Starikovskiy wrote:
->   
->> Here is the patch.
->>
->> Please try/review.
->>
->>     
-> Sorry, I can't help with testing this any more.  The "bad state" I
-> complained about earlier seems to be permanent now.
->
-> I left the laptop with AC and battery disconnected last night.  This
-> morning both 2.6.22 and 2.6.24-19-generic (ubuntu) are locking up or
-> rebooting as soon as I press a hotkey.  The patch resets the default
-> behaviour back to 2.6.24, so it won't make any difference.
->
-> None of these kernels should have the GPE polling problem.  There are
-> many people using Ubuntu on the EeePC without complaint; I must have
-> damaged the hardware or firmware.
->
-> OTOH 2.6.21.4-eeepc (the pre-installed kernel from Xandros/Asus) is
-> immune.  I will work on it, but don't expect anything soon.
->   
-I was able to bisect this to a config option, X86_UP_IOAPIC.  I can get
-rid of it on all kernels by just booting with noapic.
+Hi,
 
-I was then able to try your patch, which works fine.  I see the warning
-in the kernel log, but no hotkey keypresses are lost.
+I am using Linux 2.6.27-rc4 on Clevo D410J laptop and the I can
+query the LID switch state like this:
 
-Thanks
-Alan
+# cat /proc/acpi/button/lid/LID/state
+state:      open
+# cat /proc/acpi/button/lid/LID/state
+state:      closed
+
+If I check the event4, I get no events when the LID switch is pushed:
+
+# evtest /dev/input/event4
+Input driver version is 1.0.0
+Input device ID: bus 0x19 vendor 0x0 product 0x5 version 0x0
+Input device name: "Lid Switch"
+Supported events:
+  Event type 0 (Sync)
+  Event type 5 (?)
+    Event code 0 (?)
+Testing ... (interrupt to exit)
+
+The events are only reported if I suspend to RAM with "s2ram -f -p -s".=
+ I did
+the following steps:
+
+1. Execute "s2ram -f -p -s". Now the system suspends to RAM.
+2. Push the LID switch and hold it down.
+3. Wake the system with the POWER button.
+4. After the system is up, release the LID switch to see the screen.
+5. "evtest" reports the following line:
+
+Event: time 1219526119.163805, type 5 (?), code 0 (?), value 1
+
+6. Execute "s2ram -f -p -s" again.
+7. Wake the system with the POWER button.
+8. "evtest" reports the following line:
+
+Event: time 1219526913.208803, type 5 (?), code 0 (?), value 0
+
+	M=E1rton N=E9meth
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
