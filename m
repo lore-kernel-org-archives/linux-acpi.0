@@ -1,73 +1,82 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: Re: Thermal zone names
-Date: Mon, 25 Aug 2008 00:06:08 +0200
-Message-ID: <200808250006.09106.trenn@suse.de>
-References: <20080820223423.37f31780@hyperion.delvare> <1219282580.3209.140.camel@rzhang-dt> <20080821174852.0689681d@hyperion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH 1/2] patch acpi_introduce_evaluate_string.patch
+Date: Mon, 25 Aug 2008 00:11:36 +0200
+Message-ID: <1219615897-21130-2-git-send-email-trenn@suse.de>
+References: <20080821174852.0689681d@hyperion.delvare>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:37913 "EHLO mx2.suse.de"
+Received: from mx2.suse.de ([195.135.220.15]:38099 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753126AbYHXWGr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 24 Aug 2008 18:06:47 -0400
+	id S1753072AbYHXWLi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 24 Aug 2008 18:11:38 -0400
 In-Reply-To: <20080821174852.0689681d@hyperion.delvare>
-Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org
+To: khali@linux-fr.org
+Cc: rui.zhang@intel.com, linux-acpi@vger.kernel.org, Thomas Renninger <trenn@suse.de>
 
-On Thursday 21 August 2008 05:48:52 pm Jean Delvare wrote:
-> Hi Rui,
->
-> On Thu, 21 Aug 2008 09:36:20 +0800, Zhang Rui wrote:
-> > On Thu, 2008-08-21 at 04:34 +0800, Jean Delvare wrote:
-> > > Hi Rui,
-> > >
-> > > The ACPI thermal zones in /proc/acpi/thermal_zone have a name. The
-> > > ACPI
-> > > thermal zones in /sys/class/thermal do not.
-> >
-> > First, the name used in procfs doesn't make sense.
-> > It just uses the arbitrary stings exported by BIOS. Some of them is
-> > meaningless, and even there may be duplicate names.
->
-> I thought that these names were unique identifiers for ACPI?
-Theoretically no: You can have the same device name in different scopes.
-e.g. XYZ.THERM and ZYX.THERM
-while THERM could always be a thermal device.
 
-In practice they must not be identical or we have duplicate names in:
-/proc/acpi/thermal_zone/*
-The only place where we really saw duplicate entries of the same device type
-was for video devices. But this showed the broken design of /proc/acpi which
-cannot happen for /sys/bus/acpi/devices/* anymore.
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+---
+ drivers/acpi/utils.c    |   11 +++++------
+ include/acpi/acpi_bus.h |    4 ++++
+ 2 files changed, 9 insertions(+), 6 deletions(-)
 
-But Zhang is right, the assumption in /proc/ that the names are always unique
-was wrong.
->
-> > The only benefit is that we can easily figure out which device in the
-> > ACPI namespace this interface is for.
-> >
-> > Second, /sys/class/thermal/thermal_zoneX/device is the symbol link to
-> > the real device node, and there is a sysfs I/F named "path" which can be
-> > used for the same purpose (find corresponding devices in ACPI namespace)
-> >
-> > so it's okay that the ACPI thermal zones in /sys/class/thermal doesn't
-> > have a name.
->
-> For lm-sensors users, the fact that the information is available
-> somewhere in sysfs isn't too interesting. Either the name is used as
-> the default label, or it's not.
-I found a function inside a thermal zone on an HP which seem to be the name.
-It is not mentioned in the spec, but we could document that and tell vendors 
-to use it. Hmm, it should start with "_" if this should get specified at 
-later time?
+diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+index 1009261..250d7f1 100644
+--- a/drivers/acpi/utils.c
++++ b/drivers/acpi/utils.c
+@@ -295,15 +295,14 @@ acpi_evaluate_integer(acpi_handle handle,
+ 
+ EXPORT_SYMBOL(acpi_evaluate_integer);
+ 
+-#if 0
+ acpi_status
+ acpi_evaluate_string(acpi_handle handle,
+ 		     acpi_string pathname,
+-		     acpi_object_list * arguments, acpi_string * data)
++		     struct acpi_object_list *arguments, acpi_string *data)
+ {
+ 	acpi_status status = AE_OK;
+-	acpi_object *element = NULL;
+-	acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
++	union acpi_object *element = NULL;
++	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+ 
+ 
+ 	if (!data)
+@@ -315,7 +314,7 @@ acpi_evaluate_string(acpi_handle handle,
+ 		return status;
+ 	}
+ 
+-	element = (acpi_object *) buffer.pointer;
++	element = (union acpi_object *) buffer.pointer;
+ 
+ 	if ((element->type != ACPI_TYPE_STRING)
+ 	    || (element->type != ACPI_TYPE_BUFFER)
+@@ -338,7 +337,7 @@ acpi_evaluate_string(acpi_handle handle,
+ 
+ 	return AE_OK;
+ }
+-#endif
++EXPORT_SYMBOL(acpi_evaluate_string);
+ 
+ acpi_status
+ acpi_evaluate_reference(acpi_handle handle,
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index a5ac0bc..08a191f 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -48,6 +48,10 @@ acpi_evaluate_integer(acpi_handle handle,
+ 		      acpi_string pathname,
+ 		      struct acpi_object_list *arguments, unsigned long *data);
+ acpi_status
++acpi_evaluate_string(acpi_handle handle,
++		     acpi_string pathname,
++		     struct acpi_object_list *arguments, acpi_string *data);
++acpi_status
+ acpi_evaluate_reference(acpi_handle handle,
+ 			acpi_string pathname,
+ 			struct acpi_object_list *arguments,
+-- 
+1.5.4.5
 
-I post a little RFC patch which makes use of this one as a hwmon thermal 
-device/zone name.
-Totally untested...
-
-        Thomas
