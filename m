@@ -1,61 +1,34 @@
-From: "Joshua C." <joshuacov@googlemail.com>
-Subject: How can a patch be merged upstream?
-Date: Mon, 25 Aug 2008 16:26:57 +0200
-Message-ID: <5f6f8c5f0808250726h4649ddferff1be82c7d6203ba@mail.gmail.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [patch] PNPACPI: ignore the producer/consumer bit for extended IRQ descriptors
+Date: Mon, 25 Aug 2008 08:56:00 -0600
+Message-ID: <200808250856.01302.bjorn.helgaas@hp.com>
+References: <200808220947.18253.bjorn.helgaas@hp.com> <20080825101543.GC26610@one.firstfloor.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.186]:39674 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754160AbYHYO07 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Aug 2008 10:26:59 -0400
-Received: by nf-out-0910.google.com with SMTP id d3so746599nfc.21
-        for <linux-acpi@vger.kernel.org>; Mon, 25 Aug 2008 07:26:57 -0700 (PDT)
+Received: from g1t0028.austin.hp.com ([15.216.28.35]:25034 "EHLO
+	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753132AbYHYO4l (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Aug 2008 10:56:41 -0400
+In-Reply-To: <20080825101543.GC26610@one.firstfloor.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Andi Kleen <andi@firstfloor.org>
+Cc: Adam M Belay <abelay@mit.edu>, Matthieu CASTET <matthieu.castet@parrot.com>, Li Shaohua <shaohua.li@intel.com>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-I (and others with acer aspire 5050series laptops) have a broken bios
-which resulted in kernel panic. Reported the bug
-http://bugzilla.kernel.org/show_bug.cgi?id=10237 and
-http://bugzilla.kernel.org/show_bug.cgi?id=8953 and a patch was
-written about it. Can/When will this be merged upstream? Any arguments
-against this as a hardware/platform solution?
+On Monday 25 August 2008 04:15:43 am Andi Kleen wrote:
+> On Fri, Aug 22, 2008 at 09:47:17AM -0600, Bjorn Helgaas wrote:
+> > The Extended Interrupt descriptor has a producer/consumer bit, but
+> > it's not clear what that would mean, and existing BIOSes use the bit
+> > inconsistently.  This patch makes Linux PNPACPI ignore the bit.
+> 
+> Added thanks. Will put in the next 2.6.27 update.
 
-Here is the patch from Zhao Yakui <yakui.zhao@intel.com>
+This doesn't need to go in 2.6.27 (at least, I can't think of
+anything it will fix there).  This is more in the category of
+paving the way for future changes.
 
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-Signed-off-by: Lin Ming <ming.m.lin@intel.com>
-
----
- drivers/acpi/ec.c |   15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
-
-Index: linux-2.6/drivers/acpi/ec.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/ec.c
-+++ linux-2.6/drivers/acpi/ec.c
-@@ -835,8 +835,19 @@ static int ec_install_handlers(struct ac
- 						    &acpi_ec_space_handler,
- 						    NULL, ec);
- 	if (ACPI_FAILURE(status)) {
--		acpi_remove_gpe_handler(NULL, ec->gpe, &acpi_ec_gpe_handler);
--		return -ENODEV;
-+		if (status == AE_NOT_FOUND) {
-+			/*
-+			 * Maybe OS fails in evaluating the _REG object.
-+			 * The AE_NOT_FOUND error will be ignored and OS
-+			 * continue to initialize EC.
-+			 */
-+			printk(KERN_ERR "Fail in evaluating _REG object."
-+				" It is broken BIOS.\n");
-+		} else {
-+			acpi_remove_gpe_handler(NULL, ec->gpe,
-+				&acpi_ec_gpe_handler);
-+			return -ENODEV;
-+		}
- 	}
-
- 	ec->handlers_installed = 1;
+Bjorn
