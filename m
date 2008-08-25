@@ -1,101 +1,69 @@
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
-Subject: Re: [regression] LID switch and /dev/input/event*
-Date: Mon, 25 Aug 2008 08:47:04 +0200
-Message-ID: <48B25568.8060901@freemail.hu>
-References: <48B0849B.7070800@freemail.hu> <1219626707.4116.6.camel@yakui_zhao.sh.intel.com>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [PATCH 2/2] Give ACPI hwmon thermal devices a name if BIOS
+ provides one
+Date: Mon, 25 Aug 2008 09:44:16 +0200
+Message-ID: <20080825094416.1dc9dc79@hyperion.delvare>
+References: <20080821174852.0689681d@hyperion.delvare>
+	<1219615897-21130-3-git-send-email-trenn@suse.de>
+	<1219629496.24775.22.camel@rzhang-dt>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <1219626707.4116.6.camel@yakui_zhao.sh.intel.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, linux-input@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from zone0.gcu-squad.org ([212.85.147.21]:25278 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752004AbYHYHo3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Aug 2008 03:44:29 -0400
+In-Reply-To: <1219629496.24775.22.camel@rzhang-dt>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Thomas Renninger <trenn@suse.de>, linux-acpi@vger.kernel.org
 
-Zhao Yakui wrote:
-> On Sat, 2008-08-23 at 23:43 +0200, N=C3=A9meth M=C3=A1rton wrote:
->> Hi,
->>
->> I am using Linux 2.6.27-rc4 on Clevo D410J laptop and the I can
->> query the LID switch state like this:
->>
->> # cat /proc/acpi/button/lid/LID/state
->> state:      open
->> # cat /proc/acpi/button/lid/LID/state
->> state:      closed
->>
->> If I check the event4, I get no events when the LID switch is pushed=
-:
->>
->> # evtest /dev/input/event4
->> Input driver version is 1.0.0
->> Input device ID: bus 0x19 vendor 0x0 product 0x5 version 0x0
->> Input device name: "Lid Switch"
->> Supported events:
->>   Event type 0 (Sync)
->>   Event type 5 (?)
->>     Event code 0 (?)
->> Testing ... (interrupt to exit)
-> It seems that the status of LID device is correct, but there is no LI=
-D
-> input event. Right?
-> Will you please enable the CONFIG_ACPI_DEBUG in kernel configuration =
-and
-> boot the system with the option of "acpi.debug_layer=3D0x00090004
-> acpi.debug_level=3D0x01f"?=20
-> After pressing the LID switch several times, please attach the output=
- of
-> dmesg.
->=20
-> It will be great if you can attach the output of acpidump.
->=20
-> Of course you can open a new bug in bugzilla and attach the output of
-> dmesg, acpidump.
->=20
-> http://bugzilla.kernel.org/enter_bug.cgi?product=3DACPI
->=20
-> Thanks.
+Hi Thomas,
 
-What I could find out since then is that the Linux kernel 2.6.25 is
-working correctly, but 2.6.26-rc3 is bad. I am about to "git bisect"
-the problem and I'll create a bugreport and provide the asked informati=
-on.
-This will take some time, however, as I am currently busy with differen=
-t
-topics.
+On Mon, 25 Aug 2008 09:58:16 +0800, Zhang Rui wrote:
+> On Mon, 2008-08-25 at 06:11 +0800, Thomas Renninger wrote:
+> > diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/therma=
+l_sys.c
+> > index fe07462..51a7077 100644
+> > --- a/drivers/thermal/thermal_sys.c
+> > +++ b/drivers/thermal/thermal_sys.c
+> > @@ -371,8 +371,15 @@ thermal_add_hwmon_sysfs(struct
+> > thermal_zone_device *tz)
+> >         tz->hwmon =3D hwmon;
+> >         hwmon->count++;
+> >=20
+> > -       snprintf(tz->temp_input.name, THERMAL_NAME_LENGTH,
+> > -                "temp%d_input", hwmon->count);
+> > +       /*
+> > +        * What happens if we get duplicate zone names from the BIO=
+S?
+> > +        * Is that allowed? If not, should we still just add the
+> > +        * hwmon count at the end?
+> > +        * tz->temp_input.name is char[16], this is ugly to do...
+> > +        */
+> > +       if (!tz->temp_input.name)
+> > +               snprintf(tz->temp_input.name, THERMAL_NAME_LENGTH,
+> > +                        "temp%d_input", hwmon->count);
+>
+> we should create a new attribute here rather than replacing the old o=
+ne.
+> the new hwmon sysfs I/F should be like:
+> temp1_input:	current temperature
+> temp1_crit:	critical threshold
+> temp1_label:	string like "=EF=BB=BFProcessor Thermal Zone"
 
->> The events are only reported if I suspend to RAM with "s2ram -f -p -=
-s". I did
->> the following steps:
->>
->> 1. Execute "s2ram -f -p -s". Now the system suspends to RAM.
->> 2. Push the LID switch and hold it down.
->> 3. Wake the system with the POWER button.
->> 4. After the system is up, release the LID switch to see the screen.
->> 5. "evtest" reports the following line:
->>
->> Event: time 1219526119.163805, type 5 (?), code 0 (?), value 1
->>
->> 6. Execute "s2ram -f -p -s" again.
->> 7. Wake the system with the POWER button.
->> 8. "evtest" reports the following line:
->>
->> Event: time 1219526913.208803, type 5 (?), code 0 (?), value 0
->>
->> 	M=C3=A1rton N=C3=A9meth
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi=
-" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->=20
->=20
->=20
+Rui is correct here, you don't want to use the string as a file name
+(what your patch is currently doing) but provide it to libsensors
+(amongst others) as the contents of a separate file (tempN_label.)
+libsensors needs these standard file names, otherwise it can't guess
+which is what.
 
+--=20
+Jean Delvare
 --
-To unsubscribe from this list: send the line "unsubscribe linux-input" =
-in
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
 the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
