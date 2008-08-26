@@ -1,123 +1,174 @@
 From: Daniel Walker <dwalker@mvista.com>
-Subject: [PATCH 3/4] acpi: add lockdep magic
-Date: Tue, 26 Aug 2008 11:59:48 -0700
-Message-ID: <1219777186-4787-3-git-send-email-dwalker@mvista.com>
+Subject: [PATCH 4/4] acpi: semaphore removal
+Date: Tue, 26 Aug 2008 11:59:49 -0700
+Message-ID: <1219777186-4787-4-git-send-email-dwalker@mvista.com>
 References: <1219777186-4787-1-git-send-email-dwalker@mvista.com>
  <1219777186-4787-2-git-send-email-dwalker@mvista.com>
+ <1219777186-4787-3-git-send-email-dwalker@mvista.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gateway-1237.mvista.com ([63.81.120.158]:50635 "EHLO
+Received: from gateway-1237.mvista.com ([63.81.120.158]:50645 "EHLO
 	gateway-1237.mvista.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758619AbYHZS7w (ORCPT
+	with ESMTP id S1758790AbYHZS7w (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Aug 2008 14:59:52 -0400
-In-Reply-To: <1219777186-4787-2-git-send-email-dwalker@mvista.com>
+In-Reply-To: <1219777186-4787-3-git-send-email-dwalker@mvista.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Andi Kleen <ak@linux.intel.com>
 Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Peter Zijlstra <peterz@infradead.org>, Matthew Wilcox <matthew@wil.cx>, Len Brown <len.brown@intel.com>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org
 
-Add lockdep integration for the ACPI mutex usage.
+The semaphore usage in ACPI is more like completions. The ASL
+functions getting implemented here are signals which follow a
+"wait for", signaled, or reset format.
+
+This implements the ACPI signaling methods with the Linux
+completion API, instead of using semaphores.
 
 Cc: linux-acpi@vger.kernel.org
 Signed-off-by: Daniel Walker <dwalker@mvista.com>
 ---
- drivers/acpi/dispatcher/dsmethod.c |    4 ++++
- drivers/acpi/executer/excreate.c   |    4 ++++
- drivers/acpi/namespace/nsaccess.c  |    5 +++++
- drivers/acpi/utilities/utmutex.c   |    6 ++++++
- 4 files changed, 19 insertions(+), 0 deletions(-)
+ drivers/acpi/osl.c |   56 ++++++++++++++++++++++++++-------------------------
+ 1 files changed, 29 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/acpi/dispatcher/dsmethod.c b/drivers/acpi/dispatcher/dsmethod.c
-index 4613b9c..a3cf3d4 100644
---- a/drivers/acpi/dispatcher/dsmethod.c
-+++ b/drivers/acpi/dispatcher/dsmethod.c
-@@ -130,6 +130,7 @@ acpi_ds_method_error(acpi_status status, struct acpi_walk_state *walk_state)
- static acpi_status
- acpi_ds_create_method_mutex(union acpi_operand_object *method_desc)
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index e6f7337..63de45e 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -43,7 +43,7 @@
+ #include <linux/ioport.h>
+ #include <linux/list.h>
+ #include <linux/jiffies.h>
+-#include <linux/semaphore.h>
++#include <linux/completion.h>
+ 
+ #include <asm/io.h>
+ #include <asm/uaccess.h>
+@@ -768,42 +768,44 @@ void acpi_os_delete_lock(acpi_spinlock handle)
+ acpi_status
+ acpi_os_create_semaphore(u32 max_units, u32 initial_units, acpi_handle * handle)
  {
-+	static struct lock_class_key method_mutex;
- 	union acpi_operand_object *mutex_desc;
- 	acpi_status status;
+-	struct semaphore *sem = NULL;
++	struct completion *comp = NULL;
  
-@@ -149,6 +150,9 @@ acpi_ds_create_method_mutex(union acpi_operand_object *method_desc)
- 		return_ACPI_STATUS(status);
- 	}
- 
-+	lockdep_set_class((struct mutex *)&mutex_desc->mutex.os_mutex,
-+			  &method_mutex);
+-	sem = acpi_os_allocate(sizeof(struct semaphore));
+-	if (!sem)
++	BUG_ON(initial_units);
 +
- 	mutex_desc->mutex.sync_level = method_desc->method.sync_level;
- 	method_desc->method.mutex = mutex_desc;
- 	return_ACPI_STATUS(AE_OK);
-diff --git a/drivers/acpi/executer/excreate.c b/drivers/acpi/executer/excreate.c
-index ad09696..044a780 100644
---- a/drivers/acpi/executer/excreate.c
-+++ b/drivers/acpi/executer/excreate.c
-@@ -222,6 +222,7 @@ acpi_status acpi_ex_create_mutex(struct acpi_walk_state *walk_state)
++	comp = acpi_os_allocate(sizeof(struct completion));
++	if (!comp)
+ 		return AE_NO_MEMORY;
+-	memset(sem, 0, sizeof(struct semaphore));
++	memset(comp, 0, sizeof(struct completion));
+ 
+-	sema_init(sem, initial_units);
++	init_completion(comp);
+ 
+-	*handle = (acpi_handle *) sem;
++	*handle = (acpi_handle *) comp;
+ 
+-	ACPI_DEBUG_PRINT((ACPI_DB_MUTEX, "Creating semaphore[%p|%d].\n",
++	ACPI_DEBUG_PRINT((ACPI_DB_MUTEX, "Creating completion[%p|%d].\n",
+ 			  *handle, initial_units));
+ 
+ 	return AE_OK;
+ }
+ 
+ /*
+- * TODO: A better way to delete semaphores?  Linux doesn't have a
+- * 'delete_semaphore()' function -- may result in an invalid
++ * TODO: A better way to delete completions?  Linux doesn't have a
++ * 'delete_completions()' function -- may result in an invalid
+  * pointer dereference for non-synchronized consumers.	Should
+  * we at least check for blocked threads and signal/cancel them?
+  */
+ 
+ acpi_status acpi_os_delete_semaphore(acpi_handle handle)
+ {
+-	struct semaphore *sem = (struct semaphore *)handle;
++	struct completion *comp = (struct completion *)handle;
+ 
+-	if (!sem)
++	if (!comp)
+ 		return AE_BAD_PARAMETER;
+ 
+-	ACPI_DEBUG_PRINT((ACPI_DB_MUTEX, "Deleting semaphore[%p].\n", handle));
++	ACPI_DEBUG_PRINT((ACPI_DB_MUTEX, "Deleting completion[%p].\n", handle));
+ 
+-	BUG_ON(!list_empty(&sem->wait_list));
+-	kfree(sem);
+-	sem = NULL;
++	BUG_ON(!completion_done(comp));
++	kfree(comp);
++	comp = NULL;
+ 
+ 	return AE_OK;
+ }
+@@ -814,17 +816,17 @@ acpi_status acpi_os_delete_semaphore(acpi_handle handle)
+ acpi_status acpi_os_wait_semaphore(acpi_handle handle, u32 units, u16 timeout)
  {
  	acpi_status status = AE_OK;
- 	union acpi_operand_object *obj_desc;
-+	static struct lock_class_key interpreter_class;
+-	struct semaphore *sem = (struct semaphore *)handle;
++	struct completion *comp = (struct completion *)handle;
+ 	long jiffies;
+ 	int ret = 0;
  
- 	ACPI_FUNCTION_TRACE_PTR(ex_create_mutex, ACPI_WALK_OPERANDS);
+-	if (!sem || (units < 1))
++	if (!comp || (units < 1))
+ 		return AE_BAD_PARAMETER;
  
-@@ -240,6 +241,9 @@ acpi_status acpi_ex_create_mutex(struct acpi_walk_state *walk_state)
- 		goto cleanup;
+ 	if (units > 1)
+ 		return AE_SUPPORT;
+ 
+-	ACPI_DEBUG_PRINT((ACPI_DB_MUTEX, "Waiting for semaphore[%p|%d|%d]\n",
++	ACPI_DEBUG_PRINT((ACPI_DB_MUTEX, "Waiting for completion[%p|%d|%d]\n",
+ 			  handle, units, timeout));
+ 
+ 	if (timeout == ACPI_WAIT_FOREVER)
+@@ -832,18 +834,18 @@ acpi_status acpi_os_wait_semaphore(acpi_handle handle, u32 units, u16 timeout)
+ 	else
+ 		jiffies = msecs_to_jiffies(timeout);
+ 	
+-	ret = down_timeout(sem, jiffies);
++	ret = wait_for_completion_timeout(comp, jiffies);
+ 	if (ret)
+ 		status = AE_TIME;
+ 
+ 	if (ACPI_FAILURE(status)) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_MUTEX,
+-				  "Failed to acquire semaphore[%p|%d|%d], %s",
++				  "Failed to acquire completion[%p|%d|%d], %s",
+ 				  handle, units, timeout,
+ 				  acpi_format_exception(status)));
+ 	} else {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_MUTEX,
+-				  "Acquired semaphore[%p|%d|%d]", handle,
++				  "Acquired completion[%p|%d|%d]", handle,
+ 				  units, timeout));
  	}
  
-+	lockdep_set_class((struct mutex *)obj_desc->mutex.os_mutex,
-+			  &interpreter_class);
-+
- 	/* Init object and attach to NS node */
- 
- 	obj_desc->mutex.sync_level =
-diff --git a/drivers/acpi/namespace/nsaccess.c b/drivers/acpi/namespace/nsaccess.c
-index c39a7f6..293c0ba 100644
---- a/drivers/acpi/namespace/nsaccess.c
-+++ b/drivers/acpi/namespace/nsaccess.c
-@@ -64,6 +64,7 @@ ACPI_MODULE_NAME("nsaccess")
-  ******************************************************************************/
- acpi_status acpi_ns_root_initialize(void)
+@@ -855,18 +857,18 @@ acpi_status acpi_os_wait_semaphore(acpi_handle handle, u32 units, u16 timeout)
+  */
+ acpi_status acpi_os_signal_semaphore(acpi_handle handle, u32 units)
  {
-+	static struct lock_class_key ns_root_mutex;
- 	acpi_status status;
- 	const struct acpi_predefined_names *init_val = NULL;
- 	struct acpi_namespace_node *new_node;
-@@ -205,6 +206,10 @@ acpi_status acpi_ns_root_initialize(void)
- 					goto unlock_and_exit;
- 				}
+-	struct semaphore *sem = (struct semaphore *)handle;
++	struct completion *comp = (struct completion *)handle;
  
-+				lockdep_set_class((struct mutex *)
-+					obj_desc->mutex.os_mutex,
-+					&ns_root_mutex);
-+
- 				/* Special case for ACPI Global Lock */
+-	if (!sem || (units < 1))
++	if (!comp || (units < 1))
+ 		return AE_BAD_PARAMETER;
  
- 				if (ACPI_STRCMP(init_val->name, "_GL_") == 0) {
-diff --git a/drivers/acpi/utilities/utmutex.c b/drivers/acpi/utilities/utmutex.c
-index 7331dde..3f7f16c 100644
---- a/drivers/acpi/utilities/utmutex.c
-+++ b/drivers/acpi/utilities/utmutex.c
-@@ -134,6 +134,7 @@ void acpi_ut_mutex_terminate(void)
+ 	if (units > 1)
+ 		return AE_SUPPORT;
  
- static acpi_status acpi_ut_create_mutex(acpi_mutex_handle mutex_id)
- {
-+	static struct lock_class_key utility_class_keys[ACPI_MAX_MUTEX];
- 	acpi_status status = AE_OK;
+-	ACPI_DEBUG_PRINT((ACPI_DB_MUTEX, "Signaling semaphore[%p|%d]\n", handle,
+-			  units));
++	ACPI_DEBUG_PRINT((ACPI_DB_MUTEX, "Signaling completion[%p|%d]\n",
++			 handle, units));
  
- 	ACPI_FUNCTION_TRACE_U32(ut_create_mutex, mutex_id);
-@@ -145,6 +146,11 @@ static acpi_status acpi_ut_create_mutex(acpi_mutex_handle mutex_id)
- 	if (!acpi_gbl_mutex_info[mutex_id].mutex) {
- 		status =
- 		    acpi_os_create_mutex(&acpi_gbl_mutex_info[mutex_id].mutex);
-+
-+		lockdep_set_class(
-+			(struct mutex *)acpi_gbl_mutex_info[mutex_id].mutex,
-+			&utility_class_keys[mutex_id]);
-+
- 		acpi_gbl_mutex_info[mutex_id].thread_id =
- 		    ACPI_MUTEX_NOT_ACQUIRED;
- 		acpi_gbl_mutex_info[mutex_id].use_count = 0;
+-	up(sem);
++	complete(comp);
+ 
+ 	return AE_OK;
+ }
 -- 
 1.5.5.1.32.gba7d2
-
 
