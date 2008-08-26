@@ -1,75 +1,100 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: Re: How can a patch be merged upstream?
-Date: Tue, 26 Aug 2008 09:06:42 +0800
-Message-ID: <1219712802.4116.32.camel@yakui_zhao.sh.intel.com>
-References: <5f6f8c5f0808250726h4649ddferff1be82c7d6203ba@mail.gmail.com>
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+Subject: Re: [regression] LID switch and /dev/input/event*
+Date: Tue, 26 Aug 2008 07:29:33 +0200
+Message-ID: <48B394BD.6080407@freemail.hu>
+References: <48B0849B.7070800@freemail.hu> <1219626707.4116.6.camel@yakui_zhao.sh.intel.com> <48B25568.8060901@freemail.hu>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:24792 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753157AbYHZAvi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 25 Aug 2008 20:51:38 -0400
-In-Reply-To: <5f6f8c5f0808250726h4649ddferff1be82c7d6203ba@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <48B25568.8060901@freemail.hu>
+Sender: linux-input-owner@vger.kernel.org
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, linux-input@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Joshua C." <joshuacov@googlemail.com>
-Cc: linux-acpi@vger.kernel.org, andi@firstfloor.org, lenb@kernel.org
 
-On Mon, 2008-08-25 at 16:26 +0200, Joshua C. wrote:
-> I (and others with acer aspire 5050series laptops) have a broken bios
-> which resulted in kernel panic. Reported the bug
-> http://bugzilla.kernel.org/show_bug.cgi?id=10237 and
-> http://bugzilla.kernel.org/show_bug.cgi?id=8953 and a patch was
-> written about it. Can/When will this be merged upstream? Any arguments
-> against this as a hardware/platform solution?
-Linux can't work normally while Windows can work on such broken BIOS. Of
-course the issue is related with the broken BIOS. The _REG object of EC
-device is incorrect, which causes that EC device can't be initialized
-correctly. 
-After this workaround patch is applied, Linux can also work. IMO this
-workaround patch is reasonable. 
+N=C3=A9meth M=C3=A1rton wrote:
+> Zhao Yakui wrote:
+>> On Sat, 2008-08-23 at 23:43 +0200, N=C3=A9meth M=C3=A1rton wrote:
+>>> Hi,
+>>>
+>>> I am using Linux 2.6.27-rc4 on Clevo D410J laptop and the I can
+>>> query the LID switch state like this:
+>>>
+>>> # cat /proc/acpi/button/lid/LID/state
+>>> state:      open
+>>> # cat /proc/acpi/button/lid/LID/state
+>>> state:      closed
+>>>
+>>> If I check the event4, I get no events when the LID switch is pushe=
+d:
+>>>
+>>> # evtest /dev/input/event4
+>>> Input driver version is 1.0.0
+>>> Input device ID: bus 0x19 vendor 0x0 product 0x5 version 0x0
+>>> Input device name: "Lid Switch"
+>>> Supported events:
+>>>   Event type 0 (Sync)
+>>>   Event type 5 (?)
+>>>     Event code 0 (?)
+>>> Testing ... (interrupt to exit)
+>> It seems that the status of LID device is correct, but there is no L=
+ID
+>> input event. Right?
+>> Will you please enable the CONFIG_ACPI_DEBUG in kernel configuration=
+ and
+>> boot the system with the option of "acpi.debug_layer=3D0x00090004
+>> acpi.debug_level=3D0x01f"?=20
+>> After pressing the LID switch several times, please attach the outpu=
+t of
+>> dmesg.
+>>
+>> It will be great if you can attach the output of acpidump.
+>>
+>> Of course you can open a new bug in bugzilla and attach the output o=
+f
+>> dmesg, acpidump.
+>>
+>> http://bugzilla.kernel.org/enter_bug.cgi?product=3DACPI
+>>
+>> Thanks.
+>=20
+> What I could find out since then is that the Linux kernel 2.6.25 is
+> working correctly, but 2.6.26-rc3 is bad. I am about to "git bisect"
+> the problem and I'll create a bugreport and provide the asked informa=
+tion.
+> This will take some time, however, as I am currently busy with differ=
+ent
+> topics.
 
-Thanks.
-   Yakui
-> Here is the patch from Zhao Yakui <yakui.zhao@intel.com>
-> 
-> Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-> Signed-off-by: Lin Ming <ming.m.lin@intel.com>
-> 
-> ---
->  drivers/acpi/ec.c |   15 +++++++++++++--
->  1 file changed, 13 insertions(+), 2 deletions(-)
-> 
-> Index: linux-2.6/drivers/acpi/ec.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/ec.c
-> +++ linux-2.6/drivers/acpi/ec.c
-> @@ -835,8 +835,19 @@ static int ec_install_handlers(struct ac
->  						    &acpi_ec_space_handler,
->  						    NULL, ec);
->  	if (ACPI_FAILURE(status)) {
-> -		acpi_remove_gpe_handler(NULL, ec->gpe, &acpi_ec_gpe_handler);
-> -		return -ENODEV;
-> +		if (status == AE_NOT_FOUND) {
-> +			/*
-> +			 * Maybe OS fails in evaluating the _REG object.
-> +			 * The AE_NOT_FOUND error will be ignored and OS
-> +			 * continue to initialize EC.
-> +			 */
-> +			printk(KERN_ERR "Fail in evaluating _REG object."
-> +				" It is broken BIOS.\n");
-> +		} else {
-> +			acpi_remove_gpe_handler(NULL, ec->gpe,
-> +				&acpi_ec_gpe_handler);
-> +			return -ENODEV;
-> +		}
->  	}
-> 
->  	ec->handlers_installed = 1;
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Bug report was created: http://bugzilla.kernel.org/show_bug.cgi?id=3D11=
+428
 
+
+>>> The events are only reported if I suspend to RAM with "s2ram -f -p =
+-s". I did
+>>> the following steps:
+>>>
+>>> 1. Execute "s2ram -f -p -s". Now the system suspends to RAM.
+>>> 2. Push the LID switch and hold it down.
+>>> 3. Wake the system with the POWER button.
+>>> 4. After the system is up, release the LID switch to see the screen=
+=2E
+>>> 5. "evtest" reports the following line:
+>>>
+>>> Event: time 1219526119.163805, type 5 (?), code 0 (?), value 1
+>>>
+>>> 6. Execute "s2ram -f -p -s" again.
+>>> 7. Wake the system with the POWER button.
+>>> 8. "evtest" reports the following line:
+>>>
+>>> Event: time 1219526913.208803, type 5 (?), code 0 (?), value 0
+>>>
+>>> 	M=C3=A1rton N=C3=A9meth
+>>>
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-input" =
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
