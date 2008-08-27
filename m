@@ -1,47 +1,47 @@
-From: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
-Subject: [RESEND][PATCH -tip] x86: acpi: move acpi_mcfg_64bit_base_addr into
- CONFIG_PCI_MMCONFIG
-Date: Tue, 26 Aug 2008 15:13:45 -0700
-Message-ID: <48B48019.6080803@ct.jp.nec.com>
+From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Subject: [PATCH] fujitsu-laptop: fix regression for P8010 in 2.6.27-rc
+Date: Wed, 27 Aug 2008 09:53:31 +0930 (CST)
+Message-ID: <200808270023.m7R0NVKP014272@turbo.physics.adelaide.edu.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753332AbYHZWOu@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>
-Cc: John Keller <jpk@sgi.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:57351 "EHLO
+	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751346AbYH0AXg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 Aug 2008 20:23:36 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, ak@linux.intel.com
 
-From: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
+Hi Andi
 
-acpi_mcfg_64bit_base_addr is used when CONFIG_PCI_MMCONFIG is enabled.
+The following patch (based on a patch from Stephen Gildea) fixes a
+regression with the LCD brightness keys on Fujitsu P8010 laptops which was
+observed with the 2.6.27-rc series (basically they stopped working due to
+changes within the fujitsu-laptop module).  Please apply to 2.6.27-rc and
+acpi git.
 
-Signed-off-by: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
----
- arch/x86/kernel/acpi/boot.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+Signed-off-by: Stephen Gildea <stepheng+fujitsu-laptop@gildea.com>
+Signed-off-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
 
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index fc64412..8a1c9f9 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -96,8 +96,6 @@ static u64 acpi_lapic_addr __initdata = APIC_DEFAULT_PHYS_BASE;
- #warning ACPI uses CMPXCHG, i486 and later hardware
- #endif
- 
--static int acpi_mcfg_64bit_base_addr __initdata = FALSE;
--
- /* --------------------------------------------------------------------------
-                               Boot-time Configuration
-    -------------------------------------------------------------------------- */
-@@ -159,6 +157,8 @@ char *__init __acpi_map_table(unsigned long phys, unsigned long size)
- struct acpi_mcfg_allocation *pci_mmcfg_config;
- int pci_mmcfg_config_num;
- 
-+static int acpi_mcfg_64bit_base_addr __initdata = FALSE;
-+
- static int __init acpi_mcfg_oem_check(struct acpi_table_mcfg *mcfg)
- {
- 	if (!strcmp(mcfg->header.oem_id, "SGI"))
--- 
-1.5.6
+Thanks
+  jonathan
+
+--- linux-2.6.27-rc4-orig/drivers/misc/fujitsu-laptop.c	2008-08-27 09:38:11.220532000 +0930
++++ linux-2.6.27-rc4/drivers/misc/fujitsu-laptop.c	2008-08-27 09:48:37.811194368 +0930
+@@ -463,6 +463,13 @@ static struct dmi_system_id __initdata f
+ 		     DMI_MATCH(DMI_PRODUCT_NAME, "LIFEBOOK S6410"),
+ 		     },
+ 	 .callback = dmi_check_cb_s6410},
++	{
++	 .ident = "FUJITSU LifeBook P8010",
++	 .matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "FUJITSU"),
++		     DMI_MATCH(DMI_PRODUCT_NAME, "LifeBook P8010"),
++		    },
++	 .callback = dmi_check_cb_s6410},
+ 	{}
+ };
