@@ -1,33 +1,123 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 4/5] ACPI: WMI: Add sysfs userspace interface
-Date: Wed, 27 Aug 2008 21:44:49 +0100
-Message-ID: <20080827204449.GA14925@srcf.ucam.org>
-References: <20080205021658.4422.83165.stgit@pacifica> <20080205021721.4422.58508.stgit@pacifica> <20080827135327.GA7162@srcf.ucam.org> <200808272121.54882.carlos@strangeworlds.co.uk>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: Re: [PATCH] acpi-wmi: Enable event methods when registering notifiers
+Date: Wed, 27 Aug 2008 22:15:09 +0100
+Message-ID: <200808272215.10199.carlos@strangeworlds.co.uk>
+References: <20080827150401.GA8966@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:54976 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752148AbYH0Uox (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Aug 2008 16:44:53 -0400
+Received: from phoenix.slamd64.com ([217.10.145.2]:44167 "EHLO
+	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752832AbYH0VPQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Aug 2008 17:15:16 -0400
+In-Reply-To: <20080827150401.GA8966@srcf.ucam.org>
 Content-Disposition: inline
-In-Reply-To: <200808272121.54882.carlos@strangeworlds.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andi Kleen <ak@linux.intel.com>
 
-On Wed, Aug 27, 2008 at 09:21:54PM +0100, Carlos Corbacho wrote:
+On Wednesday 27 August 2008 16:04:01 Matthew Garrett wrote:
+> According to the ACPI-WMI spec, event blocks may provide a function call
+> for enabling/disabling them. This patch adds support for making these
+> calls when registering or removing notifications. Without this, my Dell
+> firmware provides no data in the event notification.
+>
+> Signed-off-by: Matthew Garrett <mjg@redhat.com>
 
-> Can we abuse uevent and cram all the GUID's into just one MODALIAS line?
+Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
 
-Looking at the udev rules, I suspect we need one event per GUID.
+Andi, can you take this into the ACPI tree?
 
-> Alternatively, maybe just have the directories numbered 1 to X, and have a 
-> uevent file under each, since we don't care about trying to abuse sysfs to 
-> let userspace talk to WMI anymore.
+>
+> ---
+>
+> diff --git a/drivers/acpi/wmi.c b/drivers/acpi/wmi.c
+> index c33b1c6..c7f735f 100644
+> --- a/drivers/acpi/wmi.c
+> +++ b/drivers/acpi/wmi.c
+> @@ -217,6 +217,35 @@ static bool find_guid(const char *guid_string, struct
+> wmi_block **out) return 0;
+>  }
+>
+> +static acpi_status wmi_method_enable(struct wmi_block *wblock, int enable)
+> +{
+> +	struct guid_block *block = NULL;
+> +	char method[5];
+> +	struct acpi_object_list input;
+> +	union acpi_object params[1];
+> +	acpi_status status;
+> +	acpi_handle handle;
+> +
+> +	block = &wblock->gblock;
+> +	handle = wblock->handle;
+> +
+> +	if (!block)
+> +		return AE_NOT_EXIST;
+> +
+> +	input.count = 1;
+> +	input.pointer = params;
+> +	params[0].type = ACPI_TYPE_INTEGER;
+> +	params[0].integer.value = enable;
+> +
+> +	snprintf(method, 5, "WE%02X", block->notify_id);
+> +	status = acpi_evaluate_object(handle, method, &input, NULL);
+> +
+> +	if (status != AE_OK && status != AE_NOT_FOUND)
+> +		return status;
+> +	else
+> +		return AE_OK;
+> +}
+> +
+>  /*
+>   * Exported WMI functions
+>   */
+> @@ -427,6 +456,7 @@ acpi_status wmi_install_notify_handler(const char
+> *guid, wmi_notify_handler handler, void *data)
+>  {
+>  	struct wmi_block *block;
+> +	acpi_status status;
+>
+>  	if (!guid || !handler)
+>  		return AE_BAD_PARAMETER;
+> @@ -441,7 +471,9 @@ wmi_notify_handler handler, void *data)
+>  	block->handler = handler;
+>  	block->handler_data = data;
+>
+> -	return AE_OK;
+> +	status = wmi_method_enable(block, 1);
+> +
+> +	return status;
+>  }
+>  EXPORT_SYMBOL_GPL(wmi_install_notify_handler);
+>
+> @@ -453,6 +485,7 @@ EXPORT_SYMBOL_GPL(wmi_install_notify_handler);
+>  acpi_status wmi_remove_notify_handler(const char *guid)
+>  {
+>  	struct wmi_block *block;
+> +	acpi_status status;
+>
+>  	if (!guid)
+>  		return AE_BAD_PARAMETER;
+> @@ -464,10 +497,12 @@ acpi_status wmi_remove_notify_handler(const char
+> *guid) if (!block->handler)
+>  		return AE_NULL_ENTRY;
+>
+> +	status = wmi_method_enable(block, 0);
+> +
+>  	block->handler = NULL;
+>  	block->handler_data = NULL;
+>
+> -	return AE_OK;
+> +	return status;
+>  }
+>  EXPORT_SYMBOL_GPL(wmi_remove_notify_handler);
 
-Yeah, that'd work for me.
+
 
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
