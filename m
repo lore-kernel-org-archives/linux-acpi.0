@@ -1,47 +1,61 @@
-From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-Subject: [PATCH] fujitsu-laptop: fix regression for P8010 in 2.6.27-rc
-Date: Wed, 27 Aug 2008 09:53:31 +0930 (CST)
-Message-ID: <200808270023.m7R0NVKP014272@turbo.physics.adelaide.edu.au>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: [patch 1/11]avoid check _STA method
+Date: Wed, 27 Aug 2008 11:14:19 +0800
+Message-ID: <1219806859.32665.57.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:57351 "EHLO
-	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751346AbYH0AXg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 26 Aug 2008 20:23:36 -0400
+Received: from mga01.intel.com ([192.55.52.88]:24518 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752203AbYH0DEi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 Aug 2008 23:04:38 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, ak@linux.intel.com
+To: linux acpi <linux-acpi@vger.kernel.org>
+Cc: Len Brown <lenb@kernel.org>, Andi Kleen <andi@firstfloor.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Holger Macht <hmacht@suse.de>, mjg59 <mjg59@srcf.ucam.org>, Tejun Heo <htejun@gmail.com>
 
-Hi Andi
+=EF=BB=BFIn some BIOSes, every _STA method call will send a notificatio=
+n again,
+this cause freeze. And in some BIOSes, it appears _STA should be called
+after _DCK. This tries to avoid calls _STA, and still keep the device
+present check.
+=EF=BB=BFhttp://bugzilla.kernel.org/show_bug.cgi?id=3D10431
 
-The following patch (based on a patch from Stephen Gildea) fixes a
-regression with the LCD brightness keys on Fujitsu P8010 laptops which was
-observed with the 2.6.27-rc series (basically they stopped working due to
-changes within the fujitsu-laptop module).  Please apply to 2.6.27-rc and
-acpi git.
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>=20
+---
+ drivers/acpi/dock.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-Signed-off-by: Stephen Gildea <stepheng+fujitsu-laptop@gildea.com>
-Signed-off-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Index: linux/drivers/acpi/dock.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux.orig/drivers/acpi/dock.c	2008-08-27 10:19:17.000000000 +0800
++++ linux/drivers/acpi/dock.c	2008-08-27 10:19:30.000000000 +0800
+@@ -604,14 +604,16 @@ static int handle_eject_request(struct d
+ static void dock_notify(acpi_handle handle, u32 event, void *data)
+ {
+ 	struct dock_station *ds =3D data;
++	struct acpi_device *tmp;
+=20
+ 	switch (event) {
+ 	case ACPI_NOTIFY_BUS_CHECK:
+-		if (!dock_in_progress(ds) && dock_present(ds)) {
++		if (!dock_in_progress(ds) && acpi_bus_get_device(ds->handle, &tmp)) =
+{
+ 			begin_dock(ds);
+ 			dock(ds);
+ 			if (!dock_present(ds)) {
+ 				printk(KERN_ERR PREFIX "Unable to dock!\n");
++				complete_dock(ds);
+ 				break;
+ 			}
+ 			atomic_notifier_call_chain(&dock_notifier_list,
 
-Thanks
-  jonathan
 
---- linux-2.6.27-rc4-orig/drivers/misc/fujitsu-laptop.c	2008-08-27 09:38:11.220532000 +0930
-+++ linux-2.6.27-rc4/drivers/misc/fujitsu-laptop.c	2008-08-27 09:48:37.811194368 +0930
-@@ -463,6 +463,13 @@ static struct dmi_system_id __initdata f
- 		     DMI_MATCH(DMI_PRODUCT_NAME, "LIFEBOOK S6410"),
- 		     },
- 	 .callback = dmi_check_cb_s6410},
-+	{
-+	 .ident = "FUJITSU LifeBook P8010",
-+	 .matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "FUJITSU"),
-+		     DMI_MATCH(DMI_PRODUCT_NAME, "LifeBook P8010"),
-+		    },
-+	 .callback = dmi_check_cb_s6410},
- 	{}
- };
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
