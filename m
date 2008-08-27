@@ -1,43 +1,38 @@
-From: Andi Kleen <andi@firstfloor.org>
-Subject: Re: [patch 3/11]add _LCK support for dock
-Date: Thu, 28 Aug 2008 01:09:59 +0200
-Message-ID: <8763pmqcl4.fsf@basil.nowhere.org>
-References: <1219806871.32665.59.camel@sli10-desk.sh.intel.com>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: Re: How can a patch be merged upstream?
+Date: Thu, 28 Aug 2008 00:11:23 +0100
+Message-ID: <200808280011.24839.carlos@strangeworlds.co.uk>
+References: <5f6f8c5f0808250726h4649ddferff1be82c7d6203ba@mail.gmail.com> <1219712802.4116.32.camel@yakui_zhao.sh.intel.com> <20080827230939.GF26610@one.firstfloor.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from one.firstfloor.org ([213.235.205.2]:33018 "EHLO
-	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754027AbYH0XKF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Aug 2008 19:10:05 -0400
-In-Reply-To: <1219806871.32665.59.camel@sli10-desk.sh.intel.com> (Shaohua Li's message of "Wed, 27 Aug 2008 11:14:31 +0800")
+Received: from phoenix.slamd64.com ([217.10.145.2]:34100 "EHLO
+	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756478AbYH0XLh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Aug 2008 19:11:37 -0400
+In-Reply-To: <20080827230939.GF26610@one.firstfloor.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Holger Macht <hmacht@suse.de>, mjg59 <mjg59@srcf.ucam.org>, Tejun Heo <htejun@gmail.com>
+To: Andi Kleen <andi@firstfloor.org>
+Cc: Zhao Yakui <yakui.zhao@intel.com>, "Joshua C." <joshuacov@googlemail.com>, linux-acpi@vger.kernel.org, lenb@kernel.org
 
-Shaohua Li <shaohua.li@intel.com> writes:
+On Thursday 28 August 2008 00:09:39 Andi Kleen wrote:
+> > Linux can't work normally while Windows can work on such broken BIOS. Of
+> > course the issue is related with the broken BIOS. The _REG object of EC
+> > device is incorrect, which causes that EC device can't be initialized
+> > correctly.
+> > After this workaround patch is applied, Linux can also work. IMO this
+> > workaround patch is reasonable.
+>
+> Can you please submit it with proper description?
 
-> +static void dock_lock(struct dock_station *ds, int lock)
-> +{
-> +	struct acpi_object_list arg_list;
-> +	union acpi_object arg;
-> +	acpi_status status;
-> +
-> +	arg_list.count = 1;
-> +	arg_list.pointer = &arg;
-> +	arg.type = ACPI_TYPE_INTEGER;
-> +	arg.integer.value = !!lock;
-> +	status = acpi_evaluate_object(ds->handle, "_LCK", &arg_list, NULL);
-> +	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND)
-> +		printk(KERN_WARNING PREFIX "%s device failed\n",
-> +			lock ? "Locking" : "Unlocking");
+It might also be worth CC'ing this patch (in its final form) to stable@.
 
-Please use two printks -- that makes the error message greppable.
-Output the status and some identifier for the device? Otherwise
-the user will have no clue what device failed.
-
--Andi
-
+-Carlos
 -- 
-ak@linux.intel.com
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
