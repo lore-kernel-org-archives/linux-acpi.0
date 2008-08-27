@@ -1,29 +1,41 @@
-From: Andi Kleen <ak@linux.intel.com>
-Subject: Re: Introduce interface to report BIOS bugs (reworked, FW_BUG simple
- solution)
-Date: Wed, 27 Aug 2008 17:19:16 +0200
-Message-ID: <48B57074.40201@linux.intel.com>
-References: <200808210919.07642.bjorn.helgaas@hp.com> <1219843631-26015-1-git-send-email-trenn@suse.de>
+From: "quincy.robinson" <quincy.robinson@gmail.com>
+Subject: ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
+Date: Wed, 27 Aug 2008 16:01:59 -0400
+Message-ID: <op.ugj9xjpcyvuu1o@thoth>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; format=flowed; delsp=yes; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:8901 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754516AbYH0PTO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 27 Aug 2008 11:19:14 -0400
-In-Reply-To: <1219843631-26015-1-git-send-email-trenn@suse.de>
+Received: from mail-gx0-f16.google.com ([209.85.217.16]:54917 "EHLO
+	mail-gx0-f16.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751567AbYH0UCF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Aug 2008 16:02:05 -0400
+Received: by gxk9 with SMTP id 9so4340392gxk.13
+        for <linux-acpi@vger.kernel.org>; Wed, 27 Aug 2008 13:02:04 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: bjorn.helgaas@hp.com, linux-kernel@vger.kernel.org, arjan@linux.intel.com, linux-acpi@vger.kernel.org, ckornacker@suse.de
+To: linux-acpi@vger.kernel.org
 
-Thomas Renninger wrote:
-> Even simplier, using FW_BUG define. I agree that the first implementation
-> was over-designed, I somehow liked the printk_fw_err() and printk_fw_info()
-> more, looked somehow more consistent with:
+Aug 27 11:07:35 thoth kernel: [   47.282480] ACPI: BIOS _OSI(Linux) query  
+ignored
+Aug 27 11:07:35 thoth kernel: [   47.282482] ACPI: DMI System Vendor:  
+XXXXXX
+Aug 27 11:07:35 thoth kernel: [   47.282484] ACPI: DMI Product Name:  
+Satellite A215
+Aug 27 11:07:35 thoth kernel: [   47.282486] ACPI: DMI Product Version:  
+PSAEGU-01800U
+Aug 27 11:07:35 thoth kernel: [   47.282487] ACPI: DMI Board Name: IALAA
+Aug 27 11:07:35 thoth kernel: [   47.282488] ACPI: DMI BIOS Vendor: TOSHIBA
+Aug 27 11:07:35 thoth kernel: [   47.282490] ACPI: DMI BIOS Date:  
+02/25/2008
+Aug 27 11:07:35 thoth kernel: [   47.282491] ACPI: Please send DMI info  
+above to linux-acpi@vger.kernel.org
 
-Looks good to me now. The only issue is that the patchkit is cross subsystem
-(cpufreq and ACPI). Either the patches go in through Andrew or we need
-to figure out how to merge this.
--Andi
+-- 
+
+
+
+"When the power of love overcomes the love of power, the world will know  
+peace."  --J. Hendrix
+
+"Know peace, know justice; no justice, no peace."  --anon.
