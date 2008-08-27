@@ -1,50 +1,45 @@
-From: Adrian Bunk <bunk@kernel.org>
-Subject: [2.6 patch] acpi_ns_get_external_pathname(): fix a memory leak
-Date: Thu, 28 Aug 2008 01:03:11 +0300
-Message-ID: <20080827220311.GN11734@cs181140183.pp.htv.fi>
+From: Andi Kleen <andi@firstfloor.org>
+Subject: Re: How can a patch be merged upstream?
+Date: Thu, 28 Aug 2008 01:09:39 +0200
+Message-ID: <20080827230939.GF26610@one.firstfloor.org>
+References: <5f6f8c5f0808250726h4649ddferff1be82c7d6203ba@mail.gmail.com> <1219712802.4116.32.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp4.pp.htv.fi ([213.243.153.38]:51825 "EHLO smtp4.pp.htv.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752746AbYH0WEF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 27 Aug 2008 18:04:05 -0400
+Received: from one.firstfloor.org ([213.235.205.2]:47227 "EHLO
+	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752377AbYH0XHG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Aug 2008 19:07:06 -0400
 Content-Disposition: inline
+In-Reply-To: <1219712802.4116.32.camel@yakui_zhao.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Andi Kleen <ak@linux.intel.com>, lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: "Joshua C." <joshuacov@googlemail.com>, linux-acpi@vger.kernel.org, andi@firstfloor.org, lenb@kernel.org
 
-This patch fixes a memory leak in an error path.
+> Linux can't work normally while Windows can work on such broken BIOS. Of
+> course the issue is related with the broken BIOS. The _REG object of EC
+> device is incorrect, which causes that EC device can't be initialized
+> correctly. 
+> After this workaround patch is applied, Linux can also work. IMO this
+> workaround patch is reasonable. 
 
-Reported-by: Adrian Bunk <bunk@kernel.org>
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Can you please submit it with proper description?
 
----
-446be2de05a8c1fbf2208311673a19aaf26b188e 
-diff --git a/drivers/acpi/namespace/nsnames.c b/drivers/acpi/namespace/nsnames.c
-index bd57738..f03410c 100644
---- a/drivers/acpi/namespace/nsnames.c
-+++ b/drivers/acpi/namespace/nsnames.c
-@@ -150,20 +150,21 @@ char *acpi_ns_get_external_pathname(struct acpi_namespace_node *node)
- 	name_buffer = ACPI_ALLOCATE_ZEROED(size);
- 	if (!name_buffer) {
- 		ACPI_ERROR((AE_INFO, "Allocation failure"));
- 		return_PTR(NULL);
- 	}
- 
- 	/* Build the path in the allocated buffer */
- 
- 	status = acpi_ns_build_external_path(node, size, name_buffer);
- 	if (ACPI_FAILURE(status)) {
-+		ACPI_FREE(name_buffer);
- 		return (NULL);
- 	}
- 
- 	return_PTR(name_buffer);
- }
- #endif
- 
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_ns_get_pathname_length
+> > +		if (status == AE_NOT_FOUND) {
+> > +			/*
+> > +			 * Maybe OS fails in evaluating the _REG object.
+> > +			 * The AE_NOT_FOUND error will be ignored and OS
+> > +			 * continue to initialize EC.
+> > +			 */
+> > +			printk(KERN_ERR "Fail in evaluating _REG object."
+> > +				" It is broken BIOS.\n");
+
+The English could be improved.
+
+"Failure in evaluation _REG object .... Broken BIOS suspected."
+
+Also could you output the path to the object too for easier 
+diagnosis?
+
+-Andi
