@@ -1,50 +1,52 @@
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Subject: Re: [patch 1/11]avoid check _STA method
-Date: Wed, 27 Aug 2008 09:57:49 +0100
-Message-ID: <48B5170D.6030401@tuffmail.co.uk>
-References: <1219806859.32665.57.camel@sli10-desk.sh.intel.com> <20080827075309.GP26610@one.firstfloor.org> <76780B19A496DC4B80439008DAD7076C1159D080@PDSMSX501.ccr.corp.intel.com> <20080827085645.GQ26610@one.firstfloor.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Thomas Renninger <trenn@suse.de>
+Subject: [PATCH 1/3] Introduce FW_BUG and FW_INFO to consistenly tell users about BIOS bugs
+Date: Wed, 27 Aug 2008 15:27:09 +0200
+Message-ID: <1219843631-26015-2-git-send-email-trenn@suse.de>
+References: <200808210919.07642.bjorn.helgaas@hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from qb-out-0506.google.com ([72.14.204.228]:15621 "EHLO
-	qb-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752432AbYH0I5y (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Aug 2008 04:57:54 -0400
-Received: by qb-out-0506.google.com with SMTP id f11so333105qba.17
-        for <linux-acpi@vger.kernel.org>; Wed, 27 Aug 2008 01:57:53 -0700 (PDT)
-In-Reply-To: <20080827085645.GQ26610@one.firstfloor.org>
+Received: from mx1.suse.de ([195.135.220.2]:57135 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754524AbYH0N1N (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 27 Aug 2008 09:27:13 -0400
+In-Reply-To: <200808210919.07642.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>
-Cc: "Li, Shaohua" <shaohua.li@intel.com>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Holger Macht <hmacht@suse.de>, mjg59 <mjg59@srcf.ucam.org>, Tejun Heo <htejun@gmail.com>
+To: ak@linux.intel.com
+Cc: bjorn.helgaas@hp.com, linux-kernel@vger.kernel.org, arjan@linux.intel.com, linux-acpi@vger.kernel.org, ckornacker@suse.de, Thomas Renninger <trenn@suse.de>
 
-Andi Kleen wrote:
-> On Wed, Aug 27, 2008 at 04:24:10PM +0800, Li, Shaohua wrote:
->  =20
->> Let me check how to remove them, it appears I can't find them in vim=
-=2E
->>    =20
->
-> I hope it's not a fluke here, but I have a fairly ordinary postfix+mu=
-tt
-> setup and normally don't see weird characters in other mails.
->  =20
-I saw garbage characters too, in Thunderbird.  I didn't read the patch
-but they were present in the email quoted above.
+The idea is to add this to printk after the severity:
+printk(KERN_ERR FW_BUG "This is not our fault\n");
 
-(these ones:)
+If a Firmware issue should be hidden, because it is
+work-arounded, but you still want to see something popping up e.g.
+for info only:
+printk(KERN_INFO FW_INFO "This is done stupid, we can handle it,
+but it should better be avoided in future\n");
 
-"N=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BDr=EF=BF=BD=EF=BF=BDy=EF=BF=
-=BD=EF=BF=BD=EF=BF=BDb=EF=BF=BDX=EF=BF=BD=EF=BF=BD=C7=A7v=EF=BF=BD^=EF=BF=
-=BD)=DE=BA{.n=EF=BF=BD+=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD{=EF=BF=BDi=EF=
-=BF=BDb=EF=BF=BD{ay=EF=BF=BD=1D=CA=87=DA=99=EF=BF=BD,j=07=EF=BF=BD=EF=BF=
-=BDf=EF=BF=BD=EF=BF=BD=EF=BF=BDh=EF=BF=BD=EF=BF=BD=EF=BF=BDz=EF=BF=BD=1E=
-=EF=BF=BDw=EF=BF=BD=EF=BF=BD=EF=BF=BD"
+or on the Linuxfirmwarekit to tell vendors that they did something
+stupid or wrong without bothering the user:
+printk(KERN_INFO FW_BUG "This is done stupid, we can handle it,
+but it should better be avoided in future\n");
 
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+---
+ include/linux/kernel.h |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/include/linux/kernel.h b/include/linux/kernel.h
+index 2651f80..68ebfc2 100644
+--- a/include/linux/kernel.h
++++ b/include/linux/kernel.h
+@@ -190,6 +190,9 @@ extern int kernel_text_address(unsigned long addr);
+ struct pid;
+ extern struct pid *session_of_pgrp(struct pid *pgrp);
+ 
++#define FW_BUG		"[FW Bug]: "
++#define FW_INFO		"[FW Info]: "
++
+ #ifdef CONFIG_PRINTK
+ asmlinkage int vprintk(const char *fmt, va_list args)
+ 	__attribute__ ((format (printf, 1, 0)));
+-- 
+1.5.4.5
+
