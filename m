@@ -1,30 +1,28 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: Introduce interface to report BIOS bugs (reworked, FW_BUG simple solution)
-Date: Wed, 27 Aug 2008 15:34:18 +0200
-Message-ID: <200808271534.19715.trenn@suse.de>
-References: <200808210919.07642.bjorn.helgaas@hp.com> <1219843631-26015-1-git-send-email-trenn@suse.de>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH 4/5] ACPI: WMI: Add sysfs userspace interface
+Date: Wed, 27 Aug 2008 14:53:27 +0100
+Message-ID: <20080827135327.GA7162@srcf.ucam.org>
+References: <20080205021658.4422.83165.stgit@pacifica> <20080205021721.4422.58508.stgit@pacifica>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:40599 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754319AbYH0NeV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 27 Aug 2008 09:34:21 -0400
-In-Reply-To: <1219843631-26015-1-git-send-email-trenn@suse.de>
+Received: from cavan.codon.org.uk ([93.93.128.6]:50641 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758334AbYH0Nxd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Aug 2008 09:53:33 -0400
 Content-Disposition: inline
+In-Reply-To: <20080205021721.4422.58508.stgit@pacifica>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ak@linux.intel.com
-Cc: bjorn.helgaas@hp.com, linux-kernel@vger.kernel.org, arjan@linux.intel.com, linux-acpi@vger.kernel.org, ckornacker@suse.de
+To: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-On Wednesday 27 August 2008 15:27:08 Thomas Renninger wrote:
-> Even simplier, using FW_BUG define. I agree that the first implementation
-...
-Ehh, this is not against ACPI test but latest Linus .27-rcX tree.
-I hope/think it should still patch in both.
+Hi Carlos,
 
-While this is fairly simple code, be aware that it's only compile tested.
+Now that we're getting a proliferation of WMI drivers (I'm working on a 
+Dell one at the moment), it'd be nice to be able to get the module 
+autoloading support in. BUS_ID still seems to be limited to 20 bytes, 
+though. Any thoughts on the best way to go from here?
 
-    Thomas
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
