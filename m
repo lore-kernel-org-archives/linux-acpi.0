@@ -1,44 +1,105 @@
-From: "Eduard Huguet" <eduardhc@gmail.com>
-Subject: Suspend to RAM in an Asus P1-AH2
-Date: Wed, 27 Aug 2008 16:40:33 +0200
-Message-ID: <617be8890808270740l4d64c977n17156cf2f7a6dcad@mail.gmail.com>
-References: <617be8890808270739gdba5c46q6cae8c33668d6bba@mail.gmail.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: [PATCH] acpi-wmi: Enable event methods when registering notifiers
+Date: Wed, 27 Aug 2008 16:04:01 +0100
+Message-ID: <20080827150401.GA8966@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-gx0-f16.google.com ([209.85.217.16]:60385 "EHLO
-	mail-gx0-f16.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753357AbYH0Okf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Aug 2008 10:40:35 -0400
-Received: by gxk9 with SMTP id 9so3978374gxk.13
-        for <linux-acpi@vger.kernel.org>; Wed, 27 Aug 2008 07:40:34 -0700 (PDT)
-In-Reply-To: <617be8890808270739gdba5c46q6cae8c33668d6bba@mail.gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756160AbYH0PEU@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-Hi,
-    I know this is and old topic, but I'd really like to know what's
-the state of the suspend-to-ram feature on this machine. Just to get
-things refreshed, this issue has to deal with the ACPI execution
-ordering, something related to how the different suspend phases are
-ordered differently between ACPI 1.0 and ACPI 2.0.
+According to the ACPI-WMI spec, event blocks may provide a function call 
+for enabling/disabling them. This patch adds support for making these 
+calls when registering or removing notifications. Without this, my Dell 
+firmware provides no data in the event notification.
 
-Googling around I've seen that there was 2 new kernel parameters,
-acpi_new_pts_ordering and acpi_old_pts_ordering, but I don't know if
-they have been really commited to main kernel trunk. At least, in
-current Gentoo 2.6.25 kernel they are not defined anywhere...
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
 
-Anyway, these are the symptoms I'm experiencing whenever I attempt to
-use S3 hibernation: the machine seems to enter a kind of strange
-"frozen" state, in which the CPU fan keeps turning and the power LED
-starts blinking at aproximately 1 Hz. However, the machine is really a
-dead-stone yet, and the only way to get it back is powering it off by
-holding down power button for 4s and then restarting.
+---
 
-This happens both when using 'hibernate-ram' script or new 's2ram' program.
-
-Best regards,
-  Eduard Huguet
+diff --git a/drivers/acpi/wmi.c b/drivers/acpi/wmi.c
+index c33b1c6..c7f735f 100644
+--- a/drivers/acpi/wmi.c
++++ b/drivers/acpi/wmi.c
+@@ -217,6 +217,35 @@ static bool find_guid(const char *guid_string, struct wmi_block **out)
+ 	return 0;
+ }
+ 
++static acpi_status wmi_method_enable(struct wmi_block *wblock, int enable)
++{
++	struct guid_block *block = NULL;
++	char method[5];
++	struct acpi_object_list input;
++	union acpi_object params[1];
++	acpi_status status;
++	acpi_handle handle;
++
++	block = &wblock->gblock;
++	handle = wblock->handle;
++
++	if (!block)
++		return AE_NOT_EXIST;
++
++	input.count = 1;
++	input.pointer = params;
++	params[0].type = ACPI_TYPE_INTEGER;
++	params[0].integer.value = enable;
++
++	snprintf(method, 5, "WE%02X", block->notify_id);
++	status = acpi_evaluate_object(handle, method, &input, NULL);
++
++	if (status != AE_OK && status != AE_NOT_FOUND)
++		return status;
++	else
++		return AE_OK;
++}
++
+ /*
+  * Exported WMI functions
+  */
+@@ -427,6 +456,7 @@ acpi_status wmi_install_notify_handler(const char *guid,
+ wmi_notify_handler handler, void *data)
+ {
+ 	struct wmi_block *block;
++	acpi_status status;
+ 
+ 	if (!guid || !handler)
+ 		return AE_BAD_PARAMETER;
+@@ -441,7 +471,9 @@ wmi_notify_handler handler, void *data)
+ 	block->handler = handler;
+ 	block->handler_data = data;
+ 
+-	return AE_OK;
++	status = wmi_method_enable(block, 1);
++
++	return status;
+ }
+ EXPORT_SYMBOL_GPL(wmi_install_notify_handler);
+ 
+@@ -453,6 +485,7 @@ EXPORT_SYMBOL_GPL(wmi_install_notify_handler);
+ acpi_status wmi_remove_notify_handler(const char *guid)
+ {
+ 	struct wmi_block *block;
++	acpi_status status;
+ 
+ 	if (!guid)
+ 		return AE_BAD_PARAMETER;
+@@ -464,10 +497,12 @@ acpi_status wmi_remove_notify_handler(const char *guid)
+ 	if (!block->handler)
+ 		return AE_NULL_ENTRY;
+ 
++	status = wmi_method_enable(block, 0);
++
+ 	block->handler = NULL;
+ 	block->handler_data = NULL;
+ 
+-	return AE_OK;
++	return status;
+ }
+ EXPORT_SYMBOL_GPL(wmi_remove_notify_handler);
+ 
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
