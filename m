@@ -1,34 +1,44 @@
-From: Sven Wegener <sven.wegener@stealer.net>
-Subject: Re: acer-wmi broken in latest git kernel on TravelMate 6492
- (Insufficient arguments - method [WQAA])
-Date: Wed, 27 Aug 2008 16:24:06 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0808271623000.10895@titan.stealer.net>
-References: <alpine.LNX.1.10.0808021640310.2294@titan.stealer.net> <200808021728.46046.carlos@strangeworlds.co.uk> <20080827135418.GB7162@srcf.ucam.org>
+From: "Eduard Huguet" <eduardhc@gmail.com>
+Subject: Suspend to RAM in an Asus P1-AH2
+Date: Wed, 27 Aug 2008 16:40:33 +0200
+Message-ID: <617be8890808270740l4d64c977n17156cf2f7a6dcad@mail.gmail.com>
+References: <617be8890808270739gdba5c46q6cae8c33668d6bba@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.stealer.net ([88.198.224.204]:46944 "EHLO
-	smtp1.stealer.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753406AbYH0OYb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Aug 2008 10:24:31 -0400
-In-Reply-To: <20080827135418.GB7162@srcf.ucam.org>
+Received: from mail-gx0-f16.google.com ([209.85.217.16]:60385 "EHLO
+	mail-gx0-f16.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753357AbYH0Okf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Aug 2008 10:40:35 -0400
+Received: by gxk9 with SMTP id 9so3978374gxk.13
+        for <linux-acpi@vger.kernel.org>; Wed, 27 Aug 2008 07:40:34 -0700 (PDT)
+In-Reply-To: <617be8890808270739gdba5c46q6cae8c33668d6bba@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, Bob Moore <robert.moore@intel.com>, Andi Kleen <ak@linux.intel.com>, Lin Ming <ming.m.lin@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Wed, 27 Aug 2008, Matthew Garrett wrote:
+Hi,
+    I know this is and old topic, but I'd really like to know what's
+the state of the suspend-to-ram feature on this machine. Just to get
+things refreshed, this issue has to deal with the ACPI execution
+ordering, something related to how the different suspend phases are
+ordered differently between ACPI 1.0 and ACPI 2.0.
 
-> On Sat, Aug 02, 2008 at 05:28:45PM +0100, Carlos Corbacho wrote:
-> > ACPI: WMI: Set instance for query block calls
-> > 
-> > From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-> > 
-> > Although the necessary data structure was set up, it was never actually
-> > passed in, so data block calls have only been working by sheer chance.
-> 
-> Hm. Has this gone upstream? Looks pretty important for .27.
+Googling around I've seen that there was 2 new kernel parameters,
+acpi_new_pts_ordering and acpi_old_pts_ordering, but I don't know if
+they have been really commited to main kernel trunk. At least, in
+current Gentoo 2.6.25 kernel they are not defined anywhere...
 
-Yes, it's dab36ad8d50dc9424dfc4926f62aaf9bd52dcf13.
+Anyway, these are the symptoms I'm experiencing whenever I attempt to
+use S3 hibernation: the machine seems to enter a kind of strange
+"frozen" state, in which the CPU fan keeps turning and the power LED
+starts blinking at aproximately 1 Hz. However, the machine is really a
+dead-stone yet, and the only way to get it back is powering it off by
+holding down power button for 4s and then restarting.
 
-Sven
+This happens both when using 'hibernate-ram' script or new 's2ram' program.
+
+Best regards,
+  Eduard Huguet
