@@ -1,53 +1,45 @@
 From: Shaohua Li <shaohua.li@intel.com>
-Subject: [patch 1/11]avoid check _STA method
-Date: Thu, 28 Aug 2008 10:02:03 +0800
-Message-ID: <1219888923.29375.21.camel@sli10-desk.sh.intel.com>
+Subject: [patch 2/11]fix eject request process
+Date: Thu, 28 Aug 2008 10:02:41 +0800
+Message-ID: <1219888961.29375.24.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:10212 "EHLO mga14.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:32517 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752884AbYH1Bw0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 27 Aug 2008 21:52:26 -0400
+	id S1753278AbYH1BxB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 27 Aug 2008 21:53:01 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux acpi <linux-acpi@vger.kernel.org>
 Cc: Len Brown <lenb@kernel.org>, Andi Kleen <andi@firstfloor.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Holger Macht <hmacht@suse.de>, mjg59 <mjg59@srcf.ucam.org>, Tejun Heo <htejun@gmail.com>
 
-In some BIOSes, every _STA method call will send a notification again,
-this cause freeze. And in some BIOSes, it appears _STA should be called
-after _DCK. This tries to avoid calls _STA, and still keep the device
-present check.
-http://bugzilla.kernel.org/show_bug.cgi?id=10431
+commit 2a7feab28d3fc060d320eaba192e49dad1079b7e introduces a bug.
+My thinkpad actually will send an eject_request and we should follow the
+eject process to finish the eject, otherwise system still thinks the bay
+is present.
 
-Signed-off-by: Shaohua Li <shaohua.li@intel.com> 
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
 ---
- drivers/acpi/dock.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/acpi/dock.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
 Index: linux/drivers/acpi/dock.c
 ===================================================================
---- linux.orig/drivers/acpi/dock.c	2008-08-27 14:38:44.000000000 +0800
-+++ linux/drivers/acpi/dock.c	2008-08-28 09:33:02.000000000 +0800
-@@ -604,14 +604,17 @@ static int handle_eject_request(struct d
- static void dock_notify(acpi_handle handle, u32 event, void *data)
- {
- 	struct dock_station *ds = data;
-+	struct acpi_device *tmp;
+--- linux.orig/drivers/acpi/dock.c	2008-08-28 09:33:02.000000000 +0800
++++ linux/drivers/acpi/dock.c	2008-08-28 09:33:40.000000000 +0800
+@@ -575,11 +575,6 @@ static int handle_eject_request(struct d
+ 	 */
+ 	dock_event(ds, event, UNDOCK_EVENT);
  
- 	switch (event) {
- 	case ACPI_NOTIFY_BUS_CHECK:
--		if (!dock_in_progress(ds) && dock_present(ds)) {
-+		if (!dock_in_progress(ds) && acpi_bus_get_device(ds->handle,
-+		   &tmp)) {
- 			begin_dock(ds);
- 			dock(ds);
- 			if (!dock_present(ds)) {
- 				printk(KERN_ERR PREFIX "Unable to dock!\n");
-+				complete_dock(ds);
- 				break;
- 			}
- 			atomic_notifier_call_chain(&dock_notifier_list,
+-	if (!dock_present(ds)) {
+-		complete_undock(ds);
+-		return -ENODEV;
+-	}
+-
+ 	hotplug_dock_devices(ds, ACPI_NOTIFY_EJECT_REQUEST);
+ 	undock(ds);
+ 	eject_dock(ds);
 
 
