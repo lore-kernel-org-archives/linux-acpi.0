@@ -1,50 +1,73 @@
 From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: Re: How can a patch be merged upstream?
-Date: Thu, 28 Aug 2008 09:18:56 +0800
-Message-ID: <1219886336.4116.60.camel@yakui_zhao.sh.intel.com>
-References: <5f6f8c5f0808250726h4649ddferff1be82c7d6203ba@mail.gmail.com>
-	 <1219712802.4116.32.camel@yakui_zhao.sh.intel.com>
-	 <20080827230939.GF26610@one.firstfloor.org>
-	 <200808280011.24839.carlos@strangeworlds.co.uk>
-	 <20080827233728.GH26610@one.firstfloor.org>
+Subject: [PATCH]  ACPI:  Ignore AE_NOT_FOUND error of EC _REG method and
+	continue to initialize EC
+Date: Thu, 28 Aug 2008 09:29:04 +0800
+Message-ID: <1219886944.4116.64.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:58408 "EHLO mga11.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:59545 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752845AbYH1BDn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 27 Aug 2008 21:03:43 -0400
-In-Reply-To: <20080827233728.GH26610@one.firstfloor.org>
+	id S1752758AbYH1BNu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 27 Aug 2008 21:13:50 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>
-Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, "Joshua C." <joshuacov@googlemail.com>, linux-acpi@vger.kernel.org, lenb@kernel.org
+To: AndiKleen <andi@firstfloor.org>
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, joshuacov@googlemail.com
 
-On Thu, 2008-08-28 at 01:37 +0200, Andi Kleen wrote:
-> On Thu, Aug 28, 2008 at 12:11:23AM +0100, Carlos Corbacho wrote:
-> > On Thursday 28 August 2008 00:09:39 Andi Kleen wrote:
-> > > > Linux can't work normally while Windows can work on such broken BIOS. Of
-> > > > course the issue is related with the broken BIOS. The _REG object of EC
-> > > > device is incorrect, which causes that EC device can't be initialized
-> > > > correctly.
-> > > > After this workaround patch is applied, Linux can also work. IMO this
-> > > > workaround patch is reasonable.
-> > >
-> > > Can you please submit it with proper description?
-> > 
-> > It might also be worth CC'ing this patch (in its final form) to stable@.
-> 
-> I don't think it's stable material because it doesn't fix a serious Linux
-> bug.
-This workaround patch is meaning for the broken BIOS with the incorrect
-the definition of EC _REG object. And it won't break other normal
-laptop.
+Subject:ACPI: Ignore AE_NOT_FOUND error of EC _REG method and continue to initialize EC 
+From: Zhao Yakui <yakui.zhao@intel.com>
 
-Maybe that Linux can't work on such broken BIOS is caused by that the
-check on Linux is stricter than windows.
+On some broken BIOS the ACPI object in EC _REG method can't be found in
+ACPI namespace, which causes that the status code of AE_NOT_FOUND is returned by
+the EC _REG object. In such case the EC device can't be initialized correctly, 
+which causes that battery/AC adapter can't work normally. As the EC address
+space handler is not removed and the memory pointed by its input argument is
+already free, sometimes the kernel will also be panic when EC internal register
+is still accessed. But the windows can work well on such broken BIOS.
 
+Maybe it will be reasonable that OS ignores the AE_NOT_FOUND error 
+returned by the EC _REG object and continues to initialize EC device 
+on some broken BIOS. 
+For example: the ACPI object in EC _REG method can't be found and status error
+code is AE_NOT_FOUND. 
 
-> 
-> -Andi
+http://bugzilla.kernel.org/show_bug.cgi?id=8953
+http://bugzilla.kernel.org/show_bug.cgi?id=10237
+
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+
+---
+ drivers/acpi/ec.c |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
+
+Index: linux-2.6/drivers/acpi/ec.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/ec.c
++++ linux-2.6/drivers/acpi/ec.c
+@@ -862,8 +862,19 @@ static int ec_install_handlers(struct ac
+ 						    &acpi_ec_space_handler,
+ 						    NULL, ec);
+ 	if (ACPI_FAILURE(status)) {
+-		acpi_remove_gpe_handler(NULL, ec->gpe, &acpi_ec_gpe_handler);
+-		return -ENODEV;
++		if (status == AE_NOT_FOUND) {
++			/*
++			 * Maybe OS fails in evaluating the _REG object.
++			 * The AE_NOT_FOUND error will be ignored and OS
++			 * continue to initialize EC.
++			 */
++			printk(KERN_ERR "Fail in evaluating the _REG object"
++				" of EC device. Broken bios is suspected.\n");
++		} else {
++			acpi_remove_gpe_handler(NULL, ec->gpe,
++				&acpi_ec_gpe_handler);
++			return -ENODEV;
++		}
+ 	}
+ 
+ 	ec->handlers_installed = 1;
+
 
