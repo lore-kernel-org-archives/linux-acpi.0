@@ -1,51 +1,47 @@
-From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-Subject: [RESEND] [PATCH] fujitsu-laptop: fix regression for P8010 in 2.6.27-rc
-Date: Fri, 29 Aug 2008 11:06:21 +0930 (CST)
-Message-ID: <200808290136.m7T1aMKV021585@turbo.physics.adelaide.edu.au>
+From: Tejun Heo <htejun@gmail.com>
+Subject: Re: Regression: SATA disk double spin-off during hibernation on hp
+ nx6325
+Date: Fri, 29 Aug 2008 12:03:37 +0200
+Message-ID: <48B7C979.1000606@gmail.com>
+References: <200808290002.55026.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-2
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:53281 "EHLO
-	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750845AbYH2Bg1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 28 Aug 2008 21:36:27 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <200808290002.55026.rjw@sisk.pl>
+Sender: linux-ide-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-ide@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Robert Hancock <hancockr@shaw.ca>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, ak@linux.intel.com
-Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
 
-Hi Andi
+Hello,
 
-The following patch (based on a patch from Stephen Gildea) fixes a
-regression with the LCD brightness keys on Fujitsu P8010 laptops which was
-observed with the 2.6.27-rc series (basically they stopped working due to
-changes within the fujitsu-laptop and video modules).  Please apply to
-2.6.27-rc and acpi git.
+Rafael J. Wysocki wrote:
+> It appears that the "double spin-off" problem described in
+> 
+> http://bugzilla.kernel.org/show_bug.cgi?id=8855
+> 
+> has recently started to appear during hibernation as well as during shutdown.
+> It didn't appear during hibernation on my hp nx6325 with 2.6.26, so this is a
+> recent regression.
+> 
+> I have prepared the appended patch that fixes the problem for me, based on the
+>  earlier Tejun's patch at
+> 
+> http://bugzilla.kernel.org/attachment.cgi?id=15441&action=view
+> 
+> but I'm not really sure if this is an acceptable solution.  Please advise.
+> 
+> Thanks,
+> Rafael
+> 
+> 
+> not-yet-signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 
-A more complete solution for this laptop will be included in an upcoming
-patch, hopefully for 2.6.28.  In the meantime this restores most
-functionality for P8010 users.
+The libata part looks fine to me but what are those SYSTEM_SUSPEND_DISK
+stuff?  They don't look like belonging to this patch.
 
-Signed-off-by: Stephen Gildea <stepheng+fujitsu-laptop@gildea.com>
-Signed-off-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Thanks.
 
-Thanks
-  jonathan
-
---- linux-2.6.27-rc4-orig/drivers/misc/fujitsu-laptop.c	2008-08-27 09:38:11.220532000 +0930
-+++ linux-2.6.27-rc4/drivers/misc/fujitsu-laptop.c	2008-08-27 09:48:37.811194368 +0930
-@@ -463,6 +463,13 @@ static struct dmi_system_id __initdata f
- 		     DMI_MATCH(DMI_PRODUCT_NAME, "LIFEBOOK S6410"),
- 		     },
- 	 .callback = dmi_check_cb_s6410},
-+	{
-+	 .ident = "FUJITSU LifeBook P8010",
-+	 .matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "FUJITSU"),
-+		     DMI_MATCH(DMI_PRODUCT_NAME, "LifeBook P8010"),
-+		    },
-+	 .callback = dmi_check_cb_s6410},
- 	{}
- };
+-- 
+tejun
