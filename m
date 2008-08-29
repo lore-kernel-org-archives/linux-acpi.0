@@ -1,104 +1,82 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH] Documentation: Provide Documenation/udev.txt
-Date: Fri, 29 Aug 2008 17:05:37 +0200
-Message-ID: <200808291705.38954.trenn@suse.de>
-References: <20080205021658.4422.83165.stgit@pacifica> <200808272121.54882.carlos@strangeworlds.co.uk> <20080827204449.GA14925@srcf.ucam.org>
+Subject: Re: [patch 1/11]avoid check _STA method
+Date: Fri, 29 Aug 2008 17:19:15 +0200
+Message-ID: <200808291719.17266.trenn@suse.de>
+References: <1219888923.29375.21.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:51983 "EHLO mx2.suse.de"
+Received: from cantor.suse.de ([195.135.220.2]:34660 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750871AbYH2PFl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 29 Aug 2008 11:05:41 -0400
-In-Reply-To: <20080827204449.GA14925@srcf.ucam.org>
+	id S1750817AbYH2PTU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 29 Aug 2008 11:19:20 -0400
+In-Reply-To: <1219888923.29375.21.camel@sli10-desk.sh.intel.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Kay Sievers <kay.sievers@vrfy.org>
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Andi Kleen <andi@firstfloor.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Holger Macht <hmacht@suse.de>, mjg59 <mjg59@srcf.ucam.org>, Tejun Heo <htejun@gmail.com>
 
-Subject was:
-Re: [PATCH 4/5] ACPI: WMI: Add sysfs userspace interface
+Hi,
 
-On Wednesday 27 August 2008 22:44:49 Matthew Garrett wrote:
-> On Wed, Aug 27, 2008 at 09:21:54PM +0100, Carlos Corbacho wrote:
-> > Can we abuse uevent and cram all the GUID's into just one MODALIAS line?
->
-> Looking at the udev rules, I suspect we need one event per GUID.
->
-> > Alternatively, maybe just have the directories numbered 1 to X, and have
-> > a uevent file under each, since we don't care about trying to abuse sysfs
-> > to let userspace talk to WMI anymore.
->
-> Yeah, that'd work for me.
+could this patchset eventually help here:
+kacpi* eat a lot of cpu after s2disk
+https://bugzilla.novell.com/show_bug.cgi?id=401740
+This seem to happen on all recent Dells.
 
-You should add Kay if you get stuck...
-Based on Kay's recent description on the linux-acpi list I set up
-this documentation. IMO it's worth adding, Andi, Kay?
+Shaohua Li, Andi: Can you keep me up to date about these patches, pls
+
+If Andi thinks they are suitable for mainline, I'd like to
+add them to our recent codebase.
+Or is there a chance that these (or some critical ones) go into
+.27-rcX?
+
+Thanks,
 
       Thomas
 
------
-From: Kay Sievers <kay.sievers@vrfy.org>
-Documentation: Add udev.txt based on Kay's short summary
+On Thursday 28 August 2008 04:02:03 Shaohua Li wrote:
+> In some BIOSes, every _STA method call will send a notification again,
+> this cause freeze. And in some BIOSes, it appears _STA should be called
+> after _DCK. This tries to avoid calls _STA, and still keep the device
+> present check.
+> http://bugzilla.kernel.org/show_bug.cgi?id=10431
+>
+> Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+> ---
+>  drivers/acpi/dock.c |    5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+>
+> Index: linux/drivers/acpi/dock.c
+> ===================================================================
+> --- linux.orig/drivers/acpi/dock.c	2008-08-27 14:38:44.000000000 +0800
+> +++ linux/drivers/acpi/dock.c	2008-08-28 09:33:02.000000000 +0800
+> @@ -604,14 +604,17 @@ static int handle_eject_request(struct d
+>  static void dock_notify(acpi_handle handle, u32 event, void *data)
+>  {
+>  	struct dock_station *ds = data;
+> +	struct acpi_device *tmp;
+>
+>  	switch (event) {
+>  	case ACPI_NOTIFY_BUS_CHECK:
+> -		if (!dock_in_progress(ds) && dock_present(ds)) {
+> +		if (!dock_in_progress(ds) && acpi_bus_get_device(ds->handle,
+> +		   &tmp)) {
+>  			begin_dock(ds);
+>  			dock(ds);
+>  			if (!dock_present(ds)) {
+>  				printk(KERN_ERR PREFIX "Unable to dock!\n");
+> +				complete_dock(ds);
+>  				break;
+>  			}
+>  			atomic_notifier_call_chain(&dock_notifier_list,
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Signed-off-by: Thomas Renninger <trenn@suse.de>
 
-diff --git a/Documentation/00-INDEX b/Documentation/00-INDEX
-index 5b5aba4..ce9dd7a 100644
---- a/Documentation/00-INDEX
-+++ b/Documentation/00-INDEX
-@@ -361,6 +361,8 @@ time_interpolators.txt
- 	- info on time interpolators.
- tty.txt
- 	- guide to the locking policies of the tty layer.
-+udev.txt
-+	- How autoloading of modules work.
- uml/
- 	- directory with information about User Mode Linux.
- unicode.txt
-diff --git a/Documentation/udev.txt b/Documentation/udev.txt
-new file mode 100644
-index 0000000..ceb0e40
---- /dev/null
-+++ b/Documentation/udev.txt
-@@ -0,0 +1,37 @@
-+Maintainer of udev: Kay Sievers <kay.sievers@vrfy.org>
-+
-+Abstract:
-+This is about getting a specific driver automatically loaded
-+at boot time via udev. Depending on whether the kernel detects
-+that the HW, the driver is supporting, is available.
-+
-+
-+Devices, any kind of device, can export a match, based on specific
-+properties of the subsystem it belongs to. In most cases its the same
-+property/id that is used inside the kernel, to find a (already loaded)
-+driver which will bind this device. 
-+
-+Any unique string, hardware ID's, whatever, are stuffed into a modalias,
-+prefixed by "<subsystem>:" to be unique.
-+
-+PCI and USB are pretty obvious, they just stuff all their hardware ID'S
-+into a string, in a defined order, and let every device export that value
-+to userspace by MODALIAS environment key and the "modalias" sysfs file.
-+Other subsystem may have simple strings to match, they define
-+themselves.
-+
-+Now, the drivers contain "match id tables" which are used by the core
-+to bind devices to drivers. These tables area made available to
-+file2alias.c in the module postprocessing, and will end up in the
-+module file itself. The string is mangled to contain wildcards, so
-+they can just be fnmatch()'d against the modalias value, which the
-+devices export.
-+
-+The string embedded in the modules are extracted by depmod, and put
-+into the modules.aliases file in /lib/modules/. Every time modprobe
-+is called with an alias, it searches through this file and loads all
-+modules which contained a matching alias string.
-+
-+Udev does nothing but stupidly running modprobe for every device which
-+contains MODALIAS in the event environment, and passes $MODALIAS as
-+an argument to modprobe.
