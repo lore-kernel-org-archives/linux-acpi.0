@@ -1,35 +1,54 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH] Documentation: Provide Documenation/udev.txt
-Date: Fri, 29 Aug 2008 17:35:17 +0200
-Message-ID: <200808291735.18351.trenn@suse.de>
-References: <20080205021658.4422.83165.stgit@pacifica> <200808291705.38954.trenn@suse.de> <1220023857.24737.52.camel@lgn.site>
+From: Alexander Beregalov <a.beregalov@gmail.com>
+Subject: [PATCH] ACPI: no more users of acpi_is_child_device
+Date: Sat, 30 Aug 2008 02:01:59 +0400
+Message-ID: <20080829220159.GA1257@orion>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns2.suse.de ([195.135.220.15]:55101 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750727AbYH2PfT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 29 Aug 2008 11:35:19 -0400
-In-Reply-To: <1220023857.24737.52.camel@lgn.site>
+Received: from fg-out-1718.google.com ([72.14.220.157]:13979 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751469AbYH2WCJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Aug 2008 18:02:09 -0400
+Received: by fg-out-1718.google.com with SMTP id 19so650401fgg.17
+        for <linux-acpi@vger.kernel.org>; Fri, 29 Aug 2008 15:02:07 -0700 (PDT)
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Carlos Corbacho <carlos@strangeworlds.co.uk>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: ak@linux.intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, yakui.zhao@intel.com, shaohua.li@intel.com, rui.zhang@intel.com
 
-On Friday 29 August 2008 17:30:57 Kay Sievers wrote:
-> On Fri, 2008-08-29 at 17:05 +0200, Thomas Renninger wrote:
-...
-> Oh, that sounds a bit too much like "talking". I guess, it should be
-> rewritten, before it goes into the Documentation directory. :)
 
-It's better than nothing.
-I won't rewrite it. I lost too much time already the last days with
-descriptions.
+ The only use of acpi_is_child_device() was removed by
+ ba2058572ac27e3a8a0ca570dab0cf70b210cdb1
+ (ACPI : Load device driver according to the status of acpi device)
 
-I mean, if you read it, you know how it works?
-No need to provide a formal perfect paper?
+Signed-off-by: Alexander Beregalov <a.beregalov@gmail.com>
+---
 
-     Thomas
+ drivers/acpi/scan.c |   14 --------------
+ 1 files changed, 0 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 78e164f..ca23f10 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -1131,20 +1131,6 @@ static int acpi_bus_remove(struct acpi_device *dev, int rmdevice)
+ }
+ 
+ static int
+-acpi_is_child_device(struct acpi_device *device,
+-			int (*matcher)(struct acpi_device *))
+-{
+-	int result = -ENODEV;
+-
+-	do {
+-		if (ACPI_SUCCESS(matcher(device)))
+-			return AE_OK;
+-	} while ((device = device->parent));
+-
+-	return result;
+-}
+-
+-static int
+ acpi_add_single_object(struct acpi_device **child,
+ 		       struct acpi_device *parent, acpi_handle handle, int type,
+ 			struct acpi_bus_ops *ops)
