@@ -1,45 +1,51 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Suspend to RAM in an Asus P1-AH2
-Date: Sat, 30 Aug 2008 22:04:18 +0200
-Message-ID: <200808302204.19338.rjw@sisk.pl>
-References: <617be8890808270739gdba5c46q6cae8c33668d6bba@mail.gmail.com> <200808272215.15035.rjw@sisk.pl> <617be8890808290321s6a9ec689r5a71c78f1fea86cb@mail.gmail.com>
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: Introduce interface to report BIOS bugs (reworked, FW_BUG simple solution)
+Date: Sat, 30 Aug 2008 15:15:48 +0200
+Message-ID: <20080830131547.GB7862@ucw.cz>
+References: <200808210919.07642.bjorn.helgaas@hp.com> <1219843631-26015-1-git-send-email-trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:57725 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752552AbYH3UAZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 30 Aug 2008 16:00:25 -0400
-In-Reply-To: <617be8890808290321s6a9ec689r5a71c78f1fea86cb@mail.gmail.com>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:1158 "EHLO spitz.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754829AbYH3Vv0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 30 Aug 2008 17:51:26 -0400
 Content-Disposition: inline
+In-Reply-To: <1219843631-26015-1-git-send-email-trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Eduard Huguet <eduardhc@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: ak@linux.intel.com, bjorn.helgaas@hp.com, linux-kernel@vger.kernel.org, arjan@linux.intel.com, linux-acpi@vger.kernel.org, ckornacker@suse.de
 
-On Friday, 29 of August 2008, Eduard Huguet wrote:
-> Hi,
->     I've tested the current git-sources-2.6.27-rc4 on Gentoo with the
-> suggested ACPI setting at kernel boot. Although the results are not
-> exactly satisfactory, at least they are different: now, when using
-> hibernate-ram the machine seems to effectively hibernate (entering S3
-> state), as I can hear how the hard disk is parked and the CPU fan
-> stops (which was not happening before...). Brief, the machine would
-> look simply "powered off" if weren't by the power led, that keeps
-> blinking at 1 Hz. I guess this is how S3 state should look like in
-> this machine, shouldn't it...?
+On Wed 2008-08-27 15:27:08, Thomas Renninger wrote:
+> Even simplier, using FW_BUG define. I agree that the first implementation
+> was over-designed, I somehow liked the printk_fw_err() and printk_fw_info()
+> more, looked somehow more consistent with:
 > 
-> However, pressing again the power button doesn't seem to resume from
-> RAM, instead the machine simply boots up normally (using previous
-> kernels, pushing power button did nothing, as the machine was dead - I
-> had to power it off manually and boot).
+> #define pr_info(fmt, arg...) \
+>         printk(KERN_INFO fmt, ##arg)
+> (and others).
 > 
-> Am I missing something...?
+> Hmm, it shouldn't really matter.
+> I wonder whether it works out that messages are hidden to the ordinary
+> user with printk(KERN_INFO FW_BUG...).
+> Something that vendors get an idea that they should not do this, but
+> hiding it on a normally booted system is needed (but e.g. show it on a
+> linuxfirmwarekit booted kernel).
+> 
+> printk(KERN_DEBUG FW_BUG...)
+> Won't work because there you get too much output?
+> Are these patches sufficient to achieve above?
+> 
+>       Thomas
+> 
+> PS: Forgot to add Pavel to CC who also commented on previous patches,
+> it's work to do it right now, I expect you read this anyway.
 
-Do you have CONFIG_FTRACE set, by chance?  If you do, please unset it and
-retest.
+Pavel listens, but sees no patch on either this or followup mail.
 
-Thanks,
-Rafael
+								Pavel
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
