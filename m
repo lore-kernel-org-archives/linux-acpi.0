@@ -1,71 +1,44 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [RFC] acer-wmi: Add rfkill support for wireless and bluetooth
-	(v2)
-Date: Sun, 31 Aug 2008 10:36:31 -0300
-Message-ID: <20080831133631.GA9794@khazad-dum.debian.net>
-References: <200808301206.56279.carlos@strangeworlds.co.uk> <20080830140730.GB12246@khazad-dum.debian.net> <200808301654.03329.carlos@strangeworlds.co.uk>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [ANNOUNCE] ACPI BIOS Guideline for Linux
+Date: Sun, 31 Aug 2008 15:18:24 +0200
+Message-ID: <200808311518.25421.trenn@suse.de>
+References: <200807241732.23412.trenn@suse.de> <200808291729.53628.trenn@suse.de> <20080830124713.GA5910@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out3.smtp.messagingengine.com ([66.111.4.27]:41253 "EHLO
-	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751868AbYHaNgi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 31 Aug 2008 09:36:38 -0400
+Received: from ns1.suse.de ([195.135.220.2]:45281 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752689AbYHaROM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 31 Aug 2008 13:14:12 -0400
+In-Reply-To: <20080830124713.GA5910@srcf.ucam.org>
 Content-Disposition: inline
-In-Reply-To: <200808301654.03329.carlos@strangeworlds.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Cc: linux-acpi@vger.kernel.org, linux-wireless@vger.kernel.org, Ivo van Doorn <ivdoorn@gmail.com>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Andi Kleen <ak@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Sat, 30 Aug 2008, Carlos Corbacho wrote:
-> +static void device##_rfkill_update(struct work_struct *ignored) \
-> +{ \
-> +	u32 state; \
-> +	acpi_status status; \
-> +	status = get_u32(&state, cap); \
-> +	\
-> +	if (ACPI_SUCCESS(status)) \
-> +		rfkill_force_state(device##_rfkill, state); \
-> +	queue_delayed_work(rfkill_workqueue, &device##_rfkill_work, \
-> +		round_jiffies_relative(HZ)); \
-> +}
+On Saturday 30 August 2008 02:47:13 pm Matthew Garrett wrote:
+> On Fri, Aug 29, 2008 at 05:29:52PM +0200, Thomas Renninger wrote:
+> > On Thursday 28 August 2008 14:22:29 Matthew Garrett wrote:
+> > > Little. But what advantage do we get in the same functionality being
+> > > implemented in an entirely custom way? Even less.
+> >
+> > It is all about documentation, right.
+> > WMI is complicating things by one needless and complicated layer.
+>
+> Not really. It provides approximately no complexity for Linux drivers,
+> and makes it easier for vendors to provide Windows support. WMI has not
+> been the hard bit of the drivers I've written. I don't see any reason to
+> ask vendors not to use it,
+Autoloading does not work yet?
+It is working fine with ordinary ACPI devices providing a HID.
+> as long as they're willing to document their 
+> implementation.
+I'll point that out, something like:
+If you really have to use WMI for Windows compatibility reason, make
+sure the important parts (is there already something to mention?
+Against what is the driver loaded -> autoloading?) are documented well.
 
-You are still doing state = (int);  rfkill_force_state(foo, state);
-
-Please do a rfkill_force_state(foo, state ? RFKILL_STATE_UNBLOCKED :
-					RFKILL_STATE_SOFT_BLOCKED);
-
-or whatever is correct for what the values of (state) mean.
-
-> +	err = rfkill_register(wireless_rfkill);
-> +	if (err)
-> +		return err;
-
-You have to manually dealocate wireless_rfkill on the error path here using
-rfkill_free (and maybe set it to NULL to avoid double-free or somesuch), or
-you will leak memory.
-
-I heavily suggest re-reading the kernel doc info for every rfkill function
-you're using.  They're well described and documented, including caveats such
-as the one above.
-
-> +	if (!rfkill_workqueue)
-> +		return -ENOMEM;
-
-Needs to dealocate the stuff you alocated, unless the caller will do so.
-
-> +	destroy_workqueue(rfkill_workqueue);
-> +	rfkill_unregister(wireless_rfkill);
-> +	rfkill_free(wireless_rfkill);
-
-I know it is somewhat surprising, but you must never rfkill_free something
-you have called rfkill_unregister on.  You use rfkill_free only to get rid
-of memory when rfkill_register fails.
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+      Thomas
