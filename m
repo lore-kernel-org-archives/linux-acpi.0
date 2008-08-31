@@ -1,530 +1,71 @@
-From: =?ISO-8859-1?Q?Johan_K=E4nng=E5rd?= <johan@kanngard.net>
-Subject: dmidecode info for Clevo M570TU laptop
-Date: Sun, 31 Aug 2008 02:00:09 +0200
-Message-ID: <48B9DF09.9040706@kanngard.net>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [RFC] acer-wmi: Add rfkill support for wireless and bluetooth
+	(v2)
+Date: Sun, 31 Aug 2008 10:36:31 -0300
+Message-ID: <20080831133631.GA9794@khazad-dum.debian.net>
+References: <200808301206.56279.carlos@strangeworlds.co.uk> <20080830140730.GB12246@khazad-dum.debian.net> <200808301654.03329.carlos@strangeworlds.co.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig998E84E7E0FFF09485D98CE2"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gamma.teknikbyran.com ([78.108.48.35]:34899 "EHLO
-	gamma.teknikbyran.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754003AbYHaAWs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 30 Aug 2008 20:22:48 -0400
-Received: from kanngard.net (tb78-108-50-55.cust.teknikbyran.com [78.108.50.55])
-	by gamma.teknikbyran.com (8.14.1/8.14.1) with ESMTP id m7V00CgV000551
-	for <linux-acpi@vger.kernel.org>; Sun, 31 Aug 2008 02:00:12 +0200
+Received: from out3.smtp.messagingengine.com ([66.111.4.27]:41253 "EHLO
+	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751868AbYHaNgi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 31 Aug 2008 09:36:38 -0400
+Content-Disposition: inline
+In-Reply-To: <200808301654.03329.carlos@strangeworlds.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Cc: linux-acpi@vger.kernel.org, linux-wireless@vger.kernel.org, Ivo van Doorn <ivdoorn@gmail.com>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig998E84E7E0FFF09485D98CE2
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Sat, 30 Aug 2008, Carlos Corbacho wrote:
+> +static void device##_rfkill_update(struct work_struct *ignored) \
+> +{ \
+> +	u32 state; \
+> +	acpi_status status; \
+> +	status = get_u32(&state, cap); \
+> +	\
+> +	if (ACPI_SUCCESS(status)) \
+> +		rfkill_force_state(device##_rfkill, state); \
+> +	queue_delayed_work(rfkill_workqueue, &device##_rfkill_work, \
+> +		round_jiffies_relative(HZ)); \
+> +}
 
-/var/log/dmesg wanted me to send you the information below to this list.
-The hardware is described at:
-http://www.clevo.com.tw/en/products/prodinfo_2.asp?productid=3D83
-Running Ubuntu 8.04 with no problems (yet)...
+You are still doing state = (int);  rfkill_force_state(foo, state);
 
-Please let me know if any needed information is missing!
+Please do a rfkill_force_state(foo, state ? RFKILL_STATE_UNBLOCKED :
+					RFKILL_STATE_SOFT_BLOCKED);
 
-Regards,
+or whatever is correct for what the values of (state) mean.
 
-Johan K=E4nng=E5rd
-johan@kanngard.net
-http://johankanngard.net
+> +	err = rfkill_register(wireless_rfkill);
+> +	if (err)
+> +		return err;
 
+You have to manually dealocate wireless_rfkill on the error path here using
+rfkill_free (and maybe set it to NULL to avoid double-free or somesuch), or
+you will leak memory.
 
-[   23.176648] ACPI: BIOS _OSI(Linux) query ignored
-[   23.176649] ACPI: DMI System Vendor: CLEVO CO.
-[   23.176650] ACPI: DMI Product Name: M570TU
-[   23.176651] ACPI: DMI Product Version: Not Applicable
-[   23.176652] ACPI: DMI Board Name: M570TU
-[   23.176653] ACPI: DMI BIOS Vendor: Phoenix Technologies LTD
-[   23.176654] ACPI: DMI BIOS Date: 07/24/2008
-[   23.176655] ACPI: Please send DMI info above to
-linux-acpi@vger.kernel.org
+I heavily suggest re-reading the kernel doc info for every rfkill function
+you're using.  They're well described and documented, including caveats such
+as the one above.
 
+> +	if (!rfkill_workqueue)
+> +		return -ENOMEM;
 
-# dmidecode 2.9
-SMBIOS 2.5 present.
-43 structures occupying 1512 bytes.
-Table at 0xBFCC0000.
+Needs to dealocate the stuff you alocated, unless the caller will do so.
 
-Handle 0x0000, DMI type 0, 24 bytes
-BIOS Information
-    Vendor: Phoenix Technologies LTD
-    Version: 1.00.05
-    Release Date: 07/24/2008
-    Address: 0xE53F0
-    Runtime Size: 109584 bytes
-    ROM Size: 1024 kB
-    Characteristics:
-        ISA is supported
-        PCI is supported
-        PC Card (PCMCIA) is supported
-        PNP is supported
-        BIOS is upgradeable
-        BIOS shadowing is allowed
-        ESCD support is available
-        Boot from CD is supported
-        Selectable boot is supported
-        8042 keyboard services are supported (int 9h)
-        CGA/mono video services are supported (int 10h)
-        ACPI is supported
-        USB legacy is supported
-        AGP is supported
-        Smart battery is supported
-        BIOS boot specification is supported
-        Targeted content distribution is supported
-    BIOS Revision: 1.33
+> +	destroy_workqueue(rfkill_workqueue);
+> +	rfkill_unregister(wireless_rfkill);
+> +	rfkill_free(wireless_rfkill);
 
-Handle 0x0001, DMI type 1, 27 bytes
-System Information
-    Manufacturer: CLEVO CO.
-    Product Name: M570TU
-    Version: Not Applicable
-    Serial Number: Not Applicable
-    UUID: 0090F56D-4C04-0000-0000-000000000000
-    Wake-up Type: Power Switch
-    SKU Number: Not Specified
-    Family: Not Specified
+I know it is somewhat surprising, but you must never rfkill_free something
+you have called rfkill_unregister on.  You use rfkill_free only to get rid
+of memory when rfkill_register fails.
 
-Handle 0x0002, DMI type 2, 8 bytes
-Base Board Information
-    Manufacturer: CLEVO CO.
-    Product Name: M570TU
-    Version: Not Applicable
-    Serial Number: Not Applicable
-
-Handle 0x0003, DMI type 3, 17 bytes
-Chassis Information
-    Manufacturer: No Enclosure
-    Type: Laptop
-    Lock: Not Present
-    Version: N/A
-    Serial Number: None
-    Asset Tag: No Asset Tag
-    Boot-up State: Safe
-    Power Supply State: Safe
-    Thermal State: Safe
-    Security Status: None
-    OEM Information: 0x00001234
-
-Handle 0x0004, DMI type 4, 40 bytes
-Processor Information
-    Socket Designation: U22
-    Type: Central Processor
-    Family: <OUT OF SPEC>
-    Manufacturer: Intel
-    ID: 76 06 01 00 FF FB EB BF
-    Version: CPU Version
-    Voltage: 1.2 V
-    External Clock: Unknown
-    Max Speed: 4096 MHz
-    Current Speed: 2600 MHz
-    Status: Populated, Enabled
-    Upgrade: ZIF Socket
-    L1 Cache Handle: 0x0005
-    L2 Cache Handle: 0x0006
-    L3 Cache Handle: Not Provided
-    Serial Number: Not Specified
-    Asset Tag: Not Specified
-    Part Number: Not Specified
-    Core Count: 2
-    Core Enabled: 2
-    Thread Count: 2
-    Characteristics:
-        64-bit capable
-
-Handle 0x0005, DMI type 7, 19 bytes
-Cache Information
-    Socket Designation: L1 Cache
-    Configuration: Enabled, Not Socketed, Level 1
-    Operational Mode: Write Back
-    Location: Internal
-    Installed Size: 64 KB
-    Maximum Size: 64 KB
-    Supported SRAM Types:
-        Burst
-        Pipeline Burst
-        Asynchronous
-    Installed SRAM Type: Asynchronous
-    Speed: Unknown
-    Error Correction Type: Unknown
-    System Type: Unknown
-    Associativity: Unknown
-
-Handle 0x0006, DMI type 7, 19 bytes
-Cache Information
-    Socket Designation: L2 Cache
-    Configuration: Enabled, Not Socketed, Level 2
-    Operational Mode: Write Back
-    Location: Internal
-    Installed Size: 6144 KB
-    Maximum Size: 4096 KB
-    Supported SRAM Types:
-        Burst
-        Pipeline Burst
-        Asynchronous
-    Installed SRAM Type: Burst
-    Speed: Unknown
-    Error Correction Type: Unknown
-    System Type: Unknown
-    Associativity: Unknown
-
-Handle 0x0007, DMI type 8, 9 bytes
-Port Connector Information
-    Internal Reference Designator: HDMI1
-    Internal Connector Type: None
-    External Reference Designator: HDMI
-    External Connector Type: Other
-    Port Type: Video Port
-
-Handle 0x0008, DMI type 8, 9 bytes
-Port Connector Information
-    Internal Reference Designator: JDVI1
-    Internal Connector Type: None
-    External Reference Designator: DVI
-    External Connector Type: Other
-    Port Type: Video Port
-
-Handle 0x0009, DMI type 8, 9 bytes
-Port Connector Information
-    Internal Reference Designator: JSPK1
-    Internal Connector Type: None
-    External Reference Designator: SPDIF Out
-    External Connector Type: Other
-    Port Type: Audio Port
-
-Handle 0x000A, DMI type 8, 9 bytes
-Port Connector Information
-    Internal Reference Designator: J_MICT1
-    Internal Connector Type: None
-    External Reference Designator: MIC In
-    External Connector Type: Other
-    Port Type: Audio Port
-
-Handle 0x000B, DMI type 8, 9 bytes
-Port Connector Information
-    Internal Reference Designator: JHP1
-    Internal Connector Type: None
-    External Reference Designator: Headphone
-    External Connector Type: Mini Jack (headphones)
-    Port Type: Audio Port
-
-Handle 0x000C, DMI type 8, 9 bytes
-Port Connector Information
-    Internal Reference Designator: JCOMBO1
-    Internal Connector Type: None
-    External Reference Designator: USB Port0
-    External Connector Type: Access Bus (USB)
-    Port Type: USB
-
-Handle 0x000D, DMI type 8, 9 bytes
-Port Connector Information
-    Internal Reference Designator: JCOMBO1
-    Internal Connector Type: None
-    External Reference Designator: USB Port1
-    External Connector Type: Access Bus (USB)
-    Port Type: USB
-
-Handle 0x000E, DMI type 8, 9 bytes
-Port Connector Information
-    Internal Reference Designator: VJUSB2
-    Internal Connector Type: None
-    External Reference Designator: USB Port2
-    External Connector Type: Access Bus (USB)
-    Port Type: USB
-
-Handle 0x000F, DMI type 8, 9 bytes
-Port Connector Information
-    Internal Reference Designator: VJUSB1
-    Internal Connector Type: None
-    External Reference Designator: USB Port3
-    External Connector Type: Access Bus (USB)
-    Port Type: USB
-
-Handle 0x0010, DMI type 8, 9 bytes
-Port Connector Information
-    Internal Reference Designator: JCOMBO1
-    Internal Connector Type: None
-    External Reference Designator: eSATA
-    External Connector Type: Other
-    Port Type: Other
-
-Handle 0x0011, DMI type 8, 9 bytes
-Port Connector Information
-    Internal Reference Designator: JMDC1
-    Internal Connector Type: None
-    External Reference Designator: Modem
-    External Connector Type: RJ-11
-    Port Type: Modem Port
-
-Handle 0x0012, DMI type 8, 9 bytes
-Port Connector Information
-    Internal Reference Designator: JLAN1
-    Internal Connector Type: None
-    External Reference Designator: Giga Lan
-    External Connector Type: RJ-45
-    Port Type: Network Port
-
-Handle 0x0013, DMI type 8, 9 bytes
-Port Connector Information
-    Internal Reference Designator: CJREADER1
-    Internal Connector Type: None
-    External Reference Designator: Card Reader
-    External Connector Type: Other
-    Port Type: Other
-
-Handle 0x0014, DMI type 8, 9 bytes
-Port Connector Information
-    Internal Reference Designator: J1394PORT1
-    Internal Connector Type: None
-    External Reference Designator: IEEE 1394
-    External Connector Type: IEEE 1394
-    Port Type: Firewire (IEEE P1394)
-
-Handle 0x0015, DMI type 9, 13 bytes
-System Slot Information
-    Designation: PEG Slot JMXM1
-    Type: 32-bit PCI Express
-    Current Usage: In Use
-    Length: Long
-    ID: 6
-    Characteristics:
-        3.3 V is provided
-
-Handle 0x0016, DMI type 9, 13 bytes
-System Slot Information
-    Designation: PCI Express Slot JMINI1
-    Type: 32-bit PCI Express
-    Current Usage: In Use
-    Length: Long
-    ID: 7
-    Characteristics:
-        3.3 V is provided
-
-Handle 0x0017, DMI type 9, 13 bytes
-System Slot Information
-    Designation: PCI Express Slot JNEW1
-    Type: 32-bit PCI Express
-    Current Usage: Available
-    Length: Long
-    ID: 8
-    Characteristics:
-        3.3 V is provided
-
-Handle 0x0018, DMI type 9, 13 bytes
-System Slot Information
-    Designation: PCI Express Slot JMINI2
-    Type: 32-bit PCI Express
-    Current Usage: In Use
-    Length: Long
-    ID: 9
-    Characteristics:
-        3.3 V is provided
-
-Handle 0x0019, DMI type 9, 13 bytes
-System Slot Information
-    Designation: PCI Express Slot JMINI3
-    Type: 32-bit PCI Express
-    Current Usage: Available
-    Length: Long
-    ID: 10
-    Characteristics:
-        3.3 V is provided
-
-Handle 0x001A, DMI type 10, 8 bytes
-On Board Device 1 Information
-    Type: Sound
-    Status: Disabled
-    Description: HD-Audio
-On Board Device 2 Information
-    Type: Ethernet
-    Status: Disabled
-    Description: Giga Lan
-
-Handle 0x001B, DMI type 11, 5 bytes
-OEM Strings
-    String 1: OEM String
-
-Handle 0x001C, DMI type 15, 29 bytes
-System Event Log
-    Area Length: 16 bytes
-    Header Start Offset: 0x0000
-    Header Length: 16 bytes
-    Data Start Offset: 0x0010
-    Access Method: General-purpose non-volatile data functions
-    Access Address: 0x0000
-    Status: Valid, Not Full
-    Change Token: 0x000000EE
-    Header Format: Type 1
-    Supported Log Type Descriptors: 3
-    Descriptor 1: POST error
-    Data Format 1: POST results bitmap
-    Descriptor 2: Single-bit ECC memory error
-    Data Format 2: Multiple-event
-    Descriptor 3: Multi-bit ECC memory error
-    Data Format 3: Multiple-event
-
-Handle 0x001D, DMI type 16, 15 bytes
-Physical Memory Array
-    Location: System Board Or Motherboard
-    Use: System Memory
-    Error Correction Type: None
-    Maximum Capacity: 4 GB
-    Error Information Handle: Not Provided
-    Number Of Devices: 2
-
-Handle 0x001E, DMI type 17, 27 bytes
-Memory Device
-    Array Handle: 0x001D
-    Error Information Handle: No Error
-    Total Width: 64 bits
-    Data Width: 64 bits
-    Size: 2048 MB
-    Form Factor: SODIMM
-    Set: 1
-    Locator: M1
-    Bank Locator: Bank 0
-    Type: DDR2
-    Type Detail: Synchronous
-    Speed: 667 MHz (1.5 ns)
-    Manufacturer: Mfg 0
-    Serial Number: 1234-B0
-    Asset Tag: Not Specified
-    Part Number: SODIMM000
-
-Handle 0x001F, DMI type 17, 27 bytes
-Memory Device
-    Array Handle: 0x001D
-    Error Information Handle: No Error
-    Total Width: 64 bits
-    Data Width: 64 bits
-    Size: 2048 MB
-    Form Factor: SODIMM
-    Set: 1
-    Locator: M2
-    Bank Locator: Bank 1
-    Type: DDR2
-    Type Detail: Synchronous
-    Speed: 667 MHz (1.5 ns)
-    Manufacturer: Mfg 1
-    Serial Number: 1234-B1
-    Asset Tag: Not Specified
-    Part Number: SODIMM001
-
-Handle 0x0020, DMI type 18, 23 bytes
-32-bit Memory Error Information
-    Type: OK
-    Granularity: Unknown
-    Operation: Unknown
-    Vendor Syndrome: Unknown
-    Memory Array Address: Unknown
-    Device Address: Unknown
-    Resolution: Unknown
-
-Handle 0x0021, DMI type 18, 23 bytes
-32-bit Memory Error Information
-    Type: OK
-    Granularity: Unknown
-    Operation: Unknown
-    Vendor Syndrome: Unknown
-    Memory Array Address: Unknown
-    Device Address: Unknown
-    Resolution: Unknown
-
-Handle 0x0022, DMI type 19, 15 bytes
-Memory Array Mapped Address
-    Starting Address: 0x00000000000
-    Ending Address: 0x000FFFFFFFF
-    Range Size: 4 GB
-    Physical Array Handle: 0x001D
-    Partition Width: 0
-
-Handle 0x0023, DMI type 20, 19 bytes
-Memory Device Mapped Address
-    Starting Address: 0x00000000000
-    Ending Address: 0x0007FFFFFFF
-    Range Size: 2 GB
-    Physical Device Handle: 0x001E
-    Memory Array Mapped Address Handle: 0x0022
-    Partition Row Position: Unknown
-    Interleave Position: Unknown
-    Interleaved Data Depth: Unknown
-
-Handle 0x0024, DMI type 20, 19 bytes
-Memory Device Mapped Address
-    Starting Address: 0x00080000000
-    Ending Address: 0x000FFFFFFFF
-    Range Size: 2 GB
-    Physical Device Handle: 0x001F
-    Memory Array Mapped Address Handle: 0x0022
-    Partition Row Position: Unknown
-    Interleave Position: Unknown
-    Interleaved Data Depth: Unknown
-
-Handle 0x0025, DMI type 32, 20 bytes
-System Boot Information
-    Status: No errors detected
-
-Handle 0x0026, DMI type 39, 22 bytes
-System Power Supply
-    Power Unit Group: 1
-    Location: To Be Defined By O.E.M
-    Name: To Be Defined By O.E.M
-    Manufacturer: To Be Defined By O.E.M
-    Serial Number: To Be Defined By O.E.M
-    Asset Tag: To Be Defined By O.E.M
-    Model Part Number: To Be Defined By O.E.M
-    Revision: 2.50
-    Max Power Capacity: Unknown
-    Status: Present, Unknown
-    Type: Unknown
-    Input Voltage Range Switching: Unknown
-    Plugged: Yes
-    Hot Replaceable: No
-
-Handle 0x0027, DMI type 129, 8 bytes
-OEM-specific Type
-    Header and Data:
-        81 08 27 00 01 01 02 01
-    Strings:
-        Intel_ASF
-        Intel_ASF_001
-
-Handle 0x0028, DMI type 136, 6 bytes
-OEM-specific Type
-    Header and Data:
-        88 06 28 00 FF FF
-
-Handle 0x0029, DMI type 150, 14 bytes
-OEM-specific Type
-    Header and Data:
-        96 0E 29 00 01 01 00 00 00 00 00 00 00 00
-    Strings:
-        ABSOLUTE(PHOENIX) CLM
-
-Handle 0x002A, DMI type 127, 4 bytes
-End Of Table
-
-
-
---------------enig998E84E7E0FFF09485D98CE2
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iD8DBQFIud8JnfYk4EbUgeoRAtpXAJwK+vNFG6UP20vajDnnCNBSWNOX7QCgidHB
-FcH4TM4712b823R2aQK7lTo=
-=8wm1
------END PGP SIGNATURE-----
-
---------------enig998E84E7E0FFF09485D98CE2--
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
