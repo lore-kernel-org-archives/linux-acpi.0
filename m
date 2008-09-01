@@ -1,81 +1,61 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: 2.6.26.[1-3] + x61 tablet + x6ultrabase: no resume after
-	undocking
-Date: Mon, 01 Sep 2008 11:17:28 +0800
-Message-ID: <1220239048.24775.152.camel@rzhang-dt>
-References: <200808301535.22419.sfking@fdwdc.com>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: a problem about the two patches in bug 10724 & 11428
+Date: Mon, 01 Sep 2008 14:40:21 +0800
+Message-ID: <1220251221.4039.52.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:63870 "EHLO mga02.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:8801 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751189AbYIADSQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 31 Aug 2008 23:18:16 -0400
-In-Reply-To: <200808301535.22419.sfking@fdwdc.com>
+	id S1751087AbYIAG0e (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 1 Sep 2008 02:26:34 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Steven King <sfking@fdwdc.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
+To: astarikovskiy@suse.de
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
 
-On Sat, 2008-08-30 at 15:35 -0700, Steven King wrote:
-> While 2.6.26 made my x61t work with the x6ultrabase, I find that once I have 
-> docked the x61t, I can only resume after a suspend2ram if the x61t is docked.  
-> That is:
-> 
-> Never have been docked: suspend & resume works fine.
-> Docked: suspend & resume works fine.
-> Docked, undocked, re-docked: suspend & resume works fine.
-> 
-> Docked, then undocked: never finishes resuming (the disk seems to spin up and 
-> the sleep led goes off, but the system doesnt seem to get any further).
-> 
-> Any suggestions?
-> 
-I have an acpidump of a X61, and it may also send notifications in _STA
-method.
-Please please try the following patch and see if it helps.
-and it would be great if you can attach the acpidump of your laptop.
+Hi, Alexey
+    You have a lot of experiences about EC driver and a lot of EC patches are from you.
+    You attach two patches related with EC driver in the bug 10724 & 11428.
+    In the bug 10724:
+        Add a boot ption of "ec_intr= " to select the EC work mode( Interrupt/Polling mode)
+        After this patch is applied, EC won't switch to polling mode automatically from interrupt mode when EC irq storm is detected.
+    In the bug 11428
+        In this patch the EC won't switch off GPE mode on missing interrupts
 
-In some BIOSes, every _STA method call will send a notification again,
-this cause freeze. And in some BIOSes, it appears _STA should be called
-after _DCK. This tries to avoid calls _STA, and still keep the device
-present check.
-http://bugzilla.kernel.org/show_bug.cgi?id=10431
+    Will the above two patches hit the upstream kernel? If the above two patches hits the upstream kernel, it 
+seems that the boot option of "ec_intr=" comes back again and EC can't be switched from interrupt mode to polling 
+mode if EC GPE interrupt is missing. In such case maybe the battery/AC/thermal driver can't work well if the info of
+battery/AC/thermal is related with EC. Maybe there exists the regression on some laptops.
+    At the same time the boot option of "ec_intr=1" indicates that EC will work in EC GPE interrupt mode. But maybe the following
+phenomenon will appear on some laptops:
+   EC is initialized as polling mode. After the EC GPE interrupt is triggered, it will be switched to GPE interrupt mode. But if
+no EC GPE interrupt is triggered, it will still work in polling mode. Although it is harmless and EC can also work well, 
+maybe the EC working mode is inconsistent with the EC boot option. At the same time after the system is resumed from S3, the EC working
+mode will also be polling mode in the function of acpi_ec_resume.
 
-Signed-off-by: Shaohua Li <shaohua.li@intel.com> 
----
- drivers/acpi/dock.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+    IMO the EC working mode is not very reasonable if the above two patches hit the upstream kernel.
+    Are the following two methods reasonable? Which of them is better?
 
-Index: linux/drivers/acpi/dock.c
-===================================================================
---- linux.orig/drivers/acpi/dock.c	2008-08-27 14:38:44.000000000 +0800
-+++ linux/drivers/acpi/dock.c	2008-08-28 09:33:02.000000000 +0800
-@@ -604,14 +604,17 @@ static int handle_eject_request(struct d
- static void dock_notify(acpi_handle handle, u32 event, void *data)
- {
- 	struct dock_station *ds = data;
-+	struct acpi_device *tmp;
- 
- 	switch (event) {
- 	case ACPI_NOTIFY_BUS_CHECK:
--		if (!dock_in_progress(ds) && dock_present(ds)) {
-+		if (!dock_in_progress(ds) && acpi_bus_get_device(ds->handle,
-+		   &tmp)) {
- 			begin_dock(ds);
- 			dock(ds);
- 			if (!dock_present(ds)) {
- 				printk(KERN_ERR PREFIX "Unable to dock!\n");
-+				complete_dock(ds);
- 				break;
- 			}
- 			atomic_notifier_call_chain(&dock_notifier_list,
+    a. Add the boot option of "ec_intr=" (ec_intr=auto, intr, polling). For most laptops the boot option of "ec_intr=auto" is the default option
+and "ec_intr=auto" means that the EC working mode can be switched automatically between interrupt mode and polling mode.The purpose of "ec_intr=auto"
+is used to avoid the regression on some laptops.(Maybe some laptops can't work well if the EC mode switch is disabled.) 
+     If the boot option of "ec_intr=intr" is added, the EC will be forced to work in interrupt mode and can't be switched to polling mode even 
+when the EC confirmation GPE interrupt is missing. 
+     If the boot option of "ec_intr=polling" is added, the EC will be forced to work in polling mode.
+     
+     In such case the EC working mode is related with user input. 
 
+    b. EC mode switch is disabled on some specific laptops. In such case the user doesn't care for the EC working mode. At the same time
+EC is still started in polling mode. It will be switched to interrupt mode if the EC GPE interrupt is triggered. EC will be switched to polling
+mode on most laptops in case of missing confirmation GPE interrupt. But on some specific laptops the EC mode switch is disabled, which means
+that EC will still work in interrupt mode even when the EC confirmation GPE interrupt is missing. This can be realized by adding EC DMI check table.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+    I am not sure whether my above suggestion is appropriate. 
 
+Thanks for the comments.
+
+Best regards.
+   Yakui
 
