@@ -1,64 +1,73 @@
-From: "Eduard Huguet" <eduardhc@gmail.com>
-Subject: Re: Suspend to RAM in an Asus P1-AH2
-Date: Tue, 2 Sep 2008 19:58:33 +0200
-Message-ID: <617be8890809021058y37c032a2t9e48f113e2b3f1bd@mail.gmail.com>
-References: <617be8890808270739gdba5c46q6cae8c33668d6bba@mail.gmail.com>
-	 <200808302204.19338.rjw@sisk.pl>
-	 <617be8890809020549o5edc2cfbvc6fbb0326eb53af6@mail.gmail.com>
-	 <200809021903.24026.rjw@sisk.pl>
+From: Simon Farnsworth <farnz@durge.org>
+Subject: _OSI(Linux) query on a Dell Inspiron 1525n (Ubuntu factory install)
+Date: Tue, 2 Sep 2008 20:12:21 +0100
+Message-ID: <200809022012.26823.simon@farnz.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed;
+  boundary="nextPart2148300.1BE3rNU7Eg";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-gx0-f16.google.com ([209.85.217.16]:56027 "EHLO
-	mail-gx0-f16.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751686AbYIBR6e (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Sep 2008 13:58:34 -0400
-Received: by gxk9 with SMTP id 9so5536749gxk.13
-        for <linux-acpi@vger.kernel.org>; Tue, 02 Sep 2008 10:58:33 -0700 (PDT)
-In-Reply-To: <200809021903.24026.rjw@sisk.pl>
-Content-Disposition: inline
+Received: from qb-out-0506.google.com ([72.14.204.231]:9376 "EHLO
+	qb-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751554AbYIBTMc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Sep 2008 15:12:32 -0400
+Received: by qb-out-0506.google.com with SMTP id f11so3666444qba.17
+        for <linux-acpi@vger.kernel.org>; Tue, 02 Sep 2008 12:12:31 -0700 (PDT)
+Received: from simon by lister.farnz.org.uk with local (Exim 4.69)
+	(envelope-from <simon@farnz.org.uk>)
+	id 1KabIg-00025Q-Ti
+	for linux-acpi@vger.kernel.org; Tue, 02 Sep 2008 20:12:27 +0100
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Hi,
-    Sorry, I misread the previous email. This time I checked the
-CONFIG_FTRACE option and redone the tests, so anyway that's good
-because I'm sure that in my previous test it was unset.
+--nextPart2148300.1BE3rNU7Eg
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-About how I am suspending to ram, I'm currently using Gentoo
-'hibernate-ram' script, which in turn is using s2ram. The options
-passed to the s2ram are "-f -s -a 3" if I remember correctly (can't
-check the logs right now). The hibernate-ram script does some stuff
-before suspending, like unloading some modules, etc...
+Hello,
 
-Also, as I'm doing some very basic testing only, before attempting to
-suspend I issue a 'init 1' command so I go into single-user mode, no
-X. In some cases I even unload nvidia.ko module by using rmmod, but
-I'm pretty sure this don't make any difference.
+Just trying 2.6.27-rc5 on my Dell Ubuntu laptop (an Inspiron 1525n), and=20
+noticed the following in dmesg:
 
-Best regards,
-  Eduard
+[    0.100046] PCI: Using configuration type 1 for base access
+[    0.101763] ACPI: EC: Look up EC in DSDT
+[    0.101991] ACPI: BIOS _OSI(Linux) query ignored
+[    0.102045] ACPI: DMI System Vendor: Dell Inc.
+[    0.102096] ACPI: DMI Product Name: Inspiron 1525
+[    0.102151] ACPI: DMI Product Version:
+[    0.102202] ACPI: DMI Board Name: 0U990C
+[    0.102253] ACPI: DMI BIOS Vendor: Dell Inc.
+[    0.102305] ACPI: DMI BIOS Date: 03/10/2008
+[    0.102356] ACPI: Please send DMI info above to linux-acpi@vger.kernel.o=
+rg
 
+I've tried acpi_osi=3DLinux as a boot parameter, and not seen any differenc=
+e in=20
+behaviour. This laptop was supplied with Ubuntu installed, so I have no=20
+Windows licence to compare against.
 
+I'm not subscribed to the list, so please CC me if you'd like any more=20
+details.
+=2D-=20
+Hope this can be fixed up suitably,
 
+Simon Farnsworth
 
-2008/9/2 Rafael J. Wysocki <rjw@sisk.pl>:
-> On Tuesday, 2 of September 2008, Eduard Huguet wrote:
->> Hi,
->>    I retried after checking CONFIG_FTRACE through menuconfig (I double
->> checked it was set in .config). Same results. Can I do any other test
->> now that this setting is on (I guess is something related to kernel
->> function tracing)?
->
-> I'm not sure if I understand you correctly.
->
-> If you had CONFIG_FTRACE unset before, please unset it.
->
-> Also, please tell me what _exactly_ you do to suspend to RAM.
->
-> Thanks,
-> Rafael
->
+--nextPart2148300.1BE3rNU7Eg
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQBIvZAaSWe+XpRKvi0RAubqAJ4gurleeUEHgpPhGctZAcdDzawyAQCffqA1
+k70dlyw5Su6/zlymOuIQVvk=
+=hd+y
+-----END PGP SIGNATURE-----
+
+--nextPart2148300.1BE3rNU7Eg--
