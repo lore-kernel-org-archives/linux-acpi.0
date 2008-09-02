@@ -1,66 +1,45 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
 Subject: Re: a problem about the two patches in bug 10724 & 11428
-Date: Tue, 02 Sep 2008 16:05:38 +0800
-Message-ID: <1220342738.4039.157.camel@yakui_zhao.sh.intel.com>
-References: <1220251221.4039.52.camel@yakui_zhao.sh.intel.com>
-	 <20080901122158.GB21970@khazad-dum.debian.net> <48BC522D.60905@suse.de>
-	 <48BC57C9.2040409@suse.de>
+Date: Tue, 02 Sep 2008 12:36:40 +0400
+Message-ID: <48BCFB18.60706@suse.de>
+References: <1220251221.4039.52.camel@yakui_zhao.sh.intel.com>	 <48BB9E86.7070503@suse.de> <1220320791.4039.128.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:1671 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751021AbYIBHvp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 2 Sep 2008 03:51:45 -0400
-In-Reply-To: <48BC57C9.2040409@suse.de>
+Received: from charybdis-ext.suse.de ([195.135.221.2]:40221 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751383AbYIBIge (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Sep 2008 04:36:34 -0400
+In-Reply-To: <1220320791.4039.128.camel@yakui_zhao.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi@vger.kernel.org, lenb@kernel.org
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
 
-On Tue, 2008-09-02 at 00:59 +0400, Alexey Starikovskiy wrote:
-> Alexey Starikovskiy wrote:
-> > Henrique de Moraes Holschuh wrote:
-> >> On Mon, 01 Sep 2008, Zhao Yakui wrote:
-> >>>     Will the above two patches hit the upstream kernel? If the above 
-> >>> two patches hits the upstream kernel, it seems that the boot option 
-> >>> of "ec_intr=" comes back again and EC can't be switched from 
-> >>> interrupt mode to polling mode if EC GPE interrupt is missing. In 
-> >>> such case maybe the battery/AC/thermal driver can't work well if the 
-> >>> info of
-> >>> battery/AC/thermal is related with EC. Maybe there exists the 
-> >>> regression on some laptops.
-> >>
-> >> Right now, the fact that it gives up on interrupt mode too easily IS 
-> >> causing
-> >> regressions on ThinkPads (like the T43 I own).  Since polling mode does
-> >> work, it is just a performance regression, so you won't get many reports
-> >> about it since most people don't look for such stuff in their kernel 
-> >> logs.
-> >>
-> >> Some ECs trigger the interrupt/poll-mode checks just on small windows
-> >> (typically during resume -- might even be a bug somewhere in ACPICA or
-> >> Linux, and not on the EC).  We should not be giving up using interrupt 
-> >> mode
-> >> on these so easily.  Maybe retry enabling interrupt mode after some 
-> >> seconds
-> >> a few times (like 3 or 5)?  If it is a transient problem, that will avoid
-> >> the permanent performance regression of polled mode.
-> >>
-> > How about such patch?
-> Or even better (working?) patch ...
-
-The patch looks reasonable. But there is a little problem.
-The EC_FLAGS_NO_GPE bit of ec->flags is set when timeout happens.(The EC_FLAGS_GPE_MODE bit is clear)
-Maybe in such case the EC_FLAGS_GPE_MODE bit can't be set again when EC GPE interrupt is triggered again.
-
-Thanks.
-   Yakui
-
-  
-> > Regards,
-> > Alex.
-> > 
+Zhao Yakui wrote:
+> Maybe I don't understand what you said fully. The following is my
+> understanding about the patches of bug 11428 and bug 10724.
 > 
+> a. In the patch of bug 11428 the EC GPE won't be disabled when timeout
+> happens, which means that it is still possible to switch EC working mode
+> again from polling mode to interrupt mode. i.e. EC can still be switched
+> to interrupt mode again. In the current upstream kernel when timeout
+> happens, EC will be switched to polling mode and can't be switched to
+> interrupt mode again(EC GPE is disabled). Right?
+Wrong. EC GPE will stay enabled, driver will just not use it during wait for completion.
+
+>     In fact when EC timeout happens in interrupt mode, it indicates that
+> EC controller can't return response in time.
+Wrong. Some EC controllers are "optimized" to not send interrupts for each confirmation.
+See history of EC patches for these optimization workarounds.
+
+>    In the above source code maybe there exists the following phenomenon:
+>      When the EC GPE interrupt is triggered, the waiting process will be
+>      waked up in the GPE interrupt service routine. But as the process
+>      can't be scheduled immediately, maybe the wait_event_timeout will
+>      also return 0, which means that timeout happens and EC will be
+>      switched from interrupt mode to polling mode.
+We are speaking about 500msec timeout here. it needs at least 50+ ready to run tasks of same
+kernel priority to not let queue thread run. Please tell me, how could this happen?
 
