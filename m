@@ -1,44 +1,106 @@
-From: Tomas Carnecky <tom@dbservice.com>
-Subject: Re: 2.6.26.[1-3] + x61 tablet + x6ultrabase: no resume	after?undocking
-Date: Wed, 03 Sep 2008 17:04:26 +0200
-Message-ID: <48BEA77A.5050104@dbservice.com>
-References: <200808301535.22419.sfking@fdwdc.com> <20080901112816.GA21970@khazad-dum.debian.net> <48BBDD2C.5020804@dbservice.com> <200809011205.05253.sfking@fdwdc.com> <20080903144541.GA10978@homac>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [ANNOUNCE] ACPI BIOS Guideline for Linux
+Date: Wed, 3 Sep 2008 17:09:07 +0200
+Message-ID: <200809031709.09307.trenn@suse.de>
+References: <200807241732.23412.trenn@suse.de> <200808311518.25421.trenn@suse.de> <20080831172547.GA3077@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from dbservice.com ([213.239.204.14]:48830 "EHLO
-	matterhorn.dbservice.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754030AbYICPEr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Sep 2008 11:04:47 -0400
-In-Reply-To: <20080903144541.GA10978@homac>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755853AbYICPJZ@vger.kernel.org>
+In-Reply-To: <20080831172547.GA3077@srcf.ucam.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Andi Kleen <ak@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Steven King <sfking@fdwdc.com>, Tomas Carnecky <tom@dbservice.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Zhang Rui <rui.zhang@intel.com>, linux-kernel@vger.kernel.orglinux-
 
-Holger Macht wrote:
-> On Mon 01. Sep - 12:05:04, Steven King wrote:
->> On Monday 01 September 2008 5:16:44 Tomas Carnecky wrote:
->>
->>> I just tested suspend/resume with the CDROM drive removed (an empty
->>> bay). Suspend/resume now works just fine, regardless how I dock/undock
->>> the laptop.
->> I'm seeing the exact same things as Tom.  Also, in my dmesg I see:
->>
->> ACPI: \_SB_.PCI0.IDE0.PRIM.MSTR: found ejectable bay
->> ACPI: \_SB_.PCI0.IDE0.PRIM.MSTR: Adding notify handler
->> ACPI: Error installing bay notify handler
->>
->> is this significant?
-> 
-> No, it's not. Bay driver is obsolete with 2.6.26's libata hotplug code.
-> 
+On Sunday 31 August 2008 19:25:47 Matthew Garrett wrote:
+> On Sun, Aug 31, 2008 at 03:18:24PM +0200, Thomas Renninger wrote:
+> > On Saturday 30 August 2008 02:47:13 pm Matthew Garrett wrote:
+> > > Not really. It provides approximately no complexity for Linux drivers,
+> > > and makes it easier for vendors to provide Windows support. WMI has not
+> > > been the hard bit of the drivers I've written. I don't see any reason
+> > > to ask vendors not to use it,
+> >
+> > Autoloading does not work yet?
+> > It is working fine with ordinary ACPI devices providing a HID.
+>
+> That's an implementation detail. We shouldn't be making recommendations
+> to vendors based on Linux shortcomings.
+Of course we should, therefore it is called guidline for *Linux*.
+Everything recommended there should just work fine on Linux.
+E.g. it is all about implementation details, which differ from
+the ACPI spec (and WMI clearly does) and all other kind of pits you
+can fall in with ACPI on Linux.
+Half a year ago we couldn't serve any WMI devices.
+Until WMI autoloading is available in stable distributions it still takes
+at least half a year.
 
-I don't know whether I should ROFL or be sad, but: In the 2.6.26 stable
-tree the bay driver (ACPI_BAY) is marked as EXPERIMENTAL, and now you're
-saying that it's obsolete. Do features go right from experimental to
-obsolete now?
+E.g. that is why video posting after suspend should still
+work until modesetting works in kernel.
 
-I'll try to disable the bay driver, let's see if that helps any.
+If there would be enough time, I'd add that Intel graphics
+Op Region support is partly (only backlight, not video output, right?)
+implemented and this support is scheduled to be added for .28
+(didn't make it into .27?).
 
-tom
+This is IMO what should get documented, like that vendors can
+count on what works on which distribution based on which kernel
+(without going throug kernel sources, which is impossible for
+BIOS writers, they have to rely on some things written down).
+
+-- Be careful ad in between --
+E.g. look at that machine coming with Linux:
+http://www.engadget.com/2008/08/31/msis-8-9-inch-wind-u90-in-the-flesh-linux-version-shipping-for
+and have a look at that green sticker:
+http://www.engadget.com/photos/msis-8-9-inch-wind-u90-in-the-flesh-linux-version-shipping-for-339-euro/1009822
+That means it is shipped with a 2.6.16 kernel without any WMI support.
+-- Be careful ad in between --
+
+I don't want to go that far back, but start from now on.
+Vendors should be able to
+read out from which kernel version they can rely on what kind of
+ACPI implementations/features.
+If something is not supported in a Linux version or has "out of spec"
+or say "Windows compatibility" relevant implementations introduced, you should
+find it there.
+The latter info is rather important for non-Microsoft machines, or e.g. using coreboot
+BIOSes (AFAIK they also start to hack in the first ACPI tables).
+
+   Thomas
+
+PS: I agree that if WMI works now since kernel xy, this should be documented.
+It would be great if you could send a patch against the guidline describing
+what kind of WMI support came in and in which kernel version. And for what pits vendors
+still have to take care for (I am sure there still are some).
+
+(from git commit):
+
+    What it won't do:
+
+    Unicode - The MS article[1] calls for converting between ASCII and Unicode (or
+    vice versa) if a GUID is marked as "string". This is left up to the calling
+    driver.
+
+    Handle a MOF[1] - the WMI mapper just exports methods, data and events to
+    userspace. MOF handling is down to userspace.
+
+    Userspace interface - this will be added later.
+-------
+AFAIK MOF files are and will be for long term or ever not
+be used in Linux at all? This is the connection to CIM?
+Should this be docuemented?
+
+> > > as long as they're willing to document their
+> > > implementation.
+> >
+> > I'll point that out, something like:
+> > If you really have to use WMI for Windows compatibility reason, make
+> > sure the important parts (is there already something to mention?
+> > Against what is the driver loaded -> autoloading?) are documented well.
+>
+> There's no valid reason to suggest that vendors use an entirely custom
+> solution over using WMI. In some ways, reverse engineering is easier -
+> we can see all the entry points. But yes, vendors who want to support
+> Linux should document their firmware interfaces.
