@@ -1,7 +1,7 @@
 From: Zhao Yakui <yakui.zhao@intel.com>
 Subject: Re: a problem about the two patches in bug 10724 & 11428
-Date: Wed, 03 Sep 2008 15:28:47 +0800
-Message-ID: <1220426928.4007.10.camel@yakui_zhao.sh.intel.com>
+Date: Wed, 03 Sep 2008 16:03:50 +0800
+Message-ID: <1220429030.4007.22.camel@yakui_zhao.sh.intel.com>
 References: <1220251221.4039.52.camel@yakui_zhao.sh.intel.com>
 	 <20080901122158.GB21970@khazad-dum.debian.net> <48BC522D.60905@suse.de>
 	 <48BC57C9.2040409@suse.de>
@@ -10,10 +10,10 @@ Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:20941 "EHLO mga11.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:26139 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753017AbYICHOt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 3 Sep 2008 03:14:49 -0400
+	id S1750794AbYICHt4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 3 Sep 2008 03:49:56 -0400
 In-Reply-To: <48BE32AF.0@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -35,14 +35,17 @@ On Wed, 2008-09-03 at 10:46 +0400, Alexey Starikovskiy wrote:
 > Almost. EC by itself (hardware device) still will be working in its 
 > "optimized gpe mode" as before, but EC driver (software) will be working in poll mode.
 > Regards,
-Thanks for the quick response.
-Is it appropriate that EC always works in such mode? The mode switch
-seems so complex.
-When EC is accessed, EC will work in polling mode.
-But EC GPE will be triggered. Maybe what we cared is EC notification
-event(EC_SCI bit of EC status register).
+If EC always works in such mode, it seems that we can make EC work more
+simply. 
+If so, a lot of source code in EC will be useless and we can do a
+cleanup. After this, the EC driver will be easier to understand. When
+new problems appears, we can easily identify the root cause.
 
-thanks.
+Thanks.
+   Yakui
+
+
+
 > Alex.
 > > 
 > > Thanks
