@@ -1,67 +1,92 @@
-From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: Re: 2.6.26.[1-3] + x61 tablet + x6ultrabase: no
-	resume	after?undocking
-Date: Wed, 3 Sep 2008 18:28:27 -0300
-Message-ID: <20080903212827.GB14620@khazad-dum.debian.net>
-References: <200808301535.22419.sfking@fdwdc.com>
-	<20080901112816.GA21970@khazad-dum.debian.net>
-	<48BBDD2C.5020804@dbservice.com>
-	<200809011205.05253.sfking@fdwdc.com>
-	<20080903144541.GA10978@homac>
+From: Luis Henriques <henrix@sapo.pt>
+Subject: Problem with ACPI video
+Date: Wed, 03 Sep 2008 22:45:03 +0100
+Message-ID: <g9n0h0$ru8$1@ger.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20080903144541.GA10978@homac>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Steven King <sfking-xS0NTnu2YfYAvxtiuMwx3w@public.gmane.org>, Tomas Carnecky <tom-ix/z9KG6G0Jl57MIdRCFDg@public.gmane.org>, Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneHXe+LvDLADg@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from main.gmane.org ([80.91.229.2]:37597 "EHLO ciao.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752342AbYICVuH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 3 Sep 2008 17:50:07 -0400
+Received: from root by ciao.gmane.org with local (Exim 4.43)
+	id 1Kb0Ek-0002CN-6y
+	for linux-acpi@vger.kernel.org; Wed, 03 Sep 2008 21:50:02 +0000
+Received: from ip-89-234-106-36.lmk.metro.digiweb.ie ([89.234.106.36])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Wed, 03 Sep 2008 21:50:02 +0000
+Received: from henrix by ip-89-234-106-36.lmk.metro.digiweb.ie with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Wed, 03 Sep 2008 21:50:02 +0000
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-(Holger dropped from CC/To as requested by the mail-followup-to header).
+It seems that there is a problem with my video card.  I got the
+following message:
 
-On Wed, 03 Sep 2008, Holger Macht wrote:
-> On Mon 01. Sep - 12:05:04, Steven King wrote:
-> > On Monday 01 September 2008 5:16:44 Tomas Carnecky wrote:
-> > 
-> > > I just tested suspend/resume with the CDROM drive removed (an empty
-> > > bay). Suspend/resume now works just fine, regardless how I dock/undock
-> > > the laptop.
-> > 
-> > I'm seeing the exact same things as Tom.  Also, in my dmesg I see:
-> > 
-> > ACPI: \_SB_.PCI0.IDE0.PRIM.MSTR: found ejectable bay
-> > ACPI: \_SB_.PCI0.IDE0.PRIM.MSTR: Adding notify handler
-> > ACPI: Error installing bay notify handler
-> > 
-> > is this significant?
-> 
-> No, it's not. Bay driver is obsolete with 2.6.26's libata hotplug code.
+[...]
 
-Hardly so.  We need to be able to query state and command the bay from
-userspace.  We need to support non-libata devices.  We don't need, but want,
-notifications that can be easily flagged by userspace as being related to
-bay/dock ejections and insertions (for OSD).
+[   14.705248] input: Video Bus as /class/input/input4
+[   14.757151] ACPI: Video Device [VGA] (multi-head: yes  rom: no  post: no)
+[   14.757624] proc_dir_entry 'VGA' already registered
+[   14.757673] Pid: 3093, comm: modprobe Not tainted
+2.6.27-rc5-00006-gbef69ea #1
+[   14.757723]
+[   14.757724] Call Trace:
+[   14.757816]  [<ffffffff8032199c>] proc_register+0x1dc/0x210
+[   14.757866]  [<ffffffff80321bed>] proc_mkdir_mode+0x3d/0x60
+[   14.757913]  [<ffffffff80321c21>] proc_mkdir+0x11/0x20
+[   14.757963]  [<ffffffffa01d27cc>] acpi_video_bus_add+0x1e9/0xd55 [video]
+[   14.758011]  [<ffffffff8032cb98>] ? sysfs_do_create_link+0xc8/0x160
+[   14.758060]  [<ffffffff803bfa16>] acpi_device_probe+0x49/0x8c
+[   14.758108]  [<ffffffff803f7f02>] driver_probe_device+0xa2/0x1e0
+[   14.758156]  [<ffffffff803f80cb>] __driver_attach+0x8b/0x90
+[   14.758202]  [<ffffffff803f8040>] ? __driver_attach+0x0/0x90
+[   14.758249]  [<ffffffff803f76ab>] bus_for_each_dev+0x6b/0xa0
+[   14.758297]  [<ffffffff802c9636>] ? kmem_cache_alloc+0x86/0xc0
+[   14.758344]  [<ffffffff803f7d4c>] driver_attach+0x1c/0x20
+[   14.758391]  [<ffffffff803f6ef8>] bus_add_driver+0x1f8/0x270
+[   14.758439]  [<ffffffffa00e5000>] ? acpi_video_init+0x0/0x5e [video]
+[   14.758487]  [<ffffffff803f82b0>] driver_register+0x70/0x160
+[   14.758535]  [<ffffffffa00e5000>] ? acpi_video_init+0x0/0x5e [video]
+[   14.758582]  [<ffffffff803bfd4e>] acpi_bus_register_driver+0x3e/0x40
+[   14.758630]  [<ffffffffa00e503c>] acpi_video_init+0x3c/0x5e [video]
+[   14.758677]  [<ffffffff80209040>] _stext+0x40/0x1a0
+[   14.758726]  [<ffffffff802704cd>] sys_init_module+0xad/0x1e0
+[   14.758772]  [<ffffffff8020c62a>] system_call_fastpath+0x16/0x1b
+[   14.758818]
+[   14.768981] acpi device:29: registered as cooling_device3
+[   14.769252] input: Video Bus as /class/input/input5
+[   14.817141] ACPI: Video Device [VGA] (multi-head: yes  rom: no  post: no)
+[   14.905143] ACPI: Battery Slot [BAT1] (battery present)
+[...]
 
-What makes bay obsolete is the rework on the dock driver that adds all bay
-functionality to dock.c... and that ain't even on 2.6.27, AFAIK.
+It seems that acpi_video_bus_add function is invoked twice and, the
+second time, it fails (maybe it is supposed to be invoked twice...).
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Anyway, I can not tell you what was the first kernel where this problem
+occured since the laptop is new and had this problem on all kernels I
+tried (this one is Linus git-tree 2.6.27-rc5-00006-gbef69ea).
 
--------------------------------------------------------------------------
-This SF.Net email is sponsored by the Moblin Your Move Developer's challenge
-Build the coolest Linux based applications with Moblin SDK & win great prizes
-Grand prize is a trip for two to an Open Source event anywhere in the world
-http://moblin-contest.org/redirect.php?banner_id=100&url=/
+Also found out that I have two directories /proc/acpi/video/VGA/.
+
+After looking at the code, I found the following code:
+
+  if (!strcmp(device->pnp.bus_id, "VID")) {
+        if (instance)
+              device->pnp.bus_id[3] = '0' + instance;
+        instance ++;
+  }
+
+in drivers/acpi/video.c.  Is this code supposed to solve a similar
+problem as the one I am facing?
+
+Please let me know whether you need any additional information to help
+me solving this problem.
+
+--
+Luis
+
