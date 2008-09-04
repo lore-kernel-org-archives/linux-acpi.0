@@ -1,35 +1,44 @@
-From: Andi Kleen <andi@firstfloor.org>
-Subject: Re: patch for bugs 9998 and 10724
-Date: Thu, 4 Sep 2008 15:18:25 +0200
-Message-ID: <20080904131825.GF18288@one.firstfloor.org>
-References: <1219730254.4116.38.camel@yakui_zhao.sh.intel.com> <20080904121820.GC18288@one.firstfloor.org> <48BFD5AA.3090006@suse.de> <48BFD609.2050604@suse.de>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Regression: SATA disk double spin-off during hibernation on hp nx6325
+Date: Thu, 4 Sep 2008 16:05:20 +0200
+Message-ID: <200809041605.22055.rjw@sisk.pl>
+References: <200808290002.55026.rjw@sisk.pl> <200808291257.33690.rjw@sisk.pl> <200808291330.42265.elendil@planet.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from one.firstfloor.org ([213.235.205.2]:52605 "EHLO
-	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750955AbYIDNPM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Sep 2008 09:15:12 -0400
+Received: from ogre.sisk.pl ([217.79.144.158]:54324 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750958AbYIDOBO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 4 Sep 2008 10:01:14 -0400
+In-Reply-To: <200808291330.42265.elendil@planet.nl>
 Content-Disposition: inline
-In-Reply-To: <48BFD609.2050604@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: Frans Pop <elendil@planet.nl>
+Cc: linux-acpi@vger.kernel.org, linux-ide@vger.kernel.org, trenn@suse.de, htejun@gmail.com, hancockr@shaw.ca, linux-kernel@vger.kernel.org, Maciej Rutecki <maciej.rutecki@gmail.com>
 
-On Thu, Sep 04, 2008 at 04:35:21PM +0400, Alexey Starikovskiy wrote:
-> Here is the same patch as attachment for your convenience.
-> Alexey Starikovskiy wrote:
-> >Hi Andy,
-> >
-> >I just uploaded patch for bugs 9998 and 10724, which solves the problem 
-> >of interrupt storm more cleanly.
-> >Could you please add this patch to testing?
+On Friday, 29 of August 2008, Frans Pop wrote:
+> On Friday 29 August 2008, Rafael J. Wysocki wrote:
+> > Suspend to RAM is fine, hibernation (aka suspend to disk) is not (on my
+> > box). Does it mean that hibernation is fine on your box with
+> > 2.6.27-rc5, although shutdown is not?  That would require special
+> > DMI-dependent handling, so please double check.
+> 
+> Ah, right. The double spin down happens during hibernation too.
+> 
+> > Anyway, please attach the output of dmidecode to
+> > http://bugzilla.kernel.org/show_bug.cgi?id=8855
+> > so I can include your box into the final version of the patch.
+> 
+> Done.
 
-Thanks. Done It had some conflicts with the earlier patch to fix the IO port
-access code. Fixed that.
+I have uploaded a new version of the patch into the Bugzilla:
+http://bugzilla.kernel.org/attachment.cgi?id=17618&action=view
 
--Andi
+Can you test it, please (also please attach dmesg output to the Bugzilla
+entry)?
 
--- 
-ak@linux.intel.com
+Thanks,
+Rafael
