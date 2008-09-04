@@ -1,132 +1,73 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [PATCH]: ACPI : Set 32bit and 64bit waking vector in FCAS table
-Date: Thu, 4 Sep 2008 11:37:51 +0200
-Message-ID: <200809041137.52379.rjw@sisk.pl>
-References: <1220507476.4007.117.camel@yakui_zhao.sh.intel.com> <200809041010.07058.rjw@sisk.pl> <1220519910.24775.260.camel@rzhang-dt>
+Date: Thu, 4 Sep 2008 11:48:50 +0200
+Message-ID: <200809041148.51401.rjw@sisk.pl>
+References: <1220507476.4007.117.camel@yakui_zhao.sh.intel.com> <200809041010.07058.rjw@sisk.pl> <1220520475.4007.134.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:52725 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:52769 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751961AbYIDJdw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Sep 2008 05:33:52 -0400
-In-Reply-To: <1220519910.24775.260.camel@rzhang-dt>
+	id S1753733AbYIDJow (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 4 Sep 2008 05:44:52 -0400
+In-Reply-To: <1220520475.4007.134.camel@yakui_zhao.sh.intel.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Zhao Yakui <yakui.zhao@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, andi@firstfloor.org
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, andi@firstfloor.org
 
-On Thursday, 4 of September 2008, Zhang Rui wrote:
+On Thursday, 4 of September 2008, Zhao Yakui wrote:
 > On Thu, 2008-09-04 at 10:10 +0200, Rafael J. Wysocki wrote:
 > > On Thursday, 4 of September 2008, Zhao Yakui wrote:
 > > > Subject: ACPI : Set 32bit and 64bit waking vector in FCAS table
 > > > From: Zhao Yakui <yakui.zhao@intel.com>
-> > >=20
-> > >     On some laptops only the 64bit waking vecotr is set for ACPI =
-2.0 FACS.
-> > > But when the system is resumed, BIOS will transfer control direct=
-ly to=20
-> > > 32bit waking vector. In such case the system can't be resumed cor=
-rectly.
-> > >     Maybe it will be more appropriate that both the 32bit and 64b=
-it waking=20
-> > > vector will be set for the ACPI 2.0 FACS when the system enters t=
-he S3=20
+> > > 
+> > >     On some laptops only the 64bit waking vecotr is set for ACPI 2.0 FACS.
+> > > But when the system is resumed, BIOS will transfer control directly to 
+> > > 32bit waking vector. In such case the system can't be resumed correctly.
+> > >     Maybe it will be more appropriate that both the 32bit and 64bit waking 
+> > > vector will be set for the ACPI 2.0 FACS when the system enters the S3 
 > > > sleeping state.
-> > >=20
-> > >  http://bugzilla.kernel.org/show_bug.cgi?id=3D11368
-> >=20
-> > Well, the spec (2.0c) says we should use facs->firmware_waking_vect=
-or only
-> > if facs->xfirmware_waking_vector is zero, so I'm afraid this change=
- may cause
+> > > 
+> > >  http://bugzilla.kernel.org/show_bug.cgi?id=11368
+> > 
+> > Well, the spec (2.0c) says we should use facs->firmware_waking_vector only
+> > if facs->xfirmware_waking_vector is zero, so I'm afraid this change may cause
 > > regressions to happen.
-> >=20
-> > Moreover, both 1.0b and 2.0c say that facs->length should be at lea=
-st 64 bytes,
-> > so the (facs->length >=3D 32) check is actually redundant (unless t=
-here is a
-> > quirk setting this value below 32 for some broken systems I'm not a=
-ware of).
-> >=20
-> > So, the question is what happens if we ignore the facs->length chec=
-k on systems
-> > this patch is supposed to fix.
-> this should have no impact.
-> facs->length is also 64 bytes.
-> without the patch, xfirmware_waking_vector is set.
-> with this patch applied, both xfirmware and firmware_waking_vector ar=
-e
-> set.
+> The 32bit and 64bit waking vector are for BIOS. For the ACPI 2.0 FACS
+> after the system is resumed, firmware will check whether the 64bit
+> waking vector is zero. If not zero, it will transfer controls to 64 bit
+> waking vector address. If zero, it will then check whether the 32bit is
+> zero. If not zero, it will transfer controls to the 32bit waking vector
+> address. 
+> If bios can follow above check, it is ok to set only one. And another is
+> set to zero. But if BIOS can't follow above check and only 64bit waking
+> vector is set, maybe the system can't be resumed very well.
 
-OK, sorry.  In the original code the 'facs->length < 32' check doesn't =
-matter.
+I understand that, but I'm not sure what happens if we set
+facs->firmware_waking_vector even though the BIOS expects us not to set it
+(probably nothing, but still).  In fact we should test that on all machines
+known to work with the current code and that's impossible.  Let's just
+add quirks for BIOSes that don't follow the spec (we can extend the
+acpi_sleep= option for that too for the user's convenience).
 
-> so it seems that the BIOS sets =EF=BB=BFfacs->xfirmware_waking_vector=
- during
-> POST, but uses =EF=BB=BF=EF=BB=BFfacs->firmware_waking_vector to get =
-back during resume.
+> > Moreover, both 1.0b and 2.0c say that facs->length should be at least 64 bytes,
+> > so the (facs->length >= 32) check is actually redundant (unless there is a
+> > quirk setting this value below 32 for some broken systems I'm not aware of).
+> What you said is right. In ACPI 1.0b FACS the length is also 64 Bytes. 
+> We should use the facs->version to determine whether 64bit waking vector
+> needs to be set.
 
-So the BIOS is buggy, so let's add a quirk for it.
+Well, yes.  It's possible that some buggy BIOSes provide non-zero
+facs->xfirmware_waking_vector although they shouldn't.  Still, there may be
+broken BIOSes that set both facs->version and facs->xfirmware_waking_vector
+although they shouldn't. :-)
 
-IMO we should follow the spec in the first place and add quirks for sys=
-tems
-where that doesn't work.  Otherwise we are likely to break systems that=
- do
-follow the spec and that's not acceptable.
+In any case, I think we should add quirks for buggy BIOSes rather than slightly
+depart from the spec in order to handle them.
 
 Thanks,
 Rafael
-
-
-> >   If they _still_ require
-> > facs->firmware_waking_vector to be set even if
-> > facs->xfirmware_waking_vector is non-zero, I'd prefer to add quirks=
- for them
-> > instead of affecting everybody else.
-> >=20
-> > > Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-> > > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> > > ---
-> > >  drivers/acpi/hardware/hwsleep.c |   14 +++++++-------
-> > >  1 file changed, 7 insertions(+), 7 deletions(-)
-> > >=20
-> > > Index: linux-2.6/drivers/acpi/hardware/hwsleep.c
-> > > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > > --- linux-2.6.orig/drivers/acpi/hardware/hwsleep.c
-> > > +++ linux-2.6/drivers/acpi/hardware/hwsleep.c
-> > > @@ -80,14 +80,14 @@ acpi_set_firmware_waking_vector(acpi_phy
-> > > =20
-> > >  	/* Set the vector */
-> > > =20
-> > > -	if ((facs->length < 32) || (!(facs->xfirmware_waking_vector))) =
-{
-> > > -		/*
-> > > -		 * ACPI 1.0 FACS or short table or optional X_ field is zero
-> > > -		 */
-> > > -		facs->firmware_waking_vector =3D (u32) physical_address;
-> > > -	} else {
-> > > +	/* 32 Bit wakeing vector is always set */
-> > > +	facs->firmware_waking_vector =3D (u32) physical_address;
-> > > +
-> > > +	if (facs->length >=3D 32) {
-> > >  		/*
-> > > -		 * ACPI 2.0 FACS with valid X_ field
-> > > +		 * ACPI 2.0 FACS with the valid X_filed. Its length
-> > > +		 * will be more than 32 bytes. In such case the 64 bit
-> > > +		 * waking vector is also set.
-> > >  		 */
-> > >  		facs->xfirmware_waking_vector =3D physical_address;
-> > >  	}
-> > >=20
-> > >=20
-> > > --
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
