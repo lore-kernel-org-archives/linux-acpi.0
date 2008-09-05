@@ -1,41 +1,52 @@
-From: Don <harterc1@comcast.net>
-Subject: acpi dump per request
-Date: Fri, 05 Sep 2008 01:37:43 -0500
-Message-ID: <48C0D3B7.2010405@comcast.net>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: Re: a problem about the the patch in the comment #118 of bug 10724
+Date: Fri, 05 Sep 2008 16:38:36 +0400
+Message-ID: <48C1284C.2030600@suse.de>
+References: <1220579510.4007.178.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from qmta08.emeryville.ca.mail.comcast.net ([76.96.30.80]:54861 "EHLO
-	QMTA08.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752208AbYIELnT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Sep 2008 07:43:19 -0400
+Received: from charybdis-ext.suse.de ([195.135.221.2]:56471 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752335AbYIEMin (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Sep 2008 08:38:43 -0400
+In-Reply-To: <1220579510.4007.178.camel@yakui_zhao.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
 
-Just installed a new motherboard.  It is a Asus M2N-SLI.   I saw the 
-following in the log.
+Zhao Yakui wrote:
+> Hi, Alexey
+>     
+>     Maybe you misunderstand what I have done in the patch of bug 10724.
+Ok, the patch is worthless from both debugging point (you _will_ get less interrupts if you service them longer), so you will
+not find anything new with this patch, and it is stupid as a patch intended at production just because you'll spend same time
+in interrupt context as before, but now you flush system responsiveness down the tube too.
 
-hdc: UDMA/66 mode selected
-hdc: UDMA/33 mode selected
-hdc: CHECK for good STATUS
-powernow-k8: Found 1 AMD Athlon(tm) 64 X2 Dual Core Processor 5000+ 
-processors (2 cpu cores) (version 2.20.00)
-powernow-k8: ACPI Processor support is required for SMP systems but is 
-absent. Please load the ACPI Processor module before starting this driver.
-powernow-k8: ACPI Processor support is required for SMP systems but is 
-absent. Please load the ACPI Processor module before starting this driver.
-NET: Registered protocol family 10
-lo: Disabled Privacy Extensions
-ip6_tables: (C) 2000-2006 Netfilter Core Team
-NET: Registered protocol family 17
-ACPI Exception (thermal-0469): AE_ERROR, ACPI thermal trip point state 
-changed
-Please send acpidump to linux-acpi@vger.kernel.org
+>     We should firstly make it clear why there exists EC GPE interrupt storm on some laptops. EC controller
+> uses the pulse interrupt model to trigger GPE interrupt and EC GPE is registered as Edge mode.
+>     If the EC interrupt pulse is too wide on some broken BIOS, several ACPI interrupts are triggered
+> although only one EC interrupt pulse is generated. Maybe on some broken BIOS the situation will be more serious.And
+> when EC GPE handler is served, OS will check the EC status by reading the EC status I/O port. On most laptops the 
+> EC and other controller(Keyboard, UART) are accessed through LPC bus. If the EC GPE interrupt is triggered too many times
+> ( For example: 50000 per second), too much bandwith of LPC bus will be wasted on reading the EC status register. 
+> On the bug 9998 it causes that sometimes the keystrobes are lost. Sometimes it will cause that the info of the 
+> battery/SBS battery related with EC can't be obtained.
+>     
+>     If we can add some delays on the EC GPE handler, the number of EC GPE interrupt can be reduced very obviously, which 
+> makes the system work well. For example: the laptop in bug 9998 can work well and the EC working flowchart is also simple.
+> 
+>     My patch is only for the broken BIOS. For most laptops no delay is added in the EC GPE handler. 
+>     Only when five EC GPE interrupts happens in the same jiffies and the EC status is the same, OS will add some delay in 
+> the EC GPE handler. If the same thing still happens after the delay is added, the delay time will be increased. 
+> But the max delay time is 5 microseconds.
+If you care to look at the log I've sent several days ago, you will see that interrupts happen for about 1ms after the command
+write. So you will spend this whole millisecond spinning.
 
-I tried to send this to the mailing list but the majordomo keeps 
-rejecting it.
-So here is a url to where it is stored..
-http://home.comcast.net/~harterc1/acpidump.txt
+>     At the same time IMO udelay is harmless. It is realized by repeat loop instead of halt. 
+Well, most people try to make interrupt context as short as possible, just because it's not interruptible, 
+so you loose interactivity. For example music/video could become jerky.
+
 
