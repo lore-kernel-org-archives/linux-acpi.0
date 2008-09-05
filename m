@@ -1,28 +1,55 @@
-From: Andi Kleen <andi@firstfloor.org>
-Subject: Re: State of the ACPI tree
-Date: Fri, 5 Sep 2008 10:34:10 +0200
-Message-ID: <20080905083410.GR18288@one.firstfloor.org>
-References: <20080904193011.GA23256@basil.nowhere.org> <76780B19A496DC4B80439008DAD7076C01803B89C7@PDSMSX501.ccr.corp.intel.com>
+From: Holger Macht <hmacht@suse.de>
+Subject: Re: 2.6.26.[1-3] + x61 tablet + x6ultrabase: no resume
+	after?undocking
+Date: Fri, 5 Sep 2008 11:00:13 +0200
+Message-ID: <20080905090013.GC6891@homac>
+References: <200808301535.22419.sfking@fdwdc.com> <20080901112816.GA21970@khazad-dum.debian.net> <48BBDD2C.5020804@dbservice.com> <200809011205.05253.sfking@fdwdc.com> <20080903144541.GA10978@homac> <20080903212827.GB14620@khazad-dum.debian.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from one.firstfloor.org ([213.235.205.2]:53947 "EHLO
-	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752872AbYIEIay (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Sep 2008 04:30:54 -0400
+Received: from mail.suse.de ([195.135.220.2]:40843 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752035AbYIEJAT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 5 Sep 2008 05:00:19 -0400
 Content-Disposition: inline
-In-Reply-To: <76780B19A496DC4B80439008DAD7076C01803B89C7@PDSMSX501.ccr.corp.intel.com>
+In-Reply-To: <20080903212827.GB14620@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Li, Shaohua" <shaohua.li@intel.com>
-Cc: Andi Kleen <andi@firstfloor.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Steven King <sfking@fdwdc.com>, Tomas Carnecky <tom@dbservice.com>, Zhang Rui <rui.zhang@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
 
-> Can you add my dock patches to the test tree please? I already refreshed them per your suggestion.
+On Wed 03. Sep - 18:28:27, Henrique de Moraes Holschuh wrote:
+> (Holger dropped from CC/To as requested by the mail-followup-to header).
+> 
+> On Wed, 03 Sep 2008, Holger Macht wrote:
+> > On Mon 01. Sep - 12:05:04, Steven King wrote:
+> > > On Monday 01 September 2008 5:16:44 Tomas Carnecky wrote:
+> > > 
+> > > > I just tested suspend/resume with the CDROM drive removed (an empty
+> > > > bay). Suspend/resume now works just fine, regardless how I dock/undock
+> > > > the laptop.
+> > > 
+> > > I'm seeing the exact same things as Tom.  Also, in my dmesg I see:
+> > > 
+> > > ACPI: \_SB_.PCI0.IDE0.PRIM.MSTR: found ejectable bay
+> > > ACPI: \_SB_.PCI0.IDE0.PRIM.MSTR: Adding notify handler
+> > > ACPI: Error installing bay notify handler
+> > > 
+> > > is this significant?
+> > 
+> > No, it's not. Bay driver is obsolete with 2.6.26's libata hotplug code.
+> 
+> Hardly so.  We need to be able to query state and command the bay from
+> userspace.  We need to support non-libata devices.  We don't need, but want,
+> notifications that can be easily flagged by userspace as being related to
+> bay/dock ejections and insertions (for OSD).
+> 
+> What makes bay obsolete is the rework on the dock driver that adds all bay
+> functionality to dock.c... and that ain't even on 2.6.27, AFAIK.
 
-Ah did you address the review comments? I must have missed that, sorry.
-Can you resend please? Or best you just send them to Len.
+Maybe the statement was a little bit harsh, it's just that you won't need
+bay in conjunction with libata, because it can't install the notification
+handler because that was already done by libata.
 
--Andi
-
--- 
-ak@linux.intel.com
+Regards,
+	Holger
