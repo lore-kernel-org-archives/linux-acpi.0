@@ -1,60 +1,48 @@
-From: "Li, Shaohua" <shaohua.li@intel.com>
-Subject: RE: [PATCH]: ACPI : Set 32bit and 64bit waking vector in FCAS table
-Date: Fri, 5 Sep 2008 09:21:53 +0800
-Message-ID: <76780B19A496DC4B80439008DAD7076C01803B89F1@PDSMSX501.ccr.corp.intel.com>
-References: <1220507476.4007.117.camel@yakui_zhao.sh.intel.com>
-	 <200809041010.07058.rjw@sisk.pl> <1220519910.24775.260.camel@rzhang-dt>
-	 <200809041137.52379.rjw@sisk.pl>  <20080904120719.GA9216@srcf.ucam.org>
- <1220577437.4007.148.camel@yakui_zhao.sh.intel.com>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: a problem about the the patch in the comment #118 of bug 10724
+Date: Fri, 05 Sep 2008 09:51:50 +0800
+Message-ID: <1220579510.4007.178.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:2930 "EHLO mga09.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:53635 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751857AbYIEBV5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 4 Sep 2008 21:21:57 -0400
-In-Reply-To: <1220577437.4007.148.camel@yakui_zhao.sh.intel.com>
-Content-Language: en-US
+	id S1752035AbYIEBh6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 4 Sep 2008 21:37:58 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhao, Yakui" <yakui.zhao@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "Zhang, Rui" <rui.zhang@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "andi@firstfloor.org" <andi@firstfloor.org>
+To: astarikovskiy@suse.de
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
 
-DQoNCj4tLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPkZyb206IGxpbnV4LWFjcGktb3duZXJA
-dmdlci5rZXJuZWwub3JnIFttYWlsdG86bGludXgtYWNwaS0NCj5vd25lckB2Z2VyLmtlcm5lbC5v
-cmddIE9uIEJlaGFsZiBPZiBaaGFvIFlha3VpDQo+U2VudDogRnJpZGF5LCBTZXB0ZW1iZXIgMDUs
-IDIwMDggOToxNyBBTQ0KPlRvOiBNYXR0aGV3IEdhcnJldHQNCj5DYzogUmFmYWVsIEouIFd5c29j
-a2k7IFpoYW5nLCBSdWk7IGxlbmJAa2VybmVsLm9yZzsgbGludXgtDQo+YWNwaUB2Z2VyLmtlcm5l
-bC5vcmc7IGFuZGlAZmlyc3RmbG9vci5vcmcNCj5TdWJqZWN0OiBSZTogW1BBVENIXTogQUNQSSA6
-IFNldCAzMmJpdCBhbmQgNjRiaXQgd2FraW5nIHZlY3RvciBpbiBGQ0FTDQo+dGFibGUNCj4NCj5P
-biBUaHUsIDIwMDgtMDktMDQgYXQgMTM6MDcgKzAxMDAsIE1hdHRoZXcgR2FycmV0dCB3cm90ZToN
-Cj4+IE9uIFRodSwgU2VwIDA0LCAyMDA4IGF0IDExOjM3OjUxQU0gKzAyMDAsIFJhZmFlbCBKLiBX
-eXNvY2tpIHdyb3RlOg0KPj4gPiA+IHNvIGl0IHNlZW1zIHRoYXQgdGhlIEJJT1Mgc2V0cyDvu79m
-YWNzLT54ZmlybXdhcmVfd2FraW5nX3ZlY3RvciBkdXJpbmcNCj4+ID4gPiBQT1NULCBidXQgdXNl
-cyDvu7/vu79mYWNzLT5maXJtd2FyZV93YWtpbmdfdmVjdG9yIHRvIGdldCBiYWNrIGR1cmluZyBy
-ZXN1bWUuDQo+PiA+DQo+PiA+IFNvIHRoZSBCSU9TIGlzIGJ1Z2d5LCBzbyBsZXQncyBhZGQgYSBx
-dWlyayBmb3IgaXQuDQo+Pg0KPj4gRG9lcyB0aGUgbWFjaGluZSByZXN1bWUgaW4gV2luZG93cz8g
-SWYgc28sIGRvIHdlIGhhdmUgYW55IGV2aWRlbmNlIHRoYXQNCj4+IFdpbmRvd3MgaGFzIGEgcXVp
-cmtzIGxpc3QgdG8gaGFuZGxlIHRoaXMgY2FzZT8gSWYgbm90LCB0aGVuIEkgc3VzcGVjdA0KPj4g
-dGhhdCBXaW5kb3dzIHNldHMgYm90aCBhbmQgdGhpcyBpcyB3aGF0IGV2ZXJ5b25lIGhhcyB0ZXN0
-ZWQgYWdhaW5zdC4NCj5UaGUgbGFwdG9wIGNhbiBiZSByZXN1bWVkIG9uIHdpbmRvd3MuKFhQICYg
-VmlzdGEpLiBBbmQgd2UgZG9uJ3Qga25vdw0KPndoZXRoZXIgdGhlcmUgZXhpc3RzIHRoZSBxdWly
-ayBsaXN0IHRvIGhhbmRsZXIgdGhpcyBjYXNlIG9uIHdpbmRvd3MuDQo+TWF5YmUgd2hhdCB5b3Ug
-c2FpZCBpcyByaWdodC4NCj5JbiBmYWN0IGl0IGlzIGhhcm1sZXNzIHdoZW4gYm90aCAzMmJpdCBh
-bmQgNjRiaXQgd2FraW5nIHZlY3RvciBpbiBGQUNTDQo+dGFibGUgYXJlIHNldC4gV2hlbiB0aGUg
-c3lzdGVtIGlzIHJlc3VtZWQsIEJJT1Mgd2lsbCB0cmFuc2ZlciBjb250cm9sIHRvDQo+dGhlIHBy
-ZWRlZmluZWQgd2FraW5nIHZlY3Rvci4gQXMgd2Ugc2V0IHRoZSBzYW1lIHdha2luZyB2ZWN0b3Is
-IGVpdGhlcg0KPm9mIHRoZW0gaXMgT0suDQo+DQo+VGhlcmUgZXhpc3RzIHRoZSBkaWZmZXJlbmNl
-IGJldHdlZW4gMzJiaXQgYW5kIDY0Yml0IHdha2luZyB2ZWN0b3IgdW5sZXNzDQo+dGhlIHdha2lu
-ZyBhZGRyZXNzIGlzIGFib3ZlIDRHQi4gQnV0IGluIGZhY3QgdGhlIHdha2luZyBhZGRyZXNzIGlz
-IGJlbG93DQo+MU1CIG9uIG1vc3QgbWFjaGluZXMgYXMgdGhlIHdha2luZyBhZGRyZXNzIG5lZWRz
-IHRvIGJlIGFjY2Vzc2VkIGJ5IEJJT1MuDQo+DQo+U28gaW4gbW9zdCBjYXNlcyB0aGUgMzJiaXQg
-YW5kIDY0Yml0IHdha2luZyB2ZWN0b3IgYXJlIHRoZSBzYW1lIHZhbHVlLg0KPkJJT1MgY2FuIHRy
-YW5zZmVyIGNvbnRyb2wgdG8gZWl0aGVyIG9mIHRoZW0uDQpUaGVyZSB3YXMgZGlzY3Vzc2lvbiBh
-Ym91dCB0aGlzIGlzc3VlIHNldmVyYWwgbW9udGhzIGFnbyAoaW50ZWwncyBtbCksIGxvb2tzIHBl
-b3BsZSBmb3Jnb3QgdG8gdGFrZSBhY3Rpb24gYWZ0ZXIgdGhlIGRpc2N1c3Npb24uIFRoZSBzcGVj
-IG93bmVyIHNhaWQgNjRiaXQgdmVjdG9yIGlzIHVzZWQgaW4gcHJvdGVjdGVkIG1vZGUuIFRoYXQg
-aXMgaWYgT1Mgc2V0cyBpdCwgd2FrZXVwIGNvZGUgaXMgY2FsbGVkIGluIHByb3RlY3RlZCBtb2Rl
-IGJ5IEJJT1MuIFNvIHRoZSA2NC1iaXQgdmVjdG9yIHNob3VsZG4ndCBiZSB1c2VkLg0KDQpUaGFu
-a3MsDQpTaGFvaHVhDQo=
+Hi, Alexey
+    
+    Maybe you misunderstand what I have done in the patch of bug 10724. 
+    We should firstly make it clear why there exists EC GPE interrupt storm on some laptops. EC controller
+uses the pulse interrupt model to trigger GPE interrupt and EC GPE is registered as Edge mode.
+    If the EC interrupt pulse is too wide on some broken BIOS, several ACPI interrupts are triggered
+although only one EC interrupt pulse is generated. Maybe on some broken BIOS the situation will be more serious.And
+when EC GPE handler is served, OS will check the EC status by reading the EC status I/O port. On most laptops the 
+EC and other controller(Keyboard, UART) are accessed through LPC bus. If the EC GPE interrupt is triggered too many times
+( For example: 50000 per second), too much bandwith of LPC bus will be wasted on reading the EC status register. 
+On the bug 9998 it causes that sometimes the keystrobes are lost. Sometimes it will cause that the info of the 
+battery/SBS battery related with EC can't be obtained.
+    
+    If we can add some delays on the EC GPE handler, the number of EC GPE interrupt can be reduced very obviously, which 
+makes the system work well. For example: the laptop in bug 9998 can work well and the EC working flowchart is also simple.
+
+    My patch is only for the broken BIOS. For most laptops no delay is added in the EC GPE handler. 
+    Only when five EC GPE interrupts happens in the same jiffies and the EC status is the same, OS will add some delay in 
+the EC GPE handler. If the same thing still happens after the delay is added, the delay time will be increased. 
+But the max delay time is 5 microseconds.
+    
+    At the same time IMO udelay is harmless. It is realized by repeat loop instead of halt. 
+
+    
+Thanks
+   Yakui
+
+    
+    
+
+
