@@ -1,60 +1,73 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: Re: [PATCH]: ACPI : Set 32bit and 64bit waking vector in FCAS table
-Date: Fri, 05 Sep 2008 09:17:17 +0800
-Message-ID: <1220577437.4007.148.camel@yakui_zhao.sh.intel.com>
-References: <1220507476.4007.117.camel@yakui_zhao.sh.intel.com>
-	 <200809041010.07058.rjw@sisk.pl> <1220519910.24775.260.camel@rzhang-dt>
-	 <200809041137.52379.rjw@sisk.pl>  <20080904120719.GA9216@srcf.ucam.org>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: Problem with ACPI video
+Date: Fri, 05 Sep 2008 09:02:41 +0800
+Message-ID: <1220576561.24775.266.camel@rzhang-dt>
+References: <g9n0h0$ru8$1@ger.gmane.org>
+	 <1220491149.24775.229.camel@rzhang-dt>  <48C03A87.5050109@sapo.pt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:34101 "EHLO mga11.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:51680 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751688AbYIEBDK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 4 Sep 2008 21:03:10 -0400
-In-Reply-To: <20080904120719.GA9216@srcf.ucam.org>
+	id S1751775AbYIEBDc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 4 Sep 2008 21:03:32 -0400
+In-Reply-To: <48C03A87.5050109@sapo.pt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Zhang Rui <rui.zhang@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, andi@firstfloor.org
+To: Luis Henriques <henrix@sapo.pt>
+Cc: linux-acpi@vger.kernel.org
 
-On Thu, 2008-09-04 at 13:07 +0100, Matthew Garrett wrote:
-> On Thu, Sep 04, 2008 at 11:37:51AM +0200, Rafael J. Wysocki wrote:
-> > > so it seems that the BIOS sets =EF=BB=BFfacs->xfirmware_waking_ve=
-ctor during
-> > > POST, but uses =EF=BB=BF=EF=BB=BFfacs->firmware_waking_vector to =
-get back during resume.
-> >=20
-> > So the BIOS is buggy, so let's add a quirk for it.
->=20
-> Does the machine resume in Windows? If so, do we have any evidence th=
-at=20
-> Windows has a quirks list to handle this case? If not, then I suspect=
-=20
-> that Windows sets both and this is what everyone has tested against.
-The laptop can be resumed on windows.(XP & Vista). And we don't know
-whether there exists the quirk list to handler this case on windows.=20
-Maybe what you said is right.=20
-In fact it is harmless when both 32bit and 64bit waking vector in FACS
-table are set. When the system is resumed, BIOS will transfer control t=
-o
-the predefined waking vector. As we set the same waking vector, either
-of them is OK.=20
+On Fri, 2008-09-05 at 03:44 +0800, Luis Henriques wrote:
+> Zhang Rui wrote:
+> >> It seems that acpi_video_bus_add function is invoked twice and, the
+> >> second time, it fails (maybe it is supposed to be invoked
+> twice...).
+> >>
+> > There are two ACPI video bus devices both named "VGA" in the ACPI
+> > namespace, and each of them tries to create an entry "VGA"
+> > under /proc/acpi/video/.
+> > that's why this message is printed out.
+> 
+> Sorry about my ignorance on the topic but... does this mean I do
+> actually have 2 devices?  If this is true, then I should actually have
+> "VGA1" and "VGA2" dirs in /proc, right?
+No, because the video driver tries to register two "VGA" procfs entry,
+we get two "VGA" dirs in /proc...
 
-There exists the difference between 32bit and 64bit waking vector unles=
-s
-the waking address is above 4GB. But in fact the waking address is belo=
-w
-1MB on most machines as the waking address needs to be accessed by BIOS=
-=2E
+> >> Please let me know whether you need any additional information to
+> help
+> >> me solving this problem.
+> > There is a patch from Matthew that should solve this problem, which
+> has
+> > already hit the acpi test tree.
+> > it would be great if you can get the source code and give it a
+> try. :)
+> >
+> > how to get the source code:
+> >> git-clone
+> git://git.kernel.org/pub/scm/linux/kernel/git/ak/linux-acpi-2.6
+> acpi_test
+> >> git-branch -r
+> >> git-branch --track test origin/test
+> >> git-checkout test
+> 
+> 
+> Ok, tried this (or similar...) and it seems to be working just fine.
+> Or, at least, no more error message from kernel.  Also, in
+> /proc/acpi/video only one directory 'VGA' is being created.  Here's
+> the
+> relevante dmesg part:
+> 
+> [   14.657009] ACPI: AC Adapter [ACAD] (on-line)
+> [   14.661005] acpi device:04: registered as cooling_device2
+> [   14.664019] input: Video Bus as /class/input/input4
+> [   14.716892] ACPI: Video Device [VGA] (multi-head: yes  rom: no
+> post: no)
+> 
+that's great.
+thanks for testing, we'll try to push these patches upstream.
 
-So in most cases the 32bit and 64bit waking vector are the same value.
-BIOS can transfer control to either of them.
->=20
+thanks,
+rui
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
