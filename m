@@ -1,48 +1,62 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: a problem about the the patch in the comment #118 of bug 10724
-Date: Fri, 05 Sep 2008 09:51:50 +0800
-Message-ID: <1220579510.4007.178.camel@yakui_zhao.sh.intel.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: patch for bugs 9998 and 10724
+Date: Fri, 05 Sep 2008 10:26:36 +0800
+Message-ID: <1220581596.3441.2.camel@rzhang-dt>
+References: <1219730254.4116.38.camel@yakui_zhao.sh.intel.com>
+	 <20080904121820.GC18288@one.firstfloor.org> <48BFD5AA.3090006@suse.de>
+	 <48BFD609.2050604@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:53635 "EHLO mga01.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:13817 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752035AbYIEBh6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 4 Sep 2008 21:37:58 -0400
+	id S1751962AbYIEC1X (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 4 Sep 2008 22:27:23 -0400
+In-Reply-To: <48BFD609.2050604@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: astarikovskiy@suse.de
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-Hi, Alexey
-    
-    Maybe you misunderstand what I have done in the patch of bug 10724. 
-    We should firstly make it clear why there exists EC GPE interrupt storm on some laptops. EC controller
-uses the pulse interrupt model to trigger GPE interrupt and EC GPE is registered as Edge mode.
-    If the EC interrupt pulse is too wide on some broken BIOS, several ACPI interrupts are triggered
-although only one EC interrupt pulse is generated. Maybe on some broken BIOS the situation will be more serious.And
-when EC GPE handler is served, OS will check the EC status by reading the EC status I/O port. On most laptops the 
-EC and other controller(Keyboard, UART) are accessed through LPC bus. If the EC GPE interrupt is triggered too many times
-( For example: 50000 per second), too much bandwith of LPC bus will be wasted on reading the EC status register. 
-On the bug 9998 it causes that sometimes the keystrobes are lost. Sometimes it will cause that the info of the 
-battery/SBS battery related with EC can't be obtained.
-    
-    If we can add some delays on the EC GPE handler, the number of EC GPE interrupt can be reduced very obviously, which 
-makes the system work well. For example: the laptop in bug 9998 can work well and the EC working flowchart is also simple.
+On Thu, 2008-09-04 at 16:35 +0400, Alexey Starikovskiy wrote:
+> Here is the same patch as attachment for your convenience.
+> Alexey Starikovskiy wrote:
+> > Hi Andy,
+> >=20
+> > I just uploaded patch for bugs 9998 and 10724, which solves the pro=
+blem=20
+> > of interrupt storm more cleanly.
+> > Could you please add this patch to testing?
+> >=20
+> > Thanks,
+> > Alex.
+> >=20
+> >=20
+>=20
+=EF=BB=BF+       ec->t.command =3D 0;
++       if (test_bit(EC_FLAGS_GPE_STORM, &ec->flags)) {
++               /* check if we received SCI during transaction */
++               ec_check_sci(ec, acpi_ec_read_status(ec));
++               /* it is safe to enable GPE outside of transaction */
++               acpi_enable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
++       } else if (test_bit(EC_FLAGS_GPE_MODE, &ec->flags) &&
++                  atomic_read(&ec->irq_count) >
+ACPI_EC_STORM_THRESHOLD)
++               pr_debug(PREFIX "GPE storm detected\n");
++               set_bit(EC_FLAGS_GPE_STORM, &ec->flags);
++       return 0;
++}
 
-    My patch is only for the broken BIOS. For most laptops no delay is added in the EC GPE handler. 
-    Only when five EC GPE interrupts happens in the same jiffies and the EC status is the same, OS will add some delay in 
-the EC GPE handler. If the same thing still happens after the delay is added, the delay time will be increased. 
-But the max delay time is 5 microseconds.
-    
-    At the same time IMO udelay is harmless. It is realized by repeat loop instead of halt. 
+you will set the =EF=BB=BFEC_FLAGS_GPE_STORM flag in every ec transacti=
+on.
+I don't think that's what you/we want. :)
 
-    
-Thanks
-   Yakui
+thanks,
+rui
 
-    
-    
-
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
