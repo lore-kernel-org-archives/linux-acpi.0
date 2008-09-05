@@ -1,171 +1,37 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: RFC: fast transactions in EC [was: a problem about the two
- patches in bug 10724 & 11428]
-Date: Fri, 5 Sep 2008 13:07:41 -0700
-Message-ID: <20080905130741.5a67bfdf.akpm@linux-foundation.org>
-References: <1220251221.4039.52.camel@yakui_zhao.sh.intel.com>
-	<20080901122158.GB21970@khazad-dum.debian.net>
-	<48BC522D.60905@suse.de>
-	<48BC57C9.2040409@suse.de>
-	<1220421722.4007.4.camel@yakui_zhao.sh.intel.com>
-	<48BE32AF.0@suse.de>
-	<1220429030.4007.22.camel@yakui_zhao.sh.intel.com>
-	<48BE427C.3070204@suse.de>
-	<1220430856.4007.38.camel@yakui_zhao.sh.intel.com>
-	<48BF07E1.8080304@suse.de>
-	<1220497095.4007.76.camel@yakui_zhao.sh.intel.com>
-	<48BF6969.2040602@suse.de>
+From: Frans Pop <elendil@planet.nl>
+Subject: Re: Regression: SATA disk double spin-off during hibernation on hp nx6325
+Date: Sat, 6 Sep 2008 00:25:18 +0200
+Message-ID: <200809060025.20039.elendil@planet.nl>
+References: <200808290002.55026.rjw@sisk.pl> <200808291330.42265.elendil@planet.nl> <200809041605.22055.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37702 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750810AbYIEUHz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Sep 2008 16:07:55 -0400
-In-Reply-To: <48BF6969.2040602@suse.de>
+Received: from hpsmtp-eml15.kpnxchange.com ([213.75.38.115]:56310 "EHLO
+	hpsmtp-eml15.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750732AbYIEWZX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Sep 2008 18:25:23 -0400
+In-Reply-To: <200809041605.22055.rjw@sisk.pl>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: yakui.zhao@intel.com, hmh@hmh.eng.br, linux-acpi@vger.kernel.org, lenb@kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org, linux-ide@vger.kernel.org, trenn@suse.de, htejun@gmail.com, hancockr@shaw.ca, linux-kernel@vger.kernel.org, Maciej Rutecki <maciej.rutecki@gmail.com>
 
-On Thu, 04 Sep 2008 08:51:53 +0400
-Alexey Starikovskiy <astarikovskiy@suse.de> wrote:
+On Thursday 04 September 2008, Rafael J. Wysocki wrote:
+> I have uploaded a new version of the patch into the Bugzilla:
+> http://bugzilla.kernel.org/attachment.cgi?id=17618&action=view
 
-> [fast_transaction.patch  text/x-diff (9.9KB)]
-> ACPI: EC: do transaction from interrupt context
-> 
-> From:  <>
-> 
-> It is easier and faster to do transaction directly from interrupt context
-> rather than waking control thread.
+This version does not work for me, possibly because I use a different hard 
+disk driver (ata_piix instead of sata_sil)?
 
-This change broke
-acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically.patch, below.
+I've seen there are later versions of the patch, but as the comments 
+mention that 2510p was removed from those I haven't tested them.
 
-Is acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically.patch now
-obsolete?  Is the regression which
-acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically.patch fixed
-now fixed?
+> (also please attach dmesg output to the Bugzilla entry)
 
-Thanks.
+Added.
 
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-
-Not all users of semi-broken EC devices want to degrade to poll mode, so
-give them right to choose.
-
-This fixes a regression in 2.6.26 (from 2.6.25.3).  Initially reported as
-"Asus Eee PC hotkeys stop working if pressed quickly" in bugzilla
-<http://bugzilla.kernel.org/show_bug.cgi?id=11089>.
-
-The regression was caused by a recently added check for interrupt storms. 
-The Eee PC triggers this check and switches to polling.  When multiple
-events arrive between polling intervals, only one is fetched from the EC. 
-This causes erroneous behaviour; ultimately events stop being delivered
-altogether when the EC buffer overflows.
-
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: Maximilian Engelhardt <maxi@daemonizer.de>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: <stable@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- Documentation/kernel-parameters.txt |    5 +++
- drivers/acpi/ec.c                   |   36 ++++++++++++++++++--------
- 2 files changed, 31 insertions(+), 10 deletions(-)
-
-diff -puN Documentation/kernel-parameters.txt~acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically
-+++ a/Documentation/kernel-parameters.txt
-@@ -741,6 +741,11 @@ and is between 256 and 4096 characters. 
- 
- 	eata=		[HW,SCSI]
- 
-+	ec_intr=	[HW,ACPI] ACPI Embedded Controller interrupt mode
-+			Format: <int>
-+			0: polling mode
-+			non-0: interrupt mode (default)
-+
- 	edd=		[EDD]
- 			Format: {"off" | "on" | "skip[mbr]"}
- 
-diff -puN drivers/acpi/ec.c~acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically drivers/acpi/ec.c
---- a/drivers/acpi/ec.c~acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically
-+++ a/drivers/acpi/ec.c
-@@ -110,6 +110,8 @@ static struct acpi_ec {
- 	u8 handlers_installed;
- } *boot_ec, *first_ec;
- 
-+int acpi_ec_intr = 1; /* Default is interrupt mode */
-+
- /* 
-  * Some Asus system have exchanged ECDT data/command IO addresses.
-  */
-@@ -516,12 +518,14 @@ static u32 acpi_ec_gpe_handler(void *dat
- 	acpi_status status = AE_OK;
- 	struct acpi_ec *ec = data;
- 	u8 state = acpi_ec_read_status(ec);
-+	static bool warn_done = 0;
- 
- 	pr_debug(PREFIX "~~~> interrupt\n");
- 	atomic_inc(&ec->irq_count);
--	if (atomic_read(&ec->irq_count) > 5) {
--		pr_err(PREFIX "GPE storm detected, disabling EC GPE\n");
--		ec_switch_to_poll_mode(ec);
-+	if (!warn_done && atomic_read(&ec->irq_count) > 5) {
-+		pr_warning(PREFIX "GPE storm detected, try to use ec_intr=0 "
-+			"kernel option, if you see problems with keyboard.\n");
-+		warn_done = 1;
- 		goto end;
- 	}
- 	clear_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
-@@ -848,20 +852,21 @@ static int ec_install_handlers(struct ac
- 	acpi_status status;
- 	if (ec->handlers_installed)
- 		return 0;
--	status = acpi_install_gpe_handler(NULL, ec->gpe,
-+	if (acpi_ec_intr) {
-+		status = acpi_install_gpe_handler(NULL, ec->gpe,
- 					  ACPI_GPE_EDGE_TRIGGERED,
- 					  &acpi_ec_gpe_handler, ec);
--	if (ACPI_FAILURE(status))
--		return -ENODEV;
--
--	acpi_set_gpe_type(NULL, ec->gpe, ACPI_GPE_TYPE_RUNTIME);
--	acpi_enable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
-+		if (ACPI_FAILURE(status))
-+			return -ENODEV;
- 
-+		acpi_set_gpe_type(NULL, ec->gpe, ACPI_GPE_TYPE_RUNTIME);
-+		acpi_enable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
-+	}
- 	status = acpi_install_address_space_handler(ec->handle,
- 						    ACPI_ADR_SPACE_EC,
- 						    &acpi_ec_space_handler,
- 						    NULL, ec);
--	if (ACPI_FAILURE(status)) {
-+	if (ACPI_FAILURE(status) && acpi_ec_intr) {
- 		acpi_remove_gpe_handler(NULL, ec->gpe, &acpi_ec_gpe_handler);
- 		return -ENODEV;
- 	}
-@@ -1047,3 +1052,14 @@ static void __exit acpi_ec_exit(void)
- 	return;
- }
- #endif	/* 0 */
-+
-+static int __init acpi_ec_set_intr_mode(char *str)
-+{
-+	if (!get_option(&str, &acpi_ec_intr)) {
-+		acpi_ec_intr = 0;
-+		return 0;
-+	}
-+	return 1;
-+}
-+
-+__setup("ec_intr=", acpi_ec_set_intr_mode);
-_
-
+Cheers,
+FJP
