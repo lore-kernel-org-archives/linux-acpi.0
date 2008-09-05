@@ -1,122 +1,323 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: ACPI (atlas_btns) locks my box for minutes
-Date: Thu, 04 Sep 2008 17:36:14 -0400 (EDT)
-Message-ID: <alpine.LFD.1.10.0809041731160.3662@localhost.localdomain>
-References: <200809041300.20141.hs4233@mail.mn-solutions.de>
+From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Subject: [PATCH] fujitsu-laptop: better handling of P8010 hotkey events
+Date: Fri, 5 Sep 2008 09:47:37 +0930 (CST)
+Message-ID: <200809050017.m850HbjE001676@turbo.physics.adelaide.edu.au>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms044pub.verizon.net ([206.46.252.44]:34981 "EHLO
-	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753752AbYIDVgo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Sep 2008 17:36:44 -0400
-Received: from localhost.localdomain ([96.237.168.40])
- by vms044.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0K6O000NKXCF55R1@vms044.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 04 Sep 2008 16:36:16 -0500 (CDT)
-In-reply-to: <200809041300.20141.hs4233@mail.mn-solutions.de>
+Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:42028 "EHLO
+	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751448AbYIEAR5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Sep 2008 20:17:57 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Holger Schurig <hs4233@mail.mn-solutions.de>
-Cc: linux-acpi@vger.kernel.org, Jaya Kumar <jayakumar.acpi@gmail.com>, Dmitry Torokhov <dtor@mail.ru>
+To: linux-acpi@vger.kernel.org, lenb@kernel.org
+Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+
+Hi Len
+
+This patch (mostly from Peter Gruber) against 2.6.27-rc4 improves the
+handling of the hotkeys for P8010 laptops by passing more accurate input
+events back to userspace.  This is needed because the P8010 labels these
+buttons quite differently to earlier laptops.  As part of this, a
+P8010-specific DMI callback check has been implemented.  Finally there's
+some minor whitespace cleanups from running the source through Lindent.
+
+Please apply to acpi-test for 2.6.28.
+
+Signed-off-by: Peter Gruber <nokos@gmx.net>
+Signed-off-by: Jonathan Woithe >jwoithe@physics.adelaide.edu.au>
+
+Thanks
+  jonathan
 
 
-
-On Thu, 4 Sep 2008, Holger Schurig wrote:
-
-> Hi people !
-> 
-> On 2.6.26.3 I'm using ACPI and the Atlas driver
-> (drivers/input/misc/atlas_btns.c), which uses the ASIM0000 acpi
-> device.
-> 
-> Most of the time this works great. That is, I can press 20
-> or 50 times the button and it always works, I always get a
-> scan-code report via the input subsystem.
-> 
-> However, occossianelly my box hangs. It's a hard lock, e.g.
-> the blinking cursor in X won't work, the keyboard won't work. The
-> box is just completely locked up for a period of time. Eventually
-> it recovers. When I now look at "dmesg", I see this:
-
-Does the hang and interrupt storm only happen
-upon pressing the button?
-(ie. it does not happen if you do not press the button,
- and it does not happen if atlas_btns is not loaded)
-
-thanks,
--Len
-
-> ##HS acpi_atlas_button_handler()
-> ##HS acpi_atlas_button_handler()
-> ##HS acpi_atlas_button_handler()
-> ##HS acpi_atlas_button_handler()
-> irq 9: nobody cared (try booting with the "irqpoll" option)
-> Pid: 0, comm: swapper Tainted: P          2.6.26.3 #12
->  [<c012f063>] __report_bad_irq+0x24/0x69
->  [<c012f06a>] __report_bad_irq+0x2b/0x69
->  [<c012f257>] note_interrupt+0x1af/0x1e4
->  [<c01cbc97>] acpi_irq+0xb/0x1c
->  [<c012e983>] handle_IRQ_event+0x1a/0x3f
->  [<c012f917>] handle_level_irq+0x63/0x84
->  [<c01046d0>] do_IRQ+0x4b/0x60
->  [<c010320f>] common_interrupt+0x23/0x28
->  [<c01d007b>] acpi_ds_init_aml_walk+0xb2/0xfe
->  [<c0118f03>] __do_softirq+0x2c/0x75
->  [<c0118f6e>] do_softirq+0x22/0x26
->  [<c01191ea>] irq_exit+0x25/0x53
->  [<c01046d5>] do_IRQ+0x50/0x60
->  [<c010320f>] common_interrupt+0x23/0x28
->  [<c01e90a7>] acpi_idle_enter_simple+0x16d/0x1da
->  [<c02553f6>] cpuidle_idle_call+0x49/0x77
->  [<c02553ad>] cpuidle_idle_call+0x0/0x77
->  [<c010176c>] cpu_idle+0x48/0x61
->  =======================
-> handlers:
-> [<c01cbc8c>] (acpi_irq+0x0/0x1c)
-> Disabling IRQ #9
-> BUG: soft lockup - CPU#0 stuck for 136s! [events/0:5]
-> Modules linked in: wlan_wep wlan_scan_sta ath_rate_sample ath_pci wlan ath_hal(P)
-> 
-> 
-> IRQ 9 is, of course, the ACPI interrupt. This is the state after
-> the lock-up-and-recoverage:
-> 
-> # cat /proc/interrupts
->            CPU0
->   0:      51339    XT-PIC-XT        timer
->   2:          0    XT-PIC-XT        cascade
->   4:        606    XT-PIC-XT        serial
->   5:       2012    XT-PIC-XT        serial
->   7:          3    XT-PIC-XT
->   9:     200000    XT-PIC-XT        acpi
->  10:          0    XT-PIC-XT        yenta, yenta
->  11:       6252    XT-PIC-XT        ehci_hcd:usb1, ohci_hcd:usb2, CS5535 Audio, wifi0
->  14:      88924    XT-PIC-XT        ide0
->  15:          0    XT-PIC-XT        ide1
-> NMI:          0   Non-maskable interrupts
-> LOC:          0   Local timer interrupts
-> TRM:          0   Thermal event interrupts
-> SPU:          0   Spurious interrupts
-> ERR:          1
-> MIS:          0
-> 
-> Note the extraordinary high interrupt number of IRQ 9 !  This
-> does not happen before this error triggers:
-> 
-> # grep 9: /proc/interrupts
->   9:          2    XT-PIC-XT        acpi
-> ---> now I press one ACPI button <---
-> # grep 9: /proc/interrupts
->   9:          4    XT-PIC-XT        acpi
-> 
-> 
-> Any hint about resolving this issue?
-> 
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/drivers/misc/fujitsu-laptop.c b/drivers/misc/fujitsu-laptop.c index 255d135..36c3add 100644
+--- a/drivers/misc/fujitsu-laptop.c
++++ b/drivers/misc/fujitsu-laptop.c
+@@ -44,8 +44,9 @@
+  * Hotkeys present on certain Fujitsu laptops (eg: the S6xxx series) are
+  * also supported by this driver.
+  *
+- * This driver has been tested on a Fujitsu Lifebook S6410 and S7020. It
+- * should work on most P-series and S-series Lifebooks, but YMMV.
++ * This driver has been tested on a Fujitsu Lifebook S6410, S7020 and
++ * P8010.  It should work on most P-series and S-series Lifebooks, but
++ * YMMV.
+  *
+  * The module parameter use_alt_lcd_levels switches between different ACPI
+  * brightness controls which are used by different Fujitsu laptops.  In most
+@@ -65,7 +66,7 @@
+ #include <linux/video_output.h>
+ #include <linux/platform_device.h>
+ 
+-#define FUJITSU_DRIVER_VERSION "0.4.2"
++#define FUJITSU_DRIVER_VERSION "0.4.3"
+ 
+ #define FUJITSU_LCD_N_LEVELS 8
+ 
+@@ -83,10 +84,10 @@
+ #define ACPI_VIDEO_NOTIFY_DEC_BRIGHTNESS     0x87
+ 
+ /* Hotkey details */
+-#define LOCK_KEY	0x410	/* codes for the keys in the GIRB register */
+-#define DISPLAY_KEY	0x411	/* keys are mapped to KEY_SCREENLOCK (the key with the key symbol) */
+-#define ENERGY_KEY	0x412	/* KEY_MEDIA (the key with the laptop symbol, KEY_EMAIL (E key)) */
+-#define REST_KEY	0x413	/* KEY_SUSPEND (R key) */
++#define KEY1_CODE	0x410	/* codes for the keys in the GIRB register */
++#define KEY2_CODE	0x411
++#define KEY3_CODE	0x412
++#define KEY4_CODE	0x413
+ 
+ #define MAX_HOTKEY_RINGBUFFER_SIZE 100
+ #define RINGBUFFERSIZE 40
+@@ -123,6 +124,7 @@ struct fujitsu_t {
+ 	char phys[32];
+ 	struct backlight_device *bl_device;
+ 	struct platform_device *pf_device;
++	int keycode1, keycode2, keycode3, keycode4;
+ 
+ 	unsigned int max_brightness;
+ 	unsigned int brightness_changed;
+@@ -430,7 +432,7 @@ static struct platform_driver fujitsupf_driver = {
+ 		   }
+ };
+ 
+-static int dmi_check_cb_s6410(const struct dmi_system_id *id)
++static void dmi_check_cb_common(const struct dmi_system_id *id)
+ {
+ 	acpi_handle handle;
+ 	int have_blnf;
+@@ -452,24 +454,40 @@ static int dmi_check_cb_s6410(const struct dmi_system_id *id)
+ 			    "auto-detecting disable_adjust\n");
+ 		disable_brightness_adjust = have_blnf ? 0 : 1;
+ 	}
++}
++
++static int dmi_check_cb_s6410(const struct dmi_system_id *id)
++{
++	dmi_check_cb_common(id);
++	fujitsu->keycode1 = KEY_SCREENLOCK;	/* "Lock" */
++	fujitsu->keycode2 = KEY_HELP;	/* "Mobility Center" */
++	return 0;
++}
++
++static int dmi_check_cb_p8010(const struct dmi_system_id *id)
++{
++	dmi_check_cb_common(id);
++	fujitsu->keycode1 = KEY_HELP;	/* "Support" */
++	fujitsu->keycode3 = KEY_SWITCHVIDEOMODE;	/* "Presentation" */
++	fujitsu->keycode4 = KEY_WWW;	/* "Internet" */
+ 	return 0;
+ }
+ 
+ static struct dmi_system_id __initdata fujitsu_dmi_table[] = {
+ 	{
+-	 .ident = "Fujitsu Siemens",
++	 .ident = "Fujitsu Siemens S6410",
+ 	 .matches = {
+ 		     DMI_MATCH(DMI_SYS_VENDOR, "FUJITSU SIEMENS"),
+ 		     DMI_MATCH(DMI_PRODUCT_NAME, "LIFEBOOK S6410"),
+ 		     },
+ 	 .callback = dmi_check_cb_s6410},
+ 	{
+-	 .ident = "FUJITSU LifeBook P8010",
++	 .ident = "Fujitsu LifeBook P8010",
+ 	 .matches = {
+ 		     DMI_MATCH(DMI_SYS_VENDOR, "FUJITSU"),
+ 		     DMI_MATCH(DMI_PRODUCT_NAME, "LifeBook P8010"),
+-		    },
+-	 .callback = dmi_check_cb_s6410},
++		     },
++	 .callback = dmi_check_cb_p8010},
+ 	{}
+ };
+ 
+@@ -547,7 +565,6 @@ static int acpi_fujitsu_add(struct acpi_device *device)
+ 	}
+ 
+ 	/* do config (detect defaults) */
+-	dmi_check_system(fujitsu_dmi_table);
+ 	use_alt_lcd_levels = use_alt_lcd_levels == 1 ? 1 : 0;
+ 	disable_brightness_keys = disable_brightness_keys == 1 ? 1 : 0;
+ 	disable_brightness_adjust = disable_brightness_adjust == 1 ? 1 : 0;
+@@ -612,7 +629,7 @@ static void acpi_fujitsu_notify(acpi_handle handle, u32 event, void *data)
+ 	case ACPI_FUJITSU_NOTIFY_CODE1:
+ 		keycode = 0;
+ 		oldb = fujitsu->brightness_level;
+-		get_lcd_level();  /* the alt version always yields changed */
++		get_lcd_level();	/* the alt version always yields changed */
+ 		newb = fujitsu->brightness_level;
+ 
+ 		vdbg_printk(FUJLAPTOP_DBG_TRACE,
+@@ -623,17 +640,17 @@ static void acpi_fujitsu_notify(acpi_handle handle, u32 event, void *data)
+ 			keycode = 0;
+ 			if (disable_brightness_keys != 1) {
+ 				if (oldb == 0) {
+-					acpi_bus_generate_proc_event(fujitsu->
+-						dev,
+-						ACPI_VIDEO_NOTIFY_DEC_BRIGHTNESS,
+-						0);
++					acpi_bus_generate_proc_event
++					    (fujitsu->dev,
++					     ACPI_VIDEO_NOTIFY_DEC_BRIGHTNESS,
++					     0);
+ 					keycode = KEY_BRIGHTNESSDOWN;
+ 				} else if (oldb ==
+ 					   (fujitsu->max_brightness) - 1) {
+-					acpi_bus_generate_proc_event(fujitsu->
+-						dev,
+-						ACPI_VIDEO_NOTIFY_INC_BRIGHTNESS,
+-						0);
++					acpi_bus_generate_proc_event
++					    (fujitsu->dev,
++					     ACPI_VIDEO_NOTIFY_INC_BRIGHTNESS,
++					     0);
+ 					keycode = KEY_BRIGHTNESSUP;
+ 				}
+ 			}
+@@ -646,8 +663,8 @@ static void acpi_fujitsu_notify(acpi_handle handle, u32 event, void *data)
+ 			}
+ 			if (disable_brightness_keys != 1) {
+ 				acpi_bus_generate_proc_event(fujitsu->dev,
+-					ACPI_VIDEO_NOTIFY_INC_BRIGHTNESS,
+-					0);
++							     ACPI_VIDEO_NOTIFY_INC_BRIGHTNESS,
++							     0);
+ 				keycode = KEY_BRIGHTNESSUP;
+ 			}
+ 		} else if (oldb > newb) {
+@@ -659,8 +676,8 @@ static void acpi_fujitsu_notify(acpi_handle handle, u32 event, void *data)
+ 			}
+ 			if (disable_brightness_keys != 1) {
+ 				acpi_bus_generate_proc_event(fujitsu->dev,
+-					ACPI_VIDEO_NOTIFY_DEC_BRIGHTNESS,
+-					0);
++							     ACPI_VIDEO_NOTIFY_DEC_BRIGHTNESS,
++							     0);
+ 				keycode = KEY_BRIGHTNESSDOWN;
+ 			}
+ 		} else {
+@@ -742,10 +759,10 @@ static int acpi_fujitsu_hotkey_add(struct acpi_device *device)
+ 	input->id.product = 0x06;
+ 	input->dev.parent = &device->dev;
+ 	input->evbit[0] = BIT(EV_KEY);
+-	set_bit(KEY_SCREENLOCK, input->keybit);
+-	set_bit(KEY_MEDIA, input->keybit);
+-	set_bit(KEY_EMAIL, input->keybit);
+-	set_bit(KEY_SUSPEND, input->keybit);
++	set_bit(fujitsu->keycode1, input->keybit);
++	set_bit(fujitsu->keycode2, input->keybit);
++	set_bit(fujitsu->keycode3, input->keybit);
++	set_bit(fujitsu->keycode4, input->keybit);
+ 	set_bit(KEY_UNKNOWN, input->keybit);
+ 
+ 	error = input_register_device(input);
+@@ -833,38 +850,38 @@ static void acpi_fujitsu_hotkey_notify(acpi_handle handle, u32 event,
+ 				    irb);
+ 
+ 			switch (irb & 0x4ff) {
+-			case LOCK_KEY:
+-				keycode = KEY_SCREENLOCK;
++			case KEY1_CODE:
++				keycode = fujitsu->keycode1;
+ 				break;
+-			case DISPLAY_KEY:
+-				keycode = KEY_MEDIA;
++			case KEY2_CODE:
++				keycode = fujitsu->keycode2;
+ 				break;
+-			case ENERGY_KEY:
+-				keycode = KEY_EMAIL;
++			case KEY3_CODE:
++				keycode = fujitsu->keycode3;
+ 				break;
+-			case REST_KEY:
+-				keycode = KEY_SUSPEND;
++			case KEY4_CODE:
++				keycode = fujitsu->keycode4;
+ 				break;
+ 			case 0:
+ 				keycode = 0;
+ 				break;
+ 			default:
+ 				vdbg_printk(FUJLAPTOP_DBG_WARN,
+-					"Unknown GIRB result [%x]\n", irb);
++					    "Unknown GIRB result [%x]\n", irb);
+ 				keycode = -1;
+ 				break;
+ 			}
+ 			if (keycode > 0) {
+ 				vdbg_printk(FUJLAPTOP_DBG_TRACE,
+-					"Push keycode into ringbuffer [%d]\n",
+-					keycode);
++					    "Push keycode into ringbuffer [%d]\n",
++					    keycode);
+ 				status = kfifo_put(fujitsu_hotkey->fifo,
+-						(unsigned char *)&keycode,
+-						sizeof(keycode));
++						   (unsigned char *)&keycode,
++						   sizeof(keycode));
+ 				if (status != sizeof(keycode)) {
+ 					vdbg_printk(FUJLAPTOP_DBG_WARN,
+-						"Could not push keycode [0x%x]\n",
+-						keycode);
++						    "Could not push keycode [0x%x]\n",
++						    keycode);
+ 				} else {
+ 					input_report_key(input, keycode, 1);
+ 					input_sync(input);
+@@ -943,6 +960,11 @@ static int __init fujitsu_init(void)
+ 	if (!fujitsu)
+ 		return -ENOMEM;
+ 	memset(fujitsu, 0, sizeof(struct fujitsu_t));
++	fujitsu->keycode1 = KEY_PROG1;
++	fujitsu->keycode2 = KEY_PROG2;
++	fujitsu->keycode3 = KEY_PROG3;
++	fujitsu->keycode4 = KEY_PROG4;
++	dmi_check_system(fujitsu_dmi_table);
+ 
+ 	result = acpi_bus_register_driver(&acpi_fujitsu_driver);
+ 	if (result < 0) {
+@@ -972,13 +994,14 @@ static int __init fujitsu_init(void)
+ 
+ 	if (!acpi_video_backlight_support()) {
+ 		fujitsu->bl_device =
+-			backlight_device_register("fujitsu-laptop", NULL, NULL,
+-						  &fujitsubl_ops);
++		    backlight_device_register("fujitsu-laptop", NULL, NULL,
++					      &fujitsubl_ops);
+ 		if (IS_ERR(fujitsu->bl_device))
+ 			return PTR_ERR(fujitsu->bl_device);
+ 		max_brightness = fujitsu->max_brightness;
+ 		fujitsu->bl_device->props.max_brightness = max_brightness - 1;
+-		fujitsu->bl_device->props.brightness = fujitsu->brightness_level;
++		fujitsu->bl_device->props.brightness =
++		    fujitsu->brightness_level;
+ 	}
+ 
+ 	ret = platform_driver_register(&fujitsupf_driver);
+@@ -1078,15 +1101,14 @@ MODULE_DESCRIPTION("Fujitsu laptop extras support");
+ MODULE_VERSION(FUJITSU_DRIVER_VERSION);
+ MODULE_LICENSE("GPL");
+ 
+-MODULE_ALIAS
+-    ("dmi:*:svnFUJITSUSIEMENS:*:pvr:rvnFUJITSU:rnFJNB1D3:*:cvrS6410:*");
+-MODULE_ALIAS
+-    ("dmi:*:svnFUJITSU:*:pvr:rvnFUJITSU:rnFJNB19C:*:cvrS7020:*");
++MODULE_ALIAS("dmi:*:svnFUJITSUSIEMENS:*:pvr:rvnFUJITSU:rnFJNB1D3:*:cvrS6410:*");
++MODULE_ALIAS("dmi:*:svnFUJITSU:*:pvr:rvnFUJITSU:rnFJNB19C:*:cvrS7020:*");
+ 
+ static struct pnp_device_id pnp_ids[] = {
+-	{ .id = "FUJ02bf" },
+-	{ .id = "FUJ02B1" },
+-	{ .id = "FUJ02E3" },
+-	{ .id = "" }
++	{.id = "FUJ02bf"},
++	{.id = "FUJ02B1"},
++	{.id = "FUJ02E3"},
++	{.id = ""}
+ };
++
+ MODULE_DEVICE_TABLE(pnp, pnp_ids);
