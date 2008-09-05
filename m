@@ -1,52 +1,60 @@
 From: "Li, Shaohua" <shaohua.li@intel.com>
-Subject: RE: State of the ACPI tree
-Date: Fri, 5 Sep 2008 09:07:58 +0800
-Message-ID: <76780B19A496DC4B80439008DAD7076C01803B89C7@PDSMSX501.ccr.corp.intel.com>
-References: <20080904193011.GA23256@basil.nowhere.org>
+Subject: RE: [PATCH]: ACPI : Set 32bit and 64bit waking vector in FCAS table
+Date: Fri, 5 Sep 2008 09:21:53 +0800
+Message-ID: <76780B19A496DC4B80439008DAD7076C01803B89F1@PDSMSX501.ccr.corp.intel.com>
+References: <1220507476.4007.117.camel@yakui_zhao.sh.intel.com>
+	 <200809041010.07058.rjw@sisk.pl> <1220519910.24775.260.camel@rzhang-dt>
+	 <200809041137.52379.rjw@sisk.pl>  <20080904120719.GA9216@srcf.ucam.org>
+ <1220577437.4007.148.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:13473 "EHLO mga01.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:2930 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751623AbYIEBID convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Sep 2008 21:08:03 -0400
-In-Reply-To: <20080904193011.GA23256@basil.nowhere.org>
+	id S1751857AbYIEBV5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 4 Sep 2008 21:21:57 -0400
+In-Reply-To: <1220577437.4007.148.camel@yakui_zhao.sh.intel.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>
+To: "Zhao, Yakui" <yakui.zhao@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "Zhang, Rui" <rui.zhang@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "andi@firstfloor.org" <andi@firstfloor.org>
 
->
->
->Latest state of the ACPI tree
->
->I have everthing merged up that was on my backlog (sorry for being
->a little slow last week; I was also busy with other projects)
->
->The latest merge with bug fixes to Linus just went out as
->can be seen on the mailing list.
->
->git://git.kernel.org/pub/scm/linux/kernel/git/ak/linux-acpi-2.6 release-
->2.6.27
->
->Everything else I had pending I merged into the test tree
->targetted for 2.6.28
->
->git://git.kernel.org/pub/scm/linux/kernel/git/ak/linux-acpi-2.6 test
->
->I don't have anything pending anymore.
->
->The plan is to pass the tree back over to Len Brown on Friday.
->
->If you have any patches submitted to me that you think should
->be in test, but aren't, then please resubmitted them
->to Len.
->
->Some more testing of the test tree would be appreciated. One
->concern is that there's quite a lot of stuff in there that's
->not well tested.
-Can you add my dock patches to the test tree please? I already refreshed them per your suggestion.
-
-Thanks,
-Shaohua
+DQoNCj4tLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPkZyb206IGxpbnV4LWFjcGktb3duZXJA
+dmdlci5rZXJuZWwub3JnIFttYWlsdG86bGludXgtYWNwaS0NCj5vd25lckB2Z2VyLmtlcm5lbC5v
+cmddIE9uIEJlaGFsZiBPZiBaaGFvIFlha3VpDQo+U2VudDogRnJpZGF5LCBTZXB0ZW1iZXIgMDUs
+IDIwMDggOToxNyBBTQ0KPlRvOiBNYXR0aGV3IEdhcnJldHQNCj5DYzogUmFmYWVsIEouIFd5c29j
+a2k7IFpoYW5nLCBSdWk7IGxlbmJAa2VybmVsLm9yZzsgbGludXgtDQo+YWNwaUB2Z2VyLmtlcm5l
+bC5vcmc7IGFuZGlAZmlyc3RmbG9vci5vcmcNCj5TdWJqZWN0OiBSZTogW1BBVENIXTogQUNQSSA6
+IFNldCAzMmJpdCBhbmQgNjRiaXQgd2FraW5nIHZlY3RvciBpbiBGQ0FTDQo+dGFibGUNCj4NCj5P
+biBUaHUsIDIwMDgtMDktMDQgYXQgMTM6MDcgKzAxMDAsIE1hdHRoZXcgR2FycmV0dCB3cm90ZToN
+Cj4+IE9uIFRodSwgU2VwIDA0LCAyMDA4IGF0IDExOjM3OjUxQU0gKzAyMDAsIFJhZmFlbCBKLiBX
+eXNvY2tpIHdyb3RlOg0KPj4gPiA+IHNvIGl0IHNlZW1zIHRoYXQgdGhlIEJJT1Mgc2V0cyDvu79m
+YWNzLT54ZmlybXdhcmVfd2FraW5nX3ZlY3RvciBkdXJpbmcNCj4+ID4gPiBQT1NULCBidXQgdXNl
+cyDvu7/vu79mYWNzLT5maXJtd2FyZV93YWtpbmdfdmVjdG9yIHRvIGdldCBiYWNrIGR1cmluZyBy
+ZXN1bWUuDQo+PiA+DQo+PiA+IFNvIHRoZSBCSU9TIGlzIGJ1Z2d5LCBzbyBsZXQncyBhZGQgYSBx
+dWlyayBmb3IgaXQuDQo+Pg0KPj4gRG9lcyB0aGUgbWFjaGluZSByZXN1bWUgaW4gV2luZG93cz8g
+SWYgc28sIGRvIHdlIGhhdmUgYW55IGV2aWRlbmNlIHRoYXQNCj4+IFdpbmRvd3MgaGFzIGEgcXVp
+cmtzIGxpc3QgdG8gaGFuZGxlIHRoaXMgY2FzZT8gSWYgbm90LCB0aGVuIEkgc3VzcGVjdA0KPj4g
+dGhhdCBXaW5kb3dzIHNldHMgYm90aCBhbmQgdGhpcyBpcyB3aGF0IGV2ZXJ5b25lIGhhcyB0ZXN0
+ZWQgYWdhaW5zdC4NCj5UaGUgbGFwdG9wIGNhbiBiZSByZXN1bWVkIG9uIHdpbmRvd3MuKFhQICYg
+VmlzdGEpLiBBbmQgd2UgZG9uJ3Qga25vdw0KPndoZXRoZXIgdGhlcmUgZXhpc3RzIHRoZSBxdWly
+ayBsaXN0IHRvIGhhbmRsZXIgdGhpcyBjYXNlIG9uIHdpbmRvd3MuDQo+TWF5YmUgd2hhdCB5b3Ug
+c2FpZCBpcyByaWdodC4NCj5JbiBmYWN0IGl0IGlzIGhhcm1sZXNzIHdoZW4gYm90aCAzMmJpdCBh
+bmQgNjRiaXQgd2FraW5nIHZlY3RvciBpbiBGQUNTDQo+dGFibGUgYXJlIHNldC4gV2hlbiB0aGUg
+c3lzdGVtIGlzIHJlc3VtZWQsIEJJT1Mgd2lsbCB0cmFuc2ZlciBjb250cm9sIHRvDQo+dGhlIHBy
+ZWRlZmluZWQgd2FraW5nIHZlY3Rvci4gQXMgd2Ugc2V0IHRoZSBzYW1lIHdha2luZyB2ZWN0b3Is
+IGVpdGhlcg0KPm9mIHRoZW0gaXMgT0suDQo+DQo+VGhlcmUgZXhpc3RzIHRoZSBkaWZmZXJlbmNl
+IGJldHdlZW4gMzJiaXQgYW5kIDY0Yml0IHdha2luZyB2ZWN0b3IgdW5sZXNzDQo+dGhlIHdha2lu
+ZyBhZGRyZXNzIGlzIGFib3ZlIDRHQi4gQnV0IGluIGZhY3QgdGhlIHdha2luZyBhZGRyZXNzIGlz
+IGJlbG93DQo+MU1CIG9uIG1vc3QgbWFjaGluZXMgYXMgdGhlIHdha2luZyBhZGRyZXNzIG5lZWRz
+IHRvIGJlIGFjY2Vzc2VkIGJ5IEJJT1MuDQo+DQo+U28gaW4gbW9zdCBjYXNlcyB0aGUgMzJiaXQg
+YW5kIDY0Yml0IHdha2luZyB2ZWN0b3IgYXJlIHRoZSBzYW1lIHZhbHVlLg0KPkJJT1MgY2FuIHRy
+YW5zZmVyIGNvbnRyb2wgdG8gZWl0aGVyIG9mIHRoZW0uDQpUaGVyZSB3YXMgZGlzY3Vzc2lvbiBh
+Ym91dCB0aGlzIGlzc3VlIHNldmVyYWwgbW9udGhzIGFnbyAoaW50ZWwncyBtbCksIGxvb2tzIHBl
+b3BsZSBmb3Jnb3QgdG8gdGFrZSBhY3Rpb24gYWZ0ZXIgdGhlIGRpc2N1c3Npb24uIFRoZSBzcGVj
+IG93bmVyIHNhaWQgNjRiaXQgdmVjdG9yIGlzIHVzZWQgaW4gcHJvdGVjdGVkIG1vZGUuIFRoYXQg
+aXMgaWYgT1Mgc2V0cyBpdCwgd2FrZXVwIGNvZGUgaXMgY2FsbGVkIGluIHByb3RlY3RlZCBtb2Rl
+IGJ5IEJJT1MuIFNvIHRoZSA2NC1iaXQgdmVjdG9yIHNob3VsZG4ndCBiZSB1c2VkLg0KDQpUaGFu
+a3MsDQpTaGFvaHVhDQo=
