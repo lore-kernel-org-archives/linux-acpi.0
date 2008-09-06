@@ -1,68 +1,46 @@
-From: Andrey Borzenkov <arvidjaar@mail.ru>
-Subject: Re: ACPI video.c brightness handler conflicts with toshiba_acpi
-Date: Sat, 6 Sep 2008 11:19:59 +0400
-Message-ID: <200809061120.00224.arvidjaar@mail.ru>
-References: <200809061108.34877.arvidjaar@mail.ru>
+From: "William Dupre" <william.dupre@gmail.com>
+Subject: (in plain text ;-) dmesg info from DELL XPS 1730 running Ubuntu Live CD
+Date: Sat, 6 Sep 2008 09:15:00 +0000
+Message-ID: <fb5a4d380809060215m4689d121qe8b397febfdb4ee@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart2260725.8hmhFBs2Tj";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx3.mail.ru ([194.67.23.149]:26711 "EHLO mx3.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752040AbYIFHUD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 6 Sep 2008 03:20:03 -0400
-In-Reply-To: <200809061108.34877.arvidjaar@mail.ru>
+Received: from rv-out-0506.google.com ([209.85.198.233]:8056 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751685AbYIFJPB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 6 Sep 2008 05:15:01 -0400
+Received: by rv-out-0506.google.com with SMTP id k40so758416rvb.1
+        for <linux-acpi@vger.kernel.org>; Sat, 06 Sep 2008 02:15:00 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: toshiba_acpi@memebeam.org
-Cc: linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
 
---nextPart2260725.8hmhFBs2Tj
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+Hi guys,
 
-On Saturday 06 September 2008, Andrey Borzenkov wrote:
-> I have now two different devices that refer to the same hardware:
->=20
-> lrwxrwxrwx 1 root root 0 2008-09-06 11:04 acpi_video0 -> ../../devices/vi=
-rtual/backlight/acpi_video0/
-> lrwxrwxrwx 1 root root 0 2008-09-06 11:04 toshiba -> ../../devices/virtua=
-l/backlight/toshiba/
->=20
-> Unfortunately, due to ACPI implementation the acpi_video0 one is much
-> inferior (as it provides only effectively two levels instead of 8);
-> and user level tools are apparently quite confused which one to select.
->=20
-> Is there any mechanism that would allow tochiba_acpi to claim brightness
-> for internal LCD screen that video would not attempt to grab it too?
->=20
-> Of course manually disabling brightness handling in video is always possi=
-ble,
+Browsing dmesg for RAID info before installing Ubuntu on the drive, I
+found a request to send you this info.
+Just one question : what change could make the acpi_osi=Linux ? and
+how could I test it ?
 
-Actually it is not. brightness_switch_enabled only disables event handling;
-it still resets actual brightness on loading and creates sysfs files to
-confuse user space.
+Thanks
+William
 
-> still is nice for this to be handled automatically.
->=20
-
-
-
---nextPart2260725.8hmhFBs2Tj
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEABECAAYFAkjCLyAACgkQR6LMutpd94ymmQCfRPLPsTEKpKj+OCyIYm+xdN2k
-F+8An3WbwJrtJcQDW2vcZbiYNsINDk/Z
-=19Mk
------END PGP SIGNATURE-----
-
---nextPart2260725.8hmhFBs2Tj--
+[   55.442244] ACPI: EC: Look up EC in DSDT
+[   55.442349] ACPI: BIOS _OSI(Linux) query ignored
+[   55.442350] ACPI: DMI System Vendor: Dell Inc.
+[   55.442351] ACPI: DMI Product Name: MXG071
+[   55.442353] ACPI: DMI Product Version:
+[   55.442354] ACPI: DMI Board Name: 0KX412
+[   55.442355] ACPI: DMI BIOS Vendor: Dell Inc.
+[   55.442356] ACPI: DMI BIOS Date: 10/30/2007
+[   55.442357] ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
+[   55.442358] ACPI: If "acpi_osi=Linux" works better, please notify
+linux-acpi@vger.kernel.org
+[   55.479719] ACPI: SSDT CBE82880, 0043 (r1  LMPWR  DELLLOM     1001
+INTL 20050624)
+[   55.479846] ACPI: Interpreter enabled
+[   55.479849] ACPI: (supports S0 S3 S4 S5)
+[   55.479859] ACPI: Using IOAPIC for interrupt routing
+[   55.497264] ACPI: PCI Root Bridge [PCI0] (0000:00)
