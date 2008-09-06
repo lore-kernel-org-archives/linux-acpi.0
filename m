@@ -1,46 +1,37 @@
-From: "William Dupre" <william.dupre@gmail.com>
-Subject: (in plain text ;-) dmesg info from DELL XPS 1730 running Ubuntu Live CD
-Date: Sat, 6 Sep 2008 09:15:00 +0000
-Message-ID: <fb5a4d380809060215m4689d121qe8b397febfdb4ee@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Regression: SATA disk double spin-off during hibernation on hp nx6325
+Date: Sat, 6 Sep 2008 13:06:47 +0200
+Message-ID: <200809061306.48377.rjw@sisk.pl>
+References: <200808290002.55026.rjw@sisk.pl> <200809060118.38493.rjw@sisk.pl> <200809060209.37353.elendil@planet.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.233]:8056 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751685AbYIFJPB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 6 Sep 2008 05:15:01 -0400
-Received: by rv-out-0506.google.com with SMTP id k40so758416rvb.1
-        for <linux-acpi@vger.kernel.org>; Sat, 06 Sep 2008 02:15:00 -0700 (PDT)
+Received: from ogre.sisk.pl ([217.79.144.158]:35866 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752408AbYIFLCe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 6 Sep 2008 07:02:34 -0400
+In-Reply-To: <200809060209.37353.elendil@planet.nl>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Frans Pop <elendil@planet.nl>
+Cc: linux-acpi@vger.kernel.org, linux-ide@vger.kernel.org, trenn@suse.de, htejun@gmail.com, hancockr@shaw.ca, linux-kernel@vger.kernel.org, Maciej Rutecki <maciej.rutecki@gmail.com>
 
-Hi guys,
+On Saturday, 6 of September 2008, Frans Pop wrote:
+> On Saturday 06 September 2008, Rafael J. Wysocki wrote:
+> > Thanks.  There's a new patch for you to test in there already. :-)
+> 
+> Seems to work correctly. The first spindown no longer happens.
+> 
+> In the BTS you noted the support is "partial". What's partial about it?
 
-Browsing dmesg for RAID info before installing Ubuntu on the drive, I
-found a request to send you this info.
-Just one question : what change could make the acpi_osi=Linux ? and
-how could I test it ?
+I want the quirk to be only applied to on-board controllers and that wasn't
+there yet for your system.
 
-Thanks
-William
+Updated patch (hopefully final) has been uploaded as:
+http://bugzilla.kernel.org/attachment.cgi?id=17646&action=view
 
-[   55.442244] ACPI: EC: Look up EC in DSDT
-[   55.442349] ACPI: BIOS _OSI(Linux) query ignored
-[   55.442350] ACPI: DMI System Vendor: Dell Inc.
-[   55.442351] ACPI: DMI Product Name: MXG071
-[   55.442353] ACPI: DMI Product Version:
-[   55.442354] ACPI: DMI Board Name: 0KX412
-[   55.442355] ACPI: DMI BIOS Vendor: Dell Inc.
-[   55.442356] ACPI: DMI BIOS Date: 10/30/2007
-[   55.442357] ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
-[   55.442358] ACPI: If "acpi_osi=Linux" works better, please notify
-linux-acpi@vger.kernel.org
-[   55.479719] ACPI: SSDT CBE82880, 0043 (r1  LMPWR  DELLLOM     1001
-INTL 20050624)
-[   55.479846] ACPI: Interpreter enabled
-[   55.479849] ACPI: (supports S0 S3 S4 S5)
-[   55.479859] ACPI: Using IOAPIC for interrupt routing
-[   55.497264] ACPI: PCI Root Bridge [PCI0] (0000:00)
+Thanks,
+Rafael
