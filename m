@@ -1,227 +1,29 @@
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: [RFC] acer-wmi: Add rfkill support for wireless and bluetooth (v3)
-Date: Sun, 7 Sep 2008 18:13:22 +0100
-Message-ID: <200809071813.23730.carlos@strangeworlds.co.uk>
-References: <200808301206.56279.carlos@strangeworlds.co.uk> <200808301654.03329.carlos@strangeworlds.co.uk> <20080831133631.GA9794@khazad-dum.debian.net>
+From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: Re: 2.6.26.[1-3] + x61 tablet + x6ultrabase: no resume	after?undocking
+Date: Sun, 07 Sep 2008 15:39:11 -0700
+Message-ID: <48C4580F.4000804@goop.org>
+References: <200808301535.22419.sfking@fdwdc.com> <20080901112816.GA21970@khazad-dum.debian.net> <48BBDD2C.5020804@dbservice.com> <200809011205.05253.sfking@fdwdc.com> <20080903144541.GA10978@homac> <48BEA77A.5050104@dbservice.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from phoenix.slamd64.com ([217.10.145.2]:59748 "EHLO
-	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753891AbYIGRNa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 7 Sep 2008 13:13:30 -0400
-In-Reply-To: <20080831133631.GA9794@khazad-dum.debian.net>
-Content-Disposition: inline
+Received: from gw.goop.org ([64.81.55.164]:55264 "EHLO mail.goop.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752705AbYIGWjN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 7 Sep 2008 18:39:13 -0400
+In-Reply-To: <48BEA77A.5050104@dbservice.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: linux-acpi@vger.kernel.org, linux-wireless@vger.kernel.org, Ivo van Doorn <ivdoorn@gmail.com>
+To: Tomas Carnecky <tom@dbservice.com>
+Cc: Steven King <sfking@fdwdc.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Zhang Rui <rui.zhang@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
 
-acer-wmi: Add rfkill support for wireless and bluetooth
+Tomas Carnecky wrote:
+> I don't know whether I should ROFL or be sad, but: In the 2.6.26 stable
+> tree the bay driver (ACPI_BAY) is marked as EXPERIMENTAL, and now you're
+> saying that it's obsolete. Do features go right from experimental to
+> obsolete now?
 
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Sure.  Some experiments don't work out.
 
-This patch implements rfkill support for the wireless and bluetooth devices
-commonly found on Acer laptops.
+    J
 
-For now, we will always poll these devices once a second to guarantee we can
-catch state changes. On newer Acer laptops, it may be possible to rely on WMI
-events to do this instead, and experimental support for this will be added in
-a later patch.
-
-3G has been deliberately left off for now, as we still have no way to detect
-it, (nor, AFAIK, has any Linux user tried the code) and on laptops that don't
-support 3G, trying to poll for the status will leave the logs full of ACPI
-tracebacks.
-
-The old sysfs interface for wireless and 3G will be removed in a later patch.
-
-Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
----
-
- drivers/misc/Kconfig    |    1 
- drivers/misc/acer-wmi.c |  128 +++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 128 insertions(+), 1 deletions(-)
-
-
-diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
-index a726f3b..6abb959 100644
---- a/drivers/misc/Kconfig
-+++ b/drivers/misc/Kconfig
-@@ -145,6 +145,7 @@ config ACER_WMI
- 	depends on NEW_LEDS
- 	depends on BACKLIGHT_CLASS_DEVICE
- 	depends on SERIO_I8042
-+	depends on RFKILL
- 	select ACPI_WMI
- 	---help---
- 	  This is a driver for newer Acer (and Wistron) laptops. It adds
-diff --git a/drivers/misc/acer-wmi.c b/drivers/misc/acer-wmi.c
-index b2d9878..860c34d 100644
---- a/drivers/misc/acer-wmi.c
-+++ b/drivers/misc/acer-wmi.c
-@@ -33,6 +33,8 @@
- #include <linux/platform_device.h>
- #include <linux/acpi.h>
- #include <linux/i8042.h>
-+#include <linux/rfkill.h>
-+#include <linux/workqueue.h>
- #include <linux/debugfs.h>
- 
- #include <acpi/acpi_drivers.h>
-@@ -157,6 +159,9 @@ struct acer_debug {
- 	u32 wmid_devices;
- };
- 
-+static struct rfkill *wireless_rfkill;
-+static struct rfkill *bluetooth_rfkill;
-+
- /* Each low-level interface must define at least some of the following */
- struct wmi_interface {
- 	/* The WMI device type */
-@@ -930,6 +935,123 @@ static void acer_backlight_exit(void)
- }
- 
- /*
-+ * Rfkill devices
-+ */
-+static struct workqueue_struct *rfkill_workqueue;
-+
-+static void acer_rfkill_update(struct work_struct *ignored);
-+static DECLARE_DELAYED_WORK(acer_rfkill_work, acer_rfkill_update);
-+static void acer_rfkill_update(struct work_struct *ignored)
-+{
-+	u32 state;
-+	acpi_status status;
-+
-+	status = get_u32(&state, ACER_CAP_WIRELESS);
-+	if (ACPI_SUCCESS(status))
-+		rfkill_force_state(wireless_rfkill, state);
-+
-+	if (has_cap(ACER_CAP_BLUETOOTH)) {
-+		status = get_u32(&state, ACER_CAP_BLUETOOTH);
-+		if (ACPI_SUCCESS(status))
-+			rfkill_force_state(bluetooth_rfkill, state);
-+	}
-+
-+	queue_delayed_work(rfkill_workqueue, &acer_rfkill_work,
-+		round_jiffies_relative(HZ));
-+}
-+
-+static int acer_rfkill_set(void *data, enum rfkill_state state)
-+{
-+	acpi_status status;
-+	u32 *cap = data;
-+	status = set_u32((u32) (state == RFKILL_STATE_UNBLOCKED), *cap);
-+	if (ACPI_FAILURE(status))
-+		return -ENODEV;
-+	return 0;
-+}
-+
-+static int acer_rfkill_register(struct device *dev, struct rfkill **rfkill_dev,
-+enum rfkill_type type, char *name, u32 cap)
-+{
-+	int err;
-+	u32 state;
-+	u32 *data;
-+
-+	*rfkill_dev = rfkill_allocate(dev, type);
-+	if (!*rfkill_dev)
-+		return -ENOMEM;
-+	(*rfkill_dev)->name = name;
-+	get_u32(&state, cap);
-+	(*rfkill_dev)->state = state ? RFKILL_STATE_UNBLOCKED :
-+		RFKILL_STATE_SOFT_BLOCKED;
-+	data = kzalloc(sizeof(u32), GFP_KERNEL);
-+	if (!data) {
-+		rfkill_free(*rfkill_dev);
-+		return -ENOMEM;
-+	}
-+	*data = cap;
-+	(*rfkill_dev)->data = data;
-+	(*rfkill_dev)->toggle_radio = acer_rfkill_set;
-+	(*rfkill_dev)->user_claim_unsupported = 1;
-+
-+	err = rfkill_register(*rfkill_dev);
-+	if (err) {
-+		kfree((*rfkill_dev)->data);
-+		rfkill_free(*rfkill_dev);
-+		return err;
-+	}
-+	return 0;
-+}
-+
-+static int acer_rfkill_init(struct device *dev)
-+{
-+	int err;
-+
-+	err = acer_rfkill_register(dev, &wireless_rfkill, RFKILL_TYPE_WLAN,
-+		"acer-wireless", ACER_CAP_WIRELESS);
-+	if (err)
-+		return err;
-+
-+	if (has_cap(ACER_CAP_BLUETOOTH)) {
-+		err = acer_rfkill_register(dev, &bluetooth_rfkill,
-+			RFKILL_TYPE_BLUETOOTH, "acer-bluetooth",
-+			ACER_CAP_BLUETOOTH);
-+		if (err) {
-+			kfree(wireless_rfkill->data);
-+			rfkill_unregister(wireless_rfkill);
-+			return err;
-+		}
-+	}
-+
-+	rfkill_workqueue = create_singlethread_workqueue("rfkill_workqueue");
-+	if (!rfkill_workqueue) {
-+		if (has_cap(ACER_CAP_BLUETOOTH)) {
-+			kfree(bluetooth_rfkill->data);
-+			rfkill_unregister(bluetooth_rfkill);
-+		}
-+		kfree(wireless_rfkill->data);
-+		rfkill_unregister(wireless_rfkill);
-+		return -ENOMEM;
-+	}
-+	queue_delayed_work(rfkill_workqueue, &acer_rfkill_work, HZ);
-+
-+	return 0;
-+}
-+
-+static void acer_rfkill_exit(void)
-+{
-+	cancel_delayed_work_sync(&acer_rfkill_work);
-+	destroy_workqueue(rfkill_workqueue);
-+	kfree(wireless_rfkill->data);
-+	rfkill_unregister(wireless_rfkill);
-+	if (has_cap(ACER_CAP_BLUETOOTH)) {
-+		kfree(wireless_rfkill->data);
-+		rfkill_unregister(bluetooth_rfkill);
-+	}
-+	return;
-+}
-+
-+/*
-  * Read/ write bool sysfs macro
-  */
- #define show_set_bool(value, cap) \
-@@ -1023,7 +1145,9 @@ static int __devinit acer_platform_probe(struct platform_device *device)
- 			goto error_brightness;
- 	}
- 
--	return 0;
-+	err = acer_rfkill_init(&device->dev);
-+
-+	return err;
- 
- error_brightness:
- 	acer_led_exit();
-@@ -1037,6 +1161,8 @@ static int acer_platform_remove(struct platform_device *device)
- 		acer_led_exit();
- 	if (has_cap(ACER_CAP_BRIGHTNESS))
- 		acer_backlight_exit();
-+
-+	acer_rfkill_exit();
- 	return 0;
- }
- 
