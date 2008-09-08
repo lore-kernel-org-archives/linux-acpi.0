@@ -1,65 +1,136 @@
-From: Tejun Heo <htejun@gmail.com>
-Subject: Re: [PATCH] SATA: Blacklist systems that spin off disks during ACPI
- power off
-Date: Mon, 08 Sep 2008 13:38:12 +0200
-Message-ID: <48C50EA4.2020700@gmail.com>
-References: <200808290002.55026.rjw@sisk.pl> <200808291241.04183.rjw@sisk.pl> <48B7D286.7050104@gmail.com> <200809061923.29020.rjw@sisk.pl>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC 3/5] pci wakeup handler
+Date: Mon, 8 Sep 2008 15:09:50 +0200
+Message-ID: <200809081509.52070.rjw@sisk.pl>
+References: <20080908091926.785882370@sli10-desk.sh.intel.com> <20080908092305.438330804@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.184]:41701 "EHLO
-	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751750AbYIHLjk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Sep 2008 07:39:40 -0400
-Received: by ti-out-0910.google.com with SMTP id b6so896220tic.23
-        for <linux-acpi@vger.kernel.org>; Mon, 08 Sep 2008 04:39:37 -0700 (PDT)
-In-Reply-To: <200809061923.29020.rjw@sisk.pl>
+Received: from ogre.sisk.pl ([217.79.144.158]:44898 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751871AbYIHNFe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 8 Sep 2008 09:05:34 -0400
+In-Reply-To: <20080908092305.438330804@sli10-desk.sh.intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-ide@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Robert Hancock <hancockr@shaw.ca>, LKML <linux-kernel@vger.kernel.org>, Frans Pop <elendil@planet.nl>, Maciej Rutecki <maciej.rutecki@gmail.com>, Jeff Garzik <jeff@garzik.org>, Andrew Morton <akpm@linux-foundation.org>
+To: shaohua.li@intel.com
+Cc: linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu, dbrownell@users.sourceforge.net, Jesse Barnes <jbarnes@virtuousgeek.org>
 
-Rafael J. Wysocki wrote:
-> SATA: Blacklist systems that spin off disks during ACPI power off
+On Monday, 8 of September 2008, shaohua.li@intel.com wrote:
+> pci subsystem wakeup handler.
+> ---
+>  drivers/pci/pci-driver.c |   46 ++++++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 46 insertions(+)
 > 
-> Some notebooks from HP have the problem that their BIOSes attempt to
-> spin down hard drives before entering ACPI system states S4 and S5.
-> This leads to a yo-yo effect during system power-off shutdown and the
-> last phase of hibernation when the disk is first spun down by the
-> kernel and then almost immediately turned on and off by the BIOS.
-> This, in turn, may result in shortening the disk's life times.
-> 
-> To prevent this from happening we can blacklist the affected systems
-> using DMI information.  However, only the on-board controlles should
-> be blacklisted and their PCI slot numbers can be used for this
-> purpose.  Unfortunately the existing interface for checking DMI
-> information of the system is not very convenient for this purpose,
-> because to use it, we would have to define special callback functions
-> or create a separate struct dmi_system_id table for each blacklisted
-> system.
-> 
-> To overcome this difficulty introduce a new function
-> dmi_first_match() returning a pointer to the first entry in an array
-> of struct dmi_system_id elements that matches the system DMI
-> information.  Then, we can use this pointer to access the entry's
-> .driver_data field containing the additional information, such as
-> the PCI slot number, allowing us to do the desired blacklisting.
-> 
-> Introduce a new libata flag ATA_FLAG_NO_POWEROFF_SPINDOWN that, if
-> set, will prevent disks from being spun off during system power off
-> and hibernation (to handle the hibernation case we need a new system
-> state SYSTEM_HIBERNATE_ENTER that can be checked against by libata,
-> in analogy with SYSTEM_POWER_OFF).  Use dmi_first_match() to set this
-> flag for some systems affected by the problem described above (HP nx6325,
-> HP nx6310, HP 2510p).
-> 
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> Index: linux/drivers/pci/pci-driver.c
+> ===================================================================
+> --- linux.orig/drivers/pci/pci-driver.c	2008-09-08 13:55:56.000000000 +0800
+> +++ linux/drivers/pci/pci-driver.c	2008-09-08 14:24:42.000000000 +0800
+> @@ -472,12 +472,57 @@ static int pci_pm_resume_noirq(struct de
+>  	return error;
+>  }
+>  
+> +/*
+> + * Called when dev is suspected to invoke a wakeup event, return 0 if yes
+> + * */
+> +static int pci_pm_wakeup_event(struct device *dev)
+> +{
+> +	struct pci_dev *pdev = to_pci_dev(dev);
+> +	int pme_pos = pci_find_capability(pdev, PCI_CAP_ID_PM);
 
-libata part looks good to me but I think it would be better to
-separate out DMI changes into a separate patch.
+Pleae use dev->pm_cap instead.
 
-Thanks.
+> +	struct pci_driver *drv = pdev->driver;
+> +	u16 reg16;
+> +	int spurious = 0;
 
--- 
-tejun
+Please use 'bool' for boolean variables.
+
+> +	int ret = -ENODEV;
+> +
+> +	if (pme_pos == 0) {
+> +		/*
+> +		 * Some USB devices haven't PME, but have specific registers to
+> +		 * control wakeup
+> +		 */
+> +		goto out;
+> +	}
+> +
+> +	/* clear PME status and disable PME to avoid interrupt flood */
+> +	pci_read_config_word(pdev, pme_pos + PCI_PM_CTRL, &reg16);
+
+The variable used for that is called 'pmcsr' in the other functions.  Perhaps
+call it 'pmcsr' instead of 'reg16' here too?
+
+> +	if (!(reg16 & PCI_PM_CTRL_PME_STATUS))
+> +		return -ENODEV;
+> +	/* I see spurious GPE here, just ignore it for now */
+> +	if (!(reg16 & PCI_PM_CTRL_PME_ENABLE))
+> +		spurious = 1;
+> +	reg16 &= ~PCI_PM_CTRL_PME_ENABLE;
+> +	reg16 |= PCI_PM_CTRL_PME_STATUS;
+> +	pci_write_config_word(pdev, pme_pos + PCI_PM_CTRL, reg16);
+
+I think you can use pci_pm_active() for clearing PME# and status.  That'll
+read the register once more, but that shouldn't be a problem.  Actually, you
+can do:
+
+	pci_read_config_word(pdev, pme_pos + PCI_PM_CTRL, &pmcsr);
+	if (!(pmcsr & PCI_PM_CTRL_PME_STATUS))
+		/* No event (why have we been called, actually? */
+		return -EINVAL;
+	pci_pm_active(dev, false);
+	if (!(pmcsr & PCI_PM_CTRL_PME_ENABLE))
+		/* Spurious event */
+		return -ENODEV;
+> +
+> +	if (spurious)
+> +		return -ENODEV;
+> +	ret = 0;
+> +	/* This device invokes PME, gives driver a chance to do something */
+> +out:
+> +	if (drv && drv->pm && drv->pm->base.wakeup_event) {
+> +		if (!ret) /* ignore return value in this case */
+> +			drv->pm->base.wakeup_event(&pdev->dev);
+> +		else
+> +			return drv->pm->base.wakeup_event(&pdev->dev);
+
+Hm, I'd do:
+
+	if (drv && drv->pm && drv->pm->base.wakeup_event) {
+		int dev_ret = drv->pm->base.wakeup_event(&pdev->dev);
+		if (ret)
+			ret = dev_ret;
+	}
+
+Also, why do you think we should ignore the returned value if ret is zero?
+
+> +	}
+> +	return ret;
+> +}
+>  #else /* !CONFIG_SUSPEND */
+>  
+>  #define pci_pm_suspend		NULL
+>  #define pci_pm_suspend_noirq	NULL
+>  #define pci_pm_resume		NULL
+>  #define pci_pm_resume_noirq	NULL
+> +#define pci_pm_wakeup_event	NULL
+>  
+>  #endif /* !CONFIG_SUSPEND */
+>  
+> @@ -651,6 +696,7 @@ struct pm_ext_ops pci_pm_ops = {
+>  		.thaw = pci_pm_thaw,
+>  		.poweroff = pci_pm_poweroff,
+>  		.restore = pci_pm_restore,
+> +		.wakeup_event = pci_pm_wakeup_event,
+>  	},
+>  	.suspend_noirq = pci_pm_suspend_noirq,
+>  	.resume_noirq = pci_pm_resume_noirq,
+> 
+
+Thanks,
+Rafael
+
