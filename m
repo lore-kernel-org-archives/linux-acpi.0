@@ -1,81 +1,194 @@
-From: Andrey Borzenkov <arvidjaar@mail.ru>
-Subject: Re: ACPI video.c brightness handler conflicts with toshiba_acpi
-Date: Mon, 8 Sep 2008 21:24:29 +0400
-Message-ID: <200809082124.34805.arvidjaar@mail.ru>
-References: <200809061108.34877.arvidjaar@mail.ru> <200809061120.00224.arvidjaar@mail.ru> <200809080301.24907.trenn@suse.de>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC 5/5] ACPI GPE based wakeup event detection
+Date: Mon, 8 Sep 2008 22:57:34 +0200
+Message-ID: <200809082257.35009.rjw@sisk.pl>
+References: <20080908091926.785882370@sli10-desk.sh.intel.com> <20080908092305.658492314@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1283805.LSlVP7ShxU";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx34.mail.ru ([194.67.23.200]:20938 "EHLO mx34.mail.ru"
+Received: from ogre.sisk.pl ([217.79.144.158]:46895 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751646AbYIHRYj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 8 Sep 2008 13:24:39 -0400
-In-Reply-To: <200809080301.24907.trenn@suse.de>
+	id S1753250AbYIHUxJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 8 Sep 2008 16:53:09 -0400
+In-Reply-To: <20080908092305.658492314@sli10-desk.sh.intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>, Zhang Rui <rui.zhang@intel.com>
-Cc: toshiba_acpi@memebeam.org, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: shaohua.li@intel.com
+Cc: linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu, dbrownell@users.sourceforge.net
 
---nextPart1283805.LSlVP7ShxU
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+On Monday, 8 of September 2008, shaohua.li@intel.com wrote:
+> In ACPI platform, if native PME isn't enabled, GPE is used to report wakeup event.
+> ---
+>  drivers/acpi/Kconfig        |    9 ++++++
+>  drivers/acpi/bus.c          |   15 ++++++++++
+>  drivers/acpi/sleep/wakeup.c |   66 ++++++++++++++++++++++++++++++++++++++++++++
+>  include/acpi/acpi_bus.h     |    4 ++
+>  4 files changed, 94 insertions(+)
+> 
+> Index: linux/drivers/acpi/Kconfig
+> ===================================================================
+> --- linux.orig/drivers/acpi/Kconfig	2008-09-08 14:28:50.000000000 +0800
+> +++ linux/drivers/acpi/Kconfig	2008-09-08 14:29:08.000000000 +0800
+> @@ -45,6 +45,15 @@ config ACPI_SLEEP
+>  	depends on PM_SLEEP
+>  	default y
+>  
+> +config ACPI_GPE_WAKEUP
+> +	bool "ACPI wakeup event support"
+> +	depends on PM_SLEEP && EXPERIMENTAL
+> +	help
+> +	  Enable ACPI to detect wakeup event. For example, PCI device can
+> +	  invoke PME, and in ACPI platform, the PME will invoke a GPE. With
+> +	  the option, we can detect which device invokes wakeup event.
+> +
+> +
+>  config ACPI_PROCFS
+>  	bool "Deprecated /proc/acpi files"
+>  	depends on PROC_FS
+> Index: linux/drivers/acpi/bus.c
+> ===================================================================
+> --- linux.orig/drivers/acpi/bus.c	2008-09-08 14:28:32.000000000 +0800
+> +++ linux/drivers/acpi/bus.c	2008-09-08 14:29:03.000000000 +0800
+> @@ -496,6 +496,19 @@ static int acpi_bus_check_scope(struct a
+>  	return 0;
+>  }
+>  
+> +static BLOCKING_NOTIFIER_HEAD(acpi_bus_notify_list);
+> +int register_acpi_bus_notifier(struct notifier_block *nb)
+> +{
+> +	return blocking_notifier_chain_register(&acpi_bus_notify_list, nb);
+> +}
+> +EXPORT_SYMBOL_GPL(register_acpi_bus_notifier);
+> +
+> +void unregister_acpi_bus_notifier(struct notifier_block *nb)
+> +{
+> +	blocking_notifier_chain_unregister(&acpi_bus_notify_list, nb);
+> +}
+> +EXPORT_SYMBOL_GPL(unregister_acpi_bus_notifier);
+> +
+>  /**
+>   * acpi_bus_notify
+>   * ---------------
+> @@ -506,6 +519,8 @@ static void acpi_bus_notify(acpi_handle 
+>  	int result = 0;
+>  	struct acpi_device *device = NULL;
+>  
+> +	blocking_notifier_call_chain(&acpi_bus_notify_list,
+> +			type, (void *)handle);
 
-On Monday 08 September 2008, Thomas Renninger wrote:
-> On Saturday 06 September 2008 09:19:59 am Andrey Borzenkov wrote:
-> > On Saturday 06 September 2008, Andrey Borzenkov wrote:
-> > > I have now two different devices that refer to the same hardware:
-> > >
-> > > lrwxrwxrwx 1 root root 0 2008-09-06 11:04 acpi_video0 ->
-> > > ../../devices/virtual/backlight/acpi_video0/ lrwxrwxrwx 1 root root 0
-> > > 2008-09-06 11:04 toshiba -> ../../devices/virtual/backlight/toshiba/
-> > >
-> > > Unfortunately, due to ACPI implementation the acpi_video0 one is much
-> > > inferior (as it provides only effectively two levels instead of 8);
-> > > and user level tools are apparently quite confused which one to selec=
-t.
-> > >
-> > > Is there any mechanism that would allow tochiba_acpi to claim brightn=
-ess
-> > > for internal LCD screen that video would not attempt to grab it too?
-> > >
-> > > Of course manually disabling brightness handling in video is always
-> > > possible,
-> >
-> > Actually it is not. brightness_switch_enabled only disables event handl=
-ing;
-> > it still resets actual brightness on loading and creates sysfs files to
-> > confuse user space.
-> >
-> > > still is nice for this to be handled automatically.
-> It is in latest ACPI test branch queued for 2.6.28.
-> The problem in bug:
-> http://bugzilla.kernel.org/show_bug.cgi?id=3D9614
-> is another. But the patchset pointed to in comment #43 should fix several=
-,=20
-> also your problem.
->=20
-> If not, please tell me and open a new bug.
->=20
+Hm, perhaps I'm too tired and I'm missing something obvious, but can you
+tell me please why that has to be a notifier chain?  It looks like you add only
+one notifier to it, so seemingly it could be replaced by a direct call to a
+function like acpi_gpe_pme_handler() (with modified list of arguments).
 
-It was exactly the right one. I'll get a look at adding proper detection
-for Toshiba HCI systems. Thank you!
+>  	if (acpi_bus_get_device(handle, &device))
+>  		return;
+> Index: linux/drivers/acpi/sleep/wakeup.c
+> ===================================================================
+> --- linux.orig/drivers/acpi/sleep/wakeup.c	2008-09-08 14:28:55.000000000 +0800
+> +++ linux/drivers/acpi/sleep/wakeup.c	2008-09-08 15:04:23.000000000 +0800
+> @@ -142,6 +142,70 @@ void acpi_disable_wakeup_device(u8 sleep
+>  	spin_unlock(&acpi_device_lock);
+>  }
+>  
+> +#ifdef CONFIG_ACPI_GPE_WAKEUP
+> +static int acpi_gpe_pme_check(struct acpi_device *dev)
+> +{
+> +	struct device *ldev;
+> +
+> +	ldev = acpi_get_physical_device(dev->handle);
+> +	if (!ldev)
+> +		return -ENODEV;
+> +	/*
+> +	 * AML code might already clear the event, so ignore the return value.
+> +	 * Actually we can't correctly detect which device invokes GPE if the
+> +	 * event is cleared.
+> +	 */
+> +	if (ldev->bus->pm && ldev->bus->pm->base.wakeup_event)
+> +		ldev->bus->pm->base.wakeup_event(ldev);
+> +
+> +	/*
+> +	 * We always send the event. AML code usually identifies the exact
+> +	 * device of the GPE, let's trust it
+> +	 */
+> +	device_receive_wakeup_event(ldev);
+> +
+> +	put_device(ldev);
+> +	return 0;
+> +}
+> +
+> +static int acpi_gpe_pme_handler(struct notifier_block *nb,
+> +	unsigned long type, void *data)
+> +{
+> +	int ret;
+> +	acpi_handle handle = data;
+> +	struct acpi_device *dev;
+> +
+> +	if (type != ACPI_NOTIFY_DEVICE_WAKE)
+> +		return NOTIFY_DONE;
+> +
+> +	if (acpi_bus_get_device(handle, &dev))
+> +		return NOTIFY_DONE;
+> +
+> +	ret = acpi_gpe_pme_check(dev);
+> +
+> +	acpi_disable_gpe(dev->wakeup.gpe_device, dev->wakeup.gpe_number,
+> +		ACPI_NOT_ISR);
+> +
 
---nextPart1283805.LSlVP7ShxU
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+At which point are dev->wakeup.gpe_device and dev->wakeup.gpe_number
+determined, for example, for PCI devices, and how?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
+> +	/* FIXME: spurious interrupt, disables it? */
+> +	if (ret)
+> +		printk(KERN_ERR"Spurious GPE %d detected\n",
+> +			dev->wakeup.gpe_number);
+> +
+> +	return NOTIFY_OK;
+> +}
+> +
+> +static struct notifier_block acpi_gpe_pme_nb = {
+> +	.notifier_call = acpi_gpe_pme_handler,
+> +};
+> +
+> +static void acpi_init_gpe_pme(void)
+> +{
+> +	register_acpi_bus_notifier(&acpi_gpe_pme_nb);
+> +}
+> +#else
+> +static inline void acpi_init_gpe_pme(void) {}
+> +#endif
+> +
+>  static int __init acpi_wakeup_device_init(void)
+>  {
+>  	struct list_head *node, *next;
+> @@ -167,6 +231,8 @@ static int __init acpi_wakeup_device_ini
+>  		spin_lock(&acpi_device_lock);
+>  	}
+>  	spin_unlock(&acpi_device_lock);
+> +
+> +	acpi_init_gpe_pme();
+>  	return 0;
+>  }
+>  
+> Index: linux/include/acpi/acpi_bus.h
+> ===================================================================
+> --- linux.orig/include/acpi/acpi_bus.h	2008-09-08 14:28:42.000000000 +0800
+> +++ linux/include/acpi/acpi_bus.h	2008-09-08 14:29:03.000000000 +0800
+> @@ -327,6 +327,10 @@ int acpi_bus_get_private_data(acpi_handl
+>  extern int acpi_notifier_call_chain(struct acpi_device *, u32, u32);
+>  extern int register_acpi_notifier(struct notifier_block *);
+>  extern int unregister_acpi_notifier(struct notifier_block *);
+> +
+> +extern int register_acpi_bus_notifier(struct notifier_block *nb);
+> +extern void unregister_acpi_bus_notifier(struct notifier_block *nb);
+> +
+>  /*
+>   * External Functions
+>   */
 
-iEYEABECAAYFAkjFX88ACgkQR6LMutpd94wDPgCfQuCdbTvk7Zbs1O+/5oQnpoML
-dPAAn2bZtB2vmuRE6pDuprmwtishEtZX
-=1wwW
------END PGP SIGNATURE-----
-
---nextPart1283805.LSlVP7ShxU--
+Thanks,
+Rafael
