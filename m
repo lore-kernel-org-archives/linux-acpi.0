@@ -1,72 +1,33 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: patch for bugs 9998 and 10724
-Date: Mon, 08 Sep 2008 10:56:22 +0800
-Message-ID: <1220842582.3441.30.camel@rzhang-dt>
-References: <1219730254.4116.38.camel@yakui_zhao.sh.intel.com>
-	 <20080904121820.GC18288@one.firstfloor.org> <48BFD5AA.3090006@suse.de>
-	 <48BFD609.2050604@suse.de> <1220581596.3441.2.camel@rzhang-dt>
-	 <48C129D3.5000904@suse.de>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [RFC] acer-wmi: Add rfkill support for wireless and bluetooth
+	(v3)
+Date: Mon, 8 Sep 2008 00:29:53 -0300
+Message-ID: <20080908032953.GA26459@khazad-dum.debian.net>
+References: <200808301206.56279.carlos@strangeworlds.co.uk> <200808301654.03329.carlos@strangeworlds.co.uk> <20080831133631.GA9794@khazad-dum.debian.net> <200809071813.23730.carlos@strangeworlds.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:4803 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751628AbYIHC5S (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 7 Sep 2008 22:57:18 -0400
-In-Reply-To: <48C129D3.5000904@suse.de>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:49689 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752828AbYIHD37 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 7 Sep 2008 23:29:59 -0400
+Content-Disposition: inline
+In-Reply-To: <200809071813.23730.carlos@strangeworlds.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Cc: linux-acpi@vger.kernel.org, linux-wireless@vger.kernel.org, Ivo van Doorn <ivdoorn@gmail.com>
 
-On Fri, 2008-09-05 at 16:45 +0400, Alexey Starikovskiy wrote:
-> Zhang Rui wrote:
-> > On Thu, 2008-09-04 at 16:35 +0400, Alexey Starikovskiy wrote:
-> >> Here is the same patch as attachment for your convenience.
-> >> Alexey Starikovskiy wrote:
-> >>> Hi Andy,
-> >>>
-> >>> I just uploaded patch for bugs 9998 and 10724, which solves the p=
-roblem=20
-> >>> of interrupt storm more cleanly.
-> >>> Could you please add this patch to testing?
-> >>>
-> >>> Thanks,
-> >>> Alex.
-> >>>
-> >>>
-> > =EF=BB=BF+       ec->t.command =3D 0;
-> > +       if (test_bit(EC_FLAGS_GPE_STORM, &ec->flags)) {
-> > +               /* check if we received SCI during transaction */
-> > +               ec_check_sci(ec, acpi_ec_read_status(ec));
-> > +               /* it is safe to enable GPE outside of transaction =
-*/
-> > +               acpi_enable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
-> > +       } else if (test_bit(EC_FLAGS_GPE_MODE, &ec->flags) &&
-> > +                  atomic_read(&ec->irq_count) >
-> > ACPI_EC_STORM_THRESHOLD)
-+	{
-> > +               pr_debug(PREFIX "GPE storm detected\n");
-> > +               set_bit(EC_FLAGS_GPE_STORM, &ec->flags);
-+	}
+On Sun, 07 Sep 2008, Carlos Corbacho wrote:
+> +	status = get_u32(&state, ACER_CAP_WIRELESS);
+> +	if (ACPI_SUCCESS(status))
+> +		rfkill_force_state(wireless_rfkill, state);
 
+Please fix all calls to rfkill_force_state(). Refer to my previous post on
+this thread.
 
-thanks,
-rui
-
-> > +       return 0;
-> > +}
-> >=20
-> > you will set the =EF=BB=BFEC_FLAGS_GPE_STORM flag in every ec trans=
-action.
-> > I don't think that's what you/we want. :)
-> please elaborate...
-> If EC_FLAGS_GPE_STORM is set once, I will not get there (else).
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
