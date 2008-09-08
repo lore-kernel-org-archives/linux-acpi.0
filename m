@@ -1,178 +1,65 @@
-From: shaohua.li@intel.com
-Subject: [RFC 5/5] ACPI GPE based wakeup event detection
-Date: Mon, 08 Sep 2008 17:19:31 +0800
-Message-ID: <20080908092305.658492314@sli10-desk.sh.intel.com>
-References: <20080908091926.785882370@sli10-desk.sh.intel.com>
+From: Tejun Heo <htejun@gmail.com>
+Subject: Re: [PATCH] SATA: Blacklist systems that spin off disks during ACPI
+ power off
+Date: Mon, 08 Sep 2008 13:38:12 +0200
+Message-ID: <48C50EA4.2020700@gmail.com>
+References: <200808290002.55026.rjw@sisk.pl> <200808291241.04183.rjw@sisk.pl> <48B7D286.7050104@gmail.com> <200809061923.29020.rjw@sisk.pl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:36579 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752207AbYIHJX0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 8 Sep 2008 05:23:26 -0400
-Content-Disposition: inline; filename=acpi-gpe.patch
+Received: from ti-out-0910.google.com ([209.85.142.184]:41701 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751750AbYIHLjk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Sep 2008 07:39:40 -0400
+Received: by ti-out-0910.google.com with SMTP id b6so896220tic.23
+        for <linux-acpi@vger.kernel.org>; Mon, 08 Sep 2008 04:39:37 -0700 (PDT)
+In-Reply-To: <200809061923.29020.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org
-Cc: stern@rowland.harvard.edu, dbrownell@users.sourceforge.net
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-ide@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Robert Hancock <hancockr@shaw.ca>, LKML <linux-kernel@vger.kernel.org>, Frans Pop <elendil@planet.nl>, Maciej Rutecki <maciej.rutecki@gmail.com>, Jeff Garzik <jeff@garzik.org>, Andrew Morton <akpm@linux-foundation.org>
 
-In ACPI platform, if native PME isn't enabled, GPE is used to report wakeup event.
----
- drivers/acpi/Kconfig        |    9 ++++++
- drivers/acpi/bus.c          |   15 ++++++++++
- drivers/acpi/sleep/wakeup.c |   66 ++++++++++++++++++++++++++++++++++++++++++++
- include/acpi/acpi_bus.h     |    4 ++
- 4 files changed, 94 insertions(+)
+Rafael J. Wysocki wrote:
+> SATA: Blacklist systems that spin off disks during ACPI power off
+> 
+> Some notebooks from HP have the problem that their BIOSes attempt to
+> spin down hard drives before entering ACPI system states S4 and S5.
+> This leads to a yo-yo effect during system power-off shutdown and the
+> last phase of hibernation when the disk is first spun down by the
+> kernel and then almost immediately turned on and off by the BIOS.
+> This, in turn, may result in shortening the disk's life times.
+> 
+> To prevent this from happening we can blacklist the affected systems
+> using DMI information.  However, only the on-board controlles should
+> be blacklisted and their PCI slot numbers can be used for this
+> purpose.  Unfortunately the existing interface for checking DMI
+> information of the system is not very convenient for this purpose,
+> because to use it, we would have to define special callback functions
+> or create a separate struct dmi_system_id table for each blacklisted
+> system.
+> 
+> To overcome this difficulty introduce a new function
+> dmi_first_match() returning a pointer to the first entry in an array
+> of struct dmi_system_id elements that matches the system DMI
+> information.  Then, we can use this pointer to access the entry's
+> .driver_data field containing the additional information, such as
+> the PCI slot number, allowing us to do the desired blacklisting.
+> 
+> Introduce a new libata flag ATA_FLAG_NO_POWEROFF_SPINDOWN that, if
+> set, will prevent disks from being spun off during system power off
+> and hibernation (to handle the hibernation case we need a new system
+> state SYSTEM_HIBERNATE_ENTER that can be checked against by libata,
+> in analogy with SYSTEM_POWER_OFF).  Use dmi_first_match() to set this
+> flag for some systems affected by the problem described above (HP nx6325,
+> HP nx6310, HP 2510p).
+> 
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 
-Index: linux/drivers/acpi/Kconfig
-===================================================================
---- linux.orig/drivers/acpi/Kconfig	2008-09-08 14:28:50.000000000 +0800
-+++ linux/drivers/acpi/Kconfig	2008-09-08 14:29:08.000000000 +0800
-@@ -45,6 +45,15 @@ config ACPI_SLEEP
- 	depends on PM_SLEEP
- 	default y
- 
-+config ACPI_GPE_WAKEUP
-+	bool "ACPI wakeup event support"
-+	depends on PM_SLEEP && EXPERIMENTAL
-+	help
-+	  Enable ACPI to detect wakeup event. For example, PCI device can
-+	  invoke PME, and in ACPI platform, the PME will invoke a GPE. With
-+	  the option, we can detect which device invokes wakeup event.
-+
-+
- config ACPI_PROCFS
- 	bool "Deprecated /proc/acpi files"
- 	depends on PROC_FS
-Index: linux/drivers/acpi/bus.c
-===================================================================
---- linux.orig/drivers/acpi/bus.c	2008-09-08 14:28:32.000000000 +0800
-+++ linux/drivers/acpi/bus.c	2008-09-08 14:29:03.000000000 +0800
-@@ -496,6 +496,19 @@ static int acpi_bus_check_scope(struct a
- 	return 0;
- }
- 
-+static BLOCKING_NOTIFIER_HEAD(acpi_bus_notify_list);
-+int register_acpi_bus_notifier(struct notifier_block *nb)
-+{
-+	return blocking_notifier_chain_register(&acpi_bus_notify_list, nb);
-+}
-+EXPORT_SYMBOL_GPL(register_acpi_bus_notifier);
-+
-+void unregister_acpi_bus_notifier(struct notifier_block *nb)
-+{
-+	blocking_notifier_chain_unregister(&acpi_bus_notify_list, nb);
-+}
-+EXPORT_SYMBOL_GPL(unregister_acpi_bus_notifier);
-+
- /**
-  * acpi_bus_notify
-  * ---------------
-@@ -506,6 +519,8 @@ static void acpi_bus_notify(acpi_handle 
- 	int result = 0;
- 	struct acpi_device *device = NULL;
- 
-+	blocking_notifier_call_chain(&acpi_bus_notify_list,
-+			type, (void *)handle);
- 
- 	if (acpi_bus_get_device(handle, &device))
- 		return;
-Index: linux/drivers/acpi/sleep/wakeup.c
-===================================================================
---- linux.orig/drivers/acpi/sleep/wakeup.c	2008-09-08 14:28:55.000000000 +0800
-+++ linux/drivers/acpi/sleep/wakeup.c	2008-09-08 15:04:23.000000000 +0800
-@@ -142,6 +142,70 @@ void acpi_disable_wakeup_device(u8 sleep
- 	spin_unlock(&acpi_device_lock);
- }
- 
-+#ifdef CONFIG_ACPI_GPE_WAKEUP
-+static int acpi_gpe_pme_check(struct acpi_device *dev)
-+{
-+	struct device *ldev;
-+
-+	ldev = acpi_get_physical_device(dev->handle);
-+	if (!ldev)
-+		return -ENODEV;
-+	/*
-+	 * AML code might already clear the event, so ignore the return value.
-+	 * Actually we can't correctly detect which device invokes GPE if the
-+	 * event is cleared.
-+	 */
-+	if (ldev->bus->pm && ldev->bus->pm->base.wakeup_event)
-+		ldev->bus->pm->base.wakeup_event(ldev);
-+
-+	/*
-+	 * We always send the event. AML code usually identifies the exact
-+	 * device of the GPE, let's trust it
-+	 */
-+	device_receive_wakeup_event(ldev);
-+
-+	put_device(ldev);
-+	return 0;
-+}
-+
-+static int acpi_gpe_pme_handler(struct notifier_block *nb,
-+	unsigned long type, void *data)
-+{
-+	int ret;
-+	acpi_handle handle = data;
-+	struct acpi_device *dev;
-+
-+	if (type != ACPI_NOTIFY_DEVICE_WAKE)
-+		return NOTIFY_DONE;
-+
-+	if (acpi_bus_get_device(handle, &dev))
-+		return NOTIFY_DONE;
-+
-+	ret = acpi_gpe_pme_check(dev);
-+
-+	acpi_disable_gpe(dev->wakeup.gpe_device, dev->wakeup.gpe_number,
-+		ACPI_NOT_ISR);
-+
-+	/* FIXME: spurious interrupt, disables it? */
-+	if (ret)
-+		printk(KERN_ERR"Spurious GPE %d detected\n",
-+			dev->wakeup.gpe_number);
-+
-+	return NOTIFY_OK;
-+}
-+
-+static struct notifier_block acpi_gpe_pme_nb = {
-+	.notifier_call = acpi_gpe_pme_handler,
-+};
-+
-+static void acpi_init_gpe_pme(void)
-+{
-+	register_acpi_bus_notifier(&acpi_gpe_pme_nb);
-+}
-+#else
-+static inline void acpi_init_gpe_pme(void) {}
-+#endif
-+
- static int __init acpi_wakeup_device_init(void)
- {
- 	struct list_head *node, *next;
-@@ -167,6 +231,8 @@ static int __init acpi_wakeup_device_ini
- 		spin_lock(&acpi_device_lock);
- 	}
- 	spin_unlock(&acpi_device_lock);
-+
-+	acpi_init_gpe_pme();
- 	return 0;
- }
- 
-Index: linux/include/acpi/acpi_bus.h
-===================================================================
---- linux.orig/include/acpi/acpi_bus.h	2008-09-08 14:28:42.000000000 +0800
-+++ linux/include/acpi/acpi_bus.h	2008-09-08 14:29:03.000000000 +0800
-@@ -327,6 +327,10 @@ int acpi_bus_get_private_data(acpi_handl
- extern int acpi_notifier_call_chain(struct acpi_device *, u32, u32);
- extern int register_acpi_notifier(struct notifier_block *);
- extern int unregister_acpi_notifier(struct notifier_block *);
-+
-+extern int register_acpi_bus_notifier(struct notifier_block *nb);
-+extern void unregister_acpi_bus_notifier(struct notifier_block *nb);
-+
- /*
-  * External Functions
-  */
+libata part looks good to me but I think it would be better to
+separate out DMI changes into a separate patch.
+
+Thanks.
 
 -- 
+tejun
