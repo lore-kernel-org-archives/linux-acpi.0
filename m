@@ -1,55 +1,54 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: Re: acpi dump per request
-Date: Mon, 8 Sep 2008 02:55:24 +0200
-Message-ID: <200809080255.25194.trenn@suse.de>
-References: <48C0D3B7.2010405@comcast.net>
+Subject: Re: ACPI video.c brightness handler conflicts with toshiba_acpi
+Date: Mon, 8 Sep 2008 03:01:24 +0200
+Message-ID: <200809080301.24907.trenn@suse.de>
+References: <200809061108.34877.arvidjaar@mail.ru> <200809061120.00224.arvidjaar@mail.ru>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.suse.de ([195.135.220.2]:46617 "EHLO mx1.suse.de"
+Received: from mx2.suse.de ([195.135.220.15]:57232 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750885AbYIHAzw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 7 Sep 2008 20:55:52 -0400
-In-Reply-To: <48C0D3B7.2010405@comcast.net>
+	id S1754031AbYIHBBw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 7 Sep 2008 21:01:52 -0400
+In-Reply-To: <200809061120.00224.arvidjaar@mail.ru>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Don <harterc1@comcast.net>
-Cc: linux-acpi@vger.kernel.org
+To: Andrey Borzenkov <arvidjaar@mail.ru>
+Cc: toshiba_acpi@memebeam.org, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Hi,
-
-On Friday 05 September 2008 08:37:43 am Don wrote:
-> Just installed a new motherboard.  It is a Asus M2N-SLI.   I saw the
-> following in the log.
+On Saturday 06 September 2008 09:19:59 am Andrey Borzenkov wrote:
+> On Saturday 06 September 2008, Andrey Borzenkov wrote:
+> > I have now two different devices that refer to the same hardware:
+> >
+> > lrwxrwxrwx 1 root root 0 2008-09-06 11:04 acpi_video0 ->
+> > ../../devices/virtual/backlight/acpi_video0/ lrwxrwxrwx 1 root root 0
+> > 2008-09-06 11:04 toshiba -> ../../devices/virtual/backlight/toshiba/
+> >
+> > Unfortunately, due to ACPI implementation the acpi_video0 one is much
+> > inferior (as it provides only effectively two levels instead of 8);
+> > and user level tools are apparently quite confused which one to select.
+> >
+> > Is there any mechanism that would allow tochiba_acpi to claim brightness
+> > for internal LCD screen that video would not attempt to grab it too?
+> >
+> > Of course manually disabling brightness handling in video is always
+> > possible,
 >
-> hdc: UDMA/66 mode selected
-> hdc: UDMA/33 mode selected
-> hdc: CHECK for good STATUS
-> powernow-k8: Found 1 AMD Athlon(tm) 64 X2 Dual Core Processor 5000+
-> processors (2 cpu cores) (version 2.20.00)
-> powernow-k8: ACPI Processor support is required for SMP systems but is
-> absent. Please load the ACPI Processor module before starting this driver.
-> powernow-k8: ACPI Processor support is required for SMP systems but is
-> absent. Please load the ACPI Processor module before starting this driver.
-> NET: Registered protocol family 10
-> lo: Disabled Privacy Extensions
-> ip6_tables: (C) 2000-2006 Netfilter Core Team
-> NET: Registered protocol family 17
-> ACPI Exception (thermal-0469): AE_ERROR, ACPI thermal trip point state
-> changed
-> Please send acpidump to linux-acpi@vger.kernel.org
+> Actually it is not. brightness_switch_enabled only disables event handling;
+> it still resets actual brightness on loading and creates sysfs files to
+> confuse user space.
+>
+> > still is nice for this to be handled automatically.
+It is in latest ACPI test branch queued for 2.6.28.
+The problem in bug:
+http://bugzilla.kernel.org/show_bug.cgi?id=9614
+is another. But the patchset pointed to in comment #43 should fix several, 
+also your problem.
 
-what kernel is that?
-Does this also happen with the latest 2.6.27-rcX kernel?
-
-If yes, best  is to open a bug at http://bugzilla.kernel.org and attach full
-dmesg output and acpidump there.
-
-Best you add Zhang Rui <rui.zhang@intel.com> and myself to the CC list
-of the bug.
+If not, please tell me and open a new bug.
 
 Thanks,
 
