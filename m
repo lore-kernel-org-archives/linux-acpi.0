@@ -1,55 +1,47 @@
-From: Thomas Renninger <trenn@suse.de>
+From: Zhang Rui <rui.zhang@intel.com>
 Subject: Re: ACPI video.c brightness handler conflicts with toshiba_acpi
-Date: Mon, 8 Sep 2008 03:01:24 +0200
-Message-ID: <200809080301.24907.trenn@suse.de>
-References: <200809061108.34877.arvidjaar@mail.ru> <200809061120.00224.arvidjaar@mail.ru>
+Date: Mon, 08 Sep 2008 09:13:52 +0800
+Message-ID: <1220836432.3441.25.camel@rzhang-dt>
+References: <200809061108.34877.arvidjaar@mail.ru>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:57232 "EHLO mx2.suse.de"
+Received: from mga01.intel.com ([192.55.52.88]:39580 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754031AbYIHBBw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 7 Sep 2008 21:01:52 -0400
-In-Reply-To: <200809061120.00224.arvidjaar@mail.ru>
-Content-Disposition: inline
+	id S1751674AbYIHBOr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 7 Sep 2008 21:14:47 -0400
+In-Reply-To: <200809061108.34877.arvidjaar@mail.ru>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Andrey Borzenkov <arvidjaar@mail.ru>
 Cc: toshiba_acpi@memebeam.org, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Saturday 06 September 2008 09:19:59 am Andrey Borzenkov wrote:
-> On Saturday 06 September 2008, Andrey Borzenkov wrote:
-> > I have now two different devices that refer to the same hardware:
-> >
-> > lrwxrwxrwx 1 root root 0 2008-09-06 11:04 acpi_video0 ->
-> > ../../devices/virtual/backlight/acpi_video0/ lrwxrwxrwx 1 root root 0
-> > 2008-09-06 11:04 toshiba -> ../../devices/virtual/backlight/toshiba/
-> >
-> > Unfortunately, due to ACPI implementation the acpi_video0 one is much
-> > inferior (as it provides only effectively two levels instead of 8);
-> > and user level tools are apparently quite confused which one to select.
-> >
-> > Is there any mechanism that would allow tochiba_acpi to claim brightness
-> > for internal LCD screen that video would not attempt to grab it too?
-> >
-> > Of course manually disabling brightness handling in video is always
-> > possible,
->
-> Actually it is not. brightness_switch_enabled only disables event handling;
-> it still resets actual brightness on loading and creates sysfs files to
-> confuse user space.
->
-> > still is nice for this to be handled automatically.
-It is in latest ACPI test branch queued for 2.6.28.
-The problem in bug:
-http://bugzilla.kernel.org/show_bug.cgi?id=9614
-is another. But the patchset pointed to in comment #43 should fix several, 
-also your problem.
+On Sat, 2008-09-06 at 11:08 +0400, Andrey Borzenkov wrote:
+> I have now two different devices that refer to the same hardware:
+> 
+> lrwxrwxrwx 1 root root 0 2008-09-06 11:04 acpi_video0 -> ../../devices/virtual/backlight/acpi_video0/
+> lrwxrwxrwx 1 root root 0 2008-09-06 11:04 toshiba -> ../../devices/virtual/backlight/toshiba/
+> 
+> Unfortunately, due to ACPI implementation the acpi_video0 one is much
+> inferior (as it provides only effectively two levels instead of 8);
+> and user level tools are apparently quite confused which one to select.
+> 
+> Is there any mechanism that would allow tochiba_acpi to claim brightness
+> for internal LCD screen that video would not attempt to grab it too?
+> 
+Yes, the patches are in Andi's test tree currently.
 
-If not, please tell me and open a new bug.
+please run
+#git-clone
+git://git.kernel.org/pub/scm/linux/kernel/git/ak/linux-acpi-2.6
+acpi_test
+#git-branch -r
+#git-branch --track test origin/test
+#git-checkout test
 
-Thanks,
+to get the source code if you want to give it a try. :)
 
-       Thomas
+thanks,
+rui
+
