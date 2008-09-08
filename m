@@ -1,47 +1,72 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: ACPI video.c brightness handler conflicts with toshiba_acpi
-Date: Mon, 08 Sep 2008 09:13:52 +0800
-Message-ID: <1220836432.3441.25.camel@rzhang-dt>
-References: <200809061108.34877.arvidjaar@mail.ru>
+Subject: Re: patch for bugs 9998 and 10724
+Date: Mon, 08 Sep 2008 10:56:22 +0800
+Message-ID: <1220842582.3441.30.camel@rzhang-dt>
+References: <1219730254.4116.38.camel@yakui_zhao.sh.intel.com>
+	 <20080904121820.GC18288@one.firstfloor.org> <48BFD5AA.3090006@suse.de>
+	 <48BFD609.2050604@suse.de> <1220581596.3441.2.camel@rzhang-dt>
+	 <48C129D3.5000904@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:39580 "EHLO mga01.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:4803 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751674AbYIHBOr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 7 Sep 2008 21:14:47 -0400
-In-Reply-To: <200809061108.34877.arvidjaar@mail.ru>
+	id S1751628AbYIHC5S (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 7 Sep 2008 22:57:18 -0400
+In-Reply-To: <48C129D3.5000904@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrey Borzenkov <arvidjaar@mail.ru>
-Cc: toshiba_acpi@memebeam.org, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-On Sat, 2008-09-06 at 11:08 +0400, Andrey Borzenkov wrote:
-> I have now two different devices that refer to the same hardware:
-> 
-> lrwxrwxrwx 1 root root 0 2008-09-06 11:04 acpi_video0 -> ../../devices/virtual/backlight/acpi_video0/
-> lrwxrwxrwx 1 root root 0 2008-09-06 11:04 toshiba -> ../../devices/virtual/backlight/toshiba/
-> 
-> Unfortunately, due to ACPI implementation the acpi_video0 one is much
-> inferior (as it provides only effectively two levels instead of 8);
-> and user level tools are apparently quite confused which one to select.
-> 
-> Is there any mechanism that would allow tochiba_acpi to claim brightness
-> for internal LCD screen that video would not attempt to grab it too?
-> 
-Yes, the patches are in Andi's test tree currently.
+On Fri, 2008-09-05 at 16:45 +0400, Alexey Starikovskiy wrote:
+> Zhang Rui wrote:
+> > On Thu, 2008-09-04 at 16:35 +0400, Alexey Starikovskiy wrote:
+> >> Here is the same patch as attachment for your convenience.
+> >> Alexey Starikovskiy wrote:
+> >>> Hi Andy,
+> >>>
+> >>> I just uploaded patch for bugs 9998 and 10724, which solves the p=
+roblem=20
+> >>> of interrupt storm more cleanly.
+> >>> Could you please add this patch to testing?
+> >>>
+> >>> Thanks,
+> >>> Alex.
+> >>>
+> >>>
+> > =EF=BB=BF+       ec->t.command =3D 0;
+> > +       if (test_bit(EC_FLAGS_GPE_STORM, &ec->flags)) {
+> > +               /* check if we received SCI during transaction */
+> > +               ec_check_sci(ec, acpi_ec_read_status(ec));
+> > +               /* it is safe to enable GPE outside of transaction =
+*/
+> > +               acpi_enable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
+> > +       } else if (test_bit(EC_FLAGS_GPE_MODE, &ec->flags) &&
+> > +                  atomic_read(&ec->irq_count) >
+> > ACPI_EC_STORM_THRESHOLD)
++	{
+> > +               pr_debug(PREFIX "GPE storm detected\n");
+> > +               set_bit(EC_FLAGS_GPE_STORM, &ec->flags);
++	}
 
-please run
-#git-clone
-git://git.kernel.org/pub/scm/linux/kernel/git/ak/linux-acpi-2.6
-acpi_test
-#git-branch -r
-#git-branch --track test origin/test
-#git-checkout test
-
-to get the source code if you want to give it a try. :)
 
 thanks,
 rui
 
+> > +       return 0;
+> > +}
+> >=20
+> > you will set the =EF=BB=BFEC_FLAGS_GPE_STORM flag in every ec trans=
+action.
+> > I don't think that's what you/we want. :)
+> please elaborate...
+> If EC_FLAGS_GPE_STORM is set once, I will not get there (else).
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
