@@ -1,70 +1,209 @@
 From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: Re: patch for bugs 9998 and 10724
-Date: Mon, 08 Sep 2008 09:18:01 +0800
-Message-ID: <1220836681.4007.232.camel@yakui_zhao.sh.intel.com>
-References: <1219730254.4116.38.camel@yakui_zhao.sh.intel.com>
-	 <20080904121820.GC18288@one.firstfloor.org> <48BFD5AA.3090006@suse.de>
-	 <48BFD609.2050604@suse.de>  <1220581596.3441.2.camel@rzhang-dt>
-	 <1220586550.4007.185.camel@yakui_zhao.sh.intel.com>
-	 <48C12D0A.6020704@suse.de>
+Subject: Re: [RFC 5/5] ACPI GPE based wakeup event detection
+Date: Tue, 09 Sep 2008 09:13:32 +0800
+Message-ID: <1220922812.3989.8.camel@yakui_zhao.sh.intel.com>
+References: <20080908091926.785882370@sli10-desk.sh.intel.com>
+	 <20080908092305.658492314@sli10-desk.sh.intel.com>
+	 <200809082257.35009.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:37497 "EHLO mga11.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:56902 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754818AbYIIA7F (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 8 Sep 2008 20:59:05 -0400
-In-Reply-To: <48C12D0A.6020704@suse.de>
+	id S1754827AbYIIA7K (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 8 Sep 2008 20:59:10 -0400
+In-Reply-To: <200809082257.35009.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: Zhang Rui <rui.zhang@intel.com>, Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: shaohua.li@intel.com, linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu, dbrownell@users.sourceforge.net
 
-On Fri, 2008-09-05 at 16:58 +0400, Alexey Starikovskiy wrote:
-> Zhao Yakui wrote:
-> > If the system is already switched to GPE mode, how to continue EC
-> > transaction if there is no GPE interrupt confirmation in some EC
-> > transaction? For example: on the laptops of bug 11428 & 8459. In fact
-> > sometimes there is no EC GPE interrupt confirmation only for the last
-> > step of EC transaction(OBF bit already indicates that data is ready but
-> > there is no EC interrupt).
-> You can't read, do you?
+On Mon, 2008-09-08 at 22:57 +0200, Rafael J. Wysocki wrote:
+> On Monday, 8 of September 2008, shaohua.li@intel.com wrote:
+> > In ACPI platform, if native PME isn't enabled, GPE is used to report wakeup event.
+> > ---
+> >  drivers/acpi/Kconfig        |    9 ++++++
+> >  drivers/acpi/bus.c          |   15 ++++++++++
+> >  drivers/acpi/sleep/wakeup.c |   66 ++++++++++++++++++++++++++++++++++++++++++++
+> >  include/acpi/acpi_bus.h     |    4 ++
+> >  4 files changed, 94 insertions(+)
+> > 
+> > Index: linux/drivers/acpi/Kconfig
+> > ===================================================================
+> > --- linux.orig/drivers/acpi/Kconfig	2008-09-08 14:28:50.000000000 +0800
+> > +++ linux/drivers/acpi/Kconfig	2008-09-08 14:29:08.000000000 +0800
+> > @@ -45,6 +45,15 @@ config ACPI_SLEEP
+> >  	depends on PM_SLEEP
+> >  	default y
+> >  
+> > +config ACPI_GPE_WAKEUP
+> > +	bool "ACPI wakeup event support"
+> > +	depends on PM_SLEEP && EXPERIMENTAL
+> > +	help
+> > +	  Enable ACPI to detect wakeup event. For example, PCI device can
+> > +	  invoke PME, and in ACPI platform, the PME will invoke a GPE. With
+> > +	  the option, we can detect which device invokes wakeup event.
+> > +
+> > +
+> >  config ACPI_PROCFS
+> >  	bool "Deprecated /proc/acpi files"
+> >  	depends on PROC_FS
+> > Index: linux/drivers/acpi/bus.c
+> > ===================================================================
+> > --- linux.orig/drivers/acpi/bus.c	2008-09-08 14:28:32.000000000 +0800
+> > +++ linux/drivers/acpi/bus.c	2008-09-08 14:29:03.000000000 +0800
+> > @@ -496,6 +496,19 @@ static int acpi_bus_check_scope(struct a
+> >  	return 0;
+> >  }
+> >  
+> > +static BLOCKING_NOTIFIER_HEAD(acpi_bus_notify_list);
+> > +int register_acpi_bus_notifier(struct notifier_block *nb)
+> > +{
+> > +	return blocking_notifier_chain_register(&acpi_bus_notify_list, nb);
+> > +}
+> > +EXPORT_SYMBOL_GPL(register_acpi_bus_notifier);
+> > +
+> > +void unregister_acpi_bus_notifier(struct notifier_block *nb)
+> > +{
+> > +	blocking_notifier_chain_unregister(&acpi_bus_notify_list, nb);
+> > +}
+> > +EXPORT_SYMBOL_GPL(unregister_acpi_bus_notifier);
+> > +
+> >  /**
+> >   * acpi_bus_notify
+> >   * ---------------
+> > @@ -506,6 +519,8 @@ static void acpi_bus_notify(acpi_handle 
+> >  	int result = 0;
+> >  	struct acpi_device *device = NULL;
+> >  
+> > +	blocking_notifier_call_chain(&acpi_bus_notify_list,
+> > +			type, (void *)handle);
 > 
-> If the interrupt does not arrive for OBF in the middle of transaction,
-> transaction will be completed after the GPE_MODE is cleared in acpi_wait()
-> in a poll loop below, there is even a comment for that.
-Oh, I misunderstand what you have done in the patch.
-But from the patch it seems that the definition of acpi_ec_wait in the
-attached patch is totally different with that in upstream kernel. Right?
-In the attached patch it indicates whether the transaction is finished.
-But in the upstream kernel it indicates whether the EC status is already
-what OS expected.
+> Hm, perhaps I'm too tired and I'm missing something obvious, but can you
+> tell me please why that has to be a notifier chain?  It looks like you add only
+> one notifier to it, so seemingly it could be replaced by a direct call to a
+> function like acpi_gpe_pme_handler() (with modified list of arguments).
+When the notifier chain is used, it can work regardless of whether the
+CONFIG_ACPI_GPE_WAKEUP is set.
+If the CONFIG_ACPI_GPE_WAKEUP is set, what you said is also OK. 
 
-If the function definition is totally different, you had better add some
-comments. Otherwise it is too difficult to understand.
-
-Maybe your patch is right and can work well on your laptop. But the
-basic working flowchart is changed a lot, maybe it had better be tested
-on more laptops. At the same time you should add more comments and
-descriptions. Otherwise when the regression happens, no one can make any
-improvements about the EC driver.
-
-Best regards.
-   Yakui.
-> 	/* start transaction */
-> 	acpi_ec_write_cmd(ec, command);
-> >>>>>	/* if we selected poll mode or failed in GPE-mode do a poll loop */
-> 	if (force_poll ||
-> 	    !test_bit(EC_FLAGS_GPE_MODE, &ec->flags) ||
-> 	    acpi_ec_wait(ec)) {
-> 		delay = jiffies + msecs_to_jiffies(ACPI_EC_DELAY);
-> 		while (time_before(jiffies, delay)) {
-> 			gpe_transaction(ec, acpi_ec_read_status(ec));
-> 			msleep(1);
-> 			if (ec_transaction_done(ec))
-> 				goto end;
-> 		}
-> 	}
 > 
+> >  	if (acpi_bus_get_device(handle, &device))
+> >  		return;
+> > Index: linux/drivers/acpi/sleep/wakeup.c
+> > ===================================================================
+> > --- linux.orig/drivers/acpi/sleep/wakeup.c	2008-09-08 14:28:55.000000000 +0800
+> > +++ linux/drivers/acpi/sleep/wakeup.c	2008-09-08 15:04:23.000000000 +0800
+> > @@ -142,6 +142,70 @@ void acpi_disable_wakeup_device(u8 sleep
+> >  	spin_unlock(&acpi_device_lock);
+> >  }
+> >  
+> > +#ifdef CONFIG_ACPI_GPE_WAKEUP
+> > +static int acpi_gpe_pme_check(struct acpi_device *dev)
+> > +{
+> > +	struct device *ldev;
+> > +
+> > +	ldev = acpi_get_physical_device(dev->handle);
+> > +	if (!ldev)
+> > +		return -ENODEV;
+> > +	/*
+> > +	 * AML code might already clear the event, so ignore the return value.
+> > +	 * Actually we can't correctly detect which device invokes GPE if the
+> > +	 * event is cleared.
+> > +	 */
+> > +	if (ldev->bus->pm && ldev->bus->pm->base.wakeup_event)
+> > +		ldev->bus->pm->base.wakeup_event(ldev);
+> > +
+> > +	/*
+> > +	 * We always send the event. AML code usually identifies the exact
+> > +	 * device of the GPE, let's trust it
+> > +	 */
+> > +	device_receive_wakeup_event(ldev);
+> > +
+> > +	put_device(ldev);
+> > +	return 0;
+> > +}
+> > +
+> > +static int acpi_gpe_pme_handler(struct notifier_block *nb,
+> > +	unsigned long type, void *data)
+> > +{
+> > +	int ret;
+> > +	acpi_handle handle = data;
+> > +	struct acpi_device *dev;
+> > +
+> > +	if (type != ACPI_NOTIFY_DEVICE_WAKE)
+> > +		return NOTIFY_DONE;
+> > +
+> > +	if (acpi_bus_get_device(handle, &dev))
+> > +		return NOTIFY_DONE;
+> > +
+> > +	ret = acpi_gpe_pme_check(dev);
+> > +
+> > +	acpi_disable_gpe(dev->wakeup.gpe_device, dev->wakeup.gpe_number,
+> > +		ACPI_NOT_ISR);
+> > +
+> 
+> At which point are dev->wakeup.gpe_device and dev->wakeup.gpe_number
+> determined, for example, for PCI devices, and how?
+In the boot phase a PCI device will be bound with an ACPI device. In the
+system based on ACPI(GPE) when a PCI device generates a wakeup event, an
+ACPI interrupt will be triggered and the ACPI AML code will send the
+device wakeup event to the corresponding ACPI device. In such case we
+can get the gpe number for the PCI device.
+> 
+> > +	/* FIXME: spurious interrupt, disables it? */
+> > +	if (ret)
+> > +		printk(KERN_ERR"Spurious GPE %d detected\n",
+> > +			dev->wakeup.gpe_number);
+> > +
+> > +	return NOTIFY_OK;
+> > +}
+> > +
+> > +static struct notifier_block acpi_gpe_pme_nb = {
+> > +	.notifier_call = acpi_gpe_pme_handler,
+> > +};
+> > +
+> > +static void acpi_init_gpe_pme(void)
+> > +{
+> > +	register_acpi_bus_notifier(&acpi_gpe_pme_nb);
+> > +}
+> > +#else
+> > +static inline void acpi_init_gpe_pme(void) {}
+> > +#endif
+> > +
+> >  static int __init acpi_wakeup_device_init(void)
+> >  {
+> >  	struct list_head *node, *next;
+> > @@ -167,6 +231,8 @@ static int __init acpi_wakeup_device_ini
+> >  		spin_lock(&acpi_device_lock);
+> >  	}
+> >  	spin_unlock(&acpi_device_lock);
+> > +
+> > +	acpi_init_gpe_pme();
+> >  	return 0;
+> >  }
+> >  
+> > Index: linux/include/acpi/acpi_bus.h
+> > ===================================================================
+> > --- linux.orig/include/acpi/acpi_bus.h	2008-09-08 14:28:42.000000000 +0800
+> > +++ linux/include/acpi/acpi_bus.h	2008-09-08 14:29:03.000000000 +0800
+> > @@ -327,6 +327,10 @@ int acpi_bus_get_private_data(acpi_handl
+> >  extern int acpi_notifier_call_chain(struct acpi_device *, u32, u32);
+> >  extern int register_acpi_notifier(struct notifier_block *);
+> >  extern int unregister_acpi_notifier(struct notifier_block *);
+> > +
+> > +extern int register_acpi_bus_notifier(struct notifier_block *nb);
+> > +extern void unregister_acpi_bus_notifier(struct notifier_block *nb);
+> > +
+> >  /*
+> >   * External Functions
+> >   */
+> 
+> Thanks,
+> Rafael
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
