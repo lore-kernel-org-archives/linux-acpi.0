@@ -1,148 +1,95 @@
-From: "Li, Shaohua" <shaohua.li@intel.com>
-Subject: RE: [RFC 1/5] devcore introduce wakeup_event callback
-Date: Tue, 9 Sep 2008 16:36:39 +0800
-Message-ID: <76780B19A496DC4B80439008DAD7076C01AC7F34FC@PDSMSX501.ccr.corp.intel.com>
-References: <20080908091926.785882370@sli10-desk.sh.intel.com>
- <200809081956.23522.david-b@pacbell.net>
- <76780B19A496DC4B80439008DAD7076C01AC7F328B@PDSMSX501.ccr.corp.intel.com>
- <200809082226.11399.david-b@pacbell.net>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: patch for bugs 9998 and 10724
+Date: Tue, 09 Sep 2008 17:13:03 +0800
+Message-ID: <1220951583.3989.85.camel@yakui_zhao.sh.intel.com>
+References: <1219730254.4116.38.camel@yakui_zhao.sh.intel.com>
+	 <20080904121820.GC18288@one.firstfloor.org> <48BFD5AA.3090006@suse.de>
+	 <48BFD609.2050604@suse.de> <1220581596.3441.2.camel@rzhang-dt>
+	 <48C129D3.5000904@suse.de> <1220842582.3441.30.camel@rzhang-dt>
+	 <48C4E15F.2020701@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:15440 "EHLO mga14.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:28020 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754427AbYIIIhG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Sep 2008 04:37:06 -0400
-In-Reply-To: <200809082226.11399.david-b@pacbell.net>
-Content-Language: en-US
+	id S1754615AbYIII6i (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 9 Sep 2008 04:58:38 -0400
+In-Reply-To: <48C4E15F.2020701@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Zhang Rui <rui.zhang@intel.com>, Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-Ok, you comments on pci bridge makes sense. I missed that case, will change the code to support it.
+Hi, Alexey
+    You attached the updated patch on the bug 10724/9998.
+    Can the following situation be handled by your patch?(For example:
+bug 10724)
+       EC GPE Interrupt storm is detected and EC GPE will be disabled
+when doing EC transaction.=20
+       If EC notification event happens while doing EC transaction(EC
+GPE is disabled), the SCI_EVT bit of EC status register is cleared
+automatically before we can handle it.=20
+       Can the EC notification event be handled by OS?
 
->On Monday 08 September 2008, Li, Shaohua wrote:
->>
->> >> + * @wakeup_event: Checks if a wakeup event occurs.
->> >> + *    If yes, wakeup event should be disabled.
->> >
->> >And ... what else??  What does the return value indicate?
->> >Should anything be done with it other than printing it out
->> >if it's nonzero and we're debugging?
->>
->> Return 0 if the device invokes a wakeup event. In this case, driver
->> should clear/disable wakeup event.
->> Return < 0 if device didn't invoke wakeup.
->
->So it's effectively "bool"?  I'd declare it as "bool" then...
->and rename it to sound like a predicate; "is_wakedev()" maybe.
-Right.
+ Thanks
+     Yakui.
+> Zhang Rui wrote:
+> > On Fri, 2008-09-05 at 16:45 +0400, Alexey Starikovskiy wrote:
+> >> Zhang Rui wrote:
+> >>> On Thu, 2008-09-04 at 16:35 +0400, Alexey Starikovskiy wrote:
+> >>>> Here is the same patch as attachment for your convenience.
+> >>>> Alexey Starikovskiy wrote:
+> >>>>> Hi Andy,
+> >>>>>
+> >>>>> I just uploaded patch for bugs 9998 and 10724, which solves the=
+ problem=20
+> >>>>> of interrupt storm more cleanly.
+> >>>>> Could you please add this patch to testing?
+> >>>>>
+> >>>>> Thanks,
+> >>>>> Alex.
+> >>>>>
+> >>>>>
+> >>> =EF=BB=BF+       ec->t.command =3D 0;
+> >>> +       if (test_bit(EC_FLAGS_GPE_STORM, &ec->flags)) {
+> >>> +               /* check if we received SCI during transaction */
+> >>> +               ec_check_sci(ec, acpi_ec_read_status(ec));
+> >>> +               /* it is safe to enable GPE outside of transactio=
+n */
+> >>> +               acpi_enable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
+> >>> +       } else if (test_bit(EC_FLAGS_GPE_MODE, &ec->flags) &&
+> >>> +                  atomic_read(&ec->irq_count) >
+> >>> ACPI_EC_STORM_THRESHOLD)
+> > +	{
+> >>> +               pr_debug(PREFIX "GPE storm detected\n");
+> >>> +               set_bit(EC_FLAGS_GPE_STORM, &ec->flags);
+> > +	}
+> Thanks!
+> >=20
+> >=20
+> > thanks,
+> > rui
+> >=20
+> >>> +       return 0;
+> >>> +}
+> >>>
+> >>> you will set the =EF=BB=BFEC_FLAGS_GPE_STORM flag in every ec tra=
+nsaction.
+> >>> I don't think that's what you/we want. :)
+> >> please elaborate...
+> >> If EC_FLAGS_GPE_STORM is set once, I will not get there (else).
+> >=20
+> >=20
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
->> >> @@ -151,6 +153,7 @@ struct pm_ops {
->> >>         int (*thaw)(struct device *dev);
->> >>         int (*poweroff)(struct device *dev);
->> >>         int (*restore)(struct device *dev);
->> >> +       int (*wakeup_event)(struct device *dev);
->> >
->> >My reaction to adding this method is:  why do it here rather
->> >than at the bus level?
->
->Your answer probably should have been:  "The recent method
->reshuffling makes that method work both at the level of the
->'struct bus_type' and at the level of 'struct device'.  So
->this _does_ add it at the bus level."
-Right.
-
-
->> >In my particular experience there are two basic types of wakeup
->> >event:
->> >
->> >     ...
->> >
->> >     * ACPI GPEs.  Bus-specific ... and similar to GPIO IRQs.
->> >       Also sharable; bytecode is used to map the GPE and
->> >       some register state to the ACPI device(s) which
->> >       issued that GPE.
->>
->> This isn't bus specific.
->
->It's bus-specific in the sense of "ACPI bus" (/sys/bus/acpi).
->If the DSDT defines a GPE and maps it to an ACPI device, it will
->follow those rules.
->
->Devices not on the "ACPI bus" -- like add-on PCI cards, USB
->peripherals, and other devices which have some such ACPI device
->higher in the driver model tre -- don't use GPEs to wake up.
->(An ancestral device may well do so:  a PCI bridge, a USB
->host controller, etc.)
->
->
->> ACPI devices can map to any physical devices, like PCI, IDE
->> drive, PNP device. In this case, a bus specific mechanism can't
->> handle all.
->
->Sure it can.  And it'd be more natural to do it that way too.
->I'd be tempted to call them from ACPI like
->
->        struct device *dev;
->        acpi_handle adev;
->
->        /* adev received a wake event notification */
->
->        ...
->        dev = acpi_get_physical_device(adev);
->        if (dev) {
->                /* this chunk of code should probably live in
->                 * drivers/base/power/... somewhere and be
->                 * part of this patch 1/5 so it's more clear
->                 * what the infrastructure is doing.
->                 */
->                if (... && dev->bus->pm.base->is_wakedev(dev)) {
->                        ... call dev->driver->pm.resume(dev)
->                        ... else if resume is null, issue diagnostic
->                } else {
->                        ... report suitable generic confusion ...
->                }
->        } else {
->                ... report ACPI-specific confusion ...
->        }
->        ...
->
->When that's a PCI device -- bridge or otherwise -- that
->would call something resembling your patch #3 (but fixed
->to handle the case of PCI bridges, so add-in cards will
->work properly).
->
->And for a non-ACPI system, whatever IRQ handler receives the
->PME# signal would just call that chunk of code for the PCI
->root bridge(s) it handles.  All done.  :)
-I can move my ' device_receive_wakeup_event()' into ' pci_pm_wakeup_event()', and export the routine. Then IRQ handler can call it. Assume this is what you want.
-
->> For example the UHCI case. A GPE is fired, we need to clear/disable
->> the wakeup event. PCI bus can't handle it, as UHCI has special
->> registers for this, so we need call into device specific handling.
->
->So the bus-level PCI operation would end up with a device
->that's either (a) known to have fired PME#, or (b) known
->to be a device with legacy PM -- like UHCI -- which it's
->presuming has been wakeup-enabled.
->
->Then in the (a) case it can clear PME# the normal way, and
->would rarely need to do anything else.
->
->While in the (b) case the UHCI driver would need to have
->provided some device-specific -- not bus-generic -- op
->called like dev->driver->pm.is_wakeup(), to diddle those
->registers (only for Intel silicon, not UHCI from VIA or
->Genesys or anyone else).
->
->
->I think I'm getting a bit more clear on what you're trying
->to do with this.  Restructure it a bit and I will be able
->to see that from reading the code (as will others).  :)
-So we are on the same page here both bus and device requires a op like .is_wakeup(). And what I need to do is to address the pci bridge case.
-
-Thanks,
-Shaohua
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
