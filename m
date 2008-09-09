@@ -1,142 +1,66 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC 1/5] devcore introduce wakeup_event callback
-Date: Tue, 9 Sep 2008 13:45:30 +0200
-Message-ID: <200809091345.31785.rjw@sisk.pl>
-References: <20080908091926.785882370@sli10-desk.sh.intel.com> <200809082226.11399.david-b@pacbell.net> <76780B19A496DC4B80439008DAD7076C01AC7F34FC@PDSMSX501.ccr.corp.intel.com>
+From: Holger Schurig <hs4233@mail.mn-solutions.de>
+Subject: OOPS: getting an ACPI interrupt while in an ACPI interrupt hangs my box
+Date: Tue, 9 Sep 2008 16:05:07 +0200
+Message-ID: <200809091605.07734.hs4233@mail.mn-solutions.de>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:50777 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752994AbYIILlF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 9 Sep 2008 07:41:05 -0400
-In-Reply-To: <76780B19A496DC4B80439008DAD7076C01AC7F34FC@PDSMSX501.ccr.corp.intel.com>
+Received: from mx51.mymxserver.com ([85.199.173.110]:15291 "EHLO
+	mx51.mymxserver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753303AbYIIOF0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Sep 2008 10:05:26 -0400
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Li, Shaohua" <shaohua.li@intel.com>
-Cc: David Brownell <david-b@pacbell.net>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>
+To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tuesday, 9 of September 2008, Li, Shaohua wrote:
-> Ok, you comments on pci bridge makes sense. I missed that case, will change the code to support it.
-> 
-> >On Monday 08 September 2008, Li, Shaohua wrote:
-> >>
-> >> >> + * @wakeup_event: Checks if a wakeup event occurs.
-> >> >> + *    If yes, wakeup event should be disabled.
-> >> >
-> >> >And ... what else??  What does the return value indicate?
-> >> >Should anything be done with it other than printing it out
-> >> >if it's nonzero and we're debugging?
-> >>
-> >> Return 0 if the device invokes a wakeup event. In this case, driver
-> >> should clear/disable wakeup event.
-> >> Return < 0 if device didn't invoke wakeup.
-> >
-> >So it's effectively "bool"?  I'd declare it as "bool" then...
-> >and rename it to sound like a predicate; "is_wakedev()" maybe.
-> Right.
-> 
-> >> >> @@ -151,6 +153,7 @@ struct pm_ops {
-> >> >>         int (*thaw)(struct device *dev);
-> >> >>         int (*poweroff)(struct device *dev);
-> >> >>         int (*restore)(struct device *dev);
-> >> >> +       int (*wakeup_event)(struct device *dev);
-> >> >
-> >> >My reaction to adding this method is:  why do it here rather
-> >> >than at the bus level?
-> >
-> >Your answer probably should have been:  "The recent method
-> >reshuffling makes that method work both at the level of the
-> >'struct bus_type' and at the level of 'struct device'.  So
-> >this _does_ add it at the bus level."
-> Right.
+I just got this OOPS:
 
-Still, I'm not sure if we need the method at the device core level at all.
+irq 9: nobody cared (try booting with the "irqpoll" option)
+Pid: 0, comm: swapper Tainted: P          2.6.26.3 #3
+ [<c012f063>] __report_bad_irq+0x24/0x69
+ [<c012f06a>] __report_bad_irq+0x2b/0x69
+ [<c012f257>] note_interrupt+0x1af/0x1e4
+ [<c01cbc97>] acpi_irq+0xb/0x1c
+ [<c012e983>] handle_IRQ_event+0x1a/0x3f
+ [<c012f917>] handle_level_irq+0x63/0x84
+ [<c01046d0>] do_IRQ+0x4b/0x60
+ [<c010320f>] common_interrupt+0x23/0x28
+ [<c01d007b>] acpi_ds_create_operands+0x1c/0xf9
+ [<c0118f03>] __do_softirq+0x2c/0x75
+ [<c0118f6e>] do_softirq+0x22/0x26
+ [<c01191ea>] irq_exit+0x25/0x53
+ [<c01046d5>] do_IRQ+0x50/0x60
+ [<c010320f>] common_interrupt+0x23/0x28
+ [<c01ef3c0>] acpi_idle_enter_simple+0x16d/0x1d9
+ [<c025bdba>] cpuidle_idle_call+0x49/0x77
+ [<c025bd71>] cpuidle_idle_call+0x0/0x77
+ [<c010176c>] cpu_idle+0x48/0x61
+ =======================
+handlers:
+[<c01cbc8c>] (acpi_irq+0x0/0x1c)
+Disabling IRQ #9
+BUG: soft lockup - CPU#0 stuck for 138s! [syslogd:1952]
 
-The suspend/resume callbacks are needed at the device core level, because the
-_core_ initiates the operation (suspend, resume etc.), but in this case the
-operation will be initiated in a core-independent way (for example, by an
-interrupt handler in case of the PCI Express native PME).
+If I read that OOPS right, then I got an interrupt 
+("common_interrupt"), which made the kernel run the ACPI 
+function "acpi_ds_create_operands" and while this executed, I've 
+got another interupt, which killed my for for 138 seconds ...
 
-Surely, we'll need such a callback on the PCI core level that may have to
-invoke the device driver to handle wake-up after identifying the device that
-caused the event to happen.
+Shouldn't there some sort of protection about this or is the DSDT 
+of my device just bogus?
 
-> >> >In my particular experience there are two basic types of wakeup
-> >> >event:
-> >> >
-> >> >     ...
-> >> >
-> >> >     * ACPI GPEs.  Bus-specific ... and similar to GPIO IRQs.
-> >> >       Also sharable; bytecode is used to map the GPE and
-> >> >       some register state to the ACPI device(s) which
-> >> >       issued that GPE.
-> >>
-> >> This isn't bus specific.
-> >
-> >It's bus-specific in the sense of "ACPI bus" (/sys/bus/acpi).
-> >If the DSDT defines a GPE and maps it to an ACPI device, it will
-> >follow those rules.
-> >
-> >Devices not on the "ACPI bus" -- like add-on PCI cards, USB
-> >peripherals, and other devices which have some such ACPI device
-> >higher in the driver model tre -- don't use GPEs to wake up.
-> >(An ancestral device may well do so:  a PCI bridge, a USB
-> >host controller, etc.)
 
-Well, I'm not exactly sure how PME# is supposed to be handled for add-on cards.
-My understanding so far has been that all of the PME# signals are supposed to
-be line ORed and routed (around all of the bridges) to the host bridge that
-should generate an interrupt of some sort (eg. ACPI SCI).  Isn't that correct?
 
-> >> ACPI devices can map to any physical devices, like PCI, IDE
-> >> drive, PNP device. In this case, a bus specific mechanism can't
-> >> handle all.
-> >
-> >Sure it can.  And it'd be more natural to do it that way too.
-> >I'd be tempted to call them from ACPI like
-> >
-> >        struct device *dev;
-> >        acpi_handle adev;
-> >
-> >        /* adev received a wake event notification */
-> >
-> >        ...
-> >        dev = acpi_get_physical_device(adev);
-> >        if (dev) {
-> >                /* this chunk of code should probably live in
-> >                 * drivers/base/power/... somewhere and be
-> >                 * part of this patch 1/5 so it's more clear
-> >                 * what the infrastructure is doing.
-> >                 */
-> >                if (... && dev->bus->pm.base->is_wakedev(dev)) {
-> >                        ... call dev->driver->pm.resume(dev)
-> >                        ... else if resume is null, issue diagnostic
-> >                } else {
-> >                        ... report suitable generic confusion ...
-> >                }
-> >        } else {
-> >                ... report ACPI-specific confusion ...
-> >        }
-> >        ...
-> >
-> >When that's a PCI device -- bridge or otherwise -- that
-> >would call something resembling your patch #3 (but fixed
-> >to handle the case of PCI bridges, so add-in cards will
-> >work properly).
-> >
-> >And for a non-ACPI system, whatever IRQ handler receives the
-> >PME# signal would just call that chunk of code for the PCI
-> >root bridge(s) it handles.  All done.  :)
-> I can move my ' device_receive_wakeup_event()' into ' pci_pm_wakeup_event()',
-> and export the routine. Then IRQ handler can call it. Assume this is what you
-> want.  
 
-Would pci_pm_wakeup_event() be responsible for invoking a device driver's
-callback in that case?
+Kernel 2.6.26.3
 
-Thanks,
-Rafael
+CPU: "Geode(TM) Integrated Processor by AMD PCS"
+
+How to reproduce: press ACPI buttons repeatedly
+
+ACPI related kernel-commandline entries: "pci=noacpi 
+acpi_serialize". The first is vital (no boot without), the 
+second one is an experiment, I got OOPSes without that, too.
