@@ -1,66 +1,64 @@
-From: Holger Schurig <hs4233@mail.mn-solutions.de>
-Subject: OOPS: getting an ACPI interrupt while in an ACPI interrupt hangs my box
-Date: Tue, 9 Sep 2008 16:05:07 +0200
-Message-ID: <200809091605.07734.hs4233@mail.mn-solutions.de>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC 5/5] ACPI GPE based wakeup event detection
+Date: Tue, 9 Sep 2008 10:08:18 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0809091006280.2486-100000@iolanthe.rowland.org>
+References: <1220922812.3989.8.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx51.mymxserver.com ([85.199.173.110]:15291 "EHLO
-	mx51.mymxserver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753303AbYIIOF0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Sep 2008 10:05:26 -0400
-Content-Disposition: inline
+Received: from iolanthe.rowland.org ([192.131.102.54]:42941 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753223AbYIIOIS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Sep 2008 10:08:18 -0400
+In-Reply-To: <1220922812.3989.8.camel@yakui_zhao.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, shaohua.li@intel.com, linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org, dbrownell@users.sourceforge.net
 
-I just got this OOPS:
+On Tue, 9 Sep 2008, Zhao Yakui wrote:
 
-irq 9: nobody cared (try booting with the "irqpoll" option)
-Pid: 0, comm: swapper Tainted: P          2.6.26.3 #3
- [<c012f063>] __report_bad_irq+0x24/0x69
- [<c012f06a>] __report_bad_irq+0x2b/0x69
- [<c012f257>] note_interrupt+0x1af/0x1e4
- [<c01cbc97>] acpi_irq+0xb/0x1c
- [<c012e983>] handle_IRQ_event+0x1a/0x3f
- [<c012f917>] handle_level_irq+0x63/0x84
- [<c01046d0>] do_IRQ+0x4b/0x60
- [<c010320f>] common_interrupt+0x23/0x28
- [<c01d007b>] acpi_ds_create_operands+0x1c/0xf9
- [<c0118f03>] __do_softirq+0x2c/0x75
- [<c0118f6e>] do_softirq+0x22/0x26
- [<c01191ea>] irq_exit+0x25/0x53
- [<c01046d5>] do_IRQ+0x50/0x60
- [<c010320f>] common_interrupt+0x23/0x28
- [<c01ef3c0>] acpi_idle_enter_simple+0x16d/0x1d9
- [<c025bdba>] cpuidle_idle_call+0x49/0x77
- [<c025bd71>] cpuidle_idle_call+0x0/0x77
- [<c010176c>] cpu_idle+0x48/0x61
- =======================
-handlers:
-[<c01cbc8c>] (acpi_irq+0x0/0x1c)
-Disabling IRQ #9
-BUG: soft lockup - CPU#0 stuck for 138s! [syslogd:1952]
+> > > --- linux.orig/drivers/acpi/bus.c	2008-09-08 14:28:32.000000000 +0800
+> > > +++ linux/drivers/acpi/bus.c	2008-09-08 14:29:03.000000000 +0800
+> > > @@ -496,6 +496,19 @@ static int acpi_bus_check_scope(struct a
+> > >  	return 0;
+> > >  }
+> > >  
+> > > +static BLOCKING_NOTIFIER_HEAD(acpi_bus_notify_list);
+> > > +int register_acpi_bus_notifier(struct notifier_block *nb)
+> > > +{
+> > > +	return blocking_notifier_chain_register(&acpi_bus_notify_list, nb);
+> > > +}
+> > > +EXPORT_SYMBOL_GPL(register_acpi_bus_notifier);
+> > > +
+> > > +void unregister_acpi_bus_notifier(struct notifier_block *nb)
+> > > +{
+> > > +	blocking_notifier_chain_unregister(&acpi_bus_notify_list, nb);
+> > > +}
+> > > +EXPORT_SYMBOL_GPL(unregister_acpi_bus_notifier);
+> > > +
+> > >  /**
+> > >   * acpi_bus_notify
+> > >   * ---------------
+> > > @@ -506,6 +519,8 @@ static void acpi_bus_notify(acpi_handle 
+> > >  	int result = 0;
+> > >  	struct acpi_device *device = NULL;
+> > >  
+> > > +	blocking_notifier_call_chain(&acpi_bus_notify_list,
+> > > +			type, (void *)handle);
+> > 
+> > Hm, perhaps I'm too tired and I'm missing something obvious, but can you
+> > tell me please why that has to be a notifier chain?  It looks like you add only
+> > one notifier to it, so seemingly it could be replaced by a direct call to a
+> > function like acpi_gpe_pme_handler() (with modified list of arguments).
+> When the notifier chain is used, it can work regardless of whether the
+> CONFIG_ACPI_GPE_WAKEUP is set.
+> If the CONFIG_ACPI_GPE_WAKEUP is set, what you said is also OK. 
 
-If I read that OOPS right, then I got an interrupt 
-("common_interrupt"), which made the kernel run the ACPI 
-function "acpi_ds_create_operands" and while this executed, I've 
-got another interupt, which killed my for for 138 seconds ...
+If CONFIG_ACPI_GPE_WAKEUP is not set then you should define 
+acpi_gpe_pme_handler() as a do-nothing function.  Then you could call 
+it always, regardless of the kconfig setting, with no need for a 
+notifier chain.
 
-Shouldn't there some sort of protection about this or is the DSDT 
-of my device just bogus?
+Alan Stern
 
-
-
-
-Kernel 2.6.26.3
-
-CPU: "Geode(TM) Integrated Processor by AMD PCS"
-
-How to reproduce: press ACPI buttons repeatedly
-
-ACPI related kernel-commandline entries: "pci=noacpi 
-acpi_serialize". The first is vital (no boot without), the 
-second one is an experiment, I got OOPSes without that, too.
