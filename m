@@ -1,103 +1,82 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [RFC 1/5] devcore introduce wakeup_event callback
-Date: Mon, 8 Sep 2008 19:56:23 -0700
-Message-ID: <200809081956.23522.david-b@pacbell.net>
-References: <20080908091926.785882370@sli10-desk.sh.intel.com> <20080908092305.221009807@sli10-desk.sh.intel.com>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: [PATCH]: Add the DMI check table to support ACPI reboot
+Date: Tue, 09 Sep 2008 11:38:48 +0800
+Message-ID: <1220931528.3989.15.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp120.sbc.mail.sp1.yahoo.com ([69.147.64.93]:28761 "HELO
-	smtp120.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752667AbYIIDDw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Sep 2008 23:03:52 -0400
-In-Reply-To: <20080908092305.221009807@sli10-desk.sh.intel.com>
-Content-Disposition: inline
+Received: from mga01.intel.com ([192.55.52.88]:30928 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753997AbYIIDYT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 8 Sep 2008 23:24:19 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: shaohua.li@intel.com
-Cc: linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org
 
-On Monday 08 September 2008, shaohua.li@intel.com wrote:
-> --- linux.orig/include/linux/pm.h=A0=A0=A0=A0=A0=A0=A02008-09-08 13:5=
-5:57.000000000 +0800
-> +++ linux/include/linux/pm.h=A0=A0=A0=A02008-09-08 13:56:51.000000000=
- +0800
-> @@ -125,6 +125,8 @@ typedef struct pm_message {
-> =A0 *=A0=A0=A0=A0=A0make ANY assumptions about the hardware state rig=
-ht prior to @restore().
-> =A0 *=A0=A0=A0=A0=A0On most platforms, there are no restrictions on a=
-vailability of
-> =A0 *=A0=A0=A0=A0=A0resources like clocks during @restore().
-> + * @wakeup_event: Checks if a wakeup event occurs. If yes, wakeup ev=
-ent should
-> + * =A0 =A0 =A0be disabled.
+Subject: ACPI: Add the DMI check table to support ACPI reboot
+From: Zhao Yakui <yakui.zhao@intel.com>
 
-And ... what else??  What does the return value indicate?
-Should anything be done with it other than printing it out
-if it's nonzero and we're debugging?
+On some laptops the system can't be rebooted after it is resumed from
+S3. The system can be rebooted by writing RESET_VALUE to 
+RESET_REGISTER although the ACPI_FADT_RESET_REGISTER bit in the FADT flag 
+indicates that ACPI reboot mechanism is not supported.
 
+Maybe it is appropriate that the acpi_reboot DMI checkt table is added so that
+the ACPI reboot is used forcibly on some broken laptops in case of adding
+the boot option of "reboot=a".
 
-> =A0 *
-> =A0 * All of the above callbacks, except for @complete(), return erro=
-r codes.
-> =A0 * However, the error codes returned by the resume operations, @re=
-sume(),
-> @@ -151,6 +153,7 @@ struct pm_ops {
-> =A0=A0=A0=A0=A0=A0=A0=A0int (*thaw)(struct device *dev);
-> =A0=A0=A0=A0=A0=A0=A0=A0int (*poweroff)(struct device *dev);
-> =A0=A0=A0=A0=A0=A0=A0=A0int (*restore)(struct device *dev);
-> +=A0=A0=A0=A0=A0=A0=A0int (*wakeup_event)(struct device *dev);
+http://bugzilla.kernel.org/show_bug.cgi?id=7299
+http://bugzilla.kernel.org/show_bug.cgi?id=11481
 
-My reaction to adding this method is:  why do it here rather
-than at the bus level?
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+---
+ drivers/acpi/reboot.c |   25 ++++++++++++++++++++++++-
+ 1 file changed, 24 insertions(+), 1 deletion(-)
 
-In my particular experience there are two basic types of wakeup
-event:
-
-  - Regular IRQs.  Common on SOC systems; the IRQ comes in,
-    the driver knows it must wake up.  Does not need any
-    driver model hook; enable_irq_wake()/disable_irq_wake()
-    suffice.
-
-    I've seen USB remote wakeup working just fine on several
-    different embedded Linuxes using only regular IRQ hooks.
-
-  - Side-band signaling.  Think of this as an IRQ mechanism
-    that's not used for "normal" driver operation, and you
-    won't be far off.  Examples:
-
-     * PCI PME# (and its PCIE analogue).  Bus-specific; it's
-       pretty much a kind of shared IRQ line coupled with a
-       special config-space register protocol.
-
-     * ACPI GPEs.  Bus-specific ... and similar to GPIO IRQs.
-       Also sharable; bytecode is used to map the GPE and
-       some register state to the ACPI device(s) which
-       issued that GPE.
-
-     * Pin-change events.  Not quite isomorphic with (GPIO)
-       IRQs; sometimes used with pins that aren't used for
-       events (or even GPIOs!) during normal operation.
-       Device-specific.
-
-That is, I don't see why these events should expect to be
-filtered through the driver core.  If there's a reason to
-do that, please enlighten me!
-
-- Dave
-
-p.s. Related to this, I don't see the point behind
-     patch 2/5 ...
+Index: linux-2.6/drivers/acpi/reboot.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/reboot.c
++++ linux-2.6/drivers/acpi/reboot.c
+@@ -3,6 +3,22 @@
+ #include <linux/acpi.h>
+ #include <acpi/reboot.h>
+ 
++const static struct dmi_system_id reboot_dmi_table[] = {
++	{
++	NULL, "Asus M3N board", {
++	DMI_MATCH(DMI_BIOS_VERSION, "0207"),
++	DMI_MATCH(DMI_BIOS_DATE, "03/16/2004"),
++	DMI_MATCH(DMI_PRODUCT_NAME, "M3N"),
++	DMI_MATCH(DMI_BOARD_NAME, "M3N") }, NULL},
++	{
++	NULL, "Asus M6NE board", {
++	DMI_MATCH(DMI_BIOS_VERSION, "0208"),
++	DMI_MATCH(DMI_BIOS_DATE, "03/28/2005"),
++	DMI_MATCH(DMI_PRODUCT_NAME, "M6Ne"),
++	DMI_MATCH(DMI_BOARD_NAME, "M6Ne") }, NULL},
++	{},
++};
++
+ void acpi_reboot(void)
+ {
+ 	struct acpi_generic_address *rr;
+@@ -16,7 +32,14 @@ void acpi_reboot(void)
+ 	rr = &acpi_gbl_FADT.reset_register;
+ 
+ 	/* Is the reset register supported? */
+-	if (!(acpi_gbl_FADT.flags & ACPI_FADT_RESET_REGISTER) ||
++	if (dmi_check_system(reboot_dmi_table)) {
++		/*
++		 * If the laptop falls into the DMI check table, the
++		 * ACPI reboot mechanism will be used forcibly regardless of
++		 * the ACPI_FADT_RESET_REGISTER bit flag.
++		 */
++		printk(KERN_DEBUG "ACPI reboot mechanism will be used\n");
++	} else if (!(acpi_gbl_FADT.flags & ACPI_FADT_RESET_REGISTER) ||
+ 	    rr->bit_width != 8 || rr->bit_offset != 0)
+ 		return;
+ 
 
 
-> =A0};
-> =A0
-> =A0/**
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
