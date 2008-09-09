@@ -1,72 +1,86 @@
-From: "Li, Shaohua" <shaohua.li@intel.com>
-Subject: RE: [RFC 3/5] pci wakeup handler
-Date: Tue, 9 Sep 2008 09:44:03 +0800
-Message-ID: <76780B19A496DC4B80439008DAD7076C01AC7F30F3@PDSMSX501.ccr.corp.intel.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [RFC 0/5] device wakeup event support
+Date: Mon, 8 Sep 2008 19:41:10 -0700
+Message-ID: <200809081941.10546.david-b@pacbell.net>
 References: <20080908091926.785882370@sli10-desk.sh.intel.com>
- <20080908092305.438330804@sli10-desk.sh.intel.com>
- <200809081509.52070.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:19383 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752518AbYIIBoX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Sep 2008 21:44:23 -0400
-In-Reply-To: <200809081509.52070.rjw@sisk.pl>
-Content-Language: en-US
+Received: from smtp120.sbc.mail.sp1.yahoo.com ([69.147.64.93]:28730 "HELO
+	smtp120.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751811AbYIIDDu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Sep 2008 23:03:50 -0400
+In-Reply-To: <20080908091926.785882370@sli10-desk.sh.intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, "dbrownell@users.sourceforge.net" <dbrownell@users.sourceforge.net>, Jesse Barnes <jbarnes@virtuousgeek.org>
+To: shaohua.li@intel.com
+Cc: linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu
+
+On Monday 08 September 2008, shaohua.li@intel.com wrote:
+> This series add device wakeup event detection support. This is the base to
+> implement runtime device suspend/resume, though we don't support it now.
+> But David said USB is approaching to this. See this bugzilla
+> http://bugzilla.kernel.org/show_bug.cgi?id=6892 for detail.
+
+Glad to see more attention here.  :)
+
+Note that this issue is specific to systems using PCI (at core),
+with additional nuances for PCI systems which use ACPI.
+
+Device wakeup through USB works fine on various non-PCI and
+non-ACPI embedded systems, without needing these patches.
+It's done so for several years now...
 
 
+> The current process to handle wakeup event is:
+> 1. driver enable wakeup event line pme and suspend
+> 2. NPME or ACPI receives wakeup event
+> 3. NPME or ACPI call .wakeup_event() to clear and disable wakeup
+>    event. Driver can do extra things in .wakeup_event() too. 
+> 4. NPME or ACPI call generic wakeup event handler (device_receive_wakeup_event())
+> 5. device resumes, and goto 1 for next round of suspend
+> 
+> There are somethings we need discuss:
+> 1. is this generic for other platforms?
+> 2. what should the generic wakeup event handler do?
+> 
+> Comments and suggestions are welcome!
 
->-----Original Message-----
->From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
->owner@vger.kernel.org] On Behalf Of Rafael J. Wysocki
->Sent: Monday, September 08, 2008 9:10 PM
->To: Li, Shaohua
->Cc: linux-pm@lists.linux-foundation.org; linux-acpi@vger.kernel.org;
->stern@rowland.harvard.edu; dbrownell@users.sourceforge.net; Jesse Barnes
->Subject: Re: [RFC 3/5] pci wakeup handler
->
->On Monday, 8 of September 2008, shaohua.li@intel.com wrote:
->> pci subsystem wakeup handler.
->> ---
->>  drivers/pci/pci-driver.c |   46
->++++++++++++++++++++++++++++++++++++++++++++++
->>  1 file changed, 46 insertions(+)
->>
->> Index: linux/drivers/pci/pci-driver.c
->> ===================================================================
->> --- linux.orig/drivers/pci/pci-driver.c       2008-09-08
->13:55:56.000000000 +0800
->> +++ linux/drivers/pci/pci-driver.c    2008-09-08 14:24:42.000000000 +0800
->> @@ -472,12 +472,57 @@ static int pci_pm_resume_noirq(struct de
->>       return error;
->>  }
->>
->> +/*
->> + * Called when dev is suspected to invoke a wakeup event, return 0 if
->yes
->> + * */
->> +static int pci_pm_wakeup_event(struct device *dev)
->> +{
->> +     struct pci_dev *pdev = to_pci_dev(dev);
->> +     int pme_pos = pci_find_capability(pdev, PCI_CAP_ID_PM);
->
->Pleae use dev->pm_cap instead.
-Ok, I'll address your other comments too.
+My reaction re "generic" is that these mechanisms should
+be specific to the busses and platforms involved; see my
+comments on patch #1.
 
->        if (drv && drv->pm && drv->pm->base.wakeup_event) {
->                int dev_ret = drv->pm->base.wakeup_event(&pdev->dev);
->                if (ret)
->                        ret = dev_ret;
->        }
->
->Also, why do you think we should ignore the returned value if ret is zero?
-Because we already identified the device which invokes PME. Even the .wakeup_event() returns an error, we should populate It's this device which has wakeup event. In my mind, driver isn't required to provide .wakeup_event() unless device has non-standard regs for wakeup event or some special to handle. Generic PME handling should be fine for most devices (for PCI devices).
+However this means that for PCI devices, or PCIE, this can
+and should be generic enough to work on non-x86 systems.
 
-Thanks,
-Shaohua
+It's not quite that generic yet, and there are interactions
+between PCI/PCIE and ACPI that will need work.  But having
+those layers clean is important; and you've got a decent
+start on that.
+
+Plus there are various other wake-capable devices, like
+the PS2 devices and UART in /proc/acpi/wakeup on one of
+my systems:
+
+Device	S-state	  Status   Sysfs node
+PCI0	  S4	 disabled  no-bus:pci0000:00
+PS2M	  S4	 disabled  pnp:00:05
+PS2K	  S4	 disabled  pnp:00:06
+UAR1	  S4	 disabled  pnp:00:08
+USB1	  S3	 disabled  pci:0000:00:03.0
+USB2	  S3	 disabled  pci:0000:00:03.1
+USB3	  S3	 disabled  	<-- BIOS bug: no such hardware
+USB4	  S3	 disabled  pci:0000:00:03.3
+S139	  S4	 disabled  	<-- BIOS bug: no such hardware
+LAN	  S4	 disabled  pci:0000:00:04.0
+MDM	  S4	 disabled  	<-- MDM and AUD are the same HW??
+AUD	  S4	 disabled  pci:0000:00:02.7
+SLPB	  S4	*enabled   
+
+But getting a good start on the PCI and ACPI runtime wake
+framework will help a lot.
+
+- Dave
