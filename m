@@ -1,54 +1,46 @@
-From: Yves-Alexis Perez <corsac@debian.org>
-Subject: Re: linux-acpi-2.6/test on Thinkpad T61: Battery Absent
-Date: Wed, 10 Sep 2008 23:58:42 +0200
-Message-ID: <1221083922.3947.9.camel@hidalgo>
-References: <1221027769.3958.1.camel@hidalgo>
-	 <1221038522.3989.178.camel@yakui_zhao.sh.intel.com>
+From: Pavel Machek <pavel@suse.cz>
+Subject: catch calls of acpi_driver_data on pointer of wrong type
+Date: Wed, 10 Sep 2008 16:11:51 +0200
+Message-ID: <20080910141151.GA13669@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-HoLedyt2a4CZinwBX7TZ"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from molly.corsac.net ([81.57.48.219]:50526 "EHLO molly.corsac.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751838AbYIJV6b (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 10 Sep 2008 17:58:31 -0400
-In-Reply-To: <1221038522.3989.178.camel@yakui_zhao.sh.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755197AbYIJWXV@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: kernel list <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@osdl.org>, ACPI mailing list <linux-acpi@vger.kernel.org>
+Cc: ak@linux.intel.com, hare@suse.de
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: ACPI mailing list <linux-acpi@vger.kernel.org>
 
 
---=-HoLedyt2a4CZinwBX7TZ
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Catch attempts to use of acpi_driver_data on pointers of wrong type.
 
-Ok, it seems my mail didn't reach the list. In case it was because of
-attachments, I resend it.
+Signed-off-by: Pavel Machek <pavel@suse.cz>
+Cc: Hannes Reinecke <hare@suse.de>
 
-On mer, 2008-09-10 at 17:22 +0800, Zhao Yakui wrote:
-> Can the battery be detected on the upstream kernel of 2.6.27-rc6?=20
+---
+commit 76c9074075cd9208cf386f37ebd932a00557643a
+tree 02589a15c23f430c7728560e4ba51077d41a6eff
+parent d4a51ebfa2ffc3320d7eab269dc1ca84e86719f5
+author Pavel <pavel@amd.ucw.cz> Wed, 10 Sep 2008 16:10:28 +0200
+committer Pavel <pavel@amd.ucw.cz> Wed, 10 Sep 2008 16:10:28 +0200
 
-Yes.
+ include/acpi/acpi_bus.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-> Please attach the output of acpidump, lspci -vxxx and dmesg.(Both dmesg
-> on acpi_test git tree and 2.6.27-rc6 are needed).
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index a5ac0bc..641656e 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -300,7 +300,7 @@ struct acpi_device {
+ 	enum acpi_bus_removal_type removal_type;	/* indicate for different removal type */
+ };
+ 
+-#define acpi_driver_data(d)	((d)->driver_data)
++#define acpi_driver_data(d)	((void) (d == (struct acpi_device *) 0), d)->driver_data
+ #define to_acpi_device(d)	container_of(d, struct acpi_device, dev)
+ #define to_acpi_driver(d)	container_of(d, struct acpi_driver, drv)
+ 
 
-Ok, files are there: http://molly.corsac.net/~corsac/acpi/
-
-Thanks for any help.
---=20
-Yves-Alexis
-
---=-HoLedyt2a4CZinwBX7TZ
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEABECAAYFAkjIQw0ACgkQTUTAIMXAW64yxQCdHuDXWfzJS+Sk7ZjV8ZmZuN3Y
-7PoAmwZq+C2ner0m2jw/RUu6Bhjf5QG1
-=JH+3
------END PGP SIGNATURE-----
-
---=-HoLedyt2a4CZinwBX7TZ--
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
