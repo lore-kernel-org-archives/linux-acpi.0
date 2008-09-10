@@ -1,26 +1,55 @@
-From: Holger Schurig <hs4233@mail.mn-solutions.de>
-Subject: Re: OOPS: getting an ACPI interrupt while in an ACPI interrupt hangs my box
-Date: Wed, 10 Sep 2008 16:47:58 +0200
-Message-ID: <200809101647.58567.hs4233@mail.mn-solutions.de>
-References: <200809091605.07734.hs4233@mail.mn-solutions.de> <1221008490.3989.102.camel@yakui_zhao.sh.intel.com>
+From: "Gary E. Miller" <gem@rellim.com>
+Subject: DMI info
+Date: Wed, 10 Sep 2008 10:10:38 -0700 (PDT)
+Message-ID: <alpine.LNX.1.10.0809101009590.30345@catbert.rellim.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx51.mymxserver.com ([85.199.173.110]:10213 "EHLO
-	mx51.mymxserver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751761AbYIJOsJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Sep 2008 10:48:09 -0400
-In-Reply-To: <1221008490.3989.102.camel@yakui_zhao.sh.intel.com>
-Content-Disposition: inline
+Received: from catbert.rellim.com ([204.17.205.1]:35544 "EHLO
+	catbert.rellim.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751425AbYIJRUD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Sep 2008 13:20:03 -0400
+Received: from catbert.rellim.com (gem@localhost [127.0.0.1])
+	by catbert.rellim.com (8.14.3/8.14.3) with ESMTP id m8AHAgcL009986
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-acpi@vger.kernel.org>; Wed, 10 Sep 2008 10:10:47 -0700
+Received: from localhost (gem@localhost)
+	by catbert.rellim.com (8.14.3/8.14.3/Submit) with ESMTP id m8AHAf9P009982
+	for <linux-acpi@vger.kernel.org>; Wed, 10 Sep 2008 10:10:42 -0700
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-> If the system is booted with the boot option of
-> "processor.max_cstate=1", does the following warning message
-> still exist?
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Yes, if this did help, then only marginally.
+Yo!
+
+dmesg told me to email this to you:
+
+ACPI: EC: Look up EC in DSDT
+ACPI: BIOS _OSI(Linux) query honored via cmdline
+ACPI: DMI System Vendor: Gateway
+ACPI: DMI Product Name: P-7811FX
+ACPI: DMI Product Version: Gateway MG1
+ACPI: DMI Board Name:
+ACPI: DMI BIOS Vendor: Phoenix Technologies LTD
+ACPI: DMI BIOS Date: 07/10/2008
+ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
+ACPI: Interpreter enabled
+
+
+
+RGDS
+GARY
+- ---------------------------------------------------------------------------
+Gary E. Miller Rellim 109 NW Wilmington Ave., Suite E, Bend, OR 97701
+	gem@rellim.com  Tel:+1(541)382-8588
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.3 (GNU/Linux)
+
+iD8DBQFIx/+RBmnRqz71OvMRAk7iAJ9KvLptAaL4ECR/9bE2HCZz7dsSkgCdHVrR
+E8agPwWYTIHSqeScE7kFY54=
+=U4/O
+-----END PGP SIGNATURE-----
+
