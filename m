@@ -1,60 +1,25 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [RFC 1/5] devcore introduce wakeup_event callback
-Date: Tue, 9 Sep 2008 14:39:34 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0809091428000.2375-100000@iolanthe.rowland.org>
-References: <200809090852.59461.david-b@pacbell.net>
+From: "Gabriel Speckhahn" <gabspeck@gmail.com>
+Subject: DMI info
+Date: Tue, 9 Sep 2008 21:42:03 -0300
+Message-ID: <37b0e2390809091742j344b9b53t23e41b803c30949b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:43009 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753573AbYIISjh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Sep 2008 14:39:37 -0400
-In-Reply-To: <200809090852.59461.david-b@pacbell.net>
+Received: from fg-out-1718.google.com ([72.14.220.154]:50553 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750967AbYIJAmG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Sep 2008 20:42:06 -0400
+Received: by fg-out-1718.google.com with SMTP id 19so1976376fgg.17
+        for <linux-acpi@vger.kernel.org>; Tue, 09 Sep 2008 17:42:03 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: "Li, Shaohua" <shaohua.li@intel.com>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
 
-On Tue, 9 Sep 2008, David Brownell wrote:
-
-> > (As a matter of fact, I have no idea whether or not Intel's legacy =
-PM=20
-> > for UHCI is implemented in AML. =A0It may vary from one BIOS to ano=
-ther.)
->=20
-> One data point:  on the laptop used to type this message,
-> the GPE code block includes stuff like this for each UHCI:
->=20
->         Method (_L0C, 0, NotSerialized)
->         {
->             Notify (\_SB.PCI0.USB3, 0x02)
->         }
->=20
-> Without diving into the ICHx specs (which I believe DO have
-> such details, thanks be!), my first reaction is that this is
-> not a "case (c)".  Of course, the rest of the AML code is,
-> as usual, cryptic (I'd rather have C code), and such stuff
-> might be hidden elsewhere in the event sequence.
-
-=46ortunately the interface is extremely simple.  It's an 8-bit registe=
-r=20
-in the PCI config space, where the two low-order bits enable=20
-wakeup detection for each of the two ports.  It won't matter if the=20
-driver and the AML both try to disable wakeup; the end result should=20
-work regardless.
-
-Anyway, the real problem here is not to enable or disable wakeup
-detection.  It is to determine whether or not the device really did
-issue a wakeup request.  With Intel's UHCI this involves reading an I/O
-register.  On all the systems I have tried it works even in D3hot, so
-we should be okay.
-
-Alan Stern
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[    7.129056] ACPI: DMI System Vendor: Dell Inc.
+[    7.129102] ACPI: DMI Product Name: Inspiron 1525
+[    7.129150] ACPI: DMI Product Version:
+[    7.129195] ACPI: DMI Board Name: 0U990C
+[    7.129241] ACPI: DMI BIOS Vendor: Dell Inc.
+[    7.129286] ACPI: DMI BIOS Date: 03/10/2008
