@@ -1,37 +1,54 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: Re: the errors about two EC patches
-Date: Thu, 11 Sep 2008 01:55:38 +0400
-Message-ID: <48C8425A.1010207@gmail.com>
-References: <1221036693.3989.175.camel@yakui_zhao.sh.intel.com> <48C7BF94.6010204@gmail.com> <200809101626.36769.rjw@sisk.pl>
+From: Yves-Alexis Perez <corsac@debian.org>
+Subject: Re: linux-acpi-2.6/test on Thinkpad T61: Battery Absent
+Date: Wed, 10 Sep 2008 23:58:42 +0200
+Message-ID: <1221083922.3947.9.camel@hidalgo>
+References: <1221027769.3958.1.camel@hidalgo>
+	 <1221038522.3989.178.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-HoLedyt2a4CZinwBX7TZ"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-gx0-f16.google.com ([209.85.217.16]:60041 "EHLO
-	mail-gx0-f16.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752988AbYIJVzm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Sep 2008 17:55:42 -0400
-Received: by gxk9 with SMTP id 9so14988490gxk.13
-        for <linux-acpi@vger.kernel.org>; Wed, 10 Sep 2008 14:55:41 -0700 (PDT)
-In-Reply-To: <200809101626.36769.rjw@sisk.pl>
+Received: from molly.corsac.net ([81.57.48.219]:50526 "EHLO molly.corsac.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751838AbYIJV6b (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 10 Sep 2008 17:58:31 -0400
+In-Reply-To: <1221038522.3989.178.camel@yakui_zhao.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Zhao Yakui <yakui.zhao@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, andi@firstfloor.org, rui.zhang@intel.com, Andrew Morton <akpm@linux-foundation.org>
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: ACPI mailing list <linux-acpi@vger.kernel.org>
 
-Rafael J. Wysocki wrote:
-> Hi Alex,
->
-> [...]
->   
-> Hm, the attached patch conflicts with
-> acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically.patch currently in
-> -mm.  Should we Andrew to drop that patch?
->
->   
-Yes,  acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically.patch 
-should be dropped.
 
-Thanks,
-Alex.
+--=-HoLedyt2a4CZinwBX7TZ
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
+Ok, it seems my mail didn't reach the list. In case it was because of
+attachments, I resend it.
+
+On mer, 2008-09-10 at 17:22 +0800, Zhao Yakui wrote:
+> Can the battery be detected on the upstream kernel of 2.6.27-rc6?=20
+
+Yes.
+
+> Please attach the output of acpidump, lspci -vxxx and dmesg.(Both dmesg
+> on acpi_test git tree and 2.6.27-rc6 are needed).
+
+Ok, files are there: http://molly.corsac.net/~corsac/acpi/
+
+Thanks for any help.
+--=20
+Yves-Alexis
+
+--=-HoLedyt2a4CZinwBX7TZ
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEABECAAYFAkjIQw0ACgkQTUTAIMXAW64yxQCdHuDXWfzJS+Sk7ZjV8ZmZuN3Y
+7PoAmwZq+C2ner0m2jw/RUu6Bhjf5QG1
+=JH+3
+-----END PGP SIGNATURE-----
+
+--=-HoLedyt2a4CZinwBX7TZ--
