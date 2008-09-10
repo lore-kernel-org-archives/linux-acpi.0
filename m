@@ -1,84 +1,84 @@
 From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: Re: OOPS: getting an ACPI interrupt while in an ACPI interrupt
-	hangs my box
-Date: Wed, 10 Sep 2008 09:01:30 +0800
-Message-ID: <1221008490.3989.102.camel@yakui_zhao.sh.intel.com>
-References: <200809091605.07734.hs4233@mail.mn-solutions.de>
+Subject: Re: patch for bugs 9998 and 10724
+Date: Wed, 10 Sep 2008 09:15:13 +0800
+Message-ID: <1221009313.3989.114.camel@yakui_zhao.sh.intel.com>
+References: <1219730254.4116.38.camel@yakui_zhao.sh.intel.com>
+	 <20080904121820.GC18288@one.firstfloor.org> <48BFD5AA.3090006@suse.de>
+	 <48BFD609.2050604@suse.de> <1220581596.3441.2.camel@rzhang-dt>
+	 <48C129D3.5000904@suse.de> <1220842582.3441.30.camel@rzhang-dt>
+	 <48C4E15F.2020701@suse.de>
+	 <1220951583.3989.85.camel@yakui_zhao.sh.intel.com>
+	 <48C63E0B.2030801@suse.de>
+	 <1220953390.3989.99.camel@yakui_zhao.sh.intel.com>
+	 <48C643A5.3070506@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:23004 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:54069 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751255AbYIJAq4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 9 Sep 2008 20:46:56 -0400
-In-Reply-To: <200809091605.07734.hs4233@mail.mn-solutions.de>
+	id S1751489AbYIJBAk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 9 Sep 2008 21:00:40 -0400
+In-Reply-To: <48C643A5.3070506@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Holger Schurig <hs4233@mail.mn-solutions.de>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Zhang Rui <rui.zhang@intel.com>, Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-On Tue, 2008-09-09 at 16:05 +0200, Holger Schurig wrote:
-> I just got this OOPS:
-If the system is booted with the boot option of
-"processor.max_cstate=1", does the following warning message still
-exist?
+On Tue, 2008-09-09 at 13:36 +0400, Alexey Starikovskiy wrote:
+> Zhao Yakui wrote:
+> > On Tue, 2008-09-09 at 13:12 +0400, Alexey Starikovskiy wrote:
+> >> Zhao Yakui wrote:
+> >>> Hi, Alexey
+> >>>     You attached the updated patch on the bug 10724/9998.
+> >>>     Can the following situation be handled by your patch?(For example:
+> >>> bug 10724)
+> >>>        EC GPE Interrupt storm is detected and EC GPE will be disabled
+> >>> when doing EC transaction.
+> >>>        If EC notification event happens while doing EC transaction(EC
+> >>> GPE is disabled), the SCI_EVT bit of EC status register is cleared
+> >>> automatically before we can handle it.
+> >> SCI_EVT is cleared only as a response to query command sent to EC, there is no 
+> >> timeout on it.
+> > If the SCI_EVT is cleared only after issuing query the command, in
+> > theory the poll timer should also handle it. But on the laptop of bug
+> > 10724 it seems that the poll timer can't handle such notification event.
+> > And on the laptops of bug 11428 and 8459 the poll timer can't handle the
+> > notification event when the system is switched from GPE mode to polling
+> > mode.
+What we cared only is whether the EC notification event can be detected
+by OS when the following case happens? (For example: On the laptop of
+bug 10724)
+    EC GPE Interrupt storm is detected and EC GPE will be disabled when
+doing EC transaction.
+    If EC notification event happens while doing EC transaction(EC GPE
+is disabled), the SCI_EVT bit of EC status register is cleared before we
+can handle it.
+    
+> The problem here is with auto-repeat of function keys, thus the need to _distinguish_
+> one event from another (SCI bit will be set, just the event will be either different 
+> or next of the same kind). Poll timer does it's job every 500ms, thus auto-repeated keys are
+> lost. With the fastest auto-repeat being 30/s or 33ms we have plenty of time.
+> >> Transaction will take at most 2 ms (1 write/1 read or 2 writes in poll mode), 
+> >> and at the end of the transaction there is a check of the SCI bit.
+> >> With the un-patched EC SCI bit needs to stay for period while the QUERY_PENDING bit is set,
+> >> which could be quite more than 2 ms, and it seems to comply with that even on most broken
+> >> hardware.
+> >>>        Can the EC notification event be handled by OS?
+> > Maybe it will take very short time to do the EC transaction. Myabe in
+> > most cases it is about 2ms. But in some worse situation it will take a
+> > long time(For example: 100ms). If the EC notification happens in such
+> > case, how to handle the event? (the SCI_EVT bit will be cleared before
+> > we can detect it).
+> Where do you get this 100ms number? 
+As I state in the previous email, the msleep is realized by the function
+of schedule_timeout. The input parameter of msleep will be translated to
+jiffies unit. In such case the time of EC transaction will be related
+with the definition of HZ.(If the HZ is 100, msleep(1) will cost
+10ms).At the same time when one process is waked up, maybe it won't be
+scheduled immediately. If so, the time of EC transaction will be
+longer.Maybe in some worse case the time will exceed 500ms.
+    The detailed info log can be found in 
+     http://bugzilla.kernel.org/show_bug.cgi?id=11141
 
-Of course you can open a new bug in bugzilla and attach the output of
-dmesg, acpidump, lspci -vxxx.
-
-http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
-
-thanks.
-> 
-> irq 9: nobody cared (try booting with the "irqpoll" option)
-> Pid: 0, comm: swapper Tainted: P          2.6.26.3 #3
->  [<c012f063>] __report_bad_irq+0x24/0x69
->  [<c012f06a>] __report_bad_irq+0x2b/0x69
->  [<c012f257>] note_interrupt+0x1af/0x1e4
->  [<c01cbc97>] acpi_irq+0xb/0x1c
->  [<c012e983>] handle_IRQ_event+0x1a/0x3f
->  [<c012f917>] handle_level_irq+0x63/0x84
->  [<c01046d0>] do_IRQ+0x4b/0x60
->  [<c010320f>] common_interrupt+0x23/0x28
->  [<c01d007b>] acpi_ds_create_operands+0x1c/0xf9
->  [<c0118f03>] __do_softirq+0x2c/0x75
->  [<c0118f6e>] do_softirq+0x22/0x26
->  [<c01191ea>] irq_exit+0x25/0x53
->  [<c01046d5>] do_IRQ+0x50/0x60
->  [<c010320f>] common_interrupt+0x23/0x28
->  [<c01ef3c0>] acpi_idle_enter_simple+0x16d/0x1d9
->  [<c025bdba>] cpuidle_idle_call+0x49/0x77
->  [<c025bd71>] cpuidle_idle_call+0x0/0x77
->  [<c010176c>] cpu_idle+0x48/0x61
->  =======================
-> handlers:
-> [<c01cbc8c>] (acpi_irq+0x0/0x1c)
-> Disabling IRQ #9
-> BUG: soft lockup - CPU#0 stuck for 138s! [syslogd:1952]
-> 
-> If I read that OOPS right, then I got an interrupt 
-> ("common_interrupt"), which made the kernel run the ACPI 
-> function "acpi_ds_create_operands" and while this executed, I've 
-> got another interupt, which killed my for for 138 seconds ...
-> 
-> Shouldn't there some sort of protection about this or is the DSDT 
-> of my device just bogus?
-> 
-> 
-> 
-> 
-> Kernel 2.6.26.3
-> 
-> CPU: "Geode(TM) Integrated Processor by AMD PCS"
-> 
-> How to reproduce: press ACPI buttons repeatedly
-> 
-> ACPI related kernel-commandline entries: "pci=noacpi 
-> acpi_serialize". The first is vital (no boot without), the 
-> second one is an experiment, I got OOPSes without that, too.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
