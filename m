@@ -1,55 +1,37 @@
-From: "Gary E. Miller" <gem@rellim.com>
-Subject: DMI info
-Date: Wed, 10 Sep 2008 10:10:38 -0700 (PDT)
-Message-ID: <alpine.LNX.1.10.0809101009590.30345@catbert.rellim.com>
+From: Alexey Starikovskiy <aystarik@gmail.com>
+Subject: Re: the errors about two EC patches
+Date: Thu, 11 Sep 2008 01:55:38 +0400
+Message-ID: <48C8425A.1010207@gmail.com>
+References: <1221036693.3989.175.camel@yakui_zhao.sh.intel.com> <48C7BF94.6010204@gmail.com> <200809101626.36769.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from catbert.rellim.com ([204.17.205.1]:35544 "EHLO
-	catbert.rellim.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751425AbYIJRUD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Sep 2008 13:20:03 -0400
-Received: from catbert.rellim.com (gem@localhost [127.0.0.1])
-	by catbert.rellim.com (8.14.3/8.14.3) with ESMTP id m8AHAgcL009986
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-acpi@vger.kernel.org>; Wed, 10 Sep 2008 10:10:47 -0700
-Received: from localhost (gem@localhost)
-	by catbert.rellim.com (8.14.3/8.14.3/Submit) with ESMTP id m8AHAf9P009982
-	for <linux-acpi@vger.kernel.org>; Wed, 10 Sep 2008 10:10:42 -0700
+Received: from mail-gx0-f16.google.com ([209.85.217.16]:60041 "EHLO
+	mail-gx0-f16.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752988AbYIJVzm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Sep 2008 17:55:42 -0400
+Received: by gxk9 with SMTP id 9so14988490gxk.13
+        for <linux-acpi@vger.kernel.org>; Wed, 10 Sep 2008 14:55:41 -0700 (PDT)
+In-Reply-To: <200809101626.36769.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Zhao Yakui <yakui.zhao@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, andi@firstfloor.org, rui.zhang@intel.com, Andrew Morton <akpm@linux-foundation.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Rafael J. Wysocki wrote:
+> Hi Alex,
+>
+> [...]
+>   
+> Hm, the attached patch conflicts with
+> acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically.patch currently in
+> -mm.  Should we Andrew to drop that patch?
+>
+>   
+Yes,  acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically.patch 
+should be dropped.
 
-Yo!
-
-dmesg told me to email this to you:
-
-ACPI: EC: Look up EC in DSDT
-ACPI: BIOS _OSI(Linux) query honored via cmdline
-ACPI: DMI System Vendor: Gateway
-ACPI: DMI Product Name: P-7811FX
-ACPI: DMI Product Version: Gateway MG1
-ACPI: DMI Board Name:
-ACPI: DMI BIOS Vendor: Phoenix Technologies LTD
-ACPI: DMI BIOS Date: 07/10/2008
-ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
-ACPI: Interpreter enabled
-
-
-
-RGDS
-GARY
-- ---------------------------------------------------------------------------
-Gary E. Miller Rellim 109 NW Wilmington Ave., Suite E, Bend, OR 97701
-	gem@rellim.com  Tel:+1(541)382-8588
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.3 (GNU/Linux)
-
-iD8DBQFIx/+RBmnRqz71OvMRAk7iAJ9KvLptAaL4ECR/9bE2HCZz7dsSkgCdHVrR
-E8agPwWYTIHSqeScE7kFY54=
-=U4/O
------END PGP SIGNATURE-----
+Thanks,
+Alex.
 
