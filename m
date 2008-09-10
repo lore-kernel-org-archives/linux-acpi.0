@@ -1,36 +1,41 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: Re: linux-acpi-2.6/test on Thinkpad T61: Battery Absent
-Date: Wed, 10 Sep 2008 17:22:02 +0800
-Message-ID: <1221038522.3989.178.camel@yakui_zhao.sh.intel.com>
-References: <1221027769.3958.1.camel@hidalgo>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: [PATCH] ACPI: acpi_driver_data could only be applied to acpi_device
+Date: Wed, 10 Sep 2008 14:33:43 +0400
+Message-ID: <20080910103342.20391.81647.stgit@thinkpad>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:14074 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751946AbYIJJH0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 10 Sep 2008 05:07:26 -0400
-In-Reply-To: <1221027769.3958.1.camel@hidalgo>
+Received: from charybdis-ext.suse.de ([195.135.221.2]:33985 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751049AbYIJKdr (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Wed, 10 Sep 2008 06:33:47 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yves-Alexis Perez <corsac@debian.org>
-Cc: ACPI mailing list <linux-acpi@vger.kernel.org>
+To: LenBrown <lenb@kernel.org>
+Cc: Linux-acpi@vger.kernel.org
 
-On Wed, 2008-09-10 at 08:22 +0200, Yves-Alexis Perez wrote:
-> Hi,
-> 
-> I just pulled linux-acpi-2.6/test on my git tree, and rebuild the
-> kernel, and now it doesn't detect any battery:
-> 
-> ACPI: Battery Slot [BAT0] (battery absent)
-> 
-> My tree is at faca89759dd7d4d87309f56cd09ae885a296fb4c and I'll try to
-> bisect.
-Can the battery be detected on the upstream kernel of 2.6.27-rc6? 
-Please attach the output of acpidump, lspci -vxxx and dmesg.(Both dmesg
-on acpi_test git tree and 2.6.27-rc6 are needed).
-Thanks.
-> 
-> Cheers,
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+CC: Hannes Reinecke <hare@suse.de>
+
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+---
+
+ drivers/acpi/scan.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index f6f52c1..e7b8853 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -384,7 +384,7 @@ static int acpi_device_remove(struct device * dev)
+ 			acpi_drv->ops.remove(acpi_dev, acpi_dev->removal_type);
+ 	}
+ 	acpi_dev->driver = NULL;
+-	acpi_driver_data(dev) = NULL;
++	acpi_driver_data(acpi_dev) = NULL;
+ 
+ 	put_device(dev);
+ 	return 0;
 
