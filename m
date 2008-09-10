@@ -1,84 +1,83 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
 Subject: Re: patch for bugs 9998 and 10724
-Date: Wed, 10 Sep 2008 09:15:13 +0800
-Message-ID: <1221009313.3989.114.camel@yakui_zhao.sh.intel.com>
-References: <1219730254.4116.38.camel@yakui_zhao.sh.intel.com>
-	 <20080904121820.GC18288@one.firstfloor.org> <48BFD5AA.3090006@suse.de>
-	 <48BFD609.2050604@suse.de> <1220581596.3441.2.camel@rzhang-dt>
-	 <48C129D3.5000904@suse.de> <1220842582.3441.30.camel@rzhang-dt>
-	 <48C4E15F.2020701@suse.de>
-	 <1220951583.3989.85.camel@yakui_zhao.sh.intel.com>
-	 <48C63E0B.2030801@suse.de>
-	 <1220953390.3989.99.camel@yakui_zhao.sh.intel.com>
-	 <48C643A5.3070506@suse.de>
+Date: Wed, 10 Sep 2008 06:23:20 +0400
+Message-ID: <48C72F98.5040904@suse.de>
+References: <1219730254.4116.38.camel@yakui_zhao.sh.intel.com>	 <20080904121820.GC18288@one.firstfloor.org> <48BFD5AA.3090006@suse.de>	 <48BFD609.2050604@suse.de> <1220581596.3441.2.camel@rzhang-dt>	 <48C129D3.5000904@suse.de> <1220842582.3441.30.camel@rzhang-dt>	 <48C4E15F.2020701@suse.de>	 <1220951583.3989.85.camel@yakui_zhao.sh.intel.com>	 <48C63E0B.2030801@suse.de>	 <1220953390.3989.99.camel@yakui_zhao.sh.intel.com>	 <48C643A5.3070506@suse.de> <1221009313.3989.114.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:54069 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751489AbYIJBAk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 9 Sep 2008 21:00:40 -0400
-In-Reply-To: <48C643A5.3070506@suse.de>
+Received: from charybdis-ext.suse.de ([195.135.221.2]:35016 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751763AbYIJCXV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Sep 2008 22:23:21 -0400
+In-Reply-To: <1221009313.3989.114.camel@yakui_zhao.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
+To: Zhao Yakui <yakui.zhao@intel.com>
 Cc: Zhang Rui <rui.zhang@intel.com>, Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-On Tue, 2008-09-09 at 13:36 +0400, Alexey Starikovskiy wrote:
-> Zhao Yakui wrote:
-> > On Tue, 2008-09-09 at 13:12 +0400, Alexey Starikovskiy wrote:
-> >> Zhao Yakui wrote:
-> >>> Hi, Alexey
-> >>>     You attached the updated patch on the bug 10724/9998.
-> >>>     Can the following situation be handled by your patch?(For example:
-> >>> bug 10724)
-> >>>        EC GPE Interrupt storm is detected and EC GPE will be disabled
-> >>> when doing EC transaction.
-> >>>        If EC notification event happens while doing EC transaction(EC
-> >>> GPE is disabled), the SCI_EVT bit of EC status register is cleared
-> >>> automatically before we can handle it.
-> >> SCI_EVT is cleared only as a response to query command sent to EC, there is no 
-> >> timeout on it.
-> > If the SCI_EVT is cleared only after issuing query the command, in
-> > theory the poll timer should also handle it. But on the laptop of bug
-> > 10724 it seems that the poll timer can't handle such notification event.
-> > And on the laptops of bug 11428 and 8459 the poll timer can't handle the
-> > notification event when the system is switched from GPE mode to polling
-> > mode.
-What we cared only is whether the EC notification event can be detected
-by OS when the following case happens? (For example: On the laptop of
-bug 10724)
-    EC GPE Interrupt storm is detected and EC GPE will be disabled when
-doing EC transaction.
-    If EC notification event happens while doing EC transaction(EC GPE
-is disabled), the SCI_EVT bit of EC status register is cleared before we
-can handle it.
-    
-> The problem here is with auto-repeat of function keys, thus the need to _distinguish_
-> one event from another (SCI bit will be set, just the event will be either different 
-> or next of the same kind). Poll timer does it's job every 500ms, thus auto-repeated keys are
-> lost. With the fastest auto-repeat being 30/s or 33ms we have plenty of time.
-> >> Transaction will take at most 2 ms (1 write/1 read or 2 writes in poll mode), 
-> >> and at the end of the transaction there is a check of the SCI bit.
-> >> With the un-patched EC SCI bit needs to stay for period while the QUERY_PENDING bit is set,
-> >> which could be quite more than 2 ms, and it seems to comply with that even on most broken
-> >> hardware.
-> >>>        Can the EC notification event be handled by OS?
-> > Maybe it will take very short time to do the EC transaction. Myabe in
-> > most cases it is about 2ms. But in some worse situation it will take a
-> > long time(For example: 100ms). If the EC notification happens in such
-> > case, how to handle the event? (the SCI_EVT bit will be cleared before
-> > we can detect it).
-> Where do you get this 100ms number? 
-As I state in the previous email, the msleep is realized by the function
-of schedule_timeout. The input parameter of msleep will be translated to
-jiffies unit. In such case the time of EC transaction will be related
-with the definition of HZ.(If the HZ is 100, msleep(1) will cost
-10ms).At the same time when one process is waked up, maybe it won't be
-scheduled immediately. If so, the time of EC transaction will be
-longer.Maybe in some worse case the time will exceed 500ms.
-    The detailed info log can be found in 
-     http://bugzilla.kernel.org/show_bug.cgi?id=11141
+Zhao Yakui wrote:
+> On Tue, 2008-09-09 at 13:36 +0400, Alexey Starikovskiy wrote:
+>> Zhao Yakui wrote:
+>>> On Tue, 2008-09-09 at 13:12 +0400, Alexey Starikovskiy wrote:
+>>>> Zhao Yakui wrote:
+>>>>> Hi, Alexey
+>>>>>     You attached the updated patch on the bug 10724/9998.
+>>>>>     Can the following situation be handled by your patch?(For example:
+>>>>> bug 10724)
+>>>>>        EC GPE Interrupt storm is detected and EC GPE will be disabled
+>>>>> when doing EC transaction.
+>>>>>        If EC notification event happens while doing EC transaction(EC
+>>>>> GPE is disabled), the SCI_EVT bit of EC status register is cleared
+>>>>> automatically before we can handle it.
+>>>> SCI_EVT is cleared only as a response to query command sent to EC, there is no 
+>>>> timeout on it.
+>>> If the SCI_EVT is cleared only after issuing query the command, in
+>>> theory the poll timer should also handle it. But on the laptop of bug
+>>> 10724 it seems that the poll timer can't handle such notification event.
+>>> And on the laptops of bug 11428 and 8459 the poll timer can't handle the
+>>> notification event when the system is switched from GPE mode to polling
+>>> mode.
+> What we cared only is whether the EC notification event can be detected
+> by OS when the following case happens? (For example: On the laptop of
+> bug 10724)
+>     EC GPE Interrupt storm is detected and EC GPE will be disabled when
+> doing EC transaction.
+>     If EC notification event happens while doing EC transaction(EC GPE
+> is disabled), the SCI_EVT bit of EC status register is cleared before we
+> can handle it.
+In such case, event is lost. 
+>     
+>> The problem here is with auto-repeat of function keys, thus the need to _distinguish_
+>> one event from another (SCI bit will be set, just the event will be either different 
+>> or next of the same kind). Poll timer does it's job every 500ms, thus auto-repeated keys are
+>> lost. With the fastest auto-repeat being 30/s or 33ms we have plenty of time.
+>>>> Transaction will take at most 2 ms (1 write/1 read or 2 writes in poll mode), 
+>>>> and at the end of the transaction there is a check of the SCI bit.
+>>>> With the un-patched EC SCI bit needs to stay for period while the QUERY_PENDING bit is set,
+>>>> which could be quite more than 2 ms, and it seems to comply with that even on most broken
+>>>> hardware.
+>>>>>        Can the EC notification event be handled by OS?
+>>> Maybe it will take very short time to do the EC transaction. Myabe in
+>>> most cases it is about 2ms. But in some worse situation it will take a
+>>> long time(For example: 100ms). If the EC notification happens in such
+>>> case, how to handle the event? (the SCI_EVT bit will be cleared before
+>>> we can detect it).
+>> Where do you get this 100ms number? 
+> As I state in the previous email, the msleep is realized by the function
+> of schedule_timeout. The input parameter of msleep will be translated to
+> jiffies unit. In such case the time of EC transaction will be related
+> with the definition of HZ.(If the HZ is 100, msleep(1) will cost
+> 10ms).At the same time when one process is waked up, maybe it won't be
+> scheduled immediately. If so, the time of EC transaction will be
+> longer.Maybe in some worse case the time will exceed 500ms.
+>     The detailed info log can be found in 
+>      http://bugzilla.kernel.org/show_bug.cgi?id=11141
+> 
+> 
+Ok.
+
+
 
 
