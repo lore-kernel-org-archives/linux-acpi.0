@@ -1,365 +1,274 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: catch calls of acpi_driver_data on pointer of wrong type
-Date: Wed, 10 Sep 2008 17:31:02 -0700
-Message-ID: <20080910173102.53e19f92.akpm@linux-foundation.org>
-References: <20080910141151.GA13669@elf.ucw.cz>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: the errors about two EC patches
+Date: Thu, 11 Sep 2008 10:42:48 +0800
+Message-ID: <1221100968.3989.224.camel@yakui_zhao.sh.intel.com>
+References: <1221036693.3989.175.camel@yakui_zhao.sh.intel.com>
+	 <48C7BF94.6010204@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="=-KPemP3Z1oVKgWycbRhfd"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45536 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752067AbYIKAbl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 10 Sep 2008 20:31:41 -0400
-In-Reply-To: <20080910141151.GA13669@elf.ucw.cz>
+Received: from mga01.intel.com ([192.55.52.88]:50006 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752187AbYIKC2X (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 10 Sep 2008 22:28:23 -0400
+In-Reply-To: <48C7BF94.6010204@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@suse.cz>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, ak@linux.intel.com, hare@suse.de
+To: Alexey Starikovskiy <aystarik@gmail.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, andi@firstfloor.org, rui.zhang@intel.com
 
-On Wed, 10 Sep 2008 16:11:51 +0200
-Pavel Machek <pavel@suse.cz> wrote:
 
-> 
-> Catch attempts to use of acpi_driver_data on pointers of wrong type.
-> 
-> Signed-off-by: Pavel Machek <pavel@suse.cz>
-> Cc: Hannes Reinecke <hare@suse.de>
-> 
-> ---
-> commit 76c9074075cd9208cf386f37ebd932a00557643a
-> tree 02589a15c23f430c7728560e4ba51077d41a6eff
-> parent d4a51ebfa2ffc3320d7eab269dc1ca84e86719f5
-> author Pavel <pavel@amd.ucw.cz> Wed, 10 Sep 2008 16:10:28 +0200
-> committer Pavel <pavel@amd.ucw.cz> Wed, 10 Sep 2008 16:10:28 +0200
-> 
->  include/acpi/acpi_bus.h |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-> index a5ac0bc..641656e 100644
-> --- a/include/acpi/acpi_bus.h
-> +++ b/include/acpi/acpi_bus.h
-> @@ -300,7 +300,7 @@ struct acpi_device {
->  	enum acpi_bus_removal_type removal_type;	/* indicate for different removal type */
->  };
+--=-KPemP3Z1oVKgWycbRhfd
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+
+On Wed, 2008-09-10 at 16:37 +0400, Alexey Starikovskiy wrote:
+thanks for the so quick response. 
+
+In the update patch it seems that spin_lock is used in the function of
+ec_read_command/acpi_ec_write_cmd.
+   IMO this is not reasonable. 
+   Maybe the spin_lock is already called before OS evaluates some ACPI
+object, in which the EC internal register will be accessed. In such case
+there will give the following warning message.
+      >2 locks held by swapper/1
+
 >  
-> -#define acpi_driver_data(d)	((d)->driver_data)
-> +#define acpi_driver_data(d)	((void) (d == (struct acpi_device *) 0), d)->driver_data
->  #define to_acpi_device(d)	container_of(d, struct acpi_device, dev)
->  #define to_acpi_driver(d)	container_of(d, struct acpi_driver, drv)
->  
+> Ok. Fixed, now -ETIME is returned in this case.
+Yes. The code flow seems logic and reasonable after the -Etime is added.
+If the timeout happens when EC transaction is not finished, it is
+regarded as timeout.
 
-Let us not try to implement a C compiler in cpp, for that is perverse.
+But we should investigate why EC transaction is not finished when
+timeout happens. Is it related with EC hardware or EC driver?
+If EC can't update the status register in time after issuing
+command/address, it is reasonable that it is regarded as timeout. If
+not, maybe it is related with the EC driver.
 
-Behold my amazingness:
+In fact when timeout happens in the above cases, OS has no opportunity
+to issue the EC command set completely.
+    For example: Read Command: 
+      a. Maybe OS has no opportunity to issue the accessed EC register
+address.
+      b. Maybe OS has no opportunity to read the returned data from EC
+controller
+In such case it is not appropriate that it is still regarded as timeout.
 
-static inline void *acpi_driver_data(struct acpi_device *d)
-{
-	return d->driver_data;
-}
+Maybe we should use the several phases to issue the EC transaction. And
+In every phase OS should check whether the EC status is what OS expected
+in the predefined time. If in some phase EC status is not what OS
+expected, it can be regarded as timeout.
+For example: EC Read transaction:
+      a. Issuing the read command. (Write the 0x80 to EC Cmd port)
+      b. Checking whether the input buffer is empty(IBF bit) and write
+the accessed address to EC Data port.
+      c. Checking wheter the data is already(OBF bit) and read the
+returned data from EC controller
+
+Based on the above analysis IMO the flow of EC transaction is quite
+reasonable. Of course what should be improved is how to make it
+reasonable when waiting whether EC status is what OS expected.
+
+Please check whether the attached is reasonable.
+
+Of course in the attached patch there is no detect mechanism of EC GPE
+interrupt storm.
 
 
-Implementing this requires that we fix all the idiotic crap which uses
-acpi_driver_data() as an lvalue, but fixing idiotic crap is rarely a
-bad thing, no?
+--=-KPemP3Z1oVKgWycbRhfd
+Content-Disposition: attachment; filename=ec_work_mode.patch
+Content-Type: text/x-patch; name=ec_work_mode.patch; charset=utf-8
+Content-Transfer-Encoding: 7bit
 
-Something like this...
+Subject: ACPI: Unify the EC work modes of polling and GPE interrupt
+>From : Zhao Yakui <yakui.zhao@intel.com>
 
- drivers/acpi/ac.c             |    2 +-
- drivers/acpi/asus_acpi.c      |    2 +-
- drivers/acpi/battery.c        |    2 +-
- drivers/acpi/button.c         |    2 +-
- drivers/acpi/container.c      |    2 +-
- drivers/acpi/ec.c             |    4 ++--
- drivers/acpi/fan.c            |    2 +-
- drivers/acpi/pcc_acpi.c       |    2 +-
- drivers/acpi/pci_link.c       |    2 +-
- drivers/acpi/pci_root.c       |    2 +-
- drivers/acpi/power.c          |    4 ++--
- drivers/acpi/processor_core.c |    2 +-
- drivers/acpi/sbs.c            |    2 +-
- drivers/acpi/sbshc.c          |    4 ++--
- drivers/acpi/scan.c           |    4 ++--
- drivers/acpi/thermal.c        |    2 +-
- drivers/acpi/video.c          |    6 +++---
- include/acpi/acpi_bus.h       |    6 +++++-
- 18 files changed, 28 insertions(+), 24 deletions(-)
+The flow of EC transaction is still used. But the function of acpi_ec_wait
+is changed. At the same time it is unnecessary to switch EC work mode.
 
-diff -puN include/acpi/acpi_bus.h~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix include/acpi/acpi_bus.h
---- a/include/acpi/acpi_bus.h~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
-+++ a/include/acpi/acpi_bus.h
-@@ -300,7 +300,11 @@ struct acpi_device {
- 	enum acpi_bus_removal_type removal_type;	/* indicate for different removal type */
- };
+While OS is waiting whether the EC status is what OS expected, it will work in
+interrupt-driven mode if there is EC GPE confirmation. Otherwise it will still
+work in polling mode. And there is no need to switch the work mode.
+
+At the same time the acpi_ec_gpe_handler is also simplified. Only two tasks
+are reserved. One is to process the EC notification event. Another is to 
+wake up the process in ec waitqueue.
+
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+---
+ drivers/acpi/ec.c |   80 ++++++++++++++----------------------------------------
+ 1 file changed, 22 insertions(+), 58 deletions(-)
+
+Index: linux-2.6/drivers/acpi/ec.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/ec.c	2008-09-11 09:54:51.000000000 +0800
++++ linux-2.6/drivers/acpi/ec.c	2008-09-11 10:09:46.000000000 +0800
+@@ -167,8 +167,6 @@
  
--#define acpi_driver_data(d)	((void) (d == (struct acpi_device *) 0), d)->driver_data
-+static inline void *acpi_driver_data(struct acpi_device *d)
-+{
-+	return d->driver_data;
-+}
+ static inline int acpi_ec_check_status(struct acpi_ec *ec, enum ec_event event)
+ {
+-	if (test_bit(EC_FLAGS_WAIT_GPE, &ec->flags))
+-		return 0;
+ 	if (event == ACPI_EC_EVENT_OBF_1) {
+ 		if (acpi_ec_read_status(ec) & ACPI_EC_FLAG_OBF)
+ 			return 1;
+@@ -197,33 +195,28 @@
+ 
+ static int acpi_ec_wait(struct acpi_ec *ec, enum ec_event event, int force_poll)
+ {
++	unsigned long delay = jiffies + msecs_to_jiffies(ACPI_EC_DELAY);
+ 	atomic_set(&ec->irq_count, 0);
+-	if (likely(test_bit(EC_FLAGS_GPE_MODE, &ec->flags)) &&
+-	    likely(!force_poll)) {
+-		if (wait_event_timeout(ec->wait, acpi_ec_check_status(ec, event),
+-				       msecs_to_jiffies(ACPI_EC_DELAY)))
+-			return 0;
+-		clear_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
+-		if (acpi_ec_check_status(ec, event)) {
+-			/* missing GPEs, switch back to poll mode */
+-			if (printk_ratelimit())
+-				pr_info(PREFIX "missing confirmations, "
+-						"switch off interrupt mode.\n");
+-			ec_switch_to_poll_mode(ec);
+-			ec_schedule_ec_poll(ec);
+-			return 0;
+-		}
+-	} else {
+-		unsigned long delay = jiffies + msecs_to_jiffies(ACPI_EC_DELAY);
+-		clear_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
+-		while (time_before(jiffies, delay)) {
+-			if (acpi_ec_check_status(ec, event))
+-				return 0;
+-			msleep(1);
+-		}
+-		if (acpi_ec_check_status(ec,event))
++	clear_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
++	while (time_before(jiffies, delay)) {
++		/*
++		 * Checking whether the EC staus is what OS expected by calling
++		 * wait_event_timeout. This process can be waked up by two
++		 * methods: One: timeout;  Two: EC GPE interrupt.
++		 * If it returns not zero, it means that it is waked up by EC
++		 * GPE interrupt and EC status is already what OS expected.
++		 * If it returns zero, it will continue to check the EC status.
++		 * That is to say, if there is EC GPE confirmation, it will
++		 * work in interrupt-driven mode. Otherwise it will work in
++		 * polling mode.
++		 */
++		if (wait_event_timeout(ec->wait,
++			acpi_ec_check_status(ec, event), 1))
+ 			return 0;
+ 	}
++	if (acpi_ec_check_status(ec, event))
++		return 0;
 +
- #define to_acpi_device(d)	container_of(d, struct acpi_device, dev)
- #define to_acpi_driver(d)	container_of(d, struct acpi_driver, drv)
- 
-diff -puN drivers/acpi/scan.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix drivers/acpi/scan.c
---- a/drivers/acpi/scan.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
-+++ a/drivers/acpi/scan.c
-@@ -391,7 +391,7 @@ static int acpi_device_remove(struct dev
- 			acpi_drv->ops.remove(acpi_dev, acpi_dev->removal_type);
- 	}
- 	acpi_dev->driver = NULL;
--	acpi_driver_data(dev) = NULL;
-+	dev->driver_data = NULL;
- 
- 	put_device(dev);
- 	return 0;
-@@ -545,7 +545,7 @@ acpi_bus_driver_init(struct acpi_device 
- 	result = driver->ops.add(device);
- 	if (result) {
- 		device->driver = NULL;
--		acpi_driver_data(device) = NULL;
-+		device->driver_data = NULL;
- 		return result;
+ 	pr_err(PREFIX "acpi_ec_wait timeout, status = 0x%2.2x, event = %s\n",
+ 		acpi_ec_read_status(ec),
+ 		(event == ACPI_EC_EVENT_OBF_1) ? "\"b0=1\"" : "\"b1=0\"");
+@@ -236,7 +229,6 @@
+ 					int force_poll)
+ {
+ 	int result = 0;
+-	set_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
+ 	pr_debug(PREFIX "transaction start\n");
+ 	acpi_ec_write_cmd(ec, command);
+ 	for (; wdata_len > 0; --wdata_len) {
+@@ -246,7 +238,6 @@
+ 			       "write_cmd timeout, command = %d\n", command);
+ 			goto end;
+ 		}
+-		set_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
+ 		acpi_ec_write_data(ec, *(wdata++));
  	}
  
-diff -puN drivers/acpi/ec.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix drivers/acpi/ec.c
---- a/drivers/acpi/ec.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
-+++ a/drivers/acpi/ec.c
-@@ -792,7 +792,7 @@ static int acpi_ec_add(struct acpi_devic
+@@ -265,9 +256,6 @@
+ 			pr_err(PREFIX "read timeout, command = %d\n", command);
+ 			goto end;
+ 		}
+-		/* Don't expect GPE after last read */
+-		if (rdata_len > 1)
+-			set_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
+ 		*(rdata++) = acpi_ec_read_data(ec);
+ 	}
+       end:
+@@ -535,32 +523,15 @@
+ 	u8 state = acpi_ec_read_status(ec);
  
- 	if (!first_ec)
- 		first_ec = ec;
--	acpi_driver_data(device) = ec;
-+	device->driver_data = ec;
+ 	pr_debug(PREFIX "~~~> interrupt\n");
+-	atomic_inc(&ec->irq_count);
+-	if (atomic_read(&ec->irq_count) > 5) {
+-		pr_err(PREFIX "GPE storm detected, disabling EC GPE\n");
+-		ec_switch_to_poll_mode(ec);
+-		goto end;
+-	}
+-	clear_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
+-	if (test_bit(EC_FLAGS_GPE_MODE, &ec->flags))
+-		wake_up(&ec->wait);
+ 
+ 	if (state & ACPI_EC_FLAG_SCI) {
+ 		if (!test_and_set_bit(EC_FLAGS_QUERY_PENDING, &ec->flags))
+ 			status = acpi_os_execute(OSL_EC_BURST_HANDLER,
+ 				acpi_ec_gpe_query, ec);
+-	} else if (!test_bit(EC_FLAGS_GPE_MODE, &ec->flags) &&
+-		   !test_bit(EC_FLAGS_NO_GPE, &ec->flags) &&
+-		   in_interrupt()) {
+-		/* this is non-query, must be confirmation */
+-		if (printk_ratelimit())
+-			pr_info(PREFIX "non-query interrupt received,"
+-				" switching to interrupt mode\n");
+-		set_bit(EC_FLAGS_GPE_MODE, &ec->flags);
+-		clear_bit(EC_FLAGS_RESCHEDULE_POLL, &ec->flags);
+ 	}
+-end:
+-	ec_schedule_ec_poll(ec);
++
++	if ((state & ACPI_EC_FLAG_OBF) || !(state & ACPI_EC_FLAG_IBF))
++		wake_up(&ec->wait);
+ 	return ACPI_SUCCESS(status) ?
+ 	    ACPI_INTERRUPT_HANDLED : ACPI_INTERRUPT_NOT_HANDLED;
+ }
+@@ -761,7 +732,6 @@
+ 
+ static void ec_remove_handlers(struct acpi_ec *ec)
+ {
+-	ec_poll_stop(ec);
+ 	if (ACPI_FAILURE(acpi_remove_address_space_handler(ec->handle,
+ 				ACPI_ADR_SPACE_EC, &acpi_ec_space_handler)))
+ 		pr_err(PREFIX "failed to remove space handler\n");
+@@ -809,8 +779,6 @@
  	acpi_ec_add_fs(device);
  	pr_info(PREFIX "GPE = 0x%lx, I/O: command/status = 0x%lx, data = 0x%lx\n",
  			  ec->gpe, ec->command_addr, ec->data_addr);
-@@ -817,7 +817,7 @@ static int acpi_ec_remove(struct acpi_de
- 	}
- 	mutex_unlock(&ec->lock);
- 	acpi_ec_remove_fs(device);
--	acpi_driver_data(device) = NULL;
-+	device->driver_data = NULL;
- 	if (ec == first_ec)
- 		first_ec = NULL;
- 	kfree(ec);
-diff -puN drivers/acpi/pci_root.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix drivers/acpi/pci_root.c
---- a/drivers/acpi/pci_root.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
-+++ a/drivers/acpi/pci_root.c
-@@ -206,7 +206,7 @@ static int __devinit acpi_pci_root_add(s
- 	root->device = device;
- 	strcpy(acpi_device_name(device), ACPI_PCI_ROOT_DEVICE_NAME);
- 	strcpy(acpi_device_class(device), ACPI_PCI_ROOT_CLASS);
--	acpi_driver_data(device) = root;
-+	device->driver_data = root;
- 
- 	device->ops.bind = acpi_pci_bind;
- 
-diff -puN drivers/acpi/pci_link.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix drivers/acpi/pci_link.c
---- a/drivers/acpi/pci_link.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
-+++ a/drivers/acpi/pci_link.c
-@@ -737,7 +737,7 @@ static int acpi_pci_link_add(struct acpi
- 	link->device = device;
- 	strcpy(acpi_device_name(device), ACPI_PCI_LINK_DEVICE_NAME);
- 	strcpy(acpi_device_class(device), ACPI_PCI_LINK_CLASS);
--	acpi_driver_data(device) = link;
-+	device->driver_data = link;
- 
- 	mutex_lock(&acpi_link_lock);
- 	result = acpi_pci_link_get_possible(link);
-diff -puN drivers/acpi/power.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix drivers/acpi/power.c
---- a/drivers/acpi/power.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
-+++ a/drivers/acpi/power.c
-@@ -679,7 +679,7 @@ static int acpi_power_add(struct acpi_de
- 	strcpy(resource->name, device->pnp.bus_id);
- 	strcpy(acpi_device_name(device), ACPI_POWER_DEVICE_NAME);
- 	strcpy(acpi_device_class(device), ACPI_POWER_CLASS);
--	acpi_driver_data(device) = resource;
-+	device->driver_data = resource;
- 
- 	/* Evalute the object to get the system level and resource order. */
- 	status = acpi_evaluate_object(device->handle, NULL, NULL, &buffer);
-@@ -755,7 +755,7 @@ static int acpi_power_resume(struct acpi
- 	if (!device || !acpi_driver_data(device))
- 		return -EINVAL;
- 
--	resource = (struct acpi_power_resource *)acpi_driver_data(device);
-+	resource = acpi_driver_data(device);
- 
- 	result = acpi_power_get_state(device->handle, &state);
- 	if (result)
-diff -puN drivers/acpi/ac.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix drivers/acpi/ac.c
---- a/drivers/acpi/ac.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
-+++ a/drivers/acpi/ac.c
-@@ -269,7 +269,7 @@ static int acpi_ac_add(struct acpi_devic
- 	ac->device = device;
- 	strcpy(acpi_device_name(device), ACPI_AC_DEVICE_NAME);
- 	strcpy(acpi_device_class(device), ACPI_AC_CLASS);
--	acpi_driver_data(device) = ac;
-+	device->driver_data = ac;
- 
- 	result = acpi_ac_get_state(ac);
- 	if (result)
-diff -puN drivers/acpi/button.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix drivers/acpi/button.c
---- a/drivers/acpi/button.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
-+++ a/drivers/acpi/button.c
-@@ -384,7 +384,7 @@ static int acpi_button_add(struct acpi_d
- 		return -ENOMEM;
- 
- 	button->device = device;
--	acpi_driver_data(device) = button;
-+	device->driver_data = button;
- 
- 	button->input = input = input_allocate_device();
- 	if (!input) {
-diff -puN drivers/acpi/battery.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix drivers/acpi/battery.c
---- a/drivers/acpi/battery.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
-+++ a/drivers/acpi/battery.c
-@@ -804,7 +804,7 @@ static int acpi_battery_add(struct acpi_
- 	battery->device = device;
- 	strcpy(acpi_device_name(device), ACPI_BATTERY_DEVICE_NAME);
- 	strcpy(acpi_device_class(device), ACPI_BATTERY_CLASS);
--	acpi_driver_data(device) = battery;
-+	device->driver_data = battery;
- 	mutex_init(&battery->lock);
- 	acpi_battery_update(battery);
- #ifdef CONFIG_ACPI_PROCFS_POWER
-diff -puN drivers/acpi/fan.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix drivers/acpi/fan.c
---- a/drivers/acpi/fan.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
-+++ a/drivers/acpi/fan.c
-@@ -265,7 +265,7 @@ static int acpi_fan_add(struct acpi_devi
- 
- 	dev_info(&device->dev, "registered as cooling_device%d\n", cdev->id);
- 
--	acpi_driver_data(device) = cdev;
-+	device->driver_data = cdev;
- 	result = sysfs_create_link(&device->dev.kobj,
- 				   &cdev->device.kobj,
- 				   "thermal_cooling");
-diff -puN drivers/acpi/video.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix drivers/acpi/video.c
---- a/drivers/acpi/video.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
-+++ a/drivers/acpi/video.c
-@@ -1500,7 +1500,7 @@ acpi_video_bus_get_one_device(struct acp
- 
- 		strcpy(acpi_device_name(device), ACPI_VIDEO_DEVICE_NAME);
- 		strcpy(acpi_device_class(device), ACPI_VIDEO_CLASS);
--		acpi_driver_data(device) = data;
-+		device->driver_data = data;
- 
- 		data->device_id = device_id;
- 		data->video = video;
-@@ -1990,7 +1990,7 @@ static int acpi_video_bus_add(struct acp
- 	video->device = device;
- 	strcpy(acpi_device_name(device), ACPI_VIDEO_BUS_NAME);
- 	strcpy(acpi_device_class(device), ACPI_VIDEO_CLASS);
--	acpi_driver_data(device) = video;
-+	device->driver_data = video;
- 
- 	acpi_video_bus_find_cap(video);
- 	error = acpi_video_bus_check(video);
-@@ -2066,7 +2066,7 @@ static int acpi_video_bus_add(struct acp
- 	acpi_video_bus_remove_fs(device);
-  err_free_video:
- 	kfree(video);
--	acpi_driver_data(device) = NULL;
-+	device->driver_data = NULL;
- 
- 	return error;
- }
-diff -puN drivers/acpi/processor_core.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix drivers/acpi/processor_core.c
---- a/drivers/acpi/processor_core.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
-+++ a/drivers/acpi/processor_core.c
-@@ -818,7 +818,7 @@ static int acpi_processor_add(struct acp
- 	pr->handle = device->handle;
- 	strcpy(acpi_device_name(device), ACPI_PROCESSOR_DEVICE_NAME);
- 	strcpy(acpi_device_class(device), ACPI_PROCESSOR_CLASS);
--	acpi_driver_data(device) = pr;
-+	device->driver_data = pr;
- 
- 	return 0;
- }
-diff -puN drivers/acpi/container.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix drivers/acpi/container.c
---- a/drivers/acpi/container.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
-+++ a/drivers/acpi/container.c
-@@ -108,7 +108,7 @@ static int acpi_container_add(struct acp
- 	container->handle = device->handle;
- 	strcpy(acpi_device_name(device), ACPI_CONTAINER_DEVICE_NAME);
- 	strcpy(acpi_device_class(device), ACPI_CONTAINER_CLASS);
--	acpi_driver_data(device) = container;
-+	device->driver_data = container;
- 
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device <%s> bid <%s>\n",
- 			  acpi_device_name(device), acpi_device_bid(device)));
-diff -puN drivers/acpi/thermal.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix drivers/acpi/thermal.c
---- a/drivers/acpi/thermal.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
-+++ a/drivers/acpi/thermal.c
-@@ -1647,7 +1647,7 @@ static int acpi_thermal_add(struct acpi_
- 	strcpy(tz->name, device->pnp.bus_id);
- 	strcpy(acpi_device_name(device), ACPI_THERMAL_DEVICE_NAME);
- 	strcpy(acpi_device_class(device), ACPI_THERMAL_CLASS);
--	acpi_driver_data(device) = tz;
-+	device->driver_data = tz;
- 	mutex_init(&tz->lock);
- 
- 
-diff -puN drivers/acpi/asus_acpi.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix drivers/acpi/asus_acpi.c
---- a/drivers/acpi/asus_acpi.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
-+++ a/drivers/acpi/asus_acpi.c
-@@ -1321,7 +1321,7 @@ static int asus_hotk_add(struct acpi_dev
- 	hotk->handle = device->handle;
- 	strcpy(acpi_device_name(device), ACPI_HOTK_DEVICE_NAME);
- 	strcpy(acpi_device_class(device), ACPI_HOTK_CLASS);
--	acpi_driver_data(device) = hotk;
-+	device->driver_data = hotk;
- 	hotk->device = device;
- 
- 	result = asus_hotk_check();
-diff -puN drivers/acpi/pcc_acpi.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix drivers/acpi/pcc_acpi.c
---- a/drivers/acpi/pcc_acpi.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
-+++ a/drivers/acpi/pcc_acpi.c
-@@ -657,7 +657,7 @@ static int acpi_pcc_hotkey_add(struct ac
- 	pcc->device = device;
- 	pcc->handle = device->handle;
- 	pcc->num_sifr = num_sifr;
--	acpi_driver_data(device) = pcc;
-+	device->driver_data = pcc;
- 	strcpy(acpi_device_name(device), ACPI_PCC_DEVICE_NAME);
- 	strcpy(acpi_device_class(device), ACPI_PCC_CLASS);
- 
-diff -puN drivers/acpi/sbshc.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix drivers/acpi/sbshc.c
---- a/drivers/acpi/sbshc.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
-+++ a/drivers/acpi/sbshc.c
-@@ -282,7 +282,7 @@ static int acpi_smbus_hc_add(struct acpi
- 	hc->ec = acpi_driver_data(device->parent);
- 	hc->offset = (val >> 8) & 0xff;
- 	hc->query_bit = val & 0xff;
--	acpi_driver_data(device) = hc;
-+	device->driver_data = hc;
- 
- 	acpi_ec_add_query_handler(hc->ec, hc->query_bit, NULL, smbus_alarm, hc);
- 	printk(KERN_INFO PREFIX "SBS HC: EC = 0x%p, offset = 0x%0x, query_bit = 0x%0x\n",
-@@ -303,7 +303,7 @@ static int acpi_smbus_hc_remove(struct a
- 	hc = acpi_driver_data(device);
- 	acpi_ec_remove_query_handler(hc->ec, hc->query_bit);
- 	kfree(hc);
--	acpi_driver_data(device) = NULL;
-+	device->driver_data = NULL;
+-	pr_info(PREFIX "driver started in %s mode\n",
+-		(test_bit(EC_FLAGS_GPE_MODE, &ec->flags))?"interrupt":"poll");
  	return 0;
  }
  
-diff -puN drivers/acpi/sbs.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix drivers/acpi/sbs.c
---- a/drivers/acpi/sbs.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
-+++ a/drivers/acpi/sbs.c
-@@ -931,7 +931,7 @@ static int acpi_sbs_add(struct acpi_devi
- 	sbs->device = device;
- 	strcpy(acpi_device_name(device), ACPI_SBS_DEVICE_NAME);
- 	strcpy(acpi_device_class(device), ACPI_SBS_CLASS);
--	acpi_driver_data(device) = sbs;
-+	device->driver_data = sbs;
+@@ -904,7 +872,6 @@
  
- 	result = acpi_charger_add(sbs);
- 	if (result)
-_
+ 	/* EC is fully operational, allow queries */
+ 	clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
+-	ec_schedule_ec_poll(ec);
+ 	return ret;
+ }
+ 
+@@ -1000,8 +967,6 @@
+ {
+ 	struct acpi_ec *ec = acpi_driver_data(device);
+ 	/* Stop using GPE */
+-	set_bit(EC_FLAGS_NO_GPE, &ec->flags);
+-	clear_bit(EC_FLAGS_GPE_MODE, &ec->flags);
+ 	acpi_disable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
+ 	return 0;
+ }
+@@ -1010,7 +975,6 @@
+ {
+ 	struct acpi_ec *ec = acpi_driver_data(device);
+ 	/* Enable use of GPE back */
+-	clear_bit(EC_FLAGS_NO_GPE, &ec->flags);
+ 	acpi_enable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
+ 	return 0;
+ }
+
+--=-KPemP3Z1oVKgWycbRhfd--
 
