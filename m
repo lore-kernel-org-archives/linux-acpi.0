@@ -1,328 +1,365 @@
-From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-Subject: [RESEND] [PATCH] fujitsu-laptop: better handling of P8010 hotkey events
-Date: Thu, 11 Sep 2008 09:21:37 +0930 (CST)
-Message-ID: <200809102351.m8ANpb89012493@turbo.physics.adelaide.edu.au>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: catch calls of acpi_driver_data on pointer of wrong type
+Date: Wed, 10 Sep 2008 17:31:02 -0700
+Message-ID: <20080910173102.53e19f92.akpm@linux-foundation.org>
+References: <20080910141151.GA13669@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:41497 "EHLO
-	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753669AbYIJXwG (ORCPT
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45536 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752067AbYIKAbl (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 10 Sep 2008 19:52:06 -0400
+	Wed, 10 Sep 2008 20:31:41 -0400
+In-Reply-To: <20080910141151.GA13669@elf.ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, lenb@kernel.org, andi@firstfloor.org
+To: Pavel Machek <pavel@suse.cz>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, ak@linux.intel.com, hare@suse.de
 
-Resending ...
+On Wed, 10 Sep 2008 16:11:51 +0200
+Pavel Machek <pavel@suse.cz> wrote:
+
+> 
+> Catch attempts to use of acpi_driver_data on pointers of wrong type.
+> 
+> Signed-off-by: Pavel Machek <pavel@suse.cz>
+> Cc: Hannes Reinecke <hare@suse.de>
+> 
+> ---
+> commit 76c9074075cd9208cf386f37ebd932a00557643a
+> tree 02589a15c23f430c7728560e4ba51077d41a6eff
+> parent d4a51ebfa2ffc3320d7eab269dc1ca84e86719f5
+> author Pavel <pavel@amd.ucw.cz> Wed, 10 Sep 2008 16:10:28 +0200
+> committer Pavel <pavel@amd.ucw.cz> Wed, 10 Sep 2008 16:10:28 +0200
+> 
+>  include/acpi/acpi_bus.h |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index a5ac0bc..641656e 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -300,7 +300,7 @@ struct acpi_device {
+>  	enum acpi_bus_removal_type removal_type;	/* indicate for different removal type */
+>  };
+>  
+> -#define acpi_driver_data(d)	((d)->driver_data)
+> +#define acpi_driver_data(d)	((void) (d == (struct acpi_device *) 0), d)->driver_data
+>  #define to_acpi_device(d)	container_of(d, struct acpi_device, dev)
+>  #define to_acpi_driver(d)	container_of(d, struct acpi_driver, drv)
+>  
+
+Let us not try to implement a C compiler in cpp, for that is perverse.
+
+Behold my amazingness:
+
+static inline void *acpi_driver_data(struct acpi_device *d)
+{
+	return d->driver_data;
+}
 
 
-Hi Len
+Implementing this requires that we fix all the idiotic crap which uses
+acpi_driver_data() as an lvalue, but fixing idiotic crap is rarely a
+bad thing, no?
 
-This patch (mostly from Peter Gruber) against 2.6.27-rc4 (but with the
-interim P8010 patch from 2.6.27-rc6 applied) improves the handling of the
-hotkeys for P8010 laptops by passing more accurate input events back to
-userspace.  This is needed because the P8010 labels these buttons quite
-differently to earlier laptops.  As part of this, a P8010-specific DMI
-callback check has been implemented.  Finally there's some minor whitespace
-cleanups from running the source through Lindent.
+Something like this...
 
-Please apply to acpi-test for 2.6.28.
+ drivers/acpi/ac.c             |    2 +-
+ drivers/acpi/asus_acpi.c      |    2 +-
+ drivers/acpi/battery.c        |    2 +-
+ drivers/acpi/button.c         |    2 +-
+ drivers/acpi/container.c      |    2 +-
+ drivers/acpi/ec.c             |    4 ++--
+ drivers/acpi/fan.c            |    2 +-
+ drivers/acpi/pcc_acpi.c       |    2 +-
+ drivers/acpi/pci_link.c       |    2 +-
+ drivers/acpi/pci_root.c       |    2 +-
+ drivers/acpi/power.c          |    4 ++--
+ drivers/acpi/processor_core.c |    2 +-
+ drivers/acpi/sbs.c            |    2 +-
+ drivers/acpi/sbshc.c          |    4 ++--
+ drivers/acpi/scan.c           |    4 ++--
+ drivers/acpi/thermal.c        |    2 +-
+ drivers/acpi/video.c          |    6 +++---
+ include/acpi/acpi_bus.h       |    6 +++++-
+ 18 files changed, 28 insertions(+), 24 deletions(-)
 
-Signed-off-by: Peter Gruber <nokos@gmx.net>
-Signed-off-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-
-Thanks
-  jonathan
-
-
-diff --git a/drivers/misc/fujitsu-laptop.c b/drivers/misc/fujitsu-laptop.c index 255d135..36c3add 100644
---- a/drivers/misc/fujitsu-laptop.c
-+++ b/drivers/misc/fujitsu-laptop.c
-@@ -44,8 +44,9 @@
-  * Hotkeys present on certain Fujitsu laptops (eg: the S6xxx series) are
-  * also supported by this driver.
-  *
-- * This driver has been tested on a Fujitsu Lifebook S6410 and S7020. It
-- * should work on most P-series and S-series Lifebooks, but YMMV.
-+ * This driver has been tested on a Fujitsu Lifebook S6410, S7020 and
-+ * P8010.  It should work on most P-series and S-series Lifebooks, but
-+ * YMMV.
-  *
-  * The module parameter use_alt_lcd_levels switches between different ACPI
-  * brightness controls which are used by different Fujitsu laptops.  In most
-@@ -65,7 +66,7 @@
- #include <linux/video_output.h>
- #include <linux/platform_device.h>
- 
--#define FUJITSU_DRIVER_VERSION "0.4.2"
-+#define FUJITSU_DRIVER_VERSION "0.4.3"
- 
- #define FUJITSU_LCD_N_LEVELS 8
- 
-@@ -83,10 +84,10 @@
- #define ACPI_VIDEO_NOTIFY_DEC_BRIGHTNESS     0x87
- 
- /* Hotkey details */
--#define LOCK_KEY	0x410	/* codes for the keys in the GIRB register */
--#define DISPLAY_KEY	0x411	/* keys are mapped to KEY_SCREENLOCK (the key with the key symbol) */
--#define ENERGY_KEY	0x412	/* KEY_MEDIA (the key with the laptop symbol, KEY_EMAIL (E key)) */
--#define REST_KEY	0x413	/* KEY_SUSPEND (R key) */
-+#define KEY1_CODE	0x410	/* codes for the keys in the GIRB register */
-+#define KEY2_CODE	0x411
-+#define KEY3_CODE	0x412
-+#define KEY4_CODE	0x413
- 
- #define MAX_HOTKEY_RINGBUFFER_SIZE 100
- #define RINGBUFFERSIZE 40
-@@ -123,6 +124,7 @@ struct fujitsu_t {
- 	char phys[32];
- 	struct backlight_device *bl_device;
- 	struct platform_device *pf_device;
-+	int keycode1, keycode2, keycode3, keycode4;
- 
- 	unsigned int max_brightness;
- 	unsigned int brightness_changed;
-@@ -430,7 +432,7 @@ static struct platform_driver fujitsupf_driver = {
- 		   }
+diff -puN include/acpi/acpi_bus.h~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix include/acpi/acpi_bus.h
+--- a/include/acpi/acpi_bus.h~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
++++ a/include/acpi/acpi_bus.h
+@@ -300,7 +300,11 @@ struct acpi_device {
+ 	enum acpi_bus_removal_type removal_type;	/* indicate for different removal type */
  };
  
--static int dmi_check_cb_s6410(const struct dmi_system_id *id)
-+static void dmi_check_cb_common(const struct dmi_system_id *id)
- {
- 	acpi_handle handle;
- 	int have_blnf;
-@@ -452,24 +454,40 @@ static int dmi_check_cb_s6410(const struct dmi_system_id *id)
- 			    "auto-detecting disable_adjust\n");
- 		disable_brightness_adjust = have_blnf ? 0 : 1;
+-#define acpi_driver_data(d)	((void) (d == (struct acpi_device *) 0), d)->driver_data
++static inline void *acpi_driver_data(struct acpi_device *d)
++{
++	return d->driver_data;
++}
++
+ #define to_acpi_device(d)	container_of(d, struct acpi_device, dev)
+ #define to_acpi_driver(d)	container_of(d, struct acpi_driver, drv)
+ 
+diff -puN drivers/acpi/scan.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix drivers/acpi/scan.c
+--- a/drivers/acpi/scan.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
++++ a/drivers/acpi/scan.c
+@@ -391,7 +391,7 @@ static int acpi_device_remove(struct dev
+ 			acpi_drv->ops.remove(acpi_dev, acpi_dev->removal_type);
  	}
-+}
-+
-+static int dmi_check_cb_s6410(const struct dmi_system_id *id)
-+{
-+	dmi_check_cb_common(id);
-+	fujitsu->keycode1 = KEY_SCREENLOCK;	/* "Lock" */
-+	fujitsu->keycode2 = KEY_HELP;	/* "Mobility Center" */
-+	return 0;
-+}
-+
-+static int dmi_check_cb_p8010(const struct dmi_system_id *id)
-+{
-+	dmi_check_cb_common(id);
-+	fujitsu->keycode1 = KEY_HELP;	/* "Support" */
-+	fujitsu->keycode3 = KEY_SWITCHVIDEOMODE;	/* "Presentation" */
-+	fujitsu->keycode4 = KEY_WWW;	/* "Internet" */
+ 	acpi_dev->driver = NULL;
+-	acpi_driver_data(dev) = NULL;
++	dev->driver_data = NULL;
+ 
+ 	put_device(dev);
+ 	return 0;
+@@ -545,7 +545,7 @@ acpi_bus_driver_init(struct acpi_device 
+ 	result = driver->ops.add(device);
+ 	if (result) {
+ 		device->driver = NULL;
+-		acpi_driver_data(device) = NULL;
++		device->driver_data = NULL;
+ 		return result;
+ 	}
+ 
+diff -puN drivers/acpi/ec.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix drivers/acpi/ec.c
+--- a/drivers/acpi/ec.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
++++ a/drivers/acpi/ec.c
+@@ -792,7 +792,7 @@ static int acpi_ec_add(struct acpi_devic
+ 
+ 	if (!first_ec)
+ 		first_ec = ec;
+-	acpi_driver_data(device) = ec;
++	device->driver_data = ec;
+ 	acpi_ec_add_fs(device);
+ 	pr_info(PREFIX "GPE = 0x%lx, I/O: command/status = 0x%lx, data = 0x%lx\n",
+ 			  ec->gpe, ec->command_addr, ec->data_addr);
+@@ -817,7 +817,7 @@ static int acpi_ec_remove(struct acpi_de
+ 	}
+ 	mutex_unlock(&ec->lock);
+ 	acpi_ec_remove_fs(device);
+-	acpi_driver_data(device) = NULL;
++	device->driver_data = NULL;
+ 	if (ec == first_ec)
+ 		first_ec = NULL;
+ 	kfree(ec);
+diff -puN drivers/acpi/pci_root.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix drivers/acpi/pci_root.c
+--- a/drivers/acpi/pci_root.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
++++ a/drivers/acpi/pci_root.c
+@@ -206,7 +206,7 @@ static int __devinit acpi_pci_root_add(s
+ 	root->device = device;
+ 	strcpy(acpi_device_name(device), ACPI_PCI_ROOT_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_PCI_ROOT_CLASS);
+-	acpi_driver_data(device) = root;
++	device->driver_data = root;
+ 
+ 	device->ops.bind = acpi_pci_bind;
+ 
+diff -puN drivers/acpi/pci_link.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix drivers/acpi/pci_link.c
+--- a/drivers/acpi/pci_link.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
++++ a/drivers/acpi/pci_link.c
+@@ -737,7 +737,7 @@ static int acpi_pci_link_add(struct acpi
+ 	link->device = device;
+ 	strcpy(acpi_device_name(device), ACPI_PCI_LINK_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_PCI_LINK_CLASS);
+-	acpi_driver_data(device) = link;
++	device->driver_data = link;
+ 
+ 	mutex_lock(&acpi_link_lock);
+ 	result = acpi_pci_link_get_possible(link);
+diff -puN drivers/acpi/power.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix drivers/acpi/power.c
+--- a/drivers/acpi/power.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
++++ a/drivers/acpi/power.c
+@@ -679,7 +679,7 @@ static int acpi_power_add(struct acpi_de
+ 	strcpy(resource->name, device->pnp.bus_id);
+ 	strcpy(acpi_device_name(device), ACPI_POWER_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_POWER_CLASS);
+-	acpi_driver_data(device) = resource;
++	device->driver_data = resource;
+ 
+ 	/* Evalute the object to get the system level and resource order. */
+ 	status = acpi_evaluate_object(device->handle, NULL, NULL, &buffer);
+@@ -755,7 +755,7 @@ static int acpi_power_resume(struct acpi
+ 	if (!device || !acpi_driver_data(device))
+ 		return -EINVAL;
+ 
+-	resource = (struct acpi_power_resource *)acpi_driver_data(device);
++	resource = acpi_driver_data(device);
+ 
+ 	result = acpi_power_get_state(device->handle, &state);
+ 	if (result)
+diff -puN drivers/acpi/ac.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix drivers/acpi/ac.c
+--- a/drivers/acpi/ac.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
++++ a/drivers/acpi/ac.c
+@@ -269,7 +269,7 @@ static int acpi_ac_add(struct acpi_devic
+ 	ac->device = device;
+ 	strcpy(acpi_device_name(device), ACPI_AC_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_AC_CLASS);
+-	acpi_driver_data(device) = ac;
++	device->driver_data = ac;
+ 
+ 	result = acpi_ac_get_state(ac);
+ 	if (result)
+diff -puN drivers/acpi/button.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix drivers/acpi/button.c
+--- a/drivers/acpi/button.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
++++ a/drivers/acpi/button.c
+@@ -384,7 +384,7 @@ static int acpi_button_add(struct acpi_d
+ 		return -ENOMEM;
+ 
+ 	button->device = device;
+-	acpi_driver_data(device) = button;
++	device->driver_data = button;
+ 
+ 	button->input = input = input_allocate_device();
+ 	if (!input) {
+diff -puN drivers/acpi/battery.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix drivers/acpi/battery.c
+--- a/drivers/acpi/battery.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
++++ a/drivers/acpi/battery.c
+@@ -804,7 +804,7 @@ static int acpi_battery_add(struct acpi_
+ 	battery->device = device;
+ 	strcpy(acpi_device_name(device), ACPI_BATTERY_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_BATTERY_CLASS);
+-	acpi_driver_data(device) = battery;
++	device->driver_data = battery;
+ 	mutex_init(&battery->lock);
+ 	acpi_battery_update(battery);
+ #ifdef CONFIG_ACPI_PROCFS_POWER
+diff -puN drivers/acpi/fan.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix drivers/acpi/fan.c
+--- a/drivers/acpi/fan.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
++++ a/drivers/acpi/fan.c
+@@ -265,7 +265,7 @@ static int acpi_fan_add(struct acpi_devi
+ 
+ 	dev_info(&device->dev, "registered as cooling_device%d\n", cdev->id);
+ 
+-	acpi_driver_data(device) = cdev;
++	device->driver_data = cdev;
+ 	result = sysfs_create_link(&device->dev.kobj,
+ 				   &cdev->device.kobj,
+ 				   "thermal_cooling");
+diff -puN drivers/acpi/video.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix drivers/acpi/video.c
+--- a/drivers/acpi/video.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
++++ a/drivers/acpi/video.c
+@@ -1500,7 +1500,7 @@ acpi_video_bus_get_one_device(struct acp
+ 
+ 		strcpy(acpi_device_name(device), ACPI_VIDEO_DEVICE_NAME);
+ 		strcpy(acpi_device_class(device), ACPI_VIDEO_CLASS);
+-		acpi_driver_data(device) = data;
++		device->driver_data = data;
+ 
+ 		data->device_id = device_id;
+ 		data->video = video;
+@@ -1990,7 +1990,7 @@ static int acpi_video_bus_add(struct acp
+ 	video->device = device;
+ 	strcpy(acpi_device_name(device), ACPI_VIDEO_BUS_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_VIDEO_CLASS);
+-	acpi_driver_data(device) = video;
++	device->driver_data = video;
+ 
+ 	acpi_video_bus_find_cap(video);
+ 	error = acpi_video_bus_check(video);
+@@ -2066,7 +2066,7 @@ static int acpi_video_bus_add(struct acp
+ 	acpi_video_bus_remove_fs(device);
+  err_free_video:
+ 	kfree(video);
+-	acpi_driver_data(device) = NULL;
++	device->driver_data = NULL;
+ 
+ 	return error;
+ }
+diff -puN drivers/acpi/processor_core.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix drivers/acpi/processor_core.c
+--- a/drivers/acpi/processor_core.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
++++ a/drivers/acpi/processor_core.c
+@@ -818,7 +818,7 @@ static int acpi_processor_add(struct acp
+ 	pr->handle = device->handle;
+ 	strcpy(acpi_device_name(device), ACPI_PROCESSOR_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_PROCESSOR_CLASS);
+-	acpi_driver_data(device) = pr;
++	device->driver_data = pr;
+ 
+ 	return 0;
+ }
+diff -puN drivers/acpi/container.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix drivers/acpi/container.c
+--- a/drivers/acpi/container.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
++++ a/drivers/acpi/container.c
+@@ -108,7 +108,7 @@ static int acpi_container_add(struct acp
+ 	container->handle = device->handle;
+ 	strcpy(acpi_device_name(device), ACPI_CONTAINER_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_CONTAINER_CLASS);
+-	acpi_driver_data(device) = container;
++	device->driver_data = container;
+ 
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device <%s> bid <%s>\n",
+ 			  acpi_device_name(device), acpi_device_bid(device)));
+diff -puN drivers/acpi/thermal.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix drivers/acpi/thermal.c
+--- a/drivers/acpi/thermal.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
++++ a/drivers/acpi/thermal.c
+@@ -1647,7 +1647,7 @@ static int acpi_thermal_add(struct acpi_
+ 	strcpy(tz->name, device->pnp.bus_id);
+ 	strcpy(acpi_device_name(device), ACPI_THERMAL_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_THERMAL_CLASS);
+-	acpi_driver_data(device) = tz;
++	device->driver_data = tz;
+ 	mutex_init(&tz->lock);
+ 
+ 
+diff -puN drivers/acpi/asus_acpi.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix drivers/acpi/asus_acpi.c
+--- a/drivers/acpi/asus_acpi.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
++++ a/drivers/acpi/asus_acpi.c
+@@ -1321,7 +1321,7 @@ static int asus_hotk_add(struct acpi_dev
+ 	hotk->handle = device->handle;
+ 	strcpy(acpi_device_name(device), ACPI_HOTK_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_HOTK_CLASS);
+-	acpi_driver_data(device) = hotk;
++	device->driver_data = hotk;
+ 	hotk->device = device;
+ 
+ 	result = asus_hotk_check();
+diff -puN drivers/acpi/pcc_acpi.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix drivers/acpi/pcc_acpi.c
+--- a/drivers/acpi/pcc_acpi.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
++++ a/drivers/acpi/pcc_acpi.c
+@@ -657,7 +657,7 @@ static int acpi_pcc_hotkey_add(struct ac
+ 	pcc->device = device;
+ 	pcc->handle = device->handle;
+ 	pcc->num_sifr = num_sifr;
+-	acpi_driver_data(device) = pcc;
++	device->driver_data = pcc;
+ 	strcpy(acpi_device_name(device), ACPI_PCC_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_PCC_CLASS);
+ 
+diff -puN drivers/acpi/sbshc.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix drivers/acpi/sbshc.c
+--- a/drivers/acpi/sbshc.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
++++ a/drivers/acpi/sbshc.c
+@@ -282,7 +282,7 @@ static int acpi_smbus_hc_add(struct acpi
+ 	hc->ec = acpi_driver_data(device->parent);
+ 	hc->offset = (val >> 8) & 0xff;
+ 	hc->query_bit = val & 0xff;
+-	acpi_driver_data(device) = hc;
++	device->driver_data = hc;
+ 
+ 	acpi_ec_add_query_handler(hc->ec, hc->query_bit, NULL, smbus_alarm, hc);
+ 	printk(KERN_INFO PREFIX "SBS HC: EC = 0x%p, offset = 0x%0x, query_bit = 0x%0x\n",
+@@ -303,7 +303,7 @@ static int acpi_smbus_hc_remove(struct a
+ 	hc = acpi_driver_data(device);
+ 	acpi_ec_remove_query_handler(hc->ec, hc->query_bit);
+ 	kfree(hc);
+-	acpi_driver_data(device) = NULL;
++	device->driver_data = NULL;
  	return 0;
  }
  
- static struct dmi_system_id __initdata fujitsu_dmi_table[] = {
- 	{
--	 .ident = "Fujitsu Siemens",
-+	 .ident = "Fujitsu Siemens S6410",
- 	 .matches = {
- 		     DMI_MATCH(DMI_SYS_VENDOR, "FUJITSU SIEMENS"),
- 		     DMI_MATCH(DMI_PRODUCT_NAME, "LIFEBOOK S6410"),
- 		     },
- 	 .callback = dmi_check_cb_s6410},
- 	{
--	 .ident = "FUJITSU LifeBook P8010",
-+	 .ident = "Fujitsu LifeBook P8010",
- 	 .matches = {
- 		     DMI_MATCH(DMI_SYS_VENDOR, "FUJITSU"),
- 		     DMI_MATCH(DMI_PRODUCT_NAME, "LifeBook P8010"),
--		    },
--	 .callback = dmi_check_cb_s6410},
-+		     },
-+	 .callback = dmi_check_cb_p8010},
- 	{}
- };
+diff -puN drivers/acpi/sbs.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix drivers/acpi/sbs.c
+--- a/drivers/acpi/sbs.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
++++ a/drivers/acpi/sbs.c
+@@ -931,7 +931,7 @@ static int acpi_sbs_add(struct acpi_devi
+ 	sbs->device = device;
+ 	strcpy(acpi_device_name(device), ACPI_SBS_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_SBS_CLASS);
+-	acpi_driver_data(device) = sbs;
++	device->driver_data = sbs;
  
-@@ -547,7 +565,6 @@ static int acpi_fujitsu_add(struct acpi_device *device)
- 	}
- 
- 	/* do config (detect defaults) */
--	dmi_check_system(fujitsu_dmi_table);
- 	use_alt_lcd_levels = use_alt_lcd_levels == 1 ? 1 : 0;
- 	disable_brightness_keys = disable_brightness_keys == 1 ? 1 : 0;
- 	disable_brightness_adjust = disable_brightness_adjust == 1 ? 1 : 0;
-@@ -612,7 +629,7 @@ static void acpi_fujitsu_notify(acpi_handle handle, u32 event, void *data)
- 	case ACPI_FUJITSU_NOTIFY_CODE1:
- 		keycode = 0;
- 		oldb = fujitsu->brightness_level;
--		get_lcd_level();  /* the alt version always yields changed */
-+		get_lcd_level();	/* the alt version always yields changed */
- 		newb = fujitsu->brightness_level;
- 
- 		vdbg_printk(FUJLAPTOP_DBG_TRACE,
-@@ -623,17 +640,17 @@ static void acpi_fujitsu_notify(acpi_handle handle, u32 event, void *data)
- 			keycode = 0;
- 			if (disable_brightness_keys != 1) {
- 				if (oldb == 0) {
--					acpi_bus_generate_proc_event(fujitsu->
--						dev,
--						ACPI_VIDEO_NOTIFY_DEC_BRIGHTNESS,
--						0);
-+					acpi_bus_generate_proc_event
-+					    (fujitsu->dev,
-+					     ACPI_VIDEO_NOTIFY_DEC_BRIGHTNESS,
-+					     0);
- 					keycode = KEY_BRIGHTNESSDOWN;
- 				} else if (oldb ==
- 					   (fujitsu->max_brightness) - 1) {
--					acpi_bus_generate_proc_event(fujitsu->
--						dev,
--						ACPI_VIDEO_NOTIFY_INC_BRIGHTNESS,
--						0);
-+					acpi_bus_generate_proc_event
-+					    (fujitsu->dev,
-+					     ACPI_VIDEO_NOTIFY_INC_BRIGHTNESS,
-+					     0);
- 					keycode = KEY_BRIGHTNESSUP;
- 				}
- 			}
-@@ -646,8 +663,8 @@ static void acpi_fujitsu_notify(acpi_handle handle, u32 event, void *data)
- 			}
- 			if (disable_brightness_keys != 1) {
- 				acpi_bus_generate_proc_event(fujitsu->dev,
--					ACPI_VIDEO_NOTIFY_INC_BRIGHTNESS,
--					0);
-+							     ACPI_VIDEO_NOTIFY_INC_BRIGHTNESS,
-+							     0);
- 				keycode = KEY_BRIGHTNESSUP;
- 			}
- 		} else if (oldb > newb) {
-@@ -659,8 +676,8 @@ static void acpi_fujitsu_notify(acpi_handle handle, u32 event, void *data)
- 			}
- 			if (disable_brightness_keys != 1) {
- 				acpi_bus_generate_proc_event(fujitsu->dev,
--					ACPI_VIDEO_NOTIFY_DEC_BRIGHTNESS,
--					0);
-+							     ACPI_VIDEO_NOTIFY_DEC_BRIGHTNESS,
-+							     0);
- 				keycode = KEY_BRIGHTNESSDOWN;
- 			}
- 		} else {
-@@ -742,10 +759,10 @@ static int acpi_fujitsu_hotkey_add(struct acpi_device *device)
- 	input->id.product = 0x06;
- 	input->dev.parent = &device->dev;
- 	input->evbit[0] = BIT(EV_KEY);
--	set_bit(KEY_SCREENLOCK, input->keybit);
--	set_bit(KEY_MEDIA, input->keybit);
--	set_bit(KEY_EMAIL, input->keybit);
--	set_bit(KEY_SUSPEND, input->keybit);
-+	set_bit(fujitsu->keycode1, input->keybit);
-+	set_bit(fujitsu->keycode2, input->keybit);
-+	set_bit(fujitsu->keycode3, input->keybit);
-+	set_bit(fujitsu->keycode4, input->keybit);
- 	set_bit(KEY_UNKNOWN, input->keybit);
- 
- 	error = input_register_device(input);
-@@ -833,38 +850,38 @@ static void acpi_fujitsu_hotkey_notify(acpi_handle handle, u32 event,
- 				    irb);
- 
- 			switch (irb & 0x4ff) {
--			case LOCK_KEY:
--				keycode = KEY_SCREENLOCK;
-+			case KEY1_CODE:
-+				keycode = fujitsu->keycode1;
- 				break;
--			case DISPLAY_KEY:
--				keycode = KEY_MEDIA;
-+			case KEY2_CODE:
-+				keycode = fujitsu->keycode2;
- 				break;
--			case ENERGY_KEY:
--				keycode = KEY_EMAIL;
-+			case KEY3_CODE:
-+				keycode = fujitsu->keycode3;
- 				break;
--			case REST_KEY:
--				keycode = KEY_SUSPEND;
-+			case KEY4_CODE:
-+				keycode = fujitsu->keycode4;
- 				break;
- 			case 0:
- 				keycode = 0;
- 				break;
- 			default:
- 				vdbg_printk(FUJLAPTOP_DBG_WARN,
--					"Unknown GIRB result [%x]\n", irb);
-+					    "Unknown GIRB result [%x]\n", irb);
- 				keycode = -1;
- 				break;
- 			}
- 			if (keycode > 0) {
- 				vdbg_printk(FUJLAPTOP_DBG_TRACE,
--					"Push keycode into ringbuffer [%d]\n",
--					keycode);
-+					    "Push keycode into ringbuffer [%d]\n",
-+					    keycode);
- 				status = kfifo_put(fujitsu_hotkey->fifo,
--						(unsigned char *)&keycode,
--						sizeof(keycode));
-+						   (unsigned char *)&keycode,
-+						   sizeof(keycode));
- 				if (status != sizeof(keycode)) {
- 					vdbg_printk(FUJLAPTOP_DBG_WARN,
--						"Could not push keycode [0x%x]\n",
--						keycode);
-+						    "Could not push keycode [0x%x]\n",
-+						    keycode);
- 				} else {
- 					input_report_key(input, keycode, 1);
- 					input_sync(input);
-@@ -943,6 +960,11 @@ static int __init fujitsu_init(void)
- 	if (!fujitsu)
- 		return -ENOMEM;
- 	memset(fujitsu, 0, sizeof(struct fujitsu_t));
-+	fujitsu->keycode1 = KEY_PROG1;
-+	fujitsu->keycode2 = KEY_PROG2;
-+	fujitsu->keycode3 = KEY_PROG3;
-+	fujitsu->keycode4 = KEY_PROG4;
-+	dmi_check_system(fujitsu_dmi_table);
- 
- 	result = acpi_bus_register_driver(&acpi_fujitsu_driver);
- 	if (result < 0) {
-@@ -972,13 +994,14 @@ static int __init fujitsu_init(void)
- 
- 	if (!acpi_video_backlight_support()) {
- 		fujitsu->bl_device =
--			backlight_device_register("fujitsu-laptop", NULL, NULL,
--						  &fujitsubl_ops);
-+		    backlight_device_register("fujitsu-laptop", NULL, NULL,
-+					      &fujitsubl_ops);
- 		if (IS_ERR(fujitsu->bl_device))
- 			return PTR_ERR(fujitsu->bl_device);
- 		max_brightness = fujitsu->max_brightness;
- 		fujitsu->bl_device->props.max_brightness = max_brightness - 1;
--		fujitsu->bl_device->props.brightness = fujitsu->brightness_level;
-+		fujitsu->bl_device->props.brightness =
-+		    fujitsu->brightness_level;
- 	}
- 
- 	ret = platform_driver_register(&fujitsupf_driver);
-@@ -1078,15 +1101,14 @@ MODULE_DESCRIPTION("Fujitsu laptop extras support");
- MODULE_VERSION(FUJITSU_DRIVER_VERSION);
- MODULE_LICENSE("GPL");
- 
--MODULE_ALIAS
--    ("dmi:*:svnFUJITSUSIEMENS:*:pvr:rvnFUJITSU:rnFJNB1D3:*:cvrS6410:*");
--MODULE_ALIAS
--    ("dmi:*:svnFUJITSU:*:pvr:rvnFUJITSU:rnFJNB19C:*:cvrS7020:*");
-+MODULE_ALIAS("dmi:*:svnFUJITSUSIEMENS:*:pvr:rvnFUJITSU:rnFJNB1D3:*:cvrS6410:*");
-+MODULE_ALIAS("dmi:*:svnFUJITSU:*:pvr:rvnFUJITSU:rnFJNB19C:*:cvrS7020:*");
- 
- static struct pnp_device_id pnp_ids[] = {
--	{ .id = "FUJ02bf" },
--	{ .id = "FUJ02B1" },
--	{ .id = "FUJ02E3" },
--	{ .id = "" }
-+	{.id = "FUJ02bf"},
-+	{.id = "FUJ02B1"},
-+	{.id = "FUJ02E3"},
-+	{.id = ""}
- };
-+
- MODULE_DEVICE_TABLE(pnp, pnp_ids);
+ 	result = acpi_charger_add(sbs);
+ 	if (result)
+_
+
