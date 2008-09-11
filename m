@@ -1,87 +1,55 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: Re: [PATCH] ACPI : Avoid bogus timeout about SMbus check
-Date: Fri, 12 Sep 2008 01:13:12 +0400
-Message-ID: <48C989E8.5010704@suse.de>
-References: <1219730254.4116.38.camel@yakui_zhao.sh.intel.com> <20080904121820.GC18288@one.firstfloor.org> <200809112149.43894.oldium.pro@seznam.cz>
+From: Yves-Alexis Perez <corsac@corsac.net>
+Subject: Re: linux-acpi-2.6/test on Thinkpad T61: Battery Absent
+Date: Thu, 11 Sep 2008 23:25:51 +0200
+Message-ID: <1221167774.4080.0.camel@hidalgo>
+References: <1221027769.3958.1.camel@hidalgo>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:44227 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752305AbYIKVNR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Sep 2008 17:13:17 -0400
-In-Reply-To: <200809112149.43894.oldium.pro@seznam.cz>
+Received: from molly.corsac.net ([81.57.48.219]:35227 "EHLO molly.corsac.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753000AbYIKVZl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 11 Sep 2008 17:25:41 -0400
+Received: from hidalgo.corsac.net (hidalgo.corsac.net [IPv6:2002:5139:30db:0:213:e8ff:fedc:ffab])
+	by molly.corsac.net (Postfix) with ESMTP id 9323F82D1F
+	for <linux-acpi@vger.kernel.org>; Thu, 11 Sep 2008 23:25:38 +0200 (CEST)
+In-Reply-To: <1221027769.3958.1.camel@hidalgo>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Oldrich Jedlicka <oldium.pro@seznam.cz>
-Cc: Andi Kleen <andi@firstfloor.org>, Zhao Yakui <yakui.zhao@intel.com>, linux-acpi@vger.kernel.org, lenb@kernel.org
+To: Yves-Alexis Perez <corsac@debian.org>
+Cc: Zhao Yakui <yakui.zhao@intel.com>, Andi Kleen <ak@linux.intel.com>
 
-Hi Oldrich,
+On mer, 2008-09-10 at 08:22 +0200, Yves-Alexis Perez wrote:
+> My tree is at faca89759dd7d4d87309f56cd09ae885a296fb4c and I'll try to
+> bisect.
 
-It might happen that you too have GPE storm on your machine. The patch
-to workaround it was placed in 9998 and 10724 bug reports.
-So, for a start you could check if the last patch in 9998 makes any difference.
-We probably could drop wait_event_timeout() as the last resort.
+Ok, playing with git bisect, it seems the offending commit is:
 
-Regards,
-Alex.
+50c0f43ff1199bbea5f0418d40df32f4d4029b13 is first bad commit
+commit 50c0f43ff1199bbea5f0418d40df32f4d4029b13
+Author: Andi Kleen <ak@linux.intel.com>
+Date:   Thu Sep 4 15:13:29 2008 +0200
 
-Oldrich Jedlicka wrote:
-> On Thursday 04 of September 2008 at 14:18:20, Andi Kleen wrote:
->> On Tue, Aug 26, 2008 at 01:57:34PM +0800, Zhao Yakui wrote:
->>> Subject: ACPI: Avoid bogus timeout about SMbus check
->>>
->>> >From :  Zhao Yakui <yakui.zhao@intel.com>
->>>
->>> In the function of wait_transaction_complete when the timeout happens,
->>> OS will try to check the status of SMbus again. If the status is what OS
->>> expected, it will be regarded as the bogus timeout. Otherwise it will be
->>> treated as ETIME.
->>>
->>> http://bugzilla.kernel.org/show_bug.cgi?id=10483
->> I added it for 2.6.27 thanks (since it seems to be a regression)
-> 
-> Hi all,
-> 
-> the problem in bug 10483 isn't solved, unfortunately the patch applied to 
-> 2.6.27 isn't the one I tested.
-> 
-> The problem I face is that wait_transaction_complete() in sbshc.c doesn't take 
-> at most "timeout" time (=one second), but it rather often takes very long 
-> time to complete on my system (several minutes) - notebook Acer TravelMate 
-> 4502WLMi.
-> 
-> To describe the problem I need to go into wait_event_timeout() macro as used 
-> in wait_transaction_complete(): it first calls the user method 
-> smb_check_done() to check if the loop should end and if not, it waits for at 
-> most "timeout" time. The wait can be woken-up by a wake_up() method and if 
-> so, it remembers the remaining "timeout", repeats the call to user method 
-> smb_check_done() and possibly continues with wait (with the 
-> remaining "timeout"). This is done in a loop.
-> 
-> Now my problem: the wait_event_timeout() loop takes several minutes instead of 
-> one second (as specified by the parameter "timeout"). The reason for that - as 
-> I think - is this:
-> 
->   1. The smb_check_done() method called each loop takes some time to execute, 
-> but this time is not included into the overall timeout.
->   2. The wait_event_timeout() is woken-up by smbus_alarm() very early each 
-> loop, so the remaining "timeout" gets lower very slow (I think it is so, but 
-> I haven't verified this hypothesis yet).
-> 
-> So my question is what I shoud do now? If you want to see some logs (and the 
-> original patch), please go to my bug report:
-> 
->   http://bugzilla.kernel.org/show_bug.cgi?id=10483
-> 
-> Thanks.
-> 
-> Note: I'm building my house after my normal work, so I don't have much time 
-> left, but I will do my best to try whatever you suggest. And sorry for my 
-> english :-)
-> 
-> Regards,
-> Oldrich.
-> 
+    ACPI: EC: do transaction from interrupt context
+    
+    From: Alexey Starikovskiy <astarikovskiy@suse.de>
+    
+    It is easier and faster to do transaction directly from interrupt
+context
+    rather than waking control thread.
+    Also, cleaner GPE storm avoidance is implemented.
+    
+    AK: Merged with earlier io port patch
+    
+    Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+    Signed-off-by: Andi Kleen <ak@linux.intel.com>
 
+:040000 040000 5b8664bf958e6455709348a1a52a14a92dd3119c
+7d8ecce115fec5dd1e808fc345b8724def2ad606 M      drivers
+
+Not sure exactly what the problem is, though.
+
+Cheers,
+-- 
+Yves-Alexis
