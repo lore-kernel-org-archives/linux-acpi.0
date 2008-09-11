@@ -1,66 +1,314 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: Re: the errors about two EC patches
-Date: Thu, 11 Sep 2008 17:16:19 +0800
-Message-ID: <1221124579.3989.254.camel@yakui_zhao.sh.intel.com>
-References: <1221036693.3989.175.camel@yakui_zhao.sh.intel.com>
-	 <48C7BF94.6010204@gmail.com>
-	 <1221100968.3989.224.camel@yakui_zhao.sh.intel.com>
-	 <48C8D348.6050209@gmail.com>
+From: "damion armentrout" <armentrout@gmail.com>
+Subject: dmidecode output
+Date: Thu, 11 Sep 2008 12:12:23 -0400
+Message-ID: <3808f75c0809110912g6bcd156aqf368e9587e75f5dc@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:32724 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752087AbYIKJBj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 11 Sep 2008 05:01:39 -0400
-In-Reply-To: <48C8D348.6050209@gmail.com>
+Received: from mail-gx0-f16.google.com ([209.85.217.16]:38547 "EHLO
+	mail-gx0-f16.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756199AbYIKQM1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Sep 2008 12:12:27 -0400
+Received: by gxk9 with SMTP id 9so16780601gxk.13
+        for <linux-acpi@vger.kernel.org>; Thu, 11 Sep 2008 09:12:25 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, andi@firstfloor.org, rui.zhang@intel.com
+To: linux-acpi@vger.kernel.org
 
-On Thu, 2008-09-11 at 12:14 +0400, Alexey Starikovskiy wrote:
-> >
-> > But we should investigate why EC transaction is not finished when
-> > timeout happens. Is it related with EC hardware or EC driver?
-> > If EC can't update the status register in time after issuing
-> > command/address, it is reasonable that it is regarded as timeout. If
-> > not, maybe it is related with the EC driver.
-> >
-> >   
-> We should investigate that only if we receive such timeouts.
-> This is clearly only needed for debug purposes, as no user
-> of EC driver is interested in why exactly it did not made a
-> transaction, only that it failed temporarily (as opposed to
-> -EFAIL or -ENODEV), which indicate permanent failure.
-> Thus, there is no reason to make flowchart (your favorite)
-> any more complex.
-    If the timeout is caused by that EC controller can't return response
-in time, it is reasonable that it can be regarded as -ETIME. It
-indicates that EC can't work well. 
-    But if the timeout is caused by that OS has no opportunity to issue
-the EC command set completely, IMO it is not reasonable that it is
-regarded as -ETIME. If such an error happens while turning on the FAN
-device through EC, maybe the catastrophic accident will happen.
+Hi! I hope this is useful.
 
-   Maybe it is faster to do transaction directly from interrupt context.
-But in some case EC transaction can't be processed correctly although EC
-controller works well.
-   IMO it is not very stable that OS does transaction directly from
-interrupt context.
-   
-   
-> > Based on the above analysis IMO the flow of EC transaction is quite
-> > reasonable. Of course what should be improved is how to make it
-> > reasonable when waiting whether EC status is what OS expected.
-> >
-> > Please check whether the attached is reasonable.
-> >
-> > Of course in the attached patch there is no detect mechanism of EC GPE
-> > interrupt storm.
-> >
-> >   
-> Regards,
-> Alex.
+Ubuntu 8.04, AMD Athlon Dual Core 64 X2 processors TK-53
 
+Kernel command line: root=UUID=df76798a-def3-4925-bb31-21676250cec1 ro
+noapic splash pci=routeirq acpi_osi=!Linux
+      (used noapic because machine hangs on boot without it)
+
+damion@deck:~$ sudo dmidecode
+# dmidecode 2.9
+SMBIOS 2.4 present.
+20 structures occupying 822 bytes.
+Table at 0x000F1C70.
+
+Handle 0x0000, DMI type 0, 24 bytes
+BIOS Information
+	Vendor: Hewlett-Packard
+	Version: F.37
+	Release Date: 05/31/2007
+	Address: 0xE6A20
+	Runtime Size: 103904 bytes
+	ROM Size: 1024 kB
+	Characteristics:
+		ISA is supported
+		PCI is supported
+		PNP is supported
+		BIOS is upgradeable
+		BIOS shadowing is allowed
+		ESCD support is available
+		Boot from CD is supported
+		Selectable boot is supported
+		Print screen service is supported (int 5h)
+		8042 keyboard services are supported (int 9h)
+		Serial services are supported (int 14h)
+		Printer services are supported (int 17h)
+		ACPI is supported
+		USB legacy is supported
+		AGP is supported
+		Smart battery is supported
+		BIOS boot specification is supported
+		Targeted content distribution is supported
+
+Handle 0x0001, DMI type 1, 27 bytes
+System Information
+	Manufacturer: Hewlett-Packard
+	Product Name: Presario V6000 (RX948AV)
+	Version: Rev 1
+	Serial Number: CNF724574S
+	UUID: 434E4637-3234-3537-3453-001B24463F12
+	Wake-up Type: Power Switch
+	SKU Number: RX948AV
+	Family: 103C_5335KV
+
+Handle 0x0002, DMI type 2, 8 bytes
+Base Board Information
+	Manufacturer: Quanta
+	Product Name: 30B7
+	Version: 65.28
+	Serial Number: None
+
+Handle 0x0003, DMI type 3, 17 bytes
+Chassis Information
+	Manufacturer: Quanta
+	Type: Notebook
+	Lock: Not Present
+	Version: N/A
+	Serial Number: None
+	Asset Tag:
+	Boot-up State: Safe
+	Power Supply State: Safe
+	Thermal State: Safe
+	Security Status: Unknown
+	OEM Information: 0x00000002
+
+Handle 0x0004, DMI type 4, 35 bytes
+Processor Information
+	Socket Designation: Socket S1
+	Type: Central Processor
+	Family: Opteron
+	Manufacturer: AMD
+	ID: 81 0F 06 00 FF FB 8B 17
+	Signature: Family 15, Model 104, Stepping 1
+	Flags:
+		FPU (Floating-point unit on-chip)
+		VME (Virtual mode extension)
+		DE (Debugging extension)
+		PSE (Page size extension)
+		TSC (Time stamp counter)
+		MSR (Model specific registers)
+		PAE (Physical address extension)
+		MCE (Machine check exception)
+		CX8 (CMPXCHG8 instruction supported)
+		APIC (On-chip APIC hardware supported)
+		SEP (Fast system call)
+		MTRR (Memory type range registers)
+		PGE (Page global enable)
+		MCA (Machine check architecture)
+		CMOV (Conditional move instruction supported)
+		PAT (Page attribute table)
+		PSE-36 (36-bit page size extension)
+		CLFSH (CLFLUSH instruction supported)
+		MMX (MMX technology supported)
+		FXSR (Fast floating-point save and restore)
+		SSE (Streaming SIMD extensions)
+		SSE2 (Streaming SIMD extensions 2)
+		HTT (Hyper-threading technology)
+	Version: AMD Athlon(tm) 64 X2 Mobile TK53
+	Voltage: 1.6 V
+	External Clock: 200 MHz
+	Max Speed: 1700 MHz
+	Current Speed: 1700 MHz
+	Status: Populated, Enabled
+	Upgrade: None
+	L1 Cache Handle: 0x0005
+	L2 Cache Handle: 0x0006
+	L3 Cache Handle: Not Provided
+	Serial Number: Not Specified
+	Asset Tag: Not Specified
+	Part Number: Not Specified
+
+Handle 0x0005, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: L1 Cache
+	Configuration: Enabled, Not Socketed, Level 1
+	Operational Mode: Write Back
+	Location: Internal
+	Installed Size: 64 KB
+	Maximum Size: 64 KB
+	Supported SRAM Types:
+		Burst
+		Pipeline Burst
+		Asynchronous
+	Installed SRAM Type: Asynchronous
+	Speed: Unknown
+	Error Correction Type: Unknown
+	System Type: Unknown
+	Associativity: Unknown
+
+Handle 0x0006, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: L2 Cache
+	Configuration: Enabled, Not Socketed, Level 2
+	Operational Mode: Write Through
+	Location: Internal
+	Installed Size: 512 KB
+	Maximum Size: 512 KB
+	Supported SRAM Types:
+		Burst
+		Pipeline Burst
+		Synchronous
+	Installed SRAM Type: Synchronous
+	Speed: Unknown
+	Error Correction Type: Unknown
+	System Type: Unified
+	Associativity: Unknown
+
+Handle 0x0007, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PCI Express Slot 1
+	Type: 64-bit PCI Express
+	Current Usage: Available
+	Length: Short
+	ID: 0
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+
+Handle 0x0008, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PCI Express Slot 2
+	Type: 64-bit PCI Express
+	Current Usage: Available
+	Length: Short
+	ID: 0
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+		PME signal is supported
+		Hot-plug devices are supported
+
+Handle 0x0009, DMI type 10, 6 bytes
+On Board Device Information
+	Type: Video
+	Status: Enabled
+	Description:  64
+
+Handle 0x000A, DMI type 11, 5 bytes
+OEM Strings
+	String 1: $HP$
+	String 2: LOC#ABA
+
+Handle 0x000B, DMI type 15, 29 bytes
+System Event Log
+	Area Length: 16 bytes
+	Header Start Offset: 0x0000
+	Header Length: 16 bytes
+	Data Start Offset: 0x0010
+	Access Method: General-purpose non-volatile data functions
+	Access Address: 0x0000
+	Status: Valid, Not Full
+	Change Token: 0x000000AF
+	Header Format: Type 1
+	Supported Log Type Descriptors: 3
+	Descriptor 1: POST error
+	Data Format 1: POST results bitmap
+	Descriptor 2: Single-bit ECC memory error
+	Data Format 2: Multiple-event
+	Descriptor 3: Multi-bit ECC memory error
+	Data Format 3: Multiple-event
+
+Handle 0x000C, DMI type 16, 15 bytes
+Physical Memory Array
+	Location: System Board Or Motherboard
+	Use: System Memory
+	Error Correction Type: None
+	Maximum Capacity: 2 GB
+	Error Information Handle: Not Provided
+	Number Of Devices: 2
+
+Handle 0x000D, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x000C
+	Error Information Handle: No Error
+	Total Width: 64 bits
+	Data Width: 64 bits
+	Size: 512 MB
+	Form Factor: DIMM
+	Set: 1
+	Locator: DIMM 1
+	Bank Locator: Bank 0,1
+	Type: DDR2
+	Type Detail: Synchronous
+	Speed: 667 MHz (1.5 ns)
+	Manufacturer: EC00000000000000
+	Serial Number: 2756F9B5
+	Asset Tag: Not Specified
+	Part Number: M4 70T6554EZ3-CE6
+
+Handle 0x000E, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x000C
+	Error Information Handle: No Error
+	Total Width: 64 bits
+	Data Width: 64 bits
+	Size: 512 MB
+	Form Factor: DIMM
+	Set: 1
+	Locator: DIMM 2
+	Bank Locator: Bank 2,3
+	Type: DDR2
+	Type Detail: Unknown
+	Speed: 667 MHz (1.5 ns)
+	Manufacturer: EC00000000000000
+	Serial Number: 27561A6F
+	Asset Tag: Not Specified
+	Part Number: M4 70T6554EZ3-CE6
+
+Handle 0x000F, DMI type 19, 15 bytes
+Memory Array Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x0003FFFFFFF
+	Range Size: 1 GB
+	Physical Array Handle: 0x000C
+	Partition Width: 0
+
+Handle 0x0010, DMI type 20, 19 bytes
+Memory Device Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x0001FFFFFFF
+	Range Size: 512 MB
+	Physical Device Handle: 0x000D
+	Memory Array Mapped Address Handle: 0x000F
+	Partition Row Position: 2
+	Interleave Position: 2
+	Interleaved Data Depth: 2
+
+Handle 0x0011, DMI type 20, 19 bytes
+Memory Device Mapped Address
+	Starting Address: 0x00020000000
+	Ending Address: 0x0003FFFFFFF
+	Range Size: 512 MB
+	Physical Device Handle: 0x000E
+	Memory Array Mapped Address Handle: 0x000F
+	Partition Row Position: 2
+	Interleave Position: 2
+	Interleaved Data Depth: 2
+
+Handle 0x0012, DMI type 32, 20 bytes
+System Boot Information
+	Status: <OUT OF SPEC>
+
+Handle 0x0013, DMI type 127, 4 bytes
+End Of Table
+
+damion@deck:~$
