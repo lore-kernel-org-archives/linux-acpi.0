@@ -1,53 +1,57 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH] ACPI: don't enable control method power button as wakeup
-	device when Fixed Power button is used
-Date: Fri, 12 Sep 2008 11:12:25 +0800
-Message-ID: <1221189145.3441.117.camel@rzhang-dt>
+From: Matthew Wilcox <matthew@wil.cx>
+Subject: Re: [PATCH] acpiphp: Match the variable types for ia64
+Date: Fri, 12 Sep 2008 12:32:13 -0600
+Message-ID: <20080912183213.GH10844@parisc-linux.org>
+References: <200510232100.j9NL0MWA030225@shell0.pdx.osdl.net> <20080910002011.GF2772@parisc-linux.org> <20080910074940.GA12737@ldl.fc.hp.com> <200809101103.55222.jbarnes@virtuousgeek.org> <B57D568CB82B0C4B897F9CD9862DE8B733A328DF9E@GVW1097EXB.americas.hpqcorp.net> <20080911104345.GL2772@parisc-linux.org> <B57D568CB82B0C4B897F9CD9862DE8B733A328E8E0@GVW1097EXB.americas.hpqcorp.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:34724 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752013AbYILDMn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 11 Sep 2008 23:12:43 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <B57D568CB82B0C4B897F9CD9862DE8B733A328E8E0@GVW1097EXB.americas.hpqcorp.net>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Chen, Justin" <justin.chen@hp.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, "Chiang, Alexander" <achiang@hp.com>, "kristen.c.accardi@intel.com" <kristen.c.accardi@intel.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, walken@zoy.org
 
-don't enable control method power button as wakeup device
-when Fixed Power button is used.
+On Fri, Sep 12, 2008 at 05:03:50PM +0000, Chen, Justin wrote:
+> >>                 slot->device = device;
+> >> -               slot->sun = sun;
+> >> +               slot->sun = (u64) sun;
+> >
+> >No ... the right thing to do here is make the local variable
+> >'sun' a u64.  adr ought to be a u32, not an unsigned long.
+> 
+> If I understand your concern right, you want to change the local
+> variable 'sun' in the routine register_slot() in the file acpiphp_glue.c
+> from unsigned long to u64.  If that's the case, it will introduce the
+> other issue that since the 'sun' is passed as the argument 4 of the
+> routine acpi_evaluate_integer() and it is taking the unsigned long,
+> what's the point to define 'sun' in u64?
 
-http://bugzilla.kernel.org/show_bug.cgi?id=10503
+Ooh, I think you've found a bug in the ACPI-CA.
 
+Consider this:
 
-Tested-by: walken@zoy.org <walken@zoy.org>
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- drivers/acpi/scan.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+/*
+ * Acpi integer width. In ACPI version 1, integers are 32 bits.  In ACPI
+ * version 2, integers are 64 bits. Note that this pertains to the ACPI integer
+ * type only, not other integers used in the implementation of the ACPI CA
+ * subsystem.
+ */
+typedef unsigned long long acpi_integer;
 
-Index: linux-2.6/drivers/acpi/scan.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/scan.c	2008-09-11 13:28:11.000000000 +0800
-+++ linux-2.6/drivers/acpi/scan.c	2008-09-11 15:12:12.000000000 +0800
-@@ -744,6 +744,16 @@
- 	if (!acpi_match_device_ids(device, button_device_ids))
- 		device->wakeup.flags.run_wake = 1;
- 
-+	/*
-+	 * Don't set Power button GPE as run_wake
-+	 * if Fixed Power button is used
-+	 */
-+	if (!strcmp(device->pnp.hardware_id, "PNP0C0C") &&
-+		!(acpi_gbl_FADT.flags & ACPI_FADT_POWER_BUTTON)) {
-+		device->wakeup.flags.run_wake = 0;
-+		device->wakeup.flags.valid = 0;
-+	}
-+
-       end:
- 	if (ACPI_FAILURE(status))
- 		device->flags.wake_capable = 0;
+and compare and contrast it with this:
 
+acpi_status
+acpi_evaluate_integer(acpi_handle handle,
+                      acpi_string pathname,
+                      struct acpi_object_list *arguments, unsigned long *data);
 
+I would argue 'data' should be an 'acpi_integer *', not an 'unsigned long *'
+Len?
+
+-- 
+Matthew Wilcox				Intel Open Source Technology Centre
+"Bill, look, we understand that you're interested in selling us this
+operating system, but compare it to ours.  We can't possibly take such
+a retrograde step."
