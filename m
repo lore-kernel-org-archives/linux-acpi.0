@@ -1,62 +1,224 @@
-From: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC] acer-wmi: Add rfkill support for wireless and bluetooth
-	(v4)
-Date: Fri, 12 Sep 2008 16:43:09 -0400
-Message-ID: <20080912164039.ZZRA012@mailhub.coreip.homeip.net>
-References: <200808301206.56279.carlos@strangeworlds.co.uk> <200809071813.23730.carlos@strangeworlds.co.uk> <20080908032953.GA26459@khazad-dum.debian.net> <200809122044.27418.carlos@strangeworlds.co.uk>
+From: Carlos Corbacho <carlos-8YloKY0SPvpS8uBCpOlSjPXRex20P6io@public.gmane.org>
+Subject: [RFC] acer-wmi: Add rfkill support for wireless and bluetooth (v5)
+Date: Fri, 12 Sep 2008 23:04:19 +0100
+Message-ID: <200809122304.21000.carlos@strangeworlds.co.uk>
+References: <200808301206.56279.carlos@strangeworlds.co.uk> <200809122044.27418.carlos@strangeworlds.co.uk> <20080912164039.ZZRA012@mailhub.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20080912164039.ZZRA012-NG0XCrj25/nJrYCpivWRnl5pS2h4L8biXqFh9Ls21Oc@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <200809122044.27418.carlos-8YloKY0SPvpS8uBCpOlSjPXRex20P6io@public.gmane.org>
 Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Carlos Corbacho <carlos-8YloKY0SPvpS8uBCpOlSjPXRex20P6io@public.gmane.org>
+To: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Cc: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ivo van Doorn <ivdoorn-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Carlos,
+This patch implements rfkill support for the wireless and bluetooth devices
+commonly found on Acer laptops.
 
-On Fri, Sep 12, 2008 at 08:44:26PM +0100, Carlos Corbacho wrote:
-> +
-> +static int acer_rfkill_register(struct device *dev, struct rfkill **rfkill_dev,
-> +enum rfkill_type type, char *name, u32 cap)
-> +{
-> +	int err;
-> +	u32 state;
-> +	u32 *data;
-> +
-> +	*rfkill_dev = rfkill_allocate(dev, type);
-> +	if (!*rfkill_dev)
-> +		return -ENOMEM;
-> +	(*rfkill_dev)->name = name;
-> +	get_u32(&state, cap);
-> +	(*rfkill_dev)->state = state ? RFKILL_STATE_UNBLOCKED :
-> +		RFKILL_STATE_SOFT_BLOCKED;
-> +	data = kzalloc(sizeof(u32), GFP_KERNEL);
-> +	if (!data) {
-> +		rfkill_free(*rfkill_dev);
-> +		return -ENOMEM;
-> +	}
-> +	*data = cap;
-> +	(*rfkill_dev)->data = data;
-> +	(*rfkill_dev)->toggle_radio = acer_rfkill_set;
-> +	(*rfkill_dev)->user_claim_unsupported = 1;
-> +
-> +	err = rfkill_register(*rfkill_dev);
-> +	if (err) {
-> +		kfree((*rfkill_dev)->data);
-> +		rfkill_free(*rfkill_dev);
-> +		return err;
-> +	}
-> +	return 0;
-> +}
-> +
+For now, we will always poll these devices once a second to guarantee we can
+catch state changes. On newer Acer laptops, it may be possible to rely on WMI
+events to do this instead, and experimental support for this will be added in
+a later patch.
 
-Sorry if I am late to the party but this function is best to have
-'struct rfkill *' return value and use ERR_PTR() to signal errors.
+3G has been deliberately left off for now, as we still have no way to detect
+it, (nor, AFAIK, has any Linux user tried the code) and on laptops that don't
+support 3G, trying to poll for the status will leave the logs full of ACPI
+tracebacks.
 
--- 
-Dmitry
+The old sysfs interface for wireless and 3G will be removed in a later patch.
+
+Signed-off-by: Carlos Corbacho <carlos-8YloKY0SPvpS8uBCpOlSjPXRex20P6io@public.gmane.org>
+---
+
+ drivers/misc/Kconfig    |    1 
+ drivers/misc/acer-wmi.c |  130 +++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 130 insertions(+), 1 deletions(-)
+
+
+diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+index a726f3b..6abb959 100644
+--- a/drivers/misc/Kconfig
++++ b/drivers/misc/Kconfig
+@@ -145,6 +145,7 @@ config ACER_WMI
+ 	depends on NEW_LEDS
+ 	depends on BACKLIGHT_CLASS_DEVICE
+ 	depends on SERIO_I8042
++	depends on RFKILL
+ 	select ACPI_WMI
+ 	---help---
+ 	  This is a driver for newer Acer (and Wistron) laptops. It adds
+diff --git a/drivers/misc/acer-wmi.c b/drivers/misc/acer-wmi.c
+index b2d9878..11263f0 100644
+--- a/drivers/misc/acer-wmi.c
++++ b/drivers/misc/acer-wmi.c
+@@ -33,6 +33,8 @@
+ #include <linux/platform_device.h>
+ #include <linux/acpi.h>
+ #include <linux/i8042.h>
++#include <linux/rfkill.h>
++#include <linux/workqueue.h>
+ #include <linux/debugfs.h>
+ 
+ #include <acpi/acpi_drivers.h>
+@@ -157,6 +159,9 @@ struct acer_debug {
+ 	u32 wmid_devices;
+ };
+ 
++static struct rfkill *wireless_rfkill;
++static struct rfkill *bluetooth_rfkill;
++
+ /* Each low-level interface must define at least some of the following */
+ struct wmi_interface {
+ 	/* The WMI device type */
+@@ -930,6 +935,125 @@ static void acer_backlight_exit(void)
+ }
+ 
+ /*
++ * Rfkill devices
++ */
++static struct workqueue_struct *rfkill_workqueue;
++
++static void acer_rfkill_update(struct work_struct *ignored);
++static DECLARE_DELAYED_WORK(acer_rfkill_work, acer_rfkill_update);
++static void acer_rfkill_update(struct work_struct *ignored)
++{
++	u32 state;
++	acpi_status status;
++
++	status = get_u32(&state, ACER_CAP_WIRELESS);
++	if (ACPI_SUCCESS(status))
++		rfkill_force_state(wireless_rfkill, state ?
++			RFKILL_STATE_UNBLOCKED : RFKILL_STATE_SOFT_BLOCKED);
++
++	if (has_cap(ACER_CAP_BLUETOOTH)) {
++		status = get_u32(&state, ACER_CAP_BLUETOOTH);
++		if (ACPI_SUCCESS(status))
++			rfkill_force_state(bluetooth_rfkill, state ?
++				RFKILL_STATE_UNBLOCKED :
++				RFKILL_STATE_SOFT_BLOCKED);
++	}
++
++	queue_delayed_work(rfkill_workqueue, &acer_rfkill_work,
++		round_jiffies_relative(HZ));
++}
++
++static int acer_rfkill_set(void *data, enum rfkill_state state)
++{
++	acpi_status status;
++	u32 *cap = data;
++	status = set_u32((u32) (state == RFKILL_STATE_UNBLOCKED), *cap);
++	if (ACPI_FAILURE(status))
++		return -ENODEV;
++	return 0;
++}
++
++static struct rfkill * acer_rfkill_register(struct device *dev,
++enum rfkill_type type, char *name, u32 cap)
++{
++	int err;
++	u32 state;
++	u32 *data;
++	struct rfkill *rfkill_dev;
++
++	rfkill_dev = rfkill_allocate(dev, type);
++	if (!rfkill_dev)
++		return ERR_PTR(-ENOMEM);
++	rfkill_dev->name = name;
++	get_u32(&state, cap);
++	rfkill_dev->state = state ? RFKILL_STATE_UNBLOCKED :
++		RFKILL_STATE_SOFT_BLOCKED;
++	data = kzalloc(sizeof(u32), GFP_KERNEL);
++	if (!data) {
++		rfkill_free(rfkill_dev);
++		return ERR_PTR(-ENOMEM);
++	}
++	*data = cap;
++	rfkill_dev->data = data;
++	rfkill_dev->toggle_radio = acer_rfkill_set;
++	rfkill_dev->user_claim_unsupported = 1;
++
++	err = rfkill_register(rfkill_dev);
++	if (err) {
++		kfree(rfkill_dev->data);
++		rfkill_free(rfkill_dev);
++		return ERR_PTR(err);
++	}
++	return rfkill_dev;
++}
++
++static int acer_rfkill_init(struct device *dev)
++{
++	wireless_rfkill = acer_rfkill_register(dev, RFKILL_TYPE_WLAN,
++		"acer-wireless", ACER_CAP_WIRELESS);
++	if (IS_ERR(wireless_rfkill))
++		return PTR_ERR(wireless_rfkill);
++
++	if (has_cap(ACER_CAP_BLUETOOTH)) {
++		bluetooth_rfkill = acer_rfkill_register(dev,
++			RFKILL_TYPE_BLUETOOTH, "acer-bluetooth",
++			ACER_CAP_BLUETOOTH);
++		if (IS_ERR(bluetooth_rfkill)) {
++			kfree(wireless_rfkill->data);
++			rfkill_unregister(wireless_rfkill);
++			return PTR_ERR(bluetooth_rfkill);
++		}
++	}
++
++	rfkill_workqueue = create_singlethread_workqueue("rfkill_workqueue");
++	if (!rfkill_workqueue) {
++		if (has_cap(ACER_CAP_BLUETOOTH)) {
++			kfree(bluetooth_rfkill->data);
++			rfkill_unregister(bluetooth_rfkill);
++		}
++		kfree(wireless_rfkill->data);
++		rfkill_unregister(wireless_rfkill);
++		return -ENOMEM;
++	}
++	queue_delayed_work(rfkill_workqueue, &acer_rfkill_work, HZ);
++
++	return 0;
++}
++
++static void acer_rfkill_exit(void)
++{
++	cancel_delayed_work_sync(&acer_rfkill_work);
++	destroy_workqueue(rfkill_workqueue);
++	kfree(wireless_rfkill->data);
++	rfkill_unregister(wireless_rfkill);
++	if (has_cap(ACER_CAP_BLUETOOTH)) {
++		kfree(wireless_rfkill->data);
++		rfkill_unregister(bluetooth_rfkill);
++	}
++	return;
++}
++
++/*
+  * Read/ write bool sysfs macro
+  */
+ #define show_set_bool(value, cap) \
+@@ -1023,7 +1147,9 @@ static int __devinit acer_platform_probe(struct platform_device *device)
+ 			goto error_brightness;
+ 	}
+ 
+-	return 0;
++	err = acer_rfkill_init(&device->dev);
++
++	return err;
+ 
+ error_brightness:
+ 	acer_led_exit();
+@@ -1037,6 +1163,8 @@ static int acer_platform_remove(struct platform_device *device)
+ 		acer_led_exit();
+ 	if (has_cap(ACER_CAP_BRIGHTNESS))
+ 		acer_backlight_exit();
++
++	acer_rfkill_exit();
+ 	return 0;
+ }
+ 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
