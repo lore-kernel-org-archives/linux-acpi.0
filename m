@@ -1,93 +1,53 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: Re: [PATCH] ACPI : Avoid bogus timeout about SMbus check
-Date: Fri, 12 Sep 2008 09:38:49 +0800
-Message-ID: <1221183530.3989.271.camel@yakui_zhao.sh.intel.com>
-References: <1219730254.4116.38.camel@yakui_zhao.sh.intel.com>
-	 <20080904121820.GC18288@one.firstfloor.org>
-	 <200809112149.43894.oldium.pro@seznam.cz>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [PATCH] ACPI: don't enable control method power button as wakeup
+	device when Fixed Power button is used
+Date: Fri, 12 Sep 2008 11:12:25 +0800
+Message-ID: <1221189145.3441.117.camel@rzhang-dt>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:5792 "EHLO mga11.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:34724 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752305AbYILBYG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 11 Sep 2008 21:24:06 -0400
-In-Reply-To: <200809112149.43894.oldium.pro@seznam.cz>
+	id S1752013AbYILDMn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 11 Sep 2008 23:12:43 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Oldrich Jedlicka <oldium.pro@seznam.cz>
-Cc: Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, lenb@kernel.org, astarikovskiy@suse.de
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, walken@zoy.org
 
-On Thu, 2008-09-11 at 21:49 +0200, Oldrich Jedlicka wrote:
-> On Thursday 04 of September 2008 at 14:18:20, Andi Kleen wrote:
-> > On Tue, Aug 26, 2008 at 01:57:34PM +0800, Zhao Yakui wrote:
-> > > Subject: ACPI: Avoid bogus timeout about SMbus check
-> > >
-> > > >From :  Zhao Yakui <yakui.zhao@intel.com>
-> > >
-> > > In the function of wait_transaction_complete when the timeout happens,
-> > > OS will try to check the status of SMbus again. If the status is what OS
-> > > expected, it will be regarded as the bogus timeout. Otherwise it will be
-> > > treated as ETIME.
-> > >
-> > > http://bugzilla.kernel.org/show_bug.cgi?id=10483
-> >
-> > I added it for 2.6.27 thanks (since it seems to be a regression)
-> 
-> Hi all,
-> 
-> the problem in bug 10483 isn't solved, unfortunately the patch applied to 
-> 2.6.27 isn't the one I tested.
-> 
-> The problem I face is that wait_transaction_complete() in sbshc.c doesn't take 
-> at most "timeout" time (=one second), but it rather often takes very long 
-> time to complete on my system (several minutes) - notebook Acer TravelMate 
-> 4502WLMi.
-> To describe the problem I need to go into wait_event_timeout() macro as used 
-> in wait_transaction_complete(): it first calls the user method 
-> smb_check_done() to check if the loop should end and if not, it waits for at 
-> most "timeout" time. The wait can be woken-up by a wake_up() method and if 
-> so, it remembers the remaining "timeout", repeats the call to user method 
-> smb_check_done() and possibly continues with wait (with the 
-> remaining "timeout"). This is done in a loop.
-> 
-> Now my problem: the wait_event_timeout() loop takes several minutes instead of 
-> one second (as specified by the parameter "timeout"). The reason for that - as 
-> I think - is this:
-> 
->   1. The smb_check_done() method called each loop takes some time to execute, 
-> but this time is not included into the overall timeout.
-What you said is right. It will take some time to execute the function
-of smb_check_done. When the ec_read is called in smb_check_done, maybe
-it will also sleep for some time in ec_read. But this time is not
-accounted into the overall timeout.
-Please use the following mechanism to replace the wait_event_timeout.
+don't enable control method power button as wakeup device
+when Fixed Power button is used.
 
-	unsigned long delay = jiffies + msecs_to_jiffies(timeout);
+http://bugzilla.kernel.org/show_bug.cgi?id=10503
 
-	while (time_before(jiffies, delay)) {
-		if (smb_check_done(hc))
-			return 0;
-		msleep(1);
-	}
->   2. The wait_event_timeout() is woken-up by smbus_alarm() very early each 
-> loop, so the remaining "timeout" gets lower very slow (I think it is so, but 
-> I haven't verified this hypothesis yet).
 
-> 
-> So my question is what I shoud do now? If you want to see some logs (and the 
-> original patch), please go to my bug report:
-> 
->   http://bugzilla.kernel.org/show_bug.cgi?id=10483
-> 
-> Thanks.
-> 
-> Note: I'm building my house after my normal work, so I don't have much time 
-> left, but I will do my best to try whatever you suggest. And sorry for my 
-> english :-)
-> 
-> Regards,
-> Oldrich.
-> 
+Tested-by: walken@zoy.org <walken@zoy.org>
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ drivers/acpi/scan.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+Index: linux-2.6/drivers/acpi/scan.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/scan.c	2008-09-11 13:28:11.000000000 +0800
++++ linux-2.6/drivers/acpi/scan.c	2008-09-11 15:12:12.000000000 +0800
+@@ -744,6 +744,16 @@
+ 	if (!acpi_match_device_ids(device, button_device_ids))
+ 		device->wakeup.flags.run_wake = 1;
+ 
++	/*
++	 * Don't set Power button GPE as run_wake
++	 * if Fixed Power button is used
++	 */
++	if (!strcmp(device->pnp.hardware_id, "PNP0C0C") &&
++		!(acpi_gbl_FADT.flags & ACPI_FADT_POWER_BUTTON)) {
++		device->wakeup.flags.run_wake = 0;
++		device->wakeup.flags.valid = 0;
++	}
++
+       end:
+ 	if (ACPI_FAILURE(status))
+ 		device->flags.wake_capable = 0;
+
 
