@@ -1,92 +1,226 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] acpiphp: Match the variable types for ia64
-Date: Fri, 12 Sep 2008 12:12:42 -0700
-Message-ID: <4911F71203A09E4D9981D27F9D8308584E454A@orsmsx503.amr.corp.intel.com>
-References: <200510232100.j9NL0MWA030225@shell0.pdx.osdl.net>
- <20080910002011.GF2772@parisc-linux.org>
- <20080910074940.GA12737@ldl.fc.hp.com>
- <200809101103.55222.jbarnes@virtuousgeek.org>
- <B57D568CB82B0C4B897F9CD9862DE8B733A328DF9E@GVW1097EXB.americas.hpqcorp.net>
- <20080911104345.GL2772@parisc-linux.org>
- <B57D568CB82B0C4B897F9CD9862DE8B733A328E8E0@GVW1097EXB.americas.hpqcorp.net>
- <20080912183213.GH10844@parisc-linux.org>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: [RFC] acer-wmi: Add rfkill support for wireless and bluetooth (v4)
+Date: Fri, 12 Sep 2008 20:44:26 +0100
+Message-ID: <200809122044.27418.carlos@strangeworlds.co.uk>
+References: <200808301206.56279.carlos@strangeworlds.co.uk> <200809071813.23730.carlos@strangeworlds.co.uk> <20080908032953.GA26459@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20080912183213.GH10844@parisc-linux.org>
-Content-Language: en-US
-Sender: linux-pci-owner@vger.kernel.org
-To: Matthew Wilcox <matthew@wil.cx>, "Chen, Justin" <justin.chen@hp.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, "Chiang, Alexander" <achiang@hp.com>, "Accardi, Kristen C" <kristen.c.accardi@intel.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>, "Lin, Ming M" <ming.m.lin@intel.com>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from phoenix.slamd64.com ([217.10.145.2]:48688 "EHLO
+	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752013AbYILToe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Sep 2008 15:44:34 -0400
+In-Reply-To: <20080908032953.GA26459@khazad-dum.debian.net>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: linux-acpi@vger.kernel.org, linux-wireless@vger.kernel.org, Ivo van Doorn <ivdoorn@gmail.com>
 
->acpi_status
->acpi_evaluate_integer(acpi_handle handle,
->                      acpi_string pathname,
->                      struct acpi_object_list *arguments, unsigned long
+This patch implements rfkill support for the wireless and bluetooth devices
+commonly found on Acer laptops.
 
-This is not an ACPICA interface, it is local to Linux (drivers/acpi/utils.c)
+For now, we will always poll these devices once a second to guarantee we can
+catch state changes. On newer Acer laptops, it may be possible to rely on WMI
+events to do this instead, and experimental support for this will be added in
+a later patch.
 
-It should be a pointer to a 64-bit number always. acpi_integer * works well.
+3G has been deliberately left off for now, as we still have no way to detect
+it, (nor, AFAIK, has any Linux user tried the code) and on laptops that don't
+support 3G, trying to poll for the status will leave the logs full of ACPI
+tracebacks.
 
-Bob
+The old sysfs interface for wireless and 3G will be removed in a later patch.
 
->-----Original Message-----
->From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
->owner@vger.kernel.org] On Behalf Of Matthew Wilcox
->Sent: Friday, September 12, 2008 11:32 AM
->To: Chen, Justin
->Cc: Jesse Barnes; Chiang, Alexander; Accardi, Kristen C; linux-
->pci@vger.kernel.org; linux-acpi@vger.kernel.org; Brown, Len
->Subject: Re: [PATCH] acpiphp: Match the variable types for ia64
->
->On Fri, Sep 12, 2008 at 05:03:50PM +0000, Chen, Justin wrote:
->> >>                 slot->device = device;
->> >> -               slot->sun = sun;
->> >> +               slot->sun = (u64) sun;
->> >
->> >No ... the right thing to do here is make the local variable
->> >'sun' a u64.  adr ought to be a u32, not an unsigned long.
->>
->> If I understand your concern right, you want to change the local
->> variable 'sun' in the routine register_slot() in the file acpiphp_glue.c
->> from unsigned long to u64.  If that's the case, it will introduce the
->> other issue that since the 'sun' is passed as the argument 4 of the
->> routine acpi_evaluate_integer() and it is taking the unsigned long,
->> what's the point to define 'sun' in u64?
->
->Ooh, I think you've found a bug in the ACPI-CA.
->
->Consider this:
->
->/*
-> * Acpi integer width. In ACPI version 1, integers are 32 bits.  In ACPI
-> * version 2, integers are 64 bits. Note that this pertains to the ACPI
->integer
-> * type only, not other integers used in the implementation of the ACPI CA
-> * subsystem.
-> */
->typedef unsigned long long acpi_integer;
->
->and compare and contrast it with this:
->
->acpi_status
->acpi_evaluate_integer(acpi_handle handle,
->                      acpi_string pathname,
->                      struct acpi_object_list *arguments, unsigned long
->*data);
->
->I would argue 'data' should be an 'acpi_integer *', not an 'unsigned long
->*'
->Len?
->
->--
->Matthew Wilcox                          Intel Open Source Technology Centre
->"Bill, look, we understand that you're interested in selling us this
->operating system, but compare it to ours.  We can't possibly take such
->a retrograde step."
->--
->To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
+---
+
+ drivers/misc/Kconfig    |    1 
+ drivers/misc/acer-wmi.c |  131 +++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 131 insertions(+), 1 deletions(-)
+
+
+diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+index a726f3b..6abb959 100644
+--- a/drivers/misc/Kconfig
++++ b/drivers/misc/Kconfig
+@@ -145,6 +145,7 @@ config ACER_WMI
+ 	depends on NEW_LEDS
+ 	depends on BACKLIGHT_CLASS_DEVICE
+ 	depends on SERIO_I8042
++	depends on RFKILL
+ 	select ACPI_WMI
+ 	---help---
+ 	  This is a driver for newer Acer (and Wistron) laptops. It adds
+diff --git a/drivers/misc/acer-wmi.c b/drivers/misc/acer-wmi.c
+index b2d9878..3da0a69 100644
+--- a/drivers/misc/acer-wmi.c
++++ b/drivers/misc/acer-wmi.c
+@@ -33,6 +33,8 @@
+ #include <linux/platform_device.h>
+ #include <linux/acpi.h>
+ #include <linux/i8042.h>
++#include <linux/rfkill.h>
++#include <linux/workqueue.h>
+ #include <linux/debugfs.h>
+ 
+ #include <acpi/acpi_drivers.h>
+@@ -157,6 +159,9 @@ struct acer_debug {
+ 	u32 wmid_devices;
+ };
+ 
++static struct rfkill *wireless_rfkill;
++static struct rfkill *bluetooth_rfkill;
++
+ /* Each low-level interface must define at least some of the following */
+ struct wmi_interface {
+ 	/* The WMI device type */
+@@ -930,6 +935,126 @@ static void acer_backlight_exit(void)
+ }
+ 
+ /*
++ * Rfkill devices
++ */
++static struct workqueue_struct *rfkill_workqueue;
++
++static void acer_rfkill_update(struct work_struct *ignored);
++static DECLARE_DELAYED_WORK(acer_rfkill_work, acer_rfkill_update);
++static void acer_rfkill_update(struct work_struct *ignored)
++{
++	u32 state;
++	acpi_status status;
++
++	status = get_u32(&state, ACER_CAP_WIRELESS);
++	if (ACPI_SUCCESS(status))
++		rfkill_force_state(wireless_rfkill, state ?
++			RFKILL_STATE_UNBLOCKED : RFKILL_STATE_SOFT_BLOCKED);
++
++	if (has_cap(ACER_CAP_BLUETOOTH)) {
++		status = get_u32(&state, ACER_CAP_BLUETOOTH);
++		if (ACPI_SUCCESS(status))
++			rfkill_force_state(bluetooth_rfkill, state ?
++				RFKILL_STATE_UNBLOCKED :
++				RFKILL_STATE_SOFT_BLOCKED);
++	}
++
++	queue_delayed_work(rfkill_workqueue, &acer_rfkill_work,
++		round_jiffies_relative(HZ));
++}
++
++static int acer_rfkill_set(void *data, enum rfkill_state state)
++{
++	acpi_status status;
++	u32 *cap = data;
++	status = set_u32((u32) (state == RFKILL_STATE_UNBLOCKED), *cap);
++	if (ACPI_FAILURE(status))
++		return -ENODEV;
++	return 0;
++}
++
++static int acer_rfkill_register(struct device *dev, struct rfkill **rfkill_dev,
++enum rfkill_type type, char *name, u32 cap)
++{
++	int err;
++	u32 state;
++	u32 *data;
++
++	*rfkill_dev = rfkill_allocate(dev, type);
++	if (!*rfkill_dev)
++		return -ENOMEM;
++	(*rfkill_dev)->name = name;
++	get_u32(&state, cap);
++	(*rfkill_dev)->state = state ? RFKILL_STATE_UNBLOCKED :
++		RFKILL_STATE_SOFT_BLOCKED;
++	data = kzalloc(sizeof(u32), GFP_KERNEL);
++	if (!data) {
++		rfkill_free(*rfkill_dev);
++		return -ENOMEM;
++	}
++	*data = cap;
++	(*rfkill_dev)->data = data;
++	(*rfkill_dev)->toggle_radio = acer_rfkill_set;
++	(*rfkill_dev)->user_claim_unsupported = 1;
++
++	err = rfkill_register(*rfkill_dev);
++	if (err) {
++		kfree((*rfkill_dev)->data);
++		rfkill_free(*rfkill_dev);
++		return err;
++	}
++	return 0;
++}
++
++static int acer_rfkill_init(struct device *dev)
++{
++	int err;
++
++	err = acer_rfkill_register(dev, &wireless_rfkill, RFKILL_TYPE_WLAN,
++		"acer-wireless", ACER_CAP_WIRELESS);
++	if (err)
++		return err;
++
++	if (has_cap(ACER_CAP_BLUETOOTH)) {
++		err = acer_rfkill_register(dev, &bluetooth_rfkill,
++			RFKILL_TYPE_BLUETOOTH, "acer-bluetooth",
++			ACER_CAP_BLUETOOTH);
++		if (err) {
++			kfree(wireless_rfkill->data);
++			rfkill_unregister(wireless_rfkill);
++			return err;
++		}
++	}
++
++	rfkill_workqueue = create_singlethread_workqueue("rfkill_workqueue");
++	if (!rfkill_workqueue) {
++		if (has_cap(ACER_CAP_BLUETOOTH)) {
++			kfree(bluetooth_rfkill->data);
++			rfkill_unregister(bluetooth_rfkill);
++		}
++		kfree(wireless_rfkill->data);
++		rfkill_unregister(wireless_rfkill);
++		return -ENOMEM;
++	}
++	queue_delayed_work(rfkill_workqueue, &acer_rfkill_work, HZ);
++
++	return 0;
++}
++
++static void acer_rfkill_exit(void)
++{
++	cancel_delayed_work_sync(&acer_rfkill_work);
++	destroy_workqueue(rfkill_workqueue);
++	kfree(wireless_rfkill->data);
++	rfkill_unregister(wireless_rfkill);
++	if (has_cap(ACER_CAP_BLUETOOTH)) {
++		kfree(wireless_rfkill->data);
++		rfkill_unregister(bluetooth_rfkill);
++	}
++	return;
++}
++
++/*
+  * Read/ write bool sysfs macro
+  */
+ #define show_set_bool(value, cap) \
+@@ -1023,7 +1148,9 @@ static int __devinit acer_platform_probe(struct platform_device *device)
+ 			goto error_brightness;
+ 	}
+ 
+-	return 0;
++	err = acer_rfkill_init(&device->dev);
++
++	return err;
+ 
+ error_brightness:
+ 	acer_led_exit();
+@@ -1037,6 +1164,8 @@ static int acer_platform_remove(struct platform_device *device)
+ 		acer_led_exit();
+ 	if (has_cap(ACER_CAP_BRIGHTNESS))
+ 		acer_backlight_exit();
++
++	acer_rfkill_exit();
+ 	return 0;
+ }
+ 
