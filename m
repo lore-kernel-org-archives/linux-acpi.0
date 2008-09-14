@@ -1,28 +1,45 @@
-From: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC] acer-wmi: Add rfkill support for wireless and bluetooth
-	(v5)
-Date: Sun, 14 Sep 2008 08:18:02 -0400
-Message-ID: <20080914121800.GA5321@amd.corenet.prb>
-References: <200808301206.56279.carlos@strangeworlds.co.uk> <200809122044.27418.carlos@strangeworlds.co.uk> <20080912164039.ZZRA012@mailhub.coreip.homeip.net> <200809122304.21000.carlos@strangeworlds.co.uk>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: Subject: [PATCH] linux-acpi: smp_alternatives sleeping in
+	spinlock
+Date: Sun, 14 Sep 2008 15:18:18 +0200
+Message-ID: <20080914131818.GA30643@elte.hu>
+References: <5d96567b0809130652i7bc86cbfv6cdc103f595e1e11@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx2.mail.elte.hu ([157.181.151.9]:40898 "EHLO mx2.mail.elte.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753399AbYINNSe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 14 Sep 2008 09:18:34 -0400
 Content-Disposition: inline
-In-Reply-To: <200809122304.21000.carlos-8YloKY0SPvpS8uBCpOlSjPXRex20P6io@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Carlos Corbacho <carlos-8YloKY0SPvpS8uBCpOlSjPXRex20P6io@public.gmane.org>
-Cc: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ivo van Doorn <ivdoorn-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <5d96567b0809130652i7bc86cbfv6cdc103f595e1e11@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Raz <raziebe@gmail.com>
+Cc: Linux Kernel <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, carlos@strangeworlds.co.uk, Vegard Nossum <vegard.nossum@gmail.com>, Pekka Paalanen <pq@iki.fi>, Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-On Fri, Sep 12, 2008 at 11:04:19PM +0100, Carlos Corbacho wrote:
-> This patch implements rfkill support for the wireless and bluetooth devices
-> commonly found on Acer laptops.
 
-Yep, looks good, thanks.
+* Raz <raziebe@gmail.com> wrote:
 
--- 
-Dmitry
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> From: Raz Ben Yehuda <raziebe@gmail.com>
+> 
+> When booting a kernel with PREEMPT_ENABLE and SLAB_DEBUG, unplugging a 
+> processor results in BUG in slab.
+
+could you please post that BUG? (and which version of the kernel you 
+have tried, and exactly what you did to trigger this bug)
+
+note that the conversion to a sleeping lock:
+
+> -static DEFINE_SPINLOCK(smp_alt);
+> +static __DECLARE_SEMAPHORE_GENERIC(smp_alt_lock, 1);
+
+is already done correctly in the latest upstream kernel, see this 
+commit:
+
+ # 2f1dafe: x86: fix SMP alternatives: use mutex instead of spinlock
+
+the better solution is to use a mutex, not a semaphore. This fix is part 
+of the v2.6.26 kernel.
+
+	Ingo
