@@ -1,108 +1,58 @@
-From: Raz <raziebe@gmail.com>
-Subject: Subject: [PATCH] linux-acpi: smp_alternatives sleeping in spinlock
-Date: Sat, 13 Sep 2008 15:52:40 +0200
-Message-ID: <5d96567b0809130652i7bc86cbfv6cdc103f595e1e11@mail.gmail.com>
+From: Jeff Garzik <jeff@garzik.org>
+Subject: Re: [PATCH] SATA: Blacklist systems that spin off disks during ACPI
+ power off
+Date: Sat, 13 Sep 2008 22:21:54 -0400
+Message-ID: <48CC7542.3010603@garzik.org>
+References: <200808290002.55026.rjw@sisk.pl> <200808291241.04183.rjw@sisk.pl> <48B7D286.7050104@gmail.com> <200809061923.29020.rjw@sisk.pl> <48C50EA4.2020700@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-2; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.184]:28773 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751462AbYIMNwm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 13 Sep 2008 09:52:42 -0400
-Received: by nf-out-0910.google.com with SMTP id d3so712113nfc.21
-        for <linux-acpi@vger.kernel.org>; Sat, 13 Sep 2008 06:52:40 -0700 (PDT)
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <48C50EA4.2020700@gmail.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Tejun Heo <htejun@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-ide@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Robert Hancock <hancockr@shaw.ca>, LKML <linux-kernel@vger.kernel.org>, Frans Pop <elendil@planet.nl>, Maciej Rutecki <maciej.rutecki@gmail.com>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Linux Kernel <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
-Cc: carlos@strangeworlds.co.uk
 
-From: Raz Ben Yehuda <raziebe@gmail.com>
+Tejun Heo wrote:
+> Rafael J. Wysocki wrote:
+>> SATA: Blacklist systems that spin off disks during ACPI power off
+>>
+>> Some notebooks from HP have the problem that their BIOSes attempt to
+>> spin down hard drives before entering ACPI system states S4 and S5.
+>> This leads to a yo-yo effect during system power-off shutdown and the
+>> last phase of hibernation when the disk is first spun down by the
+>> kernel and then almost immediately turned on and off by the BIOS.
+>> This, in turn, may result in shortening the disk's life times.
+>>
+>> To prevent this from happening we can blacklist the affected systems
+>> using DMI information.  However, only the on-board controlles should
+>> be blacklisted and their PCI slot numbers can be used for this
+>> purpose.  Unfortunately the existing interface for checking DMI
+>> information of the system is not very convenient for this purpose,
+>> because to use it, we would have to define special callback functions
+>> or create a separate struct dmi_system_id table for each blacklisted
+>> system.
+>>
+>> To overcome this difficulty introduce a new function
+>> dmi_first_match() returning a pointer to the first entry in an array
+>> of struct dmi_system_id elements that matches the system DMI
+>> information.  Then, we can use this pointer to access the entry's
+>> .driver_data field containing the additional information, such as
+>> the PCI slot number, allowing us to do the desired blacklisting.
+>>
+>> Introduce a new libata flag ATA_FLAG_NO_POWEROFF_SPINDOWN that, if
+>> set, will prevent disks from being spun off during system power off
+>> and hibernation (to handle the hibernation case we need a new system
+>> state SYSTEM_HIBERNATE_ENTER that can be checked against by libata,
+>> in analogy with SYSTEM_POWER_OFF).  Use dmi_first_match() to set this
+>> flag for some systems affected by the problem described above (HP nx6325,
+>> HP nx6310, HP 2510p).
+>>
+>> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> 
+> libata part looks good to me but I think it would be better to
+> separate out DMI changes into a separate patch.
 
-When booting a kernel with PREEMPT_ENABLE and SLAB_DEBUG, unplugging a processor
-results in BUG in slab.
-Signed-off-by: Raz Ben Yehuda <raziebe@gmail.com>
----
-arch/x86/kernel/alternative.c |   17 +++++++++--------
-1 file changed, 9 insertions(+), 8 deletions(-)
-this bug fix refers to bug numner 11562 in bugzilla.kernel.org
+Did these changes ever get separated out?
 
-diff -urpN -X dontdiff
-linux-2.6.26-5-vanilla/arch/x86/kernel/alternative.c
-linux-2.6.26-5-dbg/arch/x86/kernel/alternative.c
---- linux-2.6.26-5-vanilla/arch/x86/kernel/alternative.c	2008-07-13
-23:51:29.000000000 +0200
-+++ linux-2.6.26-5-dbg/arch/x86/kernel/alternative.c	2008-09-13
-15:31:52.000000000 +0200
-@@ -13,6 +13,7 @@
- #include <asm/vsyscall.h>
- #include <asm/cacheflush.h>
- #include <asm/io.h>
-+#include <linux/semaphore.h>
-
- #define MAX_PATCH_LEN (255-1)
-
-@@ -279,7 +280,7 @@ struct smp_alt_module {
- 	struct list_head next;
- };
- static LIST_HEAD(smp_alt_modules);
--static DEFINE_SPINLOCK(smp_alt);
-+static __DECLARE_SEMAPHORE_GENERIC(smp_alt_lock, 1);
- static int smp_mode = 1;	/* protected by smp_alt */
-
- void alternatives_smp_module_add(struct module *mod, char *name,
-@@ -312,12 +313,12 @@ void alternatives_smp_module_add(struct
- 		__func__, smp->locks, smp->locks_end,
- 		smp->text, smp->text_end, smp->name);
-
--	spin_lock(&smp_alt);
-+	down(&smp_alt_lock);
- 	list_add_tail(&smp->next, &smp_alt_modules);
- 	if (boot_cpu_has(X86_FEATURE_UP))
- 		alternatives_smp_unlock(smp->locks, smp->locks_end,
- 					smp->text, smp->text_end);
--	spin_unlock(&smp_alt);
-+	up(&smp_alt_lock);
- }
-
- void alternatives_smp_module_del(struct module *mod)
-@@ -327,17 +328,17 @@ void alternatives_smp_module_del(struct
- 	if (smp_alt_once || noreplace_smp)
- 		return;
-
--	spin_lock(&smp_alt);
-+	down(&smp_alt_lock);
- 	list_for_each_entry(item, &smp_alt_modules, next) {
- 		if (mod != item->mod)
- 			continue;
- 		list_del(&item->next);
--		spin_unlock(&smp_alt);
-+		up(&smp_alt_lock);
- 		DPRINTK("%s: %s\n", __func__, item->name);
- 		kfree(item);
- 		return;
- 	}
--	spin_unlock(&smp_alt);
-+	up(&smp_alt_lock);
- }
-
- void alternatives_smp_switch(int smp)
-@@ -359,7 +360,7 @@ void alternatives_smp_switch(int smp)
- 		return;
- 	BUG_ON(!smp && (num_online_cpus() > 1));
-
--	spin_lock(&smp_alt);
-+	down(&smp_alt_lock);
-
- 	/*
- 	 * Avoid unnecessary switches because it forces JIT based VMs to
-@@ -383,7 +384,7 @@ void alternatives_smp_switch(int smp)
- 						mod->text, mod->text_end);
- 	}
- 	smp_mode = smp;
--	spin_unlock(&smp_alt);
-+	up(&smp_alt_lock);
- }
-
- #endif
