@@ -1,58 +1,50 @@
-From: Jeff Garzik <jeff@garzik.org>
-Subject: Re: [PATCH] SATA: Blacklist systems that spin off disks during ACPI
- power off
-Date: Sat, 13 Sep 2008 22:21:54 -0400
-Message-ID: <48CC7542.3010603@garzik.org>
-References: <200808290002.55026.rjw@sisk.pl> <200808291241.04183.rjw@sisk.pl> <48B7D286.7050104@gmail.com> <200809061923.29020.rjw@sisk.pl> <48C50EA4.2020700@gmail.com>
+From: Per Arnold Blaasmo <Per-Arnold.Blaasmo@atmel.com>
+Subject: ACPI info
+Date: Sun, 14 Sep 2008 09:22:50 +0200
+Message-ID: <48CCBBCA.2040008@atmel.com>
+Reply-To: Per-Arnold.Blaasmo@atmel.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <48C50EA4.2020700@gmail.com>
-Sender: linux-ide-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Tejun Heo <htejun@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-ide@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Robert Hancock <hancockr@shaw.ca>, LKML <linux-kernel@vger.kernel.org>, Frans Pop <elendil@planet.nl>, Maciej Rutecki <maciej.rutecki@gmail.com>, Andrew Morton <akpm@linux-foundation.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtpeu1.atmel.com ([195.65.72.27]:65072 "EHLO bagnes.atmel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751552AbYINHX1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 14 Sep 2008 03:23:27 -0400
+Received: from fribh01.corp.atmel.com (FRIBH01 [10.175.30.10])
+	by bagnes.atmel.com (8.13.8+Sun/8.13.8) with ESMTP id m8E7JSg2011612
+	for <linux-acpi@vger.kernel.org>; Sun, 14 Sep 2008 00:19:28 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Tejun Heo wrote:
-> Rafael J. Wysocki wrote:
->> SATA: Blacklist systems that spin off disks during ACPI power off
->>
->> Some notebooks from HP have the problem that their BIOSes attempt to
->> spin down hard drives before entering ACPI system states S4 and S5.
->> This leads to a yo-yo effect during system power-off shutdown and the
->> last phase of hibernation when the disk is first spun down by the
->> kernel and then almost immediately turned on and off by the BIOS.
->> This, in turn, may result in shortening the disk's life times.
->>
->> To prevent this from happening we can blacklist the affected systems
->> using DMI information.  However, only the on-board controlles should
->> be blacklisted and their PCI slot numbers can be used for this
->> purpose.  Unfortunately the existing interface for checking DMI
->> information of the system is not very convenient for this purpose,
->> because to use it, we would have to define special callback functions
->> or create a separate struct dmi_system_id table for each blacklisted
->> system.
->>
->> To overcome this difficulty introduce a new function
->> dmi_first_match() returning a pointer to the first entry in an array
->> of struct dmi_system_id elements that matches the system DMI
->> information.  Then, we can use this pointer to access the entry's
->> .driver_data field containing the additional information, such as
->> the PCI slot number, allowing us to do the desired blacklisting.
->>
->> Introduce a new libata flag ATA_FLAG_NO_POWEROFF_SPINDOWN that, if
->> set, will prevent disks from being spun off during system power off
->> and hibernation (to handle the hibernation case we need a new system
->> state SYSTEM_HIBERNATE_ENTER that can be checked against by libata,
->> in analogy with SYSTEM_POWER_OFF).  Use dmi_first_match() to set this
->> flag for some systems affected by the problem described above (HP nx6325,
->> HP nx6310, HP 2510p).
->>
->> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> 
-> libata part looks good to me but I think it would be better to
-> separate out DMI changes into a separate patch.
+Sending info as requested in log.
+ACPI: EC: Look up EC in DSDT
+ACPI: BIOS _OSI(Linux) query ignored
+ACPI: DMI System Vendor: Dell Inc.               =20
+ACPI: DMI Product Name: OptiPlex 745                =20
+ACPI: DMI Product Version:=20
+ACPI: DMI Board Name: 0TY565
+ACPI: DMI BIOS Vendor: Dell Inc.               =20
+ACPI: DMI BIOS Date: 05/21/2007
+ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
+ACPI: If "acpi_osi=3DLinux" works better, please notify
+linux-acpi@vger.kernel.org
 
-Did these changes ever get separated out?
+The computer seems to be working OK.
+acpi_osi=3DLinux does not seem to have any effect.
 
+Regards
+Per A.
+
+--=20
+Per Arnold Bl=E5smo
+Senior Design Engineer
+Atmel Norway, Vestre Rosten 79, 7075 Tiller (Trondheim), Norway=20
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
