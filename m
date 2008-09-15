@@ -1,54 +1,49 @@
-From: "Scott Thompson" <postfail@hushmail.com>
-Subject: DSDT from your system / new DSDT archive
-Date: Tue, 16 Sep 2008 12:55:42 -0400
-Message-ID: <20080916165543.EA6A42003D@smtp.hushmail.com>
-Reply-To: postfail@hushmail.com
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: [PATCH 0/3] WMI patches for 2.6.28
+Date: Mon, 15 Sep 2008 22:32:29 +0100
+Message-ID: <20080915213229.8464.20471.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:57962 "EHLO
+	pacifica." rhost-flags-OK-OK-FAIL-FAIL) by vger.kernel.org with ESMTP
+	id S1752317AbYIPTPE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Sep 2008 15:15:04 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: lenb@kernel.org
 
-Hi all -- I was attempting to find a DSDT archive with sample DSDT 
-from a variety of systems.
-The closest thing I have found was the archive that was at 
-http://acpi.sourceforge.net ; if anyone
-knows of another DSDT archive please let me know.
+Len,
 
-Since a current one doesn't seem to exist, I am attempting to put 
-my own database together up on the 
-internets (URL coming soon) and am looking for folks to send me the 
-DSDT from their systems.  Gathering your system DSDT takes
-less than about 2 minutes by running the following:  
+The following are three WMI patches for 2.6.28
 
-Windows:
-1. extract acpica tools from acpica.org; latest as of this writing 
-is http://acpica.org/download/iasl-win-20080829.zip
-2. run 'iasl -g' to extract all acpi tables.
-3. send all '.dsl' and '.dat' files extracted
+The first two add rfkill support to acer-wmi for wireless & bluetooth, and
+remove the old sysfs interfaces for these.
 
-Linux:
-1. file is at /proc/acpi/dsdt 
-2. may need to, as sudo or root, cp and then 'chown' the file to a 
-non-root id to email.
+The third patch, from Matthew Garrett, adds event enabling/ disabling for
+certain events to WMI, and is required for another WMI driver he's working
+on.
 
-If anyone is interested, please send the files (or url link), 
-hardware make/model, and your name/email (if you want credited), to 
-postfail@hushmail.com; please no bombardment of the linux-pm / 
-linux-acpi lists.
+-Carlos
+---
 
-Thanks in advance...
+Carlos Corbacho (2):
+      acer-wmi: Remove wireless and bluetooth sysfs entries
+      acer-wmi: Add rfkill support for wireless and bluetooth
 
----------------------------------------
-Scott Thompson / postfail@hushmail.com
----------------------------------------
+Matthew Garrett (1):
+      According to the ACPI-WMI spec, event blocks may provide a function call
+
+
+ Documentation/laptops/acer-wmi.txt |   28 +---
+ drivers/acpi/wmi.c                 |   39 ++++++
+ drivers/misc/Kconfig               |    1 
+ drivers/misc/acer-wmi.c            |  229 +++++++++++++++++++++++-------------
+ 4 files changed, 191 insertions(+), 106 deletions(-)
+
+-- 
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
