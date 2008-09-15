@@ -1,21 +1,19 @@
 From: raz ben yehuda <razb@bitband.com>
-Subject: Subject: [PATCH 2/2] cpusets:  sos api
-Date: Mon, 15 Sep 2008 13:49:42 +0200
-Message-ID: <1221479382.9963.6.camel@raz>
+Subject: Subject: [PATCH 2/2] linux-acpi ( not cpusets):  sos api
+Date: Mon, 15 Sep 2008 13:51:38 +0200
+Message-ID: <1221479498.9963.8.camel@raz>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fw.bitband.com ([213.8.50.174]:42976 "EHLO mail.bitband.com"
+Received: from fw.bitband.com ([213.8.50.174]:42986 "EHLO mail.bitband.com"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753130AbYIOLtn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 15 Sep 2008 07:49:43 -0400
+	id S1752828AbYIOLvk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 15 Sep 2008 07:51:40 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
 Cc: linux-acpi@vger.kernel.org
-
-From: Raz Ben Yehuda <razb@bitband.com>
 
 SOS is a platform aimed to assign a service to an offloaded processor.
 This patch is the facility for SOS (http://sos-linux.cvs.sourceforge.net/sos-linux/)
