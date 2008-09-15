@@ -1,181 +1,109 @@
-From: raz ben yehuda <razb@bitband.com>
-Subject: Subject: [PATCH 2/2] linux-acpi ( not cpusets):  sos api
-Date: Mon, 15 Sep 2008 13:51:38 +0200
-Message-ID: <1221479498.9963.8.camel@raz>
+From: Pavel Machek <pavel@suse.cz>
+Subject: ACPI suspend: test 64-bit waking vector (was Re: [PATCH] ACPI
+	suspend: Always use the 32-bit waking vector)
+Date: Mon, 15 Sep 2008 13:18:36 +0200
+Message-ID: <20080915111836.GA17913@elf.ucw.cz>
+References: <1220507476.4007.117.camel@yakui_zhao.sh.intel.com> <1220577437.4007.148.camel@yakui_zhao.sh.intel.com> <76780B19A496DC4B80439008DAD7076C01803B89F1@PDSMSX501.ccr.corp.intel.com> <200809061313.02088.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fw.bitband.com ([213.8.50.174]:42986 "EHLO mail.bitband.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752828AbYIOLvk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 15 Sep 2008 07:51:40 -0400
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:48396 "EHLO
+	gprs189-60.eurotel.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753302AbYIOMWd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Sep 2008 08:22:33 -0400
+Content-Disposition: inline
+In-Reply-To: <200809061313.02088.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, Suspend-devel list <suspend-devel@lists.sourceforge.net>
+Cc: "Li, Shaohua" <shaohua.li@intel.com>, "Zhao, Yakui" <yakui.zhao@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "Zhang, Rui" <rui.zhang@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "andi@firstfloor.org" <andi@firstfloor.org>
 
-SOS is a platform aimed to assign a service to an offloaded processor.
-This patch is the facility for SOS (http://sos-linux.cvs.sourceforge.net/sos-linux/)
+Hi!
 
-Signed-off-by: Raz Ben Yehuda <razb@bitband.com>
----
- arch/x86/kernel/process.c    |   27 +++++++++++++++++++++++++++
- arch/x86/kernel/process_32.c |    2 ++
- arch/x86/kernel/process_64.c |    2 ++
- arch/x86/kernel/smpboot.c    |    6 +++---
- include/linux/cpu.h          |   20 ++++++++++++++++++++
- kernel/cpu.c                 |    3 ++-
- 6 files changed, 56 insertions(+), 4 deletions(-)
+ACPI specificiation tells us that x_firmware_waking_vector is
+preffered, and maybe it works better than firmware_waking_vector on
+some machines.
 
-diff -uprN -X dontdiff linux-2.6.26-5-vanilla/arch/x86/kernel/process_32.c linux-2.6.26-5-SOS/arch/x86/kernel/process_32.c
---- linux-2.6.26-5-vanilla/arch/x86/kernel/process_32.c	2008-07-13 23:51:29.000000000 +0200
-+++ linux-2.6.26-5-SOS/arch/x86/kernel/process_32.c	2008-09-13 13:28:28.000000000 +0200
-@@ -142,6 +142,8 @@ static inline void play_dead(void)
- 	 * With physical CPU hotplug, we should halt the cpu
- 	 */
- 	local_irq_disable();
-+	if (is_sossed())
-+		run_sos();
- 	while (1)
- 		halt();
+Unfortunately, it does not seem to work on thinkpad x60... but I am
+not sure if I'm not doing something wrong.
+
+Testing/ideas would be welcome.
+								Pavel
+
+diff --git a/arch/x86/kernel/acpi/sleep.c b/arch/x86/kernel/acpi/sleep.c
+index 426e5d9..8ce0899 100644
+--- a/arch/x86/kernel/acpi/sleep.c
++++ b/arch/x86/kernel/acpi/sleep.c
+@@ -164,3 +164,24 @@ #endif
  }
-diff -uprN -X dontdiff linux-2.6.26-5-vanilla/arch/x86/kernel/process_64.c linux-2.6.26-5-SOS/arch/x86/kernel/process_64.c
---- linux-2.6.26-5-vanilla/arch/x86/kernel/process_64.c	2008-07-13 23:51:29.000000000 +0200
-+++ linux-2.6.26-5-SOS/arch/x86/kernel/process_64.c	2008-09-13 13:28:28.000000000 +0200
-@@ -127,6 +127,8 @@ static inline void play_dead(void)
- 	__get_cpu_var(cpu_state) = CPU_DEAD;
  
- 	local_irq_disable();
-+	if (is_sossed())
-+		run_sos();
- 	while (1)
- 		halt();
- }
-diff -uprN -X dontdiff linux-2.6.26-5-vanilla/arch/x86/kernel/process.c linux-2.6.26-5-SOS/arch/x86/kernel/process.c
---- linux-2.6.26-5-vanilla/arch/x86/kernel/process.c	2008-09-13 13:30:49.000000000 +0200
-+++ linux-2.6.26-5-SOS/arch/x86/kernel/process.c	2008-09-13 13:28:28.000000000 +0200
-@@ -180,3 +180,30 @@ static int __init idle_setup(char *str)
- }
- early_param("idle", idle_setup);
+ __setup("acpi_sleep=", acpi_sleep_setup);
++
++void acpi_pmode_wakeup(void)
++{
++	asm volatile ("\
++	cli; \
++	inb     $97, %al; \
++        outb    %al, $0x80;     \
++        movb    $3, %al;        \
++        outb    %al, $97;       \
++        outb    %al, $0x80;     \
++        movb    $-74, %al;      \
++        outb    %al, $67;       \
++        outb    %al, $0x80;     \
++        movb    $-119, %al;     \
++        outb    %al, $66;       \
++        outb    %al, $0x80;     \
++        movb    $15, %al;       \
++        outb    %al, $66;  \
++	1: jmp 1b; ");
++}
++
+diff --git a/drivers/acpi/hardware/hwsleep.c b/drivers/acpi/hardware/hwsleep.c
+index dba3cfb..33f157a 100644
+--- a/drivers/acpi/hardware/hwsleep.c
++++ b/drivers/acpi/hardware/hwsleep.c
+@@ -44,6 +44,7 @@
  
-+#ifdef CONFIG_HOTPLUG_CPU
-+void (*hotplug_cpu_dead)(void);
+ #include <acpi/acpi.h>
+ #include <acpi/actables.h>
++#include <asm/io.h>
+ 
+ #define _COMPONENT          ACPI_HARDWARE
+ ACPI_MODULE_NAME("hwsleep")
+@@ -60,6 +61,9 @@ ACPI_MODULE_NAME("hwsleep")
+  * DESCRIPTION: Access function for the firmware_waking_vector field in FACS
+  *
+  ******************************************************************************/
 +
-+void unregister_sos(void)
-+{
-+	hotplug_cpu_dead = NULL;
-+}
-+EXPORT_SYMBOL_GPL(unregister_sos);
++extern void acpi_pmode_wakeup(void);
 +
-+int is_sossed(void)
-+{
-+	return hotplug_cpu_dead != NULL;
-+}
-+int register_sos(void (*hotplug_sos)(void))
-+{
-+	if (is_sossed())
-+		return -1;
-+	hotplug_cpu_dead = hotplug_sos;
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(register_sos);
+ acpi_status
+ acpi_set_firmware_waking_vector(acpi_physical_address physical_address)
+ {
+@@ -80,6 +84,12 @@ acpi_set_firmware_waking_vector(acpi_phy
+ 
+ 	/* Set the vector */
+ 
++	if (facs->length < 32)
++		panic("only acpi1 supported?!");
 +
-+void run_sos(void)
-+{
-+	hotplug_cpu_dead();
-+}
-+#endif
-diff -uprN -X dontdiff linux-2.6.26-5-vanilla/arch/x86/kernel/smpboot.c linux-2.6.26-5-SOS/arch/x86/kernel/smpboot.c
---- linux-2.6.26-5-vanilla/arch/x86/kernel/smpboot.c	2008-07-13 23:51:29.000000000 +0200
-+++ linux-2.6.26-5-SOS/arch/x86/kernel/smpboot.c	2008-09-13 13:38:28.000000000 +0200
-@@ -872,8 +872,8 @@ static int __cpuinit do_boot_cpu(int api
- 				cpu, node);
++	facs->firmware_waking_vector = 0;
++	facs->xfirmware_waking_vector = virt_to_phys(acpi_pmode_wakeup);
++#if 0
+ 	if ((facs->length < 32) || (!(facs->xfirmware_waking_vector))) {
+ 		/*
+ 		 * ACPI 1.0 FACS or short table or optional X_ field is zero
+@@ -91,6 +101,7 @@ acpi_set_firmware_waking_vector(acpi_phy
+ 		 */
+ 		facs->xfirmware_waking_vector = physical_address;
  	}
- #endif
--
--	alternatives_smp_switch(1);
-+	if (!is_sossed())
-+		alternatives_smp_switch(1);
++#endif
  
- 	c_idle.idle = get_idle_for_cpu(cpu);
- 
-@@ -1423,7 +1423,7 @@ void __cpu_die(unsigned int cpu)
- 		/* They ack this in play_dead by setting CPU_DEAD */
- 		if (per_cpu(cpu_state, cpu) == CPU_DEAD) {
- 			printk(KERN_INFO "CPU %d is now offline\n", cpu);
--			if (1 == num_online_cpus())
-+			if (1 == num_online_cpus() && !is_sossed())
- 				alternatives_smp_switch(0);
- 			return;
- 		}
-diff -uprN -X dontdiff linux-2.6.26-5-vanilla/include/linux/cpu.h linux-2.6.26-5-SOS/include/linux/cpu.h
---- linux-2.6.26-5-vanilla/include/linux/cpu.h	2008-07-13 23:51:29.000000000 +0200
-+++ linux-2.6.26-5-SOS/include/linux/cpu.h	2008-09-13 13:28:28.000000000 +0200
-@@ -44,6 +44,7 @@ extern int sched_create_sysfs_power_savi
- 
- #ifdef CONFIG_HOTPLUG_CPU
- extern void unregister_cpu(struct cpu *cpu);
-+extern void unregister_sos(void);
- #endif
- struct notifier_block;
- 
-@@ -52,6 +53,9 @@ struct notifier_block;
- #ifdef CONFIG_HOTPLUG_CPU
- extern int register_cpu_notifier(struct notifier_block *nb);
- extern void unregister_cpu_notifier(struct notifier_block *nb);
-+extern int register_sos(void (*hotplug_cpu_dead)(void));
-+extern int is_sossed(void);
-+extern void run_sos(void);
- #else
- 
- #ifndef MODULE
-@@ -61,11 +65,27 @@ static inline int register_cpu_notifier(
- {
- 	return 0;
+ 	return_ACPI_STATUS(AE_OK);
  }
-+
-+static inline int register_sos(void (*hotplug_cpu_dead)(void));
-+{
-+	return 0;
-+}
- #endif
- 
- static inline void unregister_cpu_notifier(struct notifier_block *nb)
- {
- }
-+
-+static inline void unregister_sos(void)
-+{
-+}
-+static inline int is_sossed(void)
-+{
-+	return 0;
-+}
-+static inline void run_sos(void)
-+{
-+}
- #endif
- 
- int cpu_up(unsigned int cpu);
-diff -uprN -X dontdiff linux-2.6.26-5-vanilla/kernel/cpu.c linux-2.6.26-5-SOS/kernel/cpu.c
---- linux-2.6.26-5-vanilla/kernel/cpu.c	2008-07-13 23:51:29.000000000 +0200
-+++ linux-2.6.26-5-SOS/kernel/cpu.c	2008-09-13 13:28:28.000000000 +0200
-@@ -277,6 +277,7 @@ int __ref cpu_down(unsigned int cpu)
- 	cpu_maps_update_done();
- 	return err;
- }
-+EXPORT_SYMBOL_GPL(cpu_down);
- #endif /*CONFIG_HOTPLUG_CPU*/
- 
- /* Requires cpu_add_remove_lock to be held */
-@@ -340,7 +341,7 @@ int __cpuinit cpu_up(unsigned int cpu)
- 	cpu_maps_update_done();
- 	return err;
- }
--
-+EXPORT_SYMBOL_GPL(cpu_up);
- #ifdef CONFIG_PM_SLEEP_SMP
- static cpumask_t frozen_cpus;
- 
 
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
