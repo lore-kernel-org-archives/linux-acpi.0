@@ -1,86 +1,117 @@
-From: "Phil Endecott" <phil_hmpau_endecott@chezphil.org>
-Subject: Toggling VGA out on Eee 901
-Date: Tue, 16 Sep 2008 22:43:12 +0100
-Message-ID: <1221601392651@dmwebmail.dmwebmail.chezphil.org>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: [PATCH 3/3 (Resend)] ACPI: WMI: Enable event methods when registering notifiers
+Date: Tue, 16 Sep 2008 23:36:02 +0100
+Message-ID: <200809162336.02955.carlos@strangeworlds.co.uk>
+References: <20080915213229.8464.20471.stgit@localhost> <20080915213246.8464.76768.stgit@localhost> <20080916221930.GA26035@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; format="flowed"
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from japan.chezphil.org ([77.240.5.4]:2384 "EHLO japan.chezphil.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751144AbYIPWfP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Sep 2008 18:35:15 -0400
-Received: from localhost ([127.0.0.1] helo=chezphil.org)
-	by japan.chezphil.org with esmtp (Exim 4.69)
-	(envelope-from <phil_hmpau_endecott@chezphil.org>)
-	id 1KfiKH-0003Eg-O4
-	for linux-acpi@vger.kernel.org; Tue, 16 Sep 2008 22:43:13 +0100
+Received: from phoenix.slamd64.com ([217.10.145.2]:58828 "EHLO
+	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751376AbYIPWhG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Sep 2008 18:37:06 -0400
+In-Reply-To: <20080916221930.GA26035@khazad-dum.debian.net>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux acpi <linux-acpi@vger.kernel.org>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, Matthew Garrett <mjg@redhat.com>
 
-Dear Experts,
+From: Matthew Garrett <mjg@redhat.com>
 
-I'm trying to work out how to get console video out toggling working on 
-my ASUS EEE 901 (running Debian).  I get the feeling that I may be the 
-first person to try to do this, and I knew almost nothing about ACPI 
-until a couple of hours ago.  Can anyone help?
+According to the ACPI-WMI spec, event blocks may provide a function call
+for enabling/disabling them. This patch adds support for making these
+calls when registering or removing notifications. Without this, my Dell
+firmware provides no data in the event notification.
 
-Output toggling for X works fine, but that doesn't use ACPI.  If the 
-machine is booted with an external monitor connected, console VGA out 
-is enabled; if the monitor is not connected it's not enabled.  Looking 
-in /proc/acpi/video/VGA/CRTD/state I see
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
+---
 
-state: 0x1f
-query: 0x01
-
-when the machine was booted with the monitor connected and
-
-state: 0x0d
-query: 0x00
-
-when the machine was booted without the monitor.  Following the advice 
-of an old ACPI HOWTO I tried to store 0x80000001 in that file:
-
-# /bin/echo 0x80000001 > /proc/acpi/video/VGA/CRTD/state
-/bin/echo: write error: Bad address
-
-I had a look at my iasl-disassembled /proc/dsdt and found this:
-
-Device (VGA)
-{
-     .....
-     Name (DONE, Zero)
-     .....
-
-     Device (CRTD)
-     {
-         .....
-         Method (_DSS, 1, NotSerialized)
-         {
-             If (And (Arg0, 0x40000000))
-             {
-                 If (And (Arg0, 0x80000000))
-                 {
-                     Store (One, DONE)
-                 }
-             }
-         }
-     }
-}
-
-I have never looked at this stuff before, but I don't get the 
-impression that it's actually going to do anything to the hardware 
-registers, is it?  Am I looking in the wrong place?  Based on that I 
-did try to store 0xC0000000 and 0xC0000001, and in this case there was 
-no "Bad address" error - but no output change either.
-
-Can someone point me in the right direction?
-I have put the complete dsdt.dsl here: http://chezphil.org/tmp/eee_901_dsdt.dsl
+ drivers/acpi/wmi.c |   39 +++++++++++++++++++++++++++++++++++++--
+ 1 files changed, 37 insertions(+), 2 deletions(-)
 
 
-Many thanks,  Phil.
-
-(Please cc: me in any replies)
-
-
-
+diff --git a/drivers/acpi/wmi.c b/drivers/acpi/wmi.c
+index cfe2c83..5464cfc 100644
+--- a/drivers/acpi/wmi.c
++++ b/drivers/acpi/wmi.c
+@@ -217,6 +217,35 @@ static bool find_guid(const char *guid_string, struct wmi_block **out)
+ 	return 0;
+ }
+ 
++static acpi_status wmi_method_enable(struct wmi_block *wblock, int enable)
++{
++	struct guid_block *block = NULL;
++	char method[5];
++	struct acpi_object_list input;
++	union acpi_object params[1];
++	acpi_status status;
++	acpi_handle handle;
++
++	block = &wblock->gblock;
++	handle = wblock->handle;
++
++	if (!block)
++		return AE_NOT_EXIST;
++
++	input.count = 1;
++	input.pointer = params;
++	params[0].type = ACPI_TYPE_INTEGER;
++	params[0].integer.value = enable;
++
++	snprintf(method, 5, "WE%02X", block->notify_id);
++	status = acpi_evaluate_object(handle, method, &input, NULL);
++
++	if (status != AE_OK && status != AE_NOT_FOUND)
++		return status;
++	else
++		return AE_OK;
++}
++
+ /*
+  * Exported WMI functions
+  */
+@@ -427,6 +456,7 @@ acpi_status wmi_install_notify_handler(const char *guid,
+ wmi_notify_handler handler, void *data)
+ {
+ 	struct wmi_block *block;
++	acpi_status status;
+ 
+ 	if (!guid || !handler)
+ 		return AE_BAD_PARAMETER;
+@@ -441,7 +471,9 @@ wmi_notify_handler handler, void *data)
+ 	block->handler = handler;
+ 	block->handler_data = data;
+ 
+-	return AE_OK;
++	status = wmi_method_enable(block, 1);
++
++	return status;
+ }
+ EXPORT_SYMBOL_GPL(wmi_install_notify_handler);
+ 
+@@ -453,6 +485,7 @@ EXPORT_SYMBOL_GPL(wmi_install_notify_handler);
+ acpi_status wmi_remove_notify_handler(const char *guid)
+ {
+ 	struct wmi_block *block;
++	acpi_status status;
+ 
+ 	if (!guid)
+ 		return AE_BAD_PARAMETER;
+@@ -464,10 +497,12 @@ acpi_status wmi_remove_notify_handler(const char *guid)
+ 	if (!block->handler)
+ 		return AE_NULL_ENTRY;
+ 
++	status = wmi_method_enable(block, 0);
++
+ 	block->handler = NULL;
+ 	block->handler_data = NULL;
+ 
+-	return AE_OK;
++	return status;
+ }
+ EXPORT_SYMBOL_GPL(wmi_remove_notify_handler);
+ 
