@@ -1,47 +1,34 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH ?] ACPI: pr->id is unsigned
-Date: Tue, 16 Sep 2008 10:45:31 +0200
-Message-ID: <200809161045.35078.trenn@suse.de>
-References: <48CF0CA4.3090701@gmail.com> <128370.1221510405@turing-police.cc.vt.edu>
+From: OXFAM GB - UK <bigo2155@cox.net>
+Subject: (unknown)
+Date: Tue, 16 Sep 2008 7:26:39 -0700
+Message-ID: <20080916102639.TLU1P.374527.imail__3621.90152886814$1221576651$gmane$org@fed1rmwml31>
+Reply-To: terrywilliams0714@jmail.co.za
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:39199 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751884AbYIPIpi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Sep 2008 04:45:38 -0400
-In-Reply-To: <128370.1221510405@turing-police.cc.vt.edu>
-Content-Disposition: inline
+Received: from fed1rmmtao102.cox.net ([68.230.241.44]:50177 "EHLO
+	fed1rmmtao102.cox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753603AbYIPOt0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Sep 2008 10:49:26 -0400
+Subject: 
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Valdis.Kletnieks@vt.edu
-Cc: roel kluin <roel.kluin@gmail.com>, ak@linux.intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Monday 15 September 2008 22:26:45 Valdis.Kletnieks@vt.edu wrote:
-> On Mon, 15 Sep 2008 21:32:20 EDT, roel kluin said:
-> > since pr->id is unsigned, shouldn't something like
-> > the patch below be applied?
-> >
-> > +	BUG_ON((pr->id >= nr_cpu_ids) || ((unsigned long)pr->id < 0));
->
-> Under what conditions will the clause "(unsigned long)pr->id < 0)" be true,
-> and when will it be false?  What will any sane optimizing compiler do?
->
-> And *sometimes*, the *real* bug is that pr->id should be a signed quantity,
-> not an unsigned one, and the cast is just papering over the issue.
->
-> In other words, the original line is almost certainly buggy.  However, this
-> isn't the right fix.  Somebody who actually understands the code will have
-> to decide what *should* be happening here (that's beyond my understanding
-> of that code)...
 
-Just removing "pr->id < 0" condition should be the right fix.
 
-For such an easy patch in the ACPI subsystem it's enough to only post to
-the linux-acpi mailing list, no need to bother the whole world.
+Congratulation you have been awarded =C3=82=C2=A3850,000 from the OXFAM=
+ GB -=20
 
-Thanks for finding this, do you mind to repost a new version?
+UK the cash/grant donation Promo Contac Dr.Terry Williams.=20
 
-    Thomas
+Email(terrywilliams0714@jmail.co.za)
+
+Mr.Andrew Patrick
+Online Co-coordinator
+Qualification Number(OG/N231/E101/BDB)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
