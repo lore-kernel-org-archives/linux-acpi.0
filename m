@@ -1,42 +1,50 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: DSDT from your system / new DSDT archive
-Date: Tue, 16 Sep 2008 23:41:27 -0300
-Message-ID: <20080917024127.GB1187@khazad-dum.debian.net>
-References: <20080916165543.EA6A42003D@smtp.hushmail.com> <20080916222231.GB26035@khazad-dum.debian.net>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: ACPI suspend: test 64-bit waking vector (was
+	Re: [PATCH] ACPI suspend: Always use the 32-bit waking vector)
+Date: Wed, 17 Sep 2008 07:45:18 +0200
+Message-ID: <200809170745.19645.rjw@sisk.pl>
+References: <1220507476.4007.117.camel@yakui_zhao.sh.intel.com>
+	<200809061313.02088.rjw@sisk.pl>
+	<20080915111836.GA17913@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:52199 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752631AbYIQClf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Sep 2008 22:41:35 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <suspend-devel-bounces@lists.sourceforge.net>
+In-Reply-To: <20080915111836.GA17913@elf.ucw.cz>
 Content-Disposition: inline
-In-Reply-To: <20080916222231.GB26035@khazad-dum.debian.net>
-Sender: linux-acpi-owner@vger.kernel.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
+	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=suspend-devel>
+List-Post: <mailto:suspend-devel@lists.sourceforge.net>
+List-Help: <mailto:suspend-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
+	<mailto:suspend-devel-request@lists.sourceforge.net?subject=subscribe>
+Sender: suspend-devel-bounces@lists.sourceforge.net
+Errors-To: suspend-devel-bounces@lists.sourceforge.net
+To: Pavel Machek <pavel@suse.cz>
+Cc: "Zhao, Yakui" <yakui.zhao@intel.com>, Suspend-devel list <suspend-devel@lists.sourceforge.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "andi@firstfloor.org" <andi@firstfloor.org>, "Li,  Shaohua" <shaohua.li@intel.com>, "Zhang,  Rui" <rui.zhang@intel.com>, "lenb@kernel.org" <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Scott Thompson <postfail@hushmail.com>
-Cc: linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org
 
-Hi Scott!
-
-On Tue, 16 Sep 2008, Henrique de Moraes Holschuh wrote:
-
-> On Tue, 16 Sep 2008, Scott Thompson wrote:
-> > Since a current one doesn't seem to exist, I am attempting to put 
-> > my own database together up on the 
-> > internets (URL coming soon) and am looking for folks to send me the 
-> > DSDT from their systems.  Gathering your system DSDT takes
-> > less than about 2 minutes by running the following:  
+On Monday, 15 of September 2008, Pavel Machek wrote:
+> Hi!
 > 
-> You also want the dmidecode output, which BTW you must sanitize to remove
-> UUIDs and serial numbers.  Otherwise, the DSDTs are a lot less useful.
+> ACPI specificiation tells us that x_firmware_waking_vector is
+> preffered, and maybe it works better than firmware_waking_vector on
+> some machines.
+> 
+> Unfortunately, it does not seem to work on thinkpad x60... but I am
+> not sure if I'm not doing something wrong.
+> 
+> Testing/ideas would be welcome.
 
-Come to think of it, the DSDTs are useless without the other tables in most
-systems, anyway, so you want to store the entire acpidump :-p
+Well, the spec says that if x_firmware_waking_vector is non-zero, the BIOS is
+supposed to call your wake-up code in Protected Mode ...
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Thanks,
+Rafael
+
+-------------------------------------------------------------------------
+This SF.Net email is sponsored by the Moblin Your Move Developer's challenge
+Build the coolest Linux based applications with Moblin SDK & win great prizes
+Grand prize is a trip for two to an Open Source event anywhere in the world
+http://moblin-contest.org/redirect.php?banner_id=100&url=/
