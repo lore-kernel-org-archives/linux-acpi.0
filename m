@@ -1,63 +1,69 @@
-From: Phil Endecott <phil_hmpau_endecott@chezphil.org>
-Subject: Re: Toggling VGA out on Eee 901
-Date: Wed, 17 Sep 2008 11:52:37 +0100
-Message-ID: <48D0E175.4080107@chezphil.org>
-References: <1221601392651@dmwebmail.dmwebmail.chezphil.org>
-	<1221630423.3441.147.camel@rzhang-dt>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: DSDT from your system / new DSDT archive
+Date: Wed, 17 Sep 2008 17:44:33 +0200
+Message-ID: <200809171744.34064.trenn@suse.de>
+References: <20080916165543.EA6A42003D@smtp.hushmail.com> <20080916222231.GB26035@khazad-dum.debian.net> <20080917024127.GB1187@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from japan.chezphil.org ([77.240.5.4]:5044 "EHLO japan.chezphil.org"
+Received: from cantor.suse.de ([195.135.220.2]:59028 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750817AbYIQKwl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 17 Sep 2008 06:52:41 -0400
-Received: from localhost ([127.0.0.1] helo=chezphil.org)
-	by japan.chezphil.org with esmtp (Exim 4.69)
-	(envelope-from <phil_hmpau_endecott@chezphil.org>)
-	id 1KfueF-0004hV-Lt
-	for linux-acpi@vger.kernel.org; Wed, 17 Sep 2008 11:52:39 +0100
-In-Reply-To: <1221630423.3441.147.camel@rzhang-dt>
+	id S1753380AbYIQPoh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 17 Sep 2008 11:44:37 -0400
+In-Reply-To: <20080917024127.GB1187@khazad-dum.debian.net>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux acpi <linux-acpi@vger.kernel.org>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Scott Thompson <postfail@hushmail.com>, linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org
 
-Hi Rui,
+On Wednesday 17 September 2008 04:41:27 Henrique de Moraes Holschuh wrote:
+> Hi Scott!
+>
+> On Tue, 16 Sep 2008, Henrique de Moraes Holschuh wrote:
+> > On Tue, 16 Sep 2008, Scott Thompson wrote:
+> > > Since a current one doesn't seem to exist, I am attempting to put
+> > > my own database together up on the
+> > > internets (URL coming soon) and am looking for folks to send me the
+> > > DSDT from their systems.  Gathering your system DSDT takes
+> > > less than about 2 minutes by running the following:
+> >
+> > You also want the dmidecode output, which BTW you must sanitize to remove
+> > UUIDs and serial numbers.  Otherwise, the DSDTs are a lot less useful.
+>
+> Come to think of it, the DSDTs are useless without the other tables in most
+> systems, anyway, so you want to store the entire acpidump :-p
+Exactly.
+You should take dmidecode and acpidump in a specific format (provide a small
+script to (show how to) gather them?).
+You should also double check the info you get uploaded. On the sourceforge
+list all kind of broken info was flying around (all kind of compressions
+used, only aml, only asl and only hex tables, only the diffs, and more...).
 
-Zhang Rui wrote:
-> Hi, phil,
->=20
-> On Tue, 2008-09-16 at 22:43 +0100, Phil Endecott wrote:
->> Dear Experts,
->>
->> I'm trying to work out how to get console video out toggling working=
- on=20
->> my ASUS EEE 901 (running Debian).  I get the feeling that I may be t=
-he=20
->> first person to try to do this, and I knew almost nothing about ACPI=
-=20
->> until a couple of hours ago.  Can anyone help?
->> Output toggling for X works fine, but that doesn't use ACPI.
+Therefore IMO best is not to only provide a small script how you should gather
+and upload the data, but also internally do a quick check the other way round 
+whether the data sent up is valid (unzip, acpixtract -a acpidump, [ -e 
+DSDT.dsl ] or similar).
 
-> =EF=BB=BFwell, ACPI control method for video output switching seldom =
-works.
-> And we use xrandr to switch the display in X.
-> I'm not sure but I'm afraid we don't have the plan to support video
-> output switch in console mode.
+I'd also only accept acpidumps or whole zips containing the dumps.
+You should not provide extracted acpidumps, even worse disassmbled ones as
+the code in there is protected by copyrights.
+Also a disclaimer that people must only use the info for getting their
+machine running for which they bought the copyrights should be stated 
+somewhere.
 
-As far as I can see, the code already exists in the kernel to support=20
-this.  The problem is that this BIOS doesn't define the necessary=20
-methods (unless I've misunderstood something).  When you say "don't pla=
-n=20
-to support", do you mean that the existing kernel functionality is now=20
-deprecated, or something?
+Expect that you get a lot dumps.
 
-Thanks,  Phil.
+You should state somewhere that people should (if they are doing a BIOS update 
+anyway):
+   - upload the dumps
+   - upgrade the BIOS
+   - again upload the dumps
+Like that you get a nice history of fixups which can reveal interesting 
+things...
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+      Thomas
+
+PS: This work is very much appreciated. Tell me how I can help.
