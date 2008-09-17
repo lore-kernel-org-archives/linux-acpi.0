@@ -1,141 +1,45 @@
-From: Milan Oravec <moravec@ukf.sk>
-Subject: Re: ACPI linux problem
-Date: Wed, 17 Sep 2008 08:48:18 +0200
-Message-ID: <48D0A832.2090200@ukf.sk>
-References: <48BE93DB.7080801@ukf.sk> <960B77DF2E6D974DBE24FD066EAEE8DA014A6B4F@azsmsx422.amr.corp.intel.com>
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: ACPI suspend: test 64-bit waking vector (was Re: [PATCH] ACPI
+	suspend: Always use the 32-bit waking vector)
+Date: Wed, 17 Sep 2008 09:28:58 +0200
+Message-ID: <20080917072858.GA2659@elf.ucw.cz>
+References: <1220507476.4007.117.camel@yakui_zhao.sh.intel.com> <200809061313.02088.rjw@sisk.pl> <20080915111836.GA17913@elf.ucw.cz> <200809170745.19645.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from posta.ukf.sk ([193.87.12.33]:58665 "EHLO posta.ukf.sk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750879AbYIQHPT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 17 Sep 2008 03:15:19 -0400
-In-Reply-To: <960B77DF2E6D974DBE24FD066EAEE8DA014A6B4F@azsmsx422.amr.corp.intel.com>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:41454 "EHLO
+	gprs189-60.eurotel.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751397AbYIQH1f (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Sep 2008 03:27:35 -0400
+Content-Disposition: inline
+In-Reply-To: <200809170745.19645.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Suspend-devel list <suspend-devel@lists.sourceforge.net>, "Li, Shaohua" <shaohua.li@intel.com>, "Zhao, Yakui" <yakui.zhao@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "Zhang, Rui" <rui.zhang@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "andi@firstfloor.org" <andi@firstfloor.org>
 
-Hi Len, sorry for using wrong emial address.
+On Wed 2008-09-17 07:45:18, Rafael J. Wysocki wrote:
+> On Monday, 15 of September 2008, Pavel Machek wrote:
+> > Hi!
+> > 
+> > ACPI specificiation tells us that x_firmware_waking_vector is
+> > preffered, and maybe it works better than firmware_waking_vector on
+> > some machines.
+> > 
+> > Unfortunately, it does not seem to work on thinkpad x60... but I am
+> > not sure if I'm not doing something wrong.
+> > 
+> > Testing/ideas would be welcome.
+> 
+> Well, the spec says that if x_firmware_waking_vector is non-zero, the BIOS is
+> supposed to call your wake-up code in Protected Mode ...
 
-After your consultation I've found what caused my problems with broken 
-hibernation resume on battery.
-It's sony_laptop driver directly compiled in kernel. When it's compiled 
-as module and reloaded every suspend cycle everything works as suspected.
+That's why I'm passing physical address of 32-bit code...
 
-I observed this problem first time in 2.6.25 kernel tree, but there were 
-this problem only occassionaly present (2nd or 3th reboot it's resumed 
-properly), but in 2.6.26 is permanenet resume problem.
+or am I supposed to pass 48-bit selector:offset pair? But what GDT
+will BIOS use in that case?
 
-What's next step? How can I help to solve this problem.
-
-Thank you very much for help!
-
-Best regards
-
-Milan
-
-Brown, Len wrote:
-> Hello Milan,
-> 
->> When I hibernate on AC-power and try to resume on battery system
-> hangs.
-> 
-> Interesting.
-> 
-> try to simplify.
-> 
-> remove the sony-laptop module,
-> also remove the ac and battery modules.
-> 
-> 
-> if the absence of one of these helps, then that is a big clue.
-> (also, did any previous releases work properly?)
-> 
-> best to send mail to linux-acpi@vger.kernel.org
-> and/or file a bug at bugzilla.kernel.org
-> rather than sending e-mail to my intel account.
-> for others in the community besides me may have this problem,
-> or the solution to it.
-> 
-> thanks,
-> -Len
-> 
->> -----Original Message-----
->> From: Milan Oravec [mailto:moravec@ukf.sk] 
->> Sent: Wednesday, September 03, 2008 9:41 AM
->> To: Brown, Len
->> Subject: ACPI linux problem
->>
->> Hallo, my name is Milan Oravec. I'm playing a little with linux and 
->> TuxOnIce (Hibernate2) on my laptop. I have problems with 2.6.26 kernel 
->> tree and suspend to disk. When I hibernate on AC-power and try 
->> to resume 
->> on battery system hangs. I've attached screenshot with dead end. The 
->> same problem is with stock kernel swsuspend (without tuxonice 
->> patches). 
->>  I've consulted this with Nigel Cunningham and he suggested me to 
->> report this bug to you. If you need more information I'll do my best.
->>
->> Laptop is sony vaio sz1xp and here is my lspci output:
->>
->> 00:00.0 Host bridge: Intel Corporation Mobile 945GM/PM/GMS, 943/940GML 
->> and 945GT Express Memory Controller Hub (rev 03)
->> 00:02.0 VGA compatible controller: Intel Corporation Mobile 945GM/GMS, 
->> 943/940GML Express Integrated Graphics Controller (rev 03)
->> 00:02.1 Display controller: Intel Corporation Mobile 945GM/GMS/GME, 
->> 943/940GML Express Integrated Graphics Controller (rev 03)
->> 00:1b.0 Audio device: Intel Corporation 82801G (ICH7 Family) High 
->> Definition Audio Controller (rev 02)
->> 00:1c.0 PCI bridge: Intel Corporation 82801G (ICH7 Family) PCI Express 
->> Port 1 (rev 02)
->> 00:1c.1 PCI bridge: Intel Corporation 82801G (ICH7 Family) PCI Express 
->> Port 2 (rev 02)
->> 00:1c.2 PCI bridge: Intel Corporation 82801G (ICH7 Family) PCI Express 
->> Port 3 (rev 02)
->> 00:1c.3 PCI bridge: Intel Corporation 82801G (ICH7 Family) PCI Express 
->> Port 4 (rev 02)
->> 00:1d.0 USB Controller: Intel Corporation 82801G (ICH7 Family) 
->> USB UHCI 
->> Controller #1 (rev 02)
->> 00:1d.1 USB Controller: Intel Corporation 82801G (ICH7 Family) 
->> USB UHCI 
->> Controller #2 (rev 02)
->> 00:1d.2 USB Controller: Intel Corporation 82801G (ICH7 Family) 
->> USB UHCI 
->> Controller #3 (rev 02)
->> 00:1d.3 USB Controller: Intel Corporation 82801G (ICH7 Family) 
->> USB UHCI 
->> Controller #4 (rev 02)
->> 00:1d.7 USB Controller: Intel Corporation 82801G (ICH7 Family) 
->> USB2 EHCI 
->> Controller (rev 02)
->> 00:1e.0 PCI bridge: Intel Corporation 82801 Mobile PCI Bridge (rev e2)
->> 00:1f.0 ISA bridge: Intel Corporation 82801GBM (ICH7-M) LPC Interface 
->> Bridge (rev 02)
->> 00:1f.1 IDE interface: Intel Corporation 82801G (ICH7 Family) IDE 
->> Controller (rev 02)
->> 00:1f.2 IDE interface: Intel Corporation 82801GBM/GHM (ICH7 
->> Family) SATA 
->> IDE Controller (rev 02)
->> 00:1f.3 SMBus: Intel Corporation 82801G (ICH7 Family) SMBus Controller 
->> (rev 02)
->> 06:00.0 Network controller: Intel Corporation PRO/Wireless 3945ABG 
->> Network Connection (rev 02)
->> 07:00.0 Ethernet controller: Marvell Technology Group Ltd. 
->> 88E8036 PCI-E 
->> Fast Ethernet Controller (rev 15)
->> 09:04.0 CardBus bridge: Texas Instruments PCIxx12 Cardbus Controller
->> 09:04.1 FireWire (IEEE 1394): Texas Instruments PCIxx12 OHCI Compliant 
->> IEEE 1394 Host Controller
->> 09:04.2 Mass storage controller: Texas Instruments 5-in-1 Multimedia 
->> Card Reader (SD/MMC/MS/MS PRO/xD)
->>
->> I'm sorry if I'm bothering you.
->>
->> Thank you very much!
->>
->> Milan
->>
->>
-> 
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
