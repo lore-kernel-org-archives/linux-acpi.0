@@ -1,69 +1,47 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: DSDT from your system / new DSDT archive
-Date: Wed, 17 Sep 2008 17:44:33 +0200
-Message-ID: <200809171744.34064.trenn@suse.de>
-References: <20080916165543.EA6A42003D@smtp.hushmail.com> <20080916222231.GB26035@khazad-dum.debian.net> <20080917024127.GB1187@khazad-dum.debian.net>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: ACPI suspend: test 64-bit waking vector (was Re: [PATCH] ACPI suspend: Always use the 32-bit waking vector)
+Date: Wed, 17 Sep 2008 18:58:23 +0200
+Message-ID: <200809171858.25264.rjw@sisk.pl>
+References: <1220507476.4007.117.camel@yakui_zhao.sh.intel.com> <200809170745.19645.rjw@sisk.pl> <20080917072858.GA2659@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:59028 "EHLO mx1.suse.de"
+Received: from ogre.sisk.pl ([217.79.144.158]:37983 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753380AbYIQPoh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 17 Sep 2008 11:44:37 -0400
-In-Reply-To: <20080917024127.GB1187@khazad-dum.debian.net>
+	id S1755379AbYIQQx2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 17 Sep 2008 12:53:28 -0400
+In-Reply-To: <20080917072858.GA2659@elf.ucw.cz>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Scott Thompson <postfail@hushmail.com>, linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@suse.cz>
+Cc: Suspend-devel list <suspend-devel@lists.sourceforge.net>, "Li, Shaohua" <shaohua.li@intel.com>, "Zhao, Yakui" <yakui.zhao@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "Zhang, Rui" <rui.zhang@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "andi@firstfloor.org" <andi@firstfloor.org>
 
-On Wednesday 17 September 2008 04:41:27 Henrique de Moraes Holschuh wrote:
-> Hi Scott!
->
-> On Tue, 16 Sep 2008, Henrique de Moraes Holschuh wrote:
-> > On Tue, 16 Sep 2008, Scott Thompson wrote:
-> > > Since a current one doesn't seem to exist, I am attempting to put
-> > > my own database together up on the
-> > > internets (URL coming soon) and am looking for folks to send me the
-> > > DSDT from their systems.  Gathering your system DSDT takes
-> > > less than about 2 minutes by running the following:
-> >
-> > You also want the dmidecode output, which BTW you must sanitize to remove
-> > UUIDs and serial numbers.  Otherwise, the DSDTs are a lot less useful.
->
-> Come to think of it, the DSDTs are useless without the other tables in most
-> systems, anyway, so you want to store the entire acpidump :-p
-Exactly.
-You should take dmidecode and acpidump in a specific format (provide a small
-script to (show how to) gather them?).
-You should also double check the info you get uploaded. On the sourceforge
-list all kind of broken info was flying around (all kind of compressions
-used, only aml, only asl and only hex tables, only the diffs, and more...).
+On Wednesday, 17 of September 2008, Pavel Machek wrote:
+> On Wed 2008-09-17 07:45:18, Rafael J. Wysocki wrote:
+> > On Monday, 15 of September 2008, Pavel Machek wrote:
+> > > Hi!
+> > > 
+> > > ACPI specificiation tells us that x_firmware_waking_vector is
+> > > preffered, and maybe it works better than firmware_waking_vector on
+> > > some machines.
+> > > 
+> > > Unfortunately, it does not seem to work on thinkpad x60... but I am
+> > > not sure if I'm not doing something wrong.
+> > > 
+> > > Testing/ideas would be welcome.
+> > 
+> > Well, the spec says that if x_firmware_waking_vector is non-zero, the BIOS is
+> > supposed to call your wake-up code in Protected Mode ...
+> 
+> That's why I'm passing physical address of 32-bit code...
 
-Therefore IMO best is not to only provide a small script how you should gather
-and upload the data, but also internally do a quick check the other way round 
-whether the data sent up is valid (unzip, acpixtract -a acpidump, [ -e 
-DSDT.dsl ] or similar).
+Well, that should work in theory.  The BIOS is supposed to set up 4 GB of flat
+memory starting from zero before jumping to the wake-up code (at least as far
+as I understand the spec).
 
-I'd also only accept acpidumps or whole zips containing the dumps.
-You should not provide extracted acpidumps, even worse disassmbled ones as
-the code in there is protected by copyrights.
-Also a disclaimer that people must only use the info for getting their
-machine running for which they bought the copyrights should be stated 
-somewhere.
+However, is your FACS version equal to 1?
 
-Expect that you get a lot dumps.
-
-You should state somewhere that people should (if they are doing a BIOS update 
-anyway):
-   - upload the dumps
-   - upgrade the BIOS
-   - again upload the dumps
-Like that you get a nice history of fixups which can reveal interesting 
-things...
-
-      Thomas
-
-PS: This work is very much appreciated. Tell me how I can help.
+Rafael
