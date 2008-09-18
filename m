@@ -1,73 +1,79 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: /proc/acpi/ removal plan
-Date: Thu, 18 Sep 2008 15:39:34 +0800
-Message-ID: <1221723574.3441.187.camel@rzhang-dt>
-References: <200809180632.m8I6WMgr029637@hera.kernel.org>
+From: "Phil Endecott" <phil_hmpau_endecott@chezphil.org>
+Subject: Re: Battery level alarm on Eee 901
+Date: Thu, 18 Sep 2008 11:01:40 +0100
+Message-ID: <1221732100885@dmwebmail.dmwebmail.chezphil.org>
+References: <1221705183.3999.93.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; format="flowed"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:62584 "EHLO mga11.intel.com"
+Received: from japan.chezphil.org ([77.240.5.4]:2816 "EHLO japan.chezphil.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751576AbYIRHkJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 18 Sep 2008 03:40:09 -0400
-In-Reply-To: <200809180632.m8I6WMgr029637@hera.kernel.org>
+	id S1753518AbYIRKBo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 18 Sep 2008 06:01:44 -0400
+Received: from localhost ([127.0.0.1] helo=chezphil.org)
+	by japan.chezphil.org with esmtp (Exim 4.69)
+	(envelope-from <phil_hmpau_endecott@chezphil.org>)
+	id 1KgGKU-00078R-AT
+	for linux-acpi@vger.kernel.org; Thu, 18 Sep 2008 11:01:42 +0100
+In-Reply-To: <1221705183.3999.93.camel@yakui_zhao.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@hera.kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: linux acpi <linux-acpi@vger.kernel.org>
 
-On Thu, 2008-09-18 at 14:32 +0800, Len Brown wrote:
-> Rui,
-> Please look over these slides that I produced
-> for the Linux Plumber's Conference showing
-> where everything in /proc/acpi/ will go.
-> 
-> http://userweb.kernel.org/~lenb/doc/LPC2008-API-web/
-> 
-> Please let me know now if I've missed anything,
-> for I'll be speaking to them in the morning.
+Zhao Yakui wrote:
+> On Wed, 2008-09-17 at 22:43 +0100, Phil Endecott wrote:
+>> Hello, it's me again...
+>> 
+>> I'm trying to get a low battery alarm to work on my Eee.  In 
+>> /sys/class/power_supply/BAT0 I have a good selection of readable 
+>> attributes like charge_now, current_now etc.  There is also a writeable 
+>> "alarm" file.  But as far as I can see, the alarm is not implemented.
+>> 
+>> I have a couple of questions about this:
+>> 
+>> - Looking at the ACPI battery driver code, it knows that there is no 
+>> support for an alarm when it tests the result of evaluating the _BTP 
+>> method, which my BIOS doesn't seem to offer.  However, it doesn't 
+>> subsequently return an error to the write, so my attempt to set an 
+>> alarm succeeds.  Is this the desired behaviour?  Wouldn't it be better 
+>> to either not create the alarm file, or to cause writes to fail, when 
+>> it's known that there is no support?
+> According to the ACPI spec the _BTP object should exist if the battery
+> alarm is supported. If there is no _BTP object, maybe the alarm can't be
+> supported. 
+> Your suggestion is right. If alarm is not supported, OS had better not
+> create the alarm file.
 
-Hi, len,
+Right.  I could probably produce a patch to fix this, if people agree 
+that it's the right thing to do.
 
-Page 7, processor throttling state I/F
-As processor T-state is used for thermal control only,
-processor t-state is mapped to a cooling_device's cooling_state
-in the generic thermal driver, combined with the processor's p-state.
-e.g.
-# ls -l /sys/class/thermal/cooling_device0/
-total 0
--rw-r--r-- 1 root root 4096 2008-09-18 15:20 cur_state
-lrwxrwxrwx 1 root root    0 2008-09-18 15:20 device
--> ../../../devices/LNXSYSTM:00/ACPI0007:00   (it's a processor!!!)
--r--r--r-- 1 root root 4096 2008-09-18 15:20 max_state
-drwxr-xr-x 2 root root    0 2008-09-18 15:20 power
-lrwxrwxrwx 1 root root    0 2008-09-18 15:20 subsystem -> ../../thermal
--r--r--r-- 1 root root 4096 2008-09-18 15:20 type
--rw-r--r-- 1 root root 4096 2008-09-18 15:20 uevent
+>> - Presumably I could write a trivial daemon to poll the battery level.  
+>> A quick search find bazillions of gui applets that do this.  I would 
+>> prefer to generate a synthetic ACPI battery alarm event when I detect a 
+>> low charge level, so that the action taken in response can be 
+>> implemented independent of the method of detection.  Has this already 
+>> been done?  Is there an easy way to inject a synthetic ACPI event from 
+>> user-space?  What does a valid battery alarm event look like?
+> You can use the daemon to poll the battery level and decide what action
+> to take when the battery level is lower than the predefined level. 
+> Why is the ACPI alarm event still expected to be triggered in such case?
 
-I'm not sure if we need another generic processor throttle control I/F.
+Well, we have N alarm sources (i.e. ACPI and a polling daemon) and M 
+alarm users (i.e. scripts that beep, GUI things etc) and it would be 
+better to have 1 method for any alarm source to communicate with any 
+alarm user rather then N*M combinations of communication to get right.  
+I thought that the ACPI events would be that "1 method".  Do you have a 
+better suggestion?
 
-Page 14, wakeup control,
-/sys/devices/.../wakeup should be in the todo list. :)
+> And it is not easy to insert the synthetic the ACPI event from
+> user-space.
 
-Page 18, we should not put the video driver together with the platform
-specific drivers?
+OK.  Isn't there some sort of "ACPI test event" utility?  Maybe I'm 
+thinking of something else.  udev maybe.
 
-Page 21, oops, I forget to add the dynamic tables... will do it soon, :)
 
-Page 23, button sys I/F can be found at /sys/class/input/.
-e.g.
-# cat /sys/class/input/input*/device/hid 
-LNXPWRBN
-PNP0C0C
+Thanks,  Phil.
 
-According to Alexey's comments, we don;t need sysfs I/F for ec.
-some info like the data/command port address is printed in the dmesg
-during ec initialization.
-And I don't think we need to export the power resource device info to
-user space.
 
-thanks,
-rui
 
