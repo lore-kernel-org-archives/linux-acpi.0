@@ -1,80 +1,164 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [patch 4/11]makeing dock driver supports bay and battery hotplug
-Date: Thu, 18 Sep 2008 19:10:02 +0200
-Message-ID: <200809181910.03573.trenn@suse.de>
-References: <1219889038.29375.29.camel@sli10-desk.sh.intel.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [patch 2.6.27-rc6] cope with PNPACPI tables missing an RTC
+ entry
+Date: Thu, 18 Sep 2008 10:49:00 -0700
+Message-ID: <20080918104900.5ecb5dc9.akpm@linux-foundation.org>
+References: <200809181042.46778.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns1.suse.de ([195.135.220.2]:53151 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752217AbYIRRKG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 18 Sep 2008 13:10:06 -0400
-In-Reply-To: <1219889038.29375.29.camel@sli10-desk.sh.intel.com>
-Content-Disposition: inline
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36610 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754235AbYIRRub (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 18 Sep 2008 13:50:31 -0400
+In-Reply-To: <200809181042.46778.david-b@pacbell.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Andi Kleen <andi@firstfloor.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Holger Macht <hmacht@suse.de>, mjg59 <mjg59@srcf.ucam.org>, Tejun Heo <htejun@gmail.com>
+To: David Brownell <david-b@pacbell.net>
+Cc: Rik Theys <rik.theys@esat.kuleuven.be>, Adam Belay <abelay@novell.com>, Chuck Ebbert <cebbert@redhat.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>
 
-Sorry for the late reply...
+(cc's added)
 
+On Thu, 18 Sep 2008 10:42:46 -0700 David Brownell <david-b@pacbell.net> wrote:
 
-On Thursday 28 August 2008 04:03:58 Shaohua Li wrote:
-> Making dock driver supports bay and battery hotplug. They are all
-> regarded as dock, and unified handled.
->
-> Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+> From: David Brownell <dbrownell@users.sourceforge.net>
+> 
+> A bugzilla entry (http://bugzilla.kernel.org/show_bug.cgi?id=11580)
+> reports that some PNPACPI tables don't list RTC devices; they are
+> instead glommed into a generic "system resources" entry.
+> 
+> Address that on x86 (while ignoring ia64, the other user of ACPI) by
+> having ACPI glue check for that case, and if necessary then setting
+> up a platform device and having rtc_cmos use it.
+> 
+> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+> Reported-by: Rik Theys <rik.theys@esat.kuleuven.be>
 > ---
-...
-> +
-> +static int is_battery(acpi_handle handle)
+> Seems like a candidate for 2.6.27-final and for backporting.
+> There's a Fedora kernel report for this too.  Workaround is
+> simple (see the bug report) but less functional.
+> 
+>  arch/x86/kernel/rtc.c         |   13 ++++++++++++-
+>  drivers/acpi/glue.c           |   16 +++++++++++++++-
+>  drivers/pnp/core.c            |    8 ++++++++
+>  drivers/rtc/rtc-cmos.c        |    4 ++--
+>  include/asm-x86/mc146818rtc.h |    5 +++++
+>  include/linux/pnp.h           |    1 +
+>  6 files changed, 43 insertions(+), 4 deletions(-)
+> 
+> --- a/arch/x86/kernel/rtc.c
+> +++ b/arch/x86/kernel/rtc.c
+> @@ -220,11 +220,22 @@ static struct platform_device rtc_device
+>  	.num_resources	= ARRAY_SIZE(rtc_resources),
+>  };
+>  
+> +#ifdef CONFIG_PNP
+> +/* PNPACPI tables sometimes omit the RTC, or are ignored */
+> +struct device *__init add_nonpnp_rtc_cmos(void)
 > +{
-> +	struct acpi_device_info *info;
-> +	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER, NULL};
-> +	int ret = 1;
+> +	if (!rtc_device.dev.bus)
+> +		platform_device_register(&rtc_device);
+> +	return &rtc_device.dev;
+> +}
+> +#endif
 > +
-> +	if (!ACPI_SUCCESS(acpi_get_object_info(handle, &buffer)))
-> +		return 0;
-> +	info = buffer.pointer;
-> +	if (!(info->valid & ACPI_VALID_HID))
-> +		ret = 0;
-> +	else
-> +		ret = !strcmp("PNP0C0A", info->hardware_id.value);
+>  static __init int add_rtc_cmos(void)
+>  {
+>  #ifdef CONFIG_PNP
+> +	/* in case of pnpacpi=off */
+>  	if (!pnp_platform_devices)
+> -		platform_device_register(&rtc_device);
+> +		add_nonpnp_rtc_cmos();
+>  #else
+>  	platform_device_register(&rtc_device);
+>  #endif /* CONFIG_PNP */
+> --- a/drivers/acpi/glue.c
+> +++ b/drivers/acpi/glue.c
+> @@ -338,7 +338,21 @@ static int __init pnp_match(struct devic
+>  
+>  static struct device *__init get_rtc_dev(void)
+>  {
+> -	return bus_find_device(&pnp_bus_type, NULL, NULL, pnp_match);
+> +	struct device *rtc;
 > +
-> +	kfree(buffer.pointer);
-Better get the device and then use:
-const struct acpi_device_id battery_device_ids[] = {
-        {"PNP0C0A", 0},
-        {"", 0},
-};
-acpi_match_device_ids(struct acpi_device *device, battery_device_ids);
-No need to allocate memory. This also matches batteries where the ID might be 
-hidden in the CID list.
-...
-
-Something general:
-I do not like the idea of this approach.
-Battery and ATA device do get an eject notification?
-Why can't they handle things themselves?
-What is the gain to make battery and ata "dock" capable devices?
-What if a PCI(e) device or whatever other device is also connected to the 
-docking station. Do we want to add all devices attached to a dock station 
-statically?
-
-Would it make sense to add (if notifications are sent to these even this 
-should not be needed):
-  .eject
-  .dock
-functions. The dock driver can then go down the tree and call all children's 
-eject functions.
-
-I wonder how this can be solved in a more generic way.
-
-Also this patchset mixes up sever fixes and dock design changes patches.
-It would be great if the fixes can just go into test, not sure about the 
-design change...
-
-    Thomas
+> +	/* return RTC from PNPACPI tables */
+> +	rtc = bus_find_device(&pnp_bus_type, NULL, NULL, pnp_match);
+> +
+> +#ifdef ARCH_PNP_RTC_WORKAROUND
+> +	/* cope with buggy PNPACPI tables (like the HP DL3x0 servers
+> +	 * which have no RTC device listed), and with pnpacpi=off
+> +	 */
+> +	if (!rtc) {
+> +		pnp_rtc_missing = true;
+> +		rtc = add_nonpnp_rtc_cmos();
+> +	}
+> +#endif
+> +	return rtc;
+>  }
+>  
+>  static int __init acpi_rtc_init(void)
+> --- a/drivers/pnp/core.c
+> +++ b/drivers/pnp/core.c
+> @@ -25,10 +25,18 @@ DEFINE_SPINLOCK(pnp_lock);
+>   * ACPI or PNPBIOS should tell us about all platform devices, so we can
+>   * skip some blind probes.  ISAPNP typically enumerates only plug-in ISA
+>   * devices, not built-in things like COM ports.
+> + *
+> + * Sometimes ACPI tables omit devices like RTCs, which can be critical.
+> + * To avoid legacy poke-the-hardware-and-guess drivers (unfriendly to
+> + * the driver model), something else creates a (platform) device node;
+> + * and drivers must know to kick-in their non-PNP (non-PC) bus glue.
+>   */
+>  int pnp_platform_devices;
+>  EXPORT_SYMBOL(pnp_platform_devices);
+>  
+> +bool pnp_rtc_missing;
+> +EXPORT_SYMBOL(pnp_rtc_missing);
+> +
+>  void *pnp_alloc(long size)
+>  {
+>  	void *result;
+> --- a/drivers/rtc/rtc-cmos.c
+> +++ b/drivers/rtc/rtc-cmos.c
+> @@ -1137,7 +1137,7 @@ static struct platform_driver cmos_platf
+>  static int __init cmos_init(void)
+>  {
+>  #ifdef	CONFIG_PNP
+> -	if (pnp_platform_devices)
+> +	if (pnp_platform_devices && !pnp_rtc_missing)
+>  		return pnp_register_driver(&cmos_pnp_driver);
+>  	else
+>  		return platform_driver_probe(&cmos_platform_driver,
+> @@ -1152,7 +1152,7 @@ module_init(cmos_init);
+>  static void __exit cmos_exit(void)
+>  {
+>  #ifdef	CONFIG_PNP
+> -	if (pnp_platform_devices)
+> +	if (pnp_platform_devices && !pnp_rtc_missing)
+>  		pnp_unregister_driver(&cmos_pnp_driver);
+>  	else
+>  		platform_driver_unregister(&cmos_platform_driver);
+> --- a/include/asm-x86/mc146818rtc.h
+> +++ b/include/asm-x86/mc146818rtc.h
+> @@ -101,4 +101,9 @@ extern unsigned long mach_get_cmos_time(
+>  
+>  #define RTC_IRQ 8
+>  
+> +#ifdef CONFIG_PNP
+> +#define ARCH_PNP_RTC_WORKAROUND
+> +extern struct device *add_nonpnp_rtc_cmos(void);
+> +#endif
+> +
+>  #endif /* _ASM_MC146818RTC_H */
+> --- a/include/linux/pnp.h
+> +++ b/include/linux/pnp.h
+> @@ -420,6 +420,7 @@ int pnp_device_attach(struct pnp_dev *pn
+>  void pnp_device_detach(struct pnp_dev *pnp_dev);
+>  extern struct list_head pnp_global;
+>  extern int pnp_platform_devices;
+> +extern bool pnp_rtc_missing;
+>  
+>  /* multidevice card support */
+>  struct pnp_dev *pnp_request_card_device(struct pnp_card_link *clink,
