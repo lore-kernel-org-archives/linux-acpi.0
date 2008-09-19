@@ -1,94 +1,92 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [patch 4/11]makeing dock driver supports bay and battery hotplug
-Date: Thu, 18 Sep 2008 21:16:56 +0200
-Message-ID: <200809182116.58202.trenn@suse.de>
-References: <1219889038.29375.29.camel@sli10-desk.sh.intel.com> <200809181910.03573.trenn@suse.de>
+From: "Zhang, Rui" <rui.zhang@intel.com>
+Subject: RE: /proc/acpi/ removal plan
+Date: Fri, 19 Sep 2008 10:12:25 +0800
+Message-ID: <7C8E86B73C916D47820B1A143DB97BC00887719AEE@pdsmsx502.ccr.corp.intel.com>
+References: <200809181633.m8IGX1s7019188@hera.kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns.suse.de ([195.135.220.2]:33453 "EHLO mx1.suse.de"
+Received: from mga03.intel.com ([143.182.124.21]:40054 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754575AbYIRTRE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 18 Sep 2008 15:17:04 -0400
-In-Reply-To: <200809181910.03573.trenn@suse.de>
-Content-Disposition: inline
+	id S1755720AbYISCM6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Sep 2008 22:12:58 -0400
+In-Reply-To: <200809181633.m8IGX1s7019188@hera.kernel.org>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Andi Kleen <andi@firstfloor.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Holger Macht <hmacht@suse.de>, mjg59 <mjg59@srcf.ucam.org>, Tejun Heo <htejun@gmail.com>
+To: Len Brown <lenb@hera.kernel.org>, "dmitry.torokhov@gmail.com" <dmitry.torokhov@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "rjw@sisk.pl" <rjw@sisk.pl>
 
-On Thursday 18 September 2008 19:10:02 Thomas Renninger wrote:
-> Sorry for the late reply...
+>From: Len Brown [mailto:lenb@hera.kernel.org]
+>Sent: Friday, September 19, 2008 12:33 AM
+>To: dmitry.torokhov@gmail.com; linux-acpi@vger.kernel.org; rjw@sisk.pl; Zhang,
+>Rui
+>Subject: Re: /proc/acpi/ removal plan
 >
-> On Thursday 28 August 2008 04:03:58 Shaohua Li wrote:
-> > Making dock driver supports bay and battery hotplug. They are all
-> > regarded as dock, and unified handled.
-> >
-> > Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-> > ---
+>> processor throttling state I/F
+>> As processor T-state is used for thermal control only,
+>> processor t-state is mapped to a cooling_device's cooling_state
+>> in the generic thermal driver, combined with the processor's p-state.
 >
-> ...
+>> # ls -l /sys/class/thermal/cooling_device0/
 >
-> > +
-> > +static int is_battery(acpi_handle handle)
-> > +{
-> > +	struct acpi_device_info *info;
-> > +	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER, NULL};
-> > +	int ret = 1;
-> > +
-> > +	if (!ACPI_SUCCESS(acpi_get_object_info(handle, &buffer)))
-> > +		return 0;
-> > +	info = buffer.pointer;
-> > +	if (!(info->valid & ACPI_VALID_HID))
-> > +		ret = 0;
-> > +	else
-> > +		ret = !strcmp("PNP0C0A", info->hardware_id.value);
-> > +
-> > +	kfree(buffer.pointer);
+>When I scribble into cur_state
+>I do not see anything reflected in
+>/proc/acpi/processor/*/throttling
 >
-> Better get the device and then use:
-> const struct acpi_device_id battery_device_ids[] = {
->         {"PNP0C0A", 0},
->         {"", 0},
-> };
-> acpi_match_device_ids(struct acpi_device *device, battery_device_ids);
-> No need to allocate memory. This also matches batteries where the ID might
-> be hidden in the CID list.
-> ...
-Above is still valid.
-Below are simply questions to better understand what the patches are for.
-Thanks to Holger, I get a bit clearer picture now.
-While these patches are needed to get things going for now, would it be 
-possible for the future to add a directory "dependent_devices" into a dock's 
-sysfs entry and fill it with links to devices for which userspace has to care 
-for?
+>Also, max_state is 10, when surely my processor
+>has only 8 T-states.
+>
+the cooling state of processor is a combination of p-state and t-state.
+because reducing the frequency is preferred when system is overheat.
+e.g cooling state 0 mean processor can be run in the maximum frequency, and it's in the T0 state. And cooling state 9 means processor is in the minimum frequency, T7 state.
 
-> Something general:
-> I do not like the idea of this approach.
-> Battery and ATA device do get an eject notification?
-> Why can't they handle things themselves?
-> What is the gain to make battery and ata "dock" capable devices?
-> What if a PCI(e) device or whatever other device is also connected to the
-> docking station. Do we want to add all devices attached to a dock station
-> statically?
+>If user-space can not provoke processor T-states via this I/F,
+>then those using the old /proc I/F will flag it as a regression
+>when it goes away.  (even if few should ever need it)
 >
-> Would it make sense to add (if notifications are sent to these even this
-> should not be needed):
->   .eject
->   .dock
-> functions. The dock driver can then go down the tree and call all
-> children's eject functions.
+>> wakeup control,
+>> /sys/devices/.../wakeup should be in the todo list. :)
 >
-> I wonder how this can be solved in a more generic way.
+>I thought that Rafael said the wakeup file
+>in the device tree was working now -- at least
+>for PCI devices, no?
 >
-> Also this patchset mixes up sever fixes and dock design changes patches.
-> It would be great if the fixes can just go into test, not sure about the
-> design change...
-Some of the patches looked like it would be worth for .27, but it's too late 
-now anyway and the problem I hoped it could fix (kacpid utilizes 100% of CPU 
-after suspend, due to _STA -> notify loop) is not solved by these according 
-to Holger.
+Rafael's patch did bind the "wakeup" file together with the ACPI device.
+It calls the acpi_enable_wakeup_device_power of the ACPI device, but it doesn't touch the wakeup GPE at all. So, I don't think it actually works...
 
-  Thomas
+>I think the biggest problem with sysfs wakeup is that every
+>device in the tree gets a wakeup file, even if it
+>has no wakeup capability...
+>
+that's okay.
+The wakeup file return null string if it doesn't have the wakeup ability.
+To be honest, there is one thing that I'm still concerned about.
+The wakeup file is a runtime device wakeup flag rather than a system wakeup flag.
+i.e. "enabled" means that the device can be suspend/resumed at runtime.
+It doesn't ensure that it can wakeup the system from a sleep state.
+If /proc/acpi/wakeup is replaced by the /sys/devices/.../wakeup, users may be confused because the device can not wakeup the system even if the wakeup file is set to "enabled".
+
+>
+>>  button sys I/F can be found at /sys/class/input/.
+>> e.g.
+>> # cat /sys/class/input/input*/device/hid
+>> LNXPWRBN
+>> PNP0C0C
+>
+>The /proc files for power and sleep buttons simply
+>told us what kind of button they were, just info, not API.
+>
+>The functional one is PNP0C0D, the lid switch.
+>It is also reflected in /sys/class/input, but I don't
+>see a way to find from /sys the open/closed state
+>like we have in /proc.  (I ran into this when I tried
+>to delete the button /proc I/F some time ago).
+>
+You're right. Lid device still needs such an I/F.
+
+Thanks,
+Rui
+
+
+
