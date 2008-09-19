@@ -1,28 +1,30 @@
-From: Chris Rankin <rankincj@yahoo.com>
-Subject: Thinkpad T60p does not recover from Suspend when docked.
-Date: Fri, 19 Sep 2008 07:30:42 -0700 (PDT)
-Message-ID: <631160.40261.qm@web52908.mail.re2.yahoo.com>
-Reply-To: rankincj@yahoo.com
+From: Sitsofe Wheeler <sitsofe@yahoo.com>
+Subject: Re: Thinkpad T60p does not recover from Suspend when docked.
+Date: Fri, 19 Sep 2008 16:34:19 +0100
+Message-ID: <48D3C67B.70909@yahoo.com>
+References: <fa.C7YhwtyrMiD4q9ieD9AI3xtKz1U@ifi.uio.no>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751872AbYISOay@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755171AbYISPeb@vger.kernel.org>
+In-Reply-To: <fa.C7YhwtyrMiD4q9ieD9AI3xtKz1U@ifi.uio.no>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
+To: rankincj@yahoo.com
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Chris Rankin wrote:
+> My user-space environment is Fedora 9, which automatically mounts the
+> docking station's drive under /media when I login. However, it
+> doesn't make any difference if I unmount this drive before suspending
+> - the laptop fails to recover regardless.
+> 
+> I am running a 2.6.25.17-SMP kernel (for graphics card reasons), and
 
-I have a Thinkpad T60p with an "advanced dock" that contains an extra SATA drive, and I have noticed that when the extra drive is in the docking station then the laptop no longer recovers from Suspend. Remove the drive from the docking station and the laptop suspends and resumes OK again.
+If you are using binary only graphics card drivers does the problem also 
+happen without them never loaded at all?
 
-My user-space environment is Fedora 9, which automatically mounts the docking station's drive under /media when I login. However, it doesn't make any difference if I unmount this drive before suspending - the laptop fails to recover regardless.
-
-I am running a 2.6.25.17-SMP kernel (for graphics card reasons), and can provide ACPI table dumps if required. Can anyone suggest anything to try, please?
-
-Thanks,
-Chris
-
-
-
-      
+I had a machine that would not suspend properly until some time part way 
+through the 2.6.25 kernel. It might be worth reporting whether you have 
+the same problem (perhaps by using a live cd) when you use a 2.6.26 or 
+later kernel...
