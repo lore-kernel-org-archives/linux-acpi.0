@@ -1,34 +1,29 @@
-From: Chris Rankin <rankincj@yahoo.com>
-Subject: Re: Thinkpad T60p does not recover from Suspend when docked.
-Date: Sat, 20 Sep 2008 03:59:28 -0700 (PDT)
-Message-ID: <180616.16497.qm@web52911.mail.re2.yahoo.com>
-References: <48D3C67B.70909@yahoo.com>
-Reply-To: rankincj@yahoo.com
+From: Andi Kleen <andi@firstfloor.org>
+Subject: Re: Fw: ACPI: Avoid bogus EC timeout when EC is in Polling mode
+Date: Sun, 21 Sep 2008 06:16:35 +0200
+Message-ID: <20080921041635.GW25711@one.firstfloor.org>
+References: <20080919132918.342efbcb.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from web52911.mail.re2.yahoo.com ([206.190.49.21]:38093 "HELO
-	web52911.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751421AbYITK7a convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 20 Sep 2008 06:59:30 -0400
-In-Reply-To: <48D3C67B.70909@yahoo.com>
+Received: from one.firstfloor.org ([213.235.205.2]:46670 "EHLO
+	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750728AbYIUEL6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 21 Sep 2008 00:11:58 -0400
+Content-Disposition: inline
+In-Reply-To: <20080919132918.342efbcb.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sitsofe Wheeler <sitsofe@yahoo.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: stable@kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Zhao Yakui <yakui.zhao@intel.com>, Zhang Rui <rui.zhang@intel.com>, Andi Kleen <andi@firstfloor.org>, Robert Epprecht <epprecht@solnet.ch>
 
---- On Fri, 19/9/08, Sitsofe Wheeler <sitsofe@yahoo.com> wrote:
-> If you are using binary only graphics card drivers does the
-> problem also happen without them never loaded at all?
+On Fri, Sep 19, 2008 at 01:29:18PM -0700, Andrew Morton wrote:
+> 
+> In http://bugzilla.kernel.org/show_bug.cgi?id=11594, Robert points out
+> that this fix should be backported into 2.6.26.x.
+> 
 
-I have just replicated the problem exactly without the fglrx module (ever) loaded at all, and using the very latest radeonhd DDX driver instead. So this really IS *just* to do with the SATA drive in the docking station.
+EC changes are typically fragile. I think it would be better to be conservative
+here and avoid early backports if possible. Of course it's Len's final call.
 
-Cheers,
-Chris
-
-
-
-
-      
+-Andi
