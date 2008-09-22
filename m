@@ -1,89 +1,183 @@
 From: akpm@linux-foundation.org
-Subject: [patch for 2.6.27? 1/2] acpi: don't create empty filenames in /sys/firmware/acpi/tables
-Date: Mon, 22 Sep 2008 14:05:09 -0700
-Message-ID: <200809222105.m8ML5A5S029609@imap1.linux-foundation.org>
+Subject: [patch for 2.6.27? 2/2] acpi: cope with PNPACPI tables missing an RTC entry
+Date: Mon, 22 Sep 2008 14:05:10 -0700
+Message-ID: <200809222105.m8ML5BMA029612@imap1.linux-foundation.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58005 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55799 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752870AbYIVVFu (ORCPT
+	by vger.kernel.org with ESMTP id S1752350AbYIVVGj (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 22 Sep 2008 17:05:50 -0400
+	Mon, 22 Sep 2008 17:06:39 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, nokos@gmx.net, len.brown@intel.com, ming.m.lin@intel.com, robert.moore@intel.com, rui.zhang@intel.com, stable@kernel.org
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, dbrownell@users.sourceforge.net, a.zummo@towertech.it, abelay@novell.com, bjorn.helgaas@hp.com, cebbert@redhat.com, mingo@elte.hu, rik.theys@esat.kuleuven.be, stable@kernel.org, tglx@linutronix.de
 
-From: Peter Gruber <nokos@gmx.net>
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-Taken from http://bugzilla.kernel.org/show_bug.cgi?id=11539
+A bugzilla entry (http://bugzilla.kernel.org/show_bug.cgi?id=11580)
+reports that some PNPACPI tables don't list RTC devices; they are
+instead glommed into a generic "system resources" entry.
 
-Since commit bc45b1d39a925b56796bebf8a397a0491489d85c acpi tables are
-allowed to have an empty signature and /sys/firmware/acpi/tables uses the
-signature as filename.  Applications using naive recursion through /sys
-loop forever.  A possible solution would be: (replacing the zero length
-filename with the string "NULL")
+Address that on x86 (while ignoring ia64, the other user of ACPI) by
+having ACPI glue check for that case, and if necessary then setting
+up a platform device and having rtc_cmos use it.
 
-Cc: Bob Moore <robert.moore@intel.com>
-Cc: Lin Ming <ming.m.lin@intel.com>
-Cc: Len Brown <len.brown@intel.com>
-Acked-by: Zhang Rui <rui.zhang@intel.com>
-Cc: <stable@kernel.org>		[2.6.26.x]
+Seems like a candidate for 2.6.27-final and for backporting.  There's a
+Fedora kernel report for this too.  Workaround is simple (see the bug
+report) but less functional.
+
+[akpm@linux-foundation.org: forward-declare struct device]
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Reported-by: Rik Theys <rik.theys@esat.kuleuven.be>
+Cc: Adam Belay <abelay@novell.com>
+Cc: Chuck Ebbert <cebbert@redhat.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/system.c |   25 +++++++++++++++++--------
- 1 file changed, 17 insertions(+), 8 deletions(-)
+ arch/x86/kernel/rtc.c         |   13 ++++++++++++-
+ drivers/acpi/glue.c           |   16 +++++++++++++++-
+ drivers/pnp/core.c            |    8 ++++++++
+ drivers/rtc/rtc-cmos.c        |    4 ++--
+ include/asm-x86/mc146818rtc.h |    7 +++++++
+ include/linux/pnp.h           |    1 +
+ 6 files changed, 45 insertions(+), 4 deletions(-)
 
-diff -puN drivers/acpi/system.c~acpi-dont-create-empty-filenames-in-sys-firmware-acpi-tables drivers/acpi/system.c
---- a/drivers/acpi/system.c~acpi-dont-create-empty-filenames-in-sys-firmware-acpi-tables
-+++ a/drivers/acpi/system.c
-@@ -78,9 +78,15 @@ static ssize_t acpi_table_show(struct ko
- 	    container_of(bin_attr, struct acpi_table_attr, attr);
- 	struct acpi_table_header *table_header = NULL;
- 	acpi_status status;
-+	char name[ACPI_NAME_SIZE];
+diff -puN arch/x86/kernel/rtc.c~acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry arch/x86/kernel/rtc.c
+--- a/arch/x86/kernel/rtc.c~acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry
++++ a/arch/x86/kernel/rtc.c
+@@ -220,11 +220,22 @@ static struct platform_device rtc_device
+ 	.num_resources	= ARRAY_SIZE(rtc_resources),
+ };
+ 
++#ifdef CONFIG_PNP
++/* PNPACPI tables sometimes omit the RTC, or are ignored */
++struct device *__init add_nonpnp_rtc_cmos(void)
++{
++	if (!rtc_device.dev.bus)
++		platform_device_register(&rtc_device);
++	return &rtc_device.dev;
++}
++#endif
 +
-+	if (strncmp(table_attr->name, "NULL", 4))
-+		memcpy(name, table_attr->name, ACPI_NAME_SIZE);
-+	else
-+		memcpy(name, "\0\0\0\0", 4);
+ static __init int add_rtc_cmos(void)
+ {
+ #ifdef CONFIG_PNP
++	/* in case of pnpacpi=off */
+ 	if (!pnp_platform_devices)
+-		platform_device_register(&rtc_device);
++		add_nonpnp_rtc_cmos();
+ #else
+ 	platform_device_register(&rtc_device);
+ #endif /* CONFIG_PNP */
+diff -puN drivers/acpi/glue.c~acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry drivers/acpi/glue.c
+--- a/drivers/acpi/glue.c~acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry
++++ a/drivers/acpi/glue.c
+@@ -366,7 +366,21 @@ static int __init pnp_match(struct devic
  
- 	status =
--	    acpi_get_table(table_attr->name, table_attr->instance,
-+	    acpi_get_table(name, table_attr->instance,
- 			   &table_header);
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
-@@ -95,21 +101,24 @@ static void acpi_table_attr_init(struct 
- 	struct acpi_table_header *header = NULL;
- 	struct acpi_table_attr *attr = NULL;
+ static struct device *__init get_rtc_dev(void)
+ {
+-	return bus_find_device(&pnp_bus_type, NULL, NULL, pnp_match);
++	struct device *rtc;
++
++	/* return RTC from PNPACPI tables */
++	rtc = bus_find_device(&pnp_bus_type, NULL, NULL, pnp_match);
++
++#ifdef ARCH_PNP_RTC_WORKAROUND
++	/* cope with buggy PNPACPI tables (like the HP DL3x0 servers
++	 * which have no RTC device listed), and with pnpacpi=off
++	 */
++	if (!rtc) {
++		pnp_rtc_missing = true;
++		rtc = add_nonpnp_rtc_cmos();
++	}
++#endif
++	return rtc;
+ }
  
--	memcpy(table_attr->name, table_header->signature, ACPI_NAME_SIZE);
-+	if (table_header->signature[0] != '\0')
-+		memcpy(table_attr->name, table_header->signature,
-+			ACPI_NAME_SIZE);
-+	else
-+		memcpy(table_attr->name, "NULL", 4);
+ static int __init acpi_rtc_init(void)
+diff -puN drivers/pnp/core.c~acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry drivers/pnp/core.c
+--- a/drivers/pnp/core.c~acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry
++++ a/drivers/pnp/core.c
+@@ -25,10 +25,18 @@ DEFINE_SPINLOCK(pnp_lock);
+  * ACPI or PNPBIOS should tell us about all platform devices, so we can
+  * skip some blind probes.  ISAPNP typically enumerates only plug-in ISA
+  * devices, not built-in things like COM ports.
++ *
++ * Sometimes ACPI tables omit devices like RTCs, which can be critical.
++ * To avoid legacy poke-the-hardware-and-guess drivers (unfriendly to
++ * the driver model), something else creates a (platform) device node;
++ * and drivers must know to kick-in their non-PNP (non-PC) bus glue.
+  */
+ int pnp_platform_devices;
+ EXPORT_SYMBOL(pnp_platform_devices);
  
- 	list_for_each_entry(attr, &acpi_table_attr_list, node) {
--		if (!memcmp(table_header->signature, attr->name,
--			    ACPI_NAME_SIZE))
-+		if (!memcmp(table_attr->name, attr->name, ACPI_NAME_SIZE))
- 			if (table_attr->instance < attr->instance)
- 				table_attr->instance = attr->instance;
- 	}
- 	table_attr->instance++;
++bool pnp_rtc_missing;
++EXPORT_SYMBOL(pnp_rtc_missing);
++
+ void *pnp_alloc(long size)
+ {
+ 	void *result;
+diff -puN drivers/rtc/rtc-cmos.c~acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry
++++ a/drivers/rtc/rtc-cmos.c
+@@ -1032,7 +1032,7 @@ static struct platform_driver cmos_platf
+ static int __init cmos_init(void)
+ {
+ #ifdef	CONFIG_PNP
+-	if (pnp_platform_devices)
++	if (pnp_platform_devices && !pnp_rtc_missing)
+ 		return pnp_register_driver(&cmos_pnp_driver);
+ 	else
+ 		return platform_driver_probe(&cmos_platform_driver,
+@@ -1047,7 +1047,7 @@ module_init(cmos_init);
+ static void __exit cmos_exit(void)
+ {
+ #ifdef	CONFIG_PNP
+-	if (pnp_platform_devices)
++	if (pnp_platform_devices && !pnp_rtc_missing)
+ 		pnp_unregister_driver(&cmos_pnp_driver);
+ 	else
+ 		platform_driver_unregister(&cmos_platform_driver);
+diff -puN include/asm-x86/mc146818rtc.h~acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry include/asm-x86/mc146818rtc.h
+--- a/include/asm-x86/mc146818rtc.h~acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry
++++ a/include/asm-x86/mc146818rtc.h
+@@ -9,6 +9,8 @@
+ #include <asm/processor.h>
+ #include <linux/mc146818rtc.h>
  
- 	if (table_attr->instance > 1 || (table_attr->instance == 1 &&
--					 !acpi_get_table(table_header->
--							 signature, 2,
--							 &header)))
--		sprintf(table_attr->name + 4, "%d", table_attr->instance);
-+					!acpi_get_table
-+					(table_header->signature, 2, &header)))
-+		sprintf(table_attr->name + ACPI_NAME_SIZE, "%d",
-+			table_attr->instance);
++struct device;
++
+ #ifndef RTC_PORT
+ #define RTC_PORT(x)	(0x70 + (x))
+ #define RTC_ALWAYS_BCD	1	/* RTC operates in binary mode */
+@@ -87,6 +89,11 @@ static inline unsigned char current_lock
+ #define current_lock_cmos_reg() 0
+ #endif
  
- 	table_attr->attr.size = 0;
- 	table_attr->attr.read = acpi_table_show;
++#ifdef CONFIG_PNP
++#define ARCH_PNP_RTC_WORKAROUND
++extern struct device *add_nonpnp_rtc_cmos(void);
++#endif
++
+ /*
+  * The yet supported machines all access the RTC index register via
+  * an ISA port access but the way to access the date register differs ...
+diff -puN include/linux/pnp.h~acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry include/linux/pnp.h
+--- a/include/linux/pnp.h~acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry
++++ a/include/linux/pnp.h
+@@ -427,6 +427,7 @@ int pnp_device_attach(struct pnp_dev *pn
+ void pnp_device_detach(struct pnp_dev *pnp_dev);
+ extern struct list_head pnp_global;
+ extern int pnp_platform_devices;
++extern bool pnp_rtc_missing;
+ 
+ /* multidevice card support */
+ struct pnp_dev *pnp_request_card_device(struct pnp_card_link *clink,
 _
