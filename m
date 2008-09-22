@@ -1,40 +1,89 @@
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: Re: bluetooth support for Toshiba Tecra A8
-Date: Mon, 22 Sep 2008 21:12:30 +0100
-Message-ID: <200809222112.31146.carlos@strangeworlds.co.uk>
-References: <48D79E5A.2090406@softhard.org>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+From: akpm@linux-foundation.org
+Subject: [patch for 2.6.27? 1/2] acpi: don't create empty filenames in /sys/firmware/acpi/tables
+Date: Mon, 22 Sep 2008 14:05:09 -0700
+Message-ID: <200809222105.m8ML5A5S029609@imap1.linux-foundation.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from phoenix.slamd64.com ([217.10.145.2]:44738 "EHLO
-	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751281AbYIVUMo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Sep 2008 16:12:44 -0400
-In-Reply-To: <48D79E5A.2090406@softhard.org>
-Content-Disposition: inline
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58005 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752870AbYIVVFu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 22 Sep 2008 17:05:50 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: sawa@softhard.org
-Cc: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, nokos@gmx.net, len.brown@intel.com, ming.m.lin@intel.com, robert.moore@intel.com, rui.zhang@intel.com, stable@kernel.org
 
-On Monday 22 September 2008 14:32:10 Sava Rados wrote:
-> Every time I upgrade kernel on my system, I need to [patch toshiba_]acpi
-> module to get my laptop to work with bluetooth.
-> [..]
-> Can anyone tell me who to talk to and why this can't be implemented to
-> the official acpi module?
+From: Peter Gruber <nokos@gmx.net>
 
-A version of this patch which exposes bluetooth via the rfkill interface 
-instead of /proc has been picked up by John Linville in the wireless tree. It 
-will be merged in 2.6.28.
+Taken from http://bugzilla.kernel.org/show_bug.cgi?id=11539
 
-http://git.kernel.org/?p=linux/kernel/git/linville/wireless-next-2.6.git;a=commit;h=c41a40c58b623f97dd2e23aa3baab2cedb47d99f
+Since commit bc45b1d39a925b56796bebf8a397a0491489d85c acpi tables are
+allowed to have an empty signature and /sys/firmware/acpi/tables uses the
+signature as filename.  Applications using naive recursion through /sys
+loop forever.  A possible solution would be: (replacing the zero length
+filename with the string "NULL")
 
+Cc: Bob Moore <robert.moore@intel.com>
+Cc: Lin Ming <ming.m.lin@intel.com>
+Cc: Len Brown <len.brown@intel.com>
+Acked-by: Zhang Rui <rui.zhang@intel.com>
+Cc: <stable@kernel.org>		[2.6.26.x]
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
--Carlos
--- 
-E-Mail: carlos@strangeworlds.co.uk
-Web: strangeworlds.co.uk
-GPG Key ID: 0x23EE722D
+ drivers/acpi/system.c |   25 +++++++++++++++++--------
+ 1 file changed, 17 insertions(+), 8 deletions(-)
+
+diff -puN drivers/acpi/system.c~acpi-dont-create-empty-filenames-in-sys-firmware-acpi-tables drivers/acpi/system.c
+--- a/drivers/acpi/system.c~acpi-dont-create-empty-filenames-in-sys-firmware-acpi-tables
++++ a/drivers/acpi/system.c
+@@ -78,9 +78,15 @@ static ssize_t acpi_table_show(struct ko
+ 	    container_of(bin_attr, struct acpi_table_attr, attr);
+ 	struct acpi_table_header *table_header = NULL;
+ 	acpi_status status;
++	char name[ACPI_NAME_SIZE];
++
++	if (strncmp(table_attr->name, "NULL", 4))
++		memcpy(name, table_attr->name, ACPI_NAME_SIZE);
++	else
++		memcpy(name, "\0\0\0\0", 4);
+ 
+ 	status =
+-	    acpi_get_table(table_attr->name, table_attr->instance,
++	    acpi_get_table(name, table_attr->instance,
+ 			   &table_header);
+ 	if (ACPI_FAILURE(status))
+ 		return -ENODEV;
+@@ -95,21 +101,24 @@ static void acpi_table_attr_init(struct 
+ 	struct acpi_table_header *header = NULL;
+ 	struct acpi_table_attr *attr = NULL;
+ 
+-	memcpy(table_attr->name, table_header->signature, ACPI_NAME_SIZE);
++	if (table_header->signature[0] != '\0')
++		memcpy(table_attr->name, table_header->signature,
++			ACPI_NAME_SIZE);
++	else
++		memcpy(table_attr->name, "NULL", 4);
+ 
+ 	list_for_each_entry(attr, &acpi_table_attr_list, node) {
+-		if (!memcmp(table_header->signature, attr->name,
+-			    ACPI_NAME_SIZE))
++		if (!memcmp(table_attr->name, attr->name, ACPI_NAME_SIZE))
+ 			if (table_attr->instance < attr->instance)
+ 				table_attr->instance = attr->instance;
+ 	}
+ 	table_attr->instance++;
+ 
+ 	if (table_attr->instance > 1 || (table_attr->instance == 1 &&
+-					 !acpi_get_table(table_header->
+-							 signature, 2,
+-							 &header)))
+-		sprintf(table_attr->name + 4, "%d", table_attr->instance);
++					!acpi_get_table
++					(table_header->signature, 2, &header)))
++		sprintf(table_attr->name + ACPI_NAME_SIZE, "%d",
++			table_attr->instance);
+ 
+ 	table_attr->attr.size = 0;
+ 	table_attr->attr.read = acpi_table_show;
+_
