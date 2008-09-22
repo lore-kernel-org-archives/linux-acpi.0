@@ -1,70 +1,89 @@
-From: Holger Macht <hmacht@suse.de>
-Subject: Re: [patch 1/11]avoid check _STA method
-Date: Mon, 22 Sep 2008 12:57:59 +0200
-Message-ID: <20080922105759.GB26633@homac.suse.de>
-References: <1219888923.29375.21.camel@sli10-desk.sh.intel.com>
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Subject: Re: [patch 2/2] acpi: Avoid dropping rapid hotkey events (or other
+ GPEs) on Asus EeePC
+Date: Mon, 22 Sep 2008 12:02:20 +0100
+Message-ID: <48D77B3C.8070103@tuffmail.co.uk>
+References: <48D695B3.5000303@tuffmail.co.uk> <48D69DC9.5060100@suse.de> <48D760A2.3030007@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:54713 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753298AbYIVK6K (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 22 Sep 2008 06:58:10 -0400
-Content-Disposition: inline
-In-Reply-To: <1219888923.29375.21.camel@sli10-desk.sh.intel.com>
+Received: from ti-out-0910.google.com ([209.85.142.189]:42733 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752851AbYIVLC3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Sep 2008 07:02:29 -0400
+Received: by ti-out-0910.google.com with SMTP id b6so730622tic.23
+        for <linux-acpi@vger.kernel.org>; Mon, 22 Sep 2008 04:02:27 -0700 (PDT)
+In-Reply-To: <48D760A2.3030007@tuffmail.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Andi Kleen <andi@firstfloor.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, mjg59 <mjg59@srcf.ucam.org>, Tejun Heo <htejun@gmail.com>
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: linux acpi <linux-acpi@vger.kernel.org>
 
-On Thu 28. Aug - 10:02:03, Shaohua Li wrote:
-> In some BIOSes, every _STA method call will send a notification again,
-> this cause freeze. And in some BIOSes, it appears _STA should be called
-> after _DCK. This tries to avoid calls _STA, and still keep the device
-> present check.
-> http://bugzilla.kernel.org/show_bug.cgi?id=10431
+Alan Jenkins wrote:
+> Alexey Starikovskiy wrote:
+>   
+>> Hi Alan,
+>> That patch is old news already...
+>> There is a new shiny one appended to 9998/10724/11549...
+>> Please give it a try. It does disable GPE, but for very small duration.
+>>     
+>
+> Ok.  I was put off by the noise :-).
+>
+> I've just tested 2.6.27-rc6 with
+> <http://bugzilla.kernel.org/show_bug.cgi?id=9998#c81>.  It still "drops"
+> some events, but now it takes longer to happen.  I have to work much
+> harder bashing the keys to reproduce it.
+>
+>
+> Like before, missing an event has severe consequences.  The missed event
+> is buffered.  When a new event occurs, only the oldest event is removed
+> from the buffer.  Therefore the buffer can only grow.  Eventually,
+> something breaks.  Events stop being delivered altogether; presumably
+> the buffer overflows.  I confirmed that this does still happen.
+>
+> Remember that these are the consequences of a specific EC bug.  On my
+> EC, querying an event always clears SCI_EVT, even if there are more
+> events pending.  It is only re-raised when a new event fires.
+>
+>
+> I'll try reading the patch.  I may try capturing an EC debug log to show
+> how the event is dropped, but that will take time.
+>   
 
-Finally found some time to test this...
+Ok, I think I've isolated the problem to a specific change.  It's our
+good friend EC_FLAGS_QUERY_PENDING again.
 
-> 
-> Signed-off-by: Shaohua Li <shaohua.li@intel.com> 
-> ---
->  drivers/acpi/dock.c |    5 ++++-
->  1 file changed, 4 insertions(+), 1 deletion(-)
-> 
-> Index: linux/drivers/acpi/dock.c
-> ===================================================================
-> --- linux.orig/drivers/acpi/dock.c	2008-08-27 14:38:44.000000000 +0800
-> +++ linux/drivers/acpi/dock.c	2008-08-28 09:33:02.000000000 +0800
-> @@ -604,14 +604,17 @@ static int handle_eject_request(struct d
->  static void dock_notify(acpi_handle handle, u32 event, void *data)
->  {
->  	struct dock_station *ds = data;
-> +	struct acpi_device *tmp;
->  
->  	switch (event) {
->  	case ACPI_NOTIFY_BUS_CHECK:
-> -		if (!dock_in_progress(ds) && dock_present(ds)) {
-> +		if (!dock_in_progress(ds) && acpi_bus_get_device(ds->handle,
+Your new patch clears the pending flag after the query transaction has
+finished.  Previously, it was cleared as soon as the query command was
+initiated.
 
-On the Thinkpad X60, when booting undocked, the first time I dock,
-acpi_bus_get_device() returns 0, so hotplug is not performed
-properly. Second time (undock->dock), it works.
+I hacked it back and it works.  Was there a specific reason for the change?
 
-However, dock_present(ds) would return 1, so on this system, it works
-without applying this patch.
+Regards
+Alan
 
-Regards,
-	Holger
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index 97168d4..2078cff 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -262,6 +262,8 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec, u8 command,
+ 	ec->t.rlen = rdata_len;
+ 	/* start transaction */
+ 	acpi_ec_write_cmd(ec, command);
++	if (command == ACPI_EC_COMMAND_QUERY)
++		clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
+ 	/* if we selected poll mode or failed in GPE-mode do a poll loop */
+ 	if (force_poll ||
+ 	    !test_bit(EC_FLAGS_GPE_MODE, &ec->flags) ||
+@@ -453,7 +455,6 @@ static int acpi_ec_query(struct acpi_ec *ec, u8 * data)
+ 	 */
+ 
+ 	result = acpi_ec_transaction(ec, ACPI_EC_COMMAND_QUERY, NULL, 0, &d, 1, 0);
+-	clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
+ 	if (result)
+ 		return result;
+ 
 
-> +		   &tmp)) {
->  			begin_dock(ds);
->  			dock(ds);
->  			if (!dock_present(ds)) {
->  				printk(KERN_ERR PREFIX "Unable to dock!\n");
-> +				complete_dock(ds);
->  				break;
->  			}
->  			atomic_notifier_call_chain(&dock_notifier_list,
-> 
-> 
+
