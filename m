@@ -1,60 +1,35 @@
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Subject: Re: [patch 2/2] acpi: Avoid dropping rapid hotkey events (or other
- GPEs) on Asus EeePC
-Date: Mon, 22 Sep 2008 14:44:29 +0100
-Message-ID: <48D7A13D.7060909@tuffmail.co.uk>
-References: <48D695B3.5000303@tuffmail.co.uk> <48D69DC9.5060100@suse.de> <48D760A2.3030007@tuffmail.co.uk> <48D77B3C.8070103@tuffmail.co.uk> <48D7833A.9030207@suse.de> <48D78658.2090209@gmail.com> <48D78FF1.9060502@tuffmail.co.uk> <48D79120.2050309@gmail.com>
+From: Viswesh S <viswesh_vichu@yahoo.com>
+Subject: Device detection in ACPI
+Date: Mon, 22 Sep 2008 07:57:45 -0700 (PDT)
+Message-ID: <603133.88716.qm@web31606.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.185]:41197 "EHLO
-	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751100AbYIVNoi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Sep 2008 09:44:38 -0400
-Received: by ti-out-0910.google.com with SMTP id b6so755857tic.23
-        for <linux-acpi@vger.kernel.org>; Mon, 22 Sep 2008 06:44:36 -0700 (PDT)
-In-Reply-To: <48D79120.2050309@gmail.com>
+Received: from web31606.mail.mud.yahoo.com ([68.142.198.152]:38154 "HELO
+	web31606.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751034AbYIVPEZ convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 22 Sep 2008 11:04:25 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, linux acpi <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
 
-Alexey Starikovskiy wrote:
-> Alan Jenkins wrote:
->> Alexey Starikovskiy wrote:
->>  
->>> Hi Alan,
->>>
->>> Here are the patches. First is updated version of patch you've tried,
->>> second is
->>> even more aggressive disabling of GPEs (applies on top).
->>>
->>> Please check them.
->>>
->>>     
->> I tested them together and they worked, yay!
->>
->> That doesn't say anything about the second patch.  My EC didn't generate
->> enough spurious interrupts to trigger the STORM code.
->>
->> Would you welcome some nitpicks on the first patch at this time?  I
->> didn't see errors but I have some code-style queries.
->>   
-> Sure. Will be glad.
+Hi,
 
-My main query was about acpi_ec::t being a pointer.  I thought that
-meant there would be lots of kmalloc / kfrees.  But I see now it is
-allocated on-stack, i.e. it points to a local variable.  Never mind.  It
-is a bit clever though.  I thought the original version was clearer -
-where acpi_ec::t wasn't a pointer. 
+We have a PnP device,with pci bus number 4, device and ftn number to be zeroes.After the kernel has come up, we can see the device in lspci.
 
-The other niggle was the spinlock.  It would be nice to indicate by
-comment the resources it protects (acpi_ec::t and irq_count).
+But when we disassemble the DSDT, I am not able to find the device info ( The _ADR doesnt match the required number).I have decoded ( actually gone through the entire DSDT file) but still couldnt find a reference to our device in it.
 
-Actually, if we're being clever, why not move irq_count into
-transaction_data?  After all, it's only used within the transaction.  It
-fits with both the lifecycle and the locking.
+Is it always required that, all the device configuration, detection, should be present in DSDT file.Our device needs PCI routing also, so hopefully there should be an entry in any of the _PRT.
 
-Regards
-Alan
+But I couldnt find any.
+
+Could anyone let me know the normal procedure to decode a DSDT file.
+
+Thanks,
+
+Viswesh
+
+
+      Unlimited freedom, unlimited storage. Get it now, on http://help.yahoo.com/l/in/yahoo/mail/yahoomail/tools/tools-08.html/
