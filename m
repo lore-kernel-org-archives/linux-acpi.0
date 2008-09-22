@@ -1,443 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: [patch 2/5] revert "ACPI: EC: do transaction from interrupt context"
-Date: Mon, 22 Sep 2008 14:37:31 -0700
-Message-ID: <200809222137.m8MLbWtp031005@imap1.linux-foundation.org>
+Subject: [patch 5/5] ACPI: fix FADT parsing
+Date: Mon, 22 Sep 2008 14:37:34 -0700
+Message-ID: <200809222137.m8MLbZVo031017@imap1.linux-foundation.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59748 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32961 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753638AbYIVVie (ORCPT
+	by vger.kernel.org with ESMTP id S1753221AbYIVVib (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 22 Sep 2008 17:38:34 -0400
+	Mon, 22 Sep 2008 17:38:31 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, ak@linux.intel.com, astarikovskiy@suse.de, bzolnier@gmail.com
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, jbeulich@novell.com, robert.moore@intel.com
 
-From: Andrew Morton <akpm@linux-foundation.org>
+From: "Jan Beulich" <jbeulich@novell.com>
 
-Revert
+The (1.0 inherited) separate length fields in the FADT are byte granular. 
+Further, PM1a/b may have distinct lengths (if using the v2 fields was
+okay) and may live in distinct address spaces.  acpi_tb_convert_fadt()
+should account for all of these conditions.
 
-    commit 50c0f43ff1199bbea5f0418d40df32f4d4029b13
-    Author: Andi Kleen <ak@linux.intel.com>
-    Date:   Thu Sep 4 15:13:29 2008 +0200
-    
-        ACPI: EC: do transaction from interrupt context
-        
-        From: Alexey Starikovskiy <astarikovskiy@suse.de>
-        
-        It is easier and faster to do transaction directly from interrupt context
-        rather than waking control thread.
-        Also, cleaner GPE storm avoidance is implemented.
-        
-        AK: Merged with earlier io port patch
-        
-        Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-        Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Apart from these changes I'm puzzled by the fact that, not just for
+acpi_gbl_xpm1{a,b}_enable, acpi_hw_low_level_{read,write}() get an
+explicit size passed rather than using the size found in the passed GAS. 
+What happens on a platform that defines PM1{a,b} wider than 16 bits?  Of
+course, acpi_hw_low_level_{read,write}() at present are entirely
+un-prepared to deal with sizes other than 8, 16, or 32, not to speak of a
+non-zero bit_offset or access_width...
 
-
-due to a regression reported by Bart.
-
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: Andi Kleen <ak@linux.intel.com>
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Cc: "Moore, Robert" <robert.moore@intel.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/ec.c |  246 ++++++++++++++++++++++++--------------------
- 1 file changed, 135 insertions(+), 111 deletions(-)
+ drivers/acpi/tables/tbfadt.c |   32 +++++++++++++++++++++++++-------
+ 1 file changed, 25 insertions(+), 7 deletions(-)
 
-diff -puN drivers/acpi/ec.c~revert-acpi-ec-do-transaction-from-interrupt-context drivers/acpi/ec.c
---- a/drivers/acpi/ec.c~revert-acpi-ec-do-transaction-from-interrupt-context
-+++ a/drivers/acpi/ec.c
-@@ -1,7 +1,7 @@
- /*
-- *  ec.c - ACPI Embedded Controller Driver (v2.1)
-+ *  ec.c - ACPI Embedded Controller Driver (v2.0)
+diff -puN drivers/acpi/tables/tbfadt.c~acpi-fix-fadt-parsing-v3 drivers/acpi/tables/tbfadt.c
+--- a/drivers/acpi/tables/tbfadt.c~acpi-fix-fadt-parsing-v3
++++ a/drivers/acpi/tables/tbfadt.c
+@@ -50,7 +50,7 @@ ACPI_MODULE_NAME("tbfadt")
+ /* Local prototypes */
+ static void inline
+ acpi_tb_init_generic_address(struct acpi_generic_address *generic_address,
+-			     u8 bit_width, u64 address);
++			     u8 byte_width, u64 address);
+ 
+ static void acpi_tb_convert_fadt(void);
+ 
+@@ -111,7 +111,7 @@ static struct acpi_fadt_info fadt_info_t
+  * FUNCTION:    acpi_tb_init_generic_address
   *
-- *  Copyright (C) 2006-2008 Alexey Starikovskiy <astarikovskiy@suse.de>
-+ *  Copyright (C) 2006, 2007 Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
-  *  Copyright (C) 2006 Denis Sadykov <denis.m.sadykov@intel.com>
-  *  Copyright (C) 2004 Luming Yu <luming.yu@intel.com>
-  *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
-@@ -26,7 +26,7 @@
-  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  */
+  * PARAMETERS:  generic_address     - GAS struct to be initialized
+- *              bit_width           - Width of this register
++ *              byte_width          - Width of this register
+  *              Address             - Address of the register
+  *
+  * RETURN:      None
+@@ -124,7 +124,7 @@ static struct acpi_fadt_info fadt_info_t
  
--/* Uncomment next line to get verbose printout */
-+/* Uncomment next line to get verbose print outs*/
- /* #define DEBUG */
- 
- #include <linux/kernel.h>
-@@ -65,18 +65,22 @@ enum ec_command {
- 	ACPI_EC_COMMAND_QUERY = 0x84,
- };
- 
-+/* EC events */
-+enum ec_event {
-+	ACPI_EC_EVENT_OBF_1 = 1,	/* Output buffer full */
-+	ACPI_EC_EVENT_IBF_0,		/* Input buffer empty */
-+};
-+
- #define ACPI_EC_DELAY		500	/* Wait 500ms max. during EC ops */
- #define ACPI_EC_UDELAY_GLK	1000	/* Wait 1ms max. to get global lock */
- #define ACPI_EC_UDELAY		100	/* Wait 100us before polling EC again */
- 
--#define ACPI_EC_STORM_THRESHOLD 20	/* number of false interrupts
--					   per one transaction */
--
- enum {
-+	EC_FLAGS_WAIT_GPE = 0,		/* Don't check status until GPE arrives */
- 	EC_FLAGS_QUERY_PENDING,		/* Query is pending */
- 	EC_FLAGS_GPE_MODE,		/* Expect GPE to be sent for status change */
- 	EC_FLAGS_NO_GPE,		/* Don't use GPE mode */
--	EC_FLAGS_GPE_STORM		/* GPE storm detected */
-+	EC_FLAGS_RESCHEDULE_POLL	/* Re-schedule poll */
- };
- 
- /* If we find an EC via the ECDT, we need to keep a ptr to its context */
-@@ -91,14 +95,6 @@ struct acpi_ec_query_handler {
- 	u8 query_bit;
- };
- 
--struct transaction_data {
--	const u8 *wdata;
--	u8 *rdata;
--	u8 command;
--	u8 wlen;
--	u8 rlen;
--};
--
- static struct acpi_ec {
- 	acpi_handle handle;
- 	unsigned long gpe;
-@@ -109,7 +105,7 @@ static struct acpi_ec {
- 	struct mutex lock;
- 	wait_queue_head_t wait;
- 	struct list_head list;
--	struct transaction_data t;
-+	struct delayed_work work;
- 	atomic_t irq_count;
- 	u8 handlers_installed;
- } *boot_ec, *first_ec;
-@@ -169,60 +165,69 @@ static inline void acpi_ec_write_data(st
- 	outb(data, ec->data_addr);
- }
- 
--static int ec_transaction_done(struct acpi_ec *ec) {
--	if (!ec->t.command)
--		return 1;
--	if (!ec->t.wlen && !ec->t.rlen)
--		return 1;
-+static inline int acpi_ec_check_status(struct acpi_ec *ec, enum ec_event event)
-+{
-+	if (test_bit(EC_FLAGS_WAIT_GPE, &ec->flags))
-+		return 0;
-+	if (event == ACPI_EC_EVENT_OBF_1) {
-+		if (acpi_ec_read_status(ec) & ACPI_EC_FLAG_OBF)
-+			return 1;
-+	} else if (event == ACPI_EC_EVENT_IBF_0) {
-+		if (!(acpi_ec_read_status(ec) & ACPI_EC_FLAG_IBF))
-+			return 1;
-+	}
-+
- 	return 0;
- }
- 
--static void gpe_transaction(struct acpi_ec *ec, u8 status)
-+static void ec_schedule_ec_poll(struct acpi_ec *ec)
+ static void inline
+ acpi_tb_init_generic_address(struct acpi_generic_address *generic_address,
+-			     u8 bit_width, u64 address)
++			     u8 byte_width, u64 address)
  {
--	if (!ec->t.command)
--		return;
--	if (ec->t.wlen > 0) {
--		if ((status & ACPI_EC_FLAG_IBF) == 0) {
--			acpi_ec_write_data(ec, *(ec->t.wdata++));
--			--ec->t.wlen;
--		} else
--			/* false interrupt, state didn't change */
--			atomic_inc(&ec->irq_count);
--
--	} else if (ec->t.rlen > 0) {
--		if ((status & ACPI_EC_FLAG_OBF) == 1) {
--			*(ec->t.rdata++) = acpi_ec_read_data(ec);
--			--ec->t.rlen;
--		} else
--			/* false interrupt, state didn't change */
--			atomic_inc(&ec->irq_count);
--	}
-+	if (test_bit(EC_FLAGS_RESCHEDULE_POLL, &ec->flags))
-+		schedule_delayed_work(&ec->work,
-+				      msecs_to_jiffies(ACPI_EC_DELAY));
+ 
+ 	/*
+@@ -136,7 +136,7 @@ acpi_tb_init_generic_address(struct acpi
+ 	/* All other fields are byte-wide */
+ 
+ 	generic_address->space_id = ACPI_ADR_SPACE_SYSTEM_IO;
+-	generic_address->bit_width = bit_width;
++	generic_address->bit_width = byte_width << 3;
+ 	generic_address->bit_offset = 0;
+ 	generic_address->access_width = 0;
  }
- 
--static int acpi_ec_wait(struct acpi_ec *ec)
-+static void ec_switch_to_poll_mode(struct acpi_ec *ec)
- {
--	if (wait_event_timeout(ec->wait, ec_transaction_done(ec),
--			       msecs_to_jiffies(ACPI_EC_DELAY)))
--		return 0;
--	/* missing GPEs, switch back to poll mode */
--	if (printk_ratelimit())
--		pr_info(PREFIX "missing confirmations, "
--				"switch off interrupt mode.\n");
- 	set_bit(EC_FLAGS_NO_GPE, &ec->flags);
- 	clear_bit(EC_FLAGS_GPE_MODE, &ec->flags);
--	return 1;
-+	acpi_disable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
-+	set_bit(EC_FLAGS_RESCHEDULE_POLL, &ec->flags);
- }
- 
--static void acpi_ec_gpe_query(void *ec_cxt);
--
--static int ec_check_sci(struct acpi_ec *ec, u8 state)
-+static int acpi_ec_wait(struct acpi_ec *ec, enum ec_event event, int force_poll)
- {
--	if (state & ACPI_EC_FLAG_SCI) {
--		if (!test_and_set_bit(EC_FLAGS_QUERY_PENDING, &ec->flags))
--			return acpi_os_execute(OSL_EC_BURST_HANDLER,
--				acpi_ec_gpe_query, ec);
-+	atomic_set(&ec->irq_count, 0);
-+	if (likely(test_bit(EC_FLAGS_GPE_MODE, &ec->flags)) &&
-+	    likely(!force_poll)) {
-+		if (wait_event_timeout(ec->wait, acpi_ec_check_status(ec, event),
-+				       msecs_to_jiffies(ACPI_EC_DELAY)))
-+			return 0;
-+		clear_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
-+		if (acpi_ec_check_status(ec, event)) {
-+			/* missing GPEs, switch back to poll mode */
-+			if (printk_ratelimit())
-+				pr_info(PREFIX "missing confirmations, "
-+						"switch off interrupt mode.\n");
-+			ec_switch_to_poll_mode(ec);
-+			ec_schedule_ec_poll(ec);
-+			return 0;
-+		}
-+	} else {
-+		unsigned long delay = jiffies + msecs_to_jiffies(ACPI_EC_DELAY);
-+		clear_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
-+		while (time_before(jiffies, delay)) {
-+			if (acpi_ec_check_status(ec, event))
-+				return 0;
-+			msleep(1);
-+		}
-+		if (acpi_ec_check_status(ec,event))
-+			return 0;
- 	}
--	return 0;
-+	pr_err(PREFIX "acpi_ec_wait timeout, status = 0x%2.2x, event = %s\n",
-+		acpi_ec_read_status(ec),
-+		(event == ACPI_EC_EVENT_OBF_1) ? "\"b0=1\"" : "\"b1=0\"");
-+	return -ETIME;
- }
- 
- static int acpi_ec_transaction_unlocked(struct acpi_ec *ec, u8 command,
-@@ -230,53 +235,45 @@ static int acpi_ec_transaction_unlocked(
- 					u8 * rdata, unsigned rdata_len,
- 					int force_poll)
- {
--	unsigned long delay;
-+	int result = 0;
-+	set_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
- 	pr_debug(PREFIX "transaction start\n");
--	/* disable GPE during transaction if storm is detected */
--	if (test_bit(EC_FLAGS_GPE_STORM, &ec->flags)) {
--		set_bit(EC_FLAGS_NO_GPE, &ec->flags);
--		clear_bit(EC_FLAGS_GPE_MODE, &ec->flags);
--		acpi_disable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
--	}
--	atomic_set(&ec->irq_count, 0);
--	/* fill in transaction structure */
--	ec->t.wdata = wdata;
--	ec->t.wlen = wdata_len;
--	ec->t.rdata = rdata;
--	ec->t.rlen = rdata_len;
--	/* start transaction */
- 	acpi_ec_write_cmd(ec, command);
--	/* if we selected poll mode or failed in GPE-mode do a poll loop */
--	if (force_poll ||
--	    !test_bit(EC_FLAGS_GPE_MODE, &ec->flags) ||
--	    acpi_ec_wait(ec)) {
--		delay = jiffies + msecs_to_jiffies(ACPI_EC_DELAY);
--		while (time_before(jiffies, delay)) {
--			gpe_transaction(ec, acpi_ec_read_status(ec));
--			msleep(1);
--			if (ec_transaction_done(ec))
--				goto end;
-+	for (; wdata_len > 0; --wdata_len) {
-+		result = acpi_ec_wait(ec, ACPI_EC_EVENT_IBF_0, force_poll);
-+		if (result) {
-+			pr_err(PREFIX
-+			       "write_cmd timeout, command = %d\n", command);
-+			goto end;
- 		}
-+		set_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
-+		acpi_ec_write_data(ec, *(wdata++));
- 	}
--end:
--	pr_debug(PREFIX "transaction end\n");
--	ec->t.command = 0;
--	if (test_bit(EC_FLAGS_GPE_STORM, &ec->flags)) {
--		/* check if we received SCI during transaction */
--		ec_check_sci(ec, acpi_ec_read_status(ec));
--		/* it is safe to enable GPE outside of transaction */
--		acpi_enable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
--	} else if (test_bit(EC_FLAGS_GPE_MODE, &ec->flags) &&
--		   atomic_read(&ec->irq_count) > ACPI_EC_STORM_THRESHOLD)
--		pr_debug(PREFIX "GPE storm detected\n");
--		set_bit(EC_FLAGS_GPE_STORM, &ec->flags);
--	return 0;
--}
- 
--static int ec_check_ibf0(struct acpi_ec *ec)
--{
--	u8 status = acpi_ec_read_status(ec);
--	return (status & ACPI_EC_FLAG_IBF) == 0;
-+	if (!rdata_len) {
-+		result = acpi_ec_wait(ec, ACPI_EC_EVENT_IBF_0, force_poll);
-+		if (result) {
-+			pr_err(PREFIX
-+			       "finish-write timeout, command = %d\n", command);
-+			goto end;
-+		}
-+	} else if (command == ACPI_EC_COMMAND_QUERY)
-+		clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
-+
-+	for (; rdata_len > 0; --rdata_len) {
-+		result = acpi_ec_wait(ec, ACPI_EC_EVENT_OBF_1, force_poll);
-+		if (result) {
-+			pr_err(PREFIX "read timeout, command = %d\n", command);
-+			goto end;
-+		}
-+		/* Don't expect GPE after last read */
-+		if (rdata_len > 1)
-+			set_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
-+		*(rdata++) = acpi_ec_read_data(ec);
-+	}
-+      end:
-+	pr_debug(PREFIX "transaction end\n");
-+	return result;
- }
- 
- static int acpi_ec_transaction(struct acpi_ec *ec, u8 command,
-@@ -302,8 +299,8 @@ static int acpi_ec_transaction(struct ac
- 		}
- 	}
- 
--	if (!wait_event_timeout(ec->wait, ec_check_ibf0(ec),
--				msecs_to_jiffies(ACPI_EC_DELAY))) {
-+	status = acpi_ec_wait(ec, ACPI_EC_EVENT_IBF_0, 0);
-+	if (status) {
- 		pr_err(PREFIX "input buffer is not empty, "
- 				"aborting transaction\n");
- 		goto end;
-@@ -440,7 +437,6 @@ static int acpi_ec_query(struct acpi_ec 
+@@ -342,9 +342,20 @@ static void acpi_tb_convert_fadt(void)
+ 	 * useful to calculate them once, here.
+ 	 *
+ 	 * The PM event blocks are split into two register blocks, first is the
+-	 * PM Status Register block, followed immediately by the PM Enable Register
+-	 * block. Each is of length (pm1_event_length/2)
++	 * PM Status Register block, followed immediately by the PM Enable
++	 * Register block. Each is of length (xpm1x_event_block.bit_width/2).
++	 *
++	 * On various systems the v2 fields (and particularly the bit widths)
++	 * cannot be relied upon, though. Hence resort to using the v1 length
++	 * here (and warn about the inconsistency).
  	 */
++	if (acpi_gbl_FADT.xpm1a_event_block.bit_width
++	    != acpi_gbl_FADT.pm1_event_length * 8)
++		printk(KERN_WARNING "FADT: "
++		       "X_PM1a_EVT_BLK.bit_width (%u) does not match"
++		       " PM1_EVT_LEN (%u)\n",
++		       acpi_gbl_FADT.xpm1a_event_block.bit_width,
++		       acpi_gbl_FADT.pm1_event_length);
+ 	pm1_register_length = (u8) ACPI_DIV_2(acpi_gbl_FADT.pm1_event_length);
  
- 	result = acpi_ec_transaction(ec, ACPI_EC_COMMAND_QUERY, NULL, 0, &d, 1, 0);
--	clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
- 	if (result)
- 		return result;
+ 	/* The PM1A register block is required */
+@@ -360,13 +371,20 @@ static void acpi_tb_convert_fadt(void)
+ 	/* The PM1B register block is optional, ignore if not present */
  
-@@ -519,17 +515,24 @@ static u32 acpi_ec_gpe_handler(void *dat
- {
- 	acpi_status status = AE_OK;
- 	struct acpi_ec *ec = data;
--	u8 state;
-+	u8 state = acpi_ec_read_status(ec);
+ 	if (acpi_gbl_FADT.xpm1b_event_block.address) {
++		if (acpi_gbl_FADT.xpm1b_event_block.bit_width
++		    != acpi_gbl_FADT.pm1_event_length * 8)
++			printk(KERN_WARNING "FADT: "
++			       "X_PM1b_EVT_BLK.bit_width (%u) does not match"
++			       " PM1_EVT_LEN (%u)\n",
++			       acpi_gbl_FADT.xpm1b_event_block.bit_width,
++			       acpi_gbl_FADT.pm1_event_length);
+ 		acpi_tb_init_generic_address(&acpi_gbl_xpm1b_enable,
+ 					     pm1_register_length,
+ 					     (acpi_gbl_FADT.xpm1b_event_block.
+ 					      address + pm1_register_length));
+ 		/* Don't forget to copy space_id of the GAS */
+ 		acpi_gbl_xpm1b_enable.space_id =
+-		    acpi_gbl_FADT.xpm1a_event_block.space_id;
++		    acpi_gbl_FADT.xpm1b_event_block.space_id;
  
- 	pr_debug(PREFIX "~~~> interrupt\n");
--	state = acpi_ec_read_status(ec);
--
--	gpe_transaction(ec, state);
--	if ((status & ACPI_EC_FLAG_IBF) == 0)
-+	atomic_inc(&ec->irq_count);
-+	if (atomic_read(&ec->irq_count) > 5) {
-+		pr_err(PREFIX "GPE storm detected, disabling EC GPE\n");
-+		ec_switch_to_poll_mode(ec);
-+		goto end;
-+	}
-+	clear_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
-+	if (test_bit(EC_FLAGS_GPE_MODE, &ec->flags))
- 		wake_up(&ec->wait);
- 
--	status = ec_check_sci(ec, state);
--	if (!test_bit(EC_FLAGS_GPE_MODE, &ec->flags) &&
-+	if (state & ACPI_EC_FLAG_SCI) {
-+		if (!test_and_set_bit(EC_FLAGS_QUERY_PENDING, &ec->flags))
-+			status = acpi_os_execute(OSL_EC_BURST_HANDLER,
-+				acpi_ec_gpe_query, ec);
-+	} else if (!test_bit(EC_FLAGS_GPE_MODE, &ec->flags) &&
- 		   !test_bit(EC_FLAGS_NO_GPE, &ec->flags) &&
- 		   in_interrupt()) {
- 		/* this is non-query, must be confirmation */
-@@ -537,11 +540,21 @@ static u32 acpi_ec_gpe_handler(void *dat
- 			pr_info(PREFIX "non-query interrupt received,"
- 				" switching to interrupt mode\n");
- 		set_bit(EC_FLAGS_GPE_MODE, &ec->flags);
-+		clear_bit(EC_FLAGS_RESCHEDULE_POLL, &ec->flags);
  	}
-+end:
-+	ec_schedule_ec_poll(ec);
- 	return ACPI_SUCCESS(status) ?
- 	    ACPI_INTERRUPT_HANDLED : ACPI_INTERRUPT_NOT_HANDLED;
  }
- 
-+static void do_ec_poll(struct work_struct *work)
-+{
-+	struct acpi_ec *ec = container_of(work, struct acpi_ec, work.work);
-+	atomic_set(&ec->irq_count, 0);
-+	(void)acpi_ec_gpe_handler(ec);
-+}
-+
- /* --------------------------------------------------------------------------
-                              Address Space Management
-    -------------------------------------------------------------------------- */
-@@ -683,6 +696,7 @@ static struct acpi_ec *make_acpi_ec(void
- 	mutex_init(&ec->lock);
- 	init_waitqueue_head(&ec->wait);
- 	INIT_LIST_HEAD(&ec->list);
-+	INIT_DELAYED_WORK_DEFERRABLE(&ec->work, do_ec_poll);
- 	atomic_set(&ec->irq_count, 0);
- 	return ec;
- }
-@@ -722,8 +736,15 @@ ec_parse_device(acpi_handle handle, u32 
- 	return AE_CTRL_TERMINATE;
- }
- 
-+static void ec_poll_stop(struct acpi_ec *ec)
-+{
-+	clear_bit(EC_FLAGS_RESCHEDULE_POLL, &ec->flags);
-+	cancel_delayed_work(&ec->work);
-+}
-+
- static void ec_remove_handlers(struct acpi_ec *ec)
- {
-+	ec_poll_stop(ec);
- 	if (ACPI_FAILURE(acpi_remove_address_space_handler(ec->handle,
- 				ACPI_ADR_SPACE_EC, &acpi_ec_space_handler)))
- 		pr_err(PREFIX "failed to remove space handler\n");
-@@ -828,12 +849,14 @@ static int ec_install_handlers(struct ac
- 	if (ec->handlers_installed)
- 		return 0;
- 	status = acpi_install_gpe_handler(NULL, ec->gpe,
--				  ACPI_GPE_EDGE_TRIGGERED,
--				  &acpi_ec_gpe_handler, ec);
-+					  ACPI_GPE_EDGE_TRIGGERED,
-+					  &acpi_ec_gpe_handler, ec);
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
-+
- 	acpi_set_gpe_type(NULL, ec->gpe, ACPI_GPE_TYPE_RUNTIME);
- 	acpi_enable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
-+
- 	status = acpi_install_address_space_handler(ec->handle,
- 						    ACPI_ADR_SPACE_EC,
- 						    &acpi_ec_space_handler,
-@@ -864,6 +887,7 @@ static int acpi_ec_start(struct acpi_dev
- 
- 	/* EC is fully operational, allow queries */
- 	clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
-+	ec_schedule_ec_poll(ec);
- 	return ret;
- }
- 
 _
