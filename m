@@ -1,52 +1,57 @@
-From: Alan Jenkins <alan.christopher.jenkins@googlemail.com>
-Subject: Re: [patch 2/2] acpi: Avoid dropping rapid hotkey events (or other
- GPEs) on Asus EeePC
-Date: Mon, 22 Sep 2008 10:08:50 +0100
-Message-ID: <48D760A2.3030007@tuffmail.co.uk>
-References: <48D695B3.5000303@tuffmail.co.uk> <48D69DC9.5060100@suse.de>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [patch 4/11]makeing dock driver supports bay and battery hotplug
+Date: Mon, 22 Sep 2008 11:17:42 +0200
+Message-ID: <200809221117.45245.trenn@suse.de>
+References: <1219889038.29375.29.camel@sli10-desk.sh.intel.com> <200809182116.58202.trenn@suse.de> <1222046694.7241.3.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.186]:9299 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751753AbYIVJI6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Sep 2008 05:08:58 -0400
-Received: by nf-out-0910.google.com with SMTP id d3so453928nfc.21
-        for <linux-acpi@vger.kernel.org>; Mon, 22 Sep 2008 02:08:56 -0700 (PDT)
-In-Reply-To: <48D69DC9.5060100@suse.de>
+Received: from cantor2.suse.de ([195.135.220.15]:47576 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751543AbYIVJRs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 22 Sep 2008 05:17:48 -0400
+In-Reply-To: <1222046694.7241.3.camel@sli10-desk.sh.intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: linux acpi <linux-acpi@vger.kernel.org>
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Andi Kleen <andi@firstfloor.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Holger Macht <hmacht@suse.de>, mjg59 <mjg59@srcf.ucam.org>, Tejun Heo <htejun@gmail.com>
 
-Alexey Starikovskiy wrote:
-> Hi Alan,
-> That patch is old news already...
-> There is a new shiny one appended to 9998/10724/11549...
-> Please give it a try. It does disable GPE, but for very small duration.
+On Monday 22 September 2008 03:24:54 Shaohua Li wrote:
+> On Thu, 2008-09-18 at 13:16 -0600, Thomas Renninger wrote:
+> > On Thursday 18 September 2008 19:10:02 Thomas Renninger wrote:
+...
+> > Above is still valid.
+>
+> No, this doesn't work. there isn't a acpi_device because battery is
+> absent when this is called, but I could add CID support.
+I don't know whether there are devices with battery ID in the CID list.
+With or without the workaround (rewriting cid checking) it's not perfect.
 
-Ok.  I was put off by the noise :-).
+This is an issue I tried to solve years ago.
+Ignoring not present devices is wrong IMO.
+The whole current design destroys hotplug integration and results in more
+and more workarounds (acpi_memoryhotplug and container driver are nice 
+examples).
+One has to be careful that only _STA and no other functions are called, but 
+not present devices should still get registered in some way and somone (the 
+driver itself or maybe better the ACPI subsytem and introduce .notify driver 
+ops) should listen on Notify AML calls.
+Please tell me if someone looks at this again or has ideas/concerns. I always 
+wanted to and will at some point, but still don't have the time.
 
-I've just tested 2.6.27-rc6 with
-<http://bugzilla.kernel.org/show_bug.cgi?id=9998#c81>.  It still "drops"
-some events, but now it takes longer to happen.  I have to work much
-harder bashing the keys to reproduce it.
+> > Some of the patches looked like it would be worth for .27, but it's too
+> > late now anyway and the problem I hoped it could fix (kacpid utilizes
+> > 100% of CPU after suspend, due to _STA -> notify loop) is not solved by
+> > these according to Holger.
+>
+> Yes, this patch set just fixed some bugs. Is there a bugzilla for this
+> issue I can look at?
+[Bug 401740] kacpi* eat a lot of cpu after s2disk
+https://bugzilla.novell.com/show_bug.cgi?id=401740
 
+Thanks,
 
-Like before, missing an event has severe consequences.  The missed event
-is buffered.  When a new event occurs, only the oldest event is removed
-from the buffer.  Therefore the buffer can only grow.  Eventually,
-something breaks.  Events stop being delivered altogether; presumably
-the buffer overflows.  I confirmed that this does still happen.
-
-Remember that these are the consequences of a specific EC bug.  On my
-EC, querying an event always clears SCI_EVT, even if there are more
-events pending.  It is only re-raised when a new event fires.
-
-
-I'll try reading the patch.  I may try capturing an EC debug log to show
-how the event is dropped, but that will take time.
-
-Thanks
-Alan
+     Thomas
