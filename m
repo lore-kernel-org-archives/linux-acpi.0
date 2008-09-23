@@ -1,54 +1,67 @@
-From: Benjamin Scherrer <realhangman@web.de>
-Subject: Re: MSI K9A2 Platinum Rev.1 bios update from 1.1 to 1.5 breaks ACPI
- _PSS objects
-Date: Tue, 23 Sep 2008 10:13:18 +0200
-Message-ID: <48D8A51E.8040409@web.de>
-References: <1006443634@web.de>
+From: Michal 'vorner' Vaner <vorner@ucw.cz>
+Subject: Re: Problem with kernel commit
+	664d080c41463570b95717b5ad86e79dc1be0877
+Date: Tue, 23 Sep 2008 21:36:07 +0200
+Message-ID: <20080923193607.GA8135@tarantula.kolej.mff.cuni.cz>
+References: <20080921173506.GA15741@tarantula.kolej.mff.cuni.cz> <20080922105747.GA26633@homac.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="nFreZHaLTZJo0R7j"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmmailgate01.web.de ([217.72.192.221]:41685 "EHLO
-	fmmailgate01.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752097AbYIWIWf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Sep 2008 04:22:35 -0400
-Received: from smtp05.web.de (fmsmtp05.dlan.cinetic.de [172.20.4.166])
-	by fmmailgate01.web.de (Postfix) with ESMTP id 2F295F1749E9
-	for <linux-acpi@vger.kernel.org>; Tue, 23 Sep 2008 10:22:34 +0200 (CEST)
-Received: from [88.64.46.67] (helo=[192.168.2.43])
-	by smtp05.web.de with asmtp (WEB.DE 4.109 #226)
-	id 1Ki3AI-0005ZM-00
-	for linux-acpi@vger.kernel.org; Tue, 23 Sep 2008 10:22:34 +0200
-In-Reply-To: <1006443634@web.de>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:39823 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751662AbYIWTg3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Sep 2008 15:36:29 -0400
+Content-Disposition: inline
+In-Reply-To: <20080922105747.GA26633@homac.suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-
-Hi,
-
-wow, MSI replied very fast  - they sent me an e-mail with a link to the
-new 1.6.5 bios (dated early this month, it's not officially out yet).
-Cpufreq is working again.
-
-Thank you for the good powernow-k8 output; it got me to the solution in
-less than a day!
-
-Benjamin
+To: Michal 'vorner' Vaner <vorner@ucw.cz>, linux-acpi@vger.kernel.org, Shaohua Li <shaohua.li@intel.com>, trenn@suse.de
 
 
-Benjamin Scherrer wrote:
-> Hi,
->
-> I just updated my bios on the MSI K9A2 Platinum mainboard from version 1.1 to 1.5. Unfortunately, cpufreq is not working any more, and "modprobe powernow-k8" gives me:
->
-> "powernow-k8: Found 1 AMD Phenom(tm) 9850 Quad-Core Processor processors (4 cpu cores) (version 2.20.00)
-> powernow-k8: Your BIOS does not provide ACPI _PSS objects in a way that Linux understands. Please report this to the Linux ACPI maintainers and complain to your BIOS vendor."
->
-> I complaint to MSI, and am kindly asking you for advice what to do now, since I don't want to run all my cpus on 100% all the time. Will the cpufreq_ondemand governer also work without the PSS objects?
->
-> greetings,
-> Benjamin
->
-> p.s. I mailed MSI that they should contact you at http://www.lesswatts.org/projects/acpi/ (just as info for you, they most probably won't do anything I guess)
->   
+--nFreZHaLTZJo0R7j
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+Hello
+
+On Mon, Sep 22, 2008 at 12:57:48PM +0200, Holger Macht wrote:
+> On Sun 21. Sep - 19:35:06, Michal 'vorner' Vaner wrote:
+> > Recently, I updated my kernel from 2.6.25 to latest .27 rc and found a
+> > problem. I have a dell latitude D510 laptop with a media bay slot. If I
+> > have any disk-like device inserted (CDRom or secondary disk) and remove
+> > it, acpi starts generating ~250 interrupts per second (found out by
+> > powertop) and kacpid and kacpid_notify start using all available CPU
+> > time. It stops after any disk-like device is plugged back in, however,
+> > inserting secondary battery does not help (which means replacing a
+> > CDRom with a battery has the opposite than desired effect, making the
+> > runtime shorter).
+>=20
+> Can you please try the patch I have attached? It is the all-in-one patch
+> for the patch series Shaohua Li posted some time ago and applies to
+> current Linus' git.
+
+Yes, I tested it and it solves the problem. The device works and the
+interrupts no longer appear.
+
+Thank you
+
+--=20
+Fragile. Do not turn umop ap1sdn!
+
+Michal 'vorner' Vaner
+
+--nFreZHaLTZJo0R7j
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.9 (GNU/Linux)
+
+iEYEABECAAYFAkjZRScACgkQ7/oWwynB3bI2SQCfTi3n5WDTv14cSMLPwr52exLD
+3hcAnjUBdkKuR2vNlBvx5Fn6MTFlcoyl
+=+D+y
+-----END PGP SIGNATURE-----
+
+--nFreZHaLTZJo0R7j--
