@@ -1,67 +1,61 @@
-From: Michal 'vorner' Vaner <vorner@ucw.cz>
-Subject: Re: Problem with kernel commit
-	664d080c41463570b95717b5ad86e79dc1be0877
-Date: Tue, 23 Sep 2008 21:36:07 +0200
-Message-ID: <20080923193607.GA8135@tarantula.kolej.mff.cuni.cz>
-References: <20080921173506.GA15741@tarantula.kolej.mff.cuni.cz> <20080922105747.GA26633@homac.suse.de>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: Re: [patch 1/11]avoid check _STA method
+Date: Wed, 24 Sep 2008 10:51:05 +0800
+Message-ID: <1222224665.968.3.camel@sli10-desk.sh.intel.com>
+References: <1219888923.29375.21.camel@sli10-desk.sh.intel.com>
+	 <20080922105759.GB26633@homac.suse.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="nFreZHaLTZJo0R7j"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:39823 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751662AbYIWTg3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Sep 2008 15:36:29 -0400
-Content-Disposition: inline
-In-Reply-To: <20080922105747.GA26633@homac.suse.de>
+Received: from mga11.intel.com ([192.55.52.93]:54423 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751503AbYIXCvI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 23 Sep 2008 22:51:08 -0400
+In-Reply-To: <20080922105759.GB26633@homac.suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Michal 'vorner' Vaner <vorner@ucw.cz>, linux-acpi@vger.kernel.org, Shaohua Li <shaohua.li@intel.com>, trenn@suse.de
+To: Holger Macht <hmacht@suse.de>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Andi Kleen <andi@firstfloor.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, mjg59 <mjg59@srcf.ucam.org>, Tejun Heo <htejun@gmail.com>
 
+On Mon, 2008-09-22 at 18:57 +0800, Holger Macht wrote:
+> On Thu 28. Aug - 10:02:03, Shaohua Li wrote:
+> > In some BIOSes, every _STA method call will send a notification again,
+> > this cause freeze. And in some BIOSes, it appears _STA should be called
+> > after _DCK. This tries to avoid calls _STA, and still keep the device
+> > present check.
+> > http://bugzilla.kernel.org/show_bug.cgi?id=10431
+> 
+> Finally found some time to test this...
+> 
+> >
+> > Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+> > ---
+> >  drivers/acpi/dock.c |    5 ++++-
+> >  1 file changed, 4 insertions(+), 1 deletion(-)
+> >
+> > Index: linux/drivers/acpi/dock.c
+> > ===================================================================
+> > --- linux.orig/drivers/acpi/dock.c    2008-08-27 14:38:44.000000000 +0800
+> > +++ linux/drivers/acpi/dock.c 2008-08-28 09:33:02.000000000 +0800
+> > @@ -604,14 +604,17 @@ static int handle_eject_request(struct d
+> >  static void dock_notify(acpi_handle handle, u32 event, void *data)
+> >  {
+> >       struct dock_station *ds = data;
+> > +     struct acpi_device *tmp;
+> >
+> >       switch (event) {
+> >       case ACPI_NOTIFY_BUS_CHECK:
+> > -             if (!dock_in_progress(ds) && dock_present(ds)) {
+> > +             if (!dock_in_progress(ds) && acpi_bus_get_device(ds->handle,
+> 
+> On the Thinkpad X60, when booting undocked, the first time I dock,
+> acpi_bus_get_device() returns 0, so hotplug is not performed
+> properly. Second time (undock->dock), it works.
+So the patch breaks your X60? acpi_bus_get_device() returns 0 means the
+device is already in ACPI device tree, but it shouldn't as it's not
+present.
 
---nFreZHaLTZJo0R7j
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Thanks,
+Shaohua
 
-Hello
-
-On Mon, Sep 22, 2008 at 12:57:48PM +0200, Holger Macht wrote:
-> On Sun 21. Sep - 19:35:06, Michal 'vorner' Vaner wrote:
-> > Recently, I updated my kernel from 2.6.25 to latest .27 rc and found a
-> > problem. I have a dell latitude D510 laptop with a media bay slot. If I
-> > have any disk-like device inserted (CDRom or secondary disk) and remove
-> > it, acpi starts generating ~250 interrupts per second (found out by
-> > powertop) and kacpid and kacpid_notify start using all available CPU
-> > time. It stops after any disk-like device is plugged back in, however,
-> > inserting secondary battery does not help (which means replacing a
-> > CDRom with a battery has the opposite than desired effect, making the
-> > runtime shorter).
->=20
-> Can you please try the patch I have attached? It is the all-in-one patch
-> for the patch series Shaohua Li posted some time ago and applies to
-> current Linus' git.
-
-Yes, I tested it and it solves the problem. The device works and the
-interrupts no longer appear.
-
-Thank you
-
---=20
-Fragile. Do not turn umop ap1sdn!
-
-Michal 'vorner' Vaner
-
---nFreZHaLTZJo0R7j
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.9 (GNU/Linux)
-
-iEYEABECAAYFAkjZRScACgkQ7/oWwynB3bI2SQCfTi3n5WDTv14cSMLPwr52exLD
-3hcAnjUBdkKuR2vNlBvx5Fn6MTFlcoyl
-=+D+y
------END PGP SIGNATURE-----
-
---nFreZHaLTZJo0R7j--
