@@ -1,78 +1,98 @@
-From: SPS =?iso-2022-jp?Q?=1B=24B=3B01=3A=1B=28B_?=
-	 =?iso-2022-jp?Q?=1B=24B9-=3BV=1B=28B=28=1B=24B=23I=23T=3FM=3A=60=40o=1B=28B?=
-	 =?iso-2022-jp?Q?=1B=24BN=2C=1B=28B=29?= <miurahr@nttdata.co.jp>
-Subject: Re: [PATCH] Panasonic Let's Note laptop extras driver v0.94
-Date: Thu, 25 Sep 2008 13:45:56 +0900
-Message-ID: <1222317956.5020.10.camel@miurahr1.sps.nttdata.co.jp>
-References: <20080702090044.GB12272@prithivi.gnumonks.org>
-	 <20080704034419.GG4381@prithivi.gnumonks.org>
-	 <alpine.LFD.1.10.0809221830331.1509@localhost.localdomain>
-	 <20080923154657.GA4063@prithivi.gnumonks.org>
+From: Alexey Starikovskiy <aystarik@gmail.com>
+Subject: Re: [RFC] [Patch 0/4]  ACPI : several patches for EC
+Date: Thu, 25 Sep 2008 09:25:47 +0400
+Message-ID: <48DB20DB.4080802@gmail.com>
+References: <1222314812.4023.31.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ms1.nttdata.co.jp ([163.135.193.232]:38495 "EHLO
-	ms1.nttdata.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752090AbYIYFTN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Sep 2008 01:19:13 -0400
-Received: from MFSPL03.mfs.nttdata.co.jp (mfspl03.mfs.nttdata.co.jp [163.135.13.53])
-	by ms1.nttdata.co.jp (NTTDATA-TOP/DLV-20060831) with ESMTP id m8P4k0ZJ014481
-	for <linux-acpi@vger.kernel.org>; Thu, 25 Sep 2008 13:46:00 +0900 (JST)
-In-Reply-To: <20080923154657.GA4063@prithivi.gnumonks.org>
+Received: from ey-out-2122.google.com ([74.125.78.25]:12005 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751369AbYIYFZt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Sep 2008 01:25:49 -0400
+Received: by ey-out-2122.google.com with SMTP id 6so86553eyi.37
+        for <linux-acpi@vger.kernel.org>; Wed, 24 Sep 2008 22:25:48 -0700 (PDT)
+In-Reply-To: <1222314812.4023.31.camel@yakui_zhao.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Harald Welte <laforge@gnumonks.org>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Hiroshi Miura <miura@da-cha.org>
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
 
-Hi Harald,
+Hi Yakui,
 
-Thank you for your help and I'm sorry for my inactiveness...
+As a current maintainer of EC driver I NAK the whole series,
+as conflicting with the patch proposed by me.
 
-2008-09-23 17:46 +0200  Harald Welte wrote:
-> Hi Len,
-> 
-> On Mon, Sep 22, 2008 at 06:38:24PM -0400, Len Brown wrote:
-> > Thanks for picking up this driver -- I'm sure its users will be pleased
-> > to get it included in the kernel.
-> 
-> Hi Len, thanks for your encouraging feedback.
+Regards,
+Alex.
 
-> 
-> > If this works on a broad range of panasonic, the panasonic-laptop
-> > panasonic make sense, else if it is more limited, then a more
-> > specific name would be better.  Unclear what pcc stands for...
-> 
-> I don't really know the various panasonic products, but the 
-
-pcc stands for Panasonic Computer Company, which is exist several years
-ago. This driver works on a broad range of panasonic laptops,
-such as Let's note series and Tough book series.
-
-I had discussed bios writers in the Panasonic 2 yrs ago,
-they said they keeps backword compatibility for their products, at least
-after CF-R1/T1/W1/Y1 toughbook/let's note series.
-
-They will adopt new acpi specification when microsoft os adopt it.
-That's why recent model, such as CF-W6/W7, can not control lcd
-brightness through this driver but can through generic video 
-driver.
-
-I originaly write driver in reverse engineering basis,  but at that
-time, bios writer provided me some specification.
-
-
-
-Hiroshi Miura
-miura@da-cha.org
-miurahr@nttdata.co.jp
--- 
-        Global IT Innovator
-
-__--------~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                                NTT DATA Group
-
-Hiroshi  Miura
-HRD Manager for IT architect and specialist, 
-Planning Section, System Platform Sector
+Zhao Yakui wrote:
+> Hi, All
+>  
+>     The following are several patches for EC driver.
+>     
+>      Patch 1/4: Don't issue the burst disable command if EC exits the
+> burst mode
+>      It is meaningless that OS continues to issue the burst disable
+> command if the EC already exists the burst mode. So if EC already exists
+> the burst mode, don't issue burst disable command again.
+>      If OS continues to issue the burst disable command, there exist
+> some meaningless ACPI interrupts.
+>    
+>     Patch 2/4: Simplify EC working flowchart and always enable EC GPE 
+>     In current kernel the EC driver will be started in polling mode. When the EC
+> GPE interrupt is triggered, it will be switched to EC GPE interrupt mode.
+> And when there is no EC GPE confirmation for some EC transaction on some broken
+> laptops,the EC driver will be switched to polling mode and EC GPE will be
+> disabled. In such case the EC notification event will be lost.
+>         For example: Bug 11428/8459
+>     http://bugzilla.kernel.org/show_bug.cgi?id=11428
+>
+>     But if the EC GPE is still enable although switching to polling mode, the EC
+> notification event won't be lost.
+>     
+>     In the patch the EC default work mode will be interrupt-driven while EC driver
+> is started. Only when there is no EC GPE interrupt for some EC transactions, it 
+> will be switched to polling mode. But EC GPE is still enabled.
+>
+>     Patch 3/4: Add some delay in EC GPE handler to workaround EC GPE storm
+>     On some broken BIOS there exists the EC GPE interrupt storm. It means that there exist
+> too many ACPI interrupts related with EC GPE.
+>     If the EC GPE is still enabled, it will cause that keystrokes will be lost and 
+> the system can't work well. For example: 
+>     http://bugzilla.kernel.org/show_bug.cgi?id=9998
+>
+> 	If the EC GPE is disabled after EC GPE storm happens, some system will be unstable.
+>      http://bugzilla.kernel.org/show_bug.cgi?id=10724
+>
+>      And on some laptops with "incorrect EC status before EC GPE arrives" OS will
+> report the incorrect thermal temperature if EC GPE is disabled while EC GPE storm happens.
+>     http://bugzilla.kernel.org/show_bug.cgi?id=11309
+>
+>     This patch is to add some delay in EC GPE handler on some broken
+> BIOS.Only when more than five interrupts happen in the same jiffies and
+> EC status are the same, OS will add some delay in the EC GPE handler. If
+> the same issue still happens after adding delay,the delay time will be
+> increased.But the max delay time is ten microseconds.
+>    In such case the EC GPE is still enabled although EC GPE storm happens. And EC driver
+> will continue to work in interrupt-driven mode. But the number of EC GPE interrupts can
+> be reduced very significantly.
+>
+>    I know that this method is ugly. Some delay is added in the EC GPE handler(interrupt context).
+> But no delay is added on the normal laptops. It only workarounds the broken laptops.
+>     
+>     Patch 4/4: Cleanup some useless code in EC driver
+>     If the above three patches are applied, there exist some useless code. Cleanup it.
+>     
+>
+> Thanks for the comments.
+>   Yakui
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>   
 
