@@ -1,83 +1,57 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
+From: Sitsofe Wheeler <sitsofe@yahoo.com>
 Subject: Re: Reading EeePC900 battery info causes stalls
-Date: Thu, 25 Sep 2008 15:07:54 +0400
-Message-ID: <48DB710A.2060206@gmail.com>
+Date: Thu, 25 Sep 2008 12:17:28 +0100
+Message-ID: <48DB7348.20502@yahoo.com>
 References: <gbduo8$nj4$1@ger.gmane.org> <48DB5032.8020604@gmail.com> <48DB5B90.9060607@yahoo.com> <48DB5FEE.4000404@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------010801000406070401080700"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mu-out-0910.google.com ([209.85.134.184]:10951 "EHLO
-	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753180AbYIYLH4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Sep 2008 07:07:56 -0400
-Received: by mu-out-0910.google.com with SMTP id g7so304041muf.1
-        for <linux-acpi@vger.kernel.org>; Thu, 25 Sep 2008 04:07:55 -0700 (PDT)
+Received: from fhw-relay07.plus.net ([212.159.14.148]:43218 "EHLO
+	fhw-relay07.plus.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753044AbYIYLRW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Sep 2008 07:17:22 -0400
 In-Reply-To: <48DB5FEE.4000404@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sitsofe Wheeler <sitsofe@yahoo.com>
+To: Alexey Starikovskiy <aystarik@gmail.com>
 Cc: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------010801000406070401080700
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-
 Alexey Starikovskiy wrote:
-> Sitsofe Wheeler wrote:
->> Hi Alexey,
->>
->> Alexey Starikovskiy wrote:
->>> I think the least troubling place to add cond_resched() is then 
->>> ACPICA is exiting interpreter.
->>> Please check if the attached patch helps with latencies.
->>
->> There was no real change (latency was still bad). If you look at the 
->> trace (before your patch) on 
->> http://sucs.org/~sits/test/eeepc-debug/20080923/latency_trace.gz 
->> (700kbyte compressed, 15Mbytes uncompressed) you can see that 
->> acpi_ex_exit_interpreter is only called once near the end of the trace:
->>
->>      cat-5901    0.N.. 270496us : acpi_ex_exit_interpreter 
->> (acpi_ev_address_space_dispatch)
->>
->> By then the time had already been racked up...
->>
-> Ok, let's add it to the end of acpi_ps_complete_op() then... They 
-> appear every 100usec or so...
->
-acpi_ps_parse_aml() is called not so often (~10000usec), so maybe it is 
-a "sweet spot"
+> Ok, let's add it to the end of acpi_ps_complete_op() then... They appear 
+> every 100usec or so...
 
+(I know you've posted something later but I've only just got results for 
+this test - talk about fast!)
 
+Massively better. I can still provoke small stalls that are now only 
+noticeable when playing games.
 
---------------010801000406070401080700
-Content-Type: text/x-diff;
- name="add_cond_resched_to_ACPI.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="add_cond_resched_to_ACPI.patch"
+wakeup latency trace v1.1.5 on 2.6.27-rc7-tipskw-00756-g6522eab-dirty
+--------------------------------------------------------------------
+  latency: 13900 us, #25557/25557, CPU#0 | (M:desktop VP:0, KP:0, SP:0 HP:0)
+     -----------------
+     | task: a7xpg-5739 (uid:1000 nice:0 policy:2 rt_prio:5)
+     -----------------
 
-diff --git a/drivers/acpi/parser/psparse.c b/drivers/acpi/parser/psparse.c
-index 15e1702..ceab67c 100644
---- a/drivers/acpi/parser/psparse.c
-+++ b/drivers/acpi/parser/psparse.c
-@@ -439,6 +439,8 @@ acpi_ps_next_parse_state(struct acpi_walk_state *walk_state,
-  *
-  ******************************************************************************/
- 
-+#include <linux/sched.h>
-+
- acpi_status acpi_ps_parse_aml(struct acpi_walk_state *walk_state)
- {
- 	acpi_status status;
-@@ -688,5 +690,6 @@ acpi_status acpi_ps_parse_aml(struct acpi_walk_state *walk_state)
- 	acpi_ut_delete_generic_state(ACPI_CAST_PTR
- 				     (union acpi_generic_state, thread));
- 	acpi_gbl_current_walk_list = prev_walk_list;
-+	cond_resched();
- 	return_ACPI_STATUS(status);
- }
+The trace can be seen on 
+http://sucs.org/~sits/test/eeepc-debug/20080925/acpi/latency_trace.gz .
 
---------------010801000406070401080700--
+Here are the top called functions from this much shorter trace:
+    2526 acpi_ut_update_ref_count (acpi_ut_update_object_reference)
+    2525 kmem_cache_free (acpi_os_release_object)
+    2521 acpi_os_release_object (acpi_ut_delete_generic_state)
+    2520 acpi_ut_delete_generic_state (acpi_ut_update_object_reference)
+    2519 acpi_ut_pop_generic_state (acpi_ut_update_object_reference)
+    2514 acpi_ut_create_generic_state (acpi_ut_create_update_state)
+    2513 kmem_cache_alloc (acpi_ut_create_generic_state)
+    2513 acpi_ut_push_generic_state (acpi_ut_create_update_state_and_push)
+    2512 acpi_ut_create_update_state_and_push 
+(acpi_ut_update_object_reference)
+    2511 acpi_ut_create_update_state (acpi_ut_create_update_state_and_push)
+     231 __slab_free (kmem_cache_free)
+
+OK time to investigate your next mail...
+
+-- 
+Sitsofe | http://sucs.org/~sits/
