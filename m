@@ -1,48 +1,64 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: Re: Reading EeePC900 battery info causes stalls
-Date: Thu, 25 Sep 2008 16:01:21 +0400
-Message-ID: <48DB7D91.4000206@gmail.com>
-References: <gbduo8$nj4$1@ger.gmane.org> <48DB5032.8020604@gmail.com> <48DB5B90.9060607@yahoo.com> <48DB5FEE.4000404@gmail.com> <48DB710A.2060206@gmail.com> <48DB7C5A.6070900@yahoo.com>
+From: Holger Macht <hmacht@suse.de>
+Subject: Re: [patch 1/11]avoid check _STA method
+Date: Thu, 25 Sep 2008 16:49:45 +0200
+Message-ID: <20080925144945.GA8942@homac.suse.de>
+References: <1219888923.29375.21.camel@sli10-desk.sh.intel.com> <20080922105759.GB26633@homac.suse.de> <1222224665.968.3.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.26]:46133 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755498AbYIYMBX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Sep 2008 08:01:23 -0400
-Received: by ey-out-2122.google.com with SMTP id 6so121768eyi.37
-        for <linux-acpi@vger.kernel.org>; Thu, 25 Sep 2008 05:01:21 -0700 (PDT)
-In-Reply-To: <48DB7C5A.6070900@yahoo.com>
+Received: from ns.suse.de ([195.135.220.2]:34400 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752596AbYIYOt5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 25 Sep 2008 10:49:57 -0400
+Content-Disposition: inline
+In-Reply-To: <1222224665.968.3.camel@sli10-desk.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sitsofe Wheeler <sitsofe@yahoo.com>
-Cc: linux-acpi@vger.kernel.org
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Andi Kleen <andi@firstfloor.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, mjg59 <mjg59@srcf.ucam.org>, Tejun Heo <htejun@gmail.com>
 
-Sitsofe Wheeler wrote:
-> Alexey Starikovskiy wrote:
->> acpi_ps_parse_aml() is called not so often (~10000usec), so maybe it 
->> is a "sweet spot"
->
-> The latency is pretty bad with this patch (assuming you did not want 
-> it applied on top of your previous patch)
->
-> Here's the tail end of a full trace:
-> http://sucs.org/~sits/test/eeepc-debug/20080925/1250/latency_trace_all_tail.gz 
-> (3.3Mbytes but close 100Mbytes when decompressed)
->  latency: 2912285 us, #1000038/5344107, CPU#0 | (M:desktop VP:0, KP:0, 
-> SP:0 HP:0
-> )
->
-> Here's a complete (but filtered) trace:
-> http://sucs.org/~sits/test/eeepc-debug/20080925/1250/latency_trace.gz
->  latency: 315814 us, #227600/227600, CPU#0 | (M:desktop VP:0, KP:0, 
-> SP:0 HP:0)
->
-Ok, let's stick with previous patch then.
-It will be somewhat difficult to push though, because the code we 
-touched belongs to ACPICA (multi-platform code),
-so should not contain explicit Linux-only operands.
-If you agree that the place is right, I'll make proper patch with all 
-needed redirections to
-make ACPICA happy.
+On Wed 24. Sep - 10:51:05, Shaohua Li wrote:
+> On Mon, 2008-09-22 at 18:57 +0800, Holger Macht wrote:
+> > On Thu 28. Aug - 10:02:03, Shaohua Li wrote:
+> > > In some BIOSes, every _STA method call will send a notification again,
+> > > this cause freeze. And in some BIOSes, it appears _STA should be called
+> > > after _DCK. This tries to avoid calls _STA, and still keep the device
+> > > present check.
+> > > http://bugzilla.kernel.org/show_bug.cgi?id=10431
+> > 
+> > Finally found some time to test this...
+> > 
+> > >
+> > > Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+> > > ---
+> > >  drivers/acpi/dock.c |    5 ++++-
+> > >  1 file changed, 4 insertions(+), 1 deletion(-)
+> > >
+> > > Index: linux/drivers/acpi/dock.c
+> > > ===================================================================
+> > > --- linux.orig/drivers/acpi/dock.c    2008-08-27 14:38:44.000000000 +0800
+> > > +++ linux/drivers/acpi/dock.c 2008-08-28 09:33:02.000000000 +0800
+> > > @@ -604,14 +604,17 @@ static int handle_eject_request(struct d
+> > >  static void dock_notify(acpi_handle handle, u32 event, void *data)
+> > >  {
+> > >       struct dock_station *ds = data;
+> > > +     struct acpi_device *tmp;
+> > >
+> > >       switch (event) {
+> > >       case ACPI_NOTIFY_BUS_CHECK:
+> > > -             if (!dock_in_progress(ds) && dock_present(ds)) {
+> > > +             if (!dock_in_progress(ds) && acpi_bus_get_device(ds->handle,
+> > 
+> > On the Thinkpad X60, when booting undocked, the first time I dock,
+> > acpi_bus_get_device() returns 0, so hotplug is not performed
+> > properly. Second time (undock->dock), it works.
+> So the patch breaks your X60? acpi_bus_get_device() returns 0 means the
+> device is already in ACPI device tree, but it shouldn't as it's not
+> present.
+
+Do you have a model number of a system which needs this patch? If so,
+maybe I could get my hands on one to do some more testing...maybe finding
+another solution...
+
+Regards,
+	Holger
