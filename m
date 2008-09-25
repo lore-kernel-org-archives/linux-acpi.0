@@ -1,60 +1,52 @@
 From: "Yinghai Lu" <yinghai@kernel.org>
-Subject: Re: [PATCH 2/7] acpi: remove have_arch_parse_srat in acpi.h
-Date: Thu, 25 Sep 2008 10:10:06 -0700
-Message-ID: <86802c440809251010r77e0aea2pfdf2e16b6441fe32@mail.gmail.com>
-References: <1222308277-10984-1-git-send-email-yhlu.kernel@gmail.com>
-	 <1222308277-10984-2-git-send-email-yhlu.kernel@gmail.com>
-	 <200809250901.09212.bjorn.helgaas@hp.com>
+Subject: Re: [PATCH 7/7] x86: print out irq nr for msi/ht -v2
+Date: Thu, 25 Sep 2008 10:20:21 -0700
+Message-ID: <86802c440809251020h54d1e42ck67b542f17e928bd7@mail.gmail.com>
+References: <1222323223-23529-1-git-send-email-yhlu.kernel@gmail.com>
+	 <20080925084212.GE4519@elte.hu> <20080925091211.GA4922@elte.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756225AbYIYRK0@vger.kernel.org>
-In-Reply-To: <200809250901.09212.bjorn.helgaas@hp.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20080925091211.GA4922@elte.hu>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Sep 25, 2008 at 8:01 AM, Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
-> On Wednesday 24 September 2008 08:04:32 pm Yinghai Lu wrote:
->> 32bit don't need that anymore
+On Thu, Sep 25, 2008 at 2:12 AM, Ingo Molnar <mingo@elte.hu> wrote:
 >
-> I don't understand the connection between this commit log and
-> the patch below.
+>> > v2: fix hpet compiling
 >
->> Signed-off-by: Yinghai Lu <yhlu.kernel@gmail.com>
->> ---
->>  include/linux/acpi.h |    8 --------
->>  1 files changed, 0 insertions(+), 8 deletions(-)
->>
->> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
->> index 4d5ec43..8eefaa9 100644
->> --- a/include/linux/acpi.h
->> +++ b/include/linux/acpi.h
->> @@ -95,18 +95,10 @@ int acpi_parse_mcfg (struct acpi_table_header *header);
->>  void acpi_table_print_madt_entry (struct acpi_subtable_header *madt);
->>
->>  /* the following four functions are architecture-dependent */
->> -#ifdef CONFIG_HAVE_ARCH_PARSE_SRAT
->> -#define NR_NODE_MEMBLKS MAX_NUMNODES
->> -#define acpi_numa_slit_init(slit) do {} while (0)
->> -#define acpi_numa_processor_affinity_init(pa) do {} while (0)
->> -#define acpi_numa_memory_affinity_init(ma) do {} while (0)
->> -#define acpi_numa_arch_fixup() do {} while (0)
->> -#else
->>  void acpi_numa_slit_init (struct acpi_table_slit *slit);
->>  void acpi_numa_processor_affinity_init (struct acpi_srat_cpu_affinity *pa);
->>  void acpi_numa_memory_affinity_init (struct acpi_srat_mem_affinity *ma);
->>  void acpi_numa_arch_fixup(void);
->> -#endif
->>
->>  #ifdef CONFIG_ACPI_HOTPLUG_CPU
->>  /* Arch dependent functions for cpu hotplug support */
+> still bad:
 >
-there was some workaround for 32bit numa (srat processing),  and we
-removed those workaround, and make 32bit more like 64bit.
+> arch/x86/kernel/hpet.c: In function 'hpet_late_init':
+> arch/x86/kernel/hpet.c:828: error: 'dev' undeclared (first use in this function)
+> arch/x86/kernel/hpet.c:828: error: (Each undeclared identifier is reported only once
+> arch/x86/kernel/hpet.c:828: error: for each function it appears in.)
+>
+> we've got some changes in this area (per cpu hpet).
+>
 
-now HAVE_ARCH_PARSE_SRAT is not defined in any place.
+looks there is some merge problem.
+
+Index: linux-2.6/arch/x86/kernel/hpet.c
+===================================================================
+--- linux-2.6.orig/arch/x86/kernel/hpet.c
++++ linux-2.6/arch/x86/kernel/hpet.c
+@@ -467,6 +467,9 @@ static int hpet_setup_irq(struct hpet_de
+        irq_set_affinity(dev->irq, cpumask_of_cpu(dev->cpu));
+        enable_irq(dev->irq);
+
++       printk(KERN_DEBUG "hpet: %s is using irq %#x aka %d for MSI\n",
++                        dev->name, dev->irq, dev->irq);
++
+        return 0;
+ }
+
+the change should be in hpet_setup_irq instead of hpet_late_init
+
+the patch can be applied to tip/master cleanly.
 
 YH
