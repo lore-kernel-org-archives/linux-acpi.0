@@ -1,52 +1,32 @@
-From: "Yinghai Lu" <yinghai@kernel.org>
-Subject: Re: [PATCH 7/7] x86: print out irq nr for msi/ht -v2
-Date: Thu, 25 Sep 2008 10:20:21 -0700
-Message-ID: <86802c440809251020h54d1e42ck67b542f17e928bd7@mail.gmail.com>
-References: <1222323223-23529-1-git-send-email-yhlu.kernel@gmail.com>
-	 <20080925084212.GE4519@elte.hu> <20080925091211.GA4922@elte.hu>
+From: Sitsofe Wheeler <sitsofe@yahoo.com>
+Subject: Re: Reading EeePC900 battery info causes stalls
+Date: Thu, 25 Sep 2008 18:30:27 +0100
+Message-ID: <48DBCAB3.8020306@yahoo.com>
+References: <gbduo8$nj4$1@ger.gmane.org> <48DB5032.8020604@gmail.com> <48DB5B90.9060607@yahoo.com> <48DB5FEE.4000404@gmail.com> <48DB710A.2060206@gmail.com> <48DB7C5A.6070900@yahoo.com> <48DB7D91.4000206@gmail.com> <48DBA6E4.80008@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20080925091211.GA4922@elte.hu>
-Content-Disposition: inline
-Sender: linux-pci-owner@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ptb-relay02.plus.net ([212.159.14.146]:48537 "EHLO
+	ptb-relay02.plus.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752503AbYIYRaW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Sep 2008 13:30:22 -0400
+In-Reply-To: <48DBA6E4.80008@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <aystarik@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Thu, Sep 25, 2008 at 2:12 AM, Ingo Molnar <mingo@elte.hu> wrote:
->
->> > v2: fix hpet compiling
->
-> still bad:
->
-> arch/x86/kernel/hpet.c: In function 'hpet_late_init':
-> arch/x86/kernel/hpet.c:828: error: 'dev' undeclared (first use in this function)
-> arch/x86/kernel/hpet.c:828: error: (Each undeclared identifier is reported only once
-> arch/x86/kernel/hpet.c:828: error: for each function it appears in.)
->
-> we've got some changes in this area (per cpu hpet).
->
+Alexey Starikovskiy wrote:
+> Ok, here is the ACPICA-friendly patch, please check if it's still good.
 
-looks there is some merge problem.
+I've tested it and it seems good enough to prevent music playing in 
+rhythmbox being interrupted by battery checking. There are cases where 
+you can still detect stalling (e.g. while playing games and the battery 
+is read) but it's brought latency down from 3232905us to 13900us on a 
+desktop kernel which is significant in and of itself.
 
-Index: linux-2.6/arch/x86/kernel/hpet.c
-===================================================================
---- linux-2.6.orig/arch/x86/kernel/hpet.c
-+++ linux-2.6/arch/x86/kernel/hpet.c
-@@ -467,6 +467,9 @@ static int hpet_setup_irq(struct hpet_de
-        irq_set_affinity(dev->irq, cpumask_of_cpu(dev->cpu));
-        enable_irq(dev->irq);
+Tested-by: Sitsofe Wheeler <sitsofe@yahoo.com>
 
-+       printk(KERN_DEBUG "hpet: %s is using irq %#x aka %d for MSI\n",
-+                        dev->name, dev->irq, dev->irq);
-+
-        return 0;
- }
-
-the change should be in hpet_setup_irq instead of hpet_late_init
-
-the patch can be applied to tip/master cleanly.
-
-YH
+-- 
+Sitsofe | http://sucs.org/~sits/
