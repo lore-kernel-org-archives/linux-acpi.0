@@ -1,79 +1,60 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: [PATCH] ACPICA: add preemption point after each opcode parse
-Date: Thu, 25 Sep 2008 21:40:30 +0400
-Message-ID: <20080925174030.17128.78242.stgit@thinkpad>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH 7/7] x86: print out irq nr for msi/ht -v2
+Date: Thu, 25 Sep 2008 11:52:22 -0600
+Message-ID: <200809251152.23021.bjorn.helgaas@hp.com>
+References: <1222323223-23529-1-git-send-email-yhlu.kernel@gmail.com> <200809250900.24736.bjorn.helgaas@hp.com> <86802c440809251007n71738552n88b8ebfc7ecd017f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:38724 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753185AbYIYRk3 (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Thu, 25 Sep 2008 13:40:29 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <86802c440809251007n71738552n88b8ebfc7ecd017f@mail.gmail.com>
+Content-Disposition: inline
+Sender: linux-pci-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: LenBrown <lenb@kernel.org>
-Cc: Linux-acpi@vger.kernel.org
 
-Reference: http://marc.info/?l=linux-acpi&m=122236382701062&w=2
+On Thursday 25 September 2008 11:07:17 am Yinghai Lu wrote:
+> On Thu, Sep 25, 2008 at 8:00 AM, Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
+> > On Thursday 25 September 2008 12:13:43 am Yinghai Lu wrote:
+> >> v2: fix hpet compiling
+> >>
+> >> Signed-off-by: Yinghai Lu <yhlu.kernel@gmail.com>
+> >> ---
+> >>  arch/x86/kernel/hpet.c    |    3 +++
+> >>  arch/x86/kernel/io_apic.c |    7 +++++++
+> >>  2 files changed, 10 insertions(+), 0 deletions(-)
+> >>
+> >> diff --git a/arch/x86/kernel/hpet.c b/arch/x86/kernel/hpet.c
+> >> index 422c577..686505a 100644
+> >> --- a/arch/x86/kernel/hpet.c
+> >> +++ b/arch/x86/kernel/hpet.c
+> >> @@ -467,6 +467,9 @@ static int hpet_setup_irq(struct hpet_dev *dev)
+> >>       irq_set_affinity(dev->irq, cpumask_of_cpu(dev->cpu));
+> >>       enable_irq(dev->irq);
+> >>
+> >> +     printk(KERN_DEBUG "hpet: %s is using irq %#x aka %d for MSI\n",
+> >> +                      dev->name, dev->irq, dev->irq);
+> >> +
+> >
+> > Why do we want to print the irq as hex?  Do we do that anywhere else?
+> > I think we should pick one format and stick with it, and I think
+> > decimal is the logical choice because it's the most common.
+> 
+> when sparseirq is enabled, irq for msi will be bus_nr/dev/func + 12bits.
+> so show it as hex is more straight. but we can not use hex in
+> /proc/interrupts --ABI want decimal.
+> 
+> just try to print out...in log, so user could get some idea that who
+> is using it...
 
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-Tested-by: Sitsofe Wheeler <sitsofe@yahoo.com>
----
+I think it'd be better to just print the MSI IRQ number in decimal
+using a dev_printk().  Then the connection is obvious and we don't
+need to make everything ugly by having IRQs in both decimal and hex.
 
- drivers/acpi/parser/psloop.c    |    2 ++
- include/acpi/acmacros.h         |    5 +++++
- include/acpi/platform/aclinux.h |    6 ++++++
- 3 files changed, 13 insertions(+), 0 deletions(-)
+I know it's a nuisance to make hpet use dev_printk because it's
+pretty muddled as far as getting a struct device.  But I'd rather
+fix that than add confusion like this.
 
-
-diff --git a/drivers/acpi/parser/psloop.c b/drivers/acpi/parser/psloop.c
-index c06238e..4647039 100644
---- a/drivers/acpi/parser/psloop.c
-+++ b/drivers/acpi/parser/psloop.c
-@@ -719,6 +719,8 @@ acpi_ps_complete_op(struct acpi_walk_state *walk_state,
- 		*op = NULL;
- 	}
- 
-+	ACPI_PREEMPTION_POINT();
-+
- 	return_ACPI_STATUS(AE_OK);
- }
- 
-diff --git a/include/acpi/acmacros.h b/include/acpi/acmacros.h
-index 57ab9e9..b402685 100644
---- a/include/acpi/acmacros.h
-+++ b/include/acpi/acmacros.h
-@@ -703,4 +703,9 @@ struct acpi_integer_overlay {
- 
- #endif				/* ACPI_DBG_TRACK_ALLOCATIONS */
- 
-+/* Preemption point */
-+#ifndef ACPI_PREEMPTION_POINT
-+#define ACPI_PREEMPTION_POINT() /* no preemption */
-+#endif
-+
- #endif				/* ACMACROS_H */
-diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
-index 9af4645..029c8c0 100644
---- a/include/acpi/platform/aclinux.h
-+++ b/include/acpi/platform/aclinux.h
-@@ -53,6 +53,7 @@
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/ctype.h>
-+#include <linux/sched.h>
- #include <asm/system.h>
- #include <asm/atomic.h>
- #include <asm/div64.h>
-@@ -137,4 +138,9 @@ static inline void *acpi_os_acquire_object(acpi_cache_t * cache)
- #define ACPI_ALLOCATE_ZEROED(a)	acpi_os_allocate_zeroed(a)
- #define ACPI_FREE(a)		kfree(a)
- 
-+/*
-+ * We need to show where it is safe to preempt execution of ACPICA
-+ */
-+#define ACPI_PREEMPTION_POINT()	cond_resched()
-+
- #endif				/* __ACLINUX_H__ */
-
+Bjorn
