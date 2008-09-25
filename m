@@ -1,32 +1,33 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: acpi resource reservation
-Date: Wed, 24 Sep 2008 22:46:45 +0100
-Message-ID: <20080924214645.GA2593@srcf.ucam.org>
-References: <loom.20080924T193444-211@post.gmane.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:59572 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750875AbYIXVqr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Sep 2008 17:46:47 -0400
-Content-Disposition: inline
-In-Reply-To: <loom.20080924T193444-211@post.gmane.org>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Yinghai Lu <yhlu.kernel@gmail.com>
+Subject: [PATCH 3/7] pci: using %pF in quirks.c
+Date: Wed, 24 Sep 2008 19:04:33 -0700
+Message-ID: <1222308277-10984-3-git-send-email-yhlu.kernel@gmail.com>
+References: <1222308277-10984-1-git-send-email-yhlu.kernel@gmail.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1222308277-10984-1-git-send-email-yhlu.kernel@gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Andrew
+Cc: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yhlu.kernel@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: matthieu castet <castet.matthieu@free.fr>
-Cc: linux-acpi@vger.kernel.org
 
-On Wed, Sep 24, 2008 at 07:36:03PM +0000, matthieu castet wrote:
+Signed-off-by: Yinghai Lu <yhlu.kernel@gmail.com>
+---
+ drivers/pci/quirks.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-> I believe by doing that acpi will avoid that other drivers try to use the same r
-> esource. And it will avoid the acpi_check_region hack that need to be added in e
-> ach driver instead of relying with the standard
-> request_region/request_mem_region mecanism.
-
-It was attempted, but you hit a huge number of cases where ACPI has 
-reserved resources that are required by other drivers. We could 
-whitelist them, but it doesn't seem to buy a great deal.
-
+diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
+index 1f26712..addf2db 100644
+--- a/drivers/pci/quirks.c
++++ b/drivers/pci/quirks.c
+@@ -1689,8 +1689,7 @@ static void pci_do_fixups(struct pci_dev *dev, struct pci_fixup *f, struct pci_f
+ 		if ((f->vendor == dev->vendor || f->vendor == (u16) PCI_ANY_ID) &&
+  		    (f->device == dev->device || f->device == (u16) PCI_ANY_ID)) {
+ #ifdef DEBUG
+-			dev_dbg(&dev->dev, "calling ");
+-			print_fn_descriptor_symbol("%s\n", f->hook);
++			dev_dbg(&dev->dev, "calling %pF\n", f->hook);
+ #endif
+ 			f->hook(dev);
+ 		}
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+1.5.6
