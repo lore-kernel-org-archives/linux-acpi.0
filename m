@@ -1,298 +1,116 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: [PATCH] ACPI: EC: Rename some variables
-Date: Fri, 26 Sep 2008 00:54:28 +0400
-Message-ID: <20080925205427.2977.6845.stgit@thinkpad>
+From: John Reiser <jreiser@BitWagon.com>
+Subject: powernow-k8: Your BIOS does not provide ACPI _PSS objects in a way
+ that Linux understands
+Date: Thu, 25 Sep 2008 14:59:31 -0700
+Message-ID: <48DC09C3.1060601@BitWagon.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:55721 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752147AbYIYUya (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Thu, 25 Sep 2008 16:54:30 -0400
+Received: from jade.aracnet.com ([216.99.193.136]:37678 "EHLO jade.aracnet.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752353AbYIYWGt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 25 Sep 2008 18:06:49 -0400
+Received: from fu9-32.local (216-99-213-225.dsl.aracnet.com [216.99.213.225])
+	(authenticated bits=0)
+	by jade.aracnet.com (8.13.6/8.12.8) with ESMTP id m8PLxkUT021756
+	for <linux-acpi@vger.kernel.org>; Thu, 25 Sep 2008 14:59:46 -0700
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: LenBrown <lenb@kernel.org>
-Cc: Linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-No functional changes.
+Hi,
 
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-Acked-by: Rafael J. Wysocki <rjw@suse.com>
----
+I found these messages in kernel log.  I will try to complain to the BIOS vendor.
+-----
+Sep 25 07:00:43 fu9-32 kernel: powernow-k8: Your BIOS does not provide ACPI _PSS objects in a way that Linux understands. Please report this to the Linux ACPI maintainers and complain to your BIOS vendor.
+Sep 25 07:00:43 fu9-32 kernel: powernow-k8: Your BIOS does not provide ACPI _PSS objects in a way that Linux understands. Please report this to the Linux ACPI maintainers and complain to your BIOS vendor.
+-----
 
- drivers/acpi/ec.c |  118 ++++++++++++++++++++++++++++-------------------------
- 1 files changed, 63 insertions(+), 55 deletions(-)
+dmidecode reports the BIOS as:
+-----
+         Vendor: Phoenix Technologies, LTD
+         Version: ASUS M2A-VM ACPI BIOS Revision 1604
+         Release Date: 12/19/2007
+-----
+
+biosdecode 2.9 says:
+-----
+ACPI 2.0 present.
+         OEM Identifier: ATI
+         RSD Table 32-bit Address: 0xCFEE3040
+         XSD Table 64-bit Address: 0x00000000CFEE3100
+-----
+
+grep ACPI /var/log/messages
+-----
+Sep 25 07:00:43 fu9-32 kernel: BIOS-e820: 00000000cfee0000 - 00000000cfee3000 (ACPI NVS)
+Sep 25 07:00:43 fu9-32 kernel: BIOS-e820: 00000000cfee3000 - 00000000cfef0000 (ACPI data)
+Sep 25 07:00:43 fu9-32 kernel: ACPI: RSDP 000F8210, 0024 (r2 ATI   )
+Sep 25 07:00:43 fu9-32 kernel: ACPI: XSDT CFEE3100, 0044 (r1 ATI    ASUSACPI 42302E31 AWRD        0)
+Sep 25 07:00:43 fu9-32 kernel: ACPI: FACP CFEE8440, 00F4 (r3 ATI    ASUSACPI 42302E31 AWRD        0)
+Sep 25 07:00:43 fu9-32 kernel: ACPI: DSDT CFEE3280, 515D (r1 ATI    ASUSACPI     1000 MSFT  3000000)
+Sep 25 07:00:43 fu9-32 kernel: ACPI: FACS CFEE0000, 0040
+Sep 25 07:00:43 fu9-32 kernel: ACPI: HPET CFEE8680, 0038 (r1 ATI    ASUSACPI 42302E31 AWRD       98)
+Sep 25 07:00:43 fu9-32 kernel: ACPI: MCFG CFEE8700, 003C (r1 ATI    ASUSACPI 42302E31 AWRD        0)
+Sep 25 07:00:43 fu9-32 kernel: ACPI: APIC CFEE8580, 0084 (r1 ATI    ASUSACPI 42302E31 AWRD        0)
+Sep 25 07:00:43 fu9-32 kernel: ACPI: PM-Timer IO Port: 0x4008
+Sep 25 07:00:43 fu9-32 kernel: ACPI: LAPIC (acpi_id[0x00] lapic_id[0x00] enabled)
+Sep 25 07:00:43 fu9-32 kernel: ACPI: LAPIC (acpi_id[0x01] lapic_id[0x01] enabled)
+Sep 25 07:00:43 fu9-32 kernel: ACPI: LAPIC (acpi_id[0x02] lapic_id[0x02] disabled)
+Sep 25 07:00:43 fu9-32 kernel: ACPI: LAPIC (acpi_id[0x03] lapic_id[0x03] disabled)
+Sep 25 07:00:43 fu9-32 kernel: ACPI: LAPIC_NMI (acpi_id[0x00] high edge lint[0x1])
+Sep 25 07:00:43 fu9-32 kernel: ACPI: LAPIC_NMI (acpi_id[0x01] high edge lint[0x1])
+Sep 25 07:00:43 fu9-32 kernel: ACPI: LAPIC_NMI (acpi_id[0x02] high edge lint[0x1])
+Sep 25 07:00:43 fu9-32 kernel: ACPI: LAPIC_NMI (acpi_id[0x03] high edge lint[0x1])
+Sep 25 07:00:43 fu9-32 kernel: ACPI: IOAPIC (id[0x04] address[0xfec00000] gsi_base[0])
+Sep 25 07:00:43 fu9-32 kernel: ACPI: INT_SRC_OVR (bus 0 bus_irq 0 global_irq 2 dfl dfl)
+Sep 25 07:00:43 fu9-32 kernel: ACPI: INT_SRC_OVR (bus 0 bus_irq 9 global_irq 9 low level)
+Sep 25 07:00:43 fu9-32 kernel: ACPI: HPET id: 0x8200 base: 0xfed00000
+Sep 25 07:00:43 fu9-32 kernel: Using ACPI (MADT) for SMP configuration information
+Sep 25 07:00:43 fu9-32 kernel: ACPI: Core revision 20080321
+Sep 25 07:00:43 fu9-32 kernel: ACPI: bus type pci registered
+Sep 25 07:00:43 fu9-32 kernel: ACPI: Interpreter enabled
+Sep 25 07:00:43 fu9-32 kernel: ACPI: (supports S0 S1 S3 S4 S5)
+Sep 25 07:00:43 fu9-32 kernel: ACPI: Using IOAPIC for interrupt routing
+Sep 25 07:00:43 fu9-32 kernel: ACPI: PCI Root Bridge [PCI0] (0000:00)
+Sep 25 07:00:43 fu9-32 kernel: ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 6 7 10 11) *0, disabled.
+Sep 25 07:00:43 fu9-32 kernel: ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 5 6 7 10 11) *0, disabled.
+Sep 25 07:00:43 fu9-32 kernel: ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 5 6 7 10 11) *0, disabled.
+Sep 25 07:00:43 fu9-32 kernel: ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 5 6 7 10 11) *0, disabled.
+Sep 25 07:00:43 fu9-32 kernel: ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 6 7 10 11) *0, disabled.
+Sep 25 07:00:43 fu9-32 kernel: ACPI: PCI Interrupt Link [LNKF] (IRQs 3 4 5 6 7 10 11) *0, disabled.
+Sep 25 07:00:43 fu9-32 kernel: ACPI: PCI Interrupt Link [LNK0] (IRQs 3 4 5 6 7 10 *11)
+Sep 25 07:00:43 fu9-32 kernel: ACPI: PCI Interrupt Link [LNK1] (IRQs 3 4 5 6 7 10 11) *0, disabled.
+Sep 25 07:00:43 fu9-32 kernel: pnp: PnP ACPI init
+Sep 25 07:00:43 fu9-32 kernel: ACPI: bus type pnp registered
+Sep 25 07:00:43 fu9-32 kernel: pnp: PnP ACPI: found 11 devices
+Sep 25 07:00:43 fu9-32 kernel: ACPI: ACPI bus type pnp unregistered
+Sep 25 07:00:43 fu9-32 kernel: PCI: Using ACPI for IRQ routing
+Sep 25 07:00:43 fu9-32 kernel: ACPI: RTC can wake from S4
+Sep 25 07:00:43 fu9-32 kernel: ACPI: Power Button (FF) [PWRF]
+Sep 25 07:00:43 fu9-32 kernel: ACPI: Power Button (CM) [PWRB]
+Sep 25 07:00:43 fu9-32 kernel: ACPI: PNP0C0B:00 is registered as cooling_device0
+Sep 25 07:00:43 fu9-32 kernel: ACPI: Fan [FAN] (on)
+Sep 25 07:00:43 fu9-32 kernel: ACPI: ACPI0007:00 is registered as cooling_device1
+Sep 25 07:00:43 fu9-32 kernel: ACPI: ACPI0007:01 is registered as cooling_device2
+Sep 25 07:00:43 fu9-32 kernel: ACPI: Expecting a [Reference] package element, found type 0
+Sep 25 07:00:43 fu9-32 kernel: ACPI: LNXTHERM:01 is registered as thermal_zone0
+Sep 25 07:00:43 fu9-32 kernel: ACPI: Thermal Zone [THRM] (40 C)
+Sep 25 07:00:43 fu9-32 kernel: ACPI: PCI Interrupt 0000:00:13.5[D] -> GSI 19 (level, low) -> IRQ 19
+Sep 25 07:00:43 fu9-32 kernel: ACPI: PCI Interrupt 0000:00:13.0[A] -> GSI 16 (level, low) -> IRQ 16
+Sep 25 07:00:43 fu9-32 kernel: ACPI: PCI Interrupt 0000:00:13.1[B] -> GSI 17 (level, low) -> IRQ 17
+Sep 25 07:00:43 fu9-32 kernel: ACPI: PCI Interrupt 0000:00:13.2[C] -> GSI 18 (level, low) -> IRQ 18
+Sep 25 07:00:43 fu9-32 kernel: ACPI: PCI Interrupt 0000:00:13.3[B] -> GSI 17 (level, low) -> IRQ 17
+Sep 25 07:00:43 fu9-32 kernel: ACPI: PCI Interrupt 0000:00:13.4[C] -> GSI 18 (level, low) -> IRQ 18
+Sep 25 07:00:43 fu9-32 kernel: ACPI: PCI Interrupt 0000:00:12.0[A] -> GSI 22 (level, low) -> IRQ 22
+Sep 25 07:00:43 fu9-32 kernel: ACPI: PCI Interrupt 0000:02:00.0[A] -> GSI 19 (level, low) -> IRQ 19
+Sep 25 07:00:43 fu9-32 kernel: ACPI: PCI Interrupt 0000:00:14.1[A] -> GSI 16 (level, low) -> IRQ 16
+Sep 25 07:00:43 fu9-32 kernel: ACPI: PCI Interrupt 0000:00:14.2[A] -> GSI 16 (level, low) -> IRQ 16
+Sep 25 07:00:43 fu9-32 kernel: ACPI: PCI Interrupt 0000:01:00.1[B] -> GSI 19 (level, low) -> IRQ 19
+Sep 25 07:00:43 fu9-32 kernel: powernow-k8: Your BIOS does not provide ACPI _PSS objects in a way that Linux understands. Please report this to the Linux ACPI maintainers and complain to your BIOS vendor.
+Sep 25 07:00:43 fu9-32 kernel: powernow-k8: Your BIOS does not provide ACPI _PSS objects in a way that Linux understands. Please report this to the Linux ACPI maintainers and complain to your BIOS vendor.
+-----
 
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 7f0d81c..453ba1e 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -95,10 +95,11 @@ struct acpi_ec_query_handler {
- 	u8 query_bit;
- };
- 
--struct transaction_data {
-+struct transaction {
- 	const u8 *wdata;
- 	u8 *rdata;
- 	unsigned short irq_count;
-+	u8 command;
- 	u8 wlen;
- 	u8 rlen;
- };
-@@ -113,8 +114,8 @@ static struct acpi_ec {
- 	struct mutex lock;
- 	wait_queue_head_t wait;
- 	struct list_head list;
--	struct transaction_data *t;
--	spinlock_t t_lock;
-+	struct transaction *curr;
-+	spinlock_t curr_lock;
- } *boot_ec, *first_ec;
- 
- /* 
-@@ -176,37 +177,37 @@ static int ec_transaction_done(struct acpi_ec *ec)
- {
- 	unsigned long flags;
- 	int ret = 0;
--	spin_lock_irqsave(&ec->t_lock, flags);
--	if (!ec->t || (!ec->t->wlen && !ec->t->rlen))
-+	spin_lock_irqsave(&ec->curr_lock, flags);
-+	if (!ec->curr || (!ec->curr->wlen && !ec->curr->rlen))
- 		ret = 1;
--	spin_unlock_irqrestore(&ec->t_lock, flags);
-+	spin_unlock_irqrestore(&ec->curr_lock, flags);
- 	return ret;
- }
- 
- static void gpe_transaction(struct acpi_ec *ec, u8 status)
- {
- 	unsigned long flags;
--	spin_lock_irqsave(&ec->t_lock, flags);
--	if (!ec->t)
-+	spin_lock_irqsave(&ec->curr_lock, flags);
-+	if (!ec->curr)
- 		goto unlock;
--	if (ec->t->wlen > 0) {
-+	if (ec->curr->wlen > 0) {
- 		if ((status & ACPI_EC_FLAG_IBF) == 0) {
--			acpi_ec_write_data(ec, *(ec->t->wdata++));
--			--ec->t->wlen;
-+			acpi_ec_write_data(ec, *(ec->curr->wdata++));
-+			--ec->curr->wlen;
- 		} else
- 			/* false interrupt, state didn't change */
--			++ec->t->irq_count;
-+			++ec->curr->irq_count;
- 
--	} else if (ec->t->rlen > 0) {
-+	} else if (ec->curr->rlen > 0) {
- 		if ((status & ACPI_EC_FLAG_OBF) == 1) {
--			*(ec->t->rdata++) = acpi_ec_read_data(ec);
--			--ec->t->rlen;
-+			*(ec->curr->rdata++) = acpi_ec_read_data(ec);
-+			--ec->curr->rlen;
- 		} else
- 			/* false interrupt, state didn't change */
--			++ec->t->irq_count;
-+			++ec->curr->irq_count;
- 	}
- unlock:
--	spin_unlock_irqrestore(&ec->t_lock, flags);
-+	spin_unlock_irqrestore(&ec->curr_lock, flags);
- }
- 
- static int acpi_ec_wait(struct acpi_ec *ec)
-@@ -248,15 +249,11 @@ static int ec_poll(struct acpi_ec *ec)
- 	return -ETIME;
- }
- 
--static int acpi_ec_transaction_unlocked(struct acpi_ec *ec, u8 command,
--					const u8 * wdata, unsigned wdata_len,
--					u8 * rdata, unsigned rdata_len,
-+static int acpi_ec_transaction_unlocked(struct acpi_ec *ec,
-+					struct transaction *t,
- 					int force_poll)
- {
- 	unsigned long tmp;
--	struct transaction_data t = {.wdata = wdata, .rdata = rdata,
--				     .wlen = wdata_len, .rlen = rdata_len,
--				     .irq_count = 0};
- 	int ret = 0;
- 	pr_debug(PREFIX "transaction start\n");
- 	/* disable GPE during transaction if storm is detected */
-@@ -265,29 +262,30 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec, u8 command,
- 		acpi_disable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
- 	}
- 	/* start transaction */
--	spin_lock_irqsave(&ec->t_lock, tmp);
-+	spin_lock_irqsave(&ec->curr_lock, tmp);
- 	/* following two actions should be kept atomic */
--	ec->t = &t;
--	acpi_ec_write_cmd(ec, command);
--	if (command == ACPI_EC_COMMAND_QUERY)
-+	t->irq_count = 0;
-+	ec->curr = t;
-+	acpi_ec_write_cmd(ec, ec->curr->command);
-+	if (ec->curr->command == ACPI_EC_COMMAND_QUERY)
- 		clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
--	spin_unlock_irqrestore(&ec->t_lock, tmp);
-+	spin_unlock_irqrestore(&ec->curr_lock, tmp);
- 	/* if we selected poll mode or failed in GPE-mode do a poll loop */
- 	if (force_poll ||
- 	    !test_bit(EC_FLAGS_GPE_MODE, &ec->flags) ||
- 	    acpi_ec_wait(ec))
- 		ret = ec_poll(ec);
- 	pr_debug(PREFIX "transaction end\n");
--	spin_lock_irqsave(&ec->t_lock, tmp);
--	ec->t = NULL;
--	spin_unlock_irqrestore(&ec->t_lock, tmp);
-+	spin_lock_irqsave(&ec->curr_lock, tmp);
-+	ec->curr = NULL;
-+	spin_unlock_irqrestore(&ec->curr_lock, tmp);
- 	if (test_bit(EC_FLAGS_GPE_STORM, &ec->flags)) {
- 		/* check if we received SCI during transaction */
- 		ec_check_sci(ec, acpi_ec_read_status(ec));
- 		/* it is safe to enable GPE outside of transaction */
- 		acpi_enable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
- 	} else if (test_bit(EC_FLAGS_GPE_MODE, &ec->flags) &&
--		   t.irq_count > ACPI_EC_STORM_THRESHOLD) {
-+		   t->irq_count > ACPI_EC_STORM_THRESHOLD) {
- 		pr_debug(PREFIX "GPE storm detected\n");
- 		set_bit(EC_FLAGS_GPE_STORM, &ec->flags);
- 	}
-@@ -300,17 +298,15 @@ static int ec_check_ibf0(struct acpi_ec *ec)
- 	return (status & ACPI_EC_FLAG_IBF) == 0;
- }
- 
--static int acpi_ec_transaction(struct acpi_ec *ec, u8 command,
--			       const u8 * wdata, unsigned wdata_len,
--			       u8 * rdata, unsigned rdata_len,
-+static int acpi_ec_transaction(struct acpi_ec *ec, struct transaction *t,
- 			       int force_poll)
- {
- 	int status;
- 	u32 glk;
--	if (!ec || (wdata_len && !wdata) || (rdata_len && !rdata))
-+	if (!ec || (!t) || (t->wlen && !t->wdata) || (t->rlen && !t->rdata))
- 		return -EINVAL;
--	if (rdata)
--		memset(rdata, 0, rdata_len);
-+	if (t->rdata)
-+		memset(t->rdata, 0, t->rlen);
- 	mutex_lock(&ec->lock);
- 	if (ec->global_lock) {
- 		status = acpi_acquire_global_lock(ACPI_EC_UDELAY_GLK, &glk);
-@@ -326,10 +322,7 @@ static int acpi_ec_transaction(struct acpi_ec *ec, u8 command,
- 		status = -ETIME;
- 		goto end;
- 	}
--	status = acpi_ec_transaction_unlocked(ec, command,
--					      wdata, wdata_len,
--					      rdata, rdata_len,
--					      force_poll);
-+	status = acpi_ec_transaction_unlocked(ec, t, force_poll);
- end:
- 	if (ec->global_lock)
- 		acpi_release_global_lock(glk);
-@@ -345,23 +338,32 @@ unlock:
- int acpi_ec_burst_enable(struct acpi_ec *ec)
- {
- 	u8 d;
--	return acpi_ec_transaction(ec, ACPI_EC_BURST_ENABLE, NULL, 0, &d, 1, 0);
-+	struct transaction t = {.command = ACPI_EC_BURST_ENABLE,
-+				.wdata = NULL, .rdata = &d,
-+				.wlen = 0, .rlen = 1};
-+
-+	return acpi_ec_transaction(ec, &t, 0);
- }
- 
- int acpi_ec_burst_disable(struct acpi_ec *ec)
- {
-+	struct transaction t = {.command = ACPI_EC_BURST_DISABLE,
-+				.wdata = NULL, .rdata = NULL,
-+				.wlen = 0, .rlen = 0};
-+
- 	return (acpi_ec_read_status(ec) & ACPI_EC_FLAG_BURST) ?
--		acpi_ec_transaction(ec, ACPI_EC_BURST_DISABLE,
--			NULL, 0, NULL, 0, 0) : 0;
-+				acpi_ec_transaction(ec, &t, 0) : 0;
- }
- 
- static int acpi_ec_read(struct acpi_ec *ec, u8 address, u8 * data)
- {
- 	int result;
- 	u8 d;
-+	struct transaction t = {.command = ACPI_EC_COMMAND_READ,
-+				.wdata = &address, .rdata = &d,
-+				.wlen = 1, .rlen = 1};
- 
--	result = acpi_ec_transaction(ec, ACPI_EC_COMMAND_READ,
--				     &address, 1, &d, 1, 0);
-+	result = acpi_ec_transaction(ec, &t, 0);
- 	*data = d;
- 	return result;
- }
-@@ -369,8 +371,11 @@ static int acpi_ec_read(struct acpi_ec *ec, u8 address, u8 * data)
- static int acpi_ec_write(struct acpi_ec *ec, u8 address, u8 data)
- {
- 	u8 wdata[2] = { address, data };
--	return acpi_ec_transaction(ec, ACPI_EC_COMMAND_WRITE,
--				   wdata, 2, NULL, 0, 0);
-+	struct transaction t = {.command = ACPI_EC_COMMAND_WRITE,
-+				.wdata = wdata, .rdata = NULL,
-+				.wlen = 2, .rlen = 0};
-+
-+	return acpi_ec_transaction(ec, &t, 0);
- }
- 
- /*
-@@ -432,12 +437,13 @@ int ec_transaction(u8 command,
- 		   u8 * rdata, unsigned rdata_len,
- 		   int force_poll)
- {
-+	struct transaction t = {.command = command,
-+				.wdata = wdata, .rdata = rdata,
-+				.wlen = wdata_len, .rlen = rdata_len};
- 	if (!first_ec)
- 		return -ENODEV;
- 
--	return acpi_ec_transaction(first_ec, command, wdata,
--				   wdata_len, rdata, rdata_len,
--				   force_poll);
-+	return acpi_ec_transaction(first_ec, &t, force_poll);
- }
- 
- EXPORT_SYMBOL(ec_transaction);
-@@ -446,7 +452,9 @@ static int acpi_ec_query(struct acpi_ec *ec, u8 * data)
- {
- 	int result;
- 	u8 d;
--
-+	struct transaction t = {.command = ACPI_EC_COMMAND_QUERY,
-+				.wdata = NULL, .rdata = &d,
-+				.wlen = 0, .rlen = 1};
- 	if (!ec || !data)
- 		return -EINVAL;
- 
-@@ -456,7 +464,7 @@ static int acpi_ec_query(struct acpi_ec *ec, u8 * data)
- 	 * bit to be cleared (and thus clearing the interrupt source).
- 	 */
- 
--	result = acpi_ec_transaction(ec, ACPI_EC_COMMAND_QUERY, NULL, 0, &d, 1, 0);
-+	result = acpi_ec_transaction(ec, &t, 0);
- 	if (result)
- 		return result;
- 
-@@ -696,7 +704,7 @@ static struct acpi_ec *make_acpi_ec(void)
- 	mutex_init(&ec->lock);
- 	init_waitqueue_head(&ec->wait);
- 	INIT_LIST_HEAD(&ec->list);
--	spin_lock_init(&ec->t_lock);
-+	spin_lock_init(&ec->curr_lock);
- 	return ec;
- }
- 
-
+-- 
