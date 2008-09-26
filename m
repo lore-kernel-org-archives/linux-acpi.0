@@ -1,26 +1,92 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [PATCH] ACPI: EC: do transaction from interrupt context
-Date: Fri, 26 Sep 2008 19:21:41 +0400
-Message-ID: <48DCFE05.7050702@suse.de>
-References: <20080925170030.15311.27823.stgit@thinkpad> <200809261615.10488.rjw@sisk.pl> <48DCF75E.7030106@gmail.com> <200809261718.41641.rjw@sisk.pl>
+Date: Fri, 26 Sep 2008 17:39:37 +0200
+Message-ID: <200809261739.38396.rjw@sisk.pl>
+References: <20080925170030.15311.27823.stgit@thinkpad> <200809261615.10488.rjw@sisk.pl> <1222441812.4023.213.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:45230 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752545AbYIZPVi (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Fri, 26 Sep 2008 11:21:38 -0400
-In-Reply-To: <200809261718.41641.rjw@sisk.pl>
+Received: from ogre.sisk.pl ([217.79.144.158]:33350 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751318AbYIZPeE (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
+	Fri, 26 Sep 2008 11:34:04 -0400
+In-Reply-To: <1222441812.4023.213.camel@yakui_zhao.sh.intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alexey Starikovskiy <aystarik@gmail.com>, "Zhao, Yakui" <yakui.zhao@intel.com>, Sitsofe Wheeler <sitsofe@yahoo.com>, LenBrown <lenb@kernel.org>, Linux-acpi@vger.kernel.org
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: Sitsofe Wheeler <sitsofe@yahoo.com>, Alexey Starikovskiy <astarikovskiy@suse.de>, LenBrown <lenb@kernel.org>, Linux-acpi@vger.kernel.org
 
-Rafael J. Wysocki wrote:
->> He refers to the ec->curr (former ec->t).
-> 
-> Hm, I'm not sure what the failing scenario in this case would be.
-Last one was the thread of the stack is killed during transaction,
-thus stack vanishes and interrupt goes over freed memory.
+On Friday, 26 of September 2008, Zhao Yakui wrote:
+> On Fri, 2008-09-26 at 16:15 +0200, Rafael J. Wysocki wrote:
+> > On Friday, 26 of September 2008, Zhao, Yakui wrote:
+> > > Alan gives a suggestion that after processing the EC notification event, EC driver
+> > > should continue to issue the query command and process the EC notification
+> > > event until the query command returns zero. 
+> > > But this suggestion will break my laptop. On my laptop when issuing the query
+> > > command, a non-zero query event is  returned but it can't be processed.(There
+> > > is no corresponding ACPI _Qxx object). At the same time the SCI_EVT bit won't
+> > > be cleared. In such case OS can't exit the function of acpi_ec_query_handler,
+> > > which causes that the acpid kernel thread can't work well.
+> > 
+> > Well, perhaps we should exit acpi_ec_query_handler() if SCI_EVT is clear _or_
+> > the processing of an event fails due to the lack of a _Qxx object?  Alex?
+> > 
+> > > In fact according to my analysis IMO Alexey's patch will break my laptop.
+> > 
+> > That obviously would be a regression.
+> > 
+> > > But now the laptop is not in my hand and I can't do the test. After I own the
+> > > laptop again, I will do the test and attach the corresponding info.
+> > 
+> > OK, how much time is it going to take, approximately?
+> Maybe I can own the laptop again after two days. And I will try to do
+> the test as early as possible and attach the test result. 
+> > 
+> > > At the same time there are two generic issues in this patch:
+> > >    a. spin_lock is overkill. When 2000 EC I/O read/write are executed, the
+> > >    CPU interrupt will be disabled for about 1.5ms. This will affect the normal
+> > >    laptops.
+> > 
+> > OTOH, I think we need _some_ locking in there in order to prevent races from
+> > happening.
+> Agree with what you said. The locking mechanism is needed to prevent the
+> races from happening.  
+> But in current source code the EC transaction is done in control thread.
+> In such case there is no need to use the spin_lock.(Mutex lock is
+> already used).
 
+IOW, it's done synchronously.
+
+> If we add the spin_lock for the broken BIOS/laptops , I agree with this
+> method and regard it very reasonable. But if this mechanism also affects
+> the normal laptops,  IMO this is not unreasonable.
+
+That really depends on how the "normal" laptops are affected and to what
+extent.  Also, I'm not sure what the meaning of "normal" is in that case.
+Namely, if you define "normal" as "working with our current code well" and
+everything else as "broken", then the entire discussion doesn't make sense
+from that point on.
+
+The question is whether there are machines that _should_ work correctly and
+they don't because _we_ try to handle them in a wrong way.  If the answer is
+"yes", then our current code is inadequate and we have to change it, this way
+or another.  I personally think that the Alex's patch goes in the right
+direction.
+
+> > >    b. the local variable that resides in process stack space is used in
+> > >    interrupt-context.
+>        The pointer of local variable in the function of
+> acpi_ec_transaction_unlocked is assigned to ec->t(this is regarded as
+> the global variable). And ec->t is accessed in interrupt-context.
+> Although it won't break anything, IMO this looks so ugly.
+
+Well, I can agree with that.  We can embed the 'struct transaction_data'
+(or whatever it's going to be called) in 'struct acpi_ec' and copy the values
+into it instead of using the pointer (ISTR, this is how it was done in the
+first iterations of the Alex's patch and the pointer was my idea).
+
+Thanks,
+Rafael
