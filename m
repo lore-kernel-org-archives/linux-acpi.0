@@ -1,48 +1,120 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: Is rfkill class really appropriate for eeepc-laptop?
-Date: Fri, 26 Sep 2008 15:17:41 +0100
-Message-ID: <20080926141741.GA6671@srcf.ucam.org>
-References: <20080918133144.GA4338@silver.sucs.org> <48D564A8.7030009@xandros.com> <20080921102246.GA27071@silver.sucs.org> <48D660C5.6070204@xandros.com> <48D69052.1040908@tuffmail.co.uk> <48D6AC5E.70502@xandros.com> <48DCE881.5000501@tuffmail.co.uk> <20080926135517.GA6273@srcf.ucam.org> <48DCEE58.5060004@tuffmail.co.uk>
+From: Alexey Starikovskiy <aystarik@gmail.com>
+Subject: Re: [PATCH] ACPI: EC: do transaction from interrupt context
+Date: Fri, 26 Sep 2008 18:53:18 +0400
+Message-ID: <48DCF75E.7030106@gmail.com>
+References: <20080925170030.15311.27823.stgit@thinkpad> <200809261433.53674.rjw@sisk.pl> <9D7649D18729DE4BB2BD7B494F7FEDC201DE13D8@pdsmsx415.ccr.corp.intel.com> <200809261615.10488.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:36758 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752258AbYIZOSD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Sep 2008 10:18:03 -0400
-Content-Disposition: inline
-In-Reply-To: <48DCEE58.5060004@tuffmail.co.uk>
+Received: from ey-out-2122.google.com ([74.125.78.25]:50750 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752732AbYIZOxP (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Fri, 26 Sep 2008 10:53:15 -0400
+Received: by ey-out-2122.google.com with SMTP id 6so318148eyi.37
+        for <Linux-acpi@vger.kernel.org>; Fri, 26 Sep 2008 07:53:14 -0700 (PDT)
+In-Reply-To: <200809261615.10488.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Cc: corentincj@iksaif.net, Woody Suwalski <woodys@xandros.com>, Sitsofe Wheeler <sits@sucs.org>, acpi4asus-user@lists.sourceforge.net, linux-acpi <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "Zhao, Yakui" <yakui.zhao@intel.com>, Sitsofe Wheeler <sitsofe@yahoo.com>, Alexey Starikovskiy <astarikovskiy@suse.de>, LenBrown <lenb@kernel.org>, Linux-acpi@vger.kernel.org
 
-On Fri, Sep 26, 2008 at 03:14:48PM +0100, Alan Jenkins wrote:
-> Matthew Garrett wrote:
-> > No, it's to use allow the OS to control whatever mechanism the platform 
-> > provides for making the radio stop transmitting. The fact that this is, 
-> > uh, "interestingly" implemented on the Eee doesn't alter that.
-> 
-> So rfkill should be allowed to mean "entire PCI device goes away,
-> network interface will vanish" - just so long as it comes back correctly
-> when re-enabled :-).
+Rafael J. Wysocki wrote:
+> On Friday, 26 of September 2008, Zhao, Yakui wrote:
+>   
+>> Alan gives a suggestion that after processing the EC notification event, EC driver
+>> should continue to issue the query command and process the EC notification
+>> event until the query command returns zero. 
+>> But this suggestion will break my laptop. On my laptop when issuing the query
+>> command, a non-zero query event is  returned but it can't be processed.(There
+>> is no corresponding ACPI _Qxx object). At the same time the SCI_EVT bit won't
+>> be cleared. In such case OS can't exit the function of acpi_ec_query_handler,
+>> which causes that the acpid kernel thread can't work well.
+>>     
+>
+> Well, perhaps we should exit acpi_ec_query_handler() if SCI_EVT is clear _or_
+> the processing of an event fails due to the lack of a _Qxx object?  Alex?
+>
+>   
+1. There is no such function acpi_ec_query_handler().
+2. acpi_ec_gpe_query() does two things:
+    a) checks if EC returns non-zero query index. If EC has nothing to
+    query -- it return 0 and we stop.
+    b) we check index with stored available handlers, and if there is
+    such handler, we execute it.
+This function is scheduled to run in response to raised SCI_EVT, and
+as I know no EC which would clear SCI_EVT by itself (and it's against 
+spec),
+there is no reason to check if it's raised inside the function.
+SCI_EVT is cleared by EC in response to QUERY command issued by driver,
+and this is always done in acpi_ec_gpe_query().
+We (Alan and me) already found that machines in 9998 would break if you try
+to do several QUERY commands for single raise of SCI_EVT in a hope to "clean
+the EC query buffer" -- EC would just return _same_ event over and over, 
+thus
+driver does not try to do this. Please not mix patch from Alan (with 
+above query loop)
+with my patch(it never had above query loop).
+>> In fact according to my analysis IMO Alexey's patch will break my laptop.
+>>     
+>
+> That obviously would be a regression.
+>   
+I highly suspect quality of such "analysis" based on 2 weeks of 
+conversation with
+Yakui. Feel free to make your own judgment though...
+>   
+>> But now the laptop is not in my hand and I can't do the test. After I own the
+>> laptop again, I will do the test and attach the corresponding info.
+>>     
+>
+> OK, how much time is it going to take, approximately?
+>
+>   
+>> At the same time there are two generic issues in this patch:
+>>    a. spin_lock is overkill. When 2000 EC I/O read/write are executed, the
+>>    CPU interrupt will be disabled for about 1.5ms. This will affect the normal
+>>    laptops.
+>>     
+>
+> OTOH, I think we need _some_ locking in there in order to prevent races from
+> happening.
+>
+>   
+He used 1000 EC I/O per second before, and now it's raised to 2000
+just to make a good number. One full read of battery with SBS (most 
+irq-intensive)
+is in order of 100 GPEs. You need to update your battery state 20 times 
+per second
+to get this number.
+I will not try to doubt 0.7usec of inb/outb operation to EC, but my 
+understanding
+is that you don't wait while LPC transaction is over, so it is inb/outb 
+to south bridge
+which needs to be counted.
+Irq handler itself will disable interrupts as well, it will read several 
+ACPI GPE registers
+in order to find GPE bit, which caused interrupt (first delay).
+second, even the most dumb GPE EC handler needs to read status register 
+of EC
+(second delay).
+Now, my patch adds either read or write of EC data register to this 
+(third delay).
 
-Sure, if that's how the platform implements it. This is how almost every 
-bluetooth rfkill interface works, so applications should be able to 
-cope.
+So, in the very worst case of 0.7usec access to EC register (and free 
+GPE register access),
+ we will disable interrupt for 1.5usec instead of 0.7usec.
+Notice, we enable interrupt between each of these 1.5usec intervals.
+Notice also, spinlock does not add anything to these timings.
+>>    b. the local variable that resides in process stack space is used in
+>>    interrupt-context.
+>>     
+>
+> Which one?
+>
+>   
+He refers to the ec->curr (former ec->t).
 
-> >  We should just sort out the hotplug code...
-> >   
-> 
-> Ok.  I have a little knowledge, I'll see if I can be dangerous.  My real
-> question was, is it safe to merge your rfkill support before this is
-> sorted out?
 
-I don't see why not. It works on various versions of the eee, and unless 
-anything actually pokes it people can carry on using their bizarro 
-userspace scripts. I'm working with the PCI guys on handling the hotplug 
-case sanely. It may be possible to special case this in eeepc-laptop, 
-though I'd prefer a more generic solution.
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Regards,
+Alex.
