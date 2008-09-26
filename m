@@ -1,62 +1,74 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: Syntax errors in SSDT1 table of HP 2510p laptop
-Date: Fri, 26 Sep 2008 06:37:08 -0700
-Message-ID: <4911F71203A09E4D9981D27F9D8308587672B3@orsmsx503.amr.corp.intel.com>
-References: <200809251119.48907.elendil@planet.nl>
- <1222400642.4023.187.camel@yakui_zhao.sh.intel.com>
- <200809260652.21929.elendil@planet.nl>
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Subject: Is rfkill class really appropriate for eeepc-laptop?
+Date: Fri, 26 Sep 2008 14:49:53 +0100
+Message-ID: <48DCE881.5000501@tuffmail.co.uk>
+References: <20080918133144.GA4338@silver.sucs.org> <48D564A8.7030009@xandros.com> <20080921102246.GA27071@silver.sucs.org> <48D660C5.6070204@xandros.com> <48D69052.1040908@tuffmail.co.uk> <48D6AC5E.70502@xandros.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:32892 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751374AbYIZNhP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Sep 2008 09:37:15 -0400
-In-Reply-To: <200809260652.21929.elendil@planet.nl>
-Content-Language: en-US
+Received: from nf-out-0910.google.com ([64.233.182.187]:35455 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753815AbYIZNt7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Sep 2008 09:49:59 -0400
+Received: by nf-out-0910.google.com with SMTP id d3so356115nfc.21
+        for <linux-acpi@vger.kernel.org>; Fri, 26 Sep 2008 06:49:57 -0700 (PDT)
+In-Reply-To: <48D6AC5E.70502@xandros.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Frans Pop <elendil@planet.nl>, "Zhao, Yakui" <yakui.zhao@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: corentincj@iksaif.net, Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Woody Suwalski <woodys@xandros.com>, Sitsofe Wheeler <sits@sucs.org>, acpi4asus-user@lists.sourceforge.net, linux-acpi <linux-acpi@vger.kernel.org>
 
-Most of the problems seen in the SSDT are related to the fact that the disassembler cannot always correctly disassemble code that contains calls to control methods that are external to the table. There is not enough information to disassemble correctly, and the table often needs to be repaired by hand.
+Woody Suwalski wrote:
+> Alan Jenkins wrote:
+>> Woody Suwalski wrote:
+>>
+>>> > I have found one of the earliest source code snippets we have got
+>>> from
+>>> > Asus (eeepc_hotkey.tar.gz), and the current one we are using on new
+>>> > models (P901 an later - hopefully back compatible?).
+<>
+>>> > And also - how far is now kernel eeepc support from this acpi
+>>> module? 
+<>
+>> The main difference in eeepc-laptop is the shiny new interface.  The
+>> files are created in /sys/bus/platform/devices/eeepc, instead of
+>> /proc/acpi/asus.  It uses a recently added generic backlight interface
+>> (/sys/class/backlight/eeepc) - so it's the same as all the other "laptop
+>> extras" modules.  In 2.6.27 it will implements the new generic "rfkill"
+>> interface for the wireless toggle.  Plus it will generate real input
+>> events (as opposed to acpi events) for hotkeys.
+<>
+> About the rfkill switch - be careful.
+> The current /proc/acpi/asus/wlan implementation is actually killing
+> the power from wireless chip - as  a result we had to do a lot of
+> hooplas with pciehp or fakephp to bring the chip up "pci-wise" after
+> the sleep.
 
+Hmm, so it does.  I guess that makes it unsuitable for a straight port
+to the rfkill interface.
 
+    The rfkill switch subsystem exists to add a generic interface to
+    circuitry that
+    can enable or disable the signal output of a wireless *transmitter*
+    of any
+    type.  By far, the most common use is to disable radio-frequency
+    transmitters.
 
->-----Original Message-----
->From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
->owner@vger.kernel.org] On Behalf Of Frans Pop
->Sent: Thursday, September 25, 2008 9:52 PM
->To: Zhao, Yakui
->Cc: linux-acpi@vger.kernel.org
->Subject: Re: Syntax errors in SSDT1 table of HP 2510p laptop
->
->On Friday 26 September 2008, Zhao Yakui wrote:
->> Will you please try the latest kernel (2.6.27-rc6) and see whether the
->> problem still exists?
->
->Sorry that I did not make that clear, but I am already running with
->current git (v2.6.27-rc7-94-gc0f4d6d).
->
->>    It seems that the problem is fixed by the following commit:
->>    commit 48feb3c419508487becfb9ea3afcc54c3eac6d80
->
->The kernel errors listed in that commit log are rather different from what
->I'm seeing.
->
->Also, how could a commit in the kernel fix a broken ACPI table? No change
->in the kernel can repair syntax errors that show up when you disassemble
->and recompile the ACPI table itself, can it?
->I thought using iasl as I did was the accepted way to uncover errors in a
->system's ACPI tables.
->
->I really think the problem is in the ACPI table in this case, not in the
->kernel.
->
->Cheers,
->FJP
->--
->To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Both the pre-installed OS and the community scripts play these games; I
+think you have to reload the pciehp module with a "force" parameter.
+
+I was wrong to say that rfkill support was already in mainline.  But it
+is introduced by Matthew's patch "eeepc-laptop: Use standard
+interfaces", as posted and reviewed on the linux-acpi list.  I think
+this is a bad idea.  Surely the whole point of rfkill is to let
+NetworkManager do power management *without* having to do different
+things for different laptops?
+
+> Luckily the newest model (e.g. S101) is now using "normal" kill of the
+> antenna, which is easy to work with.
+
+Sounds good in theory.  Maybe not so good if it does something different
+in response to the exact same acpi method :-(.
+
+Alan
