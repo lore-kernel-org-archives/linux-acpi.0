@@ -1,77 +1,86 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: Re: [RFC] [Patch 0/4]  ACPI : several patches for EC
-Date: Fri, 26 Sep 2008 10:27:25 +0400
-Message-ID: <48DC80CD.3000008@gmail.com>
-References: <1222314812.4023.31.camel@yakui_zhao.sh.intel.com>	 <48DB20DB.4080802@gmail.com>	 <1222324860.4023.62.camel@yakui_zhao.sh.intel.com>	 <48DB4C75.5090403@gmail.com>	 <1222337155.4023.112.camel@yakui_zhao.sh.intel.com>	 <48DB705C.2020609@gmail.com> <1222393629.4023.157.camel@yakui_zhao.sh.intel.com>
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Subject: Re: [PATCH] ACPI: EC: do transaction from interrupt context
+Date: Fri, 26 Sep 2008 10:03:44 +0100
+Message-ID: <48DCA570.2070707@tuffmail.co.uk>
+References: <20080925170030.15311.27823.stgit@thinkpad>	 <48DBCFE0.8050905@yahoo.com> <1222391199.4023.125.camel@yakui_zhao.sh.intel.com> <48DC763B.7080203@yahoo.com> <48DC7AA0.8030204@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mu-out-0910.google.com ([209.85.134.185]:7657 "EHLO
-	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752885AbYIZG1Y (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Sep 2008 02:27:24 -0400
-Received: by mu-out-0910.google.com with SMTP id g7so648981muf.1
-        for <linux-acpi@vger.kernel.org>; Thu, 25 Sep 2008 23:27:21 -0700 (PDT)
-In-Reply-To: <1222393629.4023.157.camel@yakui_zhao.sh.intel.com>
+Received: from nf-out-0910.google.com ([64.233.182.187]:9908 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751134AbYIZJDt (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Fri, 26 Sep 2008 05:03:49 -0400
+Received: by nf-out-0910.google.com with SMTP id d3so320483nfc.21
+        for <Linux-acpi@vger.kernel.org>; Fri, 26 Sep 2008 02:03:47 -0700 (PDT)
+In-Reply-To: <48DC7AA0.8030204@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
+To: Alexey Starikovskiy <astarikovskiy@suse.de>, Zhao Yakui <yakui.zhao@intel.com>
+Cc: Sitsofe Wheeler <sitsofe@yahoo.com>, LenBrown <lenb@kernel.org>, Linux-acpi@vger.kernel.org
 
-Zhao Yakui wrote:
-> On Thu, 2008-09-25 at 15:05 +0400, Alexey Starikovskiy wrote:
->   
+Alexey Starikovskiy wrote:
+> Sitsofe Wheeler wrote:
 >> Zhao Yakui wrote:
->>     
->>> But I think that the spin_lock is overkill in the updated patch.
->>> Assuming that 1000 EC transactions are done per second, the CPU
->>> interrupt is disabled for 1ms. It is important that the normal laptops
->>> will be affected by this.
->>>   
->>>       
->> How do you arrive with these numbers? Where do you get this 1ms?
->> Spinlock is around single inb/outb instruction plus several even simpler
->> instructions. Do you claim it is going to take 1us? Do you claim that it 
->> will
->>     
-> It is noted that inb/outb instruction is not memory read/write
-> operation. It will take some time to read/write the external peripheral
-> device.
-> For example: 
-> On intel platform : The EC is connected with ICH device through LPC bus.
-> For every LCP I/O read/write operation, it will take almost 0.7us.
->
-> When OS reads the SBS battery info, there will a lot of SCI interrupts,
-> most of which are related with EC transaction. 
->   
-You seem to forget, that SBS driver is also written by me... Don't
-explain to me how it works. Thanks.
->> add anything to interrupts-disabled time of ACPI SCI interrupt handler
->> itself?
->>     
-> Not included.
->
-> Why not explain the following ? The local function variable resides on
-> the process stack space. If the process that is doing EC transaction is
-> killed before it is finished, what will happen? Maybe the system will be
-> kernel panic.
-Ever tried to kill process, which entered syscall (e.g. in kernel)?
-Please read some books first.
-> I only want to know why you raise the following commit?
->     >commit 9e197219605513c14d3eae41039ecf1b82d1920d
->     >Author: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
->     > Date:   Wed Mar 7 18:29:35 2007 -0500
->       >ACPI: ec: fix race in status register access
->    
->    If your understanding is correct, why push it?
->    Why give two different explanations about the same issue?
-> At the same time please confirm whether the laptop of bug 8110 is broken
-> again by your patch if the GPE storm happens ?
->   
-I just explained everything in the above mail. If you don't understand --
-this is not my problem, but _yours_. I am not going to explain same things
-to you several times.
+>>>     I think that the problem on the asus-EEEPC can't be resolved really
+>>> by the Alexey's patch. IMO it is only lucky.
+>>
+>> How lucky? It really does go from excruciatingly slow to quite fast
+>> on that laptop. What will happen should my luck fail? What are the
+>> odds of my luck failing?
+>>
+>>>    In fact the main problem on Asus-EEEPC is related with the broken
+>>> EC.
+>>> Before an EC notification event is processed, another EC notification
+>>> event arrives again.
+>>>    If EC driver check whether the SCI_EVT bit is set after processing
+>>> one EC notification event, the problem will be resolved.    
+>>> http://bugzilla.kernel.org/show_bug.cgi?id=11089
+>>>     Alan Jenkins already sent a patch about how to fix the issue on the
+>>> Asus-EEEPC.
 
-My patch does not break machine in bug report 8110.
+I submitted alternative patches in the past, but they were not up to
+scratch.  The first patch stopped the EeePC dropping events, but left
+them arriving in bursts every 0.5 seconds - which is still a UI
+regression; it looks even more weird when you hold down a brightness
+key.  My other patches fixed the EeePC, but caused severe regressions on
+other hardware.
 
+So I have stopped pushing any patches of my own.  In the interest of
+removing this regression as soon as reasonably possible, I will not
+object to changes that actually work.
+
+>> I'll cc Alan and see what he makes of this patch.
+>>
+
+> Alan already tested my patch and it works for him.
+
+Yup.  I agree with Zhao, in that it is not crystal clear why this new
+patch helps.
+
+The new patch includes a fallback which requires polling-driven
+transactions.  That's a different type of polling fallback to the
+previous one.  However, from the experience of testing a range of
+patches, I believe the new polling fallback would also drop events.  At
+face value, the trigger for the polling fallback is the same - 20
+"false" (surplus to requirements) interrupts, so it shouldn't work :-).
+
+I can think of two possibilities
+
+1. Doing more in the interrupt handler leaves the interrupt disabled for
+longer, hiding some of the false interrupts (which arrive in bursts).
+
+2. Maybe when the device is serviced (e.g. a data byte is read), it
+stops the current burst of false interrupts.
+
+>>>    But if the above patch is merged , maybe it will break some laptops.
+>>
+>> Fair enough but can those people with such laptops test the patch too
+>> and report back? Can you say in what form the breakages will take?
+>> From what you are saying it sounds like this patch shouldn't have had
+>> any affect for me but it does. What happens when they try it? What
+>> happens when you try it?
+>>
+>
+
+Alan
