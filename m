@@ -1,53 +1,96 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: iasl and SSDT disassembling limitations
-Date: Fri, 26 Sep 2008 09:48:36 -0700
-Message-ID: <4911F71203A09E4D9981D27F9D8308587674AB@orsmsx503.amr.corp.intel.com>
-References: <200809251119.48907.elendil@planet.nl>
- <1222400642.4023.187.camel@yakui_zhao.sh.intel.com>
- <200809260652.21929.elendil@planet.nl>
- <4911F71203A09E4D9981D27F9D8308587672B3@orsmsx503.amr.corp.intel.com>
- <20080926160841.GB30729@khazad-dum.debian.net>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: ACPI: Make /proc/acpi/wakeup interface handle PCI devices (again)
+Date: Fri, 26 Sep 2008 22:21:47 +0200
+Message-ID: <200809262221.48040.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:18049 "EHLO mga01.intel.com"
+Received: from ogre.sisk.pl ([217.79.144.158]:34817 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752511AbYIZQuK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Sep 2008 12:50:10 -0400
-In-Reply-To: <20080926160841.GB30729@khazad-dum.debian.net>
-Content-Language: en-US
+	id S1752341AbYIZUQQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 26 Sep 2008 16:16:16 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-Yes, it should be possible, and it is on our list of things to look at.
+Len,
 
-A little more info on the problem: Without the definition of the control method, the disassembler has no way of knowing how many arguments should be passed to the method. Without this information, it does not know how many expressions to parse after the control method invocation in order to create the arguments. The information is simply not available. So it tries to guess.
+I think we should do this in .27.
 
-Bob
+Thanks,
+Rafael
 
+---
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
->-----Original Message-----
->From: Henrique de Moraes Holschuh [mailto:hmh@hmh.eng.br]
->Sent: Friday, September 26, 2008 9:09 AM
->To: Moore, Robert
->Cc: linux-acpi@vger.kernel.org
->Subject: iasl and SSDT disassembling limitations
->
->On Fri, 26 Sep 2008, Moore, Robert wrote:
->> Most of the problems seen in the SSDT are related to the fact that the
->> disassembler cannot always correctly disassemble code that contains calls
->> to control methods that are external to the table. There is not enough
->> information to disassemble correctly, and the table often needs to be
->> repaired by hand.
->
->Can iasl be improved to properly disassemble such tables if we give it ALL
->tables to work with?
->
->--
->  "One disk to rule them all, One disk to find them. One disk to bring
->  them all and in the darkness grind them. In the Land of Redmond
->  where the shadows lie." -- The Silicon Valley Tarot
->  Henrique Holschuh
+ACPI: Make /proc/acpi/wakeup interface handle PCI devices (again)
+
+Make the ACPI /proc/acpi/wakeup interface set the appropriate
+wake-up bits of physical devices corresponding to the ACPI
+devices and make those bits be set initially for devices that are
+enabled to wake up by default.  This is needed to restore the
+previous behavior for the PCI devices that were previously handled
+correctly with the help of the /proc/acpi/wakeup interface.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/acpi/glue.c       |    5 ++++-
+ drivers/acpi/sleep/proc.c |   10 ++++++++++
+ 2 files changed, 14 insertions(+), 1 deletion(-)
+
+Index: linux-2.6/drivers/acpi/sleep/proc.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/sleep/proc.c
++++ linux-2.6/drivers/acpi/sleep/proc.c
+@@ -377,6 +377,14 @@ acpi_system_wakeup_device_seq_show(struc
+ 	return 0;
+ }
+ 
++static void physical_device_enable_wakeup(struct acpi_device *adev)
++{
++	struct device *dev = acpi_get_physical_device(adev->handle);
++
++	if (dev && device_can_wakeup(dev))
++		device_set_wakeup_enable(dev, adev->wakeup.state.enabled);
++}
++
+ static ssize_t
+ acpi_system_write_wakeup_device(struct file *file,
+ 				const char __user * buffer,
+@@ -411,6 +419,7 @@ acpi_system_write_wakeup_device(struct f
+ 		}
+ 	}
+ 	if (found_dev) {
++		physical_device_enable_wakeup(found_dev);
+ 		list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+ 			struct acpi_device *dev = container_of(node,
+ 							       struct
+@@ -428,6 +437,7 @@ acpi_system_write_wakeup_device(struct f
+ 				       dev->pnp.bus_id, found_dev->pnp.bus_id);
+ 				dev->wakeup.state.enabled =
+ 				    found_dev->wakeup.state.enabled;
++				physical_device_enable_wakeup(dev);
+ 			}
+ 		}
+ 	}
+Index: linux-2.6/drivers/acpi/glue.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/glue.c
++++ linux-2.6/drivers/acpi/glue.c
+@@ -165,8 +165,11 @@ static int acpi_bind_one(struct device *
+ 				"firmware_node");
+ 		ret = sysfs_create_link(&acpi_dev->dev.kobj, &dev->kobj,
+ 				"physical_node");
+-		if (acpi_dev->wakeup.flags.valid)
++		if (acpi_dev->wakeup.flags.valid) {
+ 			device_set_wakeup_capable(dev, true);
++			device_set_wakeup_enable(dev,
++						acpi_dev->wakeup.state.enabled);
++		}
+ 	}
+ 
+ 	return 0;
