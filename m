@@ -1,50 +1,35 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI: EC: do transaction from interrupt context
-Date: Fri, 26 Sep 2008 17:57:23 +0200
-Message-ID: <200809261757.24585.rjw@sisk.pl>
-References: <20080925170030.15311.27823.stgit@thinkpad> <200809261748.54054.rjw@sisk.pl> <48DD040B.9020807@gmail.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: iasl and SSDT disassembling limitations
+Date: Fri, 26 Sep 2008 13:08:41 -0300
+Message-ID: <20080926160841.GB30729@khazad-dum.debian.net>
+References: <200809251119.48907.elendil@planet.nl> <1222400642.4023.187.camel@yakui_zhao.sh.intel.com> <200809260652.21929.elendil@planet.nl> <4911F71203A09E4D9981D27F9D8308587672B3@orsmsx503.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:33560 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752728AbYIZPvo (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
-	Fri, 26 Sep 2008 11:51:44 -0400
-In-Reply-To: <48DD040B.9020807@gmail.com>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:44985 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751707AbYIZQIq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 26 Sep 2008 12:08:46 -0400
 Content-Disposition: inline
+In-Reply-To: <4911F71203A09E4D9981D27F9D8308587672B3@orsmsx503.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, "Zhao, Yakui" <yakui.zhao@intel.com>, Sitsofe Wheeler <sitsofe@yahoo.com>, LenBrown <lenb@kernel.org>, Linux-acpi@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Friday, 26 of September 2008, Alexey Starikovskiy wrote:
-> Rafael J. Wysocki wrote:
-> > On Friday, 26 of September 2008, Alexey Starikovskiy wrote:
-> >   
-> >> Rafael J. Wysocki wrote:
-> >>     
-> >>>> He refers to the ec->curr (former ec->t).
-> >>>>         
-> >>> Hm, I'm not sure what the failing scenario in this case would be.
-> >>>       
-> >> Last one was the thread of the stack is killed during transaction,
-> >> thus stack vanishes and interrupt goes over freed memory.
-> >>     
-> >
-> > This isn't possible IMO.  The thread is uninterruptible while waiting for the
-> > transaction to finish (if I'm not mistaken).
-> >   
-> Right, I already explained it to Yakui, this is why he only claims 
-> "ugly" now.
-> > That said, we can still embed 'curr' in 'struct acpi_ec' and do
-> > 'ec.curr = t' instead of 'ec->curr = &t' in acpi_ec_transaction_unlocked().
-> > Now, if 'command' is embedded in 'curr', it will be sufficient to do
-> > 'if (curr.command)' instead of doing 'if (ec->curr)', wherever applicable.
-> >   
-> No, I like current way more. Now it is not possible to use transaction 
-> data if
-> acpi_ec_transaction is not on the stack.
+On Fri, 26 Sep 2008, Moore, Robert wrote:
+> Most of the problems seen in the SSDT are related to the fact that the
+> disassembler cannot always correctly disassemble code that contains calls
+> to control methods that are external to the table. There is not enough
+> information to disassemble correctly, and the table often needs to be
+> repaired by hand.
 
-OK
+Can iasl be improved to properly disassemble such tables if we give it ALL
+tables to work with?
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
