@@ -1,52 +1,53 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: Is rfkill class really appropriate for eeepc-laptop?
-Date: Fri, 26 Sep 2008 13:48:05 -0300
-Message-ID: <20080926164805.GC30729@khazad-dum.debian.net>
-References: <20080918133144.GA4338@silver.sucs.org> <48D564A8.7030009@xandros.com> <20080921102246.GA27071@silver.sucs.org> <48D660C5.6070204@xandros.com> <48D69052.1040908@tuffmail.co.uk> <48D6AC5E.70502@xandros.com> <48DCE881.5000501@tuffmail.co.uk> <20080926135517.GA6273@srcf.ucam.org>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: iasl and SSDT disassembling limitations
+Date: Fri, 26 Sep 2008 09:48:36 -0700
+Message-ID: <4911F71203A09E4D9981D27F9D8308587674AB@orsmsx503.amr.corp.intel.com>
+References: <200809251119.48907.elendil@planet.nl>
+ <1222400642.4023.187.camel@yakui_zhao.sh.intel.com>
+ <200809260652.21929.elendil@planet.nl>
+ <4911F71203A09E4D9981D27F9D8308587672B3@orsmsx503.amr.corp.intel.com>
+ <20080926160841.GB30729@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:57555 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751461AbYIZQsL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 26 Sep 2008 12:48:11 -0400
-Content-Disposition: inline
-In-Reply-To: <20080926135517.GA6273@srcf.ucam.org>
+Received: from mga01.intel.com ([192.55.52.88]:18049 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752511AbYIZQuK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Sep 2008 12:50:10 -0400
+In-Reply-To: <20080926160841.GB30729@khazad-dum.debian.net>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>, corentincj@iksaif.net, Woody Suwalski <woodys@xandros.com>, Sitsofe Wheeler <sits@sucs.org>, acpi4asus-user@lists.sourceforge.net, linux-acpi <linux-acpi@vger.kernel.org>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Fri, 26 Sep 2008, Matthew Garrett wrote:
-> On Fri, Sep 26, 2008 at 02:49:53PM +0100, Alan Jenkins wrote:
-> > I was wrong to say that rfkill support was already in mainline.  But it
-> > is introduced by Matthew's patch "eeepc-laptop: Use standard
-> > interfaces", as posted and reviewed on the linux-acpi list.  I think
-> > this is a bad idea.  Surely the whole point of rfkill is to let
-> > NetworkManager do power management *without* having to do different
-> > things for different laptops?
-> 
-> No, it's to use allow the OS to control whatever mechanism the platform 
-> provides for making the radio stop transmitting. The fact that this is, 
-> uh, "interestingly" implemented on the Eee doesn't alter that. We should 
-> just sort out the hotplug code...
+Yes, it should be possible, and it is on our list of things to look at.
 
-Almost correct.  rfkill is for making the wireless transmitters stop
-EMITTING ENERGY.  If one just stops sending data but, e.g., a carrier is
-still being transmitted, the device is NOT rfkill'ed... it is just silenced
-or something like that.
+A little more info on the problem: Without the definition of the control method, the disassembler has no way of knowing how many arguments should be passed to the method. Without this information, it does not know how many expressions to parse after the control method invocation in order to create the arguments. The information is simply not available. So it tries to guess.
 
-Anyway, Matthew is quite right that it is well within rfkill's intended
-usage to power off and disconnect from the host bus the entire device in
-order to shut down energy emissions.
+Bob
 
-However, if the hardware/platform can do it in a less heavy-handed way, that
-would be vastly prefered over kicking the device off the bus and powering it
-off, as far as rfkill is concered.
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+>-----Original Message-----
+>From: Henrique de Moraes Holschuh [mailto:hmh@hmh.eng.br]
+>Sent: Friday, September 26, 2008 9:09 AM
+>To: Moore, Robert
+>Cc: linux-acpi@vger.kernel.org
+>Subject: iasl and SSDT disassembling limitations
+>
+>On Fri, 26 Sep 2008, Moore, Robert wrote:
+>> Most of the problems seen in the SSDT are related to the fact that the
+>> disassembler cannot always correctly disassemble code that contains calls
+>> to control methods that are external to the table. There is not enough
+>> information to disassemble correctly, and the table often needs to be
+>> repaired by hand.
+>
+>Can iasl be improved to properly disassemble such tables if we give it ALL
+>tables to work with?
+>
+>--
+>  "One disk to rule them all, One disk to find them. One disk to bring
+>  them all and in the darkness grind them. In the Land of Redmond
+>  where the shadows lie." -- The Silicon Valley Tarot
+>  Henrique Holschuh
