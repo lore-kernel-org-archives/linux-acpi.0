@@ -1,37 +1,59 @@
-From: Jeff Long <long@ku.edu>
-Subject: DMI info
-Date: Thu, 25 Sep 2008 16:37:30 -0500
-Message-ID: <48DC049A.5020204@ku.edu>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: [PATCH] ACPI: EC: do transaction from interrupt context
+Date: Fri, 26 Sep 2008 09:06:39 +0800
+Message-ID: <1222391199.4023.125.camel@yakui_zhao.sh.intel.com>
+References: <20080925170030.15311.27823.stgit@thinkpad>
+	 <48DBCFE0.8050905@yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aa-csf.nat.ku.edu ([129.237.28.4]:33578 "EHLO griffon.cc.ku.edu"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752164AbYIYWUO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 25 Sep 2008 18:20:14 -0400
-Received: from griffon.cc.ku.edu (localhost.localdomain [127.0.0.1])
-	by griffon.cc.ku.edu (8.14.2/8.14.2) with ESMTP id m8PLbU5j005114
-	for <linux-acpi@vger.kernel.org>; Thu, 25 Sep 2008 16:37:31 -0500
+Received: from mga01.intel.com ([192.55.52.88]:28395 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753004AbYIZBBz (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
+	Thu, 25 Sep 2008 21:01:55 -0400
+In-Reply-To: <48DBCFE0.8050905@yahoo.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Sitsofe Wheeler <sitsofe@yahoo.com>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, LenBrown <lenb@kernel.org>, Linux-acpi@vger.kernel.org
 
-Hi,
-	I booted a new kernel today and dmesg says:
+On Thu, 2008-09-25 at 18:52 +0100, Sitsofe Wheeler wrote:
+> Alexey Starikovskiy wrote:
+> > It is easier and faster to do transaction directly from interrupt context
+> > rather than waking control thread.
+> > Also, cleaner GPE storm avoidance is implemented.
+Hi, Sitsofe
+    I think that the problem on the asus-EEEPC can't be resolved really
+by the Alexey's patch. IMO it is only lucky.
+   In fact the main problem on Asus-EEEPC is related with the broken EC.
+Before an EC notification event is processed, another EC notification
+event arrives again.
+   If EC driver check whether the SCI_EVT bit is set after processing
+one EC notification event, the problem will be resolved. 
+    http://bugzilla.kernel.org/show_bug.cgi?id=11089
+    Alan Jenkins already sent a patch about how to fix the issue on the
+Asus-EEEPC.
+   
+   But if the above patch is merged , maybe it will break some laptops.
+On my laptop when issuing the query command, a non-zero query event is
+returned but it can't be processed.(There is no corresponding ACPI _Qxx
+object). At the same time the SCI_EVT bit won't be cleared. In such case
+OS can't exit the function of acpi_ec_query_handler, which causes that
+the acpid kernel thread can't work well.
+   
+   
+> References: 	http://bugzilla.kernel.org/show_bug.cgi?id=9998
+> > 		http://bugzilla.kernel.org/show_bug.cgi?id=10724
+> > 		http://bugzilla.kernel.org/show_bug.cgi?id=10919
+> > 		http://bugzilla.kernel.org/show_bug.cgi?id=11309
+> > 		http://bugzilla.kernel.org/show_bug.cgi?id=11549
+> > Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+> > ---
+> 
+> This resolves the slow hotkeys (e.g. brightness keys) that I see on my 
+> EeePC 900.
+> 
+> Tested-by: Sitsofe Wheeler <sitsofe@yahoo.com>
+> 
 
-ACPI: EC: Look up EC in DSDT
-ACPI: BIOS _OSI(Linux) query ignored
-ACPI: DMI System Vendor: Dell Inc.
-ACPI: DMI Product Name: OptiPlex GX280
-ACPI: DMI Product Version:
-ACPI: DMI Board Name: 0FG114
-ACPI: DMI BIOS Vendor: Dell Inc.
-ACPI: DMI BIOS Date: 03/03/2006
-ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
-
-So am sending as requested.  In case this helps at all:
-
-[long@griffon cgi-bin]$ uname -a
-Linux griffon 2.6.26.3-14.fc8 #1 SMP Wed Sep 3 03:40:05 EDT 2008 i686 
-i686 i386 GNU/Linux
