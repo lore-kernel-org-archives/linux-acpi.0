@@ -1,46 +1,48 @@
-From: Frans Pop <elendil@planet.nl>
-Subject: Re: Syntax errors in SSDT1 table of HP 2510p laptop
-Date: Fri, 26 Sep 2008 06:52:20 +0200
-Message-ID: <200809260652.21929.elendil@planet.nl>
-References: <200809251119.48907.elendil@planet.nl> <1222400642.4023.187.camel@yakui_zhao.sh.intel.com>
+From: Sitsofe Wheeler <sitsofe@yahoo.com>
+Subject: Re: [PATCH] ACPI: EC: do transaction from interrupt context
+Date: Fri, 26 Sep 2008 06:42:19 +0100
+Message-ID: <48DC763B.7080203@yahoo.com>
+References: <20080925170030.15311.27823.stgit@thinkpad>	 <48DBCFE0.8050905@yahoo.com> <1222391199.4023.125.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hpsmtp-eml18.kpnxchange.com ([213.75.38.118]:43612 "EHLO
-	hpsmtp-eml18.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753987AbYIZEwZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 26 Sep 2008 00:52:25 -0400
-In-Reply-To: <1222400642.4023.187.camel@yakui_zhao.sh.intel.com>
-Content-Disposition: inline
+Received: from pih-relay08.plus.net ([212.159.14.20]:39078 "EHLO
+	pih-relay08.plus.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752207AbYIZFmQ (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Fri, 26 Sep 2008 01:42:16 -0400
+In-Reply-To: <1222391199.4023.125.camel@yakui_zhao.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: linux-acpi@vger.kernel.org
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, LenBrown <lenb@kernel.org>, Linux-acpi@vger.kernel.org, Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 
-On Friday 26 September 2008, Zhao Yakui wrote:
-> Will you please try the latest kernel (2.6.27-rc6) and see whether the
-> problem still exists?
+Zhao Yakui wrote:
+>     I think that the problem on the asus-EEEPC can't be resolved really
+> by the Alexey's patch. IMO it is only lucky.
 
-Sorry that I did not make that clear, but I am already running with 
-current git (v2.6.27-rc7-94-gc0f4d6d).
+How lucky? It really does go from excruciatingly slow to quite fast on 
+that laptop. What will happen should my luck fail? What are the odds of 
+my luck failing?
 
->    It seems that the problem is fixed by the following commit:
->    commit 48feb3c419508487becfb9ea3afcc54c3eac6d80
+>    In fact the main problem on Asus-EEEPC is related with the broken EC.
+> Before an EC notification event is processed, another EC notification
+> event arrives again.
+>    If EC driver check whether the SCI_EVT bit is set after processing
+> one EC notification event, the problem will be resolved. 
+>     http://bugzilla.kernel.org/show_bug.cgi?id=11089
+>     Alan Jenkins already sent a patch about how to fix the issue on the
+> Asus-EEEPC.
 
-The kernel errors listed in that commit log are rather different from what 
-I'm seeing.
+I'll cc Alan and see what he makes of this patch.
 
-Also, how could a commit in the kernel fix a broken ACPI table? No change 
-in the kernel can repair syntax errors that show up when you disassemble 
-and recompile the ACPI table itself, can it?
-I thought using iasl as I did was the accepted way to uncover errors in a 
-system's ACPI tables.
+>    But if the above patch is merged , maybe it will break some laptops.
 
-I really think the problem is in the ACPI table in this case, not in the 
-kernel.
+Fair enough but can those people with such laptops test the patch too 
+and report back? Can you say in what form the breakages will take? From 
+what you are saying it sounds like this patch shouldn't have had any 
+affect for me but it does. What happens when they try it? What happens 
+when you try it?
 
-Cheers,
-FJP
+-- 
+Sitsofe | http://sucs.org/~sits/
