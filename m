@@ -1,110 +1,190 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: [Resend] [PATCH] ACPI: Enable EC device immediately after ACPI
-	full initialization
-Date: Sun, 28 Sep 2008 09:14:18 +0800
-Message-ID: <1222564459.4023.284.camel@yakui_zhao.sh.intel.com>
+From: louisqi <louisqi@viatech.com.cn>
+Subject: Re: [PATCH] ACPI: Add _PDC object evaluate for VIA.
+Date: Sun, 28 Sep 2008 10:40:33 +0800
+Message-ID: <48DEEEA1.1010605@viatech.com.cn>
+References: <48DDF430.8060806@viatech.com.cn> <20080927160530.GA27124@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:29514 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751087AbYI1BJX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 27 Sep 2008 21:09:23 -0400
+Received: from exchtp08.via.com.tw ([61.66.243.7]:23914 "EHLO
+	exchtp08.via.com.tw" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752160AbYI1ClT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 27 Sep 2008 22:41:19 -0400
+In-Reply-To: <20080927160530.GA27124@elte.hu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: len.brown@intel.com, venkatesh.pallipadi@intel.com, linux-acpi@vger.kernel.org
 
-when there is no ECDT table and no _INI object for EC device, it will be 
-enabled before scanning ACPI device. But it is too late after the following
-the commit is merged.  
-    >commit 7752d5cfe3d11ca0bb9c673ec38bd78ba6578f8e
-    > Author: Robert Hancock <hancockr@shaw.ca>
-    > Date:   Fri Feb 15 01:27:20 2008 -0800
-       >x86: validate against acpi motherboard resources
 
-   After the above commit is merged, OS will check whether MCFG area is 
-reserved in ACPI motherboard resources by calling the function of 
-acpi_get_devices when there exists MCFG table. In the acpi_get_devices the _STA
-object will be evaluated to check the status of the ACPI device. On some broken
-BIOS the MYEC object of EC device is initialized as one, which indicates that 
-EC operation region is already accessible before enabling EC device.So on these
-broken BIOS the EC operation region will be accessed in course of evaluating
-the _STA object before enabling EC device, which causes that OS will print the
-following warning messages:
-    >ACPI Error (evregion-0315): No handler for Region [EC__] (ffff88007f8145e8)
-[EmbeddedControl] [20080609]
-    >ACPI Error (exfldio-0290): Region EmbeddedControl(3) has no handler [20080321]
-    >ACPI Error (psparse-0530): Method parse/execution failed [\_SB_.PCI0.SBRG.
-         EC__.BAT1._STA] (Node ffff81013fc17a00), AE_NOT_EXIST
-    >ACPI Error (uteval-0233): Method execution failed [\_SB_.PCI0.SBRG.EC__.BAT1.
-         _STA] (Node ffff81013fc17a00), AE_NOT_EXIST
-    
-Although the above warning message is harmless, it looks confusing. 
-So it is necessary to enable EC device as early as possible.Maybe it is
-appropriate to enable it immediately after ACPI full initialization.
+Thanks a lot, Ingo! Thanks for your kindly help.
 
-http://bugzilla.kernel.org/show_bug.cgi?id=11255
-http://bugzilla.kernel.org/show_bug.cgi?id=11374
+I have revise my patch as following:
 
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+
+////////////////////////////////////////////////////////////////////////////////////
+[PATCH] ACPI: Add _PDC object evaluate for VIA.
+
+Frome: Louis Qi <louisqi@viatech.com.cn>
+
+The current routine "arch_acpi_processor_init_pdc" only supports INTEL CPUs.
+This patch add support for VIA CPUs.
+
+Signed-off-by: Louis Qi <louisqi@viatech.com.cn>
 ---
- drivers/acpi/bus.c          |    6 ++++++
- drivers/acpi/scan.c         |    4 ----
- include/acpi/acpi_drivers.h |    1 +
- 3 files changed, 7 insertions(+), 4 deletions(-)
 
-Index: linux-2.6/include/acpi/acpi_drivers.h
-===================================================================
---- linux-2.6.orig/include/acpi/acpi_drivers.h
-+++ linux-2.6/include/acpi/acpi_drivers.h
-@@ -100,6 +100,7 @@ int acpi_power_transition(struct acpi_de
-    -------------------------------------------------------------------------- */
- #ifdef CONFIG_ACPI_EC
- int acpi_ec_ecdt_probe(void);
-+int acpi_boot_ec_enable(void);
- #endif
- 
- /* --------------------------------------------------------------------------
-Index: linux-2.6/drivers/acpi/scan.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/scan.c
-+++ linux-2.6/drivers/acpi/scan.c
-@@ -1545,7 +1545,6 @@ static int acpi_bus_scan_fixed(struct ac
- 	return result;
- }
- 
--int __init acpi_boot_ec_enable(void);
- 
- static int __init acpi_scan_init(void)
- {
-@@ -1579,9 +1578,6 @@ static int __init acpi_scan_init(void)
- 	 */
- 	result = acpi_bus_scan_fixed(acpi_root);
- 
--	/* EC region might be needed at bus_scan, so enable it now */
--	acpi_boot_ec_enable();
--
- 	if (!result)
- 		result = acpi_bus_scan(acpi_root, &ops);
- 
-Index: linux-2.6/drivers/acpi/bus.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/bus.c
-+++ linux-2.6/drivers/acpi/bus.c
-@@ -749,6 +749,12 @@ static int __init acpi_bus_init(void)
- 		goto error1;
- 	}
- 
-+	/*
-+	 * Maybe EC region is required at bus_scan/acpi_get_devices. So it
-+	 * is necessary to enable it as early as possible.
-+	 */
-+	acpi_boot_ec_enable();
+--- 2.6.26.5/arch/x86/kernel/acpi/processor.c.orig	2008-09-28 10:18:11.000000000 
++0800
++++ 2.6.26.5/arch/x86/kernel/acpi/processor.c	2008-09-28 10:18:11.000000000 +0800
+@@ -66,6 +66,53 @@ static void init_intel_pdc(struct acpi_p
+  	return;
+  }
+
++static void init_via_pdc(struct acpi_processor *pr, struct cpuinfo_x86 *c)
++{
++	struct acpi_object_list *obj_list;
++	union acpi_object *obj;
++	u32 *buf;
 +
- 	printk(KERN_INFO PREFIX "Interpreter enabled\n");
- 
- 	/* Initialize sleep structures */
++	/* allocate and initialize pdc. It will be used later. */
++	obj_list = kmalloc(sizeof(struct acpi_object_list), GFP_KERNEL);
++	if (!obj_list)
++		goto err_obj_list;
++
++	obj = kmalloc(sizeof(union acpi_object), GFP_KERNEL);
++	if (!obj)
++		goto err_obj;
++
++	buf = kmalloc(12, GFP_KERNEL);
++	if (!buf)
++		goto err_buf;
++
++	buf[0] = ACPI_PDC_REVISION_ID;
++	buf[1] = 1;
++	buf[2] = 0;
++
++	if (cpu_has(c, X86_FEATURE_EST))
++		buf[2] |= ACPI_PDC_P_FFH;
++
++	if (cpu_has(c, X86_FEATURE_ACPI))
++		buf[2] |= ACPI_PDC_T_FFH;
++
++	obj->type = ACPI_TYPE_BUFFER;
++	obj->buffer.length = 12;
++	obj->buffer.pointer = (u8 *)buf;
++	obj_list->count = 1;
++	obj_list->pointer = obj;
++	pr->pdc = obj_list;
++
++	return;
++
++err_buf:
++	kfree(obj);
++err_obj:
++	kfree(obj_list);
++err_obj_list:
++	printk(KERN_ERR "init_via_pdc: memory allocation failed\n");
++}
++
++
+  /* Initialize _PDC data based on the CPU vendor */
+  void arch_acpi_processor_init_pdc(struct acpi_processor *pr)
+  {
+@@ -74,6 +121,8 @@ void arch_acpi_processor_init_pdc(struct
+  	pr->pdc = NULL;
+  	if (c->x86_vendor == X86_VENDOR_INTEL)
+  		init_intel_pdc(pr, c);
++	else if (c->x86_vendor == X86_VENDOR_CENTAUR)
++		init_via_pdc(pr, c);
 
+  	return;
+  }
+////////////////////////////////////////////////////////////////////////////////////
 
+Ingo Molnar :
+> just a few minor comments:
+> 
+> * louisqi <louisqi@viatech.com.cn> wrote:
+> 
+>> +static void init_via_pdc(struct acpi_processor *pr, struct cpuinfo_x86 *c)
+>> +{
+>> +	struct acpi_object_list *obj_list;
+>> +	union acpi_object *obj;
+>> +	u32 *buf;
+>> +
+>> +	/* allocate and initialize pdc. It will be used later. */
+>> +	obj_list = kmalloc(sizeof(struct acpi_object_list), GFP_KERNEL);
+>> +	if (!obj_list) {
+>> +		printk(KERN_ERR "Memory allocation error\n");
+>> +		return;
+>> +	}
+>> +
+>> +	obj = kmalloc(sizeof(union acpi_object), GFP_KERNEL);
+>> +	if (!obj) {
+>> +		printk(KERN_ERR "Memory allocation error\n");
+>> +		kfree(obj_list);
+>> +		return;
+>> +	}
+>> +
+>> +	buf = kmalloc(12, GFP_KERNEL);
+>> +	if (!buf) {
+>> +		printk(KERN_ERR "Memory allocation error\n");
+>> +		kfree(obj);
+>> +		kfree(obj_list);
+>> +		return;
+>> +	}
+> 
+> error condition cleanliness: it's cleaner to create a single off-line 
+> instance of freeing logic, at the end of the function:
+> 
+> ...
+> 	[ ... normal path ... ]
+> 	return;
+> 
+> err_obj:
+> 	kfree(obj);
+> err_obj_list:
+> 	kfree(obj_list);
+> err:
+> 	printk(KERN_ERR "init_via_pdc: memory allocation error\n");
+> }
+> 
+> and then after the allocation do:
+> 
+> 	if (!obj_list)
+> 		goto err;
+> 
+> etc.
+> 
+> (also note the different style of the printk)
+> 
+>> +
+>> +	buf[0] = ACPI_PDC_REVISION_ID;
+>> +	buf[1] = 1;
+>> +	buf[2] = 0;
+>> +
+>> +	if (cpu_has(c, X86_FEATURE_EST))
+>> +		buf[2] |= ACPI_PDC_P_FFH;
+>> +
+>> +	if (cpu_has(c, X86_FEATURE_ACPI))
+>> +		buf[2] |= ACPI_PDC_T_FFH;
+>> +
+>> +	obj->type = ACPI_TYPE_BUFFER;
+>> +	obj->buffer.length = 12;
+>> +	obj->buffer.pointer = (u8 *) buf;
+> 
+> style: no need to put a space between the '(u8 *)' and 'buf'.
+> 
+>> +	return;
+>> +}
+> 
+> style: no need to put 'return' at the end of a void function.
+> 
+> 	Ingo
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
