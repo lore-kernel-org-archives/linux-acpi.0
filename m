@@ -1,29 +1,110 @@
-From: Cyrill Gorcunov <gorcunov@gmail.com>
-Subject: Re: [PATCH 7/7] x86: print out irq nr for msi/ht -v2
-Date: Sat, 27 Sep 2008 23:02:37 +0400
-Message-ID: <20080927190237.GD10186@localhost>
-References: <1222323223-23529-1-git-send-email-yhlu.kernel@gmail.com> <200809250900.24736.bjorn.helgaas@hp.com> <86802c440809251007n71738552n88b8ebfc7ecd017f@mail.gmail.com> <200809251152.23021.bjorn.helgaas@hp.com> <20080927185306.GA18619@elte.hu>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: [Resend] [PATCH] ACPI: Enable EC device immediately after ACPI
+	full initialization
+Date: Sun, 28 Sep 2008 09:14:18 +0800
+Message-ID: <1222564459.4023.284.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20080927185306.GA18619@elte.hu>
-Sender: linux-pci-owner@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Yinghai Lu <yinghai@kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:29514 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751087AbYI1BJX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 27 Sep 2008 21:09:23 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org
 
-[Ingo Molnar - Sat, Sep 27, 2008 at 08:53:06PM +0200]
-|
-...
+when there is no ECDT table and no _INI object for EC device, it will be 
+enabled before scanning ACPI device. But it is too late after the following
+the commit is merged.  
+    >commit 7752d5cfe3d11ca0bb9c673ec38bd78ba6578f8e
+    > Author: Robert Hancock <hancockr@shaw.ca>
+    > Date:   Fri Feb 15 01:27:20 2008 -0800
+       >x86: validate against acpi motherboard resources
 
-A bit offtopic...well...completely offtopic I would say :)
+   After the above commit is merged, OS will check whether MCFG area is 
+reserved in ACPI motherboard resources by calling the function of 
+acpi_get_devices when there exists MCFG table. In the acpi_get_devices the _STA
+object will be evaluated to check the status of the ACPI device. On some broken
+BIOS the MYEC object of EC device is initialized as one, which indicates that 
+EC operation region is already accessible before enabling EC device.So on these
+broken BIOS the EC operation region will be accessed in course of evaluating
+the _STA object before enabling EC device, which causes that OS will print the
+following warning messages:
+    >ACPI Error (evregion-0315): No handler for Region [EC__] (ffff88007f8145e8)
+[EmbeddedControl] [20080609]
+    >ACPI Error (exfldio-0290): Region EmbeddedControl(3) has no handler [20080321]
+    >ACPI Error (psparse-0530): Method parse/execution failed [\_SB_.PCI0.SBRG.
+         EC__.BAT1._STA] (Node ffff81013fc17a00), AE_NOT_EXIST
+    >ACPI Error (uteval-0233): Method execution failed [\_SB_.PCI0.SBRG.EC__.BAT1.
+         _STA] (Node ffff81013fc17a00), AE_NOT_EXIST
+    
+Although the above warning message is harmless, it looks confusing. 
+So it is necessary to enable EC device as early as possible.Maybe it is
+appropriate to enable it immediately after ACPI full initialization.
 
-Ingo maybe you have any PCI specs? I've asked several people
-for this. Peter adviced to ask HW vendors but I don't have
-friends who has access to a such docs. Evgeniy Polyakov
-promised to ask someone but I think there will not be success
-too :(. I'll ask Maciej too later since now he seems to be
-quite busy.
+http://bugzilla.kernel.org/show_bug.cgi?id=11255
+http://bugzilla.kernel.org/show_bug.cgi?id=11374
+
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+---
+ drivers/acpi/bus.c          |    6 ++++++
+ drivers/acpi/scan.c         |    4 ----
+ include/acpi/acpi_drivers.h |    1 +
+ 3 files changed, 7 insertions(+), 4 deletions(-)
+
+Index: linux-2.6/include/acpi/acpi_drivers.h
+===================================================================
+--- linux-2.6.orig/include/acpi/acpi_drivers.h
++++ linux-2.6/include/acpi/acpi_drivers.h
+@@ -100,6 +100,7 @@ int acpi_power_transition(struct acpi_de
+    -------------------------------------------------------------------------- */
+ #ifdef CONFIG_ACPI_EC
+ int acpi_ec_ecdt_probe(void);
++int acpi_boot_ec_enable(void);
+ #endif
  
-		- Cyrill -
+ /* --------------------------------------------------------------------------
+Index: linux-2.6/drivers/acpi/scan.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/scan.c
++++ linux-2.6/drivers/acpi/scan.c
+@@ -1545,7 +1545,6 @@ static int acpi_bus_scan_fixed(struct ac
+ 	return result;
+ }
+ 
+-int __init acpi_boot_ec_enable(void);
+ 
+ static int __init acpi_scan_init(void)
+ {
+@@ -1579,9 +1578,6 @@ static int __init acpi_scan_init(void)
+ 	 */
+ 	result = acpi_bus_scan_fixed(acpi_root);
+ 
+-	/* EC region might be needed at bus_scan, so enable it now */
+-	acpi_boot_ec_enable();
+-
+ 	if (!result)
+ 		result = acpi_bus_scan(acpi_root, &ops);
+ 
+Index: linux-2.6/drivers/acpi/bus.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/bus.c
++++ linux-2.6/drivers/acpi/bus.c
+@@ -749,6 +749,12 @@ static int __init acpi_bus_init(void)
+ 		goto error1;
+ 	}
+ 
++	/*
++	 * Maybe EC region is required at bus_scan/acpi_get_devices. So it
++	 * is necessary to enable it as early as possible.
++	 */
++	acpi_boot_ec_enable();
++
+ 	printk(KERN_INFO PREFIX "Interpreter enabled\n");
+ 
+ 	/* Initialize sleep structures */
+
+
