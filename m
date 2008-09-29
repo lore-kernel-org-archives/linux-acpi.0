@@ -1,46 +1,26 @@
-From: Cyrill Gorcunov <gorcunov@gmail.com>
-Subject: Re: [PATCH 7/7] x86: print out irq nr for msi/ht -v2
-Date: Mon, 29 Sep 2008 21:29:28 +0400
-Message-ID: <20080929172928.GC7360@localhost>
-References: <1222323223-23529-1-git-send-email-yhlu.kernel@gmail.com> <20080927185306.GA18619@elte.hu> <20080927190237.GD10186@localhost> <200809291005.04941.jbarnes@virtuousgeek.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] ACPI: EC: Rename some variables
+Date: Mon, 29 Sep 2008 13:42:07 -0400 (EDT)
+Message-ID: <alpine.LFD.1.10.0809291341530.2962@localhost.localdomain>
+References: <20080925205427.2977.6845.stgit@thinkpad>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <200809291005.04941.jbarnes@virtuousgeek.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Ingo Molnar <mingo@elte.hu>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Yinghai Lu <yinghai@kernel.org>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms044pub.verizon.net ([206.46.252.44]:49664 "EHLO
+	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751558AbYI2RmX (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Mon, 29 Sep 2008 13:42:23 -0400
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms044.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
+ 3 2006)) with ESMTPA id <0K7Y006PSX6AFD10@vms044.mailsrvcs.net> for
+ Linux-acpi@vger.kernel.org; Mon, 29 Sep 2008 12:42:12 -0500 (CDT)
+In-reply-to: <20080925205427.2977.6845.stgit@thinkpad>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Linux-acpi@vger.kernel.org
 
-[Jesse Barnes - Mon, Sep 29, 2008 at 10:05:02AM -0700]
-| On Saturday, September 27, 2008 12:02 pm Cyrill Gorcunov wrote:
-| > [Ingo Molnar - Sat, Sep 27, 2008 at 08:53:06PM +0200]
-| >
-| > ...
-| >
-| > A bit offtopic...well...completely offtopic I would say :)
-| >
-| > Ingo maybe you have any PCI specs? I've asked several people
-| > for this. Peter adviced to ask HW vendors but I don't have
-| > friends who has access to a such docs. Evgeniy Polyakov
-| > promised to ask someone but I think there will not be success
-| > too :(. I'll ask Maciej too later since now he seems to be
-| > quite busy.
-| 
-| I think if you use google you can find the PCI spec in pdf form (search for 
-| pci pdf probably).  The MindShare books are also quite good, and cover PCI, 
-| PCI-X, and PCI Express in great detail (far more readable than the spec too).
-| 
-| -- 
-| Jesse Barnes, Intel Open Source Technology Center
-| 
+applied to ec branch in acpi-test tree.
 
-Thanks for reply, Jesse! Of course I could use google. But actually
-the only think I found is version 2.2 (which is a bit old). Will take
-a look if I could buy this book (not sure if it may be done here). PCI
-membership is quite expencive for me that is why I was asking for this
-documents in private mails I sent before. I don't like to behave like
-that but just had to.
-
-		- Cyrill -
+thanks,
+-len
