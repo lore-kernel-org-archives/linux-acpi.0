@@ -1,69 +1,57 @@
-From: Grant Grundler <grundler@parisc-linux.org>
-Subject: Re: [PATCH 7/7] x86: print out irq nr for msi/ht -v2
-Date: Mon, 29 Sep 2008 13:57:41 -0600
-Message-ID: <20080929195741.GB14409@colo.lackof.org>
-References: <1222323223-23529-1-git-send-email-yhlu.kernel@gmail.com> <20080927185306.GA18619@elte.hu> <20080927190237.GD10186@localhost> <200809291005.04941.jbarnes@virtuousgeek.org> <20080929172928.GC7360@localhost>
+From: Alexey Starikovskiy <aystarik@gmail.com>
+Subject: Re: Bug (?) in ACPI info reporting
+Date: Tue, 30 Sep 2008 00:04:46 +0400
+Message-ID: <48E134DE.7060308@gmail.com>
+References: <1222708111.3688.15.camel@shaptop.om-md.eros-os.com>	 <48E12277.6060801@gmail.com>	 <1222714691.3688.32.camel@shaptop.om-md.eros-os.com>	 <48E12B34.804@gmail.com> <1222718070.15685.0.camel@shaptop.om-md.eros-os.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from colo.lackof.org ([198.49.126.79]:51889 "EHLO colo.lackof.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751824AbYI2T5x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 29 Sep 2008 15:57:53 -0400
-Content-Disposition: inline
-In-Reply-To: <20080929172928.GC7360@localhost>
+Received: from ug-out-1314.google.com ([66.249.92.170]:26097 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751948AbYI2UEu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Sep 2008 16:04:50 -0400
+Received: by ug-out-1314.google.com with SMTP id k3so431116ugf.37
+        for <linux-acpi@vger.kernel.org>; Mon, 29 Sep 2008 13:04:48 -0700 (PDT)
+In-Reply-To: <1222718070.15685.0.camel@shaptop.om-md.eros-os.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Cyrill Gorcunov <gorcunov@gmail.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Ingo Molnar <mingo@elte.hu>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Yinghai Lu <yinghai@kernel.org>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Jonathan S. Shapiro" <shap@eros-os.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Mon, Sep 29, 2008 at 09:29:28PM +0400, Cyrill Gorcunov wrote:
-> [Jesse Barnes - Mon, Sep 29, 2008 at 10:05:02AM -0700]
-> | On Saturday, September 27, 2008 12:02 pm Cyrill Gorcunov wrote:
-> | > [Ingo Molnar - Sat, Sep 27, 2008 at 08:53:06PM +0200]
-> | >
-> | > ...
-> | >
-> | > A bit offtopic...well...completely offtopic I would say :)
-> | >
-> | > Ingo maybe you have any PCI specs? I've asked several people
-> | > for this. Peter adviced to ask HW vendors but I don't have
-> | > friends who has access to a such docs. Evgeniy Polyakov
-> | > promised to ask someone but I think there will not be success
-> | > too :(. I'll ask Maciej too later since now he seems to be
-> | > quite busy.
-> | 
-> | I think if you use google you can find the PCI spec in pdf form (search for 
-> | pci pdf probably).
+Jonathan S. Shapiro wrote:
+> On Mon, 2008-09-29 at 23:23 +0400, Alexey Starikovskiy wrote:
+>   
+>> Then this is most probably shortcoming of BIOS on your machine,
+>> design values are hardcoded, while actual values are read from battery 
+>> itself.
+>>     
+>
+> That would make a sad sort of sense, yes.
+>
+> acpidump as attachment this time, just to confirm.
+>   
+Ok, only two batteries are known to BIOS, one is NiMH, the other is Li-Ion.
+Li-Ion has hard-coded design capacity of 0x1770 or 6000.
+So, this is bug in BIOS of your machine, you might call technical 
+support if you care.
+I am not aware of any actual use of design values, so you are pretty 
+safe while ignoring them.
+                If (^^PCI0.LPCB.EC0.MBNH)
+                {
+                    Store (0x2328, Index (PBIF, One))
+                    Store (0x1C20, Index (PBIF, 0x04))
+                    Store ("OANI$", Index (PBIF, 0x09))
+                    Store ("NiMH", Index (PBIF, 0x0B))
+                }
+                Else
+                {
+                    Store (0x1770, Index (PBIF, One))
+                            ^^^^^^
+                    Store (0x39D0, Index (PBIF, 0x04))
+                    Sleep (0x32)
+                    Store ("LION", Index (PBIF, 0x0B))
+                }
 
-Not probably. You will find them that way.
-
-It is illegal for anyone to redistribute PCISIG copyrighted documents.
-That hasn't stopped it from happening. I've pointed this out in the past
-(and got a polite "please don't point that out again publicly").
-I'm glad Jesse did instead. :)
-
->   The MindShare books are also quite good, and cover PCI, 
-> | PCI-X, and PCI Express in great detail (far more readable than the spec too).
-
-+1
-
-grant
-
-> | 
-> | -- 
-> | Jesse Barnes, Intel Open Source Technology Center
-> | 
-> 
-> Thanks for reply, Jesse! Of course I could use google. But actually
-> the only think I found is version 2.2 (which is a bit old). Will take
-> a look if I could buy this book (not sure if it may be done here). PCI
-> membership is quite expencive for me that is why I was asking for this
-> documents in private mails I sent before. I don't like to behave like
-> that but just had to.
-> 
-> 		- Cyrill -
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Alex.
