@@ -1,93 +1,96 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPICA: add preemption point after each opcode parse
-Date: Mon, 29 Sep 2008 15:13:08 -0400 (EDT)
-Message-ID: <alpine.LFD.1.10.0809291512450.2962@localhost.localdomain>
-References: <20080925174030.17128.78242.stgit@thinkpad>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH 0/6] SATA: Blacklist systems that spin off disks during ACPI power off
+Date: Tue, 30 Sep 2008 00:06:23 +0200
+Message-ID: <200809300006.24919.rjw@sisk.pl>
+References: <200808290002.55026.rjw@sisk.pl> <200809150200.57055.rjw@sisk.pl> <48D17BBE.5020807@garzik.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:50950 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753693AbYI2Ujf (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Mon, 29 Sep 2008 16:39:35 -0400
-Received: from localhost.localdomain ([96.237.168.40])
- by vms173003.mailsrvcs.net
- (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K7Z000WW1DYS130@vms173003.mailsrvcs.net> for
- Linux-acpi@vger.kernel.org; Mon, 29 Sep 2008 14:13:11 -0500 (CDT)
-In-reply-to: <20080925174030.17128.78242.stgit@thinkpad>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <48D17BBE.5020807@garzik.org>
+Content-Disposition: inline
+Sender: linux-ide-owner@vger.kernel.org
+To: Jeff Garzik <jeff@garzik.org>
+Cc: Tejun Heo <htejun@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-ide@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Robert Hancock <hancockr@shaw.ca>, LKML <linux-kernel@vger.kernel.org>, Frans Pop <elendil@planet.nl>, Maciej Rutecki <maciej.rutecki@gmail.com>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: Linux-acpi@vger.kernel.org
 
-applied to acpi-test.
+On Wednesday, 17 of September 2008, Jeff Garzik wrote:
+> Rafael J. Wysocki wrote:
+> > On Sunday, 14 of September 2008, Jeff Garzik wrote:
+> >> Tejun Heo wrote:
+> >>> Rafael J. Wysocki wrote:
+> >>>> SATA: Blacklist systems that spin off disks during ACPI power off
+> >>>>
+> >>>> Some notebooks from HP have the problem that their BIOSes attempt to
+> >>>> spin down hard drives before entering ACPI system states S4 and S5.
+> >>>> This leads to a yo-yo effect during system power-off shutdown and the
+> >>>> last phase of hibernation when the disk is first spun down by the
+> >>>> kernel and then almost immediately turned on and off by the BIOS.
+> >>>> This, in turn, may result in shortening the disk's life times.
+> >>>>
+> >>>> To prevent this from happening we can blacklist the affected systems
+> >>>> using DMI information.  However, only the on-board controlles should
+> >>>> be blacklisted and their PCI slot numbers can be used for this
+> >>>> purpose.  Unfortunately the existing interface for checking DMI
+> >>>> information of the system is not very convenient for this purpose,
+> >>>> because to use it, we would have to define special callback functions
+> >>>> or create a separate struct dmi_system_id table for each blacklisted
+> >>>> system.
+> >>>>
+> >>>> To overcome this difficulty introduce a new function
+> >>>> dmi_first_match() returning a pointer to the first entry in an array
+> >>>> of struct dmi_system_id elements that matches the system DMI
+> >>>> information.  Then, we can use this pointer to access the entry's
+> >>>> .driver_data field containing the additional information, such as
+> >>>> the PCI slot number, allowing us to do the desired blacklisting.
+> >>>>
+> >>>> Introduce a new libata flag ATA_FLAG_NO_POWEROFF_SPINDOWN that, if
+> >>>> set, will prevent disks from being spun off during system power off
+> >>>> and hibernation (to handle the hibernation case we need a new system
+> >>>> state SYSTEM_HIBERNATE_ENTER that can be checked against by libata,
+> >>>> in analogy with SYSTEM_POWER_OFF).  Use dmi_first_match() to set this
+> >>>> flag for some systems affected by the problem described above (HP nx6325,
+> >>>> HP nx6310, HP 2510p).
+> >>>>
+> >>>> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> >>> libata part looks good to me but I think it would be better to
+> >>> separate out DMI changes into a separate patch.
+> >> Did these changes ever get separated out?
+> > 
+> > I only have the 'combo' patch if that's what you're asking about.  [The latest
+> > version is at http://bugzilla.kernel.org/attachment.cgi?id=17702&action=view]
+> > 
+> > Still, I can easily split the patch, although in that case the reason for the
+> > DMI changes won't be very clear without a reference to the SATA changes IMO.
+> 
+> That's the nature of every single API change -- you have the change, and 
+> then you have the users.
+> 
+> Respectfully, please split up the patch as requested, into DMI subsystem 
+> and ata subsystem pieces.
+> 
+> Re-reviewing the patch, I would even think that you should split out the 
+> kernel/power/disk and linux/kernel.h changes as well.
 
-thanks,
--len
+Here you go (sorry for the delay).  I have also split the SATA changes so that
+the driver patches are droppable individually if there are problems with them
+(not anticipated).
 
+Thanks,
+Rafael
 
-On Thu, 25 Sep 2008, Alexey Starikovskiy wrote:
+---
+SATA: Blacklist systems that spin off disks during ACPI power off
 
-> Reference: http://marc.info/?l=linux-acpi&m=122236382701062&w=2
-> 
-> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-> Tested-by: Sitsofe Wheeler <sitsofe@yahoo.com>
-> ---
-> 
->  drivers/acpi/parser/psloop.c    |    2 ++
->  include/acpi/acmacros.h         |    5 +++++
->  include/acpi/platform/aclinux.h |    6 ++++++
->  3 files changed, 13 insertions(+), 0 deletions(-)
-> 
-> 
-> diff --git a/drivers/acpi/parser/psloop.c b/drivers/acpi/parser/psloop.c
-> index c06238e..4647039 100644
-> --- a/drivers/acpi/parser/psloop.c
-> +++ b/drivers/acpi/parser/psloop.c
-> @@ -719,6 +719,8 @@ acpi_ps_complete_op(struct acpi_walk_state *walk_state,
->  		*op = NULL;
->  	}
->  
-> +	ACPI_PREEMPTION_POINT();
-> +
->  	return_ACPI_STATUS(AE_OK);
->  }
->  
-> diff --git a/include/acpi/acmacros.h b/include/acpi/acmacros.h
-> index 57ab9e9..b402685 100644
-> --- a/include/acpi/acmacros.h
-> +++ b/include/acpi/acmacros.h
-> @@ -703,4 +703,9 @@ struct acpi_integer_overlay {
->  
->  #endif				/* ACPI_DBG_TRACK_ALLOCATIONS */
->  
-> +/* Preemption point */
-> +#ifndef ACPI_PREEMPTION_POINT
-> +#define ACPI_PREEMPTION_POINT() /* no preemption */
-> +#endif
-> +
->  #endif				/* ACMACROS_H */
-> diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
-> index 9af4645..029c8c0 100644
-> --- a/include/acpi/platform/aclinux.h
-> +++ b/include/acpi/platform/aclinux.h
-> @@ -53,6 +53,7 @@
->  #include <linux/kernel.h>
->  #include <linux/module.h>
->  #include <linux/ctype.h>
-> +#include <linux/sched.h>
->  #include <asm/system.h>
->  #include <asm/atomic.h>
->  #include <asm/div64.h>
-> @@ -137,4 +138,9 @@ static inline void *acpi_os_acquire_object(acpi_cache_t * cache)
->  #define ACPI_ALLOCATE_ZEROED(a)	acpi_os_allocate_zeroed(a)
->  #define ACPI_FREE(a)		kfree(a)
->  
-> +/*
-> + * We need to show where it is safe to preempt execution of ACPICA
-> + */
-> +#define ACPI_PREEMPTION_POINT()	cond_resched()
-> +
->  #endif				/* __ACLINUX_H__ */
-> 
+Some notebooks from HP have the problem that their BIOSes attempt to
+spin down hard drives before entering ACPI system states S4 and S5.
+This leads to a yo-yo effect during system power-off shutdown and the
+last phase of hibernation when the disk is first spun down by the
+kernel and then almost immediately turned on and off by the BIOS.
+This, in turn, may result in shortening the disk's life times.
+
+To prevent this from happening we can blacklist the affected systems
+using DMI information, which is implemented by the following series of
+patches.
+
