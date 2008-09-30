@@ -1,45 +1,51 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [patch 2/2] PNP: don't check disabled PCI BARs for conflicts in
- quirk_system_pci_resources()
-Date: Tue, 30 Sep 2008 12:44:08 -0700 (PDT)
-Message-ID: <alpine.LFD.2.00.0809301241300.3262@nehalem.linux-foundation.org>
-References: <200809290953.56565.bjorn.helgaas@hp.com> <200809290957.59813.bjorn.helgaas@hp.com> <alpine.LFD.1.10.0809290912060.3265@nehalem.linux-foundation.org> <48E11EFA.8010402@keyaccess.nl> <alpine.LFD.2.00.0809291211330.3389@nehalem.linux-foundation.org>
- <48E1EF0E.8030006@keyaccess.nl> <alpine.LFD.2.00.0809300741320.3389@nehalem.linux-foundation.org> <48E24C6F.3030903@keyaccess.nl> <alpine.LFD.2.00.0809300904530.3389@nehalem.linux-foundation.org> <alpine.LFD.2.00.0809301001280.3389@nehalem.linux-foundation.org>
- <alpine.LFD.2.00.0809301015210.4651@nehalem.linux-foundation.org> <48E27E23.20400@keyaccess.nl>
+From: Rene Herman <rene.herman@keyaccess.nl>
+Subject: Re: [patch 2/2] PNP: don't check disabled PCI BARs for conflicts
+ in quirk_system_pci_resources()
+Date: Tue, 30 Sep 2008 21:51:05 +0200
+Message-ID: <48E28329.7040305@keyaccess.nl>
+References: <200809290953.56565.bjorn.helgaas@hp.com> <200809290957.59813.bjorn.helgaas@hp.com> <alpine.LFD.1.10.0809290912060.3265@nehalem.linux-foundation.org> <48E11EFA.8010402@keyaccess.nl> <alpine.LFD.2.00.0809291211330.3389@nehalem.linux-foundation.org> <48E1EF0E.8030006@keyaccess.nl> <alpine.LFD.2.00.0809300741320.3389@nehalem.linux-foundation.org> <48E24C6F.3030903@keyaccess.nl> <alpine.LFD.2.00.0809300904530.3389@nehalem.linux-foundation.org> <alpine.LFD.2.00.0809301052200.3436@nehalem.linux-foundation.org> <alpine.LFD.2.00.0809301107500.3262@nehalem.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <48E27E23.20400@keyaccess.nl>
+In-Reply-To: <alpine.LFD.2.00.0809301107500.3262@nehalem.linux-foundation.org>
 Sender: linux-pci-owner@vger.kernel.org
-To: Rene Herman <rene.herman@keyaccess.nl>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, Frans Pop <elendil@planet.nl>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Adam Belay <abelay@mit.edu>, Avuton Olrich <avuton@gmail.com>, Karl Bellve <karl.bellve@umassmed.edu>, Willem Riede <wriede@riede.org>, Matthew Hall <mhall@mhcomputing.net>, Sam Ravnborg <sam@ravnborg.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, Frans Pop <elendil@planet.nl>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Adam Belay <abelay@mit.edu>, Avuton Olrich <avuton@gmail.com>, Karl Bellve <karl.bellve@umassmed.edu>, Willem Riede <wriede@riede.org>, Matthew Hall <mhall@mhcomputing.net>
 List-Id: linux-acpi@vger.kernel.org
 
-
-
-On Tue, 30 Sep 2008, Rene Herman wrote:
+On 30-09-08 20:13, Linus Torvalds wrote:
 > 
-> Yes, I also get that oops but other than that, both link order versions you
-> sent out work -- ie, booting with acpi=noirq gets me to a functional system
-> with the quirk having run for PNP0c02 (acpi=off disables all of PNP0c02) and
-> doing its job.
-
-Ok. But that means that the last patch I sent out - the one that _only_ 
-changes the order for PnP itself, and moves pnpacpi_init and pnpbios_init 
-to be fs_initcalls - should also work, and have none of he other 
-interactions. Yes?
-
-> For some reason only some of your messages seem to be making it into my inbox
-> (in order, at least) but either of these that is:
+> On Tue, 30 Sep 2008, Linus Torvalds wrote:
+>> Hmm?  Bjorn? Everything that is true about "pnp_system_init" should be 
+>> equally true abote pnpacpi_init and pnpbios_init, no?
 > 
-> http://lkml.org/lkml/2008/9/30/242
-> http://lkml.org/lkml/2008/9/30/261
+> Side note: unlike the more radical "move all arch driver initcalls 
+> earlier", this one actually works for me. But it does cause 
+> pnp_system_init() to actually run before pnpacpi_init and pnpbios_init, 
+> due to the link order within PnP. That seems ok, since the system/acpi/pnp 
+> drivers should all be just different versions of PnP drivers, but I 
+> thought I'd mention it. Maybe there is some PnP internal reason why 
+> pnp_system_init should run after the pnp_acpi/bios_init functions.
+> 
+> (And if so, then just changing the order in drivers/pnp/Makefile would fix 
+> it up again).
+> 
+> Bjorn, is there any reason why this isn't the right thign to do?
+> 
+> Rene - I have this suspicion that just doing this part should already fix 
+> your issues with _no_ other patch, since now anything PnP does is after 
+> all the PCI setup code anyway. So does your sound card (or whatever it 
+> was) work by just doing the subsys_initcall -> fs_initcall change in PnP?
 
-Don't know why you can't see the messages, but in case this one comes
-through but not the other ones, look at the third patch in
+I'll have to wait for the message to arrive here or in a web-archive to 
+answer that (...) but please note that I am already fine with the 
+original code; it is the fix for my own issue that's IN mainline (ie, 
+not only check for MEM resource overlaps but also IO) that now made 
+Frans Pop yell due to his machine now spitting out lots of I/O overlap 
+warnings -- which turned out to not be real overlaps, but due to a 
+uninialized BAR.
 
-	http://lkml.org/lkml/2008/9/30/283
+You might want Frans to test this though then...
 
-instead.
-
-		Linus
+Rene.
