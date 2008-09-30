@@ -1,107 +1,82 @@
-From: Rene Herman <rene.herman@keyaccess.nl>
+From: Ingo Molnar <mingo@elte.hu>
 Subject: Re: [patch 2/2] PNP: don't check disabled PCI BARs for conflicts
- in quirk_system_pci_resources()
-Date: Tue, 30 Sep 2008 21:37:34 +0200
-Message-ID: <48E27FFE.4040809@keyaccess.nl>
-References: <200809290953.56565.bjorn.helgaas@hp.com> <200809290957.59813.bjorn.helgaas@hp.com> <alpine.LFD.1.10.0809290912060.3265@nehalem.linux-foundation.org> <48E11EFA.8010402@keyaccess.nl> <alpine.LFD.2.00.0809291211330.3389@nehalem.linux-foundation.org> <48E1EF0E.8030006@keyaccess.nl> <alpine.LFD.2.00.0809300741320.3389@nehalem.linux-foundation.org> <48E24C6F.3030903@keyaccess.nl> <alpine.LFD.2.00.0809300904530.3389@nehalem.linux-foundation.org> <alpine.LFD.2.00.0809301001280.3389@nehalem.linux-foundation.org> <alpine.LFD.2.00.0809301015210.4651@nehalem.linux-foundation.org> <48E27E23.20400@keyaccess.nl>
+	in quirk_system_pci_resources()
+Date: Tue, 30 Sep 2008 21:38:19 +0200
+Message-ID: <20080930193819.GA29860@elte.hu>
+References: <200809290957.59813.bjorn.helgaas@hp.com> <alpine.LFD.1.10.0809290912060.3265@nehalem.linux-foundation.org> <48E11EFA.8010402@keyaccess.nl> <alpine.LFD.2.00.0809291211330.3389@nehalem.linux-foundation.org> <48E1EF0E.8030006@keyaccess.nl> <alpine.LFD.2.00.0809300741320.3389@nehalem.linux-foundation.org> <48E24C6F.3030903@keyaccess.nl> <alpine.LFD.2.00.0809300904530.3389@nehalem.linux-foundation.org> <alpine.LFD.2.00.0809301001280.3389@nehalem.linux-foundation.org> <alpine.LFD.2.00.0809301015210.4651@nehalem.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------010802030607090805020001"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <48E27E23.20400@keyaccess.nl>
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.0809301015210.4651@nehalem.linux-foundation.org>
 Sender: linux-pci-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, Frans Pop <elendil@planet.nl>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Adam Belay <abelay@mit.edu>, Avuton Olrich <avuton@gmail.com>, Karl Bellve <karl.bellve@umassmed.edu>, Willem Riede <wriede@riede.org>, Matthew Hall <mhall@mhcomputing.net>, Sam Ravnborg <sam@ravnborg.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>
+Cc: Rene Herman <rene.herman@keyaccess.nl>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, Frans Pop <elendil@planet.nl>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Adam Belay <abelay@mit.edu>, Avuton Olrich <avuton@gmail.com>, Karl Bellve <karl.bellve@umassmed.edu>, Willem Riede <wriede@riede.org>, Matthew Hall <mhall@mhcomputing.net>, Sam Ravnborg <sam@ravnborg.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------010802030607090805020001
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
 
-On 30-09-08 21:29, Rene Herman wrote:
+* Linus Torvalds <torvalds@linux-foundation.org> wrote:
 
-> Yes, I also get that oops but other than that, both link order versions 
-> you sent out work -- ie, booting with acpi=noirq gets me to a functional 
-> system with the quirk having run for PNP0c02 (acpi=off disables all of 
-> PNP0c02) and doing its job.
+> Dang.
 > 
-> For some reason only some of your messages seem to be making it into my 
-> inbox (in order, at least) but either of these that is:
-> 
-> http://lkml.org/lkml/2008/9/30/242
-> http://lkml.org/lkml/2008/9/30/261
-> 
-> With the attached on top, all's working fine for me.
+> I guess we'll have to bite the bullet some day and actually create 
+> some explicit topological ordering of initcalls rather than depend on 
+> the initcall levels and link order. That is one particular complexity 
+> I've tried to avoid. But the subtlety of the current ordering is 
+> certainly not at all good either.
 
-It does, but that said... placing the attached small debug printk's on 
-top gets me:
+incidentally, i've been talking to Arjan about this recently in context 
+of the CONFIG_FASTBOOT feature. Because, as a side-effect, in the long 
+run, once the dependencies between initcalls fan out in a more natural 
+way, with explicit initcall ordering we'll also be able to boot a bit 
+faster and a bit more parallel.
 
-> [    0.070170] pnp 00:01: parse allocated resources
-> [    0.070397] pnp 00:01:   add io  0xde00-0xde03 flags 0x1
-> [    0.070405] pnp 00:01: PNP0c02: calling quirk_system_pci_resources+0x0/0x199
-> [    0.070428] pci 0000:00:00.0: skipping resource 3 4 5 6 7 8 9 10 11
-> [    0.070832] pci 0000:00:01.0: skipping resource 0 1 2 3 4 5 6 10 11
-> [    0.071241] pci 0000:00:07.0: skipping resource 0 1 2 3 4 5 6 7 8 9 10 11
-> [    0.071734] pci 0000:00:07.1: skipping resource 5 6 7 8 9 10 11
-> [    0.072077] pci 0000:00:07.3: skipping resource 0 1 2 3 4 5 6 7 8 9 10 11
-> [    0.072570] pci 0000:00:07.4: skipping resource 1 2 3 4 5 6 7 8 9 10 11
-> [    0.073033] pci 0000:00:08.0: skipping resource 2 3 4 5 6 7 8 9 10 11
-> [    0.073458] pci 0000:00:09.0: skipping resource 1 2 3 4 5 6 7 8 9 10 11
-> [    0.073918] pci 0000:00:09.1: skipping resource 1 2 3 4 5 6 7 8 9 10 11
-> [    0.074406] pci 0000:00:09.2: skipping resource 1 2 3 4 5 6 7 8 9 10 11
-> [    0.074865] pci 0000:00:0a.0: skipping resource<4>pnp 00:01: io resource (0xde00-0xde03) overlaps 0000:00:0a.0 BAR 0 (0xde00-0xdeff), disabling
-> [    0.074991]  1 2 3 4 5 6 7 8 9 10 11
-> [    0.075410] pci 0000:01:05.0: skipping resource 3 4 5 6 7 8 9 10 11
-> [    0.075962] pnp 00:01: Plug and Play ACPI device, IDs PNP0c02 (active)
+ [ but performance is far less important than robustness, so this idea 
+   was on the backburner. ]
 
-which does still feel rather clunky (especially the missing "middle" 
-resources 7, 8 and 9 for 01.0, my AGP bridge, look a little weird).
+and i think on the conceptual level initcall levels and implicit 
+ordering are bad in the same way SPL and IPL based locking is worse than 
+real, explicit spinlocks.
 
-(0a.0 is ofcourse my soundcard that is the issue)
+i think the topological ordering should not be just an extension of the 
+current hardcoded initcall levels, but it should be symbol space based: 
+i.e. an initcall should depend not on some kind of artificial enum, but 
+it should depend on _another initcall_. (a list of initcalls more 
+generally)
 
-The resources array for pci_dev is static -- a pci_dev bitmask of 
-enabled resources does sound somewhat nice-ish still perhaps.
+so instead of the current hardcoded levels:
 
-Rene.
+  core_initcall(sysctl_init);
 
---------------010802030607090805020001
-Content-Type: text/plain;
- name="debug-quirk_system_pci_resources.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="debug-quirk_system_pci_resources.diff"
+we could have natural constructs like:
 
-diff --git a/drivers/pnp/quirks.c b/drivers/pnp/quirks.c
-index 0cf4ccf..44bd869 100644
---- a/drivers/pnp/quirks.c
-+++ b/drivers/pnp/quirks.c
-@@ -245,14 +245,17 @@ static void quirk_system_pci_resources(struct pnp_dev *dev)
- 	 * so they won't be claimed by the PNP system driver.
- 	 */
- 	for_each_pci_dev(pdev) {
-+		dev_info(&pdev->dev, "skipping resource");
- 		for (i = 0; i < DEVICE_COUNT_RESOURCE; i++) {
- 			unsigned int type;
- 
- 			pci_res = &pdev->resource[i];
- 
- 			/* skip unregistered resources */
--			if (!pci_res->parent)
-+			if (!pci_res->parent)  {
-+				printk(KERN_CONT " %d", i);
- 				continue;
-+			}
- 
- 			type = pci_res->flags &
- 				(IORESOURCE_IO | IORESOURCE_MEM);
-@@ -305,6 +308,7 @@ static void quirk_system_pci_resources(struct pnp_dev *dev)
- 				pnp_res->flags |= IORESOURCE_DISABLED;
- 			}
- 		}
-+		printk(KERN_CONT "\n");
- 	}
- }
- 
+  initcall_depends_on(sysctl_init, securityfs_init);
+  initcall_depends_on(sock_init, sysctl_init)
 
---------------010802030607090805020001--
+where we create explicit dependencies between actual initcalls just by 
+listing their dependencies. In many cases we could express dependencies 
+in a natural way:
+
+  initcall_depends_on(some_subsys_init, kmem_cache_init);
+  initcall_depends_on(some_subsys_init, sched_init);
+
+which would express the fact that some_subsys_init() must execute after 
+kmem_cache_init() and after sched_init().
+
+Each initcall is associated with an 'initcall descriptor', which shows 
+which other initcalls this initcall depend on, and whether the initcall 
+has been executed already.
+
+during bootup the initcall engine would parse the graph and would 
+execute all the 'leaf' initcalls, and would complete the graph 
+gradually.
+
+( More details: we'd have a number of compatibility and convenience 
+  symbols as well - well-known initialization stages for various 
+  customary phases of bootup.
+
+  And at link time we could detect circular dependencies. )
+
+So ... this scheme looks elegant to me, but maybe it is overdesigned?
+
+	Ingo
