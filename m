@@ -1,91 +1,56 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [patch 2/2] PNP: don't check disabled PCI BARs for conflicts in
- quirk_system_pci_resources()
-Date: Tue, 30 Sep 2008 12:51:07 -0700 (PDT)
-Message-ID: <alpine.LFD.2.00.0809301244290.3262@nehalem.linux-foundation.org>
-References: <200809290957.59813.bjorn.helgaas@hp.com> <alpine.LFD.1.10.0809290912060.3265@nehalem.linux-foundation.org> <48E11EFA.8010402@keyaccess.nl> <alpine.LFD.2.00.0809291211330.3389@nehalem.linux-foundation.org> <48E1EF0E.8030006@keyaccess.nl>
- <alpine.LFD.2.00.0809300741320.3389@nehalem.linux-foundation.org> <48E24C6F.3030903@keyaccess.nl> <alpine.LFD.2.00.0809300904530.3389@nehalem.linux-foundation.org> <alpine.LFD.2.00.0809301001280.3389@nehalem.linux-foundation.org>
- <alpine.LFD.2.00.0809301015210.4651@nehalem.linux-foundation.org> <20080930193819.GA29860@elte.hu>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [patch 2/2] PNP: don't check disabled PCI BARs for conflicts
+	in quirk_system_pci_resources()
+Date: Tue, 30 Sep 2008 22:01:30 +0200
+Message-ID: <20080930200130.GA23954@elte.hu>
+References: <48E11EFA.8010402@keyaccess.nl> <alpine.LFD.2.00.0809291211330.3389@nehalem.linux-foundation.org> <48E1EF0E.8030006@keyaccess.nl> <alpine.LFD.2.00.0809300741320.3389@nehalem.linux-foundation.org> <48E24C6F.3030903@keyaccess.nl> <alpine.LFD.2.00.0809300904530.3389@nehalem.linux-foundation.org> <alpine.LFD.2.00.0809301001280.3389@nehalem.linux-foundation.org> <alpine.LFD.2.00.0809301015210.4651@nehalem.linux-foundation.org> <20080930193819.GA29860@elte.hu> <alpine.LFD.2.00.0809301244290.3262@nehalem.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44467 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753071AbYI3Tyo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 30 Sep 2008 15:54:44 -0400
-In-Reply-To: <20080930193819.GA29860@elte.hu>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.0809301244290.3262@nehalem.linux-foundation.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Arjan van de Ven <arjan@infradead.org>, Rene Herman <rene.herman@keyaccess.nl>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, Frans Pop <elendil@planet.nl>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Adam Belay <abelay@mit.edu>, Avuton Olrich <avuton@gmail.com>, Karl Bellve <karl.bellve@umassmed.edu>, Willem Riede <wriede@riede.org>, Matthew Hall <mhall@mhcomputing.net>, Sam Ravnborg <sam@ravnborg.org>
+List-Id: linux-acpi@vger.kernel.org
 
 
+* Linus Torvalds <torvalds@linux-foundation.org> wrote:
 
-On Tue, 30 Sep 2008, Ingo Molnar wrote:
+> > so instead of the current hardcoded levels:
+> > 
+> >   core_initcall(sysctl_init);
+> > 
+> > we could have natural constructs like:
+> > 
+> >   initcall_depends_on(sysctl_init, securityfs_init);
+> >   initcall_depends_on(sock_init, sysctl_init)
 > 
-> incidentally, i've been talking to Arjan about this recently in context 
-> of the CONFIG_FASTBOOT feature. Because, as a side-effect, in the long 
-> run, once the dependencies between initcalls fan out in a more natural 
-> way, with explicit initcall ordering we'll also be able to boot a bit 
-> faster and a bit more parallel.
+> would be a TOTAL DISASTER, because if you do that, then you are 
+> essentially back to the insane situation where people need to know 
+> what other parts are enabled.
 
-Hell no.
+well, as i mentioned it was and is on the backburner, because we went 
+over the same list of problems that you mentioned: harder to read and 
+interpret and debug, harder to reproduce boot ordering, etc.
 
-We do not want any implicit parallelism in the initcalls. That way lies 
-madness.
+but i'd still like the address the above specific point: it would be 
+silly to propagate Kconfig dependencies into the initcall dependencies, 
+why do you assume we'd do that?
 
-The probe functions that explicitly know that they are slow (like USB 
-detection and/or other individual drivers that have timeouts) should put 
-themselves in the background. We should _not_ use the dependency chain to 
-do so automatically, because for most cases drivers are totally 
-independent, but we still want a _reliable_  and _repeatable_ ordering.
+When PROCFS or PNP is turned off, then their initcall symbols should 
+naturally alias to some NOP definition, a function that is immediately 
+marked as 'done'. We _already_ have NOP stubs for many initializer 
+symbols.
 
-Which means that I will not accept stuff that makes for a parallel bootup 
-as a general initcall notion. I want things like network devices to show 
-up in the same order for the same kernel, thank you very much - even if 
-there is absolutely _zero_ ordering constraints between two independent 
-network drivers.
+and note:
 
-Anything else will inevitably cause just totally random and undebuggable 
-problems.
+> > ( More details: we'd have a number of compatibility and convenience
+> >   symbols as well - well-known initialization stages for various 
+> >   customary phases of bootup.
 
-> i think the topological ordering should not be just an extension of the 
-> current hardcoded initcall levels, but it should be symbol space based: 
-> i.e. an initcall should depend not on some kind of artificial enum, but 
-> it should depend on _another initcall_. (a list of initcalls more 
-> generally)
+One convenience symbol would be "memory_done()": to indicate that 
+kmalloc() and all the other memory allocators are up and running and 
+usable.
 
-Yes, it should be explicit.
-
-However, I don't agree with the notion of having initcalls point to other 
-initcalls. One big _idea_ of initcalls is that you can put them anywhere 
-in the source code, and that CONFIG_XYZ variables will automatically run 
-them or not depending on whether the code was compiled in. Having 
-something like:
-
-> so instead of the current hardcoded levels:
-> 
->   core_initcall(sysctl_init);
-> 
-> we could have natural constructs like:
-> 
->   initcall_depends_on(sysctl_init, securityfs_init);
->   initcall_depends_on(sock_init, sysctl_init)
-
-would be a TOTAL DISASTER, because if you do that, then you are 
-essentially back to the insane situation where people need to know what 
-other parts are enabled.
-
-So no. No "one call depends on another" crap.
-
-But I think we could add a separate notion of a dependancy point, and have 
-a setup where we describe "initcall X needs to happen before point A" and 
-"initcall Z needs to happen after point A".
-
-And then we can create a separate set of these dependency points, so that 
-X and Y don't have to know about each other, they just have to have some 
-knowledge about some common synchronization point - one that exists 
-regardless of whether X or Y are even compiled in!
-
-			Linus
+	Ingo
