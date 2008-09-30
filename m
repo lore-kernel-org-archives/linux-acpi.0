@@ -1,105 +1,108 @@
-From: Rolf Eike Beer <eike-kernel@sf-tec.de>
-Subject: Re: [patch 2/2] PNP: don't check disabled PCI BARs for conflicts in quirk_system_pci_resources()
-Date: Tue, 30 Sep 2008 22:05:44 +0200
-Message-ID: <200809302206.11391.eike-kernel@sf-tec.de>
-References: <200809290957.59813.bjorn.helgaas@hp.com> <alpine.LFD.2.00.0809301015210.4651@nehalem.linux-foundation.org> <20080930193819.GA29860@elte.hu>
+From: Rene Herman <rene.herman@keyaccess.nl>
+Subject: Re: [patch 2/2] PNP: don't check disabled PCI BARs for conflicts
+ in quirk_system_pci_resources()
+Date: Tue, 30 Sep 2008 22:48:26 +0200
+Message-ID: <48E2909A.8090703@keyaccess.nl>
+References: <200809290953.56565.bjorn.helgaas@hp.com> <200809290957.59813.bjorn.helgaas@hp.com> <alpine.LFD.1.10.0809290912060.3265@nehalem.linux-foundation.org> <48E11EFA.8010402@keyaccess.nl> <alpine.LFD.2.00.0809291211330.3389@nehalem.linux-foundation.org> <48E1EF0E.8030006@keyaccess.nl> <alpine.LFD.2.00.0809300741320.3389@nehalem.linux-foundation.org> <48E24C6F.3030903@keyaccess.nl> <alpine.LFD.2.00.0809300904530.3389@nehalem.linux-foundation.org> <alpine.LFD.2.00.0809301001280.3389@nehalem.linux-foundation.org> <alpine.LFD.2.00.0809301015210.4651@nehalem.linux-foundation.org> <48E27E23.20400@keyaccess.nl> <alpine.LFD.2.00.0809301241300.3262@nehalem.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1483641.zdhIWxlzK1";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="------------040206040806010003050400"
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20080930193819.GA29860@elte.hu>
+In-Reply-To: <alpine.LFD.2.00.0809301241300.3262@nehalem.linux-foundation.org>
 Sender: linux-pci-owner@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>, Rene Herman <rene.herman@keyaccess.nl>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, Frans Pop <elendil@planet.nl>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Adam Belay <abelay@mit.edu>, Avuton Olrich <avuton@gmail.com>, Karl Bellve <karl.bellve@umassmed.edu>, Willem Riede <wriede@riede.org>, Matthew Hall <mhall@mhcomputing.net>, Sam Ravnborg <sam@ravnborg.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, Frans Pop <elendil@planet.nl>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Adam Belay <abelay@mit.edu>, Avuton Olrich <avuton@gmail.com>, Karl Bellve <karl.bellve@umassmed.edu>, Willem Riede <wriede@riede.org>, Matthew Hall <mhall@mhcomputing.net>, Sam Ravnborg <sam@ravnborg.org>
 List-Id: linux-acpi@vger.kernel.org
 
---nextPart1483641.zdhIWxlzK1
-Content-Type: text/plain;
-  charset="us-ascii"
+This is a multi-part message in MIME format.
+--------------040206040806010003050400
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
-Ingo Molnar wrote:
-> * Linus Torvalds <torvalds@linux-foundation.org> wrote:
-> > Dang.
-> >
-> > I guess we'll have to bite the bullet some day and actually create
-> > some explicit topological ordering of initcalls rather than depend on
-> > the initcall levels and link order. That is one particular complexity
-> > I've tried to avoid. But the subtlety of the current ordering is
-> > certainly not at all good either.
->
-> incidentally, i've been talking to Arjan about this recently in context
-> of the CONFIG_FASTBOOT feature. Because, as a side-effect, in the long
-> run, once the dependencies between initcalls fan out in a more natural
-> way, with explicit initcall ordering we'll also be able to boot a bit
-> faster and a bit more parallel.
->
->  [ but performance is far less important than robustness, so this idea
->    was on the backburner. ]
->
-> and i think on the conceptual level initcall levels and implicit
-> ordering are bad in the same way SPL and IPL based locking is worse than
-> real, explicit spinlocks.
->
-> i think the topological ordering should not be just an extension of the
-> current hardcoded initcall levels, but it should be symbol space based:
-> i.e. an initcall should depend not on some kind of artificial enum, but
-> it should depend on _another initcall_. (a list of initcalls more
-> generally)
->
-> so instead of the current hardcoded levels:
->
->   core_initcall(sysctl_init);
->
-> we could have natural constructs like:
->
->   initcall_depends_on(sysctl_init, securityfs_init);
->   initcall_depends_on(sock_init, sysctl_init)
->
-> where we create explicit dependencies between actual initcalls just by
-> listing their dependencies. In many cases we could express dependencies
-> in a natural way:
->
->   initcall_depends_on(some_subsys_init, kmem_cache_init);
->   initcall_depends_on(some_subsys_init, sched_init);
->
-> which would express the fact that some_subsys_init() must execute after
-> kmem_cache_init() and after sched_init().
->
-> Each initcall is associated with an 'initcall descriptor', which shows
-> which other initcalls this initcall depend on, and whether the initcall
-> has been executed already.
->
-> during bootup the initcall engine would parse the graph and would
-> execute all the 'leaf' initcalls, and would complete the graph
-> gradually.
->
-> ( More details: we'd have a number of compatibility and convenience
->   symbols as well - well-known initialization stages for various
->   customary phases of bootup.
->
->   And at link time we could detect circular dependencies. )
->
-> So ... this scheme looks elegant to me, but maybe it is overdesigned?
+On 30-09-08 21:44, Linus Torvalds wrote:
 
-Why calculate this at boot time? Do you expect this to change between bootups?
+> On Tue, 30 Sep 2008, Rene Herman wrote:
 
-Eike
+>> Yes, I also get that oops but other than that, both link order versions you
+>> sent out work -- ie, booting with acpi=noirq gets me to a functional system
+>> with the quirk having run for PNP0c02 (acpi=off disables all of PNP0c02) and
+>> doing its job.
+> 
+> Ok. But that means that the last patch I sent out - the one that _only_ 
+> changes the order for PnP itself, and moves pnpacpi_init and pnpbios_init 
+> to be fs_initcalls - should also work, and have none of he other 
+> interactions. Yes?
 
---nextPart1483641.zdhIWxlzK1
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+Yes.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.9 (GNU/Linux)
+I am fine on current mainline and with this seem to still be fine, with 
+or without the quirk changes (*) applied.
 
-iEYEABECAAYFAkjihrMACgkQXKSJPmm5/E4hFwCgoJl5F/jj3jHauCMm5g7LTBJz
-bs8An3c5w2wTgQMyJokhsbsyG3pUFkSE
-=Uxea
------END PGP SIGNATURE-----
+(*) http://marc.info/?l=linux-kernel&m=122280330516865&w=2
 
---nextPart1483641.zdhIWxlzK1--
+Frans Pop will need something like those quirk changes on top to have 
+his machine stop yelling at him -- assuming it actually works for him 
+that is (which it should I guess, but it's not been tested by him yet).
+
+The pci_start == 0 version, attached for convenience and also still 
+available from the bugzilla:
+
+http://bugzilla.kernel.org/show_bug.cgi?id=11550
+
+is still the minimal version for Frans' issue.
+
+(I see there are multiple copies of messages that I sent in that marc 
+archive. Seem to again be experiencing severe email trouble since I'm 
+also not getting back most messages that I see there. Anyways, if you 
+get multiple copies, sorry, can't help it it seems, and I need to be 
+away after this).
+
+Rene.
+
+
+
+
+
+
+
+--------------040206040806010003050400
+Content-Type: text/plain;
+ name="0001-PNP-avoid-checking-unitialized-BARs-for-conflicts.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename*0="0001-PNP-avoid-checking-unitialized-BARs-for-conflicts.patch"
+
+>From 6ba1072ef110f8977832592c092501b81439da4b Mon Sep 17 00:00:00 2001
+From: Rene Herman <rene.herman@gmail.com>
+Date: Tue, 30 Sep 2008 22:33:42 +0200
+Subject: [PATCH] PNP: avoid checking unitialized BARs for conflicts
+
+Avoid checking a PCI BAR for conflicts if the BIOS left it
+unitialized.
+
+Reported-by: Frans Pop <elendil@planet.nl>
+Tested-by: Frans Pop <elendil@planet.nl>
+Signed-off-by: Rene Herman <rene.herman@gmail.com>
+---
+ drivers/pnp/quirks.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/pnp/quirks.c b/drivers/pnp/quirks.c
+index 0bdf9b8..d0120a5 100644
+--- a/drivers/pnp/quirks.c
++++ b/drivers/pnp/quirks.c
+@@ -253,6 +253,9 @@ static void quirk_system_pci_resources(struct pnp_dev *dev)
+ 				continue;
+ 
+ 			pci_start = pci_resource_start(pdev, i);
++			if (!pci_start)
++				continue;
++
+ 			pci_end = pci_resource_end(pdev, i);
+ 			for (j = 0;
+ 			     (res = pnp_get_resource(dev, type, j)); j++) {
+-- 
+1.6.0.2
+
+
+--------------040206040806010003050400--
