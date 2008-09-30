@@ -1,129 +1,180 @@
-From: Rene Herman <rene.herman@keyaccess.nl>
-Subject: Re: [patch 2/2] PNP: don't check disabled PCI BARs for conflicts
- in quirk_system_pci_resources()
-Date: Tue, 30 Sep 2008 11:19:10 +0200
-Message-ID: <48E1EF0E.8030006@keyaccess.nl>
-References: <200809290953.56565.bjorn.helgaas@hp.com> <200809290957.59813.bjorn.helgaas@hp.com> <alpine.LFD.1.10.0809290912060.3265@nehalem.linux-foundation.org> <48E11EFA.8010402@keyaccess.nl> <alpine.LFD.2.00.0809291211330.3389@nehalem.linux-foundation.org>
+From: Duarte Silva <duartejcsilva@gmail.com>
+Subject: Propose WMI patch
+Date: Tue, 30 Sep 2008 12:06:35 +0100
+Message-ID: <200809301206.35983.duartejcsilva@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------010409050903000604050405"
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtpq1.groni1.gr.home.nl ([213.51.130.200]:41083 "EHLO
-	smtpq1.groni1.gr.home.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751868AbYI3JPG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Sep 2008 05:15:06 -0400
-In-Reply-To: <alpine.LFD.2.00.0809291211330.3389@nehalem.linux-foundation.org>
+Received: from fg-out-1718.google.com ([72.14.220.153]:46474 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752466AbYI3LJA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Sep 2008 07:09:00 -0400
+Received: by fg-out-1718.google.com with SMTP id 19so9559fgg.17
+        for <linux-acpi@vger.kernel.org>; Tue, 30 Sep 2008 04:08:58 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, Frans Pop <elendil@planet.nl>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Adam Belay <abelay@mit.edu>, Avuton Olrich <avuton@gmail.com>, Karl Bellve <karl.bellve@umassmed.edu>, Willem Riede <wriede@riede.org>, Matthew Hall <mhall@mhcomputing.net>
+To: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------010409050903000604050405
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi,
 
-On 29-09-08 21:13, Linus Torvalds wrote:
-> 
-> On Mon, 29 Sep 2008, Rene Herman wrote:
->> I believe the possible issue is that resources that do _not_ (seem to) start
->> at zero might also be disabled.
-> 
-> But that is irrelevant.
-> 
-> If we have registered them in the resource tree, then PnP must ignore 
-> them.
-> 
-> The fact is, this is not about being enabled or disabled. This is about 
-> the PnP tree containing resources that we already parsed from the PCI 
-> stuff, and once we've seen them as PCI resources, there's not really 
-> anything valuable in the PnP information.
+I wanted to propose a ACPI-WMI API change. Instead of having, wmi_has_guid 
+returning a boolean, why not returning a acpi_status. It would allow extented 
+error handling, and it would look more ACPI style :)
 
-Well, if you say so...
-
-Just did the attached which might match that intention. Please do not 
-consider this a submission as I've no idea if this is sensible nor if it 
-actually helps Frans. Just for discussion. Anything here should arrive 
-through Bjorn.
-
-Rene.
-
---------------010409050903000604050405
-Content-Type: text/plain;
- name="quirk_system_pci_resources.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="quirk_system_pci_resources.diff"
-
-diff --git a/drivers/pnp/quirks.c b/drivers/pnp/quirks.c
-index 0bdf9b8..0824eed 100644
---- a/drivers/pnp/quirks.c
-+++ b/drivers/pnp/quirks.c
-@@ -230,7 +230,8 @@ static void quirk_ad1815_mpu_resources(struct pnp_dev *dev)
- static void quirk_system_pci_resources(struct pnp_dev *dev)
+diff --git a/drivers/acpi/wmi.c b/drivers/acpi/wmi.c
+index cfe2c83..cdff9bf 100644
+--- a/drivers/acpi/wmi.c
++++ b/drivers/acpi/wmi.c
+@@ -194,14 +194,16 @@ static bool wmi_parse_guid(const u8 *src, u8 *dest)
+ 	return true;
+ }
+ 
+-static bool find_guid(const char *guid_string, struct wmi_block **out)
++static acpi_status find_guid(const char *guid_string, struct wmi_block **out)
  {
- 	struct pci_dev *pdev = NULL;
--	struct resource *res;
-+	struct resource *pci_res;
-+	struct resource *pnp_res;
- 	resource_size_t pnp_start, pnp_end, pci_start, pci_end;
- 	int i, j;
+ 	char tmp[16], guid_input[16];
+ 	struct wmi_block *wblock;
+ 	struct guid_block *block;
+ 	struct list_head *p;
  
-@@ -247,20 +248,29 @@ static void quirk_system_pci_resources(struct pnp_dev *dev)
- 		for (i = 0; i < DEVICE_COUNT_RESOURCE; i++) {
- 			unsigned int type;
- 
--			type = pci_resource_flags(pdev, i) &
--					(IORESOURCE_IO | IORESOURCE_MEM);
--			if (!type || pci_resource_len(pdev, i) == 0)
-+			pci_res = &pdev->resource[i];
+-	wmi_parse_guid(guid_string, tmp);
++	if (!wmi_parse_guid(guid_string, tmp))
++		return AE_BAD_PARAMETER;
 +
-+			/* have we been registered already? */
-+			if (pci_res->parent)
-+				continue;
-+
-+			pci_start = pci_res->start;
-+			pci_end = pci_res->end;
-+
-+			if (pci_end < pci_start || !pci_end)
-+				continue;
-+
-+			type = pci_res->flags & (IORESOURCE_IO | IORESOURCE_MEM);
-+			if (!type)
- 				continue;
+ 	wmi_swap_bytes(tmp, guid_input);
  
--			pci_start = pci_resource_start(pdev, i);
--			pci_end = pci_resource_end(pdev, i);
- 			for (j = 0;
--			     (res = pnp_get_resource(dev, type, j)); j++) {
--				if (res->start == 0 && res->end == 0)
--					continue;
-+			     (pnp_res = pnp_get_resource(dev, type, j)); j++) {
-+				pnp_start = pnp_res->start;
-+				pnp_end = pnp_res->end;
- 
--				pnp_start = res->start;
--				pnp_end = res->end;
-+				if (pnp_end < pnp_start || !pnp_end)
-+					continue;
- 
- 				/*
- 				 * If the PNP region doesn't overlap the PCI
-@@ -288,13 +298,13 @@ static void quirk_system_pci_resources(struct pnp_dev *dev)
- 				dev_warn(&dev->dev, "%s resource "
- 					"(0x%llx-0x%llx) overlaps %s BAR %d "
- 					"(0x%llx-0x%llx), disabling\n",
--					pnp_resource_type_name(res),
-+					pnp_resource_type_name(pnp_res),
- 					(unsigned long long) pnp_start,
- 					(unsigned long long) pnp_end,
- 					pci_name(pdev), i,
- 					(unsigned long long) pci_start,
- 					(unsigned long long) pci_end);
--				res->flags |= IORESOURCE_DISABLED;
-+				pnp_res->flags |= IORESOURCE_DISABLED;
- 			}
+ 	list_for_each(p, &wmi_blocks.list) {
+@@ -211,10 +213,10 @@ static bool find_guid(const char *guid_string, struct 
+wmi_block **out)
+ 		if (memcmp(block->guid, guid_input, 16) == 0) {
+ 			if (out)
+ 				*out = wblock;
+-			return 1;
++			return AE_OK;
  		}
  	}
-
---------------010409050903000604050405--
+-	return 0;
++	return AE_NOT_FOUND;
+ }
+ 
+ /*
+@@ -241,8 +243,10 @@ u32 method_id, const struct acpi_buffer *in, struct 
+acpi_buffer *out)
+ 	union acpi_object params[3];
+ 	char method[4] = "WM";
+ 
+-	if (!find_guid(guid_string, &wblock))
+-		return AE_BAD_ADDRESS;
++	status = find_guid(guid_string, &wblock);
++
++	if (ACPI_FAILURE(status))
++		return status;
+ 
+ 	block = &wblock->gblock;
+ 	handle = wblock->handle;
+@@ -303,7 +307,9 @@ struct acpi_buffer *out)
+ 	if (!guid_string || !out)
+ 		return AE_BAD_PARAMETER;
+ 
+-	if (!find_guid(guid_string, &wblock))
++	status = find_guid(guid_string, &wblock);
++
++	if (ACPI_FAILURE(status))
+ 		return AE_BAD_ADDRESS;
+ 
+ 	block = &wblock->gblock;
+@@ -377,6 +383,7 @@ const struct acpi_buffer *in)
+ 	struct guid_block *block = NULL;
+ 	struct wmi_block *wblock = NULL;
+ 	acpi_handle handle;
++	acpi_status status;
+ 	struct acpi_object_list input;
+ 	union acpi_object params[2];
+ 	char method[4] = "WS";
+@@ -384,7 +391,9 @@ const struct acpi_buffer *in)
+ 	if (!guid_string || !in)
+ 		return AE_BAD_DATA;
+ 
+-	if (!find_guid(guid_string, &wblock))
++	status = find_guid(guid_string, &wblock);
++
++	if (ACPI_FAILURE(status))
+ 		return AE_BAD_ADDRESS;
+ 
+ 	block = &wblock->gblock;
+@@ -427,12 +436,14 @@ acpi_status wmi_install_notify_handler(const char *guid,
+ wmi_notify_handler handler, void *data)
+ {
+ 	struct wmi_block *block;
++	acpi_status status;
+ 
+ 	if (!guid || !handler)
+ 		return AE_BAD_PARAMETER;
+ 
+-	find_guid(guid, &block);
+-	if (!block)
++	status = find_guid(guid, &block);
++
++	if (ACPI_FAILURE(status))
+ 		return AE_NOT_EXIST;
+ 
+ 	if (block->handler)
+@@ -453,12 +464,14 @@ EXPORT_SYMBOL_GPL(wmi_install_notify_handler);
+ acpi_status wmi_remove_notify_handler(const char *guid)
+ {
+ 	struct wmi_block *block;
++	acpi_status status;
+ 
+ 	if (!guid)
+ 		return AE_BAD_PARAMETER;
+ 
+-	find_guid(guid, &block);
+-	if (!block)
++	status = find_guid(guid, &block);
++
++	if (ACPI_FAILURE(status))
+ 		return AE_NOT_EXIST;
+ 
+ 	if (!block->handler)
+@@ -507,15 +520,21 @@ acpi_status wmi_get_event_data(u32 event, struct 
+acpi_buffer *out)
+ EXPORT_SYMBOL_GPL(wmi_get_event_data);
+ 
+ /**
+- * wmi_has_guid - Check if a GUID is available
++ * wmi_is_guid_present - Check if a GUID is available
+  * @guid_string: 36 char string of the form 
+fa50ff2b-f2e8-45de-83fa-65417f2f49ba
+  *
+  * Check if a given GUID is defined by _WDG
+  */
+-bool wmi_has_guid(const char *guid_string)
++acpi_status wmi_is_guid_present(const char *guid_string)
+ {
+ 	return find_guid(guid_string, NULL);
+ }
++EXPORT_SYMBOL_GPL(wmi_is_guid_present);
++
++bool wmi_has_guid(const char *guid_string)
++{
++	return ACPI_SUCCESS(find_guid(guid_string, NULL));
++}
+ EXPORT_SYMBOL_GPL(wmi_has_guid);
+ 
+ /*
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 702f79d..26f9c0a 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -198,6 +198,7 @@ extern acpi_status wmi_install_notify_handler(const char 
+*guid,
+ 					wmi_notify_handler handler, void *data);
+ extern acpi_status wmi_remove_notify_handler(const char *guid);
+ extern acpi_status wmi_get_event_data(u32 event, struct acpi_buffer *out);
++extern acpi_status wmi_is_guid_present(const char *guid);
+ extern bool wmi_has_guid(const char *guid);
+ 
+ #endif	/* CONFIG_ACPI_WMI */
