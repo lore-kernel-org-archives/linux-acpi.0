@@ -1,43 +1,94 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [patch 2/2] PNP: don't check disabled PCI BARs for conflicts in
- quirk_system_pci_resources()
-Date: Tue, 30 Sep 2008 11:13:25 -0700 (PDT)
-Message-ID: <alpine.LFD.2.00.0809301107500.3262@nehalem.linux-foundation.org>
-References: <200809290953.56565.bjorn.helgaas@hp.com> <200809290957.59813.bjorn.helgaas@hp.com> <alpine.LFD.1.10.0809290912060.3265@nehalem.linux-foundation.org> <48E11EFA.8010402@keyaccess.nl> <alpine.LFD.2.00.0809291211330.3389@nehalem.linux-foundation.org>
- <48E1EF0E.8030006@keyaccess.nl> <alpine.LFD.2.00.0809300741320.3389@nehalem.linux-foundation.org> <48E24C6F.3030903@keyaccess.nl> <alpine.LFD.2.00.0809300904530.3389@nehalem.linux-foundation.org>
- <alpine.LFD.2.00.0809301052200.3436@nehalem.linux-foundation.org>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [patch 2/2] PNP: don't check disabled PCI BARs for conflicts in quirk_system_pci_resources()
+Date: Tue, 30 Sep 2008 13:12:48 -0600
+Message-ID: <200809301312.50712.bjorn.helgaas@hp.com>
+References: <200809290953.56565.bjorn.helgaas@hp.com> <48E24C6F.3030903@keyaccess.nl> <alpine.LFD.2.00.0809300904530.3389@nehalem.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.00.0809301052200.3436@nehalem.linux-foundation.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Rene Herman <rene.herman@keyaccess.nl>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, Frans Pop <elendil@planet.nl>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Adam Belay <abelay@mit.edu>, Avuton Olrich <avuton@gmail.com>, Karl Bellve <karl.bellve@umassmed.edu>, Willem Riede <wriede@riede.org>, Matthew Hall <mhall@mhcomputing.net>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g1t0026.austin.hp.com ([15.216.28.33]:47414 "EHLO
+	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752720AbYI3TM5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Sep 2008 15:12:57 -0400
+In-Reply-To: <alpine.LFD.2.00.0809300904530.3389@nehalem.linux-foundation.org>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Rene Herman <rene.herman@keyaccess.nl>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, Frans Pop <elendil@planet.nl>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Adam Belay <abelay@mit.edu>, Avuton Olrich <avuton@gmail.com>, Karl Bellve <karl.bellve@umassmed.edu>, Willem Riede <wriede@riede.org>, Matthew Hall <mhall@mhcomputing.net>
 
-
-
-On Tue, 30 Sep 2008, Linus Torvalds wrote:
+On Tuesday 30 September 2008 10:29:44 am Linus Torvalds wrote:
 > 
-> Hmm?  Bjorn? Everything that is true about "pnp_system_init" should be 
-> equally true abote pnpacpi_init and pnpbios_init, no?
+> On Tue, 30 Sep 2008, Rene Herman wrote:
+> > 
+> > > Of course, it may be that the PnP code runs too early, and we have only
+> > > parsed the PCI resources, not inserted them into the resource tree yet. If
+> > > so, none of this will work, of course.
+> > 
+> > It doesn't. With the test negated it triggers for all PCI resources (and
+> > ofcourse my soundcard driver fails again).
+> 
+> Oh, ok. Looking at it, it does seem that we actually _insert_ the PCI 
+> resources too late. We do it in pcibios_allocate_resources(), and there we 
+> even take care to look at whether it was enabled or disabled (we 
+> prioritize enabled resources, so that a disabled one will never be 
+> requested before an enabled one and if they clash, it's always the 
+> disabled one that loses the resource).
+> 
+> But pcibios_allocate_resources() is called from pcibios_resource_survey(), 
+> which is called from pcibios_init(), which in turn is caled from 
+> pci_subsys_init() that is a "subsys_initcall()".
+> 
+> In contrast, the PnP fixup thing is called from pnp_fixup_device, called 
+> from __pnp_add_device(), called from pnp_add_device() (and 
+> pnp_add_card(), but that should be later), and those in turn from
+> pnpacpi_add_device and pnpacpi_init(). 
+> 
+> And pnpacpi_init is _also_ a subsys_initcall, but arch/x86/pci/built-in.o 
+> gets linked in _after_ drivers/built-in.o. That, in turn, is because it's 
+> marked as a "driver" in the x86 Makefile, and the main Makefile actually 
+> ends up forcing "drivers-y" to have drivers/ first.
+> 
+> Just for fun, does this patch make a difference and allow you to just 
+> take the "is it registered" thing into account?
+> 
+> It's a scary change right now, and I wouldn't commit it as is (I think 
+> that for 2.6.27 the thing to do is to just do the minimal "zero means 
+> disabled" thing), but having some random driver level initialize before 
+> the core architecture-specific PCI code does smell. So something like this 
+> sounds conceptually right anyway.
 
-Side note: unlike the more radical "move all arch driver initcalls 
-earlier", this one actually works for me. But it does cause 
-pnp_system_init() to actually run before pnpacpi_init and pnpbios_init, 
-due to the link order within PnP. That seems ok, since the system/acpi/pnp 
-drivers should all be just different versions of PnP drivers, but I 
-thought I'd mention it. Maybe there is some PnP internal reason why 
-pnp_system_init should run after the pnp_acpi/bios_init functions.
+Sorry for the delay in responding -- I'm officially on vacation
+yesterday and today.
 
-(And if so, then just changing the order in drivers/pnp/Makefile would fix 
-it up again).
+I agree that for 2.6.27 the "res->start == 0 means disabled" check
+in the PNP quirk seems safest.
 
-Bjorn, is there any reason why this isn't the right thign to do?
+I don't like it long-term, because (a) I'd like that knowledge to at
+least be in PCI, not PNP, and (b) res->start is the CPU address, not
+necessarily the PCI bus address, and the BAR value (== PCI bus address)
+is what we're trying to check.  Even if we looked at the BAR value
+instead of res->start, I think zero is a valid PCI bus address on
+machines where the root bridge applies an address offset.
 
-Rene - I have this suspicion that just doing this part should already fix 
-your issues with _no_ other patch, since now anything PnP does is after 
-all the PCI setup code anyway. So does your sound card (or whatever it 
-was) work by just doing the subsys_initcall -> fs_initcall change in PnP?
+So something like the patch below (same as what Rene originally
+proposed, I think)?
 
-		Linus
+diff --git a/drivers/pnp/quirks.c b/drivers/pnp/quirks.c
+index 0bdf9b8..b3319e4 100644
+--- a/drivers/pnp/quirks.c
++++ b/drivers/pnp/quirks.c
+@@ -254,6 +254,10 @@ static void quirk_system_pci_resources(struct pnp_dev *dev)
+ 
+ 			pci_start = pci_resource_start(pdev, i);
+ 			pci_end = pci_resource_end(pdev, i);
++
++			if (!pci_start)
++				continue;
++
+ 			for (j = 0;
+ 			     (res = pnp_get_resource(dev, type, j)); j++) {
+ 				if (res->start == 0 && res->end == 0)
+
