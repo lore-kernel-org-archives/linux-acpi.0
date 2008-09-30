@@ -1,82 +1,45 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [patch 2/2] PNP: don't check disabled PCI BARs for conflicts
-	in quirk_system_pci_resources()
-Date: Tue, 30 Sep 2008 21:38:19 +0200
-Message-ID: <20080930193819.GA29860@elte.hu>
-References: <200809290957.59813.bjorn.helgaas@hp.com> <alpine.LFD.1.10.0809290912060.3265@nehalem.linux-foundation.org> <48E11EFA.8010402@keyaccess.nl> <alpine.LFD.2.00.0809291211330.3389@nehalem.linux-foundation.org> <48E1EF0E.8030006@keyaccess.nl> <alpine.LFD.2.00.0809300741320.3389@nehalem.linux-foundation.org> <48E24C6F.3030903@keyaccess.nl> <alpine.LFD.2.00.0809300904530.3389@nehalem.linux-foundation.org> <alpine.LFD.2.00.0809301001280.3389@nehalem.linux-foundation.org> <alpine.LFD.2.00.0809301015210.4651@nehalem.linux-foundation.org>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [patch 2/2] PNP: don't check disabled PCI BARs for conflicts in
+ quirk_system_pci_resources()
+Date: Tue, 30 Sep 2008 12:44:08 -0700 (PDT)
+Message-ID: <alpine.LFD.2.00.0809301241300.3262@nehalem.linux-foundation.org>
+References: <200809290953.56565.bjorn.helgaas@hp.com> <200809290957.59813.bjorn.helgaas@hp.com> <alpine.LFD.1.10.0809290912060.3265@nehalem.linux-foundation.org> <48E11EFA.8010402@keyaccess.nl> <alpine.LFD.2.00.0809291211330.3389@nehalem.linux-foundation.org>
+ <48E1EF0E.8030006@keyaccess.nl> <alpine.LFD.2.00.0809300741320.3389@nehalem.linux-foundation.org> <48E24C6F.3030903@keyaccess.nl> <alpine.LFD.2.00.0809300904530.3389@nehalem.linux-foundation.org> <alpine.LFD.2.00.0809301001280.3389@nehalem.linux-foundation.org>
+ <alpine.LFD.2.00.0809301015210.4651@nehalem.linux-foundation.org> <48E27E23.20400@keyaccess.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.0809301015210.4651@nehalem.linux-foundation.org>
+In-Reply-To: <48E27E23.20400@keyaccess.nl>
 Sender: linux-pci-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>
-Cc: Rene Herman <rene.herman@keyaccess.nl>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, Frans Pop <elendil@planet.nl>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Adam Belay <abelay@mit.edu>, Avuton Olrich <avuton@gmail.com>, Karl Bellve <karl.bellve@umassmed.edu>, Willem Riede <wriede@riede.org>, Matthew Hall <mhall@mhcomputing.net>, Sam Ravnborg <sam@ravnborg.org>
+To: Rene Herman <rene.herman@keyaccess.nl>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, Frans Pop <elendil@planet.nl>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Adam Belay <abelay@mit.edu>, Avuton Olrich <avuton@gmail.com>, Karl Bellve <karl.bellve@umassmed.edu>, Willem Riede <wriede@riede.org>, Matthew Hall <mhall@mhcomputing.net>, Sam Ravnborg <sam@ravnborg.org>
 List-Id: linux-acpi@vger.kernel.org
 
 
-* Linus Torvalds <torvalds@linux-foundation.org> wrote:
 
-> Dang.
+On Tue, 30 Sep 2008, Rene Herman wrote:
 > 
-> I guess we'll have to bite the bullet some day and actually create 
-> some explicit topological ordering of initcalls rather than depend on 
-> the initcall levels and link order. That is one particular complexity 
-> I've tried to avoid. But the subtlety of the current ordering is 
-> certainly not at all good either.
+> Yes, I also get that oops but other than that, both link order versions you
+> sent out work -- ie, booting with acpi=noirq gets me to a functional system
+> with the quirk having run for PNP0c02 (acpi=off disables all of PNP0c02) and
+> doing its job.
 
-incidentally, i've been talking to Arjan about this recently in context 
-of the CONFIG_FASTBOOT feature. Because, as a side-effect, in the long 
-run, once the dependencies between initcalls fan out in a more natural 
-way, with explicit initcall ordering we'll also be able to boot a bit 
-faster and a bit more parallel.
+Ok. But that means that the last patch I sent out - the one that _only_ 
+changes the order for PnP itself, and moves pnpacpi_init and pnpbios_init 
+to be fs_initcalls - should also work, and have none of he other 
+interactions. Yes?
 
- [ but performance is far less important than robustness, so this idea 
-   was on the backburner. ]
+> For some reason only some of your messages seem to be making it into my inbox
+> (in order, at least) but either of these that is:
+> 
+> http://lkml.org/lkml/2008/9/30/242
+> http://lkml.org/lkml/2008/9/30/261
 
-and i think on the conceptual level initcall levels and implicit 
-ordering are bad in the same way SPL and IPL based locking is worse than 
-real, explicit spinlocks.
+Don't know why you can't see the messages, but in case this one comes
+through but not the other ones, look at the third patch in
 
-i think the topological ordering should not be just an extension of the 
-current hardcoded initcall levels, but it should be symbol space based: 
-i.e. an initcall should depend not on some kind of artificial enum, but 
-it should depend on _another initcall_. (a list of initcalls more 
-generally)
+	http://lkml.org/lkml/2008/9/30/283
 
-so instead of the current hardcoded levels:
+instead.
 
-  core_initcall(sysctl_init);
-
-we could have natural constructs like:
-
-  initcall_depends_on(sysctl_init, securityfs_init);
-  initcall_depends_on(sock_init, sysctl_init)
-
-where we create explicit dependencies between actual initcalls just by 
-listing their dependencies. In many cases we could express dependencies 
-in a natural way:
-
-  initcall_depends_on(some_subsys_init, kmem_cache_init);
-  initcall_depends_on(some_subsys_init, sched_init);
-
-which would express the fact that some_subsys_init() must execute after 
-kmem_cache_init() and after sched_init().
-
-Each initcall is associated with an 'initcall descriptor', which shows 
-which other initcalls this initcall depend on, and whether the initcall 
-has been executed already.
-
-during bootup the initcall engine would parse the graph and would 
-execute all the 'leaf' initcalls, and would complete the graph 
-gradually.
-
-( More details: we'd have a number of compatibility and convenience 
-  symbols as well - well-known initialization stages for various 
-  customary phases of bootup.
-
-  And at link time we could detect circular dependencies. )
-
-So ... this scheme looks elegant to me, but maybe it is overdesigned?
-
-	Ingo
+		Linus
