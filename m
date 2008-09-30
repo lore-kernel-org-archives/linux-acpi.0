@@ -1,108 +1,80 @@
-From: Rene Herman <rene.herman@keyaccess.nl>
-Subject: Re: [patch 2/2] PNP: don't check disabled PCI BARs for conflicts
- in quirk_system_pci_resources()
-Date: Tue, 30 Sep 2008 22:48:26 +0200
-Message-ID: <48E2909A.8090703@keyaccess.nl>
-References: <200809290953.56565.bjorn.helgaas@hp.com> <200809290957.59813.bjorn.helgaas@hp.com> <alpine.LFD.1.10.0809290912060.3265@nehalem.linux-foundation.org> <48E11EFA.8010402@keyaccess.nl> <alpine.LFD.2.00.0809291211330.3389@nehalem.linux-foundation.org> <48E1EF0E.8030006@keyaccess.nl> <alpine.LFD.2.00.0809300741320.3389@nehalem.linux-foundation.org> <48E24C6F.3030903@keyaccess.nl> <alpine.LFD.2.00.0809300904530.3389@nehalem.linux-foundation.org> <alpine.LFD.2.00.0809301001280.3389@nehalem.linux-foundation.org> <alpine.LFD.2.00.0809301015210.4651@nehalem.linux-foundation.org> <48E27E23.20400@keyaccess.nl> <alpine.LFD.2.00.0809301241300.3262@nehalem.linux-foundation.org>
+From: Duarte Silva <duartejcsilva@gmail.com>
+Subject: Problems evaluating WMI method
+Date: Tue, 30 Sep 2008 23:56:09 +0100
+Message-ID: <200809302356.09618.duartejcsilva@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------040206040806010003050400"
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.00.0809301241300.3262@nehalem.linux-foundation.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, Frans Pop <elendil@planet.nl>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Adam Belay <abelay@mit.edu>, Avuton Olrich <avuton@gmail.com>, Karl Bellve <karl.bellve@umassmed.edu>, Willem Riede <wriede@riede.org>, Matthew Hall <mhall@mhcomputing.net>, Sam Ravnborg <sam@ravnborg.org>
-List-Id: linux-acpi@vger.kernel.org
-
-This is a multi-part message in MIME format.
---------------040206040806010003050400
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-
-On 30-09-08 21:44, Linus Torvalds wrote:
-
-> On Tue, 30 Sep 2008, Rene Herman wrote:
-
->> Yes, I also get that oops but other than that, both link order versions you
->> sent out work -- ie, booting with acpi=noirq gets me to a functional system
->> with the quirk having run for PNP0c02 (acpi=off disables all of PNP0c02) and
->> doing its job.
-> 
-> Ok. But that means that the last patch I sent out - the one that _only_ 
-> changes the order for PnP itself, and moves pnpacpi_init and pnpbios_init 
-> to be fs_initcalls - should also work, and have none of he other 
-> interactions. Yes?
-
-Yes.
-
-I am fine on current mainline and with this seem to still be fine, with 
-or without the quirk changes (*) applied.
-
-(*) http://marc.info/?l=linux-kernel&m=122280330516865&w=2
-
-Frans Pop will need something like those quirk changes on top to have 
-his machine stop yelling at him -- assuming it actually works for him 
-that is (which it should I guess, but it's not been tested by him yet).
-
-The pci_start == 0 version, attached for convenience and also still 
-available from the bugzilla:
-
-http://bugzilla.kernel.org/show_bug.cgi?id=11550
-
-is still the minimal version for Frans' issue.
-
-(I see there are multiple copies of messages that I sent in that marc 
-archive. Seem to again be experiencing severe email trouble since I'm 
-also not getting back most messages that I see there. Anyways, if you 
-get multiple copies, sorry, can't help it it seems, and I need to be 
-away after this).
-
-Rene.
-
-
-
-
-
-
-
---------------040206040806010003050400
 Content-Type: text/plain;
- name="0001-PNP-avoid-checking-unitialized-BARs-for-conflicts.patch"
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename*0="0001-PNP-avoid-checking-unitialized-BARs-for-conflicts.patch"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ey-out-2122.google.com ([74.125.78.24]:34734 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753386AbYI3W6f (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Sep 2008 18:58:35 -0400
+Received: by ey-out-2122.google.com with SMTP id 6so108512eyi.37
+        for <linux-acpi@vger.kernel.org>; Tue, 30 Sep 2008 15:58:33 -0700 (PDT)
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
->From 6ba1072ef110f8977832592c092501b81439da4b Mon Sep 17 00:00:00 2001
-From: Rene Herman <rene.herman@gmail.com>
-Date: Tue, 30 Sep 2008 22:33:42 +0200
-Subject: [PATCH] PNP: avoid checking unitialized BARs for conflicts
+Hi,
 
-Avoid checking a PCI BAR for conflicts if the BIOS left it
-unitialized.
+After parsing the _WDG buffer from a PNP0C14 device I got this (the format is 
+<guid> - <object-id> - <parsed-guid-type> - <guid-type>)
 
-Reported-by: Frans Pop <elendil@planet.nl>
-Tested-by: Frans Pop <elendil@planet.nl>
-Signed-off-by: Rene Herman <rene.herman@gmail.com>
----
- drivers/pnp/quirks.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+C3A72B38-D3EF-42D3-8CBB-D5A57049F66D - AB - method - 2
+E4FB94F9-7F2B-4173-AD1A-CD1D95086248 - event - 8
+023B133E-49D1-4E10-B313-698220140DC2 - event - 8
+37BE1AC0-C3F2-4B1F-BFBE-8FDEAF2814D6 - event - 8
+911BAD44-7DF8-4FBB-9319-BABA1C4B293B - event - 8
+4E5C4404-3CED-4A5E-8C7A-1BA875D00A43 - BA - method - 2
+2B4F501A-BD3C-4394-8DCF-00A7D2BC8210 - BB - method - 2
+05901221-D566-11D1-B2F0-00A0C9062910 - AC - unknown - 0
 
-diff --git a/drivers/pnp/quirks.c b/drivers/pnp/quirks.c
-index 0bdf9b8..d0120a5 100644
---- a/drivers/pnp/quirks.c
-+++ b/drivers/pnp/quirks.c
-@@ -253,6 +253,9 @@ static void quirk_system_pci_resources(struct pnp_dev *dev)
- 				continue;
- 
- 			pci_start = pci_resource_start(pdev, i);
-+			if (!pci_start)
-+				continue;
-+
- 			pci_end = pci_resource_end(pdev, i);
- 			for (j = 0;
- 			     (res = pnp_get_resource(dev, type, j)); j++) {
--- 
-1.6.0.2
+That first GUID map to WMAB (I guess).  So why when I do this (simplified 
+version)
 
+struct acpi_buffer out = { ACPI_ALLOCATE_BUFFER, NULL };
+struct acpi_buffer in;
+structwmab_args args = {
+	.mar0 = 0x00,
+	.mar1 = 0x01,
+	.mar2 = 0x00,
+};
 
---------------040206040806010003050400--
+in.length = (acpi_size)sizeof(struct wmab_args);
+in.pointer = &args;
+
+wmi_evaluate_method("C3A72B38-D3EF-42D3-8CBB-D5A57049F66D", 1, 1, &in, &out);
+
+printk( KERN_INFO "QUERY %i\n", (u32)out.length);
+
+kfree(out.pointer);
+
+I get a output with a lenght of 24 and when I convert it to a acpi_object I 
+get type integer. Result in dmesg
+
+QUERY 24
+
+When the code in WMAB is
+
+Method (WMAB, 3, Serialized)
+{
+    Store (Arg0, MAR0)
+    Store (Arg1, MAR1)
+    Store (Arg2, MAR2)
+    If (LAnd (LGreaterEqual (MAR0, Zero), LLessEqual (MAR0, 0x2F)))
+    {
+        If (LEqual (MAR0, Zero))
+        {
+            If (LEqual (MAR1, One))
+            {
+                Return (0x0300)
+            }
+            Return (0x80000002)
+       }
+       (...)
+
+With the parameters I provided it should be returning something like 0x300. 
+What Iam doing wrong?
