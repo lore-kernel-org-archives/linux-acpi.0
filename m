@@ -1,51 +1,67 @@
-From: Rene Herman <rene.herman@keyaccess.nl>
-Subject: Re: [patch 2/2] PNP: don't check disabled PCI BARs for conflicts
- in quirk_system_pci_resources()
-Date: Tue, 30 Sep 2008 21:51:05 +0200
-Message-ID: <48E28329.7040305@keyaccess.nl>
-References: <200809290953.56565.bjorn.helgaas@hp.com> <200809290957.59813.bjorn.helgaas@hp.com> <alpine.LFD.1.10.0809290912060.3265@nehalem.linux-foundation.org> <48E11EFA.8010402@keyaccess.nl> <alpine.LFD.2.00.0809291211330.3389@nehalem.linux-foundation.org> <48E1EF0E.8030006@keyaccess.nl> <alpine.LFD.2.00.0809300741320.3389@nehalem.linux-foundation.org> <48E24C6F.3030903@keyaccess.nl> <alpine.LFD.2.00.0809300904530.3389@nehalem.linux-foundation.org> <alpine.LFD.2.00.0809301052200.3436@nehalem.linux-foundation.org> <alpine.LFD.2.00.0809301107500.3262@nehalem.linux-foundation.org>
+From: Arjan van de Ven <arjan@infradead.org>
+Subject: Re: [patch 2/2] PNP: don't check disabled PCI BARs for conflicts in
+ quirk_system_pci_resources()
+Date: Tue, 30 Sep 2008 12:54:27 -0700
+Message-ID: <20080930125427.7a90a8b3@infradead.org>
+References: <200809290957.59813.bjorn.helgaas@hp.com>
+	<alpine.LFD.1.10.0809290912060.3265@nehalem.linux-foundation.org>
+	<48E11EFA.8010402@keyaccess.nl>
+	<alpine.LFD.2.00.0809291211330.3389@nehalem.linux-foundation.org>
+	<48E1EF0E.8030006@keyaccess.nl>
+	<alpine.LFD.2.00.0809300741320.3389@nehalem.linux-foundation.org>
+	<48E24C6F.3030903@keyaccess.nl>
+	<alpine.LFD.2.00.0809300904530.3389@nehalem.linux-foundation.org>
+	<alpine.LFD.2.00.0809301001280.3389@nehalem.linux-foundation.org>
+	<alpine.LFD.2.00.0809301015210.4651@nehalem.linux-foundation.org>
+	<20080930193819.GA29860@elte.hu>
+	<alpine.LFD.2.00.0809301244290.3262@nehalem.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.00.0809301107500.3262@nehalem.linux-foundation.org>
+In-Reply-To: <alpine.LFD.2.00.0809301244290.3262@nehalem.linux-foundation.org>
 Sender: linux-pci-owner@vger.kernel.org
 To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, Frans Pop <elendil@planet.nl>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Adam Belay <abelay@mit.edu>, Avuton Olrich <avuton@gmail.com>, Karl Bellve <karl.bellve@umassmed.edu>, Willem Riede <wriede@riede.org>, Matthew Hall <mhall@mhcomputing.net>
+Cc: Ingo Molnar <mingo@elte.hu>, Rene Herman <rene.herman@keyaccess.nl>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, Frans Pop <elendil@planet.nl>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Adam Belay <abelay@mit.edu>, Avuton Olrich <avuton@gmail.com>, Karl Bellve <karl.bellve@umassmed.edu>, Willem Riede <wriede@riede.org>, Matthew Hall <mhall@mhcomputing.net>, Sam Ravnborg <sam@ravnborg.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 30-09-08 20:13, Linus Torvalds wrote:
-> 
-> On Tue, 30 Sep 2008, Linus Torvalds wrote:
->> Hmm?  Bjorn? Everything that is true about "pnp_system_init" should be 
->> equally true abote pnpacpi_init and pnpbios_init, no?
-> 
-> Side note: unlike the more radical "move all arch driver initcalls 
-> earlier", this one actually works for me. But it does cause 
-> pnp_system_init() to actually run before pnpacpi_init and pnpbios_init, 
-> due to the link order within PnP. That seems ok, since the system/acpi/pnp 
-> drivers should all be just different versions of PnP drivers, but I 
-> thought I'd mention it. Maybe there is some PnP internal reason why 
-> pnp_system_init should run after the pnp_acpi/bios_init functions.
-> 
-> (And if so, then just changing the order in drivers/pnp/Makefile would fix 
-> it up again).
-> 
-> Bjorn, is there any reason why this isn't the right thign to do?
-> 
-> Rene - I have this suspicion that just doing this part should already fix 
-> your issues with _no_ other patch, since now anything PnP does is after 
-> all the PCI setup code anyway. So does your sound card (or whatever it 
-> was) work by just doing the subsys_initcall -> fs_initcall change in PnP?
+On Tue, 30 Sep 2008 12:51:07 -0700 (PDT)
+Linus Torvalds <torvalds@linux-foundation.org> wrote:
 
-I'll have to wait for the message to arrive here or in a web-archive to 
-answer that (...) but please note that I am already fine with the 
-original code; it is the fix for my own issue that's IN mainline (ie, 
-not only check for MEM resource overlaps but also IO) that now made 
-Frans Pop yell due to his machine now spitting out lots of I/O overlap 
-warnings -- which turned out to not be real overlaps, but due to a 
-uninialized BAR.
+> 
+> 
+> On Tue, 30 Sep 2008, Ingo Molnar wrote:
+> > 
+> > incidentally, i've been talking to Arjan about this recently in
+> > context of the CONFIG_FASTBOOT feature. Because, as a side-effect,
+> > in the long run, once the dependencies between initcalls fan out in
+> > a more natural way, with explicit initcall ordering we'll also be
+> > able to boot a bit faster and a bit more parallel.
+> 
+> Hell no.
+> 
+> We do not want any implicit parallelism in the initcalls. That way
+> lies madness.
+> 
+> The probe functions that explicitly know that they are slow (like USB 
+> detection and/or other individual drivers that have timeouts) should
+> put themselves in the background. We should _not_ use the dependency
+> chain to do so automatically, because for most cases drivers are
+> totally independent, but we still want a _reliable_  and _repeatable_
+> ordering.
+> 
+> Which means that I will not accept stuff that makes for a parallel
+> bootup as a general initcall notion. I want things like network
+> devices to show up in the same order for the same kernel, thank you
+> very much - even if there is absolutely _zero_ ordering constraints
+> between two independent network drivers.
 
-You might want Frans to test this though then...
+just to avoid any confusion; the current -fastboot tree does not do
+this parallel stuff. At all.
+(so please don't judge it as doing that)
 
-Rene.
+
+-- 
+Arjan van de Ven 	Intel Open Source Technology Centre
+For development, discussion and tips for power savings, 
+visit http://www.lesswatts.org
