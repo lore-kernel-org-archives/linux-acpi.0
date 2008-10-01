@@ -1,43 +1,35 @@
-From: Tejun Heo <htejun@gmail.com>
-Subject: Re: [PATCH 3/6] SATA: Blacklisting of systems that spin off disks
- during ACPI power off
-Date: Wed, 01 Oct 2008 12:34:11 +0900
-Message-ID: <48E2EFB3.1060202@gmail.com>
-References: <200808290002.55026.rjw@sisk.pl> <48D17BBE.5020807@garzik.org> <200809300006.24919.rjw@sisk.pl> <200809300014.28983.rjw@sisk.pl>
+From: Grant Grundler <grundler@parisc-linux.org>
+Subject: Re: [patch 2/2] PNP: don't check disabled PCI BARs for conflicts
+	in quirk_system_pci_resources()
+Date: Wed, 1 Oct 2008 00:13:28 -0600
+Message-ID: <20081001061328.GD7348@colo.lackof.org>
+References: <48E11EFA.8010402@keyaccess.nl> <alpine.LFD.2.00.0809291211330.3389@nehalem.linux-foundation.org> <48E1EF0E.8030006@keyaccess.nl> <alpine.LFD.2.00.0809300741320.3389@nehalem.linux-foundation.org> <48E24C6F.3030903@keyaccess.nl> <alpine.LFD.2.00.0809300904530.3389@nehalem.linux-foundation.org> <alpine.LFD.2.00.0809301001280.3389@nehalem.linux-foundation.org> <alpine.LFD.2.00.0809301015210.4651@nehalem.linux-foundation.org> <20080930193819.GA29860@elte.hu> <alpine.LFD.2.00.0809301244290.3262@nehalem.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.190]:36041 "EHLO
-	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751718AbYJADfs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Sep 2008 23:35:48 -0400
-Received: by ti-out-0910.google.com with SMTP id b6so109362tic.23
-        for <linux-acpi@vger.kernel.org>; Tue, 30 Sep 2008 20:35:47 -0700 (PDT)
-In-Reply-To: <200809300014.28983.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.0809301244290.3262@nehalem.linux-foundation.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Ingo Molnar <mingo@elte.hu>, Arjan van de Ven <arjan@infradead.org>, Rene Herman <rene.herman@keyaccess.nl>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, Frans Pop <elendil@planet.nl>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Adam Belay <abelay@mit.edu>, Avuton Olrich <avuton@gmail.com>, Karl Bellve <karl.bellve@umassmed.edu>, Willem Riede <wriede@riede.org>, Matthew Hall <mhall@mhcomputing.net>, Sam Ravnborg <sam@ravnborg.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Jeff Garzik <jeff@garzik.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-ide@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Robert Hancock <hancockr@shaw.ca>, LKML <linux-kernel@vger.kernel.org>, Frans Pop <elendil@planet.nl>, Maciej Rutecki <maciej.rutecki@gmail.com>, Andrew Morton <akpm@linux-foundation.org>
 
-Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rjw@sisk.pl>
+On Tue, Sep 30, 2008 at 12:51:07PM -0700, Linus Torvalds wrote:
+....
+> But I think we could add a separate notion of a dependancy point, and have 
+> a setup where we describe "initcall X needs to happen before point A" and 
+> "initcall Z needs to happen after point A".
 > 
-> SATA: Blacklisting of systems that spin off disks during ACPI power off
-> 
-> Introduce new libata flags ATA_FLAG_NO_POWEROFF_SPINDOWN and
-> ATA_FLAG_NO_HIBERNATE_SPINDOWN that, if set, will prevent disks from
-> being spun off during system power off and hibernation, respectively
-> (to handle the hibernation case we need the new system state
-> SYSTEM_HIBERNATE_ENTER that can be checked against by libata, in
-> analogy with SYSTEM_POWER_OFF).
-> 
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> And then we can create a separate set of these dependency points, so that 
+> X and Y don't have to know about each other, they just have to have some 
+> knowledge about some common synchronization point - one that exists 
+> regardless of whether X or Y are even compiled in!
 
-ACK 3-6.  I'll push these through libata-dev after the first two
-prerequsite patches are cleared.
+We already do this today. :)
+Definitions are in include/linux/init.h.
+Point A would be "early" ("run before initialing SMP")
+The rest could use better definitions and AFAICT aren't that much better
+than being named "Point B".
 
-Thanks.
-
--- 
-tejun
+hth,
+grant
