@@ -1,101 +1,51 @@
-From: "Yinghai Lu" <yinghai@kernel.org>
-Subject: Re: [patch 2/2] PNP: don't check disabled PCI BARs for conflicts in quirk_system_pci_resources()
-Date: Wed, 1 Oct 2008 09:21:23 -0700
-Message-ID: <86802c440810010921v3681d5f2gf1726e4f5ed36cc4@mail.gmail.com>
-References: <48E11EFA.8010402@keyaccess.nl>
-	 <alpine.LFD.2.00.0809300741320.3389@nehalem.linux-foundation.org>
-	 <48E24C6F.3030903@keyaccess.nl>
-	 <alpine.LFD.2.00.0809300904530.3389@nehalem.linux-foundation.org>
-	 <alpine.LFD.2.00.0809301001280.3389@nehalem.linux-foundation.org>
-	 <alpine.LFD.2.00.0809301015210.4651@nehalem.linux-foundation.org>
-	 <20080930193819.GA29860@elte.hu>
-	 <alpine.LFD.2.00.0809301244290.3262@nehalem.linux-foundation.org>
-	 <20081001061328.GD7348@colo.lackof.org>
-	 <alpine.LFD.2.00.0810010800510.11040@nehalem.linux-foundation.org>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: Re: Problems evaluating WMI method
+Date: Wed, 1 Oct 2008 18:55:29 +0100
+Message-ID: <200810011855.30154.carlos@strangeworlds.co.uk>
+References: <200809302356.09618.duartejcsilva@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.231]:59086 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751817AbYJAQVZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Oct 2008 12:21:25 -0400
-Received: by rv-out-0506.google.com with SMTP id k40so667628rvb.1
-        for <linux-acpi@vger.kernel.org>; Wed, 01 Oct 2008 09:21:24 -0700 (PDT)
-In-Reply-To: <alpine.LFD.2.00.0810010800510.11040@nehalem.linux-foundation.org>
+Received: from phoenix.slamd64.com ([217.10.145.2]:47783 "EHLO
+	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752363AbYJARzk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Oct 2008 13:55:40 -0400
+In-Reply-To: <200809302356.09618.duartejcsilva@gmail.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Grant Grundler <grundler@parisc-linux.org>, Ingo Molnar <mingo@elte.hu>, Arjan van de Ven <arjan@infradead.org>, Rene Herman <rene.herman@keyaccess.nl>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, Frans Pop <elendil@planet.nl>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Adam Belay <abelay@mit.edu>, Avuton Olrich <avuton@gmail.com>, Karl Bellve <karl.bellve@umassmed.edu>, Willem Riede <wriede@riede.org>, Matthew Hall <mhall@mhcomputing.net>, Sam Ravnborg <sam@ravnborg.org>
+To: Duarte Silva <duartejcsilva@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Wed, Oct 1, 2008 at 8:14 AM, Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
+On Tuesday 30 September 2008 23:56:09 Duarte Silva wrote:
+> wmi_evaluate_method("C3A72B38-D3EF-42D3-8CBB-D5A57049F66D", 1, 1, &in,
+> &out);
 >
-> and instead do
+> printk( KERN_INFO "QUERY %i\n", (u32)out.length);
 >
->        initcall(pci_init, "pci");
->        ..
->        initcall(pnp_init, "pnp");
+> kfree(out.pointer);
 >
-> and then just list the levels for the linker scripts in one place. So that
-> we wouldn't really have to worry about link ordering: if the link ordering
-> is wrong, we just add a new initcall level and insert it in the right
-> place, and then we can look at the ordering and see it explicitly in one
-> place instead of looking at the makefiles and checking the order we add
-> object files to the list in!
+> I get a output with a lenght of 24 and when I convert it to a acpi_object I
+> get type integer. Result in dmesg
+>
+> QUERY 24
 
-don't need to think linking order.
-could reorder them in the run time.
+Ok, but what's the actual result?
 
-struct init_call_st {
-        int level;
-        char *name;
-        initcall_t call;
-};
+e.g.
 
-#define INIT_CALL(nameX, levelX, callX) \
-                static struct init_call_st __init_call_##nameX __initdata = \
-                {       .name = nameX,\
-                        .level = levelX,\
-                        .call = callX,\
-                }; \
-                static struct init_call_st *__init_call_ptr_##nameX __used \
-                __attribute__((__section__(".init_call.init"))) = \
-                        &__init_call_##nameX
+acpi_object *obj;
 
-in vmlinux.lds.h
-#define INIT_CALL_INIT(align)
-         \
-        . = ALIGN((align));                                             \
-        .init_call.init : AT(ADDR(.init_call.init) - LOAD_OFFSET) {     \
-                VMLINUX_SYMBOL(__init_call_start) = .;                  \
-                *(.init_call.init)                                      \
-                VMLINUX_SYMBOL(__init_call_end) = .;                    \
-        }
+wmi_evaluate_method(guid, 1, 1, &in, &out);
 
-let arch vmlinux.lds.S to have
-INIT_CALL_INIT(8)
+obj = (union acpi_object *) out.pointer;
 
-and init/main.c
+printk(KERN_INFO "RESULT %i\n", obj->value);
 
-void __init do_init_calls(void)
-{
-        struct init_call_st **daa;
-        char *ptr;
-
-        /* sort it?, prescan... */
-        for (daa = __init_call_start ; daa < __init_call_end; daa++) {
-                struct init_call_st *da = *daa;
-
-...
-        }
-
-        for (daa = __init_call_start ; daa < __init_call_end; daa++) {
-                struct dyn_array *da = *daa;
-                ...
-                da->call();
-}
-
-
-YH
+-Carlos
+-- 
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
