@@ -1,505 +1,631 @@
 From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: [PATCH] thermal: Make it simpler to use the thermal layer inside the kernel
-Date: Wed, 1 Oct 2008 13:04:20 +0100
-Message-ID: <20081001120420.GA29479@srcf.ucam.org>
+Subject: [RFC] thermal: Move trip point handling code from ACPI to generic code
+Date: Wed, 1 Oct 2008 13:13:44 +0100
+Message-ID: <20081001121344.GB29479@srcf.ucam.org>
+References: <20081001120420.GA29479@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:45046 "EHLO
+Received: from cavan.codon.org.uk ([93.93.128.6]:47807 "EHLO
 	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752205AbYJAME1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Oct 2008 08:04:27 -0400
+	with ESMTP id S1751037AbYJAMNs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Oct 2008 08:13:48 -0400
 Content-Disposition: inline
+In-Reply-To: <20081001120420.GA29479@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc: rui.zhang@intel.com, pavel@suse.cz
 
-The thermal layer passes temperatures and trip point types around as 
-strings. This is fine for sysfs, but makes it hard to use them for other 
-purposes in-kernel. Move the string conversion to the sysfs-specific 
-code.
+Having trip point handling code in a single central location makes more 
+sense than implementing it per thermal driver. This is a slightly rough 
+prototype that should be pretty much equivalent in functionality to the 
+existing code (at least, my laptop hasn't melted yet). Only thing I can 
+think of off-hand that's missing are the updates for crossing trip
+points (another callback into the specific code?) and hooking up the 
+polling configuration that's currently in /proc. Any comments?
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Motivation for this is wanting to start hooking DRM drivers into the 
+thermal layer as we get better information on handing their PM 
+functionality. I suspect lack of thermal control in GPUs is one of the 
+things that's causing us to hit thermal limits on some laptops.
 
----
-
-This addresses Pavel's concerns about the use of longs, and also changes 
-the trip point type to an enum in preparation for a followup patch.
-
-diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
-index 2655bc1..5487a98 100644
---- a/drivers/acpi/fan.c
-+++ b/drivers/acpi/fan.c
-@@ -69,27 +69,30 @@ static struct acpi_driver acpi_fan_driver = {
- };
- 
- /* thermal cooling device callbacks */
--static int fan_get_max_state(struct thermal_cooling_device *cdev, char *buf)
-+static int fan_get_max_state(struct thermal_cooling_device *cdev, unsigned int
-+			     *state)
- {
- 	/* ACPI fan device only support two states: ON/OFF */
--	return sprintf(buf, "1\n");
-+	*state = 1;
-+	return 0;
- }
- 
--static int fan_get_cur_state(struct thermal_cooling_device *cdev, char *buf)
-+static int fan_get_cur_state(struct thermal_cooling_device *cdev, unsigned int
-+			     *state)
- {
- 	struct acpi_device *device = cdev->devdata;
--	int state;
- 	int result;
- 
- 	if (!device)
- 		return -EINVAL;
- 
--	result = acpi_bus_get_power(device->handle, &state);
-+	result = acpi_bus_get_power(device->handle, state);
- 	if (result)
- 		return result;
- 
--	return sprintf(buf, "%s\n", state == ACPI_STATE_D3 ? "0" :
--			 (state == ACPI_STATE_D0 ? "1" : "unknown"));
-+	*state = (*state == ACPI_STATE_D3 ? 0 :
-+		 (*state == ACPI_STATE_D0 ? 1 : -1));
-+	return 0;
- }
- 
- static int
-diff --git a/drivers/acpi/processor_thermal.c b/drivers/acpi/processor_thermal.c
-index ef34b18..4bc094c 100644
---- a/drivers/acpi/processor_thermal.c
-+++ b/drivers/acpi/processor_thermal.c
-@@ -374,7 +374,8 @@ static int acpi_processor_max_state(struct acpi_processor *pr)
- 	return max_state;
- }
- static int
--processor_get_max_state(struct thermal_cooling_device *cdev, char *buf)
-+processor_get_max_state(struct thermal_cooling_device *cdev, unsigned int
-+			*state)
- {
- 	struct acpi_device *device = cdev->devdata;
- 	struct acpi_processor *pr = acpi_driver_data(device);
-@@ -382,24 +383,24 @@ processor_get_max_state(struct thermal_cooling_device *cdev, char *buf)
- 	if (!device || !pr)
- 		return -EINVAL;
- 
--	return sprintf(buf, "%d\n", acpi_processor_max_state(pr));
-+	*state = acpi_processor_max_state(pr);
-+	return 0;
- }
- 
- static int
--processor_get_cur_state(struct thermal_cooling_device *cdev, char *buf)
-+processor_get_cur_state(struct thermal_cooling_device *cdev, unsigned int
-+			*cur_state)
- {
- 	struct acpi_device *device = cdev->devdata;
- 	struct acpi_processor *pr = acpi_driver_data(device);
--	int cur_state;
- 
- 	if (!device || !pr)
- 		return -EINVAL;
- 
--	cur_state = cpufreq_get_cur_state(pr->id);
-+	*cur_state = cpufreq_get_cur_state(pr->id);
- 	if (pr->flags.throttling)
--		cur_state += pr->throttling.state;
--
--	return sprintf(buf, "%d\n", cur_state);
-+		*cur_state += pr->throttling.state;
-+	return 0;
- }
- 
- static int
 diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-index 9127036..754967f 100644
+index 754967f..c106a02 100644
 --- a/drivers/acpi/thermal.c
 +++ b/drivers/acpi/thermal.c
-@@ -934,7 +934,8 @@ static void acpi_thermal_check(void *data)
+@@ -549,145 +549,6 @@ static int acpi_thermal_get_trip_points(struct acpi_thermal *tz)
+ 	return acpi_thermal_trips_update(tz, ACPI_TRIPS_INIT);
+ }
+ 
+-static int acpi_thermal_critical(struct acpi_thermal *tz)
+-{
+-	if (!tz || !tz->trips.critical.flags.valid)
+-		return -EINVAL;
+-
+-	if (tz->temperature >= tz->trips.critical.temperature) {
+-		printk(KERN_WARNING PREFIX "Critical trip point\n");
+-		tz->trips.critical.flags.enabled = 1;
+-	} else if (tz->trips.critical.flags.enabled)
+-		tz->trips.critical.flags.enabled = 0;
+-
+-	acpi_bus_generate_proc_event(tz->device, ACPI_THERMAL_NOTIFY_CRITICAL,
+-				tz->trips.critical.flags.enabled);
+-	acpi_bus_generate_netlink_event(tz->device->pnp.device_class,
+-					  tz->device->dev.bus_id,
+-					  ACPI_THERMAL_NOTIFY_CRITICAL,
+-					  tz->trips.critical.flags.enabled);
+-
+-	/* take no action if nocrt is set */
+-	if(!nocrt) {
+-		printk(KERN_EMERG
+-			"Critical temperature reached (%ld C), shutting down.\n",
+-			KELVIN_TO_CELSIUS(tz->temperature));
+-		orderly_poweroff(true);
+-	}
+-
+-	return 0;
+-}
+-
+-static int acpi_thermal_hot(struct acpi_thermal *tz)
+-{
+-	if (!tz || !tz->trips.hot.flags.valid)
+-		return -EINVAL;
+-
+-	if (tz->temperature >= tz->trips.hot.temperature) {
+-		printk(KERN_WARNING PREFIX "Hot trip point\n");
+-		tz->trips.hot.flags.enabled = 1;
+-	} else if (tz->trips.hot.flags.enabled)
+-		tz->trips.hot.flags.enabled = 0;
+-
+-	acpi_bus_generate_proc_event(tz->device, ACPI_THERMAL_NOTIFY_HOT,
+-				tz->trips.hot.flags.enabled);
+-	acpi_bus_generate_netlink_event(tz->device->pnp.device_class,
+-					  tz->device->dev.bus_id,
+-					  ACPI_THERMAL_NOTIFY_HOT,
+-					  tz->trips.hot.flags.enabled);
+-
+-	/* TBD: Call user-mode "sleep(S4)" function if nocrt is cleared */
+-
+-	return 0;
+-}
+-
+-static void acpi_thermal_passive(struct acpi_thermal *tz)
+-{
+-	int result = 1;
+-	struct acpi_thermal_passive *passive = NULL;
+-	int trend = 0;
+-	int i = 0;
+-
+-
+-	if (!tz || !tz->trips.passive.flags.valid)
+-		return;
+-
+-	passive = &(tz->trips.passive);
+-
+-	/*
+-	 * Above Trip?
+-	 * -----------
+-	 * Calculate the thermal trend (using the passive cooling equation)
+-	 * and modify the performance limit for all passive cooling devices
+-	 * accordingly.  Note that we assume symmetry.
+-	 */
+-	if (tz->temperature >= passive->temperature) {
+-		trend =
+-		    (passive->tc1 * (tz->temperature - tz->last_temperature)) +
+-		    (passive->tc2 * (tz->temperature - passive->temperature));
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-				  "trend[%d]=(tc1[%lu]*(tmp[%lu]-last[%lu]))+(tc2[%lu]*(tmp[%lu]-psv[%lu]))\n",
+-				  trend, passive->tc1, tz->temperature,
+-				  tz->last_temperature, passive->tc2,
+-				  tz->temperature, passive->temperature));
+-		passive->flags.enabled = 1;
+-		/* Heating up? */
+-		if (trend > 0)
+-			for (i = 0; i < passive->devices.count; i++)
+-				acpi_processor_set_thermal_limit(passive->
+-								 devices.
+-								 handles[i],
+-								 ACPI_PROCESSOR_LIMIT_INCREMENT);
+-		/* Cooling off? */
+-		else if (trend < 0) {
+-			for (i = 0; i < passive->devices.count; i++)
+-				/*
+-				 * assume that we are on highest
+-				 * freq/lowest thrott and can leave
+-				 * passive mode, even in error case
+-				 */
+-				if (!acpi_processor_set_thermal_limit
+-				    (passive->devices.handles[i],
+-				     ACPI_PROCESSOR_LIMIT_DECREMENT))
+-					result = 0;
+-			/*
+-			 * Leave cooling mode, even if the temp might
+-			 * higher than trip point This is because some
+-			 * machines might have long thermal polling
+-			 * frequencies (tsp) defined. We will fall back
+-			 * into passive mode in next cycle (probably quicker)
+-			 */
+-			if (result) {
+-				passive->flags.enabled = 0;
+-				ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-						  "Disabling passive cooling, still above threshold,"
+-						  " but we are cooling down\n"));
+-			}
+-		}
+-		return;
+-	}
+-
+-	/*
+-	 * Below Trip?
+-	 * -----------
+-	 * Implement passive cooling hysteresis to slowly increase performance
+-	 * and avoid thrashing around the passive trip point.  Note that we
+-	 * assume symmetry.
+-	 */
+-	if (!passive->flags.enabled)
+-		return;
+-	for (i = 0; i < passive->devices.count; i++)
+-		if (!acpi_processor_set_thermal_limit
+-		    (passive->devices.handles[i],
+-		     ACPI_PROCESSOR_LIMIT_DECREMENT))
+-			result = 0;
+-	if (result) {
+-		passive->flags.enabled = 0;
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-				  "Disabling passive cooling (zone is cool)\n"));
+-	}
+-}
+-
+ static void acpi_thermal_active(struct acpi_thermal *tz)
+ {
+ 	int result = 0;
+@@ -762,13 +623,6 @@ static void acpi_thermal_active(struct acpi_thermal *tz)
+ 
+ static void acpi_thermal_check(void *context);
+ 
+-static void acpi_thermal_run(unsigned long data)
+-{
+-	struct acpi_thermal *tz = (struct acpi_thermal *)data;
+-	if (!tz->zombie)
+-		acpi_os_execute(OSL_GPE_HANDLER, acpi_thermal_check, (void *)data);
+-}
+-
+ static void acpi_thermal_active_off(void *data)
+ {
+ 	int result = 0;
+@@ -812,123 +666,9 @@ static void acpi_thermal_active_off(void *data)
+ 
+ static void acpi_thermal_check(void *data)
+ {
+-	int result = 0;
+ 	struct acpi_thermal *tz = data;
+-	unsigned long sleep_time = 0;
+-	unsigned long timeout_jiffies = 0;
+-	int i = 0;
+-	struct acpi_thermal_state state;
+-
+-
+-	if (!tz) {
+-		printk(KERN_ERR PREFIX "Invalid (NULL) context\n");
+-		return;
+-	}
+-
+-	/* Check if someone else is already running */
+-	if (!mutex_trylock(&tz->lock))
+-		return;
+-
+-	state = tz->state;
+-
+-	result = acpi_thermal_get_temperature(tz);
+-	if (result)
+-		goto unlock;
+-
+-	if (!tz->tz_enabled)
+-		goto unlock;
+-
+-	memset(&tz->state, 0, sizeof(tz->state));
+-
+-	/*
+-	 * Check Trip Points
+-	 * -----------------
+-	 * Compare the current temperature to the trip point values to see
+-	 * if we've entered one of the thermal policy states.  Note that
+-	 * this function determines when a state is entered, but the 
+-	 * individual policy decides when it is exited (e.g. hysteresis).
+-	 */
+-	if (tz->trips.critical.flags.valid)
+-		state.critical |=
+-		    (tz->temperature >= tz->trips.critical.temperature);
+-	if (tz->trips.hot.flags.valid)
+-		state.hot |= (tz->temperature >= tz->trips.hot.temperature);
+-	if (tz->trips.passive.flags.valid)
+-		state.passive |=
+-		    (tz->temperature >= tz->trips.passive.temperature);
+-	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE; i++)
+-		if (tz->trips.active[i].flags.valid)
+-			state.active |=
+-			    (tz->temperature >=
+-			     tz->trips.active[i].temperature);
+-
+-	/*
+-	 * Invoke Policy
+-	 * -------------
+-	 * Separated from the above check to allow individual policy to 
+-	 * determine when to exit a given state.
+-	 */
+-	if (state.critical)
+-		acpi_thermal_critical(tz);
+-	if (state.hot)
+-		acpi_thermal_hot(tz);
+-	if (state.passive)
+-		acpi_thermal_passive(tz);
+-	if (state.active)
+-		acpi_thermal_active(tz);
+-
+-	/*
+-	 * Calculate State
+-	 * ---------------
+-	 * Again, separated from the above two to allow independent policy
+-	 * decisions.
+-	 */
+-	tz->state.critical = tz->trips.critical.flags.enabled;
+-	tz->state.hot = tz->trips.hot.flags.enabled;
+-	tz->state.passive = tz->trips.passive.flags.enabled;
+-	tz->state.active = 0;
+-	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE; i++)
+-		tz->state.active |= tz->trips.active[i].flags.enabled;
+ 
+-	/*
+-	 * Calculate Sleep Time
+-	 * --------------------
+-	 * If we're in the passive state, use _TSP's value.  Otherwise
+-	 * use the default polling frequency (e.g. _TZP).  If no polling
+-	 * frequency is specified then we'll wait forever (at least until
+-	 * a thermal event occurs).  Note that _TSP and _TZD values are
+-	 * given in 1/10th seconds (we must covert to milliseconds).
+-	 */
+-	if (tz->state.passive) {
+-		sleep_time = tz->trips.passive.tsp * 100;
+-		timeout_jiffies =  jiffies + (HZ * sleep_time) / 1000;
+-	} else if (tz->polling_frequency > 0) {
+-		sleep_time = tz->polling_frequency * 100;
+-		timeout_jiffies =  round_jiffies(jiffies + (HZ * sleep_time) / 1000);
+-	}
+-
+-	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "%s: temperature[%lu] sleep[%lu]\n",
+-			  tz->name, tz->temperature, sleep_time));
+-
+-	/*
+-	 * Schedule Next Poll
+-	 * ------------------
+-	 */
+-	if (!sleep_time) {
+-		if (timer_pending(&(tz->timer)))
+-			del_timer(&(tz->timer));
+-	} else {
+-		if (timer_pending(&(tz->timer)))
+-			mod_timer(&(tz->timer), timeout_jiffies);
+-		else {
+-			tz->timer.data = (unsigned long)tz;
+-			tz->timer.function = acpi_thermal_run;
+-			tz->timer.expires = timeout_jiffies;
+-			add_timer(&(tz->timer));
+-		}
+-	}
+-      unlock:
+-	mutex_unlock(&tz->lock);
++	thermal_zone_device_update(tz->thermal_zone);
+ }
+ 
  /* sys I/F for generic thermal sysfs support */
- #define KELVIN_TO_MILLICELSIUS(t) (t * 100 - 273200)
- 
--static int thermal_get_temp(struct thermal_zone_device *thermal, char *buf)
-+static int thermal_get_temp(struct thermal_zone_device *thermal,
-+			    int *temp)
- {
- 	struct acpi_thermal *tz = thermal->devdata;
- 	int result;
-@@ -946,7 +947,8 @@ static int thermal_get_temp(struct thermal_zone_device *thermal, char *buf)
- 	if (result)
- 		return result;
- 
--	return sprintf(buf, "%ld\n", KELVIN_TO_MILLICELSIUS(tz->temperature));
-+	*temp = KELVIN_TO_MILLICELSIUS(tz->temperature);
-+	return 0;
- }
- 
- static const char enabled[] = "kernel";
-@@ -993,7 +995,7 @@ static int thermal_set_mode(struct thermal_zone_device *thermal,
- }
- 
- static int thermal_get_trip_type(struct thermal_zone_device *thermal,
--				 int trip, char *buf)
-+				 int trip, enum thermal_trip_t *type)
- {
- 	struct acpi_thermal *tz = thermal->devdata;
- 	int i;
-@@ -1002,27 +1004,35 @@ static int thermal_get_trip_type(struct thermal_zone_device *thermal,
- 		return -EINVAL;
- 
- 	if (tz->trips.critical.flags.valid) {
--		if (!trip)
--			return sprintf(buf, "critical\n");
-+		if (!trip) {
-+			*type = THERMAL_TRIP_CRITICAL;
-+			return 0;
-+		}
- 		trip--;
- 	}
- 
- 	if (tz->trips.hot.flags.valid) {
--		if (!trip)
--			return sprintf(buf, "hot\n");
-+		if (!trip) {
-+			*type = THERMAL_TRIP_HOT;
-+			return 0;
-+		}
- 		trip--;
- 	}
- 
- 	if (tz->trips.passive.flags.valid) {
--		if (!trip)
--			return sprintf(buf, "passive\n");
-+		if (!trip) {
-+			*type = THERMAL_TRIP_PASSIVE;
-+			return 0;
-+		}
- 		trip--;
- 	}
+@@ -1213,8 +953,21 @@ static int acpi_thermal_register_thermal_zone(struct acpi_thermal *tz)
  
  	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE &&
- 		tz->trips.active[i].flags.valid; i++) {
--		if (!trip)
--			return sprintf(buf, "active%d\n", i);
-+		if (!trip) {
-+			*type = THERMAL_TRIP_ACTIVE;
-+			return 0;
-+		}
- 		trip--;
- 	}
- 
-@@ -1030,7 +1040,7 @@ static int thermal_get_trip_type(struct thermal_zone_device *thermal,
- }
- 
- static int thermal_get_trip_temp(struct thermal_zone_device *thermal,
--				 int trip, char *buf)
-+				 int trip, int *temp)
- {
- 	struct acpi_thermal *tz = thermal->devdata;
- 	int i;
-@@ -1039,31 +1049,40 @@ static int thermal_get_trip_temp(struct thermal_zone_device *thermal,
- 		return -EINVAL;
- 
- 	if (tz->trips.critical.flags.valid) {
--		if (!trip)
--			return sprintf(buf, "%ld\n", KELVIN_TO_MILLICELSIUS(
--				tz->trips.critical.temperature));
-+		if (!trip) {
-+			*temp = KELVIN_TO_MILLICELSIUS(
-+				tz->trips.critical.temperature);
-+			return 0;
-+		}
+ 			tz->trips.active[i].flags.valid; i++, trips++);
+-	tz->thermal_zone = thermal_zone_device_register("acpitz",
+-					trips, tz, &acpi_thermal_zone_ops);
 +
- 		trip--;
- 	}
++	if (tz->trips.passive.flags.valid)
++		tz->thermal_zone =
++			thermal_zone_device_register("acpitz", trips, tz,
++						     &acpi_thermal_zone_ops,
++						     tz->trips.passive.tc1,
++						     tz->trips.passive.tc2,
++						     tz->trips.passive.tsp*100,
++						     tz->polling_frequency*100);
++	else
++		tz->thermal_zone =
++			thermal_zone_device_register("acpitz", trips, tz,
++						     &acpi_thermal_zone_ops,
++						     0, 0, 0,
++						     tz->polling_frequency);
+ 	if (IS_ERR(tz->thermal_zone))
+ 		return -ENODEV;
  
- 	if (tz->trips.hot.flags.valid) {
--		if (!trip)
--			return sprintf(buf, "%ld\n", KELVIN_TO_MILLICELSIUS(
--					tz->trips.hot.temperature));
-+		if (!trip) {
-+			*temp = KELVIN_TO_MILLICELSIUS(
-+				tz->trips.hot.temperature);
-+			return 0;
-+		}
- 		trip--;
- 	}
+@@ -1736,10 +1489,6 @@ static int acpi_thermal_remove(struct acpi_device *device, int type)
+ 					    acpi_thermal_notify);
  
- 	if (tz->trips.passive.flags.valid) {
--		if (!trip)
--			return sprintf(buf, "%ld\n", KELVIN_TO_MILLICELSIUS(
--					tz->trips.passive.temperature));
-+		if (!trip) {
-+			*temp = KELVIN_TO_MILLICELSIUS(
-+				tz->trips.passive.temperature);
-+			return 0;
-+		}
- 		trip--;
- 	}
- 
- 	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE &&
- 		tz->trips.active[i].flags.valid; i++) {
--		if (!trip)
--			return sprintf(buf, "%ld\n", KELVIN_TO_MILLICELSIUS(
--					tz->trips.active[i].temperature));
-+		if (!trip) {
-+			*temp = KELVIN_TO_MILLICELSIUS(
-+				tz->trips.active[i].temperature);
-+			return 0;
-+		}
- 		trip--;
- 	}
- 
-@@ -1071,7 +1090,7 @@ static int thermal_get_trip_temp(struct thermal_zone_device *thermal,
- }
- 
- static int thermal_get_crit_temp(struct thermal_zone_device *thermal,
--				unsigned long *temperature) {
-+				int *temperature) {
- 	struct acpi_thermal *tz = thermal->devdata;
- 
- 	if (tz->trips.critical.flags.valid) {
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index e8a51a1..bac2901 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -358,26 +358,30 @@ static struct output_properties acpi_output_properties = {
- 
- 
- /* thermal cooling device callbacks */
--static int video_get_max_state(struct thermal_cooling_device *cdev, char *buf)
-+static int video_get_max_state(struct thermal_cooling_device *cdev, unsigned
-+			       int *state)
- {
- 	struct acpi_device *device = cdev->devdata;
- 	struct acpi_video_device *video = acpi_driver_data(device);
- 
--	return sprintf(buf, "%d\n", video->brightness->count - 3);
-+	*state = video->brightness->count - 3;
-+	return 0;
- }
- 
--static int video_get_cur_state(struct thermal_cooling_device *cdev, char *buf)
-+static int video_get_cur_state(struct thermal_cooling_device *cdev, unsigned
-+			       int *state)
- {
- 	struct acpi_device *device = cdev->devdata;
- 	struct acpi_video_device *video = acpi_driver_data(device);
- 	unsigned long level;
--	int state;
-+	int offset;
- 
- 	acpi_video_device_lcd_get_level_current(video, &level);
--	for (state = 2; state < video->brightness->count; state++)
--		if (level == video->brightness->levels[state])
--			return sprintf(buf, "%d\n",
--				       video->brightness->count - state - 1);
-+	for (offset = 2; offset < video->brightness->count; offset++)
-+		if (level == video->brightness->levels[offset]) {
-+			*state = video->brightness->count - offset - 1;
-+			return 0;
-+		}
- 
- 	return -EINVAL;
- }
+ 	/* Terminate policy */
+-	if (tz->trips.passive.flags.valid && tz->trips.passive.flags.enabled) {
+-		tz->trips.passive.flags.enabled = 0;
+-		acpi_thermal_passive(tz);
+-	}
+ 	if (tz->trips.active[0].flags.valid
+ 	    && tz->trips.active[0].flags.enabled) {
+ 		tz->trips.active[0].flags.enabled = 0;
 diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
-index fe07462..8ca2f59 100644
+index 8ca2f59..7eff12f 100644
 --- a/drivers/thermal/thermal_sys.c
 +++ b/drivers/thermal/thermal_sys.c
-@@ -104,11 +104,18 @@ static ssize_t
- temp_show(struct device *dev, struct device_attribute *attr, char *buf)
- {
- 	struct thermal_zone_device *tz = to_thermal_zone(dev);
-+	int temperature;
-+	int ret;
+@@ -30,6 +30,7 @@
+ #include <linux/idr.h>
+ #include <linux/thermal.h>
+ #include <linux/spinlock.h>
++#include <linux/reboot.h>
  
- 	if (!tz->ops->get_temp)
- 		return -EPERM;
- 
--	return tz->ops->get_temp(tz, buf);
-+	ret = tz->ops->get_temp(tz, &temperature);
-+
-+	if (ret)
-+		return ret;
-+
-+	return sprintf(buf, "%d\n", temperature);
- }
- 
- static ssize_t
-@@ -145,6 +152,8 @@ trip_point_type_show(struct device *dev, struct device_attribute *attr,
- {
- 	struct thermal_zone_device *tz = to_thermal_zone(dev);
- 	int trip;
-+	enum thermal_trip_t trip_type;
-+	int ret;
- 
- 	if (!tz->ops->get_trip_type)
- 		return -EPERM;
-@@ -152,7 +161,28 @@ trip_point_type_show(struct device *dev, struct device_attribute *attr,
+ MODULE_AUTHOR("Zhang Rui");
+ MODULE_DESCRIPTION("Generic thermal management sysfs support");
+@@ -161,7 +162,6 @@ trip_point_type_show(struct device *dev, struct device_attribute *attr,
  	if (!sscanf(attr->attr.name, "trip_point_%d_type", &trip))
  		return -EINVAL;
  
--	return tz->ops->get_trip_type(tz, trip, buf);
+-
+ 	ret = tz->ops->get_trip_type(tz, trip, &trip_type);
+ 	if (ret)
+ 		return ret;
+@@ -778,12 +778,166 @@ void thermal_cooling_device_unregister(struct
+ 
+ EXPORT_SYMBOL(thermal_cooling_device_unregister);
+ 
++static void thermal_zone_device_set_polling(struct thermal_zone_device *tz,
++					    int delay)
++{
++	cancel_delayed_work_sync(&(tz->poll_queue));
 +
-+	ret = tz->ops->get_trip_type(tz, trip, &trip_type);
-+	if (ret)
-+		return ret;
++	if (!delay)
++		return;
 +
-+	switch (trip_type) {
-+	case THERMAL_TRIP_CRITICAL:
-+		return sprintf(buf, "critical\n");
-+		break;
-+	case THERMAL_TRIP_HOT:
-+		return sprintf(buf, "hot\n");
-+		break;
-+	case THERMAL_TRIP_PASSIVE:
-+		return sprintf(buf, "passive\n");
-+		break;
-+	case THERMAL_TRIP_ACTIVE:
-+		return sprintf(buf, "active\n");
-+		break;
-+	default:
-+		return sprintf(buf, "unknown\n");
-+		break;
++	if (delay > 1000)
++		schedule_delayed_work(&(tz->poll_queue),
++					round_jiffies(delay * HZ));
++	else
++		schedule_delayed_work(&(tz->poll_queue), delay * HZ);
++}
++
++static void thermal_zone_device_passive(struct thermal_zone_device *tz,
++					int temp, int trip_temp, int trip)
++{
++	int trend = 0;
++	struct thermal_cooling_device_instance *instance;
++	struct thermal_cooling_device *cdev;
++	int state, max_state;
++
++	if (tz->passive == false)
++		return;
++
++	/*
++	 * Above Trip?
++	 * -----------
++	 * Calculate the thermal trend (using the passive cooling equation)
++	 * and modify the performance limit for all passive cooling devices
++	 * accordingly.  Note that we assume symmetry.
++	 */
++	if (temp >= trip_temp) {
++		tz->passive = true;
++
++		trend = (tz->tc1 * (temp - tz->last_temperature)) +
++			(tz->tc2 * (temp - trip_temp));
++
++		/* Heating up? */
++		if (trend > 0) {
++			list_for_each_entry(instance, &tz->cooling_devices,
++					    node) {
++				if (instance->trip != trip)
++					continue;
++				cdev = instance->cdev;
++				cdev->ops->get_cur_state(cdev, &state);
++				cdev->ops->get_max_state(cdev, &max_state);
++				if (state++ < max_state)
++					cdev->ops->set_cur_state(cdev, state);
++			}
++		} else if (trend < 0) { /* Cooling off? */
++			list_for_each_entry(instance, &tz->cooling_devices,
++					    node) {
++				if (instance->trip != trip)
++					continue;
++				cdev = instance->cdev;
++				cdev->ops->get_cur_state(cdev, &state);
++				cdev->ops->get_max_state(cdev, &max_state);
++				if (state > 0)
++					cdev->ops->set_cur_state(cdev, --state);
++			}
++			return;
++		}
 +	}
- }
- 
- static ssize_t
-@@ -160,7 +190,8 @@ trip_point_temp_show(struct device *dev, struct device_attribute *attr,
- 		     char *buf)
++
++	/*
++	 * Below Trip?
++	 * -----------
++	 * Implement passive cooling hysteresis to slowly increase performance
++	 * and avoid thrashing around the passive trip point.  Note that we
++	 * assume symmetry.
++	 */
++	list_for_each_entry(instance, &tz->cooling_devices, node) {
++		if (instance->trip != trip)
++			continue;
++		cdev = instance->cdev;
++		cdev->ops->get_cur_state(cdev, &state);
++		cdev->ops->get_max_state(cdev, &max_state);
++		if (state > 0)
++			cdev->ops->set_cur_state(cdev, --state);
++		if (state == 0)
++			tz->passive = false;
++	}
++}
++
++void thermal_zone_device_update(struct thermal_zone_device *tz)
++{
++	int temp, trip_temp;
++	int count;
++	enum thermal_trip_t trip_type;
++	struct thermal_cooling_device_instance *instance;
++	struct thermal_cooling_device *cdev;
++
++	tz->ops->get_temp(tz, &temp);
++
++	for (count = 0; count < tz->trips; count++) {
++		tz->ops->get_trip_type(tz, count, &trip_type);
++		tz->ops->get_trip_temp(tz, count, &trip_temp);
++
++		switch (trip_type) {
++		case THERMAL_TRIP_CRITICAL:
++			if (temp > trip_temp)
++				/* FIXME: send notification */
++				orderly_poweroff(true);
++			break;
++		case THERMAL_TRIP_HOT:
++			if (temp > trip_temp)
++				/* FIXME: send notification */
++				printk(KERN_WARNING "Hot trip point\n");
++			break;
++		case THERMAL_TRIP_ACTIVE:
++			list_for_each_entry(instance, &tz->cooling_devices,
++					    node) {
++				if (instance->trip != count)
++					continue;
++
++				cdev = instance->cdev;
++
++				if (temp > trip_temp)
++					cdev->ops->set_cur_state(cdev, 1);
++				else
++					cdev->ops->set_cur_state(cdev, 0);
++			}
++			break;
++		case THERMAL_TRIP_PASSIVE:
++			thermal_zone_device_passive(tz, temp, trip_temp, count);
++			break;
++		}
++	}
++	tz->last_temperature = temp;
++	if (tz->passive)
++		thermal_zone_device_set_polling(tz, tz->passive_delay);
++	else if (tz->polling_delay)
++		thermal_zone_device_set_polling(tz, tz->polling_delay);
++}
++
++EXPORT_SYMBOL(thermal_zone_device_update);
++
++static void thermal_zone_device_check(struct work_struct *work)
++{
++	struct thermal_zone_device *tz = container_of(work, struct
++						      thermal_zone_device,
++						      poll_queue.work);
++	thermal_zone_device_update(tz);
++}
++
+ /**
+  * thermal_zone_device_register - register a new thermal zone device
+  * @type:	the thermal zone device type
+  * @trips:	the number of trip points the thermal zone support
+  * @devdata:	private device data
+  * @ops:	standard thermal zone device callbacks
++ * @tc1:	thermal coefficient 1 for passive calculations
++ * @tc2:	thermal coefficient 2 for passive calculations
++ * @passive_delay: number of milliseconds to wait between polls when
++ *		   performing passive cooling
++ * @polling_delay: number of milliseconds to wait between polls when checking
++ *		   whether trip points have been crossed (0 for interrupt
++ *		   driven systems)
+  *
+  * thermal_zone_device_unregister() must be called when the device is no
+  * longer needed.
+@@ -792,7 +946,10 @@ struct thermal_zone_device *thermal_zone_device_register(char *type,
+ 							 int trips,
+ 							 void *devdata, struct
+ 							 thermal_zone_device_ops
+-							 *ops)
++							 *ops, int tc1, int
++							 tc2,
++							 int passive_delay,
++							 int polling_delay)
  {
- 	struct thermal_zone_device *tz = to_thermal_zone(dev);
--	int trip;
-+	int trip, ret;
-+	int temperature;
- 
- 	if (!tz->ops->get_trip_temp)
- 		return -EPERM;
-@@ -168,7 +199,12 @@ trip_point_temp_show(struct device *dev, struct device_attribute *attr,
- 	if (!sscanf(attr->attr.name, "trip_point_%d_temp", &trip))
- 		return -EINVAL;
- 
--	return tz->ops->get_trip_temp(tz, trip, buf);
-+	ret = tz->ops->get_trip_temp(tz, trip, &temperature);
+ 	struct thermal_zone_device *tz;
+ 	struct thermal_cooling_device *pos;
+@@ -826,6 +983,11 @@ struct thermal_zone_device *thermal_zone_device_register(char *type,
+ 	tz->device.class = &thermal_class;
+ 	tz->devdata = devdata;
+ 	tz->trips = trips;
++	tz->tc1 = tc1;
++	tz->tc2 = tc2;
++	tz->passive_delay = passive_delay;
++	tz->polling_delay = polling_delay;
 +
-+	if (ret)
-+		return ret;
+ 	sprintf(tz->device.bus_id, "thermal_zone%d", tz->id);
+ 	result = device_register(&tz->device);
+ 	if (result) {
+@@ -871,6 +1033,10 @@ struct thermal_zone_device *thermal_zone_device_register(char *type,
+ 		}
+ 	mutex_unlock(&thermal_list_lock);
+ 
++	INIT_DELAYED_WORK(&(tz->poll_queue), thermal_zone_device_check);
 +
-+	return sprintf(buf, "%d\n", temperature);
- }
- 
- static DEVICE_ATTR(type, 0444, type_show, NULL);
-@@ -236,8 +272,12 @@ thermal_cooling_device_max_state_show(struct device *dev,
- 				      struct device_attribute *attr, char *buf)
- {
- 	struct thermal_cooling_device *cdev = to_cooling_device(dev);
-+	int state, ret;
- 
--	return cdev->ops->get_max_state(cdev, buf);
-+	ret = cdev->ops->get_max_state(cdev, &state);
-+	if (ret)
-+		return ret;
-+	return sprintf(buf, "%d\n", state);
- }
- 
- static ssize_t
-@@ -245,8 +285,12 @@ thermal_cooling_device_cur_state_show(struct device *dev,
- 				      struct device_attribute *attr, char *buf)
- {
- 	struct thermal_cooling_device *cdev = to_cooling_device(dev);
-+	int state, ret;
- 
--	return cdev->ops->get_cur_state(cdev, buf);
-+	ret = cdev->ops->get_cur_state(cdev, &state);
-+	if (ret)
-+		return ret;
-+	return sprintf(buf, "%d\n", state);
- }
- 
- static ssize_t
-@@ -312,13 +356,20 @@ static DEVICE_ATTR(name, 0444, name_show, NULL);
- static ssize_t
- temp_input_show(struct device *dev, struct device_attribute *attr, char *buf)
- {
-+	long temperature;
-+	int ret;
- 	struct thermal_hwmon_attr *hwmon_attr
- 			= container_of(attr, struct thermal_hwmon_attr, attr);
- 	struct thermal_zone_device *tz
- 			= container_of(hwmon_attr, struct thermal_zone_device,
- 				       temp_input);
- 
--	return tz->ops->get_temp(tz, buf);
-+	ret = tz->ops->get_temp(tz, &temperature);
++	thermal_zone_device_set_polling(tz, tz->polling_delay);
 +
-+	if (ret)
-+		return ret;
+ 	if (!result)
+ 		return tz;
+ 
+@@ -910,6 +1076,8 @@ void thermal_zone_device_unregister(struct thermal_zone_device *tz)
+ 		    tz->ops->unbind(tz, cdev);
+ 	mutex_unlock(&thermal_list_lock);
+ 
++	thermal_zone_device_set_polling(tz, 0);
 +
-+	return sprintf(buf, "%ld\n", temperature);
- }
- 
- static ssize_t
-@@ -330,8 +381,14 @@ temp_crit_show(struct device *dev, struct device_attribute *attr,
- 	struct thermal_zone_device *tz
- 			= container_of(hwmon_attr, struct thermal_zone_device,
- 				       temp_crit);
-+	long temperature;
-+	int ret;
-+
-+	ret = tz->ops->get_trip_temp(tz, 0, &temperature);
-+	if (ret)
-+		return ret;
- 
--	return tz->ops->get_trip_temp(tz, 0, buf);
-+	return sprintf(buf, "%ld\n", temperature);
- }
- 
- 
+ 	if (tz->type[0])
+ 		device_remove_file(&tz->device, &dev_attr_type);
+ 	device_remove_file(&tz->device, &dev_attr_temp);
 diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-index 917707e..9e3475a 100644
+index 9e3475a..38ac33d 100644
 --- a/include/linux/thermal.h
 +++ b/include/linux/thermal.h
-@@ -28,6 +28,10 @@
- #include <linux/idr.h>
- #include <linux/device.h>
+@@ -94,11 +94,18 @@ struct thermal_zone_device {
+ 	struct device device;
+ 	void *devdata;
+ 	int trips;
++	int tc1;
++	int tc2;
++	int passive_delay;
++	int polling_delay;
++	int last_temperature;
++	bool passive;
+ 	struct thermal_zone_device_ops *ops;
+ 	struct list_head cooling_devices;
+ 	struct idr idr;
+ 	struct mutex lock;	/* protect cooling devices list */
+ 	struct list_head node;
++	struct delayed_work poll_queue;
+ #if defined(CONFIG_THERMAL_HWMON)
+ 	struct list_head hwmon_node;
+ 	struct thermal_hwmon_device *hwmon;
+@@ -110,13 +117,16 @@ struct thermal_zone_device {
+ struct thermal_zone_device *thermal_zone_device_register(char *, int, void *,
+ 							 struct
+ 							 thermal_zone_device_ops
+-							 *);
++							 *, int tc1, int tc2,
++							 int passive_freq,
++							 int polling_freq);
+ void thermal_zone_device_unregister(struct thermal_zone_device *);
  
-+enum thermal_trip_t { THERMAL_TRIP_CRITICAL, THERMAL_TRIP_HOT,
-+		      THERMAL_TRIP_PASSIVE, THERMAL_TRIP_ACTIVE
-+};
-+
- struct thermal_zone_device;
- struct thermal_cooling_device;
- 
-@@ -36,17 +40,19 @@ struct thermal_zone_device_ops {
- 		     struct thermal_cooling_device *);
- 	int (*unbind) (struct thermal_zone_device *,
- 		       struct thermal_cooling_device *);
--	int (*get_temp) (struct thermal_zone_device *, char *);
-+	int (*get_temp) (struct thermal_zone_device *, int *);
- 	int (*get_mode) (struct thermal_zone_device *, char *);
- 	int (*set_mode) (struct thermal_zone_device *, const char *);
--	int (*get_trip_type) (struct thermal_zone_device *, int, char *);
--	int (*get_trip_temp) (struct thermal_zone_device *, int, char *);
--	int (*get_crit_temp) (struct thermal_zone_device *, unsigned long *);
-+	int (*get_trip_type) (struct thermal_zone_device *, int,
-+			      enum thermal_trip_t *);
-+	int (*get_trip_temp) (struct thermal_zone_device *, int,
-+			      int *);
-+	int (*get_crit_temp) (struct thermal_zone_device *, int *);
- };
- 
- struct thermal_cooling_device_ops {
--	int (*get_max_state) (struct thermal_cooling_device *, char *);
--	int (*get_cur_state) (struct thermal_cooling_device *, char *);
-+	int (*get_max_state) (struct thermal_cooling_device *, unsigned int *);
-+	int (*get_cur_state) (struct thermal_cooling_device *, unsigned int *);
- 	int (*set_cur_state) (struct thermal_cooling_device *, unsigned int);
- };
- 
+ int thermal_zone_bind_cooling_device(struct thermal_zone_device *, int,
+ 				     struct thermal_cooling_device *);
+ int thermal_zone_unbind_cooling_device(struct thermal_zone_device *, int,
+ 				       struct thermal_cooling_device *);
++void thermal_zone_device_update(struct thermal_zone_device *);
+ struct thermal_cooling_device *thermal_cooling_device_register(char *, void *,
+ 							       struct
+ 							       thermal_cooling_device_ops
 
 -- 
 Matthew Garrett | mjg59@srcf.ucam.org
