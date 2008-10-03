@@ -1,57 +1,26 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] ACPI Suspend: Enable ACPI during resume if SCI_EN is not set
-Date: Sat, 4 Oct 2008 00:05:05 +0200
-Message-ID: <200810040005.06220.rjw@sisk.pl>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: [PATCH 1/6] Hibernation: Introduce system_entering_hibernation
+Date: Sat, 4 Oct 2008 00:27:24 +0100
+Message-ID: <20081004002724.47fab174@lxorguk.ukuu.org.uk>
+References: <200808290002.55026.rjw@sisk.pl>
+	<200810031703.32114.rjw@sisk.pl>
+	<200810032348.59709.rjw@sisk.pl>
+	<200810032351.46869.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:41599 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753097AbYJCWAh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 3 Oct 2008 18:00:37 -0400
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <200810032351.46869.rjw@sisk.pl>
+Sender: linux-ide-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Jeff Garzik <jeff@garzik.org>, Tejun Heo <htejun@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-ide@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Robert Hancock <hancockr@shaw.ca>, LKML <linux-kernel@vger.kernel.org>, Frans Pop <elendil@planet.nl>, Maciej Rutecki <maciej.rutecki@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@suse.cz>, pm list <linux-pm@lists.linux-foundation.org>, Thomas Renninger <trenn@suse.de>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+> in the final phase of hibernation.  In particular, some SATA drivers
+> are going to use it for blacklisting systems in which the disks
+> should not be spun down during the last phase of hibernation (the
+> BIOS will do that anyway).
 
-ACPI Suspend: Enable ACPI during resume if SCI_EN is not set
+If you added the PCI ids for the controller to your tables you could
+implement this series once instead of in multiple drivers
 
-On some machines, like for example MSI Wind U100, the BIOS doesn't
-enable ACPI before returning control to the OS, which sometimes
-causes resume to fail.  This is against the ACPI specification,
-which clearly states that "When the platform is waking from an S1, S2
-or S3 state, OSPM assumes the hardware is already in the ACPI mode
-and will not issue an ACPI_ENABLE", but it won't hurt to check the
-SCI_EN bit and enable ACPI during resume from S3 if this bit is not
-set.
-
-Fortunately, we already have acpi_enable() for that, so use it in the
-resume code path, before executing _BFS, in analogy with the
-resume-from-hibernation code path.
-
-NOTE: We aren't supposed to set SCI_EN directly, because it's owned
-by the hardware.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- drivers/acpi/sleep/main.c |    2 ++
- 1 file changed, 2 insertions(+)
-
-Index: linux-2.6/drivers/acpi/sleep/main.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/sleep/main.c
-+++ linux-2.6/drivers/acpi/sleep/main.c
-@@ -200,6 +200,8 @@ static int acpi_suspend_enter(suspend_st
- 		break;
- 	}
- 
-+	/* If ACPI is not enabled by the BIOS, we need to enable it here. */
-+	acpi_enable();
- 	/* Reprogram control registers and execute _BFS */
- 	acpi_leave_sleep_state_prep(acpi_state);
- 
