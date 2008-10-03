@@ -1,119 +1,80 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: ACPI: Make /proc/acpi/wakeup interface handle PCI devices (again)
-Date: Fri, 3 Oct 2008 17:10:12 +0200
-Message-ID: <200810031710.13446.rjw@sisk.pl>
-References: <200809262221.48040.rjw@sisk.pl> <20081003055123.bda469ce.akpm@linux-foundation.org>
+From: Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>
+Subject: Re: [ANNOUNCE] Intel Releases IGD OpRegion Specification
+Date: Fri, 03 Oct 2008 16:37:59 +0100
+Message-ID: <1223048279.8432.11.camel@segulix.localdomain>
+References: <200810021439.30582.jesse.barnes@intel.com>
+	 <48E5DD5D.5080401@gmail.com>  <200810030831.37955.jesse.barnes@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=sha1; protocol="application/x-pkcs7-signature"; boundary="=-JRtMi4OXOYby/AHttlgR"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:39981 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752235AbYJCPFw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 3 Oct 2008 11:05:52 -0400
-In-Reply-To: <20081003055123.bda469ce.akpm@linux-foundation.org>
-Content-Disposition: inline
+Received: from relay3.ptmail.sapo.pt ([212.55.154.23]:51347 "HELO sapo.pt"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1751277AbYJCPiG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 3 Oct 2008 11:38:06 -0400
+In-Reply-To: <200810030831.37955.jesse.barnes@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Len Brown <lenb@kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Tino Keitel <tino.keitel@gmx.de>
+To: Jesse Barnes <jesse.barnes@intel.com>
+Cc: acpi devel <linux-acpi@vger.kernel.org>
 
-On Friday, 3 of October 2008, Andrew Morton wrote:
-> On Fri, 26 Sep 2008 22:21:47 +0200 "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
-> 
-> > Len,
-> > 
-> > I think we should do this in .27.
-> 
-> Is Len not there?  Can some other acpi person please review this for
-> 2.6.27 inclusion?
-> 
-> 
-> > From: Rafael J. Wysocki <rjw@sisk.pl>
-> > 
-> > ACPI: Make /proc/acpi/wakeup interface handle PCI devices (again)
-> > 
-> > Make the ACPI /proc/acpi/wakeup interface set the appropriate
-> > wake-up bits of physical devices corresponding to the ACPI
-> > devices and make those bits be set initially for devices that are
-> > enabled to wake up by default.  This is needed to restore the
-> > previous behavior for the PCI devices that were previously handled
-> > correctly with the help of the /proc/acpi/wakeup interface.
-> 
-> hm, if you say so.  It's a bit hard to judge the impact of not fixing this?
 
-There are people for whom /proc/acpi/wakeup worked, but since Tino Keitel
-was the only person reporting this problem, I think it's not widespread.
+--=-JRtMi4OXOYby/AHttlgR
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-> When is "previous"?  Was 2.6.26 similarly busted?
+Hi ,
+This shouldn't be announce also on=20
+acpi devel <linux-acpi@vger.kernel.org> ?=20
 
-Well, "previous" means "as in 2.6.26 and earlier", so this is a recent
-regression.
+Thanks,=20
+--=20
+S=C3=A9rgio M. B.
 
-/proc/acpi/ is going to go away at one point, but I think we shouldn't break 
-working setups given that the fix is not very intrusive.
+--=-JRtMi4OXOYby/AHttlgR
+Content-Type: application/x-pkcs7-signature; name=smime.p7s
+Content-Disposition: attachment; filename=smime.p7s
+Content-Transfer-Encoding: base64
 
-> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> > ---
-> >  drivers/acpi/glue.c       |    5 ++++-
-> >  drivers/acpi/sleep/proc.c |   10 ++++++++++
-> >  2 files changed, 14 insertions(+), 1 deletion(-)
-> > 
-> > Index: linux-2.6/drivers/acpi/sleep/proc.c
-> > ===================================================================
-> > --- linux-2.6.orig/drivers/acpi/sleep/proc.c
-> > +++ linux-2.6/drivers/acpi/sleep/proc.c
-> > @@ -377,6 +377,14 @@ acpi_system_wakeup_device_seq_show(struc
-> >  	return 0;
-> >  }
-> >  
-> > +static void physical_device_enable_wakeup(struct acpi_device *adev)
-> > +{
-> > +	struct device *dev = acpi_get_physical_device(adev->handle);
-> > +
-> > +	if (dev && device_can_wakeup(dev))
-> > +		device_set_wakeup_enable(dev, adev->wakeup.state.enabled);
-> > +}
-> > +
-> >  static ssize_t
-> >  acpi_system_write_wakeup_device(struct file *file,
-> >  				const char __user * buffer,
-> > @@ -411,6 +419,7 @@ acpi_system_write_wakeup_device(struct f
-> >  		}
-> >  	}
-> >  	if (found_dev) {
-> > +		physical_device_enable_wakeup(found_dev);
-> >  		list_for_each_safe(node, next, &acpi_wakeup_device_list) {
-> >  			struct acpi_device *dev = container_of(node,
-> >  							       struct
-> > @@ -428,6 +437,7 @@ acpi_system_write_wakeup_device(struct f
-> >  				       dev->pnp.bus_id, found_dev->pnp.bus_id);
-> >  				dev->wakeup.state.enabled =
-> >  				    found_dev->wakeup.state.enabled;
-> > +				physical_device_enable_wakeup(dev);
-> >  			}
-> >  		}
-> >  	}
-> > Index: linux-2.6/drivers/acpi/glue.c
-> > ===================================================================
-> > --- linux-2.6.orig/drivers/acpi/glue.c
-> > +++ linux-2.6/drivers/acpi/glue.c
-> > @@ -165,8 +165,11 @@ static int acpi_bind_one(struct device *
-> >  				"firmware_node");
-> >  		ret = sysfs_create_link(&acpi_dev->dev.kobj, &dev->kobj,
-> >  				"physical_node");
-> > -		if (acpi_dev->wakeup.flags.valid)
-> > +		if (acpi_dev->wakeup.flags.valid) {
-> >  			device_set_wakeup_capable(dev, true);
-> > +			device_set_wakeup_enable(dev,
-> > +						acpi_dev->wakeup.state.enabled);
-> > +		}
-> >  	}
-> >  
-> >  	return 0;
-> 
-> 
-> 
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIGVjCCAw8w
+ggJ4oAMCAQICECv58J8+j9G8Y7r6tize4dAwDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UEBhMCWkEx
+JTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQ
+ZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA3MTAxMzIyMjE1NFoXDTA4MTAxMjIyMjE1
+NFowSzEfMB0GA1UEAxMWVGhhd3RlIEZyZWVtYWlsIE1lbWJlcjEoMCYGCSqGSIb3DQEJARYZc2Vy
+Z2lvQHNlcmdpb21iLm5vLWlwLm9yZzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALmR
+do8nLKka6p0NNur5o8znYir80AaybL3nuKDDeY2CNjm8JdpJPea9KmXurRU9Q/jnsmgtn2UH9blF
+1qUDxzUvFrZ8fEFkMBht+DJMPShJIa885JyggTvRg+ZUEPdjvb7pHrvpEhxlDcJ9vpYnB4M06D2p
+lefGl9TVq9srUCUMc/4/G/OLaLz0f6Nhc0Gb7YcUDIRINHR0pWuCpxl8wxOU8YSx43KbNgPOo3Kn
+jtdcgGRoy7kAKN2rQmU4tgLDh8F+f9a3mMc3YRs0CfkPq7RSGMWcNagkEWCcoh0f5tDYjq1iQEWD
+5fK1esWmiR5onZ+QyUd+kU7IycY68iMD5BMCAwEAAaNZMFcwDgYDVR0PAQH/BAQDAgSQMBEGCWCG
+SAGG+EIBAQQEAwIFoDAkBgNVHREEHTAbgRlzZXJnaW9Ac2VyZ2lvbWIubm8taXAub3JnMAwGA1Ud
+EwEB/wQCMAAwDQYJKoZIhvcNAQEFBQADgYEAetiCq+dKlfTpFybx+lLoL7A/ep10fER7eHDGB6MQ
+9n8HDqz2eOXMZrw0WSYfWXhG+fnrpUE85DseFXQFJDf6gBdD/KlYqnmaDY0nK9LdFHA3hapRARvB
+el9wYF60z+1yI69bFzyoZpCnY3+1oFQGews7kwT6u77QVdj6Y8v+Ai0wggM/MIICqKADAgECAgEN
+MA0GCSqGSIb3DQEBBQUAMIHRMQswCQYDVQQGEwJaQTEVMBMGA1UECBMMV2VzdGVybiBDYXBlMRIw
+EAYDVQQHEwlDYXBlIFRvd24xGjAYBgNVBAoTEVRoYXd0ZSBDb25zdWx0aW5nMSgwJgYDVQQLEx9D
+ZXJ0aWZpY2F0aW9uIFNlcnZpY2VzIERpdmlzaW9uMSQwIgYDVQQDExtUaGF3dGUgUGVyc29uYWwg
+RnJlZW1haWwgQ0ExKzApBgkqhkiG9w0BCQEWHHBlcnNvbmFsLWZyZWVtYWlsQHRoYXd0ZS5jb20w
+HhcNMDMwNzE3MDAwMDAwWhcNMTMwNzE2MjM1OTU5WjBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMc
+VGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZy
+ZWVtYWlsIElzc3VpbmcgQ0EwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMSmPFVzVftOucqZ
+Wh5owHUEcJ3f6f+jHuy9zfVb8hp2vX8MOmHyv1HOAdTlUAow1wJjWiyJFXCO3cnwK4Vaqj9xVsuv
+PAsH5/EfkTYkKhPPK9Xzgnc9A74r/rsYPge/QIACZNenprufZdHFKlSFD0gEf6e20TxhBEAeZBly
+YLf7AgMBAAGjgZQwgZEwEgYDVR0TAQH/BAgwBgEB/wIBADBDBgNVHR8EPDA6MDigNqA0hjJodHRw
+Oi8vY3JsLnRoYXd0ZS5jb20vVGhhd3RlUGVyc29uYWxGcmVlbWFpbENBLmNybDALBgNVHQ8EBAMC
+AQYwKQYDVR0RBCIwIKQeMBwxGjAYBgNVBAMTEVByaXZhdGVMYWJlbDItMTM4MA0GCSqGSIb3DQEB
+BQUAA4GBAEiM0VCD6gsuzA2jZqxnD3+vrL7CF6FDlpSdf0whuPg2H6otnzYvwPQcUCCTcDz9reFh
+YsPZOhl+hLGZGwDFGguCdJ4lUJRix9sncVcljd2pnDmOjCBPZV+V2vf3h9bGCE6u9uo05RAaWzVN
+d+NWIXiC3CEZNd4ksdMdRv9dX2VPMYIB/DCCAfgCAQEwdjBiMQswCQYDVQQGEwJaQTElMCMGA1UE
+ChMcVGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFs
+IEZyZWVtYWlsIElzc3VpbmcgQ0ECECv58J8+j9G8Y7r6tize4dAwCQYFKw4DAhoFAKBdMBgGCSqG
+SIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTA4MTAwMzE1Mzc1M1owIwYJKoZI
+hvcNAQkEMRYEFLU+cc2L5llZtcjnQtC6ixNrQ1A4MA0GCSqGSIb3DQEBAQUABIIBAB6h/9hZ7oco
+XCltYfAAbfYSTZIUt+wK7ZRPO10ByHz4mmn8iACV9W01J2fGWmj8RaLKBOLRaa+6Fawu45Zb06eb
+JSDRRrJBciJEwNndthTcYOLuIhlk8U4iZHGkebpEL+iNWOU7taB1Nj7CUEOXkUik8YLik7x59G7a
+5aqKr5tu/TncYxtZ26cJp/PEBnjWfoVdEZ1JGEWTMDlqDFfq6gOQjScAh24iUi4m2Hu7j/DHhjKl
+Pf1mA9R8LVGajxjVKU6ytyWXk6tByPucle/Q5/3f2WAfjAbZMat0zfmzYSDWcH9/j9YXcPRGka9e
+Pg8yu7iZOYtPCfyL0gxv1sEafzkAAAAAAAA=
 
+
+--=-JRtMi4OXOYby/AHttlgR--
 
