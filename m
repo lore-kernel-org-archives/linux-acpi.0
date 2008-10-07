@@ -1,115 +1,37 @@
-From: Greg KH <gregkh@suse.de>
-Subject: [patch 35/71] x86: fix SMP alternatives: use mutex instead of
-	spinlock, text_poke is sleepable
-Date: Mon, 6 Oct 2008 17:38:55 -0700
-Message-ID: <20081007003855.GJ3055@suse.de>
-References: <20081007002606.723632097@mini.kroah.org>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: [Resend] [PATCH 0/2]  ACPI : two pachtes abut the Power resource
+Date: Tue, 07 Oct 2008 09:25:57 +0800
+Message-ID: <1223342757.4023.293.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:60671 "EHLO mx2.suse.de"
+Received: from mga11.intel.com ([192.55.52.93]:13599 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757564AbYJGAo1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 6 Oct 2008 20:44:27 -0400
-Content-Disposition: inline; filename="x86-fix-smp-alternatives-use-mutex-instead-of-spinlock-text_poke-is-sleepable.patch"
-In-Reply-To: <20081007003634.GA3055@suse.de>
+	id S1754539AbYJGBUN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 6 Oct 2008 21:20:13 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@kernel.org, Raz <raziebe@gmail.com>
-Cc: Justin Forbes <jmforbes@linuxtx.org>, Zwane Mwaikambo <zwane@arm.linux.org.uk>, Theodore Ts'o <tytso@mit.edu>, Randy Dunlap <rdunlap@xenotime.net>, Dave Jones <davej@redhat.com>, Chuck Wolber <chuckw@quantumlinux.com>, Chris Wedgwood <reviews@ml.cw.f00f.org>, Michael Krufky <mkrufky@linuxtv.org>, Chuck Ebbert <cebbert@redhat.com>, Domenico Andreoli <cavokz@gmail.com>, Willy Tarreau <w@1wt.eu>, Rodrigo Rubira Branco <rbranco@la.checkpoint.com>, Jake Edge <jake@lwn.net>, Eugene Teo <eteo@redhat.com>, torvalds@linux-foundation.org, akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, the arch/x86 maintainers <x86@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>, Vegard Nossum <vegard.nossum@gmail.com>, carlos@strangeworlds.co.uk, Pekka Paalanen <pq@iki.fi>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org
 
-2.6.26-stable review patch.  If anyone has any objections, please let us
-know.
+Hi, All
+    the following are two patches about the power resource driver.
+    Patch 1/2: Cleanup in power resource
+               The state is changed to *state in the function of acpi_power_get_state.
+    Patch 2/2: delete the strick check in ACPI power transisition
+         Maybe the device is already in D3 state and expected to be transited to
+D3 state. As there is no _PR3 object, the power transition can't be finished and
+it will be switched to the Unknow state.
+         For example: 
+         http://bugzilla.kernel.org/show_bug.cgi?id=9485
 
-------------------
-From: Pekka Paalanen <pq@iki.fi>
+         Maybe it is more reasonable that the strick check in power transistion
+is deleted.
 
-commit 2f1dafe50cc4e58a239fd81bd47f87f32042a1ee upstream
+    Welcome the comments.
 
-text_poke is sleepable.
-The original fix by Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>.
+Best regards.
+   Yakui
 
-Signed-off-by: Pekka Paalanen <pq@iki.fi>
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
----
- arch/x86/kernel/alternative.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
-
---- a/arch/x86/kernel/alternative.c
-+++ b/arch/x86/kernel/alternative.c
-@@ -1,6 +1,6 @@
- #include <linux/module.h>
- #include <linux/sched.h>
--#include <linux/spinlock.h>
-+#include <linux/mutex.h>
- #include <linux/list.h>
- #include <linux/kprobes.h>
- #include <linux/mm.h>
-@@ -279,7 +279,7 @@ struct smp_alt_module {
- 	struct list_head next;
- };
- static LIST_HEAD(smp_alt_modules);
--static DEFINE_SPINLOCK(smp_alt);
-+static DEFINE_MUTEX(smp_alt);
- static int smp_mode = 1;	/* protected by smp_alt */
- 
- void alternatives_smp_module_add(struct module *mod, char *name,
-@@ -312,12 +312,12 @@ void alternatives_smp_module_add(struct 
- 		__func__, smp->locks, smp->locks_end,
- 		smp->text, smp->text_end, smp->name);
- 
--	spin_lock(&smp_alt);
-+	mutex_lock(&smp_alt);
- 	list_add_tail(&smp->next, &smp_alt_modules);
- 	if (boot_cpu_has(X86_FEATURE_UP))
- 		alternatives_smp_unlock(smp->locks, smp->locks_end,
- 					smp->text, smp->text_end);
--	spin_unlock(&smp_alt);
-+	mutex_unlock(&smp_alt);
- }
- 
- void alternatives_smp_module_del(struct module *mod)
-@@ -327,17 +327,17 @@ void alternatives_smp_module_del(struct 
- 	if (smp_alt_once || noreplace_smp)
- 		return;
- 
--	spin_lock(&smp_alt);
-+	mutex_lock(&smp_alt);
- 	list_for_each_entry(item, &smp_alt_modules, next) {
- 		if (mod != item->mod)
- 			continue;
- 		list_del(&item->next);
--		spin_unlock(&smp_alt);
-+		mutex_unlock(&smp_alt);
- 		DPRINTK("%s: %s\n", __func__, item->name);
- 		kfree(item);
- 		return;
- 	}
--	spin_unlock(&smp_alt);
-+	mutex_unlock(&smp_alt);
- }
- 
- void alternatives_smp_switch(int smp)
-@@ -359,7 +359,7 @@ void alternatives_smp_switch(int smp)
- 		return;
- 	BUG_ON(!smp && (num_online_cpus() > 1));
- 
--	spin_lock(&smp_alt);
-+	mutex_lock(&smp_alt);
- 
- 	/*
- 	 * Avoid unnecessary switches because it forces JIT based VMs to
-@@ -383,7 +383,7 @@ void alternatives_smp_switch(int smp)
- 						mod->text, mod->text_end);
- 	}
- 	smp_mode = smp;
--	spin_unlock(&smp_alt);
-+	mutex_unlock(&smp_alt);
- }
- 
- #endif
-
--- 
