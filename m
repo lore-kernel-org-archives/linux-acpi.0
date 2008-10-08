@@ -1,50 +1,62 @@
-From: Todd Greenwood <t.greenwoodgeer@gmail.com>
-Subject: DMI output for MacBook4,1
-Date: Tue, 07 Oct 2008 23:07:12 -0700
-Message-ID: <48EC4E10.1060406@gmail.com>
-Reply-To: t.greenwoodgeer@gmail.com
+From: Thomas Lindroth <thomas.lindroth@gmail.com>
+Subject: Re: Problem: ACPI related soft lockup on Fujitsu-Siemens AMILO Si
+ 2636
+Date: Wed, 08 Oct 2008 09:20:43 +0200
+Message-ID: <48EC5F4B.8020009@gmail.com>
+References: <48E9F51A.4080107@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.179]:44197 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751021AbYJHGHO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Oct 2008 02:07:14 -0400
-Received: by wa-out-1112.google.com with SMTP id v27so2013458wah.21
-        for <linux-acpi@vger.kernel.org>; Tue, 07 Oct 2008 23:07:14 -0700 (PDT)
+Received: from ik-out-1112.google.com ([66.249.90.182]:52133 "EHLO
+	ik-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751210AbYJHHUs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Oct 2008 03:20:48 -0400
+Received: by ik-out-1112.google.com with SMTP id c30so2377895ika.5
+        for <linux-acpi@vger.kernel.org>; Wed, 08 Oct 2008 00:20:46 -0700 (PDT)
+In-Reply-To: <48E9F51A.4080107@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
-Sending output as requested in dmesg output. Hope this helps.
+I've done some debugging of this problem myself and reached some conclusions.
 
-[   24.223793] ACPI: Please send DMI info above to 
-linux-acpi@vger.kernel.org
+I tried activating the ACPI_LV_INFO ACPI debug mode and observed what happens
+when the system is under load. I saved one trace and put it in the file
+acpi_debug_log at http://www.cyd.liu.se/~tholi945/acpi-bug-2008-10-06/
 
--Todd
+When the temp goes over the ACPI passive trip point the processor gets
+throttled. It usually never goes over T4 before the temp falls below the
+passive temp but sometimes it reaches the highest T7. If it reach T7 the
+next call to _TMP or _L18 never returns. I've confirmed this by running
+echo T7 > /proc/acpi/processor/CPU*/throttling and then tried to read
+from /proc/acpi/thermal_zone/TZ00/temperature and it fails in the same way.
 
-[   24.220780] ACPI: bus type pci registered
-[   24.220887] PCI: Using configuration type 1
-[   24.221888] ACPI: EC: EC description table is found, configuring boot EC
-[   24.222112] ACPI: EC: non-query interrupt received, switching to 
-interrupt mode
-[   24.223480] ACPI: BIOS _OSI(Linux) query ignored
-[   24.223526] ACPI: DMI System Vendor: Apple Inc.
-[   24.223571] ACPI: DMI Product Name: MacBook4,1
-[   24.223616] ACPI: DMI Product Version: 1.0
-[   24.223659] ACPI: DMI Board Name: Mac-F22788A9
-[   24.223704] ACPI: DMI BIOS Vendor: Apple Inc.
-[   24.223749] ACPI: DMI BIOS Date: 02/09/08
-[   24.223793] ACPI: Please send DMI info above to 
-linux-acpi@vger.kernel.org
-[   24.223841] ACPI: If "acpi_osi=Linux" works better, please notify 
-linux-acpi@vger.kernel.org
-[   24.224052] ACPI: Interpreter enabled
-[   24.224097] ACPI: (supports S0 S3 S4 S5)
-[   24.224269] ACPI: Using IOAPIC for interrupt routing
-[   24.232266] ACPI: EC: GPE = 0x17, I/O: command/status = 0x66, data = 0x62
-[   24.232316] ACPI: EC: driver started in poll mode
-[   24.232930] ACPI: PCI Root Bridge [PCI0] (0000:00)
-[   24.233198] ACPI: EC: non-query interrupt received, switching to 
-interrupt mode
+I've tried activating the ACPI_LV_PARSE ACPI debug mode, enter T7 and read
+from temp. I put the result of that in the trace_debug file at the same adress.
+
+The AML call chain looks like this _TMP -> PMRD -> RCMD -> WIBF
+WIBF always returns 1 causing the interpreter to get stuck in the while
+loop in PMRD.
+
+While (RCMD (0x80, Local0))
+{
+    Noop
+    Noop
+    Store (PMUC, Local5)
+    If (And (Local5, One, Local2))
+    {
+        Store (PMUD, Local5)
+    }
+}
+
+I don't really understand how AML code works so I can't get much further than
+this.
+
+I did not experience complete lockups in Windows but I did notice some minor
+stalls. Maybe the Windows AML parser can break infinite loops or maybe the
+stalls is a normal part of the Windows experience. I tried to boot with the
+acpi_osi=Linux option active but it didn't make any difference.
+
+
+/Thomas Lindroth
