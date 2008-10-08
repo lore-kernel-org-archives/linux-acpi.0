@@ -1,62 +1,54 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: Top kernel oopses/warnings for the week of October 7th, 2008
-Date: Wed, 8 Oct 2008 11:21:36 +0200
-Message-ID: <20081008092136.GA22387@elte.hu>
-References: <48EBBE15.9030905@linux.intel.com> <20081007235833.1a89948f@lxorguk.ukuu.org.uk> <20081007.160835.257227518.davem@davemloft.net> <200810081106.55730.rjw@sisk.pl>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: Unexpected shutdown - perhaps ACPI related?
+Date: Wed, 8 Oct 2008 12:23:20 +0200
+Message-ID: <200810081223.20536.trenn@suse.de>
+References: <4b97db550810080302j79f9001la5a4c06019701131@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.suse.de ([195.135.220.2]:49815 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756011AbYJHKXW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 8 Oct 2008 06:23:22 -0400
+In-Reply-To: <4b97db550810080302j79f9001la5a4c06019701131@mail.gmail.com>
 Content-Disposition: inline
-In-Reply-To: <200810081106.55730.rjw@sisk.pl>
-Sender: netdev-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: David Miller <davem@davemloft.net>, alan@lxorguk.ukuu.org.uk, arjan@linux.intel.com, linux-kernel@vger.kernel.org, torvalds@linux-foundation.org, akpm@linux-foundation.org, netdev@vger.kernel.org, linux-acpi@vger.kernel.org, tglx@tglx.de, tytso@mit.edu, linux-ide@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Brian Schau <brian.schau@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
+On Wednesday 08 October 2008 12:02:09 Brian Schau wrote:
+> Hello,
+>
+> I am seeing strange behaviour on my laptop.   I've been running
+> diverse distributions (OpenSUSE, Ubuntu and others) - my
+> current being gOS 3.0 gadgets.
+> No matter the distribution I see unexpected shutdowns!   That is - one
+> second I work, the other I don't.    The laptop shuts
+> itself off without any prior notice.
+>
+> If I disable ACPI the unexpected shutdown disappears (and I loose a
+> bunch of other good stuff :-(
+>
+> I don't know how to diagnose this further so I am asking for help here.
+>
+> For starters I've attached the output from lsusb and lspci.
+>
+> I am running kernel 2.6.24-19.
+>
+> How to proceed?   I am willing to test ... :-)
 
-* Rafael J. Wysocki <rjw@sisk.pl> wrote:
+Are this critical thermal shutdowns?
+grep -i critical /var/log/messages
+should reveal that.
+If yes:
+  - watch your fan/temperature states:
+    /proc/acpi/{thermal_zone,fan}
+  - Does cpufreq work?
+  - Maybe
+    echo 15 >/proc/acpi/thermal_zone/*/polling_frequency
+    helps then?
 
-> On Wednesday, 8 of October 2008, David Miller wrote:
-> > From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-> > Date: Tue, 7 Oct 2008 23:58:33 +0100
-> > 
-> > > > This should have been fixed by:
-> > > > http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=f5a6d958b5d0a10e7e7a9dee1862fb31d08c6d26
-> > > 
-> > > You mean - hidden by - that change should IMHO be reverted
-> > 
-> > Grrr... I totally agree.
-> 
-> Even though they are false positives in many cases?
-> 
-> (Yes, they are).
-
-it's your judgement call i guess - i just wanted to challenge the 
-terminology of calling it a fix ;-)
-
-Can you think of any good way of reintroducing the good aspect of the 
-WARN(), without the false positives? [ If not, and if the WARN()s do 
-more harm than good then it's the right change. ]
-
-But generally the trend is the opposite direction: we try to add as many 
-WARN()s as possible, and we need even more good WARN()s in the kernel. 
-When we meet false positives we try to improve the quality/yield of the 
-warning, not eliminate it.
-
-Granted, they are a bit embarrassing when they show up in the top 10 but 
-they are also very helpful and are tracked very nicely and lead to 
-actual bugfixes that _matter_.
-
-Kerneloops.org is a wonderful tool: it enables a broad spectrum of users 
-to help us out with their feedback, without them being forced into any 
-manual work, and without them having to understand the kernel bug 
-reporting workflow. Its scale is already enormous: 3000+ bugs reported 
-per week. (many kudos Arjan!)
-
-Once its growth stabilizes (all the large distros have it either enabled 
-today or have the client in their pipeline) we can even observe 
-long-term trends and estimate release-to-release suckiness. That was 
-impossible before and maintainers were left largely to imprecise 
-intuitive guesses about where we stand wrt. kernel quality.
-
-	Ingo
+     Thomas
