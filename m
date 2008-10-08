@@ -1,102 +1,248 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: Problem: ACPI related soft lockup on Fujitsu-Siemens AMILO Si 2636
-Date: Thu, 9 Oct 2008 00:19:20 +0200
-Message-ID: <200810090019.21303.trenn@suse.de>
-References: <48E9F51A.4080107@gmail.com> <200810081308.52221.trenn@suse.de> <48EC9F0B.3090207@gmail.com>
+From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Subject: RE: [PATCH] ACPI: Add _PDC object evaluate for VIA.
+Date: Wed, 8 Oct 2008 16:47:29 -0700
+Message-ID: <7E82351C108FA840AB1866AC776AEC463775879E@orsmsx505.amr.corp.intel.com>
+References: <48DDF430.8060806@viatech.com.cn>
+ <20080927160530.GA27124@elte.hu> <48DEEEA1.1010605@viatech.com.cn>
+ <48EC18B0.4060704@viatech.com.cn>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:60290 "EHLO mx1.suse.de"
+Received: from mga02.intel.com ([134.134.136.20]:55679 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754915AbYJHWTW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 8 Oct 2008 18:19:22 -0400
-In-Reply-To: <48EC9F0B.3090207@gmail.com>
-Content-Disposition: inline
+	id S1754018AbYJHXsi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Oct 2008 19:48:38 -0400
+In-Reply-To: <48EC18B0.4060704@viatech.com.cn>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>
-Cc: Thomas Lindroth <thomas.lindroth@gmail.com>, linux-acpi@vger.kernel.org
+To: louisqi <louisqi@viatech.com.cn>, Ingo Molnar <mingo@elte.hu>
+Cc: "Brown, Len" <len.brown@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wednesday 08 October 2008 01:52:43 pm Alexey Starikovskiy wrote:
-> Thomas Renninger wrote:
-> > On Wednesday 08 October 2008 12:48:36 Thomas Lindroth wrote:
-...
-> > Is there a general hint I could add into the ACPI Linux guideline, like:
-> > Don't implement EC data/index register reads/writes in AML yourself.
-> > Define a EC variable and e.g. use Store(ECXY, Local0) to read and
-> > Store(Local0, ECXY) to write to specific EC bytes.
+
+Patch looks good.
+Question: Where are these PDC bits defined for via CPUs? I mean the bits that we use in intel_pdc are
+defined in an Intel specific document. Just wondering whether the same bit definitions hold good for
+via or we should have a different set of defines?
+
+Thanks,
+Venki
+
+>-----Original Message-----
+>From: louisqi [mailto:louisqi@viatech.com.cn]
+>Sent: Tuesday, October 07, 2008 7:19 PM
+>To: Ingo Molnar
+>Cc: Brown, Len; Pallipadi, Venkatesh; linux-acpi@vger.kernel.org
+>Subject: Re: [PATCH] ACPI: Add _PDC object evaluate for VIA.
 >
-> Declare EC interface might be a better wording.
+>Dear Brown & Pallipadi:
 >
-> > Did I get this right?
+>I want to know whether there are some problems about this patch.
 >
-> Yes.
-> My understanding is that Windows does not support 2 EC devices, so
-> these people need to implement second in AML.
-> So, it might be worth noting that Linux can handle any number of EC
-> devices.
-Can these guys do it right if we return true for:
-_OSI("Multiple EC capable")
-
-How does a second EC declaration look like?
-Just a second EC OperationRegion?
-Ahh, it's a whole device, it would still work. It's just the first time that 
-the device is only used on Linux and not on Windows.
-This would also be declared in Windows, because you cannot set conditions 
-around declarations, but it would not hurt:
-This is done in _OSI init section:
-
-                    If (\_OSI ("Multiple EC capable"))
-                    {
-                        Store (0x01, \MIEC)
-                    }
-
-Somewhere in the Scope you have this unconditionally.
-Arghh, that would certainly not work on Windows then or could at least
-be a potential risk there?:
-                    /* Second EC, unused on Windows */
-                    Device (EC2)
-                   {
-                        Name (_HID, EisaId ("PNP0C09"))
-                        OperationRegion (ECOR, EmbeddedControl, 0x00, 0x0100)
-                        Field (ECOR, ByteAcc, NoLock, Preserve)
-                        {
-                            RTMP,   1,
-                            ...
-                        }
-                   }
-
-Where the actual value is read:
-
-/* Linux case */
-if(LEqual(MIEC, 1))
-   Store(RTMP, 1)
-
-/* Windows case */
-else {
-    While (RCMD (0x80, Local0))
-    {
-        Noop
-        Noop
-        Store (PMUC, Local5)
-        If (And (Local5, One, Local2))
-        {
-            Store (PMUD, Local5)
-        }
-    }
-}
-
----------------
-Better ideas?
-The problem is the second EC HID device which cannot be hidden on Windows...
-If Windows is really too dumb for two ECs and vendors are therefore really 
-doing such crap as above, we should think about alternatives..., the EC 
-driver simulation looks rather unsupportable (It misses some locks, but not 
-in AML namespace, but the ones in drivers/acpi/ec.c, right?).
-
-IIRC the ACPI spec explicitly mentions a two (or multiple?) EC PC 
-configuration somewhere? Anyway...
-
-     Thomas
+>If it does, please kindly help me to point out, I will revise it.
+>
+>Waiting for your reply!
+>
+>Thanks a lot!
+>
+>
+>Louis
+>
+>2008.10.08
+>
+>///////////////////////////////////////////////////////
+>louisqi have wrote:
+>>
+>> Thanks a lot, Ingo! Thanks for your kindly help.
+>>
+>> I have revise my patch as following:
+>>
+>>
+>>
+>///////////////////////////////////////////////////////////////
+>/////////////////////
+>>
+>> [PATCH] ACPI: Add _PDC object evaluate for VIA.
+>>
+>> Frome: Louis Qi <louisqi@viatech.com.cn>
+>>
+>> The current routine "arch_acpi_processor_init_pdc" only
+>supports INTEL
+>> CPUs.
+>> This patch add support for VIA CPUs.
+>>
+>> Signed-off-by: Louis Qi <louisqi@viatech.com.cn>
+>> ---
+>>
+>> --- 2.6.26.5/arch/x86/kernel/acpi/processor.c.orig    2008-09-28
+>> 10:18:11.000000000 +0800
+>> +++ 2.6.26.5/arch/x86/kernel/acpi/processor.c    2008-09-28
+>> 10:18:11.000000000 +0800
+>> @@ -66,6 +66,53 @@ static void init_intel_pdc(struct acpi_p
+>>      return;
+>>  }
+>>
+>> +static void init_via_pdc(struct acpi_processor *pr, struct
+>cpuinfo_x86 *c)
+>> +{
+>> +    struct acpi_object_list *obj_list;
+>> +    union acpi_object *obj;
+>> +    u32 *buf;
+>> +
+>> +    /* allocate and initialize pdc. It will be used later. */
+>> +    obj_list = kmalloc(sizeof(struct acpi_object_list), GFP_KERNEL);
+>> +    if (!obj_list)
+>> +        goto err_obj_list;
+>> +
+>> +    obj = kmalloc(sizeof(union acpi_object), GFP_KERNEL);
+>> +    if (!obj)
+>> +        goto err_obj;
+>> +
+>> +    buf = kmalloc(12, GFP_KERNEL);
+>> +    if (!buf)
+>> +        goto err_buf;
+>> +
+>> +    buf[0] = ACPI_PDC_REVISION_ID;
+>> +    buf[1] = 1;
+>> +    buf[2] = 0;
+>> +
+>> +    if (cpu_has(c, X86_FEATURE_EST))
+>> +        buf[2] |= ACPI_PDC_P_FFH;
+>> +
+>> +    if (cpu_has(c, X86_FEATURE_ACPI))
+>> +        buf[2] |= ACPI_PDC_T_FFH;
+>> +
+>> +    obj->type = ACPI_TYPE_BUFFER;
+>> +    obj->buffer.length = 12;
+>> +    obj->buffer.pointer = (u8 *)buf;
+>> +    obj_list->count = 1;
+>> +    obj_list->pointer = obj;
+>> +    pr->pdc = obj_list;
+>> +
+>> +    return;
+>> +
+>> +err_buf:
+>> +    kfree(obj);
+>> +err_obj:
+>> +    kfree(obj_list);
+>> +err_obj_list:
+>> +    printk(KERN_ERR "init_via_pdc: memory allocation failed\n");
+>> +}
+>> +
+>> +
+>>  /* Initialize _PDC data based on the CPU vendor */
+>>  void arch_acpi_processor_init_pdc(struct acpi_processor *pr)
+>>  {
+>> @@ -74,6 +121,8 @@ void arch_acpi_processor_init_pdc(struct
+>>      pr->pdc = NULL;
+>>      if (c->x86_vendor == X86_VENDOR_INTEL)
+>>          init_intel_pdc(pr, c);
+>> +    else if (c->x86_vendor == X86_VENDOR_CENTAUR)
+>> +        init_via_pdc(pr, c);
+>>
+>>      return;
+>>  }
+>>
+>///////////////////////////////////////////////////////////////
+>/////////////////////
+>>
+>>
+>> Ingo Molnar :
+>>> just a few minor comments:
+>>>
+>>> * louisqi <louisqi@viatech.com.cn> wrote:
+>>>
+>>>> +static void init_via_pdc(struct acpi_processor *pr, struct
+>>>> cpuinfo_x86 *c)
+>>>> +{
+>>>> +    struct acpi_object_list *obj_list;
+>>>> +    union acpi_object *obj;
+>>>> +    u32 *buf;
+>>>> +
+>>>> +    /* allocate and initialize pdc. It will be used later. */
+>>>> +    obj_list = kmalloc(sizeof(struct acpi_object_list),
+>GFP_KERNEL);
+>>>> +    if (!obj_list) {
+>>>> +        printk(KERN_ERR "Memory allocation error\n");
+>>>> +        return;
+>>>> +    }
+>>>> +
+>>>> +    obj = kmalloc(sizeof(union acpi_object), GFP_KERNEL);
+>>>> +    if (!obj) {
+>>>> +        printk(KERN_ERR "Memory allocation error\n");
+>>>> +        kfree(obj_list);
+>>>> +        return;
+>>>> +    }
+>>>> +
+>>>> +    buf = kmalloc(12, GFP_KERNEL);
+>>>> +    if (!buf) {
+>>>> +        printk(KERN_ERR "Memory allocation error\n");
+>>>> +        kfree(obj);
+>>>> +        kfree(obj_list);
+>>>> +        return;
+>>>> +    }
+>>>
+>>> error condition cleanliness: it's cleaner to create a
+>single off-line
+>>> instance of freeing logic, at the end of the function:
+>>>
+>>> ...
+>>>     [ ... normal path ... ]
+>>>     return;
+>>>
+>>> err_obj:
+>>>     kfree(obj);
+>>> err_obj_list:
+>>>     kfree(obj_list);
+>>> err:
+>>>     printk(KERN_ERR "init_via_pdc: memory allocation error\n");
+>>> }
+>>>
+>>> and then after the allocation do:
+>>>
+>>>     if (!obj_list)
+>>>         goto err;
+>>>
+>>> etc.
+>>>
+>>> (also note the different style of the printk)
+>>>
+>>>> +
+>>>> +    buf[0] = ACPI_PDC_REVISION_ID;
+>>>> +    buf[1] = 1;
+>>>> +    buf[2] = 0;
+>>>> +
+>>>> +    if (cpu_has(c, X86_FEATURE_EST))
+>>>> +        buf[2] |= ACPI_PDC_P_FFH;
+>>>> +
+>>>> +    if (cpu_has(c, X86_FEATURE_ACPI))
+>>>> +        buf[2] |= ACPI_PDC_T_FFH;
+>>>> +
+>>>> +    obj->type = ACPI_TYPE_BUFFER;
+>>>> +    obj->buffer.length = 12;
+>>>> +    obj->buffer.pointer = (u8 *) buf;
+>>>
+>>> style: no need to put a space between the '(u8 *)' and 'buf'.
+>>>
+>>>> +    return;
+>>>> +}
+>>>
+>>> style: no need to put 'return' at the end of a void function.
+>>>
+>>>     Ingo
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe
+>linux-acpi" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe
+>linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>
+>
