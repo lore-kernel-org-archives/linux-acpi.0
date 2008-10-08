@@ -1,48 +1,47 @@
-From: Pavel Machek <pavel@suse.cz>
-Subject: Re: [PATCH] ACPI Suspend: Enable ACPI during resume if SCI_EN is
-	not set
-Date: Wed, 8 Oct 2008 13:39:34 +0200
-Message-ID: <20081008113933.GC1651@ucw.cz>
-References: <200810040005.06220.rjw@sisk.pl>
+From: Gandalf Kristensen <gandkri@yahoo.no>
+Subject: Buggy BIOS on the HP TX2500-series
+Date: Wed, 8 Oct 2008 19:39:46 +0200 (CEST)
+Message-ID: <331496.52627.qm@web23007.mail.ird.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:40698 "EHLO UNKNOWN"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753167AbYJHQqZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 8 Oct 2008 12:46:25 -0400
-Content-Disposition: inline
-In-Reply-To: <200810040005.06220.rjw@sisk.pl>
+Received: from web23007.mail.ird.yahoo.com ([217.146.189.32]:40861 "HELO
+	web23007.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754416AbYJHRq1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Oct 2008 13:46:27 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Thomas Renninger <trenn@suse.de>
+To: linux-acpi@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 
-On Sat 2008-10-04 00:05:05, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rjw@sisk.pl>
-> 
-> ACPI Suspend: Enable ACPI during resume if SCI_EN is not set
-> 
-> On some machines, like for example MSI Wind U100, the BIOS doesn't
-> enable ACPI before returning control to the OS, which sometimes
-> causes resume to fail.  This is against the ACPI specification,
-> which clearly states that "When the platform is waking from an S1, S2
-> or S3 state, OSPM assumes the hardware is already in the ACPI mode
-> and will not issue an ACPI_ENABLE", but it won't hurt to check the
-> SCI_EN bit and enable ACPI during resume from S3 if this bit is not
-> set.
-> 
-> Fortunately, we already have acpi_enable() for that, so use it in the
-> resume code path, before executing _BFS, in analogy with the
-> resume-from-hibernation code path.
-> 
-> NOTE: We aren't supposed to set SCI_EN directly, because it's owned
-> by the hardware.
-> 
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Hi.
 
-ACK.
+The HP tx2500-series has a funny "feature" of
+trip-point set to -273C.=20
+(I.e. see:
+http://ubuntu-virginia.ubuntuforums.org/showpost.php?p=3D5660089&postco=
+unt=3D187
+)
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+In the latest kernel I noticed that we (the
+tx2500-users) are not the only ones struggling with
+this feature. (Wee! Thank you HP!)
+
+So now I would like to find out of what I can do to
+help get some patch in to the kernel for this BIOS?
+
+Any help is very much appriciated.
+
+
+--Gandalf A. Kristensen
+
+
+      _________________________________________________________
+Alt i ett. F=E5 Yahoo! Mail med adressekartotek, kalender og
+notisblokk. http://no.mail.yahoo.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
