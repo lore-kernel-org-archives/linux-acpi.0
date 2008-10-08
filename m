@@ -1,82 +1,82 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: Re: Problem: ACPI related soft lockup on Fujitsu-Siemens AMILO Si
- 2636
-Date: Wed, 08 Oct 2008 15:52:43 +0400
-Message-ID: <48EC9F0B.3090207@gmail.com>
-References: <48E9F51A.4080107@gmail.com> <48EC7430.1010001@gmail.com> <48EC9004.6010105@gmail.com> <200810081308.52221.trenn@suse.de>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Top kernel oopses/warnings for the week of October 7th, 2008
+Date: Wed, 8 Oct 2008 14:43:16 +0200
+Message-ID: <200810081443.17852.rjw@sisk.pl>
+References: <48EBBE15.9030905@linux.intel.com> <200810081106.55730.rjw@sisk.pl> <20081008092136.GA22387@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.184]:37243 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752674AbYJHLw2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Oct 2008 07:52:28 -0400
-Received: by nf-out-0910.google.com with SMTP id d3so1538051nfc.21
-        for <linux-acpi@vger.kernel.org>; Wed, 08 Oct 2008 04:52:23 -0700 (PDT)
-In-Reply-To: <200810081308.52221.trenn@suse.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <20081008092136.GA22387@elte.hu>
+Content-Disposition: inline
+Sender: linux-ide-owner@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: David Miller <davem@davemloft.net>, alan@lxorguk.ukuu.org.uk, arjan@linux.intel.com, linux-kernel@vger.kernel.org, torvalds@linux-foundation.org, akpm@linux-foundation.org, netdev@vger.kernel.org, linux-acpi@vger.kernel.org, tglx@tglx.de, tytso@mit.edu, linux-ide@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Thomas Lindroth <thomas.lindroth@gmail.com>, linux-acpi@vger.kernel.org
 
-Thomas Renninger wrote:
-> On Wednesday 08 October 2008 12:48:36 Thomas Lindroth wrote:
->   
->> Alexey Starikovskiy wrote:
->>     
->>> Alexey Starikovskiy wrote:
->>>       
->>>> This is AML implementation of EC driver... it relies on certain speed
->>>> of AML interpreter to work properly (look for Noop inserted as delay).
->>>>
->>>> It is possible to replace this driver with the native Linux one, which
->>>> might be
->>>> more robust, but this involves heavy DSDT hacking.
->>>>
->>>> Overall, it is heavily mis-designed BIOS, so don't expect it to be
->>>> fixed on Linux side.
->>>>
->>>> Regards,
->>>> Alex.
->>>>         
->>> Please check if making Noop a small delay helps
->>>       
->> I've tried the patch with an udelay of 100 but it did not make any
->> difference. I've also tried raising it to 200 but that created an
->> unbootable system because one of the ACPI init methods failed.
->>
->> You are right, this is a really broken BIOS.
->>
->> I find it odd that only I experience this problem. According to one
->> site this laptop is the 7:th most popular laptop right now so someone
->> else should have reported something.
->>     
-T7 is not very popular setting :)
-> Could you provide a short explanation what should be fixed in which way in the 
-> BIOS tables. Best in a way that I can just forward this.
-> It's hard in the laptop area to convince fsc to fix it, but I at least like to 
-> try and to tell them.
-> Hmm, I think the last two mails should already be enough, I think  I got it.
->
->   
-As I understand, this is not FSC, but FIC outsource. There is exactly
-same thing happening in new FIC laptop.
-> Is there a general hint I could add into the ACPI Linux guideline, like:
-> Don't implement EC data/index register reads/writes in AML yourself.
-> Define a EC variable and e.g. use Store(ECXY, Local0) to read and
-> Store(Local0, ECXY) to write to specific EC bytes.
->
->   
-Declare EC interface might be a better wording.
-> Did I get this right?
->
->   
-Yes.
-My understanding is that Windows does not support 2 EC devices, so
-these people need to implement second in AML.
-So, it might be worth noting that Linux can handle any number of EC devices.
+On Wednesday, 8 of October 2008, Ingo Molnar wrote:
+> 
+> * Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> 
+> > On Wednesday, 8 of October 2008, David Miller wrote:
+> > > From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+> > > Date: Tue, 7 Oct 2008 23:58:33 +0100
+> > > 
+> > > > > This should have been fixed by:
+> > > > > http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=f5a6d958b5d0a10e7e7a9dee1862fb31d08c6d26
+> > > > 
+> > > > You mean - hidden by - that change should IMHO be reverted
+> > > 
+> > > Grrr... I totally agree.
+> > 
+> > Even though they are false positives in many cases?
+> > 
+> > (Yes, they are).
+> 
+> it's your judgement call i guess - i just wanted to challenge the 
+> terminology of calling it a fix ;-)
 
+Well, since I added the WARN_ON() and then reallized it did more harm than
+good, I consider it as a fix. :-)
 
-Regards,
-Alex.
+> Can you think of any good way of reintroducing the good aspect of the 
+> WARN(), without the false positives? [ If not, and if the WARN()s do 
+> more harm than good then it's the right change. ]
+
+Unfortunately not.  In particular, the MMC subsystem is known to trigger this
+WARN_ON() which in turn is not related to any functional problem (it's a design
+issue in this case) and it's not going to be fixed any time soon IMO.
+
+USB used to trigger it too, but that has been fixed already.
+
+> But generally the trend is the opposite direction: we try to add as many 
+> WARN()s as possible, and we need even more good WARN()s in the kernel. 
+> When we meet false positives we try to improve the quality/yield of the 
+> warning, not eliminate it.
+> 
+> Granted, they are a bit embarrassing when they show up in the top 10 but 
+> they are also very helpful and are tracked very nicely and lead to 
+> actual bugfixes that _matter_.
+> 
+> Kerneloops.org is a wonderful tool: it enables a broad spectrum of users 
+> to help us out with their feedback, without them being forced into any 
+> manual work, and without them having to understand the kernel bug 
+> reporting workflow. Its scale is already enormous: 3000+ bugs reported 
+> per week. (many kudos Arjan!)
+> 
+> Once its growth stabilizes (all the large distros have it either enabled 
+> today or have the client in their pipeline) we can even observe 
+> long-term trends and estimate release-to-release suckiness. That was 
+> impossible before and maintainers were left largely to imprecise 
+> intuitive guesses about where we stand wrt. kernel quality.
+
+While I agree with all that, I also think that it's not really reasonable to
+use WARNs causing people to waste their time for reporting issues that actually
+don't need to be reported.
+
+IMO it will make sense to add this WARN_ON() back again in future, but not at
+the moment.
+
+Thanks,
+Rafael
