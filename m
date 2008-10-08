@@ -1,31 +1,115 @@
-From: Wim Van Sebroeck <wim@iguana.be>
-Subject: Re: [PATCH] WDRT based watchdog timer
-Date: Wed, 8 Oct 2008 22:36:46 +0200
-Message-ID: <20081008203646.GH3835@infomag.infomag.iguana.be>
-References: <20080926232752.GA6061@cosmic.amd.com> <alpine.LFD.1.10.0810081552220.3041@localhost.localdomain>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: [PATCH 3/3] ACPI: WMI: Enable event methods when registering notifiers
+Date: Wed, 08 Oct 2008 21:40:32 +0100
+Message-ID: <20081008204031.1815.94496.stgit@localhost>
+References: <20081008204015.1815.15275.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailrelay008.isp.belgacom.be ([195.238.6.174]:47540 "EHLO
-	mailrelay008.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750753AbYJHUgv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Oct 2008 16:36:51 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.1.10.0810081552220.3041@localhost.localdomain>
+Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:35555 "EHLO
+	pacifica." rhost-flags-OK-OK-FAIL-FAIL) by vger.kernel.org with ESMTP
+	id S1754142AbYJHUkl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 8 Oct 2008 16:40:41 -0400
+In-Reply-To: <20081008204015.1815.15275.stgit@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Jordan Crouse <jordan.crouse@amd.com>, linux-acpi@vger.kernel.org, Marc Brooker <mbrooker@rrsg.ee.uct.ac.za>
+To: linux-acpi@vger.kernel.org
+Cc: lenb@kernel.org
 
-Hi Len,
+From: Matthew Garrett <mjg@redhat.com>
 
-> I don't know who maintains /drivers/watchdog/,
-> but Wim Van Sebroeck has scribbled there the most recently,
-> and can probably weigh in on this.
+According to the ACPI-WMI spec, event blocks may provide a function call
+for enabling/disabling them. This patch adds support for making these
+calls when registering or removing notifications. Without this, my Dell
+firmware provides no data in the event notification.
 
-I do maintain it and still have to look at the driver in more detail.
-I'll come back on this.
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
+---
 
-Kind regards,
-Wim.
+ drivers/acpi/wmi.c |   39 +++++++++++++++++++++++++++++++++++++--
+ 1 files changed, 37 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/wmi.c b/drivers/acpi/wmi.c
+index cfe2c83..5464cfc 100644
+--- a/drivers/acpi/wmi.c
++++ b/drivers/acpi/wmi.c
+@@ -217,6 +217,35 @@ static bool find_guid(const char *guid_string, struct wmi_block **out)
+ 	return 0;
+ }
+ 
++static acpi_status wmi_method_enable(struct wmi_block *wblock, int enable)
++{
++	struct guid_block *block = NULL;
++	char method[5];
++	struct acpi_object_list input;
++	union acpi_object params[1];
++	acpi_status status;
++	acpi_handle handle;
++
++	block = &wblock->gblock;
++	handle = wblock->handle;
++
++	if (!block)
++		return AE_NOT_EXIST;
++
++	input.count = 1;
++	input.pointer = params;
++	params[0].type = ACPI_TYPE_INTEGER;
++	params[0].integer.value = enable;
++
++	snprintf(method, 5, "WE%02X", block->notify_id);
++	status = acpi_evaluate_object(handle, method, &input, NULL);
++
++	if (status != AE_OK && status != AE_NOT_FOUND)
++		return status;
++	else
++		return AE_OK;
++}
++
+ /*
+  * Exported WMI functions
+  */
+@@ -427,6 +456,7 @@ acpi_status wmi_install_notify_handler(const char *guid,
+ wmi_notify_handler handler, void *data)
+ {
+ 	struct wmi_block *block;
++	acpi_status status;
+ 
+ 	if (!guid || !handler)
+ 		return AE_BAD_PARAMETER;
+@@ -441,7 +471,9 @@ wmi_notify_handler handler, void *data)
+ 	block->handler = handler;
+ 	block->handler_data = data;
+ 
+-	return AE_OK;
++	status = wmi_method_enable(block, 1);
++
++	return status;
+ }
+ EXPORT_SYMBOL_GPL(wmi_install_notify_handler);
+ 
+@@ -453,6 +485,7 @@ EXPORT_SYMBOL_GPL(wmi_install_notify_handler);
+ acpi_status wmi_remove_notify_handler(const char *guid)
+ {
+ 	struct wmi_block *block;
++	acpi_status status;
+ 
+ 	if (!guid)
+ 		return AE_BAD_PARAMETER;
+@@ -464,10 +497,12 @@ acpi_status wmi_remove_notify_handler(const char *guid)
+ 	if (!block->handler)
+ 		return AE_NULL_ENTRY;
+ 
++	status = wmi_method_enable(block, 0);
++
+ 	block->handler = NULL;
+ 	block->handler_data = NULL;
+ 
+-	return AE_OK;
++	return status;
+ }
+ EXPORT_SYMBOL_GPL(wmi_remove_notify_handler);
+ 
 
