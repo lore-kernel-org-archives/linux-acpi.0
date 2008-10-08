@@ -1,78 +1,84 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] WDRT based watchdog timer
-Date: Wed, 08 Oct 2008 16:25:48 -0400 (EDT)
-Message-ID: <alpine.LFD.1.10.0810081552220.3041@localhost.localdomain>
-References: <20080926232752.GA6061@cosmic.amd.com>
+Subject: Re: [PATCH] drivers/acpi: dereference without an error test
+Date: Wed, 08 Oct 2008 16:34:37 -0400 (EDT)
+Message-ID: <alpine.LFD.1.10.0810081634300.3041@localhost.localdomain>
+References: <200809261551.58262.brunel@diku.dk>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:64816 "EHLO
+Received: from vms173001pub.verizon.net ([206.46.173.1]:41134 "EHLO
 	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751782AbYJHU0L (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Oct 2008 16:26:11 -0400
-Received: from localhost.localdomain ([96.237.168.40])
- by vms173001.mailsrvcs.net
- (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K8F00JRSSR2BOF5@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 08 Oct 2008 15:25:51 -0500 (CDT)
-In-reply-to: <20080926232752.GA6061@cosmic.amd.com>
+	with ESMTP id S1750904AbYJHUfA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Oct 2008 16:35:00 -0400
+In-reply-to: <200809261551.58262.brunel@diku.dk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jordan Crouse <jordan.crouse@amd.com>
-Cc: linux-acpi@vger.kernel.org, Marc Brooker <mbrooker@rrsg.ee.uct.ac.za>, Wim Van Sebroeck <wim@iguana.be>
+To: Julien Brunel <brunel@diku.dk>
+Cc: rui.zhang@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 
-
-
-On Fri, 26 Sep 2008, Jordan Crouse wrote:
-
-> Attached is a patch to support watchdog timers as described
-> by the WDRT (Watch Dog Resource Table).  This has been tested on
-> the AMD SB600 chipset, but it should work for any chipset / BIOS
-> that implements the WDRT table.
-> 
-> I'm not in love with the name - but I couldn't think of anything
-> better, so I'm open to suggestions.  I have a limited number of
-> systems that implement this interface, so I would be very happy
-> to hear from other users, especially ones not using AMD chipsets.
-
-While this driver depends on ACPI, it actually isn't part of ACPI.
-
-Indeed, here is 100% of the ACPI spec support for this watchdog timer:
-
-"WDRT" Watchdog Resource Table Watchdog Timer Hardware Requirements for
-                               Windows Server 2003
-                               http://www.microsoft.com/whdc/system/CEC/
-                               watchdog.mspx
-
-so while the driver uses ACPI to enumerate the device,
-the device doesn't use any run-time ACPI support,
-and the Windows spec above actually defines the hardware.
-
-> drivers/watchdog/acpiwdt.c
-
-I'm not wild about having the string "acpi" be part of the driver name,
-config option, variable names etc.   Maybe the spec above which actually
-defines the timer would suggest a better name; or maybe simply
-name it after its configuration table, wrdt.c?
-
-The spec URL should be in the driver comments or commit log, BTW.
-
-I don't know who maintains /drivers/watchdog/,
-but Wim Van Sebroeck has scribbled there the most recently,
-and can probably weigh in on this.
-
-I searched my logs for WRDT and found only one,
-and it does happen to be one with an Intel processor --
-though an nvidia chipset:
-
-http://bugzilla.kernel.org/show_bug.cgi?id=8950
-
-so maybe Marc will be able to test the new driver?
+applied.
 
 thanks,
--Len
+-len
 
+On Fri, 26 Sep 2008, Julien Brunel wrote:
 
-
-
-
+> After a variable is assigned the result of backlight_device_register, an error
+> test should be performed before a dereference. 
+> 
+> A simplified version of the semantic match that finds this problem is
+> as follows: 
+> (http://www.emn.fr/x-info/coccinelle/)
+> // <smpl>
+> @def0@
+> expression x;
+> position p0;
+> @@
+> 
+> x@p0 = backlight_device_register(...)
+> 
+> @protected@
+> expression def0.x,E;
+> position def0.p0;
+> position p;
+> statement S;
+> @@
+> x@p0
+> ... when != x = E
+> if (!IS_ERR(x) && ...) {<... x@p ...>} else S
+> 
+> @unprotected@
+> expression def0.x,E;
+> identifier fld;
+> position def0.p0;
+> position p != protected.p;
+> @@
+> x@p0
+> ... when != x = E
+> * x@p->fld
+> // </smpl>
+> 
+> Signed-off-by: Julien Brunel <brunel@diku.dk>
+> Signed-off-by: Julia Lawall <julia@diku.dk>
+> 
+> ---
+>  drivers/acpi/video.c |    2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff -u -p a/drivers/acpi/video.c b/drivers/acpi/video.c
+> --- a/drivers/acpi/video.c
+> +++ b/drivers/acpi/video.c
+> @@ -752,6 +752,8 @@ static void acpi_video_device_find_cap(s
+>  		sprintf(name, "acpi_video%d", count++);
+>  		device->backlight = backlight_device_register(name,
+>  			NULL, device, &acpi_backlight_ops);
+> +		if (IS_ERR(device->backlight))
+> +			return;
+>  		device->backlight->props.max_brightness = device->brightness->count-3;
+>  		/*
+>  		 * If there exists the _BQC object, the _BQC object will be
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
