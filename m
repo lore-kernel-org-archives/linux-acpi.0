@@ -1,218 +1,50 @@
-From: louisqi <louisqi@viatech.com.cn>
-Subject: Re: [PATCH] ACPI: Add _PDC object evaluate for VIA.
-Date: Wed, 08 Oct 2008 10:19:28 +0800
-Message-ID: <48EC18B0.4060704@viatech.com.cn>
-References: <48DDF430.8060806@viatech.com.cn> <20080927160530.GA27124@elte.hu> <48DEEEA1.1010605@viatech.com.cn>
+From: Todd Greenwood <t.greenwoodgeer@gmail.com>
+Subject: DMI output for MacBook4,1
+Date: Tue, 07 Oct 2008 23:07:12 -0700
+Message-ID: <48EC4E10.1060406@gmail.com>
+Reply-To: t.greenwoodgeer@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from exchtp08.via.com.tw ([61.66.243.7]:34926 "EHLO
-	exchtp08.via.com.tw" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750983AbYJHCTj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Oct 2008 22:19:39 -0400
-In-Reply-To: <48DEEEA1.1010605@viatech.com.cn>
+Received: from wa-out-1112.google.com ([209.85.146.179]:44197 "EHLO
+	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751021AbYJHGHO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Oct 2008 02:07:14 -0400
+Received: by wa-out-1112.google.com with SMTP id v27so2013458wah.21
+        for <linux-acpi@vger.kernel.org>; Tue, 07 Oct 2008 23:07:14 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: len.brown@intel.com, venkatesh.pallipadi@intel.com, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Dear Brown & Pallipadi:
+Sending output as requested in dmesg output. Hope this helps.
 
-I want to know whether there are some problems about this patch.
+[   24.223793] ACPI: Please send DMI info above to 
+linux-acpi@vger.kernel.org
 
-If it does, please kindly help me to point out, I will revise it.
+-Todd
 
-Waiting for your reply!
-
-Thanks a lot!
-
-
-Louis
-
-2008.10.08
-
-///////////////////////////////////////////////////////
-louisqi have wrote:
-> 
-> Thanks a lot, Ingo! Thanks for your kindly help.
-> 
-> I have revise my patch as following:
-> 
-> 
-> //////////////////////////////////////////////////////////////////////////////////// 
-> 
-> [PATCH] ACPI: Add _PDC object evaluate for VIA.
-> 
-> Frome: Louis Qi <louisqi@viatech.com.cn>
-> 
-> The current routine "arch_acpi_processor_init_pdc" only supports INTEL 
-> CPUs.
-> This patch add support for VIA CPUs.
-> 
-> Signed-off-by: Louis Qi <louisqi@viatech.com.cn>
-> ---
-> 
-> --- 2.6.26.5/arch/x86/kernel/acpi/processor.c.orig    2008-09-28 
-> 10:18:11.000000000 +0800
-> +++ 2.6.26.5/arch/x86/kernel/acpi/processor.c    2008-09-28 
-> 10:18:11.000000000 +0800
-> @@ -66,6 +66,53 @@ static void init_intel_pdc(struct acpi_p
->      return;
->  }
-> 
-> +static void init_via_pdc(struct acpi_processor *pr, struct cpuinfo_x86 *c)
-> +{
-> +    struct acpi_object_list *obj_list;
-> +    union acpi_object *obj;
-> +    u32 *buf;
-> +
-> +    /* allocate and initialize pdc. It will be used later. */
-> +    obj_list = kmalloc(sizeof(struct acpi_object_list), GFP_KERNEL);
-> +    if (!obj_list)
-> +        goto err_obj_list;
-> +
-> +    obj = kmalloc(sizeof(union acpi_object), GFP_KERNEL);
-> +    if (!obj)
-> +        goto err_obj;
-> +
-> +    buf = kmalloc(12, GFP_KERNEL);
-> +    if (!buf)
-> +        goto err_buf;
-> +
-> +    buf[0] = ACPI_PDC_REVISION_ID;
-> +    buf[1] = 1;
-> +    buf[2] = 0;
-> +
-> +    if (cpu_has(c, X86_FEATURE_EST))
-> +        buf[2] |= ACPI_PDC_P_FFH;
-> +
-> +    if (cpu_has(c, X86_FEATURE_ACPI))
-> +        buf[2] |= ACPI_PDC_T_FFH;
-> +
-> +    obj->type = ACPI_TYPE_BUFFER;
-> +    obj->buffer.length = 12;
-> +    obj->buffer.pointer = (u8 *)buf;
-> +    obj_list->count = 1;
-> +    obj_list->pointer = obj;
-> +    pr->pdc = obj_list;
-> +
-> +    return;
-> +
-> +err_buf:
-> +    kfree(obj);
-> +err_obj:
-> +    kfree(obj_list);
-> +err_obj_list:
-> +    printk(KERN_ERR "init_via_pdc: memory allocation failed\n");
-> +}
-> +
-> +
->  /* Initialize _PDC data based on the CPU vendor */
->  void arch_acpi_processor_init_pdc(struct acpi_processor *pr)
->  {
-> @@ -74,6 +121,8 @@ void arch_acpi_processor_init_pdc(struct
->      pr->pdc = NULL;
->      if (c->x86_vendor == X86_VENDOR_INTEL)
->          init_intel_pdc(pr, c);
-> +    else if (c->x86_vendor == X86_VENDOR_CENTAUR)
-> +        init_via_pdc(pr, c);
-> 
->      return;
->  }
-> //////////////////////////////////////////////////////////////////////////////////// 
-> 
-> 
-> Ingo Molnar :
->> just a few minor comments:
->>
->> * louisqi <louisqi@viatech.com.cn> wrote:
->>
->>> +static void init_via_pdc(struct acpi_processor *pr, struct 
->>> cpuinfo_x86 *c)
->>> +{
->>> +    struct acpi_object_list *obj_list;
->>> +    union acpi_object *obj;
->>> +    u32 *buf;
->>> +
->>> +    /* allocate and initialize pdc. It will be used later. */
->>> +    obj_list = kmalloc(sizeof(struct acpi_object_list), GFP_KERNEL);
->>> +    if (!obj_list) {
->>> +        printk(KERN_ERR "Memory allocation error\n");
->>> +        return;
->>> +    }
->>> +
->>> +    obj = kmalloc(sizeof(union acpi_object), GFP_KERNEL);
->>> +    if (!obj) {
->>> +        printk(KERN_ERR "Memory allocation error\n");
->>> +        kfree(obj_list);
->>> +        return;
->>> +    }
->>> +
->>> +    buf = kmalloc(12, GFP_KERNEL);
->>> +    if (!buf) {
->>> +        printk(KERN_ERR "Memory allocation error\n");
->>> +        kfree(obj);
->>> +        kfree(obj_list);
->>> +        return;
->>> +    }
->>
->> error condition cleanliness: it's cleaner to create a single off-line 
->> instance of freeing logic, at the end of the function:
->>
->> ...
->>     [ ... normal path ... ]
->>     return;
->>
->> err_obj:
->>     kfree(obj);
->> err_obj_list:
->>     kfree(obj_list);
->> err:
->>     printk(KERN_ERR "init_via_pdc: memory allocation error\n");
->> }
->>
->> and then after the allocation do:
->>
->>     if (!obj_list)
->>         goto err;
->>
->> etc.
->>
->> (also note the different style of the printk)
->>
->>> +
->>> +    buf[0] = ACPI_PDC_REVISION_ID;
->>> +    buf[1] = 1;
->>> +    buf[2] = 0;
->>> +
->>> +    if (cpu_has(c, X86_FEATURE_EST))
->>> +        buf[2] |= ACPI_PDC_P_FFH;
->>> +
->>> +    if (cpu_has(c, X86_FEATURE_ACPI))
->>> +        buf[2] |= ACPI_PDC_T_FFH;
->>> +
->>> +    obj->type = ACPI_TYPE_BUFFER;
->>> +    obj->buffer.length = 12;
->>> +    obj->buffer.pointer = (u8 *) buf;
->>
->> style: no need to put a space between the '(u8 *)' and 'buf'.
->>
->>> +    return;
->>> +}
->>
->> style: no need to put 'return' at the end of a void function.
->>
->>     Ingo
->> -- 
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->>
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+[   24.220780] ACPI: bus type pci registered
+[   24.220887] PCI: Using configuration type 1
+[   24.221888] ACPI: EC: EC description table is found, configuring boot EC
+[   24.222112] ACPI: EC: non-query interrupt received, switching to 
+interrupt mode
+[   24.223480] ACPI: BIOS _OSI(Linux) query ignored
+[   24.223526] ACPI: DMI System Vendor: Apple Inc.
+[   24.223571] ACPI: DMI Product Name: MacBook4,1
+[   24.223616] ACPI: DMI Product Version: 1.0
+[   24.223659] ACPI: DMI Board Name: Mac-F22788A9
+[   24.223704] ACPI: DMI BIOS Vendor: Apple Inc.
+[   24.223749] ACPI: DMI BIOS Date: 02/09/08
+[   24.223793] ACPI: Please send DMI info above to 
+linux-acpi@vger.kernel.org
+[   24.223841] ACPI: If "acpi_osi=Linux" works better, please notify 
+linux-acpi@vger.kernel.org
+[   24.224052] ACPI: Interpreter enabled
+[   24.224097] ACPI: (supports S0 S3 S4 S5)
+[   24.224269] ACPI: Using IOAPIC for interrupt routing
+[   24.232266] ACPI: EC: GPE = 0x17, I/O: command/status = 0x66, data = 0x62
+[   24.232316] ACPI: EC: driver started in poll mode
+[   24.232930] ACPI: PCI Root Bridge [PCI0] (0000:00)
+[   24.233198] ACPI: EC: non-query interrupt received, switching to 
+interrupt mode
