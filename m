@@ -1,44 +1,102 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: [PATCH] fujitsu-laptop: fix section mismatch warning
-Date: Wed, 08 Oct 2008 14:22:35 -0700
-Message-ID: <48ED249B.7050908@oracle.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: Problem: ACPI related soft lockup on Fujitsu-Siemens AMILO Si 2636
+Date: Thu, 9 Oct 2008 00:19:20 +0200
+Message-ID: <200810090019.21303.trenn@suse.de>
+References: <48E9F51A.4080107@gmail.com> <200810081308.52221.trenn@suse.de> <48EC9F0B.3090207@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rgminet01.oracle.com ([148.87.113.118]:14495 "EHLO
-	rgminet01.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751643AbYJHVXK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Oct 2008 17:23:10 -0400
+Received: from cantor.suse.de ([195.135.220.2]:60290 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754915AbYJHWTW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 8 Oct 2008 18:19:22 -0400
+In-Reply-To: <48EC9F0B.3090207@gmail.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, lenb@kernel.org, akpm <akpm@linux-foundation.org>
-Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+To: Alexey Starikovskiy <aystarik@gmail.com>
+Cc: Thomas Lindroth <thomas.lindroth@gmail.com>, linux-acpi@vger.kernel.org
 
-From: Randy Dunlap <randy.dunlap@oracle.com>
+On Wednesday 08 October 2008 01:52:43 pm Alexey Starikovskiy wrote:
+> Thomas Renninger wrote:
+> > On Wednesday 08 October 2008 12:48:36 Thomas Lindroth wrote:
+...
+> > Is there a general hint I could add into the ACPI Linux guideline, like:
+> > Don't implement EC data/index register reads/writes in AML yourself.
+> > Define a EC variable and e.g. use Store(ECXY, Local0) to read and
+> > Store(Local0, ECXY) to write to specific EC bytes.
+>
+> Declare EC interface might be a better wording.
+>
+> > Did I get this right?
+>
+> Yes.
+> My understanding is that Windows does not support 2 EC devices, so
+> these people need to implement second in AML.
+> So, it might be worth noting that Linux can handle any number of EC
+> devices.
+Can these guys do it right if we return true for:
+_OSI("Multiple EC capable")
 
-Could fix a bug in a hotplug add scenario.
+How does a second EC declaration look like?
+Just a second EC OperationRegion?
+Ahh, it's a whole device, it would still work. It's just the first time that 
+the device is only used on Linux and not on Windows.
+This would also be declared in Windows, because you cannot set conditions 
+around declarations, but it would not hurt:
+This is done in _OSI init section:
 
-WARNING: drivers/misc/fujitsu-laptop.o(.text+0xbde): Section mismatch in reference from the function acpi_fujitsu_add() to the variable .init.data:fujitsu_dmi_table
-The function acpi_fujitsu_add() references
-the variable __initdata fujitsu_dmi_table.
-This is often because acpi_fujitsu_add lacks a __initdata 
-annotation or the annotation of fujitsu_dmi_table is wrong.
+                    If (\_OSI ("Multiple EC capable"))
+                    {
+                        Store (0x01, \MIEC)
+                    }
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
----
- drivers/misc/fujitsu-laptop.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Somewhere in the Scope you have this unconditionally.
+Arghh, that would certainly not work on Windows then or could at least
+be a potential risk there?:
+                    /* Second EC, unused on Windows */
+                    Device (EC2)
+                   {
+                        Name (_HID, EisaId ("PNP0C09"))
+                        OperationRegion (ECOR, EmbeddedControl, 0x00, 0x0100)
+                        Field (ECOR, ByteAcc, NoLock, Preserve)
+                        {
+                            RTMP,   1,
+                            ...
+                        }
+                   }
 
---- lin2627-r9g1-sections.orig/drivers/misc/fujitsu-laptop.c
-+++ lin2627-r9g1-sections/drivers/misc/fujitsu-laptop.c
-@@ -455,7 +455,7 @@ static int dmi_check_cb_s6410(const stru
- 	return 0;
- }
- 
--static struct dmi_system_id __initdata fujitsu_dmi_table[] = {
-+static struct dmi_system_id fujitsu_dmi_table[] = {
- 	{
- 	 .ident = "Fujitsu Siemens",
- 	 .matches = {
+Where the actual value is read:
+
+/* Linux case */
+if(LEqual(MIEC, 1))
+   Store(RTMP, 1)
+
+/* Windows case */
+else {
+    While (RCMD (0x80, Local0))
+    {
+        Noop
+        Noop
+        Store (PMUC, Local5)
+        If (And (Local5, One, Local2))
+        {
+            Store (PMUD, Local5)
+        }
+    }
+}
+
+---------------
+Better ideas?
+The problem is the second EC HID device which cannot be hidden on Windows...
+If Windows is really too dumb for two ECs and vendors are therefore really 
+doing such crap as above, we should think about alternatives..., the EC 
+driver simulation looks rather unsupportable (It misses some locks, but not 
+in AML namespace, but the ones in drivers/acpi/ec.c, right?).
+
+IIRC the ACPI spec explicitly mentions a two (or multiple?) EC PC 
+configuration somewhere? Anyway...
+
+     Thomas
