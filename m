@@ -1,26 +1,44 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: Buggy BIOS on the HP TX2500-series
-Date: Thu, 09 Oct 2008 14:36:56 +0800
-Message-ID: <1223534216.2735.106.camel@rzhang-dt>
+Subject: RE: Buggy BIOS on the HP TX2500-series
+Date: Thu, 09 Oct 2008 14:39:36 +0800
+Message-ID: <1223534376.2735.111.camel@rzhang-dt>
 References: <331496.52627.qm@web23007.mail.ird.yahoo.com>
 	 <20081008192641.GA1932@srcf.ucam.org> <1223513955.2735.28.camel@rzhang-dt>
 	 <20081009011150.GA7496@srcf.ucam.org>
 	 <alpine.LFD.1.10.0810082203280.8572@localhost.localdomain>
+	 <4911F71203A09E4D9981D27F9D83085803123055@orsmsx503.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:28255 "EHLO mga09.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:11619 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754400AbYJIGia (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 9 Oct 2008 02:38:30 -0400
-In-Reply-To: <alpine.LFD.1.10.0810082203280.8572@localhost.localdomain>
+	id S1754868AbYJIGmK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 9 Oct 2008 02:42:10 -0400
+In-Reply-To: <4911F71203A09E4D9981D27F9D83085803123055@orsmsx503.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Gandalf Kristensen <gandkri@yahoo.no>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, "Lin, Ming M" <ming.m.lin@intel.com>, "Moore, Robert" <robert.moore@intel.com>
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Gandalf Kristensen <gandkri@yahoo.no>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, "Lin, Ming M" <ming.m.lin@intel.com>
 
-On Wed, 2008-10-08 at 19:04 -0700, Len Brown wrote:
+On Wed, 2008-10-08 at 21:16 -0700, Moore, Robert wrote:
+> I believe that our "fix" for implicit return to make it Windows compatible should resolve the issue.
+> 
+hmm, what's the fix?
+what's the return value of acpi_evaluate_integer("_CRT"), 0 or an error
+code?
+
+thanks,
+rui
+
+> -----Original Message-----
+> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Len Brown
+> Sent: Wednesday, October 08, 2008 7:05 PM
+> To: Matthew Garrett
+> Cc: Zhang, Rui; Gandalf Kristensen; linux-acpi@vger.kernel.org; Rafael J. Wysocki; Lin, Ming M
+> Subject: Re: Buggy BIOS on the HP TX2500-series
+> 
+> 
 > 
 > On Thu, 9 Oct 2008, Matthew Garrett wrote:
 > 
@@ -32,16 +50,7 @@ On Wed, 2008-10-08 at 19:04 -0700, Len Brown wrote:
 > > > a critical trip point below 0 Celsius doesn't mean it's invalid.
 > >
 > > I think it's pretty clear that a critical trip point below 0 celsius
-> > means that the critical trip point is invalid, 
-well, I agree that this workaround can work here.
-But I think the proper way to fix this issue is that,
-ACPICA returns some error code(AE_BAD_DATA) like it did before,
-and the thermal driver knows that it got an invalid value and
-should take it carefully.
-or else we may still get potential problems, e.g. what if there
-is no return value of _PSV method.
-
-> though I agree that
+> > means that the critical trip point is invalid, though I agree that
 > > ignoring the entire thermal zone as a result is somewhat unfortunate.
 > >
 > > > windows can work well on this laptop.
@@ -61,30 +70,14 @@ is no return value of _PSV method.
 > right, when we put in the workaround we observed that a bad _CRT
 > would delete an entire thermal zone, and that could be a big
 > problem on a box with active cooling on that thermal zone.
-Hmm, I think a patch like this is enough to fix this problem.
-
-
-ignore invalid critical trip point.
-
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- drivers/acpi/thermal.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
-
-Index: linux-2.6/drivers/acpi/thermal.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/thermal.c
-+++ linux-2.6/drivers/acpi/thermal.c
-@@ -373,9 +373,8 @@ static int acpi_thermal_trips_update(str
- 		if (ACPI_FAILURE(status) ||
- 				tz->trips.critical.temperature <= 2732) {
- 			tz->trips.critical.flags.valid = 0;
--			ACPI_EXCEPTION((AE_INFO, status,
-+			ACPI_DEBUG_PRINT((ACPI_DB_WARN,
- 					"No or invalid critical threshold"));
--			return -ENODEV;
- 		} else {
- 			tz->trips.critical.flags.valid = 1;
- 			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-
+> 
+> of course if we are successful on the implicit return front,
+> this becomes unnecessary.
+> 
+> -Len
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
