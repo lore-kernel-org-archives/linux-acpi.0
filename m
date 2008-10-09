@@ -1,49 +1,44 @@
-From: Len Brown <lenb@kernel.org>
-Subject: RE: [PATCH] ACPI: Add _PDC object evaluate for VIA.
-Date: Wed, 08 Oct 2008 20:46:57 -0400 (EDT)
-Message-ID: <alpine.LFD.1.10.0810082037340.3041@localhost.localdomain>
-References: <48DDF430.8060806@viatech.com.cn> <20080927160530.GA27124@elte.hu>
- <48DEEEA1.1010605@viatech.com.cn> <48EC18B0.4060704@viatech.com.cn>
- <7E82351C108FA840AB1866AC776AEC463775879E@orsmsx505.amr.corp.intel.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: Buggy BIOS on the HP TX2500-series
+Date: Thu, 09 Oct 2008 08:59:15 +0800
+Message-ID: <1223513955.2735.28.camel@rzhang-dt>
+References: <331496.52627.qm@web23007.mail.ird.yahoo.com>
+	 <20081008192641.GA1932@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms172069pub.verizon.net ([206.46.172.69]:52085 "EHLO
-	vms172069pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752818AbYJIArM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Oct 2008 20:47:12 -0400
-Received: from localhost.localdomain ([96.237.168.40])
- by vms172069.mailsrvcs.net
- (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K8G00EDT4UD1KK1@vms172069.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 08 Oct 2008 19:47:02 -0500 (CDT)
-In-reply-to: <7E82351C108FA840AB1866AC776AEC463775879E@orsmsx505.amr.corp.intel.com>
+Received: from mga01.intel.com ([192.55.52.88]:57974 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753519AbYJIBBC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 8 Oct 2008 21:01:02 -0400
+In-Reply-To: <20081008192641.GA1932@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Cc: louisqi <louisqi@viatech.com.cn>, Ingo Molnar <mingo@elte.hu>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Gandalf Kristensen <gandkri@yahoo.no>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, "Lin, Ming M" <ming.m.lin@intel.com>
 
+On Wed, 2008-10-08 at 12:26 -0700, Matthew Garrett wrote:
+> A patch went into the kernel earlier this year to ignore critical trip
+> points that were below 0.
+well, I think this patch is wrong.
+a critical trip point below 0 Celsius doesn't mean it's invalid.
+windows can work well on this laptop.
+please look at:
+http://bugzilla.kernel.org/show_bug.cgi?id=10686#c13
+IMO, we need to fix the ACPICA code first of all.
 
-
-> Question: Where are these PDC bits defined for via CPUs? I mean the bits that we use in intel_pdc are
-> defined in an Intel specific document. Just wondering whether the same bit definitions hold good for
-> via or we should have a different set of defines?
-
-ditto.
-init_intel_pdc() uses Intel vendor specific bits documented in 
-ftp://download.intel.com/technology/IAPC/acpi/downloads/30222305.pdf
-and coded into include/acpi/pdc_intel.h
-
-If VIA is going to have any different bit definitions, then
-we should really create a pdc_via.h.  But if VIA is going to re-use
-the bits defined by Intel in a compatible way for the
-forseeable future, then probably all we need to do is add a
-comment saying that the bits VIA is using have the exact
-same meaning as they do for Intel.
+Ming, what do you think of the patch in comment #15 and #16?
 
 thanks,
--Len
+rui
 
-ps. I'm delighted to receive a patch from VIA.
-Sometimes we run into failures in undocumented VIA chipsets,
-perhaps you can help us when we run into those?
+>  Does that not deal with the issue?
+> 
+> --
+> Matthew Garrett | mjg59@srcf.ucam.org
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
