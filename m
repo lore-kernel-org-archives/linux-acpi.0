@@ -1,60 +1,57 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: [PATCH] ACPICA: Add hard limit to while loop
-Date: Thu, 09 Oct 2008 14:35:39 +0400
-Message-ID: <20081009103539.1238.81357.stgit@thinkpad>
+From: "Brian Schau" <brian.schau@gmail.com>
+Subject: Re: Unexpected shutdown - perhaps ACPI related?
+Date: Thu, 9 Oct 2008 13:40:36 +0200
+Message-ID: <4b97db550810090440j5815793ar7e09b3fd7a0b141c@mail.gmail.com>
+References: <4b97db550810080302j79f9001la5a4c06019701131@mail.gmail.com>
+	 <200810081223.20536.trenn@suse.de>
+	 <alpine.LFD.1.10.0810081508180.3041@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:50467 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752753AbYJIKfQ (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Thu, 9 Oct 2008 06:35:16 -0400
+Received: from ug-out-1314.google.com ([66.249.92.169]:58853 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753872AbYJILki (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Oct 2008 07:40:38 -0400
+Received: by ug-out-1314.google.com with SMTP id k3so909554ugf.37
+        for <linux-acpi@vger.kernel.org>; Thu, 09 Oct 2008 04:40:36 -0700 (PDT)
+In-Reply-To: <alpine.LFD.1.10.0810081508180.3041@localhost.localdomain>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: LenBrown <lenb@kernel.org>
-Cc: Linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Thomas Renninger <trenn@suse.de>, linux-acpi@vger.kernel.org
 
-We need to prevent infinite loops and lockups
-
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
----
-
- drivers/acpi/dispatcher/dsopcode.c |    9 +++++++--
- include/acpi/acstruct.h            |    1 +
- 2 files changed, 8 insertions(+), 2 deletions(-)
+Hi,
 
 
-diff --git a/drivers/acpi/dispatcher/dsopcode.c b/drivers/acpi/dispatcher/dsopcode.c
-index 6a81c44..e2a3535 100644
---- a/drivers/acpi/dispatcher/dsopcode.c
-+++ b/drivers/acpi/dispatcher/dsopcode.c
-@@ -1246,8 +1246,13 @@ acpi_ds_exec_end_control_op(struct acpi_walk_state * walk_state,
- 		if (walk_state->control_state->common.value) {
- 
- 			/* Predicate was true, go back and evaluate it again! */
--
--			status = AE_CTRL_PENDING;
-+			/* Use hard limit to prevent infinite loops and lockups */
-+			if (++walk_state->cycle_count > 0xFFFF) {
-+				status = AE_LIMIT;
-+				ACPI_ERROR ((AE_INFO, "Infinite loop detected"));
-+			} else {
-+				status = AE_CTRL_PENDING;
-+			}
- 		}
- 
- 		ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH,
-diff --git a/include/acpi/acstruct.h b/include/acpi/acstruct.h
-index 7980a26..fb4405e 100644
---- a/include/acpi/acstruct.h
-+++ b/include/acpi/acstruct.h
-@@ -94,6 +94,7 @@ struct acpi_walk_state {
- 	u32 method_breakpoint;	/* For single stepping */
- 	u32 user_breakpoint;	/* User AML breakpoint */
- 	u32 parse_flags;
-+	u32 cycle_count;	/* While loop cycle count */
- 
- 	struct acpi_parse_state parser_state;	/* Current state of parser */
- 	u32 prev_arg_types;
+> Thomas' guess is a good one.  See if this is thermal related.
+> load your cpu with a copy of "cat /dev/zero > /dev/null
+> for each core.  Listen for fans to speed up,
 
+I did so for 10 minutes and the temperatur never rose beyond 72 deg C.  I also
+did some other work during that time.
+I couldn't get it to shutdown ...
+
+BTW, the system is a dual core 2GHz system.
+
+> grep . /proc/acpi/thermal*/*/* /proc/acpi/fan/*/*
+
+root@stacy:~# grep . /proc/acpi/thermal*/*/* /proc/acpi/fan/*/*
+/proc/acpi/thermal_zone/THRM/cooling_mode:<setting not supported>
+/proc/acpi/thermal_zone/THRM/polling_frequency:<polling disabled>
+/proc/acpi/thermal_zone/THRM/state:state:                   ok
+/proc/acpi/thermal_zone/THRM/temperature:temperature:             73 C
+/proc/acpi/thermal_zone/THRM/trip_points:critical (S5):           104 C
+grep: /proc/acpi/fan/*/*: No such file or directory
+
+wrt.to the last line (grep error) - the 'fan' modules is loaded but
+there are not
+files present in the /proc/acpi/fan directory.
+
+Also, when I see the shutdowns it occurs as you described above - the hardware
+shutdown.   I've grepped my logfiles but there are no indication of
+ACPI anomalities.
+
+Best regards,
+Brian
