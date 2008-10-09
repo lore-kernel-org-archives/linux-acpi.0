@@ -1,327 +1,55 @@
-From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-Subject: [RESEND] [PATCH] fujitsu-laptop: better handling of P8010 hotkey events
-Date: Thu, 9 Oct 2008 10:36:08 +0930 (CST)
-Message-ID: <200810090106.m99168bI030891@turbo.physics.adelaide.edu.au>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: Buggy BIOS on the HP TX2500-series
+Date: Wed, 08 Oct 2008 21:10:33 -0400 (EDT)
+Message-ID: <alpine.LFD.1.10.0810082105150.3041@localhost.localdomain>
+References: <331496.52627.qm@web23007.mail.ird.yahoo.com>
+ <20081008192641.GA1932@srcf.ucam.org> <1223513955.2735.28.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:56711 "EHLO
-	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752818AbYJIBGZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Oct 2008 21:06:25 -0400
+Received: from vms172069pub.verizon.net ([206.46.172.69]:33521 "EHLO
+	vms172069pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754107AbYJIBKj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Oct 2008 21:10:39 -0400
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms172069.mailsrvcs.net
+ (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+ with ESMTPA id <0K8G00GT05XQEIV2@vms172069.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Wed, 08 Oct 2008 20:10:39 -0500 (CDT)
+In-reply-to: <1223513955.2735.28.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, lenb@kernel.org
-Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-
-Hi Len
-
-Another resend in case this has been lost for some reason.
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Gandalf Kristensen <gandkri@yahoo.no>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, "Lin, Ming M" <ming.m.lin@intel.com>
 
 
-This patch (mostly from Peter Gruber) against 2.6.27-rc4 (but with the
-interim P8010 patch from 2.6.27-rc6 applied) improves the handling of the
-hotkeys for P8010 laptops by passing more accurate input events back to
-userspace.  This is needed because the P8010 labels these buttons quite
-differently to earlier laptops.  As part of this, a P8010-specific DMI
-callback check has been implemented.  Finally there's some minor whitespace
-cleanups from running the source through Lindent.
 
-Please apply to acpi-test for 2.6.28.
+On Thu, 9 Oct 2008, Zhang Rui wrote:
 
-Signed-off-by: Peter Gruber <nokos@gmx.net>
-Signed-off-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+> On Wed, 2008-10-08 at 12:26 -0700, Matthew Garrett wrote:
+> > A patch went into the kernel earlier this year to ignore critical trip
+> > points that were below 0.
 
-Thanks
-  jonathan
+> well, I think this patch is wrong.
 
+i agree that it treated the symptom and not the cause,
+but the patch is still good.
 
-diff --git a/drivers/misc/fujitsu-laptop.c b/drivers/misc/fujitsu-laptop.c index 255d135..36c3add 100644
---- a/drivers/misc/fujitsu-laptop.c
-+++ b/drivers/misc/fujitsu-laptop.c
-@@ -44,8 +44,9 @@
-  * Hotkeys present on certain Fujitsu laptops (eg: the S6xxx series) are
-  * also supported by this driver.
-  *
-- * This driver has been tested on a Fujitsu Lifebook S6410 and S7020. It
-- * should work on most P-series and S-series Lifebooks, but YMMV.
-+ * This driver has been tested on a Fujitsu Lifebook S6410, S7020 and
-+ * P8010.  It should work on most P-series and S-series Lifebooks, but
-+ * YMMV.
-  *
-  * The module parameter use_alt_lcd_levels switches between different ACPI
-  * brightness controls which are used by different Fujitsu laptops.  In most
-@@ -65,7 +66,7 @@
- #include <linux/video_output.h>
- #include <linux/platform_device.h>
- 
--#define FUJITSU_DRIVER_VERSION "0.4.2"
-+#define FUJITSU_DRIVER_VERSION "0.4.3"
- 
- #define FUJITSU_LCD_N_LEVELS 8
- 
-@@ -83,10 +84,10 @@
- #define ACPI_VIDEO_NOTIFY_DEC_BRIGHTNESS     0x87
- 
- /* Hotkey details */
--#define LOCK_KEY	0x410	/* codes for the keys in the GIRB register */
--#define DISPLAY_KEY	0x411	/* keys are mapped to KEY_SCREENLOCK (the key with the key symbol) */
--#define ENERGY_KEY	0x412	/* KEY_MEDIA (the key with the laptop symbol, KEY_EMAIL (E key)) */
--#define REST_KEY	0x413	/* KEY_SUSPEND (R key) */
-+#define KEY1_CODE	0x410	/* codes for the keys in the GIRB register */
-+#define KEY2_CODE	0x411
-+#define KEY3_CODE	0x412
-+#define KEY4_CODE	0x413
- 
- #define MAX_HOTKEY_RINGBUFFER_SIZE 100
- #define RINGBUFFERSIZE 40
-@@ -123,6 +124,7 @@ struct fujitsu_t {
- 	char phys[32];
- 	struct backlight_device *bl_device;
- 	struct platform_device *pf_device;
-+	int keycode1, keycode2, keycode3, keycode4;
- 
- 	unsigned int max_brightness;
- 	unsigned int brightness_changed;
-@@ -430,7 +432,7 @@ static struct platform_driver fujitsupf_driver = {
- 		   }
- };
- 
--static int dmi_check_cb_s6410(const struct dmi_system_id *id)
-+static void dmi_check_cb_common(const struct dmi_system_id *id)
- {
- 	acpi_handle handle;
- 	int have_blnf;
-@@ -452,24 +454,40 @@ static int dmi_check_cb_s6410(const struct dmi_system_id *id)
- 			    "auto-detecting disable_adjust\n");
- 		disable_brightness_adjust = have_blnf ? 0 : 1;
- 	}
-+}
-+
-+static int dmi_check_cb_s6410(const struct dmi_system_id *id)
-+{
-+	dmi_check_cb_common(id);
-+	fujitsu->keycode1 = KEY_SCREENLOCK;	/* "Lock" */
-+	fujitsu->keycode2 = KEY_HELP;	/* "Mobility Center" */
-+	return 0;
-+}
-+
-+static int dmi_check_cb_p8010(const struct dmi_system_id *id)
-+{
-+	dmi_check_cb_common(id);
-+	fujitsu->keycode1 = KEY_HELP;	/* "Support" */
-+	fujitsu->keycode3 = KEY_SWITCHVIDEOMODE;	/* "Presentation" */
-+	fujitsu->keycode4 = KEY_WWW;	/* "Internet" */
- 	return 0;
- }
- 
- static struct dmi_system_id __initdata fujitsu_dmi_table[] = {
- 	{
--	 .ident = "Fujitsu Siemens",
-+	 .ident = "Fujitsu Siemens S6410",
- 	 .matches = {
- 		     DMI_MATCH(DMI_SYS_VENDOR, "FUJITSU SIEMENS"),
- 		     DMI_MATCH(DMI_PRODUCT_NAME, "LIFEBOOK S6410"),
- 		     },
- 	 .callback = dmi_check_cb_s6410},
- 	{
--	 .ident = "FUJITSU LifeBook P8010",
-+	 .ident = "Fujitsu LifeBook P8010",
- 	 .matches = {
- 		     DMI_MATCH(DMI_SYS_VENDOR, "FUJITSU"),
- 		     DMI_MATCH(DMI_PRODUCT_NAME, "LifeBook P8010"),
--		    },
--	 .callback = dmi_check_cb_s6410},
-+		     },
-+	 .callback = dmi_check_cb_p8010},
- 	{}
- };
- 
-@@ -547,7 +565,6 @@ static int acpi_fujitsu_add(struct acpi_device *device)
- 	}
- 
- 	/* do config (detect defaults) */
--	dmi_check_system(fujitsu_dmi_table);
- 	use_alt_lcd_levels = use_alt_lcd_levels == 1 ? 1 : 0;
- 	disable_brightness_keys = disable_brightness_keys == 1 ? 1 : 0;
- 	disable_brightness_adjust = disable_brightness_adjust == 1 ? 1 : 0;
-@@ -612,7 +629,7 @@ static void acpi_fujitsu_notify(acpi_handle handle, u32 event, void *data)
- 	case ACPI_FUJITSU_NOTIFY_CODE1:
- 		keycode = 0;
- 		oldb = fujitsu->brightness_level;
--		get_lcd_level();  /* the alt version always yields changed */
-+		get_lcd_level();	/* the alt version always yields changed */
- 		newb = fujitsu->brightness_level;
- 
- 		vdbg_printk(FUJLAPTOP_DBG_TRACE,
-@@ -623,17 +640,17 @@ static void acpi_fujitsu_notify(acpi_handle handle, u32 event, void *data)
- 			keycode = 0;
- 			if (disable_brightness_keys != 1) {
- 				if (oldb == 0) {
--					acpi_bus_generate_proc_event(fujitsu->
--						dev,
--						ACPI_VIDEO_NOTIFY_DEC_BRIGHTNESS,
--						0);
-+					acpi_bus_generate_proc_event
-+					    (fujitsu->dev,
-+					     ACPI_VIDEO_NOTIFY_DEC_BRIGHTNESS,
-+					     0);
- 					keycode = KEY_BRIGHTNESSDOWN;
- 				} else if (oldb ==
- 					   (fujitsu->max_brightness) - 1) {
--					acpi_bus_generate_proc_event(fujitsu->
--						dev,
--						ACPI_VIDEO_NOTIFY_INC_BRIGHTNESS,
--						0);
-+					acpi_bus_generate_proc_event
-+					    (fujitsu->dev,
-+					     ACPI_VIDEO_NOTIFY_INC_BRIGHTNESS,
-+					     0);
- 					keycode = KEY_BRIGHTNESSUP;
- 				}
- 			}
-@@ -646,8 +663,8 @@ static void acpi_fujitsu_notify(acpi_handle handle, u32 event, void *data)
- 			}
- 			if (disable_brightness_keys != 1) {
- 				acpi_bus_generate_proc_event(fujitsu->dev,
--					ACPI_VIDEO_NOTIFY_INC_BRIGHTNESS,
--					0);
-+							     ACPI_VIDEO_NOTIFY_INC_BRIGHTNESS,
-+							     0);
- 				keycode = KEY_BRIGHTNESSUP;
- 			}
- 		} else if (oldb > newb) {
-@@ -659,8 +676,8 @@ static void acpi_fujitsu_notify(acpi_handle handle, u32 event, void *data)
- 			}
- 			if (disable_brightness_keys != 1) {
- 				acpi_bus_generate_proc_event(fujitsu->dev,
--					ACPI_VIDEO_NOTIFY_DEC_BRIGHTNESS,
--					0);
-+							     ACPI_VIDEO_NOTIFY_DEC_BRIGHTNESS,
-+							     0);
- 				keycode = KEY_BRIGHTNESSDOWN;
- 			}
- 		} else {
-@@ -742,10 +759,10 @@ static int acpi_fujitsu_hotkey_add(struct acpi_device *device)
- 	input->id.product = 0x06;
- 	input->dev.parent = &device->dev;
- 	input->evbit[0] = BIT(EV_KEY);
--	set_bit(KEY_SCREENLOCK, input->keybit);
--	set_bit(KEY_MEDIA, input->keybit);
--	set_bit(KEY_EMAIL, input->keybit);
--	set_bit(KEY_SUSPEND, input->keybit);
-+	set_bit(fujitsu->keycode1, input->keybit);
-+	set_bit(fujitsu->keycode2, input->keybit);
-+	set_bit(fujitsu->keycode3, input->keybit);
-+	set_bit(fujitsu->keycode4, input->keybit);
- 	set_bit(KEY_UNKNOWN, input->keybit);
- 
- 	error = input_register_device(input);
-@@ -833,38 +850,38 @@ static void acpi_fujitsu_hotkey_notify(acpi_handle handle, u32 event,
- 				    irb);
- 
- 			switch (irb & 0x4ff) {
--			case LOCK_KEY:
--				keycode = KEY_SCREENLOCK;
-+			case KEY1_CODE:
-+				keycode = fujitsu->keycode1;
- 				break;
--			case DISPLAY_KEY:
--				keycode = KEY_MEDIA;
-+			case KEY2_CODE:
-+				keycode = fujitsu->keycode2;
- 				break;
--			case ENERGY_KEY:
--				keycode = KEY_EMAIL;
-+			case KEY3_CODE:
-+				keycode = fujitsu->keycode3;
- 				break;
--			case REST_KEY:
--				keycode = KEY_SUSPEND;
-+			case KEY4_CODE:
-+				keycode = fujitsu->keycode4;
- 				break;
- 			case 0:
- 				keycode = 0;
- 				break;
- 			default:
- 				vdbg_printk(FUJLAPTOP_DBG_WARN,
--					"Unknown GIRB result [%x]\n", irb);
-+					    "Unknown GIRB result [%x]\n", irb);
- 				keycode = -1;
- 				break;
- 			}
- 			if (keycode > 0) {
- 				vdbg_printk(FUJLAPTOP_DBG_TRACE,
--					"Push keycode into ringbuffer [%d]\n",
--					keycode);
-+					    "Push keycode into ringbuffer [%d]\n",
-+					    keycode);
- 				status = kfifo_put(fujitsu_hotkey->fifo,
--						(unsigned char *)&keycode,
--						sizeof(keycode));
-+						   (unsigned char *)&keycode,
-+						   sizeof(keycode));
- 				if (status != sizeof(keycode)) {
- 					vdbg_printk(FUJLAPTOP_DBG_WARN,
--						"Could not push keycode [0x%x]\n",
--						keycode);
-+						    "Could not push keycode [0x%x]\n",
-+						    keycode);
- 				} else {
- 					input_report_key(input, keycode, 1);
- 					input_sync(input);
-@@ -943,6 +960,11 @@ static int __init fujitsu_init(void)
- 	if (!fujitsu)
- 		return -ENOMEM;
- 	memset(fujitsu, 0, sizeof(struct fujitsu_t));
-+	fujitsu->keycode1 = KEY_PROG1;
-+	fujitsu->keycode2 = KEY_PROG2;
-+	fujitsu->keycode3 = KEY_PROG3;
-+	fujitsu->keycode4 = KEY_PROG4;
-+	dmi_check_system(fujitsu_dmi_table);
- 
- 	result = acpi_bus_register_driver(&acpi_fujitsu_driver);
- 	if (result < 0) {
-@@ -972,13 +994,14 @@ static int __init fujitsu_init(void)
- 
- 	if (!acpi_video_backlight_support()) {
- 		fujitsu->bl_device =
--			backlight_device_register("fujitsu-laptop", NULL, NULL,
--						  &fujitsubl_ops);
-+		    backlight_device_register("fujitsu-laptop", NULL, NULL,
-+					      &fujitsubl_ops);
- 		if (IS_ERR(fujitsu->bl_device))
- 			return PTR_ERR(fujitsu->bl_device);
- 		max_brightness = fujitsu->max_brightness;
- 		fujitsu->bl_device->props.max_brightness = max_brightness - 1;
--		fujitsu->bl_device->props.brightness = fujitsu->brightness_level;
-+		fujitsu->bl_device->props.brightness =
-+		    fujitsu->brightness_level;
- 	}
- 
- 	ret = platform_driver_register(&fujitsupf_driver);
-@@ -1078,15 +1101,14 @@ MODULE_DESCRIPTION("Fujitsu laptop extras support");
- MODULE_VERSION(FUJITSU_DRIVER_VERSION);
- MODULE_LICENSE("GPL");
- 
--MODULE_ALIAS
--    ("dmi:*:svnFUJITSUSIEMENS:*:pvr:rvnFUJITSU:rnFJNB1D3:*:cvrS6410:*");
--MODULE_ALIAS
--    ("dmi:*:svnFUJITSU:*:pvr:rvnFUJITSU:rnFJNB19C:*:cvrS7020:*");
-+MODULE_ALIAS("dmi:*:svnFUJITSUSIEMENS:*:pvr:rvnFUJITSU:rnFJNB1D3:*:cvrS6410:*");
-+MODULE_ALIAS("dmi:*:svnFUJITSU:*:pvr:rvnFUJITSU:rnFJNB19C:*:cvrS7020:*");
- 
- static struct pnp_device_id pnp_ids[] = {
--	{ .id = "FUJ02bf" },
--	{ .id = "FUJ02B1" },
--	{ .id = "FUJ02E3" },
--	{ .id = "" }
-+	{.id = "FUJ02bf"},
-+	{.id = "FUJ02B1"},
-+	{.id = "FUJ02E3"},
-+	{.id = ""}
- };
-+
- MODULE_DEVICE_TABLE(pnp, pnp_ids);
+> a critical trip point below 0 Celsius doesn't mean it's invalid.
+
+using human made technology here on Earth, it is indeed invalid;-)
+
+> windows can work well on this laptop.
+> please look at:
+> http://bugzilla.kernel.org/show_bug.cgi?id=10686#c13
+
+> IMO, we need to fix the ACPICA code first of all.
+> 
+> Ming, what do you think of the patch in comment #15 and #16?
+
+the root cause of this issue is that the BIOS AML is broken
+and uses an implicit return.  Linux broke our windows bug
+compatibility on implicit return, and we need to fix that.
+
+-Len
+
