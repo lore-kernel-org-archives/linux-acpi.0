@@ -1,33 +1,29 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+From: Lin Ming <ming.m.lin@intel.com>
 Subject: Re: Buggy BIOS on the HP TX2500-series
-Date: Thu, 9 Oct 2008 02:11:50 +0100
-Message-ID: <20081009011150.GA7496@srcf.ucam.org>
-References: <331496.52627.qm@web23007.mail.ird.yahoo.com> <20081008192641.GA1932@srcf.ucam.org> <1223513955.2735.28.camel@rzhang-dt>
+Date: Thu, 09 Oct 2008 09:32:00 +0800
+Message-ID: <1223515920.22227.14.camel@minggr.sh.intel.com>
+References: <331496.52627.qm@web23007.mail.ird.yahoo.com>
+	 <20081008192641.GA1932@srcf.ucam.org>  <1223513955.2735.28.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:39630 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754107AbYJIBL6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Oct 2008 21:11:58 -0400
-Content-Disposition: inline
+Received: from mga01.intel.com ([192.55.52.88]:25554 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753783AbYJIBeV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 8 Oct 2008 21:34:21 -0400
 In-Reply-To: <1223513955.2735.28.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Gandalf Kristensen <gandkri@yahoo.no>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, "Lin, Ming M" <ming.m.lin@intel.com>
+To: "Zhang, Rui" <rui.zhang@intel.com>
+Cc: MooreRobert <robert.moore@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Gandalf Kristensen <gandkri@yahoo.no>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-On Thu, Oct 09, 2008 at 08:59:15AM +0800, Zhang Rui wrote:
+On Wed, 2008-10-08 at 17:59 -0700, Zhang, Rui wrote:
 > On Wed, 2008-10-08 at 12:26 -0700, Matthew Garrett wrote:
 > > A patch went into the kernel earlier this year to ignore critical trip
 > > points that were below 0.
 > well, I think this patch is wrong.
 > a critical trip point below 0 Celsius doesn't mean it's invalid.
-
-I think it's pretty clear that a critical trip point below 0 celsius 
-means that the critical trip point is invalid, though I agree that 
-ignoring the entire thermal zone as a result is somewhat unfortunate.
-
 > windows can work well on this laptop.
 > please look at:
 > http://bugzilla.kernel.org/show_bug.cgi?id=10686#c13
@@ -35,12 +31,32 @@ ignoring the entire thermal zone as a result is somewhat unfortunate.
 > 
 > Ming, what do you think of the patch in comment #15 and #16?
 
-We could quibble over the technical correctness of this approach, but it 
-seems to behave in exactly the same way - ie, Linux will ignore the 
-thermal zone? The existing code seems fine, other than the fact that a 
-bad _CRT will result everything failing. I think we'd be better off just 
-losing the return -ENODEV there and try to use as much of the thermal 
-information as we can.
+We have a ACPICA patch at:
+http://git.acpica.org/repos/?p=acpica.git;a=commitdiff;h=ab557ef061978bd54baa05daca33ea16942629fa 
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+        Method (_CRT, 0, Serialized)
+        {
+            If (LLess (OSYS, 0x07D6))
+            {
+                If (LEqual (\_SB.TJ85, Zero))
+                {
+                    Return (Add (0x0AAC, Multiply (TPC, 0x0A)))
+                }
+                Else
+                {
+                    Return (Add (0x0AAC, Multiply (TP85, 0x0A)))
+                }
+            }
+        }
+    
+Previously _CRT returns 0x07D6, now it returns 0 (predicate value of
+LLess) which matches windows behavior.
+
+So I felt it's better for the external interface (the driver) to check
+the return value (zero) and decide what to do.
+
+Thanks,
+Lin Ming
+
+
+
