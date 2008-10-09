@@ -1,248 +1,58 @@
-From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Subject: RE: [PATCH] ACPI: Add _PDC object evaluate for VIA.
-Date: Wed, 8 Oct 2008 16:47:29 -0700
-Message-ID: <7E82351C108FA840AB1866AC776AEC463775879E@orsmsx505.amr.corp.intel.com>
-References: <48DDF430.8060806@viatech.com.cn>
- <20080927160530.GA27124@elte.hu> <48DEEEA1.1010605@viatech.com.cn>
- <48EC18B0.4060704@viatech.com.cn>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] fujitsu-laptop: fix section mismatch warning
+Date: Wed, 08 Oct 2008 20:25:45 -0400 (EDT)
+Message-ID: <alpine.LFD.1.10.0810082023460.3041@localhost.localdomain>
+References: <48ED249B.7050908@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:55679 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754018AbYJHXsi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Oct 2008 19:48:38 -0400
-In-Reply-To: <48EC18B0.4060704@viatech.com.cn>
-Content-Language: en-US
+Received: from vms173005pub.verizon.net ([206.46.173.5]:60004 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752649AbYJIAZs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Oct 2008 20:25:48 -0400
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173005.mailsrvcs.net
+ (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+ with ESMTPA id <0K8G001NU3UZFHE6@vms173005.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Wed, 08 Oct 2008 19:25:47 -0500 (CDT)
+In-reply-to: <48ED249B.7050908@oracle.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: louisqi <louisqi@viatech.com.cn>, Ingo Molnar <mingo@elte.hu>
-Cc: "Brown, Len" <len.brown@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: linux-acpi@vger.kernel.org, akpm <akpm@linux-foundation.org>, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
 
+applied to acpi-test.
 
-Patch looks good.
-Question: Where are these PDC bits defined for via CPUs? I mean the bits that we use in intel_pdc are
-defined in an Intel specific document. Just wondering whether the same bit definitions hold good for
-via or we should have a different set of defines?
+thanks,
+-Len
 
-Thanks,
-Venki
+On Wed, 8 Oct 2008, Randy Dunlap wrote:
 
->-----Original Message-----
->From: louisqi [mailto:louisqi@viatech.com.cn]
->Sent: Tuesday, October 07, 2008 7:19 PM
->To: Ingo Molnar
->Cc: Brown, Len; Pallipadi, Venkatesh; linux-acpi@vger.kernel.org
->Subject: Re: [PATCH] ACPI: Add _PDC object evaluate for VIA.
->
->Dear Brown & Pallipadi:
->
->I want to know whether there are some problems about this patch.
->
->If it does, please kindly help me to point out, I will revise it.
->
->Waiting for your reply!
->
->Thanks a lot!
->
->
->Louis
->
->2008.10.08
->
->///////////////////////////////////////////////////////
->louisqi have wrote:
->>
->> Thanks a lot, Ingo! Thanks for your kindly help.
->>
->> I have revise my patch as following:
->>
->>
->>
->///////////////////////////////////////////////////////////////
->/////////////////////
->>
->> [PATCH] ACPI: Add _PDC object evaluate for VIA.
->>
->> Frome: Louis Qi <louisqi@viatech.com.cn>
->>
->> The current routine "arch_acpi_processor_init_pdc" only
->supports INTEL
->> CPUs.
->> This patch add support for VIA CPUs.
->>
->> Signed-off-by: Louis Qi <louisqi@viatech.com.cn>
->> ---
->>
->> --- 2.6.26.5/arch/x86/kernel/acpi/processor.c.orig    2008-09-28
->> 10:18:11.000000000 +0800
->> +++ 2.6.26.5/arch/x86/kernel/acpi/processor.c    2008-09-28
->> 10:18:11.000000000 +0800
->> @@ -66,6 +66,53 @@ static void init_intel_pdc(struct acpi_p
->>      return;
->>  }
->>
->> +static void init_via_pdc(struct acpi_processor *pr, struct
->cpuinfo_x86 *c)
->> +{
->> +    struct acpi_object_list *obj_list;
->> +    union acpi_object *obj;
->> +    u32 *buf;
->> +
->> +    /* allocate and initialize pdc. It will be used later. */
->> +    obj_list = kmalloc(sizeof(struct acpi_object_list), GFP_KERNEL);
->> +    if (!obj_list)
->> +        goto err_obj_list;
->> +
->> +    obj = kmalloc(sizeof(union acpi_object), GFP_KERNEL);
->> +    if (!obj)
->> +        goto err_obj;
->> +
->> +    buf = kmalloc(12, GFP_KERNEL);
->> +    if (!buf)
->> +        goto err_buf;
->> +
->> +    buf[0] = ACPI_PDC_REVISION_ID;
->> +    buf[1] = 1;
->> +    buf[2] = 0;
->> +
->> +    if (cpu_has(c, X86_FEATURE_EST))
->> +        buf[2] |= ACPI_PDC_P_FFH;
->> +
->> +    if (cpu_has(c, X86_FEATURE_ACPI))
->> +        buf[2] |= ACPI_PDC_T_FFH;
->> +
->> +    obj->type = ACPI_TYPE_BUFFER;
->> +    obj->buffer.length = 12;
->> +    obj->buffer.pointer = (u8 *)buf;
->> +    obj_list->count = 1;
->> +    obj_list->pointer = obj;
->> +    pr->pdc = obj_list;
->> +
->> +    return;
->> +
->> +err_buf:
->> +    kfree(obj);
->> +err_obj:
->> +    kfree(obj_list);
->> +err_obj_list:
->> +    printk(KERN_ERR "init_via_pdc: memory allocation failed\n");
->> +}
->> +
->> +
->>  /* Initialize _PDC data based on the CPU vendor */
->>  void arch_acpi_processor_init_pdc(struct acpi_processor *pr)
->>  {
->> @@ -74,6 +121,8 @@ void arch_acpi_processor_init_pdc(struct
->>      pr->pdc = NULL;
->>      if (c->x86_vendor == X86_VENDOR_INTEL)
->>          init_intel_pdc(pr, c);
->> +    else if (c->x86_vendor == X86_VENDOR_CENTAUR)
->> +        init_via_pdc(pr, c);
->>
->>      return;
->>  }
->>
->///////////////////////////////////////////////////////////////
->/////////////////////
->>
->>
->> Ingo Molnar :
->>> just a few minor comments:
->>>
->>> * louisqi <louisqi@viatech.com.cn> wrote:
->>>
->>>> +static void init_via_pdc(struct acpi_processor *pr, struct
->>>> cpuinfo_x86 *c)
->>>> +{
->>>> +    struct acpi_object_list *obj_list;
->>>> +    union acpi_object *obj;
->>>> +    u32 *buf;
->>>> +
->>>> +    /* allocate and initialize pdc. It will be used later. */
->>>> +    obj_list = kmalloc(sizeof(struct acpi_object_list),
->GFP_KERNEL);
->>>> +    if (!obj_list) {
->>>> +        printk(KERN_ERR "Memory allocation error\n");
->>>> +        return;
->>>> +    }
->>>> +
->>>> +    obj = kmalloc(sizeof(union acpi_object), GFP_KERNEL);
->>>> +    if (!obj) {
->>>> +        printk(KERN_ERR "Memory allocation error\n");
->>>> +        kfree(obj_list);
->>>> +        return;
->>>> +    }
->>>> +
->>>> +    buf = kmalloc(12, GFP_KERNEL);
->>>> +    if (!buf) {
->>>> +        printk(KERN_ERR "Memory allocation error\n");
->>>> +        kfree(obj);
->>>> +        kfree(obj_list);
->>>> +        return;
->>>> +    }
->>>
->>> error condition cleanliness: it's cleaner to create a
->single off-line
->>> instance of freeing logic, at the end of the function:
->>>
->>> ...
->>>     [ ... normal path ... ]
->>>     return;
->>>
->>> err_obj:
->>>     kfree(obj);
->>> err_obj_list:
->>>     kfree(obj_list);
->>> err:
->>>     printk(KERN_ERR "init_via_pdc: memory allocation error\n");
->>> }
->>>
->>> and then after the allocation do:
->>>
->>>     if (!obj_list)
->>>         goto err;
->>>
->>> etc.
->>>
->>> (also note the different style of the printk)
->>>
->>>> +
->>>> +    buf[0] = ACPI_PDC_REVISION_ID;
->>>> +    buf[1] = 1;
->>>> +    buf[2] = 0;
->>>> +
->>>> +    if (cpu_has(c, X86_FEATURE_EST))
->>>> +        buf[2] |= ACPI_PDC_P_FFH;
->>>> +
->>>> +    if (cpu_has(c, X86_FEATURE_ACPI))
->>>> +        buf[2] |= ACPI_PDC_T_FFH;
->>>> +
->>>> +    obj->type = ACPI_TYPE_BUFFER;
->>>> +    obj->buffer.length = 12;
->>>> +    obj->buffer.pointer = (u8 *) buf;
->>>
->>> style: no need to put a space between the '(u8 *)' and 'buf'.
->>>
->>>> +    return;
->>>> +}
->>>
->>> style: no need to put 'return' at the end of a void function.
->>>
->>>     Ingo
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe
->linux-acpi" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->>>
->> --
->> To unsubscribe from this list: send the line "unsubscribe
->linux-acpi" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->>
->
+> From: Randy Dunlap <randy.dunlap@oracle.com>
+> 
+> Could fix a bug in a hotplug add scenario.
+> 
+> WARNING: drivers/misc/fujitsu-laptop.o(.text+0xbde): Section mismatch in reference from the function acpi_fujitsu_add() to the variable .init.data:fujitsu_dmi_table
+> The function acpi_fujitsu_add() references
+> the variable __initdata fujitsu_dmi_table.
+> This is often because acpi_fujitsu_add lacks a __initdata 
+> annotation or the annotation of fujitsu_dmi_table is wrong.
+> 
+> Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+> cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+> ---
+>  drivers/misc/fujitsu-laptop.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> --- lin2627-r9g1-sections.orig/drivers/misc/fujitsu-laptop.c
+> +++ lin2627-r9g1-sections/drivers/misc/fujitsu-laptop.c
+> @@ -455,7 +455,7 @@ static int dmi_check_cb_s6410(const stru
+>  	return 0;
+>  }
+>  
+> -static struct dmi_system_id __initdata fujitsu_dmi_table[] = {
+> +static struct dmi_system_id fujitsu_dmi_table[] = {
+>  	{
+>  	 .ident = "Fujitsu Siemens",
+>  	 .matches = {
+> 
