@@ -1,103 +1,35 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] x86: trim ACPI sleep stack buffer
-Date: Thu, 9 Oct 2008 10:23:47 -0700
-Message-ID: <4911F71203A09E4D9981D27F9D83085803123361@orsmsx503.amr.corp.intel.com>
-References: <1222819957.13453.15.camel@calx>
- <20081009085649.GC29957@atrey.karlin.mff.cuni.cz>
- <1223571381.17706.94.camel@calx>
- <alpine.LFD.1.10.0810091319160.3007@localhost.localdomain>
+From: Len Brown <lenb@kernel.org>
+Subject: RE: [PATCH] ACPICA: Add hard limit to while loop
+Date: Thu, 09 Oct 2008 12:32:03 -0400 (EDT)
+Message-ID: <alpine.LFD.1.10.0810091230001.3007@localhost.localdomain>
+References: <20081009103539.1238.81357.stgit@thinkpad>
+ <4911F71203A09E4D9981D27F9D83085803123152@orsmsx503.amr.corp.intel.com>
+ <4911F71203A09E4D9981D27F9D83085803123249@orsmsx503.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:64622 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752927AbYJIRYa convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Oct 2008 13:24:30 -0400
-In-Reply-To: <alpine.LFD.1.10.0810091319160.3007@localhost.localdomain>
-Content-Language: en-US
+Received: from vms172071pub.verizon.net ([206.46.172.71]:38390 "EHLO
+	vms172071pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752432AbYJIRcQ (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Thu, 9 Oct 2008 13:32:16 -0400
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms172071.mailsrvcs.net
+ (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+ with ESMTPA id <0K8H00IFCCLGWSH0@vms172071.mailsrvcs.net> for
+ Linux-acpi@vger.kernel.org; Thu, 09 Oct 2008 11:32:05 -0500 (CDT)
+In-reply-to: <4911F71203A09E4D9981D27F9D83085803123249@orsmsx503.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, Matt Mackall <mpm@selenic.com>
-Cc: Pavel Machek <pavel@suse.cz>, Ingo Molnar <mingo@elte.hu>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-
-Sounds like you need a
-
-#define DEFAULT_STACK_SIZE 4096
-
-Somewhere.
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, "Linux-acpi@vger.kernel.org" <Linux-acpi@vger.kernel.org>
 
 
->-----Original Message-----
->From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
->owner@vger.kernel.org] On Behalf Of Len Brown
->Sent: Thursday, October 09, 2008 10:20 AM
->To: Matt Mackall
->Cc: Pavel Machek; Ingo Molnar; Linux Kernel Mailing List; linux-
->acpi@vger.kernel.org
->Subject: Re: [PATCH] x86: trim ACPI sleep stack buffer
->
->applied to acpi-test.
->
->thanks Matt,
->-Len
->
->On Thu, 9 Oct 2008, Matt Mackall wrote:
->
->> On Thu, 2008-10-09 at 10:56 +0200, Pavel Machek wrote:
->> > > We've got:
->> > >
->> > > #if defined(CONFIG_SMP) && defined(CONFIG_64BIT)
->> > > static char temp_stack[10240];
->> > > #endif
->> > >
->> > > and:
->> > >
->> > > #ifdef CONFIG_SMP
->> > >         stack_start.sp = temp_stack + 4096;
->> > > #endif
->> > >
->> > > ..which suggests we use at most 4k of the stack?
->> >
->> > I guess someone (probably me) was "playing it safe" -- not exactly
->> > remembering if stack grows down or up. I guess it should be safe to
->> > change it... will do that.
->> >
->Pavel
->>
->> I've already got a patch, I was just wondering if there was some obscure
->> architectural reason for it that I wasn't aware of.
->>
->>
->> x86: trim ACPI sleep stack buffer
->>
->> x86_64 SMP suspend to RAM uses a 10k temporary stack for saving the
->> kernel state, but only 4k of it is used. Shrink it to 4k.
->>
->> Signed-off-by: Matt Mackall <mpm@selenic.com>
->>
->> diff -r 73d55a1b6c10 arch/x86/kernel/acpi/sleep.c
->> --- a/arch/x86/kernel/acpi/sleep.c    Wed Oct 08 14:48:45 2008 -0500
->> +++ b/arch/x86/kernel/acpi/sleep.c    Thu Oct 09 11:51:54 2008 -0500
->> @@ -21,7 +21,7 @@
->>  static unsigned long acpi_realmode;
->>
->>  #if defined(CONFIG_SMP) && defined(CONFIG_64BIT)
->> -static char temp_stack[10240];
->> +static char temp_stack[4096];
->>  #endif
->>
->>  /**
->>
->> --
->> Mathematics is the supreme nostalgia of our time.
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->--
->To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Are AML while loops our only exposure to getting stuck interpreting AML 
+forever?
+
+Maybe there is a more general solution that would cover everything, such 
+as counting opcodes or setting a watchdog timer?
+
+thanks,
+-Len
+
