@@ -1,81 +1,66 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] ACPICA: Add hard limit to while loop
-Date: Thu, 9 Oct 2008 05:28:41 -0700
-Message-ID: <4911F71203A09E4D9981D27F9D830858031230D4@orsmsx503.amr.corp.intel.com>
-References: <20081009103539.1238.81357.stgit@thinkpad>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: Unexpected shutdown - perhaps ACPI related?
+Date: Thu, 9 Oct 2008 15:03:51 +0200
+Message-ID: <200810091503.51617.trenn@suse.de>
+References: <4b97db550810080302j79f9001la5a4c06019701131@mail.gmail.com> <alpine.LFD.1.10.0810081508180.3041@localhost.localdomain> <4b97db550810090440j5815793ar7e09b3fd7a0b141c@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:48253 "EHLO mga01.intel.com"
+Received: from mx1.suse.de ([195.135.220.2]:48054 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755139AbYJIMaU convert rfc822-to-8bit (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Thu, 9 Oct 2008 08:30:20 -0400
-In-Reply-To: <20081009103539.1238.81357.stgit@thinkpad>
-Content-Language: en-US
+	id S1753170AbYJINDx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 9 Oct 2008 09:03:53 -0400
+In-Reply-To: <4b97db550810090440j5815793ar7e09b3fd7a0b141c@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>, LenBrown <lenb@kernel.org>
-Cc: "Linux-acpi@vger.kernel.org" <Linux-acpi@vger.kernel.org>
+To: Brian Schau <brian.schau@gmail.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-This sounds like a good idea.
+On Thursday 09 October 2008 13:40:36 Brian Schau wrote:
+> Hi,
+>
+> > Thomas' guess is a good one.  See if this is thermal related.
+> > load your cpu with a copy of "cat /dev/zero > /dev/null
+> > for each core.  Listen for fans to speed up,
+>
+> I did so for 10 minutes and the temperatur never rose beyond 72 deg C.
+> I also did some other work during that time.
+> I couldn't get it to shutdown ...
+>
+> BTW, the system is a dual core 2GHz system.
+>
+> > grep . /proc/acpi/thermal*/*/* /proc/acpi/fan/*/*
+>
+> root@stacy:~# grep . /proc/acpi/thermal*/*/* /proc/acpi/fan/*/*
+> /proc/acpi/thermal_zone/THRM/cooling_mode:<setting not supported>
+> /proc/acpi/thermal_zone/THRM/polling_frequency:<polling disabled>
+> /proc/acpi/thermal_zone/THRM/state:state:                   ok
+> /proc/acpi/thermal_zone/THRM/temperature:temperature:             73 C
+> /proc/acpi/thermal_zone/THRM/trip_points:critical (S5):           104 C
+> grep: /proc/acpi/fan/*/*: No such file or directory
+73 C is beyond 72 C :)
+104 sounds as if the HW would switch off before, could still be a thermal 
+issue. Hmm, but the fans seem to be controlled by HW...
 
-I would probably add a new exception code so that it is clear exactly why the method was aborted, and make the maximum loop count a configuration constant.
+> wrt.to the last line (grep error) - the 'fan' modules is loaded but
+> there are not
+> files present in the /proc/acpi/fan directory.
+>
+> Also, when I see the shutdowns it occurs as you described above - the
+> hardware shutdown.
+Means, the power just gets switched off?
+You should try to reproduce this easier somehow. Heavy battery/thermal 
+reading, switching cpufreq up and down or something?
+How often does that happen?
+If it happens often you could try to exclude/not load ACPI drivers, cpufreq 
+drivers. Switch off C-states. These are good candidates.
 
-Bob
+Does this only happen with X?
+Maybe using another X driver (vesa fb) solves it?
 
+Did this machine ever worked fine with older kernels/distributions?
 
------Original Message-----
-From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Alexey Starikovskiy
-Sent: Thursday, October 09, 2008 3:36 AM
-To: LenBrown
-Cc: Linux-acpi@vger.kernel.org
-Subject: [PATCH] ACPICA: Add hard limit to while loop
-
-We need to prevent infinite loops and lockups
-
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
----
-
- drivers/acpi/dispatcher/dsopcode.c |    9 +++++++--
- include/acpi/acstruct.h            |    1 +
- 2 files changed, 8 insertions(+), 2 deletions(-)
-
-
-diff --git a/drivers/acpi/dispatcher/dsopcode.c b/drivers/acpi/dispatcher/dsopcode.c
-index 6a81c44..e2a3535 100644
---- a/drivers/acpi/dispatcher/dsopcode.c
-+++ b/drivers/acpi/dispatcher/dsopcode.c
-@@ -1246,8 +1246,13 @@ acpi_ds_exec_end_control_op(struct acpi_walk_state * walk_state,
-                if (walk_state->control_state->common.value) {
-
-                        /* Predicate was true, go back and evaluate it again! */
--
--                       status = AE_CTRL_PENDING;
-+                       /* Use hard limit to prevent infinite loops and lockups */
-+                       if (++walk_state->cycle_count > 0xFFFF) {
-+                               status = AE_LIMIT;
-+                               ACPI_ERROR ((AE_INFO, "Infinite loop detected"));
-+                       } else {
-+                               status = AE_CTRL_PENDING;
-+                       }
-                }
-
-                ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH,
-diff --git a/include/acpi/acstruct.h b/include/acpi/acstruct.h
-index 7980a26..fb4405e 100644
---- a/include/acpi/acstruct.h
-+++ b/include/acpi/acstruct.h
-@@ -94,6 +94,7 @@ struct acpi_walk_state {
-        u32 method_breakpoint;  /* For single stepping */
-        u32 user_breakpoint;    /* User AML breakpoint */
-        u32 parse_flags;
-+       u32 cycle_count;        /* While loop cycle count */
-
-        struct acpi_parse_state parser_state;   /* Current state of parser */
-        u32 prev_arg_types;
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+     Thomas
