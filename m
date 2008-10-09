@@ -1,67 +1,44 @@
-From: Matt Mackall <mpm@selenic.com>
-Subject: [PATCH] x86: trim ACPI sleep stack buffer
-Date: Thu, 09 Oct 2008 11:56:21 -0500
-Message-ID: <1223571381.17706.94.camel@calx>
-References: <1222819957.13453.15.camel@calx>
-	 <20081009085649.GC29957@atrey.karlin.mff.cuni.cz>
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: [PATCH -next] PM: Simplify the new suspend/hibernation
+	framework for devices
+Date: Thu, 9 Oct 2008 19:12:52 +0200
+Message-ID: <20081009171252.GC1370@ucw.cz>
+References: <200810060055.07601.rjw@sisk.pl> <200810062246.06654.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from waste.org ([66.93.16.53]:57332 "EHLO waste.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753080AbYJIQ6w (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 9 Oct 2008 12:58:52 -0400
-In-Reply-To: <20081009085649.GC29957@atrey.karlin.mff.cuni.cz>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:46477 "EHLO UNKNOWN"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1758973AbYJIRNG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 9 Oct 2008 13:13:06 -0400
+Content-Disposition: inline
+In-Reply-To: <200810062246.06654.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@suse.cz>
-Cc: Ingo Molnar <mingo@elte.hu>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Greg KH <greg@kroah.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Andrew Morton <akpm@linux-foundation.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Hannes Reinecke <hare@suse.de>
 
-On Thu, 2008-10-09 at 10:56 +0200, Pavel Machek wrote:
-> > We've got:
+On Mon 2008-10-06 22:46:05, Rafael J. Wysocki wrote:
+> On Monday, 6 of October 2008, Rafael J. Wysocki wrote:
+> > Hi Greg,
 > > 
-> > #if defined(CONFIG_SMP) && defined(CONFIG_64BIT)
-> > static char temp_stack[10240];
-> > #endif
+> > I promised at the KS that I would simplify the new suspend/hibernation
+> > framework for devices to avoid the confusion with two types of PM
+> > operations and pointers to PM operations from too many places.
 > > 
-> > and:
+> > The appended patch is intended for this purpose.  Unfortunately, I can't
+> > split it into subsystem-related patches, because compilation would be broken
+> > between them.
 > > 
-> > #ifdef CONFIG_SMP
-> >         stack_start.sp = temp_stack + 4096;
-> > #endif
-> > 
-> > ..which suggests we use at most 4k of the stack?
+> > The patch applies to linux-next, but it's trivial to make it apply to the
+> > mainline.  It's been compiled on x86 (both 32-bit and 64-bit) and tested
+> > on hp nx6325, doesn't appear to break anything.
 > 
-> I guess someone (probably me) was "playing it safe" -- not exactly
-> remembering if stack grows down or up. I guess it should be safe to
-> change it... will do that.
-> 									Pavel
+> This one had a checkpatch.pl problem, sorry for that.  Updated patch is
+> appended.
 
-I've already got a patch, I was just wondering if there was some obscure
-architectural reason for it that I wasn't aware of.
-
-
-x86: trim ACPI sleep stack buffer
-
-x86_64 SMP suspend to RAM uses a 10k temporary stack for saving the
-kernel state, but only 4k of it is used. Shrink it to 4k.
-
-Signed-off-by: Matt Mackall <mpm@selenic.com>
-
-diff -r 73d55a1b6c10 arch/x86/kernel/acpi/sleep.c
---- a/arch/x86/kernel/acpi/sleep.c	Wed Oct 08 14:48:45 2008 -0500
-+++ b/arch/x86/kernel/acpi/sleep.c	Thu Oct 09 11:51:54 2008 -0500
-@@ -21,7 +21,7 @@
- static unsigned long acpi_realmode;
- 
- #if defined(CONFIG_SMP) && defined(CONFIG_64BIT)
--static char temp_stack[10240];
-+static char temp_stack[4096];
- #endif
- 
- /**
+Seems ok to me. ACK.
 
 -- 
-Mathematics is the supreme nostalgia of our time.
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
