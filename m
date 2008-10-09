@@ -1,62 +1,88 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: Re: Buggy BIOS on the HP TX2500-series
-Date: Thu, 09 Oct 2008 09:32:00 +0800
-Message-ID: <1223515920.22227.14.camel@minggr.sh.intel.com>
-References: <331496.52627.qm@web23007.mail.ird.yahoo.com>
-	 <20081008192641.GA1932@srcf.ucam.org>  <1223513955.2735.28.camel@rzhang-dt>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: Problem: ACPI related soft lockup on Fujitsu-Siemens AMILO Si 2636
+Date: Wed, 08 Oct 2008 21:50:05 -0400 (EDT)
+Message-ID: <alpine.LFD.1.10.0810082144370.3041@localhost.localdomain>
+References: <48E9F51A.4080107@gmail.com> <48EC5F4B.8020009@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:25554 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753783AbYJIBeV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 8 Oct 2008 21:34:21 -0400
-In-Reply-To: <1223513955.2735.28.camel@rzhang-dt>
+Received: from vms173005pub.verizon.net ([206.46.173.5]:60056 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755229AbYJIBuI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Oct 2008 21:50:08 -0400
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173005.mailsrvcs.net
+ (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+ with ESMTPA id <0K8G001N77RIEUY6@vms173005.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Wed, 08 Oct 2008 20:50:07 -0500 (CDT)
+In-reply-to: <48EC5F4B.8020009@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: MooreRobert <robert.moore@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Gandalf Kristensen <gandkri@yahoo.no>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: Thomas Lindroth <thomas.lindroth@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Wed, 2008-10-08 at 17:59 -0700, Zhang, Rui wrote:
-> On Wed, 2008-10-08 at 12:26 -0700, Matthew Garrett wrote:
-> > A patch went into the kernel earlier this year to ignore critical trip
-> > points that were below 0.
-> well, I think this patch is wrong.
-> a critical trip point below 0 Celsius doesn't mean it's invalid.
-> windows can work well on this laptop.
-> please look at:
-> http://bugzilla.kernel.org/show_bug.cgi?id=10686#c13
-> IMO, we need to fix the ACPICA code first of all.
+
+
+On Wed, 8 Oct 2008, Thomas Lindroth wrote:
+
+> I've done some debugging of this problem myself and reached some conclusions.
 > 
-> Ming, what do you think of the patch in comment #15 and #16?
+> I tried activating the ACPI_LV_INFO ACPI debug mode and observed what happens
+> when the system is under load. I saved one trace and put it in the file
+> acpi_debug_log at http://www.cyd.liu.se/~tholi945/acpi-bug-2008-10-06/
+> 
+> When the temp goes over the ACPI passive trip point the processor gets
+> throttled. It usually never goes over T4 before the temp falls below the
+> passive temp but sometimes it reaches the highest T7. If it reach T7 the
+> next call to _TMP or _L18 never returns. I've confirmed this by running
+> echo T7 > /proc/acpi/processor/CPU*/throttling and then tried to read
+> from /proc/acpi/thermal_zone/TZ00/temperature and it fails in the same way.
+> 
+> I've tried activating the ACPI_LV_PARSE ACPI debug mode, enter T7 and read
+> from temp. I put the result of that in the trace_debug file at the same adress.
+> 
+> The AML call chain looks like this _TMP -> PMRD -> RCMD -> WIBF
+> WIBF always returns 1 causing the interpreter to get stuck in the while
+> loop in PMRD.
+> 
+> While (RCMD (0x80, Local0))
+> {
+>     Noop
+>     Noop
+>     Store (PMUC, Local5)
+>     If (And (Local5, One, Local2))
+>     {
+>         Store (PMUD, Local5)
+>     }
+> }
+> 
+> I don't really understand how AML code works so I can't get much further than
+> this.
+> 
+> I did not experience complete lockups in Windows but I did notice some minor
+> stalls. Maybe the Windows AML parser can break infinite loops or maybe the
+> stalls is a normal part of the Windows experience. I tried to boot with the
+> acpi_osi=Linux option active but it didn't make any difference.
 
-We have a ACPICA patch at:
-http://git.acpica.org/repos/?p=acpica.git;a=commitdiff;h=ab557ef061978bd54baa05daca33ea16942629fa 
+please send the output from
 
-        Method (_CRT, 0, Serialized)
-        {
-            If (LLess (OSYS, 0x07D6))
-            {
-                If (LEqual (\_SB.TJ85, Zero))
-                {
-                    Return (Add (0x0AAC, Multiply (TPC, 0x0A)))
-                }
-                Else
-                {
-                    Return (Add (0x0AAC, Multiply (TP85, 0x0A)))
-                }
-            }
-        }
-    
-Previously _CRT returns 0x07D6, now it returns 0 (predicate value of
-LLess) which matches windows behavior.
+grep . /proc/acpi/thermal_zone/*/*
 
-So I felt it's better for the external interface (the driver) to check
-the return value (zero) and decide what to do.
+from the log, it looks like your _PSV returns 3520, or 352.0K or 78C
+and that is reasonable,  but note that one option you have to
+workaround is to either disable or that trip point via
 
-Thanks,
-Lin Ming
+thermal.psv=-1
+or
+thermal.psv=100
+for example.
 
+But the bigger question is why the temperature is hitting 78 --
+which is quite hot.
+Grep above will tell us if there is ACPI fan control, but I don't
+see any in the logs.  Can you hear the fans spinning?
+Do they go faster when the system heats up?
+do they work better after you blow the dust our of the fan?
 
+-Len
 
