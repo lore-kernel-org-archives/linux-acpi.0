@@ -1,105 +1,112 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: Buggy BIOS on the HP TX2500-series
-Date: Thu, 09 Oct 2008 14:45:25 +0800
-Message-ID: <1223534725.2735.116.camel@rzhang-dt>
-References: <331496.52627.qm@web23007.mail.ird.yahoo.com>
-	 <20081008192641.GA1932@srcf.ucam.org> <1223513955.2735.28.camel@rzhang-dt>
-	 <20081009011150.GA7496@srcf.ucam.org>
-	 <alpine.LFD.1.10.0810082203280.8572@localhost.localdomain>
-	 <1223534216.2735.106.camel@rzhang-dt>
+From: Thomas Lindroth <thomas.lindroth@gmail.com>
+Subject: Re: Problem: ACPI related soft lockup on Fujitsu-Siemens AMILO Si
+ 2636
+Date: Thu, 09 Oct 2008 09:46:40 +0200
+Message-ID: <48EDB6E0.8000609@gmail.com>
+References: <48E9F51A.4080107@gmail.com> <48EC5F4B.8020009@gmail.com> <alpine.LFD.1.10.0810082144370.3041@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:7314 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751360AbYJIGqx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 9 Oct 2008 02:46:53 -0400
-In-Reply-To: <1223534216.2735.106.camel@rzhang-dt>
+Received: from nf-out-0910.google.com ([64.233.182.186]:1538 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752753AbYJIHqr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Oct 2008 03:46:47 -0400
+Received: by nf-out-0910.google.com with SMTP id d3so1756883nfc.21
+        for <linux-acpi@vger.kernel.org>; Thu, 09 Oct 2008 00:46:45 -0700 (PDT)
+In-Reply-To: <alpine.LFD.1.10.0810082144370.3041@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Gandalf Kristensen <gandkri@yahoo.no>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, "Lin, Ming M" <ming.m.lin@intel.com>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
 
-On Wed, 2008-10-08 at 23:36 -0700, Zhang Rui wrote:
-> On Wed, 2008-10-08 at 19:04 -0700, Len Brown wrote:
-> >
-> > On Thu, 9 Oct 2008, Matthew Garrett wrote:
-> >
-> > > On Thu, Oct 09, 2008 at 08:59:15AM +0800, Zhang Rui wrote:
-> > > > On Wed, 2008-10-08 at 12:26 -0700, Matthew Garrett wrote:
-> > > > > A patch went into the kernel earlier this year to ignore critical trip
-> > > > > points that were below 0.
-> > > > well, I think this patch is wrong.
-> > > > a critical trip point below 0 Celsius doesn't mean it's invalid.
-> > >
-> > > I think it's pretty clear that a critical trip point below 0 celsius
-> > > means that the critical trip point is invalid,
-> well, I agree that this workaround can work here.
-> But I think the proper way to fix this issue is that,
-> ACPICA returns some error code(AE_BAD_DATA) like it did before,
-> and the thermal driver knows that it got an invalid value and
-> should take it carefully.
-Bob, do you mean Windows return 0 in this case?
+Len Brown wrote:
+> 
+> On Wed, 8 Oct 2008, Thomas Lindroth wrote:
+> 
+>> I've done some debugging of this problem myself and reached some conclusions.
+>>
+>> I tried activating the ACPI_LV_INFO ACPI debug mode and observed what happens
+>> when the system is under load. I saved one trace and put it in the file
+>> acpi_debug_log at http://www.cyd.liu.se/~tholi945/acpi-bug-2008-10-06/
+>>
+>> When the temp goes over the ACPI passive trip point the processor gets
+>> throttled. It usually never goes over T4 before the temp falls below the
+>> passive temp but sometimes it reaches the highest T7. If it reach T7 the
+>> next call to _TMP or _L18 never returns. I've confirmed this by running
+>> echo T7 > /proc/acpi/processor/CPU*/throttling and then tried to read
+>> from /proc/acpi/thermal_zone/TZ00/temperature and it fails in the same way.
+>>
+>> I've tried activating the ACPI_LV_PARSE ACPI debug mode, enter T7 and read
+>> from temp. I put the result of that in the trace_debug file at the same adress.
+>>
+>> The AML call chain looks like this _TMP -> PMRD -> RCMD -> WIBF
+>> WIBF always returns 1 causing the interpreter to get stuck in the while
+>> loop in PMRD.
+>>
+>> While (RCMD (0x80, Local0))
+>> {
+>>     Noop
+>>     Noop
+>>     Store (PMUC, Local5)
+>>     If (And (Local5, One, Local2))
+>>     {
+>>         Store (PMUD, Local5)
+>>     }
+>> }
+>>
+>> I don't really understand how AML code works so I can't get much further than
+>> this.
+>>
+>> I did not experience complete lockups in Windows but I did notice some minor
+>> stalls. Maybe the Windows AML parser can break infinite loops or maybe the
+>> stalls is a normal part of the Windows experience. I tried to boot with the
+>> acpi_osi=Linux option active but it didn't make any difference.
+> 
+> please send the output from
+> 
+> grep . /proc/acpi/thermal_zone/*/*
 
-> or else we may still get potential problems, e.g. what if there
-> is no return value of _PSV method.
-If it's true, then we don't need to waste our time on this.
-it won't happen because windows doesn't work either in this case, unless
-it workarounds this problem again like it has done for _CRT, right?
+/proc/acpi/thermal_zone/TZ00/cooling_mode:<setting not supported>
+/proc/acpi/thermal_zone/TZ00/polling_frequency:<polling disabled>
+/proc/acpi/thermal_zone/TZ00/state:state:                   ok
+/proc/acpi/thermal_zone/TZ00/temperature:temperature:             53 C
+/proc/acpi/thermal_zone/TZ00/trip_points:critical (S5):           94 C
+/proc/acpi/thermal_zone/TZ00/trip_points:passive:                 86 C: tc1=0 tc2=10 tsp=50 devices=CPU0 CPU1
+/proc/acpi/thermal_zone/TZ01/cooling_mode:0 - Active; 1 - Passive
+/proc/acpi/thermal_zone/TZ01/polling_frequency:<polling disabled>
+/proc/acpi/thermal_zone/TZ01/state:state:                   ok
+/proc/acpi/thermal_zone/TZ01/temperature:temperature:             27 C
+/proc/acpi/thermal_zone/TZ01/trip_points:critical (S5):           94 C
+/proc/acpi/thermal_zone/TZ01/trip_points:passive:                 78 C: tc1=0 tc2=10 tsp=2 devices=CPU0 CPU1
+/proc/acpi/thermal_zone/TZ01/trip_points:active[0]:               80 C: devices=FAN1
+/proc/acpi/thermal_zone/TZ01/trip_points:active[1]:               67 C: devices=FAN0
+/proc/acpi/thermal_zone/TZ01/trip_points:active[2]:               55 C: devices=FAN2
 
-thanks,
-rui
-> 
-> > though I agree that
-> > > ignoring the entire thermal zone as a result is somewhat unfortunate.
-> > >
-> > > > windows can work well on this laptop.
-> > > > please look at:
-> > > > http://bugzilla.kernel.org/show_bug.cgi?id=10686#c13
-> > > > IMO, we need to fix the ACPICA code first of all.
-> > > >
-> > > > Ming, what do you think of the patch in comment #15 and #16?
-> > >
-> > > We could quibble over the technical correctness of this approach, but it
-> > > seems to behave in exactly the same way - ie, Linux will ignore the
-> > > thermal zone? The existing code seems fine, other than the fact that a
-> > > bad _CRT will result everything failing. I think we'd be better off just
-> > > losing the return -ENODEV there and try to use as much of the thermal
-> > > information as we can.
-> >
-> > right, when we put in the workaround we observed that a bad _CRT
-> > would delete an entire thermal zone, and that could be a big
-> > problem on a box with active cooling on that thermal zone.
-> Hmm, I think a patch like this is enough to fix this problem.
-> 
-> 
-> ignore invalid critical trip point.
-> 
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> ---
->  drivers/acpi/thermal.c |    3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
-> 
-> Index: linux-2.6/drivers/acpi/thermal.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/thermal.c
-> +++ linux-2.6/drivers/acpi/thermal.c
-> @@ -373,9 +373,8 @@ static int acpi_thermal_trips_update(str
->                 if (ACPI_FAILURE(status) ||
->                                 tz->trips.critical.temperature <= 2732) {
->                         tz->trips.critical.flags.valid = 0;
-> -                       ACPI_EXCEPTION((AE_INFO, status,
-> +                       ACPI_DEBUG_PRINT((ACPI_DB_WARN,
->                                         "No or invalid critical threshold"));
-> -                       return -ENODEV;
->                 } else {
->                         tz->trips.critical.flags.valid = 1;
->                         ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'm not sure why there are two TZ for the CPUs.
 
+> from the log, it looks like your _PSV returns 3520, or 352.0K or 78C
+> and that is reasonable,  but note that one option you have to
+> workaround is to either disable or that trip point via
+
+TZ00._PSV returns 3520 or 3590 depending on if the temp is above or below
+the previous _PSV value.
+
+> thermal.psv=-1
+> or
+> thermal.psv=100
+> for example.
+> 
+> But the bigger question is why the temperature is hitting 78 --
+> which is quite hot.
+> Grep above will tell us if there is ACPI fan control, but I don't
+> see any in the logs.  Can you hear the fans spinning?
+> Do they go faster when the system heats up?
+> do they work better after you blow the dust our of the fan?
+
+The fans work and spin up under load. TZ01 got fan control but I never
+see anything about TZ01 in the logs so I guess the fans are controlled by
+the BIOS. The computer is new and not dusty.
+
+
+/Thomas Lindroth
