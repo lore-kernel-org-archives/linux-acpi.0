@@ -1,132 +1,44 @@
-From: "Brian Schau" <brian.schau@gmail.com>
-Subject: Unexpected shutdown - perhaps ACPI related?
-Date: Wed, 8 Oct 2008 12:02:09 +0200
-Message-ID: <4b97db550810080302j79f9001la5a4c06019701131@mail.gmail.com>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: 2.6.27-rc8: throttling broken
+Date: Fri, 10 Oct 2008 09:12:05 +0800
+Message-ID: <1223601125.3990.4.camel@yakui_zhao.sh.intel.com>
+References: <20081009171238.GB1370@ucw.cz>  <200810092327.26301.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_78704_19017163.1223460130033"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.169]:38008 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754571AbYJHKCM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Oct 2008 06:02:12 -0400
-Received: by ug-out-1314.google.com with SMTP id k3so515226ugf.37
-        for <linux-acpi@vger.kernel.org>; Wed, 08 Oct 2008 03:02:10 -0700 (PDT)
+Received: from mga01.intel.com ([192.55.52.88]:35467 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753623AbYJJBGX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 9 Oct 2008 21:06:23 -0400
+In-Reply-To: <200810092327.26301.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Pavel Machek <pavel@suse.cz>, jikos@suse.cz, kernel list <linux-kernel@vger.kernel.org>, linux-acpi@ucw.cz, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-------=_Part_78704_19017163.1223460130033
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On Thu, 2008-10-09 at 23:27 +0200, Rafael J. Wysocki wrote:
+> On Thursday, 9 of October 2008, Pavel Machek wrote:
+> > Hi!
+> > 
+> > On 2.6.27-rc8 on via/fic subnotebook, throttling seems to be broken. I
+> > can do echo 15 > /proc/acpi/processor/*/throttling, and proc file
+> > reflects new value, but cpu still runs at same speed.
+> > 
+> > It worked on opensuse11/sled10 kernels at least...
+After echo 15 > /proc/acpi/processor/*/throttling, what T-state is
+displayed by cat /proc/acpi/processor/*/throttling?
 
-Hello,
+If you do the above test on the 2.6.26.x kernel, what T-state is
+displayed ?
+Thanks.
+> 
+> Any chance to check 2.6.26.x on that?
+> 
+> Thanks,
+> Rafael
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-I am seeing strange behaviour on my laptop.   I've been running
-diverse distributions (OpenSUSE, Ubuntu and others) - my
-current being gOS 3.0 gadgets.
-No matter the distribution I see unexpected shutdowns!   That is - one
-second I work, the other I don't.    The laptop shuts
-itself off without any prior notice.
-
-If I disable ACPI the unexpected shutdown disappears (and I loose a
-bunch of other good stuff :-(
-
-I don't know how to diagnose this further so I am asking for help here.
-
-For starters I've attached the output from lsusb and lspci.
-
-I am running kernel 2.6.24-19.
-
-How to proceed?   I am willing to test ... :-)
-
-Best regards,
-Brian
-
-------=_Part_78704_19017163.1223460130033
-Content-Type: application/x-gzip; name=lspci.txt.gz
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fm1sjv6m0
-Content-Disposition: attachment; filename=lspci.txt.gz
-
-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
-q11iUaD9P/SVvb1XRQAA
-------=_Part_78704_19017163.1223460130033
-Content-Type: application/x-gzip; name=lsusb.txt.gz
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fm1sk7av1
-Content-Disposition: attachment; filename=lsusb.txt.gz
-
-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
-BT5f7njc8YdvEfwL0NjUeO85AAA=
-------=_Part_78704_19017163.1223460130033--
