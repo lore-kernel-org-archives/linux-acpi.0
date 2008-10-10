@@ -1,178 +1,445 @@
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: [RFT PATCH 1/2] tc1100-wmi: Convert wireless to use rfkill
-Date: Fri, 10 Oct 2008 19:00:04 +0100
-Message-ID: <20081010180004.12879.4588.stgit@localhost>
-References: <20081010175958.12879.26768.stgit@localhost>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [patch 4/5] acpi: catch calls of acpi_driver_data on pointer of
+ wrong type
+Date: Fri, 10 Oct 2008 11:06:07 -0700
+Message-ID: <20081010110607.7eeea5b7.akpm@linux-foundation.org>
+References: <200809222137.m8MLbYdP031014@imap1.linux-foundation.org>
+	<alpine.LFD.1.10.0810101235050.7059@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:43409 "EHLO
-	pegasus." rhost-flags-OK-OK-FAIL-FAIL) by vger.kernel.org with ESMTP
-	id S1755842AbYJJSAM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 10 Oct 2008 14:00:12 -0400
-In-Reply-To: <20081010175958.12879.26768.stgit@localhost>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48222 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1762665AbYJJSGZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 10 Oct 2008 14:06:25 -0400
+In-Reply-To: <alpine.LFD.1.10.0810101235050.7059@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: lenb@kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, pavel@suse.cz, hare@suse.de
 
-Removal of the old sysfs file will be left for a future patch.
+On Fri, 10 Oct 2008 12:52:44 -0400 (EDT) Len Brown <lenb@kernel.org> wrote:
 
-Also, I don't own the hardware, so this patch is compile tested only
-(though mostly based on the working acer-wmi code).
+> I do like the inline better than the cpp, thanks.
+> But manually expanding all the lvalue cases,
+> in addition to conflicting with every patch in the universe:-(
+> means that we do no type checing on the lvalue cases,
+> which is exactly where we started for those --
+> and we'd not catch fat-fingers such as this one:
+> 
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -384,7 +384,7 @@ static int acpi_device_remove(struct device * dev)
+>                         acpi_drv->ops.remove(acpi_dev, 
+> acpi_dev->removal_type);
+>         }
+>         acpi_dev->driver = NULL;
+> -       acpi_driver_data(dev) = NULL;
+> +       acpi_driver_data(acpi_dev) = NULL;
+> 
+> 
+> I think that acpi_device.driver_data was was an unfortuate name choice,
+> easily fat finger confused with device.driver_data.
+> 
+> Perhaps if we rename it acpi_device.acpi_driver_data
+> then at least
+> 
+> dev->acpi_driver_data =
+> and
+> acpi_dev->driver_data =
+> 
+> would not compile?
 
-While we're at it, fix the broken Kconfig description.
+Better would be to implement a separate acpi_set_driver_data(dev, data)
+function.
 
-Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
+
+Anyway, I don't have time/inclination to keep working on this one. 
+Here's the final version:
+
+From: Pavel Machek <pavel@suse.cz>
+
+Catch attempts to use of acpi_driver_data on pointers of wrong type.
+
+akpm: rewritten to use proper C typechecking and remove the
+"function"-used-as-lvalue thing.
+
+Signed-off-by: Pavel Machek <pavel@suse.cz>
+Cc: Hannes Reinecke <hare@suse.de>
+Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/Kconfig      |    5 ++-
- drivers/misc/tc1100-wmi.c |   76 ++++++++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 78 insertions(+), 3 deletions(-)
+ drivers/acpi/ac.c               |    2 +-
+ drivers/acpi/acpi_memhotplug.c  |    2 +-
+ drivers/acpi/asus_acpi.c        |    2 +-
+ drivers/acpi/battery.c          |    2 +-
+ drivers/acpi/button.c           |    2 +-
+ drivers/acpi/container.c        |    2 +-
+ drivers/acpi/ec.c               |    4 ++--
+ drivers/acpi/fan.c              |    2 +-
+ drivers/acpi/pci_link.c         |    2 +-
+ drivers/acpi/pci_root.c         |    2 +-
+ drivers/acpi/power.c            |    4 ++--
+ drivers/acpi/processor_core.c   |    2 +-
+ drivers/acpi/sbs.c              |    2 +-
+ drivers/acpi/sbshc.c            |    4 ++--
+ drivers/acpi/scan.c             |    4 ++--
+ drivers/acpi/thermal.c          |    2 +-
+ drivers/acpi/video.c            |    6 +++---
+ drivers/misc/asus-laptop.c      |    2 +-
+ drivers/misc/fujitsu-laptop.c   |    4 ++--
+ drivers/misc/intel_menlow.c     |    2 +-
+ drivers/misc/panasonic-laptop.c |    2 +-
+ drivers/misc/thinkpad_acpi.c    |    2 +-
+ include/acpi/acpi_bus.h         |    6 +++++-
+ 23 files changed, 34 insertions(+), 30 deletions(-)
 
-
-diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
-index cce9202..1caa81b 100644
---- a/drivers/misc/Kconfig
-+++ b/drivers/misc/Kconfig
-@@ -208,12 +208,13 @@ config FUJITSU_LAPTOP_DEBUG
- config TC1100_WMI
- 	tristate "HP Compaq TC1100 Tablet WMI Extras (EXPERIMENTAL)"
- 	depends on X86 && !X86_64
-+	depends on RFKILL
- 	depends on EXPERIMENTAL
- 	depends on ACPI
- 	select ACPI_WMI
- 	---help---
--	  This is a driver for the WMI extensions (wireless and bluetooth power
--	  control) of the HP Compaq TC1100 tablet.
-+	  This is a driver for the WMI extensions (wireless power control and
-+	  jogdial mode) of the HP Compaq TC1100 tablet.
+diff -puN drivers/acpi/ac.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type drivers/acpi/ac.c
+--- a/drivers/acpi/ac.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type
++++ a/drivers/acpi/ac.c
+@@ -269,7 +269,7 @@ static int acpi_ac_add(struct acpi_devic
+ 	ac->device = device;
+ 	strcpy(acpi_device_name(device), ACPI_AC_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_AC_CLASS);
+-	acpi_driver_data(device) = ac;
++	device->driver_data = ac;
  
- config HP_WMI
-        tristate "HP WMI extras"
-diff --git a/drivers/misc/tc1100-wmi.c b/drivers/misc/tc1100-wmi.c
-index f25e4c9..ed49269 100644
---- a/drivers/misc/tc1100-wmi.c
-+++ b/drivers/misc/tc1100-wmi.c
-@@ -1,7 +1,7 @@
- /*
-  *  HP Compaq TC1100 Tablet WMI Extras Driver
-  *
-- *  Copyright (C) 2007 Carlos Corbacho <carlos@strangeworlds.co.uk>
-+ *  Copyright (C) 2007-2008 Carlos Corbacho <carlos@strangeworlds.co.uk>
-  *  Copyright (C) 2004 Jamey Hicks <jamey.hicks@hp.com>
-  *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
-  *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
-@@ -28,7 +28,9 @@
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/init.h>
-+#include <linux/rfkill.h>
- #include <linux/types.h>
-+#include <linux/workqueue.h>
- #include <acpi/acpi.h>
- #include <acpi/actypes.h>
- #include <acpi/acpi_bus.h>
-@@ -73,6 +75,8 @@ struct tc1100_data {
+ 	result = acpi_ac_get_state(ac);
+ 	if (result)
+diff -puN drivers/acpi/acpi_memhotplug.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type drivers/acpi/acpi_memhotplug.c
+--- a/drivers/acpi/acpi_memhotplug.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type
++++ a/drivers/acpi/acpi_memhotplug.c
+@@ -403,7 +403,7 @@ static int acpi_memory_device_add(struct
+ 	mem_device->device = device;
+ 	sprintf(acpi_device_name(device), "%s", ACPI_MEMORY_DEVICE_NAME);
+ 	sprintf(acpi_device_class(device), "%s", ACPI_MEMORY_DEVICE_CLASS);
+-	acpi_driver_data(device) = mem_device;
++	device->driver_data = mem_device;
  
- static struct tc1100_data suspend_data;
+ 	/* Get the range from the _CRS */
+ 	result = acpi_memory_get_device_resources(mem_device);
+diff -puN drivers/acpi/asus_acpi.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type drivers/acpi/asus_acpi.c
+--- a/drivers/acpi/asus_acpi.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type
++++ a/drivers/acpi/asus_acpi.c
+@@ -1321,7 +1321,7 @@ static int asus_hotk_add(struct acpi_dev
+ 	hotk->handle = device->handle;
+ 	strcpy(acpi_device_name(device), ACPI_HOTK_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_HOTK_CLASS);
+-	acpi_driver_data(device) = hotk;
++	device->driver_data = hotk;
+ 	hotk->device = device;
  
-+static struct rfkill *wireless_rfkill;
-+
- /* --------------------------------------------------------------------------
- 				Device Management
-    -------------------------------------------------------------------------- */
-@@ -151,6 +155,71 @@ static int set_state(u32 *in, u8 instance)
- }
+ 	result = asus_hotk_check();
+diff -puN drivers/acpi/battery.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type drivers/acpi/battery.c
+--- a/drivers/acpi/battery.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type
++++ a/drivers/acpi/battery.c
+@@ -804,7 +804,7 @@ static int acpi_battery_add(struct acpi_
+ 	battery->device = device;
+ 	strcpy(acpi_device_name(device), ACPI_BATTERY_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_BATTERY_CLASS);
+-	acpi_driver_data(device) = battery;
++	device->driver_data = battery;
+ 	mutex_init(&battery->lock);
+ 	acpi_battery_update(battery);
+ #ifdef CONFIG_ACPI_PROCFS_POWER
+diff -puN drivers/acpi/button.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type drivers/acpi/button.c
+--- a/drivers/acpi/button.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type
++++ a/drivers/acpi/button.c
+@@ -384,7 +384,7 @@ static int acpi_button_add(struct acpi_d
+ 		return -ENOMEM;
  
- /* --------------------------------------------------------------------------
-+				Rfkill
-+   -------------------------------------------------------------------------- */
-+
-+static void tc1100_rfkill_update(struct work_struct *ignored);
-+static DECLARE_DELAYED_WORK(tc1100_rfkill_work, tc1100_rfkill_update);
-+static void tc1100_rfkill_update(struct work_struct *ignored)
-+{
-+	u32 state;
-+	int status;
-+
-+	status = get_state(&state, TC1100_INSTANCE_WIRELESS);
-+	if (!status)
-+		rfkill_force_state(wireless_rfkill, state ?
-+			RFKILL_STATE_UNBLOCKED : RFKILL_STATE_SOFT_BLOCKED);
-+
-+	schedule_delayed_work(&tc1100_rfkill_work, round_jiffies_relative(HZ));
-+}
-+
-+static int tc1100_rfkill_set(void *data, enum rfkill_state new_state)
-+{
-+	u32 state;
-+	int status;
-+
-+	state = (u32) (new_state == RFKILL_STATE_UNBLOCKED);
-+	status = set_state(&state, TC1100_INSTANCE_WIRELESS);
-+	if (status)
-+		return -ENODEV;
-+	return 0;
-+}
-+
-+static int tc1100_rfkill_init(struct device *dev)
-+{
-+	int err;
-+	u32 state;
-+
-+	wireless_rfkill = rfkill_allocate(dev, RFKILL_TYPE_WLAN);
-+	if (!wireless_rfkill)
-+		return -ENOMEM;
-+	wireless_rfkill->name = "tc1100-wireless";
-+	get_state(&state, TC1100_INSTANCE_WIRELESS);
-+	wireless_rfkill->state = state ? RFKILL_STATE_UNBLOCKED :
-+		RFKILL_STATE_SOFT_BLOCKED;
-+	wireless_rfkill->toggle_radio = tc1100_rfkill_set;
-+	wireless_rfkill->user_claim_unsupported = 1;
-+
-+	err = rfkill_register(wireless_rfkill);
-+	if (err) {
-+		kfree(wireless_rfkill->data);
-+		rfkill_free(wireless_rfkill);
-+		return err;
-+	}
-+
-+	schedule_delayed_work(&tc1100_rfkill_work, round_jiffies_relative(HZ));
-+
-+	return 0;
-+}
-+
-+static void tc1100_rfkill_exit(void)
-+{
-+	cancel_delayed_work_sync(&tc1100_rfkill_work);
-+	rfkill_unregister(wireless_rfkill);
-+	return;
-+}
-+
-+/* --------------------------------------------------------------------------
- 				FS Interface (/sys)
-    -------------------------------------------------------------------------- */
+ 	button->device = device;
+-	acpi_driver_data(device) = button;
++	device->driver_data = button;
  
-@@ -218,6 +287,10 @@ static int tc1100_probe(struct platform_device *device)
- {
- 	int result = 0;
+ 	button->input = input = input_allocate_device();
+ 	if (!input) {
+diff -puN drivers/acpi/container.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type drivers/acpi/container.c
+--- a/drivers/acpi/container.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type
++++ a/drivers/acpi/container.c
+@@ -108,7 +108,7 @@ static int acpi_container_add(struct acp
+ 	container->handle = device->handle;
+ 	strcpy(acpi_device_name(device), ACPI_CONTAINER_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_CONTAINER_CLASS);
+-	acpi_driver_data(device) = container;
++	device->driver_data = container;
  
-+	result = tc1100_rfkill_init(&device->dev);
-+	if (result)
-+		return result;
-+
- 	result = add_fs();
- 	return result;
- }
-@@ -225,6 +298,7 @@ static int tc1100_probe(struct platform_device *device)
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device <%s> bid <%s>\n",
+ 			  acpi_device_name(device), acpi_device_bid(device)));
+diff -puN drivers/acpi/ec.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type drivers/acpi/ec.c
+--- a/drivers/acpi/ec.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type
++++ a/drivers/acpi/ec.c
+@@ -788,7 +788,7 @@ static int acpi_ec_add(struct acpi_devic
  
- static int tc1100_remove(struct platform_device *device)
- {
-+	tc1100_rfkill_exit();
- 	remove_fs();
+ 	if (!first_ec)
+ 		first_ec = ec;
+-	acpi_driver_data(device) = ec;
++	device->driver_data = ec;
+ 	acpi_ec_add_fs(device);
+ 	pr_info(PREFIX "GPE = 0x%lx, I/O: command/status = 0x%lx, data = 0x%lx\n",
+ 			  ec->gpe, ec->command_addr, ec->data_addr);
+@@ -813,7 +813,7 @@ static int acpi_ec_remove(struct acpi_de
+ 	}
+ 	mutex_unlock(&ec->lock);
+ 	acpi_ec_remove_fs(device);
+-	acpi_driver_data(device) = NULL;
++	device->driver_data = NULL;
+ 	if (ec == first_ec)
+ 		first_ec = NULL;
+ 	kfree(ec);
+diff -puN drivers/acpi/fan.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type drivers/acpi/fan.c
+--- a/drivers/acpi/fan.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type
++++ a/drivers/acpi/fan.c
+@@ -265,7 +265,7 @@ static int acpi_fan_add(struct acpi_devi
+ 
+ 	dev_info(&device->dev, "registered as cooling_device%d\n", cdev->id);
+ 
+-	acpi_driver_data(device) = cdev;
++	device->driver_data = cdev;
+ 	result = sysfs_create_link(&device->dev.kobj,
+ 				   &cdev->device.kobj,
+ 				   "thermal_cooling");
+diff -puN /dev/null /dev/null
+diff -puN drivers/acpi/pci_link.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type drivers/acpi/pci_link.c
+--- a/drivers/acpi/pci_link.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type
++++ a/drivers/acpi/pci_link.c
+@@ -737,7 +737,7 @@ static int acpi_pci_link_add(struct acpi
+ 	link->device = device;
+ 	strcpy(acpi_device_name(device), ACPI_PCI_LINK_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_PCI_LINK_CLASS);
+-	acpi_driver_data(device) = link;
++	device->driver_data = link;
+ 
+ 	mutex_lock(&acpi_link_lock);
+ 	result = acpi_pci_link_get_possible(link);
+diff -puN drivers/acpi/pci_root.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type drivers/acpi/pci_root.c
+--- a/drivers/acpi/pci_root.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type
++++ a/drivers/acpi/pci_root.c
+@@ -206,7 +206,7 @@ static int __devinit acpi_pci_root_add(s
+ 	root->device = device;
+ 	strcpy(acpi_device_name(device), ACPI_PCI_ROOT_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_PCI_ROOT_CLASS);
+-	acpi_driver_data(device) = root;
++	device->driver_data = root;
+ 
+ 	device->ops.bind = acpi_pci_bind;
+ 
+diff -puN drivers/acpi/power.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type drivers/acpi/power.c
+--- a/drivers/acpi/power.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type
++++ a/drivers/acpi/power.c
+@@ -679,7 +679,7 @@ static int acpi_power_add(struct acpi_de
+ 	strcpy(resource->name, device->pnp.bus_id);
+ 	strcpy(acpi_device_name(device), ACPI_POWER_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_POWER_CLASS);
+-	acpi_driver_data(device) = resource;
++	device->driver_data = resource;
+ 
+ 	/* Evalute the object to get the system level and resource order. */
+ 	status = acpi_evaluate_object(device->handle, NULL, NULL, &buffer);
+@@ -755,7 +755,7 @@ static int acpi_power_resume(struct acpi
+ 	if (!device || !acpi_driver_data(device))
+ 		return -EINVAL;
+ 
+-	resource = (struct acpi_power_resource *)acpi_driver_data(device);
++	resource = acpi_driver_data(device);
+ 
+ 	result = acpi_power_get_state(device->handle, &state);
+ 	if (result)
+diff -puN drivers/acpi/processor_core.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type drivers/acpi/processor_core.c
+--- a/drivers/acpi/processor_core.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type
++++ a/drivers/acpi/processor_core.c
+@@ -818,7 +818,7 @@ static int acpi_processor_add(struct acp
+ 	pr->handle = device->handle;
+ 	strcpy(acpi_device_name(device), ACPI_PROCESSOR_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_PROCESSOR_CLASS);
+-	acpi_driver_data(device) = pr;
++	device->driver_data = pr;
+ 
  	return 0;
  }
+diff -puN drivers/acpi/sbs.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type drivers/acpi/sbs.c
+--- a/drivers/acpi/sbs.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type
++++ a/drivers/acpi/sbs.c
+@@ -931,7 +931,7 @@ static int acpi_sbs_add(struct acpi_devi
+ 	sbs->device = device;
+ 	strcpy(acpi_device_name(device), ACPI_SBS_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_SBS_CLASS);
+-	acpi_driver_data(device) = sbs;
++	device->driver_data = sbs;
+ 
+ 	result = acpi_charger_add(sbs);
+ 	if (result)
+diff -puN drivers/acpi/sbshc.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type drivers/acpi/sbshc.c
+--- a/drivers/acpi/sbshc.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type
++++ a/drivers/acpi/sbshc.c
+@@ -282,7 +282,7 @@ static int acpi_smbus_hc_add(struct acpi
+ 	hc->ec = acpi_driver_data(device->parent);
+ 	hc->offset = (val >> 8) & 0xff;
+ 	hc->query_bit = val & 0xff;
+-	acpi_driver_data(device) = hc;
++	device->driver_data = hc;
+ 
+ 	acpi_ec_add_query_handler(hc->ec, hc->query_bit, NULL, smbus_alarm, hc);
+ 	printk(KERN_INFO PREFIX "SBS HC: EC = 0x%p, offset = 0x%0x, query_bit = 0x%0x\n",
+@@ -303,7 +303,7 @@ static int acpi_smbus_hc_remove(struct a
+ 	hc = acpi_driver_data(device);
+ 	acpi_ec_remove_query_handler(hc->ec, hc->query_bit);
+ 	kfree(hc);
+-	acpi_driver_data(device) = NULL;
++	device->driver_data = NULL;
+ 	return 0;
+ }
+ 
+diff -puN drivers/acpi/scan.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type drivers/acpi/scan.c
+--- a/drivers/acpi/scan.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type
++++ a/drivers/acpi/scan.c
+@@ -391,7 +391,7 @@ static int acpi_device_remove(struct dev
+ 			acpi_drv->ops.remove(acpi_dev, acpi_dev->removal_type);
+ 	}
+ 	acpi_dev->driver = NULL;
+-	acpi_driver_data(acpi_dev) = NULL;
++	acpi_dev->driver_data = NULL;
+ 
+ 	put_device(dev);
+ 	return 0;
+@@ -544,7 +544,7 @@ acpi_bus_driver_init(struct acpi_device 
+ 	result = driver->ops.add(device);
+ 	if (result) {
+ 		device->driver = NULL;
+-		acpi_driver_data(device) = NULL;
++		device->driver_data = NULL;
+ 		return result;
+ 	}
+ 
+diff -puN drivers/acpi/thermal.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type drivers/acpi/thermal.c
+--- a/drivers/acpi/thermal.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type
++++ a/drivers/acpi/thermal.c
+@@ -1647,7 +1647,7 @@ static int acpi_thermal_add(struct acpi_
+ 	strcpy(tz->name, device->pnp.bus_id);
+ 	strcpy(acpi_device_name(device), ACPI_THERMAL_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_THERMAL_CLASS);
+-	acpi_driver_data(device) = tz;
++	device->driver_data = tz;
+ 	mutex_init(&tz->lock);
+ 
+ 
+diff -puN drivers/acpi/video.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type drivers/acpi/video.c
+--- a/drivers/acpi/video.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type
++++ a/drivers/acpi/video.c
+@@ -1491,7 +1491,7 @@ acpi_video_bus_get_one_device(struct acp
+ 
+ 		strcpy(acpi_device_name(device), ACPI_VIDEO_DEVICE_NAME);
+ 		strcpy(acpi_device_class(device), ACPI_VIDEO_CLASS);
+-		acpi_driver_data(device) = data;
++		device->driver_data = data;
+ 
+ 		data->device_id = device_id;
+ 		data->video = video;
+@@ -1982,7 +1982,7 @@ static int acpi_video_bus_add(struct acp
+ 	video->device = device;
+ 	strcpy(acpi_device_name(device), ACPI_VIDEO_BUS_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_VIDEO_CLASS);
+-	acpi_driver_data(device) = video;
++	device->driver_data = video;
+ 
+ 	acpi_video_bus_find_cap(video);
+ 	error = acpi_video_bus_check(video);
+@@ -2058,7 +2058,7 @@ static int acpi_video_bus_add(struct acp
+ 	acpi_video_bus_remove_fs(device);
+  err_free_video:
+ 	kfree(video);
+-	acpi_driver_data(device) = NULL;
++	device->driver_data = NULL;
+ 
+ 	return error;
+ }
+diff -puN drivers/misc/asus-laptop.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type drivers/misc/asus-laptop.c
+--- a/drivers/misc/asus-laptop.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type
++++ a/drivers/misc/asus-laptop.c
+@@ -996,7 +996,7 @@ static int asus_hotk_add(struct acpi_dev
+ 	hotk->handle = device->handle;
+ 	strcpy(acpi_device_name(device), ASUS_HOTK_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ASUS_HOTK_CLASS);
+-	acpi_driver_data(device) = hotk;
++	device->driver_data = hotk;
+ 	hotk->device = device;
+ 
+ 	result = asus_hotk_check();
+diff -puN drivers/misc/fujitsu-laptop.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type drivers/misc/fujitsu-laptop.c
+--- a/drivers/misc/fujitsu-laptop.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type
++++ a/drivers/misc/fujitsu-laptop.c
+@@ -490,7 +490,7 @@ static int acpi_fujitsu_add(struct acpi_
+ 	fujitsu->acpi_handle = device->handle;
+ 	sprintf(acpi_device_name(device), "%s", ACPI_FUJITSU_DEVICE_NAME);
+ 	sprintf(acpi_device_class(device), "%s", ACPI_FUJITSU_CLASS);
+-	acpi_driver_data(device) = fujitsu;
++	device->driver_data = fujitsu;
+ 
+ 	status = acpi_install_notify_handler(device->handle,
+ 					     ACPI_DEVICE_NOTIFY,
+@@ -703,7 +703,7 @@ static int acpi_fujitsu_hotkey_add(struc
+ 	sprintf(acpi_device_name(device), "%s",
+ 		ACPI_FUJITSU_HOTKEY_DEVICE_NAME);
+ 	sprintf(acpi_device_class(device), "%s", ACPI_FUJITSU_CLASS);
+-	acpi_driver_data(device) = fujitsu_hotkey;
++	device->driver_data = fujitsu_hotkey;
+ 
+ 	status = acpi_install_notify_handler(device->handle,
+ 					     ACPI_DEVICE_NOTIFY,
+diff -puN drivers/misc/intel_menlow.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type drivers/misc/intel_menlow.c
+--- a/drivers/misc/intel_menlow.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type
++++ a/drivers/misc/intel_menlow.c
+@@ -175,7 +175,7 @@ static int intel_menlow_memory_add(struc
+ 		goto end;
+ 	}
+ 
+-	acpi_driver_data(device) = cdev;
++	device->driver_data = cdev;
+ 	result = sysfs_create_link(&device->dev.kobj,
+ 				&cdev->device.kobj, "thermal_cooling");
+ 	if (result)
+diff -puN drivers/misc/thinkpad_acpi.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type drivers/misc/thinkpad_acpi.c
+--- a/drivers/misc/thinkpad_acpi.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type
++++ a/drivers/misc/thinkpad_acpi.c
+@@ -543,7 +543,7 @@ static int __init setup_acpi_notify(stru
+ 		return -ENODEV;
+ 	}
+ 
+-	acpi_driver_data(ibm->acpi->device) = ibm;
++	ibm->acpi->device->driver_data = ibm;
+ 	sprintf(acpi_device_class(ibm->acpi->device), "%s/%s",
+ 		TPACPI_ACPI_EVENT_PREFIX,
+ 		ibm->name);
+diff -puN include/acpi/acpi_bus.h~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type include/acpi/acpi_bus.h
+--- a/include/acpi/acpi_bus.h~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type
++++ a/include/acpi/acpi_bus.h
+@@ -300,7 +300,11 @@ struct acpi_device {
+ 	enum acpi_bus_removal_type removal_type;	/* indicate for different removal type */
+ };
+ 
+-#define acpi_driver_data(d)	((d)->driver_data)
++static inline void *acpi_driver_data(struct acpi_device *d)
++{
++	return d->driver_data;
++}
++
+ #define to_acpi_device(d)	container_of(d, struct acpi_device, dev)
+ #define to_acpi_driver(d)	container_of(d, struct acpi_driver, drv)
+ 
+diff -puN drivers/misc/panasonic-laptop.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type drivers/misc/panasonic-laptop.c
+--- a/drivers/misc/panasonic-laptop.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type
++++ a/drivers/misc/panasonic-laptop.c
+@@ -645,7 +645,7 @@ static int acpi_pcc_hotkey_add(struct ac
+ 	pcc->device = device;
+ 	pcc->handle = device->handle;
+ 	pcc->num_sifr = num_sifr;
+-	acpi_driver_data(device) = pcc;
++	device->driver_data = pcc;
+ 	strcpy(acpi_device_name(device), ACPI_PCC_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_PCC_CLASS);
+ 
+_
 
