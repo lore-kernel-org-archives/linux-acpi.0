@@ -1,42 +1,51 @@
-From: Pavel Machek <pavel@suse.cz>
-Subject: Re: 2.6.27-rc8: throttling broken
-Date: Fri, 10 Oct 2008 23:35:18 +0200
-Message-ID: <20081010213518.GB15285@elf.ucw.cz>
-References: <20081009171238.GB1370@ucw.cz> <200810092327.26301.rjw@sisk.pl> <1223601125.3990.4.camel@yakui_zhao.sh.intel.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH -next] PM: Simplify the new suspend/hibernation
+	framework for devices
+Date: Fri, 10 Oct 2008 14:52:42 -0700
+Message-ID: <20081010215242.GB21890@kroah.com>
+References: <200810060055.07601.rjw@sisk.pl> <200810062246.06654.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:56097 "EHLO
-	gprs189-60.eurotel.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1764004AbYJJVdk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Oct 2008 17:33:40 -0400
+Received: from kroah.org ([198.145.64.141]:53124 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1759469AbYJJV4A (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 10 Oct 2008 17:56:00 -0400
 Content-Disposition: inline
-In-Reply-To: <1223601125.3990.4.camel@yakui_zhao.sh.intel.com>
+In-Reply-To: <200810062246.06654.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, jikos@suse.cz, kernel list <linux-kernel@vger.kernel.org>, linux-acpi@ucw.cz, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Andrew Morton <akpm@linux-foundation.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Hannes Reinecke <hare@suse.de>
 
-On Fri 2008-10-10 09:12:05, Zhao Yakui wrote:
-> On Thu, 2008-10-09 at 23:27 +0200, Rafael J. Wysocki wrote:
-> > On Thursday, 9 of October 2008, Pavel Machek wrote:
-> > > Hi!
-> > > 
-> > > On 2.6.27-rc8 on via/fic subnotebook, throttling seems to be broken. I
-> > > can do echo 15 > /proc/acpi/processor/*/throttling, and proc file
-> > > reflects new value, but cpu still runs at same speed.
-> > > 
-> > > It worked on opensuse11/sled10 kernels at least...
-> After echo 15 > /proc/acpi/processor/*/throttling, what T-state is
-> displayed by cat /proc/acpi/processor/*/throttling?
+On Mon, Oct 06, 2008 at 10:46:05PM +0200, Rafael J. Wysocki wrote:
+> On Monday, 6 of October 2008, Rafael J. Wysocki wrote:
+> > Hi Greg,
+> > 
+> > I promised at the KS that I would simplify the new suspend/hibernation
+> > framework for devices to avoid the confusion with two types of PM
+> > operations and pointers to PM operations from too many places.
+> > 
+> > The appended patch is intended for this purpose.  Unfortunately, I can't
+> > split it into subsystem-related patches, because compilation would be broken
+> > between them.
+> > 
+> > The patch applies to linux-next, but it's trivial to make it apply to the
+> > mainline.  It's been compiled on x86 (both 32-bit and 64-bit) and tested
+> > on hp nx6325, doesn't appear to break anything.
+> 
+> This one had a checkpatch.pl problem, sorry for that.  Updated patch is
+> appended.
 
-IIRC that worked correctly. I.e. "*" moved to T15.
+I've added this to my tree (Jesse, is this ok, as it does have a PCI
+portion?)
 
-> If you do the above test on the 2.6.26.x kernel, what T-state is
-> displayed ?
+But it's too late for .28, especially due to the -next tree not up and
+running right now.  I'll let it bake in -mm and -next and it should go
+into .29.
 
-Throttling seems to work there and T15 is correctly marked by "*".
+Is that ok?
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+thanks,
+
+greg k-h
