@@ -1,153 +1,178 @@
 From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: [RFT PATCH 2/2] tc1100-wmi: Remove wireless sysfs entry
-Date: Fri, 10 Oct 2008 19:00:09 +0100
-Message-ID: <20081010180009.12879.14866.stgit@localhost>
+Subject: [RFT PATCH 1/2] tc1100-wmi: Convert wireless to use rfkill
+Date: Fri, 10 Oct 2008 19:00:04 +0100
+Message-ID: <20081010180004.12879.4588.stgit@localhost>
 References: <20081010175958.12879.26768.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:43411 "EHLO
+Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:43409 "EHLO
 	pegasus." rhost-flags-OK-OK-FAIL-FAIL) by vger.kernel.org with ESMTP
-	id S1759930AbYJJSAR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 10 Oct 2008 14:00:17 -0400
+	id S1755842AbYJJSAM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 10 Oct 2008 14:00:12 -0400
 In-Reply-To: <20081010175958.12879.26768.stgit@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: lenb@kernel.org
 
-With the addition of the rfkill interface, this is no longer required.
-Also, clean up the custom suspend/ resume handling for wireless while
-we're at it.
+Removal of the old sysfs file will be left for a future patch.
+
+Also, I don't own the hardware, so this patch is compile tested only
+(though mostly based on the working acer-wmi code).
+
+While we're at it, fix the broken Kconfig description.
 
 Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
 ---
 
- drivers/misc/tc1100-wmi.c |   77 +++++++++++++--------------------------------
- 1 files changed, 23 insertions(+), 54 deletions(-)
+ drivers/misc/Kconfig      |    5 ++-
+ drivers/misc/tc1100-wmi.c |   76 ++++++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 78 insertions(+), 3 deletions(-)
 
 
+diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+index cce9202..1caa81b 100644
+--- a/drivers/misc/Kconfig
++++ b/drivers/misc/Kconfig
+@@ -208,12 +208,13 @@ config FUJITSU_LAPTOP_DEBUG
+ config TC1100_WMI
+ 	tristate "HP Compaq TC1100 Tablet WMI Extras (EXPERIMENTAL)"
+ 	depends on X86 && !X86_64
++	depends on RFKILL
+ 	depends on EXPERIMENTAL
+ 	depends on ACPI
+ 	select ACPI_WMI
+ 	---help---
+-	  This is a driver for the WMI extensions (wireless and bluetooth power
+-	  control) of the HP Compaq TC1100 tablet.
++	  This is a driver for the WMI extensions (wireless power control and
++	  jogdial mode) of the HP Compaq TC1100 tablet.
+ 
+ config HP_WMI
+        tristate "HP WMI extras"
 diff --git a/drivers/misc/tc1100-wmi.c b/drivers/misc/tc1100-wmi.c
-index ed49269..492f591 100644
+index f25e4c9..ed49269 100644
 --- a/drivers/misc/tc1100-wmi.c
 +++ b/drivers/misc/tc1100-wmi.c
-@@ -69,7 +69,6 @@ static struct platform_driver tc1100_driver = {
- static struct platform_device *tc1100_device;
- 
- struct tc1100_data {
--	u32 wireless;
- 	u32 jogdial;
- };
- 
-@@ -226,37 +225,32 @@ static void tc1100_rfkill_exit(void)
+@@ -1,7 +1,7 @@
  /*
-  * Read/ write bool sysfs macro
-  */
--#define show_set_bool(value, instance) \
--static ssize_t \
--show_bool_##value(struct device *dev, struct device_attribute *attr, \
--	char *buf) \
--{ \
--	u32 result; \
--	acpi_status status = get_state(&result, instance); \
--	if (ACPI_SUCCESS(status)) \
--		return sprintf(buf, "%d\n", result); \
--	return sprintf(buf, "Read error\n"); \
--} \
--\
--static ssize_t \
--set_bool_##value(struct device *dev, struct device_attribute *attr, \
--	const char *buf, size_t count) \
--{ \
--	u32 tmp = simple_strtoul(buf, NULL, 10); \
--	acpi_status status = set_state(&tmp, instance); \
--		if (ACPI_FAILURE(status)) \
--			return -EINVAL; \
--	return count; \
--} \
--static DEVICE_ATTR(value, S_IWUGO | S_IRUGO | S_IWUSR, \
--	show_bool_##value, set_bool_##value);
--
--show_set_bool(wireless, TC1100_INSTANCE_WIRELESS);
--show_set_bool(jogdial, TC1100_INSTANCE_JOGDIAL);
-+static ssize_t
-+show_bool_jogdial(struct device *dev, struct device_attribute *attr,
-+	char *buf)
+  *  HP Compaq TC1100 Tablet WMI Extras Driver
+  *
+- *  Copyright (C) 2007 Carlos Corbacho <carlos@strangeworlds.co.uk>
++ *  Copyright (C) 2007-2008 Carlos Corbacho <carlos@strangeworlds.co.uk>
+  *  Copyright (C) 2004 Jamey Hicks <jamey.hicks@hp.com>
+  *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
+  *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
+@@ -28,7 +28,9 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
++#include <linux/rfkill.h>
+ #include <linux/types.h>
++#include <linux/workqueue.h>
+ #include <acpi/acpi.h>
+ #include <acpi/actypes.h>
+ #include <acpi/acpi_bus.h>
+@@ -73,6 +75,8 @@ struct tc1100_data {
+ 
+ static struct tc1100_data suspend_data;
+ 
++static struct rfkill *wireless_rfkill;
++
+ /* --------------------------------------------------------------------------
+ 				Device Management
+    -------------------------------------------------------------------------- */
+@@ -151,6 +155,71 @@ static int set_state(u32 *in, u8 instance)
+ }
+ 
+ /* --------------------------------------------------------------------------
++				Rfkill
++   -------------------------------------------------------------------------- */
++
++static void tc1100_rfkill_update(struct work_struct *ignored);
++static DECLARE_DELAYED_WORK(tc1100_rfkill_work, tc1100_rfkill_update);
++static void tc1100_rfkill_update(struct work_struct *ignored)
 +{
-+	u32 result;
-+	acpi_status status = get_state(&result, TC1100_INSTANCE_JOGDIAL);
-+	if (ACPI_SUCCESS(status))
-+		return sprintf(buf, "%d\n", result);
-+	return sprintf(buf, "Read error\n");
++	u32 state;
++	int status;
++
++	status = get_state(&state, TC1100_INSTANCE_WIRELESS);
++	if (!status)
++		rfkill_force_state(wireless_rfkill, state ?
++			RFKILL_STATE_UNBLOCKED : RFKILL_STATE_SOFT_BLOCKED);
++
++	schedule_delayed_work(&tc1100_rfkill_work, round_jiffies_relative(HZ));
 +}
 +
-+static ssize_t
-+set_bool_jogdial(struct device *dev, struct device_attribute *attr,
-+	const char *buf, size_t count)
++static int tc1100_rfkill_set(void *data, enum rfkill_state new_state)
 +{
-+	u32 tmp = simple_strtoul(buf, NULL, 10);
-+	acpi_status status = set_state(&tmp, TC1100_INSTANCE_JOGDIAL);
-+		if (ACPI_FAILURE(status))
-+			return -EINVAL;
-+	return count;
++	u32 state;
++	int status;
++
++	state = (u32) (new_state == RFKILL_STATE_UNBLOCKED);
++	status = set_state(&state, TC1100_INSTANCE_WIRELESS);
++	if (status)
++		return -ENODEV;
++	return 0;
 +}
-+static DEVICE_ATTR(jogdial, S_IWUGO | S_IRUGO | S_IWUSR,
-+	show_bool_jogdial, set_bool_jogdial);
++
++static int tc1100_rfkill_init(struct device *dev)
++{
++	int err;
++	u32 state;
++
++	wireless_rfkill = rfkill_allocate(dev, RFKILL_TYPE_WLAN);
++	if (!wireless_rfkill)
++		return -ENOMEM;
++	wireless_rfkill->name = "tc1100-wireless";
++	get_state(&state, TC1100_INSTANCE_WIRELESS);
++	wireless_rfkill->state = state ? RFKILL_STATE_UNBLOCKED :
++		RFKILL_STATE_SOFT_BLOCKED;
++	wireless_rfkill->toggle_radio = tc1100_rfkill_set;
++	wireless_rfkill->user_claim_unsupported = 1;
++
++	err = rfkill_register(wireless_rfkill);
++	if (err) {
++		kfree(wireless_rfkill->data);
++		rfkill_free(wireless_rfkill);
++		return err;
++	}
++
++	schedule_delayed_work(&tc1100_rfkill_work, round_jiffies_relative(HZ));
++
++	return 0;
++}
++
++static void tc1100_rfkill_exit(void)
++{
++	cancel_delayed_work_sync(&tc1100_rfkill_work);
++	rfkill_unregister(wireless_rfkill);
++	return;
++}
++
++/* --------------------------------------------------------------------------
+ 				FS Interface (/sys)
+    -------------------------------------------------------------------------- */
  
- static void remove_fs(void)
+@@ -218,6 +287,10 @@ static int tc1100_probe(struct platform_device *device)
  {
--	device_remove_file(&tc1100_device->dev, &dev_attr_wireless);
- 	device_remove_file(&tc1100_device->dev, &dev_attr_jogdial);
- }
+ 	int result = 0;
  
-@@ -264,18 +258,7 @@ static int add_fs(void)
++	result = tc1100_rfkill_init(&device->dev);
++	if (result)
++		return result;
++
+ 	result = add_fs();
+ 	return result;
+ }
+@@ -225,6 +298,7 @@ static int tc1100_probe(struct platform_device *device)
+ 
+ static int tc1100_remove(struct platform_device *device)
  {
- 	int ret;
- 
--	ret = device_create_file(&tc1100_device->dev, &dev_attr_wireless);
--	if (ret)
--		goto add_sysfs_error;
--
- 	ret = device_create_file(&tc1100_device->dev, &dev_attr_jogdial);
--	if (ret)
--		goto add_sysfs_error;
--
--	return ret;
--
--add_sysfs_error:
--	remove_fs();
- 	return ret;
++	tc1100_rfkill_exit();
+ 	remove_fs();
+ 	return 0;
  }
- 
-@@ -307,14 +290,7 @@ static int tc1100_suspend(struct platform_device *dev, pm_message_t state)
- {
- 	int ret;
- 
--	ret = get_state(&suspend_data.wireless, TC1100_INSTANCE_WIRELESS);
--	if (ret)
--		return ret;
--
- 	ret = get_state(&suspend_data.jogdial, TC1100_INSTANCE_JOGDIAL);
--	if (ret)
--		return ret;
--
- 	return ret;
- }
- 
-@@ -322,14 +298,7 @@ static int tc1100_resume(struct platform_device *dev)
- {
- 	int ret;
- 
--	ret = set_state(&suspend_data.wireless, TC1100_INSTANCE_WIRELESS);
--	if (ret)
--		return ret;
--
- 	ret = set_state(&suspend_data.jogdial, TC1100_INSTANCE_JOGDIAL);
--	if (ret)
--		return ret;
--
- 	return ret;
- }
- 
 
