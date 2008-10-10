@@ -1,55 +1,57 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH -next] PM: Simplify the new suspend/hibernation
-	framework for devices
-Date: Fri, 10 Oct 2008 15:43:43 -0700
-Message-ID: <20081010224343.GA30203@kroah.com>
-References: <200810060055.07601.rjw@sisk.pl> <200810062246.06654.rjw@sisk.pl> <20081010215242.GB21890@kroah.com> <200810110047.35993.rjw@sisk.pl>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC][PATCH 2/2] first callers of process_deny_checkpoint()
+Date: Sat, 11 Oct 2008 00:57:03 +0200
+Message-ID: <200810110057.04204.rjw@sisk.pl>
+References: <20081009190405.13A253CB@kernel> <200810102153.45174.rjw@sisk.pl> <20081010195339.GA509@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1763414AbYJJWrb@vger.kernel.org>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:54727 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752110AbYJJWwb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 10 Oct 2008 18:52:31 -0400
+In-Reply-To: <20081010195339.GA509@elte.hu>
 Content-Disposition: inline
-In-Reply-To: <200810110047.35993.rjw@sisk.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Andrew Morton <akpm@linux-foundation.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Hannes Reinecke <hare@suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>, "Serge E. Hallyn" <serue@us.ibm.com>, containers@lists.linux-foundation.org, arnd@arndb.de, linux-kernel@vger.kernel.org, Arjan van de Ven <arjan@infradead.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Sat, Oct 11, 2008 at 12:47:34AM +0200, Rafael J. Wysocki wrote:
-> On Friday, 10 of October 2008, Greg KH wrote:
-> > On Mon, Oct 06, 2008 at 10:46:05PM +0200, Rafael J. Wysocki wrote:
-> > > On Monday, 6 of October 2008, Rafael J. Wysocki wrote:
-> > > > Hi Greg,
-> > > > 
-> > > > I promised at the KS that I would simplify the new suspend/hibernation
-> > > > framework for devices to avoid the confusion with two types of PM
-> > > > operations and pointers to PM operations from too many places.
-> > > > 
-> > > > The appended patch is intended for this purpose.  Unfortunately, I can't
-> > > > split it into subsystem-related patches, because compilation would be broken
-> > > > between them.
-> > > > 
-> > > > The patch applies to linux-next, but it's trivial to make it apply to the
-> > > > mainline.  It's been compiled on x86 (both 32-bit and 64-bit) and tested
-> > > > on hp nx6325, doesn't appear to break anything.
-> > > 
-> > > This one had a checkpatch.pl problem, sorry for that.  Updated patch is
-> > > appended.
-> > 
-> > I've added this to my tree (Jesse, is this ok, as it does have a PCI
-> > portion?)
-> > 
-> > But it's too late for .28, especially due to the -next tree not up and
-> > running right now.  I'll let it bake in -mm and -next and it should go
-> > into .29.
-> > 
-> > Is that ok?
+On Friday, 10 of October 2008, Ingo Molnar wrote:
 > 
-> Well, if anyone pushes anything depending on this framework for .27, that will
-> become a !@#$%^&* mess (we've had this problem once already).
+> * Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> 
+> > > > Surely not ACPI-compliant.
+> > > 
+> > > what do you mean?
+> > 
+> > The ACPI spec says quite specifically what should be done while 
+> > entering hibernation and during resume from hibernation.  We're not 
+> > following that in the current code, but we can (gradually) update the 
+> > code to become ACPI-compilant in that respect.  However, if we go the 
+> > checkpointing route, I don't think that will be possible any more.
+> 
+> ah, i see. I did not mean to utilize any ACPI paths but simple powerdown 
+> or reboot.
+> 
+> If we checkpoint all apps to persistent disk areas (which the checkpoint 
+> patches in this thread are about), then we can just reboot the kernel 
+> and forget all its state.
+> 
+> That capability can be used to build a really robust hibernation 
+> implementation IMO: we could "hibernate/kexec" over between different 
+> kernel versions transparently. (only a small delay will be noticed by 
+> the user - if we do it smartly with in-kernel modesetting then not even 
+> the screen contents will be changed over this.)
 
-Do we have any drivers that depend on this framework in any tree?  Is
-anyone needing this now?
+That actually should be called a migration of VM IMO and would be a useful
+functionality.  Sure.
 
-thanks,
+Hibernation, however, generally involves the restoration of the hardware and
+most importantly _platform_ state which IMO is impossible without the ACPI
+functionality, as well as wake-up, which may depend on ACPI too.
 
-greg k-h
+Thanks,
+Rafael
