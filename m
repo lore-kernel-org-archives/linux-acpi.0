@@ -1,45 +1,89 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] acpiphp: Match the variable types for ia64
-Date: Fri, 10 Oct 2008 02:20:28 -0400 (EDT)
-Message-ID: <alpine.LFD.1.10.0810100217370.3007@localhost.localdomain>
-References: <200510232100.j9NL0MWA030225@shell0.pdx.osdl.net>
- <20080910002011.GF2772@parisc-linux.org>
- <20080910074940.GA12737@ldl.fc.hp.com>
- <200809101103.55222.jbarnes@virtuousgeek.org>
- <B57D568CB82B0C4B897F9CD9862DE8B733A328DF9E@GVW1097EXB.americas.hpqcorp.net>
- <20080911104345.GL2772@parisc-linux.org>
- <B57D568CB82B0C4B897F9CD9862DE8B733A328E8E0@GVW1097EXB.americas.hpqcorp.net>
- <20080912183213.GH10844@parisc-linux.org>
- <4911F71203A09E4D9981D27F9D8308584E454A@orsmsx503.amr.corp.intel.com>
- <20080915184509.GA29454@parisc-linux.org>
+From: "Brian Schau" <brian.schau@gmail.com>
+Subject: Re: Unexpected shutdown - perhaps ACPI related?
+Date: Fri, 10 Oct 2008 09:58:11 +0200
+Message-ID: <4b97db550810100058r4d513732j1248adc293056ca3@mail.gmail.com>
+References: <4b97db550810080302j79f9001la5a4c06019701131@mail.gmail.com>
+	 <alpine.LFD.1.10.0810081508180.3041@localhost.localdomain>
+	 <4b97db550810090440j5815793ar7e09b3fd7a0b141c@mail.gmail.com>
+	 <200810091503.51617.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms172071pub.verizon.net ([206.46.172.71]:48587 "EHLO
-	vms172071pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752030AbYJJGUg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Oct 2008 02:20:36 -0400
-In-reply-to: <20080915184509.GA29454@parisc-linux.org>
+Received: from ug-out-1314.google.com ([66.249.92.175]:47942 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752753AbYJJH6N (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Oct 2008 03:58:13 -0400
+Received: by ug-out-1314.google.com with SMTP id k3so1210735ugf.37
+        for <linux-acpi@vger.kernel.org>; Fri, 10 Oct 2008 00:58:11 -0700 (PDT)
+In-Reply-To: <200810091503.51617.trenn@suse.de>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Wilcox <matthew@wil.cx>
-Cc: "Moore, Robert" <robert.moore@intel.com>, "Chen, Justin" <justin.chen@hp.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, "Chiang, Alexander" <achiang@hp.com>, "Accardi, Kristen C" <kristen.c.accardi@intel.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>, "Lin, Ming M" <ming.m.lin@intel.com>
+To: Thomas Renninger <trenn@suse.de>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+
+>> root@stacy:~# grep . /proc/acpi/thermal*/*/* /proc/acpi/fan/*/*
+>> /proc/acpi/thermal_zone/THRM/cooling_mode:<setting not supported>
+>> /proc/acpi/thermal_zone/THRM/polling_frequency:<polling disabled>
+>> /proc/acpi/thermal_zone/THRM/state:state:                   ok
+>> /proc/acpi/thermal_zone/THRM/temperature:temperature:             73 C
+>> /proc/acpi/thermal_zone/THRM/trip_points:critical (S5):           104 C
+>> grep: /proc/acpi/fan/*/*: No such file or directory
+> 73 C is beyond 72 C :)
+
+Sorry, my bad :-)
+
+> 104 sounds as if the HW would switch off before, could still be a thermal
+> issue. Hmm, but the fans seem to be controlled by HW...
+
+I am pretty sure it somehow is hardware related.   And as the subject suggests
+I am not even sure it is ACPI related (I don't know jack about ACPI so I cannot
+identify if it is involved :-)
+However, it seems that my laptop is shutting itself off when ACPI is enabled.
+(Though, it hasn't done that for almost 2 days now - it's like when
+you've been coughing
+all night and then when you go to the doctors office you can't cough.
+The minute you
+step outside the coughing starts again.   Maybe I should stay on the
+linux-acpi list :-)
+
+>> Also, when I see the shutdowns it occurs as you described above - the
+>> hardware shutdown.
+> Means, the power just gets switched off?
+
+Yes.   Just like that.
+
+> You should try to reproduce this easier somehow. Heavy battery/thermal
+> reading, switching cpufreq up and down or something?
+
+I will try to create a script which scales the CPU and reads the battery ..
+
+> How often does that happen?
+
+Seldom enough to be easily diagnosed but often enough to be a pain in the a**!
+
+> If it happens often you could try to exclude/not load ACPI drivers, cpufreq
+> drivers. Switch off C-states. These are good candidates.
+
+To have a stable system I boot with "apci=off noacpi" will that also
+kill the cpufreq
+drivers?     Turning off the acpi means I cannot have the machine automatically
+turn off when I request a shutdown.   A minor thing I can live with ...
+How do I switch off C-states?   (And what does it mean?  :-)
+
+> Does this only happen with X?
+
+So far, yes.  But I am only using X.   If I need to do console work
+(which I often
+do) I use xterm or gnome-termina.
 
 
-> [PATCH] Change acpi_evaluate_integer to support 64-bit on 32-bit kernels
+> Did this machine ever worked fine with older kernels/distributions?
 
-Matt,
-I applied this patch, but first i global replaced
-acpi_integer with "unsigned long long" because we
-actually don't actually want that ACPICA type spreading
-any more out of the ACPICA code than necessary.
+Yes.  I've been an avid slackware user and I never saw these problems.   OTOH
+back then I rolled my own kernel and as far as I recall it did have
+parts of the ACPI
+interface included (primarily the battery interface) ...
 
-Yes, it boots:-)
-It has a couple of conflicts with other pathces
-in my queue, and when i sift through those
-(friday), it will appear in my public test tree.
-
-thanks,
--Len
-
-
+/brian
