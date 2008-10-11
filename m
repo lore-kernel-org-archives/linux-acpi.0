@@ -1,51 +1,39 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: [PATCH -next] PM: Simplify the new suspend/hibernation framework for devices
-Date: Fri, 10 Oct 2008 21:43:17 -0700
-Message-ID: <200810102143.17975.jbarnes@virtuousgeek.org>
-References: <200810060055.07601.rjw@sisk.pl> <200810062246.06654.rjw@sisk.pl> <20081010215242.GB21890@kroah.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [Resend] [PATCH] ACPI: Enable EC device immediately after ACPI
+ full initialization
+Date: Sat, 11 Oct 2008 02:00:56 -0400 (EDT)
+Message-ID: <alpine.LFD.1.10.0810110200230.7059@localhost.localdomain>
+References: <1223260296.4023.292.camel@yakui_zhao.sh.intel.com>
+ <alpine.LFD.1.10.0810101730130.7059@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753807AbYJKEoA@vger.kernel.org>
-In-Reply-To: <20081010215242.GB21890@kroah.com>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Hannes Reinecke <hare@suse.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms173001pub.verizon.net ([206.46.173.1]:47737 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750950AbYJKGA7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 02:00:59 -0400
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173001.mailsrvcs.net
+ (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+ with ESMTPA id <0K8K00HO78PM7LU0@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 11 Oct 2008 01:00:58 -0500 (CDT)
+In-reply-to: <alpine.LFD.1.10.0810101730130.7059@localhost.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Friday, October 10, 2008 2:52 pm Greg KH wrote:
-> On Mon, Oct 06, 2008 at 10:46:05PM +0200, Rafael J. Wysocki wrote:
-> > On Monday, 6 of October 2008, Rafael J. Wysocki wrote:
-> > > Hi Greg,
-> > >
-> > > I promised at the KS that I would simplify the new suspend/hibernation
-> > > framework for devices to avoid the confusion with two types of PM
-> > > operations and pointers to PM operations from too many places.
-> > >
-> > > The appended patch is intended for this purpose.  Unfortunately, I
-> > > can't split it into subsystem-related patches, because compilation
-> > > would be broken between them.
-> > >
-> > > The patch applies to linux-next, but it's trivial to make it apply to
-> > > the mainline.  It's been compiled on x86 (both 32-bit and 64-bit) and
-> > > tested on hp nx6325, doesn't appear to break anything.
-> >
-> > This one had a checkpatch.pl problem, sorry for that.  Updated patch is
-> > appended.
->
-> I've added this to my tree (Jesse, is this ok, as it does have a PCI
-> portion?)
->
-> But it's too late for .28, especially due to the -next tree not up and
-> running right now.  I'll let it bake in -mm and -next and it should go
-> into .29.
->
-> Is that ok?
 
-There are a couple of trivial PCI bits, but it's fine if they come in through 
-your tree for 2.6.29.
 
-Thanks,
-Jesse
+On Fri, 10 Oct 2008, Len Brown wrote:
+
+> http://bugzilla.kernel.org/show_bug.cgi?id=11374#c7
+> 
+> suggests that this patch will causee a regression.
+
+Alexey send me his Ack for this one, so I've applied it to the
+ec branch in acpi-test.
+
+thanks,
+-Len
+
