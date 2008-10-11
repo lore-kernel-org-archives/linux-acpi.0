@@ -1,116 +1,220 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 66/85] PNP: add CONFIG_PNP_DEBUG_MESSAGES and pnp_dbg()
-Date: Sat, 11 Oct 2008 02:36:26 -0400
-Message-ID: <97ef062bbe08f46903f29ecdf432be302c977f3b.1223706853.git.len.brown@intel.com>
+Subject: [PATCH 08/85] ACPICA: Copy dynamically loaded tables to local buffer
+Date: Sat, 11 Oct 2008 02:35:28 -0400
+Message-ID: <a4377db47f9b0586f32ed7beddb53c86d5ef422d.1223706853.git.len.brown@intel.com>
 References: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms172073pub.verizon.net ([206.46.172.73]:58897 "EHLO
-	vms172073pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753851AbYJKGhR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 02:37:17 -0400
+Received: from vms173003pub.verizon.net ([206.46.173.3]:40791 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753327AbYJKGhG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 02:37:06 -0400
 In-reply-to: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 In-reply-to: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
 References: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Andi Kleen <ak@linux.intel.com>, Len Brown <len.brown@intel.com>
+Cc: Dennis Noordsij <dennis.noordsij@helsinki.fi>, Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Andi Kleen <ak@linux.intel.com>, Len Brown <len.brown@intel.com>
 
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+From: Dennis Noordsij <dennis.noordsij@helsinki.fi>
 
-This adds the core function pnp_dbg() and a new config option to
-enable it.
+Previously, dynamically loaded tables were simply mapped, but on some machines
+this memory is corrupted after suspend. Now copy the table to a local buffer.
+For OpRegion case, added checksum verify. Use the table length from the table header,
+not the region length. For Buffer case, use the table length also.
 
-The PNP core debugging messages can be enabled at boot-time with the
-"pnp.debug" kernel parameter.
+http://bugzilla.kernel.org/show_bug.cgi?id=10734
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Dennis Noordsij <dennis.noordsij@helsinki.fi>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/kernel-parameters.txt |    4 ++++
- drivers/pnp/Kconfig                 |   14 ++++++++++++++
- drivers/pnp/base.h                  |   10 ++++++++++
- drivers/pnp/core.c                  |   11 +++++++++++
- 4 files changed, 39 insertions(+), 0 deletions(-)
+ drivers/acpi/executer/exconfig.c |  113 +++++++++++++++++++++++++++----------
+ 1 files changed, 82 insertions(+), 31 deletions(-)
 
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-index 1150444..7164d4e 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -1660,6 +1660,10 @@ and is between 256 and 4096 characters. It is defined in the file
- 			Override pmtimer IOPort with a hex value.
- 			e.g. pmtmr=0x508
+diff --git a/drivers/acpi/executer/exconfig.c b/drivers/acpi/executer/exconfig.c
+index 8892b98..331a114 100644
+--- a/drivers/acpi/executer/exconfig.c
++++ b/drivers/acpi/executer/exconfig.c
+@@ -280,6 +280,7 @@ acpi_ex_load_op(union acpi_operand_object *obj_desc,
+ 		struct acpi_walk_state *walk_state)
+ {
+ 	union acpi_operand_object *ddb_handle;
++	struct acpi_table_header *table;
+ 	struct acpi_table_desc table_desc;
+ 	u32 table_index;
+ 	acpi_status status;
+@@ -294,9 +295,8 @@ acpi_ex_load_op(union acpi_operand_object *obj_desc,
+ 	switch (ACPI_GET_OBJECT_TYPE(obj_desc)) {
+ 	case ACPI_TYPE_REGION:
  
-+	pnp.debug	[PNP]
-+			Enable PNP debug messages.  This depends on the
-+			CONFIG_PNP_DEBUG_MESSAGES option.
-+
- 	pnpacpi=	[ACPI]
- 			{ off }
+-		ACPI_DEBUG_PRINT((ACPI_DB_EXEC, "Load from Region %p %s\n",
+-				  obj_desc,
+-				  acpi_ut_get_object_type_name(obj_desc)));
++		ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
++				  "Load table from Region %p\n", obj_desc));
  
-diff --git a/drivers/pnp/Kconfig b/drivers/pnp/Kconfig
-index 821933f..8a3237f 100644
---- a/drivers/pnp/Kconfig
-+++ b/drivers/pnp/Kconfig
-@@ -20,6 +20,20 @@ menuconfig PNP
+ 		/* Region must be system_memory (from ACPI spec) */
  
- 	  If unsure, say Y.
+@@ -316,61 +316,112 @@ acpi_ex_load_op(union acpi_operand_object *obj_desc,
+ 		}
  
-+config PNP_DEBUG_MESSAGES
-+	default y
-+	bool "PNP debugging messages"
-+	depends on PNP
-+	help
-+	  Say Y here if you want the PNP layer to be able to produce debugging
-+	  messages if needed.  The messages can be enabled at boot-time with
-+	  the pnp.debug kernel parameter.
+ 		/*
+-		 * We will simply map the memory region for the table. However, the
+-		 * memory region is technically not guaranteed to remain stable and
+-		 * we may eventually have to copy the table to a local buffer.
++		 * Map the table header and get the actual table length. The region
++		 * length is not guaranteed to be the same as the table length.
++		 */
++		table = acpi_os_map_memory(obj_desc->region.address,
++					   sizeof(struct acpi_table_header));
++		if (!table) {
++			return_ACPI_STATUS(AE_NO_MEMORY);
++		}
 +
-+	  This option allows you to save a bit of space if you do not want
-+	  the messages to even be built into the kernel.
++		length = table->length;
++		acpi_os_unmap_memory(table, sizeof(struct acpi_table_header));
 +
-+	  If you have any doubts about this, say Y here.
++		/* Must have at least an ACPI table header */
 +
- if PNP
++		if (length < sizeof(struct acpi_table_header)) {
++			return_ACPI_STATUS(AE_INVALID_TABLE_LENGTH);
++		}
++
++		/*
++		 * The memory region is not guaranteed to remain stable and we must
++		 * copy the table to a local buffer. For example, the memory region
++		 * is corrupted after suspend on some machines. Dynamically loaded
++		 * tables are usually small, so this overhead is minimal.
+ 		 */
++
++		/* Allocate a buffer for the table */
++
++		table_desc.pointer = ACPI_ALLOCATE(length);
++		if (!table_desc.pointer) {
++			return_ACPI_STATUS(AE_NO_MEMORY);
++		}
++
++		/* Map the entire table and copy it */
++
++		table = acpi_os_map_memory(obj_desc->region.address, length);
++		if (!table) {
++			ACPI_FREE(table_desc.pointer);
++			return_ACPI_STATUS(AE_NO_MEMORY);
++		}
++
++		ACPI_MEMCPY(table_desc.pointer, table, length);
++		acpi_os_unmap_memory(table, length);
++
+ 		table_desc.address = obj_desc->region.address;
+-		table_desc.length = obj_desc->region.length;
+-		table_desc.flags = ACPI_TABLE_ORIGIN_MAPPED;
+ 		break;
  
- config PNP_DEBUG
-diff --git a/drivers/pnp/base.h b/drivers/pnp/base.h
-index 9fd7bb9..5e4e82c 100644
---- a/drivers/pnp/base.h
-+++ b/drivers/pnp/base.h
-@@ -166,3 +166,13 @@ struct pnp_resource *pnp_add_io_resource(struct pnp_dev *dev,
- struct pnp_resource *pnp_add_mem_resource(struct pnp_dev *dev,
- 					  resource_size_t start,
- 					  resource_size_t end, int flags);
-+
-+extern int pnp_debug;
-+
-+#if defined(CONFIG_PNP_DEBUG_MESSAGES)
-+#define pnp_dbg(dev, format, arg...)					\
-+	({ if (pnp_debug) dev_printk(KERN_DEBUG, dev, format, ## arg); 0; })
-+#else
-+#define pnp_dbg(dev, format, arg...)					\
-+	({ if (0) dev_printk(KERN_DEBUG, dev, format, ## arg); 0; })
-+#endif
-diff --git a/drivers/pnp/core.c b/drivers/pnp/core.c
-index 7cb1ffc..61291b5 100644
---- a/drivers/pnp/core.c
-+++ b/drivers/pnp/core.c
-@@ -221,3 +221,14 @@ static int __init pnp_init(void)
- }
+ 	case ACPI_TYPE_BUFFER:	/* Buffer or resolved region_field */
  
- subsys_initcall(pnp_init);
+ 		ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
+-				  "Load from Buffer or Field %p %s\n", obj_desc,
+-				  acpi_ut_get_object_type_name(obj_desc)));
+-
+-		length = obj_desc->buffer.length;
++				  "Load table from Buffer or Field %p\n",
++				  obj_desc));
+ 
+ 		/* Must have at least an ACPI table header */
+ 
+-		if (length < sizeof(struct acpi_table_header)) {
++		if (obj_desc->buffer.length < sizeof(struct acpi_table_header)) {
+ 			return_ACPI_STATUS(AE_INVALID_TABLE_LENGTH);
+ 		}
+ 
+-		/* Validate checksum here. It won't get validated in tb_add_table */
++		/* Get the actual table length from the table header */
+ 
+-		status =
+-		    acpi_tb_verify_checksum(ACPI_CAST_PTR
+-					    (struct acpi_table_header,
+-					     obj_desc->buffer.pointer), length);
+-		if (ACPI_FAILURE(status)) {
+-			return_ACPI_STATUS(status);
++		table =
++		    ACPI_CAST_PTR(struct acpi_table_header,
++				  obj_desc->buffer.pointer);
++		length = table->length;
 +
-+int pnp_debug;
++		/* Table cannot extend beyond the buffer */
 +
-+#if defined(CONFIG_PNP_DEBUG_MESSAGES)
-+static int __init pnp_debug_setup(char *__unused)
-+{
-+	pnp_debug = 1;
-+	return 1;
-+}
-+__setup("pnp.debug", pnp_debug_setup);
-+#endif
++		if (length > obj_desc->buffer.length) {
++			return_ACPI_STATUS(AE_AML_BUFFER_LIMIT);
++		}
++		if (length < sizeof(struct acpi_table_header)) {
++			return_ACPI_STATUS(AE_INVALID_TABLE_LENGTH);
+ 		}
+ 
+ 		/*
+-		 * We need to copy the buffer since the original buffer could be
+-		 * changed or deleted in the future
++		 * Copy the table from the buffer because the buffer could be modified
++		 * or even deleted in the future
+ 		 */
+ 		table_desc.pointer = ACPI_ALLOCATE(length);
+ 		if (!table_desc.pointer) {
+ 			return_ACPI_STATUS(AE_NO_MEMORY);
+ 		}
+ 
+-		ACPI_MEMCPY(table_desc.pointer, obj_desc->buffer.pointer,
+-			    length);
+-		table_desc.length = length;
+-		table_desc.flags = ACPI_TABLE_ORIGIN_ALLOCATED;
++		ACPI_MEMCPY(table_desc.pointer, table, length);
++		table_desc.address = ACPI_TO_INTEGER(table_desc.pointer);
+ 		break;
+ 
+ 	default:
+ 		return_ACPI_STATUS(AE_AML_OPERAND_TYPE);
+ 	}
+ 
+-	/*
+-	 * Install the new table into the local data structures
+-	 */
++	/* Validate table checksum (will not get validated in tb_add_table) */
++
++	status = acpi_tb_verify_checksum(table_desc.pointer, length);
++	if (ACPI_FAILURE(status)) {
++		ACPI_FREE(table_desc.pointer);
++		return_ACPI_STATUS(status);
++	}
++
++	/* Complete the table descriptor */
++
++	table_desc.length = length;
++	table_desc.flags = ACPI_TABLE_ORIGIN_ALLOCATED;
++
++	/* Install the new table into the local data structures */
++
+ 	status = acpi_tb_add_table(&table_desc, &table_index);
+ 	if (ACPI_FAILURE(status)) {
+ 		goto cleanup;
+@@ -379,7 +430,7 @@ acpi_ex_load_op(union acpi_operand_object *obj_desc,
+ 	/*
+ 	 * Add the table to the namespace.
+ 	 *
+-	 * Note: We load the table objects relative to the root of the namespace.
++	 * Note: Load the table objects relative to the root of the namespace.
+ 	 * This appears to go against the ACPI specification, but we do it for
+ 	 * compatibility with other ACPI implementations.
+ 	 */
+@@ -415,7 +466,7 @@ acpi_ex_load_op(union acpi_operand_object *obj_desc,
+       cleanup:
+ 	if (ACPI_FAILURE(status)) {
+ 
+-		/* Delete allocated buffer or mapping */
++		/* Delete allocated table buffer */
+ 
+ 		acpi_tb_delete_table(&table_desc);
+ 	}
 -- 
 1.5.5.1
 
