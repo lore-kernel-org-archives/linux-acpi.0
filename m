@@ -1,79 +1,166 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 30/85] dock: add _LCK support
-Date: Sat, 11 Oct 2008 02:35:50 -0400
-Message-ID: <406f692d0803d73acd3984c1e11719d3a913fd5e.1223706853.git.len.brown@intel.com>
+Subject: [PATCH 05/85] ACPI: Add "acpi.power_nocheck=1" to disable power state
+ check in power transition
+Date: Sat, 11 Oct 2008 02:35:25 -0400
+Message-ID: <f2e969acd6d5981e6b1272810002558650d0736e.1223706853.git.len.brown@intel.com>
 References: <1223707005-26864-1-git-send-email-lenb@kernel.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:40791 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753709AbYJKGhM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 02:37:12 -0400
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754803AbYJKGhu@vger.kernel.org>
 In-reply-to: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 In-reply-to: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
 References: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Shaohua Li <shaohua.li@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Zhao Yakui <yakui.zhao@intel.com>, Zhang Rui <rui.zhang@intel.com>, Li Shaohua <shaohua.li@intel.com>, Andi Kleen <ak@linux.intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-From: Shaohua Li <shaohua.li@intel.com>
+From: Zhao Yakui <yakui.zhao@intel.com>
 
-support _LCK method, which is a optional method for hotplug
+   Maybe the incorrect power state is returned on the bogus bios, which
+is different with the real power state. For example: the bios returns D0
+state and the real power state is D3. OS expects to set the device to D0
+state. In  such case if OS uses the power state returned by the BIOS and
+checks the device power state very strictly in power transition, the device
+can't be transited to the correct power state.
 
-lenb: we have not seen _LCK used in the field yet
+   So the boot option of "acpi.power_nocheck=1" is added to avoid checking
+the device power in the course of device power transition.
 
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-Signed-off-by: Len Brown <len.brown@intel.com>
+http://bugzilla.kernel.org/show_bug.cgi?id=8049
+http://bugzilla.kernel.org/show_bug.cgi?id=11000
+
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+Signed-off-by: Li Shaohua <shaohua.li@intel.com>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
 ---
- drivers/acpi/dock.c |   21 +++++++++++++++++++++
- 1 files changed, 21 insertions(+), 0 deletions(-)
+ Documentation/kernel-parameters.txt |    8 ++++++
+ drivers/acpi/bus.c                  |   14 ++++++++++-
+ drivers/acpi/power.c                |   42 +++++++++++++++++++++++++---------
+ include/acpi/acpi_drivers.h         |    1 +
+ 4 files changed, 53 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
-index 78d27ce..7bdf93b 100644
---- a/drivers/acpi/dock.c
-+++ b/drivers/acpi/dock.c
-@@ -452,6 +452,25 @@ static inline void complete_undock(struct dock_station *ds)
- 	ds->flags &= ~(DOCK_UNDOCKING);
- }
+diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+index 44d1bd1..99cf83f 100644
+--- a/Documentation/kernel-parameters.txt
++++ b/Documentation/kernel-parameters.txt
+@@ -251,6 +251,14 @@ and is between 256 and 4096 characters. It is defined in the file
+  			Warning: Many of these options can produce a lot of
+  			output and make your system unusable. Be very careful.
  
-+static void dock_lock(struct dock_station *ds, int lock)
-+{
-+	struct acpi_object_list arg_list;
-+	union acpi_object arg;
-+	acpi_status status;
++ 	acpi.power_nocheck=	[HW,ACPI]
++ 			Format: 1/0 enable/disable the check of power state.
++ 			On some bogus BIOS the _PSC object/_STA object of
++ 			power resource can't return the correct device power
++ 			state. In such case it is unneccessary to check its
++ 			power state again in power transition.
++ 			1 : disable the power state check
 +
-+	arg_list.count = 1;
-+	arg_list.pointer = &arg;
-+	arg.type = ACPI_TYPE_INTEGER;
-+	arg.integer.value = !!lock;
-+	status = acpi_evaluate_object(ds->handle, "_LCK", &arg_list, NULL);
-+	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
-+		if (lock)
-+			printk(KERN_WARNING PREFIX "Locking device failed\n");
-+		else
-+			printk(KERN_WARNING PREFIX "Unlocking device failed\n");
+ 	acpi_pm_good	[X86-32,X86-64]
+ 			Override the pmtimer bug detection: force the kernel
+ 			to assume that this machine's pmtimer latches its value
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index ccae305..91bdeb3 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -223,7 +223,19 @@ int acpi_bus_set_power(acpi_handle handle, int state)
+ 	/*
+ 	 * Get device's current power state
+ 	 */
+-	acpi_bus_get_power(device->handle, &device->power.state);
++	if (!acpi_power_nocheck) {
++		/*
++		 * Maybe the incorrect power state is returned on the bogus
++		 * bios, which is different with the real power state.
++		 * For example: the bios returns D0 state and the real power
++		 * state is D3. OS expects to set the device to D0 state. In
++		 * such case if OS uses the power state returned by the BIOS,
++		 * the device can't be transisted to the correct power state.
++		 * So if the acpi_power_nocheck is set, it is unnecessary to
++		 * get the power state by calling acpi_bus_get_power.
++		 */
++		acpi_bus_get_power(device->handle, &device->power.state);
 +	}
-+}
+ 	if ((state == device->power.state) && !device->flags.force_power_state) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device is already at D%d\n",
+ 				  state));
+diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+index e7bab75..7ff7349 100644
+--- a/drivers/acpi/power.c
++++ b/drivers/acpi/power.c
+@@ -54,6 +54,14 @@ ACPI_MODULE_NAME("power");
+ #define ACPI_POWER_RESOURCE_STATE_OFF	0x00
+ #define ACPI_POWER_RESOURCE_STATE_ON	0x01
+ #define ACPI_POWER_RESOURCE_STATE_UNKNOWN 0xFF
 +
- /**
-  * dock_in_progress - see if we are in the middle of handling a dock event
-  * @ds: the dock station
-@@ -577,6 +596,7 @@ static int handle_eject_request(struct dock_station *ds, u32 event)
++#ifdef MODULE_PARAM_PREFIX
++#undef MODULE_PARAM_PREFIX
++#endif
++#define MODULE_PARAM_PREFIX "acpi."
++int acpi_power_nocheck;
++module_param_named(power_nocheck, acpi_power_nocheck, bool, 000);
++
+ static int acpi_power_add(struct acpi_device *device);
+ static int acpi_power_remove(struct acpi_device *device, int type);
+ static int acpi_power_resume(struct acpi_device *device);
+@@ -228,12 +236,18 @@ static int acpi_power_on(acpi_handle handle, struct acpi_device *dev)
+ 	if (ACPI_FAILURE(status))
+ 		return -ENODEV;
  
- 	hotplug_dock_devices(ds, ACPI_NOTIFY_EJECT_REQUEST);
- 	undock(ds);
-+	dock_lock(ds, 0);
- 	eject_dock(ds);
- 	if (dock_present(ds)) {
- 		printk(KERN_ERR PREFIX "Unable to undock!\n");
-@@ -617,6 +637,7 @@ static void dock_notify(acpi_handle handle, u32 event, void *data)
- 			hotplug_dock_devices(ds, event);
- 			complete_dock(ds);
- 			dock_event(ds, event, DOCK_EVENT);
-+			dock_lock(ds, 1);
- 		}
- 		break;
- 	case ACPI_NOTIFY_DEVICE_CHECK:
+-	result = acpi_power_get_state(resource->device->handle, &state);
+-	if (result)
+-		return result;
+-	if (state != ACPI_POWER_RESOURCE_STATE_ON)
+-		return -ENOEXEC;
+-
++	if (!acpi_power_nocheck) {
++		/*
++		 * If acpi_power_nocheck is set, it is unnecessary to check
++		 * the power state after power transition.
++		 */
++		result = acpi_power_get_state(resource->device->handle,
++				&state);
++		if (result)
++			return result;
++		if (state != ACPI_POWER_RESOURCE_STATE_ON)
++			return -ENOEXEC;
++	}
+ 	/* Update the power resource's _device_ power state */
+ 	resource->device->power.state = ACPI_STATE_D0;
+ 
+@@ -279,11 +293,17 @@ static int acpi_power_off_device(acpi_handle handle, struct acpi_device *dev)
+ 	if (ACPI_FAILURE(status))
+ 		return -ENODEV;
+ 
+-	result = acpi_power_get_state(handle, &state);
+-	if (result)
+-		return result;
+-	if (state != ACPI_POWER_RESOURCE_STATE_OFF)
+-		return -ENOEXEC;
++	if (!acpi_power_nocheck) {
++		/*
++		 * If acpi_power_nocheck is set, it is unnecessary to check
++		 * the power state after power transition.
++		 */
++		result = acpi_power_get_state(handle, &state);
++		if (result)
++			return result;
++		if (state != ACPI_POWER_RESOURCE_STATE_OFF)
++			return -ENOEXEC;
++	}
+ 
+ 	/* Update the power resource's _device_ power state */
+ 	resource->device->power.state = ACPI_STATE_D3;
+diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
+index e5f38e5..efbaa27 100644
+--- a/include/acpi/acpi_drivers.h
++++ b/include/acpi/acpi_drivers.h
+@@ -93,6 +93,7 @@ int acpi_enable_wakeup_device_power(struct acpi_device *dev, int sleep_state);
+ int acpi_disable_wakeup_device_power(struct acpi_device *dev);
+ int acpi_power_get_inferred_state(struct acpi_device *device);
+ int acpi_power_transition(struct acpi_device *device, int state);
++extern int acpi_power_nocheck;
+ #endif
+ 
+ /* --------------------------------------------------------------------------
 -- 
 1.5.5.1
-
