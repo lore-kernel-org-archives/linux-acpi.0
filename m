@@ -1,142 +1,88 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 53/85] i7300_idle driver v1.55
-Date: Sat, 11 Oct 2008 02:36:13 -0400
-Message-ID: <e8b529091b2ab65f5a4783e292c2b472e309116e.1223706853.git.len.brown@intel.com>
+Subject: [PATCH 26/85] ACPI: cpufreq, processor: Detect old BIOS,
+ not supporting CPU freq on a recent CPU.
+Date: Sat, 11 Oct 2008 02:35:46 -0400
+Message-ID: <910dfae298f7b3dae0e9a52736182a3b0559ca35.1223706853.git.len.brown@intel.com>
 References: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms172069pub.verizon.net ([206.46.172.69]:32774 "EHLO
-	vms172069pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751241AbYJKGhQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 02:37:16 -0400
+Received: from vms046pub.verizon.net ([206.46.252.46]:45163 "EHLO
+	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753394AbYJKGhJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 02:37:09 -0400
 In-reply-to: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 In-reply-to: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
 References: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Venki Pallipadi <venkatesh.pallipadi@intel.com>, Andy Henroid <andrew.d.henroid@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Thomas Renninger <trenn@suse.de>, Andi Kleen <ak@linux.intel.com>, Len Brown <len.brown@intel.com>
 
-From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+From: Thomas Renninger <trenn@suse.de>
 
-The Intel 7300 Memory Controller supports dynamic throttling of memory which can
-be used to save power when system is idle. This driver does the memory
-throttling when all CPUs are idle on such a system.
+On Intel CPUs it is rather common and a good hint that BIOSes which do provide
+_PPC func, but not the frequencies itself in _PSS function, are old and need
+to be updated for CPU freq support.
 
-Refer to "Intel 7300 Memory Controller Hub (MCH)" datasheet
-for the config space description.
+Tell the user/vendor he has a BIOS/firmware problem.
+Make use of FW_BUG interface to give vendors and users the ability to
+automatically check with (or let linuxfirmwarekit do that):
+dmesg |grep "Firmware Bug"
 
-Signed-off-by: Andy Henroid <andrew.d.henroid@intel.com>
-Signed-off-by: Len Brown <len.brown@intel.com>
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- MAINTAINERS                  |    6 ++++++
- arch/x86/Kconfig             |    2 ++
- arch/x86/kernel/process_64.c |    7 +++++++
- drivers/Makefile             |    1 +
- drivers/dma/ioat_dma.c       |    3 +++
- include/asm-x86/idle.h       |    1 +
- include/linux/pci_ids.h      |    1 +
- 7 files changed, 21 insertions(+), 0 deletions(-)
+ drivers/acpi/processor_perflib.c |   18 +++++++++++++++---
+ 1 files changed, 15 insertions(+), 3 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 8dae455..43f71b0 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -2078,6 +2078,12 @@ L:	linux-ide@vger.kernel.org
- L:	linux-scsi@vger.kernel.org
- S:	Orphan
+diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
+index 80c251e..242f814 100644
+--- a/drivers/acpi/processor_perflib.c
++++ b/drivers/acpi/processor_perflib.c
+@@ -38,6 +38,7 @@
  
-+IDLE-I7300
-+P:	Andy Henroid
-+M:	andrew.d.henroid@intel.com
-+L:	linux-pm@lists.linux-foundation.org
-+S:	Supported
+ #include <asm/uaccess.h>
+ #endif
++#include <asm/cpufeature.h>
+ 
+ #include <acpi/acpi_bus.h>
+ #include <acpi/processor.h>
+@@ -334,7 +335,6 @@ static int acpi_processor_get_performance_info(struct acpi_processor *pr)
+ 	acpi_status status = AE_OK;
+ 	acpi_handle handle = NULL;
+ 
+-
+ 	if (!pr || !pr->performance || !pr->handle)
+ 		return -EINVAL;
+ 
+@@ -347,13 +347,25 @@ static int acpi_processor_get_performance_info(struct acpi_processor *pr)
+ 
+ 	result = acpi_processor_get_performance_control(pr);
+ 	if (result)
+-		return result;
++		goto update_bios;
+ 
+ 	result = acpi_processor_get_performance_states(pr);
+ 	if (result)
+-		return result;
++		goto update_bios;
+ 
+ 	return 0;
 +
- IEEE 1394 SUBSYSTEM (drivers/ieee1394)
- P:	Ben Collins
- M:	ben.collins@ubuntu.com
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index ed92864..19cdfe1 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -1536,6 +1536,8 @@ source "arch/x86/kernel/cpu/cpufreq/Kconfig"
- 
- source "drivers/cpuidle/Kconfig"
- 
-+source "drivers/idle/Kconfig"
-+
- endmenu
- 
- 
-diff --git a/arch/x86/kernel/process_64.c b/arch/x86/kernel/process_64.c
-index e12e0e4..3e3d503 100644
---- a/arch/x86/kernel/process_64.c
-+++ b/arch/x86/kernel/process_64.c
-@@ -62,6 +62,13 @@ void idle_notifier_register(struct notifier_block *n)
- {
- 	atomic_notifier_chain_register(&idle_notifier, n);
++	/*
++	 * Having _PPC but missing frequencies (_PSS, _PCT) is a very good hint that
++	 * the BIOS is older than the CPU and does not know its frequencies
++	 */
++ update_bios:
++	if (ACPI_SUCCESS(acpi_get_handle(pr->handle, "_PPC", &handle))){
++		if(boot_cpu_has(X86_FEATURE_EST))
++			printk(KERN_WARNING FW_BUG "BIOS needs update for CPU "
++			       "frequency support\n");
++	}
++	return result;
  }
-+EXPORT_SYMBOL_GPL(idle_notifier_register);
-+
-+void idle_notifier_unregister(struct notifier_block *n)
-+{
-+	atomic_notifier_chain_unregister(&idle_notifier, n);
-+}
-+EXPORT_SYMBOL_GPL(idle_notifier_unregister);
  
- void enter_idle(void)
- {
-diff --git a/drivers/Makefile b/drivers/Makefile
-index 2735bde..f443a8a 100644
---- a/drivers/Makefile
-+++ b/drivers/Makefile
-@@ -82,6 +82,7 @@ obj-$(CONFIG_EISA)		+= eisa/
- obj-y				+= lguest/
- obj-$(CONFIG_CPU_FREQ)		+= cpufreq/
- obj-$(CONFIG_CPU_IDLE)		+= cpuidle/
-+obj-y				+= idle/
- obj-$(CONFIG_MMC)		+= mmc/
- obj-$(CONFIG_MEMSTICK)		+= memstick/
- obj-$(CONFIG_NEW_LEDS)		+= leds/
-diff --git a/drivers/dma/ioat_dma.c b/drivers/dma/ioat_dma.c
-index bc8c6e3..f8396ca 100644
---- a/drivers/dma/ioat_dma.c
-+++ b/drivers/dma/ioat_dma.c
-@@ -171,6 +171,9 @@ static int ioat_dma_enumerate_channels(struct ioatdma_device *device)
- 	xfercap_scale = readb(device->reg_base + IOAT_XFERCAP_OFFSET);
- 	xfercap = (xfercap_scale == 0 ? -1 : (1UL << xfercap_scale));
- 
-+#if CONFIG_I7300_IDLE_IOAT_CHANNEL
-+	device->common.chancnt--;
-+#endif
- 	for (i = 0; i < device->common.chancnt; i++) {
- 		ioat_chan = kzalloc(sizeof(*ioat_chan), GFP_KERNEL);
- 		if (!ioat_chan) {
-diff --git a/include/asm-x86/idle.h b/include/asm-x86/idle.h
-index cbb6491..54ce018 100644
---- a/include/asm-x86/idle.h
-+++ b/include/asm-x86/idle.h
-@@ -6,6 +6,7 @@
- 
- struct notifier_block;
- void idle_notifier_register(struct notifier_block *n);
-+void idle_notifier_unregister(struct notifier_block *n);
- 
- void enter_idle(void);
- void exit_idle(void);
-diff --git a/include/linux/pci_ids.h b/include/linux/pci_ids.h
-index f1624b3..efb786d 100644
---- a/include/linux/pci_ids.h
-+++ b/include/linux/pci_ids.h
-@@ -2422,6 +2422,7 @@
- #define PCI_DEVICE_ID_INTEL_MCH_PC1	0x359a
- #define PCI_DEVICE_ID_INTEL_E7525_MCH	0x359e
- #define PCI_DEVICE_ID_INTEL_IOAT_CNB	0x360b
-+#define PCI_DEVICE_ID_INTEL_FBD_CNB	0x360c
- #define PCI_DEVICE_ID_INTEL_ICH10_0	0x3a14
- #define PCI_DEVICE_ID_INTEL_ICH10_1	0x3a16
- #define PCI_DEVICE_ID_INTEL_ICH10_2	0x3a18
+ int acpi_processor_notify_smm(struct module *calling_module)
 -- 
 1.5.5.1
 
