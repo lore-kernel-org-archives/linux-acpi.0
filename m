@@ -1,88 +1,57 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 38/85] dock: add 'type' sysfs file
-Date: Sat, 11 Oct 2008 02:35:58 -0400
-Message-ID: <8652b00fd6416773f113dab3dfa0d4509def825b.1223706853.git.len.brown@intel.com>
+Subject: [PATCH 46/85] ACPI: don't enable control method power button as wakeup
+ device when Fixed Power button is used
+Date: Sat, 11 Oct 2008 02:36:06 -0400
+Message-ID: <faee816b1502385dc9bc5abf2960d1cc645844d1.1223706853.git.len.brown@intel.com>
 References: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms172071pub.verizon.net ([206.46.172.71]:52144 "EHLO
-	vms172071pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752682AbYJKGhB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 02:37:01 -0400
+Received: from vms173001pub.verizon.net ([206.46.173.1]:52476 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752850AbYJKGhD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 02:37:03 -0400
 In-reply-to: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 In-reply-to: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
 References: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Shaohua Li <shaohua.li@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Shaohua Li <shaohua.li@intel.com>
+From: Zhang Rui <rui.zhang@intel.com>
 
-add a sysfs file to present dock type. Suggested by Holger.
+don't enable control method power button as wakeup device
+when Fixed Power button is used.
 
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+http://bugzilla.kernel.org/show_bug.cgi?id=10503
+
+Tested-by: walken@zoy.org <walken@zoy.org>
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/dock.c |   25 +++++++++++++++++++++++++
- 1 files changed, 25 insertions(+), 0 deletions(-)
+ drivers/acpi/scan.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
-index c877cc5..b7d1581 100644
---- a/drivers/acpi/dock.c
-+++ b/drivers/acpi/dock.c
-@@ -911,6 +911,26 @@ static ssize_t show_dock_uid(struct device *dev,
- }
- static DEVICE_ATTR(uid, S_IRUGO, show_dock_uid, NULL);
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index f6f52c1..5ce14ae 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -744,6 +744,16 @@ static int acpi_bus_get_wakeup_device_flags(struct acpi_device *device)
+ 	if (!acpi_match_device_ids(device, button_device_ids))
+ 		device->wakeup.flags.run_wake = 1;
  
-+static ssize_t show_dock_type(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct dock_station *dock_station = *((struct dock_station **)
-+		dev->platform_data);
-+	char *type;
++	/*
++	 * Don't set Power button GPE as run_wake
++	 * if Fixed Power button is used
++	 */
++	if (!strcmp(device->pnp.hardware_id, "PNP0C0C") &&
++		!(acpi_gbl_FADT.flags & ACPI_FADT_POWER_BUTTON)) {
++		device->wakeup.flags.run_wake = 0;
++		device->wakeup.flags.valid = 0;
++	}
 +
-+	if (dock_station->flags & DOCK_IS_DOCK)
-+		type = "dock_station";
-+	else if (dock_station->flags & DOCK_IS_ATA)
-+		type = "ata_bay";
-+	else if (dock_station->flags & DOCK_IS_BAT)
-+		type = "battery_bay";
-+	else
-+		type = "unknown";
-+
-+	return snprintf(buf, PAGE_SIZE, "%s\n", type);
-+}
-+static DEVICE_ATTR(type, S_IRUGO, show_dock_type, NULL);
-+
- /**
-  * dock_add - add a new dock station
-  * @handle: the dock station handle
-@@ -999,6 +1019,9 @@ static int dock_add(acpi_handle handle)
- 		dock_station = NULL;
- 		return ret;
- 	}
-+	ret = device_create_file(&dock_device->dev, &dev_attr_type);
-+	if (ret)
-+		printk(KERN_ERR"Error %d adding sysfs file\n", ret);
- 
- 	/* Find dependent devices */
- 	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
-@@ -1020,6 +1043,7 @@ static int dock_add(acpi_handle handle)
- 	return 0;
- 
- dock_add_err_unregister:
-+	device_remove_file(&dock_device->dev, &dev_attr_type);
- 	device_remove_file(&dock_device->dev, &dev_attr_docked);
- 	device_remove_file(&dock_device->dev, &dev_attr_undock);
- 	device_remove_file(&dock_device->dev, &dev_attr_uid);
-@@ -1047,6 +1071,7 @@ static int dock_remove(struct dock_station *dock_station)
- 	    kfree(dd);
- 
- 	/* cleanup sysfs */
-+	device_remove_file(&dock_device->dev, &dev_attr_type);
- 	device_remove_file(&dock_device->dev, &dev_attr_docked);
- 	device_remove_file(&dock_device->dev, &dev_attr_undock);
- 	device_remove_file(&dock_device->dev, &dev_attr_uid);
+       end:
+ 	if (ACPI_FAILURE(status))
+ 		device->flags.wake_capable = 0;
 -- 
 1.5.5.1
 
