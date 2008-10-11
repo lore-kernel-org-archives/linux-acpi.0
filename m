@@ -1,13 +1,12 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 19/85] ACPICA: Add function to decode reference obj types to
- strings
-Date: Sat, 11 Oct 2008 02:35:39 -0400
-Message-ID: <1fc875c1fe03440534b67f5fb9a91ba5d66220df.1223706853.git.len.brown@intel.com>
+Subject: [PATCH 22/85] ACPICA: Update version to 20080729
+Date: Sat, 11 Oct 2008 02:35:42 -0400
+Message-ID: <2c61e64815b39bdeb52e4877e5f8a56572c28890.1223706853.git.len.brown@intel.com>
 References: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms044pub.verizon.net ([206.46.252.44]:39140 "EHLO
-	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751433AbYJKGgy (ORCPT
+Received: from vms173001pub.verizon.net ([206.46.173.1]:52440 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751472AbYJKGgy (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 02:36:54 -0400
 In-reply-to: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 In-reply-to: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
@@ -19,84 +18,27 @@ Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Andi Kl
 
 From: Bob Moore <robert.moore@intel.com>
 
-Created for improved error messages.
-
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/utilities/utglobal.c |   36 ++++++++++++++++++++++++++++++++++++
- include/acpi/acutils.h            |    2 ++
- 2 files changed, 38 insertions(+), 0 deletions(-)
+ include/acpi/acconfig.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/utilities/utglobal.c b/drivers/acpi/utilities/utglobal.c
-index a6e71b8..5e57ed9 100644
---- a/drivers/acpi/utilities/utglobal.c
-+++ b/drivers/acpi/utilities/utglobal.c
-@@ -45,6 +45,7 @@
+diff --git a/include/acpi/acconfig.h b/include/acpi/acconfig.h
+index 328caee..4da88b1 100644
+--- a/include/acpi/acconfig.h
++++ b/include/acpi/acconfig.h
+@@ -63,7 +63,7 @@
  
- #include <acpi/acpi.h>
- #include <acpi/acnamesp.h>
-+#include <acpi/amlcode.h>
+ /* Current ACPICA subsystem version in YYYYMMDD format */
  
- ACPI_EXPORT_SYMBOL(acpi_gbl_FADT)
- #define _COMPONENT          ACPI_UTILITIES
-@@ -575,6 +576,41 @@ char *acpi_ut_get_descriptor_name(void *object)
+-#define ACPI_CA_VERSION 		0x20080701
++#define ACPI_CA_VERSION 		0x20080729
  
- }
- 
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_ut_get_reference_name
-+ *
-+ * PARAMETERS:  Object               - An ACPI reference object
-+ *
-+ * RETURN:      Pointer to a string
-+ *
-+ * DESCRIPTION: Decode a reference object sub-type to a string.
-+ *
-+ ******************************************************************************/
-+
-+/* Printable names of reference object sub-types */
-+
-+const char *acpi_ut_get_reference_name(union acpi_operand_object *object)
-+{
-+
-+	switch (object->reference.opcode) {
-+	case AML_INT_NAMEPATH_OP:
-+		return "Name";
-+
-+	case AML_LOAD_OP:
-+		return "DDB-Handle";
-+
-+	case AML_REF_OF_OP:
-+		return "RefOf";
-+
-+	case AML_INDEX_OP:
-+		return "Index";
-+
-+	default:
-+		return "Unknown";
-+	}
-+}
-+
- #if defined(ACPI_DEBUG_OUTPUT) || defined(ACPI_DEBUGGER)
  /*
-  * Strings and procedures used for debug only
-diff --git a/include/acpi/acutils.h b/include/acpi/acutils.h
-index 69f8888..f827822 100644
---- a/include/acpi/acutils.h
-+++ b/include/acpi/acutils.h
-@@ -126,6 +126,8 @@ char *acpi_ut_get_node_name(void *object);
- 
- char *acpi_ut_get_descriptor_name(void *object);
- 
-+const char *acpi_ut_get_reference_name(union acpi_operand_object *object);
-+
- char *acpi_ut_get_object_type_name(union acpi_operand_object *obj_desc);
- 
- char *acpi_ut_get_region_name(u8 space_id);
+  * OS name, used for the _OS object.  The _OS object is essentially obsolete,
 -- 
 1.5.5.1
 
