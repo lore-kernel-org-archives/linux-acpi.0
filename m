@@ -1,46 +1,50 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 55/85] x86: remove magic number from ACPI sleep stack buffer
-Date: Sat, 11 Oct 2008 02:36:15 -0400
-Message-ID: <d0d0f7432c9cbd52cb2f31d499f8292b13a7ecac.1223706853.git.len.brown@intel.com>
+Subject: [PATCH 29/85] dock: fix eject request process (2.6.27-rc1 regression)
+Date: Sat, 11 Oct 2008 02:35:49 -0400
+Message-ID: <82545394e0690aaef446cb262aa5dac0f9c7156e.1223706853.git.len.brown@intel.com>
 References: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms044pub.verizon.net ([206.46.252.44]:39166 "EHLO
-	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753463AbYJKGhH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 02:37:07 -0400
+Received: from vms173003pub.verizon.net ([206.46.173.3]:40791 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753520AbYJKGhJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 02:37:09 -0400
 In-reply-to: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 In-reply-to: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
 References: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Matt Mackall <mpm@selenic.com>, Len Brown <len.brown@intel.com>
+Cc: Shaohua Li <shaohua.li@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Matt Mackall <mpm@selenic.com>
+From: Shaohua Li <shaohua.li@intel.com>
 
-x86_64 SMP suspend to RAM uses a 10k temporary stack for saving the
-kernel state, but only 4k of it is used. Shrink it to 4k.
+commit 2a7feab28d3fc060d320eaba192e49dad1079b7e introduces a bug.
+My thinkpad actually will send an eject_request and we should follow the
+eject process to finish the eject, otherwise system still thinks the bay
+is present.
 
-Signed-off-by: Matt Mackall <mpm@selenic.com>
-Acked-by: Pavel Machek <pavel@suse.cz>
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- arch/x86/kernel/acpi/sleep.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/acpi/dock.c |    5 -----
+ 1 files changed, 0 insertions(+), 5 deletions(-)
 
-diff --git a/arch/x86/kernel/acpi/sleep.c b/arch/x86/kernel/acpi/sleep.c
-index 426e5d9..29cf340 100644
---- a/arch/x86/kernel/acpi/sleep.c
-+++ b/arch/x86/kernel/acpi/sleep.c
-@@ -97,7 +97,7 @@ int acpi_save_state_mem(void)
- #else /* CONFIG_64BIT */
- 	header->trampoline_segment = setup_trampoline() >> 4;
- #ifdef CONFIG_SMP
--	stack_start.sp = temp_stack + 4096;
-+	stack_start.sp = temp_stack + sizeof(temp_stack);
- #endif
- 	initial_code = (unsigned long)wakeup_long64;
- 	saved_magic = 0x123456789abcdef0;
+diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
+index 25d2161..78d27ce 100644
+--- a/drivers/acpi/dock.c
++++ b/drivers/acpi/dock.c
+@@ -575,11 +575,6 @@ static int handle_eject_request(struct dock_station *ds, u32 event)
+ 	 */
+ 	dock_event(ds, event, UNDOCK_EVENT);
+ 
+-	if (!dock_present(ds)) {
+-		complete_undock(ds);
+-		return -ENODEV;
+-	}
+-
+ 	hotplug_dock_devices(ds, ACPI_NOTIFY_EJECT_REQUEST);
+ 	undock(ds);
+ 	eject_dock(ds);
 -- 
 1.5.5.1
 
