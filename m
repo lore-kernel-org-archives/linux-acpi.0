@@ -1,68 +1,136 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 04/85] ACPI: Attach the ACPI device to the ACPI handle as early
- as possible
-Date: Sat, 11 Oct 2008 02:35:24 -0400
-Message-ID: <05afbbf73abcbb4f6fc9fcf0a6cbbea623928a7a.1223706853.git.len.brown@intel.com>
+Subject: [PATCH 02/85] acpi: replace AE_BAD_ADDRESS exception code with AE_ERROR
+Date: Sat, 11 Oct 2008 02:35:22 -0400
+Message-ID: <a7be432189eb771907fb52b3f28f3e9c9309683d.1223706853.git.len.brown@intel.com>
 References: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms044pub.verizon.net ([206.46.252.44]:39131 "EHLO
-	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751175AbYJKGgu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 02:36:50 -0400
+Received: from vms172073pub.verizon.net ([206.46.172.73]:58847 "EHLO
+	vms172073pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751091AbYJKGgt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 02:36:49 -0400
 In-reply-to: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 In-reply-to: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
 References: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Zhao Yakui <yakui.zhao@intel.com>, Zhang Rui <rui.zhang@intel.com>, Andi Kleen <ak@linux.intel.com>
+Cc: Lin Ming <ming.m.lin@intel.com>, Andi Kleen <ak@linux.intel.com>
 
-From: Zhao Yakui <yakui.zhao@intel.com>
+From: Lin Ming <ming.m.lin@intel.com>
 
-Attach the ACPI device to the ACPI handle as early as possible so that OS
-can get the corresponding ACPI device by the acpi handle in the course
-of getting the power/wakeup/performance flags.
+The AE_BAD_ADDRESS exception code is now unused in ACPICA.
+For linux, it's only used at wmi.c and acer-wmi.c.
+I checked both wmi.c and acer-wmi.c, the AE_BAD_ADDRESS exception code
+has no special meaning. The parent functions just call AE_SUCCESS() or
+AE_FAILURE() to check the return status.
+So it's safe to replace AE_BAD_ADDRESS with AE_ERROR.
 
-http://bugzilla.kernel.org/show_bug.cgi?id=8049
-http://bugzilla.kernel.org/show_bug.cgi?id=11000
+Signed-off-by Lin Ming <ming.m.lin@intel.com>
 
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
 ---
- drivers/acpi/scan.c |   12 ++++++++++--
- 1 files changed, 10 insertions(+), 2 deletions(-)
+ drivers/acpi/wmi.c      |   10 +++++-----
+ drivers/misc/acer-wmi.c |   10 +++++-----
+ 2 files changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 308ddb1..ad06798 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1253,6 +1253,16 @@ acpi_add_single_object(struct acpi_device **child,
- 	acpi_device_set_id(device, parent, handle, type);
+diff --git a/drivers/acpi/wmi.c b/drivers/acpi/wmi.c
+index cfe2c83..5b94be3 100644
+--- a/drivers/acpi/wmi.c
++++ b/drivers/acpi/wmi.c
+@@ -242,7 +242,7 @@ u32 method_id, const struct acpi_buffer *in, struct acpi_buffer *out)
+ 	char method[4] = "WM";
  
- 	/*
-+	 * The ACPI device is attached to acpi handle before getting
-+	 * the power/wakeup/peformance flags. Otherwise OS can't get
-+	 * the corresponding ACPI device by the acpi handle in the course
-+	 * of getting the power/wakeup/performance flags.
-+	 */
-+	result = acpi_device_set_context(device, type);
-+	if (result)
-+		goto end;
-+
-+	/*
- 	 * Power Management
- 	 * ----------------
- 	 */
-@@ -1282,8 +1292,6 @@ acpi_add_single_object(struct acpi_device **child,
- 			goto end;
+ 	if (!find_guid(guid_string, &wblock))
+-		return AE_BAD_ADDRESS;
++		return AE_ERROR;
+ 
+ 	block = &wblock->gblock;
+ 	handle = wblock->handle;
+@@ -304,7 +304,7 @@ struct acpi_buffer *out)
+ 		return AE_BAD_PARAMETER;
+ 
+ 	if (!find_guid(guid_string, &wblock))
+-		return AE_BAD_ADDRESS;
++		return AE_ERROR;
+ 
+ 	block = &wblock->gblock;
+ 	handle = wblock->handle;
+@@ -314,7 +314,7 @@ struct acpi_buffer *out)
+ 
+ 	/* Check GUID is a data block */
+ 	if (block->flags & (ACPI_WMI_EVENT | ACPI_WMI_METHOD))
+-		return AE_BAD_ADDRESS;
++		return AE_ERROR;
+ 
+ 	input.count = 1;
+ 	input.pointer = wq_params;
+@@ -385,7 +385,7 @@ const struct acpi_buffer *in)
+ 		return AE_BAD_DATA;
+ 
+ 	if (!find_guid(guid_string, &wblock))
+-		return AE_BAD_ADDRESS;
++		return AE_ERROR;
+ 
+ 	block = &wblock->gblock;
+ 	handle = wblock->handle;
+@@ -395,7 +395,7 @@ const struct acpi_buffer *in)
+ 
+ 	/* Check GUID is a data block */
+ 	if (block->flags & (ACPI_WMI_EVENT | ACPI_WMI_METHOD))
+-		return AE_BAD_ADDRESS;
++		return AE_ERROR;
+ 
+ 	input.count = 2;
+ 	input.pointer = params;
+diff --git a/drivers/misc/acer-wmi.c b/drivers/misc/acer-wmi.c
+index d8b0d32..a67aef5 100644
+--- a/drivers/misc/acer-wmi.c
++++ b/drivers/misc/acer-wmi.c
+@@ -476,7 +476,7 @@ struct wmi_interface *iface)
+ 		}
+ 		break;
+ 	default:
+-		return AE_BAD_ADDRESS;
++		return AE_ERROR;
+ 	}
+ 	return AE_OK;
+ }
+@@ -514,7 +514,7 @@ static acpi_status AMW0_set_u32(u32 value, u32 cap, struct wmi_interface *iface)
+ 			break;
+ 		}
+ 	default:
+-		return AE_BAD_ADDRESS;
++		return AE_ERROR;
  	}
  
--	if ((result = acpi_device_set_context(device, type)))
--		goto end;
+ 	/* Actually do the set */
+@@ -689,7 +689,7 @@ struct wmi_interface *iface)
+ 			return 0;
+ 		}
+ 	default:
+-		return AE_BAD_ADDRESS;
++		return AE_ERROR;
+ 	}
+ 	status = WMI_execute_u32(method_id, 0, &result);
  
- 	result = acpi_device_register(device, parent);
+@@ -735,7 +735,7 @@ static acpi_status WMID_set_u32(u32 value, u32 cap, struct wmi_interface *iface)
+ 		}
+ 		break;
+ 	default:
+-		return AE_BAD_ADDRESS;
++		return AE_ERROR;
+ 	}
+ 	return WMI_execute_u32(method_id, (u32)value, NULL);
+ }
+@@ -785,7 +785,7 @@ static struct wmi_interface wmid_interface = {
  
+ static acpi_status get_u32(u32 *value, u32 cap)
+ {
+-	acpi_status status = AE_BAD_ADDRESS;
++	acpi_status status = AE_ERROR;
+ 
+ 	switch (interface->type) {
+ 	case ACER_AMW0:
 -- 
 1.5.5.1
 
