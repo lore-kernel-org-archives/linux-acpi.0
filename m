@@ -1,166 +1,117 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 05/85] ACPI: Add "acpi.power_nocheck=1" to disable power state
- check in power transition
-Date: Sat, 11 Oct 2008 02:35:25 -0400
-Message-ID: <f2e969acd6d5981e6b1272810002558650d0736e.1223706853.git.len.brown@intel.com>
+Subject: [PATCH 83/85] ACPI: Enable EC device immediately after ACPI full
+ initialization
+Date: Sat, 11 Oct 2008 02:36:43 -0400
+Message-ID: <455c8793d2c49eaecad038c8de83dade9fc3759f.1223706853.git.len.brown@intel.com>
 References: <1223707005-26864-1-git-send-email-lenb@kernel.org>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754803AbYJKGhu@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms046pub.verizon.net ([206.46.252.46]:45163 "EHLO
+	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751823AbYJKGhi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 02:37:38 -0400
 In-reply-to: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 In-reply-to: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
 References: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Zhao Yakui <yakui.zhao@intel.com>, Zhang Rui <rui.zhang@intel.com>, Li Shaohua <shaohua.li@intel.com>, Andi Kleen <ak@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Zhao Yakui <yakui.zhao@intel.com>, Len Brown <len.brown@intel.com>
 
 From: Zhao Yakui <yakui.zhao@intel.com>
 
-   Maybe the incorrect power state is returned on the bogus bios, which
-is different with the real power state. For example: the bios returns D0
-state and the real power state is D3. OS expects to set the device to D0
-state. In  such case if OS uses the power state returned by the BIOS and
-checks the device power state very strictly in power transition, the device
-can't be transited to the correct power state.
+when there is no ECDT table and no _INI object for EC device, it will be
+enabled before scanning ACPI device. But it is too late after the following
+the commit is merged.
+    >commit 7752d5cfe3d11ca0bb9c673ec38bd78ba6578f8e
+    > Author: Robert Hancock <hancockr@shaw.ca>
+    > Date:   Fri Feb 15 01:27:20 2008 -0800
+       >x86: validate against acpi motherboard resources
 
-   So the boot option of "acpi.power_nocheck=1" is added to avoid checking
-the device power in the course of device power transition.
+   After the above commit is merged, OS will check whether MCFG area is
+reserved in ACPI motherboard resources by calling the function of
+acpi_get_devices when there exists MCFG table. In the acpi_get_devices the _STA
+object will be evaluated to check the status of the ACPI device. On some broken
+BIOS the MYEC object of EC device is initialized as one, which indicates that
+EC operation region is already accessible before enabling EC device.So on these
+broken BIOS the EC operation region will be accessed in course of evaluating
+the _STA object before enabling EC device, which causes that OS will print the
+following warning messages:
+    >ACPI Error (evregion-0315): No handler for Region [EC__] (ffff88007f8145e8)
+[EmbeddedControl] [20080609]
+    >ACPI Error (exfldio-0290): Region EmbeddedControl(3) has no handler [20080321]
+    >ACPI Error (psparse-0530): Method parse/execution failed [\_SB_.PCI0.SBRG.
+         EC__.BAT1._STA] (Node ffff81013fc17a00), AE_NOT_EXIST
+    >ACPI Error (uteval-0233): Method execution failed [\_SB_.PCI0.SBRG.EC__.BAT1.
+         _STA] (Node ffff81013fc17a00), AE_NOT_EXIST
 
-http://bugzilla.kernel.org/show_bug.cgi?id=8049
-http://bugzilla.kernel.org/show_bug.cgi?id=11000
+Although the above warning message is harmless, it looks confusing.
+So it is necessary to enable EC device as early as possible.Maybe it is
+appropriate to enable it immediately after ACPI full initialization.
+
+http://bugzilla.kernel.org/show_bug.cgi?id=11255
+http://bugzilla.kernel.org/show_bug.cgi?id=11374
+http://bugzilla.kernel.org/show_bug.cgi?id=11660
 
 Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-Signed-off-by: Li Shaohua <shaohua.li@intel.com>
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Acked-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/kernel-parameters.txt |    8 ++++++
- drivers/acpi/bus.c                  |   14 ++++++++++-
- drivers/acpi/power.c                |   42 +++++++++++++++++++++++++---------
- include/acpi/acpi_drivers.h         |    1 +
- 4 files changed, 53 insertions(+), 12 deletions(-)
+ drivers/acpi/bus.c          |    6 ++++++
+ drivers/acpi/scan.c         |    4 ----
+ include/acpi/acpi_drivers.h |    1 +
+ 3 files changed, 7 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-index 44d1bd1..99cf83f 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -251,6 +251,14 @@ and is between 256 and 4096 characters. It is defined in the file
-  			Warning: Many of these options can produce a lot of
-  			output and make your system unusable. Be very careful.
- 
-+ 	acpi.power_nocheck=	[HW,ACPI]
-+ 			Format: 1/0 enable/disable the check of power state.
-+ 			On some bogus BIOS the _PSC object/_STA object of
-+ 			power resource can't return the correct device power
-+ 			state. In such case it is unneccessary to check its
-+ 			power state again in power transition.
-+ 			1 : disable the power state check
-+
- 	acpi_pm_good	[X86-32,X86-64]
- 			Override the pmtimer bug detection: force the kernel
- 			to assume that this machine's pmtimer latches its value
 diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index ccae305..91bdeb3 100644
+index ccae305..0e0bbc6 100644
 --- a/drivers/acpi/bus.c
 +++ b/drivers/acpi/bus.c
-@@ -223,7 +223,19 @@ int acpi_bus_set_power(acpi_handle handle, int state)
- 	/*
- 	 * Get device's current power state
+@@ -749,6 +749,12 @@ static int __init acpi_bus_init(void)
+ 		goto error1;
+ 	}
+ 
++	/*
++	 * Maybe EC region is required at bus_scan/acpi_get_devices. So it
++	 * is necessary to enable it as early as possible.
++	 */
++	acpi_boot_ec_enable();
++
+ 	printk(KERN_INFO PREFIX "Interpreter enabled\n");
+ 
+ 	/* Initialize sleep structures */
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index f6f52c1..2ae218f 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -1545,7 +1545,6 @@ static int acpi_bus_scan_fixed(struct acpi_device *root)
+ 	return result;
+ }
+ 
+-int __init acpi_boot_ec_enable(void);
+ 
+ static int __init acpi_scan_init(void)
+ {
+@@ -1579,9 +1578,6 @@ static int __init acpi_scan_init(void)
  	 */
--	acpi_bus_get_power(device->handle, &device->power.state);
-+	if (!acpi_power_nocheck) {
-+		/*
-+		 * Maybe the incorrect power state is returned on the bogus
-+		 * bios, which is different with the real power state.
-+		 * For example: the bios returns D0 state and the real power
-+		 * state is D3. OS expects to set the device to D0 state. In
-+		 * such case if OS uses the power state returned by the BIOS,
-+		 * the device can't be transisted to the correct power state.
-+		 * So if the acpi_power_nocheck is set, it is unnecessary to
-+		 * get the power state by calling acpi_bus_get_power.
-+		 */
-+		acpi_bus_get_power(device->handle, &device->power.state);
-+	}
- 	if ((state == device->power.state) && !device->flags.force_power_state) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device is already at D%d\n",
- 				  state));
-diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-index e7bab75..7ff7349 100644
---- a/drivers/acpi/power.c
-+++ b/drivers/acpi/power.c
-@@ -54,6 +54,14 @@ ACPI_MODULE_NAME("power");
- #define ACPI_POWER_RESOURCE_STATE_OFF	0x00
- #define ACPI_POWER_RESOURCE_STATE_ON	0x01
- #define ACPI_POWER_RESOURCE_STATE_UNKNOWN 0xFF
-+
-+#ifdef MODULE_PARAM_PREFIX
-+#undef MODULE_PARAM_PREFIX
-+#endif
-+#define MODULE_PARAM_PREFIX "acpi."
-+int acpi_power_nocheck;
-+module_param_named(power_nocheck, acpi_power_nocheck, bool, 000);
-+
- static int acpi_power_add(struct acpi_device *device);
- static int acpi_power_remove(struct acpi_device *device, int type);
- static int acpi_power_resume(struct acpi_device *device);
-@@ -228,12 +236,18 @@ static int acpi_power_on(acpi_handle handle, struct acpi_device *dev)
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
+ 	result = acpi_bus_scan_fixed(acpi_root);
  
--	result = acpi_power_get_state(resource->device->handle, &state);
--	if (result)
--		return result;
--	if (state != ACPI_POWER_RESOURCE_STATE_ON)
--		return -ENOEXEC;
+-	/* EC region might be needed at bus_scan, so enable it now */
+-	acpi_boot_ec_enable();
 -
-+	if (!acpi_power_nocheck) {
-+		/*
-+		 * If acpi_power_nocheck is set, it is unnecessary to check
-+		 * the power state after power transition.
-+		 */
-+		result = acpi_power_get_state(resource->device->handle,
-+				&state);
-+		if (result)
-+			return result;
-+		if (state != ACPI_POWER_RESOURCE_STATE_ON)
-+			return -ENOEXEC;
-+	}
- 	/* Update the power resource's _device_ power state */
- 	resource->device->power.state = ACPI_STATE_D0;
+ 	if (!result)
+ 		result = acpi_bus_scan(acpi_root, &ops);
  
-@@ -279,11 +293,17 @@ static int acpi_power_off_device(acpi_handle handle, struct acpi_device *dev)
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
- 
--	result = acpi_power_get_state(handle, &state);
--	if (result)
--		return result;
--	if (state != ACPI_POWER_RESOURCE_STATE_OFF)
--		return -ENOEXEC;
-+	if (!acpi_power_nocheck) {
-+		/*
-+		 * If acpi_power_nocheck is set, it is unnecessary to check
-+		 * the power state after power transition.
-+		 */
-+		result = acpi_power_get_state(handle, &state);
-+		if (result)
-+			return result;
-+		if (state != ACPI_POWER_RESOURCE_STATE_OFF)
-+			return -ENOEXEC;
-+	}
- 
- 	/* Update the power resource's _device_ power state */
- 	resource->device->power.state = ACPI_STATE_D3;
 diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
-index e5f38e5..efbaa27 100644
+index e5f38e5..ab926a7 100644
 --- a/include/acpi/acpi_drivers.h
 +++ b/include/acpi/acpi_drivers.h
-@@ -93,6 +93,7 @@ int acpi_enable_wakeup_device_power(struct acpi_device *dev, int sleep_state);
- int acpi_disable_wakeup_device_power(struct acpi_device *dev);
- int acpi_power_get_inferred_state(struct acpi_device *device);
- int acpi_power_transition(struct acpi_device *device, int state);
-+extern int acpi_power_nocheck;
+@@ -100,6 +100,7 @@ int acpi_power_transition(struct acpi_device *device, int state);
+    -------------------------------------------------------------------------- */
+ #ifdef CONFIG_ACPI_EC
+ int acpi_ec_ecdt_probe(void);
++int acpi_boot_ec_enable(void);
  #endif
  
  /* --------------------------------------------------------------------------
 -- 
 1.5.5.1
+
