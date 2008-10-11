@@ -1,39 +1,85 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [Resend] [PATCH] ACPI: Enable EC device immediately after ACPI
- full initialization
-Date: Sat, 11 Oct 2008 02:00:56 -0400 (EDT)
-Message-ID: <alpine.LFD.1.10.0810110200230.7059@localhost.localdomain>
-References: <1223260296.4023.292.camel@yakui_zhao.sh.intel.com>
- <alpine.LFD.1.10.0810101730130.7059@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Subject: [PATCH 01/85] ACPI: Add missing acpi.debug_layer Documentation hunk
+ from Thomas Renninger
+Date: Sat, 11 Oct 2008 02:35:21 -0400
+Message-ID: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
+References: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:47737 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750950AbYJKGA7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 02:00:59 -0400
-Received: from localhost.localdomain ([96.237.168.40])
- by vms173001.mailsrvcs.net
- (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K8K00HO78PM7LU0@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sat, 11 Oct 2008 01:00:58 -0500 (CDT)
-In-reply-to: <alpine.LFD.1.10.0810101730130.7059@localhost.localdomain>
+Received: from vms172071pub.verizon.net ([206.46.172.71]:52117 "EHLO
+	vms172071pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751007AbYJKGgs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 02:36:48 -0400
+In-reply-to: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Andi Kleen <ak@linux.intel.com>
 
+From: Andi Kleen <ak@linux.intel.com>
 
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+---
+ Documentation/kernel-parameters.txt |   47 ++++++++++++++++++++++++----------
+ 1 files changed, 33 insertions(+), 14 deletions(-)
 
-On Fri, 10 Oct 2008, Len Brown wrote:
-
-> http://bugzilla.kernel.org/show_bug.cgi?id=11374#c7
-> 
-> suggests that this patch will causee a regression.
-
-Alexey send me his Ack for this one, so I've applied it to the
-ec branch in acpi-test.
-
-thanks,
--Len
+diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+index 1150444..44d1bd1 100644
+--- a/Documentation/kernel-parameters.txt
++++ b/Documentation/kernel-parameters.txt
+@@ -217,20 +217,39 @@ and is between 256 and 4096 characters. It is defined in the file
+ 	acpi.debug_level=	[HW,ACPI]
+ 			Format: <int>
+ 			Each bit of the <int> indicates an ACPI debug level,
+-			1: enable, 0: disable. It is useful for boot time
+-			debugging. After system has booted up, it can be set
+-			via /sys/module/acpi/parameters/debug_level.
+-			CONFIG_ACPI_DEBUG must be enabled for this to produce any output.
+-			Available bits (add the numbers together) to enable different
+-			debug output levels of the ACPI subsystem:
+-			0x01 error 0x02 warn 0x04 init 0x08 debug object
+-			0x10 info 0x20 init names 0x40 parse 0x80 load
+-			0x100 dispatch 0x200 execute 0x400 names 0x800 operation region
+-			0x1000 bfield 0x2000 tables 0x4000 values 0x8000 objects
+-			0x10000 resources 0x20000 user requests 0x40000 package.
+-			The number can be in decimal or prefixed with 0x in hex.
+-			Warning: Many of these options can produce a lot of
+-			output and make your system unusable. Be very careful.
++			which corresponds to the level in an ACPI_DEBUG_PRINT
++			statement.  After system has booted up, this mask
++			can be set via /sys/module/acpi/parameters/debug_level.
++
++			CONFIG_ACPI_DEBUG must be enabled for this to produce
++			any output.  The number can be in decimal or prefixed
++			with 0x in hex.  Some of these options produce so much
++			output that the system is unusable.
++
++			The following global components are defined by the
++			ACPI CA:
++			       0x01 error
++			       0x02 warn
++			       0x04 init
++			       0x08 debug object
++			       0x10 info
++			       0x20 init names
++			       0x40 parse
++			       0x80 load
++			      0x100 dispatch
++			      0x200 execute
++			      0x400 names
++			      0x800 operation region
++			     0x1000 bfield
++			     0x2000 tables
++			     0x4000 values
++			     0x8000 objects
++			    0x10000 resources
++			    0x20000 user requests
++			    0x40000 package
++ 			The number can be in decimal or prefixed with 0x in hex.
++ 			Warning: Many of these options can produce a lot of
++ 			output and make your system unusable. Be very careful.
+ 
+ 	acpi_pm_good	[X86-32,X86-64]
+ 			Override the pmtimer bug detection: force the kernel
+-- 
+1.5.5.1
 
