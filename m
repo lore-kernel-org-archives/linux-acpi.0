@@ -1,14 +1,13 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 45/85] ACPI Suspend: Enable ACPI during resume if SCI_EN is not
- set
-Date: Sat, 11 Oct 2008 02:36:05 -0400
-Message-ID: <73ebf767b33707fcd050e3f37b7dbf4b1370b0c5.1223706853.git.len.brown@intel.com>
+Subject: [PATCH 40/85] ACPI suspend: Always use the 32-bit waking vector
+Date: Sat, 11 Oct 2008 02:36:00 -0400
+Message-ID: <2918799361e725d95903dc597ad89228700377e6.1223706853.git.len.brown@intel.com>
 References: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms042pub.verizon.net ([206.46.252.42]:41914 "EHLO
-	vms042pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751181AbYJKGhG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 02:37:06 -0400
+Received: from vms172069pub.verizon.net ([206.46.172.69]:32774 "EHLO
+	vms172069pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753474AbYJKGhI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 02:37:08 -0400
 In-reply-to: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 In-reply-to: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
 References: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
@@ -19,43 +18,75 @@ Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-ACPI Suspend: Enable ACPI during resume if SCI_EN is not set
-
-On some machines, like for example MSI Wind U100, the BIOS doesn't
-enable ACPI before returning control to the OS, which sometimes
-causes resume to fail.  This is against the ACPI specification,
-which clearly states that "When the platform is waking from an S1, S2
-or S3 state, OSPM assumes the hardware is already in the ACPI mode
-and will not issue an ACPI_ENABLE", but it won't hurt to check the
-SCI_EN bit and enable ACPI during resume from S3 if this bit is not
-set.
-
-Fortunately, we already have acpi_enable() for that, so use it in the
-resume code path, before executing _BFS, in analogy with the
-resume-from-hibernation code path.
-
-NOTE: We aren't supposed to set SCI_EN directly, because it's owned
-by the hardware.
+According to the ACPI specification 2.0c and later, the 64-bit waking vector
+should be cleared and the 32-bit waking vector should be used, unless we want
+the wake-up code to be called by the BIOS in Protected Mode.  Moreover, some
+systems (for example HP dv5-1004nr) are known to fail to resume if the 64-bit
+waking vector is used.  Therefore, modify the code to clear the 64-bit waking
+vector, for FACS version 1 or greater, and set the 32-bit one before suspend.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/sleep/main.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ drivers/acpi/hardware/hwsleep.c |   39 ++++++++++++---------------------------
+ 1 files changed, 12 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
-index c7f0c9c..5419938 100644
---- a/drivers/acpi/sleep/main.c
-+++ b/drivers/acpi/sleep/main.c
-@@ -233,6 +233,8 @@ static int acpi_suspend_enter(suspend_state_t pm_state)
- 		break;
+diff --git a/drivers/acpi/hardware/hwsleep.c b/drivers/acpi/hardware/hwsleep.c
+index 130a44b..25dccdf 100644
+--- a/drivers/acpi/hardware/hwsleep.c
++++ b/drivers/acpi/hardware/hwsleep.c
+@@ -78,19 +78,17 @@ acpi_set_firmware_waking_vector(acpi_physical_address physical_address)
+ 		return_ACPI_STATUS(status);
  	}
  
-+	/* If ACPI is not enabled by the BIOS, we need to enable it here. */
-+	acpi_enable();
- 	/* Reprogram control registers and execute _BFS */
- 	acpi_leave_sleep_state_prep(acpi_state);
+-	/* Set the vector */
++	/*
++	 * According to the ACPI specification 2.0c and later, the 64-bit
++	 * waking vector should be cleared and the 32-bit waking vector should
++	 * be used, unless we want the wake-up code to be called by the BIOS in
++	 * Protected Mode.  Some systems (for example HP dv5-1004nr) are known
++	 * to fail to resume if the 64-bit vector is used.
++	 */
++	if (facs->version >= 1)
++		facs->xfirmware_waking_vector = 0;
  
+-	if ((facs->length < 32) || (!(facs->xfirmware_waking_vector))) {
+-		/*
+-		 * ACPI 1.0 FACS or short table or optional X_ field is zero
+-		 */
+-		facs->firmware_waking_vector = (u32) physical_address;
+-	} else {
+-		/*
+-		 * ACPI 2.0 FACS with valid X_ field
+-		 */
+-		facs->xfirmware_waking_vector = physical_address;
+-	}
++	facs->firmware_waking_vector = (u32)physical_address;
+ 
+ 	return_ACPI_STATUS(AE_OK);
+ }
+@@ -134,20 +132,7 @@ acpi_get_firmware_waking_vector(acpi_physical_address * physical_address)
+ 	}
+ 
+ 	/* Get the vector */
+-
+-	if ((facs->length < 32) || (!(facs->xfirmware_waking_vector))) {
+-		/*
+-		 * ACPI 1.0 FACS or short table or optional X_ field is zero
+-		 */
+-		*physical_address =
+-		    (acpi_physical_address) facs->firmware_waking_vector;
+-	} else {
+-		/*
+-		 * ACPI 2.0 FACS with valid X_ field
+-		 */
+-		*physical_address =
+-		    (acpi_physical_address) facs->xfirmware_waking_vector;
+-	}
++	*physical_address = (acpi_physical_address)facs->firmware_waking_vector;
+ 
+ 	return_ACPI_STATUS(AE_OK);
+ }
 -- 
 1.5.5.1
 
