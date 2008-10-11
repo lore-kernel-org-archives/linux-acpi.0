@@ -1,93 +1,52 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 62/85] PNPACPI: use dev_printk when possible
-Date: Sat, 11 Oct 2008 02:36:22 -0400
-Message-ID: <958a1fdd3904b009c926cb840be48ce3c5f2389e.1223706853.git.len.brown@intel.com>
+Subject: [PATCH 60/85] toshiba_acpi: depends on INPUT
+Date: Sat, 11 Oct 2008 02:36:20 -0400
+Message-ID: <b3cef8f6eba47a10b80aa3e7a99e27110e34f3df.1223706853.git.len.brown@intel.com>
 References: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms044pub.verizon.net ([206.46.252.44]:39166 "EHLO
-	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751340AbYJKGhL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 02:37:11 -0400
+Received: from vms173003pub.verizon.net ([206.46.173.3]:40791 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754475AbYJKGhh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 02:37:37 -0400
 In-reply-to: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 In-reply-to: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
 References: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Andi Kleen <ak@linux.intel.com>, Len Brown <len.brown@intel.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>, Len Brown <len.brown@intel.com>
 
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Use dev_printk() when possible for more informative error messages.
+CONFIG_ACPI_TOSHIBA can =y when CONFIG_INPUT=m, so prevent that
+combination and its subsequent build errors:
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
+toshiba_acpi.c:(.text+0x3e877): undefined reference to `input_event'
+toshiba_acpi.c:(.text+0x3e98a): undefined reference to `input_unregister_polled_device'
+toshiba_acpi.c:(.text+0x3e994): undefined reference to `input_free_polled_device'
+toshiba_acpi.c:(.init.text+0x21b4): undefined reference to `input_allocate_polled_device'
+toshiba_acpi.c:(.init.text+0x2263): undefined reference to `input_register_polled_device'
+make[1]: *** [.tmp_vmlinux1] Error 1
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/pnp/pnpacpi/rsparser.c |   15 ++++++++-------
- 1 files changed, 8 insertions(+), 7 deletions(-)
+ drivers/acpi/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/pnp/pnpacpi/rsparser.c b/drivers/pnp/pnpacpi/rsparser.c
-index 95015cb..0461d4b 100644
---- a/drivers/pnp/pnpacpi/rsparser.c
-+++ b/drivers/pnp/pnpacpi/rsparser.c
-@@ -132,7 +132,8 @@ static void pnpacpi_parse_allocated_irqresource(struct pnp_dev *dev,
- 	pnp_add_irq_resource(dev, irq, flags);
- }
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 735f5ea..79540db 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -259,7 +259,7 @@ config ACPI_ASUS
  
--static int dma_flags(int type, int bus_master, int transfer)
-+static int dma_flags(struct pnp_dev *dev, int type, int bus_master,
-+		     int transfer)
- {
- 	int flags = 0;
- 
-@@ -154,7 +155,7 @@ static int dma_flags(int type, int bus_master, int transfer)
- 	default:
- 		/* Set a default value ? */
- 		flags |= IORESOURCE_DMA_COMPATIBLE;
--		pnp_err("Invalid DMA type");
-+		dev_err(&dev->dev, "invalid DMA type %d\n", type);
- 	}
- 	switch (transfer) {
- 	case ACPI_TRANSFER_8:
-@@ -169,7 +170,7 @@ static int dma_flags(int type, int bus_master, int transfer)
- 	default:
- 		/* Set a default value ? */
- 		flags |= IORESOURCE_DMA_8AND16BIT;
--		pnp_err("Invalid DMA transfer type");
-+		dev_err(&dev->dev, "invalid DMA transfer type %d\n", transfer);
- 	}
- 
- 	return flags;
-@@ -336,7 +337,7 @@ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
- 	case ACPI_RESOURCE_TYPE_DMA:
- 		dma = &res->data.dma;
- 		if (dma->channel_count > 0 && dma->channels[0] != (u8) -1)
--			flags = dma_flags(dma->type, dma->bus_master,
-+			flags = dma_flags(dev, dma->type, dma->bus_master,
- 					  dma->transfer);
- 		else
- 			flags = IORESOURCE_DISABLED;
-@@ -477,7 +478,7 @@ static __init void pnpacpi_parse_dma_option(struct pnp_dev *dev,
- 	for (i = 0; i < p->channel_count; i++)
- 		map |= 1 << p->channels[i];
- 
--	flags = dma_flags(p->type, p->bus_master, p->transfer);
-+	flags = dma_flags(dev, p->type, p->bus_master, p->transfer);
- 	pnp_register_dma_resource(dev, option_flags, map, flags);
- }
- 
-@@ -608,8 +609,8 @@ static __init void pnpacpi_parse_address_option(struct pnp_dev *dev,
- 	unsigned char flags = 0;
- 
- 	status = acpi_resource_to_address64(r, p);
--	if (!ACPI_SUCCESS(status)) {
--		pnp_warn("PnPACPI: failed to convert resource type %d",
-+	if (ACPI_FAILURE(status)) {
-+		dev_warn(&dev->dev, "can't convert resource type %d\n",
- 			 r->type);
- 		return;
- 	}
+ config ACPI_TOSHIBA
+ 	tristate "Toshiba Laptop Extras"
+-	depends on X86
++	depends on X86 && INPUT
+ 	select BACKLIGHT_CLASS_DEVICE
+ 	---help---
+ 	  This driver adds support for access to certain system settings
 -- 
 1.5.5.1
 
