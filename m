@@ -1,128 +1,122 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 51/85] ACPI: fix FADT parsing
-Date: Sat, 11 Oct 2008 02:36:11 -0400
-Message-ID: <fcea94ba0773a4bf78d109f2acd72d003f0621f6.1223706853.git.len.brown@intel.com>
+Subject: [PATCH 75/85] ACPI processor: Debug interface used for error message
+ cleanup
+Date: Sat, 11 Oct 2008 02:36:35 -0400
+Message-ID: <e127770259e4341df0f83c3531f0df57982815e2.1223706853.git.len.brown@intel.com>
 References: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms046pub.verizon.net ([206.46.252.46]:45163 "EHLO
-	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753823AbYJKGhQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 02:37:16 -0400
+Received: from vms172071pub.verizon.net ([206.46.172.71]:52181 "EHLO
+	vms172071pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753879AbYJKGhR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 02:37:17 -0400
 In-reply-to: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 In-reply-to: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
 References: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Jan Beulich <jbeulich@novell.com>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
+Cc: Thomas Renninger <trenn@suse.de>, Andi Kleen <ak@linux.intel.com>, Len Brown <len.brown@intel.com>
 
-From: Jan Beulich <jbeulich@novell.com>
+From: Thomas Renninger <trenn@suse.de>
 
-The (1.0 inherited) separate length fields in the FADT are byte granular.
-Further, PM1a/b may have distinct lengths (if using the v2 fields was
-okay) and may live in distinct address spaces.  acpi_tb_convert_fadt()
-should account for all of these conditions.
-
-Apart from these changes I'm puzzled by the fact that, not just for
-acpi_gbl_xpm1{a,b}_enable, acpi_hw_low_level_{read,write}() get an
-explicit size passed rather than using the size found in the passed GAS.
-What happens on a platform that defines PM1{a,b} wider than 16 bits?  Of
-course, acpi_hw_low_level_{read,write}() at present are entirely
-un-prepared to deal with sizes other than 8, 16, or 32, not to speak of a
-non-zero bit_offset or access_width...
-
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/tables/tbfadt.c |   32 +++++++++++++++++++++++++-------
- 1 files changed, 25 insertions(+), 7 deletions(-)
+ drivers/acpi/processor_perflib.c    |   17 ++++++-----------
+ drivers/acpi/processor_throttling.c |   17 ++++++-----------
+ 2 files changed, 12 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/acpi/tables/tbfadt.c b/drivers/acpi/tables/tbfadt.c
-index a4a41ba..2c7885e 100644
---- a/drivers/acpi/tables/tbfadt.c
-+++ b/drivers/acpi/tables/tbfadt.c
-@@ -50,7 +50,7 @@ ACPI_MODULE_NAME("tbfadt")
- /* Local prototypes */
- static void inline
- acpi_tb_init_generic_address(struct acpi_generic_address *generic_address,
--			     u8 bit_width, u64 address);
-+			     u8 byte_width, u64 address);
- 
- static void acpi_tb_convert_fadt(void);
- 
-@@ -111,7 +111,7 @@ static struct acpi_fadt_info fadt_info_table[] = {
-  * FUNCTION:    acpi_tb_init_generic_address
-  *
-  * PARAMETERS:  generic_address     - GAS struct to be initialized
-- *              bit_width           - Width of this register
-+ *              byte_width          - Width of this register
-  *              Address             - Address of the register
-  *
-  * RETURN:      None
-@@ -124,7 +124,7 @@ static struct acpi_fadt_info fadt_info_table[] = {
- 
- static void inline
- acpi_tb_init_generic_address(struct acpi_generic_address *generic_address,
--			     u8 bit_width, u64 address)
-+			     u8 byte_width, u64 address)
- {
- 
- 	/*
-@@ -136,7 +136,7 @@ acpi_tb_init_generic_address(struct acpi_generic_address *generic_address,
- 	/* All other fields are byte-wide */
- 
- 	generic_address->space_id = ACPI_ADR_SPACE_SYSTEM_IO;
--	generic_address->bit_width = bit_width;
-+	generic_address->bit_width = byte_width << 3;
- 	generic_address->bit_offset = 0;
- 	generic_address->access_width = 0;
- }
-@@ -342,9 +342,20 @@ static void acpi_tb_convert_fadt(void)
- 	 * useful to calculate them once, here.
- 	 *
- 	 * The PM event blocks are split into two register blocks, first is the
--	 * PM Status Register block, followed immediately by the PM Enable Register
--	 * block. Each is of length (pm1_event_length/2)
-+	 * PM Status Register block, followed immediately by the PM Enable
-+	 * Register block. Each is of length (xpm1x_event_block.bit_width/2).
-+	 *
-+	 * On various systems the v2 fields (and particularly the bit widths)
-+	 * cannot be relied upon, though. Hence resort to using the v1 length
-+	 * here (and warn about the inconsistency).
- 	 */
-+	if (acpi_gbl_FADT.xpm1a_event_block.bit_width
-+	    != acpi_gbl_FADT.pm1_event_length * 8)
-+		printk(KERN_WARNING "FADT: "
-+		       "X_PM1a_EVT_BLK.bit_width (%u) does not match"
-+		       " PM1_EVT_LEN (%u)\n",
-+		       acpi_gbl_FADT.xpm1a_event_block.bit_width,
-+		       acpi_gbl_FADT.pm1_event_length);
- 	pm1_register_length = (u8) ACPI_DIV_2(acpi_gbl_FADT.pm1_event_length);
- 
- 	/* The PM1A register block is required */
-@@ -360,13 +371,20 @@ static void acpi_tb_convert_fadt(void)
- 	/* The PM1B register block is optional, ignore if not present */
- 
- 	if (acpi_gbl_FADT.xpm1b_event_block.address) {
-+		if (acpi_gbl_FADT.xpm1b_event_block.bit_width
-+		    != acpi_gbl_FADT.pm1_event_length * 8)
-+			printk(KERN_WARNING "FADT: "
-+			       "X_PM1b_EVT_BLK.bit_width (%u) does not match"
-+			       " PM1_EVT_LEN (%u)\n",
-+			       acpi_gbl_FADT.xpm1b_event_block.bit_width,
-+			       acpi_gbl_FADT.pm1_event_length);
- 		acpi_tb_init_generic_address(&acpi_gbl_xpm1b_enable,
- 					     pm1_register_length,
- 					     (acpi_gbl_FADT.xpm1b_event_block.
- 					      address + pm1_register_length));
- 		/* Don't forget to copy space_id of the GAS */
- 		acpi_gbl_xpm1b_enable.space_id =
--		    acpi_gbl_FADT.xpm1a_event_block.space_id;
-+		    acpi_gbl_FADT.xpm1b_event_block.space_id;
- 
+diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
+index 80c251e..bf183e7 100644
+--- a/drivers/acpi/processor_perflib.c
++++ b/drivers/acpi/processor_perflib.c
+@@ -523,14 +523,9 @@ static int acpi_processor_get_psd(struct acpi_processor	*pr)
  	}
- }
+ 
+ 	psd = buffer.pointer;
+-	if (!psd || (psd->type != ACPI_TYPE_PACKAGE)) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid _PSD data\n"));
+-		result = -EFAULT;
+-		goto end;
+-	}
+-
+-	if (psd->package.count != 1) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid _PSD data\n"));
++	if (!psd || (psd->type != ACPI_TYPE_PACKAGE)
++	    || psd->package.count != 1) {
++		printk(KERN_ERR "Invalid _PSD data\n");
+ 		result = -EFAULT;
+ 		goto end;
+ 	}
+@@ -543,19 +538,19 @@ static int acpi_processor_get_psd(struct acpi_processor	*pr)
+ 	status = acpi_extract_package(&(psd->package.elements[0]),
+ 		&format, &state);
+ 	if (ACPI_FAILURE(status)) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid _PSD data\n"));
++		ACPI_EXCEPTION((AE_INFO, status, "Invalid _PSD data"));
+ 		result = -EFAULT;
+ 		goto end;
+ 	}
+ 
+ 	if (pdomain->num_entries != ACPI_PSD_REV0_ENTRIES) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Unknown _PSD:num_entries\n"));
++		printk(KERN_ERR "Unknown _PSD:num_entries\n");
+ 		result = -EFAULT;
+ 		goto end;
+ 	}
+ 
+ 	if (pdomain->revision != ACPI_PSD_REV0_REVISION) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Unknown _PSD:revision\n"));
++		printk(KERN_ERR "Unknown _PSD:revision\n");
+ 		result = -EFAULT;
+ 		goto end;
+ 	}
+diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
+index a56fc6c..ce4540d 100644
+--- a/drivers/acpi/processor_throttling.c
++++ b/drivers/acpi/processor_throttling.c
+@@ -527,14 +527,9 @@ static int acpi_processor_get_tsd(struct acpi_processor *pr)
+ 	}
+ 
+ 	tsd = buffer.pointer;
+-	if (!tsd || (tsd->type != ACPI_TYPE_PACKAGE)) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid _TSD data\n"));
+-		result = -EFAULT;
+-		goto end;
+-	}
+-
+-	if (tsd->package.count != 1) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid _TSD data\n"));
++	if (!tsd || (tsd->type != ACPI_TYPE_PACKAGE)
++	    || tsd->package.count != 1) {
++		printk(KERN_INFO "Invalid _TSD data\n");
+ 		result = -EFAULT;
+ 		goto end;
+ 	}
+@@ -547,19 +542,19 @@ static int acpi_processor_get_tsd(struct acpi_processor *pr)
+ 	status = acpi_extract_package(&(tsd->package.elements[0]),
+ 				      &format, &state);
+ 	if (ACPI_FAILURE(status)) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid _TSD data\n"));
++		ACPI_EXCEPTION((AE_INFO, status, "Invalid _TSD data"));
+ 		result = -EFAULT;
+ 		goto end;
+ 	}
+ 
+ 	if (pdomain->num_entries != ACPI_TSD_REV0_ENTRIES) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Unknown _TSD:num_entries\n"));
++		printk(KERN_ERR "Unknown _TSD:num_entries\n");
+ 		result = -EFAULT;
+ 		goto end;
+ 	}
+ 
+ 	if (pdomain->revision != ACPI_TSD_REV0_REVISION) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Unknown _TSD:revision\n"));
++		printk(KERN_ERR "Unknown _TSD:revision\n");
+ 		result = -EFAULT;
+ 		goto end;
+ 	}
 -- 
 1.5.5.1
 
