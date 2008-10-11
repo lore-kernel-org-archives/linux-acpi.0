@@ -1,66 +1,64 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH 0/6] ACPI: acpi table management enhancement
-Date: Tue, 14 Oct 2008 14:12:51 -0700
-Message-ID: <4911F71203A09E4D9981D27F9D83085803213EB4@orsmsx503.amr.corp.intel.com>
-References: <1223885404.2735.183.camel@rzhang-dt>
-	 <4911F71203A09E4D9981D27F9D830858031948BA@orsmsx503.amr.corp.intel.com>
- <1223946036.2735.212.camel@rzhang-dt>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Len Brown <lenb@kernel.org>
+Subject: [PATCH 85/85] panasonic-laptop: fix build
+Date: Sat, 11 Oct 2008 02:36:45 -0400
+Message-ID: <2f7398c9ee4c227ec9a68d547e24dfd196612093.1223706853.git.len.brown@intel.com>
+References: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:21394 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751307AbYJNVNe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 14 Oct 2008 17:13:34 -0400
-In-Reply-To: <1223946036.2735.212.camel@rzhang-dt>
-Content-Language: en-US
+Received: from vms046pub.verizon.net ([206.46.252.46]:55455 "EHLO
+	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750964AbYJOCVF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Oct 2008 22:21:05 -0400
+In-reply-to: <1223707005-26864-1-git-send-email-lenb@kernel.org>
+In-reply-to: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
+References: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, "Lin, Ming M" <ming.m.lin@intel.com>
+To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Len Brown <len.brown@intel.com>
 
-U28sIHRoaXMgYXBwYXJlbnRseSBjb21lcyBkb3duIHRvIGEgcHJvYmxlbSB3aGVyZSB0aGUgRkFE
-VCBjb250YWlucyB0d28gZGlmZmVyZW50IGFkZHJlc3NlcyBmb3IgdGhlIEZBQ1MgaW4gdGhlIEZJ
-Uk1XQVJFX0NUUkwgYW5kIFhfRklSTVdBUkVfQ1RSTCBmaWVsZHMuIEl0IHdvdWxkIGJlIGEgcmVs
-YXRpdmVseSBzaW1wbGUgZml4IHRvIHdyaXRlIHRoZSB3YWtlIHZlY3RvciB0byBib3RoIHRhYmxl
-cyBpZiBuZWNlc3NhcnkuIEkgZG9uJ3Qgc2VlIGEgbmVlZCB0byBnbyBiYWNrIHRvIHRoZSBSU0RU
-IGZvciB0aGlzIGNhc2UuDQoNCg0KQSBjb3VwbGUgb2YgZ2xvYmFsIGNvbW1lbnRzOg0KDQoxKSBJ
-biBnZW5lcmFsLCBpdCBzZWVtcyBsaWtlIGEgbG90IG9mIG92ZXJoZWFkIHRvIGxvYWQgYSBzZWNv
-bmQgc2V0IG9mICJpbmFjdGl2ZSIgdGFibGVzIGZyb20gdGhlIFJTRFQgLS0gZXNwZWNpYWxseSBp
-ZiB0aGlzIGlzIGZvciBkZWJ1ZyBvbmx5LiBOb3Qgb25seSB0aGUgY29kZSB0byBkbyBpdCwgYnV0
-IHRoZSBkeW5hbWljIG1lbW9yeSBmb3IgdGhlIHNlY29uZCByb290IHRhYmxlIGxpc3QgYW5kIHRo
-ZSBtZW1vcnkgbWFwcGluZ3MsIHBvdGVudGlhbGx5IG9uZSBmb3IgZWFjaCB0YWJsZSBpbiB0aGUg
-UlNEVC4NCg0KMikgQXMgZmFyIGFzIGFjcGlkdW1wIC0tIEkgaGF2ZSBwbGFucyB0byBlbmhhbmNl
-IHRoaXMgdXRpbGl0eSBzbyB0aGF0IGl0IGlzIE9TLWluZGVwZW5kZW50IGFuZCB3aWxsIHJ1biBv
-biBhbnkgaG9zdC4gVGhlIGN1cnJlbnQgdmVyc2lvbiBvZiBhY3BpZHVtcCBpcyBMaW51eC1zcGVj
-aWZpYy4gU28sIEkgZG9uJ3QgdGhpbmsgYWNwaWR1bXAgaXMgZ29pbmcgYXdheS4gSWYgd2UgbmVl
-ZCBhIGR1bXAgb2YgYm90aCB0aGUgWFNEVCB0YWJsZXMgYW5kIHRoZSBSU0RUIHRhYmxlcywgd2Ug
-c2hvdWxkIGJlIGFibGUgdG8gbW9kaWZ5IGFjcGlkdW1wIHRvIHBlcmZvcm0gdGhpcywgYW5kIHdl
-IHdpbGwgbm90IG5lZWQgdG8gYWRkIGtlcm5lbCBjb2RlIG9yIHVzZSBrZXJuZWwgcmVzb3VyY2Vz
-Lg0KDQpCb2INCg0KDQo+LS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj5Gcm9tOiBaaGFuZywg
-UnVpDQo+U2VudDogTW9uZGF5LCBPY3RvYmVyIDEzLCAyMDA4IDY6MDEgUE0NCj5UbzogTW9vcmUs
-IFJvYmVydA0KPkNjOiBMZW4gQnJvd247IGxpbnV4LWFjcGkNCj5TdWJqZWN0OiBSRTogW1BBVENI
-IDAvNl0gQUNQSTogYWNwaSB0YWJsZSBtYW5hZ2VtZW50IGVuaGFuY2VtZW50DQo+DQo+T24gTW9u
-LCAyMDA4LTEwLTEzIGF0IDExOjAyIC0wNjAwLCBNb29yZSwgUm9iZXJ0IHdyb3RlOg0KPj4gPkkg
-Zm91bmQgdGhhdCB0aGVyZSBhcmUgdHdvIEZBQ1MgdGFibGVzIG9uIHRoaXMgcGxhdGZvcm0sDQo+
-PiA+WFNEVC0tPkZBRFQxLS0+WGZhY3MtLT5GQUNTMQ0KPj4gPiAgICAgICAgfC0tLS0tPmZhY3Mt
-fA0KPj4gPiAgICAgICAgICAgICAgICAgICAgfC0+RkFDUzINCj4+ID5SU0RULS0+RkFEVDItLT5m
-YWNzLXwNCj4+ID5MaW51eCB1c2VzIFhTRFQgb24gdGhpcyBwbGF0Zm9ybSBhbmQgc2V0cyB0aGUg
-d2FraW5nIHZlY3RvciBpbiBGQUNTMQ0KPj4gPndoZW4gc3VzcGVuZGluZy4NCj4+ID5CdXQgaXQg
-c2VlbXMgdGhhdCB0aGUgQklPUyBvbmx5IGNhcmVzIGZvciB0aGUgd2FraW5nIHZlY3RvciBpbiBG
-QUNTMiwNCj4+DQo+Pg0KPj4gSXMgdGhpcyBwb3NzaWJseSBhbiBpc3N1ZSBvZiB1c2luZyB0aGUg
-MzItYml0IHdha2UgdmVjdG9yIHZlcnN1cyB0aGUgNjQtDQo+Yml0IHdha2UgdmVjdG9yPyAoRm9y
-IGV4YW1wbGUsIHBlcmhhcHMgdGhlIEZBQ1MxIGhhcyBib3RoIHZlY3RvcnMgYW5kIHRoZQ0KPjY0
-LWJpdCB2ZWN0b3IgaXMgdXNlZCBidXQgZmFpbHMuIEJ1dCB0aGUgRkFDUzIgb25seSBoYXMgdGhl
-IDMyLWJpdCB2ZWN0b3INCj5zbyBpdCBpcyB1c2VkLCBhbmQgdGhpcyB3b3JrcyBjb3JyZWN0bHkg
-d2l0aCB0aGUgQklPUy4pDQo+77u/Tm8sIEkgdGVzdGVkIHRoZSBwYXRjaCBmcm9tIFJhZmFlbCwg
-d2hpY2ggaXMgdGhlIHNhbWUgZnJvbSB0aGUgb25lDQo+aGVyZToNCj5odHRwOi8vd3d3LmFjcGlj
-YS5vcmcvYnVnemlsbGEvYXR0YWNobWVudC5jZ2k/aWQ9ODEzJmFjdGlvbj12aWV3DQo+SXQgZG9l
-c24ndCB3b3JrLg0KPg0KPj4gT3IsIGlzIGl0IGFjdHVhbGx5IHRoZSBjYXNlIHdoZXJlIHRoZSB0
-d28gRkFDUyB0YWJsZXMgaGF2ZSBkaWZmZXJlbnQgd2FrZQ0KPnZlY3RvcnM/IEJvdGggdGhlIDMy
-LWJpdCB2ZWN0b3JzIGFuZCB0aGUgNjQtYml0IHZlY3RvcnMgYXJlIGRpZmZlcmVudD8NCj50aGUg
-d2FrZSB2ZWN0b3IgaXMganVzdCBhIG1lbW9yeSBhZGRyZXNzIHdoZXJlIEJJT1MgcGFzc2VzIHRo
-ZSBjb250cm9sDQo+dG8gT1MuDQo+QXMgdGhlcmUgYXJlIHR3byBkaWZmZXJlbnQgRkFDUyB0YWJs
-ZXMgbG9jYXRlZCBhdCBkaWZmZXJlbnQgYWRkcmVzc2VzLA0KPnN1cmVseSB0aGUgd2FrZSB2ZWN0
-b3JzIGFyZSBkaWZmZXJlbnQuIDopDQo+DQo+dGhhbmtzLA0KPnJ1aQ0KPg0K
+From: Len Brown <len.brown@intel.com>
+
+sync with acpi_driver_data(device)
+and acpi_evaluate_integer(..., long long)
+changes that happened since this driver
+was checked in.
+
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ drivers/misc/panasonic-laptop.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/misc/panasonic-laptop.c b/drivers/misc/panasonic-laptop.c
+index 9aecda5..a2cb598 100644
+--- a/drivers/misc/panasonic-laptop.c
++++ b/drivers/misc/panasonic-laptop.c
+@@ -252,7 +252,7 @@ static int acpi_pcc_write_sset(struct pcc_acpi *pcc, int func, int val)
+ 
+ static inline int acpi_pcc_get_sqty(struct acpi_device *device)
+ {
+-	unsigned long s;
++	unsigned long long s;
+ 	acpi_status status;
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_pcc_get_sqty");
+@@ -500,7 +500,7 @@ static void acpi_pcc_generate_keyinput(struct pcc_acpi *pcc)
+ 	struct input_dev *hotk_input_dev = pcc->input_dev;
+ 	int rc;
+ 	int key_code, hkey_num;
+-	unsigned long result;
++	unsigned long long result;
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_pcc_generate_keyinput");
+ 
+@@ -645,7 +645,7 @@ static int acpi_pcc_hotkey_add(struct acpi_device *device)
+ 	pcc->device = device;
+ 	pcc->handle = device->handle;
+ 	pcc->num_sifr = num_sifr;
+-	acpi_driver_data(device) = pcc;
++	device->driver_data = pcc;
+ 	strcpy(acpi_device_name(device), ACPI_PCC_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_PCC_CLASS);
+ 
+-- 
+1.5.5.1
+
