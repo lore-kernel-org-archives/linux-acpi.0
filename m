@@ -1,46 +1,34 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Patch needed for ASUS EEEPC 701 2.6.27 (perhaps a regession)
-Date: Sat, 11 Oct 2008 18:46:36 +0200
-Message-ID: <200810111846.36862.rjw@sisk.pl>
-References: <48F09658.8060502@au-79.de>
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Subject: acpi-test tree on eeepc: EC error message on second resume
+Date: Sat, 11 Oct 2008 17:57:48 +0100
+Message-ID: <48F0DB0C.7060201@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:58658 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753858AbYJKQm2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 11 Oct 2008 12:42:28 -0400
-In-Reply-To: <48F09658.8060502@au-79.de>
-Content-Disposition: inline
+Received: from ey-out-2122.google.com ([74.125.78.27]:2245 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753457AbYJKQ5x (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 12:57:53 -0400
+Received: by ey-out-2122.google.com with SMTP id 6so389759eyi.37
+        for <linux-acpi@vger.kernel.org>; Sat, 11 Oct 2008 09:57:51 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robert Goldner <robert@au-79.de>
-Cc: linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 
-On Saturday, 11 of October 2008, Robert Goldner wrote:
-> Hi,
-> 
-> I am a happy user of an asus eeepc 701 with an self-made kernel 2.6.27. 
-> Its working quite good, but there is one patch needed to avoid problems 
-> related to ACPI and Hotkeys.
-> After using a few hotkeys there comes a message in syslog like:
-> ACPI: EC: GPE storm detected, disabling EC GPE
-> and no hotkey event is recognized any more. This is quite bad on a nettop.
-> 
-> The needed patch and the bug description is available at:
-> http://bugzilla.kernel.org/show_bug.cgi?id=10919
-> The patch is called 'patch vs 2.6.27-rc7'
-> 
-> The patch fits also to 2.6.27 without any problems and works very fine. 
-> Thanks to everyone who was involved.
-> 
-> I would suggest to include this patch in the mainline kernel very soon 
-> (e.g. 2.6.28 or if possible in 2.6.27.1).
+I've just run an acpi-test kernel on my EeePC and noticed a new issue. 
+It seems to be caused (or revealed) by the EC interrupt transaction patch.
 
-This patch is scheduled for 2.6.28 AFAICS and will be included into -stable if
-it doesn't break anything in the mainline.
+On the second suspend/resume cycle, I see a kernel error message.
 
-Thanks,
-Rafael
+[   78.747707] ACPI: Waking up from system sleep state S3
+[   79.330001] ACPI: EC: input buffer not empty, aborting transaction
+[   79.423327] ACPI: EC: non-query interrupt received, switching to
+interrupt mode
+
+I still don't see any issues in the code.  I'll try getting a DEBUG
+trace to see the EC interrupts.  Any other suggestions?
+
+Thanks
+Alan
