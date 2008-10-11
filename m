@@ -1,14 +1,13 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 81/85] ACPI system: Debug interface used for error message
- cleanup
-Date: Sat, 11 Oct 2008 02:36:41 -0400
-Message-ID: <1accf0f884731a879e62c019604928180a72b163.1223706853.git.len.brown@intel.com>
+Subject: [PATCH 77/85] ACPI scan: Debug interface used for error message cleanup
+Date: Sat, 11 Oct 2008 02:36:37 -0400
+Message-ID: <e46ba07096d1c71cca5ca1256e61064a2bb60287.1223706853.git.len.brown@intel.com>
 References: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:40791 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753803AbYJKGhi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 02:37:38 -0400
+Received: from vms172073pub.verizon.net ([206.46.172.73]:58897 "EHLO
+	vms172073pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754210AbYJKGhb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 02:37:31 -0400
 In-reply-to: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 In-reply-to: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
 References: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
@@ -23,24 +22,44 @@ Signed-off-by: Thomas Renninger <trenn@suse.de>
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/system.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/scan.c |   11 ++++++-----
+ 1 files changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/system.c b/drivers/acpi/system.c
-index 91dec44..58a1d89 100644
---- a/drivers/acpi/system.c
-+++ b/drivers/acpi/system.c
-@@ -387,8 +387,8 @@ static ssize_t counter_set(struct kobject *kobj,
- 		goto end;
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index f6f52c1..0d46347 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -113,16 +113,16 @@ static int acpi_bus_hot_remove_device(void *context)
  
- 	if (!(all_counters[index].flags & ACPI_EVENT_VALID)) {
--		ACPI_DEBUG_PRINT((ACPI_DB_WARN,
--			"Can not change Invalid GPE/Fixed Event status\n"));
-+		printk(KERN_WARNING
-+		       "Can not change Invalid GPE/Fixed Event status\n");
- 		return -EINVAL;
+ 
+ 	if (acpi_bus_trim(device, 1)) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
+-				"Removing device failed\n"));
++		printk(KERN_ERR "Removing device [%s] failed\n",
++		       acpi_device_bid(device));
+ 		return -1;
  	}
  
+ 	/* power off device */
+ 	status = acpi_evaluate_object(handle, "_PS3", NULL, NULL);
+ 	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND)
+-		ACPI_DEBUG_PRINT((ACPI_DB_WARN,
+-				"Power-off device failed\n"));
++		ACPI_EXCEPTION((AE_INFO, status,
++				"Power-off device failed"));
+ 
+ 	if (device->flags.lockable) {
+ 		arg_list.count = 1;
+@@ -477,7 +477,8 @@ static int acpi_device_register(struct acpi_device *device,
+ 
+ 	result = acpi_device_setup_files(device);
+ 	if(result)
+-		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Error creating sysfs interface for device %s\n", device->dev.bus_id));
++		printk(KERN_ERR "Error creating sysfs interface for device"
++		       " %s [%d]\n", device->dev.bus_id, result);
+ 
+ 	device->removal_type = ACPI_BUS_REMOVAL_NORMAL;
+ 	return 0;
 -- 
 1.5.5.1
 
