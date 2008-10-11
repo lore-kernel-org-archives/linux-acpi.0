@@ -1,12 +1,13 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 37/85] dock: fix for ATA bay in a dock station
-Date: Sat, 11 Oct 2008 02:35:57 -0400
-Message-ID: <61b836958371c717d1e6d4fea1d2c512969ad20b.1223706853.git.len.brown@intel.com>
+Subject: [PATCH 76/85] ACPI video: Debug interface used for error message
+ cleanup
+Date: Sat, 11 Oct 2008 02:36:36 -0400
+Message-ID: <44ce0da3e71b57c11233611c598d94b91e2994d0.1223706853.git.len.brown@intel.com>
 References: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:40791 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751007AbYJKGh1 (ORCPT
+Received: from vms172071pub.verizon.net ([206.46.172.71]:52181 "EHLO
+	vms172071pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753892AbYJKGh1 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 02:37:27 -0400
 In-reply-to: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 In-reply-to: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
@@ -14,66 +15,53 @@ References: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@i
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Shaohua Li <shaohua.li@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Thomas Renninger <trenn@suse.de>, Andi Kleen <ak@linux.intel.com>, Len Brown <len.brown@intel.com>
 
-From: Shaohua Li <shaohua.li@intel.com>
+From: Thomas Renninger <trenn@suse.de>
 
-an ATA bay can be in a dock and itself can be ejected separately.
-This patch handles such eject bay. Found by Holger.
-
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/dock.c |   14 ++++++++++----
- 1 files changed, 10 insertions(+), 4 deletions(-)
+ drivers/acpi/video.c |   11 +++++------
+ 1 files changed, 5 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
-index ac7dfef..c877cc5 100644
---- a/drivers/acpi/dock.c
-+++ b/drivers/acpi/dock.c
-@@ -609,6 +609,7 @@ register_hotplug_dock_device(acpi_handle handle, struct acpi_dock_ops *ops,
- {
- 	struct dock_dependent_device *dd;
- 	struct dock_station *dock_station;
-+	int ret = -EINVAL;
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index e8a51a1..d758944 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -1530,8 +1530,8 @@ acpi_video_bus_get_one_device(struct acpi_device *device,
+ 						     acpi_video_device_notify,
+ 						     data);
+ 		if (ACPI_FAILURE(status)) {
+-			ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
+-					  "Error installing notify handler\n"));
++			ACPI_EXCEPTION((AE_INFO, status,
++					"Error installing notify handler"));
+ 			if(data->brightness)
+ 				kfree(data->brightness->levels);
+ 			kfree(data->brightness);
+@@ -1745,8 +1745,7 @@ acpi_video_bus_get_devices(struct acpi_video_bus *video,
  
- 	if (!dock_station_count)
- 		return -ENODEV;
-@@ -618,16 +619,21 @@ register_hotplug_dock_device(acpi_handle handle, struct acpi_dock_ops *ops,
- 	 * this would include the dock station itself
- 	 */
- 	list_for_each_entry(dock_station, &dock_stations, sibiling) {
-+		/*
-+		 * An ATA bay can be in a dock and itself can be ejected
-+		 * seperately, so there are two 'dock stations' which need the
-+		 * ops
-+		 */
- 		dd = find_dock_dependent_device(dock_station, handle);
- 		if (dd) {
- 			dd->ops = ops;
- 			dd->context = context;
- 			dock_add_hotplug_device(dock_station, dd);
--			return 0;
-+			ret = 0;
+ 		status = acpi_video_bus_get_one_device(dev, video);
+ 		if (ACPI_FAILURE(status)) {
+-			ACPI_DEBUG_PRINT((ACPI_DB_WARN,
+-					"Cant attach device"));
++			printk(KERN_ERR "Cant attach device [%d]\n", status);
+ 			continue;
  		}
  	}
- 
--	return -EINVAL;
-+	return ret;
- }
- 
- EXPORT_SYMBOL_GPL(register_hotplug_dock_device);
-@@ -1078,8 +1084,8 @@ find_dock(acpi_handle handle, u32 lvl, void *context, void **rv)
- static acpi_status
- find_bay(acpi_handle handle, u32 lvl, void *context, void **rv)
- {
--	/* If bay is in a dock, it's already handled */
--	if (is_ejectable_bay(handle) && !is_dock_device(handle))
-+	/* If bay is a dock, it's already handled */
-+	if (is_ejectable_bay(handle) && !is_dock(handle))
- 		dock_add(handle);
- 	return AE_OK;
- }
+@@ -2003,8 +2002,8 @@ static int acpi_video_bus_add(struct acpi_device *device)
+ 					     ACPI_DEVICE_NOTIFY,
+ 					     acpi_video_bus_notify, video);
+ 	if (ACPI_FAILURE(status)) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
+-				  "Error installing notify handler\n"));
++		ACPI_EXCEPTION((AE_INFO, status,
++				"Error installing notify handler"));
+ 		error = -ENODEV;
+ 		goto err_stop_video;
+ 	}
 -- 
 1.5.5.1
 
