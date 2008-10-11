@@ -1,13 +1,12 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 75/85] ACPI processor: Debug interface used for error message
- cleanup
-Date: Sat, 11 Oct 2008 02:36:35 -0400
-Message-ID: <e127770259e4341df0f83c3531f0df57982815e2.1223706853.git.len.brown@intel.com>
+Subject: [PATCH 66/85] PNP: add CONFIG_PNP_DEBUG_MESSAGES and pnp_dbg()
+Date: Sat, 11 Oct 2008 02:36:26 -0400
+Message-ID: <97ef062bbe08f46903f29ecdf432be302c977f3b.1223706853.git.len.brown@intel.com>
 References: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms172071pub.verizon.net ([206.46.172.71]:52181 "EHLO
-	vms172071pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753879AbYJKGhR (ORCPT
+Received: from vms172073pub.verizon.net ([206.46.172.73]:58897 "EHLO
+	vms172073pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753851AbYJKGhR (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 02:37:17 -0400
 In-reply-to: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 In-reply-to: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
@@ -15,108 +14,103 @@ References: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@i
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Thomas Renninger <trenn@suse.de>, Andi Kleen <ak@linux.intel.com>, Len Brown <len.brown@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Andi Kleen <ak@linux.intel.com>, Len Brown <len.brown@intel.com>
 
-From: Thomas Renninger <trenn@suse.de>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Signed-off-by: Thomas Renninger <trenn@suse.de>
+This adds the core function pnp_dbg() and a new config option to
+enable it.
+
+The PNP core debugging messages can be enabled at boot-time with the
+"pnp.debug" kernel parameter.
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/processor_perflib.c    |   17 ++++++-----------
- drivers/acpi/processor_throttling.c |   17 ++++++-----------
- 2 files changed, 12 insertions(+), 22 deletions(-)
+ Documentation/kernel-parameters.txt |    4 ++++
+ drivers/pnp/Kconfig                 |   14 ++++++++++++++
+ drivers/pnp/base.h                  |   10 ++++++++++
+ drivers/pnp/core.c                  |   11 +++++++++++
+ 4 files changed, 39 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
-index 80c251e..bf183e7 100644
---- a/drivers/acpi/processor_perflib.c
-+++ b/drivers/acpi/processor_perflib.c
-@@ -523,14 +523,9 @@ static int acpi_processor_get_psd(struct acpi_processor	*pr)
- 	}
+diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+index 1150444..7164d4e 100644
+--- a/Documentation/kernel-parameters.txt
++++ b/Documentation/kernel-parameters.txt
+@@ -1660,6 +1660,10 @@ and is between 256 and 4096 characters. It is defined in the file
+ 			Override pmtimer IOPort with a hex value.
+ 			e.g. pmtmr=0x508
  
- 	psd = buffer.pointer;
--	if (!psd || (psd->type != ACPI_TYPE_PACKAGE)) {
--		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid _PSD data\n"));
--		result = -EFAULT;
--		goto end;
--	}
--
--	if (psd->package.count != 1) {
--		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid _PSD data\n"));
-+	if (!psd || (psd->type != ACPI_TYPE_PACKAGE)
-+	    || psd->package.count != 1) {
-+		printk(KERN_ERR "Invalid _PSD data\n");
- 		result = -EFAULT;
- 		goto end;
- 	}
-@@ -543,19 +538,19 @@ static int acpi_processor_get_psd(struct acpi_processor	*pr)
- 	status = acpi_extract_package(&(psd->package.elements[0]),
- 		&format, &state);
- 	if (ACPI_FAILURE(status)) {
--		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid _PSD data\n"));
-+		ACPI_EXCEPTION((AE_INFO, status, "Invalid _PSD data"));
- 		result = -EFAULT;
- 		goto end;
- 	}
++	pnp.debug	[PNP]
++			Enable PNP debug messages.  This depends on the
++			CONFIG_PNP_DEBUG_MESSAGES option.
++
+ 	pnpacpi=	[ACPI]
+ 			{ off }
  
- 	if (pdomain->num_entries != ACPI_PSD_REV0_ENTRIES) {
--		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Unknown _PSD:num_entries\n"));
-+		printk(KERN_ERR "Unknown _PSD:num_entries\n");
- 		result = -EFAULT;
- 		goto end;
- 	}
+diff --git a/drivers/pnp/Kconfig b/drivers/pnp/Kconfig
+index 821933f..8a3237f 100644
+--- a/drivers/pnp/Kconfig
++++ b/drivers/pnp/Kconfig
+@@ -20,6 +20,20 @@ menuconfig PNP
  
- 	if (pdomain->revision != ACPI_PSD_REV0_REVISION) {
--		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Unknown _PSD:revision\n"));
-+		printk(KERN_ERR "Unknown _PSD:revision\n");
- 		result = -EFAULT;
- 		goto end;
- 	}
-diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
-index a56fc6c..ce4540d 100644
---- a/drivers/acpi/processor_throttling.c
-+++ b/drivers/acpi/processor_throttling.c
-@@ -527,14 +527,9 @@ static int acpi_processor_get_tsd(struct acpi_processor *pr)
- 	}
+ 	  If unsure, say Y.
  
- 	tsd = buffer.pointer;
--	if (!tsd || (tsd->type != ACPI_TYPE_PACKAGE)) {
--		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid _TSD data\n"));
--		result = -EFAULT;
--		goto end;
--	}
--
--	if (tsd->package.count != 1) {
--		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid _TSD data\n"));
-+	if (!tsd || (tsd->type != ACPI_TYPE_PACKAGE)
-+	    || tsd->package.count != 1) {
-+		printk(KERN_INFO "Invalid _TSD data\n");
- 		result = -EFAULT;
- 		goto end;
- 	}
-@@ -547,19 +542,19 @@ static int acpi_processor_get_tsd(struct acpi_processor *pr)
- 	status = acpi_extract_package(&(tsd->package.elements[0]),
- 				      &format, &state);
- 	if (ACPI_FAILURE(status)) {
--		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid _TSD data\n"));
-+		ACPI_EXCEPTION((AE_INFO, status, "Invalid _TSD data"));
- 		result = -EFAULT;
- 		goto end;
- 	}
++config PNP_DEBUG_MESSAGES
++	default y
++	bool "PNP debugging messages"
++	depends on PNP
++	help
++	  Say Y here if you want the PNP layer to be able to produce debugging
++	  messages if needed.  The messages can be enabled at boot-time with
++	  the pnp.debug kernel parameter.
++
++	  This option allows you to save a bit of space if you do not want
++	  the messages to even be built into the kernel.
++
++	  If you have any doubts about this, say Y here.
++
+ if PNP
  
- 	if (pdomain->num_entries != ACPI_TSD_REV0_ENTRIES) {
--		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Unknown _TSD:num_entries\n"));
-+		printk(KERN_ERR "Unknown _TSD:num_entries\n");
- 		result = -EFAULT;
- 		goto end;
- 	}
+ config PNP_DEBUG
+diff --git a/drivers/pnp/base.h b/drivers/pnp/base.h
+index 9fd7bb9..5e4e82c 100644
+--- a/drivers/pnp/base.h
++++ b/drivers/pnp/base.h
+@@ -166,3 +166,13 @@ struct pnp_resource *pnp_add_io_resource(struct pnp_dev *dev,
+ struct pnp_resource *pnp_add_mem_resource(struct pnp_dev *dev,
+ 					  resource_size_t start,
+ 					  resource_size_t end, int flags);
++
++extern int pnp_debug;
++
++#if defined(CONFIG_PNP_DEBUG_MESSAGES)
++#define pnp_dbg(dev, format, arg...)					\
++	({ if (pnp_debug) dev_printk(KERN_DEBUG, dev, format, ## arg); 0; })
++#else
++#define pnp_dbg(dev, format, arg...)					\
++	({ if (0) dev_printk(KERN_DEBUG, dev, format, ## arg); 0; })
++#endif
+diff --git a/drivers/pnp/core.c b/drivers/pnp/core.c
+index 7cb1ffc..61291b5 100644
+--- a/drivers/pnp/core.c
++++ b/drivers/pnp/core.c
+@@ -221,3 +221,14 @@ static int __init pnp_init(void)
+ }
  
- 	if (pdomain->revision != ACPI_TSD_REV0_REVISION) {
--		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Unknown _TSD:revision\n"));
-+		printk(KERN_ERR "Unknown _TSD:revision\n");
- 		result = -EFAULT;
- 		goto end;
- 	}
+ subsys_initcall(pnp_init);
++
++int pnp_debug;
++
++#if defined(CONFIG_PNP_DEBUG_MESSAGES)
++static int __init pnp_debug_setup(char *__unused)
++{
++	pnp_debug = 1;
++	return 1;
++}
++__setup("pnp.debug", pnp_debug_setup);
++#endif
 -- 
 1.5.5.1
 
