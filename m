@@ -1,43 +1,32 @@
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 Subject: Re: eeepc-laptop: Use standard interfaces
-Date: Sat, 11 Oct 2008 14:47:32 +0100
-Message-ID: <48F0AE74.30303@tuffmail.co.uk>
+Date: Sat, 11 Oct 2008 14:55:53 +0100
+Message-ID: <20081011135553.GA17573@srcf.ucam.org>
+References: <48F0AE74.30303@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.25]:17632 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752972AbYJKNrh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 09:47:37 -0400
-Received: by ey-out-2122.google.com with SMTP id 6so371916eyi.37
-        for <linux-acpi@vger.kernel.org>; Sat, 11 Oct 2008 06:47:35 -0700 (PDT)
+Received: from cavan.codon.org.uk ([93.93.128.6]:59678 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753394AbYJKNz6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 09:55:58 -0400
+Content-Disposition: inline
+In-Reply-To: <48F0AE74.30303@tuffmail.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux acpi <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg@redhat.com>
+To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Cc: linux acpi <linux-acpi@vger.kernel.org>
 
-I've tested this change in the acpi-test tree.  I welcome the input
-events - I now get a nice on-screen display for the volume hotkeys. 
-However, there's a regression which is probably related to the rfkill code.
+On Sat, Oct 11, 2008 at 02:47:32PM +0100, Alan Jenkins wrote:
 
-My wireless interface dies on suspend:
+> I guess the rfkill subsystem automatically trips the switch to save
+> power in suspend.  And I don't have resume scripts with the pci hotplug
+> magic workaround.  So, do you still think it would be appropriate to
+> merge this rfkill code before the pci hotplug magic is implemented
+> in-kernel?
 
-[  367.430008] Restarting tasks ... done.
-[  368.683300] ath5k phy0: failed to wakeup the MAC Chip
-[  368.683300] ath5k phy0: unable to reset hardware: -5
-[  369.933290] evdev.c(EVIOCGBIT): Suspicious buffer size 511, limiting
-output to 64 bytes. See http://userweb.kernel.org/~dtor/eviocgbit-bug.html
-[  371.619966] ath5k phy0: failed to wakeup the MAC Chip
-[  371.619966] ath5k phy0: unable to reset hardware: -5
+The suspend/resume code in rfkill is being removed in this release 
+cycle, so I don't think there's a problem.
 
-I can still reproduce it if I stop the "hal" and "dbus" services and use
-s2ram to suspend.
-
-I guess the rfkill subsystem automatically trips the switch to save
-power in suspend.  And I don't have resume scripts with the pci hotplug
-magic workaround.  So, do you still think it would be appropriate to
-merge this rfkill code before the pci hotplug magic is implemented
-in-kernel?
-
-Regards
-Alan
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
