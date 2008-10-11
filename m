@@ -1,12 +1,13 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 08/85] ACPICA: Copy dynamically loaded tables to local buffer
-Date: Sat, 11 Oct 2008 02:35:28 -0400
-Message-ID: <a4377db47f9b0586f32ed7beddb53c86d5ef422d.1223706853.git.len.brown@intel.com>
+Subject: [PATCH 45/85] ACPI Suspend: Enable ACPI during resume if SCI_EN is not
+ set
+Date: Sat, 11 Oct 2008 02:36:05 -0400
+Message-ID: <73ebf767b33707fcd050e3f37b7dbf4b1370b0c5.1223706853.git.len.brown@intel.com>
 References: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:40791 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753327AbYJKGhG (ORCPT
+Received: from vms042pub.verizon.net ([206.46.252.42]:41914 "EHLO
+	vms042pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751181AbYJKGhG (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 02:37:06 -0400
 In-reply-to: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 In-reply-to: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
@@ -14,207 +15,47 @@ References: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@i
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Dennis Noordsij <dennis.noordsij@helsinki.fi>, Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Andi Kleen <ak@linux.intel.com>, Len Brown <len.brown@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
 
-From: Dennis Noordsij <dennis.noordsij@helsinki.fi>
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Previously, dynamically loaded tables were simply mapped, but on some machines
-this memory is corrupted after suspend. Now copy the table to a local buffer.
-For OpRegion case, added checksum verify. Use the table length from the table header,
-not the region length. For Buffer case, use the table length also.
+ACPI Suspend: Enable ACPI during resume if SCI_EN is not set
 
-http://bugzilla.kernel.org/show_bug.cgi?id=10734
+On some machines, like for example MSI Wind U100, the BIOS doesn't
+enable ACPI before returning control to the OS, which sometimes
+causes resume to fail.  This is against the ACPI specification,
+which clearly states that "When the platform is waking from an S1, S2
+or S3 state, OSPM assumes the hardware is already in the ACPI mode
+and will not issue an ACPI_ENABLE", but it won't hurt to check the
+SCI_EN bit and enable ACPI during resume from S3 if this bit is not
+set.
 
-Signed-off-by: Dennis Noordsij <dennis.noordsij@helsinki.fi>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Lin Ming <ming.m.lin@intel.com>
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Fortunately, we already have acpi_enable() for that, so use it in the
+resume code path, before executing _BFS, in analogy with the
+resume-from-hibernation code path.
+
+NOTE: We aren't supposed to set SCI_EN directly, because it's owned
+by the hardware.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/executer/exconfig.c |  113 +++++++++++++++++++++++++++----------
- 1 files changed, 82 insertions(+), 31 deletions(-)
+ drivers/acpi/sleep/main.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/executer/exconfig.c b/drivers/acpi/executer/exconfig.c
-index 8892b98..331a114 100644
---- a/drivers/acpi/executer/exconfig.c
-+++ b/drivers/acpi/executer/exconfig.c
-@@ -280,6 +280,7 @@ acpi_ex_load_op(union acpi_operand_object *obj_desc,
- 		struct acpi_walk_state *walk_state)
- {
- 	union acpi_operand_object *ddb_handle;
-+	struct acpi_table_header *table;
- 	struct acpi_table_desc table_desc;
- 	u32 table_index;
- 	acpi_status status;
-@@ -294,9 +295,8 @@ acpi_ex_load_op(union acpi_operand_object *obj_desc,
- 	switch (ACPI_GET_OBJECT_TYPE(obj_desc)) {
- 	case ACPI_TYPE_REGION:
- 
--		ACPI_DEBUG_PRINT((ACPI_DB_EXEC, "Load from Region %p %s\n",
--				  obj_desc,
--				  acpi_ut_get_object_type_name(obj_desc)));
-+		ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
-+				  "Load table from Region %p\n", obj_desc));
- 
- 		/* Region must be system_memory (from ACPI spec) */
- 
-@@ -316,61 +316,112 @@ acpi_ex_load_op(union acpi_operand_object *obj_desc,
- 		}
- 
- 		/*
--		 * We will simply map the memory region for the table. However, the
--		 * memory region is technically not guaranteed to remain stable and
--		 * we may eventually have to copy the table to a local buffer.
-+		 * Map the table header and get the actual table length. The region
-+		 * length is not guaranteed to be the same as the table length.
-+		 */
-+		table = acpi_os_map_memory(obj_desc->region.address,
-+					   sizeof(struct acpi_table_header));
-+		if (!table) {
-+			return_ACPI_STATUS(AE_NO_MEMORY);
-+		}
-+
-+		length = table->length;
-+		acpi_os_unmap_memory(table, sizeof(struct acpi_table_header));
-+
-+		/* Must have at least an ACPI table header */
-+
-+		if (length < sizeof(struct acpi_table_header)) {
-+			return_ACPI_STATUS(AE_INVALID_TABLE_LENGTH);
-+		}
-+
-+		/*
-+		 * The memory region is not guaranteed to remain stable and we must
-+		 * copy the table to a local buffer. For example, the memory region
-+		 * is corrupted after suspend on some machines. Dynamically loaded
-+		 * tables are usually small, so this overhead is minimal.
- 		 */
-+
-+		/* Allocate a buffer for the table */
-+
-+		table_desc.pointer = ACPI_ALLOCATE(length);
-+		if (!table_desc.pointer) {
-+			return_ACPI_STATUS(AE_NO_MEMORY);
-+		}
-+
-+		/* Map the entire table and copy it */
-+
-+		table = acpi_os_map_memory(obj_desc->region.address, length);
-+		if (!table) {
-+			ACPI_FREE(table_desc.pointer);
-+			return_ACPI_STATUS(AE_NO_MEMORY);
-+		}
-+
-+		ACPI_MEMCPY(table_desc.pointer, table, length);
-+		acpi_os_unmap_memory(table, length);
-+
- 		table_desc.address = obj_desc->region.address;
--		table_desc.length = obj_desc->region.length;
--		table_desc.flags = ACPI_TABLE_ORIGIN_MAPPED;
+diff --git a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
+index c7f0c9c..5419938 100644
+--- a/drivers/acpi/sleep/main.c
++++ b/drivers/acpi/sleep/main.c
+@@ -233,6 +233,8 @@ static int acpi_suspend_enter(suspend_state_t pm_state)
  		break;
- 
- 	case ACPI_TYPE_BUFFER:	/* Buffer or resolved region_field */
- 
- 		ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
--				  "Load from Buffer or Field %p %s\n", obj_desc,
--				  acpi_ut_get_object_type_name(obj_desc)));
--
--		length = obj_desc->buffer.length;
-+				  "Load table from Buffer or Field %p\n",
-+				  obj_desc));
- 
- 		/* Must have at least an ACPI table header */
- 
--		if (length < sizeof(struct acpi_table_header)) {
-+		if (obj_desc->buffer.length < sizeof(struct acpi_table_header)) {
- 			return_ACPI_STATUS(AE_INVALID_TABLE_LENGTH);
- 		}
- 
--		/* Validate checksum here. It won't get validated in tb_add_table */
-+		/* Get the actual table length from the table header */
- 
--		status =
--		    acpi_tb_verify_checksum(ACPI_CAST_PTR
--					    (struct acpi_table_header,
--					     obj_desc->buffer.pointer), length);
--		if (ACPI_FAILURE(status)) {
--			return_ACPI_STATUS(status);
-+		table =
-+		    ACPI_CAST_PTR(struct acpi_table_header,
-+				  obj_desc->buffer.pointer);
-+		length = table->length;
-+
-+		/* Table cannot extend beyond the buffer */
-+
-+		if (length > obj_desc->buffer.length) {
-+			return_ACPI_STATUS(AE_AML_BUFFER_LIMIT);
-+		}
-+		if (length < sizeof(struct acpi_table_header)) {
-+			return_ACPI_STATUS(AE_INVALID_TABLE_LENGTH);
- 		}
- 
- 		/*
--		 * We need to copy the buffer since the original buffer could be
--		 * changed or deleted in the future
-+		 * Copy the table from the buffer because the buffer could be modified
-+		 * or even deleted in the future
- 		 */
- 		table_desc.pointer = ACPI_ALLOCATE(length);
- 		if (!table_desc.pointer) {
- 			return_ACPI_STATUS(AE_NO_MEMORY);
- 		}
- 
--		ACPI_MEMCPY(table_desc.pointer, obj_desc->buffer.pointer,
--			    length);
--		table_desc.length = length;
--		table_desc.flags = ACPI_TABLE_ORIGIN_ALLOCATED;
-+		ACPI_MEMCPY(table_desc.pointer, table, length);
-+		table_desc.address = ACPI_TO_INTEGER(table_desc.pointer);
- 		break;
- 
- 	default:
- 		return_ACPI_STATUS(AE_AML_OPERAND_TYPE);
  	}
  
--	/*
--	 * Install the new table into the local data structures
--	 */
-+	/* Validate table checksum (will not get validated in tb_add_table) */
-+
-+	status = acpi_tb_verify_checksum(table_desc.pointer, length);
-+	if (ACPI_FAILURE(status)) {
-+		ACPI_FREE(table_desc.pointer);
-+		return_ACPI_STATUS(status);
-+	}
-+
-+	/* Complete the table descriptor */
-+
-+	table_desc.length = length;
-+	table_desc.flags = ACPI_TABLE_ORIGIN_ALLOCATED;
-+
-+	/* Install the new table into the local data structures */
-+
- 	status = acpi_tb_add_table(&table_desc, &table_index);
- 	if (ACPI_FAILURE(status)) {
- 		goto cleanup;
-@@ -379,7 +430,7 @@ acpi_ex_load_op(union acpi_operand_object *obj_desc,
- 	/*
- 	 * Add the table to the namespace.
- 	 *
--	 * Note: We load the table objects relative to the root of the namespace.
-+	 * Note: Load the table objects relative to the root of the namespace.
- 	 * This appears to go against the ACPI specification, but we do it for
- 	 * compatibility with other ACPI implementations.
- 	 */
-@@ -415,7 +466,7 @@ acpi_ex_load_op(union acpi_operand_object *obj_desc,
-       cleanup:
- 	if (ACPI_FAILURE(status)) {
++	/* If ACPI is not enabled by the BIOS, we need to enable it here. */
++	acpi_enable();
+ 	/* Reprogram control registers and execute _BFS */
+ 	acpi_leave_sleep_state_prep(acpi_state);
  
--		/* Delete allocated buffer or mapping */
-+		/* Delete allocated table buffer */
- 
- 		acpi_tb_delete_table(&table_desc);
- 	}
 -- 
 1.5.5.1
 
