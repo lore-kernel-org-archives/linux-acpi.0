@@ -1,85 +1,52 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 01/85] ACPI: Add missing acpi.debug_layer Documentation hunk
- from Thomas Renninger
-Date: Sat, 11 Oct 2008 02:35:21 -0400
-Message-ID: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
+Subject: [PATCH 11/85] ACPICA: Fix wrong resource descriptor length for 64-bit
+ build
+Date: Sat, 11 Oct 2008 02:35:31 -0400
+Message-ID: <51ea4920e5259e9b675c96c55c470124498f1842.1223706853.git.len.brown@intel.com>
 References: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms172071pub.verizon.net ([206.46.172.71]:52117 "EHLO
-	vms172071pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751007AbYJKGgs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 02:36:48 -0400
+Received: from vms172069pub.verizon.net ([206.46.172.69]:65502 "EHLO
+	vms172069pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751302AbYJKGgw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 02:36:52 -0400
 In-reply-to: <1223707005-26864-1-git-send-email-lenb@kernel.org>
+In-reply-to: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
+References: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Andi Kleen <ak@linux.intel.com>, Len Brown <len.brown@intel.com>
 
-From: Andi Kleen <ak@linux.intel.com>
+From: Bob Moore <robert.moore@intel.com>
 
+The "minimal" descriptors such as EndTag are calculated as 12
+bytes long, but the actual length in the internal descriptor is
+16 because of the round-up to 8 on 64-bit build.
+
+http://www.acpica.org/bugzilla/show_bug.cgi?id=728
+
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/kernel-parameters.txt |   47 ++++++++++++++++++++++++----------
- 1 files changed, 33 insertions(+), 14 deletions(-)
+ include/acpi/actypes.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-index 1150444..44d1bd1 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -217,20 +217,39 @@ and is between 256 and 4096 characters. It is defined in the file
- 	acpi.debug_level=	[HW,ACPI]
- 			Format: <int>
- 			Each bit of the <int> indicates an ACPI debug level,
--			1: enable, 0: disable. It is useful for boot time
--			debugging. After system has booted up, it can be set
--			via /sys/module/acpi/parameters/debug_level.
--			CONFIG_ACPI_DEBUG must be enabled for this to produce any output.
--			Available bits (add the numbers together) to enable different
--			debug output levels of the ACPI subsystem:
--			0x01 error 0x02 warn 0x04 init 0x08 debug object
--			0x10 info 0x20 init names 0x40 parse 0x80 load
--			0x100 dispatch 0x200 execute 0x400 names 0x800 operation region
--			0x1000 bfield 0x2000 tables 0x4000 values 0x8000 objects
--			0x10000 resources 0x20000 user requests 0x40000 package.
--			The number can be in decimal or prefixed with 0x in hex.
--			Warning: Many of these options can produce a lot of
--			output and make your system unusable. Be very careful.
-+			which corresponds to the level in an ACPI_DEBUG_PRINT
-+			statement.  After system has booted up, this mask
-+			can be set via /sys/module/acpi/parameters/debug_level.
-+
-+			CONFIG_ACPI_DEBUG must be enabled for this to produce
-+			any output.  The number can be in decimal or prefixed
-+			with 0x in hex.  Some of these options produce so much
-+			output that the system is unusable.
-+
-+			The following global components are defined by the
-+			ACPI CA:
-+			       0x01 error
-+			       0x02 warn
-+			       0x04 init
-+			       0x08 debug object
-+			       0x10 info
-+			       0x20 init names
-+			       0x40 parse
-+			       0x80 load
-+			      0x100 dispatch
-+			      0x200 execute
-+			      0x400 names
-+			      0x800 operation region
-+			     0x1000 bfield
-+			     0x2000 tables
-+			     0x4000 values
-+			     0x8000 objects
-+			    0x10000 resources
-+			    0x20000 user requests
-+			    0x40000 package
-+ 			The number can be in decimal or prefixed with 0x in hex.
-+ 			Warning: Many of these options can produce a lot of
-+ 			output and make your system unusable. Be very careful.
+diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+index 4ea4f40..73d6b1c 100644
+--- a/include/acpi/actypes.h
++++ b/include/acpi/actypes.h
+@@ -1225,8 +1225,8 @@ struct acpi_resource {
  
- 	acpi_pm_good	[X86-32,X86-64]
- 			Override the pmtimer bug detection: force the kernel
+ #pragma pack()
+ 
+-#define ACPI_RS_SIZE_MIN                    12
+ #define ACPI_RS_SIZE_NO_DATA                8	/* Id + Length fields */
++#define ACPI_RS_SIZE_MIN                    (u32) ACPI_ROUND_UP_TO_NATIVE_WORD (12)
+ #define ACPI_RS_SIZE(type)                  (u32) (ACPI_RS_SIZE_NO_DATA + sizeof (type))
+ 
+ #define ACPI_NEXT_RESOURCE(res)             (struct acpi_resource *)((u8 *) res + res->length)
 -- 
 1.5.5.1
 
