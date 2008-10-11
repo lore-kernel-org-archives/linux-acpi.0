@@ -1,92 +1,83 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 40/85] ACPI suspend: Always use the 32-bit waking vector
-Date: Sat, 11 Oct 2008 02:36:00 -0400
-Message-ID: <2918799361e725d95903dc597ad89228700377e6.1223706853.git.len.brown@intel.com>
+Subject: [PATCH 44/85] ACPICA: add preemption point after each opcode parse
+Date: Sat, 11 Oct 2008 02:36:04 -0400
+Message-ID: <e544d6d0ade54cc62dd30b95cc19c62bb136af60.1223706853.git.len.brown@intel.com>
 References: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms172069pub.verizon.net ([206.46.172.69]:32774 "EHLO
-	vms172069pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753474AbYJKGhI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 02:37:08 -0400
+Received: from vms173005pub.verizon.net ([206.46.173.5]:50806 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753410AbYJKGhH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 02:37:07 -0400
 In-reply-to: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 In-reply-to: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
 References: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
 
-According to the ACPI specification 2.0c and later, the 64-bit waking vector
-should be cleared and the 32-bit waking vector should be used, unless we want
-the wake-up code to be called by the BIOS in Protected Mode.  Moreover, some
-systems (for example HP dv5-1004nr) are known to fail to resume if the 64-bit
-waking vector is used.  Therefore, modify the code to clear the 64-bit waking
-vector, for FACS version 1 or greater, and set the 32-bit one before suspend.
+Reference: http://marc.info/?l=linux-acpi&m=122236382701062&w=2
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+Tested-by: Sitsofe Wheeler <sitsofe@yahoo.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/hardware/hwsleep.c |   39 ++++++++++++---------------------------
- 1 files changed, 12 insertions(+), 27 deletions(-)
+ drivers/acpi/parser/psloop.c    |    2 ++
+ include/acpi/acmacros.h         |    5 +++++
+ include/acpi/platform/aclinux.h |    6 ++++++
+ 3 files changed, 13 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/hardware/hwsleep.c b/drivers/acpi/hardware/hwsleep.c
-index 130a44b..25dccdf 100644
---- a/drivers/acpi/hardware/hwsleep.c
-+++ b/drivers/acpi/hardware/hwsleep.c
-@@ -78,19 +78,17 @@ acpi_set_firmware_waking_vector(acpi_physical_address physical_address)
- 		return_ACPI_STATUS(status);
+diff --git a/drivers/acpi/parser/psloop.c b/drivers/acpi/parser/psloop.c
+index c06238e..4647039 100644
+--- a/drivers/acpi/parser/psloop.c
++++ b/drivers/acpi/parser/psloop.c
+@@ -719,6 +719,8 @@ acpi_ps_complete_op(struct acpi_walk_state *walk_state,
+ 		*op = NULL;
  	}
  
--	/* Set the vector */
-+	/*
-+	 * According to the ACPI specification 2.0c and later, the 64-bit
-+	 * waking vector should be cleared and the 32-bit waking vector should
-+	 * be used, unless we want the wake-up code to be called by the BIOS in
-+	 * Protected Mode.  Some systems (for example HP dv5-1004nr) are known
-+	 * to fail to resume if the 64-bit vector is used.
-+	 */
-+	if (facs->version >= 1)
-+		facs->xfirmware_waking_vector = 0;
- 
--	if ((facs->length < 32) || (!(facs->xfirmware_waking_vector))) {
--		/*
--		 * ACPI 1.0 FACS or short table or optional X_ field is zero
--		 */
--		facs->firmware_waking_vector = (u32) physical_address;
--	} else {
--		/*
--		 * ACPI 2.0 FACS with valid X_ field
--		 */
--		facs->xfirmware_waking_vector = physical_address;
--	}
-+	facs->firmware_waking_vector = (u32)physical_address;
- 
++	ACPI_PREEMPTION_POINT();
++
  	return_ACPI_STATUS(AE_OK);
  }
-@@ -134,20 +132,7 @@ acpi_get_firmware_waking_vector(acpi_physical_address * physical_address)
- 	}
  
- 	/* Get the vector */
--
--	if ((facs->length < 32) || (!(facs->xfirmware_waking_vector))) {
--		/*
--		 * ACPI 1.0 FACS or short table or optional X_ field is zero
--		 */
--		*physical_address =
--		    (acpi_physical_address) facs->firmware_waking_vector;
--	} else {
--		/*
--		 * ACPI 2.0 FACS with valid X_ field
--		 */
--		*physical_address =
--		    (acpi_physical_address) facs->xfirmware_waking_vector;
--	}
-+	*physical_address = (acpi_physical_address)facs->firmware_waking_vector;
+diff --git a/include/acpi/acmacros.h b/include/acpi/acmacros.h
+index 57ab9e9..b402685 100644
+--- a/include/acpi/acmacros.h
++++ b/include/acpi/acmacros.h
+@@ -703,4 +703,9 @@ struct acpi_integer_overlay {
  
- 	return_ACPI_STATUS(AE_OK);
- }
+ #endif				/* ACPI_DBG_TRACK_ALLOCATIONS */
+ 
++/* Preemption point */
++#ifndef ACPI_PREEMPTION_POINT
++#define ACPI_PREEMPTION_POINT() /* no preemption */
++#endif
++
+ #endif				/* ACMACROS_H */
+diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
+index 9af4645..029c8c0 100644
+--- a/include/acpi/platform/aclinux.h
++++ b/include/acpi/platform/aclinux.h
+@@ -53,6 +53,7 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/ctype.h>
++#include <linux/sched.h>
+ #include <asm/system.h>
+ #include <asm/atomic.h>
+ #include <asm/div64.h>
+@@ -137,4 +138,9 @@ static inline void *acpi_os_acquire_object(acpi_cache_t * cache)
+ #define ACPI_ALLOCATE_ZEROED(a)	acpi_os_allocate_zeroed(a)
+ #define ACPI_FREE(a)		kfree(a)
+ 
++/*
++ * We need to show where it is safe to preempt execution of ACPICA
++ */
++#define ACPI_PREEMPTION_POINT()	cond_resched()
++
+ #endif				/* __ACLINUX_H__ */
 -- 
 1.5.5.1
 
