@@ -1,160 +1,117 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 03/85] ACPI: Get the device power state in the course of
- scanning device
-Date: Sat, 11 Oct 2008 02:35:23 -0400
-Message-ID: <9a252fe1069f759a4fe76fdffce3b589b899bcdf.1223706853.git.len.brown@intel.com>
+Subject: [PATCH 10/85] ACPICA: Allow same ACPI table to be loaded/unloaded more
+ than once
+Date: Sat, 11 Oct 2008 02:35:30 -0400
+Message-ID: <33fcba0da215beffe0b13ec734eff21b5825f62a.1223706853.git.len.brown@intel.com>
 References: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms042pub.verizon.net ([206.46.252.42]:41886 "EHLO
-	vms042pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751127AbYJKGgt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 02:36:49 -0400
+Received: from vms044pub.verizon.net ([206.46.252.44]:39136 "EHLO
+	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751271AbYJKGgv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 02:36:51 -0400
 In-reply-to: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 In-reply-to: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
 References: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Zhao Yakui <yakui.zhao@intel.com>, Li Shaohua <shaohua.li@intel.com>, Andi Kleen <ak@linux.intel.com>
+Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Andi Kleen <ak@linux.intel.com>, Len Brown <len.brown@intel.com>
 
-From: Zhao Yakui <yakui.zhao@intel.com>
+From: Bob Moore <robert.moore@intel.com>
 
-Get the device power state in the course of scanning device if the device
-power flag is power_managable. i.e. The device has the _PSx/_PRx object.
+Without this change, a table cannot be loaded again once it has
+been loaded/unloaded one time. The current mechanism does not
+unregister a table upon an unload. During a load, if the same
+table is found, this no longer returns an exception.
 
-At the same time before the drivers/acpi/power module is loaded, there is no
-relation between acpi_power_resource and acpi device. So the first parameter
-of acpi_power_get_state is changed to acpi_handle.
+http://www.acpica.org/bugzilla/show_bug.cgi?id=722
 
-http://bugzilla.kernel.org/show_bug.cgi?id=8049
-http://bugzilla.kernel.org/show_bug.cgi?id=11000
-
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-Signed-off-by: Li Shaohua <shaohua.li@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/power.c |   30 ++++++++++++++++--------------
- drivers/acpi/scan.c  |    1 +
- 2 files changed, 17 insertions(+), 14 deletions(-)
+ drivers/acpi/tables/tbinstal.c |   49 ++++++++++++++++++++++++++++++++++-----
+ 1 files changed, 42 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-index 4ab21cb..e7bab75 100644
---- a/drivers/acpi/power.c
-+++ b/drivers/acpi/power.c
-@@ -128,16 +128,16 @@ acpi_power_get_context(acpi_handle handle,
- 	return 0;
- }
+diff --git a/drivers/acpi/tables/tbinstal.c b/drivers/acpi/tables/tbinstal.c
+index b22185f..905dc38 100644
+--- a/drivers/acpi/tables/tbinstal.c
++++ b/drivers/acpi/tables/tbinstal.c
+@@ -145,6 +145,8 @@ acpi_tb_add_table(struct acpi_table_desc *table_desc, u32 *table_index)
+ 			}
+ 		}
  
--static int acpi_power_get_state(struct acpi_power_resource *resource, int *state)
-+static int acpi_power_get_state(acpi_handle handle, int *state)
- {
- 	acpi_status status = AE_OK;
- 	unsigned long sta = 0;
++		/* Check for a table match on the entire table length */
++
+ 		length = ACPI_MIN(table_desc->length,
+ 				  acpi_gbl_root_table_list.tables[i].length);
+ 		if (ACPI_MEMCMP(table_desc->pointer,
+@@ -153,17 +155,49 @@ acpi_tb_add_table(struct acpi_table_desc *table_desc, u32 *table_index)
+ 			continue;
+ 		}
  
- 
--	if (!resource || !state)
-+	if (!handle || !state)
- 		return -EINVAL;
- 
--	status = acpi_evaluate_integer(resource->device->handle, "_STA", NULL, &sta);
-+	status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
- 
-@@ -145,7 +145,7 @@ static int acpi_power_get_state(struct acpi_power_resource *resource, int *state
- 			      ACPI_POWER_RESOURCE_STATE_OFF;
- 
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Resource [%s] is %s\n",
--			  resource->name, state ? "on" : "off"));
-+			  acpi_ut_get_node_name(handle), state ? "on" : "off"));
- 
- 	return 0;
- }
-@@ -153,7 +153,6 @@ static int acpi_power_get_state(struct acpi_power_resource *resource, int *state
- static int acpi_power_get_list_state(struct acpi_handle_list *list, int *state)
- {
- 	int result = 0, state1;
--	struct acpi_power_resource *resource = NULL;
- 	u32 i = 0;
- 
- 
-@@ -161,12 +160,15 @@ static int acpi_power_get_list_state(struct acpi_handle_list *list, int *state)
- 		return -EINVAL;
- 
- 	/* The state of the list is 'on' IFF all resources are 'on'. */
-+	/* */
- 
- 	for (i = 0; i < list->count; i++) {
--		result = acpi_power_get_context(list->handles[i], &resource);
--		if (result)
--			return result;
--		result = acpi_power_get_state(resource, &state1);
+-		/* Table is already registered */
+-
 +		/*
-+		 * The state of the power resource can be obtained by
-+		 * using the ACPI handle. In such case it is unnecessary to
-+		 * get the Power resource first and then get its state again.
++		 * Note: the current mechanism does not unregister a table if it is
++		 * dynamically unloaded. The related namespace entries are deleted,
++		 * but the table remains in the root table list.
++		 *
++		 * The assumption here is that the number of different tables that
++		 * will be loaded is actually small, and there is minimal overhead
++		 * in just keeping the table in case it is needed again.
++		 *
++		 * If this assumption changes in the future (perhaps on large
++		 * machines with many table load/unload operations), tables will
++		 * need to be unregistered when they are unloaded, and slots in the
++		 * root table list should be reused when empty.
 +		 */
-+		result = acpi_power_get_state(list->handles[i], &state1);
- 		if (result)
- 			return result;
++
++		/*
++		 * Table is already registered.
++		 * We can delete the table that was passed as a parameter.
++		 */
+ 		acpi_tb_delete_table(table_desc);
+ 		*table_index = i;
+-		status = AE_ALREADY_EXISTS;
+-		goto release;
++
++		if (acpi_gbl_root_table_list.tables[i].
++		    flags & ACPI_TABLE_IS_LOADED) {
++
++			/* Table is still loaded, this is an error */
++
++			status = AE_ALREADY_EXISTS;
++			goto release;
++		} else {
++			/* Table was unloaded, allow it to be reloaded */
++
++			table_desc->pointer =
++			    acpi_gbl_root_table_list.tables[i].pointer;
++			table_desc->address =
++			    acpi_gbl_root_table_list.tables[i].address;
++			status = AE_OK;
++			goto print_header;
++		}
+ 	}
  
-@@ -226,7 +228,7 @@ static int acpi_power_on(acpi_handle handle, struct acpi_device *dev)
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
+-	/*
+-	 * Add the table to the global table list
+-	 */
++	/* Add the table to the global root table list */
++
+ 	status = acpi_tb_store_table(table_desc->address, table_desc->pointer,
+ 				     table_desc->length, table_desc->flags,
+ 				     table_index);
+@@ -171,6 +205,7 @@ acpi_tb_add_table(struct acpi_table_desc *table_desc, u32 *table_index)
+ 		goto release;
+ 	}
  
--	result = acpi_power_get_state(resource, &state);
-+	result = acpi_power_get_state(resource->device->handle, &state);
- 	if (result)
- 		return result;
- 	if (state != ACPI_POWER_RESOURCE_STATE_ON)
-@@ -277,7 +279,7 @@ static int acpi_power_off_device(acpi_handle handle, struct acpi_device *dev)
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
++      print_header:
+ 	acpi_tb_print_table_header(table_desc->address, table_desc->pointer);
  
--	result = acpi_power_get_state(resource, &state);
-+	result = acpi_power_get_state(handle, &state);
- 	if (result)
- 		return result;
- 	if (state != ACPI_POWER_RESOURCE_STATE_OFF)
-@@ -555,7 +557,7 @@ static int acpi_power_seq_show(struct seq_file *seq, void *offset)
- 	if (!resource)
- 		goto end;
- 
--	result = acpi_power_get_state(resource, &state);
-+	result = acpi_power_get_state(resource->device->handle, &state);
- 	if (result)
- 		goto end;
- 
-@@ -668,7 +670,7 @@ static int acpi_power_add(struct acpi_device *device)
- 	resource->system_level = acpi_object.power_resource.system_level;
- 	resource->order = acpi_object.power_resource.resource_order;
- 
--	result = acpi_power_get_state(resource, &state);
-+	result = acpi_power_get_state(device->handle, &state);
- 	if (result)
- 		goto end;
- 
-@@ -735,7 +737,7 @@ static int acpi_power_resume(struct acpi_device *device)
- 
- 	resource = (struct acpi_power_resource *)acpi_driver_data(device);
- 
--	result = acpi_power_get_state(resource, &state);
-+	result = acpi_power_get_state(device->handle, &state);
- 	if (result)
- 		return result;
- 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index f6f52c1..308ddb1 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -807,6 +807,7 @@ static int acpi_bus_get_power_flags(struct acpi_device *device)
- 	/* TBD: System wake support and resource requirements. */
- 
- 	device->power.state = ACPI_STATE_UNKNOWN;
-+	acpi_bus_get_power(device->handle, &(device->power.state));
- 
- 	return 0;
- }
+       release:
 -- 
 1.5.5.1
 
