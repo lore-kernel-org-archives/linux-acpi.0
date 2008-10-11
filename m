@@ -1,59 +1,68 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 28/85] ACPI: dock: avoid check _STA method
-Date: Sat, 11 Oct 2008 02:35:48 -0400
-Message-ID: <8b59560a3baf2e7c24e0fb92ea5d09eca92805db.1223706853.git.len.brown@intel.com>
+Subject: [PATCH 04/85] ACPI: Attach the ACPI device to the ACPI handle as early
+ as possible
+Date: Sat, 11 Oct 2008 02:35:24 -0400
+Message-ID: <05afbbf73abcbb4f6fc9fcf0a6cbbea623928a7a.1223706853.git.len.brown@intel.com>
 References: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:52462 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751912AbYJKGg6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 02:36:58 -0400
+Received: from vms044pub.verizon.net ([206.46.252.44]:39131 "EHLO
+	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751175AbYJKGgu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 02:36:50 -0400
 In-reply-to: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 In-reply-to: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
 References: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Shaohua Li <shaohua.li@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Zhao Yakui <yakui.zhao@intel.com>, Zhang Rui <rui.zhang@intel.com>, Andi Kleen <ak@linux.intel.com>
 
-From: Shaohua Li <shaohua.li@intel.com>
+From: Zhao Yakui <yakui.zhao@intel.com>
 
-In some BIOSes, every _STA method call will send a notification again,
-this cause freeze. And in some BIOSes, it appears _STA should be called
-after _DCK. This tries to avoid calls _STA, and still keep the device
-present check.
+Attach the ACPI device to the ACPI handle as early as possible so that OS
+can get the corresponding ACPI device by the acpi handle in the course
+of getting the power/wakeup/performance flags.
 
-http://bugzilla.kernel.org/show_bug.cgi?id=10431
+http://bugzilla.kernel.org/show_bug.cgi?id=8049
+http://bugzilla.kernel.org/show_bug.cgi?id=11000
 
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-Signed-off-by: Len Brown <len.brown@intel.com>
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
 ---
- drivers/acpi/dock.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+ drivers/acpi/scan.c |   12 ++++++++++--
+ 1 files changed, 10 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
-index 7d2edf1..25d2161 100644
---- a/drivers/acpi/dock.c
-+++ b/drivers/acpi/dock.c
-@@ -604,14 +604,17 @@ static int handle_eject_request(struct dock_station *ds, u32 event)
- static void dock_notify(acpi_handle handle, u32 event, void *data)
- {
- 	struct dock_station *ds = data;
-+	struct acpi_device *tmp;
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 308ddb1..ad06798 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -1253,6 +1253,16 @@ acpi_add_single_object(struct acpi_device **child,
+ 	acpi_device_set_id(device, parent, handle, type);
  
- 	switch (event) {
- 	case ACPI_NOTIFY_BUS_CHECK:
--		if (!dock_in_progress(ds) && dock_present(ds)) {
-+		if (!dock_in_progress(ds) && acpi_bus_get_device(ds->handle,
-+		   &tmp)) {
- 			begin_dock(ds);
- 			dock(ds);
- 			if (!dock_present(ds)) {
- 				printk(KERN_ERR PREFIX "Unable to dock!\n");
-+				complete_dock(ds);
- 				break;
- 			}
- 			atomic_notifier_call_chain(&dock_notifier_list,
+ 	/*
++	 * The ACPI device is attached to acpi handle before getting
++	 * the power/wakeup/peformance flags. Otherwise OS can't get
++	 * the corresponding ACPI device by the acpi handle in the course
++	 * of getting the power/wakeup/performance flags.
++	 */
++	result = acpi_device_set_context(device, type);
++	if (result)
++		goto end;
++
++	/*
+ 	 * Power Management
+ 	 * ----------------
+ 	 */
+@@ -1282,8 +1292,6 @@ acpi_add_single_object(struct acpi_device **child,
+ 			goto end;
+ 	}
+ 
+-	if ((result = acpi_device_set_context(device, type)))
+-		goto end;
+ 
+ 	result = acpi_device_register(device, parent);
+ 
 -- 
 1.5.5.1
 
