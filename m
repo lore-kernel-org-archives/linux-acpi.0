@@ -1,547 +1,424 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 42/85] ACPI: EC: do transaction from interrupt context
-Date: Sat, 11 Oct 2008 02:36:02 -0400
-Message-ID: <7c6db4e050601f359081fde418ca6dc4fc2d0011.1223706853.git.len.brown@intel.com>
+Subject: [PATCH 59/85] ACPI: catch calls of acpi_driver_data on pointer of
+ wrong type
+Date: Sat, 11 Oct 2008 02:36:19 -0400
+Message-ID: <db89b4f0dbab837d0f3de2c3e9427a8d5393afa3.1223706853.git.len.brown@intel.com>
 References: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms172069pub.verizon.net ([206.46.172.69]:32774 "EHLO
-	vms172069pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753693AbYJKGhM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 02:37:12 -0400
+Received: from vms172073pub.verizon.net ([206.46.172.73]:58897 "EHLO
+	vms172073pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753772AbYJKGhO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Oct 2008 02:37:14 -0400
 In-reply-to: <1223707005-26864-1-git-send-email-lenb@kernel.org>
 In-reply-to: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
 References: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>
+Cc: Pavel Machek <pavel@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
 
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
+From: Pavel Machek <pavel@suse.cz>
 
-It is easier and faster to do transaction directly from interrupt context
-rather than waking control thread.
-Also, cleaner GPE storm avoidance is implemented.
-References: 	http://bugzilla.kernel.org/show_bug.cgi?id=9998
-		http://bugzilla.kernel.org/show_bug.cgi?id=10724
-		http://bugzilla.kernel.org/show_bug.cgi?id=10919
-		http://bugzilla.kernel.org/show_bug.cgi?id=11309
-		http://bugzilla.kernel.org/show_bug.cgi?id=11549
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-Tested-by: Sitsofe Wheeler <sitsofe@yahoo.com>
+Catch attempts to use of acpi_driver_data on pointers of wrong type.
+
+akpm: rewritten to use proper C typechecking and remove the
+"function"-used-as-lvalue thing.
+
+Signed-off-by: Pavel Machek <pavel@suse.cz>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/ec.c |  309 +++++++++++++++++++++++++---------------------------
- 1 files changed, 149 insertions(+), 160 deletions(-)
+ drivers/acpi/ac.c              |    2 +-
+ drivers/acpi/acpi_memhotplug.c |    2 +-
+ drivers/acpi/asus_acpi.c       |    2 +-
+ drivers/acpi/battery.c         |    2 +-
+ drivers/acpi/button.c          |    2 +-
+ drivers/acpi/container.c       |    2 +-
+ drivers/acpi/ec.c              |    4 ++--
+ drivers/acpi/fan.c             |    2 +-
+ drivers/acpi/pci_link.c        |    2 +-
+ drivers/acpi/pci_root.c        |    2 +-
+ drivers/acpi/power.c           |    4 ++--
+ drivers/acpi/processor_core.c  |    2 +-
+ drivers/acpi/sbs.c             |    2 +-
+ drivers/acpi/sbshc.c           |    4 ++--
+ drivers/acpi/scan.c            |    4 ++--
+ drivers/acpi/thermal.c         |    2 +-
+ drivers/acpi/video.c           |    6 +++---
+ drivers/misc/asus-laptop.c     |    2 +-
+ drivers/misc/eeepc-laptop.c    |    2 +-
+ drivers/misc/fujitsu-laptop.c  |    4 ++--
+ drivers/misc/intel_menlow.c    |    2 +-
+ drivers/misc/thinkpad_acpi.c   |    2 +-
+ include/acpi/acpi_bus.h        |    6 +++++-
+ 23 files changed, 34 insertions(+), 30 deletions(-)
 
+diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
+index 831883b..8b6a84a 100644
+--- a/drivers/acpi/ac.c
++++ b/drivers/acpi/ac.c
+@@ -269,7 +269,7 @@ static int acpi_ac_add(struct acpi_device *device)
+ 	ac->device = device;
+ 	strcpy(acpi_device_name(device), ACPI_AC_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_AC_CLASS);
+-	acpi_driver_data(device) = ac;
++	device->driver_data = ac;
+ 
+ 	result = acpi_ac_get_state(ac);
+ 	if (result)
+diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+index 5f1127a..afd955f 100644
+--- a/drivers/acpi/acpi_memhotplug.c
++++ b/drivers/acpi/acpi_memhotplug.c
+@@ -403,7 +403,7 @@ static int acpi_memory_device_add(struct acpi_device *device)
+ 	mem_device->device = device;
+ 	sprintf(acpi_device_name(device), "%s", ACPI_MEMORY_DEVICE_NAME);
+ 	sprintf(acpi_device_class(device), "%s", ACPI_MEMORY_DEVICE_CLASS);
+-	acpi_driver_data(device) = mem_device;
++	device->driver_data = mem_device;
+ 
+ 	/* Get the range from the _CRS */
+ 	result = acpi_memory_get_device_resources(mem_device);
+diff --git a/drivers/acpi/asus_acpi.c b/drivers/acpi/asus_acpi.c
+index d3d0886..91571fc 100644
+--- a/drivers/acpi/asus_acpi.c
++++ b/drivers/acpi/asus_acpi.c
+@@ -1321,7 +1321,7 @@ static int asus_hotk_add(struct acpi_device *device)
+ 	hotk->handle = device->handle;
+ 	strcpy(acpi_device_name(device), ACPI_HOTK_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_HOTK_CLASS);
+-	acpi_driver_data(device) = hotk;
++	device->driver_data = hotk;
+ 	hotk->device = device;
+ 
+ 	result = asus_hotk_check();
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index b1c723f..de80469 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -804,7 +804,7 @@ static int acpi_battery_add(struct acpi_device *device)
+ 	battery->device = device;
+ 	strcpy(acpi_device_name(device), ACPI_BATTERY_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_BATTERY_CLASS);
+-	acpi_driver_data(device) = battery;
++	device->driver_data = battery;
+ 	mutex_init(&battery->lock);
+ 	acpi_battery_update(battery);
+ #ifdef CONFIG_ACPI_PROCFS_POWER
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index 1dfec41..e22033e 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -384,7 +384,7 @@ static int acpi_button_add(struct acpi_device *device)
+ 		return -ENOMEM;
+ 
+ 	button->device = device;
+-	acpi_driver_data(device) = button;
++	device->driver_data = button;
+ 
+ 	button->input = input = input_allocate_device();
+ 	if (!input) {
+diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
+index 3c25ec7..03ea847 100644
+--- a/drivers/acpi/container.c
++++ b/drivers/acpi/container.c
+@@ -108,7 +108,7 @@ static int acpi_container_add(struct acpi_device *device)
+ 	container->handle = device->handle;
+ 	strcpy(acpi_device_name(device), ACPI_CONTAINER_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_CONTAINER_CLASS);
+-	acpi_driver_data(device) = container;
++	device->driver_data = container;
+ 
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device <%s> bid <%s>\n",
+ 			  acpi_device_name(device), acpi_device_bid(device)));
 diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 13593f9..7f0d81c 100644
+index 13593f9..5741d99 100644
 --- a/drivers/acpi/ec.c
 +++ b/drivers/acpi/ec.c
-@@ -1,7 +1,7 @@
- /*
-- *  ec.c - ACPI Embedded Controller Driver (v2.0)
-+ *  ec.c - ACPI Embedded Controller Driver (v2.1)
-  *
-- *  Copyright (C) 2006, 2007 Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
-+ *  Copyright (C) 2006-2008 Alexey Starikovskiy <astarikovskiy@suse.de>
-  *  Copyright (C) 2006 Denis Sadykov <denis.m.sadykov@intel.com>
-  *  Copyright (C) 2004 Luming Yu <luming.yu@intel.com>
-  *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
-@@ -26,7 +26,7 @@
-  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  */
+@@ -788,7 +788,7 @@ static int acpi_ec_add(struct acpi_device *device)
  
--/* Uncomment next line to get verbose print outs*/
-+/* Uncomment next line to get verbose printout */
- /* #define DEBUG */
- 
- #include <linux/kernel.h>
-@@ -38,6 +38,7 @@
- #include <linux/seq_file.h>
- #include <linux/interrupt.h>
- #include <linux/list.h>
-+#include <linux/spinlock.h>
- #include <asm/io.h>
- #include <acpi/acpi_bus.h>
- #include <acpi/acpi_drivers.h>
-@@ -65,22 +66,21 @@ enum ec_command {
- 	ACPI_EC_COMMAND_QUERY = 0x84,
- };
- 
--/* EC events */
--enum ec_event {
--	ACPI_EC_EVENT_OBF_1 = 1,	/* Output buffer full */
--	ACPI_EC_EVENT_IBF_0,		/* Input buffer empty */
--};
--
- #define ACPI_EC_DELAY		500	/* Wait 500ms max. during EC ops */
- #define ACPI_EC_UDELAY_GLK	1000	/* Wait 1ms max. to get global lock */
- #define ACPI_EC_UDELAY		100	/* Wait 100us before polling EC again */
- 
-+#define ACPI_EC_STORM_THRESHOLD 20	/* number of false interrupts
-+					   per one transaction */
-+
- enum {
--	EC_FLAGS_WAIT_GPE = 0,		/* Don't check status until GPE arrives */
- 	EC_FLAGS_QUERY_PENDING,		/* Query is pending */
--	EC_FLAGS_GPE_MODE,		/* Expect GPE to be sent for status change */
-+	EC_FLAGS_GPE_MODE,		/* Expect GPE to be sent
-+					 * for status change */
- 	EC_FLAGS_NO_GPE,		/* Don't use GPE mode */
--	EC_FLAGS_RESCHEDULE_POLL	/* Re-schedule poll */
-+	EC_FLAGS_GPE_STORM,		/* GPE storm detected */
-+	EC_FLAGS_HANDLERS_INSTALLED	/* Handlers for GPE and
-+					 * OpReg are installed */
- };
- 
- /* If we find an EC via the ECDT, we need to keep a ptr to its context */
-@@ -95,6 +95,14 @@ struct acpi_ec_query_handler {
- 	u8 query_bit;
- };
- 
-+struct transaction_data {
-+	const u8 *wdata;
-+	u8 *rdata;
-+	unsigned short irq_count;
-+	u8 wlen;
-+	u8 rlen;
-+};
-+
- static struct acpi_ec {
- 	acpi_handle handle;
- 	unsigned long gpe;
-@@ -105,9 +113,8 @@ static struct acpi_ec {
- 	struct mutex lock;
- 	wait_queue_head_t wait;
- 	struct list_head list;
--	struct delayed_work work;
--	atomic_t irq_count;
--	u8 handlers_installed;
-+	struct transaction_data *t;
-+	spinlock_t t_lock;
- } *boot_ec, *first_ec;
- 
- /* 
-@@ -150,7 +157,7 @@ static inline u8 acpi_ec_read_data(struct acpi_ec *ec)
- {
- 	u8 x = inb(ec->data_addr);
- 	pr_debug(PREFIX "---> data = 0x%2.2x\n", x);
--	return inb(ec->data_addr);
-+	return x;
- }
- 
- static inline void acpi_ec_write_cmd(struct acpi_ec *ec, u8 command)
-@@ -165,68 +172,79 @@ static inline void acpi_ec_write_data(struct acpi_ec *ec, u8 data)
- 	outb(data, ec->data_addr);
- }
- 
--static inline int acpi_ec_check_status(struct acpi_ec *ec, enum ec_event event)
-+static int ec_transaction_done(struct acpi_ec *ec)
- {
--	if (test_bit(EC_FLAGS_WAIT_GPE, &ec->flags))
--		return 0;
--	if (event == ACPI_EC_EVENT_OBF_1) {
--		if (acpi_ec_read_status(ec) & ACPI_EC_FLAG_OBF)
--			return 1;
--	} else if (event == ACPI_EC_EVENT_IBF_0) {
--		if (!(acpi_ec_read_status(ec) & ACPI_EC_FLAG_IBF))
--			return 1;
--	}
--
--	return 0;
-+	unsigned long flags;
-+	int ret = 0;
-+	spin_lock_irqsave(&ec->t_lock, flags);
-+	if (!ec->t || (!ec->t->wlen && !ec->t->rlen))
-+		ret = 1;
-+	spin_unlock_irqrestore(&ec->t_lock, flags);
-+	return ret;
- }
- 
--static void ec_schedule_ec_poll(struct acpi_ec *ec)
-+static void gpe_transaction(struct acpi_ec *ec, u8 status)
- {
--	if (test_bit(EC_FLAGS_RESCHEDULE_POLL, &ec->flags))
--		schedule_delayed_work(&ec->work,
--				      msecs_to_jiffies(ACPI_EC_DELAY));
-+	unsigned long flags;
-+	spin_lock_irqsave(&ec->t_lock, flags);
-+	if (!ec->t)
-+		goto unlock;
-+	if (ec->t->wlen > 0) {
-+		if ((status & ACPI_EC_FLAG_IBF) == 0) {
-+			acpi_ec_write_data(ec, *(ec->t->wdata++));
-+			--ec->t->wlen;
-+		} else
-+			/* false interrupt, state didn't change */
-+			++ec->t->irq_count;
-+
-+	} else if (ec->t->rlen > 0) {
-+		if ((status & ACPI_EC_FLAG_OBF) == 1) {
-+			*(ec->t->rdata++) = acpi_ec_read_data(ec);
-+			--ec->t->rlen;
-+		} else
-+			/* false interrupt, state didn't change */
-+			++ec->t->irq_count;
-+	}
-+unlock:
-+	spin_unlock_irqrestore(&ec->t_lock, flags);
- }
- 
--static void ec_switch_to_poll_mode(struct acpi_ec *ec)
-+static int acpi_ec_wait(struct acpi_ec *ec)
- {
-+	if (wait_event_timeout(ec->wait, ec_transaction_done(ec),
-+			       msecs_to_jiffies(ACPI_EC_DELAY)))
-+		return 0;
-+	/* missing GPEs, switch back to poll mode */
-+	if (printk_ratelimit())
-+		pr_info(PREFIX "missing confirmations, "
-+				"switch off interrupt mode.\n");
- 	set_bit(EC_FLAGS_NO_GPE, &ec->flags);
- 	clear_bit(EC_FLAGS_GPE_MODE, &ec->flags);
--	acpi_disable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
--	set_bit(EC_FLAGS_RESCHEDULE_POLL, &ec->flags);
-+	return 1;
- }
- 
--static int acpi_ec_wait(struct acpi_ec *ec, enum ec_event event, int force_poll)
-+static void acpi_ec_gpe_query(void *ec_cxt);
-+
-+static int ec_check_sci(struct acpi_ec *ec, u8 state)
- {
--	atomic_set(&ec->irq_count, 0);
--	if (likely(test_bit(EC_FLAGS_GPE_MODE, &ec->flags)) &&
--	    likely(!force_poll)) {
--		if (wait_event_timeout(ec->wait, acpi_ec_check_status(ec, event),
--				       msecs_to_jiffies(ACPI_EC_DELAY)))
--			return 0;
--		clear_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
--		if (acpi_ec_check_status(ec, event)) {
--			/* missing GPEs, switch back to poll mode */
--			if (printk_ratelimit())
--				pr_info(PREFIX "missing confirmations, "
--						"switch off interrupt mode.\n");
--			ec_switch_to_poll_mode(ec);
--			ec_schedule_ec_poll(ec);
--			return 0;
--		}
--	} else {
--		unsigned long delay = jiffies + msecs_to_jiffies(ACPI_EC_DELAY);
--		clear_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
--		while (time_before(jiffies, delay)) {
--			if (acpi_ec_check_status(ec, event))
--				return 0;
--			msleep(1);
--		}
--		if (acpi_ec_check_status(ec,event))
-+	if (state & ACPI_EC_FLAG_SCI) {
-+		if (!test_and_set_bit(EC_FLAGS_QUERY_PENDING, &ec->flags))
-+			return acpi_os_execute(OSL_EC_BURST_HANDLER,
-+				acpi_ec_gpe_query, ec);
-+	}
-+	return 0;
-+}
-+
-+static int ec_poll(struct acpi_ec *ec)
-+{
-+	unsigned long delay = jiffies + msecs_to_jiffies(ACPI_EC_DELAY);
-+	msleep(1);
-+	while (time_before(jiffies, delay)) {
-+		gpe_transaction(ec, acpi_ec_read_status(ec));
-+		msleep(1);
-+		if (ec_transaction_done(ec))
- 			return 0;
+ 	if (!first_ec)
+ 		first_ec = ec;
+-	acpi_driver_data(device) = ec;
++	device->driver_data = ec;
+ 	acpi_ec_add_fs(device);
+ 	pr_info(PREFIX "GPE = 0x%lx, I/O: command/status = 0x%lx, data = 0x%lx\n",
+ 			  ec->gpe, ec->command_addr, ec->data_addr);
+@@ -813,7 +813,7 @@ static int acpi_ec_remove(struct acpi_device *device, int type)
  	}
--	pr_err(PREFIX "acpi_ec_wait timeout, status = 0x%2.2x, event = %s\n",
--		acpi_ec_read_status(ec),
--		(event == ACPI_EC_EVENT_OBF_1) ? "\"b0=1\"" : "\"b1=0\"");
- 	return -ETIME;
- }
- 
-@@ -235,45 +253,51 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec, u8 command,
- 					u8 * rdata, unsigned rdata_len,
- 					int force_poll)
- {
--	int result = 0;
--	set_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
-+	unsigned long tmp;
-+	struct transaction_data t = {.wdata = wdata, .rdata = rdata,
-+				     .wlen = wdata_len, .rlen = rdata_len,
-+				     .irq_count = 0};
-+	int ret = 0;
- 	pr_debug(PREFIX "transaction start\n");
--	acpi_ec_write_cmd(ec, command);
--	for (; wdata_len > 0; --wdata_len) {
--		result = acpi_ec_wait(ec, ACPI_EC_EVENT_IBF_0, force_poll);
--		if (result) {
--			pr_err(PREFIX
--			       "write_cmd timeout, command = %d\n", command);
--			goto end;
--		}
--		set_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
--		acpi_ec_write_data(ec, *(wdata++));
-+	/* disable GPE during transaction if storm is detected */
-+	if (test_bit(EC_FLAGS_GPE_STORM, &ec->flags)) {
-+		clear_bit(EC_FLAGS_GPE_MODE, &ec->flags);
-+		acpi_disable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
- 	}
--
--	if (!rdata_len) {
--		result = acpi_ec_wait(ec, ACPI_EC_EVENT_IBF_0, force_poll);
--		if (result) {
--			pr_err(PREFIX
--			       "finish-write timeout, command = %d\n", command);
--			goto end;
--		}
--	} else if (command == ACPI_EC_COMMAND_QUERY)
-+	/* start transaction */
-+	spin_lock_irqsave(&ec->t_lock, tmp);
-+	/* following two actions should be kept atomic */
-+	ec->t = &t;
-+	acpi_ec_write_cmd(ec, command);
-+	if (command == ACPI_EC_COMMAND_QUERY)
- 		clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
--
--	for (; rdata_len > 0; --rdata_len) {
--		result = acpi_ec_wait(ec, ACPI_EC_EVENT_OBF_1, force_poll);
--		if (result) {
--			pr_err(PREFIX "read timeout, command = %d\n", command);
--			goto end;
--		}
--		/* Don't expect GPE after last read */
--		if (rdata_len > 1)
--			set_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
--		*(rdata++) = acpi_ec_read_data(ec);
--	}
--      end:
-+	spin_unlock_irqrestore(&ec->t_lock, tmp);
-+	/* if we selected poll mode or failed in GPE-mode do a poll loop */
-+	if (force_poll ||
-+	    !test_bit(EC_FLAGS_GPE_MODE, &ec->flags) ||
-+	    acpi_ec_wait(ec))
-+		ret = ec_poll(ec);
- 	pr_debug(PREFIX "transaction end\n");
--	return result;
-+	spin_lock_irqsave(&ec->t_lock, tmp);
-+	ec->t = NULL;
-+	spin_unlock_irqrestore(&ec->t_lock, tmp);
-+	if (test_bit(EC_FLAGS_GPE_STORM, &ec->flags)) {
-+		/* check if we received SCI during transaction */
-+		ec_check_sci(ec, acpi_ec_read_status(ec));
-+		/* it is safe to enable GPE outside of transaction */
-+		acpi_enable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
-+	} else if (test_bit(EC_FLAGS_GPE_MODE, &ec->flags) &&
-+		   t.irq_count > ACPI_EC_STORM_THRESHOLD) {
-+		pr_debug(PREFIX "GPE storm detected\n");
-+		set_bit(EC_FLAGS_GPE_STORM, &ec->flags);
-+	}
-+	return ret;
-+}
-+
-+static int ec_check_ibf0(struct acpi_ec *ec)
-+{
-+	u8 status = acpi_ec_read_status(ec);
-+	return (status & ACPI_EC_FLAG_IBF) == 0;
- }
- 
- static int acpi_ec_transaction(struct acpi_ec *ec, u8 command,
-@@ -283,40 +307,34 @@ static int acpi_ec_transaction(struct acpi_ec *ec, u8 command,
- {
- 	int status;
- 	u32 glk;
--
- 	if (!ec || (wdata_len && !wdata) || (rdata_len && !rdata))
- 		return -EINVAL;
--
- 	if (rdata)
- 		memset(rdata, 0, rdata_len);
--
- 	mutex_lock(&ec->lock);
- 	if (ec->global_lock) {
- 		status = acpi_acquire_global_lock(ACPI_EC_UDELAY_GLK, &glk);
- 		if (ACPI_FAILURE(status)) {
--			mutex_unlock(&ec->lock);
--			return -ENODEV;
-+			status = -ENODEV;
-+			goto unlock;
- 		}
- 	}
--
--	status = acpi_ec_wait(ec, ACPI_EC_EVENT_IBF_0, 0);
--	if (status) {
-+	if (!wait_event_timeout(ec->wait, ec_check_ibf0(ec),
-+				msecs_to_jiffies(ACPI_EC_DELAY))) {
- 		pr_err(PREFIX "input buffer is not empty, "
- 				"aborting transaction\n");
-+		status = -ETIME;
- 		goto end;
- 	}
--
- 	status = acpi_ec_transaction_unlocked(ec, command,
- 					      wdata, wdata_len,
- 					      rdata, rdata_len,
- 					      force_poll);
--
--      end:
--
-+end:
- 	if (ec->global_lock)
- 		acpi_release_global_lock(glk);
-+unlock:
  	mutex_unlock(&ec->lock);
--
- 	return status;
+ 	acpi_ec_remove_fs(device);
+-	acpi_driver_data(device) = NULL;
++	device->driver_data = NULL;
+ 	if (ec == first_ec)
+ 		first_ec = NULL;
+ 	kfree(ec);
+diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
+index 2655bc1..e603e40 100644
+--- a/drivers/acpi/fan.c
++++ b/drivers/acpi/fan.c
+@@ -265,7 +265,7 @@ static int acpi_fan_add(struct acpi_device *device)
+ 
+ 	dev_info(&device->dev, "registered as cooling_device%d\n", cdev->id);
+ 
+-	acpi_driver_data(device) = cdev;
++	device->driver_data = cdev;
+ 	result = sysfs_create_link(&device->dev.kobj,
+ 				   &cdev->device.kobj,
+ 				   "thermal_cooling");
+diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+index cf47805..54cd77a 100644
+--- a/drivers/acpi/pci_link.c
++++ b/drivers/acpi/pci_link.c
+@@ -737,7 +737,7 @@ static int acpi_pci_link_add(struct acpi_device *device)
+ 	link->device = device;
+ 	strcpy(acpi_device_name(device), ACPI_PCI_LINK_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_PCI_LINK_CLASS);
+-	acpi_driver_data(device) = link;
++	device->driver_data = link;
+ 
+ 	mutex_lock(&acpi_link_lock);
+ 	result = acpi_pci_link_get_possible(link);
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index c3fed31..add1a19 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -206,7 +206,7 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
+ 	root->device = device;
+ 	strcpy(acpi_device_name(device), ACPI_PCI_ROOT_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_PCI_ROOT_CLASS);
+-	acpi_driver_data(device) = root;
++	device->driver_data = root;
+ 
+ 	device->ops.bind = acpi_pci_bind;
+ 
+diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+index 4ab21cb..1bef942 100644
+--- a/drivers/acpi/power.c
++++ b/drivers/acpi/power.c
+@@ -657,7 +657,7 @@ static int acpi_power_add(struct acpi_device *device)
+ 	strcpy(resource->name, device->pnp.bus_id);
+ 	strcpy(acpi_device_name(device), ACPI_POWER_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_POWER_CLASS);
+-	acpi_driver_data(device) = resource;
++	device->driver_data = resource;
+ 
+ 	/* Evalute the object to get the system level and resource order. */
+ 	status = acpi_evaluate_object(device->handle, NULL, NULL, &buffer);
+@@ -733,7 +733,7 @@ static int acpi_power_resume(struct acpi_device *device)
+ 	if (!device || !acpi_driver_data(device))
+ 		return -EINVAL;
+ 
+-	resource = (struct acpi_power_resource *)acpi_driver_data(device);
++	resource = acpi_driver_data(device);
+ 
+ 	result = acpi_power_get_state(resource, &state);
+ 	if (result)
+diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+index ee68ac5..2894616 100644
+--- a/drivers/acpi/processor_core.c
++++ b/drivers/acpi/processor_core.c
+@@ -818,7 +818,7 @@ static int acpi_processor_add(struct acpi_device *device)
+ 	pr->handle = device->handle;
+ 	strcpy(acpi_device_name(device), ACPI_PROCESSOR_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_PROCESSOR_CLASS);
+-	acpi_driver_data(device) = pr;
++	device->driver_data = pr;
+ 
+ 	return 0;
  }
+diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
+index 10a3651..d003325 100644
+--- a/drivers/acpi/sbs.c
++++ b/drivers/acpi/sbs.c
+@@ -931,7 +931,7 @@ static int acpi_sbs_add(struct acpi_device *device)
+ 	sbs->device = device;
+ 	strcpy(acpi_device_name(device), ACPI_SBS_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_SBS_CLASS);
+-	acpi_driver_data(device) = sbs;
++	device->driver_data = sbs;
  
-@@ -332,7 +350,9 @@ int acpi_ec_burst_enable(struct acpi_ec *ec)
+ 	result = acpi_charger_add(sbs);
+ 	if (result)
+diff --git a/drivers/acpi/sbshc.c b/drivers/acpi/sbshc.c
+index a4e3767..001d914 100644
+--- a/drivers/acpi/sbshc.c
++++ b/drivers/acpi/sbshc.c
+@@ -282,7 +282,7 @@ static int acpi_smbus_hc_add(struct acpi_device *device)
+ 	hc->ec = acpi_driver_data(device->parent);
+ 	hc->offset = (val >> 8) & 0xff;
+ 	hc->query_bit = val & 0xff;
+-	acpi_driver_data(device) = hc;
++	device->driver_data = hc;
  
- int acpi_ec_burst_disable(struct acpi_ec *ec)
- {
--	return acpi_ec_transaction(ec, ACPI_EC_BURST_DISABLE, NULL, 0, NULL, 0, 0);
-+	return (acpi_ec_read_status(ec) & ACPI_EC_FLAG_BURST) ?
-+		acpi_ec_transaction(ec, ACPI_EC_BURST_DISABLE,
-+			NULL, 0, NULL, 0, 0) : 0;
- }
- 
- static int acpi_ec_read(struct acpi_ec *ec, u8 address, u8 * data)
-@@ -513,46 +533,26 @@ static void acpi_ec_gpe_query(void *ec_cxt)
- 
- static u32 acpi_ec_gpe_handler(void *data)
- {
--	acpi_status status = AE_OK;
- 	struct acpi_ec *ec = data;
--	u8 state = acpi_ec_read_status(ec);
-+	u8 status;
- 
- 	pr_debug(PREFIX "~~~> interrupt\n");
--	atomic_inc(&ec->irq_count);
--	if (atomic_read(&ec->irq_count) > 5) {
--		pr_err(PREFIX "GPE storm detected, disabling EC GPE\n");
--		ec_switch_to_poll_mode(ec);
--		goto end;
--	}
--	clear_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
--	if (test_bit(EC_FLAGS_GPE_MODE, &ec->flags))
-+	status = acpi_ec_read_status(ec);
-+
-+	gpe_transaction(ec, status);
-+	if (ec_transaction_done(ec) && (status & ACPI_EC_FLAG_IBF) == 0)
- 		wake_up(&ec->wait);
- 
--	if (state & ACPI_EC_FLAG_SCI) {
--		if (!test_and_set_bit(EC_FLAGS_QUERY_PENDING, &ec->flags))
--			status = acpi_os_execute(OSL_EC_BURST_HANDLER,
--				acpi_ec_gpe_query, ec);
--	} else if (!test_bit(EC_FLAGS_GPE_MODE, &ec->flags) &&
--		   !test_bit(EC_FLAGS_NO_GPE, &ec->flags) &&
--		   in_interrupt()) {
-+	ec_check_sci(ec, status);
-+	if (!test_bit(EC_FLAGS_GPE_MODE, &ec->flags) &&
-+	    !test_bit(EC_FLAGS_NO_GPE, &ec->flags)) {
- 		/* this is non-query, must be confirmation */
- 		if (printk_ratelimit())
- 			pr_info(PREFIX "non-query interrupt received,"
- 				" switching to interrupt mode\n");
- 		set_bit(EC_FLAGS_GPE_MODE, &ec->flags);
--		clear_bit(EC_FLAGS_RESCHEDULE_POLL, &ec->flags);
- 	}
--end:
--	ec_schedule_ec_poll(ec);
--	return ACPI_SUCCESS(status) ?
--	    ACPI_INTERRUPT_HANDLED : ACPI_INTERRUPT_NOT_HANDLED;
--}
--
--static void do_ec_poll(struct work_struct *work)
--{
--	struct acpi_ec *ec = container_of(work, struct acpi_ec, work.work);
--	atomic_set(&ec->irq_count, 0);
--	(void)acpi_ec_gpe_handler(ec);
-+	return ACPI_INTERRUPT_HANDLED;
- }
- 
- /* --------------------------------------------------------------------------
-@@ -696,8 +696,7 @@ static struct acpi_ec *make_acpi_ec(void)
- 	mutex_init(&ec->lock);
- 	init_waitqueue_head(&ec->wait);
- 	INIT_LIST_HEAD(&ec->list);
--	INIT_DELAYED_WORK_DEFERRABLE(&ec->work, do_ec_poll);
--	atomic_set(&ec->irq_count, 0);
-+	spin_lock_init(&ec->t_lock);
- 	return ec;
- }
- 
-@@ -736,22 +735,15 @@ ec_parse_device(acpi_handle handle, u32 Level, void *context, void **retval)
- 	return AE_CTRL_TERMINATE;
- }
- 
--static void ec_poll_stop(struct acpi_ec *ec)
--{
--	clear_bit(EC_FLAGS_RESCHEDULE_POLL, &ec->flags);
--	cancel_delayed_work(&ec->work);
--}
--
- static void ec_remove_handlers(struct acpi_ec *ec)
- {
--	ec_poll_stop(ec);
- 	if (ACPI_FAILURE(acpi_remove_address_space_handler(ec->handle,
- 				ACPI_ADR_SPACE_EC, &acpi_ec_space_handler)))
- 		pr_err(PREFIX "failed to remove space handler\n");
- 	if (ACPI_FAILURE(acpi_remove_gpe_handler(NULL, ec->gpe,
- 				&acpi_ec_gpe_handler)))
- 		pr_err(PREFIX "failed to remove gpe handler\n");
--	ec->handlers_installed = 0;
-+	clear_bit(EC_FLAGS_HANDLERS_INSTALLED, &ec->flags);
- }
- 
- static int acpi_ec_add(struct acpi_device *device)
-@@ -846,17 +838,15 @@ ec_parse_io_ports(struct acpi_resource *resource, void *context)
- static int ec_install_handlers(struct acpi_ec *ec)
- {
- 	acpi_status status;
--	if (ec->handlers_installed)
-+	if (test_bit(EC_FLAGS_HANDLERS_INSTALLED, &ec->flags))
- 		return 0;
- 	status = acpi_install_gpe_handler(NULL, ec->gpe,
--					  ACPI_GPE_EDGE_TRIGGERED,
--					  &acpi_ec_gpe_handler, ec);
-+				  ACPI_GPE_EDGE_TRIGGERED,
-+				  &acpi_ec_gpe_handler, ec);
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
--
- 	acpi_set_gpe_type(NULL, ec->gpe, ACPI_GPE_TYPE_RUNTIME);
- 	acpi_enable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
--
- 	status = acpi_install_address_space_handler(ec->handle,
- 						    ACPI_ADR_SPACE_EC,
- 						    &acpi_ec_space_handler,
-@@ -866,7 +856,7 @@ static int ec_install_handlers(struct acpi_ec *ec)
- 		return -ENODEV;
- 	}
- 
--	ec->handlers_installed = 1;
-+	set_bit(EC_FLAGS_HANDLERS_INSTALLED, &ec->flags);
+ 	acpi_ec_add_query_handler(hc->ec, hc->query_bit, NULL, smbus_alarm, hc);
+ 	printk(KERN_INFO PREFIX "SBS HC: EC = 0x%p, offset = 0x%0x, query_bit = 0x%0x\n",
+@@ -303,7 +303,7 @@ static int acpi_smbus_hc_remove(struct acpi_device *device, int type)
+ 	hc = acpi_driver_data(device);
+ 	acpi_ec_remove_query_handler(hc->ec, hc->query_bit);
+ 	kfree(hc);
+-	acpi_driver_data(device) = NULL;
++	device->driver_data = NULL;
  	return 0;
  }
  
-@@ -887,7 +877,6 @@ static int acpi_ec_start(struct acpi_device *device)
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index e7b8853..b88536a 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -384,7 +384,7 @@ static int acpi_device_remove(struct device * dev)
+ 			acpi_drv->ops.remove(acpi_dev, acpi_dev->removal_type);
+ 	}
+ 	acpi_dev->driver = NULL;
+-	acpi_driver_data(acpi_dev) = NULL;
++	acpi_dev->driver_data = NULL;
  
- 	/* EC is fully operational, allow queries */
- 	clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
--	ec_schedule_ec_poll(ec);
- 	return ret;
+ 	put_device(dev);
+ 	return 0;
+@@ -537,7 +537,7 @@ acpi_bus_driver_init(struct acpi_device *device, struct acpi_driver *driver)
+ 	result = driver->ops.add(device);
+ 	if (result) {
+ 		device->driver = NULL;
+-		acpi_driver_data(device) = NULL;
++		device->driver_data = NULL;
+ 		return result;
+ 	}
+ 
+diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+index 9127036..e052a75 100644
+--- a/drivers/acpi/thermal.c
++++ b/drivers/acpi/thermal.c
+@@ -1647,7 +1647,7 @@ static int acpi_thermal_add(struct acpi_device *device)
+ 	strcpy(tz->name, device->pnp.bus_id);
+ 	strcpy(acpi_device_name(device), ACPI_THERMAL_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_THERMAL_CLASS);
+-	acpi_driver_data(device) = tz;
++	device->driver_data = tz;
+ 	mutex_init(&tz->lock);
+ 
+ 
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index e8a51a1..85c6554 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -1491,7 +1491,7 @@ acpi_video_bus_get_one_device(struct acpi_device *device,
+ 
+ 		strcpy(acpi_device_name(device), ACPI_VIDEO_DEVICE_NAME);
+ 		strcpy(acpi_device_class(device), ACPI_VIDEO_CLASS);
+-		acpi_driver_data(device) = data;
++		device->driver_data = data;
+ 
+ 		data->device_id = device_id;
+ 		data->video = video;
+@@ -1982,7 +1982,7 @@ static int acpi_video_bus_add(struct acpi_device *device)
+ 	video->device = device;
+ 	strcpy(acpi_device_name(device), ACPI_VIDEO_BUS_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_VIDEO_CLASS);
+-	acpi_driver_data(device) = video;
++	device->driver_data = video;
+ 
+ 	acpi_video_bus_find_cap(video);
+ 	error = acpi_video_bus_check(video);
+@@ -2058,7 +2058,7 @@ static int acpi_video_bus_add(struct acpi_device *device)
+ 	acpi_video_bus_remove_fs(device);
+  err_free_video:
+ 	kfree(video);
+-	acpi_driver_data(device) = NULL;
++	device->driver_data = NULL;
+ 
+ 	return error;
  }
+diff --git a/drivers/misc/asus-laptop.c b/drivers/misc/asus-laptop.c
+index 7c6dfd0..de82f2f 100644
+--- a/drivers/misc/asus-laptop.c
++++ b/drivers/misc/asus-laptop.c
+@@ -996,7 +996,7 @@ static int asus_hotk_add(struct acpi_device *device)
+ 	hotk->handle = device->handle;
+ 	strcpy(acpi_device_name(device), ASUS_HOTK_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ASUS_HOTK_CLASS);
+-	acpi_driver_data(device) = hotk;
++	device->driver_data = hotk;
+ 	hotk->device = device;
  
-@@ -906,7 +895,7 @@ static int acpi_ec_stop(struct acpi_device *device, int type)
+ 	result = asus_hotk_check();
+diff --git a/drivers/misc/eeepc-laptop.c b/drivers/misc/eeepc-laptop.c
+index 1ee8501..c124705 100644
+--- a/drivers/misc/eeepc-laptop.c
++++ b/drivers/misc/eeepc-laptop.c
+@@ -411,7 +411,7 @@ static int eeepc_hotk_add(struct acpi_device *device)
+ 	ehotk->handle = device->handle;
+ 	strcpy(acpi_device_name(device), EEEPC_HOTK_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), EEEPC_HOTK_CLASS);
+-	acpi_driver_data(device) = ehotk;
++	device->driver_data = ehotk;
+ 	ehotk->device = device;
+ 	result = eeepc_hotk_check();
+ 	if (result)
+diff --git a/drivers/misc/fujitsu-laptop.c b/drivers/misc/fujitsu-laptop.c
+index 3e56203..7b69cfb 100644
+--- a/drivers/misc/fujitsu-laptop.c
++++ b/drivers/misc/fujitsu-laptop.c
+@@ -490,7 +490,7 @@ static int acpi_fujitsu_add(struct acpi_device *device)
+ 	fujitsu->acpi_handle = device->handle;
+ 	sprintf(acpi_device_name(device), "%s", ACPI_FUJITSU_DEVICE_NAME);
+ 	sprintf(acpi_device_class(device), "%s", ACPI_FUJITSU_CLASS);
+-	acpi_driver_data(device) = fujitsu;
++	device->driver_data = fujitsu;
  
- int __init acpi_boot_ec_enable(void)
- {
--	if (!boot_ec || boot_ec->handlers_installed)
-+	if (!boot_ec || test_bit(EC_FLAGS_HANDLERS_INSTALLED, &boot_ec->flags))
- 		return 0;
- 	if (!ec_install_handlers(boot_ec)) {
- 		first_ec = boot_ec;
+ 	status = acpi_install_notify_handler(device->handle,
+ 					     ACPI_DEVICE_NOTIFY,
+@@ -703,7 +703,7 @@ static int acpi_fujitsu_hotkey_add(struct acpi_device *device)
+ 	sprintf(acpi_device_name(device), "%s",
+ 		ACPI_FUJITSU_HOTKEY_DEVICE_NAME);
+ 	sprintf(acpi_device_class(device), "%s", ACPI_FUJITSU_CLASS);
+-	acpi_driver_data(device) = fujitsu_hotkey;
++	device->driver_data = fujitsu_hotkey;
+ 
+ 	status = acpi_install_notify_handler(device->handle,
+ 					     ACPI_DEVICE_NOTIFY,
+diff --git a/drivers/misc/intel_menlow.c b/drivers/misc/intel_menlow.c
+index 80a1363..cd3ea7f 100644
+--- a/drivers/misc/intel_menlow.c
++++ b/drivers/misc/intel_menlow.c
+@@ -175,7 +175,7 @@ static int intel_menlow_memory_add(struct acpi_device *device)
+ 		goto end;
+ 	}
+ 
+-	acpi_driver_data(device) = cdev;
++	device->driver_data = cdev;
+ 	result = sysfs_create_link(&device->dev.kobj,
+ 				&cdev->device.kobj, "thermal_cooling");
+ 	if (result)
+diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
+index 6b93007..62aebaa 100644
+--- a/drivers/misc/thinkpad_acpi.c
++++ b/drivers/misc/thinkpad_acpi.c
+@@ -543,7 +543,7 @@ static int __init setup_acpi_notify(struct ibm_struct *ibm)
+ 		return -ENODEV;
+ 	}
+ 
+-	acpi_driver_data(ibm->acpi->device) = ibm;
++	ibm->acpi->device->driver_data = ibm;
+ 	sprintf(acpi_device_class(ibm->acpi->device), "%s/%s",
+ 		TPACPI_ACPI_EVENT_PREFIX,
+ 		ibm->name);
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index a5ac0bc..4768246 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -300,7 +300,11 @@ struct acpi_device {
+ 	enum acpi_bus_removal_type removal_type;	/* indicate for different removal type */
+ };
+ 
+-#define acpi_driver_data(d)	((d)->driver_data)
++static inline void *acpi_driver_data(struct acpi_device *d)
++{
++	return d->driver_data;
++}
++
+ #define to_acpi_device(d)	container_of(d, struct acpi_device, dev)
+ #define to_acpi_driver(d)	container_of(d, struct acpi_driver, drv)
+ 
 -- 
 1.5.5.1
 
