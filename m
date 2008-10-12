@@ -1,109 +1,56 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: Re: acpi-test tree on eeepc: EC error message on second resume
-Date: Sun, 12 Oct 2008 23:23:26 +0400
-Message-ID: <48F24EAE.6020108@suse.de>
-References: <48F0DB0C.7060201@tuffmail.co.uk> <200810112140.16662.rjw@sisk.pl> <48F100CA.2050600@suse.de> <200810112254.09094.rjw@sisk.pl> <48F1BFD0.7040004@tuffmail.co.uk>
+From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Subject: Re: [RESEND] [PATCH] fujitsu-laptop: better handling of P8010 hotkey
+Date: Mon, 13 Oct 2008 08:25:37 +0930 (CST)
+Message-ID: <200810122255.m9CMtbt6004616@turbo.physics.adelaide.edu.au>
+References: <alpine.LFD.1.10.0810101624190.7059@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------000508050408010900030201"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:37931 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750988AbYJLTXY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 12 Oct 2008 15:23:24 -0400
-In-Reply-To: <48F1BFD0.7040004@tuffmail.co.uk>
+Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:43347 "EHLO
+	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753981AbYJLWzw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 12 Oct 2008 18:55:52 -0400
+In-Reply-To: <alpine.LFD.1.10.0810101624190.7059@localhost.localdomain> from "Len Brown" at Oct 10, 2008 04:29:30 PM
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Alexey Starikovskiy <aystarik@gmail.com>, linux acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------000508050408010900030201
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi Len
 
-Alan Jenkins wrote:
-> Rafael J. Wysocki wrote:
->> On Saturday, 11 of October 2008, Alexey Starikovskiy wrote:
->>   
->>> Rafael J. Wysocki wrote:
->>>     
->>>>> No, we discussed this before -- we are outside of the transaction, thus 
->>>>> no GPE
->>>>> activity could interfere with ec_check_ibf0.
->>>>>         
->>>> Ok, this is in the process context and we don't really expect to get an
->>>> interrupt at this point, but what happens if the EC generates an event that's
->>>> not related to any transiaction.  Is that guaranteed to never happen?
->>>>       
->>> Interrupt handler in this case can't cause a change to status register, thus our 
->>> read of it will not be affected by interrupt.
->>>     
->> Ok, thanks.
->>
->> Alan, does the patch work for you?
->>
->> Rafael
->>   
+> > diff -ruNp misc-linus/fujitsu-laptop.c misc-jmw/fujitsu-laptop.c
 > 
-> Yes.  Two reboot cycles, three suspend/resume cycles each, and no error
-> message.
-> 
-> I hope we have a better fix in mind though :-P.  The patch doesn't solve
-> the unnecessary 500ms delay when this thing happens.
+> please see "SECTION 1" of Documentation/SubmittingPatches
+> dunno if this is why your last one didn't apply.
 
-Something like this?
+Oops, sorry about that.  I was going to fix the diff paths before submitting
+but in my haste to get it out I forgot about it.  In other words, the
+failure to apply would have been due to the bogus local paths in the patch,
+which were never meant to see the light of day.  Basically
 
-Regards,
-Alex.
+  misc-linus -> linux-2.6-linus/drivers/misc
+  misc-jmw   -> linux-2.6/drivers/misc
 
---------------000508050408010900030201
-Content-Type: text/x-diff;
- name="2.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="2.patch"
+> re: Lindent
+> please don't mix functional and style patches in the same patch,
+> they should be in a series of multiple patches.  otherwise the
+> style changes make it impossible to revivew the functional changes.
 
-ACPI: EC: Check for IBF=0 once again after timeout
+Yep.  Part of the problem in this case was that some of these changes came
+from elsewhere.  They never separated it for me and at the time neither they
+nor I had time to enforce the separation.  I'll be stricter next time. :-)
 
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
+> anyway, this one is in the test tree now.
 
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
----
- drivers/acpi/ec.c |   14 ++++++++++++--
- 1 files changed, 12 insertions(+), 2 deletions(-)
+Thanks - I appreciate it.
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 69f5f78..5e7c9c5 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -300,6 +300,17 @@ static int ec_check_ibf0(struct acpi_ec *ec)
- 	return (status & ACPI_EC_FLAG_IBF) == 0;
- }
- 
-+static int ec_wait_ibf0(struct acpi_ec *ec)
-+{
-+	unsigned long delay = jiffies + msecs_to_jiffies(ACPI_EC_DELAY);
-+	while (time_before(jiffies, delay)) {
-+		if (wait_event_timeout(ec->wait, ec_check_ibf0(ec),
-+					msecs_to_jiffies(1)))
-+		return 0;
-+	}
-+	return -ETIME;
-+}
-+
- static int acpi_ec_transaction(struct acpi_ec *ec, struct transaction *t,
- 			       int force_poll)
- {
-@@ -317,8 +328,7 @@ static int acpi_ec_transaction(struct acpi_ec *ec, struct transaction *t,
- 			goto unlock;
- 		}
- 	}
--	if (!wait_event_timeout(ec->wait, ec_check_ibf0(ec),
--				msecs_to_jiffies(ACPI_EC_DELAY))) {
-+	if (ec_wait_ibf0(ec)) {
- 		pr_err(PREFIX "input buffer is not empty, "
- 				"aborting transaction\n");
- 		status = -ETIME;
+> perhaps you can address dmitry's question?
 
---------------000508050408010900030201--
+Will do, but it might be a while before I have time to digest exactly what
+it means and how to do it.  I'm going to be extremely short on time for
+the next 3-4 weeks.
+
+Regards
+  jonathan
