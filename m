@@ -1,76 +1,103 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH 6/6] ACPI: don't use empty filename for acpi tables sysfs
-	I/F
-Date: Mon, 13 Oct 2008 16:10:38 +0800
-Message-ID: <1223885438.2735.190.camel@rzhang-dt>
+Subject: [PATCH 2/6] ACPI: introduce new interface for inactive table
+	management
+Date: Mon, 13 Oct 2008 16:10:09 +0800
+Message-ID: <1223885409.2735.185.camel@rzhang-dt>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:29939 "EHLO mga14.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:2423 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754739AbYJMIMe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 13 Oct 2008 04:12:34 -0400
+	id S1754790AbYJMIMo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 13 Oct 2008 04:12:44 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, nokos@gmx.net, "Zhang, Rui" <rui.zhang@intel.com>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, "Zhang, Rui" <rui.zhang@intel.com>
 
-From: Peter Gruber <nokos@gmx.net>
 
-For the ACPI tables with NULL table signature,
-use "NULL" as the filename under /sys/firmware/acpi/tables/.
-
-http://bugzilla.kernel.org/show_bug.cgi?id=11539
+Introduce a new interface for inactive table management.
+needed by the next patch, which creates sysfs I/F for inactive tables.
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- drivers/acpi/system.c |   17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
+ drivers/acpi/tables/tbxface.c |   47 ++++++++++++++++++++++++++++++++++++++++++
+ include/acpi/acpixf.h         |    4 +++
+ 2 files changed, 51 insertions(+)
 
-Index: linux-acpi-2.6/drivers/acpi/system.c
+Index: linux-acpi-2.6/drivers/acpi/tables/tbxface.c
 ===================================================================
---- linux-acpi-2.6.orig/drivers/acpi/system.c
-+++ linux-acpi-2.6/drivers/acpi/system.c
-@@ -88,8 +88,10 @@ static ssize_t acpi_table_show(struct ko
- 						table_attr->table_index,
- 						&table_header);
- 	else
--		status = acpi_get_table(table_attr->name, table_attr->instance,
--						&table_header);
-+		status = acpi_get_table(strncmp(table_attr->name, "NULL",
-+					ACPI_NAME_SIZE) ?
-+					table_attr->name : "\0\0\0\0",
-+					table_attr->instance, &table_header);
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
+--- linux-acpi-2.6.orig/drivers/acpi/tables/tbxface.c
++++ linux-acpi-2.6/drivers/acpi/tables/tbxface.c
+@@ -608,6 +608,53 @@ ACPI_EXPORT_SYMBOL(acpi_get_table_by_ind
  
-@@ -102,10 +104,14 @@ static void acpi_table_attr_init(struct 
- {
- 	struct acpi_table_attr *attr = NULL;
+ /*******************************************************************************
+  *
++ * FUNCTION:    acpi_get_inactive_table_by_index
++ *
++ * PARAMETERS:  table_index         - Table index
++ *              Table               - Where the pointer to the table is returned
++ *
++ * RETURN:      Status and pointer to the table
++ *
++ * DESCRIPTION: Obtain a table by an index into the global inactive table list.
++ *
++ ******************************************************************************/
++acpi_status
++acpi_get_inactive_table_by_index(u32 table_index,
++				 struct acpi_table_header **table)
++{
++	acpi_status status;
++
++	ACPI_FUNCTION_TRACE(acpi_get_inactive_table_by_index);
++
++	/* Parameter validation */
++
++	if (!table)
++		return_ACPI_STATUS(AE_BAD_PARAMETER);
++
++	/* Validate index */
++	if (table_index >= acpi_gbl_inactive_root_table_list.count)
++		return_ACPI_STATUS(AE_BAD_PARAMETER);
++
++	if (!acpi_gbl_inactive_root_table_list.tables[table_index].flags)
++		return_ACPI_STATUS(AE_TABLE_NOT_SUPPORTED);
++
++	if (!acpi_gbl_inactive_root_table_list.tables[table_index].pointer) {
++
++		/* Table is not mapped, map it */
++
++		status =
++		    acpi_tb_verify_table(&acpi_gbl_inactive_root_table_list.
++					 tables[table_index]);
++		if (ACPI_FAILURE(status))
++			return_ACPI_STATUS(status);
++	}
++
++	*table = acpi_gbl_inactive_root_table_list.tables[table_index].pointer;
++	return_ACPI_STATUS(AE_OK);
++}
++
++/*******************************************************************************
++ *
+  * FUNCTION:    acpi_tb_load_namespace
+  *
+  * PARAMETERS:  None
+Index: linux-acpi-2.6/include/acpi/acpixf.h
+===================================================================
+--- linux-acpi-2.6.orig/include/acpi/acpixf.h
++++ linux-acpi-2.6/include/acpi/acpixf.h
+@@ -122,6 +122,10 @@ acpi_get_table_by_index(u32 table_index,
+ 			struct acpi_table_header **out_table);
  
--	memcpy(table_attr->name, table_header->signature, ACPI_NAME_SIZE);
-+	if (table_header->signature[0] == '\0')
-+		memcpy(table_attr->name, "NULL", ACPI_NAME_SIZE);
-+	else
-+		memcpy(table_attr->name, table_header->signature,
-+			ACPI_NAME_SIZE);
+ acpi_status
++acpi_get_inactive_table_by_index(u32 table_index,
++			struct acpi_table_header **out_table);
++
++acpi_status
+ acpi_install_table_handler(acpi_tbl_handler handler, void *context);
  
- 	list_for_each_entry(attr, &acpi_table_attr_list, node) {
--		if (!memcmp(table_header->signature, attr->name,
-+		if (!memcmp(table_attr->name, attr->name,
- 			    ACPI_NAME_SIZE) && (attr->flag == table_attr->flag))
- 			if (table_attr->instance < attr->instance)
- 				table_attr->instance = attr->instance;
-@@ -113,7 +119,8 @@ static void acpi_table_attr_init(struct 
- 	table_attr->instance++;
- 
- 	if (table_attr->instance > 1)
--		sprintf(table_attr->name + 4, "%d", table_attr->instance);
-+		sprintf(table_attr->name + ACPI_NAME_SIZE,
-+			"%d", table_attr->instance);
- 
- 	table_attr->attr.size = 0;
- 	table_attr->attr.read = acpi_table_show;
+ acpi_status acpi_remove_table_handler(acpi_tbl_handler handler);
 
 
