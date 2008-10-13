@@ -1,128 +1,70 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH 4/6] ACPI: show dynamic ACPI tables
-Date: Mon, 13 Oct 2008 16:10:14 +0800
-Message-ID: <1223885414.2735.187.camel@rzhang-dt>
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Subject: Re: acpi-test tree on eeepc: EC error message on second resume
+Date: Mon, 13 Oct 2008 09:22:44 +0100
+Message-ID: <48F30554.1010607@tuffmail.co.uk>
+References: <48F0DB0C.7060201@tuffmail.co.uk> <200810112140.16662.rjw@sisk.pl> <48F100CA.2050600@suse.de> <200810112254.09094.rjw@sisk.pl> <48F1BFD0.7040004@tuffmail.co.uk> <48F24EAE.6020108@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:56777 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755881AbYJMIPx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 13 Oct 2008 04:15:53 -0400
+Received: from ey-out-2122.google.com ([74.125.78.25]:57159 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754724AbYJMIWt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Oct 2008 04:22:49 -0400
+Received: by ey-out-2122.google.com with SMTP id 6so536522eyi.37
+        for <linux-acpi@vger.kernel.org>; Mon, 13 Oct 2008 01:22:47 -0700 (PDT)
+In-Reply-To: <48F24EAE.6020108@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Alexey Starikovskiy <aystarik@gmail.com>, linux acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 
+Alexis Starikovskiy wrote:
+> Alan Jenkins wrote:
+>> Rafael J. Wysocki wrote:
+>>> On Saturday, 11 of October 2008, Alexey Starikovskiy wrote:
+>>>  
+>>>> Rafael J. Wysocki wrote:
+>>>>    
+>>>>>> No, we discussed this before -- we are outside of the
+>>>>>> transaction, thus no GPE
+>>>>>> activity could interfere with ec_check_ibf0.
+>>>>>>         
+>>>>> Ok, this is in the process context and we don't really expect to
+>>>>> get an
+>>>>> interrupt at this point, but what happens if the EC generates an
+>>>>> event that's
+>>>>> not related to any transiaction.  Is that guaranteed to never happen?
+>>>>>       
+>>>> Interrupt handler in this case can't cause a change to status
+>>>> register, thus our read of it will not be affected by interrupt.
+>>>>     
+>>> Ok, thanks.
+>>>
+>>> Alan, does the patch work for you?
+>>>
+>>> Rafael
+>>>   
+>>
+>> Yes.  Two reboot cycles, three suspend/resume cycles each, and no error
+>> message.
+>>
+>> I hope we have a better fix in mind though :-P.  The patch doesn't solve
+>> the unnecessary 500ms delay when this thing happens.
+>
+> Something like this?
+>
+> Regards,
+> Alex.
 
-Some ACPI tables are loaded at runtime.
-create sysfs I/F for these dynamic tables in /sys/firmware/acpi/tables/.
+You sent it as an attachment again :-).
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- drivers/acpi/system.c |   56 ++++++++++++++++++++++++++++++++++++++++----------
- 1 file changed, 45 insertions(+), 11 deletions(-)
+That should work, odd as it looks.  We don't need to worry about the GPE
+workaround because that's only active _inside_ the transaction.  I don't
+know what Zhao thinks is missing.
 
-Index: linux-acpi-2.6/drivers/acpi/system.c
-===================================================================
---- linux-acpi-2.6.orig/drivers/acpi/system.c
-+++ linux-acpi-2.6/drivers/acpi/system.c
-@@ -100,7 +100,6 @@ static ssize_t acpi_table_show(struct ko
- static void acpi_table_attr_init(struct acpi_table_attr *table_attr,
- 				 struct acpi_table_header *table_header)
- {
--	struct acpi_table_header *header = NULL;
- 	struct acpi_table_attr *attr = NULL;
- 
- 	memcpy(table_attr->name, table_header->signature, ACPI_NAME_SIZE);
-@@ -113,15 +112,9 @@ static void acpi_table_attr_init(struct 
- 	}
- 	table_attr->instance++;
- 
--	if (table_attr->instance > 1 || (table_attr->instance == 1 &&
--					 !acpi_get_table(table_header->
--							 signature, 2,
--							 &header)))
-+	if (table_attr->instance > 1)
- 		sprintf(table_attr->name + 4, "%d", table_attr->instance);
- 
--	if (table_attr->flag)
--		strncat(table_attr->name, "_inactive",
--				ACPI_TABLE_NAME_MAX - strlen(table_attr->name));
- 	table_attr->attr.size = 0;
- 	table_attr->attr.read = acpi_table_show;
- 	table_attr->attr.attr.name = table_attr->name;
-@@ -131,6 +124,42 @@ static void acpi_table_attr_init(struct 
- 	return;
- }
- 
-+static acpi_status
-+acpi_sysfs_table_handler(u32 event, void *table, void *context)
-+{
-+	struct acpi_table_attr *table_attr = NULL;
-+
-+	switch (event) {
-+	case ACPI_TABLE_EVENT_LOAD:
-+		table_attr =
-+			kzalloc(sizeof(struct acpi_table_attr), GFP_KERNEL);
-+		if (!table_attr)
-+			return AE_NO_MEMORY;
-+
-+		acpi_table_attr_init(table_attr, table);
-+		strncat(table_attr->name, "_dynamic",
-+			ACPI_TABLE_NAME_MAX - strlen(table_attr->name));
-+
-+		if (sysfs_create_bin_file(tables_kobj, &table_attr->attr)) {
-+			kfree(table_attr);
-+			return AE_ERROR;
-+		} else
-+			list_add_tail(&table_attr->node,
-+					&acpi_table_attr_list);
-+		break;
-+	case ACPI_TABLE_EVENT_UNLOAD:
-+		/*
-+		 * we do not need to do anything right now
-+		 * because the table is not deleted from the
-+		 * global table list when unloading it.
-+		 */
-+		break;
-+	default:
-+		return AE_BAD_PARAMETER;
-+	}
-+	return AE_OK;
-+}
-+
- static int acpi_system_sysfs_init(void)
- {
- 	struct acpi_table_attr *table_attr;
-@@ -162,12 +191,16 @@ static int acpi_system_sysfs_init(void)
- 			if (!table_attr)
- 				return -ENOMEM;
- 
--			if (!active_tables) {
-+			if (!active_tables)
- 				table_attr->flag = ACPI_TABLE_INACTIVE;
--				table_attr->table_index = table_index;
--			}
-+
-+			table_attr->table_index = table_index;
- 			table_index++;
- 			acpi_table_attr_init(table_attr, table_header);
-+			if (!active_tables)
-+				strncat(table_attr->name, "_inactive",
-+						ACPI_TABLE_NAME_MAX -
-+						strlen(table_attr->name));
- 
- 			result =
- 			    sysfs_create_bin_file(tables_kobj,
-@@ -189,6 +222,7 @@ static int acpi_system_sysfs_init(void)
- 		}
- 	} while (!result);
- 	kobject_uevent(tables_kobj, KOBJ_ADD);
-+	acpi_gbl_table_handler = acpi_sysfs_table_handler;
- 
- 	return 0;
- }
+Sorry I can't test right now.  I tried to install 3D support on my
+laptop for showing-off purposes, and somehow broke X.
 
-
+Thanks
+Alan
