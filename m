@@ -1,46 +1,39 @@
-From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-Subject: Re: [RESEND] [PATCH] fujitsu-laptop: better handling of P8010
-Date: Mon, 13 Oct 2008 08:33:14 +0930 (CST)
-Message-ID: <200810122303.m9CN3EJZ004798@turbo.physics.adelaide.edu.au>
-References: <20081009051314.GC11477@anvil.corenet.prv>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: acpi-test tree on eeepc: EC error message on second resume
+Date: Mon, 13 Oct 2008 13:56:36 +0800
+Message-ID: <1223877396.4141.33.camel@yakui_zhao.sh.intel.com>
+References: <48F0DB0C.7060201@tuffmail.co.uk>
+	 <200810112140.16662.rjw@sisk.pl> <48F100CA.2050600@suse.de>
+	 <200810112254.09094.rjw@sisk.pl> <48F1BFD0.7040004@tuffmail.co.uk>
+	 <48F24EAE.6020108@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:56612 "EHLO
-	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752048AbYJLXD3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 12 Oct 2008 19:03:29 -0400
-In-Reply-To: <20081009051314.GC11477@anvil.corenet.prv> from "Dmitry Torokhov" at Oct 09, 2008 01:13:15 AM
+Received: from mga01.intel.com ([192.55.52.88]:37081 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754254AbYJMBb6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 12 Oct 2008 21:31:58 -0400
+In-Reply-To: <48F24EAE.6020108@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, linux-acpi@vger.kernel.org, lenb@kernel.org
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alexey Starikovskiy <aystarik@gmail.com>, linux acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 
-Hi Dmitry
+On Sun, 2008-10-12 at 23:23 +0400, Alexey Starikovskiy wrote:
+> +static int ec_wait_ibf0(struct acpi_ec *ec)
+> +{
+> +       unsigned long delay = jiffies +
+> msecs_to_jiffies(ACPI_EC_DELAY);
+> +       while (time_before(jiffies, delay)) {
+> +               if (wait_event_timeout(ec->wait, ec_check_ibf0(ec),
+> +                                       msecs_to_jiffies(1)))
+> +               return 0;
+Please add the bogus timeout check.
+best regards.
+   Yakui
+> +       }
+> +       return -ETIME;
+> +}
+> + 
 
-> > This patch (mostly from Peter Gruber) against 2.6.27-rc4 (but with the
-> > interim P8010 patch from 2.6.27-rc6 applied) improves the handling of the
-> > hotkeys for P8010 laptops by passing more accurate input events back to
-> > userspace.  This is needed because the P8010 labels these buttons quite
-> > differently to earlier laptops.  As part of this, a P8010-specific DMI
-> > callback check has been implemented.
-> 
-> How about implementing getkeycode() and setkeycode() methods in the
-> driver and then using HAL to load appropriate keymap?
-
-Sorry for the delayed response - this arrived after I left work on Friday
-and I'm generally offline over the weekend.
-
-This could work but I'll have to do some reading to find out precisely how
-all this fits together (any pointers?).  It might be a while before I get
-anything out though because I'm going to be extremely short on time over the
-next 4 or so weeks.  In the meantime it'll be good to have this patch as
-is since it greatly improves the hotkey support for the P8010 laptop (and I
-note that Len has merged a rebased version of the patch in the meantime).
-
-Thanks for the suggestion.
-
-Regards
-  jonathan
