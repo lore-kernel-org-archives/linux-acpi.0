@@ -1,78 +1,41 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH 0/6] ACPI: acpi table management enhancement
-Date: Mon, 13 Oct 2008 14:56:28 -0700
-Message-ID: <4911F71203A09E4D9981D27F9D83085803194DE3@orsmsx503.amr.corp.intel.com>
-References: <1223885404.2735.183.camel@rzhang-dt>
+From: raz ben yehuda <razb@bitband.com>
+Subject: Subject: [PATCH 1/2] linux-acpi: sos documentation
+Date: Tue, 14 Oct 2008 01:38:13 +0200
+Message-ID: <1223941094.5437.17.camel@raz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:34917 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755137AbYJMV7m (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 13 Oct 2008 17:59:42 -0400
-In-Reply-To: <1223885404.2735.183.camel@rzhang-dt>
-Content-Language: en-US
+Received: from fw.bitband.com ([213.8.50.174]:46500 "EHLO mail.bitband.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1756667AbYJMXiT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 13 Oct 2008 19:38:19 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>
+To: lenb@kernel.org
+Cc: Ingo Molnar <mingo@elte.hu>, lkml <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-SSdkIGxpa2UgdG8gdHJ5IGFuZCBzdW1tYXJpemUgdGhpcywgY29ycmVjdCBtZSBvbiBhbnkgbWlz
-dGFrZXMuDQoNCjEpIElmIHRoZSBYU0RUIGV4aXN0cywgd2UgdXNlIHRoaXMsIGFzIHBlciB0aGUg
-QUNQSSBzcGVjaWZpY2F0aW9uLiBIb3dldmVyLCB3ZSB3aWxsIGFsc28gZ2V0IGFsbCB0YWJsZXMg
-d2l0aGluIHRoZSBSU0RUIGFuZCBtYXJrIHRoZW0gYXMgdGhlICJpbmFjdGl2ZSIgdGFibGUgc2V0
-Lg0KDQpBY3BpZHVtcCB3aWxsIG5vdyBnZXQgYm90aCB0aGUgImFjdGl2ZSIgYW5kICJpbmFjdGl2
-ZSIgdGFibGVzPw0KDQoyKSBJbiB0aGUgRkFDUyBmaXJtd2FyZSB3YWtpbmcgdmVjdG9yIGNhc2Us
-IHdlIHNldCB0aGUgdmVjdG9yIGluIGJvdGggdGhlICJhY3RpdmUiIEZBQ1MgYW5kIHRoZSAiaW5h
-Y3RpdmUiIEZBQ1MuDQoNCkFnYWluLCBwbGVhc2Ugbm90ZSB0aGF0IHdlIGhhdmUgY2hhbmdlZCB0
-aGUgQUNQSUNBIGludGVyZmFjZSB0byBzZXQgdGhlIGZpcm13YXJlIHdha2UgdmVjdG9yIC0gc3Bs
-aXR0aW5nIGludG8gdHdvLg0KDQoNCj4tLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPkZyb206
-IFpoYW5nLCBSdWkNCj5TZW50OiBNb25kYXksIE9jdG9iZXIgMTMsIDIwMDggMToxMCBBTQ0KPlRv
-OiBMZW4gQnJvd24NCj5DYzogbGludXgtYWNwaTsgWmhhbmcsIFJ1aTsgTW9vcmUsIFJvYmVydA0K
-PlN1YmplY3Q6IFtQQVRDSCAwLzZdIEFDUEk6IGFjcGkgdGFibGUgbWFuYWdlbWVudCBlbmhhbmNl
-bWVudA0KPg0KPmhpIGFsbCwNCj4NCj50aGlzIGlzIHRoZSBwYXRjaCBzZXQgSSBtYWRlIHJlY2Vu
-dGx5IGZvciBBQ1BJIHRhYmxlIG1hbmFnZW1lbnQNCj5lbmhhbmNlbWVudC4NCj4NCj5QYXRjaCAw
-MSBpbnRyb2R1Y2VzIGEgbmV3IG1lY2hhbmlzbSBmb3IgQUNQSSBpbmFjdGl2ZSB0YWJsZSBtYW5h
-Z2VtZW50Lg0KPndpdGggdGhpcyBwYXRjaCBhcHBsaWVkLCBMaW51eCBnZXRzIHRoZSBhZGRyZXNz
-IG9mIHRoZSB1bnVzZWQgcm9vdA0KPnRhYmxlLCBhbmQgcGFyc2VzIHRoaXMgcm9vdCB0YWJsZSB0
-byBnZXQgdGhlIGluYWN0aXZlIHRhYmxlcyB3aGVuDQo+bmVlZGVkLg0KPmUuZy4gaWYgTGludXgg
-aXMgdXNpbmcgWFNEVCBvbiBhIGxhcHRvcCwgdGFibGVzIGZyb20gUlNEVCB3aWxsIGJlDQo+bWFp
-bnRhaW4gYnkgdGhpcyBtZWNoYW5pc20uDQo+DQo+UGF0Y2ggMDIgaW50cm9kdWNlcyBhIG5ldyBp
-bnRlcmZhY2UgdG8gZ2V0IGNlcnRhaW4gaW5hY3RpdmUgdGFibGUsDQo+d2hpY2ggaXMgbmVlZGVk
-IGJ5IFBhdGNoIDAzLg0KPg0KPlBhdGNoIDAzIGdldHMgdGhlIGluYWN0aXZlIHRhYmxlcyBhbmQg
-Y3JlYXRlcyBzeXNmcyBJL0YgZm9yIHRoZXNlDQo+dGFibGVzLg0KPg0KPlBhdGNoIDA0IGNyZWF0
-ZXMgdGhlIHN5c2ZzIEkvRiBmb3IgZHluYW1pYyBsb2FkZWQgdGFibGVzLg0KPnNvIHRoYXQgdXNl
-cnMgY2FuIGdldCBhbGwgdGhlIEFDUEkgdGFibGVzDQo+dW5kZXIgL3N5cy9maXJtd2FyZS9hY3Bp
-L3RhYmxlcywNCj53aGljaCB3YXMgZG9uZSBieSB0aGUgYWNwaWR1bXAgdG9vbCBtYW51YWxseSBi
-ZWZvcmUuDQo+DQo+UGF0Y2ggMDUgZml4ZXMgYSBzdXNwZW5kL2hpYmVybmF0aW9uIGJ1Zy4NCj5J
-IGhhdmUgYSBwbGF0Zm9ybSB3aGljaCBzdXNwZW5kcyB3ZWxsLCBidXQgYWx3YXlzIHJlYm9vdHMg
-aW5zdGVhZCBvZg0KPnJlc3VtaW5nIHdoZW4gcHJlc3NpbmcgdGhlIHBvd2VyIGJ1dHRvbi4NCj5J
-IGZvdW5kIHRoYXQgdGhlcmUgYXJlIHR3byBGQUNTIHRhYmxlcyBvbiB0aGlzIHBsYXRmb3JtLA0K
-PlhTRFQtLT5GQURUMS0tPlhmYWNzLS0+RkFDUzENCj4gICAgICAgIHwtLS0tLT5mYWNzLXwNCj4g
-ICAgICAgICAgICAgICAgICAgIHwtPkZBQ1MyDQo+UlNEVC0tPkZBRFQyLS0+ZmFjcy18DQo+TGlu
-dXggdXNlcyBYU0RUIG9uIHRoaXMgcGxhdGZvcm0gYW5kIHNldHMgdGhlIHdha2luZyB2ZWN0b3Ig
-aW4gRkFDUzENCj53aGVuIHN1c3BlbmRpbmcuDQo+QnV0IGl0IHNlZW1zIHRoYXQgdGhlIEJJT1Mg
-b25seSBjYXJlcyBmb3IgdGhlIHdha2luZyB2ZWN0b3IgaW4gRkFDUzIsDQo+dGh1cyBpdCByZWJv
-b3RzIHdoZW4gcmVzdW1pbmcgYmVjYXVzZSB0aGUgd2FraW5nIHZlY3RvciBpcyBub3Qgc2V0IGF0
-DQo+YWxsLg0KPkkgc2V0IHRoZSB3YWtpbmcgdmVjdG9yIGluIGluYWN0aXZlIEZBQ1MgdGFibGUg
-dG8gZml4IGl0IGluIHRoaXMgcGF0Y2guDQo+DQo+UGF0Y2ggMDYgaXMgYSByZWZyZXNoZWQgdmVy
-c2lvbiBvZiDvu79QZXRlciBHcnViZXIncyBwYXRjaCB3aGljaCBzdG9wcw0KPnVzaW5nIGVtcHR5
-IGZpbGUgbmFtZXMgZm9yIGFjcGkgdGFibGVzIGluIHN5c2ZzIEkvRi4NCj4NCj5Ob3RlOg0KPklu
-IHRoaXMgcGF0Y2ggc2V0LCBhbGwgdGhlIHRhYmxlcyBpbiB0aGUgaW5hY3RpdmUgcm9vdCB0YWJs
-ZSBhcmUNCj5yZWNvZ25pemVkIGFzIGluYWN0aXZlIHRhYmxlcyBldmVuIGlmIGl0J3MgYWxzbyBp
-biB0aGUgYWN0aXZlIHJvb3QNCj50YWJsZS4NCj5pLmUuIHNvbWUgdGFibGVzIGFyZSBzaG93biB0
-d2ljZSBpbiAvc3lzL2Zpcm13YXJlL2FjcGkvdGFibGVzLA0KPmJvdGggYXMgYWN0aXZlIGFuZCBp
-bmFjdGl2ZSB0YWJsZXMuDQo+VGFrZSBteSBsYXB0b3AgZm9yIGV4YW1wbGUsDQo+I2xzIC9zeXMv
-ZmlybXdhcmUvYWNwaS90YWJsZXMvDQo+QVBJQyAgQVBJQ19pbmFjdGl2ZSAgQVNGISAgQVNGIV9p
-bmFjdGl2ZSAgRFNEVCAgRFNEVF9pbmFjdGl2ZSAgRkFDUA0KPkZBQ1BfaW5hY3RpdmUNCj5GQUNT
-ICBGQUNTX2luYWN0aXZlICBNQ0ZHICBNQ0ZHX2luYWN0aXZlICBTU0RUX2R5bmFtaWMNCj4NCj5J
-biBteSBjYXNlLCBGQUNQIGFuZCBGQUNQX2luYWN0aXZlIGFyZSBkaWZmZXJlbnQgdGFibGVzIGV4
-cG9ydGVkIGJ5IFhTRFQNCj5hbmQgUlNEVC4NCj5idXQgTUNGRyBhbmQgTUNGR19pbmFjdGl2ZSBh
-cmUgdGhlIHNhbWUgdGFibGUgYmVjYXVzZSB0aGV5IHBvaW50IHRvIHRoZQ0KPnNhbWUgcGh5c2lj
-YWwgYWRkcmVzcy4NCj4NCj5JIGRvbid0IHRoaW5rIHRoZSBkdXBsaWNhdGUgdGFibGVzIHNob3Vs
-ZCBiZSBpZ25vcmVkIGJlY2F1c2U6DQo+SWYgb25seSB0aGUgdW5kdXBsaWNhdGVkIGluYWN0aXZl
-IHRhYmxlcyBpcyBzaG93biwgd2UgYXJlIG5vdCBhYmxlIHRvDQo+Z2V0IGEgZnVsbCBsaXN0IG9m
-IHRoZSB0YWJsZXMgZXhwb3J0ZWQgYnkgdGhlIGluYWN0aXZlIHJvb3QgdGFibGUsDQo+d2hpY2gg
-aXMgaW1wb3J0YW50IGZvciBkZWJ1Z2dpbmcgaW4gc29tZSBjYXNlcy4NCj4NCj5hbnkgY29tbWVu
-dHMgYXJlIHdlbGNvbWUuIDopDQo+DQo+DQo+dGhhbmtzLA0KPnJ1aQ0KDQo=
+From: Raz Ben Yehuda <razb@bitband.com>
+
+Signed-off-by: Raz Ben Yehuda <razb@bitband.com>
+---
+
+diff -urpN linux-2.6.27/Documentation/SOS.txt linux-2.6.27-dbg/Documentation/SOS.txt
+--- linux-2.6.27/Documentation/SOS.txt	1970-01-01 02:00:00.000000000 +0200
++++ linux-2.6.27-dbg/Documentation/SOS.txt	2008-10-14 00:29:32.000000000 +0200
+@@ -0,0 +1,14 @@
++				SOS
++
++SOS is a service oriented scheduler. SOS is a method of relating one or more
++distinct services to a processor.In other words, a core(s) is assigned to
++a chore, not a chore to a core.
++Technically speaking, by virtually removing a processor from the operating
++system, using Linux ACPI facility one can bind processors to services.
++SOS management and control is done by sosctl.
++To fully understand what is SOS, when should it be used it and for which
++puprose,please refer to http://sos-linux.cvs.sourceforge.net/sos-linux/sos/Documentation/.
++
++Author: Raz Ben Yehuda
++Date: 2/08/2008
++Open University Israel.Computer Sciences Department. MSC.
+
