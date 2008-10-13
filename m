@@ -1,89 +1,44 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH 5/6] ACPI: set waking vector in inactive facs table
-Date: Mon, 13 Oct 2008 10:46:18 -0700
-Message-ID: <4911F71203A09E4D9981D27F9D830858031949AF@orsmsx503.amr.corp.intel.com>
-References: <1223885434.2735.188.camel@rzhang-dt>
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: Patch needed for ASUS EEEPC 701 2.6.27 (perhaps a regession)
+Date: Mon, 13 Oct 2008 22:36:49 +0200
+Message-ID: <20081013203648.GA3260@ucw.cz>
+References: <48F0BD2D.8000001@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:43605 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755662AbYJMRtV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 13 Oct 2008 13:49:21 -0400
-In-Reply-To: <1223885434.2735.188.camel@rzhang-dt>
-Content-Language: en-US
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:58834 "EHLO UNKNOWN"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755036AbYJMUjh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 13 Oct 2008 16:39:37 -0400
+Content-Disposition: inline
+In-Reply-To: <48F0BD2D.8000001@tuffmail.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Cc: Robert Goldner <robert@au-79.de>, linux-kernel <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, linux-stable@vger.kernel.org
 
-U28sIGlzIHRoaXMgdGhlIGJvdHRvbSBsaW5lIG9mIHRoZSBod3NsZWVwIHBhdGNoOg0KDQpJZiB0
-aGVyZSBpcyBhIHNlY29uZCBGQUNTIGluIHRoZSBzeXN0ZW0gKHBvaW50ZWQgdG8gYnkgdGhlIHVu
-dXNlZCBSU0RUKSwgdGhlbiBzZXQgdGhlIGZpcm13YXJlIHdha2luZyB2ZWN0b3JzIGluIEJPVEgg
-RkFDUyB0YWJsZXM/DQoNCg0KDQo+LS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj5Gcm9tOiBa
-aGFuZywgUnVpDQo+U2VudDogTW9uZGF5LCBPY3RvYmVyIDEzLCAyMDA4IDE6MTEgQU0NCj5Ubzog
-TGVuIEJyb3duDQo+Q2M6IGxpbnV4LWFjcGk7IE1vb3JlLCBSb2JlcnQ7IFJhZmFlbCBKLiBXeXNv
-Y2tpOyBaaGFuZywgUnVpDQo+U3ViamVjdDogW1BBVENIIDUvNl0gQUNQSTogc2V0IHdha2luZyB2
-ZWN0b3IgaW4gaW5hY3RpdmUgZmFjcyB0YWJsZQ0KPg0KPg0KPlJTRFQgYW5kIFhTRFQgbWF5IGV4
-cG9ydCBkaWZmZXJlbnQgRkFDUyB0YWJsZXMuDQo+U29tZSBvZiB0aGUgQklPU2VzIG9ubHkgY2hl
-Y2tzIG9uZSBvZiB0aGVtIHdoZW4gcmVzdW1pbmcuDQo+QW5kIExpbnV4IHJlYm9vdHMgaW5zdGVh
-ZCBvZiByZXN1bWluZyBiZWNhdXNlIEJJT1MgY2FuJ3QgZmluZA0KPnRoZSB3YWtpbmcgdmVjdG9y
-Lg0KPkZvciBleGFtcGxlLA0KPu+7v0kgaGF2ZSBhIHBsYXRmb3JtIHdoaWNoIHN1c3BlbmRzIHdl
-bGwsIGJ1dCBhbHdheXMgcmVib290cyBpbnN0ZWFkIG9mDQo+cmVzdW1pbmcgd2hlbiBwcmVzc2lu
-ZyB0aGUgcG93ZXIgYnV0dG9uLg0KPkkgZm91bmQgdGhhdCB0aGVyZSBhcmUgdHdvIEZBQ1MgdGFi
-bGVzIG9uIHRoaXMgcGxhdGZvcm0sDQo+WFNEVC0tPkZBRFQxLS0+WGZhY3MtLT5GQUNTMQ0KPiAg
-ICAgICAgfC0tLS0tPmZhY3MtfA0KPiAgICAgICAgICAgICAgICAgICAgfC0+RkFDUzINCj5SU0RU
-LS0+RkFEVDItLT5mYWNzLXwNCj5MaW51eCB1c2VzIFhTRFQgb24gdGhpcyBwbGF0Zm9ybSBhbmQg
-c2V0cyB0aGUgd2FraW5nIHZlY3RvciBpbiBGQUNTMQ0KPndoZW4gc3VzcGVuZGluZy4NCj5CdXQg
-aXQgc2VlbXMgdGhhdCB0aGUgQklPUyBvbmx5IGNhcmVzIGZvciB0aGUgd2FraW5nIHZlY3RvciBp
-biBGQUNTMiwNCj50aHVzIGl0IHJlYm9vdHMgd2hlbiByZXN1bWluZyBiZWNhdXNlIHRoZSB3YWtp
-bmcgdmVjdG9yIGlzIG5vdCBzZXQgYXQgYWxsLg0KPg0KPlNldCB0aGUgd2FraW5nIHZlY3RvciBp
-biBpbmFjdGl2ZSBGQUNTIHRhYmxlIGluIHRoaXMgcGF0Y2guDQo+DQo+U2lnbmVkLW9mZi1ieTog
-WmhhbmcgUnVpIDxydWkuemhhbmdAaW50ZWwuY29tPg0KPi0tLQ0KPiBkcml2ZXJzL2FjcGkvaGFy
-ZHdhcmUvaHdzbGVlcC5jIHwgICAyMCArKysrKysrKysrKysrKysrKysrKw0KPiBkcml2ZXJzL2Fj
-cGkvdGFibGVzL3RiZmFkdC5jICAgIHwgICAgNiArKysrLS0NCj4gMiBmaWxlcyBjaGFuZ2VkLCAy
-NCBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQ0KPg0KPkluZGV4OiBsaW51eC0yLjYvZHJp
-dmVycy9hY3BpL2hhcmR3YXJlL2h3c2xlZXAuYw0KPj09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0NCj4tLS0gbGludXgtMi42
-Lm9yaWcvZHJpdmVycy9hY3BpL2hhcmR3YXJlL2h3c2xlZXAuYw0KPisrKyBsaW51eC0yLjYvZHJp
-dmVycy9hY3BpL2hhcmR3YXJlL2h3c2xlZXAuYw0KPkBAIC02NSw2ICs2NSw3IEBAIGFjcGlfc2V0
-X2Zpcm13YXJlX3dha2luZ192ZWN0b3IoYWNwaV9waHkNCj4gew0KPiAgICAgICAgc3RydWN0IGFj
-cGlfdGFibGVfZmFjcyAqZmFjczsNCj4gICAgICAgIGFjcGlfc3RhdHVzIHN0YXR1czsNCj4rICAg
-ICAgIHUzMiB0YWJsZV9pbmRleDsNCj4NCj4gICAgICAgIEFDUElfRlVOQ1RJT05fVFJBQ0UoYWNw
-aV9zZXRfZmlybXdhcmVfd2FraW5nX3ZlY3Rvcik7DQo+DQo+QEAgLTkyLDYgKzkzLDI1IEBAIGFj
-cGlfc2V0X2Zpcm13YXJlX3dha2luZ192ZWN0b3IoYWNwaV9waHkNCj4gICAgICAgICAgICAgICAg
-ZmFjcy0+eGZpcm13YXJlX3dha2luZ192ZWN0b3IgPSBwaHlzaWNhbF9hZGRyZXNzOw0KPiAgICAg
-ICAgfQ0KPg0KPisgICAgICAgLyogc2V0IHRoZSBmaXJtd2FyZSB2ZWN0b3IgaW4gdGhlIGluYWN0
-aXZlIGZhY3MgdGFibGUgKi8NCj4rICAgICAgIGZvciAodGFibGVfaW5kZXggPSAwLCBmYWNzID0g
-TlVMTDsgOyB0YWJsZV9pbmRleCsrKSB7DQo+KyAgICAgICAgICAgICAgIHN0YXR1cyA9IGFjcGlf
-Z2V0X2luYWN0aXZlX3RhYmxlX2J5X2luZGV4KHRhYmxlX2luZGV4LA0KPisgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgQUNQSV9DQVNUX0lORElSRUNUX1BUUihzdHJ1Y3QNCj5hY3BpX3Rh
-YmxlX2hlYWRlciwNCj4rICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICZmYWNzKSk7DQo+KyAgICAgICAgICAgICAgIGlmIChzdGF0dXMgPT0gQUVf
-VEFCTEVfTk9UX1NVUFBPUlRFRCkNCj4rICAgICAgICAgICAgICAgICAgICAgICBjb250aW51ZTsN
-Cj4rICAgICAgICAgICAgICAgaWYgKEFDUElfRkFJTFVSRShzdGF0dXMpKQ0KPisgICAgICAgICAg
-ICAgICAgICAgICAgIGJyZWFrOw0KPisNCj4rICAgICAgICAgICAgICAgaWYgKCFBQ1BJX0NPTVBB
-UkVfTkFNRSgmZmFjcy0+c2lnbmF0dXJlLCBBQ1BJX1NJR19GQUNTKSkNCj4rICAgICAgICAgICAg
-ICAgICAgICAgICBjb250aW51ZTsNCj4rDQo+KyAgICAgICAgICAgICAgIGlmIChmYWNzLT52ZXJz
-aW9uID49IDEpDQo+KyAgICAgICAgICAgICAgICAgICAgICAgZmFjcy0+eGZpcm13YXJlX3dha2lu
-Z192ZWN0b3IgPSAwOw0KPisgICAgICAgICAgICAgICBmYWNzLT5maXJtd2FyZV93YWtpbmdfdmVj
-dG9yID0gKHUzMilwaHlzaWNhbF9hZGRyZXNzOw0KPisgICAgICAgICAgICAgICBicmVhazsNCj4r
-ICAgICAgIH0NCj4rDQo+ICAgICAgICByZXR1cm5fQUNQSV9TVEFUVVMoQUVfT0spOw0KPiB9DQo+
-DQo+SW5kZXg6IGxpbnV4LTIuNi9kcml2ZXJzL2FjcGkvdGFibGVzL3RiZmFkdC5jDQo+PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PQ0KPi0tLSBsaW51eC0yLjYub3JpZy9kcml2ZXJzL2FjcGkvdGFibGVzL3RiZmFkdC5jDQo+
-KysrIGxpbnV4LTIuNi9kcml2ZXJzL2FjcGkvdGFibGVzL3RiZmFkdC5jDQo+QEAgLTI5MCwxMSAr
-MjkwLDEzIEBAIHN0YXRpYyB2b2lkIGFjcGlfdGJfY29udmVydF9mYWR0KHZvaWQpDQo+DQo+ICAg
-ICAgICBpZiAoIWFjcGlfZ2JsX0ZBRFQuWGZhY3MpIHsNCj4gICAgICAgICAgICAgICAgYWNwaV9n
-YmxfRkFEVC5YZmFjcyA9ICh1NjQpIGFjcGlfZ2JsX0ZBRFQuZmFjczsNCj4tICAgICAgIH0NCj4r
-ICAgICAgIH0gZWxzZSBpZiAoYWNwaV9nYmxfRkFEVC5YZmFjcyAhPSBhY3BpX2dibF9GQURULmZh
-Y3MpDQo+KyAgICAgICAgICAgICAgIEFDUElfV0FSTklORygoQUVfSU5GTywgIjMyIGJpdCBGQUNT
-IGFuZCA2NCBiaXQgRkFDUyBub3QNCj5tYXRjaFxuIikpOw0KPg0KPiAgICAgICAgaWYgKCFhY3Bp
-X2dibF9GQURULlhkc2R0KSB7DQo+ICAgICAgICAgICAgICAgIGFjcGlfZ2JsX0ZBRFQuWGRzZHQg
-PSAodTY0KSBhY3BpX2dibF9GQURULmRzZHQ7DQo+LSAgICAgICB9DQo+KyAgICAgICB9IGVsc2Ug
-aWYgKGFjcGlfZ2JsX0ZBRFQuWGRzZHQgIT0gYWNwaV9nYmxfRkFEVC5kc2R0KQ0KPisgICAgICAg
-ICAgICAgICBBQ1BJX1dBUk5JTkcoKEFFX0lORk8sICIzMiBiaXQgRFNEVCBhbmQgNjQgYml0IERT
-RFQgbm90DQo+bWF0Y2hcbiIpKTsNCj4NCj4gICAgICAgIC8qDQo+ICAgICAgICAgKiBGb3IgQUNQ
-SSAxLjAgRkFEVHMgKHJldmlzaW9uIDEgb3IgMiksIGVuc3VyZSB0aGF0IHJlc2VydmVkDQo+Zmll
-bGRzIHdoaWNoDQo+DQoNCg==
+On Sat 2008-10-11 15:50:21, Alan Jenkins wrote:
+> Robert Goldner wrote:
+> 
+> > Hi,
+> >
+> > I am a happy user of an asus eeepc 701 with an self-made kernel 2.6.27.
+> > Its working quite good, but there is one patch needed to avoid problems
+> > related to ACPI and Hotkeys.
+> > After using a few hotkeys there comes a message in syslog like:
+> > ACPI: EC: GPE storm detected, disabling EC GPE
+> > and no hotkey event is recognized any more. This is quite bad on a nettop.
+> 
+> Hi, I reported the original bug.  It is a regression, though the issue
+> has been present for a few kernel versions now.
+> 
+> I recommend that you avoid reproducing the problem.  I now have to add
+> "noapic" to the boot options on my EeePC, otherwise it randomly hangs /
+> reboots when I press hotkeys - I think it  damaged the hardware.
+
+I guess your hw went bad for some other reason. Restore original
+system and if it is still broken, RMA?
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
