@@ -1,396 +1,138 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: RE: [PATCH 1/6] ACPI:  introduce the inactive ACPI tables mangement
-Date: Tue, 14 Oct 2008 09:25:33 +0800
-Message-ID: <1223947533.2735.235.camel@rzhang-dt>
-References: <1223885407.2735.184.camel@rzhang-dt>
-	 <4911F71203A09E4D9981D27F9D83085803194DEB@orsmsx503.amr.corp.intel.com>
+Subject: RE: [PATCH 0/6] ACPI: acpi table management enhancement
+Date: Tue, 14 Oct 2008 09:19:40 +0800
+Message-ID: <1223947180.2735.228.camel@rzhang-dt>
+References: <1223885404.2735.183.camel@rzhang-dt>
+	 <4911F71203A09E4D9981D27F9D83085803194DE3@orsmsx503.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:27136 "EHLO mga03.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:7649 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750979AbYJNB1e (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 13 Oct 2008 21:27:34 -0400
-In-Reply-To: <4911F71203A09E4D9981D27F9D83085803194DEB@orsmsx503.amr.corp.intel.com>
+	id S1751437AbYJNB3A (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 13 Oct 2008 21:29:00 -0400
+In-Reply-To: <4911F71203A09E4D9981D27F9D83085803194DE3@orsmsx503.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Moore, Robert" <robert.moore@intel.com>
 Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 
-On Mon, 2008-10-13 at 15:57 -0600, Moore, Robert wrote:
-> acpi_initialize_inactive_tables is fairly large. I would suspect that=
- there is a lot of common code with the "normal" initialize tables
+On Mon, 2008-10-13 at 15:56 -0600, Moore, Robert wrote:
+> I'd like to try and summarize this, correct me on any mistakes.
+>=20
+> 1) If the XSDT exists, we use this, as per the ACPI specification. Ho=
+wever, we will also get all tables within the RSDT and mark them as the=
+ "inactive" table set.
+Right.
+>=20
+> Acpidump
+=EF=BB=BFIf the patch set is applied, we don't need acpidump any more
+as we can get all the table info at /sys/firmware/acpi/tables/.
+>  will now get both the "active" and "inactive" tables?
 yes.
->  - just a different pointer to the root table list, maybe a couple
-> more.
-=EF=BB=BF
-just a different pointer to a different root table
-list(=EF=BB=BFacpi_gbl_inactive_root_table_list).
-others are quite similar to acpi_tb_parse_root_table.
-but it's not easy to reuse the code
-as acpi_gbl_root_table_list is hard coded there.
+
+>=20
+> 2) In the FACS firmware waking vector case, we set the vector in both=
+ the "active" FACS and the "inactive" FACS.
+Right.
+>=20
+> Again, please note that we have changed the ACPICA interface to set t=
+he firmware wake vector - splitting into two.
+hmm, when will this change be shipped to Linux?
+BTW: Rafael has already proposed a patch which always clears 64 bit wak=
+e
+vector and uses the 32 bit one.
+http://marc.info/?l=3Dlinux-acpi&m=3D122370808622832&w=3D2
 
 thanks,
 rui
 >=20
+>=20
 > >-----Original Message-----
-> >From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
-> >owner@vger.kernel.org] On Behalf Of Zhang Rui
+> >From: Zhang, Rui
 > >Sent: Monday, October 13, 2008 1:10 AM
 > >To: Len Brown
-> >Cc: linux-acpi; Moore, Robert; Zhang, Rui
-> >Subject: [PATCH 1/6] ACPI: introduce the inactive ACPI tables mangem=
-ent
+> >Cc: linux-acpi; Zhang, Rui; Moore, Robert
+> >Subject: [PATCH 0/6] ACPI: acpi table management enhancement
+> >
+> >hi all,
+> >
+> >this is the patch set I made recently for ACPI table management
+> >enhancement.
+> >
+> >Patch 01 introduces a new mechanism for ACPI inactive table manageme=
+nt.
+> >with this patch applied, Linux gets the address of the unused root
+> >table, and parses this root table to get the inactive tables when
+> >needed.
+> >e.g. if Linux is using XSDT on a laptop, tables from RSDT will be
+> >maintain by this mechanism.
+> >
+> >Patch 02 introduces a new interface to get certain inactive table,
+> >which is needed by Patch 03.
+> >
+> >Patch 03 gets the inactive tables and creates sysfs I/F for these
+> >tables.
+> >
+> >Patch 04 creates the sysfs I/F for dynamic loaded tables.
+> >so that users can get all the ACPI tables
+> >under /sys/firmware/acpi/tables,
+> >which was done by the acpidump tool manually before.
+> >
+> >Patch 05 fixes a suspend/hibernation bug.
+> >I have a platform which suspends well, but always reboots instead of
+> >resuming when pressing the power button.
+> >I found that there are two FACS tables on this platform,
+> >XSDT-->FADT1-->Xfacs-->FACS1
+> >        |----->facs-|
+> >                    |->FACS2
+> >RSDT-->FADT2-->facs-|
+> >Linux uses XSDT on this platform and sets the waking vector in FACS1
+> >when suspending.
+> >But it seems that the BIOS only cares for the waking vector in FACS2=
+,
+> >thus it reboots when resuming because the waking vector is not set a=
+t
+> >all.
+> >I set the waking vector in inactive FACS table to fix it in this pat=
+ch.
+> >
+> >Patch 06 is a refreshed version of =EF=BB=BFPeter Gruber's patch whi=
+ch stops
+> >using empty file names for acpi tables in sysfs I/F.
+> >
+> >Note:
+> >In this patch set, all the tables in the inactive root table are
+> >recognized as inactive tables even if it's also in the active root
+> >table.
+> >i.e. some tables are shown twice in /sys/firmware/acpi/tables,
+> >both as active and inactive tables.
+> >Take my laptop for example,
+> >#ls /sys/firmware/acpi/tables/
+> >APIC  APIC_inactive  ASF!  ASF!_inactive  DSDT  DSDT_inactive  FACP
+> >FACP_inactive
+> >FACS  FACS_inactive  MCFG  MCFG_inactive  SSDT_dynamic
+> >
+> >In my case, FACP and FACP_inactive are different tables exported by =
+XSDT
+> >and RSDT.
+> >but MCFG and MCFG_inactive are the same table because they point to =
+the
+> >same physical address.
+> >
+> >I don't think the duplicate tables should be ignored because:
+> >If only the unduplicated inactive tables is shown, we are not able t=
+o
+> >get a full list of the tables exported by the inactive root table,
+> >which is important for debugging in some cases.
+> >
+> >any comments are welcome. :)
 > >
 > >
-> >RSDT and XSDT may export different tables.
-> >Linux uses either RSDT or XSDT as the root table.
-> >There are some inactive tables which exists but is not used,
-> >e.g. Linux is using XSDT but the table is exported by RSDT only.
-> >
-> >Sometimes we still need to dump these inactive tables for debugging.
-> >
-> >This patch introduces the inactive table management in Linux.
-> >
-> >Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> >---
-> > drivers/acpi/tables/tbutils.c |   22 +++----
-> > drivers/acpi/tables/tbxface.c |  131
-> >++++++++++++++++++++++++++++++++++++++++++
-> > include/acpi/acglobal.h       |    3
-> > include/acpi/acpixf.h         |    2
-> > include/acpi/actables.h       |    3
-> > 5 files changed, 151 insertions(+), 10 deletions(-)
-> >
-> >Index: linux-acpi-2.6/include/acpi/acglobal.h
-> >=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> >--- linux-acpi-2.6.orig/include/acpi/acglobal.h
-> >+++ linux-acpi-2.6/include/acpi/acglobal.h
-> >@@ -139,6 +139,9 @@ ACPI_EXTERN u32 acpi_gbl_trace_flags;
-> >  * acpi_gbl_FADT is a local copy of the FADT, converted to a common
-> >format.
-> >  */
-> > ACPI_EXTERN struct acpi_internal_rsdt acpi_gbl_root_table_list;
-> >+ACPI_EXTERN struct acpi_internal_rsdt acpi_gbl_inactive_root_table_=
-list;
-> >+ACPI_EXTERN acpi_physical_address acpi_inactive_tables_root_pointer=
-;
-> >+ACPI_EXTERN u32 acpi_inactive_tables_entry_size;
-> > ACPI_EXTERN struct acpi_table_fadt acpi_gbl_FADT;
-> > extern u8 acpi_gbl_permanent_mmap;
-> >
-> >Index: linux-acpi-2.6/include/acpi/acpixf.h
-> >=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> >--- linux-acpi-2.6.orig/include/acpi/acpixf.h
-> >+++ linux-acpi-2.6/include/acpi/acpixf.h
-> >@@ -54,6 +54,8 @@
-> > acpi_status
-> > acpi_initialize_tables(struct acpi_table_desc *initial_storage,
-> >                       u32 initial_table_count, u8 allow_resize);
-> >+acpi_status
-> >+acpi_initialize_inactive_tables(void);
-> >
-> > acpi_status __init acpi_initialize_subsystem(void);
-> >
-> >Index: linux-acpi-2.6/drivers/acpi/tables/tbutils.c
-> >=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> >--- linux-acpi-2.6.orig/drivers/acpi/tables/tbutils.c
-> >+++ linux-acpi-2.6/drivers/acpi/tables/tbutils.c
-> >@@ -47,10 +47,6 @@
-> > #define _COMPONENT          ACPI_TABLES
-> > ACPI_MODULE_NAME("tbutils")
-> >
-> >-/* Local prototypes */
-> >-static acpi_physical_address
-> >-acpi_tb_get_root_table_entry(u8 *table_entry, u32 table_entry_size)=
-;
-> >-
-> >
-> >/*******************************************************************=
-*******
-> >*****
-> >  *
-> >  * FUNCTION:    acpi_tb_check_xsdt
-> >@@ -335,7 +331,7 @@ acpi_tb_install_table(acpi_physical_addr
-> >  *
-> >
-> >********************************************************************=
-*******
-> >***/
-> >
-> >-static acpi_physical_address
-> >+acpi_physical_address
-> > acpi_tb_get_root_table_entry(u8 *table_entry, u32 table_entry_size)
-> > {
-> >        u64 address64;
-> >@@ -399,7 +395,7 @@ acpi_tb_parse_root_table(acpi_physical_a
-> >        u32 table_count;
-> >        struct acpi_table_header *table;
-> >        acpi_physical_address address;
-> >-       acpi_physical_address uninitialized_var(rsdt_address);
-> >+       acpi_physical_address rsdt_address, xsdt_address =3D 0;
-> >        u32 length;
-> >        u8 *table_entry;
-> >        acpi_status status;
-> >@@ -426,14 +422,15 @@ acpi_tb_parse_root_table(acpi_physical_a
-> >                 * XSDT if the revision is > 1 and the XSDT pointer =
-is
-> >present, as per
-> >                 * the ACPI specification.
-> >                 */
-> >-               address =3D (acpi_physical_address) rsdp-
-> >>xsdt_physical_address;
-> >+               xsdt_address =3D (acpi_physical_address) rsdp-
-> >>xsdt_physical_address;
-> >+               address =3D xsdt_address;
-> >                table_entry_size =3D sizeof(u64);
-> >-               rsdt_address =3D (acpi_physical_address)
-> >-                                       rsdp->rsdt_physical_address;
-> >+               rsdt_address =3D (acpi_physical_address) rsdp-
-> >>rsdt_physical_address;
-> >        } else {
-> >                /* Root table is an RSDT (32-bit physical addresses)=
- */
-> >
-> >-               address =3D (acpi_physical_address) rsdp-
-> >>rsdt_physical_address;
-> >+               rsdt_address =3D (acpi_physical_address) rsdp-
-> >>rsdt_physical_address;
-> >+               address =3D rsdt_address;
-> >                table_entry_size =3D sizeof(u32);
-> >        }
-> >
-> >@@ -452,6 +449,11 @@ acpi_tb_parse_root_table(acpi_physical_a
-> >                                        "using RSDT"));
-> >                }
-> >        }
-> >+       acpi_inactive_tables_root_pointer =3D
-> >+               (address =3D=3D rsdt_address ? xsdt_address : rsdt_a=
-ddress);
-> >+       acpi_inactive_tables_entry_size =3D
-> >+               (table_entry_size =3D=3D sizeof(u32) ? sizeof(u64) :
-> >sizeof(u32));
-> >+
-> >        /* Map the RSDT/XSDT table header to get the full table leng=
-th */
-> >
-> >        table =3D acpi_os_map_memory(address, sizeof(struct
-> >acpi_table_header));
-> >Index: linux-acpi-2.6/include/acpi/actables.h
-> >=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> >--- linux-acpi-2.6.orig/include/acpi/actables.h
-> >+++ linux-acpi-2.6/include/acpi/actables.h
-> >@@ -105,6 +105,9 @@ u8 acpi_tb_checksum(u8 *buffer, u32 leng
-> > acpi_status
-> > acpi_tb_verify_checksum(struct acpi_table_header *table, u32 length=
-);
-> >
-> >+acpi_physical_address
-> >+acpi_tb_get_root_table_entry(u8 *table_entry, u32 table_entry_size)=
-;
-> >+
-> > void
-> > acpi_tb_install_table(acpi_physical_address address,
-> >                      u8 flags, char *signature, u32 table_index);
-> >Index: linux-acpi-2.6/drivers/acpi/tables/tbxface.c
-> >=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> >--- linux-acpi-2.6.orig/drivers/acpi/tables/tbxface.c
-> >+++ linux-acpi-2.6/drivers/acpi/tables/tbxface.c
-> >@@ -156,6 +156,137 @@ acpi_initialize_tables(struct acpi_table
-> >
-> >
-> >/*******************************************************************=
-*******
-> >*****
-> >  *
-> >+ * FUNCTION:    acpi_initialize_inactive_tables
-> >+ *
-> >+ * RETURN:      Status
-> >+ *
-> >+ * DESCRIPTION: Initialize the inactive table manager.
-> >+ *             Get the unused root table pointer, parse all the ina=
-ctive
-> >tables
-> >+ *             and install them to the global inactive table list.
-> >+ *
-> >+
-> >********************************************************************=
-*******
-> >***/
-> >+acpi_status __init
-> >+acpi_initialize_inactive_tables(void)
-> >+{
-> >+       acpi_status status;
-> >+       u32 length;
-> >+       u32 table_count;
-> >+       u8 *table_entry;
-> >+       u32 i;
-> >+       struct acpi_table_header *table;
-> >+       struct acpi_table_fadt *fadt;
-> >+
-> >+       if (!acpi_inactive_tables_root_pointer)
-> >+               return AE_NOT_EXIST;
-> >+       /* Map the RSDT/XSDT table header to get the full table leng=
-th */
-> >+       table =3D acpi_os_map_memory(acpi_inactive_tables_root_point=
-er,
-> >+                                  sizeof(struct acpi_table_header))=
-;
-> >+       if (!table)
-> >+               return_ACPI_STATUS(AE_NO_MEMORY);
-> >+
-> >+       length =3D table->length;
-> >+       acpi_os_unmap_memory(table, sizeof(struct acpi_table_header)=
-);
-> >+
-> >+       if (length < sizeof(struct acpi_table_header))
-> >+               return_ACPI_STATUS(AE_INVALID_TABLE_LENGTH);
-> >+
-> >+       table =3D acpi_os_map_memory(acpi_inactive_tables_root_point=
-er,
-> >length);
-> >+       if (!table)
-> >+               return_ACPI_STATUS(AE_NO_MEMORY);
-> >+
-> >+       status =3D acpi_tb_verify_checksum(table, length);
-> >+       if (ACPI_FAILURE(status)) {
-> >+               acpi_os_unmap_memory(table, length);
-> >+               return_ACPI_STATUS(status);
-> >+       }
-> >+
-> >+       table_count =3D (u32) ((table->length - sizeof(struct
-> >acpi_table_header))
-> >+                               / acpi_inactive_tables_entry_size);
-> >+
-> >+       /* talbe_count tables + XSDT/RSDT + FACP + DSDT */
-> >+       acpi_gbl_inactive_root_table_list.size =3D table_count + 3;
-> >+       acpi_gbl_inactive_root_table_list.tables =3D ACPI_ALLOCATE_Z=
-EROED(
-> >+                                       sizeof(struct acpi_table_des=
-c) *
-> >+
-> >acpi_gbl_inactive_root_table_list.size);
-> >+       if (!acpi_gbl_inactive_root_table_list.tables)
-> >+               return_ACPI_STATUS(AE_NO_MEMORY);
-> >+
-> >+       acpi_gbl_inactive_root_table_list.tables[0].address =3D
-> >+                               acpi_inactive_tables_root_pointer;
-> >+       acpi_gbl_inactive_root_table_list.count++;
-> >+
-> >+       table_entry =3D
-> >+               ACPI_CAST_PTR(u8, table) + sizeof(struct
-> >acpi_table_header);
-> >+
-> >+       for (i =3D 0; i < table_count; i++) {
-> >+               acpi_gbl_inactive_root_table_list.tables
-> >+                       [acpi_gbl_inactive_root_table_list.count].ad=
-dress =3D
-> >+                       acpi_tb_get_root_table_entry(table_entry,
-> >+                                       acpi_inactive_tables_entry_s=
-ize);
-> >+
-> >+               table_entry +=3D acpi_inactive_tables_entry_size;
-> >+               acpi_gbl_inactive_root_table_list.count++;
-> >+       }
-> >+       acpi_os_unmap_memory(table, length);
-> >+
-> >+       for (i =3D 0; i < acpi_gbl_inactive_root_table_list.count; i=
-++) {
-> >+               if (!acpi_gbl_inactive_root_table_list.tables[i].add=
-ress) {
-> >+                       ACPI_WARNING((AE_INFO,
-> >+                                       "Null table entry"));
-> >+                       continue;
-> >+               }
-> >+               /* install inactive ACPI tables */
-> >+               table =3D acpi_os_map_memory(
-> >+
-> >acpi_gbl_inactive_root_table_list.tables[i].address,
-> >+                       sizeof(struct acpi_table_header));
-> >+               if (!table)
-> >+                       return_ACPI_STATUS(AE_NO_MEMORY);
-> >+
-> >+               acpi_gbl_inactive_root_table_list.tables[i].length =3D
-> >+                                                               tabl=
-e-
-> >>length;
-> >+               acpi_gbl_inactive_root_table_list.tables[i].flags =3D
-> >+
-> >ACPI_TABLE_ORIGIN_MAPPED;
-> >+               ACPI_MOVE_32_TO_32(&
-> >+                       (acpi_gbl_inactive_root_table_list.tables[i]=
-=2E
-> >+                       signature), table->signature);
-> >+               acpi_os_unmap_memory(table, sizeof(struct
-> >acpi_table_header));
-> >+
-> >+               /* Special case for FADT - get the DSDT and FACS */
-> >+               if (!ACPI_COMPARE_NAME
-> >+
-> >(&acpi_gbl_inactive_root_table_list.tables[i].signature,
-> >+                       ACPI_SIG_FADT))
-> >+                       continue;
-> >+
-> >+               fadt =3D acpi_os_map_memory(
-> >+
-> >acpi_gbl_inactive_root_table_list.tables[i].address,
-> >+
-> >acpi_gbl_inactive_root_table_list.tables[i].length);
-> >+               if (!fadt)
-> >+                       return_ACPI_STATUS(AE_NOT_FOUND);
-> >+
-> >+               acpi_gbl_inactive_root_table_list.tables
-> >+                       [acpi_gbl_inactive_root_table_list.count].ad=
-dress =3D
-> >+                               (acpi_physical_address)
-> >+                               (((fadt->header.length =3D=3D
-> >+                               sizeof(struct acpi_table_fadt)) &&
-> >+                               fadt->Xdsdt) ? fadt->Xdsdt : fadt->d=
-sdt);
-> >+               acpi_gbl_inactive_root_table_list.count++;
-> >+
-> >+               acpi_gbl_inactive_root_table_list.tables
-> >+                       [acpi_gbl_inactive_root_table_list.count].ad=
-dress =3D
-> >+                               (acpi_physical_address)
-> >+                               (((fadt->header.length =3D=3D
-> >+                               sizeof(struct acpi_table_fadt)) &&
-> >+                               fadt->Xfacs) ? fadt->Xfacs : fadt->f=
-acs);
-> >+               acpi_gbl_inactive_root_table_list.count++;
-> >+
-> >+               acpi_os_unmap_memory(fadt,
-> >+
-> >acpi_gbl_inactive_root_table_list.tables[i].length);
-> >+       }
-> >+
-> >+       return_ACPI_STATUS(status);
-> >+}
-> >+/******************************************************************=
-*******
-> >******
-> >+ *
-> >  * FUNCTION:    acpi_reallocate_root_table
-> >  *
-> >  * PARAMETERS:  None
-> >
-> >
-> >--
-> >To unsubscribe from this list: send the line "unsubscribe linux-acpi=
-" in
-> >the body of a message to majordomo@vger.kernel.org
-> >More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >thanks,
+> >rui
+>=20
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
