@@ -1,175 +1,48 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH 4/6] ACPI: show dynamic ACPI tables
-Date: Tue, 14 Oct 2008 09:43:06 +0800
-Message-ID: <1223948586.2735.244.camel@rzhang-dt>
-References: <1223885414.2735.187.camel@rzhang-dt>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [RESEND] [PATCH] fujitsu-laptop: better handling of P8010
+Date: Mon, 13 Oct 2008 23:00:04 -0400
+Message-ID: <20081014030004.GC8594@anvil.corenet.prv>
+References: <20081009051314.GC11477@anvil.corenet.prv> <200810122303.m9CN3EJZ004798@turbo.physics.adelaide.edu.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:1224 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755747AbYJNBqJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 13 Oct 2008 21:46:09 -0400
-In-Reply-To: <1223885414.2735.187.camel@rzhang-dt>
+Received: from rn-out-0910.google.com ([64.233.170.187]:44861 "EHLO
+	rn-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754747AbYJNDAJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Oct 2008 23:00:09 -0400
+Received: by rn-out-0910.google.com with SMTP id k40so950100rnd.17
+        for <linux-acpi@vger.kernel.org>; Mon, 13 Oct 2008 20:00:07 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <200810122303.m9CN3EJZ004798@turbo.physics.adelaide.edu.au>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, "nokos@gmx.net" <nokos@gmx.net>
+To: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
 
-oops. there is still one case that this patch doesn't cover.
+Hi Jonathan,
 
-if the Load instruction is in the _INI method which means that the tabl=
-e
-is loaded before the gbl table handler is registered, the current code
-will recognize it as a static table. :(
-I'm not able to fix this issue without changing a lot of ACPICA code.
-A temporary fix is removing the "_dynamic" suffix.
+On Mon, Oct 13, 2008 at 08:33:14AM +0930, Jonathan Woithe wrote:
+> Hi Dmitry
+> 
+> > > This patch (mostly from Peter Gruber) against 2.6.27-rc4 (but with the
+> > > interim P8010 patch from 2.6.27-rc6 applied) improves the handling of the
+> > > hotkeys for P8010 laptops by passing more accurate input events back to
+> > > userspace.  This is needed because the P8010 labels these buttons quite
+> > > differently to earlier laptops.  As part of this, a P8010-specific DMI
+> > > callback check has been implemented.
+> > 
+> > How about implementing getkeycode() and setkeycode() methods in the
+> > driver and then using HAL to load appropriate keymap?
+> 
+> Sorry for the delayed response - this arrived after I left work on Friday
+> and I'm generally offline over the weekend.
+> 
+> This could work but I'll have to do some reading to find out precisely how
+> all this fits together (any pointers?).
 
-Peter says that "=EF=BB=BFSince it is only additional information I wou=
-ld prefer
-keeping it and live with the occasional false positive (of almost stati=
-c
-tables)."
+Please take a look at drivers/input/misc/wistron_btns.c for a sample
+implementation and don't hesiatate contacting me if you have any
+questions.
 
-what do you think?
-
-thanks,
-rui
-
-On Mon, 2008-10-13 at 02:10 -0600, Zhang, Rui wrote:
-> Some ACPI tables are loaded at runtime.
-> create sysfs I/F for these dynamic tables in /sys/firmware/acpi/table=
-s/.
->=20
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> ---
->  drivers/acpi/system.c |   56 +++++++++++++++++++++++++++++++++++++++=
-+----------
->  1 file changed, 45 insertions(+), 11 deletions(-)
->=20
-> Index: linux-acpi-2.6/drivers/acpi/system.c
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --- linux-acpi-2.6.orig/drivers/acpi/system.c
-> +++ linux-acpi-2.6/drivers/acpi/system.c
-> @@ -100,7 +100,6 @@ static ssize_t acpi_table_show(struct ko
->  static void acpi_table_attr_init(struct acpi_table_attr *table_attr,
->                                  struct acpi_table_header *table_head=
-er)
->  {
-> -       struct acpi_table_header *header =3D NULL;
->         struct acpi_table_attr *attr =3D NULL;
->=20
->         memcpy(table_attr->name, table_header->signature, ACPI_NAME_S=
-IZE);
-> @@ -113,15 +112,9 @@ static void acpi_table_attr_init(struct
->         }
->         table_attr->instance++;
->=20
-> -       if (table_attr->instance > 1 || (table_attr->instance =3D=3D =
-1 &&
-> -                                        !acpi_get_table(table_header=
-->
-> -                                                        signature, 2=
-,
-> -                                                        &header)))
-> +       if (table_attr->instance > 1)
->                 sprintf(table_attr->name + 4, "%d", table_attr->insta=
-nce);
->=20
-> -       if (table_attr->flag)
-> -               strncat(table_attr->name, "_inactive",
-> -                               ACPI_TABLE_NAME_MAX - strlen(table_at=
-tr->name));
->         table_attr->attr.size =3D 0;
->         table_attr->attr.read =3D acpi_table_show;
->         table_attr->attr.attr.name =3D table_attr->name;
-> @@ -131,6 +124,42 @@ static void acpi_table_attr_init(struct
->         return;
->  }
->=20
-> +static acpi_status
-> +acpi_sysfs_table_handler(u32 event, void *table, void *context)
-> +{
-> +       struct acpi_table_attr *table_attr =3D NULL;
-> +
-> +       switch (event) {
-> +       case ACPI_TABLE_EVENT_LOAD:
-> +               table_attr =3D
-> +                       kzalloc(sizeof(struct acpi_table_attr), GFP_K=
-ERNEL);
-> +               if (!table_attr)
-> +                       return AE_NO_MEMORY;
-> +
-> +               acpi_table_attr_init(table_attr, table);
-> +               strncat(table_attr->name, "_dynamic",
-> +                       ACPI_TABLE_NAME_MAX - strlen(table_attr->name=
-));
-> +
-> +               if (sysfs_create_bin_file(tables_kobj, &table_attr->a=
-ttr)) {
-> +                       kfree(table_attr);
-> +                       return AE_ERROR;
-> +               } else
-> +                       list_add_tail(&table_attr->node,
-> +                                       &acpi_table_attr_list);
-> +               break;
-> +       case ACPI_TABLE_EVENT_UNLOAD:
-> +               /*
-> +                * we do not need to do anything right now
-> +                * because the table is not deleted from the
-> +                * global table list when unloading it.
-> +                */
-> +               break;
-> +       default:
-> +               return AE_BAD_PARAMETER;
-> +       }
-> +       return AE_OK;
-> +}
-> +
->  static int acpi_system_sysfs_init(void)
->  {
->         struct acpi_table_attr *table_attr;
-> @@ -162,12 +191,16 @@ static int acpi_system_sysfs_init(void)
->                         if (!table_attr)
->                                 return -ENOMEM;
->=20
-> -                       if (!active_tables) {
-> +                       if (!active_tables)
->                                 table_attr->flag =3D ACPI_TABLE_INACT=
-IVE;
-> -                               table_attr->table_index =3D table_ind=
-ex;
-> -                       }
-> +
-> +                       table_attr->table_index =3D table_index;
->                         table_index++;
->                         acpi_table_attr_init(table_attr, table_header=
-);
-> +                       if (!active_tables)
-> +                               strncat(table_attr->name, "_inactive"=
-,
-> +                                               ACPI_TABLE_NAME_MAX -
-> +                                               strlen(table_attr->na=
-me));
->=20
->                         result =3D
->                             sysfs_create_bin_file(tables_kobj,
-> @@ -189,6 +222,7 @@ static int acpi_system_sysfs_init(void)
->                 }
->         } while (!result);
->         kobject_uevent(tables_kobj, KOBJ_ADD);
-> +       acpi_gbl_table_handler =3D acpi_sysfs_table_handler;
->=20
->         return 0;
->  }
->=20
->=20
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Dmitry
