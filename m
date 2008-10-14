@@ -1,188 +1,150 @@
-From: raz ben yehuda <razb@bitband.com>
-Subject: Subject: [PATCH 2/2] linux-acpi : sos api
-Date: Tue, 14 Oct 2008 01:38:19 +0200
-Message-ID: <1223941099.5437.18.camel@raz>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: RE: [PATCH 5/6] ACPI: set waking vector in inactive facs table
+Date: Tue, 14 Oct 2008 08:52:56 +0800
+Message-ID: <1223945576.3944.6.camel@yakui_zhao.sh.intel.com>
+References: <1223885434.2735.188.camel@rzhang-dt>
+	 <4911F71203A09E4D9981D27F9D830858031949AF@orsmsx503.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1761228AbYJMXiv@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: lenb@kernel.org
-Cc: Ingo Molnar <mingo@elte.hu>, linux-acpi@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:1781 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753813AbYJNArz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 13 Oct 2008 20:47:55 -0400
+In-Reply-To: <4911F71203A09E4D9981D27F9D830858031949AF@orsmsx503.amr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-From: Raz Ben Yehuda <razb@bitband.com>
+On Mon, 2008-10-13 at 10:46 -0700, Moore, Robert wrote:
+> So, is this the bottom line of the hwsleep patch:
+>=20
+> If there is a second FACS in the system (pointed to by the unused RSD=
+T), then set the firmware waking vectors in BOTH FACS tables?
+What you said is right. Maybe there exist two FACS tables. In such case
+the waking vector in the both FACS tables is set.(The same wakeup
+address is used).
 
-SOS is a platform aimed to assign a service to an offloaded processor.
-This patch is the facility for SOS (http://sos-linux.cvs.sourceforge.net/sos-linux/)
+Best regards.
+>=20
+>=20
+> >-----Original Message-----
+> >From: Zhang, Rui
+> >Sent: Monday, October 13, 2008 1:11 AM
+> >To: Len Brown
+> >Cc: linux-acpi; Moore, Robert; Rafael J. Wysocki; Zhang, Rui
+> >Subject: [PATCH 5/6] ACPI: set waking vector in inactive facs table
+> >
+> >
+> >RSDT and XSDT may export different FACS tables.
+> >Some of the BIOSes only checks one of them when resuming.
+> >And Linux reboots instead of resuming because BIOS can't find
+> >the waking vector.
+> >For example,
+> >=EF=BB=BFI have a platform which suspends well, but always reboots i=
+nstead of
+> >resuming when pressing the power button.
+> >I found that there are two FACS tables on this platform,
+> >XSDT-->FADT1-->Xfacs-->FACS1
+> >        |----->facs-|
+> >                    |->FACS2
+> >RSDT-->FADT2-->facs-|
+> >Linux uses XSDT on this platform and sets the waking vector in FACS1
+> >when suspending.
+> >But it seems that the BIOS only cares for the waking vector in FACS2=
+,
+> >thus it reboots when resuming because the waking vector is not set a=
+t all.
+> >
+> >Set the waking vector in inactive FACS table in this patch.
+> >
+> >Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> >---
+> > drivers/acpi/hardware/hwsleep.c |   20 ++++++++++++++++++++
+> > drivers/acpi/tables/tbfadt.c    |    6 ++++--
+> > 2 files changed, 24 insertions(+), 2 deletions(-)
+> >
+> >Index: linux-2.6/drivers/acpi/hardware/hwsleep.c
+> >=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> >--- linux-2.6.orig/drivers/acpi/hardware/hwsleep.c
+> >+++ linux-2.6/drivers/acpi/hardware/hwsleep.c
+> >@@ -65,6 +65,7 @@ acpi_set_firmware_waking_vector(acpi_phy
+> > {
+> >        struct acpi_table_facs *facs;
+> >        acpi_status status;
+> >+       u32 table_index;
+> >
+> >        ACPI_FUNCTION_TRACE(acpi_set_firmware_waking_vector);
+> >
+> >@@ -92,6 +93,25 @@ acpi_set_firmware_waking_vector(acpi_phy
+> >                facs->xfirmware_waking_vector =3D physical_address;
+> >        }
+> >
+> >+       /* set the firmware vector in the inactive facs table */
+> >+       for (table_index =3D 0, facs =3D NULL; ; table_index++) {
+> >+               status =3D acpi_get_inactive_table_by_index(table_in=
+dex,
+> >+                               ACPI_CAST_INDIRECT_PTR(struct
+> >acpi_table_header,
+> >+                                                       &facs));
+> >+               if (status =3D=3D AE_TABLE_NOT_SUPPORTED)
+> >+                       continue;
+> >+               if (ACPI_FAILURE(status))
+> >+                       break;
+> >+
+> >+               if (!ACPI_COMPARE_NAME(&facs->signature, ACPI_SIG_FA=
+CS))
+> >+                       continue;
+> >+
+> >+               if (facs->version >=3D 1)
+> >+                       facs->xfirmware_waking_vector =3D 0;
+> >+               facs->firmware_waking_vector =3D (u32)physical_addre=
+ss;
+> >+               break;
+> >+       }
+> >+
+> >        return_ACPI_STATUS(AE_OK);
+> > }
+> >
+> >Index: linux-2.6/drivers/acpi/tables/tbfadt.c
+> >=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> >--- linux-2.6.orig/drivers/acpi/tables/tbfadt.c
+> >+++ linux-2.6/drivers/acpi/tables/tbfadt.c
+> >@@ -290,11 +290,13 @@ static void acpi_tb_convert_fadt(void)
+> >
+> >        if (!acpi_gbl_FADT.Xfacs) {
+> >                acpi_gbl_FADT.Xfacs =3D (u64) acpi_gbl_FADT.facs;
+> >-       }
+> >+       } else if (acpi_gbl_FADT.Xfacs !=3D acpi_gbl_FADT.facs)
+> >+               ACPI_WARNING((AE_INFO, "32 bit FACS and 64 bit FACS =
+not
+> >match\n"));
+> >
+> >        if (!acpi_gbl_FADT.Xdsdt) {
+> >                acpi_gbl_FADT.Xdsdt =3D (u64) acpi_gbl_FADT.dsdt;
+> >-       }
+> >+       } else if (acpi_gbl_FADT.Xdsdt !=3D acpi_gbl_FADT.dsdt)
+> >+               ACPI_WARNING((AE_INFO, "32 bit DSDT and 64 bit DSDT =
+not
+> >match\n"));
+> >
+> >        /*
+> >         * For ACPI 1.0 FADTs (revision 1 or 2), ensure that reserve=
+d
+> >fields which
+> >
+>=20
+> &#0;&#0;NrybX=C7=A7v^)=DE=BA{.n+{ib{ay=1D=CA=87=DA=99,j=07fhz=1Ew=0Cj=
+:+vwjm=07zZ+=DD=A2j"!
 
-Signed-off-by: Raz Ben Yehuda <razb@bitband.com>
----
- arch/x86/kernel/process.c    |   42 +++++++++++++++++++++++++++++++++
- arch/x86/kernel/process_32.c |    2 +
- arch/x86/kernel/process_64.c |    2 +
- arch/x86/kernel/smpboot.c    |    9 +++----
- include/linux/cpu.h          |   20 +++++++++++++++
- kernel/cpu.c                 |    1
- 6 files changed, 72 insertions(+), 4 deletions(-)
-
-
-diff -uprN -X dontdiff linux-2.6.27/arch/x86/kernel/process_32.c linux-2.6.27-dbg/arch/x86/kernel/process_32.c
---- linux-2.6.27/arch/x86/kernel/process_32.c	2008-10-10 00:13:53.000000000 +0200
-+++ linux-2.6.27-dbg/arch/x86/kernel/process_32.c	2008-10-13 23:29:04.000000000 +0200
-@@ -106,6 +106,8 @@ static inline void play_dead(void)
- 	 */
- 	local_irq_disable();
- 	/* mask all interrupts, flush any and all caches, and halt */
-+	if (is_sossed(raw_smp_processor_id()))
-+		run_sos();
- 	wbinvd_halt();
- }
- #else
-diff -uprN -X dontdiff linux-2.6.27/arch/x86/kernel/process_64.c linux-2.6.27-dbg/arch/x86/kernel/process_64.c
---- linux-2.6.27/arch/x86/kernel/process_64.c	2008-10-10 00:13:53.000000000 +0200
-+++ linux-2.6.27-dbg/arch/x86/kernel/process_64.c	2008-10-13 23:14:21.000000000 +0200
-@@ -101,6 +101,8 @@ static inline void play_dead(void)
- 
- 	local_irq_disable();
- 	/* mask all interrupts, flush any and all caches, and halt */
-+	if (is_sossed(raw_smp_processor_id()))
-+		run_sos();
- 	wbinvd_halt();
- }
- #else
-diff -uprN -X dontdiff linux-2.6.27/arch/x86/kernel/process.c linux-2.6.27-dbg/arch/x86/kernel/process.c
---- linux-2.6.27/arch/x86/kernel/process.c	2008-10-10 00:13:53.000000000 +0200
-+++ linux-2.6.27-dbg/arch/x86/kernel/process.c	2008-10-13 23:29:44.000000000 +0200
-@@ -371,3 +371,45 @@ static int __init idle_setup(char *str)
- }
- early_param("idle", idle_setup);
- 
-+#ifdef CONFIG_HOTPLUG_CPU
-+struct hotplug_cpu{
-+	long flags;
-+	void (*hotplug_cpu_dead)(void);
-+};
-+
-+#define CPU_SOS 31
-+
-+DEFINE_PER_CPU(struct hotplug_cpu, soscpu);
-+
-+void unregister_sos(int cpuid)
-+{
-+	struct hotplug_cpu *cpu = &per_cpu(soscpu, cpuid);
-+	cpu->hotplug_cpu_dead = NULL;
-+	clear_bit(CPU_SOS, &cpu->flags);
-+}
-+EXPORT_SYMBOL_GPL(unregister_sos);
-+
-+int is_sossed(int cpuid)
-+{
-+	struct hotplug_cpu *cpu = &per_cpu(soscpu, cpuid);
-+	return test_bit(CPU_SOS, &cpu->flags);
-+}
-+
-+int register_sos(void (*sos_callback)(void), int cpuid)
-+{
-+	struct hotplug_cpu *cpu = &per_cpu(soscpu, cpuid);
-+	if (is_sossed(cpuid))
-+		return -1;
-+	cpu->hotplug_cpu_dead = sos_callback;
-+	set_bit(CPU_SOS, &cpu->flags);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(register_sos);
-+
-+void run_sos(void)
-+{
-+	int cpuid = raw_smp_processor_id();
-+	struct hotplug_cpu *cpu = &per_cpu(soscpu, cpuid);
-+	cpu->hotplug_cpu_dead();
-+}
-+#endif
-diff -uprN -X dontdiff linux-2.6.27/arch/x86/kernel/smpboot.c linux-2.6.27-dbg/arch/x86/kernel/smpboot.c
---- linux-2.6.27/arch/x86/kernel/smpboot.c	2008-10-10 00:13:53.000000000 +0200
-+++ linux-2.6.27-dbg/arch/x86/kernel/smpboot.c	2008-10-13 23:22:48.000000000 +0200
-@@ -827,8 +827,8 @@ static int __cpuinit do_boot_cpu(int api
- 			/* if can't get pda memory, can't start cpu */
- 	}
- #endif
--
--	alternatives_smp_switch(1);
-+	if (!is_sossed(cpu))
-+		alternatives_smp_switch(1);
- 
- 	c_idle.idle = get_idle_for_cpu(cpu);
- 
-@@ -1393,8 +1393,9 @@ void __cpu_die(unsigned int cpu)
- 	for (i = 0; i < 10; i++) {
- 		/* They ack this in play_dead by setting CPU_DEAD */
- 		if (per_cpu(cpu_state, cpu) == CPU_DEAD) {
--			printk(KERN_INFO "CPU %d is now offline\n", cpu);
--			if (1 == num_online_cpus())
-+			printk(KERN_INFO "CPU %d is now offline %s\n", cpu,
-+				is_sossed(cpu) ? "and SOSSED" : "");
-+			if (1 == num_online_cpus() && !is_sossed(cpu))
- 				alternatives_smp_switch(0);
- 			return;
- 		}
-diff -uprN -X dontdiff linux-2.6.27/include/linux/cpu.h linux-2.6.27-dbg/include/linux/cpu.h
---- linux-2.6.27/include/linux/cpu.h	2008-10-10 00:13:53.000000000 +0200
-+++ linux-2.6.27-dbg/include/linux/cpu.h	2008-10-13 23:23:42.000000000 +0200
-@@ -44,6 +44,7 @@ extern int sched_create_sysfs_power_savi
- 
- #ifdef CONFIG_HOTPLUG_CPU
- extern void unregister_cpu(struct cpu *cpu);
-+extern void unregister_sos(int cpuid);
- #endif
- struct notifier_block;
- 
-@@ -52,6 +53,9 @@ struct notifier_block;
- #ifdef CONFIG_HOTPLUG_CPU
- extern int register_cpu_notifier(struct notifier_block *nb);
- extern void unregister_cpu_notifier(struct notifier_block *nb);
-+extern int register_sos(void (*hotplug_cpu_dead)(void), int cpuid);
-+extern int is_sossed(int cpuid);
-+extern void run_sos(void);
- #else
- 
- #ifndef MODULE
-@@ -61,11 +65,27 @@ static inline int register_cpu_notifier(
- {
- 	return 0;
- }
-+
-+static inline int register_sos(void (*hotplug_cpu_dead)(void), int cpuid);
-+{
-+	return 0;
-+}
- #endif
- 
- static inline void unregister_cpu_notifier(struct notifier_block *nb)
- {
- }
-+
-+static inline void unregister_sos(int cpuid)
-+{
-+}
-+static inline int is_sossed(int cpuid)
-+{
-+	return 0;
-+}
-+static inline void run_sos(void)
-+{
-+}
- #endif
- 
- int cpu_up(unsigned int cpu);
-diff -uprN -X dontdiff linux-2.6.27/kernel/cpu.c linux-2.6.27-dbg/kernel/cpu.c
---- linux-2.6.27/kernel/cpu.c	2008-10-10 00:13:53.000000000 +0200
-+++ linux-2.6.27-dbg/kernel/cpu.c	2008-10-13 23:14:21.000000000 +0200
-@@ -389,6 +389,7 @@ out:
- 	cpu_maps_update_done();
- 	return err;
- }
-+EXPORT_SYMBOL(cpu_up);
- 
- #ifdef CONFIG_PM_SLEEP_SMP
- static cpumask_t frozen_cpus;
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
