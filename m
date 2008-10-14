@@ -1,58 +1,92 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: RE: [PATCH 5/6] ACPI: set waking vector in inactive facs table
-Date: Tue, 14 Oct 2008 09:03:29 +0800
-Message-ID: <1223946209.2735.213.camel@rzhang-dt>
-References: <1223885434.2735.188.camel@rzhang-dt>
-	 <4911F71203A09E4D9981D27F9D83085803194934@orsmsx503.amr.corp.intel.com>
+Subject: RE: [PATCH 0/6] ACPI: acpi table management enhancement
+Date: Tue, 14 Oct 2008 09:00:36 +0800
+Message-ID: <1223946036.2735.212.camel@rzhang-dt>
+References: <1223885404.2735.183.camel@rzhang-dt>
+	 <4911F71203A09E4D9981D27F9D830858031948BA@orsmsx503.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:50158 "EHLO mga11.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:12836 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751616AbYJNBF3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 13 Oct 2008 21:05:29 -0400
-In-Reply-To: <4911F71203A09E4D9981D27F9D83085803194934@orsmsx503.amr.corp.intel.com>
+	id S1759545AbYJNBIK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 13 Oct 2008 21:08:10 -0400
+In-Reply-To: <4911F71203A09E4D9981D27F9D830858031948BA@orsmsx503.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Moore, Robert" <robert.moore@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 
-On Mon, 2008-10-13 at 11:25 -0600, Moore, Robert wrote:
-> >        if (!acpi_gbl_FADT.Xfacs) {
-> >                acpi_gbl_FADT.Xfacs =3D (u64) acpi_gbl_FADT.facs;
-> >-       }
-> >+       } else if (acpi_gbl_FADT.Xfacs !=3D acpi_gbl_FADT.facs)
-> >+               ACPI_WARNING((AE_INFO, "32 bit FACS and 64 bit FACS =
-not
-> >match\n"));
+On Mon, 2008-10-13 at 11:02 -0600, Moore, Robert wrote:
+> >I found that there are two FACS tables on this platform,
+> >XSDT-->FADT1-->Xfacs-->FACS1
+> >        |----->facs-|
+> >                    |->FACS2
+> >RSDT-->FADT2-->facs-|
+> >Linux uses XSDT on this platform and sets the waking vector in FACS1
+> >when suspending.
+> >But it seems that the BIOS only cares for the waking vector in FACS2=
+,
 >=20
-> I don't think you are handling the case where the 32-bit FACS address=
- is zero and the 64-bit address is non-zero. This is allowed and can ea=
-sily happen if the address is > 4GB. Same with the DSDT addresses.
+>=20
+> Is this possibly an issue of using the 32-bit wake vector versus the =
+64-bit wake vector? (For example, perhaps the FACS1 has both vectors an=
+d the 64-bit vector is used but fails. But the FACS2 only has the 32-bi=
+t vector so it is used, and this works correctly with the BIOS.)
+=EF=BB=BFNo, I tested the patch from Rafael, which is the same from the=
+ one
+here:
+http://www.acpica.org/bugzilla/attachment.cgi?id=3D813&action=3Dview
+It doesn't work.
 
-Right, I'll fix it in the next version.
+> Or, is it actually the case where the two FACS tables have different =
+wake vectors? Both the 32-bit vectors and the 64-bit vectors are differ=
+ent?
+the wake vector is just a memory address where BIOS passes the control
+to OS.
+As there are two different FACS tables located at different addresses,
+surely the wake vectors are different. :)
 
 thanks,
 rui
+
 >=20
 >=20
 >=20
 > >-----Original Message-----
 > >From: Zhang, Rui
-> >Sent: Monday, October 13, 2008 1:11 AM
+> >Sent: Monday, October 13, 2008 1:10 AM
 > >To: Len Brown
-> >Cc: linux-acpi; Moore, Robert; Rafael J. Wysocki; Zhang, Rui
-> >Subject: [PATCH 5/6] ACPI: set waking vector in inactive facs table
+> >Cc: linux-acpi; Zhang, Rui; Moore, Robert
+> >Subject: [PATCH 0/6] ACPI: acpi table management enhancement
 > >
+> >hi all,
 > >
-> >RSDT and XSDT may export different FACS tables.
-> >Some of the BIOSes only checks one of them when resuming.
-> >And Linux reboots instead of resuming because BIOS can't find
-> >the waking vector.
-> >For example,
-> >=EF=BB=BFI have a platform which suspends well, but always reboots i=
-nstead of
+> >this is the patch set I made recently for ACPI table management
+> >enhancement.
+> >
+> >Patch 01 introduces a new mechanism for ACPI inactive table manageme=
+nt.
+> >with this patch applied, Linux gets the address of the unused root
+> >table, and parses this root table to get the inactive tables when
+> >needed.
+> >e.g. if Linux is using XSDT on a laptop, tables from RSDT will be
+> >maintain by this mechanism.
+> >
+> >Patch 02 introduces a new interface to get certain inactive table,
+> >which is needed by Patch 03.
+> >
+> >Patch 03 gets the inactive tables and creates sysfs I/F for these
+> >tables.
+> >
+> >Patch 04 creates the sysfs I/F for dynamic loaded tables.
+> >so that users can get all the ACPI tables
+> >under /sys/firmware/acpi/tables,
+> >which was done by the acpidump tool manually before.
+> >
+> >Patch 05 fixes a suspend/hibernation bug.
+> >I have a platform which suspends well, but always reboots instead of
 > >resuming when pressing the power button.
 > >I found that there are two FACS tables on this platform,
 > >XSDT-->FADT1-->Xfacs-->FACS1
@@ -64,89 +98,45 @@ nstead of
 > >But it seems that the BIOS only cares for the waking vector in FACS2=
 ,
 > >thus it reboots when resuming because the waking vector is not set a=
-t all.
+t
+> >all.
+> >I set the waking vector in inactive FACS table to fix it in this pat=
+ch.
 > >
-> >Set the waking vector in inactive FACS table in this patch.
+> >Patch 06 is a refreshed version of =EF=BB=BFPeter Gruber's patch whi=
+ch stops
+> >using empty file names for acpi tables in sysfs I/F.
 > >
-> >Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> >---
-> > drivers/acpi/hardware/hwsleep.c |   20 ++++++++++++++++++++
-> > drivers/acpi/tables/tbfadt.c    |    6 ++++--
-> > 2 files changed, 24 insertions(+), 2 deletions(-)
+> >Note:
+> >In this patch set, all the tables in the inactive root table are
+> >recognized as inactive tables even if it's also in the active root
+> >table.
+> >i.e. some tables are shown twice in /sys/firmware/acpi/tables,
+> >both as active and inactive tables.
+> >Take my laptop for example,
+> >#ls /sys/firmware/acpi/tables/
+> >APIC  APIC_inactive  ASF!  ASF!_inactive  DSDT  DSDT_inactive  FACP
+> >FACP_inactive
+> >FACS  FACS_inactive  MCFG  MCFG_inactive  SSDT_dynamic
 > >
-> >Index: linux-2.6/drivers/acpi/hardware/hwsleep.c
-> >=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> >--- linux-2.6.orig/drivers/acpi/hardware/hwsleep.c
-> >+++ linux-2.6/drivers/acpi/hardware/hwsleep.c
-> >@@ -65,6 +65,7 @@ acpi_set_firmware_waking_vector(acpi_phy
-> > {
-> >        struct acpi_table_facs *facs;
-> >        acpi_status status;
-> >+       u32 table_index;
+> >In my case, FACP and FACP_inactive are different tables exported by =
+XSDT
+> >and RSDT.
+> >but MCFG and MCFG_inactive are the same table because they point to =
+the
+> >same physical address.
 > >
-> >        ACPI_FUNCTION_TRACE(acpi_set_firmware_waking_vector);
+> >I don't think the duplicate tables should be ignored because:
+> >If only the unduplicated inactive tables is shown, we are not able t=
+o
+> >get a full list of the tables exported by the inactive root table,
+> >which is important for debugging in some cases.
 > >
-> >@@ -92,6 +93,25 @@ acpi_set_firmware_waking_vector(acpi_phy
-> >                facs->xfirmware_waking_vector =3D physical_address;
-> >        }
+> >any comments are welcome. :)
 > >
-> >+       /* set the firmware vector in the inactive facs table */
-> >+       for (table_index =3D 0, facs =3D NULL; ; table_index++) {
-> >+               status =3D acpi_get_inactive_table_by_index(table_in=
-dex,
-> >+                               ACPI_CAST_INDIRECT_PTR(struct
-> >acpi_table_header,
-> >+                                                       &facs));
-> >+               if (status =3D=3D AE_TABLE_NOT_SUPPORTED)
-> >+                       continue;
-> >+               if (ACPI_FAILURE(status))
-> >+                       break;
-> >+
-> >+               if (!ACPI_COMPARE_NAME(&facs->signature, ACPI_SIG_FA=
-CS))
-> >+                       continue;
-> >+
-> >+               if (facs->version >=3D 1)
-> >+                       facs->xfirmware_waking_vector =3D 0;
-> >+               facs->firmware_waking_vector =3D (u32)physical_addre=
-ss;
-> >+               break;
-> >+       }
-> >+
-> >        return_ACPI_STATUS(AE_OK);
-> > }
 > >
-> >Index: linux-2.6/drivers/acpi/tables/tbfadt.c
-> >=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> >--- linux-2.6.orig/drivers/acpi/tables/tbfadt.c
-> >+++ linux-2.6/drivers/acpi/tables/tbfadt.c
-> >@@ -290,11 +290,13 @@ static void acpi_tb_convert_fadt(void)
-> >
-> >        if (!acpi_gbl_FADT.Xfacs) {
-> >                acpi_gbl_FADT.Xfacs =3D (u64) acpi_gbl_FADT.facs;
-> >-       }
-> >+       } else if (acpi_gbl_FADT.Xfacs !=3D acpi_gbl_FADT.facs)
-> >+               ACPI_WARNING((AE_INFO, "32 bit FACS and 64 bit FACS =
-not
-> >match\n"));
-> >
-> >        if (!acpi_gbl_FADT.Xdsdt) {
-> >                acpi_gbl_FADT.Xdsdt =3D (u64) acpi_gbl_FADT.dsdt;
-> >-       }
-> >+       } else if (acpi_gbl_FADT.Xdsdt !=3D acpi_gbl_FADT.dsdt)
-> >+               ACPI_WARNING((AE_INFO, "32 bit DSDT and 64 bit DSDT =
-not
-> >match\n"));
-> >
-> >        /*
-> >         * For ACPI 1.0 FADTs (revision 1 or 2), ensure that reserve=
-d
-> >fields which
-> >
+> >thanks,
+> >rui
 >=20
 
 --
