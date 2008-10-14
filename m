@@ -1,137 +1,171 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: RE: [PATCH 0/6] ACPI: acpi table management enhancement
-Date: Tue, 14 Oct 2008 09:19:40 +0800
-Message-ID: <1223947180.2735.228.camel@rzhang-dt>
-References: <1223885404.2735.183.camel@rzhang-dt>
-	 <4911F71203A09E4D9981D27F9D83085803194DE3@orsmsx503.amr.corp.intel.com>
+Subject: Re: [PATCH 4/6] ACPI: show dynamic ACPI tables
+Date: Tue, 14 Oct 2008 09:43:06 +0800
+Message-ID: <1223948586.2735.244.camel@rzhang-dt>
+References: <1223885414.2735.187.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:7649 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:1224 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751437AbYJNB3A (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 13 Oct 2008 21:29:00 -0400
-In-Reply-To: <4911F71203A09E4D9981D27F9D83085803194DE3@orsmsx503.amr.corp.intel.com>
+	id S1755747AbYJNBqJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 13 Oct 2008 21:46:09 -0400
+In-Reply-To: <1223885414.2735.187.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, "nokos@gmx.net" <nokos@gmx.net>
 
-On Mon, 2008-10-13 at 15:56 -0600, Moore, Robert wrote:
-> I'd like to try and summarize this, correct me on any mistakes.
->=20
-> 1) If the XSDT exists, we use this, as per the ACPI specification. Ho=
-wever, we will also get all tables within the RSDT and mark them as the=
- "inactive" table set.
-Right.
->=20
-> Acpidump
-=EF=BB=BFIf the patch set is applied, we don't need acpidump any more
-as we can get all the table info at /sys/firmware/acpi/tables/.
->  will now get both the "active" and "inactive" tables?
-yes.
+oops. there is still one case that this patch doesn't cover.
 
->=20
-> 2) In the FACS firmware waking vector case, we set the vector in both=
- the "active" FACS and the "inactive" FACS.
-Right.
->=20
-> Again, please note that we have changed the ACPICA interface to set t=
-he firmware wake vector - splitting into two.
-hmm, when will this change be shipped to Linux?
-BTW: Rafael has already proposed a patch which always clears 64 bit wak=
+if the Load instruction is in the _INI method which means that the tabl=
 e
-vector and uses the 32 bit one.
-http://marc.info/?l=3Dlinux-acpi&m=3D122370808622832&w=3D2
+is loaded before the gbl table handler is registered, the current code
+will recognize it as a static table. :(
+I'm not able to fix this issue without changing a lot of ACPICA code.
+A temporary fix is removing the "_dynamic" suffix.
+
+Peter says that "=EF=BB=BFSince it is only additional information I wou=
+ld prefer
+keeping it and live with the occasional false positive (of almost stati=
+c
+tables)."
+
+what do you think?
 
 thanks,
 rui
+
+On Mon, 2008-10-13 at 02:10 -0600, Zhang, Rui wrote:
+> Some ACPI tables are loaded at runtime.
+> create sysfs I/F for these dynamic tables in /sys/firmware/acpi/table=
+s/.
 >=20
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> ---
+>  drivers/acpi/system.c |   56 +++++++++++++++++++++++++++++++++++++++=
++----------
+>  1 file changed, 45 insertions(+), 11 deletions(-)
 >=20
-> >-----Original Message-----
-> >From: Zhang, Rui
-> >Sent: Monday, October 13, 2008 1:10 AM
-> >To: Len Brown
-> >Cc: linux-acpi; Zhang, Rui; Moore, Robert
-> >Subject: [PATCH 0/6] ACPI: acpi table management enhancement
-> >
-> >hi all,
-> >
-> >this is the patch set I made recently for ACPI table management
-> >enhancement.
-> >
-> >Patch 01 introduces a new mechanism for ACPI inactive table manageme=
-nt.
-> >with this patch applied, Linux gets the address of the unused root
-> >table, and parses this root table to get the inactive tables when
-> >needed.
-> >e.g. if Linux is using XSDT on a laptop, tables from RSDT will be
-> >maintain by this mechanism.
-> >
-> >Patch 02 introduces a new interface to get certain inactive table,
-> >which is needed by Patch 03.
-> >
-> >Patch 03 gets the inactive tables and creates sysfs I/F for these
-> >tables.
-> >
-> >Patch 04 creates the sysfs I/F for dynamic loaded tables.
-> >so that users can get all the ACPI tables
-> >under /sys/firmware/acpi/tables,
-> >which was done by the acpidump tool manually before.
-> >
-> >Patch 05 fixes a suspend/hibernation bug.
-> >I have a platform which suspends well, but always reboots instead of
-> >resuming when pressing the power button.
-> >I found that there are two FACS tables on this platform,
-> >XSDT-->FADT1-->Xfacs-->FACS1
-> >        |----->facs-|
-> >                    |->FACS2
-> >RSDT-->FADT2-->facs-|
-> >Linux uses XSDT on this platform and sets the waking vector in FACS1
-> >when suspending.
-> >But it seems that the BIOS only cares for the waking vector in FACS2=
+> Index: linux-acpi-2.6/drivers/acpi/system.c
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- linux-acpi-2.6.orig/drivers/acpi/system.c
+> +++ linux-acpi-2.6/drivers/acpi/system.c
+> @@ -100,7 +100,6 @@ static ssize_t acpi_table_show(struct ko
+>  static void acpi_table_attr_init(struct acpi_table_attr *table_attr,
+>                                  struct acpi_table_header *table_head=
+er)
+>  {
+> -       struct acpi_table_header *header =3D NULL;
+>         struct acpi_table_attr *attr =3D NULL;
+>=20
+>         memcpy(table_attr->name, table_header->signature, ACPI_NAME_S=
+IZE);
+> @@ -113,15 +112,9 @@ static void acpi_table_attr_init(struct
+>         }
+>         table_attr->instance++;
+>=20
+> -       if (table_attr->instance > 1 || (table_attr->instance =3D=3D =
+1 &&
+> -                                        !acpi_get_table(table_header=
+->
+> -                                                        signature, 2=
 ,
-> >thus it reboots when resuming because the waking vector is not set a=
-t
-> >all.
-> >I set the waking vector in inactive FACS table to fix it in this pat=
-ch.
-> >
-> >Patch 06 is a refreshed version of =EF=BB=BFPeter Gruber's patch whi=
-ch stops
-> >using empty file names for acpi tables in sysfs I/F.
-> >
-> >Note:
-> >In this patch set, all the tables in the inactive root table are
-> >recognized as inactive tables even if it's also in the active root
-> >table.
-> >i.e. some tables are shown twice in /sys/firmware/acpi/tables,
-> >both as active and inactive tables.
-> >Take my laptop for example,
-> >#ls /sys/firmware/acpi/tables/
-> >APIC  APIC_inactive  ASF!  ASF!_inactive  DSDT  DSDT_inactive  FACP
-> >FACP_inactive
-> >FACS  FACS_inactive  MCFG  MCFG_inactive  SSDT_dynamic
-> >
-> >In my case, FACP and FACP_inactive are different tables exported by =
-XSDT
-> >and RSDT.
-> >but MCFG and MCFG_inactive are the same table because they point to =
-the
-> >same physical address.
-> >
-> >I don't think the duplicate tables should be ignored because:
-> >If only the unduplicated inactive tables is shown, we are not able t=
-o
-> >get a full list of the tables exported by the inactive root table,
-> >which is important for debugging in some cases.
-> >
-> >any comments are welcome. :)
-> >
-> >
-> >thanks,
-> >rui
+> -                                                        &header)))
+> +       if (table_attr->instance > 1)
+>                 sprintf(table_attr->name + 4, "%d", table_attr->insta=
+nce);
+>=20
+> -       if (table_attr->flag)
+> -               strncat(table_attr->name, "_inactive",
+> -                               ACPI_TABLE_NAME_MAX - strlen(table_at=
+tr->name));
+>         table_attr->attr.size =3D 0;
+>         table_attr->attr.read =3D acpi_table_show;
+>         table_attr->attr.attr.name =3D table_attr->name;
+> @@ -131,6 +124,42 @@ static void acpi_table_attr_init(struct
+>         return;
+>  }
+>=20
+> +static acpi_status
+> +acpi_sysfs_table_handler(u32 event, void *table, void *context)
+> +{
+> +       struct acpi_table_attr *table_attr =3D NULL;
+> +
+> +       switch (event) {
+> +       case ACPI_TABLE_EVENT_LOAD:
+> +               table_attr =3D
+> +                       kzalloc(sizeof(struct acpi_table_attr), GFP_K=
+ERNEL);
+> +               if (!table_attr)
+> +                       return AE_NO_MEMORY;
+> +
+> +               acpi_table_attr_init(table_attr, table);
+> +               strncat(table_attr->name, "_dynamic",
+> +                       ACPI_TABLE_NAME_MAX - strlen(table_attr->name=
+));
+> +
+> +               if (sysfs_create_bin_file(tables_kobj, &table_attr->a=
+ttr)) {
+> +                       kfree(table_attr);
+> +                       return AE_ERROR;
+> +               } else
+> +                       list_add_tail(&table_attr->node,
+> +                                       &acpi_table_attr_list);
+> +               break;
+> +       case ACPI_TABLE_EVENT_UNLOAD:
+> +               /*
+> +                * we do not need to do anything right now
+> +                * because the table is not deleted from the
+> +                * global table list when unloading it.
+> +                */
+> +               break;
+> +       default:
+> +               return AE_BAD_PARAMETER;
+> +       }
+> +       return AE_OK;
+> +}
+> +
+>  static int acpi_system_sysfs_init(void)
+>  {
+>         struct acpi_table_attr *table_attr;
+> @@ -162,12 +191,16 @@ static int acpi_system_sysfs_init(void)
+>                         if (!table_attr)
+>                                 return -ENOMEM;
+>=20
+> -                       if (!active_tables) {
+> +                       if (!active_tables)
+>                                 table_attr->flag =3D ACPI_TABLE_INACT=
+IVE;
+> -                               table_attr->table_index =3D table_ind=
+ex;
+> -                       }
+> +
+> +                       table_attr->table_index =3D table_index;
+>                         table_index++;
+>                         acpi_table_attr_init(table_attr, table_header=
+);
+> +                       if (!active_tables)
+> +                               strncat(table_attr->name, "_inactive"=
+,
+> +                                               ACPI_TABLE_NAME_MAX -
+> +                                               strlen(table_attr->na=
+me));
+>=20
+>                         result =3D
+>                             sysfs_create_bin_file(tables_kobj,
+> @@ -189,6 +222,7 @@ static int acpi_system_sysfs_init(void)
+>                 }
+>         } while (!result);
+>         kobject_uevent(tables_kobj, KOBJ_ADD);
+> +       acpi_gbl_table_handler =3D acpi_sysfs_table_handler;
+>=20
+>         return 0;
+>  }
+>=20
 >=20
 
 --
