@@ -1,58 +1,52 @@
-From: "fr.fr" <fr.fr@vr-web.de>
-Subject: Re: [Bugme-new] [Bug 11753] New: No Device to adust brightness
-Date: Tue, 14 Oct 2008 22:43:04 +0200
-Message-ID: <48F50458.7050605@vr-web.de>
-References: <bug-11753-10286@http.bugzilla.kernel.org/> <20081013205114.9ef18735.akpm@linux-foundation.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH] ACPI suspend: Blacklist HP xw4600 Workstation for old code ordering
+Date: Tue, 14 Oct 2008 22:54:06 +0200
+Message-ID: <200810142254.07024.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx0.vr-web.de ([195.200.35.198]:44390 "EHLO mx0.vr-web.de"
+Received: from ogre.sisk.pl ([217.79.144.158]:47347 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751307AbYJNUsG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 14 Oct 2008 16:48:06 -0400
-In-Reply-To: <20081013205114.9ef18735.akpm@linux-foundation.org>
+	id S1751625AbYJNUtv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 14 Oct 2008 16:49:51 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Richard Purdie <rpurdie@rpsys.net>, linux-fbdev-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, bugme-daemon@bugzilla.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, John Brown <john.brown3@hp.com>
 
-Dear Mr. Morton,
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
- i have added a view information to the bugzilla thread. If you need an=
-=20
-SSH access to my System, feel free to contact me for a appointment, whe=
-n=20
-i should open a SSH port.
+ACPI suspend: Blacklist HP xw4600 Workstation for old code ordering
 
-I=B4am looking forward to hear from you.
+HP xw4600 Workstation is known to require the "old" (ie. compatible
+with ACPI 1.0) suspend code ordering, so blacklist it for this
+purpose.
 
-With best regards.
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Tested-by: John Brown <john.brown3@hp.com>
+---
+ drivers/acpi/sleep/main.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-Thomas
-
-Andrew Morton schrieb:
-> (switched to email.  Please respond via emailed reply-to-all, not via=
- the
-> bugzilla web interface).
->
->  =20
->> On Mon, 13 Oct 2008 14:39:31 -0700 (PDT) bugme-daemon@bugzilla.kerne=
-l.org wrote:
->> http://bugzilla.kernel.org/show_bug.cgi?id=3D11753
->>    =20
->
-> I'm unsure whether this is an fbdev thing, a backlight thing or an ac=
-pi
-> video thing.  Could people please take a look?
->
-> Thanks.
->
->  =20
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Index: linux-2.6/drivers/acpi/sleep/main.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/sleep/main.c
++++ linux-2.6/drivers/acpi/sleep/main.c
+@@ -298,6 +298,14 @@ static struct dmi_system_id __initdata a
+ 		DMI_MATCH(DMI_BOARD_NAME, "KN9 Series(NF-CK804)"),
+ 		},
+ 	},
++	{
++	.callback = init_old_suspend_ordering,
++	.ident = "HP xw4600 Workstation",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "HP xw4600 Workstation"),
++		},
++	},
+ 	{},
+ };
+ #endif /* CONFIG_SUSPEND */
