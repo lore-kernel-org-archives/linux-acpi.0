@@ -1,33 +1,53 @@
 From: Zhao Yakui <yakui.zhao@intel.com>
 Subject: RE: [PATCH 5/6] ACPI: set waking vector in inactive facs table
-Date: Tue, 14 Oct 2008 08:52:56 +0800
-Message-ID: <1223945576.3944.6.camel@yakui_zhao.sh.intel.com>
+Date: Tue, 14 Oct 2008 09:07:07 +0800
+Message-ID: <1223946427.3944.21.camel@yakui_zhao.sh.intel.com>
 References: <1223885434.2735.188.camel@rzhang-dt>
-	 <4911F71203A09E4D9981D27F9D830858031949AF@orsmsx503.amr.corp.intel.com>
+	 <4911F71203A09E4D9981D27F9D83085803194934@orsmsx503.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:1781 "EHLO mga11.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:24227 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753813AbYJNArz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 13 Oct 2008 20:47:55 -0400
-In-Reply-To: <4911F71203A09E4D9981D27F9D830858031949AF@orsmsx503.amr.corp.intel.com>
+	id S1754830AbYJNBDD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 13 Oct 2008 21:03:03 -0400
+In-Reply-To: <4911F71203A09E4D9981D27F9D83085803194934@orsmsx503.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Moore, Robert" <robert.moore@intel.com>
 Cc: "Zhang, Rui" <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-On Mon, 2008-10-13 at 10:46 -0700, Moore, Robert wrote:
-> So, is this the bottom line of the hwsleep patch:
+On Mon, 2008-10-13 at 10:25 -0700, Moore, Robert wrote:
+> >        if (!acpi_gbl_FADT.Xfacs) {
+> >                acpi_gbl_FADT.Xfacs =3D (u64) acpi_gbl_FADT.facs;
+> >-       }
+> >+       } else if (acpi_gbl_FADT.Xfacs !=3D acpi_gbl_FADT.facs)
+> >+               ACPI_WARNING((AE_INFO, "32 bit FACS and 64 bit FACS =
+not
+> >match\n"));
 >=20
-> If there is a second FACS in the system (pointed to by the unused RSD=
-T), then set the firmware waking vectors in BOTH FACS tables?
-What you said is right. Maybe there exist two FACS tables. In such case
-the waking vector in the both FACS tables is set.(The same wakeup
-address is used).
+> I don't think you are handling the case where the 32-bit FACS address=
+ is zero and the 64-bit address is non-zero. This is allowed and can ea=
+sily happen if the address is > 4GB. Same with the DSDT addresses.
+If the 32-bit FACS address is zero, it will be ignored and OS won't try
+to access it again.
 
-Best regards.
+
+>+      } else if (acpi_gbl_FADT.Xfacs !=3D acpi_gbl_FADT.facs)
+>+               ACPI_WARNING((AE_INFO, "32 bit FACS and 64 bit FACS no=
+t
+>match\n"));
+  =20
+   Maybe the above check is helpful. In the current ACPICA when the
+64-bit address(XFACS) is not-zero, it will be always preferred. But on
+some systems if only the waking vector in XFACS is used in OS while FAC=
+S
+is used in BIOS, maybe the system can't be resumed very well.
+   If there exists such check, we can be prompted to try the RSDT
+instead of XSDT when the 32 FACS and 64 bit XFACS don't match.
+  =20
+Best regard.
 >=20
 >=20
 > >-----Original Message-----
@@ -140,8 +160,8 @@ d
 > >fields which
 > >
 >=20
-> &#0;&#0;NrybX=C7=A7v^)=DE=BA{.n+{ib{ay=1D=CA=87=DA=99,j=07fhz=1Ew=0Cj=
-:+vwjm=07zZ+=DD=A2j"!
+> NrybX=C7=A7v^)=DE=BA{.n+{ib{ay=1D=CA=87=DA=99,j=07fhz=1Ew=0Cj:+vwjm=07=
+zZ+=DD=A2j"!
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
