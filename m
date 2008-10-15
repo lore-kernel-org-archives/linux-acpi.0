@@ -1,51 +1,94 @@
-From: "Brown, John M (WGBU R&D)" <john.brown3@hp.com>
-Subject: RE: [PATCH] ACPI suspend: Blacklist HP xw4600 Workstation for old
- code ordering
-Date: Wed, 15 Oct 2008 20:35:54 +0000
-Message-ID: <C075D3D77BA5EF4FBB0939047B182ABF25C79AD3EE@GVW1144EXB.americas.hpqcorp.net>
-References: <200810142254.07024.rjw@sisk.pl>
- <20081015085809.GA1061@srcf.ucam.org> <200810151605.35883.rjw@sisk.pl>
- <20081015141526.GA5633@srcf.ucam.org>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH 0/6] ACPI: acpi table management enhancement
+Date: Wed, 15 Oct 2008 13:55:59 -0700
+Message-ID: <4911F71203A09E4D9981D27F9D83085803277F40@orsmsx503.amr.corp.intel.com>
+References: <1223885404.2735.183.camel@rzhang-dt>
+	 <4911F71203A09E4D9981D27F9D830858031948BA@orsmsx503.amr.corp.intel.com>
+ <1223946036.2735.212.camel@rzhang-dt>
+ <4911F71203A09E4D9981D27F9D83085803213EB4@orsmsx503.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0029.austin.hp.com ([15.216.28.36]:26900 "EHLO
-	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751911AbYJOUhR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Oct 2008 16:37:17 -0400
-In-Reply-To: <20081015141526.GA5633@srcf.ucam.org>
+Received: from mga01.intel.com ([192.55.52.88]:31441 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751534AbYJOU4D (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Oct 2008 16:56:03 -0400
+In-Reply-To: <4911F71203A09E4D9981D27F9D83085803213EB4@orsmsx503.amr.corp.intel.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>
+To: "Zhang, Rui" <rui.zhang@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, "Lin, Ming M" <ming.m.lin@intel.com>
 
-I don't know the technical details behind *how* Windows copes with it, but I can tell you that it works fine on Windows.  Naturally we'd like it to work fine on Linux, too, and Rafael's blacklist fix accomplishes that.  There may be other solutions to this issue on Linux that are worth looking into, but perhaps we can accept Rafael's fix as a workaround for now.
-
-BTW, there is probably at least one more fairly recent vintage HP workstation that will require this same fix.  My testing isn't complete yet, though.
-
-John
-
------Original Message-----
-From: Matthew Garrett [mailto:mjg59@srcf.ucam.org]
-Sent: Wednesday, October 15, 2008 8:15 AM
-To: Rafael J. Wysocki
-Cc: Len Brown; ACPI Devel Maling List; Andrew Morton; LKML; Brown, John M (WGBU R&D)
-Subject: Re: [PATCH] ACPI suspend: Blacklist HP xw4600 Workstation for old code ordering
-
-On Wed, Oct 15, 2008 at 04:05:35PM +0200, Rafael J. Wysocki wrote:
-> On Wednesday, 15 of October 2008, Matthew Garrett wrote:
-> > I think trying to work out what would be more useful than just
-> > adding it to a blacklist.
->
-> Well, machines that require the "old" ordering are simply broken,
-> because you just can't assume that specific devices are not in D3
-> before you execute _PTS.
->
-> IOW, we aren't doing anything wrong and the BIOS is buggy.
-
-So how does Windows cope with this?
-
---
-Matthew Garrett | mjg59@srcf.ucam.org
+QXMgdXN1YWwgd2l0aCBBQ1BJIGlzc3VlcywgdGhlIG1vcmUgd2UgZGlnLCB0aGUgd29yc2UgdGhl
+IHByb2JsZW0gZ2V0czoNCg0KQW5vdGhlciBwb3RlbnRpYWwgcHJvYmxlbSBpcyB0aGUgR2xvYmFs
+IExvY2suIElmIHRoZXJlIGFyZSB0d28gRkFDUyB0YWJsZXMsIGl0IGlzIHByb2JhYmx5IHRoZSBj
+YXNlIHRoYXQgdGhlIEdsb2JhbCBMb2NrIG9ubHkgd29ya3Mgd2l0aCBvbmUgb2YgdGhlIHRhYmxl
+cy4NCg0KUGxlYXNlIGNoZWNrIG9uIHlvdXIgbWFjaGluZSBpZiB0aGUgZ2xvYmFsIGxvY2sgaXMg
+d29ya2luZyBvciBub3QuDQoNCklmIGl0IGlzIHRoZSBjYXNlIHRoYXQgYm90aCB0aGUgRmlybXdh
+cmUgV2FraW5nIFZlY3RvciBhbmQgdGhlIEdsb2JhbCBMb2NrIHdvcmsgd2l0aCBvbmx5IG9uZSBv
+ZiB0aGUgRkFDUyB0YWJsZXMsIGl0IHdvdWxkIHByb2JhYmx5IGJlIGJlc3QgdG8gZGV0ZXJtaW5l
+IHdoaWNoIG9uZSBvZiB0aGUgdGFibGVzIGlzIHRoZSAicmVhbCIgRkFDUyBhbmQganVzdCB1c2Ug
+dGhhdCBvbmUgKHJhdGhlciB0aGFuIHVzZSB0d28gdGFibGVzLikNCg0KVG8gZGV0ZXJtaW5lIHRo
+ZSAicmVhbCIgRkFDUywgYXQgaW5pdGlhbGl6YXRpb24gdGltZSB3ZSBjb3VsZCB0cnkgdG8gb2J0
+YWluIHRoZSBnbG9iYWwgbG9jayAtLSBhbmQgb25seSB0aGUgcmVhbCB0YWJsZSB3aWxsIGdldCBh
+IHJlc3BvbnNlIGZyb20gdGhlIEJJT1MuDQoNCkkgaG9wZSBpdCBpcyBiZXlvbmQgaW1hZ2luYXRp
+b24gdGhhdCBhIEJJT1Mgd291bGQgYmUgaW1wbGVtZW50ZWQgc3VjaCB0aGF0IHRoZSBHbG9iYWwg
+TG9jayBpcyBpbXBsZW1lbnRlZCBpbiBvbmUgdGFibGUsIGFuZCB0aGUgRmlybXdhcmUgV2FraW5n
+IFZlY3RvciBpcyBpbXBsZW1lbnRlZCBpbiBhbm90aGVyLg0KDQpCb2INCg0KDQo+LS0tLS1Pcmln
+aW5hbCBNZXNzYWdlLS0tLS0NCj5Gcm9tOiBsaW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9y
+ZyBbbWFpbHRvOmxpbnV4LWFjcGktDQo+b3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYg
+T2YgTW9vcmUsIFJvYmVydA0KPlNlbnQ6IFR1ZXNkYXksIE9jdG9iZXIgMTQsIDIwMDggMjoxMyBQ
+TQ0KPlRvOiBaaGFuZywgUnVpDQo+Q2M6IExlbiBCcm93bjsgbGludXgtYWNwaTsgTGluLCBNaW5n
+IE0NCj5TdWJqZWN0OiBSRTogW1BBVENIIDAvNl0gQUNQSTogYWNwaSB0YWJsZSBtYW5hZ2VtZW50
+IGVuaGFuY2VtZW50DQo+DQo+U28sIHRoaXMgYXBwYXJlbnRseSBjb21lcyBkb3duIHRvIGEgcHJv
+YmxlbSB3aGVyZSB0aGUgRkFEVCBjb250YWlucyB0d28NCj5kaWZmZXJlbnQgYWRkcmVzc2VzIGZv
+ciB0aGUgRkFDUyBpbiB0aGUgRklSTVdBUkVfQ1RSTCBhbmQgWF9GSVJNV0FSRV9DVFJMDQo+Zmll
+bGRzLiBJdCB3b3VsZCBiZSBhIHJlbGF0aXZlbHkgc2ltcGxlIGZpeCB0byB3cml0ZSB0aGUgd2Fr
+ZSB2ZWN0b3IgdG8NCj5ib3RoIHRhYmxlcyBpZiBuZWNlc3NhcnkuIEkgZG9uJ3Qgc2VlIGEgbmVl
+ZCB0byBnbyBiYWNrIHRvIHRoZSBSU0RUIGZvcg0KPnRoaXMgY2FzZS4NCj4NCj4NCj5BIGNvdXBs
+ZSBvZiBnbG9iYWwgY29tbWVudHM6DQo+DQo+MSkgSW4gZ2VuZXJhbCwgaXQgc2VlbXMgbGlrZSBh
+IGxvdCBvZiBvdmVyaGVhZCB0byBsb2FkIGEgc2Vjb25kIHNldCBvZg0KPiJpbmFjdGl2ZSIgdGFi
+bGVzIGZyb20gdGhlIFJTRFQgLS0gZXNwZWNpYWxseSBpZiB0aGlzIGlzIGZvciBkZWJ1ZyBvbmx5
+Lg0KPk5vdCBvbmx5IHRoZSBjb2RlIHRvIGRvIGl0LCBidXQgdGhlIGR5bmFtaWMgbWVtb3J5IGZv
+ciB0aGUgc2Vjb25kIHJvb3QNCj50YWJsZSBsaXN0IGFuZCB0aGUgbWVtb3J5IG1hcHBpbmdzLCBw
+b3RlbnRpYWxseSBvbmUgZm9yIGVhY2ggdGFibGUgaW4gdGhlDQo+UlNEVC4NCj4NCj4yKSBBcyBm
+YXIgYXMgYWNwaWR1bXAgLS0gSSBoYXZlIHBsYW5zIHRvIGVuaGFuY2UgdGhpcyB1dGlsaXR5IHNv
+IHRoYXQgaXQgaXMNCj5PUy1pbmRlcGVuZGVudCBhbmQgd2lsbCBydW4gb24gYW55IGhvc3QuIFRo
+ZSBjdXJyZW50IHZlcnNpb24gb2YgYWNwaWR1bXAgaXMNCj5MaW51eC1zcGVjaWZpYy4gU28sIEkg
+ZG9uJ3QgdGhpbmsgYWNwaWR1bXAgaXMgZ29pbmcgYXdheS4gSWYgd2UgbmVlZCBhIGR1bXANCj5v
+ZiBib3RoIHRoZSBYU0RUIHRhYmxlcyBhbmQgdGhlIFJTRFQgdGFibGVzLCB3ZSBzaG91bGQgYmUg
+YWJsZSB0byBtb2RpZnkNCj5hY3BpZHVtcCB0byBwZXJmb3JtIHRoaXMsIGFuZCB3ZSB3aWxsIG5v
+dCBuZWVkIHRvIGFkZCBrZXJuZWwgY29kZSBvciB1c2UNCj5rZXJuZWwgcmVzb3VyY2VzLg0KPg0K
+PkJvYg0KPg0KPg0KPj4tLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPj5Gcm9tOiBaaGFuZywg
+UnVpDQo+PlNlbnQ6IE1vbmRheSwgT2N0b2JlciAxMywgMjAwOCA2OjAxIFBNDQo+PlRvOiBNb29y
+ZSwgUm9iZXJ0DQo+PkNjOiBMZW4gQnJvd247IGxpbnV4LWFjcGkNCj4+U3ViamVjdDogUkU6IFtQ
+QVRDSCAwLzZdIEFDUEk6IGFjcGkgdGFibGUgbWFuYWdlbWVudCBlbmhhbmNlbWVudA0KPj4NCj4+
+T24gTW9uLCAyMDA4LTEwLTEzIGF0IDExOjAyIC0wNjAwLCBNb29yZSwgUm9iZXJ0IHdyb3RlOg0K
+Pj4+ID5JIGZvdW5kIHRoYXQgdGhlcmUgYXJlIHR3byBGQUNTIHRhYmxlcyBvbiB0aGlzIHBsYXRm
+b3JtLA0KPj4+ID5YU0RULS0+RkFEVDEtLT5YZmFjcy0tPkZBQ1MxDQo+Pj4gPiAgICAgICAgfC0t
+LS0tPmZhY3MtfA0KPj4+ID4gICAgICAgICAgICAgICAgICAgIHwtPkZBQ1MyDQo+Pj4gPlJTRFQt
+LT5GQURUMi0tPmZhY3MtfA0KPj4+ID5MaW51eCB1c2VzIFhTRFQgb24gdGhpcyBwbGF0Zm9ybSBh
+bmQgc2V0cyB0aGUgd2FraW5nIHZlY3RvciBpbiBGQUNTMQ0KPj4+ID53aGVuIHN1c3BlbmRpbmcu
+DQo+Pj4gPkJ1dCBpdCBzZWVtcyB0aGF0IHRoZSBCSU9TIG9ubHkgY2FyZXMgZm9yIHRoZSB3YWtp
+bmcgdmVjdG9yIGluIEZBQ1MyLA0KPj4+DQo+Pj4NCj4+PiBJcyB0aGlzIHBvc3NpYmx5IGFuIGlz
+c3VlIG9mIHVzaW5nIHRoZSAzMi1iaXQgd2FrZSB2ZWN0b3IgdmVyc3VzIHRoZSA2NC0NCj4+Yml0
+IHdha2UgdmVjdG9yPyAoRm9yIGV4YW1wbGUsIHBlcmhhcHMgdGhlIEZBQ1MxIGhhcyBib3RoIHZl
+Y3RvcnMgYW5kIHRoZQ0KPj42NC1iaXQgdmVjdG9yIGlzIHVzZWQgYnV0IGZhaWxzLiBCdXQgdGhl
+IEZBQ1MyIG9ubHkgaGFzIHRoZSAzMi1iaXQgdmVjdG9yDQo+PnNvIGl0IGlzIHVzZWQsIGFuZCB0
+aGlzIHdvcmtzIGNvcnJlY3RseSB3aXRoIHRoZSBCSU9TLikNCj4+77u/Tm8sIEkgdGVzdGVkIHRo
+ZSBwYXRjaCBmcm9tIFJhZmFlbCwgd2hpY2ggaXMgdGhlIHNhbWUgZnJvbSB0aGUgb25lDQo+Pmhl
+cmU6DQo+Pmh0dHA6Ly93d3cuYWNwaWNhLm9yZy9idWd6aWxsYS9hdHRhY2htZW50LmNnaT9pZD04
+MTMmYWN0aW9uPXZpZXcNCj4+SXQgZG9lc24ndCB3b3JrLg0KPj4NCj4+PiBPciwgaXMgaXQgYWN0
+dWFsbHkgdGhlIGNhc2Ugd2hlcmUgdGhlIHR3byBGQUNTIHRhYmxlcyBoYXZlIGRpZmZlcmVudA0K
+Pndha2UNCj4+dmVjdG9ycz8gQm90aCB0aGUgMzItYml0IHZlY3RvcnMgYW5kIHRoZSA2NC1iaXQg
+dmVjdG9ycyBhcmUgZGlmZmVyZW50Pw0KPj50aGUgd2FrZSB2ZWN0b3IgaXMganVzdCBhIG1lbW9y
+eSBhZGRyZXNzIHdoZXJlIEJJT1MgcGFzc2VzIHRoZSBjb250cm9sDQo+PnRvIE9TLg0KPj5BcyB0
+aGVyZSBhcmUgdHdvIGRpZmZlcmVudCBGQUNTIHRhYmxlcyBsb2NhdGVkIGF0IGRpZmZlcmVudCBh
+ZGRyZXNzZXMsDQo+PnN1cmVseSB0aGUgd2FrZSB2ZWN0b3JzIGFyZSBkaWZmZXJlbnQuIDopDQo+
+Pg0KPj50aGFua3MsDQo+PnJ1aQ0KPj4NCj5O77+977+977+977+977+9cu+/ve+/vXnvv73vv73v
+v71i77+9WO+/ve+/vcendu+/vV7vv70p3rp7Lm7vv70r77+977+977+977+9e++/vWnvv71i77+9
+e2F577+9HcqH2pnvv70sag0K77+977+9Zu+/ve+/ve+/vWjvv73vv73vv71677+9Hu+/vXfvv73v
+v73vv70NCj7vv73vv73vv71qOit277+977+977+9d++/vWrvv71t77+977+977+977+9DQrvv73v
+v73vv73vv716Wivvv73vv73vv73vv73vv73domoi77+977+9Ie+/vWkNCg==
