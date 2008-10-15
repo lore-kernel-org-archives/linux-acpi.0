@@ -1,35 +1,60 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI suspend: Blacklist HP xw4600 Workstation for old code ordering
-Date: Thu, 16 Oct 2008 00:00:59 +0200
-Message-ID: <200810160001.00053.rjw@sisk.pl>
-References: <200810142254.07024.rjw@sisk.pl> <C075D3D77BA5EF4FBB0939047B182ABF25C79AD3EE@GVW1144EXB.americas.hpqcorp.net> <alpine.LFD.1.10.0810151746460.3026@localhost.localdomain>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: [PATCH] ACPI: EC: Check for IBF=0 periodically if not in GPE mode
+Date: Thu, 16 Oct 2008 02:02:33 +0400
+Message-ID: <20081015220232.32042.36999.stgit@thinkpad>
+References: <48F379C4.9070105@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:54555 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754314AbYJOV4v (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Oct 2008 17:56:51 -0400
-In-Reply-To: <alpine.LFD.1.10.0810151746460.3026@localhost.localdomain>
-Content-Disposition: inline
+Received: from charybdis-ext.suse.de ([195.135.221.2]:58013 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752920AbYJOWCe (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Wed, 15 Oct 2008 18:02:34 -0400
+In-Reply-To: <48F379C4.9070105@tuffmail.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: "Brown, John M (WGBU R&D)" <john.brown3@hp.com>, Matthew Garrett <mjg59@srcf.ucam.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>
+To: LenBrown <lenb@kernel.org>
+Cc: Linux-acpi@vger.kernel.org
 
-On Wednesday, 15 of October 2008, Len Brown wrote:
-> Matthew,
-> You are right, of course, we're not doing something right
-> if a new machine needs this workaround.
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+---
 
-Isn't that possible, however, that the BIOS of this new machine is based on an
-older one that used to have this problem?
+ drivers/acpi/ec.c |   15 +++++++++++++--
+ 1 files changed, 13 insertions(+), 2 deletions(-)
 
-> However, we don't yet know what we're not doing right:-)
 
-Well, John, can you please post the output of acpidump from this machine?
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index 69f5f78..f9c0782 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -300,6 +300,18 @@ static int ec_check_ibf0(struct acpi_ec *ec)
+ 	return (status & ACPI_EC_FLAG_IBF) == 0;
+ }
+ 
++static int ec_wait_ibf0(struct acpi_ec *ec)
++{
++	unsigned long delay = jiffies + msecs_to_jiffies(ACPI_EC_DELAY);
++	/* interrupt wait manually if GPE mode is not active */
++	unsigned long timeout = test_bit(EC_FLAGS_GPE_MODE, &ec->flags) ?
++		msecs_to_jiffies(ACPI_EC_DELAY) : msecs_to_jiffies(1);
++	while (time_before(jiffies, delay))
++		if (wait_event_timeout(ec->wait, ec_check_ibf0(ec), timeout))
++			return 0;
++	return -ETIME;
++}
++
+ static int acpi_ec_transaction(struct acpi_ec *ec, struct transaction *t,
+ 			       int force_poll)
+ {
+@@ -317,8 +329,7 @@ static int acpi_ec_transaction(struct acpi_ec *ec, struct transaction *t,
+ 			goto unlock;
+ 		}
+ 	}
+-	if (!wait_event_timeout(ec->wait, ec_check_ibf0(ec),
+-				msecs_to_jiffies(ACPI_EC_DELAY))) {
++	if (ec_wait_ibf0(ec)) {
+ 		pr_err(PREFIX "input buffer is not empty, "
+ 				"aborting transaction\n");
+ 		status = -ETIME;
 
-Thanks,
-Rafael
