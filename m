@@ -1,123 +1,35 @@
-From: "Brian Schau" <brian.schau@gmail.com>
-Subject: Dmidecode as requested in boot.msg
-Date: Wed, 15 Oct 2008 07:20:16 +0200
-Message-ID: <4b97db550810142220j304ea85djf192cc4a855a1282@mail.gmail.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH] ACPI suspend: Blacklist HP xw4600 Workstation for old code ordering
+Date: Wed, 15 Oct 2008 09:58:09 +0100
+Message-ID: <20081015085809.GA1061@srcf.ucam.org>
+References: <200810142254.07024.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_17764_14731579.1224048016663"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.171]:39222 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751160AbYJOFUT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Oct 2008 01:20:19 -0400
-Received: by ug-out-1314.google.com with SMTP id k3so1176279ugf.37
-        for <linux-acpi@vger.kernel.org>; Tue, 14 Oct 2008 22:20:17 -0700 (PDT)
+Received: from cavan.codon.org.uk ([93.93.128.6]:46810 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751030AbYJOI6V (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Oct 2008 04:58:21 -0400
+Content-Disposition: inline
+In-Reply-To: <200810142254.07024.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, John Brown <john.brown3@hp.com>
 
-------=_Part_17764_14731579.1224048016663
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On Tue, Oct 14, 2008 at 10:54:06PM +0200, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rjw@sisk.pl>
+> 
+> ACPI suspend: Blacklist HP xw4600 Workstation for old code ordering
+> 
+> HP xw4600 Workstation is known to require the "old" (ie. compatible
+> with ACPI 1.0) suspend code ordering, so blacklist it for this
+> purpose.
 
-Hi,
+This doesn't seem to be scaling especially well. The xw4600 is a new 
+machine, so if it needs the "old" code ordering then that's a strong 
+indication that we're doing something wrong. I think trying to work out 
+what would be more useful than just adding it to a blacklist.
 
-I've attached two version - parsed (dmidecode.txt.gz) and raw
-(dmidecode-u.txt.gz).
-
-This is for a Mybook L51 laptop.
-
-
-Best regards,
-Brian
-
-------=_Part_17764_14731579.1224048016663
-Content-Type: application/x-gzip; name=dmidecode.txt.gz
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fmbiksf60
-Content-Disposition: attachment; filename=dmidecode.txt.gz
-
-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
-J9WqCfyElv+Og3c5T7XE//MYxv8Aq4MFpR8kAAA=
-------=_Part_17764_14731579.1224048016663
-Content-Type: application/x-gzip; name=dmidecode-u.txt.gz
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fmbikxbw1
-Content-Disposition: attachment; filename=dmidecode-u.txt.gz
-
-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
-GgAA
-------=_Part_17764_14731579.1224048016663--
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
