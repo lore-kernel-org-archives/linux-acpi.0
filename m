@@ -1,94 +1,134 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH 0/6] ACPI: acpi table management enhancement
-Date: Wed, 15 Oct 2008 13:55:59 -0700
-Message-ID: <4911F71203A09E4D9981D27F9D83085803277F40@orsmsx503.amr.corp.intel.com>
-References: <1223885404.2735.183.camel@rzhang-dt>
-	 <4911F71203A09E4D9981D27F9D830858031948BA@orsmsx503.amr.corp.intel.com>
- <1223946036.2735.212.camel@rzhang-dt>
- <4911F71203A09E4D9981D27F9D83085803213EB4@orsmsx503.amr.corp.intel.com>
+From: Alexey Starikovskiy <aystarik@gmail.com>
+Subject: Re: New battery doesn't work under linux, but does under windows
+Date: Thu, 16 Oct 2008 01:09:27 +0400
+Message-ID: <48F65C07.8090405@gmail.com>
+References: <200810151359.58976.eric@certus.bz> <48F64F8F.4070004@gmail.com> <200810151441.37779.eric@certus.bz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:31441 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751534AbYJOU4D (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Oct 2008 16:56:03 -0400
-In-Reply-To: <4911F71203A09E4D9981D27F9D83085803213EB4@orsmsx503.amr.corp.intel.com>
-Content-Language: en-US
+Received: from nf-out-0910.google.com ([64.233.182.191]:22975 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752582AbYJOVJ3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Oct 2008 17:09:29 -0400
+Received: by nf-out-0910.google.com with SMTP id d3so1347564nfc.21
+        for <linux-acpi@vger.kernel.org>; Wed, 15 Oct 2008 14:09:27 -0700 (PDT)
+In-Reply-To: <200810151441.37779.eric@certus.bz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, "Lin, Ming M" <ming.m.lin@intel.com>
+To: Eric Atkin <eric@certus.bz>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-QXMgdXN1YWwgd2l0aCBBQ1BJIGlzc3VlcywgdGhlIG1vcmUgd2UgZGlnLCB0aGUgd29yc2UgdGhl
-IHByb2JsZW0gZ2V0czoNCg0KQW5vdGhlciBwb3RlbnRpYWwgcHJvYmxlbSBpcyB0aGUgR2xvYmFs
-IExvY2suIElmIHRoZXJlIGFyZSB0d28gRkFDUyB0YWJsZXMsIGl0IGlzIHByb2JhYmx5IHRoZSBj
-YXNlIHRoYXQgdGhlIEdsb2JhbCBMb2NrIG9ubHkgd29ya3Mgd2l0aCBvbmUgb2YgdGhlIHRhYmxl
-cy4NCg0KUGxlYXNlIGNoZWNrIG9uIHlvdXIgbWFjaGluZSBpZiB0aGUgZ2xvYmFsIGxvY2sgaXMg
-d29ya2luZyBvciBub3QuDQoNCklmIGl0IGlzIHRoZSBjYXNlIHRoYXQgYm90aCB0aGUgRmlybXdh
-cmUgV2FraW5nIFZlY3RvciBhbmQgdGhlIEdsb2JhbCBMb2NrIHdvcmsgd2l0aCBvbmx5IG9uZSBv
-ZiB0aGUgRkFDUyB0YWJsZXMsIGl0IHdvdWxkIHByb2JhYmx5IGJlIGJlc3QgdG8gZGV0ZXJtaW5l
-IHdoaWNoIG9uZSBvZiB0aGUgdGFibGVzIGlzIHRoZSAicmVhbCIgRkFDUyBhbmQganVzdCB1c2Ug
-dGhhdCBvbmUgKHJhdGhlciB0aGFuIHVzZSB0d28gdGFibGVzLikNCg0KVG8gZGV0ZXJtaW5lIHRo
-ZSAicmVhbCIgRkFDUywgYXQgaW5pdGlhbGl6YXRpb24gdGltZSB3ZSBjb3VsZCB0cnkgdG8gb2J0
-YWluIHRoZSBnbG9iYWwgbG9jayAtLSBhbmQgb25seSB0aGUgcmVhbCB0YWJsZSB3aWxsIGdldCBh
-IHJlc3BvbnNlIGZyb20gdGhlIEJJT1MuDQoNCkkgaG9wZSBpdCBpcyBiZXlvbmQgaW1hZ2luYXRp
-b24gdGhhdCBhIEJJT1Mgd291bGQgYmUgaW1wbGVtZW50ZWQgc3VjaCB0aGF0IHRoZSBHbG9iYWwg
-TG9jayBpcyBpbXBsZW1lbnRlZCBpbiBvbmUgdGFibGUsIGFuZCB0aGUgRmlybXdhcmUgV2FraW5n
-IFZlY3RvciBpcyBpbXBsZW1lbnRlZCBpbiBhbm90aGVyLg0KDQpCb2INCg0KDQo+LS0tLS1Pcmln
-aW5hbCBNZXNzYWdlLS0tLS0NCj5Gcm9tOiBsaW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9y
-ZyBbbWFpbHRvOmxpbnV4LWFjcGktDQo+b3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYg
-T2YgTW9vcmUsIFJvYmVydA0KPlNlbnQ6IFR1ZXNkYXksIE9jdG9iZXIgMTQsIDIwMDggMjoxMyBQ
-TQ0KPlRvOiBaaGFuZywgUnVpDQo+Q2M6IExlbiBCcm93bjsgbGludXgtYWNwaTsgTGluLCBNaW5n
-IE0NCj5TdWJqZWN0OiBSRTogW1BBVENIIDAvNl0gQUNQSTogYWNwaSB0YWJsZSBtYW5hZ2VtZW50
-IGVuaGFuY2VtZW50DQo+DQo+U28sIHRoaXMgYXBwYXJlbnRseSBjb21lcyBkb3duIHRvIGEgcHJv
-YmxlbSB3aGVyZSB0aGUgRkFEVCBjb250YWlucyB0d28NCj5kaWZmZXJlbnQgYWRkcmVzc2VzIGZv
-ciB0aGUgRkFDUyBpbiB0aGUgRklSTVdBUkVfQ1RSTCBhbmQgWF9GSVJNV0FSRV9DVFJMDQo+Zmll
-bGRzLiBJdCB3b3VsZCBiZSBhIHJlbGF0aXZlbHkgc2ltcGxlIGZpeCB0byB3cml0ZSB0aGUgd2Fr
-ZSB2ZWN0b3IgdG8NCj5ib3RoIHRhYmxlcyBpZiBuZWNlc3NhcnkuIEkgZG9uJ3Qgc2VlIGEgbmVl
-ZCB0byBnbyBiYWNrIHRvIHRoZSBSU0RUIGZvcg0KPnRoaXMgY2FzZS4NCj4NCj4NCj5BIGNvdXBs
-ZSBvZiBnbG9iYWwgY29tbWVudHM6DQo+DQo+MSkgSW4gZ2VuZXJhbCwgaXQgc2VlbXMgbGlrZSBh
-IGxvdCBvZiBvdmVyaGVhZCB0byBsb2FkIGEgc2Vjb25kIHNldCBvZg0KPiJpbmFjdGl2ZSIgdGFi
-bGVzIGZyb20gdGhlIFJTRFQgLS0gZXNwZWNpYWxseSBpZiB0aGlzIGlzIGZvciBkZWJ1ZyBvbmx5
-Lg0KPk5vdCBvbmx5IHRoZSBjb2RlIHRvIGRvIGl0LCBidXQgdGhlIGR5bmFtaWMgbWVtb3J5IGZv
-ciB0aGUgc2Vjb25kIHJvb3QNCj50YWJsZSBsaXN0IGFuZCB0aGUgbWVtb3J5IG1hcHBpbmdzLCBw
-b3RlbnRpYWxseSBvbmUgZm9yIGVhY2ggdGFibGUgaW4gdGhlDQo+UlNEVC4NCj4NCj4yKSBBcyBm
-YXIgYXMgYWNwaWR1bXAgLS0gSSBoYXZlIHBsYW5zIHRvIGVuaGFuY2UgdGhpcyB1dGlsaXR5IHNv
-IHRoYXQgaXQgaXMNCj5PUy1pbmRlcGVuZGVudCBhbmQgd2lsbCBydW4gb24gYW55IGhvc3QuIFRo
-ZSBjdXJyZW50IHZlcnNpb24gb2YgYWNwaWR1bXAgaXMNCj5MaW51eC1zcGVjaWZpYy4gU28sIEkg
-ZG9uJ3QgdGhpbmsgYWNwaWR1bXAgaXMgZ29pbmcgYXdheS4gSWYgd2UgbmVlZCBhIGR1bXANCj5v
-ZiBib3RoIHRoZSBYU0RUIHRhYmxlcyBhbmQgdGhlIFJTRFQgdGFibGVzLCB3ZSBzaG91bGQgYmUg
-YWJsZSB0byBtb2RpZnkNCj5hY3BpZHVtcCB0byBwZXJmb3JtIHRoaXMsIGFuZCB3ZSB3aWxsIG5v
-dCBuZWVkIHRvIGFkZCBrZXJuZWwgY29kZSBvciB1c2UNCj5rZXJuZWwgcmVzb3VyY2VzLg0KPg0K
-PkJvYg0KPg0KPg0KPj4tLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPj5Gcm9tOiBaaGFuZywg
-UnVpDQo+PlNlbnQ6IE1vbmRheSwgT2N0b2JlciAxMywgMjAwOCA2OjAxIFBNDQo+PlRvOiBNb29y
-ZSwgUm9iZXJ0DQo+PkNjOiBMZW4gQnJvd247IGxpbnV4LWFjcGkNCj4+U3ViamVjdDogUkU6IFtQ
-QVRDSCAwLzZdIEFDUEk6IGFjcGkgdGFibGUgbWFuYWdlbWVudCBlbmhhbmNlbWVudA0KPj4NCj4+
-T24gTW9uLCAyMDA4LTEwLTEzIGF0IDExOjAyIC0wNjAwLCBNb29yZSwgUm9iZXJ0IHdyb3RlOg0K
-Pj4+ID5JIGZvdW5kIHRoYXQgdGhlcmUgYXJlIHR3byBGQUNTIHRhYmxlcyBvbiB0aGlzIHBsYXRm
-b3JtLA0KPj4+ID5YU0RULS0+RkFEVDEtLT5YZmFjcy0tPkZBQ1MxDQo+Pj4gPiAgICAgICAgfC0t
-LS0tPmZhY3MtfA0KPj4+ID4gICAgICAgICAgICAgICAgICAgIHwtPkZBQ1MyDQo+Pj4gPlJTRFQt
-LT5GQURUMi0tPmZhY3MtfA0KPj4+ID5MaW51eCB1c2VzIFhTRFQgb24gdGhpcyBwbGF0Zm9ybSBh
-bmQgc2V0cyB0aGUgd2FraW5nIHZlY3RvciBpbiBGQUNTMQ0KPj4+ID53aGVuIHN1c3BlbmRpbmcu
-DQo+Pj4gPkJ1dCBpdCBzZWVtcyB0aGF0IHRoZSBCSU9TIG9ubHkgY2FyZXMgZm9yIHRoZSB3YWtp
-bmcgdmVjdG9yIGluIEZBQ1MyLA0KPj4+DQo+Pj4NCj4+PiBJcyB0aGlzIHBvc3NpYmx5IGFuIGlz
-c3VlIG9mIHVzaW5nIHRoZSAzMi1iaXQgd2FrZSB2ZWN0b3IgdmVyc3VzIHRoZSA2NC0NCj4+Yml0
-IHdha2UgdmVjdG9yPyAoRm9yIGV4YW1wbGUsIHBlcmhhcHMgdGhlIEZBQ1MxIGhhcyBib3RoIHZl
-Y3RvcnMgYW5kIHRoZQ0KPj42NC1iaXQgdmVjdG9yIGlzIHVzZWQgYnV0IGZhaWxzLiBCdXQgdGhl
-IEZBQ1MyIG9ubHkgaGFzIHRoZSAzMi1iaXQgdmVjdG9yDQo+PnNvIGl0IGlzIHVzZWQsIGFuZCB0
-aGlzIHdvcmtzIGNvcnJlY3RseSB3aXRoIHRoZSBCSU9TLikNCj4+77u/Tm8sIEkgdGVzdGVkIHRo
-ZSBwYXRjaCBmcm9tIFJhZmFlbCwgd2hpY2ggaXMgdGhlIHNhbWUgZnJvbSB0aGUgb25lDQo+Pmhl
-cmU6DQo+Pmh0dHA6Ly93d3cuYWNwaWNhLm9yZy9idWd6aWxsYS9hdHRhY2htZW50LmNnaT9pZD04
-MTMmYWN0aW9uPXZpZXcNCj4+SXQgZG9lc24ndCB3b3JrLg0KPj4NCj4+PiBPciwgaXMgaXQgYWN0
-dWFsbHkgdGhlIGNhc2Ugd2hlcmUgdGhlIHR3byBGQUNTIHRhYmxlcyBoYXZlIGRpZmZlcmVudA0K
-Pndha2UNCj4+dmVjdG9ycz8gQm90aCB0aGUgMzItYml0IHZlY3RvcnMgYW5kIHRoZSA2NC1iaXQg
-dmVjdG9ycyBhcmUgZGlmZmVyZW50Pw0KPj50aGUgd2FrZSB2ZWN0b3IgaXMganVzdCBhIG1lbW9y
-eSBhZGRyZXNzIHdoZXJlIEJJT1MgcGFzc2VzIHRoZSBjb250cm9sDQo+PnRvIE9TLg0KPj5BcyB0
-aGVyZSBhcmUgdHdvIGRpZmZlcmVudCBGQUNTIHRhYmxlcyBsb2NhdGVkIGF0IGRpZmZlcmVudCBh
-ZGRyZXNzZXMsDQo+PnN1cmVseSB0aGUgd2FrZSB2ZWN0b3JzIGFyZSBkaWZmZXJlbnQuIDopDQo+
-Pg0KPj50aGFua3MsDQo+PnJ1aQ0KPj4NCj5O77+977+977+977+977+9cu+/ve+/vXnvv73vv73v
-v71i77+9WO+/ve+/vcendu+/vV7vv70p3rp7Lm7vv70r77+977+977+977+9e++/vWnvv71i77+9
-e2F577+9HcqH2pnvv70sag0K77+977+9Zu+/ve+/ve+/vWjvv73vv73vv71677+9Hu+/vXfvv73v
-v73vv70NCj7vv73vv73vv71qOit277+977+977+9d++/vWrvv71t77+977+977+977+9DQrvv73v
-v73vv73vv716Wivvv73vv73vv73vv73vv73domoi77+977+9Ie+/vWkNCg==
+Eric Atkin wrote:
+> On Wednesday 15 October 2008 2:16:15 pm you wrote:
+>   
+>> Eric Atkin wrote:
+>>     
+>>> So I bought a new battery for my laptop and installed it. I booted into
+>>> Linux (gentoo) and kpowersave recognized the new battery and for the next
+>>> few hours showed it charging up. The guy at the battery store said I
+>>> should charge it fully and then discharge fully to calibrate, so, once
+>>> full, i disconnected AC power and continued to work. kpowersave recognize
+>>> that power had been removed and showed the battery discharging at a
+>>> normal rate. After about 1 minute, my laptop just shut off. No warnings
+>>> or attempts to suspend or hibernate or anything. Power was just cut off.
+>>> I tested several times and always got the same result. I assumed it was a
+>>> bad battery, but then I had to boot into windows for something and
+>>> decided to try it there. In windows, I waited till the charge was at 100%
+>>> then disconnected AC and let it run. It ran for about two hours as
+>>> expected before dying. But if I boot back into linux, it dies again after
+>>> just a minute or two. I don't even know where to begin. Any ideas? $170
+>>> battery that I can't take back because it does actually work, and anyway,
+>>> it seems to be a software issue.
+>>> Eric
+>>>       
+>> First, you should tell us your kernel version and loaded battery module
+>> (battery.ko or sbs.ko)
+>> Second, please do a "grep . /proc/acpi/battery/*/*" with attached AC
+>> and try to do this with it disconnected.
+>> It might be a good idea to open a new bug report in bugzilla.kernel.org
+>> for ACPI/battery and assign it to
+>> astarikovskiy@suse.de (me).
+>>
+>> Regards,
+>> Alex.
+>>     
+>
+> Alex,
+> Thank you for your time. See the things you've requested below. I'm still 
+> waiting for my password to log into bugzilla. I'll create that when I can. 
+> I've not used a mailing list like this before. Should I have sent this 
+> response to the list?
+>   
+Yes, it is better to have it stored somewhere beside my inbox :)
+So if did not go to bugzilla yet, keep it posted in the list.
+> Eric
+>
+> --
+>
+> I'm using 'battery' and _not_ 'sbs' and it is built into the kernel rather 
+> than a loadable module. I don't really know the difference between the two 
+> modules and I would be happy to compile and test with sbs if you think that 
+> is relevant.
+>
+> eris linux # uname -a
+> Linux eris 2.6.25-gentoo-r8 #1 SMP PREEMPT Sun Oct 12 20:19:52 MDT 2008 i686 
+> Intel(R) Core(TM)2 CPU T7200 @ 2.00GHz GenuineIntel GNU/Linux
+>
+> With AC:
+> eris linux # grep . /proc/acpi/battery/*/*
+> /proc/acpi/battery/BAT0/alarm:alarm:                   unsupported
+> /proc/acpi/battery/BAT0/info:present:                 yes
+> /proc/acpi/battery/BAT0/info:design capacity:         53280 mWh
+> /proc/acpi/battery/BAT0/info:last full capacity:      50430 mWh
+> /proc/acpi/battery/BAT0/info:battery technology:      non-rechargeable
+> /proc/acpi/battery/BAT0/info:design voltage:          123160 mV
+> /proc/acpi/battery/BAT0/info:design capacity warning: 1000 mWh
+> /proc/acpi/battery/BAT0/info:design capacity low:     400 mWh
+> /proc/acpi/battery/BAT0/info:capacity granularity 1:  100 mWh
+> /proc/acpi/battery/BAT0/info:capacity granularity 2:  100 mWh
+> /proc/acpi/battery/BAT0/info:model number:
+> /proc/acpi/battery/BAT0/info:serial number:
+> /proc/acpi/battery/BAT0/info:battery type:            LiOn
+> /proc/acpi/battery/BAT0/info:OEM info:                Sony Corp.
+> /proc/acpi/battery/BAT0/state:present:                 yes
+> /proc/acpi/battery/BAT0/state:capacity state:          ok
+> /proc/acpi/battery/BAT0/state:charging state:          charging
+> /proc/acpi/battery/BAT0/state:present rate:            unknown
+> /proc/acpi/battery/BAT0/state:remaining capacity:      50430 mWh
+> /proc/acpi/battery/BAT0/state:present voltage:         unknown
+>
+> On battery:
+> eris linux # grep . /proc/acpi/battery/*/*
+> /proc/acpi/battery/BAT0/alarm:alarm:                   unsupported
+> /proc/acpi/battery/BAT0/info:present:                 yes
+> /proc/acpi/battery/BAT0/info:design capacity:         53280 mWh
+> /proc/acpi/battery/BAT0/info:last full capacity:      50430 mWh
+> /proc/acpi/battery/BAT0/info:battery technology:      non-rechargeable
+> /proc/acpi/battery/BAT0/info:design voltage:          123160 mV
+> /proc/acpi/battery/BAT0/info:design capacity warning: 1000 mWh
+> /proc/acpi/battery/BAT0/info:design capacity low:     400 mWh
+> /proc/acpi/battery/BAT0/info:capacity granularity 1:  100 mWh
+> /proc/acpi/battery/BAT0/info:capacity granularity 2:  100 mWh
+> /proc/acpi/battery/BAT0/info:model number:
+> /proc/acpi/battery/BAT0/info:serial number:
+> /proc/acpi/battery/BAT0/info:battery type:            LiOn
+> /proc/acpi/battery/BAT0/info:OEM info:                Sony Corp.
+> /proc/acpi/battery/BAT0/state:present:                 yes
+> /proc/acpi/battery/BAT0/state:capacity state:          ok
+> /proc/acpi/battery/BAT0/state:charging state:          discharging
+> /proc/acpi/battery/BAT0/state:present rate:            unknown
+> /proc/acpi/battery/BAT0/state:remaining capacity:      50430 mWh
+> /proc/acpi/battery/BAT0/state:present voltage:         unknown
+>   
+Ok, I think the problem is "unknown" discharge rate and voltage in the 
+state. kpowersave might be stupid enough
+to try to approximate remaining time (impossible with two unknowns) and 
+shutdown...
+Please check if killing kpowersave (or, better, running in single user 
+mode) helps.
+Also, attach an acpidump output (better to bugzilla report).
+
+Regards,
+Alex
+ 
