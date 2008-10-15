@@ -1,118 +1,92 @@
-From: "Moore, Robert" <robert.moore@intel.com>
+From: Len Brown <lenb@kernel.org>
 Subject: RE: [PATCH 0/6] ACPI: acpi table management enhancement
-Date: Wed, 15 Oct 2008 15:12:59 -0700
-Message-ID: <4911F71203A09E4D9981D27F9D83085803278063@orsmsx503.amr.corp.intel.com>
+Date: Wed, 15 Oct 2008 18:20:37 -0400 (EDT)
+Message-ID: <alpine.LFD.1.10.0810151801290.3026@localhost.localdomain>
 References: <1223885404.2735.183.camel@rzhang-dt>
-	 <4911F71203A09E4D9981D27F9D830858031948BA@orsmsx503.amr.corp.intel.com>
- <1223946036.2735.212.camel@rzhang-dt>
- <4911F71203A09E4D9981D27F9D83085803213EB4@orsmsx503.amr.corp.intel.com>
- <4911F71203A09E4D9981D27F9D83085803277F40@orsmsx503.amr.corp.intel.com>
+ <4911F71203A09E4D9981D27F9D83085803194DE3@orsmsx503.amr.corp.intel.com>
+ <1223947180.2735.228.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:34466 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753942AbYJOWNI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Oct 2008 18:13:08 -0400
-In-Reply-To: <4911F71203A09E4D9981D27F9D83085803277F40@orsmsx503.amr.corp.intel.com>
-Content-Language: en-US
+Received: from vms172069pub.verizon.net ([206.46.172.69]:50198 "EHLO
+	vms172069pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753810AbYJOWUv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Oct 2008 18:20:51 -0400
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms172069.mailsrvcs.net
+ (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+ with ESMTPA id <0K8S00BTLWQEXLC0@vms172069.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Wed, 15 Oct 2008 17:20:39 -0500 (CDT)
+In-reply-to: <1223947180.2735.228.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, "Lin, Ming M" <ming.m.lin@intel.com>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: "Moore, Robert" <robert.moore@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
 
-V2hpbGUgd2UgYXJlIHRyeWluZyB0byBkZXRlcm1pbmUgd2hpY2ggaXMgdGhlICJyZWFsIiBGQUNT
-LCB0aGVyZSBpcyBvbmUgbW9yZSBnb29meSBwb3NzaWJpbGl0eSB0aGF0IHdlIHNob3VsZCBwcm9i
-YWJseSBleHBsb3JlOg0KDQpIb3cgYWJvdXQgaWY6DQoNCjEpIHRoZSA2NC1iaXQgWF9GSVJNV0FS
-RV9XQUtJTkdfVkVDVE9SIGlzIGltcGxlbWVudGVkIGluIHRoZSBGQUNTIHRoYXQgaXMgcG9pbnRl
-ZCB0byBieSB0aGUgNjQtYml0IFhfRklSTVdBUkVfQ1RSTCBmaWVsZCBpbiB0aGUgRkFEVCwgYW5k
-DQoNCjIpIHRoZSAzMi1iaXQgRklSTVdBUkVfV0FLSU5HX1ZFQ1RPUiBpcyBpbXBsZW1lbnRlZCBp
-biB0aGUgb3RoZXIgRkFDUywgdGhlIG9uZSBwb2ludGVkIHRvIGJ5IHRoZSAzMi1iaXQgRklSTVdB
-UkVfQ1RSTCBmaWVsZCBpbiB0aGUgRkFEVC4NCg0KVGhpcyBjb3VsZCBiZSB0aGUgbWlzdGFrZSBp
-biByZWFzb25pbmcgdGhhdCBsZWQgdG8gdGhlIHR3byBkaWZmZXJlbnQgRkFDUyB0YWJsZXMgaW4g
-dGhlIGZpcnN0IHBsYWNlLg0KDQpJZiB0aGlzIGlzIHRydWUsIHRoZW4gd2hpY2ggRkFDUyBoYXMg
-dGhlIHZhbGlkIEdsb2JhbCBMb2NrPw0KDQoNCg0KPi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0t
-DQo+RnJvbTogbGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1h
-Y3BpLQ0KPm93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIE1vb3JlLCBSb2JlcnQN
-Cj5TZW50OiBXZWRuZXNkYXksIE9jdG9iZXIgMTUsIDIwMDggMTo1NiBQTQ0KPlRvOiBaaGFuZywg
-UnVpDQo+Q2M6IExlbiBCcm93bjsgbGludXgtYWNwaTsgTGluLCBNaW5nIE0NCj5TdWJqZWN0OiBS
-RTogW1BBVENIIDAvNl0gQUNQSTogYWNwaSB0YWJsZSBtYW5hZ2VtZW50IGVuaGFuY2VtZW50DQo+
-DQo+QXMgdXN1YWwgd2l0aCBBQ1BJIGlzc3VlcywgdGhlIG1vcmUgd2UgZGlnLCB0aGUgd29yc2Ug
-dGhlIHByb2JsZW0gZ2V0czoNCj4NCj5Bbm90aGVyIHBvdGVudGlhbCBwcm9ibGVtIGlzIHRoZSBH
-bG9iYWwgTG9jay4gSWYgdGhlcmUgYXJlIHR3byBGQUNTIHRhYmxlcywNCj5pdCBpcyBwcm9iYWJs
-eSB0aGUgY2FzZSB0aGF0IHRoZSBHbG9iYWwgTG9jayBvbmx5IHdvcmtzIHdpdGggb25lIG9mIHRo
-ZQ0KPnRhYmxlcy4NCj4NCj5QbGVhc2UgY2hlY2sgb24geW91ciBtYWNoaW5lIGlmIHRoZSBnbG9i
-YWwgbG9jayBpcyB3b3JraW5nIG9yIG5vdC4NCj4NCj5JZiBpdCBpcyB0aGUgY2FzZSB0aGF0IGJv
-dGggdGhlIEZpcm13YXJlIFdha2luZyBWZWN0b3IgYW5kIHRoZSBHbG9iYWwgTG9jaw0KPndvcmsg
-d2l0aCBvbmx5IG9uZSBvZiB0aGUgRkFDUyB0YWJsZXMsIGl0IHdvdWxkIHByb2JhYmx5IGJlIGJl
-c3QgdG8NCj5kZXRlcm1pbmUgd2hpY2ggb25lIG9mIHRoZSB0YWJsZXMgaXMgdGhlICJyZWFsIiBG
-QUNTIGFuZCBqdXN0IHVzZSB0aGF0IG9uZQ0KPihyYXRoZXIgdGhhbiB1c2UgdHdvIHRhYmxlcy4p
-DQo+DQo+VG8gZGV0ZXJtaW5lIHRoZSAicmVhbCIgRkFDUywgYXQgaW5pdGlhbGl6YXRpb24gdGlt
-ZSB3ZSBjb3VsZCB0cnkgdG8gb2J0YWluDQo+dGhlIGdsb2JhbCBsb2NrIC0tIGFuZCBvbmx5IHRo
-ZSByZWFsIHRhYmxlIHdpbGwgZ2V0IGEgcmVzcG9uc2UgZnJvbSB0aGUNCj5CSU9TLg0KPg0KPkkg
-aG9wZSBpdCBpcyBiZXlvbmQgaW1hZ2luYXRpb24gdGhhdCBhIEJJT1Mgd291bGQgYmUgaW1wbGVt
-ZW50ZWQgc3VjaCB0aGF0DQo+dGhlIEdsb2JhbCBMb2NrIGlzIGltcGxlbWVudGVkIGluIG9uZSB0
-YWJsZSwgYW5kIHRoZSBGaXJtd2FyZSBXYWtpbmcgVmVjdG9yDQo+aXMgaW1wbGVtZW50ZWQgaW4g
-YW5vdGhlci4NCj4NCj5Cb2INCj4NCj4NCj4+LS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4+
-RnJvbTogbGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1hY3Bp
-LQ0KPj5vd25lckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBNb29yZSwgUm9iZXJ0DQo+
-PlNlbnQ6IFR1ZXNkYXksIE9jdG9iZXIgMTQsIDIwMDggMjoxMyBQTQ0KPj5UbzogWmhhbmcsIFJ1
-aQ0KPj5DYzogTGVuIEJyb3duOyBsaW51eC1hY3BpOyBMaW4sIE1pbmcgTQ0KPj5TdWJqZWN0OiBS
-RTogW1BBVENIIDAvNl0gQUNQSTogYWNwaSB0YWJsZSBtYW5hZ2VtZW50IGVuaGFuY2VtZW50DQo+
-Pg0KPj5TbywgdGhpcyBhcHBhcmVudGx5IGNvbWVzIGRvd24gdG8gYSBwcm9ibGVtIHdoZXJlIHRo
-ZSBGQURUIGNvbnRhaW5zIHR3bw0KPj5kaWZmZXJlbnQgYWRkcmVzc2VzIGZvciB0aGUgRkFDUyBp
-biB0aGUgRklSTVdBUkVfQ1RSTCBhbmQgWF9GSVJNV0FSRV9DVFJMDQo+PmZpZWxkcy4gSXQgd291
-bGQgYmUgYSByZWxhdGl2ZWx5IHNpbXBsZSBmaXggdG8gd3JpdGUgdGhlIHdha2UgdmVjdG9yIHRv
-DQo+PmJvdGggdGFibGVzIGlmIG5lY2Vzc2FyeS4gSSBkb24ndCBzZWUgYSBuZWVkIHRvIGdvIGJh
-Y2sgdG8gdGhlIFJTRFQgZm9yDQo+PnRoaXMgY2FzZS4NCj4+DQo+Pg0KPj5BIGNvdXBsZSBvZiBn
-bG9iYWwgY29tbWVudHM6DQo+Pg0KPj4xKSBJbiBnZW5lcmFsLCBpdCBzZWVtcyBsaWtlIGEgbG90
-IG9mIG92ZXJoZWFkIHRvIGxvYWQgYSBzZWNvbmQgc2V0IG9mDQo+PiJpbmFjdGl2ZSIgdGFibGVz
-IGZyb20gdGhlIFJTRFQgLS0gZXNwZWNpYWxseSBpZiB0aGlzIGlzIGZvciBkZWJ1ZyBvbmx5Lg0K
-Pj5Ob3Qgb25seSB0aGUgY29kZSB0byBkbyBpdCwgYnV0IHRoZSBkeW5hbWljIG1lbW9yeSBmb3Ig
-dGhlIHNlY29uZCByb290DQo+PnRhYmxlIGxpc3QgYW5kIHRoZSBtZW1vcnkgbWFwcGluZ3MsIHBv
-dGVudGlhbGx5IG9uZSBmb3IgZWFjaCB0YWJsZSBpbiB0aGUNCj4+UlNEVC4NCj4+DQo+PjIpIEFz
-IGZhciBhcyBhY3BpZHVtcCAtLSBJIGhhdmUgcGxhbnMgdG8gZW5oYW5jZSB0aGlzIHV0aWxpdHkg
-c28gdGhhdCBpdA0KPmlzDQo+Pk9TLWluZGVwZW5kZW50IGFuZCB3aWxsIHJ1biBvbiBhbnkgaG9z
-dC4gVGhlIGN1cnJlbnQgdmVyc2lvbiBvZiBhY3BpZHVtcA0KPmlzDQo+PkxpbnV4LXNwZWNpZmlj
-LiBTbywgSSBkb24ndCB0aGluayBhY3BpZHVtcCBpcyBnb2luZyBhd2F5LiBJZiB3ZSBuZWVkIGEN
-Cj5kdW1wDQo+Pm9mIGJvdGggdGhlIFhTRFQgdGFibGVzIGFuZCB0aGUgUlNEVCB0YWJsZXMsIHdl
-IHNob3VsZCBiZSBhYmxlIHRvIG1vZGlmeQ0KPj5hY3BpZHVtcCB0byBwZXJmb3JtIHRoaXMsIGFu
-ZCB3ZSB3aWxsIG5vdCBuZWVkIHRvIGFkZCBrZXJuZWwgY29kZSBvciB1c2UNCj4+a2VybmVsIHJl
-c291cmNlcy4NCj4+DQo+PkJvYg0KPj4NCj4+DQo+Pj4tLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0t
-LQ0KPj4+RnJvbTogWmhhbmcsIFJ1aQ0KPj4+U2VudDogTW9uZGF5LCBPY3RvYmVyIDEzLCAyMDA4
-IDY6MDEgUE0NCj4+PlRvOiBNb29yZSwgUm9iZXJ0DQo+Pj5DYzogTGVuIEJyb3duOyBsaW51eC1h
-Y3BpDQo+Pj5TdWJqZWN0OiBSRTogW1BBVENIIDAvNl0gQUNQSTogYWNwaSB0YWJsZSBtYW5hZ2Vt
-ZW50IGVuaGFuY2VtZW50DQo+Pj4NCj4+Pk9uIE1vbiwgMjAwOC0xMC0xMyBhdCAxMTowMiAtMDYw
-MCwgTW9vcmUsIFJvYmVydCB3cm90ZToNCj4+Pj4gPkkgZm91bmQgdGhhdCB0aGVyZSBhcmUgdHdv
-IEZBQ1MgdGFibGVzIG9uIHRoaXMgcGxhdGZvcm0sDQo+Pj4+ID5YU0RULS0+RkFEVDEtLT5YZmFj
-cy0tPkZBQ1MxDQo+Pj4+ID4gICAgICAgIHwtLS0tLT5mYWNzLXwNCj4+Pj4gPiAgICAgICAgICAg
-ICAgICAgICAgfC0+RkFDUzINCj4+Pj4gPlJTRFQtLT5GQURUMi0tPmZhY3MtfA0KPj4+PiA+TGlu
-dXggdXNlcyBYU0RUIG9uIHRoaXMgcGxhdGZvcm0gYW5kIHNldHMgdGhlIHdha2luZyB2ZWN0b3Ig
-aW4gRkFDUzENCj4+Pj4gPndoZW4gc3VzcGVuZGluZy4NCj4+Pj4gPkJ1dCBpdCBzZWVtcyB0aGF0
-IHRoZSBCSU9TIG9ubHkgY2FyZXMgZm9yIHRoZSB3YWtpbmcgdmVjdG9yIGluIEZBQ1MyLA0KPj4+
-Pg0KPj4+Pg0KPj4+PiBJcyB0aGlzIHBvc3NpYmx5IGFuIGlzc3VlIG9mIHVzaW5nIHRoZSAzMi1i
-aXQgd2FrZSB2ZWN0b3IgdmVyc3VzIHRoZQ0KPjY0LQ0KPj4+Yml0IHdha2UgdmVjdG9yPyAoRm9y
-IGV4YW1wbGUsIHBlcmhhcHMgdGhlIEZBQ1MxIGhhcyBib3RoIHZlY3RvcnMgYW5kIHRoZQ0KPj4+
-NjQtYml0IHZlY3RvciBpcyB1c2VkIGJ1dCBmYWlscy4gQnV0IHRoZSBGQUNTMiBvbmx5IGhhcyB0
-aGUgMzItYml0IHZlY3Rvcg0KPj4+c28gaXQgaXMgdXNlZCwgYW5kIHRoaXMgd29ya3MgY29ycmVj
-dGx5IHdpdGggdGhlIEJJT1MuKQ0KPj4+77u/Tm8sIEkgdGVzdGVkIHRoZSBwYXRjaCBmcm9tIFJh
-ZmFlbCwgd2hpY2ggaXMgdGhlIHNhbWUgZnJvbSB0aGUgb25lDQo+Pj5oZXJlOg0KPj4+aHR0cDov
-L3d3dy5hY3BpY2Eub3JnL2J1Z3ppbGxhL2F0dGFjaG1lbnQuY2dpP2lkPTgxMyZhY3Rpb249dmll
-dw0KPj4+SXQgZG9lc24ndCB3b3JrLg0KPj4+DQo+Pj4+IE9yLCBpcyBpdCBhY3R1YWxseSB0aGUg
-Y2FzZSB3aGVyZSB0aGUgdHdvIEZBQ1MgdGFibGVzIGhhdmUgZGlmZmVyZW50DQo+Pndha2UNCj4+
-PnZlY3RvcnM/IEJvdGggdGhlIDMyLWJpdCB2ZWN0b3JzIGFuZCB0aGUgNjQtYml0IHZlY3RvcnMg
-YXJlIGRpZmZlcmVudD8NCj4+PnRoZSB3YWtlIHZlY3RvciBpcyBqdXN0IGEgbWVtb3J5IGFkZHJl
-c3Mgd2hlcmUgQklPUyBwYXNzZXMgdGhlIGNvbnRyb2wNCj4+PnRvIE9TLg0KPj4+QXMgdGhlcmUg
-YXJlIHR3byBkaWZmZXJlbnQgRkFDUyB0YWJsZXMgbG9jYXRlZCBhdCBkaWZmZXJlbnQgYWRkcmVz
-c2VzLA0KPj4+c3VyZWx5IHRoZSB3YWtlIHZlY3RvcnMgYXJlIGRpZmZlcmVudC4gOikNCj4+Pg0K
-Pj4+dGhhbmtzLA0KPj4+cnVpDQo+Pj4NCj4+Tu+/ve+/ve+/ve+/ve+/vXLvv73vv71577+977+9
-77+9Yu+/vVjvv73vv73Hp3bvv71e77+9Kd66ey5u77+9K++/ve+/ve+/ve+/vXvvv71p77+9Yu+/
-vXthee+/vR3Kh9qZ77+9LGoNCj7vv73vv71m77+977+977+9aO+/ve+/ve+/vXrvv70e77+9d++/
-ve+/ve+/vQ0KPj7vv73vv73vv71qOit277+977+977+9d++/vWrvv71t77+977+977+977+9DQo+
-77+977+977+977+9elor77+977+977+977+977+93aJqIu+/ve+/vSHvv71pDQo+BO+/vXsubu+/
-vSvvv73vv73vv73vv73vv73vv73vv70rJe+/ve+/vWx6d23vv73vv71i77+966ey77+977+9cu+/
-ve+/vXpY77+977+9Fu+/ve+/vSjvv73vv70X77+977+93Kh977+977+977+9xqB677+9Jmo6K3bv
-v73vv73vv70NCu+/ve+/ve+/ve+/vXpaK++/ve+/vSt6Zu+/vQ0KPu+/ve+/vWjvv73vv73vv71+
-77+977+977+977+9ae+/ve+/ve+/vXrvv70e77+9d++/ve+/ve+/vT/vv73vv73vv73vv70m77+9
-Kd+iG2YNCg==
+
+Bob,
+note that we already changed acpidump to get the inactive static 
+tables.  We did this back when we were running into bugs with "invalid" 
+XSDT's and found some machines needed to revert back to using the RSDTs.
+
+Indeed, while I think we nailed some of the major offenders,
+But I suspect we still have some bug compatibility detective work 
+to do in that area.
+
+So what Rui is doing here in exposing inactive tables it to get
+/sys/firmware/acpi/tables to have the equal capability
+of the existing acpidump kvm reader.
+
+One potential glitch I see with this is that the current acpidump
+puts the table address in the text file, so if there is any confusion
+about what tag is at what address, it is easy to refer back to
+the ascii acpidump.out file.
+when we expose the binary tables in user-space, this information is
+no longer present.  dunno if that is important or not.
+
+The other thing Rui is doing is exposing the dynamic tables --
+and that is totally new.
+We could get at those in the past by looking at the AML,
+or more recently, the dmesg, and asking the bug submitter
+to run acpidump with parameters to dump magic addresses.
+What we'd like to do is automate that so they can just
+send us the acpidump output once and that will pull
+in the dynamic tables with the static tables.
+I think this will be valuable.
+
+Unfortunately, dynamic tables will not be exposed in
+cases where we take a path through the AML such that
+they're not loaded -- so we'll still need the manual
+kvm reader method when that happens.
+
+Also, for the cases where we can't boot in ACPI mode at all,
+we'll still need the kvm reader to extract the static
+tables then.
+
+> >  will now get both the "active" and "inactive" tables?
+> yes.
+
+Rui,
+Rather than augmenting the names, such as SSDT_dynamic
+and MADT_inactive, maybe it would make more sense to
+use the original tags, but put them outside
+
+say, in:
+/sys/firmware/acpi/tables/inactive/
+/sys/firmware/acpi/tables/dynamic/
+
+what do you think?
+
+> > 2) In the FACS firmware waking vector case, we set the vector in both the "active" FACS and the "inactive" FACS.
+> Right.
+> > 
+> > Again, please note that we have changed the ACPICA interface to set the firmware wake vector - splitting into two.
+> hmm, when will this change be shipped to Linux?
+> BTW: Rafael has already proposed a patch which always clears 64 bit wake
+> vector and uses the 32 bit one.
+> http://marc.info/?l=linux-acpi&m=122370808622832&w=2
+
+BTW, Rafael's patch above is staged for 2.6.28.
+
+thanks,
+-Len
