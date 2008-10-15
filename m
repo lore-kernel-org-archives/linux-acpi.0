@@ -1,49 +1,51 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: Re: New battery doesn't work under linux, but does under windows
-Date: Thu, 16 Oct 2008 00:16:15 +0400
-Message-ID: <48F64F8F.4070004@gmail.com>
-References: <200810151359.58976.eric@certus.bz>
+From: "Brown, John M (WGBU R&D)" <john.brown3@hp.com>
+Subject: RE: [PATCH] ACPI suspend: Blacklist HP xw4600 Workstation for old
+ code ordering
+Date: Wed, 15 Oct 2008 20:35:54 +0000
+Message-ID: <C075D3D77BA5EF4FBB0939047B182ABF25C79AD3EE@GVW1144EXB.americas.hpqcorp.net>
+References: <200810142254.07024.rjw@sisk.pl>
+ <20081015085809.GA1061@srcf.ucam.org> <200810151605.35883.rjw@sisk.pl>
+ <20081015141526.GA5633@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.24]:60581 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752100AbYJOUQS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Oct 2008 16:16:18 -0400
-Received: by ey-out-2122.google.com with SMTP id 6so1057847eyi.37
-        for <linux-acpi@vger.kernel.org>; Wed, 15 Oct 2008 13:16:16 -0700 (PDT)
-In-Reply-To: <200810151359.58976.eric@certus.bz>
+Received: from g1t0029.austin.hp.com ([15.216.28.36]:26900 "EHLO
+	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751911AbYJOUhR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Oct 2008 16:37:17 -0400
+In-Reply-To: <20081015141526.GA5633@srcf.ucam.org>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Eric Atkin <eric@certus.bz>
-Cc: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>
 
-Eric Atkin wrote:
-> So I bought a new battery for my laptop and installed it. I booted into Linux 
-> (gentoo) and kpowersave recognized the new battery and for the next few hours 
-> showed it charging up. The guy at the battery store said I should charge it 
-> fully and then discharge fully to calibrate, so, once full, i disconnected AC 
-> power and continued to work. kpowersave recognize that power had been removed 
-> and showed the battery discharging at a normal rate. After about 1 minute, my 
-> laptop just shut off. No warnings or attempts to suspend or hibernate or 
-> anything. Power was just cut off. I tested several times and always got the 
-> same result. I assumed it was a bad battery, but then I had to boot into 
-> windows for something and decided to try it there. In windows, I waited till 
-> the charge was at 100% then disconnected AC and let it run. It ran for about 
-> two hours as expected before dying. But if I boot back into linux, it dies 
-> again after just a minute or two. I don't even know where to begin. Any 
-> ideas? $170 battery that I can't take back because it does actually work, and 
-> anyway, it seems to be a software issue.
-> Eric
->   
-First, you should tell us your kernel version and loaded battery module
-(battery.ko or sbs.ko)
-Second, please do a "grep . /proc/acpi/battery/*/*" with attached AC
-and try to do this with it disconnected.
-It might be a good idea to open a new bug report in bugzilla.kernel.org 
-for ACPI/battery and assign it to
-astarikovskiy@suse.de (me).
+I don't know the technical details behind *how* Windows copes with it, but I can tell you that it works fine on Windows.  Naturally we'd like it to work fine on Linux, too, and Rafael's blacklist fix accomplishes that.  There may be other solutions to this issue on Linux that are worth looking into, but perhaps we can accept Rafael's fix as a workaround for now.
 
-Regards,
-Alex.
+BTW, there is probably at least one more fairly recent vintage HP workstation that will require this same fix.  My testing isn't complete yet, though.
+
+John
+
+-----Original Message-----
+From: Matthew Garrett [mailto:mjg59@srcf.ucam.org]
+Sent: Wednesday, October 15, 2008 8:15 AM
+To: Rafael J. Wysocki
+Cc: Len Brown; ACPI Devel Maling List; Andrew Morton; LKML; Brown, John M (WGBU R&D)
+Subject: Re: [PATCH] ACPI suspend: Blacklist HP xw4600 Workstation for old code ordering
+
+On Wed, Oct 15, 2008 at 04:05:35PM +0200, Rafael J. Wysocki wrote:
+> On Wednesday, 15 of October 2008, Matthew Garrett wrote:
+> > I think trying to work out what would be more useful than just
+> > adding it to a blacklist.
+>
+> Well, machines that require the "old" ordering are simply broken,
+> because you just can't assume that specific devices are not in D3
+> before you execute _PTS.
+>
+> IOW, we aren't doing anything wrong and the BIOS is buggy.
+
+So how does Windows cope with this?
+
+--
+Matthew Garrett | mjg59@srcf.ucam.org
