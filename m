@@ -1,44 +1,51 @@
-From: Adam Jackson <ajax@redhat.com>
-Subject: [PATCH] sony-laptop: Ignore missing _DIS method on pic device
-Date: Thu, 16 Oct 2008 17:29:10 -0400
-Message-ID: <1224192550-366-1-git-send-email-ajax@redhat.com>
+From: Len Brown <lenb@kernel.org>
+Subject: [PATCH 1/2] x86: allow module driver to register idle notifier
+Date: Thu, 16 Oct 2008 18:05:30 -0400 (EDT)
+Message-ID: <alpine.LFD.1.10.0810161803230.3026@localhost.localdomain>
+References: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
+ <e8b529091b2ab65f5a4783e292c2b472e309116e.1223706853.git.len.brown@intel.com>
+ <20081011083347.GA31918@elte.hu>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([66.187.233.31]:36901 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751322AbYJPV3R (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 16 Oct 2008 17:29:17 -0400
+Received: from vms042pub.verizon.net ([206.46.252.42]:51988 "EHLO
+	vms042pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755856AbYJPWGD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Oct 2008 18:06:03 -0400
+In-reply-to: <20081011083347.GA31918@elte.hu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>, Adam Jackson <ajax@redhat.com>
+To: Ingo Molnar <mingo@elte.hu>
+Cc: linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Venki Pallipadi <venkatesh.pallipadi@intel.com>, Andy Henroid <andrew.d.henroid@intel.com>, Len Brown <len.brown@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Andi Kleen <ak@linux.intel.com>
 
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-At least the Vaio VGN-Z540N doesn't have this method, so let's not fail
-to suspend just because it doesn't exist.
+needed if the i7300_idle driver is to be a module.
 
-Signed-off-by: Adam Jackson <ajax@redhat.com>
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/sony-laptop.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+ arch/x86/kernel/process_64.c |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/misc/sony-laptop.c b/drivers/misc/sony-laptop.c
-index 60775be..b35eb92 100644
---- a/drivers/misc/sony-laptop.c
-+++ b/drivers/misc/sony-laptop.c
-@@ -2315,8 +2315,10 @@ end:
-  */
- static int sony_pic_disable(struct acpi_device *device)
+diff --git a/arch/x86/kernel/process_64.c b/arch/x86/kernel/process_64.c
+index e12e0e4..3e3d503 100644
+--- a/arch/x86/kernel/process_64.c
++++ b/arch/x86/kernel/process_64.c
+@@ -62,6 +62,13 @@ void idle_notifier_register(struct notifier_block *n)
  {
--	if (ACPI_FAILURE(acpi_evaluate_object(device->handle,
--			"_DIS", NULL, NULL)))
-+	acpi_status ret = acpi_evaluate_object(device->handle, "_DIS", NULL,
-+					       NULL);
+ 	atomic_notifier_chain_register(&idle_notifier, n);
+ }
++EXPORT_SYMBOL_GPL(idle_notifier_register);
 +
-+	if (ACPI_FAILURE(ret) && ret != AE_NOT_FOUND)
- 		return -ENXIO;
++void idle_notifier_unregister(struct notifier_block *n)
++{
++	atomic_notifier_chain_unregister(&idle_notifier, n);
++}
++EXPORT_SYMBOL_GPL(idle_notifier_unregister);
  
- 	dprintk("Device disabled\n");
+ void enter_idle(void)
+ {
 -- 
-1.6.0.1
+1.6.0.2.532.g84ed4c
 
