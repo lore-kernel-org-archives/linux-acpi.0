@@ -1,45 +1,47 @@
-From: Jordan Crouse <jordan.crouse@amd.com>
-Subject: Re: WDRT based watchdog timer
-Date: Thu, 16 Oct 2008 16:40:57 -0600
-Message-ID: <20081016224057.GC21476@cosmic.amd.com>
-References: <20080926232752.GA6061@cosmic.amd.com> <alpine.LFD.1.10.0810081552220.3041@localhost.localdomain> <20081008204422.GA2932@cosmic.amd.com> <20081014204034.GF30246@infomag.infomag.iguana.be> <20081015133350.GA6822@infomag.infomag.iguana.be> <alpine.LFD.1.10.0810161821050.3026@localhost.localdomain>
+From: Norbert Preining <preining@logic.at>
+Subject: Re: Sony laptop not rebooting
+Date: Fri, 17 Oct 2008 00:41:43 +0200
+Message-ID: <20081016224143.GB31361@gamma.logic.tuwien.ac.at>
+References: <20081016120414.GA30291@gamma.logic.tuwien.ac.at> <20081016162213.77FA1E0B0@master.hanzubon.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outbound-wa4.frontbridge.com ([216.32.181.16]:32758 "EHLO
-	WA4EHSOBE002.bigfish.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752930AbYJPWjf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Oct 2008 18:39:35 -0400
+Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:56985 "EHLO
+	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755362AbYJPWlo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Oct 2008 18:41:44 -0400
+Received: from gamma.logic.tuwien.ac.at ([128.130.175.3] ident=Debian-exim)
+	by mx.logic.tuwien.ac.at with esmtps (TLS-1.0:RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.63)
+	(envelope-from <preining@logic.at>)
+	id 1KqbXL-0001PU-It
+	for linux-acpi@vger.kernel.org; Fri, 17 Oct 2008 00:41:43 +0200
+Received: from preining by gamma.logic.tuwien.ac.at with local (Exim 4.63)
+	(envelope-from <preining@logic.at>)
+	id 1KqbXL-0008HN-HA
+	for linux-acpi@vger.kernel.org; Fri, 17 Oct 2008 00:41:43 +0200
 Content-Disposition: inline
-In-Reply-To: <alpine.LFD.1.10.0810161821050.3026@localhost.localdomain>
+In-Reply-To: <20081016162213.77FA1E0B0@master.hanzubon.jp>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Wim Van Sebroeck <wim@iguana.be>, linux-acpi@vger.kernel.org, Marc Brooker <mbrooker@rrsg.ee.uct.ac.za>
+To: linux-acpi@vger.kernel.org
 
-On 16/10/08 18:23 -0400, Len Brown wrote:
-> Jordan,
-> just to clarify, Wim is in charge of the watchdog drivers,
-> and so this one would go upstream via Wim.
+On Fr, 17 Okt 2008, ISHIKAWA Mutsumi wrote:
+>  I recommed to you to update BIOS of your VAIO.
 
-Of course. 
+For completeness, yes, that did the trick. Thanks.
 
-> Re: ACPI-ness, I'm find with Wim's edited version,
-> except for this remaining bit:
-> 
-> +L:     linux-acpi@vger.kernel.org
-> +W:     http://www.lesswatts.org/projects/acpi/
-> 
-> otherwise...
-> Acked-by: Len Brown <len.brown@intel.com>
+Best wishes
 
-Yes, I'm happy with the final version.  Thank you very much Wim and
-Len for your comments.  Now, we just need to find some testers :)
+Norbert
 
-Jordan
-
--- 
-Jordan Crouse
-Systems Software Development Engineer 
-Advanced Micro Devices, Inc.
-
+-------------------------------------------------------------------------------
+Dr. Norbert Preining <preining@logic.at>        Vienna University of Technology
+Debian Developer <preining@debian.org>                         Debian TeX Group
+gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
+-------------------------------------------------------------------------------
+In those days spirits were brave, the stakes were high,
+men were real men, women were real women, and small furry
+creatures from Alpha Centauri were real small furry
+creatures from Alpha Centauri.
+                 --- Douglas Adams, The Hitchhikers Guide to the Galaxy
