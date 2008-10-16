@@ -1,34 +1,62 @@
-From: Adam Jackson <ajax@redhat.com>
-Subject: [PATCH] sony-laptop: newline-terminate the printk for backlight change failure
-Date: Thu, 16 Oct 2008 15:15:35 -0400
-Message-ID: <1224184535-30764-1-git-send-email-ajax@redhat.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([66.187.233.31]:52598 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755369AbYJPTPi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 16 Oct 2008 15:15:38 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Len Brown <lenb@kernel.org>
+Subject: RE: [PATCH] ACPI suspend: Blacklist HP xw4600 Workstation for old code
+ ordering
+Date: Thu, 16 Oct 2008 15:31:38 -0400 (EDT)
+Message-ID: <alpine.LFD.1.10.0810161525450.3026@localhost.localdomain>
+References: <200810142254.07024.rjw@sisk.pl>
+ <C075D3D77BA5EF4FBB0939047B182ABF25C79AD3EE@GVW1144EXB.americas.hpqcorp.net>
+ <alpine.LFD.1.10.0810151746460.3026@localhost.localdomain>
+ <200810160001.00053.rjw@sisk.pl>
+ <C075D3D77BA5EF4FBB0939047B182ABF25C79ADA45@GVW1144EXB.americas.hpqcorp.net>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758221AbYJPTcA@vger.kernel.org>
+In-reply-to: <C075D3D77BA5EF4FBB0939047B182ABF25C79ADA45@GVW1144EXB.americas.hpqcorp.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Brown, John M (WGBU R&D)" <john.brown3@hp.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg59@srcf.ucam.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, Adam Jackson <ajax@redhat.com>
 
----
- drivers/misc/sony-laptop.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+> I also noted that acpidump printed this message to stderr:
+> Wrong checksum for FADT!
 
-diff --git a/drivers/misc/sony-laptop.c b/drivers/misc/sony-laptop.c
-index 60775be..5a97d3a 100644
---- a/drivers/misc/sony-laptop.c
-+++ b/drivers/misc/sony-laptop.c
-@@ -970,7 +970,7 @@ static int sony_nc_resume(struct acpi_device *device)
- 	/* set the last requested brightness level */
- 	if (sony_backlight_device &&
- 			!sony_backlight_update_status(sony_backlight_device))
--		printk(KERN_WARNING DRV_PFX "unable to restore brightness level");
-+		printk(KERN_WARNING DRV_PFX "unable to restore brightness level\n");
- 
- 	/* re-initialize models with specific requirements */
- 	dmi_check_system(sony_nc_ids);
--- 
-1.6.0.1
+The RSDT has a pointer to an FACP at DEFC2014 (aka FADT),
+and that FACP has a bad checksum.
 
+But this system has an XSDT, which the OS prefers
+over the RSDT.  The XSDT points to an FACP at DEFC2088
+and its checksum is fine.
+
+This difference is moot here,
+because both FACP's point to the same DSDT at DEFC2647,
+and it is the DSDT that has the AML related to ordering.
+
+The reason you see this error message from acpidump
+and not from Linux is that the kernel only uses the 'active' 
+tables, while acpidump snags both the active and insactive tables
+for debugging.
+
+cheers,
+-Len
+
+> -----Original Message-----
+> From: Rafael J. Wysocki [mailto:rjw@sisk.pl]
+> Sent: Wednesday, October 15, 2008 4:01 PM
+> To: Len Brown
+> Cc: Brown, John M (WGBU R&D); Matthew Garrett; ACPI Devel Maling List; Andrew Morton; LKML
+> Subject: Re: [PATCH] ACPI suspend: Blacklist HP xw4600 Workstation for old code ordering
+> 
+> On Wednesday, 15 of October 2008, Len Brown wrote:
+> > Matthew,
+> > You are right, of course, we're not doing something right if a new
+> > machine needs this workaround.
+> 
+> Isn't that possible, however, that the BIOS of this new machine is based on an older one that used to have this problem?
+> 
+> > However, we don't yet know what we're not doing right:-)
+> 
+> Well, John, can you please post the output of acpidump from this machine?
+> 
+> Thanks,
+> Rafael
+> 
