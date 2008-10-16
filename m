@@ -1,47 +1,64 @@
-From: Norbert Preining <preining@logic.at>
-Subject: Re: Sony laptop not rebooting
-Date: Fri, 17 Oct 2008 00:41:43 +0200
-Message-ID: <20081016224143.GB31361@gamma.logic.tuwien.ac.at>
-References: <20081016120414.GA30291@gamma.logic.tuwien.ac.at> <20081016162213.77FA1E0B0@master.hanzubon.jp>
+From: Mattia Dongili <malattia@linux.it>
+Subject: Re: [PATCH] sony-laptop: Ignore missing _DIS method on pic device
+Date: Fri, 17 Oct 2008 07:49:03 +0900
+Message-ID: <20081016224903.GD21963@inferi.kami.home>
+References: <1224192550-366-1-git-send-email-ajax@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:56985 "EHLO
-	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755362AbYJPWlo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Oct 2008 18:41:44 -0400
-Received: from gamma.logic.tuwien.ac.at ([128.130.175.3] ident=Debian-exim)
-	by mx.logic.tuwien.ac.at with esmtps (TLS-1.0:RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.63)
-	(envelope-from <preining@logic.at>)
-	id 1KqbXL-0001PU-It
-	for linux-acpi@vger.kernel.org; Fri, 17 Oct 2008 00:41:43 +0200
-Received: from preining by gamma.logic.tuwien.ac.at with local (Exim 4.63)
-	(envelope-from <preining@logic.at>)
-	id 1KqbXL-0008HN-HA
-	for linux-acpi@vger.kernel.org; Fri, 17 Oct 2008 00:41:43 +0200
+Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:39649
+	"EHLO tadamune.kami.home" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1759090AbYJPXRR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 16 Oct 2008 19:17:17 -0400
 Content-Disposition: inline
-In-Reply-To: <20081016162213.77FA1E0B0@master.hanzubon.jp>
+In-Reply-To: <1224192550-366-1-git-send-email-ajax@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Adam Jackson <ajax@redhat.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On Fr, 17 Okt 2008, ISHIKAWA Mutsumi wrote:
->  I recommed to you to update BIOS of your VAIO.
+On Thu, Oct 16, 2008 at 05:29:10PM -0400, Adam Jackson wrote:
+> From: Matthew Garrett <mjg59@srcf.ucam.org>
+> 
+> At least the Vaio VGN-Z540N doesn't have this method, so let's not fail
+> to suspend just because it doesn't exist.
 
-For completeness, yes, that did the trick. Thanks.
+Do you happen to have a DSDT dump for this model? I'd be glad to see it.
 
-Best wishes
+> Signed-off-by: Adam Jackson <ajax@redhat.com>
 
-Norbert
+Acked-by: Mattia Dongili <malattia@linux.it>
 
--------------------------------------------------------------------------------
-Dr. Norbert Preining <preining@logic.at>        Vienna University of Technology
-Debian Developer <preining@debian.org>                         Debian TeX Group
-gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
--------------------------------------------------------------------------------
-In those days spirits were brave, the stakes were high,
-men were real men, women were real women, and small furry
-creatures from Alpha Centauri were real small furry
-creatures from Alpha Centauri.
-                 --- Douglas Adams, The Hitchhikers Guide to the Galaxy
+> ---
+>  drivers/misc/sony-laptop.c |    6 ++++--
+>  1 files changed, 4 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/misc/sony-laptop.c b/drivers/misc/sony-laptop.c
+> index 60775be..b35eb92 100644
+> --- a/drivers/misc/sony-laptop.c
+> +++ b/drivers/misc/sony-laptop.c
+> @@ -2315,8 +2315,10 @@ end:
+>   */
+>  static int sony_pic_disable(struct acpi_device *device)
+>  {
+> -	if (ACPI_FAILURE(acpi_evaluate_object(device->handle,
+> -			"_DIS", NULL, NULL)))
+> +	acpi_status ret = acpi_evaluate_object(device->handle, "_DIS", NULL,
+> +					       NULL);
+> +
+> +	if (ACPI_FAILURE(ret) && ret != AE_NOT_FOUND)
+>  		return -ENXIO;
+>  
+>  	dprintk("Device disabled\n");
+> -- 
+> 1.6.0.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+-- 
+mattia
+:wq!
