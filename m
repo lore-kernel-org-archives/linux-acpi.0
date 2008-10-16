@@ -1,58 +1,83 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 53/85] i7300_idle driver v1.55
-Date: Wed, 15 Oct 2008 18:32:30 -0400 (EDT)
-Message-ID: <alpine.LFD.1.10.0810151822520.3026@localhost.localdomain>
-References: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
- <e8b529091b2ab65f5a4783e292c2b472e309116e.1223706853.git.len.brown@intel.com>
- <20081011083347.GA31918@elte.hu>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Suspend/resume regression between 2.6.26 and 2.6.27-rc1
+Date: Thu, 16 Oct 2008 15:56:58 +0800
+Message-ID: <1224143818.3944.68.camel@yakui_zhao.sh.intel.com>
+References: <1223625973.2735.142.camel@rzhang-dt>
+	 <200810101441.14123.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755955AbYJOWcv@vger.kernel.org>
-In-reply-to: <20081011083347.GA31918@elte.hu>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Venki Pallipadi <venkatesh.pallipadi@intel.com>, Andy Henroid <andrew.d.henroid@intel.com>, Len Brown <len.brown@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:57311 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752578AbYJPHv2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 16 Oct 2008 03:51:28 -0400
+In-Reply-To: <200810101441.14123.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org
+Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, "Li, Shaohua" <shaohua.li@intel.com>, mingo@elte.hu
 
+On Fri, 2008-10-10 at 14:41 +0200, Rafael J. Wysocki wrote:
+> On Friday, 10 of October 2008, Zhang Rui wrote:
+> > Hi, len,
+> >=20
+> > this is the ACPI regression test result based on the latest ACPI te=
+st branch.
+> >=20
+> > 1. on =EF=BB=BFAcer:(AMD CPU, VIA chipset. 64 bit kernel)
+> > =EF=BB=BFWhen doing S3 test, after pressing the power button, the s=
+ystem
+> > reboots instead of resuming. But if S3 is done after S4, the system=
+ can
+> > resume very well after pressing power button or using the RTC
+> > alarm.
+> > Note that this is an upstream regression as it can be reproduced on
+> > linus' tree.
+> > Yakui is investigating this issue.
+>=20
+> We had some reports of the second suspend (S3) failure too, where the=
+ second
+> attempt to suspend to RAM (or to resume from it) failed after a succe=
+ssful
+> one.  I wonder if that's related.
+Some suspend/resume tests are done on one Acer laptop(AMD CPU, VIA
+chipset, 64-bit kernel).
+   The system will be rebooted when pressing power button after the box
+enters S3 state. But if S3 is done after doing S4, the system can be
+resumed very well after pressing power button.This issue can be
+reproduced on the upstream kernel.
 
+After the further test we can confirm that this is a regression. The
+2.6.26 kernel can work well on this box. But the 2.6.27-rc1 will fail.
 
-> > --- a/arch/x86/kernel/process_64.c
-> > +++ b/arch/x86/kernel/process_64.c
-> > @@ -62,6 +62,13 @@ void idle_notifier_register(struct notifier_block *n)
-> >  {
-> >  	atomic_notifier_chain_register(&idle_notifier, n);
-> >  }
-> > +EXPORT_SYMBOL_GPL(idle_notifier_register);
-> > +
-> > +void idle_notifier_unregister(struct notifier_block *n)
-> > +{
-> > +	atomic_notifier_chain_unregister(&idle_notifier, n);
-> > +}
-> > +EXPORT_SYMBOL_GPL(idle_notifier_unregister);
-> 
-> hm, such x86 infrastructure changes should be submitted via the x86 
-> tree, and you should at least have Cc:-ed the maintainers.
+After using the git-bisect it is confirmed that the commit
+736f12bff9d9e7b4e895c64f73b190c8383fc2a1 is good.=20
+    >commit 736f12bff9d9e7b4e895c64f73b190c8383fc2a1
+    >Author: Glauber Costa <gcosta@redhat.com>
+    > Date:   Tue May 27 20:14:51 2008 -0700
+       >x86: don't use gdt_page openly.
 
-I agree that this patch did not hit the list in the conventional way.
-I apologize for that, and I thank you, Ingo, for noticing the patch.
+And the commit=20
+55f262391a2365d657a00ed68edd1a51bca66af5 is bad.=20
+   >commit 55f262391a2365d657a00ed68edd1a51bca66af5
+   >Author: Yinghai Lu <yhlu.kernel@gmail.com>
+   >Date:   Wed Jun 25 17:54:23 2008 -0700
+    >x86: rename setup_32.c to setup.c
 
-> The thing is, we are _getting rid_ of the idle notifiers, not extending 
-> them. The last thing we need is random opaque stuff getting called in 
-> weird ordering when we enter/exit idle state. We want all that be 
-> visible and have explicit, in-source-code ordering.
+  The patches between the above two commits are related with X86. When
+using git-bisect between the above two commits, we will get the
+compiling errors(For example: some files don't exist) or the kernel
+panic. So we can't continue using git-bisect to identify which commit
+the regression is caused by.
 
-The patch on the table is basically a platform (chipset) idle hook.
-When the system is very idle, it saves energy in the memory sub-system.
-Linux customers are asking for this capability b/c it allows them
-to save energy and save money.
+Best regards.
+   Yakui.
 
-We considered putting a platform hook into the cpuidle code,
-but it seemed simpler this way -- since the new platform hook
-would end up looking almost exactly like the idle notifier
-that we have already.  So x86-wise, all we did here is
-expose the register/unregister so the driver can be modular.
+> >
 
-I'm certainly open to suggestions.
-
-thanks,
--Len
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
