@@ -1,34 +1,133 @@
-From: "Lin Ming" <minggr@gmail.com>
-Subject: Re: Suspend/resume regression between 2.6.26 and 2.6.27-rc1
-Date: Fri, 17 Oct 2008 08:40:47 +0800
-Message-ID: <9a61df10810161740g1838c7a2me97a9a01f08c632@mail.gmail.com>
-References: <1223625973.2735.142.camel@rzhang-dt>
-	 <200810101441.14123.rjw@sisk.pl>
-	 <1224143818.3944.68.camel@yakui_zhao.sh.intel.com>
-	 <48F70BE3.1050009@tuffmail.co.uk>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: ACPI reboot
+Date: Fri, 17 Oct 2008 09:13:56 +0800
+Message-ID: <1224206036.3944.135.camel@yakui_zhao.sh.intel.com>
+References: <alpine.LFD.1.10.0810161958460.3026@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.153]:34793 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752726AbYJQAkt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Oct 2008 20:40:49 -0400
-Received: by fg-out-1718.google.com with SMTP id 19so193860fgg.17
-        for <linux-acpi@vger.kernel.org>; Thu, 16 Oct 2008 17:40:47 -0700 (PDT)
-In-Reply-To: <48F70BE3.1050009@tuffmail.co.uk>
-Content-Disposition: inline
+Received: from mga01.intel.com ([192.55.52.88]:42525 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750824AbYJQBIW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 16 Oct 2008 21:08:22 -0400
+In-Reply-To: <alpine.LFD.1.10.0810161958460.3026@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Jenkins <aj504@student.cs.york.ac.uk>
-Cc: Zhao Yakui <yakui.zhao@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, "Li, Shaohua" <shaohua.li@intel.com>, mingo@elte.hu
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
 
-On Thu, Oct 16, 2008 at 5:39 PM, Alan Jenkins
-<aj504@student.cs.york.ac.uk> wrote:
-> There's a known fix for the kernel panic.  It's referenced at <http://bugzilla.kernel.org/show_bug.cgi?id=11237#c25>.  That should help you bisect down to a smaller range.  Hopefully you can rule out the commit that caused^Wexposed Bug #11237, which is really a nasty BIOS bug.
+On Thu, 2008-10-16 at 20:08 -0400, Len Brown wrote:
+> Yakui,
+> I think your patch below from
+> http://bugzilla.kernel.org/show_bug.cgi?id=11481
+> is close, but not quite right.
+> 
+> "reboot=a" should not be necessary, as reboot_type = BOOT_ACPI
+> by default, yes?
+the default reboot_type is BOOT_KBD. So it is necessary to add the boot
+option of "reboot=a" to use the ACPI reboot mechanism.
+> Re: DMI to ignore a missing (acpi_gbl_FADT.flags & 
+> ACPI_FADT_RESET_REGISTER)....
+> 
+> If we need DMI,
+> it should be checked at _boot_ time, not at _reboot_ 
+> time, and the table should be marked _initdata.
+Ok. I will refresh it. The DMI table will be put into _initdata
+section. 
+> 
+> But the real question is if we should be checking this bit
+> at all.  The fact that we are adding DMI to ignore it suggest
+> that we should think about ignoring it by default, and instead
+> perhaps sanity checking acpi_gbl_FADT.reset_register
+> and basing our decision to use it on that?
+According to the ACPI spec the bit indicates whether the ACPI reset
+mechanism is supported. If it is zero, maybe OS should not use the ACPI
+reset mechanism even when ACPI_RESET_REG is defined.
 
-It's already the result after the patch you mentioned applied.
-We can not bisect any more due to compile error because i386/x86_64 merge stuff.
+On some laptops the system can't be rebooted by using default
+reboot_type(BOOT_KBD) after it is resumed from S3. If the ACPI reboot is
+used, the system can be rebooted. But unfortunately the FADT flag bit
+indicates that ACPI reboot mechanism is not supported.  This seems
+contradictory.
 
-Thanks,
-Lin Ming
+In the patch the FADT flag bit is checked to comply with the ACPI spec.
+But in order to use the ACPI reboot mechanism on some laptops, the DMI
+check table is added in which the FADT flag bit is ignored. 
+
+Of course what you said is also OK. When the system is expected to be
+rebooted using the ACPI reboot mechanism, the FADT flag bit is ignored
+and instead reset_register/reset_value is checked. If so, the DMI check
+table is redundant.
+
+I will refresh the patch based on your suggestion.
+Thanks.
+> 
+> thanks,
+> -Len
+> -----------
+> 
+> Subject: ACPI: Add the DMI check table to support ACPI reboot
+> From: Zhao Yakui <yakui.zhao@intel.com>
+> 
+> On some broken laptops the system can't be rebooted after it is resumed from
+> S3. The system can be rebooted by writting RESET_VALUE to 
+> RESET_REGISTER although the ACPI_FADT_RESET_REGISTER bit in the FADT flag 
+> indicates that ACPI reboot mechanism is not supported.
+> 
+> Maybe it is appropriate that the acpi_reboot DMI checkt table is added so that
+> the ACPI reboot is used forcibly on some broken laptops in case of adding
+> the boot option of "reboot=a".
+> 
+> http://bugzilla.kernel.org/show_bug.cgi?id=7299
+> http://bugzilla.kernel.org/show_bug.cgi?id=11481
+> 
+> Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+> ---
+>  drivers/acpi/reboot.c |   25 ++++++++++++++++++++++++-
+>  1 file changed, 24 insertions(+), 1 deletion(-)
+> 
+> Index: linux-2.6/drivers/acpi/reboot.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/reboot.c
+> +++ linux-2.6/drivers/acpi/reboot.c
+> @@ -3,6 +3,22 @@
+>  #include <linux/acpi.h>
+>  #include <acpi/reboot.h>
+>  
+> +const static struct dmi_system_id reboot_dmi_table[] = {
+> +	{
+> +	NULL, "Asus M3N board", {
+> +	DMI_MATCH(DMI_BIOS_VERSION, "0207"),
+> +	DMI_MATCH(DMI_BIOS_DATE, "03/16/2004"),
+> +	DMI_MATCH(DMI_PRODUCT_NAME, "M3N"),
+> +	DMI_MATCH(DMI_BOARD_NAME, "M3N") }, NULL},
+> +	{
+> +	NULL, "Asus M6NE board", {
+> +	DMI_MATCH(DMI_BIOS_VERSION, "0208"),
+> +	DMI_MATCH(DMI_BIOS_DATE, "03/28/2005"),
+> +	DMI_MATCH(DMI_PRODUCT_NAME, "M6Ne"),
+> +	DMI_MATCH(DMI_BOARD_NAME, "M6Ne") }, NULL},
+> +	{},
+> +};
+> +
+>  void acpi_reboot(void)
+>  {
+>  	struct acpi_generic_address *rr;
+> @@ -16,7 +32,14 @@ void acpi_reboot(void)
+>  	rr = &acpi_gbl_FADT.reset_register;
+>  
+>  	/* Is the reset register supported? */
+> -	if (!(acpi_gbl_FADT.flags & ACPI_FADT_RESET_REGISTER) ||
+> +	if (dmi_check_system(reboot_dmi_table)) {
+> +		/*
+> +		 * If the laptop falls into the DMI check table, the
+> +		 * ACPI reboot mechanism will be used forcibly regardless of
+> +		 * the ACPI_FADT_RESET_REGISTER bit flag.
+> +		 */
+> +		printk(KERN_DEBUG "ACPI reboot mechanism will be used\n");
+> +	} else if (!(acpi_gbl_FADT.flags & ACPI_FADT_RESET_REGISTER) ||
+>  	    rr->bit_width != 8 || rr->bit_offset != 0)
+>  		return;
+>  
+
