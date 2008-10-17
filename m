@@ -1,159 +1,91 @@
 From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH 0/6] ACPI: acpi table management enhancement
-Date: Fri, 17 Oct 2008 10:52:59 -0700
-Message-ID: <4911F71203A09E4D9981D27F9D830858032E0222@orsmsx503.amr.corp.intel.com>
+Subject: acpidump going away?
+Date: Fri, 17 Oct 2008 10:54:50 -0700
+Message-ID: <4911F71203A09E4D9981D27F9D830858032E022A@orsmsx503.amr.corp.intel.com>
 References: <1223885404.2735.183.camel@rzhang-dt>
-	 <4911F71203A09E4D9981D27F9D830858031948BA@orsmsx503.amr.corp.intel.com>
-	 <1223946036.2735.212.camel@rzhang-dt>
-	 <4911F71203A09E4D9981D27F9D83085803213EB4@orsmsx503.amr.corp.intel.com>
-	 <4911F71203A09E4D9981D27F9D83085803277F40@orsmsx503.amr.corp.intel.com>
-	 <4911F71203A09E4D9981D27F9D83085803278063@orsmsx503.amr.corp.intel.com>
-	 <4911F71203A09E4D9981D27F9D8308580327808C@orsmsx503.amr.corp.intel.com>
- <1224211645.2735.283.camel@rzhang-dt>
+	 <4911F71203A09E4D9981D27F9D83085803194DE3@orsmsx503.amr.corp.intel.com>
+	 <1223947180.2735.228.camel@rzhang-dt>
+	 <alpine.LFD.1.10.0810151801290.3026@localhost.localdomain>
+	 <4911F71203A09E4D9981D27F9D83085803278477@orsmsx503.amr.corp.intel.com>
+ <1224209340.2735.276.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:62426 "EHLO mga09.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:59436 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755263AbYJQRxJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 17 Oct 2008 13:53:09 -0400
-In-Reply-To: <1224211645.2735.283.camel@rzhang-dt>
+	id S1755588AbYJQRzG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Oct 2008 13:55:06 -0400
+In-Reply-To: <1224209340.2735.276.camel@rzhang-dt>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, "Lin, Ming M" <ming.m.lin@intel.com>, "Zhao, Yakui" <yakui.zhao@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>
 
-PkluIG9yZGVyIHRvIHRlc3QgaWYgZ2xvYmFsIGxvY2sgd29ya3Mgb3Igbm90LA0KPndlIG5lZWQg
-dG8gYWNxdWlyZSB0aGUgZ2xvYmFsIGxvY2sgaW4gTGludXggd2hpbGUgQklPUyBob2xkcyBpdCwg
-cmlnaHQ/DQo+QnV0IEkgZG9uJ3Qga25vdyBob3cgdG8gbWFrZSBCSU9TIGhvbGQgdGhlIGdsb2Jh
-bCBsb2NrLiA6KA0KPmFueSBpZGVhcz8NCg0KTm8sIEJJT1MgZG9lcyBub3QgbmVlZCB0byBiZSBo
-b2xkaW5nIHRoZSBsb2NrLiBJZiB5b3UgY2FuIHN1Y2Nlc3NmdWxseSBhY3F1aXJlIHRoZSBnbG9i
-YWwgbG9jayBvbiB0aGUgT1Mgc2lkZSwgdGhpcyB3aWxsIHByb3ZlIHRoYXQgdGhlIGxvY2sgaXMg
-dmFsaWQuIEZyb20gdGhlIE9TLCBmaXJzdCB0aGUgInBlbmRpbmciIGJpdCBpcyBzZXQsIGFuZCBp
-ZiB0aGUgZ2xvYmFsIGxvY2sgaXMgYWNxdWlyZWQgc3VjY2Vzc2Z1bGx5LCBpdCByZXNwb25kcyBi
-eSBzZXR0aW5nIHRoZSAib3duZWQiIGJpdC4gSWYgdGhpcyB3b3JrcyBjb3JyZWN0bHksIHRoZSBn
-bG9iYWwgbG9jayB3b3Jrcy4NCg0KDQo+LS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj5Gcm9t
-OiBaaGFuZywgUnVpDQo+U2VudDogVGh1cnNkYXksIE9jdG9iZXIgMTYsIDIwMDggNzo0NyBQTQ0K
-PlRvOiBNb29yZSwgUm9iZXJ0DQo+Q2M6IExlbiBCcm93bjsgbGludXgtYWNwaTsgTGluLCBNaW5n
-IE07IFpoYW8sIFlha3VpDQo+U3ViamVjdDogUkU6IFtQQVRDSCAwLzZdIEFDUEk6IGFjcGkgdGFi
-bGUgbWFuYWdlbWVudCBlbmhhbmNlbWVudA0KPg0KPk9uIFdlZCwgMjAwOC0xMC0xNSBhdCAxNjoy
-MSAtMDYwMCwgTW9vcmUsIFJvYmVydCB3cm90ZToNCj4+IFJ1aSwNCj4+DQo+PiBXZSBuZWVkIHRv
-IGZpbmQgb3V0ICpleGFjdGx5KiB3aGF0IGlzIGdvaW5nIG9uIHdpdGggdGhpcyBtYWNoaW5lIGJl
-Zm9yZQ0KPndlIGRvIGFueSBjb2RpbmcuDQo+Pg0KPj4gSGVyZSBpcyB3aGF0IHdlIG5lZWQgdG8g
-a25vdzoNCj4+DQo+PiBGb3IgdGhlIEZBQ1MgcG9pbnRlZCB0byBieSB0aGUgMzItYml0IEZJUk1X
-QVJFX0NUUkwgZmllbGQ6DQo+Pg0KPj4gMSkgZG9lcyB0aGUgMzItYml0IHdha2UgdmVjdG9yIHdv
-cms/DQo+eWVzDQo+DQo+PiAyKSBkb2VzIHRoZSA2NC1iaXQgd2FrZSB2ZWN0b3Igd29yaz8NCj5u
-by4gcmVib290IHVwb24gcmVzdW1lLg0KPg0KPj4gMykgZG9lcyB0aGUgZ2xvYmFsIGxvY2sgd29y
-az8NCj4+DQo+PiBGb3IgdGhlIEZBQ1MgcG9pbnRlZCB0byBieSB0aGUgNjQtYml0IFhfRklSTVdB
-UkVfQ1RSTCBmaWVsZDoNCj4+DQo+PiAxKSBkb2VzIHRoZSAzMi1iaXQgd2FrZSB2ZWN0b3Igd29y
-az8NCj7vu79uby4gcmVib290IHVwb24gcmVzdW1lLg0KPj4gMikgZG9lcyB0aGUgNjQtYml0IHdh
-a2UgdmVjdG9yIHdvcms/DQo+77u/bm8uIHJlYm9vdCB1cG9uIHJlc3VtZS4NCj4NCj53ZWxsLCB3
-ZSBnb3QgYSB0b3RhbCBkaWZmZXJlbnQgcmVzdWx0IG9uIGFub3RoZXIgYm94IHdpdGggdHdvIEZB
-Q1MNCj50YWJsZXMsIHlha3VpIHdpbGwgdXBkYXRlIGxhdGVyLg0KPg0KPj4gMykgZG9lcyB0aGUg
-Z2xvYmFsIGxvY2sgd29yaz8NCj4+DQo+SW4gb3JkZXIgdG8gdGVzdCBpZiBnbG9iYWwgbG9jayB3
-b3JrcyBvciBub3QsDQo+d2UgbmVlZCB0byBhY3F1aXJlIHRoZSBnbG9iYWwgbG9jayBpbiBMaW51
-eCB3aGlsZSBCSU9TIGhvbGRzIGl0LCByaWdodD8NCj5CdXQgSSBkb24ndCBrbm93IGhvdyB0byBt
-YWtlIEJJT1MgaG9sZCB0aGUgZ2xvYmFsIGxvY2suIDooDQo+YW55IGlkZWFzPw0KPg0KPnRoYW5r
-cywNCj5ydWkNCj4NCj4NCj4+DQo+PiA+LS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4+ID5G
-cm9tOiBsaW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LWFjcGkt
-DQo+PiA+b3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgTW9vcmUsIFJvYmVydA0K
-Pj4gPlNlbnQ6IFdlZG5lc2RheSwgT2N0b2JlciAxNSwgMjAwOCAzOjEzIFBNDQo+PiA+VG86IFpo
-YW5nLCBSdWkNCj4+ID5DYzogTGVuIEJyb3duOyBsaW51eC1hY3BpOyBMaW4sIE1pbmcgTQ0KPj4g
-PlN1YmplY3Q6IFJFOiBbUEFUQ0ggMC82XSBBQ1BJOiBhY3BpIHRhYmxlIG1hbmFnZW1lbnQgZW5o
-YW5jZW1lbnQNCj4+ID4NCj4+ID5XaGlsZSB3ZSBhcmUgdHJ5aW5nIHRvIGRldGVybWluZSB3aGlj
-aCBpcyB0aGUgInJlYWwiIEZBQ1MsIHRoZXJlIGlzIG9uZQ0KPj4gPm1vcmUgZ29vZnkgcG9zc2li
-aWxpdHkgdGhhdCB3ZSBzaG91bGQgcHJvYmFibHkgZXhwbG9yZToNCj4+ID4NCj4+ID5Ib3cgYWJv
-dXQgaWY6DQo+PiA+DQo+PiA+MSkgdGhlIDY0LWJpdCBYX0ZJUk1XQVJFX1dBS0lOR19WRUNUT1Ig
-aXMgaW1wbGVtZW50ZWQgaW4gdGhlIEZBQ1MgdGhhdA0KPmlzDQo+PiA+cG9pbnRlZCB0byBieSB0
-aGUgNjQtYml0IFhfRklSTVdBUkVfQ1RSTCBmaWVsZCBpbiB0aGUgRkFEVCwgYW5kDQo+PiA+DQo+
-PiA+MikgdGhlIDMyLWJpdCBGSVJNV0FSRV9XQUtJTkdfVkVDVE9SIGlzIGltcGxlbWVudGVkIGlu
-IHRoZSBvdGhlciBGQUNTLA0KPnRoZQ0KPj4gPm9uZSBwb2ludGVkIHRvIGJ5IHRoZSAzMi1iaXQg
-RklSTVdBUkVfQ1RSTCBmaWVsZCBpbiB0aGUgRkFEVC4NCj4+ID4NCj4+ID5UaGlzIGNvdWxkIGJl
-IHRoZSBtaXN0YWtlIGluIHJlYXNvbmluZyB0aGF0IGxlZCB0byB0aGUgdHdvIGRpZmZlcmVudA0K
-PkZBQ1MNCj4+ID50YWJsZXMgaW4gdGhlIGZpcnN0IHBsYWNlLg0KPj4gPg0KPj4gPklmIHRoaXMg
-aXMgdHJ1ZSwgdGhlbiB3aGljaCBGQUNTIGhhcyB0aGUgdmFsaWQgR2xvYmFsIExvY2s/DQo+PiA+
-DQo+PiA+DQo+PiA+DQo+PiA+Pi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+PiA+PkZyb206
-IGxpbnV4LWFjcGktb3duZXJAdmdlci5rZXJuZWwub3JnIFttYWlsdG86bGludXgtYWNwaS0NCj4+
-ID4+b3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgTW9vcmUsIFJvYmVydA0KPj4g
-Pj5TZW50OiBXZWRuZXNkYXksIE9jdG9iZXIgMTUsIDIwMDggMTo1NiBQTQ0KPj4gPj5UbzogWmhh
-bmcsIFJ1aQ0KPj4gPj5DYzogTGVuIEJyb3duOyBsaW51eC1hY3BpOyBMaW4sIE1pbmcgTQ0KPj4g
-Pj5TdWJqZWN0OiBSRTogW1BBVENIIDAvNl0gQUNQSTogYWNwaSB0YWJsZSBtYW5hZ2VtZW50IGVu
-aGFuY2VtZW50DQo+PiA+Pg0KPj4gPj5BcyB1c3VhbCB3aXRoIEFDUEkgaXNzdWVzLCB0aGUgbW9y
-ZSB3ZSBkaWcsIHRoZSB3b3JzZSB0aGUgcHJvYmxlbSBnZXRzOg0KPj4gPj4NCj4+ID4+QW5vdGhl
-ciBwb3RlbnRpYWwgcHJvYmxlbSBpcyB0aGUgR2xvYmFsIExvY2suIElmIHRoZXJlIGFyZSB0d28g
-RkFDUw0KPj4gPnRhYmxlcywNCj4+ID4+aXQgaXMgcHJvYmFibHkgdGhlIGNhc2UgdGhhdCB0aGUg
-R2xvYmFsIExvY2sgb25seSB3b3JrcyB3aXRoIG9uZSBvZiB0aGUNCj4+ID4+dGFibGVzLg0KPj4g
-Pj4NCj4+ID4+UGxlYXNlIGNoZWNrIG9uIHlvdXIgbWFjaGluZSBpZiB0aGUgZ2xvYmFsIGxvY2sg
-aXMgd29ya2luZyBvciBub3QuDQo+PiA+Pg0KPj4gPj5JZiBpdCBpcyB0aGUgY2FzZSB0aGF0IGJv
-dGggdGhlIEZpcm13YXJlIFdha2luZyBWZWN0b3IgYW5kIHRoZSBHbG9iYWwNCj5Mb2NrDQo+PiA+
-Pndvcmsgd2l0aCBvbmx5IG9uZSBvZiB0aGUgRkFDUyB0YWJsZXMsIGl0IHdvdWxkIHByb2JhYmx5
-IGJlIGJlc3QgdG8NCj4+ID4+ZGV0ZXJtaW5lIHdoaWNoIG9uZSBvZiB0aGUgdGFibGVzIGlzIHRo
-ZSAicmVhbCIgRkFDUyBhbmQganVzdCB1c2UgdGhhdA0KPm9uZQ0KPj4gPj4ocmF0aGVyIHRoYW4g
-dXNlIHR3byB0YWJsZXMuKQ0KPj4gPj4NCj4+ID4+VG8gZGV0ZXJtaW5lIHRoZSAicmVhbCIgRkFD
-UywgYXQgaW5pdGlhbGl6YXRpb24gdGltZSB3ZSBjb3VsZCB0cnkgdG8NCj4+ID5vYnRhaW4NCj4+
-ID4+dGhlIGdsb2JhbCBsb2NrIC0tIGFuZCBvbmx5IHRoZSByZWFsIHRhYmxlIHdpbGwgZ2V0IGEg
-cmVzcG9uc2UgZnJvbSB0aGUNCj4+ID4+QklPUy4NCj4+ID4+DQo+PiA+PkkgaG9wZSBpdCBpcyBi
-ZXlvbmQgaW1hZ2luYXRpb24gdGhhdCBhIEJJT1Mgd291bGQgYmUgaW1wbGVtZW50ZWQgc3VjaA0K
-PnRoYXQNCj4+ID4+dGhlIEdsb2JhbCBMb2NrIGlzIGltcGxlbWVudGVkIGluIG9uZSB0YWJsZSwg
-YW5kIHRoZSBGaXJtd2FyZSBXYWtpbmcNCj4+ID5WZWN0b3INCj4+ID4+aXMgaW1wbGVtZW50ZWQg
-aW4gYW5vdGhlci4NCj4+ID4+DQo+PiA+PkJvYg0KPj4gPj4NCj4+ID4+DQo+PiA+Pj4tLS0tLU9y
-aWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPj4gPj4+RnJvbTogbGludXgtYWNwaS1vd25lckB2Z2VyLmtl
-cm5lbC5vcmcgW21haWx0bzpsaW51eC1hY3BpLQ0KPj4gPj4+b3duZXJAdmdlci5rZXJuZWwub3Jn
-XSBPbiBCZWhhbGYgT2YgTW9vcmUsIFJvYmVydA0KPj4gPj4+U2VudDogVHVlc2RheSwgT2N0b2Jl
-ciAxNCwgMjAwOCAyOjEzIFBNDQo+PiA+Pj5UbzogWmhhbmcsIFJ1aQ0KPj4gPj4+Q2M6IExlbiBC
-cm93bjsgbGludXgtYWNwaTsgTGluLCBNaW5nIE0NCj4+ID4+PlN1YmplY3Q6IFJFOiBbUEFUQ0gg
-MC82XSBBQ1BJOiBhY3BpIHRhYmxlIG1hbmFnZW1lbnQgZW5oYW5jZW1lbnQNCj4+ID4+Pg0KPj4g
-Pj4+U28sIHRoaXMgYXBwYXJlbnRseSBjb21lcyBkb3duIHRvIGEgcHJvYmxlbSB3aGVyZSB0aGUg
-RkFEVCBjb250YWlucw0KPnR3bw0KPj4gPj4+ZGlmZmVyZW50IGFkZHJlc3NlcyBmb3IgdGhlIEZB
-Q1MgaW4gdGhlIEZJUk1XQVJFX0NUUkwgYW5kDQo+WF9GSVJNV0FSRV9DVFJMDQo+PiA+Pj5maWVs
-ZHMuIEl0IHdvdWxkIGJlIGEgcmVsYXRpdmVseSBzaW1wbGUgZml4IHRvIHdyaXRlIHRoZSB3YWtl
-IHZlY3Rvcg0KPnRvDQo+PiA+Pj5ib3RoIHRhYmxlcyBpZiBuZWNlc3NhcnkuIEkgZG9uJ3Qgc2Vl
-IGEgbmVlZCB0byBnbyBiYWNrIHRvIHRoZSBSU0RUDQo+Zm9yDQo+PiA+Pj50aGlzIGNhc2UuDQo+
-PiA+Pj4NCj4+ID4+Pg0KPj4gPj4+QSBjb3VwbGUgb2YgZ2xvYmFsIGNvbW1lbnRzOg0KPj4gPj4+
-DQo+PiA+Pj4xKSBJbiBnZW5lcmFsLCBpdCBzZWVtcyBsaWtlIGEgbG90IG9mIG92ZXJoZWFkIHRv
-IGxvYWQgYSBzZWNvbmQgc2V0IG9mDQo+PiA+Pj4iaW5hY3RpdmUiIHRhYmxlcyBmcm9tIHRoZSBS
-U0RUIC0tIGVzcGVjaWFsbHkgaWYgdGhpcyBpcyBmb3IgZGVidWcNCj5vbmx5Lg0KPj4gPj4+Tm90
-IG9ubHkgdGhlIGNvZGUgdG8gZG8gaXQsIGJ1dCB0aGUgZHluYW1pYyBtZW1vcnkgZm9yIHRoZSBz
-ZWNvbmQgcm9vdA0KPj4gPj4+dGFibGUgbGlzdCBhbmQgdGhlIG1lbW9yeSBtYXBwaW5ncywgcG90
-ZW50aWFsbHkgb25lIGZvciBlYWNoIHRhYmxlIGluDQo+dGhlDQo+PiA+Pj5SU0RULg0KPj4gPj4+
-DQo+PiA+Pj4yKSBBcyBmYXIgYXMgYWNwaWR1bXAgLS0gSSBoYXZlIHBsYW5zIHRvIGVuaGFuY2Ug
-dGhpcyB1dGlsaXR5IHNvIHRoYXQNCj5pdA0KPj4gPj5pcw0KPj4gPj4+T1MtaW5kZXBlbmRlbnQg
-YW5kIHdpbGwgcnVuIG9uIGFueSBob3N0LiBUaGUgY3VycmVudCB2ZXJzaW9uIG9mDQo+YWNwaWR1
-bXANCj4+ID4+aXMNCj4+ID4+PkxpbnV4LXNwZWNpZmljLiBTbywgSSBkb24ndCB0aGluayBhY3Bp
-ZHVtcCBpcyBnb2luZyBhd2F5LiBJZiB3ZSBuZWVkIGENCj4+ID4+ZHVtcA0KPj4gPj4+b2YgYm90
-aCB0aGUgWFNEVCB0YWJsZXMgYW5kIHRoZSBSU0RUIHRhYmxlcywgd2Ugc2hvdWxkIGJlIGFibGUg
-dG8NCj5tb2RpZnkNCj4+ID4+PmFjcGlkdW1wIHRvIHBlcmZvcm0gdGhpcywgYW5kIHdlIHdpbGwg
-bm90IG5lZWQgdG8gYWRkIGtlcm5lbCBjb2RlIG9yDQo+dXNlDQo+PiA+Pj5rZXJuZWwgcmVzb3Vy
-Y2VzLg0KPj4gPj4+DQo+PiA+Pj5Cb2INCj4+ID4+Pg0KPj4gPj4+DQo+PiA+Pj4+LS0tLS1Pcmln
-aW5hbCBNZXNzYWdlLS0tLS0NCj4+ID4+Pj5Gcm9tOiBaaGFuZywgUnVpDQo+PiA+Pj4+U2VudDog
-TW9uZGF5LCBPY3RvYmVyIDEzLCAyMDA4IDY6MDEgUE0NCj4+ID4+Pj5UbzogTW9vcmUsIFJvYmVy
-dA0KPj4gPj4+PkNjOiBMZW4gQnJvd247IGxpbnV4LWFjcGkNCj4+ID4+Pj5TdWJqZWN0OiBSRTog
-W1BBVENIIDAvNl0gQUNQSTogYWNwaSB0YWJsZSBtYW5hZ2VtZW50IGVuaGFuY2VtZW50DQo+PiA+
-Pj4+DQo+PiA+Pj4+T24gTW9uLCAyMDA4LTEwLTEzIGF0IDExOjAyIC0wNjAwLCBNb29yZSwgUm9i
-ZXJ0IHdyb3RlOg0KPj4gPj4+Pj4gPkkgZm91bmQgdGhhdCB0aGVyZSBhcmUgdHdvIEZBQ1MgdGFi
-bGVzIG9uIHRoaXMgcGxhdGZvcm0sDQo+PiA+Pj4+PiA+WFNEVC0tPkZBRFQxLS0+WGZhY3MtLT5G
-QUNTMQ0KPj4gPj4+Pj4gPiAgICAgICAgfC0tLS0tPmZhY3MtfA0KPj4gPj4+Pj4gPiAgICAgICAg
-ICAgICAgICAgICAgfC0+RkFDUzINCj4+ID4+Pj4+ID5SU0RULS0+RkFEVDItLT5mYWNzLXwNCj4+
-ID4+Pj4+ID5MaW51eCB1c2VzIFhTRFQgb24gdGhpcyBwbGF0Zm9ybSBhbmQgc2V0cyB0aGUgd2Fr
-aW5nIHZlY3RvciBpbg0KPkZBQ1MxDQo+PiA+Pj4+PiA+d2hlbiBzdXNwZW5kaW5nLg0KPj4gPj4+
-Pj4gPkJ1dCBpdCBzZWVtcyB0aGF0IHRoZSBCSU9TIG9ubHkgY2FyZXMgZm9yIHRoZSB3YWtpbmcg
-dmVjdG9yIGluDQo+RkFDUzIsDQo+PiA+Pj4+Pg0KPj4gPj4+Pj4NCj4+ID4+Pj4+IElzIHRoaXMg
-cG9zc2libHkgYW4gaXNzdWUgb2YgdXNpbmcgdGhlIDMyLWJpdCB3YWtlIHZlY3RvciB2ZXJzdXMN
-Cj50aGUNCj4+ID4+NjQtDQo+PiA+Pj4+Yml0IHdha2UgdmVjdG9yPyAoRm9yIGV4YW1wbGUsIHBl
-cmhhcHMgdGhlIEZBQ1MxIGhhcyBib3RoIHZlY3RvcnMgYW5kDQo+PiA+dGhlDQo+PiA+Pj4+NjQt
-Yml0IHZlY3RvciBpcyB1c2VkIGJ1dCBmYWlscy4gQnV0IHRoZSBGQUNTMiBvbmx5IGhhcyB0aGUg
-MzItYml0DQo+PiA+dmVjdG9yDQo+PiA+Pj4+c28gaXQgaXMgdXNlZCwgYW5kIHRoaXMgd29ya3Mg
-Y29ycmVjdGx5IHdpdGggdGhlIEJJT1MuKQ0KPj4gPj4+Pu+7v05vLCBJIHRlc3RlZCB0aGUgcGF0
-Y2ggZnJvbSBSYWZhZWwsIHdoaWNoIGlzIHRoZSBzYW1lIGZyb20gdGhlIG9uZQ0KPj4gPj4+Pmhl
-cmU6DQo+PiA+Pj4+aHR0cDovL3d3dy5hY3BpY2Eub3JnL2J1Z3ppbGxhL2F0dGFjaG1lbnQuY2dp
-P2lkPTgxMyZhY3Rpb249dmlldw0KPj4gPj4+Pkl0IGRvZXNuJ3Qgd29yay4NCj4+ID4+Pj4NCj4+
-ID4+Pj4+IE9yLCBpcyBpdCBhY3R1YWxseSB0aGUgY2FzZSB3aGVyZSB0aGUgdHdvIEZBQ1MgdGFi
-bGVzIGhhdmUNCj5kaWZmZXJlbnQNCj4+ID4+Pndha2UNCj4+ID4+Pj52ZWN0b3JzPyBCb3RoIHRo
-ZSAzMi1iaXQgdmVjdG9ycyBhbmQgdGhlIDY0LWJpdCB2ZWN0b3JzIGFyZQ0KPmRpZmZlcmVudD8N
-Cj4+ID4+Pj50aGUgd2FrZSB2ZWN0b3IgaXMganVzdCBhIG1lbW9yeSBhZGRyZXNzIHdoZXJlIEJJ
-T1MgcGFzc2VzIHRoZQ0KPmNvbnRyb2wNCj4+ID4+Pj50byBPUy4NCj4+ID4+Pj5BcyB0aGVyZSBh
-cmUgdHdvIGRpZmZlcmVudCBGQUNTIHRhYmxlcyBsb2NhdGVkIGF0IGRpZmZlcmVudA0KPmFkZHJl
-c3NlcywNCj4+ID4+Pj5zdXJlbHkgdGhlIHdha2UgdmVjdG9ycyBhcmUgZGlmZmVyZW50LiA6KQ0K
-Pj4gPj4+Pg0KPj4gPj4+PnRoYW5rcywNCj4+ID4+Pj5ydWkNCj4+DQoNCg==
+>As I understand, we are going to get rid of acpidump.
+>so that we need to make Linux/ACPI dump all the acpi tables instead of
+>acpidump.
+
+I haven't heard of any push to get rid of acpidump, Len?
+
+
+>-----Original Message-----
+>From: Zhang, Rui
+>Sent: Thursday, October 16, 2008 7:09 PM
+>To: Moore, Robert
+>Cc: Len Brown; linux-acpi
+>Subject: RE: [PATCH 0/6] ACPI: acpi table management enhancement
+>
+>On Thu, 2008-10-16 at 09:51 -0600, Moore, Robert wrote:
+>>
+>> >-----Original Message-----
+>> >From: Len Brown [mailto:lenb@kernel.org]
+>> >Sent: Wednesday, October 15, 2008 3:21 PM
+>> >To: Zhang, Rui
+>> >Cc: Moore, Robert; linux-acpi
+>> >Subject: RE: [PATCH 0/6] ACPI: acpi table management enhancement
+>> >
+>> >
+>> >Bob,
+>> >note that we already changed acpidump to get the inactive static
+>> >tables.  We did this back when we were running into bugs with "invalid"
+>> >XSDT's and found some machines needed to revert back to using the RSDTs.
+>> >
+>> >Indeed, while I think we nailed some of the major offenders,
+>> >But I suspect we still have some bug compatibility detective work
+>> >to do in that area.
+>> >
+>>
+>> I wasn't aware that acpidump can now get the tables from the RSDT also.
+>This is good.
+>>
+>> As I mentioned, I would like to eventually pull acpidump into the core
+>ACPICA code and make it OS-independent at the same time.
+>>
+>>
+>> >So what Rui is doing here in exposing inactive tables it to get
+>> >/sys/firmware/acpi/tables to have the equal capability
+>> >of the existing acpidump kvm reader.
+>> >
+>>
+>> I was pointing out that there is significant overhead in acquiring these
+>unused tables.
+>well, it's true.
+>
+>>  I'm not sure I understand exactly why this is desired, since acpidump
+>already does this.
+>>
+>there must be some communication problems. :)
+>As I understand, we are going to get rid of acpidump.
+>so that we need to make Linux/ACPI dump all the acpi tables instead of
+>acpidump.
+>If this is true, I'm afraid we still need this patch although I don't
+>like it neither. :(
+>
+>Len, can you verify this?
+>
+>thanks,
+>rui
+>>
+
