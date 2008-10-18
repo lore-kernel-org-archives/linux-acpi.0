@@ -1,80 +1,59 @@
-From: Greg KH <gregkh@suse.de>
-Subject: [patch 24/26] ACPI: Ignore _BQC object when registering backlight
-	device
-Date: Sat, 18 Oct 2008 11:48:21 -0700
-Message-ID: <20081018184821.GY301@suse.de>
-References: <20081018183853.004667035@mini.kroah.org>
+From: Milan Plzik <milan.plzik@gmail.com>
+Subject: DMI Info from Dell Latitude XT (and one weird ACPI issue)
+Date: Sat, 18 Oct 2008 21:02:45 +0200
+Message-ID: <1224356565.5831.14.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:47791 "EHLO mx2.suse.de"
+Received: from element.ksp.sk ([158.195.16.154]:59936 "EHLO element.ksp.sk"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751591AbYJRTFj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 18 Oct 2008 15:05:39 -0400
-Content-Disposition: inline; filename="acpi-ignore-_bqc-object-when-registering-backlight-device.patch"
-In-Reply-To: <20081018184708.GA301@suse.de>
+	id S1750837AbYJRTaF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 18 Oct 2008 15:30:05 -0400
+Received: from localhost
+	([127.0.0.1] helo=[10.0.1.225] ident=sslwrap)
+	by element.ksp.sk with esmtp (Exim 4.69)
+	(envelope-from <milan.plzik@gmail.com>)
+	id 1KrH4b-0000m1-67
+	for linux-acpi@vger.kernel.org; Sat, 18 Oct 2008 21:02:50 +0200
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@kernel.org
-Cc: Justin Forbes <jmforbes@linuxtx.org>, Zwane Mwaikambo <zwane@arm.linux.org.uk>, Theodore Ts'o <tytso@mit.edu>, Randy Dunlap <rdunlap@xenotime.net>, Dave Jones <davej@redhat.com>, Chuck Wolber <chuckw@quantumlinux.com>, Chris Wedgwood <reviews@ml.cw.f00f.org>, Michael Krufky <mkrufky@linuxtv.org>, Chuck Ebbert <cebbert@redhat.com>, Domenico Andreoli <cavokz@gmail.com>, Willy Tarreau <w@1wt.eu>, Rodrigo Rubira Branco <rbranco@la.checkpoint.com>, Jake Edge <jake@lwn.net>, Eugene Teo <eteo@redhat.com>, torvalds@linux-foundation.org, akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, Zhao Yakui <yakui.zhao@intel.com>, linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Andi Kleen <ak@linux.intel.com>, Len Brown <lenb@kernel.org>
+To: linux-acpi@vger.kernel.org
 
+  Hello,
 
-2.6.26-stable review patch.  If anyone has any objections, please let us 
-know.
+  linux kernel 2.6.27 dmesg output suggested to send following
+information to this list:
 
-------------------
-From: Zhao Yakui <yakui.zhao@intel.com>
+[    0.193980] ACPI: DMI System Vendor: Dell Inc.
+[    0.194138] ACPI: DMI Product Name: Latitude XT                     
+[    0.194298] ACPI: DMI Product Version: 
+[    0.194456] ACPI: DMI Board Name: 0KT812
+[    0.194612] ACPI: DMI BIOS Vendor: Dell Inc.
+[    0.194770] ACPI: DMI BIOS Date: 08/28/2008
+[    0.194927] ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
 
-upstream commmit: c2c789057f075022658b38b498755c29c1ba8055
+  And to the second part of $subj -- after going to S3 state and then resuming, there is one strange ACPI error:
 
-According to acpi spec , the objectes of  _BCL and _BCM are required if
-integrated LCD is present and supports brightness level and the _BQC is
-the optional object. So the _BQC object will be ignored when the backlight
-device is registered.
-At the same time when there is no _BQC object, the current brightness will be
-set to the maximum.
+Oct 18 12:06:27 [kernel] [72428.849921] CPU1: Intel(R) Core(TM)2 CPU         U7600  @ 1.20GHz stepping 02
+Oct 18 12:06:27 [kernel] [72428.849934] kvm: enabling virtualization on CPU1
+Oct 18 12:06:27 [kernel] [72428.864272] ACPI Error (psloop-0136): Found unknown opcode C0 at AML address ffffc200000267c7 offset 0, ignoring [20080609]
+Oct 18 12:06:27 [kernel] [72428.864280] ACPI Error (psloop-0136): Found unknown opcode ED at AML address ffffc200000267c8 offset 1, ignoring [20080609]
+Oct 18 12:06:27 [kernel] [72428.864286] ACPI Error (psloop-0136): Found unknown opcode 6F at AML address ffffc200000267c9 offset 2, ignoring [20080609]
+Oct 18 12:06:27 [kernel] [72428.864296] ACPI Error (psloop-0136): Found unknown opcode 4 at AML address ffffc200000267cc offset 5, ignoring [20080609]
+Oct 18 12:06:27 [kernel] [72428.864302] ACPI Error (psloop-0136): Found unknown opcode B0 at AML address ffffc200000267ce offset 7, ignoring [20080609]
+Oct 18 12:06:27 [kernel] [72428.864308] ACPI Error (psloop-0136): Found unknown opcode C3 at AML address ffffc200000267cf offset 8, ignoring [20080609]
+Oct 18 12:06:27 [kernel] [72428.864316] ACPI Error (psloop-0136): Found unknown opcode 6F at AML address ffffc200000267d9 offset 12, ignoring [20080609]
+Oct 18 12:06:27 [kernel] [72428.864330] ACPI Error (psargs-0358): [C<FE><FF>_] Namespace lookup failure, AE_NOT_FOUND
+Oct 18 12:06:27 [kernel] [72428.864338] ACPI Error (psparse-0530): Method parse/execution failed [\_PR_.CPU1._PCT] (Node ffff88006f9ea740), AE_NOT_FOUND
+Oct 18 12:06:27 [kernel] [72428.864395] ACPI Exception (processor_perflib-0202): AE_NOT_FOUND, Evaluating _PCT [20080609]
+Oct 18 12:06:27 [kernel] [72428.864400] CPU1 is up
 
-http://bugzilla.kernel.org/show_bug.cgi?id=10206
+  This error results in unability of the second core to change its
+frequency -- whatever low or high the system load is, processes running
+on CPU1 don't affect its frequency.  If you have any idea what could be
+wrong (or need any more data) please send me an e-mail.
 
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-Signed-off-by: Zhang Rui  <rui.zhang@intel.com>
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+  Best regards,
+	Milan Plzik
 
----
- drivers/acpi/video.c |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
-
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -720,7 +720,7 @@ static void acpi_video_device_find_cap(s
- 
- 	kfree(obj);
- 
--	if (device->cap._BCL && device->cap._BCM && device->cap._BQC && max_level > 0){
-+	if (device->cap._BCL && device->cap._BCM && max_level > 0) {
- 		int result;
- 		static int count = 0;
- 		char *name;
-@@ -732,7 +732,17 @@ static void acpi_video_device_find_cap(s
- 		device->backlight = backlight_device_register(name,
- 			NULL, device, &acpi_backlight_ops);
- 		device->backlight->props.max_brightness = device->brightness->count-3;
--		device->backlight->props.brightness = acpi_video_get_brightness(device->backlight);
-+		/*
-+		 * If there exists the _BQC object, the _BQC object will be
-+		 * called to get the current backlight brightness. Otherwise
-+		 * the brightness will be set to the maximum.
-+		 */
-+		if (device->cap._BQC)
-+			device->backlight->props.brightness =
-+				acpi_video_get_brightness(device->backlight);
-+		else
-+			device->backlight->props.brightness =
-+				device->backlight->props.max_brightness;
- 		backlight_update_status(device->backlight);
- 		kfree(name);
- 
-
--- 
