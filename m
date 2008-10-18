@@ -1,109 +1,95 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 1/4] ACPI: thinkpad-acpi: attempt to preserve fan state on resume
-Date: Sat, 18 Oct 2008 14:23:52 -0300
-Message-ID: <1224350635-14021-2-git-send-email-hmh@hmh.eng.br>
-References: <1224350635-14021-1-git-send-email-hmh@hmh.eng.br>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: Re: ACPICA header files
+Date: Sat, 18 Oct 2008 21:42:16 +0400
+Message-ID: <48FA1FF8.1090806@suse.de>
+References: <200810171449.m9HEnoHM018514@los-vmm.sc.intel.com> <4911F71203A09E4D9981D27F9D830858032E0245@orsmsx503.amr.corp.intel.com> <alpine.LFD.1.10.0810171653510.3006@localhost.localdomain> <4911F71203A09E4D9981D27F9D830858032E0503@orsmsx503.amr.corp.intel.com> <4911F71203A09E4D9981D27F9D830858032E0739@orsmsx503.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out3.smtp.messagingengine.com ([66.111.4.27]:51711 "EHLO
-	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750962AbYJRRYE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 18 Oct 2008 13:24:04 -0400
-In-Reply-To: <1224350635-14021-1-git-send-email-hmh@hmh.eng.br>
+Received: from charybdis-ext.suse.de ([195.135.221.2]:49352 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750892AbYJRRmU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 18 Oct 2008 13:42:20 -0400
+In-Reply-To: <4911F71203A09E4D9981D27F9D830858032E0739@orsmsx503.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Richard Hartmann <richih.mailinglist@gmail.com>
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: Len Brown <lenb@kernel.org>, "Dugger, Donald D" <donald.d.dugger@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "bjorn.helgaas@hp.com" <bjorn.helgaas@hp.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "Lin, Ming M" <ming.m.lin@intel.com>
 
-Attempt to preserve fan state across sleep and hibernation if the fan
-control mode is enabled.
+The problem with linux acpi headers is that all drivers include <linux/acpi.h>, which will include private headers.
+We need to remove all private headers from this public one.
 
-For safety reasons, only the PWM OFF (fan at 100%) or maximum
-closed-loop level (level 7) are preserved.  If the fan state was set
-to anything else, it will not be restored.
-
-Also, should the fan be at PWM OFF mode at resume, it will be left at
-that state (but this is extremely unlikely, no ThinkPad firmware was
-ever reported to do this).
-
-For reference, the known states used for fan control upon resume by
-the firmware  are either "auto" or "level 7" depending on whether the
-laptop wakes due to normal conditions or a thermal emergency.
-
-Fixes: http://bugzilla.kernel.org/show_bug.cgi?id=11331
-
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Richard Hartmann <richih.mailinglist@gmail.com>
----
- drivers/misc/thinkpad_acpi.c |   48 ++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 48 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 6b93007..1dcf066 100644
---- a/drivers/misc/thinkpad_acpi.c
-+++ b/drivers/misc/thinkpad_acpi.c
-@@ -5983,6 +5983,52 @@ static void fan_exit(void)
- 	flush_workqueue(tpacpi_wq);
- }
- 
-+static void fan_suspend(pm_message_t state)
-+{
-+	if (!fan_control_allowed)
-+		return;
-+
-+	/* Store fan status in cache */
-+	fan_get_status_safe(NULL);
-+	if (tp_features.fan_ctrl_status_undef)
-+		fan_control_desired_level = TP_EC_FAN_AUTO;
-+}
-+
-+static void fan_resume(void)
-+{
-+	u8 saved_fan_level;
-+	u8 current_level = 7;
-+	bool do_set = false;
-+
-+	/* DSDT *always* updates status on resume */
-+	tp_features.fan_ctrl_status_undef = 0;
-+
-+	saved_fan_level = fan_control_desired_level;
-+	if (!fan_control_allowed ||
-+	    (fan_get_status_safe(&current_level) < 0))
-+		return;
-+
-+	switch (fan_control_access_mode) {
-+	case TPACPI_FAN_WR_ACPI_SFAN:
-+		do_set = (saved_fan_level > current_level);
-+		break;
-+	case TPACPI_FAN_WR_ACPI_FANS:
-+	case TPACPI_FAN_WR_TPEC:
-+		do_set = ((saved_fan_level & TP_EC_FAN_FULLSPEED) ||
-+			  (saved_fan_level == 7 &&
-+			   !(current_level & TP_EC_FAN_FULLSPEED)));
-+		break;
-+	default:
-+		return;
-+	}
-+	if (do_set) {
-+		printk(TPACPI_NOTICE
-+			"restoring fan level to 0x%02x\n",
-+			saved_fan_level);
-+		fan_set_level_safe(saved_fan_level);
-+	}
-+}
-+
- static int fan_read(char *p)
- {
- 	int len = 0;
-@@ -6174,6 +6220,8 @@ static struct ibm_struct fan_driver_data = {
- 	.read = fan_read,
- 	.write = fan_write,
- 	.exit = fan_exit,
-+	.suspend = fan_suspend,
-+	.resume = fan_resume,
- };
- 
- /****************************************************************************
--- 
-1.5.6.5
+Moore, Robert wrote:
+> The actual "public" acpica headers are:
+> 
+> acexcep.h    // ACPICA exceptions
+> actypes.h    // ACPICA data types
+> actbl.h      // ACPI table definitions
+> acpixf.h     // Prototypes for ACPICA interfaces (host-to-ACPICA)
+> acpiosxf.h   // Prototypes for OSL interfaces (ACPICA-to-host)
+> 
+> And the entire contents of the include/platform directory
+> 
+> Would it make sense (would it be helpful) to leave these public headers in the current acpi include directory and to move everything else to a new directory?
+> 
+> How about include/internal.
+> 
+> We could keep the existing acpi.h file and have it only pull in the files above, so the disruption to existing acpica users would be minimal. The only code that would be affected would be code that is cheating by using ACPICA internal interfaces.
+> 
+> It may be the case that some internal functions are actually useful to the ACPI-related device drivers. I don't have any issue with making these interfaces public (and beefing up the parameter validation, etc.)
+> 
+> Comments?
+> Thanks,
+> Bob
+> 
+> 
+> 
+> -----Original Message-----
+> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Moore, Robert
+> Sent: Friday, October 17, 2008 2:50 PM
+> To: Len Brown
+> Cc: Dugger, Donald D; linux-acpi@vger.kernel.org; bjorn.helgaas@hp.com; akpm@linux-foundation.org; astarikovskiy@suse.de; Lin, Ming M
+> Subject: RE: [PATCH] Fix possible null ptr dereference
+> 
+> It's on the TBD list.
+> 
+> Not true that everything includes everything, however. But everything is in the same directory.
+> 
+> How would you organize things?
+> 
+> 
+>> -----Original Message-----
+>> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+>> owner@vger.kernel.org] On Behalf Of Len Brown
+>> Sent: Friday, October 17, 2008 1:55 PM
+>> To: Moore, Robert
+>> Cc: Dugger, Donald D; linux-acpi@vger.kernel.org; bjorn.helgaas@hp.com;
+>> akpm@linux-foundation.org; astarikovskiy@suse.de; Lin, Ming M
+>> Subject: RE: [PATCH] Fix possible null ptr dereference
+>>
+>>
+>>> In general, the internal ACPICA functions do not perform nearly as much
+>> parameter validation as the external functions. The Host OS should not be
+>> calling any of the ACPICA internal functions for this and a few other good
+>> reasons -- such as the fact that internal functions can disappear, be
+>> renamed, or have the parameters changed without warning at any time.
+>>> It would probably be a good idea to audit Linux for the use of internal
+>> ACPICA functions and fix these bugs.
+>>
+>> I think the way to do this is to clean up the headers
+>> so that code outside of ACPICA doesn't even see
+>> the declarations of the internal ACPICA functions.
+>>
+>> Right now everything includes everything, so the headers can't help us.
+>>
+>> -Len
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
