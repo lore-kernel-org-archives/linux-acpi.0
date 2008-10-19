@@ -1,57 +1,61 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: ACPI support in Linux?
-Date: Sun, 19 Oct 2008 10:59:08 -0700
-Message-ID: <4911F71203A09E4D9981D27F9D830858032E07D1@orsmsx503.amr.corp.intel.com>
-References: <f188924b0810190404j17e7cb7bo970c7f73ef54fc5a@mail.gmail.com>
- <48FB4953.2050809@gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC 2/5] devcore adds generic wakeup event handler
+Date: Sun, 19 Oct 2008 21:06:58 +0200
+Message-ID: <200810192106.58828.rjw@sisk.pl>
+References: <20080911063037.698427944@sli10-desk.sh.intel.com> <20080911063823.083409592@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:19615 "EHLO mga09.intel.com"
+Received: from ogre.sisk.pl ([217.79.144.158]:43084 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751592AbYJSR7O convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 19 Oct 2008 13:59:14 -0400
-In-Reply-To: <48FB4953.2050809@gmail.com>
-Content-Language: en-US
+	id S1751533AbYJSTC1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 19 Oct 2008 15:02:27 -0400
+In-Reply-To: <20080911063823.083409592@sli10-desk.sh.intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>, "Fred ." <eldmannen@gmail.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu, david-b@pacbell.net, dbrownell@users.sourceforge.net
 
-Linux uses a very recent version of ACPICA, which supports ACPI 3.0b
+On Thursday, 11 of September 2008, Shaohua Li wrote:
+> The default action to handle wakeup event. Currently just prints something,
+> maybe we should call .resume(). The routine will be called in task context.
+> 
+> ---
+>  drivers/base/power/main.c |    6 ++++++
+>  include/linux/pm.h        |    2 ++
+>  2 files changed, 8 insertions(+)
+> 
+> Index: linux/drivers/base/power/main.c
+> ===================================================================
+> --- linux.orig/drivers/base/power/main.c	2008-09-11 10:56:26.000000000 +0800
+> +++ linux/drivers/base/power/main.c	2008-09-11 10:56:39.000000000 +0800
+> @@ -785,3 +785,9 @@ void __suspend_report_result(const char 
+>  	}
+>  }
+>  EXPORT_SYMBOL_GPL(__suspend_report_result);
+> +
+> +void device_receive_wakeup_event(struct device *dev)
+> +{
+> +	printk("Device %s invokes wakeup event\n", dev->bus_id);
+> +}
+> +EXPORT_SYMBOL(device_receive_wakeup_event);
+> Index: linux/include/linux/pm.h
+> ===================================================================
+> --- linux.orig/include/linux/pm.h	2008-09-11 10:56:29.000000000 +0800
+> +++ linux/include/linux/pm.h	2008-09-11 10:56:39.000000000 +0800
+> @@ -440,6 +440,8 @@ static inline int device_suspend(pm_mess
+>  
+>  #endif /* !CONFIG_PM_SLEEP */
+>  
+> +void device_receive_wakeup_event(struct device *dev);
+> +
+>  /*
+>   * Global Power Management flags
+>   * Used to keep APM and ACPI from both being active
 
-The iASL compiler mostly supports 3.0b, although there are a few features that have yet to be implemented -- so the compiler only advertises that it supports 3.0a
+Do you anticipate any particular use of this function?
 
-Bob
-
-
------Original Message-----
-From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Alexey Starikovskiy
-Sent: Sunday, October 19, 2008 7:51 AM
-To: Fred .
-Cc: linux-acpi@vger.kernel.org
-Subject: Re: ACPI support in Linux?
-
-
-Fred . wrote:
-> Which version of the ACPI spec does Linux support?
-> Is it true that it only supports 2.0?
->
->
-Linux supported 3.0b well before it was published.
-See include/acpi/acconfig.h:
-/* Version of ACPI supported */
-#define ACPI_CA_SUPPORT_LEVEL           3
-> ACPI specification, 3.0b, been out since October 10, 2006.
-> Linux still does not have support for it?
->
-Do you see any feature not implemented of what?
-
-Regards,
-Alex.
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Rafael
