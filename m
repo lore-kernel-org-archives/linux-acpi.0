@@ -1,68 +1,57 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC 1/5] devcore introduce wakeup_event callback
-Date: Sun, 19 Oct 2008 21:04:16 +0200
-Message-ID: <200810192104.17510.rjw@sisk.pl>
-References: <20080911063037.698427944@sli10-desk.sh.intel.com>
-	<20080911063822.973881418@sli10-desk.sh.intel.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: ACPI support in Linux?
+Date: Sun, 19 Oct 2008 10:59:08 -0700
+Message-ID: <4911F71203A09E4D9981D27F9D830858032E07D1@orsmsx503.amr.corp.intel.com>
+References: <f188924b0810190404j17e7cb7bo970c7f73ef54fc5a@mail.gmail.com>
+ <48FB4953.2050809@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <20080911063822.973881418@sli10-desk.sh.intel.com>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, dbrownell@users.sourceforge.net
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:19615 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751592AbYJSR7O convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 19 Oct 2008 13:59:14 -0400
+In-Reply-To: <48FB4953.2050809@gmail.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <aystarik@gmail.com>, "Fred ." <eldmannen@gmail.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Thursday, 11 of September 2008, Shaohua Li wrote:
-> Introduce .wakeup_event(). When a device gets a wakeup event,
-> the callback is called. The callback usually should disable wakeup event.
-> 
-> ---
->  include/linux/pm.h |    7 +++++++
->  1 file changed, 7 insertions(+)
-> 
-> Index: linux/include/linux/pm.h
-> ===================================================================
-> --- linux.orig/include/linux/pm.h	2008-09-11 10:56:27.000000000 +0800
-> +++ linux/include/linux/pm.h	2008-09-11 10:56:29.000000000 +0800
-> @@ -125,6 +125,12 @@ typedef struct pm_message {
->   *	make ANY assumptions about the hardware state right prior to @restore().
->   *	On most platforms, there are no restrictions on availability of
->   *	resources like clocks during @restore().
-> + * @wakeup_event: Checks if a wakeup event occurs. In bus level, the op might
-> + *	check all devices under the bus and call device_receive_wakeup_event()
-> + *	for devices which invoke wakeup event. In device level, the op just
-> + *	returns if a wakeup event occurs. Note, if device follows standard
-> + *	mechanism for wakeup which bus level can handle, device level op can be
-> + *	empty.
->   *
->   * All of the above callbacks, except for @complete(), return error codes.
->   * However, the error codes returned by the resume operations, @resume(),
-> @@ -151,6 +157,7 @@ struct pm_ops {
->  	int (*thaw)(struct device *dev);
->  	int (*poweroff)(struct device *dev);
->  	int (*restore)(struct device *dev);
-> +	bool (*wakeup_event)(struct device *dev);
->  };
->  
->  /**
+Linux uses a very recent version of ACPICA, which supports ACPI 3.0b
 
-I think it will be better to place wakeup_event() in 'struct device' itself
-rather than here.
+The iASL compiler mostly supports 3.0b, although there are a few features that have yet to be implemented -- so the compiler only advertises that it supports 3.0a
 
-Generally, the 'struct pm_ops' thing (after the simplification patch queued up
-for .29 that will be 'struct dev_pm_ops') will depend on PM_SLEEP and
-wakeup_event() is a run-time thing.
+Bob
 
-Thanks,
-Rafael
+
+-----Original Message-----
+From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Alexey Starikovskiy
+Sent: Sunday, October 19, 2008 7:51 AM
+To: Fred .
+Cc: linux-acpi@vger.kernel.org
+Subject: Re: ACPI support in Linux?
+
+
+Fred . wrote:
+> Which version of the ACPI spec does Linux support?
+> Is it true that it only supports 2.0?
+>
+>
+Linux supported 3.0b well before it was published.
+See include/acpi/acconfig.h:
+/* Version of ACPI supported */
+#define ACPI_CA_SUPPORT_LEVEL           3
+> ACPI specification, 3.0b, been out since October 10, 2006.
+> Linux still does not have support for it?
+>
+Do you see any feature not implemented of what?
+
+Regards,
+Alex.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
