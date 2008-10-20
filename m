@@ -1,76 +1,47 @@
-From: "Mike Dahlgren" <dahlgren@gmail.com>
-Subject: Re: [PATCH] whitespace and comment cleanup for asus_acpi.c
-Date: Mon, 20 Oct 2008 11:19:56 -0500
-Message-ID: <b85328460810200919k64364713o5bbe0324a72c5e85@mail.gmail.com>
-References: <b85328460810171100o28004af7v5b07db58258706e9@mail.gmail.com>
-	 <alpine.LFD.1.10.0810171435230.3006@localhost.localdomain>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [RESEND] [PATCH 2/3] Introduce acpi_root_table=rsdt boot param
+	and dmi list to force rsdt
+Date: Mon, 20 Oct 2008 13:31:53 -0200
+Message-ID: <20081020153153.GA18277@khazad-dum.debian.net>
+References: <200810192350.57993.trenn@suse.de> <20081020010142.GB32675@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.159]:53129 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751832AbYJTQT7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Oct 2008 12:19:59 -0400
-Received: by fg-out-1718.google.com with SMTP id 19so1448352fgg.17
-        for <linux-acpi@vger.kernel.org>; Mon, 20 Oct 2008 09:19:56 -0700 (PDT)
-In-Reply-To: <alpine.LFD.1.10.0810171435230.3006@localhost.localdomain>
+Received: from out3.smtp.messagingengine.com ([66.111.4.27]:34005 "EHLO
+	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750776AbYJTPcA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 20 Oct 2008 11:32:00 -0400
 Content-Disposition: inline
+In-Reply-To: <20081020010142.GB32675@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, corentincj@iksaif.net
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Thomas Renninger <trenn@suse.de>, Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Zhao Yakui <yakui.zhao@intel.com>, me@markdoughty.co.uk, linux-thinkpad <linux-thinkpad@linux-thinkpad.org>, "devel@acpica.org" <devel@acpica.org>
 
-Len,
+On Mon, 20 Oct 2008, Matthew Garrett wrote:
+> On Sun, Oct 19, 2008 at 11:50:55PM +0200, Thomas Renninger wrote:
+> > Introduce acpi_root_table=rsdt boot param and dmi list to force rsdt
+> > 
+> > References: http://bugzilla.kernel.org/show_bug.cgi?id=8246
+> > 
+> > Blacklist R40e, R51e and T40, T40p, T41, T41p, T42, T42p, R50 and R50p
+> > ThinkPads to use the RSDT instead of the XSDT.
+> 
+> I'm very sceptical about this. All of these machines were released years 
+> before Vista, which makes me unsure about the diagnosis that this is 
+> something to do with Vista readyness.
 
-I really appreciate the quick reply and helpful advice.
+I believe you will find stuff broken due to Vista Readyness badly
+retro-fitted only on the Z-series and also the T60.
 
-The reason why I chose that particular file to work on was two fold:
-First, the ACPI team seems to be very active and helpful as a project.
- Second, that file was by far the worst in a checkpatch compliance and
-could benefit the most from a little love.
+The R51e (BIOS TP-78) does NOT share a BIOS with the T40-T42 or any of the
+two R51 base models. The bugzilla bug report really cannot be used against
+them.  Thomas, do you have extra data not in the bug report that causes you
+to doubt the TP-1R BIOS?
 
-Thanks again for your time, and I will follow your advice going forward.
-
- Thanks,
-  ~ Mike
-
-
-On Fri, Oct 17, 2008 at 3:52 PM, Len Brown <lenb@kernel.org> wrote:
->
->> This patch fixes 100 errors and 8 warnings found by checkpatch against
->> the asus_acpi.c file.
->>
->> It should apply cleanly to 2.6.27 and should not affect any code functionality.
->
-> Hi Mike,
-> Welcome!
->
-> I've applied your patch to the acpi-test tree.
->
-> A couple of things to note for your next patch...
->
-> This particular driver has a sub-maintainer, Corentin Chary,
-> as indicated in MAINTAINERS.  Chary will probably either Ack or Nak
-> this patch in response to this note, but ideally you'd have sent
-> the patch to Chary in the first round.
->
-> Note that this particular driver is suffering bit rot
-> b/c the plan is to eventually delete it in favor of
-> drivers/misc/asus-laptop.c.  But I agree that as long
-> as it is still in the tree, it should undergo basic
-> maintenace, even if it never gets any new features.
->
-> Also, best to avoid sending attachments if you can, because people
-> read comment and reply to plain text, and often don't open attachments.
-> From a patch application point of view, I can handle either, but
-> prefer plain text because I'm also a reviwer...
->
-> ref: Documentation/SubmittingPatches
->
-> thanks!
-> -Len
->
->
->
->
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
