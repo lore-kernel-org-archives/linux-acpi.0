@@ -1,61 +1,69 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC 2/5] devcore adds generic wakeup event handler
-Date: Sun, 19 Oct 2008 21:06:58 +0200
-Message-ID: <200810192106.58828.rjw@sisk.pl>
-References: <20080911063037.698427944@sli10-desk.sh.intel.com> <20080911063823.083409592@sli10-desk.sh.intel.com>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: [RESEND] [PATCH 0/3] Blacklist broken ThinkPads to use 32 bit
+	FADT addresses
+Date: Mon, 20 Oct 2008 11:32:26 +0800
+Message-ID: <1224473546.3944.226.camel@yakui_zhao.sh.intel.com>
+References: <200810192349.32949.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:43084 "EHLO ogre.sisk.pl"
+Received: from mga11.intel.com ([192.55.52.93]:32665 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751533AbYJSTC1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 19 Oct 2008 15:02:27 -0400
-In-Reply-To: <20080911063823.083409592@sli10-desk.sh.intel.com>
-Content-Disposition: inline
+	id S1751232AbYJTD0g (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 19 Oct 2008 23:26:36 -0400
+In-Reply-To: <200810192349.32949.trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu, david-b@pacbell.net, dbrownell@users.sourceforge.net
+To: Thomas Renninger <trenn@suse.de>
+Cc: Len Brown <lenb@kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi <linux-acpi@vger.kernel.org>, me@markdoughty.co.uk, linux-thinkpad <linux-thinkpad@linux-thinkpad.org>, Matthew Garrett <mjg59@srcf.ucam.org>, "devel@acpica.org" <devel@acpica.org>
 
-On Thursday, 11 of September 2008, Shaohua Li wrote:
-> The default action to handle wakeup event. Currently just prints something,
-> maybe we should call .resume(). The routine will be called in task context.
+On Sun, 2008-10-19 at 23:49 +0200, Thomas Renninger wrote:
+> Hi,
 > 
-> ---
->  drivers/base/power/main.c |    6 ++++++
->  include/linux/pm.h        |    2 ++
->  2 files changed, 8 insertions(+)
+> can this be taken into .28 if it works out with acpica integration.
 > 
-> Index: linux/drivers/base/power/main.c
-> ===================================================================
-> --- linux.orig/drivers/base/power/main.c	2008-09-11 10:56:26.000000000 +0800
-> +++ linux/drivers/base/power/main.c	2008-09-11 10:56:39.000000000 +0800
-> @@ -785,3 +785,9 @@ void __suspend_report_result(const char 
->  	}
->  }
->  EXPORT_SYMBOL_GPL(__suspend_report_result);
-> +
-> +void device_receive_wakeup_event(struct device *dev)
-> +{
-> +	printk("Device %s invokes wakeup event\n", dev->bus_id);
-> +}
-> +EXPORT_SYMBOL(device_receive_wakeup_event);
-> Index: linux/include/linux/pm.h
-> ===================================================================
-> --- linux.orig/include/linux/pm.h	2008-09-11 10:56:29.000000000 +0800
-> +++ linux/include/linux/pm.h	2008-09-11 10:56:39.000000000 +0800
-> @@ -440,6 +440,8 @@ static inline int device_suspend(pm_mess
->  
->  #endif /* !CONFIG_PM_SLEEP */
->  
-> +void device_receive_wakeup_event(struct device *dev);
-> +
->  /*
->   * Global Power Management flags
->   * Used to keep APM and ACPI from both being active
+> Patches are in OpenSUSE for quite a while now (also 11.0) and the
+> issue has been evaluate to the ground now.
+> 
+> Lenovo confirmed that some rare models which got Vista support added
+> late through BIOS upgrades could have wrong 64 bit addresses.
+> 
+> Vista also takes the broken 64 bit addresses like Linux does (spec conform).
+> XP does take the correct 32 bit addresses.
+Can you confirm that XSDT address is still used on vista even when it is
+broken? If so, how the Vista can work well? For example: the 32X/64x IO
+address don't match.
 
-Do you anticipate any particular use of this function?
+It is appropriate to add the boot option of "acpi_root_table=rsdt". When
+there exists 32X/64X address mismatch while using XSDT, it can be
+prompted that "RSDT can be tried". Maybe the issue on such systems can
+be fixed /workaround by this boot option.
+   32X/64X address mismatch can include the following:
+   a. DSDT/XDSDT in FADT table
+   b. FACS/XFACS in FADT table
+   c. PM_CNTRL block
+   d. GPE control block
+   ...
 
-Rafael
+Thanks.
+   Best regards.
+
+> 
+> A generic approach (e.g. check through _OSI) does not work, because:
+>   - the affected models support Vista (there the wrong addresses are also 
+> taken, but
+>     the symptoms seem not to happen or are also workarounded)
+>   - Those IO addresses are touched before the DSDT is parsed -> no OSI
+>     OS feature support check possible.
+> 
+> Be aware that one patch makes changes in ACPICA code.
+> 
+> Thanks,
+> 
+>      Thomas
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
