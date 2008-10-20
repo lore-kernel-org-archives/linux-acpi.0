@@ -1,69 +1,76 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: Re: [RESEND] [PATCH 0/3] Blacklist broken ThinkPads to use 32 bit
-	FADT addresses
-Date: Mon, 20 Oct 2008 11:32:26 +0800
-Message-ID: <1224473546.3944.226.camel@yakui_zhao.sh.intel.com>
-References: <200810192349.32949.trenn@suse.de>
+From: "Mike Dahlgren" <dahlgren@gmail.com>
+Subject: Re: [PATCH] whitespace and comment cleanup for asus_acpi.c
+Date: Mon, 20 Oct 2008 11:19:56 -0500
+Message-ID: <b85328460810200919k64364713o5bbe0324a72c5e85@mail.gmail.com>
+References: <b85328460810171100o28004af7v5b07db58258706e9@mail.gmail.com>
+	 <alpine.LFD.1.10.0810171435230.3006@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:32665 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751232AbYJTD0g (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 19 Oct 2008 23:26:36 -0400
-In-Reply-To: <200810192349.32949.trenn@suse.de>
+Received: from fg-out-1718.google.com ([72.14.220.159]:53129 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751832AbYJTQT7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Oct 2008 12:19:59 -0400
+Received: by fg-out-1718.google.com with SMTP id 19so1448352fgg.17
+        for <linux-acpi@vger.kernel.org>; Mon, 20 Oct 2008 09:19:56 -0700 (PDT)
+In-Reply-To: <alpine.LFD.1.10.0810171435230.3006@localhost.localdomain>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Len Brown <lenb@kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi <linux-acpi@vger.kernel.org>, me@markdoughty.co.uk, linux-thinkpad <linux-thinkpad@linux-thinkpad.org>, Matthew Garrett <mjg59@srcf.ucam.org>, "devel@acpica.org" <devel@acpica.org>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, corentincj@iksaif.net
 
-On Sun, 2008-10-19 at 23:49 +0200, Thomas Renninger wrote:
-> Hi,
-> 
-> can this be taken into .28 if it works out with acpica integration.
-> 
-> Patches are in OpenSUSE for quite a while now (also 11.0) and the
-> issue has been evaluate to the ground now.
-> 
-> Lenovo confirmed that some rare models which got Vista support added
-> late through BIOS upgrades could have wrong 64 bit addresses.
-> 
-> Vista also takes the broken 64 bit addresses like Linux does (spec conform).
-> XP does take the correct 32 bit addresses.
-Can you confirm that XSDT address is still used on vista even when it is
-broken? If so, how the Vista can work well? For example: the 32X/64x IO
-address don't match.
+Len,
 
-It is appropriate to add the boot option of "acpi_root_table=rsdt". When
-there exists 32X/64X address mismatch while using XSDT, it can be
-prompted that "RSDT can be tried". Maybe the issue on such systems can
-be fixed /workaround by this boot option.
-   32X/64X address mismatch can include the following:
-   a. DSDT/XDSDT in FADT table
-   b. FACS/XFACS in FADT table
-   c. PM_CNTRL block
-   d. GPE control block
-   ...
+I really appreciate the quick reply and helpful advice.
 
-Thanks.
-   Best regards.
+The reason why I chose that particular file to work on was two fold:
+First, the ACPI team seems to be very active and helpful as a project.
+ Second, that file was by far the worst in a checkpatch compliance and
+could benefit the most from a little love.
 
-> 
-> A generic approach (e.g. check through _OSI) does not work, because:
->   - the affected models support Vista (there the wrong addresses are also 
-> taken, but
->     the symptoms seem not to happen or are also workarounded)
->   - Those IO addresses are touched before the DSDT is parsed -> no OSI
->     OS feature support check possible.
-> 
-> Be aware that one patch makes changes in ACPICA code.
-> 
-> Thanks,
-> 
->      Thomas
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks again for your time, and I will follow your advice going forward.
 
+ Thanks,
+  ~ Mike
+
+
+On Fri, Oct 17, 2008 at 3:52 PM, Len Brown <lenb@kernel.org> wrote:
+>
+>> This patch fixes 100 errors and 8 warnings found by checkpatch against
+>> the asus_acpi.c file.
+>>
+>> It should apply cleanly to 2.6.27 and should not affect any code functionality.
+>
+> Hi Mike,
+> Welcome!
+>
+> I've applied your patch to the acpi-test tree.
+>
+> A couple of things to note for your next patch...
+>
+> This particular driver has a sub-maintainer, Corentin Chary,
+> as indicated in MAINTAINERS.  Chary will probably either Ack or Nak
+> this patch in response to this note, but ideally you'd have sent
+> the patch to Chary in the first round.
+>
+> Note that this particular driver is suffering bit rot
+> b/c the plan is to eventually delete it in favor of
+> drivers/misc/asus-laptop.c.  But I agree that as long
+> as it is still in the tree, it should undergo basic
+> maintenace, even if it never gets any new features.
+>
+> Also, best to avoid sending attachments if you can, because people
+> read comment and reply to plain text, and often don't open attachments.
+> From a patch application point of view, I can handle either, but
+> prefer plain text because I'm also a reviwer...
+>
+> ref: Documentation/SubmittingPatches
+>
+> thanks!
+> -Len
+>
+>
+>
+>
