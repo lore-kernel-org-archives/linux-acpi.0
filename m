@@ -1,64 +1,42 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Subject: Re: [RESEND] [PATCH 2/3] Introduce acpi_root_table=rsdt boot param
 	and dmi list to force rsdt
-Date: Mon, 20 Oct 2008 16:05:15 -0200
-Message-ID: <20081020180515.GI18277@khazad-dum.debian.net>
-References: <200810192350.57993.trenn@suse.de> <20081020010142.GB32675@srcf.ucam.org> <200810201843.10507.trenn@suse.de>
+Date: Mon, 20 Oct 2008 15:51:24 -0200
+Message-ID: <20081020175124.GH18277@khazad-dum.debian.net>
+References: <200810192350.57993.trenn@suse.de> <200810201823.28314.trenn@suse.de> <20081020162732.GA10904@srcf.ucam.org> <200810201848.42759.trenn@suse.de> <20081020165425.GA11507@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:47975 "EHLO
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:50311 "EHLO
 	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752084AbYJTSFV (ORCPT
+	by vger.kernel.org with ESMTP id S1752065AbYJTRvc (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 20 Oct 2008 14:05:21 -0400
+	Mon, 20 Oct 2008 13:51:32 -0400
 Content-Disposition: inline
-In-Reply-To: <200810201843.10507.trenn@suse.de>
+In-Reply-To: <20081020165425.GA11507@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Zhao Yakui <yakui.zhao@intel.com>, me@markdoughty.co.uk, linux-thinkpad <linux-thinkpad@linux-thinkpad.org>, "devel@acpica.org" <devel@acpica.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Thomas Renninger <trenn@suse.de>, Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Zhao Yakui <yakui.zhao@intel.com>, me@markdoughty.co.uk, linux-thinkpad <linux-thinkpad@linux-thinkpad.org>, "devel@acpica.org" <devel@acpica.org>
 
-On Mon, 20 Oct 2008, Thomas Renninger wrote:
-> On Monday 20 October 2008 03:01:42 Matthew Garrett wrote:
-> > On Sun, Oct 19, 2008 at 11:50:55PM +0200, Thomas Renninger wrote:
-> > > Introduce acpi_root_table=rsdt boot param and dmi list to force rsdt
-> > >
-> > > References: http://bugzilla.kernel.org/show_bug.cgi?id=8246
-> > >
-> > > Blacklist R40e, R51e and T40, T40p, T41, T41p, T42, T42p, R50 and R50p
-> > > ThinkPads to use the RSDT instead of the XSDT.
-> >
-> > I'm very sceptical about this. All of these machines were released years
-> > before Vista, which makes me unsure about the diagnosis that this is
-> > something to do with Vista readyness.
+On Mon, 20 Oct 2008, Matthew Garrett wrote:
+> On Mon, Oct 20, 2008 at 06:48:41PM +0200, Thomas Renninger wrote:
+> > As said, probably because Vista is not supported at all or not showing the 
+> > symptoms.
 > 
-> I sent you a link to BIOS updates where the last changelog entry stated VISTA 
-> support. Hmm, I double checked R40e and R50e and there is nothing about VISTA 
-> support.
-> Nevertheless, this would mean the addresses used by Linux are not supported.
+> But *why* is Vista not showing the symptoms?
 
-Correct.  They're not, and latent ACPI BIOS bugs make this painful for Linux
-(and probably would cause trouble for a modern Windows if you even could
-install it on those boxes).
+I very much doubt anyone ever attempted to run Vista on a R40e or a R50e.
+It probably won't work well on the T4x/R51/R52 either, but I haven't tried.
 
-So, it might well be that issues don't show up on Windows in the R40e and
-R50e because it is an *OLD* version of Windows that just plain doesn't touch
-the broken stuff, AFAIK.  Heck, I am not sure if the R40e even can run XP,
-let alone Vista...
+> values in the table were never caught because, for some reason, Windows 
+> never used them. The bug is that we're not using the same heuristic as 
+> Windows. Applying a static list of hardware just results in it being 
+> likely that we'll never fix that bug.
 
-> XP uses the 32 bit adresses. Vista the 64 bit adresses.
-
-Don't touch 64bit addresses on ACPI BIOSes that are too old to support Vista
-is about the only heuristic I can imagine that would work, here.  But that's
-likely going to cover too many machines that didn't need the quirk.
-
-> Could you please point to a specific problem you have with the patches, these 
-> are safe, tested and verified fixes.
-
-Well, *I* don't have a problem with them now that you removed the T4x/R51
-from the DMI list.  BTW: it could very well be that the T4x/R51 needs to be
-in there, but it should be tested directly, as they use a different BIOS.
+I am a bit lost, now.  Are you talking about newer ThinkPads with
+Vista-capable BIOSes, or the older ones that can't handle it and thus are
+only subject to some ACPI access patterns when running Linux?
 
 -- 
   "One disk to rule them all, One disk to find them. One disk to bring
