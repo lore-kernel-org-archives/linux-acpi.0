@@ -1,25 +1,64 @@
-From: "guilherme m. schroeder" <guilherme.m.schroeder@gmail.com>
-Subject: dell latitude e6400
-Date: Mon, 20 Oct 2008 19:58:33 -0200
-Message-ID: <20081020195833.7ba9b650.guilherme.m.schroeder@gmail.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 1/2] x86: allow module driver to register idle notifier
+Date: Mon, 20 Oct 2008 21:57:28 -0400 (EDT)
+Message-ID: <alpine.LFD.1.10.0810202156280.2996@localhost.localdomain>
+References: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
+ <e8b529091b2ab65f5a4783e292c2b472e309116e.1223706853.git.len.brown@intel.com>
+ <20081011083347.GA31918@elte.hu>
+ <alpine.LFD.1.10.0810161803230.3026@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-gx0-f16.google.com ([209.85.217.16]:36498 "EHLO
-	mail-gx0-f16.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751090AbYJTV6n (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Oct 2008 17:58:43 -0400
-Received: by gxk9 with SMTP id 9so4557260gxk.13
-        for <linux-acpi@vger.kernel.org>; Mon, 20 Oct 2008 14:58:42 -0700 (PDT)
+Received: from vms173003pub.verizon.net ([206.46.173.3]:57892 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751346AbYJUB5y (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Oct 2008 21:57:54 -0400
+In-reply-to: <alpine.LFD.1.10.0810161803230.3026@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Venki Pallipadi <venkatesh.pallipadi@intel.com>, Andy Henroid <andrew.d.henroid@intel.com>, Len Brown <len.brown@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Andi Kleen <ak@linux.intel.com>
 
-ACPI: DMI System Vendor: Dell Inc.
-ACPI: DMI Product Name: Latitude E6400                  
-ACPI: DMI Product Version: 
-ACPI: DMI Board Name: 0HT027
-ACPI: DMI BIOS Vendor: Dell Inc.
-ACPI: DMI BIOS Date: 10/10/2008
-ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
+Ingo,
+How shall we proceed?
+If you take this patch, we can ship a modular i7300_idle driver.
+If you do not take this patch, then we'll need to build it into
+the kernel and not allow it to un-register.
+
+thanks,
+-Len
+
+On Thu, 16 Oct 2008, Len Brown wrote:
+
+> From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+> 
+> needed if the i7300_idle driver is to be a module.
+> 
+> Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+> Signed-off-by: Len Brown <len.brown@intel.com>
+> ---
+>  arch/x86/kernel/process_64.c |    7 +++++++
+>  1 files changed, 7 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/x86/kernel/process_64.c b/arch/x86/kernel/process_64.c
+> index e12e0e4..3e3d503 100644
+> --- a/arch/x86/kernel/process_64.c
+> +++ b/arch/x86/kernel/process_64.c
+> @@ -62,6 +62,13 @@ void idle_notifier_register(struct notifier_block *n)
+>  {
+>  	atomic_notifier_chain_register(&idle_notifier, n);
+>  }
+> +EXPORT_SYMBOL_GPL(idle_notifier_register);
+> +
+> +void idle_notifier_unregister(struct notifier_block *n)
+> +{
+> +	atomic_notifier_chain_unregister(&idle_notifier, n);
+> +}
+> +EXPORT_SYMBOL_GPL(idle_notifier_unregister);
+>  
+>  void enter_idle(void)
+>  {
+> -- 
+> 1.6.0.2.532.g84ed4c
+> 
+> 
