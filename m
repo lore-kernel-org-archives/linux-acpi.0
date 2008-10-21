@@ -1,64 +1,45 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 1/2] x86: allow module driver to register idle notifier
-Date: Mon, 20 Oct 2008 21:57:28 -0400 (EDT)
-Message-ID: <alpine.LFD.1.10.0810202156280.2996@localhost.localdomain>
-References: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
- <e8b529091b2ab65f5a4783e292c2b472e309116e.1223706853.git.len.brown@intel.com>
- <20081011083347.GA31918@elte.hu>
- <alpine.LFD.1.10.0810161803230.3026@localhost.localdomain>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [RESEND] [PATCH 2/3] Introduce acpi_root_table=rsdt boot param and dmi list to force rsdt
+Date: Tue, 21 Oct 2008 10:14:23 +0200
+Message-ID: <200810211014.28721.trenn@suse.de>
+References: <200810192350.57993.trenn@suse.de> <20081020184754.GL18277@khazad-dum.debian.net> <20081020185241.GA14155@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:57892 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751346AbYJUB5y (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Oct 2008 21:57:54 -0400
-In-reply-to: <alpine.LFD.1.10.0810161803230.3026@localhost.localdomain>
+Received: from ns2.suse.de ([195.135.220.15]:47753 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751235AbYJUIOc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 21 Oct 2008 04:14:32 -0400
+In-Reply-To: <20081020185241.GA14155@srcf.ucam.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Venki Pallipadi <venkatesh.pallipadi@intel.com>, Andy Henroid <andrew.d.henroid@intel.com>, Len Brown <len.brown@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Andi Kleen <ak@linux.intel.com>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Zhao Yakui <yakui.zhao@intel.com>, me@markdoughty.co.uk, linux-thinkpad <linux-thinkpad@linux-thinkpad.org>, "devel@acpica.org" <devel@acpica.org>
 
-Ingo,
-How shall we proceed?
-If you take this patch, we can ship a modular i7300_idle driver.
-If you do not take this patch, then we'll need to build it into
-the kernel and not allow it to un-register.
+On Monday 20 October 2008 20:52:41 Matthew Garrett wrote:
+> On Mon, Oct 20, 2008 at 04:47:54PM -0200, Henrique de Moraes Holschuh wrote:
+> > On Mon, 20 Oct 2008, Matthew Garrett wrote:
+> > > C state transitions, not S state. Working properly here means not
+> > > hanging the moment ACPI processor power management starts.
+> >
+> > I see, but my point remains.  Does a version of Windows that was tested
+> > to do C-state transitions on the R50e and R40e even use the XSDT?
+>
+> Vista is known to run on the R50e. See
+> http://forums.lenovo.com/lnv/board/message?board.id=R_Series_Thinkpads&thre
+>ad.id=3467 , for instance.
 
-thanks,
--Len
+The R50e also works on Linux. See:
+http://bugzilla.kernel.org/show_bug.cgi?id=8246
+Problem Description: Since kernel 2.6.20 the acpi modules take an unacceptable
+time to load.
 
-On Thu, 16 Oct 2008, Len Brown wrote:
+It is the R40e which cannot do C-state switching.
 
-> From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-> 
-> needed if the i7300_idle driver is to be a module.
-> 
-> Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-> Signed-off-by: Len Brown <len.brown@intel.com>
-> ---
->  arch/x86/kernel/process_64.c |    7 +++++++
->  1 files changed, 7 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/x86/kernel/process_64.c b/arch/x86/kernel/process_64.c
-> index e12e0e4..3e3d503 100644
-> --- a/arch/x86/kernel/process_64.c
-> +++ b/arch/x86/kernel/process_64.c
-> @@ -62,6 +62,13 @@ void idle_notifier_register(struct notifier_block *n)
->  {
->  	atomic_notifier_chain_register(&idle_notifier, n);
->  }
-> +EXPORT_SYMBOL_GPL(idle_notifier_register);
-> +
-> +void idle_notifier_unregister(struct notifier_block *n)
-> +{
-> +	atomic_notifier_chain_unregister(&idle_notifier, n);
-> +}
-> +EXPORT_SYMBOL_GPL(idle_notifier_unregister);
->  
->  void enter_idle(void)
->  {
-> -- 
-> 1.6.0.2.532.g84ed4c
-> 
-> 
+Both were verified to work with using 32 bit values and both are broken with 
+64 bit addresses.
+
+    Thomas
