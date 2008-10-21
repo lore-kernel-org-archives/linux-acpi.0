@@ -1,56 +1,72 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Strange ACPI errors sometimes after resume from s2disk
-Date: Wed, 22 Oct 2008 00:44:00 +0200
-Message-ID: <200810220044.01259.rjw@sisk.pl>
-References: <20081021220034.GA18248@laptop.local>
+From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Subject: RE: [PATCH 2/2] i7300_idle driver v1.55
+Date: Tue, 21 Oct 2008 16:02:03 -0700
+Message-ID: <7E82351C108FA840AB1866AC776AEC4637CD28F4@orsmsx505.amr.corp.intel.com>
+References: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
+	<e8b529091b2ab65f5a4783e292c2b472e309116e.1223706853.git.len.brown@intel.com>
+	<20081011083347.GA31918@elte.hu>
+	<alpine.LFD.1.10.0810161805360.3026@localhost.localdomain>
+ <20081020103214.072e3b5f.randy.dunlap@oracle.com>
+ <7E82351C108FA840AB1866AC776AEC4637CD2743@orsmsx505.amr.corp.intel.com>
+ <48FE546B.4000003@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:55517 "EHLO ogre.sisk.pl"
+Received: from mga09.intel.com ([134.134.136.24]:12566 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752096AbYJUWjf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 21 Oct 2008 18:39:35 -0400
-In-Reply-To: <20081021220034.GA18248@laptop.local>
-Content-Disposition: inline
+	id S1751352AbYJUXDf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Oct 2008 19:03:35 -0400
+In-Reply-To: <48FE546B.4000003@oracle.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Nezhevenko <dion@inhex.net>
-Cc: linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>
-
-[Adding CCs]
-
-On Wednesday, 22 of October 2008, Dmitry Nezhevenko wrote:
-> Hiall. Just got these strange messages with 2.6.27.2. They flood dmesg.. (same block every second). 
-> 
-> [42016.520062] ACPI: EC: acpi_ec_wait timeout, status = 0x1a, event = "b1=0"
-> [42016.520079] ACPI: EC: input buffer is not empty, aborting transaction
-> [42017.025050] ACPI: EC: acpi_ec_wait timeout, status = 0x1a, event = "b1=0"
-> [42017.025197] ACPI: EC: input buffer is not empty, aborting transaction
-> [42017.025254] ACPI Exception (evregion-0419): AE_TIME, Returned by Handler for [EmbeddedControl] [20080609]
-> [42017.025350] ACPI Error (psparse-0530): Method parse/execution failed [\_SB_.PCI0.SBRG.EC__.BAT1.UPBS] (Node f78353b0), AE_TIME
-> [42017.025546] ACPI Error (psparse-0530): Method parse/execution failed [\_SB_.PCI0.SBRG.EC__.BAT1._BST] (Node f7835400), AE_TIME
-> [42017.025715] ACPI Exception (battery-0360): AE_TIME, Evaluating _BST [20080609]
-> 
-> Battery state "freezes" after this.. So if it was charged to 90%, it will
-> be 90% forever.  Also information about charger (plugged/unplugged) is not
-> updating... BIOS automatically increases display brightness just after
-> plugging charger but powersave thinks that it's unplugged.
-> 
-> After turning laptop off I can't turn it on any more.. I can hear fan noise,
-> but it don't boots (There are no even BIOS splash/message)
-> 
-> I should remove battery and wait ~5 seconds...
-> 
-> v2.6.26 was non-working here, but as far as I remember, there was no such
-> problem with 2.6.25.  It's very difficult to reproduce it (this is just
-> second case for ~2-3 weeks).  So bisecting is impossible.
-> 
-> Any ideas? Should I fill a bugreport?
-> 
-> dmesg when this happens is available:
-> 	http://inhex.net/dion/lkml/dmesg_2.6.27.txt
-> 
+To: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Henroid, Andrew D" <andrew.d.henroid@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Andi Kleen <ak@linux.intel.com>
 
 
+
+>-----Original Message-----
+>From: Randy Dunlap [mailto:randy.dunlap@oracle.com]
+>Sent: Tuesday, October 21, 2008 3:15 PM
+>To: Pallipadi, Venkatesh
+>Cc: Randy Dunlap; Len Brown; Ingo Molnar;
+>linux-acpi@vger.kernel.org; Linux Kernel Mailing List;
+>Henroid, Andrew D; Linus Torvalds; Thomas Gleixner; H. Peter
+>Anvin; Andi Kleen
+>Subject: Re: [PATCH 2/2] i7300_idle driver v1.55
+>
+>Pallipadi, Venkatesh wrote:
+>> Thanks for the review. Some comments below.
+>>
+>> Thanks,
+>> Venki
+>>
+>>> What is debugfs used for?  any docs for it?
+>>
+>> It has some statistics about how many times we went
+>> into "memory throttling" state and how long we stayed
+>> there since the boot. And one tunable that tunes a
+>> parameter changing the policy to start throttling.
+>> Will document this with an update patch.
+>
+>"Normal" tunables should be in sysfs, not debugfs.
+>Or is this just a debugging tunable?
+>
+>You surely can't be certain (or require) that debugfs
+>be available.
+>
+
+The lone tunable is debug only. It needs driver to be
+compiled with DEBUG flag to be present in debugfs.
+We don't want export it in sysfs and some random user
+app starts using it and then end up providing backward
+compatibility for it in future.
+
+The other two read only variables give some stats about
+the driver usage and also kind of debuggish info that
+we used during development. Didn't seem worthy enough
+to go under sysfs.
+
+Thanks,
+Venki
