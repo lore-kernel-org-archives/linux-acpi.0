@@ -1,82 +1,55 @@
-From: Andi Kleen <ak@linux.intel.com>
-Subject: Re: [PATCH 2/2] i7300_idle driver v1.55
-Date: Wed, 22 Oct 2008 09:19:22 +0200
-Message-ID: <48FED3FA.6040703@linux.intel.com>
-References: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com> <e8b529091b2ab65f5a4783e292c2b472e309116e.1223706853.git.len.brown@intel.com> <20081011083347.GA31918@elte.hu> <alpine.LFD.1.10.0810161805360.3026@localhost.localdomain> <48FE07AE.4010203@linux.intel.com> <7E82351C108FA840AB1866AC776AEC4637CD27F3@orsmsx505.amr.corp.intel.com>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: Re: Strange ACPI errors sometimes after resume from s2disk
+Date: Wed, 22 Oct 2008 11:29:54 +0400
+Message-ID: <48FED672.4060008@suse.de>
+References: <20081021220034.GA18248@laptop.local> <200810220044.01259.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:37503 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751424AbYJVHUP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Oct 2008 03:20:15 -0400
-In-Reply-To: <7E82351C108FA840AB1866AC776AEC4637CD27F3@orsmsx505.amr.corp.intel.com>
+Received: from charybdis-ext.suse.de ([195.135.221.2]:45346 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750999AbYJVH37 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Oct 2008 03:29:59 -0400
+In-Reply-To: <200810220044.01259.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Cc: Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Henroid, Andrew D" <andrew.d.henroid@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Dmitry Nezhevenko <dion@inhex.net>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-Pallipadi, Venkatesh wrote:
+Rafael J. Wysocki wrote:
+> [Adding CCs]
 > 
->>> +#if CONFIG_I7300_IDLE_IOAT_CHANNEL
->>> +     device->common.chancnt--;
->>> +#endif
->> I still think this lone decrement looks fishy. Can there please be some
->> explanation how it exactly relates to the i7300 idle driver, where the
->> matching increment is, etc.?
-> 
-> No. This is not a increment/decrement thing. It is basically telling other
-> Users of IOAT that they have one IOAT channel less that they can use.
-> The last IOAT channel is used by i7300 idle driver to get the throttling to
-> work.
-
-Ok then it should be made conditional on the i7300 actually be available
-in the system?  It looks like you do it always no matter what chipset is in there.
-
-
-> udelay may be more power efficient than polling. 
-
-Isn't that function a one off anyways?
-
->>> +/* Check for known platforms with I/O-AT */
->>> +static int __init i7300_idle_platform_probe(void)
->>> +{
->>> +     int i;
->>> +
->>> +     fbd_dev = pci_get_bus_and_slot(MEMCTL_BUS, MEMCTL_DEVFN)
->> Is there a specific reason you cannot match this by pci vendor/devid
->> like all standard drivers do?
+> On Wednesday, 22 of October 2008, Dmitry Nezhevenko wrote:
+>> Hiall. Just got these strange messages with 2.6.27.2. They flood dmesg.. (same block every second). 
 >>
->> If there is a good reason add a comment.
-> 
-> They have to match vendor device and function. Its not unique to
-> just vendor and device id.
+>> [42016.520062] ACPI: EC: acpi_ec_wait timeout, status = 0x1a, event = "b1=0"
+>> [42016.520079] ACPI: EC: input buffer is not empty, aborting transaction
+>> [42017.025050] ACPI: EC: acpi_ec_wait timeout, status = 0x1a, event = "b1=0"
+>> [42017.025197] ACPI: EC: input buffer is not empty, aborting transaction
+>> [42017.025254] ACPI Exception (evregion-0419): AE_TIME, Returned by Handler for [EmbeddedControl] [20080609]
+>> [42017.025350] ACPI Error (psparse-0530): Method parse/execution failed [\_SB_.PCI0.SBRG.EC__.BAT1.UPBS] (Node f78353b0), AE_TIME
+>> [42017.025546] ACPI Error (psparse-0530): Method parse/execution failed [\_SB_.PCI0.SBRG.EC__.BAT1._BST] (Node f7835400), AE_TIME
+>> [42017.025715] ACPI Exception (battery-0360): AE_TIME, Evaluating _BST [20080609]
+>>
+>> Battery state "freezes" after this.. So if it was charged to 90%, it will
+>> be 90% forever.  Also information about charger (plugged/unplugged) is not
+>> updating... BIOS automatically increases display brightness just after
+>> plugging charger but powersave thinks that it's unplugged.
+>>
+>> After turning laptop off I can't turn it on any more.. I can hear fan noise,
+>> but it don't boots (There are no even BIOS splash/message)
+>>
+>> I should remove battery and wait ~5 seconds...
+>>
+>> v2.6.26 was non-working here, but as far as I remember, there was no such
+>> problem with 2.6.25.  It's very difficult to reproduce it (this is just
+>> second case for ~2-3 weeks).  So bisecting is impossible.
+>>
+>> Any ideas? Should I fill a bugreport?
+Please try changing msleep(1) to udelay(50) in drivers/acpi/ec.c 
+Do you have msi-laptop module loaded?
+Please fill a bugreport and attach all the information there.
 
-It might be still better then to use the standard callback style and just ignore
-devices that don't match?
-
-
-> 
->> ;
->>> +static void __exit i7300_idle_exit(void)
->>> +{
->>> +     idle_notifier_unregister(&i7300_idle_nb);
->> I still think this needs some kind of idle synchronization.
-> 
-> This unregister uses atomic_notifier_chain_unregister() which
-> uses RCU and handles the race conditions that way. 
-
-I didn't do a full analysis, but I didn't think RCU protects
-against the idle handler itself.  At least not standard RCU.
-You would need to go through at least two quiescent periods,
-not one as standard code.
-
-There used to be an older
-idle synchronization interface for this case (which was removed
-at some point), perhaps it needs to be readded.
-
-Or just use stop_machine(). That protects against idle too
-and while it's a big hammer for unloading it should be ok.
-
--Andi
+Thanks,
+Alex.
