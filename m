@@ -1,45 +1,81 @@
-From: Tom Kaalverink <tom@kaalverink.net>
-Subject: If "acpi_osi=Linux" works better, please notify linux-acpi@vger.kernel.org
-Date: Wed, 22 Oct 2008 07:55:40 +0200
-Message-ID: <48FEC05C.4050600@kaalverink.net>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: Re: [RFC 5/5] ACPI GPE based wakeup event detection
+Date: Wed, 22 Oct 2008 14:51:01 +0800
+Message-ID: <20081022065101.GE15271@sli10-desk.sh.intel.com>
+References: <20080911063037.698427944@sli10-desk.sh.intel.com> <20080911063823.432831198@sli10-desk.sh.intel.com> <200810192239.47710.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ip72-36-208-87.adsl2.static.versatel.nl ([87.208.36.72]:54883
-	"EHLO server.kaalverink.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751930AbYJVG21 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Oct 2008 02:28:27 -0400
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by server.kaalverink.net (Postfix) with ESMTP id 462AF805A13
-	for <linux-acpi@vger.kernel.org>; Wed, 22 Oct 2008 07:55:51 +0200 (CEST)
-Received: from server.kaalverink.net ([127.0.0.1])
-	by localhost (server.kaalverink.net [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id IVZJdUoNJiZz for <linux-acpi@vger.kernel.org>;
-	Wed, 22 Oct 2008 07:55:46 +0200 (CEST)
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by server.kaalverink.net (Postfix) with ESMTP id 0F323805A17
-	for <linux-acpi@vger.kernel.org>; Wed, 22 Oct 2008 07:55:45 +0200 (CEST)
-Received: from [10.67.180.147] (unknown [62.140.137.125])
-	by server.kaalverink.net (Postfix) with ESMTP id 419E2805A13
-	for <linux-acpi@vger.kernel.org>; Wed, 22 Oct 2008 07:55:41 +0200 (CEST)
+Received: from mga11.intel.com ([192.55.52.93]:30751 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751229AbYJVGvM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 22 Oct 2008 02:51:12 -0400
+Content-Disposition: inline
+In-Reply-To: <200810192239.47710.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, "david-b@pacbell.net" <david-b@pacbell.net>, "dbrownell@users.sourceforge.net" <dbrownell@users.sourceforge.net>
 
-I have aspi_osi=Linux tried and thinks look better this way.
-I saw this message in the /var/log/messages.
+On Mon, Oct 20, 2008 at 04:39:47AM +0800, Rafael J. Wysocki wrote:
+> On Thursday, 11 of September 2008, Shaohua Li wrote:
+> > In ACPI platform, if native PME isn't enabled, GPE is used to report wakeup event.
+> 
+> Add more details here, please.
+> 
+> > ---
+> >  drivers/acpi/Kconfig        |    9 ++++++
+> >  drivers/acpi/bus.c          |   15 +++++++++++
+> >  drivers/acpi/sleep/wakeup.c |   60 ++++++++++++++++++++++++++++++++++++++++++++
+> >  include/acpi/acpi_bus.h     |    4 ++
+> >  4 files changed, 88 insertions(+)
+> >
+> > Index: linux/drivers/acpi/Kconfig
+> > ===================================================================
+> > --- linux.orig/drivers/acpi/Kconfig   2008-09-11 10:56:25.000000000 +0800
+> > +++ linux/drivers/acpi/Kconfig        2008-09-11 10:56:47.000000000 +0800
+> > @@ -45,6 +45,15 @@ config ACPI_SLEEP
+> >       depends on PM_SLEEP
+> >       default y
+> >
+> > +config ACPI_GPE_WAKEUP
+> 
+> I'd call it ACPI_RUNTIME_WAKEUP
+ok
 
-My operating system : Ubuntu 8.10
+> > +void unregister_acpi_bus_notifier(struct notifier_block *nb)
+> > +{
+> > +     blocking_notifier_chain_unregister(&acpi_bus_notify_list, nb);
+> > +}
+> > +EXPORT_SYMBOL_GPL(unregister_acpi_bus_notifier);
+> > +
+> 
+> We were talking about removing the notifier last time.  Please do that.
+Did you see my comments on the issue last time? ACPI test tree already introduces
+the mechanism for other purpose, and we can just use it.
 
-[    0.496839] ACPI: DMI System Vendor: Dell Inc.
-[    0.496840] ACPI: DMI Product Name: Inspiron 1721
-[    0.496842] ACPI: DMI Product Version:
-[    0.496843] ACPI: DMI Board Name: 0UK441
-[    0.496845] ACPI: DMI BIOS Vendor: Dell Inc.
-[    0.496846] ACPI: DMI BIOS Date: 04/21/2008
+> > --- linux.orig/include/acpi/acpi_bus.h        2008-09-11 10:56:25.000000000 +0800
+> > +++ linux/include/acpi/acpi_bus.h     2008-09-11 10:56:47.000000000 +0800
+> > @@ -327,6 +327,10 @@ int acpi_bus_get_private_data(acpi_handl
+> >  extern int acpi_notifier_call_chain(struct acpi_device *, u32, u32);
+> >  extern int register_acpi_notifier(struct notifier_block *);
+> >  extern int unregister_acpi_notifier(struct notifier_block *);
+> > +
+> > +extern int register_acpi_bus_notifier(struct notifier_block *nb);
+> > +extern void unregister_acpi_bus_notifier(struct notifier_block *nb);
+> > +
+> >  /*
+> >   * External Functions
+> >   */
+> >
+> 
+> I understand from the above that devices having their own wake-up GPEs will be
+> handled.  However, it still is completely unclear to me what happens with
+> devices that can generate PME# and for which there are no specific GPEs, like
+> any devices on add-in cards.
+As we discussed last time, pci bus for add-in cards will invoke a gpe, and
+this new implementation will check all pci devices under a bridge to try to find
+a device generating PME. This should work for add-in cards.
 
-With kind regards,
-
-Tom Kaalverink
+Thanks,
+Shaohua
