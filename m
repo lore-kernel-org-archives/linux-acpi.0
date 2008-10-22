@@ -1,72 +1,61 @@
-From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Subject: RE: [PATCH 2/2] i7300_idle driver v1.55
-Date: Tue, 21 Oct 2008 16:02:03 -0700
-Message-ID: <7E82351C108FA840AB1866AC776AEC4637CD28F4@orsmsx505.amr.corp.intel.com>
-References: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
-	<e8b529091b2ab65f5a4783e292c2b472e309116e.1223706853.git.len.brown@intel.com>
-	<20081011083347.GA31918@elte.hu>
-	<alpine.LFD.1.10.0810161805360.3026@localhost.localdomain>
- <20081020103214.072e3b5f.randy.dunlap@oracle.com>
- <7E82351C108FA840AB1866AC776AEC4637CD2743@orsmsx505.amr.corp.intel.com>
- <48FE546B.4000003@oracle.com>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: Re: [RFC 1/5] devcore introduce wakeup_event callback
+Date: Wed, 22 Oct 2008 13:23:18 +0800
+Message-ID: <20081022052317.GA15271@sli10-desk.sh.intel.com>
+References: <20080911063037.698427944@sli10-desk.sh.intel.com> <20080911063822.973881418@sli10-desk.sh.intel.com> <200810192104.17510.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:12566 "EHLO mga09.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:60774 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751352AbYJUXDf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Oct 2008 19:03:35 -0400
-In-Reply-To: <48FE546B.4000003@oracle.com>
-Content-Language: en-US
+	id S1751044AbYJVFXV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 22 Oct 2008 01:23:21 -0400
+Content-Disposition: inline
+In-Reply-To: <200810192104.17510.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Henroid, Andrew D" <andrew.d.henroid@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Andi Kleen <ak@linux.intel.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, "david-b@pacbell.net" <david-b@pacbell.net>, "dbrownell@users.sourceforge.net" <dbrownell@users.sourceforge.net>
 
-
-
->-----Original Message-----
->From: Randy Dunlap [mailto:randy.dunlap@oracle.com]
->Sent: Tuesday, October 21, 2008 3:15 PM
->To: Pallipadi, Venkatesh
->Cc: Randy Dunlap; Len Brown; Ingo Molnar;
->linux-acpi@vger.kernel.org; Linux Kernel Mailing List;
->Henroid, Andrew D; Linus Torvalds; Thomas Gleixner; H. Peter
->Anvin; Andi Kleen
->Subject: Re: [PATCH 2/2] i7300_idle driver v1.55
->
->Pallipadi, Venkatesh wrote:
->> Thanks for the review. Some comments below.
->>
->> Thanks,
->> Venki
->>
->>> What is debugfs used for?  any docs for it?
->>
->> It has some statistics about how many times we went
->> into "memory throttling" state and how long we stayed
->> there since the boot. And one tunable that tunes a
->> parameter changing the policy to start throttling.
->> Will document this with an update patch.
->
->"Normal" tunables should be in sysfs, not debugfs.
->Or is this just a debugging tunable?
->
->You surely can't be certain (or require) that debugfs
->be available.
->
-
-The lone tunable is debug only. It needs driver to be
-compiled with DEBUG flag to be present in debugfs.
-We don't want export it in sysfs and some random user
-app starts using it and then end up providing backward
-compatibility for it in future.
-
-The other two read only variables give some stats about
-the driver usage and also kind of debuggish info that
-we used during development. Didn't seem worthy enough
-to go under sysfs.
-
-Thanks,
-Venki
+On Mon, Oct 20, 2008 at 03:04:16AM +0800, Rafael J. Wysocki wrote:
+> On Thursday, 11 of September 2008, Shaohua Li wrote:
+> > Introduce .wakeup_event(). When a device gets a wakeup event,
+> > the callback is called. The callback usually should disable wakeup event.
+> >
+> > ---
+> >  include/linux/pm.h |    7 +++++++
+> >  1 file changed, 7 insertions(+)
+> >
+> > Index: linux/include/linux/pm.h
+> > ===================================================================
+> > --- linux.orig/include/linux/pm.h     2008-09-11 10:56:27.000000000 +0800
+> > +++ linux/include/linux/pm.h  2008-09-11 10:56:29.000000000 +0800
+> > @@ -125,6 +125,12 @@ typedef struct pm_message {
+> >   *   make ANY assumptions about the hardware state right prior to @restore().
+> >   *   On most platforms, there are no restrictions on availability of
+> >   *   resources like clocks during @restore().
+> > + * @wakeup_event: Checks if a wakeup event occurs. In bus level, the op might
+> > + *   check all devices under the bus and call device_receive_wakeup_event()
+> > + *   for devices which invoke wakeup event. In device level, the op just
+> > + *   returns if a wakeup event occurs. Note, if device follows standard
+> > + *   mechanism for wakeup which bus level can handle, device level op can be
+> > + *   empty.
+> >   *
+> >   * All of the above callbacks, except for @complete(), return error codes.
+> >   * However, the error codes returned by the resume operations, @resume(),
+> > @@ -151,6 +157,7 @@ struct pm_ops {
+> >       int (*thaw)(struct device *dev);
+> >       int (*poweroff)(struct device *dev);
+> >       int (*restore)(struct device *dev);
+> > +     bool (*wakeup_event)(struct device *dev);
+> >  };
+> >
+> >  /**
+> 
+> I think it will be better to place wakeup_event() in 'struct device' itself
+> rather than here.
+> 
+> Generally, the 'struct pm_ops' thing (after the simplification patch queued up
+> for .29 that will be 'struct dev_pm_ops') will depend on PM_SLEEP and
+> wakeup_event() is a run-time thing.
+ok
