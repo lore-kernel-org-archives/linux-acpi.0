@@ -1,141 +1,69 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI suspend: Fix CONFIG_ACPI_SLEEP dependence and some
- compilation warnings (was: Re: [announce] new tree:
- "fix all build warnings, on all configs")
-Date: Wed, 22 Oct 2008 14:58:56 -0400 (EDT)
-Message-ID: <alpine.LFD.1.10.0810221458510.3010@localhost.localdomain>
-References: <20081017171139.GA1792@elte.hu> <200810212137.58020.rjw@sisk.pl>
- <alpine.LFD.1.10.0810220008050.2984@localhost.localdomain>
- <200810221423.44216.rjw@sisk.pl>
+From: Myron Stowe <myron.stowe@hp.com>
+Subject: [PATCH 0/3] ACPI: Fix for supporting > 256 processor declaration
+	limit
+Date: Wed, 22 Oct 2008 13:10:36 -0600
+Message-ID: <1224702636.6784.13.camel@localhost>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Boundary_(ID_Nq7q/LjSYOaibcUpFcXwVw)"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:40569 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753686AbYJVS7T (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Oct 2008 14:59:19 -0400
-In-reply-to: <200810221423.44216.rjw@sisk.pl>
+Received: from g4t0016.houston.hp.com ([15.201.24.19]:12248 "EHLO
+	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757355AbYJVTKi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Oct 2008 15:10:38 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Ingo Molnar <mingo@elte.hu>, Andi Kleen <andi@firstfloor.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, "David S. Miller" <davem@davemloft.net>, Alan Cox <alan@lxorguk.ukuu.org.uk>, linux-kernel@vger.kernel.org, Peter Zijlstra <a.p.zijlstra@chello.nl>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, David Howells <dhowells@redhat.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: lenb@kernel.org
+Cc: aystarik@gmail.com, linux-acpi <linux-acpi@vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
 
---Boundary_(ID_Nq7q/LjSYOaibcUpFcXwVw)
-Content-type: TEXT/PLAIN; charset=utf-8
-Content-transfer-encoding: 8BIT
+Len, Alexey:
 
-applied.
+The following three item patch series fixes an issue with the introduction
+of > 256 processor declaration support: "Allow processor to be declared with
+the Device() instead of Processor()" (git SHA 11bf04c4).
 
-thanks,
--Len
+The root issue is in the lsapic mapping logic of drivers/acpi/processor_core.c.
+Currently, the logic tries both types of matches irregardless of declaration
+type and relies on one failing.  According to the spec - lsapic mapping is
+dependent on how the processor object was declared: CPUs declared using the
+"Processor" statement should use the Local SAPIC's 'processor_id', and CPUs
+declared using the "Device" statement should use the 'uid'.
 
-On Wed, 22 Oct 2008, Rafael J. Wysocki wrote:
+Reference: Section 8.4 Declaring Processors; Section 5.2.11.13 Local SAPIC
+Structure.  "Advanced Configuration and Power Interface Specification",
+Revision 3.0b, October 2006.
 
-> On Wednesday, 22 of October 2008, Len Brown wrote:
-> > 
-> > > >   drivers/acpi/sleep/main.c:67: warning: ‘acpi_pm_disable_gpes’ defined but not used
-> > 
-> > > > 
-> > > > Shows that this code has an identity crisis due to a maze of #ifdefs, in
-> > > > the PM_SLEEP && !SUSPEND && !HIBERNATION case for example.
-> > > 
-> > > This case is invalid, because PM_SLEEP == SUSPEND || HIBERNATION !
-> > 
-> > I though so too, but 2.6.27 appears to have added XEN to the mix:
-> > 
-> > config PM_SLEEP
-> >         bool
-> >         depends on SUSPEND || HIBERNATION || XEN_SAVE_RESTORE
-> 
-> Yeah, which breaks things. :-(
-> 
-> The patch below should fix it and BTW I think ACPI_SLEEP should not depend
-> on XEN_SAVE_RESTORE anyway, so this is a bug fix really (please consider as
-> .28 material, probably -stable too).
-> 
-> Thanks,
-> Rafael
-> 
-> ---
-> From: Rafael J. Wysocki <rjw@sisk.pl>
-> 
-> ACPI suspend: Fix CONFIG_ACPI_SLEEP dependence and some compilation warnings
-> 
-> Initially CONFIG_PM_SLEEP was defined as
-> CONFIG_SUSPEND || CONFIG_HIBERNATION and some ACPI code, most
-> importantly the code in drivers/acpi/main.c, was written with this
-> assumption.  Currently, however, CONFIG_PM_SLEEP is also set when
-> CONFIG_XEN_SAVE_RESTORE is set.
-> 
-> This causes some compilation warnings to appear in
-> drivers/acpi/main.c if both CONFIG_SUSPEND and CONFIG_HIBERNATION
-> are unset and CONFIG_PM_SLEEP is set (this was impossible before).
-> To fix this problem, redefine CONFIG_ACPI_SLEEP do depend directly
-> on CONFIG_SUSPEND || CONFIG_HIBERNATION, as originally intended, and
-> use it instead of CONFIG_PM_SLEEP in drivers/acpi/main.c, wherever
-> appropriate.
-> 
-> Additionally, move the acpi_target_sleep_state definition from under
-> the #ifdef to prevent compilation from failing in some cases. 
-> 
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> ---
->  drivers/acpi/Kconfig      |    2 +-
->  drivers/acpi/sleep/main.c |    7 +++----
->  2 files changed, 4 insertions(+), 5 deletions(-)
-> 
-> Index: linux-2.6/drivers/acpi/Kconfig
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/Kconfig
-> +++ linux-2.6/drivers/acpi/Kconfig
-> @@ -42,7 +42,7 @@ if ACPI
->  
->  config ACPI_SLEEP
->  	bool
-> -	depends on PM_SLEEP
-> +	depends on SUSPEND || HIBERNATION
->  	default y
->  
->  config ACPI_PROCFS
-> Index: linux-2.6/drivers/acpi/sleep/main.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/sleep/main.c
-> +++ linux-2.6/drivers/acpi/sleep/main.c
-> @@ -23,6 +23,7 @@
->  #include "sleep.h"
->  
->  u8 sleep_states[ACPI_S_STATE_COUNT];
-> +static u32 acpi_target_sleep_state = ACPI_STATE_S0;
->  
->  static int acpi_sleep_prepare(u32 acpi_state)
->  {
-> @@ -45,9 +46,7 @@ static int acpi_sleep_prepare(u32 acpi_s
->  	return 0;
->  }
->  
-> -#ifdef CONFIG_PM_SLEEP
-> -static u32 acpi_target_sleep_state = ACPI_STATE_S0;
-> -
-> +#ifdef CONFIG_ACPI_SLEEP
->  /*
->   * ACPI 1.0 wants us to execute _PTS before suspending devices, so we allow the
->   * user to request that behavior by using the 'acpi_old_suspend_ordering'
-> @@ -132,7 +131,7 @@ static void acpi_pm_end(void)
->  	 */
->  	acpi_target_sleep_state = ACPI_STATE_S0;
->  }
-> -#endif /* CONFIG_PM_SLEEP */
-> +#endif /* CONFIG_ACPI_SLEEP */
->  
->  #ifdef CONFIG_SUSPEND
->  extern void do_suspend_lowlevel(void);
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
 
---Boundary_(ID_Nq7q/LjSYOaibcUpFcXwVw)--
+[PATCH 1/3] disambiguates the processor declaration type that is currently
+conflated so that subsequent logic can behave based explicitly on the
+declaration's type.  I expect the disambiguation this patch introduces will
+also be advantageous when extending the > 256 processor support for x86 via
+x2APIC.
+
+[PATCH 2/3] addresses the root issue as stated above.  With respect to this
+patch I'm ambivalent about the 'printk' introduced in "map_lsapic_id()" -
+perhaps it should be removed?
+
+[PATCH 3/3] is non-functional white space/spelling fixes in the related code. 
+
+
+While the specific fix is ia64 focused the underlying code affected is common
+to both x86 and ia64.  I have tested on the following platform/namespace
+combinations:
+  ia64 with "Processor" type namespace processor declarations,
+  ia64 with "Device" type namespace processor declarations,
+  x86 with "Processor" type namespace processor declarations.
+
+Note that this patch series does *not* handle "Device" type processor
+declarations that contain a string type _UID object under the processor
+device's scope (I am currently not aware of any platforms that have such to
+test against).
+
+All comments welcome.
+
+Myron
+
+-- 
+Myron Stowe                             HP Open Source & Linux Org
+
