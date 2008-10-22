@@ -1,200 +1,264 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 4/4] ACPI hibernate: Introduce new kernel parameter acpi_sleep=s4_nonvs (rev. 2)
-Date: Thu, 23 Oct 2008 01:19:54 +0200
-Message-ID: <200810230119.55519.rjw@sisk.pl>
-References: <200810222249.20629.rjw@sisk.pl> <1224715892.8156.16.camel@nigel-laptop> <200810230110.04039.rjw@sisk.pl>
+From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Subject: [PATCH] Disable ioat channel only on platforms where ile driver can load
+Date: Wed, 22 Oct 2008 16:34:52 -0700
+Message-ID: <20081022233451.GA28775@linux-os.sc.intel.com>
+References: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com> <e8b529091b2ab65f5a4783e292c2b472e309116e.1223706853.git.len.brown@intel.com> <20081011083347.GA31918@elte.hu> <alpine.LFD.1.10.0810161805360.3026@localhost.localdomain> <48FE07AE.4010203@linux.intel.com> <7E82351C108FA840AB1866AC776AEC4637CD27F3@orsmsx505.amr.corp.intel.com> <48FED3FA.6040703@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:34645 "EHLO ogre.sisk.pl"
+Received: from mga09.intel.com ([134.134.136.24]:30766 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752052AbYJVXPh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Oct 2008 19:15:37 -0400
-In-Reply-To: <200810230110.04039.rjw@sisk.pl>
+	id S1752378AbYJVXey (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 22 Oct 2008 19:34:54 -0400
 Content-Disposition: inline
+In-Reply-To: <48FED3FA.6040703@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Nigel Cunningham <ncunningham@crca.org.au>
-Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>
+To: Andi Kleen <ak@linux.intel.com>
+Cc: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Henroid, Andrew D" <andrew.d.henroid@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>
 
-On Thursday, 23 of October 2008, Rafael J. Wysocki wrote:
-> On Thursday, 23 of October 2008, Nigel Cunningham wrote:
-> > Hi.
-> > 
-> > On Wed, 2008-10-22 at 22:54 +0200, Rafael J. Wysocki wrote:
-> > > From: Rafael J. Wysocki <rjw@sisk.pl>
-> > > 
-> > > ACPI hibernate: Introduce new kernel parameter acpi_sleep=s4_nonvs
-> > > 
-> > > On some machines it may be necessary to disable the saving/restoring
-> > > of the ACPI NVS memory region during hibernation/resume.  For this
-> > > purpose, introduce new ACPI kernel command line option
-> > > acpi_sleep=s4_nonvs.
-> > > 
-> > > Based on a patch by Zhang Rui.
-> > > 
-> > > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> > > Cc: Zhang Rui <rui.zhang@intel.com>
-> > > ---
-> > >  Documentation/kernel-parameters.txt |    5 ++++-
-> > >  arch/x86/kernel/acpi/sleep.c        |    2 ++
-> > >  drivers/acpi/sleep/main.c           |   19 +++++++++++++++++--
-> > >  include/linux/acpi.h                |    1 +
-> > >  4 files changed, 24 insertions(+), 3 deletions(-)
-> > > 
-> > > Index: linux-2.6/Documentation/kernel-parameters.txt
-> > > ===================================================================
-> > > --- linux-2.6.orig/Documentation/kernel-parameters.txt
-> > > +++ linux-2.6/Documentation/kernel-parameters.txt
-> > > @@ -149,7 +149,8 @@ and is between 256 and 4096 characters. 
-> > >  			default: 0
-> > >  
-> > >  	acpi_sleep=	[HW,ACPI] Sleep options
-> > > -			Format: { s3_bios, s3_mode, s3_beep, s4_nohwsig, old_ordering }
-> > > +			Format: { s3_bios, s3_mode, s3_beep, s4_nohwsig,
-> > > +				  old_ordering, s4_nonvs }
-> > >  			See Documentation/power/video.txt for s3_bios and s3_mode.
-> > >  			s3_beep is for debugging; it makes the PC's speaker beep
-> > >  			as soon as the kernel's real-mode entry point is called.
-> > > @@ -159,6 +160,8 @@ and is between 256 and 4096 characters. 
-> > >  			control method, wrt putting devices into low power
-> > >  			states, to be enforced (the ACPI 2.0 ordering of _PTS is
-> > >  			used by default).
-> > > +			s4_nonvs prevents the kernel from saving/restoring the
-> > > +			ACPI NVS memory during hibernation.
-> > >  
-> > >  	acpi_sci=	[HW,ACPI] ACPI System Control Interrupt trigger mode
-> > >  			Format: { level | edge | high | low }
-> > > Index: linux-2.6/arch/x86/kernel/acpi/sleep.c
-> > > ===================================================================
-> > > --- linux-2.6.orig/arch/x86/kernel/acpi/sleep.c
-> > > +++ linux-2.6/arch/x86/kernel/acpi/sleep.c
-> > > @@ -161,6 +161,8 @@ static int __init acpi_sleep_setup(char 
-> > >  #endif
-> > >  		if (strncmp(str, "old_ordering", 12) == 0)
-> > >  			acpi_old_suspend_ordering();
-> > > +		if (strncmp(str, "s4_nonvs", 13) == 0)
-> > 
-> > s/13/8/
+On Wed, Oct 22, 2008 at 12:19:22AM -0700, Andi Kleen wrote:
+> Pallipadi, Venkatesh wrote:
+> >
+> >>> +#if CONFIG_I7300_IDLE_IOAT_CHANNEL
+> >>> +     device->common.chancnt--;
+> >>> +#endif
+> >> I still think this lone decrement looks fishy. Can there please be some
+> >> explanation how it exactly relates to the i7300 idle driver, where the
+> >> matching increment is, etc.?
+> >
+> > No. This is not a increment/decrement thing. It is basically telling other
+> > Users of IOAT that they have one IOAT channel less that they can use.
+> > The last IOAT channel is used by i7300 idle driver to get the throttling to
+> > work.
 > 
-> Sure, thanks for catching that (it was a different string in the original
-> patch).
+> Ok then it should be made conditional on the i7300 actually be available
+> in the system?  It looks like you do it always no matter what chipset is in there.
 
-Fixed version below, already with your ACK. ;-)
+Does the patch below look OK?
+
+Thanks,
+Venki
+
+Based on input from Andi Kleen:
+share the platform detection code with ioat_dma and disable the channel in
+dma engine only for specific platforms.
+
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
 ---
-From: Rafael J. Wysocki <rjw@sisk.pl>
+ drivers/dma/ioat_dma.c     |    5 ++
+ drivers/idle/i7300_idle.c  |   72 +--------------------------------------
+ include/linux/i7300_idle.h |   83 +++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 89 insertions(+), 71 deletions(-)
 
-ACPI hibernate: Introduce new kernel parameter acpi_sleep=s4_nonvs  (rev. 2)
-
-On some machines it may be necessary to disable the saving/restoring
-of the ACPI NVS memory region during hibernation/resume.  For this
-purpose, introduce new ACPI kernel command line option
-acpi_sleep=s4_nonvs.
-
-Based on a patch by Zhang Rui.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Nigel Cunningham <nigel@tuxonice.net>
-Cc: Zhang Rui <rui.zhang@intel.com>
----
- Documentation/kernel-parameters.txt |    5 ++++-
- arch/x86/kernel/acpi/sleep.c        |    2 ++
- drivers/acpi/sleep/main.c           |   19 +++++++++++++++++--
- include/linux/acpi.h                |    1 +
- 4 files changed, 24 insertions(+), 3 deletions(-)
-
-Index: linux-2.6/Documentation/kernel-parameters.txt
+Index: linux-acpi-2.6/drivers/idle/i7300_idle.c
 ===================================================================
---- linux-2.6.orig/Documentation/kernel-parameters.txt
-+++ linux-2.6/Documentation/kernel-parameters.txt
-@@ -149,7 +149,8 @@ and is between 256 and 4096 characters. 
- 			default: 0
+--- linux-acpi-2.6.orig/drivers/idle/i7300_idle.c	2008-10-22 11:42:04.000000000 -0700
++++ linux-acpi-2.6/drivers/idle/i7300_idle.c	2008-10-22 11:42:46.000000000 -0700
+@@ -25,6 +25,7 @@
+ #include <linux/delay.h>
+ #include <linux/debugfs.h>
+ #include <linux/stop_machine.h>
++#include <linux/i7300_idle.h>
  
- 	acpi_sleep=	[HW,ACPI] Sleep options
--			Format: { s3_bios, s3_mode, s3_beep, s4_nohwsig, old_ordering }
-+			Format: { s3_bios, s3_mode, s3_beep, s4_nohwsig,
-+				  old_ordering, s4_nonvs }
- 			See Documentation/power/video.txt for s3_bios and s3_mode.
- 			s3_beep is for debugging; it makes the PC's speaker beep
- 			as soon as the kernel's real-mode entry point is called.
-@@ -159,6 +160,8 @@ and is between 256 and 4096 characters. 
- 			control method, wrt putting devices into low power
- 			states, to be enforced (the ACPI 2.0 ordering of _PTS is
- 			used by default).
-+			s4_nonvs prevents the kernel from saving/restoring the
-+			ACPI NVS memory during hibernation.
+ #include <asm/idle.h>
  
- 	acpi_sci=	[HW,ACPI] ACPI System Control Interrupt trigger mode
- 			Format: { level | edge | high | low }
-Index: linux-2.6/arch/x86/kernel/acpi/sleep.c
+@@ -505,77 +506,8 @@ static struct notifier_block i7300_idle_
+ 	.notifier_call = i7300_idle_notifier,
+ };
+ 
+-/*
+- * I/O AT controls (PCI bus 0 device 8 function 0)
+- * DIMM controls (PCI bus 0 device 16 function 1)
+- */
+-#define IOAT_BUS 0
+-#define IOAT_DEVFN PCI_DEVFN(8, 0)
+-#define MEMCTL_BUS 0
+-#define MEMCTL_DEVFN PCI_DEVFN(16, 1)
+-
+-struct fbd_ioat {
+-	unsigned int vendor;
+-	unsigned int ioat_dev;
+-};
+-
+-/*
+- * The i5000 chip-set has the same hooks as the i7300
+- * but support is disabled by default because this driver
+- * has not been validated on that platform.
+- */
+-#define SUPPORT_I5000 0
+-
+-static const struct fbd_ioat fbd_ioat_list[] = {
+-	{PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_IOAT_CNB},
+-#if SUPPORT_I5000
+-	{PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_IOAT},
+-#endif
+-	{0, 0}
+-};
+-
+-/* table of devices that work with this driver */
+-static const struct pci_device_id pci_tbl[] = {
+-	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_FBD_CNB) },
+-#if SUPPORT_I5000
+-	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_5000_ERR) },
+-#endif
+-	{ } /* Terminating entry */
+-};
+-
+ MODULE_DEVICE_TABLE(pci, pci_tbl);
+ 
+-/* Check for known platforms with I/O-AT */
+-static int __init i7300_idle_platform_probe(void)
+-{
+-	int i;
+-
+-	fbd_dev = pci_get_bus_and_slot(MEMCTL_BUS, MEMCTL_DEVFN);
+-	if (!fbd_dev)
+-		return -ENODEV;
+-
+-	for (i = 0; pci_tbl[i].vendor != 0; i++) {
+-		if (fbd_dev->vendor == pci_tbl[i].vendor &&
+-		    fbd_dev->device == pci_tbl[i].device) {
+-			break;
+-		}
+-	}
+-	if (pci_tbl[i].vendor == 0)
+-		return -ENODEV;
+-
+-	ioat_dev = pci_get_bus_and_slot(IOAT_BUS, IOAT_DEVFN);
+-	if (!ioat_dev)
+-		return -ENODEV;
+-
+-	for (i = 0; fbd_ioat_list[i].vendor != 0; i++) {
+-		if (ioat_dev->vendor == fbd_ioat_list[i].vendor &&
+-		    ioat_dev->device == fbd_ioat_list[i].ioat_dev) {
+-			return 0;
+-		}
+-	}
+-	return -ENODEV;
+-}
+-
+ int stats_open_generic(struct inode *inode, struct file *fp)
+ {
+ 	fp->private_data = inode->i_private;
+@@ -617,7 +549,7 @@ static int __init i7300_idle_init(void)
+ 	cpus_clear(idle_cpumask);
+ 	total_us = 0;
+ 
+-	if (i7300_idle_platform_probe())
++	if (i7300_idle_platform_probe(&fbd_dev, &ioat_dev))
+ 		return -ENODEV;
+ 
+ 	if (i7300_idle_thrt_save())
+Index: linux-acpi-2.6/include/linux/i7300_idle.h
 ===================================================================
---- linux-2.6.orig/arch/x86/kernel/acpi/sleep.c
-+++ linux-2.6/arch/x86/kernel/acpi/sleep.c
-@@ -161,6 +161,8 @@ static int __init acpi_sleep_setup(char 
- #endif
- 		if (strncmp(str, "old_ordering", 12) == 0)
- 			acpi_old_suspend_ordering();
-+		if (strncmp(str, "s4_nonvs", 8) == 0)
-+			acpi_s4_no_nvs();
- 		str = strchr(str, ',');
- 		if (str != NULL)
- 			str += strspn(str, ", \t");
-Index: linux-2.6/drivers/acpi/sleep/main.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/sleep/main.c
-+++ linux-2.6/drivers/acpi/sleep/main.c
-@@ -59,6 +59,20 @@ void __init acpi_old_suspend_ordering(vo
- 	old_suspend_ordering = true;
- }
- 
-+/*
-+ * The ACPI specification wants us to save NVS memory regions during hibernation
-+ * and to restore them during the subsequent resume.  However, it is not certain
-+ * if this mechanism is going to work on all machines, so we allow the user to
-+ * disable this mechanism using the 'acpi_sleep=s4_nonvs' kernel command line
-+ * option.
-+ */
-+static bool s4_no_nvs;
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-acpi-2.6/include/linux/i7300_idle.h	2008-10-22 11:42:46.000000000 -0700
+@@ -0,0 +1,83 @@
 +
-+void __init acpi_s4_no_nvs(void)
++#ifndef I7300_IDLE_H
++#define I7300_IDLE_H
++
++#include <linux/pci.h>
++
++/*
++ * I/O AT controls (PCI bus 0 device 8 function 0)
++ * DIMM controls (PCI bus 0 device 16 function 1)
++ */
++#define IOAT_BUS 0
++#define IOAT_DEVFN PCI_DEVFN(8, 0)
++#define MEMCTL_BUS 0
++#define MEMCTL_DEVFN PCI_DEVFN(16, 1)
++
++struct fbd_ioat {
++	unsigned int vendor;
++	unsigned int ioat_dev;
++};
++
++/*
++ * The i5000 chip-set has the same hooks as the i7300
++ * but support is disabled by default because this driver
++ * has not been validated on that platform.
++ */
++#define SUPPORT_I5000 0
++
++static const struct fbd_ioat fbd_ioat_list[] = {
++	{PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_IOAT_CNB},
++#if SUPPORT_I5000
++	{PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_IOAT},
++#endif
++	{0, 0}
++};
++
++/* table of devices that work with this driver */
++static const struct pci_device_id pci_tbl[] = {
++	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_FBD_CNB) },
++#if SUPPORT_I5000
++	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_5000_ERR) },
++#endif
++	{ } /* Terminating entry */
++};
++
++/* Check for known platforms with I/O-AT */
++static inline int i7300_idle_platform_probe(struct pci_dev **fbd_dev,
++						struct pci_dev **ioat_dev)
 +{
-+	s4_no_nvs = true;
++	int i;
++	struct pci_dev *memdev, *dmadev;
++
++	memdev = pci_get_bus_and_slot(MEMCTL_BUS, MEMCTL_DEVFN);
++	if (!memdev)
++		return -ENODEV;
++
++	for (i = 0; pci_tbl[i].vendor != 0; i++) {
++		if (memdev->vendor == pci_tbl[i].vendor &&
++		    memdev->device == pci_tbl[i].device) {
++			break;
++		}
++	}
++	if (pci_tbl[i].vendor == 0)
++		return -ENODEV;
++
++	dmadev = pci_get_bus_and_slot(IOAT_BUS, IOAT_DEVFN);
++	if (!dmadev)
++		return -ENODEV;
++
++	for (i = 0; fbd_ioat_list[i].vendor != 0; i++) {
++		if (dmadev->vendor == fbd_ioat_list[i].vendor &&
++		    dmadev->device == fbd_ioat_list[i].ioat_dev) {
++			if (fbd_dev)
++				*fbd_dev = memdev;
++			if (ioat_dev)
++				*ioat_dev = dmadev;
++
++			return 0;
++		}
++	}
++	return -ENODEV;
 +}
 +
- /**
-  *	acpi_pm_disable_gpes - Disable the GPEs.
-  */
-@@ -323,7 +337,7 @@ static int acpi_hibernation_begin(void)
- {
- 	int error;
- 
--	error = hibernate_nvs_alloc();
-+	error = s4_no_nvs ? 0 : hibernate_nvs_alloc();
- 	if (!error)
- 		acpi_target_sleep_state = ACPI_STATE_S4;
- 
-@@ -411,7 +425,8 @@ static int acpi_hibernation_begin_old(vo
- 	int error = acpi_sleep_prepare(ACPI_STATE_S4);
- 
- 	if (!error) {
--		error = hibernate_nvs_alloc();
-+		if (!s4_no_nvs)
-+			error = hibernate_nvs_alloc();
- 		if (!error)
- 			acpi_target_sleep_state = ACPI_STATE_S4;
- 	}
-Index: linux-2.6/include/linux/acpi.h
++#endif
+Index: linux-acpi-2.6/drivers/dma/ioat_dma.c
 ===================================================================
---- linux-2.6.orig/include/linux/acpi.h
-+++ linux-2.6/include/linux/acpi.h
-@@ -238,6 +238,7 @@ int acpi_check_mem_region(resource_size_
- #ifdef CONFIG_PM_SLEEP
- void __init acpi_no_s4_hw_signature(void);
- void __init acpi_old_suspend_ordering(void);
-+void __init acpi_s4_no_nvs(void);
- #endif /* CONFIG_PM_SLEEP */
- #else	/* CONFIG_ACPI */
+--- linux-acpi-2.6.orig/drivers/dma/ioat_dma.c	2008-10-22 11:42:04.000000000 -0700
++++ linux-acpi-2.6/drivers/dma/ioat_dma.c	2008-10-22 11:42:46.000000000 -0700
+@@ -33,6 +33,7 @@
+ #include <linux/delay.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/workqueue.h>
++#include <linux/i7300_idle.h>
+ #include "ioatdma.h"
+ #include "ioatdma_registers.h"
+ #include "ioatdma_hw.h"
+@@ -172,7 +173,9 @@ static int ioat_dma_enumerate_channels(s
+ 	xfercap = (xfercap_scale == 0 ? -1 : (1UL << xfercap_scale));
  
+ #if CONFIG_I7300_IDLE_IOAT_CHANNEL
+-	device->common.chancnt--;
++	if (i7300_idle_platform_probe(NULL, NULL) == 0) {
++		device->common.chancnt--;
++	}
+ #endif
+ 	for (i = 0; i < device->common.chancnt; i++) {
+ 		ioat_chan = kzalloc(sizeof(*ioat_chan), GFP_KERNEL);
