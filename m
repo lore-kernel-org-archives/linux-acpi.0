@@ -1,81 +1,82 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: Re: [RFC 5/5] ACPI GPE based wakeup event detection
-Date: Wed, 22 Oct 2008 14:51:01 +0800
-Message-ID: <20081022065101.GE15271@sli10-desk.sh.intel.com>
-References: <20080911063037.698427944@sli10-desk.sh.intel.com> <20080911063823.432831198@sli10-desk.sh.intel.com> <200810192239.47710.rjw@sisk.pl>
+From: Andi Kleen <ak@linux.intel.com>
+Subject: Re: [PATCH 2/2] i7300_idle driver v1.55
+Date: Wed, 22 Oct 2008 09:19:22 +0200
+Message-ID: <48FED3FA.6040703@linux.intel.com>
+References: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com> <e8b529091b2ab65f5a4783e292c2b472e309116e.1223706853.git.len.brown@intel.com> <20081011083347.GA31918@elte.hu> <alpine.LFD.1.10.0810161805360.3026@localhost.localdomain> <48FE07AE.4010203@linux.intel.com> <7E82351C108FA840AB1866AC776AEC4637CD27F3@orsmsx505.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:30751 "EHLO mga11.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:37503 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751229AbYJVGvM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Oct 2008 02:51:12 -0400
-Content-Disposition: inline
-In-Reply-To: <200810192239.47710.rjw@sisk.pl>
+	id S1751424AbYJVHUP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 22 Oct 2008 03:20:15 -0400
+In-Reply-To: <7E82351C108FA840AB1866AC776AEC4637CD27F3@orsmsx505.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, "david-b@pacbell.net" <david-b@pacbell.net>, "dbrownell@users.sourceforge.net" <dbrownell@users.sourceforge.net>
+To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Cc: Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Henroid, Andrew D" <andrew.d.henroid@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>
 
-On Mon, Oct 20, 2008 at 04:39:47AM +0800, Rafael J. Wysocki wrote:
-> On Thursday, 11 of September 2008, Shaohua Li wrote:
-> > In ACPI platform, if native PME isn't enabled, GPE is used to report wakeup event.
+Pallipadi, Venkatesh wrote:
 > 
-> Add more details here, please.
+>>> +#if CONFIG_I7300_IDLE_IOAT_CHANNEL
+>>> +     device->common.chancnt--;
+>>> +#endif
+>> I still think this lone decrement looks fishy. Can there please be some
+>> explanation how it exactly relates to the i7300 idle driver, where the
+>> matching increment is, etc.?
 > 
-> > ---
-> >  drivers/acpi/Kconfig        |    9 ++++++
-> >  drivers/acpi/bus.c          |   15 +++++++++++
-> >  drivers/acpi/sleep/wakeup.c |   60 ++++++++++++++++++++++++++++++++++++++++++++
-> >  include/acpi/acpi_bus.h     |    4 ++
-> >  4 files changed, 88 insertions(+)
-> >
-> > Index: linux/drivers/acpi/Kconfig
-> > ===================================================================
-> > --- linux.orig/drivers/acpi/Kconfig   2008-09-11 10:56:25.000000000 +0800
-> > +++ linux/drivers/acpi/Kconfig        2008-09-11 10:56:47.000000000 +0800
-> > @@ -45,6 +45,15 @@ config ACPI_SLEEP
-> >       depends on PM_SLEEP
-> >       default y
-> >
-> > +config ACPI_GPE_WAKEUP
-> 
-> I'd call it ACPI_RUNTIME_WAKEUP
-ok
+> No. This is not a increment/decrement thing. It is basically telling other
+> Users of IOAT that they have one IOAT channel less that they can use.
+> The last IOAT channel is used by i7300 idle driver to get the throttling to
+> work.
 
-> > +void unregister_acpi_bus_notifier(struct notifier_block *nb)
-> > +{
-> > +     blocking_notifier_chain_unregister(&acpi_bus_notify_list, nb);
-> > +}
-> > +EXPORT_SYMBOL_GPL(unregister_acpi_bus_notifier);
-> > +
-> 
-> We were talking about removing the notifier last time.  Please do that.
-Did you see my comments on the issue last time? ACPI test tree already introduces
-the mechanism for other purpose, and we can just use it.
+Ok then it should be made conditional on the i7300 actually be available
+in the system?  It looks like you do it always no matter what chipset is in there.
 
-> > --- linux.orig/include/acpi/acpi_bus.h        2008-09-11 10:56:25.000000000 +0800
-> > +++ linux/include/acpi/acpi_bus.h     2008-09-11 10:56:47.000000000 +0800
-> > @@ -327,6 +327,10 @@ int acpi_bus_get_private_data(acpi_handl
-> >  extern int acpi_notifier_call_chain(struct acpi_device *, u32, u32);
-> >  extern int register_acpi_notifier(struct notifier_block *);
-> >  extern int unregister_acpi_notifier(struct notifier_block *);
-> > +
-> > +extern int register_acpi_bus_notifier(struct notifier_block *nb);
-> > +extern void unregister_acpi_bus_notifier(struct notifier_block *nb);
-> > +
-> >  /*
-> >   * External Functions
-> >   */
-> >
-> 
-> I understand from the above that devices having their own wake-up GPEs will be
-> handled.  However, it still is completely unclear to me what happens with
-> devices that can generate PME# and for which there are no specific GPEs, like
-> any devices on add-in cards.
-As we discussed last time, pci bus for add-in cards will invoke a gpe, and
-this new implementation will check all pci devices under a bridge to try to find
-a device generating PME. This should work for add-in cards.
 
-Thanks,
-Shaohua
+> udelay may be more power efficient than polling. 
+
+Isn't that function a one off anyways?
+
+>>> +/* Check for known platforms with I/O-AT */
+>>> +static int __init i7300_idle_platform_probe(void)
+>>> +{
+>>> +     int i;
+>>> +
+>>> +     fbd_dev = pci_get_bus_and_slot(MEMCTL_BUS, MEMCTL_DEVFN)
+>> Is there a specific reason you cannot match this by pci vendor/devid
+>> like all standard drivers do?
+>>
+>> If there is a good reason add a comment.
+> 
+> They have to match vendor device and function. Its not unique to
+> just vendor and device id.
+
+It might be still better then to use the standard callback style and just ignore
+devices that don't match?
+
+
+> 
+>> ;
+>>> +static void __exit i7300_idle_exit(void)
+>>> +{
+>>> +     idle_notifier_unregister(&i7300_idle_nb);
+>> I still think this needs some kind of idle synchronization.
+> 
+> This unregister uses atomic_notifier_chain_unregister() which
+> uses RCU and handles the race conditions that way. 
+
+I didn't do a full analysis, but I didn't think RCU protects
+against the idle handler itself.  At least not standard RCU.
+You would need to go through at least two quiescent periods,
+not one as standard code.
+
+There used to be an older
+idle synchronization interface for this case (which was removed
+at some point), perhaps it needs to be readded.
+
+Or just use stop_machine(). That protects against idle too
+and while it's a big hammer for unloading it should be ok.
+
+-Andi
