@@ -1,90 +1,135 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC 5/5] ACPI GPE based wakeup event detection
-Date: Wed, 22 Oct 2008 14:12:18 +0200
-Message-ID: <200810221412.19156.rjw@sisk.pl>
-References: <20080911063037.698427944@sli10-desk.sh.intel.com> <200810192239.47710.rjw@sisk.pl> <20081022065101.GE15271@sli10-desk.sh.intel.com>
+Subject: [PATCH] ACPI suspend: Fix CONFIG_ACPI_SLEEP dependence and some compilation warnings (was: Re: [announce] new tree: "fix all build warnings, on all configs")
+Date: Wed, 22 Oct 2008 14:23:42 +0200
+Message-ID: <200810221423.44216.rjw@sisk.pl>
+References: <20081017171139.GA1792@elte.hu> <200810212137.58020.rjw@sisk.pl> <alpine.LFD.1.10.0810220008050.2984@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:59272 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:59415 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755500AbYJVMHg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Oct 2008 08:07:36 -0400
-In-Reply-To: <20081022065101.GE15271@sli10-desk.sh.intel.com>
+	id S1751331AbYJVMTR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Oct 2008 08:19:17 -0400
+In-Reply-To: <alpine.LFD.1.10.0810220008050.2984@localhost.localdomain>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, "david-b@pacbell.net" <david-b@pacbell.net>, "dbrownell@users.sourceforge.net" <dbrownell@users.sourceforge.net>
+To: Len Brown <lenb@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>, Andi Kleen <andi@firstfloor.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, "David S. Miller" <davem@davemloft.net>, Alan Cox <alan@lxorguk.ukuu.org.uk>, linux-kernel@vger.kernel.org, Peter Zijlstra <a.p.zijlstra@chello.nl>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, David Howells <dhowells@redhat.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Wednesday, 22 of October 2008, Shaohua Li wrote:
-> On Mon, Oct 20, 2008 at 04:39:47AM +0800, Rafael J. Wysocki wrote:
-> > On Thursday, 11 of September 2008, Shaohua Li wrote:
-> > > In ACPI platform, if native PME isn't enabled, GPE is used to report wakeup event.
-> > 
-> > Add more details here, please.
-> > 
-> > > ---
-> > >  drivers/acpi/Kconfig        |    9 ++++++
-> > >  drivers/acpi/bus.c          |   15 +++++++++++
-> > >  drivers/acpi/sleep/wakeup.c |   60 ++++++++++++++++++++++++++++++++++++++++++++
-> > >  include/acpi/acpi_bus.h     |    4 ++
-> > >  4 files changed, 88 insertions(+)
-> > >
-> > > Index: linux/drivers/acpi/Kconfig
-> > > ===================================================================
-> > > --- linux.orig/drivers/acpi/Kconfig   2008-09-11 10:56:25.000000000 +0800
-> > > +++ linux/drivers/acpi/Kconfig        2008-09-11 10:56:47.000000000 +0800
-> > > @@ -45,6 +45,15 @@ config ACPI_SLEEP
-> > >       depends on PM_SLEEP
-> > >       default y
-> > >
-> > > +config ACPI_GPE_WAKEUP
-> > 
-> > I'd call it ACPI_RUNTIME_WAKEUP
-> ok
-> 
-> > > +void unregister_acpi_bus_notifier(struct notifier_block *nb)
-> > > +{
-> > > +     blocking_notifier_chain_unregister(&acpi_bus_notify_list, nb);
-> > > +}
-> > > +EXPORT_SYMBOL_GPL(unregister_acpi_bus_notifier);
-> > > +
-> > 
-> > We were talking about removing the notifier last time.  Please do that.
-> Did you see my comments on the issue last time? ACPI test tree already introduces
-> the mechanism for other purpose, and we can just use it.
-> 
-> > > --- linux.orig/include/acpi/acpi_bus.h        2008-09-11 10:56:25.000000000 +0800
-> > > +++ linux/include/acpi/acpi_bus.h     2008-09-11 10:56:47.000000000 +0800
-> > > @@ -327,6 +327,10 @@ int acpi_bus_get_private_data(acpi_handl
-> > >  extern int acpi_notifier_call_chain(struct acpi_device *, u32, u32);
-> > >  extern int register_acpi_notifier(struct notifier_block *);
-> > >  extern int unregister_acpi_notifier(struct notifier_block *);
-> > > +
-> > > +extern int register_acpi_bus_notifier(struct notifier_block *nb);
-> > > +extern void unregister_acpi_bus_notifier(struct notifier_block *nb);
-> > > +
-> > >  /*
-> > >   * External Functions
-> > >   */
-> > >
-> > 
-> > I understand from the above that devices having their own wake-up GPEs will be
-> > handled.  However, it still is completely unclear to me what happens with
-> > devices that can generate PME# and for which there are no specific GPEs, like
-> > any devices on add-in cards.
-> As we discussed last time, pci bus for add-in cards will invoke a gpe, and
-> this new implementation will check all pci devices under a bridge to try to find
-> a device generating PME. This should work for add-in cards.
+On Wednesday, 22 of October 2008, Len Brown wrote:
+>=20
+> > >   drivers/acpi/sleep/main.c:67: warning: =E2=80=98acpi_pm_disable=
+_gpes=E2=80=99 defined but not used
+>=20
+> > >=20
+> > > Shows that this code has an identity crisis due to a maze of #ifd=
+efs, in
+> > > the PM_SLEEP && !SUSPEND && !HIBERNATION case for example.
+> >=20
+> > This case is invalid, because PM_SLEEP =3D=3D SUSPEND || HIBERNATIO=
+N !
+>=20
+> I though so too, but 2.6.27 appears to have added XEN to the mix:
+>=20
+> config PM_SLEEP
+>         bool
+>         depends on SUSPEND || HIBERNATION || XEN_SAVE_RESTORE
 
-Well, can you please describe this mechanism to me or point me to
-documents/code where I can read about it?
+Yeah, which breaks things. :-(
 
-The question is how we can learn which GPE will be used for signalling the PME#
-events.
+The patch below should fix it and BTW I think ACPI_SLEEP should not dep=
+end
+on XEN_SAVE_RESTORE anyway, so this is a bug fix really (please conside=
+r as
+=2E28 material, probably -stable too).
 
 Thanks,
 Rafael
+
+---
+=46rom: Rafael J. Wysocki <rjw@sisk.pl>
+
+ACPI suspend: Fix CONFIG_ACPI_SLEEP dependence and some compilation war=
+nings
+
+Initially CONFIG_PM_SLEEP was defined as
+CONFIG_SUSPEND || CONFIG_HIBERNATION and some ACPI code, most
+importantly the code in drivers/acpi/main.c, was written with this
+assumption.  Currently, however, CONFIG_PM_SLEEP is also set when
+CONFIG_XEN_SAVE_RESTORE is set.
+
+This causes some compilation warnings to appear in
+drivers/acpi/main.c if both CONFIG_SUSPEND and CONFIG_HIBERNATION
+are unset and CONFIG_PM_SLEEP is set (this was impossible before).
+To fix this problem, redefine CONFIG_ACPI_SLEEP do depend directly
+on CONFIG_SUSPEND || CONFIG_HIBERNATION, as originally intended, and
+use it instead of CONFIG_PM_SLEEP in drivers/acpi/main.c, wherever
+appropriate.
+
+Additionally, move the acpi_target_sleep_state definition from under
+the #ifdef to prevent compilation from failing in some cases.=20
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/acpi/Kconfig      |    2 +-
+ drivers/acpi/sleep/main.c |    7 +++----
+ 2 files changed, 4 insertions(+), 5 deletions(-)
+
+Index: linux-2.6/drivers/acpi/Kconfig
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux-2.6.orig/drivers/acpi/Kconfig
++++ linux-2.6/drivers/acpi/Kconfig
+@@ -42,7 +42,7 @@ if ACPI
+=20
+ config ACPI_SLEEP
+ 	bool
+-	depends on PM_SLEEP
++	depends on SUSPEND || HIBERNATION
+ 	default y
+=20
+ config ACPI_PROCFS
+Index: linux-2.6/drivers/acpi/sleep/main.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux-2.6.orig/drivers/acpi/sleep/main.c
++++ linux-2.6/drivers/acpi/sleep/main.c
+@@ -23,6 +23,7 @@
+ #include "sleep.h"
+=20
+ u8 sleep_states[ACPI_S_STATE_COUNT];
++static u32 acpi_target_sleep_state =3D ACPI_STATE_S0;
+=20
+ static int acpi_sleep_prepare(u32 acpi_state)
+ {
+@@ -45,9 +46,7 @@ static int acpi_sleep_prepare(u32 acpi_s
+ 	return 0;
+ }
+=20
+-#ifdef CONFIG_PM_SLEEP
+-static u32 acpi_target_sleep_state =3D ACPI_STATE_S0;
+-
++#ifdef CONFIG_ACPI_SLEEP
+ /*
+  * ACPI 1.0 wants us to execute _PTS before suspending devices, so we =
+allow the
+  * user to request that behavior by using the 'acpi_old_suspend_orderi=
+ng'
+@@ -132,7 +131,7 @@ static void acpi_pm_end(void)
+ 	 */
+ 	acpi_target_sleep_state =3D ACPI_STATE_S0;
+ }
+-#endif /* CONFIG_PM_SLEEP */
++#endif /* CONFIG_ACPI_SLEEP */
+=20
+ #ifdef CONFIG_SUSPEND
+ extern void do_suspend_lowlevel(void);
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
