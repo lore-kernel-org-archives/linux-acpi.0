@@ -1,41 +1,63 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH -next] panasonic-laptop: depends on ACPI
-Date: Wed, 22 Oct 2008 18:26:10 -0400 (EDT)
-Message-ID: <alpine.LFD.1.10.0810221825590.3010@localhost.localdomain>
-References: <48F8F990.1060807@oracle.com>
- <20081018070430.GO1048@prithivi.gnumonks.org>
+From: Nigel Cunningham <ncunningham@crca.org.au>
+Subject: Re: [PATCH 1/4] Hibernate: Call platform_begin
+	before	swsusp_shrink_memory
+Date: Thu, 23 Oct 2008 09:37:52 +1100
+Message-ID: <1224715072.8156.4.camel@nigel-laptop>
+References: <200810222249.20629.rjw@sisk.pl> <200810222250.36537.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms044pub.verizon.net ([206.46.252.44]:60063 "EHLO
-	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752550AbYJVW11 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Oct 2008 18:27:27 -0400
-Received: from localhost.localdomain ([96.237.168.40])
- by vms044.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0K9500EIAVNOQ496@vms044.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 22 Oct 2008 17:26:13 -0500 (CDT)
-In-reply-to: <20081018070430.GO1048@prithivi.gnumonks.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <200810222250.36537.rjw@sisk.pl>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>
 List-Id: linux-acpi@vger.kernel.org
-To: Harald Welte <laforge@gnumonks.org>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>, linux-acpi@vger.kernel.org, akpm <akpm@osdl.org>
 
-applied.
+Hi.
 
-thanks,
--Len
-
-
-On Sat, 18 Oct 2008, Harald Welte wrote:
-
-> On Fri, Oct 17, 2008 at 01:46:08PM -0700, Randy Dunlap wrote:
-> > From: Randy Dunlap <randy.dunlap@oracle.com>
-> > 
-> > panasonic-laptop uses many acpi_*() functions so it should
-> > depend on ACPI; otherwise there are approximately 70
-> > warnings/errors generated.
-> > 
-> > Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+On Wed, 2008-10-22 at 22:50 +0200, Rafael J. Wysocki wrote:
+> From: Zhang Rui <rui.zhang@intel.com>
 > 
-> Acked-by: Harald Welte <laforge@gnumonks.org>
+> Hibernate: Call platform_begin before swsusp_shrink_memory
+> 
+> Call platform_begin() before swsusp_shrink_memory() so that we can
+> always allocate enough memory to save the ACPI NVS region from
+> platform_begin().
+> 
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> ---
+>  kernel/power/disk.c |    6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> Index: linux-2.6/kernel/power/disk.c
+> ===================================================================
+> --- linux-2.6.orig/kernel/power/disk.c
+> +++ linux-2.6/kernel/power/disk.c
+> @@ -267,12 +267,12 @@ int hibernation_snapshot(int platform_mo
+>  {
+>  	int error, ftrace_save;
+>  
+> -	/* Free memory before shutting down devices. */
+> -	error = swsusp_shrink_memory();
+> +	error = platform_begin(platform_mode);
+>  	if (error)
+>  		return error;
+>  
+> -	error = platform_begin(platform_mode);
+> +	/* Free memory before shutting down devices. */
+> +	error = swsusp_shrink_memory();
+>  	if (error)
+>  		goto Close;
+>  
+
+Acked-by: Nigel Cunningham <nigel@tuxonice.net>
