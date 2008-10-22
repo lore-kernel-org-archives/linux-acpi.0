@@ -1,56 +1,72 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 1/4] Hibernate: Call platform_begin before swsusp_shrink_memory
-Date: Wed, 22 Oct 2008 22:50:35 +0200
-Message-ID: <200810222250.36537.rjw@sisk.pl>
-References: <200810222249.20629.rjw@sisk.pl>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [GIT PATCH] thinkpad-acpi late changes for the merge window
+Date: Wed, 22 Oct 2008 18:16:08 -0400 (EDT)
+Message-ID: <alpine.LFD.1.10.0810221815230.3010@localhost.localdomain>
+References: <1224350635-14021-1-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:33972 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754278AbYJVUus (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Oct 2008 16:50:48 -0400
-In-Reply-To: <200810222249.20629.rjw@sisk.pl>
-Content-Disposition: inline
+Received: from vms173001pub.verizon.net ([206.46.173.1]:37539 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751963AbYJVWS4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Oct 2008 18:18:56 -0400
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173001.mailsrvcs.net
+ (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+ with ESMTPA id <0K9500K8BV6ZS721@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Wed, 22 Oct 2008 17:16:11 -0500 (CDT)
+In-reply-to: <1224350635-14021-1-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, Ingo Molnar <mingo@elte.hu>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-From: Zhang Rui <rui.zhang@intel.com>
+1-4 applied.
+(bugzilla version of "attempt to preserve fan state on resume" replaced)
 
-Hibernate: Call platform_begin before swsusp_shrink_memory
+thanks,
+-Len
 
-Call platform_begin() before swsusp_shrink_memory() so that we can
-always allocate enough memory to save the ACPI NVS region from
-platform_begin().
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- kernel/power/disk.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+On Sat, 18 Oct 2008, Henrique de Moraes Holschuh wrote:
 
-Index: linux-2.6/kernel/power/disk.c
-===================================================================
---- linux-2.6.orig/kernel/power/disk.c
-+++ linux-2.6/kernel/power/disk.c
-@@ -267,12 +267,12 @@ int hibernation_snapshot(int platform_mo
- {
- 	int error, ftrace_save;
- 
--	/* Free memory before shutting down devices. */
--	error = swsusp_shrink_memory();
-+	error = platform_begin(platform_mode);
- 	if (error)
- 		return error;
- 
--	error = platform_begin(platform_mode);
-+	/* Free memory before shutting down devices. */
-+	error = swsusp_shrink_memory();
- 	if (error)
- 		goto Close;
- 
-
+> 
+> Len,
+> 
+> This patchset has the changes for thinkpad-acpi that I would like to see merged
+> for 2.6.28 (while the window is still open).
+> 
+> It includes the patch for http://bugzilla.kernel.org/show_bug.cgi?id=11331,
+> which is the same as the one you already got in acpi-test as far as code goes,
+> but it might have differences in the changelog.   If you prefer what you
+> already merged into acpi-test, just skip patch 01.
+> 
+> Please consider sending the patchset to Linus for merge on mainline.
+> 
+> As usual, available for git pull from:
+> git://repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git for-upstream/acpi-test
+> 
+> Shortlog:
+> 
+> Henrique de Moraes Holschuh (2):
+>       ACPI: thinkpad-acpi: attempt to preserve fan state on resume
+>       ACPI: thinkpad-acpi: Remove firmware backlight delays for Intel ACPI IGD OpRegion
+> 
+> Mariusz Kozlowski (1):
+>       ACPI: thinkpad-acpi: trivial fix of error message
+> 
+> Pascal Terjan (1):
+>       ACPI: thinkpad-acpi: Remove duplicate line
+> 
+> Thank you!
+> 
+> -- 
+>   "One disk to rule them all, One disk to find them. One disk to bring
+>   them all and in the darkness grind them. In the Land of Redmond
+>   where the shadows lie." -- The Silicon Valley Tarot
+>   Henrique Holschuh
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
