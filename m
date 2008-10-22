@@ -1,33 +1,134 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 0/4] Hibernate: Handle ACPI NVS memory as required by the spec
-Date: Wed, 22 Oct 2008 22:49:20 +0200
-Message-ID: <200810222249.20629.rjw@sisk.pl>
+Subject: [PATCH 4/4] ACPI hibernate: Introduce new kernel parameter acpi_sleep=s4_nonvs
+Date: Wed, 22 Oct 2008 22:54:48 +0200
+Message-ID: <200810222254.48666.rjw@sisk.pl>
+References: <200810222249.20629.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:33976 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:33970 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753460AbYJVUut (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Oct 2008 16:50:49 -0400
+	id S1754148AbYJVUus (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 22 Oct 2008 16:50:48 -0400
+In-Reply-To: <200810222249.20629.rjw@sisk.pl>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, Ingo Molnar <mingo@elte.hu>
 
-Hi,
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-I have recently tried to rebase the Zhang Rui's patches making the Linux
-hibernation code handle the ACPI NVS memory as required by the spec, but
-I found that they didn't work on x86_64 boxes where the NVS region was located
-behind the last usable PFN.  Also, I decided to put the memory management part
-into the hibernation core rather than into drivers/acpi/sleep/main.c .
+ACPI hibernate: Introduce new kernel parameter acpi_sleep=s4_nonvs
 
-As a result, I have obtained the following patch series.  Please review and if
-it looks good, please queue in the 'suspend' branch as .29 material.
+On some machines it may be necessary to disable the saving/restoring
+of the ACPI NVS memory region during hibernation/resume.  For this
+purpose, introduce new ACPI kernel command line option
+acpi_sleep=s4_nonvs.
 
-Thanks,
-Rafael
+Based on a patch by Zhang Rui.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Zhang Rui <rui.zhang@intel.com>
+---
+ Documentation/kernel-parameters.txt |    5 ++++-
+ arch/x86/kernel/acpi/sleep.c        |    2 ++
+ drivers/acpi/sleep/main.c           |   19 +++++++++++++++++--
+ include/linux/acpi.h                |    1 +
+ 4 files changed, 24 insertions(+), 3 deletions(-)
+
+Index: linux-2.6/Documentation/kernel-parameters.txt
+===================================================================
+--- linux-2.6.orig/Documentation/kernel-parameters.txt
++++ linux-2.6/Documentation/kernel-parameters.txt
+@@ -149,7 +149,8 @@ and is between 256 and 4096 characters. 
+ 			default: 0
+ 
+ 	acpi_sleep=	[HW,ACPI] Sleep options
+-			Format: { s3_bios, s3_mode, s3_beep, s4_nohwsig, old_ordering }
++			Format: { s3_bios, s3_mode, s3_beep, s4_nohwsig,
++				  old_ordering, s4_nonvs }
+ 			See Documentation/power/video.txt for s3_bios and s3_mode.
+ 			s3_beep is for debugging; it makes the PC's speaker beep
+ 			as soon as the kernel's real-mode entry point is called.
+@@ -159,6 +160,8 @@ and is between 256 and 4096 characters. 
+ 			control method, wrt putting devices into low power
+ 			states, to be enforced (the ACPI 2.0 ordering of _PTS is
+ 			used by default).
++			s4_nonvs prevents the kernel from saving/restoring the
++			ACPI NVS memory during hibernation.
+ 
+ 	acpi_sci=	[HW,ACPI] ACPI System Control Interrupt trigger mode
+ 			Format: { level | edge | high | low }
+Index: linux-2.6/arch/x86/kernel/acpi/sleep.c
+===================================================================
+--- linux-2.6.orig/arch/x86/kernel/acpi/sleep.c
++++ linux-2.6/arch/x86/kernel/acpi/sleep.c
+@@ -161,6 +161,8 @@ static int __init acpi_sleep_setup(char 
+ #endif
+ 		if (strncmp(str, "old_ordering", 12) == 0)
+ 			acpi_old_suspend_ordering();
++		if (strncmp(str, "s4_nonvs", 13) == 0)
++			acpi_s4_no_nvs();
+ 		str = strchr(str, ',');
+ 		if (str != NULL)
+ 			str += strspn(str, ", \t");
+Index: linux-2.6/drivers/acpi/sleep/main.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/sleep/main.c
++++ linux-2.6/drivers/acpi/sleep/main.c
+@@ -59,6 +59,20 @@ void __init acpi_old_suspend_ordering(vo
+ 	old_suspend_ordering = true;
+ }
+ 
++/*
++ * The ACPI specification wants us to save NVS memory regions during hibernation
++ * and to restore them during the subsequent resume.  However, it is not certain
++ * if this mechanism is going to work on all machines, so we allow the user to
++ * disable this mechanism using the 'acpi_sleep=s4_nonvs' kernel command line
++ * option.
++ */
++static bool s4_no_nvs;
++
++void __init acpi_s4_no_nvs(void)
++{
++	s4_no_nvs = true;
++}
++
+ /**
+  *	acpi_pm_disable_gpes - Disable the GPEs.
+  */
+@@ -323,7 +337,7 @@ static int acpi_hibernation_begin(void)
+ {
+ 	int error;
+ 
+-	error = hibernate_nvs_alloc();
++	error = s4_no_nvs ? 0 : hibernate_nvs_alloc();
+ 	if (!error)
+ 		acpi_target_sleep_state = ACPI_STATE_S4;
+ 
+@@ -411,7 +425,8 @@ static int acpi_hibernation_begin_old(vo
+ 	int error = acpi_sleep_prepare(ACPI_STATE_S4);
+ 
+ 	if (!error) {
+-		error = hibernate_nvs_alloc();
++		if (!s4_no_nvs)
++			error = hibernate_nvs_alloc();
+ 		if (!error)
+ 			acpi_target_sleep_state = ACPI_STATE_S4;
+ 	}
+Index: linux-2.6/include/linux/acpi.h
+===================================================================
+--- linux-2.6.orig/include/linux/acpi.h
++++ linux-2.6/include/linux/acpi.h
+@@ -238,6 +238,7 @@ int acpi_check_mem_region(resource_size_
+ #ifdef CONFIG_PM_SLEEP
+ void __init acpi_no_s4_hw_signature(void);
+ void __init acpi_old_suspend_ordering(void);
++void __init acpi_s4_no_nvs(void);
+ #endif /* CONFIG_PM_SLEEP */
+ #else	/* CONFIG_ACPI */
+ 
 
