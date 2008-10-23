@@ -1,134 +1,166 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 049/122] x86: SB600: skip ACPI IRQ0 override if it is not
- routed to INT2 of IOAPIC
-Date: Thu, 23 Oct 2008 02:38:23 -0400
-Message-ID: <26adcfbf00e0726b4469070aa2f530dcf963f484.1224743917.git.len.brown@intel.com>
+Subject: [PATCH 070/122] ACPI: Get the device power state in the course of
+ scanning device
+Date: Thu, 23 Oct 2008 02:38:44 -0400
+Message-ID: <a51e145f379ae48003129610922595893e8efde0.1224743917.git.len.brown@intel.com>
 References: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173005pub.verizon.net ([206.46.173.5]:46373 "EHLO
 	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755240AbYJWGkL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:40:11 -0400
+	with ESMTP id S1755344AbYJWGk0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:40:26 -0400
 Received: from localhost.localdomain ([96.237.168.40])
  by vms173005.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K9600KYCIIORUC2@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:40:01 -0500 (CDT)
+ with ESMTPA id <0K9600KTVIIWS6I2@vms173005.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:40:08 -0500 (CDT)
 In-reply-to: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 In-reply-to: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
 References: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Andreas Herrmann <andreas.herrmann3@amd.com>, Len Brown <len.brown@intel.com>
+Cc: Zhao Yakui <yakui.zhao@intel.com>, Li Shaohua <shaohua.li@intel.com>, Andi Kleen <ak@linux.intel.com>, Len Brown <len.brown@intel.com>
 
-From: Andreas Herrmann <andreas.herrmann3@amd.com>
+From: Zhao Yakui <yakui.zhao@intel.com>
 
-On some more HP laptops BIOS reports an IRQ0 override
-but the SB600 chipset is configured such that timer
-interrupts go to INT0 of IOAPIC.
+Get the device power state in the course of scanning device if the device
+power flag is power_managable. i.e. The device has the _PSx/_PRx object.
 
-Check IRQ0 routing and if it is routed to INT0 of IOAPIC skip the
-timer override.
+At the same time before the drivers/acpi/power module is loaded, there is no
+relation between acpi_power_resource and acpi device. So the first parameter
+of acpi_power_get_state is changed to acpi_handle.
 
-http://bugzilla.kernel.org/show_bug.cgi?id=11715
-http://bugzilla.kernel.org/show_bug.cgi?id=11516
+http://bugzilla.kernel.org/show_bug.cgi?id=8049
+http://bugzilla.kernel.org/show_bug.cgi?id=11000
 
-Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+Signed-off-by: Li Shaohua <shaohua.li@intel.com>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- arch/x86/kernel/early-quirks.c |   55 +++++++++++++++++++++++++++++++++++++--
- 1 files changed, 52 insertions(+), 3 deletions(-)
+ drivers/acpi/power.c |   30 ++++++++++++++++--------------
+ drivers/acpi/scan.c  |    1 +
+ 2 files changed, 17 insertions(+), 14 deletions(-)
 
-diff --git a/arch/x86/kernel/early-quirks.c b/arch/x86/kernel/early-quirks.c
-index 733c4f8..3ce029f 100644
---- a/arch/x86/kernel/early-quirks.c
-+++ b/arch/x86/kernel/early-quirks.c
-@@ -95,7 +95,8 @@ static void __init nvidia_bugs(int num, int slot, int func)
- 
+diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+index 4ab21cb..e7bab75 100644
+--- a/drivers/acpi/power.c
++++ b/drivers/acpi/power.c
+@@ -128,16 +128,16 @@ acpi_power_get_context(acpi_handle handle,
+ 	return 0;
  }
  
--static u32 ati_ixp4x0_rev(int num, int slot, int func)
-+#if defined(CONFIG_ACPI) && defined(CONFIG_X86_IO_APIC)
-+static u32 __init ati_ixp4x0_rev(int num, int slot, int func)
+-static int acpi_power_get_state(struct acpi_power_resource *resource, int *state)
++static int acpi_power_get_state(acpi_handle handle, int *state)
  {
- 	u32 d;
- 	u8  b;
-@@ -115,7 +116,6 @@ static u32 ati_ixp4x0_rev(int num, int slot, int func)
+ 	acpi_status status = AE_OK;
+ 	unsigned long sta = 0;
  
- static void __init ati_bugs(int num, int slot, int func)
- {
--#if defined(CONFIG_ACPI) && defined (CONFIG_X86_IO_APIC)
- 	u32 d;
- 	u8  b;
  
-@@ -138,9 +138,56 @@ static void __init ati_bugs(int num, int slot, int func)
- 		printk(KERN_INFO "If you got timer trouble "
- 		       "try acpi_use_timer_override\n");
- 	}
--#endif
+-	if (!resource || !state)
++	if (!handle || !state)
+ 		return -EINVAL;
+ 
+-	status = acpi_evaluate_integer(resource->device->handle, "_STA", NULL, &sta);
++	status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
+ 	if (ACPI_FAILURE(status))
+ 		return -ENODEV;
+ 
+@@ -145,7 +145,7 @@ static int acpi_power_get_state(struct acpi_power_resource *resource, int *state
+ 			      ACPI_POWER_RESOURCE_STATE_OFF;
+ 
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Resource [%s] is %s\n",
+-			  resource->name, state ? "on" : "off"));
++			  acpi_ut_get_node_name(handle), state ? "on" : "off"));
+ 
+ 	return 0;
  }
- 
-+static u32 __init ati_sbx00_rev(int num, int slot, int func)
-+{
-+	u32 old, d;
-+
-+	d = read_pci_config(num, slot, func, 0x70);
-+	old = d;
-+	d &= ~(1<<8);
-+	write_pci_config(num, slot, func, 0x70, d);
-+	d = read_pci_config(num, slot, func, 0x8);
-+	d &= 0xff;
-+	write_pci_config(num, slot, func, 0x70, old);
-+
-+	return d;
-+}
-+
-+static void __init ati_bugs_contd(int num, int slot, int func)
-+{
-+	u32 d, rev;
-+
-+	if (acpi_use_timer_override)
-+		return;
-+
-+	rev = ati_sbx00_rev(num, slot, func);
-+	if (rev > 0x13)
-+		return;
-+
-+	/* check for IRQ0 interrupt swap */
-+	d = read_pci_config(num, slot, func, 0x64);
-+	if (!(d & (1<<14)))
-+		acpi_skip_timer_override = 1;
-+
-+	if (acpi_skip_timer_override) {
-+		printk(KERN_INFO "SB600 revision 0x%x\n", rev);
-+		printk(KERN_INFO "Ignoring ACPI timer override.\n");
-+		printk(KERN_INFO "If you got timer trouble "
-+		       "try acpi_use_timer_override\n");
-+	}
-+}
-+#else
-+static void __init ati_bugs(int num, int slot, int func)
-+{
-+}
-+
-+static void __init ati_bugs_contd(int num, int slot, int func)
-+{
-+}
-+#endif
-+
- #ifdef CONFIG_DMAR
- static void __init intel_g33_dmar(int num, int slot, int func)
+@@ -153,7 +153,6 @@ static int acpi_power_get_state(struct acpi_power_resource *resource, int *state
+ static int acpi_power_get_list_state(struct acpi_handle_list *list, int *state)
  {
-@@ -176,6 +223,8 @@ static struct chipset early_qrk[] __initdata = {
- 	  PCI_CLASS_BRIDGE_HOST, PCI_ANY_ID, 0, fix_hypertransport_config },
- 	{ PCI_VENDOR_ID_ATI, PCI_DEVICE_ID_ATI_IXP400_SMBUS,
- 	  PCI_CLASS_SERIAL_SMBUS, PCI_ANY_ID, 0, ati_bugs },
-+	{ PCI_VENDOR_ID_ATI, PCI_DEVICE_ID_ATI_SBX00_SMBUS,
-+	  PCI_CLASS_SERIAL_SMBUS, PCI_ANY_ID, 0, ati_bugs_contd },
- #ifdef CONFIG_DMAR
- 	{ PCI_VENDOR_ID_INTEL, 0x29c0,
- 	  PCI_CLASS_BRIDGE_HOST, PCI_ANY_ID, 0, intel_g33_dmar },
+ 	int result = 0, state1;
+-	struct acpi_power_resource *resource = NULL;
+ 	u32 i = 0;
+ 
+ 
+@@ -161,12 +160,15 @@ static int acpi_power_get_list_state(struct acpi_handle_list *list, int *state)
+ 		return -EINVAL;
+ 
+ 	/* The state of the list is 'on' IFF all resources are 'on'. */
++	/* */
+ 
+ 	for (i = 0; i < list->count; i++) {
+-		result = acpi_power_get_context(list->handles[i], &resource);
+-		if (result)
+-			return result;
+-		result = acpi_power_get_state(resource, &state1);
++		/*
++		 * The state of the power resource can be obtained by
++		 * using the ACPI handle. In such case it is unnecessary to
++		 * get the Power resource first and then get its state again.
++		 */
++		result = acpi_power_get_state(list->handles[i], &state1);
+ 		if (result)
+ 			return result;
+ 
+@@ -226,7 +228,7 @@ static int acpi_power_on(acpi_handle handle, struct acpi_device *dev)
+ 	if (ACPI_FAILURE(status))
+ 		return -ENODEV;
+ 
+-	result = acpi_power_get_state(resource, &state);
++	result = acpi_power_get_state(resource->device->handle, &state);
+ 	if (result)
+ 		return result;
+ 	if (state != ACPI_POWER_RESOURCE_STATE_ON)
+@@ -277,7 +279,7 @@ static int acpi_power_off_device(acpi_handle handle, struct acpi_device *dev)
+ 	if (ACPI_FAILURE(status))
+ 		return -ENODEV;
+ 
+-	result = acpi_power_get_state(resource, &state);
++	result = acpi_power_get_state(handle, &state);
+ 	if (result)
+ 		return result;
+ 	if (state != ACPI_POWER_RESOURCE_STATE_OFF)
+@@ -555,7 +557,7 @@ static int acpi_power_seq_show(struct seq_file *seq, void *offset)
+ 	if (!resource)
+ 		goto end;
+ 
+-	result = acpi_power_get_state(resource, &state);
++	result = acpi_power_get_state(resource->device->handle, &state);
+ 	if (result)
+ 		goto end;
+ 
+@@ -668,7 +670,7 @@ static int acpi_power_add(struct acpi_device *device)
+ 	resource->system_level = acpi_object.power_resource.system_level;
+ 	resource->order = acpi_object.power_resource.resource_order;
+ 
+-	result = acpi_power_get_state(resource, &state);
++	result = acpi_power_get_state(device->handle, &state);
+ 	if (result)
+ 		goto end;
+ 
+@@ -735,7 +737,7 @@ static int acpi_power_resume(struct acpi_device *device)
+ 
+ 	resource = (struct acpi_power_resource *)acpi_driver_data(device);
+ 
+-	result = acpi_power_get_state(resource, &state);
++	result = acpi_power_get_state(device->handle, &state);
+ 	if (result)
+ 		return result;
+ 
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index f6f52c1..308ddb1 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -807,6 +807,7 @@ static int acpi_bus_get_power_flags(struct acpi_device *device)
+ 	/* TBD: System wake support and resource requirements. */
+ 
+ 	device->power.state = ACPI_STATE_UNKNOWN;
++	acpi_bus_get_power(device->handle, &(device->power.state));
+ 
+ 	return 0;
+ }
 -- 
 1.5.5.1
 
