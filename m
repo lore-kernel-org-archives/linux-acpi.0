@@ -1,14 +1,14 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 110/122] ACPICA: Fix fault after mem allocation failure in AML
- parser
-Date: Thu, 23 Oct 2008 02:39:24 -0400
-Message-ID: <c35def2118d3d7cceb0f69d6707f613a7473df15.1224743917.git.len.brown@intel.com>
+Subject: [PATCH 103/122] ACPICA: Reduce error to warning for incorrect method
+ arg count
+Date: Thu, 23 Oct 2008 02:39:17 -0400
+Message-ID: <93851b4d13de48753eaae76ed190eef7355e2c19.1224743917.git.len.brown@intel.com>
 References: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms044pub.verizon.net ([206.46.252.44]:38944 "EHLO
 	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754875AbYJWGoN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:44:13 -0400
+	with ESMTP id S1752603AbYJWGoM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:44:12 -0400
 Received: from localhost.localdomain ([96.237.168.40])
  by vms044.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
  3 2006)) with ESMTPA id <0K9600KZWIPH3KY1@vms044.mailsrvcs.net> for
@@ -23,93 +23,56 @@ Cc: Lin Ming <ming.m.lin@intel.com>, Bob Moore <robert.moore@intel.com>, Len Bro
 
 From: Lin Ming <ming.m.lin@intel.com>
 
-Fixes a crash if a memory allocation fails during the Op completion
-routine acpi_ps_complete_this_op().
+Previously aborted with error if too few arguments were passed to
+a control method via the external ACPICA interface. Now issue a
+warning instead and continue. Handles the case where the method
+inadvertently declares too many arguments, but does not actually
+use the extra ones.  Applies mainly to the predefined methods.
 
-http://www.acpica.org/bugzilla/show_bug.cgi?id=492
+http://bugzilla.kernel.org/show_bug.cgi?id=11032
 
 Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/parser/psparse.c |   28 +++++++++++-----------------
- 1 files changed, 11 insertions(+), 17 deletions(-)
+ drivers/acpi/namespace/nseval.c |   17 +++++++++--------
+ 1 files changed, 9 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/acpi/parser/psparse.c b/drivers/acpi/parser/psparse.c
-index 15e1702..52caaf6 100644
---- a/drivers/acpi/parser/psparse.c
-+++ b/drivers/acpi/parser/psparse.c
-@@ -137,6 +137,7 @@ acpi_ps_complete_this_op(struct acpi_walk_state * walk_state,
- 	union acpi_parse_object *next;
- 	const struct acpi_opcode_info *parent_info;
- 	union acpi_parse_object *replacement_op = NULL;
-+	acpi_status status = AE_OK;
- 
- 	ACPI_FUNCTION_TRACE_PTR(ps_complete_this_op, op);
- 
-@@ -186,7 +187,7 @@ acpi_ps_complete_this_op(struct acpi_walk_state * walk_state,
- 			replacement_op =
- 			    acpi_ps_alloc_op(AML_INT_RETURN_VALUE_OP);
- 			if (!replacement_op) {
--				goto allocate_error;
-+				status = AE_NO_MEMORY;
- 			}
- 			break;
- 
-@@ -211,7 +212,7 @@ acpi_ps_complete_this_op(struct acpi_walk_state * walk_state,
- 				replacement_op =
- 				    acpi_ps_alloc_op(AML_INT_RETURN_VALUE_OP);
- 				if (!replacement_op) {
--					goto allocate_error;
-+					status = AE_NO_MEMORY;
- 				}
- 			} else
- 			    if ((op->common.parent->common.aml_opcode ==
-@@ -226,13 +227,13 @@ acpi_ps_complete_this_op(struct acpi_walk_state * walk_state,
- 					    acpi_ps_alloc_op(op->common.
- 							     aml_opcode);
- 					if (!replacement_op) {
--						goto allocate_error;
-+						status = AE_NO_MEMORY;
-+					} else {
-+						replacement_op->named.data =
-+						    op->named.data;
-+						replacement_op->named.length =
-+						    op->named.length;
- 					}
--
--					replacement_op->named.data =
--					    op->named.data;
--					replacement_op->named.length =
--					    op->named.length;
- 				}
- 			}
- 			break;
-@@ -242,7 +243,7 @@ acpi_ps_complete_this_op(struct acpi_walk_state * walk_state,
- 			replacement_op =
- 			    acpi_ps_alloc_op(AML_INT_RETURN_VALUE_OP);
- 			if (!replacement_op) {
--				goto allocate_error;
-+				status = AE_NO_MEMORY;
- 			}
+diff --git a/drivers/acpi/namespace/nseval.c b/drivers/acpi/namespace/nseval.c
+index 0a1ae67..42dae12 100644
+--- a/drivers/acpi/namespace/nseval.c
++++ b/drivers/acpi/namespace/nseval.c
+@@ -148,21 +148,22 @@ acpi_status acpi_ns_evaluate(struct acpi_evaluate_info * info)
+ 				info->param_count++;
  		}
  
-@@ -302,14 +303,7 @@ acpi_ps_complete_this_op(struct acpi_walk_state * walk_state,
- 	/* Now we can actually delete the subtree rooted at Op */
+-		/* Error if too few arguments were passed in */
++		/*
++		 * Warning if too few or too many arguments have been passed by the
++		 * caller. We don't want to abort here with an error because an
++		 * incorrect number of arguments may not cause the method to fail.
++		 * However, the method will fail if there are too few arguments passed
++		 * and the method attempts to use one of the missing ones.
++		 */
  
- 	acpi_ps_delete_parse_tree(op);
--	return_ACPI_STATUS(AE_OK);
+ 		if (info->param_count < info->obj_desc->method.param_count) {
+-			ACPI_ERROR((AE_INFO,
++			ACPI_WARNING((AE_INFO,
+ 				    "Insufficient arguments - "
+ 				    "method [%4.4s] needs %d, found %d",
+ 				    acpi_ut_get_node_name(info->resolved_node),
+ 				    info->obj_desc->method.param_count,
+ 				    info->param_count));
+-			return_ACPI_STATUS(AE_MISSING_ARGUMENTS);
+-		}
 -
--      allocate_error:
+-		/* Just a warning if too many arguments */
 -
--	/* Always delete the subtree, even on error */
--
--	acpi_ps_delete_parse_tree(op);
--	return_ACPI_STATUS(AE_NO_MEMORY);
-+	return_ACPI_STATUS(status);
- }
- 
- /*******************************************************************************
+-		else if (info->param_count >
++		} else if (info->param_count >
+ 				info->obj_desc->method.param_count) {
+ 			ACPI_WARNING((AE_INFO,
+ 				      "Excess arguments - "
 -- 
 1.5.5.1
 
