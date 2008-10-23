@@ -1,97 +1,59 @@
-From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Subject: RE: [PATCH 2/2] i7300_idle driver v1.55
-Date: Wed, 22 Oct 2008 21:59:30 -0700
-Message-ID: <7E82351C108FA840AB1866AC776AEC4637D389DB@orsmsx505.amr.corp.intel.com>
-References: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
- <e8b529091b2ab65f5a4783e292c2b472e309116e.1223706853.git.len.brown@intel.com>
- <20081011083347.GA31918@elte.hu>
- <alpine.LFD.1.10.0810161805360.3026@localhost.localdomain>
- <48FE07AE.4010203@linux.intel.com>
- <7E82351C108FA840AB1866AC776AEC4637CD27F3@orsmsx505.amr.corp.intel.com>
- <48FED3FA.6040703@linux.intel.com>
- <20081022234006.GB28775@linux-os.sc.intel.com>
- <48FFCF28.3070604@linux.intel.com>
+From: Greg KH <gregkh@suse.de>
+Subject: Re: [PATCH 01/42] Staging: add pcc-acpi driver
+Date: Wed, 22 Oct 2008 21:55:05 -0700
+Message-ID: <20081023045505.GA7539@suse.de>
+References: <20081022172203.GA4000@kroah.com> <1224696563-5170-1-git-send-email-gregkh@suse.de> <alpine.LFD.1.10.0810221434070.3010@localhost.localdomain> <20081022184808.GA24150@suse.de> <alpine.LFD.1.10.0810222244130.3010@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:44221 "EHLO mga09.intel.com"
+Received: from cantor.suse.de ([195.135.220.2]:50849 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751770AbYJWE7b convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 00:59:31 -0400
-In-Reply-To: <48FFCF28.3070604@linux.intel.com>
-Content-Language: en-US
+	id S1753187AbYJWFLF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Oct 2008 01:11:05 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.1.10.0810222244130.3010@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <ak@linux.intel.com>
-Cc: Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Henroid, Andrew D" <andrew.d.henroid@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "paulmck@us.ibm.com" <paulmck@us.ibm.com>
+To: Len Brown <lenb@kernel.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Hiroshi Miura <miura@da-cha.org>, YOKOTA Hiroshi <yokota@netlab.is.tsukuba.ac.jp>, Harald Welte <laforge@gnumonks.org>, linux-acpi@vger.kernel.org
 
+On Wed, Oct 22, 2008 at 10:49:26PM -0400, Len Brown wrote:
+> 
+> 
+> On Wed, 22 Oct 2008, Greg KH wrote:
+> 
+> > On Wed, Oct 22, 2008 at 02:37:18PM -0400, Len Brown wrote:
+> > > NAK.
+> > > this was already relplaced by the panasonic driver in the acpi tree.
+> > 
+> > Is this in 2.6.27, or was it a 2.6.28 addition?  For some reason, I had
+> > reports from openSUSE users that 2.6.27 still didn't work properly and
+> > needed this driver.
+> > 
+> > How about the new "pcc-acpi-cdrom" driver hack?  Hiroshi, is that needed
+> > still with the 2.6.27 kernel?
+> 
+> drivers/misc/panasonic-laptop.c is staged for 2.6.28:
+> 
+> http://git.kernel.org/?p=linux/kernel/git/lenb/linux-acpi-2.6.git;a=history;f=drivers/misc/panasonic-laptop.c;h=a2cb598d8ab54a98000d1f31f7c2407924399a5e;hb=test
 
+Hm, we didn't get the acpi merge with Linus yet for .28?  No wonder I
+missed this, sorry about it.
 
->-----Original Message-----
->From: Andi Kleen [mailto:ak@linux.intel.com]
->Sent: Wednesday, October 22, 2008 6:11 PM
->To: Pallipadi, Venkatesh
->Cc: Len Brown; Ingo Molnar; linux-acpi@vger.kernel.org; Linux
->Kernel Mailing List; Henroid, Andrew D; Linus Torvalds; Thomas
->Gleixner; H. Peter Anvin; paulmck@us.ibm.com
->Subject: Re: [PATCH 2/2] i7300_idle driver v1.55
->
->>>>> ;
->>>>>> +static void __exit i7300_idle_exit(void)
->>>>>> +{
->>>>>> +     idle_notifier_unregister(&i7300_idle_nb);
->>>>> I still think this needs some kind of idle synchronization.
->>>> This unregister uses atomic_notifier_chain_unregister() which
->>>> uses RCU and handles the race conditions that way.
->>> I didn't do a full analysis, but I didn't think RCU protects
->>> against the idle handler itself.  At least not standard RCU.
->>> You would need to go through at least two quiescent periods,
->>> not one as standard code.
->>>
->>> There used to be an older
->>> idle synchronization interface for this case (which was removed
->>> at some point), perhaps it needs to be readded.
->>>
->>> Or just use stop_machine(). That protects against idle too
->>> and while it's a big hammer for unloading it should be ok.
->>>
->>
->> stop_machine() for unregistering idle callback will deadlock
->due to RCU.
->>
->> I am not sure why we need two cycles. RCU in the unregister makes
->> sure that no CPU is executing the callback handler
->> and only then unregister
->> returns. So, that will mean no one can be in the callback
->rountine and we are
->> safe to remove the module. Correct?
->
->Perhaps I'm confused, but I thought with noidlehz the RCU code
->got changed to take out idle CPUs out of the rcu masks. This makes
->normally sense because you don't want to delay the grace period
->for potentially very long sleeping CPUs.
->
->But it means it won't work for code inside the idle loop. Ok maybe
->if you're very careful with the ordering, but I'm not sure that's
->the case currently.
->
->Yes two cycles won't work either, sorry was confused earlier,
->because even the second cycle wouldn't force the CPU out of idle.
->
->The old idle sync code was more a thread that just cycled through
->all the CPus. That would work.
->
+> > > Greg,
+> > > If it has the word "acpi" in it, please check with me before
+> > > putting something in the staging tree, for I'd prefer to
+> > > stage such things in the acpi tree.
+> > 
+> > Ok, I didn't know you wanted "uncleaned" drivers in your tree, I'll
+> > remember this for the future :)
+> 
+> AFAICK, the driver that was checked into staging tree
+> was based on an older version of the driver already staged
+> in the acpi tree.  I think that the staging tree
+> isn't helping us in this scenario.
 
-This should not matter as we can safely remove the module even when
-one or more CPUs are idle. As long as one CPU is running, we are sure
-that throttling is not in effect. And as long as we make sure no one
-is executing the notifier that is going to be rmmoded, we should
-be OK. Say one CPU comes out of the idle later, it wont see the notifier
-in the notifier list anymore, because of RCU in atomic notifier
-and things will work fine. I mean we are not rmmoding the routine
-that enters the idle state. We are just rmmoding the routine that
-Can get called before and after idle routine.
+Fair enough, I'll drop it from my tree, thanks for paying attention and
+letting me know.
 
-Thanks,
-Venki
+greg k-h
