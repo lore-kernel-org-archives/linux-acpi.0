@@ -1,51 +1,49 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 078/122] ACPI: thinkpad-acpi: trivial fix of error message
-Date: Thu, 23 Oct 2008 02:38:52 -0400
-Message-ID: <4f778b92c9d8d87c670fc063c66edf1aa46f6f1c.1224743917.git.len.brown@intel.com>
+Subject: [PATCH 117/122] ACPICA: Update version to 20080926
+Date: Thu, 23 Oct 2008 02:39:31 -0400
+Message-ID: <ed37a71eac8ba375d85ab10ed5f5e8bdf1cd72e0.1224743917.git.len.brown@intel.com>
 References: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms044pub.verizon.net ([206.46.252.44]:37959 "EHLO
-	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755279AbYJWGkT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:40:19 -0400
+Received: from vms046pub.verizon.net ([206.46.252.46]:40898 "EHLO
+	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755402AbYJWGk0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:40:26 -0400
 Received: from localhost.localdomain ([96.237.168.40])
- by vms044.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0K9600EEBIIZP617@vms044.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:40:11 -0500 (CDT)
+ by vms046.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
+ 3 2006)) with ESMTPA id <0K96000YEIJ9Y9J2@vms046.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:40:22 -0500 (CDT)
 In-reply-to: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 In-reply-to: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
 References: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Mariusz Kozlowski <m.kozlowski@tuxland.pl>, Len Brown <len.brown@intel.com>
+Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+From: Bob Moore <robert.moore@intel.com>
 
-Trivial fix makes the error message match the code before it (ibm->driver
-vs ibm->acpi-driver) better.
+Update version to 20080926.
 
-Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/thinkpad_acpi.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ include/acpi/acconfig.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 1dcf066..6c9b6c8 100644
---- a/drivers/misc/thinkpad_acpi.c
-+++ b/drivers/misc/thinkpad_acpi.c
-@@ -582,7 +582,8 @@ static int __init register_tpacpi_subdriver(struct ibm_struct *ibm)
+diff --git a/include/acpi/acconfig.h b/include/acpi/acconfig.h
+index 2b737e5..29feee2 100644
+--- a/include/acpi/acconfig.h
++++ b/include/acpi/acconfig.h
+@@ -63,7 +63,7 @@
  
- 	ibm->acpi->driver = kzalloc(sizeof(struct acpi_driver), GFP_KERNEL);
- 	if (!ibm->acpi->driver) {
--		printk(TPACPI_ERR "kzalloc(ibm->driver) failed\n");
-+		printk(TPACPI_ERR
-+		       "failed to allocate memory for ibm->acpi->driver\n");
- 		return -ENOMEM;
- 	}
+ /* Current ACPICA subsystem version in YYYYMMDD format */
  
+-#define ACPI_CA_VERSION                 0x20080829
++#define ACPI_CA_VERSION                 0x20080926
+ 
+ /*
+  * OS name, used for the _OS object.  The _OS object is essentially obsolete,
 -- 
 1.5.5.1
 
