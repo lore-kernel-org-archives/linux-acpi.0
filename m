@@ -1,53 +1,88 @@
-From: "Richard Thompson" <binary@badbin.dontexist.net>
-Subject: ACPI DMI info
-Date: Thu, 23 Oct 2008 13:38:57 +0100 (BST)
-Message-ID: <42851.81.99.45.94.1224765537.squirrel@badbin.dontexist.net>
-Reply-To: binary@badbin.dontexist.net
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: Re: [PATCH 2/2] i7300_idle driver v1.55
+Date: Thu, 23 Oct 2008 08:00:47 -0700
+Message-ID: <20081023150047.GD6368@linux.vnet.ibm.com>
+References: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com> <e8b529091b2ab65f5a4783e292c2b472e309116e.1223706853.git.len.brown@intel.com> <20081011083347.GA31918@elte.hu> <alpine.LFD.1.10.0810161805360.3026@localhost.localdomain> <48FE07AE.4010203@linux.intel.com> <7E82351C108FA840AB1866AC776AEC4637CD27F3@orsmsx505.amr.corp.intel.com> <48FED3FA.6040703@linux.intel.com> <20081022234006.GB28775@linux-os.sc.intel.com> <48FFCF28.3070604@linux.intel.com> <7E82351C108FA840AB1866AC776AEC4637D389DB@orsmsx505.amr.corp.intel.com>
+Reply-To: paulmck@linux.vnet.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mtaout03-winn.ispmail.ntl.com ([81.103.221.49]:26485 "EHLO
-	mtaout03-winn.ispmail.ntl.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751169AbYJWMjH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 Oct 2008 08:39:07 -0400
-Received: from aamtaout03-winn.ispmail.ntl.com ([81.103.221.35])
-          by mtaout03-winn.ispmail.ntl.com
-          (InterMail vM.7.05.02.00 201-2174-114-20060621) with ESMTP
-          id <20081023123859.WOGX10791.mtaout03-winn.ispmail.ntl.com@aamtaout03-winn.ispmail.ntl.com>
-          for <linux-acpi@vger.kernel.org>; Thu, 23 Oct 2008 13:38:59 +0100
-Received: from jade ([81.99.45.94]) by aamtaout03-winn.ispmail.ntl.com
-          (InterMail vG.2.02.00.01 201-2161-120-102-20060912) with ESMTP
-          id <20081023123859.KQEQ2093.aamtaout03-winn.ispmail.ntl.com@jade>
-          for <linux-acpi@vger.kernel.org>; Thu, 23 Oct 2008 13:38:59 +0100
-Received: from localhost
-	([127.0.0.1] helo=badbin.dontexist.net ident=www-data)
-	by jade with esmtp (Exim 4.63)
-	(envelope-from <binary@badbin.dontexist.net>)
-	id 1KszSr-0005JL-3t
-	for linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 13:38:57 +0100
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756224AbYJWPBK@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <7E82351C108FA840AB1866AC776AEC4637D389DB@orsmsx505.amr.corp.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Cc: Andi Kleen <ak@linux.intel.com>, Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Henroid, Andrew D" <andrew.d.henroid@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-binary@emily:~$ dmesg |grep acpi
-ACPI: LAPIC (acpi_id[0x00] lapic_id[0x00] enabled)
-ACPI: LAPIC (acpi_id[0x01] lapic_id[0x01] enabled)
-ACPI: LAPIC_NMI (acpi_id[0x00] high edge lint[0x1])
-ACPI: LAPIC_NMI (acpi_id[0x01] high edge lint[0x1])
-ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
-ACPI: If "acpi_osi=Linux" works better, please notify
-linux-acpi@vger.kernel.org
+On Wed, Oct 22, 2008 at 09:59:30PM -0700, Pallipadi, Venkatesh wrote:
+> 
+> 
+> >-----Original Message-----
+> >From: Andi Kleen [mailto:ak@linux.intel.com]
+> >Sent: Wednesday, October 22, 2008 6:11 PM
+> >To: Pallipadi, Venkatesh
+> >Cc: Len Brown; Ingo Molnar; linux-acpi@vger.kernel.org; Linux
+> >Kernel Mailing List; Henroid, Andrew D; Linus Torvalds; Thomas
+> >Gleixner; H. Peter Anvin; paulmck@us.ibm.com
+> >Subject: Re: [PATCH 2/2] i7300_idle driver v1.55
+> >
+> >>>>> ;
+> >>>>>> +static void __exit i7300_idle_exit(void)
+> >>>>>> +{
+> >>>>>> +     idle_notifier_unregister(&i7300_idle_nb);
+> >>>>> I still think this needs some kind of idle synchronization.
+> >>>> This unregister uses atomic_notifier_chain_unregister() which
+> >>>> uses RCU and handles the race conditions that way.
+> >>> I didn't do a full analysis, but I didn't think RCU protects
+> >>> against the idle handler itself.  At least not standard RCU.
+> >>> You would need to go through at least two quiescent periods,
+> >>> not one as standard code.
+> >>>
+> >>> There used to be an older
+> >>> idle synchronization interface for this case (which was removed
+> >>> at some point), perhaps it needs to be readded.
+> >>>
+> >>> Or just use stop_machine(). That protects against idle too
+> >>> and while it's a big hammer for unloading it should be ok.
+> >>>
+> >>
+> >> stop_machine() for unregistering idle callback will deadlock
+> >due to RCU.
+> >>
+> >> I am not sure why we need two cycles. RCU in the unregister makes
+> >> sure that no CPU is executing the callback handler
+> >> and only then unregister
+> >> returns. So, that will mean no one can be in the callback
+> >rountine and we are
+> >> safe to remove the module. Correct?
+> >
+> >Perhaps I'm confused, but I thought with noidlehz the RCU code
+> >got changed to take out idle CPUs out of the rcu masks. This makes
+> >normally sense because you don't want to delay the grace period
+> >for potentially very long sleeping CPUs.
+> >
+> >But it means it won't work for code inside the idle loop. Ok maybe
+> >if you're very careful with the ordering, but I'm not sure that's
+> >the case currently.
+> >
+> >Yes two cycles won't work either, sorry was confused earlier,
+> >because even the second cycle wouldn't force the CPU out of idle.
+> >
+> >The old idle sync code was more a thread that just cycled through
+> >all the CPus. That would work.
+> >
+> 
+> This should not matter as we can safely remove the module even when
+> one or more CPUs are idle. As long as one CPU is running, we are sure
+> that throttling is not in effect. And as long as we make sure no one
+> is executing the notifier that is going to be rmmoded, we should
+> be OK. Say one CPU comes out of the idle later, it wont see the notifier
+> in the notifier list anymore, because of RCU in atomic notifier
+> and things will work fine. I mean we are not rmmoding the routine
+> that enters the idle state. We are just rmmoding the routine that
+> Can get called before and after idle routine.
 
-I have no idea what it's about. Enjoy :-)
--- 
-Richard Thompson
+Suppose that one of the idle CPUs takes an interrupt, whose handler
+accesses the module being removed.  How is this handled?
 
------BEGIN GEEK CODE BLOCK-----
-Version: 3.12
-GCS d- s:- a--- C++ UL+++ P L+++ E---- W+++ N+ o-- K- w
-O-- M-- V-- PS PE Y+ PGP++ t+ 5 X+ R-- !tv b+ DI-- D-
-G e h-- !r y
-------END GEEK CODE BLOCK------
-
+						Thanx, Paul
