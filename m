@@ -1,504 +1,540 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 062/122] asus_acpi: whitespace and comment cleanup
-Date: Thu, 23 Oct 2008 02:38:36 -0400
-Message-ID: <c6c38bac2608b0f439b9ede72394780fe7fe1951.1224743917.git.len.brown@intel.com>
+Subject: [PATCH 090/122] ACPICA: Cleanup macro definition file.
+Date: Thu, 23 Oct 2008 02:39:04 -0400
+Message-ID: <c9bdd8057d706a972d804d2d8614a283641a5660.1224743917.git.len.brown@intel.com>
 References: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:58094 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754161AbYJWGkL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:40:11 -0400
+Received: from vms044pub.verizon.net ([206.46.252.44]:37959 "EHLO
+	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755320AbYJWGkX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:40:23 -0400
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173001.mailsrvcs.net
- (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K9600KAUIITS8A2@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:40:06 -0500 (CDT)
+ by vms044.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
+ 3 2006)) with ESMTPA id <0K9600EEOIJ3P617@vms044.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:40:16 -0500 (CDT)
 In-reply-to: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 In-reply-to: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
 References: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Mike Dahlgren <dahlgren@gmail.com>, Len Brown <len.brown@intel.com>
+Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Andi Kleen <ak@linux.intel.com>, Len Brown <len.brown@intel.com>
 
-From: Mike Dahlgren <dahlgren@gmail.com>
+From: Bob Moore <robert.moore@intel.com>
 
-Signed-off-by: Mike Dahlgren <dahlgren@gmail.com>
+Removed unused macros. Ensure that multiple parameters always have a space
+after a comma. Cleanup some comments.
+
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/asus_acpi.c |  221 +++++++++++++++++++++++-----------------------
- 1 files changed, 110 insertions(+), 111 deletions(-)
+ include/acpi/acmacros.h |  248 ++++++++++++++++++++++-------------------------
+ 1 files changed, 115 insertions(+), 133 deletions(-)
 
-diff --git a/drivers/acpi/asus_acpi.c b/drivers/acpi/asus_acpi.c
-index d3d0886..3f7adf6 100644
---- a/drivers/acpi/asus_acpi.c
-+++ b/drivers/acpi/asus_acpi.c
-@@ -42,7 +42,7 @@
- 
- #define ASUS_ACPI_VERSION "0.30"
- 
--#define PROC_ASUS       "asus"	//the directory
-+#define PROC_ASUS       "asus"	/* The directory */
- #define PROC_MLED       "mled"
- #define PROC_WLED       "wled"
- #define PROC_TLED       "tled"
-@@ -66,10 +66,10 @@
- /*
-  * Flags for hotk status
-  */
--#define MLED_ON     0x01	//mail LED
--#define WLED_ON     0x02	//wireless LED
--#define TLED_ON     0x04	//touchpad LED
--#define BT_ON       0x08	//internal Bluetooth
-+#define MLED_ON     0x01	/* Mail LED */
-+#define WLED_ON     0x02	/* Wireless LED */
-+#define TLED_ON     0x04	/* Touchpad LED */
-+#define BT_ON       0x08	/* Internal Bluetooth */
- 
- MODULE_AUTHOR("Julien Lerouge, Karol Kozimor");
- MODULE_DESCRIPTION(ACPI_HOTK_NAME);
-@@ -82,28 +82,28 @@ MODULE_PARM_DESC(asus_uid, "UID for entries in /proc/acpi/asus");
- module_param(asus_gid, uint, 0);
- MODULE_PARM_DESC(asus_gid, "GID for entries in /proc/acpi/asus");
- 
--/* For each model, all features implemented, 
-+/* For each model, all features implemented,
-  * those marked with R are relative to HOTK, A for absolute */
- struct model_data {
--	char *name;		//name of the laptop________________A
--	char *mt_mled;		//method to handle mled_____________R
--	char *mled_status;	//node to handle mled reading_______A
--	char *mt_wled;		//method to handle wled_____________R
--	char *wled_status;	//node to handle wled reading_______A
--	char *mt_tled;		//method to handle tled_____________R
--	char *tled_status;	//node to handle tled reading_______A
--	char *mt_ledd;		//method to handle LED display______R
--	char *mt_bt_switch;	//method to switch Bluetooth on/off_R
--	char *bt_status;	//no model currently supports this__?
--	char *mt_lcd_switch;	//method to turn LCD on/off_________A
--	char *lcd_status;	//node to read LCD panel state______A
--	char *brightness_up;	//method to set brightness up_______A
--	char *brightness_down;	//guess what ?______________________A
--	char *brightness_set;	//method to set absolute brightness_R
--	char *brightness_get;	//method to get absolute brightness_R
--	char *brightness_status;	//node to get brightness____________A
--	char *display_set;	//method to set video output________R
--	char *display_get;	//method to get video output________R
-+	char *name;		/* name of the laptop________________A */
-+	char *mt_mled;		/* method to handle mled_____________R */
-+	char *mled_status;	/* node to handle mled reading_______A */
-+	char *mt_wled;		/* method to handle wled_____________R */
-+	char *wled_status;	/* node to handle wled reading_______A */
-+	char *mt_tled;		/* method to handle tled_____________R */
-+	char *tled_status;	/* node to handle tled reading_______A */
-+	char *mt_ledd;		/* method to handle LED display______R */
-+	char *mt_bt_switch;	/* method to switch Bluetooth on/off_R */
-+	char *bt_status;	/* no model currently supports this__? */
-+	char *mt_lcd_switch;	/* method to turn LCD on/off_________A */
-+	char *lcd_status;	/* node to read LCD panel state______A */
-+	char *brightness_up;	/* method to set brightness up_______A */
-+	char *brightness_down;	/* method to set brightness down ____A */
-+	char *brightness_set;	/* method to set absolute brightness_R */
-+	char *brightness_get;	/* method to get absolute brightness_R */
-+	char *brightness_status;/* node to get brightness____________A */
-+	char *display_set;	/* method to set video output________R */
-+	char *display_get;	/* method to get video output________R */
- };
+diff --git a/include/acpi/acmacros.h b/include/acpi/acmacros.h
+index 57ab9e9..2106f91 100644
+--- a/include/acpi/acmacros.h
++++ b/include/acpi/acmacros.h
+@@ -62,7 +62,7 @@
+ #define ACPI_ARRAY_LENGTH(x)            (sizeof(x) / sizeof((x)[0]))
  
  /*
-@@ -111,41 +111,41 @@ struct model_data {
-  * about the hotk device
+- * Extract data using a pointer.  Any more than a byte and we
++ * Extract data using a pointer. Any more than a byte and we
+  * get into potential aligment issues -- see the STORE macros below.
+  * Use with care.
   */
- struct asus_hotk {
--	struct acpi_device *device;	//the device we are in
--	acpi_handle handle;	//the handle of the hotk device
--	char status;		//status of the hotk, for LEDs, ...
--	u32 ledd_status;	//status of the LED display
--	struct model_data *methods;	//methods available on the laptop
--	u8 brightness;		//brightness level
-+	struct acpi_device *device;	/* the device we are in */
-+	acpi_handle handle;		/* the handle of the hotk device */
-+	char status;			/* status of the hotk, for LEDs */
-+	u32 ledd_status;		/* status of the LED display */
-+	struct model_data *methods;	/* methods available on the laptop */
-+	u8 brightness;			/* brightness level */
- 	enum {
--		A1x = 0,	//A1340D, A1300F
--		A2x,		//A2500H
--		A4G,		//A4700G
--		D1x,		//D1
--		L2D,		//L2000D
--		L3C,		//L3800C
--		L3D,		//L3400D
--		L3H,		//L3H, L2000E, L5D
--		L4R,		//L4500R
--		L5x,		//L5800C 
--		L8L,		//L8400L
--		M1A,		//M1300A
--		M2E,		//M2400E, L4400L
--		M6N,		//M6800N, W3400N
--		M6R,		//M6700R, A3000G
--		P30,		//Samsung P30
--		S1x,		//S1300A, but also L1400B and M2400A (L84F)
--		S2x,		//S200 (J1 reported), Victor MP-XP7210
--		W1N,		//W1000N
--		W5A,		//W5A
--		W3V,            //W3030V
--		xxN,		//M2400N, M3700N, M5200N, M6800N, S1300N, S5200N
--		A4S,            //Z81sp
--		//(Centrino)
--		F3Sa,
-+		A1x = 0,	/* A1340D, A1300F */
-+		A2x,		/* A2500H */
-+		A4G,		/* A4700G */
-+		D1x,		/* D1 */
-+		L2D,		/* L2000D */
-+		L3C,		/* L3800C */
-+		L3D,		/* L3400D */
-+		L3H,		/* L3H, L2000E, L5D */
-+		L4R,		/* L4500R */
-+		L5x,		/* L5800C */
-+		L8L,		/* L8400L */
-+		M1A,		/* M1300A */
-+		M2E,		/* M2400E, L4400L */
-+		M6N,		/* M6800N, W3400N */
-+		M6R,		/* M6700R, A3000G */
-+		P30,		/* Samsung P30 */
-+		S1x,		/* S1300A, but also L1400B and M2400A (L84F) */
-+		S2x,		/* S200 (J1 reported), Victor MP-XP7210 */
-+		W1N,		/* W1000N */
-+		W5A,		/* W5A */
-+		W3V,            /* W3030V */
-+		xxN,		/* M2400N, M3700N, M5200N, M6800N,
-+							 S1300N, S5200N*/
-+		A4S,            /* Z81sp */
-+		F3Sa,		/* (Centrino) */
- 		END_MODEL
--	} model;		//Models currently supported
--	u16 event_count[128];	//count for each event TODO make this better
-+	} model;		/* Models currently supported */
-+	u16 event_count[128];	/* Count for each event TODO make this better */
- };
+@@ -80,21 +80,21 @@
+  */
+ #define ACPI_CAST_PTR(t, p)             ((t *) (acpi_uintptr_t) (p))
+ #define ACPI_CAST_INDIRECT_PTR(t, p)    ((t **) (acpi_uintptr_t) (p))
+-#define ACPI_ADD_PTR(t, a, b)		ACPI_CAST_PTR (t, (ACPI_CAST_PTR (u8,(a)) + (acpi_size)(b)))
+-#define ACPI_PTR_DIFF(a, b)		(acpi_size) (ACPI_CAST_PTR (u8,(a)) - ACPI_CAST_PTR (u8,(b)))
++#define ACPI_ADD_PTR(t, a, b)		ACPI_CAST_PTR (t, (ACPI_CAST_PTR (u8, (a)) + (acpi_size)(b)))
++#define ACPI_PTR_DIFF(a, b)		(acpi_size) (ACPI_CAST_PTR (u8, (a)) - ACPI_CAST_PTR (u8, (b)))
  
- /* Here we go */
-@@ -459,18 +459,18 @@ static struct acpi_driver asus_hotk_driver = {
- 		},
- };
+ /* Pointer/Integer type conversions */
  
--/* 
-+/*
-  * This function evaluates an ACPI method, given an int as parameter, the
-  * method is searched within the scope of the handle, can be NULL. The output
-  * of the method is written is output, which can also be NULL
+ #define ACPI_TO_POINTER(i)		ACPI_ADD_PTR (void, (void *) NULL, (acpi_size) i)
+-#define ACPI_TO_INTEGER(p)              ACPI_PTR_DIFF (p,(void *) NULL)
+-#define ACPI_OFFSET(d,f)                (acpi_size) ACPI_PTR_DIFF (&(((d *)0)->f),(void *) NULL)
++#define ACPI_TO_INTEGER(p)              ACPI_PTR_DIFF (p, (void *) NULL)
++#define ACPI_OFFSET(d, f)               (acpi_size) ACPI_PTR_DIFF (&(((d *)0)->f), (void *) NULL)
+ #define ACPI_PHYSADDR_TO_PTR(i)         ACPI_TO_POINTER(i)
+ #define ACPI_PTR_TO_PHYSADDR(i)         ACPI_TO_INTEGER(i)
+ 
+ #ifndef ACPI_MISALIGNMENT_NOT_SUPPORTED
+-#define ACPI_COMPARE_NAME(a,b)          (*ACPI_CAST_PTR (u32,(a)) == *ACPI_CAST_PTR (u32,(b)))
++#define ACPI_COMPARE_NAME(a, b)         (*ACPI_CAST_PTR (u32, (a)) == *ACPI_CAST_PTR (u32, (b)))
+ #else
+-#define ACPI_COMPARE_NAME(a,b)          (!ACPI_STRNCMP (ACPI_CAST_PTR (char,(a)), ACPI_CAST_PTR (char,(b)), ACPI_NAME_SIZE))
++#define ACPI_COMPARE_NAME(a, b)         (!ACPI_STRNCMP (ACPI_CAST_PTR (char, (a)), ACPI_CAST_PTR (char, (b)), ACPI_NAME_SIZE))
+ #endif
+ 
+ /*
+@@ -114,7 +114,7 @@ struct acpi_integer_overlay {
+ 
+ /* Split 64-bit integer into two 32-bit values. Use with %8.8_x%8.8_x */
+ 
+-#define ACPI_FORMAT_UINT64(i)           ACPI_HIDWORD(i),ACPI_LODWORD(i)
++#define ACPI_FORMAT_UINT64(i)           ACPI_HIDWORD(i), ACPI_LODWORD(i)
+ 
+ #if ACPI_MACHINE_WIDTH == 64
+ #define ACPI_FORMAT_NATIVE_UINT(i)      ACPI_FORMAT_UINT64(i)
+@@ -132,37 +132,33 @@ struct acpi_integer_overlay {
+  * Macros for big-endian machines
+  */
+ 
+-/* This macro sets a buffer index, starting from the end of the buffer */
+-
+-#define ACPI_BUFFER_INDEX(buf_len,buf_offset,byte_gran) ((buf_len) - (((buf_offset)+1) * (byte_gran)))
+-
+ /* These macros reverse the bytes during the move, converting little-endian to big endian */
+ 
+ 			  /* Big Endian      <==        Little Endian */
+ 			  /*  Hi...Lo                     Lo...Hi     */
+ /* 16-bit source, 16/32/64 destination */
+ 
+-#define ACPI_MOVE_16_TO_16(d,s)         {((  u8 *)(void *)(d))[0] = ((u8 *)(void *)(s))[1];\
++#define ACPI_MOVE_16_TO_16(d, s)        {((  u8 *)(void *)(d))[0] = ((u8 *)(void *)(s))[1];\
+ 					   ((  u8 *)(void *)(d))[1] = ((u8 *)(void *)(s))[0];}
+ 
+-#define ACPI_MOVE_16_TO_32(d,s)         {(*(u32 *)(void *)(d))=0;\
++#define ACPI_MOVE_16_TO_32(d, s)        {(*(u32 *)(void *)(d))=0;\
+ 							   ((u8 *)(void *)(d))[2] = ((u8 *)(void *)(s))[1];\
+ 							   ((u8 *)(void *)(d))[3] = ((u8 *)(void *)(s))[0];}
+ 
+-#define ACPI_MOVE_16_TO_64(d,s)         {(*(u64 *)(void *)(d))=0;\
++#define ACPI_MOVE_16_TO_64(d, s)        {(*(u64 *)(void *)(d))=0;\
+ 									 ((u8 *)(void *)(d))[6] = ((u8 *)(void *)(s))[1];\
+ 									 ((u8 *)(void *)(d))[7] = ((u8 *)(void *)(s))[0];}
+ 
+ /* 32-bit source, 16/32/64 destination */
+ 
+-#define ACPI_MOVE_32_TO_16(d,s)         ACPI_MOVE_16_TO_16(d,s)	/* Truncate to 16 */
++#define ACPI_MOVE_32_TO_16(d, s)        ACPI_MOVE_16_TO_16(d, s)	/* Truncate to 16 */
+ 
+-#define ACPI_MOVE_32_TO_32(d,s)         {((  u8 *)(void *)(d))[0] = ((u8 *)(void *)(s))[3];\
++#define ACPI_MOVE_32_TO_32(d, s)        {((  u8 *)(void *)(d))[0] = ((u8 *)(void *)(s))[3];\
+ 										 ((  u8 *)(void *)(d))[1] = ((u8 *)(void *)(s))[2];\
+ 										 ((  u8 *)(void *)(d))[2] = ((u8 *)(void *)(s))[1];\
+ 										 ((  u8 *)(void *)(d))[3] = ((u8 *)(void *)(s))[0];}
+ 
+-#define ACPI_MOVE_32_TO_64(d,s)         {(*(u64 *)(void *)(d))=0;\
++#define ACPI_MOVE_32_TO_64(d, s)        {(*(u64 *)(void *)(d))=0;\
+ 										   ((u8 *)(void *)(d))[4] = ((u8 *)(void *)(s))[3];\
+ 										   ((u8 *)(void *)(d))[5] = ((u8 *)(void *)(s))[2];\
+ 										   ((u8 *)(void *)(d))[6] = ((u8 *)(void *)(s))[1];\
+@@ -170,11 +166,11 @@ struct acpi_integer_overlay {
+ 
+ /* 64-bit source, 16/32/64 destination */
+ 
+-#define ACPI_MOVE_64_TO_16(d,s)         ACPI_MOVE_16_TO_16(d,s)	/* Truncate to 16 */
++#define ACPI_MOVE_64_TO_16(d, s)        ACPI_MOVE_16_TO_16(d, s)	/* Truncate to 16 */
+ 
+-#define ACPI_MOVE_64_TO_32(d,s)         ACPI_MOVE_32_TO_32(d,s)	/* Truncate to 32 */
++#define ACPI_MOVE_64_TO_32(d, s)        ACPI_MOVE_32_TO_32(d, s)	/* Truncate to 32 */
+ 
+-#define ACPI_MOVE_64_TO_64(d,s)         {((  u8 *)(void *)(d))[0] = ((u8 *)(void *)(s))[7];\
++#define ACPI_MOVE_64_TO_64(d, s)        {((  u8 *)(void *)(d))[0] = ((u8 *)(void *)(s))[7];\
+ 										 ((  u8 *)(void *)(d))[1] = ((u8 *)(void *)(s))[6];\
+ 										 ((  u8 *)(void *)(d))[2] = ((u8 *)(void *)(s))[5];\
+ 										 ((  u8 *)(void *)(d))[3] = ((u8 *)(void *)(s))[4];\
+@@ -187,63 +183,59 @@ struct acpi_integer_overlay {
+  * Macros for little-endian machines
+  */
+ 
+-/* This macro sets a buffer index, starting from the beginning of the buffer */
+-
+-#define ACPI_BUFFER_INDEX(buf_len,buf_offset,byte_gran) (buf_offset)
+-
+ #ifndef ACPI_MISALIGNMENT_NOT_SUPPORTED
+ 
+ /* The hardware supports unaligned transfers, just do the little-endian move */
+ 
+ /* 16-bit source, 16/32/64 destination */
+ 
+-#define ACPI_MOVE_16_TO_16(d,s)         *(u16 *)(void *)(d) = *(u16 *)(void *)(s)
+-#define ACPI_MOVE_16_TO_32(d,s)         *(u32 *)(void *)(d) = *(u16 *)(void *)(s)
+-#define ACPI_MOVE_16_TO_64(d,s)         *(u64 *)(void *)(d) = *(u16 *)(void *)(s)
++#define ACPI_MOVE_16_TO_16(d, s)        *(u16 *)(void *)(d) = *(u16 *)(void *)(s)
++#define ACPI_MOVE_16_TO_32(d, s)        *(u32 *)(void *)(d) = *(u16 *)(void *)(s)
++#define ACPI_MOVE_16_TO_64(d, s)        *(u64 *)(void *)(d) = *(u16 *)(void *)(s)
+ 
+ /* 32-bit source, 16/32/64 destination */
+ 
+-#define ACPI_MOVE_32_TO_16(d,s)         ACPI_MOVE_16_TO_16(d,s)	/* Truncate to 16 */
+-#define ACPI_MOVE_32_TO_32(d,s)         *(u32 *)(void *)(d) = *(u32 *)(void *)(s)
+-#define ACPI_MOVE_32_TO_64(d,s)         *(u64 *)(void *)(d) = *(u32 *)(void *)(s)
++#define ACPI_MOVE_32_TO_16(d, s)        ACPI_MOVE_16_TO_16(d, s)	/* Truncate to 16 */
++#define ACPI_MOVE_32_TO_32(d, s)        *(u32 *)(void *)(d) = *(u32 *)(void *)(s)
++#define ACPI_MOVE_32_TO_64(d, s)        *(u64 *)(void *)(d) = *(u32 *)(void *)(s)
+ 
+ /* 64-bit source, 16/32/64 destination */
+ 
+-#define ACPI_MOVE_64_TO_16(d,s)         ACPI_MOVE_16_TO_16(d,s)	/* Truncate to 16 */
+-#define ACPI_MOVE_64_TO_32(d,s)         ACPI_MOVE_32_TO_32(d,s)	/* Truncate to 32 */
+-#define ACPI_MOVE_64_TO_64(d,s)         *(u64 *)(void *)(d) = *(u64 *)(void *)(s)
++#define ACPI_MOVE_64_TO_16(d, s)        ACPI_MOVE_16_TO_16(d, s)	/* Truncate to 16 */
++#define ACPI_MOVE_64_TO_32(d, s)        ACPI_MOVE_32_TO_32(d, s)	/* Truncate to 32 */
++#define ACPI_MOVE_64_TO_64(d, s)        *(u64 *)(void *)(d) = *(u64 *)(void *)(s)
+ 
+ #else
+ /*
+- * The hardware does not support unaligned transfers.  We must move the
+- * data one byte at a time.  These macros work whether the source or
++ * The hardware does not support unaligned transfers. We must move the
++ * data one byte at a time. These macros work whether the source or
+  * the destination (or both) is/are unaligned.  (Little-endian move)
+  */
+ 
+ /* 16-bit source, 16/32/64 destination */
+ 
+-#define ACPI_MOVE_16_TO_16(d,s)         {((  u8 *)(void *)(d))[0] = ((u8 *)(void *)(s))[0];\
++#define ACPI_MOVE_16_TO_16(d, s)        {((  u8 *)(void *)(d))[0] = ((u8 *)(void *)(s))[0];\
+ 										 ((  u8 *)(void *)(d))[1] = ((u8 *)(void *)(s))[1];}
+ 
+-#define ACPI_MOVE_16_TO_32(d,s)         {(*(u32 *)(void *)(d)) = 0; ACPI_MOVE_16_TO_16(d,s);}
+-#define ACPI_MOVE_16_TO_64(d,s)         {(*(u64 *)(void *)(d)) = 0; ACPI_MOVE_16_TO_16(d,s);}
++#define ACPI_MOVE_16_TO_32(d, s)        {(*(u32 *)(void *)(d)) = 0; ACPI_MOVE_16_TO_16(d, s);}
++#define ACPI_MOVE_16_TO_64(d, s)        {(*(u64 *)(void *)(d)) = 0; ACPI_MOVE_16_TO_16(d, s);}
+ 
+ /* 32-bit source, 16/32/64 destination */
+ 
+-#define ACPI_MOVE_32_TO_16(d,s)         ACPI_MOVE_16_TO_16(d,s)	/* Truncate to 16 */
++#define ACPI_MOVE_32_TO_16(d, s)        ACPI_MOVE_16_TO_16(d, s)	/* Truncate to 16 */
+ 
+-#define ACPI_MOVE_32_TO_32(d,s)         {((  u8 *)(void *)(d))[0] = ((u8 *)(void *)(s))[0];\
++#define ACPI_MOVE_32_TO_32(d, s)        {((  u8 *)(void *)(d))[0] = ((u8 *)(void *)(s))[0];\
+ 										 ((  u8 *)(void *)(d))[1] = ((u8 *)(void *)(s))[1];\
+ 										 ((  u8 *)(void *)(d))[2] = ((u8 *)(void *)(s))[2];\
+ 										 ((  u8 *)(void *)(d))[3] = ((u8 *)(void *)(s))[3];}
+ 
+-#define ACPI_MOVE_32_TO_64(d,s)         {(*(u64 *)(void *)(d)) = 0; ACPI_MOVE_32_TO_32(d,s);}
++#define ACPI_MOVE_32_TO_64(d, s)        {(*(u64 *)(void *)(d)) = 0; ACPI_MOVE_32_TO_32(d, s);}
+ 
+ /* 64-bit source, 16/32/64 destination */
+ 
+-#define ACPI_MOVE_64_TO_16(d,s)         ACPI_MOVE_16_TO_16(d,s)	/* Truncate to 16 */
+-#define ACPI_MOVE_64_TO_32(d,s)         ACPI_MOVE_32_TO_32(d,s)	/* Truncate to 32 */
+-#define ACPI_MOVE_64_TO_64(d,s)         {((  u8 *)(void *)(d))[0] = ((u8 *)(void *)(s))[0];\
++#define ACPI_MOVE_64_TO_16(d, s)        ACPI_MOVE_16_TO_16(d, s)	/* Truncate to 16 */
++#define ACPI_MOVE_64_TO_32(d, s)        ACPI_MOVE_32_TO_32(d, s)	/* Truncate to 32 */
++#define ACPI_MOVE_64_TO_64(d, s)        {((  u8 *)(void *)(d))[0] = ((u8 *)(void *)(s))[0];\
+ 										 ((  u8 *)(void *)(d))[1] = ((u8 *)(void *)(s))[1];\
+ 										 ((  u8 *)(void *)(d))[2] = ((u8 *)(void *)(s))[2];\
+ 										 ((  u8 *)(void *)(d))[3] = ((u8 *)(void *)(s))[3];\
+@@ -257,10 +249,10 @@ struct acpi_integer_overlay {
+ /* Macros based on machine integer width */
+ 
+ #if ACPI_MACHINE_WIDTH == 32
+-#define ACPI_MOVE_SIZE_TO_16(d,s)       ACPI_MOVE_32_TO_16(d,s)
++#define ACPI_MOVE_SIZE_TO_16(d, s)       ACPI_MOVE_32_TO_16(d, s)
+ 
+ #elif ACPI_MACHINE_WIDTH == 64
+-#define ACPI_MOVE_SIZE_TO_16(d,s)       ACPI_MOVE_64_TO_16(d,s)
++#define ACPI_MOVE_SIZE_TO_16(d, s)       ACPI_MOVE_64_TO_16(d, s)
+ 
+ #else
+ #error unknown ACPI_MACHINE_WIDTH
+@@ -269,29 +261,29 @@ struct acpi_integer_overlay {
+ /*
+  * Fast power-of-two math macros for non-optimized compilers
+  */
+-#define _ACPI_DIV(value,power_of2)      ((u32) ((value) >> (power_of2)))
+-#define _ACPI_MUL(value,power_of2)      ((u32) ((value) << (power_of2)))
+-#define _ACPI_MOD(value,divisor)        ((u32) ((value) & ((divisor) -1)))
++#define _ACPI_DIV(value, power_of2)      ((u32) ((value) >> (power_of2)))
++#define _ACPI_MUL(value, power_of2)      ((u32) ((value) << (power_of2)))
++#define _ACPI_MOD(value, divisor)        ((u32) ((value) & ((divisor) -1)))
+ 
+-#define ACPI_DIV_2(a)                   _ACPI_DIV(a,1)
+-#define ACPI_MUL_2(a)                   _ACPI_MUL(a,1)
+-#define ACPI_MOD_2(a)                   _ACPI_MOD(a,2)
++#define ACPI_DIV_2(a)                   _ACPI_DIV(a, 1)
++#define ACPI_MUL_2(a)                   _ACPI_MUL(a, 1)
++#define ACPI_MOD_2(a)                   _ACPI_MOD(a, 2)
+ 
+-#define ACPI_DIV_4(a)                   _ACPI_DIV(a,2)
+-#define ACPI_MUL_4(a)                   _ACPI_MUL(a,2)
+-#define ACPI_MOD_4(a)                   _ACPI_MOD(a,4)
++#define ACPI_DIV_4(a)                   _ACPI_DIV(a, 2)
++#define ACPI_MUL_4(a)                   _ACPI_MUL(a, 2)
++#define ACPI_MOD_4(a)                   _ACPI_MOD(a, 4)
+ 
+-#define ACPI_DIV_8(a)                   _ACPI_DIV(a,3)
+-#define ACPI_MUL_8(a)                   _ACPI_MUL(a,3)
+-#define ACPI_MOD_8(a)                   _ACPI_MOD(a,8)
++#define ACPI_DIV_8(a)                   _ACPI_DIV(a, 3)
++#define ACPI_MUL_8(a)                   _ACPI_MUL(a, 3)
++#define ACPI_MOD_8(a)                   _ACPI_MOD(a, 8)
+ 
+-#define ACPI_DIV_16(a)                  _ACPI_DIV(a,4)
+-#define ACPI_MUL_16(a)                  _ACPI_MUL(a,4)
+-#define ACPI_MOD_16(a)                  _ACPI_MOD(a,16)
++#define ACPI_DIV_16(a)                  _ACPI_DIV(a, 4)
++#define ACPI_MUL_16(a)                  _ACPI_MUL(a, 4)
++#define ACPI_MOD_16(a)                  _ACPI_MOD(a, 16)
+ 
+-#define ACPI_DIV_32(a)                  _ACPI_DIV(a,5)
+-#define ACPI_MUL_32(a)                  _ACPI_MUL(a,5)
+-#define ACPI_MOD_32(a)                  _ACPI_MOD(a,32)
++#define ACPI_DIV_32(a)                  _ACPI_DIV(a, 5)
++#define ACPI_MUL_32(a)                  _ACPI_MUL(a, 5)
++#define ACPI_MOD_32(a)                  _ACPI_MOD(a, 32)
+ 
+ /*
+  * Rounding macros (Power of two boundaries only)
+@@ -305,13 +297,13 @@ struct acpi_integer_overlay {
+ 
+ /* Note: sizeof(acpi_size) evaluates to either 4 or 8 (32- vs 64-bit mode) */
+ 
+-#define ACPI_ROUND_DOWN_TO_32BIT(a)         ACPI_ROUND_DOWN(a,4)
+-#define ACPI_ROUND_DOWN_TO_64BIT(a)         ACPI_ROUND_DOWN(a,8)
+-#define ACPI_ROUND_DOWN_TO_NATIVE_WORD(a)   ACPI_ROUND_DOWN(a,sizeof(acpi_size))
++#define ACPI_ROUND_DOWN_TO_32BIT(a)         ACPI_ROUND_DOWN(a, 4)
++#define ACPI_ROUND_DOWN_TO_64BIT(a)         ACPI_ROUND_DOWN(a, 8)
++#define ACPI_ROUND_DOWN_TO_NATIVE_WORD(a)   ACPI_ROUND_DOWN(a, sizeof(acpi_size))
+ 
+-#define ACPI_ROUND_UP_TO_32BIT(a)           ACPI_ROUND_UP(a,4)
+-#define ACPI_ROUND_UP_TO_64BIT(a)           ACPI_ROUND_UP(a,8)
+-#define ACPI_ROUND_UP_TO_NATIVE_WORD(a)     ACPI_ROUND_UP(a,sizeof(acpi_size))
++#define ACPI_ROUND_UP_TO_32BIT(a)           ACPI_ROUND_UP(a, 4)
++#define ACPI_ROUND_UP_TO_64BIT(a)           ACPI_ROUND_UP(a, 8)
++#define ACPI_ROUND_UP_TO_NATIVE_WORD(a)     ACPI_ROUND_UP(a, sizeof(acpi_size))
+ 
+ #define ACPI_ROUND_BITS_UP_TO_BYTES(a)      ACPI_DIV_8((a) + 7)
+ #define ACPI_ROUND_BITS_DOWN_TO_BYTES(a)    ACPI_DIV_8((a))
+@@ -320,9 +312,9 @@ struct acpi_integer_overlay {
+ 
+ /* Generic (non-power-of-two) rounding */
+ 
+-#define ACPI_ROUND_UP_TO(value,boundary)    (((value) + ((boundary)-1)) / (boundary))
++#define ACPI_ROUND_UP_TO(value, boundary)   (((value) + ((boundary)-1)) / (boundary))
+ 
+-#define ACPI_IS_MISALIGNED(value)	    (((acpi_size)value) & (sizeof(acpi_size)-1))
++#define ACPI_IS_MISALIGNED(value)	    (((acpi_size) value) & (sizeof(acpi_size)-1))
+ 
+ /*
+  * Bitmask creation
+@@ -333,8 +325,6 @@ struct acpi_integer_overlay {
+ #define ACPI_MASK_BITS_ABOVE(position)      (~((ACPI_INTEGER_MAX) << ((u32) (position))))
+ #define ACPI_MASK_BITS_BELOW(position)      ((ACPI_INTEGER_MAX) << ((u32) (position)))
+ 
+-#define ACPI_IS_OCTAL_DIGIT(d)              (((char)(d) >= '0') && ((char)(d) <= '7'))
+-
+ /* Bitfields within ACPI registers */
+ 
+ #define ACPI_REGISTER_PREPARE_BITS(val, pos, mask)      ((val << pos) & mask)
+@@ -342,39 +332,29 @@ struct acpi_integer_overlay {
+ 
+ #define ACPI_INSERT_BITS(target, mask, source)          target = ((target & (~(mask))) | (source & mask))
+ 
+-/* Generate a UUID */
+-
+-#define ACPI_INIT_UUID(a,b,c,d0,d1,d2,d3,d4,d5,d6,d7) \
+-	(a) & 0xFF, ((a) >> 8) & 0xFF, ((a) >> 16) & 0xFF, ((a) >> 24) & 0xFF, \
+-	(b) & 0xFF, ((b) >> 8) & 0xFF, \
+-	(c) & 0xFF, ((c) >> 8) & 0xFF, \
+-	(d0), (d1), (d2), (d3), (d4), (d5), (d6), (d7)
+-
+ /*
+- * An struct acpi_namespace_node * can appear in some contexts,
+- * where a pointer to an union acpi_operand_object    can also
+- * appear.  This macro is used to distinguish them.
++ * An struct acpi_namespace_node can appear in some contexts
++ * where a pointer to an union acpi_operand_object can also
++ * appear. This macro is used to distinguish them.
   *
-- * returns 1 if write is successful, 0 else. 
-+ * returns 1 if write is successful, 0 else.
+  * The "Descriptor" field is the first field in both structures.
   */
- static int write_acpi_int(acpi_handle handle, const char *method, int val,
- 			  struct acpi_buffer *output)
- {
--	struct acpi_object_list params;	//list of input parameters (an int here)
--	union acpi_object in_obj;	//the only param we use
-+	struct acpi_object_list params;	/* list of input parameters (int) */
-+	union acpi_object in_obj;	/* the only param we use */
- 	acpi_status status;
+ #define ACPI_GET_DESCRIPTOR_TYPE(d)     (((union acpi_descriptor *)(void *)(d))->common.descriptor_type)
+-#define ACPI_SET_DESCRIPTOR_TYPE(d,t)   (((union acpi_descriptor *)(void *)(d))->common.descriptor_type = t)
++#define ACPI_SET_DESCRIPTOR_TYPE(d, t)  (((union acpi_descriptor *)(void *)(d))->common.descriptor_type = t)
  
- 	params.count = 1;
-@@ -507,18 +507,18 @@ proc_read_info(char *page, char **start, off_t off, int count, int *eof,
- {
- 	int len = 0;
- 	int temp;
--	char buf[16];		//enough for all info
-+	char buf[16];		/* enough for all info */
- 	/*
--	 * We use the easy way, we don't care of off and count, so we don't set eof
--	 * to 1
-+	 * We use the easy way, we don't care of off and count,
-+	 * so we don't set eof to 1
- 	 */
+ /* Macro to test the object type */
  
- 	len += sprintf(page, ACPI_HOTK_NAME " " ASUS_ACPI_VERSION "\n");
- 	len += sprintf(page + len, "Model reference    : %s\n",
- 		       hotk->methods->name);
--	/* 
--	 * The SFUN method probably allows the original driver to get the list 
--	 * of features supported by a given model. For now, 0x0100 or 0x0800 
-+	/*
-+	 * The SFUN method probably allows the original driver to get the list
-+	 * of features supported by a given model. For now, 0x0100 or 0x0800
- 	 * bit signifies that the laptop is equipped with a Wi-Fi MiniPCI card.
- 	 * The significance of others is yet to be found.
- 	 */
-@@ -528,7 +528,7 @@ proc_read_info(char *page, char **start, off_t off, int count, int *eof,
- 	/*
- 	 * Another value for userspace: the ASYM method returns 0x02 for
- 	 * battery low and 0x04 for battery critical, its readings tend to be
--	 * more accurate than those provided by _BST. 
-+	 * more accurate than those provided by _BST.
- 	 * Note: since not all the laptops provide this method, errors are
- 	 * silently ignored.
- 	 */
-@@ -579,7 +579,7 @@ static int read_led(const char *ledname, int ledmask)
- 	return (hotk->status & ledmask) ? 1 : 0;
- }
+ #define ACPI_GET_OBJECT_TYPE(d)         (((union acpi_operand_object *)(void *)(d))->common.type)
  
--static int parse_arg(const char __user * buf, unsigned long count, int *val)
-+static int parse_arg(const char __user *buf, unsigned long count, int *val)
- {
- 	char s[32];
- 	if (!count)
-@@ -596,7 +596,7 @@ static int parse_arg(const char __user * buf, unsigned long count, int *val)
+-/* Macro to check the table flags for SINGLE or MULTIPLE tables are allowed */
+-
+-#define ACPI_IS_SINGLE_TABLE(x)         (((x) & 0x01) == ACPI_TABLE_SINGLE ? 1 : 0)
+-
+ /*
+  * Macros for the master AML opcode table
+  */
+-#if defined(ACPI_DISASSEMBLER) || defined (ACPI_DEBUG_OUTPUT)
+-#define ACPI_OP(name,Pargs,Iargs,obj_type,class,type,flags)    {name,(u32)(Pargs),(u32)(Iargs),(u32)(flags),obj_type,class,type}
++#if defined (ACPI_DISASSEMBLER) || defined (ACPI_DEBUG_OUTPUT)
++#define ACPI_OP(name, Pargs, Iargs, obj_type, class, type, flags) \
++	{name, (u32)(Pargs), (u32)(Iargs), (u32)(flags), obj_type, class, type}
+ #else
+-#define ACPI_OP(name,Pargs,Iargs,obj_type,class,type,flags)    {(u32)(Pargs),(u32)(Iargs),(u32)(flags),obj_type,class,type}
++#define ACPI_OP(name, Pargs, Iargs, obj_type, class, type, flags) \
++	{(u32)(Pargs), (u32)(Iargs), (u32)(flags), obj_type, class, type}
+ #endif
  
- /* FIXME: kill extraneous args so it can be called independently */
- static int
--write_led(const char __user * buffer, unsigned long count,
-+write_led(const char __user *buffer, unsigned long count,
- 	  char *ledname, int ledmask, int invert)
- {
- 	int rv, value;
-@@ -631,7 +631,7 @@ proc_read_mled(char *page, char **start, off_t off, int count, int *eof,
- }
+ #ifdef ACPI_DISASSEMBLER
+@@ -392,18 +372,18 @@ struct acpi_integer_overlay {
+ #define ARG_6(x)                        ((u32)(x) << (5 * ARG_TYPE_WIDTH))
  
- static int
--proc_write_mled(struct file *file, const char __user * buffer,
-+proc_write_mled(struct file *file, const char __user *buffer,
- 		unsigned long count, void *data)
- {
- 	return write_led(buffer, count, hotk->methods->mt_mled, MLED_ON, 1);
-@@ -648,7 +648,7 @@ proc_read_ledd(char *page, char **start, off_t off, int count, int *eof,
- }
+ #define ARGI_LIST1(a)                   (ARG_1(a))
+-#define ARGI_LIST2(a,b)                 (ARG_1(b)|ARG_2(a))
+-#define ARGI_LIST3(a,b,c)               (ARG_1(c)|ARG_2(b)|ARG_3(a))
+-#define ARGI_LIST4(a,b,c,d)             (ARG_1(d)|ARG_2(c)|ARG_3(b)|ARG_4(a))
+-#define ARGI_LIST5(a,b,c,d,e)           (ARG_1(e)|ARG_2(d)|ARG_3(c)|ARG_4(b)|ARG_5(a))
+-#define ARGI_LIST6(a,b,c,d,e,f)         (ARG_1(f)|ARG_2(e)|ARG_3(d)|ARG_4(c)|ARG_5(b)|ARG_6(a))
++#define ARGI_LIST2(a, b)                (ARG_1(b)|ARG_2(a))
++#define ARGI_LIST3(a, b, c)             (ARG_1(c)|ARG_2(b)|ARG_3(a))
++#define ARGI_LIST4(a, b, c, d)          (ARG_1(d)|ARG_2(c)|ARG_3(b)|ARG_4(a))
++#define ARGI_LIST5(a, b, c, d, e)       (ARG_1(e)|ARG_2(d)|ARG_3(c)|ARG_4(b)|ARG_5(a))
++#define ARGI_LIST6(a, b, c, d, e, f)    (ARG_1(f)|ARG_2(e)|ARG_3(d)|ARG_4(c)|ARG_5(b)|ARG_6(a))
  
- static int
--proc_write_ledd(struct file *file, const char __user * buffer,
-+proc_write_ledd(struct file *file, const char __user *buffer,
- 		unsigned long count, void *data)
- {
- 	int rv, value;
-@@ -677,7 +677,7 @@ proc_read_wled(char *page, char **start, off_t off, int count, int *eof,
- }
+ #define ARGP_LIST1(a)                   (ARG_1(a))
+-#define ARGP_LIST2(a,b)                 (ARG_1(a)|ARG_2(b))
+-#define ARGP_LIST3(a,b,c)               (ARG_1(a)|ARG_2(b)|ARG_3(c))
+-#define ARGP_LIST4(a,b,c,d)             (ARG_1(a)|ARG_2(b)|ARG_3(c)|ARG_4(d))
+-#define ARGP_LIST5(a,b,c,d,e)           (ARG_1(a)|ARG_2(b)|ARG_3(c)|ARG_4(d)|ARG_5(e))
+-#define ARGP_LIST6(a,b,c,d,e,f)         (ARG_1(a)|ARG_2(b)|ARG_3(c)|ARG_4(d)|ARG_5(e)|ARG_6(f))
++#define ARGP_LIST2(a, b)                (ARG_1(a)|ARG_2(b))
++#define ARGP_LIST3(a, b, c)             (ARG_1(a)|ARG_2(b)|ARG_3(c))
++#define ARGP_LIST4(a, b, c, d)          (ARG_1(a)|ARG_2(b)|ARG_3(c)|ARG_4(d))
++#define ARGP_LIST5(a, b, c, d, e)       (ARG_1(a)|ARG_2(b)|ARG_3(c)|ARG_4(d)|ARG_5(e))
++#define ARGP_LIST6(a, b, c, d, e, f)    (ARG_1(a)|ARG_2(b)|ARG_3(c)|ARG_4(d)|ARG_5(e)|ARG_6(f))
  
- static int
--proc_write_wled(struct file *file, const char __user * buffer,
-+proc_write_wled(struct file *file, const char __user *buffer,
- 		unsigned long count, void *data)
- {
- 	return write_led(buffer, count, hotk->methods->mt_wled, WLED_ON, 0);
-@@ -694,10 +694,10 @@ proc_read_bluetooth(char *page, char **start, off_t off, int count, int *eof,
- }
+ #define GET_CURRENT_ARG_TYPE(list)      (list & ((u32) 0x1F))
+ #define INCREMENT_ARG_LIST(list)        (list >>= ((u32) ARG_TYPE_WIDTH))
+@@ -434,8 +414,8 @@ struct acpi_integer_overlay {
+ #define ACPI_WARNING(plist)             acpi_ut_warning plist
+ #define ACPI_EXCEPTION(plist)           acpi_ut_exception plist
+ #define ACPI_ERROR(plist)               acpi_ut_error plist
+-#define ACPI_ERROR_NAMESPACE(s,e)       acpi_ns_report_error (AE_INFO, s, e);
+-#define ACPI_ERROR_METHOD(s,n,p,e)      acpi_ns_report_method_error (AE_INFO, s, n, p, e);
++#define ACPI_ERROR_NAMESPACE(s, e)      acpi_ns_report_error (AE_INFO, s, e);
++#define ACPI_ERROR_METHOD(s, n, p, e)   acpi_ns_report_method_error (AE_INFO, s, n, p, e);
  
- static int
--proc_write_bluetooth(struct file *file, const char __user * buffer,
-+proc_write_bluetooth(struct file *file, const char __user *buffer,
- 		     unsigned long count, void *data)
- {
--	/* Note: mt_bt_switch controls both internal Bluetooth adapter's 
-+	/* Note: mt_bt_switch controls both internal Bluetooth adapter's
- 	   presence and its LED */
- 	return write_led(buffer, count, hotk->methods->mt_bt_switch, BT_ON, 0);
- }
-@@ -714,7 +714,7 @@ proc_read_tled(char *page, char **start, off_t off, int count, int *eof,
- }
+ #else
  
- static int
--proc_write_tled(struct file *file, const char __user * buffer,
-+proc_write_tled(struct file *file, const char __user *buffer,
- 		unsigned long count, void *data)
- {
- 	return write_led(buffer, count, hotk->methods->mt_tled, TLED_ON, 0);
-@@ -734,7 +734,7 @@ static int get_lcd_state(void)
- 
- 		input.count = 2;
- 		input.pointer = mt_params;
--		/* Note: the following values are partly guessed up, but 
-+		/* Note: the following values are partly guessed up, but
- 		   otherwise they seem to work */
- 		mt_params[0].type = ACPI_TYPE_INTEGER;
- 		mt_params[0].integer.value = 0x02;
-@@ -796,12 +796,13 @@ static int set_lcd_state(int value)
- 			    acpi_evaluate_object(NULL,
- 						 hotk->methods->mt_lcd_switch,
- 						 NULL, NULL);
--		} else {	/* L3H and the like have to be handled differently */
-+		} else {
-+			/* L3H and the like must be handled differently */
- 			if (!write_acpi_int
- 			    (hotk->handle, hotk->methods->mt_lcd_switch, 0x07,
- 			     NULL))
- 				status = AE_ERROR;
--			/* L3H's AML executes EHK (0x07) upon Fn+F7 keypress, 
-+			/* L3H's AML executes EHK (0x07) upon Fn+F7 keypress,
- 			   the exact behaviour is simulated here */
- 		}
- 		if (ACPI_FAILURE(status))
-@@ -819,7 +820,7 @@ proc_read_lcd(char *page, char **start, off_t off, int count, int *eof,
- }
- 
- static int
--proc_write_lcd(struct file *file, const char __user * buffer,
-+proc_write_lcd(struct file *file, const char __user *buffer,
- 	       unsigned long count, void *data)
- {
- 	int rv, value;
-@@ -897,7 +898,7 @@ proc_read_brn(char *page, char **start, off_t off, int count, int *eof,
- }
- 
- static int
--proc_write_brn(struct file *file, const char __user * buffer,
-+proc_write_brn(struct file *file, const char __user *buffer,
- 	       unsigned long count, void *data)
- {
- 	int rv, value;
-@@ -921,7 +922,7 @@ static void set_display(int value)
- }
+@@ -445,8 +425,8 @@ struct acpi_integer_overlay {
+ #define ACPI_WARNING(plist)
+ #define ACPI_EXCEPTION(plist)
+ #define ACPI_ERROR(plist)
+-#define ACPI_ERROR_NAMESPACE(s,e)
+-#define ACPI_ERROR_METHOD(s,n,p,e)
++#define ACPI_ERROR_NAMESPACE(s, e)
++#define ACPI_ERROR_METHOD(s, n, p, e)
+ #endif
  
  /*
-- * Now, *this* one could be more user-friendly, but so far, no-one has 
-+ * Now, *this* one could be more user-friendly, but so far, no-one has
-  * complained. The significance of bits is the same as in proc_write_disp()
-  */
- static int
-@@ -933,18 +934,18 @@ proc_read_disp(char *page, char **start, off_t off, int count, int *eof,
- 	if (!read_acpi_int(hotk->handle, hotk->methods->display_get, &value))
- 		printk(KERN_WARNING
- 		       "Asus ACPI: Error reading display status\n");
--	value &= 0x07;		/* needed for some models, shouldn't hurt others */
-+	value &= 0x07;	/* needed for some models, shouldn't hurt others */
- 	return sprintf(page, "%d\n", value);
- }
+@@ -489,18 +469,18 @@ struct acpi_integer_overlay {
+ 
+ #define ACPI_FUNCTION_TRACE(a)          ACPI_FUNCTION_NAME(a) \
+ 			  acpi_ut_trace(ACPI_DEBUG_PARAMETERS)
+-#define ACPI_FUNCTION_TRACE_PTR(a,b)    ACPI_FUNCTION_NAME(a) \
+-					   acpi_ut_trace_ptr(ACPI_DEBUG_PARAMETERS,(void *)b)
+-#define ACPI_FUNCTION_TRACE_U32(a,b)    ACPI_FUNCTION_NAME(a) \
+-							 acpi_ut_trace_u32(ACPI_DEBUG_PARAMETERS,(u32)b)
+-#define ACPI_FUNCTION_TRACE_STR(a,b)    ACPI_FUNCTION_NAME(a) \
+-									  acpi_ut_trace_str(ACPI_DEBUG_PARAMETERS,(char *)b)
++#define ACPI_FUNCTION_TRACE_PTR(a, b)   ACPI_FUNCTION_NAME(a) \
++					   acpi_ut_trace_ptr(ACPI_DEBUG_PARAMETERS, (void *)b)
++#define ACPI_FUNCTION_TRACE_U32(a, b)   ACPI_FUNCTION_NAME(a) \
++							 acpi_ut_trace_u32(ACPI_DEBUG_PARAMETERS, (u32)b)
++#define ACPI_FUNCTION_TRACE_STR(a, b)   ACPI_FUNCTION_NAME(a) \
++									  acpi_ut_trace_str(ACPI_DEBUG_PARAMETERS, (char *)b)
+ 
+ #define ACPI_FUNCTION_ENTRY()           acpi_ut_track_stack_ptr()
  
  /*
-- * Experimental support for display switching. As of now: 1 should activate 
-- * the LCD output, 2 should do for CRT, and 4 for TV-Out. Any combination 
-- * (bitwise) of these will suffice. I never actually tested 3 displays hooked up 
-- * simultaneously, so be warned. See the acpi4asus README for more info.
-+ * Experimental support for display switching. As of now: 1 should activate
-+ * the LCD output, 2 should do for CRT, and 4 for TV-Out. Any combination
-+ * (bitwise) of these will suffice. I never actually tested 3 displays hooked
-+ * up simultaneously, so be warned. See the acpi4asus README for more info.
+  * Function exit tracing.
+- * WARNING: These macros include a return statement.  This is usually considered
++ * WARNING: These macros include a return statement. This is usually considered
+  * bad form, but having a separate exit macro is very ugly and difficult to maintain.
+  * One of the FUNCTION_TRACE macros above must be used in conjunction with these macros
+  * so that "_AcpiFunctionName" is defined.
+@@ -596,13 +576,13 @@ struct acpi_integer_overlay {
+ 
+ /* Stack and buffer dumping */
+ 
+-#define ACPI_DUMP_STACK_ENTRY(a)        acpi_ex_dump_operand((a),0)
+-#define ACPI_DUMP_OPERANDS(a,b,c)	acpi_ex_dump_operands(a,b,c)
++#define ACPI_DUMP_STACK_ENTRY(a)        acpi_ex_dump_operand((a), 0)
++#define ACPI_DUMP_OPERANDS(a, b, c)	acpi_ex_dump_operands(a, b, c)
+ 
+-#define ACPI_DUMP_ENTRY(a,b)            acpi_ns_dump_entry (a,b)
+-#define ACPI_DUMP_PATHNAME(a,b,c,d)     acpi_ns_dump_pathname(a,b,c,d)
++#define ACPI_DUMP_ENTRY(a, b)           acpi_ns_dump_entry (a, b)
++#define ACPI_DUMP_PATHNAME(a, b, c, d)  acpi_ns_dump_pathname(a, b, c, d)
+ #define ACPI_DUMP_RESOURCE_LIST(a)      acpi_rs_dump_resource_list(a)
+-#define ACPI_DUMP_BUFFER(a,b)           acpi_ut_dump_buffer((u8 *)a,b,DB_BYTE_DISPLAY,_COMPONENT)
++#define ACPI_DUMP_BUFFER(a, b)          acpi_ut_dump_buffer((u8 *) a, b, DB_BYTE_DISPLAY, _COMPONENT)
+ 
+ /*
+  * Master debug print macros
+@@ -625,20 +605,20 @@ struct acpi_integer_overlay {
+ #define ACPI_DEBUG_ONLY_MEMBERS(a)	do { } while(0)
+ #define ACPI_FUNCTION_NAME(a)		do { } while(0)
+ #define ACPI_FUNCTION_TRACE(a)		do { } while(0)
+-#define ACPI_FUNCTION_TRACE_PTR(a,b)	do { } while(0)
+-#define ACPI_FUNCTION_TRACE_U32(a,b)	do { } while(0)
+-#define ACPI_FUNCTION_TRACE_STR(a,b)	do { } while(0)
++#define ACPI_FUNCTION_TRACE_PTR(a, b)	do { } while(0)
++#define ACPI_FUNCTION_TRACE_U32(a, b)	do { } while(0)
++#define ACPI_FUNCTION_TRACE_STR(a, b)	do { } while(0)
+ #define ACPI_FUNCTION_EXIT		do { } while(0)
+ #define ACPI_FUNCTION_STATUS_EXIT(s)	do { } while(0)
+ #define ACPI_FUNCTION_VALUE_EXIT(s)	do { } while(0)
+ #define ACPI_FUNCTION_ENTRY()		do { } while(0)
+ #define ACPI_DUMP_STACK_ENTRY(a)	do { } while(0)
+-#define ACPI_DUMP_OPERANDS(a,b,c)      do { } while(0)
+-#define ACPI_DUMP_ENTRY(a,b)		do { } while(0)
+-#define ACPI_DUMP_TABLES(a,b)		do { } while(0)
+-#define ACPI_DUMP_PATHNAME(a,b,c,d)	do { } while(0)
++#define ACPI_DUMP_OPERANDS(a, b, c)     do { } while(0)
++#define ACPI_DUMP_ENTRY(a, b)		do { } while(0)
++#define ACPI_DUMP_TABLES(a, b)		do { } while(0)
++#define ACPI_DUMP_PATHNAME(a, b, c, d)	do { } while(0)
+ #define ACPI_DUMP_RESOURCE_LIST(a)	do { } while(0)
+-#define ACPI_DUMP_BUFFER(a,b)		do { } while(0)
++#define ACPI_DUMP_BUFFER(a, b)		do { } while(0)
+ #define ACPI_DEBUG_PRINT(pl)		do { } while(0)
+ #define ACPI_DEBUG_PRINT_RAW(pl)	do { } while(0)
+ 
+@@ -677,15 +657,17 @@ struct acpi_integer_overlay {
+ /*
+  * Memory allocation tracking (DEBUG ONLY)
   */
- static int
--proc_write_disp(struct file *file, const char __user * buffer,
-+proc_write_disp(struct file *file, const char __user *buffer,
- 		unsigned long count, void *data)
- {
- 	int rv, value;
-@@ -957,12 +958,12 @@ proc_write_disp(struct file *file, const char __user * buffer,
++#define ACPI_MEM_PARAMETERS         _COMPONENT, _acpi_module_name, __LINE__
++
+ #ifndef ACPI_DBG_TRACK_ALLOCATIONS
  
- typedef int (proc_readfunc) (char *page, char **start, off_t off, int count,
- 			     int *eof, void *data);
--typedef int (proc_writefunc) (struct file * file, const char __user * buffer,
-+typedef int (proc_writefunc) (struct file *file, const char __user *buffer,
- 			      unsigned long count, void *data);
+ /* Memory allocation */
  
- static int
--asus_proc_add(char *name, proc_writefunc * writefunc,
--		     proc_readfunc * readfunc, mode_t mode,
-+asus_proc_add(char *name, proc_writefunc *writefunc,
-+		     proc_readfunc *readfunc, mode_t mode,
- 		     struct acpi_device *device)
- {
- 	struct proc_dir_entry *proc =
-@@ -1040,9 +1041,9 @@ static int asus_hotk_add_fs(struct acpi_device *device)
- 			      &proc_read_bluetooth, mode, device);
- 	}
+ #ifndef ACPI_ALLOCATE
+-#define ACPI_ALLOCATE(a)            acpi_ut_allocate((acpi_size)(a),_COMPONENT,_acpi_module_name,__LINE__)
++#define ACPI_ALLOCATE(a)            acpi_ut_allocate((acpi_size)(a), ACPI_MEM_PARAMETERS)
+ #endif
+ #ifndef ACPI_ALLOCATE_ZEROED
+-#define ACPI_ALLOCATE_ZEROED(a)     acpi_ut_allocate_zeroed((acpi_size)(a), _COMPONENT,_acpi_module_name,__LINE__)
++#define ACPI_ALLOCATE_ZEROED(a)     acpi_ut_allocate_zeroed((acpi_size)(a), ACPI_MEM_PARAMETERS)
+ #endif
+ #ifndef ACPI_FREE
+ #define ACPI_FREE(a)                acpio_os_free(a)
+@@ -696,9 +678,9 @@ struct acpi_integer_overlay {
  
--	/* 
--	 * We need both read node and write method as LCD switch is also accessible
--	 * from keyboard 
-+	/*
-+	 * We need both read node and write method as LCD switch is also
-+	 * accessible from the keyboard
- 	 */
- 	if (hotk->methods->mt_lcd_switch && hotk->methods->lcd_status) {
- 		asus_proc_add(PROC_LCD, &proc_write_lcd, &proc_read_lcd, mode,
-@@ -1096,11 +1097,10 @@ static void asus_hotk_notify(acpi_handle handle, u32 event, void *data)
- 	if (!hotk)
- 		return;
+ /* Memory allocation */
  
--	if ((event & ~((u32) BR_UP)) < 16) {
-+	if ((event & ~((u32) BR_UP)) < 16)
- 		hotk->brightness = (event & ~((u32) BR_UP));
--	} else if ((event & ~((u32) BR_DOWN)) < 16) {
-+	else if ((event & ~((u32) BR_DOWN)) < 16)
- 		hotk->brightness = (event & ~((u32) BR_DOWN));
--	}
+-#define ACPI_ALLOCATE(a)            acpi_ut_allocate_and_track((acpi_size)(a),_COMPONENT,_acpi_module_name,__LINE__)
+-#define ACPI_ALLOCATE_ZEROED(a)     acpi_ut_allocate_zeroed_and_track((acpi_size)(a), _COMPONENT,_acpi_module_name,__LINE__)
+-#define ACPI_FREE(a)                acpi_ut_free_and_track(a,_COMPONENT,_acpi_module_name,__LINE__)
++#define ACPI_ALLOCATE(a)            acpi_ut_allocate_and_track((acpi_size)(a), ACPI_MEM_PARAMETERS)
++#define ACPI_ALLOCATE_ZEROED(a)     acpi_ut_allocate_zeroed_and_track((acpi_size)(a), ACPI_MEM_PARAMETERS)
++#define ACPI_FREE(a)                acpi_ut_free_and_track(a, ACPI_MEM_PARAMETERS)
+ #define ACPI_MEM_TRACKING(a)        a
  
- 	acpi_bus_generate_proc_event(hotk->device, event,
- 				hotk->event_count[event % 128]++);
-@@ -1186,8 +1186,8 @@ static int asus_hotk_get_info(void)
- 	acpi_status status;
- 
- 	/*
--	 * Get DSDT headers early enough to allow for differentiating between 
--	 * models, but late enough to allow acpi_bus_register_driver() to fail 
-+	 * Get DSDT headers early enough to allow for differentiating between
-+	 * models, but late enough to allow acpi_bus_register_driver() to fail
- 	 * before doing anything ACPI-specific. Should we encounter a machine,
- 	 * which needs special handling (i.e. its hotkey device has a different
- 	 * HID), this bit will be moved. A global variable asus_info contains
-@@ -1212,8 +1212,8 @@ static int asus_hotk_get_info(void)
- 
- 	/*
- 	 * Try to match the object returned by INIT to the specific model.
--	 * Handle every possible object (or the lack of thereof) the DSDT 
--	 * writers might throw at us. When in trouble, we pass NULL to 
-+	 * Handle every possible object (or the lack of thereof) the DSDT
-+	 * writers might throw at us. When in trouble, we pass NULL to
- 	 * asus_model_match() and try something completely different.
- 	 */
- 	if (buffer.pointer) {
-@@ -1254,7 +1254,7 @@ static int asus_hotk_get_info(void)
- 	/* Sort of per-model blacklist */
- 	if (strncmp(string, "L2B", 3) == 0)
- 		hotk->methods->lcd_status = NULL;
--	/* L2B is similar enough to L3C to use its settings, with this only 
-+	/* L2B is similar enough to L3C to use its settings, with this only
- 	   exception */
- 	else if (strncmp(string, "A3G", 3) == 0)
- 		hotk->methods->lcd_status = "\\BLFG";
-@@ -1366,10 +1366,9 @@ static int asus_hotk_add(struct acpi_device *device)
- 	/* LED display is off by default */
- 	hotk->ledd_status = 0xFFF;
- 
--      end:
--	if (result) {
-+end:
-+	if (result)
- 		kfree(hotk);
--	}
- 
- 	return result;
- }
-@@ -1394,8 +1393,8 @@ static int asus_hotk_remove(struct acpi_device *device, int type)
- }
- 
- static struct backlight_ops asus_backlight_data = {
--        .get_brightness = read_brightness,
--        .update_status  = set_brightness_status,
-+	.get_brightness = read_brightness,
-+	.update_status  = set_brightness_status,
- };
- 
- static void asus_acpi_exit(void)
-@@ -1442,15 +1441,15 @@ static int __init asus_acpi_init(void)
- 		return -ENODEV;
- 	}
- 
--	asus_backlight_device = backlight_device_register("asus",NULL,NULL,
-+	asus_backlight_device = backlight_device_register("asus", NULL, NULL,
- 							  &asus_backlight_data);
--        if (IS_ERR(asus_backlight_device)) {
-+	if (IS_ERR(asus_backlight_device)) {
- 		printk(KERN_ERR "Could not register asus backlight device\n");
- 		asus_backlight_device = NULL;
- 		asus_acpi_exit();
- 		return -ENODEV;
- 	}
--        asus_backlight_device->props.max_brightness = 15;
-+	asus_backlight_device->props.max_brightness = 15;
- 
- 	return 0;
- }
+ #endif				/* ACPI_DBG_TRACK_ALLOCATIONS */
 -- 
 1.5.5.1
 
