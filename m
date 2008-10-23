@@ -1,64 +1,69 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 047/122] ACPI: Clear WAK_STS on resume
-Date: Thu, 23 Oct 2008 02:38:21 -0400
-Message-ID: <a68823ee5285e65b51ceb96f8b13a5b4f99a6888.1224743917.git.len.brown@intel.com>
+Subject: [PATCH 052/122] ACPI: EC: Check for IBF=0 periodically if not in GPE
+ mode
+Date: Thu, 23 Oct 2008 02:38:26 -0400
+Message-ID: <c0ff17720ec5f42205b3d2ca03a18da0a8272976.1224743917.git.len.brown@intel.com>
 References: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:46373 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753907AbYJWGkG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:40:06 -0400
+Received: from vms173001pub.verizon.net ([206.46.173.1]:58094 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755181AbYJWGkK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:40:10 -0400
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173005.mailsrvcs.net
+ by vms173001.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K9600KFGIINS7O2@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:40:00 -0500 (CDT)
+ with ESMTPA id <0K9600KA0IIOS8A2@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:40:01 -0500 (CDT)
 In-reply-to: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 In-reply-to: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
 References: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Matthew Garrett <mjg@redhat.com>, Andi Kleen <ak@linux.intel.com>, Len Brown <len.brown@intel.com>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>
 
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
 
-The leading other brand OS appears to clear the WAK_STS flag on resume.
-When rebooted, certain BIOSes assume that the system is actually
-resuming if it's still set and so fail to reboot correctly. Make sure
-that it's cleared at resume time.
-
-Comment clarified as suggested by Bob Moore
-
-http://bugzilla.kernel.org/show_bug.cgi?id=11634
-
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Tested-by: Christian Borntraeger <borntraeger@de.ibm.com>
-Tested-by: Romano Giannetti <romano.giannetti@gmail.com>
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+Tested-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/hardware/hwsleep.c |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
+ drivers/acpi/ec.c |   15 +++++++++++++--
+ 1 files changed, 13 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/hardware/hwsleep.c b/drivers/acpi/hardware/hwsleep.c
-index dba3cfb..130a44b 100644
---- a/drivers/acpi/hardware/hwsleep.c
-+++ b/drivers/acpi/hardware/hwsleep.c
-@@ -627,6 +627,13 @@ acpi_status acpi_leave_sleep_state(u8 sleep_state)
- 	}
- 	/* TBD: _WAK "sometimes" returns stuff - do we want to look at it? */
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index 453ba1e..444cd9e 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -298,6 +298,18 @@ static int ec_check_ibf0(struct acpi_ec *ec)
+ 	return (status & ACPI_EC_FLAG_IBF) == 0;
+ }
  
-+	/*
-+	 * Some BIOSes assume that WAK_STS will be cleared on resume and use
-+	 * it to determine whether the system is rebooting or resuming. Clear
-+	 * it for compatibility.
-+	 */
-+	acpi_set_register(ACPI_BITREG_WAKE_STATUS, 1);
++static int ec_wait_ibf0(struct acpi_ec *ec)
++{
++	unsigned long delay = jiffies + msecs_to_jiffies(ACPI_EC_DELAY);
++	/* interrupt wait manually if GPE mode is not active */
++	unsigned long timeout = test_bit(EC_FLAGS_GPE_MODE, &ec->flags) ?
++		msecs_to_jiffies(ACPI_EC_DELAY) : msecs_to_jiffies(1);
++	while (time_before(jiffies, delay))
++		if (wait_event_timeout(ec->wait, ec_check_ibf0(ec), timeout))
++			return 0;
++	return -ETIME;
++}
 +
- 	acpi_gbl_system_awake_and_running = TRUE;
- 
- 	/* Enable power button */
+ static int acpi_ec_transaction(struct acpi_ec *ec, struct transaction *t,
+ 			       int force_poll)
+ {
+@@ -315,8 +327,7 @@ static int acpi_ec_transaction(struct acpi_ec *ec, struct transaction *t,
+ 			goto unlock;
+ 		}
+ 	}
+-	if (!wait_event_timeout(ec->wait, ec_check_ibf0(ec),
+-				msecs_to_jiffies(ACPI_EC_DELAY))) {
++	if (ec_wait_ibf0(ec)) {
+ 		pr_err(PREFIX "input buffer is not empty, "
+ 				"aborting transaction\n");
+ 		status = -ETIME;
 -- 
 1.5.5.1
 
