@@ -1,121 +1,138 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 084/122] ACPICA: Allow same ACPI table to be loaded/unloaded
- more than once
-Date: Thu, 23 Oct 2008 02:38:58 -0400
-Message-ID: <e56f561736e340a4e923b0db65f65dabf5d94823.1224743917.git.len.brown@intel.com>
+Subject: [PATCH 105/122] ACPICA: Update comments - no functional changes
+Date: Thu, 23 Oct 2008 02:39:19 -0400
+Message-ID: <2425a0967f29b196fad5d4f726c9502679284656.1224743917.git.len.brown@intel.com>
 References: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms044pub.verizon.net ([206.46.252.44]:38944 "EHLO
 	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755468AbYJWGoV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:44:21 -0400
+	with ESMTP id S1755454AbYJWGoN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:44:13 -0400
 Received: from localhost.localdomain ([96.237.168.40])
  by vms044.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
  3 2006)) with ESMTPA id <0K9600KZWIPH3KY1@vms044.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:44:14 -0500 (CDT)
+ linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:44:10 -0500 (CDT)
 In-reply-to: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 In-reply-to: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
 References: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Andi Kleen <ak@linux.intel.com>, Len Brown <len.brown@intel.com>
+Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
 
 From: Bob Moore <robert.moore@intel.com>
 
-Without this change, a table cannot be loaded again once it has
-been loaded/unloaded one time. The current mechanism does not
-unregister a table upon an unload. During a load, if the same
-table is found, this no longer returns an exception.
-
-http://www.acpica.org/bugzilla/show_bug.cgi?id=722
+Some formatting and spelling fixes.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lin Ming <ming.m.lin@intel.com>
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/tables/tbinstal.c |   49 ++++++++++++++++++++++++++++++++++-----
- 1 files changed, 42 insertions(+), 7 deletions(-)
+ drivers/acpi/executer/exconvrt.c |   21 +++++++++++----------
+ 1 files changed, 11 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/acpi/tables/tbinstal.c b/drivers/acpi/tables/tbinstal.c
-index b22185f..905dc38 100644
---- a/drivers/acpi/tables/tbinstal.c
-+++ b/drivers/acpi/tables/tbinstal.c
-@@ -145,6 +145,8 @@ acpi_tb_add_table(struct acpi_table_desc *table_desc, u32 *table_index)
- 			}
- 		}
- 
-+		/* Check for a table match on the entire table length */
-+
- 		length = ACPI_MIN(table_desc->length,
- 				  acpi_gbl_root_table_list.tables[i].length);
- 		if (ACPI_MEMCMP(table_desc->pointer,
-@@ -153,17 +155,49 @@ acpi_tb_add_table(struct acpi_table_desc *table_desc, u32 *table_index)
- 			continue;
- 		}
- 
--		/* Table is already registered */
--
-+		/*
-+		 * Note: the current mechanism does not unregister a table if it is
-+		 * dynamically unloaded. The related namespace entries are deleted,
-+		 * but the table remains in the root table list.
-+		 *
-+		 * The assumption here is that the number of different tables that
-+		 * will be loaded is actually small, and there is minimal overhead
-+		 * in just keeping the table in case it is needed again.
-+		 *
-+		 * If this assumption changes in the future (perhaps on large
-+		 * machines with many table load/unload operations), tables will
-+		 * need to be unregistered when they are unloaded, and slots in the
-+		 * root table list should be reused when empty.
-+		 */
-+
-+		/*
-+		 * Table is already registered.
-+		 * We can delete the table that was passed as a parameter.
-+		 */
- 		acpi_tb_delete_table(table_desc);
- 		*table_index = i;
--		status = AE_ALREADY_EXISTS;
--		goto release;
-+
-+		if (acpi_gbl_root_table_list.tables[i].
-+		    flags & ACPI_TABLE_IS_LOADED) {
-+
-+			/* Table is still loaded, this is an error */
-+
-+			status = AE_ALREADY_EXISTS;
-+			goto release;
-+		} else {
-+			/* Table was unloaded, allow it to be reloaded */
-+
-+			table_desc->pointer =
-+			    acpi_gbl_root_table_list.tables[i].pointer;
-+			table_desc->address =
-+			    acpi_gbl_root_table_list.tables[i].address;
-+			status = AE_OK;
-+			goto print_header;
-+		}
+diff --git a/drivers/acpi/executer/exconvrt.c b/drivers/acpi/executer/exconvrt.c
+index 261d975..890378e 100644
+--- a/drivers/acpi/executer/exconvrt.c
++++ b/drivers/acpi/executer/exconvrt.c
+@@ -57,7 +57,7 @@ acpi_ex_convert_to_ascii(acpi_integer integer,
+  *
+  * FUNCTION:    acpi_ex_convert_to_integer
+  *
+- * PARAMETERS:  obj_desc        - Object to be converted.  Must be an
++ * PARAMETERS:  obj_desc        - Object to be converted. Must be an
+  *                                Integer, Buffer, or String
+  *              result_desc     - Where the new Integer object is returned
+  *              Flags           - Used for string conversion
+@@ -103,7 +103,7 @@ acpi_ex_convert_to_integer(union acpi_operand_object *obj_desc,
  	}
  
--	/*
--	 * Add the table to the global table list
--	 */
-+	/* Add the table to the global root table list */
+ 	/*
+-	 * Convert the buffer/string to an integer.  Note that both buffers and
++	 * Convert the buffer/string to an integer. Note that both buffers and
+ 	 * strings are treated as raw data - we don't convert ascii to hex for
+ 	 * strings.
+ 	 *
+@@ -120,7 +120,7 @@ acpi_ex_convert_to_integer(union acpi_operand_object *obj_desc,
+ 
+ 		/*
+ 		 * Convert string to an integer - for most cases, the string must be
+-		 * hexadecimal as per the ACPI specification.  The only exception (as
++		 * hexadecimal as per the ACPI specification. The only exception (as
+ 		 * of ACPI 3.0) is that the to_integer() operator allows both decimal
+ 		 * and hexadecimal strings (hex prefixed with "0x").
+ 		 */
+@@ -159,6 +159,7 @@ acpi_ex_convert_to_integer(union acpi_operand_object *obj_desc,
+ 		break;
+ 
+ 	default:
 +
- 	status = acpi_tb_store_table(table_desc->address, table_desc->pointer,
- 				     table_desc->length, table_desc->flags,
- 				     table_index);
-@@ -171,6 +205,7 @@ acpi_tb_add_table(struct acpi_table_desc *table_desc, u32 *table_index)
- 		goto release;
+ 		/* No other types can get here */
+ 		break;
+ 	}
+@@ -185,7 +186,7 @@ acpi_ex_convert_to_integer(union acpi_operand_object *obj_desc,
+  *
+  * FUNCTION:    acpi_ex_convert_to_buffer
+  *
+- * PARAMETERS:  obj_desc        - Object to be converted.  Must be an
++ * PARAMETERS:  obj_desc        - Object to be converted. Must be an
+  *                                Integer, Buffer, or String
+  *              result_desc     - Where the new buffer object is returned
+  *
+@@ -365,7 +366,7 @@ acpi_ex_convert_to_ascii(acpi_integer integer,
  	}
  
-+      print_header:
- 	acpi_tb_print_table_header(table_desc->address, table_desc->pointer);
+ 	/*
+-	 * Since leading zeros are supressed, we must check for the case where
++	 * Since leading zeros are suppressed, we must check for the case where
+ 	 * the integer equals 0
+ 	 *
+ 	 * Finally, null terminate the string and return the length
+@@ -383,7 +384,7 @@ acpi_ex_convert_to_ascii(acpi_integer integer,
+  *
+  * FUNCTION:    acpi_ex_convert_to_string
+  *
+- * PARAMETERS:  obj_desc        - Object to be converted.  Must be an
++ * PARAMETERS:  obj_desc        - Object to be converted. Must be an
+  *                                Integer, Buffer, or String
+  *              result_desc     - Where the string object is returned
+  *              Type            - String flags (base and conversion type)
+@@ -472,7 +473,7 @@ acpi_ex_convert_to_string(union acpi_operand_object * obj_desc,
+ 			base = 10;
  
-       release:
+ 			/*
+-			 * Calculate the final string length.  Individual string values
++			 * Calculate the final string length. Individual string values
+ 			 * are variable length (include separator for each)
+ 			 */
+ 			for (i = 0; i < obj_desc->buffer.length; i++) {
+@@ -617,7 +618,7 @@ acpi_ex_convert_to_target_type(acpi_object_type destination_type,
+ 		case ACPI_TYPE_LOCAL_BANK_FIELD:
+ 		case ACPI_TYPE_LOCAL_INDEX_FIELD:
+ 			/*
+-			 * These types require an Integer operand.  We can convert
++			 * These types require an Integer operand. We can convert
+ 			 * a Buffer or a String to an Integer if necessary.
+ 			 */
+ 			status =
+@@ -627,7 +628,7 @@ acpi_ex_convert_to_target_type(acpi_object_type destination_type,
+ 
+ 		case ACPI_TYPE_STRING:
+ 			/*
+-			 * The operand must be a String.  We can convert an
++			 * The operand must be a String. We can convert an
+ 			 * Integer or Buffer if necessary
+ 			 */
+ 			status =
+@@ -637,7 +638,7 @@ acpi_ex_convert_to_target_type(acpi_object_type destination_type,
+ 
+ 		case ACPI_TYPE_BUFFER:
+ 			/*
+-			 * The operand must be a Buffer.  We can convert an
++			 * The operand must be a Buffer. We can convert an
+ 			 * Integer or String if necessary
+ 			 */
+ 			status =
 -- 
 1.5.5.1
 
