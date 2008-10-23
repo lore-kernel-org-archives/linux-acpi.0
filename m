@@ -1,49 +1,134 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 067/122] asus-laptop: Fix the led behavior with value > 1
-Date: Thu, 23 Oct 2008 02:38:41 -0400
-Message-ID: <e3deda9c87ac5eef2b5d18cd0b5511370979ca26.1224743917.git.len.brown@intel.com>
+Subject: [PATCH 049/122] x86: SB600: skip ACPI IRQ0 override if it is not
+ routed to INT2 of IOAPIC
+Date: Thu, 23 Oct 2008 02:38:23 -0400
+Message-ID: <26adcfbf00e0726b4469070aa2f530dcf963f484.1224743917.git.len.brown@intel.com>
 References: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:58094 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754393AbYJWGkU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:40:20 -0400
+Received: from vms173005pub.verizon.net ([206.46.173.5]:46373 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755240AbYJWGkL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:40:11 -0400
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173001.mailsrvcs.net
+ by vms173005.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K9600JX9IIVBGRA@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:40:07 -0500 (CDT)
+ with ESMTPA id <0K9600KYCIIORUC2@vms173005.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:40:01 -0500 (CDT)
 In-reply-to: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 In-reply-to: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
 References: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Corentin Chary <corentincj@iksaif.net>, Len Brown <len.brown@intel.com>
+Cc: Andreas Herrmann <andreas.herrmann3@amd.com>, Len Brown <len.brown@intel.com>
 
-From: Corentin Chary <corentincj@iksaif.net>
+From: Andreas Herrmann <andreas.herrmann3@amd.com>
 
-Fix http://bugzilla.kernel.org/show_bug.cgi?id=11613 .
+On some more HP laptops BIOS reports an IRQ0 override
+but the SB600 chipset is configured such that timer
+interrupts go to INT0 of IOAPIC.
 
-Signed-off-by: Corentin Chary <corentincj@iksaif.net>
+Check IRQ0 routing and if it is routed to INT0 of IOAPIC skip the
+timer override.
+
+http://bugzilla.kernel.org/show_bug.cgi?id=11715
+http://bugzilla.kernel.org/show_bug.cgi?id=11516
+
+Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/asus-laptop.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ arch/x86/kernel/early-quirks.c |   55 +++++++++++++++++++++++++++++++++++++--
+ 1 files changed, 52 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/misc/asus-laptop.c b/drivers/misc/asus-laptop.c
-index df82cda..57d81c7 100644
---- a/drivers/misc/asus-laptop.c
-+++ b/drivers/misc/asus-laptop.c
-@@ -351,7 +351,7 @@ static void write_status(acpi_handle handle, int out, int mask)
- 	static void object##_led_set(struct led_classdev *led_cdev,	\
- 				     enum led_brightness value)		\
- 	{								\
--		object##_led_wk = value;				\
-+		object##_led_wk = (value > 0) ? 1 : 0;			\
- 		queue_work(led_workqueue, &object##_led_work);		\
- 	}								\
- 	static void object##_led_update(struct work_struct *ignored)	\
+diff --git a/arch/x86/kernel/early-quirks.c b/arch/x86/kernel/early-quirks.c
+index 733c4f8..3ce029f 100644
+--- a/arch/x86/kernel/early-quirks.c
++++ b/arch/x86/kernel/early-quirks.c
+@@ -95,7 +95,8 @@ static void __init nvidia_bugs(int num, int slot, int func)
+ 
+ }
+ 
+-static u32 ati_ixp4x0_rev(int num, int slot, int func)
++#if defined(CONFIG_ACPI) && defined(CONFIG_X86_IO_APIC)
++static u32 __init ati_ixp4x0_rev(int num, int slot, int func)
+ {
+ 	u32 d;
+ 	u8  b;
+@@ -115,7 +116,6 @@ static u32 ati_ixp4x0_rev(int num, int slot, int func)
+ 
+ static void __init ati_bugs(int num, int slot, int func)
+ {
+-#if defined(CONFIG_ACPI) && defined (CONFIG_X86_IO_APIC)
+ 	u32 d;
+ 	u8  b;
+ 
+@@ -138,9 +138,56 @@ static void __init ati_bugs(int num, int slot, int func)
+ 		printk(KERN_INFO "If you got timer trouble "
+ 		       "try acpi_use_timer_override\n");
+ 	}
+-#endif
+ }
+ 
++static u32 __init ati_sbx00_rev(int num, int slot, int func)
++{
++	u32 old, d;
++
++	d = read_pci_config(num, slot, func, 0x70);
++	old = d;
++	d &= ~(1<<8);
++	write_pci_config(num, slot, func, 0x70, d);
++	d = read_pci_config(num, slot, func, 0x8);
++	d &= 0xff;
++	write_pci_config(num, slot, func, 0x70, old);
++
++	return d;
++}
++
++static void __init ati_bugs_contd(int num, int slot, int func)
++{
++	u32 d, rev;
++
++	if (acpi_use_timer_override)
++		return;
++
++	rev = ati_sbx00_rev(num, slot, func);
++	if (rev > 0x13)
++		return;
++
++	/* check for IRQ0 interrupt swap */
++	d = read_pci_config(num, slot, func, 0x64);
++	if (!(d & (1<<14)))
++		acpi_skip_timer_override = 1;
++
++	if (acpi_skip_timer_override) {
++		printk(KERN_INFO "SB600 revision 0x%x\n", rev);
++		printk(KERN_INFO "Ignoring ACPI timer override.\n");
++		printk(KERN_INFO "If you got timer trouble "
++		       "try acpi_use_timer_override\n");
++	}
++}
++#else
++static void __init ati_bugs(int num, int slot, int func)
++{
++}
++
++static void __init ati_bugs_contd(int num, int slot, int func)
++{
++}
++#endif
++
+ #ifdef CONFIG_DMAR
+ static void __init intel_g33_dmar(int num, int slot, int func)
+ {
+@@ -176,6 +223,8 @@ static struct chipset early_qrk[] __initdata = {
+ 	  PCI_CLASS_BRIDGE_HOST, PCI_ANY_ID, 0, fix_hypertransport_config },
+ 	{ PCI_VENDOR_ID_ATI, PCI_DEVICE_ID_ATI_IXP400_SMBUS,
+ 	  PCI_CLASS_SERIAL_SMBUS, PCI_ANY_ID, 0, ati_bugs },
++	{ PCI_VENDOR_ID_ATI, PCI_DEVICE_ID_ATI_SBX00_SMBUS,
++	  PCI_CLASS_SERIAL_SMBUS, PCI_ANY_ID, 0, ati_bugs_contd },
+ #ifdef CONFIG_DMAR
+ 	{ PCI_VENDOR_ID_INTEL, 0x29c0,
+ 	  PCI_CLASS_BRIDGE_HOST, PCI_ANY_ID, 0, intel_g33_dmar },
 -- 
 1.5.5.1
 
