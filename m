@@ -1,30 +1,21 @@
 From: "Huang, FrankR" <FrankR.Huang@amd.com>
 Subject: RE: [Devel] RE: Welcome to the "Devel" mailing list
-Date: Thu, 23 Oct 2008 10:00:44 +0800
-Message-ID: <DD1CC71B621B004FA76856E5129D6B1702126C5C@sbjgexmb1.amd.com>
+Date: Thu, 23 Oct 2008 09:59:37 +0800
+Message-ID: <DD1CC71B621B004FA76856E5129D6B1702126C59@sbjgexmb1.amd.com>
 References: <mailman.0.1224489394.31433.devel@lists.acpica.org> <DD1CC71B621B004FA76856E5129D6B17020B97D1@sbjgexmb1.amd.com> <d3f22a0810201931m6be4de39sf9e6a94ff658e427@mail.gmail.com> <DD1CC71B621B004FA76856E5129D6B17020B99D3@sbjgexmb1.amd.com> <d3f22a0810210024w5403eacbk5a4c6b46a8488dd8@mail.gmail.com> <DD1CC71B621B004FA76856E5129D6B17020B9A1B@sbjgexmb1.amd.com> <d3f22a0810210111v2e3f4ec2p74832538e3bd7a0d@mail.gmail.com> <DD1CC71B621B004FA76856E5129D6B17020B9B14@sbjgexmb1.amd.com> <alpine.LFD.1.10.0810220014380.2984@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outbound-dub.frontbridge.com ([213.199.154.16]:37928 "EHLO
-	IE1EHSOBE001.bigfish.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751558AbYJWCGs convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Oct 2008 22:06:48 -0400
+Received: from outbound-sin.frontbridge.com ([207.46.51.80]:2668 "EHLO
+	SG2EHSOBE004.bigfish.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752181AbYJWCGt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Oct 2008 22:06:49 -0400
 Content-Class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org
-
-The Linux version is Fedora 4. 
-
------Original Message-----
-From: Huang, FrankR 
-Sent: Thursday, October 23, 2008 10:00 AM
-To: 'Len Brown'
-Cc: 'linux-acpi@vger.kernel.org'
-Subject: RE: [Devel] RE: Welcome to the "Devel" mailing list
 
 Len,
 
@@ -35,7 +26,7 @@ Thanks,
 Frank
 
 -----Original Message-----
-From: Huang, FrankR
+From: Huang, FrankR 
 Sent: Wednesday, October 22, 2008 1:47 PM
 To: 'Len Brown'
 Cc: 'linux-acpi@vger.kernel.org'
