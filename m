@@ -1,166 +1,51 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 070/122] ACPI: Get the device power state in the course of
- scanning device
-Date: Thu, 23 Oct 2008 02:38:44 -0400
-Message-ID: <a51e145f379ae48003129610922595893e8efde0.1224743917.git.len.brown@intel.com>
+Subject: [PATCH 092/122] ACPICA: Update version to 20080701
+Date: Thu, 23 Oct 2008 02:39:06 -0400
+Message-ID: <d00d23651d17a2848f6923f3b1ec4efe19f5f2f1.1224743917.git.len.brown@intel.com>
 References: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:46373 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755344AbYJWGk0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:40:26 -0400
+Received: from vms173003pub.verizon.net ([206.46.173.3]:55856 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755432AbYJWGk1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:40:27 -0400
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173005.mailsrvcs.net
+ by vms173003.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K9600KTVIIWS6I2@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:40:08 -0500 (CDT)
+ with ESMTPA id <0K9600FXTIJ48Z64@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:40:16 -0500 (CDT)
 In-reply-to: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 In-reply-to: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
 References: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Zhao Yakui <yakui.zhao@intel.com>, Li Shaohua <shaohua.li@intel.com>, Andi Kleen <ak@linux.intel.com>, Len Brown <len.brown@intel.com>
+Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Andi Kleen <ak@linux.intel.com>, Len Brown <len.brown@intel.com>
 
-From: Zhao Yakui <yakui.zhao@intel.com>
+From: Bob Moore <robert.moore@intel.com>
 
-Get the device power state in the course of scanning device if the device
-power flag is power_managable. i.e. The device has the _PSx/_PRx object.
+Update version to 20080701.
 
-At the same time before the drivers/acpi/power module is loaded, there is no
-relation between acpi_power_resource and acpi device. So the first parameter
-of acpi_power_get_state is changed to acpi_handle.
-
-http://bugzilla.kernel.org/show_bug.cgi?id=8049
-http://bugzilla.kernel.org/show_bug.cgi?id=11000
-
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-Signed-off-by: Li Shaohua <shaohua.li@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/power.c |   30 ++++++++++++++++--------------
- drivers/acpi/scan.c  |    1 +
- 2 files changed, 17 insertions(+), 14 deletions(-)
+ include/acpi/acconfig.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-index 4ab21cb..e7bab75 100644
---- a/drivers/acpi/power.c
-+++ b/drivers/acpi/power.c
-@@ -128,16 +128,16 @@ acpi_power_get_context(acpi_handle handle,
- 	return 0;
- }
+diff --git a/include/acpi/acconfig.h b/include/acpi/acconfig.h
+index 4eb75a8..328caee 100644
+--- a/include/acpi/acconfig.h
++++ b/include/acpi/acconfig.h
+@@ -63,7 +63,7 @@
  
--static int acpi_power_get_state(struct acpi_power_resource *resource, int *state)
-+static int acpi_power_get_state(acpi_handle handle, int *state)
- {
- 	acpi_status status = AE_OK;
- 	unsigned long sta = 0;
+ /* Current ACPICA subsystem version in YYYYMMDD format */
  
+-#define ACPI_CA_VERSION 		0x20080609
++#define ACPI_CA_VERSION 		0x20080701
  
--	if (!resource || !state)
-+	if (!handle || !state)
- 		return -EINVAL;
- 
--	status = acpi_evaluate_integer(resource->device->handle, "_STA", NULL, &sta);
-+	status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
- 
-@@ -145,7 +145,7 @@ static int acpi_power_get_state(struct acpi_power_resource *resource, int *state
- 			      ACPI_POWER_RESOURCE_STATE_OFF;
- 
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Resource [%s] is %s\n",
--			  resource->name, state ? "on" : "off"));
-+			  acpi_ut_get_node_name(handle), state ? "on" : "off"));
- 
- 	return 0;
- }
-@@ -153,7 +153,6 @@ static int acpi_power_get_state(struct acpi_power_resource *resource, int *state
- static int acpi_power_get_list_state(struct acpi_handle_list *list, int *state)
- {
- 	int result = 0, state1;
--	struct acpi_power_resource *resource = NULL;
- 	u32 i = 0;
- 
- 
-@@ -161,12 +160,15 @@ static int acpi_power_get_list_state(struct acpi_handle_list *list, int *state)
- 		return -EINVAL;
- 
- 	/* The state of the list is 'on' IFF all resources are 'on'. */
-+	/* */
- 
- 	for (i = 0; i < list->count; i++) {
--		result = acpi_power_get_context(list->handles[i], &resource);
--		if (result)
--			return result;
--		result = acpi_power_get_state(resource, &state1);
-+		/*
-+		 * The state of the power resource can be obtained by
-+		 * using the ACPI handle. In such case it is unnecessary to
-+		 * get the Power resource first and then get its state again.
-+		 */
-+		result = acpi_power_get_state(list->handles[i], &state1);
- 		if (result)
- 			return result;
- 
-@@ -226,7 +228,7 @@ static int acpi_power_on(acpi_handle handle, struct acpi_device *dev)
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
- 
--	result = acpi_power_get_state(resource, &state);
-+	result = acpi_power_get_state(resource->device->handle, &state);
- 	if (result)
- 		return result;
- 	if (state != ACPI_POWER_RESOURCE_STATE_ON)
-@@ -277,7 +279,7 @@ static int acpi_power_off_device(acpi_handle handle, struct acpi_device *dev)
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
- 
--	result = acpi_power_get_state(resource, &state);
-+	result = acpi_power_get_state(handle, &state);
- 	if (result)
- 		return result;
- 	if (state != ACPI_POWER_RESOURCE_STATE_OFF)
-@@ -555,7 +557,7 @@ static int acpi_power_seq_show(struct seq_file *seq, void *offset)
- 	if (!resource)
- 		goto end;
- 
--	result = acpi_power_get_state(resource, &state);
-+	result = acpi_power_get_state(resource->device->handle, &state);
- 	if (result)
- 		goto end;
- 
-@@ -668,7 +670,7 @@ static int acpi_power_add(struct acpi_device *device)
- 	resource->system_level = acpi_object.power_resource.system_level;
- 	resource->order = acpi_object.power_resource.resource_order;
- 
--	result = acpi_power_get_state(resource, &state);
-+	result = acpi_power_get_state(device->handle, &state);
- 	if (result)
- 		goto end;
- 
-@@ -735,7 +737,7 @@ static int acpi_power_resume(struct acpi_device *device)
- 
- 	resource = (struct acpi_power_resource *)acpi_driver_data(device);
- 
--	result = acpi_power_get_state(resource, &state);
-+	result = acpi_power_get_state(device->handle, &state);
- 	if (result)
- 		return result;
- 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index f6f52c1..308ddb1 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -807,6 +807,7 @@ static int acpi_bus_get_power_flags(struct acpi_device *device)
- 	/* TBD: System wake support and resource requirements. */
- 
- 	device->power.state = ACPI_STATE_UNKNOWN;
-+	acpi_bus_get_power(device->handle, &(device->power.state));
- 
- 	return 0;
- }
+ /*
+  * OS name, used for the _OS object.  The _OS object is essentially obsolete,
 -- 
 1.5.5.1
 
