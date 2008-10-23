@@ -1,83 +1,98 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 060/122] ACPI: Allow overriding to higher critical trip point.
-Date: Thu, 23 Oct 2008 02:38:34 -0400
-Message-ID: <22a94d79a34bf010d11996d30eed8ee3fc1a4fbf.1224743917.git.len.brown@intel.com>
+Subject: [PATCH 066/122] ACPI suspend: Fix CONFIG_ACPI_SLEEP dependence and
+ some compilation warnings
+Date: Thu, 23 Oct 2008 02:38:40 -0400
+Message-ID: <5d1e072b6b9cffebefa681faca1c6d608310d4b2.1224743917.git.len.brown@intel.com>
 References: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms042pub.verizon.net ([206.46.252.42]:51267 "EHLO
-	vms042pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754481AbYJWGk0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:40:26 -0400
+Received: from vms172071pub.verizon.net ([206.46.172.71]:62933 "EHLO
+	vms172071pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755268AbYJWGkT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:40:19 -0400
 Received: from localhost.localdomain ([96.237.168.40])
- by vms042.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0K96006X7IIS37Z1@vms042.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:40:05 -0500 (CDT)
+ by vms172071.mailsrvcs.net
+ (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+ with ESMTPA id <0K9600KJ5IIUZDY2@vms172071.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:40:07 -0500 (CDT)
 In-reply-to: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 In-reply-to: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
 References: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
 
-From: Zhang Rui <rui.zhang@intel.com>
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-http://bugzilla.kernel.org/show_bug.cgi?id=9129
+Initially CONFIG_PM_SLEEP was defined as
+CONFIG_SUSPEND || CONFIG_HIBERNATION and some ACPI code, most
+importantly the code in drivers/acpi/main.c, was written with this
+assumption.  Currently, however, CONFIG_PM_SLEEP is also set when
+CONFIG_XEN_SAVE_RESTORE is set.
 
-lenb: Note that overriding a critical trip point
-may simply fool the user into thinking that they
-have control that they do not actually have.
-For it is EC firmware that decides when the EC
-sends Linux temperature change events, and the
-EC may or may not decide to send Linux these events
-anywhere in the neighborhood of the fake
-override trip points.  Beware.
+This causes some compilation warnings to appear in
+drivers/acpi/main.c if both CONFIG_SUSPEND and CONFIG_HIBERNATION
+are unset and CONFIG_PM_SLEEP is set (this was impossible before).
+To fix this problem, redefine CONFIG_ACPI_SLEEP do depend directly
+on CONFIG_SUSPEND || CONFIG_HIBERNATION, as originally intended, and
+use it instead of CONFIG_PM_SLEEP in drivers/acpi/main.c, wherever
+appropriate.
 
-note also that thermal.nocrt is already available
-to disable crtical trip point actios,
-and thermal.crt=-1 is already available to
-disabled critical trip points entirely.
+Additionally, move the acpi_target_sleep_state definition from under
+the #ifdef to prevent compilation from failing in some cases.
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/kernel-parameters.txt |    2 +-
- drivers/acpi/thermal.c              |    8 +++++---
- 2 files changed, 6 insertions(+), 4 deletions(-)
+ drivers/acpi/Kconfig      |    2 +-
+ drivers/acpi/sleep/main.c |    7 +++----
+ 2 files changed, 4 insertions(+), 5 deletions(-)
 
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-index 1150444..0707423 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -2146,7 +2146,7 @@ and is between 256 and 4096 characters. It is defined in the file
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 79540db..325b4b5 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -42,7 +42,7 @@ if ACPI
  
- 	thermal.crt=	[HW,ACPI]
- 			-1: disable all critical trip points in all thermal zones
--			<degrees C>: lower all critical trip points
-+			<degrees C>: override all critical trip points
+ config ACPI_SLEEP
+ 	bool
+-	depends on PM_SLEEP
++	depends on SUSPEND || HIBERNATION
+ 	default y
  
- 	thermal.nocrt=	[HW,ACPI]
- 			Set to disable actions on ACPI thermal zone
-diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-index e052a75..e9e17df 100644
---- a/drivers/acpi/thermal.c
-+++ b/drivers/acpi/thermal.c
-@@ -388,10 +388,12 @@ static int acpi_thermal_trips_update(struct acpi_thermal *tz, int flag)
- 			} else if (crt > 0) {
- 				unsigned long crt_k = CELSIUS_TO_KELVIN(crt);
- 				/*
--				 * Allow override to lower critical threshold
-+				 * Allow override critical threshold
- 				 */
--				if (crt_k < tz->trips.critical.temperature)
--					tz->trips.critical.temperature = crt_k;
-+				if (crt_k > tz->trips.critical.temperature)
-+					printk(KERN_WARNING PREFIX
-+						"Critical threshold %d C\n", crt);
-+				tz->trips.critical.temperature = crt_k;
- 			}
- 		}
- 	}
+ config ACPI_PROCFS
+diff --git a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
+index d13194a..4c21480 100644
+--- a/drivers/acpi/sleep/main.c
++++ b/drivers/acpi/sleep/main.c
+@@ -23,6 +23,7 @@
+ #include "sleep.h"
+ 
+ u8 sleep_states[ACPI_S_STATE_COUNT];
++static u32 acpi_target_sleep_state = ACPI_STATE_S0;
+ 
+ static int acpi_sleep_prepare(u32 acpi_state)
+ {
+@@ -45,9 +46,7 @@ static int acpi_sleep_prepare(u32 acpi_state)
+ 	return 0;
+ }
+ 
+-#ifdef CONFIG_PM_SLEEP
+-static u32 acpi_target_sleep_state = ACPI_STATE_S0;
+-
++#ifdef CONFIG_ACPI_SLEEP
+ /*
+  * ACPI 1.0 wants us to execute _PTS before suspending devices, so we allow the
+  * user to request that behavior by using the 'acpi_old_suspend_ordering'
+@@ -132,7 +131,7 @@ static void acpi_pm_end(void)
+ 	 */
+ 	acpi_target_sleep_state = ACPI_STATE_S0;
+ }
+-#endif /* CONFIG_PM_SLEEP */
++#endif /* CONFIG_ACPI_SLEEP */
+ 
+ #ifdef CONFIG_SUSPEND
+ extern void do_suspend_lowlevel(void);
 -- 
 1.5.5.1
 
