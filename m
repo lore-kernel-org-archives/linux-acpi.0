@@ -1,88 +1,119 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [PATCH 2/2] i7300_idle driver v1.55
-Date: Thu, 23 Oct 2008 08:00:47 -0700
-Message-ID: <20081023150047.GD6368@linux.vnet.ibm.com>
-References: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com> <e8b529091b2ab65f5a4783e292c2b472e309116e.1223706853.git.len.brown@intel.com> <20081011083347.GA31918@elte.hu> <alpine.LFD.1.10.0810161805360.3026@localhost.localdomain> <48FE07AE.4010203@linux.intel.com> <7E82351C108FA840AB1866AC776AEC4637CD27F3@orsmsx505.amr.corp.intel.com> <48FED3FA.6040703@linux.intel.com> <20081022234006.GB28775@linux-os.sc.intel.com> <48FFCF28.3070604@linux.intel.com> <7E82351C108FA840AB1866AC776AEC4637D389DB@orsmsx505.amr.corp.intel.com>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: Myron Stowe <myron.stowe@hp.com>
+Subject: Re: [PATCH 0/3] ACPI: Fix for supporting > 256 processor
+	declaration limit
+Date: Thu, 23 Oct 2008 09:48:21 -0600
+Message-ID: <1224776901.6769.20.camel@localhost>
+References: <1224702636.6784.13.camel@localhost>
+	 <49000CF8.1070608@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756224AbYJWPBK@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <7E82351C108FA840AB1866AC776AEC4637D389DB@orsmsx505.amr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Cc: Andi Kleen <ak@linux.intel.com>, Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Henroid, Andrew D" <andrew.d.henroid@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t0016.houston.hp.com ([15.201.24.19]:31930 "EHLO
+	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752073AbYJWPsY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 11:48:24 -0400
+In-Reply-To: <49000CF8.1070608@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <aystarik@gmail.com>
+Cc: lenb@kernel.org, linux-acpi <linux-acpi@vger.kernel.org>
 
-On Wed, Oct 22, 2008 at 09:59:30PM -0700, Pallipadi, Venkatesh wrote:
+On Thu, 2008-10-23 at 09:34 +0400, Alexey Starikovskiy wrote:
+> Hi Myron,
 > 
-> 
-> >-----Original Message-----
-> >From: Andi Kleen [mailto:ak@linux.intel.com]
-> >Sent: Wednesday, October 22, 2008 6:11 PM
-> >To: Pallipadi, Venkatesh
-> >Cc: Len Brown; Ingo Molnar; linux-acpi@vger.kernel.org; Linux
-> >Kernel Mailing List; Henroid, Andrew D; Linus Torvalds; Thomas
-> >Gleixner; H. Peter Anvin; paulmck@us.ibm.com
-> >Subject: Re: [PATCH 2/2] i7300_idle driver v1.55
-> >
-> >>>>> ;
-> >>>>>> +static void __exit i7300_idle_exit(void)
-> >>>>>> +{
-> >>>>>> +     idle_notifier_unregister(&i7300_idle_nb);
-> >>>>> I still think this needs some kind of idle synchronization.
-> >>>> This unregister uses atomic_notifier_chain_unregister() which
-> >>>> uses RCU and handles the race conditions that way.
-> >>> I didn't do a full analysis, but I didn't think RCU protects
-> >>> against the idle handler itself.  At least not standard RCU.
-> >>> You would need to go through at least two quiescent periods,
-> >>> not one as standard code.
-> >>>
-> >>> There used to be an older
-> >>> idle synchronization interface for this case (which was removed
-> >>> at some point), perhaps it needs to be readded.
-> >>>
-> >>> Or just use stop_machine(). That protects against idle too
-> >>> and while it's a big hammer for unloading it should be ok.
-> >>>
-> >>
-> >> stop_machine() for unregistering idle callback will deadlock
-> >due to RCU.
-> >>
-> >> I am not sure why we need two cycles. RCU in the unregister makes
-> >> sure that no CPU is executing the callback handler
-> >> and only then unregister
-> >> returns. So, that will mean no one can be in the callback
-> >rountine and we are
-> >> safe to remove the module. Correct?
-> >
-> >Perhaps I'm confused, but I thought with noidlehz the RCU code
-> >got changed to take out idle CPUs out of the rcu masks. This makes
-> >normally sense because you don't want to delay the grace period
-> >for potentially very long sleeping CPUs.
-> >
-> >But it means it won't work for code inside the idle loop. Ok maybe
-> >if you're very careful with the ordering, but I'm not sure that's
-> >the case currently.
-> >
-> >Yes two cycles won't work either, sorry was confused earlier,
-> >because even the second cycle wouldn't force the CPU out of idle.
-> >
-> >The old idle sync code was more a thread that just cycled through
-> >all the CPus. That would work.
-> >
-> 
-> This should not matter as we can safely remove the module even when
-> one or more CPUs are idle. As long as one CPU is running, we are sure
-> that throttling is not in effect. And as long as we make sure no one
-> is executing the notifier that is going to be rmmoded, we should
-> be OK. Say one CPU comes out of the idle later, it wont see the notifier
-> in the notifier list anymore, because of RCU in atomic notifier
-> and things will work fine. I mean we are not rmmoding the routine
-> that enters the idle state. We are just rmmoding the routine that
-> Can get called before and after idle routine.
+> It is great to see that this functionality found some care after
+> 2+ years :)
+> Please check your patches to conform to patch submission guidelines,
+> namely 80 char string limit... :) scripts/checkpatch.pl is quite good for
+> such purpose.
+Yes - I did run the patches through scripts/checkpatch.pl.  I had
+received feedback from a colleague to ignore the 80 column limit for
+printk strings so that they are more 'grep'able.
 
-Suppose that one of the idle CPUs takes an interrupt, whose handler
-accesses the module being removed.  How is this handled?
+You're feedback is making me rethink this advice - 'grep'ing for such
+occurrences in the kernel is a known issue so most of us have learned to
+'grep' for a smaller, sub-string, snippets.  This, along with just
+general coding style guidelines, now convinces me that I should conform
+to the 80 column limit as it is a good rule (which is why I couldn't
+resist creating [PATCH3/3] as part of the series  ;)  ).
+> 
+> Myron Stowe wrote:
+> > Len, Alexey:
+> >
+> > The following three item patch series fixes an issue with the introduction
+> > of > 256 processor declaration support: "Allow processor to be declared with
+> > the Device() instead of Processor()" (git SHA 11bf04c4).
+> >
+> > The root issue is in the lsapic mapping logic of drivers/acpi/processor_core.c.
+> > Currently, the logic tries both types of matches irregardless of declaration
+> > type and relies on one failing.  According to the spec - lsapic mapping is
+> > dependent on how the processor object was declared: CPUs declared using the
+> > "Processor" statement should use the Local SAPIC's 'processor_id', and CPUs
+> > declared using the "Device" statement should use the 'uid'.
+> >
+> > Reference: Section 8.4 Declaring Processors; Section 5.2.11.13 Local SAPIC
+> > Structure.  "Advanced Configuration and Power Interface Specification",
+> > Revision 3.0b, October 2006.
+> >
+> >
+> > [PATCH 1/3] disambiguates the processor declaration type that is currently
+> > conflated so that subsequent logic can behave based explicitly on the
+> > declaration's type.  I expect the disambiguation this patch introduces will
+> > also be advantageous when extending the > 256 processor support for x86 via
+> > x2APIC.
+> >
+> > [PATCH 2/3] addresses the root issue as stated above.  With respect to this
+> > patch I'm ambivalent about the 'printk' introduced in "map_lsapic_id()" -
+> > perhaps it should be removed?
+> >
+> >   
+> Errors causing change from default behaviour should be visible, so
+> printk is ok, please only make it conform to 80 char string length limit.
+> > [PATCH 3/3] is non-functional white space/spelling fixes in the related code. 
+> >
+> >
+> > While the specific fix is ia64 focused the underlying code affected is common
+> > to both x86 and ia64.
+> That was intentional to have it common, as the less frequently used
+> case will rotten without care.
+Agreed - it should be common (was just making to comment as to why I
+also tested x86 and to let others know this patch indirectly
+touches/affects x86).
+> >   I have tested on the following platform/namespace
+> > combinations:
+> >   ia64 with "Processor" type namespace processor declarations,
+> >   ia64 with "Device" type namespace processor declarations,
+> >   x86 with "Processor" type namespace processor declarations.
+> >
+> >   
+> I had no machine with second variant, so it probably didn't work there, 
+> right?
+Yes - we now have a platform that uses "Device" declarations for the
+first time and the kernel 'panick'ed thus this patch.  You had all the
+proper infrastructure in place - just a pretty simple omission which,
+without something to test against would be easy to not see.
+> > Note that this patch series does *not* handle "Device" type processor
+> > declarations that contain a string type _UID object under the processor
+> > device's scope (I am currently not aware of any platforms that have such to
+> > test against).
+> >
+> >   
+> Original didn't do it either -- it is too difficult and does not give 
+> any advantage
+> to HW vendors over numeral ID.
+Yeah.  I was going to tackle this and it turned out to get pretty messy
+fast.  Fortunately the error path printk in acpi_processor_get_info()
+when a "Device" declaration with a _UID that is *not* an integer is
+encountered will trigger and indicate exactly where the issue is at some
+future date when a vendor utilizes this combination.
 
-						Thanx, Paul
+Thanks for the feedback!
+Myron
+> 
+> Regards,
+> Alex.
+> 
+-- 
+Myron Stowe                             HP Open Source & Linux Org
+
