@@ -1,18 +1,18 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 011/122] dock: introduce .uevent for devices in dock, eg libata
-Date: Thu, 23 Oct 2008 02:37:45 -0400
-Message-ID: <1253f7aabfebc51446dbec5c8895c5c8846dfe06.1224743916.git.len.brown@intel.com>
+Subject: [PATCH 005/122] dock: fix eject request process (2.6.27-rc1 regression)
+Date: Thu, 23 Oct 2008 02:37:39 -0400
+Message-ID: <82545394e0690aaef446cb262aa5dac0f9c7156e.1224743916.git.len.brown@intel.com>
 References: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:58042 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753410AbYJWGjp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:39:45 -0400
+Received: from vms172071pub.verizon.net ([206.46.172.71]:62846 "EHLO
+	vms172071pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753345AbYJWGjq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:39:46 -0400
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173001.mailsrvcs.net
+ by vms172071.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K9600KRUII7RP32@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:39:45 -0500 (CDT)
+ with ESMTPA id <0K96007CAII68MB1@vms172071.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:39:43 -0500 (CDT)
 In-reply-to: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 In-reply-to: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
 References: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
@@ -23,221 +23,33 @@ Cc: Shaohua Li <shaohua.li@intel.com>, Len Brown <len.brown@intel.com>
 
 From: Shaohua Li <shaohua.li@intel.com>
 
-dock's uevent reported itself, not ata. It might be difficult to find an
-ata device just according to a dock. This patch introduces docking ops
-for each device in a dock. when docking, dock driver can send device
-specific uevent. This should help dock station too (not just bay)
+commit 2a7feab28d3fc060d320eaba192e49dad1079b7e introduces a bug.
+My thinkpad actually will send an eject_request and we should follow the
+eject process to finish the eject, otherwise system still thinks the bay
+is present.
 
 Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-Acked-by: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/dock.c                |   22 ++++++++++++-----
- drivers/ata/libata-acpi.c          |   44 ++++++++++++++++++++++++++++++++++-
- drivers/pci/hotplug/acpiphp_glue.c |    6 +++-
- include/acpi/acpi_drivers.h        |    9 +++++-
- 4 files changed, 68 insertions(+), 13 deletions(-)
+ drivers/acpi/dock.c |    5 -----
+ 1 files changed, 0 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
-index f19f643..ac7dfef 100644
+index 25d2161..78d27ce 100644
 --- a/drivers/acpi/dock.c
 +++ b/drivers/acpi/dock.c
-@@ -75,7 +75,7 @@ struct dock_dependent_device {
- 	struct list_head list;
- 	struct list_head hotplug_list;
- 	acpi_handle handle;
--	acpi_notify_handler handler;
-+	struct acpi_dock_ops *ops;
- 	void *context;
- };
- 
-@@ -385,8 +385,8 @@ static void hotplug_dock_devices(struct dock_station *ds, u32 event)
- 	 * First call driver specific hotplug functions
+@@ -575,11 +575,6 @@ static int handle_eject_request(struct dock_station *ds, u32 event)
  	 */
- 	list_for_each_entry(dd, &ds->hotplug_devices, hotplug_list) {
--		if (dd->handler)
--			dd->handler(dd->handle, event, dd->context);
-+		if (dd->ops && dd->ops->handler)
-+			dd->ops->handler(dd->handle, event, dd->context);
- 	}
+ 	dock_event(ds, event, UNDOCK_EVENT);
  
- 	/*
-@@ -409,6 +409,7 @@ static void dock_event(struct dock_station *ds, u32 event, int num)
- 	struct device *dev = &ds->dock_device->dev;
- 	char event_string[13];
- 	char *envp[] = { event_string, NULL };
-+	struct dock_dependent_device *dd;
- 
- 	if (num == UNDOCK_EVENT)
- 		sprintf(event_string, "EVENT=undock");
-@@ -419,7 +420,14 @@ static void dock_event(struct dock_station *ds, u32 event, int num)
- 	 * Indicate that the status of the dock station has
- 	 * changed.
- 	 */
--	kobject_uevent_env(&dev->kobj, KOBJ_CHANGE, envp);
-+	if (num == DOCK_EVENT)
-+		kobject_uevent_env(&dev->kobj, KOBJ_CHANGE, envp);
-+
-+	list_for_each_entry(dd, &ds->hotplug_devices, hotplug_list)
-+		if (dd->ops && dd->ops->uevent)
-+			dd->ops->uevent(dd->handle, event, dd->context);
-+	if (num != DOCK_EVENT)
-+		kobject_uevent_env(&dev->kobj, KOBJ_CHANGE, envp);
- }
- 
- /**
-@@ -588,7 +596,7 @@ EXPORT_SYMBOL_GPL(unregister_dock_notifier);
- /**
-  * register_hotplug_dock_device - register a hotplug function
-  * @handle: the handle of the device
-- * @handler: the acpi_notifier_handler to call after docking
-+ * @ops: handlers to call after docking
-  * @context: device specific data
-  *
-  * If a driver would like to perform a hotplug operation after a dock
-@@ -596,7 +604,7 @@ EXPORT_SYMBOL_GPL(unregister_dock_notifier);
-  * the dock driver after _DCK is executed.
-  */
- int
--register_hotplug_dock_device(acpi_handle handle, acpi_notify_handler handler,
-+register_hotplug_dock_device(acpi_handle handle, struct acpi_dock_ops *ops,
- 			     void *context)
- {
- 	struct dock_dependent_device *dd;
-@@ -612,7 +620,7 @@ register_hotplug_dock_device(acpi_handle handle, acpi_notify_handler handler,
- 	list_for_each_entry(dock_station, &dock_stations, sibiling) {
- 		dd = find_dock_dependent_device(dock_station, handle);
- 		if (dd) {
--			dd->handler = handler;
-+			dd->ops = ops;
- 			dd->context = context;
- 			dock_add_hotplug_device(dock_station, dd);
- 			return 0;
-diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c
-index 97727be..c012307 100644
---- a/drivers/ata/libata-acpi.c
-+++ b/drivers/ata/libata-acpi.c
-@@ -209,6 +209,46 @@ static void ata_acpi_ap_notify_dock(acpi_handle handle, u32 event, void *data)
- 	ata_acpi_handle_hotplug(ap, NULL, event);
- }
- 
-+static void ata_acpi_uevent(struct ata_port *ap, struct ata_device *dev,
-+	u32 event)
-+{
-+	struct kobject *kobj = NULL;
-+	char event_string[20];
-+	char *envp[] = { event_string, NULL };
-+
-+	if (dev) {
-+		if (dev->sdev)
-+			kobj = &dev->sdev->sdev_gendev.kobj;
-+	} else
-+		kobj = &ap->dev->kobj;
-+
-+	if (kobj) {
-+		snprintf(event_string, 20, "BAY_EVENT=%d", event);
-+		kobject_uevent_env(kobj, KOBJ_CHANGE, envp);
-+	}
-+}
-+
-+static void ata_acpi_ap_uevent(acpi_handle handle, u32 event, void *data)
-+{
-+	ata_acpi_uevent(data, NULL, event);
-+}
-+
-+static void ata_acpi_dev_uevent(acpi_handle handle, u32 event, void *data)
-+{
-+	struct ata_device *dev = data;
-+	ata_acpi_uevent(dev->link->ap, dev, event);
-+}
-+
-+static struct acpi_dock_ops ata_acpi_dev_dock_ops = {
-+	.handler = ata_acpi_dev_notify_dock,
-+	.uevent = ata_acpi_dev_uevent,
-+};
-+
-+static struct acpi_dock_ops ata_acpi_ap_dock_ops = {
-+	.handler = ata_acpi_ap_notify_dock,
-+	.uevent = ata_acpi_ap_uevent,
-+};
-+
- /**
-  * ata_acpi_associate - associate ATA host with ACPI objects
-  * @host: target ATA host
-@@ -244,7 +284,7 @@ void ata_acpi_associate(struct ata_host *host)
- 		if (ap->acpi_handle) {
- 			/* we might be on a docking station */
- 			register_hotplug_dock_device(ap->acpi_handle,
--					     ata_acpi_ap_notify_dock, ap);
-+					     &ata_acpi_ap_dock_ops, ap);
- 		}
- 
- 		for (j = 0; j < ata_link_max_devices(&ap->link); j++) {
-@@ -253,7 +293,7 @@ void ata_acpi_associate(struct ata_host *host)
- 			if (dev->acpi_handle) {
- 				/* we might be on a docking station */
- 				register_hotplug_dock_device(dev->acpi_handle,
--					     ata_acpi_dev_notify_dock, dev);
-+					     &ata_acpi_dev_dock_ops, dev);
- 			}
- 		}
- 	}
-diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
-index a3e4705..db54c5e 100644
---- a/drivers/pci/hotplug/acpiphp_glue.c
-+++ b/drivers/pci/hotplug/acpiphp_glue.c
-@@ -169,7 +169,9 @@ static int post_dock_fixups(struct notifier_block *nb, unsigned long val,
- }
- 
- 
+-	if (!dock_present(ds)) {
+-		complete_undock(ds);
+-		return -ENODEV;
+-	}
 -
-+static struct acpi_dock_ops acpiphp_dock_ops = {
-+	.handler = handle_hotplug_event_func,
-+};
- 
- /* callback routine to register each ACPI PCI slot object */
- static acpi_status
-@@ -285,7 +287,7 @@ register_slot(acpi_handle handle, u32 lvl, void *context, void **rv)
- 		 */
- 		newfunc->flags &= ~FUNC_HAS_EJ0;
- 		if (register_hotplug_dock_device(handle,
--			handle_hotplug_event_func, newfunc))
-+			&acpiphp_dock_ops, newfunc))
- 			dbg("failed to register dock device\n");
- 
- 		/* we need to be notified when dock events happen
-diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
-index e5f38e5..4f5042a 100644
---- a/include/acpi/acpi_drivers.h
-+++ b/include/acpi/acpi_drivers.h
-@@ -115,12 +115,17 @@ int acpi_processor_set_thermal_limit(acpi_handle handle, int type);
- /*--------------------------------------------------------------------------
-                                   Dock Station
-   -------------------------------------------------------------------------- */
-+struct acpi_dock_ops {
-+	acpi_notify_handler handler;
-+	acpi_notify_handler uevent;
-+};
-+
- #if defined(CONFIG_ACPI_DOCK) || defined(CONFIG_ACPI_DOCK_MODULE)
- extern int is_dock_device(acpi_handle handle);
- extern int register_dock_notifier(struct notifier_block *nb);
- extern void unregister_dock_notifier(struct notifier_block *nb);
- extern int register_hotplug_dock_device(acpi_handle handle,
--					acpi_notify_handler handler,
-+					struct acpi_dock_ops *ops,
- 					void *context);
- extern void unregister_hotplug_dock_device(acpi_handle handle);
- #else
-@@ -136,7 +141,7 @@ static inline void unregister_dock_notifier(struct notifier_block *nb)
- {
- }
- static inline int register_hotplug_dock_device(acpi_handle handle,
--					       acpi_notify_handler handler,
-+					       struct acpi_dock_ops *ops,
- 					       void *context)
- {
- 	return -ENODEV;
+ 	hotplug_dock_devices(ds, ACPI_NOTIFY_EJECT_REQUEST);
+ 	undock(ds);
+ 	eject_dock(ds);
 -- 
 1.5.5.1
 
