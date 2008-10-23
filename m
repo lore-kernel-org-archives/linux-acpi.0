@@ -1,75 +1,66 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 114/122] ACPICA: Fix for implicit return compatibility
-Date: Thu, 23 Oct 2008 02:39:28 -0400
-Message-ID: <b9d1312ad4246e467f333dfe2ac4dc7a79608d59.1224743917.git.len.brown@intel.com>
+Subject: [PATCH 094/122] ACPICA: Improve object conversion error messages
+Date: Thu, 23 Oct 2008 02:39:08 -0400
+Message-ID: <c2de3a49454cdc9ca42bbd5d742913421d049f59.1224743917.git.len.brown@intel.com>
 References: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms044pub.verizon.net ([206.46.252.44]:37959 "EHLO
-	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755457AbYJWGkh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:40:37 -0400
+Received: from vms173003pub.verizon.net ([206.46.173.3]:55856 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755454AbYJWGkf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:40:35 -0400
 Received: from localhost.localdomain ([96.237.168.40])
- by vms044.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0K9600EFEIJ9P617@vms044.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:40:21 -0500 (CDT)
+ by vms173003.mailsrvcs.net
+ (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+ with ESMTPA id <0K96002THIJ4SKAA@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:40:17 -0500 (CDT)
 In-reply-to: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 In-reply-to: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
 References: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Lin Ming <ming.m.lin@intel.com>, Bob Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Andi Kleen <ak@linux.intel.com>, Len Brown <len.brown@intel.com>
 
-From: Lin Ming <ming.m.lin@intel.com>
+From: Bob Moore <robert.moore@intel.com>
 
-Predicate can be used for an implicit return value.
-This change improves the implicit return mechanism to be more
-compatible with the MS interpreter.
+Better error messages during object conversion from internal
+to the external ACPI_OBJECT. Used for external calls to
+acpi_evaluate_object.
 
-http://www.acpica.org/bugzilla/show_bug.cgi?id=349
-
-Below AML code from http://bugzilla.kernel.org/show_bug.cgi?id=10686
-
-	Store(0x07D6, OSYS)
-	Method (_CRT, 0, Serialized)
-	{
-	    If (LLess (OSYS, 0x07D6))
-	    {
-		If (LEqual (\_SB.TJ85, Zero))
-		{
-		    Return (Add (0x0AAC, Multiply (TPC, 0x0A)))
-		}
-		Else
-		{
-		    Return (Add (0x0AAC, Multiply (TP85, 0x0A)))
-		}
-	    }
-	}
-
-Previously _CRT returns 0x07D6, now it returns 0 (predicate value of LLess)
-
-Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/dispatcher/dswexec.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+ drivers/acpi/utilities/utobject.c |    8 ++++++--
+ 1 files changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/dispatcher/dswexec.c b/drivers/acpi/dispatcher/dswexec.c
-index 5b24191..396fe12 100644
---- a/drivers/acpi/dispatcher/dswexec.c
-+++ b/drivers/acpi/dispatcher/dswexec.c
-@@ -166,6 +166,10 @@ acpi_ds_get_predicate_value(struct acpi_walk_state *walk_state,
- 		status = AE_CTRL_FALSE;
- 	}
+diff --git a/drivers/acpi/utilities/utobject.c b/drivers/acpi/utilities/utobject.c
+index 916eff3..924d05a 100644
+--- a/drivers/acpi/utilities/utobject.c
++++ b/drivers/acpi/utilities/utobject.c
+@@ -503,7 +503,9 @@ acpi_ut_get_simple_object_size(union acpi_operand_object *internal_object,
+ 			 * required eventually.
+ 			 */
+ 			ACPI_ERROR((AE_INFO,
+-				    "Unsupported Reference opcode=%X in object %p",
++				    "Cannot convert to external object - "
++				    "unsupported Reference type [%s] %X in object %p",
++				    acpi_ut_get_reference_name(internal_object),
+ 				    internal_object->reference.opcode,
+ 				    internal_object));
+ 			status = AE_TYPE;
+@@ -513,7 +515,9 @@ acpi_ut_get_simple_object_size(union acpi_operand_object *internal_object,
  
-+	/* Predicate can be used for an implicit return value */
-+
-+	(void)acpi_ds_do_implicit_return(local_obj_desc, walk_state, TRUE);
-+
-       cleanup:
+ 	default:
  
- 	ACPI_DEBUG_PRINT((ACPI_DB_EXEC, "Completed a predicate eval=%X Op=%p\n",
+-		ACPI_ERROR((AE_INFO, "Unsupported type=%X in object %p",
++		ACPI_ERROR((AE_INFO, "Cannot convert to external object - "
++			    "unsupported type [%s] %X in object %p",
++			    acpi_ut_get_object_type_name(internal_object),
+ 			    ACPI_GET_OBJECT_TYPE(internal_object),
+ 			    internal_object));
+ 		status = AE_TYPE;
 -- 
 1.5.5.1
 
