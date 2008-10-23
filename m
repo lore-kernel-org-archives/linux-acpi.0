@@ -1,91 +1,72 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] ACPI suspend: Fox compilation for ACPI_SLEEP unset and XEN_SAVE_RESTORE set
-Date: Thu, 23 Oct 2008 21:46:43 +0200
-Message-ID: <200810232146.44394.rjw@sisk.pl>
-References: <1224743976-31033-1-git-send-email-lenb@kernel.org> <b849075c0e08ea43400c1341c78eeca76ab08d8a.1224743917.git.len.brown@intel.com>
+From: James Bottomley <James.Bottomley@HansenPartnership.com>
+Subject: Oops in ACPI with git latest
+Date: Thu, 23 Oct 2008 14:45:03 -0500
+Message-ID: <1224791103.3330.37.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:40698 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751739AbYJWTmZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 15:42:25 -0400
-In-Reply-To: <b849075c0e08ea43400c1341c78eeca76ab08d8a.1224743917.git.len.brown@intel.com>
-Content-Disposition: inline
+Received: from accolon.hansenpartnership.com ([76.243.235.52]:60620 "EHLO
+	accolon.hansenpartnership.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753804AbYJWTpF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Oct 2008 15:45:05 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Andrew Morton <akpm@linux-foundation.org>
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel <linux-kernel@vger.kernel.org>
 
-On Thursday, 23 of October 2008, Len Brown wrote:
-> From: Len Brown <len.brown@intel.com>
->=20
-> drivers/acpi/sleep/main.c:27: warning: =E2=80=98acpi_target_sleep_sta=
-te=E2=80=99 defined but not used
+ACPI Warning (nseval-0168): Insufficient arguments - method [_OSC] needs 5, found 4 [20080926]
+ACPI Warning (nspredef-0252): \_SB_.PCI0._OSC: Parameter count mismatch - ASL declared 5, expected 4 [20080926]
+ACPI Error (nspredef-0163): \_SB_.PCI0._OSC: Missing expected return value [20080926]
+BUG: unable to handle kernel NULL pointer dereference at 00000000
+IP: [<c0237671>] acpi_run_osc+0xa1/0x170
+*pde = 00000000 
+Oops: 0000 [#1] SMP 
+last sysfs file: 
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
 
-Er, wrong.
+Pid: 1, comm: swapper Not tainted (2.6.27 #124) IBM eServer 206m-[8485IZZ]-
+EIP: 0060:[<c0237671>] EFLAGS: 00010246 CPU: 1
+EIP is at acpi_run_osc+0xa1/0x170
+EAX: 00000000 EBX: 00000010 ECX: 00000003 EDX: f704d4ec
+ESI: 00000000 EDI: 00000000 EBP: f704fde4 ESP: f704fd7c
+ DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
+Process swapper (pid: 1, ti=f704e000 task=f704d150 task.ti=f704e000)
+Stack:
+ f704fdc8 f704fdf0 00000001 00000003 00000010 c04f4a28 c014c3ab 00000001
+ 00000001 00000000 f68766a0 00000001 00000003 00000000 f704fdd4 00000003
+ 0000000c f704fdf0 c023759b 00000000 00000000 00000004 f704fd88 00000010
+Call Trace:
+ [<c014c3ab>] ? trace_hardirqs_on+0xb/0x10
+ [<c023759b>] ? acpi_get_osc_data+0x5b/0x90
+ [<c02378c4>] ? acpi_query_osc+0x74/0xa0
+ [<c02486bb>] ? acpi_ns_get_device_callback+0xfe/0x112
+ [<c0249dbe>] ? acpi_ns_walk_namespace+0x9a/0x110
+ [<c033a5cc>] ? pci_init+0x0/0x44
+ [<c0248541>] ? acpi_get_devices+0x47/0x5d
+ [<c02485bd>] ? acpi_ns_get_device_callback+0x0/0x112
+ [<c0237850>] ? acpi_query_osc+0x0/0xa0
+ [<c0237918>] ? __pci_osc_support_set+0x28/0x30
+ [<c033b99c>] ? msi_init+0x27/0x38
+ [<c033a5fc>] ? pci_init+0x30/0x44
+ [<c010111d>] ? do_one_initcall+0x2d/0x160
+ [<c014c3ab>] ? trace_hardirqs_on+0xb/0x10
+ [<c01d6c5e>] ? proc_register+0xee/0x1f0
+ [<c03482ad>] ? _spin_unlock+0x1d/0x20
+ [<c01d6c5e>] ? proc_register+0xee/0x1f0
+ [<c01d6e64>] ? create_proc_entry+0x54/0xb0
+ [<c01622a4>] ? register_irq_proc+0xa4/0xc0
+ [<c016231c>] ? init_irq_proc+0x5c/0x70
+ [<c0521325>] ? kernel_init+0x10f/0x166
+ [<c0521216>] ? kernel_init+0x0/0x166
+ [<c0104213>] ? kernel_thread_helper+0x7/0x14
+Code: 00 00 00 c7 45 cc 00 00 00 00 c7 45 d4 03 00 00 00 c7 45 d8 0c 00 00 00 ba 80 41 4a c0 e8 67 10 01 00 89 c7 85 c0 75 4a 8b 75 e8 <83> 3e 03 75 5c 8b 46 08 8b 18 85 db 74 29 f6 c3 02 0f 85 82 00 
+EIP: [<c0237671>] acpi_run_osc+0xa1/0x170 SS:ESP 0068:f704fd7c
+---[ end trace a7919e7f17c0a725 ]---
+swapper used greatest stack depth: 5788 bytes left
+Kernel panic - not syncing: Attempted to kill init!
 
-This breaks compilation for ACPI_SLEEP=3Dn and XEN_SAVE_RESTORE=3Dy.
 
-The patch below fixes the breakage.
-
-> Signed-off-by: Len Brown <len.brown@intel.com>
-> ---
->  drivers/acpi/sleep/main.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
->=20
-> diff --git a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
-> index 7603788..26571ba 100644
-> --- a/drivers/acpi/sleep/main.c
-> +++ b/drivers/acpi/sleep/main.c
-> @@ -24,7 +24,6 @@
->  #include "sleep.h"
-> =20
->  u8 sleep_states[ACPI_S_STATE_COUNT];
-> -static u32 acpi_target_sleep_state =3D ACPI_STATE_S0;
-> =20
->  static void acpi_sleep_tts_switch(u32 acpi_state)
->  {
-> @@ -78,6 +77,7 @@ static int acpi_sleep_prepare(u32 acpi_state)
->  }
-> =20
->  #ifdef CONFIG_ACPI_SLEEP
-> +static u32 acpi_target_sleep_state =3D ACPI_STATE_S0;
->  /*
->   * ACPI 1.0 wants us to execute _PTS before suspending devices, so w=
-e allow the
->   * user to request that behavior by using the 'acpi_old_suspend_orde=
-ring'
-
----
-=46rom: Rafael J. Wysocki <rjw@sisk.pl>
-
-ACPI suspend: Fox compilation for ACPI_SLEEP unset and XEN_SAVE_RESTORE=
- set
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- drivers/acpi/sleep/main.c |    2 ++
- 1 file changed, 2 insertions(+)
-
-Index: linux-2.6/drivers/acpi/sleep/main.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-2.6.orig/drivers/acpi/sleep/main.c
-+++ linux-2.6/drivers/acpi/sleep/main.c
-@@ -163,6 +163,8 @@ static void acpi_pm_end(void)
- 	acpi_target_sleep_state =3D ACPI_STATE_S0;
- 	acpi_sleep_tts_switch(acpi_target_sleep_state);
- }
-+#else /* !CONFIG_ACPI_SLEEP */
-+#define acpi_target_sleep_state	ACPI_STATE_S0
- #endif /* CONFIG_ACPI_SLEEP */
-=20
- #ifdef CONFIG_SUSPEND
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
