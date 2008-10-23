@@ -1,65 +1,52 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 056/122] ACPI Suspend: Enable ACPI during resume if SCI_EN is
- not set
-Date: Thu, 23 Oct 2008 02:38:30 -0400
-Message-ID: <d0c71fe7ebc180f1b7bc7da1d39a07fc19eec768.1224743917.git.len.brown@intel.com>
+Subject: [PATCH 081/122] panasonic-laptop: depends on ACPI
+Date: Thu, 23 Oct 2008 02:38:55 -0400
+Message-ID: <7ba427c2363d91d4221843a9ae601f90f8d928b9.1224743917.git.len.brown@intel.com>
 References: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:46373 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754277AbYJWGkU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:40:20 -0400
+Received: from vms173003pub.verizon.net ([206.46.173.3]:55856 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754460AbYJWGkV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:40:21 -0400
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173005.mailsrvcs.net
+ by vms173003.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K9600KFQIIRS2L2@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:40:04 -0500 (CDT)
+ with ESMTPA id <0K9600FJ2IJ09H14@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:40:13 -0500 (CDT)
 In-reply-to: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 In-reply-to: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
 References: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>, Len Brown <len.brown@intel.com>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-On some machines, like for example MSI Wind U100, the BIOS doesn't
-enable ACPI before returning control to the OS, which sometimes
-causes resume to fail.  This is against the ACPI specification,
-which clearly states that "When the platform is waking from an S1, S2
-or S3 state, OSPM assumes the hardware is already in the ACPI mode
-and will not issue an ACPI_ENABLE", but it won't hurt to check the
-SCI_EN bit and enable ACPI during resume from S3 if this bit is not
-set.
+panasonic-laptop uses many acpi_*() functions so it should
+depend on ACPI; otherwise there are approximately 70
+warnings/errors generated.
 
-Fortunately, we already have acpi_enable() for that, so use it in the
-resume code path, before executing _BFS, in analogy with the
-resume-from-hibernation code path.
-
-NOTE: We aren't supposed to set SCI_EN directly, because it's owned
-by the hardware.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Pavel Machek <pavel@suse.cz>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Harald Welte <laforge@gnumonks.org>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/sleep/main.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ drivers/misc/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
-index c7f0c9c..5419938 100644
---- a/drivers/acpi/sleep/main.c
-+++ b/drivers/acpi/sleep/main.c
-@@ -233,6 +233,8 @@ static int acpi_suspend_enter(suspend_state_t pm_state)
- 		break;
- 	}
+diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+index 4ed8357..ec21994 100644
+--- a/drivers/misc/Kconfig
++++ b/drivers/misc/Kconfig
+@@ -247,7 +247,7 @@ config MSI_LAPTOP
  
-+	/* If ACPI is not enabled by the BIOS, we need to enable it here. */
-+	acpi_enable();
- 	/* Reprogram control registers and execute _BFS */
- 	acpi_leave_sleep_state_prep(acpi_state);
- 
+ config PANASONIC_LAPTOP
+ 	tristate "Panasonic Laptop Extras"
+-	depends on X86 && INPUT
++	depends on X86 && INPUT && ACPI
+         depends on BACKLIGHT_CLASS_DEVICE
+ 	---help---
+ 	  This driver adds support for access to backlight control and hotkeys
 -- 
 1.5.5.1
 
