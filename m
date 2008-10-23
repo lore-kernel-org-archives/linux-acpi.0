@@ -1,20 +1,22 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 001/122] Introduce FW_BUG,
- FW_WARN and FW_INFO to consistenly tell users about BIOS bugs
-Date: Thu, 23 Oct 2008 02:37:35 -0400
-Message-ID: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
+Subject: [PATCH 002/122] ACPI: cpufreq, processor: Detect old BIOS,
+ not supporting CPU freq on a recent CPU.
+Date: Thu, 23 Oct 2008 02:37:36 -0400
+Message-ID: <910dfae298f7b3dae0e9a52736182a3b0559ca35.1224743916.git.len.brown@intel.com>
 References: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:55787 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753098AbYJWGjl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:39:41 -0400
+Received: from vms173005pub.verizon.net ([206.46.173.5]:46302 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752657AbYJWGjm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:39:42 -0400
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173003.mailsrvcs.net
+ by vms173005.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K9600FYQII49X84@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:39:41 -0500 (CDT)
+ with ESMTPA id <0K9600K82II5SHQ2@vms173005.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:39:42 -0500 (CDT)
 In-reply-to: <1224743976-31033-1-git-send-email-lenb@kernel.org>
+In-reply-to: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
+References: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
@@ -22,147 +24,70 @@ Cc: Thomas Renninger <trenn@suse.de>, Andi Kleen <ak@linux.intel.com>, Len Brown
 
 From: Thomas Renninger <trenn@suse.de>
 
-The idea is to add this to printk after the severity:
-printk(KERN_ERR FW_BUG "This is not our fault, BIOS developer: fix it by
-simply add ...\n");
+On Intel CPUs it is rather common and a good hint that BIOSes which do provide
+_PPC func, but not the frequencies itself in _PSS function, are old and need
+to be updated for CPU freq support.
 
-If a Firmware issue should be hidden, because it is
-work-arounded, but you still want to see something popping up e.g.
-for info only:
-printk(KERN_INFO FW_INFO "This is done stupid, we can handle it,
-but it should better be avoided in future\n");
-
-or on the Linuxfirmwarekit to tell vendors that they did something
-stupid or wrong without bothering the user:
-printk(KERN_INFO FW_BUG "This is done stupid, we can handle it,
-but it should better be avoided in future\n");
-
-Some use cases:
-  - If a user sees a [Firmware Bug] message in the kernel
-    he should first update the BIOS before wasting time with
-    debugging and submiting on old firmware code to mailing
-    lists.
-
-  - The linuxfirmwarekit (http://www.linuxfirmwarekit.org)
-    tries to detect firmware bugs. It currently is doing that
-    in userspace which results in:
-        - Huge test scripts that could be a one liner in the kernel
-        - A lot of BIOS bugs are already absorbed by the kernel
-
-What do we need such a stupid linuxfirmwarekit for?
-
-  - Vendors: Can test their BIOSes for Linux compatibility.
-    There will be the time when vendors realize that the test utils
-    on Linux are more strict and using them increases the qualitity
-    and stability of their products.
-
-  - Vendors: Can easily fix up their BIOSes and be more Linux
-    compatible by:
-    dmesg |grep "Firmware Bug"
-    and send the result to their BIOS developer colleagues who should
-    know what the messages are about and how to fix them, without
-    the need of studying kernel code.
-
-  - Distributions: can do a first automated HW/BIOS checks.
-    This can then be done without the need of asking kernel developers
-    who need to dig down the code and explain the details.
-    Certification can/will just be rejected until
-    dmesg |grep "Firmware Bug" is empty.
-
-  - Thus this can be used as an instrument to enforce cleaner BIOS
-    code. Currently every stupid Windows ACPI bug is
-    re-implemented in Linux which is a rather unfortunate situation.
-    We already have the power to avoid this in e.g. memory
-    or cpu hot-plug ACPI implementations, because Linux certification
-    is a must for most vendors in the server area.
-    Working towards being able to do that in the laptop area
-    (vendors are starting to look at Linux here also and will use this tool)
-    is the goal. At least provide them a tool to make it as easy
-    for this guys (e.g. not needing to browse kernel code) as possible.
-
-  - The ordinary Linux user: can go into the next shop, boots the
-    firmwarekit on his most preferred machines. He chooses one without
-    BIOS bugs. Unsupported HW is ok, he likes to try out latest projects
-    which might support them or likes to dig on it on his own, but he
-    hates to workaround broken BIOSes like hell.
-
-I double checked with the firmwarekit.
-There they have:
-So the mapping generally is (also depending on how likely the BIOS is
-to blame, this could sometimes be difficult):
-FW_INFO  = INFO
-FW_WARN  = WARN
-FW_BUG   = FAIL
-
-For more info about the linuxfirmwarekit and why this is needed
-can be found here:
-http://www.linuxfirmwarekit.org
-
-While severity matches with the firmwarekit, it might be tricky
-to hide messages from the user.
-E.g. we recently found out that on HP BIOSes negative temperatures
-are returned, which seem to indicate that the thermal zone is
-invalid.
-We can work around that gracefully by ignoring the thermal zone
-and we do not want to bother the ordinary user with a frightening
-message: Firmware Bug: thermal management absolutely broken
-but want to hide it from the user.
-
-But in the linuxfirmwarekit this should be shown as a real
-show stopper (the temperatures could really be wrong,
-broken thermal management is one of the worst things
-that can happen and the BIOS guys of the machine must
-implement this properly).
-
-It is intended to do that (hide it from the user with
-KERN_INFO msg, but still print it as a BIOS bug) by:
-printk(KERN_INFO FW_BUG "Negativ temperature values detected.
-Try to workarounded, BIOS must get fixed\n");
-Hope that works out..., no idea how to better hide it
-as printk is the only way to easily provide this functionality.
+Tell the user/vendor he has a BIOS/firmware problem.
+Make use of FW_BUG interface to give vendors and users the ability to
+automatically check with (or let linuxfirmwarekit do that):
+dmesg |grep "Firmware Bug"
 
 Signed-off-by: Thomas Renninger <trenn@suse.de>
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- include/linux/kernel.h |   24 ++++++++++++++++++++++++
- 1 files changed, 24 insertions(+), 0 deletions(-)
+ drivers/acpi/processor_perflib.c |   18 +++++++++++++++---
+ 1 files changed, 15 insertions(+), 3 deletions(-)
 
-diff --git a/include/linux/kernel.h b/include/linux/kernel.h
-index 2651f80..0b19848 100644
---- a/include/linux/kernel.h
-+++ b/include/linux/kernel.h
-@@ -190,6 +190,30 @@ extern int kernel_text_address(unsigned long addr);
- struct pid;
- extern struct pid *session_of_pgrp(struct pid *pgrp);
+diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
+index 80c251e..242f814 100644
+--- a/drivers/acpi/processor_perflib.c
++++ b/drivers/acpi/processor_perflib.c
+@@ -38,6 +38,7 @@
  
-+/*
-+ * FW_BUG
-+ * Add this to a message where you are sure the firmware is buggy or behaves
-+ * really stupid or out of spec. Be aware that the responsible BIOS developer
-+ * should be able to fix this issue or at least get a concrete idea of the
-+ * problem by reading your message without the need of looking at the kernel
-+ * code.
-+ * 
-+ * Use it for definite and high priority BIOS bugs.
-+ *
-+ * FW_WARN
-+ * Use it for not that clear (e.g. could the kernel messed up things already?)
-+ * and medium priority BIOS bugs.
-+ *
-+ * FW_INFO
-+ * Use this one if you want to tell the user or vendor about something
-+ * suspicious, but generally harmless related to the firmware.
-+ *
-+ * Use it for information or very low priority BIOS bugs.
-+ */
-+#define FW_BUG		"[Firmware Bug]: "
-+#define FW_WARN		"[Firmware Warn]: "
-+#define FW_INFO		"[Firmware Info]: "
+ #include <asm/uaccess.h>
+ #endif
++#include <asm/cpufeature.h>
+ 
+ #include <acpi/acpi_bus.h>
+ #include <acpi/processor.h>
+@@ -334,7 +335,6 @@ static int acpi_processor_get_performance_info(struct acpi_processor *pr)
+ 	acpi_status status = AE_OK;
+ 	acpi_handle handle = NULL;
+ 
+-
+ 	if (!pr || !pr->performance || !pr->handle)
+ 		return -EINVAL;
+ 
+@@ -347,13 +347,25 @@ static int acpi_processor_get_performance_info(struct acpi_processor *pr)
+ 
+ 	result = acpi_processor_get_performance_control(pr);
+ 	if (result)
+-		return result;
++		goto update_bios;
+ 
+ 	result = acpi_processor_get_performance_states(pr);
+ 	if (result)
+-		return result;
++		goto update_bios;
+ 
+ 	return 0;
 +
- #ifdef CONFIG_PRINTK
- asmlinkage int vprintk(const char *fmt, va_list args)
- 	__attribute__ ((format (printf, 1, 0)));
++	/*
++	 * Having _PPC but missing frequencies (_PSS, _PCT) is a very good hint that
++	 * the BIOS is older than the CPU and does not know its frequencies
++	 */
++ update_bios:
++	if (ACPI_SUCCESS(acpi_get_handle(pr->handle, "_PPC", &handle))){
++		if(boot_cpu_has(X86_FEATURE_EST))
++			printk(KERN_WARNING FW_BUG "BIOS needs update for CPU "
++			       "frequency support\n");
++	}
++	return result;
+ }
+ 
+ int acpi_processor_notify_smm(struct module *calling_module)
 -- 
 1.5.5.1
 
