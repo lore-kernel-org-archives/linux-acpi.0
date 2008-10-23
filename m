@@ -1,306 +1,243 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 018/122] ACPI: EC: Rename some variables
-Date: Thu, 23 Oct 2008 02:37:52 -0400
-Message-ID: <8463200a00fe2aea938b40173198a0983f2929ef.1224743916.git.len.brown@intel.com>
+Subject: [PATCH 011/122] dock: introduce .uevent for devices in dock, eg libata
+Date: Thu, 23 Oct 2008 02:37:45 -0400
+Message-ID: <1253f7aabfebc51446dbec5c8895c5c8846dfe06.1224743916.git.len.brown@intel.com>
 References: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms044pub.verizon.net ([206.46.252.44]:37841 "EHLO
-	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753389AbYJWGjr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:39:47 -0400
+Received: from vms173001pub.verizon.net ([206.46.173.1]:58042 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753410AbYJWGjp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:39:45 -0400
 Received: from localhost.localdomain ([96.237.168.40])
- by vms044.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0K9600E5III9PBH7@vms044.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:39:46 -0500 (CDT)
+ by vms173001.mailsrvcs.net
+ (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+ with ESMTPA id <0K9600KRUII7RP32@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:39:45 -0500 (CDT)
 In-reply-to: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 In-reply-to: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
 References: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>
+Cc: Shaohua Li <shaohua.li@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
+From: Shaohua Li <shaohua.li@intel.com>
 
-No functional changes.
+dock's uevent reported itself, not ata. It might be difficult to find an
+ata device just according to a dock. This patch introduces docking ops
+for each device in a dock. when docking, dock driver can send device
+specific uevent. This should help dock station too (not just bay)
 
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-Acked-by: Rafael J. Wysocki <rjw@suse.com>
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Acked-by: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/ec.c |  118 ++++++++++++++++++++++++++++-------------------------
- 1 files changed, 63 insertions(+), 55 deletions(-)
+ drivers/acpi/dock.c                |   22 ++++++++++++-----
+ drivers/ata/libata-acpi.c          |   44 ++++++++++++++++++++++++++++++++++-
+ drivers/pci/hotplug/acpiphp_glue.c |    6 +++-
+ include/acpi/acpi_drivers.h        |    9 +++++-
+ 4 files changed, 68 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 7f0d81c..453ba1e 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -95,10 +95,11 @@ struct acpi_ec_query_handler {
- 	u8 query_bit;
- };
- 
--struct transaction_data {
-+struct transaction {
- 	const u8 *wdata;
- 	u8 *rdata;
- 	unsigned short irq_count;
-+	u8 command;
- 	u8 wlen;
- 	u8 rlen;
- };
-@@ -113,8 +114,8 @@ static struct acpi_ec {
- 	struct mutex lock;
- 	wait_queue_head_t wait;
+diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
+index f19f643..ac7dfef 100644
+--- a/drivers/acpi/dock.c
++++ b/drivers/acpi/dock.c
+@@ -75,7 +75,7 @@ struct dock_dependent_device {
  	struct list_head list;
--	struct transaction_data *t;
--	spinlock_t t_lock;
-+	struct transaction *curr;
-+	spinlock_t curr_lock;
- } *boot_ec, *first_ec;
+ 	struct list_head hotplug_list;
+ 	acpi_handle handle;
+-	acpi_notify_handler handler;
++	struct acpi_dock_ops *ops;
+ 	void *context;
+ };
  
- /* 
-@@ -176,37 +177,37 @@ static int ec_transaction_done(struct acpi_ec *ec)
- {
- 	unsigned long flags;
- 	int ret = 0;
--	spin_lock_irqsave(&ec->t_lock, flags);
--	if (!ec->t || (!ec->t->wlen && !ec->t->rlen))
-+	spin_lock_irqsave(&ec->curr_lock, flags);
-+	if (!ec->curr || (!ec->curr->wlen && !ec->curr->rlen))
- 		ret = 1;
--	spin_unlock_irqrestore(&ec->t_lock, flags);
-+	spin_unlock_irqrestore(&ec->curr_lock, flags);
- 	return ret;
- }
- 
- static void gpe_transaction(struct acpi_ec *ec, u8 status)
- {
- 	unsigned long flags;
--	spin_lock_irqsave(&ec->t_lock, flags);
--	if (!ec->t)
-+	spin_lock_irqsave(&ec->curr_lock, flags);
-+	if (!ec->curr)
- 		goto unlock;
--	if (ec->t->wlen > 0) {
-+	if (ec->curr->wlen > 0) {
- 		if ((status & ACPI_EC_FLAG_IBF) == 0) {
--			acpi_ec_write_data(ec, *(ec->t->wdata++));
--			--ec->t->wlen;
-+			acpi_ec_write_data(ec, *(ec->curr->wdata++));
-+			--ec->curr->wlen;
- 		} else
- 			/* false interrupt, state didn't change */
--			++ec->t->irq_count;
-+			++ec->curr->irq_count;
- 
--	} else if (ec->t->rlen > 0) {
-+	} else if (ec->curr->rlen > 0) {
- 		if ((status & ACPI_EC_FLAG_OBF) == 1) {
--			*(ec->t->rdata++) = acpi_ec_read_data(ec);
--			--ec->t->rlen;
-+			*(ec->curr->rdata++) = acpi_ec_read_data(ec);
-+			--ec->curr->rlen;
- 		} else
- 			/* false interrupt, state didn't change */
--			++ec->t->irq_count;
-+			++ec->curr->irq_count;
- 	}
- unlock:
--	spin_unlock_irqrestore(&ec->t_lock, flags);
-+	spin_unlock_irqrestore(&ec->curr_lock, flags);
- }
- 
- static int acpi_ec_wait(struct acpi_ec *ec)
-@@ -248,15 +249,11 @@ static int ec_poll(struct acpi_ec *ec)
- 	return -ETIME;
- }
- 
--static int acpi_ec_transaction_unlocked(struct acpi_ec *ec, u8 command,
--					const u8 * wdata, unsigned wdata_len,
--					u8 * rdata, unsigned rdata_len,
-+static int acpi_ec_transaction_unlocked(struct acpi_ec *ec,
-+					struct transaction *t,
- 					int force_poll)
- {
- 	unsigned long tmp;
--	struct transaction_data t = {.wdata = wdata, .rdata = rdata,
--				     .wlen = wdata_len, .rlen = rdata_len,
--				     .irq_count = 0};
- 	int ret = 0;
- 	pr_debug(PREFIX "transaction start\n");
- 	/* disable GPE during transaction if storm is detected */
-@@ -265,29 +262,30 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec, u8 command,
- 		acpi_disable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
- 	}
- 	/* start transaction */
--	spin_lock_irqsave(&ec->t_lock, tmp);
-+	spin_lock_irqsave(&ec->curr_lock, tmp);
- 	/* following two actions should be kept atomic */
--	ec->t = &t;
--	acpi_ec_write_cmd(ec, command);
--	if (command == ACPI_EC_COMMAND_QUERY)
-+	t->irq_count = 0;
-+	ec->curr = t;
-+	acpi_ec_write_cmd(ec, ec->curr->command);
-+	if (ec->curr->command == ACPI_EC_COMMAND_QUERY)
- 		clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
--	spin_unlock_irqrestore(&ec->t_lock, tmp);
-+	spin_unlock_irqrestore(&ec->curr_lock, tmp);
- 	/* if we selected poll mode or failed in GPE-mode do a poll loop */
- 	if (force_poll ||
- 	    !test_bit(EC_FLAGS_GPE_MODE, &ec->flags) ||
- 	    acpi_ec_wait(ec))
- 		ret = ec_poll(ec);
- 	pr_debug(PREFIX "transaction end\n");
--	spin_lock_irqsave(&ec->t_lock, tmp);
--	ec->t = NULL;
--	spin_unlock_irqrestore(&ec->t_lock, tmp);
-+	spin_lock_irqsave(&ec->curr_lock, tmp);
-+	ec->curr = NULL;
-+	spin_unlock_irqrestore(&ec->curr_lock, tmp);
- 	if (test_bit(EC_FLAGS_GPE_STORM, &ec->flags)) {
- 		/* check if we received SCI during transaction */
- 		ec_check_sci(ec, acpi_ec_read_status(ec));
- 		/* it is safe to enable GPE outside of transaction */
- 		acpi_enable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
- 	} else if (test_bit(EC_FLAGS_GPE_MODE, &ec->flags) &&
--		   t.irq_count > ACPI_EC_STORM_THRESHOLD) {
-+		   t->irq_count > ACPI_EC_STORM_THRESHOLD) {
- 		pr_debug(PREFIX "GPE storm detected\n");
- 		set_bit(EC_FLAGS_GPE_STORM, &ec->flags);
- 	}
-@@ -300,17 +298,15 @@ static int ec_check_ibf0(struct acpi_ec *ec)
- 	return (status & ACPI_EC_FLAG_IBF) == 0;
- }
- 
--static int acpi_ec_transaction(struct acpi_ec *ec, u8 command,
--			       const u8 * wdata, unsigned wdata_len,
--			       u8 * rdata, unsigned rdata_len,
-+static int acpi_ec_transaction(struct acpi_ec *ec, struct transaction *t,
- 			       int force_poll)
- {
- 	int status;
- 	u32 glk;
--	if (!ec || (wdata_len && !wdata) || (rdata_len && !rdata))
-+	if (!ec || (!t) || (t->wlen && !t->wdata) || (t->rlen && !t->rdata))
- 		return -EINVAL;
--	if (rdata)
--		memset(rdata, 0, rdata_len);
-+	if (t->rdata)
-+		memset(t->rdata, 0, t->rlen);
- 	mutex_lock(&ec->lock);
- 	if (ec->global_lock) {
- 		status = acpi_acquire_global_lock(ACPI_EC_UDELAY_GLK, &glk);
-@@ -326,10 +322,7 @@ static int acpi_ec_transaction(struct acpi_ec *ec, u8 command,
- 		status = -ETIME;
- 		goto end;
- 	}
--	status = acpi_ec_transaction_unlocked(ec, command,
--					      wdata, wdata_len,
--					      rdata, rdata_len,
--					      force_poll);
-+	status = acpi_ec_transaction_unlocked(ec, t, force_poll);
- end:
- 	if (ec->global_lock)
- 		acpi_release_global_lock(glk);
-@@ -345,23 +338,32 @@ unlock:
- int acpi_ec_burst_enable(struct acpi_ec *ec)
- {
- 	u8 d;
--	return acpi_ec_transaction(ec, ACPI_EC_BURST_ENABLE, NULL, 0, &d, 1, 0);
-+	struct transaction t = {.command = ACPI_EC_BURST_ENABLE,
-+				.wdata = NULL, .rdata = &d,
-+				.wlen = 0, .rlen = 1};
-+
-+	return acpi_ec_transaction(ec, &t, 0);
- }
- 
- int acpi_ec_burst_disable(struct acpi_ec *ec)
- {
-+	struct transaction t = {.command = ACPI_EC_BURST_DISABLE,
-+				.wdata = NULL, .rdata = NULL,
-+				.wlen = 0, .rlen = 0};
-+
- 	return (acpi_ec_read_status(ec) & ACPI_EC_FLAG_BURST) ?
--		acpi_ec_transaction(ec, ACPI_EC_BURST_DISABLE,
--			NULL, 0, NULL, 0, 0) : 0;
-+				acpi_ec_transaction(ec, &t, 0) : 0;
- }
- 
- static int acpi_ec_read(struct acpi_ec *ec, u8 address, u8 * data)
- {
- 	int result;
- 	u8 d;
-+	struct transaction t = {.command = ACPI_EC_COMMAND_READ,
-+				.wdata = &address, .rdata = &d,
-+				.wlen = 1, .rlen = 1};
- 
--	result = acpi_ec_transaction(ec, ACPI_EC_COMMAND_READ,
--				     &address, 1, &d, 1, 0);
-+	result = acpi_ec_transaction(ec, &t, 0);
- 	*data = d;
- 	return result;
- }
-@@ -369,8 +371,11 @@ static int acpi_ec_read(struct acpi_ec *ec, u8 address, u8 * data)
- static int acpi_ec_write(struct acpi_ec *ec, u8 address, u8 data)
- {
- 	u8 wdata[2] = { address, data };
--	return acpi_ec_transaction(ec, ACPI_EC_COMMAND_WRITE,
--				   wdata, 2, NULL, 0, 0);
-+	struct transaction t = {.command = ACPI_EC_COMMAND_WRITE,
-+				.wdata = wdata, .rdata = NULL,
-+				.wlen = 2, .rlen = 0};
-+
-+	return acpi_ec_transaction(ec, &t, 0);
- }
- 
- /*
-@@ -432,12 +437,13 @@ int ec_transaction(u8 command,
- 		   u8 * rdata, unsigned rdata_len,
- 		   int force_poll)
- {
-+	struct transaction t = {.command = command,
-+				.wdata = wdata, .rdata = rdata,
-+				.wlen = wdata_len, .rlen = rdata_len};
- 	if (!first_ec)
- 		return -ENODEV;
- 
--	return acpi_ec_transaction(first_ec, command, wdata,
--				   wdata_len, rdata, rdata_len,
--				   force_poll);
-+	return acpi_ec_transaction(first_ec, &t, force_poll);
- }
- 
- EXPORT_SYMBOL(ec_transaction);
-@@ -446,7 +452,9 @@ static int acpi_ec_query(struct acpi_ec *ec, u8 * data)
- {
- 	int result;
- 	u8 d;
--
-+	struct transaction t = {.command = ACPI_EC_COMMAND_QUERY,
-+				.wdata = NULL, .rdata = &d,
-+				.wlen = 0, .rlen = 1};
- 	if (!ec || !data)
- 		return -EINVAL;
- 
-@@ -456,7 +464,7 @@ static int acpi_ec_query(struct acpi_ec *ec, u8 * data)
- 	 * bit to be cleared (and thus clearing the interrupt source).
+@@ -385,8 +385,8 @@ static void hotplug_dock_devices(struct dock_station *ds, u32 event)
+ 	 * First call driver specific hotplug functions
  	 */
+ 	list_for_each_entry(dd, &ds->hotplug_devices, hotplug_list) {
+-		if (dd->handler)
+-			dd->handler(dd->handle, event, dd->context);
++		if (dd->ops && dd->ops->handler)
++			dd->ops->handler(dd->handle, event, dd->context);
+ 	}
  
--	result = acpi_ec_transaction(ec, ACPI_EC_COMMAND_QUERY, NULL, 0, &d, 1, 0);
-+	result = acpi_ec_transaction(ec, &t, 0);
- 	if (result)
- 		return result;
+ 	/*
+@@ -409,6 +409,7 @@ static void dock_event(struct dock_station *ds, u32 event, int num)
+ 	struct device *dev = &ds->dock_device->dev;
+ 	char event_string[13];
+ 	char *envp[] = { event_string, NULL };
++	struct dock_dependent_device *dd;
  
-@@ -696,7 +704,7 @@ static struct acpi_ec *make_acpi_ec(void)
- 	mutex_init(&ec->lock);
- 	init_waitqueue_head(&ec->wait);
- 	INIT_LIST_HEAD(&ec->list);
--	spin_lock_init(&ec->t_lock);
-+	spin_lock_init(&ec->curr_lock);
- 	return ec;
+ 	if (num == UNDOCK_EVENT)
+ 		sprintf(event_string, "EVENT=undock");
+@@ -419,7 +420,14 @@ static void dock_event(struct dock_station *ds, u32 event, int num)
+ 	 * Indicate that the status of the dock station has
+ 	 * changed.
+ 	 */
+-	kobject_uevent_env(&dev->kobj, KOBJ_CHANGE, envp);
++	if (num == DOCK_EVENT)
++		kobject_uevent_env(&dev->kobj, KOBJ_CHANGE, envp);
++
++	list_for_each_entry(dd, &ds->hotplug_devices, hotplug_list)
++		if (dd->ops && dd->ops->uevent)
++			dd->ops->uevent(dd->handle, event, dd->context);
++	if (num != DOCK_EVENT)
++		kobject_uevent_env(&dev->kobj, KOBJ_CHANGE, envp);
  }
  
+ /**
+@@ -588,7 +596,7 @@ EXPORT_SYMBOL_GPL(unregister_dock_notifier);
+ /**
+  * register_hotplug_dock_device - register a hotplug function
+  * @handle: the handle of the device
+- * @handler: the acpi_notifier_handler to call after docking
++ * @ops: handlers to call after docking
+  * @context: device specific data
+  *
+  * If a driver would like to perform a hotplug operation after a dock
+@@ -596,7 +604,7 @@ EXPORT_SYMBOL_GPL(unregister_dock_notifier);
+  * the dock driver after _DCK is executed.
+  */
+ int
+-register_hotplug_dock_device(acpi_handle handle, acpi_notify_handler handler,
++register_hotplug_dock_device(acpi_handle handle, struct acpi_dock_ops *ops,
+ 			     void *context)
+ {
+ 	struct dock_dependent_device *dd;
+@@ -612,7 +620,7 @@ register_hotplug_dock_device(acpi_handle handle, acpi_notify_handler handler,
+ 	list_for_each_entry(dock_station, &dock_stations, sibiling) {
+ 		dd = find_dock_dependent_device(dock_station, handle);
+ 		if (dd) {
+-			dd->handler = handler;
++			dd->ops = ops;
+ 			dd->context = context;
+ 			dock_add_hotplug_device(dock_station, dd);
+ 			return 0;
+diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c
+index 97727be..c012307 100644
+--- a/drivers/ata/libata-acpi.c
++++ b/drivers/ata/libata-acpi.c
+@@ -209,6 +209,46 @@ static void ata_acpi_ap_notify_dock(acpi_handle handle, u32 event, void *data)
+ 	ata_acpi_handle_hotplug(ap, NULL, event);
+ }
+ 
++static void ata_acpi_uevent(struct ata_port *ap, struct ata_device *dev,
++	u32 event)
++{
++	struct kobject *kobj = NULL;
++	char event_string[20];
++	char *envp[] = { event_string, NULL };
++
++	if (dev) {
++		if (dev->sdev)
++			kobj = &dev->sdev->sdev_gendev.kobj;
++	} else
++		kobj = &ap->dev->kobj;
++
++	if (kobj) {
++		snprintf(event_string, 20, "BAY_EVENT=%d", event);
++		kobject_uevent_env(kobj, KOBJ_CHANGE, envp);
++	}
++}
++
++static void ata_acpi_ap_uevent(acpi_handle handle, u32 event, void *data)
++{
++	ata_acpi_uevent(data, NULL, event);
++}
++
++static void ata_acpi_dev_uevent(acpi_handle handle, u32 event, void *data)
++{
++	struct ata_device *dev = data;
++	ata_acpi_uevent(dev->link->ap, dev, event);
++}
++
++static struct acpi_dock_ops ata_acpi_dev_dock_ops = {
++	.handler = ata_acpi_dev_notify_dock,
++	.uevent = ata_acpi_dev_uevent,
++};
++
++static struct acpi_dock_ops ata_acpi_ap_dock_ops = {
++	.handler = ata_acpi_ap_notify_dock,
++	.uevent = ata_acpi_ap_uevent,
++};
++
+ /**
+  * ata_acpi_associate - associate ATA host with ACPI objects
+  * @host: target ATA host
+@@ -244,7 +284,7 @@ void ata_acpi_associate(struct ata_host *host)
+ 		if (ap->acpi_handle) {
+ 			/* we might be on a docking station */
+ 			register_hotplug_dock_device(ap->acpi_handle,
+-					     ata_acpi_ap_notify_dock, ap);
++					     &ata_acpi_ap_dock_ops, ap);
+ 		}
+ 
+ 		for (j = 0; j < ata_link_max_devices(&ap->link); j++) {
+@@ -253,7 +293,7 @@ void ata_acpi_associate(struct ata_host *host)
+ 			if (dev->acpi_handle) {
+ 				/* we might be on a docking station */
+ 				register_hotplug_dock_device(dev->acpi_handle,
+-					     ata_acpi_dev_notify_dock, dev);
++					     &ata_acpi_dev_dock_ops, dev);
+ 			}
+ 		}
+ 	}
+diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+index a3e4705..db54c5e 100644
+--- a/drivers/pci/hotplug/acpiphp_glue.c
++++ b/drivers/pci/hotplug/acpiphp_glue.c
+@@ -169,7 +169,9 @@ static int post_dock_fixups(struct notifier_block *nb, unsigned long val,
+ }
+ 
+ 
+-
++static struct acpi_dock_ops acpiphp_dock_ops = {
++	.handler = handle_hotplug_event_func,
++};
+ 
+ /* callback routine to register each ACPI PCI slot object */
+ static acpi_status
+@@ -285,7 +287,7 @@ register_slot(acpi_handle handle, u32 lvl, void *context, void **rv)
+ 		 */
+ 		newfunc->flags &= ~FUNC_HAS_EJ0;
+ 		if (register_hotplug_dock_device(handle,
+-			handle_hotplug_event_func, newfunc))
++			&acpiphp_dock_ops, newfunc))
+ 			dbg("failed to register dock device\n");
+ 
+ 		/* we need to be notified when dock events happen
+diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
+index e5f38e5..4f5042a 100644
+--- a/include/acpi/acpi_drivers.h
++++ b/include/acpi/acpi_drivers.h
+@@ -115,12 +115,17 @@ int acpi_processor_set_thermal_limit(acpi_handle handle, int type);
+ /*--------------------------------------------------------------------------
+                                   Dock Station
+   -------------------------------------------------------------------------- */
++struct acpi_dock_ops {
++	acpi_notify_handler handler;
++	acpi_notify_handler uevent;
++};
++
+ #if defined(CONFIG_ACPI_DOCK) || defined(CONFIG_ACPI_DOCK_MODULE)
+ extern int is_dock_device(acpi_handle handle);
+ extern int register_dock_notifier(struct notifier_block *nb);
+ extern void unregister_dock_notifier(struct notifier_block *nb);
+ extern int register_hotplug_dock_device(acpi_handle handle,
+-					acpi_notify_handler handler,
++					struct acpi_dock_ops *ops,
+ 					void *context);
+ extern void unregister_hotplug_dock_device(acpi_handle handle);
+ #else
+@@ -136,7 +141,7 @@ static inline void unregister_dock_notifier(struct notifier_block *nb)
+ {
+ }
+ static inline int register_hotplug_dock_device(acpi_handle handle,
+-					       acpi_notify_handler handler,
++					       struct acpi_dock_ops *ops,
+ 					       void *context)
+ {
+ 	return -ENODEV;
 -- 
 1.5.5.1
 
