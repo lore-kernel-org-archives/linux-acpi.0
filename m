@@ -1,36 +1,53 @@
-From: Andi Kleen <ak@linux.intel.com>
-Subject: Re: [PATCH 2/2] i7300_idle driver v1.55
-Date: Thu, 23 Oct 2008 14:26:45 +0200
-Message-ID: <49006D85.1050709@linux.intel.com>
-References: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com> <e8b529091b2ab65f5a4783e292c2b472e309116e.1223706853.git.len.brown@intel.com> <20081011083347.GA31918@elte.hu> <alpine.LFD.1.10.0810161805360.3026@localhost.localdomain> <48FE07AE.4010203@linux.intel.com> <7E82351C108FA840AB1866AC776AEC4637CD27F3@orsmsx505.amr.corp.intel.com> <48FED3FA.6040703@linux.intel.com> <20081022234006.GB28775@linux-os.sc.intel.com> <48FFCF28.3070604@linux.intel.com> <7E82351C108FA840AB1866AC776AEC4637D389DB@orsmsx505.amr.corp.intel.com>
+From: "Richard Thompson" <binary@badbin.dontexist.net>
+Subject: ACPI DMI info
+Date: Thu, 23 Oct 2008 13:38:57 +0100 (BST)
+Message-ID: <42851.81.99.45.94.1224765537.squirrel@badbin.dontexist.net>
+Reply-To: binary@badbin.dontexist.net
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:45053 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752550AbYJWM0g (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 Oct 2008 08:26:36 -0400
-In-Reply-To: <7E82351C108FA840AB1866AC776AEC4637D389DB@orsmsx505.amr.corp.intel.com>
+Received: from mtaout03-winn.ispmail.ntl.com ([81.103.221.49]:26485 "EHLO
+	mtaout03-winn.ispmail.ntl.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751169AbYJWMjH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Oct 2008 08:39:07 -0400
+Received: from aamtaout03-winn.ispmail.ntl.com ([81.103.221.35])
+          by mtaout03-winn.ispmail.ntl.com
+          (InterMail vM.7.05.02.00 201-2174-114-20060621) with ESMTP
+          id <20081023123859.WOGX10791.mtaout03-winn.ispmail.ntl.com@aamtaout03-winn.ispmail.ntl.com>
+          for <linux-acpi@vger.kernel.org>; Thu, 23 Oct 2008 13:38:59 +0100
+Received: from jade ([81.99.45.94]) by aamtaout03-winn.ispmail.ntl.com
+          (InterMail vG.2.02.00.01 201-2161-120-102-20060912) with ESMTP
+          id <20081023123859.KQEQ2093.aamtaout03-winn.ispmail.ntl.com@jade>
+          for <linux-acpi@vger.kernel.org>; Thu, 23 Oct 2008 13:38:59 +0100
+Received: from localhost
+	([127.0.0.1] helo=badbin.dontexist.net ident=www-data)
+	by jade with esmtp (Exim 4.63)
+	(envelope-from <binary@badbin.dontexist.net>)
+	id 1KszSr-0005JL-3t
+	for linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 13:38:57 +0100
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Cc: Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Henroid, Andrew D" <andrew.d.henroid@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "paulmck@us.ibm.com" <paulmck@us.ibm.com>
+To: linux-acpi@vger.kernel.org
 
+binary@emily:~$ dmesg |grep acpi
+ACPI: LAPIC (acpi_id[0x00] lapic_id[0x00] enabled)
+ACPI: LAPIC (acpi_id[0x01] lapic_id[0x01] enabled)
+ACPI: LAPIC_NMI (acpi_id[0x00] high edge lint[0x1])
+ACPI: LAPIC_NMI (acpi_id[0x01] high edge lint[0x1])
+ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
+ACPI: If "acpi_osi=Linux" works better, please notify
+linux-acpi@vger.kernel.org
 
-> This should not matter as we can safely remove the module even when
-> one or more CPUs are idle. As long as one CPU is running, we are sure
-> that throttling is not in effect. And as long as we make sure no one
-> is executing the notifier that is going to be rmmoded, we should
-> be OK. Say one CPU comes out of the idle later, it wont see the notifier
-> in the notifier list anymore, because of RCU in atomic notifier
-> and things will work fine. I mean we are not rmmoding the routine
-> that enters the idle state. We are just rmmoding the routine that
-> Can get called before and after idle routine.
+I have no idea what it's about. Enjoy :-)
+-- 
+Richard Thompson
 
-That means there is a ordering dependency between the RCU idle
-state getting updated and your code running. That is what I meant with
-"very careful with idle". Even if it worked right now would
-seem fragile to me.
+-----BEGIN GEEK CODE BLOCK-----
+Version: 3.12
+GCS d- s:- a--- C++ UL+++ P L+++ E---- W+++ N+ o-- K- w
+O-- M-- V-- PS PE Y+ PGP++ t+ 5 X+ R-- !tv b+ DI-- D-
+G e h-- !r y
+------END GEEK CODE BLOCK------
 
--Andi
