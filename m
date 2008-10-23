@@ -1,488 +1,641 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 012/122] bay: remove driver,
- all functions now handled by dock driver
-Date: Thu, 23 Oct 2008 02:37:46 -0400
-Message-ID: <4be9309d15e88e4a1e4a78deb52eb88c7da38c99.1224743916.git.len.brown@intel.com>
+Subject: [PATCH 038/122] PNP: convert to using pnp_dbg()
+Date: Thu, 23 Oct 2008 02:38:12 -0400
+Message-ID: <2f53432c2aedbe79020e44525eb069d9138a01dd.1224743916.git.len.brown@intel.com>
 References: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms046pub.verizon.net ([206.46.252.46]:40851 "EHLO
+Received: from vms046pub.verizon.net ([206.46.252.46]:40898 "EHLO
 	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753655AbYJWGjr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:39:47 -0400
+	with ESMTP id S1754786AbYJWGj6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:39:58 -0400
 Received: from localhost.localdomain ([96.237.168.40])
  by vms046.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0K96000W6II8XXG2@vms046.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:39:44 -0500 (CDT)
+ 3 2006)) with ESMTPA id <0K96000S5IIKYBQ2@vms046.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:39:57 -0500 (CDT)
 In-reply-to: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 In-reply-to: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
 References: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Shaohua Li <shaohua.li@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Andi Kleen <ak@linux.intel.com>, Len Brown <len.brown@intel.com>
 
-From: Shaohua Li <shaohua.li@intel.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+pnp_dbg() is equivalent to dev_dbg() except that we can turn it
+on at boot-time with the "pnp.debug" kernel parameter, so we don't
+have to build a new kernel image.
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/Kconfig  |   11 +-
- drivers/acpi/Makefile |    1 -
- drivers/acpi/bay.c    |  411 -------------------------------------------------
- 3 files changed, 2 insertions(+), 421 deletions(-)
- delete mode 100644 drivers/acpi/bay.c
+ drivers/pnp/core.c             |    2 +-
+ drivers/pnp/isapnp/core.c      |   12 ++++++------
+ drivers/pnp/manager.c          |   34 +++++++++++++++++-----------------
+ drivers/pnp/pnpacpi/core.c     |    4 ++--
+ drivers/pnp/pnpacpi/rsparser.c |   28 ++++++++++++++--------------
+ drivers/pnp/pnpbios/core.c     |    4 ++--
+ drivers/pnp/pnpbios/rsparser.c |   18 +++++++++---------
+ drivers/pnp/quirks.c           |    2 +-
+ drivers/pnp/resource.c         |   12 ++++++------
+ drivers/pnp/support.c          |   10 +++++-----
+ 10 files changed, 63 insertions(+), 63 deletions(-)
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 735f5ea..3919d6d 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -160,15 +160,8 @@ config ACPI_DOCK
- 	tristate "Dock"
- 	depends on EXPERIMENTAL
- 	help
--	  This driver adds support for ACPI controlled docking stations
--
--config ACPI_BAY
--	tristate "Removable Drive Bay (EXPERIMENTAL)"
--	depends on EXPERIMENTAL
--	depends on ACPI_DOCK
--	help
--	  This driver adds support for ACPI controlled removable drive
--	  bays such as the IBM ultrabay or the Dell Module Bay.
-+	  This driver adds support for ACPI controlled docking stations and removable
-+	  drive bays such as the IBM ultrabay or the Dell Module Bay.
+diff --git a/drivers/pnp/core.c b/drivers/pnp/core.c
+index 61291b5..5215615 100644
+--- a/drivers/pnp/core.c
++++ b/drivers/pnp/core.c
+@@ -200,7 +200,7 @@ int pnp_add_device(struct pnp_dev *dev)
+ 	for (id = dev->id; id; id = id->next)
+ 		len += scnprintf(buf + len, sizeof(buf) - len, " %s", id->id);
  
- config ACPI_PROCESSOR
- 	tristate "Processor"
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 52a4cd4..ad4bfd5 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -45,7 +45,6 @@ obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
- obj-$(CONFIG_ACPI_BUTTON)	+= button.o
- obj-$(CONFIG_ACPI_FAN)		+= fan.o
- obj-$(CONFIG_ACPI_DOCK)		+= dock.o
--obj-$(CONFIG_ACPI_BAY)		+= bay.o
- obj-$(CONFIG_ACPI_VIDEO)	+= video.o
- obj-y				+= pci_root.o pci_link.o pci_irq.o pci_bind.o
- obj-$(CONFIG_ACPI_PCI_SLOT)	+= pci_slot.o
-diff --git a/drivers/acpi/bay.c b/drivers/acpi/bay.c
-deleted file mode 100644
-index 61b6c5b..0000000
---- a/drivers/acpi/bay.c
-+++ /dev/null
-@@ -1,411 +0,0 @@
--/*
-- *  bay.c - ACPI removable drive bay driver
-- *
-- *  Copyright (C) 2006 Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-- *
-- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-- *
-- *  This program is free software; you can redistribute it and/or modify
-- *  it under the terms of the GNU General Public License as published by
-- *  the Free Software Foundation; either version 2 of the License, or (at
-- *  your option) any later version.
-- *
-- *  This program is distributed in the hope that it will be useful, but
-- *  WITHOUT ANY WARRANTY; without even the implied warranty of
-- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-- *  General Public License for more details.
-- *
-- *  You should have received a copy of the GNU General Public License along
-- *  with this program; if not, write to the Free Software Foundation, Inc.,
-- *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
-- *
-- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-- */
--#include <linux/kernel.h>
--#include <linux/module.h>
--#include <linux/init.h>
--#include <linux/types.h>
--#include <linux/notifier.h>
--#include <acpi/acpi_bus.h>
--#include <acpi/acpi_drivers.h>
--#include <linux/seq_file.h>
--#include <asm/uaccess.h>
--#include <linux/platform_device.h>
--
--ACPI_MODULE_NAME("bay");
--MODULE_AUTHOR("Kristen Carlson Accardi");
--MODULE_DESCRIPTION("ACPI Removable Drive Bay Driver");
--MODULE_LICENSE("GPL");
--#define ACPI_BAY_CLASS "bay"
--#define ACPI_BAY_COMPONENT	0x10000000
--#define _COMPONENT ACPI_BAY_COMPONENT
--#define bay_dprintk(h,s) {\
--	char prefix[80] = {'\0'};\
--	struct acpi_buffer buffer = {sizeof(prefix), prefix};\
--	acpi_get_name(h, ACPI_FULL_PATHNAME, &buffer);\
--	printk(KERN_DEBUG PREFIX "%s: %s\n", prefix, s); }
--static void bay_notify(acpi_handle handle, u32 event, void *data);
--
--static const struct acpi_device_id bay_device_ids[] = {
--	{"LNXIOBAY", 0},
--	{"", 0},
--};
--MODULE_DEVICE_TABLE(acpi, bay_device_ids);
--
--struct bay {
--	acpi_handle handle;
--	char *name;
--	struct list_head list;
--	struct platform_device *pdev;
--};
--
--static LIST_HEAD(drive_bays);
--
--
--/*****************************************************************************
-- *                         Drive Bay functions                               *
-- *****************************************************************************/
--/**
-- * is_ejectable - see if a device is ejectable
-- * @handle: acpi handle of the device
-- *
-- * If an acpi object has a _EJ0 method, then it is ejectable
-- */
--static int is_ejectable(acpi_handle handle)
--{
--	acpi_status status;
--	acpi_handle tmp;
--
--	status = acpi_get_handle(handle, "_EJ0", &tmp);
--	if (ACPI_FAILURE(status))
--		return 0;
--	return 1;
--}
--
--/**
-- * bay_present - see if the bay device is present
-- * @bay: the drive bay
-- *
-- * execute the _STA method.
-- */
--static int bay_present(struct bay *bay)
--{
--	unsigned long sta;
--	acpi_status status;
--
--	if (bay) {
--		status = acpi_evaluate_integer(bay->handle, "_STA", NULL, &sta);
--		if (ACPI_SUCCESS(status) && sta)
--			return 1;
--	}
--	return 0;
--}
--
--/**
-- * eject_device - respond to an eject request
-- * @handle - the device to eject
-- *
-- * Call this devices _EJ0 method.
-- */
--static void eject_device(acpi_handle handle)
--{
--	struct acpi_object_list arg_list;
--	union acpi_object arg;
--
--	bay_dprintk(handle, "Ejecting device");
--
--	arg_list.count = 1;
--	arg_list.pointer = &arg;
--	arg.type = ACPI_TYPE_INTEGER;
--	arg.integer.value = 1;
--
--	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_EJ0",
--					      &arg_list, NULL)))
--		pr_debug("Failed to evaluate _EJ0!\n");
--}
--
--/*
-- * show_present - read method for "present" file in sysfs
-- */
--static ssize_t show_present(struct device *dev,
--			   struct device_attribute *attr, char *buf)
--{
--	struct bay *bay = dev_get_drvdata(dev);
--	return snprintf(buf, PAGE_SIZE, "%d\n", bay_present(bay));
--
--}
--static DEVICE_ATTR(present, S_IRUGO, show_present, NULL);
--
--/*
-- * write_eject - write method for "eject" file in sysfs
-- */
--static ssize_t write_eject(struct device *dev, struct device_attribute *attr,
--			   const char *buf, size_t count)
--{
--	struct bay *bay = dev_get_drvdata(dev);
--
--	if (!count)
--		return -EINVAL;
--
--	eject_device(bay->handle);
--	return count;
--}
--static DEVICE_ATTR(eject, S_IWUSR, NULL, write_eject);
--
--/**
-- * is_ata - see if a device is an ata device
-- * @handle: acpi handle of the device
-- *
-- * If an acpi object has one of 4 ATA ACPI methods defined,
-- * then it is an ATA device
-- */
--static int is_ata(acpi_handle handle)
--{
--	acpi_handle tmp;
--
--	if ((ACPI_SUCCESS(acpi_get_handle(handle, "_GTF", &tmp))) ||
--	   (ACPI_SUCCESS(acpi_get_handle(handle, "_GTM", &tmp))) ||
--	   (ACPI_SUCCESS(acpi_get_handle(handle, "_STM", &tmp))) ||
--	   (ACPI_SUCCESS(acpi_get_handle(handle, "_SDD", &tmp))))
--		return 1;
--
--	return 0;
--}
--
--/**
-- * parent_is_ata(acpi_handle handle)
-- *
-- */
--static int parent_is_ata(acpi_handle handle)
--{
--	acpi_handle phandle;
--
--	if (acpi_get_parent(handle, &phandle))
--		return 0;
--
--	return is_ata(phandle);
--}
--
--/**
-- * is_ejectable_bay - see if a device is an ejectable drive bay
-- * @handle: acpi handle of the device
-- *
-- * If an acpi object is ejectable and has one of the ACPI ATA
-- * methods defined, then we can safely call it an ejectable
-- * drive bay
-- */
--static int is_ejectable_bay(acpi_handle handle)
--{
--	if ((is_ata(handle) || parent_is_ata(handle)) && is_ejectable(handle))
--		return 1;
--	return 0;
--}
--
--#if 0
--/**
-- * eject_removable_drive - try to eject this drive
-- * @dev : the device structure of the drive
-- *
-- * If a device is a removable drive that requires an _EJ0 method
-- * to be executed in order to safely remove from the system, do
-- * it.  ATM - always returns success
-- */
--int eject_removable_drive(struct device *dev)
--{
--	acpi_handle handle = DEVICE_ACPI_HANDLE(dev);
--
--	if (handle) {
--		bay_dprintk(handle, "Got device handle");
--		if (is_ejectable_bay(handle))
--			eject_device(handle);
--	} else {
--		printk("No acpi handle for device\n");
--	}
--
--	/* should I return an error code? */
--	return 0;
--}
--EXPORT_SYMBOL_GPL(eject_removable_drive);
--#endif  /*  0  */
--
--static int acpi_bay_add_fs(struct bay *bay)
--{
--	int ret;
--	struct device *dev = &bay->pdev->dev;
--
--	ret = device_create_file(dev, &dev_attr_present);
--	if (ret)
--		goto add_fs_err;
--	ret = device_create_file(dev, &dev_attr_eject);
--	if (ret) {
--		device_remove_file(dev, &dev_attr_present);
--		goto add_fs_err;
--	}
--	return 0;
--
-- add_fs_err:
--	bay_dprintk(bay->handle, "Error adding sysfs files\n");
--	return ret;
--}
--
--static void acpi_bay_remove_fs(struct bay *bay)
--{
--	struct device *dev = &bay->pdev->dev;
--
--	/* cleanup sysfs */
--	device_remove_file(dev, &dev_attr_present);
--	device_remove_file(dev, &dev_attr_eject);
--}
--
--static int bay_is_dock_device(acpi_handle handle)
--{
--	acpi_handle parent;
--
--	acpi_get_parent(handle, &parent);
--
--	/* if the device or it's parent is dependent on the
--	 * dock, then we are a dock device
--	 */
--	return (is_dock_device(handle) || is_dock_device(parent));
--}
--
--static int bay_add(acpi_handle handle, int id)
--{
--	acpi_status status;
--	struct bay *new_bay;
--	struct platform_device *pdev;
--	struct acpi_buffer nbuffer = {ACPI_ALLOCATE_BUFFER, NULL};
--	acpi_get_name(handle, ACPI_FULL_PATHNAME, &nbuffer);
--
--	bay_dprintk(handle, "Adding notify handler");
--
--	/*
--	 * Initialize bay device structure
--	 */
--	new_bay = kzalloc(sizeof(*new_bay), GFP_ATOMIC);
--	INIT_LIST_HEAD(&new_bay->list);
--	new_bay->handle = handle;
--	new_bay->name = (char *)nbuffer.pointer;
--
--	/* initialize platform device stuff */
--	pdev = platform_device_register_simple(ACPI_BAY_CLASS, id, NULL, 0);
--	if (IS_ERR(pdev)) {
--		printk(KERN_ERR PREFIX "Error registering bay device\n");
--		goto bay_add_err;
--	}
--	new_bay->pdev = pdev;
--	platform_set_drvdata(pdev, new_bay);
--
--	/*
--	 * we want the bay driver to be able to send uevents
--	 */
--	pdev->dev.uevent_suppress = 0;
--
--	/* register for events on this device */
--	status = acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
--			bay_notify, new_bay);
--	if (ACPI_FAILURE(status)) {
--		printk(KERN_INFO PREFIX "Error installing bay notify handler\n");
--		platform_device_unregister(new_bay->pdev);
--		goto bay_add_err;
--	}
--
--	if (acpi_bay_add_fs(new_bay)) {
--		acpi_remove_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
--					   bay_notify);
--		platform_device_unregister(new_bay->pdev);
--		goto bay_add_err;
--	}
--
--	/* if we are on a dock station, we should register for dock
--	 * notifications.
--	 */
--	if (bay_is_dock_device(handle)) {
--		bay_dprintk(handle, "Is dependent on dock\n");
--		register_hotplug_dock_device(handle, bay_notify, new_bay);
--	}
--	list_add(&new_bay->list, &drive_bays);
--	printk(KERN_INFO PREFIX "Bay [%s] Added\n", new_bay->name);
--	return 0;
--
--bay_add_err:
--	kfree(new_bay->name);
--	kfree(new_bay);
--	return -ENODEV;
--}
--
--/**
-- * bay_notify - act upon an acpi bay notification
-- * @handle: the bay handle
-- * @event: the acpi event
-- * @data: our driver data struct
-- *
-- */
--static void bay_notify(acpi_handle handle, u32 event, void *data)
--{
--	struct bay *bay_dev = (struct bay *)data;
--	struct device *dev = &bay_dev->pdev->dev;
--	char event_string[12];
--	char *envp[] = { event_string, NULL };
--
--	bay_dprintk(handle, "Bay event");
--	sprintf(event_string, "BAY_EVENT=%d", event);
--	kobject_uevent_env(&dev->kobj, KOBJ_CHANGE, envp);
--}
--
--static acpi_status
--find_bay(acpi_handle handle, u32 lvl, void *context, void **rv)
--{
--	int *count = (int *)context;
--
--	/*
--	 * there could be more than one ejectable bay.
--	 * so, just return AE_OK always so that every object
--	 * will be checked.
--	 */
--	if (is_ejectable_bay(handle)) {
--		bay_dprintk(handle, "found ejectable bay");
--		if (!bay_add(handle, *count))
--			(*count)++;
--	}
--	return AE_OK;
--}
--
--static int __init bay_init(void)
--{
--	int bays = 0;
--
--	INIT_LIST_HEAD(&drive_bays);
--
--	if (acpi_disabled)
--		return -ENODEV;
--
--	/* look for dockable drive bays */
--	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
--		ACPI_UINT32_MAX, find_bay, &bays, NULL);
--
--	if (!bays)
--		return -ENODEV;
--
--	return 0;
--}
--
--static void __exit bay_exit(void)
--{
--	struct bay *bay, *tmp;
--
--	list_for_each_entry_safe(bay, tmp, &drive_bays, list) {
--		if (is_dock_device(bay->handle))
--			unregister_hotplug_dock_device(bay->handle);
--		acpi_bay_remove_fs(bay);
--		acpi_remove_notify_handler(bay->handle, ACPI_SYSTEM_NOTIFY,
--			bay_notify);
--		platform_device_unregister(bay->pdev);
--		kfree(bay->name);
--		kfree(bay);
--	}
--}
--
--postcore_initcall(bay_init);
--module_exit(bay_exit);
--
+-	dev_dbg(&dev->dev, "%s device, IDs%s (%s)\n",
++	pnp_dbg(&dev->dev, "%s device, IDs%s (%s)\n",
+ 		dev->protocol->name, buf, dev->active ? "active" : "disabled");
+ 	return 0;
+ }
+diff --git a/drivers/pnp/isapnp/core.c b/drivers/pnp/isapnp/core.c
+index 101a835..bd213ff 100644
+--- a/drivers/pnp/isapnp/core.c
++++ b/drivers/pnp/isapnp/core.c
+@@ -901,7 +901,7 @@ static int isapnp_get_resources(struct pnp_dev *dev)
+ {
+ 	int i, ret;
+ 
+-	dev_dbg(&dev->dev, "get resources\n");
++	pnp_dbg(&dev->dev, "get resources\n");
+ 	pnp_init_resources(dev);
+ 	isapnp_cfg_begin(dev->card->number, dev->number);
+ 	dev->active = isapnp_read_byte(ISAPNP_CFG_ACTIVATE);
+@@ -939,13 +939,13 @@ static int isapnp_set_resources(struct pnp_dev *dev)
+ 	struct resource *res;
+ 	int tmp;
+ 
+-	dev_dbg(&dev->dev, "set resources\n");
++	pnp_dbg(&dev->dev, "set resources\n");
+ 	isapnp_cfg_begin(dev->card->number, dev->number);
+ 	dev->active = 1;
+ 	for (tmp = 0; tmp < ISAPNP_MAX_PORT; tmp++) {
+ 		res = pnp_get_resource(dev, IORESOURCE_IO, tmp);
+ 		if (pnp_resource_enabled(res)) {
+-			dev_dbg(&dev->dev, "  set io  %d to %#llx\n",
++			pnp_dbg(&dev->dev, "  set io  %d to %#llx\n",
+ 				tmp, (unsigned long long) res->start);
+ 			isapnp_write_word(ISAPNP_CFG_PORT + (tmp << 1),
+ 					  res->start);
+@@ -957,14 +957,14 @@ static int isapnp_set_resources(struct pnp_dev *dev)
+ 			int irq = res->start;
+ 			if (irq == 2)
+ 				irq = 9;
+-			dev_dbg(&dev->dev, "  set irq %d to %d\n", tmp, irq);
++			pnp_dbg(&dev->dev, "  set irq %d to %d\n", tmp, irq);
+ 			isapnp_write_byte(ISAPNP_CFG_IRQ + (tmp << 1), irq);
+ 		}
+ 	}
+ 	for (tmp = 0; tmp < ISAPNP_MAX_DMA; tmp++) {
+ 		res = pnp_get_resource(dev, IORESOURCE_DMA, tmp);
+ 		if (pnp_resource_enabled(res)) {
+-			dev_dbg(&dev->dev, "  set dma %d to %lld\n",
++			pnp_dbg(&dev->dev, "  set dma %d to %lld\n",
+ 				tmp, (unsigned long long) res->start);
+ 			isapnp_write_byte(ISAPNP_CFG_DMA + tmp, res->start);
+ 		}
+@@ -972,7 +972,7 @@ static int isapnp_set_resources(struct pnp_dev *dev)
+ 	for (tmp = 0; tmp < ISAPNP_MAX_MEM; tmp++) {
+ 		res = pnp_get_resource(dev, IORESOURCE_MEM, tmp);
+ 		if (pnp_resource_enabled(res)) {
+-			dev_dbg(&dev->dev, "  set mem %d to %#llx\n",
++			pnp_dbg(&dev->dev, "  set mem %d to %#llx\n",
+ 				tmp, (unsigned long long) res->start);
+ 			isapnp_write_word(ISAPNP_CFG_MEM + (tmp << 3),
+ 					  (res->start >> 8) & 0xffff);
+diff --git a/drivers/pnp/manager.c b/drivers/pnp/manager.c
+index b526eaa..00fd357 100644
+--- a/drivers/pnp/manager.c
++++ b/drivers/pnp/manager.c
+@@ -25,7 +25,7 @@ static int pnp_assign_port(struct pnp_dev *dev, struct pnp_port *rule, int idx)
+ 
+ 	res = pnp_get_resource(dev, IORESOURCE_IO, idx);
+ 	if (res) {
+-		dev_dbg(&dev->dev, "  io %d already set to %#llx-%#llx "
++		pnp_dbg(&dev->dev, "  io %d already set to %#llx-%#llx "
+ 			"flags %#lx\n", idx, (unsigned long long) res->start,
+ 			(unsigned long long) res->end, res->flags);
+ 		return 0;
+@@ -38,7 +38,7 @@ static int pnp_assign_port(struct pnp_dev *dev, struct pnp_port *rule, int idx)
+ 
+ 	if (!rule->size) {
+ 		res->flags |= IORESOURCE_DISABLED;
+-		dev_dbg(&dev->dev, "  io %d disabled\n", idx);
++		pnp_dbg(&dev->dev, "  io %d disabled\n", idx);
+ 		goto __add;
+ 	}
+ 
+@@ -49,7 +49,7 @@ static int pnp_assign_port(struct pnp_dev *dev, struct pnp_port *rule, int idx)
+ 		res->start += rule->align;
+ 		res->end = res->start + rule->size - 1;
+ 		if (res->start > rule->max || !rule->align) {
+-			dev_dbg(&dev->dev, "  couldn't assign io %d "
++			pnp_dbg(&dev->dev, "  couldn't assign io %d "
+ 				"(min %#llx max %#llx)\n", idx,
+ 				(unsigned long long) rule->min,
+ 				(unsigned long long) rule->max);
+@@ -68,7 +68,7 @@ static int pnp_assign_mem(struct pnp_dev *dev, struct pnp_mem *rule, int idx)
+ 
+ 	res = pnp_get_resource(dev, IORESOURCE_MEM, idx);
+ 	if (res) {
+-		dev_dbg(&dev->dev, "  mem %d already set to %#llx-%#llx "
++		pnp_dbg(&dev->dev, "  mem %d already set to %#llx-%#llx "
+ 			"flags %#lx\n", idx, (unsigned long long) res->start,
+ 			(unsigned long long) res->end, res->flags);
+ 		return 0;
+@@ -90,7 +90,7 @@ static int pnp_assign_mem(struct pnp_dev *dev, struct pnp_mem *rule, int idx)
+ 
+ 	if (!rule->size) {
+ 		res->flags |= IORESOURCE_DISABLED;
+-		dev_dbg(&dev->dev, "  mem %d disabled\n", idx);
++		pnp_dbg(&dev->dev, "  mem %d disabled\n", idx);
+ 		goto __add;
+ 	}
+ 
+@@ -101,7 +101,7 @@ static int pnp_assign_mem(struct pnp_dev *dev, struct pnp_mem *rule, int idx)
+ 		res->start += rule->align;
+ 		res->end = res->start + rule->size - 1;
+ 		if (res->start > rule->max || !rule->align) {
+-			dev_dbg(&dev->dev, "  couldn't assign mem %d "
++			pnp_dbg(&dev->dev, "  couldn't assign mem %d "
+ 				"(min %#llx max %#llx)\n", idx,
+ 				(unsigned long long) rule->min,
+ 				(unsigned long long) rule->max);
+@@ -126,7 +126,7 @@ static int pnp_assign_irq(struct pnp_dev *dev, struct pnp_irq *rule, int idx)
+ 
+ 	res = pnp_get_resource(dev, IORESOURCE_IRQ, idx);
+ 	if (res) {
+-		dev_dbg(&dev->dev, "  irq %d already set to %d flags %#lx\n",
++		pnp_dbg(&dev->dev, "  irq %d already set to %d flags %#lx\n",
+ 			idx, (int) res->start, res->flags);
+ 		return 0;
+ 	}
+@@ -138,7 +138,7 @@ static int pnp_assign_irq(struct pnp_dev *dev, struct pnp_irq *rule, int idx)
+ 
+ 	if (bitmap_empty(rule->map.bits, PNP_IRQ_NR)) {
+ 		res->flags |= IORESOURCE_DISABLED;
+-		dev_dbg(&dev->dev, "  irq %d disabled\n", idx);
++		pnp_dbg(&dev->dev, "  irq %d disabled\n", idx);
+ 		goto __add;
+ 	}
+ 
+@@ -160,11 +160,11 @@ static int pnp_assign_irq(struct pnp_dev *dev, struct pnp_irq *rule, int idx)
+ 		res->start = -1;
+ 		res->end = -1;
+ 		res->flags |= IORESOURCE_DISABLED;
+-		dev_dbg(&dev->dev, "  irq %d disabled (optional)\n", idx);
++		pnp_dbg(&dev->dev, "  irq %d disabled (optional)\n", idx);
+ 		goto __add;
+ 	}
+ 
+-	dev_dbg(&dev->dev, "  couldn't assign irq %d\n", idx);
++	pnp_dbg(&dev->dev, "  couldn't assign irq %d\n", idx);
+ 	return -EBUSY;
+ 
+ __add:
+@@ -184,7 +184,7 @@ static int pnp_assign_dma(struct pnp_dev *dev, struct pnp_dma *rule, int idx)
+ 
+ 	res = pnp_get_resource(dev, IORESOURCE_DMA, idx);
+ 	if (res) {
+-		dev_dbg(&dev->dev, "  dma %d already set to %d flags %#lx\n",
++		pnp_dbg(&dev->dev, "  dma %d already set to %d flags %#lx\n",
+ 			idx, (int) res->start, res->flags);
+ 		return 0;
+ 	}
+@@ -205,7 +205,7 @@ static int pnp_assign_dma(struct pnp_dev *dev, struct pnp_dma *rule, int idx)
+ 	res->start = res->end = MAX_DMA_CHANNELS;
+ #endif
+ 	res->flags |= IORESOURCE_DISABLED;
+-	dev_dbg(&dev->dev, "  disable dma %d\n", idx);
++	pnp_dbg(&dev->dev, "  disable dma %d\n", idx);
+ 
+ __add:
+ 	pnp_add_dma_resource(dev, res->start, res->flags);
+@@ -238,7 +238,7 @@ static int pnp_assign_resources(struct pnp_dev *dev, int set)
+ 	int nport = 0, nmem = 0, nirq = 0, ndma = 0;
+ 	int ret = 0;
+ 
+-	dev_dbg(&dev->dev, "pnp_assign_resources, try dependent set %d\n", set);
++	pnp_dbg(&dev->dev, "pnp_assign_resources, try dependent set %d\n", set);
+ 	mutex_lock(&pnp_res_mutex);
+ 	pnp_clean_resource_table(dev);
+ 
+@@ -270,7 +270,7 @@ static int pnp_assign_resources(struct pnp_dev *dev, int set)
+ 
+ 	mutex_unlock(&pnp_res_mutex);
+ 	if (ret < 0) {
+-		dev_dbg(&dev->dev, "pnp_assign_resources failed (%d)\n", ret);
++		pnp_dbg(&dev->dev, "pnp_assign_resources failed (%d)\n", ret);
+ 		pnp_clean_resource_table(dev);
+ 	} else
+ 		dbg_pnp_show_resources(dev, "pnp_assign_resources succeeded");
+@@ -286,7 +286,7 @@ int pnp_auto_config_dev(struct pnp_dev *dev)
+ 	int i, ret;
+ 
+ 	if (!pnp_can_configure(dev)) {
+-		dev_dbg(&dev->dev, "configuration not supported\n");
++		pnp_dbg(&dev->dev, "configuration not supported\n");
+ 		return -ENODEV;
+ 	}
+ 
+@@ -313,7 +313,7 @@ int pnp_auto_config_dev(struct pnp_dev *dev)
+ int pnp_start_dev(struct pnp_dev *dev)
+ {
+ 	if (!pnp_can_write(dev)) {
+-		dev_dbg(&dev->dev, "activation not supported\n");
++		pnp_dbg(&dev->dev, "activation not supported\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -336,7 +336,7 @@ int pnp_start_dev(struct pnp_dev *dev)
+ int pnp_stop_dev(struct pnp_dev *dev)
+ {
+ 	if (!pnp_can_disable(dev)) {
+-		dev_dbg(&dev->dev, "disabling not supported\n");
++		pnp_dbg(&dev->dev, "disabling not supported\n");
+ 		return -EINVAL;
+ 	}
+ 	if (dev->protocol->disable(dev) < 0) {
+diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
+index 67c651b..b57d9d5 100644
+--- a/drivers/pnp/pnpacpi/core.c
++++ b/drivers/pnp/pnpacpi/core.c
+@@ -75,7 +75,7 @@ static int __init ispnpidacpi(char *id)
+ 
+ static int pnpacpi_get_resources(struct pnp_dev *dev)
+ {
+-	dev_dbg(&dev->dev, "get resources\n");
++	pnp_dbg(&dev->dev, "get resources\n");
+ 	return pnpacpi_parse_allocated_resource(dev);
+ }
+ 
+@@ -86,7 +86,7 @@ static int pnpacpi_set_resources(struct pnp_dev *dev)
+ 	int ret;
+ 	acpi_status status;
+ 
+-	dev_dbg(&dev->dev, "set resources\n");
++	pnp_dbg(&dev->dev, "set resources\n");
+ 	ret = pnpacpi_build_resource_template(dev, &buffer);
+ 	if (ret)
+ 		return ret;
+diff --git a/drivers/pnp/pnpacpi/rsparser.c b/drivers/pnp/pnpacpi/rsparser.c
+index 0461d4b..adf1785 100644
+--- a/drivers/pnp/pnpacpi/rsparser.c
++++ b/drivers/pnp/pnpacpi/rsparser.c
+@@ -450,7 +450,7 @@ int pnpacpi_parse_allocated_resource(struct pnp_dev *dev)
+ 	acpi_handle handle = dev->data;
+ 	acpi_status status;
+ 
+-	dev_dbg(&dev->dev, "parse allocated resources\n");
++	pnp_dbg(&dev->dev, "parse allocated resources\n");
+ 
+ 	pnp_init_resources(dev);
+ 
+@@ -736,7 +736,7 @@ int __init pnpacpi_parse_resource_option_data(struct pnp_dev *dev)
+ 	acpi_status status;
+ 	struct acpipnp_parse_option_s parse_data;
+ 
+-	dev_dbg(&dev->dev, "parse resource options\n");
++	pnp_dbg(&dev->dev, "parse resource options\n");
+ 
+ 	parse_data.dev = dev;
+ 	parse_data.option_flags = 0;
+@@ -844,7 +844,7 @@ static void pnpacpi_encode_irq(struct pnp_dev *dev,
+ 
+ 	if (!pnp_resource_enabled(p)) {
+ 		irq->interrupt_count = 0;
+-		dev_dbg(&dev->dev, "  encode irq (%s)\n",
++		pnp_dbg(&dev->dev, "  encode irq (%s)\n",
+ 			p ? "disabled" : "missing");
+ 		return;
+ 	}
+@@ -856,7 +856,7 @@ static void pnpacpi_encode_irq(struct pnp_dev *dev,
+ 	irq->interrupt_count = 1;
+ 	irq->interrupts[0] = p->start;
+ 
+-	dev_dbg(&dev->dev, "  encode irq %d %s %s %s (%d-byte descriptor)\n",
++	pnp_dbg(&dev->dev, "  encode irq %d %s %s %s (%d-byte descriptor)\n",
+ 		(int) p->start,
+ 		triggering == ACPI_LEVEL_SENSITIVE ? "level" : "edge",
+ 		polarity == ACPI_ACTIVE_LOW ? "low" : "high",
+@@ -873,7 +873,7 @@ static void pnpacpi_encode_ext_irq(struct pnp_dev *dev,
+ 
+ 	if (!pnp_resource_enabled(p)) {
+ 		extended_irq->interrupt_count = 0;
+-		dev_dbg(&dev->dev, "  encode extended irq (%s)\n",
++		pnp_dbg(&dev->dev, "  encode extended irq (%s)\n",
+ 			p ? "disabled" : "missing");
+ 		return;
+ 	}
+@@ -886,7 +886,7 @@ static void pnpacpi_encode_ext_irq(struct pnp_dev *dev,
+ 	extended_irq->interrupt_count = 1;
+ 	extended_irq->interrupts[0] = p->start;
+ 
+-	dev_dbg(&dev->dev, "  encode irq %d %s %s %s\n", (int) p->start,
++	pnp_dbg(&dev->dev, "  encode irq %d %s %s %s\n", (int) p->start,
+ 		triggering == ACPI_LEVEL_SENSITIVE ? "level" : "edge",
+ 		polarity == ACPI_ACTIVE_LOW ? "low" : "high",
+ 		extended_irq->sharable == ACPI_SHARED ? "shared" : "exclusive");
+@@ -900,7 +900,7 @@ static void pnpacpi_encode_dma(struct pnp_dev *dev,
+ 
+ 	if (!pnp_resource_enabled(p)) {
+ 		dma->channel_count = 0;
+-		dev_dbg(&dev->dev, "  encode dma (%s)\n",
++		pnp_dbg(&dev->dev, "  encode dma (%s)\n",
+ 			p ? "disabled" : "missing");
+ 		return;
+ 	}
+@@ -935,7 +935,7 @@ static void pnpacpi_encode_dma(struct pnp_dev *dev,
+ 	dma->channel_count = 1;
+ 	dma->channels[0] = p->start;
+ 
+-	dev_dbg(&dev->dev, "  encode dma %d "
++	pnp_dbg(&dev->dev, "  encode dma %d "
+ 		"type %#x transfer %#x master %d\n",
+ 		(int) p->start, dma->type, dma->transfer, dma->bus_master);
+ }
+@@ -959,7 +959,7 @@ static void pnpacpi_encode_io(struct pnp_dev *dev,
+ 		io->address_length = 0;
+ 	}
+ 
+-	dev_dbg(&dev->dev, "  encode io %#x-%#x decode %#x\n", io->minimum,
++	pnp_dbg(&dev->dev, "  encode io %#x-%#x decode %#x\n", io->minimum,
+ 		io->minimum + io->address_length - 1, io->io_decode);
+ }
+ 
+@@ -977,7 +977,7 @@ static void pnpacpi_encode_fixed_io(struct pnp_dev *dev,
+ 		fixed_io->address_length = 0;
+ 	}
+ 
+-	dev_dbg(&dev->dev, "  encode fixed_io %#x-%#x\n", fixed_io->address,
++	pnp_dbg(&dev->dev, "  encode fixed_io %#x-%#x\n", fixed_io->address,
+ 		fixed_io->address + fixed_io->address_length - 1);
+ }
+ 
+@@ -1000,7 +1000,7 @@ static void pnpacpi_encode_mem24(struct pnp_dev *dev,
+ 		memory24->address_length = 0;
+ 	}
+ 
+-	dev_dbg(&dev->dev, "  encode mem24 %#x-%#x write_protect %#x\n",
++	pnp_dbg(&dev->dev, "  encode mem24 %#x-%#x write_protect %#x\n",
+ 		memory24->minimum,
+ 		memory24->minimum + memory24->address_length - 1,
+ 		memory24->write_protect);
+@@ -1024,7 +1024,7 @@ static void pnpacpi_encode_mem32(struct pnp_dev *dev,
+ 		memory32->alignment = 0;
+ 	}
+ 
+-	dev_dbg(&dev->dev, "  encode mem32 %#x-%#x write_protect %#x\n",
++	pnp_dbg(&dev->dev, "  encode mem32 %#x-%#x write_protect %#x\n",
+ 		memory32->minimum,
+ 		memory32->minimum + memory32->address_length - 1,
+ 		memory32->write_protect);
+@@ -1047,7 +1047,7 @@ static void pnpacpi_encode_fixed_mem32(struct pnp_dev *dev,
+ 		fixed_memory32->address_length = 0;
+ 	}
+ 
+-	dev_dbg(&dev->dev, "  encode fixed_mem32 %#x-%#x write_protect %#x\n",
++	pnp_dbg(&dev->dev, "  encode fixed_mem32 %#x-%#x write_protect %#x\n",
+ 		fixed_memory32->address,
+ 		fixed_memory32->address + fixed_memory32->address_length - 1,
+ 		fixed_memory32->write_protect);
+@@ -1061,7 +1061,7 @@ int pnpacpi_encode_resources(struct pnp_dev *dev, struct acpi_buffer *buffer)
+ 	struct acpi_resource *resource = buffer->pointer;
+ 	int port = 0, irq = 0, dma = 0, mem = 0;
+ 
+-	dev_dbg(&dev->dev, "encode %d resources\n", res_cnt);
++	pnp_dbg(&dev->dev, "encode %d resources\n", res_cnt);
+ 	while (i < res_cnt) {
+ 		switch (resource->type) {
+ 		case ACPI_RESOURCE_TYPE_IRQ:
+diff --git a/drivers/pnp/pnpbios/core.c b/drivers/pnp/pnpbios/core.c
+index 19a4be1..2f79eb2 100644
+--- a/drivers/pnp/pnpbios/core.c
++++ b/drivers/pnp/pnpbios/core.c
+@@ -211,7 +211,7 @@ static int pnpbios_get_resources(struct pnp_dev *dev)
+ 	if (!pnpbios_is_dynamic(dev))
+ 		return -EPERM;
+ 
+-	dev_dbg(&dev->dev, "get resources\n");
++	pnp_dbg(&dev->dev, "get resources\n");
+ 	node = kzalloc(node_info.max_node_size, GFP_KERNEL);
+ 	if (!node)
+ 		return -1;
+@@ -234,7 +234,7 @@ static int pnpbios_set_resources(struct pnp_dev *dev)
+ 	if (!pnpbios_is_dynamic(dev))
+ 		return -EPERM;
+ 
+-	dev_dbg(&dev->dev, "set resources\n");
++	pnp_dbg(&dev->dev, "set resources\n");
+ 	node = kzalloc(node_info.max_node_size, GFP_KERNEL);
+ 	if (!node)
+ 		return -1;
+diff --git a/drivers/pnp/pnpbios/rsparser.c b/drivers/pnp/pnpbios/rsparser.c
+index ca56767..87b4f49 100644
+--- a/drivers/pnp/pnpbios/rsparser.c
++++ b/drivers/pnp/pnpbios/rsparser.c
+@@ -87,7 +87,7 @@ static unsigned char *pnpbios_parse_allocated_resource_data(struct pnp_dev *dev,
+ 	if (!p)
+ 		return NULL;
+ 
+-	dev_dbg(&dev->dev, "parse allocated resources\n");
++	pnp_dbg(&dev->dev, "parse allocated resources\n");
+ 
+ 	pnp_init_resources(dev);
+ 
+@@ -324,7 +324,7 @@ pnpbios_parse_resource_option_data(unsigned char *p, unsigned char *end,
+ 	if (!p)
+ 		return NULL;
+ 
+-	dev_dbg(&dev->dev, "parse resource options\n");
++	pnp_dbg(&dev->dev, "parse resource options\n");
+ 	option_flags = 0;
+ 	while ((char *)p < (char *)end) {
+ 
+@@ -519,7 +519,7 @@ static void pnpbios_encode_mem(struct pnp_dev *dev, unsigned char *p,
+ 	p[10] = (len >> 8) & 0xff;
+ 	p[11] = ((len >> 8) >> 8) & 0xff;
+ 
+-	dev_dbg(&dev->dev, "  encode mem %#lx-%#lx\n", base, base + len - 1);
++	pnp_dbg(&dev->dev, "  encode mem %#lx-%#lx\n", base, base + len - 1);
+ }
+ 
+ static void pnpbios_encode_mem32(struct pnp_dev *dev, unsigned char *p,
+@@ -549,7 +549,7 @@ static void pnpbios_encode_mem32(struct pnp_dev *dev, unsigned char *p,
+ 	p[18] = (len >> 16) & 0xff;
+ 	p[19] = (len >> 24) & 0xff;
+ 
+-	dev_dbg(&dev->dev, "  encode mem32 %#lx-%#lx\n", base, base + len - 1);
++	pnp_dbg(&dev->dev, "  encode mem32 %#lx-%#lx\n", base, base + len - 1);
+ }
+ 
+ static void pnpbios_encode_fixed_mem32(struct pnp_dev *dev, unsigned char *p,
+@@ -575,7 +575,7 @@ static void pnpbios_encode_fixed_mem32(struct pnp_dev *dev, unsigned char *p,
+ 	p[10] = (len >> 16) & 0xff;
+ 	p[11] = (len >> 24) & 0xff;
+ 
+-	dev_dbg(&dev->dev, "  encode fixed_mem32 %#lx-%#lx\n", base,
++	pnp_dbg(&dev->dev, "  encode fixed_mem32 %#lx-%#lx\n", base,
+ 		base + len - 1);
+ }
+ 
+@@ -592,7 +592,7 @@ static void pnpbios_encode_irq(struct pnp_dev *dev, unsigned char *p,
+ 	p[1] = map & 0xff;
+ 	p[2] = (map >> 8) & 0xff;
+ 
+-	dev_dbg(&dev->dev, "  encode irq mask %#lx\n", map);
++	pnp_dbg(&dev->dev, "  encode irq mask %#lx\n", map);
+ }
+ 
+ static void pnpbios_encode_dma(struct pnp_dev *dev, unsigned char *p,
+@@ -607,7 +607,7 @@ static void pnpbios_encode_dma(struct pnp_dev *dev, unsigned char *p,
+ 
+ 	p[1] = map & 0xff;
+ 
+-	dev_dbg(&dev->dev, "  encode dma mask %#lx\n", map);
++	pnp_dbg(&dev->dev, "  encode dma mask %#lx\n", map);
+ }
+ 
+ static void pnpbios_encode_port(struct pnp_dev *dev, unsigned char *p,
+@@ -630,7 +630,7 @@ static void pnpbios_encode_port(struct pnp_dev *dev, unsigned char *p,
+ 	p[5] = (base >> 8) & 0xff;
+ 	p[7] = len & 0xff;
+ 
+-	dev_dbg(&dev->dev, "  encode io %#lx-%#lx\n", base, base + len - 1);
++	pnp_dbg(&dev->dev, "  encode io %#lx-%#lx\n", base, base + len - 1);
+ }
+ 
+ static void pnpbios_encode_fixed_port(struct pnp_dev *dev, unsigned char *p,
+@@ -651,7 +651,7 @@ static void pnpbios_encode_fixed_port(struct pnp_dev *dev, unsigned char *p,
+ 	p[2] = (base >> 8) & 0xff;
+ 	p[3] = len & 0xff;
+ 
+-	dev_dbg(&dev->dev, "  encode fixed_io %#lx-%#lx\n", base,
++	pnp_dbg(&dev->dev, "  encode fixed_io %#lx-%#lx\n", base,
+ 		base + len - 1);
+ }
+ 
+diff --git a/drivers/pnp/quirks.c b/drivers/pnp/quirks.c
+index 414bb09..3d2e560 100644
+--- a/drivers/pnp/quirks.c
++++ b/drivers/pnp/quirks.c
+@@ -337,7 +337,7 @@ void pnp_fixup_device(struct pnp_dev *dev)
+ 	for (f = pnp_fixups; *f->id; f++) {
+ 		if (!compare_pnp_id(dev->id, f->id))
+ 			continue;
+-		dev_dbg(&dev->dev, "%s: calling %pF\n", f->id,
++		pnp_dbg(&dev->dev, "%s: calling %pF\n", f->id,
+ 			f->quirk_function);
+ 		f->quirk_function(dev);
+ 	}
+diff --git a/drivers/pnp/resource.c b/drivers/pnp/resource.c
+index e0206da..5ef463d 100644
+--- a/drivers/pnp/resource.c
++++ b/drivers/pnp/resource.c
+@@ -294,7 +294,7 @@ static int pci_dev_uses_irq(struct pnp_dev *pnp, struct pci_dev *pci,
+ 	u8 progif;
+ 
+ 	if (pci->irq == irq) {
+-		dev_dbg(&pnp->dev, "  device %s using irq %d\n",
++		pnp_dbg(&pnp->dev, "  device %s using irq %d\n",
+ 			pci_name(pci), irq);
+ 		return 1;
+ 	}
+@@ -316,7 +316,7 @@ static int pci_dev_uses_irq(struct pnp_dev *pnp, struct pci_dev *pci,
+ 		if ((progif & 0x5) != 0x5)
+ 			if (pci_get_legacy_ide_irq(pci, 0) == irq ||
+ 			    pci_get_legacy_ide_irq(pci, 1) == irq) {
+-				dev_dbg(&pnp->dev, "  legacy IDE device %s "
++				pnp_dbg(&pnp->dev, "  legacy IDE device %s "
+ 					"using irq %d\n", pci_name(pci), irq);
+ 				return 1;
+ 			}
+@@ -517,7 +517,7 @@ struct pnp_resource *pnp_add_irq_resource(struct pnp_dev *dev, int irq,
+ 	res->start = irq;
+ 	res->end = irq;
+ 
+-	dev_dbg(&dev->dev, "  add irq %d flags %#x\n", irq, flags);
++	pnp_dbg(&dev->dev, "  add irq %d flags %#x\n", irq, flags);
+ 	return pnp_res;
+ }
+ 
+@@ -538,7 +538,7 @@ struct pnp_resource *pnp_add_dma_resource(struct pnp_dev *dev, int dma,
+ 	res->start = dma;
+ 	res->end = dma;
+ 
+-	dev_dbg(&dev->dev, "  add dma %d flags %#x\n", dma, flags);
++	pnp_dbg(&dev->dev, "  add dma %d flags %#x\n", dma, flags);
+ 	return pnp_res;
+ }
+ 
+@@ -562,7 +562,7 @@ struct pnp_resource *pnp_add_io_resource(struct pnp_dev *dev,
+ 	res->start = start;
+ 	res->end = end;
+ 
+-	dev_dbg(&dev->dev, "  add io  %#llx-%#llx flags %#x\n",
++	pnp_dbg(&dev->dev, "  add io  %#llx-%#llx flags %#x\n",
+ 		(unsigned long long) start, (unsigned long long) end, flags);
+ 	return pnp_res;
+ }
+@@ -587,7 +587,7 @@ struct pnp_resource *pnp_add_mem_resource(struct pnp_dev *dev,
+ 	res->start = start;
+ 	res->end = end;
+ 
+-	dev_dbg(&dev->dev, "  add mem %#llx-%#llx flags %#x\n",
++	pnp_dbg(&dev->dev, "  add mem %#llx-%#llx flags %#x\n",
+ 		(unsigned long long) start, (unsigned long long) end, flags);
+ 	return pnp_res;
+ }
+diff --git a/drivers/pnp/support.c b/drivers/pnp/support.c
+index 7149186..63087d5 100644
+--- a/drivers/pnp/support.c
++++ b/drivers/pnp/support.c
+@@ -81,11 +81,11 @@ void dbg_pnp_show_resources(struct pnp_dev *dev, char *desc)
+ 	struct resource *res;
+ 
+ 	if (list_empty(&dev->resources)) {
+-		dev_dbg(&dev->dev, "%s: no current resources\n", desc);
++		pnp_dbg(&dev->dev, "%s: no current resources\n", desc);
+ 		return;
+ 	}
+ 
+-	dev_dbg(&dev->dev, "%s: current resources:\n", desc);
++	pnp_dbg(&dev->dev, "%s: current resources:\n", desc);
+ 	list_for_each_entry(pnp_res, &dev->resources, list) {
+ 		res = &pnp_res->res;
+ 		len = 0;
+@@ -94,7 +94,7 @@ void dbg_pnp_show_resources(struct pnp_dev *dev, char *desc)
+ 				 pnp_resource_type_name(res));
+ 
+ 		if (res->flags & IORESOURCE_DISABLED) {
+-			dev_dbg(&dev->dev, "%sdisabled\n", buf);
++			pnp_dbg(&dev->dev, "%sdisabled\n", buf);
+ 			continue;
+ 		}
+ 
+@@ -115,7 +115,7 @@ void dbg_pnp_show_resources(struct pnp_dev *dev, char *desc)
+ 					 res->flags);
+ 			break;
+ 		}
+-		dev_dbg(&dev->dev, "%s\n", buf);
++		pnp_dbg(&dev->dev, "%s\n", buf);
+ 	}
+ }
+ 
+@@ -205,5 +205,5 @@ void dbg_pnp_show_option(struct pnp_dev *dev, struct pnp_option *option)
+ 				 "flags %#x", dma->map, dma->flags);
+ 		break;
+ 	}
+-	dev_dbg(&dev->dev, "%s\n", buf);
++	pnp_dbg(&dev->dev, "%s\n", buf);
+ }
 -- 
 1.5.5.1
 
