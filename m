@@ -1,56 +1,53 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 031/122] toshiba_acpi: depends on INPUT
-Date: Thu, 23 Oct 2008 02:38:05 -0400
-Message-ID: <b3cef8f6eba47a10b80aa3e7a99e27110e34f3df.1224743916.git.len.brown@intel.com>
+Subject: [PATCH 035/122] PNP: use new vsprintf symbolic function pointer format
+Date: Thu, 23 Oct 2008 02:38:09 -0400
+Message-ID: <668b21de141edcba3fb13a4f810641eea4740fd7.1224743916.git.len.brown@intel.com>
 References: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms046pub.verizon.net ([206.46.252.46]:40876 "EHLO
-	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753476AbYJWGjz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:39:55 -0400
+Received: from vms042pub.verizon.net ([206.46.252.42]:51251 "EHLO
+	vms042pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754695AbYJWGj4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:39:56 -0400
 Received: from localhost.localdomain ([96.237.168.40])
- by vms046.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0K96000X1IIHXXG2@vms046.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:39:54 -0500 (CDT)
+ by vms042.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
+ 3 2006)) with ESMTPA id <0K96006NJIIJ32T1@vms042.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:39:56 -0500 (CDT)
 In-reply-to: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 In-reply-to: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
 References: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Randy Dunlap <randy.dunlap@oracle.com>, Len Brown <len.brown@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Andi Kleen <ak@linux.intel.com>, Len Brown <len.brown@intel.com>
 
-From: Randy Dunlap <randy.dunlap@oracle.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-CONFIG_ACPI_TOSHIBA can =y when CONFIG_INPUT=m, so prevent that
-combination and its subsequent build errors:
+Use the '%pF' format to get rid of an "#ifdef DEBUG".
 
-toshiba_acpi.c:(.text+0x3e877): undefined reference to `input_event'
-toshiba_acpi.c:(.text+0x3e98a): undefined reference to `input_unregister_polled_device'
-toshiba_acpi.c:(.text+0x3e994): undefined reference to `input_free_polled_device'
-toshiba_acpi.c:(.init.text+0x21b4): undefined reference to `input_allocate_polled_device'
-toshiba_acpi.c:(.init.text+0x2263): undefined reference to `input_register_polled_device'
-make[1]: *** [.tmp_vmlinux1] Error 1
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/Kconfig |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/pnp/quirks.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 735f5ea..79540db 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -259,7 +259,7 @@ config ACPI_ASUS
- 
- config ACPI_TOSHIBA
- 	tristate "Toshiba Laptop Extras"
--	depends on X86
-+	depends on X86 && INPUT
- 	select BACKLIGHT_CLASS_DEVICE
- 	---help---
- 	  This driver adds support for access to certain system settings
+diff --git a/drivers/pnp/quirks.c b/drivers/pnp/quirks.c
+index 0bdf9b8..414bb09 100644
+--- a/drivers/pnp/quirks.c
++++ b/drivers/pnp/quirks.c
+@@ -337,10 +337,8 @@ void pnp_fixup_device(struct pnp_dev *dev)
+ 	for (f = pnp_fixups; *f->id; f++) {
+ 		if (!compare_pnp_id(dev->id, f->id))
+ 			continue;
+-#ifdef DEBUG
+-		dev_dbg(&dev->dev, "%s: calling ", f->id);
+-		print_fn_descriptor_symbol("%s\n", f->quirk_function);
+-#endif
++		dev_dbg(&dev->dev, "%s: calling %pF\n", f->id,
++			f->quirk_function);
+ 		f->quirk_function(dev);
+ 	}
+ }
 -- 
 1.5.5.1
 
