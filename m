@@ -1,17 +1,17 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 008/122] ACPI: introduce notifier change to avoid duplicates
-Date: Thu, 23 Oct 2008 02:37:42 -0400
-Message-ID: <6bd00a61ab63d4ceb635ae0316353c11c900b8d8.1224743916.git.len.brown@intel.com>
+Subject: [PATCH 014/122] dock: add 'type' sysfs file
+Date: Thu, 23 Oct 2008 02:37:48 -0400
+Message-ID: <8652b00fd6416773f113dab3dfa0d4509def825b.1224743916.git.len.brown@intel.com>
 References: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms046pub.verizon.net ([206.46.252.46]:40851 "EHLO
 	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752657AbYJWGjo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:39:44 -0400
+	with ESMTP id S1753907AbYJWGjs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:39:48 -0400
 Received: from localhost.localdomain ([96.237.168.40])
  by vms046.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0K96000RTII7YBQ2@vms046.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:39:44 -0500 (CDT)
+ 3 2006)) with ESMTPA id <0K96000IOII8XKR2@vms046.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:39:45 -0500 (CDT)
 In-reply-to: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 In-reply-to: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
 References: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
@@ -22,169 +22,71 @@ Cc: Shaohua Li <shaohua.li@intel.com>, Len Brown <len.brown@intel.com>
 
 From: Shaohua Li <shaohua.li@intel.com>
 
-The battery driver already registers notification handler.
-To avoid registering notification handler again,
-introduce a notifier chain in global system notifier handler
-and use it in dock driver.
+add a sysfs file to present dock type. Suggested by Holger.
 
 Signed-off-by: Shaohua Li <shaohua.li@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/bus.c      |   15 +++++++++++++++
- drivers/acpi/dock.c     |   46 ++++++++++++++++++++++++----------------------
- include/acpi/acpi_bus.h |    3 +++
- 3 files changed, 42 insertions(+), 22 deletions(-)
+ drivers/acpi/dock.c |   25 +++++++++++++++++++++++++
+ 1 files changed, 25 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index ccae305..0dc4494 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -496,6 +496,19 @@ static int acpi_bus_check_scope(struct acpi_device *device)
- 	return 0;
- }
- 
-+static BLOCKING_NOTIFIER_HEAD(acpi_bus_notify_list);
-+int register_acpi_bus_notifier(struct notifier_block *nb)
-+{
-+	return blocking_notifier_chain_register(&acpi_bus_notify_list, nb);
-+}
-+EXPORT_SYMBOL_GPL(register_acpi_bus_notifier);
-+
-+void unregister_acpi_bus_notifier(struct notifier_block *nb)
-+{
-+	blocking_notifier_chain_unregister(&acpi_bus_notify_list, nb);
-+}
-+EXPORT_SYMBOL_GPL(unregister_acpi_bus_notifier);
-+
- /**
-  * acpi_bus_notify
-  * ---------------
-@@ -506,6 +519,8 @@ static void acpi_bus_notify(acpi_handle handle, u32 type, void *data)
- 	int result = 0;
- 	struct acpi_device *device = NULL;
- 
-+	blocking_notifier_call_chain(&acpi_bus_notify_list,
-+		type, (void *)handle);
- 
- 	if (acpi_bus_get_device(handle, &device))
- 		return;
 diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
-index 799a0fd..2563bc6 100644
+index c877cc5..b7d1581 100644
 --- a/drivers/acpi/dock.c
 +++ b/drivers/acpi/dock.c
-@@ -748,6 +748,28 @@ static void dock_notify(acpi_handle handle, u32 event, void *data)
- 	}
+@@ -911,6 +911,26 @@ static ssize_t show_dock_uid(struct device *dev,
  }
+ static DEVICE_ATTR(uid, S_IRUGO, show_dock_uid, NULL);
  
-+static int acpi_dock_notifier_call(struct notifier_block *this,
-+	unsigned long event, void *data)
++static ssize_t show_dock_type(struct device *dev,
++		struct device_attribute *attr, char *buf)
 +{
-+	struct dock_station *dock_station;
-+	acpi_handle handle = (acpi_handle)data;
++	struct dock_station *dock_station = *((struct dock_station **)
++		dev->platform_data);
++	char *type;
 +
-+	if (event != ACPI_NOTIFY_BUS_CHECK && event != ACPI_NOTIFY_DEVICE_CHECK
-+	   && event != ACPI_NOTIFY_EJECT_REQUEST)
-+		return 0;
-+	list_for_each_entry(dock_station, &dock_stations, sibiling) {
-+		if (dock_station->handle == handle) {
-+			dock_notify(handle, event, dock_station);
-+			return 0 ;
-+		}
-+	}
-+	return 0;
++	if (dock_station->flags & DOCK_IS_DOCK)
++		type = "dock_station";
++	else if (dock_station->flags & DOCK_IS_ATA)
++		type = "ata_bay";
++	else if (dock_station->flags & DOCK_IS_BAT)
++		type = "battery_bay";
++	else
++		type = "unknown";
++
++	return snprintf(buf, PAGE_SIZE, "%s\n", type);
 +}
-+
-+static struct notifier_block dock_acpi_notifier = {
-+	.notifier_call = acpi_dock_notifier_call,
-+};
++static DEVICE_ATTR(type, S_IRUGO, show_dock_type, NULL);
 +
  /**
-  * find_dock_devices - find devices on the dock station
-  * @handle: the handle of the device we are examining
-@@ -861,7 +883,6 @@ static DEVICE_ATTR(uid, S_IRUGO, show_dock_uid, NULL);
- static int dock_add(acpi_handle handle)
- {
- 	int ret;
--	acpi_status status;
- 	struct dock_dependent_device *dd;
- 	struct dock_station *dock_station;
- 	struct platform_device *dock_device;
-@@ -956,23 +977,10 @@ static int dock_add(acpi_handle handle)
+  * dock_add - add a new dock station
+  * @handle: the dock station handle
+@@ -999,6 +1019,9 @@ static int dock_add(acpi_handle handle)
+ 		dock_station = NULL;
+ 		return ret;
  	}
- 	add_dock_dependent_device(dock_station, dd);
++	ret = device_create_file(&dock_device->dev, &dev_attr_type);
++	if (ret)
++		printk(KERN_ERR"Error %d adding sysfs file\n", ret);
  
--	/* register for dock events */
--	status = acpi_install_notify_handler(dock_station->handle,
--					     ACPI_SYSTEM_NOTIFY,
--					     dock_notify, dock_station);
--
--	if (ACPI_FAILURE(status)) {
--		printk(KERN_ERR PREFIX "Error installing notify handler\n");
--		ret = -ENODEV;
--		goto dock_add_err;
--	}
--
- 	dock_station_count++;
- 	list_add(&dock_station->sibiling, &dock_stations);
+ 	/* Find dependent devices */
+ 	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
+@@ -1020,6 +1043,7 @@ static int dock_add(acpi_handle handle)
  	return 0;
  
--dock_add_err:
--	kfree(dd);
  dock_add_err_unregister:
++	device_remove_file(&dock_device->dev, &dev_attr_type);
  	device_remove_file(&dock_device->dev, &dev_attr_docked);
  	device_remove_file(&dock_device->dev, &dev_attr_undock);
-@@ -990,7 +998,6 @@ dock_add_err_unregister:
- static int dock_remove(struct dock_station *dock_station)
- {
- 	struct dock_dependent_device *dd, *tmp;
--	acpi_status status;
- 	struct platform_device *dock_device = dock_station->dock_device;
- 
- 	if (!dock_station_count)
-@@ -1001,13 +1008,6 @@ static int dock_remove(struct dock_station *dock_station)
- 				 list)
+ 	device_remove_file(&dock_device->dev, &dev_attr_uid);
+@@ -1047,6 +1071,7 @@ static int dock_remove(struct dock_station *dock_station)
  	    kfree(dd);
  
--	/* remove dock notify handler */
--	status = acpi_remove_notify_handler(dock_station->handle,
--					    ACPI_SYSTEM_NOTIFY,
--					    dock_notify);
--	if (ACPI_FAILURE(status))
--		printk(KERN_ERR "Error removing notify handler\n");
--
  	/* cleanup sysfs */
++	device_remove_file(&dock_device->dev, &dev_attr_type);
  	device_remove_file(&dock_device->dev, &dev_attr_docked);
  	device_remove_file(&dock_device->dev, &dev_attr_undock);
-@@ -1069,6 +1069,7 @@ static int __init dock_init(void)
- 		return 0;
- 	}
- 
-+	register_acpi_bus_notifier(&dock_acpi_notifier);
- 	printk(KERN_INFO PREFIX "%s: %d docks/bays found\n",
- 		ACPI_DOCK_DRIVER_DESCRIPTION, dock_station_count);
- 	return 0;
-@@ -1078,6 +1079,7 @@ static void __exit dock_exit(void)
- {
- 	struct dock_station *dock_station;
- 
-+	unregister_acpi_bus_notifier(&dock_acpi_notifier);
- 	list_for_each_entry(dock_station, &dock_stations, sibiling)
- 		dock_remove(dock_station);
- }
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index a5ac0bc..f74f882 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -327,6 +327,9 @@ int acpi_bus_get_private_data(acpi_handle, void **);
- extern int acpi_notifier_call_chain(struct acpi_device *, u32, u32);
- extern int register_acpi_notifier(struct notifier_block *);
- extern int unregister_acpi_notifier(struct notifier_block *);
-+
-+extern int register_acpi_bus_notifier(struct notifier_block *nb);
-+extern void unregister_acpi_bus_notifier(struct notifier_block *nb);
- /*
-  * External Functions
-  */
+ 	device_remove_file(&dock_device->dev, &dev_attr_uid);
 -- 
 1.5.5.1
 
