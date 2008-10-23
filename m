@@ -1,52 +1,82 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 081/122] panasonic-laptop: depends on ACPI
-Date: Thu, 23 Oct 2008 02:38:55 -0400
-Message-ID: <7ba427c2363d91d4221843a9ae601f90f8d928b9.1224743917.git.len.brown@intel.com>
+Subject: [PATCH 111/122] ACPICA: Fix possible memory leak, error exit path
+Date: Thu, 23 Oct 2008 02:39:25 -0400
+Message-ID: <cf058bd1c84df9921ecc517d8a8a413f4d6b5b45.1224743917.git.len.brown@intel.com>
 References: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:55856 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754460AbYJWGkV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:40:21 -0400
+Received: from vms044pub.verizon.net ([206.46.252.44]:37959 "EHLO
+	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755441AbYJWGk1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:40:27 -0400
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173003.mailsrvcs.net
- (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K9600FJ2IJ09H14@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:40:13 -0500 (CDT)
+ by vms044.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
+ 3 2006)) with ESMTPA id <0K9600ESUIJ8Q4G7@vms044.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:40:21 -0500 (CDT)
 In-reply-to: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 In-reply-to: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
 References: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Randy Dunlap <randy.dunlap@oracle.com>, Len Brown <len.brown@intel.com>
+Cc: Lin Ming <ming.m.lin@intel.com>, Bob Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Randy Dunlap <randy.dunlap@oracle.com>
+From: Lin Ming <ming.m.lin@intel.com>
 
-panasonic-laptop uses many acpi_*() functions so it should
-depend on ACPI; otherwise there are approximately 70
-warnings/errors generated.
+Fixed two possible memory leaks in the error exit paths of
+acpi_ut_update_objerct_reference() and
+acpi_ut_walk_package_tree()
+These functions are similar in that they use a stack of state objects in
+order to eliminate recursion. The stack must be fully deallocated
+if an error occurs.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Harald Welte <laforge@gnumonks.org>
+http://www.acpica.org/bugzilla/show_bug.cgi?id=383
+
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/Kconfig |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/acpi/utilities/utdelete.c |    7 +++++++
+ drivers/acpi/utilities/utmisc.c   |    9 +++++++++
+ 2 files changed, 16 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
-index 4ed8357..ec21994 100644
---- a/drivers/misc/Kconfig
-+++ b/drivers/misc/Kconfig
-@@ -247,7 +247,7 @@ config MSI_LAPTOP
+diff --git a/drivers/acpi/utilities/utdelete.c b/drivers/acpi/utilities/utdelete.c
+index 5c21975..d197c6b 100644
+--- a/drivers/acpi/utilities/utdelete.c
++++ b/drivers/acpi/utilities/utdelete.c
+@@ -585,6 +585,13 @@ acpi_ut_update_object_reference(union acpi_operand_object *object, u16 action)
+ 	ACPI_EXCEPTION((AE_INFO, status,
+ 			"Could not update object reference count"));
  
- config PANASONIC_LAPTOP
- 	tristate "Panasonic Laptop Extras"
--	depends on X86 && INPUT
-+	depends on X86 && INPUT && ACPI
-         depends on BACKLIGHT_CLASS_DEVICE
- 	---help---
- 	  This driver adds support for access to backlight control and hotkeys
++	/* Free any stacked Update State objects */
++
++	while (state_list) {
++		state = acpi_ut_pop_generic_state(&state_list);
++		acpi_ut_delete_generic_state(state);
++	}
++
+ 	return_ACPI_STATUS(status);
+ }
+ 
+diff --git a/drivers/acpi/utilities/utmisc.c b/drivers/acpi/utilities/utmisc.c
+index f34be67..9089a15 100644
+--- a/drivers/acpi/utilities/utmisc.c
++++ b/drivers/acpi/utilities/utmisc.c
+@@ -995,6 +995,15 @@ acpi_ut_walk_package_tree(union acpi_operand_object * source_object,
+ 							 state->pkg.
+ 							 this_target_obj, 0);
+ 			if (!state) {
++
++				/* Free any stacked Update State objects */
++
++				while (state_list) {
++					state =
++					    acpi_ut_pop_generic_state
++					    (&state_list);
++					acpi_ut_delete_generic_state(state);
++				}
+ 				return_ACPI_STATUS(AE_NO_MEMORY);
+ 			}
+ 		}
 -- 
 1.5.5.1
 
