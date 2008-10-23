@@ -1,114 +1,88 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 109/122] ACPICA: Remove unused ACPI register bit definition
-Date: Thu, 23 Oct 2008 02:39:23 -0400
-Message-ID: <bbbbeb8e31af97f11b84294b2e7e5607125829d2.1224743917.git.len.brown@intel.com>
+Subject: [PATCH 097/122] ACPICA: add preemption point after each opcode parse
+Date: Thu, 23 Oct 2008 02:39:11 -0400
+Message-ID: <8bd108d14604d9c95000751e6c6ecbd11ea6ed40.1224743917.git.len.brown@intel.com>
 References: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:58094 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755468AbYJWGki (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:40:38 -0400
+Received: from vms173003pub.verizon.net ([206.46.173.3]:55856 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755466AbYJWGkh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:40:37 -0400
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173001.mailsrvcs.net
+ by vms173003.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K9600K57IJ8RW32@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:40:20 -0500 (CDT)
+ with ESMTPA id <0K9600FVEIJ59LY3@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:40:18 -0500 (CDT)
 In-reply-to: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 In-reply-to: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
 References: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Lin Ming <ming.m.lin@intel.com>, Bob Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>
 
-From: Lin Ming <ming.m.lin@intel.com>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
 
-Removed the ACPI_BITREG_WAKE_ENABLE definition and entry in the
-global register table. This bit does not exist and is unused.
+Reference: http://marc.info/?l=linux-acpi&m=122236382701062&w=2
 
-http://www.acpica.org/bugzilla/show_bug.cgi?id=442
-
-Signed-off-by: Lin Ming <ming.m.lin@intel.com>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+Tested-by: Sitsofe Wheeler <sitsofe@yahoo.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/utilities/utglobal.c |    1 -
- include/acpi/actypes.h            |   34 +++++++++++++++++++++++-----------
- 2 files changed, 23 insertions(+), 12 deletions(-)
+ drivers/acpi/parser/psloop.c    |    2 ++
+ include/acpi/acmacros.h         |    5 +++++
+ include/acpi/platform/aclinux.h |    6 ++++++
+ 3 files changed, 13 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/utilities/utglobal.c b/drivers/acpi/utilities/utglobal.c
-index 0b1e493..670551b 100644
---- a/drivers/acpi/utilities/utglobal.c
-+++ b/drivers/acpi/utilities/utglobal.c
-@@ -281,7 +281,6 @@ struct acpi_bit_register_info acpi_gbl_bit_register_info[ACPI_NUM_BITREG] = {
- 	/* ACPI_BITREG_RT_CLOCK_ENABLE      */ {ACPI_REGISTER_PM1_ENABLE,
- 						ACPI_BITPOSITION_RT_CLOCK_ENABLE,
- 						ACPI_BITMASK_RT_CLOCK_ENABLE},
--	/* ACPI_BITREG_WAKE_ENABLE          */ {ACPI_REGISTER_PM1_ENABLE, 0, 0},
- 	/* ACPI_BITREG_PCIEXP_WAKE_DISABLE  */ {ACPI_REGISTER_PM1_ENABLE,
- 						ACPI_BITPOSITION_PCIEXP_WAKE_DISABLE,
- 						ACPI_BITMASK_PCIEXP_WAKE_DISABLE},
-diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-index 6bd08e8..e8936ab 100644
---- a/include/acpi/actypes.h
-+++ b/include/acpi/actypes.h
-@@ -607,8 +607,15 @@ typedef u8 acpi_adr_space_type;
+diff --git a/drivers/acpi/parser/psloop.c b/drivers/acpi/parser/psloop.c
+index c06238e..4647039 100644
+--- a/drivers/acpi/parser/psloop.c
++++ b/drivers/acpi/parser/psloop.c
+@@ -719,6 +719,8 @@ acpi_ps_complete_op(struct acpi_walk_state *walk_state,
+ 		*op = NULL;
+ 	}
  
- /*
-  * bit_register IDs
-- * These are bitfields defined within the full ACPI registers
-+ *
-+ * These values are intended to be used by the hardware interfaces
-+ * and are mapped to individual bitfields defined within the ACPI
-+ * registers. See the acpi_gbl_bit_register_info global table in utglobal.c
-+ * for this mapping.
-  */
++	ACPI_PREEMPTION_POINT();
 +
-+/* PM1 Status register */
+ 	return_ACPI_STATUS(AE_OK);
+ }
+ 
+diff --git a/include/acpi/acmacros.h b/include/acpi/acmacros.h
+index 2106f91..a1e3240 100644
+--- a/include/acpi/acmacros.h
++++ b/include/acpi/acmacros.h
+@@ -685,4 +685,9 @@ struct acpi_integer_overlay {
+ 
+ #endif				/* ACPI_DBG_TRACK_ALLOCATIONS */
+ 
++/* Preemption point */
++#ifndef ACPI_PREEMPTION_POINT
++#define ACPI_PREEMPTION_POINT() /* no preemption */
++#endif
 +
- #define ACPI_BITREG_TIMER_STATUS                0x00
- #define ACPI_BITREG_BUS_MASTER_STATUS           0x01
- #define ACPI_BITREG_GLOBAL_LOCK_STATUS          0x02
-@@ -618,24 +625,29 @@ typedef u8 acpi_adr_space_type;
- #define ACPI_BITREG_WAKE_STATUS                 0x06
- #define ACPI_BITREG_PCIEXP_WAKE_STATUS          0x07
+ #endif				/* ACMACROS_H */
+diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
+index 9af4645..029c8c0 100644
+--- a/include/acpi/platform/aclinux.h
++++ b/include/acpi/platform/aclinux.h
+@@ -53,6 +53,7 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/ctype.h>
++#include <linux/sched.h>
+ #include <asm/system.h>
+ #include <asm/atomic.h>
+ #include <asm/div64.h>
+@@ -137,4 +138,9 @@ static inline void *acpi_os_acquire_object(acpi_cache_t * cache)
+ #define ACPI_ALLOCATE_ZEROED(a)	acpi_os_allocate_zeroed(a)
+ #define ACPI_FREE(a)		kfree(a)
  
-+/* PM1 Enable register */
++/*
++ * We need to show where it is safe to preempt execution of ACPICA
++ */
++#define ACPI_PREEMPTION_POINT()	cond_resched()
 +
- #define ACPI_BITREG_TIMER_ENABLE                0x08
- #define ACPI_BITREG_GLOBAL_LOCK_ENABLE          0x09
- #define ACPI_BITREG_POWER_BUTTON_ENABLE         0x0A
- #define ACPI_BITREG_SLEEP_BUTTON_ENABLE         0x0B
- #define ACPI_BITREG_RT_CLOCK_ENABLE             0x0C
--#define ACPI_BITREG_WAKE_ENABLE                 0x0D
--#define ACPI_BITREG_PCIEXP_WAKE_DISABLE         0x0E
-+#define ACPI_BITREG_PCIEXP_WAKE_DISABLE         0x0D
-+
-+/* PM1 Control register */
-+
-+#define ACPI_BITREG_SCI_ENABLE                  0x0E
-+#define ACPI_BITREG_BUS_MASTER_RLD              0x0F
-+#define ACPI_BITREG_GLOBAL_LOCK_RELEASE         0x10
-+#define ACPI_BITREG_SLEEP_TYPE_A                0x11
-+#define ACPI_BITREG_SLEEP_TYPE_B                0x12
-+#define ACPI_BITREG_SLEEP_ENABLE                0x13
- 
--#define ACPI_BITREG_SCI_ENABLE                  0x0F
--#define ACPI_BITREG_BUS_MASTER_RLD              0x10
--#define ACPI_BITREG_GLOBAL_LOCK_RELEASE         0x11
--#define ACPI_BITREG_SLEEP_TYPE_A                0x12
--#define ACPI_BITREG_SLEEP_TYPE_B                0x13
--#define ACPI_BITREG_SLEEP_ENABLE                0x14
-+/* PM2 Control register */
- 
--#define ACPI_BITREG_ARB_DISABLE                 0x15
-+#define ACPI_BITREG_ARB_DISABLE                 0x14
- 
--#define ACPI_BITREG_MAX                         0x15
-+#define ACPI_BITREG_MAX                         0x14
- #define ACPI_NUM_BITREG                         ACPI_BITREG_MAX + 1
- 
- /*
+ #endif				/* __ACLINUX_H__ */
 -- 
 1.5.5.1
 
