@@ -1,13 +1,14 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 108/122] ACPICA: Update version to 20080829
-Date: Thu, 23 Oct 2008 02:39:22 -0400
-Message-ID: <51f52819bd02112a1f61f0741231f14bdb0cae7b.1224743917.git.len.brown@intel.com>
+Subject: [PATCH 102/122] ACPICA: Disallow evaluation of named object types with
+ no value
+Date: Thu, 23 Oct 2008 02:39:16 -0400
+Message-ID: <b68bacf225e5e9758472e99505d76125ced3ea88.1224743917.git.len.brown@intel.com>
 References: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms044pub.verizon.net ([206.46.252.44]:38944 "EHLO
 	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752909AbYJWGoK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:44:10 -0400
+	with ESMTP id S1753756AbYJWGoL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:44:11 -0400
 Received: from localhost.localdomain ([96.237.168.40])
  by vms044.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
  3 2006)) with ESMTPA id <0K9600KZWIPH3KY1@vms044.mailsrvcs.net> for
@@ -22,28 +23,50 @@ Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Bro
 
 From: Bob Moore <robert.moore@intel.com>
 
-Update version to 20080829.
+Return AE_TYPE for objects that have no value and therefore
+evaluation is undefined: Device, Event, Mutex, Region, Thermal,
+and Scope.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- include/acpi/acconfig.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/acpi/namespace/nseval.c |   21 +++++++++++++++++++++
+ 1 files changed, 21 insertions(+), 0 deletions(-)
 
-diff --git a/include/acpi/acconfig.h b/include/acpi/acconfig.h
-index 4da88b1..2b737e5 100644
---- a/include/acpi/acconfig.h
-+++ b/include/acpi/acconfig.h
-@@ -63,7 +63,7 @@
+diff --git a/drivers/acpi/namespace/nseval.c b/drivers/acpi/namespace/nseval.c
+index d369164..0a1ae67 100644
+--- a/drivers/acpi/namespace/nseval.c
++++ b/drivers/acpi/namespace/nseval.c
+@@ -195,7 +195,28 @@ acpi_status acpi_ns_evaluate(struct acpi_evaluate_info * info)
+ 	} else {
+ 		/*
+ 		 * 2) Object is not a method, return its current value
++		 *
++		 * Disallow certain object types. For these, "evaluation" is undefined.
+ 		 */
++		switch (info->resolved_node->type) {
++		case ACPI_TYPE_DEVICE:
++		case ACPI_TYPE_EVENT:
++		case ACPI_TYPE_MUTEX:
++		case ACPI_TYPE_REGION:
++		case ACPI_TYPE_THERMAL:
++		case ACPI_TYPE_LOCAL_SCOPE:
++
++			ACPI_ERROR((AE_INFO,
++				    "[%4.4s] Evaluation of object type [%s] is not supported",
++				    info->resolved_node->name.ascii,
++				    acpi_ut_get_type_name(info->resolved_node->
++							  type)));
++
++			return_ACPI_STATUS(AE_TYPE);
++
++		default:
++			break;
++		}
  
- /* Current ACPICA subsystem version in YYYYMMDD format */
- 
--#define ACPI_CA_VERSION 		0x20080729
-+#define ACPI_CA_VERSION                 0x20080829
- 
- /*
-  * OS name, used for the _OS object.  The _OS object is essentially obsolete,
+ 		/*
+ 		 * Objects require additional resolution steps (e.g., the Node may be
 -- 
 1.5.5.1
 
