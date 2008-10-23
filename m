@@ -1,176 +1,160 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 072/122] ACPI: Add "acpi.power_nocheck=1" to disable power
- state check in power transition
-Date: Thu, 23 Oct 2008 02:38:46 -0400
-Message-ID: <f5adfaa372c76423b6e8e4727a9701330374f364.1224743917.git.len.brown@intel.com>
+Subject: [PATCH 054/122] ACPI: Add the support for _TTS object
+Date: Thu, 23 Oct 2008 02:38:28 -0400
+Message-ID: <e49f711cc8f3bf8d719a9f5c86e79ecc0a72bf70.1224743917.git.len.brown@intel.com>
 References: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms044pub.verizon.net ([206.46.252.44]:37959 "EHLO
-	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753636AbYJWGkJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:40:09 -0400
+Received: from vms172071pub.verizon.net ([206.46.172.71]:62933 "EHLO
+	vms172071pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753752AbYJWGkE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 02:40:04 -0400
 Received: from localhost.localdomain ([96.237.168.40])
- by vms044.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0K9600KPQIIW3KY1@vms044.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:40:09 -0500 (CDT)
+ by vms172071.mailsrvcs.net
+ (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+ with ESMTPA id <0K9600GBYIIPG012@vms172071.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 23 Oct 2008 01:40:02 -0500 (CDT)
 In-reply-to: <1224743976-31033-1-git-send-email-lenb@kernel.org>
 In-reply-to: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
 References: <a0ad05c75aa362c91f4d9cd91ff375a739574dd8.1224743916.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Zhao Yakui <yakui.zhao@intel.com>, Zhang Rui <rui.zhang@intel.com>, Li Shaohua <shaohua.li@intel.com>, Andi Kleen <ak@linux.intel.com>, Len Brown <len.brown@intel.com>
+Cc: Zhao Yakui <yakui.zhao@intel.com>, Li Shaohua <shaohua.li@intel.com>, Andi Kleen <ak@linux.intel.com>, Len Brown <len.brown@intel.com>
 
 From: Zhao Yakui <yakui.zhao@intel.com>
 
-   Maybe the incorrect power state is returned on the bogus bios, which
-is different with the real power state. For example: the bios returns D0
-state and the real power state is D3. OS expects to set the device to D0
-state. In  such case if OS uses the power state returned by the BIOS and
-checks the device power state very strictly in power transition, the device
-can't be transited to the correct power state.
+    The _TTS object is defined in the section 7.3 of acpi 3.0b spec.
+    The _TTS control method is executed by the OSPM at the beginning of
+the sleep transition process for S1,S2, S3, S4, and orderly S5 shutdown.
+OS will invoke _TTS before it has notified any native mode device drivers
+of the sleep state transition. The target sleeping state value is passed to
+the _TTS control method.
 
-   So the boot option of "acpi.power_nocheck=1" is added to avoid checking
-the device power in the course of device power transition.
+    The _TTS control method is also executed by the OSPM at the end of
+any sleep transition process when the system transitions to S0 from
+S1, S2, S3, or S4. The _TTS object should be evaluated after it has
+notified any native mode device drivers of the end of the sleep state
+transition. The working state value (0) is passed to the _TTS control method.
 
-http://bugzilla.kernel.org/show_bug.cgi?id=8049
-http://bugzilla.kernel.org/show_bug.cgi?id=11000
+    So it is necessary to add the support for _TTS object. The _TTS object
+will be evaluated if it exists.
+    At the same time a block notifier is added to the reboot notifier list so
+that the _TTS object will also be evaluated when the system shutdown.
+
+lenb: note that as of Sep 2008, I've not yet seen _TTS in any shipping BIOS.
+So this patch is to future-proof Linux, rather than fix the installed base.
+
+http://bugzilla.kernel.org/show_bug.cgi?id=11132
 
 Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Li Shaohua <shaohua.li@intel.com>
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/kernel-parameters.txt |    8 ++++++
- drivers/acpi/bus.c                  |   14 ++++++++++-
- drivers/acpi/power.c                |   42 +++++++++++++++++++++++++---------
- include/acpi/acpi_drivers.h         |    1 +
- 4 files changed, 53 insertions(+), 12 deletions(-)
+ drivers/acpi/sleep/main.c |   49 ++++++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 48 insertions(+), 1 deletions(-)
 
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-index 44d1bd1..99cf83f 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -251,6 +251,14 @@ and is between 256 and 4096 characters. It is defined in the file
-  			Warning: Many of these options can produce a lot of
-  			output and make your system unusable. Be very careful.
+diff --git a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
+index d13194a..c7f0c9c 100644
+--- a/drivers/acpi/sleep/main.c
++++ b/drivers/acpi/sleep/main.c
+@@ -15,6 +15,7 @@
+ #include <linux/dmi.h>
+ #include <linux/device.h>
+ #include <linux/suspend.h>
++#include <linux/reboot.h>
  
-+ 	acpi.power_nocheck=	[HW,ACPI]
-+ 			Format: 1/0 enable/disable the check of power state.
-+ 			On some bogus BIOS the _PSC object/_STA object of
-+ 			power resource can't return the correct device power
-+ 			state. In such case it is unneccessary to check its
-+ 			power state again in power transition.
-+ 			1 : disable the power state check
+ #include <asm/io.h>
+ 
+@@ -24,6 +25,36 @@
+ 
+ u8 sleep_states[ACPI_S_STATE_COUNT];
+ 
++static void acpi_sleep_tts_switch(u32 acpi_state)
++{
++	union acpi_object in_arg = { ACPI_TYPE_INTEGER };
++	struct acpi_object_list arg_list = { 1, &in_arg };
++	acpi_status status = AE_OK;
 +
- 	acpi_pm_good	[X86-32,X86-64]
- 			Override the pmtimer bug detection: force the kernel
- 			to assume that this machine's pmtimer latches its value
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index ccae305..91bdeb3 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -223,7 +223,19 @@ int acpi_bus_set_power(acpi_handle handle, int state)
- 	/*
- 	 * Get device's current power state
++	in_arg.integer.value = acpi_state;
++	status = acpi_evaluate_object(NULL, "\\_TTS", &arg_list, NULL);
++	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
++		/*
++		 * OS can't evaluate the _TTS object correctly. Some warning
++		 * message will be printed. But it won't break anything.
++		 */
++		printk(KERN_NOTICE "Failure in evaluating _TTS object\n");
++	}
++}
++
++static int tts_notify_reboot(struct notifier_block *this,
++			unsigned long code, void *x)
++{
++	acpi_sleep_tts_switch(ACPI_STATE_S5);
++	return NOTIFY_DONE;
++}
++
++static struct notifier_block tts_notifier = {
++	.notifier_call	= tts_notify_reboot,
++	.next		= NULL,
++	.priority	= 0,
++};
++
+ static int acpi_sleep_prepare(u32 acpi_state)
+ {
+ #ifdef CONFIG_ACPI_SLEEP
+@@ -131,6 +162,7 @@ static void acpi_pm_end(void)
+ 	 * failing transition to a sleep state.
  	 */
--	acpi_bus_get_power(device->handle, &device->power.state);
-+	if (!acpi_power_nocheck) {
-+		/*
-+		 * Maybe the incorrect power state is returned on the bogus
-+		 * bios, which is different with the real power state.
-+		 * For example: the bios returns D0 state and the real power
-+		 * state is D3. OS expects to set the device to D0 state. In
-+		 * such case if OS uses the power state returned by the BIOS,
-+		 * the device can't be transisted to the correct power state.
-+		 * So if the acpi_power_nocheck is set, it is unnecessary to
-+		 * get the power state by calling acpi_bus_get_power.
-+		 */
-+		acpi_bus_get_power(device->handle, &device->power.state);
-+	}
- 	if ((state == device->power.state) && !device->flags.force_power_state) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device is already at D%d\n",
- 				  state));
-diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-index e7bab75..7ff7349 100644
---- a/drivers/acpi/power.c
-+++ b/drivers/acpi/power.c
-@@ -54,6 +54,14 @@ ACPI_MODULE_NAME("power");
- #define ACPI_POWER_RESOURCE_STATE_OFF	0x00
- #define ACPI_POWER_RESOURCE_STATE_ON	0x01
- #define ACPI_POWER_RESOURCE_STATE_UNKNOWN 0xFF
+ 	acpi_target_sleep_state = ACPI_STATE_S0;
++	acpi_sleep_tts_switch(acpi_target_sleep_state);
+ }
+ #endif /* CONFIG_PM_SLEEP */
+ 
+@@ -155,6 +187,7 @@ static int acpi_suspend_begin(suspend_state_t pm_state)
+ 
+ 	if (sleep_states[acpi_state]) {
+ 		acpi_target_sleep_state = acpi_state;
++		acpi_sleep_tts_switch(acpi_target_sleep_state);
+ 	} else {
+ 		printk(KERN_ERR "ACPI does not support this state: %d\n",
+ 			pm_state);
+@@ -313,6 +346,7 @@ void __init acpi_no_s4_hw_signature(void)
+ static int acpi_hibernation_begin(void)
+ {
+ 	acpi_target_sleep_state = ACPI_STATE_S4;
++	acpi_sleep_tts_switch(acpi_target_sleep_state);
+ 	return 0;
+ }
+ 
+@@ -376,7 +410,15 @@ static struct platform_hibernation_ops acpi_hibernation_ops = {
+  */
+ static int acpi_hibernation_begin_old(void)
+ {
+-	int error = acpi_sleep_prepare(ACPI_STATE_S4);
++	int error;
++	/*
++	 * The _TTS object should always be evaluated before the _PTS object.
++	 * When the old_suspended_ordering is true, the _PTS object is
++	 * evaluated in the acpi_sleep_prepare.
++	 */
++	acpi_sleep_tts_switch(ACPI_STATE_S4);
 +
-+#ifdef MODULE_PARAM_PREFIX
-+#undef MODULE_PARAM_PREFIX
-+#endif
-+#define MODULE_PARAM_PREFIX "acpi."
-+int acpi_power_nocheck;
-+module_param_named(power_nocheck, acpi_power_nocheck, bool, 000);
-+
- static int acpi_power_add(struct acpi_device *device);
- static int acpi_power_remove(struct acpi_device *device, int type);
- static int acpi_power_resume(struct acpi_device *device);
-@@ -228,12 +236,18 @@ static int acpi_power_on(acpi_handle handle, struct acpi_device *dev)
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
++	error = acpi_sleep_prepare(ACPI_STATE_S4);
  
--	result = acpi_power_get_state(resource->device->handle, &state);
--	if (result)
--		return result;
--	if (state != ACPI_POWER_RESOURCE_STATE_ON)
--		return -ENOEXEC;
--
-+	if (!acpi_power_nocheck) {
-+		/*
-+		 * If acpi_power_nocheck is set, it is unnecessary to check
-+		 * the power state after power transition.
-+		 */
-+		result = acpi_power_get_state(resource->device->handle,
-+				&state);
-+		if (result)
-+			return result;
-+		if (state != ACPI_POWER_RESOURCE_STATE_ON)
-+			return -ENOEXEC;
-+	}
- 	/* Update the power resource's _device_ power state */
- 	resource->device->power.state = ACPI_STATE_D0;
- 
-@@ -279,11 +293,17 @@ static int acpi_power_off_device(acpi_handle handle, struct acpi_device *dev)
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
- 
--	result = acpi_power_get_state(handle, &state);
--	if (result)
--		return result;
--	if (state != ACPI_POWER_RESOURCE_STATE_OFF)
--		return -ENOEXEC;
-+	if (!acpi_power_nocheck) {
-+		/*
-+		 * If acpi_power_nocheck is set, it is unnecessary to check
-+		 * the power state after power transition.
-+		 */
-+		result = acpi_power_get_state(handle, &state);
-+		if (result)
-+			return result;
-+		if (state != ACPI_POWER_RESOURCE_STATE_OFF)
-+			return -ENOEXEC;
-+	}
- 
- 	/* Update the power resource's _device_ power state */
- 	resource->device->power.state = ACPI_STATE_D3;
-diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
-index e5f38e5..efbaa27 100644
---- a/include/acpi/acpi_drivers.h
-+++ b/include/acpi/acpi_drivers.h
-@@ -93,6 +93,7 @@ int acpi_enable_wakeup_device_power(struct acpi_device *dev, int sleep_state);
- int acpi_disable_wakeup_device_power(struct acpi_device *dev);
- int acpi_power_get_inferred_state(struct acpi_device *device);
- int acpi_power_transition(struct acpi_device *device, int state);
-+extern int acpi_power_nocheck;
- #endif
- 
- /* --------------------------------------------------------------------------
+ 	if (!error)
+ 		acpi_target_sleep_state = ACPI_STATE_S4;
+@@ -596,5 +638,10 @@ int __init acpi_sleep_init(void)
+ 		pm_power_off = acpi_power_off;
+ 	}
+ 	printk(")\n");
++	/*
++	 * Register the tts_notifier to reboot notifier list so that the _TTS
++	 * object can also be evaluated when the system enters S5.
++	 */
++	register_reboot_notifier(&tts_notifier);
+ 	return 0;
+ }
 -- 
 1.5.5.1
 
