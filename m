@@ -1,72 +1,71 @@
-From: James Bottomley <James.Bottomley@HansenPartnership.com>
-Subject: Oops in ACPI with git latest
-Date: Thu, 23 Oct 2008 14:45:03 -0500
-Message-ID: <1224791103.3330.37.camel@localhost.localdomain>
+From: Len Brown <lenb@kernel.org>
+Subject: [GIT PATCH] delete pcc_acpi
+Date: Thu, 23 Oct 2008 15:26:47 -0400 (EDT)
+Message-ID: <alpine.LFD.1.10.0810231525070.3005@localhost.localdomain>
+References: <20081022172203.GA4000@kroah.com>
+ <1224696563-5170-1-git-send-email-gregkh@suse.de>
+ <alpine.LFD.1.10.0810221434070.3010@localhost.localdomain>
+ <20081022184808.GA24150@suse.de>
+ <alpine.LFD.1.10.0810222244130.3010@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from accolon.hansenpartnership.com ([76.243.235.52]:60620 "EHLO
-	accolon.hansenpartnership.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753804AbYJWTpF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 Oct 2008 15:45:05 -0400
+Received: from vms173003pub.verizon.net ([206.46.173.3]:53632 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753436AbYJWT7K (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2008 15:59:10 -0400
+In-reply-to: <alpine.LFD.1.10.0810222244130.3010@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-kernel <linux-kernel@vger.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Hiroshi Miura <miura@da-cha.org>, YOKOTA Hiroshi <yokota@netlab.is.tsukuba.ac.jp>, Harald Welte <laforge@gnumonks.org>, linux-acpi@vger.kernel.org, Greg KH <gregkh@suse.de>
 
-ACPI Warning (nseval-0168): Insufficient arguments - method [_OSC] needs 5, found 4 [20080926]
-ACPI Warning (nspredef-0252): \_SB_.PCI0._OSC: Parameter count mismatch - ASL declared 5, expected 4 [20080926]
-ACPI Error (nspredef-0163): \_SB_.PCI0._OSC: Missing expected return value [20080926]
-BUG: unable to handle kernel NULL pointer dereference at 00000000
-IP: [<c0237671>] acpi_run_osc+0xa1/0x170
-*pde = 00000000 
-Oops: 0000 [#1] SMP 
-last sysfs file: 
-Dumping ftrace buffer:
-   (ftrace buffer empty)
-Modules linked in:
+Hi Linus,
 
-Pid: 1, comm: swapper Not tainted (2.6.27 #124) IBM eServer 206m-[8485IZZ]-
-EIP: 0060:[<c0237671>] EFLAGS: 00010246 CPU: 1
-EIP is at acpi_run_osc+0xa1/0x170
-EAX: 00000000 EBX: 00000010 ECX: 00000003 EDX: f704d4ec
-ESI: 00000000 EDI: 00000000 EBP: f704fde4 ESP: f704fd7c
- DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
-Process swapper (pid: 1, ti=f704e000 task=f704d150 task.ti=f704e000)
-Stack:
- f704fdc8 f704fdf0 00000001 00000003 00000010 c04f4a28 c014c3ab 00000001
- 00000001 00000000 f68766a0 00000001 00000003 00000000 f704fdd4 00000003
- 0000000c f704fdf0 c023759b 00000000 00000000 00000004 f704fd88 00000010
-Call Trace:
- [<c014c3ab>] ? trace_hardirqs_on+0xb/0x10
- [<c023759b>] ? acpi_get_osc_data+0x5b/0x90
- [<c02378c4>] ? acpi_query_osc+0x74/0xa0
- [<c02486bb>] ? acpi_ns_get_device_callback+0xfe/0x112
- [<c0249dbe>] ? acpi_ns_walk_namespace+0x9a/0x110
- [<c033a5cc>] ? pci_init+0x0/0x44
- [<c0248541>] ? acpi_get_devices+0x47/0x5d
- [<c02485bd>] ? acpi_ns_get_device_callback+0x0/0x112
- [<c0237850>] ? acpi_query_osc+0x0/0xa0
- [<c0237918>] ? __pci_osc_support_set+0x28/0x30
- [<c033b99c>] ? msi_init+0x27/0x38
- [<c033a5fc>] ? pci_init+0x30/0x44
- [<c010111d>] ? do_one_initcall+0x2d/0x160
- [<c014c3ab>] ? trace_hardirqs_on+0xb/0x10
- [<c01d6c5e>] ? proc_register+0xee/0x1f0
- [<c03482ad>] ? _spin_unlock+0x1d/0x20
- [<c01d6c5e>] ? proc_register+0xee/0x1f0
- [<c01d6e64>] ? create_proc_entry+0x54/0xb0
- [<c01622a4>] ? register_irq_proc+0xa4/0xc0
- [<c016231c>] ? init_irq_proc+0x5c/0x70
- [<c0521325>] ? kernel_init+0x10f/0x166
- [<c0521216>] ? kernel_init+0x0/0x166
- [<c0104213>] ? kernel_thread_helper+0x7/0x14
-Code: 00 00 00 c7 45 cc 00 00 00 00 c7 45 d4 03 00 00 00 c7 45 d8 0c 00 00 00 ba 80 41 4a c0 e8 67 10 01 00 89 c7 85 c0 75 4a 8b 75 e8 <83> 3e 03 75 5c 8b 46 08 8b 18 85 db 74 29 f6 c3 02 0f 85 82 00 
-EIP: [<c0237671>] acpi_run_osc+0xa1/0x170 SS:ESP 0068:f704fd7c
----[ end trace a7919e7f17c0a725 ]---
-swapper used greatest stack depth: 5788 bytes left
-Kernel panic - not syncing: Attempted to kill init!
+please pull from: 
 
+git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
+
+this old driver errantly went upstream with the staging stuff, but should 
+not have.
+
+This will update the files shown below.
+
+thanks!
+
+-Len
+
+ps. individual patches are available on linux-acpi@vger.kernel.org
+and a consolidated plain patch is available here:
+ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.27/acpi-release-20080926-2.6.27.diff.gz
+
+ drivers/staging/Kconfig             |    2 -
+ drivers/staging/Makefile            |    1 -
+ drivers/staging/pcc-acpi/Kconfig    |   11 -
+ drivers/staging/pcc-acpi/Makefile   |    1 -
+ drivers/staging/pcc-acpi/TODO       |    7 -
+ drivers/staging/pcc-acpi/pcc-acpi.c | 1111 -----------------------------------
+ 6 files changed, 0 insertions(+), 1133 deletions(-)
+ delete mode 100644 drivers/staging/pcc-acpi/Kconfig
+ delete mode 100644 drivers/staging/pcc-acpi/Makefile
+ delete mode 100644 drivers/staging/pcc-acpi/TODO
+ delete mode 100644 drivers/staging/pcc-acpi/pcc-acpi.c
+
+through these commits:
+
+Len Brown (1):
+      staging: pcc_acpi: delete obsolete driver
+
+with this log:
+
+commit 0d64cf8eba6de467f56bc43c4d8e28b0e3e335c5
+Author: Len Brown <len.brown@intel.com>
+Date:   Thu Oct 23 15:14:52 2008 -0400
+
+    staging: pcc_acpi: delete obsolete driver
+    
+    pcc_acpi is based on an old version
+    of drivers/misc/panasonic-laptop.c
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
 
