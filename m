@@ -1,77 +1,58 @@
-From: "Huang, FrankR" <FrankR.Huang@amd.com>
-Subject: RE: [Devel] RE: Welcome to the "Devel" mailing list
-Date: Thu, 23 Oct 2008 09:59:37 +0800
-Message-ID: <DD1CC71B621B004FA76856E5129D6B1702126C59@sbjgexmb1.amd.com>
-References: <mailman.0.1224489394.31433.devel@lists.acpica.org> <DD1CC71B621B004FA76856E5129D6B17020B97D1@sbjgexmb1.amd.com> <d3f22a0810201931m6be4de39sf9e6a94ff658e427@mail.gmail.com> <DD1CC71B621B004FA76856E5129D6B17020B99D3@sbjgexmb1.amd.com> <d3f22a0810210024w5403eacbk5a4c6b46a8488dd8@mail.gmail.com> <DD1CC71B621B004FA76856E5129D6B17020B9A1B@sbjgexmb1.amd.com> <d3f22a0810210111v2e3f4ec2p74832538e3bd7a0d@mail.gmail.com> <DD1CC71B621B004FA76856E5129D6B17020B9B14@sbjgexmb1.amd.com> <alpine.LFD.1.10.0810220014380.2984@localhost.localdomain>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 01/42] Staging: add pcc-acpi driver
+Date: Wed, 22 Oct 2008 22:49:26 -0400 (EDT)
+Message-ID: <alpine.LFD.1.10.0810222244130.3010@localhost.localdomain>
+References: <20081022172203.GA4000@kroah.com>
+ <1224696563-5170-1-git-send-email-gregkh@suse.de>
+ <alpine.LFD.1.10.0810221434070.3010@localhost.localdomain>
+ <20081022184808.GA24150@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outbound-sin.frontbridge.com ([207.46.51.80]:2668 "EHLO
-	SG2EHSOBE004.bigfish.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752181AbYJWCGt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Oct 2008 22:06:49 -0400
-Content-Class: urn:content-classes:message
+Received: from vms046pub.verizon.net ([206.46.252.46]:34466 "EHLO
+	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751008AbYJWCuH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Oct 2008 22:50:07 -0400
+In-reply-to: <20081022184808.GA24150@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: Greg KH <gregkh@suse.de>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Hiroshi Miura <miura@da-cha.org>, YOKOTA Hiroshi <yokota@netlab.is.tsukuba.ac.jp>, Harald Welte <laforge@gnumonks.org>, linux-acpi@vger.kernel.org
 
-Len,
 
-	I used the 2.6.27 kernel to gave a try. But there is less info. for ACPI , moreover,not as much as 2.6.24 kernel(only the ACPI table info).
-	The config for ACPI is nearly the same, and acpi.debug_level and acpi.debug_layer is the same value.
 
-Thanks,
-Frank
+On Wed, 22 Oct 2008, Greg KH wrote:
 
------Original Message-----
-From: Huang, FrankR 
-Sent: Wednesday, October 22, 2008 1:47 PM
-To: 'Len Brown'
-Cc: 'linux-acpi@vger.kernel.org'
-Subject: RE: [Devel] RE: Welcome to the "Devel" mailing list
+> On Wed, Oct 22, 2008 at 02:37:18PM -0400, Len Brown wrote:
+> > NAK.
+> > this was already relplaced by the panasonic driver in the acpi tree.
+> 
+> Is this in 2.6.27, or was it a 2.6.28 addition?  For some reason, I had
+> reports from openSUSE users that 2.6.27 still didn't work properly and
+> needed this driver.
+> 
+> How about the new "pcc-acpi-cdrom" driver hack?  Hiroshi, is that needed
+> still with the 2.6.27 kernel?
 
- Thanks, Len.
- I need the ACPI_FUNCTION_TRACE output , otherwise I will write printk() for look into the kernel acpi load process and debug my BIOS acpi part.
- I have tried the 2.6.22 and .2.6.24 kernel. Unfuntunely, after setting the acpi.debug_level and acpi.debug_layer to 0xFFFFFFFF and give the enough log_buf_len. Still there is no ACPI_FUNCTION_TRACE out.
- I'll try the 2.6.27 kernel and report the result.
+drivers/misc/panasonic-laptop.c is staged for 2.6.28:
 
-Thanks,
-Frank
+http://git.kernel.org/?p=linux/kernel/git/lenb/linux-acpi-2.6.git;a=history;f=drivers/misc/panasonic-laptop.c;h=a2cb598d8ab54a98000d1f31f7c2407924399a5e;hb=test
 
------Original Message-----
-From: Len Brown [mailto:lenb@kernel.org]
-Sent: Wednesday, October 22, 2008 12:18 PM
-To: Huang, FrankR
-Cc: Lin Ming; devel@lists.acpica.org
-Subject: RE: [Devel] RE: Welcome to the "Devel" mailing list
 
-wrong list for this (linux specific) discussion, it should be on linux-acpi@vger.kernel.org
+> > Greg,
+> > If it has the word "acpi" in it, please check with me before
+> > putting something in the staging tree, for I'd prefer to
+> > stage such things in the acpi tree.
+> 
+> Ok, I didn't know you wanted "uncleaned" drivers in your tree, I'll
+> remember this for the future :)
 
-function tracing is not a new feature, it should work in 2.6.22 as well.
-the new part was splitting it out into its own config option -- it used to be enabled under CONFIG_ACPI_DEBUG=y.
-maybe we screwed it up when we split it out and didn't notice b/c it isn't used often.
-If 2.6.27 doesn't work, please report it to the list above.
+AFAICK, the driver that was checked into staging tree
+was based on an older version of the driver already staged
+in the acpi tree.  I think that the staging tree
+isn't helping us in this scenario.
 
 thanks,
 -Len
-
-
-On Tue, 21 Oct 2008, Huang, FrankR wrote:
-
-> I use 2.6.24 kernel and have this option to Y. But still there is no ACPI_FUNCTION_TRACE output. 
-> 
-> -----Original Message-----
-> From: Lin Ming [mailto:lin@minggr.cn]
-> Sent: Tuesday, October 21, 2008 4:11 PM
-> To: Huang, FrankR
-> Cc: devel@lists.acpica.org
-> Subject: Re: [Devel] RE: Welcome to the "Devel" mailing list
-> 
-> You also have to config CONFIG_ACPI_DEBUG_FUNC_TRACE=y.
-> 
-> Lin Ming
-> 
 
 
