@@ -1,141 +1,77 @@
-From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
-Subject: Re: [PATCH] Cleanup of i7300_idle based on review comments
-Date: Wed, 22 Oct 2008 16:51:03 -0700
-Message-ID: <20081022235103.GA31369@linux-os.sc.intel.com>
-References: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com> <e8b529091b2ab65f5a4783e292c2b472e309116e.1223706853.git.len.brown@intel.com> <20081011083347.GA31918@elte.hu> <alpine.LFD.1.10.0810161805360.3026@localhost.localdomain> <48FE07AE.4010203@linux.intel.com> <7E82351C108FA840AB1866AC776AEC4637CD27F3@orsmsx505.amr.corp.intel.com> <48FED3FA.6040703@linux.intel.com> <20081022233451.GA28775@linux-os.sc.intel.com>
+From: Andi Kleen <ak@linux.intel.com>
+Subject: Re: [PATCH 2/2] i7300_idle driver v1.55
+Date: Thu, 23 Oct 2008 03:11:04 +0200
+Message-ID: <48FFCF28.3070604@linux.intel.com>
+References: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com> <e8b529091b2ab65f5a4783e292c2b472e309116e.1223706853.git.len.brown@intel.com> <20081011083347.GA31918@elte.hu> <alpine.LFD.1.10.0810161805360.3026@localhost.localdomain> <48FE07AE.4010203@linux.intel.com> <7E82351C108FA840AB1866AC776AEC4637CD27F3@orsmsx505.amr.corp.intel.com> <48FED3FA.6040703@linux.intel.com> <20081022234006.GB28775@linux-os.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:18452 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750930AbYJVXvF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Oct 2008 19:51:05 -0400
-Content-Disposition: inline
-In-Reply-To: <20081022233451.GA28775@linux-os.sc.intel.com>
+Received: from mga10.intel.com ([192.55.52.92]:53352 "EHLO
+	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751969AbYJWBKz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Oct 2008 21:10:55 -0400
+In-Reply-To: <20081022234006.GB28775@linux-os.sc.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-Cc: randy.dunlap@oracle.com, Andi Kleen <ak@linux.intel.com>, Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Henroid, Andrew D" <andrew.d.henroid@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>
+To: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Henroid, Andrew D" <andrew.d.henroid@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, paulmck@us.ibm.com
 
+Venki Pallipadi wrote:
+> On Wed, Oct 22, 2008 at 12:19:22AM -0700, Andi Kleen wrote:
+>> Pallipadi, Venkatesh wrote:
+>>> udelay may be more power efficient than polling.
+>> Isn't that function a one off anyways?
+> 
+> Which function is one off?
 
+The one with the udelays, as in being init code. Or maybe I misread
+the code.
 
-Cleanup of i7300 idle driver based on review comments from Randy Dunlap,
-Andi Kleen and Len Brown.
+>>>> ;
+>>>>> +static void __exit i7300_idle_exit(void)
+>>>>> +{
+>>>>> +     idle_notifier_unregister(&i7300_idle_nb);
+>>>> I still think this needs some kind of idle synchronization.
+>>> This unregister uses atomic_notifier_chain_unregister() which
+>>> uses RCU and handles the race conditions that way.
+>> I didn't do a full analysis, but I didn't think RCU protects
+>> against the idle handler itself.  At least not standard RCU.
+>> You would need to go through at least two quiescent periods,
+>> not one as standard code.
+>>
+>> There used to be an older
+>> idle synchronization interface for this case (which was removed
+>> at some point), perhaps it needs to be readded.
+>>
+>> Or just use stop_machine(). That protects against idle too
+>> and while it's a big hammer for unloading it should be ok.
+>>
+> 
+> stop_machine() for unregistering idle callback will deadlock due to RCU.
+> 
+> I am not sure why we need two cycles. RCU in the unregister makes
+> sure that no CPU is executing the callback handler 
+> and only then unregister
+> returns. So, that will mean no one can be in the callback rountine and we are
+> safe to remove the module. Correct?
 
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Perhaps I'm confused, but I thought with noidlehz the RCU code
+got changed to take out idle CPUs out of the rcu masks. This makes
+normally sense because you don't want to delay the grace period
+for potentially very long sleeping CPUs.
 
----
- drivers/idle/Kconfig      |   11 ++++++-----
- drivers/idle/i7300_idle.c |   33 ++++++++++++++++++---------------
- 2 files changed, 24 insertions(+), 20 deletions(-)
+But it means it won't work for code inside the idle loop. Ok maybe
+if you're very careful with the ordering, but I'm not sure that's
+the case currently.
 
-Index: linux-acpi-2.6/drivers/idle/Kconfig
-===================================================================
---- linux-acpi-2.6.orig/drivers/idle/Kconfig	2008-10-22 11:43:08.000000000 -0700
-+++ linux-acpi-2.6/drivers/idle/Kconfig	2008-10-22 11:43:37.000000000 -0700
-@@ -5,12 +5,13 @@ config I7300_IDLE_IOAT_CHANNEL
- 	bool
- 
- config I7300_IDLE
--	tristate "Intel chipset idle power saving driver"
-+	tristate "Intel chipset idle memory power saving driver"
- 	select I7300_IDLE_IOAT_CHANNEL
--	depends on X86_64
-+	depends on X86_64 && EXPERIMENTAL
- 	help
--	  Enable idle power savings with certain Intel server chipsets.
--	  The chipset must have I/O AT support, such as the Intel 7300.
--	  The power savings depends on the type and quantity of DRAM devices.
-+	  Enable memory power savings when idle with certain Intel server
-+	  chipsets. The chipset must have I/O AT support, such as the
-+	  Intel 7300. The power savings depends on the type and quantity of
-+	  DRAM devices.
- 
- endmenu
-Index: linux-acpi-2.6/drivers/idle/i7300_idle.c
-===================================================================
---- linux-acpi-2.6.orig/drivers/idle/i7300_idle.c	2008-10-22 11:43:08.000000000 -0700
-+++ linux-acpi-2.6/drivers/idle/i7300_idle.c	2008-10-22 11:43:37.000000000 -0700
-@@ -35,6 +35,8 @@
- #define I7300_IDLE_DRIVER_VERSION	"1.55"
- #define I7300_PRINT			"i7300_idle:"
- 
-+#define MAX_STOP_RETRIES	10
-+
- static int debug;
- module_param_named(debug, debug, uint, 0644);
- MODULE_PARM_DESC(debug, "Enable debug printks in this driver");
-@@ -47,12 +49,12 @@ MODULE_PARM_DESC(debug, "Enable debug pr
-  *  0 = No throttling
-  *  1 = Throttle when > 4 activations per eval window (Maximum throttling)
-  *  2 = Throttle when > 8 activations
-- *  168 = Throttle when > 168 activations (Minimum throttling)
-+ *  168 = Throttle when > 672 activations (Minimum throttling)
-  */
--#define MAX_THRTLWLIMIT		168
--static uint i7300_idle_thrtlowlm = 1;
--module_param_named(thrtlwlimit, i7300_idle_thrtlowlm, uint, 0644);
--MODULE_PARM_DESC(thrtlwlimit,
-+#define MAX_THROTTLE_LOW_LIMIT		168
-+static uint throttle_low_limit = 1;
-+module_param_named(throttle_low_limit, throttle_low_limit, uint, 0644);
-+MODULE_PARM_DESC(throttle_low_limit,
- 		"Value for THRTLOWLM activation field "
- 		"(0 = disable throttle, 1 = Max throttle, 168 = Min throttle)");
- 
-@@ -111,9 +113,9 @@ static int i7300_idle_ioat_start(void)
- static void i7300_idle_ioat_stop(void)
- {
- 	int i;
--	u8 sts;
-+	u64 sts;
- 
--	for (i = 0; i < 5; i++) {
-+	for (i = 0; i < MAX_STOP_RETRIES; i++) {
- 		writeb(IOAT_CHANCMD_RESET,
- 			ioat_chanbase + IOAT1_CHANCMD_OFFSET);
- 
-@@ -127,9 +129,10 @@ static void i7300_idle_ioat_stop(void)
- 
- 	}
- 
--	if (i == 5)
--		dprintk("failed to suspend+reset I/O AT after 5 retries\n");
--
-+	if (i == MAX_STOP_RETRIES) {
-+		dprintk("failed to stop I/O AT after %d retries\n",
-+			MAX_STOP_RETRIES);
-+	}
- }
- 
- /* Test I/O AT by copying 1024 byte from 2k to 1k */
-@@ -276,7 +279,7 @@ static void __exit i7300_idle_ioat_exit(
- 	i7300_idle_ioat_stop();
- 
- 	/* Wait for a while for the channel to halt before releasing */
--	for (i = 0; i < 10; i++) {
-+	for (i = 0; i < MAX_STOP_RETRIES; i++) {
- 		writeb(IOAT_CHANCMD_RESET,
- 		       ioat_chanbase + IOAT1_CHANCMD_OFFSET);
- 
-@@ -390,9 +393,9 @@ static void i7300_idle_start(void)
- 	new_ctl = i7300_idle_thrtctl_saved & ~DIMM_THRTCTL_THRMHUNT;
- 	pci_write_config_byte(fbd_dev, DIMM_THRTCTL, new_ctl);
- 
--	limit = i7300_idle_thrtlowlm;
--	if (unlikely(limit > MAX_THRTLWLIMIT))
--		limit = MAX_THRTLWLIMIT;
-+	limit = throttle_low_limit;
-+	if (unlikely(limit > MAX_THROTTLE_LOW_LIMIT))
-+		limit = MAX_THROTTLE_LOW_LIMIT;
- 
- 	pci_write_config_byte(fbd_dev, DIMM_THRTLOW, limit);
- 
-@@ -441,7 +444,7 @@ static int i7300_idle_notifier(struct no
- 	static ktime_t idle_begin_time;
- 	static int time_init = 1;
- 
--	if (!i7300_idle_thrtlowlm)
-+	if (!throttle_low_limit)
- 		return 0;
- 
- 	if (unlikely(time_init)) {
+Yes two cycles won't work either, sorry was confused earlier,
+because even the second cycle wouldn't force the CPU out of idle.
+
+The old idle sync code was more a thread that just cycled through
+all the CPus. That would work.
+
+cc Paul
+
+-Andi
+
