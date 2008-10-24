@@ -1,86 +1,85 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI: cpufreq,
- processor: fix compile error in drivers/acpi/processor_perflib.c
-Date: Fri, 24 Oct 2008 15:25:20 -0400 (EDT)
-Message-ID: <alpine.LFD.1.10.0810241524590.3056@localhost.localdomain>
-References: <490193BC.70108@cn.fujitsu.com>
+Subject: Re: [PATCH] ACPI: Always report a sync event after a lid state change
+Date: Fri, 24 Oct 2008 15:37:12 -0400 (EDT)
+Message-ID: <alpine.LFD.1.10.0810241529110.3056@localhost.localdomain>
+References: <20081023212833.GA1923@ziggurat.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Boundary_(ID_c2v0sdjgLm3jZ9/jR7fKOg)"
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-reply-to: <490193BC.70108@cn.fujitsu.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Miao Xie <miaox@cn.fujitsu.com>
-Cc: linux-acpi@vger.kernel.org, trenn@suse.de, linux-ia64@vger.kernel.org
+Content-Type: multipart/mixed; boundary="Boundary_(ID_O5EWDgsZ4J9blA+RglaIGw)"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms042pub.verizon.net ([206.46.252.42]:48617 "EHLO
+	vms042pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751059AbYJXThZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Oct 2008 15:37:25 -0400
+In-reply-to: <20081023212833.GA1923@ziggurat.research.nokia.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Guillem Jover <guillem.jover@nokia.com>
+Cc: linux-acpi@vger.kernel.org, linux-input@vger.kernel.org
 
   This message is in MIME format.  The first part should be readable text,
   while the remaining parts are likely unreadable without MIME-aware tools.
 
---Boundary_(ID_c2v0sdjgLm3jZ9/jR7fKOg)
-Content-type: TEXT/PLAIN; charset=UTF-8
+--Boundary_(ID_O5EWDgsZ4J9blA+RglaIGw)
+Content-type: TEXT/PLAIN; charset=utf-8
 Content-transfer-encoding: 8BIT
 
-applied.
+Dmitry,
+
+Looking around the tree, the other calls to
+input_report_switch() and input_report_key()
+are all followed by input_sync().
+
+I guess we didn't understand the API when we added
+these calls to button.c?
+
+Looks like the other users of input_report_* in
+drivers/acpi and drivers/misc are okay,
+with the exception of toshiba_acpi.c --
+the most neglected driver we have,
+so I"ll do the same to that one?
+
+Ack?
+
 thanks,
--len
+-Len
 
-On Fri, 24 Oct 2008, Miao Xie wrote:
 
-> When trying to build 2.6.28-rc1 on ia64, make aborts with:
+On Fri, 24 Oct 2008, Guillem Jover wrote:
+
+> Currently not always an EV_SYN event is reported to userland
+> after the EV_SW SW_LID event has been sent. This is easy to verify
+> by using “input-events” from input-utils and just closing and opening
+> the lid.
 > 
->   CC      drivers/acpi/processor_perflib.o
->   drivers/acpi/processor_perflib.c:41:28: error: asm/cpufeature.h: No such file or directory
->   drivers/acpi/processor_perflib.c: In function ‘acpi_processor_get_performance_info’:
->   drivers/acpi/processor_perflib.c:364: error: implicit declaration of function ‘boot_cpu_has’
->   drivers/acpi/processor_perflib.c:364: error: ‘X86_FEATURE_EST’ undeclared (first use in this function)
->   drivers/acpi/processor_perflib.c:364: error: (Each undeclared identifier is reported only once
->   drivers/acpi/processor_perflib.c:364: error: for each function it appears in.)
->   make[2]: *** [drivers/acpi/processor_perflib.o] Error 1
->   make[1]: *** [drivers/acpi] Error 2
->   make: *** [drivers] Error 2
-> 
-> this patch fix it.
-> 
-> Signed-off-by: Miao Xie <miaox@cn.fujitsu.com>
-> Cc: Thomas Renninger <trenn@suse.de>
-> 
+> Signed-off-by: Guillem Jover <guillem.jover@nokia.com>
 > ---
->  drivers/acpi/processor_perflib.c |    5 +++++
->  1 files changed, 5 insertions(+), 0 deletions(-)
+>  drivers/acpi/button.c |    3 ++-
+>  1 files changed, 2 insertions(+), 1 deletions(-)
 > 
-> diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
-> index dc98f7a..dbcf260 100644
-> --- a/drivers/acpi/processor_perflib.c
-> +++ b/drivers/acpi/processor_perflib.c
-> @@ -38,7 +38,10 @@
->  
->  #include <asm/uaccess.h>
->  #endif
-> +
-> +#ifdef CONFIG_X86
->  #include <asm/cpufeature.h>
-> +#endif
->  
->  #include <acpi/acpi_bus.h>
->  #include <acpi/processor.h>
-> @@ -360,11 +363,13 @@ static int acpi_processor_get_performance_info(struct acpi_processor *pr)
->  	 * the BIOS is older than the CPU and does not know its frequencies
->  	 */
->   update_bios:
-> +#ifdef CONFIG_X86
->  	if (ACPI_SUCCESS(acpi_get_handle(pr->handle, "_PPC", &handle))){
->  		if(boot_cpu_has(X86_FEATURE_EST))
->  			printk(KERN_WARNING FW_BUG "BIOS needs update for CPU "
->  			       "frequency support\n");
->  	}
-> +#endif
->  	return result;
+> diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+> index 1dfec41..59352d9 100644
+> --- a/drivers/acpi/button.c
+> +++ b/drivers/acpi/button.c
+> @@ -262,6 +262,7 @@ static int acpi_lid_send_state(struct acpi_button *button)
+>  		return -ENODEV;
+>  	/* input layer checks if event is redundant */
+>  	input_report_switch(button->input, SW_LID, !state);
+> +	input_sync(button->input);
+>  	return 0;
 >  }
 >  
+> @@ -285,8 +286,8 @@ static void acpi_button_notify(acpi_handle handle, u32 event, void *data)
+>  			input_report_key(input, keycode, 1);
+>  			input_sync(input);
+>  			input_report_key(input, keycode, 0);
+> +			input_sync(input);
+>  		}
+> -		input_sync(input);
+>  
+>  		acpi_bus_generate_proc_event(button->device, event,
+>  					++button->pushed);
 > -- 
-> 1.5.4.rc3
-> 
-> 
+> 1.6.0.2
 > 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
@@ -88,4 +87,4 @@ On Fri, 24 Oct 2008, Miao Xie wrote:
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
 
---Boundary_(ID_c2v0sdjgLm3jZ9/jR7fKOg)--
+--Boundary_(ID_O5EWDgsZ4J9blA+RglaIGw)--
