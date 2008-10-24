@@ -1,56 +1,96 @@
-From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
-Subject: [PATCH] memory power in config; show up only when it applies
-Date: Fri, 24 Oct 2008 11:00:35 -0700
-Message-ID: <20081024175951.GA12789@linux-os.sc.intel.com>
-References: <20081023223906.GA26918@linux-os.sc.intel.com> <alpine.LFD.1.10.0810241302130.3056@localhost.localdomain>
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: Re: Oops in ACPI with git latest
+Date: Fri, 24 Oct 2008 11:04:19 -0700
+Message-ID: <200810241104.19704.jbarnes@virtuousgeek.org>
+References: <1224791103.3330.37.camel@localhost.localdomain> <200810240857.18190.rjw@sisk.pl> <4911F71203A09E4D9981D27F9D8308580AA7FA41@orsmsx503.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:51289 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750918AbYJXSAg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 24 Oct 2008 14:00:36 -0400
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755475AbYJXSEw@vger.kernel.org>
+In-Reply-To: <4911F71203A09E4D9981D27F9D8308580AA7FA41@orsmsx503.amr.corp.intel.com>
 Content-Disposition: inline
-In-Reply-To: <alpine.LFD.1.10.0810241302130.3056@localhost.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, James Bottomley <James.Bottomley@hansenpartnership.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, linux-kernel <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
 
-
-Len,
-
-One more one line patch.
+So who wants to send me a final patch for this?
 
 Thanks,
-Venki
+Jesse
 
+On Friday, October 24, 2008 7:57 am Moore, Robert wrote:
+> Since acpi_evaluate_object doesn't set the pointer value, it may be simply
+> random.
+>
+> >-----Original Message-----
+> >From: Rafael J. Wysocki [mailto:rjw@sisk.pl]
+> >Sent: Thursday, October 23, 2008 11:57 PM
+> >To: James Bottomley; Jesse Barnes
+> >Cc: Moore, Robert; linux-acpi@vger.kernel.org; linux-kernel; Len Brown
+> >Subject: Re: Oops in ACPI with git latest
+> >
+> >On Friday, 24 of October 2008, James Bottomley wrote:
+> >> On Thu, 2008-10-23 at 15:34 -0700, Moore, Robert wrote:
+> >> > +	if (!output.pointer)
+> >> > +		return AE_NULL_OBJECT;
+> >> > +
+> >> >
+> >> > This probably won't work. acpi_evaluate_object currently doesn't touch
+> >
+> >the pointer parameter if there is no return value, it only sets the length
+> >to zero.
+> >
+> >> Actually, it does.
+> >
+> >Well, this was the only candidate for a NULL pointer dereference, so I'd
+> > be surprised if it didn't. :-)
+> >
+> >> > So, you might try this:
+> >> >
+> >> > +	if (!output.length)
+> >> > +		return AE_NULL_OBJECT;
+> >> > +
+> >
+> >Still, I'd expect the AML interpreter to return error code in this case.
+> >
+> >> This also works.
+> >
+> >Why don't we make it extra safe, then. ;-)
+> >
+> >---
+> >From: Rafael J. Wysocki <rjw@sisk.pl>
+> >Subject: Prevent acpi_osc_run from using NULL objects
+> >
+> >Check if the object returned by acpi_evaluate_object() in
+> >acpi_run_osc() is not NULL.
+> >
+> >Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> >---
+> > drivers/pci/pci-acpi.c |    3 +++
+> > 1 file changed, 3 insertions(+)
+> >
+> >Index: linux-2.6/drivers/pci/pci-acpi.c
+> >===================================================================
+> >--- linux-2.6.orig/drivers/pci/pci-acpi.c
+> >+++ linux-2.6/drivers/pci/pci-acpi.c
+> >@@ -83,6 +83,9 @@ static acpi_status acpi_run_osc(acpi_han
+> > 	if (ACPI_FAILURE(status))
+> > 		return status;
+> >
+> >+	if (!output.pointer || !output.length)
+> >+		return AE_NULL_OBJECT;
+> >+
+> > 	out_obj = output.pointer;
+> > 	if (out_obj->type != ACPI_TYPE_BUFFER) {
+> > 		printk(KERN_DEBUG "Evaluate _OSC returns wrong type\n");
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
 
-Repair the config option for I7300_IDLE. The menu will now only show up when
-applicable.
-
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-
----
- drivers/idle/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-Index: linux-2.6/drivers/idle/Kconfig
-===================================================================
---- linux-2.6.orig/drivers/idle/Kconfig	2008-10-24 09:06:00.000000000 -0700
-+++ linux-2.6/drivers/idle/Kconfig	2008-10-24 10:48:09.000000000 -0700
-@@ -1,5 +1,6 @@
- 
- menu "Memory power savings"
-+depends on X86_64
- 
- config I7300_IDLE_IOAT_CHANNEL
- 	bool
-@@ -7,7 +8,6 @@ config I7300_IDLE_IOAT_CHANNEL
- config I7300_IDLE
- 	tristate "Intel chipset idle power saving driver"
- 	select I7300_IDLE_IOAT_CHANNEL
--	depends on X86_64
- 	help
- 	  Enable idle power savings with certain Intel server chipsets.
- 	  The chipset must have I/O AT support, such as the Intel 7300.
+-- 
+Jesse Barnes, Intel Open Source Technology Center
