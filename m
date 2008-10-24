@@ -1,42 +1,121 @@
-From: James Bottomley <James.Bottomley@HansenPartnership.com>
-Subject: RE: Oops in ACPI with git latest
-Date: Thu, 23 Oct 2008 20:27:22 -0500
-Message-ID: <1224811642.3330.57.camel@localhost.localdomain>
-References: <1224791103.3330.37.camel@localhost.localdomain>
-	 <200810232242.33480.rjw@sisk.pl>
-	 <4911F71203A09E4D9981D27F9D830858033D1CC9@orsmsx503.amr.corp.intel.com>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: [PATCH 0/3] ACPI: Fix for supporting > 256 processor
+	declaration limit
+Date: Fri, 24 Oct 2008 10:59:14 +0800
+Message-ID: <1224817154.4055.13.camel@yakui_zhao.sh.intel.com>
+References: <1224702636.6784.13.camel@localhost>
+	 <1224754322.3945.15.camel@yakui_zhao.sh.intel.com>
+	 <1224778313.6769.39.camel@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from accolon.hansenpartnership.com ([76.243.235.52]:39647 "EHLO
-	accolon.hansenpartnership.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751597AbYJXB1Z (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 Oct 2008 21:27:25 -0400
-In-Reply-To: <4911F71203A09E4D9981D27F9D830858033D1CC9@orsmsx503.amr.corp.intel.com>
+Received: from mga01.intel.com ([192.55.52.88]:39050 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751517AbYJXCxK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Oct 2008 22:53:10 -0400
+In-Reply-To: <1224778313.6769.39.camel@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>
+To: Myron Stowe <myron.stowe@hp.com>
+Cc: lenb@kernel.org, aystarik@gmail.com, linux-acpi <linux-acpi@vger.kernel.org>
 
-On Thu, 2008-10-23 at 15:34 -0700, Moore, Robert wrote:
-> +	if (!output.pointer)
-> +		return AE_NULL_OBJECT;
-> +
+On Thu, 2008-10-23 at 10:11 -0600, Myron Stowe wrote:
+> On Thu, 2008-10-23 at 17:32 +0800, Zhao Yakui wrote:
+> > On Wed, 2008-10-22 at 13:10 -0600, Myron Stowe wrote:
+> > > Len, Alexey:
+> > > 
+> > > The following three item patch series fixes an issue with the introduction
+> > > of > 256 processor declaration support: "Allow processor to be declared with
+> > > the Device() instead of Processor()" (git SHA 11bf04c4).
+> > > 
+> > > The root issue is in the lsapic mapping logic of drivers/acpi/processor_core.c.
+> > > Currently, the logic tries both types of matches irregardless of declaration
+> > > type and relies on one failing.  According to the spec - lsapic mapping is
+> > > dependent on how the processor object was declared: CPUs declared using the
+> > > "Processor" statement should use the Local SAPIC's 'processor_id', and CPUs
+> > > declared using the "Device" statement should use the 'uid'.
+> > > 
+> > > Reference: Section 8.4 Declaring Processors; Section 5.2.11.13 Local SAPIC
+> > > Structure.  "Advanced Configuration and Power Interface Specification",
+> > > Revision 3.0b, October 2006.
+> > > 
+> > > 
+> > > [PATCH 1/3] disambiguates the processor declaration type that is currently
+> > > conflated so that subsequent logic can behave based explicitly on the
+> > > declaration's type.  I expect the disambiguation this patch introduces will
+> > > also be advantageous when extending the > 256 processor support for x86 via
+> > > x2APIC.
+> > In the patch the new HID("ACPI_CPU") for processor is introduced. Is it
+> > required?
+> > If there exists the _UID object under the scope of Processor, it won't
+> > work well.
+> I'm not sure I understand your concern.  If you are concerned about the
+> case of a "Processor" type declaration that has a _UID object within
+> it's scope then this patch will handle such correctly (by the way - some
+> of our past platforms do have this combination).  This is basically what
+> [PATCH 1/3] addresses - setting the underlying infrastructure so that
+> subsequent mapping related logic - [PATCH2/3] - can explicitly
+> disambiguate between "Processor" declarations and "Device" declarations
+> and use the correct component corresponding to the declaration type
+> used.
+In most cases there is no _UID object under the scope of Processor
+namespace. And in such cases it is unnecessary to add the new
+HID("ACPI_CPU") for the processor. 
+
+But if there exists the _UID object under the scope of processor
+namespace , IMO this patch is not appropriate. The ACPI_ID returned by
+_UID object should have higher priority than the ACPI_ID defined in the
+processor definition.  In such case OS should match the ACPI_ID obtained
+from the _UID with slapic table to get the correct processor ID.
+
+Based on the above analysis IMO it is unnecessary to add the new
+HID("ACPI_CPU") for the processor.
+Thanks.
+
 > 
-> This probably won't work. acpi_evaluate_object currently doesn't touch the pointer parameter if there is no return value, it only sets the length to zero.
-
-Actually, it does.
-
-> So, you might try this:
+> If I misunderstood your question, or I am understanding your question
+> but you don't see how [PATCH 1/3] solves your concern then please ask
+> again.
+> > 
+> > According to the spec the returned value of the _UID object for
+> > processor/device can be numeric value or a string. If it is a numeric
+> > value, we should match it with the ACPI_UID field of slapic table to get
+> > the APIC id. If it is string, we should match it with the ACPI_UID
+> > string field of slapic table get the APIC ID.
+> Correct - thus my "warning" so to speak in the last paragraph of the
+> original posting.  I was going to tackle this and it turned out to get
+> pretty messy fast.  Fortunately the error path printk in
+> acpi_processor_get_info() when a "Device" declaration with a _UID that
+> is *not* an integer is encountered will trigger and indicate exactly
+> where the issue is at some future date when a vendor utilizes this
+> combination.
 > 
-> +	if (!output.length)
-> +		return AE_NULL_OBJECT;
-> +
-
-This also works.
-
-James
-
+> Thanks for your reply!
+> Myron
+> > > 
+> > > [PATCH 2/3] addresses the root issue as stated above.  With respect to this
+> > > patch I'm ambivalent about the 'printk' introduced in "map_lsapic_id()" -
+> > > perhaps it should be removed?
+> > > 
+> > > [PATCH 3/3] is non-functional white space/spelling fixes in the related code. 
+> > > 
+> > > 
+> > > While the specific fix is ia64 focused the underlying code affected is common
+> > > to both x86 and ia64.  I have tested on the following platform/namespace
+> > > combinations:
+> > >   ia64 with "Processor" type namespace processor declarations,
+> > >   ia64 with "Device" type namespace processor declarations,
+> > >   x86 with "Processor" type namespace processor declarations.
+> > > 
+> > > Note that this patch series does *not* handle "Device" type processor
+> > > declarations that contain a string type _UID object under the processor
+> > > device's scope (I am currently not aware of any platforms that have such to
+> > > test against).
+> > > 
+> > > All comments welcome.
+> > > 
+> > > Myron
+> > > 
+> > 
 
