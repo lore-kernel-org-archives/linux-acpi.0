@@ -1,33 +1,56 @@
-From: "Dan Williams" <dan.j.williams@intel.com>
-Subject: Re: [PATCH] Fix compile warning CONFIG_I7300_IDLE_IOAT_CHANNEL not defined
-Date: Fri, 24 Oct 2008 10:53:21 -0700
-Message-ID: <e9c3a7c20810241053t2f991a62p1d03fb60f8750a89@mail.gmail.com>
-References: <20081023223906.GA26918@linux-os.sc.intel.com>
+From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Subject: [PATCH] memory power in config; show up only when it applies
+Date: Fri, 24 Oct 2008 11:00:35 -0700
+Message-ID: <20081024175951.GA12789@linux-os.sc.intel.com>
+References: <20081023223906.GA26918@linux-os.sc.intel.com> <alpine.LFD.1.10.0810241302130.3056@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.27]:6646 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751085AbYJXRxY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Oct 2008 13:53:24 -0400
-Received: by qw-out-2122.google.com with SMTP id 3so482201qwe.37
-        for <linux-acpi@vger.kernel.org>; Fri, 24 Oct 2008 10:53:23 -0700 (PDT)
-In-Reply-To: <20081023223906.GA26918@linux-os.sc.intel.com>
+Received: from mga11.intel.com ([192.55.52.93]:51289 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750918AbYJXSAg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 24 Oct 2008 14:00:36 -0400
 Content-Disposition: inline
+In-Reply-To: <alpine.LFD.1.10.0810241302130.3056@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Venki Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, "Sosnowski, Maciej" <maciej.sosnowski@intel.com>
+To: Len Brown <lenb@kernel.org>
+Cc: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, linux-kernel <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
 
-On Thu, Oct 23, 2008 at 3:39 PM, Venki Pallipadi
-<venkatesh.pallipadi@intel.com> wrote:
->
-> When I7300_idle driver is not configured, there is a compile time
-> warning about IDLE_IOAT_CHANNEL not defined. Fix it.
->
 
-Please copy Maciej and myself on ioat changes.
+Len,
+
+One more one line patch.
 
 Thanks,
-Dan
+Venki
+
+
+Repair the config option for I7300_IDLE. The menu will now only show up when
+applicable.
+
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+
+---
+ drivers/idle/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+Index: linux-2.6/drivers/idle/Kconfig
+===================================================================
+--- linux-2.6.orig/drivers/idle/Kconfig	2008-10-24 09:06:00.000000000 -0700
++++ linux-2.6/drivers/idle/Kconfig	2008-10-24 10:48:09.000000000 -0700
+@@ -1,5 +1,6 @@
+ 
+ menu "Memory power savings"
++depends on X86_64
+ 
+ config I7300_IDLE_IOAT_CHANNEL
+ 	bool
+@@ -7,7 +8,6 @@ config I7300_IDLE_IOAT_CHANNEL
+ config I7300_IDLE
+ 	tristate "Intel chipset idle power saving driver"
+ 	select I7300_IDLE_IOAT_CHANNEL
+-	depends on X86_64
+ 	help
+ 	  Enable idle power savings with certain Intel server chipsets.
+ 	  The chipset must have I/O AT support, such as the Intel 7300.
