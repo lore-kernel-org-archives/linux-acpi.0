@@ -1,68 +1,92 @@
 From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: Oops in ACPI with git latest
-Date: Fri, 24 Oct 2008 07:57:51 -0700
-Message-ID: <4911F71203A09E4D9981D27F9D8308580AA7FA41@orsmsx503.amr.corp.intel.com>
+Subject: RE: [PATCH] Subject: Prevent acpi_run_osc from using NULL objects
+ (was: Re: Oops in ACPI with git latest)
+Date: Fri, 24 Oct 2008 08:02:37 -0700
+Message-ID: <4911F71203A09E4D9981D27F9D8308580AA7FA4F@orsmsx503.amr.corp.intel.com>
 References: <1224791103.3330.37.camel@localhost.localdomain>
- <4911F71203A09E4D9981D27F9D830858033D1CC9@orsmsx503.amr.corp.intel.com>
  <1224811642.3330.57.camel@localhost.localdomain>
- <200810240857.18190.rjw@sisk.pl>
+ <200810240857.18190.rjw@sisk.pl> <200810241349.43166.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:48269 "EHLO mga09.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:31553 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752477AbYJXO54 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Oct 2008 10:57:56 -0400
-In-Reply-To: <200810240857.18190.rjw@sisk.pl>
+	id S1753573AbYJXPCr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Oct 2008 11:02:47 -0400
+In-Reply-To: <200810241349.43166.rjw@sisk.pl>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>, James Bottomley <James.Bottomley@hansenpartnership.com>, Jesse Barnes <jbarnes@virtuousgeek.org>
 Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-Since acpi_evaluate_object doesn't set the pointer value, it may be simply random.
+
+>> Still, I'd expect the AML interpreter to return error code in this case.
+
+
+We've just recently deployed a new module that validates the inputs and outputs for the predefined ACPI methods (Those that start with underscore).
+
+That is the source of these messages:
+
+> > ACPI Warning (nspredef-0252): \_SB_.PCI0._OSC: Parameter count mismatch - ASL declared 5, expected 4 [20080926]
+> > ACPI Error (nspredef-0163): \_SB_.PCI0._OSC: Missing expected return value [20080926]
+
+For the initial version of this module, we only output messages when the inputs and/or outputs don't match the requirements of the ACPI specification. 
+
+We can change this to returning exceptions in the future.
+ 
 
 >-----Original Message-----
->From: Rafael J. Wysocki [mailto:rjw@sisk.pl]
->Sent: Thursday, October 23, 2008 11:57 PM
+>From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+>owner@vger.kernel.org] On Behalf Of Rafael J. Wysocki
+>Sent: Friday, October 24, 2008 4:50 AM
 >To: James Bottomley; Jesse Barnes
 >Cc: Moore, Robert; linux-acpi@vger.kernel.org; linux-kernel; Len Brown
->Subject: Re: Oops in ACPI with git latest
+>Subject: [PATCH] Subject: Prevent acpi_run_osc from using NULL objects
+>(was: Re: Oops in ACPI with git latest)
 >
->On Friday, 24 of October 2008, James Bottomley wrote:
->> On Thu, 2008-10-23 at 15:34 -0700, Moore, Robert wrote:
->> > +	if (!output.pointer)
->> > +		return AE_NULL_OBJECT;
->> > +
+>On Friday, 24 of October 2008, Rafael J. Wysocki wrote:
+>> On Friday, 24 of October 2008, James Bottomley wrote:
+>> > On Thu, 2008-10-23 at 15:34 -0700, Moore, Robert wrote:
+>> > > +	if (!output.pointer)
+>> > > +		return AE_NULL_OBJECT;
+>> > > +
+>> > >
+>> > > This probably won't work. acpi_evaluate_object currently doesn't
+>touch the pointer parameter if there is no return value, it only sets the
+>length to zero.
 >> >
->> > This probably won't work. acpi_evaluate_object currently doesn't touch
->the pointer parameter if there is no return value, it only sets the length
->to zero.
+>> > Actually, it does.
 >>
->> Actually, it does.
+>> Well, this was the only candidate for a NULL pointer dereference, so I'd
+>be
+>> surprised if it didn't. :-)
+>>
+>> > > So, you might try this:
+>> > >
+>> > > +	if (!output.length)
+>> > > +		return AE_NULL_OBJECT;
+>> > > +
+>>
+>> Still, I'd expect the AML interpreter to return error code in this case.
+>>
+>> > This also works.
+>>
+>> Why don't we make it extra safe, then. ;-)
+>>
+>> ---
+>> From: Rafael J. Wysocki <rjw@sisk.pl>
+>> Subject: Prevent acpi_osc_run from using NULL objects
 >
->Well, this was the only candidate for a NULL pointer dereference, so I'd be
->surprised if it didn't. :-)
->
->> > So, you might try this:
->> >
->> > +	if (!output.length)
->> > +		return AE_NULL_OBJECT;
->> > +
->
->Still, I'd expect the AML interpreter to return error code in this case.
->
->> This also works.
->
->Why don't we make it extra safe, then. ;-)
+>Ah, mistake in the subject.
 >
 >---
 >From: Rafael J. Wysocki <rjw@sisk.pl>
->Subject: Prevent acpi_osc_run from using NULL objects
+>Subject: Prevent acpi_run_osc from using NULL objects
 >
 >Check if the object returned by acpi_evaluate_object() in
->acpi_run_osc() is not NULL.
+>acpi_run_osc() is not NULL before using it.
 >
 >Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 >---
@@ -83,3 +107,7 @@ Since acpi_evaluate_object doesn't set the pointer value, it may be simply rando
 > 	out_obj = output.pointer;
 > 	if (out_obj->type != ACPI_TYPE_BUFFER) {
 > 		printk(KERN_DEBUG "Evaluate _OSC returns wrong type\n");
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
