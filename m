@@ -1,71 +1,79 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: Re: iasl and SSDT disassembling limitations
-Date: Fri, 24 Oct 2008 18:50:30 +0800
-Message-ID: <1224845430.14280.58.camel@minggr.sh.intel.com>
-References: <3515468CA27A0F49917112E2ECF61E210927CBF912@pdsmsx502.ccr.corp.intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH] Subject: Prevent acpi_run_osc from using NULL objects (was: Re: Oops in ACPI with git latest)
+Date: Fri, 24 Oct 2008 13:49:42 +0200
+Message-ID: <200810241349.43166.rjw@sisk.pl>
+References: <1224791103.3330.37.camel@localhost.localdomain> <1224811642.3330.57.camel@localhost.localdomain> <200810240857.18190.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:49251 "EHLO mga09.intel.com"
+Received: from ogre.sisk.pl ([217.79.144.158]:43996 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751601AbYJXKuq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 24 Oct 2008 06:50:46 -0400
-In-Reply-To: <3515468CA27A0F49917112E2ECF61E210927CBF912@pdsmsx502.ccr.corp.intel.com>
+	id S1752179AbYJXLo6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 24 Oct 2008 07:44:58 -0400
+In-Reply-To: <200810240857.18190.rjw@sisk.pl>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi <linux-acpi@vger.kernel.org>
-Cc: hmh@hmh.eng.br, elendil@planet.nl
+To: James Bottomley <James.Bottomley@hansenpartnership.com>, Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: "Moore, Robert" <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-We have added a "-e" option to iasl that include tables for external
-symbol resolution. See
-http://git.acpica.org/repos/?p=acpica.git;a=commitdiff;h=2f705a1b06109e12bd2659d0e12215710a5622b7
-
-
-Example: To disassemble an SSDT with external symbols defined in DSDT:
-
-iasl -e dsdt.aml -d ssdt.aml
-
-Lin Ming
-
-
-> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Moore, Robert
-> Sent: Saturday, September 27, 2008 12:49 AM
-> To: Henrique de Moraes Holschuh
-> Cc: linux-acpi@vger.kernel.org
-> Subject: RE: iasl and SSDT disassembling limitations
+On Friday, 24 of October 2008, Rafael J. Wysocki wrote:
+> On Friday, 24 of October 2008, James Bottomley wrote:
+> > On Thu, 2008-10-23 at 15:34 -0700, Moore, Robert wrote:
+> > > +	if (!output.pointer)
+> > > +		return AE_NULL_OBJECT;
+> > > +
+> > > 
+> > > This probably won't work. acpi_evaluate_object currently doesn't touch the pointer parameter if there is no return value, it only sets the length to zero.
+> > 
+> > Actually, it does.
 > 
-> Yes, it should be possible, and it is on our list of things to look at.
+> Well, this was the only candidate for a NULL pointer dereference, so I'd be
+> surprised if it didn't. :-)
 > 
-> A little more info on the problem: Without the definition of the control method, the disassembler has no way of knowing how many arguments should be passed to the method. Without this information, it does not know how many expressions to parse after the control method invocation in order to create the arguments. The information is simply not available. So it tries to guess.
+> > > So, you might try this:
+> > > 
+> > > +	if (!output.length)
+> > > +		return AE_NULL_OBJECT;
+> > > +
 > 
-> Bob
+> Still, I'd expect the AML interpreter to return error code in this case.
 > 
+> > This also works.
 > 
-> >-----Original Message-----
-> >From: Henrique de Moraes Holschuh [mailto:hmh@hmh.eng.br]
-> >Sent: Friday, September 26, 2008 9:09 AM
-> >To: Moore, Robert
-> >Cc: linux-acpi@vger.kernel.org
-> >Subject: iasl and SSDT disassembling limitations
-> >
-> >On Fri, 26 Sep 2008, Moore, Robert wrote:
-> >> Most of the problems seen in the SSDT are related to the fact that the
-> >> disassembler cannot always correctly disassemble code that contains calls
-> >> to control methods that are external to the table. There is not enough
-> >> information to disassemble correctly, and the table often needs to be
-> >> repaired by hand.
-> >
-> >Can iasl be improved to properly disassemble such tables if we give it ALL
-> >tables to work with?
-> >
-> >--
-> >  "One disk to rule them all, One disk to find them. One disk to bring
-> >  them all and in the darkness grind them. In the Land of Redmond
-> >  where the shadows lie." -- The Silicon Valley Tarot
-> >  Henrique Holschuh
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Why don't we make it extra safe, then. ;-)
+> 
+> ---
+> From: Rafael J. Wysocki <rjw@sisk.pl>
+> Subject: Prevent acpi_osc_run from using NULL objects
 
+Ah, mistake in the subject.
+
+---
+From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: Prevent acpi_run_osc from using NULL objects
+
+Check if the object returned by acpi_evaluate_object() in
+acpi_run_osc() is not NULL before using it.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/pci/pci-acpi.c |    3 +++
+ 1 file changed, 3 insertions(+)
+
+Index: linux-2.6/drivers/pci/pci-acpi.c
+===================================================================
+--- linux-2.6.orig/drivers/pci/pci-acpi.c
++++ linux-2.6/drivers/pci/pci-acpi.c
+@@ -83,6 +83,9 @@ static acpi_status acpi_run_osc(acpi_han
+ 	if (ACPI_FAILURE(status))
+ 		return status;
+ 
++	if (!output.pointer || !output.length)
++		return AE_NULL_OBJECT;
++
+ 	out_obj = output.pointer;
+ 	if (out_obj->type != ACPI_TYPE_BUFFER) {
+ 		printk(KERN_DEBUG "Evaluate _OSC returns wrong type\n");
