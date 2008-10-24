@@ -1,146 +1,150 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: Re: [PATCH 0/3] ACPI: Fix for supporting > 256 processor declaration
- limit
-Date: Fri, 24 Oct 2008 08:42:43 +0400
-Message-ID: <49015243.3020706@gmail.com>
-References: <1224702636.6784.13.camel@localhost>	 <1224754322.3945.15.camel@yakui_zhao.sh.intel.com>	 <1224778313.6769.39.camel@localhost> <1224817154.4055.13.camel@yakui_zhao.sh.intel.com>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: [PATCH 1/3] ACPI: Disambiguate processor declaration type
+Date: Fri, 24 Oct 2008 13:36:44 +0800
+Message-ID: <1224826604.4055.52.camel@yakui_zhao.sh.intel.com>
+References: <1224702636.6784.13.camel@localhost>
+	 <1224702749.6784.15.camel@localhost>
+	 <1224810982.3945.22.camel@yakui_zhao.sh.intel.com>
+	 <1224817633.6789.41.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.189]:35930 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755968AbYJXEmp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Oct 2008 00:42:45 -0400
-Received: by nf-out-0910.google.com with SMTP id d3so286132nfc.21
-        for <linux-acpi@vger.kernel.org>; Thu, 23 Oct 2008 21:42:43 -0700 (PDT)
-In-Reply-To: <1224817154.4055.13.camel@yakui_zhao.sh.intel.com>
+Received: from mga01.intel.com ([192.55.52.88]:39874 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751173AbYJXFab (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 24 Oct 2008 01:30:31 -0400
+In-Reply-To: <1224817633.6789.41.camel@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Myron Stowe <myron.stowe@hp.com>
-Cc: Zhao Yakui <yakui.zhao@intel.com>, lenb@kernel.org, linux-acpi <linux-acpi@vger.kernel.org>
+Cc: lenb@kernel.org, aystarik@gmail.com, linux-acpi <linux-acpi@vger.kernel.org>
 
-Myron,
+On Thu, 2008-10-23 at 21:07 -0600, Myron Stowe wrote:
+> On Fri, 2008-10-24 at 09:16 +0800, Zhao Yakui wrote:
+> > On Wed, 2008-10-22 at 13:12 -0600, Myron Stowe wrote:
+> > > Declaring processors in ACPI namespace can be done using either a "Processor"
+> > > definition or a "Device" definition (see section 8.4 - Declaring Processors;
+> > > "Advanced Configuration and Power Interface Specification", Revision 3.0b).
+> > > Currently the two processor declaration types are conflated.
+> > In most cases there is no _UID object under the scope of processor
+> > namespace. So the current source can work well without adding the new
+> > HID("ACPI_CPU") for processor definition.
+> > 
+> > If there exists the _UID object under the scope of processor namespace,
+> > IMO the ProcessorID returned by _UID will have higher priority. In such
+> > case the patch can't work well.
+> 
+> According to section 5.2.11.13 "Local SAPIC Structure" - Local SAPIC to
+> processor object association uses the 'ProcessorID' for CPUs declared
+> with "Processor" statements and Local SAPIC to processor object
+> association for CPUs declared with "Device" statements use the '_UID'.
+> There is no "higher priority" - the association is fixed and must take
+> into account the type of CPU declaration - either "Processor" or
+> "Device" - to use the appropriate field - either 'ProcessorID' or '_UID'
+> - for the match.
+Agree with what you said. For the processor definition using Processor
+macro, we can get the ACPI ID by the processor block or _UID object (if
+it exists) and match it with the ACPI processor ID filed of LAPIC table
+or sapic table. 
+If there is no _UID object under the scope of processor namespace, the
+current source code still can work well. In such case it is unnecessary
+to add a new HID. Of course it is harmless if you add it.
+> In example, the combinations of CPU declaration type used in combination
+> with whether or not the CPU declaration contains a _UID child object are
+>   "Processor" without a _UID child object (which our systems have)
+>   "Processor" with a _UID child object (which our systems have)
+It is very lucky that there exists such a system. Will you please
+confirm whether the ACPI ID returned by _UID object is consistent with
+the ACPI ID declared in the processor block?
+If they are the same value, any one can be used. 
+If they are different, maybe we should confirm which one is correct.
 
-I think you could ignore this person... I've spent more than 2 weeks 
-explaining
-him my changes to EC, but he insisted on quality of his "analysis", 
-until was proven
-to be completely wrong by test run on his own hardware.
-If you have any questions about why he is so vocal, ask Len -- he is the 
-manager of
-Yakui...
+The remaining issue is that _UID can return the string according to ACPI
+spec. If the _UID string is returned, it should be matched with the ACPI
+UID_string field of slapic table to get the APIC ID of processor. 
 
-Regards,
-Alex.
+If you can confirm that the integer is returned by the _UID object under
+the scope of processor using device definition on your system, I think
+that your patch is OK. 
 
+Of course we should add such enhancement.
 
-Zhao Yakui wrote:
-> On Thu, 2008-10-23 at 10:11 -0600, Myron Stowe wrote:
->   
->> On Thu, 2008-10-23 at 17:32 +0800, Zhao Yakui wrote:
->>     
->>> On Wed, 2008-10-22 at 13:10 -0600, Myron Stowe wrote:
->>>       
->>>> Len, Alexey:
->>>>
->>>> The following three item patch series fixes an issue with the introduction
->>>> of > 256 processor declaration support: "Allow processor to be declared with
->>>> the Device() instead of Processor()" (git SHA 11bf04c4).
->>>>
->>>> The root issue is in the lsapic mapping logic of drivers/acpi/processor_core.c.
->>>> Currently, the logic tries both types of matches irregardless of declaration
->>>> type and relies on one failing.  According to the spec - lsapic mapping is
->>>> dependent on how the processor object was declared: CPUs declared using the
->>>> "Processor" statement should use the Local SAPIC's 'processor_id', and CPUs
->>>> declared using the "Device" statement should use the 'uid'.
->>>>
->>>> Reference: Section 8.4 Declaring Processors; Section 5.2.11.13 Local SAPIC
->>>> Structure.  "Advanced Configuration and Power Interface Specification",
->>>> Revision 3.0b, October 2006.
->>>>
->>>>
->>>> [PATCH 1/3] disambiguates the processor declaration type that is currently
->>>> conflated so that subsequent logic can behave based explicitly on the
->>>> declaration's type.  I expect the disambiguation this patch introduces will
->>>> also be advantageous when extending the > 256 processor support for x86 via
->>>> x2APIC.
->>>>         
->>> In the patch the new HID("ACPI_CPU") for processor is introduced. Is it
->>> required?
->>> If there exists the _UID object under the scope of Processor, it won't
->>> work well.
->>>       
->> I'm not sure I understand your concern.  If you are concerned about the
->> case of a "Processor" type declaration that has a _UID object within
->> it's scope then this patch will handle such correctly (by the way - some
->> of our past platforms do have this combination).  This is basically what
->> [PATCH 1/3] addresses - setting the underlying infrastructure so that
->> subsequent mapping related logic - [PATCH2/3] - can explicitly
->> disambiguate between "Processor" declarations and "Device" declarations
->> and use the correct component corresponding to the declaration type
->> used.
->>     
-> In most cases there is no _UID object under the scope of Processor
-> namespace. And in such cases it is unnecessary to add the new
-> HID("ACPI_CPU") for the processor. 
->
-> But if there exists the _UID object under the scope of processor
-> namespace , IMO this patch is not appropriate. The ACPI_ID returned by
-> _UID object should have higher priority than the ACPI_ID defined in the
-> processor definition.  In such case OS should match the ACPI_ID obtained
-> from the _UID with slapic table to get the correct processor ID.
->
-> Based on the above analysis IMO it is unnecessary to add the new
-> HID("ACPI_CPU") for the processor.
-> Thanks.
->
->   
->> If I misunderstood your question, or I am understanding your question
->> but you don't see how [PATCH 1/3] solves your concern then please ask
->> again.
->>     
->>> According to the spec the returned value of the _UID object for
->>> processor/device can be numeric value or a string. If it is a numeric
->>> value, we should match it with the ACPI_UID field of slapic table to get
->>> the APIC id. If it is string, we should match it with the ACPI_UID
->>> string field of slapic table get the APIC ID.
->>>       
->> Correct - thus my "warning" so to speak in the last paragraph of the
->> original posting.  I was going to tackle this and it turned out to get
->> pretty messy fast.  Fortunately the error path printk in
->> acpi_processor_get_info() when a "Device" declaration with a _UID that
->> is *not* an integer is encountered will trigger and indicate exactly
->> where the issue is at some future date when a vendor utilizes this
->> combination.
->>
->> Thanks for your reply!
->> Myron
->>     
->>>> [PATCH 2/3] addresses the root issue as stated above.  With respect to this
->>>> patch I'm ambivalent about the 'printk' introduced in "map_lsapic_id()" -
->>>> perhaps it should be removed?
->>>>
->>>> [PATCH 3/3] is non-functional white space/spelling fixes in the related code. 
->>>>
->>>>
->>>> While the specific fix is ia64 focused the underlying code affected is common
->>>> to both x86 and ia64.  I have tested on the following platform/namespace
->>>> combinations:
->>>>   ia64 with "Processor" type namespace processor declarations,
->>>>   ia64 with "Device" type namespace processor declarations,
->>>>   x86 with "Processor" type namespace processor declarations.
->>>>
->>>> Note that this patch series does *not* handle "Device" type processor
->>>> declarations that contain a string type _UID object under the processor
->>>> device's scope (I am currently not aware of any platforms that have such to
->>>> test against).
->>>>
->>>> All comments welcome.
->>>>
->>>> Myron
->>>>
->>>>         
->
->   
+>   "Device" without a _UID child object
+>   "Device" with a _UID child object (which our systems now have)
+> In the "Processor" declarations the match to the Local SAPIC is based on
+> the 'ProcessorID' value regardless of whether or not there is a _UID
+> child object.  For "Device" declarations, the match to the Local SAPIC
+> is based on the '_UID' of the child object - so the third case above
+> ("Device" without a _UID child object) would be illegal.
+> 
+> 
+> This patch separates the type of CPU declaration that was encountered in
+> the namespace (the current code conflated them into a single #define).
+> The separation enables the mapping logic, that is done later, know
+> explicitly which CPU declaration type was used so that it can use the
+> proper field - 'ProcessorID' or '_UID' for the association.
+> 
+> If you do not agree with this interpretation of the spec then please let
+> me know where you believe I am wrong.
+> 
+> Myron
+> > 
+> > > 
+> > > This patch disambiguates the processor declaration's definition type enabling
+> > > subsequent code to behave uniquely based explicitly on the declaration's type.
+> > > 
+> > > Signed-off-by: Myron Stowe <myron.stowe@hp.com>
+> > > CC: Alexey Starikovskiy <aystarik@gmail.com>
+> > > 
+> > > ---
+> > >  drivers/acpi/processor_core.c |    1 +
+> > >  drivers/acpi/scan.c           |    2 +-
+> > >  include/acpi/acpi_drivers.h   |    1 +
+> > >  3 files changed, 3 insertions(+), 1 deletion(-)
+> > > 
+> > > Index: linux-2.6/drivers/acpi/processor_core.c
+> > > ===================================================================
+> > > --- linux-2.6.orig/drivers/acpi/processor_core.c	2008-10-16 19:00:37.000000000 -0600
+> > > +++ linux-2.6/drivers/acpi/processor_core.c	2008-10-21 13:11:00.000000000 -0600
+> > > @@ -89,6 +89,7 @@ static int acpi_processor_handle_eject(s
+> > >  
+> > > 
+> > >  static const struct acpi_device_id processor_device_ids[] = {
+> > > +	{ACPI_PROCESSOR_OBJECT_HID, 0},
+> > >  	{ACPI_PROCESSOR_HID, 0},
+> > >  	{"", 0},
+> > >  };
+> > > Index: linux-2.6/include/acpi/acpi_drivers.h
+> > > ===================================================================
+> > > --- linux-2.6.orig/include/acpi/acpi_drivers.h	2008-10-16 18:53:26.000000000 -0600
+> > > +++ linux-2.6/include/acpi/acpi_drivers.h	2008-10-20 13:23:28.000000000 -0600
+> > > @@ -41,6 +41,7 @@
+> > >   */
+> > >  
+> > >  #define ACPI_POWER_HID			"LNXPOWER"
+> > > +#define ACPI_PROCESSOR_OBJECT_HID	"ACPI_CPU"
+> > >  #define ACPI_PROCESSOR_HID		"ACPI0007"
+> > >  #define ACPI_SYSTEM_HID			"LNXSYSTM"
+> > >  #define ACPI_THERMAL_HID		"LNXTHERM"
+> > > Index: linux-2.6/drivers/acpi/scan.c
+> > > ===================================================================
+> > > --- linux-2.6.orig/drivers/acpi/scan.c	2008-10-16 19:04:58.000000000 -0600
+> > > +++ linux-2.6/drivers/acpi/scan.c	2008-10-21 13:09:09.000000000 -0600
+> > > @@ -1025,7 +1025,7 @@ static void acpi_device_set_id(struct ac
+> > >  		hid = ACPI_POWER_HID;
+> > >  		break;
+> > >  	case ACPI_BUS_TYPE_PROCESSOR:
+> > > -		hid = ACPI_PROCESSOR_HID;
+> > > +		hid = ACPI_PROCESSOR_OBJECT_HID;
+> > >  		break;
+> > >  	case ACPI_BUS_TYPE_SYSTEM:
+> > >  		hid = ACPI_SYSTEM_HID;
+> > > 
+> > > 
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> > > the body of a message to majordomo@vger.kernel.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
 
