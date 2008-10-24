@@ -1,90 +1,60 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI: Always report a sync event after a lid state change
-Date: Fri, 24 Oct 2008 15:37:12 -0400 (EDT)
-Message-ID: <alpine.LFD.1.10.0810241529110.3056@localhost.localdomain>
-References: <20081023212833.GA1923@ziggurat.research.nokia.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Oops in ACPI with git latest
+Date: Fri, 24 Oct 2008 21:50:31 +0200
+Message-ID: <200810242150.31809.rjw@sisk.pl>
+References: <1224791103.3330.37.camel@localhost.localdomain> <200810242043.04078.rjw@sisk.pl> <200810241222.32979.jbarnes@virtuousgeek.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Boundary_(ID_O5EWDgsZ4J9blA+RglaIGw)"
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms042pub.verizon.net ([206.46.252.42]:48617 "EHLO
-	vms042pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751059AbYJXThZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Oct 2008 15:37:25 -0400
-In-reply-to: <20081023212833.GA1923@ziggurat.research.nokia.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:47846 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752757AbYJXTqK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 24 Oct 2008 15:46:10 -0400
+In-Reply-To: <200810241222.32979.jbarnes@virtuousgeek.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Guillem Jover <guillem.jover@nokia.com>
-Cc: linux-acpi@vger.kernel.org, linux-input@vger.kernel.org
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: "Moore, Robert" <robert.moore@intel.com>, James Bottomley <James.Bottomley@hansenpartnership.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-
---Boundary_(ID_O5EWDgsZ4J9blA+RglaIGw)
-Content-type: TEXT/PLAIN; charset=utf-8
-Content-transfer-encoding: 8BIT
-
-Dmitry,
-
-Looking around the tree, the other calls to
-input_report_switch() and input_report_key()
-are all followed by input_sync().
-
-I guess we didn't understand the API when we added
-these calls to button.c?
-
-Looks like the other users of input_report_* in
-drivers/acpi and drivers/misc are okay,
-with the exception of toshiba_acpi.c --
-the most neglected driver we have,
-so I"ll do the same to that one?
-
-Ack?
-
-thanks,
--Len
-
-
-On Fri, 24 Oct 2008, Guillem Jover wrote:
-
-> Currently not always an EV_SYN event is reported to userland
-> after the EV_SW SW_LID event has been sent. This is easy to verify
-> by using “input-events” from input-utils and just closing and opening
-> the lid.
+On Friday, 24 of October 2008, Jesse Barnes wrote:
+> On Friday, October 24, 2008 11:43 am Rafael J. Wysocki wrote:
+> > On Friday, 24 of October 2008, Jesse Barnes wrote:
+> > > So who wants to send me a final patch for this?
+> >
+> > I already did: http://marc.info/?l=linux-kernel&m=122484871717023&w=4
+> > but I can remove the "!output.pointer || " if you prefer. :-)
 > 
-> Signed-off-by: Guillem Jover <guillem.jover@nokia.com>
-> ---
->  drivers/acpi/button.c |    3 ++-
->  1 files changed, 2 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-> index 1dfec41..59352d9 100644
-> --- a/drivers/acpi/button.c
-> +++ b/drivers/acpi/button.c
-> @@ -262,6 +262,7 @@ static int acpi_lid_send_state(struct acpi_button *button)
->  		return -ENODEV;
->  	/* input layer checks if event is redundant */
->  	input_report_switch(button->input, SW_LID, !state);
-> +	input_sync(button->input);
->  	return 0;
->  }
->  
-> @@ -285,8 +286,8 @@ static void acpi_button_notify(acpi_handle handle, u32 event, void *data)
->  			input_report_key(input, keycode, 1);
->  			input_sync(input);
->  			input_report_key(input, keycode, 0);
-> +			input_sync(input);
->  		}
-> -		input_sync(input);
->  
->  		acpi_bus_generate_proc_event(button->device, event,
->  					++button->pushed);
-> -- 
-> 1.6.0.2
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> Yeah Bob said it would likely contain garbage anyway, so we should just remove 
+> it.
 
---Boundary_(ID_O5EWDgsZ4J9blA+RglaIGw)--
+OK, here you go.
+
+---
+From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: Prevent acpi_run_osc from using NULL objects
+
+Check if the object returned by acpi_evaluate_object() in
+acpi_run_osc() is not NULL before using it.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/pci/pci-acpi.c |    3 +++
+ 1 file changed, 3 insertions(+)
+
+Index: linux-2.6/drivers/pci/pci-acpi.c
+===================================================================
+--- linux-2.6.orig/drivers/pci/pci-acpi.c
++++ linux-2.6/drivers/pci/pci-acpi.c
+@@ -83,6 +83,9 @@ static acpi_status acpi_run_osc(acpi_han
+ 	if (ACPI_FAILURE(status))
+ 		return status;
+ 
++	if (!output.length)
++		return AE_NULL_OBJECT;
++
+ 	out_obj = output.pointer;
+ 	if (out_obj->type != ACPI_TYPE_BUFFER) {
+ 		printk(KERN_DEBUG "Evaluate _OSC returns wrong type\n");
