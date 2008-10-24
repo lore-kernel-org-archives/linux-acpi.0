@@ -1,162 +1,269 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] Cleanup of i7300_idle based on review comments
-Date: Fri, 24 Oct 2008 13:03:48 -0400 (EDT)
-Message-ID: <alpine.LFD.1.10.0810241303400.3056@localhost.localdomain>
-References: <1d80ebdb81444701024ad9b9f026516561496a43.1223706853.git.len.brown@intel.com>
- <e8b529091b2ab65f5a4783e292c2b472e309116e.1223706853.git.len.brown@intel.com>
- <20081011083347.GA31918@elte.hu>
- <alpine.LFD.1.10.0810161805360.3026@localhost.localdomain>
- <48FE07AE.4010203@linux.intel.com>
- <7E82351C108FA840AB1866AC776AEC4637CD27F3@orsmsx505.amr.corp.intel.com>
- <48FED3FA.6040703@linux.intel.com>
- <20081022233451.GA28775@linux-os.sc.intel.com>
- <20081022235103.GA31369@linux-os.sc.intel.com>
+From: Myron Stowe <myron.stowe@hp.com>
+Subject: Re: [PATCH 2/3] ACPI: Behave uniquely based on processor
+	declaration
+Date: Fri, 24 Oct 2008 11:11:40 -0600
+Message-ID: <1224868300.6754.76.camel@localhost>
+References: <200810241556.m9OFuODC269268@fcbayern.americas.sgi.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms042pub.verizon.net ([206.46.252.42]:44823 "EHLO
-	vms042pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754142AbYJXREM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Oct 2008 13:04:12 -0400
-In-reply-to: <20081022235103.GA31369@linux-os.sc.intel.com>
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:35402 "EHLO
+	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752319AbYJXRLm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Oct 2008 13:11:42 -0400
+In-Reply-To: <200810241556.m9OFuODC269268@fcbayern.americas.sgi.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Venki Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: randy.dunlap@oracle.com, Andi Kleen <ak@linux.intel.com>, Ingo Molnar <mingo@elte.hu>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Henroid, Andrew D" <andrew.d.henroid@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>
+To: John Keller <jpk@sgi.com>
+Cc: lenb@kernel.org, aystarik@gmail.com, linux-acpi <linux-acpi@vger.kernel.org>
 
-applied to acpi-test
+On Fri, 2008-10-24 at 10:56 -0500, John Keller wrote:
+> > 
+> > 
+> > Associating a Local SAPIC with a processor object is dependent upon the
+> > processor object's definition type.  CPUs declared as "Processor" should use
+> > the Local SAPIC's 'processor_id', and CPUs declared as "Device" should use the
+> > 'uid' (see section 5.2.11.13 - Local SAPIC Structure; "Advanced Configuration
+> > and Power Interface Specification", Revision 3.0b).  
+> > 
+> > This patch changes the lsapic mapping logic to rely on the distinction of
+> > how the processor object was declared - the mapping can't just try both types
+> > of matches irregardless of declaration type and rely on one failing as is
+> > currently being done.
+> > 
+> > Signed-off-by: Myron Stowe <myron.stowe@hp.com>
+> > CC: Alexey Starikovskiy <aystarik@gmail.com>
+> > 
+> > ---
+> >  drivers/acpi/processor_core.c |   64 +++++++++++++++++++++++-------------------
+> >  1 file changed, 36 insertions(+), 28 deletions(-)
+> > 
+> > Index: linux-2.6/drivers/acpi/processor_core.c
+> > ===================================================================
+> > --- linux-2.6.orig/drivers/acpi/processor_core.c	2008-10-21 13:12:13.000000000 -0600
+> > +++ linux-2.6/drivers/acpi/processor_core.c	2008-10-22 12:12:11.000000000 -0600
+> > @@ -410,7 +410,7 @@ static int acpi_processor_remove_fs(stru
+> >  /* Use the acpiid in MADT to map cpus in case of SMP */
+> >  
+> >  #ifndef CONFIG_SMP
+> > -static int get_cpu_id(acpi_handle handle, u32 acpi_id) {return -1;}
+> > +static int get_cpu_id(acpi_handle handle, int type, u32 acpi_id) { return -1; }
+> >  #else
+> >  
+> >  static struct acpi_table_madt *madt;
+> > @@ -429,27 +429,33 @@ static int map_lapic_id(struct acpi_subt
+> >  }
+> >  
+> >  static int map_lsapic_id(struct acpi_subtable_header *entry,
+> > -		  u32 acpi_id, int *apic_id)
+> > +		int device_declaration, u32 acpi_id, int *apic_id)
+> >  {
+> >  	struct acpi_madt_local_sapic *lsapic =
+> >  		(struct acpi_madt_local_sapic *)entry;
+> > +	u32 tmp = (lsapic->id << 8) | lsapic->eid;
+> > +
+> >  	/* Only check enabled APICs*/
+> > -	if (lsapic->lapic_flags & ACPI_MADT_ENABLED) {
+> > -		/* First check against id */
+> > -		if (lsapic->processor_id == acpi_id) {
+> > -			*apic_id = (lsapic->id << 8) | lsapic->eid;
+> > -			return 1;
+> > -		/* Check against optional uid */
+> > -		} else if (entry->length >= 16 &&
+> > -			lsapic->uid == acpi_id) {
+> > -			*apic_id = lsapic->uid;
+> > -			return 1;
+> > -		}
+> > -	}
+> > +	if (!(lsapic->lapic_flags & ACPI_MADT_ENABLED))
+> > +		return 0;
+> > +
+> > +	/* Device statement declaration type */
+> > +	if (device_declaration) {
+> > +		if (entry->length < 16)
+> > +			printk(KERN_ERR PREFIX "Invalid Local SAPIC structure corresponding to Device statement processor with SAPIC ID %#x\n", tmp);
+> > +		else if (lsapic->uid == acpi_id)
+> > +			goto found;
+> > +	/* Processor statement declaration type */
+> > +	} else if (lsapic->processor_id == acpi_id)
+> > +		goto found;
+> > +
+> >  	return 0;
+> > +found:
+> > +	*apic_id = tmp;
+> > +	return 1;
+> >  }
+> 
+> If I read this right, lsapic->uid and acpi_id (Processor Device _UID)
+> no longer need to equal (lsapic->id << 8) | lsapic->eid), as now 'tmp'
+> will be the value returned.
+> Is this correct?
+Yes.
+> I don't know of a problem with this, just making sure I understand this.
+Yeah - there were problems  ;)
 
-thanks,
--len
+What I think you might be getting at is that there are two possible
+explanations for why this logic has been working till now:
+      * There have been platforms using the "Device" declaration but the
+        firmware must have went through great pains to ensure that all
+        these fields involved *artificially* matched (which is what I
+        believe you are alluding to and I believe is a misunderstanding
+        of the spec if that was the case).
+  - or -
+      * There have been no platforms using the "Device" declaration and
+        so map_lsapic_id()'s 'if (lsapic->processor_id == acpi_id)' was
+        always succeeding and the 'else if ...' path was never taken.  I
+        tend to believe this has been the case (but that is pure
+        assumption which means little).
+> 
+> Glad to see this change, as I had concerns of map_lsapic_id() first
+> trying to match against lsapic->processor_id, and possibly ignoring
+> lsapic->uid.
+Yes - the logic as it currently is, is not specific/strict enough.  What
+I seem to be failing to be able to express well enough earlier in the
+thread is basically this:
 
-On Wed, 22 Oct 2008, Venki Pallipadi wrote:
+        CPUs declared in namespace using a "Processor" statement must
+        use the "Processor" statement's 'ProcessorID' field to match to
+        the corresponding Local SAPIC entry (matching the Local SAPIC
+        entries 'ACPIProcessorID' field).  Whether or not the
+        "Processor" statement has a '_UID' child object has no bearing
+        with respect to the mapping.
+        
+        Conversely, CPUs declared in namespace using a "Device"
+        statement must use the "Device" statement's '_UID' child object
+        field to match to the corresponding Local SAPIC entry (matching
+        the Local SAPIC entries '_UID' field).
+        
+At least this is how we are interpreting section 5.2.11.13 "Local SAPIC
+Structure" of the specification (specifically see the Description for
+both ACPI Processor ID and ACPI Processor UID Value).
 
+Thanks for your query!
+Myron
+> 
+> Thanks,
+> John
 > 
 > 
-> Cleanup of i7300 idle driver based on review comments from Randy Dunlap,
-> Andi Kleen and Len Brown.
 > 
-> Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+> >  
+> > -static int map_madt_entry(u32 acpi_id)
+> > +static int map_madt_entry(int type, u32 acpi_id)
+> >  {
+> >  	unsigned long madt_end, entry;
+> >  	int apic_id = -1;
+> > @@ -470,7 +476,7 @@ static int map_madt_entry(u32 acpi_id)
+> >  			if (map_lapic_id(header, acpi_id, &apic_id))
+> >  				break;
+> >  		} else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC) {
+> > -			if (map_lsapic_id(header, acpi_id, &apic_id))
+> > +			if (map_lsapic_id(header, type, acpi_id, &apic_id))
+> >  				break;
+> >  		}
+> >  		entry += header->length;
+> > @@ -478,7 +484,7 @@ static int map_madt_entry(u32 acpi_id)
+> >  	return apic_id;
+> >  }
+> >  
+> > -static int map_mat_entry(acpi_handle handle, u32 acpi_id)
+> > +static int map_mat_entry(acpi_handle handle, int type, u32 acpi_id)
+> >  {
+> >  	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+> >  	union acpi_object *obj;
+> > @@ -501,7 +507,7 @@ static int map_mat_entry(acpi_handle han
+> >  	if (header->type == ACPI_MADT_TYPE_LOCAL_APIC) {
+> >  		map_lapic_id(header, acpi_id, &apic_id);
+> >  	} else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC) {
+> > -		map_lsapic_id(header, acpi_id, &apic_id);
+> > +		map_lsapic_id(header, type, acpi_id, &apic_id);
+> >  	}
+> >  
+> >  exit:
+> > @@ -510,14 +516,14 @@ exit:
+> >  	return apic_id;
+> >  }
+> >  
+> > -static int get_cpu_id(acpi_handle handle, u32 acpi_id)
+> > +static int get_cpu_id(acpi_handle handle, int type, u32 acpi_id)
+> >  {
+> >  	int i;
+> >  	int apic_id = -1;
+> >  
+> > -	apic_id = map_mat_entry(handle, acpi_id);
+> > +	apic_id = map_mat_entry(handle, type, acpi_id);
+> >  	if (apic_id == -1)
+> > -		apic_id = map_madt_entry(acpi_id);
+> > +		apic_id = map_madt_entry(type, acpi_id);
+> >  	if (apic_id == -1)
+> >  		return apic_id;
+> >  
+> > @@ -533,15 +539,16 @@ static int get_cpu_id(acpi_handle handle
+> >                                   Driver Interface
+> >     -------------------------------------------------------------------------- */
+> >  
+> > -static int acpi_processor_get_info(struct acpi_processor *pr, unsigned has_uid)
+> > +static int acpi_processor_get_info(struct acpi_device *device)
+> >  {
+> >  	acpi_status status = 0;
+> >  	union acpi_object object = { 0 };
+> >  	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
+> > -	int cpu_index;
+> > +	struct acpi_processor *pr;
+> > +	int cpu_index, device_declaration = 0;
+> >  	static int cpu0_initialized;
+> >  
+> > -
+> > +	pr = acpi_driver_data(device);
+> >  	if (!pr)
+> >  		return -EINVAL;
+> >  
+> > @@ -562,8 +569,8 @@ static int acpi_processor_get_info(struc
+> >  		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+> >  				  "No bus mastering arbitration control\n"));
+> >  
+> > -	/* Check if it is a Device with HID and UID */
+> > -	if (has_uid) {
+> > +	/* Check if it is a Device statement declaration with HID and UID */
+> > +	if (!strcmp(acpi_device_hid(device), ACPI_PROCESSOR_HID)) {
+> >  		unsigned long value;
+> >  		status = acpi_evaluate_integer(pr->handle, METHOD_NAME__UID,
+> >  						NULL, &value);
+> > @@ -571,6 +578,7 @@ static int acpi_processor_get_info(struc
+> >  			printk(KERN_ERR PREFIX "Evaluating processor _UID\n");
+> >  			return -ENODEV;
+> >  		}
+> > +		device_declaration = 1;
+> >  		pr->acpi_id = value;
+> >  	} else {
+> >  		/*
+> > @@ -590,7 +598,7 @@ static int acpi_processor_get_info(struc
+> >  		*/
+> >  		pr->acpi_id = object.processor.proc_id;
+> >  	}
+> > -	cpu_index = get_cpu_id(pr->handle, pr->acpi_id);
+> > +	cpu_index = get_cpu_id(pr->handle, device_declaration, pr->acpi_id);
+> >  
+> >  	/* Handle UP system running SMP kernel, with no LAPIC in MADT */
+> >  	if (!cpu0_initialized && (cpu_index == -1) &&
+> > @@ -662,7 +670,7 @@ static int __cpuinit acpi_processor_star
+> >  
+> >  	pr = acpi_driver_data(device);
+> >  
+> > -	result = acpi_processor_get_info(pr, device->flags.unique_id);
+> > +	result = acpi_processor_get_info(device);
+> >  	if (result) {
+> >  		/* Processor is physically not present */
+> >  		return 0;
+> > 
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
 > 
-> ---
->  drivers/idle/Kconfig      |   11 ++++++-----
->  drivers/idle/i7300_idle.c |   33 ++++++++++++++++++---------------
->  2 files changed, 24 insertions(+), 20 deletions(-)
-> 
-> Index: linux-acpi-2.6/drivers/idle/Kconfig
-> ===================================================================
-> --- linux-acpi-2.6.orig/drivers/idle/Kconfig	2008-10-22 11:43:08.000000000 -0700
-> +++ linux-acpi-2.6/drivers/idle/Kconfig	2008-10-22 11:43:37.000000000 -0700
-> @@ -5,12 +5,13 @@ config I7300_IDLE_IOAT_CHANNEL
->  	bool
->  
->  config I7300_IDLE
-> -	tristate "Intel chipset idle power saving driver"
-> +	tristate "Intel chipset idle memory power saving driver"
->  	select I7300_IDLE_IOAT_CHANNEL
-> -	depends on X86_64
-> +	depends on X86_64 && EXPERIMENTAL
->  	help
-> -	  Enable idle power savings with certain Intel server chipsets.
-> -	  The chipset must have I/O AT support, such as the Intel 7300.
-> -	  The power savings depends on the type and quantity of DRAM devices.
-> +	  Enable memory power savings when idle with certain Intel server
-> +	  chipsets. The chipset must have I/O AT support, such as the
-> +	  Intel 7300. The power savings depends on the type and quantity of
-> +	  DRAM devices.
->  
->  endmenu
-> Index: linux-acpi-2.6/drivers/idle/i7300_idle.c
-> ===================================================================
-> --- linux-acpi-2.6.orig/drivers/idle/i7300_idle.c	2008-10-22 11:43:08.000000000 -0700
-> +++ linux-acpi-2.6/drivers/idle/i7300_idle.c	2008-10-22 11:43:37.000000000 -0700
-> @@ -35,6 +35,8 @@
->  #define I7300_IDLE_DRIVER_VERSION	"1.55"
->  #define I7300_PRINT			"i7300_idle:"
->  
-> +#define MAX_STOP_RETRIES	10
-> +
->  static int debug;
->  module_param_named(debug, debug, uint, 0644);
->  MODULE_PARM_DESC(debug, "Enable debug printks in this driver");
-> @@ -47,12 +49,12 @@ MODULE_PARM_DESC(debug, "Enable debug pr
->   *  0 = No throttling
->   *  1 = Throttle when > 4 activations per eval window (Maximum throttling)
->   *  2 = Throttle when > 8 activations
-> - *  168 = Throttle when > 168 activations (Minimum throttling)
-> + *  168 = Throttle when > 672 activations (Minimum throttling)
->   */
-> -#define MAX_THRTLWLIMIT		168
-> -static uint i7300_idle_thrtlowlm = 1;
-> -module_param_named(thrtlwlimit, i7300_idle_thrtlowlm, uint, 0644);
-> -MODULE_PARM_DESC(thrtlwlimit,
-> +#define MAX_THROTTLE_LOW_LIMIT		168
-> +static uint throttle_low_limit = 1;
-> +module_param_named(throttle_low_limit, throttle_low_limit, uint, 0644);
-> +MODULE_PARM_DESC(throttle_low_limit,
->  		"Value for THRTLOWLM activation field "
->  		"(0 = disable throttle, 1 = Max throttle, 168 = Min throttle)");
->  
-> @@ -111,9 +113,9 @@ static int i7300_idle_ioat_start(void)
->  static void i7300_idle_ioat_stop(void)
->  {
->  	int i;
-> -	u8 sts;
-> +	u64 sts;
->  
-> -	for (i = 0; i < 5; i++) {
-> +	for (i = 0; i < MAX_STOP_RETRIES; i++) {
->  		writeb(IOAT_CHANCMD_RESET,
->  			ioat_chanbase + IOAT1_CHANCMD_OFFSET);
->  
-> @@ -127,9 +129,10 @@ static void i7300_idle_ioat_stop(void)
->  
->  	}
->  
-> -	if (i == 5)
-> -		dprintk("failed to suspend+reset I/O AT after 5 retries\n");
-> -
-> +	if (i == MAX_STOP_RETRIES) {
-> +		dprintk("failed to stop I/O AT after %d retries\n",
-> +			MAX_STOP_RETRIES);
-> +	}
->  }
->  
->  /* Test I/O AT by copying 1024 byte from 2k to 1k */
-> @@ -276,7 +279,7 @@ static void __exit i7300_idle_ioat_exit(
->  	i7300_idle_ioat_stop();
->  
->  	/* Wait for a while for the channel to halt before releasing */
-> -	for (i = 0; i < 10; i++) {
-> +	for (i = 0; i < MAX_STOP_RETRIES; i++) {
->  		writeb(IOAT_CHANCMD_RESET,
->  		       ioat_chanbase + IOAT1_CHANCMD_OFFSET);
->  
-> @@ -390,9 +393,9 @@ static void i7300_idle_start(void)
->  	new_ctl = i7300_idle_thrtctl_saved & ~DIMM_THRTCTL_THRMHUNT;
->  	pci_write_config_byte(fbd_dev, DIMM_THRTCTL, new_ctl);
->  
-> -	limit = i7300_idle_thrtlowlm;
-> -	if (unlikely(limit > MAX_THRTLWLIMIT))
-> -		limit = MAX_THRTLWLIMIT;
-> +	limit = throttle_low_limit;
-> +	if (unlikely(limit > MAX_THROTTLE_LOW_LIMIT))
-> +		limit = MAX_THROTTLE_LOW_LIMIT;
->  
->  	pci_write_config_byte(fbd_dev, DIMM_THRTLOW, limit);
->  
-> @@ -441,7 +444,7 @@ static int i7300_idle_notifier(struct no
->  	static ktime_t idle_begin_time;
->  	static int time_init = 1;
->  
-> -	if (!i7300_idle_thrtlowlm)
-> +	if (!throttle_low_limit)
->  		return 0;
->  
->  	if (unlikely(time_init)) {
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
+-- 
+Myron Stowe                             HP Open Source & Linux Org
+
