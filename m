@@ -1,280 +1,80 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: 2.6.28-rc1-git1: Reported regressions from 2.6.27
-Date: Sat, 25 Oct 2008 22:02:47 +0200 (CEST)
-Message-ID: <nw2Y6lk-0lG.A.VUB.RV5AJB@chimera>
+From: Joshua Wise <joshua@joshuawise.com>
+Subject: Re: [RFH,Status] Sony Vaio VGN-Z11 support
+Date: Sat, 25 Oct 2008 19:02:57 -0400 (EDT)
+Message-ID: <Pine.LNX.4.63.0810251854180.10973@dashnine.joshuawise.com>
+References: <20081025214602.GB27030@gamma.logic.tuwien.ac.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-scsi-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-scsi-owner@vger.kernel.org
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ip238.208-100-39.static.steadfast.net ([208.100.39.238]:55483
+	"EHLO dev.x-plane.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756664AbYJYXLi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 25 Oct 2008 19:11:38 -0400
+In-Reply-To: <20081025214602.GB27030@gamma.logic.tuwien.ac.at>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-
-This message contains a list of some regressions from 2.6.27, for which=
- there
-are no fixes in the mainline I know of.  If any of them have been fixed=
- already,
-please let me know.
-
-If you know of any other unresolved regressions from 2.6.27, please let=
- me know
-either and I'll add them to the list.  Also, please let me know if any =
-of the
-entries below are invalid.
-
-Each entry from the list will be sent additionally in an automatic repl=
-y to
-this message with CCs to the people involved in reporting and handling =
-the
-issue.
-
-
-Listed regressions statistics:
-
-  Date          Total  Pending  Unresolved
-  ----------------------------------------
-  2008-10-25       26       25          20
-
-
-Unresolved regressions
-----------------------
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11854
-Subject		: v2.6.28-rc1: readlink /proc/*/exe returns uninitialized data=
- to userspace
-Submitter	: Vegard Nossum <vegard.nossum@gmail.com>
-Date		: 2008-10-25 17:14 (1 days old)
-References	: http://marc.info/?l=3Dlinux-kernel&m=3D122495490201663&w=3D=
-4
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11853
-Subject		: Random problems with 2.6.28-rc1-git1
-Submitter	: Mikko C. <mikko.cal@gmail.com>
-Date		: 2008-10-25 14:53 (1 days old)
-References	: http://marc.info/?l=3Dlinux-kernel&m=3D122494643521893&w=3D=
-4
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11852
-Subject		: v2.6.28-rc1: Regression in ext3/jbd
-Submitter	: Vegard Nossum <vegard.nossum@gmail.com>
-Date		: 2008-10-25 11:22 (1 days old)
-References	: http://marc.info/?l=3Dlinux-kernel&m=3D122493379905812&w=3D=
-4
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11849
-Subject		: default IRQ affinity change in v2.6.27 (breaking several SMP=
- PPC based systems)
-Submitter	: Kumar Gala <galak@kernel.crashing.org>
-Date		: 2008-10-24 12:45 (2 days old)
-References	: http://marc.info/?l=3Dlinux-kernel&m=3D122485245924125&w=3D=
-4
-Handled-By	: Chris Snook <csnook@redhat.com>
-		  Scott Wood <scottwood@freescale.com>
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11848
-Subject		: 2.6.28-rc1: NCQ devices connected to PMP are  still dead
-Submitter	: Petr Vandrovec <vandrove@vc.cvut.cz>
-Date		: 2008-10-25 11:17 (1 days old)
-References	: http://marc.info/?l=3Dlinux-kernel&m=3D122493470907259&w=3D=
-4
-Handled-By	: Jens Axboe <jens.axboe@oracle.com>
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11845
-Subject		: Suspend regression on Lenovo x60
-Submitter	: Jens Axboe <jens.axboe@oracle.com>
-Date		: 2008-10-24 18:02 (2 days old)
-References	: http://marc.info/?l=3Dlinux-next&m=3D122487159829507&w=3D4
-Handled-By	: Rafael J. Wysocki <rjw@sisk.pl>
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11841
-Subject		: plenty of line "ACPI: EC: non-query interrupt received, swit=
-ching to interrupt mode" in dmesg
-Submitter	: Fran=C3=A7ois Valenduc <francois.valenduc@tvcablenet.be>
-Date		: 2008-10-25 10:29 (1 days old)
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11838
-Subject		: general protection fault: =C2=A0from release_blocks_on_commi=
-t
-Submitter	: Eric Paris <eparis@redhat.com>
-Date		: 2008-10-21 14:03 (5 days old)
-References	: http://lkml.org/lkml/2008/10/21/248
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11835
-Subject		: 2.6.27-git8: max1111_read_channel and corgi_ssp_ads7846_putg=
-et missing
-Submitter	: Pavel Machek <pavel@suse.cz>
-Date		: 2008-10-20 12:10 (6 days old)
-References	: http://marc.info/?l=3Dlinux-kernel&m=3D122450475101945&w=3D=
-4
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11834
-Subject		: iwl3945: if I leave my machine running overnight, wifi will =
-not work in the morning
-Submitter	: Pavel Machek <pavel@suse.cz>
-Date		: 2008-10-19 21:40 (7 days old)
-References	: http://marc.info/?l=3Dlinux-kernel&m=3D122445440206101&w=3D=
-4
-Handled-By	: reinette chatre <reinette.chatre@intel.com>
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11833
-Subject		: 2.6.27-git8 compile error in drivers/mfd/wm8350-core.c
-Submitter	: Tilman Schmidt <tilman@imap.cc>
-Date		: 2008-10-19 18:17 (7 days old)
-References	: http://marc.info/?l=3Dlinux-kernel&m=3D122444027920472&w=3D=
-4
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11828
-Subject		: Linux 2.6.27-git3: no SD card reader
-Submitter	: J.A. Magall=C3=B3n <jamagallon@ono.com>
-Date		: 2008-10-14 0:54 (12 days old)
-References	: http://marc.info/?l=3Dlinux-kernel&m=3D122394573904699&w=3D=
-4
-Handled-By	: Pierre Ossman <drzeus-list@drzeus.cx>
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11827
-Subject		: suspend broken on powerbook5,6
-Submitter	: Johannes Berg <johannes@sipsolutions.net>
-Date		: 2008-10-25 05:07 (1 days old)
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11826
-Subject		: extreme slowness of IO stuff using 2.6.28-rc1
-Submitter	: Yves-Alexis Perez <corsac@debian.org>
-Date		: 2008-10-25 04:25 (1 days old)
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11824
-Subject		: raw1394: possible deadlock if accessed by multithreaded app
-Submitter	: Stefan Richter <stefan-r-bz@s5r6.in-berlin.de>
-Date		: 2008-10-25 02:08 (1 days old)
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11822
-Subject		: ACPI Warning (nspredef-0858): _SB_.PCI0.LPC_.EC__.BAT0._BIF:=
- Return Package type mismatch at index 9 - found Buffer, expected Strin=
-g [20080926]
-Submitter	: Len Brown <len.brown@intel.com>
-Date		: 2008-10-25 01:26 (1 days old)
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11806
-Subject		: iwl3945 fails with microcode error
-Submitter	: Johannes Berg <johannes@sipsolutions.net>
-Date		: 2008-10-22 02:36 (4 days old)
-References	: http://marc.info/?l=3Dlinux-kernel&m=3D122450235730661&w=3D=
-4
-Handled-By	: Reinette Chatre <reinette.chatre@intel.com>
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11805
-Subject		: mounting XFS produces a segfault
-Submitter	: Tiago Maluta <maluta_tiago@yahoo.com.br>
-Date		: 2008-10-21 18:00 (5 days old)
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11799
-Subject		: xorg can not start up with stolen memory
-Submitter	: arrow zhang <arrow.ebd@gmail.com>
-Date		: 2008-10-21 06:08 (5 days old)
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11798
-Subject		: [Radeon Xpress 1100 IGP] DRI fail on recent kernel updates
-Submitter	: Gu Rui <chaos.proton@gmail.com>
-Date		: 2008-10-21 04:28 (5 days old)
-
-
-Regressions with patches
-------------------------
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11851
-Subject		: wmifinfo dockapp takes 100% of cpu
-Submitter	: Carlos R. Mafra <crmafra2@gmail.com>
-Date		: 2008-10-25 9:40 (1 days old)
-References	: http://marc.info/?l=3Dlinux-kernel&m=3D122492763030453&w=3D=
-4
-Handled-By	: Arjan van de Ven <arjan@linux.intel.com>
-		  Marcin Slusarz <marcin.slusarz@gmail.com>
-Patch		: http://marc.info/?l=3Dlinux-kernel&m=3D122496409612709&w=3D4
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11847
-Subject		: 2.6.28-rc1 fails building on allnoconfig
-Submitter	: Matt Mackall <mpm@selenic.com>
-Date		: 2008-10-24 17:09 (2 days old)
-References	: http://marc.info/?l=3Dlinux-kernel&m=3D122487097728241&w=3D=
-4
-		  http://marc.info/?l=3Dlinux-pci&m=3D122485633732409&w=3D4
-Handled-By	: Fenghua Yu <fenghua.yu@intel.com>
-Patch		: http://marc.info/?l=3Dlinux-kernel&m=3D122487160129531&w=3D4
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11846
-Subject		: commit a802dd0e breaks console keyboard input
-Submitter	: walt <w41ter@gmail.com>
-Date		: 2008-10-24 0:09 (2 days old)
-References	: http://marc.info/?l=3Dlinux-kernel&m=3D122480701528944&w=3D=
-4
-Handled-By	: Heiko Carstens <heiko.carstens@de.ibm.com>
-Patch		: http://marc.info/?l=3Dlinux-kernel&m=3D122487763507703&w=3D4
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11844
-Subject		: ext3: fix ext3_dx_readdir hash collision handling
-Submitter	: Markus Trippelsdorf <markus@trippelsdorf.de>
-Date		: 2008-10-25 11:56 (1 days old)
-References	: http://marc.info/?l=3Dlinux-kernel&m=3D122493582908742&w=3D=
-4
-Handled-By	: Theodore Tso <tytso@mit.edu>
-Patch		: http://marc.info/?l=3Dlinux-kernel&m=3D122493582908742&w=3D4
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11825
-Subject		: appletouch broken
-Submitter	: Johannes Berg <johannes@sipsolutions.net>
-Date		: 2008-10-25 03:55 (1 days old)
-References	: http://marc.info/?l=3Dlinux-kernel&m=3D122433436930451&w=3D=
-4
-Handled-By	: Jiri Slaby <jirislaby@gmail.com>
-		  Jiri Kosina <jkosina@suse.cz>
-Patch		: http://marc.info/?l=3Dlinux-kernel&m=3D122442584100873&w=3D4
-
-
-=46or details, please visit the bug entries and follow the links given =
-in
-references.
-
-As you can see, there is a Bugzilla entry for each of the listed regres=
-sions.
-There also is a Bugzilla entry used for tracking the regressions from 2=
-=2E6.27,
-unresolved as well as resolved, at:
-
-http://bugzilla.kernel.org/show_bug.cgi?id=3D11808
-
-Please let me know if there are any Bugzilla entries that should be add=
-ed to
-the list in there.
-
-Thanks,
-Rafael
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-scsi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To: Norbert Preining <preining@logic.at>
+Cc: malattia@linux.it, drzeus-mmc@drzeus.cx, linux-acpi@vger.kernel.org
+
+>  intel graphics
+>  nvidia graphics (both built in, switch on the fly on vista possible,
+>    on linux needs reboot)
+
+Hmm, that is very interesting!  On my SZ4, which has a (factory) Vista
+install, a reboot is needed; and if you ever suspend the machine from Linux,
+a clean boot from Vista is needed in order to switch the graphics card.
+
+I think I know what PCI config registers need to be poked, at least on my
+SZ4, to change on the fly, but I haven't experimented to come up with a
+reliable way of actually doing it (or changing over the all-important LED).
+
+>  after rebooting *from* Vista to Linux I see the following USB device:
+>  Bus 004 Device 002: ID 0af0:6911 Option
+>  which is an Option Globetrotter HSDPA Modem
+>  but cold-booting directly into linux this device does not appear
+>  functionality not tested since devices are strangly enough not created!
+>  Something similar has been reported in
+>    http://fedoraforum.org/forum/showthread.php?t=196654
+
+I'm surprised that you get it when rebooting from Vista to Linux; usually
+the BIOS shuts it off.   I don't have my SZ with me, but there should be a
+'wwan-power' file somewhere in /sys -- try echoing '1' to it?  Other than
+that, it behaves exactly like a GSM modem; you may need to modify the
+'option' kernel module to learn about the new USB device ID.  On my SZ, to
+wake up the modem, I believe you need to send the command 'AT+CFUN=1' to
+actually put it in 'connect to the network' state, as opposed to the default
+'transceiver off'.
+
+> Fingerprint Scanner TouchStrip USB: Bus 003 Device 002: ID 147e:1000
+>  no device driver as far as I see
+
+Last I talked to the guys who make this thing, it is a device supported by
+their driver (I can't remember the name of the manufacturer), but they have
+some Sony special firmware on it that does some sort of over-the-wire
+authentication, and the keys for that are only in the Windows Sony drivers. 
+Thanks, guys...
+
+> brightness adjustment via hardware buttons does not work
+> there is /sys/class/backlight/sony but writing to brightness therein
+> does not do anything, neither does xbrightness, nor are any events sent
+> (see below for unknown methods in SNC/SPIC)
+
+That works only if in Intel mode; use smartdimmer in nVidia mode.
+
+> rfkill switch does turn of bluetooth AND WLAN, which is not what I want.
+> Problably only the SNC/SPIC routines can do something like turning
+> on/off specific hardware, see below.
+
+rfkill is in hardware, I think.  To turn off bluetooth, take a look at the
+'spicctrl' command.
+
+> other things with sony_acpi:
+>  writing and reading to wwanpower is possible EVEN if the wwan
+>  device is not present/exhibited/listed as device (lsusb)
+
+Writing '1' to it should create the device...
+
+Does your system have "SmartWi" under Windows?  Perhaps the "wwan wakeup"
+requests differ on your VAIO from my SZ.
+
+joshua
