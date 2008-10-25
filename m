@@ -1,18 +1,21 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 6/9] toshiba_acpi: always call input_sync() after
- input_report_switch()
-Date: Sat, 25 Oct 2008 04:13:36 -0400
-Message-ID: <cab08969188e2da09923fe9c4a99ec9b934b0708.1224922389.git.len.brown@intel.com>
+Subject: [PATCH 9/9] leds-hp-disk: fix build warning
+Date: Sat, 25 Oct 2008 04:13:39 -0400
+Message-ID: <438f8de46bc261b35d84771ae9992cfff3ff4dd8.1224922389.git.len.brown@intel.com>
 References: <1224922419-7823-1-git-send-email-lenb@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms044pub.verizon.net ([206.46.252.44]:55373 "EHLO
-	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752432AbYJYINo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 25 Oct 2008 04:13:44 -0400
+Received: from vms173005pub.verizon.net ([206.46.173.5]:33171 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752439AbYJYINq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 25 Oct 2008 04:13:46 -0400
 Received: from localhost.localdomain ([96.237.168.40])
- by vms044.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0K9A00JMLC6VE8Q4@vms044.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sat, 25 Oct 2008 03:13:44 -0500 (CDT)
+ by vms173005.mailsrvcs.net
+ (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+ with ESMTPA id <0K9A0064GC6X6Q42@vms173005.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 25 Oct 2008 03:13:46 -0500 (CDT)
 In-reply-to: <1224922419-7823-1-git-send-email-lenb@kernel.org>
 In-reply-to: <3ad0b02e4c1d5feba44b8ff48dccd1ba61a826b0.1224922389.git.len.brown@intel.com>
 References: <3ad0b02e4c1d5feba44b8ff48dccd1ba61a826b0.1224922389.git.len.brown@intel.com>
@@ -21,33 +24,34 @@ List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: Len Brown <len.brown@intel.com>
 
-From: Len Brown <len.brown@intel.com>
+=46rom: Len Brown <len.brown@intel.com>
+
+drivers/leds/leds-hp-disk.c:59: warning: passing argument 4 of =E2=80=98=
+acpi_evaluate_integer=E2=80=99 from incompatible pointer type
 
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/toshiba_acpi.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ drivers/leds/leds-hp-disk.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/toshiba_acpi.c b/drivers/acpi/toshiba_acpi.c
-index 2a632f8..66aac06 100644
---- a/drivers/acpi/toshiba_acpi.c
-+++ b/drivers/acpi/toshiba_acpi.c
-@@ -371,6 +371,7 @@ static void bt_poll_rfkill(struct input_polled_dev *poll_dev)
- 				   RFKILL_STATE_HARD_BLOCKED);
- 		input_report_switch(poll_dev->input, SW_RFKILL_ALL,
- 				    new_rfk_state);
-+		input_sync(poll_dev->input);
- 	}
- }
- 
-@@ -842,6 +843,7 @@ static int __init toshiba_acpi_init(void)
- 	set_bit(EV_SW, toshiba_acpi.poll_dev->input->evbit);
- 	set_bit(SW_RFKILL_ALL, toshiba_acpi.poll_dev->input->swbit);
- 	input_report_switch(toshiba_acpi.poll_dev->input, SW_RFKILL_ALL, TRUE);
-+	input_sync(toshiba_acpi.poll_dev->input);
- 
- 	ret = input_register_polled_device(toshiba_acpi.poll_dev);
- 	if (ret) {
--- 
+diff --git a/drivers/leds/leds-hp-disk.c b/drivers/leds/leds-hp-disk.c
+index 53a25b1..74645ab 100644
+--- a/drivers/leds/leds-hp-disk.c
++++ b/drivers/leds/leds-hp-disk.c
+@@ -49,7 +49,7 @@ static struct acpi_hpled adev;
+=20
+ static acpi_status hpled_acpi_write(acpi_handle handle, int reg)
+ {
+-	unsigned long ret; /* Not used when writing */
++	unsigned long long ret; /* Not used when writing */
+ 	union acpi_object in_obj[1];
+ 	struct acpi_object_list args =3D { 1, in_obj };
+=20
+--=20
 1.5.6.5
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
