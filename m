@@ -1,33 +1,25 @@
-From: "Maciej Rutecki" <maciej.rutecki@gmail.com>
-Subject: [Re: Linux 2.6.28-rc1] ACPI Warning (nspredef-0852)[...]
-Date: Sat, 25 Oct 2008 09:21:06 +0200
-Message-ID: <8db1092f0810250021p70be6b62wdbb9a4c1c20c7a27@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+From: Len Brown <lenb@kernel.org>
+Subject: ACPI patches for 2.6.28-rc1
+Date: Sat, 25 Oct 2008 04:13:30 -0400
+Message-ID: <1224922419-7823-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.27]:18712 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751722AbYJYHVJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 25 Oct 2008 03:21:09 -0400
-Received: by qw-out-2122.google.com with SMTP id 3so591135qwe.37
-        for <linux-acpi@vger.kernel.org>; Sat, 25 Oct 2008 00:21:07 -0700 (PDT)
-Content-Disposition: inline
+Received: from vms173005pub.verizon.net ([206.46.173.5]:33159 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752372AbYJYINl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 25 Oct 2008 04:13:41 -0400
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173005.mailsrvcs.net
+ (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+ with ESMTPA id <0K9A006NKC6SAJ12@vms173005.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 25 Oct 2008 03:13:41 -0500 (CDT)
+Received: from localhost.localdomain (d975xbx2 [127.0.0.1])
+	by localhost.localdomain (8.14.2/8.14.2) with ESMTP id m9P8Ddoh007852	for
+ <linux-acpi@vger.kernel.org>; Sat, 25 Oct 2008 04:13:40 -0400
+Received: (from lenb@localhost)	by localhost.localdomain (8.14.2/8.14.2/Submit)
+ id m9P8DdXT007850	for linux-acpi@vger.kernel.org; Sat,
+ 25 Oct 2008 04:13:39 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, fabio.comolli@gmail.com, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: linux-acpi@vger.kernel.org
 
-During suspend to ram I have this message:
 
-ACPI Warning (nspredef-0852): \_WAK: Return type mismatch - found
-Integer, expected Package [20080926]
-
-s2ram seems works OK
-
-dmesg, acpidump:
-http://unixy.pl/maciek/download/kernel/2.6.28-rc1_wak/
-
--- 
-Maciej Rutecki
-http://www.maciek.unixy.pl
