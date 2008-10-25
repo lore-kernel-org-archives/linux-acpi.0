@@ -1,273 +1,280 @@
-From: Norbert Preining <preining@logic.at>
-Subject: [RFH,Status] Sony Vaio VGN-Z11 support
-Date: Sat, 25 Oct 2008 23:46:02 +0200
-Message-ID: <20081025214602.GB27030@gamma.logic.tuwien.ac.at>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: 2.6.28-rc1-git1: Reported regressions from 2.6.27
+Date: Sat, 25 Oct 2008 22:02:47 +0200 (CEST)
+Message-ID: <nw2Y6lk-0lG.A.VUB.RV5AJB@chimera>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:33231 "EHLO
-	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751190AbYJYVqH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 25 Oct 2008 17:46:07 -0400
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-scsi-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-scsi-owner@vger.kernel.org
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: malattia@linux.it, drzeus-mmc@drzeus.cx, linux-acpi@vger.kernel.org
 
-Dear all,
+This message contains a list of some regressions from 2.6.27, for which=
+ there
+are no fixes in the mainline I know of.  If any of them have been fixed=
+ already,
+please let me know.
 
-I am trying to get the beast from $subject more or less working. Here is
-the current status running 2.6.27.3:
-config: http://www.logic.at/people/preining/sony/vgn-z11vn/config-2.6.27
-dmesg output: http://www.logic.at/people/preining/sony/vgn-z11vn/dmesg.txt
-DMI decode: http://www.logic.at/people/preining/sony/vgn-z11vn/dmidecode.txt
-DSDT: http://www.logic.at/people/preining/sony/vgn-z11vn/DSDT.dsl
+If you know of any other unresolved regressions from 2.6.27, please let=
+ me know
+either and I'll add them to the list.  Also, please let me know if any =
+of the
+entries below are invalid.
 
-Working fine:
-  eth Intel e1000e
-  wlan: iwlagn (with hangs now and then)
-  intel graphics
-  nvidia graphics (both built in, switch on the fly on vista possible,
-    on linux needs reboot)
-  sata harddisk and cd
-  usb camera usb_video_class 05ca:18b0 Ricoh Co., Ltd
-  audio: HDA
-  touchpad: AlpsPS/2
-  usual stuff like cpufreq etc
-
-not tested (but detected)
-  bluetooth (044e:3017 Alps Electric Co., Ltd)
-  cardbus
-  firewire (Ricoh Co Ltd R5C832, config_firewire_ohci)
+Each entry from the list will be sent additionally in an automatic repl=
+y to
+this message with CCs to the people involved in reporting and handling =
+the
+issue.
 
 
-=====================================================
+Listed regressions statistics:
 
-not working, and here we start with the problems:
-
-WLAN
-====
-iwl sometimes shuts itself down and immediately again turn on, the rest
-of the computer hangs for that time, about 2sec:
-[  120.345217] PM: Removing info for No Bus:iwl-phy0:assoc
-[  120.346008] PM: Removing info for No Bus:iwl-phy0:RX
-[  120.347747] PM: Removing info for No Bus:iwl-phy0:TX
-[  120.347803] PM: Removing info for No Bus:iwl-phy0:radio
-[  122.344972] iwlagn 0000:06:00.0: PCI INT A disabled
-[  122.482967] iwlagn 0000:06:00.0: PCI INT A -> GSI 17 (level, low) -> IRQ 17
-[  122.483150] iwlagn 0000:06:00.0: restoring config space at offset 0x1 (was 0x100002, writing 0x100006)
-[  122.510812] PM: Adding info for No Bus:iwl-phy0:radio
-[  122.511741] Registered led device: iwl-phy0:radio
-[  122.511856] PM: Adding info for No Bus:iwl-phy0:assoc
-[  122.512627] Registered led device: iwl-phy0:assoc
-[  122.512716] PM: Adding info for No Bus:iwl-phy0:RX
-[  122.513395] Registered led device: iwl-phy0:RX
-[  122.513481] PM: Adding info for No Bus:iwl-phy0:TX
-[  122.514227] Registered led device: iwl-phy0:TX
-
-WWAN
-====
-  after rebooting *from* Vista to Linux I see the following USB device:
-  Bus 004 Device 002: ID 0af0:6911 Option
-  which is an Option Globetrotter HSDPA Modem
-  but cold-booting directly into linux this device does not appear
-  functionality not tested since devices are strangly enough not created!
-  Something similar has been reported in 
-    http://fedoraforum.org/forum/showthread.php?t=196654
+  Date          Total  Pending  Unresolved
+  ----------------------------------------
+  2008-10-25       26       25          20
 
 
+Unresolved regressions
+----------------------
 
-Card reader
-===========
-
-SD/MMC card reader
-  PCI: 0b:04.2 SD Host controller: Ricoh Co Ltd R5C822 SD/SDIO/MMC/MS/MSPro Host Adapter (rev 21)
-MemoryStick card reader
-  PCI: 0b:04.4 System peripheral: Ricoh Co Ltd R5C592 Memory Stick Bus
-Host Adapter (rev 11)
-  
-  When I introduce the a SD card nothing works, but the kernel log shows
-  me:
-  mmc0: Reset 0x1 never completed.
-  sdhci: ============== REGISTER DUMP ==============
-  sdhci: Sys addr: 0x00000000 | Version:  0x00000400
-  sdhci: Blk size: 0x00000000 | Blk cnt:  0x00000000
-  sdhci: Argument: 0x00000000 | Trn mode: 0x00000000
-  sdhci: Present:  0x00020000 | Host ctl: 0x00000000
-  sdhci: Power:    0x0000000e | Blk gap:  0x00000000
-  sdhci: Wake-up:  0x00000000 | Clock:    0x00008003
-  sdhci: Timeout:  0x00000000 | Int stat: 0x00000000
-  sdhci: Int enab: 0x00000000 | Sig enab: 0x00000000
-  sdhci: AC12 err: 0x00000000 | Slot int: 0x00000000
-  sdhci: Caps:     0x01c021a1 | Max curr: 0x00000040
-  sdhci: ===========================================
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11854
+Subject		: v2.6.28-rc1: readlink /proc/*/exe returns uninitialized data=
+ to userspace
+Submitter	: Vegard Nossum <vegard.nossum@gmail.com>
+Date		: 2008-10-25 17:14 (1 days old)
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D122495490201663&w=3D=
+4
 
 
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11853
+Subject		: Random problems with 2.6.28-rc1-git1
+Submitter	: Mikko C. <mikko.cal@gmail.com>
+Date		: 2008-10-25 14:53 (1 days old)
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D122494643521893&w=3D=
+4
 
 
-not supported devices
-=====================
-
-Fingerprint Scanner TouchStrip USB: Bus 003 Device 002: ID 147e:1000
-  no device driver as far as I see
-
-
-
-
-(sony_)acpi things:
-===================
-
-fans practically permanently running, that has been reported on several
-forums. Is there a way around it?
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11852
+Subject		: v2.6.28-rc1: Regression in ext3/jbd
+Submitter	: Vegard Nossum <vegard.nossum@gmail.com>
+Date		: 2008-10-25 11:22 (1 days old)
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D122493379905812&w=3D=
+4
 
 
-brightness adjustment via hardware buttons does not work
-there is /sys/class/backlight/sony but writing to brightness therein
-does not do anything, neither does xbrightness, nor are any events sent
-(see below for unknown methods in SNC/SPIC)
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11849
+Subject		: default IRQ affinity change in v2.6.27 (breaking several SMP=
+ PPC based systems)
+Submitter	: Kumar Gala <galak@kernel.crashing.org>
+Date		: 2008-10-24 12:45 (2 days old)
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D122485245924125&w=3D=
+4
+Handled-By	: Chris Snook <csnook@redhat.com>
+		  Scott Wood <scottwood@freescale.com>
 
 
-rfkill switch does turn of bluetooth AND WLAN, which is not what I want.
-Problably only the SNC/SPIC routines can do something like turning
-on/off specific hardware, see below.
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11848
+Subject		: 2.6.28-rc1: NCQ devices connected to PMP are  still dead
+Submitter	: Petr Vandrovec <vandrove@vc.cvut.cz>
+Date		: 2008-10-25 11:17 (1 days old)
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D122493470907259&w=3D=
+4
+Handled-By	: Jens Axboe <jens.axboe@oracle.com>
 
 
-
-SNC/SPIC sony_acpi stuff
-========================
-(as documented in Documentation/laptops/sony-acpi.txt)
-
-The list of reported methods together with comments of my self and my
-findings:
-
-methods as reported by sony-laptop debug=1
-method: name: _INI, args 0
-	called
-method: name: ECON, args 1
-	unknown
-method: name: GBRT, args 0
-	get brightness, not working
-method: name: SBRT, args 1
-	set brightness, not working
-
-method: name: PWAK, args 0
-	unknown
-method: name: EAWK, args 1
-	unknown
-
-	testing those two as reading and writing pair:
-	reading PWAK gives 0
-	writing "1" to it does not change anything AFAIS
-
-method: name: SN00, args 1
-	unknown
-method: name: SN01, args 0
-	unknown
-method: name: SN02, args 1
-	used in sony_nc_C_enable
-method: name: SN03, args 1
-	used in sony_nc_C_enable
-method: name: SN04, args 0
-	unknown
-method: name: SN05, args 1
-	unknown
-method: name: SN06, args 1
-	unknown
-method: name: SN07, args 1
-	used in sony_nc_C_enable
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11845
+Subject		: Suspend regression on Lenovo x60
+Submitter	: Jens Axboe <jens.axboe@oracle.com>
+Date		: 2008-10-24 18:02 (2 days old)
+References	: http://marc.info/?l=3Dlinux-next&m=3D122487159829507&w=3D4
+Handled-By	: Rafael J. Wysocki <rjw@sisk.pl>
 
 
-method: name: SNIN, args 0
-	unknown
-method: name: SNCF, args 2
-	unknown
-method: name: SNNE, args 1
-	unknown
-	testing these three in the a way that
-		SN_set -> SNIN
-		SN_get -> SNNE, SNCF	(no idea if this is the way for 2 args)
-	reading SN: 16
-	writing "1" or "1 2" does not change anything in the reading of SN
-	nor do I see changes
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11841
+Subject		: plenty of line "ACPI: EC: non-query interrupt received, swit=
+ching to interrupt mode" in dmesg
+Submitter	: Fran=C3=A7ois Valenduc <francois.valenduc@tvcablenet.be>
+Date		: 2008-10-25 10:29 (1 days old)
 
 
-method: name: F100, args 0
-method: name: F113, args 0
-method: name: F101, args 0
-method: name: F105, args 0
-method: name: F114, args 0
-method: name: F115, args 0
-method: name: F11D, args 0
-method: name: F119, args 0
-method: name: F121, args 0
-method: name: F122, args 0
-method: name: F124, args 0
-method: name: F125, args 0
-method: name: F126, args 0
-method: name: F128, args 0
-	all unknown
-method: name: GPID, args 0
-	PID_get
-	returns 13
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11838
+Subject		: general protection fault: =C2=A0from release_blocks_on_commi=
+t
+Submitter	: Eric Paris <eparis@redhat.com>
+Date		: 2008-10-21 14:03 (5 days old)
+References	: http://lkml.org/lkml/2008/10/21/248
 
 
-method: name: HSC0, args 0
-method: name: HSC1, args 0
-method: name: HSC2, args 0
-method: name: HSC3, args 1
-method: name: HSC4, args 1
-	all unknown
-	testing: 
-	  HSC0 only get
-	  HSC13 set/get	
-	  HSC24 set/get
-	reading HSC24 (ie HSC2) gives keyboard.c: can't emulate rawmode for keycode 240
-	same with writing to HSC13 (HSC3)
-	booting in normal mode gives values:
-		HSC0:	0
-		HSC13:	2
-		HSC24:	1
-	writing "0" to HSC24 did not change anything
-	writing "1" to HSC13 did not change anything
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11835
+Subject		: 2.6.27-git8: max1111_read_channel and corgi_ssp_ads7846_putg=
+et missing
+Submitter	: Pavel Machek <pavel@suse.cz>
+Date		: 2008-10-20 12:10 (6 days old)
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D122450475101945&w=3D=
+4
 
 
-	booting with nvidia card selected with hot switch
-		HSC0:	0
-		HSC13:	0
-		HSC24:	1 but also echos some strange symbol to stdout
-			  which *cannot* be redirected with > or 2>
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11834
+Subject		: iwl3945: if I leave my machine running overnight, wifi will =
+not work in the morning
+Submitter	: Pavel Machek <pavel@suse.cz>
+Date		: 2008-10-19 21:40 (7 days old)
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D122445440206101&w=3D=
+4
+Handled-By	: reinette chatre <reinette.chatre@intel.com>
 
 
-method: name: HOMP, args 0
-	reading gives 0, cannot be changed, same with nvidia selected
-	unknown
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11833
+Subject		: 2.6.27-git8 compile error in drivers/mfd/wm8350-core.c
+Submitter	: Tilman Schmidt <tilman@imap.cc>
+Date		: 2008-10-19 18:17 (7 days old)
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D122444027920472&w=3D=
+4
 
 
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11828
+Subject		: Linux 2.6.27-git3: no SD card reader
+Submitter	: J.A. Magall=C3=B3n <jamagallon@ono.com>
+Date		: 2008-10-14 0:54 (12 days old)
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D122394573904699&w=3D=
+4
+Handled-By	: Pierre Ossman <drzeus-list@drzeus.cx>
 
-other things with sony_acpi:
-  writing and reading to wwanpower is possible EVEN if the wwan
-  device is not present/exhibited/listed as device (lsusb)
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11827
+Subject		: suspend broken on powerbook5,6
+Submitter	: Johannes Berg <johannes@sipsolutions.net>
+Date		: 2008-10-25 05:07 (1 days old)
 
 
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11826
+Subject		: extreme slowness of IO stuff using 2.6.28-rc1
+Submitter	: Yves-Alexis Perez <corsac@debian.org>
+Date		: 2008-10-25 04:25 (1 days old)
 
-=======================
 
-So, that are my current findings. If anyone has some suggestions or
-ideas please let me know, I will happily hack my kernel or anything
-else.
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11824
+Subject		: raw1394: possible deadlock if accessed by multithreaded app
+Submitter	: Stefan Richter <stefan-r-bz@s5r6.in-berlin.de>
+Date		: 2008-10-25 02:08 (1 days old)
 
-Best wishes
 
-Norbert
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11822
+Subject		: ACPI Warning (nspredef-0858): _SB_.PCI0.LPC_.EC__.BAT0._BIF:=
+ Return Package type mismatch at index 9 - found Buffer, expected Strin=
+g [20080926]
+Submitter	: Len Brown <len.brown@intel.com>
+Date		: 2008-10-25 01:26 (1 days old)
 
--------------------------------------------------------------------------------
-Dr. Norbert Preining <preining@logic.at>        Vienna University of Technology
-Debian Developer <preining@debian.org>                         Debian TeX Group
-gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
--------------------------------------------------------------------------------
-BROMSGROVE
-Any urban environment containing a small amount of dogturd and about
-forty-five tons of bent steel pylon or a lump of concrete with holes
-claiming to be sculpture. 'Oh, come my dear, and come with me. And
-wander 'neath the bromsgrove tree' - Betjeman.
-			--- Douglas Adams, The Meaning of Liff
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11806
+Subject		: iwl3945 fails with microcode error
+Submitter	: Johannes Berg <johannes@sipsolutions.net>
+Date		: 2008-10-22 02:36 (4 days old)
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D122450235730661&w=3D=
+4
+Handled-By	: Reinette Chatre <reinette.chatre@intel.com>
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11805
+Subject		: mounting XFS produces a segfault
+Submitter	: Tiago Maluta <maluta_tiago@yahoo.com.br>
+Date		: 2008-10-21 18:00 (5 days old)
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11799
+Subject		: xorg can not start up with stolen memory
+Submitter	: arrow zhang <arrow.ebd@gmail.com>
+Date		: 2008-10-21 06:08 (5 days old)
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11798
+Subject		: [Radeon Xpress 1100 IGP] DRI fail on recent kernel updates
+Submitter	: Gu Rui <chaos.proton@gmail.com>
+Date		: 2008-10-21 04:28 (5 days old)
+
+
+Regressions with patches
+------------------------
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11851
+Subject		: wmifinfo dockapp takes 100% of cpu
+Submitter	: Carlos R. Mafra <crmafra2@gmail.com>
+Date		: 2008-10-25 9:40 (1 days old)
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D122492763030453&w=3D=
+4
+Handled-By	: Arjan van de Ven <arjan@linux.intel.com>
+		  Marcin Slusarz <marcin.slusarz@gmail.com>
+Patch		: http://marc.info/?l=3Dlinux-kernel&m=3D122496409612709&w=3D4
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11847
+Subject		: 2.6.28-rc1 fails building on allnoconfig
+Submitter	: Matt Mackall <mpm@selenic.com>
+Date		: 2008-10-24 17:09 (2 days old)
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D122487097728241&w=3D=
+4
+		  http://marc.info/?l=3Dlinux-pci&m=3D122485633732409&w=3D4
+Handled-By	: Fenghua Yu <fenghua.yu@intel.com>
+Patch		: http://marc.info/?l=3Dlinux-kernel&m=3D122487160129531&w=3D4
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11846
+Subject		: commit a802dd0e breaks console keyboard input
+Submitter	: walt <w41ter@gmail.com>
+Date		: 2008-10-24 0:09 (2 days old)
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D122480701528944&w=3D=
+4
+Handled-By	: Heiko Carstens <heiko.carstens@de.ibm.com>
+Patch		: http://marc.info/?l=3Dlinux-kernel&m=3D122487763507703&w=3D4
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11844
+Subject		: ext3: fix ext3_dx_readdir hash collision handling
+Submitter	: Markus Trippelsdorf <markus@trippelsdorf.de>
+Date		: 2008-10-25 11:56 (1 days old)
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D122493582908742&w=3D=
+4
+Handled-By	: Theodore Tso <tytso@mit.edu>
+Patch		: http://marc.info/?l=3Dlinux-kernel&m=3D122493582908742&w=3D4
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11825
+Subject		: appletouch broken
+Submitter	: Johannes Berg <johannes@sipsolutions.net>
+Date		: 2008-10-25 03:55 (1 days old)
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D122433436930451&w=3D=
+4
+Handled-By	: Jiri Slaby <jirislaby@gmail.com>
+		  Jiri Kosina <jkosina@suse.cz>
+Patch		: http://marc.info/?l=3Dlinux-kernel&m=3D122442584100873&w=3D4
+
+
+=46or details, please visit the bug entries and follow the links given =
+in
+references.
+
+As you can see, there is a Bugzilla entry for each of the listed regres=
+sions.
+There also is a Bugzilla entry used for tracking the regressions from 2=
+=2E6.27,
+unresolved as well as resolved, at:
+
+http://bugzilla.kernel.org/show_bug.cgi?id=3D11808
+
+Please let me know if there are any Bugzilla entries that should be add=
+ed to
+the list in there.
+
+Thanks,
+Rafael
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-scsi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
