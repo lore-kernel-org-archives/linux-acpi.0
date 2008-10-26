@@ -1,80 +1,123 @@
-From: Pavel Machek <pavel@suse.cz>
-Subject: Re: [linux-pm] [PATCH 3/4] x86 hibernate: Mark ACPI NVS memory
-	region at startup
-Date: Sun, 26 Oct 2008 13:14:05 +0100
-Message-ID: <20081026121404.GC1607@ucw.cz>
-References: <200810222249.20629.rjw@sisk.pl> <200810222253.16264.rjw@sisk.pl>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] [PATCH 2/4] ACPI hibernate: Add a mechanism to save/restore ACPI NVS memory
+Date: Sun, 26 Oct 2008 13:23:20 +0100
+Message-ID: <200810261323.21293.rjw@sisk.pl>
+References: <200810222249.20629.rjw@sisk.pl> <200810222252.11625.rjw@sisk.pl> <20081026120838.GB1607@ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:35909 "EHLO UNKNOWN"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751059AbYJZMOO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 26 Oct 2008 08:14:14 -0400
+Received: from ogre.sisk.pl ([217.79.144.158]:53944 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752444AbYJZMS5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 26 Oct 2008 08:18:57 -0400
+In-Reply-To: <20081026120838.GB1607@ucw.cz>
 Content-Disposition: inline
-In-Reply-To: <200810222253.16264.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
+To: Pavel Machek <pavel@suse.cz>
 Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>
 
-On Wed 2008-10-22 22:53:15, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rjw@sisk.pl>
+On Sunday, 26 of October 2008, Pavel Machek wrote:
+> Hi!
 > 
-> x86 hibernate: Mark ACPI NVS memory region at startup
+> > From: Rafael J. Wysocki <rjw@sisk.pl>
+> > 
+> > ACPI hibernate: Add a mechanism to save/restore ACPI NVS memory
+> > 
+> > According to the ACPI Specification 3.0b, Section 15.3.2,
+> > "OSPM will call the _PTS control method some time before entering a
+> > sleeping state, to allow the platform???s AML code to update this
+> > memory image before entering the sleeping state. After the system
+> > awakes from an S4 state, OSPM will restore this memory area and call
+> > the _WAK control method to enable the BIOS to reclaim its memory
+> > image."  For this reason, implement a mechanism allowing us to save
+> > the NVS memory during hibernation and to restore it during the
+> > subsequent resume.
+> > 
+> > Based on a patch by Zhang Rui.
+> > 
+> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> > Cc: Zhang Rui <rui.zhang@intel.com>
+> > ---
+> >  drivers/acpi/sleep/main.c |   50 ++++++++++++++++---
+> >  include/linux/suspend.h   |   13 ++++
+> >  kernel/power/swsusp.c     |  121 ++++++++++++++++++++++++++++++++++++++++++++++
+> >  3 files changed, 177 insertions(+), 7 deletions(-)
+> > 
 > 
-> Introduce new initcall for marking the ACPI NVS memory at startup, so
-> that it can be saved/restore during hibernation/resume.
 > 
-> Based on a patch by Zhang Rui.
+> > @@ -387,8 +410,21 @@ static int acpi_hibernation_begin_old(vo
+> >  {
+> >  	int error = acpi_sleep_prepare(ACPI_STATE_S4);
+> >  
+> > +	if (!error) {
+> > +		error = hibernate_nvs_alloc();
+> > +		if (!error)
+> > +			acpi_target_sleep_state = ACPI_STATE_S4;
+> > +	}
+> > +	return error;
+> > +}
 > 
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> Cc: Zhang Rui <rui.zhang@intel.com>
-> ---
->  arch/x86/kernel/e820.c |   25 +++++++++++++++++++++++++
->  1 file changed, 25 insertions(+)
+> You can chain this without nesting...
 > 
-> Index: linux-2.6/arch/x86/kernel/e820.c
-> ===================================================================
-> --- linux-2.6.orig/arch/x86/kernel/e820.c
-> +++ linux-2.6/arch/x86/kernel/e820.c
-> @@ -20,6 +20,7 @@
->  #include <linux/pfn.h>
->  #include <linux/suspend.h>
->  #include <linux/firmware-map.h>
-> +#include <linux/efi.h>
->  
->  #include <asm/pgtable.h>
->  #include <asm/page.h>
+> If sleep_prepare() succeeds but nvs_alloc() fails, you should undo
+> sleep_prepare here, right?
 
-Unrelated chunk?
+No.  acpi_hibernation_finish() will undo it anyway.
 
-> @@ -665,6 +666,30 @@ void __init e820_mark_nosave_regions(uns
->  }
->  #endif
->  
-> +#ifdef CONFIG_HIBERNATION
-> +/**
-> + * Mark ACPI NVS memory region, so that we can save/restore it during
-> + * hibernation and the subsequent resume.
-> + */
-> +static int __init e820_mark_nvs_memory(void)
-> +{
-> +	int i;
-> +
-> +	if (efi_enabled)
-> +		return 0;
+> >  #else /* CONFIG_HIBERNATION */
+> >  static inline int swsusp_page_is_forbidden(struct page *p) { return 0; }
+> >  static inline void swsusp_set_page_free(struct page *p) {}
+> > @@ -241,6 +246,14 @@ static inline void swsusp_unset_page_fre
+> >  static inline void hibernation_set_ops(struct platform_hibernation_ops *ops) {}
+> >  static inline int hibernate(void) { return -ENOSYS; }
+> >  static inline bool system_entering_hibernation(void) { return false; }
+> > +static inline int hibernate_nvs_register(unsigned long a, unsigned long b)
+> > +{
+> > +	return 0;
+> > +}
+> > +static inline int hibernate_nvs_alloc(void) { return 0; }
+> > +static inline void hibernate_nvs_free(void) {}
+> > +static inline void hibernate_nvs_save(void) {}
+> > +static inline void hibernate_nvs_restore(void) {}
+> >  #endif /* CONFIG_HIBERNATION */
+> 
+> Can someone call these for !hibernation case?
 
-Aha, not unrelated... why is that? EFI does not use acpi? 
+Not at the moment, but why not to add them?
 
-> +	for (i = 0; i < e820.nr_map; i++) {
-> +		struct e820entry *ei = &e820.map[i];
-> +
-> +		if (ei->type == E820_NVS)
-> +			hibernate_nvs_register(ei->addr, ei->size);
+> Should they fake success if they do call them?
+> 
+> 
+> > Index: linux-2.6/kernel/power/swsusp.c
+> > ===================================================================
+> > --- linux-2.6.orig/kernel/power/swsusp.c
+> > +++ linux-2.6/kernel/power/swsusp.c
+> > @@ -262,3 +262,124 @@ int swsusp_shrink_memory(void)
+> >  
+> >  	return 0;
+> >  }
+> > +
+> > +/*
+> > + * Platforms, like ACPI, may want us to save some memory used by them during
+> > + * hibernation and to restore the contents of this memory during the subsequent
+> > + * resume.  The code below implements a mechanism allowing us to do that.
+> > + */
+> > +
+> > +struct nvs_page {
+> > +	unsigned long phys_start;
+> > +	unsigned int size;
+> > +	void *kaddr;
+> > +	void *data;
+> > +	struct list_head node;
+> > +};
+> 
+> Maybe separate nvs.c file would be good? I believe this _is_ acpi
+> specific, altrough in theory it may not be.
 
-can nvs_register fail? (OOM?)
+No, I don't think so.  The patch is correct IMO.
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Thanks,
+Rafael
