@@ -1,63 +1,37 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI: Always report a sync event after a lid state change
-Date: Sun, 26 Oct 2008 12:00:45 +0100
-Message-ID: <200810261200.46248.rjw@sisk.pl>
-References: <20081023212833.GA1923@ziggurat.research.nokia.com> <alpine.LFD.1.10.0810241529110.3056@localhost.localdomain> <200810252203.35219.dmitry.torokhov@gmail.com>
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: [linux-pm] [PATCH 1/4] Hibernate: Call platform_begin before
+	swsusp_shrink_memory
+Date: Sun, 26 Oct 2008 13:00:52 +0100
+Message-ID: <20081026120052.GA1607@ucw.cz>
+References: <200810222249.20629.rjw@sisk.pl> <200810222250.36537.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:53596 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752586AbYJZKz5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 26 Oct 2008 06:55:57 -0400
-In-Reply-To: <200810252203.35219.dmitry.torokhov@gmail.com>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:43113 "EHLO UNKNOWN"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751059AbYJZMBT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 26 Oct 2008 08:01:19 -0400
 Content-Disposition: inline
+In-Reply-To: <200810222250.36537.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Len Brown <lenb@kernel.org>, Guillem Jover <guillem.jover@nokia.com>, linux-acpi@vger.kernel.org, linux-input@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>
 
-On Sunday, 26 of October 2008, Dmitry Torokhov wrote:
-> Hi Len,
+On Wed 2008-10-22 22:50:35, Rafael J. Wysocki wrote:
+> From: Zhang Rui <rui.zhang@intel.com>
 > 
-> On Friday 24 October 2008, Len Brown wrote:
-> > Dmitry,
-> > 
-> > Looking around the tree, the other calls to
-> > input_report_switch() and input_report_key()
-> > are all followed by input_sync().
-> > 
+> Hibernate: Call platform_begin before swsusp_shrink_memory
 > 
-> The idea is that userspace can accumulate input events and not act on
-> them till it gets the "whole state" of the device which is indicated by
-> sending EV_SYN/SYN_REPORT event. This really does not matter for most
-> of the simple devices (such as most button devices) but is required
-> when you need to report state of a touchpad or a tablet (ABS_X, ABS_Y,
-> ABS_PRESSURE, host of buttons and so on). And that is the reason to have
-> 2 input_sync when you you reporting button down and up back to back -
-> if there was only one input_sync userspace may (although I don't think
-> anyone does) wait to reacting till the sync and by that time the up event
-> will "cancel out" the down event.
+> Call platform_begin() before swsusp_shrink_memory() so that we can
+> always allocate enough memory to save the ACPI NVS region from
+> platform_begin().
 > 
-> > I guess we didn't understand the API when we added
-> > these calls to button.c?
-> >
-> 
-> The code was fine until acpi_lid_send_state was used un resume path,
-> then it needed its own input_sync.
->  
-> > Looks like the other users of input_report_* in
-> > drivers/acpi and drivers/misc are okay,
-> > with the exception of toshiba_acpi.c --
-> > the most neglected driver we have,
-> > so I"ll do the same to that one?
-> > 
-> > Ack?
-> 
-> Yep.
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 
--stable material?
+ACK.
 
-Rafael
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
