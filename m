@@ -1,37 +1,70 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] x86 acpi: on wakeup, ljmp directly after writing CR0.PE
-Date: Sun, 26 Oct 2008 21:38:15 +0100
-Message-ID: <200810262138.15669.rjw@sisk.pl>
-References: <200810262038.51149.rjw@sisk.pl> <4904D30C.7080200@zytor.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH] ACPI: Always report a sync event after a lid state change
+Date: Sun, 26 Oct 2008 20:16:21 -0400
+Message-ID: <200810262016.21340.dmitry.torokhov@gmail.com>
+References: <20081023212833.GA1923@ziggurat.research.nokia.com> <200810252203.35219.dmitry.torokhov@gmail.com> <200810261200.46248.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-2"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:55380 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750786AbYJZUdl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 26 Oct 2008 16:33:41 -0400
-In-Reply-To: <4904D30C.7080200@zytor.com>
+Received: from yx-out-2324.google.com ([74.125.44.28]:58732 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751880AbYJ0AQ1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 26 Oct 2008 20:16:27 -0400
+Received: by yx-out-2324.google.com with SMTP id 8so479486yxm.1
+        for <linux-acpi@vger.kernel.org>; Sun, 26 Oct 2008 17:16:25 -0700 (PDT)
+In-Reply-To: <200810261200.46248.rjw@sisk.pl>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>, Guillem Jover <guillem.jover@nokia.com>, linux-acpi@vger.kernel.org, linux-input@vger.kernel.org
 
-On Sunday, 26 of October 2008, H. Peter Anvin wrote:
-> Rafael J. Wysocki wrote:
-> > Ingo, Peter,
+On Sunday 26 October 2008, Rafael J. Wysocki wrote:
+> On Sunday, 26 of October 2008, Dmitry Torokhov wrote:
+> > Hi Len,
 > > 
-> > I have this patch in my queue, is it necessary or should I drop it?
+> > On Friday 24 October 2008, Len Brown wrote:
+> > > Dmitry,
+> > > 
+> > > Looking around the tree, the other calls to
+> > > input_report_switch() and input_report_key()
+> > > are all followed by input_sync().
+> > > 
 > > 
+> > The idea is that userspace can accumulate input events and not act on
+> > them till it gets the "whole state" of the device which is indicated by
+> > sending EV_SYN/SYN_REPORT event. This really does not matter for most
+> > of the simple devices (such as most button devices) but is required
+> > when you need to report state of a touchpad or a tablet (ABS_X, ABS_Y,
+> > ABS_PRESSURE, host of buttons and so on). And that is the reason to have
+> > 2 input_sync when you you reporting button down and up back to back -
+> > if there was only one input_sync userspace may (although I don't think
+> > anyone does) wait to reacting till the sync and by that time the up event
+> > will "cancel out" the down event.
+> > 
+> > > I guess we didn't understand the API when we added
+> > > these calls to button.c?
+> > >
+> > 
+> > The code was fine until acpi_lid_send_state was used un resume path,
+> > then it needed its own input_sync.
+> >  
+> > > Looks like the other users of input_report_* in
+> > > drivers/acpi and drivers/misc are okay,
+> > > with the exception of toshiba_acpi.c --
+> > > the most neglected driver we have,
+> > > so I"ll do the same to that one?
+> > > 
+> > > Ack?
+> > 
+> > Yep.
 > 
-> It's unclear if it's necessary, but I think it's more compliant and we 
-> should do it.
+> -stable material?
 
-OK, then.
+Nah, I don't think userspace using these events actually cares so
+stable can stay as is.
 
-Ingo, please queue. :-)
-
-Thanks,
-Rafael
+-- 
+Dmitry
