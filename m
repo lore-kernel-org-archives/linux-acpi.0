@@ -1,45 +1,50 @@
-From: "Maciej Rutecki" <maciej.rutecki@gmail.com>
-Subject: Re: [Re: Linux 2.6.28-rc1] ACPI Warning (nspredef-0852)[...]
-Date: Mon, 27 Oct 2008 21:19:56 +0100
-Message-ID: <8db1092f0810271319s5d15c2ffrab37a548fa388738@mail.gmail.com>
-References: <fa.1HaqObZirROiyqr922A7hRDVc54@ifi.uio.no>
-	 <fa.Rzh43vSl9NX1QQ2nOYQSgEJcZAw@ifi.uio.no> <49035313.9080309@shaw.ca>
-	 <200810252004.01274.rjw@sisk.pl>
-	 <8db1092f0810251151l4c7f9382r34defa6d4d6ee24c@mail.gmail.com>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: [PATCH] ACPI: EC: revert msleep patch
+Date: Tue, 28 Oct 2008 00:35:30 +0300
+Message-ID: <20081027213530.7104.27639.stgit@thinkpad>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.27]:12903 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754253AbYJ0UT6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Oct 2008 16:19:58 -0400
-In-Reply-To: <8db1092f0810251151l4c7f9382r34defa6d4d6ee24c@mail.gmail.com>
-Content-Disposition: inline
+Received: from charybdis-ext.suse.de ([195.135.221.2]:39829 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751685AbYJ0Vf2 (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Mon, 27 Oct 2008 17:35:28 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Robert Hancock <hancockr@shaw.ca>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, lenb@kernel.org, fabio.comolli@gmail.com
+To: LenBrown <lenb@kernel.org>
+Cc: Linux-acpi@vger.kernel.org
 
-2008/10/25 Maciej Rutecki <maciej.rutecki@gmail.com>:
-> Suspend to ram, but another machine (previous PC, now laptop) and
-> another problem:
->
-> ACPI: EC: missing confirmations, switch off interrupt mode.
-> ACPI Exception (evregion-0419): AE_TIME, Returned by Handler for
-> [EmbeddedControl] [20080926]
-> ACPI Error (psparse-0524): Method parse/execution failed [\_TZ_.C31E]
-> (Node f7019858), AE_TIME
-> ACPI Error (psparse-0524): Method parse/execution failed
-> [\_TZ_.TZ3_._TMP] (Node f7019ed0), AE_TIME
->
-> It doesn't happened immediately after s2ram but is correlation between
-> s2ram and this error.
+With the better solution for EC interrupt storm issue,
+there is no need to use msleep over udelay.
 
-I was wrong; it happens not only after suspend to ram but sometimes
-after normal boot.
+References:
+	http://bugzilla.kernel.org/show_bug.cgi?id=11810
+	http://bugzilla.kernel.org/show_bug.cgi?id=10724
 
 
--- 
-Maciej Rutecki
-http://www.maciek.unixy.pl
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+---
+
+ drivers/acpi/ec.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index ef42316..3ef5b79 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -239,10 +239,10 @@ static int ec_check_sci(struct acpi_ec *ec, u8 state)
+ static int ec_poll(struct acpi_ec *ec)
+ {
+ 	unsigned long delay = jiffies + msecs_to_jiffies(ACPI_EC_DELAY);
+-	msleep(1);
++	udelay(ACPI_EC_UDELAY);
+ 	while (time_before(jiffies, delay)) {
+ 		gpe_transaction(ec, acpi_ec_read_status(ec));
+-		msleep(1);
++		udelay(ACPI_EC_UDELAY);
+ 		if (ec_transaction_done(ec))
+ 			return 0;
+ 	}
+
