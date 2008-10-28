@@ -1,52 +1,43 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: Re: [2.6.28-rc2] EeePC ACPI errors & exceptions
-Date: Tue, 28 Oct 2008 09:32:26 +0800
-Message-ID: <1225157546.5189.73.camel@yakui_zhao.sh.intel.com>
-References: <alpine.LFD.2.00.0810261221350.3386@nehalem.linux-foundation.org>
-	 <4FFA7B13E0%linux@youmustbejoking.demon.co.uk>
+From: Mattia Dongili <malattia@linux.it>
+Subject: Re: [RFH,Status] Sony Vaio VGN-Z11 support
+Date: Tue, 28 Oct 2008 10:41:48 +0900
+Message-ID: <20081028014148.GB28057@inferi.kami.home>
+References: <20081025214602.GB27030@gamma.logic.tuwien.ac.at> <Pine.LNX.4.63.0810251854180.10973@dashnine.joshuawise.com> <20081025233118.GA31722@gandalf.dynalias.org> <20081027232051.GI22083@gamma.logic.tuwien.ac.at>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:17199 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751668AbYJ1BZw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 27 Oct 2008 21:25:52 -0400
-In-Reply-To: <4FFA7B13E0%linux@youmustbejoking.demon.co.uk>
+Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:32780
+	"EHLO tadamune.kami.home" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750846AbYJ1BmA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 27 Oct 2008 21:42:00 -0400
+Content-Disposition: inline
+In-Reply-To: <20081027232051.GI22083@gamma.logic.tuwien.ac.at>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Darren Salt <linux@youmustbejoking.demon.co.uk>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Norbert Preining <preining@logic.at>
+Cc: Joshua Wise <joshua@joshuawise.com>, drzeus-mmc@drzeus.cx, linux-acpi@vger.kernel.org
 
-On Mon, 2008-10-27 at 15:52 -0700, Darren Salt wrote:
-Will you please attach the output of acpidump?
-Of course you can file a bug report at
-http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
-and attach the output of acpidump, dmesg.
+On Tue, Oct 28, 2008 at 12:20:51AM +0100, Norbert Preining wrote:
+> Hi Joshua, hi all,
+...
+> > > That works only if in Intel mode; use smartdimmer in nVidia mode.
+> > 
+> > I never got it working, and I am always running in intel = stamina mode.
+> > Nothing whatever I do changes the brightness of the screen. Neither
+> > using 
+> > 	/sys/devices/virtual/backlight/sony/brightness
+> > nor 
+> > 	/sys/devices/virtual/backlight/acpi_video0/brightness
+> 
+> Running in Intel mode, no changes what-so-ever in brightness.
+> 
+> Mattia, are you listening? Do you have any idea what might go wrong
+> here?
 
-It will be better if you can add the boot option of "printk.time=1".
-thanks.
+Yes, I am. But I have no idea what might be wrong. Did you also try
+xbacklight while in X and using the Intel card?
 
-> EeePC 901, BIOS revision 1603, current Debian lenny; running on AC.
-> 
-> I've noticed the following errors & exceptions, apparently coinciding with
-> the startup of xfce4-sensors-plugin:
-> 
-> ACPI: EC: missing confirmations, switch off interrupt mode.
-> ACPI Exception (evregion-0419): AE_TIME, Returned by Handler for [EmbeddedControl] [20080926]
-> ACPI Error (psparse-0524): Method parse/execution failed [\_SB_.PCI0.SBRG.EC0_.BST2] (Node f7030d38), AE_TIME
-> ACPI Error (psparse-0524): Method parse/execution failed [\_SB_.PCI0.CBST] (Node f70336f8), AE_TIME
-> ACPI Error (psparse-0524): Method parse/execution failed [\_SB_.PCI0.BAT0._BST] (Node f7031c48), AE_TIME
-> ACPI Exception (battery-0360): AE_TIME, Evaluating _BST [20080926]
-> 
-> Also, this (which, unlike the above, is also present with 2.6.27.*):
-> 
-> ACPI: I/O resource 0000:00:1f.3 [0x400-0x41f] conflicts with ACPI region SMRG [0x400-0x40f]
-> ACPI: Device needs an ACPI driver
-> 
-> Full dmesg & config are attached.
-> 
-> (The Elantech touchpad patch from http://arjan.opmeer.net/elantech/ is
-> applied to this kernel.)
-> 
-
+-- 
+mattia
+:wq!
