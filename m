@@ -1,41 +1,88 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH] acpi: use macro to replace hard number
-Date: Tue, 28 Oct 2008 00:39:12 -0700
-Message-ID: <4906C1A0.1090701@kernel.org>
+From: "Yinghai Lu" <yinghai@kernel.org>
+Subject: Re: [PATCH 3/4] x86 hibernate: Mark ACPI NVS memory region at startup
+Date: Tue, 28 Oct 2008 02:17:01 -0700
+Message-ID: <86802c440810280217x59357432n52880f75d96bc801@mail.gmail.com>
+References: <200810262048.23468.rjw@sisk.pl> <200810262054.24929.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:46097 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752576AbYJ1HkN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Oct 2008 03:40:13 -0400
+Received: from rv-out-0506.google.com ([209.85.198.236]:7171 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751495AbYJ1JRB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Oct 2008 05:17:01 -0400
+Received: by rv-out-0506.google.com with SMTP id k40so2597613rvb.1
+        for <linux-acpi@vger.kernel.org>; Tue, 28 Oct 2008 02:17:01 -0700 (PDT)
+In-Reply-To: <200810262054.24929.rjw@sisk.pl>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Nigel Cunningham <ncunningham@crca.org.au>, Pavel Machek <pavel@suse.cz>, Ingo Molnar <mingo@elte.hu>, Zhang Rui <rui.zhang@intel.com>
 
+On Sun, Oct 26, 2008 at 12:54 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> From: Rafael J. Wysocki <rjw@sisk.pl>
+> Subject: x86 hibernate: Mark ACPI NVS memory region at startup
+>
+> Introduce new initcall for marking the ACPI NVS memory at startup, so
+> that it can be saved/restore during hibernation/resume.
+>
+> Based on a patch by Zhang Rui.
+>
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> Cc: Zhang Rui <rui.zhang@intel.com>
+> ---
+>  arch/x86/kernel/e820.c |   25 +++++++++++++++++++++++++
+>  1 files changed, 25 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/x86/kernel/e820.c b/arch/x86/kernel/e820.c
+> index ce97bf3..e1e63a8 100644
+> --- a/arch/x86/kernel/e820.c
+> +++ b/arch/x86/kernel/e820.c
+> @@ -20,6 +20,7 @@
+>  #include <linux/pfn.h>
+>  #include <linux/suspend.h>
+>  #include <linux/firmware-map.h>
+> +#include <linux/efi.h>
+>
+>  #include <asm/pgtable.h>
+>  #include <asm/page.h>
+> @@ -665,6 +666,30 @@ void __init e820_mark_nosave_regions(unsigned long limit_pfn)
+>  }
+>  #endif
+>
+> +#ifdef CONFIG_HIBERNATION
+> +/**
+> + * Mark ACPI NVS memory region, so that we can save/restore it during
+> + * hibernation and the subsequent resume.
+> + */
+> +static int __init e820_mark_nvs_memory(void)
+> +{
+> +       int i;
+> +
+> +       if (efi_enabled)
+> +               return 0;
+> +
+> +       for (i = 0; i < e820.nr_map; i++) {
+> +               struct e820entry *ei = &e820.map[i];
+> +
+> +               if (ei->type == E820_NVS)
+> +                       hibernate_nvs_register(ei->addr, ei->size);
 
-Impact: cleanup
+do you need to something to ACPI code too?
 
-use MACRO for rev 3 fadt id instead of 3 directly
+BIOS-provided physical RAM map:
+>  BIOS-e820: 0000000000000100 - 0000000000095800 (usable)
+>  BIOS-e820: 0000000000095800 - 00000000000a0000 (reserved)
+>  BIOS-e820: 0000000000100000 - 00000000d7fa0000 (usable)
+>  BIOS-e820: 00000000d7fae000 - 00000000d7fb0000 (reserved)
+>  BIOS-e820: 00000000d7fb0000 - 00000000d7fbe000 (ACPI data) <================ acpi code
+>  BIOS-e820: 00000000d7fbe000 - 00000000d7ff0000 (ACPI NVS)
+>  BIOS-e820: 00000000d7ff0000 - 00000000d8000000 (reserved)
+>  BIOS-e820: 00000000dc000000 - 00000000f0000000 (reserved)
+>  BIOS-e820: 00000000fec00000 - 00000000fec01000 (reserved)
+>  BIOS-e820: 00000000fee00000 - 00000000fee01000 (reserved)
+>  BIOS-e820: 00000000ff700000 - 0000000100000000 (reserved)
+>  BIOS-e820: 0000000100000000 - 0000004028000000 (usable)
 
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-
----
- drivers/acpi/tables/tbfadt.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-Index: linux-2.6/drivers/acpi/tables/tbfadt.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/tables/tbfadt.c
-+++ linux-2.6/drivers/acpi/tables/tbfadt.c
-@@ -304,7 +304,7 @@ static void acpi_tb_convert_fadt(void)
- 	 * The ACPI 1.0 reserved fields that will be zeroed are the bytes located at
- 	 * offset 45, 55, 95, and the word located at offset 109, 110.
- 	 */
--	if (acpi_gbl_FADT.header.revision < 3) {
-+	if (acpi_gbl_FADT.header.revision < FADT2_REVISION_ID) {
- 		acpi_gbl_FADT.preferred_profile = 0;
- 		acpi_gbl_FADT.pstate_control = 0;
- 		acpi_gbl_FADT.cst_control = 0;
+YH
