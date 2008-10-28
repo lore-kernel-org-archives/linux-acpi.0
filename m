@@ -1,71 +1,53 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: ACPI video.c brightness handler conflicts with toshiba_acpi
-Date: Tue, 28 Oct 2008 19:08:33 +0100
-Message-ID: <200810281908.34957.trenn@suse.de>
-References: <200809061108.34877.arvidjaar@mail.ru> <200810281426.53499.trenn@suse.de> <200810281615.19894.rjw@sisk.pl>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: Re: ACPI: EC: Fix logspam in "GPE storm avoidance" code
+Date: Tue, 28 Oct 2008 21:25:18 +0300
+Message-ID: <4907590E.4070104@suse.de>
+References: <49071C33.7030308@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.suse.de ([195.135.220.2]:35020 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752764AbYJ1SIZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Oct 2008 14:08:25 -0400
-In-Reply-To: <200810281615.19894.rjw@sisk.pl>
-Content-Disposition: inline
+Received: from charybdis-ext.suse.de ([195.135.221.2]:44888 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751379AbYJ1SZV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Oct 2008 14:25:21 -0400
+In-Reply-To: <49071C33.7030308@tuffmail.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, andi@firstfloor.org
-Cc: Andrey Borzenkov <arvidjaar@mail.ru>, Len Brown <len.brown@intel.com>, toshiba_acpi@memebeam.org, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Cc: linux acpi <linux-acpi@vger.kernel.org>
 
-On Tuesday 28 October 2008 04:15:19 pm Rafael J. Wysocki wrote:
-> On Tuesday, 28 of October 2008, Thomas Renninger wrote:
-> > On Monday 27 October 2008 17:52:55 Andrey Borzenkov wrote:
-> > > On Monday 08 September 2008, Thomas Renninger wrote:
-> > > > On Saturday 06 September 2008 09:19:59 am Andrey Borzenkov wrote:
-> > > > > On Saturday 06 September 2008, Andrey Borzenkov wrote:
-> > > > > > I have now two different devices that refer to the same hardware:
-> > > > > >
-> > > > > > lrwxrwxrwx 1 root root 0 2008-09-06 11:04 acpi_video0 ->
-> > > > > > ../../devices/virtual/backlight/acpi_video0/ lrwxrwxrwx 1 root
-> > > > > > root 0 2008-09-06 11:04 toshiba ->
-> > > > > > ../../devices/virtual/backlight/toshiba/
-> > > > > >
-> > > > > > Unfortunately, due to ACPI implementation the acpi_video0 one is
-> > > > > > much inferior (as it provides only effectively two levels instead
-> > > > > > of 8); and user level tools are apparently quite confused which
-> > > > > > one to select.
-> > > > > >
-> > > > > > Is there any mechanism that would allow tochiba_acpi to claim
-> > > > > > brightness for internal LCD screen that video would not attempt
-> > > > > > to grab it too?
-> > > > > >
-> > > > > > Of course manually disabling brightness handling in video is
-> > > > > > always possible,
-> > > > >
-> > > > > Actually it is not. brightness_switch_enabled only disables event
-> > > > > handling; it still resets actual brightness on loading and creates
-> > > > > sysfs files to confuse user space.
-> > > > >
-> > > > > > still is nice for this to be handled automatically.
-> > > >
-> > > > It is in latest ACPI test branch queued for 2.6.28.
-> > >
-> > > It is still not in rc2; is it scheduled for 2.6.28 or delayed further?
-> >
-> > Right, it's not there.
-> > Len, what happened with the:
-> > "Check for ACPI backlight support otherwise use vendor ACPIdrivers -
-> > version 4" patches?
-> >
-> > They are pretty essential for video.ko.
-> > Otherwise graphics devices may get double poked (through vendor_acpi.ko
-> > drivers) or may register for graphics cards which are not there.
->
-> Do you have a pointer to those patches?
+Alan Jenkins wrote:
+> <http://bugzilla.kernel.org/show_bug.cgi?id=11841>
+> "plenty of line "ACPI: EC: non-query interrupt received,
+>  switching to interrupt mode" in dmesg"
+Probably, it is better to make pr_debug().
+> 
+> GPE storm avoidance involves disabling the EC GPE during transactions.
+> Unfortunately we forget to re-enable EC_FLAGS_GPE_MODE afterwards.
+"We" don't forget it, "we" just use same mechanism as driver init. Thus if
+for some reason interrupts do not start to arrive after we issue enable_gpe(),
+we will not fall to timeouts. 
+> 
+> This happens to work because we re-enable it anyway when we detect
+> the first confirmation interrupt of the next transaction.  However,
+> this causes lots of bogus "switching to interrupt mode" messages.
+they are not "bogus", it is really switching the mode...
+> 
+> Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+> 
+> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+> index 7f0d81c..ba47c7c 100644
+> --- a/drivers/acpi/ec.c
+> +++ b/drivers/acpi/ec.c
+> @@ -285,6 +285,7 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec, u8 command,
+>  		/* check if we received SCI during transaction */
+>  		ec_check_sci(ec, acpi_ec_read_status(ec));
+>  		/* it is safe to enable GPE outside of transaction */
+> +		set_bit(EC_FLAGS_GPE_MODE, &ec->flags);
+>  		acpi_enable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
+>  	} else if (test_bit(EC_FLAGS_GPE_MODE, &ec->flags) &&
+>  		   t.irq_count > ACPI_EC_STORM_THRESHOLD) {
+> 
+> 
 
-I remember they were in Andi's ACPI test branch already.
-Andi/Len do you have an idea what happened to them?
-
-   Thomas
