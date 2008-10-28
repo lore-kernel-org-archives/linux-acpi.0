@@ -1,67 +1,121 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: ACPI video.c brightness handler conflicts with toshiba_acpi
-Date: Tue, 28 Oct 2008 16:15:19 +0100
-Message-ID: <200810281615.19894.rjw@sisk.pl>
-References: <200809061108.34877.arvidjaar@mail.ru> <200810271953.04764.arvidjaar@mail.ru> <200810281426.53499.trenn@suse.de>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [patch] ACPI: update debug parameter documentation
+Date: Tue, 28 Oct 2008 10:13:01 -0600
+Message-ID: <200810281013.02289.bjorn.helgaas@hp.com>
+References: <200810271540.46188.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="utf-8"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:37633 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751673AbYJ1PKx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Oct 2008 11:10:53 -0400
-In-Reply-To: <200810281426.53499.trenn@suse.de>
+Received: from g4t0014.houston.hp.com ([15.201.24.17]:29576 "EHLO
+	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752384AbYJ1QNH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Oct 2008 12:13:07 -0400
+In-Reply-To: <200810271540.46188.bjorn.helgaas@hp.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Andrey Borzenkov <arvidjaar@mail.ru>, Len Brown <len.brown@intel.com>, toshiba_acpi@memebeam.org, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Thomas Renninger <trenn@suse.de>
 
-On Tuesday, 28 of October 2008, Thomas Renninger wrote:
-> On Monday 27 October 2008 17:52:55 Andrey Borzenkov wrote:
-> > On Monday 08 September 2008, Thomas Renninger wrote:
-> > > On Saturday 06 September 2008 09:19:59 am Andrey Borzenkov wrote:
-> > > > On Saturday 06 September 2008, Andrey Borzenkov wrote:
-> > > > > I have now two different devices that refer to the same hardware:
-> > > > >
-> > > > > lrwxrwxrwx 1 root root 0 2008-09-06 11:04 acpi_video0 ->
-> > > > > ../../devices/virtual/backlight/acpi_video0/ lrwxrwxrwx 1 root root 0
-> > > > > 2008-09-06 11:04 toshiba -> ../../devices/virtual/backlight/toshiba/
-> > > > >
-> > > > > Unfortunately, due to ACPI implementation the acpi_video0 one is much
-> > > > > inferior (as it provides only effectively two levels instead of 8);
-> > > > > and user level tools are apparently quite confused which one to
-> > > > > select.
-> > > > >
-> > > > > Is there any mechanism that would allow tochiba_acpi to claim
-> > > > > brightness for internal LCD screen that video would not attempt to
-> > > > > grab it too?
-> > > > >
-> > > > > Of course manually disabling brightness handling in video is always
-> > > > > possible,
-> > > >
-> > > > Actually it is not. brightness_switch_enabled only disables event
-> > > > handling; it still resets actual brightness on loading and creates
-> > > > sysfs files to confuse user space.
-> > > >
-> > > > > still is nice for this to be handled automatically.
-> > >
-> > > It is in latest ACPI test branch queued for 2.6.28.
-> >
-> > It is still not in rc2; is it scheduled for 2.6.28 or delayed further?
+On Monday 27 October 2008 03:40:45 pm Bjorn Helgaas wrote:
+> [I posted this earlier: http://marc.info/?l=linux-acpi&m=121736785510685&w=2
+>  but somehow only half of it made it.  Here's the rest.]
 > 
-> Right, it's not there.
-> Len, what happened with the:
-> "Check for ACPI backlight support otherwise use vendor ACPIdrivers - version 4"
-> patches?
+> Reformat acpi.debug_layer and acpi.debug_level documentation so it's
+> readable, add some clues about how to figure out the mask bits that
+> enable a given ACPI_DEBUG_PRINT statement, and include a couple useful
+> examples.
+
+Ignore this for now.  Myron pointed out that "acpi.debug_layer=" doesn't
+work on the kernel command line.  And the examples, which I remember
+testing once, don't work.  Sigh.
+
+I'll fix it so it actually makes sense.
+
+> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 > 
-> They are pretty essential for video.ko.
-> Otherwise graphics devices may get double poked (through vendor_acpi.ko drivers)
-> or may register for graphics cards which are not there.
+> diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+> index 343e0f0..8d17859 100644
+> --- a/Documentation/kernel-parameters.txt
+> +++ b/Documentation/kernel-parameters.txt
+> @@ -201,26 +201,50 @@ and is between 256 and 4096 characters. It is defined in the file
+>  	acpi.debug_layer=	[HW,ACPI]
+>  			Format: <int>
+>  			Each bit of the <int> indicates an ACPI debug layer,
+> -			1: enable, 0: disable. It is useful for boot time
+> -			debugging. After system has booted up, it can be set
+> -			via /sys/module/acpi/parameters/debug_layer.
+> -			CONFIG_ACPI_DEBUG must be enabled for this to produce any output.
+> -			Available bits (add the numbers together) to enable debug output
+> -			for specific parts of the ACPI subsystem:
+> -			0x01 utilities 0x02 hardware 0x04 events 0x08 tables
+> -			0x10 namespace 0x20 parser 0x40 dispatcher
+> -			0x80 executer 0x100 resources 0x200 acpica debugger
+> -			0x400 os services 0x800 acpica disassembler.
+> -			The number can be in decimal or prefixed with 0x in hex.
+> -			Warning: Many of these options can produce a lot of
+> -			output and make your system unusable. Be very careful.
+> +			which corresponds to the _COMPONENT definition in
+> +			ACPI source files.  After system has booted, this mask
+> +			can be set via /sys/module/acpi/parameters/debug_layer.
+> +
+> +			CONFIG_ACPI_DEBUG must be enabled for this to produce
+> +			any output.  The number can be in decimal or prefixed
+> +			with 0x in hex.  Some of these options produce so much
+> +			output that the system is unusable.
+> +
+> +			The following are some of the global components
+> +			defined by the ACPI CA and the Linux OSPM:
+> +				0x01 utilities
+> +				0x02 hardware
+> +				0x04 events
+> +				0x08 tables
+> +				0x10 namespace
+> +				0x20 parser
+> +				0x40 dispatcher
+> +				0x80 executer
+> +			       0x100 resources
+> +			       0x200 ACPI CA debugger
+> +			       0x400 OS services
+> +			       0x800 ACPI CA disassembler
+> +			     0x40000 battery
+> +			     0x80000 button
+> +			    0x200000 fan
+> +			    0x400000 PCI
+> +			  0x10000000 bay
+> +
+> +			Many others, e.g., ACPI_BUS_COMPONENT and
+> +			ACPI_AC_COMPONENT, are defined by the Linux OSPM and
+> +			individual drivers.
+> +
+> +			For debugging PCI/_PRT issues (PCI, info msgs):
+> +			    acpi.debug_layer=0x400000 acpi.debug_level=0x10
+> +			For ACPI hardware issues (hardware, all msgs):
+> +			    acpi.debug_layer=0x2 acpi.debug_level=0xffffffff
+>  
+>  	acpi.debug_level=	[HW,ACPI]
+>  			Format: <int>
+>  			Each bit of the <int> indicates an ACPI debug level,
+>  			which corresponds to the level in an ACPI_DEBUG_PRINT
+> -			statement.  After system has booted up, this mask
+> -			can be set via /sys/module/acpi/parameters/debug_level.
+> +			statement.  After system has booted, this mask can be
+> +			set via /sys/module/acpi/parameters/debug_level.
+>  
+>  			CONFIG_ACPI_DEBUG must be enabled for this to produce
+>  			any output.  The number can be in decimal or prefixed
+> @@ -248,9 +272,6 @@ and is between 256 and 4096 characters. It is defined in the file
+>  			    0x10000 resources
+>  			    0x20000 user requests
+>  			    0x40000 package
+> - 			The number can be in decimal or prefixed with 0x in hex.
+> - 			Warning: Many of these options can produce a lot of
+> - 			output and make your system unusable. Be very careful.
+>  
+>   	acpi.power_nocheck=	[HW,ACPI]
+>   			Format: 1/0 enable/disable the check of power state.
+> 
 
-Do you have a pointer to those patches?
 
-Thanks,
-Rafael
