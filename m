@@ -1,31 +1,34 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: Re: [2.6.28-rc2] EeePC ACPI errors & exceptions
-Date: Tue, 28 Oct 2008 23:46:11 +0300
-Message-ID: <49077A13.7020603@gmail.com>
-References: <alpine.LFD.2.00.0810261221350.3386@nehalem.linux-foundation.org>  <4FFA7B13E0%linux@youmustbejoking.demon.co.uk>  <1225186966.5189.143.camel@yakui_zhao.sh.intel.com> <4FFABF28C8%linux@youmustbejoking.demon.co.uk>
+From: Guy Stalnaker <guy.stalnaker@gmail.com>
+Subject: ACPI: DMI
+Date: Tue, 28 Oct 2008 15:16:58 -0500
+Message-ID: <4907733A.1000707@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.175]:64742 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752330AbYJ1UqX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Oct 2008 16:46:23 -0400
-Received: by ug-out-1314.google.com with SMTP id 39so389698ugf.37
-        for <linux-acpi@vger.kernel.org>; Tue, 28 Oct 2008 13:46:13 -0700 (PDT)
-In-Reply-To: <4FFABF28C8%linux@youmustbejoking.demon.co.uk>
+Received: from adsum.doit.wisc.edu ([144.92.197.210]:38802 "EHLO
+	adsum.doit.wisc.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752390AbYJ1VPR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Oct 2008 17:15:17 -0400
+Received: from avs-daemon.smtpauth1.wiscmail.wisc.edu by
+ smtpauth1.wiscmail.wisc.edu
+ (Sun Java(tm) System Messaging Server 6.3-6.03 (built Mar 14 2008; 32bit))
+ id <0K9G00K0GTLFA300@smtpauth1.wiscmail.wisc.edu> for
+ linux-acpi@vger.kernel.org; Tue, 28 Oct 2008 15:15:15 -0500 (CDT)
+Received: from [144.92.108.102] (ithilien.doit.wisc.edu [144.92.108.102])
+ by smtpauth1.wiscmail.wisc.edu
+ (Sun Java(tm) System Messaging Server 6.3-6.03 (built Mar 14 2008; 32bit))
+ with ESMTPSA id <0K9G00BD8TLAS970@smtpauth1.wiscmail.wisc.edu> for
+ linux-acpi@vger.kernel.org; Tue, 28 Oct 2008 15:15:10 -0500 (CDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Darren Salt <linux@youmustbejoking.demon.co.uk>
-Cc: Zhao Yakui <yakui.zhao@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Hi Darren,
-
-Please check if the patch 
-http://marc.info/?l=linux-acpi&m=122516784917952&w=4
-helps.
-
-Thanks,
-Alex.
-
-
+[   85.615152] ACPI: DMI System Vendor: Dell Inc.
+[   85.615155] ACPI: DMI Product Name: Dell DXP051
+[   85.615156] ACPI: DMI Product Version:
+[   85.615158] ACPI: DMI Board Name: 0YC523
+[   85.615160] ACPI: DMI BIOS Vendor: Dell Inc.
+[   85.615162] ACPI: DMI BIOS Date: 10/28/2005
+[   85.615163] ACPI: Please send DMI info above to 
+linux-acpi@vger.kernel.org
