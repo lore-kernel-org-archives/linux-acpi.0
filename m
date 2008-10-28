@@ -1,91 +1,59 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 3/4] x86 hibernate: Mark ACPI NVS memory region at startup
-Date: Tue, 28 Oct 2008 14:30:49 +0100
-Message-ID: <200810281430.50441.rjw@sisk.pl>
-References: <200810262048.23468.rjw@sisk.pl> <200810262054.24929.rjw@sisk.pl> <86802c440810280217x59357432n52880f75d96bc801@mail.gmail.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: ACPI video.c brightness handler conflicts with toshiba_acpi
+Date: Tue, 28 Oct 2008 14:26:52 +0100
+Message-ID: <200810281426.53499.trenn@suse.de>
+References: <200809061108.34877.arvidjaar@mail.ru> <200809080301.24907.trenn@suse.de> <200810271953.04764.arvidjaar@mail.ru>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:37002 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752327AbYJ1N0Z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Oct 2008 09:26:25 -0400
-In-Reply-To: <86802c440810280217x59357432n52880f75d96bc801@mail.gmail.com>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753336AbYJ1N1P@vger.kernel.org>
+In-Reply-To: <200810271953.04764.arvidjaar@mail.ru>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrey Borzenkov <arvidjaar@mail.ru>, Len Brown <len.brown@intel.com>
+Cc: toshiba_acpi@memebeam.org, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Nigel Cunningham <ncunningham@crca.org.au>, Pavel Machek <pavel@suse.cz>, Ingo Molnar <mingo@elte.hu>, Zhang Rui <rui.zhang@intel.com>
 
-On Tuesday, 28 of October 2008, Yinghai Lu wrote:
-> On Sun, Oct 26, 2008 at 12:54 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > From: Rafael J. Wysocki <rjw@sisk.pl>
-> > Subject: x86 hibernate: Mark ACPI NVS memory region at startup
+On Monday 27 October 2008 17:52:55 Andrey Borzenkov wrote:
+> On Monday 08 September 2008, Thomas Renninger wrote:
+> > On Saturday 06 September 2008 09:19:59 am Andrey Borzenkov wrote:
+> > > On Saturday 06 September 2008, Andrey Borzenkov wrote:
+> > > > I have now two different devices that refer to the same hardware:
+> > > >
+> > > > lrwxrwxrwx 1 root root 0 2008-09-06 11:04 acpi_video0 ->
+> > > > ../../devices/virtual/backlight/acpi_video0/ lrwxrwxrwx 1 root root 0
+> > > > 2008-09-06 11:04 toshiba -> ../../devices/virtual/backlight/toshiba/
+> > > >
+> > > > Unfortunately, due to ACPI implementation the acpi_video0 one is much
+> > > > inferior (as it provides only effectively two levels instead of 8);
+> > > > and user level tools are apparently quite confused which one to
+> > > > select.
+> > > >
+> > > > Is there any mechanism that would allow tochiba_acpi to claim
+> > > > brightness for internal LCD screen that video would not attempt to
+> > > > grab it too?
+> > > >
+> > > > Of course manually disabling brightness handling in video is always
+> > > > possible,
+> > >
+> > > Actually it is not. brightness_switch_enabled only disables event
+> > > handling; it still resets actual brightness on loading and creates
+> > > sysfs files to confuse user space.
+> > >
+> > > > still is nice for this to be handled automatically.
 > >
-> > Introduce new initcall for marking the ACPI NVS memory at startup, so
-> > that it can be saved/restore during hibernation/resume.
-> >
-> > Based on a patch by Zhang Rui.
-> >
-> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> > Cc: Zhang Rui <rui.zhang@intel.com>
-> > ---
-> >  arch/x86/kernel/e820.c |   25 +++++++++++++++++++++++++
-> >  1 files changed, 25 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/arch/x86/kernel/e820.c b/arch/x86/kernel/e820.c
-> > index ce97bf3..e1e63a8 100644
-> > --- a/arch/x86/kernel/e820.c
-> > +++ b/arch/x86/kernel/e820.c
-> > @@ -20,6 +20,7 @@
-> >  #include <linux/pfn.h>
-> >  #include <linux/suspend.h>
-> >  #include <linux/firmware-map.h>
-> > +#include <linux/efi.h>
-> >
-> >  #include <asm/pgtable.h>
-> >  #include <asm/page.h>
-> > @@ -665,6 +666,30 @@ void __init e820_mark_nosave_regions(unsigned long limit_pfn)
-> >  }
-> >  #endif
-> >
-> > +#ifdef CONFIG_HIBERNATION
-> > +/**
-> > + * Mark ACPI NVS memory region, so that we can save/restore it during
-> > + * hibernation and the subsequent resume.
-> > + */
-> > +static int __init e820_mark_nvs_memory(void)
-> > +{
-> > +       int i;
-> > +
-> > +       if (efi_enabled)
-> > +               return 0;
-> > +
-> > +       for (i = 0; i < e820.nr_map; i++) {
-> > +               struct e820entry *ei = &e820.map[i];
-> > +
-> > +               if (ei->type == E820_NVS)
-> > +                       hibernate_nvs_register(ei->addr, ei->size);
-> 
-> do you need to something to ACPI code too?
+> > It is in latest ACPI test branch queued for 2.6.28.
+>
+> It is still not in rc2; is it scheduled for 2.6.28 or delayed further?
 
-No, ACPI NVS only, according to the spec.
+Right, it's not there.
+Len, what happened with the:
+"Check for ACPI backlight support otherwise use vendor ACPIdrivers - version 4"
+patches?
 
-> BIOS-provided physical RAM map:
-> >  BIOS-e820: 0000000000000100 - 0000000000095800 (usable)
-> >  BIOS-e820: 0000000000095800 - 00000000000a0000 (reserved)
-> >  BIOS-e820: 0000000000100000 - 00000000d7fa0000 (usable)
-> >  BIOS-e820: 00000000d7fae000 - 00000000d7fb0000 (reserved)
-> >  BIOS-e820: 00000000d7fb0000 - 00000000d7fbe000 (ACPI data) <================ acpi code
-> >  BIOS-e820: 00000000d7fbe000 - 00000000d7ff0000 (ACPI NVS)
-> >  BIOS-e820: 00000000d7ff0000 - 00000000d8000000 (reserved)
-> >  BIOS-e820: 00000000dc000000 - 00000000f0000000 (reserved)
-> >  BIOS-e820: 00000000fec00000 - 00000000fec01000 (reserved)
-> >  BIOS-e820: 00000000fee00000 - 00000000fee01000 (reserved)
-> >  BIOS-e820: 00000000ff700000 - 0000000100000000 (reserved)
-> >  BIOS-e820: 0000000100000000 - 0000004028000000 (usable)
+They are pretty essential for video.ko.
+Otherwise graphics devices may get double poked (through vendor_acpi.ko drivers)
+or may register for graphics cards which are not there.
 
-Thanks,
-Rafael
+    Thomas
