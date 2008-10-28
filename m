@@ -1,57 +1,41 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: Re: Linux 2.6.28-rc1] ACPI Warning (nspredef-0852)[...]
-Date: Tue, 28 Oct 2008 15:18:18 +0800
-Message-ID: <1225178298.5189.138.camel@yakui_zhao.sh.intel.com>
-References: <fa.1HaqObZirROiyqr922A7hRDVc54@ifi.uio.no>
-	 <fa.Rzh43vSl9NX1QQ2nOYQSgEJcZAw@ifi.uio.no> <49035313.9080309@shaw.ca>
-	 <200810252004.01274.rjw@sisk.pl>
-	 <8db1092f0810251151l4c7f9382r34defa6d4d6ee24c@mail.gmail.com>
-	 <8db1092f0810271319s5d15c2ffrab37a548fa388738@mail.gmail.com>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: [PATCH] acpi: use macro to replace hard number
+Date: Tue, 28 Oct 2008 00:39:12 -0700
+Message-ID: <4906C1A0.1090701@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:59234 "EHLO mga11.intel.com"
+Received: from hera.kernel.org ([140.211.167.34]:46097 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751536AbYJ1HLz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Oct 2008 03:11:55 -0400
-In-Reply-To: <8db1092f0810271319s5d15c2ffrab37a548fa388738@mail.gmail.com>
+	id S1752576AbYJ1HkN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 28 Oct 2008 03:40:13 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Maciej Rutecki <maciej.rutecki@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Robert Hancock <hancockr@shaw.ca>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "fabio.comolli@gmail.com" <fabio.comolli@gmail.com>
+To: Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Mon, 2008-10-27 at 13:19 -0700, Maciej Rutecki wrote:
-> 2008/10/25 Maciej Rutecki <maciej.rutecki@gmail.com>:
-> > Suspend to ram, but another machine (previous PC, now laptop) and
-> > another problem:
-> >
-> > ACPI: EC: missing confirmations, switch off interrupt mode.
-> > ACPI Exception (evregion-0419): AE_TIME, Returned by Handler for
-> > [EmbeddedControl] [20080926]
-> > ACPI Error (psparse-0524): Method parse/execution failed [\_TZ_.C31E]
-> > (Node f7019858), AE_TIME
-> > ACPI Error (psparse-0524): Method parse/execution failed
-> > [\_TZ_.TZ3_._TMP] (Node f7019ed0), AE_TIME
-> >
-> > It doesn't happened immediately after s2ram but is correlation between
-> > s2ram and this error.
-Will you please confirm whether the following issue exists on the
-previous kernel? For example: 2.6.27-rc6 or 2.6.27.2
- 
-> ACPI Exception (evregion-0419): AE_TIME, Returned by Handler for
-> [EmbeddedControl] [20080926]
-> ACPI Error (psparse-0524): Method parse/execution failed [\_TZ_.C31E]
-> (Node f7019858), AE_TIME
-> ACPI Error (psparse-0524): Method parse/execution failed
-> [\_TZ_.TZ3_._TMP] (Node f7019ed0), AE_TIME
-   
-If there is no such problem on the early kernel, maybe it is a
-regression.
 
-Thanks.
-> I was wrong; it happens not only after suspend to ram but sometimes
-> after normal boot.
-> 
-> 
+Impact: cleanup
 
+use MACRO for rev 3 fadt id instead of 3 directly
+
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+
+---
+ drivers/acpi/tables/tbfadt.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+Index: linux-2.6/drivers/acpi/tables/tbfadt.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/tables/tbfadt.c
++++ linux-2.6/drivers/acpi/tables/tbfadt.c
+@@ -304,7 +304,7 @@ static void acpi_tb_convert_fadt(void)
+ 	 * The ACPI 1.0 reserved fields that will be zeroed are the bytes located at
+ 	 * offset 45, 55, 95, and the word located at offset 109, 110.
+ 	 */
+-	if (acpi_gbl_FADT.header.revision < 3) {
++	if (acpi_gbl_FADT.header.revision < FADT2_REVISION_ID) {
+ 		acpi_gbl_FADT.preferred_profile = 0;
+ 		acpi_gbl_FADT.pstate_control = 0;
+ 		acpi_gbl_FADT.cst_control = 0;
