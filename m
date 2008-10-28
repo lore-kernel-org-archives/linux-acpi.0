@@ -1,34 +1,36 @@
-From: Guy Stalnaker <guy.stalnaker@gmail.com>
-Subject: ACPI: DMI
-Date: Tue, 28 Oct 2008 15:16:58 -0500
-Message-ID: <4907733A.1000707@gmail.com>
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Subject: 2.6.28-rc1: rapid hotkeys break on eeepc again :(
+Date: Tue, 28 Oct 2008 23:49:37 +0000
+Message-ID: <4907A511.3040603@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adsum.doit.wisc.edu ([144.92.197.210]:38802 "EHLO
-	adsum.doit.wisc.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752390AbYJ1VPR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Oct 2008 17:15:17 -0400
-Received: from avs-daemon.smtpauth1.wiscmail.wisc.edu by
- smtpauth1.wiscmail.wisc.edu
- (Sun Java(tm) System Messaging Server 6.3-6.03 (built Mar 14 2008; 32bit))
- id <0K9G00K0GTLFA300@smtpauth1.wiscmail.wisc.edu> for
- linux-acpi@vger.kernel.org; Tue, 28 Oct 2008 15:15:15 -0500 (CDT)
-Received: from [144.92.108.102] (ithilien.doit.wisc.edu [144.92.108.102])
- by smtpauth1.wiscmail.wisc.edu
- (Sun Java(tm) System Messaging Server 6.3-6.03 (built Mar 14 2008; 32bit))
- with ESMTPSA id <0K9G00BD8TLAS970@smtpauth1.wiscmail.wisc.edu> for
- linux-acpi@vger.kernel.org; Tue, 28 Oct 2008 15:15:10 -0500 (CDT)
+Received: from ey-out-2122.google.com ([74.125.78.27]:53582 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752580AbYJ1Xts (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Oct 2008 19:49:48 -0400
+Received: by ey-out-2122.google.com with SMTP id 6so1161903eyi.37
+        for <linux-acpi@vger.kernel.org>; Tue, 28 Oct 2008 16:49:47 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: linux acpi <linux-acpi@vger.kernel.org>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>
 
-[   85.615152] ACPI: DMI System Vendor: Dell Inc.
-[   85.615155] ACPI: DMI Product Name: Dell DXP051
-[   85.615156] ACPI: DMI Product Version:
-[   85.615158] ACPI: DMI Board Name: 0YC523
-[   85.615160] ACPI: DMI BIOS Vendor: Dell Inc.
-[   85.615162] ACPI: DMI BIOS Date: 10/28/2005
-[   85.615163] ACPI: Please send DMI info above to 
-linux-acpi@vger.kernel.org
+Similar but different to the original symptoms of bugzilla #11089 (which
+is closed, fixed by the specific patch I tested).  Hotkeys give up the
+ghost after being held down for a while, or pressed rapidly.  However
+they don't get "out of sync" as in that bug.  I've already tried the
+acpi-test tree, but that didn't fix it.
+
+Bad: v2.6.28-rc1
+Good: v2.6.27-89-g3156d1e
+
+I can't see any non-trivial changes to the EC or eeepc-laptop drivers in
+that range, so it looks like I have to do this the hard way.
+
+Bisecting: 3857 revisions left to test after this
+
+Ow.
+
+Alan
