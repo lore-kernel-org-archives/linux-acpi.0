@@ -1,53 +1,120 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch/RESEND 2.6.28-rc2 1/2] ACPI:  fix ACPI_FADT_S4_RTC_WAKE
- comment
-Date: Tue, 28 Oct 2008 01:50:45 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0810280150300.24123@localhost.localdomain>
-References: <200810271357.23861.david-b@pacbell.net>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: [2.6.28-rc2] EeePC ACPI errors & exceptions
+Date: Tue, 28 Oct 2008 14:47:29 +0800
+Message-ID: <1225176449.5189.133.camel@yakui_zhao.sh.intel.com>
+References: <alpine.LFD.2.00.0810261221350.3386@nehalem.linux-foundation.org>
+	 <4FFA7B13E0%linux@youmustbejoking.demon.co.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:37216 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752186AbYJ1Fus (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Oct 2008 01:50:48 -0400
-In-reply-to: <200810271357.23861.david-b@pacbell.net>
+Received: from mga01.intel.com ([192.55.52.88]:12301 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752516AbYJ1Gky (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 28 Oct 2008 02:40:54 -0400
+In-Reply-To: <4FFA7B13E0%linux@youmustbejoking.demon.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: linux-acpi@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>
+To: Darren Salt <linux@youmustbejoking.demon.co.uk>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>
 
-forwarded to devel@lists.acpica.org
+On Mon, 2008-10-27 at 15:52 -0700, Darren Salt wrote: 
+> EeePC 901, BIOS revision 1603, current Debian lenny; running on AC.
+> 
+> I've noticed the following errors & exceptions, apparently coinciding with
+> the startup of xfce4-sensors-plugin:
+Will you please confirm whether the same issue exists on the previous
+kernel? For example: 2.6.27 or 2.6.27-rc6
 
-thanks,
--len
+After the following commit is merged, it seems that on the EEEPC laptop
+the EC will switch off EC GPE interrupt mode when there is no EC GPE
+interrupt confirm for some EC transactions. Then AE_TIME is returned by
+the function of ec_poll, which causes that the _BST object of battery
+can't be evaluated.
+   >commit 7c6db4e050601f359081fde418ca6dc4fc2d0011
+   >Author: Alexey Starikovskiy <astarikovskiy@suse.de>
+   >Date:   Thu Sep 25 21:00:31 2008 +0400
+     >ACPI: EC: do transaction from interrupt context
 
-On Mon, 27 Oct 2008, David Brownell wrote:
+When there is no EC GPE interrupt confirm in some EC transaction, the
+EC will switch off the EC GPE interrupt mode in the function of
+acpi_ec_wait. 
 
-> From: David Brownell <dbrownell@users.sourceforge.net>
+But why is AE_TIME returned by the function of ec_poll?
+>static int ec_poll(struct acpi_ec *ec)
+{
+        unsigned long delay = jiffies + msecs_to_jiffies(ACPI_EC_DELAY);
+        msleep(1);
+// Maybe the current jiffies is already after the predefined jiffies
+after msleep(1). In such case the ETIME will be returned. Of course the
+EC transaction can't be finished. If so, IMO this is not reasonable as
+this is caused by that OS has no opportunity to issue the following EC
+command sequence.
+        while (time_before(jiffies, delay)) {
+                gpe_transaction(ec, acpi_ec_read_status(ec));
+                msleep(1);
+                if (ec_transaction_done(ec))
+                        return 0;
+//Maybe there exists the following cases. EC transaction is not finished
+after msleep(1),but the current jiffies is already after predefined
+jiffies. So ETIME is returned. In such case, IMO this is also not
+reasonable.
+        }
+        return -ETIME;
+}
+     At the same time msleep is realized by schedule_timeout. On linux
+although one process is waked up by some events, it won't be scheduled
+immediately. So maybe the current jiffies is already after the
+predefined timeout jiffies  after msleep(1).
+
+     Now some people suggest that msleep is replaced by udelay. Although
+the above two cases can be avoided by that msleep is replaced by udelay,
+maybe the above two cases still exist if the preempt schedule happens at
+the corresponding place.
+    At the same time when msleep is replaced by udelay, CPU will do
+nothing but loop while executing udelay. If the 100 EC transactions are
+done in one second, the CPU will do nothing in about 100*2*100
+microseconds. IMO this is not reasonable. 
+
+    IMO the better solution is that the EC transaction is divided into
+the different phases. (Not do the EC transaction in one loop).
+    For example:
+    The EC read transaction can be done in the following sequence:
+    a. Issue read command 
+    b. wait until the EC input buffer is empty and then write the EC
+internal read address
+    c. wait until the EC output buffer is ready and read the data from
+EC the Data port. Of course it indicates that EC read transaction is
+finished.
+    
+    The EC  write transaction can be done in the following sequence:
+    a. issue the write command
+    b. wait until the EC input buffer is empty and write the EC internal
+write address
+    c. wait until the EC input buffer is empty and write the data to the
+EC Data port
+    d. wait until the EC input buffer is empty. After it becomes empty,
+it indicates that the EC write transaction is finished.
+
+Welcome the comments.
+   Thanks.
+    
+    
+> ACPI: EC: missing confirmations, switch off interrupt mode.
+> ACPI Exception (evregion-0419): AE_TIME, Returned by Handler for [EmbeddedControl] [20080926]
+> ACPI Error (psparse-0524): Method parse/execution failed [\_SB_.PCI0.SBRG.EC0_.BST2] (Node f7030d38), AE_TIME
+> ACPI Error (psparse-0524): Method parse/execution failed [\_SB_.PCI0.CBST] (Node f70336f8), AE_TIME
+> ACPI Error (psparse-0524): Method parse/execution failed [\_SB_.PCI0.BAT0._BST] (Node f7031c48), AE_TIME
+> ACPI Exception (battery-0360): AE_TIME, Evaluating _BST [20080926]
 > 
-> Make the comment for ACPI_FADT_S4_RTC_WAKE match the ACPI spec;
-> that bit has nothing to do with status bits.
+> Also, this (which, unlike the above, is also present with 2.6.27.*):
 > 
-> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-> ---
->  include/acpi/actbl.h |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> ACPI: I/O resource 0000:00:1f.3 [0x400-0x41f] conflicts with ACPI region SMRG [0x400-0x40f]
+> ACPI: Device needs an ACPI driver
 > 
-> --- a/include/acpi/actbl.h	2008-08-19 20:25:36.000000000 -0700
-> +++ b/include/acpi/actbl.h	2008-08-19 20:26:14.000000000 -0700
-> @@ -245,7 +245,7 @@ struct acpi_table_fadt {
->  #define ACPI_FADT_POWER_BUTTON      (1<<4)	/* 04: Power button is handled as a generic feature */
->  #define ACPI_FADT_SLEEP_BUTTON      (1<<5)	/* 05: Sleep button is handled as a generic feature, or  not present */
->  #define ACPI_FADT_FIXED_RTC         (1<<6)	/* 06: RTC wakeup stat not in fixed register space */
-> -#define ACPI_FADT_S4_RTC_WAKE       (1<<7)	/* 07: RTC wakeup stat not possible from S4 */
-> +#define ACPI_FADT_S4_RTC_WAKE       (1<<7)	/* 07: RTC wakeup possible from S4 */
->  #define ACPI_FADT_32BIT_TIMER       (1<<8)	/* 08: tmr_val is 32 bits 0=24-bits */
->  #define ACPI_FADT_DOCKING_SUPPORTED (1<<9)	/* 09: Docking supported */
->  #define ACPI_FADT_RESET_REGISTER    (1<<10)	/* 10: System reset via the FADT RESET_REG supported */
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+> Full dmesg & config are attached.
 > 
+> (The Elantech touchpad patch from http://arjan.opmeer.net/elantech/ is
+> applied to this kernel.)
+> 
+
