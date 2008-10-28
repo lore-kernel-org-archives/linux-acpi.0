@@ -1,54 +1,53 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [Resend] [PATCH 0/2]  ACPI : two pachtes abut the Power resource
-Date: Tue, 28 Oct 2008 01:40:26 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0810280140180.24123@localhost.localdomain>
-References: <1225094686.5189.57.camel@yakui_zhao.sh.intel.com>
+Subject: Re: [patch/RESEND 2.6.28-rc2 1/2] ACPI:  fix ACPI_FADT_S4_RTC_WAKE
+ comment
+Date: Tue, 28 Oct 2008 01:50:45 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0810280150300.24123@localhost.localdomain>
+References: <200810271357.23861.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms044pub.verizon.net ([206.46.252.44]:38900 "EHLO
-	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751464AbYJ1Fk1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Oct 2008 01:40:27 -0400
-Received: from localhost.localdomain ([96.237.168.40])
- by vms044.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0K9F003VMP3FRFV2@vms044.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Tue, 28 Oct 2008 00:40:27 -0500 (CDT)
-In-reply-to: <1225094686.5189.57.camel@yakui_zhao.sh.intel.com>
+Received: from vms173005pub.verizon.net ([206.46.173.5]:37216 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752186AbYJ1Fus (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Oct 2008 01:50:48 -0400
+In-reply-to: <200810271357.23861.david-b@pacbell.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: linux-acpi@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>
 
-applied.
+forwarded to devel@lists.acpica.org
 
 thanks,
--Len
+-len
 
-On Mon, 27 Oct 2008, Zhao Yakui wrote:
+On Mon, 27 Oct 2008, David Brownell wrote:
 
-> Hi, All
->     the following are two patches about the power resource driver.
->     Patch 1/2: Cleanup in power resource
->                The state is changed to *state in the function of acpi_power_get_state.
->     Patch 2/2: delete the strick check in ACPI power transisition
->          Maybe the device is already in D3 state and expected to be transited to
-> D3 state. As there is no _PR3 object, the power transition can't be finished and
-> it will be switched to the Unknown state.
->          For example: 
->          http://bugzilla.kernel.org/show_bug.cgi?id=9485
+> From: David Brownell <dbrownell@users.sourceforge.net>
 > 
->          Maybe it is more reasonable that the strick check in power transistion
-> is deleted.
+> Make the comment for ACPI_FADT_S4_RTC_WAKE match the ACPI spec;
+> that bit has nothing to do with status bits.
 > 
->     Welcome the comments.
+> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+> ---
+>  include/acpi/actbl.h |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> Best regards.
->    Yakui
-> 
-> 
+> --- a/include/acpi/actbl.h	2008-08-19 20:25:36.000000000 -0700
+> +++ b/include/acpi/actbl.h	2008-08-19 20:26:14.000000000 -0700
+> @@ -245,7 +245,7 @@ struct acpi_table_fadt {
+>  #define ACPI_FADT_POWER_BUTTON      (1<<4)	/* 04: Power button is handled as a generic feature */
+>  #define ACPI_FADT_SLEEP_BUTTON      (1<<5)	/* 05: Sleep button is handled as a generic feature, or  not present */
+>  #define ACPI_FADT_FIXED_RTC         (1<<6)	/* 06: RTC wakeup stat not in fixed register space */
+> -#define ACPI_FADT_S4_RTC_WAKE       (1<<7)	/* 07: RTC wakeup stat not possible from S4 */
+> +#define ACPI_FADT_S4_RTC_WAKE       (1<<7)	/* 07: RTC wakeup possible from S4 */
+>  #define ACPI_FADT_32BIT_TIMER       (1<<8)	/* 08: tmr_val is 32 bits 0=24-bits */
+>  #define ACPI_FADT_DOCKING_SUPPORTED (1<<9)	/* 09: Docking supported */
+>  #define ACPI_FADT_RESET_REGISTER    (1<<10)	/* 10: System reset via the FADT RESET_REG supported */
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
 > 
