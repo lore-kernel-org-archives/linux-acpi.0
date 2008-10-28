@@ -1,33 +1,50 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] sony-laptop: Ignore missing _DIS method on pic device
-Date: Tue, 28 Oct 2008 00:59:38 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0810280059030.24123@localhost.localdomain>
-References: <1224192550-366-1-git-send-email-ajax@redhat.com>
- <20081016224903.GD21963@inferi.kami.home>
+Subject: Re: If "acpi_osi=Linux" works better,
+ please notify linux-acpi@vger.kernel.org
+Date: Tue, 28 Oct 2008 01:14:26 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0810280112090.24123@localhost.localdomain>
+References: <48FEC05C.4050600@kaalverink.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:47946 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751197AbYJ1E7l (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Oct 2008 00:59:41 -0400
-In-reply-to: <20081016224903.GD21963@inferi.kami.home>
+Received: from vms173001pub.verizon.net ([206.46.173.1]:42653 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752213AbYJ1FO2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Oct 2008 01:14:28 -0400
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173001.mailsrvcs.net
+ (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+ with ESMTPA id <0K9F00MZ4NW3UHME@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Tue, 28 Oct 2008 00:14:28 -0500 (CDT)
+In-reply-to: <48FEC05C.4050600@kaalverink.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mattia Dongili <malattia@linux.it>
-Cc: Adam Jackson <ajax@redhat.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>
+To: Tom Kaalverink <tom@kaalverink.net>
+Cc: linux-acpi@vger.kernel.org
 
 
 
+On Wed, 22 Oct 2008, Tom Kaalverink wrote:
 
-> > At least the Vaio VGN-Z540N doesn't have this method, so let's not fail
-> > to suspend just because it doesn't exist.
+> I have aspi_osi=Linux tried and thinks look better this way.
+> I saw this message in the /var/log/messages.
+> 
+> My operating system : Ubuntu 8.10
+> 
+> [    0.496839] ACPI: DMI System Vendor: Dell Inc.
+> [    0.496840] ACPI: DMI Product Name: Inspiron 1721
+> [    0.496842] ACPI: DMI Product Version:
+> [    0.496843] ACPI: DMI Board Name: 0UK441
+> [    0.496845] ACPI: DMI BIOS Vendor: Dell Inc.
+> [    0.496846] ACPI: DMI BIOS Date: 04/21/2008
 
-> > Signed-off-by: Adam Jackson <ajax@redhat.com>
+Exactly how do things look better with acpi_osi=Linux?
 
-> Acked-by: Mattia Dongili <malattia@linux.it>
-
-applied to acpi-test
+Please open a bugzilla.kernel.org entry against ACPI,
+assign it to len.brown@intel.com, and attach the full
+dmesg with and without acpi_osi=Linux, plus (just one copy)
+of the ouput from acpidump.
 
 thanks,
--len
+-Len
+
