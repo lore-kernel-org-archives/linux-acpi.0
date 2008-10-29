@@ -1,51 +1,134 @@
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Subject: Re: 2.6.28-rc1: rapid hotkeys break on eeepc again :(
-Date: Wed, 29 Oct 2008 14:27:11 +0000
-Message-ID: <490872BF.2010908@tuffmail.co.uk>
-References: <4907A511.3040603@tuffmail.co.uk> <4907A856.3050204@gmail.com> <4908307C.8060503@tuffmail.co.uk> <49086F67.1030607@suse.de>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH 2/8] ACPI, PCI: call _OSC support during root bridge discovery
+Date: Wed, 29 Oct 2008 08:30:04 -0600
+Message-ID: <200810290830.05200.bjorn.helgaas@hp.com>
+References: <20081029054815.2263.40833.stgit@bob.kio> <20081029054826.2263.48713.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.173]:25986 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753547AbYJ2O1T (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Oct 2008 10:27:19 -0400
-Received: by ug-out-1314.google.com with SMTP id 39so623194ugf.37
-        for <linux-acpi@vger.kernel.org>; Wed, 29 Oct 2008 07:27:16 -0700 (PDT)
-In-Reply-To: <49086F67.1030607@suse.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20081029054826.2263.48713.stgit@bob.kio>
+Content-Disposition: inline
+Sender: linux-pci-owner@vger.kernel.org
+To: Andrew Patterson <andrew.patterson@hp.com>
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, matthew@wil.cx
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: Alexey Starikovskiy <aystarik@gmail.com>, linux acpi <linux-acpi@vger.kernel.org>
 
-Alexey Starikovskiy wrote:
-> Alan Jenkins wrote:
->> Alexey Starikovskiy wrote:
->>> Please check if changing msleep to udelay helps.
->>> Alan Jenkins wrote:
->>>> Similar but different to the original symptoms of bugzilla #11089
->>>> (which
->>>> is closed, fixed by the specific patch I tested).  Hotkeys give up the
->>>> ghost after being held down for a while, or pressed rapidly.  However
->>>> they don't get "out of sync" as in that bug.  I've already tried the
->>>> acpi-test tree, but that didn't fix it.
->> That was in acpi-test, unless I misread the changelog.  It's the main
->> reason I tried that, I should have mentioned it, sorry.   So no, it
->> didn't help.
-> Any luck with bisect? 
+On Tuesday 28 October 2008 11:48:26 pm Andrew Patterson wrote:
+> ACPI, PCI: call _OSC support during root bridge discovery
+> 
+> Added pci_acpi_isc_support() which is called when a PCI bridge is
 
-It didn't seem to like what I gave it.  I ended up at a commit which
-lacked the EC rewrite - when as far as I'm concerned, I'm tracking a
-regression from after that point.
+s/_isc_/_osc_/
 
-So I tried some manual fiddling, and I'm now starting a bisect between
-two different points on mainline.  That's got to work :).  It looks like
-it broke sometime after the main merge from the acpi tree.
+> added, so individual PCI root bridge drivers do not have to call _OSC
+> support for every root bridge in their probe functions.
+> ---
+> 
+>  drivers/acpi/pci_root.c  |    6 ++++++
+>  drivers/pci/pci-acpi.c   |   24 +++++++++++++++++++-----
+>  include/linux/pci-acpi.h |    1 +
+>  3 files changed, 26 insertions(+), 5 deletions(-)
+> 
+> 
+> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+> index 1b8f67d..47df4a8 100644
+> --- a/drivers/acpi/pci_root.c
+> +++ b/drivers/acpi/pci_root.c
+> @@ -31,6 +31,7 @@
+>  #include <linux/spinlock.h>
+>  #include <linux/pm.h>
+>  #include <linux/pci.h>
+> +#include <linux/pci-acpi.h>
+>  #include <linux/acpi.h>
+>  #include <acpi/acpi_bus.h>
+>  #include <acpi/acpi_drivers.h>
+> @@ -210,6 +211,11 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
+>  
+>  	device->ops.bind = acpi_pci_bind;
+>  
+> +	pci_acpi_osc_support(device->handle,
+> +			     OSC_EXT_PCI_CONFIG_SUPPORT |
+> +			     OSC_PCI_SEGMENT_GROUPS_SUPPORT |
+> +			     0);
+> +
+>  	/* 
+>  	 * Segment
+>  	 * -------
+> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+> index dfe7c8e..f457387 100644
+> --- a/drivers/pci/pci-acpi.c
+> +++ b/drivers/pci/pci-acpi.c
+> @@ -139,28 +139,42 @@ static acpi_status __acpi_query_osc(u32 flags, struct acpi_osc_data *osc_data,
+>  	return status;
+>  }
+>  
+> -static acpi_status acpi_query_osc(acpi_handle handle,
+> -				  u32 level, void *context, void **retval)
+> +/*
+> + * pci_acpi_osc_support: Invoke _OSC indicating support for the given feature
+> + * @flags: Bitmask of flags to support
+> + *
+> + * See the ACPI spec for the definition of the flags
+> + */
+> +int pci_acpi_osc_support(acpi_handle handle, u32 flags)
+>  {
+> +	u32 dummy;
+>  	acpi_status status;
+> -	struct acpi_osc_data *osc_data;
+> -	u32 flags = (unsigned long)context, dummy;
+>  	acpi_handle tmp;
+> +	struct acpi_osc_data *osc_data;
+> +	int rc = 0;
+>  
+>  	status = acpi_get_handle(handle, "_OSC", &tmp);
+>  	if (ACPI_FAILURE(status))
+> -		return AE_OK;
+> +		return -ENOTTY;
+>  
+>  	mutex_lock(&pci_acpi_lock);
+>  	osc_data = acpi_get_osc_data(handle);
+>  	if (!osc_data) {
+>  		printk(KERN_ERR "acpi osc data array is full\n");
 
-$ git-describe
-v2.6.27-7166-g765426e
-$ git-bisect good
-$ git-bisect bad v2.6.28-rc1
-Bisecting: 215 revisions left to test after this
+I know you didn't change this printk, but since you're here,
+can you clean this up?  I propose removing this printk altogether,
+then checking the return from pci_acpi_osc_support() and using
+dev_warn (with the flags and return value) if it fails.
 
+> +		rc = -ENOMEM;
+>  		goto out;
+>  	}
+>  
+>  	__acpi_query_osc(flags, osc_data, &dummy);
+>  out:
+>  	mutex_unlock(&pci_acpi_lock);
+> +	return rc;
+> +}
+> +
+> +static acpi_status acpi_query_osc(acpi_handle handle, u32 level,
+> +				  void *context, void **retval)
+> +{
+> +	pci_acpi_osc_support(handle, (unsigned long)context);
+>  	return AE_OK;
+>  }
+>  
+> diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
+> index a9e4c34..424f06f 100644
+> --- a/include/linux/pci-acpi.h
+> +++ b/include/linux/pci-acpi.h
+> @@ -51,6 +51,7 @@
+>  #ifdef CONFIG_ACPI
+>  extern acpi_status pci_osc_control_set(acpi_handle handle, u32 flags);
+>  extern acpi_status __pci_osc_support_set(u32 flags, const char *hid);
+> +int pci_acpi_osc_support(acpi_handle handle, u32 flags);
+>  static inline acpi_status pci_osc_support_set(u32 flags)
+>  {
+>  	return __pci_osc_support_set(flags, PCI_ROOT_HID_STRING);
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
