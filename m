@@ -1,68 +1,102 @@
 From: Andrew Patterson <andrew.patterson@hp.com>
-Subject: [PATCH 7/8] PCI: check if MSI is enabled before adding _OSC support
-	capability
-Date: Tue, 28 Oct 2008 23:48:51 -0600
-Message-ID: <20081029054851.2263.36283.stgit@bob.kio>
+Subject: [PATCH 8/8] PCI,
+	ACPI: remove obsolete _OSC capability support functions
+Date: Tue, 28 Oct 2008 23:48:56 -0600
+Message-ID: <20081029054856.2263.63181.stgit@bob.kio>
 References: <20081029054815.2263.40833.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g1t0026.austin.hp.com ([15.216.28.33]:37167 "EHLO
+	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752569AbYJ2Fs6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Oct 2008 01:48:58 -0400
 In-Reply-To: <20081029054815.2263.40833.stgit@bob.kio>
-Sender: linux-pci-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 Cc: andrew.patterson@hp.com, matthew@wil.cx
-List-Id: linux-acpi@vger.kernel.org
 
-PCI: check if MSI is enabled before adding _OSC support capability
+PCI, ACPI: remove obsolete _OSC capability support functions
 
-Ensure that pci=nomsi is not set before adding the _OSC support capability
-OSC_MSI_SUPPORT to the root bridge.
+The acpi_query_osc, __pci_osc_support_set, pci_osc_support_set, and
+pcie_osc_support_set functions have been obsoleted in favor of setting
+these capabilities during root bridge discovery with pci_acpi_osc_support.
+There are no longer any callers of these functions, so they are removed.
 
 Signed-off-by: Andrew Patterson <andrew.patterson@hp.com>
 ---
 
- drivers/acpi/pci_root.c |   20 +++++++++++---------
- 1 files changed, 11 insertions(+), 9 deletions(-)
+ drivers/pci/pci-acpi.c   |   25 -------------------------
+ include/linux/pci-acpi.h |   11 -----------
+ 2 files changed, 0 insertions(+), 36 deletions(-)
 
 
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index 75a59ea..32afd02 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -194,6 +194,7 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
- 	unsigned long long value = 0;
- 	acpi_handle handle = NULL;
- 	struct acpi_device *child;
-+	u32 flags;
+diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+index f457387..128ce7d 100644
+--- a/drivers/pci/pci-acpi.c
++++ b/drivers/pci/pci-acpi.c
+@@ -171,31 +171,6 @@ out:
+ 	return rc;
+ }
  
+-static acpi_status acpi_query_osc(acpi_handle handle, u32 level,
+-				  void *context, void **retval)
+-{
+-	pci_acpi_osc_support(handle, (unsigned long)context);
+-	return AE_OK;
+-}
+-
+-/**
+- * __pci_osc_support_set - register OS support to Firmware
+- * @flags: OS support bits
+- * @hid: hardware ID
+- *
+- * Update OS support fields and doing a _OSC Query to obtain an update
+- * from Firmware on supported control bits.
+- **/
+-acpi_status __pci_osc_support_set(u32 flags, const char *hid)
+-{
+-	if (!(flags & OSC_SUPPORT_MASKS))
+-		return AE_TYPE;
+-
+-	acpi_get_devices(hid, acpi_query_osc,
+-			 (void *)(unsigned long)flags, NULL);
+-	return AE_OK;
+-}
+-
+ /**
+  * pci_osc_control_set - commit requested control to Firmware
+  * @handle: acpi_handle for the target ACPI object
+diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
+index 424f06f..871e096 100644
+--- a/include/linux/pci-acpi.h
++++ b/include/linux/pci-acpi.h
+@@ -50,16 +50,7 @@
  
- 	if (!device)
-@@ -211,17 +212,18 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
- 
- 	device->ops.bind = acpi_pci_bind;
- 
--	pci_acpi_osc_support(device->handle,
--			     OSC_EXT_PCI_CONFIG_SUPPORT |
--			     OSC_PCI_SEGMENT_GROUPS_SUPPORT |
--#ifdef CONFIG_PCI_MSI
--			     OSC_MSI_SUPPORT |
--#endif
-+	flags = (OSC_EXT_PCI_CONFIG_SUPPORT |
-+		 OSC_PCI_SEGMENT_GROUPS_SUPPORT |
- #ifdef CONFIG_PCIEASPM
--			     OSC_ACTIVE_STATE_PWR_SUPPORT |
--			     OSC_CLOCK_PWR_CAPABILITY_SUPPORT |
-+		 OSC_ACTIVE_STATE_PWR_SUPPORT |
-+		 OSC_CLOCK_PWR_CAPABILITY_SUPPORT |
-+#endif
-+		 0);
-+#ifdef CONFIG_PCI_MSI
-+	if (pci_msi_enabled())
-+		flags |= OSC_MSI_SUPPORT;
+ #ifdef CONFIG_ACPI
+ extern acpi_status pci_osc_control_set(acpi_handle handle, u32 flags);
+-extern acpi_status __pci_osc_support_set(u32 flags, const char *hid);
+ int pci_acpi_osc_support(acpi_handle handle, u32 flags);
+-static inline acpi_status pci_osc_support_set(u32 flags)
+-{
+-	return __pci_osc_support_set(flags, PCI_ROOT_HID_STRING);
+-}
+-static inline acpi_status pcie_osc_support_set(u32 flags)
+-{
+-	return __pci_osc_support_set(flags, PCI_EXPRESS_ROOT_HID_STRING);
+-}
+ static inline acpi_handle acpi_find_root_bridge_handle(struct pci_dev *pdev)
+ {
+ 	/* Find root host bridge */
+@@ -76,8 +67,6 @@ typedef u32 		acpi_status;
+ #endif    
+ static inline acpi_status pci_osc_control_set(acpi_handle handle, u32 flags)
+ {return AE_ERROR;}
+-static inline acpi_status pci_osc_support_set(u32 flags) {return AE_ERROR;} 
+-static inline acpi_status pcie_osc_support_set(u32 flags) {return AE_ERROR;}
+ static inline acpi_handle acpi_find_root_bridge_handle(struct pci_dev *pdev)
+ { return NULL; }
  #endif
--			     0);
-+	pci_acpi_osc_support(device->handle, flags);
- 
- 	/* 
- 	 * Segment
+
