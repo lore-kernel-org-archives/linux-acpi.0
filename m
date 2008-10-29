@@ -1,51 +1,32 @@
-From: Pavel Machek <pavel@suse.cz>
-Subject: Re: [linux-pm] [PATCH 3/4] x86 hibernate: Mark ACPI NVS memory region at startup
-Date: Wed, 29 Oct 2008 12:18:37 +0100
-Message-ID: <20081029111837.GA20466@atrey.karlin.mff.cuni.cz>
-References: <200810222249.20629.rjw@sisk.pl> <200810222253.16264.rjw@sisk.pl> <20081026121404.GC1607@ucw.cz> <200810261329.16260.rjw@sisk.pl> <1225272091.2665.4.camel@rzhang-dt>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: Re: 2.6.28-rc1: rapid hotkeys break on eeepc again :(
+Date: Wed, 29 Oct 2008 17:12:55 +0300
+Message-ID: <49086F67.1030607@suse.de>
+References: <4907A511.3040603@tuffmail.co.uk> <4907A856.3050204@gmail.com> <4908307C.8060503@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:47272 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752439AbYJ2LSi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Oct 2008 07:18:38 -0400
-Content-Disposition: inline
-In-Reply-To: <1225272091.2665.4.camel@rzhang-dt>
+Received: from charybdis-ext.suse.de ([195.135.221.2]:59776 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752412AbYJ2OM5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Oct 2008 10:12:57 -0400
+In-Reply-To: <4908307C.8060503@tuffmail.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>
+To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Cc: Alexey Starikovskiy <aystarik@gmail.com>, linux acpi <linux-acpi@vger.kernel.org>
 
-Hi!
-
-> > > > +static int __init e820_mark_nvs_memory(void)
-> > > > +{
-> > > > +	int i;
-> > > > +
-> > > > +	if (efi_enabled)
-> > > > +		return 0;
-> > > 
-> > > Aha, not unrelated... why is that? EFI does not use acpi? 
-> > 
-> > With EFI we are not supposed to do that.  Rui knows the details.  Rui?
-> > 
-> well, 
-> about EFI nvs memory, I only get
-> "EfiACPIMemoryNVS: The OS and loader must preserve this memory range in
-> the working and ACPI S1???S3 states." in the ACPI spec 3.0b.
-> whether we should save/restore this piece of memory is not clear.
-> I'd prefer not to touch it currently.
-
-EFI is a bootloader. Why should we change our runtime behaviour
-depending on bootloader?
-
-EFI should be still compatible with normal ACPI, right? ...like you
-should be able to boot the same kernel with the same ACPI BIOS using
-EFI or EFI w/ legacy emulation.
-
-So special-casing it here does not seem right.
-
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Alan Jenkins wrote:
+> Alexey Starikovskiy wrote:
+>> Please check if changing msleep to udelay helps.
+>> Alan Jenkins wrote:
+>>> Similar but different to the original symptoms of bugzilla #11089 (which
+>>> is closed, fixed by the specific patch I tested).  Hotkeys give up the
+>>> ghost after being held down for a while, or pressed rapidly.  However
+>>> they don't get "out of sync" as in that bug.  I've already tried the
+>>> acpi-test tree, but that didn't fix it.
+> That was in acpi-test, unless I misread the changelog.  It's the main
+> reason I tried that, I should have mentioned it, sorry.   So no, it
+> didn't help.
+Any luck with bisect? 
