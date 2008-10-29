@@ -1,110 +1,119 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [linux-pm] [PATCH 3/4] x86 hibernate: Mark ACPI NVS memory
-	region at startup
-Date: Wed, 29 Oct 2008 17:21:31 +0800
-Message-ID: <1225272091.2665.4.camel@rzhang-dt>
-References: <200810222249.20629.rjw@sisk.pl>
-	 <200810222253.16264.rjw@sisk.pl> <20081026121404.GC1607@ucw.cz>
-	 <200810261329.16260.rjw@sisk.pl>
+From: Alexey Starikovskiy <aystarik@gmail.com>
+Subject: Re: [2.6.28-rc2] EeePC ACPI errors & exceptions
+Date: Wed, 29 Oct 2008 12:29:45 +0300
+Message-ID: <49082D09.8060102@gmail.com>
+References: <alpine.LFD.2.00.0810261221350.3386@nehalem.linux-foundation.org>	 <4FFA7B13E0%linux@youmustbejoking.demon.co.uk>	 <1225186966.5189.143.camel@yakui_zhao.sh.intel.com>	 <4FFABF28C8%linux@youmustbejoking.demon.co.uk> <49077A13.7020603@gmail.com> <1225265974.5189.189.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:36215 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752621AbYJ2JWP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 29 Oct 2008 05:22:15 -0400
-In-Reply-To: <200810261329.16260.rjw@sisk.pl>
+Received: from nf-out-0910.google.com ([64.233.182.187]:40077 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752127AbYJ2J3s (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Oct 2008 05:29:48 -0400
+Received: by nf-out-0910.google.com with SMTP id d3so1204114nfc.21
+        for <linux-acpi@vger.kernel.org>; Wed, 29 Oct 2008 02:29:46 -0700 (PDT)
+In-Reply-To: <1225265974.5189.189.camel@yakui_zhao.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Pavel Machek <pavel@suse.cz>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: Darren Salt <linux@youmustbejoking.demon.co.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi, sorry for the delay,
+Not a problem, just find the root cause. Or shut up.
 
-On Sun, 2008-10-26 at 20:29 +0800, Rafael J. Wysocki wrote:
-> On Sunday, 26 of October 2008, Pavel Machek wrote:
-> > On Wed 2008-10-22 22:53:15, Rafael J. Wysocki wrote:
-> > > From: Rafael J. Wysocki <rjw@sisk.pl>
-> > >=20
-> > > x86 hibernate: Mark ACPI NVS memory region at startup
-> > >=20
-> > > Introduce new initcall for marking the ACPI NVS memory at startup=
-, so
-> > > that it can be saved/restore during hibernation/resume.
-> > >=20
-> > > Based on a patch by Zhang Rui.
-> > >=20
-> > > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> > > Cc: Zhang Rui <rui.zhang@intel.com>
-> > > ---
-> > >  arch/x86/kernel/e820.c |   25 +++++++++++++++++++++++++
-> > >  1 file changed, 25 insertions(+)
-> > >=20
-> > > Index: linux-2.6/arch/x86/kernel/e820.c
-> > > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > > --- linux-2.6.orig/arch/x86/kernel/e820.c
-> > > +++ linux-2.6/arch/x86/kernel/e820.c
-> > > @@ -20,6 +20,7 @@
-> > >  #include <linux/pfn.h>
-> > >  #include <linux/suspend.h>
-> > >  #include <linux/firmware-map.h>
-> > > +#include <linux/efi.h>
-> > > =20
-> > >  #include <asm/pgtable.h>
-> > >  #include <asm/page.h>
-> >=20
-> > Unrelated chunk?
-> >=20
-> > > @@ -665,6 +666,30 @@ void __init e820_mark_nosave_regions(uns
-> > >  }
-> > >  #endif
-> > > =20
-> > > +#ifdef CONFIG_HIBERNATION
-> > > +/**
-> > > + * Mark ACPI NVS memory region, so that we can save/restore it d=
-uring
-> > > + * hibernation and the subsequent resume.
-> > > + */
-> > > +static int __init e820_mark_nvs_memory(void)
-> > > +{
-> > > +	int i;
-> > > +
-> > > +	if (efi_enabled)
-> > > +		return 0;
-> >=20
-> > Aha, not unrelated... why is that? EFI does not use acpi?=20
->=20
-> With EFI we are not supposed to do that.  Rui knows the details.  Rui=
-?
->=20
-well,=20
-about EFI nvs memory, I only get
-"EfiACPIMemoryNVS: The OS and loader must preserve this memory range in
-the working and ACPI S1=E2=80=93S3 states." in the ACPI spec 3.0b.
-whether we should save/restore this piece of memory is not clear.
-I'd prefer not to touch it currently.
 
-thanks,
-rui
+Zhao Yakui wrote:
+> On Tue, 2008-10-28 at 13:46 -0700, Alexey Starikovskiy wrote:
+>   
+>> Hi Darren,
+>>
+>> Please check if the patch 
+>> http://marc.info/?l=linux-acpi&m=122516784917952&w=4
+>> helps.
+>>     
+> In the attached patch the msleep is replaced by udelay gain. 
+>    In the following commit the udelay is replaced by msleep. 
+>    >commit 1b7fc5aae8867046f8d3d45808309d5b7f2e036a
+>    >Author: Alexey Starikovskiy <astarikovskiy@suse.de>
+>    >Date:   Fri Jun 6 11:49:33 2008 -0400
+>      >ACPI: EC: Use msleep instead of udelay while waiting for event
+>    
+>    After the problem happens again, the udelay is restored again before
+> getting the root cause. 
+>    Maybe we should find the root cause of the problem and change the
+> working flowchart about the EC driver. It is inappropriate that we make
+> some changes and it is reverted again when the problem happens.
+>    
+>    At the same time after mlseep is replaced by the udelay, the CPU will
+> do thing but loop while doing EC transaction on some laptops (In the
+> function of ec_poll). If 100 EC transactions are done, the CPU will do
+> nothing but loop at least for 100*2*100 microseconds. In such case maybe
+> the performance will be affected.
+>
+>   After the following commit is merged, the EC transaction will be
+> executed in EC GPE interrupt context on most laptops.Maybe it is easier.
+> But for the some laptops it can't be done in EC GPE interrupt context.
+> So it falls back to the EC polling mode. (This is realized by the
+> function of ec_poll).
+>     >commit 7c6db4e050601f359081fde418ca6dc4fc2d0011
+>     >Author: Alexey Starikovskiy <astarikovskiy@suse.de>
+>     >Date:   Thu Sep 25 21:00:31 2008 +0400
+>        >ACPI: EC: do transaction from interrupt context
+>    
+>    Why is AE_TIME sometimes returned by the function of ec_poll?
+>   
+>> static int ec_poll(struct acpi_ec *ec)
+>>     
+> {
+>         unsigned long delay = jiffies + msecs_to_jiffies(ACPI_EC_DELAY);
+>         msleep(1);
+> // Maybe the current jiffies is already after the predefined jiffies
+> after msleep(1). In such case the ETIME will be returned. Of course the
+> EC transaction can't be finished. If so, IMO this is not reasonable as
+> this is caused by that OS has no opportunity to issue the following EC
+> command sequence.
+>         while (time_before(jiffies, delay)) {
+>                 gpe_transaction(ec, acpi_ec_read_status(ec));
+>                 msleep(1);
+>                 if (ec_transaction_done(ec))
+>                         return 0;
+> //Maybe there exists the following cases. EC transaction is not finished
+> after msleep(1),but the current jiffies is already after predefined
+> jiffies. So ETIME is returned. In such case, IMO this is also not
+> reasonable.
+>         }
+>         return -ETIME;
+> }
+>      At the same time msleep is realized by schedule_timeout. On linux
+> although one process is waked up by some events, it won't be scheduled
+> immediately. So maybe the current jiffies is already after the
+> predefined timeout jiffies  after msleep(1). 
+>     Although the possibility of this issue can be reduced by that msleep
+> is replaced by udelay,maybe the issue still exists if the preempt
+> schedule happens at the corresponding place.
+>
+>     In the above case the ETIME will be returned by ec_poll. But the
+> reason is not that EC controller can't update its status in time.
+> Instead it is caused by that host has no opportunity to issue the
+> sequence operation in the current work flowchart. In current EC work
+> flowchart the EC transaction is done in a big loop. 
+>     
+>     Maybe the better solution is that the EC transaction is explicitly
+> divided into several different phases. 
+>
+>     Maybe my analysis is not correct. If so, please correct me. 
+> Welcome the comments.
+>
+>     thanks.
+>     
+>     
+>      
+>   
+>> Thanks,
+>> Alex.
+>>
+>>
+>>     
+>
+>   
 
-> > > +	for (i =3D 0; i < e820.nr_map; i++) {
-> > > +		struct e820entry *ei =3D &e820.map[i];
-> > > +
-> > > +		if (ei->type =3D=3D E820_NVS)
-> > > +			hibernate_nvs_register(ei->addr, ei->size);
-> >=20
-> > can nvs_register fail? (OOM?)
->=20
-> It can, in which case it will do the cleanup.
->=20
-> Thanks,
-> Rafael
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
