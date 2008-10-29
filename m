@@ -1,134 +1,83 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH 2/8] ACPI, PCI: call _OSC support during root bridge discovery
-Date: Wed, 29 Oct 2008 08:30:04 -0600
-Message-ID: <200810290830.05200.bjorn.helgaas@hp.com>
-References: <20081029054815.2263.40833.stgit@bob.kio> <20081029054826.2263.48713.stgit@bob.kio>
+Subject: Re: [PATCH 6/8] PCI: added pci_msi_enabled which checks for pci=nomsi
+Date: Wed, 29 Oct 2008 08:33:15 -0600
+Message-ID: <200810290833.15669.bjorn.helgaas@hp.com>
+References: <20081029054815.2263.40833.stgit@bob.kio> <20081029054846.2263.59248.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20081029054826.2263.48713.stgit@bob.kio>
+In-Reply-To: <20081029054846.2263.59248.stgit@bob.kio>
 Content-Disposition: inline
 Sender: linux-pci-owner@vger.kernel.org
 To: Andrew Patterson <andrew.patterson@hp.com>
 Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, matthew@wil.cx
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday 28 October 2008 11:48:26 pm Andrew Patterson wrote:
-> ACPI, PCI: call _OSC support during root bridge discovery
+On Tuesday 28 October 2008 11:48:46 pm Andrew Patterson wrote:
+> PCI: added pci_msi_enabled which checks for pci=nomsi
 > 
-> Added pci_acpi_isc_support() which is called when a PCI bridge is
-
-s/_isc_/_osc_/
-
-> added, so individual PCI root bridge drivers do not have to call _OSC
-> support for every root bridge in their probe functions.
+> The pci_msi_enabled() function is used to check whether pci=nomsi
+> is set on the kernel command-line.
+> 
+> Signed-off-by: Andrew Patterson <andrew.patterson@hp.com>
 > ---
 > 
->  drivers/acpi/pci_root.c  |    6 ++++++
->  drivers/pci/pci-acpi.c   |   24 +++++++++++++++++++-----
->  include/linux/pci-acpi.h |    1 +
->  3 files changed, 26 insertions(+), 5 deletions(-)
+>  drivers/pci/msi.c   |   12 ++++++++++++
+>  include/linux/pci.h |    5 +++++
+>  2 files changed, 17 insertions(+), 0 deletions(-)
 > 
 > 
-> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> index 1b8f67d..47df4a8 100644
-> --- a/drivers/acpi/pci_root.c
-> +++ b/drivers/acpi/pci_root.c
-> @@ -31,6 +31,7 @@
->  #include <linux/spinlock.h>
->  #include <linux/pm.h>
->  #include <linux/pci.h>
-> +#include <linux/pci-acpi.h>
->  #include <linux/acpi.h>
->  #include <acpi/acpi_bus.h>
->  #include <acpi/acpi_drivers.h>
-> @@ -210,6 +211,11 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
->  
->  	device->ops.bind = acpi_pci_bind;
->  
-> +	pci_acpi_osc_support(device->handle,
-> +			     OSC_EXT_PCI_CONFIG_SUPPORT |
-> +			     OSC_PCI_SEGMENT_GROUPS_SUPPORT |
-> +			     0);
-> +
->  	/* 
->  	 * Segment
->  	 * -------
-> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-> index dfe7c8e..f457387 100644
-> --- a/drivers/pci/pci-acpi.c
-> +++ b/drivers/pci/pci-acpi.c
-> @@ -139,28 +139,42 @@ static acpi_status __acpi_query_osc(u32 flags, struct acpi_osc_data *osc_data,
->  	return status;
+> diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
+> index d281201..0e8dae1 100644
+> --- a/drivers/pci/msi.c
+> +++ b/drivers/pci/msi.c
+> @@ -755,6 +755,18 @@ void pci_no_msi(void)
+>  	pci_msi_enable = 0;
 >  }
 >  
-> -static acpi_status acpi_query_osc(acpi_handle handle,
-> -				  u32 level, void *context, void **retval)
-> +/*
-> + * pci_acpi_osc_support: Invoke _OSC indicating support for the given feature
-> + * @flags: Bitmask of flags to support
+> +/**
+> + * pci_msi_enabled - is MSI enabled?
 > + *
-> + * See the ACPI spec for the definition of the flags
-> + */
-> +int pci_acpi_osc_support(acpi_handle handle, u32 flags)
->  {
-> +	u32 dummy;
->  	acpi_status status;
-> -	struct acpi_osc_data *osc_data;
-> -	u32 flags = (unsigned long)context, dummy;
->  	acpi_handle tmp;
-> +	struct acpi_osc_data *osc_data;
-> +	int rc = 0;
->  
->  	status = acpi_get_handle(handle, "_OSC", &tmp);
->  	if (ACPI_FAILURE(status))
-> -		return AE_OK;
-> +		return -ENOTTY;
->  
->  	mutex_lock(&pci_acpi_lock);
->  	osc_data = acpi_get_osc_data(handle);
->  	if (!osc_data) {
->  		printk(KERN_ERR "acpi osc data array is full\n");
-
-I know you didn't change this printk, but since you're here,
-can you clean this up?  I propose removing this printk altogether,
-then checking the return from pci_acpi_osc_support() and using
-dev_warn (with the flags and return value) if it fails.
-
-> +		rc = -ENOMEM;
->  		goto out;
->  	}
->  
->  	__acpi_query_osc(flags, osc_data, &dummy);
->  out:
->  	mutex_unlock(&pci_acpi_lock);
-> +	return rc;
-> +}
-> +
-> +static acpi_status acpi_query_osc(acpi_handle handle, u32 level,
-> +				  void *context, void **retval)
+> + * Returns true if MSI has not been disabled by the command-line option
+> + * pci=nomsi.
+> + **/
+> +int pci_msi_enabled(void)
 > +{
-> +	pci_acpi_osc_support(handle, (unsigned long)context);
->  	return AE_OK;
->  }
->  
-> diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
-> index a9e4c34..424f06f 100644
-> --- a/include/linux/pci-acpi.h
-> +++ b/include/linux/pci-acpi.h
-> @@ -51,6 +51,7 @@
->  #ifdef CONFIG_ACPI
->  extern acpi_status pci_osc_control_set(acpi_handle handle, u32 flags);
->  extern acpi_status __pci_osc_support_set(u32 flags, const char *hid);
-> +int pci_acpi_osc_support(acpi_handle handle, u32 flags);
->  static inline acpi_status pci_osc_support_set(u32 flags)
+> +	return pci_msi_enable;
+> +}
+> +EXPORT_SYMBOL(pci_msi_enabled);
+> +
+>  void pci_msi_init_pci_dev(struct pci_dev *dev)
 >  {
->  	return __pci_osc_support_set(flags, PCI_ROOT_HID_STRING);
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+>  	INIT_LIST_HEAD(&dev->msi_list);
+> diff --git a/include/linux/pci.h b/include/linux/pci.h
+> index 752def8..8d0513e 100644
+> --- a/include/linux/pci.h
+> +++ b/include/linux/pci.h
+> @@ -767,6 +767,10 @@ static inline void msi_remove_pci_irq_vectors(struct pci_dev *dev)
+>  
+>  static inline void pci_restore_msi_state(struct pci_dev *dev)
+>  { }
+> +static inline int pci_msi_enabled(void)
+> +{
+> +	return 0;
+> +}
+>  #else
+>  extern int pci_enable_msi(struct pci_dev *dev);
+>  extern void pci_msi_shutdown(struct pci_dev *dev);
+> @@ -777,6 +781,7 @@ extern void pci_msix_shutdown(struct pci_dev *dev);
+>  extern void pci_disable_msix(struct pci_dev *dev);
+>  extern void msi_remove_pci_irq_vectors(struct pci_dev *dev);
+>  extern void pci_restore_msi_state(struct pci_dev *dev);
+> +extern int pci_msi_enabled(void);
+>  #endif
+>  
+>  #ifdef CONFIG_HT_IRQ
+
+I don't think it's worth splitting out this patch.  You might
+as well just add pci_msi_enabled() in the same patch where you
+add a use of it.
+
+Bjorn
