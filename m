@@ -1,28 +1,43 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: Re: 2.6.28-rc1: rapid hotkeys break on eeepc again :(
-Date: Wed, 29 Oct 2008 23:34:51 +0300
-Message-ID: <4908C8EB.1010403@suse.de>
-References: <4907A511.3040603@tuffmail.co.uk> <4907A856.3050204@gmail.com> <4908307C.8060503@tuffmail.co.uk> <49086F67.1030607@suse.de> <490872BF.2010908@tuffmail.co.uk> <4908C714.5040104@tuffmail.co.uk>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: ACPI video.c brightness handler conflicts with toshiba_acpi
+Date: Wed, 29 Oct 2008 22:01:48 +0100
+Message-ID: <200810292201.49882.trenn@suse.de>
+References: <200809061108.34877.arvidjaar@mail.ru> <200810291654.56710.trenn@suse.de> <20081029171346.GC7734@one.firstfloor.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:57276 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751070AbYJ2Uev (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Oct 2008 16:34:51 -0400
-In-Reply-To: <4908C714.5040104@tuffmail.co.uk>
+Received: from mail.suse.de ([195.135.220.2]:42468 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752481AbYJ2VBl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 29 Oct 2008 17:01:41 -0400
+In-Reply-To: <20081029171346.GC7734@one.firstfloor.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Cc: Alexey Starikovskiy <aystarik@gmail.com>, linux acpi <linux-acpi@vger.kernel.org>
+To: Andi Kleen <andi@firstfloor.org>
+Cc: Andrey Borzenkov <arvidjaar@mail.ru>, Len Brown <len.brown@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, toshiba_acpi@memebeam.org, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, preining@logic.at
 
+On Wednesday 29 October 2008 06:13:46 pm Andi Kleen wrote:
+> On Wed, Oct 29, 2008 at 04:54:54PM +0100, Thomas Renninger wrote:
+> > > So far I am running with these commits from
+> > > git://git.kernel.org/pub/scm/linux/kernel/git/ak/linux-acpi-2.6:
+> >
+> > This tree does not exist anymore...
+>
+> It is now linux-acpi-summer2008-2.6
+> I renamed to avoid confusion with Len's tree.
+> But Len should have taken all the patches in there.
 
-Alan Jenkins wrote:
-> Well, that didn't work.
-Pity...
-Could you produce a debug log from EC?
-Probably it's a good time to open a new bug report...
+Hmm, looks like he did not.
+Thanks for the pointer to the old tree, that made things easy.
+I am going to post them to Len privately for inclusion into his test branch 
+for now, there should be no need to post them on several lists a fifth 
+time...
+Let's see whether they still pop up in his next pull request for .28, 
+hopefully they do...
 
-Regards,
-Alex.
+Thanks,
+
+      Thomas
