@@ -1,91 +1,65 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: 2.6.28 - new warning evaluating _BIF - found Buffer, expected
- String
-Date: Wed, 29 Oct 2008 12:35:13 -0700
-Message-ID: <4911F71203A09E4D9981D27F9D8308580AE5B9C1@orsmsx503.amr.corp.intel.com>
-References: <200810292038.53075.arvidjaar@mail.ru>
+From: Forest Bond <forest@alittletooquiet.net>
+Subject: Jetway J2F2WE-1G5: S1 leaves video on
+Date: Wed, 29 Oct 2008 14:25:44 -0400
+Message-ID: <20081029182544.GA14582@storm.local.network>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="EVF5PPMfhYS0aIcm"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:10433 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752423AbYJ2Tft convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Oct 2008 15:35:49 -0400
-In-Reply-To: <200810292038.53075.arvidjaar@mail.ru>
-Content-Language: en-US
+Received: from mail3.webfaction.com ([70.85.44.146]:34869 "EHLO
+	mail3.webfaction.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752146AbYJ2TrP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Oct 2008 15:47:15 -0400
+Received: from storm (pool-64-223-124-145.burl.east.verizon.net [64.223.124.145])
+	(authenticated bits=0)
+	by mail3.webfaction.com (8.13.1/8.13.3) with ESMTP id m9TIPnga025590
+	for <linux-acpi@vger.kernel.org>; Wed, 29 Oct 2008 13:25:49 -0500
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrey Borzenkov <arvidjaar@mail.ru>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-
->From examining the acpidump, here is what is what is happening:
-
-The battery strings are extracted from an EC operation region. When reading an operation region field, the result is either an integer or a buffer (if too large for an integer).
-
-Prior to ACPI 2.0, there was no easy way to extract the EC field read as a string object, so most battery implementations returned the data as buffer objects. The ToString operator was introduced in ACPI 2.0 to perform this type of conversion.
-
-However, we don't know when ToString was actually implemented in a Windows release -- and it appears that many _BIF implementations continue to simply return the data as a buffer.
-
-This does have the possibility of causing some problems in the host OS, since the buffer is not guaranteed to be null-terminated. If the host treats the buffer and string objects the same (as strings), garbage output can be produced.
-
-This kind of issue can be easily fixed in the ACPICA code that examines the return values from the predefined methods (like _BIF) by performing a proper buffer to string conversion before the host even sees the return value.
-
-This is the plan, and the change will be released in a few days.
-
-Bob
+To: linux-acpi@vger.kernel.org
 
 
->-----Original Message-----
->From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
->owner@vger.kernel.org] On Behalf Of Andrey Borzenkov
->Sent: Wednesday, October 29, 2008 10:39 AM
->To: linux-acpi@vger.kernel.org
->Subject: 2.6.28 - new warning evaluating _BIF - found Buffer, expected
->String
->
->[   36.156325] ACPI: AC Adapter [ADP1] (off-line)
->[   36.177259] ACPI Warning (nspredef-0858): \_SB_.BAT1._BIF: Return
->Package type mismatch at index 9 - found Buffer, expected String [20080926]
->[   36.183721] ACPI: Battery Slot [BAT1] (battery present)
->[   36.184307] ACPI: Battery Slot [BAT2] (battery absent)
->
->well, battery.c extrac_package deals with both string and buffer just fine.
->I am not sure if this warning is really needed in normal kernel - after
->all,
->Buffer to String conversion has well defined sematic in ACPI.
->
->There is nothing user can do about it anyway.
->
->For reference, here is _BIF method; it is Toshiba Portege 4000:
->
->            Method (_BIF, 0, NotSerialized)
->            {
->                Name (BUFF, Package (0x0D) {})
->                Store (0x00, Index (BUFF, 0x00))
->                Store (\_SB.MEM.BDV1, Local2)
->                Multiply (\_SB.MEM.BDC1, Local2, Local0)
->                Divide (Local0, 0x03E8, Local1, Local0)
->                Store (Local0, Index (BUFF, 0x01))
->                Multiply (\_SB.MEM.BLF1, Local2, Local0)
->                Divide (Local0, 0x03E8, Local1, Local0)
->                Store (Local0, Index (BUFF, 0x02))
->                Store (\_SB.MEM.BTC1, Index (BUFF, 0x03))
->                Store (\_SB.MEM.BDV1, Index (BUFF, 0x04))
->                Multiply (\_SB.MEM.BCW1, Local2, Local0)
->                Divide (Local0, 0x03E8, Local1, Local0)
->                Store (Local0, Index (BUFF, 0x05))
->                Multiply (\_SB.MEM.BCL1, Local2, Local0)
->                Divide (Local0, 0x03E8, Local1, Local0)
->                Store (Local0, Index (BUFF, 0x06))
->                Multiply (\_SB.MEM.BG11, Local2, Local0)
->                Divide (Local0, 0x03E8, Local1, Local0)
->                Store (Local0, Index (BUFF, 0x07))
->                Multiply (\_SB.MEM.BG21, Local2, Local0)
->                Divide (Local0, 0x03E8, Local1, Local0)
->                Store (Local0, Index (BUFF, 0x08))
->                Store (\_SB.MEM.BMN1, Index (BUFF, 0x09))
->                Store (\_SB.MEM.BSN1, Index (BUFF, 0x0A))
->                Store (\_SB.MEM.BTP1, Index (BUFF, 0x0B))
->                Store (\_SB.MEM.BOI1, Index (BUFF, 0x0C))
->                Return (BUFF)
->            }
+--EVF5PPMfhYS0aIcm
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+I'm using vanilla 2.6.27.4.  I `echo standby >/sys/power/state` and the mac=
+hine
+switches to a console and acts like it is about to go into some sort of low=
+er
+power mode, but the video stays on.  Is this normal?
+
+I've not used S1 before, mostly S3.  S3 doesn't seem to be supported by this
+board (but I'd actually prefer S3, so if you have any advice as to how I mi=
+ght
+enable it, please let me know).
+
+What information might be helpful for troubleshooting this issue (if it is,=
+ in
+fact, an issue)?
+
+Thanks,
+Forest
+--=20
+Forest Bond
+http://www.alittletooquiet.net
+http://www.pytagsfs.org
+
+--EVF5PPMfhYS0aIcm
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFJCKqoRO4fQQdv5AwRAvLeAJ0ZOQYFnjN7+s2+K1Ho5Sbi5JLAdgCeKvcC
+8C3+47uiOSuOOP/k+zUINaE=
+=w/hk
+-----END PGP SIGNATURE-----
+
+--EVF5PPMfhYS0aIcm--
