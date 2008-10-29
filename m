@@ -1,83 +1,90 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH 7/8] PCI: check if MSI is enabled before adding _OSC support capability
-Date: Wed, 29 Oct 2008 08:33:19 -0600
-Message-ID: <200810290833.19690.bjorn.helgaas@hp.com>
-References: <20081029054815.2263.40833.stgit@bob.kio> <20081029054851.2263.36283.stgit@bob.kio>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: ACPI: EC: Fix logspam in "GPE storm avoidance" code
+Date: Wed, 29 Oct 2008 13:08:36 -0200
+Message-ID: <20081029150836.GA31678@khazad-dum.debian.net>
+References: <49071C33.7030308@tuffmail.co.uk> <4907590E.4070104@suse.de> <20081029001231.GA22985@khazad-dum.debian.net> <49083216.60202@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:47570 "EHLO
-	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753647AbYJ2OdX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Oct 2008 10:33:23 -0400
-In-Reply-To: <20081029054851.2263.36283.stgit@bob.kio>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:54880 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752390AbYJ2PIp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 29 Oct 2008 11:08:45 -0400
 Content-Disposition: inline
+In-Reply-To: <49083216.60202@tuffmail.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Patterson <andrew.patterson@hp.com>
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, matthew@wil.cx
+To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Tuesday 28 October 2008 11:48:51 pm Andrew Patterson wrote:
-> PCI: check if MSI is enabled before adding _OSC support capability
+On Wed, 29 Oct 2008, Alan Jenkins wrote:
+> Henrique de Moraes Holschuh wrote:
+> > On Tue, 28 Oct 2008, Alexey Starikovskiy wrote:
+> >> Alan Jenkins wrote:
+> >>> <http://bugzilla.kernel.org/show_bug.cgi?id=11841>
+> >>> "plenty of line "ACPI: EC: non-query interrupt received,
+> >>>  switching to interrupt mode" in dmesg"
+> >>>       
+> >> Probably, it is better to make pr_debug().
+> >>     
+> >
+> > Please don't do that.  This code has had a lot of churn, and *regressions*
+> > as of lately, and sometimes we only notice these because we see those
+> > messages in the logs.  Moving them to pr_debug() pretty much makes them
+> > utterly useless in a large number of the cases they could be of help.
+> >
+> > Besides, I very much doubt we will stop seing EC interrupt crappage. Not
+> > only our code is NOT good and resilient enough yet (if it were, there
+> > wouldn't be so many patches flying about it), the vendors are obviously
+> > getting this wrong at a fast rate.
+> >
+> > We need those messages.  Rate-limit them, but don't hide them or move them
+> > to pr_debug, please.
 > 
-> Ensure that pci=nomsi is not set before adding the _OSC support capability
-> OSC_MSI_SUPPORT to the root bridge.
-> 
-> Signed-off-by: Andrew Patterson <andrew.patterson@hp.com>
-> ---
-> 
->  drivers/acpi/pci_root.c |   20 +++++++++++---------
->  1 files changed, 11 insertions(+), 9 deletions(-)
-> 
-> 
-> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> index 75a59ea..32afd02 100644
-> --- a/drivers/acpi/pci_root.c
-> +++ b/drivers/acpi/pci_root.c
-> @@ -194,6 +194,7 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
->  	unsigned long long value = 0;
->  	acpi_handle handle = NULL;
->  	struct acpi_device *child;
-> +	u32 flags;
->  
->  
->  	if (!device)
-> @@ -211,17 +212,18 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
->  
->  	device->ops.bind = acpi_pci_bind;
->  
-> -	pci_acpi_osc_support(device->handle,
-> -			     OSC_EXT_PCI_CONFIG_SUPPORT |
-> -			     OSC_PCI_SEGMENT_GROUPS_SUPPORT |
-> -#ifdef CONFIG_PCI_MSI
-> -			     OSC_MSI_SUPPORT |
-> -#endif
-> +	flags = (OSC_EXT_PCI_CONFIG_SUPPORT |
-> +		 OSC_PCI_SEGMENT_GROUPS_SUPPORT |
->  #ifdef CONFIG_PCIEASPM
-> -			     OSC_ACTIVE_STATE_PWR_SUPPORT |
-> -			     OSC_CLOCK_PWR_CAPABILITY_SUPPORT |
-> +		 OSC_ACTIVE_STATE_PWR_SUPPORT |
-> +		 OSC_CLOCK_PWR_CAPABILITY_SUPPORT |
-> +#endif
-> +		 0);
-> +#ifdef CONFIG_PCI_MSI
-> +	if (pci_msi_enabled())
-> +		flags |= OSC_MSI_SUPPORT;
->  #endif
-> -			     0);
-> +	pci_acpi_osc_support(device->handle, flags);
+> Please have a look at the dmesg attached to the bug.  They're already
+> rate-limited.
 
-I think this should be folded into patch 5/8.  Otherwise, bisection
-won't work across this series because at patch 5, we always add
-OSC_MSI_SUPPORT, regardless of "pci=nomsi".
+If people are considering moving it to pr_debug, it is not rate-limited
+enough (one per mode switch is not enough if the EC or the code is behaving
+so bad that it switches modes too often)...
 
-If you introduce "flags" in patch 2/8, the rest of the patches will
-be clearer (and it will facilitate a useful dev_warn() when
-pci_acpi_osc_support() fails).
+> When in GPE storm avoidance mode, they will trigger once for each
+> transaction.  Transactions happen frequently, and will happen
+> continually once e.g. gnome-power-manager is polling the battery level. 
+> In this special case, they're not a useful message to users or
+> blackbox-level testers; they are only useful as part of a full DEBUG
+> trace that actually shows the transactions.
 
-You don't need the "#ifdef CONFIG_PCI_MSI" here, do you?
+Well, if they move to pr_debug _only_ when in GPE storm avoidance mode, AND
+we get the logging of entering AND exiting GPE storm avoidance modes, that
+would be quite acceptable, I think.
 
-Bjorn
+> My original patch suppresses the message in this particular case, but it
+> preserves it for the common non-storm case, where it may provide useful
+> information.  And the message would still happen once on boot, before
+> the GPE storm is detected.  Unfortunately my patch also makes the driver
+> a little less robust.  If the robustness issue can be addressed, do you
+> accept that it's a good idea to suppress the flood of duplicate messages
+> reported in this bug?
+
+As I said above, if you supress them ONLY during GPE storm avoidance, then
+yes, I am quite OK with it.
+
+But we really should have GPE storm avoidance events logged, if we don't do
+that already.
+
+> We already have... damn.  I think you missed a more important omission. 
+> There _used_ to be a message that says we've switched to storm avoidance
+> mode.  However, it was removed in the latest re-write.  This bug report
+> suggests that a) the cause would have been more obvious if we had the
+> GPE storm message, and b) the stormy case wasn't really tested so we
+> really do need a message, in case it goes wrong.
+
+Indeed, that's bad, and needs to be fixed IMHO.
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
