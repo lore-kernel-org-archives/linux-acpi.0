@@ -1,90 +1,112 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: ACPI: EC: Fix logspam in "GPE storm avoidance" code
-Date: Wed, 29 Oct 2008 13:08:36 -0200
-Message-ID: <20081029150836.GA31678@khazad-dum.debian.net>
-References: <49071C33.7030308@tuffmail.co.uk> <4907590E.4070104@suse.de> <20081029001231.GA22985@khazad-dum.debian.net> <49083216.60202@tuffmail.co.uk>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: ACPI video.c brightness handler conflicts with toshiba_acpi
+Date: Wed, 29 Oct 2008 16:54:54 +0100
+Message-ID: <200810291654.56710.trenn@suse.de>
+References: <200809061108.34877.arvidjaar@mail.ru> <200810281615.19894.rjw@sisk.pl> <200810281922.20490.arvidjaar@mail.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:54880 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752390AbYJ2PIp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 29 Oct 2008 11:08:45 -0400
+Received: from ns.suse.de ([195.135.220.2]:44090 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753038AbYJ2PzD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 29 Oct 2008 11:55:03 -0400
+In-Reply-To: <200810281922.20490.arvidjaar@mail.ru>
 Content-Disposition: inline
-In-Reply-To: <49083216.60202@tuffmail.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: Andrey Borzenkov <arvidjaar@mail.ru>, Len Brown <len.brown@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, toshiba_acpi@memebeam.org, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, andi@firstfloor.org, preining@logic.at
 
-On Wed, 29 Oct 2008, Alan Jenkins wrote:
-> Henrique de Moraes Holschuh wrote:
-> > On Tue, 28 Oct 2008, Alexey Starikovskiy wrote:
-> >> Alan Jenkins wrote:
-> >>> <http://bugzilla.kernel.org/show_bug.cgi?id=11841>
-> >>> "plenty of line "ACPI: EC: non-query interrupt received,
-> >>>  switching to interrupt mode" in dmesg"
-> >>>       
-> >> Probably, it is better to make pr_debug().
-> >>     
+On Tuesday 28 October 2008 17:22:12 Andrey Borzenkov wrote:
+> On Tuesday 28 October 2008, Rafael J. Wysocki wrote:
+> > On Tuesday, 28 of October 2008, Thomas Renninger wrote:
+> > > On Monday 27 October 2008 17:52:55 Andrey Borzenkov wrote:
+> > > > On Monday 08 September 2008, Thomas Renninger wrote:
+> > > > > On Saturday 06 September 2008 09:19:59 am Andrey Borzenkov wrote:
+> > > > > > On Saturday 06 September 2008, Andrey Borzenkov wrote:
+> > > > > > > I have now two different devices that refer to the same
+> > > > > > > hardware:
+> > > > > > >
+> > > > > > > lrwxrwxrwx 1 root root 0 2008-09-06 11:04 acpi_video0 ->
+> > > > > > > ../../devices/virtual/backlight/acpi_video0/ lrwxrwxrwx 1 root
+> > > > > > > root 0 2008-09-06 11:04 toshiba ->
+> > > > > > > ../../devices/virtual/backlight/toshiba/
+> > > > > > >
+> > > > > > > Unfortunately, due to ACPI implementation the acpi_video0 one
+> > > > > > > is much inferior (as it provides only effectively two levels
+> > > > > > > instead of 8); and user level tools are apparently quite
+> > > > > > > confused which one to select.
+> > > > > > >
+> > > > > > > Is there any mechanism that would allow tochiba_acpi to claim
+> > > > > > > brightness for internal LCD screen that video would not attempt
+> > > > > > > to grab it too?
+> > > > > > >
+> > > > > > > Of course manually disabling brightness handling in video is
+> > > > > > > always possible,
+> > > > > >
+> > > > > > Actually it is not. brightness_switch_enabled only disables event
+> > > > > > handling; it still resets actual brightness on loading and
+> > > > > > creates sysfs files to confuse user space.
+> > > > > >
+> > > > > > > still is nice for this to be handled automatically.
+> > > > >
+> > > > > It is in latest ACPI test branch queued for 2.6.28.
+> > > >
+> > > > It is still not in rc2; is it scheduled for 2.6.28 or delayed
+> > > > further?
+> > >
+> > > Right, it's not there.
+> > > Len, what happened with the:
+> > > "Check for ACPI backlight support otherwise use vendor ACPIdrivers -
+> > > version 4" patches?
+> > >
+> > > They are pretty essential for video.ko.
+> > > Otherwise graphics devices may get double poked (through vendor_acpi.ko
+> > > drivers) or may register for graphics cards which are not there.
 > >
-> > Please don't do that.  This code has had a lot of churn, and *regressions*
-> > as of lately, and sometimes we only notice these because we see those
-> > messages in the logs.  Moving them to pr_debug() pretty much makes them
-> > utterly useless in a large number of the cases they could be of help.
-> >
-> > Besides, I very much doubt we will stop seing EC interrupt crappage. Not
-> > only our code is NOT good and resilient enough yet (if it were, there
-> > wouldn't be so many patches flying about it), the vendors are obviously
-> > getting this wrong at a fast rate.
-> >
-> > We need those messages.  Rate-limit them, but don't hide them or move them
-> > to pr_debug, please.
-> 
-> Please have a look at the dmesg attached to the bug.  They're already
-> rate-limited.
+> > Do you have a pointer to those patches?
+>
+> So far I am running with these commits from
+> git://git.kernel.org/pub/scm/linux/kernel/git/ak/linux-acpi-2.6:
+This tree does not exist anymore...
 
-If people are considering moving it to pr_debug, it is not rate-limited
-enough (one per mode switch is not enough if the EC or the code is behaving
-so bad that it switches modes too often)...
+Andrey, do you still have a local copy?
+Could you use git format-patch and repost the whole series
+(should be about 11 patches) to Len and CC me.
+It would be some work for me to recollect everything.
 
-> When in GPE storm avoidance mode, they will trigger once for each
-> transaction.  Transactions happen frequently, and will happen
-> continually once e.g. gnome-power-manager is polling the battery level. 
-> In this special case, they're not a useful message to users or
-> blackbox-level testers; they are only useful as part of a full DEBUG
-> trace that actually shows the transactions.
+I hope Len is reading that soon and can give a comment why this was
+in Andi's, but did not get into his ACPI git tree...
 
-Well, if they move to pr_debug _only_ when in GPE storm avoidance mode, AND
-we get the logging of entering AND exiting GPE storm avoidance modes, that
-would be quite acceptable, I think.
+This should directly go into ACPI test branch again.
+It would be great if it could still get cherry-picked into .28.
 
-> My original patch suppresses the message in this particular case, but it
-> preserves it for the common non-storm case, where it may provide useful
-> information.  And the message would still happen once on boot, before
-> the GPE storm is detected.  Unfortunately my patch also makes the driver
-> a little less robust.  If the robustness issue can be addressed, do you
-> accept that it's a good idea to suppress the flood of duplicate messages
-> reported in this bug?
+Thanks,
 
-As I said above, if you supress them ONLY during GPE storm avoidance, then
-yes, I am quite OK with it.
+     Thomas
 
-But we really should have GPE storm avoidance events logged, if we don't do
-that already.
+Norbert: I just saw your brightness complains about your Sony on the acpi 
+list. You should start testing with the patchset we are talking about here.
+video.ko is rather broken without them.
 
-> We already have... damn.  I think you missed a more important omission. 
-> There _used_ to be a message that says we've switched to storm avoidance
-> mode.  However, it was removed in the latest re-write.  This bug report
-> suggests that a) the cause would have been more obvious if we had the
-> GPE storm message, and b) the stormy case wasn't really tested so we
-> really do need a message, in case it goes wrong.
+     Thomas
 
-Indeed, that's bad, and needs to be fixed IMHO.
+> commit f43d728731c691772ddc29e50d25c68a859935b5
+> Author: Thomas Renninger <trenn@suse.de>
+> Date:   Fri Aug 1 17:37:55 2008 +0200
+>
+>     Check for ACPI backlight support otherwise use vendor ACPI drivers
+>
+>
+> commit ad9ed8385ed6ec5be8da7094db911c824258ceec
+> Author: Thomas Renninger <trenn@suse.de>
+> Date:   Fri Aug 1 17:37:54 2008 +0200
+>
+>     ACPI: video: Ignore devices that aren't present in hardware
+>
+> I have been waiting for in-tree inclusion to submit patches for
+> toshiba_acpi against stable base.
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+
