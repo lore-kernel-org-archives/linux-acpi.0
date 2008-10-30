@@ -1,131 +1,161 @@
 From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: Re: [2.6.28-rc2] EeePC ACPI errors & exceptions
-Date: Thu, 30 Oct 2008 09:32:24 +0800
-Message-ID: <1225330344.5189.282.camel@yakui_zhao.sh.intel.com>
-References: <alpine.LFD.2.00.0810261221350.3386@nehalem.linux-foundation.org>
-	 <4FFA7B13E0%linux@youmustbejoking.demon.co.uk>
-	 <1225186966.5189.143.camel@yakui_zhao.sh.intel.com>
-	 <4FFABF28C8%linux@youmustbejoking.demon.co.uk> <49077A13.7020603@gmail.com>
-	 <1225265974.5189.189.camel@yakui_zhao.sh.intel.com>
-	 <49082D09.8060102@gmail.com>
+Subject: Re: ACPI: EC: Fix logspam in "GPE storm avoidance" code
+Date: Thu, 30 Oct 2008 09:47:15 +0800
+Message-ID: <1225331235.5189.288.camel@yakui_zhao.sh.intel.com>
+References: <49071C33.7030308@tuffmail.co.uk> <4907590E.4070104@suse.de>
+	 <20081029001231.GA22985@khazad-dum.debian.net>
+	 <49083216.60202@tuffmail.co.uk>
+	 <20081029150836.GA31678@khazad-dum.debian.net>
+	 <490890EB.9090908@tuffmail.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:33185 "EHLO mga01.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:64260 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753623AbYJ3BZk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 29 Oct 2008 21:25:40 -0400
-In-Reply-To: <49082D09.8060102@gmail.com>
+	id S1751051AbYJ3Bka (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 29 Oct 2008 21:40:30 -0400
+In-Reply-To: <490890EB.9090908@tuffmail.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>
-Cc: Darren Salt <linux@youmustbejoking.demon.co.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Alexey Starikovskiy <astarikovskiy@suse.de>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Wed, 2008-10-29 at 17:29 +0800, Alexey Starikovskiy wrote:
-> Not a problem, just find the root cause. Or shut up.
-Maybe you don't read the explanation I have written.
-> 
-> Zhao Yakui wrote:
-> > On Tue, 2008-10-28 at 13:46 -0700, Alexey Starikovskiy wrote:
+On Thu, 2008-10-30 at 00:35 +0800, Alan Jenkins wrote:
+> Henrique de Moraes Holschuh wrote:
+> > On Wed, 29 Oct 2008, Alan Jenkins wrote:
 > >   
-> >> Hi Darren,
-> >>
-> >> Please check if the patch 
-> >> http://marc.info/?l=linux-acpi&m=122516784917952&w=4
-> >> helps.
+> >> Henrique de Moraes Holschuh wrote:
 > >>     
-> > In the attached patch the msleep is replaced by udelay gain. 
-> >    In the following commit the udelay is replaced by msleep. 
-> >    >commit 1b7fc5aae8867046f8d3d45808309d5b7f2e036a
-> >    >Author: Alexey Starikovskiy <astarikovskiy@suse.de>
-> >    >Date:   Fri Jun 6 11:49:33 2008 -0400
-> >      >ACPI: EC: Use msleep instead of udelay while waiting for event
-> >    
-> >    After the problem happens again, the udelay is restored again before
-> > getting the root cause. 
-> >    Maybe we should find the root cause of the problem and change the
-> > working flowchart about the EC driver. It is inappropriate that we make
-> > some changes and it is reverted again when the problem happens.
-> >    
-> >    At the same time after mlseep is replaced by the udelay, the CPU will
-> > do thing but loop while doing EC transaction on some laptops (In the
-> > function of ec_poll). If 100 EC transactions are done, the CPU will do
-> > nothing but loop at least for 100*2*100 microseconds. In such case maybe
-> > the performance will be affected.
-> >
-> >   After the following commit is merged, the EC transaction will be
-> > executed in EC GPE interrupt context on most laptops.Maybe it is easier.
-> > But for the some laptops it can't be done in EC GPE interrupt context.
-> > So it falls back to the EC polling mode. (This is realized by the
-> > function of ec_poll).
-> >     >commit 7c6db4e050601f359081fde418ca6dc4fc2d0011
-> >     >Author: Alexey Starikovskiy <astarikovskiy@suse.de>
-> >     >Date:   Thu Sep 25 21:00:31 2008 +0400
-> >        >ACPI: EC: do transaction from interrupt context
-> >  
-The following is the detailed explanation why this issue happens. In
-fact after you sent your patch, I raise the issue about it. But it is
-ignored. (Maybe the AE_TIME will be returned by EC driver. But the
-reason is not caused by that EC controller can't update its status in
-time. Instead it is caused by that host has no opportunity to issue the
-sequence EC command.)
->   
-> >    Why is AE_TIME sometimes returned by the function of ec_poll?
-> >   
-> >> static int ec_poll(struct acpi_ec *ec)
-> >>     
-> > {
-> >         unsigned long delay = jiffies + msecs_to_jiffies(ACPI_EC_DELAY);
-> >         msleep(1);
-> > // Maybe the current jiffies is already after the predefined jiffies
-> > after msleep(1). In such case the ETIME will be returned. Of course the
-> > EC transaction can't be finished. If so, IMO this is not reasonable as
-> > this is caused by that OS has no opportunity to issue the following EC
-> > command sequence.
-> >         while (time_before(jiffies, delay)) {
-> >                 gpe_transaction(ec, acpi_ec_read_status(ec));
-> >                 msleep(1);
-> >                 if (ec_transaction_done(ec))
-> >                         return 0;
-> > //Maybe there exists the following cases. EC transaction is not finished
-> > after msleep(1),but the current jiffies is already after predefined
-> > jiffies. So ETIME is returned. In such case, IMO this is also not
-> > reasonable.
-> >         }
-> >         return -ETIME;
-> > }
-> >      At the same time msleep is realized by schedule_timeout. On linux
-> > although one process is waked up by some events, it won't be scheduled
-> > immediately. So maybe the current jiffies is already after the
-> > predefined timeout jiffies  after msleep(1). 
-> >     Although the possibility of this issue can be reduced by that msleep
-> > is replaced by udelay,maybe the issue still exists if the preempt
-> > schedule happens at the corresponding place.
-> >
-> >     In the above case the ETIME will be returned by ec_poll. But the
-> > reason is not that EC controller can't update its status in time.
-> > Instead it is caused by that host has no opportunity to issue the
-> > sequence operation in the current work flowchart. In current EC work
-> > flowchart the EC transaction is done in a big loop. 
-> >     
-> >     Maybe the better solution is that the EC transaction is explicitly
-> > divided into several different phases. 
-> >
-> >     Maybe my analysis is not correct. If so, please correct me. 
-> > Welcome the comments.
-> >
-> >     thanks.
-> >     
-> >     
-> >      
-> >   
-> >> Thanks,
-> >> Alex.
-> >>
-> >>
+> >>> On Tue, 28 Oct 2008, Alexey Starikovskiy wrote:
+> >>>       
+> >>>> Alan Jenkins wrote:
+> >>>>         
+> >>>>> <http://bugzilla.kernel.org/show_bug.cgi?id=11841>
+> >>>>> "plenty of line "ACPI: EC: non-query interrupt received,
+> >>>>>  switching to interrupt mode" in dmesg"
+> >>>>>       
+> >>>>>           
+> >>>> Probably, it is better to make pr_debug().
+> >>>>     
+> >>>>         
+> >>> Please don't do that.  This code has had a lot of churn, and *regressions*
+> >>> as of lately, and sometimes we only notice these because we see those
+> >>> messages in the logs.  Moving them to pr_debug() pretty much makes them
+> >>> utterly useless in a large number of the cases they could be of help.
+> >>>
+> >>> Besides, I very much doubt we will stop seing EC interrupt crappage. Not
+> >>> only our code is NOT good and resilient enough yet (if it were, there
+> >>> wouldn't be so many patches flying about it), the vendors are obviously
+> >>> getting this wrong at a fast rate.
+> >>>
+> >>> We need those messages.  Rate-limit them, but don't hide them or move them
+> >>> to pr_debug, please.
+> >>>       
+> >> Please have a look at the dmesg attached to the bug.  They're already
+> >> rate-limited.
 > >>     
 > >
+> > If people are considering moving it to pr_debug, it is not rate-limited
+> > enough (one per mode switch is not enough if the EC or the code is behaving
+> > so bad that it switches modes too often)...
+> >
+> >   
+> >> When in GPE storm avoidance mode, they will trigger once for each
+> >> transaction.  Transactions happen frequently, and will happen
+> >> continually once e.g. gnome-power-manager is polling the battery level. 
+> >> In this special case, they're not a useful message to users or
+> >> blackbox-level testers; they are only useful as part of a full DEBUG
+> >> trace that actually shows the transactions.
+> >>     
+> >
+> > Well, if they move to pr_debug _only_ when in GPE storm avoidance mode, AND
+> > we get the logging of entering AND exiting GPE storm avoidance modes, that
+> > would be quite acceptable, I think.
+> >
+> >   
+> >> My original patch suppresses the message in this particular case, but it
+> >> preserves it for the common non-storm case, where it may provide useful
+> >> information.  And the message would still happen once on boot, before
+> >> the GPE storm is detected.  Unfortunately my patch also makes the driver
+> >> a little less robust.  If the robustness issue can be addressed, do you
+> >> accept that it's a good idea to suppress the flood of duplicate messages
+> >> reported in this bug?
+> >>     
+> >
+> > As I said above, if you supress them ONLY during GPE storm avoidance, then
+> > yes, I am quite OK with it.
+> >
+> > But we really should have GPE storm avoidance events logged, if we don't do
+> > that already.
+> >
+> >   
+> >> We already have... damn.  I think you missed a more important omission. 
+> >> There _used_ to be a message that says we've switched to storm avoidance
+> >> mode.  However, it was removed in the latest re-write.  This bug report
+> >> suggests that a) the cause would have been more obvious if we had the
+> >> GPE storm message, and b) the stormy case wasn't really tested so we
+> >> really do need a message, in case it goes wrong.
+> >>     
+> >
+> > Indeed, that's bad, and needs to be fixed IMHO.
 > >   
 > 
+> Alex, can we persuade you?  Here are the two changes in code form
+> (untested).
+> 
+> ------------>
+> 
+> ACPI: EC: make kernel messages more useful when GPE storm is detected
+> 
+> Make sure we can tell if the GPE storm workaround gets activated,
+> and avoid flooding the logs afterwards.
+> 
+> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+> index ef42316..139046c 100644
+> --- a/drivers/acpi/ec.c
+> +++ b/drivers/acpi/ec.c
+> @@ -286,7 +286,8 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec,
+>  		acpi_enable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
+>  	} else if (test_bit(EC_FLAGS_GPE_MODE, &ec->flags) &&
+>  		   t->irq_count > ACPI_EC_STORM_THRESHOLD) {
+> -		pr_debug(PREFIX "GPE storm detected\n");
+this is very good. It is helpful to analyze the root cause.
+> +		pr_info(PREFIX "GPE storm detected, "
+> +			"transactions will use polling mode\n");
+>  		set_bit(EC_FLAGS_GPE_STORM, &ec->flags);
+>  	}
+>  	return ret;
+> @@ -566,9 +567,15 @@ static u32 acpi_ec_gpe_handler(void *data)
+>  	if (!test_bit(EC_FLAGS_GPE_MODE, &ec->flags) &&
+>  	    !test_bit(EC_FLAGS_NO_GPE, &ec->flags)) {
+>  		/* this is non-query, must be confirmation */
+> -		if (printk_ratelimit())
+> -			pr_info(PREFIX "non-query interrupt received,"
+After the following is added, the  plenty of "non-query interrupt
+received" will disappear. But if the DEBUG is enabled in EC driver, the
+problem still exists. In fact when EC GPE storm is detected, the EC GPE
+is disabled while in EC transaction. 
+    Maybe it is appropriate that the NO_GPE bit is set when GPE storm is
+detected. If so, it won't be switched to interrupt mode again in the EC
+GPE handler.
+> +		if (!test_bit(EC_FLAGS_GPE_STORM, &ec->flags)) {
+> +			if (printk_ratelimit())
+> +				pr_info(PREFIX "non-query interrupt received,"
+> +					" switching to interrupt mode\n");
+> +		} else {
+> +			/* hush, STORM switches the mode every transaction */
+> +			pr_debug(PREFIX "non-query interrupt received,"
+>  				" switching to interrupt mode\n");
+> +		}
+>  		set_bit(EC_FLAGS_GPE_MODE, &ec->flags);
+>  	}
+>  	return ACPI_INTERRUPT_HANDLED;
+> 
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
