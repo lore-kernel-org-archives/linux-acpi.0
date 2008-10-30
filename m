@@ -1,104 +1,124 @@
 From: Andrew Patterson <andrew.patterson@hp.com>
-Subject: [PATCH v2 0/6] call _OSC support during root bridge discovery
-Date: Wed, 29 Oct 2008 23:27:47 -0600
-Message-ID: <20081030052746.10259.22045.stgit@bob.kio>
+Subject: [PATCH 2/6] ACPI, PCI: call _OSC support during root bridge discovery
+Date: Wed, 29 Oct 2008 23:27:57 -0600
+Message-ID: <20081030052757.10259.70880.stgit@bob.kio>
+References: <20081030052746.10259.22045.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0015.houston.hp.com ([15.201.24.18]:1661 "EHLO
-	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751738AbYJ3F1s (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Oct 2008 01:27:48 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20081030052746.10259.22045.stgit@bob.kio>
+Sender: linux-pci-owner@vger.kernel.org
 To: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 Cc: andrew.patterson@hp.com, matthew@wil.cx, kaneshige.kenji@jp.fujitsu.com, bjorn.helgaas@hp.com
+List-Id: linux-acpi@vger.kernel.org
 
-This is v2 of the "call _OSC support during root bridge discovery"
-patchset.  At Bjorn Helgaas's suggestion, I have merged all the MSI
-handling patches into one patch. Kenji Kaneshige also noted that I was
-not checking aspm_disabled before setting ASPM _OSC capabilities. This
-has been fixed.
+ACPI, PCI: call _OSC support during root bridge discovery
 
-Kenji also noted that the pci_msi_enable can be changed in various
-quirks after root bridge discovery, resulting in the incorrect setting
-of the MSI _OSC capability. I do not yet have a solution for this problem.
+Added pci_acpi_osc_support() which is called when a PCI bridge is
+added, so individual PCI root bridge drivers do not have to call _OSC
+support for every root bridge in their probe functions.
+---
 
-I still need Matthew Wilcox to sign off on the first two patches.
+ drivers/acpi/pci_root.c  |    7 +++++++
+ drivers/pci/pci-acpi.c   |   24 +++++++++++++++++++-----
+ include/linux/pci-acpi.h |    1 +
+ 3 files changed, 27 insertions(+), 5 deletions(-)
 
 
-I recently reported a problem where a machine with close to a 100 PCIe
-root bridges was taking half an hour to just call _OSC.  The root
-cause is the AER code calling:
-
-        pcie_osc_support_set(OSC_EXT_PCI_CONFIG_SUPPORT);
-
-for each bridge.  The pcie_osc_support_set() function also iterates
-over each bridge, so _OSC is called a quadratic number of times.
-
-One solution to this problem would be to just move the call to
-pcie_osc_support_set() to aer_service_init(), so _OSC support is only
-called on each bridge once.
-
-Matthew Wilcox came up with a better solution.  He says "Why should a
-driver be calling pcie_osc_support_set() anyway?  This is something
-the PCI core should be taking care of for it."
-
-Matthew provided a patch for this solution that I massaged into the
-following patch series.
-
-It creates a new function (pci_acpi_osc_support()) which is called
-from pci_root.c before we call any other methods on the device (as
-recommended by the ACPI spec).  Since we know what capabilities the
-system supports, individual modules do not now need to inform the core
-of their support for various capabilities.
-
-Some work that still needs to be done (provided by Matthew): 
-
-o All the existing _OSC code should be moved from pci-acpi.c to
-  pci_root.c.  I also think the acpi_osc_data should be made part of
-  the acpi_pci_root struct, eliminating a separate allocation.
-
-o We could also use an interface that iterates over all existing
-  busses calling _OSC with new flags.  Shouldn't be hard, once it's
-  integrated into pci_root.c.
-
-o Further ahead, we don't actually check that the bits we asked for
-  (in 'control') were actually granted to us.  The PCI firmware spec
-  is quite explicit about interdependencies amongst the bits.
-
-o We also need to re-evaluate _OSC when coming out of S4.
-
-This patch series duplicates currently functionality while removing
-our quadratic problem.  I believe that it can be applied now while the
-above new functionality can be implemented some time in the future.
-
-This patch series applies to the linux-next branch of pci-2.6 git
-repository.  I expect it will also work with linux-next.
-
-Diff stats:
-
- drivers/acpi/pci_root.c            |   12 ++++++++++++
- drivers/pci/msi.c                  |   31 +++++++++++-------------------
- drivers/pci/pci-acpi.c             |   37 +++++++++++++-----------------------
- drivers/pci/pci.c                  |    2 --
- drivers/pci/pci.h                  |    2 --
- drivers/pci/pcie/aer/aerdrv_acpi.c |    1 -
- drivers/pci/pcie/aspm.c            |   27 +++++++++-----------------
- include/linux/pci-acpi.h           |   14 +++-----------
- include/linux/pci.h                |   14 ++++++++++++++
- 9 files changed, 62 insertions(+), 78 deletions(-)
-
-Commits:
-
-  - Include missing acpi.h file in pci-acpi.h.
-  - Call _OSC support during root bridge discovery.
-  - PCIe ASPM _OSC support capabilities called when root bridge added.
-  - PCIe AER _OSC support capabilities called when root bridge added.
-  - PCI MSI _OSC support capabilities called when root bridge added.
-  - Remove obsolete _OSC capability support functions.
-
--- 
-Andrew Patterson
-
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index 1b8f67d..b4d55f2 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -31,6 +31,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/pm.h>
+ #include <linux/pci.h>
++#include <linux/pci-acpi.h>
+ #include <linux/acpi.h>
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+@@ -193,6 +194,7 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
+ 	unsigned long long value = 0;
+ 	acpi_handle handle = NULL;
+ 	struct acpi_device *child;
++	u32 flags;
+ 
+ 
+ 	if (!device)
+@@ -210,6 +212,11 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
+ 
+ 	device->ops.bind = acpi_pci_bind;
+ 
++	flags = (OSC_EXT_PCI_CONFIG_SUPPORT |
++		 OSC_PCI_SEGMENT_GROUPS_SUPPORT |
++		 0);
++	pci_acpi_osc_support(device->handle, flags);
++
+ 	/* 
+ 	 * Segment
+ 	 * -------
+diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+index dfe7c8e..f457387 100644
+--- a/drivers/pci/pci-acpi.c
++++ b/drivers/pci/pci-acpi.c
+@@ -139,28 +139,42 @@ static acpi_status __acpi_query_osc(u32 flags, struct acpi_osc_data *osc_data,
+ 	return status;
+ }
+ 
+-static acpi_status acpi_query_osc(acpi_handle handle,
+-				  u32 level, void *context, void **retval)
++/*
++ * pci_acpi_osc_support: Invoke _OSC indicating support for the given feature
++ * @flags: Bitmask of flags to support
++ *
++ * See the ACPI spec for the definition of the flags
++ */
++int pci_acpi_osc_support(acpi_handle handle, u32 flags)
+ {
++	u32 dummy;
+ 	acpi_status status;
+-	struct acpi_osc_data *osc_data;
+-	u32 flags = (unsigned long)context, dummy;
+ 	acpi_handle tmp;
++	struct acpi_osc_data *osc_data;
++	int rc = 0;
+ 
+ 	status = acpi_get_handle(handle, "_OSC", &tmp);
+ 	if (ACPI_FAILURE(status))
+-		return AE_OK;
++		return -ENOTTY;
+ 
+ 	mutex_lock(&pci_acpi_lock);
+ 	osc_data = acpi_get_osc_data(handle);
+ 	if (!osc_data) {
+ 		printk(KERN_ERR "acpi osc data array is full\n");
++		rc = -ENOMEM;
+ 		goto out;
+ 	}
+ 
+ 	__acpi_query_osc(flags, osc_data, &dummy);
+ out:
+ 	mutex_unlock(&pci_acpi_lock);
++	return rc;
++}
++
++static acpi_status acpi_query_osc(acpi_handle handle, u32 level,
++				  void *context, void **retval)
++{
++	pci_acpi_osc_support(handle, (unsigned long)context);
+ 	return AE_OK;
+ }
+ 
+diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
+index a9e4c34..424f06f 100644
+--- a/include/linux/pci-acpi.h
++++ b/include/linux/pci-acpi.h
+@@ -51,6 +51,7 @@
+ #ifdef CONFIG_ACPI
+ extern acpi_status pci_osc_control_set(acpi_handle handle, u32 flags);
+ extern acpi_status __pci_osc_support_set(u32 flags, const char *hid);
++int pci_acpi_osc_support(acpi_handle handle, u32 flags);
+ static inline acpi_status pci_osc_support_set(u32 flags)
+ {
+ 	return __pci_osc_support_set(flags, PCI_ROOT_HID_STRING);
