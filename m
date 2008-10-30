@@ -1,159 +1,300 @@
 From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: Re: ACPI: EC: Fix logspam in "GPE storm avoidance" code
-Date: Thu, 30 Oct 2008 09:47:15 +0800
-Message-ID: <1225331235.5189.288.camel@yakui_zhao.sh.intel.com>
-References: <49071C33.7030308@tuffmail.co.uk> <4907590E.4070104@suse.de>
-	 <20081029001231.GA22985@khazad-dum.debian.net>
-	 <49083216.60202@tuffmail.co.uk>
-	 <20081029150836.GA31678@khazad-dum.debian.net>
-	 <490890EB.9090908@tuffmail.co.uk>
+Subject: Re: [patch] ACPI: call init functions explicitly instead of using
+	initcalls
+Date: Thu, 30 Oct 2008 10:01:43 +0800
+Message-ID: <1225332103.5189.298.camel@yakui_zhao.sh.intel.com>
+References: <200810291525.58218.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:64260 "EHLO mga11.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:12097 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751051AbYJ3Bka (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 29 Oct 2008 21:40:30 -0400
-In-Reply-To: <490890EB.9090908@tuffmail.co.uk>
+	id S1752821AbYJ3BzN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 29 Oct 2008 21:55:13 -0400
+In-Reply-To: <200810291525.58218.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Alexey Starikovskiy <astarikovskiy@suse.de>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Li, Shaohua" <shaohua.li@intel.com>
 
-On Thu, 2008-10-30 at 00:35 +0800, Alan Jenkins wrote:
-> Henrique de Moraes Holschuh wrote:
-> > On Wed, 29 Oct 2008, Alan Jenkins wrote:
-> >   
-> >> Henrique de Moraes Holschuh wrote:
-> >>     
-> >>> On Tue, 28 Oct 2008, Alexey Starikovskiy wrote:
-> >>>       
-> >>>> Alan Jenkins wrote:
-> >>>>         
-> >>>>> <http://bugzilla.kernel.org/show_bug.cgi?id=11841>
-> >>>>> "plenty of line "ACPI: EC: non-query interrupt received,
-> >>>>>  switching to interrupt mode" in dmesg"
-> >>>>>       
-> >>>>>           
-> >>>> Probably, it is better to make pr_debug().
-> >>>>     
-> >>>>         
-> >>> Please don't do that.  This code has had a lot of churn, and *regressions*
-> >>> as of lately, and sometimes we only notice these because we see those
-> >>> messages in the logs.  Moving them to pr_debug() pretty much makes them
-> >>> utterly useless in a large number of the cases they could be of help.
-> >>>
-> >>> Besides, I very much doubt we will stop seing EC interrupt crappage. Not
-> >>> only our code is NOT good and resilient enough yet (if it were, there
-> >>> wouldn't be so many patches flying about it), the vendors are obviously
-> >>> getting this wrong at a fast rate.
-> >>>
-> >>> We need those messages.  Rate-limit them, but don't hide them or move them
-> >>> to pr_debug, please.
-> >>>       
-> >> Please have a look at the dmesg attached to the bug.  They're already
-> >> rate-limited.
-> >>     
-> >
-> > If people are considering moving it to pr_debug, it is not rate-limited
-> > enough (one per mode switch is not enough if the EC or the code is behaving
-> > so bad that it switches modes too often)...
-> >
-> >   
-> >> When in GPE storm avoidance mode, they will trigger once for each
-> >> transaction.  Transactions happen frequently, and will happen
-> >> continually once e.g. gnome-power-manager is polling the battery level. 
-> >> In this special case, they're not a useful message to users or
-> >> blackbox-level testers; they are only useful as part of a full DEBUG
-> >> trace that actually shows the transactions.
-> >>     
-> >
-> > Well, if they move to pr_debug _only_ when in GPE storm avoidance mode, AND
-> > we get the logging of entering AND exiting GPE storm avoidance modes, that
-> > would be quite acceptable, I think.
-> >
-> >   
-> >> My original patch suppresses the message in this particular case, but it
-> >> preserves it for the common non-storm case, where it may provide useful
-> >> information.  And the message would still happen once on boot, before
-> >> the GPE storm is detected.  Unfortunately my patch also makes the driver
-> >> a little less robust.  If the robustness issue can be addressed, do you
-> >> accept that it's a good idea to suppress the flood of duplicate messages
-> >> reported in this bug?
-> >>     
-> >
-> > As I said above, if you supress them ONLY during GPE storm avoidance, then
-> > yes, I am quite OK with it.
-> >
-> > But we really should have GPE storm avoidance events logged, if we don't do
-> > that already.
-> >
-> >   
-> >> We already have... damn.  I think you missed a more important omission. 
-> >> There _used_ to be a message that says we've switched to storm avoidance
-> >> mode.  However, it was removed in the latest re-write.  This bug report
-> >> suggests that a) the cause would have been more obvious if we had the
-> >> GPE storm message, and b) the stormy case wasn't really tested so we
-> >> really do need a message, in case it goes wrong.
-> >>     
-> >
-> > Indeed, that's bad, and needs to be fixed IMHO.
-> >   
+On Thu, 2008-10-30 at 05:25 +0800, Bjorn Helgaas wrote:
+> Call init_acpi_device_notify(), acpi_debug_init(), acpi_scan_init(),
+> and acpi_system_init() explicitly from acpi_init() instead of using
+> initcalls.  This removes some link order and initcall order dependencies.
 > 
-> Alex, can we persuade you?  Here are the two changes in code form
-> (untested).
+> I'm uncomfortable with the fact that we can disable ACPI after
+> calling init_acpi_device_notify(), which would leave platform_notify
+> and platform_notify_remove set to ACPI functions even though ACPI is
+> disabled.  This patch doesn't fix that, but it doesn't make it any
+> worse than it was, either.
+What is the advantage after the following functions are explicitly from
+acpi_init instead of using initcall?
+
+In your patch the module link order is also changed. In current kernel
+some module parameters using the same ACPI prefix are defined in the
+different files. For example: acpi.debug_layer && acpi.debug_level are
+defined in debug.c. The acpi.acpica_version is defined in system.c.
+
+If they are separated by files with module parameter, there exists the
+following warning message. 
+     >WARNING: at /linux-2.6/fs/sysfs/dir.c:463
+>sysfs_add_one+0x33/0x39()
+>sysfs: duplicate filename 'acpi' can not be created
+
+
 > 
-> ------------>
+> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+> ---
+>  drivers/acpi/Makefile |    9 +++++----
+>  drivers/acpi/acpi.h   |   15 +++++++++++++++
+>  drivers/acpi/bus.c    |   15 +++++++++++++++
+>  drivers/acpi/debug.c  |   16 ++++++++--------
+>  drivers/acpi/glue.c   |    8 +++-----
+>  drivers/acpi/scan.c   |   10 +++-------
+>  drivers/acpi/system.c |   10 ++--------
+>  7 files changed, 51 insertions(+), 32 deletions(-)
+>  create mode 100644 drivers/acpi/acpi.h
 > 
-> ACPI: EC: make kernel messages more useful when GPE storm is detected
-> 
-> Make sure we can tell if the GPE storm workaround gets activated,
-> and avoid flooding the logs afterwards.
-> 
-> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-> index ef42316..139046c 100644
-> --- a/drivers/acpi/ec.c
-> +++ b/drivers/acpi/ec.c
-> @@ -286,7 +286,8 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec,
->  		acpi_enable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
->  	} else if (test_bit(EC_FLAGS_GPE_MODE, &ec->flags) &&
->  		   t->irq_count > ACPI_EC_STORM_THRESHOLD) {
-> -		pr_debug(PREFIX "GPE storm detected\n");
-this is very good. It is helpful to analyze the root cause.
-> +		pr_info(PREFIX "GPE storm detected, "
-> +			"transactions will use polling mode\n");
->  		set_bit(EC_FLAGS_GPE_STORM, &ec->flags);
+> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> index d91c027..edd6f75 100644
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -19,7 +19,7 @@ obj-y				+= tables.o
+>  obj-$(CONFIG_X86)		+= blacklist.o
+>  
+>  #
+> -# ACPI Core Subsystem (Interpreter)
+> +# ACPI CA Core Subsystem (Interpreter)
+>  #
+>  obj-y				+= osl.o utils.o reboot.o\
+>  				   dispatcher/ events/ executer/ hardware/ \
+> @@ -36,8 +36,10 @@ processor-objs	+= processor_perflib.o
+>  endif
+>  
+>  obj-y				+= sleep/
+> -obj-y				+= bus.o glue.o
+> -obj-y				+= scan.o
+> +obj-y				+= bus.o scan.o
+> +obj-y				+= glue.o
+> +obj-$(CONFIG_ACPI_DEBUG)	+= debug.o
+> +
+>  # Keep EC driver first. Initialization of others depend on it.
+>  obj-$(CONFIG_ACPI_EC)		+= ec.o
+>  obj-$(CONFIG_ACPI_AC) 		+= ac.o
+> @@ -53,7 +55,6 @@ obj-$(CONFIG_ACPI_CONTAINER)	+= container.o
+>  obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
+>  obj-$(CONFIG_ACPI_POWER)	+= power.o
+>  obj-$(CONFIG_ACPI_SYSTEM)	+= system.o event.o
+> -obj-$(CONFIG_ACPI_DEBUG)	+= debug.o
+>  obj-$(CONFIG_ACPI_NUMA)		+= numa.o
+>  obj-$(CONFIG_ACPI_WMI)		+= wmi.o
+>  obj-$(CONFIG_ACPI_ASUS)		+= asus_acpi.o
+> diff --git a/drivers/acpi/acpi.h b/drivers/acpi/acpi.h
+> new file mode 100644
+> index 0000000..8ef1ed5
+> --- /dev/null
+> +++ b/drivers/acpi/acpi.h
+> @@ -0,0 +1,15 @@
+> +/*
+> + * (c) Copyright 2008 Hewlett-Packard Development Company, L.P.
+> + *	Bjorn Helgaas <bjorn.helgaas@hp.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +/* Functions internal to the ACPI core */
+> +
+> +int init_acpi_device_notify(void);
+> +int acpi_debug_init(void);
+> +int acpi_scan_init(void);
+> +int acpi_system_init(void);
+> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> index c797c64..469dcc7 100644
+> --- a/drivers/acpi/bus.c
+> +++ b/drivers/acpi/bus.c
+> @@ -39,6 +39,8 @@
+>  #include <acpi/acpi_bus.h>
+>  #include <acpi/acpi_drivers.h>
+>  
+> +#include "acpi.h"
+> +
+>  #define _COMPONENT		ACPI_BUS_COMPONENT
+>  ACPI_MODULE_NAME("bus");
+>  
+> @@ -854,6 +856,7 @@ static int __init acpi_init(void)
+>  		acpi_kobj = NULL;
 >  	}
->  	return ret;
-> @@ -566,9 +567,15 @@ static u32 acpi_ec_gpe_handler(void *data)
->  	if (!test_bit(EC_FLAGS_GPE_MODE, &ec->flags) &&
->  	    !test_bit(EC_FLAGS_NO_GPE, &ec->flags)) {
->  		/* this is non-query, must be confirmation */
-> -		if (printk_ratelimit())
-> -			pr_info(PREFIX "non-query interrupt received,"
-After the following is added, the  plenty of "non-query interrupt
-received" will disappear. But if the DEBUG is enabled in EC driver, the
-problem still exists. In fact when EC GPE storm is detected, the EC GPE
-is disabled while in EC transaction. 
-    Maybe it is appropriate that the NO_GPE bit is set when GPE storm is
-detected. If so, it won't be switched to interrupt mode again in the EC
-GPE handler.
-> +		if (!test_bit(EC_FLAGS_GPE_STORM, &ec->flags)) {
-> +			if (printk_ratelimit())
-> +				pr_info(PREFIX "non-query interrupt received,"
-> +					" switching to interrupt mode\n");
-> +		} else {
-> +			/* hush, STORM switches the mode every transaction */
-> +			pr_debug(PREFIX "non-query interrupt received,"
->  				" switching to interrupt mode\n");
-> +		}
->  		set_bit(EC_FLAGS_GPE_MODE, &ec->flags);
->  	}
->  	return ACPI_INTERRUPT_HANDLED;
+>  
+> +	init_acpi_device_notify();
+>  	result = acpi_bus_init();
+>  
+>  	if (!result) {
+> @@ -868,11 +871,23 @@ static int __init acpi_init(void)
+>  		}
+>  	} else
+>  		disable_acpi();
+> +
+>  	/*
+>  	 * If the laptop falls into the DMI check table, the power state check
+>  	 * will be disabled in the course of device power transistion.
+>  	 */
+>  	dmi_check_system(power_nocheck_dmi_table);
+> +
+> +	if (acpi_disabled)
+> +		return result;
+> +
+> +#ifdef CONFIG_ACPI_DEBUG
+> +	acpi_debug_init();
+> +#endif
+> +	acpi_scan_init();
+> +#ifdef CONFIG_ACPI_SYSTEM
+> +	acpi_system_init();
+> +#endif
+>  	return result;
+>  }
+>  
+> diff --git a/drivers/acpi/debug.c b/drivers/acpi/debug.c
+> index abf36b4..5f642fa 100644
+> --- a/drivers/acpi/debug.c
+> +++ b/drivers/acpi/debug.c
+> @@ -11,6 +11,8 @@
+>  #include <acpi/acpi_drivers.h>
+>  #include <acpi/acglobal.h>
+>  
+> +#include "acpi.h"
+> +
+>  #define _COMPONENT		ACPI_SYSTEM_COMPONENT
+>  ACPI_MODULE_NAME("debug");
+>  
+> @@ -283,17 +285,15 @@ acpi_system_write_debug(struct file *file,
+>  
+>  	return count;
+>  }
+> +#endif
+>  
+> -static int __init acpi_debug_init(void)
+> +int __init acpi_debug_init(void)
+>  {
+> +#ifdef CONFIG_ACPI_PROCFS
+>  	struct proc_dir_entry *entry;
+>  	int error = 0;
+>  	char *name;
+>  
+> -
+> -	if (acpi_disabled)
+> -		return 0;
+> -
+>  	/* 'debug_layer' [R/W] */
+>  	name = ACPI_SYSTEM_FILE_DEBUG_LAYER;
+>  	entry =
+> @@ -324,7 +324,7 @@ static int __init acpi_debug_init(void)
+>  	remove_proc_entry(ACPI_SYSTEM_FILE_DEBUG_LAYER, acpi_root_dir);
+>  	error = -ENODEV;
+>  	goto Done;
+> -}
+> -
+> -subsys_initcall(acpi_debug_init);
+> +#else
+> +	return 0;
+>  #endif
+> +}
+> diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
+> index 24649ad..6f2dcdf 100644
+> --- a/drivers/acpi/glue.c
+> +++ b/drivers/acpi/glue.c
+> @@ -12,6 +12,8 @@
+>  #include <linux/rwsem.h>
+>  #include <linux/acpi.h>
+>  
+> +#include "acpi.h"
+> +
+>  #define ACPI_GLUE_DEBUG	0
+>  #if ACPI_GLUE_DEBUG
+>  #define DBG(x...) printk(PREFIX x)
+> @@ -246,10 +248,8 @@ static int acpi_platform_notify_remove(struct device *dev)
+>  	return 0;
+>  }
+>  
+> -static int __init init_acpi_device_notify(void)
+> +int init_acpi_device_notify(void)
+>  {
+> -	if (acpi_disabled)
+> -		return 0;
+>  	if (platform_notify || platform_notify_remove) {
+>  		printk(KERN_ERR PREFIX "Can't use platform_notify\n");
+>  		return 0;
+> @@ -258,5 +258,3 @@ static int __init init_acpi_device_notify(void)
+>  	platform_notify_remove = acpi_platform_notify_remove;
+>  	return 0;
+>  }
+> -
+> -arch_initcall(init_acpi_device_notify);
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index a9dda8e..1f605dd 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -12,6 +12,8 @@
+>  #include <acpi/acpi_drivers.h>
+>  #include <acpi/acinterp.h>	/* for acpi_ex_eisa_id_to_string() */
+>  
+> +#include "acpi.h"
+> +
+>  #define _COMPONENT		ACPI_BUS_COMPONENT
+>  ACPI_MODULE_NAME("scan");
+>  #define STRUCT_TO_INT(s)	(*((int*)&s))
+> @@ -1566,15 +1568,11 @@ static int acpi_bus_scan_fixed(struct acpi_device *root)
+>  }
+>  
 > 
-> 
-> 
+> -static int __init acpi_scan_init(void)
+> +int __init acpi_scan_init(void)
+>  {
+>  	int result;
+>  	struct acpi_bus_ops ops;
+>  
+> -
+> -	if (acpi_disabled)
+> -		return 0;
+> -
+>  	memset(&ops, 0, sizeof(ops));
+>  	ops.acpi_op_add = 1;
+>  	ops.acpi_op_start = 1;
+> @@ -1607,5 +1605,3 @@ static int __init acpi_scan_init(void)
+>        Done:
+>  	return result;
+>  }
+> -
+> -subsys_initcall(acpi_scan_init);
+> diff --git a/drivers/acpi/system.c b/drivers/acpi/system.c
+> index 1d74171..8ade31c 100644
+> --- a/drivers/acpi/system.c
+> +++ b/drivers/acpi/system.c
+> @@ -626,20 +626,14 @@ static int acpi_system_procfs_init(void)
+>  }
+>  #endif
+>  
+> -static int __init acpi_system_init(void)
+> +int __init acpi_system_init(void)
+>  {
+> -	int result = 0;
+> -
+> -	if (acpi_disabled)
+> -		return 0;
+> +	int result;
+>  
+>  	result = acpi_system_procfs_init();
+>  	if (result)
+>  		return result;
+>  
+>  	result = acpi_system_sysfs_init();
+> -
+>  	return result;
+>  }
+> -
+> -subsys_initcall(acpi_system_init);
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 > the body of a message to majordomo@vger.kernel.org
