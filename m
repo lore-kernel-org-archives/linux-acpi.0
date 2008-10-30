@@ -1,93 +1,104 @@
 From: Andrew Patterson <andrew.patterson@hp.com>
-Subject: Re: [PATCH 7/8] PCI: check if MSI is enabled before adding _OSC
-	support capability
-Date: Thu, 30 Oct 2008 04:51:50 +0000
-Message-ID: <1225342310.6725.112.camel@grinch>
-References: <20081029054815.2263.40833.stgit@bob.kio>
-	 <20081029054851.2263.36283.stgit@bob.kio> <49080088.4040903@jp.fujitsu.com>
+Subject: [PATCH v2 0/6] call _OSC support during root bridge discovery
+Date: Wed, 29 Oct 2008 23:27:47 -0600
+Message-ID: <20081030052746.10259.22045.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0029.austin.hp.com ([15.216.28.36]:30426 "EHLO
-	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751364AbYJ3Evy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Oct 2008 00:51:54 -0400
-In-Reply-To: <49080088.4040903@jp.fujitsu.com>
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:1661 "EHLO
+	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751738AbYJ3F1s (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Oct 2008 01:27:48 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, matthew@wil.cx
+To: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: andrew.patterson@hp.com, matthew@wil.cx, kaneshige.kenji@jp.fujitsu.com, bjorn.helgaas@hp.com
 
-On Wed, 2008-10-29 at 15:19 +0900, Kenji Kaneshige wrote:
-> Andrew Patterson wrote:
-> > PCI: check if MSI is enabled before adding _OSC support capability
-> > 
-> > Ensure that pci=nomsi is not set before adding the _OSC support capability
-> > OSC_MSI_SUPPORT to the root bridge.
-> > 
-> > Signed-off-by: Andrew Patterson <andrew.patterson@hp.com>
-> > ---
-> > 
-> >  drivers/acpi/pci_root.c |   20 +++++++++++---------
-> >  1 files changed, 11 insertions(+), 9 deletions(-)
-> > 
-> > 
-> > diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> > index 75a59ea..32afd02 100644
-> > --- a/drivers/acpi/pci_root.c
-> > +++ b/drivers/acpi/pci_root.c
-> > @@ -194,6 +194,7 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
-> >  	unsigned long long value = 0;
-> >  	acpi_handle handle = NULL;
-> >  	struct acpi_device *child;
-> > +	u32 flags;
-> >  
-> >  
-> >  	if (!device)
-> > @@ -211,17 +212,18 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
-> >  
-> >  	device->ops.bind = acpi_pci_bind;
-> >  
-> > -	pci_acpi_osc_support(device->handle,
-> > -			     OSC_EXT_PCI_CONFIG_SUPPORT |
-> > -			     OSC_PCI_SEGMENT_GROUPS_SUPPORT |
-> > -#ifdef CONFIG_PCI_MSI
-> > -			     OSC_MSI_SUPPORT |
-> > -#endif
-> > +	flags = (OSC_EXT_PCI_CONFIG_SUPPORT |
-> > +		 OSC_PCI_SEGMENT_GROUPS_SUPPORT |
-> >  #ifdef CONFIG_PCIEASPM
-> > -			     OSC_ACTIVE_STATE_PWR_SUPPORT |
-> > -			     OSC_CLOCK_PWR_CAPABILITY_SUPPORT |
-> > +		 OSC_ACTIVE_STATE_PWR_SUPPORT |
-> > +		 OSC_CLOCK_PWR_CAPABILITY_SUPPORT |
-> > +#endif
-> > +		 0);
-> > +#ifdef CONFIG_PCI_MSI
-> > +	if (pci_msi_enabled())
-> > +		flags |= OSC_MSI_SUPPORT;
-> >  #endif
-> > -			     0);
-> > +	pci_acpi_osc_support(device->handle, flags);
-> >  
-> >  	/* 
-> >  	 * Segment
-> 
-> I think the 'pci_msi_enable' variable can be changed after
-> acpi_pci_root_add() is called by quirk_disable_all_msi()
-> (in driver/pci/quirk.c).
+This is v2 of the "call _OSC support during root bridge discovery"
+patchset.  At Bjorn Helgaas's suggestion, I have merged all the MSI
+handling patches into one patch. Kenji Kaneshige also noted that I was
+not checking aspm_disabled before setting ASPM _OSC capabilities. This
+has been fixed.
 
-I am not sure what to do about this one.  I think the correct thing to
-do is use Matthew's as yet unwritten root bridge iterator function to
-remove the OSC_MSI_SUPPORT flag for all root bridges. I suspect that it
-will not hurt to have this flag set given that we disable the use of all
-MSI.
+Kenji also noted that the pci_msi_enable can be changed in various
+quirks after root bridge discovery, resulting in the incorrect setting
+of the MSI _OSC capability. I do not yet have a solution for this problem.
 
-Andrew
+I still need Matthew Wilcox to sign off on the first two patches.
 
-> Thanks,
-> Kenji Kaneshige
-> 
 
+I recently reported a problem where a machine with close to a 100 PCIe
+root bridges was taking half an hour to just call _OSC.  The root
+cause is the AER code calling:
+
+        pcie_osc_support_set(OSC_EXT_PCI_CONFIG_SUPPORT);
+
+for each bridge.  The pcie_osc_support_set() function also iterates
+over each bridge, so _OSC is called a quadratic number of times.
+
+One solution to this problem would be to just move the call to
+pcie_osc_support_set() to aer_service_init(), so _OSC support is only
+called on each bridge once.
+
+Matthew Wilcox came up with a better solution.  He says "Why should a
+driver be calling pcie_osc_support_set() anyway?  This is something
+the PCI core should be taking care of for it."
+
+Matthew provided a patch for this solution that I massaged into the
+following patch series.
+
+It creates a new function (pci_acpi_osc_support()) which is called
+from pci_root.c before we call any other methods on the device (as
+recommended by the ACPI spec).  Since we know what capabilities the
+system supports, individual modules do not now need to inform the core
+of their support for various capabilities.
+
+Some work that still needs to be done (provided by Matthew): 
+
+o All the existing _OSC code should be moved from pci-acpi.c to
+  pci_root.c.  I also think the acpi_osc_data should be made part of
+  the acpi_pci_root struct, eliminating a separate allocation.
+
+o We could also use an interface that iterates over all existing
+  busses calling _OSC with new flags.  Shouldn't be hard, once it's
+  integrated into pci_root.c.
+
+o Further ahead, we don't actually check that the bits we asked for
+  (in 'control') were actually granted to us.  The PCI firmware spec
+  is quite explicit about interdependencies amongst the bits.
+
+o We also need to re-evaluate _OSC when coming out of S4.
+
+This patch series duplicates currently functionality while removing
+our quadratic problem.  I believe that it can be applied now while the
+above new functionality can be implemented some time in the future.
+
+This patch series applies to the linux-next branch of pci-2.6 git
+repository.  I expect it will also work with linux-next.
+
+Diff stats:
+
+ drivers/acpi/pci_root.c            |   12 ++++++++++++
+ drivers/pci/msi.c                  |   31 +++++++++++-------------------
+ drivers/pci/pci-acpi.c             |   37 +++++++++++++-----------------------
+ drivers/pci/pci.c                  |    2 --
+ drivers/pci/pci.h                  |    2 --
+ drivers/pci/pcie/aer/aerdrv_acpi.c |    1 -
+ drivers/pci/pcie/aspm.c            |   27 +++++++++-----------------
+ include/linux/pci-acpi.h           |   14 +++-----------
+ include/linux/pci.h                |   14 ++++++++++++++
+ 9 files changed, 62 insertions(+), 78 deletions(-)
+
+Commits:
+
+  - Include missing acpi.h file in pci-acpi.h.
+  - Call _OSC support during root bridge discovery.
+  - PCIe ASPM _OSC support capabilities called when root bridge added.
+  - PCIe AER _OSC support capabilities called when root bridge added.
+  - PCI MSI _OSC support capabilities called when root bridge added.
+  - Remove obsolete _OSC capability support functions.
+
+-- 
+Andrew Patterson
 
