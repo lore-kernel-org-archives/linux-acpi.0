@@ -1,7 +1,8 @@
 From: Andrew Patterson <andrew.patterson@hp.com>
-Subject: [PATCH 1/6] PCI, ACPI: include missing acpi.h file in pci-acpi.h.
-Date: Wed, 29 Oct 2008 23:27:52 -0600
-Message-ID: <20081030052752.10259.29135.stgit@bob.kio>
+Subject: [PATCH 4/6] ACPI,
+	PCI: PCIe AER _OSC support capabilities called when root bridge added
+Date: Wed, 29 Oct 2008 23:28:07 -0600
+Message-ID: <20081030052807.10259.90521.stgit@bob.kio>
 References: <20081030052746.10259.22045.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,25 +14,28 @@ To: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 Cc: andrew.patterson@hp.com, matthew@wil.cx, kaneshige.kenji@jp.fujitsu.com, bjorn.helgaas@hp.com
 List-Id: linux-acpi@vger.kernel.org
 
-PCI, ACPI: include missing acpi.h file in pci-acpi.h.
+ACPI, PCI: PCIe AER _OSC support capabilities called when root bridge added
 
-The pci-acpi.h file will not compile without including linux/acpi.h.
+The _OSC capability OSC_EXT_PCI_CONFIG_SUPPORT is set when the root
+bridge is added with pci_acpi_osc_support(), so we no longer need to do
+it in the PCIe AER driver.
+
+Signed-off-by: Andrew Patterson <andrew.patterson@hp.com>
 ---
 
- include/linux/pci-acpi.h |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ drivers/pci/pcie/aer/aerdrv_acpi.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
 
-diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
-index 8837928..a9e4c34 100644
---- a/include/linux/pci-acpi.h
-+++ b/include/linux/pci-acpi.h
-@@ -8,6 +8,8 @@
- #ifndef _PCI_ACPI_H_
- #define _PCI_ACPI_H_
+diff --git a/drivers/pci/pcie/aer/aerdrv_acpi.c b/drivers/pci/pcie/aer/aerdrv_acpi.c
+index 6dd7b13..ebce26c 100644
+--- a/drivers/pci/pcie/aer/aerdrv_acpi.c
++++ b/drivers/pci/pcie/aer/aerdrv_acpi.c
+@@ -38,7 +38,6 @@ int aer_osc_setup(struct pcie_device *pciedev)
  
-+#include <linux/acpi.h>
-+
- #define OSC_QUERY_TYPE			0
- #define OSC_SUPPORT_TYPE 		1
- #define OSC_CONTROL_TYPE		2
+ 	handle = acpi_find_root_bridge_handle(pdev);
+ 	if (handle) {
+-		pcie_osc_support_set(OSC_EXT_PCI_CONFIG_SUPPORT);
+ 		status = pci_osc_control_set(handle,
+ 					OSC_PCI_EXPRESS_AER_CONTROL |
+ 					OSC_PCI_EXPRESS_CAP_STRUCTURE_CONTROL);
