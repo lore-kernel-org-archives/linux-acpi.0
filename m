@@ -1,76 +1,28 @@
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Subject: Re: Bisection result: eeepc hotk breakage
-Date: Fri, 31 Oct 2008 14:16:10 +0000
-Message-ID: <490B132A.3000904@tuffmail.co.uk>
-References: <4907A511.3040603@tuffmail.co.uk> <4907A856.3050204@gmail.com> <4908307C.8060503@tuffmail.co.uk> <49086F67.1030607@suse.de> <490872BF.2010908@tuffmail.co.uk> <4908C714.5040104@tuffmail.co.uk> <4908C8EB.1010403@suse.de> <490ADD62.7090507@tuffmail.co.uk> <490B0D48.7040209@suse.de> <490B0DCB.40009@tuffmail.co.uk> <490B12F2.9050903@suse.de>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: ACPI reads wrong temperature
+Date: Fri, 31 Oct 2008 14:30:30 +0000
+Message-ID: <20081031143030.GA9177@srcf.ucam.org>
+References: <20081031140247.325670@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.187]:27825 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751368AbYJaOQS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Oct 2008 10:16:18 -0400
-Received: by nf-out-0910.google.com with SMTP id d3so540553nfc.21
-        for <linux-acpi@vger.kernel.org>; Fri, 31 Oct 2008 07:16:15 -0700 (PDT)
-In-Reply-To: <490B12F2.9050903@suse.de>
+Received: from cavan.codon.org.uk ([93.93.128.6]:38513 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751365AbYJaOaf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Oct 2008 10:30:35 -0400
+Content-Disposition: inline
+In-Reply-To: <20081031140247.325670@gmx.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: Alexey Starikovskiy <aystarik@gmail.com>, linux acpi <linux-acpi@vger.kernel.org>, Matthew Wilcox <willy@linux.intel.com>
+To: Peter Mahlknecht <mali100@gmx.net>
+Cc: linux-acpi@vger.kernel.org
 
-Alexey Starikovskiy wrote:
-> Alan Jenkins wrote:
->> Alexey Starikovskiy wrote:
->>> Alan Jenkins wrote:
->>>> Alexey Starikovskiy wrote:
->>>>> Alan Jenkins wrote:
->>>>>> Well, that didn't work.
->>>>> Pity...
->>>>> Could you produce a debug log from EC?
->>>>> Probably it's a good time to open a new bug report...
->>>> <http://bugzilla.kernel.org/show_bug.cgi?id=11917>
->>>> "Asus Eee PC hotkeys stop working after prolonged usage"
->>>>
->>>> I stuck at it, found a reliable test and bisected successfully.
->>>> 2.6.28-rc2 is broken, but I can fix it by reverting the bad commit.
->>>> (There were some conflicts, I fixed up the dock driver manually and
->>>> avoided building the rest).
->>> Alan, to make things clear -- reverting following commit makes EC work
->>> without
->>> a problem?
->>>
->>
->>
->> Yes, that's right.
-> Great!
-> What kernel version is that -- 32 or 64?
+On Fri, Oct 31, 2008 at 03:02:47PM +0100, Peter Mahlknecht wrote:
+> Hi, 
+> I installed Debian Lenny (2.6.26-1-686) on my notebook (Samsung P40 with the latest Bios 09HK), but the notebook continued to shutting down with the message "Critical temperature reached (65535 C). Shutting down.". 
+> To stop this I patched the thermal module, so that it ignores every temperature above 1000 C. 
 
-32 bit, my EeePC doesn't do 64.
+Do you get wrong temperatures if you never load the max6657 driver?
 
->>
->>
->>>>
->>>> 27663c5855b10af9ec67bc7dfba001426ba21222 is first bad commit
->>>> commit 27663c5855b10af9ec67bc7dfba001426ba21222
->>>> Author: Matthew Wilcox <willy@linux.intel.com>
->>>> Date:   Fri Oct 10 02:22:59 2008 -0400
->>>>
->>>>     ACPI: Change acpi_evaluate_integer to support 64-bit on 32-bit
->>>> kernels
->>>>
->>>>     As of version 2.0, ACPI can return 64-bit integers.  The current
->>>>     acpi_evaluate_integer only supports 64-bit integers on 64-bit
->>>> platforms.
->>>>     Change the argument to take a pointer to an acpi_integer so we
->>>> support
->>>>     64-bit integers on all platforms.
->>>>
->>>>     lenb: replaced use of "acpi_integer" with "unsigned long long"
->>>>     lenb: fixed bug in acpi_thermal_trips_update()
->>>>
->>>>     Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
->>>>     Signed-off-by: Len Brown <len.brown@intel.com>
->>
->
-
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
