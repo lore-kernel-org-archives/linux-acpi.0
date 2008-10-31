@@ -1,59 +1,24 @@
-From: Zhang Rui <rui.zhang@intel.com>
+From: Matthew Garrett <mjg@redhat.com>
 Subject: Re: Build error with latest kernel
-Date: Fri, 31 Oct 2008 10:45:22 +0800
-Message-ID: <1225421122.2665.18.camel@rzhang-dt>
-References: <1225377756.3689.5.camel@localhost.localdomain>
+Date: Fri, 31 Oct 2008 02:53:12 +0000
+Message-ID: <20081031025312.GA11206@srcf.ucam.org>
+References: <1225377756.3689.5.camel@localhost.localdomain> <1225421122.2665.18.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:32582 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753096AbYJaCqR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 30 Oct 2008 22:46:17 -0400
-In-Reply-To: <1225377756.3689.5.camel@localhost.localdomain>
+Received: from cavan.codon.org.uk ([93.93.128.6]:58476 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753951AbYJaCxZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Oct 2008 22:53:25 -0400
+Content-Disposition: inline
+In-Reply-To: <1225421122.2665.18.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Steven Whitehouse <swhiteho@redhat.com>
-Cc: "airlied@linux.ie" <airlied@linux.ie>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, mjg@redhat.com
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Steven Whitehouse <swhiteho@redhat.com>, "airlied@linux.ie" <airlied@linux.ie>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-hi,
+I don't think it's worth a config option - Len's patch looks like the 
+right way to solve this.
 
-On Thu, 2008-10-30 at 22:42 +0800, Steven Whitehouse wrote:
-> Hi,
->=20
-> There is a build error with the attached config on the latest upstrea=
-m
-> Linus kernel.
->=20
->   CC [M]  drivers/gpu/drm/i915/i915_suspend.o
-> drivers/gpu/drm/i915/i915_opregion.c: In function =E2=80=98intel_opre=
-gion_init=E2=80=99:
-> drivers/gpu/drm/i915/i915_opregion.c:340: error: implicit declaration=
- of
-> function =E2=80=98register_acpi_notifier=E2=80=99
-> drivers/gpu/drm/i915/i915_opregion.c: In function =E2=80=98intel_opre=
-gion_free=E2=80=99:
-> drivers/gpu/drm/i915/i915_opregion.c:361: error: implicit declaration=
- of
-> function =E2=80=98unregister_acpi_notifier=E2=80=99
-> make[4]: *** [drivers/gpu/drm/i915/i915_opregion.o] Error 1
-> make[4]: *** Waiting for unfinished jobs....
->=20
-> Looks like the symbols are not defined when ACPI is not configured.
->=20
-=EF=BB=BFYes, you're right.
-IGD OpeRegion depends on ACPI.
-I think we need to introduce a new kernel config option for
-IGD OpRegion support.
-
-cc matthew.
-
-thanks,
-rui
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
