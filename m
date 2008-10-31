@@ -1,75 +1,68 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [patch] ACPI: call init functions explicitly instead of using initcalls
-Date: Fri, 31 Oct 2008 13:04:39 -0600
-Message-ID: <200810311304.40459.bjorn.helgaas@hp.com>
-References: <200810291525.58218.bjorn.helgaas@hp.com> <200810302251.46443.bjorn.helgaas@hp.com> <1225436139.3993.59.camel@yakui_zhao.sh.intel.com>
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Subject: Re: eeepc-laptop rfkill, stupid question #4 and 5
+Date: Fri, 31 Oct 2008 20:54:59 +0000
+Message-ID: <490B70A3.8010108@tuffmail.co.uk>
+References: <490B3BB5.8060801@tuffmail.co.uk> <20081031171126.GA17313@srcf.ucam.org> <490B4014.4040009@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0027.austin.hp.com ([15.216.28.34]:13844 "EHLO
-	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751728AbYJaTFN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Oct 2008 15:05:13 -0400
-In-Reply-To: <1225436139.3993.59.camel@yakui_zhao.sh.intel.com>
-Content-Disposition: inline
+Received: from ey-out-2122.google.com ([74.125.78.24]:13970 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752245AbYJaUzF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Oct 2008 16:55:05 -0400
+In-Reply-To: <490B4014.4040009@tuffmail.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Li, Shaohua" <shaohua.li@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.de>, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>
 
-On Friday 31 October 2008 12:55:39 am Zhao Yakui wrote:
-> On Fri, 2008-10-31 at 12:51 +0800, Bjorn Helgaas wrote:
+Alan Jenkins wrote:
+> Matthew Garrett wrote:
+>   
+>> On Fri, Oct 31, 2008 at 05:09:09PM +0000, Alan Jenkins wrote:
+>>   
+>>     
+>>> Did you miss a call to rfkill_force_state() on resume?
+>>>     
+>>>       
+>> Conceivably. I didn't test the hibernation case.
+>>
+>>   
+>>     
+>>> Actually, normal boot doesn't preserve the setting either.  Your commit
+>>> changes the behaviour from the rfkill state being persistent across
+>>> reboot / power off (as a bios setting), to being always enabled on
+>>> boot.  It seems like a bad idea to me.
+>>>     
+>>>       
+>> This is the behaviour of the rfkill core.
+>>   
+>>     
+> Documentation/rfkill.txt implied otherwise
+>
+>     You should:
+>         - rfkill_allocate()
+>         - modify rfkill fields (flags, name)
+>         - modify state to the current hardware state (THIS IS THE ONLY TIME
+>           YOU CAN ACCESS state DIRECTLY)
+>         - rfkill_register()
+>
+>
+> Admittedly it doesn't say "and I promise not to gratuitously override
+> the state on registration".  Buti t seems weird though, to override the
+> value on registration 
+Ah, I see.  Wrong end - of course the *rfkill device* doesn't have
+useful state.  The persistent state belongs to the *rfkill switch* - it
+could even be a physical switch.
 
-> > As far as I can tell, CONFIG_ACPI_POWER is useless, since it
-> > is always set the same as CONFIG_ACPI.  And interfaces from
-> > acpi/power.c, such as acpi_power_transition(), are used
-> > unconditionally from acpi/bus.c.  Given that, I think we
-> > should remove the CONFIG_ACPI_POWER Kconfig option and change
-> > the makefile to look like this:
-> The CONFIG_ACPI_POWER is useless.If the CONFIG_ACPI is enabled, it is
-> always set.
+And now it's clear what was missing from the conversion to rfkill:
 
-OK, I'll work up a patch to remove it.
+    2. Input device switches (sources of EV_SW events) DO store their
+    current state
+    (so you *must* initialize it by issuing a gratuitous input layer
+    event on
+    driver start-up and also when resuming from sleep)
 
-> The power resource(ACPI device) should be bound with its ACPI device
-> driver after EC initialization.
-
-Let's be specific here.  There's way too much magic here, and that
-makes things fragile.  Are you saying that the EC driver must be
-initialized before acpi_power_add() is called?
-
-6.5.4 of the spec says:
-
-  OSPM must make Embedded Controller operation regions, accessed
-  via the Embedded Controllers described in ECDT, available before
-  executing any control method.
-
-which is similar to what you're saying.  However, I think what
-the spec requires is the sort of stuff in acpi_ec_ecdt_probe(),
-which is already called early in acpi_bus_init().
-
-It sounds like you're saying that ECDT probe is not sufficient,
-and that we also need to run acpi_ec_init() (where we claim
-PNP0C09 devices from the namespace) before we register the
-acpi_power_driver.
-
-> So it is not appropriate as done in the 
-> following:
->     >obj-y                           += bus.o scan.o power.o
-
-It also seems impossible to turn off CONFIG_ACPI_EC.  There is
-Kconfig help text for it, but it has no menu item label, so it
-is not selectable via menuconfig.
-
-Given the requirement from 6.5.4 of the spec above, it doesn't
-seem like CONFIG_ACPI_EC even makes sense -- shouldn't we just
-consider acpi_ec_ecdt_probe() to be part of the ACPI core?
-Then the makefile would be:
-
-  obj-y                           += bus.o ec.c scan.o power.o
-
-Bjorn
-
-
+Regards
+Alan
