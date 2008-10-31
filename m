@@ -1,53 +1,60 @@
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Subject: Re: eeepc-laptop rfkill, stupid question #4 and 5
-Date: Fri, 31 Oct 2008 17:27:48 +0000
-Message-ID: <490B4014.4040009@tuffmail.co.uk>
-References: <490B3BB5.8060801@tuffmail.co.uk> <20081031171126.GA17313@srcf.ucam.org>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: [PATCH] ACPI: EC: clean up tmp variable before reuse
+Date: Fri, 31 Oct 2008 21:42:37 +0300
+Message-ID: <20081031184233.8588.42241.stgit@thinkpad>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.185]:4406 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751735AbYJaR1y (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Oct 2008 13:27:54 -0400
-In-Reply-To: <20081031171126.GA17313@srcf.ucam.org>
+Received: from charybdis-ext.suse.de ([195.135.221.2]:41027 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751978AbYJaSmj (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Fri, 31 Oct 2008 14:42:39 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>
+To: LenBrown <lenb@kernel.org>
+Cc: Linux-acpi@vger.kernel.org
 
-Matthew Garrett wrote:
-> On Fri, Oct 31, 2008 at 05:09:09PM +0000, Alan Jenkins wrote:
->   
->> Did you miss a call to rfkill_force_state() on resume?
->>     
->
-> Conceivably. I didn't test the hibernation case.
->
->   
->> Actually, normal boot doesn't preserve the setting either.  Your commit
->> changes the behaviour from the rfkill state being persistent across
->> reboot / power off (as a bios setting), to being always enabled on
->> boot.  It seems like a bad idea to me.
->>     
->
-> This is the behaviour of the rfkill core.
->   
-Documentation/rfkill.txt implied otherwise
+Fix breakage introduced by following patch
+27663c5855b10af9ec67bc7dfba001426ba21222 is first bad commit
+commit 27663c5855b10af9ec67bc7dfba001426ba21222
+Author: Matthew Wilcox <willy@linux.intel.com>
+Date:   Fri Oct 10 02:22:59 2008 -0400
 
-    You should:
-        - rfkill_allocate()
-        - modify rfkill fields (flags, name)
-        - modify state to the current hardware state (THIS IS THE ONLY TIME
-          YOU CAN ACCESS state DIRECTLY)
-        - rfkill_register()
+acpi_evaluate_integer() does not clear passed variable if
+there is an error at evaluation.
+So if we ignore error, we must supply initialized variable.
+
+References: http://bugzilla.kernel.org/show_bug.cgi?id=11917
+	    http://bugzilla.kernel.org/show_bug.cgi?id=11896
+
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+Tested-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+---
+
+ drivers/acpi/ec.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
 
-Admittedly it doesn't say "and I promise not to gratuitously override
-the state on registration".  Buti t seems weird though, to override the
-value on registration instead of just setting a default in
-rfkill_allocate().
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index ef42316..523ac5b 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -736,7 +736,7 @@ static acpi_status
+ ec_parse_device(acpi_handle handle, u32 Level, void *context, void **retval)
+ {
+ 	acpi_status status;
+-	unsigned long long tmp;
++	unsigned long long tmp = 0;
+ 
+ 	struct acpi_ec *ec = context;
+ 	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
+@@ -751,6 +751,7 @@ ec_parse_device(acpi_handle handle, u32 Level, void *context, void **retval)
+ 		return status;
+ 	ec->gpe = tmp;
+ 	/* Use the global lock for all EC transactions? */
++	tmp = 0;
+ 	acpi_evaluate_integer(handle, "_GLK", NULL, &tmp);
+ 	ec->global_lock = tmp;
+ 	ec->handle = handle;
 
-Thanks
-Alan
