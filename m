@@ -1,58 +1,26 @@
-From: Andrew Patterson <andrew.patterson@hp.com>
-Subject: Re: [PATCH v2 0/6] call _OSC support during root bridge discovery
-Date: Fri, 31 Oct 2008 10:28:58 -0600
-Message-ID: <1225470538.9325.3.camel@boris.fwe.com>
-References: <20081030052746.10259.22045.stgit@bob.kio>
-	 <4909798F.6010604@jp.fujitsu.com>
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Subject: eeepc-laptop rfkill, stupid question #4 and 5
+Date: Fri, 31 Oct 2008 17:09:09 +0000
+Message-ID: <490B3BB5.8060801@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <4909798F.6010604@jp.fujitsu.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, matthew@wil.cx, bjorn.helgaas@hp.com
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752523AbYJaRJ2@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2008-10-30 at 18:08 +0900, Kenji Kaneshige wrote:
-> Andrew Patterson wrote:
-> > This is v2 of the "call _OSC support during root bridge discovery"
-> > patchset.  At Bjorn Helgaas's suggestion, I have merged all the MSI
-> > handling patches into one patch. Kenji Kaneshige also noted that I was
-> > not checking aspm_disabled before setting ASPM _OSC capabilities. This
-> > has been fixed.
-> > 
-> > Kenji also noted that the pci_msi_enable can be changed in various
-> > quirks after root bridge discovery, resulting in the incorrect setting
-> > of the MSI _OSC capability. I do not yet have a solution for this problem.
-> > 
-> 
-> Unfortunately, I don't have good idea about it yet too. In addition,
-> I don't understand how to handle the case if a feature is supported
-> but disabled by OS, from the PCI firmware spec.
+Did you miss a call to rfkill_force_state() on resume?
 
+I can hibernate, then interrupt the boot with F2 to get into the BIOS,
+change the "Enable WLAN" setting, and continue the resume.  When the
+eeepc-laptop driver resumes, it restores the pre-hibernation value.
 
-> If we should not set _OSC capabilities when it is supported but
-> disabled by OS, maybe we need also consider what we should do for
-> OSC_EXT_PCI_CONFIG_SUPPORT and OSC_PCI_SEGMENT_GROUPS_SUPPORT
-> if mmconfig is disabled, as well as aspm_disabled and pci_msi_enable.
-> 
+Actually, normal boot doesn't preserve the setting either.  Your commit
+changes the behaviour from the rfkill state being persistent across
+reboot / power off (as a bios setting), to being always enabled on
+boot.  It seems like a bad idea to me.
 
-A good idea. I try and come up with something.
-
-> By the way, Taku Izumi plan to post some patches to reduce _OSC
-> evaluation for _OSC control soon. I'm appreciate it if you will try
-> it on your big server.
-> 
-
-I would be happy to help.  Getting time on this server is sometimes
-difficult, so it may take a while before I can run a test.
-
-Andrew
-
-> Thanks,
-> Kenji Kaneshige
-> 
-> 
-
-> 
+Thanks
+Alan
