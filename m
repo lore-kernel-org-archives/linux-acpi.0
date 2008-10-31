@@ -1,61 +1,69 @@
-From: "Peter Mahlknecht" <mali100@gmx.net>
-Subject: ACPI reads wrong temperature
-Date: Fri, 31 Oct 2008 15:02:47 +0100
-Message-ID: <20081031140247.325670@gmx.net>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: Re: Bisection result: eeepc hotk breakage
+Date: Fri, 31 Oct 2008 17:15:14 +0300
+Message-ID: <490B12F2.9050903@suse.de>
+References: <4907A511.3040603@tuffmail.co.uk> <4907A856.3050204@gmail.com> <4908307C.8060503@tuffmail.co.uk> <49086F67.1030607@suse.de> <490872BF.2010908@tuffmail.co.uk> <4908C714.5040104@tuffmail.co.uk> <4908C8EB.1010403@suse.de> <490ADD62.7090507@tuffmail.co.uk> <490B0D48.7040209@suse.de> <490B0DCB.40009@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:52488 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751372AbYJaOCt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 31 Oct 2008 10:02:49 -0400
+Received: from charybdis-ext.suse.de ([195.135.221.2]:44656 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751334AbYJaOPP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Oct 2008 10:15:15 -0400
+In-Reply-To: <490B0DCB.40009@tuffmail.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Cc: Alexey Starikovskiy <aystarik@gmail.com>, linux acpi <linux-acpi@vger.kernel.org>, Matthew Wilcox <willy@linux.intel.com>
 
-Hi,=20
-I installed Debian Lenny (2.6.26-1-686) on my notebook (Samsung P40 wit=
-h the latest Bios 09HK), but the notebook continued to shutting down wi=
-th the message "Critical temperature reached (65535 C). Shutting down."=
-=2E=20
-To stop this I patched the thermal module, so that it ignores every tem=
-perature above 1000 C.=20
-The wrong temperatuer is also listed in /proc/acpi/thermal_zone/THRM/te=
-mperature. Using lm-sensors I get the following output:=20
-sensors=20
-acpitz-virtual-0=20
-Adapter: Virtual device=20
-temp1:      +65535.0=B0C  (crit =3D +105.0=B0C)                 =20
+Alan Jenkins wrote:
+> Alexey Starikovskiy wrote:
+>> Alan Jenkins wrote:
+>>> Alexey Starikovskiy wrote:
+>>>> Alan Jenkins wrote:
+>>>>> Well, that didn't work.
+>>>> Pity...
+>>>> Could you produce a debug log from EC?
+>>>> Probably it's a good time to open a new bug report...
+>>> <http://bugzilla.kernel.org/show_bug.cgi?id=11917>
+>>> "Asus Eee PC hotkeys stop working after prolonged usage"
+>>>
+>>> I stuck at it, found a reliable test and bisected successfully.
+>>> 2.6.28-rc2 is broken, but I can fix it by reverting the bad commit.
+>>> (There were some conflicts, I fixed up the dock driver manually and
+>>> avoided building the rest).
+>> Alan, to make things clear -- reverting following commit makes EC work
+>> without
+>> a problem?
+>>
+> 
+> 
+> Yes, that's right.
+Great!
+What kernel version is that -- 32 or 64? 
+> 
+> 
+>>>
+>>> 27663c5855b10af9ec67bc7dfba001426ba21222 is first bad commit
+>>> commit 27663c5855b10af9ec67bc7dfba001426ba21222
+>>> Author: Matthew Wilcox <willy@linux.intel.com>
+>>> Date:   Fri Oct 10 02:22:59 2008 -0400
+>>>
+>>>     ACPI: Change acpi_evaluate_integer to support 64-bit on 32-bit
+>>> kernels
+>>>
+>>>     As of version 2.0, ACPI can return 64-bit integers.  The current
+>>>     acpi_evaluate_integer only supports 64-bit integers on 64-bit
+>>> platforms.
+>>>     Change the argument to take a pointer to an acpi_integer so we
+>>> support
+>>>     64-bit integers on all platforms.
+>>>
+>>>     lenb: replaced use of "acpi_integer" with "unsigned long long"
+>>>     lenb: fixed bug in acpi_thermal_trips_update()
+>>>
+>>>     Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+>>>     Signed-off-by: Len Brown <len.brown@intel.com>
+> 
 
-max6657-i2c-0-4c=20
-Adapter: SMBus I801 adapter at 18e0=20
-M/B Temp:    +39.0=B0C  (low  =3D -65.0=B0C, high =3D +127.0=B0C) =20
-                      (crit =3D +110.0=B0C, hyst =3D +100.0=B0C) =20
-CPU Temp:    +44.4=B0C  (low  =3D +35.1=B0C, high =3D +57.1=B0C) =20
-                      (crit =3D +110.0=B0C, hyst =3D +100.0=B0C)=20
-
-
-The acpitz-virtual-0 device is the temperature that the kernel-acpi-mod=
-ule reads. The temperature listed under CPU Temp is the temperature rea=
-d directly by lm-sensors, which seems to be right (at least it's in the=
- same range as when running windows).=20
-
-Strange is, that during boot the right temperature seems to be read:
-[   10.519291] ACPI: Thermal Zone [THRM] (58 C)
-
-I had the same problem also with the 2.6.18-6-686 (Lenny) and with Ubun=
-tu Hardy Heron (think the kernel was 2.6.24).=20
-
-Can somenone give me a hint how I can fix the ACPI temperatuer reading?=
- What other logs, system outputs should I post?=20
-
-B.R. Peter
---=20
-Psssst! Schon vom neuen GMX MultiMessenger geh=F6rt? Der kann`s mit all=
-en: http://www.gmx.net/de/go/multimessenger
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
