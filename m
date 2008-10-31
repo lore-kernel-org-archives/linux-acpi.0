@@ -1,26 +1,32 @@
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Subject: eeepc-laptop rfkill, stupid question #4 and 5
-Date: Fri, 31 Oct 2008 17:09:09 +0000
-Message-ID: <490B3BB5.8060801@tuffmail.co.uk>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: eeepc-laptop rfkill, stupid question #4 and 5
+Date: Fri, 31 Oct 2008 17:11:26 +0000
+Message-ID: <20081031171126.GA17313@srcf.ucam.org>
+References: <490B3BB5.8060801@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752523AbYJaRJ2@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:52597 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751279AbYJaRL2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Oct 2008 13:11:28 -0400
+Content-Disposition: inline
+In-Reply-To: <490B3BB5.8060801@tuffmail.co.uk>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>
 
-Did you miss a call to rfkill_force_state() on resume?
+On Fri, Oct 31, 2008 at 05:09:09PM +0000, Alan Jenkins wrote:
+> Did you miss a call to rfkill_force_state() on resume?
 
-I can hibernate, then interrupt the boot with F2 to get into the BIOS,
-change the "Enable WLAN" setting, and continue the resume.  When the
-eeepc-laptop driver resumes, it restores the pre-hibernation value.
+Conceivably. I didn't test the hibernation case.
 
-Actually, normal boot doesn't preserve the setting either.  Your commit
-changes the behaviour from the rfkill state being persistent across
-reboot / power off (as a bios setting), to being always enabled on
-boot.  It seems like a bad idea to me.
+> Actually, normal boot doesn't preserve the setting either.  Your commit
+> changes the behaviour from the rfkill state being persistent across
+> reboot / power off (as a bios setting), to being always enabled on
+> boot.  It seems like a bad idea to me.
 
-Thanks
-Alan
+This is the behaviour of the rfkill core.
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
