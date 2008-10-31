@@ -1,68 +1,43 @@
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Subject: Re: eeepc-laptop rfkill, stupid question #4 and 5
-Date: Fri, 31 Oct 2008 20:54:59 +0000
-Message-ID: <490B70A3.8010108@tuffmail.co.uk>
-References: <490B3BB5.8060801@tuffmail.co.uk> <20081031171126.GA17313@srcf.ucam.org> <490B4014.4040009@tuffmail.co.uk>
+From: "Peter Mahlknecht" <mali100@gmx.net>
+Subject: Re: ACPI reads wrong temperature
+Date: Fri, 31 Oct 2008 22:09:13 +0100
+Message-ID: <20081031210913.3180@gmx.net>
+References: <20081031140247.325670@gmx.net>
+ <20081031143030.GA9177@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.24]:13970 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752245AbYJaUzF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Oct 2008 16:55:05 -0400
-In-Reply-To: <490B4014.4040009@tuffmail.co.uk>
+Received: from mail.gmx.net ([213.165.64.20]:52182 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752035AbYJaVJQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 31 Oct 2008 17:09:16 -0400
+In-Reply-To: <20081031143030.GA9177@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>
+Cc: linux-acpi@vger.kernel.org
 
-Alan Jenkins wrote:
-> Matthew Garrett wrote:
->   
->> On Fri, Oct 31, 2008 at 05:09:09PM +0000, Alan Jenkins wrote:
->>   
->>     
->>> Did you miss a call to rfkill_force_state() on resume?
->>>     
->>>       
->> Conceivably. I didn't test the hibernation case.
->>
->>   
->>     
->>> Actually, normal boot doesn't preserve the setting either.  Your commit
->>> changes the behaviour from the rfkill state being persistent across
->>> reboot / power off (as a bios setting), to being always enabled on
->>> boot.  It seems like a bad idea to me.
->>>     
->>>       
->> This is the behaviour of the rfkill core.
->>   
->>     
-> Documentation/rfkill.txt implied otherwise
->
->     You should:
->         - rfkill_allocate()
->         - modify rfkill fields (flags, name)
->         - modify state to the current hardware state (THIS IS THE ONLY TIME
->           YOU CAN ACCESS state DIRECTLY)
->         - rfkill_register()
->
->
-> Admittedly it doesn't say "and I promise not to gratuitously override
-> the state on registration".  Buti t seems weird though, to override the
-> value on registration 
-Ah, I see.  Wrong end - of course the *rfkill device* doesn't have
-useful state.  The persistent state belongs to the *rfkill switch* - it
-could even be a physical switch.
 
-And now it's clear what was missing from the conversion to rfkill:
+-------- Original-Nachricht --------
+> Datum: Fri, 31 Oct 2008 14:30:30 +0000
+> Von: Matthew Garrett <mjg59@srcf.ucam.org>
+> An: Peter Mahlknecht <mali100@gmx.net>
+> CC: linux-acpi@vger.kernel.org
+> Betreff: Re: ACPI reads wrong temperature
 
-    2. Input device switches (sources of EV_SW events) DO store their
-    current state
-    (so you *must* initialize it by issuing a gratuitous input layer
-    event on
-    driver start-up and also when resuming from sleep)
+> On Fri, Oct 31, 2008 at 03:02:47PM +0100, Peter Mahlknecht wrote:
+> > Hi, 
+> > I installed Debian Lenny (2.6.26-1-686) on my notebook (Samsung P40 with
+> the latest Bios 09HK), but the notebook continued to shutting down with
+> the message "Critical temperature reached (65535 C). Shutting down.". 
+> > To stop this I patched the thermal module, so that it ignores every
+> temperature above 1000 C. 
+> 
+> Do you get wrong temperatures if you never load the max6657 driver?
+Thanks for the hint. I get the wrong temperatures after loading the lm90 module (hwmon driver), but also if i load em28xx_cx25843, which is a part of the driver for my tv-card. Both modules depend on i2c-core, so probably the bug is related to the i2c bus?
 
-Regards
-Alan
+B.R. Peter
+-- 
+"Feel free" - 10 GB Mailbox, 100 FreeSMS/Monat ...
+Jetzt GMX TopMail testen: http://www.gmx.net/de/go/topmail
