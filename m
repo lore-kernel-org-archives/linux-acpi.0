@@ -1,60 +1,75 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: [PATCH] ACPI: EC: clean up tmp variable before reuse
-Date: Fri, 31 Oct 2008 21:42:37 +0300
-Message-ID: <20081031184233.8588.42241.stgit@thinkpad>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [patch] ACPI: call init functions explicitly instead of using initcalls
+Date: Fri, 31 Oct 2008 13:04:39 -0600
+Message-ID: <200810311304.40459.bjorn.helgaas@hp.com>
+References: <200810291525.58218.bjorn.helgaas@hp.com> <200810302251.46443.bjorn.helgaas@hp.com> <1225436139.3993.59.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:41027 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751978AbYJaSmj (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Fri, 31 Oct 2008 14:42:39 -0400
+Received: from g1t0027.austin.hp.com ([15.216.28.34]:13844 "EHLO
+	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751728AbYJaTFN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Oct 2008 15:05:13 -0400
+In-Reply-To: <1225436139.3993.59.camel@yakui_zhao.sh.intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: LenBrown <lenb@kernel.org>
-Cc: Linux-acpi@vger.kernel.org
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Li, Shaohua" <shaohua.li@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.de>, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-Fix breakage introduced by following patch
-27663c5855b10af9ec67bc7dfba001426ba21222 is first bad commit
-commit 27663c5855b10af9ec67bc7dfba001426ba21222
-Author: Matthew Wilcox <willy@linux.intel.com>
-Date:   Fri Oct 10 02:22:59 2008 -0400
+On Friday 31 October 2008 12:55:39 am Zhao Yakui wrote:
+> On Fri, 2008-10-31 at 12:51 +0800, Bjorn Helgaas wrote:
 
-acpi_evaluate_integer() does not clear passed variable if
-there is an error at evaluation.
-So if we ignore error, we must supply initialized variable.
+> > As far as I can tell, CONFIG_ACPI_POWER is useless, since it
+> > is always set the same as CONFIG_ACPI.  And interfaces from
+> > acpi/power.c, such as acpi_power_transition(), are used
+> > unconditionally from acpi/bus.c.  Given that, I think we
+> > should remove the CONFIG_ACPI_POWER Kconfig option and change
+> > the makefile to look like this:
+> The CONFIG_ACPI_POWER is useless.If the CONFIG_ACPI is enabled, it is
+> always set.
 
-References: http://bugzilla.kernel.org/show_bug.cgi?id=11917
-	    http://bugzilla.kernel.org/show_bug.cgi?id=11896
+OK, I'll work up a patch to remove it.
 
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-Tested-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
----
+> The power resource(ACPI device) should be bound with its ACPI device
+> driver after EC initialization.
 
- drivers/acpi/ec.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+Let's be specific here.  There's way too much magic here, and that
+makes things fragile.  Are you saying that the EC driver must be
+initialized before acpi_power_add() is called?
 
+6.5.4 of the spec says:
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index ef42316..523ac5b 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -736,7 +736,7 @@ static acpi_status
- ec_parse_device(acpi_handle handle, u32 Level, void *context, void **retval)
- {
- 	acpi_status status;
--	unsigned long long tmp;
-+	unsigned long long tmp = 0;
- 
- 	struct acpi_ec *ec = context;
- 	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
-@@ -751,6 +751,7 @@ ec_parse_device(acpi_handle handle, u32 Level, void *context, void **retval)
- 		return status;
- 	ec->gpe = tmp;
- 	/* Use the global lock for all EC transactions? */
-+	tmp = 0;
- 	acpi_evaluate_integer(handle, "_GLK", NULL, &tmp);
- 	ec->global_lock = tmp;
- 	ec->handle = handle;
+  OSPM must make Embedded Controller operation regions, accessed
+  via the Embedded Controllers described in ECDT, available before
+  executing any control method.
+
+which is similar to what you're saying.  However, I think what
+the spec requires is the sort of stuff in acpi_ec_ecdt_probe(),
+which is already called early in acpi_bus_init().
+
+It sounds like you're saying that ECDT probe is not sufficient,
+and that we also need to run acpi_ec_init() (where we claim
+PNP0C09 devices from the namespace) before we register the
+acpi_power_driver.
+
+> So it is not appropriate as done in the 
+> following:
+>     >obj-y                           += bus.o scan.o power.o
+
+It also seems impossible to turn off CONFIG_ACPI_EC.  There is
+Kconfig help text for it, but it has no menu item label, so it
+is not selectable via menuconfig.
+
+Given the requirement from 6.5.4 of the spec above, it doesn't
+seem like CONFIG_ACPI_EC even makes sense -- shouldn't we just
+consider acpi_ec_ecdt_probe() to be part of the ACPI core?
+Then the makefile would be:
+
+  obj-y                           += bus.o ec.c scan.o power.o
+
+Bjorn
+
 
