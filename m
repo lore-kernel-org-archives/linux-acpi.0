@@ -1,43 +1,70 @@
-From: "Peter Mahlknecht" <mali100@gmx.net>
-Subject: Re: ACPI reads wrong temperature
-Date: Fri, 31 Oct 2008 22:09:13 +0100
-Message-ID: <20081031210913.3180@gmx.net>
-References: <20081031140247.325670@gmx.net>
- <20081031143030.GA9177@srcf.ucam.org>
+From: Mattia Dongili <malattia@linux.it>
+Subject: Re: [RFH,Status] Sony Vaio VGN-Z11 support
+Date: Sat, 1 Nov 2008 14:25:16 +0900
+Message-ID: <20081101052516.GD3986@inferi.kami.home>
+References: <20081025214602.GB27030@gamma.logic.tuwien.ac.at> <Pine.LNX.4.63.0810251854180.10973@dashnine.joshuawise.com> <20081025233118.GA31722@gandalf.dynalias.org> <20081027232051.GI22083@gamma.logic.tuwien.ac.at> <20081028014148.GB28057@inferi.kami.home> <20081028014708.GA2649@gamma.logic.tuwien.ac.at> <20081028131220.A89C9E072@master.hanzubon.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:52182 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752035AbYJaVJQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 31 Oct 2008 17:09:16 -0400
-In-Reply-To: <20081031143030.GA9177@srcf.ucam.org>
+Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:58341
+	"EHLO tadamune.kami.home" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750716AbYKAFZ0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 1 Nov 2008 01:25:26 -0400
+Content-Disposition: inline
+In-Reply-To: <20081028131220.A89C9E072@master.hanzubon.jp>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-acpi@vger.kernel.org
+To: ISHIKAWA Mutsumi <ishikawa@hanzubon.jp>
+Cc: preining@logic.at, joshua@joshuawise.com, linux-acpi@vger.kernel.org
 
-
--------- Original-Nachricht --------
-> Datum: Fri, 31 Oct 2008 14:30:30 +0000
-> Von: Matthew Garrett <mjg59@srcf.ucam.org>
-> An: Peter Mahlknecht <mali100@gmx.net>
-> CC: linux-acpi@vger.kernel.org
-> Betreff: Re: ACPI reads wrong temperature
-
-> On Fri, Oct 31, 2008 at 03:02:47PM +0100, Peter Mahlknecht wrote:
-> > Hi, 
-> > I installed Debian Lenny (2.6.26-1-686) on my notebook (Samsung P40 with
-> the latest Bios 09HK), but the notebook continued to shutting down with
-> the message "Critical temperature reached (65535 C). Shutting down.". 
-> > To stop this I patched the thermal module, so that it ignores every
-> temperature above 1000 C. 
+On Tue, Oct 28, 2008 at 10:12:20PM +0900, ISHIKAWA Mutsumi wrote:
+> >>>>> In <20081028014708.GA2649@gamma.logic.tuwien.ac.at> 
+> >>>>>	Norbert Preining <preining@logic.at> wrote:
+> >> Hi Mattia,
+> >>
+> >> (taking the MMC guy out, this is not about the SD card reader anymore)
+> >>
+> >> On Di, 28 Okt 2008, Mattia Dongili wrote:
+> >> > Yes, I am. But I have no idea what might be wrong. Did you also try
+> >> > xbacklight while in X and using the Intel card?
+> >>
+> >> I am a step further on. Thanks to Ishikawa-san I have an sony-laptop.c
+> >> file which allows setting the backlight using the
+> >> /sys/devices/backlight/{sony,acpi_video0}/backlight files
+> >> (interestingly, they do not agree on their behaviour, xbacklight can
+> >> change in 12.5% jumps, that makes 9 different values, but allowed are
+> >> only 8 (from 0 to 7). In sony the 0% is missing, in acpi_video0 the 100%
+> >> is missing -- i.e., sony/brightness 0 is brighter than
+> >> acpi_video0/brightness 0, and so on).
 > 
-> Do you get wrong temperatures if you never load the max6657 driver?
-Thanks for the hint. I get the wrong temperatures after loading the lm90 module (hwmon driver), but also if i load em28xx_cx25843, which is a part of the driver for my tv-card. Both modules depend on i2c-core, so probably the bug is related to the i2c bus?
+>  There are two points of roblems to enable backlight control on VGN-Z
+> 
+>   1)
+> 
+>       VGN-Z have SNC, but it is not enabled.
+>         - prevoius patch posted.
+>         - add VGN-Z entry to sony_nc_ids table
+> 
+>   2)
+> 
+>        In sony_pic_detect_device_type() function, VGN-Z's SPIC is
+>      detected as SONYPI_DEVICE_TYPE2 (per default).
+> 
+>        But it does not work for me.
+> 
+>        I've checkd throug TYPE1 to TYPE4. Only Type3 and Type4 does
+>      work (but it is possible to control backlight only, other
+>      function does not work...)
+> 
+>        I do not have datasheet for this model, but I think SPIC on
+>      this model is not TYPE2. It is same or variant of  Type3 or
+>      Type4 SPIC.
 
-B.R. Peter
+I have adopted a different approach (merge type3 and type4) but I have
+included your other changes to my local tree. Hopefully I'll be able to
+send a patchset for acpi-test later today.
+
+thanks
 -- 
-"Feel free" - 10 GB Mailbox, 100 FreeSMS/Monat ...
-Jetzt GMX TopMail testen: http://www.gmx.net/de/go/topmail
+mattia
+:wq!
