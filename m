@@ -1,50 +1,35 @@
-From: "Peter Mahlknecht" <mali100@gmx.net>
-Subject: Re: ACPI reads wrong temperature
-Date: Sun, 02 Nov 2008 12:31:12 +0100
-Message-ID: <20081102113112.316040@gmx.net>
-References: <20081031140247.325670@gmx.net>
- <20081031143030.GA9177@srcf.ucam.org> <20081031210913.3180@gmx.net>
- <20081102092541.GE10983@srcf.ucam.org>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: eeepc-laptop rfkill, stupid question #4
+Date: Sun, 2 Nov 2008 13:06:55 +0000
+Message-ID: <20081102130655.GA12766@srcf.ucam.org>
+References: <490B3BB5.8060801@tuffmail.co.uk> <20081031171126.GA17313@srcf.ucam.org> <490B4014.4040009@tuffmail.co.uk> <490B70A3.8010108@tuffmail.co.uk> <20081102040008.GB29606@khazad-dum.debian.net> <490D8C4E.3010201@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:37480 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752985AbYKBLbO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 2 Nov 2008 06:31:14 -0500
-In-Reply-To: <20081102092541.GE10983@srcf.ucam.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:37336 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753431AbYKBNHD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Nov 2008 08:07:03 -0500
+Content-Disposition: inline
+In-Reply-To: <490D8C4E.3010201@tuffmail.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg@redhat.com>
-Cc: linux-acpi@vger.kernel.org
+To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-kernel <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>
 
-> > Thanks for the hint. I get the wrong temperatures after loading the=
-=20
-> > lm90 module (hwmon driver), but also if i load em28xx_cx25843, whic=
-h=20
-> > is a part of the driver for my tv-card. Both modules depend on=20
-> > i2c-core, so probably the bug is related to the i2c bus?
->=20
-> In the lm90 case it's almost certainly because you have the firmware =
-and=20
-> Linux trying to access the chip at the same time. Since it has indexe=
-d=20
-> registers, this fails very miserably. I'm surprised that the TV card=20
-> driver has any effect - it should be on an entirely spearate i2c bus.=
-=20
-> Are you sure you don't have lm90 loaded in that case?
-Yes, I am. I had also a talk with the author of the Tv-card driver and =
-he suggested to but the problem on the lm-sensors ml: http://lists.lm-s=
-ensors.org/pipermail/lm-sensors/2008-November/024610.html
-We know now that the problem is related to the i2c-i801 driver.
+On Sun, Nov 02, 2008 at 11:17:34AM +0000, Alan Jenkins wrote:
 
-Peter=20
---=20
-Psssst! Schon vom neuen GMX MultiMessenger geh=F6rt? Der kann`s mit all=
-en: http://www.gmx.net/de/go/multimessenger
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Did you have any thoughts on the hibernation case? It's possible for the 
+> rfkill state to change while hibernated. You can boot into a different 
+> OS, or change it in the BIOS setup screen. At present the rfkill core 
+> overrides the change on resume.
+
+There are two choices. We can either set the rfkill to the hardware 
+state, or we can set the hardware state to the rfkill state. I think 
+both are valid choices and I'm happy to implement either of them in the 
+resume path. However, as you point out, right now it's possible for the 
+user to change the hardware state in the BIOS and cause the two to get 
+out of sync. That's certainly not ideal.
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
