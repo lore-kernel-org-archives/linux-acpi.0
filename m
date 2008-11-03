@@ -1,29 +1,44 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 6/7] [sony-laptop] add control over wifi power in Sony laptops
-Date: Mon, 3 Nov 2008 10:57:25 +0000
-Message-ID: <20081103105725.GA28527@srcf.ucam.org>
-References: <1225705280-12775-1-git-send-email-malattia@linux.it> <1225705280-12775-2-git-send-email-malattia@linux.it> <1225705280-12775-3-git-send-email-malattia@linux.it> <1225705280-12775-4-git-send-email-malattia@linux.it> <1225705280-12775-5-git-send-email-malattia@linux.it> <1225705280-12775-6-git-send-email-malattia@linux.it> <1225705280-12775-7-git-send-email-malattia@linux.it> <20081103103218.GA28263@srcf.ucam.org> <490ED8B6.8000206@gmail.com>
+From: Norbert Preining <preining@logic.at>
+Subject: Re: [PATCH 0/7] sony-laptop for acpi-test
+Date: Mon, 3 Nov 2008 12:17:21 +0100
+Message-ID: <20081103111721.GA31688@gamma.logic.tuwien.ac.at>
+References: <1225705280-12775-1-git-send-email-malattia@linux.it>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:44067 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755138AbYKCK53 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Nov 2008 05:57:29 -0500
+Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:35487 "EHLO
+	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754891AbYKCLRX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Nov 2008 06:17:23 -0500
 Content-Disposition: inline
-In-Reply-To: <490ED8B6.8000206@gmail.com>
+In-Reply-To: <1225705280-12775-1-git-send-email-malattia@linux.it>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sergey Yanovich <ynvich@gmail.com>
-Cc: Mattia Dongili <malattia@linux.it>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Mattia Dongili <malattia@linux.it>
+Cc: linux-acpi@vger.kernel.org
 
-On Mon, Nov 03, 2008 at 12:55:50PM +0200, Sergey Yanovich wrote:
+Hi Mattia,
 
-> Do you mean that the patch should use some other file instead of 
-> /sys/devices/platform/sony-laptop/wifipower for input/output?
+On Mo, 03 Nov 2008, Mattia Dongili wrote:
+> here is a first submission with some of the backlog I accumulated in
+> these months.
 
-Yes. It should register an rfkill device, which will then be exposed via 
-/sys/class/rfkill. Checkout out Documentation/rfkill.txt.
+I tried your patches on top of 2.6.28-rc3 and the tests showed:
+- backlight is working via sys interface and xbacklight
+- hardkeys are still not working
+- wifipower, wwanpower, bluetoothpower sys files do not work
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+All on Sony Vaio VGN-Z11
+
+Best wishes
+
+Norbert
+
+-------------------------------------------------------------------------------
+Dr. Norbert Preining <preining@logic.at>        Vienna University of Technology
+Debian Developer <preining@debian.org>                         Debian TeX Group
+gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
+-------------------------------------------------------------------------------
+AITH (n.)
+The single bristle that sticks out sideways on a cheap paintbrush.
+			--- Douglas Adams, The Meaning of Liff
