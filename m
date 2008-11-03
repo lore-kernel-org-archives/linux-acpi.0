@@ -1,73 +1,65 @@
 From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: [PATCH]: ACPI: Initialize EC global lock based on the return value
-	of _GLK
-Date: Mon, 03 Nov 2008 16:24:05 +0800
-Message-ID: <1225700645.26020.42.camel@yakui_zhao.sh.intel.com>
-References: <20081031184233.8588.42241.stgit@thinkpad>
+Subject: [Patch 0/4]  ACPI : several patches for EC
+Date: Mon, 03 Nov 2008 16:52:11 +0800
+Message-ID: <1225702331.26020.49.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:48237 "EHLO mga01.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:46998 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754595AbYKCIRN (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
-	Mon, 3 Nov 2008 03:17:13 -0500
-In-Reply-To: <20081031184233.8588.42241.stgit@thinkpad>
+	id S1754594AbYKCIpj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 3 Nov 2008 03:45:39 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: LenBrown <lenb@kernel.org>
-Cc: "Linux-acpi@vger.kernel.org" <Linux-acpi@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, alan-jenkins@tuffmail.co.uk
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, astarikovskiy@suse.de
 
-Subject: ACPI: Initialize EC global lock based on the return value of
-_GLK
-From: Zhao Yakui <yakui.zhao@intel.com>
+Hi, All
+ 
+    Two people report the following warning messages on the 2.6.28-rc2 kernel.    
+    >ACPI: EC: missing confirmations, switch off interrupt mode.
+    >ACPI Exception (evregion-0419): AE_TIME, Returned by Handler for
+[EmbeddedControl] [20080926]
+    (One happens on Asus EEEPC901. Another happens on HP laptop).
+     The info on eeepc901 can be found in 
+    http://marc.info/?l=linux-acpi&m=122514911228758&w=2
+    The detailed info about HP laptop can be found in 
+     http://marc.info/?t=122491944100001&r=1&w=2
+    
+    
+    The following is the patch set that is to fix the above issue.
+    Patch 01: EC transaction is explicitly divided into different phases. 
+And EC access is realized in process context. 
+    At the same time EC driver will be started in EC GEP mode. And when 
+there is no EC GPE confirmation for some EC transaction on some broken laptops,
+the EC driver will be switched to polling mode. But EC GPE is still enabled.
+    
+    Patch 02: Add the 2 us delay before starting check EC status while in 
+polling mode
+      According to the ACPI spec when the host writes data to the command or data
+register of the embedded controller, the input buffer flag (IBF) in the
+status register is set within 1 microsecond.  On most laptosp it
+is unnecessary to add the delay as EC device is connected with the slow
+peripherial bus.
+      But it is safe to add the delay of 2 microseconds before starting loop
+check the EC status while EC is in polling mode.
 
-Initialize the EC global lock based on the returned value of _GLK
-object.Only when AE_OK is returned by the acpi_evaluate_integer, the EC
-global lock will be assigned based on the return value of _GLK
-object.Otherwise it means that there is no _GLK object and the global
-lock won't be required when EC is accessed.
-If the return value of _GLK object is not zero, it means that GLobal
-lock will be required when EC is accessed.
-If the return value of _GLK object is zero, it means that GLobal lock 
-won't be required when EC is accessed.
+    Patch 03: Add some delay in EC GPE handler to avoid EC interrupt storm on some
+broken BIOS.
+     The delay won't be added for most laptops.Only when more than five
+interrupts happen in the same jiffies and EC status are the same, OS will add
+some delay in the EC GPE handler. If the same issue still happens after adding
+delay,the delay time will be increased.But the max delay time is ten
+microseconds.
+    Patch 04: EC cleanup: delete the unused code after the above three patches are applied
 
-http://bugzilla.kernel.org/show_bug.cgi?id=11917
+    After applying the patch, the problem disappears on ASUS EEEPC901 and HP laptop.
 
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-cc: Alexey Starikovskiy <astarikovskiy@suse.de>
-cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
----
- drivers/acpi/ec.c |   17 +++++++++++++++--
- 1 file changed, 15 insertions(+), 2 deletions(-)
+Welcome the comments.
 
-Index: linux-2.6/drivers/acpi/ec.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/ec.c
-+++ linux-2.6/drivers/acpi/ec.c
-@@ -751,8 +751,21 @@ ec_parse_device(acpi_handle handle, u32 
- 		return status;
- 	ec->gpe = tmp;
- 	/* Use the global lock for all EC transactions? */
--	acpi_evaluate_integer(handle, "_GLK", NULL, &tmp);
--	ec->global_lock = tmp;
-+	status = acpi_evaluate_integer(handle, "_GLK", NULL, &tmp);
-+	/*
-+	 * Only when AE_OK is returned by acpi_evaluate_interger,
-+	 * the ec->global_lock will be assigned based on the returned
-+	 * value by _GLK. Otherwise it means that there is no _GLK object
-+	 * and global lock won't be required when EC is accessed.
-+	 * If the return value of _GLK object is not zero, it means that
-+	 * global lock will be required when EC is accessed.
-+	 * If the return value of _GLK object is zero, it means that
-+	 * global lock won't be required when EC is accessed.
-+	 */
-+	if (ACPI_SUCCESS(status))
-+		ec->global_lock = !!tmp;
-+	 else
-+		ec->global_lock = 0;
- 	ec->handle = handle;
- 	return AE_CTRL_TERMINATE;
- }
+
+Best regards.
+  Yakui
 
 
