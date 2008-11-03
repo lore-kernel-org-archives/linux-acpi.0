@@ -1,42 +1,39 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: eeepc-laptop rfkill, stupid question #4
-Date: Mon, 3 Nov 2008 14:33:11 -0200
-Message-ID: <20081103163311.GA2417@khazad-dum.debian.net>
-References: <20081102040008.GB29606@khazad-dum.debian.net> <490D8C4E.3010201@tuffmail.co.uk> <20081102130655.GA12766@srcf.ucam.org> <20081103141628.GB31078@khazad-dum.debian.net> <20081103141836.GA31894@srcf.ucam.org> <490F0ACC.4000808@tuffmail.co.uk> <20081103145145.GD31078@khazad-dum.debian.net> <20081103145543.GA496@srcf.ucam.org> <20081103150229.GF31078@khazad-dum.debian.net> <20081103150843.GA1107@srcf.ucam.org>
+From: "Maciej Rutecki" <maciej.rutecki@gmail.com>
+Subject: Re: Linux 2.6.28-rc1] ACPI Warning (nspredef-0852)[...]
+Date: Mon, 3 Nov 2008 17:37:12 +0100
+Message-ID: <8db1092f0811030837i4ccf0b7vc0c14e846f83d88f@mail.gmail.com>
+References: <fa.1HaqObZirROiyqr922A7hRDVc54@ifi.uio.no>
+	 <fa.Rzh43vSl9NX1QQ2nOYQSgEJcZAw@ifi.uio.no> <49035313.9080309@shaw.ca>
+	 <200810252004.01274.rjw@sisk.pl>
+	 <8db1092f0810251151l4c7f9382r34defa6d4d6ee24c@mail.gmail.com>
+	 <8db1092f0810271319s5d15c2ffrab37a548fa388738@mail.gmail.com>
+	 <1225187050.5189.146.camel@yakui_zhao.sh.intel.com>
+	 <8db1092f0810281245k14555e26w30547cf17fde534f@mail.gmail.com>
+	 <8db1092f0811030406i48150022gb5b444710d749b43@mail.gmail.com>
+	 <490EEDDD.4010203@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out5.smtp.messagingengine.com ([66.111.4.29]:57516 "EHLO
-	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754995AbYKCQdU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Nov 2008 11:33:20 -0500
+Received: from qw-out-2122.google.com ([74.125.92.25]:16692 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754344AbYKCQhP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Nov 2008 11:37:15 -0500
+In-Reply-To: <490EEDDD.4010203@gmail.com>
 Content-Disposition: inline
-In-Reply-To: <20081103150843.GA1107@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>, linux-kernel <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>
+To: Alexey Starikovskiy <aystarik@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Robert Hancock <hancockr@shaw.ca>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "fabio.comolli@gmail.com" <fabio.comolli@gmail.com>
 
-On Mon, 03 Nov 2008, Matthew Garrett wrote:
-> On Mon, Nov 03, 2008 at 01:02:29PM -0200, Henrique de Moraes Holschuh wrote:
-> > Right now, you should still rfkill_force_state().  Please wait for an hour
-> > or two while I clean up that broken resume handling, and I will tell you for
-> > sure.
-> 
-> Cool. I'll hold off posting my cleanups until then in that case.
+2008/11/3 Alexey Starikovskiy <aystarik@gmail.com>:
 
-Ok, two bugs reproduced, the fixes are ready and tested, and I will be
-sending it now to linux-wireless.  You're in the CC, so you will get them.
+>
+> please see #11917
+>
 
-I will also need to send patches for -stable, as the ones for mainline won't
-apply to -stable.
-
-Now, for what you asked: you DO NOT HAVE to use rfkill_force_state() in your
-driver's resume method, as long as you NEVER make use of
-RFKILL_STATE_HARD_BLOCKED.   I have fixed the bug that was messing this up.
+Patch from comment #3 doesn't help. I will try patches from #11896 very soon.
 
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Maciej Rutecki
+http://www.maciek.unixy.pl
