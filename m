@@ -1,47 +1,32 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: [PATCH 4/7] [sony-laptop] detect the ICH9 chipset as Type3
-Date: Mon,  3 Nov 2008 18:41:17 +0900
-Message-ID: <1225705280-12775-5-git-send-email-malattia@linux.it>
-References: <1225705280-12775-1-git-send-email-malattia@linux.it>
- <1225705280-12775-2-git-send-email-malattia@linux.it>
- <1225705280-12775-3-git-send-email-malattia@linux.it>
- <1225705280-12775-4-git-send-email-malattia@linux.it>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH 6/7] [sony-laptop] add control over wifi power in Sony laptops
+Date: Mon, 3 Nov 2008 10:32:18 +0000
+Message-ID: <20081103103218.GA28263@srcf.ucam.org>
+References: <1225705280-12775-1-git-send-email-malattia@linux.it> <1225705280-12775-2-git-send-email-malattia@linux.it> <1225705280-12775-3-git-send-email-malattia@linux.it> <1225705280-12775-4-git-send-email-malattia@linux.it> <1225705280-12775-5-git-send-email-malattia@linux.it> <1225705280-12775-6-git-send-email-malattia@linux.it> <1225705280-12775-7-git-send-email-malattia@linux.it>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:48101
-	"EHLO tadamune.kami.home" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754945AbYKCJlY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Nov 2008 04:41:24 -0500
-In-Reply-To: <1225705280-12775-4-git-send-email-malattia@linux.it>
+Received: from cavan.codon.org.uk ([93.93.128.6]:41873 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754680AbYKCKcZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Nov 2008 05:32:25 -0500
+Content-Disposition: inline
+In-Reply-To: <1225705280-12775-7-git-send-email-malattia@linux.it>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, ISHIKAWA Mutsumi <ishikawa@hanzubon.jp>, Mattia Dongili <malattia@linux.it>
+To: Mattia Dongili <malattia@linux.it>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Sergey Yanovich <ynvich@gmail.com>
 
-From: ISHIKAWA Mutsumi <ishikawa@hanzubon.jp>
+On Mon, Nov 03, 2008 at 06:41:19PM +0900, Mattia Dongili wrote:
 
-Signed-off-by: Mattia Dongili <malattia@linux.it>
----
- drivers/misc/sony-laptop.c |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
+> Sony laptops have a single hardware rfkill switch, which controls
+> several wireless devices: wifi, bluetooth, wwan. The code to
+> selectively control bluetooth and wwan is already present. This
+> patch adds handling of wifi.
 
-diff --git a/drivers/misc/sony-laptop.c b/drivers/misc/sony-laptop.c
-index c9e5651..19f3306 100644
---- a/drivers/misc/sony-laptop.c
-+++ b/drivers/misc/sony-laptop.c
-@@ -1589,6 +1589,13 @@ static void sony_pic_detect_device_type(struct sony_pic_dev *dev)
- 		goto out;
- 	}
- 
-+	pcidev = pci_get_device(PCI_VENDOR_ID_INTEL,
-+			PCI_DEVICE_ID_INTEL_ICH9_1, NULL);
-+	if (pcidev) {
-+		dev->control = &spic_types[4];
-+		goto out;
-+	}
-+
- 	/* default */
- 	dev->control = &spic_types[1];
- 
+Please don't add more custom radio control switches. It'd be better to 
+add rfkill support. Otherwise we have even more stuff in /sys to carry 
+around for ages before deprecating.
+
 -- 
-1.5.6.5
-
+Matthew Garrett | mjg59@srcf.ucam.org
