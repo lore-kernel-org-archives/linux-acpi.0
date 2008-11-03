@@ -1,73 +1,50 @@
-From: Andrey Borzenkov <arvidjaar@mail.ru>
-Subject: [PATCH] Fix argument type for acpi_evaluate_integer in acpi_get_physical_pci_device
-Date: Mon, 3 Nov 2008 12:16:13 +0300
-Message-ID: <200811031216.15690.arvidjaar@mail.ru>
-Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart2580284.8bpasYynaP";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+From: Mattia Dongili <malattia@linux.it>
+Subject: [PATCH 5/7] [sony-laptop] call the extra enable function for SNC on Vaio Z
+Date: Mon,  3 Nov 2008 18:41:18 +0900
+Message-ID: <1225705280-12775-6-git-send-email-malattia@linux.it>
+References: <1225705280-12775-1-git-send-email-malattia@linux.it>
+ <1225705280-12775-2-git-send-email-malattia@linux.it>
+ <1225705280-12775-3-git-send-email-malattia@linux.it>
+ <1225705280-12775-4-git-send-email-malattia@linux.it>
+ <1225705280-12775-5-git-send-email-malattia@linux.it>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx40.mail.ru ([194.67.23.36]:54705 "EHLO mx40.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755279AbYKCJQV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 3 Nov 2008 04:16:21 -0500
+Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:48108
+	"EHLO tadamune.kami.home" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754895AbYKCJlY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Nov 2008 04:41:24 -0500
+In-Reply-To: <1225705280-12775-5-git-send-email-malattia@linux.it>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, ISHIKAWA Mutsumi <ishikawa@hanzubon.jp>, Mattia Dongili <malattia@linux.it>
 
---nextPart2580284.8bpasYynaP
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+From: ISHIKAWA Mutsumi <ishikawa@hanzubon.jp>
 
-Subject: [PATCH] Fix argument type for acpi_evaluate_integer in acpi_get_ph=
-ysical_pci_device
-=46rom: Andrey Borzenkov <arvidjaar@mail.ru>
+Signed-off-by: Mattia Dongili <malattia@linux.it>
+---
+ drivers/misc/sony-laptop.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
-CC      drivers/acpi/glue.o
-/home/bor/src/linux-git/drivers/acpi/glue.c: In function 'acpi_get_physical=
-_pci_device':
-/home/bor/src/linux-git/drivers/acpi/glue.c:157: warning: passing argument =
-4 of 'acpi_evaluate_integer' from incompatible pointer type
+diff --git a/drivers/misc/sony-laptop.c b/drivers/misc/sony-laptop.c
+index 19f3306..31f84ce 100644
+--- a/drivers/misc/sony-laptop.c
++++ b/drivers/misc/sony-laptop.c
+@@ -894,6 +894,15 @@ static const struct dmi_system_id sony_nc_ids[] = {
+ 				DMI_MATCH(DMI_PRODUCT_NAME, "VGN-N"),
+ 			},
+ 		},
++		{
++			.ident = "Sony Vaio Z Series",
++			.callback = sony_nc_C_enable,
++			.driver_data = sony_C_events,
++			.matches = {
++				DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
++				DMI_MATCH(DMI_PRODUCT_NAME, "VGN-Z"),
++			},
++		},
+ 		{ }
+ };
+ 
+-- 
+1.5.6.5
 
-acpi_evaluate_integer takes pointer to unsigned long long as fourth argument
-
-Signed-off-by: Andrey Borzenkov <arvidjaar@mail.ru>
-
-=2D--
-
- drivers/acpi/glue.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-
-diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
-index 98c9c76..436c8a3 100644
-=2D-- a/drivers/acpi/glue.c
-+++ b/drivers/acpi/glue.c
-@@ -150,7 +150,7 @@ EXPORT_SYMBOL(acpi_get_physical_device);
- struct device *acpi_get_physical_pci_device(acpi_handle handle)
- {
- 	struct device *dev;
-=2D	long device_id;
-+	unsigned long long device_id;
- 	acpi_status status;
-=20
- 	status =3D
-
---nextPart2580284.8bpasYynaP
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEABECAAYFAkkOwV8ACgkQR6LMutpd94yiWwCgxMdkhPNPfg50nlYC3EWwo5gu
-c8cAoKm+xRainmJn5ipBLOSkl/qgF8G0
-=4y5F
------END PGP SIGNATURE-----
-
---nextPart2580284.8bpasYynaP--
