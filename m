@@ -1,39 +1,36 @@
-From: "Maciej Rutecki" <maciej.rutecki@gmail.com>
-Subject: Re: Linux 2.6.28-rc1] ACPI Warning (nspredef-0852)[...]
-Date: Mon, 3 Nov 2008 17:37:12 +0100
-Message-ID: <8db1092f0811030837i4ccf0b7vc0c14e846f83d88f@mail.gmail.com>
-References: <fa.1HaqObZirROiyqr922A7hRDVc54@ifi.uio.no>
-	 <fa.Rzh43vSl9NX1QQ2nOYQSgEJcZAw@ifi.uio.no> <49035313.9080309@shaw.ca>
-	 <200810252004.01274.rjw@sisk.pl>
-	 <8db1092f0810251151l4c7f9382r34defa6d4d6ee24c@mail.gmail.com>
-	 <8db1092f0810271319s5d15c2ffrab37a548fa388738@mail.gmail.com>
-	 <1225187050.5189.146.camel@yakui_zhao.sh.intel.com>
-	 <8db1092f0810281245k14555e26w30547cf17fde534f@mail.gmail.com>
-	 <8db1092f0811030406i48150022gb5b444710d749b43@mail.gmail.com>
-	 <490EEDDD.4010203@gmail.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: ACPI reads wrong temperature
+Date: Mon, 03 Nov 2008 12:47:19 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0811031246550.3132@localhost.localdomain>
+References: <20081031140247.325670@gmx.net>
+ <20081031143030.GA9177@srcf.ucam.org> <20081031210913.3180@gmx.net>
+ <20081102092541.GE10983@srcf.ucam.org> <20081102113112.316040@gmx.net>
+ <1225677936.26020.17.camel@yakui_zhao.sh.intel.com>
+ <20081103090153.250280@gmx.net>
+ <9F0C1DB20AFA954FA1DA05309350433D3E5CA72D@pdsmsx503.ccr.corp.intel.com>
+ <20081103145723.GB496@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.25]:16692 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754344AbYKCQhP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Nov 2008 11:37:15 -0500
-In-Reply-To: <490EEDDD.4010203@gmail.com>
-Content-Disposition: inline
+Received: from vms042pub.verizon.net ([206.46.252.42]:45226 "EHLO
+	vms042pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751225AbYKCRrd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Nov 2008 12:47:33 -0500
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms042.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
+ 3 2006)) with ESMTPA id <0K9R00BRAQQX6427@vms042.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Mon, 03 Nov 2008 11:47:22 -0600 (CST)
+In-reply-to: <20081103145723.GB496@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Robert Hancock <hancockr@shaw.ca>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "fabio.comolli@gmail.com" <fabio.comolli@gmail.com>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: "Zhao, Yakui" <yakui.zhao@intel.com>, Peter Mahlknecht <mali100@gmx.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-2008/11/3 Alexey Starikovskiy <aystarik@gmail.com>:
 
->
-> please see #11917
->
+> I don't think the BIOS is doing anything wrong here. It's entitled to 
+> assume that the operating system won't load drivers for hardware it's 
+> not declaring.
 
-Patch from comment #3 doesn't help. I will try patches from #11896 very soon.
+agreed, we need a linux solution.
 
--- 
-Maciej Rutecki
-http://www.maciek.unixy.pl
+-len
