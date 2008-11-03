@@ -1,69 +1,250 @@
 From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: Re: Bisection result: eeepc hotk breakage
-Date: Mon, 03 Nov 2008 09:03:14 +0800
-Message-ID: <1225674194.26020.4.camel@yakui_zhao.sh.intel.com>
-References: <4907A511.3040603@tuffmail.co.uk> <4907A856.3050204@gmail.com>
-	 <4908307C.8060503@tuffmail.co.uk> <49086F67.1030607@suse.de>
-	 <490872BF.2010908@tuffmail.co.uk> <4908C714.5040104@tuffmail.co.uk>
-	 <4908C8EB.1010403@suse.de> <490ADD62.7090507@tuffmail.co.uk>
-	 <490B0D48.7040209@suse.de> <490B0DCB.40009@tuffmail.co.uk>
-	 <490B12F2.9050903@suse.de> <490B132A.3000904@tuffmail.co.uk>
-	 <490B1C3C.2080305@suse.de>
+Subject: Re: [PATCH v2 2/3] ACPI: Behave uniquely based on processor
+	declaration definition type
+Date: Mon, 03 Nov 2008 09:15:17 +0800
+Message-ID: <1225674917.26020.10.camel@yakui_zhao.sh.intel.com>
+References: <20081030215410.30683.95368.stgit@bob.kio>
+	 <20081030221319.30683.23234.stgit@bob.kio>
+	 <1225415958.3993.10.camel@yakui_zhao.sh.intel.com>
+	 <1225671037.8772.30.camel@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:55444 "EHLO mga01.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:14189 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754039AbYKCA4X (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 2 Nov 2008 19:56:23 -0500
-In-Reply-To: <490B1C3C.2080305@suse.de>
+	id S1751174AbYKCBIp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 2 Nov 2008 20:08:45 -0500
+In-Reply-To: <1225671037.8772.30.camel@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>, Alexey Starikovskiy <aystarik@gmail.com>, linux acpi <linux-acpi@vger.kernel.org>, Matthew Wilcox <willy@linux.intel.com>
+To: Myron Stowe <myron.stowe@hp.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <aystarik@gmail.com>
 
-On Fri, 2008-10-31 at 22:54 +0800, Alexey Starikovskiy wrote:
-> Alan Jenkins wrote:
-> > Alexey Starikovskiy wrote:
-> >> Alan Jenkins wrote:
-> >>> Alexey Starikovskiy wrote:
-> >>>> Alan Jenkins wrote:
-> >>>>> Alexey Starikovskiy wrote:
-> >>>>>> Alan Jenkins wrote:
-> >>>>>>> Well, that didn't work.
-> >>>>>> Pity...
-> >>>>>> Could you produce a debug log from EC?
-> >>>>>> Probably it's a good time to open a new bug report...
-> >>>>> <http://bugzilla.kernel.org/show_bug.cgi?id=11917>
-> >>>>> "Asus Eee PC hotkeys stop working after prolonged usage"
-> >>>>>
-> >>>>> I stuck at it, found a reliable test and bisected successfully.
-> >>>>> 2.6.28-rc2 is broken, but I can fix it by reverting the bad commit.
-> >>>>> (There were some conflicts, I fixed up the dock driver manually and
-> >>>>> avoided building the rest).
-> >>>> Alan, to make things clear -- reverting following commit makes EC work
-> >>>> without
-> >>>> a problem?
-> >>>>
-> >>>
-> >>> Yes, that's right.
-> >> Great!
-> >> What kernel version is that -- 32 or 64?
-Thanks for the patch. 
-   It seems that the code path in the function of ec_parse_device is
-incorrect.
-   Whether the ec->global_lock is assigned to a value should be based on
-the returned value of acpi_evaluate_integer(handle, "_GLK", NULL, &tmp).
-   If AE_OK is returned, the ec->global_lock is assigned to true.
-Otherwise it should be False.
-   Is this OK?
- 
-Thanks.
-
-  
-> > 
-> > 32 bit, my EeePC doesn't do 64.
-> is the attached patch enough to fix ?
+On Mon, 2008-11-03 at 08:10 +0800, Myron Stowe wrote:
+> On Fri, 2008-10-31 at 09:19 +0800, Zhao Yakui wrote:
+> > On Fri, 2008-10-31 at 06:13 +0800, Myron Stowe wrote:
+> > > Associating a Local SAPIC with a processor object is dependent upon the
+> > > processor object's definition type.  CPUs declared as "Processor" should
+> > > use the Local SAPIC's 'processor_id', and CPUs declared as "Device"
+> > > should use the 'uid'.  Note that for "Processor" declarations, even if a
+> > > '_UID' child object exists, it has no bearing with respect to mapping
+> > > Local SAPICs (see section 5.2.11.13 - Local SAPIC Structure; "Advanced
+> > > Configuration and Power Interface Specification", Revision 3.0b).
+> > > 
+> > > This patch changes the lsapic mapping logic to rely on the distinction of
+> > > how the processor object was declared - the mapping can't just try both
+> > > types of matches irregardless of declaration type and rely on one failing
+> > > as is currently being done.
+> > > 
+> > > Signed-off-by: Myron Stowe <myron.stowe@hp.com>
+> > > Cc: Alexey Starikovskiy <aystarik@gmail.com>
+> > > Cc: Zhao Yakui <yakui.zhao@intel.com>
+> > > ---
+> > > 
+> > >  drivers/acpi/processor_core.c |   75 +++++++++++++++++++++++------------------
+> > >  1 files changed, 42 insertions(+), 33 deletions(-)
+> > > 
+> > > diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+> > > index 0c670dd..35d33e8 100644
+> > > --- a/drivers/acpi/processor_core.c
+> > > +++ b/drivers/acpi/processor_core.c
+> > > @@ -410,7 +410,7 @@ static int acpi_processor_remove_fs(struct acpi_device *device)
+> > >  /* Use the acpiid in MADT to map cpus in case of SMP */
+> > >  
+> > >  #ifndef CONFIG_SMP
+> > > -static int get_cpu_id(acpi_handle handle, u32 acpi_id) {return -1;}
+> > > +static int get_cpu_id(acpi_handle handle, int type, u32 acpi_id) { return -1; }
+> > >  #else
+> > >  
+> > >  static struct acpi_table_madt *madt;
+> > > @@ -429,27 +429,35 @@ static int map_lapic_id(struct acpi_subtable_header *entry,
+> > >  }
+> > >  
+> > >  static int map_lsapic_id(struct acpi_subtable_header *entry,
+> > > -		  u32 acpi_id, int *apic_id)
+> > > +		int device_declaration, u32 acpi_id, int *apic_id)
+> > >  {
+> > >  	struct acpi_madt_local_sapic *lsapic =
+> > >  		(struct acpi_madt_local_sapic *)entry;
+> > > +	u32 tmp = (lsapic->id << 8) | lsapic->eid;
+> > > +
+> > >  	/* Only check enabled APICs*/
+> > > -	if (lsapic->lapic_flags & ACPI_MADT_ENABLED) {
+> > > -		/* First check against id */
+> > > -		if (lsapic->processor_id == acpi_id) {
+> > > -			*apic_id = (lsapic->id << 8) | lsapic->eid;
+> > > -			return 1;
+> > > -		/* Check against optional uid */
+> > > -		} else if (entry->length >= 16 &&
+> > > -			lsapic->uid == acpi_id) {
+> > > -			*apic_id = lsapic->uid;
+> > > -			return 1;
+> > > -		}
+> > > -	}
+> > > +	if (!(lsapic->lapic_flags & ACPI_MADT_ENABLED))
+> > > +		return 0;
+> > > +
+> > > +	/* Device statement declaration type */
+> > > +	if (device_declaration) {
+> > > +		if (entry->length < 16)
+> > > +			printk(KERN_ERR PREFIX
+> > > +			    "Invalid LSAPIC with Device type processor (SAPIC ID %#x)\n",
+> > > +			    tmp);
+> > > +		else if (lsapic->uid == acpi_id)
+> > > +			goto found;
+> > > +	/* Processor statement declaration type */
+> > > +	} else if (lsapic->processor_id == acpi_id)
+> > > +		goto found;
+> > > +
+> > >  	return 0;
+> > > +found:
+> > > +	*apic_id = tmp;
+> > > +	return 1;
+> > >  }
+> > >  
+> > > -static int map_madt_entry(u32 acpi_id)
+> > > +static int map_madt_entry(int type, u32 acpi_id)
+> > >  {
+> > >  	unsigned long madt_end, entry;
+> > >  	int apic_id = -1;
+> > > @@ -470,7 +478,7 @@ static int map_madt_entry(u32 acpi_id)
+> > >  			if (map_lapic_id(header, acpi_id, &apic_id))
+> > >  				break;
+> > >  		} else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC) {
+> > > -			if (map_lsapic_id(header, acpi_id, &apic_id))
+> > > +			if (map_lsapic_id(header, type, acpi_id, &apic_id))
+> > >  				break;
+> > >  		}
+> > >  		entry += header->length;
+> > > @@ -478,7 +486,7 @@ static int map_madt_entry(u32 acpi_id)
+> > >  	return apic_id;
+> > >  }
+> > >  
+> > > -static int map_mat_entry(acpi_handle handle, u32 acpi_id)
+> > > +static int map_mat_entry(acpi_handle handle, int type, u32 acpi_id)
+> > >  {
+> > >  	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+> > >  	union acpi_object *obj;
+> > > @@ -501,7 +509,7 @@ static int map_mat_entry(acpi_handle handle, u32 acpi_id)
+> > >  	if (header->type == ACPI_MADT_TYPE_LOCAL_APIC) {
+> > >  		map_lapic_id(header, acpi_id, &apic_id);
+> > >  	} else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC) {
+> > > -		map_lsapic_id(header, acpi_id, &apic_id);
+> > > +		map_lsapic_id(header, type, acpi_id, &apic_id);
+> > >  	}
+> > >  
+> > >  exit:
+> > > @@ -510,14 +518,14 @@ exit:
+> > >  	return apic_id;
+> > >  }
+> > >  
+> > > -static int get_cpu_id(acpi_handle handle, u32 acpi_id)
+> > > +static int get_cpu_id(acpi_handle handle, int type, u32 acpi_id)
+> > >  {
+> > >  	int i;
+> > >  	int apic_id = -1;
+> > >  
+> > > -	apic_id = map_mat_entry(handle, acpi_id);
+> > > +	apic_id = map_mat_entry(handle, type, acpi_id);
+> > >  	if (apic_id == -1)
+> > > -		apic_id = map_madt_entry(acpi_id);
+> > > +		apic_id = map_madt_entry(type, acpi_id);
+> > >  	if (apic_id == -1)
+> > >  		return apic_id;
+> > >  
+> > > @@ -533,15 +541,16 @@ static int get_cpu_id(acpi_handle handle, u32 acpi_id)
+> > >                                   Driver Interface
+> > >     -------------------------------------------------------------------------- */
+> > >  
+> > > -static int acpi_processor_get_info(struct acpi_processor *pr, unsigned has_uid)
+> > > +static int acpi_processor_get_info(struct acpi_device *device)
+> > >  {
+> > >  	acpi_status status = 0;
+> > >  	union acpi_object object = { 0 };
+> > >  	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
+> > > -	int cpu_index;
+> > > +	struct acpi_processor *pr;
+> > > +	int cpu_index, device_declaration = 0;
+> > >  	static int cpu0_initialized;
+> > >  
+> > > -
+> > > +	pr = acpi_driver_data(device);
+> > >  	if (!pr)
+> > >  		return -EINVAL;
+> > >  
+> > > @@ -562,8 +571,11 @@ static int acpi_processor_get_info(struct acpi_processor *pr, unsigned has_uid)
+> > >  		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+> > >  				  "No bus mastering arbitration control\n"));
+> > >  
+> > > -	/* Check if it is a Device with HID and UID */
+> > > -	if (has_uid) {
+> > > +	if (!strcmp(acpi_device_hid(device), ACPI_PROCESSOR_HID)) {
+> > > +		/*
+> > > +		 * Declared with "Device" statement; match _UID.
+> > > +		 * Note that we don't handle string _UIDs yet.
+> > Looks very good. 
+> > Can you add the check whether the device.flags.unique_id exists before
+> > evaluating the _UID object? 
+> > If not exist, it indicates that the processor definition is incorrect.
 > 
+> The additional check would create a relationship with
+> 'device.flags.unique_id' which seems redundant and would introduce
+> unnecessary complexity going forward.  While such an additional check
+> would possibly short circuit the call to 'acpi_evaluate_integer()' -
+> when FW is in error and a _UID child object does not exist; a case that
+> is already caught - this code is not in a performance path and thus
+> seems to yield no benefit.
+In your patch the device.flags.unique_id is not used. Maybe on some
+systems the processor is defined by Device. But there is no _UID
+object.This is incorrect. 
+   IMO in such case we should catch such error.
+  
+Best regards.
+   Yakui
+> Was there some other aspect that you were thinking of?
+> 
+> Myron
+> 
+> > Thanks.
+> > > +		 */
+> > >  		unsigned long long value;
+> > >  		status = acpi_evaluate_integer(pr->handle, METHOD_NAME__UID,
+> > >  						NULL, &value);
+> > > @@ -571,13 +583,10 @@ static int acpi_processor_get_info(struct acpi_processor *pr, unsigned has_uid)
+> > >  			printk(KERN_ERR PREFIX "Evaluating processor _UID\n");
+> > >  			return -ENODEV;
+> > >  		}
+> > > +		device_declaration = 1;
+> > >  		pr->acpi_id = value;
+> > >  	} else {
+> > > -		/*
+> > > -		* Evalute the processor object.  Note that it is common on SMP to
+> > > -		* have the first (boot) processor with a valid PBLK address while
+> > > -		* all others have a NULL address.
+> > > -		*/
+> > > +		/* Declared with "Processor" statement; match ProcessorID */
+> > >  		status = acpi_evaluate_object(pr->handle, NULL, NULL, &buffer);
+> > >  		if (ACPI_FAILURE(status)) {
+> > >  			printk(KERN_ERR PREFIX "Evaluating processor object\n");
+> > > @@ -590,7 +599,7 @@ static int acpi_processor_get_info(struct acpi_processor *pr, unsigned has_uid)
+> > >  		*/
+> > >  		pr->acpi_id = object.processor.proc_id;
+> > >  	}
+> > > -	cpu_index = get_cpu_id(pr->handle, pr->acpi_id);
+> > > +	cpu_index = get_cpu_id(pr->handle, device_declaration, pr->acpi_id);
+> > >  
+> > >  	/* Handle UP system running SMP kernel, with no LAPIC in MADT */
+> > >  	if (!cpu0_initialized && (cpu_index == -1) &&
+> > > @@ -662,7 +671,7 @@ static int __cpuinit acpi_processor_start(struct acpi_device *device)
+> > >  
+> > >  	pr = acpi_driver_data(device);
+> > >  
+> > > -	result = acpi_processor_get_info(pr, device->flags.unique_id);
+> > > +	result = acpi_processor_get_info(device);
+> > >  	if (result) {
+> > >  		/* Processor is physically not present */
+> > >  		return 0;
+> > > 
+> > 
 
