@@ -1,82 +1,70 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: eeepc-laptop rfkill, stupid question #4
-Date: Mon, 3 Nov 2008 12:47:49 -0200
-Message-ID: <20081103144749.GC31078@khazad-dum.debian.net>
-References: <490B3BB5.8060801@tuffmail.co.uk> <20081031171126.GA17313@srcf.ucam.org> <490B4014.4040009@tuffmail.co.uk> <490B70A3.8010108@tuffmail.co.uk> <20081102040008.GB29606@khazad-dum.debian.net> <490D8C4E.3010201@tuffmail.co.uk> <20081102130655.GA12766@srcf.ucam.org> <490DAA33.7010905@tuffmail.co.uk>
+From: "Zhao, Yakui" <yakui.zhao@intel.com>
+Subject: RE: ACPI reads wrong temperature
+Date: Mon, 3 Nov 2008 22:50:27 +0800
+Message-ID: <9F0C1DB20AFA954FA1DA05309350433D3E5CA72D@pdsmsx503.ccr.corp.intel.com>
+References: <20081031140247.325670@gmx.net>
+	 <20081031143030.GA9177@srcf.ucam.org> <20081031210913.3180@gmx.net>
+	 <20081102092541.GE10983@srcf.ucam.org>  <20081102113112.316040@gmx.net>
+ <1225677936.26020.17.camel@yakui_zhao.sh.intel.com>
+ <20081103090153.250280@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out5.smtp.messagingengine.com ([66.111.4.29]:40035 "EHLO
-	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754685AbYKCOr5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Nov 2008 09:47:57 -0500
-Content-Disposition: inline
-In-Reply-To: <490DAA33.7010905@tuffmail.co.uk>
+Received: from mga01.intel.com ([192.55.52.88]:51646 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755761AbYKCOvQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 3 Nov 2008 09:51:16 -0500
+In-Reply-To: <20081103090153.250280@gmx.net>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux-kernel <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>
+To: Peter Mahlknecht <mali100@gmx.net>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "mjg@redhat.com" <mjg@redhat.com>
 
-On Sun, 02 Nov 2008, Alan Jenkins wrote:
-> No, the current rfkill core forces the device to restore the state on  
-> resume.  So it can't be of sync after resume.  And there's no way for  
-> the platform driver to affect this behaviour, aside from illegally  
-> generating input events.
-
-Actually, there might be some sort of mess in this (i.e. a bug in the core).
-
-Here's what it is doing:
-
-At resume, it does a forced rfkill_toggle_radio() with either the value
-cached in rfkill->state or SOFT_BLOCK (if EPO is active), so
-rfkill_toggle_radio() will call your driver's toggle_radio() hook regardless
-of whether it thinks the rfkill state is already correct or not.
-
-HOWEVER, rfkill->state *IS* updated by rfkill_force_state(), which your
-driver is supposed to have called in its resume handling, that runs BEFORE
-rfkill core's rfkill class resume hander (devices resume before their
-classes AFAIK).
-
-So, the core will NOT restore the pre-sleep state of the transmitter.  It
-will sync itself, and not cause worse trouble, but it seems not to be doing
-what it is supposed to.
-
-Argh.
-
-I will send a patch after I do some testing to validate the above (and if
-the bug is validated, after making sure the patch fixes it).
-
-> If we want resume from hibernation to preserve the hardware state  
-> instead of overriding it, the rfkill API needs changing.  I'm not sure  
-
-Oh, we DO want to override UNLESS what changed was actually something
-capable of HARD_BLOCK (in which case the core already does things right if
-you used rfkill_force_state()).   It is the path of least surprise for the
-user.
-
-Frankly, I do not *CARE* to think about things like hibernate, boot another
-OS, hibernate again or shutdown, try to boot back on the previous OS.  This
-is in NO WAY supported by ACPI, and can cause massive crappage if either OS
-uses S4 instead of S5 for hibernation (and you ARE supposed to use S4, so
-you can see the big pitfall right away).
-
-All that matters is straight sleep-resume, hibernate-resume, and the fact
-that the user IS allowed to mess with the hardware config (e.g. eject bays,
-undock, remove non-fixed storage, and of course, toggle a hardware rfkill
-input device).
-
-> the damage it would do to an API which already, uh, seems to be  
-> frequently misunderstood.
-
-That is an understatement...  Hell, I probably am the one more acquinted
-with the current rfkill API, and I still end up getting confused by it...
-
-It really could benefit of a fine comb and code flow diagram analysis to
-validate everything and catch bugs like the one I described above (which
-*seems* to exist, I haven't tested for it yet, and I might be mistaken).
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+VGhhbmtzIGZvciB0aGUgaW5mby4NCkZyb20gdGhlIGF0dGFjaGVkIGluZm8gd2UgY2FuIGtub3cg
+dGhhdCB0aGUgSS9PIHN0YXJ0IGFkZHJlc3MgZm9yIFNNYnVzIGlzIDB4MThFMC4gQW5kIFNNYnVz
+IGlzIGludGVybmFsbHkgdXNlZCBpbiBBTUwgY29kZS4NCg0KSWYgdGhlIEkyQy1pODAxIGRyaXZl
+ciBpcyBsb2FkZWQsIHRoZXJlIGlzIHRoZSBjb25mbGljdCBiZXR3ZWVuIEJJT1MgYW5kIE9TLg0K
+DQpTbyBJIHRoaW5rIHRoYXQgaXQgaXMgYSBCSU9TIGJ1Zy4gQW5kIHRoaXMgY2FuJ3QgYmUgZml4
+ZWQgYnkgTGludXgta2VybmVsLg0KSXQgaGFkIGJldHRlciBmaXhlZCBieSBCSU9TIHVwZ3JhZGlu
+Zy4NClRoYW5rcy4NCg0KDQotLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KRnJvbTogUGV0ZXIg
+TWFobGtuZWNodCBbbWFpbHRvOm1hbGkxMDBAZ214Lm5ldF0gDQpTZW50OiAyMDA45bm0MTHmnIgz
+5pelIDE3OjAyDQpUbzogWmhhbywgWWFrdWkNCkNjOiBsaW51eC1hY3BpQHZnZXIua2VybmVsLm9y
+ZzsgbWpnQHJlZGhhdC5jb20NClN1YmplY3Q6IFJlOiBBQ1BJIHJlYWRzIHdyb25nIHRlbXBlcmF0
+dXJlDQoNCg0KLS0tLS0tLS0gT3JpZ2luYWwtTmFjaHJpY2h0IC0tLS0tLS0tDQo+IERhdHVtOiBN
+b24sIDAzIE5vdiAyMDA4IDEwOjA1OjM2ICswODAwDQo+IFZvbjogWmhhbyBZYWt1aSA8eWFrdWku
+emhhb0BpbnRlbC5jb20+DQo+IEFuOiBQZXRlciBNYWhsa25lY2h0IDxtYWxpMTAwQGdteC5uZXQ+
+DQo+IENDOiBNYXR0aGV3IEdhcnJldHQgPG1qZ0ByZWRoYXQuY29tPiwgImxpbnV4LWFjcGlAdmdl
+ci5rZXJuZWwub3JnIiA8bGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc+DQo+IEJldHJlZmY6IFJl
+OiBBQ1BJIHJlYWRzIHdyb25nIHRlbXBlcmF0dXJlDQoNCj4gT24gU3VuLCAyMDA4LTExLTAyIGF0
+IDE5OjMxICswODAwLCBQZXRlciBNYWhsa25lY2h0IHdyb3RlOg0KPiA+ID4gPiBUaGFua3MgZm9y
+IHRoZSBoaW50LiBJIGdldCB0aGUgd3JvbmcgdGVtcGVyYXR1cmVzIGFmdGVyIGxvYWRpbmcgdGhl
+IA0KPiA+ID4gPiBsbTkwIG1vZHVsZSAoaHdtb24gZHJpdmVyKSwgYnV0IGFsc28gaWYgaSBsb2Fk
+IGVtMjh4eF9jeDI1ODQzLCB3aGljaA0KPiA+ID4gPiBpcyBhIHBhcnQgb2YgdGhlIGRyaXZlciBm
+b3IgbXkgdHYtY2FyZC4gQm90aCBtb2R1bGVzIGRlcGVuZCBvbiANCj4gPiA+ID4gaTJjLWNvcmUs
+IHNvIHByb2JhYmx5IHRoZSBidWcgaXMgcmVsYXRlZCB0byB0aGUgaTJjIGJ1cz8NCj4gPiA+IA0K
+PiA+ID4gSW4gdGhlIGxtOTAgY2FzZSBpdCdzIGFsbW9zdCBjZXJ0YWlubHkgYmVjYXVzZSB5b3Ug
+aGF2ZSB0aGUgZmlybXdhcmUNCj4gYW5kIA0KPiA+ID4gTGludXggdHJ5aW5nIHRvIGFjY2VzcyB0
+aGUgY2hpcCBhdCB0aGUgc2FtZSB0aW1lLiBTaW5jZSBpdCBoYXMgaW5kZXhlZA0KPiA+ID4gcmVn
+aXN0ZXJzLCB0aGlzIGZhaWxzIHZlcnkgbWlzZXJhYmx5LiBJJ20gc3VycHJpc2VkIHRoYXQgdGhl
+IFRWIGNhcmQgDQo+ID4gPiBkcml2ZXIgaGFzIGFueSBlZmZlY3QgLSBpdCBzaG91bGQgYmUgb24g
+YW4gZW50aXJlbHkgc3BlYXJhdGUgaTJjIGJ1cy4gDQo+ID4gPiBBcmUgeW91IHN1cmUgeW91IGRv
+bid0IGhhdmUgbG05MCBsb2FkZWQgaW4gdGhhdCBjYXNlPw0KPiA+IFllcywgSSBhbS4gSSBoYWQg
+YWxzbyBhIHRhbGsgd2l0aCB0aGUgYXV0aG9yIG9mIHRoZSBUdi1jYXJkIGRyaXZlciBhbmQNCj4g
+aGUgc3VnZ2VzdGVkIHRvIGJ1dCB0aGUgcHJvYmxlbSBvbiB0aGUgbG0tc2Vuc29ycyBtbDoNCj4g
+aHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL3BpcGVybWFpbC9sbS1zZW5zb3JzLzIwMDgtTm92
+ZW1iZXIvMDI0NjEwLmh0bWwNCj4gPiBXZSBrbm93IG5vdyB0aGF0IHRoZSBwcm9ibGVtIGlzIHJl
+bGF0ZWQgdG8gdGhlIGkyYy1pODAxIGRyaXZlci4NCj4gWWVzLiBUaGlzIGlzIHJlbGF0ZWQgd2l0
+aCBpMmMtaTgwMSBkcml2ZXIuDQo+IFdlIGhhdmUgYSBzaW1pbGFyIGJ1Zy4gDQo+ICAgIGh0dHA6
+Ly9idWd6aWxsYS5rZXJuZWwub3JnL3Nob3dfYnVnLmNnaT9pZD0xMDI0NQ0KPiANCj4gSW4gdGhp
+cyBidWcgYWZ0ZXIgdGhlIGRyaXZlciBvZiBsbV9zZW5zb3IgaXMgbG9hZGVkLCB0aGUgc3lzdGVt
+IHJlYWQgdGhlDQo+IGluY29ycmVjdCB0ZW1wZXJhdHVyZS4gIFRoZSByb290IGNhdXNlIGlzIHRo
+YXQgdGhlIFNNQnVzIGlzIHVzZWQgYnkgQUNQSQ0KPiBmb3IgdGhlcm1hbCBtYW5hZ2VtZW50LiBB
+ZnRlciB0aGUgbG1fc2Vuc29yIGlzIGxvYWRlZCwgTGludXggd2lsbCB1c2UNCj4gdGhlIHNhbWUg
+YnVzLiBUaGVyZSBpcyB0aGUgY29uZmxpY3QuIFNvIGlmIHRoZSBMaW51eCBkb2Vzbid0IGF0dGFj
+aCB0aGUNCj4gZHJpdmVyIHRvIHRoZSBTTWJ1cywgaXQgd2lsbCBiZSBPSy4NCj4gDQo+IFdpbGwg
+eW91IHBsZWFzZSBhdHRhY2ggdGhlIG91dHB1dCBvZiBhY3BpZHVtcCwgbHNwY2kgLXZ4eHg/DQpJ
+IGF0dGFjaGVkIHRoZSB0d28gZmlsZXMuDQoNClBldGVyDQotLSANClBzc3NzdCEgU2Nob24gdm9t
+IG5ldWVuIEdNWCBNdWx0aU1lc3NlbmdlciBnZWjDtnJ0PyBEZXIga2FubmBzIG1pdCBhbGxlbjog
+aHR0cDovL3d3dy5nbXgubmV0L2RlL2dvL211bHRpbWVzc2VuZ2VyDQo=
