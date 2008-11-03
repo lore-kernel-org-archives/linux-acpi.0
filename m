@@ -1,48 +1,52 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: [PATCH 0/7] sony-laptop for acpi-test
-Date: Mon, 3 Nov 2008 21:48:43 +0900
-Message-ID: <20081103124842.GA6865@inferi.kami.home>
-References: <1225705280-12775-1-git-send-email-malattia@linux.it> <20081103111721.GA31688@gamma.logic.tuwien.ac.at>
+From: Andrey Borzenkov <arvidjaar@mail.ru>
+Subject: 2.6.28 regression? LCD display inactive after reboot on Toshiba Portege 4000
+Date: Mon, 3 Nov 2008 16:00:59 +0300
+Message-ID: <200811031600.59968.arvidjaar@mail.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed;
+  boundary="nextPart5841872.8BJaPcJVDv";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:60306
-	"EHLO tadamune.kami.home" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754727AbYKCMsq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Nov 2008 07:48:46 -0500
-Content-Disposition: inline
-In-Reply-To: <20081103111721.GA31688@gamma.logic.tuwien.ac.at>
+Received: from mx33.mail.ru ([194.67.23.194]:32679 "EHLO mx33.mail.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754487AbYKCNBG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 3 Nov 2008 08:01:06 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Norbert Preining <preining@logic.at>
-Cc: linux-acpi@vger.kernel.org
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-On Mon, Nov 03, 2008 at 12:17:21PM +0100, Norbert Preining wrote:
-> Hi Mattia,
+--nextPart5841872.8BJaPcJVDv
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Hi, thanks for testing.
+I had this every now and then before but right now I consistently
+have the issue after reboot under 2.6.28-rc2 and emergency reboot
+(SysRq-B) under rc3 (emergency because I cannot get past creating
+devices in initrd - it just hangs there).
 
-> On Mo, 03 Nov 2008, Mattia Dongili wrote:
-> > here is a first submission with some of the backlog I accumulated in
-> > these months.
-> 
-> I tried your patches on top of 2.6.28-rc3 and the tests showed:
-> - backlight is working via sys interface and xbacklight
-> - hardkeys are still not working
+After reboot display is empty; I have to use hot key (Fn-F5 in this
+case to reactivate LCD again).
 
-what do you mean? some Fn backlight button (F5/F6 usually) or a separate
-button?
-Can you see if the kernel driver reports the events (pressing releasing
-keys) but loading it with debug=1 ?
-If it does it's just a matter for you to configure acpid or hal to
-behave as you expect.
+As I said the problem was always there, just happened very infrequently.
+I am use BIOD reboot method because ACPI leaves keyboard disabled.
 
-> - wifipower, wwanpower, bluetoothpower sys files do not work
+Any idea?
 
-can you send the kernel output after loading sony-laptop with debug=1
-and echoing some value to those files?
+--nextPart5841872.8BJaPcJVDv
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
-thanks
--- 
-mattia
-:wq!
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEABECAAYFAkkO9gsACgkQR6LMutpd94wWLwCfT0jiVqHn1eyse7IcU9LP5oAv
+oSUAniZvUx5fMsbM6JFJaYnLl9rTAeqj
+=ojYc
+-----END PGP SIGNATURE-----
+
+--nextPart5841872.8BJaPcJVDv--
