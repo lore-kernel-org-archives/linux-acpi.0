@@ -1,44 +1,41 @@
-From: Norbert Preining <preining@logic.at>
-Subject: Re: [PATCH 0/7] sony-laptop for acpi-test
-Date: Mon, 3 Nov 2008 12:17:21 +0100
-Message-ID: <20081103111721.GA31688@gamma.logic.tuwien.ac.at>
-References: <1225705280-12775-1-git-send-email-malattia@linux.it>
+From: "Maciej Rutecki" <maciej.rutecki@gmail.com>
+Subject: Re: Linux 2.6.28-rc1] ACPI Warning (nspredef-0852)[...]
+Date: Mon, 3 Nov 2008 13:06:22 +0100
+Message-ID: <8db1092f0811030406i48150022gb5b444710d749b43@mail.gmail.com>
+References: <fa.1HaqObZirROiyqr922A7hRDVc54@ifi.uio.no>
+	 <fa.Rzh43vSl9NX1QQ2nOYQSgEJcZAw@ifi.uio.no> <49035313.9080309@shaw.ca>
+	 <200810252004.01274.rjw@sisk.pl>
+	 <8db1092f0810251151l4c7f9382r34defa6d4d6ee24c@mail.gmail.com>
+	 <8db1092f0810271319s5d15c2ffrab37a548fa388738@mail.gmail.com>
+	 <1225187050.5189.146.camel@yakui_zhao.sh.intel.com>
+	 <8db1092f0810281245k14555e26w30547cf17fde534f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:35487 "EHLO
-	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754891AbYKCLRX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Nov 2008 06:17:23 -0500
+Received: from qw-out-2122.google.com ([74.125.92.26]:44596 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754118AbYKCMGY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Nov 2008 07:06:24 -0500
+In-Reply-To: <8db1092f0810281245k14555e26w30547cf17fde534f@mail.gmail.com>
 Content-Disposition: inline
-In-Reply-To: <1225705280-12775-1-git-send-email-malattia@linux.it>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mattia Dongili <malattia@linux.it>
-Cc: linux-acpi@vger.kernel.org
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Robert Hancock <hancockr@shaw.ca>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "fabio.comolli@gmail.com" <fabio.comolli@gmail.com>
 
-Hi Mattia,
+Problem still exists on 2.6.28-rc3:
+ACPI: EC: missing confirmations, switch off interrupt mode.
+ACPI Exception (evregion-0419): AE_TIME, Returned by Handler for
+[EmbeddedControl] [20080926]
+ACPI Error (psparse-0524): Method parse/execution failed [\_TZ_.C31E]
+(Node f7019858), AE_TIME
+ACPI Error (psparse-0524): Method parse/execution failed
+[\_TZ_.TZ3_._TMP] (Node f7019ed0), AE_TIME
 
-On Mo, 03 Nov 2008, Mattia Dongili wrote:
-> here is a first submission with some of the backlog I accumulated in
-> these months.
+But I don't see any functional problems.
 
-I tried your patches on top of 2.6.28-rc3 and the tests showed:
-- backlight is working via sys interface and xbacklight
-- hardkeys are still not working
-- wifipower, wwanpower, bluetoothpower sys files do not work
-
-All on Sony Vaio VGN-Z11
-
-Best wishes
-
-Norbert
-
--------------------------------------------------------------------------------
-Dr. Norbert Preining <preining@logic.at>        Vienna University of Technology
-Debian Developer <preining@debian.org>                         Debian TeX Group
-gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
--------------------------------------------------------------------------------
-AITH (n.)
-The single bristle that sticks out sideways on a cheap paintbrush.
-			--- Douglas Adams, The Meaning of Liff
+Regards
+-- 
+Maciej Rutecki
+http://www.maciek.unixy.pl
