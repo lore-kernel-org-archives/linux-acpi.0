@@ -1,37 +1,33 @@
 From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: eeepc-laptop rfkill, stupid question #4
-Date: Mon, 3 Nov 2008 14:55:43 +0000
-Message-ID: <20081103145543.GA496@srcf.ucam.org>
-References: <20081031171126.GA17313@srcf.ucam.org> <490B4014.4040009@tuffmail.co.uk> <490B70A3.8010108@tuffmail.co.uk> <20081102040008.GB29606@khazad-dum.debian.net> <490D8C4E.3010201@tuffmail.co.uk> <20081102130655.GA12766@srcf.ucam.org> <20081103141628.GB31078@khazad-dum.debian.net> <20081103141836.GA31894@srcf.ucam.org> <490F0ACC.4000808@tuffmail.co.uk> <20081103145145.GD31078@khazad-dum.debian.net>
+Subject: Re: ACPI reads wrong temperature
+Date: Mon, 3 Nov 2008 14:57:23 +0000
+Message-ID: <20081103145723.GB496@srcf.ucam.org>
+References: <20081031140247.325670@gmx.net> <20081031143030.GA9177@srcf.ucam.org> <20081031210913.3180@gmx.net> <20081102092541.GE10983@srcf.ucam.org> <20081102113112.316040@gmx.net> <1225677936.26020.17.camel@yakui_zhao.sh.intel.com> <20081103090153.250280@gmx.net> <9F0C1DB20AFA954FA1DA05309350433D3E5CA72D@pdsmsx503.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:43804 "EHLO
+Received: from cavan.codon.org.uk ([93.93.128.6]:39583 "EHLO
 	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755816AbYKCOzr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Nov 2008 09:55:47 -0500
+	with ESMTP id S1753955AbYKCO50 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Nov 2008 09:57:26 -0500
 Content-Disposition: inline
-In-Reply-To: <20081103145145.GD31078@khazad-dum.debian.net>
+In-Reply-To: <9F0C1DB20AFA954FA1DA05309350433D3E5CA72D@pdsmsx503.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>, linux-kernel <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>
+To: "Zhao, Yakui" <yakui.zhao@intel.com>
+Cc: Peter Mahlknecht <mali100@gmx.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Mon, Nov 03, 2008 at 12:51:45PM -0200, Henrique de Moraes Holschuh wrote:
+On Mon, Nov 03, 2008 at 10:50:27PM +0800, Zhao, Yakui wrote:
+> Thanks for the info.
+> From the attached info we can know that the I/O start address for SMbus is 0x18E0. And SMbus is internally used in AML code.
+> 
+> If the I2C-i801 driver is loaded, there is the conflict between BIOS and OS.
+> 
+> So I think that it is a BIOS bug. And this can't be fixed by Linux-kernel.
 
-> Not if you can enter or exit HARD_BLOCK, you're not.  If you cannot it is
-> fine.  But if you can, you really need to rfkill_force_state() on resume,
-
-The state can always be overridden by software, so I think we're fine 
-there.
-
-> And the rfkill core seems to be buggy when you call force_state() on resume,
-> which you guys didn't hit because you're not doing it yet.  See my other
-> email...
-
-Just to make sure: in the case where we *don't* support hard blocking, 
-there's no need to do anything special in the driver on resume and 
-rfkill should (but currently doesn't) do the right thing itself?
+I don't think the BIOS is doing anything wrong here. It's entitled to 
+assume that the operating system won't load drivers for hardware it's 
+not declaring.
 
 -- 
 Matthew Garrett | mjg59@srcf.ucam.org
