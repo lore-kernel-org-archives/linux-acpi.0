@@ -1,47 +1,63 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: Re: [PATCH]: ACPI Cleanup :Initialize EC global lock based on the
- return status
-Date: Tue, 04 Nov 2008 12:38:51 +0300
-Message-ID: <4910182B.6090201@suse.de>
-References: <20081031184233.8588.42241.stgit@thinkpad>	 <1225784509.26020.73.camel@yakui_zhao.sh.intel.com>	 <49100241.2030205@suse.de> <1225791444.26020.84.camel@yakui_zhao.sh.intel.com>
+From: Mattia Dongili <malattia@linux.it>
+Subject: Re: [PATCH 4/7] [sony-laptop] detect the ICH9 chipset as Type3
+Date: Tue, 4 Nov 2008 22:21:34 +0900
+Message-ID: <20081104132133.GA22606@inferi.kami.home>
+References: <1225705280-12775-1-git-send-email-malattia@linux.it> <1225705280-12775-2-git-send-email-malattia@linux.it> <1225705280-12775-3-git-send-email-malattia@linux.it> <1225705280-12775-4-git-send-email-malattia@linux.it> <1225705280-12775-5-git-send-email-malattia@linux.it> <20081104082217.93FA5E0D3@master.hanzubon.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:55133 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752293AbYKDJiy (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Tue, 4 Nov 2008 04:38:54 -0500
-In-Reply-To: <1225791444.26020.84.camel@yakui_zhao.sh.intel.com>
+Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:44001
+	"EHLO tadamune.kami.home" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753097AbYKDNVi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Nov 2008 08:21:38 -0500
+Content-Disposition: inline
+In-Reply-To: <20081104082217.93FA5E0D3@master.hanzubon.jp>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: LenBrown <lenb@kernel.org>, "Linux-acpi@vger.kernel.org" <Linux-acpi@vger.kernel.org>, "alan-jenkins@tuffmail.co.uk" <alan-jenkins@tuffmail.co.uk>
+To: ISHIKAWA Mutsumi <ishikawa@hanzubon.jp>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
 
-Zhao Yakui wrote:
-> On Tue, 2008-11-04 at 16:05 +0800, Alexey Starikovskiy wrote:
->> NAK
-> Will you please describe the detailed reason?
+On Tue, Nov 04, 2008 at 05:22:17PM +0900, ISHIKAWA Mutsumi wrote:
+> >>>>> In <1225705280-12775-5-git-send-email-malattia@linux.it> 
+> >>>>>	Mattia Dongili <malattia@linux.it> wrote:
+> >> From: ISHIKAWA Mutsumi <ishikawa@hanzubon.jp>
+> >>
+> >> Signed-off-by: Mattia Dongili <malattia@linux.it>
+> >> ---
+> >>  drivers/misc/sony-laptop.c |    7 +++++++
+> >>  1 files changed, 7 insertions(+), 0 deletions(-)
 > 
-> In the bug 11917 the regression is related with the following commit:
->     >commit 27663c5855b10af9ec67bc7dfba001426ba21222
->     >Author: Matthew Wilcox <willy@linux.intel.com>
->     >Date:   Fri Oct 10 02:22:59 2008 -0400
->     >ACPI: Change acpi_evaluate_integer to support 64-bit on 32-bit
-> kernels
+> >> diff --git a/drivers/misc/sony-laptop.c b/drivers/misc/sony-laptop.c
+> >> index c9e5651..19f3306 100644
+> >> --- a/drivers/misc/sony-laptop.c
+> >> +++ b/drivers/misc/sony-laptop.c
+> >> @@ -1589,6 +1589,13 @@ static void sony_pic_detect_device_type(struct sony_pic_dev *dev)
+> >>  		goto out;
+> >>  	}
+>  
+> >> +	pcidev = pci_get_device(PCI_VENDOR_ID_INTEL,
+> >> +			PCI_DEVICE_ID_INTEL_ICH9_1, NULL);
+> >> +	if (pcidev) {
+> >> +		dev->control = &spic_types[4];
 > 
->     But IMO the main reason is that EC driver misuses the Linux-ACPI
-> utility interface.(acpi_evaluate_integer).  
-Did you _read_ the interface specification?
-It explicitly states that if any function call does not succeed it will not
-change the data passed to it.
-So it is again only your not-so-humble opinion.
->     It will be better to determine whether the return value of ACPI
-> object is effective according to the return status. In such case the
-> code still can work well even after the Linux-ACPI utility interface is
-> changed again.
-Code works fine until someone tries to optimize it...
+>  In patch [PATCH 1/7] [sony-laptop] merge Type4 into Type3,
+> type 3 and type 4 spic models are merged, and type 5 model
+> I added (of cause It is not problem, it is completly same as
+> type 4) are dropped.
+> 
+>  So I think spic_types[4] is invalid. This line should be as
+> bellow (Use Type 3 on ICH9_1 machines):
+> 
+>   dev->control = &spic_types[2];
 
-Regards,
-Alex.
+gosh!
+/me looks for his emergency brown paperbag
 
+Len,
+I'll resend the patchset in the next days, I'll also see if I can rework
+the rfkill one to use the proper subsystem.
+
+thanks
+-- 
+mattia
+:wq!
