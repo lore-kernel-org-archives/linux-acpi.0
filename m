@@ -1,74 +1,78 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] intel_menlo: max_state is unsigned, invalid test
-Date: Mon, 03 Nov 2008 23:07:08 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0811032300551.3132@localhost.localdomain>
-References: <4908D067.9080207@gmail.com>
- <20081103143526.375be238.akpm@linux-foundation.org>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: [PATCH]: ACPI Cleanup :Initialize EC global lock based on the
+	return status
+Date: Tue, 04 Nov 2008 15:41:49 +0800
+Message-ID: <1225784509.26020.73.camel@yakui_zhao.sh.intel.com>
+References: <20081031184233.8588.42241.stgit@thinkpad>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173007pub.verizon.net ([206.46.173.7]:37979 "EHLO
-	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753065AbYKDEHP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Nov 2008 23:07:15 -0500
-In-reply-to: <20081103143526.375be238.akpm@linux-foundation.org>
+Received: from mga01.intel.com ([192.55.52.88]:24887 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752665AbYKDHew (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
+	Tue, 4 Nov 2008 02:34:52 -0500
+In-Reply-To: <20081031184233.8588.42241.stgit@thinkpad>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>, Sujith Thomas <sujith.thomas@intel.com>, Zhang Rui <rui.zhang@intel.com>
-Cc: roel kluin <roel.kluin@gmail.com>, len.brown@intel.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: LenBrown <lenb@kernel.org>
+Cc: "Linux-acpi@vger.kernel.org" <Linux-acpi@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, alan-jenkins@tuffmail.co.uk
 
+Subject: ACPI: Cleanup :Initialize EC global lock based on the return status
+From: Zhao Yakui <yakui.zhao@intel.com>
 
+Initialize the EC global lock based on the returned value of _GLK object.
+Only when AE_OK is returned by the acpi_evaluate_integer, the EC global lock
+will be assigned based on the return value of _GLK object.Otherwise it means
+that there is no _GLK object and the global lock won't be required when EC
+is accessed.
+If the return value of _GLK object is not zero, it means that GLobal lock
+will be required when EC is accessed.
+If the return value of _GLK object is zero, it means that GLobal lock
+won't be required when EC is accessed.
 
-On Mon, 3 Nov 2008, Andrew Morton wrote:
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+cc: Alexey Starikovskiy <astarikovskiy@suse.de>
+cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 
-> On Wed, 29 Oct 2008 17:06:47 -0400
-> roel kluin <roel.kluin@gmail.com> wrote:
-> 
-> > max_state is unsigned, so the test is invalid.
-> > 
-> > Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-> > ---
-> > I think max_state can only become -1, no? then probably a different
-> > patch is required.
-> > I may not be able to respond for a few weeks.
-> > 
-> > diff --git a/drivers/misc/intel_menlow.c b/drivers/misc/intel_menlow.c
-> > index e00a275..980171d 100644
-> > --- a/drivers/misc/intel_menlow.c
-> > +++ b/drivers/misc/intel_menlow.c
-> > @@ -121,7 +121,7 @@ static int memory_set_cur_bandwidth(struct thermal_cooling_device *cdev,
-> >  	if (memory_get_int_max_bandwidth(cdev, &max_state))
-> >  		return -EFAULT;
-> >  
-> > -	if (max_state < 0 || state > max_state)
-> > +	if (max_state == -1 || state > max_state)
-> >  		return -EINVAL;
-> >  
-> >  	arg_list.count = 1;
-> > 
-> 
-> hm, maybe.
-> 
-> This can only happen if acpi_evaluate_integer(MEMORY_GET_BANDWIDTH)
-> returned no-error and a bandwidth of zero (I assume).
-> 
-> Is this a special case which the driver really wanted to handle?  If
-> so, why is "0" the only bad value which we're checking for?  Or is this
-> all some big brainfart which should be removed?
+---
+ drivers/acpi/ec.c |   24 ++++++++++++++++++++++--
+ 1 file changed, 22 insertions(+), 2 deletions(-)
 
-Sujith,
-Please send me a patch to intel_menlo.c that documents the
-legal return values from GTHS.
-
-If 0 is illegal, that is fine, but the upstream driver doesn't
-check for it properl (I like Rui's 9/11 patch better than the above,
-so andrew, you can drop this patch in any case)
-
-thanks,
--Len
-
-ps.  Sujith, shouldn't there be a MAINTAINERS for this driver with your 
-name on it?
-
+Index: linux-2.6/drivers/acpi/ec.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/ec.c
++++ linux-2.6/drivers/acpi/ec.c
+@@ -752,8 +752,28 @@ ec_parse_device(acpi_handle handle, u32 
+ 	ec->gpe = tmp;
+ 	/* Use the global lock for all EC transactions? */
+ 	tmp = 0;
+-	acpi_evaluate_integer(handle, "_GLK", NULL, &tmp);
+-	ec->global_lock = tmp;
++	/*
++	 * Only when AE_OK is returned by acpi_evaluate_interger,
++	 * the ec->global_lock will be assigned based on the returned
++	 * value by _GLK. Otherwise it means that there is no _GLK object
++	 * and global lock won't be required when EC is accessed.
++	 * If the return value of _GLK object is not zero, it means that
++	 * global lock will be required when EC is accessed.
++	 * If the return value of _GLK object is zero, it means that
++	 * global lock won't be required when EC is accessed.
++	 */
++	status = acpi_evaluate_integer(handle, "_GLK", NULL, &tmp);
++	if (ACPI_SUCCESS(status)) {
++		/*
++		 * If the return value is not zero, it means that global lock
++		 * is required when EC is accessed
++		 */
++		if (tmp)
++			ec->global_lock = 1;
++		else
++			ec->global_lock = 0;
++	} else
++		ec->global_lock = 0;
+ 	ec->handle = handle;
+ 	return AE_CTRL_TERMINATE;
+ }
 
 
