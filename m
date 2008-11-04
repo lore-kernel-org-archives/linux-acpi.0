@@ -1,45 +1,71 @@
-From: Myron Stowe <myron.stowe@hp.com>
-Subject: [PATCH v3 3/3] ACPI: 80 column adherence and spelling fix (no
-	functional change)
-Date: Tue, 04 Nov 2008 14:53:05 -0700
-Message-ID: <20081104215305.15214.41345.stgit@bob.kio>
-References: <20081104213732.15214.174.stgit@bob.kio>
+From: Greg KH <gregkh@suse.de>
+Subject: [patch 26/57] ACPI: Always report a sync event after a lid state
+	change
+Date: Tue, 4 Nov 2008 15:31:55 -0800
+Message-ID: <20081104233155.GA659@suse.de>
+References: <20081104232144.186593464@mini.kroah.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0014.houston.hp.com ([15.201.24.17]:26911 "EHLO
-	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756146AbYKDVxG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Nov 2008 16:53:06 -0500
-In-Reply-To: <20081104213732.15214.174.stgit@bob.kio>
+Received: from mx2.suse.de ([195.135.220.15]:52031 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757211AbYKDXjK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 4 Nov 2008 18:39:10 -0500
+Content-Disposition: inline; filename="acpi-always-report-a-sync-event-after-a-lid-state-change.patch"
+In-Reply-To: <20081104233028.GA659@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Myron Stowe <myron.stowe@hp.com>
+To: linux-kernel@vger.kernel.org, stable@kernel.org
+Cc: Justin Forbes <jmforbes@linuxtx.org>, Zwane Mwaikambo <zwane@arm.linux.org.uk>, Theodore Ts'o <tytso@mit.edu>, Randy Dunlap <rdunlap@xenotime.net>, Dave Jones <davej@redhat.com>, Chuck Wolber <chuckw@quantumlinux.com>, Chris Wedgwood <reviews@ml.cw.f00f.org>, Michael Krufky <mkrufky@linuxtv.org>, Chuck Ebbert <cebbert@redhat.com>, Domenico Andreoli <cavokz@gmail.com>, Willy Tarreau <w@1wt.eu>, Rodrigo Rubira Branco <rbranco@la.checkpoint.com>, Jake Edge <jake@lwn.net>, Eugene Teo <eteo@redhat.com>, torvalds@linux-foundation.org, akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, linux-acpi@vger.kernel.org, Guillem Jover <guillem.jover@nokia.com>, Dmitry Torokhov <dtor@mail.ru>, Len Brown <len.brown@intel.com>
 
-Signed-off-by: Myron Stowe <myron.stowe@hp.com>
+2.6.27-stable review patch.  If anyone has any objections, please let u=
+s know.
+
+------------------
+=46rom: Guillem Jover <guillem.jover@nokia.com>
+
+upstream commit df316e939100e789b3c5d4d102619ccf5834bd00
+
+Currently not always an EV_SYN event is reported to userland
+after the EV_SW SW_LID event has been sent. This is easy to verify
+by using =E2=80=9Cinput-events=E2=80=9D from input-utils and just closi=
+ng and opening
+the lid.
+
+Signed-off-by: Guillem Jover <guillem.jover@nokia.com>
+Acked-by: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Len Brown <len.brown@intel.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+
 ---
+ drivers/acpi/button.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
- drivers/acpi/processor_core.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index bc332fc..b57b1f0 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -595,9 +595,10 @@ static int acpi_processor_get_info(struct acpi_device *device)
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -262,6 +262,7 @@ static int acpi_lid_send_state(struct ac
+ 		return -ENODEV;
+ 	/* input layer checks if event is redundant */
+ 	input_report_switch(button->input, SW_LID, !state);
++	input_sync(button->input);
+ 	return 0;
+ }
+=20
+@@ -285,8 +286,8 @@ static void acpi_button_notify(acpi_hand
+ 			input_report_key(input, keycode, 1);
+ 			input_sync(input);
+ 			input_report_key(input, keycode, 0);
++			input_sync(input);
  		}
- 
- 		/*
--		* TBD: Synch processor ID (via LAPIC/LSAPIC structures) on SMP.
--		*      >>> 'acpi_get_processor_id(acpi_id, &id)' in arch/xxx/acpi.c
--		*/
-+		 * TBD: Synch processor ID (via LAPIC/LSAPIC structures) on SMP.
-+		 *      >>> 'acpi_get_processor_id(acpi_id, &id)' in
-+		 *      arch/xxx/acpi.c
-+		 */
- 		pr->acpi_id = object.processor.proc_id;
- 	}
- 	cpu_index = get_cpu_id(pr->handle, device_declaration, pr->acpi_id);
+-		input_sync(input);
+=20
+ 		acpi_bus_generate_proc_event(button->device, event,
+ 					++button->pushed);
 
+--=20
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
