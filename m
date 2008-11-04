@@ -1,31 +1,46 @@
-From: Johan <johan@hanwei.xs4all.nl>
-Subject: DMI info
-Date: Tue, 4 Nov 2008 16:57:54 +0100
-Message-ID: <20081104155754.GA7105@hanwei.xs4all.nl>
+From: Myron Stowe <myron.stowe@hp.com>
+Subject: [PATCH v3 0/3] ACPI: Fix for supporting > 256 processor declaration
+	limit
+Date: Tue, 04 Nov 2008 14:52:50 -0700
+Message-ID: <20081104213732.15214.174.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2741 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752177AbYKDQF0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Nov 2008 11:05:26 -0500
-Received: from hanwei.xs4all.nl (a82-95-215-4.adsl.xs4all.nl [82.95.215.4])
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id mA4Fvt7u053916
-	for <linux-acpi@vger.kernel.org>; Tue, 4 Nov 2008 16:57:55 +0100 (CET)
-	(envelope-from johan@hanwei.xs4all.nl)
-Content-Disposition: inline
+Received: from g1t0029.austin.hp.com ([15.216.28.36]:11117 "EHLO
+	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752360AbYKDVwv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Nov 2008 16:52:51 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: aystarik@gmail.com, yakui.zhao@intel.com, myron.stowe@hp.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-[    0.482737] ACPI: DMI System Vendor: LENOVO
-[    0.482738] ACPI: DMI Product Name: 076433G
-[    0.482739] ACPI: DMI Product Version: LENOVO3000 V200
-[    0.482741] ACPI: DMI Board Name: INVALID
-[    0.482742] ACPI: DMI BIOS Vendor: LENOVO
-[    0.482743] ACPI: DMI BIOS Date: 07/09/2007
-[    0.482744] ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
+The following three item patch series fixes an issue with the introduction
+of > 256 processor declaration support: "Allow processor to be declared with
+the Device() instead of Processor()" (git SHA 11bf04c4).
+
+This version, v3, has no functional changes from the original
+(gmane.linux.acpi.devel/34815).  The changes, based on reviewer comments, are:
+  . a change to the printk verbage (v2),
+  . some additional comments (v2),
+  . augment an existing printk to aid detection of faulty FW (v3).
+
+Please queue as .29 material.
+
+Thanks,
+Myron
+
+---
+
+Myron Stowe (3):
+      ACPI: 80 column adherence and spelling fix (no functional change)
+      ACPI: Behave uniquely based on processor declaration definition type
+      ACPI: Disambiguate processor declaration type
 
 
-
+ drivers/acpi/processor_core.c |   86 +++++++++++++++++++++++------------------
+ drivers/acpi/scan.c           |    2 -
+ include/acpi/acpi_drivers.h   |    1 
+ 3 files changed, 51 insertions(+), 38 deletions(-)
 
