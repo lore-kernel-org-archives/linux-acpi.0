@@ -1,179 +1,133 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH 06/11] ACPI: remove CONFIG_ACPI_EC
-Date: Wed, 05 Nov 2008 16:18:03 -0700
-Message-ID: <20081105231803.26131.36330.stgit@bob.kio>
+Subject: [PATCH 08/11] ACPI: remove ACPI dependency on PCI
+Date: Wed, 05 Nov 2008 16:18:13 -0700
+Message-ID: <20081105231813.26131.16551.stgit@bob.kio>
 References: <20081105231710.26131.3110.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0026.austin.hp.com ([15.216.28.33]:39159 "EHLO
-	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754196AbYKEXSE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Nov 2008 18:18:04 -0500
+Received: from g5t0007.atlanta.hp.com ([15.192.0.44]:32616 "EHLO
+	g5t0007.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752812AbYKEXSO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Nov 2008 18:18:14 -0500
 In-Reply-To: <20081105231710.26131.3110.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: Zhao Yakui <yakui.zhao@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.de>
 
-Remove CONFIG_ACPI_EC.  It was always set the same as CONFIG_ACPI,
-and it had no menu label, so there was no way to set it to anything
-other than "y".
-
-Per section 6.5.4 of the ACPI 3.0b specification,
-
-    OSPM must make Embedded Controller operation regions, accessed
-    via the Embedded Controllers described in ECDT, available before
-    executing any control method.
-
-The ECDT table is optional, but if it is present, the above text
-means that the EC it describes is a required part of the ACPI
-subsystem, so CONFIG_ACPI_EC=n wouldn't make sense.
+Allow ACPI to build without CONFIG_PCI.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 ---
- drivers/acpi/Kconfig        |    8 --------
- drivers/acpi/Makefile       |    2 +-
- drivers/acpi/bus.c          |    3 +--
- drivers/char/sonypi.c       |    4 ++--
- drivers/misc/Kconfig        |    4 ++--
- include/acpi/acpi_drivers.h |    2 --
- include/linux/acpi.h        |    4 ----
- 7 files changed, 6 insertions(+), 21 deletions(-)
+ drivers/acpi/Kconfig           |    1 -
+ drivers/acpi/osl.c             |    8 ++++++++
+ drivers/acpi/reboot.c          |    7 +++++--
+ drivers/pnp/pnpacpi/rsparser.c |    6 ++++--
+ 4 files changed, 17 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 20f4574..768bb07 100644
+index 7962bfc..2e6f757 100644
 --- a/drivers/acpi/Kconfig
 +++ b/drivers/acpi/Kconfig
-@@ -330,14 +330,6 @@ config ACPI_DEBUG_FUNC_TRACE
- 	  ACPI Debug Statements slow down ACPI processing. Function trace
- 	  is about half of the penalty and is rarely useful.
- 
--config ACPI_EC
--	bool
--	default y
--	help
--	  This driver is required on some systems for the proper operation of
--	  the battery and thermal drivers.  If you are compiling for a 
--	  mobile system, say Y.
--
- config ACPI_PCI_SLOT
- 	tristate "PCI slot detection driver"
- 	default n
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 8017f63..fc62231 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -39,7 +39,7 @@ obj-y				+= sleep/
- obj-y				+= bus.o glue.o
- obj-y				+= scan.o
- # Keep EC driver first. Initialization of others depend on it.
--obj-$(CONFIG_ACPI_EC)		+= ec.o
-+obj-y				+= ec.o
- obj-$(CONFIG_ACPI_AC) 		+= ac.o
- obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
- obj-$(CONFIG_ACPI_BUTTON)	+= button.o
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index c797c64..765fd1c 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -774,7 +774,7 @@ static int __init acpi_bus_init(void)
- 		       "Unable to initialize ACPI OS objects\n");
- 		goto error1;
- 	}
--#ifdef CONFIG_ACPI_EC
-+
- 	/*
- 	 * ACPI 2.0 requires the EC driver to be loaded and work before
- 	 * the EC device is found in the namespace (i.e. before acpi_initialize_objects()
-@@ -785,7 +785,6 @@ static int __init acpi_bus_init(void)
- 	 */
- 	status = acpi_ec_ecdt_probe();
- 	/* Ignore result. Not having an ECDT is not fatal. */
--#endif
- 
- 	status = acpi_initialize_objects(ACPI_FULL_INITIALIZATION);
- 	if (ACPI_FAILURE(status)) {
-diff --git a/drivers/char/sonypi.c b/drivers/char/sonypi.c
-index 2457b07..f437443 100644
---- a/drivers/char/sonypi.c
-+++ b/drivers/char/sonypi.c
-@@ -523,7 +523,7 @@ static int acpi_driver_registered;
- 
- static int sonypi_ec_write(u8 addr, u8 value)
+@@ -6,7 +6,6 @@ menuconfig ACPI
+ 	bool "ACPI (Advanced Configuration and Power Interface) Support"
+ 	depends on !IA64_HP_SIM
+ 	depends on IA64 || X86
+-	depends on PCI
+ 	depends on PM
+ 	select PNP
+ 	default y
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 4be2521..e162be5 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -546,6 +546,7 @@ acpi_status
+ acpi_os_read_pci_configuration(struct acpi_pci_id * pci_id, u32 reg,
+ 			       u32 *value, u32 width)
  {
--#ifdef CONFIG_ACPI_EC
-+#ifdef CONFIG_ACPI
- 	if (SONYPI_ACPI_ACTIVE)
- 		return ec_write(addr, value);
- #endif
-@@ -539,7 +539,7 @@ static int sonypi_ec_write(u8 addr, u8 value)
++#ifdef CONFIG_PCI
+ 	int result, size;
  
- static int sonypi_ec_read(u8 addr, u8 *value)
+ 	if (!value)
+@@ -570,12 +571,16 @@ acpi_os_read_pci_configuration(struct acpi_pci_id * pci_id, u32 reg,
+ 				reg, size, value);
+ 
+ 	return (result ? AE_ERROR : AE_OK);
++#else
++	return AE_ERROR;
++#endif
+ }
+ 
+ acpi_status
+ acpi_os_write_pci_configuration(struct acpi_pci_id * pci_id, u32 reg,
+ 				acpi_integer value, u32 width)
  {
--#ifdef CONFIG_ACPI_EC
-+#ifdef CONFIG_ACPI
- 	if (SONYPI_ACPI_ACTIVE)
- 		return ec_read(addr, value);
- #endif
-diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
-index 9494400..4494ad2 100644
---- a/drivers/misc/Kconfig
-+++ b/drivers/misc/Kconfig
-@@ -230,7 +230,7 @@ config HP_WMI
- config MSI_LAPTOP
-         tristate "MSI Laptop Extras"
-         depends on X86
--        depends on ACPI_EC
-+        depends on ACPI
-         depends on BACKLIGHT_CLASS_DEVICE
-         ---help---
- 	  This is a driver for laptops built by MSI (MICRO-STAR
-@@ -260,7 +260,7 @@ config PANASONIC_LAPTOP
- config COMPAL_LAPTOP
- 	tristate "Compal Laptop Extras"
- 	depends on X86
--	depends on ACPI_EC
-+	depends on ACPI
- 	depends on BACKLIGHT_CLASS_DEVICE
- 	---help---
- 	  This is a driver for laptops built by Compal:
-diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
-index 818215f..b3c40dc 100644
---- a/include/acpi/acpi_drivers.h
-+++ b/include/acpi/acpi_drivers.h
-@@ -97,10 +97,8 @@ extern int acpi_power_nocheck;
- /* --------------------------------------------------------------------------
-                                   Embedded Controller
-    -------------------------------------------------------------------------- */
--#ifdef CONFIG_ACPI_EC
- int acpi_ec_ecdt_probe(void);
- int acpi_boot_ec_enable(void);
--#endif
++#ifdef CONFIG_PCI
+ 	int result, size;
  
- /* --------------------------------------------------------------------------
-                                     Processor
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index fd6a452..d7846bd 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -163,8 +163,6 @@ struct acpi_pci_driver {
- int acpi_pci_register_driver(struct acpi_pci_driver *driver);
- void acpi_pci_unregister_driver(struct acpi_pci_driver *driver);
+ 	switch (width) {
+@@ -597,6 +602,9 @@ acpi_os_write_pci_configuration(struct acpi_pci_id * pci_id, u32 reg,
+ 				reg, size, value);
  
--#ifdef CONFIG_ACPI_EC
+ 	return (result ? AE_ERROR : AE_OK);
++#else
++	return AE_ERROR;
++#endif
+ }
+ 
+ /* TODO: Change code to take advantage of driver model more */
+diff --git a/drivers/acpi/reboot.c b/drivers/acpi/reboot.c
+index 755baf2..a5af8b7 100644
+--- a/drivers/acpi/reboot.c
++++ b/drivers/acpi/reboot.c
+@@ -6,9 +6,11 @@
+ void acpi_reboot(void)
+ {
+ 	struct acpi_generic_address *rr;
+-	struct pci_bus *bus0;
+ 	u8 reset_value;
++#ifdef CONFIG_PCI
++	struct pci_bus *bus0;
+ 	unsigned int devfn;
++#endif
+ 
+ 	if (acpi_disabled)
+ 		return;
+@@ -44,6 +46,7 @@ void acpi_reboot(void)
+ 	/* The reset register can only exist in I/O, Memory or PCI config space
+ 	 * on a device on bus 0. */
+ 	switch (rr->space_id) {
++#ifdef CONFIG_PCI
+ 	case ACPI_ADR_SPACE_PCI_CONFIG:
+ 		/* The reset register can only live on bus 0. */
+ 		bus0 = pci_find_bus(0, 0);
+@@ -57,7 +60,7 @@ void acpi_reboot(void)
+ 		pci_bus_write_config_byte(bus0, devfn,
+ 				(rr->address & 0xffff), reset_value);
+ 		break;
 -
- extern int ec_read(u8 addr, u8 *val);
- extern int ec_write(u8 addr, u8 val);
- extern int ec_transaction(u8 command,
-@@ -172,8 +170,6 @@ extern int ec_transaction(u8 command,
-                           u8 *rdata, unsigned rdata_len,
- 			  int force_poll);
++#endif
+ 	case ACPI_ADR_SPACE_SYSTEM_MEMORY:
+ 	case ACPI_ADR_SPACE_SYSTEM_IO:
+ 		printk(KERN_DEBUG "ACPI MEMORY or I/O RESET_REG.\n");
+diff --git a/drivers/pnp/pnpacpi/rsparser.c b/drivers/pnp/pnpacpi/rsparser.c
+index adf1785..96992db 100644
+--- a/drivers/pnp/pnpacpi/rsparser.c
++++ b/drivers/pnp/pnpacpi/rsparser.c
+@@ -124,9 +124,11 @@ static void pnpacpi_parse_allocated_irqresource(struct pnp_dev *dev,
  
--#endif /*CONFIG_ACPI_EC*/
--
- #if defined(CONFIG_ACPI_WMI) || defined(CONFIG_ACPI_WMI_MODULE)
+ 	flags = irq_flags(triggering, polarity, shareable);
+ 	irq = acpi_register_gsi(gsi, triggering, polarity);
+-	if (irq >= 0)
++	if (irq >= 0) {
++#ifdef CONFIG_PCI
+ 		pcibios_penalize_isa_irq(irq, 1);
+-	else
++#endif
++	} else
+ 		flags |= IORESOURCE_DISABLED;
  
- typedef void (*wmi_notify_handler) (u32 value, void *context);
+ 	pnp_add_irq_resource(dev, irq, flags);
 
