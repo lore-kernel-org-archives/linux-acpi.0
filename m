@@ -1,292 +1,46 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH 11/11] ACPI: call core init functions explicitly instead of
-	using initcalls
-Date: Wed, 05 Nov 2008 16:18:28 -0700
-Message-ID: <20081105231828.26131.90839.stgit@bob.kio>
+Subject: [PATCH 10/11] ia64: remove automatic PM selection
+Date: Wed, 05 Nov 2008 16:18:23 -0700
+Message-ID: <20081105231823.26131.17345.stgit@bob.kio>
 References: <20081105231710.26131.3110.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:7289 "EHLO
-	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753295AbYKEXS3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Nov 2008 18:18:29 -0500
+Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:47684 "EHLO
+	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754920AbYKEXSY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Nov 2008 18:18:24 -0500
 In-Reply-To: <20081105231710.26131.3110.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: Zhao Yakui <yakui.zhao@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.de>
 
-These functions:
-    init_acpi_device_notify()
-    acpi_debug_init()
-    acpi_scan_init()
-    acpi_system_init()
-are all parts of the ACPI core.  None is separately loadable.
-So we might as well call them directly from acpi_init() rather
-than using initcalls, which depend on module link order to make
-things happen in the correct order.
+Allow ia64 to build without CONFIG_PM.
+
+The "select PM" was added here: 8140a90ec180192b202af086e7a582e5937c5580
+to work around the fact that ia64 selected ACPI, which depended on PM.
+But kconfig select ignores dependencies, so allnoconfig could set
+CONFIG_PM=n and break the build.
+
+We don't need that any longer because ACPI no longer depends on PM.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 ---
- drivers/acpi/Makefile |   15 ++++++---------
- drivers/acpi/acpi.h   |   15 +++++++++++++++
- drivers/acpi/bus.c    |   15 +++++++++++++++
- drivers/acpi/debug.c  |   16 ++++++++--------
- drivers/acpi/glue.c   |    8 +++-----
- drivers/acpi/scan.c   |   10 +++-------
- drivers/acpi/system.c |   10 ++--------
- 7 files changed, 52 insertions(+), 37 deletions(-)
- create mode 100644 drivers/acpi/acpi.h
+ arch/ia64/Kconfig |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index d0ee4c5..ba5c1ea 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -19,7 +19,7 @@ obj-y				+= tables.o
- obj-$(CONFIG_X86)		+= blacklist.o
- 
- #
--# ACPI Core Subsystem (Interpreter)
-+# ACPI CA Core Subsystem (Interpreter)
- #
- obj-y				+= osl.o utils.o reboot.o\
- 				   dispatcher/ events/ executer/ hardware/ \
-@@ -36,10 +36,10 @@ processor-objs	+= processor_perflib.o
- endif
- 
- obj-y				+= sleep/
--obj-y				+= bus.o glue.o
--obj-y				+= scan.o
--# Keep EC driver first. Initialization of others depend on it.
--obj-y				+= ec.o
-+obj-y				+= bus.o scan.o ec.o power.o
-+obj-y				+= glue.o
-+obj-$(CONFIG_ACPI_DEBUG)	+= debug.o
-+
- obj-$(CONFIG_ACPI_AC) 		+= ac.o
- obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
- obj-$(CONFIG_ACPI_BUTTON)	+= button.o
-@@ -51,14 +51,11 @@ obj-$(CONFIG_ACPI_PCI_SLOT)	+= pci_slot.o
- obj-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
- obj-$(CONFIG_ACPI_CONTAINER)	+= container.o
- obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
--obj-y				+= power.o
- obj-$(CONFIG_ACPI_SYSTEM)	+= system.o event.o
--obj-$(CONFIG_ACPI_DEBUG)	+= debug.o
- obj-$(CONFIG_ACPI_NUMA)		+= numa.o
- obj-$(CONFIG_ACPI_WMI)		+= wmi.o
- obj-$(CONFIG_ACPI_ASUS)		+= asus_acpi.o
- obj-$(CONFIG_ACPI_TOSHIBA)	+= toshiba_acpi.o
- obj-$(CONFIG_ACPI_HOTPLUG_MEMORY)	+= acpi_memhotplug.o
- obj-$(CONFIG_ACPI_PROCFS_POWER)	+= cm_sbs.o
--obj-$(CONFIG_ACPI_SBS)		+= sbshc.o
--obj-$(CONFIG_ACPI_SBS)		+= sbs.o
-+obj-$(CONFIG_ACPI_SBS)		+= sbshc.o sbs.o
-diff --git a/drivers/acpi/acpi.h b/drivers/acpi/acpi.h
-new file mode 100644
-index 0000000..8ef1ed5
---- /dev/null
-+++ b/drivers/acpi/acpi.h
-@@ -0,0 +1,15 @@
-+/*
-+ * (c) Copyright 2008 Hewlett-Packard Development Company, L.P.
-+ *	Bjorn Helgaas <bjorn.helgaas@hp.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+/* Functions internal to the ACPI core */
-+
-+int init_acpi_device_notify(void);
-+int acpi_debug_init(void);
-+int acpi_scan_init(void);
-+int acpi_system_init(void);
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index b9cb6eb..edabe0d 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -39,6 +39,8 @@
- #include <acpi/acpi_bus.h>
- #include <acpi/acpi_drivers.h>
- 
-+#include "acpi.h"
-+
- #define _COMPONENT		ACPI_BUS_COMPONENT
- ACPI_MODULE_NAME("bus");
- 
-@@ -853,6 +855,7 @@ static int __init acpi_init(void)
- 		acpi_kobj = NULL;
- 	}
- 
-+	init_acpi_device_notify();
- 	result = acpi_bus_init();
- 
- 	if (!result) {
-@@ -869,11 +872,23 @@ static int __init acpi_init(void)
- #endif
- 	} else
- 		disable_acpi();
-+
- 	/*
- 	 * If the laptop falls into the DMI check table, the power state check
- 	 * will be disabled in the course of device power transistion.
- 	 */
- 	dmi_check_system(power_nocheck_dmi_table);
-+
-+	if (acpi_disabled)
-+		return result;
-+
-+#ifdef CONFIG_ACPI_DEBUG
-+	acpi_debug_init();
-+#endif
-+	acpi_scan_init();
-+#ifdef CONFIG_ACPI_SYSTEM
-+	acpi_system_init();
-+#endif
- 	return result;
- }
- 
-diff --git a/drivers/acpi/debug.c b/drivers/acpi/debug.c
-index abf36b4..5f642fa 100644
---- a/drivers/acpi/debug.c
-+++ b/drivers/acpi/debug.c
-@@ -11,6 +11,8 @@
- #include <acpi/acpi_drivers.h>
- #include <acpi/acglobal.h>
- 
-+#include "acpi.h"
-+
- #define _COMPONENT		ACPI_SYSTEM_COMPONENT
- ACPI_MODULE_NAME("debug");
- 
-@@ -283,17 +285,15 @@ acpi_system_write_debug(struct file *file,
- 
- 	return count;
- }
-+#endif
- 
--static int __init acpi_debug_init(void)
-+int __init acpi_debug_init(void)
- {
-+#ifdef CONFIG_ACPI_PROCFS
- 	struct proc_dir_entry *entry;
- 	int error = 0;
- 	char *name;
- 
--
--	if (acpi_disabled)
--		return 0;
--
- 	/* 'debug_layer' [R/W] */
- 	name = ACPI_SYSTEM_FILE_DEBUG_LAYER;
- 	entry =
-@@ -324,7 +324,7 @@ static int __init acpi_debug_init(void)
- 	remove_proc_entry(ACPI_SYSTEM_FILE_DEBUG_LAYER, acpi_root_dir);
- 	error = -ENODEV;
- 	goto Done;
--}
--
--subsys_initcall(acpi_debug_init);
-+#else
-+	return 0;
- #endif
-+}
-diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
-index 24649ad..6f2dcdf 100644
---- a/drivers/acpi/glue.c
-+++ b/drivers/acpi/glue.c
-@@ -12,6 +12,8 @@
- #include <linux/rwsem.h>
- #include <linux/acpi.h>
- 
-+#include "acpi.h"
-+
- #define ACPI_GLUE_DEBUG	0
- #if ACPI_GLUE_DEBUG
- #define DBG(x...) printk(PREFIX x)
-@@ -246,10 +248,8 @@ static int acpi_platform_notify_remove(struct device *dev)
- 	return 0;
- }
- 
--static int __init init_acpi_device_notify(void)
-+int init_acpi_device_notify(void)
- {
--	if (acpi_disabled)
--		return 0;
- 	if (platform_notify || platform_notify_remove) {
- 		printk(KERN_ERR PREFIX "Can't use platform_notify\n");
- 		return 0;
-@@ -258,5 +258,3 @@ static int __init init_acpi_device_notify(void)
- 	platform_notify_remove = acpi_platform_notify_remove;
- 	return 0;
- }
--
--arch_initcall(init_acpi_device_notify);
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index a9dda8e..1f605dd 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -12,6 +12,8 @@
- #include <acpi/acpi_drivers.h>
- #include <acpi/acinterp.h>	/* for acpi_ex_eisa_id_to_string() */
- 
-+#include "acpi.h"
-+
- #define _COMPONENT		ACPI_BUS_COMPONENT
- ACPI_MODULE_NAME("scan");
- #define STRUCT_TO_INT(s)	(*((int*)&s))
-@@ -1566,15 +1568,11 @@ static int acpi_bus_scan_fixed(struct acpi_device *root)
- }
- 
- 
--static int __init acpi_scan_init(void)
-+int __init acpi_scan_init(void)
- {
- 	int result;
- 	struct acpi_bus_ops ops;
- 
--
--	if (acpi_disabled)
--		return 0;
--
- 	memset(&ops, 0, sizeof(ops));
- 	ops.acpi_op_add = 1;
- 	ops.acpi_op_start = 1;
-@@ -1607,5 +1605,3 @@ static int __init acpi_scan_init(void)
-       Done:
- 	return result;
- }
--
--subsys_initcall(acpi_scan_init);
-diff --git a/drivers/acpi/system.c b/drivers/acpi/system.c
-index 1d74171..8ade31c 100644
---- a/drivers/acpi/system.c
-+++ b/drivers/acpi/system.c
-@@ -626,20 +626,14 @@ static int acpi_system_procfs_init(void)
- }
- #endif
- 
--static int __init acpi_system_init(void)
-+int __init acpi_system_init(void)
- {
--	int result = 0;
--
--	if (acpi_disabled)
--		return 0;
-+	int result;
- 
- 	result = acpi_system_procfs_init();
- 	if (result)
- 		return result;
- 
- 	result = acpi_system_sysfs_init();
--
- 	return result;
- }
--
--subsys_initcall(acpi_system_init);
+diff --git a/arch/ia64/Kconfig b/arch/ia64/Kconfig
+index 08559ee..333359c 100644
+--- a/arch/ia64/Kconfig
++++ b/arch/ia64/Kconfig
+@@ -15,7 +15,6 @@ config IA64
+ 	bool
+ 	select PCI if (!IA64_HP_SIM)
+ 	select ACPI if (!IA64_HP_SIM)
+-	select PM if (!IA64_HP_SIM)
+ 	select ARCH_SUPPORTS_MSI
+ 	select HAVE_IDE
+ 	select HAVE_OPROFILE
 
