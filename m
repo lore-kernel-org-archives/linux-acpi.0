@@ -1,56 +1,34 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch] clocksource, acpi_pm.c: put acpi_pm_read_slow() under CONFIG_PCI
-Date: Wed, 5 Nov 2008 13:40:57 -0600
-Message-ID: <200811051240.58137.bjorn.helgaas@hp.com>
+From: Peter Klotz <peter.klotz@aon.at>
+Subject: DMI info about Asus B50A
+Date: Wed, 05 Nov 2008 21:24:51 +0100
+Message-ID: <49120113.2060103@aon.at>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0028.austin.hp.com ([15.216.28.35]:43531 "EHLO
-	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752828AbYKETl0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Nov 2008 14:41:26 -0500
-Content-Disposition: inline
+Received: from nat-warsl417-01.aon.at ([195.3.96.119]:56650 "EHLO email.aon.at"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753342AbYKEUbh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 5 Nov 2008 15:31:37 -0500
+Received: from smarthub95.highway.telekom.at (HELO email.aon.at) ([172.18.5.234])
+          (envelope-sender <peter.klotz@aon.at>)
+          by fallback43.highway.telekom.at (qmail-ldap-1.03) with SMTP
+          for <linux-acpi@vger.kernel.org>; 5 Nov 2008 20:24:55 -0000
+Received: from 91-114-250-1.adsl.highway.telekom.at (HELO [192.168.0.100]) ([91.114.250.1])
+          (envelope-sender <peter.klotz@aon.at>)
+          by smarthub95.highway.telekom.at (qmail-ldap-1.03) with SMTP
+          for <linux-acpi@vger.kernel.org>; 5 Nov 2008 20:24:52 -0000
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-acpi_pm_read_slow() is only used when CONFIG_PCI=y, so move the
-definition inside the ifdef.
+ACPI: BIOS _OSI(Linux) query ignored
+ACPI: DMI System Vendor: ASUSTeK Computer Inc.
+ACPI: DMI Product Name: B50A
+ACPI: DMI Product Version: 1.0
+ACPI: DMI Board Name: B50A
+ACPI: DMI BIOS Vendor: American Megatrends Inc.
+ACPI: DMI BIOS Date: 07/11/2008
+ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
 
-Otherwise this causes a "defined but not used" warning when
-building with CONFIG_ACPI=y and CONFIG_PCI=n (that's not
-supported yet, but it could be).
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-
-diff --git a/drivers/clocksource/acpi_pm.c b/drivers/clocksource/acpi_pm.c
-index c201710..e1129fa 100644
---- a/drivers/clocksource/acpi_pm.c
-+++ b/drivers/clocksource/acpi_pm.c
-@@ -57,11 +57,6 @@ u32 acpi_pm_read_verified(void)
- 	return v2;
- }
- 
--static cycle_t acpi_pm_read_slow(void)
--{
--	return (cycle_t)acpi_pm_read_verified();
--}
--
- static cycle_t acpi_pm_read(void)
- {
- 	return (cycle_t)read_pmtmr();
-@@ -88,6 +83,11 @@ static int __init acpi_pm_good_setup(char *__str)
- }
- __setup("acpi_pm_good", acpi_pm_good_setup);
- 
-+static cycle_t acpi_pm_read_slow(void)
-+{
-+	return (cycle_t)acpi_pm_read_verified();
-+}
-+
- static inline void acpi_pm_need_workaround(void)
- {
- 	clocksource_acpi_pm.read = acpi_pm_read_slow;
+Regards, Peter.
