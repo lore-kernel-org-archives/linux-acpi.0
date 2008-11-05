@@ -1,45 +1,56 @@
-From: "Thomas, Sujith" <sujith.thomas@intel.com>
-Subject: [PATCH]2/3 intel_menlow:Adding to MAINTAINERS
-Date: Wed, 5 Nov 2008 16:15:31 +0530
-Message-ID: <7D0189F5BE1DF549A570B212D1D5612182AF04@bgsmsx412.gar.corp.intel.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: [patch] clocksource, acpi_pm.c: put acpi_pm_read_slow() under CONFIG_PCI
+Date: Wed, 5 Nov 2008 13:40:57 -0600
+Message-ID: <200811051240.58137.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:48469 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754315AbYKEKsG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Nov 2008 05:48:06 -0500
-Content-class: urn:content-classes:message
+Received: from g1t0028.austin.hp.com ([15.216.28.35]:43531 "EHLO
+	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752828AbYKETl0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Nov 2008 14:41:26 -0500
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, "Zhang, Rui" <rui.zhang@intel.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, "Brown, Len" <len.brown@intel.com>
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Adding a maintainer for intel's menlow thermal driver
+acpi_pm_read_slow() is only used when CONFIG_PCI=y, so move the
+definition inside the ifdef.
 
-Signed-off-by: Sujith Thomas <sujith.thomas@intel.com>
----
- MAINTAINERS |    7 +++++++
- 1 file changed, 7 insertions(+)
+Otherwise this causes a "defined but not used" warning when
+building with CONFIG_ACPI=y and CONFIG_PCI=n (that's not
+supported yet, but it could be).
 
-Index: linux-2.6.27/MAINTAINERS
-===================================================================
---- linux-2.6.27.orig/MAINTAINERS
-+++ linux-2.6.27/MAINTAINERS
-@@ -2185,6 +2185,13 @@ M:	adaplas@gmail.com
- L:	linux-fbdev-devel@lists.sourceforge.net (moderated for
-non-subscribers)
- S:	Maintained
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+
+diff --git a/drivers/clocksource/acpi_pm.c b/drivers/clocksource/acpi_pm.c
+index c201710..e1129fa 100644
+--- a/drivers/clocksource/acpi_pm.c
++++ b/drivers/clocksource/acpi_pm.c
+@@ -57,11 +57,6 @@ u32 acpi_pm_read_verified(void)
+ 	return v2;
+ }
  
-+INTEL MENLOW THERMAL DRIVER
-+P:	Sujith Thomas
-+M:	sujith.thomas@intel.com
-+L:	linux-acpi@vger.kernel.org
-+W:	http://www.lesswatts.org/projects/acpi/
-+S:	Supported
+-static cycle_t acpi_pm_read_slow(void)
+-{
+-	return (cycle_t)acpi_pm_read_verified();
+-}
+-
+ static cycle_t acpi_pm_read(void)
+ {
+ 	return (cycle_t)read_pmtmr();
+@@ -88,6 +83,11 @@ static int __init acpi_pm_good_setup(char *__str)
+ }
+ __setup("acpi_pm_good", acpi_pm_good_setup);
+ 
++static cycle_t acpi_pm_read_slow(void)
++{
++	return (cycle_t)acpi_pm_read_verified();
++}
 +
- INTEL IA32 MICROCODE UPDATE SUPPORT
- P:	Tigran Aivazian
- M:	tigran@aivazian.fsnet.co.uk
+ static inline void acpi_pm_need_workaround(void)
+ {
+ 	clocksource_acpi_pm.read = acpi_pm_read_slow;
