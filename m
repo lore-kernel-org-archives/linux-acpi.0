@@ -1,75 +1,74 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: Re: [PATCH]: ACPI Cleanup :Initialize EC global lock based on the
- return status
-Date: Wed, 05 Nov 2008 10:24:47 +0300
-Message-ID: <49114A3F.8080507@gmail.com>
-References: <20081031184233.8588.42241.stgit@thinkpad>	 <1225784509.26020.73.camel@yakui_zhao.sh.intel.com>	 <49100241.2030205@suse.de>	 <1225791444.26020.84.camel@yakui_zhao.sh.intel.com>	 <4910182B.6090201@suse.de> <1225847105.26020.100.camel@yakui_zhao.sh.intel.com>
+From: Yi Yang <yi.y.yang@intel.com>
+Subject: [PATCH 2.6.28-rc3] ACPI: fix inconsistent acpi event format
+Date: Thu, 06 Nov 2008 00:42:52 +0800
+Message-ID: <1225903372.17794.63.camel@yangyi-dev>
+Reply-To: yi.y.yang@intel.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.27]:39398 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750807AbYKEHYv (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Wed, 5 Nov 2008 02:24:51 -0500
-Received: by ey-out-2122.google.com with SMTP id 6so1216527eyi.37
-        for <Linux-acpi@vger.kernel.org>; Tue, 04 Nov 2008 23:24:49 -0800 (PST)
-In-Reply-To: <1225847105.26020.100.camel@yakui_zhao.sh.intel.com>
+Received: from mga09.intel.com ([134.134.136.24]:31476 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753619AbYKEInc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 5 Nov 2008 03:43:32 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, LenBrown <lenb@kernel.org>, "Linux-acpi@vger.kernel.org" <Linux-acpi@vger.kernel.org>, "alan-jenkins@tuffmail.co.uk" <alan-jenkins@tuffmail.co.uk>
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Zhao Yakui wrote:
-> On Tue, 2008-11-04 at 17:38 +0800, Alexey Starikovskiy wrote:
->   
->> Zhao Yakui wrote:
->>     
->>> On Tue, 2008-11-04 at 16:05 +0800, Alexey Starikovskiy wrote:
->>>       
->>>> NAK
->>>>         
->>> Will you please describe the detailed reason?
->>>
->>> In the bug 11917 the regression is related with the following commit:
->>>     >commit 27663c5855b10af9ec67bc7dfba001426ba21222
->>>     >Author: Matthew Wilcox <willy@linux.intel.com>
->>>     >Date:   Fri Oct 10 02:22:59 2008 -0400
->>>     >ACPI: Change acpi_evaluate_integer to support 64-bit on 32-bit
->>> kernels
->>>
->>>     But IMO the main reason is that EC driver misuses the Linux-ACPI
->>> utility interface.(acpi_evaluate_integer).  
->>>       
->> Did you _read_ the interface specification?
->> It explicitly states that if any function call does not succeed it will not
->> change the data passed to it.
->> So it is again only your not-so-humble opinion.
->>     
-> What do you mean "not-so-humble"?
-Did you ever noticed the difference between IMO and IMHO?
->       
->   
->>>     It will be better to determine whether the return value of ACPI
->>> object is effective according to the return status. In such case the
->>> code still can work well even after the Linux-ACPI utility interface is
->>> changed again.
->>>       
->> Code works fine until someone tries to optimize it...
->>     
->      I agree that your patch can work well. But it depends on the
-> internal realization of Linux-ACPI utility interface. If Linux-ACPI
-> utility interface is changed, maybe it will be broken. If so, why not to
-> determine whether the return value is effective based on the return
-> status of Linux-ACPI utility?
->   
-Once again, my code is based not on internal realization, but on the 
-ACPI CA spec.
-ACPI code is already littered with un-needed checks, transitions, etc;
-I see no reason to spread it to whole Linux.
->       
->   
->> Regards,
->> Alex.
->>
->>     
+Subject: ACPI: fix inconsistent acpi event format
+From: Yi Yang <yi.y.yang@intel.com>
+
+Event format acpi generates for /proc/acpi/event is different from
+that for generic netlink interface. Here are i got:
+
+>From /proc/acpi/event, i got the following events when i suspend and
+resume Acer's Aspire One:
+
+battery BAT1 00000080 00000000
+battery BAT1 00000081 00000000
+ac_adapter ACAD 00000080 00000001
+battery BAT1 00000080 00000000
+
+But from generic netlink socket, i got the following events when i suspend
+and resume Acer's Aspire One:
+
+battery PNP0C0A:00 00000080 00000000
+battery PNP0C0A:00 00000081 00000000
+ac_adapter ACPI0003:00 00000080 00000001
+battery PNP0C0A:00 00000080 00000000
+
+Such inconsistent event format will make acpid or hald confused, this patch
+fixes this issue, it makes acpid or hald see the same thing no matter they use
+/proc/acpi/event or generic netlink interface.
+
+After applying this patch, event format i got from /proc/acpi/event and generic
+netlink interface is same, all of them are:
+
+battery BAT1 00000080 00000000
+battery BAT1 00000081 00000000
+ac_adapter ACAD 00000080 00000001
+battery BAT1 00000080 00000000
+
+Please consider applying, thanks.
+
+Signed-off-by: Yi Yang <yi.y.yang@intel.com>
+---
+ battery.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index b2133e8..e52b336 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -782,7 +782,7 @@ static void acpi_battery_notify(acpi_handle handle, u32 event, void *data)
+ 	acpi_bus_generate_proc_event(device, event,
+ 				     acpi_battery_present(battery));
+ 	acpi_bus_generate_netlink_event(device->pnp.device_class,
+-					device->dev.bus_id, event,
++					device->pnp.bus_id, event,
+ 					acpi_battery_present(battery));
+ #ifdef CONFIG_ACPI_SYSFS_POWER
+ 	/* acpi_batter_update could remove power_supply object */
+
+
