@@ -1,60 +1,62 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: Re: [PATCH]: ACPI Cleanup :Initialize EC global lock based on the
-	return status
-Date: Wed, 05 Nov 2008 09:05:05 +0800
-Message-ID: <1225847105.26020.100.camel@yakui_zhao.sh.intel.com>
-References: <20081031184233.8588.42241.stgit@thinkpad>
-	 <1225784509.26020.73.camel@yakui_zhao.sh.intel.com>
-	 <49100241.2030205@suse.de>
-	 <1225791444.26020.84.camel@yakui_zhao.sh.intel.com>
-	 <4910182B.6090201@suse.de>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [patch 2/3] acpi: compal-laptop: use rfkill switch subsystem
+Date: Tue, 4 Nov 2008 19:35:26 -0800
+Message-ID: <20081104193526.1e1b9c93.akpm@linux-foundation.org>
+References: <200810292113.m9TLDM2g016601@imap1.linux-foundation.org>
+	<490C30E8.6050708@tuffmail.co.uk>
+	<490D7D5F.8070109@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:56687 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752135AbYKEA6F (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
-	Tue, 4 Nov 2008 19:58:05 -0500
-In-Reply-To: <4910182B.6090201@suse.de>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56513 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754388AbYKEDg1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Nov 2008 22:36:27 -0500
+In-Reply-To: <490D7D5F.8070109@tuffmail.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: LenBrown <lenb@kernel.org>, "Linux-acpi@vger.kernel.org" <Linux-acpi@vger.kernel.org>, "alan-jenkins@tuffmail.co.uk" <alan-jenkins@tuffmail.co.uk>
+To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Cc: Alan Jenkins <aj504@student.cs.york.ac.uk>, lenb@kernel.org, linux-acpi@vger.kernel.org, cezary.jackiewicz@gmail.com, andi@firstfloor.org, randy.dunlap@oracle.com
 
-On Tue, 2008-11-04 at 17:38 +0800, Alexey Starikovskiy wrote:
-> Zhao Yakui wrote:
-> > On Tue, 2008-11-04 at 16:05 +0800, Alexey Starikovskiy wrote:
-> >> NAK
-> > Will you please describe the detailed reason?
-> > 
-> > In the bug 11917 the regression is related with the following commit:
-> >     >commit 27663c5855b10af9ec67bc7dfba001426ba21222
-> >     >Author: Matthew Wilcox <willy@linux.intel.com>
-> >     >Date:   Fri Oct 10 02:22:59 2008 -0400
-> >     >ACPI: Change acpi_evaluate_integer to support 64-bit on 32-bit
-> > kernels
-> > 
-> >     But IMO the main reason is that EC driver misuses the Linux-ACPI
-> > utility interface.(acpi_evaluate_integer).  
-> Did you _read_ the interface specification?
-> It explicitly states that if any function call does not succeed it will not
-> change the data passed to it.
-> So it is again only your not-so-humble opinion.
-What do you mean "not-so-humble"?      
-> >     It will be better to determine whether the return value of ACPI
-> > object is effective according to the return status. In such case the
-> > code still can work well even after the Linux-ACPI utility interface is
-> > changed again.
-> Code works fine until someone tries to optimize it...
-     I agree that your patch can work well. But it depends on the
-internal realization of Linux-ACPI utility interface. If Linux-ACPI
-utility interface is changed, maybe it will be broken. If so, why not to
-determine whether the return value is effective based on the return
-status of Linux-ACPI utility?
-      
-> 
-> Regards,
-> Alex.
-> 
+On Sun, 02 Nov 2008 10:13:51 +0000 Alan Jenkins <alan-jenkins@tuffmail.co.uk> wrote:
 
+> Alan Jenkins wrote:
+> > allakpm@linux-foundation.org wrote:
+> >   
+> >> From: Cezary Jackiewicz <cezary.jackiewicz@gmail.com>
+> >>
+> >> Removing unnecessary attributes, use rfkill switch subsystem.
+> >>
+> >> It depends on the rfkill changes in net-next-2.6.
+> >>
+> >> [randy.dunlap@oracle.com: compal-laptop: depends on RKFILL]
+> >> Signed-off-by: Cezary Jackiewicz <cezary.jackiewicz@gmail.com>
+> >> Cc: Andi Kleen <andi@firstfloor.org>
+> >> Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+> >> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> >>     
+> >
+> > Having read rfkill.txt and tested the rfkill conversion for eeepc-laptop, 
+> > I have a few queries about this one.  I hope they are useful.
+> >
+> > Firstly, does the hardware preserve the rfkill state over power-off / reboot,
+> > like the EeePC?
+> >
+> > If it does, I think rfkill.txt says you need to generate "gratuitous"
+> > input events on init.  That would allow rfkill_input to initialize
+> > the system rfkill state from the hardware.  You should also do so on resume,
+> > in case someone hibernates, boots into another OS, changes the state, and then
+> > resumes back into Linux.
+> >
+> > Otherwise, the system rfkill state will default to enabled on boot,
+> > and your rfkill device will be set accordingly.  If compal-laptop
+> > used to preserve the state, I think this would be a regression.
+> >   
+> Scratch that, I've been re-educated by Herique.  If the platform does 
+> make the rfkill state persistent, you should call rfkill_set_default() 
+> at load-time, before rfkill_allocate / _register.
+
+Are all of your review issues now addressed?  I don't think so.
+
+I'll put this patch on hold until we can get this sorted out.
