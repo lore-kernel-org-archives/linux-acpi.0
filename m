@@ -1,185 +1,96 @@
-From: Yi Yang <yi.y.yang@intel.com>
-Subject: [PATCH 2.6.28-rc3] ACPI: fix inconsistent acpi event format
-	(resent)
-Date: Thu, 06 Nov 2008 00:55:29 +0800
-Message-ID: <1225904129.17794.68.camel@yangyi-dev>
-Reply-To: yi.y.yang@intel.com
+From: "Thomas, Sujith" <sujith.thomas@intel.com>
+Subject: RE: [PATCH] intel_menlo: max_state is unsigned, invalid test
+Date: Wed, 5 Nov 2008 15:50:37 +0530
+Message-ID: <7D0189F5BE1DF549A570B212D1D5612182AEA5@bgsmsx412.gar.corp.intel.com>
+References: <4908D067.9080207@gmail.com> <20081103143526.375be238.akpm@linux-foundation.org> <alpine.LFD.2.00.0811032300551.3132@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754989AbYKEI4Y@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:40786 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754508AbYKEKVo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Nov 2008 05:21:44 -0500
+Content-class: urn:content-classes:message
+In-Reply-To: <alpine.LFD.2.00.0811032300551.3132@localhost.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, "Zhang, Rui" <rui.zhang@intel.com>
+Cc: roel kluin <roel.kluin@gmail.com>, "Brown, Len" <len.brown@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-=EF=BB=BFSubject: ACPI: fix inconsistent acpi event format
-=46rom: Yi Yang <yi.y.yang@intel.com>
 
-Hi, Len
 
-Please ignore last one and use this patch, this patch also fixes other =
-acpi event format=20
-issues in another several acpi drivers.
+>-----Original Message-----
+>From: Len Brown [mailto:lenb@kernel.org]
+>Sent: Tuesday, November 04, 2008 9:37 AM
+>To: Andrew Morton; Thomas, Sujith; Zhang, Rui
+>Cc: roel kluin; Brown, Len; Linux Kernel Mailing List; linux-
+>acpi@vger.kernel.org
+>Subject: Re: [PATCH] intel_menlo: max_state is unsigned, invalid test
+>
+>
+>
+>On Mon, 3 Nov 2008, Andrew Morton wrote:
+>
+>> On Wed, 29 Oct 2008 17:06:47 -0400
+>> roel kluin <roel.kluin@gmail.com> wrote:
+>>
+>> > max_state is unsigned, so the test is invalid.
+>> >
+>> > Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+>> > ---
+>> > I think max_state can only become -1, no? then probably a different
+>> > patch is required.
+>> > I may not be able to respond for a few weeks.
+>> >
+>> > diff --git a/drivers/misc/intel_menlow.c
+b/drivers/misc/intel_menlow.c
+>> > index e00a275..980171d 100644
+>> > --- a/drivers/misc/intel_menlow.c
+>> > +++ b/drivers/misc/intel_menlow.c
+>> > @@ -121,7 +121,7 @@ static int memory_set_cur_bandwidth(struct
+>thermal_cooling_device *cdev,
+>> >  	if (memory_get_int_max_bandwidth(cdev, &max_state))
+>> >  		return -EFAULT;
+>> >
+>> > -	if (max_state < 0 || state > max_state)
+>> > +	if (max_state == -1 || state > max_state)
+>> >  		return -EINVAL;
+>> >
+>> >  	arg_list.count = 1;
+>> >
+>>
+>> hm, maybe.
+>>
+>> This can only happen if acpi_evaluate_integer(MEMORY_GET_BANDWIDTH)
+>> returned no-error and a bandwidth of zero (I assume).
+>>
+>> Is this a special case which the driver really wanted to handle?  If
+>> so, why is "0" the only bad value which we're checking for?  Or is
+this
+>> all some big brainfart which should be removed?
+>
+>Sujith,
+>Please send me a patch to intel_menlo.c that documents the
+>legal return values from GTHS.
+>
+>If 0 is illegal, that is fine, but the upstream driver doesn't
+>check for it properl (I like Rui's 9/11 patch better than the above,
+>so andrew, you can drop this patch in any case)
+>
+>thanks,
+>-Len
+>
+>ps.  Sujith, shouldn't there be a MAINTAINERS for this driver with your
+>name on it?
+>
+>
+Hi Len,
+I am also in agreement that Rui's 9/11 patch is the solution.
+I'll be sending out patches you requested.
+These can be applied over Rui's 9/11 patch.
 
-Event format acpi generates for /proc/acpi/event is different from
-that for generic netlink interface. Here are i got:
-
->From /proc/acpi/event, i got the following events when i suspend and
-resume Acer's Aspire One:
-
-battery BAT1 00000080 00000000
-battery BAT1 00000081 00000000
-ac_adapter ACAD 00000080 00000001
-battery BAT1 00000080 00000000
-
-But from generic netlink socket, i got the following events when i susp=
-end
-and resume Acer's Aspire One:
-
-battery PNP0C0A:00 00000080 00000000
-battery PNP0C0A:00 00000081 00000000
-ac_adapter ACPI0003:00 00000080 00000001
-battery PNP0C0A:00 00000080 00000000
-
-Such inconsistent event format will make acpid or hald confused, this p=
-atch
-fixes this issue, it makes acpid or hald see the same thing no matter t=
-hey use
-/proc/acpi/event or generic netlink interface.
-
-After applying this patch, event format i got from /proc/acpi/event and=
- generic
-netlink interface is same, all of them are:
-
-battery BAT1 00000080 00000000
-battery BAT1 00000081 00000000
-ac_adapter ACAD 00000080 00000001
-battery BAT1 00000080 00000000
-
-Please consider applying, thanks.
-
-Signed-off-by: Yi Yang <yi.y.yang@intel.com>
----
- ac.c             |    2 +-
- battery.c        |    2 +-
- processor_core.c |    6 +++---
- thermal.c        |    8 ++++----
- wmi.c            |    2 +-
- 5 files changed, 10 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
-index d72a1b6..9d8053b 100644
---- a/drivers/acpi/ac.c
-+++ b/drivers/acpi/ac.c
-@@ -242,7 +242,7 @@ static void acpi_ac_notify(acpi_handle handle, u32 =
-event, void *data)
- 		acpi_ac_get_state(ac);
- 		acpi_bus_generate_proc_event(device, event, (u32) ac->state);
- 		acpi_bus_generate_netlink_event(device->pnp.device_class,
--						  device->dev.bus_id, event,
-+						  device->pnp.bus_id, event,
- 						  (u32) ac->state);
- #ifdef CONFIG_ACPI_SYSFS_POWER
- 		kobject_uevent(&ac->charger.dev->kobj, KOBJ_CHANGE);
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index b2133e8..e52b336 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -782,7 +782,7 @@ static void acpi_battery_notify(acpi_handle handle,=
- u32 event, void *data)
- 	acpi_bus_generate_proc_event(device, event,
- 				     acpi_battery_present(battery));
- 	acpi_bus_generate_netlink_event(device->pnp.device_class,
--					device->dev.bus_id, event,
-+					device->pnp.bus_id, event,
- 					acpi_battery_present(battery));
- #ifdef CONFIG_ACPI_SYSFS_POWER
- 	/* acpi_batter_update could remove power_supply object */
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_cor=
-e.c
-index 24a362f..8bc0bd5 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -761,20 +761,20 @@ static void acpi_processor_notify(acpi_handle han=
-dle, u32 event, void *data)
- 		acpi_bus_generate_proc_event(device, event,
- 					pr->performance_platform_limit);
- 		acpi_bus_generate_netlink_event(device->pnp.device_class,
--						  device->dev.bus_id, event,
-+						  device->pnp.bus_id, event,
- 						  pr->performance_platform_limit);
- 		break;
- 	case ACPI_PROCESSOR_NOTIFY_POWER:
- 		acpi_processor_cst_has_changed(pr);
- 		acpi_bus_generate_proc_event(device, event, 0);
- 		acpi_bus_generate_netlink_event(device->pnp.device_class,
--						  device->dev.bus_id, event, 0);
-+						  device->pnp.bus_id, event, 0);
- 		break;
- 	case ACPI_PROCESSOR_NOTIFY_THROTTLING:
- 		acpi_processor_tstate_has_changed(pr);
- 		acpi_bus_generate_proc_event(device, event, 0);
- 		acpi_bus_generate_netlink_event(device->pnp.device_class,
--						  device->dev.bus_id, event, 0);
-+						  device->pnp.bus_id, event, 0);
- 	default:
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 				  "Unsupported event [0x%x]\n", event));
-diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-index ad6cae9..d636d91 100644
---- a/drivers/acpi/thermal.c
-+++ b/drivers/acpi/thermal.c
-@@ -576,7 +576,7 @@ static int acpi_thermal_critical(struct acpi_therma=
-l *tz)
- 	acpi_bus_generate_proc_event(tz->device, ACPI_THERMAL_NOTIFY_CRITICAL=
-,
- 				tz->trips.critical.flags.enabled);
- 	acpi_bus_generate_netlink_event(tz->device->pnp.device_class,
--					  tz->device->dev.bus_id,
-+					  tz->device->pnp.bus_id,
- 					  ACPI_THERMAL_NOTIFY_CRITICAL,
- 					  tz->trips.critical.flags.enabled);
-=20
-@@ -605,7 +605,7 @@ static int acpi_thermal_hot(struct acpi_thermal *tz=
-)
- 	acpi_bus_generate_proc_event(tz->device, ACPI_THERMAL_NOTIFY_HOT,
- 				tz->trips.hot.flags.enabled);
- 	acpi_bus_generate_netlink_event(tz->device->pnp.device_class,
--					  tz->device->dev.bus_id,
-+					  tz->device->pnp.bus_id,
- 					  ACPI_THERMAL_NOTIFY_HOT,
- 					  tz->trips.hot.flags.enabled);
-=20
-@@ -1592,14 +1592,14 @@ static void acpi_thermal_notify(acpi_handle han=
-dle, u32 event, void *data)
- 		acpi_thermal_check(tz);
- 		acpi_bus_generate_proc_event(device, event, 0);
- 		acpi_bus_generate_netlink_event(device->pnp.device_class,
--						  device->dev.bus_id, event, 0);
-+						  device->pnp.bus_id, event, 0);
- 		break;
- 	case ACPI_THERMAL_NOTIFY_DEVICES:
- 		acpi_thermal_trips_update(tz, ACPI_TRIPS_REFRESH_DEVICES);
- 		acpi_thermal_check(tz);
- 		acpi_bus_generate_proc_event(device, event, 0);
- 		acpi_bus_generate_netlink_event(device->pnp.device_class,
--						  device->dev.bus_id, event, 0);
-+						  device->pnp.bus_id, event, 0);
- 		break;
- 	default:
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-diff --git a/drivers/acpi/wmi.c b/drivers/acpi/wmi.c
-index 47cd7ba..07f1ba0 100644
---- a/drivers/acpi/wmi.c
-+++ b/drivers/acpi/wmi.c
-@@ -660,7 +660,7 @@ static void acpi_wmi_notify(acpi_handle handle, u32=
- event, void *data)
- 				wblock->handler(event, wblock->handler_data);
-=20
- 			acpi_bus_generate_netlink_event(
--				device->pnp.device_class, device->dev.bus_id,
-+				device->pnp.device_class, device->pnp.bus_id,
- 				event, 0);
- 			break;
- 		}
+Regards,
+Sujith
+	
