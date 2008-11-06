@@ -1,38 +1,30 @@
-From: Randy Dunlap <rdunlap@xenotime.net>
-Subject: Re: [PATCH 01/11] ACPI: update debug parameter documentation
-Date: Thu, 06 Nov 2008 14:24:35 -0800
-Message-ID: <49136EA3.7080709@xenotime.net>
-References: <20081105231710.26131.3110.stgit@bob.kio> <20081105231737.26131.62046.stgit@bob.kio> <alpine.LFD.2.00.0811061502100.3106@localhost.localdomain> <200811061422.39997.bjorn.helgaas@hp.com> <alpine.LFD.2.00.0811061705450.3106@localhost.localdomain>
+From: Matthew Garrett <mjg@redhat.com>
+Subject: Re: [PATCH 15/15] Revert "x86: default to reboot via ACPI"
+Date: Thu, 6 Nov 2008 23:24:19 +0000
+Message-ID: <20081106232419.GA8007@srcf.ucam.org>
+References: <1225915018-6548-1-git-send-email-ehabkost@redhat.com> <20081106143021.GD13023@elte.hu> <20081106150610.GA1644@elte.hu> <200811061853.08003.arvidjaar@mail.ru> <alpine.LFD.2.00.0811061442590.3106@localhost.localdomain> <20081106215011.GA6391@srcf.ucam.org> <alpine.LFD.2.00.0811061716420.3106@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from xenotime.net ([72.52.64.118]:42080 "HELO xenotime.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751175AbYKFWfD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 6 Nov 2008 17:35:03 -0500
-Received: from ::ffff:98.99.121.230 ([98.99.121.230]) by xenotime.net for <linux-acpi@vger.kernel.org>; Thu, 6 Nov 2008 14:24:58 -0800
-In-Reply-To: <alpine.LFD.2.00.0811061705450.3106@localhost.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <kvm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.0811061716420.3106@localhost.localdomain>
+Sender: kvm-owner@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, linux-acpi@vger.kernel.org, Zhao Yakui <yakui.zhao@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.de>, Thomas Renninger <trenn@suse.de>
+Cc: Andrey Borzenkov <arvidjaar@mail.ru>, Ingo Molnar <mingo@elte.hu>, Eduardo Habkost <ehabkost@redhat.com>, Avi Kivity <avi@redhat.com>, "Eric W. Biederman" <ebiederm@xmission.com>, Andrew Morton <akpm@osdl.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, kexec@lists.infradead.org, kvm@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-Len Brown wrote:
+On Thu, Nov 06, 2008 at 05:17:25PM -0500, Len Brown wrote:
+> > Does Windows default to using the ACPI method now?
 > 
->>> $ cat /sys/module/acpi/parameters/debug_layer
-> 
->> I don't really like having the whole list in the doc either.
->> One problem with using only a pointer to the sysfs file is
->> that you have to have a booted machine with ACPI_DEBUG=y.
-> 
-> Good point.
-> Maybe in kernel-parameters.txt we should point to
-> a Documedntation/acpi/debug.txt file with this stuff in it?
+> That is my guess, based on the fact that we've seen
+> newer machines that don't reboot w/o using the ACPI reset reg.
 
-I think that's a good compromise.  It should be available
-somewhere other than a source or header file IMO.  I.e.,
-some place in Documentation/[acpi].
+We've seen machines that won't reboot for a variety of reasons in the 
+past. In some cases this has seemed to be due to hardware being in a 
+state that the BIOS didn't expect. Hitting the SMI trap behind the ACPI 
+register might work around this, but I suspect that in many cases we 
+could achieve the same effect by spending more time trying to work out 
+whether there's any common themes in the failures.
 
-~Randy
-
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
