@@ -1,30 +1,43 @@
-From: Matthew Garrett <mjg@redhat.com>
-Subject: Re: [PATCH 15/15] Revert "x86: default to reboot via ACPI"
-Date: Thu, 6 Nov 2008 23:24:19 +0000
-Message-ID: <20081106232419.GA8007@srcf.ucam.org>
-References: <1225915018-6548-1-git-send-email-ehabkost@redhat.com> <20081106143021.GD13023@elte.hu> <20081106150610.GA1644@elte.hu> <200811061853.08003.arvidjaar@mail.ru> <alpine.LFD.2.00.0811061442590.3106@localhost.localdomain> <20081106215011.GA6391@srcf.ucam.org> <alpine.LFD.2.00.0811061716420.3106@localhost.localdomain>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH 11/11] ACPI: call core init functions explicitly instead of using initcalls
+Date: Thu, 6 Nov 2008 17:40:16 -0600
+Message-ID: <200811061640.17180.bjorn.helgaas@hp.com>
+References: <20081105231710.26131.3110.stgit@bob.kio> <20081105231828.26131.90839.stgit@bob.kio> <alpine.LFD.2.00.0811061654540.3106@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <kvm-owner@vger.kernel.org>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t0016.houston.hp.com ([15.201.24.19]:25327 "EHLO
+	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751869AbYKFXkU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Nov 2008 18:40:20 -0500
+In-Reply-To: <alpine.LFD.2.00.0811061654540.3106@localhost.localdomain>
 Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.0811061716420.3106@localhost.localdomain>
-Sender: kvm-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Andrey Borzenkov <arvidjaar@mail.ru>, Ingo Molnar <mingo@elte.hu>, Eduardo Habkost <ehabkost@redhat.com>, Avi Kivity <avi@redhat.com>, "Eric W. Biederman" <ebiederm@xmission.com>, Andrew Morton <akpm@osdl.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, kexec@lists.infradead.org, kvm@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Zhao Yakui <yakui.zhao@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.de>
 
-On Thu, Nov 06, 2008 at 05:17:25PM -0500, Len Brown wrote:
-> > Does Windows default to using the ACPI method now?
+On Thursday 06 November 2008 03:02:25 pm Len Brown wrote:
 > 
-> That is my guess, based on the fact that we've seen
-> newer machines that don't reboot w/o using the ACPI reset reg.
+> +++ b/drivers/acpi/acpi.h
+> ...
+> +/* Functions internal to the ACPI core */
+> 
+> 
+> I like the patch, except for the creation of drivers/acpi.h
+> For we've already got too many files called 'acpi.h'...
+> and Bob is working on a header clean-up as we speak...
+> 
+> Maybe the existing acpi/acpi_drivers.h would be better for these 
+> declarations?
 
-We've seen machines that won't reboot for a variety of reasons in the 
-past. In some cases this has seemed to be due to hardware being in a 
-state that the BIOS didn't expect. Hitting the SMI trap behind the ACPI 
-register might work around this, but I suspect that in many cases we 
-could achieve the same effect by spending more time trying to work out 
-whether there's any common themes in the failures.
+Sure, I can do that.  I hesitate only slightly, because acpi_drivers.h
+is for, well, drivers, and these are core functions and definitely not
+related to drivers.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+I created drivers/acpi/acpi.h following the example of drivers/pci/pci.h,
+which contains things intended for the PCI core only.
+
+Bjorn
