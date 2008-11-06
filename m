@@ -1,99 +1,196 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH 01/11] ACPI: update debug parameter documentation
-Date: Thu, 6 Nov 2008 15:22:39 -0600
-Message-ID: <200811061422.39997.bjorn.helgaas@hp.com>
-References: <20081105231710.26131.3110.stgit@bob.kio> <20081105231737.26131.62046.stgit@bob.kio> <alpine.LFD.2.00.0811061502100.3106@localhost.localdomain>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 06/11] ACPI: remove CONFIG_ACPI_EC
+Date: Thu, 06 Nov 2008 15:57:12 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0811061552110.3106@localhost.localdomain>
+References: <20081105231710.26131.3110.stgit@bob.kio>
+ <20081105231803.26131.36330.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0029.austin.hp.com ([15.216.28.36]:18443 "EHLO
-	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752146AbYKFVWp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Nov 2008 16:22:45 -0500
-In-Reply-To: <alpine.LFD.2.00.0811061502100.3106@localhost.localdomain>
-Content-Disposition: inline
+Received: from vms173003pub.verizon.net ([206.46.173.3]:35033 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751103AbYKFVgy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Nov 2008 16:36:54 -0500
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173003.mailsrvcs.net
+ (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+ with ESMTPA id <0K9X008LMJJDGQ30@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 06 Nov 2008 14:57:14 -0600 (CST)
+In-reply-to: <20081105231803.26131.36330.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Zhao Yakui <yakui.zhao@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.de>, Thomas Renninger <trenn@suse.de>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: linux-acpi@vger.kernel.org, Zhao Yakui <yakui.zhao@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.de>
 
-On Thursday 06 November 2008 01:29:16 pm Len Brown wrote:
-> On Wed, 5 Nov 2008, Bjorn Helgaas wrote:
-> > +			The following are some of the global components
-> > +			defined by the ACPI CA and the Linux OSPM:
-> > +				0x01 utilities
-> > +				0x02 hardware
-> > +				0x04 events
-> > +				0x08 tables
-> > +				0x10 namespace
-> > +				0x20 parser
-> > +				0x40 dispatcher
-> > +				0x80 executer
-> > +			       0x100 resources
-> > +			       0x200 ACPI CA debugger
-> > +			       0x400 OS services
-> > +			       0x800 ACPI CA disassembler
-> > +			     0x40000 battery
-> > +			     0x80000 button
-> > +			    0x200000 fan
-> > +			    0x400000 PCI
-> > +			  0x10000000 bay
+applied.
+
+thanks,
+-Len
+
+On Wed, 5 Nov 2008, Bjorn Helgaas wrote:
+
+> Remove CONFIG_ACPI_EC.  It was always set the same as CONFIG_ACPI,
+> and it had no menu label, so there was no way to set it to anything
+> other than "y".
 > 
-> The (always current) bit definitions can always be had this way:
+> Per section 6.5.4 of the ACPI 3.0b specification,
 > 
-> $ cat /sys/module/acpi/parameters/debug_layer
-> Description              	Hex        SET
-> ACPI_UTILITIES           	0x00000001 [*]
-> ACPI_HARDWARE            	0x00000002 [*]
-> ACPI_EVENTS              	0x00000004 [*]
-> ACPI_TABLES              	0x00000008 [*]
-> ACPI_NAMESPACE           	0x00000010 [*]
-> ACPI_PARSER              	0x00000020 [*]
-> ACPI_DISPATCHER          	0x00000040 [*]
-> ACPI_EXECUTER            	0x00000080 [*]
-> ACPI_RESOURCES           	0x00000100 [*]
-> ACPI_CA_DEBUGGER         	0x00000200 [*]
-> ACPI_OS_SERVICES         	0x00000400 [*]
-> ACPI_CA_DISASSEMBLER     	0x00000800 [*]
-> ACPI_COMPILER            	0x00001000 [*]
-> ACPI_TOOLS               	0x00002000 [*]
-> ACPI_ALL_DRIVERS         	0xFFFF0000 [*]
+>     OSPM must make Embedded Controller operation regions, accessed
+>     via the Embedded Controllers described in ECDT, available before
+>     executing any control method.
 > 
-> So I think just mentioning that is enough, rather than
-> reproducing it here.  However, I do think that highlighting
-> the driver bits would be good, since they're not included above.
-> bay isn't a good example, as it doesn't exist any more.
-
-I don't really like having the whole list in the doc either.
-One problem with using only a pointer to the sysfs file is
-that you have to have a booted machine with ACPI_DEBUG=y.
-
-We could use a pointer to acoutput.h, especially if we moved
-the driver definitions there.  It's still a minor irritation
-that the source code says "ACPI_DEBUG_PRINT((ACPI_DB_INFO ..."
-and you have to work back to the ACPI_LV_INFO definition before
-you have a mask value.  But the benefit of having only a single
-copy of the list is probably worth that irritation.
-
-If you're willing to see the component definitions in acoutput.h,
-would you also want to change acpi/debug.c so it prints the
-driver bits individually?
-
-> > +	  When no parameters are supplied, the default settings cause AML
-> > +	  stores to the "Debug" object to produce console output.
+> The ECDT table is optional, but if it is present, the above text
+> means that the EC it describes is a required part of the ACPI
+> subsystem, so CONFIG_ACPI_EC=n wouldn't make sense.
 > 
-> I think Thomas may have changed this at SuSE b/c they ship
-> with CONFIG_ACPI_DEBUG=y, if so, maybe upstream should also?
-
-Yeah, I don't really like the default mask being non-zero.
-I seem to have a bunch of machines that spew lots of debug
-output.  Possibly these are protos with old firmware, but I
-suspect we shipped firmware that uses Debug.
-
-I didn't change it because the default is currently set in
-the CA somewhere.  I guess we could override it early in
-acpi_init() or something.
-
-Bjorn
+> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+> ---
+>  drivers/acpi/Kconfig        |    8 --------
+>  drivers/acpi/Makefile       |    2 +-
+>  drivers/acpi/bus.c          |    3 +--
+>  drivers/char/sonypi.c       |    4 ++--
+>  drivers/misc/Kconfig        |    4 ++--
+>  include/acpi/acpi_drivers.h |    2 --
+>  include/linux/acpi.h        |    4 ----
+>  7 files changed, 6 insertions(+), 21 deletions(-)
+> 
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index 20f4574..768bb07 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -330,14 +330,6 @@ config ACPI_DEBUG_FUNC_TRACE
+>  	  ACPI Debug Statements slow down ACPI processing. Function trace
+>  	  is about half of the penalty and is rarely useful.
+>  
+> -config ACPI_EC
+> -	bool
+> -	default y
+> -	help
+> -	  This driver is required on some systems for the proper operation of
+> -	  the battery and thermal drivers.  If you are compiling for a 
+> -	  mobile system, say Y.
+> -
+>  config ACPI_PCI_SLOT
+>  	tristate "PCI slot detection driver"
+>  	default n
+> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> index 8017f63..fc62231 100644
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -39,7 +39,7 @@ obj-y				+= sleep/
+>  obj-y				+= bus.o glue.o
+>  obj-y				+= scan.o
+>  # Keep EC driver first. Initialization of others depend on it.
+> -obj-$(CONFIG_ACPI_EC)		+= ec.o
+> +obj-y				+= ec.o
+>  obj-$(CONFIG_ACPI_AC) 		+= ac.o
+>  obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
+>  obj-$(CONFIG_ACPI_BUTTON)	+= button.o
+> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> index c797c64..765fd1c 100644
+> --- a/drivers/acpi/bus.c
+> +++ b/drivers/acpi/bus.c
+> @@ -774,7 +774,7 @@ static int __init acpi_bus_init(void)
+>  		       "Unable to initialize ACPI OS objects\n");
+>  		goto error1;
+>  	}
+> -#ifdef CONFIG_ACPI_EC
+> +
+>  	/*
+>  	 * ACPI 2.0 requires the EC driver to be loaded and work before
+>  	 * the EC device is found in the namespace (i.e. before acpi_initialize_objects()
+> @@ -785,7 +785,6 @@ static int __init acpi_bus_init(void)
+>  	 */
+>  	status = acpi_ec_ecdt_probe();
+>  	/* Ignore result. Not having an ECDT is not fatal. */
+> -#endif
+>  
+>  	status = acpi_initialize_objects(ACPI_FULL_INITIALIZATION);
+>  	if (ACPI_FAILURE(status)) {
+> diff --git a/drivers/char/sonypi.c b/drivers/char/sonypi.c
+> index 2457b07..f437443 100644
+> --- a/drivers/char/sonypi.c
+> +++ b/drivers/char/sonypi.c
+> @@ -523,7 +523,7 @@ static int acpi_driver_registered;
+>  
+>  static int sonypi_ec_write(u8 addr, u8 value)
+>  {
+> -#ifdef CONFIG_ACPI_EC
+> +#ifdef CONFIG_ACPI
+>  	if (SONYPI_ACPI_ACTIVE)
+>  		return ec_write(addr, value);
+>  #endif
+> @@ -539,7 +539,7 @@ static int sonypi_ec_write(u8 addr, u8 value)
+>  
+>  static int sonypi_ec_read(u8 addr, u8 *value)
+>  {
+> -#ifdef CONFIG_ACPI_EC
+> +#ifdef CONFIG_ACPI
+>  	if (SONYPI_ACPI_ACTIVE)
+>  		return ec_read(addr, value);
+>  #endif
+> diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+> index 9494400..4494ad2 100644
+> --- a/drivers/misc/Kconfig
+> +++ b/drivers/misc/Kconfig
+> @@ -230,7 +230,7 @@ config HP_WMI
+>  config MSI_LAPTOP
+>          tristate "MSI Laptop Extras"
+>          depends on X86
+> -        depends on ACPI_EC
+> +        depends on ACPI
+>          depends on BACKLIGHT_CLASS_DEVICE
+>          ---help---
+>  	  This is a driver for laptops built by MSI (MICRO-STAR
+> @@ -260,7 +260,7 @@ config PANASONIC_LAPTOP
+>  config COMPAL_LAPTOP
+>  	tristate "Compal Laptop Extras"
+>  	depends on X86
+> -	depends on ACPI_EC
+> +	depends on ACPI
+>  	depends on BACKLIGHT_CLASS_DEVICE
+>  	---help---
+>  	  This is a driver for laptops built by Compal:
+> diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
+> index 818215f..b3c40dc 100644
+> --- a/include/acpi/acpi_drivers.h
+> +++ b/include/acpi/acpi_drivers.h
+> @@ -97,10 +97,8 @@ extern int acpi_power_nocheck;
+>  /* --------------------------------------------------------------------------
+>                                    Embedded Controller
+>     -------------------------------------------------------------------------- */
+> -#ifdef CONFIG_ACPI_EC
+>  int acpi_ec_ecdt_probe(void);
+>  int acpi_boot_ec_enable(void);
+> -#endif
+>  
+>  /* --------------------------------------------------------------------------
+>                                      Processor
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index fd6a452..d7846bd 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -163,8 +163,6 @@ struct acpi_pci_driver {
+>  int acpi_pci_register_driver(struct acpi_pci_driver *driver);
+>  void acpi_pci_unregister_driver(struct acpi_pci_driver *driver);
+>  
+> -#ifdef CONFIG_ACPI_EC
+> -
+>  extern int ec_read(u8 addr, u8 *val);
+>  extern int ec_write(u8 addr, u8 val);
+>  extern int ec_transaction(u8 command,
+> @@ -172,8 +170,6 @@ extern int ec_transaction(u8 command,
+>                            u8 *rdata, unsigned rdata_len,
+>  			  int force_poll);
+>  
+> -#endif /*CONFIG_ACPI_EC*/
+> -
+>  #if defined(CONFIG_ACPI_WMI) || defined(CONFIG_ACPI_WMI_MODULE)
+>  
+>  typedef void (*wmi_notify_handler) (u32 value, void *context);
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
