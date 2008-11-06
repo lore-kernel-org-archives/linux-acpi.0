@@ -1,41 +1,38 @@
-From: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 15/15] Revert "x86: default to reboot via ACPI"
-Date: Thu, 06 Nov 2008 17:17:25 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0811061716420.3106@localhost.localdomain>
-References: <1225915018-6548-1-git-send-email-ehabkost@redhat.com>
-	<20081106143021.GD13023@elte.hu> <20081106150610.GA1644@elte.hu>
-	<200811061853.08003.arvidjaar@mail.ru>
-	<alpine.LFD.2.00.0811061442590.3106@localhost.localdomain>
-	<20081106215011.GA6391@srcf.ucam.org>
+From: Randy Dunlap <rdunlap@xenotime.net>
+Subject: Re: [PATCH 01/11] ACPI: update debug parameter documentation
+Date: Thu, 06 Nov 2008 14:24:35 -0800
+Message-ID: <49136EA3.7080709@xenotime.net>
+References: <20081105231710.26131.3110.stgit@bob.kio> <20081105231737.26131.62046.stgit@bob.kio> <alpine.LFD.2.00.0811061502100.3106@localhost.localdomain> <200811061422.39997.bjorn.helgaas@hp.com> <alpine.LFD.2.00.0811061705450.3106@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-In-reply-to: <20081106215011.GA6391-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/listinfo/kexec>,
-	<mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/kexec>
-List-Post: <mailto:kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Help: <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/kexec>,
-	<mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
-Sender: kexec-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-Errors-To: kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-To: Matthew Garrett <mjg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, Eduardo Habkost <ehabkost-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Eric W. Biederman" <ebiederm-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org>, Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>, Andrey Borzenkov <arvidjaar-JGs/UdohzUI@public.gmane.org>, Avi Kivity <avi-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from xenotime.net ([72.52.64.118]:42080 "HELO xenotime.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751175AbYKFWfD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 6 Nov 2008 17:35:03 -0500
+Received: from ::ffff:98.99.121.230 ([98.99.121.230]) by xenotime.net for <linux-acpi@vger.kernel.org>; Thu, 6 Nov 2008 14:24:58 -0800
+In-Reply-To: <alpine.LFD.2.00.0811061705450.3106@localhost.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, linux-acpi@vger.kernel.org, Zhao Yakui <yakui.zhao@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.de>, Thomas Renninger <trenn@suse.de>
 
-
-
-> > My expectation is that with the ACPI default, our problem
-> > is working around a finite list of old machines that don't work;
-> > while with the default KBD, our problem is working around
-> > a potentially unbounded list of yet to be shipped machines
-> > who may only be tested and work using the ACPI method.
+Len Brown wrote:
 > 
-> Does Windows default to using the ACPI method now?
+>>> $ cat /sys/module/acpi/parameters/debug_layer
+> 
+>> I don't really like having the whole list in the doc either.
+>> One problem with using only a pointer to the sysfs file is
+>> that you have to have a booted machine with ACPI_DEBUG=y.
+> 
+> Good point.
+> Maybe in kernel-parameters.txt we should point to
+> a Documedntation/acpi/debug.txt file with this stuff in it?
 
-That is my guess, based on the fact that we've seen
-newer machines that don't reboot w/o using the ACPI reset reg.
+I think that's a good compromise.  It should be available
+somewhere other than a source or header file IMO.  I.e.,
+some place in Documentation/[acpi].
 
--Len
+~Randy
+
