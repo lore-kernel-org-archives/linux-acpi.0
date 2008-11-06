@@ -1,99 +1,99 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 05/11] ACPI: remove CONFIG_ACPI_POWER
-Date: Thu, 06 Nov 2008 15:42:47 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0811061542420.3106@localhost.localdomain>
-References: <20081105231710.26131.3110.stgit@bob.kio>
- <20081105231757.26131.61631.stgit@bob.kio>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH 01/11] ACPI: update debug parameter documentation
+Date: Thu, 6 Nov 2008 15:22:39 -0600
+Message-ID: <200811061422.39997.bjorn.helgaas@hp.com>
+References: <20081105231710.26131.3110.stgit@bob.kio> <20081105231737.26131.62046.stgit@bob.kio> <alpine.LFD.2.00.0811061502100.3106@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms044pub.verizon.net ([206.46.252.44]:59926 "EHLO
-	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751740AbYKFVOL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Nov 2008 16:14:11 -0500
-Received: from localhost.localdomain ([96.237.168.40])
- by vms044.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0K9X009ODIVCR3W4@vms044.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 06 Nov 2008 14:42:52 -0600 (CST)
-In-reply-to: <20081105231757.26131.61631.stgit@bob.kio>
+Received: from g1t0029.austin.hp.com ([15.216.28.36]:18443 "EHLO
+	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752146AbYKFVWp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Nov 2008 16:22:45 -0500
+In-Reply-To: <alpine.LFD.2.00.0811061502100.3106@localhost.localdomain>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: linux-acpi@vger.kernel.org, Zhao Yakui <yakui.zhao@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.de>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Zhao Yakui <yakui.zhao@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.de>, Thomas Renninger <trenn@suse.de>
 
-applied.
+On Thursday 06 November 2008 01:29:16 pm Len Brown wrote:
+> On Wed, 5 Nov 2008, Bjorn Helgaas wrote:
+> > +			The following are some of the global components
+> > +			defined by the ACPI CA and the Linux OSPM:
+> > +				0x01 utilities
+> > +				0x02 hardware
+> > +				0x04 events
+> > +				0x08 tables
+> > +				0x10 namespace
+> > +				0x20 parser
+> > +				0x40 dispatcher
+> > +				0x80 executer
+> > +			       0x100 resources
+> > +			       0x200 ACPI CA debugger
+> > +			       0x400 OS services
+> > +			       0x800 ACPI CA disassembler
+> > +			     0x40000 battery
+> > +			     0x80000 button
+> > +			    0x200000 fan
+> > +			    0x400000 PCI
+> > +			  0x10000000 bay
+> 
+> The (always current) bit definitions can always be had this way:
+> 
+> $ cat /sys/module/acpi/parameters/debug_layer
+> Description              	Hex        SET
+> ACPI_UTILITIES           	0x00000001 [*]
+> ACPI_HARDWARE            	0x00000002 [*]
+> ACPI_EVENTS              	0x00000004 [*]
+> ACPI_TABLES              	0x00000008 [*]
+> ACPI_NAMESPACE           	0x00000010 [*]
+> ACPI_PARSER              	0x00000020 [*]
+> ACPI_DISPATCHER          	0x00000040 [*]
+> ACPI_EXECUTER            	0x00000080 [*]
+> ACPI_RESOURCES           	0x00000100 [*]
+> ACPI_CA_DEBUGGER         	0x00000200 [*]
+> ACPI_OS_SERVICES         	0x00000400 [*]
+> ACPI_CA_DISASSEMBLER     	0x00000800 [*]
+> ACPI_COMPILER            	0x00001000 [*]
+> ACPI_TOOLS               	0x00002000 [*]
+> ACPI_ALL_DRIVERS         	0xFFFF0000 [*]
+> 
+> So I think just mentioning that is enough, rather than
+> reproducing it here.  However, I do think that highlighting
+> the driver bits would be good, since they're not included above.
+> bay isn't a good example, as it doesn't exist any more.
 
-thanks,
--len
+I don't really like having the whole list in the doc either.
+One problem with using only a pointer to the sysfs file is
+that you have to have a booted machine with ACPI_DEBUG=y.
 
-On Wed, 5 Nov 2008, Bjorn Helgaas wrote:
+We could use a pointer to acoutput.h, especially if we moved
+the driver definitions there.  It's still a minor irritation
+that the source code says "ACPI_DEBUG_PRINT((ACPI_DB_INFO ..."
+and you have to work back to the ACPI_LV_INFO definition before
+you have a mask value.  But the benefit of having only a single
+copy of the list is probably worth that irritation.
 
-> Remove CONFIG_ACPI_POWER.  It was always set the same as CONFIG_ACPI,
-> and it had no menu label, so there was no way to set it to anything
-> other than "y".
+If you're willing to see the component definitions in acoutput.h,
+would you also want to change acpi/debug.c so it prints the
+driver bits individually?
+
+> > +	  When no parameters are supplied, the default settings cause AML
+> > +	  stores to the "Debug" object to produce console output.
 > 
-> The interfaces under CONFIG_ACPI_POWER (acpi_device_sleep_wake(),
-> acpi_power_transition(), etc) are called unconditionally from the
-> ACPI core, so we already depend on it always being present.
-> 
-> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> ---
->  drivers/acpi/Kconfig        |    4 ----
->  drivers/acpi/Makefile       |    2 +-
->  include/acpi/acpi_drivers.h |    2 --
->  3 files changed, 1 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index 1c954a7..20f4574 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -347,10 +347,6 @@ config ACPI_PCI_SLOT
->  	  help you correlate PCI bus addresses with the physical geography
->  	  of your slots. If you are unsure, say N.
->  
-> -config ACPI_POWER
-> -	bool
-> -	default y
-> -
->  config ACPI_SYSTEM
->  	bool
->  	default y
-> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> index d91c027..8017f63 100644
-> --- a/drivers/acpi/Makefile
-> +++ b/drivers/acpi/Makefile
-> @@ -51,7 +51,7 @@ obj-$(CONFIG_ACPI_PCI_SLOT)	+= pci_slot.o
->  obj-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
->  obj-$(CONFIG_ACPI_CONTAINER)	+= container.o
->  obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
-> -obj-$(CONFIG_ACPI_POWER)	+= power.o
-> +obj-y				+= power.o
->  obj-$(CONFIG_ACPI_SYSTEM)	+= system.o event.o
->  obj-$(CONFIG_ACPI_DEBUG)	+= debug.o
->  obj-$(CONFIG_ACPI_NUMA)		+= numa.o
-> diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
-> index cf04c60..818215f 100644
-> --- a/include/acpi/acpi_drivers.h
-> +++ b/include/acpi/acpi_drivers.h
-> @@ -86,7 +86,6 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_device *device, int domain,
->                                    Power Resource
->     -------------------------------------------------------------------------- */
->  
-> -#ifdef CONFIG_ACPI_POWER
->  int acpi_device_sleep_wake(struct acpi_device *dev,
->                             int enable, int sleep_state, int dev_state);
->  int acpi_enable_wakeup_device_power(struct acpi_device *dev, int sleep_state);
-> @@ -94,7 +93,6 @@ int acpi_disable_wakeup_device_power(struct acpi_device *dev);
->  int acpi_power_get_inferred_state(struct acpi_device *device);
->  int acpi_power_transition(struct acpi_device *device, int state);
->  extern int acpi_power_nocheck;
-> -#endif
->  
->  /* --------------------------------------------------------------------------
->                                    Embedded Controller
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> I think Thomas may have changed this at SuSE b/c they ship
+> with CONFIG_ACPI_DEBUG=y, if so, maybe upstream should also?
+
+Yeah, I don't really like the default mask being non-zero.
+I seem to have a bunch of machines that spew lots of debug
+output.  Possibly these are protos with old firmware, but I
+suspect we shipped firmware that uses Debug.
+
+I didn't change it because the default is currently set in
+the CA somewhere.  I guess we could override it early in
+acpi_init() or something.
+
+Bjorn
