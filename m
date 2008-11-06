@@ -1,43 +1,61 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH 11/11] ACPI: call core init functions explicitly instead of using initcalls
-Date: Thu, 6 Nov 2008 17:40:16 -0600
-Message-ID: <200811061640.17180.bjorn.helgaas@hp.com>
-References: <20081105231710.26131.3110.stgit@bob.kio> <20081105231828.26131.90839.stgit@bob.kio> <alpine.LFD.2.00.0811061654540.3106@localhost.localdomain>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH]1/3 intel_menlow:Adding comment for GTHS legal values
+Date: Thu, 6 Nov 2008 15:47:33 -0800
+Message-ID: <20081106154733.31714e90.akpm@linux-foundation.org>
+References: <7D0189F5BE1DF549A570B212D1D5612182AF02@bgsmsx412.gar.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0016.houston.hp.com ([15.201.24.19]:25327 "EHLO
-	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751869AbYKFXkU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Nov 2008 18:40:20 -0500
-In-Reply-To: <alpine.LFD.2.00.0811061654540.3106@localhost.localdomain>
-Content-Disposition: inline
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48085 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753924AbYKFXsN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Nov 2008 18:48:13 -0500
+In-Reply-To: <7D0189F5BE1DF549A570B212D1D5612182AF02@bgsmsx412.gar.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Zhao Yakui <yakui.zhao@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: lenb@kernel.org, rui.zhang@intel.com, sujith.thomas@intel.com, len.brown@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Thursday 06 November 2008 03:02:25 pm Len Brown wrote:
-> 
-> +++ b/drivers/acpi/acpi.h
-> ...
-> +/* Functions internal to the ACPI core */
-> 
-> 
-> I like the patch, except for the creation of drivers/acpi.h
-> For we've already got too many files called 'acpi.h'...
-> and Bob is working on a header clean-up as we speak...
-> 
-> Maybe the existing acpi/acpi_drivers.h would be better for these 
-> declarations?
+On Wed, 5 Nov 2008 16:15:13 +0530
+"Thomas, Sujith" <sujith.thomas@intel.com> wrote:
 
-Sure, I can do that.  I hesitate only slightly, because acpi_drivers.h
-is for, well, drivers, and these are core functions and definitely not
-related to drivers.
+> Subject: [PATCH]1/3 intel_menlow:Adding comment for GTHS legal values
 
-I created drivers/acpi/acpi.h following the example of drivers/pci/pci.h,
-which contains things intended for the PCI core only.
+Please put the "1/3" inside the square brackets.  Because that
+numbering is only relevant for this series of emails and should be
+stripped out when the patch is merged into another tree.  The way in
+which we tell the recipient about text which they should strip out is
+to put it in square brackets.
 
-Bjorn
+Please put a space after colons.
+
+> Date: Wed, 5 Nov 2008 16:15:13 +0530
+> 
+> Documentation of legal values for GTHS
+> To be patched over Rui's 09/11 bug fix patch
+> 
+> Signed-off-by: Sujith Thomas <sujith.thomas@intel.com>
+> ---
+>  drivers/misc/intel_menlow.c |    5 +++++
+>  1 file changed, 5 insertions(+)
+> 
+> Index: linux-2.6.27/drivers/misc/intel_menlow.c
+> ===================================================================
+> --- linux-2.6.27.orig/drivers/misc/intel_menlow.c
+> +++ linux-2.6.27/drivers/misc/intel_menlow.c
+> @@ -52,6 +52,11 @@ MODULE_LICENSE("GPL");
+>  #define MEMORY_ARG_CUR_BANDWIDTH 1
+>  #define MEMORY_ARG_MAX_BANDWIDTH 0
+>  
+> +/*
+> + * GTHS returning 'n' would mean that [0,n-1] states are supported
+> + * In that case max_cstate would be n-1
+> + * GTHS returning '0' would mean that no bandwidth control states are
+> supported
+> + */
+>  static int memory_get_int_max_bandwidth(struct thermal_cooling_device
+> *cdev,
+
+The patches were quite badly wordwrapped by your email client.
+
+
