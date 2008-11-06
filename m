@@ -1,41 +1,41 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 11/11] ACPI: call core init functions explicitly instead of
- using initcalls
-Date: Thu, 06 Nov 2008 17:02:25 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0811061654540.3106@localhost.localdomain>
-References: <20081105231710.26131.3110.stgit@bob.kio>
- <20081105231828.26131.90839.stgit@bob.kio>
+From: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 15/15] Revert "x86: default to reboot via ACPI"
+Date: Thu, 06 Nov 2008 17:17:25 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0811061716420.3106@localhost.localdomain>
+References: <1225915018-6548-1-git-send-email-ehabkost@redhat.com>
+	<20081106143021.GD13023@elte.hu> <20081106150610.GA1644@elte.hu>
+	<200811061853.08003.arvidjaar@mail.ru>
+	<alpine.LFD.2.00.0811061442590.3106@localhost.localdomain>
+	<20081106215011.GA6391@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms042pub.verizon.net ([206.46.252.42]:47236 "EHLO
-	vms042pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750909AbYKFWW1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Nov 2008 17:22:27 -0500
-Received: from localhost.localdomain ([96.237.168.40])
- by vms042.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0K9X00D8CMK2GBO0@vms042.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 06 Nov 2008 16:02:27 -0600 (CST)
-In-reply-to: <20081105231828.26131.90839.stgit@bob.kio>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+In-reply-to: <20081106215011.GA6391-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/listinfo/kexec>,
+	<mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/kexec>
+List-Post: <mailto:kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+List-Help: <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/kexec>,
+	<mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
+Sender: kexec-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Errors-To: kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: Matthew Garrett <mjg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, Eduardo Habkost <ehabkost-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Eric W. Biederman" <ebiederm-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org>, Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>, Andrey Borzenkov <arvidjaar-JGs/UdohzUI@public.gmane.org>, Avi Kivity <avi-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: linux-acpi@vger.kernel.org, Zhao Yakui <yakui.zhao@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.de>
 
 
-+++ b/drivers/acpi/acpi.h
-...
-+/* Functions internal to the ACPI core */
 
+> > My expectation is that with the ACPI default, our problem
+> > is working around a finite list of old machines that don't work;
+> > while with the default KBD, our problem is working around
+> > a potentially unbounded list of yet to be shipped machines
+> > who may only be tested and work using the ACPI method.
+> 
+> Does Windows default to using the ACPI method now?
 
-I like the patch, except for the creation of drivers/acpi.h
-For we've already got too many files called 'acpi.h'...
-and Bob is working on a header clean-up as we speak...
+That is my guess, based on the fact that we've seen
+newer machines that don't reboot w/o using the ACPI reset reg.
 
-Maybe the existing acpi/acpi_drivers.h would be better for these 
-declarations?
-
-thanks,
 -Len
-
-
