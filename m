@@ -1,59 +1,58 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 15/15] Revert "x86: default to reboot via ACPI"
-Date: Thu, 06 Nov 2008 20:53:29 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0811062049020.3106@localhost.localdomain>
-References: <fa.UVpnVba3yRAWG3rGZ0sk20JE9hs@ifi.uio.no>
- <fa.FPBNKx3BSvZHPZ+eXD4Tb+fuRYk@ifi.uio.no>
- <fa.PvVEuEo+f/t4sLmcGyN2Tsl8zYg@ifi.uio.no>
- <fa.zzFdOXisTZzBaE1+ueGIYmt+Z5c@ifi.uio.no>
- <fa.vQ6HVRcPFFr1zpcXFFOjEPtDdNk@ifi.uio.no>
- <fa.ckUqcrtVKbxAkjNggIdajBTHr9Q@ifi.uio.no> <49139A43.4000203@shaw.ca>
- <20081107014342.GA9841@srcf.ucam.org>
+Subject: Re: [PATCH] PNP: add Bjorn Helgaas as PNP co-maintainer
+Date: Thu, 06 Nov 2008 21:07:16 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0811062106270.3106@localhost.localdomain>
+References: <20080801160047.28518.51260.stgit@tigger.helgaas>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:52163 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751052AbYKGB4o (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Nov 2008 20:56:44 -0500
-In-reply-to: <20081107014342.GA9841@srcf.ucam.org>
+Received: from vms044pub.verizon.net ([206.46.252.44]:38077 "EHLO
+	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750903AbYKGCHU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Nov 2008 21:07:20 -0500
+In-reply-to: <20080801160047.28518.51260.stgit@tigger.helgaas>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg@redhat.com>
-Cc: Robert Hancock <hancockr@shaw.ca>, Zhao Yakui <yakui.zhao@intel.com>, Andrey Borzenkov <arvidjaar@mail.ru>, Ingo Molnar <mingo@elte.hu>, Eduardo Habkost <ehabkost@redhat.com>, Avi Kivity <avi@redhat.com>, "Eric W. Biederman" <ebiederm@xmission.com>, Andrew Morton <akpm@osdl.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, "kexec@lists.infradead.org" <kexec@lists.infradead.org>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Andi Kleen <andi@firstfloor.org>, Adam Belay <ambx1@neo.rr.com>, Adam M Belay <abelay@mit.edu>, Rene Herman <rene.herman@keyaccess.nl>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
+applied.
 
+sorry, i guess this one fell between the cracks in the andi->lenb handoff.
 
-On Fri, 7 Nov 2008, Matthew Garrett wrote:
-
-> On Thu, Nov 06, 2008 at 07:30:43PM -0600, Robert Hancock wrote:
-> 
-> > http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=8fd145917fb62368a9b80db59562c20576238f5a
-> > 
-> > This patch ignores the RESET_REG_SUP flag and just tries using the reset 
-> > register anyway if it thinks it's valid. So we may attempt ACPI reset on 
-> > machines which don't indicate it's supported.
-> 
-> Yeah, that sounds very wrong.
-
-As it turns out, it was an incorrect guess on our part on how to be "bug 
-compatible" and I'm reverting it per the regression report here:
-
-http://bugzilla.kernel.org/show_bug.cgi?id=11942
-
+thanks,
 -Len
 
-> > The patch description mentioned that some machines didn't reboot after 
-> > S3 suspend without this patch. However, we recently had this patch merged:
-> > 
-> > http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=a68823ee5285e65b51ceb96f8b13a5b4f99a6888
-> > 
-> > Is it possible that the problem fixed there is the true cause of this 
-> > reboot after S3 problem?
+On Fri, 1 Aug 2008, Bjorn Helgaas wrote:
+
 > 
-> Oh, yeah, could be. Given the From:, I should really have thought of 
-> that :)
+> Update Adam's email address and add myself as PNP co-maintainer.
 > 
-> -- 
-> Matthew Garrett | mjg59@srcf.ucam.org
+> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+> ---
+> 
+>  MAINTAINERS |    4 +++-
+>  1 files changed, 3 insertions(+), 1 deletions(-)
+> 
+> 
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index deedc0d..3ae0e33 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -3314,7 +3314,9 @@ S:	Maintained
+>  
+>  PNP SUPPORT
+>  P:	Adam Belay
+> -M:	ambx1@neo.rr.com
+> +M:	abelay@mit.edu
+> +P:	Bjorn Helgaas
+> +M:	bjorn.helgaas@hp.com
+>  S:	Maintained
+>  
+>  PNXxxxx I2C DRIVER
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
