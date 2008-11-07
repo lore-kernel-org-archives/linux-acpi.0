@@ -1,49 +1,60 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: Re: Handling dock events in userspace
-Date: Fri, 7 Nov 2008 10:49:03 +0800
-Message-ID: <20081107024903.GA18221@sli10-desk.sh.intel.com>
-References: <1a6fd8660811060252k772d6ecdy83029ff687b998a8@mail.gmail.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [patch 3/3] acpi: use macro to replace hard number
+Date: Thu, 06 Nov 2008 21:51:13 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0811062151060.3106@localhost.localdomain>
+References: <200810292113.m9TLDMY1016626@imap1.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:6641 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750698AbYKGCtH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 6 Nov 2008 21:49:07 -0500
-Content-Disposition: inline
-In-Reply-To: <1a6fd8660811060252k772d6ecdy83029ff687b998a8@mail.gmail.com>
+Received: from vms042pub.verizon.net ([206.46.252.42]:59278 "EHLO
+	vms042pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751120AbYKGCvP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Nov 2008 21:51:15 -0500
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms042.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
+ 3 2006)) with ESMTPA id <0K9X002OGZXDRGT1@vms042.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 06 Nov 2008 20:51:15 -0600 (CST)
+In-reply-to: <200810292113.m9TLDMY1016626@imap1.linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?iso-8859-1?Q?B=E5rd?= Kalbakk <kalbakk@gmail.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: akpm@linux-foundation.org
+Cc: linux-acpi@vger.kernel.org, yinghai@kernel.org
 
-On Thu, Nov 06, 2008 at 06:52:21PM +0800, B=E5rd Kalbakk wrote:
-> Hi
-> I need to handle dock events from dock.ko in order to enable video
-> output on my Thinkpad Port Replicator. From the kernel I see that thi=
-s
-> event occurring:
->=20
-> [  680.551956] ACPI: \_SB_.GDCK - undocking
-> [  704.534054] ACPI: \_SB_.GDCK - docking
->=20
->=20
-> The question is, how can I handle this event in userspace? I've tried
-> listening to acpi events with acpi_listen, and uevents with udevd, bu=
-t
-> I get nothing.
->=20
-> I just glanced at the source and saw some uevent references, but
-> obviously this doesn't  automatically mean that it ends up in udevd.
-> Is there any way to accomplish this with the current driver?
-dock/undock will sent out uevent to udevd, please check your udev confi=
-g.
+applied.
 
-Thanks,
-Shaohua
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+thanks,
+-lenl
+
+On Wed, 29 Oct 2008, akpm@linux-foundation.org wrote:
+
+> From: Yinghai Lu <yinghai@kernel.org>
+> 
+> Impact: cleanup
+> 
+> Use MACRO for rev 3 fadt id instead of 3 directly.
+> 
+> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+> 
+>  drivers/acpi/tables/tbfadt.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff -puN drivers/acpi/tables/tbfadt.c~acpi-use-macro-to-replace-hard-number drivers/acpi/tables/tbfadt.c
+> --- a/drivers/acpi/tables/tbfadt.c~acpi-use-macro-to-replace-hard-number
+> +++ a/drivers/acpi/tables/tbfadt.c
+> @@ -304,7 +304,7 @@ static void acpi_tb_convert_fadt(void)
+>  	 * The ACPI 1.0 reserved fields that will be zeroed are the bytes located at
+>  	 * offset 45, 55, 95, and the word located at offset 109, 110.
+>  	 */
+> -	if (acpi_gbl_FADT.header.revision < 3) {
+> +	if (acpi_gbl_FADT.header.revision < FADT2_REVISION_ID) {
+>  		acpi_gbl_FADT.preferred_profile = 0;
+>  		acpi_gbl_FADT.pstate_control = 0;
+>  		acpi_gbl_FADT.cst_control = 0;
+> _
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
