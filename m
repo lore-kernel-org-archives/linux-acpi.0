@@ -1,312 +1,82 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 06/10] ACPI hibernate: Add a mechanism to save/restore ACPI NVS
- memory
-Date: Thu, 06 Nov 2008 23:45:28 -0500
-Message-ID: <722a50724508bb1a69a6fcf724a2844271dc3aa7.1226032943.git.len.brown@intel.com>
+Subject: [PATCH 02/10] ACPI: Disambiguate processor declaration type
+Date: Thu, 06 Nov 2008 23:45:24 -0500
+Message-ID: <ad93a765c1834db031b5bf1c2baf2a50d0462ca4.1226032943.git.len.brown@intel.com>
 References: <1226033132-16034-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173007pub.verizon.net ([206.46.173.7]:42489 "EHLO
-	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751280AbYKGEpi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Nov 2008 23:45:38 -0500
+Received: from vms042pub.verizon.net ([206.46.252.42]:41641 "EHLO
+	vms042pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751200AbYKGEpe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Nov 2008 23:45:34 -0500
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173007.mailsrvcs.net
- (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K9Y00K7X56F3PU1@vms173007.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 06 Nov 2008 22:44:40 -0600 (CST)
+ by vms042.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
+ 3 2006)) with ESMTPA id <0K9Y002J157XRG02@vms042.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 06 Nov 2008 22:45:34 -0600 (CST)
 In-reply-to: <1226033132-16034-1-git-send-email-lenb@kernel.org>
 In-reply-to: <007e7d616a5d1c2e16ad627d03f8b97799445e71.1226032943.git.len.brown@intel.com>
 References: <007e7d616a5d1c2e16ad627d03f8b97799445e71.1226032943.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Myron Stowe <myron.stowe@hp.com>, Len Brown <len.brown@intel.com>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+From: Myron Stowe <myron.stowe@hp.com>
 
-According to the ACPI Specification 3.0b, Section 15.3.2,
-"OSPM will call the _PTS control method some time before entering a
-sleeping state, to allow the platform's AML code to update this
-memory image before entering the sleeping state. After the system
-awakes from an S4 state, OSPM will restore this memory area and call
-the _WAK control method to enable the BIOS to reclaim its memory
-image."  For this reason, implement a mechanism allowing us to save
-the NVS memory during hibernation and to restore it during the
-subsequent resume.
+Declaring processors in ACPI namespace can be done using either a
+"Processor" definition or a "Device" definition (see section 8.4 -
+Declaring Processors; "Advanced Configuration and Power Interface
+Specification", Revision 3.0b).  Currently the two processor
+declaration types are conflated.
 
-Based on a patch by Zhang Rui.
+This patch disambiguates the processor declaration's definition type
+enabling subsequent code to behave uniquely based explicitly on the
+declaration's type.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Nigel Cunningham <nigel@tuxonice.net>
-Cc: Zhang Rui <rui.zhang@intel.com>
+Signed-off-by: Myron Stowe <myron.stowe@hp.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/sleep/main.c |   53 +++++++++++++++++---
- include/linux/suspend.h   |   13 +++++
- kernel/power/swsusp.c     |  122 +++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 180 insertions(+), 8 deletions(-)
+ drivers/acpi/processor_core.c |    1 +
+ drivers/acpi/scan.c           |    2 +-
+ include/acpi/acpi_drivers.h   |    1 +
+ 3 files changed, 3 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
-index 80c0868..f861b73 100644
---- a/drivers/acpi/sleep/main.c
-+++ b/drivers/acpi/sleep/main.c
-@@ -356,9 +356,25 @@ void __init acpi_no_s4_hw_signature(void)
+diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+index 24a362f..0c670dd 100644
+--- a/drivers/acpi/processor_core.c
++++ b/drivers/acpi/processor_core.c
+@@ -89,6 +89,7 @@ static int acpi_processor_handle_eject(struct acpi_processor *pr);
  
- static int acpi_hibernation_begin(void)
- {
--	acpi_target_sleep_state = ACPI_STATE_S4;
--	acpi_sleep_tts_switch(acpi_target_sleep_state);
--	return 0;
-+	int error;
-+
-+	error = hibernate_nvs_alloc();
-+	if (!error) {
-+		acpi_target_sleep_state = ACPI_STATE_S4;
-+		acpi_sleep_tts_switch(acpi_target_sleep_state);
-+	}
-+
-+	return error;
-+}
-+
-+static int acpi_hibernation_pre_snapshot(void)
-+{
-+	int error = acpi_pm_prepare();
-+
-+	if (!error)
-+		hibernate_nvs_save();
-+
-+	return error;
- }
  
- static int acpi_hibernation_enter(void)
-@@ -379,6 +395,12 @@ static int acpi_hibernation_enter(void)
- 	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
- }
+ static const struct acpi_device_id processor_device_ids[] = {
++	{ACPI_PROCESSOR_OBJECT_HID, 0},
+ 	{ACPI_PROCESSOR_HID, 0},
+ 	{"", 0},
+ };
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index a9dda8e..3fb6e2d 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -1043,7 +1043,7 @@ static void acpi_device_set_id(struct acpi_device *device,
+ 		hid = ACPI_POWER_HID;
+ 		break;
+ 	case ACPI_BUS_TYPE_PROCESSOR:
+-		hid = ACPI_PROCESSOR_HID;
++		hid = ACPI_PROCESSOR_OBJECT_HID;
+ 		break;
+ 	case ACPI_BUS_TYPE_SYSTEM:
+ 		hid = ACPI_SYSTEM_HID;
+diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
+index cf04c60..7469ff3 100644
+--- a/include/acpi/acpi_drivers.h
++++ b/include/acpi/acpi_drivers.h
+@@ -41,6 +41,7 @@
+  */
  
-+static void acpi_hibernation_finish(void)
-+{
-+	hibernate_nvs_free();
-+	acpi_pm_finish();
-+}
-+
- static void acpi_hibernation_leave(void)
- {
- 	/*
-@@ -394,6 +416,8 @@ static void acpi_hibernation_leave(void)
- 			"cannot resume!\n");
- 		panic("ACPI S4 hardware signature mismatch");
- 	}
-+	/* Restore the NVS memory area */
-+	hibernate_nvs_restore();
- }
- 
- static void acpi_pm_enable_gpes(void)
-@@ -404,8 +428,8 @@ static void acpi_pm_enable_gpes(void)
- static struct platform_hibernation_ops acpi_hibernation_ops = {
- 	.begin = acpi_hibernation_begin,
- 	.end = acpi_pm_end,
--	.pre_snapshot = acpi_pm_prepare,
--	.finish = acpi_pm_finish,
-+	.pre_snapshot = acpi_hibernation_pre_snapshot,
-+	.finish = acpi_hibernation_finish,
- 	.prepare = acpi_pm_prepare,
- 	.enter = acpi_hibernation_enter,
- 	.leave = acpi_hibernation_leave,
-@@ -431,8 +455,21 @@ static int acpi_hibernation_begin_old(void)
- 
- 	error = acpi_sleep_prepare(ACPI_STATE_S4);
- 
-+	if (!error) {
-+		error = hibernate_nvs_alloc();
-+		if (!error)
-+			acpi_target_sleep_state = ACPI_STATE_S4;
-+	}
-+	return error;
-+}
-+
-+static int acpi_hibernation_pre_snapshot_old(void)
-+{
-+	int error = acpi_pm_disable_gpes();
-+
- 	if (!error)
--		acpi_target_sleep_state = ACPI_STATE_S4;
-+		hibernate_nvs_save();
-+
- 	return error;
- }
- 
-@@ -443,8 +480,8 @@ static int acpi_hibernation_begin_old(void)
- static struct platform_hibernation_ops acpi_hibernation_ops_old = {
- 	.begin = acpi_hibernation_begin_old,
- 	.end = acpi_pm_end,
--	.pre_snapshot = acpi_pm_disable_gpes,
--	.finish = acpi_pm_finish,
-+	.pre_snapshot = acpi_hibernation_pre_snapshot_old,
-+	.finish = acpi_hibernation_finish,
- 	.prepare = acpi_pm_disable_gpes,
- 	.enter = acpi_hibernation_enter,
- 	.leave = acpi_hibernation_leave,
-diff --git a/include/linux/suspend.h b/include/linux/suspend.h
-index 2ce8207..2b409c4 100644
---- a/include/linux/suspend.h
-+++ b/include/linux/suspend.h
-@@ -232,6 +232,11 @@ extern unsigned long get_safe_page(gfp_t gfp_mask);
- 
- extern void hibernation_set_ops(struct platform_hibernation_ops *ops);
- extern int hibernate(void);
-+extern int hibernate_nvs_register(unsigned long start, unsigned long size);
-+extern int hibernate_nvs_alloc(void);
-+extern void hibernate_nvs_free(void);
-+extern void hibernate_nvs_save(void);
-+extern void hibernate_nvs_restore(void);
- #else /* CONFIG_HIBERNATION */
- static inline int swsusp_page_is_forbidden(struct page *p) { return 0; }
- static inline void swsusp_set_page_free(struct page *p) {}
-@@ -239,6 +244,14 @@ static inline void swsusp_unset_page_free(struct page *p) {}
- 
- static inline void hibernation_set_ops(struct platform_hibernation_ops *ops) {}
- static inline int hibernate(void) { return -ENOSYS; }
-+static inline int hibernate_nvs_register(unsigned long a, unsigned long b)
-+{
-+	return 0;
-+}
-+static inline int hibernate_nvs_alloc(void) { return 0; }
-+static inline void hibernate_nvs_free(void) {}
-+static inline void hibernate_nvs_save(void) {}
-+static inline void hibernate_nvs_restore(void) {}
- #endif /* CONFIG_HIBERNATION */
- 
- #ifdef CONFIG_PM_SLEEP
-diff --git a/kernel/power/swsusp.c b/kernel/power/swsusp.c
-index 023ff2a..a92c914 100644
---- a/kernel/power/swsusp.c
-+++ b/kernel/power/swsusp.c
-@@ -262,3 +262,125 @@ int swsusp_shrink_memory(void)
- 
- 	return 0;
- }
-+
-+/*
-+ * Platforms, like ACPI, may want us to save some memory used by them during
-+ * hibernation and to restore the contents of this memory during the subsequent
-+ * resume.  The code below implements a mechanism allowing us to do that.
-+ */
-+
-+struct nvs_page {
-+	unsigned long phys_start;
-+	unsigned int size;
-+	void *kaddr;
-+	void *data;
-+	struct list_head node;
-+};
-+
-+static LIST_HEAD(nvs_list);
-+
-+/**
-+ *	hibernate_nvs_register - register platform NVS memory region to save
-+ *	@start - physical address of the region
-+ *	@size - size of the region
-+ *
-+ *	The NVS region need not be page-aligned (both ends) and we arrange
-+ *	things so that the data from page-aligned addresses in this region will
-+ *	be copied into separate RAM pages.
-+ */
-+int hibernate_nvs_register(unsigned long start, unsigned long size)
-+{
-+	struct nvs_page *entry, *next;
-+
-+	while (size > 0) {
-+		unsigned int nr_bytes;
-+
-+		entry = kzalloc(sizeof(struct nvs_page), GFP_KERNEL);
-+		if (!entry)
-+			goto Error;
-+
-+		list_add_tail(&entry->node, &nvs_list);
-+		entry->phys_start = start;
-+		nr_bytes = PAGE_SIZE - (start & ~PAGE_MASK);
-+		entry->size = (size < nr_bytes) ? size : nr_bytes;
-+
-+		start += entry->size;
-+		size -= entry->size;
-+	}
-+	return 0;
-+
-+ Error:
-+	list_for_each_entry_safe(entry, next, &nvs_list, node) {
-+		list_del(&entry->node);
-+		kfree(entry);
-+	}
-+	return -ENOMEM;
-+}
-+
-+/**
-+ *	hibernate_nvs_free - free data pages allocated for saving NVS regions
-+ */
-+void hibernate_nvs_free(void)
-+{
-+	struct nvs_page *entry;
-+
-+	list_for_each_entry(entry, &nvs_list, node)
-+		if (entry->data) {
-+			free_page((unsigned long)entry->data);
-+			entry->data = NULL;
-+			if (entry->kaddr) {
-+				iounmap(entry->kaddr);
-+				entry->kaddr = NULL;
-+			}
-+		}
-+}
-+
-+/**
-+ *	hibernate_nvs_alloc - allocate memory necessary for saving NVS regions
-+ */
-+int hibernate_nvs_alloc(void)
-+{
-+	struct nvs_page *entry;
-+
-+	list_for_each_entry(entry, &nvs_list, node) {
-+		entry->data = (void *)__get_free_page(GFP_KERNEL);
-+		if (!entry->data) {
-+			hibernate_nvs_free();
-+			return -ENOMEM;
-+		}
-+	}
-+	return 0;
-+}
-+
-+/**
-+ *	hibernate_nvs_save - save NVS memory regions
-+ */
-+void hibernate_nvs_save(void)
-+{
-+	struct nvs_page *entry;
-+
-+	printk(KERN_INFO "PM: Saving platform NVS memory\n");
-+
-+	list_for_each_entry(entry, &nvs_list, node)
-+		if (entry->data) {
-+			entry->kaddr = ioremap(entry->phys_start, entry->size);
-+			memcpy(entry->data, entry->kaddr, entry->size);
-+		}
-+}
-+
-+/**
-+ *	hibernate_nvs_restore - restore NVS memory regions
-+ *
-+ *	This function is going to be called with interrupts disabled, so it
-+ *	cannot iounmap the virtual addresses used to access the NVS region.
-+ */
-+void hibernate_nvs_restore(void)
-+{
-+	struct nvs_page *entry;
-+
-+	printk(KERN_INFO "PM: Restoring platform NVS memory\n");
-+
-+	list_for_each_entry(entry, &nvs_list, node)
-+		if (entry->data)
-+			memcpy(entry->kaddr, entry->data, entry->size);
-+}
+ #define ACPI_POWER_HID			"LNXPOWER"
++#define ACPI_PROCESSOR_OBJECT_HID	"ACPI_CPU"
+ #define ACPI_PROCESSOR_HID		"ACPI0007"
+ #define ACPI_SYSTEM_HID			"LNXSYSTM"
+ #define ACPI_THERMAL_HID		"LNXTHERM"
 -- 
 1.5.6.5
 
