@@ -1,17 +1,18 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 12/21] ACPI: remove CONFIG_ACPI_EC
-Date: Thu, 06 Nov 2008 23:39:16 -0500
-Message-ID: <8950d89acaa8c353869e681772479d7955ae6f7a.1226032677.git.len.brown@intel.com>
+Subject: [PATCH 15/21] Revert
+ "ACPI: Ingore the RESET_REG_SUP bit when using ACPI reset mechanism"
+Date: Thu, 06 Nov 2008 23:39:19 -0500
+Message-ID: <d17cb18a07c587b8f9ff174a1bf6d03413eabe64.1226032677.git.len.brown@intel.com>
 References: <1226032765-15330-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173001pub.verizon.net ([206.46.173.1]:36457 "EHLO
 	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751398AbYKGEjd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Nov 2008 23:39:33 -0500
+	with ESMTP id S1751447AbYKGEjh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Nov 2008 23:39:37 -0500
 Received: from localhost.localdomain ([96.237.168.40])
  by vms173001.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K9Y006JI4XVHU21@vms173001.mailsrvcs.net> for
+ with ESMTPA id <0K9Y006184XV8E41@vms173001.mailsrvcs.net> for
  linux-acpi@vger.kernel.org; Thu, 06 Nov 2008 22:39:32 -0600 (CST)
 In-reply-to: <1226032765-15330-1-git-send-email-lenb@kernel.org>
 In-reply-to: <2830c9fb8e66cee70b8bffdfb0de01c144c7e643.1226032677.git.len.brown@intel.com>
@@ -19,171 +20,55 @@ References: <2830c9fb8e66cee70b8bffdfb0de01c144c7e643.1226032677.git.len.brown@i
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <len.brown@intel.com>
+Cc: Len Brown <len.brown@intel.com>
 
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+From: Len Brown <len.brown@intel.com>
 
-Remove CONFIG_ACPI_EC.  It was always set the same as CONFIG_ACPI,
-and it had no menu label, so there was no way to set it to anything
-other than "y".
+This reverts commit 8fd145917fb62368a9b80db59562c20576238f5a.
 
-Per section 6.5.4 of the ACPI 3.0b specification,
+http://bugzilla.kernel.org/show_bug.cgi?id=11942
 
-    OSPM must make Embedded Controller operation regions, accessed
-    via the Embedded Controllers described in ECDT, available before
-    executing any control method.
-
-The ECDT table is optional, but if it is present, the above text
-means that the EC it describes is a required part of the ACPI
-subsystem, so CONFIG_ACPI_EC=n wouldn't make sense.
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Acked-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/Kconfig        |    8 --------
- drivers/acpi/Makefile       |    2 +-
- drivers/acpi/bus.c          |    3 +--
- drivers/char/sonypi.c       |    4 ++--
- drivers/misc/Kconfig        |    4 ++--
- include/acpi/acpi_drivers.h |    2 --
- include/linux/acpi.h        |    4 ----
- 7 files changed, 6 insertions(+), 21 deletions(-)
+ drivers/acpi/reboot.c |   25 +++----------------------
+ 1 files changed, 3 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 4fa7866..90cb2a8 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -324,14 +324,6 @@ config ACPI_DEBUG_FUNC_TRACE
- 	  ACPI Debug Statements slow down ACPI processing. Function trace
- 	  is about half of the penalty and is rarely useful.
+diff --git a/drivers/acpi/reboot.c b/drivers/acpi/reboot.c
+index 755baf2..a6b662c 100644
+--- a/drivers/acpi/reboot.c
++++ b/drivers/acpi/reboot.c
+@@ -15,28 +15,9 @@ void acpi_reboot(void)
  
--config ACPI_EC
--	bool
--	default y
--	help
--	  This driver is required on some systems for the proper operation of
--	  the battery and thermal drivers.  If you are compiling for a 
--	  mobile system, say Y.
--
- config ACPI_PCI_SLOT
- 	tristate "PCI slot detection driver"
- 	default n
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 8017f63..fc62231 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -39,7 +39,7 @@ obj-y				+= sleep/
- obj-y				+= bus.o glue.o
- obj-y				+= scan.o
- # Keep EC driver first. Initialization of others depend on it.
--obj-$(CONFIG_ACPI_EC)		+= ec.o
-+obj-y				+= ec.o
- obj-$(CONFIG_ACPI_AC) 		+= ac.o
- obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
- obj-$(CONFIG_ACPI_BUTTON)	+= button.o
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index c797c64..765fd1c 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -774,7 +774,7 @@ static int __init acpi_bus_init(void)
- 		       "Unable to initialize ACPI OS objects\n");
- 		goto error1;
- 	}
--#ifdef CONFIG_ACPI_EC
-+
- 	/*
- 	 * ACPI 2.0 requires the EC driver to be loaded and work before
- 	 * the EC device is found in the namespace (i.e. before acpi_initialize_objects()
-@@ -785,7 +785,6 @@ static int __init acpi_bus_init(void)
- 	 */
- 	status = acpi_ec_ecdt_probe();
- 	/* Ignore result. Not having an ECDT is not fatal. */
--#endif
+ 	rr = &acpi_gbl_FADT.reset_register;
  
- 	status = acpi_initialize_objects(ACPI_FULL_INITIALIZATION);
- 	if (ACPI_FAILURE(status)) {
-diff --git a/drivers/char/sonypi.c b/drivers/char/sonypi.c
-index 85e0eb7..1b128d1 100644
---- a/drivers/char/sonypi.c
-+++ b/drivers/char/sonypi.c
-@@ -523,7 +523,7 @@ static int acpi_driver_registered;
+-	/*
+-	 * Is the ACPI reset register supported?
+-	 *
+-	 * According to ACPI 3.0, FADT.flags.RESET_REG_SUP indicates
+-	 * whether the ACPI reset mechanism is supported.
+-	 *
+-	 * However, some boxes have this bit clear, yet a valid
+-	 * ACPI_RESET_REG & RESET_VALUE, and ACPI reboot is the only
+-	 * mechanism that works for them after S3.
+-	 *
+-	 * This suggests that other operating systems may not be checking
+-	 * the RESET_REG_SUP bit, and are using other means to decide
+-	 * whether to use the ACPI reboot mechanism or not.
+-	 *
+-	 * So when acpi reboot is requested,
+-	 * only the reset_register is checked. If the following
+-	 * conditions are met, it indicates that the reset register is supported.
+-	 * 	a. reset_register is not zero
+-	 * 	b. the access width is eight
+-	 * 	c. the bit_offset is zero
+-	 */
+-	if (!(rr->address) || rr->bit_width != 8 || rr->bit_offset != 0)
++	/* Is the reset register supported? */
++	if (!(acpi_gbl_FADT.flags & ACPI_FADT_RESET_REGISTER) ||
++	    rr->bit_width != 8 || rr->bit_offset != 0)
+ 		return;
  
- static int sonypi_ec_write(u8 addr, u8 value)
- {
--#ifdef CONFIG_ACPI_EC
-+#ifdef CONFIG_ACPI
- 	if (SONYPI_ACPI_ACTIVE)
- 		return ec_write(addr, value);
- #endif
-@@ -539,7 +539,7 @@ static int sonypi_ec_write(u8 addr, u8 value)
- 
- static int sonypi_ec_read(u8 addr, u8 *value)
- {
--#ifdef CONFIG_ACPI_EC
-+#ifdef CONFIG_ACPI
- 	if (SONYPI_ACPI_ACTIVE)
- 		return ec_read(addr, value);
- #endif
-diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
-index 9494400..4494ad2 100644
---- a/drivers/misc/Kconfig
-+++ b/drivers/misc/Kconfig
-@@ -230,7 +230,7 @@ config HP_WMI
- config MSI_LAPTOP
-         tristate "MSI Laptop Extras"
-         depends on X86
--        depends on ACPI_EC
-+        depends on ACPI
-         depends on BACKLIGHT_CLASS_DEVICE
-         ---help---
- 	  This is a driver for laptops built by MSI (MICRO-STAR
-@@ -260,7 +260,7 @@ config PANASONIC_LAPTOP
- config COMPAL_LAPTOP
- 	tristate "Compal Laptop Extras"
- 	depends on X86
--	depends on ACPI_EC
-+	depends on ACPI
- 	depends on BACKLIGHT_CLASS_DEVICE
- 	---help---
- 	  This is a driver for laptops built by Compal:
-diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
-index 818215f..b3c40dc 100644
---- a/include/acpi/acpi_drivers.h
-+++ b/include/acpi/acpi_drivers.h
-@@ -97,10 +97,8 @@ extern int acpi_power_nocheck;
- /* --------------------------------------------------------------------------
-                                   Embedded Controller
-    -------------------------------------------------------------------------- */
--#ifdef CONFIG_ACPI_EC
- int acpi_ec_ecdt_probe(void);
- int acpi_boot_ec_enable(void);
--#endif
- 
- /* --------------------------------------------------------------------------
-                                     Processor
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index fd6a452..d7846bd 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -163,8 +163,6 @@ struct acpi_pci_driver {
- int acpi_pci_register_driver(struct acpi_pci_driver *driver);
- void acpi_pci_unregister_driver(struct acpi_pci_driver *driver);
- 
--#ifdef CONFIG_ACPI_EC
--
- extern int ec_read(u8 addr, u8 *val);
- extern int ec_write(u8 addr, u8 val);
- extern int ec_transaction(u8 command,
-@@ -172,8 +170,6 @@ extern int ec_transaction(u8 command,
-                           u8 *rdata, unsigned rdata_len,
- 			  int force_poll);
- 
--#endif /*CONFIG_ACPI_EC*/
--
- #if defined(CONFIG_ACPI_WMI) || defined(CONFIG_ACPI_WMI_MODULE)
- 
- typedef void (*wmi_notify_handler) (u32 value, void *context);
+ 	reset_value = acpi_gbl_FADT.reset_value;
 -- 
 1.5.6.5
 
