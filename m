@@ -1,201 +1,265 @@
-From: Greg KH <gregkh@suse.de>
-Subject: [patch 13/16] ACPI: video: fix brightness allocation
-Date: Fri, 7 Nov 2008 15:26:24 -0800
-Message-ID: <20081107232624.GN4282@kroah.com>
-References: <20081107231848.995297975@mini.kroah.org>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: [PATCH 1/5] ACPI: consolidate ACPI_*_COMPONENT definitions in
+	acpi_drivers.h
+Date: Fri, 07 Nov 2008 16:57:45 -0700
+Message-ID: <20081107235745.32050.55869.stgit@bob.kio>
+References: <20081107235644.32050.74757.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:47634 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753526AbYKGX07 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 7 Nov 2008 18:26:59 -0500
-Content-Disposition: inline; filename="acpi-video-fix-brightness-allocation.patch"
-In-Reply-To: <20081107232544.GA4282@kroah.com>
+Received: from g1t0028.austin.hp.com ([15.216.28.35]:8249 "EHLO
+	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752129AbYKGX5q (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Nov 2008 18:57:46 -0500
+In-Reply-To: <20081107235644.32050.74757.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@kernel.org
-Cc: Justin Forbes <jmforbes@linuxtx.org>, Zwane Mwaikambo <zwane@arm.linux.org.uk>, Theodore Ts'o <tytso@mit.edu>, Randy Dunlap <rdunlap@xenotime.net>, Dave Jones <davej@redhat.com>, Chuck Wolber <chuckw@quantumlinux.com>, Chris Wedgwood <reviews@ml.cw.f00f.org>, Michael Krufky <mkrufky@linuxtv.org>, Chuck Ebbert <cebbert@redhat.com>, Domenico Andreoli <cavokz@gmail.com>, Willy Tarreau <w@1wt.eu>, Rodrigo Rubira Branco <rbranco@la.checkpoint.com>, Jake Edge <jake@lwn.net>, Eugene Teo <eteo@redhat.com>, torvalds@linux-foundation.org, akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, Julia Jomantaite <julia.jomantaite@gmail.com>, linux-acpi@vger.kernel.org, Arjan van de Ven <arjan@infradead.org>, Andi Kleen <ak@linux.intel.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Randy Dunlap <rdunlap@xenotime.net>
 
+Move all the component definitions for drivers to a single shared place,
+include/acpi/acpi_drivers.h.
 
-2.6.25-stable review patch.  If anyone has any objections, please let us know.
-
-------------------
-
-From: Julia Jomantaite <julia.jomantaite@gmail.com>
-
-Thanks to Arjan for spotting this for .stable:
-http://www.kerneloops.org/search.php?search=acpi_video_switch_brightness
-
-upstream commit 469778c1740fcf3113498b6fdf4559bdec25c58f
-
-ACPI: video: fix brightness allocation
-
-Fix use of uninitialized device->brightness.
-
-Signed-off-by: Julia Jomantaite <julia.jomantaite@gmail.com>
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Acked-by: Zhang Rui <rui.zhang@intel.com>
-Signed-off-by: Len Brown <len.brown@intel.com>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
-
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 ---
- drivers/acpi/video.c |  123 ++++++++++++++++++++++++++++++---------------------
- 1 file changed, 73 insertions(+), 50 deletions(-)
+ drivers/acpi/ac.c                   |    1 -
+ drivers/acpi/acpi_memhotplug.c      |    1 -
+ drivers/acpi/battery.c              |    1 -
+ drivers/acpi/button.c               |    1 -
+ drivers/acpi/cm_sbs.c               |    1 -
+ drivers/acpi/container.c            |    1 -
+ drivers/acpi/fan.c                  |    1 -
+ drivers/acpi/power.c                |    3 +--
+ drivers/acpi/processor_core.c       |    1 -
+ drivers/acpi/processor_idle.c       |    1 -
+ drivers/acpi/processor_perflib.c    |    2 +-
+ drivers/acpi/processor_thermal.c    |    1 -
+ drivers/acpi/processor_throttling.c |    2 +-
+ drivers/acpi/thermal.c              |    1 -
+ drivers/acpi/video.c                |    1 -
+ include/acpi/acpi_drivers.h         |   13 ++++++++++++-
+ 16 files changed, 15 insertions(+), 17 deletions(-)
 
+diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
+index d72a1b6..5cdd713 100644
+--- a/drivers/acpi/ac.c
++++ b/drivers/acpi/ac.c
+@@ -37,7 +37,6 @@
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+ 
+-#define ACPI_AC_COMPONENT		0x00020000
+ #define ACPI_AC_CLASS			"ac_adapter"
+ #define ACPI_AC_DEVICE_NAME		"AC Adapter"
+ #define ACPI_AC_FILE_STATE		"state"
+diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+index 71d21c5..63a17b5 100644
+--- a/drivers/acpi/acpi_memhotplug.c
++++ b/drivers/acpi/acpi_memhotplug.c
+@@ -32,7 +32,6 @@
+ #include <linux/memory_hotplug.h>
+ #include <acpi/acpi_drivers.h>
+ 
+-#define ACPI_MEMORY_DEVICE_COMPONENT		0x08000000UL
+ #define ACPI_MEMORY_DEVICE_CLASS		"memory"
+ #define ACPI_MEMORY_DEVICE_HID			"PNP0C80"
+ #define ACPI_MEMORY_DEVICE_NAME			"Hotplug Mem Device"
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index b2133e8..47f6e38 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -46,7 +46,6 @@
+ 
+ #define ACPI_BATTERY_VALUE_UNKNOWN 0xFFFFFFFF
+ 
+-#define ACPI_BATTERY_COMPONENT		0x00040000
+ #define ACPI_BATTERY_CLASS		"battery"
+ #define ACPI_BATTERY_DEVICE_NAME	"Battery"
+ #define ACPI_BATTERY_NOTIFY_STATUS	0x80
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index cb046c3..fd7ca28 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -33,7 +33,6 @@
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+ 
+-#define ACPI_BUTTON_COMPONENT		0x00080000
+ #define ACPI_BUTTON_CLASS		"button"
+ #define ACPI_BUTTON_FILE_INFO		"info"
+ #define ACPI_BUTTON_FILE_STATE		"state"
+diff --git a/drivers/acpi/cm_sbs.c b/drivers/acpi/cm_sbs.c
+index 4441e84..077777c 100644
+--- a/drivers/acpi/cm_sbs.c
++++ b/drivers/acpi/cm_sbs.c
+@@ -34,7 +34,6 @@
+ ACPI_MODULE_NAME("cm_sbs");
+ #define ACPI_AC_CLASS		"ac_adapter"
+ #define ACPI_BATTERY_CLASS	"battery"
+-#define ACPI_SBS_COMPONENT	0x00080000
+ #define _COMPONENT		ACPI_SBS_COMPONENT
+ static struct proc_dir_entry *acpi_ac_dir;
+ static struct proc_dir_entry *acpi_battery_dir;
+diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
+index 134818b..17020c1 100644
+--- a/drivers/acpi/container.c
++++ b/drivers/acpi/container.c
+@@ -41,7 +41,6 @@
+ #define INSTALL_NOTIFY_HANDLER		1
+ #define UNINSTALL_NOTIFY_HANDLER	2
+ 
+-#define ACPI_CONTAINER_COMPONENT	0x01000000
+ #define _COMPONENT			ACPI_CONTAINER_COMPONENT
+ ACPI_MODULE_NAME("container");
+ 
+diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
+index 60d54d1..eaaee16 100644
+--- a/drivers/acpi/fan.c
++++ b/drivers/acpi/fan.c
+@@ -34,7 +34,6 @@
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+ 
+-#define ACPI_FAN_COMPONENT		0x00200000
+ #define ACPI_FAN_CLASS			"fan"
+ #define ACPI_FAN_FILE_STATE		"state"
+ 
+diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+index a1718e5..81f583f 100644
+--- a/drivers/acpi/power.c
++++ b/drivers/acpi/power.c
+@@ -44,9 +44,8 @@
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+ 
+-#define _COMPONENT		ACPI_POWER_COMPONENT
++#define _COMPONENT			ACPI_POWER_COMPONENT
+ ACPI_MODULE_NAME("power");
+-#define ACPI_POWER_COMPONENT		0x00800000
+ #define ACPI_POWER_CLASS		"power_resource"
+ #define ACPI_POWER_DEVICE_NAME		"Power Resource"
+ #define ACPI_POWER_FILE_INFO		"info"
+diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+index 24a362f..105e0ff 100644
+--- a/drivers/acpi/processor_core.c
++++ b/drivers/acpi/processor_core.c
+@@ -59,7 +59,6 @@
+ #include <acpi/acpi_drivers.h>
+ #include <acpi/processor.h>
+ 
+-#define ACPI_PROCESSOR_COMPONENT	0x01000000
+ #define ACPI_PROCESSOR_CLASS		"processor"
+ #define ACPI_PROCESSOR_DEVICE_NAME	"Processor"
+ #define ACPI_PROCESSOR_FILE_INFO	"info"
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index 81b40ed..5f8d746 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -59,7 +59,6 @@
+ #include <acpi/processor.h>
+ #include <asm/processor.h>
+ 
+-#define ACPI_PROCESSOR_COMPONENT        0x01000000
+ #define ACPI_PROCESSOR_CLASS            "processor"
+ #define _COMPONENT              ACPI_PROCESSOR_COMPONENT
+ ACPI_MODULE_NAME("processor_idle");
+diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
+index dbcf260..0d7b772 100644
+--- a/drivers/acpi/processor_perflib.c
++++ b/drivers/acpi/processor_perflib.c
+@@ -44,9 +44,9 @@
+ #endif
+ 
+ #include <acpi/acpi_bus.h>
++#include <acpi/acpi_drivers.h>
+ #include <acpi/processor.h>
+ 
+-#define ACPI_PROCESSOR_COMPONENT	0x01000000
+ #define ACPI_PROCESSOR_CLASS		"processor"
+ #define ACPI_PROCESSOR_FILE_PERFORMANCE	"performance"
+ #define _COMPONENT		ACPI_PROCESSOR_COMPONENT
+diff --git a/drivers/acpi/processor_thermal.c b/drivers/acpi/processor_thermal.c
+index ef34b18..b1eb376 100644
+--- a/drivers/acpi/processor_thermal.c
++++ b/drivers/acpi/processor_thermal.c
+@@ -40,7 +40,6 @@
+ #include <acpi/processor.h>
+ #include <acpi/acpi_drivers.h>
+ 
+-#define ACPI_PROCESSOR_COMPONENT        0x01000000
+ #define ACPI_PROCESSOR_CLASS            "processor"
+ #define _COMPONENT              ACPI_PROCESSOR_COMPONENT
+ ACPI_MODULE_NAME("processor_thermal");
+diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
+index 3da2df9..a0c38c9 100644
+--- a/drivers/acpi/processor_throttling.c
++++ b/drivers/acpi/processor_throttling.c
+@@ -38,9 +38,9 @@
+ #include <asm/uaccess.h>
+ 
+ #include <acpi/acpi_bus.h>
++#include <acpi/acpi_drivers.h>
+ #include <acpi/processor.h>
+ 
+-#define ACPI_PROCESSOR_COMPONENT        0x01000000
+ #define ACPI_PROCESSOR_CLASS            "processor"
+ #define _COMPONENT              ACPI_PROCESSOR_COMPONENT
+ ACPI_MODULE_NAME("processor_throttling");
+diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+index ad6cae9..a6da1d9 100644
+--- a/drivers/acpi/thermal.c
++++ b/drivers/acpi/thermal.c
+@@ -47,7 +47,6 @@
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+ 
+-#define ACPI_THERMAL_COMPONENT		0x04000000
+ #define ACPI_THERMAL_CLASS		"thermal_zone"
+ #define ACPI_THERMAL_DEVICE_NAME	"Thermal Zone"
+ #define ACPI_THERMAL_FILE_STATE		"state"
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index a29b0cc..0723f50 100644
 --- a/drivers/acpi/video.c
 +++ b/drivers/acpi/video.c
-@@ -624,6 +624,76 @@ acpi_video_bus_DOS(struct acpi_video_bus
-  *  	device	: video output device (LCD, CRT, ..)
-  *
-  *  Return Value:
-+ *	Maximum brightness level
-+ *
-+ *  Allocate and initialize device->brightness.
-+ */
-+
-+static int
-+acpi_video_init_brightness(struct acpi_video_device *device)
-+{
-+	union acpi_object *obj = NULL;
-+	int i, max_level = 0, count = 0;
-+	union acpi_object *o;
-+	struct acpi_video_device_brightness *br = NULL;
-+
-+	if (!ACPI_SUCCESS(acpi_video_device_lcd_query_levels(device, &obj))) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Could not query available "
-+						"LCD brightness level\n"));
-+		goto out;
-+	}
-+
-+	if (obj->package.count < 2)
-+		goto out;
-+
-+	br = kzalloc(sizeof(*br), GFP_KERNEL);
-+	if (!br) {
-+		printk(KERN_ERR "can't allocate memory\n");
-+		goto out;
-+	}
-+
-+	br->levels = kmalloc(obj->package.count * sizeof *(br->levels),
-+				GFP_KERNEL);
-+	if (!br->levels)
-+		goto out_free;
-+
-+	for (i = 0; i < obj->package.count; i++) {
-+		o = (union acpi_object *)&obj->package.elements[i];
-+		if (o->type != ACPI_TYPE_INTEGER) {
-+			printk(KERN_ERR PREFIX "Invalid data\n");
-+			continue;
-+		}
-+		br->levels[count] = (u32) o->integer.value;
-+
-+		if (br->levels[count] > max_level)
-+			max_level = br->levels[count];
-+		count++;
-+	}
-+
-+	if (count < 2)
-+		goto out_free_levels;
-+
-+	br->count = count;
-+	device->brightness = br;
-+	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "found %d brightness levels\n", count));
-+	kfree(obj);
-+	return max_level;
-+
-+out_free_levels:
-+	kfree(br->levels);
-+out_free:
-+	kfree(br);
-+out:
-+	device->brightness = NULL;
-+	kfree(obj);
-+	return 0;
-+}
-+
-+/*
-+ *  Arg:
-+ *	device	: video output device (LCD, CRT, ..)
-+ *
-+ *  Return Value:
-  *  	None
-  *
-  *  Find out all required AML methods defined under the output
-@@ -633,10 +703,7 @@ acpi_video_bus_DOS(struct acpi_video_bus
- static void acpi_video_device_find_cap(struct acpi_video_device *device)
- {
- 	acpi_handle h_dummy1;
--	int i;
- 	u32 max_level = 0;
--	union acpi_object *obj = NULL;
--	struct acpi_video_device_brightness *br = NULL;
+@@ -41,7 +41,6 @@
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
  
+-#define ACPI_VIDEO_COMPONENT		0x08000000
+ #define ACPI_VIDEO_CLASS		"video"
+ #define ACPI_VIDEO_BUS_NAME		"Video Bus"
+ #define ACPI_VIDEO_DEVICE_NAME		"Video Device"
+diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
+index cf04c60..ebf5420 100644
+--- a/include/acpi/acpi_drivers.h
++++ b/include/acpi/acpi_drivers.h
+@@ -32,7 +32,19 @@
+ #define ACPI_MAX_STRING			80
  
- 	memset(&device->cap, 0, sizeof(device->cap));
-@@ -665,53 +732,7 @@ static void acpi_video_device_find_cap(s
- 		device->cap._DSS = 1;
- 	}
+ #define ACPI_BUS_COMPONENT		0x00010000
++#define ACPI_AC_COMPONENT		0x00020000
++#define ACPI_BATTERY_COMPONENT		0x00040000
++#define ACPI_BUTTON_COMPONENT		0x00080000
++#define ACPI_SBS_COMPONENT		0x00080000
++#define ACPI_FAN_COMPONENT		0x00200000
++#define ACPI_PCI_COMPONENT		0x00400000
++#define ACPI_POWER_COMPONENT		0x00800000
++#define ACPI_CONTAINER_COMPONENT	0x01000000
++#define ACPI_PROCESSOR_COMPONENT	0x01000000
+ #define ACPI_SYSTEM_COMPONENT		0x02000000
++#define ACPI_THERMAL_COMPONENT		0x04000000
++#define ACPI_MEMORY_DEVICE_COMPONENT	0x08000000
++#define ACPI_VIDEO_COMPONENT		0x08000000
  
--	if (ACPI_SUCCESS(acpi_video_device_lcd_query_levels(device, &obj))) {
--
--		if (obj->package.count >= 2) {
--			int count = 0;
--			union acpi_object *o;
--
--			br = kzalloc(sizeof(*br), GFP_KERNEL);
--			if (!br) {
--				printk(KERN_ERR "can't allocate memory\n");
--			} else {
--				br->levels = kmalloc(obj->package.count *
--						     sizeof *(br->levels), GFP_KERNEL);
--				if (!br->levels)
--					goto out;
--
--				for (i = 0; i < obj->package.count; i++) {
--					o = (union acpi_object *)&obj->package.
--					    elements[i];
--					if (o->type != ACPI_TYPE_INTEGER) {
--						printk(KERN_ERR PREFIX "Invalid data\n");
--						continue;
--					}
--					br->levels[count] = (u32) o->integer.value;
--
--					if (br->levels[count] > max_level)
--						max_level = br->levels[count];
--					count++;
--				}
--			      out:
--				if (count < 2) {
--					kfree(br->levels);
--					kfree(br);
--				} else {
--					br->count = count;
--					device->brightness = br;
--					ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--							  "found %d brightness levels\n",
--							  count));
--				}
--			}
--		}
--
--	} else {
--		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Could not query available LCD brightness level\n"));
--	}
--
--	kfree(obj);
-+	max_level = acpi_video_init_brightness(device);
+ /*
+  * _HID definitions
+@@ -54,7 +66,6 @@
+                                        PCI
+    -------------------------------------------------------------------------- */
  
- 	if (device->cap._BCL && device->cap._BCM && device->cap._BQC && max_level > 0){
- 		int result;
-@@ -1710,6 +1731,8 @@ static void
- acpi_video_switch_brightness(struct acpi_video_device *device, int event)
- {
- 	unsigned long level_current, level_next;
-+	if (!device->brightness)
-+		return;
- 	acpi_video_device_lcd_get_level_current(device, &level_current);
- 	level_next = acpi_video_get_next_level(device, level_current, event);
- 	acpi_video_device_lcd_set_level(device, level_next);
+-#define ACPI_PCI_COMPONENT		0x00400000
+ 
+ /* ACPI PCI Interrupt Link (pci_link.c) */
+ 
 
--- 
