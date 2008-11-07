@@ -1,69 +1,62 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 07/21] ACPI EC: Fix regression due to use of uninitialized
- variable
-Date: Thu, 06 Nov 2008 23:39:11 -0500
-Message-ID: <29086e19e9149aadd17ece7112d7d2cf3a8b82f3.1226032677.git.len.brown@intel.com>
+Subject: [PATCH 08/21] intel_menlow: don't set max_state a negative value
+Date: Thu, 06 Nov 2008 23:39:12 -0500
+Message-ID: <c2d06fe338912ee56c2ddd7de5574d5396ed8050.1226032677.git.len.brown@intel.com>
 References: <1226032765-15330-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:36434 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751212AbYKGEja (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Nov 2008 23:39:30 -0500
+Received: from vms173007pub.verizon.net ([206.46.173.7]:54874 "EHLO
+	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751300AbYKGEjb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Nov 2008 23:39:31 -0500
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173001.mailsrvcs.net
+ by vms173007.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0K9Y0061Y4XU8221@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 06 Nov 2008 22:39:30 -0600 (CST)
+ with ESMTPA id <0K9Y00KON4WB4XO1@vms173007.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 06 Nov 2008 22:38:36 -0600 (CST)
 In-reply-to: <1226032765-15330-1-git-send-email-lenb@kernel.org>
 In-reply-to: <2830c9fb8e66cee70b8bffdfb0de01c144c7e643.1226032677.git.len.brown@intel.com>
 References: <2830c9fb8e66cee70b8bffdfb0de01c144c7e643.1226032677.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
+From: Zhang Rui <rui.zhang@intel.com>
 
-breakage introduced by following patch
-commit 27663c5855b10af9ec67bc7dfba001426ba21222
-Author: Matthew Wilcox <willy@linux.intel.com>
-Date:   Fri Oct 10 02:22:59 2008 -0400
+max_state is unsigned long.
+don't set max_state a negative value
 
-acpi_evaluate_integer() does not clear passed variable if
-there is an error at evaluation.
-So if we ignore error, we must supply initialized variable.
-
-References: http://bugzilla.kernel.org/show_bug.cgi?id=11917
-	    http://bugzilla.kernel.org/show_bug.cgi?id=11896
-
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-Tested-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Cc : Thomas Sujith <sujith.thomas@intel.com>
+Cc : Roel Kluin <roel.kluin@gmail.com>
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/ec.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ drivers/misc/intel_menlow.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index ef42316..523ac5b 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -736,7 +736,7 @@ static acpi_status
- ec_parse_device(acpi_handle handle, u32 Level, void *context, void **retval)
- {
- 	acpi_status status;
--	unsigned long long tmp;
-+	unsigned long long tmp = 0;
+diff --git a/drivers/misc/intel_menlow.c b/drivers/misc/intel_menlow.c
+index e00a275..124b37d 100644
+--- a/drivers/misc/intel_menlow.c
++++ b/drivers/misc/intel_menlow.c
+@@ -71,6 +71,9 @@ static int memory_get_int_max_bandwidth(struct thermal_cooling_device *cdev,
+ 	if (ACPI_FAILURE(status))
+ 		return -EFAULT;
  
- 	struct acpi_ec *ec = context;
- 	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
-@@ -751,6 +751,7 @@ ec_parse_device(acpi_handle handle, u32 Level, void *context, void **retval)
- 		return status;
- 	ec->gpe = tmp;
- 	/* Use the global lock for all EC transactions? */
-+	tmp = 0;
- 	acpi_evaluate_integer(handle, "_GLK", NULL, &tmp);
- 	ec->global_lock = tmp;
- 	ec->handle = handle;
++	if (!value)
++		return -EINVAL;
++
+ 	*max_state = value - 1;
+ 	return 0;
+ }
+@@ -121,7 +124,7 @@ static int memory_set_cur_bandwidth(struct thermal_cooling_device *cdev,
+ 	if (memory_get_int_max_bandwidth(cdev, &max_state))
+ 		return -EFAULT;
+ 
+-	if (max_state < 0 || state > max_state)
++	if (state > max_state)
+ 		return -EINVAL;
+ 
+ 	arg_list.count = 1;
 -- 
 1.5.6.5
 
