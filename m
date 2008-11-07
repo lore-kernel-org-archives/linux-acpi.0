@@ -1,67 +1,201 @@
 From: Greg KH <gregkh@suse.de>
-Subject: [patch 08/16] ACPI: dock: avoid check _STA method
-Date: Fri, 7 Nov 2008 15:26:14 -0800
-Message-ID: <20081107232614.GI4282@kroah.com>
+Subject: [patch 13/16] ACPI: video: fix brightness allocation
+Date: Fri, 7 Nov 2008 15:26:24 -0800
+Message-ID: <20081107232624.GN4282@kroah.com>
 References: <20081107231848.995297975@mini.kroah.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:47571 "EHLO coco.kroah.org"
+Received: from kroah.org ([198.145.64.141]:47634 "EHLO coco.kroah.org"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754825AbYKGX0v (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 7 Nov 2008 18:26:51 -0500
-Content-Disposition: inline; filename="acpi-dock-avoid-check-_sta-method.patch"
+	id S1753526AbYKGX07 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 7 Nov 2008 18:26:59 -0500
+Content-Disposition: inline; filename="acpi-video-fix-brightness-allocation.patch"
 In-Reply-To: <20081107232544.GA4282@kroah.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@kernel.org
-Cc: Justin Forbes <jmforbes@linuxtx.org>, Zwane Mwaikambo <zwane@arm.linux.org.uk>, Theodore Ts'o <tytso@mit.edu>, Randy Dunlap <rdunlap@xenotime.net>, Dave Jones <davej@redhat.com>, Chuck Wolber <chuckw@quantumlinux.com>, Chris Wedgwood <reviews@ml.cw.f00f.org>, Michael Krufky <mkrufky@linuxtv.org>, Chuck Ebbert <cebbert@redhat.com>, Domenico Andreoli <cavokz@gmail.com>, Willy Tarreau <w@1wt.eu>, Rodrigo Rubira Branco <rbranco@la.checkpoint.com>, Jake Edge <jake@lwn.net>, Eugene Teo <eteo@redhat.com>, torvalds@linux-foundation.org, akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, linux-acpi@vger.kernel.org, Shaohua Li <shaohua.li@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Justin Forbes <jmforbes@linuxtx.org>, Zwane Mwaikambo <zwane@arm.linux.org.uk>, Theodore Ts'o <tytso@mit.edu>, Randy Dunlap <rdunlap@xenotime.net>, Dave Jones <davej@redhat.com>, Chuck Wolber <chuckw@quantumlinux.com>, Chris Wedgwood <reviews@ml.cw.f00f.org>, Michael Krufky <mkrufky@linuxtv.org>, Chuck Ebbert <cebbert@redhat.com>, Domenico Andreoli <cavokz@gmail.com>, Willy Tarreau <w@1wt.eu>, Rodrigo Rubira Branco <rbranco@la.checkpoint.com>, Jake Edge <jake@lwn.net>, Eugene Teo <eteo@redhat.com>, torvalds@linux-foundation.org, akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, Julia Jomantaite <julia.jomantaite@gmail.com>, linux-acpi@vger.kernel.org, Arjan van de Ven <arjan@infradead.org>, Andi Kleen <ak@linux.intel.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
+
 
 2.6.25-stable review patch.  If anyone has any objections, please let us know.
 
 ------------------
 
-From: Shaohua Li <shaohua.li@intel.com>
+From: Julia Jomantaite <julia.jomantaite@gmail.com>
 
-commit 8b59560a3baf2e7c24e0fb92ea5d09eca92805db upstream.
+Thanks to Arjan for spotting this for .stable:
+http://www.kerneloops.org/search.php?search=acpi_video_switch_brightness
 
-ACPI: dock: avoid check _STA method
+upstream commit 469778c1740fcf3113498b6fdf4559bdec25c58f
 
-In some BIOSes, every _STA method call will send a notification again,
-this cause freeze. And in some BIOSes, it appears _STA should be called
-after _DCK. This tries to avoid calls _STA, and still keep the device
-present check.
+ACPI: video: fix brightness allocation
 
-http://bugzilla.kernel.org/show_bug.cgi?id=10431
+Fix use of uninitialized device->brightness.
 
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Signed-off-by: Julia Jomantaite <julia.jomantaite@gmail.com>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Acked-by: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 ---
- drivers/acpi/dock.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/acpi/video.c |  123 ++++++++++++++++++++++++++++++---------------------
+ 1 file changed, 73 insertions(+), 50 deletions(-)
 
---- a/drivers/acpi/dock.c
-+++ b/drivers/acpi/dock.c
-@@ -599,14 +599,17 @@ static int handle_eject_request(struct d
- static void dock_notify(acpi_handle handle, u32 event, void *data)
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -624,6 +624,76 @@ acpi_video_bus_DOS(struct acpi_video_bus
+  *  	device	: video output device (LCD, CRT, ..)
+  *
+  *  Return Value:
++ *	Maximum brightness level
++ *
++ *  Allocate and initialize device->brightness.
++ */
++
++static int
++acpi_video_init_brightness(struct acpi_video_device *device)
++{
++	union acpi_object *obj = NULL;
++	int i, max_level = 0, count = 0;
++	union acpi_object *o;
++	struct acpi_video_device_brightness *br = NULL;
++
++	if (!ACPI_SUCCESS(acpi_video_device_lcd_query_levels(device, &obj))) {
++		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Could not query available "
++						"LCD brightness level\n"));
++		goto out;
++	}
++
++	if (obj->package.count < 2)
++		goto out;
++
++	br = kzalloc(sizeof(*br), GFP_KERNEL);
++	if (!br) {
++		printk(KERN_ERR "can't allocate memory\n");
++		goto out;
++	}
++
++	br->levels = kmalloc(obj->package.count * sizeof *(br->levels),
++				GFP_KERNEL);
++	if (!br->levels)
++		goto out_free;
++
++	for (i = 0; i < obj->package.count; i++) {
++		o = (union acpi_object *)&obj->package.elements[i];
++		if (o->type != ACPI_TYPE_INTEGER) {
++			printk(KERN_ERR PREFIX "Invalid data\n");
++			continue;
++		}
++		br->levels[count] = (u32) o->integer.value;
++
++		if (br->levels[count] > max_level)
++			max_level = br->levels[count];
++		count++;
++	}
++
++	if (count < 2)
++		goto out_free_levels;
++
++	br->count = count;
++	device->brightness = br;
++	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "found %d brightness levels\n", count));
++	kfree(obj);
++	return max_level;
++
++out_free_levels:
++	kfree(br->levels);
++out_free:
++	kfree(br);
++out:
++	device->brightness = NULL;
++	kfree(obj);
++	return 0;
++}
++
++/*
++ *  Arg:
++ *	device	: video output device (LCD, CRT, ..)
++ *
++ *  Return Value:
+  *  	None
+  *
+  *  Find out all required AML methods defined under the output
+@@ -633,10 +703,7 @@ acpi_video_bus_DOS(struct acpi_video_bus
+ static void acpi_video_device_find_cap(struct acpi_video_device *device)
  {
- 	struct dock_station *ds = data;
-+	struct acpi_device *tmp;
+ 	acpi_handle h_dummy1;
+-	int i;
+ 	u32 max_level = 0;
+-	union acpi_object *obj = NULL;
+-	struct acpi_video_device_brightness *br = NULL;
  
- 	switch (event) {
- 	case ACPI_NOTIFY_BUS_CHECK:
--		if (!dock_in_progress(ds) && dock_present(ds)) {
-+		if (!dock_in_progress(ds) && acpi_bus_get_device(ds->handle,
-+		   &tmp)) {
- 			begin_dock(ds);
- 			dock(ds);
- 			if (!dock_present(ds)) {
- 				printk(KERN_ERR PREFIX "Unable to dock!\n");
-+				complete_dock(ds);
- 				break;
- 			}
- 			atomic_notifier_call_chain(&dock_notifier_list,
+ 
+ 	memset(&device->cap, 0, sizeof(device->cap));
+@@ -665,53 +732,7 @@ static void acpi_video_device_find_cap(s
+ 		device->cap._DSS = 1;
+ 	}
+ 
+-	if (ACPI_SUCCESS(acpi_video_device_lcd_query_levels(device, &obj))) {
+-
+-		if (obj->package.count >= 2) {
+-			int count = 0;
+-			union acpi_object *o;
+-
+-			br = kzalloc(sizeof(*br), GFP_KERNEL);
+-			if (!br) {
+-				printk(KERN_ERR "can't allocate memory\n");
+-			} else {
+-				br->levels = kmalloc(obj->package.count *
+-						     sizeof *(br->levels), GFP_KERNEL);
+-				if (!br->levels)
+-					goto out;
+-
+-				for (i = 0; i < obj->package.count; i++) {
+-					o = (union acpi_object *)&obj->package.
+-					    elements[i];
+-					if (o->type != ACPI_TYPE_INTEGER) {
+-						printk(KERN_ERR PREFIX "Invalid data\n");
+-						continue;
+-					}
+-					br->levels[count] = (u32) o->integer.value;
+-
+-					if (br->levels[count] > max_level)
+-						max_level = br->levels[count];
+-					count++;
+-				}
+-			      out:
+-				if (count < 2) {
+-					kfree(br->levels);
+-					kfree(br);
+-				} else {
+-					br->count = count;
+-					device->brightness = br;
+-					ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-							  "found %d brightness levels\n",
+-							  count));
+-				}
+-			}
+-		}
+-
+-	} else {
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Could not query available LCD brightness level\n"));
+-	}
+-
+-	kfree(obj);
++	max_level = acpi_video_init_brightness(device);
+ 
+ 	if (device->cap._BCL && device->cap._BCM && device->cap._BQC && max_level > 0){
+ 		int result;
+@@ -1710,6 +1731,8 @@ static void
+ acpi_video_switch_brightness(struct acpi_video_device *device, int event)
+ {
+ 	unsigned long level_current, level_next;
++	if (!device->brightness)
++		return;
+ 	acpi_video_device_lcd_get_level_current(device, &level_current);
+ 	level_next = acpi_video_get_next_level(device, level_current, event);
+ 	acpi_video_device_lcd_set_level(device, level_next);
 
 -- 
