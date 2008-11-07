@@ -1,53 +1,147 @@
-From: Matthew Garrett <mjg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 15/15] Revert "x86: default to reboot via ACPI"
-Date: Fri, 7 Nov 2008 01:43:42 +0000
-Message-ID: <20081107014342.GA9841@srcf.ucam.org>
-References: <fa.UVpnVba3yRAWG3rGZ0sk20JE9hs@ifi.uio.no>
-	<fa.FPBNKx3BSvZHPZ+eXD4Tb+fuRYk@ifi.uio.no>
-	<fa.PvVEuEo+f/t4sLmcGyN2Tsl8zYg@ifi.uio.no>
-	<fa.zzFdOXisTZzBaE1+ueGIYmt+Z5c@ifi.uio.no>
-	<fa.vQ6HVRcPFFr1zpcXFFOjEPtDdNk@ifi.uio.no>
-	<fa.ckUqcrtVKbxAkjNggIdajBTHr9Q@ifi.uio.no>
-	<49139A43.4000203@shaw.ca>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] 3/3 intel_menlow: syncing with acpi function changes
+Date: Thu, 06 Nov 2008 20:30:17 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0811062029190.3106@localhost.localdomain>
+References: <7D0189F5BE1DF549A570B212D1D5612182AF07@bgsmsx412.gar.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <49139A43.4000203-fVOoFLC7IWo@public.gmane.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/listinfo/kexec>,
-	<mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/kexec>
-List-Post: <mailto:kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Help: <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/kexec>,
-	<mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
-Sender: kexec-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-Errors-To: kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-To: Robert Hancock <hancockr-fVOoFLC7IWo@public.gmane.org>
-Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, "Eric W. Biederman" <ebiederm-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org>, Eduardo Habkost <ehabkost-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Zhao Yakui <yakui.zhao-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Avi Kivity <avi-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>, Andrey Borzenkov <arvidjaar-JGs/UdohzUI@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms173001pub.verizon.net ([206.46.173.1]:52163 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750954AbYKGB4o (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Nov 2008 20:56:44 -0500
+In-reply-to: <7D0189F5BE1DF549A570B212D1D5612182AF07@bgsmsx412.gar.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Thomas, Sujith" <sujith.thomas@intel.com>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 
-On Thu, Nov 06, 2008 at 07:30:43PM -0600, Robert Hancock wrote:
+Sujith,
 
-> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=8fd145917fb62368a9b80db59562c20576238f5a
+AFAICS, this patch is already applied.
+since the e-mail is line-wrapped, it is tedious to verify,
+let me know if i'm wrong.
+
+thanks,
+-Len
+
+
+On Wed, 5 Nov 2008, Thomas, Sujith wrote:
+
+> 4th parameter of acpi_evaluate_integer changed to unsigned long long
+> acpi_driver_data() changed to inline function from macro
 > 
-> This patch ignores the RESET_REG_SUP flag and just tries using the reset 
-> register anyway if it thinks it's valid. So we may attempt ACPI reset on 
-> machines which don't indicate it's supported.
-
-Yeah, that sounds very wrong.
-
-> The patch description mentioned that some machines didn't reboot after 
-> S3 suspend without this patch. However, we recently had this patch merged:
+> Signed-off-by: Sujith Thomas <sujith.thomas@intel.com>
+> ---
+>  drivers/misc/intel_menlow.c |   20 ++++++++++----------
+>  1 file changed, 10 insertions(+), 10 deletions(-)
 > 
-> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=a68823ee5285e65b51ceb96f8b13a5b4f99a6888
+> Index: linux-2.6.27/drivers/misc/intel_menlow.c
+> ===================================================================
+> --- linux-2.6.27.orig/drivers/misc/intel_menlow.c
+> +++ linux-2.6.27/drivers/misc/intel_menlow.c
+> @@ -62,7 +62,7 @@ static int memory_get_int_max_bandwidth(
+>  {
+>  	struct acpi_device *device = cdev->devdata;
+>  	acpi_handle handle = device->handle;
+> -	unsigned long value;
+> +	unsigned long long value;
+>  	struct acpi_object_list arg_list;
+>  	union acpi_object arg;
+>  	acpi_status status = AE_OK;
+> @@ -98,7 +98,7 @@ static int memory_get_cur_bandwidth(stru
+>  {
+>  	struct acpi_device *device = cdev->devdata;
+>  	acpi_handle handle = device->handle;
+> -	unsigned long value;
+> +	unsigned long long value;
+>  	struct acpi_object_list arg_list;
+>  	union acpi_object arg;
+>  	acpi_status status = AE_OK;
+> @@ -112,7 +112,7 @@ static int memory_get_cur_bandwidth(stru
+>  	if (ACPI_FAILURE(status))
+>  		return -EFAULT;
+>  
+> -	return sprintf(buf, "%ld\n", value);
+> +	return sprintf(buf, "%lld\n", value);
+>  }
+>  
+>  static int memory_set_cur_bandwidth(struct thermal_cooling_device
+> *cdev,
+> @@ -139,7 +139,7 @@ static int memory_set_cur_bandwidth(stru
+>  
+>  	status =
+>  	    acpi_evaluate_integer(handle, MEMORY_SET_BANDWIDTH,
+> &arg_list,
+> -				  (unsigned long *)&temp);
+> +				  (unsigned long long *)&temp);
+>  
+>  	printk(KERN_INFO
+>  	       "Bandwidth value was %d: status is %d\n", state, status);
+> @@ -183,7 +183,7 @@ static int intel_menlow_memory_add(struc
+>  		goto end;
+>  	}
+>  
+> -	acpi_driver_data(device) = cdev;
+> +	device->driver_data = cdev;
+>  	result = sysfs_create_link(&device->dev.kobj,
+>  				&cdev->device.kobj, "thermal_cooling");
+>  	if (result)
+> @@ -268,7 +268,7 @@ static int sensor_get_auxtrip(acpi_handl
+>  		return -EINVAL;
+>  
+>  	status = acpi_evaluate_integer(handle, index ? GET_AUX1 :
+> GET_AUX0,
+> -				       NULL, (unsigned long *)value);
+> +				       NULL, (unsigned long long
+> *)value);
+>  	if (ACPI_FAILURE(status))
+>  		return -EIO;
+>  
+> @@ -296,7 +296,7 @@ static int sensor_set_auxtrip(acpi_handl
+>  		return -EINVAL;
+>  
+>  	status = acpi_evaluate_integer(handle, index ? GET_AUX0 :
+> GET_AUX1,
+> -				       NULL, (unsigned long *)&temp);
+> +				       NULL, (unsigned long long
+> *)&temp);
+>  	if (ACPI_FAILURE(status))
+>  		return -EIO;
+>  	if ((index && value < temp) || (!index && value > temp))
+> @@ -304,7 +304,7 @@ static int sensor_set_auxtrip(acpi_handl
+>  
+>  	arg.integer.value = value;
+>  	status = acpi_evaluate_integer(handle, index ? SET_AUX1 :
+> SET_AUX0,
+> -				       &args, (unsigned long *)&temp);
+> +				       &args, (unsigned long long
+> *)&temp);
+>  	if (ACPI_FAILURE(status))
+>  		return -EIO;
+>  
+> @@ -384,7 +384,7 @@ static ssize_t bios_enabled_show(struct 
+>  				 struct device_attribute *attr, char
+> *buf)
+>  {
+>  	acpi_status status;
+> -	unsigned long bios_enabled;
+> +	unsigned long long bios_enabled;
+>  
+>  	status = acpi_evaluate_integer(NULL, BIOS_ENABLED, NULL,
+> &bios_enabled);
+>  	if (ACPI_FAILURE(status))
+> @@ -500,7 +500,7 @@ static int __init intel_menlow_module_in
+>  {
+>  	int result = -ENODEV;
+>  	acpi_status status;
+> -	unsigned long enable;
+> +	unsigned long long enable;
+>  
+>  	if (acpi_disabled)
+>  		return result;
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
-> Is it possible that the problem fixed there is the true cause of this 
-> reboot after S3 problem?
-
-Oh, yeah, could be. Given the From:, I should really have thought of 
-that :)
-
--- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
