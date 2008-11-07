@@ -1,23 +1,23 @@
 From: Greg KH <gregkh@suse.de>
-Subject: [patch 20/23] ACPI: dock: avoid check _STA method
-Date: Fri, 7 Nov 2008 15:16:06 -0800
-Message-ID: <20081107231606.GU1108@kroah.com>
-References: <20081107224818.593212310@mini.kroah.org>
+Subject: [patch 08/16] ACPI: dock: avoid check _STA method
+Date: Fri, 7 Nov 2008 15:26:14 -0800
+Message-ID: <20081107232614.GI4282@kroah.com>
+References: <20081107231848.995297975@mini.kroah.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:59401 "EHLO coco.kroah.org"
+Received: from kroah.org ([198.145.64.141]:47571 "EHLO coco.kroah.org"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753831AbYKGXXP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 7 Nov 2008 18:23:15 -0500
+	id S1754825AbYKGX0v (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 7 Nov 2008 18:26:51 -0500
 Content-Disposition: inline; filename="acpi-dock-avoid-check-_sta-method.patch"
-In-Reply-To: <20081107231457.GA1108@kroah.com>
+In-Reply-To: <20081107232544.GA4282@kroah.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@kernel.org
 Cc: Justin Forbes <jmforbes@linuxtx.org>, Zwane Mwaikambo <zwane@arm.linux.org.uk>, Theodore Ts'o <tytso@mit.edu>, Randy Dunlap <rdunlap@xenotime.net>, Dave Jones <davej@redhat.com>, Chuck Wolber <chuckw@quantumlinux.com>, Chris Wedgwood <reviews@ml.cw.f00f.org>, Michael Krufky <mkrufky@linuxtv.org>, Chuck Ebbert <cebbert@redhat.com>, Domenico Andreoli <cavokz@gmail.com>, Willy Tarreau <w@1wt.eu>, Rodrigo Rubira Branco <rbranco@la.checkpoint.com>, Jake Edge <jake@lwn.net>, Eugene Teo <eteo@redhat.com>, torvalds@linux-foundation.org, akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, linux-acpi@vger.kernel.org, Shaohua Li <shaohua.li@intel.com>, Len Brown <len.brown@intel.com>
 
-2.6.26-stable review patch.  If anyone has any objections, please let us know.
+2.6.25-stable review patch.  If anyone has any objections, please let us know.
 
 ------------------
 
