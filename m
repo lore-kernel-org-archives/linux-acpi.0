@@ -1,51 +1,76 @@
-From: Andrey Borzenkov <arvidjaar@mail.ru>
-Subject: Can video_detect be made __init?
-Date: Sat, 8 Nov 2008 16:55:07 +0300
-Message-ID: <200811081655.08226.arvidjaar@mail.ru>
+From: "Zhao, Yakui" <yakui.zhao@intel.com>
+Subject: The fatal  logic error in EC write transaction(EC transaction is
+ done in interrupt context)
+Date: Sat, 8 Nov 2008 22:04:02 +0800
+Message-ID: <9F0C1DB20AFA954FA1DA05309350433D40C7CC84@pdsmsx503.ccr.corp.intel.com>
+References: <2830c9fb8e66cee70b8bffdfb0de01c144c7e643.1226032677.git.len.brown@intel.com>
+ <29086e19e9149aadd17ece7112d7d2cf3a8b82f3.1226032677.git.len.brown@intel.com>
+ <1226038422.3989.244.camel@yakui_zhao.sh.intel.com>
+ <alpine.LFD.2.00.0811071445140.8189@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart12516688.zlN7n4Zbhr";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx30.mail.ru ([194.67.23.238]:5592 "EHLO mx30.mail.ru"
+Received: from mga09.intel.com ([134.134.136.24]:1801 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753261AbYKHNzQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 8 Nov 2008 08:55:16 -0500
+	id S1753196AbYKHOEH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 8 Nov 2008 09:04:07 -0500
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <astarikovskiy@suse.de>, LenBrown <lenb@kernel.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>, "Li, Shaohua" <shaohua.li@intel.com>, "Zhang, Rui" <rui.zhang@intel.com>, "Lin, Ming M" <ming.m.lin@intel.com>
 
---nextPart12516688.zlN7n4Zbhr
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-I would add DMI entries to force vendor backlight for my system, but
-I'd really prefer they are not remain in memory forever. Is there any
-reason for the whole detection to not happen exactly once? After all,
-ACPI cannot change after boot, can it?
-
-Hmm ... actually DSDT can be loaded from initrd, so it can change ... but
-in this case we actually are just interested in DMI matching which says
-whether vendor driver is preferred or not. What would be the the best
-place to call it from?
-
--andrey
-
---nextPart12516688.zlN7n4Zbhr
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEABECAAYFAkkVmjwACgkQR6LMutpd94yojACgwipiClbM9G9nJL8MGemWo5iI
-QbIAoJhgzjl5c5ytA6pRoJvj1jhRM/Qt
-=fNss
------END PGP SIGNATURE-----
-
---nextPart12516688.zlN7n4Zbhr--
+SGksIEFsZXhleQ0KwqDCoMKgwqAgQWZ0ZXIgY2hlY2tpbmcgdGhlIEVDIHdvcmtpbmcgZmxvd2No
+YXJ0IEkgZmluZCBhIGZhdGFsIGxvZ2ljIGVycm9yIHRoYXQgZXhpc3RzIGluIEVDIHdyaXRlIHRy
+YW5zYWN0aW9uLiBUaGUgaXNzdWUgaGFwcGVucyBvbiBtb3N0IGxhcHRvcHMuIFRoZSBmb2xsb3dp
+bmcgaXMgdGhlIGRldGFpbGVkIGV4cGxhbmF0aW9uIGFib3V0IHRoaXMgaXNzdWU6DQrCoMKgwqDC
+oCBBY2NvcmRpbmcgdG8gdGhlIEFDUEkgdGhlIEVDIHdyaXRlIHRyYW5zYWN0aW9uIGlzIGRpdmlk
+ZWQgaW50byB0aGUgZm9sbG93aW5nIHRocmVlIHBoYXNlczogKFNlZW4gaW4gdGhlIHNlY3Rpb24g
+MTIuNi4yIG9mIEFDUEkgMy4wYikNCsKgwqDCoMKgIGEuIEJ5dGUgIzE6IEhvc3QgV3JpdGVzIHRo
+ZSBFQyBjb21tYW5kIHRvIEVDIENNRCBJL08gUE9SVC4gSW50ZXJydXB0IGlzIHRyaWdnZXJlZCBh
+ZnRlciBFQyByZWFkcyB0aGUgY29tbWFuZCBieXRlIA0KwqDCoMKgwqAgYi4gQnl0ZSAjMjogSG9z
+dCB3cml0ZXMgdGhlIGFkZHJlc3MgaW5kZXggdG8gRUMgZGF0YSBJL08gcG9ydC4gSW50ZXJydXB0
+IGlzIHRyaWdnZXJlZCBhZnRlciBFQyByZWFkcyB0aGUgYWRkcmVzcyBpbmRleCBieXRlDQrCoMKg
+wqDCoCBjLiBCeXRlICMzOiBIb3N0IHdyaXRlcyB0aGUgRGF0YSB0byBFQyBkYXRhIEkvTyBwb3J0
+LiBJbnRlcnJ1cHQgaXMgdHJpZ2dlcmVkIGFmdGVyIEVDIHJlYWRzIHRoZSBkYXRhIGJ5dGUNCsKg
+wqAgDQrCoMKgIFdoZW4gdGhlIGZ1bmN0aW9uIG9mIGFjcGlfZWNfdHJhbnNhY3Rpb25fdW5sb2Nr
+ZWQgaXMgY2FsbGVkIGZvciBFQyB3cml0ZSB0cmFuc2FjdGlvbiwgdGhlIHdsZW4gdmFyaWFibGUg
+aXMgaW5pdGlhbGl6ZWQgYXMgMiBhbmQgdGhlIHJsZW4gdmFyaWFibGUgaXMgaW5pdGlhbGl6ZWQg
+YXMgemVyby4gVGhlbiBFQyB0cmFuc2FjdGlvbiBmb2xsb3dzIHRoZSBiZWxvdyB0aHJlZSBzdGVw
+cy4NCsKgwqDCoMKgIDEuIE9TIHdyaXRlcyB0aGUgRUMgY29tbWFuZCB0byBFQyBDTUQgSS9PIHBv
+cnQNCsKgwqDCoMKgIDIuIEVDIEdQRSBpbnRlcnJ1cHQgaXMgdHJpZ2dlcmVkIGFuZCB0aGVuIHRo
+ZSBhZGRyZXNzIGluZGV4IGlzIHdyaXR0ZW4gaW50byBFQyBkYXRhIEkvTyBwb3J0LiAoVGhlIHds
+ZW4gaXMgZGVjcmVhc2VkIHRvIDEuVGhpcyBpcyBleGVjdXRlZCBpbiBFQyBHUEUgaGFuZGxlcikN
+CsKgwqDCoMKgIDMuIEVDIEdQRSBpbnRlcnJ1cHQgaXMgdHJpZ2dlcmVkIGFnYWluIGFuZCB0aGVu
+IHRoZSBkYXRhIGlzIHdyaXR0ZW4gaW50byB0aGUgRUMgZGF0YSBJL08gcG9ydC4gVGhlIHdsZW4g
+aXMgZGVjcmVhc2VkIHRvIDAuKFRoaXMgaXMgYWxzbyBleGVjdXRlZCBpbiBFQyBHUEUgaGFuZGxl
+cikuIEFzIHRoZSB3bGVuIGlzIGRlY3JlYXNlZCB0byB6ZXJvLCBpdCBtZWFucyB0aGF0IHRoZSBF
+QyB0cmFuc2FjdGlvbiBpcyBmaW5pc2hlZChUcnVlIGlzIHJldHVybmVkIGJ5IHRoZSBmdW5jdGlv
+biBvZiBlY190cmFuc2FjdGlvbl9kb25lKS4gDQrCoMKgwqDCoMKgID5zdGF0dXMgPSBhY3BpX2Vj
+X3JlYWRfc3RhdHVzKGVjKTsNCsKgwqDCoMKgwqAgPmdwZV90cmFuc2FjdGlvbihlYywgc3RhdHVz
+KTsNCsKgwqDCoMKgwqAgPiBpZiAoZWNfdHJhbnNhY3Rpb25fZG9uZShlYykgJiYgKHN0YXR1cyAm
+IEFDUElfRUNfRkxBR19JQkYpID09IDApDQrCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCDCoMKg
+d2FrZV91cCgmZWMtPndhaXQpOyANCsKgwqDCoMKgIEluIHRoaXMgc3RlcCB0aGUgc3RhdHVzIHZh
+cmlhYmxlIG9ubHkgaW5kaWNhdGVzIHRoYXQgRUMgY29udHJvbGxlciBhbHJlYWR5IHJlYWRzIHRo
+ZSBhZGRyZXNzIGluZGV4IHdyaXR0ZW4gYnkgT1MoSXQgY2Fu4oCZdCBpbmRpY2F0ZSB0aGF0IEVD
+IGNvbnRyb2xsZXIgYWxyZWFkeSByZWFkcyB0aGUgZGF0YSBieXRlIHdyaXR0ZW4gYnkgSG9zdCku
+IEFzIHRoZSBJQkYgZmxhZyBpcyB6ZXJvLCB0aGUgd2FpdGluZyBwcm9jZXNzIGlzIHdha2VkIHVw
+IGFuZCBFQyBtdXRleCBsb2NrIGlzIHJlbGVhc2VkLiBJbiBzdWNoIGNhc2UgaXQgbWVhbnMgdGhh
+dCBPUyBjYW4gYmVnaW4gYW5vdGhlciBFQyB0cmFuc2FjdGlvbi4gDQrCoMKgwqDCoCBCdXQgaW4g
+ZmFjdCBpbiBzdWNoIGNhc2UgRUMgdHJhbnNhY3Rpb24gaXMgbm90IHJlYWxseSBmaW5pc2hlZC4g
+QWZ0ZXIgdGhlIEVDIGRhdGEgaXMgd3JpdHRlbiBpbnRvIEVDIERhdGEgSS9PIHBvcnQsIG5vIGZs
+YWcgaW5kaWNhdGVzIHdoZXRoZXIgRUMgdHJhbnNhY3Rpb24gaXMgZmluaXNoZWQuIE9ubHkgd2hl
+biB0aGUgSUJGIGJpdCBiZWNvbWVzIHplcm8gYWdhaW4sIHdlIGNhbiBzYXkgdGhhdCBFQyB0cmFu
+c2FjdGlvbiBpcyByZWFsbHkgZmluaXNoZWQuIElmIE9TIGJlZ2lucyBhbm90aGVyIEVDIHRyYW5z
+YWN0aW9uIGJlZm9yZSBwcmV2aW91cyBFQyB0cmFuc2FjdGlvbiBpcyByZWFsbHkgZmluaXNoZWQs
+IHdlIGNhbid0IGltYWdpbmUgd2hhdCB3aWxsIGhhcHBlbi4NCuOAgOOAgElNTyBCYXNlZCBvbiB0
+aGUgYWJvdmUgYW5hbHlzaXMgdGhlcmUgZXhpc3RzIHRoZSBmYXRhbCBsb2dpYyBlcnJvciBpbiB0
+aGUgRUMgd3JpdGUgdHJhbnNhY3Rpb24gYWZ0ZXIgdGhlIHBhdGNoIGZyb20gQWxleGV5IGlzIHNo
+aXBwZWQuIEFsdGhvdWdoIG5vdyBubyBvbmUgcmVwb3J0cyB0aGlzIGlzc3VlLCBpdCBpcyBzdGls
+bCBhbiB1bnN0YWJsZSBmYWN0b3IuIEFmdGVyIGFsbCBpdCBpcyB0aGUgZmF0YWwgbG9naWMgZXJy
+b3IuIA0K44CA44CAwqANCuOAgOOAgMKgQXQgdGhlIHNhbWUgdGltZSB0aGVyZSBleGlzdHMgdGhl
+IHNpbWlsYXIgbG9naWMgZXJyb3Igd2hlbiBPUyBiZWdpbnMgYW4gRUMgdHJhbnNhY3Rpb24gdG8g
+ZGlzYWJsZSB0aGUgRUMgYnVyc3QgbW9kZS4NCiAgICAgDQrjgIDjgIBXZWxjb21lIHRoZSBjb21t
+ZW50cy4NCiAgICAgDQrjgIDjgIBCZXN0IHJlZ2FyZHMNCuOAgOOAgMKgwqDCoMKgIFlha3VpDQoN
+CiDCoMKgIA0KDQo=
