@@ -1,91 +1,53 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: [PATCH] ACPI: EC: wait for last write gpe
-Date: Sat, 08 Nov 2008 21:42:30 +0300
-Message-ID: <20081108184228.7154.51815.stgit@thinkpad>
-References: <4915C296.9030903@suse.de>
+From: Pierre Ossman <drzeus-mmc@drzeus.cx>
+Subject: Re: [RFH,Status] Sony Vaio VGN-Z11 support
+Date: Sat, 8 Nov 2008 21:34:14 +0100
+Message-ID: <20081108213414.579e178d@mjolnir.drzeus.cx>
+References: <20081025214602.GB27030@gamma.logic.tuwien.ac.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:39301 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751056AbYKHSmf (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Sat, 8 Nov 2008 13:42:35 -0500
-In-Reply-To: <4915C296.9030903@suse.de>
+Received: from server.drzeus.cx ([85.8.24.28]:50754 "EHLO smtp.drzeus.cx"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752047AbYKHUeZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 8 Nov 2008 15:34:25 -0500
+In-Reply-To: <20081025214602.GB27030@gamma.logic.tuwien.ac.at>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: LenBrown <lenb@kernel.org>
-Cc: Linux-acpi@vger.kernel.org
+To: Norbert Preining <preining@logic.at>
+Cc: malattia@linux.it, linux-acpi@vger.kernel.org
 
-There is a possibility that EC might break if next command is
-issued within 1 us after write or burst-disable command.
-This "possibility" was in EC driver for 3.5 years, after
-451566f45a2e6cd10ba56e7220a9dd84ba3ef550.
+On Sat, 25 Oct 2008 23:46:02 +0200
+Norbert Preining <preining@logic.at> wrote:
 
-References: http://marc.info/?l=linux-acpi&m=122616284402886&w=4
-Cc: Zhao Yakui <yakui.zhao@intel.com>
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
----
+> Card reader
+> ===========
+> 
+> SD/MMC card reader
+>   PCI: 0b:04.2 SD Host controller: Ricoh Co Ltd R5C822 SD/SDIO/MMC/MS/MSPro Host Adapter (rev 21)
+> MemoryStick card reader
+>   PCI: 0b:04.4 System peripheral: Ricoh Co Ltd R5C592 Memory Stick Bus
+> Host Adapter (rev 11)
+>   
+>   When I introduce the a SD card nothing works, but the kernel log shows
+>   me:
+>   mmc0: Reset 0x1 never completed.
 
- drivers/acpi/ec.c |   21 +++++++++++++--------
- 1 files changed, 13 insertions(+), 8 deletions(-)
+It is possible to wire the Ricoh chips in some odd way that makes them
+misbehave whenever the slot is empty. This has only been observed on
+Samsung laptops so far though.
 
+The reader worked once you had a card in there in those cases. Could
+you enable MMC_DEBUG in the kernel config and see what you get in dmesg
+when you insert a card.
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index e5dbe21..d6007ac 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -102,6 +102,7 @@ struct transaction {
- 	u8 command;
- 	u8 wlen;
- 	u8 rlen;
-+	bool done;
- };
- 
- static struct acpi_ec {
-@@ -178,7 +179,7 @@ static int ec_transaction_done(struct acpi_ec *ec)
- 	unsigned long flags;
- 	int ret = 0;
- 	spin_lock_irqsave(&ec->curr_lock, flags);
--	if (!ec->curr || (!ec->curr->wlen && !ec->curr->rlen))
-+	if (!ec->curr || ec->curr->done)
- 		ret = 1;
- 	spin_unlock_irqrestore(&ec->curr_lock, flags);
- 	return ret;
-@@ -195,17 +196,20 @@ static void gpe_transaction(struct acpi_ec *ec, u8 status)
- 			acpi_ec_write_data(ec, *(ec->curr->wdata++));
- 			--ec->curr->wlen;
- 		} else
--			/* false interrupt, state didn't change */
--			++ec->curr->irq_count;
--
-+			goto err;
- 	} else if (ec->curr->rlen > 0) {
- 		if ((status & ACPI_EC_FLAG_OBF) == 1) {
- 			*(ec->curr->rdata++) = acpi_ec_read_data(ec);
--			--ec->curr->rlen;
-+			if (--ec->curr->rlen == 0)
-+				ec->curr->done = true;
- 		} else
--			/* false interrupt, state didn't change */
--			++ec->curr->irq_count;
--	}
-+			goto err;
-+	} else if (ec->curr->wlen == 0 && (status & ACPI_EC_FLAG_IBF) == 0)
-+		ec->curr->done = true;
-+	goto unlock;
-+err:
-+	/* false interrupt, state didn't change */
-+	++ec->curr->irq_count;
- unlock:
- 	spin_unlock_irqrestore(&ec->curr_lock, flags);
- }
-@@ -265,6 +269,7 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec,
- 	spin_lock_irqsave(&ec->curr_lock, tmp);
- 	/* following two actions should be kept atomic */
- 	t->irq_count = 0;
-+	t->done = false;
- 	ec->curr = t;
- 	acpi_ec_write_cmd(ec, ec->curr->command);
- 	if (ec->curr->command == ACPI_EC_COMMAND_QUERY)
+-- 
+     -- Pierre Ossman
 
+  Linux kernel, MMC maintainer        http://www.kernel.org
+  rdesktop, core developer          http://www.rdesktop.org
+
+  WARNING: This correspondence is being monitored by the
+  Swedish government. Make sure your server uses encryption
+  for SMTP traffic and consider using PGP for end-to-end
+  encryption.
