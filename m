@@ -1,298 +1,314 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH 5/5] ACPI: update debug parameter documentation
-Date: Fri, 07 Nov 2008 16:58:05 -0700
-Message-ID: <20081107235805.32050.47567.stgit@bob.kio>
-References: <20081107235644.32050.74757.stgit@bob.kio>
+From: David Wagner <daw@cs.berkeley.edu>
+Subject: ACPI info for Dell XPS420
+Date: Fri, 7 Nov 2008 16:29:14 -0800 (PST)
+Message-ID: <200811080029.mA80TEZ1023514@taverner.cs.berkeley.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="%--multipart-mixed-boundary-1.23496.1226104154--%"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:19347 "EHLO
-	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752711AbYKGX6H (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Nov 2008 18:58:07 -0500
-In-Reply-To: <20081107235644.32050.74757.stgit@bob.kio>
+Received: from taverner.CS.Berkeley.EDU ([128.32.168.222]:37198 "EHLO
+	taverner.cs.berkeley.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752665AbYKHBes (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Nov 2008 20:34:48 -0500
+Received: from taverner.cs.berkeley.edu (localhost.localdomain [127.0.0.1])
+	by taverner.cs.berkeley.edu (8.14.2/8.14.2) with ESMTP id mA80TEKE023515
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-acpi@vger.kernel.org>; Fri, 7 Nov 2008 16:29:14 -0800
+Received: (from daw@localhost)
+	by taverner.cs.berkeley.edu (8.14.2/8.14.2/Submit) id mA80TEZ1023514
+	for linux-acpi@vger.kernel.org; Fri, 7 Nov 2008 16:29:14 -0800
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Randy Dunlap <rdunlap@xenotime.net>
+To: linux-acpi@vger.kernel.org
 
-Reformat acpi.debug_layer and acpi.debug_level documentation so it's
-more readable, add some clues about how to figure out the mask bits that
-enable a specific ACPI_DEBUG_PRINT statement, and include some useful
-examples.
 
-Move the list of masks to Documentation/acpi/debug.txt (these are
-copies of the authoritative values in acoutput.h and acpi_drivers.h).
+--%--multipart-mixed-boundary-1.23496.1226104154--%
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
----
- Documentation/acpi/debug.txt        |  148 +++++++++++++++++++++++++++++++++++
- Documentation/kernel-parameters.txt |   75 +++++-------------
- drivers/acpi/Kconfig                |   10 ++
- 3 files changed, 178 insertions(+), 55 deletions(-)
- create mode 100644 Documentation/acpi/debug.txt
+I'm sending this because my boot messages said I should.
 
-diff --git a/Documentation/acpi/debug.txt b/Documentation/acpi/debug.txt
-new file mode 100644
-index 0000000..65bf47c
---- /dev/null
-+++ b/Documentation/acpi/debug.txt
-@@ -0,0 +1,148 @@
-+			ACPI Debug Output
-+
-+
-+The ACPI CA, the Linux ACPI core, and some ACPI drivers can generate debug
-+output.  This document describes how to use this facility.
-+
-+Compile-time configuration
-+--------------------------
-+
-+ACPI debug output is globally enabled by CONFIG_ACPI_DEBUG.  If this config
-+option is turned off, the debug messages are not even built into the
-+kernel.
-+
-+Boot- and run-time configuration
-+--------------------------------
-+
-+When CONFIG_ACPI_DEBUG=y, you can select the component and level of messages
-+you're interested in.  At boot-time, use the acpi.debug_layer and
-+acpi.debug_level kernel command line options.  After boot, you can use the
-+debug_layer and debug_level files in /sys/module/acpi/parameters/ to control
-+the debug messages.
-+
-+debug_layer (component)
-+-----------------------
-+
-+The "debug_layer" is a mask that selects components of interest, e.g., a
-+specific driver or part of the ACPI interpreter.  To build the debug_layer
-+bitmask, look for the "#define _COMPONENT" in an ACPI source file.
-+
-+You can set the debug_layer mask at boot-time using the acpi.debug_layer
-+command line argument, and you can change it after boot by writing values
-+to /sys/module/acpi/parameters/debug_layer.
-+
-+The possible components are defined in include/acpi/acoutput.h and
-+include/acpi/acpi_drivers.h.  Reading /sys/module/acpi/parameters/debug_layer
-+shows the supported mask values, currently these:
-+
-+    ACPI_UTILITIES                  0x00000001
-+    ACPI_HARDWARE                   0x00000002
-+    ACPI_EVENTS                     0x00000004
-+    ACPI_TABLES                     0x00000008
-+    ACPI_NAMESPACE                  0x00000010
-+    ACPI_PARSER                     0x00000020
-+    ACPI_DISPATCHER                 0x00000040
-+    ACPI_EXECUTER                   0x00000080
-+    ACPI_RESOURCES                  0x00000100
-+    ACPI_CA_DEBUGGER                0x00000200
-+    ACPI_OS_SERVICES                0x00000400
-+    ACPI_CA_DISASSEMBLER            0x00000800
-+    ACPI_COMPILER                   0x00001000
-+    ACPI_TOOLS                      0x00002000
-+    ACPI_BUS_COMPONENT              0x00010000
-+    ACPI_AC_COMPONENT               0x00020000
-+    ACPI_BATTERY_COMPONENT          0x00040000
-+    ACPI_BUTTON_COMPONENT           0x00080000
-+    ACPI_SBS_COMPONENT              0x00100000
-+    ACPI_FAN_COMPONENT              0x00200000
-+    ACPI_PCI_COMPONENT              0x00400000
-+    ACPI_POWER_COMPONENT            0x00800000
-+    ACPI_CONTAINER_COMPONENT        0x01000000
-+    ACPI_SYSTEM_COMPONENT           0x02000000
-+    ACPI_THERMAL_COMPONENT          0x04000000
-+    ACPI_MEMORY_DEVICE_COMPONENT    0x08000000
-+    ACPI_VIDEO_COMPONENT            0x10000000
-+    ACPI_PROCESSOR_COMPONENT        0x20000000
-+
-+debug_level
-+-----------
-+
-+The "debug_level" is a mask that selects different types of messages, e.g.,
-+those related to initialization, method execution, informational messages, etc.
-+To build debug_level, look at the level specified in an ACPI_DEBUG_PRINT()
-+statement.
-+
-+The ACPI interpreter uses several different levels, but the Linux
-+ACPI core and ACPI drivers generally only use ACPI_LV_INFO.
-+
-+You can set the debug_level mask at boot-time using the acpi.debug_level
-+command line argument, and you can change it after boot by writing values
-+to /sys/module/acpi/parameters/debug_level.
-+
-+The possible levels are defined in include/acpi/acoutput.h.  Reading
-+/sys/module/acpi/parameters/debug_level shows the supported mask values,
-+currently these:
-+
-+    ACPI_LV_INIT                    0x00000001
-+    ACPI_LV_DEBUG_OBJECT            0x00000002
-+    ACPI_LV_INFO                    0x00000004
-+    ACPI_LV_INIT_NAMES              0x00000020
-+    ACPI_LV_PARSE                   0x00000040
-+    ACPI_LV_LOAD                    0x00000080
-+    ACPI_LV_DISPATCH                0x00000100
-+    ACPI_LV_EXEC                    0x00000200
-+    ACPI_LV_NAMES                   0x00000400
-+    ACPI_LV_OPREGION                0x00000800
-+    ACPI_LV_BFIELD                  0x00001000
-+    ACPI_LV_TABLES                  0x00002000
-+    ACPI_LV_VALUES                  0x00004000
-+    ACPI_LV_OBJECTS                 0x00008000
-+    ACPI_LV_RESOURCES               0x00010000
-+    ACPI_LV_USER_REQUESTS           0x00020000
-+    ACPI_LV_PACKAGE                 0x00040000
-+    ACPI_LV_ALLOCATIONS             0x00100000
-+    ACPI_LV_FUNCTIONS               0x00200000
-+    ACPI_LV_OPTIMIZATIONS           0x00400000
-+    ACPI_LV_MUTEX                   0x01000000
-+    ACPI_LV_THREADS                 0x02000000
-+    ACPI_LV_IO                      0x04000000
-+    ACPI_LV_INTERRUPTS              0x08000000
-+    ACPI_LV_AML_DISASSEMBLE         0x10000000
-+    ACPI_LV_VERBOSE_INFO            0x20000000
-+    ACPI_LV_FULL_TABLES             0x40000000
-+    ACPI_LV_EVENTS                  0x80000000
-+
-+Examples
-+--------
-+
-+For example, drivers/acpi/bus.c contains this:
-+
-+    #define _COMPONENT              ACPI_BUS_COMPONENT
-+    ...
-+    ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device insertion detected\n"));
-+
-+To turn on this message, set the ACPI_BUS_COMPONENT bit in acpi.debug_layer
-+and the ACPI_LV_INFO bit in acpi.debug_level.  (The ACPI_DEBUG_PRINT
-+statement uses ACPI_DB_INFO, which is macro based on the ACPI_LV_INFO
-+definition.)
-+
-+Enable all AML "Debug" output (stores to the Debug object while interpreting
-+AML) during boot:
-+
-+    acpi.debug_layer=0xffffffff acpi.debug_level=0x2
-+
-+Enable PCI and PCI interrupt routing debug messages:
-+
-+    acpi.debug_layer=0x400000 acpi.debug_level=0x4
-+
-+Enable all ACPI hardware-related messages:
-+
-+    acpi.debug_layer=0x2 acpi.debug_level=0xffffffff
-+
-+Enable all ACPI_DB_INFO messages after boot:
-+
-+    # echo 0x4 > /sys/module/acpi/parameters/debug_level
-+
-+Show all valid component values:
-+
-+    # cat /sys/module/acpi/parameters/debug_layer
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-index 1bbcaa8..f2ed59a 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -198,59 +198,30 @@ and is between 256 and 4096 characters. It is defined in the file
- 			that require a timer override, but don't have
- 			HPET
- 
--	acpi.debug_layer=	[HW,ACPI]
-+	acpi.debug_layer=	[HW,ACPI,ACPI_DEBUG]
-+	acpi.debug_level=	[HW,ACPI,ACPI_DEBUG]
- 			Format: <int>
--			Each bit of the <int> indicates an ACPI debug layer,
--			1: enable, 0: disable. It is useful for boot time
--			debugging. After system has booted up, it can be set
--			via /sys/module/acpi/parameters/debug_layer.
--			CONFIG_ACPI_DEBUG must be enabled for this to produce any output.
--			Available bits (add the numbers together) to enable debug output
--			for specific parts of the ACPI subsystem:
--			0x01 utilities 0x02 hardware 0x04 events 0x08 tables
--			0x10 namespace 0x20 parser 0x40 dispatcher
--			0x80 executer 0x100 resources 0x200 acpica debugger
--			0x400 os services 0x800 acpica disassembler.
--			The number can be in decimal or prefixed with 0x in hex.
--			Warning: Many of these options can produce a lot of
--			output and make your system unusable. Be very careful.
--
--	acpi.debug_level=	[HW,ACPI]
--			Format: <int>
--			Each bit of the <int> indicates an ACPI debug level,
--			which corresponds to the level in an ACPI_DEBUG_PRINT
--			statement.  After system has booted up, this mask
--			can be set via /sys/module/acpi/parameters/debug_level.
--
--			CONFIG_ACPI_DEBUG must be enabled for this to produce
--			any output.  The number can be in decimal or prefixed
--			with 0x in hex.  Some of these options produce so much
--			output that the system is unusable.
--
--			The following global components are defined by the
--			ACPI CA:
--			       0x01 error
--			       0x02 warn
--			       0x04 init
--			       0x08 debug object
--			       0x10 info
--			       0x20 init names
--			       0x40 parse
--			       0x80 load
--			      0x100 dispatch
--			      0x200 execute
--			      0x400 names
--			      0x800 operation region
--			     0x1000 bfield
--			     0x2000 tables
--			     0x4000 values
--			     0x8000 objects
--			    0x10000 resources
--			    0x20000 user requests
--			    0x40000 package
-- 			The number can be in decimal or prefixed with 0x in hex.
-- 			Warning: Many of these options can produce a lot of
-- 			output and make your system unusable. Be very careful.
-+			CONFIG_ACPI_DEBUG must be enabled to produce any ACPI
-+			debug output.  Bits in debug_layer correspond to a
-+			_COMPONENT in an ACPI source file, e.g.,
-+			    #define _COMPONENT ACPI_PCI_COMPONENT
-+			Bits in debug_level correspond to a level in
-+			ACPI_DEBUG_PRINT statements, e.g.,
-+			    ACPI_DEBUG_PRINT((ACPI_DB_INFO, ...
-+			See Documentation/acpi/debug.txt for more information
-+			about debug layers and levels.
-+
-+			Enable AML "Debug" output, i.e., stores to the Debug
-+			object while interpreting AML:
-+			    acpi.debug_layer=0xffffffff acpi.debug_level=0x2
-+			Enable PCI/PCI interrupt routing info messages:
-+			    acpi.debug_layer=0x400000 acpi.debug_level=0x4
-+			Enable all messages related to ACPI hardware:
-+			    acpi.debug_layer=0x2 acpi.debug_level=0xffffffff
-+
-+			Some values produce so much output that the system is
-+			unusable.  The "log_buf_len" parameter may be useful
-+			if you need to capture more output.
- 
-  	acpi.power_nocheck=	[HW,ACPI]
-  			Format: 1/0 enable/disable the check of power state.
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index f4f6329..4f75996 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -312,9 +312,13 @@ config ACPI_DEBUG
- 	bool "Debug Statements"
- 	default n
- 	help
--	  The ACPI driver can optionally report errors with a great deal
--	  of verbosity. Saying Y enables these statements. This will increase
--	  your kernel size by around 50K.
-+	  The ACPI subsystem can produce debug output.  Saying Y enables this
-+	  output and increases the kernel size by around 50K.
-+
-+	  Use the acpi.debug_layer and acpi.debug_level kernel command-line
-+	  parameters documented in Documentation/acpi/debug.txt and
-+	  Documentation/kernel-parameters.txt to control the type and
-+	  amount of debug output.
- 
- config ACPI_DEBUG_FUNC_TRACE
- 	bool "Additionally enable ACPI function tracing"
 
+I got the following output via dmesg:
+
+  ACPI FADT declares the system doesn't support PCIe ASPM, so disable it
+  ACPI: bus type pci registered
+  PCI: MCFG configuration 0: base e0000000 segment 0 buses 0 - 255
+  PCI: MCFG area at e0000000 reserved in E820
+  PCI: Using MMCONFIG at e0000000 - efffffff
+  PCI: Using configuration type 1 for base access
+  evgpeblk-0956 [00] ev_create_gpe_block   : GPE 00 to 3F [_GPE] 8 regs
+  on int 0x9
+  ACPI: EC: Look up EC in DSDT
+  Completing Region/Field/Buffer/Package
+  initialization:..................................................................
+  Initialized 27/31 Regions 0/0 Fields 8/8 Buffers 31/31 Packages (439
+  nodes)
+  Initializing Device/Processor/Thermal objects by executing _INI
+  methods:.<5>ACPI: BIOS _OSI(Linux) query ignored
+  ACPI: DMI System Vendor: Dell Inc.
+  ACPI: DMI Product Name: Dell XPS420                  
+  ACPI: DMI Product Version: 
+  ACPI: DMI Board Name: 0TP406
+  ACPI: DMI BIOS Vendor: Dell Inc.
+  ACPI: DMI BIOS Date: 01/02/2008
+  ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
+  ACPI: If "acpi_osi=Linux" works better, please notify
+  linux-acpi@vger.kernel.org
+  ......
+
+You can find my Smolt profile for this system here:
+
+  http://www.smolts.org/client/show/pub_4a9c20b6-c6a4-4952-a5c5-6cf822c5e3f7
+
+I'm attaching the output of lspci -vv, in case that's relevant/helpful.
+Feel free to let me know if you'd like any other information.
+
+Hope this helps!
+
+--%--multipart-mixed-boundary-1.23496.1226104154--%
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Content-Description: ASCII text
+Content-Disposition: attachment; filename="lspci-vv"
+
+00:00.0 Host bridge: Intel Corporation 82X38/X48 Express DRAM Controller
+	Subsystem: Dell Unknown device 0215
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR+ FastB2B- DisINTx-
+	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort+ >SERR- <PERR- INTx-
+	Latency: 0
+	Capabilities: <access denied>
+
+00:01.0 PCI bridge: Intel Corporation 82X38/X48 Express Host-Primary PCI Express Bridge (prog-if 00 [Normal decode])
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR+ FastB2B- DisINTx-
+	Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+	Latency: 0, Cache Line Size: 64 bytes
+	Bus: primary=00, secondary=01, subordinate=01, sec-latency=0
+	I/O behind bridge: 0000d000-0000dfff
+	Memory behind bridge: fa000000-fdefffff
+	Prefetchable memory behind bridge: 00000000d0000000-00000000dfffffff
+	Secondary status: 66MHz- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- <SERR- <PERR-
+	BridgeCtl: Parity- SERR+ NoISA- VGA+ MAbort- >Reset- FastB2B-
+		PriDiscTmr- SecDiscTmr- DiscTmrStat- DiscTmrSERREn-
+	Capabilities: <access denied>
+	Kernel driver in use: pcieport-driver
+	Kernel modules: shpchp
+
+00:06.0 PCI bridge: Intel Corporation 82X38/X48 Express Host-Secondary PCI Express Bridge (prog-if 00 [Normal decode])
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR+ FastB2B- DisINTx-
+	Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+	Latency: 0, Cache Line Size: 64 bytes
+	Bus: primary=00, secondary=02, subordinate=02, sec-latency=0
+	Secondary status: 66MHz- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- <SERR- <PERR-
+	BridgeCtl: Parity- SERR+ NoISA- VGA- MAbort- >Reset- FastB2B-
+		PriDiscTmr- SecDiscTmr- DiscTmrStat- DiscTmrSERREn-
+	Capabilities: <access denied>
+	Kernel driver in use: pcieport-driver
+	Kernel modules: shpchp
+
+00:19.0 Ethernet controller: Intel Corporation 82566DC-2 Gigabit Network Connection (rev 02)
+	Subsystem: Dell Unknown device 0215
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR+ FastB2B- DisINTx-
+	Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+	Latency: 0
+	Interrupt: pin A routed to IRQ 21
+	Region 0: Memory at fdfe0000 (32-bit, non-prefetchable) [size=128K]
+	Region 1: Memory at fdfdb000 (32-bit, non-prefetchable) [size=4K]
+	Region 2: I/O ports at eca0 [size=32]
+	Capabilities: <access denied>
+	Kernel driver in use: e1000e
+	Kernel modules: e1000e
+
+00:1a.0 USB Controller: Intel Corporation 82801I (ICH9 Family) USB UHCI Controller #4 (rev 02) (prog-if 00 [UHCI])
+	Subsystem: Dell Unknown device 0215
+	Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
+	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+	Latency: 0
+	Interrupt: pin A routed to IRQ 16
+	Region 4: I/O ports at ff20 [size=32]
+	Capabilities: <access denied>
+	Kernel driver in use: uhci_hcd
+	Kernel modules: uhci-hcd
+
+00:1a.1 USB Controller: Intel Corporation 82801I (ICH9 Family) USB UHCI Controller #5 (rev 02) (prog-if 00 [UHCI])
+	Subsystem: Dell Unknown device 0215
+	Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
+	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+	Latency: 0
+	Interrupt: pin B routed to IRQ 17
+	Region 4: I/O ports at ff00 [size=32]
+	Capabilities: <access denied>
+	Kernel driver in use: uhci_hcd
+	Kernel modules: uhci-hcd
+
+00:1a.2 USB Controller: Intel Corporation 82801I (ICH9 Family) USB UHCI Controller #6 (rev 02) (prog-if 00 [UHCI])
+	Subsystem: Dell Unknown device 0215
+	Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
+	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+	Latency: 0
+	Interrupt: pin C routed to IRQ 22
+	Region 4: I/O ports at ecc0 [size=32]
+	Capabilities: <access denied>
+	Kernel driver in use: uhci_hcd
+	Kernel modules: uhci-hcd
+
+00:1a.7 USB Controller: Intel Corporation 82801I (ICH9 Family) USB2 EHCI Controller #2 (rev 02) (prog-if 20 [EHCI])
+	Subsystem: Dell Unknown device 0215
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR+ FastB2B- DisINTx-
+	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+	Latency: 0
+	Interrupt: pin C routed to IRQ 22
+	Region 0: Memory at fdfdac00 (32-bit, non-prefetchable) [size=1K]
+	Capabilities: <access denied>
+	Kernel driver in use: ehci_hcd
+	Kernel modules: ehci-hcd
+
+00:1b.0 Audio device: Intel Corporation 82801I (ICH9 Family) HD Audio Controller (rev 02)
+	Subsystem: Dell Unknown device 0215
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR+ FastB2B- DisINTx-
+	Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+	Latency: 0, Cache Line Size: 64 bytes
+	Interrupt: pin A routed to IRQ 16
+	Region 0: Memory at fdfdc000 (64-bit, non-prefetchable) [size=16K]
+	Capabilities: <access denied>
+	Kernel driver in use: HDA Intel
+	Kernel modules: snd-hda-intel
+
+00:1c.0 PCI bridge: Intel Corporation 82801I (ICH9 Family) PCI Express Port 1 (rev 02) (prog-if 00 [Normal decode])
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR+ FastB2B- DisINTx-
+	Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+	Latency: 0, Cache Line Size: 64 bytes
+	Bus: primary=00, secondary=03, subordinate=03, sec-latency=0
+	Memory behind bridge: f9f00000-f9ffffff
+	Secondary status: 66MHz- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort+ <SERR- <PERR-
+	BridgeCtl: Parity- SERR+ NoISA- VGA- MAbort- >Reset- FastB2B-
+		PriDiscTmr- SecDiscTmr- DiscTmrStat- DiscTmrSERREn-
+	Capabilities: <access denied>
+	Kernel driver in use: pcieport-driver
+	Kernel modules: shpchp
+
+00:1d.0 USB Controller: Intel Corporation 82801I (ICH9 Family) USB UHCI Controller #1 (rev 02) (prog-if 00 [UHCI])
+	Subsystem: Dell Unknown device 0215
+	Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
+	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+	Latency: 0
+	Interrupt: pin A routed to IRQ 23
+	Region 4: I/O ports at ff80 [size=32]
+	Capabilities: <access denied>
+	Kernel driver in use: uhci_hcd
+	Kernel modules: uhci-hcd
+
+00:1d.1 USB Controller: Intel Corporation 82801I (ICH9 Family) USB UHCI Controller #2 (rev 02) (prog-if 00 [UHCI])
+	Subsystem: Dell Unknown device 0215
+	Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
+	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+	Latency: 0
+	Interrupt: pin B routed to IRQ 17
+	Region 4: I/O ports at ff60 [size=32]
+	Capabilities: <access denied>
+	Kernel driver in use: uhci_hcd
+	Kernel modules: uhci-hcd
+
+00:1d.2 USB Controller: Intel Corporation 82801I (ICH9 Family) USB UHCI Controller #3 (rev 02) (prog-if 00 [UHCI])
+	Subsystem: Dell Unknown device 0215
+	Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
+	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+	Latency: 0
+	Interrupt: pin C routed to IRQ 18
+	Region 4: I/O ports at ff40 [size=32]
+	Capabilities: <access denied>
+	Kernel driver in use: uhci_hcd
+	Kernel modules: uhci-hcd
+
+00:1d.7 USB Controller: Intel Corporation 82801I (ICH9 Family) USB2 EHCI Controller #1 (rev 02) (prog-if 20 [EHCI])
+	Subsystem: Dell Unknown device 0215
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR+ FastB2B- DisINTx-
+	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+	Latency: 0
+	Interrupt: pin A routed to IRQ 23
+	Region 0: Memory at ff980800 (32-bit, non-prefetchable) [size=1K]
+	Capabilities: <access denied>
+	Kernel driver in use: ehci_hcd
+	Kernel modules: ehci-hcd
+
+00:1e.0 PCI bridge: Intel Corporation 82801 PCI Bridge (rev 92) (prog-if 01 [Subtractive decode])
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR+ FastB2B- DisINTx-
+	Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+	Latency: 0
+	Bus: primary=00, secondary=04, subordinate=04, sec-latency=32
+	I/O behind bridge: 0000c000-0000cfff
+	Memory behind bridge: f9e00000-f9efffff
+	Secondary status: 66MHz- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort+ <SERR- <PERR-
+	BridgeCtl: Parity- SERR+ NoISA- VGA- MAbort- >Reset- FastB2B-
+		PriDiscTmr- SecDiscTmr- DiscTmrStat- DiscTmrSERREn-
+	Capabilities: <access denied>
+
+00:1f.0 ISA bridge: Intel Corporation 82801IR (ICH9R) LPC Interface Controller (rev 02)
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR+ FastB2B- DisINTx-
+	Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+	Latency: 0
+	Capabilities: <access denied>
+	Kernel modules: iTCO_wdt
+
+00:1f.2 RAID bus controller: Intel Corporation 82801 SATA RAID Controller (rev 02)
+	Subsystem: Dell Unknown device 0215
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
+	Status: Cap+ 66MHz+ UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+	Latency: 0
+	Interrupt: pin C routed to IRQ 20
+	Region 0: I/O ports at fe00 [size=8]
+	Region 1: I/O ports at fe10 [size=4]
+	Region 2: I/O ports at fe20 [size=8]
+	Region 3: I/O ports at fe30 [size=4]
+	Region 4: I/O ports at fec0 [size=32]
+	Region 5: Memory at ff970000 (32-bit, non-prefetchable) [size=2K]
+	Capabilities: <access denied>
+	Kernel driver in use: ahci
+	Kernel modules: ahci
+
+00:1f.3 SMBus: Intel Corporation 82801I (ICH9 Family) SMBus Controller (rev 02)
+	Subsystem: Dell Unknown device 0215
+	Control: I/O+ Mem+ BusMaster- SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR+ FastB2B- DisINTx-
+	Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+	Interrupt: pin C routed to IRQ 20
+	Region 0: Memory at fdfdab00 (64-bit, non-prefetchable) [size=256]
+	Region 4: I/O ports at ece0 [size=32]
+	Kernel driver in use: i801_smbus
+	Kernel modules: i2c-i801
+
+01:00.0 VGA compatible controller: nVidia Corporation GeForce 8800 GT (rev a2) (prog-if 00 [VGA controller])
+	Subsystem: nVidia Corporation Unknown device 053c
+	Control: I/O+ Mem+ BusMaster- SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
+	Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+	Interrupt: pin A routed to IRQ 11
+	Region 0: Memory at fc000000 (32-bit, non-prefetchable) [size=16M]
+	Region 1: Memory at d0000000 (64-bit, prefetchable) [size=256M]
+	Region 3: Memory at fa000000 (64-bit, non-prefetchable) [size=32M]
+	Region 5: I/O ports at dc80 [size=128]
+	Expansion ROM at fde00000 [disabled] [size=128K]
+	Capabilities: <access denied>
+	Kernel modules: nvidiafb
+
+04:05.0 Communication controller: Conexant HSF 56k Data/Fax Modem
+	Subsystem: Conexant Unknown device 200f
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR+ FastB2B- DisINTx-
+	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+	Latency: 64
+	Interrupt: pin A routed to IRQ 9
+	Region 0: Memory at f9ef0000 (32-bit, non-prefetchable) [size=64K]
+	Region 1: I/O ports at ccf8 [size=8]
+	Capabilities: <access denied>
+
+04:0a.0 FireWire (IEEE 1394): Texas Instruments TSB43AB22/A IEEE-1394a-2000 Controller (PHY/Link) (prog-if 10 [OHCI])
+	Subsystem: Dell Unknown device 0215
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop- ParErr- Stepping- SERR+ FastB2B- DisINTx-
+	Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+	Latency: 64 (500ns min, 1000ns max), Cache Line Size: 64 bytes
+	Interrupt: pin A routed to IRQ 18
+	Region 0: Memory at f9eeb800 (32-bit, non-prefetchable) [size=2K]
+	Region 1: Memory at f9eec000 (32-bit, non-prefetchable) [size=16K]
+	Capabilities: <access denied>
+	Kernel driver in use: firewire_ohci
+	Kernel modules: firewire-ohci
+
+
+--%--multipart-mixed-boundary-1.23496.1226104154--%--
