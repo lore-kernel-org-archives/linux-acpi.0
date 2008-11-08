@@ -1,73 +1,116 @@
-From: Andrey Borzenkov <arvidjaar@mail.ru>
-Subject: Re: [PATCH 10/10] x86, ACPI: default to reboot via ACPI (again)
-Date: Sat, 8 Nov 2008 09:30:08 +0300
-Message-ID: <200811080930.21462.arvidjaar@mail.ru>
-References: <007e7d616a5d1c2e16ad627d03f8b97799445e71.1226032943.git.len.brown@intel.com> <20081107072536.GA19583@elte.hu> <alpine.LFD.2.00.0811072033300.9051@localhost.localdomain>
+From: Len Brown <lenb@kernel.org>
+Subject: [PATCH] ACPI: declare victory in _OSI(Linux) wars and go home
+Date: Sat, 08 Nov 2008 01:35:22 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0811080132490.9051@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart2850020.qKdAuoilPZ";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx34.mail.ru ([194.67.23.200]:6539 "EHLO mx34.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751759AbYKHGad (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 8 Nov 2008 01:30:33 -0500
-In-Reply-To: <alpine.LFD.2.00.0811072033300.9051@localhost.localdomain>
+Received: from vms173003pub.verizon.net ([206.46.173.3]:56807 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751807AbYKHGfZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 8 Nov 2008 01:35:25 -0500
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173003.mailsrvcs.net
+ (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+ with ESMTPA id <0KA000NYD4YZ3I82@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 08 Nov 2008 00:35:24 -0600 (CST)
+Received: from localhost.localdomain (d975xbx2 [127.0.0.1])
+	by localhost.localdomain (8.14.2/8.14.2) with ESMTP id mA86ZMmS009641	for
+ <linux-acpi@vger.kernel.org>; Sat, 08 Nov 2008 01:35:23 -0500
+Received: from localhost (lenb@localhost)
+	by localhost.localdomain (8.14.2/8.14.2/Submit) with ESMTP id mA86ZMoG009637
+	for <linux-acpi@vger.kernel.org>; Sat, 08 Nov 2008 01:35:22 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Avi Kivity <avi@redhat.com>, Eduardo Habkost <ehabkost@redhat.com>, Andrew Morton <akpm@linux-foundation.org>
+To: linux-acpi@vger.kernel.org
 
---nextPart2850020.qKdAuoilPZ
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+From: Len Brown <len.brown@intel.com>
 
-On Saturday 08 November 2008, Len Brown wrote:
->=20
-> > > -enum reboot_type reboot_type =3D BOOT_KBD;
-> > > +enum reboot_type reboot_type =3D BOOT_ACPI;
->=20
-> > NAK.
-> >=20
-> > Your point that the set of systems where KBD-reboot is broken is=20
-> > larger (and growing) than the set of systems where ACPI-reboot is=20
-> > broken (which set probably has a constant size) is true.
-> >=20
-> > But still this change caused non-trivial regressions in v28 _worse_=20
-> > than the inability to reboot cleanly, so this patch does not fly as-is=
-=20
-> > as we reverted it upstream for a good reason.
->=20
-> If you can direct me to the failures that ACPI reset caused
-> in 28, that would be great.=20
+Several Linux kernel releases have printed DMI info
+and asked for e-mail feedback when we see BIOS
+AML invoke _OSI(Linux).
 
-http://marc.info/?l=3Dlinux-kernel&m=3D122547719810921&w=3D2
+We've found exactly two vendors use used _OSI(Linux)
+for something on purpose -- Dell and Lenovo, and
+those uses are limited to specific models.
 
-> Obviously they are not on=20
-> the linux-acpi archives because the x86 tree enabled
-> ACPI reset and then disabled it w/o telling us...
->=20
-> thanks,
-> -Len
->=20
->=20
+We'll work with Dell and Lenovo to get them
+out of that mess.  In the mean-time, for everybody else,
+simply note that Linux ignores OSI(Linux) and move on.
 
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ drivers/acpi/osl.c |   44 --------------------------------------------
+ 1 files changed, 0 insertions(+), 44 deletions(-)
 
-
---nextPart2850020.qKdAuoilPZ
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEABECAAYFAkkVMfQACgkQR6LMutpd94wcfwCaAxPcY8EfCZDiYNwhLxgbSdCP
-SOYAn2rK5hwKiQdi2C/MHCokc6ELIp7m
-=yOM2
------END PGP SIGNATURE-----
-
---nextPart2850020.qKdAuoilPZ--
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 4be2521..e1ac995 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -35,7 +35,6 @@
+ #include <linux/interrupt.h>
+ #include <linux/kmod.h>
+ #include <linux/delay.h>
+-#include <linux/dmi.h>
+ #include <linux/workqueue.h>
+ #include <linux/nmi.h>
+ #include <linux/acpi.h>
+@@ -1296,34 +1295,6 @@ acpi_status acpi_os_release_object(acpi_cache_t * cache, void *object)
+ 	return (AE_OK);
+ }
+ 
+-/**
+- *	acpi_dmi_dump - dump DMI slots needed for blacklist entry
+- *
+- *	Returns 0 on success
+- */
+-static int acpi_dmi_dump(void)
+-{
+-
+-	if (!dmi_available)
+-		return -1;
+-
+-	printk(KERN_NOTICE PREFIX "DMI System Vendor: %s\n",
+-		dmi_get_system_info(DMI_SYS_VENDOR));
+-	printk(KERN_NOTICE PREFIX "DMI Product Name: %s\n",
+-		dmi_get_system_info(DMI_PRODUCT_NAME));
+-	printk(KERN_NOTICE PREFIX "DMI Product Version: %s\n",
+-		dmi_get_system_info(DMI_PRODUCT_VERSION));
+-	printk(KERN_NOTICE PREFIX "DMI Board Name: %s\n",
+-		dmi_get_system_info(DMI_BOARD_NAME));
+-	printk(KERN_NOTICE PREFIX "DMI BIOS Vendor: %s\n",
+-		dmi_get_system_info(DMI_BIOS_VENDOR));
+-	printk(KERN_NOTICE PREFIX "DMI BIOS Date: %s\n",
+-		dmi_get_system_info(DMI_BIOS_DATE));
+-
+-	return 0;
+-}
+-
+-
+ /******************************************************************************
+  *
+  * FUNCTION:    acpi_os_validate_interface
+@@ -1350,21 +1321,6 @@ acpi_os_validate_interface (char *interface)
+ 			osi_linux.cmdline ? " via cmdline" :
+ 			osi_linux.dmi ? " via DMI" : "");
+ 
+-		if (!osi_linux.dmi) {
+-			if (acpi_dmi_dump())
+-				printk(KERN_NOTICE PREFIX
+-					"[please extract dmidecode output]\n");
+-			printk(KERN_NOTICE PREFIX
+-				"Please send DMI info above to "
+-				"linux-acpi@vger.kernel.org\n");
+-		}
+-		if (!osi_linux.known && !osi_linux.cmdline) {
+-			printk(KERN_NOTICE PREFIX
+-				"If \"acpi_osi=%sLinux\" works better, "
+-				"please notify linux-acpi@vger.kernel.org\n",
+-				osi_linux.enable ? "!" : "");
+-		}
+-
+ 		if (osi_linux.enable)
+ 			return AE_OK;
+ 	}
+-- 
+1.6.0.3.640.g6331a
