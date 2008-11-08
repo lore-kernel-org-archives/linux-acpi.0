@@ -1,54 +1,96 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: ACPI video.c brightness handler conflicts with toshiba_acpi
-Date: Fri, 07 Nov 2008 22:29:53 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0811072224200.9051@localhost.localdomain>
-References: <200809061108.34877.arvidjaar@mail.ru>
- <200810281426.53499.trenn@suse.de> <200810281615.19894.rjw@sisk.pl>
- <200810281922.20490.arvidjaar@mail.ru>
+Subject: Re: [PATCH 10/10] thinkpad_acpi: fingers off backlight if video.ko is
+ serving this functionality
+Date: Sat, 08 Nov 2008 00:45:53 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0811080045350.9051@localhost.localdomain>
+References: <1217605083-31003-1-git-send-email-trenn@suse.de>
+ <1217605083-31003-11-git-send-email-trenn@suse.de>
+ <20080801175033.GE14352@khazad-dum.debian.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:46726 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752127AbYKHD36 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Nov 2008 22:29:58 -0500
-In-reply-to: <200810281922.20490.arvidjaar@mail.ru>
+Received: from vms046pub.verizon.net ([206.46.252.46]:39592 "EHLO
+	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751790AbYKHFqC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 8 Nov 2008 00:46:02 -0500
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms046.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
+ 3 2006)) with ESMTPA id <0KA000E552ON2902@vms046.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 07 Nov 2008 23:46:00 -0600 (CST)
+In-reply-to: <20080801175033.GE14352@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrey Borzenkov <arvidjaar@mail.ru>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Thomas Renninger <trenn@suse.de>, toshiba_acpi@memebeam.org, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Thomas Renninger <trenn@suse.de>, ak@linux.intel.com, rui.zhang@intel.com, nokos@gmx.net, linux-acpi@vger.kernel.org, mjg59@srcf.ucam.org
 
 
 
-> > Do you have a pointer to those patches?
+On Fri, 1 Aug 2008, Henrique de Moraes Holschuh wrote:
+
+> On Fri, 01 Aug 2008, Thomas Renninger wrote:
+> > Signed-off-by: Thomas Renninger <trenn@suse.de>
+> > ---
+> >  drivers/misc/thinkpad_acpi.c |   31 ++++++++++++++++++++-----------
+> >  1 files changed, 20 insertions(+), 11 deletions(-)
 > > 
+> > diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
+> > index d3eb790..a71ecd2 100644
+> > --- a/drivers/misc/thinkpad_acpi.c
+> > +++ b/drivers/misc/thinkpad_acpi.c
+> > @@ -4922,17 +4922,26 @@ static int __init brightness_init(struct ibm_init_struct *iibm)
+> >  	 */
+> >  	b = tpacpi_check_std_acpi_brightness_support();
+> >  	if (b > 0) {
+> > -		if (thinkpad_id.vendor == PCI_VENDOR_ID_LENOVO) {
+> > -			printk(TPACPI_NOTICE
+> > -			       "Lenovo BIOS switched to ACPI backlight "
+> > -			       "control mode\n");
+> > -		}
+> > -		if (brightness_enable > 1) {
+> > -			printk(TPACPI_NOTICE
+> > -			       "standard ACPI backlight interface "
+> > -			       "available, not loading native one...\n");
+> > -			return 1;
+> > -		}
+> > +
+> > +		if (acpi_video_backlight_support()) {
+> > +			if (brightness_enable > 1) {
+> > +				printk(TPACPI_NOTICE
+> > +				       "Standard ACPI backlight interface "
+> > +				       "available, not loading native one.\n");
+> > +				return 1;
+> > +			} else if (brightness_enable == 1) {
+> > +				printk(TPACPI_NOTICE
+> > +				       "Backlight control force, even standard "
+> > +				       "ACPI backlight interface available\n");
+> > +			}
 > 
-> So far I am running with these commits from git://git.kernel.org/pub/scm/linux/kernel/git/ak/linux-acpi-2.6:
-> 
-> commit f43d728731c691772ddc29e50d25c68a859935b5
-> Author: Thomas Renninger <trenn@suse.de>
-> Date:   Fri Aug 1 17:37:55 2008 +0200
-> 
->     Check for ACPI backlight support otherwise use vendor ACPI drivers
-> 
-> 
-> commit ad9ed8385ed6ec5be8da7094db911c824258ceec
-> Author: Thomas Renninger <trenn@suse.de>
-> Date:   Fri Aug 1 17:37:54 2008 +0200
-> 
->     ACPI: video: Ignore devices that aren't present in hardware
-> 
-> I have been waiting for in-tree inclusion to submit patches for
-> toshiba_acpi against stable base.
+> EPARSE.  "Backlight control force, even standard ACPI backlight interface
+> available" is no good.  Maybe you want to change that to "Backlight control
+> force enabled, even if standard ACPI backlight interface is available" ?
 
-Ah, the commit id's above solved the mystery.
-It looks like andi checked these patches directly into his
-"test" branch rather than a topic branch.  eg. they were
-sitting on top of the old pcc_acpi driver etc.
+updated.
 
-So I lost them when I deleted the old test branch
-in order to merge the updated topic branches
-into a new test branch.
+> > +		} else {
+> > +			if (brightness_enable > 1) {
+> > +				printk(TPACPI_NOTICE
+> > +				       "Standard ACPI backlight interface not "
+> > +				       "available, thinkpad_acpi driver "
+> > +				       "will take over control\n");
+> 
+> "thinkpad-acpi native brightness control enabled", perhaps?
 
+updated.
+
+> > +			}
+> > + 		}
+> >  	}
+> >  
+> >  	if (!brightness_enable) {
+> 
+> Provided that you clarify the printk I marked with EPARSE:
+> Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+
+thanks,
 -Len
 
