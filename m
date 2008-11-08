@@ -1,42 +1,46 @@
-From: Ingo Molnar <mingo@elte.hu>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [PATCH 10/10] x86, ACPI: default to reboot via ACPI (again)
-Date: Sat, 8 Nov 2008 12:59:56 +0100
-Message-ID: <20081108115956.GE8354@elte.hu>
-References: <007e7d616a5d1c2e16ad627d03f8b97799445e71.1226032943.git.len.brown@intel.com> <200811080930.21462.arvidjaar@mail.ru> <alpine.LFD.2.00.0811080208590.3092@localhost.localdomain> <200811081050.25477.arvidjaar@mail.ru>
+Date: Sat, 8 Nov 2008 13:40:28 +0100
+Message-ID: <200811081340.29769.rjw@sisk.pl>
+References: <007e7d616a5d1c2e16ad627d03f8b97799445e71.1226032943.git.len.brown@intel.com> <20081107072536.GA19583@elte.hu> <alpine.LFD.2.00.0811072033300.9051@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.mail.elte.hu ([157.181.151.9]:40675 "EHLO mx2.mail.elte.hu"
+Received: from ogre.sisk.pl ([217.79.144.158]:40156 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753031AbYKHMAW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 8 Nov 2008 07:00:22 -0500
+	id S1753153AbYKHMf6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 8 Nov 2008 07:35:58 -0500
+In-Reply-To: <alpine.LFD.2.00.0811072033300.9051@localhost.localdomain>
 Content-Disposition: inline
-In-Reply-To: <200811081050.25477.arvidjaar@mail.ru>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrey Borzenkov <arvidjaar@mail.ru>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Avi Kivity <avi@redhat.com>, Eduardo Habkost <ehabkost@redhat.com>, Andrew Morton <akpm@linux-foundation.org>
+To: Len Brown <lenb@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Avi Kivity <avi@redhat.com>, Eduardo Habkost <ehabkost@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Andrey Borzenkov <arvidjaar@mail.ru>
 
-
-* Andrey Borzenkov <arvidjaar@mail.ru> wrote:
-
-> > Please open up a bug report
-> > http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
-> > and attach the dmesg, plus the output from acpidump and dmidecode.
+On Saturday, 8 of November 2008, Len Brown wrote:
+> 
+> > > -enum reboot_type reboot_type = BOOT_KBD;
+> > > +enum reboot_type reboot_type = BOOT_ACPI;
+> 
+> > NAK.
 > > 
+> > Your point that the set of systems where KBD-reboot is broken is 
+> > larger (and growing) than the set of systems where ACPI-reboot is 
+> > broken (which set probably has a constant size) is true.
+> > 
+> > But still this change caused non-trivial regressions in v28 _worse_ 
+> > than the inability to reboot cleanly, so this patch does not fly as-is 
+> > as we reverted it upstream for a good reason.
 > 
-> there is already bug report to track this regression; I added files there
-> but I am not able to change product (bug was opened by Rafael):
-> 
-> http://bugzilla.kernel.org/show_bug.cgi?id=11895
+> If you can direct me to the failures that ACPI reset caused
+> in 28, that would be great.  Obviously they are not on
+> the linux-acpi archives because the x86 tree enabled
+> ACPI reset and then disabled it w/o telling us...
 
-Len, please consider my Lenovo T60 laptop "possibly affected" too. I 
-was seeing weird sporadic reboot hangs which went away roughly since 
-around that revert.
+I think I have one machine with this problem at the Uni (it's an NForce4-based
+desktop with Athlon64 X2).  I won't be there before Wednesday, though.
 
-So the negative scope of the change, even after such short amount of 
-testing, is non-trivial, and we simply have to go via a flag day date 
-approach. Or, if these bugs are debuggable, make the ACPI reboot 
-sequence more reliable.
-
-	Ingo
+Thanks,
+Rafael
