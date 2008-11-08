@@ -1,114 +1,122 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: Re: The fatal  logic error in EC write transaction(EC transaction
+From: "Zhao, Yakui" <yakui.zhao@intel.com>
+Subject: RE: The fatal  logic error in EC write transaction(EC transaction
  is done in interrupt context)
-Date: Sat, 08 Nov 2008 18:33:57 +0300
-Message-ID: <4915B165.8020207@suse.de>
-References: <2830c9fb8e66cee70b8bffdfb0de01c144c7e643.1226032677.git.len.brown@intel.com> <29086e19e9149aadd17ece7112d7d2cf3a8b82f3.1226032677.git.len.brown@intel.com> <1226038422.3989.244.camel@yakui_zhao.sh.intel.com> <alpine.LFD.2.00.0811071445140.8189@localhost.localdomain> <9F0C1DB20AFA954FA1DA05309350433D40C7CC84@pdsmsx503.ccr.corp.intel.com>
+Date: Sat, 8 Nov 2008 23:58:02 +0800
+Message-ID: <9F0C1DB20AFA954FA1DA05309350433D40C7CC97@pdsmsx503.ccr.corp.intel.com>
+References: <2830c9fb8e66cee70b8bffdfb0de01c144c7e643.1226032677.git.len.brown@intel.com>
+ <29086e19e9149aadd17ece7112d7d2cf3a8b82f3.1226032677.git.len.brown@intel.com>
+ <1226038422.3989.244.camel@yakui_zhao.sh.intel.com>
+ <alpine.LFD.2.00.0811071445140.8189@localhost.localdomain>
+ <9F0C1DB20AFA954FA1DA05309350433D40C7CC84@pdsmsx503.ccr.corp.intel.com>
+ <4915B165.8020207@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="gb2312"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:39085 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753507AbYKHPeB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 8 Nov 2008 10:34:01 -0500
-In-Reply-To: <9F0C1DB20AFA954FA1DA05309350433D40C7CC84@pdsmsx503.ccr.corp.intel.com>
+Received: from mga14.intel.com ([143.182.124.37]:15686 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753358AbYKHP6I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 8 Nov 2008 10:58:08 -0500
+In-Reply-To: <4915B165.8020207@suse.de>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhao, Yakui" <yakui.zhao@intel.com>
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
 Cc: LenBrown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>, "Li, Shaohua" <shaohua.li@intel.com>, "Zhang, Rui" <rui.zhang@intel.com>, "Lin, Ming M" <ming.m.lin@intel.com>
 
-Hi Yakui,
-
-Just don't know how I would have lived without your valuable analisys..=
-=2E
-Do you remember that ec_transaction starts by waiting for IBF to become=
- 0?
-Thus not any new transaction should begin before previous write or burs=
-t-disable command completes.
-So, fatal logic error exists only in your head.
-
-Now, let me explain why it is better to wait for last IBF=3D0 event at =
-beginning of transaction, rather than at the end of previous one.
-Look at the flow chart from different angle -- as fast transaction patc=
-h does it:
-EC sends interrupt to OS then it is ready for us to proceed. It will se=
-nd us interrupt marking IBF=3D0 transition if it expects us to write by=
-te and it will send us interrupt marking OBF=3D1 transition if it expec=
-ts us to read byte. It does not ever send us IBF=3D1 or OBF=3D0 interru=
-pts just because there is nothing we could of should do in such a case.
-After we completed write sequence, we don't need to wait for last IBF=3D=
-0 transition, as we don't know if we will have anything else to write -=
-- it might be last transaction for quite a while. But next transaction =
-knows that it should not start before IBF is cleared, thus it waits=20
-for it (and expects possible interrupt).
-
-Regards,
-Alex.
-=20
-Zhao, Yakui wrote:
-> Hi, Alexey
->      After checking the EC working flowchart I find a fatal logic err=
-or that exists in EC write transaction. The issue happens on most lapto=
-ps. The following is the detailed explanation about this issue:
->      According to the ACPI the EC write transaction is divided into t=
-he following three phases: (Seen in the section 12.6.2 of ACPI 3.0b)
->      a. Byte #1: Host Writes the EC command to EC CMD I/O PORT. Inter=
-rupt is triggered after EC reads the command byte=20
->      b. Byte #2: Host writes the address index to EC data I/O port. I=
-nterrupt is triggered after EC reads the address index byte
->      c. Byte #3: Host writes the Data to EC data I/O port. Interrupt =
-is triggered after EC reads the data byte
->   =20
->    When the function of acpi_ec_transaction_unlocked is called for EC=
- write transaction, the wlen variable is initialized as 2 and the rlen =
-variable is initialized as zero. Then EC transaction follows the below =
-three steps.
->      1. OS writes the EC command to EC CMD I/O port
->      2. EC GPE interrupt is triggered and then the address index is w=
-ritten into EC data I/O port. (The wlen is decreased to 1.This is execu=
-ted in EC GPE handler)
->      3. EC GPE interrupt is triggered again and then the data is writ=
-ten into the EC data I/O port. The wlen is decreased to 0.(This is also=
- executed in EC GPE handler). As the wlen is decreased to zero, it mean=
-s that the EC transaction is finished(True is returned by the function =
-of ec_transaction_done).=20
->       >status =3D acpi_ec_read_status(ec);
->       >gpe_transaction(ec, status);
->       > if (ec_transaction_done(ec) && (status & ACPI_EC_FLAG_IBF) =3D=
-=3D 0)
->                 wake_up(&ec->wait);=20
->      In this step the status variable only indicates that EC controll=
-er already reads the address index written by OS(It can=E2=80=99t indic=
-ate that EC controller already reads the data byte written by Host). As=
- the IBF flag is zero, the waiting process is waked up and EC mutex loc=
-k is released. In such case it means that OS can begin another EC trans=
-action.=20
->      But in fact in such case EC transaction is not really finished. =
-After the EC data is written into EC Data I/O port, no flag indicates w=
-hether EC transaction is finished. Only when the IBF bit becomes zero a=
-gain, we can say that EC transaction is really finished. If OS begins a=
-nother EC transaction before previous EC transaction is really finished=
-, we can't imagine what will happen.
-> =E3=80=80=E3=80=80IMO Based on the above analysis there exists the fa=
-tal logic error in the EC write transaction after the patch from Alexey=
- is shipped. Although now no one reports this issue, it is still an uns=
-table factor. After all it is the fatal logic error.=20
-> =E3=80=80=E3=80=80=20
-> =E3=80=80=E3=80=80 At the same time there exists the similar logic er=
-ror when OS begins an EC transaction to disable the EC burst mode.
->     =20
-> =E3=80=80=E3=80=80Welcome the comments.
->     =20
-> =E3=80=80=E3=80=80Best regards
-> =E3=80=80=E3=80=80     Yakui
->=20
->    =20
->=20
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ICAgIGEuIFdoZW4gdGhlIGhvc3Qgd3JpdGVzIGRhdGEgdG8gdGhlIGNvbW1hbmQgb3IgZGF0YSBy
+ZWdpc3RlciBvZiB0aGUgZW1iZWRkZWQgY29udHJvbGxlciwgdGhlIGlucHV0IGJ1ZmZlciBmbGFn
+IChJQkYpIGluIHRoZSBzdGF0dXMgcmVnaXN0ZXIgaXMgc2V0IHdpdGhpbiAxIG1pY3Jvc2Vjb25k
+LiggUGxlYXNlIHNlZSBpdCBpbiB0aGUgc2VjdGlvbiAxMi43IG9mIEFDUEkgMy4wYi4gVGhpcyBz
+aG91bGQgYmUgcGFpZCBhdHRlbnRpb24gdG8pLiAgU28gSWYgYW5vdGhlciBFQyB0cmFuc2FjdGlv
+biBpcyBzdGFydGVkIGluIDEgbWljcm9zZWNvbmQsIG1heWJlIHRoZSBFQyBzdGF0dXMgaXMgbm90
+IHVwZGF0ZWQuIEluIHN1Y2ggY2FzZSB0aGUgcHJvYmxlbSB3aWxsIGFwcGVhci4NCiAgICAgICBB
+dCB0aGUgc2FtZSB0aW1lIHdlIGNhbid0IGV4cGVjdCB0aGF0IGFsbCB0aGUgRUMgZm9sbG93cyB0
+aGUgc3BlYyBzdHJpY3RseS4gTWF5YmUgb24gc29tZSBFQyBjb250cm9sbGVycyBtb3JlIHRpbWUg
+aXMgbmVlZGVkLg0KICAgIGIuIFdoeSBub3Qgd2FpdCBiZWZvcmUgdGhlIEVDIHRyYW5zYWN0aW9u
+IGlzIGZpbmlzaGVkPyAgSWYgaXQgZmFpbHMsIGl0IGNhbid0IGJlIGNhdWdodCBpbiB0aW1lLiAg
+RnJvbSB0aGUgcHJvZ3JhbW1pbmcgdmlld3BvaW50IHRoZSBsb2dpYyBpcyBpbmNvcnJlY3QuIElm
+IHlvdSBpbnNpc3QgdGhhdCB2aWV3cG9pbnQgaXMgY29ycmVjdCwgSU1PIHRoaXMgaXNzdWUgY2Fu
+IGJlIGRpc2N1c3NlZCBpbiB0aGUgd2lkZXIgcmFuZ2UuIA0KICAgIA0KICAgICBJbiBteSBlbWFp
+bCBJIHJhaXNlIHRoZSBpc3N1ZSBhYm91dCB5b3VyIHBhdGNoLiBJZiB5b3VyIHBhdGNoIGNhbiB3
+b3JrIHdlbGwsIG5vIG9uZSBpcyB3aWxsaW5nIHRvIHJhaXNlIGFueSBpc3N1ZSBhYm91dCB5b3Vy
+IHBhdGNoLiANCiAgICAgDQoNCi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBBbGV4
+ZXkgU3Rhcmlrb3Zza2l5IFttYWlsdG86YXN0YXJpa292c2tpeUBzdXNlLmRlXSANClNlbnQ6IDIw
+MDjE6jEx1MI4yNUgMjM6MzQNClRvOiBaaGFvLCBZYWt1aQ0KQ2M6IExlbkJyb3duOyBsaW51eC1h
+Y3BpQHZnZXIua2VybmVsLm9yZzsgQnJvd24sIExlbjsgTGksIFNoYW9odWE7IFpoYW5nLCBSdWk7
+IExpbiwgTWluZyBNDQpTdWJqZWN0OiBSZTogVGhlIGZhdGFsIGxvZ2ljIGVycm9yIGluIEVDIHdy
+aXRlIHRyYW5zYWN0aW9uKEVDIHRyYW5zYWN0aW9uIGlzIGRvbmUgaW4gaW50ZXJydXB0IGNvbnRl
+eHQpDQoNCkhpIFlha3VpLA0KDQpKdXN0IGRvbid0IGtub3cgaG93IEkgd291bGQgaGF2ZSBsaXZl
+ZCB3aXRob3V0IHlvdXIgdmFsdWFibGUgYW5hbGlzeXMuLi4NCkRvIHlvdSByZW1lbWJlciB0aGF0
+IGVjX3RyYW5zYWN0aW9uIHN0YXJ0cyBieSB3YWl0aW5nIGZvciBJQkYgdG8gYmVjb21lIDA/DQpU
+aHVzIG5vdCBhbnkgbmV3IHRyYW5zYWN0aW9uIHNob3VsZCBiZWdpbiBiZWZvcmUgcHJldmlvdXMg
+d3JpdGUgb3IgYnVyc3QtZGlzYWJsZSBjb21tYW5kIGNvbXBsZXRlcy4NClNvLCBmYXRhbCBsb2dp
+YyBlcnJvciBleGlzdHMgb25seSBpbiB5b3VyIGhlYWQuDQoNCk5vdywgbGV0IG1lIGV4cGxhaW4g
+d2h5IGl0IGlzIGJldHRlciB0byB3YWl0IGZvciBsYXN0IElCRj0wIGV2ZW50IGF0IGJlZ2lubmlu
+ZyBvZiB0cmFuc2FjdGlvbiwgcmF0aGVyIHRoYW4gYXQgdGhlIGVuZCBvZiBwcmV2aW91cyBvbmUu
+DQpMb29rIGF0IHRoZSBmbG93IGNoYXJ0IGZyb20gZGlmZmVyZW50IGFuZ2xlIC0tIGFzIGZhc3Qg
+dHJhbnNhY3Rpb24gcGF0Y2ggZG9lcyBpdDoNCkVDIHNlbmRzIGludGVycnVwdCB0byBPUyB0aGVu
+IGl0IGlzIHJlYWR5IGZvciB1cyB0byBwcm9jZWVkLiBJdCB3aWxsIHNlbmQgdXMgaW50ZXJydXB0
+IG1hcmtpbmcgSUJGPTAgdHJhbnNpdGlvbiBpZiBpdCBleHBlY3RzIHVzIHRvIHdyaXRlIGJ5dGUg
+YW5kIGl0IHdpbGwgc2VuZCB1cyBpbnRlcnJ1cHQgbWFya2luZyBPQkY9MSB0cmFuc2l0aW9uIGlm
+IGl0IGV4cGVjdHMgdXMgdG8gcmVhZCBieXRlLiBJdCBkb2VzIG5vdCBldmVyIHNlbmQgdXMgSUJG
+PTEgb3IgT0JGPTAgaW50ZXJydXB0cyBqdXN0IGJlY2F1c2UgdGhlcmUgaXMgbm90aGluZyB3ZSBj
+b3VsZCBvZiBzaG91bGQgZG8gaW4gc3VjaCBhIGNhc2UuDQpBZnRlciB3ZSBjb21wbGV0ZWQgd3Jp
+dGUgc2VxdWVuY2UsIHdlIGRvbid0IG5lZWQgdG8gd2FpdCBmb3IgbGFzdCBJQkY9MCB0cmFuc2l0
+aW9uLCBhcyB3ZSBkb24ndCBrbm93IGlmIHdlIHdpbGwgaGF2ZSBhbnl0aGluZyBlbHNlIHRvIHdy
+aXRlIC0tIGl0IG1pZ2h0IGJlIGxhc3QgdHJhbnNhY3Rpb24gZm9yIHF1aXRlIGEgd2hpbGUuIEJ1
+dCBuZXh0IHRyYW5zYWN0aW9uIGtub3dzIHRoYXQgaXQgc2hvdWxkIG5vdCBzdGFydCBiZWZvcmUg
+SUJGIGlzIGNsZWFyZWQsIHRodXMgaXQgd2FpdHMgDQpmb3IgaXQgKGFuZCBleHBlY3RzIHBvc3Np
+YmxlIGludGVycnVwdCkuDQoNClJlZ2FyZHMsDQpBbGV4Lg0KIA0KWmhhbywgWWFrdWkgd3JvdGU6
+DQo+IEhpLCBBbGV4ZXkNCj4gICAgICBBZnRlciBjaGVja2luZyB0aGUgRUMgd29ya2luZyBmbG93
+Y2hhcnQgSSBmaW5kIGEgZmF0YWwgbG9naWMgZXJyb3IgdGhhdCBleGlzdHMgaW4gRUMgd3JpdGUg
+dHJhbnNhY3Rpb24uIFRoZSBpc3N1ZSBoYXBwZW5zIG9uIG1vc3QgbGFwdG9wcy4gVGhlIGZvbGxv
+d2luZyBpcyB0aGUgZGV0YWlsZWQgZXhwbGFuYXRpb24gYWJvdXQgdGhpcyBpc3N1ZToNCj4gICAg
+ICBBY2NvcmRpbmcgdG8gdGhlIEFDUEkgdGhlIEVDIHdyaXRlIHRyYW5zYWN0aW9uIGlzIGRpdmlk
+ZWQgaW50byB0aGUgZm9sbG93aW5nIHRocmVlIHBoYXNlczogKFNlZW4gaW4gdGhlIHNlY3Rpb24g
+MTIuNi4yIG9mIEFDUEkgMy4wYikNCj4gICAgICBhLiBCeXRlICMxOiBIb3N0IFdyaXRlcyB0aGUg
+RUMgY29tbWFuZCB0byBFQyBDTUQgSS9PIFBPUlQuIEludGVycnVwdCBpcyB0cmlnZ2VyZWQgYWZ0
+ZXIgRUMgcmVhZHMgdGhlIGNvbW1hbmQgYnl0ZSANCj4gICAgICBiLiBCeXRlICMyOiBIb3N0IHdy
+aXRlcyB0aGUgYWRkcmVzcyBpbmRleCB0byBFQyBkYXRhIEkvTyBwb3J0LiBJbnRlcnJ1cHQgaXMg
+dHJpZ2dlcmVkIGFmdGVyIEVDIHJlYWRzIHRoZSBhZGRyZXNzIGluZGV4IGJ5dGUNCj4gICAgICBj
+LiBCeXRlICMzOiBIb3N0IHdyaXRlcyB0aGUgRGF0YSB0byBFQyBkYXRhIEkvTyBwb3J0LiBJbnRl
+cnJ1cHQgaXMgdHJpZ2dlcmVkIGFmdGVyIEVDIHJlYWRzIHRoZSBkYXRhIGJ5dGUNCj4gICAgDQo+
+ICAgIFdoZW4gdGhlIGZ1bmN0aW9uIG9mIGFjcGlfZWNfdHJhbnNhY3Rpb25fdW5sb2NrZWQgaXMg
+Y2FsbGVkIGZvciBFQyB3cml0ZSB0cmFuc2FjdGlvbiwgdGhlIHdsZW4gdmFyaWFibGUgaXMgaW5p
+dGlhbGl6ZWQgYXMgMiBhbmQgdGhlIHJsZW4gdmFyaWFibGUgaXMgaW5pdGlhbGl6ZWQgYXMgemVy
+by4gVGhlbiBFQyB0cmFuc2FjdGlvbiBmb2xsb3dzIHRoZSBiZWxvdyB0aHJlZSBzdGVwcy4NCj4g
+ICAgICAxLiBPUyB3cml0ZXMgdGhlIEVDIGNvbW1hbmQgdG8gRUMgQ01EIEkvTyBwb3J0DQo+ICAg
+ICAgMi4gRUMgR1BFIGludGVycnVwdCBpcyB0cmlnZ2VyZWQgYW5kIHRoZW4gdGhlIGFkZHJlc3Mg
+aW5kZXggaXMgd3JpdHRlbiBpbnRvIEVDIGRhdGEgSS9PIHBvcnQuIChUaGUgd2xlbiBpcyBkZWNy
+ZWFzZWQgdG8gMS5UaGlzIGlzIGV4ZWN1dGVkIGluIEVDIEdQRSBoYW5kbGVyKQ0KPiAgICAgIDMu
+IEVDIEdQRSBpbnRlcnJ1cHQgaXMgdHJpZ2dlcmVkIGFnYWluIGFuZCB0aGVuIHRoZSBkYXRhIGlz
+IHdyaXR0ZW4gaW50byB0aGUgRUMgZGF0YSBJL08gcG9ydC4gVGhlIHdsZW4gaXMgZGVjcmVhc2Vk
+IHRvIDAuKFRoaXMgaXMgYWxzbyBleGVjdXRlZCBpbiBFQyBHUEUgaGFuZGxlcikuIEFzIHRoZSB3
+bGVuIGlzIGRlY3JlYXNlZCB0byB6ZXJvLCBpdCBtZWFucyB0aGF0IHRoZSBFQyB0cmFuc2FjdGlv
+biBpcyBmaW5pc2hlZChUcnVlIGlzIHJldHVybmVkIGJ5IHRoZSBmdW5jdGlvbiBvZiBlY190cmFu
+c2FjdGlvbl9kb25lKS4gDQo+ICAgICAgID5zdGF0dXMgPSBhY3BpX2VjX3JlYWRfc3RhdHVzKGVj
+KTsNCj4gICAgICAgPmdwZV90cmFuc2FjdGlvbihlYywgc3RhdHVzKTsNCj4gICAgICAgPiBpZiAo
+ZWNfdHJhbnNhY3Rpb25fZG9uZShlYykgJiYgKHN0YXR1cyAmIEFDUElfRUNfRkxBR19JQkYpID09
+IDApDQo+ICAgICAgICAgICAgICAgICB3YWtlX3VwKCZlYy0+d2FpdCk7IA0KPiAgICAgIEluIHRo
+aXMgc3RlcCB0aGUgc3RhdHVzIHZhcmlhYmxlIG9ubHkgaW5kaWNhdGVzIHRoYXQgRUMgY29udHJv
+bGxlciBhbHJlYWR5IHJlYWRzIHRoZSBhZGRyZXNzIGluZGV4IHdyaXR0ZW4gYnkgT1MoSXQgY2Fu
+oa90IGluZGljYXRlIHRoYXQgRUMgY29udHJvbGxlciBhbHJlYWR5IHJlYWRzIHRoZSBkYXRhIGJ5
+dGUgd3JpdHRlbiBieSBIb3N0KS4gQXMgdGhlIElCRiBmbGFnIGlzIHplcm8sIHRoZSB3YWl0aW5n
+IHByb2Nlc3MgaXMgd2FrZWQgdXAgYW5kIEVDIG11dGV4IGxvY2sgaXMgcmVsZWFzZWQuIEluIHN1
+Y2ggY2FzZSBpdCBtZWFucyB0aGF0IE9TIGNhbiBiZWdpbiBhbm90aGVyIEVDIHRyYW5zYWN0aW9u
+LiANCj4gICAgICBCdXQgaW4gZmFjdCBpbiBzdWNoIGNhc2UgRUMgdHJhbnNhY3Rpb24gaXMgbm90
+IHJlYWxseSBmaW5pc2hlZC4gQWZ0ZXIgdGhlIEVDIGRhdGEgaXMgd3JpdHRlbiBpbnRvIEVDIERh
+dGEgSS9PIHBvcnQsIG5vIGZsYWcgaW5kaWNhdGVzIHdoZXRoZXIgRUMgdHJhbnNhY3Rpb24gaXMg
+ZmluaXNoZWQuIE9ubHkgd2hlbiB0aGUgSUJGIGJpdCBiZWNvbWVzIHplcm8gYWdhaW4sIHdlIGNh
+biBzYXkgdGhhdCBFQyB0cmFuc2FjdGlvbiBpcyByZWFsbHkgZmluaXNoZWQuIElmIE9TIGJlZ2lu
+cyBhbm90aGVyIEVDIHRyYW5zYWN0aW9uIGJlZm9yZSBwcmV2aW91cyBFQyB0cmFuc2FjdGlvbiBp
+cyByZWFsbHkgZmluaXNoZWQsIHdlIGNhbid0IGltYWdpbmUgd2hhdCB3aWxsIGhhcHBlbi4NCj4g
+oaGhoUlNTyBCYXNlZCBvbiB0aGUgYWJvdmUgYW5hbHlzaXMgdGhlcmUgZXhpc3RzIHRoZSBmYXRh
+bCBsb2dpYyBlcnJvciBpbiB0aGUgRUMgd3JpdGUgdHJhbnNhY3Rpb24gYWZ0ZXIgdGhlIHBhdGNo
+IGZyb20gQWxleGV5IGlzIHNoaXBwZWQuIEFsdGhvdWdoIG5vdyBubyBvbmUgcmVwb3J0cyB0aGlz
+IGlzc3VlLCBpdCBpcyBzdGlsbCBhbiB1bnN0YWJsZSBmYWN0b3IuIEFmdGVyIGFsbCBpdCBpcyB0
+aGUgZmF0YWwgbG9naWMgZXJyb3IuIA0KPiChoaGhIA0KPiChoaGhIEF0IHRoZSBzYW1lIHRpbWUg
+dGhlcmUgZXhpc3RzIHRoZSBzaW1pbGFyIGxvZ2ljIGVycm9yIHdoZW4gT1MgYmVnaW5zIGFuIEVD
+IHRyYW5zYWN0aW9uIHRvIGRpc2FibGUgdGhlIEVDIGJ1cnN0IG1vZGUuDQo+ICAgICAgDQo+IKGh
+oaFXZWxjb21lIHRoZSBjb21tZW50cy4NCj4gICAgICANCj4goaGhoUJlc3QgcmVnYXJkcw0KPiCh
+oaGhICAgICBZYWt1aQ0KPiANCj4gICAgIA0KPiANCg0K
