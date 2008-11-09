@@ -1,62 +1,51 @@
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Subject: Re: [PATCH 2/4] acpi,memory-hotplug : rename remove_memory() to offline_memory()
-Date: Fri, 12 Oct 2012 14:57:26 -0400
-Message-ID: <CAHGf_=qr=Qsa==X=pZifu=C1n=dwt7_Hz+AR+-oqoFT2LqRzqA@mail.gmail.com>
-References: <506C0AE8.40702@jp.fujitsu.com> <506C0D45.3050909@jp.fujitsu.com>
- <CAHGf_=pdVLEkGDvbMC7vjd0F8Y_YFdKX85YcLwR+gCQ8Tf2Mcw@mail.gmail.com> <507276A7.8070503@cn.fujitsu.com>
+From: Jesper Juhl <jj@chaosbits.net>
+Subject: [PATCH] ACPI: Fix memory leak in acpi_bind_one()
+Date: Sun, 9 Nov 2008 14:38:30 +0100 (CET)
+Message-ID: <alpine.LNX.2.00.0811091436310.23308@swampdragon.chaosbits.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <507276A7.8070503@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from 1010ds2-suoe.0.fullrate.dk ([90.184.90.115]:25689 "EHLO
+	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752691Ab2JLS7y (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Oct 2012 14:59:54 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-On Mon, Oct 8, 2012 at 2:45 AM, Wen Congyang <wency@cn.fujitsu.com> wrote:
-> At 10/05/2012 05:31 AM, KOSAKI Motohiro Wrote:
->> On Wed, Oct 3, 2012 at 6:02 AM, Yasuaki Ishimatsu
->> <isimatu.yasuaki@jp.fujitsu.com> wrote:
->>> From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->>>
->>> add_memory() hot adds a physical memory. But remove_memory does not
->>> hot remove a phsical memory. It only offlines memory. The name
->>> confuse us.
->>>
->>> So the patch renames remove_memory() to offline_memory(). We will
->>> use rename_memory() for hot removing memory.
->>>
->>> CC: David Rientjes <rientjes@google.com>
->>> CC: Jiang Liu <liuj97@gmail.com>
->>> CC: Len Brown <len.brown@intel.com>
->>> CC: Christoph Lameter <cl@linux.com>
->>> Cc: Minchan Kim <minchan.kim@gmail.com>
->>> CC: Andrew Morton <akpm@linux-foundation.org>
->>> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
->>> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->>> Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
->>> ---
->>>  drivers/acpi/acpi_memhotplug.c |    2 +-
->>>  include/linux/memory_hotplug.h |    2 +-
->>>  mm/memory_hotplug.c            |    6 +++---
->>>  3 files changed, 5 insertions(+), 5 deletions(-)
->>
->> Probably, the better way is to just remove remove_memory() and use
->> offline_pages().
->
-> we don't notify the userspace that the memory is offlined in offline_pages().
-> We reimplement offline_memory(), but ishimatsu doesn't include that patch to
-> this series.
+Memory is allocated with kzalloc() and assigned to
+'physical_node'. Then 'physical_node->node_id' is initialized with a
+call to 'find_first_zero_bit()', if that results in a value greater
+than ACPI_MAX_PHYSICAL_NODE we'll end up jumping to the 'err:' label
+and there leave the function and let 'physical_node' go out of scope
+and leak the memory we allocated.
+This patch fixes the leak by simply freeing the unused/unneeded memory
+pointed to by 'physical_node' just before we jump to 'err:'.
 
-Quote from Documentation/SubmittingPatch
+Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+---
+ drivers/acpi/glue.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-> 3) Separate your changes.
-> Separate _logical changes_ into a single patch file.
+diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
+index d1a2d74..0837308 100644
+--- a/drivers/acpi/glue.c
++++ b/drivers/acpi/glue.c
+@@ -159,6 +159,7 @@ static int acpi_bind_one(struct device *dev, acpi_handle handle)
+ 	if (physical_node->node_id >= ACPI_MAX_PHYSICAL_NODE) {
+ 		retval = -ENOSPC;
+ 		mutex_unlock(&acpi_dev->physical_node_lock);
++		kfree(physical_node);
+ 		goto err;
+ 	}
+ 
+-- 
+1.7.1
 
-Please send us _logical_ meaningful patch set.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+-- 
+Jesper Juhl <jj@chaosbits.net>       http://www.chaosbits.net/
+Don't top-post http://www.catb.org/jargon/html/T/top-post.html
+Plain text mails only, please.
+
