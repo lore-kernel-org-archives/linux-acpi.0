@@ -1,130 +1,76 @@
-From: Alan Jenkins <alan-jenkins-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org>
-Subject: Re: Bugs on aspire one A150
-Date: Sun, 09 Nov 2008 10:43:28 +0000
-Message-ID: <4916BED0.4090700@tuffmail.co.uk>
-References: <491506DB.1070000@gmail.com> <49157E97.60503@tuffmail.co.uk> <49163435.20301@gmail.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: Can video_detect be made __init?
+Date: Sun, 9 Nov 2008 13:20:04 +0100
+Message-ID: <200811091320.05415.trenn@suse.de>
+References: <200811081655.08226.arvidjaar@mail.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <49163435.20301-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Maxim Levitsky <maximlevitsky-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux acpi <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.suse.de ([195.135.220.2]:40922 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754476AbYKIMUK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 9 Nov 2008 07:20:10 -0500
+In-Reply-To: <200811081655.08226.arvidjaar@mail.ru>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andrey Borzenkov <arvidjaar@mail.ru>
+Cc: linux-acpi@vger.kernel.org, preining@logic.at
 
-Maxim Levitsky wrote:
-> Alan Jenkins wrote:
->> Maxim Levitsky wrote:
->>> I have just bought an Aspire one A150, XP version,
->>> as it was the only available here, and installed ubuntu on it.
->>>
->>> Bugs I discovered so far:
->>>
->>>
->>> ** 1 - embedded controler works in polling mode, due to this:
->>>
->>> [    0.708571] ACPI: EC: non-query interrupt received, switching to
->>> interrupt mode
->>> [    1.224043] ACPI: EC: missing confirmations, switch off interrupt
->>> mode.
->>>
->>>
->>> Maybe this is the reason for the fact that gnome power manager
->>> freezes when I unplug
->>> the AC, and freezes often when I try to see battery status.
->>>
->>>
->>> (Note: same is seen on my acer aspire 5720)
->>
->> That sounds like a known issue.  It has been resolved by "ACPI: EC:
->> revert msleep patch".  Happily Len submitted it for mainline this
->> week.  You will also find it if you try the acpi-test git tree. 
->> We're all hoping 2.6.28 will be much improved in terms of reliable
->> operation of different ECs :).
->>
-> Yes, this almost fixes all issues with that.
-> Almost because, it looks like the EC changes screen brightness on his
-> own when battery is plugged/unplugged,
-> but so does the gnome-power-manager, and thus it still hangs as before
-> on battery removal (but doesn't hang otherwise)
-> I disabled that behaver in gnome-power-manager and now no more hangs.
+Hi,
+
+First, thanks Len for adjusing the patches and taking them into your test 
+tree.
+Norbert: I tried your .config you sent recently and it compiles fine with
+Len's ACPI test tree which now includes the patchset.
+
+On Saturday 08 November 2008 02:55:07 pm Andrey Borzenkov wrote:
+> I would add DMI entries to force vendor backlight for my system,
+Why? video.ko is the way to go. Do you see regressions with that?
+
+> but I'd really prefer they are not remain in memory forever.
+You mean video.ko should give up access to the backlight interface and
+e.g. toshiba.ko takes over at runtime?
+Theoretically that may be possible, but practically this should not be 
+implemented.
+You must make sure all brightness functions got processed and unregister the 
+backlight interface in video.ko, before you could re-register with a vendor 
+specific driver. Rather complex without much gain.
+
+> Is there any 
+> reason for the whole detection to not happen exactly once? After all,
+> ACPI cannot change after boot, can it?
+It should only happen once:
+acpi_video_backlight_support()
+and
+acpi_video_display_switch_support()
+the funcs called from the brightness supporting drivers checks for:
+        if (!acpi_video_caps_checked)
+                acpi_video_get_capabilities(NULL);
+which should do the real checking only once.
+If you see that checking is done several times, it's a bug.
 >
+> Hmm ... actually DSDT can be loaded from initrd, so it can change ...
+Checking is done after the DSDT got chosen, even if provided via initrd.
+DSDT overriding is done far before entering userspace when the real
+initrd tasks are processed (in userspace) and also far before video_detect.c 
+gets active. That also is the reason why the DSDT override patch is not 
+mainline, because it uses the initrd in a way it should not.
 
-Please do report it as an ACPI EC bug.  It's popular hardware, and if
-nothing else it is important that upstream be aware of the workarounds
-people are having to use.
+> in this case we actually are just interested in DMI matching which says
+> whether vendor driver is preferred or not. What would be the the best
+> place to call it from?
+I do not understand this. Why are you only interested in dmi checking if
+you override the DSDT?
+DSDT overriding is for debugging only. Let's say you debug brightness
+functionality, then you pass the boot param to either choose vendor.ko or
+acpi_xy.ko brightness. Then you change DSDT again, you have to reboot anyway
+and adjust the boot param again.
+The dmi blacklist should stay empty in mainline as long as we find really 
+broken _BCM, _BQC implementations.
 
-> I see that this fix fixes the polled mode. Any chance to make irq mode
-> work?
->
+Thanks (that I am not the only one looking at this),
 
-Probably not.  It doesn't seem important, it may not be possible, and
-even if you could fix the EC driver for your hardware, there's the risk
-of breaking other peoples hardware.
-
-The presumption is that you have weird hardware and it genuinely needs a
-polling workaround.  It's not too bad, now it uses udelay() it should
-not impose any wakeups or significant latency, just some extra cpu time
-in a busy loop.  EC events such as acpi hotkeys are still received as
-interrupts (although we then have to query the type of event using a
-polled transaction).
-
-
-I assume you get something like (text not exact):
-
-"EC: started in polling mode"
-...
-"EC: non-query interrupt received, switching to interrupt mode"
-...
-"EC: missing confirmations, switching to polling mode"
-
-all during boot.
-
-
-There's one outstanding issue on a different machine, where the
-occasional EC read fails and triggers polling mode sometime _after_
-boot.  It can be fixed by retrying the transaction
-
-    http://bugzilla.kernel.org/show_bug.cgi?id=11896
-
-but I don't really expect your machine has the same problem.
-
-<snip non-acpi problems>
-
->
-> Also noticed another bug:
->
->
-> If I suspend/resume with compiz running, on resume I see wallpaper and
-> mouse cursor, everything hangs for minute or two, and sometimes forever.
->
-> 2.6.27 worked fine.
-
-Weird.
-
-Did you try sysrq-W during the hang?  That's supposed to dump a list of
-blocked tasks to dmesg.
-
->
-> Also hibernate doesn't work on my main notebook, but it is probably
-> fixed, I update kernel to really latest -git
-> and tell you.
->
-
-But suspend to ram works?  Usually it is the other way round :).  If you
-haven't already, you might read
-
-    Documentation/power/basic-pm-debugging.txt
-
-it suggests some tests to narrow down the problem.
-
->
-> Big thanks for bugfixes, you saved me a lot of work and bisecting.
->
-
-I can't take credit for actual fixes.  But I'm very happy to help people
-avoid bisecting for known problems.  I hope you have time to crack the
-unknown ones :).
-
-Alan
+     Thomas
