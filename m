@@ -1,56 +1,41 @@
-From: Tony Vroon <tony@linx.net>
-Subject: [PATCH] Add DMI callback for Lifebook S6420
-Date: Sun,  9 Nov 2008 04:20:05 +0000 (GMT)
-Message-ID: <20081109042005.4FF551008C@gold.linx.net>
+From: Avi Kivity <avi@redhat.com>
+Subject: Re: [PATCH 10/10] x86, ACPI: default to reboot via ACPI (again)
+Date: Sun, 09 Nov 2008 11:55:23 +0200
+Message-ID: <4916B38B.7050905@redhat.com>
+References: <007e7d616a5d1c2e16ad627d03f8b97799445e71.1226032943.git.len.brown@intel.com> <200811080930.21462.arvidjaar@mail.ru> <alpine.LFD.2.00.0811080208590.3092@localhost.localdomain> <200811081050.25477.arvidjaar@mail.ru> <20081108115956.GE8354@elte.hu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gold.linx.net ([195.66.232.40]:53659 "EHLO gold.linx.net"
+Received: from mx2.redhat.com ([66.187.237.31]:41463 "EHLO mx2.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753852AbYKIEaI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 8 Nov 2008 23:30:08 -0500
+	id S1752470AbYKIJzu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 9 Nov 2008 04:55:50 -0500
+In-Reply-To: <20081108115956.GE8354@elte.hu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Peter Gruber <nokos@gmx.net>, linux-acpi@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Andrey Borzenkov <arvidjaar@mail.ru>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Eduardo Habkost <ehabkost@redhat.com>, Andrew Morton <akpm@linux-foundation.org>
 
-The Lifebook S6420 is the ICH9M-based follow-up to the S6410. The application panel 
-contains the following keys: lock, mobility center, eco, info.
-Whilst key 4 might be more appropriate for help then key 2, I've done things the 
-S6410 way. I can confirm that backlight control is functional, and that the lock key 
-activates the Gnome screensaver as expected.
-This should apply cleanly to acpi-test.
+Ingo Molnar wrote:
+> Len, please consider my Lenovo T60 laptop "possibly affected" too. I 
+> was seeing weird sporadic reboot hangs which went away roughly since 
+> around that revert.
+>
+>   
 
-Signed-off-by: Tony Vroon <tony@linx.net>
+Given that Windows uses ACPI reboot, I find it unlikely that it is so 
+unreliable.  Maybe some other problem in the tree got fixed?
 
-diff --git a/drivers/misc/fujitsu-laptop.c b/drivers/misc/fujitsu-laptop.c
-index 2c7504f..a7dd3e9 100644
---- a/drivers/misc/fujitsu-laptop.c
-+++ b/drivers/misc/fujitsu-laptop.c
-@@ -464,6 +464,14 @@ static int dmi_check_cb_s6410(const struct dmi_system_id *id)
- 	return 0;
- }
- 
-+static int dmi_check_cb_s6420(const struct dmi_system_id *id)
-+{
-+	dmi_check_cb_common(id);
-+	fujitsu->keycode1 = KEY_SCREENLOCK;	/* "Lock" */
-+	fujitsu->keycode2 = KEY_HELP;	/* "Mobility Center" */
-+	return 0;
-+}
-+
- static int dmi_check_cb_p8010(const struct dmi_system_id *id)
- {
- 	dmi_check_cb_common(id);
-@@ -482,6 +490,13 @@ static struct dmi_system_id fujitsu_dmi_table[] = {
- 		     },
- 	 .callback = dmi_check_cb_s6410},
- 	{
-+	 .ident = "Fujitsu Siemens S6420",
-+	 .matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "FUJITSU SIEMENS"),
-+		     DMI_MATCH(DMI_PRODUCT_NAME, "LIFEBOOK S6420"),
-+		     },
-+	 .callback = dmi_check_cb_s6420},
-+	{
- 	 .ident = "Fujitsu LifeBook P8010",
- 	 .matches = {
- 		     DMI_MATCH(DMI_SYS_VENDOR, "FUJITSU"),
+> So the negative scope of the change, even after such short amount of 
+> testing, is non-trivial, and we simply have to go via a flag day date 
+> approach. Or, if these bugs are debuggable, make the ACPI reboot 
+> sequence more reliable.
+
+I think the sequence should be acpi -> kbd -> triple fault.  Given that 
+Windows uses ACPI, the number of machines that support it is much larger 
+(and growing daily) than the number of machines that do not.
+
+-- 
+error compiling committee.c: too many arguments to function
+
