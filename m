@@ -1,62 +1,91 @@
 From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: [PATCH 1/5] ACPI: EC: clean up tmp variable before reuse
-Date: Sun, 09 Nov 2008 19:00:36 +0300
-Message-ID: <20081109160036.13635.34455.stgit@thinkpad>
+Subject: [PATCH 3/5] ACPI: EC: wait for last write gpe
+Date: Sun, 09 Nov 2008 19:00:51 +0300
+Message-ID: <20081109160050.13635.46234.stgit@thinkpad>
 References: <20081109155847.13635.15244.stgit@thinkpad>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:38162 "EHLO
+Received: from charybdis-ext.suse.de ([195.135.221.2]:37025 "EHLO
 	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755268AbYKIQAj (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Sun, 9 Nov 2008 11:00:39 -0500
+	with ESMTP id S1755272AbYKIQAx (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Sun, 9 Nov 2008 11:00:53 -0500
 In-Reply-To: <20081109155847.13635.15244.stgit@thinkpad>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: LenBrown <lenb@kernel.org>
 Cc: Linux-acpi@vger.kernel.org
 
-Fix breakage introduced by following patch
-27663c5855b10af9ec67bc7dfba001426ba21222 is first bad commit
-commit 27663c5855b10af9ec67bc7dfba001426ba21222
-Author: Matthew Wilcox <willy@linux.intel.com>
-Date:   Fri Oct 10 02:22:59 2008 -0400
+There is a possibility that EC might break if next command is
+issued within 1 us after write or burst-disable command.
+This "possibility" was in EC driver for 3.5 years, after
+451566f45a2e6cd10ba56e7220a9dd84ba3ef550.
 
-acpi_evaluate_integer() does not clear passed variable if
-there is an error at evaluation.
-So if we ignore error, we must supply initialized variable.
-
-References: http://bugzilla.kernel.org/show_bug.cgi?id=11917
-	    http://bugzilla.kernel.org/show_bug.cgi?id=11896
-
+References: http://marc.info/?l=linux-acpi&m=122616284402886&w=4
+Cc: Zhao Yakui <yakui.zhao@intel.com>
 Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-Tested-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 ---
 
- drivers/acpi/ec.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ drivers/acpi/ec.c |   21 +++++++++++++--------
+ 1 files changed, 13 insertions(+), 8 deletions(-)
 
 
 diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index ef42316..523ac5b 100644
+index e5dbe21..d6007ac 100644
 --- a/drivers/acpi/ec.c
 +++ b/drivers/acpi/ec.c
-@@ -736,7 +736,7 @@ static acpi_status
- ec_parse_device(acpi_handle handle, u32 Level, void *context, void **retval)
- {
- 	acpi_status status;
--	unsigned long long tmp;
-+	unsigned long long tmp = 0;
+@@ -102,6 +102,7 @@ struct transaction {
+ 	u8 command;
+ 	u8 wlen;
+ 	u8 rlen;
++	bool done;
+ };
  
- 	struct acpi_ec *ec = context;
- 	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
-@@ -751,6 +751,7 @@ ec_parse_device(acpi_handle handle, u32 Level, void *context, void **retval)
- 		return status;
- 	ec->gpe = tmp;
- 	/* Use the global lock for all EC transactions? */
-+	tmp = 0;
- 	acpi_evaluate_integer(handle, "_GLK", NULL, &tmp);
- 	ec->global_lock = tmp;
- 	ec->handle = handle;
+ static struct acpi_ec {
+@@ -178,7 +179,7 @@ static int ec_transaction_done(struct acpi_ec *ec)
+ 	unsigned long flags;
+ 	int ret = 0;
+ 	spin_lock_irqsave(&ec->curr_lock, flags);
+-	if (!ec->curr || (!ec->curr->wlen && !ec->curr->rlen))
++	if (!ec->curr || ec->curr->done)
+ 		ret = 1;
+ 	spin_unlock_irqrestore(&ec->curr_lock, flags);
+ 	return ret;
+@@ -195,17 +196,20 @@ static void gpe_transaction(struct acpi_ec *ec, u8 status)
+ 			acpi_ec_write_data(ec, *(ec->curr->wdata++));
+ 			--ec->curr->wlen;
+ 		} else
+-			/* false interrupt, state didn't change */
+-			++ec->curr->irq_count;
+-
++			goto err;
+ 	} else if (ec->curr->rlen > 0) {
+ 		if ((status & ACPI_EC_FLAG_OBF) == 1) {
+ 			*(ec->curr->rdata++) = acpi_ec_read_data(ec);
+-			--ec->curr->rlen;
++			if (--ec->curr->rlen == 0)
++				ec->curr->done = true;
+ 		} else
+-			/* false interrupt, state didn't change */
+-			++ec->curr->irq_count;
+-	}
++			goto err;
++	} else if (ec->curr->wlen == 0 && (status & ACPI_EC_FLAG_IBF) == 0)
++		ec->curr->done = true;
++	goto unlock;
++err:
++	/* false interrupt, state didn't change */
++	++ec->curr->irq_count;
+ unlock:
+ 	spin_unlock_irqrestore(&ec->curr_lock, flags);
+ }
+@@ -265,6 +269,7 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec,
+ 	spin_lock_irqsave(&ec->curr_lock, tmp);
+ 	/* following two actions should be kept atomic */
+ 	t->irq_count = 0;
++	t->done = false;
+ 	ec->curr = t;
+ 	acpi_ec_write_cmd(ec, ec->curr->command);
+ 	if (ec->curr->command == ACPI_EC_COMMAND_QUERY)
 
