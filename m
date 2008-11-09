@@ -1,52 +1,62 @@
 From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: [PATCH 2/5] ACPI: EC: revert msleep patch
-Date: Sun, 09 Nov 2008 19:00:43 +0300
-Message-ID: <20081109160043.13635.81489.stgit@thinkpad>
+Subject: [PATCH 1/5] ACPI: EC: clean up tmp variable before reuse
+Date: Sun, 09 Nov 2008 19:00:36 +0300
+Message-ID: <20081109160036.13635.34455.stgit@thinkpad>
 References: <20081109155847.13635.15244.stgit@thinkpad>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:43017 "EHLO
+Received: from charybdis-ext.suse.de ([195.135.221.2]:38162 "EHLO
 	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755270AbYKIQAq (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Sun, 9 Nov 2008 11:00:46 -0500
+	with ESMTP id S1755268AbYKIQAj (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Sun, 9 Nov 2008 11:00:39 -0500
 In-Reply-To: <20081109155847.13635.15244.stgit@thinkpad>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: LenBrown <lenb@kernel.org>
 Cc: Linux-acpi@vger.kernel.org
 
-With the better solution for EC interrupt storm issue,
-there is no need to use msleep over udelay.
+Fix breakage introduced by following patch
+27663c5855b10af9ec67bc7dfba001426ba21222 is first bad commit
+commit 27663c5855b10af9ec67bc7dfba001426ba21222
+Author: Matthew Wilcox <willy@linux.intel.com>
+Date:   Fri Oct 10 02:22:59 2008 -0400
 
-References:
-	http://bugzilla.kernel.org/show_bug.cgi?id=11810
-	http://bugzilla.kernel.org/show_bug.cgi?id=10724
+acpi_evaluate_integer() does not clear passed variable if
+there is an error at evaluation.
+So if we ignore error, we must supply initialized variable.
 
+References: http://bugzilla.kernel.org/show_bug.cgi?id=11917
+	    http://bugzilla.kernel.org/show_bug.cgi?id=11896
 
 Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+Tested-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 ---
 
- drivers/acpi/ec.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/ec.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
 
 diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 523ac5b..e5dbe21 100644
+index ef42316..523ac5b 100644
 --- a/drivers/acpi/ec.c
 +++ b/drivers/acpi/ec.c
-@@ -239,10 +239,10 @@ static int ec_check_sci(struct acpi_ec *ec, u8 state)
- static int ec_poll(struct acpi_ec *ec)
+@@ -736,7 +736,7 @@ static acpi_status
+ ec_parse_device(acpi_handle handle, u32 Level, void *context, void **retval)
  {
- 	unsigned long delay = jiffies + msecs_to_jiffies(ACPI_EC_DELAY);
--	msleep(1);
-+	udelay(ACPI_EC_UDELAY);
- 	while (time_before(jiffies, delay)) {
- 		gpe_transaction(ec, acpi_ec_read_status(ec));
--		msleep(1);
-+		udelay(ACPI_EC_UDELAY);
- 		if (ec_transaction_done(ec))
- 			return 0;
- 	}
+ 	acpi_status status;
+-	unsigned long long tmp;
++	unsigned long long tmp = 0;
+ 
+ 	struct acpi_ec *ec = context;
+ 	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
+@@ -751,6 +751,7 @@ ec_parse_device(acpi_handle handle, u32 Level, void *context, void **retval)
+ 		return status;
+ 	ec->gpe = tmp;
+ 	/* Use the global lock for all EC transactions? */
++	tmp = 0;
+ 	acpi_evaluate_integer(handle, "_GLK", NULL, &tmp);
+ 	ec->global_lock = tmp;
+ 	ec->handle = handle;
 
