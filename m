@@ -1,49 +1,167 @@
-From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: [GIT PATCH] thinkpad-acpi regression fix for
-	2.6.28-rc
-Date: Sun,  9 Nov 2008 10:54:01 -0200
-Message-ID: <1226235242-11130-1-git-send-email-hmh@hmh.eng.br>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: [PATCH] ACPI: thinkpad-acpi: fix fan sleep/resume path
+Date: Sun,  9 Nov 2008 10:54:02 -0200
+Message-ID: <1226235242-11130-2-git-send-email-hmh@hmh.eng.br>
 References: <20081109113011.GB8329@khazad-dum.debian.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20081109113011.GB8329-ZGHd14iZgfaRjzvQDGKj+xxZW9W5cXbT@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out5.smtp.messagingengine.com ([66.111.4.29]:40337 "EHLO
+	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750805AbYKIMyI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Nov 2008 07:54:08 -0500
+In-Reply-To: <20081109113011.GB8329@khazad-dum.debian.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
+This fixes a regression from v2.6.27, caused by commit
+5814f737e1cd2cfa2893badd62189acae3e1e1fd, "ACPI: thinkpad-acpi:
+attempt to preserve fan state on resume".
 
-This patch should fix a reported regression on fan_resume (not
-on bugzilla, report on the LKML and ibm-acpi-devel).
+It is possible for fan_suspend() to fail to properly initialize
+fan_control_desired_level as required by fan_resume(), resulting on
+the fan always being set to level 7 on resume if the user didn't
+touch the fan controller.
 
-Tino, Rafael, please test and reply with a tested-by line.  I have
-tested it here, but my T43 has a fan quirk that might get in the
-way...
+In order to get fan sleep/resume handling to work right:
 
-Len, if we get reports that this fixes the regression, it would be
-really nice if you could send it to Linus for 2.6.28-rc.  It is a
-rather annoying regression.  Otherwise, a revert of the commit who
-broke things (listed in the patch commit log) is also acceptable.
+1. Fix the fan_suspend handling of the T43 firmware quirk. If it is
+still undefined, we didn't touch the fan yet and that means we have no
+business doing it on resume.
 
-Thank you.
+2. Store the fan level on its own variable to avoid any possible
+issues with hijacking fan_control_desired_level (which isn't supposed
+to have anything other than 0-7 in it, anyway).
 
+3. Change the fan_resume code to me more straightforward to understand
+(although we DO optimize the boolean logic there, otherwise it looks
+disgusting).
+
+4. Add comments to help understand what the code is supposed to be
+doing.
+
+5. Change fan_set_level to be less strict about how auto and
+full-speed modes are requested.
+
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Reported-by: Tino Keitel <tino.keitel@tikei.de>
+---
+ drivers/misc/thinkpad_acpi.c |   57 +++++++++++++++++++++++++++++++++---------
+ 1 files changed, 45 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
+index 4db1cf9..b7e4d47 100644
+--- a/drivers/misc/thinkpad_acpi.c
++++ b/drivers/misc/thinkpad_acpi.c
+@@ -5309,6 +5309,7 @@ static enum fan_control_commands fan_control_commands;
+ 
+ static u8 fan_control_initial_status;
+ static u8 fan_control_desired_level;
++static u8 fan_control_resume_level;
+ static int fan_watchdog_maxinterval;
+ 
+ static struct mutex fan_mutex;
+@@ -5431,8 +5432,8 @@ static int fan_set_level(int level)
+ 
+ 	case TPACPI_FAN_WR_ACPI_FANS:
+ 	case TPACPI_FAN_WR_TPEC:
+-		if ((level != TP_EC_FAN_AUTO) &&
+-		    (level != TP_EC_FAN_FULLSPEED) &&
++		if (!(level & TP_EC_FAN_AUTO) &&
++		    !(level & TP_EC_FAN_FULLSPEED) &&
+ 		    ((level < 0) || (level > 7)))
+ 			return -EINVAL;
+ 
+@@ -5996,38 +5997,67 @@ static void fan_exit(void)
+ 
+ static void fan_suspend(pm_message_t state)
+ {
++	int rc;
++
+ 	if (!fan_control_allowed)
+ 		return;
+ 
+ 	/* Store fan status in cache */
+-	fan_get_status_safe(NULL);
++	fan_control_resume_level = 0;
++	rc = fan_get_status_safe(&fan_control_resume_level);
++	if (rc < 0)
++		printk(TPACPI_NOTICE
++			"failed to read fan level for later "
++			"restore during resume: %d\n", rc);
++
++	/* if it is undefined, don't attempt to restore it.
++	 * KEEP THIS LAST */
+ 	if (tp_features.fan_ctrl_status_undef)
+-		fan_control_desired_level = TP_EC_FAN_AUTO;
++		fan_control_resume_level = 0;
+ }
+ 
+ static void fan_resume(void)
+ {
+-	u8 saved_fan_level;
+ 	u8 current_level = 7;
+ 	bool do_set = false;
++	int rc;
+ 
+ 	/* DSDT *always* updates status on resume */
+ 	tp_features.fan_ctrl_status_undef = 0;
+ 
+-	saved_fan_level = fan_control_desired_level;
+ 	if (!fan_control_allowed ||
++	    !fan_control_resume_level ||
+ 	    (fan_get_status_safe(&current_level) < 0))
+ 		return;
+ 
+ 	switch (fan_control_access_mode) {
+ 	case TPACPI_FAN_WR_ACPI_SFAN:
+-		do_set = (saved_fan_level > current_level);
++		/* never decrease fan level */
++		do_set = (fan_control_resume_level > current_level);
+ 		break;
+ 	case TPACPI_FAN_WR_ACPI_FANS:
+ 	case TPACPI_FAN_WR_TPEC:
+-		do_set = ((saved_fan_level & TP_EC_FAN_FULLSPEED) ||
+-			  (saved_fan_level == 7 &&
+-			   !(current_level & TP_EC_FAN_FULLSPEED)));
++		/* never decrease fan level, scale is:
++		 * TP_EC_FAN_FULLSPEED > 7 >= TP_EC_FAN_AUTO
++		 *
++		 * We expect the firmware to set either 7 or AUTO, but we
++		 * handle FULLSPEED out of paranoia.
++		 *
++		 * So, we can safely only restore FULLSPEED or 7, anything
++		 * else could slow the fan.  Restoring AUTO is useless, at
++		 * best that's exactly what the DSDT already set (it is the
++		 * slower it uses).
++		 *
++		 * Always keep in mind that the DSDT *will* have set the
++		 * fans to what the vendor supposes is the best level.  We
++		 * muck with it only to speed the fan up.
++		 */
++		if (fan_control_resume_level != 7 &&
++		    !(fan_control_resume_level & TP_EC_FAN_FULLSPEED))
++			return;
++		else
++			do_set = !(current_level & TP_EC_FAN_FULLSPEED) &&
++				 (current_level != fan_control_resume_level);
+ 		break;
+ 	default:
+ 		return;
+@@ -6035,8 +6065,11 @@ static void fan_resume(void)
+ 	if (do_set) {
+ 		printk(TPACPI_NOTICE
+ 			"restoring fan level to 0x%02x\n",
+-			saved_fan_level);
+-		fan_set_level_safe(saved_fan_level);
++			fan_control_resume_level);
++		rc = fan_set_level_safe(fan_control_resume_level);
++		if (rc < 0)
++			printk(TPACPI_NOTICE
++				"failed to restore fan level: %d\n", rc);
+ 	}
+ }
+ 
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+1.5.6.5
 
--------------------------------------------------------------------------
-This SF.Net email is sponsored by the Moblin Your Move Developer's challenge
-Build the coolest Linux based applications with Moblin SDK & win great prizes
-Grand prize is a trip for two to an Open Source event anywhere in the world
-http://moblin-contest.org/redirect.php?banner_id=100&url=/
