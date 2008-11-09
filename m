@@ -1,32 +1,47 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [PATCH 10/10] x86, ACPI: default to reboot via ACPI (again)
-Date: Sun, 09 Nov 2008 02:00:59 -0800
-Message-ID: <4916B4DB.90602@zytor.com>
-References: <007e7d616a5d1c2e16ad627d03f8b97799445e71.1226032943.git.len.brown@intel.com> <200811080930.21462.arvidjaar@mail.ru> <alpine.LFD.2.00.0811080208590.3092@localhost.localdomain> <200811081050.25477.arvidjaar@mail.ru> <20081108115956.GE8354@elte.hu> <4916B38B.7050905@redhat.com>
+From: Avi Kivity <avi-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 15/15] Revert "x86: default to reboot via ACPI"
+Date: Sun, 09 Nov 2008 12:11:03 +0200
+Message-ID: <4916B737.7050107@redhat.com>
+References: <1225915018-6548-1-git-send-email-ehabkost@redhat.com>
+	<20081106143021.GD13023@elte.hu> <20081106150610.GA1644@elte.hu>
+	<200811061853.08003.arvidjaar@mail.ru>
+	<alpine.LFD.2.00.0811061442590.3106@localhost.localdomain>
+	<20081106215011.GA6391@srcf.ucam.org>
+	<alpine.LFD.2.00.0811061716420.3106@localhost.localdomain>
+	<1226019679.3989.107.camel@yakui_zhao.sh.intel.com>
+	<20081107005946.GA9254@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from terminus.zytor.com ([198.137.202.10]:50570 "EHLO
-	terminus.zytor.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752555AbYKIKBo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Nov 2008 05:01:44 -0500
-In-Reply-To: <4916B38B.7050905@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+In-Reply-To: <20081107005946.GA9254-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/listinfo/kexec>,
+	<mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/kexec>
+List-Post: <mailto:kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+List-Help: <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/kexec>,
+	<mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
+Sender: kexec-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Errors-To: kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: Matthew Garrett <mjg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, Eduardo Habkost <ehabkost-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Zhao Yakui <yakui.zhao-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Eric W. Biederman" <ebiederm-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org>, Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>, Andrey Borzenkov <arvidjaar-JGs/UdohzUI@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Avi Kivity <avi@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>, Andrey Borzenkov <arvidjaar@mail.ru>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Eduardo Habkost <ehabkost@redhat.com>, Andrew Morton <akpm@linux-foundation.org>
 
-Avi Kivity wrote:
-> 
-> I think the sequence should be acpi -> kbd -> triple fault.  Given that
-> Windows uses ACPI, the number of machines that support it is much larger
-> (and growing daily) than the number of machines that do not.
-> 
+Matthew Garrett wrote:
+> Hmm. But we're seeing some machines that end up very confused if 
+> rebooted via ACPI. I guess we need to run Vista on them to find out how 
+> they behave. What OSI strings did your KVM setup expose? We know that 
+> Windows changes behaviour under various circumstances depending on which 
+> OS the firmware requests, so it's almost possible that this is another 
+> of those cases.
+>   
 
-Like with many other things ACPI, there probably should be an ACPI date
-cutoff for using it by default.  There is also port CF9 reboot (often
-incorrectly described as "PCI reboot", but it has nothing to do with the
-PCI standard.)
+Isn't it the other way around?  The firmware changes behavior depending 
+on how the OS identifies itself?
 
-	-hpa
+Reboot is a fixed feature IIRC, so it cannot change depending on 
+identification strings.
+
+-- 
+error compiling committee.c: too many arguments to function
