@@ -1,58 +1,58 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: Namespace lookup failure error on QuadCore E5420
-Date: Mon, 10 Nov 2008 09:32:49 +0800
-Message-ID: <1226280769.15014.21.camel@rzhang-dt>
-References: <20081109134804.GA32033@frix.fri.uniza.sk>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [PATCH 10/10] x86, ACPI: default to reboot via ACPI (again)
+Date: Mon, 10 Nov 2008 09:39:38 +0100
+Message-ID: <20081110083938.GD22392@elte.hu>
+References: <007e7d616a5d1c2e16ad627d03f8b97799445e71.1226032943.git.len.brown@intel.com> <200811080930.21462.arvidjaar@mail.ru> <alpine.LFD.2.00.0811080208590.3092@localhost.localdomain> <200811081050.25477.arvidjaar@mail.ru> <20081108115956.GE8354@elte.hu> <4916B38B.7050905@redhat.com> <4916B4DB.90602@zytor.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:65503 "EHLO mga09.intel.com"
+Received: from mx2.mail.elte.hu ([157.181.151.9]:37854 "EHLO mx2.mail.elte.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755447AbYKJBe7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 9 Nov 2008 20:34:59 -0500
-In-Reply-To: <20081109134804.GA32033@frix.fri.uniza.sk>
+	id S1753909AbYKJIkB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 10 Nov 2008 03:40:01 -0500
+Content-Disposition: inline
+In-Reply-To: <4916B4DB.90602@zytor.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Strazovec <bubak@frix.fri.uniza.sk>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: "H. Peter Anvin" <hpa@zytor.com>, "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Avi Kivity <avi@redhat.com>, Andrey Borzenkov <arvidjaar@mail.ru>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Eduardo Habkost <ehabkost@redhat.com>, Andrew Morton <akpm@linux-foundation.org>
 
-On Sun, 2008-11-09 at 21:48 +0800, Peter Strazovec wrote:
-> I have problem with Namespace lookup failure error on E5420.=20
-> ( ACPI Error (psargs-0358): [CS03] Namespace lookup failure, AE_NOT_F=
-OUND )
-> Thus acpi not functional (cpufrequ via p-states, etc...).
->=20
-ACPI is enabled on your system, except the cpu c-state.
 
-=46irst please download the latest pmtools at
-http://www.lesswatts.org/projects/acpi/utilities.php
+* H. Peter Anvin <hpa@zytor.com> wrote:
 
-and then please run
-"./acpidump > acpidump.log"
-"./acpidump --addr 0xcfe5f800 --length 0xd8 > cpu0cst"
-=EF=BB=BF"./acpidump --addr 0xcfe5f900 --length 0xd8 > cpu1cst"
-=EF=BB=BF"./acpidump --addr 0xcfe5fa00 --length 0xd8 > cpu2cst"
-=EF=BB=BF"./acpidump --addr 0xcfe5fb00 --length 0xd8 > cpu3cst"
-and attach all these files.
+> Avi Kivity wrote:
+> > 
+> > I think the sequence should be acpi -> kbd -> triple fault.  Given that
+> > Windows uses ACPI, the number of machines that support it is much larger
+> > (and growing daily) than the number of machines that do not.
+> > 
+> 
+> Like with many other things ACPI, there probably should be an ACPI 
+> date cutoff for using it by default.  There is also port CF9 reboot 
+> (often incorrectly described as "PCI reboot", but it has nothing to 
+> do with the PCI standard.)
 
-Btw, how do you know p-state is not functional?
-the p-state sysfs I/F (/sys/devices/system/cpu/cpuX/cpufreq/)doesn't
-work for you?
+so, the sequence should be:
 
-thanks,
-rui
+ [ acpi if date > 2007 ] -> kbd -> triple fault
 
-> Does anyone know about some patch or some hint?
->=20
-> CONFIG_ACPI_DEBUG=3Dy, CONFIG_ACPI_DEBUG_FUNC_TRACE=3Dy,
-> dmesg, interrupts and cpuinfo attached.
->=20
-> thanks
-> Pete
+Where in this sequence should we insert port-CF9 reboot? We have no 
+discovery of it, etc. The KGDB reboot will do _something_ on most 
+boxes, so inserting it like this:
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ [ acpi	if date	> 2007 ] -> kbd -> port-CF9 -> triple fault
+
+... will likely have no practical impact as we rarely get to the 
+triple fault method to begin with. So the reboot chain we'd like to 
+have is:
+
+ [ acpi	if date	> 2007 ] -> safe-port-CF9 -> kbd -> triple fault
+
+... where safe-port-CF9 is something that can be done safely on all 
+x86 boxes.
+
+Anyway, safe-port-CF9 aside, the ACPI sequence should definitely be 
+cutoff based, so the plain re-introduction of the patch that changes 
+the default is not acceptable.
+
+	Ingo
