@@ -1,138 +1,58 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: Re: Spreading FUD [was: The fatal  logic error in EC write
-	transaction(EC transaction is done in interrupt context)]
-Date: Mon, 10 Nov 2008 09:01:51 +0800
-Message-ID: <1226278911.3989.313.camel@yakui_zhao.sh.intel.com>
-References: <2830c9fb8e66cee70b8bffdfb0de01c144c7e643.1226032677.git.len.brown@intel.com>
-	 <29086e19e9149aadd17ece7112d7d2cf3a8b82f3.1226032677.git.len.brown@intel.com>
-	 <1226038422.3989.244.camel@yakui_zhao.sh.intel.com>
-	 <alpine.LFD.2.00.0811071445140.8189@localhost.localdomain>
-	 <9F0C1DB20AFA954FA1DA05309350433D40C7CC84@pdsmsx503.ccr.corp.intel.com>
-	 <4915B165.8020207@suse.de>
-	 <9F0C1DB20AFA954FA1DA05309350433D40C7CC97@pdsmsx503.ccr.corp.intel.com>
-	 <4915C296.9030903@suse.de>
-	 <1226236287.3989.300.camel@yakui_zhao.sh.intel.com>
-	 <49170156.8000504@gmail.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: Namespace lookup failure error on QuadCore E5420
+Date: Mon, 10 Nov 2008 09:32:49 +0800
+Message-ID: <1226280769.15014.21.camel@rzhang-dt>
+References: <20081109134804.GA32033@frix.fri.uniza.sk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:16690 "EHLO mga01.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:65503 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755309AbYKJAyY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 9 Nov 2008 19:54:24 -0500
-In-Reply-To: <49170156.8000504@gmail.com>
+	id S1755447AbYKJBe7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 9 Nov 2008 20:34:59 -0500
+In-Reply-To: <20081109134804.GA32033@frix.fri.uniza.sk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, LenBrown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>, "Li, Shaohua" <shaohua.li@intel.com>, "Zhang, Rui" <rui.zhang@intel.com>, "Lin, Ming M" <ming.m.lin@intel.com>
+To: Peter Strazovec <bubak@frix.fri.uniza.sk>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Sun, 2008-11-09 at 23:27 +0800, Alexey Starikovskiy wrote:
-> Yakui,
-> 
-> Please take a look at the subject of the thread -- notice words "fatal"
-> and "(EC transaction is done in interrupt context)".
-> Looks horrible, isn't it? Now we begin to get into details, and it appears
-> that it is not fatal, introduced 3.5 years ago, and has nothing to do with
-> interrupt context transaction patch.
-> So, the whole point of your message is to spread FUD about "fast 
-> transaction" patch,
-> and show how great you are. I would guess that you've failed in 
-> achieving both goals.
-I won't argue with you about this issue. 
-     In your patch the program logic states that the EC transaction is
-already finished. But in fact the EC transaction is not really finished.
-They are inconsistent. Why can't call this a fatal logic error? 
-     The more important is that the failure in EC transaction can't be
-detected in time. 
-     Why can't call this a fatal logic error?
-    
-If this is not a fatal logic error, what can be called fatal? Like that
-Several commits are reverted each other as the following three commits.
-    a.7c010de7506954e973abfab5c5999c5a97f7a73e
-    b.4c611060660f0de3e9b8f02df207312bc6f5c331
-    c.f9319f903f898dd4b15dbc386499725ce6c59776
+On Sun, 2008-11-09 at 21:48 +0800, Peter Strazovec wrote:
+> I have problem with Namespace lookup failure error on E5420.=20
+> ( ACPI Error (psargs-0358): [CS03] Namespace lookup failure, AE_NOT_F=
+OUND )
+> Thus acpi not functional (cpufrequ via p-states, etc...).
+>=20
+ACPI is enabled on your system, except the cpu c-state.
 
-If you still reply the subject so impolitely, Don't blame that I will
-forward the similar error to wider range.
- 
-     
-> 
-> If you cry "wolf!" too often, you'll get ignored, when the real wolf 
-> appears.
-> 
-> Now, for a positive example, the same message without exclamation marks...
-> ---------------------------------------------------------------------------------------------------------------------------------
-> Subject: difference in EC transaction protocol
-> Hi Alex,
-> I've noticed difference in EC transaction protocol for write and 
-> burst-disable commands,
-> namely all that end with writing byte to EC -- they don't wait for last 
-> confirmation interrupt and
-> next transaction might start before current one completes.
-> May be this is the "root cause" we are looking for.
-> Regards,
-> Yakui
-> ---------------------------------------------------------------------------------------------------------------------------------
-> Note that this message is shorter, and is not offensive.
-> Smile, and people may start to like you...
-> 
-> Regards,
-> Alex.
-> 
-> P.S. And I don't agree with your analysis as you still believe that 
-> before the fast transaction mutex was
-> not released at the same time as it is now.
-> 
-> Zhao Yakui wrote:
-> > On Sun, 2008-11-09 at 00:47 +0800, Alexey Starikovskiy wrote:
-> >   
-> >> Yakui,
-> >> This is not about my patch, this is about your ego...
-> >>     
-> > Thanks for the reply. I know that this is not introduced by your patch.
-> > In the previous kernel the EC transaction is explicitly divided into
-> > several phases. Only when EC transaction is really finished, the EC
-> > mutex lock is released.  In such case the previous EC transaction is
-> > already  finished when OS begins another EC transaction. So the issue
-> > about "1 microsecond" won't appear.
-> No. No matter how many phases, transaction is done and EC mutex is released
-> as soon as last write happens. EC driver never waited for confirmation 
-> for last written byte.
-> >  But in your patch(EC transaction is
-> > done in interrupt context) when EC mutex is released , maybe the
-> > previous EC transaction is not really finished. In such case the  issue
-> > of "1 microsecond"  will appear.
-> > Is what I said right?
-> No. my patch has same "optimization" as appeared in EC driver since 
-> introduction of interrupt mode.
-> May be it is more visible now, and you managed to notice it, while still 
-> failing to see it in earlier EC driver versions?
-> I agree that there are some benefits in not doing this optimization, 
-> thus I made the patch to drop it.
-> >  
-> >   
-> >> My patch did not introduce this behaviour, it was there since "burst mode" was introduced, and may be even earlier. You may ask Luming Yu, why he was so optimistic about 1 microsecond (is he still around? you did not include him into CC yet...).
-> >>     
-> Actually, I gave too much credit to Shanghai office... Interrupt mode patch was written by Dmitry Torokhov, not Luming Yu.
-> 
-> > In my email what I said is only to point out the logic error. Maybe
-> >   
-> No, see above.
-> > there is no problem that the EC mutex is released before EC transaction
-> > is really finished. IMO this is still a logic error. The program  logic
-> > states that EC transaction is already finished but the EC transaction is
-> > not really finished. They are inconsistent..
-> >    The more important is that the failure in EC transaction can't be
-> > detected in time.
-> >   
-> >    Do you agree with my analysis?
-> >   
-> >   
-> No, see above.
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+=46irst please download the latest pmtools at
+http://www.lesswatts.org/projects/acpi/utilities.php
 
+and then please run
+"./acpidump > acpidump.log"
+"./acpidump --addr 0xcfe5f800 --length 0xd8 > cpu0cst"
+=EF=BB=BF"./acpidump --addr 0xcfe5f900 --length 0xd8 > cpu1cst"
+=EF=BB=BF"./acpidump --addr 0xcfe5fa00 --length 0xd8 > cpu2cst"
+=EF=BB=BF"./acpidump --addr 0xcfe5fb00 --length 0xd8 > cpu3cst"
+and attach all these files.
+
+Btw, how do you know p-state is not functional?
+the p-state sysfs I/F (/sys/devices/system/cpu/cpuX/cpufreq/)doesn't
+work for you?
+
+thanks,
+rui
+
+> Does anyone know about some patch or some hint?
+>=20
+> CONFIG_ACPI_DEBUG=3Dy, CONFIG_ACPI_DEBUG_FUNC_TRACE=3Dy,
+> dmesg, interrupts and cpuinfo attached.
+>=20
+> thanks
+> Pete
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
