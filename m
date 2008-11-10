@@ -1,97 +1,126 @@
 From: Andrew Patterson <andrew.patterson@hp.com>
-Subject: [PATCH 7/7] PCI,
-	ACPI: remove obsolete _OSC capability support functions
-Date: Mon, 10 Nov 2008 15:31:10 -0700
-Message-ID: <20081110223110.30539.19970.stgit@bob.kio>
+Subject: [PATCH 3/7] ACPI,
+	PCI: PCI extended config _OSC support called when root bridge added
+Date: Mon, 10 Nov 2008 15:30:50 -0700
+Message-ID: <20081110223050.30539.52713.stgit@bob.kio>
 References: <20081110223035.30539.88942.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0016.houston.hp.com ([15.201.24.19]:39076 "EHLO
-	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752836AbYKJWbL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Nov 2008 17:31:11 -0500
+Received: from g4t0017.houston.hp.com ([15.201.24.20]:47341 "EHLO
+	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755218AbYKJWbD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Nov 2008 17:31:03 -0500
 In-Reply-To: <20081110223035.30539.88942.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 Cc: andrew.patterson@hp.com, matthew@wil.cx, kaneshige.kenji@jp.fujitsu.com, bjorn.helgaas@hp.com
 
-PCI, ACPI: remove obsolete _OSC capability support functions
+ACPI, PCI: PCI extended config _OSC support called when root bridge added
 
-The acpi_query_osc, __pci_osc_support_set, pci_osc_support_set, and
-pcie_osc_support_set functions have been obsoleted in favor of setting
-these capabilities during root bridge discovery with pci_acpi_osc_support.
-There are no longer any callers of these functions, so they are removed.
+The _OSC capability OSC_EXT_PCI_CONFIG_SUPPORT is set when the root bridge
+is added with pci_acpi_osc_support() if we can access PCI extended
+config space.
+
+Added the function pci_ext_cfg_avail which returns true if we can
+access PCI extended config space (offset greater than 0xff). It
+currently only returns false if arch=x86 and raw_pci_ext_ops is not set
+(which might happen if pci=nommcfg is set on the kernel command-line).
 
 Signed-off-by: Andrew Patterson <andrew.patterson@hp.com>
 ---
 
-diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-index f457387..128ce7d 100644
---- a/drivers/pci/pci-acpi.c
-+++ b/drivers/pci/pci-acpi.c
-@@ -171,31 +171,6 @@ out:
- 	return rc;
+diff --git a/arch/x86/pci/common.c b/arch/x86/pci/common.c
+index b67732b..bf017bb 100644
+--- a/arch/x86/pci/common.c
++++ b/arch/x86/pci/common.c
+@@ -546,6 +546,14 @@ void pcibios_disable_device (struct pci_dev *dev)
+ 		pcibios_disable_irq(dev);
  }
  
--static acpi_status acpi_query_osc(acpi_handle handle, u32 level,
--				  void *context, void **retval)
--{
--	pci_acpi_osc_support(handle, (unsigned long)context);
--	return AE_OK;
--}
--
--/**
-- * __pci_osc_support_set - register OS support to Firmware
-- * @flags: OS support bits
-- * @hid: hardware ID
-- *
-- * Update OS support fields and doing a _OSC Query to obtain an update
-- * from Firmware on supported control bits.
-- **/
--acpi_status __pci_osc_support_set(u32 flags, const char *hid)
--{
--	if (!(flags & OSC_SUPPORT_MASKS))
--		return AE_TYPE;
--
--	acpi_get_devices(hid, acpi_query_osc,
--			 (void *)(unsigned long)flags, NULL);
--	return AE_OK;
--}
--
- /**
-  * pci_osc_control_set - commit requested control to Firmware
-  * @handle: acpi_handle for the target ACPI object
-diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
-index 424f06f..871e096 100644
---- a/include/linux/pci-acpi.h
-+++ b/include/linux/pci-acpi.h
-@@ -50,16 +50,7 @@
- 
- #ifdef CONFIG_ACPI
- extern acpi_status pci_osc_control_set(acpi_handle handle, u32 flags);
--extern acpi_status __pci_osc_support_set(u32 flags, const char *hid);
- int pci_acpi_osc_support(acpi_handle handle, u32 flags);
--static inline acpi_status pci_osc_support_set(u32 flags)
--{
--	return __pci_osc_support_set(flags, PCI_ROOT_HID_STRING);
--}
--static inline acpi_status pcie_osc_support_set(u32 flags)
--{
--	return __pci_osc_support_set(flags, PCI_EXPRESS_ROOT_HID_STRING);
--}
- static inline acpi_handle acpi_find_root_bridge_handle(struct pci_dev *pdev)
++int pci_ext_cfg_avail(struct pci_dev *dev)
++{
++	if (raw_pci_ext_ops)
++		return 1;
++	else
++		return 0;
++}
++
+ struct pci_bus * __devinit pci_scan_bus_on_node(int busno, struct pci_ops *ops, int node)
  {
- 	/* Find root host bridge */
-@@ -76,8 +67,6 @@ typedef u32 		acpi_status;
- #endif    
- static inline acpi_status pci_osc_control_set(acpi_handle handle, u32 flags)
- {return AE_ERROR;}
--static inline acpi_status pci_osc_support_set(u32 flags) {return AE_ERROR;} 
--static inline acpi_status pcie_osc_support_set(u32 flags) {return AE_ERROR;}
- static inline acpi_handle acpi_find_root_bridge_handle(struct pci_dev *pdev)
- { return NULL; }
+ 	struct pci_bus *bus = NULL;
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index 7ca153e..191a510 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -194,7 +194,7 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
+ 	unsigned long long value = 0;
+ 	acpi_handle handle = NULL;
+ 	struct acpi_device *child;
+-	u32 flags;
++	u32 flags, base_flags;
+ 
+ 
+ 	if (!device)
+@@ -216,7 +216,7 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
+ 	 * All supported architectures that use ACPI have support for
+ 	 * PCI domains, so we indicate this in _OSC support capabilities.
+ 	 */
+-	flags = OSC_PCI_SEGMENT_GROUPS_SUPPORT;
++	flags = base_flags = OSC_PCI_SEGMENT_GROUPS_SUPPORT;
+ 	pci_acpi_osc_support(device->handle, flags);
+ 
+ 	/* 
+@@ -344,6 +344,12 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
+ 	list_for_each_entry(child, &device->children, node)
+ 		acpi_pci_bridge_scan(child);
+ 
++	/* Indicate support for various _OSC capabilities. */
++	if (pci_ext_cfg_avail(root->bus->self))
++		flags |= OSC_EXT_PCI_CONFIG_SUPPORT;
++	if (flags != base_flags)
++		pci_acpi_osc_support(device->handle, flags);
++
+       end:
+ 	if (result) {
+ 		if (!list_empty(&root->node))
+diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+index 21f2ac6..70a8c74 100644
+--- a/drivers/pci/pci.c
++++ b/drivers/pci/pci.c
+@@ -2029,6 +2029,19 @@ static void __devinit pci_no_domains(void)
  #endif
+ }
+ 
++/**
++ * pci_ext_cfg_enabled - can we access extended PCI config space?
++ * @dev: The PCI device of the root bridge.
++ *
++ * Returns 1 if we can access PCI extended config space (offsets
++ * greater than 0xff). This is the default implementation. Architecture
++ * implementations can override this.
++ */
++int __attribute__ ((weak)) pci_ext_cfg_avail(struct pci_dev *dev)
++{
++	return 1;
++}
++
+ static int __devinit pci_init(void)
+ {
+ 	struct pci_dev *dev = NULL;
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index c75b82b..c5d40ba 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -1135,6 +1135,8 @@ static inline void pci_mmcfg_early_init(void) { }
+ static inline void pci_mmcfg_late_init(void) { }
+ #endif
+ 
++int pci_ext_cfg_avail(struct pci_dev *dev);
++
+ #ifdef CONFIG_HAS_IOMEM
+ static inline void * pci_ioremap_bar(struct pci_dev *pdev, int bar)
+ {
 
