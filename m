@@ -1,127 +1,99 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: Re: [PATCH 4/5] ACPI: EC: restart failed command
-Date: Tue, 11 Nov 2008 00:09:22 +0300
-Message-ID: <4918A302.50704@gmail.com>
-References: <20081109155847.13635.15244.stgit@thinkpad> <20081109160058.13635.23640.stgit@thinkpad>
+From: Andrew Patterson <andrew.patterson@hp.com>
+Subject: [PATCH v4 0/7] call _OSC support during root bridge discovery
+Date: Mon, 10 Nov 2008 15:30:35 -0700
+Message-ID: <20081110223035.30539.88942.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.169]:47047 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752817AbYKJVJZ (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Mon, 10 Nov 2008 16:09:25 -0500
-Received: by ug-out-1314.google.com with SMTP id 39so529644ugf.37
-        for <Linux-acpi@vger.kernel.org>; Mon, 10 Nov 2008 13:09:23 -0800 (PST)
-In-Reply-To: <20081109160058.13635.23640.stgit@thinkpad>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: andrew.patterson@hp.com, matthew@wil.cx, kaneshige.kenji@jp.fujitsu.com, bjorn.helgaas@hp.com
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: LenBrown <lenb@kernel.org>, Linux-acpi@vger.kernel.org
 
-Len,
-Please don't apply this patch
+This is v4 of the "call _OSC support during root bridge discovery"
+patchset.  
 
-Thanks,
-Alex.
+We now call pci_acpi_osc_support() twice during
+acpi_pci_root_add(). Once at the beginning with a default flag
+OSC_PCI_SEGMENT_GROUPS_SUPPORT set since we need this to evaluate _SEG
+and _BBN. And once again after the bus is scanned to set all the other
+_OSC flags. The second call is performed after all PCI quirks are
+finished.
 
-Alexey Starikovskiy wrote:
-> Restart current transaction if status unexpectedly becomes clear.
-> There is an external timeout for transaction completion, thus there is
-> no need to place additional restriction on restart count.
-> Referencies: http://bugzilla.kernel.org/show_bug.cgi?id=11896
-> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-> ---
->
->  drivers/acpi/ec.c |   41 +++++++++++++++++++++++++++--------------
->  1 files changed, 27 insertions(+), 14 deletions(-)
->
->
-> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-> index d6007ac..9646604 100644
-> --- a/drivers/acpi/ec.c
-> +++ b/drivers/acpi/ec.c
-> @@ -100,6 +100,8 @@ struct transaction {
->  	u8 *rdata;
->  	unsigned short irq_count;
->  	u8 command;
-> +	u8 wi;
-> +	u8 ri;
->  	u8 wlen;
->  	u8 rlen;
->  	bool done;
-> @@ -185,31 +187,44 @@ static int ec_transaction_done(struct acpi_ec *ec)
->  	return ret;
->  }
->  
-> +static void start_transaction(struct acpi_ec *ec)
-> +{
-> +	ec->curr->irq_count = ec->curr->wi = ec->curr->ri = 0;
-> +	ec->curr->done = false;
-> +	acpi_ec_write_cmd(ec, ec->curr->command);
-> +}
-> +
->  static void gpe_transaction(struct acpi_ec *ec, u8 status)
->  {
->  	unsigned long flags;
->  	spin_lock_irqsave(&ec->curr_lock, flags);
->  	if (!ec->curr)
->  		goto unlock;
-> -	if (ec->curr->wlen > 0) {
-> -		if ((status & ACPI_EC_FLAG_IBF) == 0) {
-> -			acpi_ec_write_data(ec, *(ec->curr->wdata++));
-> -			--ec->curr->wlen;
-> -		} else
-> +	if (ec->curr->wlen > ec->curr->wi) {
-> +		if ((status & ACPI_EC_FLAG_IBF) == 0)
-> +			acpi_ec_write_data(ec,
-> +				ec->curr->wdata[ec->curr->wi++]);
-> +		else
->  			goto err;
-> -	} else if (ec->curr->rlen > 0) {
-> +	} else if (ec->curr->rlen > ec->curr->ri) {
->  		if ((status & ACPI_EC_FLAG_OBF) == 1) {
-> -			*(ec->curr->rdata++) = acpi_ec_read_data(ec);
-> -			if (--ec->curr->rlen == 0)
-> +			ec->curr->rdata[ec->curr->ri++] = acpi_ec_read_data(ec);
-> +			if (ec->curr->rlen == ec->curr->ri)
->  				ec->curr->done = true;
->  		} else
->  			goto err;
-> -	} else if (ec->curr->wlen == 0 && (status & ACPI_EC_FLAG_IBF) == 0)
-> +	} else if (ec->curr->wlen == ec->curr->wi &&
-> +		   (status & ACPI_EC_FLAG_IBF) == 0)
->  		ec->curr->done = true;
->  	goto unlock;
->  err:
-> -	/* false interrupt, state didn't change */
-> -	++ec->curr->irq_count;
-> +	/* restart command */
-> +	if (!status) {
-> +		pr_debug(PREFIX "controller reset, restart transaction\n");
-> +		start_transaction(ec);
-> +	} else
-> +		/* false interrupt, state didn't change */
-> +		++ec->curr->irq_count;
->  unlock:
->  	spin_unlock_irqrestore(&ec->curr_lock, flags);
->  }
-> @@ -268,10 +283,8 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec,
->  	/* start transaction */
->  	spin_lock_irqsave(&ec->curr_lock, tmp);
->  	/* following two actions should be kept atomic */
-> -	t->irq_count = 0;
-> -	t->done = false;
->  	ec->curr = t;
-> -	acpi_ec_write_cmd(ec, ec->curr->command);
-> +	start_transaction(ec);
->  	if (ec->curr->command == ACPI_EC_COMMAND_QUERY)
->  		clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
->  	spin_unlock_irqrestore(&ec->curr_lock, tmp);
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->   
 
+I recently reported a problem where a machine with close to a 100 PCIe
+root bridges was taking half an hour to just call _OSC.  The root
+cause is the AER code calling:
+
+        pcie_osc_support_set(OSC_EXT_PCI_CONFIG_SUPPORT);
+
+for each bridge.  The pcie_osc_support_set() function also iterates
+over each bridge, so _OSC is called a quadratic number of times.
+
+One solution to this problem would be to just move the call to
+pcie_osc_support_set() to aer_service_init(), so _OSC support is only
+called on each bridge once.
+
+Matthew Wilcox came up with a better solution.  He says "Why should a
+driver be calling pcie_osc_support_set() anyway?  This is something
+the PCI core should be taking care of for it."
+
+Matthew provided a patch for this solution that I massaged into the
+following patch series.
+
+It creates a new function (pci_acpi_osc_support()) which is called
+from pci_root.c before we call any other methods on the device (as
+recommended by the ACPI spec).  Since we know what capabilities the
+system supports, individual modules do not now need to inform the core
+of their support for various capabilities.
+
+Some work that still needs to be done (provided by Matthew): 
+
+o All the existing _OSC code should be moved from pci-acpi.c to
+  pci_root.c.  I also think the acpi_osc_data should be made part of
+  the acpi_pci_root struct, eliminating a separate allocation.
+
+o We could also use an interface that iterates over all existing
+  busses calling _OSC with new flags.  Shouldn't be hard, once it's
+  integrated into pci_root.c.
+
+o Further ahead, we don't actually check that the bits we asked for
+  (in 'control') were actually granted to us.  The PCI firmware spec
+  is quite explicit about interdependencies amongst the bits.
+
+o We also need to re-evaluate _OSC when coming out of S4.
+
+This patch series duplicates currently functionality while removing
+our quadratic problem.  I believe that it can be applied now while the
+above new functionality can be implemented some time in the future.
+
+This patch series applies to the linux-next branch of pci-2.6 git
+repository.  I expect it will also work with linux-next.
+
+Diff stats:
+
+ arch/x86/pci/common.c              |    8 +++++++
+ drivers/acpi/pci_root.c            |   20 +++++++++++++++++++
+ drivers/pci/msi.c                  |   31 ++++++++++-------------------
+ drivers/pci/pci-acpi.c             |   37 ++++++++++++-----------------------
+ drivers/pci/pci.c                  |   15 ++++++++++++-
+ drivers/pci/pci.h                  |    2 -
+ drivers/pci/pcie/aer/aerdrv_acpi.c |    1 -
+ drivers/pci/pcie/aspm.c            |   27 ++++++++-----------------
+ include/linux/pci-acpi.h           |   14 ++----------
+ include/linux/pci.h                |   16 +++++++++++++++
+ 10 files changed, 93 insertions(+), 78 deletions(-)
+
+Commits:
+
+  - Include missing acpi.h file in pci-acpi.h.
+  - Call _OSC support during root bridge discovery.
+  - PCI extended config _OSC support called when root bridge added.
+  - PCIe ASPM _OSC support capabilities called when root bridge added.
+  - PCIe AER _OSC support capabilities called when root bridge added.
+  - PCI MSI _OSC support capabilities called when root bridge added.
+  - Remove obsolete _OSC capability support functions.
+
+-- 
+Andrew Patterson
