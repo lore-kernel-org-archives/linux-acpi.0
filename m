@@ -1,78 +1,169 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [RESEND] [PATCH 2/3] Introduce acpi_root_table=rsdt boot param and dmi list to force rsdt
-Date: Tue, 11 Nov 2008 00:58:56 +0000
-Message-ID: <20081111005856.GA10535@srcf.ucam.org>
-References: <200810192350.57993.trenn@suse.de>
+From: Lin Ming <ming.m.lin@intel.com>
+Subject: RE: Namespace lookup failure error on QuadCore E5420
+Date: Tue, 11 Nov 2008 09:14:59 +0800
+Message-ID: <1226366099.30025.36.camel@minggr.sh.intel.com>
+References: <20081109134804.GA32033@frix.fri.uniza.sk>
+	 <1226280769.15014.21.camel@rzhang-dt>
+	 <20081110052650.GA2133@frix.fri.uniza.sk>
+	 <1226299630.15014.30.camel@rzhang-dt>
+	 <4911F71203A09E4D9981D27F9D8308580D6704B1@orsmsx503.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:56823 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752650AbYKKA7F (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Nov 2008 19:59:05 -0500
-Content-Disposition: inline
-In-Reply-To: <200810192350.57993.trenn@suse.de>
+Received: from mga09.intel.com ([134.134.136.24]:59998 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753356AbYKKBQF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 10 Nov 2008 20:16:05 -0500
+In-Reply-To: <4911F71203A09E4D9981D27F9D8308580D6704B1@orsmsx503.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Len Brown <lenb@kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi <linux-acpi@vger.kernel.org>, Zhao Yakui <yakui.zhao@intel.com>, me@markdoughty.co.uk, linux-thinkpad <linux-thinkpad@linux-thinkpad.org>, "devel@acpica.org" <devel@acpica.org>
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, "bubak@frix.fri.uniza.sk" <bubak@frix.fri.uniza.sk>, linux-acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-I've now had confirmation from multiple sources that Vista still uses 
-the 32-bit addresses for the GPE blocks. We're actually seeing the same 
-bug on some currently shipping machines, so again I'm going to suggest 
-that the blacklist model isn't going to scale and we should just behave 
-like Windows. How about this patch instead? It does some sanity 
-checking, so I doubt that there's any way it could break a legitimate 
-system. I've left IA64 as-is because it seems more likely that there'd 
-be a requirement for 64-bit setups there.
+On Tue, 2008-11-11 at 01:45 +0800, Moore, Robert wrote:
+> The first question would be, what does Windows do with this?
+> 
+> To answer your question:
+> 
+> ACPICA does not support forward references within control methods, it never has. There is good reason for this:
+> 
+> Return (CS01)
+> If (ABCD)
+> {
+>     Name (CS01, 1)
+> }
+> Else
+> {
+>     Name (CS01, 2)
+> }
+> 
+> What should be returned?
+> 
+> 
+> Lin Ming, here is a simplified version of the code example, please run it on Windows:
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Tested XP and Vista in KVM.
+They both don't support forward references within control methods.
 
----
+Lin Ming
 
-Are there even any ACPI platforms where a system io address can be 
-greater than 32 bits? It's limited to 16 bits on x86, so I *really* 
-don't think this is going to break anything. The FADTs I've checked from 
-Thinkpads all seem to have valid 32-bit addresses even using the one 
-obtained from the XSDT.
+> 
+> 
+> DefinitionBlock ("gr.aml", "DSDT", 1, "TEST", "CPU0CST", 1)
+> {
+>     Name (ABCD, 1)
+> 
+>     Method (_CST, 0, NotSerialized)
+>     {
+>         If (LAnd (ABCD, 0x10))
+>         {
+>             Return (CS03)
+>         }
+> 
+>         Return (CS01)
+> 
+>         Name (CS01, 1)
+>         Name (CS03, 3)
+>     }
+> }
+> 
+> >-----Original Message-----
+> >From: Zhang, Rui
+> >Sent: Sunday, November 09, 2008 10:47 PM
+> >To: Moore, Robert; Lin, Ming M
+> >Cc: bubak@frix.fri.uniza.sk; Zhang, Rui; linux-acpi; Len Brown
+> >Subject: Re: Namespace lookup failure error on QuadCore E5420
+> >
+> >Hi, Bob and Ming,
+> >
+> >Please look at this piece of AML code in the cpu0cst (a dynamic SSDT
+> >table).
+> >Method (_CST, 0, NotSerialized)
+> >        {
+> >            If (LAnd (PDC1, 0x10))
+> >            {
+> >                Return (CS03)
+> >            }
+> >
+> >            Return (CS01)
+> >            Name (CS01, Package (0x02)
+> >            {
+> >               ...
+> >            })
+> >            Name (CS03, Package (0x04)
+> >            {
+> >              ...
+> >            })
+> >}
+> >
+> >CS01/CS03 is evaluated before it's defined, causing an AE_NOT_FOUND
+> >error.
+> >Should we fix it in ACPICA?
+> >
+> >thanks,
+> >rui
+> >
+> >On Mon, 2008-11-10 at 13:26 +0800, Peter Strazovec wrote:
+> >> On Mon, Nov 10, 2008 at 09:32:49AM +0800, Zhang Rui wrote:
+> >> > On Sun, 2008-11-09 at 21:48 +0800, Peter Strazovec wrote:
+> >> > > I have problem with Namespace lookup failure error on E5420.
+> >> > > ( ACPI Error (psargs-0358): [CS03] Namespace lookup failure,
+> >AE_NOT_FOUND )
+> >> > > Thus acpi not functional (cpufrequ via p-states, etc...).
+> >> > >
+> >> > ACPI is enabled on your system, except the cpu c-state.
+> >> >
+> >> > First please download the latest pmtools at
+> >> > http://www.lesswatts.org/projects/acpi/utilities.php
+> >> >
+> >> > and then please run
+> >> > "./acpidump > acpidump.log"
+> >> > "./acpidump --addr 0xcfe5f800 --length 0xd8 > cpu0cst"
+> >> > ???"./acpidump --addr 0xcfe5f900 --length 0xd8 > cpu1cst"
+> >> > ???"./acpidump --addr 0xcfe5fa00 --length 0xd8 > cpu2cst"
+> >> > ???"./acpidump --addr 0xcfe5fb00 --length 0xd8 > cpu3cst"
+> >> > and attach all these files.
+> >> >
+> >> > Btw, how do you know p-state is not functional?
+> >> > the p-state sysfs I/F (/sys/devices/system/cpu/cpuX/cpufreq/)doesn't
+> >> > work for you?
+> >> >
+> >> > thanks,
+> >> > rui
+> >> >
+> >> > > Does anyone know about some patch or some hint?
+> >> > >
+> >> > > CONFIG_ACPI_DEBUG=y, CONFIG_ACPI_DEBUG_FUNC_TRACE=y,
+> >> > > dmesg, interrupts and cpuinfo attached.
+> >> > >
+> >> > > thanks
+> >> > > Pete
+> >> >
+> >> > --
+> >> > To unsubscribe from this list: send the line "unsubscribe linux-acpi"
+> >in
+> >> > the body of a message to majordomo@vger.kernel.org
+> >> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >>
+> >>
+> >> I though, that 'namespace' error is like 'not working'.... anyhow:
+> >>
+> >> @cpu c-state
+> >> mhmm, I've been talking about p-state (  CONFIG_X86_ACPI_CPUFREQ ) and
+> >not
+> >> working because:
+> >> #cpufreq-set -g performance
+> >> wrong, unknown or unhandled CPU?
+> >> #ls /sys/devices/system/cpu/cpu0/
+> >> cache  thermal_throttle  topology
+> >> -> no cpufreq dir there
+> >> #cat /proc/acpi/processor/CPU0/throttling
+> >> <not supported>
+> >>
+> >> acpidumps attached
+> >>
+> >>
+> >> Thanks
+> >> Pete
 
-diff --git a/drivers/acpi/events/evgpeblk.c b/drivers/acpi/events/evgpeblk.c
-index 73c058e..eed35d7 100644
---- a/drivers/acpi/events/evgpeblk.c
-+++ b/drivers/acpi/events/evgpeblk.c
-@@ -1107,6 +1107,32 @@ acpi_status acpi_ev_gpe_initialize(void)
- 	 */
- 
- 	/*
-+	 * The ACPI specification says that we should use the 64-bit
-+	 * address offset for the GPE blocks if it exists. However,
-+	 * Windows uses the legacy address. Various vendors have left
-+	 * incorrect values in the 64-bit field, which then causes
-+	 * problems later. Since the vast majority of machines have
-+	 * never been tested with an OS that uses the 64-bit value by
-+	 * default, we should behave like Windows and ignore the spec
-+	 * by only using the 64-bit address if it contains something
-+	 * that can't be represented in the legacy field. Since system
-+	 * io space is only 16 bits on x86, this should be entirely
-+	 * safe.
-+	 */
-+
-+#ifdef CONFIG_X86
-+	if (acpi_gbl_FADT.gpe0_block &&
-+	    acpi_gbl_FADT.xgpe0_block.space_id == ACPI_ADR_SPACE_SYSTEM_IO)
-+		acpi_gbl_FADT.xgpe0_block.address =
-+			(u64)acpi_gbl_FADT.gpe0_block;
-+
-+	if (acpi_gbl_FADT.gpe1_block &&
-+	    acpi_gbl_FADT.xgpe1_block.space_id == ACPI_ADR_SPACE_SYSTEM_IO)
-+		acpi_gbl_FADT.xgpe1_block.address =
-+			(u64)acpi_gbl_FADT.gpe1_block;
-+#endif
-+
-+	/*
- 	 * Determine the maximum GPE number for this machine.
- 	 *
- 	 * Note: both GPE0 and GPE1 are optional, and either can exist without
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
