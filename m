@@ -1,71 +1,126 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 10/10] x86, ACPI: default to reboot via ACPI (again)
-Date: Tue, 11 Nov 2008 18:14:31 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0811111802440.4480@localhost.localdomain>
-References: <007e7d616a5d1c2e16ad627d03f8b97799445e71.1226032943.git.len.brown@intel.com>
- <200811080930.21462.arvidjaar@mail.ru>
- <alpine.LFD.2.00.0811080208590.3092@localhost.localdomain>
- <200811081050.25477.arvidjaar@mail.ru> <20081108115956.GE8354@elte.hu>
- <4916B38B.7050905@redhat.com> <4916B4DB.90602@zytor.com>
- <20081110083938.GD22392@elte.hu> <20081110115732.GA30181@srcf.ucam.org>
- <20081110125630.GC28643@elte.hu> <20081110130029.GC30894@srcf.ucam.org>
+Subject: Re: [PATCH] ACPI: EC: restart failed command
+Date: Tue, 11 Nov 2008 18:35:09 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0811111834510.4480@localhost.localdomain>
+References: <20081111224018.10031.4910.stgit@thinkpad>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms044pub.verizon.net ([206.46.252.44]:43614 "EHLO
+Received: from vms044pub.verizon.net ([206.46.252.44]:62058 "EHLO
 	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751709AbYKKXOs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Nov 2008 18:14:48 -0500
+	with ESMTP id S1751568AbYKKXfL (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Tue, 11 Nov 2008 18:35:11 -0500
 Received: from localhost.localdomain ([96.237.168.40])
  by vms044.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0KA600MRAZ8CYPW7@vms044.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Tue, 11 Nov 2008 17:14:37 -0600 (CST)
-In-reply-to: <20081110130029.GC30894@srcf.ucam.org>
+ 3 2006)) with ESMTPA id <0KA700MF806MZ3F7@vms044.mailsrvcs.net> for
+ Linux-acpi@vger.kernel.org; Tue, 11 Nov 2008 17:35:11 -0600 (CST)
+In-reply-to: <20081111224018.10031.4910.stgit@thinkpad>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, "Eric W. Biederman" <ebiederm@xmission.com>, Avi Kivity <avi@redhat.com>, Andrey Borzenkov <arvidjaar@mail.ru>, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Eduardo Habkost <ehabkost@redhat.com>, Andrew Morton <akpm@linux-foundation.org>
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Linux-acpi@vger.kernel.org
 
-
-
-On Mon, 10 Nov 2008, Matthew Garrett wrote:
-
-> On Mon, Nov 10, 2008 at 01:56:30PM +0100, Ingo Molnar wrote:
-> > * Matthew Garrett <mjg@redhat.com> wrote:
-> > > or something. Microsoft appear to have moved away from using date 
-> > > cutoffs for anything other than whether or not to enable ACPI in the 
-> > > first place, and we ought to attempt compatibility with them.
-> > 
-> > okay, that's fine to me too. My main point is that we need something 
-> > nuanced this time around (be it a string check or a cutoff) - not the 
-> > "enable again" patch that i saw in the ACPI tree and which i had to 
-> > NAK.
-> 
-> All we need now is confirmation as to which versions of Windows use this 
-> behaviour.
-
-We knows XP and Vista do it.
-
-But upstream doesn't currently check the FADT.flags.reset-reg-supported bit
-due to a recent bad guess on my part on how to be bug compatible with 
-windows.
-
-The (revert) patch to add that check is in my tree, along with
-the trivial patch to flip the default to acpi-reset.
-
-Technically, that is the only "unanced" thing we should need
-to check.  However, it will not fix Avi's box, where it appears
-that flag is present, the reset works, but for some reason the
-keyboard fails after reset.  More likely that is a device driver
-issue specific to Linux interacting with "unexpected" BIOS behavior.
-
-Ingo,
-If you don't mind, I'd like to continue to keep a version
-of the acpi-reset-default patch in my test tree so that
-it is seen by linux-next.  Once I have something that
-I think merits upstream inclusion, I'll send a request
-to you.  Will that work?
+refreshed previous version of this patch with this one.
 
 thanks,
--Len
+-len
 
+On Wed, 12 Nov 2008, Alexey Starikovskiy wrote:
+
+> Restart current transaction if we recieved unexpected GPEs instead
+> of needed ones.
+> 
+> Referencies: http://bugzilla.kernel.org/show_bug.cgi?id=11896
+> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+> ---
+> 
+>  drivers/acpi/ec.c |   41 +++++++++++++++++++++++++++++------------
+>  1 files changed, 29 insertions(+), 12 deletions(-)
+> 
+> 
+> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+> index db7d67e..87337b0 100644
+> --- a/drivers/acpi/ec.c
+> +++ b/drivers/acpi/ec.c
+> @@ -100,6 +100,8 @@ struct transaction {
+>  	u8 *rdata;
+>  	unsigned short irq_count;
+>  	u8 command;
+> +	u8 wi;
+> +	u8 ri;
+>  	u8 wlen;
+>  	u8 rlen;
+>  	bool done;
+> @@ -185,26 +187,34 @@ static int ec_transaction_done(struct acpi_ec *ec)
+>  	return ret;
+>  }
+>  
+> +static void start_transaction(struct acpi_ec *ec)
+> +{
+> +	ec->curr->irq_count = ec->curr->wi = ec->curr->ri = 0;
+> +	ec->curr->done = false;
+> +	acpi_ec_write_cmd(ec, ec->curr->command);
+> +}
+> +
+>  static void gpe_transaction(struct acpi_ec *ec, u8 status)
+>  {
+>  	unsigned long flags;
+>  	spin_lock_irqsave(&ec->curr_lock, flags);
+>  	if (!ec->curr)
+>  		goto unlock;
+> -	if (ec->curr->wlen > 0) {
+> -		if ((status & ACPI_EC_FLAG_IBF) == 0) {
+> -			acpi_ec_write_data(ec, *(ec->curr->wdata++));
+> -			--ec->curr->wlen;
+> -		} else
+> +	if (ec->curr->wlen > ec->curr->wi) {
+> +		if ((status & ACPI_EC_FLAG_IBF) == 0)
+> +			acpi_ec_write_data(ec,
+> +				ec->curr->wdata[ec->curr->wi++]);
+> +		else
+>  			goto err;
+> -	} else if (ec->curr->rlen > 0) {
+> +	} else if (ec->curr->rlen > ec->curr->ri) {
+>  		if ((status & ACPI_EC_FLAG_OBF) == 1) {
+> -			*(ec->curr->rdata++) = acpi_ec_read_data(ec);
+> -			if (--ec->curr->rlen == 0)
+> +			ec->curr->rdata[ec->curr->ri++] = acpi_ec_read_data(ec);
+> +			if (ec->curr->rlen == ec->curr->ri)
+>  				ec->curr->done = true;
+>  		} else
+>  			goto err;
+> -	} else if (ec->curr->wlen == 0 && (status & ACPI_EC_FLAG_IBF) == 0)
+> +	} else if (ec->curr->wlen == ec->curr->wi &&
+> +		   (status & ACPI_EC_FLAG_IBF) == 0)
+>  		ec->curr->done = true;
+>  	goto unlock;
+>  err:
+> @@ -219,6 +229,15 @@ static int acpi_ec_wait(struct acpi_ec *ec)
+>  	if (wait_event_timeout(ec->wait, ec_transaction_done(ec),
+>  			       msecs_to_jiffies(ACPI_EC_DELAY)))
+>  		return 0;
+> +	/* try restart command if we get any false interrupts */
+> +	if (ec->curr->irq_count &&
+> +	    (acpi_ec_read_status(ec) & ACPI_EC_FLAG_IBF) == 0) {
+> +		pr_debug(PREFIX "controller reset, restart transaction\n");
+> +		start_transaction(ec);
+> +		if (wait_event_timeout(ec->wait, ec_transaction_done(ec),
+> +					msecs_to_jiffies(ACPI_EC_DELAY)))
+> +			return 0;
+> +	}
+>  	/* missing GPEs, switch back to poll mode */
+>  	if (printk_ratelimit())
+>  		pr_info(PREFIX "missing confirmations, "
+> @@ -268,10 +287,8 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec,
+>  	/* start transaction */
+>  	spin_lock_irqsave(&ec->curr_lock, tmp);
+>  	/* following two actions should be kept atomic */
+> -	t->irq_count = 0;
+> -	t->done = false;
+>  	ec->curr = t;
+> -	acpi_ec_write_cmd(ec, ec->curr->command);
+> +	start_transaction(ec);
+>  	if (ec->curr->command == ACPI_EC_COMMAND_QUERY)
+>  		clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
+>  	spin_unlock_irqrestore(&ec->curr_lock, tmp);
+> 
