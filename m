@@ -1,82 +1,79 @@
 From: Holger Macht <hmacht@suse.de>
-Subject: Re: [patch 20/23] ACPI: dock: avoid check _STA method
-Date: Tue, 11 Nov 2008 13:16:07 +0100
-Message-ID: <20081111121607.GA32066@homac.suse.de>
-References: <20081107224818.593212310@mini.kroah.org> <20081107231606.GU1108@kroah.com>
+Subject: Re: [patch 1/11]avoid check _STA method
+Date: Tue, 11 Nov 2008 13:17:34 +0100
+Message-ID: <20081111121734.GB32066@homac.suse.de>
+References: <1219888923.29375.21.camel@sli10-desk.sh.intel.com> <20080922105759.GB26633@homac.suse.de> <1222224665.968.3.camel@sli10-desk.sh.intel.com> <20080925144945.GA8942@homac.suse.de> <20080926010459.GA28382@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:35065 "EHLO mx2.suse.de"
+Received: from ns.suse.de ([195.135.220.2]:41919 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755080AbYKKMQf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 11 Nov 2008 07:16:35 -0500
+	id S1755322AbYKKMR5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 11 Nov 2008 07:17:57 -0500
 Content-Disposition: inline
-In-Reply-To: <20081107231606.GU1108@kroah.com>
+In-Reply-To: <20080926010459.GA28382@sli10-desk.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <gregkh@suse.de>
-Cc: linux-kernel@vger.kernel.org, stable@kernel.org, Justin Forbes <jmforbes@linuxtx.org>, Zwane Mwaikambo <zwane@arm.linux.org.uk>, Theodore Ts'o <tytso@mit.edu>, Randy Dunlap <rdunlap@xenotime.net>, Dave Jones <davej@redhat.com>, Chuck Wolber <chuckw@quantumlinux.com>, Chris Wedgwood <reviews@ml.cw.f00f.org>, Michael Krufky <mkrufky@linuxtv.org>, Chuck Ebbert <cebbert@redhat.com>, Domenico Andreoli <cavokz@gmail.com>, Willy Tarreau <w@1wt.eu>, Rodrigo Rubira Branco <rbranco@la.checkpoint.com>, Jake Edge <jake@lwn.net>, Eugene Teo <eteo@redhat.com>, torvalds@linux-foundation.org, akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, linux-acpi@vger.kernel.org, Shaohua Li <shaohua.li@intel.com>, Len Brown <len.brown@intel.com>
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Andi Kleen <andi@firstfloor.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, mjg59 <mjg59@srcf.ucam.org>, Tejun Heo <htejun@gmail.com>
 
-On Fri 07. Nov - 15:16:06, Greg KH wrote:
-> 2.6.26-stable review patch.  If anyone has any objections, please let us know.
+On Fri 26. Sep - 09:04:59, Shaohua Li wrote:
+> On Thu, Sep 25, 2008 at 10:49:45PM +0800, Holger Macht wrote:
+> > On Wed 24. Sep - 10:51:05, Shaohua Li wrote:
+> > > On Mon, 2008-09-22 at 18:57 +0800, Holger Macht wrote:
+> > > > On Thu 28. Aug - 10:02:03, Shaohua Li wrote:
+> > > > > In some BIOSes, every _STA method call will send a notification again,
+> > > > > this cause freeze. And in some BIOSes, it appears _STA should be called
+> > > > > after _DCK. This tries to avoid calls _STA, and still keep the device
+> > > > > present check.
+> > > > > http://bugzilla.kernel.org/show_bug.cgi?id=10431
+> > > >
+> > > > Finally found some time to test this...
+> > > >
+> > > > >
+> > > > > Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+> > > > > ---
+> > > > >  drivers/acpi/dock.c |    5 ++++-
+> > > > >  1 file changed, 4 insertions(+), 1 deletion(-)
+> > > > >
+> > > > > Index: linux/drivers/acpi/dock.c
+> > > > > ===================================================================
+> > > > > --- linux.orig/drivers/acpi/dock.c    2008-08-27 14:38:44.000000000 +0800
+> > > > > +++ linux/drivers/acpi/dock.c 2008-08-28 09:33:02.000000000 +0800
+> > > > > @@ -604,14 +604,17 @@ static int handle_eject_request(struct d
+> > > > >  static void dock_notify(acpi_handle handle, u32 event, void *data)
+> > > > >  {
+> > > > >       struct dock_station *ds = data;
+> > > > > +     struct acpi_device *tmp;
+> > > > >
+> > > > >       switch (event) {
+> > > > >       case ACPI_NOTIFY_BUS_CHECK:
+> > > > > -             if (!dock_in_progress(ds) && dock_present(ds)) {
+> > > > > +             if (!dock_in_progress(ds) && acpi_bus_get_device(ds->handle,
+> > > >
+> > > > On the Thinkpad X60, when booting undocked, the first time I dock,
+> > > > acpi_bus_get_device() returns 0, so hotplug is not performed
+> > > > properly. Second time (undock->dock), it works.
+> > > So the patch breaks your X60? acpi_bus_get_device() returns 0 means the
+> > > device is already in ACPI device tree, but it shouldn't as it's not
+> > > present.
+> > 
+> > Do you have a model number of a system which needs this patch? If so,
+> > maybe I could get my hands on one to do some more testing...maybe finding
+> > another solution...
+> please see the bugzilla above. I haven't a system which requires this at hand.
+> I'm quite strange why acpi_bus_get_device() returns 0 for a non-present device,
+> maybe you can dig into this. Is it possible the BIOS wrongly reported device
+> status?
 
-Objecting. This will only work in conjunction with
+No, it was a bug in the acpi subsystem:
 
-  commit 39a0ad871000d2a016a4fa113a6e53d22aabf25d
-  Author: Zhao Yakui <yakui.zhao@intel.com>
-  Date:   Mon Aug 11 13:40:22 2008 +0800
+commit 39a0ad871000d2a016a4fa113a6e53d22aabf25d
+Author: Zhao Yakui <yakui.zhao@intel.com>
+Date:   Mon Aug 11 13:40:22 2008 +0800
 
-      ACPI : Load device driver according to the status of acpi device
+    ACPI : Load device driver according to the status of acpi device
 
-Otherwise a device struct already exists although the device is not
-present.
 
 Regards,
 	Holger
-
-> 
-> ------------------
-> 
-> From: Shaohua Li <shaohua.li@intel.com>
-> 
-> commit 8b59560a3baf2e7c24e0fb92ea5d09eca92805db upstream.
-> 
-> ACPI: dock: avoid check _STA method
-> 
-> In some BIOSes, every _STA method call will send a notification again,
-> this cause freeze. And in some BIOSes, it appears _STA should be called
-> after _DCK. This tries to avoid calls _STA, and still keep the device
-> present check.
-> 
-> http://bugzilla.kernel.org/show_bug.cgi?id=10431
-> 
-> Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-> Signed-off-by: Len Brown <len.brown@intel.com>
-> Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
-> 
-> ---
->  drivers/acpi/dock.c |    5 ++++-
->  1 file changed, 4 insertions(+), 1 deletion(-)
-> 
-> --- a/drivers/acpi/dock.c
-> +++ b/drivers/acpi/dock.c
-> @@ -599,14 +599,17 @@ static int handle_eject_request(struct d
->  static void dock_notify(acpi_handle handle, u32 event, void *data)
->  {
->  	struct dock_station *ds = data;
-> +	struct acpi_device *tmp;
->  
->  	switch (event) {
->  	case ACPI_NOTIFY_BUS_CHECK:
-> -		if (!dock_in_progress(ds) && dock_present(ds)) {
-> +		if (!dock_in_progress(ds) && acpi_bus_get_device(ds->handle,
-> +		   &tmp)) {
->  			begin_dock(ds);
->  			dock(ds);
->  			if (!dock_present(ds)) {
->  				printk(KERN_ERR PREFIX "Unable to dock!\n");
-> +				complete_dock(ds);
->  				break;
->  			}
->  			atomic_notifier_call_chain(&dock_notifier_list,
-> 
