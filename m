@@ -1,192 +1,44 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: Namespace lookup failure error on QuadCore E5420
-Date: Mon, 10 Nov 2008 17:53:42 -0800
-Message-ID: <4911F71203A09E4D9981D27F9D8308580D7E5371@orsmsx503.amr.corp.intel.com>
-References: <20081109134804.GA32033@frix.fri.uniza.sk>
-	 <1226280769.15014.21.camel@rzhang-dt>
-	 <20081110052650.GA2133@frix.fri.uniza.sk>
-	 <1226299630.15014.30.camel@rzhang-dt>
-	 <4911F71203A09E4D9981D27F9D8308580D6704B1@orsmsx503.amr.corp.intel.com>
- <1226366099.30025.36.camel@minggr.sh.intel.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: ACPI crash on lid close - SMP race?
+Date: Tue, 11 Nov 2008 09:59:38 +0800
+Message-ID: <1226368778.15014.73.camel@rzhang-dt>
+References: <20081110161105.GA2041@srcf.ucam.org>
+	 <1226366834.15014.60.camel@rzhang-dt>
+	 <20081111013359.GA11364@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:26767 "EHLO mga09.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:5352 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753473AbYKKBxu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Nov 2008 20:53:50 -0500
-In-Reply-To: <1226366099.30025.36.camel@minggr.sh.intel.com>
-Content-Language: en-US
+	id S1752330AbYKKCCG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 10 Nov 2008 21:02:06 -0500
+In-Reply-To: <20081111013359.GA11364@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Lin, Ming M" <ming.m.lin@intel.com>
-Cc: "Zhang, Rui" <rui.zhang@intel.com>, "bubak@frix.fri.uniza.sk" <bubak@frix.fri.uniza.sk>, linux-acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-I figured so.
+On Tue, 2008-11-11 at 09:33 +0800, Matthew Garrett wrote:
+> On Tue, Nov 11, 2008 at 09:27:14AM +0800, Zhang Rui wrote:
+> > well, there is a bug report for this problem:
+> > http://bugzilla.kernel.org/show_bug.cgi?id=11259
+> 
+> I'll give the noirqbalance case a go.
+> 
+> > and there are some bug reports for a similar problem (system crashes on
+> > lid close if _DOS=1, but on a UP platform).
+> > http://bugzilla.kernel.org/show_bug.cgi?id=6001#c49
+> 
+> I think the _DOS=1 case is somewhat different. There you'd expect 
+> significantly more system BIOS code to be run, and that's going to stand 
+> a much higher chance of causing unfortunate interactions with however 
+> Linux has set up the graphics.
+> 
+oops. sorry, I mean system crashes on lid close if _DOS=0 on some UP
+platform.
 
-After all, we are *interpreting* the AML code, which by definition is single pass, byte-by-byte.
+thanks,
+rui
 
-Only in the main table can we perform a multi-pass load to resolve forward references, because we aren't really "interpreting" at that time.
-
-So, I think we can say that the machine has bad AML code.
-
-Bob
-
-
->-----Original Message-----
->From: Lin, Ming M
->Sent: Monday, November 10, 2008 5:15 PM
->To: Moore, Robert
->Cc: Zhang, Rui; bubak@frix.fri.uniza.sk; linux-acpi; Len Brown
->Subject: RE: Namespace lookup failure error on QuadCore E5420
->
->On Tue, 2008-11-11 at 01:45 +0800, Moore, Robert wrote:
->> The first question would be, what does Windows do with this?
->>
->> To answer your question:
->>
->> ACPICA does not support forward references within control methods, it
->never has. There is good reason for this:
->>
->> Return (CS01)
->> If (ABCD)
->> {
->>     Name (CS01, 1)
->> }
->> Else
->> {
->>     Name (CS01, 2)
->> }
->>
->> What should be returned?
->>
->>
->> Lin Ming, here is a simplified version of the code example, please run it
->on Windows:
->
->Tested XP and Vista in KVM.
->They both don't support forward references within control methods.
->
->Lin Ming
->
->>
->>
->> DefinitionBlock ("gr.aml", "DSDT", 1, "TEST", "CPU0CST", 1)
->> {
->>     Name (ABCD, 1)
->>
->>     Method (_CST, 0, NotSerialized)
->>     {
->>         If (LAnd (ABCD, 0x10))
->>         {
->>             Return (CS03)
->>         }
->>
->>         Return (CS01)
->>
->>         Name (CS01, 1)
->>         Name (CS03, 3)
->>     }
->> }
->>
->> >-----Original Message-----
->> >From: Zhang, Rui
->> >Sent: Sunday, November 09, 2008 10:47 PM
->> >To: Moore, Robert; Lin, Ming M
->> >Cc: bubak@frix.fri.uniza.sk; Zhang, Rui; linux-acpi; Len Brown
->> >Subject: Re: Namespace lookup failure error on QuadCore E5420
->> >
->> >Hi, Bob and Ming,
->> >
->> >Please look at this piece of AML code in the cpu0cst (a dynamic SSDT
->> >table).
->> >Method (_CST, 0, NotSerialized)
->> >        {
->> >            If (LAnd (PDC1, 0x10))
->> >            {
->> >                Return (CS03)
->> >            }
->> >
->> >            Return (CS01)
->> >            Name (CS01, Package (0x02)
->> >            {
->> >               ...
->> >            })
->> >            Name (CS03, Package (0x04)
->> >            {
->> >              ...
->> >            })
->> >}
->> >
->> >CS01/CS03 is evaluated before it's defined, causing an AE_NOT_FOUND
->> >error.
->> >Should we fix it in ACPICA?
->> >
->> >thanks,
->> >rui
->> >
->> >On Mon, 2008-11-10 at 13:26 +0800, Peter Strazovec wrote:
->> >> On Mon, Nov 10, 2008 at 09:32:49AM +0800, Zhang Rui wrote:
->> >> > On Sun, 2008-11-09 at 21:48 +0800, Peter Strazovec wrote:
->> >> > > I have problem with Namespace lookup failure error on E5420.
->> >> > > ( ACPI Error (psargs-0358): [CS03] Namespace lookup failure,
->> >AE_NOT_FOUND )
->> >> > > Thus acpi not functional (cpufrequ via p-states, etc...).
->> >> > >
->> >> > ACPI is enabled on your system, except the cpu c-state.
->> >> >
->> >> > First please download the latest pmtools at
->> >> > http://www.lesswatts.org/projects/acpi/utilities.php
->> >> >
->> >> > and then please run
->> >> > "./acpidump > acpidump.log"
->> >> > "./acpidump --addr 0xcfe5f800 --length 0xd8 > cpu0cst"
->> >> > ???"./acpidump --addr 0xcfe5f900 --length 0xd8 > cpu1cst"
->> >> > ???"./acpidump --addr 0xcfe5fa00 --length 0xd8 > cpu2cst"
->> >> > ???"./acpidump --addr 0xcfe5fb00 --length 0xd8 > cpu3cst"
->> >> > and attach all these files.
->> >> >
->> >> > Btw, how do you know p-state is not functional?
->> >> > the p-state sysfs I/F (/sys/devices/system/cpu/cpuX/cpufreq/)doesn't
->> >> > work for you?
->> >> >
->> >> > thanks,
->> >> > rui
->> >> >
->> >> > > Does anyone know about some patch or some hint?
->> >> > >
->> >> > > CONFIG_ACPI_DEBUG=y, CONFIG_ACPI_DEBUG_FUNC_TRACE=y,
->> >> > > dmesg, interrupts and cpuinfo attached.
->> >> > >
->> >> > > thanks
->> >> > > Pete
->> >> >
->> >> > --
->> >> > To unsubscribe from this list: send the line "unsubscribe linux-
->acpi"
->> >in
->> >> > the body of a message to majordomo@vger.kernel.org
->> >> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> >>
->> >>
->> >> I though, that 'namespace' error is like 'not working'.... anyhow:
->> >>
->> >> @cpu c-state
->> >> mhmm, I've been talking about p-state (  CONFIG_X86_ACPI_CPUFREQ ) and
->> >not
->> >> working because:
->> >> #cpufreq-set -g performance
->> >> wrong, unknown or unhandled CPU?
->> >> #ls /sys/devices/system/cpu/cpu0/
->> >> cache  thermal_throttle  topology
->> >> -> no cpufreq dir there
->> >> #cat /proc/acpi/processor/CPU0/throttling
->> >> <not supported>
->> >>
->> >> acpidumps attached
->> >>
->> >>
->> >> Thanks
->> >> Pete
 
