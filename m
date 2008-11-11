@@ -1,51 +1,62 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [stable] [PATCH 21/21] ACPI: EC: make kernel messages more
-	useful when GPE storm is detected
-Date: Tue, 11 Nov 2008 13:23:22 -0800
-Message-ID: <20081111212322.GA6123@kroah.com>
-References: <1226032765-15330-1-git-send-email-lenb@kernel.org> <200811071454.25304.rjw@sisk.pl> <20081107184926.GC2320@kroah.com> <200811072315.25227.rjw@sisk.pl>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] ACPI: EC: Don't do transaction from GPE handler in poll
+ mode.
+Date: Tue, 11 Nov 2008 17:22:07 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0811111722020.4480@localhost.localdomain>
+References: <4919556F.6060607@suse.de>
+ <20081111095411.18397.7673.stgit@thinkpad>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:37273 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751265AbYKKVey (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 11 Nov 2008 16:34:54 -0500
-Content-Disposition: inline
-In-Reply-To: <200811072315.25227.rjw@sisk.pl>
+Received: from vms173001pub.verizon.net ([206.46.173.1]:39031 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751551AbYKKWWV (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Tue, 11 Nov 2008 17:22:21 -0500
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173001.mailsrvcs.net
+ (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+ with ESMTPA id <0KA60065AWSXKFQ1@vms173001.mailsrvcs.net> for
+ Linux-acpi@vger.kernel.org; Tue, 11 Nov 2008 16:22:09 -0600 (CST)
+In-reply-to: <20081111095411.18397.7673.stgit@thinkpad>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, stable@kernel.org, Len Brown <len.brown@intel.com>
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Linux-acpi@vger.kernel.org
 
-On Fri, Nov 07, 2008 at 11:15:24PM +0100, Rafael J. Wysocki wrote:
-> On Friday, 7 of November 2008, Greg KH wrote:
-> > On Fri, Nov 07, 2008 at 02:54:24PM +0100, Rafael J. Wysocki wrote:
-> > > On Friday, 7 of November 2008, Alan Jenkins wrote:
-> > > > Len Brown wrote:
-> > > > > From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-> > > > >
-> > > > > Make sure we can tell if the GPE storm workaround gets activated,
-> > > > > and avoid flooding the logs afterwards.
-> > > > >
-> > > > > http://bugzilla.kernel.org/show_bug.cgi?id=11841
-> > > > > "plenty of line "ACPI: EC: non-query interrupt received,
-> > > > >  switching to interrupt mode" in dmesg"
-> > > > >
-> > > > > Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-> > > > > Acked-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-> > > > > Signed-off-by: Len Brown <len.brown@intel.com>
-> > > > >   
-> > > > I see the EC patches that cause this issue are part of 2.6.27-stable. 
-> > > > So I think this patch should also be applied to the -stable tree.
-> > > 
-> > > Good point, it should.
-> > 
-> > Ok, what is the git commit id that should be added to the .27-stable
-> > tree?
+applied.
+
+thanks,
+-len
+
+On Tue, 11 Nov 2008, Alexey Starikovskiy wrote:
+
+> Referencies: http://bugzilla.kernel.org/show_bug.cgi?id=12004
 > 
-> Not yet in the Linus' tree, I'll let you know when it's merged.
-
-Thank you for doing this.
-
-greg k-h
+> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+> ---
+> 
+>  drivers/acpi/ec.c |    9 ++++++---
+>  1 files changed, 6 insertions(+), 3 deletions(-)
+> 
+> 
+> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+> index 628b076..985fb50 100644
+> --- a/drivers/acpi/ec.c
+> +++ b/drivers/acpi/ec.c
+> @@ -576,9 +576,12 @@ static u32 acpi_ec_gpe_handler(void *data)
+>  	pr_debug(PREFIX "~~~> interrupt\n");
+>  	status = acpi_ec_read_status(ec);
+>  
+> -	gpe_transaction(ec, status);
+> -	if (ec_transaction_done(ec) && (status & ACPI_EC_FLAG_IBF) == 0)
+> -		wake_up(&ec->wait);
+> +	if (test_bit(EC_FLAGS_GPE_MODE, &ec->flags)) {
+> +		gpe_transaction(ec, status);
+> +		if (ec_transaction_done(ec) &&
+> +		    (status & ACPI_EC_FLAG_IBF) == 0)
+> +			wake_up(&ec->wait);
+> +	}
+>  
+>  	ec_check_sci(ec, status);
+>  	if (!test_bit(EC_FLAGS_GPE_MODE, &ec->flags) &&
+> 
