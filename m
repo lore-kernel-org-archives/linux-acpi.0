@@ -1,50 +1,51 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH 10/10] x86, ACPI: default to reboot via ACPI (again)
-Date: Tue, 11 Nov 2008 21:44:44 +0100
-Message-ID: <20081111204444.GB8853@elte.hu>
-References: <alpine.LFD.2.00.0811080208590.3092@localhost.localdomain> <200811081050.25477.arvidjaar@mail.ru> <20081108115956.GE8354@elte.hu> <4916B38B.7050905@redhat.com> <4916B4DB.90602@zytor.com> <20081110083938.GD22392@elte.hu> <4917F6A9.3020408@redhat.com> <20081110090241.GH22392@elte.hu> <4919CE3F.4010008@zytor.com> <m1abc6qa5b.fsf@frodo.ebiederm.org>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [stable] [PATCH 21/21] ACPI: EC: make kernel messages more
+	useful when GPE storm is detected
+Date: Tue, 11 Nov 2008 13:23:22 -0800
+Message-ID: <20081111212322.GA6123@kroah.com>
+References: <1226032765-15330-1-git-send-email-lenb@kernel.org> <200811071454.25304.rjw@sisk.pl> <20081107184926.GC2320@kroah.com> <200811072315.25227.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.mail.elte.hu ([157.181.151.9]:55549 "EHLO mx2.mail.elte.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751726AbYKKUpF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 11 Nov 2008 15:45:05 -0500
+Received: from kroah.org ([198.145.64.141]:37273 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751265AbYKKVey (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 11 Nov 2008 16:34:54 -0500
 Content-Disposition: inline
-In-Reply-To: <m1abc6qa5b.fsf@frodo.ebiederm.org>
+In-Reply-To: <200811072315.25227.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>, Avi Kivity <avi@redhat.com>, Andrey Borzenkov <arvidjaar@mail.ru>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Eduardo Habkost <ehabkost@redhat.com>, Andrew Morton <akpm@linux-foundation.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, stable@kernel.org, Len Brown <len.brown@intel.com>
 
-
-* Eric W. Biederman <ebiederm@xmission.com> wrote:
-
-> "H. Peter Anvin" <hpa@zytor.com> writes:
+On Fri, Nov 07, 2008 at 11:15:24PM +0100, Rafael J. Wysocki wrote:
+> On Friday, 7 of November 2008, Greg KH wrote:
+> > On Fri, Nov 07, 2008 at 02:54:24PM +0100, Rafael J. Wysocki wrote:
+> > > On Friday, 7 of November 2008, Alan Jenkins wrote:
+> > > > Len Brown wrote:
+> > > > > From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+> > > > >
+> > > > > Make sure we can tell if the GPE storm workaround gets activated,
+> > > > > and avoid flooding the logs afterwards.
+> > > > >
+> > > > > http://bugzilla.kernel.org/show_bug.cgi?id=11841
+> > > > > "plenty of line "ACPI: EC: non-query interrupt received,
+> > > > >  switching to interrupt mode" in dmesg"
+> > > > >
+> > > > > Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+> > > > > Acked-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+> > > > > Signed-off-by: Len Brown <len.brown@intel.com>
+> > > > >   
+> > > > I see the EC patches that cause this issue are part of 2.6.27-stable. 
+> > > > So I think this patch should also be applied to the -stable tree.
+> > > 
+> > > Good point, it should.
+> > 
+> > Ok, what is the git commit id that should be added to the .27-stable
+> > tree?
 > 
-> > Ingo Molnar wrote:
-> >> 
-> >> well then we could insert CF9 to before the triple fault, and solve 
-> >> some of the problems as well, without unnecessary risks.
-> >> 
-> >> This is a separate patch from ACPI reboot itself, naturally.
-> >> 
-> >
-> > This is a pretty good point.  There is extremely low risk of being 
-> > something at port CF9 that is something other than the reset 
-> > register. It may not be there, but if it isn't, the worst thing 
-> > that happened is we confused a device right before reset.
-> >
-> > Even better if we condition the port CF9 write on existence a PCI 
-> > bus (or even more specifically PCI Configuration Method #1 or #2).  
-> > Port CF9 is extremely unlikely to exist on a machine without a PCI 
-> > bus, and extremely unlikely to conflict with anything else on a 
-> > machine with a PCI bus.
-> 
-> Yes.  What we are guarding against in practice is a write that 
-> causes the system to hang.  Anything else and we will make it to the 
-> next reset method.
+> Not yet in the Linus' tree, I'll let you know when it's merged.
 
-yeah. Patches are welcome :)
+Thank you for doing this.
 
-	Ingo
+greg k-h
