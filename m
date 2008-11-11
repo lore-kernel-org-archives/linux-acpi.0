@@ -1,126 +1,52 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: Re: [PATCH 3/5] ACPI: EC: wait for last write gpe
-Date: Tue, 11 Nov 2008 23:13:36 +0300
-Message-ID: <4919E770.4050607@gmail.com>
-References: <20081109155847.13635.15244.stgit@thinkpad> <20081109160050.13635.46234.stgit@thinkpad> <alpine.LFD.2.00.0811111325260.4480@localhost.localdomain>
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: Re: [PATCH 10/10] x86, ACPI: default to reboot via ACPI (again)
+Date: Tue, 11 Nov 2008 12:29:20 -0800
+Message-ID: <m1abc6qa5b.fsf@frodo.ebiederm.org>
+References: <007e7d616a5d1c2e16ad627d03f8b97799445e71.1226032943.git.len.brown@intel.com>
+	<200811080930.21462.arvidjaar@mail.ru>
+	<alpine.LFD.2.00.0811080208590.3092@localhost.localdomain>
+	<200811081050.25477.arvidjaar@mail.ru> <20081108115956.GE8354@elte.hu>
+	<4916B38B.7050905@redhat.com> <4916B4DB.90602@zytor.com>
+	<20081110083938.GD22392@elte.hu> <4917F6A9.3020408@redhat.com>
+	<20081110090241.GH22392@elte.hu> <4919CE3F.4010008@zytor.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.174]:4259 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751353AbYKKUNj (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Tue, 11 Nov 2008 15:13:39 -0500
-Received: by ug-out-1314.google.com with SMTP id 39so844632ugf.37
-        for <Linux-acpi@vger.kernel.org>; Tue, 11 Nov 2008 12:13:38 -0800 (PST)
-In-Reply-To: <alpine.LFD.2.00.0811111325260.4480@localhost.localdomain>
+Received: from out01.mta.xmission.com ([166.70.13.231]:60417 "EHLO
+	out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751668AbYKKUfc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Nov 2008 15:35:32 -0500
+In-Reply-To: <4919CE3F.4010008@zytor.com> (H. Peter Anvin's message of "Tue,
+	11 Nov 2008 10:26:07 -0800")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Linux-acpi@vger.kernel.org
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@elte.hu>, Avi Kivity <avi@redhat.com>, Andrey Borzenkov <arvidjaar@mail.ru>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Eduardo Habkost <ehabkost@redhat.com>, Andrew Morton <akpm@linux-foundation.org>
 
-Len Brown wrote:
-> applied to acpi-test.
->
-> we struggled with ec burst mode for a long time before enabling it
-> finally in 2005.  have we had any problems with it since then
-> that might be addressed by this race?
->
->   
-hard to say, I was thinking that with the fast transaction, we may fall 
-into this window,
-but it does not help in any of the current bug reports.
+"H. Peter Anvin" <hpa@zytor.com> writes:
 
-regards,
-Alex.
-> thanks,
-> -Len
+> Ingo Molnar wrote:
+>> 
+>> well then we could insert CF9 to before the triple fault, and solve 
+>> some of the problems as well, without unnecessary risks.
+>> 
+>> This is a separate patch from ACPI reboot itself, naturally.
+>> 
 >
+> This is a pretty good point.  There is extremely low risk of being
+> something at port CF9 that is something other than the reset register.
+> It may not be there, but if it isn't, the worst thing that happened is
+> we confused a device right before reset.
 >
-> On Sun, 9 Nov 2008, Alexey Starikovskiy wrote:
->
->   
->> There is a possibility that EC might break if next command is
->> issued within 1 us after write or burst-disable command.
->> This "possibility" was in EC driver for 3.5 years, after
->> 451566f45a2e6cd10ba56e7220a9dd84ba3ef550.
->>
->> References: http://marc.info/?l=linux-acpi&m=122616284402886&w=4
->> Cc: Zhao Yakui <yakui.zhao@intel.com>
->> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
->> ---
->>
->>  drivers/acpi/ec.c |   21 +++++++++++++--------
->>  1 files changed, 13 insertions(+), 8 deletions(-)
->>
->>
->> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
->> index e5dbe21..d6007ac 100644
->> --- a/drivers/acpi/ec.c
->> +++ b/drivers/acpi/ec.c
->> @@ -102,6 +102,7 @@ struct transaction {
->>  	u8 command;
->>  	u8 wlen;
->>  	u8 rlen;
->> +	bool done;
->>  };
->>  
->>  static struct acpi_ec {
->> @@ -178,7 +179,7 @@ static int ec_transaction_done(struct acpi_ec *ec)
->>  	unsigned long flags;
->>  	int ret = 0;
->>  	spin_lock_irqsave(&ec->curr_lock, flags);
->> -	if (!ec->curr || (!ec->curr->wlen && !ec->curr->rlen))
->> +	if (!ec->curr || ec->curr->done)
->>  		ret = 1;
->>  	spin_unlock_irqrestore(&ec->curr_lock, flags);
->>  	return ret;
->> @@ -195,17 +196,20 @@ static void gpe_transaction(struct acpi_ec *ec, u8 status)
->>  			acpi_ec_write_data(ec, *(ec->curr->wdata++));
->>  			--ec->curr->wlen;
->>  		} else
->> -			/* false interrupt, state didn't change */
->> -			++ec->curr->irq_count;
->> -
->> +			goto err;
->>  	} else if (ec->curr->rlen > 0) {
->>  		if ((status & ACPI_EC_FLAG_OBF) == 1) {
->>  			*(ec->curr->rdata++) = acpi_ec_read_data(ec);
->> -			--ec->curr->rlen;
->> +			if (--ec->curr->rlen == 0)
->> +				ec->curr->done = true;
->>  		} else
->> -			/* false interrupt, state didn't change */
->> -			++ec->curr->irq_count;
->> -	}
->> +			goto err;
->> +	} else if (ec->curr->wlen == 0 && (status & ACPI_EC_FLAG_IBF) == 0)
->> +		ec->curr->done = true;
->> +	goto unlock;
->> +err:
->> +	/* false interrupt, state didn't change */
->> +	++ec->curr->irq_count;
->>  unlock:
->>  	spin_unlock_irqrestore(&ec->curr_lock, flags);
->>  }
->> @@ -265,6 +269,7 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec,
->>  	spin_lock_irqsave(&ec->curr_lock, tmp);
->>  	/* following two actions should be kept atomic */
->>  	t->irq_count = 0;
->> +	t->done = false;
->>  	ec->curr = t;
->>  	acpi_ec_write_cmd(ec, ec->curr->command);
->>  	if (ec->curr->command == ACPI_EC_COMMAND_QUERY)
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->>     
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->   
+> Even better if we condition the port CF9 write on existence a PCI bus
+> (or even more specifically PCI Configuration Method #1 or #2).  Port CF9
+> is extremely unlikely to exist on a machine without a PCI bus, and
+> extremely unlikely to conflict with anything else on a machine with a
+> PCI bus.
+
+Yes.  What we are guarding against in practice is a write that causes
+the system to hang.  Anything else and we will make it to the next
+reset method.
+
+Eric
 
