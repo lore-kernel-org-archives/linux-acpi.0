@@ -1,49 +1,82 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: [PATCH] ACPI: EC: Don't do transaction from GPE handler in poll mode.
-Date: Tue, 11 Nov 2008 12:54:11 +0300
-Message-ID: <20081111095411.18397.7673.stgit@thinkpad>
-References: <4919556F.6060607@suse.de>
+From: Holger Macht <hmacht@suse.de>
+Subject: Re: [patch 20/23] ACPI: dock: avoid check _STA method
+Date: Tue, 11 Nov 2008 13:16:07 +0100
+Message-ID: <20081111121607.GA32066@homac.suse.de>
+References: <20081107224818.593212310@mini.kroah.org> <20081107231606.GU1108@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:49837 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755192AbYKKJyO (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Tue, 11 Nov 2008 04:54:14 -0500
-In-Reply-To: <4919556F.6060607@suse.de>
+Received: from cantor2.suse.de ([195.135.220.15]:35065 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755080AbYKKMQf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 11 Nov 2008 07:16:35 -0500
+Content-Disposition: inline
+In-Reply-To: <20081107231606.GU1108@kroah.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: LenBrown <lenb@kernel.org>
-Cc: Linux-acpi@vger.kernel.org
+To: Greg KH <gregkh@suse.de>
+Cc: linux-kernel@vger.kernel.org, stable@kernel.org, Justin Forbes <jmforbes@linuxtx.org>, Zwane Mwaikambo <zwane@arm.linux.org.uk>, Theodore Ts'o <tytso@mit.edu>, Randy Dunlap <rdunlap@xenotime.net>, Dave Jones <davej@redhat.com>, Chuck Wolber <chuckw@quantumlinux.com>, Chris Wedgwood <reviews@ml.cw.f00f.org>, Michael Krufky <mkrufky@linuxtv.org>, Chuck Ebbert <cebbert@redhat.com>, Domenico Andreoli <cavokz@gmail.com>, Willy Tarreau <w@1wt.eu>, Rodrigo Rubira Branco <rbranco@la.checkpoint.com>, Jake Edge <jake@lwn.net>, Eugene Teo <eteo@redhat.com>, torvalds@linux-foundation.org, akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, linux-acpi@vger.kernel.org, Shaohua Li <shaohua.li@intel.com>, Len Brown <len.brown@intel.com>
 
-Referencies: http://bugzilla.kernel.org/show_bug.cgi?id=12004
+On Fri 07. Nov - 15:16:06, Greg KH wrote:
+> 2.6.26-stable review patch.  If anyone has any objections, please let us know.
 
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
----
+Objecting. This will only work in conjunction with
 
- drivers/acpi/ec.c |    9 ++++++---
- 1 files changed, 6 insertions(+), 3 deletions(-)
+  commit 39a0ad871000d2a016a4fa113a6e53d22aabf25d
+  Author: Zhao Yakui <yakui.zhao@intel.com>
+  Date:   Mon Aug 11 13:40:22 2008 +0800
 
+      ACPI : Load device driver according to the status of acpi device
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 628b076..985fb50 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -576,9 +576,12 @@ static u32 acpi_ec_gpe_handler(void *data)
- 	pr_debug(PREFIX "~~~> interrupt\n");
- 	status = acpi_ec_read_status(ec);
- 
--	gpe_transaction(ec, status);
--	if (ec_transaction_done(ec) && (status & ACPI_EC_FLAG_IBF) == 0)
--		wake_up(&ec->wait);
-+	if (test_bit(EC_FLAGS_GPE_MODE, &ec->flags)) {
-+		gpe_transaction(ec, status);
-+		if (ec_transaction_done(ec) &&
-+		    (status & ACPI_EC_FLAG_IBF) == 0)
-+			wake_up(&ec->wait);
-+	}
- 
- 	ec_check_sci(ec, status);
- 	if (!test_bit(EC_FLAGS_GPE_MODE, &ec->flags) &&
+Otherwise a device struct already exists although the device is not
+present.
 
+Regards,
+	Holger
+
+> 
+> ------------------
+> 
+> From: Shaohua Li <shaohua.li@intel.com>
+> 
+> commit 8b59560a3baf2e7c24e0fb92ea5d09eca92805db upstream.
+> 
+> ACPI: dock: avoid check _STA method
+> 
+> In some BIOSes, every _STA method call will send a notification again,
+> this cause freeze. And in some BIOSes, it appears _STA should be called
+> after _DCK. This tries to avoid calls _STA, and still keep the device
+> present check.
+> 
+> http://bugzilla.kernel.org/show_bug.cgi?id=10431
+> 
+> Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+> Signed-off-by: Len Brown <len.brown@intel.com>
+> Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+> 
+> ---
+>  drivers/acpi/dock.c |    5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+> 
+> --- a/drivers/acpi/dock.c
+> +++ b/drivers/acpi/dock.c
+> @@ -599,14 +599,17 @@ static int handle_eject_request(struct d
+>  static void dock_notify(acpi_handle handle, u32 event, void *data)
+>  {
+>  	struct dock_station *ds = data;
+> +	struct acpi_device *tmp;
+>  
+>  	switch (event) {
+>  	case ACPI_NOTIFY_BUS_CHECK:
+> -		if (!dock_in_progress(ds) && dock_present(ds)) {
+> +		if (!dock_in_progress(ds) && acpi_bus_get_device(ds->handle,
+> +		   &tmp)) {
+>  			begin_dock(ds);
+>  			dock(ds);
+>  			if (!dock_present(ds)) {
+>  				printk(KERN_ERR PREFIX "Unable to dock!\n");
+> +				complete_dock(ds);
+>  				break;
+>  			}
+>  			atomic_notifier_call_chain(&dock_notifier_list,
+> 
