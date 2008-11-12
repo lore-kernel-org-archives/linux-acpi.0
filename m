@@ -1,62 +1,49 @@
-From: Andrey Borzenkov <arvidjaar@mail.ru>
-Subject: Re: Attempt rebooting via port CF9 if it seems to be available
-Date: Wed, 12 Nov 2008 21:49:10 +0300
-Message-ID: <200811122149.11947.arvidjaar@mail.ru>
-References: <007e7d616a5d1c2e16ad627d03f8b97799445e71.1226032943.git.len.brown@intel.com> <alpine.LFD.2.00.0811111802440.4480@localhost.localdomain> <491A225F.4090407@zytor.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [Linux 2.6.28-rc4] BUG: using smp_processor_id() in preemptible
+ [00000000] code: suspend_to_disk/2934
+Date: Wed, 12 Nov 2008 10:56:00 -0800 (PST)
+Message-ID: <alpine.LFD.2.00.0811121046360.3468@nehalem.linux-foundation.org>
+References: <8db1092f0811121030t1977b3bbu8340b582694d1e65@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart24054807.FlmPopGCp2";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx71.mail.ru ([194.67.23.4]:63941 "EHLO mx71.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752385AbYKLStR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Nov 2008 13:49:17 -0500
-In-Reply-To: <491A225F.4090407@zytor.com>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35983 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752601AbYKLS4k (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Nov 2008 13:56:40 -0500
+In-Reply-To: <8db1092f0811121030t1977b3bbu8340b582694d1e65@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Len Brown <lenb@kernel.org>, Matthew Garrett <mjg@redhat.com>, Ingo Molnar <mingo@elte.hu>, Avi Kivity <avi@redhat.com>, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Eduardo Habkost <ehabkost@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Maciej Rutecki <maciej.rutecki@gmail.com>, Ingo Molnar <mingo@elte.hu>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, "lenb@kernel.org" <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
---nextPart24054807.FlmPopGCp2
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
 
-On Wednesday 12 November 2008, H. Peter Anvin wrote:
-> Looking at doing the port CF9 fallback, I stumbled onto something fishy.
->=20
-> I wonder if anyone here happens to have any idea why we turn off
-> caching in machine_real_restart()?  Jumping to the BIOS is *not* a
-> reset; we jump to the decompressed BIOS on low memory which is usually
-> shadowed, not to the BIOS entry point.  In that way, it's more of an
-> INIT than a reset, and disabling caching seems broken.
->=20
-> Either way, here is a preliminary patch to do the CF9 if safe, and then
-> falling back to keyboard reboot.  I'm a bit concerned about how to test
-> it, of course; this stuff is sensitive and just about impossible to test
-> except on millions of machines at once...
->=20
-> If you have any machines (especially problematic ones) and find that
-> this patch either helps or hurts or do nothing, please do let me know so
-> I have any idea of the extent of coverage.
->=20
 
-Works here both with default and reboot=3Dp.
+On Wed, 12 Nov 2008, Maciej Rutecki wrote:
 
---nextPart24054807.FlmPopGCp2
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+> -rc3 works OK
+> 
+> I have this bug during suspend to disk:
+> 
+> [  188.592151] Enabling non-boot CPUs ...
+> [  188.592151] SMP alternatives: switching to SMP code
+> [  188.666058] BUG: using smp_processor_id() in preemptible [00000000]
+> code: suspend_to_disk/2934
+> [  188.666064] caller is native_sched_clock+0x2b/0x80
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
+The cause seems to be commit 7cbaef9c83e58bbd4bdd534b09052b6c5ec457d5, 
+"sched: optimize sched_clock() a bit" by Ingo.
 
-iEYEABECAAYFAkkbJScACgkQR6LMutpd94zQJACcDbLLCdaEG44dUWiOLHkJPxxC
-XgIAoMIcqwL+jqCCrensZkqKHP1rNyQy
-=xmel
------END PGP SIGNATURE-----
+Which actually comments on the fact that a few callers may need to be 
+updated. That wasn't good. Ingo - it's not acceptable for a latish-rc 
+patch to introduce _known_ bugs and not fixing everything up.
 
---nextPart24054807.FlmPopGCp2--
+Of course, since Maciej has frame pointers disabled, the stack trace isn't 
+entirely reliable, but it looks like the problem is "init_idle()".
+
+That thing needs to call sched_clock() with interrupts disabled. Looking 
+at it, I'd also expect that it should have used "sched_clock_cpu()", but 
+I'm leaving that to Ingo to sort out. Ingo?
+
+		Linus
