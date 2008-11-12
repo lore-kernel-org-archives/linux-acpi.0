@@ -1,38 +1,49 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [stable] Suspend regression in stable kernel 2.6.27.4 on Mac mini Core Duo
-Date: Wed, 12 Nov 2008 22:41:08 +0100
-Message-ID: <200811122241.09943.rjw@sisk.pl>
-References: <20081109202830.GA7206@x61> <200811120103.55253.rjw@sisk.pl> <20081112073617.GA4996@dose.home.local>
+From: Alessandro Guido <ag@alessandroguido.name>
+Subject: [sony-laptop] Fix regression caused by "sony-laptop: fingers off backlight if video.ko is serving this functionality"
+Date: Wed, 12 Nov 2008 23:03:28 +0100
+Message-ID: <200811122303.29372.ag@alessandroguido.name>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:59728 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753863AbYKLVgL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Nov 2008 16:36:11 -0500
-In-Reply-To: <20081112073617.GA4996@dose.home.local>
+Received: from fk-out-0910.google.com ([209.85.128.187]:39934 "EHLO
+	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753094AbYKLWDm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Nov 2008 17:03:42 -0500
+Received: by fk-out-0910.google.com with SMTP id 18so619001fkq.5
+        for <linux-acpi@vger.kernel.org>; Wed, 12 Nov 2008 14:03:32 -0800 (PST)
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tino Keitel <tino.keitel@gmx.de>
-Cc: linux-kernel@vger.kernel.org, stable@kernel.org, Greg KH <greg@kroah.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: len.brown@intel.com
+Cc: trenn@suse.de, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wednesday, 12 of November 2008, Tino Keitel wrote:
-> On Wed, Nov 12, 2008 at 01:03:54 +0100, Rafael J. Wysocki wrote:
-> 
-> [...]
-> 
-> > Also, can you check this patch on top of 2.6.27.4 and see what happens?
-> 
-> With that patch, resume works (although I used 2.6.27.5 and not
-> 2.6.27.5, if that matters).
+After commit 540b8bb9c33935183ceb5bed466a42ad72b2af56:
 
-It shouldn't really matter.
+  sony-laptop: fingers off backlight if video.ko is serving this functionality
 
-Thanks for testing and please send me the output of dmidecode.
-It seems that blacklisting may be the only way to handle your box. :-(
+I can't set brightness on my sony laptop (nothing in /sys/class/backlight).
+dmesg says "sony-laptop: Sony: Brightness ignored, must be controlled by ACPI
+video driver".
+The function acpi_video_backlight_support returns 0 if we should use the
+vendor-specific backlight support, while non-0 if the ACPI generic should
+be used. Because of this, the check introduced by the said commit appears
+reversed.
 
-Thanks,
-Rafael
+Signed-off-by: Alessandro Guido <ag@alessandroguido.name>
+---
+diff --git a/drivers/misc/sony-laptop.c b/drivers/misc/sony-laptop.c
+index 7bcb810..2a613d4 100644
+--- a/drivers/misc/sony-laptop.c
++++ b/drivers/misc/sony-laptop.c
+@@ -1038,7 +1038,7 @@ static int sony_nc_add(struct acpi_device *device)
+ 		goto outinput;
+ 	}
+ 
+-	if (!acpi_video_backlight_support()) {
++	if (acpi_video_backlight_support()) {
+ 		printk(KERN_INFO DRV_PFX "Sony: Brightness ignored, must be "
+ 		       "controlled by ACPI video driver\n");
+ 	} else if (ACPI_SUCCESS(acpi_get_handle(sony_nc_acpi_handle, "GBRT",
+
