@@ -1,62 +1,45 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [stable] [PATCH 21/21] ACPI: EC: make kernel messages more useful when GPE storm is detected
-Date: Thu, 13 Nov 2008 00:34:52 +0100
-Message-ID: <200811130034.53634.rjw@sisk.pl>
-References: <1226032765-15330-1-git-send-email-lenb@kernel.org> <200811072315.25227.rjw@sisk.pl> <20081111212322.GA6123@kroah.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: Can video_detect be made __init?
+Date: Wed, 12 Nov 2008 17:34:25 -0600
+Message-ID: <200811121734.25449.trenn@suse.de>
+References: <200811081655.08226.arvidjaar@mail.ru>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:60106 "EHLO ogre.sisk.pl"
+Received: from ns2.suse.de ([195.135.220.15]:45045 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751794AbYKLXaN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Nov 2008 18:30:13 -0500
-In-Reply-To: <20081111212322.GA6123@kroah.com>
+	id S1756143AbYKLXea (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Nov 2008 18:34:30 -0500
+In-Reply-To: <200811081655.08226.arvidjaar@mail.ru>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, stable@kernel.org, Len Brown <len.brown@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.de>
+To: Andrey Borzenkov <arvidjaar@mail.ru>
+Cc: linux-acpi@vger.kernel.org
 
-On Tuesday, 11 of November 2008, Greg KH wrote:
-> On Fri, Nov 07, 2008 at 11:15:24PM +0100, Rafael J. Wysocki wrote:
-> > On Friday, 7 of November 2008, Greg KH wrote:
-> > > On Fri, Nov 07, 2008 at 02:54:24PM +0100, Rafael J. Wysocki wrote:
-> > > > On Friday, 7 of November 2008, Alan Jenkins wrote:
-> > > > > Len Brown wrote:
-> > > > > > From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-> > > > > >
-> > > > > > Make sure we can tell if the GPE storm workaround gets activated,
-> > > > > > and avoid flooding the logs afterwards.
-> > > > > >
-> > > > > > http://bugzilla.kernel.org/show_bug.cgi?id=11841
-> > > > > > "plenty of line "ACPI: EC: non-query interrupt received,
-> > > > > >  switching to interrupt mode" in dmesg"
-> > > > > >
-> > > > > > Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-> > > > > > Acked-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-> > > > > > Signed-off-by: Len Brown <len.brown@intel.com>
-> > > > > >   
-> > > > > I see the EC patches that cause this issue are part of 2.6.27-stable. 
-> > > > > So I think this patch should also be applied to the -stable tree.
-> > > > 
-> > > > Good point, it should.
-> > > 
-> > > Ok, what is the git commit id that should be added to the .27-stable
-> > > tree?
-> > 
-> > Not yet in the Linus' tree, I'll let you know when it's merged.
-> 
-> Thank you for doing this.
+On Saturday 08 November 2008 07:55:07 am Andrey Borzenkov wrote:
+> I would add DMI entries to force vendor backlight for my system, but
+> I'd really prefer they are not remain in memory forever. Is there any
+> reason for the whole detection to not happen exactly once? After all,
+> ACPI cannot change after boot, can it?
+>
+> Hmm ... actually DSDT can be loaded from initrd, so it can change ... but
+> in this case we actually are just interested in DMI matching which says
+> whether vendor driver is preferred or not. What would be the the best
+> place to call it from?
 
-Here:
+Sorry, I only half answered the question in my previous mail.
+acpi_video_backlight_support(..)
+which is called by the backlight supporting drivers is going to check (when 
+invoked the first time) whether general ACPI video functions are provided via 
+the ACPI tables.
+Advantage is that the check is only done if video.ko or vendor_laptop drivers 
+are trying to be loaded. That means on a server where video.ko or 
+vendor_laptop.ko are not needed, the video ACPI func detection does not take 
+place.
+The "disadvantage" is that it's done at driver load time and cannot be 
+declared __init.
 
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=f8248434e6a11d7cd314281be3b39bbcf82fc243
-
-The other EC patches in this merge are also regarded as -stable material,
-but let's wait a couple of days to avoid possible regressions (although Alex
-thinks there sould be none ;-)).
-
-Thanks,
-Rafael
+       Thomas
