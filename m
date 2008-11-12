@@ -1,87 +1,40 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [RESEND] [RFC PATCH 5/6] ACPI: install all valid FACS tables
-Date: Wed, 12 Nov 2008 16:29:09 +0800
-Message-ID: <1226478549.15014.175.camel@rzhang-dt>
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Subject: Re: [GIT PULL] ACPI patches for Linux-2.6.28-rc4
+Date: Wed, 12 Nov 2008 11:40:20 +0000
+Message-ID: <491AC0A4.4000009@tuffmail.co.uk>
+References: <alpine.LFD.2.00.0811112126430.12712@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:36172 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751486AbYKLIbu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Nov 2008 03:31:50 -0500
+Received: from nf-out-0910.google.com ([64.233.182.184]:7989 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751279AbYKLLkZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Nov 2008 06:40:25 -0500
+Received: by nf-out-0910.google.com with SMTP id d3so188100nfc.21
+        for <linux-acpi@vger.kernel.org>; Wed, 12 Nov 2008 03:40:24 -0800 (PST)
+In-Reply-To: <alpine.LFD.2.00.0811112126430.12712@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-For some laptops,
-the acpi_gbl_FADT.Xfacs and acpi_gbl_FADT.facs may point to
-two different but valid FACS tables.
+Len Brown wrote:
+> Hi Linus,
+> 
+> please pull from: 
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
+> 
+> Two .28 regression fixes.
+> Some video patches shipping in SuSE that I should have included earlier.
+> Some EC patches to deal with some out of spec hardware
 
-The waking vector on only one of them actually works,
-but unfortunately we do not know which one to use.
+I tested this for the EC patches.  It works fine, so I've no complaint.  Just FYI, the lowered interrupt storm threshold now triggers on my EeePC (701).
 
-Add acpi_gbl_FADT.facs table to the acp_gbl_root_table_list
-if it exists and is different from acpi_gbl_FADT.XfacsFACS.
+I think it used to trigger originally, then the "fast transaction" / transaction from interrupt patch reduced the number of spurious interrupts.  So fwiw, I agree that it was reasonable to lower the threshold.
 
-This is needed by the next patch, which set the waking vectors
-in all the FACS tables in acpi_gbl_root_table_list.
+Thanks for your hard work Alex!
+I think this is going to be the first mainline kernel to really run well on the original EeePC.
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- drivers/acpi/tables/tbfadt.c  |   17 +++++++++++++++++
- drivers/acpi/tables/tbutils.c |    3 ++-
- 2 files changed, 19 insertions(+), 1 deletion(-)
-
-Index: linux-acpi-2.6/drivers/acpi/tables/tbfadt.c
-===================================================================
---- linux-acpi-2.6.orig/drivers/acpi/tables/tbfadt.c
-+++ linux-acpi-2.6/drivers/acpi/tables/tbfadt.c
-@@ -159,6 +159,7 @@ void acpi_tb_parse_fadt(u32 table_index,
- {
- 	u32 length;
- 	struct acpi_table_header *table;
-+	acpi_status status;
- 
- 	/*
- 	 * The FADT has multiple versions with different lengths,
-@@ -197,6 +198,22 @@ void acpi_tb_parse_fadt(u32 table_index,
- 
- 	acpi_tb_install_table((acpi_physical_address) acpi_gbl_FADT.Xfacs,
- 			      flags, ACPI_SIG_FACS, ACPI_TABLE_INDEX_FACS);
-+
-+	/*
-+	 * install the acpi_gbl_FADT.facs if it's not null
-+	 * and it's different from acpi_gbl_FADT.Xfacs
-+	 */
-+	if (!acpi_gbl_FADT.facs || acpi_gbl_FADT.facs == acpi_gbl_FADT.Xfacs)
-+		return;
-+
-+	if (acpi_gbl_root_table_list.count >= acpi_gbl_root_table_list.size) {
-+		status = acpi_tb_resize_root_table_list();
-+		if (ACPI_FAILURE(status))
-+			return;
-+	}
-+	acpi_tb_install_table((acpi_physical_address)acpi_gbl_FADT.facs, flags,
-+				ACPI_SIG_FACS, acpi_gbl_root_table_list.count);
-+	acpi_gbl_root_table_list.count++;
- }
- 
- /*******************************************************************************
-Index: linux-acpi-2.6/drivers/acpi/tables/tbutils.c
-===================================================================
---- linux-acpi-2.6.orig/drivers/acpi/tables/tbutils.c
-+++ linux-acpi-2.6/drivers/acpi/tables/tbutils.c
-@@ -546,7 +546,8 @@ acpi_tb_parse_root_table(acpi_physical_a
- 	 * Complete the initialization of the root table array by examining
- 	 * the header of each table
- 	 */
--	for (i = 2; i < acpi_gbl_root_table_list.count; i++) {
-+	for (i = 2, table_count = acpi_gbl_root_table_list.count;
-+		i < table_count; i++) {
- 		acpi_tb_install_table(acpi_gbl_root_table_list.tables[i].
- 				      address, flags, NULL, i);
- 
-
-
+Alan
