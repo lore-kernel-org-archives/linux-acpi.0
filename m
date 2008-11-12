@@ -1,165 +1,63 @@
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-Subject: Re: Bugs on aspire one A150
-Date: Wed, 12 Nov 2008 19:48:41 +0200
-Message-ID: <491B16F9.8030608@gmail.com>
-References: <491506DB.1070000@gmail.com> <49157E97.60503@tuffmail.co.uk> <49163435.20301@gmail.com> <4916BED0.4090700@tuffmail.co.uk>
+From: "Maciej Rutecki" <maciej.rutecki@gmail.com>
+Subject: [Linux 2.6.28-rc4] BUG: using smp_processor_id() in preemptible [00000000] code: suspend_to_disk/2934
+Date: Wed, 12 Nov 2008 19:30:13 +0100
+Message-ID: <8db1092f0811121030t1977b3bbu8340b582694d1e65@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ik-out-1112.google.com ([66.249.90.176]:58128 "EHLO
-	ik-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751763AbYKLRsr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Nov 2008 12:48:47 -0500
-Received: by ik-out-1112.google.com with SMTP id c29so451227ika.5
-        for <linux-acpi@vger.kernel.org>; Wed, 12 Nov 2008 09:48:45 -0800 (PST)
-In-Reply-To: <4916BED0.4090700@tuffmail.co.uk>
+Received: from qw-out-2122.google.com ([74.125.92.26]:48519 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751982AbYKLSaQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Nov 2008 13:30:16 -0500
+Received: by qw-out-2122.google.com with SMTP id 3so310002qwe.37
+        for <linux-acpi@vger.kernel.org>; Wed, 12 Nov 2008 10:30:14 -0800 (PST)
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Cc: linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, Kernel Testers List <kernel-testers@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, "lenb@kernel.org" <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-Alan Jenkins wrote:
-> Maxim Levitsky wrote:
->> Alan Jenkins wrote:
->>> Maxim Levitsky wrote:
->>>> I have just bought an Aspire one A150, XP version,
->>>> as it was the only available here, and installed ubuntu on it.
->>>>
->>>> Bugs I discovered so far:
->>>>
->>>>
->>>> ** 1 - embedded controler works in polling mode, due to this:
->>>>
->>>> [    0.708571] ACPI: EC: non-query interrupt received, switching to
->>>> interrupt mode
->>>> [    1.224043] ACPI: EC: missing confirmations, switch off interrupt
->>>> mode.
->>>>
->>>>
->>>> Maybe this is the reason for the fact that gnome power manager
->>>> freezes when I unplug
->>>> the AC, and freezes often when I try to see battery status.
->>>>
->>>>
->>>> (Note: same is seen on my acer aspire 5720)
->>> That sounds like a known issue.  It has been resolved by "ACPI: EC:
->>> revert msleep patch".  Happily Len submitted it for mainline this
->>> week.  You will also find it if you try the acpi-test git tree. 
->>> We're all hoping 2.6.28 will be much improved in terms of reliable
->>> operation of different ECs :).
->>>
->> Yes, this almost fixes all issues with that.
->> Almost because, it looks like the EC changes screen brightness on his
->> own when battery is plugged/unplugged,
->> but so does the gnome-power-manager, and thus it still hangs as before
->> on battery removal (but doesn't hang otherwise)
->> I disabled that behaver in gnome-power-manager and now no more hangs.
->>
-> 
-> Please do report it as an ACPI EC bug.  It's popular hardware, and if
-> nothing else it is important that upstream be aware of the workarounds
-> people are having to use.
-> 
->> I see that this fix fixes the polled mode. Any chance to make irq mode
->> work?
->>
-> 
-> Probably not.  It doesn't seem important, it may not be possible, and
-> even if you could fix the EC driver for your hardware, there's the risk
-> of breaking other peoples hardware.
-> 
-> The presumption is that you have weird hardware and it genuinely needs a
-> polling workaround.  It's not too bad, now it uses udelay() it should
-> not impose any wakeups or significant latency, just some extra cpu time
-> in a busy loop.  EC events such as acpi hotkeys are still received as
-> interrupts (although we then have to query the type of event using a
-> polled transaction).
-> 
-> 
-> I assume you get something like (text not exact):
-> 
-> "EC: started in polling mode"
-> ...
-> "EC: non-query interrupt received, switching to interrupt mode"
-> ...
-> "EC: missing confirmations, switching to polling mode"
-> 
-> all during boot.
-Yes, this is what I see.
+-rc3 works OK
 
-> 
-> 
-> There's one outstanding issue on a different machine, where the
-> occasional EC read fails and triggers polling mode sometime _after_
-> boot.  It can be fixed by retrying the transaction
-> 
->     http://bugzilla.kernel.org/show_bug.cgi?id=11896
-> 
-> but I don't really expect your machine has the same problem.
-> 
-> <snip non-acpi problems>
-> 
->> Also noticed another bug:
->>
->>
->> If I suspend/resume with compiz running, on resume I see wallpaper and
->> mouse cursor, everything hangs for minute or two, and sometimes forever.
->>
->> 2.6.27 worked fine.
-> 
-> Weird.
-> 
-> Did you try sysrq-W during the hang?  That's supposed to dump a list of
-> blocked tasks to dmesg.
-Well, I see the wallpaper and can move the mouse, I will try to suspend from console
-I think this is graphics bug.
-nether ctrl+alt+bks nor SAK kill X.
+I have this bug during suspend to disk:
 
-After 2 minute wait, kernel log doesn't show anything unusual.
-printk times, jump that 2 minutes around wireless association, but I tested it without ath5k loaded
-and still the same happens.
+[  188.592151] Enabling non-boot CPUs ...
+[  188.592151] SMP alternatives: switching to SMP code
+[  188.666058] BUG: using smp_processor_id() in preemptible [00000000]
+code: suspend_to_disk/2934
+[  188.666064] caller is native_sched_clock+0x2b/0x80
+[  188.666067] Pid: 2934, comm: suspend_to_disk Not tainted 2.6.28-rc4 #1
+[  188.666069] Call Trace:
+[  188.666074]  [<c02556ff>] debug_smp_processor_id+0xbf/0xd0
+[  188.666077]  [<c010a2db>] native_sched_clock+0x2b/0x80
+[  188.666080]  [<c03ae3a0>] init_idle+0x88/0x11a
+[  188.666083]  [<c03ad206>] native_cpu_up+0x4a6/0x75a
+[  188.666086]  [<c01de808>] sysfs_add_file_mode+0x58/0x90
+[  188.666089]  [<c03ad4ba>] do_fork_idle+0x0/0x19
+[  188.666092]  [<c014864e>] notifier_call_chain+0x3e/0x80
+[  188.666095]  [<c03ae99a>] _cpu_up+0x6a/0x103
+[  188.666097]  [<c03a1e75>] enable_nonboot_cpus+0x65/0xa0
+[  188.666101]  [<c02cd240>] device_pm_unlock+0x0/0x10
+[  188.666105]  [<c0159ba7>] hibernation_snapshot+0x137/0x200
+[  188.666107]  [<c0158dff>] freeze_processes+0x4f/0xa0
+[  188.666110]  [<c0159d4f>] hibernate+0xdf/0x190
+[  188.666112]  [<c0158910>] state_store+0x0/0xd0
+[  188.666115]  [<c01589c2>] state_store+0xb2/0xd0
+[  188.666117]  [<c0158910>] state_store+0x0/0xd0
+[  188.666120]  [<c024b1d4>] kobj_attr_store+0x24/0x30
+[  188.666122]  [<c01de221>] sysfs_write_file+0xa1/0x110
+[  188.666124]  [<c01de180>] sysfs_write_file+0x0/0x110
+[  188.666127]  [<c0198e38>] vfs_write+0xa8/0x140
+[  188.666129]  [<c0198fa1>] sys_write+0x41/0x80
+[  188.666131]  [<c0103f49>] sysenter_do_call+0x12/0x21
+[  188.666133]  [<c03b0000>] acpi_processor_start+0x690/0x69a
+[  188.666136] Booting processor 1 APIC 0x1 ip 0x6000
+[  188.590718] Initializing CPU#1
 
-Also if I disable compiz, everything resumes correctly, and instantly.
+dmesg and config:
+http://unixy.pl/maciek/download/kernel/2.6.28-rc4_smp/
 
-> 
->> Also hibernate doesn't work on my main notebook, but it is probably
->> fixed, I update kernel to really latest -git
->> and tell you.
->>
-> 
-> But suspend to ram works?  Usually it is the other way round :).  If you
-> haven't already, you might read
-> 
->     Documentation/power/basic-pm-debugging.txt
-> 
-Well, this is long story
-details at http://lkml.org/lkml/2008/9/20/75
-speaking shortly, bios doesn't pass control to kernel on second resume.
-Thus I don't test it, but I see how it works now.
-
-Suspend to disk still doesn't work.
-First of all system hangs in the end of image writeout.
-If I power it down manually, and boot, system resumes from disk, and then hangs.
-2.6.27 works fine.
-
-(This is about my main notebook)
-
-
-> it suggests some tests to narrow down the problem.
-> 
->> Big thanks for bugfixes, you saved me a lot of work and bisecting.
->>
-> 
-> I can't take credit for actual fixes.  But I'm very happy to help people
-> avoid bisecting for known problems.  I hope you have time to crack the
-> unknown ones :).
-> 
-> Alan
-
-
-Best regards,
-	Maxim Levitsky
-
-
-PS: sorry for late reply
+-- 
+Maciej Rutecki
+http://www.maciek.unixy.pl
