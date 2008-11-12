@@ -1,59 +1,62 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: ACPI reads wrong temperature
-Date: Wed, 12 Nov 2008 22:27:35 +0000
-Message-ID: <20081112222735.GA21797@srcf.ucam.org>
-References: <20081031210913.3180@gmx.net> <1225951972.3989.99.camel@yakui_zhao.sh.intel.com> <20081106091126.GA25849@srcf.ucam.org> <200811121620.44520.trenn@suse.de>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [stable] [PATCH 21/21] ACPI: EC: make kernel messages more useful when GPE storm is detected
+Date: Thu, 13 Nov 2008 00:34:52 +0100
+Message-ID: <200811130034.53634.rjw@sisk.pl>
+References: <1226032765-15330-1-git-send-email-lenb@kernel.org> <200811072315.25227.rjw@sisk.pl> <20081111212322.GA6123@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:35528 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754758AbYKLW1m (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Nov 2008 17:27:42 -0500
+Received: from ogre.sisk.pl ([217.79.144.158]:60106 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751794AbYKLXaN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Nov 2008 18:30:13 -0500
+In-Reply-To: <20081111212322.GA6123@kroah.com>
 Content-Disposition: inline
-In-Reply-To: <200811121620.44520.trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Zhao Yakui <yakui.zhao@intel.com>, Len Brown <lenb@kernel.org>, Peter Mahlknecht <mali100@gmx.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, khali@linux-fr.org
+To: Greg KH <greg@kroah.com>
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, stable@kernel.org, Len Brown <len.brown@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.de>
 
-On Wed, Nov 12, 2008 at 04:20:43PM -0600, Thomas Renninger wrote:
-> On Thursday 06 November 2008 03:11:26 am Matthew Garrett wrote:
-> > On Thu, Nov 06, 2008 at 02:12:52PM +0800, Zhao Yakui wrote:
-> > > On your box after the i2c-i801 driver is loaded, the smbus controller
-> > > will be used by the AML code and i2c-i801 driver. Unfortunately there is
-> > > no synchronization between them. IMO this is the BIOS fault. The SMbus
-> > > will be accessed by the two different modules. But it is exported by
-> > > BIOS.
-> >
-> > No, loading i2c-i801 is harmless. The breakage occurs when you attempt
-> > to drive the smbus.
-> >
-> > >     So the better solution is that:
-> > >     a. SMBus is hidden in BIOS. In such case the Linux OS can't detect
-> > > the SMbus controller . Of course it won't try to load the device driver
-> > > for it.
-> > >     b. Linux OS won't load the device driver for it.
-> >
-> > The solution is for users not to load smbus drivers unless they know for
-> > certain that it's safe to do so, or alternatively for us to refuse to
-> > load i2c drivers if they overlap with ACPI resource allocations.
+On Tuesday, 11 of November 2008, Greg KH wrote:
+> On Fri, Nov 07, 2008 at 11:15:24PM +0100, Rafael J. Wysocki wrote:
+> > On Friday, 7 of November 2008, Greg KH wrote:
+> > > On Fri, Nov 07, 2008 at 02:54:24PM +0100, Rafael J. Wysocki wrote:
+> > > > On Friday, 7 of November 2008, Alan Jenkins wrote:
+> > > > > Len Brown wrote:
+> > > > > > From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+> > > > > >
+> > > > > > Make sure we can tell if the GPE storm workaround gets activated,
+> > > > > > and avoid flooding the logs afterwards.
+> > > > > >
+> > > > > > http://bugzilla.kernel.org/show_bug.cgi?id=11841
+> > > > > > "plenty of line "ACPI: EC: non-query interrupt received,
+> > > > > >  switching to interrupt mode" in dmesg"
+> > > > > >
+> > > > > > Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+> > > > > > Acked-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+> > > > > > Signed-off-by: Len Brown <len.brown@intel.com>
+> > > > > >   
+> > > > > I see the EC patches that cause this issue are part of 2.6.27-stable. 
+> > > > > So I think this patch should also be applied to the -stable tree.
+> > > > 
+> > > > Good point, it should.
+> > > 
+> > > Ok, what is the git commit id that should be added to the .27-stable
+> > > tree?
+> > 
+> > Not yet in the Linus' tree, I'll let you know when it's merged.
 > 
-> We already have that:
-> >  or alternatively for us to refuse to load i2c drivers
-> in drivers/acpi/osl.c:
-> 
-> #define ENFORCE_RESOURCES_STRICT 2
-> #define ENFORCE_RESOURCES_LAX    1
-> #define ENFORCE_RESOURCES_NO     0
-> 
-> static unsigned int acpi_enforce_resources = ENFORCE_RESOURCES_LAX;
->
-> lax means print out warning which i2c driver conflicts with which ACPI 
-> Operation Region.
-> Did you get such a message:
+> Thank you for doing this.
 
-According to his logs, the warning was printed.
+Here:
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=f8248434e6a11d7cd314281be3b39bbcf82fc243
+
+The other EC patches in this merge are also regarded as -stable material,
+but let's wait a couple of days to avoid possible regressions (although Alex
+thinks there sould be none ;-)).
+
+Thanks,
+Rafael
