@@ -1,37 +1,32 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: [PATCH 7/7] PCI, ACPI: remove obsolete _OSC capability support functions
-Date: Wed, 12 Nov 2008 13:15:31 -0800
-Message-ID: <200811121315.32275.jbarnes@virtuousgeek.org>
-References: <20081110223035.30539.88942.stgit@bob.kio> <20081110223110.30539.19970.stgit@bob.kio>
+From: Skywing <Skywing@valhallalegends.com>
+Subject: RE: [RESEND] [PATCH 3/6] ACPI: create sysfs I/F for inactive tables
+Date: Wed, 12 Nov 2008 14:32:16 -0600
+Message-ID: <982D8D05B6407A49AD506E6C3AC8E7D6BEF9369129@caralain.haven.nynaeve.net>
+References: <1226478545.15014.173.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outbound-mail-158.bluehost.com ([67.222.39.38]:53669 "HELO
-	outbound-mail-158.bluehost.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1750939AbYKLVPr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Nov 2008 16:15:47 -0500
-In-Reply-To: <20081110223110.30539.19970.stgit@bob.kio>
-Content-Disposition: inline
+Received: from smtp2.webhostone.com ([66.250.45.124]:41106 "EHLO
+	smtp2.webhostone.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750953AbYKLVRc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Nov 2008 16:17:32 -0500
+In-Reply-To: <1226478545.15014.173.camel@rzhang-dt>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Patterson <andrew.patterson@hp.com>
-Cc: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, matthew@wil.cx, kaneshige.kenji@jp.fujitsu.com, bjorn.helgaas@hp.com
+To: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-On Monday, November 10, 2008 2:31 pm Andrew Patterson wrote:
-> PCI, ACPI: remove obsolete _OSC capability support functions
->
-> The acpi_query_osc, __pci_osc_support_set, pci_osc_support_set, and
-> pcie_osc_support_set functions have been obsoleted in favor of setting
-> these capabilities during root bridge discovery with pci_acpi_osc_support.
-> There are no longer any callers of these functions, so they are removed.
->
-> Signed-off-by: Andrew Patterson <andrew.patterson@hp.com>
+Zhang Rui wrote:
 
-Ok, applied the rest too.  I'll do a quick test before pushing out the updated 
-linux-next branch.
+> +		if (strncmp(table_attr->name, "NULL", ACPI_NAME_SIZE))
+> +			memcpy(name, table_attr->name, ACPI_NAME_SIZE);
+> +		else
+> +			memcpy(name, "\0\0\0\0", ACPI_NAME_SIZE);
+> +		status = acpi_get_table(name,
+> +					table_attr->instance, &table_header);
 
-Thanks,
-Jesse
+Minor nit / suggestion: Wouldn't it be a bit better to use memset instead of memcpy for the \0\0\0\0 memcpy case?  Otherwise, you need to make sure that you have at least as many \0's in the string literal as ACPI_NAME_SIZE, which is a lil bit ugly.  If you are cleaning things up to use symbolic constants there, you might consider changing it to a memset while you're at it.
+
+- S
