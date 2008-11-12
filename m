@@ -1,57 +1,59 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [sony-laptop] Fix regression caused by "sony-laptop: fingers off backlight if video.ko is serving this functionality"
-Date: Wed, 12 Nov 2008 16:27:12 -0600
-Message-ID: <200811121627.13525.trenn@suse.de>
-References: <200811122303.29372.ag@alessandroguido.name>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: ACPI reads wrong temperature
+Date: Wed, 12 Nov 2008 22:27:35 +0000
+Message-ID: <20081112222735.GA21797@srcf.ucam.org>
+References: <20081031210913.3180@gmx.net> <1225951972.3989.99.camel@yakui_zhao.sh.intel.com> <20081106091126.GA25849@srcf.ucam.org> <200811121620.44520.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:43094 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752350AbYKLW1T (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Nov 2008 17:27:19 -0500
-In-Reply-To: <200811122303.29372.ag@alessandroguido.name>
+Received: from cavan.codon.org.uk ([93.93.128.6]:35528 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754758AbYKLW1m (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Nov 2008 17:27:42 -0500
 Content-Disposition: inline
+In-Reply-To: <200811121620.44520.trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alessandro Guido <ag@alessandroguido.name>
-Cc: len.brown@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: Zhao Yakui <yakui.zhao@intel.com>, Len Brown <lenb@kernel.org>, Peter Mahlknecht <mali100@gmx.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, khali@linux-fr.org
 
-On Wednesday 12 November 2008 04:03:28 pm Alessandro Guido wrote:
-> After commit 540b8bb9c33935183ceb5bed466a42ad72b2af56:
+On Wed, Nov 12, 2008 at 04:20:43PM -0600, Thomas Renninger wrote:
+> On Thursday 06 November 2008 03:11:26 am Matthew Garrett wrote:
+> > On Thu, Nov 06, 2008 at 02:12:52PM +0800, Zhao Yakui wrote:
+> > > On your box after the i2c-i801 driver is loaded, the smbus controller
+> > > will be used by the AML code and i2c-i801 driver. Unfortunately there is
+> > > no synchronization between them. IMO this is the BIOS fault. The SMbus
+> > > will be accessed by the two different modules. But it is exported by
+> > > BIOS.
+> >
+> > No, loading i2c-i801 is harmless. The breakage occurs when you attempt
+> > to drive the smbus.
+> >
+> > >     So the better solution is that:
+> > >     a. SMBus is hidden in BIOS. In such case the Linux OS can't detect
+> > > the SMbus controller . Of course it won't try to load the device driver
+> > > for it.
+> > >     b. Linux OS won't load the device driver for it.
+> >
+> > The solution is for users not to load smbus drivers unless they know for
+> > certain that it's safe to do so, or alternatively for us to refuse to
+> > load i2c drivers if they overlap with ACPI resource allocations.
+> 
+> We already have that:
+> >  or alternatively for us to refuse to load i2c drivers
+> in drivers/acpi/osl.c:
+> 
+> #define ENFORCE_RESOURCES_STRICT 2
+> #define ENFORCE_RESOURCES_LAX    1
+> #define ENFORCE_RESOURCES_NO     0
+> 
+> static unsigned int acpi_enforce_resources = ENFORCE_RESOURCES_LAX;
 >
->   sony-laptop: fingers off backlight if video.ko is serving this
-> functionality
->
-> I can't set brightness on my sony laptop (nothing in /sys/class/backlight).
-> dmesg says "sony-laptop: Sony: Brightness ignored, must be controlled by
-> ACPI video driver".
-> The function acpi_video_backlight_support returns 0 if we should use the
-> vendor-specific backlight support, while non-0 if the ACPI generic should
-> be used. Because of this, the check introduced by the said commit appears
-> reversed.
->
-> Signed-off-by: Alessandro Guido <ag@alessandroguido.name>
+> lax means print out warning which i2c driver conflicts with which ACPI 
+> Operation Region.
+> Did you get such a message:
 
-Thanks for finding this stupid typo,
+According to his logs, the warning was printed.
 
-       Thomas
-
-> ---
-> diff --git a/drivers/misc/sony-laptop.c b/drivers/misc/sony-laptop.c
-> index 7bcb810..2a613d4 100644
-> --- a/drivers/misc/sony-laptop.c
-> +++ b/drivers/misc/sony-laptop.c
-> @@ -1038,7 +1038,7 @@ static int sony_nc_add(struct acpi_device *device)
->  		goto outinput;
->  	}
->
-> -	if (!acpi_video_backlight_support()) {
-> +	if (acpi_video_backlight_support()) {
->  		printk(KERN_INFO DRV_PFX "Sony: Brightness ignored, must be "
->  		       "controlled by ACPI video driver\n");
->  	} else if (ACPI_SUCCESS(acpi_get_handle(sony_nc_acpi_handle, "GBRT",
-
-
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
