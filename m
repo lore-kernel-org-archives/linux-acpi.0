@@ -1,37 +1,30 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [Linux 2.6.28-rc4] BUG: using smp_processor_id() in
-	preemptible [00000000] code: suspend_to_disk/2934
-Date: Wed, 12 Nov 2008 21:40:42 +0100
-Message-ID: <20081112204042.GA13350@elte.hu>
-References: <8db1092f0811121030t1977b3bbu8340b582694d1e65@mail.gmail.com> <alpine.LFD.2.00.0811121046360.3468@nehalem.linux-foundation.org> <20081112192128.GA17667@elte.hu> <8db1092f0811121234p3be15e29n5fd684e387977dab@mail.gmail.com>
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: Re: [PATCH 2/7] ACPI, PCI: call _OSC support during root bridge discovery
+Date: Wed, 12 Nov 2008 12:58:25 -0800
+Message-ID: <200811121258.26696.jbarnes@virtuousgeek.org>
+References: <20081110223035.30539.88942.stgit@bob.kio> <20081110223045.30539.6794.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.mail.elte.hu ([157.181.151.9]:53645 "EHLO mx2.mail.elte.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751903AbYKLUk7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Nov 2008 15:40:59 -0500
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20081110223045.30539.6794.stgit@bob.kio>
 Content-Disposition: inline
-In-Reply-To: <8db1092f0811121234p3be15e29n5fd684e387977dab@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
+To: Andrew Patterson <andrew.patterson@hp.com>
+Cc: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, matthew@wil.cx, kaneshige.kenji@jp.fujitsu.com, bjorn.helgaas@hp.com
 List-Id: linux-acpi@vger.kernel.org
-To: Maciej Rutecki <maciej.rutecki@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, "lenb@kernel.org" <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
+On Monday, November 10, 2008 2:30 pm Andrew Patterson wrote:
+> ACPI, PCI: call _OSC support during root bridge discovery
+>
+> Added pci_acpi_osc_support() which is called when a PCI bridge is
+> added, so individual PCI root bridge drivers do not have to call _OSC
+> support for every root bridge in their probe functions.
+>
+> Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
 
-* Maciej Rutecki <maciej.rutecki@gmail.com> wrote:
+Applied these first two, I'll be applying the rest shortly.
 
-> 2008/11/12 Ingo Molnar <mingo@elte.hu>:
-> 
-> >
-> > i've queued up the fix below in tip/sched/urgent - Maciej, could you
-> > please test it? I've build and boot tested it.
-> >
-> 
-> Suspend to disk works OK now. Thanks.
-> 
-> Tested-by: Maciej Rutecki <maciej.rutecki@gmail.com>
-
-thanks Maciej!
-
-	Ingo
+Thanks,
+Jesse
