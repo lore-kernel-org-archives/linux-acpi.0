@@ -1,110 +1,131 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [RESEND] [PATCH 1/6] ACPI: create sysfs I/F for dynamic tables
-Date: Wed, 12 Nov 2008 16:29:00 +0800
-Message-ID: <1226478540.15014.171.camel@rzhang-dt>
+Subject: [RESEND] [PATCH 4/6] ACPI: make inactive table management
+	configurable
+Date: Wed, 12 Nov 2008 16:29:07 +0800
+Message-ID: <1226478547.15014.174.camel@rzhang-dt>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:46728 "EHLO mga09.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:13466 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751402AbYKLIb3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Nov 2008 03:31:29 -0500
+	id S1751481AbYKLIbf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Nov 2008 03:31:35 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, "Moore, Robert" <robert.moore@intel.com>
 
-
-SSDT tables may be loaded at runtime.
-create sysfs I/F for these dynamic tables
-in /sys/firmware/acpi/tables/dynamic/.
+Introduce flag ACPI_INACTIVE_TABLE_MANAGEMENT,
+which is used to disable/enable the inactive
+table management.
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- drivers/acpi/system.c |   48 ++++++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 46 insertions(+), 2 deletions(-)
+ drivers/acpi/tables/tbutils.c |    3 ++-
+ drivers/acpi/tables/tbxface.c |   18 +++++++++++++++++-
+ include/acpi/acconfig.h       |    4 ++++
+ include/acpi/acglobal.h       |    2 ++
+ 4 files changed, 25 insertions(+), 2 deletions(-)
 
-Index: linux-acpi-2.6/drivers/acpi/system.c
+Index: linux-acpi-2.6/drivers/acpi/tables/tbutils.c
 ===================================================================
---- linux-acpi-2.6.orig/drivers/acpi/system.c	2008-11-10 10:55:48.000000000 +0800
-+++ linux-acpi-2.6/drivers/acpi/system.c	2008-11-10 10:56:32.000000000 +0800
-@@ -62,6 +62,7 @@
-    -------------------------------------------------------------------------- */
- static LIST_HEAD(acpi_table_attr_list);
- static struct kobject *tables_kobj;
-+static struct kobject *dynamic_tables_kobj;
+--- linux-acpi-2.6.orig/drivers/acpi/tables/tbutils.c
++++ linux-acpi-2.6/drivers/acpi/tables/tbutils.c
+@@ -452,11 +452,12 @@ acpi_tb_parse_root_table(acpi_physical_a
+ 					"using RSDT"));
+ 		}
+ 	}
++#ifdef ACPI_INACTIVE_TABLE_MANAGEMENT
+ 	acpi_inactive_tables_root_pointer =
+ 		(address == rsdt_address ? xsdt_address : rsdt_address);
+ 	acpi_inactive_tables_entry_size =
+ 		(table_entry_size == sizeof(u32) ? sizeof(u64) : sizeof(u32));
+-
++#endif
+ 	/* Map the RSDT/XSDT table header to get the full table length */
  
- struct acpi_table_attr {
- 	struct bin_attribute attr;
-@@ -128,6 +128,40 @@
- 	return;
+ 	table = acpi_os_map_memory(address, sizeof(struct acpi_table_header));
+Index: linux-acpi-2.6/drivers/acpi/tables/tbxface.c
+===================================================================
+--- linux-acpi-2.6.orig/drivers/acpi/tables/tbxface.c
++++ linux-acpi-2.6/drivers/acpi/tables/tbxface.c
+@@ -165,6 +165,7 @@ acpi_initialize_tables(struct acpi_table
+  * 		and install them to the global inactive table list.
+  *
+  ******************************************************************************/
++#ifdef ACPI_INACTIVE_TABLE_MANAGEMENT
+ acpi_status __init
+ acpi_initialize_inactive_tables(void)
+ {
+@@ -284,6 +285,13 @@ acpi_initialize_inactive_tables(void)
+ 
+ 	return_ACPI_STATUS(status);
  }
- 
-+static acpi_status
-+acpi_sysfs_table_handler(u32 event, void *table, void *context)
++#else
++acpi_status __init
++acpi_initialize_inactive_tables(void)
 +{
-+	struct acpi_table_attr *table_attr;
-+
-+	switch (event) {
-+	case ACPI_TABLE_EVENT_LOAD:
-+		table_attr =
-+			kzalloc(sizeof(struct acpi_table_attr), GFP_KERNEL);
-+		if (!table_attr)
-+			return AE_NO_MEMORY;
-+
-+		acpi_table_attr_init(table_attr, table);
-+		if (sysfs_create_bin_file(dynamic_tables_kobj,
-+					&table_attr->attr)) {
-+			kfree(table_attr);
-+			return AE_ERROR;
-+		} else
-+			list_add_tail(&table_attr->node,
-+					&acpi_table_attr_list);
-+		break;
-+	case ACPI_TABLE_EVENT_UNLOAD:
-+		/*
-+		 * we do not need to do anything right now
-+		 * because the table is not deleted from the
-+		 * global table list when unloading it.
-+		 */
-+		break;
-+	default:
-+		return AE_BAD_PARAMETER;
-+	}
 +	return AE_OK;
 +}
-+
- static int acpi_system_sysfs_init(void)
- {
- 	struct acpi_table_attr *table_attr;
-@@ -137,7 +171,11 @@
- 
- 	tables_kobj = kobject_create_and_add("tables", acpi_kobj);
- 	if (!tables_kobj)
--		return -ENOMEM;
-+		goto err;
-+
-+	dynamic_tables_kobj = kobject_create_and_add("dynamic", tables_kobj);
-+	if (!dynamic_tables_kobj)
-+		goto err_dynamic_tables;
- 
- 	do {
- 		result = acpi_get_table_by_index(table_index, &table_header);
-@@ -162,8 +200,14 @@
- 		}
- 	} while (!result);
- 	kobject_uevent(tables_kobj, KOBJ_ADD);
-+	kobject_uevent(dynamic_tables_kobj, KOBJ_ADD);
-+	acpi_gbl_table_handler = acpi_sysfs_table_handler;
- 
- 	return 0;
-+err_dynamic_tables:
-+	kobject_put(tables_kobj);
-+err:
-+	return -ENOMEM;
++#endif
+ /*******************************************************************************
+  *
+  * FUNCTION:    acpi_reallocate_root_table
+@@ -617,6 +625,7 @@ ACPI_EXPORT_SYMBOL(acpi_get_table_by_ind
+  * DESCRIPTION: Obtain a table by an index into the global inactive table list.
+  *
+  ******************************************************************************/
++#ifdef ACPI_INACTIVE_TABLE_MANAGEMENT
+ acpi_status
+ acpi_get_inactive_table_by_index(u32 table_index,
+ 				 struct acpi_table_header **table)
+@@ -652,7 +661,14 @@ acpi_get_inactive_table_by_index(u32 tab
+ 	*table = acpi_gbl_inactive_root_table_list.tables[table_index].pointer;
+ 	return_ACPI_STATUS(AE_OK);
  }
+-
++#else
++acpi_status
++acpi_get_inactive_table_by_index(u32 table_index,
++					struct acpi_table_header **table)
++{
++	return AE_NOT_FOUND;
++}
++#endif
+ /*******************************************************************************
+  *
+  * FUNCTION:    acpi_tb_load_namespace
+Index: linux-acpi-2.6/include/acpi/acconfig.h
+===================================================================
+--- linux-acpi-2.6.orig/include/acpi/acconfig.h
++++ linux-acpi-2.6/include/acpi/acconfig.h
+@@ -119,6 +119,10 @@
  
- /*
+ #define ACPI_ROOT_TABLE_SIZE_INCREMENT  4
+ 
++/* Support ACPI inactive table management */
++
++#define ACPI_INACTIVE_TABLE_MANAGEMENT
++
+ /******************************************************************************
+  *
+  * ACPI Specification constants (Do not change unless the specification changes)
+Index: linux-acpi-2.6/include/acpi/acglobal.h
+===================================================================
+--- linux-acpi-2.6.orig/include/acpi/acglobal.h
++++ linux-acpi-2.6/include/acpi/acglobal.h
+@@ -139,9 +139,11 @@ ACPI_EXTERN u32 acpi_gbl_trace_flags;
+  * acpi_gbl_FADT is a local copy of the FADT, converted to a common format.
+  */
+ ACPI_EXTERN struct acpi_internal_rsdt acpi_gbl_root_table_list;
++#ifdef ACPI_INACTIVE_TABLE_MANAGEMENT
+ ACPI_EXTERN struct acpi_internal_rsdt acpi_gbl_inactive_root_table_list;
+ ACPI_EXTERN acpi_physical_address acpi_inactive_tables_root_pointer;
+ ACPI_EXTERN u32 acpi_inactive_tables_entry_size;
++#endif
+ ACPI_EXTERN struct acpi_table_fadt acpi_gbl_FADT;
+ extern u8 acpi_gbl_permanent_mmap;
+ 
 
 
