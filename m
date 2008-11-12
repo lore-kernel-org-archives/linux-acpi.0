@@ -1,100 +1,110 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [RESEND] [PATCH 0/6] ACPI: ACPI table management enhancement
-Date: Wed, 12 Nov 2008 16:28:58 +0800
-Message-ID: <1226478538.15014.170.camel@rzhang-dt>
+Subject: [RESEND] [PATCH 1/6] ACPI: create sysfs I/F for dynamic tables
+Date: Wed, 12 Nov 2008 16:29:00 +0800
+Message-ID: <1226478540.15014.171.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:35341 "EHLO mga01.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:46728 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751278AbYKLIb0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Nov 2008 03:31:26 -0500
+	id S1751402AbYKLIb3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Nov 2008 03:31:29 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, "Moore, Robert" <robert.moore@intel.com>
 
-=EF=BB=BFhi all,
 
-this is the patch set I made recently for ACPI table management
-enhancement.
+SSDT tables may be loaded at runtime.
+create sysfs I/F for these dynamic tables
+in /sys/firmware/acpi/tables/dynamic/.
 
-Patch 01 creates the sysfs I/F for ACPI dynamic tables.
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ drivers/acpi/system.c |   48 ++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 46 insertions(+), 2 deletions(-)
 
-Patch 02 introduces a new mechanism for ACPI inactive table management.
+Index: linux-acpi-2.6/drivers/acpi/system.c
+===================================================================
+--- linux-acpi-2.6.orig/drivers/acpi/system.c	2008-11-10 10:55:48.000000000 +0800
++++ linux-acpi-2.6/drivers/acpi/system.c	2008-11-10 10:56:32.000000000 +0800
+@@ -62,6 +62,7 @@
+    -------------------------------------------------------------------------- */
+ static LIST_HEAD(acpi_table_attr_list);
+ static struct kobject *tables_kobj;
++static struct kobject *dynamic_tables_kobj;
+ 
+ struct acpi_table_attr {
+ 	struct bin_attribute attr;
+@@ -128,6 +128,40 @@
+ 	return;
+ }
+ 
++static acpi_status
++acpi_sysfs_table_handler(u32 event, void *table, void *context)
++{
++	struct acpi_table_attr *table_attr;
++
++	switch (event) {
++	case ACPI_TABLE_EVENT_LOAD:
++		table_attr =
++			kzalloc(sizeof(struct acpi_table_attr), GFP_KERNEL);
++		if (!table_attr)
++			return AE_NO_MEMORY;
++
++		acpi_table_attr_init(table_attr, table);
++		if (sysfs_create_bin_file(dynamic_tables_kobj,
++					&table_attr->attr)) {
++			kfree(table_attr);
++			return AE_ERROR;
++		} else
++			list_add_tail(&table_attr->node,
++					&acpi_table_attr_list);
++		break;
++	case ACPI_TABLE_EVENT_UNLOAD:
++		/*
++		 * we do not need to do anything right now
++		 * because the table is not deleted from the
++		 * global table list when unloading it.
++		 */
++		break;
++	default:
++		return AE_BAD_PARAMETER;
++	}
++	return AE_OK;
++}
++
+ static int acpi_system_sysfs_init(void)
+ {
+ 	struct acpi_table_attr *table_attr;
+@@ -137,7 +171,11 @@
+ 
+ 	tables_kobj = kobject_create_and_add("tables", acpi_kobj);
+ 	if (!tables_kobj)
+-		return -ENOMEM;
++		goto err;
++
++	dynamic_tables_kobj = kobject_create_and_add("dynamic", tables_kobj);
++	if (!dynamic_tables_kobj)
++		goto err_dynamic_tables;
+ 
+ 	do {
+ 		result = acpi_get_table_by_index(table_index, &table_header);
+@@ -162,8 +200,14 @@
+ 		}
+ 	} while (!result);
+ 	kobject_uevent(tables_kobj, KOBJ_ADD);
++	kobject_uevent(dynamic_tables_kobj, KOBJ_ADD);
++	acpi_gbl_table_handler = acpi_sysfs_table_handler;
+ 
+ 	return 0;
++err_dynamic_tables:
++	kobject_put(tables_kobj);
++err:
++	return -ENOMEM;
+ }
+ 
+ /*
 
-Patch 03 initializes the inactive tables at boot time and builds sysfs
-I/F for these tables.
 
-Patch 04 introduces ACPI_INACTIVE_TABLE_MANAGEMENT to make the inactive
-table management configurable.
-
-here is the ACPI table sysfs I/F on my laptop after applying these
-patches.
-#tree /sys/firmware/acpi/tables/
-=EF=BB=BF/sys/firmware/acpi/tables/
-|-- APIC
-|-- ASF!
-|-- DMAR
-|-- DSDT
-|-- FACP
-|-- FACS
-|-- HPET
-|-- MCFG
-|-- SLIC
-|-- SSDT1
-|-- SSDT2
-|-- SSDT3
-|-- SSDT4
-|-- dynamic
-|   |-- SSDT5
-|   |-- SSDT6
-|   |-- SSDT7
-|   `-- SSDT8
-`-- inactive
-    |-- APIC
-    |-- ASF!
-    |-- DMAR
-    |-- DSDT
-    |-- FACP
-    |-- FACS
-    |-- HPET
-    |-- MCFG
-    |-- RSDT
-    |-- SLIC
-    |-- SSDT1
-    |-- SSDT2
-    |-- SSDT3
-    `-- SSDT4
-
-2 directories, 31 files
-
-Patch 05 and Patch 06 fix a suspend/hibernation bug for me.
-I have a test box which suspends well, but always reboots instead of
-resuming when pressing the power button.
-I found that there are two FACS tables on this platform,
-XSDT-->FADT1-->Xfacs------>FACS1
-	|----->facs-----|
-			|->FACS2
-RSDT-->FADT2-->facs-----|
-Linux uses XSDT on this platform and sets the waking vector in FACS1
-when suspending. But it seems that the BIOS only cares for the waking
-vector in FACS2, thus it reboots when resuming because the waking vecto=
-r
-is not set at all.
-
-=46ADT1.facs is installed to the acpi_gbl_root_table_list in Patch 05.
-And the waking vector of FADT1.facs is set during suspend in Patch 06.
-
-any comments are welcome. :)
-
-thanks,
-rui
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
