@@ -1,66 +1,90 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [RESEND] [RFC PATCH 6/6] ACPI: set waking vectors in all FACS
-	tables
-Date: Wed, 12 Nov 2008 09:02:24 -0800
-Message-ID: <4911F71203A09E4D9981D27F9D8308580D8AAB60@orsmsx503.amr.corp.intel.com>
-References: <1226478552.15014.176.camel@rzhang-dt>
+From: Andrey Borzenkov <arvidjaar@mail.ru>
+Subject: Re: [PATCH] Fix argument type for acpi_evaluate_integer in acpi_get_physical_pci_device
+Date: Wed, 12 Nov 2008 20:34:07 +0300
+Message-ID: <200811122034.08092.arvidjaar@mail.ru>
+References: <200811031216.15690.arvidjaar@mail.ru> <alpine.LFD.2.00.0811120137070.3828@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed;
+  boundary="nextPart18603602.VjaherT0so";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:48706 "EHLO mga02.intel.com"
+Received: from mx39.mail.ru ([194.67.23.35]:64796 "EHLO mx39.mail.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750920AbYKLRC2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Nov 2008 12:02:28 -0500
-In-Reply-To: <1226478552.15014.176.camel@rzhang-dt>
-Content-Language: en-US
+	id S1750920AbYKLReN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Nov 2008 12:34:13 -0500
+In-Reply-To: <alpine.LFD.2.00.0811120137070.3828@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-I'm beginning to think that the complete version of this support will include support for BOTH global locks, in both FACS tables. We don't know how to determine which one is the real one.
+--nextPart18603602.VjaherT0so
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+On Wednesday 12 November 2008, Len Brown wrote:
+> unclear what kernel this is supposed to apply to.
+>=20
+
+The patch was against 2.6.28-rc3 and applies to rc4 as well. Sorry
+for not mentioning this (I thought I did)
+
+> On Mon, 3 Nov 2008, Andrey Borzenkov wrote:
+>=20
+> > Subject: [PATCH] Fix argument type for acpi_evaluate_integer in acpi_ge=
+t_physical_pci_device
+> > From: Andrey Borzenkov <arvidjaar@mail.ru>
+> >=20
+> > CC      drivers/acpi/glue.o
+> > /home/bor/src/linux-git/drivers/acpi/glue.c: In function 'acpi_get_phys=
+ical_pci_device':
+> > /home/bor/src/linux-git/drivers/acpi/glue.c:157: warning: passing argum=
+ent 4 of 'acpi_evaluate_integer' from incompatible pointer type
+> >=20
+> > acpi_evaluate_integer takes pointer to unsigned long long as fourth arg=
+ument
+> >=20
+> > Signed-off-by: Andrey Borzenkov <arvidjaar@mail.ru>
+> >=20
+> > ---
+> >=20
+> >  drivers/acpi/glue.c |    2 +-
+> >  1 files changed, 1 insertions(+), 1 deletions(-)
+> >=20
+> >=20
+> > diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
+> > index 98c9c76..436c8a3 100644
+> > --- a/drivers/acpi/glue.c
+> > +++ b/drivers/acpi/glue.c
+> > @@ -150,7 +150,7 @@ EXPORT_SYMBOL(acpi_get_physical_device);
+> >  struct device *acpi_get_physical_pci_device(acpi_handle handle)
+> >  {
+> >  	struct device *dev;
+> > -	long device_id;
+> > +	unsigned long long device_id;
+> >  	acpi_status status;
+> > =20
+> >  	status =3D
+> >=20
+>=20
+>=20
 
 
->-----Original Message-----
->From: Zhang, Rui
->Sent: Wednesday, November 12, 2008 12:29 AM
->To: Len Brown
->Cc: linux-acpi; Zhang, Rui; Moore, Robert; Rafael J. Wysocki
->Subject: [RESEND] [RFC PATCH 6/6] ACPI: set waking vectors in all FACS
->tables
->
->
->Set the waking vectors in all FACS tables
->in acpi_gbl_root_table_list.
->
->Signed-off-by: Zhang Rui <rui.zhang@intel.com>
->---
-> drivers/acpi/hardware/hwsleep.c |   10 ++++++++++
-> 1 file changed, 10 insertions(+)
->
->Index: linux-2.6/drivers/acpi/hardware/hwsleep.c
->===================================================================
->--- linux-2.6.orig/drivers/acpi/hardware/hwsleep.c     2008-11-13
->04:29:35.000000000 +0800
->+++ linux-2.6/drivers/acpi/hardware/hwsleep.c  2008-11-13
->04:29:43.000000000 +0800
->@@ -90,6 +90,16 @@
->
->       facs->firmware_waking_vector = (u32)physical_address;
->
->+      status = acpi_get_table(ACPI_SIG_FACS, 2,
->+              ACPI_CAST_INDIRECT_PTR(struct acpi_table_header, &facs));
->+      if (ACPI_FAILURE(status))
->+              return_ACPI_STATUS(AE_OK);
->+
->+      if (facs->version >= 1)
->+              facs->xfirmware_waking_vector = 0;
->+
->+      facs->firmware_waking_vector = (u32)physical_address;
->+
->       return_ACPI_STATUS(AE_OK);
-> }
->
->
 
+--nextPart18603602.VjaherT0so
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEABECAAYFAkkbE48ACgkQR6LMutpd94ysiQCdEvh0C50/IIZlvZOJHtYbJwOw
+i+4AoJiquPec9lg0Zr70rppTrhahU7Kf
+=c9im
+-----END PGP SIGNATURE-----
+
+--nextPart18603602.VjaherT0so--
