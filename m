@@ -1,188 +1,110 @@
-From: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] ACPI: thinkpad-acpi: fix fan
-	sleep/resume path
-Date: Wed, 12 Nov 2008 00:02:47 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0811120002420.3828@localhost.localdomain>
-References: <20081109113011.GB8329@khazad-dum.debian.net>
-	<1226235242-11130-2-git-send-email-hmh@hmh.eng.br>
+From: Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>
+Subject: Re: ACPI crash on lid close - SMP race?
+Date: Wed, 12 Nov 2008 05:21:15 +0000
+Message-ID: <1226467275.3362.43.camel@monteirov>
+References: <20081110161105.GA2041@srcf.ucam.org>
+	 <1226366834.15014.60.camel@rzhang-dt>
+	 <20081111013359.GA11364@srcf.ucam.org>
+	 <1226368778.15014.73.camel@rzhang-dt>
+	 <20081111020539.GA11616@srcf.ucam.org>
+Reply-To: sergio@sergiomb.no-ip.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-reply-to: <1226235242-11130-2-git-send-email-hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/signed; micalg="sha1"; protocol="application/x-pkcs7-signature"; boundary="=-C36Wh8Fz5xl8PICQsbVt"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp2.netcabo.pt ([212.113.174.29]:58251 "EHLO
+	exch01smtp12.hdi.tvcabo" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750995AbYKLFbi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Nov 2008 00:31:38 -0500
+In-Reply-To: <20081111020539.GA11616@srcf.ucam.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Zhang Rui <rui.zhang@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-applied.
 
-thanks,
--Len
+--=-C36Wh8Fz5xl8PICQsbVt
+Content-Type: text/plain; charset="ISO-8859-15"
+Content-Transfer-Encoding: quoted-printable
 
-On Sun, 9 Nov 2008, Henrique de Moraes Holschuh wrote:
+Hi,=20
+On my laptop which is not SMP , is a Intel Centrino 1.7Mhz , I have a
+little stranger problem my lid button (backlight) doesn't work with
+_DOS=3D0 after load Hal service and on first boot.=20
+Like _DOS=3D0 on some laptop crash on lid close.=20
 
-> This fixes a regression from v2.6.27, caused by commit
-> 5814f737e1cd2cfa2893badd62189acae3e1e1fd, "ACPI: thinkpad-acpi:
-> attempt to preserve fan state on resume".
-> 
-> It is possible for fan_suspend() to fail to properly initialize
-> fan_control_desired_level as required by fan_resume(), resulting on
-> the fan always being set to level 7 on resume if the user didn't
-> touch the fan controller.
-> 
-> In order to get fan sleep/resume handling to work right:
-> 
-> 1. Fix the fan_suspend handling of the T43 firmware quirk. If it is
-> still undefined, we didn't touch the fan yet and that means we have no
-> business doing it on resume.
-> 
-> 2. Store the fan level on its own variable to avoid any possible
-> issues with hijacking fan_control_desired_level (which isn't supposed
-> to have anything other than 0-7 in it, anyway).
-> 
-> 3. Change the fan_resume code to me more straightforward to understand
-> (although we DO optimize the boolean logic there, otherwise it looks
-> disgusting).
-> 
-> 4. Add comments to help understand what the code is supposed to be
-> doing.
-> 
-> 5. Change fan_set_level to be less strict about how auto and
-> full-speed modes are requested.
-> 
-> Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-> Reported-by: Tino Keitel <tino.keitel-rAwCM5oiXHA@public.gmane.org>
-> ---
->  drivers/misc/thinkpad_acpi.c |   57 +++++++++++++++++++++++++++++++++---------
->  1 files changed, 45 insertions(+), 12 deletions(-)
-> 
-> diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-> index 4db1cf9..b7e4d47 100644
-> --- a/drivers/misc/thinkpad_acpi.c
-> +++ b/drivers/misc/thinkpad_acpi.c
-> @@ -5309,6 +5309,7 @@ static enum fan_control_commands fan_control_commands;
->  
->  static u8 fan_control_initial_status;
->  static u8 fan_control_desired_level;
-> +static u8 fan_control_resume_level;
->  static int fan_watchdog_maxinterval;
->  
->  static struct mutex fan_mutex;
-> @@ -5431,8 +5432,8 @@ static int fan_set_level(int level)
->  
->  	case TPACPI_FAN_WR_ACPI_FANS:
->  	case TPACPI_FAN_WR_TPEC:
-> -		if ((level != TP_EC_FAN_AUTO) &&
-> -		    (level != TP_EC_FAN_FULLSPEED) &&
-> +		if (!(level & TP_EC_FAN_AUTO) &&
-> +		    !(level & TP_EC_FAN_FULLSPEED) &&
->  		    ((level < 0) || (level > 7)))
->  			return -EINVAL;
->  
-> @@ -5996,38 +5997,67 @@ static void fan_exit(void)
->  
->  static void fan_suspend(pm_message_t state)
->  {
-> +	int rc;
-> +
->  	if (!fan_control_allowed)
->  		return;
->  
->  	/* Store fan status in cache */
-> -	fan_get_status_safe(NULL);
-> +	fan_control_resume_level = 0;
-> +	rc = fan_get_status_safe(&fan_control_resume_level);
-> +	if (rc < 0)
-> +		printk(TPACPI_NOTICE
-> +			"failed to read fan level for later "
-> +			"restore during resume: %d\n", rc);
-> +
-> +	/* if it is undefined, don't attempt to restore it.
-> +	 * KEEP THIS LAST */
->  	if (tp_features.fan_ctrl_status_undef)
-> -		fan_control_desired_level = TP_EC_FAN_AUTO;
-> +		fan_control_resume_level = 0;
->  }
->  
->  static void fan_resume(void)
->  {
-> -	u8 saved_fan_level;
->  	u8 current_level = 7;
->  	bool do_set = false;
-> +	int rc;
->  
->  	/* DSDT *always* updates status on resume */
->  	tp_features.fan_ctrl_status_undef = 0;
->  
-> -	saved_fan_level = fan_control_desired_level;
->  	if (!fan_control_allowed ||
-> +	    !fan_control_resume_level ||
->  	    (fan_get_status_safe(&current_level) < 0))
->  		return;
->  
->  	switch (fan_control_access_mode) {
->  	case TPACPI_FAN_WR_ACPI_SFAN:
-> -		do_set = (saved_fan_level > current_level);
-> +		/* never decrease fan level */
-> +		do_set = (fan_control_resume_level > current_level);
->  		break;
->  	case TPACPI_FAN_WR_ACPI_FANS:
->  	case TPACPI_FAN_WR_TPEC:
-> -		do_set = ((saved_fan_level & TP_EC_FAN_FULLSPEED) ||
-> -			  (saved_fan_level == 7 &&
-> -			   !(current_level & TP_EC_FAN_FULLSPEED)));
-> +		/* never decrease fan level, scale is:
-> +		 * TP_EC_FAN_FULLSPEED > 7 >= TP_EC_FAN_AUTO
-> +		 *
-> +		 * We expect the firmware to set either 7 or AUTO, but we
-> +		 * handle FULLSPEED out of paranoia.
-> +		 *
-> +		 * So, we can safely only restore FULLSPEED or 7, anything
-> +		 * else could slow the fan.  Restoring AUTO is useless, at
-> +		 * best that's exactly what the DSDT already set (it is the
-> +		 * slower it uses).
-> +		 *
-> +		 * Always keep in mind that the DSDT *will* have set the
-> +		 * fans to what the vendor supposes is the best level.  We
-> +		 * muck with it only to speed the fan up.
-> +		 */
-> +		if (fan_control_resume_level != 7 &&
-> +		    !(fan_control_resume_level & TP_EC_FAN_FULLSPEED))
-> +			return;
-> +		else
-> +			do_set = !(current_level & TP_EC_FAN_FULLSPEED) &&
-> +				 (current_level != fan_control_resume_level);
->  		break;
->  	default:
->  		return;
-> @@ -6035,8 +6065,11 @@ static void fan_resume(void)
->  	if (do_set) {
->  		printk(TPACPI_NOTICE
->  			"restoring fan level to 0x%02x\n",
-> -			saved_fan_level);
-> -		fan_set_level_safe(saved_fan_level);
-> +			fan_control_resume_level);
-> +		rc = fan_set_level_safe(fan_control_resume_level);
-> +		if (rc < 0)
-> +			printk(TPACPI_NOTICE
-> +				"failed to restore fan level: %d\n", rc);
->  	}
->  }
->  
-> -- 
-> 1.5.6.5
-> 
+The report #6001 , made by other S=E9rgio (not me), which complains on
+system freeze when _DOS=3D1 and on switching display.=20
+Switching display for him means on switching to CTR or to monitor with
+fn+ f4. With acpi=3Doff don't freeze because that have the event , and
+with acpi on, freeze , so IMHO, this is a problem probably not related
+with _DOS value, S=E9rgio Luis , in last comment
+( http://bugzilla.kernel.org/show_bug.cgi?id=3D6001#c51 ) wrote with
+updated kernel freeze in the 2 cases.=20
 
--------------------------------------------------------------------------
-This SF.Net email is sponsored by the Moblin Your Move Developer's challenge
-Build the coolest Linux based applications with Moblin SDK & win great prizes
-Grand prize is a trip for two to an Open Source event anywhere in the world
-http://moblin-contest.org/redirect.php?banner_id=100&url=/
+But this report introduce a patch in main kernel that change _DOS from 1
+to 0 , which I think at least should be reverted.
+
+I'd love learn more about this switches , if someone can help me with
+some tip , many thanks,
+
+
+On Tue, 2008-11-11 at 02:05 +0000, Matthew Garrett wrote:=20
+> On Tue, Nov 11, 2008 at 09:59:38AM +0800, Zhang Rui wrote:
+>=20
+> > oops. sorry, I mean system crashes on lid close if _DOS=3D0 on some UP
+> > platform.
+>=20
+> Oh, ugh. I don't have any with that issue, but that ought to be=20
+> "interesting" to fix.
+>=20
+--=20
+S=E9rgio M.B.
+
+--=-C36Wh8Fz5xl8PICQsbVt
+Content-Type: application/x-pkcs7-signature; name="smime.p7s"
+Content-Disposition: attachment; filename="smime.p7s"
+Content-Transfer-Encoding: base64
+
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIGVjCCAw8w
+ggJ4oAMCAQICEA6CVh3keQ8TFtyrh/wrbgYwDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UEBhMCWkEx
+JTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQ
+ZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA4MTAxNDAzMTc0N1oXDTA5MTAxNDAzMTc0
+N1owSzEfMB0GA1UEAxMWVGhhd3RlIEZyZWVtYWlsIE1lbWJlcjEoMCYGCSqGSIb3DQEJARYZc2Vy
+Z2lvQHNlcmdpb21iLm5vLWlwLm9yZzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAJ2D
+rpizYnrRUFYQm6b6ZcE50ta36mutS13FIAqg0ugCjlSFSv+nkjbfEBOug+hb5vh9SOBOLy+UFJrn
+2MibIuLGip4OsawcJ41Z7prkKlUCIwtNLmb/m7swubSLqFRiojy0ctMhMWtDt9xzwOYmZN7yGMiS
+jFHivrtZRGPWA7tPzN3KOQeSP4DYxLZ06a3ZOwqR4g3NkQeWbdLVvBe6r3mKtaoDeirW5XT8epyh
+vqRK7izl/vOum2Gx+HeaLpyH5pTOhMd2K7DTfMiBjqBxchUDTccOykMN+5i9ketxy3Bh0PfEStZh
+vjaZbCsJIV2WQc/jAH+k3xef41fci2o+Cz0CAwEAAaNZMFcwDgYDVR0PAQH/BAQDAgSQMBEGCWCG
+SAGG+EIBAQQEAwIFoDAkBgNVHREEHTAbgRlzZXJnaW9Ac2VyZ2lvbWIubm8taXAub3JnMAwGA1Ud
+EwEB/wQCMAAwDQYJKoZIhvcNAQEFBQADgYEAABP+jrmaOnO/2yM7OeJmjEVjDJpT2baLpvBL1k4O
+6HSVgsx5JidSa+vF/cKaP1UFko8XT2TooDpnrTbw//Rkfd6ZbeXXqzdIJQs4xiSRGgcMuJL8GtuH
+LQHkOIqKaPW+KSzVG68U/NzSzqdtr5iPwE6YCLMN0WnVduhgLQlXqkAwggM/MIICqKADAgECAgEN
+MA0GCSqGSIb3DQEBBQUAMIHRMQswCQYDVQQGEwJaQTEVMBMGA1UECBMMV2VzdGVybiBDYXBlMRIw
+EAYDVQQHEwlDYXBlIFRvd24xGjAYBgNVBAoTEVRoYXd0ZSBDb25zdWx0aW5nMSgwJgYDVQQLEx9D
+ZXJ0aWZpY2F0aW9uIFNlcnZpY2VzIERpdmlzaW9uMSQwIgYDVQQDExtUaGF3dGUgUGVyc29uYWwg
+RnJlZW1haWwgQ0ExKzApBgkqhkiG9w0BCQEWHHBlcnNvbmFsLWZyZWVtYWlsQHRoYXd0ZS5jb20w
+HhcNMDMwNzE3MDAwMDAwWhcNMTMwNzE2MjM1OTU5WjBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMc
+VGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZy
+ZWVtYWlsIElzc3VpbmcgQ0EwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMSmPFVzVftOucqZ
+Wh5owHUEcJ3f6f+jHuy9zfVb8hp2vX8MOmHyv1HOAdTlUAow1wJjWiyJFXCO3cnwK4Vaqj9xVsuv
+PAsH5/EfkTYkKhPPK9Xzgnc9A74r/rsYPge/QIACZNenprufZdHFKlSFD0gEf6e20TxhBEAeZBly
+YLf7AgMBAAGjgZQwgZEwEgYDVR0TAQH/BAgwBgEB/wIBADBDBgNVHR8EPDA6MDigNqA0hjJodHRw
+Oi8vY3JsLnRoYXd0ZS5jb20vVGhhd3RlUGVyc29uYWxGcmVlbWFpbENBLmNybDALBgNVHQ8EBAMC
+AQYwKQYDVR0RBCIwIKQeMBwxGjAYBgNVBAMTEVByaXZhdGVMYWJlbDItMTM4MA0GCSqGSIb3DQEB
+BQUAA4GBAEiM0VCD6gsuzA2jZqxnD3+vrL7CF6FDlpSdf0whuPg2H6otnzYvwPQcUCCTcDz9reFh
+YsPZOhl+hLGZGwDFGguCdJ4lUJRix9sncVcljd2pnDmOjCBPZV+V2vf3h9bGCE6u9uo05RAaWzVN
+d+NWIXiC3CEZNd4ksdMdRv9dX2VPMYIB/DCCAfgCAQEwdjBiMQswCQYDVQQGEwJaQTElMCMGA1UE
+ChMcVGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFs
+IEZyZWVtYWlsIElzc3VpbmcgQ0ECEA6CVh3keQ8TFtyrh/wrbgYwCQYFKw4DAhoFAKBdMBgGCSqG
+SIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTA4MTExMjA1MjEwN1owIwYJKoZI
+hvcNAQkEMRYEFJeJ0gByBNAX5eDAIkHxfTBNOlVwMA0GCSqGSIb3DQEBAQUABIIBAADc4uveys+B
+WJHTBLDZwY870parn3igXpVMhfv7kc8io1iZEE6JL3JBmTwl9lUj5NdHWAGhxeE/53jTNmkmkMft
+jwbPjpEZ+VbPEWula66fBOymDMv+Pec9Nx3l2bZnT9DT2rHQ0MoeBa1zWU9ymS3Y8JVu+CmZOoAn
+xhr9HFBAFIw6ES61TMAWKnzttTLCRP2pHKe5Rsu7g5C7qVwc/V/zMvaXlyZtFxtzXiZBEvL4XfNq
+1i5wSGtBeLo5+4Fbju+eVXrNFEBAKLb6JprtHHmvrvmk5gxpz2W2gw6OuBOWEGf4m5/j6yK2AzCB
+E3mZfWdD++8F+w4S0si7kvgI0y8AAAAAAAA=
+
+
+--=-C36Wh8Fz5xl8PICQsbVt--
+
