@@ -1,69 +1,50 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [Devel] Re: [RESEND] [PATCH 2/3] Introduce
-	acpi_root_table=rsdt boot param and dmi list to force rsdt
-Date: Thu, 13 Nov 2008 16:27:09 +0800
-Message-ID: <1226564829.15014.225.camel@rzhang-dt>
-References: <200810192350.57993.trenn@suse.de>
-	 <20081111005856.GA10535@srcf.ucam.org> <200811121758.39105.trenn@suse.de>
-	 <1226542860.15014.187.camel@rzhang-dt>
-	 <20081113022409.GA25298@srcf.ucam.org>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: Re: The regression about EC GPE storm on the latest linus git tree
+Date: Thu, 13 Nov 2008 11:32:57 +0300
+Message-ID: <491BE639.6070407@suse.de>
+References: <1226539214.4006.70.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:63451 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751053AbYKMI0r (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 13 Nov 2008 03:26:47 -0500
-In-Reply-To: <20081113022409.GA25298@srcf.ucam.org>
+Received: from charybdis-ext.suse.de ([195.135.221.2]:42087 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750824AbYKMIdB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Nov 2008 03:33:01 -0500
+In-Reply-To: <1226539214.4006.70.camel@yakui_zhao.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Thomas Renninger <trenn@suse.de>, "Moore, Robert" <robert.moore@intel.com>, linux-thinkpad <linux-thinkpad@linux-thinkpad.org>, "me@markdoughty.co.uk" <me@markdoughty.co.uk>, "Zhao, Yakui" <yakui.zhao@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "devel@acpica.org" <devel@acpica.org>
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
 
-On Thu, 2008-11-13 at 10:24 +0800, Matthew Garrett wrote:
-> On Thu, Nov 13, 2008 at 10:21:00AM +0800, Zhang Rui wrote:
-> > =EF=BB=BFI have a test box which suspends well, but always reboots =
-instead of
-> > resuming when pressing the power button.
-> > I found that there are two FACS tables on this platform,
-> > XSDT-->FADT1-->Xfacs------>FACS1
-> > 	|----->facs-----|
-> > 			|->FACS2
-> > RSDT-->FADT2-->facs-----|
-> > Linux uses XSDT on this platform and sets the waking vector in FACS=
-1
-> > when suspending. But it seems that the BIOS only cares for the waki=
-ng
-> > vector in FACS2, thus it reboots when resuming because the waking v=
-ector
-> > is not set at all.
->=20
-> That makes it sound like we should be using the 32-bit value in this=20
-> case as well.
+Hi Yakui,
 
->=20
-> > My original proposal is to install both FADT1.Xfacs and FADT1.facs =
-in to
-> > the global table list and set the waking vectors on both of them.
-> > now it seems that switching back to RSDT if multiple valid FACS tab=
-les
-> > exists is also a solution for this issue.
->=20
-> Why? If there's a FADT entry in the XSDT we might as well use it - al=
-l=20
-> the machines I've checked contain valid information in the 32-bit ent=
-ry=20
-> of the FADT there.
->=20
-do you mean =EF=BB=BFalways using FADT1.facs and ignore the FADT.Xfacs =
-in Linux?
+Does your latest kernel include yesterday pool of patches? 
 
-thanks,
-rui
+Thanks,
+Alex.
+Zhao Yakui wrote:
+> Hi, Alexey
+>     I do some tests on the latest kernel and find that there exists the
+> EC GPE storm on the three laptops. And then EC will work in polling
+> mode. One is Asus EEEPC 1000. The other are HP laptops. 
+>     
+>     I do the similar test on the previous kernel(for example:
+> 2.6.27-rc6, 2.6.27.4) and there is no EC GPE storm on the three laptops.
+> The EC works in EC GPE interrupt mode. 
+>     After the EC debug is used on the 2.6.27-rc6 kernel, I find that at
+> most 8 EC interrupts are triggered in each EC transaction(This includes
+> the effective EC GPE interrupts). In such case it should not be regarded
+> as EC GPE storm.
+>        
+>     The attached are the dmesg info on the Asus EEEPC 1000. (One is
+> based on the latest git tree. One is based on 2.6.27-rc6 kernel).
+>     If you need to investigate the root cause about the EC GPE storm,
+> please tell me what I should do. I will try my best to test the patch
+> from you and give response.
+> 
+> Thanks.
+>    Yakui
+>  
+> 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
