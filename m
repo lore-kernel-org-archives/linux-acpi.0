@@ -1,43 +1,73 @@
 From: Lin Ming <ming.m.lin@intel.com>
-Subject: ACPICA Release 20081031 linuxized patch set
-Date: Thu, 13 Nov 2008 13:59:16 +0800
-Message-ID: <1226555956.30025.150.camel@minggr.sh.intel.com>
+Subject: Re: ACPICA Release 20081031 linuxized patch set
+Date: Thu, 13 Nov 2008 14:13:03 +0800
+Message-ID: <1226556783.30025.154.camel@minggr.sh.intel.com>
+References: <1226555956.30025.150.camel@minggr.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-qBDtPPPrvfRv296e6vsQ"
+Content-Type: multipart/mixed; boundary="=-oIhWf6S7/Ag6Y4zwdJpI"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:1998 "EHLO mga11.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:25234 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750953AbYKMGA6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 13 Nov 2008 01:00:58 -0500
+	id S1751298AbYKMGOr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 13 Nov 2008 01:14:47 -0500
+In-Reply-To: <1226555956.30025.150.camel@minggr.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <len.brown@intel.com>, "Moore, Robert" <robert.moore@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, acpi <acpi@linux.intel.com>
+To: Len Brown <len.brown@intel.com>
+Cc: "Moore, Robert" <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, acpi <acpi@linux.intel.com>
 
 
---=-qBDtPPPrvfRv296e6vsQ
-Content-Type: text/plain; charset=UTF-8
+--=-oIhWf6S7/Ag6Y4zwdJpI
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 
-Hi, Len
+Please ignore the previous one.
+Use this attached mbox file.
 
-ACPICA Release 20081031 linuxized patch set attached.
+Short log
+---
+[PATCH 01/18] ACPICA: Fix several warnings under gcc 4 compiler
+[PATCH 02/18] ACPICA: Update FACS waking vector interfaces
+[PATCH 03/18] ACPICA: Fix possible memory leak on error in parser
+[PATCH 04/18] ACPICA: Optimize execution of AML While loops
+[PATCH 05/18] ACPICA: Add a mechanism to escape infinite AML While() loops
+[PATCH 06/18] ACPICA: Update debug output for IndexField I/O
+[PATCH 07/18] ACPICA: Fix namestring for the SystemCMOS address space
+[PATCH 08/18] ACPICA: Emit warning if two FACS or DSDT tables found in the FADT
+[PATCH 09/18] ACPICA: Add global pointer for FACS table to simplify FACS access
+[PATCH 10/18] ACPICA: Reformat comments, no functional changes
+[PATCH 11/18] ACPICA: Add support to externally execute _OSI method
+[PATCH 12/18] ACPICA: Remove references to obsolete ACPI_DUMP_APP
+[PATCH 13/18] ACPICA: Fix to allow aliases within ASL namepaths
+[PATCH 14/18] ACPICA: Allow multiple backslash prefix in namepaths
+[PATCH 15/18] ACPICA: Allow _WAK method to return an Integer
+[PATCH 16/18] ACPICA: Add Buffer->String conversion for predefined methods
+[PATCH 17/18] ACPICA: Consolidate method arg count validation code
+[PATCH 18/18] ACPICA: Enhance implicit return mechanism
 
-This patch set includes everything of v20081031 except the changes of "public header files".
-﻿BIF patch is also included.
-
-We are going to send out the "public header files" patch
-after all symbols (count_num_gpes, get_gpe_device, acpi_hw_low_level_write, acpi_hw_disable_all_gpes, etc)
-are resolved.
-
-This patch set can be cleanly applied to Linus tree.
-Build under 32 & 64 bit machines, no warnings.
-Tested under 64 bit machines with abat, it works fine.
-
-
+Thanks,
 Lin Ming
 
---=-qBDtPPPrvfRv296e6vsQ
+On Thu, 2008-11-13 at 13:59 +0800, Lin Ming wrote:
+> Hi, Len
+> 
+> ACPICA Release 20081031 linuxized patch set attached.
+> 
+> This patch set includes everything of v20081031 except the changes of "public header files".
+> ﻿BIF patch is also included.
+> 
+> We are going to send out the "public header files" patch
+> after all symbols (count_num_gpes, get_gpe_device, acpi_hw_low_level_write, acpi_hw_disable_all_gpes, etc)
+> are resolved.
+> 
+> This patch set can be cleanly applied to Linus tree.
+> Build under 32 & 64 bit machines, no warnings.
+> Tested under 64 bit machines with abat, it works fine.
+> 
+> 
+> Lin Ming
+
+--=-oIhWf6S7/Ag6Y4zwdJpI
 Content-Disposition: attachment; filename=acpica.v20081031.mbox
 Content-Type: application/mbox; name=acpica.v20081031.mbox
 Content-Transfer-Encoding: 7bit
@@ -274,7 +304,7 @@ index 33bc0e3..c9b903f 100644
  acpi_get_sleep_type_data(u8 sleep_state, u8 * slp_typ_a, u8 * slp_typ_b);
 
 >From e4de01b27cb84472d3eabe6c34fd4ec642bd61a1 Mon Sep 17 00:00:00 2001
-From: Bob Moore <robert.moore@intel.com>
+From: Lin Ming <ming.m.lin@intel.com> 
 Date: Wed, 12 Nov 2008 14:56:59 +0800
 Subject: [PATCH 03/18] ACPICA: Fix possible memory leak on error in parser
 
@@ -1932,7 +1962,7 @@ index 29c7c27..35b0e46 100644
  				      object)->type)) {
 
 >From cfdb0b3ab111c5800fb57cb1f6fce02be98fc3d0 Mon Sep 17 00:00:00 2001
-From: Bob Moore <robert.moore@intel.com>
+From: Lin Ming <ming.m.lin@intel.com>
 Date: Thu, 13 Nov 2008 10:54:39 +0800
 Subject: [PATCH 14/18] ACPICA: Allow multiple backslash prefix in namepaths
 
@@ -2663,7 +2693,7 @@ index db1e290..46cb5b4 100644
  /*
 
 >From 7d1cbe933a947ec8ea4172e7f3d71377739cdb90 Mon Sep 17 00:00:00 2001
-From: Bob Moore <robert.moore@intel.com>
+From: Lin Ming <ming.m.lin@intel.com>
 Date: Thu, 13 Nov 2008 11:25:22 +0800
 Subject: [PATCH 18/18] ACPICA: Enhance implicit return mechanism
 
@@ -2706,5 +2736,5 @@ index 4985ce5..41b0c8c 100644
  	status = acpi_ps_parse_aml(walk_state);
 
 
---=-qBDtPPPrvfRv296e6vsQ--
+--=-oIhWf6S7/Ag6Y4zwdJpI--
 
