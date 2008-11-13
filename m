@@ -1,121 +1,68 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [stable] Suspend regression in stable kernel 2.6.27.4 on Mac mini Core Duo
-Date: Thu, 13 Nov 2008 23:18:12 +0100
-Message-ID: <200811132318.13821.rjw@sisk.pl>
-References: <20081109202830.GA7206@x61> <200811122241.09943.rjw@sisk.pl> <20081113192656.GA5735@dose.home.local>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [stable] [PATCH 21/21] ACPI: EC: make kernel messages more
+	useful when GPE storm is detected
+Date: Thu, 13 Nov 2008 13:46:24 -0800
+Message-ID: <20081113214624.GA15628@kroah.com>
+References: <1226032765-15330-1-git-send-email-lenb@kernel.org> <200811072315.25227.rjw@sisk.pl> <20081111212322.GA6123@kroah.com> <200811130034.53634.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:35711 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754034AbYKMWNd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 13 Nov 2008 17:13:33 -0500
-In-Reply-To: <20081113192656.GA5735@dose.home.local>
+Received: from kroah.org ([198.145.64.141]:33735 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1756469AbYKMWO2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 13 Nov 2008 17:14:28 -0500
 Content-Disposition: inline
+In-Reply-To: <200811130034.53634.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tino Keitel <tino.keitel@gmx.de>
-Cc: linux-kernel@vger.kernel.org, stable@kernel.org, Greg KH <greg@kroah.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Bob Copeland <me@bobcopeland.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, stable@kernel.org, Len Brown <len.brown@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.de>
 
-On Thursday, 13 of November 2008, Tino Keitel wrote:
-> On Wed, Nov 12, 2008 at 22:41:08 +0100, Rafael J. Wysocki wrote:
-> > On Wednesday, 12 of November 2008, Tino Keitel wrote:
-> > > On Wed, Nov 12, 2008 at 01:03:54 +0100, Rafael J. Wysocki wrote:
+On Thu, Nov 13, 2008 at 12:34:52AM +0100, Rafael J. Wysocki wrote:
+> On Tuesday, 11 of November 2008, Greg KH wrote:
+> > On Fri, Nov 07, 2008 at 11:15:24PM +0100, Rafael J. Wysocki wrote:
+> > > On Friday, 7 of November 2008, Greg KH wrote:
+> > > > On Fri, Nov 07, 2008 at 02:54:24PM +0100, Rafael J. Wysocki wrote:
+> > > > > On Friday, 7 of November 2008, Alan Jenkins wrote:
+> > > > > > Len Brown wrote:
+> > > > > > > From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+> > > > > > >
+> > > > > > > Make sure we can tell if the GPE storm workaround gets activated,
+> > > > > > > and avoid flooding the logs afterwards.
+> > > > > > >
+> > > > > > > http://bugzilla.kernel.org/show_bug.cgi?id=11841
+> > > > > > > "plenty of line "ACPI: EC: non-query interrupt received,
+> > > > > > >  switching to interrupt mode" in dmesg"
+> > > > > > >
+> > > > > > > Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+> > > > > > > Acked-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+> > > > > > > Signed-off-by: Len Brown <len.brown@intel.com>
+> > > > > > >   
+> > > > > > I see the EC patches that cause this issue are part of 2.6.27-stable. 
+> > > > > > So I think this patch should also be applied to the -stable tree.
+> > > > > 
+> > > > > Good point, it should.
+> > > > 
+> > > > Ok, what is the git commit id that should be added to the .27-stable
+> > > > tree?
 > > > 
-> > > [...]
-> > > 
-> > > > Also, can you check this patch on top of 2.6.27.4 and see what happens?
-> > > 
-> > > With that patch, resume works (although I used 2.6.27.5 and not
-> > > 2.6.27.5, if that matters).
+> > > Not yet in the Linus' tree, I'll let you know when it's merged.
 > > 
-> > It shouldn't really matter.
-> > 
-> > Thanks for testing and please send me the output of dmidecode.
-> > It seems that blacklisting may be the only way to handle your box. :-(
+> > Thank you for doing this.
 > 
-> Attached.
+> Here:
+> 
+> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=f8248434e6a11d7cd314281be3b39bbcf82fc243
+> 
+> The other EC patches in this merge are also regarded as -stable material,
+> but let's wait a couple of days to avoid possible regressions (although Alex
+> thinks there sould be none ;-)).
 
-Please try the appended patch on top of the Linus' tree.
+Now applied.
 
-Thanks,
-Rafael
+If there's other git ids that should also be added, please let me know
+what they are.
 
----
- drivers/acpi/sleep/main.c |   40 +++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 39 insertions(+), 1 deletion(-)
+thanks,
 
-Index: linux-2.6/drivers/acpi/sleep/main.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/sleep/main.c
-+++ linux-2.6/drivers/acpi/sleep/main.c
-@@ -104,6 +104,18 @@ void __init acpi_s4_no_nvs(void)
- 	s4_no_nvs = true;
- }
- 
-+/*
-+ * According to the ACPI specification the BIOS should make sure that ACPI is
-+ * enabled and SCI_EN bit is set on wake-up from S1 - S3 sleep states.  Still,
-+ * some BIOSes don't do that and therefore we use acpi_enable() to enable ACPI
-+ * on such systems during resume.  Unfortunately that doesn't help in
-+ * particularly pathological cases in which SCI_EN has to be set directly on
-+ * resume, although the specification states very clearly that this flag is
-+ * owned by the hardware.  The set_sci_en_on_resume variable will be set in such
-+ * cases.
-+ */
-+static bool set_sci_en_on_resume;
-+
- /**
-  *	acpi_pm_disable_gpes - Disable the GPEs.
-  */
-@@ -249,7 +261,11 @@ static int acpi_suspend_enter(suspend_st
- 	}
- 
- 	/* If ACPI is not enabled by the BIOS, we need to enable it here. */
--	acpi_enable();
-+	if (set_sci_en_on_resume)
-+		acpi_set_register(ACPI_BITREG_SCI_ENABLE, 1);
-+	else
-+		acpi_enable();
-+
- 	/* Reprogram control registers and execute _BFS */
- 	acpi_leave_sleep_state_prep(acpi_state);
- 
-@@ -337,6 +353,12 @@ static int __init init_old_suspend_order
- 	return 0;
- }
- 
-+static int __init init_set_sci_en_on_resume(const struct dmi_system_id *d)
-+{
-+	set_sci_en_on_resume = true;
-+	return 0;
-+}
-+
- static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
- 	{
- 	.callback = init_old_suspend_ordering,
-@@ -354,6 +376,22 @@ static struct dmi_system_id __initdata a
- 		DMI_MATCH(DMI_PRODUCT_NAME, "HP xw4600 Workstation"),
- 		},
- 	},
-+	{
-+	.callback = init_set_sci_en_on_resume,
-+	.ident = "Apple MacBook 1,1",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Apple Computer, Inc."),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "MacBook1,1"),
-+		},
-+	},
-+	{
-+	.callback = init_set_sci_en_on_resume,
-+	.ident = "Apple MacMini 1,1",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Apple Computer, Inc."),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "Macmini1,1"),
-+		},
-+	},
- 	{},
- };
- #endif /* CONFIG_SUSPEND */
+greg k-h
