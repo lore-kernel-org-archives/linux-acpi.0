@@ -1,57 +1,75 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [Devel] Re: [RESEND] [PATCH 2/3] Introduce acpi_root_table=rsdt boot param and dmi list to force rsdt
-Date: Thu, 13 Nov 2008 02:24:09 +0000
-Message-ID: <20081113022409.GA25298@srcf.ucam.org>
-References: <200810192350.57993.trenn@suse.de> <20081111005856.GA10535@srcf.ucam.org> <200811121758.39105.trenn@suse.de> <1226542860.15014.187.camel@rzhang-dt>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: RE: [RESEND] [RFC PATCH 6/6] ACPI: set waking vectors in all FACS
+	tables
+Date: Thu, 13 Nov 2008 10:28:44 +0800
+Message-ID: <1226543324.15014.196.camel@rzhang-dt>
+References: <1226478552.15014.176.camel@rzhang-dt>
+	 <4911F71203A09E4D9981D27F9D8308580D8AAB60@orsmsx503.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:57804 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751019AbYKMCYS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Nov 2008 21:24:18 -0500
-Content-Disposition: inline
-In-Reply-To: <1226542860.15014.187.camel@rzhang-dt>
+Received: from mga11.intel.com ([192.55.52.93]:29584 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751882AbYKMC2S (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Nov 2008 21:28:18 -0500
+In-Reply-To: <4911F71203A09E4D9981D27F9D8308580D8AAB60@orsmsx503.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Thomas Renninger <trenn@suse.de>, "Moore, Robert" <robert.moore@intel.com>, linux-thinkpad <linux-thinkpad@linux-thinkpad.org>, "me@markdoughty.co.uk" <me@markdoughty.co.uk>, "Zhao, Yakui" <yakui.zhao@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "devel@acpica.org" <devel@acpica.org>
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-On Thu, Nov 13, 2008 at 10:21:00AM +0800, Zhang Rui wrote:
-> =EF=BB=BFI have a test box which suspends well, but always reboots in=
-stead of
-> resuming when pressing the power button.
-> I found that there are two FACS tables on this platform,
-> XSDT-->FADT1-->Xfacs------>FACS1
-> 	|----->facs-----|
-> 			|->FACS2
-> RSDT-->FADT2-->facs-----|
-> Linux uses XSDT on this platform and sets the waking vector in FACS1
-> when suspending. But it seems that the BIOS only cares for the waking
-> vector in FACS2, thus it reboots when resuming because the waking vec=
-tor
-> is not set at all.
+On Thu, 2008-11-13 at 01:02 +0800, Moore, Robert wrote:
+> I'm beginning to think that the complete version of this support will include support for BOTH global locks, in both FACS tables. We don't know how to determine which one is the real one.
+> 
+well, yes, we can't fix this bug until we know which FACS to use.
+another proposal is to use RSDT instead of XSDT if multiple valid FACS
+tables exist. Just like the way we handle the "32bit/64bit GPE address
+not match" problem.
 
-That makes it sound like we should be using the 32-bit value in this=20
-case as well.
+thanks,
+rui
 
-> My original proposal is to install both FADT1.Xfacs and FADT1.facs in=
- to
-> the global table list and set the waking vectors on both of them.
-> now it seems that switching back to RSDT if multiple valid FACS table=
-s
-> exists is also a solution for this issue.
+> >-----Original Message-----
+> >From: Zhang, Rui
+> >Sent: Wednesday, November 12, 2008 12:29 AM
+> >To: Len Brown
+> >Cc: linux-acpi; Zhang, Rui; Moore, Robert; Rafael J. Wysocki
+> >Subject: [RESEND] [RFC PATCH 6/6] ACPI: set waking vectors in all FACS
+> >tables
+> >
+> >
+> >Set the waking vectors in all FACS tables
+> >in acpi_gbl_root_table_list.
+> >
+> >Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> >---
+> > drivers/acpi/hardware/hwsleep.c |   10 ++++++++++
+> > 1 file changed, 10 insertions(+)
+> >
+> >Index: linux-2.6/drivers/acpi/hardware/hwsleep.c
+> >===================================================================
+> >--- linux-2.6.orig/drivers/acpi/hardware/hwsleep.c	2008-11-13
+> >04:29:35.000000000 +0800
+> >+++ linux-2.6/drivers/acpi/hardware/hwsleep.c	2008-11-13
+> >04:29:43.000000000 +0800
+> >@@ -90,6 +90,16 @@
+> >
+> > 	facs->firmware_waking_vector = (u32)physical_address;
+> >
+> >+	status = acpi_get_table(ACPI_SIG_FACS, 2,
+> >+		ACPI_CAST_INDIRECT_PTR(struct acpi_table_header, &facs));
+> >+	if (ACPI_FAILURE(status))
+> >+		return_ACPI_STATUS(AE_OK);
+> >+
+> >+	if (facs->version >= 1)
+> >+		facs->xfirmware_waking_vector = 0;
+> >+
+> >+	facs->firmware_waking_vector = (u32)physical_address;
+> >+
+> > 	return_ACPI_STATUS(AE_OK);
+> > }
+> >
+> >
+> 
 
-Why? If there's a FADT entry in the XSDT we might as well use it - all=20
-the machines I've checked contain valid information in the 32-bit entry=
-=20
-of the FADT there.
-
---=20
-Matthew Garrett | mjg59@srcf.ucam.org
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
