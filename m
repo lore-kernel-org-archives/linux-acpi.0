@@ -1,47 +1,39 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 1/2] acpiphp: Identify more removable slots
-Date: Thu, 13 Nov 2008 20:51:52 +0000
-Message-ID: <20081113205152.GA11577@srcf.ucam.org>
-References: <20081113202739.GA11107@srcf.ucam.org> <20081113204859.GC1617@parisc-linux.org>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [stable] [patch 20/23] ACPI: dock: avoid check _STA method
+Date: Thu, 13 Nov 2008 13:23:05 -0800
+Message-ID: <20081113212305.GA5697@kroah.com>
+References: <20081107224818.593212310@mini.kroah.org> <20081107231606.GU1108@kroah.com> <20081111121607.GA32066@homac.suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:36668 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751595AbYKMUvy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Nov 2008 15:51:54 -0500
+Received: from kroah.org ([198.145.64.141]:53683 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751420AbYKMVYO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 13 Nov 2008 16:24:14 -0500
 Content-Disposition: inline
-In-Reply-To: <20081113204859.GC1617@parisc-linux.org>
+In-Reply-To: <20081111121607.GA32066@homac.suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Wilcox <matthew@wil.cx>
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Greg KH <gregkh@suse.de>, linux-kernel@vger.kernel.org, stable@kernel.org, Justin Forbes <jmforbes@linuxtx.org>, Zwane Mwaikambo <zwane@arm.linux.org.uk>, Theodore Ts'o <tytso@mit.edu>
 
-On Thu, Nov 13, 2008 at 01:48:59PM -0700, Matthew Wilcox wrote:
-
-> Why not:
+On Tue, Nov 11, 2008 at 01:16:07PM +0100, Holger Macht wrote:
+> On Fri 07. Nov - 15:16:06, Greg KH wrote:
+> > 2.6.26-stable review patch.  If anyone has any objections, please let us know.
 > 
->  	status = acpi_get_handle(handle, "_EJ0", &tmp);
-> 	if (ACPI_SUCCESS(status))
-> 		return 1;
+> Objecting. This will only work in conjunction with
 > 
-> 	status = acpi_get_handle(handle, "_RMV", &tmp);
-> 	if (ACPI_SUCCESS(status))
-> 		return 1;
+>   commit 39a0ad871000d2a016a4fa113a6e53d22aabf25d
+>   Author: Zhao Yakui <yakui.zhao@intel.com>
+>   Date:   Mon Aug 11 13:40:22 2008 +0800
 > 
-> 	return 0;
-
-Oh, yes, that'd work.
-
-> > +	if (ACPI_SUCCESS(status) || is_dock_device(handle))
-> > +		valid = 1;
-> > +
-> > +	if (!valid)
-> >  		return AE_OK;
+>       ACPI : Load device driver according to the status of acpi device
 > 
-> This looks like almost the same code as above.  New helper function?
+> Otherwise a device struct already exists although the device is not
+> present.
 
-It's not quite the same, but yes, I'll see if it can be reduced.
+So do you feel we should also add this patch to the 2.6.27-stable tree
+to solve this issue?
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+thanks,
+
+greg k-h
