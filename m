@@ -1,59 +1,86 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [PATCH 10/10] x86, ACPI: default to reboot via ACPI (again)
-Date: Wed, 12 Nov 2008 20:34:11 -0800
-Message-ID: <491BAE43.5080309@zytor.com>
-References: <alpine.LFD.2.00.0811080208590.3092@localhost.localdomain>	<200811081050.25477.arvidjaar@mail.ru> <20081108115956.GE8354@elte.hu>	<4916B38B.7050905@redhat.com> <4916B4DB.90602@zytor.com>	<20081110083938.GD22392@elte.hu>	<20081110115732.GA30181@srcf.ucam.org>	<20081110125630.GC28643@elte.hu>	<20081110130029.GC30894@srcf.ucam.org>	<alpine.LFD.2.00.0811111802440.4480@localhost.localdomain>	<20081112115806.GD11352@elte.hu> <491ACAB9.40203@redhat.com>	<1226546613.4006.110.camel@yakui_zhao.sh.intel.com> <m1vdusnu4d.fsf@frodo.ebiederm.org>
+From: Andrey Borzenkov <arvidjaar@mail.ru>
+Subject: Re: [PATCH] toshiba_acpi: fingers off backlight if video.ko is serving this functionality
+Date: Thu, 13 Nov 2008 07:58:09 +0300
+Message-ID: <200811130758.13420.arvidjaar@mail.ru>
+References: <200811081637.45099.arvidjaar@mail.ru> <200811121741.36296.trenn@suse.de> <20081113013259.GA24790@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed;
+  boundary="nextPart11155954.Oi1pxkzapN";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from terminus.zytor.com ([198.137.202.10]:36658 "EHLO
-	terminus.zytor.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751235AbYKMEfE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Nov 2008 23:35:04 -0500
-In-Reply-To: <m1vdusnu4d.fsf@frodo.ebiederm.org>
+Received: from mx38.mail.ru ([194.67.23.16]:49153 "EHLO mx38.mail.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751064AbYKME6T (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Nov 2008 23:58:19 -0500
+In-Reply-To: <20081113013259.GA24790@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Zhao Yakui <yakui.zhao@intel.com>, Avi Kivity <avi@redhat.com>, Ingo Molnar <mingo@elte.hu>, Len Brown <lenb@kernel.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Andrew Morton <akpm@linux-foundation.org>, Matthew Garrett <mjg@redhat.com>, Andrey Borzenkov <arvidjaar@mail.ru>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Eduardo Habkost <ehabkost@redhat.com>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Thomas Renninger <trenn@suse.de>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-Eric W. Biederman wrote:
->=20
-> Looking at the coreboot source.  It is indeed defined for Nvidia, SIS=
-,
-> AMD and several others.
->=20
-> A lot of boards use:
-> outb(0x02, 0xcf9);
-> outb(0x06, 0xcf9);
->=20
-> Instead of just writing a plain 6.   I think at least on some machine=
-s
-> there is a requirement for a low to hight transition.
->=20
+--nextPart11155954.Oi1pxkzapN
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-That is correct; that is what my patch has, with a 50 =C2=B5s delay in
-between (I also don't touch the ~6 bits.)
-
+On Thursday 13 November 2008, Matthew Garrett wrote:
+> On Wed, Nov 12, 2008 at 05:41:35PM -0600, Thomas Renninger wrote:
+> > On Tuesday 11 November 2008 02:04:15 pm Len Brown wrote:
+> > > so when i apply this patch, i get fewer brightness levels.
+> > > I prefer to have all 8 brightness levels.
+> >=20
+> > The patch from Andrey is correct.
+> > Looks like all, the ordinary user needs, and probably the way it works =
+on a =20
+> > plain Vista OS is there: off, battery, full level.
+> > You can still use the boot param for your specific needs:
+> > acpi_display_output=3Dvendor
 >=20
-> Right.  The only scary question is will a motherboard hang if you wri=
-te
-> to 0xcf9.  If we don't know of an example where writing to 0xcf9 will=
- prevent
-> us from getting to the next reset method then adding a generic 0xcf9 =
-is
-> safe.
+> The Toshiba BIOSes I've looked at all implement the ACPI code on top of=20
+> the legacy interface. Do you have examples where that's not the case? If=
+=20
+> not, I don't see the harm in exposing both.
 >=20
 
-It would be highly surprising, except possibly on pre-PCI systems, whic=
-h
-is why my patch skips CF9 if the standard PCI ports are not detected.
-Although CF9 isn't defined in the PCI spec, it falls in the PCI
-configuration port range.
+See http://marc.info/?l=3Dlinux-acpi&m=3D122068736714509&w=3D2 and related =
+thread.
 
-	-hpa
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Basically situation is as follows:
+
+=2D since some time both video and toshiba_acpi attempt to drive brightness
+
+=2D on some (many? most?) Toshiba laptops standard-conform ACPI implementat=
+ion
+is inferior in that it is less fine grained than HCI one
+
+=2D exposing two knobs for the *same* thing confuses user level tools; you =
+never
+know which one is used and they compete behind your back
+
+=2D so effectively on Toshiba you *must* use acpi_brightness=3Dvendor or use
+similar default in video_detect.c
+
+=2D in which case we may just as well play it consistent and add support for
+video/vendor switch to toshiba_acpi in case someone does want to use ACPI k=
+nob
+(be it even only for testing).
+
+So the actual question is - how we detect Toshiba and default to vendor
+brightness control?
+
+--nextPart11155954.Oi1pxkzapN
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEABECAAYFAkkbs+IACgkQR6LMutpd94zFWQCfcQ//7Up/d3W1sNKO+18Qdyiy
+x3YAn0zyli9RQZgl3bD/XtWFvT+NHvUX
+=rO3e
+-----END PGP SIGNATURE-----
+
+--nextPart11155954.Oi1pxkzapN--
