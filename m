@@ -1,193 +1,97 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: Re: ACPICA Release 20081031 linuxized patch set
-Date: Thu, 13 Nov 2008 17:37:17 +0800
-Message-ID: <1226569037.30025.181.camel@minggr.sh.intel.com>
-References: <1226555956.30025.150.camel@minggr.sh.intel.com>
-	 <1226556783.30025.154.camel@minggr.sh.intel.com>
-	 <alpine.LFD.2.00.0811130147180.21141@localhost.localdomain>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: ACPI reads wrong temperature
+Date: Thu, 13 Nov 2008 11:24:11 +0100
+Message-ID: <20081113112411.009fc89c@hyperion.delvare>
+References: <20081031210913.3180@gmx.net>
+	<1225951972.3989.99.camel@yakui_zhao.sh.intel.com>
+	<20081106091126.GA25849@srcf.ucam.org>
+	<200811121620.44520.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:16174 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753250AbYKMJjB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 13 Nov 2008 04:39:01 -0500
-In-Reply-To: <alpine.LFD.2.00.0811130147180.21141@localhost.localdomain>
+Received: from zone0.gcu-squad.org ([212.85.147.21]:39344 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751712AbYKMKY0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Nov 2008 05:24:26 -0500
+In-Reply-To: <200811121620.44520.trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
-Cc: "Brown, Len" <len.brown@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, acpi <acpi@linux.intel.com>
+To: Thomas Renninger <trenn@suse.de>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Zhao Yakui <yakui.zhao@intel.com>, Len Brown <lenb@kernel.org>, Peter Mahlknecht <mali100@gmx.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Len, please try the below patch.
+Hi Thomas,
 
-commit 1f959eedaf20bef4c1b40bd64be87c774f9f2032
-Author: Lin Ming <ming.m.lin@intel.com>
-Date:   Thu Nov 13 17:31:59 2008 +0800
+On Wed, 12 Nov 2008 16:20:43 -0600, Thomas Renninger wrote:
+> On Thursday 06 November 2008 03:11:26 am Matthew Garrett wrote:
+> > On Thu, Nov 06, 2008 at 02:12:52PM +0800, Zhao Yakui wrote:
+> > > On your box after the i2c-i801 driver is loaded, the smbus controller
+> > > will be used by the AML code and i2c-i801 driver. Unfortunately there is
+> > > no synchronization between them. IMO this is the BIOS fault. The SMbus
+> > > will be accessed by the two different modules. But it is exported by
+> > > BIOS.
+> >
+> > No, loading i2c-i801 is harmless. The breakage occurs when you attempt
+> > to drive the smbus.
+> >
+> > >     So the better solution is that:
+> > >     a. SMBus is hidden in BIOS. In such case the Linux OS can't detect
+> > > the SMbus controller . Of course it won't try to load the device driver
+> > > for it.
+> > >     b. Linux OS won't load the device driver for it.
+> >
+> > The solution is for users not to load smbus drivers unless they know for
+> > certain that it's safe to do so, or alternatively for us to refuse to
 
-    Update object reference count if it's within a package
----
- drivers/acpi/namespace/nspredef.c |   25 ++++++++++++++++++++++---
- 1 files changed, 22 insertions(+), 3 deletions(-)
+Except that all these drivers auto-load, so the user doesn't actually
+get to verify anything beforehand. Nor do I believe they should have
+to. If there's a way for the user to verify that loading the driver is
+safe then the same check can be added to the driver itself. Which, as
+Thomas explained, is partly implemented, just not yet enforced.
 
-diff --git a/drivers/acpi/namespace/nspredef.c b/drivers/acpi/namespace/nspredef.c
-index 82a28d0..3f346a2 100644
---- a/drivers/acpi/namespace/nspredef.c
-+++ b/drivers/acpi/namespace/nspredef.c
-@@ -91,7 +91,8 @@ acpi_ns_check_reference(char *pathname,
- 
- static acpi_status
- acpi_ns_repair_object(u32 expected_btypes,
--		      union acpi_operand_object **return_object_ptr);
-+		      union acpi_operand_object **return_object_ptr,
-+		      u32 package_index);
- 
- /*
-  * Names for the types that can be returned by the predefined objects.
-@@ -890,7 +891,8 @@ acpi_ns_check_object_type(char *pathname,
- 		/* Type mismatch -- attempt repair of the returned object */
- 
- 		status =
--		    acpi_ns_repair_object(expected_btypes, return_object_ptr);
-+		    acpi_ns_repair_object(expected_btypes, return_object_ptr,
-+			package_index);
- 		if (ACPI_SUCCESS(status)) {
- 			return (status);
- 		}
-@@ -986,6 +988,8 @@ acpi_ns_check_reference(char *pathname,
-  * PARAMETERS:  Pathname        - Full pathname to the node (for error msgs)
-  *              return_object_ptr - Pointer to the object returned from the
-  *                                evaluation of a method or object
-+ *              PackageIndex    - Index of object within parent package
-+ *                                (if applicable - ACPI_NOT_PACKAGE otherwise)
-  *
-  * RETURN:      Status. AE_OK if repair was successful.
-  *
-@@ -996,7 +1000,8 @@ acpi_ns_check_reference(char *pathname,
- 
- static acpi_status
- acpi_ns_repair_object(u32 expected_btypes,
--		      union acpi_operand_object **return_object_ptr)
-+		      union acpi_operand_object **return_object_ptr,
-+		      u32 package_index)
- {
- 	union acpi_operand_object *return_object = *return_object_ptr;
- 	union acpi_operand_object *new_object;
-@@ -1039,6 +1044,20 @@ acpi_ns_repair_object(u32 expected_btypes,
- 
- 		acpi_ut_remove_reference(return_object);
- 		*return_object_ptr = new_object;
-+
-+		/*
-+		 * If this object is within a package, we need to:
-+		 * 1. Decrease the reference count of the original object,
-+		 *    it was increased when buidling the package
-+		 * 2. Increase the reference count of the new object,
-+		 *    it will be decreased when releasing the package
-+		 */
-+
-+		if (package_index != ACPI_NOT_PACKAGE) {
-+			acpi_ut_remove_reference(return_object);
-+			acpi_ut_add_reference(new_object);
-+		}
-+
- 		return (AE_OK);
- 
- 	default:
+> > load i2c drivers if they overlap with ACPI resource allocations.
+> 
+> We already have that:
+> >  or alternatively for us to refuse to load i2c drivers
+> in drivers/acpi/osl.c:
+> 
+> #define ENFORCE_RESOURCES_STRICT 2
+> #define ENFORCE_RESOURCES_LAX    1
+> #define ENFORCE_RESOURCES_NO     0
+> 
+> static unsigned int acpi_enforce_resources = ENFORCE_RESOURCES_LAX;
+> 
+> lax means print out warning which i2c driver conflicts with which ACPI 
+> Operation Region.
+> Did you get such a message:
+> printk("%sACPI: %s resource %s [0x%llx-0x%llx]"
+>                                " conflicts with ACPI region %s"
+>                                " [0x%llx-0x%llx]\n",
+>                                acpi_enforce_resources == ENFORCE_RESOURCES_LAX
+>                                ? KERN_WARNING : KERN_ERR,
+>                                ioport ? "I/O" : "Memory", res->name,
+>                                (long long) res->start, (long long) res->end,
+>                                res_list_elem->name,
+>                                (long long) res_list_elem->start,
+>                                (long long) res_list_elem->end);
+> 
+> If not, probably this specific i2c driver has to be added to check it's 
+> resources against ACPI used Operation Regions.
+> 
+> Jean: Could you add that if necessary, pls.
+> This is the whole thread:
+> http://marc.info/?t=122546192400002&r=1&w=2
 
+The i2c-i801 driver already has this check.
 
-On Thu, 2008-11-13 at 14:54 +0800, Len Brown wrote:
-> 
-> > [PATCH 01/18] ACPICA: Fix several warnings under gcc 4 compiler
-> > [PATCH 02/18] ACPICA: Update FACS waking vector interfaces
-> > [PATCH 03/18] ACPICA: Fix possible memory leak on error in parser
-> > [PATCH 04/18] ACPICA: Optimize execution of AML While loops
-> > [PATCH 05/18] ACPICA: Add a mechanism to escape infinite AML While() loops
-> > [PATCH 06/18] ACPICA: Update debug output for IndexField I/O
-> > [PATCH 07/18] ACPICA: Fix namestring for the SystemCMOS address space
-> > [PATCH 08/18] ACPICA: Emit warning if two FACS or DSDT tables found in the FADT
-> > [PATCH 09/18] ACPICA: Add global pointer for FACS table to simplify FACS access
-> > [PATCH 10/18] ACPICA: Reformat comments, no functional changes
-> > [PATCH 11/18] ACPICA: Add support to externally execute _OSI method
-> > [PATCH 12/18] ACPICA: Remove references to obsolete ACPI_DUMP_APP
-> > [PATCH 13/18] ACPICA: Fix to allow aliases within ASL namepaths
-> > [PATCH 14/18] ACPICA: Allow multiple backslash prefix in namepaths
-> > [PATCH 15/18] ACPICA: Allow _WAK method to return an Integer
-> > [PATCH 16/18] ACPICA: Add Buffer->String conversion for predefined methods
-> > [PATCH 17/18] ACPICA: Consolidate method arg count validation code
-> > [PATCH 18/18] ACPICA: Enhance implicit return mechanism
-> 
-> checkpatch.pl wasn't happy about the 80 column errors, or
-> the unnecessary {}'s in statements like this:
-> 
-> if (foo) {
-> 	bar;
-> 	}
-> 
-> I think the construct above is actually good programming practice
-> when the simple statement is a macro.  However, if it really is
-> a simple statment, such as return, I agree with checkpatch.pl.
-> 
-> re: 80 colmns
-> I usually let them go if it makes the code easier to read.
-> howver, block comments w/ sufficient width really should
-> not need to violate the 80 column limit.
-> 
-> no, i don't advocate you fix these things in the acpica->linux
-> translation process; as we want to make that as automated
-> as possible and fixing style things by hand only makes it harder later.
-> 
-> but more importantly it looks like we have a double free:
-> 
-> ACPI Warning (utdelete-0420): Large Reference Count (6B6B) in object 
-> ffff88007c991b58 [20080926]
-> ACPI Warning (utdelete-0420): Large Reference Count (6B6B) in object 
-> ffff88007c991df8 [20080926]
-> ACPI Warning (utdelete-0420): Large Reference Count (6B6C) in object 
-> ffff88007c991b58 [20080926]
-> ACPI Warning (utdelete-0420): Large Reference Count (6B6C) in object 
-> ffff88007c991df8 [20080926]
-> Slab corruption: Acpi-Operand start=ffff88007c991b58, len=72
-> Redzone: 0x9f911029d74e35b/0x9f911029d74e35b.
-> Last user: [<ffffffff80390463>](acpi_os_release_object+0x9/0xd)
-> 000: 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6d 6b 6b 6b 6b 6b
-> Prev obj: start=ffff88007c991af8, len=72
-> Redzone: 0xd84156c5635688c0/0xd84156c5635688c0.
-> Last user: 
-> [<ffffffff803b0174>](acpi_ut_allocate_object_desc_dbg+0x3c/0xb3)
-> 000: 00 00 00 00 00 00 00 00 0e 03 01 00 04 00 00 00
-> 010: 78 83 17 7b 00 88 ff ff 06 00 00 00 00 00 00 00
-> Next obj: start=ffff88007c991bb8, len=72
-> Redzone: 0xd84156c5635688c0/0xd84156c5635688c0.
-> Last user: 
-> [<ffffffff803b0174>](acpi_ut_allocate_object_desc_dbg+0x3c/0xb3)
-> 000: 00 00 00 00 00 00 00 00 0e 01 03 00 00 00 00 00
-> 010: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> Slab corruption: Acpi-Operand start=ffff88007c991df8, len=72
-> Redzone: 0x9f911029d74e35b/0x9f911029d74e35b.
-> Last user: [<ffffffff80390463>](acpi_os_release_object+0x9/0xd)
-> 000: 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6d 6b 6b 6b 6b 6b
-> Prev obj: start=ffff88007c991d98, len=72
-> Redzone: 0x9f911029d74e35b/0x9f911029d74e35b.
-> Last user: [<ffffffff80390463>](acpi_os_release_object+0x9/0xd)
-> 000: 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b
-> 010: 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b
-> Next obj: start=ffff88007c991e58, len=72
-> Redzone: 0x9f911029d74e35b/0x9f911029d74e35b.
-> Last user: [<0000000000000000>](0x0)
-> 000: 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b
-> 010: 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b
-> ACPI Warning (utdelete-0420): Large Reference Count (6B6B) in object 
-> ffff88007c991b58 [20080926]
-> ACPI Warning (utdelete-0420): Large Reference Count (6B6B) in object 
-> ffff88007c991df8 [20080926]
-> ACPI Warning (utdelete-0420): Large Reference Count (6B6A) in object 
-> ffff88007c991b58 [20080926]
-> ACPI Warning (utdelete-0420): Large Reference Count (6B6A) in object 
-> ffff88007c991df8 [20080926]
-> ACPI Warning (utdelete-0420): Large Reference Count (6B6B) in object 
-> ffff88007c991b58 [20080926]
-> ACPI Warning (utdelete-0420): Large Reference Count (6B6B) in object 
-> ffff88007c991df8 [20080926]
-> 
+The exact same issue (reported by the same person) was already
+discussed on the lm-sensors list:
+http://lists.lm-sensors.org/pipermail/lm-sensors/2008-October/024608.html
+http://lists.lm-sensors.org/pipermail/lm-sensors/2008-November/024610.html
 
+With the same conclusion, i.e. i2c-i801 should be blacklisted on that
+specific model, or acpi_enforce_resources=strict should be used. Or the
+BIOS should hide the SMBus, that would be even better.
+
+-- 
+Jean Delvare
