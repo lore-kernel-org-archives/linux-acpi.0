@@ -1,7 +1,7 @@
 From: ebiederm@xmission.com (Eric W. Biederman)
 Subject: Re: [PATCH 10/10] x86, ACPI: default to reboot via ACPI (again)
-Date: Wed, 12 Nov 2008 20:10:42 -0800
-Message-ID: <m1vdusnu4d.fsf@frodo.ebiederm.org>
+Date: Wed, 12 Nov 2008 20:14:01 -0800
+Message-ID: <m1skpwntyu.fsf@frodo.ebiederm.org>
 References: <alpine.LFD.2.00.0811080208590.3092@localhost.localdomain>
 	<200811081050.25477.arvidjaar@mail.ru> <20081108115956.GE8354@elte.hu>
 	<4916B38B.7050905@redhat.com> <4916B4DB.90602@zytor.com>
@@ -15,9 +15,9 @@ References: <alpine.LFD.2.00.0811080208590.3092@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out01.mta.xmission.com ([166.70.13.231]:39352 "EHLO
-	out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751030AbYKMEPb (ORCPT
+Received: from out02.mta.xmission.com ([166.70.13.232]:56619 "EHLO
+	out02.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751024AbYKMEPb (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Nov 2008 23:15:31 -0500
 In-Reply-To: <1226546613.4006.110.camel@yakui_zhao.sh.intel.com> (Zhao Yakui's
 	message of "Thu, 13 Nov 2008 11:23:33 +0800")
