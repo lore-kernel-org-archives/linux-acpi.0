@@ -1,68 +1,100 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [stable] [PATCH 21/21] ACPI: EC: make kernel messages more
-	useful when GPE storm is detected
-Date: Thu, 13 Nov 2008 13:46:24 -0800
-Message-ID: <20081113214624.GA15628@kroah.com>
-References: <1226032765-15330-1-git-send-email-lenb@kernel.org> <200811072315.25227.rjw@sisk.pl> <20081111212322.GA6123@kroah.com> <200811130034.53634.rjw@sisk.pl>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: [patch] ACPI: make debug command-line arguments work again
+Date: Thu, 13 Nov 2008 17:30:13 -0600
+Message-ID: <200811131630.14781.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:33735 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1756469AbYKMWO2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 13 Nov 2008 17:14:28 -0500
+Received: from g4t0014.houston.hp.com ([15.201.24.17]:22493 "EHLO
+	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751129AbYKMXaR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Nov 2008 18:30:17 -0500
 Content-Disposition: inline
-In-Reply-To: <200811130034.53634.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, stable@kernel.org, Len Brown <len.brown@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.de>
+To: bjorn.helgaas@hp.com, Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Randy Dunlap <rdunlap@xenotime.net>
 
-On Thu, Nov 13, 2008 at 12:34:52AM +0100, Rafael J. Wysocki wrote:
-> On Tuesday, 11 of November 2008, Greg KH wrote:
-> > On Fri, Nov 07, 2008 at 11:15:24PM +0100, Rafael J. Wysocki wrote:
-> > > On Friday, 7 of November 2008, Greg KH wrote:
-> > > > On Fri, Nov 07, 2008 at 02:54:24PM +0100, Rafael J. Wysocki wrote:
-> > > > > On Friday, 7 of November 2008, Alan Jenkins wrote:
-> > > > > > Len Brown wrote:
-> > > > > > > From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-> > > > > > >
-> > > > > > > Make sure we can tell if the GPE storm workaround gets activated,
-> > > > > > > and avoid flooding the logs afterwards.
-> > > > > > >
-> > > > > > > http://bugzilla.kernel.org/show_bug.cgi?id=11841
-> > > > > > > "plenty of line "ACPI: EC: non-query interrupt received,
-> > > > > > >  switching to interrupt mode" in dmesg"
-> > > > > > >
-> > > > > > > Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-> > > > > > > Acked-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-> > > > > > > Signed-off-by: Len Brown <len.brown@intel.com>
-> > > > > > >   
-> > > > > > I see the EC patches that cause this issue are part of 2.6.27-stable. 
-> > > > > > So I think this patch should also be applied to the -stable tree.
-> > > > > 
-> > > > > Good point, it should.
-> > > > 
-> > > > Ok, what is the git commit id that should be added to the .27-stable
-> > > > tree?
-> > > 
-> > > Not yet in the Linus' tree, I'll let you know when it's merged.
-> > 
-> > Thank you for doing this.
-> 
-> Here:
-> 
-> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=f8248434e6a11d7cd314281be3b39bbcf82fc243
-> 
-> The other EC patches in this merge are also regarded as -stable material,
-> but let's wait a couple of days to avoid possible regressions (although Alex
-> thinks there sould be none ;-)).
+I stupidly tried to set the default ACPI debug level in acpi_early_init(),
+but that's after command-line arguments are parsed, so any user-supplied
+arguments were overwritten.
+    
+This changes the default initialization, so command-line arguments
+work again.
+    
+This sets the default level to "info", which is what all the ACPI
+drivers use.  So to enable messages from drivers, you only have to
+supply the "layer" (a.k.a. "component").  For non-"info" ACPI core
+and ACPI interpreter messages, you have to supply both level and
+layer masks, as before.
 
-Now applied.
+This should go in 2.6.28; otherwise there'll be no way to turn on
+ACPI debugging.
+    
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-If there's other git ids that should also be added, please let me know
-what they are.
-
-thanks,
-
-greg k-h
+diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+index c600c4f..95eeb9f 100644
+--- a/Documentation/kernel-parameters.txt
++++ b/Documentation/kernel-parameters.txt
+@@ -220,14 +220,17 @@ and is between 256 and 4096 characters. It is defined in the file
+ 			Bits in debug_level correspond to a level in
+ 			ACPI_DEBUG_PRINT statements, e.g.,
+ 			    ACPI_DEBUG_PRINT((ACPI_DB_INFO, ...
+-			See Documentation/acpi/debug.txt for more information
+-			about debug layers and levels.
++			The debug_level mask defaults to "info".  See
++			Documentation/acpi/debug.txt for more information about
++			debug layers and levels.
+ 
++			Enable processor driver info messages:
++			    acpi.debug_layer=0x20000000
++			Enable PCI/PCI interrupt routing info messages:
++			    acpi.debug_layer=0x400000
+ 			Enable AML "Debug" output, i.e., stores to the Debug
+ 			object while interpreting AML:
+ 			    acpi.debug_layer=0xffffffff acpi.debug_level=0x2
+-			Enable PCI/PCI interrupt routing info messages:
+-			    acpi.debug_layer=0x400000 acpi.debug_level=0x4
+ 			Enable all messages related to ACPI hardware:
+ 			    acpi.debug_layer=0x2 acpi.debug_level=0xffffffff
+ 
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 7edf6d9..765fd1c 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -688,14 +688,6 @@ void __init acpi_early_init(void)
+ 	if (acpi_disabled)
+ 		return;
+ 
+-	/*
+-	 * ACPI CA initializes acpi_dbg_level to non-zero, which means
+-	 * we get debug output merely by turning on CONFIG_ACPI_DEBUG.
+-	 * Turn it off so we don't get output unless the user specifies
+-	 * acpi.debug_level.
+-	 */
+-	acpi_dbg_level = 0;
+-
+ 	printk(KERN_INFO PREFIX "Core revision %08x\n", ACPI_CA_VERSION);
+ 
+ 	/* enable workarounds, unless strict ACPI spec. compliance */
+diff --git a/drivers/acpi/utilities/utglobal.c b/drivers/acpi/utilities/utglobal.c
+index 670551b..37da826 100644
+--- a/drivers/acpi/utilities/utglobal.c
++++ b/drivers/acpi/utilities/utglobal.c
+@@ -60,11 +60,11 @@ ACPI_EXPORT_SYMBOL(acpi_gbl_FADT)
+  * are already set when the debugger is entered.
+  */
+ /* Debug switch - level and trace mask */
+-u32 acpi_dbg_level = ACPI_DEBUG_DEFAULT;
++u32 acpi_dbg_level = ACPI_LV_INFO;
+ 
+ /* Debug switch - layer (component) mask */
+ 
+-u32 acpi_dbg_layer = ACPI_COMPONENT_DEFAULT | ACPI_ALL_DRIVERS;
++u32 acpi_dbg_layer = 0;
+ u32 acpi_gbl_nesting_level = 0;
+ 
+ /* Debugger globals */
