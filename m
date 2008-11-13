@@ -1,121 +1,68 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: Re: iasl and SSDT disassembling limitations
-Date: Thu, 13 Nov 2008 15:02:29 +0800
-Message-ID: <1226559749.30025.171.camel@minggr.sh.intel.com>
-References: <3515468CA27A0F49917112E2ECF61E210927CBF912@pdsmsx502.ccr.corp.intel.com>
-	 <1224845430.14280.58.camel@minggr.sh.intel.com>
-	 <200811121817.22589.trenn@suse.de>
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: Re: [PATCH 10/10] x86, ACPI: default to reboot via ACPI (again)
+Date: Wed, 12 Nov 2008 22:56:56 -0800
+Message-ID: <m1od0km7uv.fsf@frodo.ebiederm.org>
+References: <alpine.LFD.2.00.0811080208590.3092@localhost.localdomain>
+	<200811081050.25477.arvidjaar@mail.ru> <20081108115956.GE8354@elte.hu>
+	<4916B38B.7050905@redhat.com> <4916B4DB.90602@zytor.com>
+	<20081110083938.GD22392@elte.hu>
+	<20081110115732.GA30181@srcf.ucam.org>
+	<20081110125630.GC28643@elte.hu>
+	<20081110130029.GC30894@srcf.ucam.org>
+	<alpine.LFD.2.00.0811111802440.4480@localhost.localdomain>
+	<20081112115806.GD11352@elte.hu> <491ACAB9.40203@redhat.com>
+	<1226546613.4006.110.camel@yakui_zhao.sh.intel.com>
+	<m1skpwntyu.fsf@frodo.ebiederm.org>
+	<1226554186.4006.136.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:7140 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751006AbYKMHEL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 13 Nov 2008 02:04:11 -0500
-In-Reply-To: <200811121817.22589.trenn@suse.de>
+Received: from out01.mta.xmission.com ([166.70.13.231]:38337 "EHLO
+	out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750920AbYKMHFe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Nov 2008 02:05:34 -0500
+In-Reply-To: <1226554186.4006.136.camel@yakui_zhao.sh.intel.com> (Zhao Yakui's
+	message of "Thu, 13 Nov 2008 13:29:46 +0800")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, "hmh@hmh.eng.br" <hmh@hmh.eng.br>, "elendil@planet.nl" <elendil@planet.nl>, "devel@lists.acpica.org" <devel@lists.acpica.org>
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: Avi Kivity <avi@redhat.com>, Ingo Molnar <mingo@elte.hu>, Len Brown <lenb@kernel.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Andrew Morton <akpm@linux-foundation.org>, Matthew Garrett <mjg@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Andrey Borzenkov <arvidjaar@mail.ru>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Eduardo Habkost <ehabkost@redhat.com>
 
-On Thu, 2008-11-13 at 08:17 +0800, Thomas Renninger wrote:
-> On Friday 24 October 2008 05:50:30 am Lin Ming wrote:
-> > We have added a "-e" option to iasl that include tables for external
-> > symbol resolution. See
-> > http://git.acpica.org/repos/?p=acpica.git;a=commitdiff;h=2f705a1b06109e12bd
-> >2659d0e12215710a5622b7
-> >
-> >
-> > Example: To disassemble an SSDT with external symbols defined in DSDT:
-> >
-> > iasl -e dsdt.aml -d ssdt.aml
-> 
-> I thought this option already existed for quite a while?
-> Did it get re-implemented?
+Zhao Yakui <yakui.zhao@intel.com> writes:
 
-No, the original one is a NULL implementation.
+>> Instead of just writing a plain 6.   I think at least on some machines
+>> there is a requirement for a low to hight transition.
 
-> 
-> IIRC I already saw references in both directions. SSDT is making use of 
-> variables declared in the DSDT and vice versa (rare, but it can happen).
-> 
-> IMO a proper long-term solution would be to be able to do:
-> iasl -d [DS]SDT*.dsl
-> iasl then parses every table, remembers unresolved objects and then goes 
-> through these, once the last table got parsed.
-> 
-> Probably one step harder to implement, do you think this is possible to do or 
-> should such things be considered as BIOS implementation bugs?
+> Maybe the 0xCF9 port is defined for NVidia, SiS and Several others
+> vendor. But we can't say that it is appropriate for most boxes. 
 
-It's possible, but harder. External symbol is not a BIOS bug.
+Let me get this straight.  We survey all of the major chipsets in existence.
+We discover a register that is implemented the same way in all of them.
+You conclude that using that register is not appropriate for most boxes?
 
-iasl tries to guess the arguments of external methods, and it success at
-most time (-e option is not needed).
+> Of course IMO it is not a generic solution for reboot.
+> At the same time the value written to the 0xCF9 I/O port should not be a
+> fixed value. Maybe it varies on different vendors/chipset. Even the
+> value will vary on the boxes from different BIOS vendors although the
+> boxes are based on the same chipset. 
 
-But sometimes it fails, and then you can use -e option to include the
-external tables to resolve the external symbols.
+Reading in between the lines.  Did you just say someone implemented
+a nasty hack on some laptop and attempting to reboot by writing to 0xcf9
+will cause nasty problems?
 
-Lin Ming
+If you know of such a case please describe the failure mode.  If there
+is a case where writing to 0xcf9 will makes things worse than we need
+to tread carefully, and we will happily deal with reality.  If you can
+only tell us that we are being rude and circumventing a vendors vision
+of the then your input is not especially useful.
 
-> 
-> Thanks,
-> 
->       Thomas
-> 
-> >
-> > Lin Ming
-> >
-> > > From: linux-acpi-owner@vger.kernel.org
-> > > [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Moore, Robert
-> > > Sent: Saturday, September 27, 2008 12:49 AM
-> > > To: Henrique de Moraes Holschuh
-> > > Cc: linux-acpi@vger.kernel.org
-> > > Subject: RE: iasl and SSDT disassembling limitations
-> > >
-> > > Yes, it should be possible, and it is on our list of things to look at.
-> > >
-> > > A little more info on the problem: Without the definition of the control
-> > > method, the disassembler has no way of knowing how many arguments should
-> > > be passed to the method. Without this information, it does not know how
-> > > many expressions to parse after the control method invocation in order to
-> > > create the arguments. The information is simply not available. So it
-> > > tries to guess.
-> > >
-> > > Bob
-> > >
-> > > >-----Original Message-----
-> > > >From: Henrique de Moraes Holschuh [mailto:hmh@hmh.eng.br]
-> > > >Sent: Friday, September 26, 2008 9:09 AM
-> > > >To: Moore, Robert
-> > > >Cc: linux-acpi@vger.kernel.org
-> > > >Subject: iasl and SSDT disassembling limitations
-> > > >
-> > > >On Fri, 26 Sep 2008, Moore, Robert wrote:
-> > > >> Most of the problems seen in the SSDT are related to the fact that the
-> > > >> disassembler cannot always correctly disassemble code that contains
-> > > >> calls to control methods that are external to the table. There is not
-> > > >> enough information to disassemble correctly, and the table often needs
-> > > >> to be repaired by hand.
-> > > >
-> > > >Can iasl be improved to properly disassemble such tables if we give it
-> > > > ALL tables to work with?
-> > > >
-> > > >--
-> > > >  "One disk to rule them all, One disk to find them. One disk to bring
-> > > >  them all and in the darkness grind them. In the Land of Redmond
-> > > >  where the shadows lie." -- The Silicon Valley Tarot
-> > > >  Henrique Holschuh
-> > >
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> > > the body of a message to majordomo@vger.kernel.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+>     And the value should be provided by BIOS. If BIOS doesn't provide
+> the above info, it is not safe to use them. 
+
+Balderdash.  There are other ways to learn things than by talking to
+the BIOS.  Usually BIOS's are a mediocre information source at best.
+The job of a BIOS is to boot and if it can do that solidly you can ship it,
+when the schedule gets tight.  Everything else is a nice to have.
+
+Eric
 
