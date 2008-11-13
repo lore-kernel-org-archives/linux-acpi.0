@@ -1,86 +1,91 @@
-From: Andrey Borzenkov <arvidjaar@mail.ru>
-Subject: Re: [PATCH] toshiba_acpi: fingers off backlight if video.ko is serving this functionality
-Date: Thu, 13 Nov 2008 07:58:09 +0300
-Message-ID: <200811130758.13420.arvidjaar@mail.ru>
-References: <200811081637.45099.arvidjaar@mail.ru> <200811121741.36296.trenn@suse.de> <20081113013259.GA24790@srcf.ucam.org>
+From: Len Brown <lenb@kernel.org>
+Subject: [STABLE PATCH .26 .27] ACPI: avoid empty file name in sysfs
+Date: Thu, 13 Nov 2008 00:17:36 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0811130015100.3128@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart11155954.Oi1pxkzapN";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx38.mail.ru ([194.67.23.16]:49153 "EHLO mx38.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751064AbYKME6T (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Nov 2008 23:58:19 -0500
-In-Reply-To: <20081113013259.GA24790@srcf.ucam.org>
+Received: from vms042pub.verizon.net ([206.46.252.42]:45900 "EHLO
+	vms042pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750740AbYKMFRj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Nov 2008 00:17:39 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Thomas Renninger <trenn@suse.de>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: stable@kernel.org
+Cc: linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
---nextPart11155954.Oi1pxkzapN
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+From: Peter Gruber <nokos@gmx.net>
 
-On Thursday 13 November 2008, Matthew Garrett wrote:
-> On Wed, Nov 12, 2008 at 05:41:35PM -0600, Thomas Renninger wrote:
-> > On Tuesday 11 November 2008 02:04:15 pm Len Brown wrote:
-> > > so when i apply this patch, i get fewer brightness levels.
-> > > I prefer to have all 8 brightness levels.
-> >=20
-> > The patch from Andrey is correct.
-> > Looks like all, the ordinary user needs, and probably the way it works =
-on a =20
-> > plain Vista OS is there: off, battery, full level.
-> > You can still use the boot param for your specific needs:
-> > acpi_display_output=3Dvendor
->=20
-> The Toshiba BIOSes I've looked at all implement the ACPI code on top of=20
-> the legacy interface. Do you have examples where that's not the case? If=
-=20
-> not, I don't see the harm in exposing both.
->=20
+upstream 4feba70a2c1a1a0c96909f657f48b2e11e682370
 
-See http://marc.info/?l=3Dlinux-acpi&m=3D122068736714509&w=3D2 and related =
-thread.
+Since commit bc45b1d39a925b56796bebf8a397a0491489d85c acpi tables are
+allowed to have an empty signature and /sys/firmware/acpi/tables uses the
+signature as filename.  Applications using naive recursion through /sys
+loop forever.  A possible solution would be: (replacing the zero length
+filename with the string "NULL")
 
-Basically situation is as follows:
+http://bugzilla.kernel.org/show_bug.cgi?id=11539
 
-=2D since some time both video and toshiba_acpi attempt to drive brightness
+Acked-by: Zhang Rui <rui.zhang@intel.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ drivers/acpi/system.c |   25 +++++++++++++++++--------
+ 1 files changed, 17 insertions(+), 8 deletions(-)
 
-=2D on some (many? most?) Toshiba laptops standard-conform ACPI implementat=
-ion
-is inferior in that it is less fine grained than HCI one
+diff --git a/drivers/acpi/system.c b/drivers/acpi/system.c
+index 1d74171..62ec75e 100644
+--- a/drivers/acpi/system.c
++++ b/drivers/acpi/system.c
+@@ -78,9 +78,15 @@ static ssize_t acpi_table_show(struct kobject *kobj,
+ 	    container_of(bin_attr, struct acpi_table_attr, attr);
+ 	struct acpi_table_header *table_header = NULL;
+ 	acpi_status status;
++	char name[ACPI_NAME_SIZE];
++
++	if (strncmp(table_attr->name, "NULL", 4))
++		memcpy(name, table_attr->name, ACPI_NAME_SIZE);
++	else
++		memcpy(name, "\0\0\0\0", 4);
+ 
+ 	status =
+-	    acpi_get_table(table_attr->name, table_attr->instance,
++	    acpi_get_table(name, table_attr->instance,
+ 			   &table_header);
+ 	if (ACPI_FAILURE(status))
+ 		return -ENODEV;
+@@ -95,21 +101,24 @@ static void acpi_table_attr_init(struct acpi_table_attr *table_attr,
+ 	struct acpi_table_header *header = NULL;
+ 	struct acpi_table_attr *attr = NULL;
+ 
+-	memcpy(table_attr->name, table_header->signature, ACPI_NAME_SIZE);
++	if (table_header->signature[0] != '\0')
++		memcpy(table_attr->name, table_header->signature,
++			ACPI_NAME_SIZE);
++	else
++		memcpy(table_attr->name, "NULL", 4);
+ 
+ 	list_for_each_entry(attr, &acpi_table_attr_list, node) {
+-		if (!memcmp(table_header->signature, attr->name,
+-			    ACPI_NAME_SIZE))
++		if (!memcmp(table_attr->name, attr->name, ACPI_NAME_SIZE))
+ 			if (table_attr->instance < attr->instance)
+ 				table_attr->instance = attr->instance;
+ 	}
+ 	table_attr->instance++;
+ 
+ 	if (table_attr->instance > 1 || (table_attr->instance == 1 &&
+-					 !acpi_get_table(table_header->
+-							 signature, 2,
+-							 &header)))
+-		sprintf(table_attr->name + 4, "%d", table_attr->instance);
++					!acpi_get_table
++					(table_header->signature, 2, &header)))
++		sprintf(table_attr->name + ACPI_NAME_SIZE, "%d",
++			table_attr->instance);
+ 
+ 	table_attr->attr.size = 0;
+ 	table_attr->attr.read = acpi_table_show;
+-- 
+1.6.0.4.617.g2baf
 
-=2D exposing two knobs for the *same* thing confuses user level tools; you =
-never
-know which one is used and they compete behind your back
-
-=2D so effectively on Toshiba you *must* use acpi_brightness=3Dvendor or use
-similar default in video_detect.c
-
-=2D in which case we may just as well play it consistent and add support for
-video/vendor switch to toshiba_acpi in case someone does want to use ACPI k=
-nob
-(be it even only for testing).
-
-So the actual question is - how we detect Toshiba and default to vendor
-brightness control?
-
---nextPart11155954.Oi1pxkzapN
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEABECAAYFAkkbs+IACgkQR6LMutpd94zFWQCfcQ//7Up/d3W1sNKO+18Qdyiy
-x3YAn0zyli9RQZgl3bD/XtWFvT+NHvUX
-=rO3e
------END PGP SIGNATURE-----
-
---nextPart11155954.Oi1pxkzapN--
