@@ -1,54 +1,60 @@
-From: Pierre Ossman <drzeus-mmc@drzeus.cx>
-Subject: Re: [RFH,Status] Sony Vaio VGN-Z11 support
-Date: Fri, 14 Nov 2008 22:25:57 +0100
-Message-ID: <20081114222557.04025d36@mjolnir.drzeus.cx>
-References: <20081025214602.GB27030@gamma.logic.tuwien.ac.at>
-	<20081108213414.579e178d@mjolnir.drzeus.cx>
-	<20081108233337.GA21200@gamma.logic.tuwien.ac.at>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH 02/10] Check for ACPI backlight support otherwise use vendor ACPI drivers
+Date: Fri, 14 Nov 2008 15:27:42 -0700
+Message-ID: <200811141527.43427.bjorn.helgaas@hp.com>
+References: <1217605083-31003-1-git-send-email-trenn@suse.de> <1217605083-31003-3-git-send-email-trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from server.drzeus.cx ([85.8.24.28]:56207 "EHLO smtp.drzeus.cx"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750936AbYKNV0A (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 14 Nov 2008 16:26:00 -0500
-In-Reply-To: <20081108233337.GA21200@gamma.logic.tuwien.ac.at>
+Received: from g5t0007.atlanta.hp.com ([15.192.0.44]:20875 "EHLO
+	g5t0007.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751579AbYKNW2T (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Nov 2008 17:28:19 -0500
+In-Reply-To: <1217605083-31003-3-git-send-email-trenn@suse.de>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Norbert Preining <preining@logic.at>
-Cc: linux-acpi@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: ak@linux.intel.com, rui.zhang@intel.com, nokos@gmx.net, linux-acpi@vger.kernel.org, mjg59@srcf.ucam.org
 
-On Sun, 9 Nov 2008 00:33:37 +0100
-Norbert Preining <preining@logic.at> wrote:
+On Friday 01 August 2008 09:37:55 am Thomas Renninger wrote:
+> @@ -1013,7 +983,7 @@ static void acpi_device_set_id(struct acpi_device *device,
+>  		   will get autoloaded and the device might still match
+>  		   against another driver.
+>  		*/
+> -		if (ACPI_SUCCESS(acpi_video_bus_match(device)))
+> +		if (acpi_is_video_device(device))
+>  			cid_add = ACPI_VIDEO_HID;
+>  		else if (ACPI_SUCCESS(acpi_bay_match(device)))
+>  			cid_add = ACPI_BAY_HID;
 
-> Hi Pierre,
-> 
-> On Sa, 08 Nov 2008, Pierre Ossman wrote:
-> > The reader worked once you had a card in there in those cases. Could
-> > you enable MMC_DEBUG in the kernel config and see what you get in dmesg
-> > when you insert a card.
-> 
-> I have inserted a card and did a reboot into the kernel with MMC_DEBUG
-> enabled and got that (irrelevant lines removed):
-> 
+It doesn't seem right to me to make this core behavior depend
+on a config option.  With this approach, the ACPI device tree may
+or may not contain an ACPI_VIDEO_HID device, depending on whether
+CONFIG_ACPI_VIDEO is set, and that seems capricious.
 
-The hardware is properly reporting that the card is present at least.
-But everything else seems completely broken.
+What is the benefit of moving this code out of scan.c?  It's not
+a very big function, and I think the consistency is worth the extra
+code.
 
-I'm afraid there's not much I can do at this point. We need to either
-squeeze something useful out of Ricoh, or do some reverse engineering
-on their Windows driver to figure out what kind of magic this chip
-needs.
+> +#if defined(CONFIG_ACPI_VIDEO) || defined(CONFIG_ACPI_VIDEO_MODULE)
+> +
+> +extern long acpi_video_get_capabilities(acpi_handle graphics_dev_handle);
+> +extern long acpi_is_video_device(struct acpi_device *device);
+> +extern int acpi_video_backlight_support(void);
+> +extern int acpi_video_display_switch_support(void);
+> +
+> +#else
+> +
+> +static inline long acpi_video_get_capabilities(acpi_handle graphics_dev_handle)
+> +{
+> +	return 0;
+> +}
+> +
+> +static inline long acpi_is_video_device(struct acpi_device *device)
+> +{
+> +	return 0;
+> +}
 
-Rgds
--- 
-     -- Pierre Ossman
-
-  Linux kernel, MMC maintainer        http://www.kernel.org
-  rdesktop, core developer          http://www.rdesktop.org
-
-  WARNING: This correspondence is being monitored by the
-  Swedish government. Make sure your server uses encryption
-  for SMTP traffic and consider using PGP for end-to-end
-  encryption.
