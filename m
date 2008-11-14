@@ -1,33 +1,54 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH v2 2/2] acpiphp: Call _LCK method
-Date: Fri, 14 Nov 2008 00:20:22 +0000
-Message-ID: <20081114002022.GA18269@srcf.ucam.org>
-References: <20081113235255.GA17709@srcf.ucam.org> <20081113235354.GB17709@srcf.ucam.org>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: [PATCH] ACPI: EC: count interrupts only if called from
+	interrupt handler.
+Date: Fri, 14 Nov 2008 09:21:56 +0800
+Message-ID: <1226625716.4006.178.camel@yakui_zhao.sh.intel.com>
+References: <1226539214.4006.70.camel@yakui_zhao.sh.intel.com>
+	 <20081113090003.26620.82051.stgit@thinkpad>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:45931 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752768AbYKNAUX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Nov 2008 19:20:23 -0500
-Content-Disposition: inline
-In-Reply-To: <20081113235354.GB17709@srcf.ucam.org>
+Received: from mga11.intel.com ([192.55.52.93]:49791 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752867AbYKNBOF (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
+	Thu, 13 Nov 2008 20:14:05 -0500
+In-Reply-To: <20081113090003.26620.82051.stgit@thinkpad>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-pci@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: LenBrown <lenb@kernel.org>, "Linux-acpi@vger.kernel.org" <Linux-acpi@vger.kernel.org>
 
-On Thu, Nov 13, 2008 at 11:53:54PM +0000, Matthew Garrett wrote:
-> From: Matthew Garrett <mjg@redhat.com>
+On Thu, 2008-11-13 at 17:00 +0800, Alexey Starikovskiy wrote:
+> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+Thanks for the patch.
+   After applying the patch, there is no EC GPE storm and EC will work
+in EC GPE interrupt mode. It works as what we expected.
+Thanks for the patch again.
+
+> ---
 > 
-> Removable ACPI devices may have _LCK methods to indicate a software 
-> controlled lock. These should be locked on device insertion and unlocked 
-> when the user requests the device be ejected. Add support for flagging 
-> devices with a _LCK method and then call appropriately on the add and 
-> eject paths.
+>  drivers/acpi/ec.c |    3 ++-
+>  1 files changed, 2 insertions(+), 1 deletions(-)
+> 
+> 
+> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+> index cf41f9f..30f3ef2 100644
+> --- a/drivers/acpi/ec.c
+> +++ b/drivers/acpi/ec.c
+> @@ -219,7 +219,8 @@ static void gpe_transaction(struct acpi_ec *ec, u8 status)
+>  	goto unlock;
+>  err:
+>  	/* false interrupt, state didn't change */
+> -	++ec->curr->irq_count;
+> +	if (in_interrupt())
+> +		++ec->curr->irq_count;
+>  unlock:
+>  	spin_unlock_irqrestore(&ec->curr_lock, flags);
+>  }
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Please ignore this one - I've just realised it'll break on device 
-reenumeration. The other patch in the series should be good, though.
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
