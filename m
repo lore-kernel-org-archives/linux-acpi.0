@@ -1,60 +1,53 @@
-From: "Justin P. Mattock" <justinmattock@gmail.com>
-Subject: Re: ACPI: EC: GPE storm detected, transactions will use polling mode
-Date: Sun, 16 Nov 2008 07:31:35 -0800
-Message-ID: <B407D583-A440-402B-AB35-D69BA464F5AD@gmail.com>
-References: <1226722577.3104.4.camel@LiNuX> <1226817681.3133.7.camel@LiNuX> <491FECAE.6050005@gmail.com> <200811161344.07872.rjw@sisk.pl>
-Mime-Version: 1.0 (iPhone Mail 5F136)
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [patch] ACPI toshiba: only register rfkill if bt is enabled
+Date: Sun, 16 Nov 2008 17:44:31 +0100
+Message-ID: <200811161744.31777.rjw@sisk.pl>
+References: <20081029081934.GB26314@gambetta> <200811161340.36798.rjw@sisk.pl> <200811161550.49957.arvidjaar@mail.ru>
+Mime-Version: 1.0
 Content-Type: text/plain;
-	charset=us-ascii;
-	format=flowed;
-	delsp=yes
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.183]:31442 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752114AbYKPPbo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 16 Nov 2008 10:31:44 -0500
-Received: by wa-out-1112.google.com with SMTP id v27so1048287wah.21
-        for <linux-acpi@vger.kernel.org>; Sun, 16 Nov 2008 07:31:44 -0800 (PST)
-In-Reply-To: <200811161344.07872.rjw@sisk.pl>
+Received: from ogre.sisk.pl ([217.79.144.158]:42559 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750952AbYKPQj3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 16 Nov 2008 11:39:29 -0500
+In-Reply-To: <200811161550.49957.arvidjaar@mail.ru>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alexey Starikovskiy <aystarik@gmail.com>, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: Andrey Borzenkov <arvidjaar@mail.ru>
+Cc: Frederik Deweerdt <frederik.deweerdt@xprog.eu>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, akpm@linux-foundation.org, philipl@overt.org
 
-Cool,
-Then I'll just leave it as is
-And move on to other tasks that I have. Thanks for the info and help
+On Sunday, 16 of November 2008, Andrey Borzenkov wrote:
+> On Sunday 16 November 2008, Rafael J. Wysocki wrote:
+> > On Sunday, 16 of November 2008, Andrey Borzenkov wrote:
+> > > On Wednesday 29 October 2008, Frederik Deweerdt wrote:
+> > > > [resending as it didn't make it to the list, removing netdev from cc
+> > > > also]
+> > > > Hello  Andrey,
+> > > > 
+> > > > It looks like a part of the rfkill initialization was done whenever
+> > > > BT was on or not. The following patch checks for BT presence before
+> > > > registering the rfkill to the input layer. Does it solve the problem for
+> > > > you?
+> > > > 
+> > > 
+> > > This patch fixes regression in 2.6.28. Patch has been tested and
+> > > acnowledged. Rafael, could you add it to list of open regressions?
+> > > Thank you!
+> > 
+> > I will, if you provide me with a link to the patch and (optionally) to the
+> > original bug report.
+> > 
+> 
+> Original bug report:
+> http://marc.info/?l=linux-kernel&m=122522113619025&w=2
+> 
+> Patch:
+> http://marc.info/?l=linux-kernel&m=122526843117478&w=2
 
-Regards;
+Thanks, added to the list as http://bugzilla.kernel.org/show_bug.cgi?id=12047
 
-justin P. Mattock
-
-
-
-On Nov 16, 2008, at 4:44 AM, "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
-
-> On Sunday, 16 of November 2008, Alexey Starikovskiy wrote:
->> Justin P. Mattock wrote:
->>> Well; reverting:
->>> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=06cf7d3c7af902939cd1754abcafb2464060cba8
->>> is keeping the system from having a gpe storm
->>> (for at least four hours now);
->>> haven't had a chance to drain the battery and see
->>> the affects from that scenario.
->>>
->>>
->> Justin, by decreasing threshold, we just change how often  
->> _detection_ of
->> the storm fires, not the storm itself.
->
-> Yes, I think what happens is that we just detect the interrupt storm  
-> with the
-> lower threshold, so the storm occured anyway previously, but it went  
-> unnoticed
-> (not necessarily a good thing).
->
-> There is nothing to worry about as long as the box works as expected.
->
-> Thanks,
-> Rafael
+Best,
+Rafael
