@@ -1,140 +1,153 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [stable] Suspend regression in stable kernel 2.6.27.4 on Mac mini Core Duo
-Date: Sun, 16 Nov 2008 00:04:16 +0100
-Message-ID: <200811160004.17804.rjw@sisk.pl>
-References: <20081109202830.GA7206@x61> <20081113192656.GA5735@dose.home.local> <200811132318.13821.rjw@sisk.pl>
+From: "Justin P. Mattock" <justinmattock@gmail.com>
+Subject: Re: ACPI: EC: GPE storm detected, transactions will use polling
+ mode
+Date: Sat, 15 Nov 2008 22:41:21 -0800
+Message-ID: <1226817681.3133.7.camel@LiNuX>
+References: <1226722577.3104.4.camel@LiNuX> <491EBB2D.70106@tuffmail.co.uk>
+	 <dd18b0c30811151039i4a5e295euc4aaa52382d47bb1@mail.gmail.com>
+	 <200811152019.31744.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:41236 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751319AbYKOW7g (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 15 Nov 2008 17:59:36 -0500
-In-Reply-To: <200811132318.13821.rjw@sisk.pl>
-Content-Disposition: inline
+Received: from rv-out-0506.google.com ([209.85.198.232]:5067 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750849AbYKPGl1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 16 Nov 2008 01:41:27 -0500
+Received: by rv-out-0506.google.com with SMTP id k40so1974599rvb.1
+        for <linux-acpi@vger.kernel.org>; Sat, 15 Nov 2008 22:41:26 -0800 (PST)
+In-Reply-To: <200811152019.31744.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tino Keitel <tino.keitel@gmx.de>
-Cc: linux-kernel@vger.kernel.org, stable@kernel.org, Greg KH <greg@kroah.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Bob Copeland <me@bobcopeland.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>, Alexey Starikovskiy <aystarik@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-On Thursday, 13 of November 2008, Rafael J. Wysocki wrote:
-> On Thursday, 13 of November 2008, Tino Keitel wrote:
-> > On Wed, Nov 12, 2008 at 22:41:08 +0100, Rafael J. Wysocki wrote:
-> > > On Wednesday, 12 of November 2008, Tino Keitel wrote:
-> > > > On Wed, Nov 12, 2008 at 01:03:54 +0100, Rafael J. Wysocki wrote:
-> > > > 
-> > > > [...]
-> > > > 
-> > > > > Also, can you check this patch on top of 2.6.27.4 and see what happens?
-> > > > 
-> > > > With that patch, resume works (although I used 2.6.27.5 and not
-> > > > 2.6.27.5, if that matters).
-> > > 
-> > > It shouldn't really matter.
-> > > 
-> > > Thanks for testing and please send me the output of dmidecode.
-> > > It seems that blacklisting may be the only way to handle your box. :-(
+On Sat, 2008-11-15 at 20:19 +0100, Rafael J. Wysocki wrote:
+> On Saturday, 15 of November 2008, Justin Mattock wrote:
+> > On Sat, Nov 15, 2008 at 4:06 AM, Alan Jenkins
+> > <alan-jenkins@tuffmail.co.uk> wrote:
+> > > Rafael J. Wysocki wrote:
+> > >>
+> > >> On Saturday, 15 of November 2008, Alan Jenkins wrote:
+> > >>
+> > >>>
+> > >>> On Sat, Nov 15, 2008 at 9:23 AM, Alexey Starikovskiy <aystarik@gmail.com>
+> > >>> wrote:
+> > >>>
+> > >>>>
+> > >>>> Andrew Morton wrote:
+> > >>>>
+> > >>>>>
+> > >>>>> (cc linux-acpi)
+> > >>>>>
+> > >>>>> On Fri, 14 Nov 2008 20:16:17 -0800 "Justin P. Mattock"
+> > >>>>> <justinmattock@gmail.com> wrote:
+> > >>>>>
+> > >>>>>
+> > >>>>>>
+> > >>>>>> just pulled the latest git today and am now noticing
+> > >>>>>> the lovely gpe storm being triggered.(dmesg below);
+> > >>>>>>
+> > >>>>>
+> > >>>>> Are any other effects observeable?
+> > >>>>>
+> > >>>>> I assume that 2.6.27 didn't do this.
+> > >>>>>
+> > >>>>>
+> > >>>>
+> > >>>> It did. Justin even opened a bug -- #11724.
+> > >>>>
+> > >>>
+> > >>> In case anyone else tries to follow that, it's actually #10724 :).
+> > >>>
+> > >>
+> > >> Yes, the "transaction in interrupt context" patch fixed that IIRC and the
+> > >> one
+> > >> of the patches in the recet ACPI merge broke it again.
+> > >>
+> > >> Justin, can you see if reverting one or more of the following commits
+> > >> helps:
+> > >>
+> > >>
+> > >> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=8517934ef6aaa28d6e055b98df65b31cedbd1372
+> > >>
+> > >> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=06cf7d3c7af902939cd1754abcafb2464060cba8
+> > >>
+> > >> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=0b7084ac67fb84f0cf2f8bc02d7e0dea8521dd2d
+> > >>
+> > >> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=a2f93aeadf97e870ff385030633a73e21146815d
+> > >>
+> > >> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=dd15f8c42af09031e27da5b4d697ce925511f2e1
+> > >>
+> > >> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=f8248434e6a11d7cd314281be3b39bbcf82fc243
+> > >>
+> > >> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=1cfe62c8010ac56e1bd3827e30386a87cc2f3594
+> > >>
+> > >> (please revert in this order)?
+> > >>
+> > >
+> > > Be aware there's a real possibility this was only a cosmetic fix (and
+> > > regression).
+> > >
+> > > I think the original GPE storm avoidance printed that message by default.
+> > >  Then the "transaction in interrupt context" made the message into a
+> > > pr_debug(), - i.e. disabled it by default.  And then my "make messages more
+> > > useful when GPE storm is detected" re-enabled it.
+> > >
+> > > IIRC, this flip-flopping is contained within 2.6.28-rc.  I.e. I don't think
+> > > it will show up as a (cosmetic) regression when jumping straight from 2.6.27
+> > > to 2.6.28.  Though I suspect it will shows up between certain versions of
+> > > -stable.
+> > >
+> > > Regards
+> > > Alan
+> > >
 > > 
-> > Attached.
+> > O.K. I think I was wrong about stating
+> > this was not caused by the discharging and charging of the battery.
+> > to retrace my steps
+> > yesterday I pulled, then  recompiled, then
+> > let the system idle for a few, then once I moved the computer to the
+> > other room,(unplugged/plugged the A/C adapter)
+> > the light turned orange on the A/C adapter then once
+> > the battery became fully charged(green light on A/C adapter)
+> > the gpe storm was triggered. Once I saw the gpe storm, I rebooted
+> > (under the impression the battery was in a good state),
+> > instantly the gpe storm was triggered. leading me
+> > to beleive this was something else.
+> > So after seeing that and sending a post I used the
+> > acpi_osi=Darwin option sat had a beer and worried about it tomorrow.
+> > Now when I woke up, and saw the commits from rafael(thanks for the help)
+> > I decided to make sure this was reproducible, So removing the acpi_osi option,
+> > then let the system idled. To my amazement the
+> > gpe storm was not triggered at all.
+> > (even unplugging and plugging the A/C multiple times had no effect)
+> > After a while thinking what the hell is going on here, I decided to discharge
+> > the battery to around 97% or 5 min. and then charge to see if this
+> > triggers the gpe storm. Well sure enough it did.(attached is dmesg);
+> > 
+> > So for now should I go and individually revert the commits; charge,
+> > and discharge
+> > to locate the culprit, or is this something completely different?
 > 
-> Please try the appended patch on top of the Linus' tree.
-
-This patch also applies to current -stable, so you can test it on top of that.
-
-I need your confirmation that the patch works to push it upstream.
-
-Thanks,
-Rafael
-
-
-> ---
->  drivers/acpi/sleep/main.c |   40 +++++++++++++++++++++++++++++++++++++++-
->  1 file changed, 39 insertions(+), 1 deletion(-)
+> Well, you have only one
+> "ACPI: EC: GPE storm detected, transactions will use polling mode" message in
+> the log, so the EC code seems to work as expected and you _really_ have an
+> interrupt storm that is worked around.
 > 
-> Index: linux-2.6/drivers/acpi/sleep/main.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/sleep/main.c
-> +++ linux-2.6/drivers/acpi/sleep/main.c
-> @@ -104,6 +104,18 @@ void __init acpi_s4_no_nvs(void)
->  	s4_no_nvs = true;
->  }
->  
-> +/*
-> + * According to the ACPI specification the BIOS should make sure that ACPI is
-> + * enabled and SCI_EN bit is set on wake-up from S1 - S3 sleep states.  Still,
-> + * some BIOSes don't do that and therefore we use acpi_enable() to enable ACPI
-> + * on such systems during resume.  Unfortunately that doesn't help in
-> + * particularly pathological cases in which SCI_EN has to be set directly on
-> + * resume, although the specification states very clearly that this flag is
-> + * owned by the hardware.  The set_sci_en_on_resume variable will be set in such
-> + * cases.
-> + */
-> +static bool set_sci_en_on_resume;
-> +
->  /**
->   *	acpi_pm_disable_gpes - Disable the GPEs.
->   */
-> @@ -249,7 +261,11 @@ static int acpi_suspend_enter(suspend_st
->  	}
->  
->  	/* If ACPI is not enabled by the BIOS, we need to enable it here. */
-> -	acpi_enable();
-> +	if (set_sci_en_on_resume)
-> +		acpi_set_register(ACPI_BITREG_SCI_ENABLE, 1);
-> +	else
-> +		acpi_enable();
-> +
->  	/* Reprogram control registers and execute _BFS */
->  	acpi_leave_sleep_state_prep(acpi_state);
->  
-> @@ -337,6 +353,12 @@ static int __init init_old_suspend_order
->  	return 0;
->  }
->  
-> +static int __init init_set_sci_en_on_resume(const struct dmi_system_id *d)
-> +{
-> +	set_sci_en_on_resume = true;
-> +	return 0;
-> +}
-> +
->  static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
->  	{
->  	.callback = init_old_suspend_ordering,
-> @@ -354,6 +376,22 @@ static struct dmi_system_id __initdata a
->  		DMI_MATCH(DMI_PRODUCT_NAME, "HP xw4600 Workstation"),
->  		},
->  	},
-> +	{
-> +	.callback = init_set_sci_en_on_resume,
-> +	.ident = "Apple MacBook 1,1",
-> +	.matches = {
-> +		DMI_MATCH(DMI_SYS_VENDOR, "Apple Computer, Inc."),
-> +		DMI_MATCH(DMI_PRODUCT_NAME, "MacBook1,1"),
-> +		},
-> +	},
-> +	{
-> +	.callback = init_set_sci_en_on_resume,
-> +	.ident = "Apple MacMini 1,1",
-> +	.matches = {
-> +		DMI_MATCH(DMI_SYS_VENDOR, "Apple Computer, Inc."),
-> +		DMI_MATCH(DMI_PRODUCT_NAME, "Macmini1,1"),
-> +		},
-> +	},
->  	{},
->  };
->  #endif /* CONFIG_SUSPEND */
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Not sure what's causing it to happen, though.
 > 
-> 
+> Thanks,
+> Rafael
 
+Well; reverting:
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=06cf7d3c7af902939cd1754abcafb2464060cba8
+is keeping the system from having a gpe storm
+(for at least four hours now);
+haven't had a chance to drain the battery and see
+the affects from that scenario.
 
-
+regards;
 -- 
-Everyone knows that debugging is twice as hard as writing a program
-in the first place.  So if you're as clever as you can be when you write it,
-how will you ever debug it? --- Brian Kernighan
+Justin P. Mattock <justinmattock@gmail.com>
+
