@@ -1,27 +1,22 @@
-From: Bob Copeland <me@bobcopeland.com>
-Subject: Re: [stable] Suspend regression in stable kernel 2.6.27.4 on Mac mini Core Duo
-Date: Sun, 16 Nov 2008 15:27:25 -0500
-Message-ID: <20081116202725.GA16207@hash.localnet>
-References: <20081109202830.GA7206@x61> <20081113192656.GA5735@dose.home.local> <200811132318.13821.rjw@sisk.pl> <200811160004.17804.rjw@sisk.pl>
+From: Maxim Levitsky <maximlevitsky-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: 2.6.28-rc5: Reported regressions from 2.6.27
+Date: Sun, 16 Nov 2008 23:40:54 +0200
+Message-ID: <49209366.3060500@gmail.com>
+References: <VwdsQNEjR_C.A.CiD.9_FIJB@chimera>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754068AbYKPU3C@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <200811160004.17804.rjw@sisk.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Tino Keitel <tino.keitel@gmx.de>, linux-kernel@vger.kernel.org, stable@kernel.org, Greg KH <greg@kroah.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <VwdsQNEjR_C.A.CiD.9_FIJB@chimera>
+Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+Cc: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Adrian Bunk <bunk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Natalie Protasevich <protasnb-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Network Development <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PM List <linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Linux SCSI List <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Nov 16, 2008 at 12:04:16AM +0100, Rafael J. Wysocki wrote:
-> On Thursday, 13 of November 2008, Rafael J. Wysocki wrote:
-> > On Thursday, 13 of November 2008, Tino Keitel wrote:
-> 
-> This patch also applies to current -stable, so you can test it on top of that.
-> 
-> I need your confirmation that the patch works to push it upstream.
+Just to note, here on acer aspire one suspend to disk is broken too.
+System suspends, and then hangs.
 
-I can at least confirm the Macbook side of this works fine.  
- 
--- 
-Bob Copeland %% www.bobcopeland.com
+If I shutdown the system, and then attempt resume, it resumes, and then hangs.
+
+Best regards,
+	Maxim Levitsky
