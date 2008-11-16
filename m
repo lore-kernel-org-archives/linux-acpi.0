@@ -1,153 +1,210 @@
-From: "Justin P. Mattock" <justinmattock@gmail.com>
-Subject: Re: ACPI: EC: GPE storm detected, transactions will use polling
- mode
-Date: Sat, 15 Nov 2008 22:41:21 -0800
-Message-ID: <1226817681.3133.7.camel@LiNuX>
-References: <1226722577.3104.4.camel@LiNuX> <491EBB2D.70106@tuffmail.co.uk>
-	 <dd18b0c30811151039i4a5e295euc4aaa52382d47bb1@mail.gmail.com>
-	 <200811152019.31744.rjw@sisk.pl>
+From: Andrey Borzenkov <arvidjaar@mail.ru>
+Subject: Re: [patch] ACPI toshiba: only register rfkill if bt is enabled
+Date: Sun, 16 Nov 2008 11:28:58 +0300
+Message-ID: <200811161129.02028.arvidjaar@mail.ru>
+References: <20081029081934.GB26314@gambetta>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed;
+  boundary="nextPart1318726.bFehqVtMlN";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.232]:5067 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750849AbYKPGl1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 16 Nov 2008 01:41:27 -0500
-Received: by rv-out-0506.google.com with SMTP id k40so1974599rvb.1
-        for <linux-acpi@vger.kernel.org>; Sat, 15 Nov 2008 22:41:26 -0800 (PST)
-In-Reply-To: <200811152019.31744.rjw@sisk.pl>
+Received: from mx30.mail.ru ([194.67.23.238]:24268 "EHLO mx30.mail.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751274AbYKPI3L (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 16 Nov 2008 03:29:11 -0500
+In-Reply-To: <20081029081934.GB26314@gambetta>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>, Alexey Starikovskiy <aystarik@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: Frederik Deweerdt <frederik.deweerdt@xprog.eu>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-kernel@vger.kernel.org, akpm@linux-foundation.org, philipl@overt.org
 
-On Sat, 2008-11-15 at 20:19 +0100, Rafael J. Wysocki wrote:
-> On Saturday, 15 of November 2008, Justin Mattock wrote:
-> > On Sat, Nov 15, 2008 at 4:06 AM, Alan Jenkins
-> > <alan-jenkins@tuffmail.co.uk> wrote:
-> > > Rafael J. Wysocki wrote:
-> > >>
-> > >> On Saturday, 15 of November 2008, Alan Jenkins wrote:
-> > >>
-> > >>>
-> > >>> On Sat, Nov 15, 2008 at 9:23 AM, Alexey Starikovskiy <aystarik@gmail.com>
-> > >>> wrote:
-> > >>>
-> > >>>>
-> > >>>> Andrew Morton wrote:
-> > >>>>
-> > >>>>>
-> > >>>>> (cc linux-acpi)
-> > >>>>>
-> > >>>>> On Fri, 14 Nov 2008 20:16:17 -0800 "Justin P. Mattock"
-> > >>>>> <justinmattock@gmail.com> wrote:
-> > >>>>>
-> > >>>>>
-> > >>>>>>
-> > >>>>>> just pulled the latest git today and am now noticing
-> > >>>>>> the lovely gpe storm being triggered.(dmesg below);
-> > >>>>>>
-> > >>>>>
-> > >>>>> Are any other effects observeable?
-> > >>>>>
-> > >>>>> I assume that 2.6.27 didn't do this.
-> > >>>>>
-> > >>>>>
-> > >>>>
-> > >>>> It did. Justin even opened a bug -- #11724.
-> > >>>>
-> > >>>
-> > >>> In case anyone else tries to follow that, it's actually #10724 :).
-> > >>>
-> > >>
-> > >> Yes, the "transaction in interrupt context" patch fixed that IIRC and the
-> > >> one
-> > >> of the patches in the recet ACPI merge broke it again.
-> > >>
-> > >> Justin, can you see if reverting one or more of the following commits
-> > >> helps:
-> > >>
-> > >>
-> > >> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=8517934ef6aaa28d6e055b98df65b31cedbd1372
-> > >>
-> > >> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=06cf7d3c7af902939cd1754abcafb2464060cba8
-> > >>
-> > >> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=0b7084ac67fb84f0cf2f8bc02d7e0dea8521dd2d
-> > >>
-> > >> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=a2f93aeadf97e870ff385030633a73e21146815d
-> > >>
-> > >> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=dd15f8c42af09031e27da5b4d697ce925511f2e1
-> > >>
-> > >> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=f8248434e6a11d7cd314281be3b39bbcf82fc243
-> > >>
-> > >> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=1cfe62c8010ac56e1bd3827e30386a87cc2f3594
-> > >>
-> > >> (please revert in this order)?
-> > >>
-> > >
-> > > Be aware there's a real possibility this was only a cosmetic fix (and
-> > > regression).
-> > >
-> > > I think the original GPE storm avoidance printed that message by default.
-> > >  Then the "transaction in interrupt context" made the message into a
-> > > pr_debug(), - i.e. disabled it by default.  And then my "make messages more
-> > > useful when GPE storm is detected" re-enabled it.
-> > >
-> > > IIRC, this flip-flopping is contained within 2.6.28-rc.  I.e. I don't think
-> > > it will show up as a (cosmetic) regression when jumping straight from 2.6.27
-> > > to 2.6.28.  Though I suspect it will shows up between certain versions of
-> > > -stable.
-> > >
-> > > Regards
-> > > Alan
-> > >
-> > 
-> > O.K. I think I was wrong about stating
-> > this was not caused by the discharging and charging of the battery.
-> > to retrace my steps
-> > yesterday I pulled, then  recompiled, then
-> > let the system idle for a few, then once I moved the computer to the
-> > other room,(unplugged/plugged the A/C adapter)
-> > the light turned orange on the A/C adapter then once
-> > the battery became fully charged(green light on A/C adapter)
-> > the gpe storm was triggered. Once I saw the gpe storm, I rebooted
-> > (under the impression the battery was in a good state),
-> > instantly the gpe storm was triggered. leading me
-> > to beleive this was something else.
-> > So after seeing that and sending a post I used the
-> > acpi_osi=Darwin option sat had a beer and worried about it tomorrow.
-> > Now when I woke up, and saw the commits from rafael(thanks for the help)
-> > I decided to make sure this was reproducible, So removing the acpi_osi option,
-> > then let the system idled. To my amazement the
-> > gpe storm was not triggered at all.
-> > (even unplugging and plugging the A/C multiple times had no effect)
-> > After a while thinking what the hell is going on here, I decided to discharge
-> > the battery to around 97% or 5 min. and then charge to see if this
-> > triggers the gpe storm. Well sure enough it did.(attached is dmesg);
-> > 
-> > So for now should I go and individually revert the commits; charge,
-> > and discharge
-> > to locate the culprit, or is this something completely different?
-> 
-> Well, you have only one
-> "ACPI: EC: GPE storm detected, transactions will use polling mode" message in
-> the log, so the EC code seems to work as expected and you _really_ have an
-> interrupt storm that is worked around.
-> 
-> Not sure what's causing it to happen, though.
-> 
-> Thanks,
-> Rafael
+--nextPart1318726.bFehqVtMlN
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-Well; reverting:
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=06cf7d3c7af902939cd1754abcafb2464060cba8
-is keeping the system from having a gpe storm
-(for at least four hours now);
-haven't had a chance to drain the battery and see
-the affects from that scenario.
+On Wednesday 29 October 2008, Frederik Deweerdt wrote:
+> [resending as it didn't make it to the list, removing netdev from cc
+> also]
+> Hello  Andrey,
+>=20
+> It looks like a part of the rfkill initialization was done whenever
+> BT was on or not. The following patch checks for BT presence before
+> registering the rfkill to the input layer. Does it solve the problem for
+> you?
+>=20
 
-regards;
--- 
-Justin P. Mattock <justinmattock@gmail.com>
+This patch fixes regression in 2.6.28. Patch has been tested and
+acnowledged. Rafael, could you add it to list of open regressions?
+Thank you!
 
+> Regards,
+> Frederik
+>=20
+> Register toshiba RFKill Switch only if bluetooth is enabled
+>=20
+> Part of the rfkill initialization was done whenever BT was on or not. The
+> following patch checks for BT presence before registering the rfkill to
+> the input layer. Some minor cleanups (> 80 char lines) were also added
+> in the process.
+>=20
+> On Tue, Oct 28, 2008 at 10:10:37PM +0300, Andrey Borzenkov wrote:
+> [...]
+> > [   66.633036] toshiba_acpi: Toshiba Laptop ACPI Extras version 0.19
+> > [   66.633054] toshiba_acpi:     HCI method: \_SB_.VALD.GHCI
+> > [   66.637764] input: Toshiba RFKill Switch as /devices/virtual/input/i=
+nput3
+> [...]
+> > [  113.920753] ------------[ cut here ]------------
+> > [  113.920828] kernel BUG at /home/bor/src/linux-git/net/rfkill/rfkill.=
+c:347!
+> > [  113.920845] invalid opcode: 0000 [#1]=20
+> > [  113.920877] last sysfs file: /sys/devices/pci0000:00/0000:00:04.0/ho=
+st0/target0:0:0/0:0:0:0/block/sda/size
+> > [  113.920900] Dumping ftrace buffer:
+> > [  113.920919]    (ftrace buffer empty)
+> > [  113.920933] Modules linked in: af_packet irnet ppp_generic slhc irco=
+mm_tty ircomm binfmt_misc loop dm_mirror dm_region_hash dm_log dm_round_rob=
+in dm_multipath dm_mod alim15x3 ide_core nvram toshiba cryptomgr aead crypt=
+o_blkcipher michael_mic crypto_algapi orinoco_cs orinoco hermes_dld hermes =
+pcmcia firmware_class snd_ali5451 snd_ac97_codec ac97_bus snd_seq_dummy snd=
+_seq_oss snd_seq_midi_event snd_seq snd_seq_device smsc_ircc2 snd_pcm_oss s=
+nd_pcm rtc_cmos irda snd_timer snd_mixer_oss rtc_core snd crc_ccitt yenta_s=
+ocket rtc_lib rsrc_nonstatic i2c_ali1535 pcmcia_core pcspkr psmouse soundco=
+re i2c_core evdev sr_mod snd_page_alloc alim1535_wdt cdrom fan sg video out=
+put toshiba_acpi rfkill thermal backlight ali_agp processor ac button input=
+_polldev battery agpgart ohci_hcd usbcore reiserfs pata_ali libata sd_mod s=
+csi_mod [last unloaded: scsi_wait_scan]
+> > [  113.921765]=20
+> > [  113.921785] Pid: 3272, comm: ipolldevd Not tainted (2.6.28-rc2-1avb =
+#3) PORTEGE 4000
+> > [  113.921801] EIP: 0060:[<dfaa4683>] EFLAGS: 00010246 CPU: 0
+> > [  113.921854] EIP is at rfkill_force_state+0x53/0x90 [rfkill]
+> > [  113.921870] EAX: 00000000 EBX: 00000000 ECX: 00000003 EDX: 00000000
+> > [  113.921885] ESI: 00000000 EDI: ddd50300 EBP: d8d7af40 ESP: d8d7af24
+> > [  113.921900]  DS: 007b ES: 007b FS: 0000 GS: 0000 SS: 0068
+> > [  113.921918] Process ipolldevd (pid: 3272, ti=3Dd8d7a000 task=3Dd8d93=
+c90 task.ti=3Dd8d7a000)
+> > [  113.921933] Stack:
+> > [  113.921945]  d8d7af38 00000246 dfb029d8 dfb029c0 dfb029d8 dfb029c0 d=
+dd50300 d8d7af5c
+> > [  113.922014]  dfb018e2 01000246 01000000 ddd50300 ddd50314 ddabb8a0 d=
+8d7af68 dfb381c1
+> > [  113.922098]  00000000 d8d7afa4 c012ec0a 00000000 00000002 00000000 c=
+012eba8 ddabb8c0
+> > [  113.922240] Call Trace:
+> > [  113.922240]  [<dfb018e2>] ? bt_poll_rfkill+0x5c/0x82 [toshiba_acpi]
+> > [  113.922240]  [<dfb381c1>] ? input_polled_device_work+0x11/0x40 [inpu=
+t_polldev]
+> > [  113.922240]  [<c012ec0a>] ? run_workqueue+0xea/0x1f0
+> > [  113.922240]  [<c012eba8>] ? run_workqueue+0x88/0x1f0
+> > [  113.922240]  [<dfb381b0>] ? input_polled_device_work+0x0/0x40 [input=
+_polldev]
+> > [  113.922240]  [<c012f047>] ? worker_thread+0x87/0xf0
+> > [  113.922240]  [<c0132b00>] ? autoremove_wake_function+0x0/0x50
+> > [  113.922240]  [<c012efc0>] ? worker_thread+0x0/0xf0
+> > [  113.922240]  [<c013280f>] ? kthread+0x3f/0x80
+> > [  113.922240]  [<c01327d0>] ? kthread+0x0/0x80
+> > [  113.922240]  [<c01040d7>] ? kernel_thread_helper+0x7/0x10
+> > [  113.922240] Code: 43 54 89 73 54 39 c6 74 11 89 d9 ba 01 00 00 00 b8=
+ 40 68 aa df e8 3e 35 69 e0 89 f8 e8 77 fd 85 e0 31 c0 83 c4 10 5b 5e 5f 5d=
+ c3 <0f> 0b eb fe 89 f6 8d bc 27 00 00 00 00 be f4 4d aa df bb 5f 01=20
+> > [  113.922240] EIP: [<dfaa4683>] rfkill_force_state+0x53/0x90 [rfkill] =
+SS:ESP 0068:d8d7af24
+> > [  113.924700] ---[ end trace 0e404eb40cadd5f0 ]---
+>=20
+> Signed-off-by: Frederik Deweerdt <frederik.deweerdt@gmail.com>
+>=20
+> diff --git a/drivers/acpi/toshiba_acpi.c b/drivers/acpi/toshiba_acpi.c
+> index 66aac06..c1c9d87 100644
+> --- a/drivers/acpi/toshiba_acpi.c
+> +++ b/drivers/acpi/toshiba_acpi.c
+> @@ -824,34 +824,38 @@ static int __init toshiba_acpi_init(void)
+>  			toshiba_acpi_exit();
+>  			return -ENOMEM;
+>  		}
+> -	}
+> =20
+> -	/* Register input device for kill switch */
+> -	toshiba_acpi.poll_dev =3D input_allocate_polled_device();
+> -	if (!toshiba_acpi.poll_dev) {
+> -		printk(MY_ERR "unable to allocate kill-switch input device\n");
+> -		toshiba_acpi_exit();
+> -		return -ENOMEM;
+> -	}
+> -	toshiba_acpi.poll_dev->private =3D &toshiba_acpi;
+> -	toshiba_acpi.poll_dev->poll =3D bt_poll_rfkill;
+> -	toshiba_acpi.poll_dev->poll_interval =3D 1000; /* msecs */
+> -
+> -	toshiba_acpi.poll_dev->input->name =3D toshiba_acpi.rfk_name;
+> -	toshiba_acpi.poll_dev->input->id.bustype =3D BUS_HOST;
+> -	toshiba_acpi.poll_dev->input->id.vendor =3D 0x0930; /* Toshiba USB ID */
+> -	set_bit(EV_SW, toshiba_acpi.poll_dev->input->evbit);
+> -	set_bit(SW_RFKILL_ALL, toshiba_acpi.poll_dev->input->swbit);
+> -	input_report_switch(toshiba_acpi.poll_dev->input, SW_RFKILL_ALL, TRUE);
+> -	input_sync(toshiba_acpi.poll_dev->input);
+> -
+> -	ret =3D input_register_polled_device(toshiba_acpi.poll_dev);
+> -	if (ret) {
+> -		printk(MY_ERR "unable to register kill-switch input device\n");
+> -		rfkill_free(toshiba_acpi.rfk_dev);
+> -		toshiba_acpi.rfk_dev =3D NULL;
+> -		toshiba_acpi_exit();
+> -		return ret;
+> +		/* Register input device for kill switch */
+> +		toshiba_acpi.poll_dev =3D input_allocate_polled_device();
+> +		if (!toshiba_acpi.poll_dev) {
+> +			printk(MY_ERR
+> +			       "unable to allocate kill-switch input device\n");
+> +			toshiba_acpi_exit();
+> +			return -ENOMEM;
+> +		}
+> +		toshiba_acpi.poll_dev->private =3D &toshiba_acpi;
+> +		toshiba_acpi.poll_dev->poll =3D bt_poll_rfkill;
+> +		toshiba_acpi.poll_dev->poll_interval =3D 1000; /* msecs */
+> +
+> +		toshiba_acpi.poll_dev->input->name =3D toshiba_acpi.rfk_name;
+> +		toshiba_acpi.poll_dev->input->id.bustype =3D BUS_HOST;
+> +		/* Toshiba USB ID */
+> +		toshiba_acpi.poll_dev->input->id.vendor =3D 0x0930;
+> +		set_bit(EV_SW, toshiba_acpi.poll_dev->input->evbit);
+> +		set_bit(SW_RFKILL_ALL, toshiba_acpi.poll_dev->input->swbit);
+> +		input_report_switch(toshiba_acpi.poll_dev->input,
+> +				    SW_RFKILL_ALL, TRUE);
+> +		input_sync(toshiba_acpi.poll_dev->input);
+> +
+> +		ret =3D input_register_polled_device(toshiba_acpi.poll_dev);
+> +		if (ret) {
+> +			printk(MY_ERR
+> +			       "unable to register kill-switch input device\n");
+> +			rfkill_free(toshiba_acpi.rfk_dev);
+> +			toshiba_acpi.rfk_dev =3D NULL;
+> +			toshiba_acpi_exit();
+> +			return ret;
+> +		}
+>  	}
+> =20
+>  	return 0;
+>=20
+> ----- End forwarded message -----
+>=20
+>=20
+
+
+
+--nextPart1318726.bFehqVtMlN
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEABECAAYFAkkf2c0ACgkQR6LMutpd94yxgQCbBEtKK6Pdvu1LQgBavHDe9X3z
+HPIAnA/WXJXSfcgetgUeeVvsl7errTEP
+=qqym
+-----END PGP SIGNATURE-----
+
+--nextPart1318726.bFehqVtMlN--
