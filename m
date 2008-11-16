@@ -1,71 +1,63 @@
-From: Andrey Borzenkov <arvidjaar@mail.ru>
-Subject: Re: [patch] ACPI toshiba: only register rfkill if bt is enabled
-Date: Sun, 16 Nov 2008 15:50:43 +0300
-Message-ID: <200811161550.49957.arvidjaar@mail.ru>
-References: <20081029081934.GB26314@gambetta> <200811161129.02028.arvidjaar@mail.ru> <200811161340.36798.rjw@sisk.pl>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH] toshiba_acpi: fingers off backlight if video.ko is
+	serving this functionality
+Date: Sun, 16 Nov 2008 10:51:14 -0200
+Message-ID: <20081116125114.GB29981@khazad-dum.debian.net>
+References: <200811081637.45099.arvidjaar@mail.ru> <200811152017.56926.arvidjaar@mail.ru> <20081115172052.GA9537@srcf.ucam.org> <200811152142.18890.arvidjaar@mail.ru> <20081115184900.GA10685@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1464691.HkxFBc6c8y";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx34.mail.ru ([194.67.23.200]:3862 "EHLO mx34.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751888AbYKPMuz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 16 Nov 2008 07:50:55 -0500
-In-Reply-To: <200811161340.36798.rjw@sisk.pl>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:52892 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751945AbYKPMvV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 16 Nov 2008 07:51:21 -0500
+Content-Disposition: inline
+In-Reply-To: <20081115184900.GA10685@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Frederik Deweerdt <frederik.deweerdt@xprog.eu>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, akpm@linux-foundation.org, philipl@overt.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Andrey Borzenkov <arvidjaar@mail.ru>, Thomas Renninger <trenn@suse.de>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
---nextPart1464691.HkxFBc6c8y
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+On Sat, 15 Nov 2008, Matthew Garrett wrote:
+> Ok, so they can get unsynchronised. I agree with Thomas that it's 
+> desirable to remove one of them in that case. As you and Len have 
+> pointed out, the difficulty is in knowing which one to remove.
 
-On Sunday 16 November 2008, Rafael J. Wysocki wrote:
-> On Sunday, 16 of November 2008, Andrey Borzenkov wrote:
-> > On Wednesday 29 October 2008, Frederik Deweerdt wrote:
-> > > [resending as it didn't make it to the list, removing netdev from cc
-> > > also]
-> > > Hello  Andrey,
-> > >=20
-> > > It looks like a part of the rfkill initialization was done whenever
-> > > BT was on or not. The following patch checks for BT presence before
-> > > registering the rfkill to the input layer. Does it solve the problem =
-for
-> > > you?
-> > >=20
-> >=20
-> > This patch fixes regression in 2.6.28. Patch has been tested and
-> > acnowledged. Rafael, could you add it to list of open regressions?
-> > Thank you!
->=20
-> I will, if you provide me with a link to the patch and (optionally) to the
-> original bug report.
->=20
+May I point out the obvious, and *very* annoying fact?
 
-Original bug report:
-http://marc.info/?l=3Dlinux-kernel&m=3D122522113619025&w=3D2
+It is clear by now that if we want to solve all border conditions nicely, we
+will need centralized control of backlight interfaces to broker between
+platform-specific drivers and ACPI generic.
 
-Patch:
-http://marc.info/?l=3Dlinux-kernel&m=3D122526843117478&w=3D2
+My idea is: separate them in two layers.  Have the "backends" (ACPI generic
+and platform specific drivers) register parameters with a "frontend".  The
+"frontend" exposes a *single* backlight interface.  The backends expose
+NOTHING (or at most a deprecated interface if it won't break things).
 
-Thank you!
+Backlight interfaces can have their parameters updated at runtime, so we do
+just that if the frontend has to switch backends (i.e. due to module
+loading/unloading).  Make sure the backend is informed when it is
+connected/disconnected from driving the backlight.
 
---nextPart1464691.HkxFBc6c8y
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+Use an intelligent setup to select which backend should be driving the
+backlight.  e.g: the backends provide a priority information and a quality
+information (priority is low-medium-high.  Quality is the number of levels,
+adjusted up or down if you know there is something special about it that
+should lower or rise the quality).
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
+If there is only one backend loaded, select that.  If there are more than
+one, select the highest priority one.  When the priority of the backends is
+the same, select the one with the highest quality. When quality and priority
+are the same, select the generic ACPI.
 
-iEYEABECAAYFAkkgFyUACgkQR6LMutpd94zw3QCfU8WuBw5wwiIQ3zVOF61F617b
-15kAoKkh0zAQOmxeUKkHJ/+ZCnUx1edV
-=v4jb
------END PGP SIGNATURE-----
+Priority should always be medium, except when you know for sure that you
+need to do something special for an specific platform/box.
 
---nextPart1464691.HkxFBc6c8y--
+Any other ideas, comments?
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
