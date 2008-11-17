@@ -1,156 +1,108 @@
 From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: [Patch 3/3] eeepc-laptop: Implement rfkill hotplugging in eeepc-laptop
-Date: Mon, 17 Nov 2008 13:41:13 +0000
-Message-ID: <20081117134112.GE12303@srcf.ucam.org>
-References: <20081117133325.GB12303@srcf.ucam.org> <20081117133510.GC12303@srcf.ucam.org> <20081117133804.GD12303@srcf.ucam.org>
+Subject: [PATCH] acpiphp: Identify more removable slots
+Date: Mon, 17 Nov 2008 13:49:52 +0000
+Message-ID: <20081117134952.GA12932@srcf.ucam.org>
+References: <20081113235255.GA17709@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:39293 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751232AbYKQNlT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Nov 2008 08:41:19 -0500
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20081117133804.GD12303@srcf.ucam.org>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20081113235255.GA17709@srcf.ucam.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: linux-pci@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Corentin Chary <corentin.chary@gmail.com>, ecc@cmu.edu
-Cc: linux acpi <linux-acpi@vger.kernel.org>, linux-kernel@vger.kernel.org
 
-The Eee implements rfkill by logically unplugging the wireless card from 
-the PCI bus. Despite sending ACPI notifications, this does not appear to 
-be implemented using standard ACPI hotplug - nor does the firmware 
-provide the _OSC method required to support native PCIe hotplug. The 
-only sensible choice appears to be to handle the hotplugging directly in 
-the eeepc-laptop driver. Tested successfully on a 700, 900 and 901.
+According to section 6.3.6 of the ACPI spec, the presence of an _RMV 
+method that evaluates to 1 is sufficient to indicate that a slot is 
+removable without needing an eject method. This patch refactors the 
+ejectable slot detection code a little in order to flag these slots as 
+ejectable and register them. Acpihp then binds to the expresscard slot 
+on my HP test machine.
 
 Signed-off-by: Matthew Garrett <mjg@redhat.com>
 
 ---
 
-diff --git a/drivers/misc/eeepc-laptop.c b/drivers/misc/eeepc-laptop.c
-index 4d70626..136c742 100644
---- a/drivers/misc/eeepc-laptop.c
-+++ b/drivers/misc/eeepc-laptop.c
-@@ -30,6 +30,7 @@
- #include <linux/uaccess.h>
- #include <linux/input.h>
- #include <linux/rfkill.h>
-+#include <linux/pci.h>
- 
- #define EEEPC_LAPTOP_VERSION	"0.1"
- 
-@@ -517,6 +518,41 @@ static void notify_brn(void)
- 	bd->props.brightness = read_brightness(bd);
- }
- 
-+static void eeepc_rfkill_notify(acpi_handle handle, u32 event, void *data)
-+{
-+	struct pci_dev *dev;
-+	struct pci_bus *bus = pci_find_bus(0, 1);
-+
-+	if (event != ACPI_NOTIFY_BUS_CHECK)
-+		return;
-+
-+	if (!bus) {
-+		printk(EEEPC_WARNING "Unable to find PCI bus 1?\n");
-+		return;
-+	}
-+
-+	if (get_acpi(CM_ASL_WLAN) == 1) {
-+		dev = pci_get_slot(bus, 0);
-+		if (dev) {
-+			/* Device already present */
-+			pci_dev_put(dev);
-+			return;
-+		}
-+		dev = pci_scan_single_device(bus, 0);
-+		if (dev) {
-+			pci_bus_assign_resources(bus);
-+			if (pci_bus_add_device(dev))
-+				printk(EEEPC_ERR "Unable to hotplug wifi\n");
-+		}
-+	} else {
-+		dev = pci_get_slot(bus, 0);
-+		if (dev) {
-+			pci_remove_bus_device(dev);
-+			pci_dev_put(dev);
-+		}
-+	}
-+}
-+
- static void eeepc_hotk_notify(acpi_handle handle, u32 event, void *data)
- {
- 	static struct key_entry *key;
-@@ -543,6 +579,45 @@ static void eeepc_hotk_notify(acpi_handle handle, u32 event, void *data)
- 	}
- }
- 
-+static int eeepc_register_rfkill_notifier(char *node)
-+{
-+	acpi_status status = AE_OK;
-+	acpi_handle handle;
-+
-+	status = acpi_get_handle(NULL, node, &handle);
-+
-+	if (ACPI_SUCCESS(status)) {
-+		status = acpi_install_notify_handler(handle,
-+						     ACPI_SYSTEM_NOTIFY,
-+						     eeepc_rfkill_notify,
-+						     NULL);
-+		if (ACPI_FAILURE(status))
-+			printk(EEEPC_WARNING
-+			       "Failed to register notify on %s\n", node);
-+	} else
-+		return -ENODEV;
-+
-+	return 0;
-+}
-+
-+static void eeepc_unregister_rfkill_notifier(char *node)
-+{
-+	acpi_status status = AE_OK;
-+	acpi_handle handle;
-+
-+	status = acpi_get_handle(NULL, node, &handle);
-+
-+	if (ACPI_SUCCESS(status)) {
-+		status = acpi_remove_notify_handler(handle,
-+						     ACPI_SYSTEM_NOTIFY,
-+						     eeepc_rfkill_notify);
-+		if (ACPI_FAILURE(status))
-+			printk(EEEPC_ERR
-+			       "Error removing rfkill notify handler %s\n",
-+				node);
-+	}
-+}
-+
- static int eeepc_hotk_add(struct acpi_device *device)
- {
- 	acpi_status status = AE_OK;
-@@ -622,6 +697,10 @@ static int eeepc_hotk_add(struct acpi_device *device)
- 		if (result)
- 			goto bluetooth_fail;
- 	}
-+
-+	eeepc_register_rfkill_notifier("\\_SB.PCI0.P0P6");
-+	eeepc_register_rfkill_notifier("\\_SB.PCI0.P0P7");
-+
- 	return 0;
- 
-  bluetooth_fail:
-@@ -650,6 +729,10 @@ static int eeepc_hotk_remove(struct acpi_device *device, int type)
- 					    eeepc_hotk_notify);
- 	if (ACPI_FAILURE(status))
- 		printk(EEEPC_ERR "Error removing notify handler\n");
-+
-+	eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P6");
-+	eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P7");
-+
- 	kfree(ehotk);
- 	return 0;
- }
+The _LCK handling code requires some more cleanup and ideally some 
+hardware that actually implements it
 
+ drivers/pci/hotplug/acpiphp_glue.c |   32 +++++++++++++++++---------------
+ 1 files changed, 17 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+index 955aae4..e8cef99 100644
+--- a/drivers/pci/hotplug/acpiphp_glue.c
++++ b/drivers/pci/hotplug/acpiphp_glue.c
+@@ -74,7 +74,7 @@ static void handle_hotplug_event_func(acpi_handle handle, u32 type, void *contex
+  * Ejectable slot should satisfy at least these conditions:
+  *
+  *  1. has _ADR method
+- *  2. has _EJ0 method
++ *  2. has _EJ0 method or _RMV method
+  *
+  * optionally
+  *
+@@ -87,18 +87,25 @@ static int is_ejectable(acpi_handle handle)
+ {
+ 	acpi_status status;
+ 	acpi_handle tmp;
++	unsigned long long removable;
+ 
+ 	status = acpi_get_handle(handle, "_ADR", &tmp);
+-	if (ACPI_FAILURE(status)) {
++	if (ACPI_FAILURE(status))
+ 		return 0;
+-	}
+ 
+ 	status = acpi_get_handle(handle, "_EJ0", &tmp);
+-	if (ACPI_FAILURE(status)) {
+-		return 0;
++	if (ACPI_SUCCESS(status))
++		return 1;
++
++	status = acpi_get_handle(handle, "_RMV", &tmp);
++	if (ACPI_SUCCESS(status)) {
++		status = acpi_evaluate_integer(handle, "_RMV", NULL,
++					       &removable);
++		if (ACPI_SUCCESS(status) && removable)
++			return 1;
+ 	}
+ 
+-	return 1;
++	return 0;
+ }
+ 
+ 
+@@ -185,16 +192,10 @@ register_slot(acpi_handle handle, u32 lvl, void *context, void **rv)
+ 	unsigned long long adr, sun;
+ 	int device, function, retval;
+ 
+-	status = acpi_evaluate_integer(handle, "_ADR", NULL, &adr);
+-
+-	if (ACPI_FAILURE(status))
+-		return AE_OK;
+-
+-	status = acpi_get_handle(handle, "_EJ0", &tmp);
+-
+-	if (ACPI_FAILURE(status) && !(is_dock_device(handle)))
++	if (!is_ejectable(handle) && !is_dock_device(handle))
+ 		return AE_OK;
+ 
++	acpi_evaluate_integer(handle, "_ADR", NULL, &adr);
+ 	device = (adr >> 16) & 0xffff;
+ 	function = adr & 0xffff;
+ 
+@@ -205,7 +206,8 @@ register_slot(acpi_handle handle, u32 lvl, void *context, void **rv)
+ 	INIT_LIST_HEAD(&newfunc->sibling);
+ 	newfunc->handle = handle;
+ 	newfunc->function = function;
+-	if (ACPI_SUCCESS(status))
++
++	if (ACPI_SUCCESS(acpi_get_handle(handle, "_EJ0", &tmp)))
+ 		newfunc->flags = FUNC_HAS_EJ0;
+ 
+ 	if (ACPI_SUCCESS(acpi_get_handle(handle, "_STA", &tmp)))
 
 -- 
 Matthew Garrett | mjg59@srcf.ucam.org
