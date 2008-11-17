@@ -1,37 +1,23 @@
-From: James Bottomley <James.Bottomley@HansenPartnership.com>
-Subject: Re: 2.6.28-rc5: Reported regressions from 2.6.27
-Date: Mon, 17 Nov 2008 20:36:46 +0900
-Message-ID: <1226921806.8582.6.camel@localhost.localdomain>
-References: <VwdsQNEjR_C.A.CiD.9_FIJB@chimera>
-	 <20081116182953.6231ae8c@lxorguk.ukuu.org.uk>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: [Patch 0/3] eeepc-laptop updates
+Date: Mon, 17 Nov 2008 13:32:08 +0000
+Message-ID: <20081117133208.GA12303@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <20081116182953.6231ae8c@lxorguk.ukuu.org.uk>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:51172 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751794AbYKQNcQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Nov 2008 08:32:16 -0500
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Corentin Chary <corentin.chary@gmail.com>, ecc@cmu.edu
+Cc: linux acpi <linux-acpi@vger.kernel.org>, linux-kernel@vger.kernel.edu
 
-On Sun, 2008-11-16 at 18:29 +0000, Alan Cox wrote:
-> >      the majority of these patches have not been merged for over two weeks
-> >      (for almost three weeks in many cases and for over a _month_ in one case).
-> >      IMO, this is insane.]
-> 
-> Some of them are quite serious too - some stuff is basically unusable in
-> 2.6.28rc due to the vmalloc bug.
-> 
-> Is there any reason why someone (Rafael ?) shouldn't simply submit all of
-> those patches that look sensible, are reported to fix regressions and
-> whose maintainer has not provided a reason to NOT apply them into the
-> tree ?
+This patch series includes patches for the extended hotkeys on the later 
+Eees, tidying up some rfkill warnings and making the rfkill PCI hotplug 
+work correctly on the current Eees.
 
-There is for SCSI.  Our two bugzilla entries each have several patches
-(one has two, the other has four).  The patches listed in the
-regressions aren't necessarily going to be the ones applied (depending
-on how the arguing and testing goes).
-
-James
-
-
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
