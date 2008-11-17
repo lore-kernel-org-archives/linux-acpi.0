@@ -1,37 +1,51 @@
-From: Tino Keitel <tino.keitel@gmx.de>
-Subject: Re: [ibm-acpi-devel] [PATCH] ACPI: thinkpad-acpi: fix fan
-	sleep/resume path
-Date: Mon, 17 Nov 2008 15:26:40 +0100
-Message-ID: <20081117142639.GA2600@x61>
-References: <20081109113011.GB8329@khazad-dum.debian.net> <1226235242-11130-2-git-send-email-hmh@hmh.eng.br> <20081117021408.GD22260@khazad-dum.debian.net>
+From: "Alan Jenkins" <alan-jenkins@tuffmail.co.uk>
+Subject: Re: [Patch 2/3] eeepc-laptop: Check return values from rfkill_register
+Date: Mon, 17 Nov 2008 15:09:21 +0000
+Message-ID: <9b2b86520811170709o4581a064v957ae41403b6113@mail.gmail.com>
+References: <20081117133325.GB12303@srcf.ucam.org>
+	 <20081117133510.GC12303@srcf.ucam.org>
+	 <20081117133804.GD12303@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from eazy.amigager.de ([213.239.192.238]:48985 "EHLO
-	eazy.amigager.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750783AbYKQPCC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Nov 2008 10:02:02 -0500
+Received: from yx-out-2324.google.com ([74.125.44.28]:32772 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751371AbYKQPJX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Nov 2008 10:09:23 -0500
+Received: by yx-out-2324.google.com with SMTP id 8so1022058yxm.1
+        for <linux-acpi@vger.kernel.org>; Mon, 17 Nov 2008 07:09:22 -0800 (PST)
+In-Reply-To: <20081117133804.GD12303@srcf.ucam.org>
 Content-Disposition: inline
-In-Reply-To: <20081117021408.GD22260@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, ibm-acpi-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Corentin Chary <corentin.chary@gmail.com>, ecc@cmu.edu, linux acpi <linux-acpi@vger.kernel.org>, linux-kernel@vger.kernel.org
 
-On Mon, Nov 17, 2008 at 00:14:08 -0200, Henrique de Moraes Holschuh wrote:
-> Len,
-> 
-> The patch needs to go to Linus...  I don't think anyone cares to have
-> their names as tested-by:, or they would have replied already.
-> 
-> I have tested the patch and it fixes things here.  It would be better with
-> more "works for me" replies, but it should be enough testing.
+On 11/17/08, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
+> We should check that rfkill registration succeeds and error out if it
+> doesn't. This patch also sets the default state to match the BIOS on
+> load.
+>
+> Signed-off-by: Matthew Garrett <mjg@redhat.com>
+>
+> diff --git a/drivers/misc/eeepc-laptop.c b/drivers/misc/eeepc-laptop.c
 
-Hi,
+You change the usage of the "end" label so it's now only reached on
+failure.  How about renaming it to "fail" or "ehotk_fail"?  Also, it
+looks like "if (result)" is now redundant - result will always be
+non-zero in the error path.
 
-sorry for the delay. I tested the above patch and the "auto" fan level
-was preserved (or better: not touched) at resume, so this regression is
-fixed.
-
-Regards,
-Tino
+> +	return 0;
+>
+> + bluetooth_fail:
+> +	if (ehotk->eeepc_bluetooth_rfkill)
+> +		rfkill_free(ehotk->eeepc_bluetooth_rfkill);
+> +	rfkill_unregister(ehotk->eeepc_wlan_rfkill);
+> +	ehotk->eeepc_wlan_rfkill = NULL;
+> + wlan_fail:
+> +	if (ehotk->eeepc_wlan_rfkill)
+> +		rfkill_free(ehotk->eeepc_wlan_rfkill);
+>   end:
+>  	if (result) {
+>  		kfree(ehotk);
