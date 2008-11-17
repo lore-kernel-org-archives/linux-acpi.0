@@ -1,57 +1,77 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: RE: [RESEND] [PATCH 3/6] ACPI: create sysfs I/F for inactive tables
-Date: Mon, 17 Nov 2008 10:01:37 +0800
-Message-ID: <1226887297.15014.244.camel@rzhang-dt>
-References: <1226478545.15014.173.camel@rzhang-dt>
-	 <982D8D05B6407A49AD506E6C3AC8E7D6BEF9369129@caralain.haven.nynaeve.net>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH] toshiba_acpi: fingers off backlight if video.ko is
+	serving this functionality
+Date: Mon, 17 Nov 2008 00:07:54 -0200
+Message-ID: <20081117020754.GC22260@khazad-dum.debian.net>
+References: <200811081637.45099.arvidjaar@mail.ru> <20081115184900.GA10685@srcf.ucam.org> <20081116125114.GB29981@khazad-dum.debian.net> <200811161544.56367.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:10860 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754567AbYKQCBm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 16 Nov 2008 21:01:42 -0500
-In-Reply-To: <982D8D05B6407A49AD506E6C3AC8E7D6BEF9369129@caralain.haven.nynaeve.net>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:50235 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754601AbYKQCIA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 16 Nov 2008 21:08:00 -0500
+Content-Disposition: inline
+In-Reply-To: <200811161544.56367.trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Skywing <Skywing@valhallalegends.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+To: Thomas Renninger <trenn@suse.de>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Andrey Borzenkov <arvidjaar@mail.ru>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On Thu, 2008-11-13 at 04:32 +0800, Skywing wrote:
-> Zhang Rui wrote:
->=20
-> > +		if (strncmp(table_attr->name, "NULL", ACPI_NAME_SIZE))
-> > +			memcpy(name, table_attr->name, ACPI_NAME_SIZE);
-> > +		else
-> > +			memcpy(name, "\0\0\0\0", ACPI_NAME_SIZE);
-> > +		status =3D acpi_get_table(name,
-> > +					table_attr->instance, &table_header);
->=20
->  Minor nit / suggestion: Wouldn't it be a bit better to use memset in=
-stead
->  of memcpy for the \0\0\0\0 memcpy case?
-that works as well.
+On Sun, 16 Nov 2008, Thomas Renninger wrote:
+> I would not add such complexity for a problem which isn't a real problem.
 
->  Otherwise, you need to make sure
->  that you have at least as many \0's in the string literal as ACPI_NA=
-ME_SIZE,
->  which is a lil bit ugly.
->  If you are cleaning things up to use symbolic constants there, you m=
-ight consider changing it to a memset while you're at it.
->=20
-=EF=BB=BFwell, we have an ugly ACPI table here, with the signature =EF=BB=
-=BF"\0\0\0\0".
-and the code =EF=BB=BFmemcpy(name, "\0\0\0\0", ACPI_NAME_SIZE) is used =
-to set a
-valid table signature rather than clearing this piece of memeory.
-so IMO, using memcpy also makes sense here. :)
+Oh, it is very real.  It needs to be solved, and yes, it can be solved with
+what we have and adding blacklists to ACPI video, instead of intelligent
+decisions or hints from the platform driver.
 
-thanks,
-rui
+> IMO we should either:
+>    1) Just do nothing and use video.ko even for Toshibas which only provide
+>        3 brightness states.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I would be quite annoyed at it if I were a Toshiba user and I would report
+it as a regression.  But I guess we can see if any Toshiba users want to
+chime in?
+
+>    2) DMI blacklist for Toshiba in general to use toshiba_laptop for
+>        brightness switching.
+
+You won't get away with halfway broken measures like that, you will need to
+blacklist *some* toshibas, but not all.  As you say yourself later on, it is
+likely that newer ones might switch to ACPI generic, or have more levels in
+ACPI generic backlight handling.
+
+> For the brightness level it's something else. A short documentation into the 
+> right forum/mailing list and everybody can google the 
+> acpi_backlight=vendor/video boot param in a second on his already running 
+> machine and is happy.
+
+I thought we were trying to get things right automatically instead of
+forcing users to add such parameters, nowadays?  Maybe if this was something
+easy to change at runtime, but kernel parameters and Kconfig parameters
+*are* supposed to be a last-resort option.
+
+> The question is, are these 3 brightness levels to be considered as broken.
+
+It is a regression, anyway.  It delivers reduced functionality.
+
+> IMO it is something 95% of all toshiba users won't care, the brightness level 
+
+But we care about the 5% that do.  Those are the users that are worth
+bothering with, since they're the ones that do bug reports, stay around to
+test patches, etc.
+
+> I very much expect that newer Toshibas export more brightness levels via 
+> video.ko (does someone have a new one and can double check?) and at some time 
+> the Toshiba specific functions may even vanish. Therefore I would prefer to 
+> not do an exception here and go for 1(see above).
+
+I don't really care if it is done just by DMI blacklisting on ACPI video,
+but I don't expect that to be the better solution for the long term.
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
