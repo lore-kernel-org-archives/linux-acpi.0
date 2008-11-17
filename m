@@ -1,37 +1,36 @@
-From: Gary Dangleis <gcdangleis@gmail.com>
-Subject: dmesg line request to send this info
-Date: Sun, 16 Nov 2008 16:45:08 -0800
-Message-ID: <1226882708.6221.7.camel@gcdangleis-desktop>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [STABLE PATCH .26 .27] ACPI: avoid empty file name in sysfs
+Date: Mon, 17 Nov 2008 09:40:12 +0800
+Message-ID: <1226886012.15014.231.camel@rzhang-dt>
+References: <alpine.LFD.2.00.0811130015100.3128@localhost.localdomain>
+	 <20081115171725.GB1523@ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.237]:13313 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753748AbYKQApL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 16 Nov 2008 19:45:11 -0500
-Received: by rv-out-0506.google.com with SMTP id k40so2195784rvb.1
-        for <linux-acpi@vger.kernel.org>; Sun, 16 Nov 2008 16:45:10 -0800 (PST)
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755987AbYKQBkb@vger.kernel.org>
+In-Reply-To: <20081115171725.GB1523@ucw.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@suse.cz>
+Cc: Len Brown <lenb@kernel.org>, "stable@kernel.org" <stable@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-new user just following instructions ...
+On Sun, 2008-11-16 at 01:17 +0800, Pavel Machek wrote:
+> Hi!
+> 
+> > upstream 4feba70a2c1a1a0c96909f657f48b2e11e682370
+> > 
+> > Since commit bc45b1d39a925b56796bebf8a397a0491489d85c acpi tables are
+> > allowed to have an empty signature and /sys/firmware/acpi/tables uses the
+> > signature as filename.  Applications using naive recursion through /sys
+> > loop forever.  A possible solution would be: (replacing the zero length
+> > filename with the string "NULL")
+> 
+> What about using some string that is not a valid table name? Shorter
+> than 4 characters? AFAICT,
+> 'NULL' table could be added to acpi in future...?
+> 
+> What if *two* tales have empty signature?
+there are "NULL1" and "NULL2" in this case.
 
-
-[   13.828362] ACPI: EC: Look up EC in DSDT
-[   13.849137] ACPI: BIOS _OSI(Linux) query ignored
-[   13.849140] ACPI: DMI System Vendor: Dell Inc.                
-[   13.849142] ACPI: DMI Product Name: Dimension 4700               
-[   13.849144] ACPI: DMI Product Version: 
-[   13.849145] ACPI: DMI Board Name: 0M3918
-[   13.849147] ACPI: DMI BIOS Vendor: Dell Inc.                
-[   13.849149] ACPI: DMI BIOS Date: 01/04/2006
-[   13.849150] ACPI: Please send DMI info above to
-linux-acpi@vger.kernel.org
-[   13.849152] ACPI: If "acpi_osi=Linux" works better, please notify
-linux-acpi@vger.kernel.org
-
-Gary D.
-
-
+thanks,
+rui
