@@ -1,121 +1,36 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] ACPI suspend: Blacklist boxes that require us to set SCI_EN directly on resume
-Date: Mon, 17 Nov 2008 23:33:12 +0100
-Message-ID: <200811172333.13466.rjw@sisk.pl>
+From: END OF YEAR PROMOTION <atmo@sympatico.ca>
+Subject: Contact Donald Wilson
+Date: Mon, 17 Nov 2008 17:29:36 -0500
+Message-ID: <20081117222936.HZWZ2983.simmts7-srv.bellnexxia.net@simip9-ac.srvr.bell.ca>
+Reply-To: agentdonald@ymail.com
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:48553 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751964AbYKQW2L (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 17 Nov 2008 17:28:11 -0500
-Content-Disposition: inline
+Received: from simmts7.bellnexxia.net ([206.47.199.165]:37296 "EHLO
+	simmts7-srv.bellnexxia.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751902AbYKQW3h convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 17 Nov 2008 17:29:37 -0500
+Received: from simip9-ac.srvr.bell.ca ([206.47.199.87])
+          by simmts7-srv.bellnexxia.net
+          (InterMail vM.5.01.06.13 201-253-122-130-113-20050324) with ESMTP
+          id <20081117222936.HZWZ2983.simmts7-srv.bellnexxia.net@simip9-ac.srvr.bell.ca>
+          for <linux-acpi@vger.kernel.org>; Mon, 17 Nov 2008 17:29:36 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Tino Keitel <tino.keitel@gmx.de>, Bob Copeland <me@bobcopeland.com>
+To: info@org
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
-Subject: ACPI suspend: Blacklist boxes that require us to set SCI_EN directly on resume
+The sum of =A31,000,000.00 Pounds was won by your E-MAIL    (agentdonal=
+d@ymail.com) with your=20
+Names :
+Country :
+Occupation :
+Age :
+Sex :
 
-Some Apple boxes evidently require us to set SCI_EN on resume
-directly, because if we don't do that, they hung somewhere in the
-resume code path.  Moreover, on these boxes it is not sufficient to
-use acpi_enable() to turn ACPI on during resume.  All of this is
-against the ACPI specification which states that (1) the BIOS is
-supposed to return from the S3 sleep state with ACPI enabled
-(SCI_EN set) and (2) the SCI_EN bit is owned by the hardware and we
-are not supposed to change it.
-
-For this reason, blacklist the affected systems so that the SCI_EN
-bit is set during resume on them.
-
-[NOTE: Unconditional setting SCI_EN for all system on resume doesn't
- work, because it makes some other systems crash (that's to be
- expected).  Also, it is not entirely clear right now if all of the
- Apple boxes require this workaround.]
-
-This patch fixes the recent regression tracked as
-http://bugzilla.kernel.org/show_bug.cgi?id=12038
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Tested-by: Tino Keitel <tino.keitel@gmx.de>
-Tested-by: Bob Copeland <me@bobcopeland.com>
----
- drivers/acpi/sleep/main.c |   40 +++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 39 insertions(+), 1 deletion(-)
-
-Index: linux-2.6/drivers/acpi/sleep/main.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/sleep/main.c
-+++ linux-2.6/drivers/acpi/sleep/main.c
-@@ -104,6 +104,18 @@ void __init acpi_s4_no_nvs(void)
- 	s4_no_nvs = true;
- }
- 
-+/*
-+ * According to the ACPI specification the BIOS should make sure that ACPI is
-+ * enabled and SCI_EN bit is set on wake-up from S1 - S3 sleep states.  Still,
-+ * some BIOSes don't do that and therefore we use acpi_enable() to enable ACPI
-+ * on such systems during resume.  Unfortunately that doesn't help in
-+ * particularly pathological cases in which SCI_EN has to be set directly on
-+ * resume, although the specification states very clearly that this flag is
-+ * owned by the hardware.  The set_sci_en_on_resume variable will be set in such
-+ * cases.
-+ */
-+static bool set_sci_en_on_resume;
-+
- /**
-  *	acpi_pm_disable_gpes - Disable the GPEs.
-  */
-@@ -249,7 +261,11 @@ static int acpi_suspend_enter(suspend_st
- 	}
- 
- 	/* If ACPI is not enabled by the BIOS, we need to enable it here. */
--	acpi_enable();
-+	if (set_sci_en_on_resume)
-+		acpi_set_register(ACPI_BITREG_SCI_ENABLE, 1);
-+	else
-+		acpi_enable();
-+
- 	/* Reprogram control registers and execute _BFS */
- 	acpi_leave_sleep_state_prep(acpi_state);
- 
-@@ -337,6 +353,12 @@ static int __init init_old_suspend_order
- 	return 0;
- }
- 
-+static int __init init_set_sci_en_on_resume(const struct dmi_system_id *d)
-+{
-+	set_sci_en_on_resume = true;
-+	return 0;
-+}
-+
- static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
- 	{
- 	.callback = init_old_suspend_ordering,
-@@ -354,6 +376,22 @@ static struct dmi_system_id __initdata a
- 		DMI_MATCH(DMI_PRODUCT_NAME, "HP xw4600 Workstation"),
- 		},
- 	},
-+	{
-+	.callback = init_set_sci_en_on_resume,
-+	.ident = "Apple MacBook 1,1",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Apple Computer, Inc."),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "MacBook1,1"),
-+		},
-+	},
-+	{
-+	.callback = init_set_sci_en_on_resume,
-+	.ident = "Apple MacMini 1,1",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Apple Computer, Inc."),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "Macmini1,1"),
-+		},
-+	},
- 	{},
- };
- #endif /* CONFIG_SUSPEND */
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
