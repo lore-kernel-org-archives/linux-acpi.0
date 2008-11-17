@@ -1,30 +1,37 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: Re: [RFC] [Patch 1/2]  ACPI :Compare EC device in DSDT table with
- that	in ECDT table
-Date: Mon, 17 Nov 2008 17:53:47 +0300
-Message-ID: <4921857B.7000303@suse.de>
-References: <1226904541.4062.23.camel@yakui_zhao.sh.intel.com>	 <49212B22.5030202@suse.de> <1226914935.4062.67.camel@yakui_zhao.sh.intel.com> <49214B9C.6030204@gmail.com>
+From: Tino Keitel <tino.keitel@gmx.de>
+Subject: Re: [ibm-acpi-devel] [PATCH] ACPI: thinkpad-acpi: fix fan
+	sleep/resume path
+Date: Mon, 17 Nov 2008 15:26:40 +0100
+Message-ID: <20081117142639.GA2600@x61>
+References: <20081109113011.GB8329@khazad-dum.debian.net> <1226235242-11130-2-git-send-email-hmh@hmh.eng.br> <20081117021408.GD22260@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:58005 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752359AbYKQOxr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Nov 2008 09:53:47 -0500
-In-Reply-To: <49214B9C.6030204@gmail.com>
+Received: from eazy.amigager.de ([213.239.192.238]:48985 "EHLO
+	eazy.amigager.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750783AbYKQPCC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Nov 2008 10:02:02 -0500
+Content-Disposition: inline
+In-Reply-To: <20081117021408.GD22260@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>
-Cc: Zhao Yakui <yakui.zhao@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, ibm-acpi-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-> Zhao Yakui wrote:
->>     b. On the laptops of bug 11880 all the info in ECDT table is 
->> incorrect. The EC GPE number and EC namepath are incorrect besides the 
->> EC Cmd/Status/Data I/O port.
-Actually, 11880 does not require any magic or comparison of DSDT and ECDT,
-you may just compare command and data addresses, and if they are the same,
-skip ECDT.
-> Regards,
-> Alex.
+On Mon, Nov 17, 2008 at 00:14:08 -0200, Henrique de Moraes Holschuh wrote:
+> Len,
+> 
+> The patch needs to go to Linus...  I don't think anyone cares to have
+> their names as tested-by:, or they would have replied already.
+> 
+> I have tested the patch and it fixes things here.  It would be better with
+> more "works for me" replies, but it should be enough testing.
 
+Hi,
+
+sorry for the delay. I tested the above patch and the "auto" fan level
+was preserved (or better: not touched) at resume, so this regression is
+fixed.
+
+Regards,
+Tino
