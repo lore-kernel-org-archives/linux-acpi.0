@@ -1,43 +1,46 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [stable] [patch 20/23] ACPI: dock: avoid check _STA method
-Date: Sun, 16 Nov 2008 20:59:26 -0800
-Message-ID: <20081117045926.GC29327@kroah.com>
-References: <20081107224818.593212310@mini.kroah.org> <20081107231606.GU1108@kroah.com> <20081111121607.GA32066@homac.suse.de> <20081113212305.GA5697@kroah.com> <20081116233602.GA2985@homac.site>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: [RFC] [Patch 0/2]  ACPI :two EC patches for Asus broken laptops
+Date: Mon, 17 Nov 2008 14:44:02 +0800
+Message-ID: <1226904242.4062.15.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:34616 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751100AbYKQFdE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 17 Nov 2008 00:33:04 -0500
-Content-Disposition: inline
-In-Reply-To: <20081116233602.GA2985@homac.site>
+Received: from mga01.intel.com ([192.55.52.88]:15212 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752166AbYKQGfy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 17 Nov 2008 01:35:54 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <gregkh@suse.de>, linux-kernel@vger.kernel.org, stable@kernel.org, Justin Forbes <jmforbes@linuxtx.org>, Zwane Mwaikambo <zwane@arm.linux.org.uk>, Theodore Ts'o <tytso@mit.edu>
+To: linux-acpi@vger.kernel.org
+Cc: lenb@kernle.org, astarikovskiy@suse.de
 
-On Mon, Nov 17, 2008 at 12:36:02AM +0100, Holger Macht wrote:
-> On Thu 13. Nov - 13:23:05, Greg KH wrote:
-> > On Tue, Nov 11, 2008 at 01:16:07PM +0100, Holger Macht wrote:
-> > > On Fri 07. Nov - 15:16:06, Greg KH wrote:
-> > > > 2.6.26-stable review patch.  If anyone has any objections, please let us know.
-> > > 
-> > > Objecting. This will only work in conjunction with
-> > > 
-> > >   commit 39a0ad871000d2a016a4fa113a6e53d22aabf25d
-> > >   Author: Zhao Yakui <yakui.zhao@intel.com>
-> > >   Date:   Mon Aug 11 13:40:22 2008 +0800
-> > > 
-> > >       ACPI : Load device driver according to the status of acpi device
-> > > 
-> > > Otherwise a device struct already exists although the device is not
-> > > present.
-> > 
-> > So do you feel we should also add this patch to the 2.6.27-stable tree
-> > to solve this issue?
-> 
-> Yes, I think so.
+Hi, All
+ 
+    On some Asus laptops there exists the ECDT table. But unfortunately the info in 
+ECDT table is incorrect. 
+    For example: 
+	On the laptops of bug 9399, 
+		the incorrect Command/Status I/O Port
+		Incorrect Data I/O port	
+        On the laptops of bug 11880
+		All the info in ECDT table is incorrect.(GPE number, EC namepath,
+		Data I/O address, Command/Status I/O address)
+    
+    The following is the patch set that is to fix the above issue.
+    Patch 01: compare EC device in DSDT table with that in ECDT table
+           When ECDT table exists, the EC device parsed from DSDT table will be compared
+with that in ECDT table. When they mismatch, the BIOS bug will be reported and the EC device
+in DSDT table is initialized instead of that in ECDT table. 
+    Patch 02: Delete the unused DMI check for Asus broken laptops
+           After the patch 1 is shipped, the DMI check for Asus broken laptops are useless. So
+the unused the DMI check is deleted.
+    
 
-Ok, thanks, I've queued it up now.
+Welcome the comments.
 
-greg k-h
+
+Best regards.
+  Yakui
+
+
