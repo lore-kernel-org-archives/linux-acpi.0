@@ -1,34 +1,58 @@
-From: "=?BIG5?B?qVCozqxG?=" <u1zm0q2u30p2s@gmail.com>
-Subject: =?BIG5?B?UEhQwcqqq6iuuOquxq53uvSvuLFNrtc=?=
-Date: Wed, 19 Nov 2008 12:55:30 +0800
-Message-ID: <2c8408720811182055j56083490h902202097b6a5f26@mail.gmail.com>
+From: Francesco Zanolin <francesco.zanolin@ingv.it>
+Subject: ACPI values for DELL E6400 laptop
+Date: Tue, 18 Nov 2008 15:57:20 +0100
+Message-ID: <4922D7D0.4050006@ingv.it>
+Reply-To: francesco.zanolin@ingv.it
 Mime-Version: 1.0
-Content-Type: text/plain; charset=BIG5
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed;
+ boundary="------------030606060502030507050705"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from po-out-1718.google.com ([72.14.252.158]:28492 "EHLO
-	po-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751868AbYKSEzc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Nov 2008 23:55:32 -0500
-Received: by po-out-1718.google.com with SMTP id y22so5419890pof.1
-        for <linux-acpi@vger.kernel.org>; Tue, 18 Nov 2008 20:55:31 -0800 (PST)
-Content-Disposition: inline
+Received: from ultra.ingv.it ([193.206.122.133]:59604 "EHLO ultra.ingv.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752679AbYKSKFw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Nov 2008 05:05:52 -0500
+Received: from [10.100.70.8] (kestral.int.ingv.it [10.100.70.8])
+	by ultra.ingv.it (Postfix) with ESMTP id 83EBD1EC01C
+	for <linux-acpi@vger.kernel.org>; Wed, 19 Nov 2008 10:43:12 +0100 (CET)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linno@tror.com.tw
+To: linux-acpi@vger.kernel.org
 
-pHPgvqzsp9669K22s12tcAoKoa+n2q3MqrqpdqauoUeryKThqrqoQ6O4pfOkcKjGsaGhQbOjrE+k
-c+C+qrqkaqjGsaEKCqG7p9qtzKZiscClWKX4t36nzrZIuvSvuKVdp3SrZaV4uvSttqz8pHUrq+Gl
-eLresnq1e6ahCgqh16HXra2uya2ttnGxTa7Xu/kgpXWtbiQyOSw5MDAKCqH4KKZisGWjuKZ+MTAw
-TUKko62trHm2cbr0r7iqxbahKQoKofin2q3MsLWquqSjpXWsT7r0r7ihQabTrE+xeqX4t36quqRK
-pGYKCqHAo7it06Zuqrql+Ld+uvSvuLjqrsanWa7Jp/O3c6q6s3Sr16xPq9ytq61uqroKCqH4pfi3
-fqLtpMaqurCqq3696LnOtqShQaW0s3mxeqq6uvS49Kr5rbEKCqHvv+++3KRz4L6mqLROsXqqurna
-t1EKCqHjoeOh46HjoeOh46HjoeOh46HjoeOh46HjoeOh46HjoeOh46HjoeOh46HjoeOh46HjoeMK
-UFM6IL11pFfByqqruvSvuKfarczB2aVptKOo0ajqpWS+96juoUEKoUChQLtQvXWkV6ZDpkyxYrPm
-pf6s2bZXsNMrtmynvcO6tk8uLi4uLi61par3rHmqQbDIvveo7gqh46HjoeOh46HjoeOh46HjoeOh
-46HjoeOh46HjoeOh46HjoeOh46HjoeOh46HjoeOh46HjCgrFd6rvqNO5cayiuN+2wLFNrfuhXVNh
-baFeoUcwOTgwMTE5ODEyIC8gMDkzODc2NDM5NQoKoeOh46HjoeOh46HjoeOh46HjoeOh46HjoeOh
-46HjoeOh46HjoeOh46HjoeOh46HjoeOh4wqlu6S9pXGldKV+tKOo0cP2weSmclNFT7HGp8eqQbDI
-CqtPw9KxTrF6qrq69K+4pmJZeCAvIEd4IC4uLrHGpmKyxKRArbYKoUChQKFAoUChQKFAoUChQKFA
-oUChQKFAoUChQKFAoUChQKFAIMV3qu+o07lxuN+w3SEhIQqh46HjoeOh46HjoeOh46HjoeOh46Hj
-oeOh46HjoeOh46HjoeOh46HjoeOh46HjoeOh46HjCg==
+This is a multi-part message in MIME format.
+--------------030606060502030507050705
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+ ACPI: BIOS _OSI(Linux) query ignored
+ ACPI: DMI System Vendor: Dell Inc.
+ ACPI: DMI Product Name: Latitude E6400
+ ACPI: DMI Product Version:
+ ACPI: DMI Board Name: 0TN284
+ ACPI: DMI BIOS Vendor: Dell Inc.
+ ACPI: DMI BIOS Date: 07/21/2008
+
+
+--------------030606060502030507050705
+Content-Type: text/x-vcard; charset=utf-8;
+ name="francesco_zanolin.vcf"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="francesco_zanolin.vcf"
+
+begin:vcard
+fn:Francesco Zanolin
+n:Zanolin;Francesco
+org:Istituto Nazionale di Geofisica e Vulcanologia;Centro Nazionale Terremoti
+adr:;;Via di Vigna Murata 605;Roma;Roma;00143;Italy
+email;internet:francesco.zanolin@ingv.it
+title:Collaboratore Tecnico Enti di Ricerca
+tel;work:0651860346
+tel;fax:0651860541
+x-mozilla-html:FALSE
+url:http://www.ingv.it
+version:2.1
+end:vcard
+
+
+--------------030606060502030507050705--
+
