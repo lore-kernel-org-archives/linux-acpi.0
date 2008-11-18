@@ -1,50 +1,103 @@
-From: Pavel Machek <pavel@suse.cz>
-Subject: Re: [linux-pm] [PATCH 2/4] ACPI hibernate: Add a mechanism to save/restore ACPI NVS memory
-Date: Tue, 18 Nov 2008 17:14:56 +0100
-Message-ID: <20081118161456.GA3466@atrey.karlin.mff.cuni.cz>
-References: <200810222249.20629.rjw@sisk.pl> <200810222252.11625.rjw@sisk.pl> <20081026120838.GB1607@ucw.cz> <200810261323.21293.rjw@sisk.pl>
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Subject: Re: [ 11.333737] is this a ghost?
+Date: Tue, 18 Nov 2008 16:58:41 +0000
+Message-ID: <4922F441.7020007@tuffmail.co.uk>
+References: <1227001038.3184.6.camel@LiNuX>	 <9b2b86520811180315u410019f0y7e6fab66b51a225e@mail.gmail.com> <1227025771.3161.6.camel@LiNuX>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:49651 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754528AbYKRQO5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Nov 2008 11:14:57 -0500
-Content-Disposition: inline
-In-Reply-To: <200810261323.21293.rjw@sisk.pl>
+Received: from nf-out-0910.google.com ([64.233.182.189]:14213 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752755AbYKRQ6r (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Nov 2008 11:58:47 -0500
+Received: by nf-out-0910.google.com with SMTP id d3so1464766nfc.21
+        for <linux-acpi@vger.kernel.org>; Tue, 18 Nov 2008 08:58:45 -0800 (PST)
+In-Reply-To: <1227025771.3161.6.camel@LiNuX>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>
+To: "Justin P. Mattock" <justinmattock@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux acpi <linux-acpi@vger.kernel.org>
 
-Hi!
+Justin P. Mattock wrote:
+> On Tue, 2008-11-18 at 11:15 +0000, Alan Jenkins wrote:
+>   
+>> On 11/18/08, Justin P. Mattock <justinmattock@gmail.com> wrote:
+>>     
+>>> in dmesg I see:
+>>> [   11.333737]
+>>> but nothing else.
+>>>           ---------------(cut)-----------------
+>>> [   11.247147] Monitor-Mwait will be used to enter C-1 state
+>>> [   11.247151] Monitor-Mwait will be used to enter C-2 state
+>>> [   11.247154] Monitor-Mwait will be used to enter C-3 state
+>>> [   11.247671] ACPI: CPU0 (power states: C1[C1] C2[C2] C3[C3])
+>>> [   11.247996] processor ACPI_CPU:00: registered as cooling_device0
+>>> [   11.248008] ACPI: Processor [CPU0] (supports 8 throttling states)
+>>> [   11.306465] ACPI: SSDT 3FEB8F10, 0087 (r1 APPLE   Cpu1Ist     3000
+>>> INTL 20050309)<7>power_supply ADP1: No power supply yet
+>>>       
+>> Look at this last line.  The "<7>" is a priority marker.  Normally it
+>> marks the start of a line, and should be hidden.  So you seem to be
+>> missing a line break just after "20050309)"...
+>>
+>>     
+>>> [   11.306831] power_supply ADP1: power_supply_changed
+>>> [   11.306839] ACPI: AC Adapter [ADP1] (on-line)
+>>> [   11.333737]                         <------------what's with this!!!
+>>>       
+>> ...which seems to be delayed and reappears here?
+>>
+>>     
+>>> [   11.342937] power_supply ADP1: power_supply_changed_work
+>>> [   11.351901] power_supply ADP1: power_supply_update_gen_leds 1
+>>> [   11.351916] ACPI: SSDT 3FEB7F10, 0085 (r1 APPLE   Cpu1Cst     3000
+>>> INTL 20050309)
+>>>       
+>>> if you need to see the full dmesg I can attach..
+>>> I've seen this happen on a random.
+>>>       
+>> I guess you have a multicore processor (or some other sort of SMP), right?
+>>
+>> I think kernel messages are not completely synchronized by design, for
+>> reliability reasons.  (e.g. to make sure critical error messages /
+>> backtraces can get through on a dying system).
+>>     
+>
+>
+> Cool.
+> makes good sense to me, 
+> As long as it's not something that shouldn't be there,
+> or something that's broken. As for this happening again
+> looking at dmesg nothing, all synchronized.
+> Seems to randomly show itself.
+>   
 
-> > >  #else /* CONFIG_HIBERNATION */
-> > >  static inline int swsusp_page_is_forbidden(struct page *p) { return 0; }
-> > >  static inline void swsusp_set_page_free(struct page *p) {}
-> > > @@ -241,6 +246,14 @@ static inline void swsusp_unset_page_fre
-> > >  static inline void hibernation_set_ops(struct platform_hibernation_ops *ops) {}
-> > >  static inline int hibernate(void) { return -ENOSYS; }
-> > >  static inline bool system_entering_hibernation(void) { return false; }
-> > > +static inline int hibernate_nvs_register(unsigned long a, unsigned long b)
-> > > +{
-> > > +	return 0;
-> > > +}
-> > > +static inline int hibernate_nvs_alloc(void) { return 0; }
-> > > +static inline void hibernate_nvs_free(void) {}
-> > > +static inline void hibernate_nvs_save(void) {}
-> > > +static inline void hibernate_nvs_restore(void) {}
-> > >  #endif /* CONFIG_HIBERNATION */
-> > 
-> > Can someone call these for !hibernation case?
-> 
-> Not at the moment, but why not to add them?
+It's the ACPICA OS abstraction layer - it splits every message into
+multiple printk() calls.  Other subsystems don't do this... it probably
+could and should be fixed.
 
-Well, someone may call them, expecting them to save / restore nvs,
-except that they will not be there. I'd prefer inlines not to exist
-(so mistake is caught at compile time) or them to contain BUG(), so
-that mistake is obvious.
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+drivers/acpi/utmisc.c:
+
+    void ACPI_INTERNAL_VAR_XFACE
+    acpi_ut_info(const char *module_name, u32 line_number, const char
+    *format, ...)
+    {
+        va_list args;
+
+        /*
+         * Removed module_name, line_number, and acpica version, not needed
+         * for info output
+         */
+        acpi_os_printf("ACPI: ");
+
+        va_start(args, format);
+        acpi_os_vprintf(format, args);
+        acpi_os_printf("\n");
+        va_end(args);
+    }
+
+The alternative is to use the preprocessor, i.e. macros and string
+concatenation to generate a single printk().
+
+Alan
