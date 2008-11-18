@@ -1,135 +1,101 @@
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Subject: Re: [ 11.333737] is this a ghost?
-Date: Tue, 18 Nov 2008 18:49:16 +0000
-Message-ID: <49230E2C.60101@tuffmail.co.uk>
-References: <1227001038.3184.6.camel@LiNuX>	 <9b2b86520811180315u410019f0y7e6fab66b51a225e@mail.gmail.com>	 <1227025771.3161.6.camel@LiNuX>  <4922F441.7020007@tuffmail.co.uk> <1227030114.3161.18.camel@LiNuX>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: #2361: i2c and lm_sensors do not work on Slackware 12.1 with
+ kernel 2.6.27.6
+Date: Tue, 18 Nov 2008 21:50:34 +0100
+Message-ID: <20081118215034.296cdbfa@hyperion.delvare>
+References: <040.878a61a6a191c2ece367aefb3b3bc643@lm-sensors.org>
+	<200811182017.43109.twinreverb@puresimplicity.net>
+	<20081118170205.2c48d793@hyperion.delvare>
+	<200811190443.42354.twinreverb@puresimplicity.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.27]:35951 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752197AbYKRStX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Nov 2008 13:49:23 -0500
-Received: by ey-out-2122.google.com with SMTP id 6so1223947eyi.37
-        for <linux-acpi@vger.kernel.org>; Tue, 18 Nov 2008 10:49:20 -0800 (PST)
-In-Reply-To: <1227030114.3161.18.camel@LiNuX>
+Received: from zone0.gcu-squad.org ([212.85.147.21]:35505 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752135AbYKRUuy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Nov 2008 15:50:54 -0500
+In-Reply-To: <200811190443.42354.twinreverb@puresimplicity.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: "Justin P. Mattock" <justinmattock@gmail.com>, linux-kernel <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>
+To: twinreverb@puresimplicity.net
+Cc: LM Sensors <lm-sensors@lm-sensors.org>, linux-acpi@vger.kernel.org
 
-Justin P. Mattock wrote:
-> On Tue, 2008-11-18 at 16:58 +0000, Alan Jenkins wrote:
->   
->> Justin P. Mattock wrote:
->>     
->>> On Tue, 2008-11-18 at 11:15 +0000, Alan Jenkins wrote:
->>>   
->>>       
->>>> On 11/18/08, Justin P. Mattock <justinmattock@gmail.com> wrote:
->>>>     
->>>>         
->>>>> in dmesg I see:
->>>>> [   11.333737]
->>>>> but nothing else.
->>>>>           ---------------(cut)-----------------
->>>>> [   11.247147] Monitor-Mwait will be used to enter C-1 state
->>>>> [   11.247151] Monitor-Mwait will be used to enter C-2 state
->>>>> [   11.247154] Monitor-Mwait will be used to enter C-3 state
->>>>> [   11.247671] ACPI: CPU0 (power states: C1[C1] C2[C2] C3[C3])
->>>>> [   11.247996] processor ACPI_CPU:00: registered as cooling_device0
->>>>> [   11.248008] ACPI: Processor [CPU0] (supports 8 throttling states)
->>>>> [   11.306465] ACPI: SSDT 3FEB8F10, 0087 (r1 APPLE   Cpu1Ist     3000
->>>>> INTL 20050309)<7>power_supply ADP1: No power supply yet
->>>>>       
->>>>>           
->>>> Look at this last line.  The "<7>" is a priority marker.  Normally it
->>>> marks the start of a line, and should be hidden.  So you seem to be
->>>> missing a line break just after "20050309)"...
->>>>
->>>>     
->>>>         
->>>>> [   11.306831] power_supply ADP1: power_supply_changed
->>>>> [   11.306839] ACPI: AC Adapter [ADP1] (on-line)
->>>>> [   11.333737]                         <------------what's with this!!!
->>>>>       
->>>>>           
->>>> ...which seems to be delayed and reappears here?
->>>>
->>>>     
->>>>         
->>>>> [   11.342937] power_supply ADP1: power_supply_changed_work
->>>>> [   11.351901] power_supply ADP1: power_supply_update_gen_leds 1
->>>>> [   11.351916] ACPI: SSDT 3FEB7F10, 0085 (r1 APPLE   Cpu1Cst     3000
->>>>> INTL 20050309)
->>>>>       
->>>>> if you need to see the full dmesg I can attach..
->>>>> I've seen this happen on a random.
->>>>>       
->>>>>           
->>>> I guess you have a multicore processor (or some other sort of SMP), right?
->>>>
->>>> I think kernel messages are not completely synchronized by design, for
->>>> reliability reasons.  (e.g. to make sure critical error messages /
->>>> backtraces can get through on a dying system).
->>>>     
->>>>         
->>> Cool.
->>> makes good sense to me, 
->>> As long as it's not something that shouldn't be there,
->>> or something that's broken. As for this happening again
->>> looking at dmesg nothing, all synchronized.
->>> Seems to randomly show itself.
->>>   
->>>       
->> It's the ACPICA OS abstraction layer - it splits every message into
->> multiple printk() calls.  Other subsystems don't do this... it probably
->> could and should be fixed.
->>
->> drivers/acpi/utmisc.c:
->>
->>     void ACPI_INTERNAL_VAR_XFACE
->>     acpi_ut_info(const char *module_name, u32 line_number, const char
->>     *format, ...)
->>     {
->>         va_list args;
->>
->>         /*
->>          * Removed module_name, line_number, and acpica version, not needed
->>          * for info output
->>          */
->>         acpi_os_printf("ACPI: ");
->>
->>         va_start(args, format);
->>         acpi_os_vprintf(format, args);
->>         acpi_os_printf("\n");
->>         va_end(args);
->>     }
->>
->> The alternative is to use the preprocessor, i.e. macros and string
->> concatenation to generate a single printk().
->>
->> Alan
->>     
->
-> Maybe I'm missing a library or something.
-> The issue with this is the consistency.
-> one reboot I'll see it up higher in dmesg,
-> and then on another reboot nothing, then
-> maybe a few more reboots I'll see it down lower
-> in dmesg(like what I posted). As for fixing this
-> I'm not educated enough to go in and exactly know what
-> to change(one day hopefully, so I can contribute),
-> But I am willing to try a patch out to see if it resolves
-> the issue.
->   
+Robert,
 
-Right.  It's simple enough, I can write a patch.  Not sure what would be
-most acceptable though.
+Please, pretty please, keep the lists Cc'd.
 
-Len, this sounds like a genuine bug.  Would you accept a patch changing
-ACPI_INFO(()) etc. to use GNU-style variadic macros?
+On Wed, 19 Nov 2008 04:43:39 +0900, Robert Delahunt wrote:
+> Sir,
+> 
+> 	ACPI and lm_sensors are not the same concept or system.  ACPI is meant to 
+> control power consumption.
 
-Thanks
-Alan
+Not really. ACPI is meant for so many things that it is difficult to
+give a complete list. That's probably a key problem of ACPI: trying to
+do too many things, it fails to do most things properly (or, in some
+cases, BIOS authors fail to implement things properly.)
+
+> lm_sensors is meant to simply show information.
+
+Who decided this? The lm-sensors project goes well beyond just showing
+information.
+
+> These seem to get blurred in concept, however, at the Linux kernel.  If 
+> anything, ACPI and lm_sensors should be working together (which they are).
+
+No, they are (unfortunately) not. If they were, you wouldn't have
+reported a bug, would you?
+
+> However, their goals are not the same.  ACPI shouldn't be telling me 
+> temperatures: that's the job of lm_sensors.  However, lm_sensors shouldn't be 
+> setting fans and such: that's ACPI's job.
+
+That's your (totally incorrect IMHO) view of the situation. The ACPI
+people's view is that ACPI should be taking care of everything where
+available and lm-sensors shouldn't be used. My own view is that ACPI
+should either not touch hardware monitoring chips at all, or it should
+drive them completely in a standard way. The current approach (each
+BIOS author implements things his/her own often broken way and the OS
+and user don't have their say) sucks.
+
+So as you can see there are many ways to look at the problem. On top of
+that, one technical issue is that "showing temperatures" and
+"controlling fans" are in practice done by the same piece of hardware,
+so claiming that lm-sensors should do one and ACPI the other is highly
+impractical: if both access the hardware at the same time, havoc ensues.
+
+> 	Much less on this chipset combination (see my lspci.txt) the system hardware 
+> automatically schedules fans and such.
+
+How do you know for sure? If I had to place a bet, I'd say that this is
+in fact handled by your BIOS using SMM code. If I am right, then this
+is one more reason to keep lm-sensors away from your hardware
+monitoring chip.
+
+>  You'd think that this means I don't 
+> need ACPI, but instead lm_sensors.  However, to boot with acpi=off on this 
+> machine results in your CD drive not being registered at all, regardless of 
+> what the user does to try and manually tell the kernel that it exists.
+
+See my rant above: the problem is that ACPI is doing way too many
+unrelated things. This makes the acpi=off option pretty much useless.
+You'd need an acpi=notherm option or some such, which unfortunately
+doesn't exist. (Note that this wouldn't be enough if my assumption
+about SMM is correct anyway.)
+
+> 	I already spoke with khali and he and an ACPI developer on the linux kernel 
+> team are working this issue.  I don't blame you guys: I blame ACPI.  However, 
+> for now, we're stuck with it.  So at this point it becomes more of an 
+> attitude check.  Do the developers try to fix something that they maintain, 
+> or do they blame ACPI and move on?
+
+Me, I blame ACPI (and SMM even more, and BIOS designers even more) and
+move on. There's almost nothing that can be done, easy as that. The
+best we can do is prevent lm-sensors from being used on systems where
+it would break, and that's something we are (slowly) working on. Trying
+to get lm-sensors and ACPI to cooperate beyond that has so little
+chance of success that my time is much better spent on other tasks.
+
+-- 
+Jean Delvare
