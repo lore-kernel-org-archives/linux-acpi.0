@@ -1,40 +1,150 @@
-From: Robert Hancock <hancockr@shaw.ca>
-Subject: Re: [PATCH] ACPI suspend: Blacklist boxes that require us to set
- SCI_EN directly on resume
-Date: Mon, 17 Nov 2008 23:45:59 -0600
-Message-ID: <49225697.90804@shaw.ca>
-References: <200811172333.13466.rjw@sisk.pl>
+From: Lin Ming <ming.m.lin@intel.com>
+Subject: Re: iasl and SSDT disassembling limitations
+Date: Tue, 18 Nov 2008 15:53:46 +0800
+Message-ID: <1226994826.32759.4.camel@minggr.sh.intel.com>
+References: <3515468CA27A0F49917112E2ECF61E210927CBF912@pdsmsx502.ccr.corp.intel.com>
+	 <200811121817.22589.trenn@suse.de>
+	 <1226559749.30025.171.camel@minggr.sh.intel.com>
+	 <200811141728.40581.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752211AbYKRFq0@vger.kernel.org>
-In-Reply-To: <200811172333.13466.rjw@sisk.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:14134 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754340AbYKRH4x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Nov 2008 02:56:53 -0500
+In-Reply-To: <200811141728.40581.trenn@suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, "hmh@hmh.eng.br" <hmh@hmh.eng.br>, "elendil@planet.nl" <elendil@planet.nl>, "devel@lists.acpica.org" <devel@lists.acpica.org>
 
-Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rjw@sisk.pl>
-> Subject: ACPI suspend: Blacklist boxes that require us to set SCI_EN directly on resume
+On Sat, 2008-11-15 at 00:28 +0800, Thomas Renninger wrote:
+> On Thursday 13 November 2008 08:02:29 Lin Ming wrote:
+> > On Thu, 2008-11-13 at 08:17 +0800, Thomas Renninger wrote:
+> > > On Friday 24 October 2008 05:50:30 am Lin Ming wrote:
+> > > > We have added a "-e" option to iasl that include tables for external
+> > > > symbol resolution. See
+> > > > http://git.acpica.org/repos/?p=acpica.git;a=commitdiff;h=2f705a1b06109e
+> > > >12bd 2659d0e12215710a5622b7
+> > > >
+> > > >
+> > > > Example: To disassemble an SSDT with external symbols defined in DSDT:
+> > > >
+> > > > iasl -e dsdt.aml -d ssdt.aml
+> > >
+> > > I thought this option already existed for quite a while?
+> > > Did it get re-implemented?
+> >
+> > No, the original one is a NULL implementation.
+> It did not work, but it already remembered unresolved objects/functions and 
+> tried to resolve them correctly from the -e passed table.
+> Either this or I did mess up something completely when I played with that 
+> maybe a year ago.
 > 
-> Some Apple boxes evidently require us to set SCI_EN on resume
-> directly, because if we don't do that, they hung somewhere in the
-> resume code path.  Moreover, on these boxes it is not sufficient to
-> use acpi_enable() to turn ACPI on during resume.  All of this is
-> against the ACPI specification which states that (1) the BIOS is
-> supposed to return from the S3 sleep state with ACPI enabled
-> (SCI_EN set) and (2) the SCI_EN bit is owned by the hardware and we
-> are not supposed to change it.
-> 
-> For this reason, blacklist the affected systems so that the SCI_EN
-> bit is set during resume on them.
-> 
-> [NOTE: Unconditional setting SCI_EN for all system on resume doesn't
->  work, because it makes some other systems crash (that's to be
->  expected).  Also, it is not entirely clear right now if all of the
->  Apple boxes require this workaround.]
+> >
+> > > IIRC I already saw references in both directions. SSDT is making use of
+> > > variables declared in the DSDT and vice versa (rare, but it can happen).
+> > >
+> > > IMO a proper long-term solution would be to be able to do:
+> > > iasl -d [DS]SDT*.dsl
+> > > iasl then parses every table, remembers unresolved objects and then goes
+> > > through these, once the last table got parsed.
+> > >
+> > > Probably one step harder to implement, do you think this is possible to
+> > > do or should such things be considered as BIOS implementation bugs?
+> >
+> > It's possible, but harder. External symbol is not a BIOS bug.
+> Do you plan to extend the functionality that external symbols can be
+> resolved in both directions, e.g. by passing all DSDT and SSDT tables:
+> iasl -d DSDT.dsl SSDT1.dsl SSDT2.dsl
 
-This is rather gross. The usual question arises, why does Windows work 
-without such a hack? Maybe there is no better solution for now, but 
-somebody should really look into why the behavior is different in Linux..
+Yes, both directions.
+
+> I tried that unsuccessfully quite some time ago.
+
+I have some patches here.
+You can try it again when next version of iasl is released.
+
+Lin Ming
+
+> Now one still has an overview how this could be done :)
+> iasl -e DSDT.dsl SSDTx.dsl
+> should now work in much more cases, but I fear there will be some which
+> are still not covered (if DSDT references variables declared in SSDTs).
+> 
+> > iasl tries to guess the arguments of external methods, and it success at
+> > most time (-e option is not needed).
+> >
+> > But sometimes it fails, and then you can use -e option to include the
+> > external tables to resolve the external symbols.
+> Yes, and having this working makes it possible to more reliably check
+> BIOSes against ASL syntax errors.
+> 
+> Thanks a lot for your efforts,
+> 
+>      Thomas
+> 
+> > Lin Ming
+> >
+> > > Thanks,
+> > >
+> > >       Thomas
+> > >
+> > > > Lin Ming
+> > > >
+> > > > > From: linux-acpi-owner@vger.kernel.org
+> > > > > [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Moore, Robert
+> > > > > Sent: Saturday, September 27, 2008 12:49 AM
+> > > > > To: Henrique de Moraes Holschuh
+> > > > > Cc: linux-acpi@vger.kernel.org
+> > > > > Subject: RE: iasl and SSDT disassembling limitations
+> > > > >
+> > > > > Yes, it should be possible, and it is on our list of things to look
+> > > > > at.
+> > > > >
+> > > > > A little more info on the problem: Without the definition of the
+> > > > > control method, the disassembler has no way of knowing how many
+> > > > > arguments should be passed to the method. Without this information,
+> > > > > it does not know how many expressions to parse after the control
+> > > > > method invocation in order to create the arguments. The information
+> > > > > is simply not available. So it tries to guess.
+> > > > >
+> > > > > Bob
+> > > > >
+> > > > > >-----Original Message-----
+> > > > > >From: Henrique de Moraes Holschuh [mailto:hmh@hmh.eng.br]
+> > > > > >Sent: Friday, September 26, 2008 9:09 AM
+> > > > > >To: Moore, Robert
+> > > > > >Cc: linux-acpi@vger.kernel.org
+> > > > > >Subject: iasl and SSDT disassembling limitations
+> > > > > >
+> > > > > >On Fri, 26 Sep 2008, Moore, Robert wrote:
+> > > > > >> Most of the problems seen in the SSDT are related to the fact that
+> > > > > >> the disassembler cannot always correctly disassemble code that
+> > > > > >> contains calls to control methods that are external to the table.
+> > > > > >> There is not enough information to disassemble correctly, and the
+> > > > > >> table often needs to be repaired by hand.
+> > > > > >
+> > > > > >Can iasl be improved to properly disassemble such tables if we give
+> > > > > > it ALL tables to work with?
+> > > > > >
+> > > > > >--
+> > > > > >  "One disk to rule them all, One disk to find them. One disk to
+> > > > > > bring them all and in the darkness grind them. In the Land of
+> > > > > > Redmond where the shadows lie." -- The Silicon Valley Tarot
+> > > > > >  Henrique Holschuh
+> > > > >
+> > > > > --
+> > > > > To unsubscribe from this list: send the line "unsubscribe linux-acpi"
+> > > > > in the body of a message to majordomo@vger.kernel.org
+> > > > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > > >
+> > > > --
+> > > > To unsubscribe from this list: send the line "unsubscribe linux-acpi"
+> > > > in the body of a message to majordomo@vger.kernel.org
+> > > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
+
