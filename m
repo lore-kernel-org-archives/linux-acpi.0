@@ -1,101 +1,62 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: #2361: i2c and lm_sensors do not work on Slackware 12.1 with
- kernel 2.6.27.6
-Date: Tue, 18 Nov 2008 21:50:34 +0100
-Message-ID: <20081118215034.296cdbfa@hyperion.delvare>
-References: <040.878a61a6a191c2ece367aefb3b3bc643@lm-sensors.org>
-	<200811182017.43109.twinreverb@puresimplicity.net>
-	<20081118170205.2c48d793@hyperion.delvare>
-	<200811190443.42354.twinreverb@puresimplicity.net>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [PATCH] ACPI: update AC status before exporting it
+Date: Wed, 19 Nov 2008 09:24:12 +0800
+Message-ID: <1227057852.15014.256.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:35505 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752135AbYKRUuy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Nov 2008 15:50:54 -0500
-In-Reply-To: <200811190443.42354.twinreverb@puresimplicity.net>
+Received: from mga11.intel.com ([192.55.52.93]:58593 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750928AbYKSBYt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Nov 2008 20:24:49 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: twinreverb@puresimplicity.net
-Cc: LM Sensors <lm-sensors@lm-sensors.org>, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, "Zhang, Rui" <rui.zhang@intel.com>
 
-Robert,
+sometimes the AC status is not updated in time,
+i.e. no AC event when AC is plugged/unplugged.
+In this case, we need to update its status before exporting it.
+http://bugzilla.kernel.org/show_bug.cgi?id=12035
 
-Please, pretty please, keep the lists Cc'd.
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+CC: Alexey Starikovskiy <astarikovskiy@suse.de>
+---
+ drivers/acpi/ac.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-On Wed, 19 Nov 2008 04:43:39 +0900, Robert Delahunt wrote:
-> Sir,
-> 
-> 	ACPI and lm_sensors are not the same concept or system.  ACPI is meant to 
-> control power consumption.
+Index: linux-2.6/drivers/acpi/ac.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/ac.c
++++ linux-2.6/drivers/acpi/ac.c
+@@ -87,6 +87,7 @@ struct acpi_ac {
+ 	unsigned long long state;
+ };
+ 
++static int acpi_ac_get_state(struct acpi_ac *ac);
+ #define to_acpi_ac(x) container_of(x, struct acpi_ac, charger);
+ 
+ #ifdef CONFIG_ACPI_PROCFS_POWER
+@@ -103,15 +104,18 @@ static int get_ac_property(struct power_
+ 			   enum power_supply_property psp,
+ 			   union power_supply_propval *val)
+ {
++	int result;
+ 	struct acpi_ac *ac = to_acpi_ac(psy);
++
+ 	switch (psp) {
+ 	case POWER_SUPPLY_PROP_ONLINE:
++		result = acpi_ac_get_state(ac);
+ 		val->intval = ac->state;
+ 		break;
+ 	default:
+ 		return -EINVAL;
+ 	}
+-	return 0;
++	return result;
+ }
+ 
+ static enum power_supply_property ac_props[] = {
 
-Not really. ACPI is meant for so many things that it is difficult to
-give a complete list. That's probably a key problem of ACPI: trying to
-do too many things, it fails to do most things properly (or, in some
-cases, BIOS authors fail to implement things properly.)
 
-> lm_sensors is meant to simply show information.
-
-Who decided this? The lm-sensors project goes well beyond just showing
-information.
-
-> These seem to get blurred in concept, however, at the Linux kernel.  If 
-> anything, ACPI and lm_sensors should be working together (which they are).
-
-No, they are (unfortunately) not. If they were, you wouldn't have
-reported a bug, would you?
-
-> However, their goals are not the same.  ACPI shouldn't be telling me 
-> temperatures: that's the job of lm_sensors.  However, lm_sensors shouldn't be 
-> setting fans and such: that's ACPI's job.
-
-That's your (totally incorrect IMHO) view of the situation. The ACPI
-people's view is that ACPI should be taking care of everything where
-available and lm-sensors shouldn't be used. My own view is that ACPI
-should either not touch hardware monitoring chips at all, or it should
-drive them completely in a standard way. The current approach (each
-BIOS author implements things his/her own often broken way and the OS
-and user don't have their say) sucks.
-
-So as you can see there are many ways to look at the problem. On top of
-that, one technical issue is that "showing temperatures" and
-"controlling fans" are in practice done by the same piece of hardware,
-so claiming that lm-sensors should do one and ACPI the other is highly
-impractical: if both access the hardware at the same time, havoc ensues.
-
-> 	Much less on this chipset combination (see my lspci.txt) the system hardware 
-> automatically schedules fans and such.
-
-How do you know for sure? If I had to place a bet, I'd say that this is
-in fact handled by your BIOS using SMM code. If I am right, then this
-is one more reason to keep lm-sensors away from your hardware
-monitoring chip.
-
->  You'd think that this means I don't 
-> need ACPI, but instead lm_sensors.  However, to boot with acpi=off on this 
-> machine results in your CD drive not being registered at all, regardless of 
-> what the user does to try and manually tell the kernel that it exists.
-
-See my rant above: the problem is that ACPI is doing way too many
-unrelated things. This makes the acpi=off option pretty much useless.
-You'd need an acpi=notherm option or some such, which unfortunately
-doesn't exist. (Note that this wouldn't be enough if my assumption
-about SMM is correct anyway.)
-
-> 	I already spoke with khali and he and an ACPI developer on the linux kernel 
-> team are working this issue.  I don't blame you guys: I blame ACPI.  However, 
-> for now, we're stuck with it.  So at this point it becomes more of an 
-> attitude check.  Do the developers try to fix something that they maintain, 
-> or do they blame ACPI and move on?
-
-Me, I blame ACPI (and SMM even more, and BIOS designers even more) and
-move on. There's almost nothing that can be done, easy as that. The
-best we can do is prevent lm-sensors from being used on systems where
-it would break, and that's something we are (slowly) working on. Trying
-to get lm-sensors and ACPI to cooperate beyond that has so little
-chance of success that my time is much better spent on other tasks.
-
--- 
-Jean Delvare
