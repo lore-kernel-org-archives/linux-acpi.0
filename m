@@ -1,68 +1,43 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: ACPI Warning (nspredef-0858): \_SB_.BAT0._BIF: Return Package
-	type mismatch at index 9
-Date: Thu, 20 Nov 2008 09:32:36 +0800
-Message-ID: <1227144756.15014.269.camel@rzhang-dt>
-References: <492493FD.7020501@freemail.hu>
-	 <1227142788.15014.260.camel@rzhang-dt>  <4924B89A.9080000@freemail.hu>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: [PATCH v2 1/3] eeepc-laptop: Add support for extended hotkeys
+Date: Thu, 20 Nov 2008 15:36:28 +0000
+Message-ID: <a26244bd6e7cae264155edca7f3c22f8f319b239.1227194932.git.mjg@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:26456 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751262AbYKTBdF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 19 Nov 2008 20:33:05 -0500
-In-Reply-To: <4924B89A.9080000@freemail.hu>
+Received: from cavan.codon.org.uk ([93.93.128.6]:55942 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753339AbYKTPgd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Nov 2008 10:36:33 -0500
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>
+To: linux-kernel@vger.kernel.org
+Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>, Corentin Chary <corentin.chary@gmail.com>, ecc@cmu.edu, linux acpi <linux-acpi@vger.kernel.org>
 
-this is a duplicate of bug
-http://bugzilla.kernel.org/show_bug.cgi?id=3D11822
-patch is attached just now, please give it a try. :)
+Newer Eees have extra hotkeys above the function keys. This patch adds support
+for sending them through the input layer.
 
-thanks,
-rui
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+---
+ drivers/misc/eeepc-laptop.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-On Thu, 2008-11-20 at 09:08 +0800, N=C3=A9meth M=C3=A1rton wrote:
-> Here you are.
->=20
-> Zhang Rui wrote:
-> > Please attach the acpidump output.
-> > you can use the latest pmtools here:
-> > http://www.lesswatts.org/downloads/#acpi
-> >=20
-> > thanks,
-> > rui
-> >=20
-> > On Thu, 2008-11-20 at 06:32 +0800, N=C3=A9meth M=C3=A1rton wrote:
-> >> Hi,
-> >>
-> >> I am running Linux kernel 2.6.28-rc5. I get the following warning =
-message
-> >> during boot in dmesg:
-> >>
-> >> [   21.425678] ACPI Warning (nspredef-0858): \_SB_.BAT0._BIF: Retu=
-rn Package type mismatch at index 9 - found Buffer, expected String [20=
-080926]
-> >>
-> >> What does it mean? Is it a serious problem?
-> >>
-> >> The laptop is a Clevo D410J. The dmesg attached.
-> >>
-> >> Regards,
-> >>
-> >> 	M=C3=A1rton N=C3=A9meth
-> >>
-> >=20
-> >=20
-> >=20
->=20
+diff --git a/drivers/misc/eeepc-laptop.c b/drivers/misc/eeepc-laptop.c
+index 9ef98b2..e81ef18 100644
+--- a/drivers/misc/eeepc-laptop.c
++++ b/drivers/misc/eeepc-laptop.c
+@@ -161,6 +161,10 @@ static struct key_entry eeepc_keymap[] = {
+ 	{KE_KEY, 0x13, KEY_MUTE },
+ 	{KE_KEY, 0x14, KEY_VOLUMEDOWN },
+ 	{KE_KEY, 0x15, KEY_VOLUMEUP },
++	{KE_KEY, 0x1a, KEY_COFFEE },
++	{KE_KEY, 0x1b, KEY_ZOOM },
++	{KE_KEY, 0x1c, KEY_PROG2 },
++	{KE_KEY, 0x1d, KEY_PROG3 },
+ 	{KE_KEY, 0x30, KEY_SWITCHVIDEOMODE },
+ 	{KE_KEY, 0x31, KEY_SWITCHVIDEOMODE },
+ 	{KE_KEY, 0x32, KEY_SWITCHVIDEOMODE },
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
