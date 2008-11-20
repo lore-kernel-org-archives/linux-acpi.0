@@ -1,52 +1,86 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: ACPI Warning (nspredef-0858): \_SB_.BAT0._BIF: Return Package
-	type mismatch at index 9
-Date: Thu, 20 Nov 2008 08:59:48 +0800
-Message-ID: <1227142788.15014.260.camel@rzhang-dt>
-References: <492493FD.7020501@freemail.hu>
+Subject: [RESEND] [PATCH] ACPI thermal: only evaluate the valid trip point
+	at runtime
+Date: Thu, 20 Nov 2008 09:26:01 +0800
+Message-ID: <1227144361.15014.266.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:57003 "EHLO mga03.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:41156 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752297AbYKTBAo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 19 Nov 2008 20:00:44 -0500
-In-Reply-To: <492493FD.7020501@freemail.hu>
+	id S1753033AbYKTB0b (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Nov 2008 20:26:31 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, Andi Kleen <andi@firstfloor.org>, nm127@freemail.hu
 
-Please attach the acpidump output.
-you can use the latest pmtools here:
-http://www.lesswatts.org/downloads/#acpi
+only evaluate the valid trip points at runtime.
 
-thanks,
-rui
+Or else, for the laptops with an invalid trip point,
+like the one in http://bugzilla.kernel.org/show_bug.cgi?id=8544
+ACPI thermal driver complains every time
+when a thermal event 0x81 is received.
 
-On Thu, 2008-11-20 at 06:32 +0800, N=C3=A9meth M=C3=A1rton wrote:
-> Hi,
->=20
-> I am running Linux kernel 2.6.28-rc5. I get the following warning mes=
-sage
-> during boot in dmesg:
->=20
-> [   21.425678] ACPI Warning (nspredef-0858): \_SB_.BAT0._BIF: Return =
-Package type mismatch at index 9 - found Buffer, expected String [20080=
-926]
->=20
-> What does it mean? Is it a serious problem?
->=20
-> The laptop is a Clevo D410J. The dmesg attached.
->=20
-> Regards,
->=20
-> 	M=C3=A1rton N=C3=A9meth
->=20
+http://marc.info/?l=linux-kernel&m=120496222629983&w=2
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Zhang Rui<rui.zhang@intel.com>
+---
+ drivers/acpi/thermal.c |   18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
+
+Index: linux-2.6/drivers/acpi/thermal.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/thermal.c
++++ linux-2.6/drivers/acpi/thermal.c
+@@ -416,7 +416,8 @@ static int acpi_thermal_trips_update(str
+ 	}
+ 
+ 	/* Passive (optional) */
+-	if (flag & ACPI_TRIPS_PASSIVE) {
++	if (((flag & ACPI_TRIPS_PASSIVE) && tz->trips.passive.flags.valid) ||
++		(flag == ACPI_TRIPS_INIT)) {
+ 		valid = tz->trips.passive.flags.valid;
+ 		if (psv == -1) {
+ 			status = AE_SUPPORT;
+@@ -462,9 +463,11 @@ static int acpi_thermal_trips_update(str
+ 		memset(&devices, 0, sizeof(struct acpi_handle_list));
+ 		status = acpi_evaluate_reference(tz->device->handle, "_PSL",
+ 							NULL, &devices);
+-		if (ACPI_FAILURE(status))
++		if (ACPI_FAILURE(status)) {
++			printk(KERN_WARNING PREFIX
++				"Invalid passive threshold\n");
+ 			tz->trips.passive.flags.valid = 0;
+-		else
++		} else
+ 			tz->trips.passive.flags.valid = 1;
+ 
+ 		if (memcmp(&tz->trips.passive.devices, &devices,
+@@ -487,7 +490,8 @@ static int acpi_thermal_trips_update(str
+ 		if (act == -1)
+ 			break; /* disable all active trip points */
+ 
+-		if (flag & ACPI_TRIPS_ACTIVE) {
++		if (((flag & ACPI_TRIPS_ACTIVE) && tz->trips.active[i].flags.valid) ||
++			(flag == ACPI_TRIPS_INIT)) {
+ 			status = acpi_evaluate_integer(tz->device->handle,
+ 							name, NULL, &tmp);
+ 			if (ACPI_FAILURE(status)) {
+@@ -521,9 +525,11 @@ static int acpi_thermal_trips_update(str
+ 			memset(&devices, 0, sizeof(struct acpi_handle_list));
+ 			status = acpi_evaluate_reference(tz->device->handle,
+ 						name, NULL, &devices);
+-			if (ACPI_FAILURE(status))
++			if (ACPI_FAILURE(status)) {
++				printk(KERN_WARNING PREFIX
++					"Invalid active%d threshold\n", i);
+ 				tz->trips.active[i].flags.valid = 0;
+-			else
++			} else
+ 				tz->trips.active[i].flags.valid = 1;
+ 
+ 			if (memcmp(&tz->trips.active[i].devices, &devices,
+
+
