@@ -1,54 +1,49 @@
-From: Andi Kleen <andi@firstfloor.org>
-Subject: Re: AE_ERROR, ACPI thermal trip point state changed
-Date: Thu, 20 Nov 2008 00:22:24 +0100
-Message-ID: <20081119232224.GR6703@one.firstfloor.org>
-References: <47CF96E2.9020302@freemail.hu> <1204757373.10256.179.camel@acpi-hp-zz.sh.intel.com> <823A93EED437D048963A3697DB0E35DE0129BB78@pdsmsx414.ccr.corp.intel.com> <47D0E694.5050102@freemail.hu> <1204874686.10256.185.camel@acpi-hp-zz.sh.intel.com> <47D24341.5070908@freemail.hu> <1205113940.10256.191.camel@acpi-hp-zz.sh.intel.com> <48ABDF1E.3010101@freemail.hu> <8763pwypf5.fsf@basil.nowhere.org> <49249121.6050304@freemail.hu>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: ACPI Warning (nspredef-0858): \_SB_.BAT0._BIF: Return Package
+	type mismatch at index 9
+Date: Thu, 20 Nov 2008 08:59:48 +0800
+Message-ID: <1227142788.15014.260.camel@rzhang-dt>
+References: <492493FD.7020501@freemail.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from one.firstfloor.org ([213.235.205.2]:45848 "EHLO
-	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751436AbYKSXMd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Nov 2008 18:12:33 -0500
-Content-Disposition: inline
-In-Reply-To: <49249121.6050304@freemail.hu>
+Received: from mga03.intel.com ([143.182.124.21]:57003 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752297AbYKTBAo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Nov 2008 20:00:44 -0500
+In-Reply-To: <492493FD.7020501@freemail.hu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?iso-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
-Cc: Andi Kleen <andi@firstfloor.org>, "Zhang, Rui" <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, lenb@kernel.org
+To: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>
 
-On Wed, Nov 19, 2008 at 11:20:17PM +0100, N=E9meth M=E1rton wrote:
+Please attach the acpidump output.
+you can use the latest pmtools here:
+http://www.lesswatts.org/downloads/#acpi
+
+thanks,
+rui
+
+On Thu, 2008-11-20 at 06:32 +0800, N=C3=A9meth M=C3=A1rton wrote:
 > Hi,
 >=20
-> Andi Kleen wrote:
-> > N=E9meth M=E1rton <nm127@freemail.hu> writes:
-> >> As of 2.6.27-rc3 the patch is still not included in the mainstream=
-=2E I
-> >> hope that this patch was not forgotten completely.
-> >=20
-> > It's already in Linus' tree, will be in rc4.
+> I am running Linux kernel 2.6.28-rc5. I get the following warning mes=
+sage
+> during boot in dmesg:
 >=20
-> I compiled and tried 2.6.28-rc5. In the dmesg I get the following mes=
-sage:
+> [   21.425678] ACPI Warning (nspredef-0858): \_SB_.BAT0._BIF: Return =
+Package type mismatch at index 9 - found Buffer, expected String [20080=
+926]
 >=20
-> [   63.589603] ACPI Exception (thermal-0538): AE_ERROR, ACPI thermal =
-trip point state changed
-> [   63.589669] Please send acpidump to linux-acpi@vger.kernel.org
-> [   63.589805]  [20080926]
+> What does it mean? Is it a serious problem?
 >=20
-> The original patch still applies for 2.6.28-rc5 (with some offsets). =
-This patch
-> is not included in 2.6.28-rc5, yet. The "AE_ERROR..." message does no=
-t appear
-> any more if I apply the patch. I attached this original patch for eas=
-ier reference.
-
-Hmm sorry I must have confused it with some other patch back then.
-Anyways Len Brown is handling ACPI again now, so he'll have to sort
-it out. cc'ed (the original patch is on linux-acpi)
-
--Andi
+> The laptop is a Clevo D410J. The dmesg attached.
+>=20
+> Regards,
+>=20
+> 	M=C3=A1rton N=C3=A9meth
+>=20
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
