@@ -1,156 +1,56 @@
-From: Matthew Garrett <mjg@redhat.com>
-Subject: [PATCH v2 3/3] eeepc-laptop: Implement rfkill hotplugging in eeepc-laptop
-Date: Thu, 20 Nov 2008 15:37:34 +0000
-Message-ID: <521f4c8461bc12c46c3b501585ac423a6aa76fce.1227194932.git.mjg@redhat.com>
-References: <a26244bd6e7cae264155edca7f3c22f8f319b239.1227194932.git.mjg@redhat.com>
+From: Maxime Poncet <maxime.poncet@gmail.com>
+Subject: Unexcepted shutdown in 2.6.28-rc5
+Date: Fri, 21 Nov 2008 00:13:05 +0100
+Message-ID: <4925EF01.2070405@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:42916 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755479AbYKTPhh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Nov 2008 10:37:37 -0500
-Content-Disposition: inline
-In-Reply-To: <a26244bd6e7cae264155edca7f3c22f8f319b239.1227194932.git.mjg@redhat.com>
+Received: from fg-out-1718.google.com ([72.14.220.154]:45209 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753660AbYKTXOX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Nov 2008 18:14:23 -0500
+Received: by fg-out-1718.google.com with SMTP id 19so520093fgg.17
+        for <linux-acpi@vger.kernel.org>; Thu, 20 Nov 2008 15:14:22 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>, Corentin Chary <corentin.chary@gmail.com>, ecc@cmu.edu, linux acpi <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
 
-The Eee implements rfkill by logically unplugging the wireless card from the
-PCI bus. Despite sending ACPI notifications, this does not appear to be
-implemented using standard ACPI hotplug - nor does the firmware provide the
-_OSC method required to support native PCIe hotplug. The only sensible choice
-appears to be to handle the hotplugging directly in the eeepc-laptop driver.
-Tested successfully on a 700, 900 and 901.
+Hi,
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
----
- drivers/misc/eeepc-laptop.c |   83 +++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 83 insertions(+), 0 deletions(-)
+I have the same problem in 2.6.28-rc5 and 2.6.27.x :
+my laptop shutdown automatically while working on it.
 
-diff --git a/drivers/misc/eeepc-laptop.c b/drivers/misc/eeepc-laptop.c
-index 3de44fb..1dcf637 100644
---- a/drivers/misc/eeepc-laptop.c
-+++ b/drivers/misc/eeepc-laptop.c
-@@ -30,6 +30,7 @@
- #include <linux/uaccess.h>
- #include <linux/input.h>
- #include <linux/rfkill.h>
-+#include <linux/pci.h>
- 
- #define EEEPC_LAPTOP_VERSION	"0.1"
- 
-@@ -517,6 +518,41 @@ static void notify_brn(void)
- 	bd->props.brightness = read_brightness(bd);
- }
- 
-+static void eeepc_rfkill_notify(acpi_handle handle, u32 event, void *data)
-+{
-+	struct pci_dev *dev;
-+	struct pci_bus *bus = pci_find_bus(0, 1);
-+
-+	if (event != ACPI_NOTIFY_BUS_CHECK)
-+		return;
-+
-+	if (!bus) {
-+		printk(EEEPC_WARNING "Unable to find PCI bus 1?\n");
-+		return;
-+	}
-+
-+	if (get_acpi(CM_ASL_WLAN) == 1) {
-+		dev = pci_get_slot(bus, 0);
-+		if (dev) {
-+			/* Device already present */
-+			pci_dev_put(dev);
-+			return;
-+		}
-+		dev = pci_scan_single_device(bus, 0);
-+		if (dev) {
-+			pci_bus_assign_resources(bus);
-+			if (pci_bus_add_device(dev))
-+				printk(EEEPC_ERR "Unable to hotplug wifi\n");
-+		}
-+	} else {
-+		dev = pci_get_slot(bus, 0);
-+		if (dev) {
-+			pci_remove_bus_device(dev);
-+			pci_dev_put(dev);
-+		}
-+	}
-+}
-+
- static void eeepc_hotk_notify(acpi_handle handle, u32 event, void *data)
- {
- 	static struct key_entry *key;
-@@ -543,6 +579,45 @@ static void eeepc_hotk_notify(acpi_handle handle, u32 event, void *data)
- 	}
- }
- 
-+static int eeepc_register_rfkill_notifier(char *node)
-+{
-+	acpi_status status = AE_OK;
-+	acpi_handle handle;
-+
-+	status = acpi_get_handle(NULL, node, &handle);
-+
-+	if (ACPI_SUCCESS(status)) {
-+		status = acpi_install_notify_handler(handle,
-+						     ACPI_SYSTEM_NOTIFY,
-+						     eeepc_rfkill_notify,
-+						     NULL);
-+		if (ACPI_FAILURE(status))
-+			printk(EEEPC_WARNING
-+			       "Failed to register notify on %s\n", node);
-+	} else
-+		return -ENODEV;
-+
-+	return 0;
-+}
-+
-+static void eeepc_unregister_rfkill_notifier(char *node)
-+{
-+	acpi_status status = AE_OK;
-+	acpi_handle handle;
-+
-+	status = acpi_get_handle(NULL, node, &handle);
-+
-+	if (ACPI_SUCCESS(status)) {
-+		status = acpi_remove_notify_handler(handle,
-+						     ACPI_SYSTEM_NOTIFY,
-+						     eeepc_rfkill_notify);
-+		if (ACPI_FAILURE(status))
-+			printk(EEEPC_ERR
-+			       "Error removing rfkill notify handler %s\n",
-+				node);
-+	}
-+}
-+
- static int eeepc_hotk_add(struct acpi_device *device)
- {
- 	acpi_status status = AE_OK;
-@@ -622,6 +697,10 @@ static int eeepc_hotk_add(struct acpi_device *device)
- 		if (result)
- 			goto bluetooth_fail;
- 	}
-+
-+	eeepc_register_rfkill_notifier("\\_SB.PCI0.P0P6");
-+	eeepc_register_rfkill_notifier("\\_SB.PCI0.P0P7");
-+
- 	return 0;
- 
-  bluetooth_fail:
-@@ -649,6 +728,10 @@ static int eeepc_hotk_remove(struct acpi_device *device, int type)
- 					    eeepc_hotk_notify);
- 	if (ACPI_FAILURE(status))
- 		printk(EEEPC_ERR "Error removing notify handler\n");
-+
-+	eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P6");
-+	eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P7");
-+
- 	kfree(ehotk);
- 	return 0;
- }
+That problem doesn't appear in 2.6.28-rc3.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+This terminal output show well the problem
+$uname -a
+2.6.28-rc5
+$while true;
+do cat /proc/acpi/thermal_zone/THRM/temperature;
+sleep 1;
+done
+
+...
+temperature:             51 C
+temperature:             51 C
+temperature:             144 C
+
+And then it shutdowns because critical temperature was reached
+
+Another thing that might be important : the output of dmesg
+Every 5 seconds this message appears (not in 2.6.28-rc3):
+
+ACPI: Transitioning device [FAN] to D3
+ACPI: Unable to turn cooling device [ffff81007fb656d0] 'off'
+
+Hope it will help you.
+
+Maxime
+
+
+
+
+
+
+
