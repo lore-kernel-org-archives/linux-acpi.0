@@ -1,55 +1,63 @@
-From: Helge Deller <deller@gmx.de>
-Subject: [PATCH] move DMI prefix strings into struct mafield[]
-Date: Fri, 21 Nov 2008 17:59:49 +0100
-Message-ID: <200811211759.50021.deller@gmx.de>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: [PATCH] DOC: fix acpi kernel-parameters
+Date: Fri, 21 Nov 2008 13:57:22 -0800
+Message-ID: <49272EC2.5080600@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:46176 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1756615AbYKURA0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 21 Nov 2008 12:00:26 -0500
-Content-Disposition: inline
+Received: from rcsinet14.oracle.com ([148.87.113.126]:43276 "EHLO
+	rgminet14.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752668AbYKUV7c (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Nov 2008 16:59:32 -0500
+Received: from rgminet12.oracle.com (rcsinet12.oracle.com [148.87.113.124])
+	by rgminet14.oracle.com (Switch-3.3.1/Switch-3.3.1) with ESMTP id mALM0OSB024721
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-acpi@vger.kernel.org>; Fri, 21 Nov 2008 22:00:25 GMT
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, linux-acpi@vger.kernel.org
+To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-Move the DMI prefix strings (which are max. 3 chars long) directly into the
-struct mafield[], instead of storing a pointer to them.
-This introduces no functional changes, but gives the advantage of 
-saving some bytes in the executable (additional stringspace and the relocation
-table entries are gone).
+Please queue after one of Rafael's patches.  This does not
+apply cleanly to Linus-mainline, but it does apply to
+linux-next or -mm.
 
-Signed-off-by: Helge Deller <deller@gmx.de>
 
---- a/drivers/firmware/dmi-id.c
-+++ b/drivers/firmware/dmi-id.c
-@@ -70,7 +70,7 @@ static void ascii_filter(char *d, const char *s)
- static ssize_t get_modalias(char *buffer, size_t buffer_size)
- {
- 	static const struct mafield {
--		const char *prefix;
-+		char prefix[4];
- 		int field;
- 	} fields[] = {
- 		{ "bvn", DMI_BIOS_VENDOR },
-@@ -85,7 +85,7 @@ static ssize_t get_modalias(char *buffer, size_t buffer_size)
- 		{ "cvn", DMI_CHASSIS_VENDOR },
- 		{ "ct",  DMI_CHASSIS_TYPE },
- 		{ "cvr", DMI_CHASSIS_VERSION },
--		{ NULL,  DMI_NONE }
-+		{ "",    DMI_NONE }
- 	};
+
+From: Randy Dunlap <randy.dunlap@oracle.com>
+
+Spell out "wrt".  I suspect plenty of people won't know
+what that means.
+
+Fix a '}' that should be a ']'.
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+---
+ Documentation/kernel-parameters.txt |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+--- linux-next-20081112.orig/Documentation/kernel-parameters.txt
++++ linux-next-20081112/Documentation/kernel-parameters.txt
+@@ -158,9 +158,9 @@ and is between 256 and 4096 characters. 
+ 			s4_nohwsig prevents ACPI hardware signature from being
+ 			used during resume from hibernation.
+ 			old_ordering causes the ACPI 1.0 ordering of the _PTS
+-			control method, wrt putting devices into low power
+-			states, to be enforced (the ACPI 2.0 ordering of _PTS is
+-			used by default).
++			control method, with respect to putting devices into
++			low power states, to be enforced (the ACPI 2.0 ordering
++			of _PTS is used by default).
+ 			s4_nonvs prevents the kernel from saving/restoring the
+ 			ACPI NVS memory during hibernation.
  
- 	ssize_t l, left;
-@@ -95,7 +95,7 @@ static ssize_t get_modalias(char *buffer, size_t buffer_size)
- 	strcpy(buffer, "dmi");
- 	p = buffer + 3; left = buffer_size - 4;
- 
--	for (f = fields; f->prefix && left > 0; f++) {
-+	for (f = fields; f->prefix[0] && left > 0; f++) {
- 		const char *c;
- 		char *t;
- 
+@@ -197,7 +197,7 @@ and is between 256 and 4096 characters. 
+ 	acpi_skip_timer_override [HW,ACPI]
+ 			Recognize and ignore IRQ0/pin2 Interrupt Override.
+ 			For broken nForce2 BIOS resulting in XT-PIC timer.
+-	acpi_use_timer_override [HW,ACPI}
++	acpi_use_timer_override [HW,ACPI]
+ 			Use timer override. For some broken Nvidia NF5 boards
+ 			that require a timer override, but don't have
+ 			HPET
