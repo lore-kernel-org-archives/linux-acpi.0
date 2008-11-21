@@ -1,42 +1,59 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: battery: current a factor of 10 off?
-Date: Thu, 20 Nov 2008 23:31:52 -0200
-Message-ID: <20081121013152.GA18318@khazad-dum.debian.net>
-References: <87skplx6ho.fsf@szonett.ki.iif.hu>
+From: youquan_song@linux.intel.com
+Subject: [PATCH]  ACPI: Check _PSS invalidation when BIOS report _PSS with
+     all 0x80000000
+Date: Thu, 20 Nov 2008 19:08:36 -0800 (PST)
+Message-ID: <3606.172.16.183.72.1227236916.squirrel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:45919 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752132AbYKUBb7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Nov 2008 20:31:59 -0500
-Content-Disposition: inline
-In-Reply-To: <87skplx6ho.fsf@szonett.ki.iif.hu>
+Received: from mga07.intel.com ([143.182.124.22]:55611 "EHLO
+	azsmga101.ch.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752418AbYKUDIi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Nov 2008 22:08:38 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ferenc Wagner <wferi@niif.hu>
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: venkatesh.pallipadi@intel.com, len.brown@intel.com, linux-kernel@vger.kernel.org
 
-On Fri, 21 Nov 2008, Ferenc Wagner wrote:
-> on my ThinkPad R50e the current_now reading seems something like 10
-> times the actual value.  Documentation/power/power_supply_class.txt
-> says it's in uA, and a tipical discharge value is around 15259000,
-> that is, 15 A on my system.  At the same time voltage is 11756000,
-> that is, 12 V, which sounds reasonable, but then the power is 15*12 VA,
-> ie 180 W, which is insane.  However, the numerical derivative of
-> energy_now gives 18 W, which is both reasonable and consistent with
-> the assumed factor of 10 error in current_now.  Is this possibly a bug
-> in 2.6.26.6?  During a quick glance over battery.c nothing obvious
-> jumped at me, but I'm no expert on this.
+Subject: Check _PSS invalidation when BIOS report _PSS with 0x80000000
 
-You could also patch in tp_smapi and compare with the data you get from both
-drivers.  If they are both wrong, you need a BIOS/EC firmware update.  If
-there is none, we will need DMI quirks on both drivers to work around the
-issue.
+When cpu frequencey scaling disable,some BIOS report _PSS with all
+0x80000000.
+If kernel treat this case as valid, the kernel will boot crash when load
+cpufreq govenors.
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+So in order to cover more buggy BIOSs, the patch just check _PSS core
+frequencey invalidtion.
+
+Signed-off-by: Youquan, Song <youquan.song@intel.com>
+Signed-off-by: Pallipadi, Venkatesh <venkatesh.pallipadi@intel.com>
+---
+
+--- linux-2.6-tip-orignal/drivers/acpi/processor_perflib.c	2008-11-20
+12:25:05.000000000 -0500
++++ linux-2.6-tip/drivers/acpi/processor_perflib.c	2008-11-20
+12:23:57.000000000 -0500
+@@ -50,6 +50,7 @@
+ #define ACPI_PROCESSOR_CLASS		"processor"
+ #define ACPI_PROCESSOR_FILE_PERFORMANCE	"performance"
+ #define _COMPONENT		ACPI_PROCESSOR_COMPONENT
++#define ACPI_PROCESSOR_PSS_INVALID	0x80000000
+ ACPI_MODULE_NAME("processor_perflib");
+
+ static DEFINE_MUTEX(performance_mutex);
+@@ -324,6 +325,14 @@
+ 			kfree(pr->performance->states);
+ 			goto end;
+ 		}
++
++		if (px->core_frequency == ACPI_PROCESSOR_PSS_INVALID) {
++			printk(KERN_ERR PREFIX
++				    "P-states disabled in the BIOS\n");
++			result = -EFAULT;
++			kfree(pr->performance->states);
++			goto end;
++		}
+ 	}
+
+       end:
