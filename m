@@ -1,143 +1,120 @@
-From: Pavel Machek <pavel@suse.cz>
-Subject: Re: [PATCH] ACPI suspend: Blacklist boxes that require us to set
-	SCI_EN directly on resume
-Date: Thu, 20 Nov 2008 14:17:38 +0100
-Message-ID: <20081120131738.GB1408@ucw.cz>
-References: <200811172333.13466.rjw@sisk.pl>
+From: Alexey Starikovskiy <aystarik@gmail.com>
+Subject: Re: battery: current a factor of 10 off?
+Date: Fri, 21 Nov 2008 22:41:01 +0800
+Message-ID: <4926C87D.20308@gmail.com>
+References: <87skplx6ho.fsf@szonett.ki.iif.hu> <8f8ff01d0811202009r2d1fedcct9a383f9362c5a064@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+ boundary="------------020607010209060500070605"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:33986 "EHLO UNKNOWN"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753814AbYKUN5b (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 21 Nov 2008 08:57:31 -0500
-Content-Disposition: inline
-In-Reply-To: <200811172333.13466.rjw@sisk.pl>
+Received: from ti-out-0910.google.com ([209.85.142.191]:51772 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753292AbYKUOl2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Nov 2008 09:41:28 -0500
+Received: by ti-out-0910.google.com with SMTP id b6so652294tic.23
+        for <linux-acpi@vger.kernel.org>; Fri, 21 Nov 2008 06:41:26 -0800 (PST)
+In-Reply-To: <8f8ff01d0811202009r2d1fedcct9a383f9362c5a064@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Tino Keitel <tino.keitel@gmx.de>, Bob Copeland <me@bobcopeland.com>
+To: Ferenc Wagner <wferi@niif.hu>
+Cc: linux-acpi@vger.kernel.org
 
-Hi!
+This is a multi-part message in MIME format.
+--------------020607010209060500070605
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> From: Rafael J. Wysocki <rjw@sisk.pl>
-> Subject: ACPI suspend: Blacklist boxes that require us to set SCI_EN directly on resume
-> 
-> Some Apple boxes evidently require us to set SCI_EN on resume
-> directly, because if we don't do that, they hung somewhere in the
-> resume code path.  Moreover, on these boxes it is not sufficient to
-> use acpi_enable() to turn ACPI on during resume.  All of this is
-> against the ACPI specification which states that (1) the BIOS is
-> supposed to return from the S3 sleep state with ACPI enabled
-> (SCI_EN set) and (2) the SCI_EN bit is owned by the hardware and we
-> are not supposed to change it.
-> 
-> For this reason, blacklist the affected systems so that the SCI_EN
-> bit is set during resume on them.
-> 
-> [NOTE: Unconditional setting SCI_EN for all system on resume doesn't
->  work, because it makes some other systems crash (that's to be
->  expected).  Also, it is not entirely clear right now if all of the
->  Apple boxes require this workaround.]
+Hi Ferenc,
+This patch should be better -- no integer overflow.
+
+Regards,
+Alex.
+
+Alexey Starikovskiy wrote:
+> Hi Ferenc,
+>
+> Good catch.
+> ACPI battery interface report its state either in mW or in mA, and
+> discharge rate
+> in your case is reported in mW. power_supply interface does not have
+> such a parameter,
+> so current_now parameter is used for all cases. But in case of mW,
+> reported discharge should
+> be converted into mA.
+>
+> Please test the attached patch.
+>
+> Thanks,
+> Alex.
+>
+> On Fri, Nov 21, 2008 at 3:33 AM, Ferenc Wagner <wferi@niif.hu> wrote:
+>   
+>> Hi,
+>>
+>> on my ThinkPad R50e the current_now reading seems something like 10
+>> times the actual value.  Documentation/power/power_supply_class.txt
+>> says it's in uA, and a tipical discharge value is around 15259000,
+>> that is, 15 A on my system.  At the same time voltage is 11756000,
+>> that is, 12 V, which sounds reasonable, but then the power is 15*12 VA,
+>> ie 180 W, which is insane.  However, the numerical derivative of
+>> energy_now gives 18 W, which is both reasonable and consistent with
+>> the assumed factor of 10 error in current_now.  Is this possibly a bug
+>> in 2.6.26.6?  During a quick glance over battery.c nothing obvious
+>> jumped at me, but I'm no expert on this.
+>> --
+>> Thanks,
+>> Feri.
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>     
 
 
-Silent bug workarounds are evil. In this case, MSI insisted their BIOS
-is correct because it works with opensuse11, and forced us to backport
-workaround to sled instead of fixing their bios :-(.
+--------------020607010209060500070605
+Content-Type: text/x-diff;
+ name="convert_discharge_energy_to_current.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="convert_discharge_energy_to_current.patch"
+
+ACPI:battery: Convert discharge energy rate to current properly
+
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+
+ACPI battery interface reports its state either in mW or in mA, and 
+discharge rate in your case is reported in mW. power_supply interface 
+does not have such a parameter, so current_now parameter is used 
+for all cases. But in case of mW, reported discharge should
+be converted into mA.
+
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+---
+
+ drivers/acpi/battery.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
 
-> This patch fixes the recent regression tracked as
-> http://bugzilla.kernel.org/show_bug.cgi?id=12038
-> 
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> Tested-by: Tino Keitel <tino.keitel@gmx.de>
-> Tested-by: Bob Copeland <me@bobcopeland.com>
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 1423b0c..0ebc04c 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -174,6 +174,15 @@ static int acpi_battery_get_property(struct power_supply *psy,
+ 		break;
+ 	case POWER_SUPPLY_PROP_CURRENT_NOW:
+ 		val->intval = battery->current_now * 1000;
++		/* if power units are mW, convert to mA by 
++		   dividing by current voltage (mV/1000) */
++		if (!battery->power_unit) { 
++			if (battery->voltage_now) {
++				val->intval /= battery->voltage_now;
++				val->intval *= 1000;
++			} else 
++				val->intval = -1;
++		}
+ 		break;
+ 	case POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN:
+ 	case POWER_SUPPLY_PROP_ENERGY_FULL_DESIGN:
 
-ACK.
-
-
-> ---
->  drivers/acpi/sleep/main.c |   40 +++++++++++++++++++++++++++++++++++++++-
->  1 file changed, 39 insertions(+), 1 deletion(-)
-> 
-> Index: linux-2.6/drivers/acpi/sleep/main.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/sleep/main.c
-> +++ linux-2.6/drivers/acpi/sleep/main.c
-> @@ -104,6 +104,18 @@ void __init acpi_s4_no_nvs(void)
->  	s4_no_nvs = true;
->  }
->  
-> +/*
-> + * According to the ACPI specification the BIOS should make sure that ACPI is
-> + * enabled and SCI_EN bit is set on wake-up from S1 - S3 sleep states.  Still,
-> + * some BIOSes don't do that and therefore we use acpi_enable() to enable ACPI
-> + * on such systems during resume.  Unfortunately that doesn't help in
-> + * particularly pathological cases in which SCI_EN has to be set directly on
-> + * resume, although the specification states very clearly that this flag is
-> + * owned by the hardware.  The set_sci_en_on_resume variable will be set in such
-> + * cases.
-> + */
-> +static bool set_sci_en_on_resume;
-> +
->  /**
->   *	acpi_pm_disable_gpes - Disable the GPEs.
->   */
-> @@ -249,7 +261,11 @@ static int acpi_suspend_enter(suspend_st
->  	}
->  
->  	/* If ACPI is not enabled by the BIOS, we need to enable it here. */
-> -	acpi_enable();
-> +	if (set_sci_en_on_resume)
-> +		acpi_set_register(ACPI_BITREG_SCI_ENABLE, 1);
-> +	else
-> +		acpi_enable();
-> +
->  	/* Reprogram control registers and execute _BFS */
->  	acpi_leave_sleep_state_prep(acpi_state);
->  
-> @@ -337,6 +353,12 @@ static int __init init_old_suspend_order
->  	return 0;
->  }
->  
-> +static int __init init_set_sci_en_on_resume(const struct dmi_system_id *d)
-> +{
-> +	set_sci_en_on_resume = true;
-> +	return 0;
-> +}
-> +
->  static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
->  	{
->  	.callback = init_old_suspend_ordering,
-> @@ -354,6 +376,22 @@ static struct dmi_system_id __initdata a
->  		DMI_MATCH(DMI_PRODUCT_NAME, "HP xw4600 Workstation"),
->  		},
->  	},
-> +	{
-> +	.callback = init_set_sci_en_on_resume,
-> +	.ident = "Apple MacBook 1,1",
-> +	.matches = {
-> +		DMI_MATCH(DMI_SYS_VENDOR, "Apple Computer, Inc."),
-> +		DMI_MATCH(DMI_PRODUCT_NAME, "MacBook1,1"),
-> +		},
-> +	},
-> +	{
-> +	.callback = init_set_sci_en_on_resume,
-> +	.ident = "Apple MacMini 1,1",
-> +	.matches = {
-> +		DMI_MATCH(DMI_SYS_VENDOR, "Apple Computer, Inc."),
-> +		DMI_MATCH(DMI_PRODUCT_NAME, "Macmini1,1"),
-> +		},
-> +	},
->  	{},
->  };
->  #endif /* CONFIG_SUSPEND */
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+--------------020607010209060500070605--
