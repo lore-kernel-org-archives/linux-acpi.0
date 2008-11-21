@@ -1,16 +1,16 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
+From: Zhang Rui <rui.zhang@intel.com>
 Subject: Re: Unexcepted shutdown in 2.6.28-rc5
-Date: Fri, 21 Nov 2008 08:59:49 +0800
-Message-ID: <1227229189.3991.3.camel@yakui_zhao.sh.intel.com>
+Date: Fri, 21 Nov 2008 09:09:14 +0800
+Message-ID: <1227229754.15014.280.camel@rzhang-dt>
 References: <4925EF01.2070405@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:31266 "EHLO mga01.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:1169 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753634AbYKUAwu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Nov 2008 19:52:50 -0500
+	id S1753308AbYKUBJu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 20 Nov 2008 20:09:50 -0500
 In-Reply-To: <4925EF01.2070405@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -22,25 +22,16 @@ On Fri, 2008-11-21 at 07:13 +0800, Maxime Poncet wrote:
 > 
 > I have the same problem in 2.6.28-rc5 and 2.6.27.x :
 > my laptop shutdown automatically while working on it.
-Will you please add the boot option of "thermal.nocrt=1" and attach the
-following output?
-   a. acpidump
-   b. dmesg
-   c. cat /proc/acpi/thermal_zone/*/*
-
-Of course you can file a bug report at
-http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
-and attach the output of acpidump, dmesg.
-
-Will you please add the boot option of "acpi.power_nocheck=1" and see
-whether the following message still exists?
- >ACPI: Transitioning device [FAN] to D3
- >ACPI: Unable to turn cooling device [ffff81007fb656d0] 'off'
-
-Thanks.
 > 
 > That problem doesn't appear in 2.6.28-rc3.
 > 
+there are not many ACPI changes between 2.6.28-rc3 and -rc5.
+it would be great if you can use git-bisect to find out
+which commit introduces this regression.
+
+thanks,
+rui
+
 > This terminal output show well the problem
 > $uname -a
 > 2.6.28-rc5
