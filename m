@@ -1,63 +1,74 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: [PATCH] DOC: fix acpi kernel-parameters
-Date: Fri, 21 Nov 2008 13:57:22 -0800
-Message-ID: <49272EC2.5080600@oracle.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH]  ACPI: Check _PSS invalidation when BIOS report _PSS
+ with  all 0x80000000
+Date: Fri, 21 Nov 2008 15:08:39 -0800
+Message-ID: <20081121150839.58dbedfa.akpm@linux-foundation.org>
+References: <3606.172.16.183.72.1227236916.squirrel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet14.oracle.com ([148.87.113.126]:43276 "EHLO
-	rgminet14.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752668AbYKUV7c (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Nov 2008 16:59:32 -0500
-Received: from rgminet12.oracle.com (rcsinet12.oracle.com [148.87.113.124])
-	by rgminet14.oracle.com (Switch-3.3.1/Switch-3.3.1) with ESMTP id mALM0OSB024721
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-acpi@vger.kernel.org>; Fri, 21 Nov 2008 22:00:25 GMT
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39400 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752840AbYKUXIm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 21 Nov 2008 18:08:42 -0500
+In-Reply-To: <3606.172.16.183.72.1227236916.squirrel@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: youquan_song@linux.intel.com
+Cc: linux-acpi@vger.kernel.org, venkatesh.pallipadi@intel.com, len.brown@intel.com, linux-kernel@vger.kernel.org
 
-Please queue after one of Rafael's patches.  This does not
-apply cleanly to Linus-mainline, but it does apply to
-linux-next or -mm.
+On Thu, 20 Nov 2008 19:08:36 -0800 (PST)
+youquan_song@linux.intel.com wrote:
 
+> Subject: Check _PSS invalidation when BIOS report _PSS with 0x80000000
+> 
+> When cpu frequencey scaling disable,some BIOS report _PSS with all
+> 0x80000000.
+> If kernel treat this case as valid, the kernel will boot crash when load
+> cpufreq govenors.
+> 
+> So in order to cover more buggy BIOSs, the patch just check _PSS core
+> frequencey invalidtion.
+> 
 
+It's unclear how many machines this will affect, and what the effects
+of not having the patch are upon those machines.  That is useful
+information for people who are deciding whcih kernel versions this
+patch should be merged into.
 
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Do you think this fix is needed in 2.6.28?  2.6.27.x?  2.6.26.x?  etc?
 
-Spell out "wrt".  I suspect plenty of people won't know
-what that means.
+> 
+> --- linux-2.6-tip-orignal/drivers/acpi/processor_perflib.c	2008-11-20
+> 12:25:05.000000000 -0500
+> +++ linux-2.6-tip/drivers/acpi/processor_perflib.c	2008-11-20
+> 12:23:57.000000000 -0500
 
-Fix a '}' that should be a ']'.
+Your email client is wordwrapping the text, btw.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
----
- Documentation/kernel-parameters.txt |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+> @@ -50,6 +50,7 @@
+>  #define ACPI_PROCESSOR_CLASS		"processor"
+>  #define ACPI_PROCESSOR_FILE_PERFORMANCE	"performance"
+>  #define _COMPONENT		ACPI_PROCESSOR_COMPONENT
+> +#define ACPI_PROCESSOR_PSS_INVALID	0x80000000
+>  ACPI_MODULE_NAME("processor_perflib");
+> 
+>  static DEFINE_MUTEX(performance_mutex);
+> @@ -324,6 +325,14 @@
+>  			kfree(pr->performance->states);
+>  			goto end;
+>  		}
+> +
+> +		if (px->core_frequency == ACPI_PROCESSOR_PSS_INVALID) {
+> +			printk(KERN_ERR PREFIX
+> +				    "P-states disabled in the BIOS\n");
+> +			result = -EFAULT;
+> +			kfree(pr->performance->states);
+> +			goto end;
+> +		}
+>  	}
+> 
+>        end:
 
---- linux-next-20081112.orig/Documentation/kernel-parameters.txt
-+++ linux-next-20081112/Documentation/kernel-parameters.txt
-@@ -158,9 +158,9 @@ and is between 256 and 4096 characters. 
- 			s4_nohwsig prevents ACPI hardware signature from being
- 			used during resume from hibernation.
- 			old_ordering causes the ACPI 1.0 ordering of the _PTS
--			control method, wrt putting devices into low power
--			states, to be enforced (the ACPI 2.0 ordering of _PTS is
--			used by default).
-+			control method, with respect to putting devices into
-+			low power states, to be enforced (the ACPI 2.0 ordering
-+			of _PTS is used by default).
- 			s4_nonvs prevents the kernel from saving/restoring the
- 			ACPI NVS memory during hibernation.
- 
-@@ -197,7 +197,7 @@ and is between 256 and 4096 characters. 
- 	acpi_skip_timer_override [HW,ACPI]
- 			Recognize and ignore IRQ0/pin2 Interrupt Override.
- 			For broken nForce2 BIOS resulting in XT-PIC timer.
--	acpi_use_timer_override [HW,ACPI}
-+	acpi_use_timer_override [HW,ACPI]
- 			Use timer override. For some broken Nvidia NF5 boards
- 			that require a timer override, but don't have
- 			HPET
