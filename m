@@ -1,376 +1,203 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 06/11] ACPI: thinkpad-acpi: add UWB radio support
-Date: Sat, 22 Nov 2008 09:48:48 -0200
-Message-ID: <1227354533-19788-7-git-send-email-hmh@hmh.eng.br>
+From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Subject: [PATCH 11/11] ACPI: thinkpad-acpi: clean-up fan
+	subdriver quirk
+Date: Sat, 22 Nov 2008 09:48:53 -0200
+Message-ID: <1227354533-19788-12-git-send-email-hmh@hmh.eng.br>
 References: <1227354533-19788-1-git-send-email-hmh@hmh.eng.br>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:58239 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757445AbYKVLtC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 22 Nov 2008 06:49:02 -0500
-In-Reply-To: <1227354533-19788-1-git-send-email-hmh@hmh.eng.br>
-Sender: linux-acpi-owner@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1227354533-19788-1-git-send-email-hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Tino Keitel <tino.keitel-rAwCM5oiXHA@public.gmane.org>, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Ivo van Doorn <IvDoorn@gmail.com>
 
-Add rfkill support for USB UWB radio devices on very recent ThinkPad
-laptop models.
+Better document the Unitialized HFSP quirk, and modularize it a bit.
+This makes the code flow easier to read and reduces LOC.
 
-The new subdriver is moslty a trimmed down copy of the wwan subdriver.
+Apply the Unitialized HFSP closer to the source (i.e. inside the
+get_fan_status()), this fixes a harmless buglet where at driver init
+with the quirk active, the user could set the hwmon pwm1 attribute and
+switch out of pwm1_mode=2 to pwm1_mode=0 without changing pwm1_mode
+directly.
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Ivo van Doorn <IvDoorn@gmail.com>
+Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Cc: Tino Keitel <tino.keitel-rAwCM5oiXHA@public.gmane.org>
 ---
- Documentation/laptops/thinkpad-acpi.txt |   18 +++
- drivers/misc/thinkpad_acpi.c            |  206 ++++++++++++++++++++++++++++++-
- 2 files changed, 223 insertions(+), 1 deletions(-)
+ drivers/misc/thinkpad_acpi.c |  109 ++++++++++++++++++++++-------------------
+ 1 files changed, 58 insertions(+), 51 deletions(-)
 
-diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
-index 71f0fe1..0de041a 100644
---- a/Documentation/laptops/thinkpad-acpi.txt
-+++ b/Documentation/laptops/thinkpad-acpi.txt
-@@ -1412,6 +1412,24 @@ Sysfs notes:
- 	rfkill controller switch "tpacpi_wwan_sw": refer to
- 	Documentation/rfkill.txt for details.
- 
-+EXPERIMENTAL: UWB
-+-----------------
-+
-+This feature is marked EXPERIMENTAL because it has not been extensively
-+tested and validated in various ThinkPad models yet.  The feature may not
-+work as expected. USE WITH CAUTION! To use this feature, you need to supply
-+the experimental=1 parameter when loading the module.
-+
-+sysfs rfkill class: switch "tpacpi_uwb_sw"
-+
-+This feature exports an rfkill controller for the UWB device, if one is
-+present and enabled in the BIOS.
-+
-+Sysfs notes:
-+
-+	rfkill controller switch "tpacpi_uwb_sw": refer to
-+	Documentation/rfkill.txt for details.
-+
- Multiple Commands, Module Parameters
- ------------------------------------
- 
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 718e708..651ea9d 100644
+index dbdb604..5ab68ac 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -170,6 +170,7 @@ enum {
- enum {
- 	TPACPI_RFK_BLUETOOTH_SW_ID = 0,
- 	TPACPI_RFK_WWAN_SW_ID,
-+	TPACPI_RFK_UWB_SW_ID,
- };
+@@ -5898,6 +5898,60 @@ TPACPI_HANDLE(sfan, ec, "SFAN",	/* 570 */
+ 	   );			/* all others */
  
- /* Debugging */
-@@ -262,6 +263,7 @@ static struct {
- 	u32 bright_16levels:1;
- 	u32 bright_acpimode:1;
- 	u32 wan:1;
-+	u32 uwb:1;
- 	u32 fan_ctrl_status_undef:1;
- 	u32 input_device_registered:1;
- 	u32 platform_drv_registered:1;
-@@ -318,6 +320,8 @@ static int dbg_bluetoothemul;
- static int tpacpi_bluetooth_emulstate;
- static int dbg_wwanemul;
- static int tpacpi_wwan_emulstate;
-+static int dbg_uwbemul;
-+static int tpacpi_uwb_emulstate;
- #endif
- 
- 
-@@ -968,6 +972,7 @@ static int __init tpacpi_new_rfkill(const unsigned int id,
- 			struct rfkill **rfk,
- 			const enum rfkill_type rfktype,
- 			const char *name,
-+			const bool set_default,
- 			int (*toggle_radio)(void *, enum rfkill_state),
- 			int (*get_state)(void *, enum rfkill_state *))
- {
-@@ -979,7 +984,7 @@ static int __init tpacpi_new_rfkill(const unsigned int id,
- 		printk(TPACPI_ERR
- 			"failed to read initial state for %s, error %d; "
- 			"will turn radio off\n", name, res);
--	} else {
-+	} else if (set_default) {
- 		/* try to set the initial state as the default for the rfkill
- 		 * type, since we ask the firmware to preserve it across S5 in
- 		 * NVRAM */
-@@ -1149,6 +1154,31 @@ static DRIVER_ATTR(wwan_emulstate, S_IWUSR | S_IRUGO,
- 		tpacpi_driver_wwan_emulstate_show,
- 		tpacpi_driver_wwan_emulstate_store);
- 
-+/* uwb_emulstate ------------------------------------------------- */
-+static ssize_t tpacpi_driver_uwb_emulstate_show(
-+					struct device_driver *drv,
-+					char *buf)
-+{
-+	return snprintf(buf, PAGE_SIZE, "%d\n", !!tpacpi_uwb_emulstate);
-+}
-+
-+static ssize_t tpacpi_driver_uwb_emulstate_store(
-+					struct device_driver *drv,
-+					const char *buf, size_t count)
-+{
-+	unsigned long t;
-+
-+	if (parse_strtoul(buf, 1, &t))
-+		return -EINVAL;
-+
-+	tpacpi_uwb_emulstate = !!t;
-+
-+	return count;
-+}
-+
-+static DRIVER_ATTR(uwb_emulstate, S_IWUSR | S_IRUGO,
-+		tpacpi_driver_uwb_emulstate_show,
-+		tpacpi_driver_uwb_emulstate_store);
- #endif
- 
- /* --------------------------------------------------------------------- */
-@@ -1176,6 +1206,8 @@ static int __init tpacpi_create_driver_attributes(struct device_driver *drv)
- 		res = driver_create_file(drv, &driver_attr_bluetooth_emulstate);
- 	if (!res && dbg_wwanemul)
- 		res = driver_create_file(drv, &driver_attr_wwan_emulstate);
-+	if (!res && dbg_uwbemul)
-+		res = driver_create_file(drv, &driver_attr_uwb_emulstate);
- #endif
- 
- 	return res;
-@@ -1192,6 +1224,7 @@ static void tpacpi_remove_driver_attributes(struct device_driver *drv)
- 	driver_remove_file(drv, &driver_attr_wlsw_emulstate);
- 	driver_remove_file(drv, &driver_attr_bluetooth_emulstate);
- 	driver_remove_file(drv, &driver_attr_wwan_emulstate);
-+	driver_remove_file(drv, &driver_attr_uwb_emulstate);
- #endif
- }
- 
-@@ -2126,6 +2159,7 @@ static struct attribute *hotkey_mask_attributes[] __initdata = {
- 
- static void bluetooth_update_rfk(void);
- static void wan_update_rfk(void);
-+static void uwb_update_rfk(void);
- static void tpacpi_send_radiosw_update(void)
- {
- 	int wlsw;
-@@ -2135,6 +2169,8 @@ static void tpacpi_send_radiosw_update(void)
- 		bluetooth_update_rfk();
- 	if (tp_features.wan)
- 		wan_update_rfk();
-+	if (tp_features.uwb)
-+		uwb_update_rfk();
- 
- 	if (tp_features.hotkey_wlsw && !hotkey_get_wlsw(&wlsw)) {
- 		mutex_lock(&tpacpi_inputdev_send_mutex);
-@@ -3036,6 +3072,7 @@ static int __init bluetooth_init(struct ibm_init_struct *iibm)
- 				&tpacpi_bluetooth_rfkill,
- 				RFKILL_TYPE_BLUETOOTH,
- 				"tpacpi_bluetooth_sw",
-+				true,
- 				tpacpi_bluetooth_rfk_set,
- 				tpacpi_bluetooth_rfk_get);
- 	if (res) {
-@@ -3310,6 +3347,7 @@ static int __init wan_init(struct ibm_init_struct *iibm)
- 				&tpacpi_wan_rfkill,
- 				RFKILL_TYPE_WWAN,
- 				"tpacpi_wwan_sw",
-+				true,
- 				tpacpi_wan_rfk_set,
- 				tpacpi_wan_rfk_get);
- 	if (res) {
-@@ -3367,6 +3405,162 @@ static struct ibm_struct wan_driver_data = {
- };
- 
- /*************************************************************************
-+ * UWB subdriver
+ /*
++ * Unitialized HFSP quirk: ACPI DSDT and EC fail to initialize the
++ * HFSP register at boot, so it contains 0x07 but the Thinkpad could
++ * be in auto mode (0x80).
++ *
++ * This is corrected by any write to HFSP either by the driver, or
++ * by the firmware.
++ *
++ * We assume 0x07 really means auto mode while this quirk is active,
++ * as this is far more likely than the ThinkPad being in level 7,
++ * which is only used by the firmware during thermal emergencies.
 + */
 +
-+enum {
-+	/* ACPI GUWB/SUWB bits */
-+	TP_ACPI_UWB_HWPRESENT	= 0x01,	/* UWB hw available */
-+	TP_ACPI_UWB_RADIOSSW	= 0x02,	/* UWB radio enabled */
-+};
-+
-+static struct rfkill *tpacpi_uwb_rfkill;
-+
-+static int uwb_get_radiosw(void)
++static void fan_quirk1_detect(void)
 +{
-+	int status;
-+
-+	if (!tp_features.uwb)
-+		return -ENODEV;
-+
-+	/* WLSW overrides UWB in firmware/hardware, reflect that */
-+	if (tp_features.hotkey_wlsw && !hotkey_get_wlsw(&status) && !status)
-+		return RFKILL_STATE_HARD_BLOCKED;
-+
-+#ifdef CONFIG_THINKPAD_ACPI_DEBUGFACILITIES
-+	if (dbg_uwbemul)
-+		return (tpacpi_uwb_emulstate) ?
-+			RFKILL_STATE_UNBLOCKED : RFKILL_STATE_SOFT_BLOCKED;
-+#endif
-+
-+	if (!acpi_evalf(hkey_handle, &status, "GUWB", "d"))
-+		return -EIO;
-+
-+	return ((status & TP_ACPI_UWB_RADIOSSW) != 0) ?
-+		RFKILL_STATE_UNBLOCKED : RFKILL_STATE_SOFT_BLOCKED;
-+}
-+
-+static void uwb_update_rfk(void)
-+{
-+	int status;
-+
-+	if (!tpacpi_uwb_rfkill)
-+		return;
-+
-+	status = uwb_get_radiosw();
-+	if (status < 0)
-+		return;
-+	rfkill_force_state(tpacpi_uwb_rfkill, status);
-+}
-+
-+static int uwb_set_radiosw(int radio_on, int update_rfk)
-+{
-+	int status;
-+
-+	if (!tp_features.uwb)
-+		return -ENODEV;
-+
-+	/* WLSW overrides UWB in firmware/hardware, but there is no
-+	 * reason to risk weird behaviour. */
-+	if (tp_features.hotkey_wlsw && !hotkey_get_wlsw(&status) && !status
-+	    && radio_on)
-+		return -EPERM;
-+
-+#ifdef CONFIG_THINKPAD_ACPI_DEBUGFACILITIES
-+	if (dbg_uwbemul) {
-+		tpacpi_uwb_emulstate = !!radio_on;
-+		if (update_rfk)
-+			uwb_update_rfk();
-+		return 0;
++	/* In some ThinkPads, neither the EC nor the ACPI
++	 * DSDT initialize the HFSP register, and it ends up
++	 * being initially set to 0x07 when it *could* be
++	 * either 0x07 or 0x80.
++	 *
++	 * Enable for TP-1Y (T43), TP-78 (R51e),
++	 * TP-76 (R52), TP-70 (T43, R52), which are known
++	 * to be buggy. */
++	if (fan_control_initial_status == 0x07) {
++		switch (thinkpad_id.ec_model) {
++		case 0x5931: /* TP-1Y */
++		case 0x3837: /* TP-78 */
++		case 0x3637: /* TP-76 */
++		case 0x3037: /* TP-70 */
++			printk(TPACPI_NOTICE
++			       "fan_init: initial fan status is unknown, "
++			       "assuming it is in auto mode\n");
++			tp_features.fan_ctrl_status_undef = 1;
++			;;
++		}
 +	}
-+#endif
-+
-+	status = (radio_on) ? TP_ACPI_UWB_RADIOSSW : 0;
-+	if (!acpi_evalf(hkey_handle, NULL, "SUWB", "vd", status))
-+		return -EIO;
-+
-+	if (update_rfk)
-+		uwb_update_rfk();
-+
-+	return 0;
 +}
 +
-+/* --------------------------------------------------------------------- */
-+
-+static int tpacpi_uwb_rfk_get(void *data, enum rfkill_state *state)
++static void fan_quirk1_handle(u8 *fan_status)
 +{
-+	int uwbs = uwb_get_radiosw();
-+
-+	if (uwbs < 0)
-+		return uwbs;
-+
-+	*state = uwbs;
-+	return 0;
-+}
-+
-+static int tpacpi_uwb_rfk_set(void *data, enum rfkill_state state)
-+{
-+	return uwb_set_radiosw((state == RFKILL_STATE_UNBLOCKED), 0);
-+}
-+
-+static void uwb_exit(void)
-+{
-+	if (tpacpi_uwb_rfkill)
-+		rfkill_unregister(tpacpi_uwb_rfkill);
-+}
-+
-+static int __init uwb_init(struct ibm_init_struct *iibm)
-+{
-+	int res;
-+	int status = 0;
-+
-+	vdbg_printk(TPACPI_DBG_INIT, "initializing uwb subdriver\n");
-+
-+	TPACPI_ACPIHANDLE_INIT(hkey);
-+
-+	tp_features.uwb = hkey_handle &&
-+	    acpi_evalf(hkey_handle, &status, "GUWB", "qd");
-+
-+	vdbg_printk(TPACPI_DBG_INIT, "uwb is %s, status 0x%02x\n",
-+		str_supported(tp_features.uwb),
-+		status);
-+
-+#ifdef CONFIG_THINKPAD_ACPI_DEBUGFACILITIES
-+	if (dbg_uwbemul) {
-+		tp_features.uwb = 1;
-+		printk(TPACPI_INFO
-+			"uwb switch emulation enabled\n");
-+	} else
-+#endif
-+	if (tp_features.uwb &&
-+	    !(status & TP_ACPI_UWB_HWPRESENT)) {
-+		/* no uwb hardware present in system */
-+		tp_features.uwb = 0;
-+		dbg_printk(TPACPI_DBG_INIT,
-+			   "uwb hardware not installed\n");
++	if (unlikely(tp_features.fan_ctrl_status_undef)) {
++		if (*fan_status != fan_control_initial_status) {
++			/* something changed the HFSP regisnter since
++			 * driver init time, so it is not undefined
++			 * anymore */
++			tp_features.fan_ctrl_status_undef = 0;
++		} else {
++			/* Return most likely status. In fact, it
++			 * might be the only possible status */
++			*fan_status = TP_EC_FAN_AUTO;
++		}
 +	}
-+
-+	if (!tp_features.uwb)
-+		return 1;
-+
-+	res = tpacpi_new_rfkill(TPACPI_RFK_UWB_SW_ID,
-+				&tpacpi_uwb_rfkill,
-+				RFKILL_TYPE_UWB,
-+				"tpacpi_uwb_sw",
-+				false,
-+				tpacpi_uwb_rfk_set,
-+				tpacpi_uwb_rfk_get);
-+
-+	return res;
 +}
 +
-+static struct ibm_struct uwb_driver_data = {
-+	.name = "uwb",
-+	.exit = uwb_exit,
-+	.flags.experimental = 1,
-+};
-+
-+/*************************************************************************
-  * Video subdriver
++/*
+  * Call with fan_mutex held
   */
+ static void fan_update_desired_level(u8 status)
+@@ -5935,8 +5989,10 @@ static int fan_get_status(u8 *status)
+ 		if (unlikely(!acpi_ec_read(fan_status_offset, &s)))
+ 			return -EIO;
  
-@@ -6831,6 +7025,10 @@ static struct ibm_init_struct ibms_init[] __initdata = {
- 		.init = wan_init,
- 		.data = &wan_driver_data,
- 	},
-+	{
-+		.init = uwb_init,
-+		.data = &uwb_driver_data,
-+	},
- #ifdef CONFIG_THINKPAD_ACPI_VIDEO
- 	{
- 		.init = video_init,
-@@ -6987,6 +7185,12 @@ MODULE_PARM_DESC(dbg_wwanemul, "Enables WWAN switch emulation");
- module_param_named(wwan_state, tpacpi_wwan_emulstate, bool, 0);
- MODULE_PARM_DESC(wwan_state,
- 		 "Initial state of the emulated WWAN switch");
-+
-+module_param(dbg_uwbemul, uint, 0);
-+MODULE_PARM_DESC(dbg_uwbemul, "Enables UWB switch emulation");
-+module_param_named(uwb_state, tpacpi_uwb_emulstate, bool, 0);
-+MODULE_PARM_DESC(uwb_state,
-+		 "Initial state of the emulated UWB switch");
- #endif
+-		if (likely(status))
++		if (likely(status)) {
+ 			*status = s;
++			fan_quirk1_handle(status);
++		}
  
- static void thinkpad_acpi_module_exit(void)
+ 		break;
+ 
+@@ -6246,16 +6302,6 @@ static ssize_t fan_pwm1_enable_show(struct device *dev,
+ 	if (res)
+ 		return res;
+ 
+-	if (unlikely(tp_features.fan_ctrl_status_undef)) {
+-		if (status != fan_control_initial_status) {
+-			tp_features.fan_ctrl_status_undef = 0;
+-		} else {
+-			/* Return most likely status. In fact, it
+-			 * might be the only possible status */
+-			status = TP_EC_FAN_AUTO;
+-		}
+-	}
+-
+ 	if (status & TP_EC_FAN_FULLSPEED) {
+ 		mode = 0;
+ 	} else if (status & TP_EC_FAN_AUTO) {
+@@ -6320,14 +6366,6 @@ static ssize_t fan_pwm1_show(struct device *dev,
+ 	if (res)
+ 		return res;
+ 
+-	if (unlikely(tp_features.fan_ctrl_status_undef)) {
+-		if (status != fan_control_initial_status) {
+-			tp_features.fan_ctrl_status_undef = 0;
+-		} else {
+-			status = TP_EC_FAN_AUTO;
+-		}
+-	}
+-
+ 	if ((status &
+ 	     (TP_EC_FAN_AUTO | TP_EC_FAN_FULLSPEED)) != 0)
+ 		status = fan_control_desired_level;
+@@ -6459,29 +6497,7 @@ static int __init fan_init(struct ibm_init_struct *iibm)
+ 		if (likely(acpi_ec_read(fan_status_offset,
+ 					&fan_control_initial_status))) {
+ 			fan_status_access_mode = TPACPI_FAN_RD_TPEC;
+-
+-			/* In some ThinkPads, neither the EC nor the ACPI
+-			 * DSDT initialize the fan status, and it ends up
+-			 * being set to 0x07 when it *could* be either
+-			 * 0x07 or 0x80.
+-			 *
+-			 * Enable for TP-1Y (T43), TP-78 (R51e),
+-			 * TP-76 (R52), TP-70 (T43, R52), which are known
+-			 * to be buggy. */
+-			if (fan_control_initial_status == 0x07) {
+-				switch (thinkpad_id.ec_model) {
+-				case 0x5931: /* TP-1Y */
+-				case 0x3837: /* TP-78 */
+-				case 0x3637: /* TP-76 */
+-				case 0x3037: /* TP-70 */
+-					printk(TPACPI_NOTICE
+-					       "fan_init: initial fan status "
+-					       "is unknown, assuming it is "
+-					       "in auto mode\n");
+-					tp_features.fan_ctrl_status_undef = 1;
+-					;;
+-				}
+-			}
++			fan_quirk1_detect();
+ 		} else {
+ 			printk(TPACPI_ERR
+ 			       "ThinkPad ACPI EC access misbehaving, "
+@@ -6670,15 +6686,6 @@ static int fan_read(char *p)
+ 		if (rc < 0)
+ 			return rc;
+ 
+-		if (unlikely(tp_features.fan_ctrl_status_undef)) {
+-			if (status != fan_control_initial_status)
+-				tp_features.fan_ctrl_status_undef = 0;
+-			else
+-				/* Return most likely status. In fact, it
+-				 * might be the only possible status */
+-				status = TP_EC_FAN_AUTO;
+-		}
+-
+ 		len += sprintf(p + len, "status:\t\t%s\n",
+ 			       (status != 0) ? "enabled" : "disabled");
+ 
 -- 
 1.5.6.5
 
+
+-------------------------------------------------------------------------
+This SF.Net email is sponsored by the Moblin Your Move Developer's challenge
+Build the coolest Linux based applications with Moblin SDK & win great prizes
+Grand prize is a trip for two to an Open Source event anywhere in the world
+http://moblin-contest.org/redirect.php?banner_id=100&url=/
