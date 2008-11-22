@@ -1,130 +1,152 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 09/11] ACPI: thinkpad-acpi: handle HKEY thermal and battery alarms
-Date: Sat, 22 Nov 2008 09:48:51 -0200
-Message-ID: <1227354533-19788-10-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 07/11] ACPI: thinkpad-acpi: use killable instead of interruptible mutexes
+Date: Sat, 22 Nov 2008 09:48:49 -0200
+Message-ID: <1227354533-19788-8-git-send-email-hmh@hmh.eng.br>
 References: <1227354533-19788-1-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:58239 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:39274 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757417AbYKVLtA (ORCPT
+	by vger.kernel.org with ESMTP id S1757376AbYKVLtB (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 22 Nov 2008 06:49:00 -0500
+	Sat, 22 Nov 2008 06:49:01 -0500
 In-Reply-To: <1227354533-19788-1-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Handle some HKEY events that are actually firmware alarms.  For
-now, we do the simple thing: log specific messages to the log and let
-the thinkpad-specific event pass to userspace.
+Unfortunately, POSIX in all of its braindamage, do not state that userspace has
+to deal with EINTR in read/write and friends... so, lesser code just doesn't.
 
-In the future, these events will be migrated to generic notifications
-and subsystems.
-
-These alarms are NOT available on all ThinkPads.  E.g. the T43 only
-issues 0x6011 and 0x6012.
+Switch from *_interruptible to *_killable on the sysfs- and procfs-related
+mutexes.  This closes this possible can of worms.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 ---
- drivers/misc/thinkpad_acpi.c |   63 +++++++++++++++++++++++++++++++++++++++--
- 1 files changed, 59 insertions(+), 4 deletions(-)
+ drivers/misc/thinkpad_acpi.c |   26 +++++++++++++-------------
+ 1 files changed, 13 insertions(+), 13 deletions(-)
 
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 6f0e56b..243e131 100644
+index 651ea9d..50cdcf1 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -175,10 +175,12 @@ enum {
- 
- /* Debugging */
- #define TPACPI_LOG TPACPI_FILE ": "
--#define TPACPI_ERR	   KERN_ERR    TPACPI_LOG
--#define TPACPI_NOTICE KERN_NOTICE TPACPI_LOG
--#define TPACPI_INFO   KERN_INFO   TPACPI_LOG
--#define TPACPI_DEBUG  KERN_DEBUG  TPACPI_LOG
-+#define TPACPI_ALERT	KERN_ALERT  TPACPI_LOG
-+#define TPACPI_CRIT	KERN_CRIT   TPACPI_LOG
-+#define TPACPI_ERR	KERN_ERR    TPACPI_LOG
-+#define TPACPI_NOTICE	KERN_NOTICE TPACPI_LOG
-+#define TPACPI_INFO	KERN_INFO   TPACPI_LOG
-+#define TPACPI_DEBUG	KERN_DEBUG  TPACPI_LOG
- 
- #define TPACPI_DBG_ALL		0xffff
- #define TPACPI_DBG_INIT		0x0001
-@@ -2615,6 +2617,15 @@ static bool hotkey_notify_wakeup(const u32 hkey,
- 		*ignore_acpi_ev = true;
- 		break;
- 
-+	case 0x2313: /* Battery on critical low level (S3) */
-+	case 0x2413: /* Battery on critical low level (S4) */
-+		printk(TPACPI_ALERT
-+			"EMERGENCY WAKEUP: battery almost empty\n");
-+		/* how to auto-heal: */
-+		/* 2313: woke up from S3, go to S4/S5 */
-+		/* 2413: woke up from S4, go to S5 */
-+		break;
-+
- 	default:
- 		return false;
- 	}
-@@ -2660,6 +2671,45 @@ static bool hotkey_notify_usrevent(const u32 hkey,
- 	}
- }
- 
-+static bool hotkey_notify_thermal(const u32 hkey,
-+				 bool *send_acpi_ev,
-+				 bool *ignore_acpi_ev)
-+{
-+	/* 0x6000-0x6FFF: thermal alarms */
-+	*send_acpi_ev = true;
-+	*ignore_acpi_ev = false;
-+
-+	switch (hkey) {
-+	case 0x6011:
-+		printk(TPACPI_CRIT
-+			"THERMAL ALARM: battery is too hot!\n");
-+		/* recommended action: warn user through gui */
-+		return true;
-+	case 0x6012:
-+		printk(TPACPI_ALERT
-+			"THERMAL EMERGENCY: battery is extremely hot!\n");
-+		/* recommended action: immediate sleep/hibernate */
-+		return true;
-+	case 0x6021:
-+		printk(TPACPI_CRIT
-+			"THERMAL ALARM: "
-+			"a sensor reports something is too hot!\n");
-+		/* recommended action: warn user through gui, that */
-+		/* some internal component is too hot */
-+		return true;
-+	case 0x6022:
-+		printk(TPACPI_ALERT
-+			"THERMAL EMERGENCY: "
-+			"a sensor reports something is extremely hot!\n");
-+		/* recommended action: immediate sleep/hibernate */
-+		return true;
-+	default:
-+		printk(TPACPI_ALERT
-+			 "THERMAL ALERT: unknown thermal alarm received\n");
-+		return false;
-+	}
-+}
-+
- static void hotkey_notify(struct ibm_struct *ibm, u32 event)
+@@ -1879,7 +1879,7 @@ static ssize_t hotkey_mask_show(struct device *dev,
  {
- 	u32 hkey;
-@@ -2732,6 +2782,11 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- 			known_ev = hotkey_notify_usrevent(hkey, &send_acpi_ev,
- 						 &ignore_acpi_ev);
- 			break;
-+		case 6:
-+			/* 0x6000-0x6FFF: thermal alarms */
-+			known_ev = hotkey_notify_thermal(hkey, &send_acpi_ev,
-+						 &ignore_acpi_ev);
-+			break;
- 		case 7:
- 			/* 0x7000-0x7FFF: misc */
- 			if (tp_features.hotkey_wlsw && hkey == 0x7000) {
+ 	int res;
+ 
+-	if (mutex_lock_interruptible(&hotkey_mutex))
++	if (mutex_lock_killable(&hotkey_mutex))
+ 		return -ERESTARTSYS;
+ 	res = hotkey_mask_get();
+ 	mutex_unlock(&hotkey_mutex);
+@@ -1898,7 +1898,7 @@ static ssize_t hotkey_mask_store(struct device *dev,
+ 	if (parse_strtoul(buf, 0xffffffffUL, &t))
+ 		return -EINVAL;
+ 
+-	if (mutex_lock_interruptible(&hotkey_mutex))
++	if (mutex_lock_killable(&hotkey_mutex))
+ 		return -ERESTARTSYS;
+ 
+ 	res = hotkey_mask_set(t);
+@@ -1984,7 +1984,7 @@ static ssize_t hotkey_source_mask_store(struct device *dev,
+ 		((t & ~TPACPI_HKEY_NVRAM_KNOWN_MASK) != 0))
+ 		return -EINVAL;
+ 
+-	if (mutex_lock_interruptible(&hotkey_mutex))
++	if (mutex_lock_killable(&hotkey_mutex))
+ 		return -ERESTARTSYS;
+ 
+ 	HOTKEY_CONFIG_CRITICAL_START
+@@ -2019,7 +2019,7 @@ static ssize_t hotkey_poll_freq_store(struct device *dev,
+ 	if (parse_strtoul(buf, 25, &t))
+ 		return -EINVAL;
+ 
+-	if (mutex_lock_interruptible(&hotkey_mutex))
++	if (mutex_lock_killable(&hotkey_mutex))
+ 		return -ERESTARTSYS;
+ 
+ 	hotkey_poll_freq = t;
+@@ -2755,7 +2755,7 @@ static int hotkey_read(char *p)
+ 		return len;
+ 	}
+ 
+-	if (mutex_lock_interruptible(&hotkey_mutex))
++	if (mutex_lock_killable(&hotkey_mutex))
+ 		return -ERESTARTSYS;
+ 	res = hotkey_status_get(&status);
+ 	if (!res)
+@@ -2786,7 +2786,7 @@ static int hotkey_write(char *buf)
+ 	if (!tp_features.hotkey)
+ 		return -ENODEV;
+ 
+-	if (mutex_lock_interruptible(&hotkey_mutex))
++	if (mutex_lock_killable(&hotkey_mutex))
+ 		return -ERESTARTSYS;
+ 
+ 	status = -1;
+@@ -5312,7 +5312,7 @@ static int brightness_set(int value)
+ 	    value < 0)
+ 		return -EINVAL;
+ 
+-	res = mutex_lock_interruptible(&brightness_mutex);
++	res = mutex_lock_killable(&brightness_mutex);
+ 	if (res < 0)
+ 		return res;
+ 
+@@ -5850,7 +5850,7 @@ static int fan_get_status_safe(u8 *status)
+ 	int rc;
+ 	u8 s;
+ 
+-	if (mutex_lock_interruptible(&fan_mutex))
++	if (mutex_lock_killable(&fan_mutex))
+ 		return -ERESTARTSYS;
+ 	rc = fan_get_status(&s);
+ 	if (!rc)
+@@ -5933,7 +5933,7 @@ static int fan_set_level_safe(int level)
+ 	if (!fan_control_allowed)
+ 		return -EPERM;
+ 
+-	if (mutex_lock_interruptible(&fan_mutex))
++	if (mutex_lock_killable(&fan_mutex))
+ 		return -ERESTARTSYS;
+ 
+ 	if (level == TPACPI_FAN_LAST_LEVEL)
+@@ -5955,7 +5955,7 @@ static int fan_set_enable(void)
+ 	if (!fan_control_allowed)
+ 		return -EPERM;
+ 
+-	if (mutex_lock_interruptible(&fan_mutex))
++	if (mutex_lock_killable(&fan_mutex))
+ 		return -ERESTARTSYS;
+ 
+ 	switch (fan_control_access_mode) {
+@@ -6010,7 +6010,7 @@ static int fan_set_disable(void)
+ 	if (!fan_control_allowed)
+ 		return -EPERM;
+ 
+-	if (mutex_lock_interruptible(&fan_mutex))
++	if (mutex_lock_killable(&fan_mutex))
+ 		return -ERESTARTSYS;
+ 
+ 	rc = 0;
+@@ -6048,7 +6048,7 @@ static int fan_set_speed(int speed)
+ 	if (!fan_control_allowed)
+ 		return -EPERM;
+ 
+-	if (mutex_lock_interruptible(&fan_mutex))
++	if (mutex_lock_killable(&fan_mutex))
+ 		return -ERESTARTSYS;
+ 
+ 	rc = 0;
+@@ -6250,7 +6250,7 @@ static ssize_t fan_pwm1_store(struct device *dev,
+ 	/* scale down from 0-255 to 0-7 */
+ 	newlevel = (s >> 5) & 0x07;
+ 
+-	if (mutex_lock_interruptible(&fan_mutex))
++	if (mutex_lock_killable(&fan_mutex))
+ 		return -ERESTARTSYS;
+ 
+ 	rc = fan_get_status(&status);
 -- 
 1.5.6.5
 
