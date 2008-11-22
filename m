@@ -1,40 +1,39 @@
-From: "HARUETHAI NIELSEN" <HSS06065@stud.mah.se>
-Subject: Ref No: Ref: UK/6733X2/98
-Date: Sat, 22 Nov 2008 11:41:21 +0100
-Message-ID: <1227350481.97a53cdcHSS06065@stud.mah.se>
-Reply-To: claim.dept.2008@live.com
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: Re: [PATCH] ACPI suspend: Blacklist HP xw4600 Workstation for old code ordering
+Date: Sat, 22 Nov 2008 11:11:49 +0000
+Message-ID: <200811221111.50952.carlos@strangeworlds.co.uk>
+References: <200810142254.07024.rjw@sisk.pl> <20081015141526.GA5633@srcf.ucam.org> <200810152320.06167.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailFilter.mah.se ([195.178.227.6]:17507 "EHLO
-	MAILFILTER.MAH.SE" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756711AbYKVLIv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 22 Nov 2008 06:08:51 -0500
-Received: from stud.mah.se (BUSTER.mah.se [195.178.227.248])
-	by MAILFILTER.MAH.SE (Postfix) with ESMTP id 2C9AC692002
-	for <linux-acpi@vger.kernel.org>; Sat, 22 Nov 2008 11:41:21 +0100 (CET)
+Received: from phoenix.slamd64.com ([217.10.145.2]:38051 "EHLO
+	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756880AbYKVL0e (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 22 Nov 2008 06:26:34 -0500
+In-Reply-To: <200810152320.06167.rjw@sisk.pl>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, John Brown <john.brown3@hp.com>
 
-Ref No: Ref: UK/6733X2/98
-Batch Number: 247/o8/ZM329
+On Wednesday 15 October 2008 22:20:05 Rafael J. Wysocki wrote:
+> > > IOW, we aren't doing anything wrong and the BIOS is buggy.
+> >
+> > So how does Windows cope with this?
+>
+> I don't know. :-(
+>
+> One possible explanation is that the device causing the trouble is not put
+> into D3 at all during suspend, but I'm speculating here.
 
-You have won =A3891,630.00GBP.
-Contact Mr Way Eddyson with the following informations.
-Name:Address:Age:Occupation:Country:Tel:
+Do we know which device it is that causes the trouble on this HP box?
 
-E-mail:claim.dept.2008@live.com
-Phone: +447045745374
+-Carlos
+-- 
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
 
-
---=20
-This message has been scanned for viruses and
-dangerous content by MailScanner, and is
-believed to be clean.
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
