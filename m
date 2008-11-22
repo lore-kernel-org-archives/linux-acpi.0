@@ -1,74 +1,40 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH]  ACPI: Check _PSS invalidation when BIOS report _PSS
- with  all 0x80000000
-Date: Fri, 21 Nov 2008 15:08:39 -0800
-Message-ID: <20081121150839.58dbedfa.akpm@linux-foundation.org>
-References: <3606.172.16.183.72.1227236916.squirrel@linux.intel.com>
+From: "HARUETHAI NIELSEN" <HSS06065@stud.mah.se>
+Subject: Ref No: Ref: UK/6733X2/98
+Date: Sat, 22 Nov 2008 11:41:21 +0100
+Message-ID: <1227350481.97a53cdcHSS06065@stud.mah.se>
+Reply-To: claim.dept.2008@live.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39400 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752840AbYKUXIm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 21 Nov 2008 18:08:42 -0500
-In-Reply-To: <3606.172.16.183.72.1227236916.squirrel@linux.intel.com>
+Received: from mailFilter.mah.se ([195.178.227.6]:17507 "EHLO
+	MAILFILTER.MAH.SE" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756711AbYKVLIv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 22 Nov 2008 06:08:51 -0500
+Received: from stud.mah.se (BUSTER.mah.se [195.178.227.248])
+	by MAILFILTER.MAH.SE (Postfix) with ESMTP id 2C9AC692002
+	for <linux-acpi@vger.kernel.org>; Sat, 22 Nov 2008 11:41:21 +0100 (CET)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: youquan_song@linux.intel.com
-Cc: linux-acpi@vger.kernel.org, venkatesh.pallipadi@intel.com, len.brown@intel.com, linux-kernel@vger.kernel.org
 
-On Thu, 20 Nov 2008 19:08:36 -0800 (PST)
-youquan_song@linux.intel.com wrote:
+Ref No: Ref: UK/6733X2/98
+Batch Number: 247/o8/ZM329
 
-> Subject: Check _PSS invalidation when BIOS report _PSS with 0x80000000
-> 
-> When cpu frequencey scaling disable,some BIOS report _PSS with all
-> 0x80000000.
-> If kernel treat this case as valid, the kernel will boot crash when load
-> cpufreq govenors.
-> 
-> So in order to cover more buggy BIOSs, the patch just check _PSS core
-> frequencey invalidtion.
-> 
+You have won =A3891,630.00GBP.
+Contact Mr Way Eddyson with the following informations.
+Name:Address:Age:Occupation:Country:Tel:
 
-It's unclear how many machines this will affect, and what the effects
-of not having the patch are upon those machines.  That is useful
-information for people who are deciding whcih kernel versions this
-patch should be merged into.
+E-mail:claim.dept.2008@live.com
+Phone: +447045745374
 
-Do you think this fix is needed in 2.6.28?  2.6.27.x?  2.6.26.x?  etc?
 
-> 
-> --- linux-2.6-tip-orignal/drivers/acpi/processor_perflib.c	2008-11-20
-> 12:25:05.000000000 -0500
-> +++ linux-2.6-tip/drivers/acpi/processor_perflib.c	2008-11-20
-> 12:23:57.000000000 -0500
+--=20
+This message has been scanned for viruses and
+dangerous content by MailScanner, and is
+believed to be clean.
 
-Your email client is wordwrapping the text, btw.
-
-> @@ -50,6 +50,7 @@
->  #define ACPI_PROCESSOR_CLASS		"processor"
->  #define ACPI_PROCESSOR_FILE_PERFORMANCE	"performance"
->  #define _COMPONENT		ACPI_PROCESSOR_COMPONENT
-> +#define ACPI_PROCESSOR_PSS_INVALID	0x80000000
->  ACPI_MODULE_NAME("processor_perflib");
-> 
->  static DEFINE_MUTEX(performance_mutex);
-> @@ -324,6 +325,14 @@
->  			kfree(pr->performance->states);
->  			goto end;
->  		}
-> +
-> +		if (px->core_frequency == ACPI_PROCESSOR_PSS_INVALID) {
-> +			printk(KERN_ERR PREFIX
-> +				    "P-states disabled in the BIOS\n");
-> +			result = -EFAULT;
-> +			kfree(pr->performance->states);
-> +			goto end;
-> +		}
->  	}
-> 
->        end:
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
