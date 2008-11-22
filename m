@@ -1,53 +1,39 @@
-From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: [PATCH 10/11] ACPI: thinkpad-acpi: start the event
-	hunt season
-Date: Sat, 22 Nov 2008 09:48:52 -0200
-Message-ID: <1227354533-19788-11-git-send-email-hmh@hmh.eng.br>
-References: <1227354533-19788-1-git-send-email-hmh@hmh.eng.br>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] ACPI suspend: Blacklist HP xw4600 Workstation for old code ordering
+Date: Sat, 22 Nov 2008 13:56:07 +0100
+Message-ID: <200811221356.08294.rjw@sisk.pl>
+References: <200810142254.07024.rjw@sisk.pl> <200810152320.06167.rjw@sisk.pl> <200811221111.50952.carlos@strangeworlds.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1227354533-19788-1-git-send-email-hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:36901 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757195AbYKVM4y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 22 Nov 2008 07:56:54 -0500
+In-Reply-To: <200811221111.50952.carlos@strangeworlds.co.uk>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, John Brown <john.brown3@hp.com>
 
-Ask users to tell us about any unhandled events they find.
+On Saturday, 22 of November 2008, Carlos Corbacho wrote:
+> On Wednesday 15 October 2008 22:20:05 Rafael J. Wysocki wrote:
+> > > > IOW, we aren't doing anything wrong and the BIOS is buggy.
+> > >
+> > > So how does Windows cope with this?
+> >
+> > I don't know. :-(
+> >
+> > One possible explanation is that the device causing the trouble is not put
+> > into D3 at all during suspend, but I'm speculating here.
+> 
+> Do we know which device it is that causes the trouble on this HP box?
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
----
- drivers/misc/thinkpad_acpi.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+Not really, but most probably is one of the USB controllers.  Hopefully, we'll
+find out.
 
-diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 243e131..dbdb604 100644
---- a/drivers/misc/thinkpad_acpi.c
-+++ b/drivers/misc/thinkpad_acpi.c
-@@ -2802,6 +2802,9 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- 		if (!known_ev) {
- 			printk(TPACPI_NOTICE
- 			       "unhandled HKEY event 0x%04x\n", hkey);
-+			printk(TPACPI_NOTICE
-+			       "please report the conditions when this "
-+			       "event happened to %s\n", TPACPI_MAIL);
- 		}
- 
- 		/* Legacy events */
--- 
-1.5.6.5
-
-
--------------------------------------------------------------------------
-This SF.Net email is sponsored by the Moblin Your Move Developer's challenge
-Build the coolest Linux based applications with Moblin SDK & win great prizes
-Grand prize is a trip for two to an Open Source event anywhere in the world
-http://moblin-contest.org/redirect.php?banner_id=100&url=/
+Thanks,
+Rafael
