@@ -1,35 +1,59 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Regression: ACPI AC driver doesn't work on Toshiba Portege R500
-Date: Sun, 23 Nov 2008 00:53:13 +0100
-Message-ID: <200811230053.14211.rjw@sisk.pl>
+From: Andrey Borzenkov <arvidjaar@mail.ru>
+Subject: More vendor vs. ACPI methods - FAN?
+Date: Sun, 23 Nov 2008 07:31:39 +0300
+Message-ID: <200811230731.43966.arvidjaar@mail.ru>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
+Content-Type: multipart/signed;
+  boundary="nextPart1741645.CV9efCpfXa";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:38081 "EHLO ogre.sisk.pl"
+Received: from mx71.mail.ru ([194.67.23.4]:50721 "EHLO mx71.mail.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753588AbYKVXxo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 22 Nov 2008 18:53:44 -0500
-Content-Disposition: inline
+	id S1753536AbYKWEbr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 22 Nov 2008 23:31:47 -0500
+Received: from [91.77.249.218] (port=4168 helo=cooker.net)
+	by mx71.mail.ru with asmtp
+	id 1L46dN-000A2Q-00
+	for linux-acpi@vger.kernel.org; Sun, 23 Nov 2008 07:31:45 +0300
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
 
-Hi,
+--nextPart1741645.CV9efCpfXa
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-With current mainline (2.6.28-rc6-git1 as of today) on Toshiba Portege R500 the
-status of the AC adapter is not updated when the adapter is unplugged and
-plugged in.  Evidently, /sys/class/power_supply/ADP1/online always contains the
-same value.  Interestingly enough, though, if the box is suspended to RAM and
-resumed, the status of the AC adapter is correctly updated, but the value read
-at that time remains in /sys/class/power_supply/ADP1/online until the next
-suspend/resume cycle regardless of what's going on with the AC adapter.
+On the same poor old Toshiba Portege 4000:
 
-2.6.27.7 works correctly on this box so the recent EC patches don't seem to
-cause this regression to happen.
+{pts/1}% cat /proc/acpi/power_resource/PFAN/state
+state:                   off
+system level:            S0
+order:                   0
+reference count:         0
+{pts/1}% cat /sys/class/thermal/cooling_device0/cur_state
+0
+{pts/1}% cat /sys/class/thermal/cooling_device1/cur_state
+0
+{pts/1}% cat /proc/acpi/toshiba/fan
+running:                 1
+force_on:                0
 
-Any other ideas?
+Looks like we need something similar to video handlink for FAN as well ...
 
-Rafael
+--nextPart1741645.CV9efCpfXa
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEABECAAYFAkko3KwACgkQR6LMutpd94xbdgCgubOL42jnp66UPE8nF/zuzFng
+/KwAn28Yzu5r1Sz9iN/uFNFvBJNyqDzK
+=VP4J
+-----END PGP SIGNATURE-----
+
+--nextPart1741645.CV9efCpfXa--
