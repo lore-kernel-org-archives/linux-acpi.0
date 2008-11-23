@@ -1,59 +1,45 @@
-From: Andrey Borzenkov <arvidjaar@mail.ru>
-Subject: More vendor vs. ACPI methods - FAN?
-Date: Sun, 23 Nov 2008 07:31:39 +0300
-Message-ID: <200811230731.43966.arvidjaar@mail.ru>
+From: "Maxime Poncet" <maxime.poncet@gmail.com>
+Subject: Re: Unexcepted shutdown in 2.6.28-rc5
+Date: Sun, 23 Nov 2008 15:06:48 +0100
+Message-ID: <4057e7c50811230606u3bc4e2dby7ca419a7cddfcdcb@mail.gmail.com>
+References: <4925EF01.2070405@gmail.com>
+	 <1227229189.3991.3.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1741645.CV9efCpfXa";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx71.mail.ru ([194.67.23.4]:50721 "EHLO mx71.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753536AbYKWEbr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 22 Nov 2008 23:31:47 -0500
-Received: from [91.77.249.218] (port=4168 helo=cooker.net)
-	by mx71.mail.ru with asmtp
-	id 1L46dN-000A2Q-00
-	for linux-acpi@vger.kernel.org; Sun, 23 Nov 2008 07:31:45 +0300
+Received: from ug-out-1314.google.com ([66.249.92.172]:25970 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758146AbYKWOGu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 23 Nov 2008 09:06:50 -0500
+Received: by ug-out-1314.google.com with SMTP id 39so537514ugf.37
+        for <linux-acpi@vger.kernel.org>; Sun, 23 Nov 2008 06:06:49 -0800 (PST)
+In-Reply-To: <1227229189.3991.3.camel@yakui_zhao.sh.intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
---nextPart1741645.CV9efCpfXa
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+2008/11/21, Zhao Yakui <yakui.zhao@intel.com>:
+> Will you please add the boot option of "thermal.nocrt=1" and attach the
+> following output?
+>    a. acpidump
+>    b. dmesg
+>    c. cat /proc/acpi/thermal_zone/*/*
+>
+> Of course you can file a bug report at
+> http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
+> and attach the output of acpidump, dmesg.
+>
+I will try 2.6.28-rc6 to check if this bug disappear.
+I have tried several times to send attachement but I can't see my
+email on http://marc.info/?l=linux-acpi&r=1&b=200811&w=2.
+I think it's because I'am using thunderbird.
 
-On the same poor old Toshiba Portege 4000:
+> Will you please add the boot option of "acpi.power_nocheck=1" and see
+> whether the following message still exists?
+>  >ACPI: Transitioning device [FAN] to D3
+>  >ACPI: Unable to turn cooling device [ffff81007fb656d0] 'off'
+>
 
-{pts/1}% cat /proc/acpi/power_resource/PFAN/state
-state:                   off
-system level:            S0
-order:                   0
-reference count:         0
-{pts/1}% cat /sys/class/thermal/cooling_device0/cur_state
-0
-{pts/1}% cat /sys/class/thermal/cooling_device1/cur_state
-0
-{pts/1}% cat /proc/acpi/toshiba/fan
-running:                 1
-force_on:                0
-
-Looks like we need something similar to video handlink for FAN as well ...
-
---nextPart1741645.CV9efCpfXa
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEABECAAYFAkko3KwACgkQR6LMutpd94xbdgCgubOL42jnp66UPE8nF/zuzFng
-/KwAn28Yzu5r1Sz9iN/uFNFvBJNyqDzK
-=VP4J
------END PGP SIGNATURE-----
-
---nextPart1741645.CV9efCpfXa--
+This message disappear using this boot option.
