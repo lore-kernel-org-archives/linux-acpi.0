@@ -1,84 +1,32 @@
-From: "Youquan,Song" <youquan.song@linux.intel.com>
-Subject: Re: [PATCH]  ACPI: Check _PSS invalidation when BIOS report _PSS with  all 0x80000000
-Date: Mon, 24 Nov 2008 18:02:08 -0500
-Message-ID: <20081124230208.GA21491@youquan-linux.bj.intel.com>
-References: <3606.172.16.183.72.1227236916.squirrel@linux.intel.com> <20081121150839.58dbedfa.akpm@linux-foundation.org>
+From: Olivier BILLET <olivier.billet@orange-ftgroup.com>
+Subject: acpi info
+Date: Mon, 24 Nov 2008 18:48:06 +0100
+Message-ID: <20081124184806.6626c429@p-abel.rd.francetelecom.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:23848 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752751AbYKXPPa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 24 Nov 2008 10:15:30 -0500
-Content-Disposition: inline
-In-Reply-To: <20081121150839.58dbedfa.akpm@linux-foundation.org>
+Received: from p-mail2.rd.francetelecom.com ([195.101.245.16]:3875 "EHLO
+	p-mail2.rd.francetelecom.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753784AbYKXSxf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 24 Nov 2008 13:53:35 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-acpi@vger.kernel.org, venkatesh.pallipadi@intel.com, len.brown@intel.com, linux-kernel@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Fri, Nov 21, 2008 at 03:08:39PM -0800, Andrew Morton wrote:
-> On Thu, 20 Nov 2008 19:08:36 -0800 (PST)
-> youquan_song@linux.intel.com wrote:
-> 
-> > Subject: Check _PSS invalidation when BIOS report _PSS with 0x80000000
-> > 
-> > When cpu frequencey scaling disable,some BIOS report _PSS with all
-> > 0x80000000.
-> > If kernel treat this case as valid, the kernel will boot crash when load
-> > cpufreq govenors.
-> > 
-> > So in order to cover more buggy BIOSs, the patch just check _PSS core
-> > frequencey invalidtion.
-> > 
-> 
-> It's unclear how many machines this will affect, and what the effects
-> of not having the patch are upon those machines.  That is useful
-> information for people who are deciding whcih kernel versions this
-> patch should be merged into.
+Hi,
 
-I meet 2 machines that if the P-states is disabled in BIOS, the kernel
-will boot crash at loading cpufreq_userspace governor because kernel
-consider that P-states validate. I know there are some other machines
-also exist this bug.
+ kernel: [    0.436005] ACPI: BIOS _OSI(Linux) query ignored
+ kernel: [    0.436028] ACPI: DMI System Vendor: Dell Inc.
+ kernel: [    0.436088] ACPI: DMI Product Name: Precision WorkStation T5400  
+ kernel: [    0.437123] ACPI: DMI Product Version: 
+ kernel: [    0.437182] ACPI: DMI Board Name: 0RW203
+ kernel: [    0.437240] ACPI: DMI BIOS Vendor: Dell Inc.
+ kernel: [    0.437299] ACPI: DMI BIOS Date: 02/01/2008
+ kernel: [    0.437358] ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
 
-> 
-> Do you think this fix is needed in 2.6.28?  2.6.27.x?  2.6.26.x?  etc?
-> 
 
-I know that the bug exists in kernel as old as 2.6.18 and also exits on
-2.6.28, 2.6.27 etc. 
+So here it is :)
 
-> > 
-> > --- linux-2.6-tip-orignal/drivers/acpi/processor_perflib.c	2008-11-20
-> > 12:25:05.000000000 -0500
-> > +++ linux-2.6-tip/drivers/acpi/processor_perflib.c	2008-11-20
-> > 12:23:57.000000000 -0500
-> 
-> Your email client is wordwrapping the text, btw.
-> 
-> > @@ -50,6 +50,7 @@
-> >  #define ACPI_PROCESSOR_CLASS		"processor"
-> >  #define ACPI_PROCESSOR_FILE_PERFORMANCE	"performance"
-> >  #define _COMPONENT		ACPI_PROCESSOR_COMPONENT
-> > +#define ACPI_PROCESSOR_PSS_INVALID	0x80000000
-> >  ACPI_MODULE_NAME("processor_perflib");
-> > 
-> >  static DEFINE_MUTEX(performance_mutex);
-> > @@ -324,6 +325,14 @@
-> >  			kfree(pr->performance->states);
-> >  			goto end;
-> >  		}
-> > +
-> > +		if (px->core_frequency == ACPI_PROCESSOR_PSS_INVALID) {
-> > +			printk(KERN_ERR PREFIX
-> > +				    "P-states disabled in the BIOS\n");
-> > +			result = -EFAULT;
-> > +			kfree(pr->performance->states);
-> > +			goto end;
-> > +		}
-> >  	}
-> > 
-> >        end:
-> 
-> 
+Olivier
