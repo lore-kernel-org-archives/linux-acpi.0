@@ -1,61 +1,68 @@
-From: Ferenc Wagner <wferi@niif.hu>
-Subject: Re: battery: current a factor of 10 off? [fix confirmed]
-Date: Mon, 24 Nov 2008 10:31:25 +0100
-Message-ID: <87myfpii6q.fsf@tac.ki.iif.hu>
-References: <87skplx6ho.fsf@szonett.ki.iif.hu>
-	<8f8ff01d0811202009r2d1fedcct9a383f9362c5a064@mail.gmail.com>
-	<4926C87D.20308@gmail.com> <878wr9j3v9.fsf_-_@szonett.ki.iif.hu>
-	<492A5B64.1080306@gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Regression: ACPI AC driver doesn't work on Toshiba Portege R500 (bisected)
+Date: Mon, 24 Nov 2008 14:27:05 +0100
+Message-ID: <200811241427.05815.rjw@sisk.pl>
+References: <200811230053.14211.rjw@sisk.pl> <200811240037.15835.rjw@sisk.pl> <200811240202.59513.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from tac.ki.iif.hu ([193.6.222.43]:52114 "EHLO tac.ki.iif.hu"
+Received: from ogre.sisk.pl ([217.79.144.158]:41784 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751187AbYKXJb2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 24 Nov 2008 04:31:28 -0500
-In-Reply-To: <492A5B64.1080306@gmail.com> (Alexey Starikovskiy's message of
-	"Mon, 24 Nov 2008 10:44:36 +0300")
+	id S1750823AbYKXN1w (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 24 Nov 2008 08:27:52 -0500
+In-Reply-To: <200811240202.59513.rjw@sisk.pl>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, walken <walken@zoy.org>
 
-Alexey Starikovskiy <aystarik@gmail.com> writes:
+On Monday, 24 of November 2008, Rafael J. Wysocki wrote:
+> On Monday, 24 of November 2008, Rafael J. Wysocki wrote:
+> > On Sunday, 23 of November 2008, Rafael J. Wysocki wrote:
+> > > Hi,
+> > > 
+> > > With current mainline (2.6.28-rc6-git1 as of today) on Toshiba Portege R500 the
+> > > status of the AC adapter is not updated when the adapter is unplugged and
+> > > plugged in.  Evidently, /sys/class/power_supply/ADP1/online always contains the
+> > > same value.  Interestingly enough, though, if the box is suspended to RAM and
+> > > resumed, the status of the AC adapter is correctly updated, but the value read
+> > > at that time remains in /sys/class/power_supply/ADP1/online until the next
+> > > suspend/resume cycle regardless of what's going on with the AC adapter.
+> > > 
+> > > 2.6.27.7 works correctly on this box so the recent EC patches don't seem to
+> > > cause this regression to happen.
+> > > 
+> > > Any other ideas?
+> > 
+> > The problem was introduced by the following commit:
+> > 
+> > commit faee816b1502385dc9bc5abf2960d1cc645844d1
+> > Author: Zhang Rui <rui.zhang@intel.com>
+> > Date:   Fri Sep 12 11:12:25 2008 +0800
+> > 
+> >     ACPI: don't enable control method power button as wakeup device when Fixed Power button is used
+> > 
+> >     don't enable control method power button as wakeup device
+> >     when Fixed Power button is used.
+> > 
+> >     http://bugzilla.kernel.org/show_bug.cgi?id=10503
+> > 
+> >     Tested-by: walken@zoy.org <walken@zoy.org>
+> >     Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> >     Signed-off-by: Len Brown <len.brown@intel.com>
+> > 
+> > Reverting this commit on top of the current mainline makes the kernel behave
+> > correctly again.
+> 
+> Alas, after reverting the patch the box hangs on resume from suspend to RAM
+> when it is woken up by opening the lid.
 
-> Ferenc Wagner wrote:
->
->> Alexey Starikovskiy <aystarik@gmail.com> writes:
->>
->>> Alexey Starikovskiy wrote:
->>>
->>>> On Fri, Nov 21, 2008 at 3:33 AM, Ferenc Wagner <wferi@niif.hu> wrote:
->>>>
->>>>> on my ThinkPad R50e the current_now reading seems something like 10
->>>>> times the actual value.  [...]
->>>>
->>>> Good catch.  ACPI battery interface report its state either in mW
->>>> or in mA, and discharge rate in your case is reported in
->>>> mW. power_supply interface does not have such a parameter, so
->>>> current_now parameter is used for all cases. But in case of mW,
->>>> reported discharge should be converted into mA.
->>>>
->>>> Please test the attached patch.
->>>
->>> This patch should be better -- no integer overflow.
->>
->> Thanks, this patch really fixes the issue (tried on 2.6.28-rc6).
->> Hope to see it soon in Linus' tree!
->
-> Great! Do you want to be memorized by "Tested-by:" line?
+This was actually wrong.  There is a separate resume regression on this box,
+caused most probably by DRM, so in fact the reverting of the commit above is
+fine.
 
-Feel free to quote me if you see fit.
-
->> Btw. that kernel gives me two ACPI warnings on boot:
->
-> These issues are already known, and second even has a patch lurking
-> somewhere in this list... So no action required.
-
-Glad to hear.  Thanks for the good work!
--- 
-Cheers,
-Feri.
+Thanks,
+Rafael
