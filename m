@@ -1,61 +1,77 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] ACPI: Revert commit faee816b150238 due to regression
-Date: Tue, 25 Nov 2008 10:36:52 +0100
-Message-ID: <200811251036.53084.rjw@sisk.pl>
-References: <200811230053.14211.rjw@sisk.pl> <200811241430.02434.rjw@sisk.pl> <1227576051.15014.305.camel@rzhang-dt>
+From: Pavel Machek <pavel@suse.cz>
+Subject: acpi_evaluate_integer broken by design
+Date: Tue, 25 Nov 2008 12:05:08 +0100
+Message-ID: <20081125110508.GA1943@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:44839 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751038AbYKYJhZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 25 Nov 2008 04:37:25 -0500
-In-Reply-To: <1227576051.15014.305.camel@rzhang-dt>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:54310 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752518AbYKYLDV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Nov 2008 06:03:21 -0500
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Zhang Rui <rui.zhang@intel.com>, "Zhao, Yakui" <yakui.zhao@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, LKML <linux-kernel@vger.kernel.org>, walken <walken@zoy.org>
+To: kernel list <linux-kernel@vger.kernel.org>, ACPI mailing list <linux-acpi@vger.kernel.org>, Len Brown <len.brown@intel.com>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
-Subject: ACPI: Revert commit faee816b150238 due to regression
 
-Commit faee816b1502385dc9bc5abf2960d1cc645844d1
-"ACPI: don't enable control method power button as wakeup device
-when Fixed Power button is used" caused the regression tracked
-as http://bugzilla.kernel.org/show_bug.cgi?id=12091 (there are no
-AC adapter events on Toshiba Portege R500) and the problem this
-commit was intended to fix can be fixed differently.
+Now I know why I had strange "scheduling in atomic" problems:
+acpi_evaluate_integer() does malloc(..., irqs_disabled() ? GFP_ATOMIC
+: GFP_KERNEL)... which is (of course) broken.
 
-For this reason, the author of the commit, Zhang Rui, has requested
-that it be reverted.
+There's no way to reliably tell if we need GFP_ATOMIC or not from
+code, this one for example fails to detect spinlocks held.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Zhang Rui <rui.zhang@intel.com>
----
- drivers/acpi/scan.c |   10 ----------
- 1 file changed, 10 deletions(-)
+Fortunately, allocation seems small enough to be done on stack.
 
-Index: linux-2.6/drivers/acpi/scan.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/scan.c
-+++ linux-2.6/drivers/acpi/scan.c
-@@ -751,16 +751,6 @@ static int acpi_bus_get_wakeup_device_fl
- 	if (!acpi_match_device_ids(device, button_device_ids))
- 		device->wakeup.flags.run_wake = 1;
+Signed-off-by: Pavel Machek <pavel@suse.cz>
+
+diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+index e827be3..f844941 100644
+--- a/drivers/acpi/utils.c
++++ b/drivers/acpi/utils.c
+@@ -259,34 +259,26 @@ acpi_evaluate_integer(acpi_handle handle
+ 		      struct acpi_object_list *arguments, unsigned long long *data)
+ {
+ 	acpi_status status = AE_OK;
+-	union acpi_object *element;
++	union acpi_object element;
+ 	struct acpi_buffer buffer = { 0, NULL };
  
--	/*
--	 * Don't set Power button GPE as run_wake
--	 * if Fixed Power button is used
--	 */
--	if (!strcmp(device->pnp.hardware_id, "PNP0C0C") &&
--		!(acpi_gbl_FADT.flags & ACPI_FADT_POWER_BUTTON)) {
--		device->wakeup.flags.run_wake = 0;
--		device->wakeup.flags.valid = 0;
--	}
 -
-       end:
- 	if (ACPI_FAILURE(status))
- 		device->flags.wake_capable = 0;
+ 	if (!data)
+ 		return AE_BAD_PARAMETER;
+ 
+-	element = kzalloc(sizeof(union acpi_object), irqs_disabled() ? GFP_ATOMIC: GFP_KERNEL);
+-	if (!element)
+-		return AE_NO_MEMORY;
+-
+ 	buffer.length = sizeof(union acpi_object);
+-	buffer.pointer = element;
++	buffer.pointer = &element;
+ 	status = acpi_evaluate_object(handle, pathname, arguments, &buffer);
+ 	if (ACPI_FAILURE(status)) {
+ 		acpi_util_eval_error(handle, pathname, status);
+-		kfree(element);
+ 		return status;
+ 	}
+ 
+-	if (element->type != ACPI_TYPE_INTEGER) {
++	if (element.type != ACPI_TYPE_INTEGER) {
+ 		acpi_util_eval_error(handle, pathname, AE_BAD_DATA);
+-		kfree(element);
+ 		return AE_BAD_DATA;
+ 	}
+ 
+-	*data = element->integer.value;
+-	kfree(element);
++	*data = element.integer.value;
+ 
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Return value [%llu]\n", *data));
+ 
+
+
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
