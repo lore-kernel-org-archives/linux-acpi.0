@@ -1,93 +1,108 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: acpi_evaluate_integer broken by design
-Date: Tue, 25 Nov 2008 10:41:49 -0800
-Message-ID: <4911F71203A09E4D9981D27F9D8308580DBD2E11@orsmsx503.amr.corp.intel.com>
-References: <20081125110508.GA1943@elf.ucw.cz>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: [PATCH (resend)] acpiphp: Identify more removable slots
+Date: Tue, 25 Nov 2008 21:48:14 +0000
+Message-ID: <20081125214814.GA17248@srcf.ucam.org>
+References: <20081113235255.GA17709@srcf.ucam.org> <20081117134952.GA12932@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753554AbYKYSmb@vger.kernel.org>
-In-Reply-To: <20081125110508.GA1943@elf.ucw.cz>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@suse.cz>, kernel list <linux-kernel@vger.kernel.org>, ACPI mailing list <linux-acpi@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20081117134952.GA12932@srcf.ucam.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: linux-pci@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, kristen.c.accardi@intel.com
 List-Id: linux-acpi@vger.kernel.org
 
-I agree, it should be allocated on the stack, like it is most everywhere else.
+According to section 6.3.6 of the ACPI spec, the presence of an _RMV 
+method that evaluates to 1 is sufficient to indicate that a slot is 
+removable without needing an eject method. This patch refactors the 
+ejectable slot detection code a little in order to flag these slots as 
+ejectable and register them. Acpihp then binds to the expresscard slot 
+on my HP test machine.
 
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
 
->-----Original Message-----
->From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
->owner@vger.kernel.org] On Behalf Of Pavel Machek
->Sent: Tuesday, November 25, 2008 3:05 AM
->To: kernel list; ACPI mailing list; Brown, Len
->Subject: acpi_evaluate_integer broken by design
->
->
->Now I know why I had strange "scheduling in atomic" problems:
->acpi_evaluate_integer() does malloc(..., irqs_disabled() ? GFP_ATOMIC
->: GFP_KERNEL)... which is (of course) broken.
->
->There's no way to reliably tell if we need GFP_ATOMIC or not from
->code, this one for example fails to detect spinlocks held.
->
->Fortunately, allocation seems small enough to be done on stack.
->
->Signed-off-by: Pavel Machek <pavel@suse.cz>
->
->diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
->index e827be3..f844941 100644
->--- a/drivers/acpi/utils.c
->+++ b/drivers/acpi/utils.c
->@@ -259,34 +259,26 @@ acpi_evaluate_integer(acpi_handle handle
-> 		      struct acpi_object_list *arguments, unsigned long long
->*data)
-> {
-> 	acpi_status status = AE_OK;
->-	union acpi_object *element;
->+	union acpi_object element;
-> 	struct acpi_buffer buffer = { 0, NULL };
->
->-
-> 	if (!data)
-> 		return AE_BAD_PARAMETER;
->
->-	element = kzalloc(sizeof(union acpi_object), irqs_disabled() ?
->GFP_ATOMIC: GFP_KERNEL);
->-	if (!element)
->-		return AE_NO_MEMORY;
->-
-> 	buffer.length = sizeof(union acpi_object);
->-	buffer.pointer = element;
->+	buffer.pointer = &element;
-> 	status = acpi_evaluate_object(handle, pathname, arguments, &buffer);
-> 	if (ACPI_FAILURE(status)) {
-> 		acpi_util_eval_error(handle, pathname, status);
->-		kfree(element);
-> 		return status;
-> 	}
->
->-	if (element->type != ACPI_TYPE_INTEGER) {
->+	if (element.type != ACPI_TYPE_INTEGER) {
-> 		acpi_util_eval_error(handle, pathname, AE_BAD_DATA);
->-		kfree(element);
-> 		return AE_BAD_DATA;
-> 	}
->
->-	*data = element->integer.value;
->-	kfree(element);
->+	*data = element.integer.value;
->
-> 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Return value [%llu]\n", *data));
->
->
->
->
->--
->(english) http://www.livejournal.com/~pavelmachek
->(cesky, pictures)
->http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
->--
->To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+---
+
+The _LCK handling code requires some more cleanup and ideally some 
+hardware that actually implements it
+
+ drivers/pci/hotplug/acpiphp_glue.c |   32 +++++++++++++++++---------------
+ 1 files changed, 17 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+index 955aae4..e8cef99 100644
+--- a/drivers/pci/hotplug/acpiphp_glue.c
++++ b/drivers/pci/hotplug/acpiphp_glue.c
+@@ -74,7 +74,7 @@ static void handle_hotplug_event_func(acpi_handle handle, u32 type, void *contex
+  * Ejectable slot should satisfy at least these conditions:
+  *
+  *  1. has _ADR method
+- *  2. has _EJ0 method
++ *  2. has _EJ0 method or _RMV method
+  *
+  * optionally
+  *
+@@ -87,18 +87,25 @@ static int is_ejectable(acpi_handle handle)
+ {
+ 	acpi_status status;
+ 	acpi_handle tmp;
++	unsigned long long removable;
+ 
+ 	status = acpi_get_handle(handle, "_ADR", &tmp);
+-	if (ACPI_FAILURE(status)) {
++	if (ACPI_FAILURE(status))
+ 		return 0;
+-	}
+ 
+ 	status = acpi_get_handle(handle, "_EJ0", &tmp);
+-	if (ACPI_FAILURE(status)) {
+-		return 0;
++	if (ACPI_SUCCESS(status))
++		return 1;
++
++	status = acpi_get_handle(handle, "_RMV", &tmp);
++	if (ACPI_SUCCESS(status)) {
++		status = acpi_evaluate_integer(handle, "_RMV", NULL,
++					       &removable);
++		if (ACPI_SUCCESS(status) && removable)
++			return 1;
+ 	}
+ 
+-	return 1;
++	return 0;
+ }
+ 
+ 
+@@ -185,16 +192,10 @@ register_slot(acpi_handle handle, u32 lvl, void *context, void **rv)
+ 	unsigned long long adr, sun;
+ 	int device, function, retval;
+ 
+-	status = acpi_evaluate_integer(handle, "_ADR", NULL, &adr);
+-
+-	if (ACPI_FAILURE(status))
+-		return AE_OK;
+-
+-	status = acpi_get_handle(handle, "_EJ0", &tmp);
+-
+-	if (ACPI_FAILURE(status) && !(is_dock_device(handle)))
++	if (!is_ejectable(handle) && !is_dock_device(handle))
+ 		return AE_OK;
+ 
++	acpi_evaluate_integer(handle, "_ADR", NULL, &adr);
+ 	device = (adr >> 16) & 0xffff;
+ 	function = adr & 0xffff;
+ 
+@@ -205,7 +206,8 @@ register_slot(acpi_handle handle, u32 lvl, void *context, void **rv)
+ 	INIT_LIST_HEAD(&newfunc->sibling);
+ 	newfunc->handle = handle;
+ 	newfunc->function = function;
+-	if (ACPI_SUCCESS(status))
++
++	if (ACPI_SUCCESS(acpi_get_handle(handle, "_EJ0", &tmp)))
+ 		newfunc->flags = FUNC_HAS_EJ0;
+ 
+ 	if (ACPI_SUCCESS(acpi_get_handle(handle, "_STA", &tmp)))
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
