@@ -1,76 +1,44 @@
 From: Lin Ming <ming.m.lin@intel.com>
-Subject: [PATCH 2/8] acpi: replace return_ACPI_STATUS with return
-Date: Wed, 26 Nov 2008 10:53:32 +0800
-Message-ID: <1227668012.7702.89.camel@minggr.sh.intel.com>
+Subject: [PATCH 3/8] acpi: reboot: use acpi_reset interface
+Date: Wed, 26 Nov 2008 10:54:03 +0800
+Message-ID: <1227668043.7702.91.camel@minggr.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:53703 "EHLO mga11.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:10362 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752824AbYKZC6x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 25 Nov 2008 21:58:53 -0500
+	id S1752360AbYKZC7Y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 25 Nov 2008 21:59:24 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 Cc: linux-acpi <linux-acpi@vger.kernel.org>
 
-return_ACPI_STATUS is an internal acpica function.
-Replace it with return.
+We have changed the acpi_hw_low_level_read and acpi_low_level_write functions
+to the public acpi_read and acpi_write to allow direct access to ACPI registers.
+
+acpi_read/write: http://git.acpica.org/repos/?p=acpica.git;a=commitdiff;h=8ce404a262f4eccf8ef484ef7e9a8f3604e031da
+acpi_reset: http://git.acpica.org/repos/?p=acpica.git;a=commitdiff;h=3409e43b6386884be43dd3e6ec54de60e4fc191e
+
 
 Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 ---
- drivers/acpi/osl.c        |    4 ++--
- drivers/acpi/sleep/proc.c |    6 +++---
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/acpi/reboot.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 4be2521..8057a8f 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -737,7 +737,7 @@ static acpi_status __acpi_os_execute(acpi_execute_type type,
- 
- 	dpc = kmalloc(sizeof(struct acpi_os_dpc), GFP_ATOMIC);
- 	if (!dpc)
--		return_ACPI_STATUS(AE_NO_MEMORY);
-+		return AE_NO_MEMORY;
- 
- 	dpc->function = function;
- 	dpc->context = context;
-@@ -758,7 +758,7 @@ static acpi_status __acpi_os_execute(acpi_execute_type type,
- 		status = AE_ERROR;
- 		kfree(dpc);
+diff --git a/drivers/acpi/reboot.c b/drivers/acpi/reboot.c
+index a6b662c..93f9114 100644
+--- a/drivers/acpi/reboot.c
++++ b/drivers/acpi/reboot.c
+@@ -42,7 +42,7 @@ void acpi_reboot(void)
+ 	case ACPI_ADR_SPACE_SYSTEM_MEMORY:
+ 	case ACPI_ADR_SPACE_SYSTEM_IO:
+ 		printk(KERN_DEBUG "ACPI MEMORY or I/O RESET_REG.\n");
+-		acpi_hw_low_level_write(8, reset_value, rr);
++		acpi_reset();
+ 		break;
  	}
--	return_ACPI_STATUS(status);
-+	return status;
- }
- 
- acpi_status acpi_os_execute(acpi_execute_type type,
-diff --git a/drivers/acpi/sleep/proc.c b/drivers/acpi/sleep/proc.c
-index 64e591b..1400510 100644
---- a/drivers/acpi/sleep/proc.c
-+++ b/drivers/acpi/sleep/proc.c
-@@ -230,10 +230,10 @@ acpi_system_write_alarm(struct file *file,
- 	ACPI_FUNCTION_TRACE("acpi_system_write_alarm");
- 
- 	if (count > sizeof(alarm_string) - 1)
--		return_VALUE(-EINVAL);
-+		return -EINVAL;
- 
- 	if (copy_from_user(alarm_string, buffer, count))
--		return_VALUE(-EFAULT);
-+		return -EFAULT;
- 
- 	alarm_string[count] = '\0';
- 
-@@ -334,7 +334,7 @@ acpi_system_write_alarm(struct file *file,
- 
- 	result = 0;
-       end:
--	return_VALUE(result ? result : count);
-+	return result ? result : count;
- }
- #endif				/* HAVE_ACPI_LEGACY_ALARM */
- 
+ 	/* Wait ten seconds */
 
 
