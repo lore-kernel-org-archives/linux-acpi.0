@@ -1,67 +1,156 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: [RFC]  [PATCH] ACPI :Remove the EC space handler explicitly when
-	failing in _REG object
-Date: Wed, 26 Nov 2008 16:50:47 +0800
-Message-ID: <1227689447.4053.5.camel@yakui_zhao.sh.intel.com>
+From: Lin Ming <ming.m.lin@intel.com>
+Subject: Re: [PATCH 7/8] acpi: avoid using internal acpica structures
+Date: Wed, 26 Nov 2008 17:44:53 +0800
+Message-ID: <1227692693.16339.8.camel@minggr.sh.intel.com>
+References: <1227668177.7702.99.camel@minggr.sh.intel.com>
+	 <492D0504.8010301@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:61550 "EHLO mga01.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:4140 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754223AbYKZInn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 26 Nov 2008 03:43:43 -0500
+	id S1750823AbYKZJuS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 26 Nov 2008 04:50:18 -0500
+In-Reply-To: <492D0504.8010301@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: lenb@kernel.org, astarikovskiy@suse.de
+To: Alexey Starikovskiy <aystarik@gmail.com>
+Cc: Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
 
-Hi, All
+On Wed, 2008-11-26 at 16:12 +0800, Alexey Starikovskiy wrote:
+> At least, this patch should be split in two -- for each file it touch=
+es.
 
-    On some laptops as it fails in evaluating the _REG object, which brings that
-EC device can't be initialized correctly. But the EC space handler is not removed.
-In such case maybe EC internal register will still be accessed in AML code. It is
-not reasonable.
-    The following patch is to fix the above issue. When it fails in evaluating the
-_REG object, the EC space handler should be removed explicitly. 
-    Thanks for the comments.
-    
+OK, will split it into two.
 
-    On some laptops the incorrect status is returned by acpi_install_space
-_handler because of the buggy _REG object, which causes that the EC device can't
-be initialized correctly. 
-    In such case it will be appropriate that the EC space handler is removed
-explicitly if OS fails in evaluating _REG object.
+> Second, please don't return failure status from this function, as all=
+=20
+> functions under
+> the EC scope should be tried, and not only ones before first failure.
 
-http://bugzilla.kernel.org/show_bug.cgi?id=11884
+How about below patch?
 
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-cc:Alexey Starikovskiy <astarikovskiy@suse.de>
 ---
- drivers/acpi/ec.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ drivers/acpi/ec.c |   14 +++++++++++---
+ 1 files changed, 11 insertions(+), 3 deletions(-)
 
-Index: linux-2.6/drivers/acpi/ec.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/ec.c
-+++ linux-2.6/drivers/acpi/ec.c
-@@ -916,6 +916,17 @@ static int ec_install_handlers(struct ac
- 			printk(KERN_ERR "Fail in evaluating the _REG object"
- 				" of EC device. Broken bios is suspected.\n");
- 		} else {
-+			/*
-+			 * If incorrect status is returned because of the buggy
-+			 * _REG object, the EC space handler should be
-+			 * uninstalled explicitly.
-+			 * Otherwise maybe the EC internal register is still
-+			 * accessed in AML code although EC device is not
-+			 * initialized correctly.
-+			 */
-+			acpi_remove_address_space_handler(ec->handle,
-+						ACPI_ADR_SPACE_EC,
-+						&acpi_ec_space_handler);
- 			acpi_remove_gpe_handler(NULL, ec->gpe,
- 				&acpi_ec_gpe_handler);
- 			return -ENODEV;
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index 591b4f6..99bff80 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -754,12 +754,20 @@ static acpi_status
+ acpi_ec_register_query_methods(acpi_handle handle, u32 level,
+ 			       void *context, void **return_value)
+ {
+-	struct acpi_namespace_node *node =3D handle;
++	char node_name[5];
++	struct acpi_buffer buffer =3D { sizeof(node_name), node_name };
+ 	struct acpi_ec *ec =3D context;
+ 	int value =3D 0;
+-	if (sscanf(node->name.ascii, "_Q%x", &value) =3D=3D 1) {
+-		acpi_ec_add_query_handler(ec, value, handle, NULL, NULL);
++	acpi_status status;
++
++	status =3D acpi_get_name(handle, ACPI_SINGLE_NAME, &buffer);
++
++	if (ACPI_SUCCESS(status)) {
++		if (sscanf(node_name, "_Q%x", &value) =3D=3D 1) {
++			acpi_ec_add_query_handler(ec, value, handle, NULL, NULL);
++		}
+ 	}
++      =20
+ 	return AE_OK;
+ }
+=20
 
+Thanks for review,
+Lin Ming
 
+> Thanks,
+> Alex.
+> Lin Ming wrote:
+> > Avoid using internal acpica structures acpi_namespace_node and =EF=BB=
+=BFacpi_operand_object
+> > Call acpi_get_name or acpi_get_object_info to get node name and met=
+hod arg count
+> >
+> > =EF=BB=BFSigned-off-by: Lin Ming <ming.m.lin@intel.com>
+> > ---
+> >  drivers/acpi/ec.c          |   13 +++++++++++--
+> >  drivers/misc/sony-laptop.c |   15 +++++++++------
+> >  2 files changed, 20 insertions(+), 8 deletions(-)
+> >
+> > diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+> > index 591b4f6..2f4828f 100644
+> > --- a/drivers/acpi/ec.c
+> > +++ b/drivers/acpi/ec.c
+> > @@ -754,10 +754,19 @@ static acpi_status
+> >  acpi_ec_register_query_methods(acpi_handle handle, u32 level,
+> >  			       void *context, void **return_value)
+> >  {
+> > -	struct acpi_namespace_node *node =3D handle;
+> > +	char node_name[5];
+> > +	struct acpi_buffer buffer =3D { sizeof(node_name), node_name };
+> >  	struct acpi_ec *ec =3D context;
+> >  	int value =3D 0;
+> > -	if (sscanf(node->name.ascii, "_Q%x", &value) =3D=3D 1) {
+> > +	acpi_status status;
+> > +
+> > +	status =3D acpi_get_name(handle, ACPI_SINGLE_NAME, &buffer);
+> > +
+> > +	if (ACPI_FAILURE(status)) {
+> > +		return status;
+> > +	}
+> > +      =20
+> > +	if (sscanf(node_name, "_Q%x", &value) =3D=3D 1) {
+> >  		acpi_ec_add_query_handler(ec, value, handle, NULL, NULL);
+> >  	}
+> >  	return AE_OK;
+> > diff --git a/drivers/misc/sony-laptop.c b/drivers/misc/sony-laptop.=
+c
+> > index 7bcb810..dd9c16f 100644
+> > --- a/drivers/misc/sony-laptop.c
+> > +++ b/drivers/misc/sony-laptop.c
+> > @@ -935,14 +935,17 @@ static void sony_acpi_notify(acpi_handle hand=
+le, u32 event, void *data)
+> >  static acpi_status sony_walk_callback(acpi_handle handle, u32 leve=
+l,
+> >  				      void *context, void **return_value)
+> >  {
+> > -	struct acpi_namespace_node *node;
+> > -	union acpi_operand_object *operand;
+> > +	struct acpi_device_info *info;
+> > +	struct acpi_buffer buffer =3D {ACPI_ALLOCATE_BUFFER, NULL};
+> > =20
+> > -	node =3D (struct acpi_namespace_node *)handle;
+> > -	operand =3D (union acpi_operand_object *)node->object;
+> > +	if (ACPI_SUCCESS(acpi_get_object_info(handle, &buffer))) {
+> > +		info =3D buffer.pointer;
+> > =20
+> > -	printk(KERN_WARNING DRV_PFX "method: name: %4.4s, args %X\n", nod=
+e->name.ascii,
+> > -	       (u32) operand->method.param_count);
+> > +		printk(KERN_WARNING DRV_PFX "method: name: %4.4s, args %X\n",
+> > +			(char *)info->name, info->param_count);
+> > +
+> > +		kfree(buffer.pointer);
+> > +	}
+> > =20
+> >  	return AE_OK;
+> >  }
+> >
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-acp=
+i" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >  =20
+>=20
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
