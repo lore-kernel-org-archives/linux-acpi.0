@@ -1,117 +1,33 @@
-From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Subject: Re: [PATCH (resend)] acpiphp: Identify more removable slots
-Date: Tue, 25 Nov 2008 14:02:44 -0800
-Message-ID: <20081125140244.3b371952@appleyard>
-References: <20081113235255.GA17709@srcf.ucam.org>
-	<20081117134952.GA12932@srcf.ucam.org>
-	<20081125214814.GA17248@srcf.ucam.org>
-Reply-To: kristen.c.accardi@intel.com
+From: Lin Ming <ming.m.lin@intel.com>
+Subject: [PATCH 0/8] acpi: restructure includes into public/private
+Date: Wed, 26 Nov 2008 10:52:34 +0800
+Message-ID: <1227667954.7702.85.camel@minggr.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20081125214814.GA17248@srcf.ucam.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:53880 "EHLO mga02.intel.com"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752696AbYKZC54 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 25 Nov 2008 21:57:56 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>
 
-On Tue, 25 Nov 2008 13:48:14 -0800
-Matthew Garrett <mjg59@srcf.ucam.org> wrote:
+"include/acpi/acpi.h" now includes only the "public" acpica headers.
+All other acpica headers are "private" and should not be included by ac=
+pica users.
+=46uture plans are to move all private headers to a new subdirectory.
 
-> According to section 6.3.6 of the ACPI spec, the presence of an _RMV 
-> method that evaluates to 1 is sufficient to indicate that a slot is 
-> removable without needing an eject method. This patch refactors the 
-> ejectable slot detection code a little in order to flag these slots as 
-> ejectable and register them. Acpihp then binds to the expresscard slot 
-> on my HP test machine.
-> 
-> Signed-off-by: Matthew Garrett <mjg@redhat.com>
+You can not build these patches now, =EF=BB=BFbut send out for review.
 
-This looks good to me.
+Thanks,
+Lin Ming
 
-Acked-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 
-> 
-> ---
-> 
-> The _LCK handling code requires some more cleanup and ideally some 
-> hardware that actually implements it
-> 
->  drivers/pci/hotplug/acpiphp_glue.c |   32 +++++++++++++++++---------------
->  1 files changed, 17 insertions(+), 15 deletions(-)
-> 
-> diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
-> index 955aae4..e8cef99 100644
-> --- a/drivers/pci/hotplug/acpiphp_glue.c
-> +++ b/drivers/pci/hotplug/acpiphp_glue.c
-> @@ -74,7 +74,7 @@ static void handle_hotplug_event_func(acpi_handle handle, u32 type, void *contex
->   * Ejectable slot should satisfy at least these conditions:
->   *
->   *  1. has _ADR method
-> - *  2. has _EJ0 method
-> + *  2. has _EJ0 method or _RMV method
->   *
->   * optionally
->   *
-> @@ -87,18 +87,25 @@ static int is_ejectable(acpi_handle handle)
->  {
->  	acpi_status status;
->  	acpi_handle tmp;
-> +	unsigned long long removable;
->  
->  	status = acpi_get_handle(handle, "_ADR", &tmp);
-> -	if (ACPI_FAILURE(status)) {
-> +	if (ACPI_FAILURE(status))
->  		return 0;
-> -	}
->  
->  	status = acpi_get_handle(handle, "_EJ0", &tmp);
-> -	if (ACPI_FAILURE(status)) {
-> -		return 0;
-> +	if (ACPI_SUCCESS(status))
-> +		return 1;
-> +
-> +	status = acpi_get_handle(handle, "_RMV", &tmp);
-> +	if (ACPI_SUCCESS(status)) {
-> +		status = acpi_evaluate_integer(handle, "_RMV", NULL,
-> +					       &removable);
-> +		if (ACPI_SUCCESS(status) && removable)
-> +			return 1;
->  	}
->  
-> -	return 1;
-> +	return 0;
->  }
->  
->  
-> @@ -185,16 +192,10 @@ register_slot(acpi_handle handle, u32 lvl, void *context, void **rv)
->  	unsigned long long adr, sun;
->  	int device, function, retval;
->  
-> -	status = acpi_evaluate_integer(handle, "_ADR", NULL, &adr);
-> -
-> -	if (ACPI_FAILURE(status))
-> -		return AE_OK;
-> -
-> -	status = acpi_get_handle(handle, "_EJ0", &tmp);
-> -
-> -	if (ACPI_FAILURE(status) && !(is_dock_device(handle)))
-> +	if (!is_ejectable(handle) && !is_dock_device(handle))
->  		return AE_OK;
->  
-> +	acpi_evaluate_integer(handle, "_ADR", NULL, &adr);
->  	device = (adr >> 16) & 0xffff;
->  	function = adr & 0xffff;
->  
-> @@ -205,7 +206,8 @@ register_slot(acpi_handle handle, u32 lvl, void *context, void **rv)
->  	INIT_LIST_HEAD(&newfunc->sibling);
->  	newfunc->handle = handle;
->  	newfunc->function = function;
-> -	if (ACPI_SUCCESS(status))
-> +
-> +	if (ACPI_SUCCESS(acpi_get_handle(handle, "_EJ0", &tmp)))
->  		newfunc->flags = FUNC_HAS_EJ0;
->  
->  	if (ACPI_SUCCESS(acpi_get_handle(handle, "_STA", &tmp)))
-> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
