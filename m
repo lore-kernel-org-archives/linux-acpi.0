@@ -1,58 +1,46 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: [PATCH 8/8] acpi: move acpi_gbl_permanent_mmap to acpixf.h
-Date: Wed, 26 Nov 2008 10:56:45 +0800
-Message-ID: <1227668205.7702.101.camel@minggr.sh.intel.com>
+From: "Roger Critchlow" <rec@elf.org>
+Subject: Please send DMI info above to linux-acpi@vger.kernel.org
+Date: Tue, 25 Nov 2008 21:39:30 -0700
+Message-ID: <66d1c98f0811252039x4c8fcaf1if726fffa951923af@mail.gmail.com>
+References: <66d1c98f0811252033i692ed9d7xc92ea0d0d0956e00@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:50622 "EHLO mga02.intel.com"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752362AbYKZDCT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 25 Nov 2008 22:02:19 -0500
+Received: from fk-out-0910.google.com ([209.85.128.190]:15859 "EHLO
+	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751403AbYKZEjc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Nov 2008 23:39:32 -0500
+Received: by fk-out-0910.google.com with SMTP id 18so246771fkq.5
+        for <linux-acpi@vger.kernel.org>; Tue, 25 Nov 2008 20:39:30 -0800 (PST)
+In-Reply-To: <66d1c98f0811252033i692ed9d7xc92ea0d0d0956e00@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
 
-acglobal.h now is acpica internal use only.
-Move acpi_gbl_permanent_mmap to acpixf.h for external use.
+Booting 2.6.27-10 as Ubuntu 8.10 proposed installed it:
 
-=EF=BB=BFSigned-off-by: Lin Ming <ming.m.lin@intel.com>
----
-include/acpi/acglobal.h |    1 -
-include/acpi/acpixf.h   |    2 ++
-2 files changed, 2 insertions(+), 1 deletions(-)
+[    0.540741] ACPI: BIOS _OSI(Linux) query ignored
+[    0.540744] ACPI: DMI System Vendor: LENOVO
+[    0.540746] ACPI: DMI Product Name: 7449F9U
+[    0.540748] ACPI: DMI Product Version: ThinkPad X200 Tablet
+[    0.540750] ACPI: DMI Board Name: 7449F9U
+[    0.540751] ACPI: DMI BIOS Vendor: LENOVO
+[    0.540753] ACPI: DMI BIOS Date: 09/09/2008
+[    0.540755] ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
+[    0.540757] ACPI: If "acpi_osi=Linux" works better, please notify
+linux-acpi@vger.kernel.org
 
-diff --git a/include/acpi/acglobal.h b/include/acpi/acglobal.h
-index fddd865..78f3c14 100644
---- a/include/acpi/acglobal.h
-+++ b/include/acpi/acglobal.h
-@@ -141,7 +141,6 @@ ACPI_EXTERN u32 acpi_gbl_trace_flags;
-ACPI_EXTERN struct acpi_internal_rsdt acpi_gbl_root_table_list;
-ACPI_EXTERN struct acpi_table_fadt acpi_gbl_FADT;
-ACPI_EXTERN struct acpi_table_facs *acpi_gbl_FACS;
--extern u8 acpi_gbl_permanent_mmap;
+After adding acpi_osi=Linux to boot command line:
 
-/* These addresses are calculated from FADT address values */
+[    0.540751] ACPI: BIOS _OSI(Linux) query honored via cmdline
+[    0.540754] ACPI: DMI System Vendor: LENOVO
+[    0.540755] ACPI: DMI Product Name: 7449F9U
+[    0.540757] ACPI: DMI Product Version: ThinkPad X200 Tablet
+[    0.540759] ACPI: DMI Board Name: 7449F9U
+[    0.540761] ACPI: DMI BIOS Vendor: LENOVO
+[    0.540763] ACPI: DMI BIOS Date: 09/09/2008
+[    0.540764] ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
 
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index ee5cbbb..8a60343 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -58,6 +58,8 @@
-extern u32 acpi_current_gpe_count;
-extern struct acpi_table_fadt acpi_gbl_FADT;
-
-+extern u8 acpi_gbl_permanent_mmap;
-+
-/* Run-time configuration */
-
-extern u32 acpi_dbg_level;
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- rec --
