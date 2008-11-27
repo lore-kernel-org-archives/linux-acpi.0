@@ -1,27 +1,31 @@
 From: Matthew Garrett <mjg59@srcf.ucam.org>
 Subject: [PATCH] thermal: use integers rather than strings for thermal values
-Date: Thu, 27 Nov 2008 17:48:13 +0000
-Message-ID: <20081127174813.GA24258@srcf.ucam.org>
+Date: Thu, 27 Nov 2008 17:49:56 +0000
+Message-ID: <20081127174956.GB24258@srcf.ucam.org>
+References: <20081127174813.GA24258@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:44540 "EHLO
+Received: from cavan.codon.org.uk ([93.93.128.6]:44554 "EHLO
 	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754133AbYK0RsS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Nov 2008 12:48:18 -0500
+	with ESMTP id S1751720AbYK0RuB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Nov 2008 12:50:01 -0500
 Content-Disposition: inline
+In-Reply-To: <20081127174813.GA24258@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: len@kernel.org
+To: lenb@kernel.org
 Cc: linux-acpi@vger.kernel.org, rui.zhang@intel.com, sujith.thomas@intel.com
 
-The thermal API currently uses strings to pass values to userspace. This 
-makes it difficult to use from within the kernel. Change the interface 
-to use integers and fix up the consumers.
+The thermal API currently uses strings to pass values to userspace. This makes
+it difficult to use from within the kernel. Change the interface to use
+integers and fix up the ACPI consumers.
     
 Signed-off-by: Matthew Garrett <mjg@redhat.com>
-
 ---
+
+Resend - managed to get Len's address wrong the first time.
+
  drivers/acpi/fan.c               |   20 +++++---
  drivers/acpi/processor_thermal.c |   20 +++++----
  drivers/acpi/thermal.c           |   80 +++++++++++++++++++++------------
