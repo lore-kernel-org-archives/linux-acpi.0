@@ -1,86 +1,62 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 03/11] ACPI: scheduling in atomic via acpi_evaluate_integer ()
-Date: Thu, 27 Nov 2008 02:25:08 -0500
-Message-ID: <40599072dca3ec7d4c9ff8271978be169f974638.1227770639.git.len.brown@intel.com>
+Subject: [PATCH 02/11] ACPI: battery: Convert discharge energy rate to current
+ properly
+Date: Thu, 27 Nov 2008 02:25:07 -0500
+Message-ID: <558073dd56707864f09d563b64e7c37c021e89d2.1227770639.git.len.brown@intel.com>
 References: <1227770716-26525-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms042pub.verizon.net ([206.46.252.42]:56663 "EHLO
-	vms042pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751836AbYK0HZW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Nov 2008 02:25:22 -0500
+Received: from vms173003pub.verizon.net ([206.46.173.3]:42287 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751788AbYK0HZV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Nov 2008 02:25:21 -0500
 Received: from localhost.localdomain ([96.237.168.40])
- by vms042.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0KAZ00I73DY9B389@vms042.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 27 Nov 2008 01:25:22 -0600 (CST)
+ by vms173003.mailsrvcs.net
+ (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+ with ESMTPA id <0KAZ007N2DY7AGD3@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 27 Nov 2008 01:25:20 -0600 (CST)
 In-reply-to: <1227770716-26525-1-git-send-email-lenb@kernel.org>
 In-reply-to: <7b4d469228a92a00e412675817cedd60133de38a.1227770639.git.len.brown@intel.com>
 References: <7b4d469228a92a00e412675817cedd60133de38a.1227770639.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Pavel Machek <pavel@suse.cz>, Len Brown <len.brown@intel.com>
+Cc: Alexey Starikovskiy <aystarik@gmail.com>, Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>
 
-From: Pavel Machek <pavel@suse.cz>
+From: Alexey Starikovskiy <aystarik@gmail.com>
 
-Now I know why I had strange "scheduling in atomic" problems:
-acpi_evaluate_integer() does malloc(..., irqs_disabled() ? GFP_ATOMIC
-: GFP_KERNEL)... which is (of course) broken.
+ACPI battery interface reports its state either in mW or in mA, and
+discharge rate in your case is reported in mW. power_supply interface
+does not have such a parameter, so current_now parameter is used
+for all cases. But in case of mW, reported discharge should
+be converted into mA.
 
-There's no way to reliably tell if we need GFP_ATOMIC or not from
-code, this one for example fails to detect spinlocks held.
-
-Fortunately, allocation seems small enough to be done on stack.
-
-Signed-off-by: Pavel Machek <pavel@suse.cz>
-Acked-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+Tested-by: Ferenc Wagner <wferi@niif.hu>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/utils.c |   16 ++++------------
- 1 files changed, 4 insertions(+), 12 deletions(-)
+ drivers/acpi/battery.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-index e827be3..f844941 100644
---- a/drivers/acpi/utils.c
-+++ b/drivers/acpi/utils.c
-@@ -259,34 +259,26 @@ acpi_evaluate_integer(acpi_handle handle,
- 		      struct acpi_object_list *arguments, unsigned long long *data)
- {
- 	acpi_status status = AE_OK;
--	union acpi_object *element;
-+	union acpi_object element;
- 	struct acpi_buffer buffer = { 0, NULL };
- 
--
- 	if (!data)
- 		return AE_BAD_PARAMETER;
- 
--	element = kzalloc(sizeof(union acpi_object), irqs_disabled() ? GFP_ATOMIC: GFP_KERNEL);
--	if (!element)
--		return AE_NO_MEMORY;
--
- 	buffer.length = sizeof(union acpi_object);
--	buffer.pointer = element;
-+	buffer.pointer = &element;
- 	status = acpi_evaluate_object(handle, pathname, arguments, &buffer);
- 	if (ACPI_FAILURE(status)) {
- 		acpi_util_eval_error(handle, pathname, status);
--		kfree(element);
- 		return status;
- 	}
- 
--	if (element->type != ACPI_TYPE_INTEGER) {
-+	if (element.type != ACPI_TYPE_INTEGER) {
- 		acpi_util_eval_error(handle, pathname, AE_BAD_DATA);
--		kfree(element);
- 		return AE_BAD_DATA;
- 	}
- 
--	*data = element->integer.value;
--	kfree(element);
-+	*data = element.integer.value;
- 
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Return value [%llu]\n", *data));
- 
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 1423b0c..a0a178d 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -174,6 +174,15 @@ static int acpi_battery_get_property(struct power_supply *psy,
+ 		break;
+ 	case POWER_SUPPLY_PROP_CURRENT_NOW:
+ 		val->intval = battery->current_now * 1000;
++		/* if power units are mW, convert to mA by
++		   dividing by current voltage (mV/1000) */
++		if (!battery->power_unit) {
++			if (battery->voltage_now) {
++				val->intval /= battery->voltage_now;
++				val->intval *= 1000;
++			} else
++				val->intval = -1;
++		}
+ 		break;
+ 	case POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN:
+ 	case POWER_SUPPLY_PROP_ENERGY_FULL_DESIGN:
 -- 
 1.5.6.5
 
