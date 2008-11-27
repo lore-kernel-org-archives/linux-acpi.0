@@ -1,48 +1,54 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 07/11] sony-laptop: printk tweak
-Date: Thu, 27 Nov 2008 02:25:12 -0500
-Message-ID: <3fedd90fdf17643df1da473c5da983137d51bbdb.1227770639.git.len.brown@intel.com>
+Subject: [PATCH 11/11] ACPICA: disable _BIF warning
+Date: Thu, 27 Nov 2008 02:25:16 -0500
+Message-ID: <e899b6485c332aa2d7510739507ab5e5d7b28e59.1227770639.git.len.brown@intel.com>
 References: <1227770716-26525-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms046pub.verizon.net ([206.46.252.46]:43800 "EHLO
 	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751908AbYK0HZ1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Nov 2008 02:25:27 -0500
+	with ESMTP id S1751836AbYK0HZ2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Nov 2008 02:25:28 -0500
 Received: from localhost.localdomain ([96.237.168.40])
  by vms046.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0KAZ00082DYCM4S1@vms046.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 27 Nov 2008 01:25:25 -0600 (CST)
+ 3 2006)) with ESMTPA id <0KAZ0007HDYDM9U1@vms046.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 27 Nov 2008 01:25:26 -0600 (CST)
 In-reply-to: <1227770716-26525-1-git-send-email-lenb@kernel.org>
 In-reply-to: <7b4d469228a92a00e412675817cedd60133de38a.1227770639.git.len.brown@intel.com>
 References: <7b4d469228a92a00e412675817cedd60133de38a.1227770639.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Alessandro Guido <ag@alessandroguido.name>, Len Brown <len.brown@intel.com>
+Cc: Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Alessandro Guido <ag@alessandroguido.name>
+From: Lin Ming <ming.m.lin@intel.com>
 
-There's no need to print "Sony: " just after "sony-laptop: " (DRV_PFX).
+A generic work-around from ACPICA is in the queue,
+but since Linux has a work-around in its battery
+driver, we can disable this warning now.
 
-Signed-off-by: Alessandro Guido <ag@alessandroguido.name>
+Allow _BIF method to return an Package with Buffer elements
+
+http://bugzilla.kernel.org/show_bug.cgi?id=11822
+
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/sony-laptop.c |    2 +-
+ include/acpi/acpredef.h |    2 +-
  1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/misc/sony-laptop.c b/drivers/misc/sony-laptop.c
-index 2a613d4..571b211 100644
---- a/drivers/misc/sony-laptop.c
-+++ b/drivers/misc/sony-laptop.c
-@@ -1039,7 +1039,7 @@ static int sony_nc_add(struct acpi_device *device)
- 	}
- 
- 	if (acpi_video_backlight_support()) {
--		printk(KERN_INFO DRV_PFX "Sony: Brightness ignored, must be "
-+		printk(KERN_INFO DRV_PFX "brightness ignored, must be "
- 		       "controlled by ACPI video driver\n");
- 	} else if (ACPI_SUCCESS(acpi_get_handle(sony_nc_acpi_handle, "GBRT",
- 						&handle))) {
+diff --git a/include/acpi/acpredef.h b/include/acpi/acpredef.h
+index e6452db..16a9ca9 100644
+--- a/include/acpi/acpredef.h
++++ b/include/acpi/acpredef.h
+@@ -167,7 +167,7 @@ static const union acpi_predefined_info predefined_names[] = {
+ 	{.info = {"_BFS", 1, 0}},
+ 	{.info = {"_BIF", 0, ACPI_RTYPE_PACKAGE}}, {.ret_info = {ACPI_PTYPE1_FIXED, ACPI_RTYPE_INTEGER,
+ 					  9,
+-					  ACPI_RTYPE_STRING, 4, 0}},	/* fixed (9 Int),(4 Str) */
++					  ACPI_RTYPE_STRING | ACPI_RTYPE_BUFFER, 4, 0}},	/* fixed (9 Int),(4 Str) */
+ 	{.info = {"_BLT", 3, 0}},
+ 	{.info = {"_BMC", 1, 0}},
+ 	{.info = {"_BMD", 0, ACPI_RTYPE_PACKAGE}}, {.ret_info = {ACPI_PTYPE1_FIXED, ACPI_RTYPE_INTEGER, 5, 0, 0, 0}},	/* fixed (5 Int) */
 -- 
 1.5.6.5
 
