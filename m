@@ -1,62 +1,55 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 02/11] ACPI: battery: Convert discharge energy rate to current
- properly
-Date: Thu, 27 Nov 2008 02:25:07 -0500
-Message-ID: <558073dd56707864f09d563b64e7c37c021e89d2.1227770639.git.len.brown@intel.com>
+Subject: [PATCH 09/11] ACPICA: Allow _WAK method to return an Integer
+Date: Thu, 27 Nov 2008 02:25:14 -0500
+Message-ID: <95a28ed08619cc70f31611886ac7b26ab0e462dc.1227770639.git.len.brown@intel.com>
 References: <1227770716-26525-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:42287 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751788AbYK0HZV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Nov 2008 02:25:21 -0500
+Received: from vms173007pub.verizon.net ([206.46.173.7]:51975 "EHLO
+	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751836AbYK0HZ0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Nov 2008 02:25:26 -0500
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173003.mailsrvcs.net
+ by vms173007.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0KAZ007N2DY7AGD3@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 27 Nov 2008 01:25:20 -0600 (CST)
+ with ESMTPA id <0KAZ00F7CDWLHSQC@vms173007.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 27 Nov 2008 01:24:22 -0600 (CST)
 In-reply-to: <1227770716-26525-1-git-send-email-lenb@kernel.org>
 In-reply-to: <7b4d469228a92a00e412675817cedd60133de38a.1227770639.git.len.brown@intel.com>
 References: <7b4d469228a92a00e412675817cedd60133de38a.1227770639.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Alexey Starikovskiy <aystarik@gmail.com>, Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>
+Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Alexey Starikovskiy <aystarik@gmail.com>
+From: Bob Moore <robert.moore@intel.com>
 
-ACPI battery interface reports its state either in mW or in mA, and
-discharge rate in your case is reported in mW. power_supply interface
-does not have such a parameter, so current_now parameter is used
-for all cases. But in case of mW, reported discharge should
-be converted into mA.
+This can happen if the _WAK method returns nothing (as per ACPI
+1.0) but does return an integer if the implicit return mechanism
+is enabled.  This is the only method that has this problem,
+since it is also defined to return a package of two integers
+(ACPI 1.0b+). In all other cases, if a method returns an object
+when one was not expected, no warning is issued.
 
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-Tested-by: Ferenc Wagner <wferi@niif.hu>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/battery.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
+ include/acpi/acpredef.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index 1423b0c..a0a178d 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -174,6 +174,15 @@ static int acpi_battery_get_property(struct power_supply *psy,
- 		break;
- 	case POWER_SUPPLY_PROP_CURRENT_NOW:
- 		val->intval = battery->current_now * 1000;
-+		/* if power units are mW, convert to mA by
-+		   dividing by current voltage (mV/1000) */
-+		if (!battery->power_unit) {
-+			if (battery->voltage_now) {
-+				val->intval /= battery->voltage_now;
-+				val->intval *= 1000;
-+			} else
-+				val->intval = -1;
-+		}
- 		break;
- 	case POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN:
- 	case POWER_SUPPLY_PROP_ENERGY_FULL_DESIGN:
+diff --git a/include/acpi/acpredef.h b/include/acpi/acpredef.h
+index 619fb75..e6452db 100644
+--- a/include/acpi/acpredef.h
++++ b/include/acpi/acpredef.h
+@@ -346,7 +346,7 @@ static const union acpi_predefined_info predefined_names[] = {
+ 
+ 	/* Acpi 1.0 defined _WAK with no return value. Later, it was changed to return a package */
+ 
+-	{.info = {"_WAK", 1, ACPI_RTYPE_NONE | ACPI_RTYPE_PACKAGE}},
++	{.info = {"_WAK", 1, ACPI_RTYPE_NONE | ACPI_RTYPE_INTEGER | ACPI_RTYPE_PACKAGE}},
+ 	{.ret_info = {ACPI_PTYPE1_FIXED, ACPI_RTYPE_INTEGER, 2, 0, 0, 0}},	/* fixed (2 Int), but is optional */
+ 	{.ret_info = {0, 0, 0, 0, 0, 0}}	/* Table terminator */
+ };
 -- 
 1.5.6.5
 
