@@ -1,54 +1,129 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 11/11] ACPICA: disable _BIF warning
-Date: Thu, 27 Nov 2008 02:25:16 -0500
-Message-ID: <e899b6485c332aa2d7510739507ab5e5d7b28e59.1227770639.git.len.brown@intel.com>
+Subject: [PATCH 04/11] ACPI suspend: Blacklist boxes that require us to set
+ SCI_EN directly on resume
+Date: Thu, 27 Nov 2008 02:25:09 -0500
+Message-ID: <65df78473ffbf3bff5e2034df1638acc4f3ddd50.1227770639.git.len.brown@intel.com>
 References: <1227770716-26525-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms046pub.verizon.net ([206.46.252.46]:43800 "EHLO
-	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751836AbYK0HZ2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Nov 2008 02:25:28 -0500
+Received: from vms173001pub.verizon.net ([206.46.173.1]:42195 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751890AbYK0HZX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Nov 2008 02:25:23 -0500
 Received: from localhost.localdomain ([96.237.168.40])
- by vms046.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0KAZ0007HDYDM9U1@vms046.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 27 Nov 2008 01:25:26 -0600 (CST)
+ by vms173001.mailsrvcs.net
+ (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+ with ESMTPA id <0KAZ003DKDYA85H1@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 27 Nov 2008 01:25:23 -0600 (CST)
 In-reply-to: <1227770716-26525-1-git-send-email-lenb@kernel.org>
 In-reply-to: <7b4d469228a92a00e412675817cedd60133de38a.1227770639.git.len.brown@intel.com>
 References: <7b4d469228a92a00e412675817cedd60133de38a.1227770639.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
 
-From: Lin Ming <ming.m.lin@intel.com>
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-A generic work-around from ACPICA is in the queue,
-but since Linux has a work-around in its battery
-driver, we can disable this warning now.
+Some Apple boxes evidently require us to set SCI_EN on resume
+directly, because if we don't do that, they hung somewhere in the
+resume code path.  Moreover, on these boxes it is not sufficient to
+use acpi_enable() to turn ACPI on during resume.  All of this is
+against the ACPI specification which states that (1) the BIOS is
+supposed to return from the S3 sleep state with ACPI enabled
+(SCI_EN set) and (2) the SCI_EN bit is owned by the hardware and we
+are not supposed to change it.
 
-Allow _BIF method to return an Package with Buffer elements
+For this reason, blacklist the affected systems so that the SCI_EN
+bit is set during resume on them.
 
-http://bugzilla.kernel.org/show_bug.cgi?id=11822
+[NOTE: Unconditional setting SCI_EN for all system on resume doesn't
+ work, because it makes some other systems crash (that's to be
+ expected).  Also, it is not entirely clear right now if all of the
+ Apple boxes require this workaround.]
 
-Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+This patch fixes the recent regression tracked as
+http://bugzilla.kernel.org/show_bug.cgi?id=12038
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Tested-by: Tino Keitel <tino.keitel@gmx.de>
+Tested-by: Bob Copeland <me@bobcopeland.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- include/acpi/acpredef.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/acpi/sleep/main.c |   40 +++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 39 insertions(+), 1 deletions(-)
 
-diff --git a/include/acpi/acpredef.h b/include/acpi/acpredef.h
-index e6452db..16a9ca9 100644
---- a/include/acpi/acpredef.h
-+++ b/include/acpi/acpredef.h
-@@ -167,7 +167,7 @@ static const union acpi_predefined_info predefined_names[] = {
- 	{.info = {"_BFS", 1, 0}},
- 	{.info = {"_BIF", 0, ACPI_RTYPE_PACKAGE}}, {.ret_info = {ACPI_PTYPE1_FIXED, ACPI_RTYPE_INTEGER,
- 					  9,
--					  ACPI_RTYPE_STRING, 4, 0}},	/* fixed (9 Int),(4 Str) */
-+					  ACPI_RTYPE_STRING | ACPI_RTYPE_BUFFER, 4, 0}},	/* fixed (9 Int),(4 Str) */
- 	{.info = {"_BLT", 3, 0}},
- 	{.info = {"_BMC", 1, 0}},
- 	{.info = {"_BMD", 0, ACPI_RTYPE_PACKAGE}}, {.ret_info = {ACPI_PTYPE1_FIXED, ACPI_RTYPE_INTEGER, 5, 0, 0, 0}},	/* fixed (5 Int) */
+diff --git a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
+index 80c0868..28a691c 100644
+--- a/drivers/acpi/sleep/main.c
++++ b/drivers/acpi/sleep/main.c
+@@ -90,6 +90,18 @@ void __init acpi_old_suspend_ordering(void)
+ 	old_suspend_ordering = true;
+ }
+ 
++/*
++ * According to the ACPI specification the BIOS should make sure that ACPI is
++ * enabled and SCI_EN bit is set on wake-up from S1 - S3 sleep states.  Still,
++ * some BIOSes don't do that and therefore we use acpi_enable() to enable ACPI
++ * on such systems during resume.  Unfortunately that doesn't help in
++ * particularly pathological cases in which SCI_EN has to be set directly on
++ * resume, although the specification states very clearly that this flag is
++ * owned by the hardware.  The set_sci_en_on_resume variable will be set in such
++ * cases.
++ */
++static bool set_sci_en_on_resume;
++
+ /**
+  *	acpi_pm_disable_gpes - Disable the GPEs.
+  */
+@@ -235,7 +247,11 @@ static int acpi_suspend_enter(suspend_state_t pm_state)
+ 	}
+ 
+ 	/* If ACPI is not enabled by the BIOS, we need to enable it here. */
+-	acpi_enable();
++	if (set_sci_en_on_resume)
++		acpi_set_register(ACPI_BITREG_SCI_ENABLE, 1);
++	else
++		acpi_enable();
++
+ 	/* Reprogram control registers and execute _BFS */
+ 	acpi_leave_sleep_state_prep(acpi_state);
+ 
+@@ -323,6 +339,12 @@ static int __init init_old_suspend_ordering(const struct dmi_system_id *d)
+ 	return 0;
+ }
+ 
++static int __init init_set_sci_en_on_resume(const struct dmi_system_id *d)
++{
++	set_sci_en_on_resume = true;
++	return 0;
++}
++
+ static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
+ 	{
+ 	.callback = init_old_suspend_ordering,
+@@ -340,6 +362,22 @@ static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "HP xw4600 Workstation"),
+ 		},
+ 	},
++	{
++	.callback = init_set_sci_en_on_resume,
++	.ident = "Apple MacBook 1,1",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Apple Computer, Inc."),
++		DMI_MATCH(DMI_PRODUCT_NAME, "MacBook1,1"),
++		},
++	},
++	{
++	.callback = init_set_sci_en_on_resume,
++	.ident = "Apple MacMini 1,1",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Apple Computer, Inc."),
++		DMI_MATCH(DMI_PRODUCT_NAME, "Macmini1,1"),
++		},
++	},
+ 	{},
+ };
+ #endif /* CONFIG_SUSPEND */
 -- 
 1.5.6.5
 
