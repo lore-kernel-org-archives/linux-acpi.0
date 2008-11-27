@@ -1,57 +1,49 @@
 From: Pavel Machek <pavel@suse.cz>
 Subject: Re: acpi_evaluate_integer broken by design
-Date: Thu, 27 Nov 2008 14:56:51 +0100
-Message-ID: <20081127135651.GA6104@atrey.karlin.mff.cuni.cz>
-References: <20081125110508.GA1943@elf.ucw.cz> <20081126132050.cecb170b.akpm@linux-foundation.org>
+Date: Thu, 27 Nov 2008 14:58:45 +0100
+Message-ID: <20081127135845.GB6104@atrey.karlin.mff.cuni.cz>
+References: <20081125110508.GA1943@elf.ucw.cz> <20081126132050.cecb170b.akpm@linux-foundation.org> <alpine.LFD.2.00.0811261729550.3895@localhost.localdomain> <20081126150224.947c18d4.akpm@linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:33994 "EHLO
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:57075 "EHLO
 	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752187AbYK0N4w (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Nov 2008 08:56:52 -0500
+	with ESMTP id S1753481AbYK0N6q (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Nov 2008 08:58:46 -0500
 Content-Disposition: inline
-In-Reply-To: <20081126132050.cecb170b.akpm@linux-foundation.org>
+In-Reply-To: <20081126150224.947c18d4.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, len.brown@intel.com
+Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
 
 Hi!
 
-> > Subject: acpi_evaluate_integer broken by design
-> 
-> Please don't give patches daft and not very meaningful titles.  It just
-> means that someone else has to invent a useful title and then we get
-> the same patch floating about with two different titles.
-
-Sorry. I was kind of angry at that code because it does not contain
-any remarks when it is okay to call it, etc.
-
-> > Date: 	Tue, 25 Nov 2008 12:05:08 +0100
-> > Sender: linux-kernel-owner@vger.kernel.org
-> > User-Agent: Mutt/1.5.18 (2008-05-17)
-> >
+> > > Len, this looks like 2.6.28 material.  But given the poor quality of
+> > > the changelog it is hard to be sure about this.  Why isn't everyone
+> > > seeing these warnings?  What did Pavel do to provoke these alleged
+> > > warnings?  Nobody knows...
 > > 
-> > Now I know why I had strange "scheduling in atomic" problems:
-> > acpi_evaluate_integer() does malloc(..., irqs_disabled() ? GFP_ATOMIC
-> > : GFP_KERNEL)... which is (of course) broken.
+> > I don't know know why pavel sees this and nobody else --
+> > maybe something unusual he's doing with suspend?
+
+No, playing with driver for HP LED.
+
+Now... I guess the test confused me. Because it tests for
+irqs_disabled(), I assumed it was okay to call from interrupt context,
+but now I'm not sure at all. Can you help? Comment would be nice.
+
+> If we really do need to inspect global state to handle this, it would
+> be much better to create a new
 > 
-> That is kinda weird.  When did this all start happening?
-
-With the HP LED driver... so this is "would be nice for 2.6.28, not
-worth backporting" material.
-
-> > There's no way to reliably tell if we need GFP_ATOMIC or not from
-> > code, this one for example fails to detect spinlocks held.
-> > 
-> > Fortunately, allocation seems small enough to be done on stack.
+> bool resume_is_running_so_you_cant_sleep;
 > 
-> It's 24 bytes in an x86_64 allmodconfig build.  Clearly it should be a
-> local.
+> and to test that.  Something which is clear, highly specific and which
+> cannot be accidentally triggered via other means.
 
-Yep.
+Works for me.
 									Pavel
+
 -- 
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
