@@ -1,138 +1,539 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Subject: Re: [RFC PATCH] x86: create drivers/x86/ from drivers/misc/
-Date: Sat, 29 Nov 2008 08:38:16 +0100
-Message-ID: <20081129073816.GB8351@uranus.ravnborg.org>
-References: <20081128213620.2ec593d4.sfr@canb.auug.org.au> <4930307C.30106@oracle.com> <20081129083550.3c23af37.sfr@canb.auug.org.au> <alpine.LFD.2.00.0811281649001.24773@localhost.localdomain> <alpine.LFD.2.00.0811281702570.24773@localhost.localdomain> <alpine.LFD.2.00.0811281706540.24773@localhost.localdomain> <20081128223533.GA5175@uranus.ravnborg.org> <alpine.LFD.2.00.0811281801520.24773@localhost.localdomain>
+From: Tomasz Wieckowski <tomek@ump.edu.pl>
+Subject: DMI from Asus B50A (B50A-AQ022E)
+Date: Sat, 29 Nov 2008 13:57:38 +0100
+Message-ID: <20081129135738.032a6450@ump.edu.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-next-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.0811281801520.24773@localhost.localdomain>
-Sender: linux-next-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Len Brown <len.brown@intel.com>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Randy Dunlap <randy.dunlap@oracle.com>, x86@kernel.org, linux-acpi@vger.kernel.org
+Content-Type: multipart/signed; boundary="Sig_/e+CpGsPaN9kdx+fpA6tIj1C";
+ protocol="application/pgp-signature"; micalg=PGP-SHA1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from eucalyptus.am.poznan.pl ([150.254.180.6]:58581 "EHLO
+	eucalyptus.am.poznan.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751207AbYK2MH6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 29 Nov 2008 07:07:58 -0500
+Received: from eucalyptus.am.poznan.pl (localhost [127.0.0.1])
+	by mail.ump.edu.pl (Postfix) with ESMTP id 071773096728
+	for <linux-acpi@vger.kernel.org>; Sat, 29 Nov 2008 12:54:40 +0100 (CET)
+Received: from localhost (ip-89.171.204.141.awakom.net [89.171.204.141])
+	(Authenticated sender: tomek)
+	by eucalyptus.am.poznan.pl (Postfix) with ESMTP id ECA3B3096726
+	for <linux-acpi@vger.kernel.org>; Sat, 29 Nov 2008 12:54:38 +0100 (CET)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Comments below in case we stick to this drivers/x86 thing...
+--Sig_/e+CpGsPaN9kdx+fpA6tIj1C
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-	Sam
+Hi, this is DMI from my ASUS:
 
-> 
-> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-> index 93224b5..b89db1e 100644
-> --- a/arch/x86/Kconfig
-> +++ b/arch/x86/Kconfig
-> @@ -1904,6 +1904,8 @@ source "drivers/Kconfig"
->  
->  source "drivers/firmware/Kconfig"
->  
-> +source "drivers/x86/Kconfig"
-> +
->  source "fs/Kconfig"
+Kernel 2.6.28-rc6 (gcc version 4.1.2 (Gentoo 4.1.2 p1.0.2)) #6 SMP
 
-Any chance we can have this in drivers/Kconfig?
+ACPI: DMI System Vendor: ASUSTeK Computer Inc.       =20
+ACPI: DMI Product Name: B50A               =20
+ACPI: DMI Product Version: 1.0      =20
+ACPI: DMI Board Name: B50A     =20
+ACPI: DMI BIOS Vendor: American Megatrends Inc.
+ACPI: DMI BIOS Date: 07/11/2008
+------------------------------------
+dmidecode:
+# dmidecode 2.9
+SMBIOS 2.5 present.
+44 structures occupying 1988 bytes.
+Table at 0x000E7770.
 
-Just wrap all of the file in an
+Handle 0x0000, DMI type 0, 24 bytes
+BIOS Information
+	Vendor: American Megatrends Inc.
+	Version: 204   =20
+	Release Date: 07/11/2008
+	Address: 0xF0000
+	Runtime Size: 64 kB
+	ROM Size: 1024 kB
+	Characteristics:
+		ISA is supported
+		PCI is supported
+		PNP is supported
+		BIOS is upgradeable
+		BIOS shadowing is allowed
+		ESCD support is available
+		Boot from CD is supported
+		Selectable boot is supported
+		EDD is supported
+		5.25"/1.2 MB floppy services are supported (int 13h)
+		3.5"/720 KB floppy services are supported (int 13h)
+		3.5"/2.88 MB floppy services are supported (int 13h)
+		Print screen service is supported (int 5h)
+		8042 keyboard services are supported (int 9h)
+		Printer services are supported (int 17h)
+		CGA/mono video services are supported (int 10h)
+		ACPI is supported
+		USB legacy is supported
+		Smart battery is supported
+		BIOS boot specification is supported
+		Function key-initiated network boot is supported
+		Targeted content distribution is supported
+	BIOS Revision: 15.165
+	Firmware Revision: 218.94
 
-if X86
-.....
-endif
+Handle 0x0001, DMI type 1, 27 bytes
+System Information
+	Manufacturer: ASUSTeK Computer Inc.       =20
+	Product Name: B50A               =20
+	Version: 1.0      =20
+	Serial Number: NF1S8A42690043     =20
+	UUID: FA3A81DD-A353-E0CB-0F00-0023546C4D14
+	Wake-up Type: Power Switch
+	SKU Number:                    =20
+	Family:                    =20
 
-So we keep all the drivers/ stuff in one Kconfig file and
-not spread all over.
+Handle 0x0002, DMI type 2, 15 bytes
+Base Board Information
+	Manufacturer: ASUSTeK Computer Inc.       =20
+	Product Name: B50A     =20
+	Version: 1.0      =20
+	Serial Number: BSN12345678901234567
+	Asset Tag: ATN12345678901234567
+	Features:
+		Board is a hosting board
+		Board requires at least one daughter board
+		Board is replaceable
+	Location In Chassis: MIDDLE             =20
+	Chassis Handle: 0x0003
+	Type: Motherboard
+	Contained Object Handles: 0
 
-> diff --git a/arch/x86/Makefile b/arch/x86/Makefile
-> index d1a47ad..a750519 100644
-> --- a/arch/x86/Makefile
-> +++ b/arch/x86/Makefile
-> @@ -171,6 +171,9 @@ ifeq ($(CONFIG_X86_32),y)
->  drivers-$(CONFIG_FB) += arch/x86/video/
->  endif
->  
-> +# x86 platform-specific drivers
-> +drivers-y       += drivers/x86/
-> +
+Handle 0x0003, DMI type 3, 21 bytes
+Chassis Information
+	Manufacturer: ASUSTeK Computer Inc.       =20
+	Type: Notebook
+	Lock: Not Present
+	Version: 1.0      =20
+	Serial Number: CSN12345678901234567
+	Asset Tag: ATN12345678901234567
+	Boot-up State: Safe
+	Power Supply State: Safe
+	Thermal State: Other
+	Security Status: Other
+	OEM Information: 0x00000000
+	Height: Unspecified
+	Number Of Power Cords: 1
+	Contained Elements: 0
+
+Handle 0x0004, DMI type 4, 40 bytes
+Processor Information
+	Socket Designation: Socket 478
+	Type: Central Processor
+	Family: <OUT OF SPEC>
+	Manufacturer: Intel           =20
+	ID: 76 06 01 00 FF FB EB BF
+	Version: Intel(R) Core(TM)2 Duo CPU P7350 @ 2.00GHz         =20
+	Voltage: 1.1 V
+	External Clock: 267 MHz
+	Max Speed: 2000 MHz
+	Current Speed: 2000 MHz
+	Status: Populated, Enabled
+	Upgrade: Socket 478
+	L1 Cache Handle: 0x0005
+	L2 Cache Handle: 0x0007
+	L3 Cache Handle: Not Provided
+	Serial Number: PSN12345678901234567
+	Asset Tag: PATN1234567890123456
+	Part Number: PPN12345678901234567
+	Core Count: 2
+	Core Enabled: 2
+	Thread Count: 2
+	Characteristics:
+		64-bit capable
+
+Handle 0x0005, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: L1-Cache
+	Configuration: Enabled, Not Socketed, Level 1
+	Operational Mode: Write Back
+	Location: Internal
+	Installed Size: 64 KB
+	Maximum Size: 64 KB
+	Supported SRAM Types:
+		Other
+	Installed SRAM Type: Other
+	Speed: Unknown
+	Error Correction Type: Single-bit ECC
+	System Type: Data
+	Associativity: 8-way Set-associative
+
+Handle 0x0006, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: L1-Cache
+	Configuration: Enabled, Not Socketed, Level 1
+	Operational Mode: Write Back
+	Location: Internal
+	Installed Size: 64 KB
+	Maximum Size: 64 KB
+	Supported SRAM Types:
+		Other
+	Installed SRAM Type: Other
+	Speed: Unknown
+	Error Correction Type: Single-bit ECC
+	System Type: Instruction
+	Associativity: 8-way Set-associative
+
+Handle 0x0007, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: L2-Cache
+	Configuration: Enabled, Not Socketed, Level 2
+	Operational Mode: Write Back
+	Location: Internal
+	Installed Size: 3072 KB
+	Maximum Size: 3072 KB
+	Supported SRAM Types:
+		Other
+	Installed SRAM Type: Other
+	Speed: Unknown
+	Error Correction Type: Single-bit ECC
+	System Type: Unified
+	Associativity: Other
+
+Handle 0x0008, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J3401
+	Internal Connector Type: None
+	External Reference Designator: LAN
+	External Connector Type: RJ-45
+	Port Type: Network Port
+
+Handle 0x0009, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J4501
+	Internal Connector Type: None
+	External Reference Designator: VGA
+	External Connector Type: DB-15 female
+	Port Type: Video Port
+
+Handle 0x000A, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J5201
+	Internal Connector Type: None
+	External Reference Designator: USB1
+	External Connector Type: Access Bus (USB)
+	Port Type: USB
+
+Handle 0x000B, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J5201
+	Internal Connector Type: None
+	External Reference Designator: USB2
+	External Connector Type: Access Bus (USB)
+	Port Type: USB
+
+Handle 0x000C, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J4800
+	Internal Connector Type: None
+	External Reference Designator: HDMI
+	External Connector Type: Other
+	Port Type: Other
+
+Handle 0x000D, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J5101
+	Internal Connector Type: None
+	External Reference Designator: SATA 1
+	External Connector Type: SAS/SATA Plug Receptacle
+	Port Type: SATA
+
+Handle 0x000E, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J4202
+	Internal Connector Type: None
+	External Reference Designator: FlashCard
+	External Connector Type: Other
+	Port Type: Other
+
+Handle 0x000F, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J4301
+	Internal Connector Type: None
+	External Reference Designator: ExpressCard
+	External Connector Type: Other
+	Port Type: Other
+
+Handle 0x0010, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J6601
+	Internal Connector Type: None
+	External Reference Designator: eSATA
+	External Connector Type: SAS/SATA Plug Receptacle
+	Port Type: SATA
+
+Handle 0x0011, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J3703
+	Internal Connector Type: None
+	External Reference Designator: Audio Out
+	External Connector Type: Mini Jack (headphones)
+	Port Type: Audio Port
+
+Handle 0x0012, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J3801
+	Internal Connector Type: None
+	External Reference Designator: Mic In
+	External Connector Type: Mini Jack (headphones)
+	Port Type: Audio Port
+
+Handle 0x0013, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J2502
+	Internal Connector Type: None
+	External Reference Designator: USB3
+	External Connector Type: Access Bus (USB)
+	Port Type: USB
+
+Handle 0x0014, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J4203
+	Internal Connector Type: None
+	External Reference Designator: 1394
+	External Connector Type: IEEE 1394
+	Port Type: Firewire (IEEE P1394)
+
+Handle 0x0015, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J5401
+	Internal Connector Type: None
+	External Reference Designator: DockPort
+	External Connector Type: Other
+	Port Type: Other
+
+Handle 0x0016, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PCIE1
+	Type: x1 PCI Express
+	Current Usage: Available
+	Length: Short
+	ID: 0
+	Characteristics:
+		3.3 V is provided
+		PME signal is supported
+
+Handle 0x0017, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PCIE2
+	Type: x1 PCI Express
+	Current Usage: Available
+	Length: Short
+	ID: 1
+	Characteristics:
+		3.3 V is provided
+		PME signal is supported
+
+Handle 0x0018, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PCIE3
+	Type: x1 PCI Express
+	Current Usage: Available
+	Length: Short
+	ID: 2
+	Characteristics:
+		3.3 V is provided
+		PME signal is supported
+
+Handle 0x0019, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PCIE4
+	Type: x1 PCI Express
+	Current Usage: Available
+	Length: Short
+	ID: 3
+	Characteristics:
+		3.3 V is provided
+		PME signal is supported
+
+Handle 0x001A, DMI type 10, 6 bytes
+On Board Device Information
+	Type: Video
+	Status: Enabled
+	Description:  UMA
+
+Handle 0x001B, DMI type 10, 6 bytes
+On Board Device Information
+	Type: Ethernet
+	Status: Enabled
+	Description:  NIC
+
+Handle 0x001C, DMI type 10, 6 bytes
+On Board Device Information
+	Type: Sound
+	Status: Enabled
+	Description:  Audio Codec
+
+Handle 0x001D, DMI type 10, 6 bytes
+On Board Device Information
+	Type: SATA Controller
+	Status: Enabled
+	Description:  SATA Controller
+
+Handle 0x001E, DMI type 10, 6 bytes
+On Board Device Information
+	Type: Other
+	Status: Enabled
+	Description:  1394/FlashCardReader
+
+Handle 0x001F, DMI type 13, 22 bytes
+BIOS Language Information
+	Installable Languages: 1
+		en|US|iso8859-1
+	Currently Installed Language: en|US|iso8859-1
+
+Handle 0x0020, DMI type 16, 15 bytes
+Physical Memory Array
+	Location: System Board Or Motherboard
+	Use: System Memory
+	Error Correction Type: None
+	Maximum Capacity: 8 GB
+	Error Information Handle: Not Provided
+	Number Of Devices: 2
+
+Handle 0x0021, DMI type 19, 15 bytes
+Memory Array Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x000BFFFFFFF
+	Range Size: 3 GB
+	Physical Array Handle: 0x0020
+	Partition Width: 0
+
+Handle 0x0022, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x0020
+	Error Information Handle: Not Provided
+	Total Width: 64 bits
+	Data Width: 64 bits
+	Size: 2048 MB
+	Form Factor: SODIMM
+	Set: None
+	Locator: SODIMM0
+	Bank Locator: BANK0
+	Type: DDR2
+	Type Detail: Synchronous
+	Speed: 800 MHz (1.2 ns)
+	Manufacturer: N/A                          =20
+	Serial Number: N/A                          =20
+	Asset Tag: N/A                          =20
+	Part Number: N/A                          =20
+
+Handle 0x0023, DMI type 20, 19 bytes
+Memory Device Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x0007FFFFFFF
+	Range Size: 2 GB
+	Physical Device Handle: 0x0022
+	Memory Array Mapped Address Handle: 0x0021
+	Partition Row Position: Unknown
+	Interleave Position: Unknown
+	Interleaved Data Depth: Unknown
+
+Handle 0x0024, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x0020
+	Error Information Handle: Not Provided
+	Total Width: 64 bits
+	Data Width: 64 bits
+	Size: 1024 MB
+	Form Factor: SODIMM
+	Set: None
+	Locator: SODIMM1
+	Bank Locator: BANK1
+	Type: DDR2
+	Type Detail: Synchronous
+	Speed: 800 MHz (1.2 ns)
+	Manufacturer: N/A                          =20
+	Serial Number: N/A                          =20
+	Asset Tag: N/A                          =20
+	Part Number: N/A                          =20
+
+Handle 0x0025, DMI type 20, 19 bytes
+Memory Device Mapped Address
+	Starting Address: 0x00080000000
+	Ending Address: 0x000BFFFFFFF
+	Range Size: 1 GB
+	Physical Device Handle: 0x0024
+	Memory Array Mapped Address Handle: 0x0021
+	Partition Row Position: Unknown
+	Interleave Position: Unknown
+	Interleaved Data Depth: Unknown
+
+Handle 0x0026, DMI type 22, 26 bytes
+Portable Battery
+	Location: In the back
+	Manufacturer: AS012Nj33F
+	Manufacture Date: 08/10/08
+	Serial Number: 2046
+	Name: B50--26        =20
+	Chemistry: Other
+	Design Capacity: 5060 mWh
+	Design Voltage: 14800 mV
+	SBDS Version: SMART Ver 0123
+	Maximum Error: Unknown
+	OEM-specific Information: 0x00000000
+
+Handle 0x0027, DMI type 129, 8 bytes
+OEM-specific Type
+	Header and Data:
+		81 08 27 00 01 01 02 01
+	Strings:
+		Intel_ASF
+		Intel_ASF_001
+
+Handle 0x0028, DMI type 200, 27 bytes
+OEM-specific Type
+	Header and Data:
+		C8 1B 28 00 01 02 03 00 00 00 00 00 00 00 00 00
+		00 00 00 00 00 00 00 00 00 00 00
+	Strings:
+		ASUSTeK Computer Inc.       =20
+		Notebook =20
+		1.0      =20
+
+Handle 0x0029, DMI type 130, 20 bytes
+OEM-specific Type
+	Header and Data:
+		82 14 29 00 24 41 4D 54 01 00 00 00 00 A5 00 00
+		00 00 00 00
+
+Handle 0x002A, DMI type 131, 64 bytes
+OEM-specific Type
+	Header and Data:
+		83 40 2A 00 20 00 00 00 90 20 40 2A 0C 00 00 00
+		F8 00 19 29 00 00 00 00 01 00 00 FF FF 00 00 00
+		FF 00 00 00 01 00 00 00 00 00 00 00 00 00 00 02
+		32 42 00 00 9F 03 00 00 76 50 72 6F 00 00 00 00
+
+Handle 0x002B, DMI type 127, 4 bytes
+End Of Table
 
 
-Can this be included in drivers/Makefile like this:
 
-obj-$(CONFIG_X86) += x86/
+--=20
+*******************************************
+Tomasz Wieckowski
 
-Notice that parisc already do the same. (Yes they have
-a drivers/parisc dir).
+Department of Computer Science and Statistics
+Poznan University of Medical Sciences
+79, D=C4=85browskiego St. 60-529 Poznan, Poland
+Phone/Fax: (+48 61) 854 68 14
+*******************************************
 
-We shall try to visit our tree in natural order when we build
-and such a rule breaks this.
-Also it is good to keep drivers/ stuff in one place.
+--Sig_/e+CpGsPaN9kdx+fpA6tIj1C
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
 
-> +++ b/drivers/x86/Kconfig
-> @@ -0,0 +1,290 @@
-> +#
-> +# X86 Platform Specific Drivers
-> +#
-> +
-> +menuconfig X86_PLATFORM_DEVICES
-> +	bool "X86 Platform devices"
-> +	default y
-> +	---help---
-> +	  Say Y here to get to see options for device drivers for various
-> +	  x86 platforms, including vendor-specific laptop extension drivers.
-> +	  This option alone does not add any kernel code.
-> +
-> +	  If you say N, all options in this submenu will be skipped and disabled.
-> +
-> +if X86_PLATFORM_DEVICES
-> +
-> +config ACER_WMI
-> +        tristate "Acer WMI Laptop Extras (EXPERIMENTAL)"
-spaces => tab
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.9 (GNU/Linux)
 
-> +config ASUS_LAPTOP
-> +        tristate "Asus Laptop Extras (EXPERIMENTAL)"
-> +        depends on ACPI
-spaces => tab
+iEYEARECAAYFAkkxPEsACgkQMlY/SWWQTdgPmwCgx3o1AJk6jPk3JCrWwB5uDbox
+QYgAoIvad+FcL+Z4pUdRTXwBH9piMvge
+=Ysv/
+-----END PGP SIGNATURE-----
 
-> +config FUJITSU_LAPTOP
-> +        tristate "Fujitsu Laptop Extras"
-> +        depends on ACPI
-> +	depends on INPUT
-> +        depends on BACKLIGHT_CLASS_DEVICE
-> +        ---help---
-spaces => tab
-
-> +config HP_WMI
-> +       tristate "HP WMI extras"
-> +       depends on ACPI_WMI
-> +       depends on INPUT
-> +       depends on RFKILL
-> +       help
-> +         Say Y here if you want to support WMI-based hotkeys on HP laptops and
-spaces => tab
-
-> +	 to read data from WMI such as docking or ambient light sensor state.
-> +
-> +         To compile this driver as a module, choose M here: the module will
-> +         be called hp-wmi.
-> +
-> +config MSI_LAPTOP
-> +        tristate "MSI Laptop Extras"
-> +        depends on ACPI
-> +        depends on BACKLIGHT_CLASS_DEVICE
-> +        ---help---
-spaces => tab
-
-> diff --git a/drivers/x86/Makefile b/drivers/x86/Makefile
-> new file mode 100644
-> index 0000000..4f14f28
-> --- /dev/null
-> +++ b/drivers/x86/Makefile
-> @@ -0,0 +1,17 @@
-> +#
-> +# x86 Platform-Specific Drivers
-> +#
-> +obj- := x86.o	# Dummy rule to force built-in.o to be made
-
-This is not needed. I can see divers/misc uses the same
-but it is bogus.
-
-	Sam
+--Sig_/e+CpGsPaN9kdx+fpA6tIj1C--
