@@ -1,39 +1,66 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] misc: Add oqo-wmi driver for model 2 OQO backlight and rfkill control
-Date: Sat, 29 Nov 2008 04:50:45 +0000
-Message-ID: <20081129045045.GA13866@srcf.ucam.org>
-References: <20081127190517.GA25429@srcf.ucam.org> <alpine.LFD.2.00.0811281431320.3204@localhost.localdomain> <Pine.LNX.4.64.0811282215160.17453@sheavy.abrij.org>
+From: Sam Ravnborg <sam@ravnborg.org>
+Subject: Re: [RFC PATCH] x86: create drivers/x86/ from drivers/misc/
+Date: Sat, 29 Nov 2008 08:23:21 +0100
+Message-ID: <20081129072321.GA8351@uranus.ravnborg.org>
+References: <20081128213620.2ec593d4.sfr@canb.auug.org.au> <4930307C.30106@oracle.com> <20081129083550.3c23af37.sfr@canb.auug.org.au> <alpine.LFD.2.00.0811281649001.24773@localhost.localdomain> <alpine.LFD.2.00.0811281702570.24773@localhost.localdomain> <alpine.LFD.2.00.0811281706540.24773@localhost.localdomain> <20081128223533.GA5175@uranus.ravnborg.org> <alpine.LFD.2.00.0811281801520.24773@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:34797 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752541AbYK2Euz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Nov 2008 23:50:55 -0500
+Return-path: <linux-next-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0811282215160.17453@sheavy.abrij.org>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <alpine.LFD.2.00.0811281801520.24773@localhost.localdomain>
+Sender: linux-next-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Len Brown <len.brown@intel.com>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Randy Dunlap <randy.dunlap@oracle.com>, x86@kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brian S. Julin" <bri@abrij.org>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, greg@kroah.com
 
-On Fri, Nov 28, 2008 at 10:35:17PM -0500, Brian S. Julin wrote:
-> On Fri, 28 Nov 2008, Len Brown wrote:
-> >needs a MAINTAINERS entry.
 > 
-> If it were to be set to me it would have to be S: Odd Fixes.  I don't know 
-> if this
-> is on Matthew's redhat-official "pile of laptops"...
+> I followed the example of drivers/s390/,
+> per Linus' suggestion.
 
-Somewhat. There's some work to be done on getting X to work out the LVDS 
-sizing correctly, but other than that I think I get to play with it for 
-now...
+And in s390 we have:
 
-> Either way I've marked the webpage hosting the original code as depricated 
-> and added a link to linux-acpi's home.  I'll have to test the new patch too 
-> at some point but not this weekend.
+block/
+char/
+cio/
+crypto/
+ebcdic.c
+kvm/
+Makefile
+net/
+s390mach.c
+s390mach.h
+s390_rdev.c
+scsi/
+sysinfo.c
 
-Cool, thanks. I'll have more time to work on the hardware the week after 
-next.
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+So we end up with block drivers in drivers/block AND drivers/s390/block
+This is the wrong way to divide up things.
+
+find -name arm
+./net/arm
+./scsi/arm
+
+find -name cris
+./net/cris
+
+find -name x86
+./lguest/x86
+
+
+See above. I have all net drivers under drivers/net/ and for 
+arm and cris they have their own subdirectory.
+Except for s390 where I have to go finding them in other places.
+
+> The other place that seemed to suggest itself was
+> arch/x86/drivers/, as we already have:
+> 
+> arch/um/drivers/
+> arch/sh/drivers/
+> arch/cris/*/drivers/
+
+The approach has been for a long time to move away from
+storing drivers under arch/*/drivers and cris is slowly
+moving their drivers.
+I dunno about um and sh.
+
+	Sam
