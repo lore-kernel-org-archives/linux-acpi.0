@@ -1,61 +1,80 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [RFC PATCH v2] create drivers/platform/x86/ from drivers/misc/
-Date: Mon, 1 Dec 2008 08:48:42 +0100
-Message-ID: <20081201074842.GC27768@elte.hu>
-References: <20081128213620.2ec593d4.sfr@canb.auug.org.au> <4930307C.30106@oracle.com> <20081129083550.3c23af37.sfr@canb.auug.org.au> <alpine.LFD.2.00.0811281649001.24773@localhost.localdomain> <alpine.LFD.2.00.0811281702570.24773@localhost.localdomain> <alpine.LFD.2.00.0811281706540.24773@localhost.localdomain> <20081128223533.GA5175@uranus.ravnborg.org> <alpine.LFD.2.00.0811281801520.24773@localhost.localdomain> <20081129073816.GB8351@uranus.ravnborg.org> <alpine.LFD.2.00.0812010053100.3314@localhost.localdomain>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: the issue about the bogus ECDT table
+Date: Mon, 01 Dec 2008 16:12:57 +0800
+Message-ID: <1228119177.4035.186.camel@yakui_zhao.sh.intel.com>
+References: <1227689447.4053.5.camel@yakui_zhao.sh.intel.com>
+	 <492DAB8B.30409@gmail.com>
+	 <1227749343.4053.32.camel@yakui_zhao.sh.intel.com>
+	 <492E6B70.9010006@suse.de>
+	 <1227841044.4035.70.camel@yakui_zhao.sh.intel.com>
+	 <492FA6F5.7070105@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-next-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.0812010053100.3314@localhost.localdomain>
-Sender: linux-next-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Sam Ravnborg <sam@ravnborg.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Len Brown <len.brown@intel.com>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Randy Dunlap <randy.dunlap@oracle.com>, x86@kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:26606 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750740AbYLAIFi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 1 Dec 2008 03:05:38 -0500
+In-Reply-To: <492FA6F5.7070105@suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Alexey Starikovskiy <aystarik@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>
 
+Hi, Alexey
+    Now the patch in comment #20 of http://bugzilla.kernel.org/show_bug.cgi?id=11880 is
+already added to Linux test tree.
+    The laptops of bug 11880, 12116 can be fixed by the patch. In this patch if the ECDT Data 
+I/O address is the same as the EC Command I/O address, the EC device will be parsed from
+the DSDT table. Of course it is correct.
+    In fact the root cause of this issue is that incorrect ECDT table is provided on the 
+broken laptops. For example:
+    The ECDT Command I/O data address is zero. (Incorrect)
+    The ECDT Data I/O address is zero. (Incorrect)
+    The GPE number is zero (Incorrect)
+    The EC namepath is incorrect (Incorrect)
+   
+    At the same time there exists other bug about the bogus ECDT table. For example: Bug8709,
+9399. On the two laptops of bug8709, 9399 the EC Command/Data IO address defined in ECDT table
+is exchanged, which brings that EC can't work well in the upstream kernel. Now the problem 
+still exists.
+    
+    Although the error of bug9399 is different with that in bug11880, they have the same issue
+that the bogus ECDT table is provided. So the generic solution is that when there exists the ECDT
+table OS still parses the EC device in DSDT table and compare it with that defined in ECDT table.
+If they are different, the BIOS bug is reported and the device parsed in DSDT is initialized.
+The following info will be compared.
+    a. EC Data I/O address
+    b. EC Command I/O address
+    c. EC GPE number
+  
+   
+   I use the KVM to verify this issue on windows. Windows still can work well even when bogus ECDT
+table is defined. The EC GPE number is obtained from DSDT table and the I/O resource is obtained from
+the DSDT table. The following types of bogus ECDT table are tested on windows:
+    a. zero ECDT table (the info in ECDT table is all zero)
+    b. exchanged EC data/command I/O address
+    c. incorrect GPE number in ECDT table(the address is correct)
+    d. incorrect EC I/O resource( The EC data I/O address is correct. But the EC command I/O address is
+incorrect)
 
-* Len Brown <lenb@kernel.org> wrote:
+   At the same time there is another interesting issue on windows.(This is also done using KVM).
+   There exists the _INI object under the scope of EC device. And the ECDT table is also provided(The ECDT table
+is correct)
+   On windows the EC _INI object is evaluated before the EC device is initialized. But On Linux the EC _INI 
+object is evaluated after EC device is initialized.
+   From the test it seems that the EC initial flowchart on Linux is different with that on windows. 
+   
+Thanks.
+   
+Best regards.
+   yakui
 
-> Sam, Henrique,
-> I've responded to your feedback in v2, which follows.
-> 
-> Ingo,
-> this version does not touch arch/x86/
+    
+   
+    
+   
+    
+    
 
-the problem isnt the bits that touch arch/x86/, but that we carry these 
-commits:
-
- fbc2a06: Merge branch 'linus' into x86/uv
- a3d732f: x86, UV: fix redundant creation of sgi_uv
- 7d9d1f2: sgi-xp: support getting the address of a partition's reserved page
- 31de5ec: sgi-xp: define xp_partition_id and xp_region_size
- 2525789: sgi-xp: create activate and notify gru message queues
- 6c1c325: sgi-xp: define xp_expand_memprotect() and xp_restrict_memprotect()
-
-their drivers/misc impact is significant:
-
- drivers/misc/sgi-gru/grufault.c  |    4 +-
- drivers/misc/sgi-gru/gruprocfs.c |    1 -
- drivers/misc/sgi-xp/xp.h         |    7 +-
- drivers/misc/sgi-xp/xp_main.c    |    7 +
- drivers/misc/sgi-xp/xp_sn2.c     |   34 +++++
- drivers/misc/sgi-xp/xp_uv.c      |   70 +++++++++-
- drivers/misc/sgi-xp/xpc.h        |   12 ++
- drivers/misc/sgi-xp/xpc_sn2.c    |   15 +--
- drivers/misc/sgi-xp/xpc_uv.c     |  290 ++++++++++++++++++++++++++++++--------
- 10 files changed, 368 insertions(+), 74 deletions(-)
-
-And we'll likely get new commits in that space.
-
-So if this is causing conflicts in linux-next then i'd suggest for you to 
-please do this "git mv drivers/misc/ drivers/x86/" rename (with which i 
-fully agree!) right after v2.6.29-rc1 - or near the end of the -rc1 merge 
-window.
-
-In any case, please keep it in a separate branch in the ACPI tree so that 
-we can reconsider the ordering of this change in the future as well - 
-should it cause problems.
-
-Thanks,
-
-	Ingo
