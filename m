@@ -1,22 +1,36 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [patch 2/3] acpiphp: identify more removable slots
-Date: Mon, 1 Dec 2008 22:14:55 +0000
-Message-ID: <20081201221455.GA10372@srcf.ucam.org>
-References: <200812012212.mB1MCo2w008300@imap1.linux-foundation.org>
+From: Alessandro Zummo <alessandro.zummo@towertech.it>
+Subject: Re: [rtc-linux] Re: PATCH: /proc/acpi/alarm: handle day-of-month
+ wraparound on readback
+Date: Mon, 1 Dec 2008 23:32:10 +0100
+Message-ID: <20081201233210.598f2dcf@i1501.lan.towertech.it>
+References: <200806222042.13929.david-b@pacbell.net>
+	<4934176F.6080900@rtr.ca>
+	<alpine.LFD.2.00.0812011311490.3197@localhost.localdomain>
+	<49346212.3050102@rtr.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:42406 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751570AbYLAWPI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Dec 2008 17:15:08 -0500
-Content-Disposition: inline
-In-Reply-To: <200812012212.mB1MCo2w008300@imap1.linux-foundation.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753277AbYLAWc1@vger.kernel.org>
+In-Reply-To: <49346212.3050102@rtr.ca>
+Sender: linux-kernel-owner@vger.kernel.org
+To: rtc-linux@googlegroups.com
+Cc: lkml@rtr.ca, Len Brown <lenb@kernel.org>, Alessandro Zummo <a.zummo@towertech.it>, David Brownell <david-b@pacbell.net>, lkml <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: akpm@linux-foundation.org
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, gregkh@suse.de, kristen.c.accardi@intel.com, len.brown@intel.com
 
-This has been picked up by Jesse for the PCI tree.
+On Mon, 01 Dec 2008 17:15:46 -0500
+Mark Lord <lkml@rtr.ca> wrote:
+
+> Yeah.. bit of a nuisance that.
+> I regularly apply this patch to my own kernels:
+
+ While it will certainly work, maybe it's time to switch
+ to /sys/class/rtc/rtcX/wakealarm . 
+
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+
+ Best regards,
+
+ Alessandro Zummo,
+  Tower Technologies - Torino, Italy
+
+  http://www.towertech.it
