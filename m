@@ -1,47 +1,39 @@
-From: Len Brown <lenb@kernel.org>
+From: Christoph Lameter <cl@linux-foundation.org>
 Subject: Re: [patch][rfc] acpi: do not use kmem caches
-Date: Mon, 01 Dec 2008 12:53:04 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0812011241080.3197@localhost.localdomain>
-References: <20081201083128.GB2529@wotan.suse.de>
- <84144f020812010318v205579ean57edecf7992ec7ef@mail.gmail.com>
- <20081201120002.GB10790@wotan.suse.de> <4933E2C3.4020400@gmail.com>
- <1228138641.14439.18.camel@penberg-laptop> <4933EE8A.2010007@gmail.com>
- <20081201161404.GE10790@wotan.suse.de> <4934149A.4020604@gmail.com>
- <20081201172044.GB14074@infradead.org>
+Date: Mon, 1 Dec 2008 12:09:33 -0600 (CST)
+Message-ID: <Pine.LNX.4.64.0812011207400.16919@quilx.com>
+References: <20081201083128.GB2529@wotan.suse.de>  <20081201120002.GB10790@wotan.suse.de>
+ <4933E2C3.4020400@gmail.com>  <1228138641.14439.18.camel@penberg-laptop>
+ <Pine.LNX.4.64.0812010828150.14977@quilx.com>  <4933F925.3020907@gmail.com>
+ <20081201162018.GF10790@wotan.suse.de>  <49341915.5000900@gmail.com>
+ <20081201171219.GI10790@wotan.suse.de>  <84144f020812010925r6c5f9c85p32f180c06085b496@mail.gmail.com>
+ <84144f020812010932l540b26dr57716d8abea2562@mail.gmail.com> <493420B2.8050907@gmail.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173007pub.verizon.net ([206.46.173.7]:55504 "EHLO
-	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751565AbYLARxH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Dec 2008 12:53:07 -0500
-Received: from localhost.localdomain ([96.237.168.40])
- by vms173007.mailsrvcs.net
- (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0KB7004E3LMOVTZ8@vms173007.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Mon, 01 Dec 2008 11:52:01 -0600 (CST)
-In-reply-to: <20081201172044.GB14074@infradead.org>
+Received: from nlpi053.sbcis.sbc.com ([207.115.36.82]:49509 "EHLO
+	nlpi053.prodigy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752550AbYLASKC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Dec 2008 13:10:02 -0500
+In-Reply-To: <493420B2.8050907@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Alexey Starikovskiy <aystarik@gmail.com>, Nick Piggin <npiggin@suse.de>, Pekka Enberg <penberg@cs.helsinki.fi>, Linux Memory Management List <linux-mm@kvack.org>, linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <aystarik@gmail.com>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>, Nick Piggin <npiggin@suse.de>, Linux Memory Management List <linux-mm@kvack.org>, linux-acpi@vger.kernel.org, lenb@kernel.org
 
+On Mon, 1 Dec 2008, Alexey Starikovskiy wrote:
 
-> Or at least stop arguing and throwing bureaucratic stones in the way of
-> those wanting to sort out this mess.
+> > Though I suspect this situation could be improved by avoiding those
+> > fairly big unions ACPI does (like union acpi_operand_object).
+> >
+> No, last time I checked, operand may get down to 16 bytes in 32-bit case --
+> save byte by having 3 types of operands... and making 2 more caches :)
 
-I think we all would be better served if there were more facts
-and fewer insults on this thread, can we do that please?
+SLAB has a minimum allocation size of 32 bytes so it would not make a
+difference there.
 
-I do not think the extra work we need to do for ACPICA changes
-are a significant hurdle here. We will do what is best for Linux --
-which is what we though we were doing when we changed ACPICA
-so Linux could use native caching in the first place.
-
-The only question that should be on the table here is how
-to make Linux be the best it can be.
-
-thanks,
--Len
+SLUB can go down to 8 bytes which would enable you to save more. Adding
+new caches most of the time simply lead to incrementing a counter in
+a similar kmem_cache structure.
 
 
