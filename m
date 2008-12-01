@@ -1,42 +1,46 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 1/2] drivers/misc/Makefile, Kconfig: cleanup
-Date: Mon, 01 Dec 2008 14:23:11 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0812011421140.3197@localhost.localdomain>
-References: <4930307C.30106@oracle.com>
- <20081129083550.3c23af37.sfr@canb.auug.org.au>
- <alpine.LFD.2.00.0811281649001.24773@localhost.localdomain>
- <alpine.LFD.2.00.0811281702570.24773@localhost.localdomain>
- <alpine.LFD.2.00.0811281706540.24773@localhost.localdomain>
- <20081128223533.GA5175@uranus.ravnborg.org>
- <alpine.LFD.2.00.0811281801520.24773@localhost.localdomain>
- <20081129073816.GB8351@uranus.ravnborg.org>
- <alpine.LFD.2.00.0812010053100.3314@localhost.localdomain>
- <alpine.LFD.2.00.0812010102340.3314@localhost.localdomain>
- <20081201074148.GA22463@uranus.ravnborg.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [patch] ACPI toshiba: only register rfkill if bt is enabled
+Date: Mon, 1 Dec 2008 11:30:52 -0800
+Message-ID: <20081201113052.9e9aae36.akpm@linux-foundation.org>
+References: <20081029081934.GB26314@gambetta>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms044pub.verizon.net ([206.46.252.44]:35677 "EHLO
-	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752234AbYLATXQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Dec 2008 14:23:16 -0500
-In-reply-to: <20081201074148.GA22463@uranus.ravnborg.org>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54333 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753547AbYLATbr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Dec 2008 14:31:47 -0500
+In-Reply-To: <20081029081934.GB26314@gambetta>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sam Ravnborg <sam@ravnborg.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Len Brown <len.brown@intel.com>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Randy Dunlap <randy.dunlap@oracle.com>, x86@kernel.org, linux-acpi@vger.kernel.org
+To: Frederik Deweerdt <frederik.deweerdt@xprog.eu>
+Cc: arvidjaar@mail.ru, linux-kernel@vger.kernel.org, philipl@overt.org, linux-acpi@vger.kernel.org, Arjan van de Ven <arjan@infradead.org>
 
+This patch:
 
-> >  #
-> > -obj- := misc.o	# Dummy rule to force built-in.o to be made
-> > -
-> > -obj-$(CONFIG_IBM_ASM)		+= ibmasm/
->  ^^
+On Wed, 29 Oct 2008 08:19:34 +0000
+Frederik Deweerdt <frederik.deweerdt@xprog.eu> wrote:
 
-thanks for spotting that typo.
-Looks like I lost the fight with vim's stupid feature
-of adding a '#' to a blank line and deleted a line of code, sigh...
---
--Len Brown
-Intel Open Source Technology Center
+> Register toshiba RFKill Switch only if bluetooth is enabled
 
+which is here: http://userweb.kernel.org/~akpm/mmotm/broken-out/acpi-toshiba-only-register-rfkill-if-bt-is-enabled.patch
+
+fixes a post-2.6.27 regression.  It doesn't apply any more, due to the
+recent merge of this:
+
+commit e251fa12fb5713e722029341c03b2f48bcd7b7be
+Author: Arjan van de Ven <arjan@linux.intel.com>
+Date:   Fri Nov 28 08:19:09 2008 -0800
+
+    toshiba_acpi: close race in toshiba_acpi driver
+    
+in linux-next.
+
+It is unclear to me whether these two patches fix the same bug, or
+different ones.
+
+Could you please take a look in linux-next and see what needs to be
+done?
+
+Thanks.
