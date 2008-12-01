@@ -1,106 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [patch 2/3] acpiphp: identify more removable slots
-Date: Mon, 01 Dec 2008 14:12:50 -0800
-Message-ID: <200812012212.mB1MCo2w008300@imap1.linux-foundation.org>
+Subject: [patch 3/3] pnpacpi: enable Power Management
+Date: Mon, 01 Dec 2008 14:12:51 -0800
+Message-ID: <200812012212.mB1MCqRl008323@imap1.linux-foundation.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41866 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42179 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751320AbYLAWNU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Dec 2008 17:13:20 -0500
+	by vger.kernel.org with ESMTP id S1752711AbYLAWNG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Dec 2008 17:13:06 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, mjg59@srcf.ucam.org, gregkh@suse.de, kristen.c.accardi@intel.com, len.brown@intel.com, mjg@redhat.com
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, Witold.Szczeponik@gmx.net, bjorn.helgaas@hp.com, rjw@sisk.pl
 
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+From: Witold Szczeponik <Witold.Szczeponik@gmx.net>
 
-According to section 6.3.6 of the ACPI spec, the presence of an _RMV
-method that evaluates to 1 is sufficient to indicate that a slot is
-removable without needing an eject method.  This patch refactors the
-ejectable slot detection code a little in order to flag these slots as
-ejectable and register them.  Acpihp then binds to the expresscard slot on
-my HP test machine.
+Set the power of PnP ACPI devices to D0 when they are activated and to D3
+when they are disabled.  The latter is in correspondence with the ACPI 3.0
+specification, whereas the former is added in order to be able to power up
+a device after it has been previously disabled (or when booting up a
+system).  (As a consequence, the patch makes the PnP ACPI code more ACPI
+compliant.)
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Len Brown <len.brown@intel.com>
+The patch fixes the problem with some IBM ThinkPads (at least the 600E and
+the 600X) where the serial ports have a dedicated power source that needs
+to be brought up before the serial port can be used.  Without this patch,
+the serial port is enabled but has no power.
+
+No regressions were observed on hardware that does not require this patch.
+
+Signed-off-by: Witold Szczeponik <Witold.Szczeponik@gmx.net>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/hotplug/acpiphp_glue.c |   32 ++++++++++++++-------------
- 1 file changed, 17 insertions(+), 15 deletions(-)
+ drivers/pnp/pnpacpi/core.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN drivers/pci/hotplug/acpiphp_glue.c~acpiphp-identify-more-removable-slots drivers/pci/hotplug/acpiphp_glue.c
---- a/drivers/pci/hotplug/acpiphp_glue.c~acpiphp-identify-more-removable-slots
-+++ a/drivers/pci/hotplug/acpiphp_glue.c
-@@ -74,7 +74,7 @@ static void handle_hotplug_event_func(ac
-  * Ejectable slot should satisfy at least these conditions:
-  *
-  *  1. has _ADR method
-- *  2. has _EJ0 method
-+ *  2. has _EJ0 method or _RMV method
-  *
-  * optionally
-  *
-@@ -87,18 +87,25 @@ static int is_ejectable(acpi_handle hand
- {
- 	acpi_status status;
- 	acpi_handle tmp;
-+	unsigned long long removable;
- 
- 	status = acpi_get_handle(handle, "_ADR", &tmp);
--	if (ACPI_FAILURE(status)) {
-+	if (ACPI_FAILURE(status))
- 		return 0;
--	}
- 
- 	status = acpi_get_handle(handle, "_EJ0", &tmp);
--	if (ACPI_FAILURE(status)) {
--		return 0;
-+	if (ACPI_SUCCESS(status))
-+		return 1;
-+
-+	status = acpi_get_handle(handle, "_RMV", &tmp);
-+	if (ACPI_SUCCESS(status)) {
-+		status = acpi_evaluate_integer(handle, "_RMV", NULL,
-+					       &removable);
-+		if (ACPI_SUCCESS(status) && removable)
-+			return 1;
- 	}
- 
--	return 1;
-+	return 0;
+diff -puN drivers/pnp/pnpacpi/core.c~pnpacpi-enable-power-management drivers/pnp/pnpacpi/core.c
+--- a/drivers/pnp/pnpacpi/core.c~pnpacpi-enable-power-management
++++ a/drivers/pnp/pnpacpi/core.c
+@@ -98,18 +98,24 @@ static int pnpacpi_set_resources(struct 
+ 	status = acpi_set_current_resources(handle, &buffer);
+ 	if (ACPI_FAILURE(status))
+ 		ret = -EINVAL;
++	else if (acpi_bus_power_manageable(handle))
++		ret = acpi_bus_set_power(handle, ACPI_STATE_D0);
+ 	kfree(buffer.pointer);
+ 	return ret;
  }
  
+ static int pnpacpi_disable_resources(struct pnp_dev *dev)
+ {
++	acpi_handle handle = dev->data;
++	int ret = 0;
+ 	acpi_status status;
  
-@@ -185,16 +192,10 @@ register_slot(acpi_handle handle, u32 lv
- 	unsigned long long adr, sun;
- 	int device, function, retval;
+-	/* acpi_unregister_gsi(pnp_irq(dev, 0)); */
+-	status = acpi_evaluate_object((acpi_handle) dev->data,
+-				      "_DIS", NULL, NULL);
+-	return ACPI_FAILURE(status) ? -ENODEV : 0;
++	if (acpi_bus_power_manageable(handle))
++		ret = acpi_bus_set_power(handle, ACPI_STATE_D3);
++	status = acpi_evaluate_object(handle, "_DIS", NULL, NULL);
++	if (ACPI_FAILURE(status))
++		ret = -ENODEV;
++	return ret;
+ }
  
--	status = acpi_evaluate_integer(handle, "_ADR", NULL, &adr);
--
--	if (ACPI_FAILURE(status))
--		return AE_OK;
--
--	status = acpi_get_handle(handle, "_EJ0", &tmp);
--
--	if (ACPI_FAILURE(status) && !(is_dock_device(handle)))
-+	if (!is_ejectable(handle) && !is_dock_device(handle))
- 		return AE_OK;
- 
-+	acpi_evaluate_integer(handle, "_ADR", NULL, &adr);
- 	device = (adr >> 16) & 0xffff;
- 	function = adr & 0xffff;
- 
-@@ -205,7 +206,8 @@ register_slot(acpi_handle handle, u32 lv
- 	INIT_LIST_HEAD(&newfunc->sibling);
- 	newfunc->handle = handle;
- 	newfunc->function = function;
--	if (ACPI_SUCCESS(status))
-+
-+	if (ACPI_SUCCESS(acpi_get_handle(handle, "_EJ0", &tmp)))
- 		newfunc->flags = FUNC_HAS_EJ0;
- 
- 	if (ACPI_SUCCESS(acpi_get_handle(handle, "_STA", &tmp)))
+ #ifdef CONFIG_ACPI_SLEEP
 _
