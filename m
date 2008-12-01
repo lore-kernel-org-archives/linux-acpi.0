@@ -1,80 +1,176 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: the issue about the bogus ECDT table
-Date: Mon, 01 Dec 2008 16:12:57 +0800
-Message-ID: <1228119177.4035.186.camel@yakui_zhao.sh.intel.com>
-References: <1227689447.4053.5.camel@yakui_zhao.sh.intel.com>
-	 <492DAB8B.30409@gmail.com>
-	 <1227749343.4053.32.camel@yakui_zhao.sh.intel.com>
-	 <492E6B70.9010006@suse.de>
-	 <1227841044.4035.70.camel@yakui_zhao.sh.intel.com>
-	 <492FA6F5.7070105@suse.de>
+From: Nick Piggin <npiggin@suse.de>
+Subject: [patch][rfc] acpi: do not use kmem caches
+Date: Mon, 1 Dec 2008 09:31:28 +0100
+Message-ID: <20081201083128.GB2529@wotan.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:26606 "EHLO mga11.intel.com"
+Received: from cantor2.suse.de ([195.135.220.15]:48122 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750740AbYLAIFi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 1 Dec 2008 03:05:38 -0500
-In-Reply-To: <492FA6F5.7070105@suse.de>
+	id S1750770AbYLAIb3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 1 Dec 2008 03:31:29 -0500
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: Alexey Starikovskiy <aystarik@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>
+To: Linux Memory Management List <linux-mm@kvack.org>, linux-acpi@vger.kernel.org, lenb@kernel.org
 
-Hi, Alexey
-    Now the patch in comment #20 of http://bugzilla.kernel.org/show_bug.cgi?id=11880 is
-already added to Linux test tree.
-    The laptops of bug 11880, 12116 can be fixed by the patch. In this patch if the ECDT Data 
-I/O address is the same as the EC Command I/O address, the EC device will be parsed from
-the DSDT table. Of course it is correct.
-    In fact the root cause of this issue is that incorrect ECDT table is provided on the 
-broken laptops. For example:
-    The ECDT Command I/O data address is zero. (Incorrect)
-    The ECDT Data I/O address is zero. (Incorrect)
-    The GPE number is zero (Incorrect)
-    The EC namepath is incorrect (Incorrect)
-   
-    At the same time there exists other bug about the bogus ECDT table. For example: Bug8709,
-9399. On the two laptops of bug8709, 9399 the EC Command/Data IO address defined in ECDT table
-is exchanged, which brings that EC can't work well in the upstream kernel. Now the problem 
-still exists.
-    
-    Although the error of bug9399 is different with that in bug11880, they have the same issue
-that the bogus ECDT table is provided. So the generic solution is that when there exists the ECDT
-table OS still parses the EC device in DSDT table and compare it with that defined in ECDT table.
-If they are different, the BIOS bug is reported and the device parsed in DSDT is initialized.
-The following info will be compared.
-    a. EC Data I/O address
-    b. EC Command I/O address
-    c. EC GPE number
-  
-   
-   I use the KVM to verify this issue on windows. Windows still can work well even when bogus ECDT
-table is defined. The EC GPE number is obtained from DSDT table and the I/O resource is obtained from
-the DSDT table. The following types of bogus ECDT table are tested on windows:
-    a. zero ECDT table (the info in ECDT table is all zero)
-    b. exchanged EC data/command I/O address
-    c. incorrect GPE number in ECDT table(the address is correct)
-    d. incorrect EC I/O resource( The EC data I/O address is correct. But the EC command I/O address is
-incorrect)
+Hi,
+What does everyone think about this patch?
 
-   At the same time there is another interesting issue on windows.(This is also done using KVM).
-   There exists the _INI object under the scope of EC device. And the ECDT table is also provided(The ECDT table
-is correct)
-   On windows the EC _INI object is evaluated before the EC device is initialized. But On Linux the EC _INI 
-object is evaluated after EC device is initialized.
-   From the test it seems that the EC initial flowchart on Linux is different with that on windows. 
-   
-Thanks.
-   
-Best regards.
-   yakui
+--
 
-    
-   
-    
-   
-    
-    
+ACPI subsystem creates a handful of kmem caches that are not particularly
+appropriate. Most of them seem to be empty or nearly empty most of the time,
+and the others don't have too many objects. In this situation, kmem caches
+can actually have more overhead than they save.
 
+Just use ACPI's generic code for its acpi_cache_t type.
+---
+ drivers/acpi/osl.c              |   85 ----------------------------------------
+ include/acpi/acmacros.h         |    2 
+ include/acpi/platform/aclinux.h |    9 ----
+ 3 files changed, 3 insertions(+), 93 deletions(-)
+
+Index: linux-2.6/include/acpi/acmacros.h
+===================================================================
+--- linux-2.6.orig/include/acpi/acmacros.h
++++ linux-2.6/include/acpi/acmacros.h
+@@ -670,7 +670,7 @@ struct acpi_integer_overlay {
+ #define ACPI_ALLOCATE_ZEROED(a)     acpi_ut_allocate_zeroed((acpi_size)(a), ACPI_MEM_PARAMETERS)
+ #endif
+ #ifndef ACPI_FREE
+-#define ACPI_FREE(a)                acpio_os_free(a)
++#define ACPI_FREE(a)                acpi_os_free(a)
+ #endif
+ #define ACPI_MEM_TRACKING(a)
+ 
+Index: linux-2.6/include/acpi/platform/aclinux.h
+===================================================================
+--- linux-2.6.orig/include/acpi/platform/aclinux.h
++++ linux-2.6/include/acpi/platform/aclinux.h
+@@ -65,7 +65,6 @@
+ /* Host-dependent types and defines */
+ 
+ #define ACPI_MACHINE_WIDTH          BITS_PER_LONG
+-#define acpi_cache_t                        struct kmem_cache
+ #define acpi_spinlock                   spinlock_t *
+ #define ACPI_EXPORT_SYMBOL(symbol)  EXPORT_SYMBOL(symbol);
+ #define strtoul                     simple_strtoul
+@@ -73,6 +72,8 @@
+ /* Full namespace pathname length limit - arbitrary */
+ #define ACPI_PATHNAME_MAX              256
+ 
++#define ACPI_USE_LOCAL_CACHE
++
+ #else				/* !__KERNEL__ */
+ 
+ #include <stdarg.h>
+@@ -128,12 +129,6 @@ static inline void *acpi_os_allocate_zer
+ 	return kzalloc(size, irqs_disabled()? GFP_ATOMIC : GFP_KERNEL);
+ }
+ 
+-static inline void *acpi_os_acquire_object(acpi_cache_t * cache)
+-{
+-	return kmem_cache_zalloc(cache,
+-				 irqs_disabled()? GFP_ATOMIC : GFP_KERNEL);
+-}
+-
+ #define ACPI_ALLOCATE(a)	acpi_os_allocate(a)
+ #define ACPI_ALLOCATE_ZEROED(a)	acpi_os_allocate_zeroed(a)
+ #define ACPI_FREE(a)		kfree(a)
+Index: linux-2.6/drivers/acpi/osl.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/osl.c
++++ linux-2.6/drivers/acpi/osl.c
+@@ -1212,91 +1212,6 @@ void acpi_os_release_lock(acpi_spinlock
+ 	spin_unlock_irqrestore(lockp, flags);
+ }
+ 
+-#ifndef ACPI_USE_LOCAL_CACHE
+-
+-/*******************************************************************************
+- *
+- * FUNCTION:    acpi_os_create_cache
+- *
+- * PARAMETERS:  name      - Ascii name for the cache
+- *              size      - Size of each cached object
+- *              depth     - Maximum depth of the cache (in objects) <ignored>
+- *              cache     - Where the new cache object is returned
+- *
+- * RETURN:      status
+- *
+- * DESCRIPTION: Create a cache object
+- *
+- ******************************************************************************/
+-
+-acpi_status
+-acpi_os_create_cache(char *name, u16 size, u16 depth, acpi_cache_t ** cache)
+-{
+-	*cache = kmem_cache_create(name, size, 0, 0, NULL);
+-	if (*cache == NULL)
+-		return AE_ERROR;
+-	else
+-		return AE_OK;
+-}
+-
+-/*******************************************************************************
+- *
+- * FUNCTION:    acpi_os_purge_cache
+- *
+- * PARAMETERS:  Cache           - Handle to cache object
+- *
+- * RETURN:      Status
+- *
+- * DESCRIPTION: Free all objects within the requested cache.
+- *
+- ******************************************************************************/
+-
+-acpi_status acpi_os_purge_cache(acpi_cache_t * cache)
+-{
+-	kmem_cache_shrink(cache);
+-	return (AE_OK);
+-}
+-
+-/*******************************************************************************
+- *
+- * FUNCTION:    acpi_os_delete_cache
+- *
+- * PARAMETERS:  Cache           - Handle to cache object
+- *
+- * RETURN:      Status
+- *
+- * DESCRIPTION: Free all objects within the requested cache and delete the
+- *              cache object.
+- *
+- ******************************************************************************/
+-
+-acpi_status acpi_os_delete_cache(acpi_cache_t * cache)
+-{
+-	kmem_cache_destroy(cache);
+-	return (AE_OK);
+-}
+-
+-/*******************************************************************************
+- *
+- * FUNCTION:    acpi_os_release_object
+- *
+- * PARAMETERS:  Cache       - Handle to cache object
+- *              Object      - The object to be released
+- *
+- * RETURN:      None
+- *
+- * DESCRIPTION: Release an object to the specified cache.  If cache is full,
+- *              the object is deleted.
+- *
+- ******************************************************************************/
+-
+-acpi_status acpi_os_release_object(acpi_cache_t * cache, void *object)
+-{
+-	kmem_cache_free(cache, object);
+-	return (AE_OK);
+-}
+-#endif
+-
+ /**
+  *	acpi_dmi_dump - dump DMI slots needed for blacklist entry
+  *
