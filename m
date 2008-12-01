@@ -1,64 +1,67 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [intel/acpi] backlight - T61
-Date: Sun, 30 Nov 2008 22:18:33 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0811302158150.3314@localhost.localdomain>
+Subject: Re: [intel/acpi] backlight
+Date: Sun, 30 Nov 2008 22:28:30 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0811302220060.3314@localhost.localdomain>
 References: <1227854824.3477.9.camel@hidalgo>
- <alpine.LFD.2.00.0811281316390.3204@localhost.localdomain>
- <1227912656.17845.5.camel@hidalgo> <1228095176.2713.18.camel@rzhang-dt>
+ <1228093715.4035.87.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:43578 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752872AbYLADTS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 30 Nov 2008 22:19:18 -0500
+Received: from vms173001pub.verizon.net ([206.46.173.1]:64753 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751499AbYLAD2d (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 30 Nov 2008 22:28:33 -0500
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173005.mailsrvcs.net
+ by vms173001.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0KB600H4PH7UVVZ1@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sun, 30 Nov 2008 21:19:07 -0600 (CST)
-In-reply-to: <1228095176.2713.18.camel@rzhang-dt>
+ with ESMTPA id <0KB6009GGHNJHQ07@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sun, 30 Nov 2008 21:28:32 -0600 (CST)
+In-reply-to: <1228093715.4035.87.camel@yakui_zhao.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Yves-Alexis Perez <corsac@debian.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "dri-devel@lists.sourceforge.net" <dri-devel@lists.sourceforge.net>, "jbarnes@virtuousgeek.org" <jbarnes@virtuousgeek.org>, Thomas Renninger <trenn@suse.de>, Matthew Garrett <mjg@redhat.com>, Keith Packard <keithp@keithp.com>
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: Yves-Alexis Perez <corsac@debian.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
 
 
-> IMO, after loading i915 driver, the ACPI backlight I/F can work again,
-> right?
+On Mon, 1 Dec 2008, Zhao Yakui wrote:
 
-No.
-hotkeys have never worked in console mode,
-but in 2.6.27, echo into /proc and /sys did work in console mode
-and in 2.6.28 they do not.  So this is a regression.
+> On Fri, 2008-11-28 at 14:47 +0800, Yves-Alexis Perez wrote:
+> > Hi,
+> > 
+> > I'm running linux 2.6.28-rc6-00007-ged31348 on my Thinkpad T61, with
+> > Intel GM965. Under X, brightness keys work fine most of the time, but in
+> > some case it fails (for example after a dpms force off, but not always).
+> > Switching to console and back to X fix the problem for a time.
 
-> If this is true, why not always loading i915 both in X and console mode?
-> the kernel mode setting should not only work for X mode.
+> Will you please confirm whether the issue still exists if DPMS is not
+> used?
 
-I agree that the i915 driver should handle brightness, no matter if we
-are in GUI mode or console mode.  Unfortunately, today it
-doesn't seem to do anything in console mode.
+I don't have DPMS enabled, and if editing xorg.conf is required
+to enable it, I never will.
+	
+> > Another weird stuff is that, in single user, I have no way to control
+> > the backlight. Using brightness key doesn't work,
+> > and /sys/class/backlight/acpi_video0 doesn't do anything.
 
-That is why I pointed out that the regression here was
-when we deleted the /proc and /sys nodes that actualy work
-from console mode...
+> Can you confirm whether the i915 driver is loaded in single user mode?
+> If not, please load it and see whether the interface
+> of /sys/class/backlight/* can work.
 
-On a brightner note, I'm pleased to report that after upgrading
-my T61 to FC10 from FC9, the brightness suddenly became consistent
-across screen saver events.  ie. the brightness I set via hotkey
-before the screen saver event was restored after the screen
-comes back from screen blank.
+In 2.6.28...
 
-However, testing FC10 with the latest upstream kernel,
-including the i915 changes that appeared today...
-it seems that GUI mode forgets the brighness when
-I switch to console mode.  Eg. If I use /sys or
-hotkeys in GUI mode to reduce brightness to 0,
-it stays dim when I switch to console mode,
-but switches back to max brightness when
-I switch back to GUI mode.
+in single user mode, i915 is not loaded,
+/sys/class/backlight/acpi_video0 does NOT work
+
+modprobe of i915 does not change this.
+
+In 2.6.27
+
+in single user mode, i915 is not loaded,
+/sys/class/backlight/acpi_video0 does NOT work
+/sys/class/backlight/acpi_video1 DOES work
+
+modprobe of i915 does not change this.
 
 -Len
-
 
