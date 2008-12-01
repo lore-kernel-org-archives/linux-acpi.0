@@ -1,137 +1,106 @@
-From: Mark Lord <lkml@rtr.ca>
-Subject: Re: PATCH: /proc/acpi/alarm: handle day-of-month wraparound on readback
-Date: Mon, 01 Dec 2008 17:13:46 -0500
-Message-ID: <4934619A.10809@rtr.ca>
-References: <200806222042.13929.david-b@pacbell.net> <4934176F.6080900@rtr.ca> <alpine.LFD.2.00.0812011311490.3197@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: akpm@linux-foundation.org
+Subject: [patch 2/3] acpiphp: identify more removable slots
+Date: Mon, 01 Dec 2008 14:12:50 -0800
+Message-ID: <200812012212.mB1MCo2w008300@imap1.linux-foundation.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rtr.ca ([76.10.145.34]:46526 "EHLO mail.rtr.ca"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751320AbYLAWMk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 1 Dec 2008 17:12:40 -0500
-In-Reply-To: <alpine.LFD.2.00.0812011311490.3197@localhost.localdomain>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41866 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751320AbYLAWNU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Dec 2008 17:13:20 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>, David Brownell <david-b@pacbell.net>, lkml <linux-kernel@vger.kernel.org>, rtc-linux@googlegroups.com, linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, mjg59@srcf.ucam.org, gregkh@suse.de, kristen.c.accardi@intel.com, len.brown@intel.com, mjg@redhat.com
 
-Len Brown wrote:
-..
-> We've had some BCD_TO_BIN() changes here in 2.6.28 already,
-> does 2.6.28-rc still have this bug?
-..
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 
-Yes, bug still there.  Here is a version of the patch for 2.6.28-rc6
+According to section 6.3.6 of the ACPI spec, the presence of an _RMV
+method that evaluates to 1 is sufficient to indicate that a slot is
+removable without needing an eject method.  This patch refactors the
+ejectable slot detection code a little in order to flag these slots as
+ejectable and register them.  Acpihp then binds to the expresscard slot on
+my HP test machine.
 
----snip---
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Len Brown <len.brown@intel.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-Fix month wrap issue with readback from /proc/acpi/alarm
-This bug has been around *forever*.
+ drivers/pci/hotplug/acpiphp_glue.c |   32 ++++++++++++++-------------
+ 1 file changed, 17 insertions(+), 15 deletions(-)
 
-$ echo '2008-12-01 10:36:20' > /proc/acpi/alarm
-$ cat /proc/acpi/alarm
-2008-11-01 10:36:20
-
-Note how the readback above shows the month incorrectly.
-But with this patch applied, it shows the correct month (12).
-
-This patch applies/works on 2.6.28-rc6.
-Probably best to queue it up for the next major cycle.
-
-Signed-off-by: Mark Lord <mlord@pobox.com> 
-
---- linux/drivers/acpi/sleep/proc.c	2008-11-20 18:19:22.000000000 -0500
-+++ linux-2.6.28-rc6/drivers/acpi/sleep/proc.c	2008-12-01 17:07:51.000000000 -0500
-@@ -84,12 +84,15 @@
- #define	HAVE_ACPI_LEGACY_ALARM
- #endif
- 
-+static u32 cmos_bcd_read(int offset, int rtc_control);
-+
- #ifdef	HAVE_ACPI_LEGACY_ALARM
- 
- static int acpi_system_alarm_seq_show(struct seq_file *seq, void *offset)
+diff -puN drivers/pci/hotplug/acpiphp_glue.c~acpiphp-identify-more-removable-slots drivers/pci/hotplug/acpiphp_glue.c
+--- a/drivers/pci/hotplug/acpiphp_glue.c~acpiphp-identify-more-removable-slots
++++ a/drivers/pci/hotplug/acpiphp_glue.c
+@@ -74,7 +74,7 @@ static void handle_hotplug_event_func(ac
+  * Ejectable slot should satisfy at least these conditions:
+  *
+  *  1. has _ADR method
+- *  2. has _EJ0 method
++ *  2. has _EJ0 method or _RMV method
+  *
+  * optionally
+  *
+@@ -87,18 +87,25 @@ static int is_ejectable(acpi_handle hand
  {
- 	u32 sec, min, hr;
- 	u32 day, mo, yr, cent = 0;
-+	u32 today = 0;
- 	unsigned char rtc_control = 0;
- 	unsigned long flags;
+ 	acpi_status status;
+ 	acpi_handle tmp;
++	unsigned long long removable;
  
-@@ -97,38 +100,32 @@
- 
- 	spin_lock_irqsave(&rtc_lock, flags);
- 
--	sec = CMOS_READ(RTC_SECONDS_ALARM);
--	min = CMOS_READ(RTC_MINUTES_ALARM);
--	hr = CMOS_READ(RTC_HOURS_ALARM);
- 	rtc_control = CMOS_READ(RTC_CONTROL);
-+	sec = cmos_bcd_read(RTC_SECONDS_ALARM, rtc_control);
-+	min = cmos_bcd_read(RTC_MINUTES_ALARM, rtc_control);
-+	hr = cmos_bcd_read(RTC_HOURS_ALARM, rtc_control);
- 
- 	/* If we ever get an FACP with proper values... */
--	if (acpi_gbl_FADT.day_alarm)
-+	if (acpi_gbl_FADT.day_alarm) {
- 		/* ACPI spec: only low 6 its should be cared */
- 		day = CMOS_READ(acpi_gbl_FADT.day_alarm) & 0x3F;
--	else
--		day = CMOS_READ(RTC_DAY_OF_MONTH);
-+		if (!(rtc_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD)
-+			day = bcd2bin(day);
-+	} else
-+		day = cmos_bcd_read(RTC_DAY_OF_MONTH, rtc_control);
- 	if (acpi_gbl_FADT.month_alarm)
--		mo = CMOS_READ(acpi_gbl_FADT.month_alarm);
--	else
--		mo = CMOS_READ(RTC_MONTH);
-+		mo = cmos_bcd_read(acpi_gbl_FADT.month_alarm, rtc_control);
-+	else {
-+		mo = cmos_bcd_read(RTC_MONTH, rtc_control);
-+		today = cmos_bcd_read(RTC_DAY_OF_MONTH, rtc_control);
-+	}
- 	if (acpi_gbl_FADT.century)
--		cent = CMOS_READ(acpi_gbl_FADT.century);
-+		cent = cmos_bcd_read(acpi_gbl_FADT.century, rtc_control);
- 
--	yr = CMOS_READ(RTC_YEAR);
-+	yr = cmos_bcd_read(RTC_YEAR, rtc_control);
- 
- 	spin_unlock_irqrestore(&rtc_lock, flags);
- 
--	if (!(rtc_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
--		sec = bcd2bin(sec);
--		min = bcd2bin(min);
--		hr = bcd2bin(hr);
--		day = bcd2bin(day);
--		mo = bcd2bin(mo);
--		yr = bcd2bin(yr);
--		cent = bcd2bin(cent);
+ 	status = acpi_get_handle(handle, "_ADR", &tmp);
+-	if (ACPI_FAILURE(status)) {
++	if (ACPI_FAILURE(status))
+ 		return 0;
 -	}
--
- 	/* we're trusting the FADT (see above) */
- 	if (!acpi_gbl_FADT.century)
- 		/* If we're not trusting the FADT, we should at least make it
-@@ -153,6 +150,20 @@
- 	else
- 		yr += cent * 100;
  
-+	/*
-+	 * Show correct dates for alarms up to a month into the future.
-+	 * This solves issues for nearly all situations with the common
-+	 * 30-day alarm clocks in PC hardware.
-+	 */
-+	if (day < today) {
-+		if (mo < 12) {
-+			mo += 1;
-+		} else {
-+			mo = 1;
-+			yr += 1;
-+		}
-+	}
+ 	status = acpi_get_handle(handle, "_EJ0", &tmp);
+-	if (ACPI_FAILURE(status)) {
+-		return 0;
++	if (ACPI_SUCCESS(status))
++		return 1;
 +
- 	seq_printf(seq, "%4.4u-", yr);
- 	(mo > 12) ? seq_puts(seq, "**-") : seq_printf(seq, "%2.2u-", mo);
- 	(day > 31) ? seq_puts(seq, "** ") : seq_printf(seq, "%2.2u ", day);
++	status = acpi_get_handle(handle, "_RMV", &tmp);
++	if (ACPI_SUCCESS(status)) {
++		status = acpi_evaluate_integer(handle, "_RMV", NULL,
++					       &removable);
++		if (ACPI_SUCCESS(status) && removable)
++			return 1;
+ 	}
+ 
+-	return 1;
++	return 0;
+ }
+ 
+ 
+@@ -185,16 +192,10 @@ register_slot(acpi_handle handle, u32 lv
+ 	unsigned long long adr, sun;
+ 	int device, function, retval;
+ 
+-	status = acpi_evaluate_integer(handle, "_ADR", NULL, &adr);
+-
+-	if (ACPI_FAILURE(status))
+-		return AE_OK;
+-
+-	status = acpi_get_handle(handle, "_EJ0", &tmp);
+-
+-	if (ACPI_FAILURE(status) && !(is_dock_device(handle)))
++	if (!is_ejectable(handle) && !is_dock_device(handle))
+ 		return AE_OK;
+ 
++	acpi_evaluate_integer(handle, "_ADR", NULL, &adr);
+ 	device = (adr >> 16) & 0xffff;
+ 	function = adr & 0xffff;
+ 
+@@ -205,7 +206,8 @@ register_slot(acpi_handle handle, u32 lv
+ 	INIT_LIST_HEAD(&newfunc->sibling);
+ 	newfunc->handle = handle;
+ 	newfunc->function = function;
+-	if (ACPI_SUCCESS(status))
++
++	if (ACPI_SUCCESS(acpi_get_handle(handle, "_EJ0", &tmp)))
+ 		newfunc->flags = FUNC_HAS_EJ0;
+ 
+ 	if (ACPI_SUCCESS(acpi_get_handle(handle, "_STA", &tmp)))
+_
