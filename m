@@ -1,57 +1,36 @@
-From: Arjan van de Ven <arjan@infradead.org>
-Subject: Re: [patch] ACPI toshiba: only register rfkill if bt is enabled
-Date: Mon, 1 Dec 2008 11:40:04 -0800
-Message-ID: <20081201114004.731cec86@infradead.org>
-References: <20081029081934.GB26314@gambetta>
-	<20081201113052.9e9aae36.akpm@linux-foundation.org>
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: Re: [PATCH (resend)] acpiphp: Identify more removable slots
+Date: Mon, 1 Dec 2008 12:40:45 -0800
+Message-ID: <200812011240.45795.jbarnes@virtuousgeek.org>
+References: <20081113235255.GA17709@srcf.ucam.org> <20081117134952.GA12932@srcf.ucam.org> <20081125214814.GA17248@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:59295 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752251AbYLATi4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Dec 2008 14:38:56 -0500
-In-Reply-To: <20081201113052.9e9aae36.akpm@linux-foundation.org>
+Received: from outbound-mail-156.bluehost.com ([67.222.39.36]:56335 "HELO
+	outbound-mail-156.bluehost.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1750980AbYLAUkr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Dec 2008 15:40:47 -0500
+In-Reply-To: <20081125214814.GA17248@srcf.ucam.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Frederik Deweerdt <frederik.deweerdt@xprog.eu>, arvidjaar@mail.ru, linux-kernel@vger.kernel.org, philipl@overt.org, linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, kristen.c.accardi@intel.com
 
-On Mon, 1 Dec 2008 11:30:52 -0800
-Andrew Morton <akpm@linux-foundation.org> wrote:
+On Tuesday, November 25, 2008 1:48 pm Matthew Garrett wrote:
+> According to section 6.3.6 of the ACPI spec, the presence of an _RMV
+> method that evaluates to 1 is sufficient to indicate that a slot is
+> removable without needing an eject method. This patch refactors the
+> ejectable slot detection code a little in order to flag these slots as
+> ejectable and register them. Acpihp then binds to the expresscard slot
+> on my HP test machine.
+>
+> Signed-off-by: Matthew Garrett <mjg@redhat.com>
 
-> This patch:
-> 
-> On Wed, 29 Oct 2008 08:19:34 +0000
-> Frederik Deweerdt <frederik.deweerdt@xprog.eu> wrote:
-> 
-> > Register toshiba RFKill Switch only if bluetooth is enabled
-> 
-> which is here:
-> http://userweb.kernel.org/~akpm/mmotm/broken-out/acpi-toshiba-only-register-rfkill-if-bt-is-enabled.patch
-> 
-> fixes a post-2.6.27 regression.  It doesn't apply any more, due to the
-> recent merge of this:
-> 
-> commit e251fa12fb5713e722029341c03b2f48bcd7b7be
-> Author: Arjan van de Ven <arjan@linux.intel.com>
-> Date:   Fri Nov 28 08:19:09 2008 -0800
-> 
->     toshiba_acpi: close race in toshiba_acpi driver
->     
-> in linux-next.
-> 
-> It is unclear to me whether these two patches fix the same bug, or
-> different ones.
-> 
-
-they fix the same symptom, but are both needed.
-My patch fixes "if it goes wrong and init fails, don't oops", the mmotm
-patch fixes "lets not make init fail for <this case>". If there's some
-other reason the init fails, my patch is still needed.
+Applied to my linux-next branch, thanks Matthew.
 
 -- 
-Arjan van de Ven 	Intel Open Source Technology Centre
-For development, discussion and tips for power savings, 
-visit http://www.lesswatts.org
+Jesse Barnes, Intel Open Source Technology Center
+
