@@ -1,46 +1,33 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [patch] ACPI toshiba: only register rfkill if bt is enabled
-Date: Mon, 1 Dec 2008 11:30:52 -0800
-Message-ID: <20081201113052.9e9aae36.akpm@linux-foundation.org>
-References: <20081029081934.GB26314@gambetta>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [intel/acpi] backlight
+Date: Mon, 1 Dec 2008 19:32:15 +0000
+Message-ID: <20081201193215.GA23773@srcf.ucam.org>
+References: <1227854824.3477.9.camel@hidalgo> <alpine.LFD.2.00.0811302220060.3314@localhost.localdomain> <20081201083855.GB7380@srcf.ucam.org> <200812011127.09720.jbarnes@virtuousgeek.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54333 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753547AbYLATbr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Dec 2008 14:31:47 -0500
-In-Reply-To: <20081029081934.GB26314@gambetta>
+Received: from cavan.codon.org.uk ([93.93.128.6]:44110 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752727AbYLATcY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Dec 2008 14:32:24 -0500
+Content-Disposition: inline
+In-Reply-To: <200812011127.09720.jbarnes@virtuousgeek.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Frederik Deweerdt <frederik.deweerdt@xprog.eu>
-Cc: arvidjaar@mail.ru, linux-kernel@vger.kernel.org, philipl@overt.org, linux-acpi@vger.kernel.org, Arjan van de Ven <arjan@infradead.org>
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Len Brown <lenb@kernel.org>, Zhao Yakui <yakui.zhao@intel.com>, Yves-Alexis Perez <corsac@debian.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-This patch:
+On Mon, Dec 01, 2008 at 11:27:09AM -0800, Jesse Barnes wrote:
+> On Monday, December 1, 2008 12:38 am Matthew Garrett wrote:
+> > Jesse, are IRQs being delivered to the drm code when X isn't the
+> > foreground VT? If not, this would seem to need fixing.
+> 
+> The X driver calls into the DRM to disable IRQs when it releases the VT, but 
+> we could make that just affect vblank interrupts if needed (yay more 
+> i915_irq.c changes).
 
-On Wed, 29 Oct 2008 08:19:34 +0000
-Frederik Deweerdt <frederik.deweerdt@xprog.eu> wrote:
+Yeah, I think that's going to be necessary unfortunately, otherwise we 
+lose support for changing brightness outside X.
 
-> Register toshiba RFKill Switch only if bluetooth is enabled
-
-which is here: http://userweb.kernel.org/~akpm/mmotm/broken-out/acpi-toshiba-only-register-rfkill-if-bt-is-enabled.patch
-
-fixes a post-2.6.27 regression.  It doesn't apply any more, due to the
-recent merge of this:
-
-commit e251fa12fb5713e722029341c03b2f48bcd7b7be
-Author: Arjan van de Ven <arjan@linux.intel.com>
-Date:   Fri Nov 28 08:19:09 2008 -0800
-
-    toshiba_acpi: close race in toshiba_acpi driver
-    
-in linux-next.
-
-It is unclear to me whether these two patches fix the same bug, or
-different ones.
-
-Could you please take a look in linux-next and see what needs to be
-done?
-
-Thanks.
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
