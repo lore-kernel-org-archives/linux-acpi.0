@@ -1,67 +1,70 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [intel/acpi] backlight
-Date: Sun, 30 Nov 2008 22:28:30 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0811302220060.3314@localhost.localdomain>
-References: <1227854824.3477.9.camel@hidalgo>
- <1228093715.4035.87.camel@yakui_zhao.sh.intel.com>
+Subject: Re: [RFC PATCH] x86: create drivers/x86/ from drivers/misc/
+Date: Sun, 30 Nov 2008 23:35:19 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0811302329440.3314@localhost.localdomain>
+References: <20081128213620.2ec593d4.sfr@canb.auug.org.au>
+ <4930307C.30106@oracle.com> <20081129083550.3c23af37.sfr@canb.auug.org.au>
+ <alpine.LFD.2.00.0811281649001.24773@localhost.localdomain>
+ <alpine.LFD.2.00.0811281702570.24773@localhost.localdomain>
+ <alpine.LFD.2.00.0811281706540.24773@localhost.localdomain>
+ <20081128223533.GA5175@uranus.ravnborg.org>
+ <alpine.LFD.2.00.0811281801520.24773@localhost.localdomain>
+ <20081129001647.GA8699@khazad-dum.debian.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:64753 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751499AbYLAD2d (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 30 Nov 2008 22:28:33 -0500
-Received: from localhost.localdomain ([96.237.168.40])
- by vms173001.mailsrvcs.net
- (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0KB6009GGHNJHQ07@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sun, 30 Nov 2008 21:28:32 -0600 (CST)
-In-reply-to: <1228093715.4035.87.camel@yakui_zhao.sh.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-next-owner@vger.kernel.org>
+In-reply-to: <20081129001647.GA8699@khazad-dum.debian.net>
+Sender: linux-next-owner@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Sam Ravnborg <sam@ravnborg.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Len Brown <len.brown@intel.com>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Randy Dunlap <randy.dunlap@oracle.com>, x86@kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: Yves-Alexis Perez <corsac@debian.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
 
 
-On Mon, 1 Dec 2008, Zhao Yakui wrote:
+On Fri, 28 Nov 2008, Henrique de Moraes Holschuh wrote:
 
-> On Fri, 2008-11-28 at 14:47 +0800, Yves-Alexis Perez wrote:
-> > Hi,
+> On Fri, 28 Nov 2008, Len Brown wrote:
+> > > > Move x86 platform specific drivers from drivers/misc/
+> > > > to a new home under drivers/x86/.
+> [...]
+> > > We already have 81 one directory entries under drivers/
+> > > and with patch you open up for an additional
+> > > directory for each arch - not elegant.
 > > 
-> > I'm running linux 2.6.28-rc6-00007-ged31348 on my Thinkpad T61, with
-> > Intel GM965. Under X, brightness keys work fine most of the time, but in
-> > some case it fails (for example after a dpms force off, but not always).
-> > Switching to console and back to X fix the problem for a time.
+> > I followed the example of drivers/s390/,
+> > per Linus' suggestion.
+> > 
+> > The other place that seemed to suggest itself was
+> > arch/x86/drivers/, as we already have:
+> > 
+> > arch/um/drivers/
+> > arch/sh/drivers/
+> > arch/cris/*/drivers/
+> 
+> IMHO, from a purely "tree organization" point of view, it would be best if
+> arch-specific platform drivers were under drivers/platform/<arch>/.  And
+> arch/ be left for the core arch-specific stuff.
+> 
+> Whether that would work well, when arch maintenance factors are taken into
+> account, I don't know.
 
-> Will you please confirm whether the issue still exists if DPMS is not
-> used?
+Each of the drivers has a primary maintainer --
+though some of them jare  more active than others...
+And I'll continue to be available to help them where I can.
 
-I don't have DPMS enabled, and if editing xorg.conf is required
-to enable it, I never will.
-	
-> > Another weird stuff is that, in single user, I have no way to control
-> > the backlight. Using brightness key doesn't work,
-> > and /sys/class/backlight/acpi_video0 doesn't do anything.
+> > > As it is today (before this patch) the directories unider
+> > > drivers/ said what the drivers was used for - which is logical.
+> > > 
+> > > But with this new arch specific directory it is no longer obvious
+> > > is a driver should be located under say drivers/net/* or
+> > > drivers/arm/* in case it is a arm specific driver.
+> 
+> drivers/platform/<arch> would help in that regard, I think.
 
-> Can you confirm whether the i915 driver is loaded in single user mode?
-> If not, please load it and see whether the interface
-> of /sys/class/backlight/* can work.
+I agree.
+drivers/platform/x86/ seems to be a better home than drivers/x86/
+for this bunch.  I'll update the patch to do this.
+The other arch's can follow later if they choose.
 
-In 2.6.28...
-
-in single user mode, i915 is not loaded,
-/sys/class/backlight/acpi_video0 does NOT work
-
-modprobe of i915 does not change this.
-
-In 2.6.27
-
-in single user mode, i915 is not loaded,
-/sys/class/backlight/acpi_video0 does NOT work
-/sys/class/backlight/acpi_video1 DOES work
-
-modprobe of i915 does not change this.
-
+thanks,
 -Len
-
