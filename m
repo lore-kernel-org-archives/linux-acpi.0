@@ -1,50 +1,51 @@
-From: Nick Piggin <npiggin@suse.de>
-Subject: Re: [patch][rfc] acpi: do not use kmem caches
-Date: Mon, 1 Dec 2008 19:10:47 +0100
-Message-ID: <20081201181047.GK10790@wotan.suse.de>
-References: <20081201083128.GB2529@wotan.suse.de> <84144f020812010318v205579ean57edecf7992ec7ef@mail.gmail.com> <20081201120002.GB10790@wotan.suse.de> <4933E2C3.4020400@gmail.com> <1228138641.14439.18.camel@penberg-laptop> <4933EE8A.2010007@gmail.com> <20081201161404.GE10790@wotan.suse.de> <4934149A.4020604@gmail.com> <20081201172044.GB14074@infradead.org> <alpine.LFD.2.00.0812011241080.3197@localhost.localdomain>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: PATCH: /proc/acpi/alarm: handle day-of-month wraparound on readback
+Date: Mon, 01 Dec 2008 13:18:50 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0812011311490.3197@localhost.localdomain>
+References: <200806222042.13929.david-b@pacbell.net> <4934176F.6080900@rtr.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns2.suse.de ([195.135.220.15]:46344 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751253AbYLASKt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 1 Dec 2008 13:10:49 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.0812011241080.3197@localhost.localdomain>
+Received: from vms173005pub.verizon.net ([206.46.173.5]:64740 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751315AbYLASSy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Dec 2008 13:18:54 -0500
+In-reply-to: <4934176F.6080900@rtr.ca>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Christoph Hellwig <hch@infradead.org>, Alexey Starikovskiy <aystarik@gmail.com>, Pekka Enberg <penberg@cs.helsinki.fi>, Linux Memory Management List <linux-mm@kvack.org>, linux-acpi@vger.kernel.org
+To: Mark Lord <lkml@rtr.ca>
+Cc: Alessandro Zummo <a.zummo@towertech.it>, David Brownell <david-b@pacbell.net>, lkml <linux-kernel@vger.kernel.org>, rtc-linux@googlegroups.com, linux-acpi@vger.kernel.org
 
-On Mon, Dec 01, 2008 at 12:53:04PM -0500, Len Brown wrote:
-> 
-> > Or at least stop arguing and throwing bureaucratic stones in the way of
-> > those wanting to sort out this mess.
-> 
-> I think we all would be better served if there were more facts
-> and fewer insults on this thread, can we do that please?
-> 
-> I do not think the extra work we need to do for ACPICA changes
-> are a significant hurdle here. We will do what is best for Linux --
-> which is what we though we were doing when we changed ACPICA
-> so Linux could use native caching in the first place.
-> 
-> The only question that should be on the table here is how
-> to make Linux be the best it can be.
 
-If there is good reason to keep them around, I'm fine with that.
-I think Pekka's suggestion of not doing unions but have better
-typing in the code and then allocate the smaller types from
-kmalloc sounds like a good idea.
 
-If the individual kmem caches are here to stay, then the
-kmem_cache_shrink call should go away. Either way we can delete
-some code from slab.
+On Mon, 1 Dec 2008, Mark Lord wrote:
 
-The OS agnostic code that implements its own allocator is kind
-of a hack -- I don't understand why you would turn on allocator
-debugging and then circumvent it because you find it too slow.
-But I will never maintain that so if it is compiled out for
-Linux, then OK.
+> Fix month wrap issue with readback from /proc/acpi/alarm
+> This bug has been around *forever*.
+> 
+> $ echo '2008-12-01 10:36:20' > /proc/acpi/alarm
+> $ cat /proc/acpi/alarm
+> 2008-11-01 10:36:20
+> 
+> Note how the readback above shows the month incorrectly.
+> But with this patch applied, it shows the correct month (12).
+> 
+> Patch applies/works on kernels 2.6.25.* through 2.6.27.*,
+> and probably on earlier kernels as well.
+
+We've had some BCD_TO_BIN() changes here in 2.6.28 already,
+does 2.6.28-rc still have this bug?
+
+I'd check myself, but I don't have a /proc/acpi/alarm due to this:
+
+#if defined(CONFIG_RTC_DRV_CMOS) || defined(CONFIG_RTC_DRV_CMOS_MODULE) || 
+!defined(CONFIG_X86)
+/* use /sys/class/rtc/rtcX/wakealarm instead; it's not ACPI-specific */
+#else
+#define HAVE_ACPI_LEGACY_ALARM
+#endif
+
+
+thanks,
+-Len
 
