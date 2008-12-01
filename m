@@ -1,176 +1,33 @@
-From: Nick Piggin <npiggin@suse.de>
-Subject: [patch][rfc] acpi: do not use kmem caches
-Date: Mon, 1 Dec 2008 09:31:28 +0100
-Message-ID: <20081201083128.GB2529@wotan.suse.de>
+From: Matthew Garrett <mjg@redhat.com>
+Subject: Re: [intel/acpi] backlight
+Date: Mon, 1 Dec 2008 08:38:55 +0000
+Message-ID: <20081201083855.GB7380@srcf.ucam.org>
+References: <1227854824.3477.9.camel@hidalgo> <1228093715.4035.87.camel@yakui_zhao.sh.intel.com> <alpine.LFD.2.00.0811302220060.3314@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:48122 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750770AbYLAIb3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 1 Dec 2008 03:31:29 -0500
+Received: from cavan.codon.org.uk ([93.93.128.6]:37299 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750763AbYLAIjH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Dec 2008 03:39:07 -0500
 Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.0811302220060.3314@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linux Memory Management List <linux-mm@kvack.org>, linux-acpi@vger.kernel.org, lenb@kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Zhao Yakui <yakui.zhao@intel.com>, Yves-Alexis Perez <corsac@debian.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, jbarnes@virtuousgeek.org
 
-Hi,
-What does everyone think about this patch?
+On Sun, Nov 30, 2008 at 10:28:30PM -0500, Len Brown wrote:
 
---
+(Cc:ing Jesse)
 
-ACPI subsystem creates a handful of kmem caches that are not particularly
-appropriate. Most of them seem to be empty or nearly empty most of the time,
-and the others don't have too many objects. In this situation, kmem caches
-can actually have more overhead than they save.
+> in single user mode, i915 is not loaded,
+> /sys/class/backlight/acpi_video0 does NOT work
+> 
+> modprobe of i915 does not change this.
 
-Just use ACPI's generic code for its acpi_cache_t type.
----
- drivers/acpi/osl.c              |   85 ----------------------------------------
- include/acpi/acmacros.h         |    2 
- include/acpi/platform/aclinux.h |    9 ----
- 3 files changed, 3 insertions(+), 93 deletions(-)
+Jesse, are IRQs being delivered to the drm code when X isn't the 
+foreground VT? If not, this would seem to need fixing.
 
-Index: linux-2.6/include/acpi/acmacros.h
-===================================================================
---- linux-2.6.orig/include/acpi/acmacros.h
-+++ linux-2.6/include/acpi/acmacros.h
-@@ -670,7 +670,7 @@ struct acpi_integer_overlay {
- #define ACPI_ALLOCATE_ZEROED(a)     acpi_ut_allocate_zeroed((acpi_size)(a), ACPI_MEM_PARAMETERS)
- #endif
- #ifndef ACPI_FREE
--#define ACPI_FREE(a)                acpio_os_free(a)
-+#define ACPI_FREE(a)                acpi_os_free(a)
- #endif
- #define ACPI_MEM_TRACKING(a)
- 
-Index: linux-2.6/include/acpi/platform/aclinux.h
-===================================================================
---- linux-2.6.orig/include/acpi/platform/aclinux.h
-+++ linux-2.6/include/acpi/platform/aclinux.h
-@@ -65,7 +65,6 @@
- /* Host-dependent types and defines */
- 
- #define ACPI_MACHINE_WIDTH          BITS_PER_LONG
--#define acpi_cache_t                        struct kmem_cache
- #define acpi_spinlock                   spinlock_t *
- #define ACPI_EXPORT_SYMBOL(symbol)  EXPORT_SYMBOL(symbol);
- #define strtoul                     simple_strtoul
-@@ -73,6 +72,8 @@
- /* Full namespace pathname length limit - arbitrary */
- #define ACPI_PATHNAME_MAX              256
- 
-+#define ACPI_USE_LOCAL_CACHE
-+
- #else				/* !__KERNEL__ */
- 
- #include <stdarg.h>
-@@ -128,12 +129,6 @@ static inline void *acpi_os_allocate_zer
- 	return kzalloc(size, irqs_disabled()? GFP_ATOMIC : GFP_KERNEL);
- }
- 
--static inline void *acpi_os_acquire_object(acpi_cache_t * cache)
--{
--	return kmem_cache_zalloc(cache,
--				 irqs_disabled()? GFP_ATOMIC : GFP_KERNEL);
--}
--
- #define ACPI_ALLOCATE(a)	acpi_os_allocate(a)
- #define ACPI_ALLOCATE_ZEROED(a)	acpi_os_allocate_zeroed(a)
- #define ACPI_FREE(a)		kfree(a)
-Index: linux-2.6/drivers/acpi/osl.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/osl.c
-+++ linux-2.6/drivers/acpi/osl.c
-@@ -1212,91 +1212,6 @@ void acpi_os_release_lock(acpi_spinlock
- 	spin_unlock_irqrestore(lockp, flags);
- }
- 
--#ifndef ACPI_USE_LOCAL_CACHE
--
--/*******************************************************************************
-- *
-- * FUNCTION:    acpi_os_create_cache
-- *
-- * PARAMETERS:  name      - Ascii name for the cache
-- *              size      - Size of each cached object
-- *              depth     - Maximum depth of the cache (in objects) <ignored>
-- *              cache     - Where the new cache object is returned
-- *
-- * RETURN:      status
-- *
-- * DESCRIPTION: Create a cache object
-- *
-- ******************************************************************************/
--
--acpi_status
--acpi_os_create_cache(char *name, u16 size, u16 depth, acpi_cache_t ** cache)
--{
--	*cache = kmem_cache_create(name, size, 0, 0, NULL);
--	if (*cache == NULL)
--		return AE_ERROR;
--	else
--		return AE_OK;
--}
--
--/*******************************************************************************
-- *
-- * FUNCTION:    acpi_os_purge_cache
-- *
-- * PARAMETERS:  Cache           - Handle to cache object
-- *
-- * RETURN:      Status
-- *
-- * DESCRIPTION: Free all objects within the requested cache.
-- *
-- ******************************************************************************/
--
--acpi_status acpi_os_purge_cache(acpi_cache_t * cache)
--{
--	kmem_cache_shrink(cache);
--	return (AE_OK);
--}
--
--/*******************************************************************************
-- *
-- * FUNCTION:    acpi_os_delete_cache
-- *
-- * PARAMETERS:  Cache           - Handle to cache object
-- *
-- * RETURN:      Status
-- *
-- * DESCRIPTION: Free all objects within the requested cache and delete the
-- *              cache object.
-- *
-- ******************************************************************************/
--
--acpi_status acpi_os_delete_cache(acpi_cache_t * cache)
--{
--	kmem_cache_destroy(cache);
--	return (AE_OK);
--}
--
--/*******************************************************************************
-- *
-- * FUNCTION:    acpi_os_release_object
-- *
-- * PARAMETERS:  Cache       - Handle to cache object
-- *              Object      - The object to be released
-- *
-- * RETURN:      None
-- *
-- * DESCRIPTION: Release an object to the specified cache.  If cache is full,
-- *              the object is deleted.
-- *
-- ******************************************************************************/
--
--acpi_status acpi_os_release_object(acpi_cache_t * cache, void *object)
--{
--	kmem_cache_free(cache, object);
--	return (AE_OK);
--}
--#endif
--
- /**
-  *	acpi_dmi_dump - dump DMI slots needed for blacklist entry
-  *
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
