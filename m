@@ -1,54 +1,129 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: Re: [patch][rfc] acpi: do not use kmem caches
-Date: Mon, 01 Dec 2008 19:45:14 +0300
-Message-ID: <4934149A.4020604@gmail.com>
-References: <20081201083128.GB2529@wotan.suse.de> <84144f020812010318v205579ean57edecf7992ec7ef@mail.gmail.com> <20081201120002.GB10790@wotan.suse.de> <4933E2C3.4020400@gmail.com> <1228138641.14439.18.camel@penberg-laptop> <4933EE8A.2010007@gmail.com> <20081201161404.GE10790@wotan.suse.de>
+From: Mark Lord <lkml@rtr.ca>
+Subject: PATCH: /proc/acpi/alarm: handle day-of-month wraparound on readback
+Date: Mon, 01 Dec 2008 11:57:19 -0500
+Message-ID: <4934176F.6080900@rtr.ca>
+References: <200806222042.13929.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.171]:38589 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754117AbYLAQpU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Dec 2008 11:45:20 -0500
-Received: by ug-out-1314.google.com with SMTP id 39so2723780ugf.37
-        for <linux-acpi@vger.kernel.org>; Mon, 01 Dec 2008 08:45:17 -0800 (PST)
-In-Reply-To: <20081201161404.GE10790@wotan.suse.de>
+Received: from rtr.ca ([76.10.145.34]:37553 "EHLO mail.rtr.ca"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751253AbYLAQ4N (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 1 Dec 2008 11:56:13 -0500
+In-Reply-To: <200806222042.13929.david-b@pacbell.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Nick Piggin <npiggin@suse.de>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>, Linux Memory Management List <linux-mm@kvack.org>, linux-acpi@vger.kernel.org, lenb@kernel.org
+To: Len Brown <lenb@kernel.org>, Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>, lkml <linux-kernel@vger.kernel.org>, rtc-linux@googlegroups.com, linux-acpi@vger.kernel.org
 
-Nick Piggin wrote:
-> On Mon, Dec 01, 2008 at 05:02:50PM +0300, Alexey Starikovskiy wrote:
->   
->> Because SLAB has standard memory wells of 2^x size. None of cached ACPI
->> objects has exactly this size, so bigger block will be used. Plus, 
->> internal ACPICA caching will add some overhead.
->>     
->
-> That's an insane looking caching thing now that I come to closely read
-> the code. There is so much stuff there that I thought it must have been
-> doing something useful which is why I didn't replace the Linux functions
-> with kmalloc/kfree directly.
->
-> There is really some operating system you support that has such a poor
-> allocator that you think ACPI can do better in 300 lines of code? Why
-> not just rip that whole thing out?
->   
-You would laugh, this is due to Windows userspace debug library -- it 
-checks for
-memory leaks by default, and it takes ages to do this.
-And ACPICA maintainer is sitting on Windows, so he _cares_.
->> Do you have another interpreter in kernel space?
->>     
->
-> So what makes it special?
->
->   
-You don't know what size of program you will end up with.
-DSDT could be almost empty, or you could have several thousand of SSDT 
-tables.
+Fix month wrap issue with readback from /proc/acpi/alarm
+This bug has been around *forever*.
 
+$ echo '2008-12-01 10:36:20' > /proc/acpi/alarm
+$ cat /proc/acpi/alarm
+2008-11-01 10:36:20
 
+Note how the readback above shows the month incorrectly.
+But with this patch applied, it shows the correct month (12).
 
+Patch applies/works on kernels 2.6.25.* through 2.6.27.*,
+and probably on earlier kernels as well.
+
+Probably best to queue it up for the next major cycle.
+
+Signed-off-by: Mark Lord <mlord@pobox.com>
+
+--- linux-2.6.25/drivers/acpi/sleep/proc.c	2008-06-09 14:27:19.000000000 -0400
++++ linux/drivers/acpi/sleep/proc.c	2008-11-30 18:08:31.000000000 -0500
+@@ -84,12 +84,15 @@
+ #define	HAVE_ACPI_LEGACY_ALARM
+ #endif
+ 
++static u32 cmos_bcd_read(int offset, int rtc_control);
++
+ #ifdef	HAVE_ACPI_LEGACY_ALARM
+ 
+ static int acpi_system_alarm_seq_show(struct seq_file *seq, void *offset)
+ {
+ 	u32 sec, min, hr;
+ 	u32 day, mo, yr, cent = 0;
++	u32 today = 0;
+ 	unsigned char rtc_control = 0;
+ 	unsigned long flags;
+ 
+@@ -97,38 +100,32 @@
+ 
+ 	spin_lock_irqsave(&rtc_lock, flags);
+ 
+-	sec = CMOS_READ(RTC_SECONDS_ALARM);
+-	min = CMOS_READ(RTC_MINUTES_ALARM);
+-	hr = CMOS_READ(RTC_HOURS_ALARM);
+ 	rtc_control = CMOS_READ(RTC_CONTROL);
++	sec = cmos_bcd_read(RTC_SECONDS_ALARM, rtc_control);
++	min = cmos_bcd_read(RTC_MINUTES_ALARM, rtc_control);
++	hr = cmos_bcd_read(RTC_HOURS_ALARM, rtc_control);
+ 
+ 	/* If we ever get an FACP with proper values... */
+-	if (acpi_gbl_FADT.day_alarm)
++	if (acpi_gbl_FADT.day_alarm) {
+ 		/* ACPI spec: only low 6 its should be cared */
+ 		day = CMOS_READ(acpi_gbl_FADT.day_alarm) & 0x3F;
+-	else
+-		day = CMOS_READ(RTC_DAY_OF_MONTH);
++		if (!(rtc_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD)
++			BCD_TO_BIN(day);
++	} else
++		day = cmos_bcd_read(RTC_DAY_OF_MONTH, rtc_control);
+ 	if (acpi_gbl_FADT.month_alarm)
+-		mo = CMOS_READ(acpi_gbl_FADT.month_alarm);
+-	else
+-		mo = CMOS_READ(RTC_MONTH);
++		mo = cmos_bcd_read(acpi_gbl_FADT.month_alarm, rtc_control);
++	else {
++		mo = cmos_bcd_read(RTC_MONTH, rtc_control);
++		today = cmos_bcd_read(RTC_DAY_OF_MONTH, rtc_control);
++	}
+ 	if (acpi_gbl_FADT.century)
+-		cent = CMOS_READ(acpi_gbl_FADT.century);
++		cent = cmos_bcd_read(acpi_gbl_FADT.century, rtc_control);
+ 
+-	yr = CMOS_READ(RTC_YEAR);
++	yr = cmos_bcd_read(RTC_YEAR, rtc_control);
+ 
+ 	spin_unlock_irqrestore(&rtc_lock, flags);
+ 
+-	if (!(rtc_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
+-		BCD_TO_BIN(sec);
+-		BCD_TO_BIN(min);
+-		BCD_TO_BIN(hr);
+-		BCD_TO_BIN(day);
+-		BCD_TO_BIN(mo);
+-		BCD_TO_BIN(yr);
+-		BCD_TO_BIN(cent);
+-	}
+-
+ 	/* we're trusting the FADT (see above) */
+ 	if (!acpi_gbl_FADT.century)
+ 		/* If we're not trusting the FADT, we should at least make it
+@@ -153,6 +150,20 @@
+ 	else
+ 		yr += cent * 100;
+ 
++	/*
++	 * Show correct dates for alarms up to a month into the future.
++	 * This solves issues for nearly all situations with the common
++	 * 30-day alarm clocks in PC hardware.
++	 */
++	if (day < today) {
++		if (mo < 12) {
++			mo += 1;
++		} else {
++			mo = 1;
++			yr += 1;
++		}
++	}
++
+ 	seq_printf(seq, "%4.4u-", yr);
+ 	(mo > 12) ? seq_puts(seq, "**-") : seq_printf(seq, "%2.2u-", mo);
+ 	(day > 31) ? seq_puts(seq, "** ") : seq_printf(seq, "%2.2u ", day);
