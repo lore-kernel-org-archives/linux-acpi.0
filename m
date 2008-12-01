@@ -1,51 +1,70 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: PATCH: /proc/acpi/alarm: handle day-of-month wraparound on readback
-Date: Mon, 01 Dec 2008 13:18:50 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0812011311490.3197@localhost.localdomain>
-References: <200806222042.13929.david-b@pacbell.net> <4934176F.6080900@rtr.ca>
+Subject: Re: [RFC PATCH v2] create drivers/platform/x86/ from drivers/misc/
+Date: Mon, 01 Dec 2008 14:12:40 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0812011405070.3197@localhost.localdomain>
+References: <20081128213620.2ec593d4.sfr@canb.auug.org.au>
+ <4930307C.30106@oracle.com> <20081129083550.3c23af37.sfr@canb.auug.org.au>
+ <alpine.LFD.2.00.0811281649001.24773@localhost.localdomain>
+ <alpine.LFD.2.00.0811281702570.24773@localhost.localdomain>
+ <alpine.LFD.2.00.0811281706540.24773@localhost.localdomain>
+ <20081128223533.GA5175@uranus.ravnborg.org>
+ <alpine.LFD.2.00.0811281801520.24773@localhost.localdomain>
+ <20081129073816.GB8351@uranus.ravnborg.org>
+ <alpine.LFD.2.00.0812010053100.3314@localhost.localdomain>
+ <20081201074842.GC27768@elte.hu>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:64740 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751315AbYLASSy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Dec 2008 13:18:54 -0500
-In-reply-to: <4934176F.6080900@rtr.ca>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-next-owner@vger.kernel.org>
+In-reply-to: <20081201074842.GC27768@elte.hu>
+Sender: linux-next-owner@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Sam Ravnborg <sam@ravnborg.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Len Brown <len.brown@intel.com>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Randy Dunlap <randy.dunlap@oracle.com>, x86@kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Lord <lkml@rtr.ca>
-Cc: Alessandro Zummo <a.zummo@towertech.it>, David Brownell <david-b@pacbell.net>, lkml <linux-kernel@vger.kernel.org>, rtc-linux@googlegroups.com, linux-acpi@vger.kernel.org
 
 
 
-On Mon, 1 Dec 2008, Mark Lord wrote:
-
-> Fix month wrap issue with readback from /proc/acpi/alarm
-> This bug has been around *forever*.
+> > this version does not touch arch/x86/
 > 
-> $ echo '2008-12-01 10:36:20' > /proc/acpi/alarm
-> $ cat /proc/acpi/alarm
-> 2008-11-01 10:36:20
+> the problem isnt the bits that touch arch/x86/, but that we carry these 
+> commits:
 > 
-> Note how the readback above shows the month incorrectly.
-> But with this patch applied, it shows the correct month (12).
+>  fbc2a06: Merge branch 'linus' into x86/uv
+>  a3d732f: x86, UV: fix redundant creation of sgi_uv
+>  7d9d1f2: sgi-xp: support getting the address of a partition's reserved page
+>  31de5ec: sgi-xp: define xp_partition_id and xp_region_size
+>  2525789: sgi-xp: create activate and notify gru message queues
+>  6c1c325: sgi-xp: define xp_expand_memprotect() and xp_restrict_memprotect()
 > 
-> Patch applies/works on kernels 2.6.25.* through 2.6.27.*,
-> and probably on earlier kernels as well.
+> their drivers/misc impact is significant:
+> 
+>  drivers/misc/sgi-gru/grufault.c  |    4 +-
+>  drivers/misc/sgi-gru/gruprocfs.c |    1 -
+>  drivers/misc/sgi-xp/xp.h         |    7 +-
+>  drivers/misc/sgi-xp/xp_main.c    |    7 +
+>  drivers/misc/sgi-xp/xp_sn2.c     |   34 +++++
+>  drivers/misc/sgi-xp/xp_uv.c      |   70 +++++++++-
+>  drivers/misc/sgi-xp/xpc.h        |   12 ++
+>  drivers/misc/sgi-xp/xpc_sn2.c    |   15 +--
+>  drivers/misc/sgi-xp/xpc_uv.c     |  290 ++++++++++++++++++++++++++++++--------
+>  10 files changed, 368 insertions(+), 74 deletions(-)
+>
+> And we'll likely get new commits in that space.
+> 
+> So if this is causing conflicts in linux-next then i'd suggest for you to 
+> please do this "git mv drivers/misc/ drivers/x86/" rename (with which i 
+> fully agree!) right after v2.6.29-rc1 - or near the end of the -rc1 merge 
+> window.
 
-We've had some BCD_TO_BIN() changes here in 2.6.28 already,
-does 2.6.28-rc still have this bug?
+I only moved only the laptop drivers, didn't touch misc/sgi*/,
+so I don't see any conflicts here.
 
-I'd check myself, but I don't have a /proc/acpi/alarm due to this:
+> In any case, please keep it in a separate branch in the ACPI tree so that 
+> we can reconsider the ordering of this change in the future as well - 
+> should it cause problems.
 
-#if defined(CONFIG_RTC_DRV_CMOS) || defined(CONFIG_RTC_DRV_CMOS_MODULE) || 
-!defined(CONFIG_X86)
-/* use /sys/class/rtc/rtcX/wakealarm instead; it's not ACPI-specific */
-#else
-#define HAVE_ACPI_LEGACY_ALARM
-#endif
-
+sure.
+Since we have no problems in linux-next now, I don't expect any at merge 
+time, but we'll have eyes open for issues then.
 
 thanks,
 -Len
-
