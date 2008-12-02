@@ -1,69 +1,168 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [RESEND] [RFC PATCH 6/6] ACPI: set waking vectors in all FACS
- tables
-Date: Mon, 01 Dec 2008 22:53:55 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0812012253510.934@localhost.localdomain>
-References: <1226478552.15014.176.camel@rzhang-dt>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: [RFC][PATCH] ACPI: EC: Don't trust ECDT tables from ASUS
+Date: Tue, 02 Dec 2008 16:14:17 +0800
+Message-ID: <1228205657.4035.206.camel@yakui_zhao.sh.intel.com>
+References: <20081201204706.32465.23231.stgit@thinkpad>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173007pub.verizon.net ([206.46.173.7]:43382 "EHLO
-	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751397AbYLBDyF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Dec 2008 22:54:05 -0500
-Received: from localhost.localdomain ([96.237.168.40])
- by vms173007.mailsrvcs.net
- (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0KB80081WDG9ZO56@vms173007.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Mon, 01 Dec 2008 21:52:58 -0600 (CST)
-In-reply-to: <1226478552.15014.176.camel@rzhang-dt>
+Received: from mga01.intel.com ([192.55.52.88]:54364 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750755AbYLBIGm (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
+	Tue, 2 Dec 2008 03:06:42 -0500
+In-Reply-To: <20081201204706.32465.23231.stgit@thinkpad>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: LenBrown <lenb@kernel.org>, "Linux-acpi@vger.kernel.org" <Linux-acpi@vger.kernel.org>
 
-applied to acpi-test
+On Tue, 2008-12-02 at 04:47 +0800, Alexey Starikovskiy wrote:
 
--- 
--Len Brown
-Intel Open Source Technology Center
+It is very good that the check is limited to Asus Box.
+Can the following explanation be added so that we can know why the ECDT
+is not trusted?
+    On some Asus laptops there exists the ECDT table. But unfortunately
+the info defined in ECDT table is incorrect.
+    For example: incorrect EC I/O address, Incorrect EC GPE number
+    It causes that the EC device can't be initialized correctly.
+    Maybe it is appropriate that strict check about ECDT table is added
+for the Asus boxes. For the Asus box even when there exists the ECDT
+table, the EC device will be parsed from DSDT table and compared with
+that defined in ECDT table. If they are different, the BIOS bug will be
+reported and that parsed in DSDT table will be initialized.
 
-On Wed, 12 Nov 2008, Zhang Rui wrote:
+Can this patch be split into two patches?
+   one is to add the strict check for Asus boxes.
+   another is to delete the DMI check that is added for some Asus
+laptops?
 
+Thanks.
+   Yakui.
+
+
+> References: http://bugzilla.kernel.org/show_bug.cgi?id=9399
+> 	    http://bugzilla.kernel.org/show_bug.cgi?id=11880
 > 
-> Set the waking vectors in all FACS tables
-> in acpi_gbl_root_table_list.
-> 
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 > ---
->  drivers/acpi/hardware/hwsleep.c |   10 ++++++++++
->  1 file changed, 10 insertions(+)
 > 
-> Index: linux-2.6/drivers/acpi/hardware/hwsleep.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/hardware/hwsleep.c	2008-11-13 04:29:35.000000000 +0800
-> +++ linux-2.6/drivers/acpi/hardware/hwsleep.c	2008-11-13 04:29:43.000000000 +0800
-> @@ -90,6 +90,16 @@
->  
->  	facs->firmware_waking_vector = (u32)physical_address;
->  
-> +	status = acpi_get_table(ACPI_SIG_FACS, 2,
-> +		ACPI_CAST_INDIRECT_PTR(struct acpi_table_header, &facs));
-> +	if (ACPI_FAILURE(status))
-> +		return_ACPI_STATUS(AE_OK);
-> +
-> +	if (facs->version >= 1)
-> +		facs->xfirmware_waking_vector = 0;
-> +
-> +	facs->firmware_waking_vector = (u32)physical_address;
-> +
->  	return_ACPI_STATUS(AE_OK);
->  }
->  
+>  drivers/acpi/ec.c |   72 +++++++++++++++++++++--------------------------------
+>  1 files changed, 29 insertions(+), 43 deletions(-)
 > 
+> 
+> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+> index 60db1b2..3927c05 100644
+> --- a/drivers/acpi/ec.c
+> +++ b/drivers/acpi/ec.c
+> @@ -121,31 +121,6 @@ static struct acpi_ec {
+>  	spinlock_t curr_lock;
+>  } *boot_ec, *first_ec;
+>  
+> -/* 
+> - * Some Asus system have exchanged ECDT data/command IO addresses.
+> - */
+> -static int print_ecdt_error(const struct dmi_system_id *id)
+> -{
+> -	printk(KERN_NOTICE PREFIX "%s detected - "
+> -		"ECDT has exchanged control/data I/O address\n",
+> -		id->ident);
+> -	return 0;
+> -}
+> -
+> -static struct dmi_system_id __cpuinitdata ec_dmi_table[] = {
+> -	{
+> -	print_ecdt_error, "Asus L4R", {
+> -	DMI_MATCH(DMI_BIOS_VERSION, "1008.006"),
+> -	DMI_MATCH(DMI_PRODUCT_NAME, "L4R"),
+> -	DMI_MATCH(DMI_BOARD_NAME, "L4R") }, NULL},
+> -	{
+> -	print_ecdt_error, "Asus M6R", {
+> -	DMI_MATCH(DMI_BIOS_VERSION, "0207"),
+> -	DMI_MATCH(DMI_PRODUCT_NAME, "M6R"),
+> -	DMI_MATCH(DMI_BOARD_NAME, "M6R") }, NULL},
+> -	{},
+> -};
+> -
+>  /* --------------------------------------------------------------------------
+>                               Transaction Management
+>     -------------------------------------------------------------------------- */
+> @@ -979,8 +954,8 @@ static const struct acpi_device_id ec_device_ids[] = {
+>  int __init acpi_ec_ecdt_probe(void)
+>  {
+>  	acpi_status status;
+> +	struct acpi_ec *saved_ec = NULL;
+>  	struct acpi_table_ecdt *ecdt_ptr;
+> -	acpi_handle dummy;
+>  
+>  	boot_ec = make_acpi_ec();
+>  	if (!boot_ec)
+> @@ -994,21 +969,16 @@ int __init acpi_ec_ecdt_probe(void)
+>  		pr_info(PREFIX "EC description table is found, configuring boot EC\n");
+>  		boot_ec->command_addr = ecdt_ptr->control.address;
+>  		boot_ec->data_addr = ecdt_ptr->data.address;
+> -		if (dmi_check_system(ec_dmi_table)) {
+> -			/*
+> -			 * If the board falls into ec_dmi_table, it means
+> -			 * that ECDT table gives the incorrect command/status
+> -			 * & data I/O address. Just fix it.
+> -			 */
+> -			boot_ec->data_addr = ecdt_ptr->control.address;
+> -			boot_ec->command_addr = ecdt_ptr->data.address;
+> -		}
+>  		boot_ec->gpe = ecdt_ptr->gpe;
+>  		boot_ec->handle = ACPI_ROOT_OBJECT;
+>  		acpi_get_handle(ACPI_ROOT_OBJECT, ecdt_ptr->id, &boot_ec->handle);
+> -		/* Add some basic check against completely broken table */
+> -		if (boot_ec->data_addr != boot_ec->command_addr)
+> +		/* Don't trust ECDT, which comes from ASUSTek */
+> +		if (!dmi_name_in_vendors("ASUS"))
+>  			goto install;
+> +		saved_ec = kmalloc(sizeof(struct acpi_ec), GFP_KERNEL);
+> +		if (!saved_ec)
+> +			return -ENOMEM;
+> +		memcpy(&saved_ec, boot_ec, sizeof(saved_ec));
+>  	/* fall through */
+>  	}
+>  	/* This workaround is needed only on some broken machines,
+> @@ -1019,12 +989,28 @@ int __init acpi_ec_ecdt_probe(void)
+>  	/* Check that acpi_get_devices actually find something */
+>  	if (ACPI_FAILURE(status) || !boot_ec->handle)
+>  		goto error;
+> -	/* We really need to limit this workaround, the only ASUS,
+> -	 * which needs it, has fake EC._INI method, so use it as flag.
+> -	 * Keep boot_ec struct as it will be needed soon.
+> -	 */
+> -	if (ACPI_FAILURE(acpi_get_handle(boot_ec->handle, "_INI", &dummy)))
+> -		return -ENODEV;
+> +	if (saved_ec) {
+> +		/* try to find good ECDT from ASUSTek */
+> +		if (saved_ec->command_addr != boot_ec->command_addr ||
+> +		    saved_ec->data_addr != boot_ec->data_addr ||
+> +		    saved_ec->gpe != boot_ec->gpe ||
+> +		    saved_ec->handle != boot_ec->handle)
+> +			pr_info(PREFIX "ASUSTek keeps feeding us with broken "
+> +			"ECDT tables, which are very hard to workaround. "
+> +			"Trying to use DSDT EC info instead. Please send "
+> +			"output of acpidump to linux-acpi@vger.kernel.org\n");
+> +		kfree(saved_ec);
+> +		saved_ec = NULL;
+> +	} else {
+> +		/* We really need to limit this workaround, the only ASUS,
+> +		* which needs it, has fake EC._INI method, so use it as flag.
+> +		* Keep boot_ec struct as it will be needed soon.
+> +		*/
+> +		acpi_handle dummy;
+> +		if (ACPI_FAILURE(acpi_get_handle(boot_ec->handle, "_INI",
+> +							&dummy)))
+> +			return -ENODEV;
+> +	}
+>  install:
+>  	if (!ec_install_handlers(boot_ec)) {
+>  		first_ec = boot_ec;
 > 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+
