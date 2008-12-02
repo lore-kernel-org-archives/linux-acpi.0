@@ -1,27 +1,51 @@
-From: Matthew Garrett <mjg@redhat.com>
-Subject: Re: [PATCH 2/2] misc: Add dell-laptop driver
-Date: Tue, 2 Dec 2008 20:30:55 +0000
-Message-ID: <20081202203055.GA1456@srcf.ucam.org>
-References: <20081127163357.GA22846@srcf.ucam.org> <20081127163444.GB22846@srcf.ucam.org> <20081202115029.2b9d1153.akpm@linux-foundation.org> <20081202200544.GA31620@srcf.ucam.org> <20081202122222.5873ee86.akpm@linux-foundation.org>
+From: Yves-Alexis Perez <corsac@debian.org>
+Subject: Re: Huge wakeups number from i1915
+Date: Wed, 03 Dec 2008 00:11:47 +0100
+Message-ID: <1228259507.4266.8.camel@hidalgo>
+References: <1228236501.3873.2.camel@hidalgo>
+	 <20081202171125.GA20405@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-TZgqv8PavFrGJzHqGWqo"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:41941 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750951AbYLBUa7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Dec 2008 15:30:59 -0500
-Content-Disposition: inline
-In-Reply-To: <20081202122222.5873ee86.akpm@linux-foundation.org>
+Received: from molly.corsac.net ([81.57.48.219]:43712 "EHLO molly.corsac.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751596AbYLBXLj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 2 Dec 2008 18:11:39 -0500
+In-Reply-To: <20081202171125.GA20405@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, Matt_Domsch@dell.com, greg@kroah.com, linux-acpi@vger.kernel.org, rpurdie@rpsys.net, ivdoorn@gmail.com
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Tue, Dec 02, 2008 at 12:22:22PM -0800, Andrew Morton wrote:
 
-> No, acpi.h has a _few_ ACPI=n stubs:
+--=-TZgqv8PavFrGJzHqGWqo
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-Ah, yes. I'll send a patch for that to Len.
+On mar, 2008-12-02 at 17:11 +0000, Matthew Garrett wrote:
+> On Tue, Dec 02, 2008 at 05:48:21PM +0100, Yves-Alexis Perez wrote:
+> > Hi, I have a problem with 2.6.28-rc6-00209-g6a12141. Not sure if I
+> > should mail to acpi@ or drm.
+>=20
+> The interrupt code on i915 has been heavily rewritten. This sounds
+> like=20
+> an interrupt that isn't being acked correctly, so the drm list is=20
+> probably your best bet.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+done, thanks
+--=20
+Yves-Alexis
+
+--=-TZgqv8PavFrGJzHqGWqo
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEABECAAYFAkk1wLMACgkQTUTAIMXAW67e0QCgr8M0hbF7sMhOZ1p8bdQMFEDt
++gYAn3shAtuZWpvIxqnZ8pkiHbO9IXYO
+=mRGv
+-----END PGP SIGNATURE-----
+
+--=-TZgqv8PavFrGJzHqGWqo--
