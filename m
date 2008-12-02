@@ -1,154 +1,99 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [RESEND] [PATCH 4/6] ACPI: make inactive table management
- configurable
-Date: Mon, 01 Dec 2008 21:53:56 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0812012152000.339@localhost.localdomain>
-References: <1226478547.15014.174.camel@rzhang-dt>
+Subject: Re: [PATCH] Use 32-bit FADT values on X86
+Date: Mon, 01 Dec 2008 22:48:05 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0812012246320.934@localhost.localdomain>
+References: <20081201111713.GA26069@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:33884 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750980AbYLBCyL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Dec 2008 21:54:11 -0500
+Received: from vms173007pub.verizon.net ([206.46.173.7]:39497 "EHLO
+	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751388AbYLBDsJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Dec 2008 22:48:09 -0500
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173003.mailsrvcs.net
+ by vms173007.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0KB800BE1APX66J5@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Mon, 01 Dec 2008 20:53:58 -0600 (CST)
-In-reply-to: <1226478547.15014.174.camel@rzhang-dt>
+ with ESMTPA id <0KB80069SD6CZG47@vms173007.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Mon, 01 Dec 2008 21:47:01 -0600 (CST)
+In-reply-to: <20081201111713.GA26069@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-acpi@vger.kernel.org
 
-Zhang-Rui,
-Please tell me how the kernel size grows w/ this new code added.
-If it isn't cheap enough to enable all the time, then we
-probably have to re-consider if it is a good idea to
-implement it vs its benefit.
-
-Of course, being a developer who has to ask peole
-to manually dump tables, it is worth a lot to me,
-but may not be worth the memory to every system
-on the planet that uses ACPI.
+It seems extremely risky to make this blanket change
+for all registers without very detailed supporting
+proof that this is the right thing to do.
 
 -- 
 -Len Brown
 Intel Open Source Technology Center
 
-On Wed, 12 Nov 2008, Zhang Rui wrote:
+On Mon, 1 Dec 2008, Matthew Garrett wrote:
 
-> Introduce flag ACPI_INACTIVE_TABLE_MANAGEMENT,
-> which is used to disable/enable the inactive
-> table management.
+> The ACPI specification says that we should use the 64-bit address offsets
+> contained within the FADT if they exist. However, Windows uses the legacy
+> address. Various vendors have left incorrect values in the 64-bit field
+> which then causes problems later. Since the vast majority of machines have
+> never been tested with an OS that uses the 64-bit value by default, we should
+> behave like Windows and ignore the spec by only using the 64-bit address if
+> it contains something that can't be represented in the legacy field. Since
+> system io space is only 16 bits on x86, this should be entirely safe.
+>     
+> Signed-off-by: Matthew Garrett <mjg@redhat.com>
 > 
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 > ---
->  drivers/acpi/tables/tbutils.c |    3 ++-
->  drivers/acpi/tables/tbxface.c |   18 +++++++++++++++++-
->  include/acpi/acconfig.h       |    4 ++++
->  include/acpi/acglobal.h       |    2 ++
->  4 files changed, 25 insertions(+), 2 deletions(-)
 > 
-> Index: linux-acpi-2.6/drivers/acpi/tables/tbutils.c
-> ===================================================================
-> --- linux-acpi-2.6.orig/drivers/acpi/tables/tbutils.c
-> +++ linux-acpi-2.6/drivers/acpi/tables/tbutils.c
-> @@ -452,11 +452,12 @@ acpi_tb_parse_root_table(acpi_physical_a
->  					"using RSDT"));
->  		}
->  	}
-> +#ifdef ACPI_INACTIVE_TABLE_MANAGEMENT
->  	acpi_inactive_tables_root_pointer =
->  		(address == rsdt_address ? xsdt_address : rsdt_address);
->  	acpi_inactive_tables_entry_size =
->  		(table_entry_size == sizeof(u32) ? sizeof(u64) : sizeof(u32));
-> -
-> +#endif
->  	/* Map the RSDT/XSDT table header to get the full table length */
->  
->  	table = acpi_os_map_memory(address, sizeof(struct acpi_table_header));
-> Index: linux-acpi-2.6/drivers/acpi/tables/tbxface.c
-> ===================================================================
-> --- linux-acpi-2.6.orig/drivers/acpi/tables/tbxface.c
-> +++ linux-acpi-2.6/drivers/acpi/tables/tbxface.c
-> @@ -165,6 +165,7 @@ acpi_initialize_tables(struct acpi_table
->   * 		and install them to the global inactive table list.
->   *
->   ******************************************************************************/
-> +#ifdef ACPI_INACTIVE_TABLE_MANAGEMENT
->  acpi_status __init
->  acpi_initialize_inactive_tables(void)
->  {
-> @@ -284,6 +285,13 @@ acpi_initialize_inactive_tables(void)
->  
->  	return_ACPI_STATUS(status);
->  }
-> +#else
-> +acpi_status __init
-> +acpi_initialize_inactive_tables(void)
-> +{
-> +	return AE_OK;
-> +}
-> +#endif
->  /*******************************************************************************
->   *
->   * FUNCTION:    acpi_reallocate_root_table
-> @@ -617,6 +625,7 @@ ACPI_EXPORT_SYMBOL(acpi_get_table_by_ind
->   * DESCRIPTION: Obtain a table by an index into the global inactive table list.
->   *
->   ******************************************************************************/
-> +#ifdef ACPI_INACTIVE_TABLE_MANAGEMENT
->  acpi_status
->  acpi_get_inactive_table_by_index(u32 table_index,
->  				 struct acpi_table_header **table)
-> @@ -652,7 +661,14 @@ acpi_get_inactive_table_by_index(u32 tab
->  	*table = acpi_gbl_inactive_root_table_list.tables[table_index].pointer;
->  	return_ACPI_STATUS(AE_OK);
->  }
-> -
-> +#else
-> +acpi_status
-> +acpi_get_inactive_table_by_index(u32 table_index,
-> +					struct acpi_table_header **table)
-> +{
-> +	return AE_NOT_FOUND;
-> +}
-> +#endif
->  /*******************************************************************************
->   *
->   * FUNCTION:    acpi_tb_load_namespace
-> Index: linux-acpi-2.6/include/acpi/acconfig.h
-> ===================================================================
-> --- linux-acpi-2.6.orig/include/acpi/acconfig.h
-> +++ linux-acpi-2.6/include/acpi/acconfig.h
-> @@ -119,6 +119,10 @@
->  
->  #define ACPI_ROOT_TABLE_SIZE_INCREMENT  4
->  
-> +/* Support ACPI inactive table management */
-> +
-> +#define ACPI_INACTIVE_TABLE_MANAGEMENT
-> +
->  /******************************************************************************
->   *
->   * ACPI Specification constants (Do not change unless the specification changes)
-> Index: linux-acpi-2.6/include/acpi/acglobal.h
-> ===================================================================
-> --- linux-acpi-2.6.orig/include/acpi/acglobal.h
-> +++ linux-acpi-2.6/include/acpi/acglobal.h
-> @@ -139,9 +139,11 @@ ACPI_EXTERN u32 acpi_gbl_trace_flags;
->   * acpi_gbl_FADT is a local copy of the FADT, converted to a common format.
->   */
->  ACPI_EXTERN struct acpi_internal_rsdt acpi_gbl_root_table_list;
-> +#ifdef ACPI_INACTIVE_TABLE_MANAGEMENT
->  ACPI_EXTERN struct acpi_internal_rsdt acpi_gbl_inactive_root_table_list;
->  ACPI_EXTERN acpi_physical_address acpi_inactive_tables_root_pointer;
->  ACPI_EXTERN u32 acpi_inactive_tables_entry_size;
-> +#endif
->  ACPI_EXTERN struct acpi_table_fadt acpi_gbl_FADT;
->  extern u8 acpi_gbl_permanent_mmap;
->  
+> Len, this is a clear case of the spec not matching real-life behaviour. 
+> I'd be amazed if anyone can find an x86 system that uses system-io space 
+> for these values and doesn't contain an accurate value in the 32-bit 
+> field. On the other hand, we've seen machines that assume the 
+> Windows-style behaviour and we keep finding more. A blacklist isn't the 
+> correct solution for this problem.
 > 
+> diff --git a/drivers/acpi/tables/tbfadt.c b/drivers/acpi/tables/tbfadt.c
+> index 2817158..89a3c82 100644
+> --- a/drivers/acpi/tables/tbfadt.c
+> +++ b/drivers/acpi/tables/tbfadt.c
+> @@ -320,9 +320,30 @@ static void acpi_tb_convert_fadt(void)
+>  		    ACPI_ADD_PTR(struct acpi_generic_address, &acpi_gbl_FADT,
+>  				 fadt_info_table[i].target);
+>  
+> -		/* Expand only if the X target is null */
+> -
+> -		if (!target->address) {
+> +		/*
+> +		 * The ACPI specification says that we should use the
+> +		 * 64-bit address offsets if they exists. However,
+> +		 * Windows uses the legacy address. Various vendors
+> +		 * have left incorrect values in the 64-bit field,
+> +		 * which then causes problems later. Since the vast
+> +		 * majority of machines have never been tested with an
+> +		 * OS that uses the 64-bit value by default, we should
+> +		 * behave like Windows and ignore the spec by only
+> +		 * using the 64-bit address if it contains something
+> +		 * that can't be represented in the legacy
+> +		 * field. Since system io space is only 16 bits on
+> +		 * x86, this should be entirely safe. We also extend
+> +		 * the 32-bit value into the 64-bit one if no 64-bit
+> +		 * address is provided.
+> +		 */
+> +
+> +		if (!target->address
+> +#ifdef CONFIG_X86
+> +		    || (target->space_id == ACPI_ADR_SPACE_SYSTEM_IO &&
+> +			*ACPI_ADD_PTR(u32, &acpi_gbl_FADT,
+> +				      fadt_info_table[i].source))
+> +#endif
+> +			) {
+>  			acpi_tb_init_generic_address(target,
+>  						     *ACPI_ADD_PTR(u8,
+>  								   &acpi_gbl_FADT,
+> 
+> -- 
+> Matthew Garrett | mjg59@srcf.ucam.org
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
