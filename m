@@ -1,86 +1,42 @@
-From: Sven Wegener <sven.wegener@stealer.net>
-Subject: Re: [PATCH] misc: Add dell-wmi driver for hotkey control
-Date: Wed, 3 Dec 2008 22:17:18 +0100 (CET)
-Message-ID: <alpine.LNX.2.00.0812032149470.16637@titan.stealer.net>
-References: <20081203195644.GC22560@srcf.ucam.org>
+From: "Koornstra, Reinoud" <koornstra@hp.com>
+Subject: 2.6.28-rc7 acpi error messages
+Date: Wed, 3 Dec 2008 21:22:15 +0000
+Message-ID: <E92FAF79A8BBC642A36EEE3AA7F152D82A17260164@GVW1089EXB.americas.hpqcorp.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.stealer.net ([88.198.224.204]:36856 "EHLO
-	smtp1.stealer.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751322AbYLCVRd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Dec 2008 16:17:33 -0500
-In-Reply-To: <20081203195644.GC22560@srcf.ucam.org>
+Received: from g4t0014.houston.hp.com ([15.201.24.17]:5140 "EHLO
+	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751319AbYLCVXy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Dec 2008 16:23:54 -0500
+Received: from G6W0641.americas.hpqcorp.net (g6w0641.atlanta.hp.com [16.230.34.77])
+	(using TLSv1 with cipher RC4-MD5 (128/128 bits))
+	(No client certificate requested)
+	by g4t0014.houston.hp.com (Postfix) with ESMTPS id B4B32245F7
+	for <linux-acpi@vger.kernel.org>; Wed,  3 Dec 2008 21:23:50 +0000 (UTC)
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, greg@kroah.com
+To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wed, 3 Dec 2008, Matthew Garrett wrote:
+HI Everyone,
 
-> Add a WMI driver for Dell laptops. Currently it does nothing but send a
-> generic input event when a button with a picture of a battery on it is
-> pressed, but maybe other uses will appear over time.
+2.6.28-rc7 works nicely here, I'm only seeing some non critical errors:
 
-Some general notes below. I have no knowledge of the input layer, so I
-can't verify the patch in terms of input layer correctness.
+[    0.000000] ACPI Error (tbfadt-0471): 32/64X address mismatch in "Gpe0Block": [0000F820] [000000000001F028], using 64X [20080926]
+[    0.000000] 2171MB HIGHMEM available.
+[    0.000000] 883MB LOWMEM available.
+[    0.000999] Memory: 3094036k/3129092k available (3049k kernel code, 33768k reserved, 2026k data, 328k init, 2223884k highmem)
 
-> [...]
-> +void dell_wmi_notify(u32 value, void *context)
+[    0.304598] ACPI Error (dsfield-0139): [CAPD] Namespace lookup failure, AE_ALREADY_EXISTS
+[    0.304601] ACPI Error (psparse-0524): Method parse/execution failed [\_SB_.PCI0._OSC] (Node f6c16cf0), AE_ALREADY_EXISTS
+[    0.304605] ACPI: Marking method _OSC as Serialized because of AE_ALREADY_EXISTS error
+[    0.305297] ACPI Error (dsfield-0139): [CAPD] Namespace lookup failure, AE_ALREADY_EXISTS
+[    0.305300] ACPI Error (psparse-0524): Method parse/execution failed [\_SB_.PCI0._OSC] (Node f6c16cf0), AE_ALREADY_EXISTS
 
-static
+Any suggestions?
+Kind Regards,
 
-> +{
-> +	struct acpi_buffer response = { ACPI_ALLOCATE_BUFFER, NULL };
-> +	static struct key_entry *key;
-> +	union acpi_object *obj;
-> +
-> +	wmi_get_event_data(value, &response);
-> +
-> +	obj = (union acpi_object *)response.pointer;
-> +
-> +	if (obj && obj->type == ACPI_TYPE_BUFFER) {
-> +		int *buffer = (int *)obj->buffer.pointer;
-> +		key = dell_wmi_get_entry_by_scancode(buffer[1]);
-> +		if (key) {
-> +			input_report_key(dell_wmi_input_dev, key->keycode, 1);
-> +			input_sync(dell_wmi_input_dev);
-> +			input_report_key(dell_wmi_input_dev, key->keycode, 0);
-> +			input_sync(dell_wmi_input_dev);
-> +		} else
-> +			printk(KERN_INFO "dell-wmi: Unknown key %x pressed\n",
-> +			       buffer[1]);
-> +	}
-> +	return;
+Reinoud.
 
-No need to at the end of a function.
-
-> +}
-> +
-> +static int __init dell_wmi_input_setup(void)
-> +{
-> +	struct key_entry *key;
-> +	int err;
-> +
-> +	dell_wmi_input_dev = input_allocate_device();
-> +
-> +	dell_wmi_input_dev->name = "Dell WMI hotkeys";
-
-Missing check for allocation failure.
-
-> [...]
-> +static int __init dell_wmi_init(void)
-> +{
-> +	int err;
-> +
-> +	if (wmi_has_guid(DELL_EVENT_GUID)) {
-> +		err = wmi_install_notify_handler(DELL_EVENT_GUID,
-> +						 dell_wmi_notify, NULL);
-> +		if (!err)
-> +			dell_wmi_input_setup();
-
-Uhm, what if the notify handler gets called before the device has been set 
-up? And looking at the function, the dell_wmi_input_setup() call can fail, 
-which means you end up with invalid device handle.
-
-Sven
