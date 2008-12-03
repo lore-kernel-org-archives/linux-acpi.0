@@ -1,157 +1,284 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: 2.6.28-rc7 acpi error messages
-Date: Wed, 3 Dec 2008 14:43:12 -0800
-Message-ID: <4911F71203A09E4D9981D27F9D8308580DD52E96@orsmsx503.amr.corp.intel.com>
-References: <E92FAF79A8BBC642A36EEE3AA7F152D82A17260164@GVW1089EXB.americas.hpqcorp.net>
+From: Sven Wegener <sven.wegener@stealer.net>
+Subject: Re: [PATCH] misc: Add oqo-wmi driver for model 2 OQO backlight and
+ rfkill control
+Date: Wed, 3 Dec 2008 23:55:22 +0100 (CET)
+Message-ID: <alpine.LNX.2.00.0812032232170.16637@titan.stealer.net>
+References: <20081127190517.GA25429@srcf.ucam.org> <alpine.LFD.2.00.0811281431320.3204@localhost.localdomain> <Pine.LNX.4.64.0811282215160.17453@sheavy.abrij.org> <20081129045045.GA13866@srcf.ucam.org> <20081203195537.GB22560@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:41470 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751509AbYLCWnR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Dec 2008 17:43:17 -0500
-In-Reply-To: <E92FAF79A8BBC642A36EEE3AA7F152D82A17260164@GVW1089EXB.americas.hpqcorp.net>
-Content-Language: en-US
+Received: from smtp1.stealer.net ([88.198.224.204]:38438 "EHLO
+	smtp1.stealer.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753546AbYLCWzi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Dec 2008 17:55:38 -0500
+In-Reply-To: <20081203195537.GB22560@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Koornstra, Reinoud" <koornstra@hp.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: "Brown, Len" <len.brown@intel.com>, "Lin, Ming M" <ming.m.lin@intel.com>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: "Brian S. Julin" <bri@abrij.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, greg@kroah.com
 
-Thanks for the acpidump.
+On Wed, 3 Dec 2008, Matthew Garrett wrote:
 
->From the FADT, there are some serious issues with this machine. It appears to be a Compaq, maybe model number LX38.
+> oqo-wmi provides a WMI-based interface to backlight and rfkill control on
+> model 2 OQO devices. It was originally written by Brian Julin
+> (<bri@abrij.org>) - I've ported it to the rfkill layer and tidied it up a
+> little.
 
-We've recently improved the FADT error checking, here's what I get:
+Some general comments below.
 
+> +/* Some of this code is left like in acer-wmi so we can add the older
+> +   Model 01 and any future models more easily, but we should not expect
+> +   it to be as complicated as Acer given each model is a leap rather than
+> +   a subtle variant on the last, so we aren't using "quirks" perse.  Not
+> +   sure if there is any real difference for our purposes between the o2
+> +   and e2.
+> +*/
+> +struct oqo_model {
+> +	const char *model;
+> +	u16 model_subs;
+> +};
+> +#define MODEL_SUB_OQO_O2_SMB0 3
+> +
+> +static struct oqo_model oqo_models[] = {
+> +	{
+> +	 .model = "Model 2",
+> +	 .model_subs = MODEL_SUB_OQO_O2_SMB0,
+> +	 },
+> +	{}
+> +};
+> +
+> +static struct oqo_model *model;
 
-ACPI Warning (tbfadt-0626): 32/64X length mismatch in Pm1aEventBlock: 32/16 [20081204]
-ACPI Warning (tbfadt-0626): 32/64X length mismatch in Gpe0Block: 128/32 [20081204]
-ACPI Error (tbfadt-0663): 32/64X address mismatch in Gpe0Block: 0000F820/000000000001F028, using 64X [20081204]
-ACPI Warning (tbfadt-0498): Invalid length for Pm1aEventBlock: 16, using default 32 [20081204]
+With "like in acer-wmi" you mean that this whole model stuff currently
+serves no purpose? If we don't access the model variable yet, I think it
+shouldn't be there.
 
+> +static int dmi_matched(const struct dmi_system_id *dmi)
 
-Also, for \_SB_.PCI0._OSC:
+__init
 
->[    0.304598] ACPI Error (dsfield-0139): [CAPD] Namespace lookup failure,
->AE_ALREADY_EXISTS
+> +{
+> +	model = dmi->driver_data;
+> +	/*
+> +	 * Detect which ACPI-WMI interface we're using.
+> +	 */
+> +	if (wmi_has_guid(OQO_O2_AMW0_GUID))
+> +		interface = &AMW0_interface;
+> +
+> +	return 0;
+> +}
+> +
+> +static struct dmi_system_id oqo_dmis[] = {
 
-        Method (_OSC, 5, NotSerialized)
-        {
-            Subtract (Arg2, 0x01, Local0)
-            Name (CAPB, Buffer (Multiply (Arg2, 0x04)) {})
-            Store (Arg3, CAPB)
-            Store (One, Local1)
-            CreateDWordField (CAPB, Zero, CAPF)
-            While (Local0)
-            {
-                CreateDWordField (CAPB, Local1, CAPD)
+__initdata
 
-CAPD is being created within a loop. On the second iteration it fails. 
+And i think const is also possible.
 
+> +static acpi_status oqo_read_kine(int *good, s16 *x, s16 *y, s16 *z,
+> +				 u16 *lumin)
+> +{
+> +	u8 hiregs[4] = { OQO_O2_SMB0_ACCEL_XHI,
+> +		OQO_O2_SMB0_ACCEL_YHI,
+> +		OQO_O2_SMB0_ACCEL_ZHI,
+> +		OQO_O2_SMB0_LUMIN_HI
+> +	};
+> +	u8 loregs[4] = { OQO_O2_SMB0_ACCEL_XLO,
+> +		OQO_O2_SMB0_ACCEL_YLO,
+> +		OQO_O2_SMB0_ACCEL_ZLO,
+> +		OQO_O2_SMB0_LUMIN_LO
+> +	};
+> +
+> +	short ax[4] = { ABS_X, ABS_Y, ABS_Z, ABS_MISC };
 
+Uhm, I think these three variables could be static and const.
 
-Here's the FADT issues with the corresponding lines from the disassembled FADT:
+> +	*x = (u16) res[0];
+> +	*y = (u16) res[1];
+> +	*z = (u16) res[2];
+> +	*lumin = (u16) res[3];
+> +	return status;
 
+This return could be dropped, just let it fall-through.
 
-ACPI Warning (tbfadt-0626): 32/64X length mismatch in Pm1aEventBlock: 32/16 [20081204]
-
-32:
-[058h 088  1]       PM1 Event Block Length : 04
-
-64:
-[094h 148 12]             PM1A Event Block : <Generic Address Structure>
-[094h 148  1]                     Space ID : 01 (SystemIO)
-[095h 149  1]                    Bit Width : 10
-[096h 150  1]                   Bit Offset : 00
-[097h 151  1]                 Access Width : 00
-
-Bit Width above should be 0x20
-
-
-ACPI Warning (tbfadt-0626): 32/64X length mismatch in Gpe0Block: 128/32 [20081204]
-
-32:
-[05Ch 092  1]            GPE0 Block Length : 10
-
-64:
-[0DCh 220 12]                   GPE0 Block : <Generic Address Structure>
-[0DCh 220  1]                     Space ID : 01 (SystemIO)
-[0DDh 221  1]                    Bit Width : 20
-[0DEh 222  1]                   Bit Offset : 00
-[0DFh 223  1]                 Access Width : 00
-[0E0h 224  8]                      Address : 000000000001F028
-
-I can't tell which one is correct.
-
-
-ACPI Error (tbfadt-0663): 32/64X address mismatch in Gpe0Block: 0000F820/000000000001F028, using 64X [20081204]
-
-32:
-[050h 080  4]           GPE0 Block Address : 0000F820
-
-64:
-[0DCh 220 12]                   GPE0 Block : <Generic Address Structure>
-[0DCh 220  1]                     Space ID : 01 (SystemIO)
-[0DDh 221  1]                    Bit Width : 20
-[0DEh 222  1]                   Bit Offset : 00
-[0DFh 223  1]                 Access Width : 00
-[0E0h 224  8]                      Address : 000000000001F028
-
-Again, can't tell which one is correct.
-
-
-ACPI Warning (tbfadt-0498): Invalid length for Pm1aEventBlock: 16, using default 32 [20081204]
-
-This is actually repairing the problem found in the first warning above.
-
-
-
-2 questions:
-1) Do GPEs and events work on this machine?
-2) Does Windows run properly on this machine?
-
-
-Bob
+> +leave:
+> +	return status;
+> +}
 
 
 
+> +static int __devinit oqo_kine_init(void)
+> +{
+> +	int err;
+> +
+> +	oqo_kine = input_allocate_device();
+> +	if (!oqo_kine)
+> +		return -ENOMEM;
+> +
+> +	oqo_kine->name = "OQO embedded accelerometer";
+> +	oqo_kine->phys = "platform:oqo-wmi:kine";
+> +	oqo_kine->id.bustype = 0;
+> +	oqo_kine->id.vendor = 0;
+> +	oqo_kine->id.product = 2;
+> +	oqo_kine->id.version = 0;
+> +	oqo_kine->evbit[0] = BIT_MASK(EV_ABS);
+> +	set_bit(ABS_X, oqo_kine->absbit);
+> +	set_bit(ABS_Y, oqo_kine->absbit);
+> +	set_bit(ABS_Z, oqo_kine->absbit);
+> +	set_bit(ABS_MISC, oqo_kine->absbit);
+> +	oqo_kine->absmin[ABS_X] =
+> +	    oqo_kine->absmin[ABS_Y] =
+> +	    oqo_kine->absmin[ABS_Z] = oqo_kine->absmin[ABS_MISC] = -32768;
+> +	oqo_kine->absmax[ABS_X] =
+> +	    oqo_kine->absmax[ABS_Y] =
+> +	    oqo_kine->absmax[ABS_Z] = oqo_kine->absmax[ABS_MISC] = 32767;
+> +
+> +	memcpy(oqo_kine->dev.bus_id, "kine", 4);
+> +
+> +	oqo_kine_polled = input_allocate_polled_device();
+> +	if (!oqo_kine_polled) {
+> +		err = -ENOMEM;
+> +		goto bail0;
+> +	}
+> +
+> +	oqo_kine_polled->poll = oqo_kine_poll;
+> +	oqo_kine_polled->poll_interval = 250;
+> +	oqo_kine_polled->input = oqo_kine;
 
->-----Original Message-----
->From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
->owner@vger.kernel.org] On Behalf Of Koornstra, Reinoud
->Sent: Wednesday, December 03, 2008 1:22 PM
->To: linux-acpi@vger.kernel.org
->Subject: 2.6.28-rc7 acpi error messages
->
->HI Everyone,
->
->2.6.28-rc7 works nicely here, I'm only seeing some non critical errors:
->
->[    0.000000] ACPI Error (tbfadt-0471): 32/64X address mismatch in
->"Gpe0Block": [0000F820] [000000000001F028], using 64X [20080926]
->[    0.000000] 2171MB HIGHMEM available.
->[    0.000000] 883MB LOWMEM available.
->[    0.000999] Memory: 3094036k/3129092k available (3049k kernel code,
->33768k reserved, 2026k data, 328k init, 2223884k highmem)
->
->[    0.304598] ACPI Error (dsfield-0139): [CAPD] Namespace lookup failure,
->AE_ALREADY_EXISTS
->[    0.304601] ACPI Error (psparse-0524): Method parse/execution failed
->[\_SB_.PCI0._OSC] (Node f6c16cf0), AE_ALREADY_EXISTS
->[    0.304605] ACPI: Marking method _OSC as Serialized because of
->AE_ALREADY_EXISTS error
->[    0.305297] ACPI Error (dsfield-0139): [CAPD] Namespace lookup failure,
->AE_ALREADY_EXISTS
->[    0.305300] ACPI Error (psparse-0524): Method parse/execution failed
->[\_SB_.PCI0._OSC] (Node f6c16cf0), AE_ALREADY_EXISTS
->
->Any suggestions?
->Kind Regards,
->
->Reinoud.
->
->--
->To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+input_allocate_polled_device() allocates ->input for us, you must remove
+the input_allocate_device() above and shift the code around.
+
+> +static void __devexit oqo_kine_fini(void)
+> +{
+> +	smwrite_u8(OQO_O2_SMB0_ACCEL_POLL_ITVL, orig.kine_itvl);
+> +	input_unregister_polled_device(oqo_kine_polled);
+> +	input_free_polled_device(oqo_kine_polled);
+
+Uhm, I wonder if this is the right order. First unregister and then do
+the smwrite_u8() to prevent the device from reverting our write?
+
+> +static int __devinit oqo_platform_probe(struct platform_device *device)
+> +{
+> +	int err;
+> +	int i;
+> +	char *troubleok = "trouble, but continuing.\n";
+
+This variable seems needless, just append the message to the printk()
+calls.
+
+> +
+> +	memset(oqo_sn, 0, OQO_O2_SMB0_SERIAL_LEN + 1);
+> +	for (i = 0; i < OQO_O2_SMB0_SERIAL_LEN; i++) {
+> +		err = oqo_smbus_getb(OQO_O2_SMB0_SERIAL_START + i, oqo_sn + i);
+> +		if (err) {
+> +			printk(OQO_ERR "Serial number check failed.\n");
+> +			return err;
+> +		}
+> +	}
+> +	printk(OQO_INFO "Found OQO with serial number %s.\n", oqo_sn);
+> +
+> +	err = oqo_backlight_init(&device->dev);
+> +	if (err)
+> +		printk(OQO_ERR "Backlight init %s", troubleok);
+> +
+> +	err = oqo_rfkill_init(&device->dev);
+> +	if (err)
+> +		printk(OQO_ERR "RFKill init %s", troubleok);
+> +
+> +	/* LID does not work at all yet, and this may be taken
+> +	   care of by ACPI.
+> +	 */
+> +	orig.lid_wakes = smread_u8(OQO_O2_SMB0_LID_WAKES_ADDR);
+> +	orig.lid_wakes &= OQO_O2_SMB0_LID_WAKES_MASK;
+> +	orig.lid_wakes = curr.lid_wakes = !!orig.lid_wakes;
+> +	if (orig.lid_wakes < 0) {
+> +		printk(OQO_ERR "Wake on LID event %s", troubleok);
+> +	} else {
+> +		printk(OQO_INFO "Wake on LID is %s.\n",
+> +		       (orig.lid_wakes ? "on" : "off"));
+> +	}
+> +
+> +	err = oqo_kine_init();
+> +	return err;
+
+Uhm, if oqo_kine_init() fails, does our caller take care of
+unregistering the backlight and rfkill devices?
+
+> +}
+> +
+> +static int oqo_platform_remove(struct platform_device *device)
+> +{
+> +	oqo_backlight_fini();
+> +	oqo_rfkill_fini();
+> +	oqo_kine_fini();
+
+These three functions are marked __devexit, I suspect this will cause
+section mismatches.
+
+> +
+> +	return 0;
+> +}
+> +
+> +#ifdef CONFIG_PM
+> +
+> +static int oqo_platform_suspend(struct platform_device *dev, pm_message_t state)
+> +{
+> +	if (!interface)
+> +		return -ENOMEM;
+
+Interface should be always set once the module has been loaded
+successfully.
+
+> +
+> +	/* This sticks during boot so do not turn it entirely off */
+> +	if (oqo_backlight_device) {
+> +		curr.bl_bright = read_brightness(oqo_backlight_device);
+> +		smwrite_s16(OQO_O2_SMB0_BL_HI, OQO_O2_SMB0_BL_LO, 256);
+> +	}
+> +	return 0;
+> +}
+> +
+> +static int oqo_platform_resume(struct platform_device *device)
+> +{
+> +	if (!interface)
+> +		return -ENOMEM;
+
+Likewise.
+
+> +
+> +	if (oqo_backlight_device) {
+> +		smwrite_s16(OQO_O2_SMB0_BL_HI,
+> +			    OQO_O2_SMB0_BL_LO, curr.bl_bright);
+> +	}
+> +
+> +	return 0;
+> +}
+
+> +	err = platform_device_add(oqo_platform_device);
+> +	if (err) {
+> +		printk(OQO_ERR "platform_device_add gave %d.\n", err);
+> +		platform_device_put(oqo_platform_device);
+> +		goto bail1;
+
+Why not add a bail2 and move platform_device_put() there?
+
+> +	}
+> +
+> +	return 0;
+> +
+> +bail1:
+> +	platform_driver_unregister(&oqo_platform_driver);
+> +bail0:
+> +	return err;
+> +}
+> +
+> +static void __exit oqo_wmi_fini(void)
+> +{
+> +	platform_device_del(oqo_platform_device);
+> +	platform_driver_unregister(&oqo_platform_driver);
+> +
+> +	return;
+> +}
+
+Needless return at end of function.
+
+Sven
