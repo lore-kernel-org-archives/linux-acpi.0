@@ -1,71 +1,89 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: Re: HOWTO Get original DSDT?
-Date: Thu, 04 Dec 2008 13:34:27 +0800
-Message-ID: <1228368867.4035.236.camel@yakui_zhao.sh.intel.com>
-References: <91b13c310812032007w6db30ebekfa8e95931c5c17c6@mail.gmail.com>
+From: Sven Wegener <sven.wegener@stealer.net>
+Subject: Re: [PATCH 2/2 update] misc: Add dell-laptop driver
+Date: Thu, 4 Dec 2008 10:12:16 +0100 (CET)
+Message-ID: <alpine.LNX.2.00.0812040934080.16637@titan.stealer.net>
+References: <20081127163357.GA22846@srcf.ucam.org> <20081127163444.GB22846@srcf.ucam.org> <20081202115029.2b9d1153.akpm@linux-foundation.org> <20081202201645.GB31620@srcf.ucam.org> <alpine.LFD.2.00.0812031414150.3255@localhost.localdomain>
+ <20081203195238.GA22560@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:51931 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752478AbYLDF0l (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 4 Dec 2008 00:26:41 -0500
-In-Reply-To: <91b13c310812032007w6db30ebekfa8e95931c5c17c6@mail.gmail.com>
+Received: from smtp1.stealer.net ([88.198.224.204]:43093 "EHLO
+	smtp1.stealer.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751731AbYLDJMf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Dec 2008 04:12:35 -0500
+In-Reply-To: <20081203195238.GA22560@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Cheng Renquan <crquan@gmail.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>, "lenb@kernel.org" <lenb@kernel.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Matt_Domsch@dell.com, greg@kroah.com, linux-acpi@vger.kernel.org, Richard Purdie <rpurdie@rpsys.net>, Ivo van Doorn <ivdoorn@gmail.com>
 
-On Thu, 2008-12-04 at 12:07 +0800, Cheng Renquan wrote:
-> Here we unfourtunately have many Dell Optiple 320 machines,
-> 
-> its hardware profile has been sent out to smolts:
-> http://www.smolts.org/client/show/pub_32cc3df5-67af-42e9-806a-20dd25f47757
-> 
-> It have notorious ACPI support problem, almost all Linux distros cannot run well
-> on this hardware (CDROM cannot boot, or cannot install,
-> or can install but cannot boot from hard disk)
-> except a China Linux distro RedFlag 5.0 (it runs with ACPI enabled
-> well, but why?)
-> 
-> some distros can run with acpi=off on it,
-> 
-> Today I found the article on override DSDT, I think this may solve this problem,
-> 
-> http://www.lesswatts.org/projects/acpi/overridingDSDT.php
-> 
-> But with this section,
-> 
-> How to Build a custom DSDT into the kernel
-> 
->    1. Get original DSDT:
-> 
->       # cp /proc/acpi/dsdt DSDT
-> 
->       or
-> 
->       # acpidump > acpidump.out
-> 
-> The problem is how to get /proc/acpi/dsdt with acpi=off?
-> 
-> if boot without "acpi=off", the kernel will hang, reproduce always,
-> if boot with "acpi=off", there's no /proc/acpi nor
-> /sys/devices/platform/acpi/...
-> 
-> So the problem is:
-You can use the acpidump tool to get the acpidump.out and then get the
-DSDT file from acpidump.out.
-And the two tools will be used.(acpixtract, iasl)
-The acpixtract can found in the
-pmtools(http://www.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/)
+On Wed, 3 Dec 2008, Matthew Garrett wrote:
 
-The iasl can be found in the 
-http://www.acpica.org/downloads/unix_source_code_cont.php
+> Add a driver for controling Dell-specific backlight and rfkill 
+> interfaces. This driver makes use of the dcdbas interface to the Dell 
+> firmware to allow the backlight and rfkill interfaces on Dell systems to 
+> be driven through the standardised sysfs interfaces.
 
-Thanks.
+> +static void parse_da_table(const struct dmi_header *dm)
 
-> 
-> Is there any other approach to get the DSDT?
-> 
+__init
 
+> +static void find_tokens(const struct dmi_header *dm)
+
+__init
+
+> +{
+> +	switch (dm->type) {
+> +	case 0xd4: /* Indexed IO */
+> +		break;
+> +	case 0xd5: /* Protected Area Type 1 */
+> +		break;
+> +	case 0xd6: /* Protected Area Type 2 */
+> +		break;
+> +	case 0xda: /* Calling interface */
+> +		parse_da_table(dm);
+> +		break;
+> +	}
+
+This could be a simple if (dm->type == 0xda), it looks like the switch
+is abused as documentation.
+
+> +/* Derived from information in DellWirelessCtl.cpp:
+> +   Class 17, select 11 is radio control. It returns an array of 32-bit values.
+> +
+> +   result[0]: return code
+> +   result[1]:
+> +     Bit 0:      Hardware switch supported
+> +     Bit 1:      Wifi locator supported
+> +     Bit 2:      Wifi is supported
+> +     Bit 3:      Bluetooth is supported
+> +     Bit 4:      WWAN is supported
+> +     Bit 5:      Wireless keyboard supported
+> +     Bits 6-7:   Reserved
+> +     Bit 8:      Wifi is installed
+> +     Bit 9:      Bluetooth is installed
+> +     Bit 10:     WWAN is installed
+> +     Bits 11-15: Reserved
+> +     Bit 16:     Hardware switch is on
+> +     Bit 17:     Wifi is blocked
+> +     Bit 18:     Bluetooth is blocked
+> +     Bit 19:     WWAN is blocked
+> +     Bits 20-31: Reserved
+> +   result[2]: NVRAM size in bytes
+> +   result[3]: NVRAM format version number
+
+Could these bit numbers be defines with declarative names, e.g define
+DELL_WIFI_BLOCKED (1<<17)? It would make reading the code that just uses
+plain numbers easier.
+
+> +	memset(&buffer, 0, sizeof(struct calling_interface_buffer));
+
+sizeof(buffer)
+
+Likewise for other sizeof() occurrences that follow.
+
+> +static int dell_setup_rfkill(void)
+
+__init
+
+Sven
