@@ -1,87 +1,59 @@
-From: "Brian S. Julin" <bri@abrij.org>
-Subject: Re: [PATCH] misc: Add oqo-wmi driver for model 2 OQO backlight and
- rfkill control
-Date: Wed, 3 Dec 2008 20:28:39 -0500 (EST)
-Message-ID: <Pine.LNX.4.64.0812031931240.2166@sheavy.abrij.org>
-References: <20081127190517.GA25429@srcf.ucam.org>
- <alpine.LFD.2.00.0811281431320.3204@localhost.localdomain>
- <Pine.LNX.4.64.0811282215160.17453@sheavy.abrij.org> <20081129045045.GA13866@srcf.ucam.org>
- <20081203195537.GB22560@srcf.ucam.org> <20081203150019.7e272c19.akpm@linux-foundation.org>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: 2.6.28-rc7 acpi error messages
+Date: Thu, 04 Dec 2008 10:08:47 +0800
+Message-ID: <1228356527.4035.224.camel@yakui_zhao.sh.intel.com>
+References: <E92FAF79A8BBC642A36EEE3AA7F152D82A17260164@GVW1089EXB.americas.hpqcorp.net>
+	 <4911F71203A09E4D9981D27F9D8308580DD52E96@orsmsx503.amr.corp.intel.com>
+	 <20081203230332.GA26733@srcf.ucam.org>
+	 <4911F71203A09E4D9981D27F9D8308580DD52F0F@orsmsx503.amr.corp.intel.com>
+	 <20081203233557.GA27180@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from qmta07.westchester.pa.mail.comcast.net ([76.96.62.64]:42440
-	"EHLO QMTA07.westchester.pa.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754794AbYLDBcO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Dec 2008 20:32:14 -0500
-In-Reply-To: <20081203150019.7e272c19.akpm@linux-foundation.org>
+Received: from mga11.intel.com ([192.55.52.93]:15160 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752541AbYLDCBD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 3 Dec 2008 21:01:03 -0500
+In-Reply-To: <20081203233557.GA27180@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: akpm@linux-foundation.org
-Cc: lenb@kernel.org, linux-kernel@vger.kernel.org, greg@kroah.com, linux-acpi@vger.kernel.org, mjg59@srcf.ucam.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: "Moore, Robert" <robert.moore@intel.com>, "Koornstra, Reinoud" <koornstra@hp.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>, "Lin, Ming M" <ming.m.lin@intel.com>
 
+On Thu, 2008-12-04 at 07:35 +0800, Matthew Garrett wrote:
+> On Wed, Dec 03, 2008 at 03:12:55PM -0800, Moore, Robert wrote:
+> > Not even the 32-bit values seem fully correct, however. For example:
+> > 
+> > [05Ch 092  1]            GPE0 Block Length : 10
+> > 
+> > 
+> > [0DCh 220 12]                   GPE0 Block : <Generic Address Structure>
+> > [0DCh 220  1]                     Space ID : 01 (SystemIO)
+> > [0DDh 221  1]                    Bit Width : 20
+> > [0DEh 222  1]                   Bit Offset : 00
+> > [0DFh 223  1]                 Access Width : 00
+> > [0E0h 224  8]                      Address : 000000000001F028
+> > 
+> > 
+> > For the first block length, I seriously doubt that the machine has (0x10 * 8) = 128 GPEs. The bit width of 0x20 (32 GPEs) sounds more reasonable.
+> Hmm, indeed - Intel hardware only decodes 32-bits for the GPE block. Do 
+> we have the version 1 FADT from the machine as well? If that's correct 
+> it suggests that Windows gets all of this information from there rather 
+> than using the version 2 table at all, while if it isn't perhaps we need 
+> to take the width from the 64-bit values. Sigh. What a mess.
+Agree with what you said. 
+   On this broken box the 32X/64X GPE0 block address mismatches.
+   >ACPI Error (tbfadt-0663): 32/64X address mismatch in Gpe0Block:
+0000F820/000000000001F028, using 64X
+   But from the dmesg it seems that ACPI_PM_Base address is 0xF800 and
+GPE0 block address should be 0xF820.
 
+   On this box there should exist two FADT tables. One is obtained from
+RSDT table(Maybe the correct address is defined in this FADT table) and
+another is obtained from XSDT table. 
+   On Linux the XSDT table is the default when both tables exist.
+   Maybe on windows XP the RSDT table is the default. 
+thanks.
+> 
 
-Yeah Matthew picked up the code before I did a final cleanup, at that
-point I was still just waiting for someone(anyone) to test it.  So the edges are
-rough and there's still some painter's tape stuck to the walls.  I guess I 
-can afford some time to shave the fuzzies off, but Matthew and I should 
-coordinate timewise if this all needs to be fixed before it's in a repository -- 
-my opportunities to code are sparse, and his attention is probably a highly 
-contested resource.
-
-Thanks for the review (and Sven in other reply, too) -- a few items I 
-probably would have missed cleaning.  Some stuff is the wmi core 
-and sample drivers at least as they were when I coded, and those aren't 
-from me.
-
-On Wed, 3 Dec 2008, Andrew Morton wrote:
->> +static int smread_s16(u8 hi_addr, u8 lo_addr)
->> +{
->> +	s16 ret = -1;
->> +	acpi_status status;
->> +	u8 r;
->> +
->> +	/* Keep some ACPI routines off the SMBUS */
->> +	status = oqo_lock_smbus(1);
->> +	if (ACPI_FAILURE(status))
->> +		goto skip;
->
-> Does this mean that we didn't take the lock?  If so, will running
-> oqo_lock_smbus(0) be correct?
-
-That does this (in DSL) after unpacking arguments and running a switch statement:
-
-             Store (BUF1, VFLG)
-                     Return (0x00)
-
-...VFLG being a preallocated RAM value in the ACPI VM.  That's all.  Famous last 
-words but I really don't see it failing ever, or if it does the ACPI VM's in
-deep doodoo anyways.  At any rate it will not spin.
-
-Really an ACPI doctor is needed to even explain why it's there at all -- 
-there's a real mutex on the SMBUS, and this here is not it.
-
-It seems to just be some sort of badly coded (in DSDT) advisory that keeps the 
-machine awake.  I only even bothered to call it because it seemed like safer to 
-do so than not.  We should really be the only writer, as ACPI routines merely 
-read it (and only a few of them.)  The only access to it is through the WMI 
-interface.  Can we just claim exclusivity on using that given this is an 
-omnibus driver?
-
-> This driver does quite a lot of casting of things which the compiler
-> will happily do for us.  This could be viewed as having documentation
-> benefit, but not much, and it is atypical.
-
-Yep I know, I'm cast-and-paren trigger happy.  Keeps me sane, and has saved
-my butt a few times, but can be cleaned to match style.
-
-P.S. I think it was Sven that pointed out a
-
-label:
-  return
-
-IIRC that was due to a cranky GCC warning FWIW.
-
---
-Brian
