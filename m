@@ -1,62 +1,36 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: samsung x360, acpi support
-Date: Fri, 05 Dec 2008 09:05:57 +0800
-Message-ID: <1228439157.7929.28.camel@rzhang-dt>
-References: <200812041915.39971.mheinz@cs.uni-frankfurt.de>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH 2/2 update] misc: Add dell-laptop driver
+Date: Fri, 5 Dec 2008 00:05:47 -0200
+Message-ID: <20081205020547.GA4365@khazad-dum.debian.net>
+References: <20081127163357.GA22846@srcf.ucam.org> <20081127163444.GB22846@srcf.ucam.org> <20081202115029.2b9d1153.akpm@linux-foundation.org> <20081202201645.GB31620@srcf.ucam.org> <49368329.19e7300a.0526.5a68@mx.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:39736 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753396AbYLEBHz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 4 Dec 2008 20:07:55 -0500
-In-Reply-To: <200812041915.39971.mheinz@cs.uni-frankfurt.de>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:57395 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753545AbYLECFy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Dec 2008 21:05:54 -0500
+Content-Disposition: inline
+In-Reply-To: <49368329.19e7300a.0526.5a68@mx.google.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthias Heinz <mheinz@cs.uni-frankfurt.de>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: none <alan-jenkins@tuffmail.co.uk>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Matt_Domsch@dell.com, greg@kroah.com, linux-acpi@vger.kernel.org, Richard Purdie <rpurdie@rpsys.net>, Ivo van Doorn <ivdoorn@gmail.com>
 
-On Fri, 2008-12-05 at 02:15 +0800, Matthias Heinz wrote:
-> Hi,
+(I feel weird replying to "none" :-) )
+
+On Wed, 03 Dec 2008, none wrote:
+> > +		wifi_rfkill->get_state = dell_wifi_get;
 > 
-> as you can see from the topic i got a Samsung X360 right here. It works pretty 
-> fine, thanks to the fact that its more Intel than Samsung.
-> 
-> But i got some problems.
-> 
-> 1) Backlight support: I cant control the brightness of the backlight with a 
-> 2.6.28-rc7. It worked under mysterious circumstances with a 2.6.26. 
-via the procfs/sysfs backlight I/F?
-please attach the result of
-"grep . /proc/acpi/video/*/*/*" both in 2.6.26 kernel and 2.6.28-rc7
-kernel.
+> The rfkill doc (and code) say that you also need to initialize
+> wifi_rfkill->state to the current state of the hardware.
 
-> Mysterious, because i had to use /proc/acpi/video/NVID/LCD/brightness to set 
-> it, which obviously belongs to a nvidia driver (but theres nothing from 
-> nvidia in there...)
-please attach the "lspci -vvx" output.
+I may have screwed up and ommited from the docs the fact that it is not
+strictly necessary to do so if you provide rfkill->get_state.  So that is
+not a serious problem with the patch at all.
 
-> I just found out that its possible to disable the backlight, without disabling 
-> the display. Doesn't work, too.
-> 
-> 2) Wifi LED: I dont know if this is a wifi driver issue or has to be 
-> controlled by acpi. 
-> 
-> 3) The keyboard is not sending acpi events for several switches. It sends 
-> (unknown) keycodes that have to be interpreted by the OS.
-> But there seems to be an option to change between acpi events and key events, 
-> because i can control the backlight when grub is running and in the early 
-> boot phase of the kernel. I dont know if this should be classified as 
-> problem, but because X is catching all key events handling the wlan power 
-> function is a problem of the actual user.
-is this a regression? i.e. the hotkey events are always sent to the
-keyboard, right?
-please attach the output of "grep . /sys/firmware/acpi/interrupts/*".
-
-Btw: you'd better file a bug at bugzilla.kernel.org
-and attach all the info there.
-
-thanks,
-rui
-
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
