@@ -1,64 +1,45 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH -regression fix] ACPI: Fix ACPI battery regression introduced by commit 558073
-Date: Fri, 5 Dec 2008 01:07:51 +0100
-Message-ID: <200812050107.51343.rjw@sisk.pl>
+Subject: Re: Regression in 2.6.28-rc and 2.6.27-stable - hibernate related
+Date: Fri, 5 Dec 2008 01:24:29 +0100
+Message-ID: <200812050124.29958.rjw@sisk.pl>
+References: <b637ec0b0811230817x5b445a0m665305d2b6bf6c1f@mail.gmail.com> <b637ec0b0811270717t360ce5f9j3d48e8a007010b0e@mail.gmail.com> <b637ec0b0811271354l58fc6039m941ca37fb9173d5b@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-2"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:53573 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:53601 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750931AbYLEAIf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 4 Dec 2008 19:08:35 -0500
+	id S1751428AbYLEAY5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 4 Dec 2008 19:24:57 -0500
+In-Reply-To: <b637ec0b0811271354l58fc6039m941ca37fb9173d5b@mail.gmail.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>
+To: Fabio Comolli <fabio.comolli@gmail.com>
+Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jay Fenlason <fenlason@redhat.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rui.zhang@intel.com
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
-Subject: ACPI: Fix ACPI battery regression introduced by commit 558073
+(CCing to linux-acpi at Rui's request)
 
-Commit 558073dd56707864f09d563b64e7c37c021e89d2
-"ACPI: battery: Convert discharge energy rate to current properly"
-caused the battery subsystem to report wrong values of the remaining
-time on battery power and the time until fully charged on Toshiba
-Portege R500 (and presumably on other boxes too).
-
-Fix the issue by correcting the conversion from mW to mA.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- drivers/acpi/battery.c |   17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
-
-Index: linux-2.6/drivers/acpi/battery.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/battery.c
-+++ linux-2.6/drivers/acpi/battery.c
-@@ -173,14 +173,17 @@ static int acpi_battery_get_property(str
- 		val->intval = battery->voltage_now * 1000;
- 		break;
- 	case POWER_SUPPLY_PROP_CURRENT_NOW:
--		val->intval = battery->current_now * 1000;
--		/* if power units are mW, convert to mA by
--		   dividing by current voltage (mV/1000) */
--		if (!battery->power_unit) {
--			if (battery->voltage_now) {
-+		val->intval = battery->current_now;
-+		if (battery->power_unit) {
-+			val->intval *= 1000;
-+		} else {
-+			/*
-+			 * If power units are mW, convert to mA by dividing by
-+			 * current voltage.
-+			 */
-+			if (battery->voltage_now)
- 				val->intval /= battery->voltage_now;
--				val->intval *= 1000;
--			} else
-+			else
- 				val->intval = -1;
- 		}
- 		break;
+On Thursday, 27 of November 2008, Fabio Comolli wrote:
+> Hi
+> 
+> On Thu, Nov 27, 2008 at 4:17 PM, Fabio Comolli <fabio.comolli@gmail.com> wrote:
+> > Hi
+> >
+> > On Thu, Nov 27, 2008 at 12:02 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> >> Actually, yes, Fabio, you can try to revert all of the "ACPI: EC:" commits
+> >> applied after 2.6.27.4 and retest.
+> >
+> > Will do tonight. I see that there are some other "ACPI: EC:" commits
+> > in 2.6.27.6 and 2.6.27.7.
+> >
+> > I'l just compile the ec.c file from 2.6.27.4 in 2.6.27.7 and test if
+> > the three commits introduced in 2.6.27.5 wouldn't revert cleanly,
+> >
+> > By the way, my HD passed a "smartctl -t long" test without any problems.
+> >
+> 
+> Reproduced with 2.6.27.7 with ec.c taken from 2.6.27.4 - after three
+> minutes of freeze the laptop came back to normal as nothing had
+> happened.
