@@ -1,31 +1,64 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: 2.6.28-rc7 acpi error messages
-Date: Thu, 4 Dec 2008 23:02:55 +0000
-Message-ID: <20081204230255.GA14130@srcf.ucam.org>
-References: <E92FAF79A8BBC642A36EEE3AA7F152D82A17260164@GVW1089EXB.americas.hpqcorp.net> <4911F71203A09E4D9981D27F9D8308580DD52E96@orsmsx503.amr.corp.intel.com> <20081203230332.GA26733@srcf.ucam.org> <4911F71203A09E4D9981D27F9D8308580DD52F0F@orsmsx503.amr.corp.intel.com> <20081203233557.GA27180@srcf.ucam.org> <4911F71203A09E4D9981D27F9D8308580DD53280@orsmsx503.amr.corp.intel.com> <E92FAF79A8BBC642A36EEE3AA7F152D82A172606EE@GVW1089EXB.americas.hpqcorp.net> <4911F71203A09E4D9981D27F9D8308580DD53927@orsmsx503.amr.corp.intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH -regression fix] ACPI: Fix ACPI battery regression introduced by commit 558073
+Date: Fri, 5 Dec 2008 01:07:51 +0100
+Message-ID: <200812050107.51343.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:48488 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752412AbYLDXDE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Dec 2008 18:03:04 -0500
+Received: from ogre.sisk.pl ([217.79.144.158]:53573 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750931AbYLEAIf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 4 Dec 2008 19:08:35 -0500
 Content-Disposition: inline
-In-Reply-To: <4911F71203A09E4D9981D27F9D8308580DD53927@orsmsx503.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: "Koornstra, Reinoud" <koornstra@hp.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>, "Lin, Ming M" <ming.m.lin@intel.com>, "Zhao, Yakui" <yakui.zhao@intel.com>
+To: Len Brown <lenb@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Thu, Dec 04, 2008 at 02:49:52PM -0800, Moore, Robert wrote:
-> Well, lo and behold! With a newer version of acpidump, we do get both the RSDT and XSDT and there are indeed two different FADTs.
-> 
-> Acpidump should post a version number to prevent this kind of thrash in the future.
-> 
-> The FADT within the RSDT seems much more reasonable. It is a short (rev 1) FADT with no 64-bit register addresses to cause issues. I still suspect the GPE0 block length (0x10) however.
+From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: ACPI: Fix ACPI battery regression introduced by commit 558073
 
-Huh. Right, so either Windows ignores the length or uses the length (but 
-not the address) from the X block. The plot thickens.
+Commit 558073dd56707864f09d563b64e7c37c021e89d2
+"ACPI: battery: Convert discharge energy rate to current properly"
+caused the battery subsystem to report wrong values of the remaining
+time on battery power and the time until fully charged on Toshiba
+Portege R500 (and presumably on other boxes too).
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Fix the issue by correcting the conversion from mW to mA.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/acpi/battery.c |   17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
+
+Index: linux-2.6/drivers/acpi/battery.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/battery.c
++++ linux-2.6/drivers/acpi/battery.c
+@@ -173,14 +173,17 @@ static int acpi_battery_get_property(str
+ 		val->intval = battery->voltage_now * 1000;
+ 		break;
+ 	case POWER_SUPPLY_PROP_CURRENT_NOW:
+-		val->intval = battery->current_now * 1000;
+-		/* if power units are mW, convert to mA by
+-		   dividing by current voltage (mV/1000) */
+-		if (!battery->power_unit) {
+-			if (battery->voltage_now) {
++		val->intval = battery->current_now;
++		if (battery->power_unit) {
++			val->intval *= 1000;
++		} else {
++			/*
++			 * If power units are mW, convert to mA by dividing by
++			 * current voltage.
++			 */
++			if (battery->voltage_now)
+ 				val->intval /= battery->voltage_now;
+-				val->intval *= 1000;
+-			} else
++			else
+ 				val->intval = -1;
+ 		}
+ 		break;
