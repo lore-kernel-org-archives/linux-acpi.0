@@ -1,50 +1,42 @@
-From: Matthias Heinz <mheinz@cs.uni-frankfurt.de>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 Subject: Re: samsung x360, acpi support
-Date: Sat, 6 Dec 2008 14:26:07 +0100
-Message-ID: <200812061426.08294.mheinz@cs.uni-frankfurt.de>
-References: <200812041915.39971.mheinz@cs.uni-frankfurt.de> <20081206114358.GA4821@srcf.ucam.org>
+Date: Sat, 6 Dec 2008 16:26:49 +0000
+Message-ID: <20081206162649.GA7623@srcf.ucam.org>
+References: <200812041915.39971.mheinz@cs.uni-frankfurt.de> <20081206114358.GA4821@srcf.ucam.org> <200812061426.08294.mheinz@cs.uni-frankfurt.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.rbi.informatik.uni-frankfurt.de ([141.2.1.1]:33506 "EHLO
-	hera.rbi.informatik.uni-frankfurt.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751997AbYLFN0x (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 6 Dec 2008 08:26:53 -0500
-In-Reply-To: <20081206114358.GA4821@srcf.ucam.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:51191 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751146AbYLFQ0v (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 6 Dec 2008 11:26:51 -0500
 Content-Disposition: inline
+In-Reply-To: <200812061426.08294.mheinz@cs.uni-frankfurt.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
+To: Matthias Heinz <mheinz@cs.uni-frankfurt.de>
 Cc: linux-acpi@vger.kernel.org
 
-Am Samstag, 6. Dezember 2008 schrieb Matthew Garrett:
-> Do you have the i915 module loaded? NVID is simply the vendor's name for
-> the ACPI object representing the video controller.
+On Sat, Dec 06, 2008 at 02:26:07PM +0100, Matthias Heinz wrote:
+> Am Samstag, 6. Dezember 2008 schrieb Matthew Garrett:
+> > Do you have the i915 module loaded? NVID is simply the vendor's name for
+> > the ACPI object representing the video controller.
+> 
+> Its compiled into my kernel. I can add the config of both kernels, if needed. 
+> I even compiled the 2.6.28-rc7 kernel with the config of the 2.6.26, but the 
+> backlight support didnt work. It looks like its something that changed over 
+> the time.
 
-Its compiled into my kernel. I can add the config of both kernels, if needed. 
-I even compiled the 2.6.28-rc7 kernel with the config of the 2.6.26, but the 
-backlight support didnt work. It looks like its something that changed over 
-the time.
+Mm. It could be that the opregion support is now enabled, but you've got 
+some kind of interrupt failure. Can you attach the output of 
 
+lspci -vxxx -s 00:02.0 
 
-> There's no standardised way for controlling LEDs via ACPI, so it's
-> probably a wifi driver issue.
+and
 
-I'll report it there then.
+cat /proc/dri/0/i915_gem_interrupt
 
+?
 
-> The brightness keys will be trapped by the BIOS and brightness change
-> code run in system management mode before ACPI is enabled, which only
-> happens part-way through the Linux boot process. So it's normal for the
-> behaviour to change at that point. It's also not unusual for hotkeys to
-> be sent via the ekyboard - ACPI doesn't have any specified way for
-> handling generic hotkeys other than the sleep and power buttons.
-
-Then this is totally fine and i have to find a way to intercept those key 
-events before X can grab them.
-
-
-Regards,
-Matthias
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
