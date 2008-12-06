@@ -1,38 +1,37 @@
-From: Matthew Garrett <mjg@redhat.com>
+From: Matthias Heinz <mheinz@cs.uni-frankfurt.de>
 Subject: Re: samsung x360, acpi support
-Date: Sat, 6 Dec 2008 16:42:47 +0000
-Message-ID: <20081206164247.GD7623@srcf.ucam.org>
-References: <200812041915.39971.mheinz@cs.uni-frankfurt.de> <200812061426.08294.mheinz@cs.uni-frankfurt.de> <20081206162649.GA7623@srcf.ucam.org> <200812061733.37471.mheinz@cs.uni-frankfurt.de>
+Date: Sat, 6 Dec 2008 18:28:28 +0100
+Message-ID: <200812061828.29429.mheinz@cs.uni-frankfurt.de>
+References: <200812041915.39971.mheinz@cs.uni-frankfurt.de> <200812061733.37471.mheinz@cs.uni-frankfurt.de> <20081206164247.GD7623@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:35986 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751652AbYLFQmu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 6 Dec 2008 11:42:50 -0500
+Received: from hera.rbi.informatik.uni-frankfurt.de ([141.2.1.1]:44228 "EHLO
+	hera.rbi.informatik.uni-frankfurt.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751705AbYLFR2u (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 6 Dec 2008 12:28:50 -0500
+In-Reply-To: <20081206164247.GD7623@srcf.ucam.org>
 Content-Disposition: inline
-In-Reply-To: <200812061733.37471.mheinz@cs.uni-frankfurt.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthias Heinz <mheinz@cs.uni-frankfurt.de>
+To: Matthew Garrett <mjg@redhat.com>
 Cc: linux-acpi@vger.kernel.org
 
-On Sat, Dec 06, 2008 at 05:33:36PM +0100, Matthias Heinz wrote:
+Am Samstag, 6. Dezember 2008 schrieb Matthew Garrett:
+> Ok, that indicates that your system claims opregion support, which would
+> explain the difference in behaviour since 2.6.26.
 
-> f0: 09 08 34 07 ff 00 00 00 a0 0f 07 00 20 10 b6 bd
-                                          ^^^^^^^^^^^
-Ok, that indicates that your system claims opregion support, which would 
-explain the difference in behaviour since 2.6.26.
+Which should be working, because its a GMA X4500... (if i understood 
+correctly, what opregion is)
 
-> Interrupt enable:    00000053
-> Interrupt identity:  00000000
-> Interrupt mask:      fffedfae
-> Pipe A stat:         00040000
-> Pipe B stat:         00400206
 
-And this indicates that there's a legacy backlight control event waiting 
-to be handled, but no interrupt appears to have been raised. Does 
-hitting the brightness key result in "Interrupts received" changing?
+> And this indicates that there's a legacy backlight control event waiting
+> to be handled, but no interrupt appears to have been raised. Does
+> hitting the brightness key result in "Interrupts received" changing?
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+The brightness key(s) just send a keycode:
+e.g.
+atkbd.c: Unknown key pressed (translated set 2, code 0x83 on isa0060/serio0).
+atkbd.c: Use 'setkeycodes e003 <keycode>' to make it known.
