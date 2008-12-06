@@ -1,53 +1,50 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+From: Matthias Heinz <mheinz@cs.uni-frankfurt.de>
 Subject: Re: samsung x360, acpi support
-Date: Sat, 6 Dec 2008 11:43:58 +0000
-Message-ID: <20081206114358.GA4821@srcf.ucam.org>
-References: <200812041915.39971.mheinz@cs.uni-frankfurt.de>
+Date: Sat, 6 Dec 2008 14:26:07 +0100
+Message-ID: <200812061426.08294.mheinz@cs.uni-frankfurt.de>
+References: <200812041915.39971.mheinz@cs.uni-frankfurt.de> <20081206114358.GA4821@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:56971 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751872AbYLFLoG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 6 Dec 2008 06:44:06 -0500
+Received: from hera.rbi.informatik.uni-frankfurt.de ([141.2.1.1]:33506 "EHLO
+	hera.rbi.informatik.uni-frankfurt.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751997AbYLFN0x (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 6 Dec 2008 08:26:53 -0500
+In-Reply-To: <20081206114358.GA4821@srcf.ucam.org>
 Content-Disposition: inline
-In-Reply-To: <200812041915.39971.mheinz@cs.uni-frankfurt.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthias Heinz <mheinz@cs.uni-frankfurt.de>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
 Cc: linux-acpi@vger.kernel.org
 
-On Thu, Dec 04, 2008 at 07:15:39PM +0100, Matthias Heinz wrote:
+Am Samstag, 6. Dezember 2008 schrieb Matthew Garrett:
+> Do you have the i915 module loaded? NVID is simply the vendor's name for
+> the ACPI object representing the video controller.
 
-> 1) Backlight support: I cant control the brightness of the backlight with a 
-> 2.6.28-rc7. It worked under mysterious circumstances with a 2.6.26. 
-> Mysterious, because i had to use /proc/acpi/video/NVID/LCD/brightness to set 
-> it, which obviously belongs to a nvidia driver (but theres nothing from 
-> nvidia in there...)
+Its compiled into my kernel. I can add the config of both kernels, if needed. 
+I even compiled the 2.6.28-rc7 kernel with the config of the 2.6.26, but the 
+backlight support didnt work. It looks like its something that changed over 
+the time.
 
-Do you have the i915 module loaded? NVID is simply the vendor's name for 
-the ACPI object representing the video controller.
 
-> 2) Wifi LED: I dont know if this is a wifi driver issue or has to be 
-> controlled by acpi. 
+> There's no standardised way for controlling LEDs via ACPI, so it's
+> probably a wifi driver issue.
 
-There's no standardised way for controlling LEDs via ACPI, so it's 
-probably a wifi driver issue.
+I'll report it there then.
 
-> 3) The keyboard is not sending acpi events for several switches. It sends 
-> (unknown) keycodes that have to be interpreted by the OS.
-> But there seems to be an option to change between acpi events and key events, 
-> because i can control the backlight when grub is running and in the early 
-> boot phase of the kernel. I dont know if this should be classified as 
-> problem, but because X is catching all key events handling the wlan power 
-> function is a problem of the actual user.
 
-The brightness keys will be trapped by the BIOS and brightness change 
-code run in system management mode before ACPI is enabled, which only 
-happens part-way through the Linux boot process. So it's normal for the 
-behaviour to change at that point. It's also not unusual for hotkeys to 
-be sent via the ekyboard - ACPI doesn't have any specified way for 
-handling generic hotkeys other than the sleep and power buttons.
+> The brightness keys will be trapped by the BIOS and brightness change
+> code run in system management mode before ACPI is enabled, which only
+> happens part-way through the Linux boot process. So it's normal for the
+> behaviour to change at that point. It's also not unusual for hotkeys to
+> be sent via the ekyboard - ACPI doesn't have any specified way for
+> handling generic hotkeys other than the sleep and power buttons.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Then this is totally fine and i have to find a way to intercept those key 
+events before X can grab them.
+
+
+Regards,
+Matthias
