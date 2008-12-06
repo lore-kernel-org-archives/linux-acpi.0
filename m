@@ -1,37 +1,31 @@
-From: Matthias Heinz <mheinz@cs.uni-frankfurt.de>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 Subject: Re: samsung x360, acpi support
-Date: Sat, 6 Dec 2008 18:28:28 +0100
-Message-ID: <200812061828.29429.mheinz@cs.uni-frankfurt.de>
-References: <200812041915.39971.mheinz@cs.uni-frankfurt.de> <200812061733.37471.mheinz@cs.uni-frankfurt.de> <20081206164247.GD7623@srcf.ucam.org>
+Date: Sat, 6 Dec 2008 17:32:34 +0000
+Message-ID: <20081206173234.GA8400@srcf.ucam.org>
+References: <200812041915.39971.mheinz@cs.uni-frankfurt.de> <200812061733.37471.mheinz@cs.uni-frankfurt.de> <20081206164247.GD7623@srcf.ucam.org> <200812061828.29429.mheinz@cs.uni-frankfurt.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.rbi.informatik.uni-frankfurt.de ([141.2.1.1]:44228 "EHLO
-	hera.rbi.informatik.uni-frankfurt.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751705AbYLFR2u (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 6 Dec 2008 12:28:50 -0500
-In-Reply-To: <20081206164247.GD7623@srcf.ucam.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:45095 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752086AbYLFRcg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 6 Dec 2008 12:32:36 -0500
 Content-Disposition: inline
+In-Reply-To: <200812061828.29429.mheinz@cs.uni-frankfurt.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg@redhat.com>
+To: Matthias Heinz <mheinz@cs.uni-frankfurt.de>
 Cc: linux-acpi@vger.kernel.org
 
-Am Samstag, 6. Dezember 2008 schrieb Matthew Garrett:
-> Ok, that indicates that your system claims opregion support, which would
-> explain the difference in behaviour since 2.6.26.
+On Sat, Dec 06, 2008 at 06:28:28PM +0100, Matthias Heinz wrote:
 
-Which should be working, because its a GMA X4500... (if i understood 
-correctly, what opregion is)
+> The brightness key(s) just send a keycode:
+> e.g.
+> atkbd.c: Unknown key pressed (translated set 2, code 0x83 on isa0060/serio0).
+> atkbd.c: Use 'setkeycodes e003 <keycode>' to make it known.
 
+Oh, fail. Ok. Does writing a value into the /sys/class/backlight 
+interface result in an interrupt in the i915_gem_interrupts file?
 
-> And this indicates that there's a legacy backlight control event waiting
-> to be handled, but no interrupt appears to have been raised. Does
-> hitting the brightness key result in "Interrupts received" changing?
-
-The brightness key(s) just send a keycode:
-e.g.
-atkbd.c: Unknown key pressed (translated set 2, code 0x83 on isa0060/serio0).
-atkbd.c: Use 'setkeycodes e003 <keycode>' to make it known.
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
