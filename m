@@ -1,140 +1,63 @@
-From: Witold Szczeponik <Witold.Szczeponik@gmx.net>
-Subject: Re: [PATCH] PNPACPI: Enable Power Management
-Date: Sun, 07 Dec 2008 13:41:43 +0100
-Message-ID: <493BC487.1050103@gmx.net>
-References: <4929C66F.1040206@gmx.net> <200812011547.34660.bjorn.helgaas@hp.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Unexcepted shutdown in 2.6.28-rc5
+Date: Sun, 7 Dec 2008 22:17:03 +0100
+Message-ID: <200812072217.04150.rjw@sisk.pl>
+References: <4925EF01.2070405@gmail.com> <1227229754.15014.280.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:41069 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753772AbYLGMlu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 7 Dec 2008 07:41:50 -0500
-In-Reply-To: <200812011547.34660.bjorn.helgaas@hp.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:34693 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751202AbYLGVR6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 7 Dec 2008 16:17:58 -0500
+In-Reply-To: <1227229754.15014.280.camel@rzhang-dt>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <abelay@mit.edu>, rjw@sisk.pl
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Maxime Poncet <maxime.poncet@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Zhao Yakui <yakui.zhao@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <lenb@kernel.org>
 
-Bjorn Helgaas wrote:
-
-> On Sunday 23 November 2008 02:09:03 pm Witold Szczeponik wrote:
->> Subject: Enable PNPACI Power Management
+On Friday, 21 of November 2008, Zhang Rui wrote:
+> On Fri, 2008-11-21 at 07:13 +0800, Maxime Poncet wrote:
+> > Hi,
+> > 
+> > I have the same problem in 2.6.28-rc5 and 2.6.27.x :
+> > my laptop shutdown automatically while working on it.
+> > 
+> > That problem doesn't appear in 2.6.28-rc3.
+> > 
+> there are not many ACPI changes between 2.6.28-rc3 and -rc5.
+> it would be great if you can use git-bisect to find out
+> which commit introduces this regression.
 > 
-> Hi Witold,
-
-Hi Bjorn,
-
+> thanks,
+> rui
 > 
-> Thanks for your patch.  I'm glad somebody is paying attention to
-> PNP and power.  I CC'd Adam and Rafael because they care about this
-> area, too, but might not read everything on linux-acpi.
+> > This terminal output show well the problem
+> > $uname -a
+> > 2.6.28-rc5
+> > $while true;
+> > do cat /proc/acpi/thermal_zone/THRM/temperature;
+> > sleep 1;
+> > done
+> > 
+> > ...
+> > temperature:             51 C
+> > temperature:             51 C
+> > temperature:             144 C
+> > 
+> > And then it shutdowns because critical temperature was reached
+> > 
+> > Another thing that might be important : the output of dmesg
+> > Every 5 seconds this message appears (not in 2.6.28-rc3):
+> > 
+> > ACPI: Transitioning device [FAN] to D3
+> > ACPI: Unable to turn cooling device [ffff81007fb656d0] 'off'
+> > 
+> > Hope it will help you.
 
-thanks, since this was my first patch submission, I wasn't sure
-who to send the patch to...
+I wonder why _may_ be the reason of this.  Alex?
 
-> 
-
-[patch description removed...]
-
-> 
-> Do you know of anything that specifies the order of the _CRS/_PS0
-> and the _PS3/_DIS evaluation?  I don't know much about power
-> management, and I couldn't find anything obvious in the spec.
-> It seems plausible that we should run _CRS before turning on
-> the power, but I really don't know.
-> 
-
-There's some info the ACPI Specification that says a device needs
-to be put to D3 before _DIS is called (section 6.2.2) but there
-is no clear statement as to when to put a device to D0... :-(
-
-I think it should be _SRS/_PS0 and _PS3/_DIS.
-
-[patch description removed...]
-
-> 
-> Is pnpacpi_set_resources() the only place that needs this change?
-> For active devices, we normally don't call pnpacpi_set_resources()
-> at all.  So I suppose on these ThinkPads, we exercise this path
-> because the serial ports are initially disabled?
-> 
-
-I'm not sure.  I would guess that we need to put any device that is
-enabled (either via _SRS or by default) into D0.  My patch does that
-for the _SRS case but the generic ACPI code does not.  On my 600E,
-the serial port has power when the machine is booted but has no power
-once GRUB kicks in.  It remains in this state until the 8250-pnp module
-gets loaded, where my patch enables it.
-
-The ACPI Specification says for _SRS: the device is enabled after the 
-method has returned.  There is no statement as to when to call _PS0...
-
->> No regressions were observed on hardware that does not require
->> this patch.
->>
->> The patch is applied against 2.6.27.7 (vanilla).
->>
->>
->> Signed-off-by: Witold Szczeponik <Witold.Szczeponik@gmx.net>
->>
->>
->> Index: linux/drivers/pnp/pnpacpi/core.c
->> ===================================================================
->> --- linux.orig/drivers/pnp/pnpacpi/core.c
->> +++ linux/drivers/pnp/pnpacpi/core.c
->> @@ -98,18 +98,24 @@ static int pnpacpi_set_resources(struct
->>   	status = acpi_set_current_resources(handle, &buffer);
->>   	if (ACPI_FAILURE(status))
->>   		ret = -EINVAL;
->> +	else if (acpi_bus_power_manageable(handle))
->> +		ret = acpi_bus_set_power(handle, ACPI_STATE_D0);
-> 
-> I don't really like testing acpi_bus_power_manageable() first.
-> I think we should just call acpi_bus_set_power() and let *it*
-> bail out if the device doesn't support it.
-
-Fair enough. :-) Will remove the test.
-
-> 
->>   	kfree(buffer.pointer);
->>   	return ret;
->>   }
->>
->>   static int pnpacpi_disable_resources(struct pnp_dev *dev)
->>   {
->> +	acpi_handle handle = dev->data;
->> +	int ret = 0;
->>   	acpi_status status;
->>
->> -	/* acpi_unregister_gsi(pnp_irq(dev, 0)); */
-> 
-> Can you leave the "unregister_gsi" comment there, since it's not
-> related to your patch?  It's a reminder that we need to think about
-> how to handle interrupts when enabling/disabling devices.
-
-I'd rather remove the comment as it is misleading, IMHO.  This call
-should be made by a driver.  After all, the PNPACPI core does not
-register any IRQs, either.  Otherwise, we need to think about
-"pnp_irq(dev, 1)", too.  Either way, with my patch there should be
-no IRQ handling possible.
-
-> 
->> -	status = acpi_evaluate_object((acpi_handle) dev->data,
->> -				      "_DIS", NULL, NULL);
->> -	return ACPI_FAILURE(status) ? -ENODEV : 0;
->> +	if (acpi_bus_power_manageable(handle))
->> +		ret = acpi_bus_set_power(handle, ACPI_STATE_D3);
->> +	status = acpi_evaluate_object(handle, "_DIS", NULL, NULL);
->> +	if (ACPI_FAILURE(status))
->> +		ret = -ENODEV;
->> +	return ret;
->>   }
-
-Will remove the test, too.
-
->>
->>   #ifdef CONFIG_ACPI_SLEEP
-> 
-
+Rafael
