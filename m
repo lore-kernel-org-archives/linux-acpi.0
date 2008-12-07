@@ -1,245 +1,171 @@
-From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Subject: 2.6.28-rc8-git5: Reported regressions from 2.6.27
-Date: Sun,  7 Dec 2008 21:27:19 +0100 (CET)
-Message-ID: <6VnlupFpCsN.A.2rE.MsEPJB@chimera>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: x86: Change static allocation of trampoline area
+Date: Mon, 8 Dec 2008 00:50:22 +0100
+Message-ID: <200812080050.23275.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:35358 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750931AbYLGXux (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 7 Dec 2008 18:50:53 -0500
 Content-Disposition: inline
-Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Adrian Bunk <bunk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Natalie Protasevich <protasnb-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Network Development <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PM List <linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Linux SCSI List <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-This message contains a list of some regressions from 2.6.27, for which=
- there
-are no fixes in the mainline I know of.  If any of them have been fixed=
- already,
-please let me know.
+From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: x86: Change static allocation of trampoline area
+Impact: Improvement
 
-If you know of any other unresolved regressions from 2.6.27, please let=
- me know
-either and I'll add them to the list.  Also, please let me know if any =
-of the
-entries below are invalid.
+While debugging a suspend-to-RAM related issue it occured to me that
+if the trampoline code had grown past 4 KB, we would have been
+allocating too little memory for it, since the 4 KB size of the
+trampoline is hardcoded into arch/x86/kernel/e820.c .  Change that
+by making the kernel compute the trampoline size and allocate as much
+memory as necessary.
 
-Each entry from the list will be sent additionally in an automatic repl=
-y to
-this message with CCs to the people involved in reporting and handling =
-the
-issue.
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ arch/x86/include/asm/trampoline.h |    7 +++++++
+ arch/x86/kernel/e820.c            |   16 ----------------
+ arch/x86/kernel/head32.c          |    3 +++
+ arch/x86/kernel/head64.c          |    3 +++
+ arch/x86/kernel/trampoline.c      |   19 +++++++++++++++++--
+ 5 files changed, 30 insertions(+), 18 deletions(-)
 
-
-Listed regressions statistics:
-
-  Date          Total  Pending  Unresolved
-  ----------------------------------------
-  2008-12-07      106       20          17
-  2008-12-04      106       29          21
-  2008-11-22       93       25          15
-  2008-11-16       89       32          18
-  2008-11-09       73       40          27
-  2008-11-02       55       41          29
-  2008-10-25       26       25          20
-
-
-Unresolved regressions
-----------------------
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D12178
-Subject		: Xorg crash at first start
-Submitter	: C=C3=A9dric Godin <cedric-x1Cn44Nr1HaZIoH1IeqzKA@public.gmane.org>
-Date		: 2008-12-04 14:26 (4 days old)
-=46irst-Bad-Commit: http://git.kernel.org/?p=3Dlinux/kernel/git/torvald=
-s/linux-2.6.git;a=3Dcommit;h=3D52440211dcdc52c0b757f8b34d122e11b12cdd50
-References	: http://marc.info/?l=3Dlinux-kernel&m=3D122840082828098&w=3D=
-4
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D12161
-Subject		: [i915 drm] irq 16: nobody cared with latest git kernels
-Submitter	: fredi ml <mailinglists.fredi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Date		: 2008-12-02 13:26 (6 days old)
-References	: http://marc.info/?l=3Dlinux-kernel&m=3D122822444615724&w=3D=
-4
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D12160
-Subject		: networking oops after resume from s2ram (2.6.28-rc6)
-Submitter	: Marcin Slusarz <marcin.slusarz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Date		: 2008-11-28 21:15 (10 days old)
-References	: http://marc.info/?l=3Dlinux-kernel&m=3D122790701615723&w=3D=
-4
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D12159
-Subject		: 2.6.28-rc6-git1 -- No sound produced from Intel HDA ALSA dri=
-ver
-Submitter	: Miles Lane <miles.lane-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Date		: 2008-11-27 20:33 (11 days old)
-References	: http://marc.info/?l=3Dlinux-kernel&m=3D122781805620212&w=3D=
-4
-Handled-By	: Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D12158
-Subject		: commit b1ee26b freezes system on switching from X to text co=
-nsole
-Submitter	: Gaudenz Steinlin <gaudenz-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Date		: 2008-11-25 19:44 (13 days old)
-=46irst-Bad-Commit: http://git.kernel.org/?p=3Dlinux/kernel/git/torvald=
-s/linux-2.6.git;a=3Dcommit;h=3Db1ee26bab14886350ba12a5c10cbc0696ac679bf
-References	: http://marc.info/?l=3Dlinux-kernel&m=3D122764344231140&w=3D=
-4
-Handled-By	: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D12156
-Subject		: v2.6.28-rc2: x86_32 relocation regression?
-Submitter	: Vegard Nossum <vegard.nossum-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Date		: 2008-11-24 21:19 (14 days old)
-References	: http://marc.info/?l=3Dlinux-kernel&m=3D122756158220966&w=3D=
-4
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D12155
-Subject		: Regression in 2.6.28-rc and 2.6.27-stable - hibernate relate=
-d
-Submitter	: Fabio Comolli <fabio.comolli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Date		: 2008-11-23 16:17 (15 days old)
-References	: http://marc.info/?l=3Dlinux-kernel&m=3D122745709926361&w=3D=
-4
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D12152
-Subject		: Huge wakeups number from i1915
-Submitter	: Yves-Alexis Perez <corsac-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Date		: 2008-12-02 16:48 (6 days old)
-References	: http://marc.info/?l=3Dlinux-acpi&m=3D122823656702994&w=3D4
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D12100
-Subject		: resume (S2R) broken by Intel microcode module, on A110L
-Submitter	: Andreas Mohr <andi-5+Cda9B46AM@public.gmane.org>
-Date		: 2008-11-25 08:48 (13 days old)
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D12061
-Subject		: snd_hda_intel: power_save: sound cracks on powerdown
-Submitter	: Jens Weibler <bugzilla-kernel-6hJTtV8wudIr9FUcG+3rRQ@public.gmane.org>
-Date		: 2008-11-18 12:07 (20 days old)
-Handled-By	: Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D12034
-Subject		: snd-hda-intel on Realtek ALC268 chip shows only Master volum=
-e (for playback)
-Submitter	: Sergey <azure-IGUVrPOATOfsG83rWm+8vg@public.gmane.org>
-Date		: 2008-11-15 04:20 (23 days old)
-Handled-By	: Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D12028
-Subject		: i915 DRM is broken in 2.6.28-rc4
-Submitter	: Adam Tkac <vonsch-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Date		: 2008-11-14 01:50 (24 days old)
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11958
-Subject		: [2.6.27.x =3D&gt; 2.6.28-rc3] Xorg crash with xf86MapVidMem =
-error
-Submitter	: Tomasz Chmielewski <tch-Nem3ZqsbT/g@public.gmane.org>
-Date		: 2008-11-05 05:37 (33 days old)
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11947
-Subject		: 2.6.28-rc VC switching with Intel graphics broken
-Submitter	: Romano Giannetti <romano.giannetti-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Date		: 2008-11-03 12:10 (35 days old)
-Handled-By	: Jesse Barnes <jbarnes-Y1mF5jBUw70BENJcbMCuUQ@public.gmane.org>
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11906
-Subject		: 2.6.28-rc2 seems to fail at powering down the monitor when i=
-t should
-Submitter	: Gene Heskett <gene.heskett-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Date		: 2008-10-30 6:39 (39 days old)
-References	: http://marc.info/?l=3Dlinux-kernel&m=3D122534879721424&w=3D=
-4
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11858
-Subject		: Timeout regression introduced by 242f9dcb8ba6f68fcd217a119a7=
-648a4f69290e9
-Submitter	: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Date		: 2008-10-26 9:46 (43 days old)
-=46irst-Bad-Commit: http://git.kernel.org/?p=3Dlinux/kernel/git/torvald=
-s/linux-2.6.git;a=3Dcommit;h=3D242f9dcb8ba6f68fcd217a119a7648a4f69290e9
-References	: http://marc.info/?l=3Dlinux-kernel&m=3D122501447326698&w=3D=
-4
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11849
-Subject		: default IRQ affinity change in v2.6.27 (breaking several SMP=
- PPC based systems)
-Submitter	: Kumar Gala <galak-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
-Date		: 2008-10-24 12:45 (45 days old)
-References	: http://marc.info/?l=3Dlinux-kernel&m=3D122485245924125&w=3D=
-4
-
-
-Regressions with patches
-------------------------
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D12177
-Subject		: [memcg BUG ?] failed to boot on IA64 with CONFIG_DISCONTIGME=
-M=3Dy
-Submitter	: Li Zefan <lizf-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org>
-Date		: 2008-12-05 3:09 (3 days old)
-References	: http://marc.info/?l=3Dlinux-kernel&m=3D122844668532752&w=3D=
-4
-Handled-By	: KAMEZAWA Hiroyuki <kamezawa.hiroyu-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-Patch		: http://marc.info/?l=3Dlinux-kernel&m=3D122844757701505&w=3D4
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D12047
-Subject		: ACPI toshiba: only register rfkill if bt is enabled
-Submitter	: Andrey Borzenkov <arvidjaar-JGs/UdohzUI@public.gmane.org>
-Date		: 2008-10-28 19:10 (41 days old)
-References	: http://marc.info/?l=3Dlinux-kernel&m=3D122522113619025&w=3D=
-2
-Handled-By	: Frederik Deweerdt <frederik.deweerdt-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Patch		: http://marc.info/?l=3Dlinux-kernel&m=3D122526843117478&w=3D2
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11898
-Subject		: mke2fs hang on AIC79 device.
-Submitter	: alexs <alex.shi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Date		: 2008-10-30 01:17 (39 days old)
-=46irst-Bad-Commit: http://git.kernel.org/?p=3Dlinux/kernel/git/torvald=
-s/linux-2.6.git;a=3Dcommit;h=3Df0c0a376d0fcd4c5579ecf5e95f88387cba85211
-Handled-By	: James Bottomley <James.Bottomley-d9PhHud1JfjCXq6kfMZ53/egYHeGw8Jk@public.gmane.org>
-		  Mike Christie <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>
-Patch		: http://bugzilla.kernel.org/show_bug.cgi?id=3D11898#c28
-		  http://bugzilla.kernel.org/show_bug.cgi?id=3D11898#c36
-
-
-=46or details, please visit the bug entries and follow the links given =
-in
-references.
-
-As you can see, there is a Bugzilla entry for each of the listed regres=
-sions.
-There also is a Bugzilla entry used for tracking the regressions from 2=
-=2E6.27,
-unresolved as well as resolved, at:
-
-http://bugzilla.kernel.org/show_bug.cgi?id=3D11808
-
-Please let me know if there are any Bugzilla entries that should be add=
-ed to
-the list in there.
-
-Thanks,
-Rafael
+Index: linux-2.6/arch/x86/include/asm/trampoline.h
+===================================================================
+--- linux-2.6.orig/arch/x86/include/asm/trampoline.h
++++ linux-2.6/arch/x86/include/asm/trampoline.h
+@@ -3,6 +3,7 @@
+ 
+ #ifndef __ASSEMBLY__
+ 
++#ifdef CONFIG_X86_TRAMPOLINE
+ /*
+  * Trampoline 80x86 program as an array.
+  */
+@@ -13,8 +14,14 @@ extern unsigned char *trampoline_base;
+ extern unsigned long init_rsp;
+ extern unsigned long initial_code;
+ 
++#define TRAMPOLINE_SIZE roundup(trampoline_end - trampoline_data, PAGE_SIZE)
+ #define TRAMPOLINE_BASE 0x6000
++
+ extern unsigned long setup_trampoline(void);
++extern void __init reserve_trampoline_memory(void);
++#else
++static inline void reserve_trampoline_memory(void) {};
++#endif /* CONFIG_X86_TRAMPOLINE */
+ 
+ #endif /* __ASSEMBLY__ */
+ 
+Index: linux-2.6/arch/x86/kernel/e820.c
+===================================================================
+--- linux-2.6.orig/arch/x86/kernel/e820.c
++++ linux-2.6/arch/x86/kernel/e820.c
+@@ -698,22 +698,6 @@ struct early_res {
+ };
+ static struct early_res early_res[MAX_EARLY_RES] __initdata = {
+ 	{ 0, PAGE_SIZE, "BIOS data page" },	/* BIOS data page */
+-#if defined(CONFIG_X86_64) && defined(CONFIG_X86_TRAMPOLINE)
+-	{ TRAMPOLINE_BASE, TRAMPOLINE_BASE + 2 * PAGE_SIZE, "TRAMPOLINE" },
+-#endif
+-#if defined(CONFIG_X86_32) && defined(CONFIG_SMP)
+-	/*
+-	 * But first pinch a few for the stack/trampoline stuff
+-	 * FIXME: Don't need the extra page at 4K, but need to fix
+-	 * trampoline before removing it. (see the GDT stuff)
+-	 */
+-	{ PAGE_SIZE, PAGE_SIZE + PAGE_SIZE, "EX TRAMPOLINE" },
+-	/*
+-	 * Has to be in very low memory so we can execute
+-	 * real-mode AP code.
+-	 */
+-	{ TRAMPOLINE_BASE, TRAMPOLINE_BASE + PAGE_SIZE, "TRAMPOLINE" },
+-#endif
+ 	{}
+ };
+ 
+Index: linux-2.6/arch/x86/kernel/trampoline.c
+===================================================================
+--- linux-2.6.orig/arch/x86/kernel/trampoline.c
++++ linux-2.6/arch/x86/kernel/trampoline.c
+@@ -1,10 +1,26 @@
+ #include <linux/io.h>
+ 
+ #include <asm/trampoline.h>
++#include <asm/e820.h>
+ 
+ /* ready for x86_64 and x86 */
+ unsigned char *trampoline_base = __va(TRAMPOLINE_BASE);
+ 
++void __init reserve_trampoline_memory(void)
++{
++#ifdef CONFIG_X86_32
++	/*
++	 * But first pinch a few for the stack/trampoline stuff
++	 * FIXME: Don't need the extra page at 4K, but need to fix
++	 * trampoline before removing it. (see the GDT stuff)
++	 */
++	reserve_early(PAGE_SIZE, PAGE_SIZE + PAGE_SIZE, "EX TRAMPOLINE");
++#endif
++	/* Has to be in very low memory so we can execute real-mode AP code. */
++	reserve_early(TRAMPOLINE_BASE, TRAMPOLINE_BASE + TRAMPOLINE_SIZE,
++			"TRAMPOLINE");
++}
++
+ /*
+  * Currently trivial. Write the real->protected mode
+  * bootstrap into the page concerned. The caller
+@@ -12,7 +28,6 @@ unsigned char *trampoline_base = __va(TR
+  */
+ unsigned long setup_trampoline(void)
+ {
+-	memcpy(trampoline_base, trampoline_data,
+-	       trampoline_end - trampoline_data);
++	memcpy(trampoline_base, trampoline_data, TRAMPOLINE_SIZE);
+ 	return virt_to_phys(trampoline_base);
+ }
+Index: linux-2.6/arch/x86/kernel/head32.c
+===================================================================
+--- linux-2.6.orig/arch/x86/kernel/head32.c
++++ linux-2.6/arch/x86/kernel/head32.c
+@@ -12,9 +12,12 @@
+ #include <asm/sections.h>
+ #include <asm/e820.h>
+ #include <asm/bios_ebda.h>
++#include <asm/trampoline.h>
+ 
+ void __init i386_start_kernel(void)
+ {
++	reserve_trampoline_memory();
++
+ 	reserve_early(__pa_symbol(&_text), __pa_symbol(&_end), "TEXT DATA BSS");
+ 
+ #ifdef CONFIG_BLK_DEV_INITRD
+Index: linux-2.6/arch/x86/kernel/head64.c
+===================================================================
+--- linux-2.6.orig/arch/x86/kernel/head64.c
++++ linux-2.6/arch/x86/kernel/head64.c
+@@ -24,6 +24,7 @@
+ #include <asm/kdebug.h>
+ #include <asm/e820.h>
+ #include <asm/bios_ebda.h>
++#include <asm/trampoline.h>
+ 
+ /* boot cpu pda */
+ static struct x8664_pda _boot_cpu_pda __read_mostly;
+@@ -120,6 +121,8 @@ void __init x86_64_start_reservations(ch
+ {
+ 	copy_bootdata(__va(real_mode_data));
+ 
++	reserve_trampoline_memory();
++
+ 	reserve_early(__pa_symbol(&_text), __pa_symbol(&_end), "TEXT DATA BSS");
+ 
+ #ifdef CONFIG_BLK_DEV_INITRD
