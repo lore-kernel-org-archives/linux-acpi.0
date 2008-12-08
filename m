@@ -1,34 +1,117 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] acpi: move thermal trip handling to generic thermal layer
-Date: Mon, 8 Dec 2008 12:59:04 +0000
-Message-ID: <20081208125904.GA31976@srcf.ucam.org>
-References: <20081127174813.GA24258@srcf.ucam.org> <20081127174956.GB24258@srcf.ucam.org> <20081203175532.GA20770@srcf.ucam.org> <1228719540.7929.141.camel@rzhang-dt>
+From: Witold Szczeponik <Witold.Szczeponik@gmx.net>
+Subject: Re: [PATCH] PNPACPI: Enable Power Management
+Date: Mon, 08 Dec 2008 21:40:14 +0100
+Message-ID: <493D862E.6010704@gmx.net>
+References: <4929C66F.1040206@gmx.net> <200812011547.34660.bjorn.helgaas@hp.com> <493BC487.1050103@gmx.net> <200812072129.29954.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:60398 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751703AbYLHM7S (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Dec 2008 07:59:18 -0500
-Content-Disposition: inline
-In-Reply-To: <1228719540.7929.141.camel@rzhang-dt>
+Received: from mail.gmx.net ([213.165.64.20]:40379 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751993AbYLHUkf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 8 Dec 2008 15:40:35 -0500
+In-Reply-To: <200812072129.29954.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Thomas, Sujith" <sujith.thomas@intel.com>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <abelay@mit.edu>, rjw@sisk.pl
 
-On Mon, Dec 08, 2008 at 02:59:00PM +0800, Zhang Rui wrote:
-> On Thu, 2008-12-04 at 01:55 +0800, Matthew Garrett wrote:
-> > The ACPI code currently carries its own thermal trip handling, meaning that
-> > any other thermal implementation will need to reimplement it. Move the code
-> > to the generic thermal layer.
-> > 
-> Are these ACPI stuffs generic enough to be ported to the generic thermal
-> driver?
-> e.g. the tc1, tc2, tsp, they are mentioned in the ACPI spec, 
-> so my question is if the thermal zones than ACPI still have these
-> concepts?
+Bjorn Helgaas wrote:
 
-They're needed if you want to implement any sort of sensible 
-implementation of passive cooling. They might not be expressed in quite 
-the same way, but the basic concept is identical.
+[old stuff removed]
+
+>> I think it should be _SRS/_PS0 and _PS3/_DIS.
+> 
+> Thanks for the pointer.  That makes sense, and your proposed order
+> makes the enable/disable paths symmetric, so I think you're right.
+> Can you put that spec pointer in your changelog?
+> 
+
+Will do.  I'll send out a new version of the patch in a separate note.
+
+>>> Is pnpacpi_set_resources() the only place that needs this change?
+>>> For active devices, we normally don't call pnpacpi_set_resources()
+>>> at all.  So I suppose on these ThinkPads, we exercise this path
+>>> because the serial ports are initially disabled?
+>> I'm not sure.  I would guess that we need to put any device that is
+>> enabled (either via _SRS or by default) into D0.  My patch does that
+>> for the _SRS case but the generic ACPI code does not.  On my 600E,
+>> the serial port has power when the machine is booted but has no power
+>> once GRUB kicks in.  It remains in this state until the 8250-pnp module
+>> gets loaded, where my patch enables it.
+> 
+> Interesting.  I'd be surprised if GRUB does anything with ACPI to
+> disable the port.  I don't know how you determine when the port has
+> power.  Maybe the power-up default state is powered, and the BIOS
+> turns it off before launching GRUB?
+
+Most likely you are correct assuming that the BIOS turns the devices
+off before starting GRUB.  Need to investigate...
+
+> 
+> I wonder if _STA is influenced by the power state.  I would think
+> if _STA said a device was "enabled and decoding resources," that
+> would only make sense if the device were already in D0.  But let's
+> say we start with an active device, then run _PS3 and _DIS.  What
+> would _STA say in the interval between _PS3 and _DIS?
+
+I did not check this, but a quick look at the 600E's DSDT revealed
+that powering up a device and its _STA status are not correlated,
+at least on this machine.
+
+> 
+> This is just idle curiousity on my part, I guess.  I just don't
+> know much about ACPI power states, and I'm afraid of getting in
+> trouble if we change too much.  The _SRS path is a little less
+> scary because it won't be exercised much (most devices are already
+> enabled, and we don't change their settings).
+
+ACK.
+
+> 
+
+[parts of the patch removed]
+
+>>>> -	/* acpi_unregister_gsi(pnp_irq(dev, 0)); */
+>>> Can you leave the "unregister_gsi" comment there, since it's not
+>>> related to your patch?  It's a reminder that we need to think about
+>>> how to handle interrupts when enabling/disabling devices.
+>> I'd rather remove the comment as it is misleading, IMHO.  This call
+>> should be made by a driver.  After all, the PNPACPI core does not
+>> register any IRQs, either.  Otherwise, we need to think about
+>> "pnp_irq(dev, 1)", too.  Either way, with my patch there should be
+>> no IRQ handling possible.
+> 
+> The comment is logically unrelated to the rest of your patch, so I
+> would at least split it into a separate patch just on that grounds.
+
+ACK.  But will not tackle this any time soon.
+
+> 
+> The PNP core *does* register IRQs: we call acpi_register_gsi()
+> in pnpacpi_parse_allocated_irqresource(), but there's no
+> corresponding unregister.  I think this asymmetry is a bug,
+> but I haven't looked at how to handle it yet.  PNP currently
+> does the registration "eagerly," when the device is discovered.
+> I think we should instead do the registration/unregistration
+> "lazily," when a driver claims the device, as PCI does.
+
+I find this asymmetry weird, too.  Maybe we could register when
+the device is enabled and unregister when it is disabled?
+
+> 
+> I haven't changed this yet because there are some issues related to
+> pcibios_penalize_isa_irq() -- we don't know the IRQ to penalize until
+> we register the GSI.
+> 
+> Anyway, that's a long-winded explanation of why that stupid-looking
+> comment still has some value to me :-)
+
+Now I understand.  I'm giving in! :-D
+
+> 
+> Bjorn
+> 
+
+--- Witold
