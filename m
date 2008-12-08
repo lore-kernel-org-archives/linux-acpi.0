@@ -1,171 +1,85 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: x86: Change static allocation of trampoline area
-Date: Mon, 8 Dec 2008 00:50:22 +0100
-Message-ID: <200812080050.23275.rjw@sisk.pl>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: Unexcepted shutdown in 2.6.28-rc5
+Date: Mon, 08 Dec 2008 09:16:36 +0800
+Message-ID: <1228698996.4181.24.camel@yakui_zhao.sh.intel.com>
+References: <4925EF01.2070405@gmail.com>
+	 <1227229754.15014.280.camel@rzhang-dt>  <200812072217.04150.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:35358 "EHLO ogre.sisk.pl"
+Received: from mga11.intel.com ([192.55.52.93]:39257 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750931AbYLGXux (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 7 Dec 2008 18:50:53 -0500
-Content-Disposition: inline
+	id S1753142AbYLHBI3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 7 Dec 2008 20:08:29 -0500
+In-Reply-To: <200812072217.04150.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, maxime Poncet <maxime.poncet@gmail.com>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <lenb@kernel.org>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
-Subject: x86: Change static allocation of trampoline area
-Impact: Improvement
+On Mon, 2008-12-08 at 05:17 +0800, Rafael J. Wysocki wrote:
+> On Friday, 21 of November 2008, Zhang Rui wrote:
+>From the test it seems that the shutdown is caused by that the
+temperature is above the critical threshold.
+   >CRT threshold 100
+   >the temperature 144C
 
-While debugging a suspend-to-RAM related issue it occured to me that
-if the trampoline code had grown past 4 KB, we would have been
-allocating too little memory for it, since the 4 KB size of the
-trampoline is hardcoded into arch/x86/kernel/e820.c .  Change that
-by making the kernel compute the trampoline size and allocate as much
-memory as necessary.
+But the problem is why the temperature is above the critical threshold.
+>From the acpidump the temperature is obtained by evaluating the _TMP
+object. 
+ Method (_TMP, 0, Serialized)
+            {
+                If (DTSE)
+                {
+                    If (LGreaterEqual (DTS1, DTS2))
+                    {
+                        Return (Add (0x0AAC, Multiply (DTS1, 0x0A)))
+                    }
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- arch/x86/include/asm/trampoline.h |    7 +++++++
- arch/x86/kernel/e820.c            |   16 ----------------
- arch/x86/kernel/head32.c          |    3 +++
- arch/x86/kernel/head64.c          |    3 +++
- arch/x86/kernel/trampoline.c      |   19 +++++++++++++++++--
- 5 files changed, 30 insertions(+), 18 deletions(-)
+                    Return (Add (0x0AAC, Multiply (DTS2, 0x0A)))
+                }
 
-Index: linux-2.6/arch/x86/include/asm/trampoline.h
-===================================================================
---- linux-2.6.orig/arch/x86/include/asm/trampoline.h
-+++ linux-2.6/arch/x86/include/asm/trampoline.h
-@@ -3,6 +3,7 @@
- 
- #ifndef __ASSEMBLY__
- 
-+#ifdef CONFIG_X86_TRAMPOLINE
- /*
-  * Trampoline 80x86 program as an array.
-  */
-@@ -13,8 +14,14 @@ extern unsigned char *trampoline_base;
- extern unsigned long init_rsp;
- extern unsigned long initial_code;
- 
-+#define TRAMPOLINE_SIZE roundup(trampoline_end - trampoline_data, PAGE_SIZE)
- #define TRAMPOLINE_BASE 0x6000
-+
- extern unsigned long setup_trampoline(void);
-+extern void __init reserve_trampoline_memory(void);
-+#else
-+static inline void reserve_trampoline_memory(void) {};
-+#endif /* CONFIG_X86_TRAMPOLINE */
- 
- #endif /* __ASSEMBLY__ */
- 
-Index: linux-2.6/arch/x86/kernel/e820.c
-===================================================================
---- linux-2.6.orig/arch/x86/kernel/e820.c
-+++ linux-2.6/arch/x86/kernel/e820.c
-@@ -698,22 +698,6 @@ struct early_res {
- };
- static struct early_res early_res[MAX_EARLY_RES] __initdata = {
- 	{ 0, PAGE_SIZE, "BIOS data page" },	/* BIOS data page */
--#if defined(CONFIG_X86_64) && defined(CONFIG_X86_TRAMPOLINE)
--	{ TRAMPOLINE_BASE, TRAMPOLINE_BASE + 2 * PAGE_SIZE, "TRAMPOLINE" },
--#endif
--#if defined(CONFIG_X86_32) && defined(CONFIG_SMP)
--	/*
--	 * But first pinch a few for the stack/trampoline stuff
--	 * FIXME: Don't need the extra page at 4K, but need to fix
--	 * trampoline before removing it. (see the GDT stuff)
--	 */
--	{ PAGE_SIZE, PAGE_SIZE + PAGE_SIZE, "EX TRAMPOLINE" },
--	/*
--	 * Has to be in very low memory so we can execute
--	 * real-mode AP code.
--	 */
--	{ TRAMPOLINE_BASE, TRAMPOLINE_BASE + PAGE_SIZE, "TRAMPOLINE" },
--#endif
- 	{}
- };
- 
-Index: linux-2.6/arch/x86/kernel/trampoline.c
-===================================================================
---- linux-2.6.orig/arch/x86/kernel/trampoline.c
-+++ linux-2.6/arch/x86/kernel/trampoline.c
-@@ -1,10 +1,26 @@
- #include <linux/io.h>
- 
- #include <asm/trampoline.h>
-+#include <asm/e820.h>
- 
- /* ready for x86_64 and x86 */
- unsigned char *trampoline_base = __va(TRAMPOLINE_BASE);
- 
-+void __init reserve_trampoline_memory(void)
-+{
-+#ifdef CONFIG_X86_32
-+	/*
-+	 * But first pinch a few for the stack/trampoline stuff
-+	 * FIXME: Don't need the extra page at 4K, but need to fix
-+	 * trampoline before removing it. (see the GDT stuff)
-+	 */
-+	reserve_early(PAGE_SIZE, PAGE_SIZE + PAGE_SIZE, "EX TRAMPOLINE");
-+#endif
-+	/* Has to be in very low memory so we can execute real-mode AP code. */
-+	reserve_early(TRAMPOLINE_BASE, TRAMPOLINE_BASE + TRAMPOLINE_SIZE,
-+			"TRAMPOLINE");
-+}
-+
- /*
-  * Currently trivial. Write the real->protected mode
-  * bootstrap into the page concerned. The caller
-@@ -12,7 +28,6 @@ unsigned char *trampoline_base = __va(TR
-  */
- unsigned long setup_trampoline(void)
- {
--	memcpy(trampoline_base, trampoline_data,
--	       trampoline_end - trampoline_data);
-+	memcpy(trampoline_base, trampoline_data, TRAMPOLINE_SIZE);
- 	return virt_to_phys(trampoline_base);
- }
-Index: linux-2.6/arch/x86/kernel/head32.c
-===================================================================
---- linux-2.6.orig/arch/x86/kernel/head32.c
-+++ linux-2.6/arch/x86/kernel/head32.c
-@@ -12,9 +12,12 @@
- #include <asm/sections.h>
- #include <asm/e820.h>
- #include <asm/bios_ebda.h>
-+#include <asm/trampoline.h>
- 
- void __init i386_start_kernel(void)
- {
-+	reserve_trampoline_memory();
-+
- 	reserve_early(__pa_symbol(&_text), __pa_symbol(&_end), "TEXT DATA BSS");
- 
- #ifdef CONFIG_BLK_DEV_INITRD
-Index: linux-2.6/arch/x86/kernel/head64.c
-===================================================================
---- linux-2.6.orig/arch/x86/kernel/head64.c
-+++ linux-2.6/arch/x86/kernel/head64.c
-@@ -24,6 +24,7 @@
- #include <asm/kdebug.h>
- #include <asm/e820.h>
- #include <asm/bios_ebda.h>
-+#include <asm/trampoline.h>
- 
- /* boot cpu pda */
- static struct x8664_pda _boot_cpu_pda __read_mostly;
-@@ -120,6 +121,8 @@ void __init x86_64_start_reservations(ch
- {
- 	copy_bootdata(__va(real_mode_data));
- 
-+	reserve_trampoline_memory();
-+
- 	reserve_early(__pa_symbol(&_text), __pa_symbol(&_end), "TEXT DATA BSS");
- 
- #ifdef CONFIG_BLK_DEV_INITRD
+                If (ECON)
+                {
+                    Return (Add (0x0AAC, Multiply
+(\_SB.PCI0.LPC.WBEC.DTMP, 0x0A)))
+                }
+
+                Return (0x0BB8)
+            }
+>From the above definition of _TMP object the temperature will be related
+with the following factor:
+   a. DTSE . If the DTSE is non-zero, the temperature will be the
+maixium of DTSE1/DTS2. But the DTSE/DTS1/DTS2 is defined in ACPI NVS
+memory region. If the DTSE is non-zero, in theory the shutdown will
+happen on the kernel of 2.6.28-rc3.
+   b. DTMP. When the DTSE is zero, the temperature will be obtained from
+DTMP, which is an EC internal register. 
+
+Hi, Maxime
+   As there exist some changes related with EC between 2.6.28-rc3/rc5,
+Will you please use the git-bisect to identify which commit causes the
+regression?
+   Thanks.
+
+
+> > > ...
+> > > temperature:             51 C
+> > > temperature:             51 C
+> > > temperature:             144 C
+> > > 
+> > > And then it shutdowns because critical temperature was reached
+> > > 
+> > > Another thing that might be important : the output of dmesg
+> > > Every 5 seconds this message appears (not in 2.6.28-rc3):
+> > > 
+> > > ACPI: Transitioning device [FAN] to D3
+> > > ACPI: Unable to turn cooling device [ffff81007fb656d0] 'off'
+> > > 
+> > > Hope it will help you.
+> 
+> I wonder why _may_ be the reason of this.  Alex?
+> 
+> Rafael
+
