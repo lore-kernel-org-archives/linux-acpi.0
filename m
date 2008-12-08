@@ -1,108 +1,60 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH] PNPACPI: Enable Power Management
-Date: Sun, 7 Dec 2008 21:29:29 -0700
-Message-ID: <200812072129.29954.bjorn.helgaas@hp.com>
-References: <4929C66F.1040206@gmx.net> <200812011547.34660.bjorn.helgaas@hp.com> <493BC487.1050103@gmx.net>
+From: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+Subject: Re: AE_ERROR, ACPI thermal trip point state changed
+Date: Mon, 08 Dec 2008 07:04:11 +0100
+Message-ID: <493CB8DB.8070105@freemail.hu>
+References: <47CF96E2.9020302@freemail.hu> <1204757373.10256.179.camel@acpi-hp-zz.sh.intel.com> <823A93EED437D048963A3697DB0E35DE0129BB78@pdsmsx414.ccr.corp.intel.com> <47D0E694.5050102@freemail.hu> <1204874686.10256.185.camel@acpi-hp-zz.sh.intel.com> <47D24341.5070908@freemail.hu> <1205113940.10256.191.camel@acpi-hp-zz.sh.intel.com> <48ABDF1E.3010101@freemail.hu> <8763pwypf5.fsf@basil.nowhere.org> <49249121.6050304@freemail.hu> <20081119232224.GR6703@one.firstfloor.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0014.houston.hp.com ([15.201.24.17]:39537 "EHLO
-	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754287AbYLHE3w (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 7 Dec 2008 23:29:52 -0500
-In-Reply-To: <493BC487.1050103@gmx.net>
-Content-Disposition: inline
+Received: from mail02a.mail.t-online.hu ([84.2.40.7]:64869 "EHLO
+	mail02a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750907AbYLHGEP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Dec 2008 01:04:15 -0500
+In-Reply-To: <20081119232224.GR6703@one.firstfloor.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Witold Szczeponik <Witold.Szczeponik@gmx.net>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <abelay@mit.edu>, rjw@sisk.pl
+To: Andi Kleen <andi@firstfloor.org>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, lenb@kernel.org
 
-On Sunday 07 December 2008 5:41:43 am Witold Szczeponik wrote:
-> Bjorn Helgaas wrote:
-> > Do you know of anything that specifies the order of the _CRS/_PS0
-> > and the _PS3/_DIS evaluation?  I don't know much about power
-> > management, and I couldn't find anything obvious in the spec.
-> > It seems plausible that we should run _CRS before turning on
-> > the power, but I really don't know.
->
-> There's some info the ACPI Specification that says a device needs
-> to be put to D3 before _DIS is called (section 6.2.2) but there
-> is no clear statement as to when to put a device to D0... :-(
->
-> I think it should be _SRS/_PS0 and _PS3/_DIS.
+Andi Kleen wrote:
+> On Wed, Nov 19, 2008 at 11:20:17PM +0100, N=E9meth M=E1rton wrote:
+>> Hi,
+>>
+>> Andi Kleen wrote:
+>>> N=E9meth M=E1rton <nm127@freemail.hu> writes:
+>>>> As of 2.6.27-rc3 the patch is still not included in the mainstream=
+=2E I
+>>>> hope that this patch was not forgotten completely.
+>>> It's already in Linus' tree, will be in rc4.
+>> I compiled and tried 2.6.28-rc5. In the dmesg I get the following me=
+ssage:
+>>
+>> [   63.589603] ACPI Exception (thermal-0538): AE_ERROR, ACPI thermal=
+ trip point state changed
+>> [   63.589669] Please send acpidump to linux-acpi@vger.kernel.org
+>> [   63.589805]  [20080926]
+>>
+>> The original patch still applies for 2.6.28-rc5 (with some offsets).=
+ This patch
+>> is not included in 2.6.28-rc5, yet. The "AE_ERROR..." message does n=
+ot appear
+>> any more if I apply the patch. I attached this original patch for ea=
+sier reference.
+>=20
+> Hmm sorry I must have confused it with some other patch back then.
+> Anyways Len Brown is handling ACPI again now, so he'll have to sort
+> it out. cc'ed (the original patch is on linux-acpi)
 
-Thanks for the pointer.  That makes sense, and your proposed order
-makes the enable/disable paths symmetric, so I think you're right.
-Can you put that spec pointer in your changelog?
+This is just a status report about 2.6.28-rc7, nothing more. The AE_ERR=
+OR
+message is still in the dmesg. The patch still solves the problem.
 
-> > Is pnpacpi_set_resources() the only place that needs this change?
-> > For active devices, we normally don't call pnpacpi_set_resources()
-> > at all.  So I suppose on these ThinkPads, we exercise this path
-> > because the serial ports are initially disabled?
->
-> I'm not sure.  I would guess that we need to put any device that is
-> enabled (either via _SRS or by default) into D0.  My patch does that
-> for the _SRS case but the generic ACPI code does not.  On my 600E,
-> the serial port has power when the machine is booted but has no power
-> once GRUB kicks in.  It remains in this state until the 8250-pnp module
-> gets loaded, where my patch enables it.
+Regards,
 
-Interesting.  I'd be surprised if GRUB does anything with ACPI to
-disable the port.  I don't know how you determine when the port has
-power.  Maybe the power-up default state is powered, and the BIOS
-turns it off before launching GRUB?
-
-I wonder if _STA is influenced by the power state.  I would think
-if _STA said a device was "enabled and decoding resources," that
-would only make sense if the device were already in D0.  But let's
-say we start with an active device, then run _PS3 and _DIS.  What
-would _STA say in the interval between _PS3 and _DIS?
-
-This is just idle curiousity on my part, I guess.  I just don't
-know much about ACPI power states, and I'm afraid of getting in
-trouble if we change too much.  The _SRS path is a little less
-scary because it won't be exercised much (most devices are already
-enabled, and we don't change their settings).
-
-> The ACPI Specification says for _SRS: the device is enabled after the
-> method has returned.  There is no statement as to when to call _PS0...
-
-> >>   static int pnpacpi_disable_resources(struct pnp_dev *dev)
-> >>   {
-> >> +	acpi_handle handle = dev->data;
-> >> +	int ret = 0;
-> >>   	acpi_status status;
-> >>
-> >> -	/* acpi_unregister_gsi(pnp_irq(dev, 0)); */
-> >
-> > Can you leave the "unregister_gsi" comment there, since it's not
-> > related to your patch?  It's a reminder that we need to think about
-> > how to handle interrupts when enabling/disabling devices.
->
-> I'd rather remove the comment as it is misleading, IMHO.  This call
-> should be made by a driver.  After all, the PNPACPI core does not
-> register any IRQs, either.  Otherwise, we need to think about
-> "pnp_irq(dev, 1)", too.  Either way, with my patch there should be
-> no IRQ handling possible.
-
-The comment is logically unrelated to the rest of your patch, so I
-would at least split it into a separate patch just on that grounds.
-
-The PNP core *does* register IRQs: we call acpi_register_gsi()
-in pnpacpi_parse_allocated_irqresource(), but there's no
-corresponding unregister.  I think this asymmetry is a bug,
-but I haven't looked at how to handle it yet.  PNP currently
-does the registration "eagerly," when the device is discovered.
-I think we should instead do the registration/unregistration
-"lazily," when a driver claims the device, as PCI does.
-
-I haven't changed this yet because there are some issues related to
-pcibios_penalize_isa_irq() -- we don't know the IRQ to penalize until
-we register the GSI.
-
-Anyway, that's a long-winded explanation of why that stupid-looking
-comment still has some value to me :-)
-
-Bjorn
+	M=E1rton N=E9meth
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
