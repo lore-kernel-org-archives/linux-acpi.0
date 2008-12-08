@@ -1,44 +1,45 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [stable] Suspend regression in stable kernel 2.6.27.4 on Mac mini Core Duo
-Date: Mon, 8 Dec 2008 12:25:44 +0100
-Message-ID: <200812081225.44832.rjw@sisk.pl>
-References: <20081109202830.GA7206@x61> <200811160004.17804.rjw@sisk.pl> <20081208075531.GA20779@dose.home.local>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: x86: Change static allocation of trampoline area
+Date: Mon, 8 Dec 2008 13:50:58 +0100
+Message-ID: <20081208125057.GC16560@elte.hu>
+References: <200812080050.23275.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:37288 "EHLO ogre.sisk.pl"
+Received: from mx3.mail.elte.hu ([157.181.1.138]:38326 "EHLO mx3.mail.elte.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751457AbYLHL0h (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 8 Dec 2008 06:26:37 -0500
-In-Reply-To: <20081208075531.GA20779@dose.home.local>
+	id S1751945AbYLHMvZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 8 Dec 2008 07:51:25 -0500
 Content-Disposition: inline
+In-Reply-To: <200812080050.23275.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tino Keitel <tino.keitel@gmx.de>
-Cc: linux-kernel@vger.kernel.org, stable@kernel.org, Greg KH <greg@kroah.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Bob Copeland <me@bobcopeland.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Monday, 8 of December 2008, Tino Keitel wrote:
-> On Sun, Nov 16, 2008 at 00:04:16 +0100, Rafael J. Wysocki wrote:
-> > On Thursday, 13 of November 2008, Rafael J. Wysocki wrote:
-> 
-> [...]
-> 
-> > > Please try the appended patch on top of the Linus' tree.
-> > 
-> > This patch also applies to current -stable, so you can test it on top of that.
-> > 
-> > I need your confirmation that the patch works to push it upstream.
-> 
-> Hi,
-> 
-> I saw that 2.6.27.8 still missed that fix, maybe because I forgot to
-> send any confirmation. So, yes, this patch fixes the regression for me.
 
-Thanks.
+* Rafael J. Wysocki <rjw@sisk.pl> wrote:
 
-I sent the inclusion request to -stable, but apparently it was too late for
-2.6.27.8.
+> From: Rafael J. Wysocki <rjw@sisk.pl>
+> Subject: x86: Change static allocation of trampoline area
+> Impact: Improvement
+> 
+> While debugging a suspend-to-RAM related issue it occured to me that
+> if the trampoline code had grown past 4 KB, we would have been
+> allocating too little memory for it, since the 4 KB size of the
+> trampoline is hardcoded into arch/x86/kernel/e820.c .  Change that
+> by making the kernel compute the trampoline size and allocate as much
+> memory as necessary.
+> 
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> ---
+>  arch/x86/include/asm/trampoline.h |    7 +++++++
+>  arch/x86/kernel/e820.c            |   16 ----------------
+>  arch/x86/kernel/head32.c          |    3 +++
+>  arch/x86/kernel/head64.c          |    3 +++
+>  arch/x86/kernel/trampoline.c      |   19 +++++++++++++++++--
+>  5 files changed, 30 insertions(+), 18 deletions(-)
 
-Rafael
+applied to tip/x86/setup-memory, thanks Rafael!
+
+	Ingo
