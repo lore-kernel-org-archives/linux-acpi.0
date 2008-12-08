@@ -1,117 +1,84 @@
 From: Witold Szczeponik <Witold.Szczeponik@gmx.net>
-Subject: Re: [PATCH] PNPACPI: Enable Power Management
-Date: Mon, 08 Dec 2008 21:40:14 +0100
-Message-ID: <493D862E.6010704@gmx.net>
-References: <4929C66F.1040206@gmx.net> <200812011547.34660.bjorn.helgaas@hp.com> <493BC487.1050103@gmx.net> <200812072129.29954.bjorn.helgaas@hp.com>
+Subject: [PATCH] PNPACPI: Enable Power Support
+Date: Mon, 08 Dec 2008 21:57:03 +0100
+Message-ID: <493D8A1F.2090907@gmx.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:40379 "HELO mail.gmx.net"
+Received: from mail.gmx.net ([213.165.64.20]:60304 "HELO mail.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751993AbYLHUkf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 8 Dec 2008 15:40:35 -0500
-In-Reply-To: <200812072129.29954.bjorn.helgaas@hp.com>
+	id S1753020AbYLHU5Y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 8 Dec 2008 15:57:24 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <abelay@mit.edu>, rjw@sisk.pl
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Bjorn Helgaas <bjorn.helgaas@hp.com>, Adam Belay <abelay@mit.edu>, rjw@sisk.pl
 
-Bjorn Helgaas wrote:
+Subject: Enable PNPACPI _PSx Support
 
-[old stuff removed]
 
->> I think it should be _SRS/_PS0 and _PS3/_DIS.
-> 
-> Thanks for the pointer.  That makes sense, and your proposed order
-> makes the enable/disable paths symmetric, so I think you're right.
-> Can you put that spec pointer in your changelog?
-> 
+(This is an updated patch of http://lkml.org/lkml/2008/11/23/211)
 
-Will do.  I'll send out a new version of the patch in a separate note.
+This patch sets the power of PnP ACPI devices to D0 when they
+are activated and to D3 when they are disabled.  The latter is
+in correspondence with the ACPI 3.0 specification, whereas the
+former is added in order to be able to power up a device after
+it has been previously disabled (or when booting up a system).
+(As a consequence, the patch makes the PnP ACPI code more ACPI
+compliant.)
 
->>> Is pnpacpi_set_resources() the only place that needs this change?
->>> For active devices, we normally don't call pnpacpi_set_resources()
->>> at all.  So I suppose on these ThinkPads, we exercise this path
->>> because the serial ports are initially disabled?
->> I'm not sure.  I would guess that we need to put any device that is
->> enabled (either via _SRS or by default) into D0.  My patch does that
->> for the _SRS case but the generic ACPI code does not.  On my 600E,
->> the serial port has power when the machine is booted but has no power
->> once GRUB kicks in.  It remains in this state until the 8250-pnp module
->> gets loaded, where my patch enables it.
-> 
-> Interesting.  I'd be surprised if GRUB does anything with ACPI to
-> disable the port.  I don't know how you determine when the port has
-> power.  Maybe the power-up default state is powered, and the BIOS
-> turns it off before launching GRUB?
+Section 6.2.2 of the ACPI Specification (at least versions 1.0b
+and 3.0a) states: "Prior to running this control method [_DIS],
+the OS[PM] will have already put the device in the D3 state."
+Unfortunately, there is no clear statement as to when to put
+a device in the D0 state. :-( Therefore, the patch executes the
+method calls as _PS3/_DIS and _SRS/_PS0. What is clear: "If the
+device is disabled, _SRS enables the device at the specified
+resources." (From the ACPI 3.0a Specification.)
 
-Most likely you are correct assuming that the BIOS turns the devices
-off before starting GRUB.  Need to investigate...
+The patch fixes a problem with some IBM ThinkPads (at least the
+600E and the 600X) where the serial ports have a dedicated
+power source that needs to be brought up before the serial port
+can be used.  Without this patch, the serial port is enabled
+but has no power. (In the past, the tpctl utility had to be
+utilized to turn on the power, but support for this feature
+stopped with version 5.9 as it did not support the more recent
+kernel versions.)
 
-> 
-> I wonder if _STA is influenced by the power state.  I would think
-> if _STA said a device was "enabled and decoding resources," that
-> would only make sense if the device were already in D0.  But let's
-> say we start with an active device, then run _PS3 and _DIS.  What
-> would _STA say in the interval between _PS3 and _DIS?
+No regressions were observed on hardware that does not require
+this patch.
 
-I did not check this, but a quick look at the 600E's DSDT revealed
-that powering up a device and its _STA status are not correlated,
-at least on this machine.
+The patch is applied against 2.6.27.8 (vanilla).
 
-> 
-> This is just idle curiousity on my part, I guess.  I just don't
-> know much about ACPI power states, and I'm afraid of getting in
-> trouble if we change too much.  The _SRS path is a little less
-> scary because it won't be exercised much (most devices are already
-> enabled, and we don't change their settings).
 
-ACK.
+Signed-off-by: Witold Szczeponik <Witold.Szczeponik@gmx.net>
 
-> 
 
-[parts of the patch removed]
+Index: linux/drivers/pnp/pnpacpi/core.c
+===================================================================
+--- linux.orig/drivers/pnp/pnpacpi/core.c
++++ linux/drivers/pnp/pnpacpi/core.c
+@@ -98,17 +98,20 @@ static int pnpacpi_set_resources(struct
+  	status = acpi_set_current_resources(handle, &buffer);
+  	if (ACPI_FAILURE(status))
+  		ret = -EINVAL;
++	else
++		acpi_bus_set_power(handle, ACPI_STATE_D0);
+  	kfree(buffer.pointer);
+  	return ret;
+  }
 
->>>> -	/* acpi_unregister_gsi(pnp_irq(dev, 0)); */
->>> Can you leave the "unregister_gsi" comment there, since it's not
->>> related to your patch?  It's a reminder that we need to think about
->>> how to handle interrupts when enabling/disabling devices.
->> I'd rather remove the comment as it is misleading, IMHO.  This call
->> should be made by a driver.  After all, the PNPACPI core does not
->> register any IRQs, either.  Otherwise, we need to think about
->> "pnp_irq(dev, 1)", too.  Either way, with my patch there should be
->> no IRQ handling possible.
-> 
-> The comment is logically unrelated to the rest of your patch, so I
-> would at least split it into a separate patch just on that grounds.
+  static int pnpacpi_disable_resources(struct pnp_dev *dev)
+  {
++	acpi_handle handle = dev->data;
+  	acpi_status status;
 
-ACK.  But will not tackle this any time soon.
+  	/* acpi_unregister_gsi(pnp_irq(dev, 0)); */
+-	status = acpi_evaluate_object((acpi_handle) dev->data,
+-				      "_DIS", NULL, NULL);
++	acpi_bus_set_power(handle, ACPI_STATE_D3);
++	status = acpi_evaluate_object(handle, "_DIS", NULL, NULL);
+  	return ACPI_FAILURE(status) ? -ENODEV : 0;
+  }
 
-> 
-> The PNP core *does* register IRQs: we call acpi_register_gsi()
-> in pnpacpi_parse_allocated_irqresource(), but there's no
-> corresponding unregister.  I think this asymmetry is a bug,
-> but I haven't looked at how to handle it yet.  PNP currently
-> does the registration "eagerly," when the device is discovered.
-> I think we should instead do the registration/unregistration
-> "lazily," when a driver claims the device, as PCI does.
-
-I find this asymmetry weird, too.  Maybe we could register when
-the device is enabled and unregister when it is disabled?
-
-> 
-> I haven't changed this yet because there are some issues related to
-> pcibios_penalize_isa_irq() -- we don't know the IRQ to penalize until
-> we register the GSI.
-> 
-> Anyway, that's a long-winded explanation of why that stupid-looking
-> comment still has some value to me :-)
-
-Now I understand.  I'm giving in! :-D
-
-> 
-> Bjorn
-> 
-
---- Witold
