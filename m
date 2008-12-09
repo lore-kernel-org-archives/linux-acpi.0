@@ -1,54 +1,58 @@
-From: Adam M Belay <abelay@MIT.EDU>
-Subject: Re: [PATCH] PNPACPI: Enable Power Support
-Date: Mon, 08 Dec 2008 22:25:48 -0500
-Message-ID: <20081208222548.hfac8otubupwkc84@webmail.mit.edu>
-References: <493D8A1F.2090907@gmx.net>
-	<20081208214910.6l58csoke98gw48w@webmail.mit.edu>
-	<200812082000.05472.bjorn.helgaas@hp.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: [PATCH 00/20] ACPI: PCI: simplify _PRT handling
+Date: Mon, 08 Dec 2008 21:30:00 -0700
+Message-ID: <20081209042833.26415.24906.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset=UTF-8;
-	format="flowed"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from SOUTH-STATION-ANNEX.MIT.EDU ([18.72.1.2]:41416 "EHLO
-	south-station-annex.mit.edu" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750768AbYLIDdp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Dec 2008 22:33:45 -0500
-In-Reply-To: <200812082000.05472.bjorn.helgaas@hp.com>
-Content-Disposition: inline
+Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:45862 "EHLO
+	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751341AbYLIEaF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Dec 2008 23:30:05 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Witold Szczeponik <Witold.Szczeponik@gmx.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rjw@sisk.pl
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
 
-Quoting Bjorn Helgaas <bjorn.helgaas@hp.com>:
-> Hi Adam,
->
-> Do you have any proposals for how pnpacpi_set_resources() should
-> handle failure?  Witold started out with code to call acpi_bus_set_power()
-> only if the device is power-manageable, and he then passed the
-> return code up.  I suggested letting acpi_bus_set_power() do
-> the "is-power-manageable" check.  But then the caller would have
-> to distinguish the "device isn't power-manageable" error from
-> others, which is kind of ugly.
->
-> Bjorn
+This series simplifies the code that handles ACPI _PRTs (PCI routing
+tables).  My goal is to make this look more like the corresponding
+code in other architectures, especially in terms of swizzling, e.g.,
+the various implementations of common_swizzle() and simple_swizzle(),
+and the x86 non-ACPI code in pirq_enable_irq().
 
-Hi Bjorn,
+There should be no functional changes in this series.
 
-How about one of these options:
+Comments welcome.
 
-1.) Modify acpi_bus_set_power() to return success if the device is not power
-manageable but the request is for D0.  After all, any device that doesn't
-support PM can be assumed to be in D0. (Or maybe more correctly the state
-of its parent?)
+Bjorn
 
-2.) Call acpi_bus_get_power() and check if the state is not already D0 before
-asking acpi_bus_set_power() for the transition.  If it is any other 
-state, then
-of the device is power manageable.
+---
 
-Thanks,
-Adam
+Bjorn Helgaas (20):
+      ACPI: PCI: add HP copyright
+      ACPI: PCI: whitespace and useless initialization cleanup
+      ACPI: PCI: expand acpi_pci_allocate_irq() and acpi_pci_free_irq() inline
+      ACPI: PCI: simplify struct acpi_prt_entry
+      ACPI: PCI: simplify list of _PRT entries
+      ACPI: PCI: combine lookup and derive
+      ACPI: PCI: follow typical PCI INTx swizzling pattern
+      ACPI: PCI: use positive logic to simplify code
+      ACPI: PCI: remove callback from acpi_pci_irq_lookup & acpi_pci_irq_derive
+      ACPI: PCI: tweak _PRT lookup debug
+      ACPI: PCI: lookup _PRT entry by PCI dev and pin, not segment/bus/dev/pin
+      ACPI: PCI: use 1-based encoding for _PRT quirks
+      ACPI: PCI: always use the PCI INTx pin values, not the _PRT ones
+      ACPI: PCI: add a helper to convert _PRT INTx pin number to name
+      ACPI: PCI: move struct acpi_prt_entry declaration out of public header file
+      ACPI: PCI: fix GSI/IRQ naming confusion
+      ACPI: PCI: ignore _PRT function information
+      ACPI: PCI: simplify buffer management for evaluating _PRT
+      ACPI: PCI: remove unnecessary null pointer checks
+      ACPI: PCI: use conventional PCI address format
 
+
+ drivers/acpi/pci_bind.c |   12 +
+ drivers/acpi/pci_irq.c  |  416 +++++++++++++++--------------------------------
+ include/linux/acpi.h    |   16 --
+ 3 files changed, 136 insertions(+), 308 deletions(-)
