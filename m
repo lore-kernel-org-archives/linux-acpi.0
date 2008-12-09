@@ -1,106 +1,102 @@
-From: Roel Kluin <roel.kluin@gmail.com>
-Subject: [PATCH 4/33] drivers/acpi: Make static
-Date: Tue, 09 Dec 2008 18:02:02 +0100
-Message-ID: <493EA48A.1080702@gmail.com>
-References: <493EA286.7080500@gmail.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [stable] [PATCH 2.6.23..2.6.27.stable] ACPI: delete OSI(Linux)
+	DMI dmesg spam
+Date: Tue, 9 Dec 2008 09:39:14 -0800
+Message-ID: <20081209173914.GC32344@kroah.com>
+References: <alpine.LFD.2.00.0812081556060.4406@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.171]:48774 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753391AbYLIRCG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Dec 2008 12:02:06 -0500
-Received: by ug-out-1314.google.com with SMTP id 39so21277ugf.37
-        for <linux-acpi@vger.kernel.org>; Tue, 09 Dec 2008 09:02:04 -0800 (PST)
-In-Reply-To: <493EA286.7080500@gmail.com>
+Received: from kroah.org ([198.145.64.141]:60434 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753555AbYLIRkL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 9 Dec 2008 12:40:11 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.0812081556060.4406@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: stable@kernel.org, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Sparse asked whether these could be static.
+On Mon, Dec 08, 2008 at 04:03:07PM -0500, Len Brown wrote:
+> Per 2.6.28 commit a6e0887f21bbab337ee32d9c0a84d7c0b6e9141b,
+> stop soliciting DMI info for this BIOS issue.
+> 
+> Signed-off-by: Len Brown <len.brown@intel.com>
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
----
- drivers/acpi/ec.c           |    8 ++++----
- drivers/acpi/pci_link.c     |    2 +-
- drivers/acpi/video_detect.c |    4 ++--
- 3 files changed, 7 insertions(+), 7 deletions(-)
+I don't understand, this isn't commit a6e0887f21bb upstream, right?
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 30f3ef2..effd419 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -370,7 +370,7 @@ unlock:
-  * Note: samsung nv5000 doesn't work with ec burst mode.
-  * http://bugzilla.kernel.org/show_bug.cgi?id=4980
-  */
--int acpi_ec_burst_enable(struct acpi_ec *ec)
-+static int acpi_ec_burst_enable(struct acpi_ec *ec)
- {
- 	u8 d;
- 	struct transaction t = {.command = ACPI_EC_BURST_ENABLE,
-@@ -380,7 +380,7 @@ int acpi_ec_burst_enable(struct acpi_ec *ec)
- 	return acpi_ec_transaction(ec, &t, 0);
- }
- 
--int acpi_ec_burst_disable(struct acpi_ec *ec)
-+static int acpi_ec_burst_disable(struct acpi_ec *ec)
- {
- 	struct transaction t = {.command = ACPI_EC_BURST_DISABLE,
- 				.wdata = NULL, .rdata = NULL,
-@@ -416,7 +416,7 @@ static int acpi_ec_write(struct acpi_ec *ec, u8 address, u8 data)
- /*
-  * Externally callable EC access functions. For now, assume 1 EC only
-  */
--int ec_burst_enable(void)
-+static int ec_burst_enable(void)
- {
- 	if (!first_ec)
- 		return -ENODEV;
-@@ -425,7 +425,7 @@ int ec_burst_enable(void)
- 
- EXPORT_SYMBOL(ec_burst_enable);
- 
--int ec_burst_disable(void)
-+static int ec_burst_disable(void)
- {
- 	if (!first_ec)
- 		return -ENODEV;
-diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-index e52ad91..4869fa1 100644
---- a/drivers/acpi/pci_link.c
-+++ b/drivers/acpi/pci_link.c
-@@ -912,7 +912,7 @@ static int __init acpi_irq_nobalance_set(char *str)
- 
- __setup("acpi_irq_nobalance", acpi_irq_nobalance_set);
- 
--int __init acpi_irq_balance_set(char *str)
-+static int __init acpi_irq_balance_set(char *str)
- {
- 	acpi_irq_balance = 1;
- 	return 1;
-diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index f022eb6..50e3d2d 100644
---- a/drivers/acpi/video_detect.c
-+++ b/drivers/acpi/video_detect.c
-@@ -234,7 +234,7 @@ EXPORT_SYMBOL(acpi_video_display_switch_support);
-  * To force that backlight or display output switching is processed by vendor
-  * specific acpi drivers or video.ko driver.
-  */
--int __init acpi_backlight(char *str)
-+static int __init acpi_backlight(char *str)
- {
- 	if (str == NULL || *str == '\0')
- 		return 1;
-@@ -250,7 +250,7 @@ int __init acpi_backlight(char *str)
- }
- __setup("acpi_backlight=", acpi_backlight);
- 
--int __init acpi_display_output(char *str)
-+static int __init acpi_display_output(char *str)
- {
- 	if (str == NULL || *str == '\0')
- 		return 1;
+Is this patch upstream?  Or is it just that you don't want to get these
+messages anymore because it is fixed in 2.6.28 now?
 
+thanks,
+
+greg k-h
+
+> ---
+> This patch applies cleanly to 2.6.26 and 2.6.27
+> It applies with various offsets to 2.6.23, 2.6.24, 2.6.25
+> 
+> thanks,
+> -Len Brown
+> Intel Open Source Technology Center
+> 
+> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> index 235a138..b0d40aa 100644
+> --- a/drivers/acpi/osl.c
+> +++ b/drivers/acpi/osl.c
+> @@ -1261,34 +1261,6 @@ acpi_status acpi_os_release_object(acpi_cache_t * cache, void *object)
+>  	return (AE_OK);
+>  }
+>  
+> -/**
+> - *	acpi_dmi_dump - dump DMI slots needed for blacklist entry
+> - *
+> - *	Returns 0 on success
+> - */
+> -static int acpi_dmi_dump(void)
+> -{
+> -
+> -	if (!dmi_available)
+> -		return -1;
+> -
+> -	printk(KERN_NOTICE PREFIX "DMI System Vendor: %s\n",
+> -		dmi_get_system_info(DMI_SYS_VENDOR));
+> -	printk(KERN_NOTICE PREFIX "DMI Product Name: %s\n",
+> -		dmi_get_system_info(DMI_PRODUCT_NAME));
+> -	printk(KERN_NOTICE PREFIX "DMI Product Version: %s\n",
+> -		dmi_get_system_info(DMI_PRODUCT_VERSION));
+> -	printk(KERN_NOTICE PREFIX "DMI Board Name: %s\n",
+> -		dmi_get_system_info(DMI_BOARD_NAME));
+> -	printk(KERN_NOTICE PREFIX "DMI BIOS Vendor: %s\n",
+> -		dmi_get_system_info(DMI_BIOS_VENDOR));
+> -	printk(KERN_NOTICE PREFIX "DMI BIOS Date: %s\n",
+> -		dmi_get_system_info(DMI_BIOS_DATE));
+> -
+> -	return 0;
+> -}
+> -
+> -
+>  /******************************************************************************
+>   *
+>   * FUNCTION:    acpi_os_validate_interface
+> @@ -1315,14 +1287,6 @@ acpi_os_validate_interface (char *interface)
+>  			osi_linux.cmdline ? " via cmdline" :
+>  			osi_linux.dmi ? " via DMI" : "");
+>  
+> -		if (!osi_linux.dmi) {
+> -			if (acpi_dmi_dump())
+> -				printk(KERN_NOTICE PREFIX
+> -					"[please extract dmidecode output]\n");
+> -			printk(KERN_NOTICE PREFIX
+> -				"Please send DMI info above to "
+> -				"linux-acpi@vger.kernel.org\n");
+> -		}
+>  		if (!osi_linux.known && !osi_linux.cmdline) {
+>  			printk(KERN_NOTICE PREFIX
+>  				"If \"acpi_osi=%sLinux\" works better, "
+> 
+> _______________________________________________
+> stable mailing list
+> stable@linux.kernel.org
+> http://linux.kernel.org/mailman/listinfo/stable
