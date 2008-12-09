@@ -1,110 +1,85 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH 05/20] ACPI: PCI: fix GSI/IRQ naming confusion
-Date: Mon, 08 Dec 2008 21:30:26 -0700
-Message-ID: <20081209043025.26415.36906.stgit@bob.kio>
+Subject: [PATCH 06/20] ACPI: PCI: move struct acpi_prt_entry declaration out
+	of public header file
+Date: Mon, 08 Dec 2008 21:30:31 -0700
+Message-ID: <20081209043031.26415.63894.stgit@bob.kio>
 References: <20081209042833.26415.24906.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0028.austin.hp.com ([15.216.28.35]:14443 "EHLO
-	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751464AbYLIEa1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Dec 2008 23:30:27 -0500
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:13898 "EHLO
+	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751518AbYLIEab (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Dec 2008 23:30:31 -0500
 In-Reply-To: <20081209042833.26415.24906.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org
 
-The interrupt numbers from _PRT entries are GSIs, not Linux IRQs.
+The struct acpi_prt_entry is used only in pci_irq.c, so there's no
+need for the declaration to be public.  This patch moves it into
+pci_irq.c.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 ---
- drivers/acpi/pci_irq.c |   20 ++++++++++----------
- 1 files changed, 10 insertions(+), 10 deletions(-)
+ drivers/acpi/pci_irq.c |   16 ++++++++++++++++
+ include/linux/acpi.h   |   16 ----------------
+ 2 files changed, 16 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-index 579bf17..f80b8a2 100644
+index f80b8a2..04b9df4 100644
 --- a/drivers/acpi/pci_irq.c
 +++ b/drivers/acpi/pci_irq.c
-@@ -335,7 +335,7 @@ acpi_pci_allocate_irq(struct acpi_prt_entry *entry,
- 		*polarity = ACPI_ACTIVE_LOW;
- 	}
+@@ -43,6 +43,22 @@
+ #define _COMPONENT		ACPI_PCI_COMPONENT
+ ACPI_MODULE_NAME("pci_irq");
  
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found IRQ %d\n", irq));
-+	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found GSI %d\n", irq));
- 	return irq;
- }
++struct acpi_prt_entry {
++	struct list_head	node;
++	struct acpi_pci_id	id;
++	u8			pin;
++	struct {
++		acpi_handle		handle;
++		u32			index;
++	}			link;
++	u32			irq;
++};
++
++struct acpi_prt_list {
++	int			count;
++	struct list_head	entries;
++};
++
+ static struct acpi_prt_list acpi_prt;
+ static DEFINE_SPINLOCK(acpi_prt_lock);
  
-@@ -434,7 +434,7 @@ acpi_pci_irq_derive(struct pci_dev *dev,
- 		return -1;
- 	}
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index fba8051..813f937 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -131,22 +131,6 @@ extern int acpi_get_override_irq(int bus_irq, int *trigger, int *polarity);
+  */
+ void acpi_unregister_gsi (u32 gsi);
  
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Derive IRQ %d for device %s from %s\n",
-+	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Derive GSI %d for device %s from %s\n",
- 			  irq, pci_name(dev), pci_name(bridge)));
+-struct acpi_prt_entry {
+-	struct list_head	node;
+-	struct acpi_pci_id	id;
+-	u8			pin;
+-	struct {
+-		acpi_handle		handle;
+-		u32			index;
+-	}			link;
+-	u32			irq;
+-};
+-
+-struct acpi_prt_list {
+-	int			count;
+-	struct list_head	entries;
+-};
+-
+ struct pci_dev;
  
- 	return irq;
-@@ -448,7 +448,7 @@ acpi_pci_irq_derive(struct pci_dev *dev,
- 
- int acpi_pci_irq_enable(struct pci_dev *dev)
- {
--	int irq = 0;
-+	int gsi = 0;
- 	u8 pin = 0;
- 	int triggering = ACPI_LEVEL_SENSITIVE;
- 	int polarity = ACPI_ACTIVE_LOW;
-@@ -470,7 +470,7 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
- 	 * First we check the PCI IRQ routing table (PRT) for an IRQ.  PRT
- 	 * values override any BIOS-assigned IRQs set during boot.
- 	 */
--	irq = acpi_pci_irq_lookup(dev->bus, PCI_SLOT(dev->devfn), pin,
-+	gsi = acpi_pci_irq_lookup(dev->bus, PCI_SLOT(dev->devfn), pin,
- 				  &triggering, &polarity, &link,
- 				  acpi_pci_allocate_irq);
- 
-@@ -478,12 +478,12 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
- 	 * If no PRT entry was found, we'll try to derive an IRQ from the
- 	 * device's parent bridge.
- 	 */
--	if (irq < 0)
--		irq = acpi_pci_irq_derive(dev, pin, &triggering,
-+	if (gsi < 0)
-+		gsi = acpi_pci_irq_derive(dev, pin, &triggering,
- 					  &polarity, &link,
- 					  acpi_pci_allocate_irq);
- 
--	if (irq < 0) {
-+	if (gsi < 0) {
- 		/*
- 		 * IDE legacy mode controller IRQs are magic. Why do compat
- 		 * extensions always make such a nasty mess.
-@@ -496,7 +496,7 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
- 	 * No IRQ known to the ACPI subsystem - maybe the BIOS / 
- 	 * driver reported one, then use it. Exit in any case.
- 	 */
--	if (irq < 0) {
-+	if (gsi < 0) {
- 		dev_warn(&dev->dev, "PCI INT %c: no GSI", 'A' + pin);
- 		/* Interrupt Line values above 0xF are forbidden */
- 		if (dev->irq > 0 && (dev->irq <= 0xF)) {
-@@ -510,7 +510,7 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
- 		}
- 	}
- 
--	rc = acpi_register_gsi(irq, triggering, polarity);
-+	rc = acpi_register_gsi(gsi, triggering, polarity);
- 	if (rc < 0) {
- 		dev_warn(&dev->dev, "PCI INT %c: failed to register GSI\n",
- 			 'A' + pin);
-@@ -524,7 +524,7 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
- 		link_desc[0] = '\0';
- 
- 	dev_info(&dev->dev, "PCI INT %c%s -> GSI %u (%s, %s) -> IRQ %d\n",
--		 'A' + pin, link_desc, irq,
-+		 'A' + pin, link_desc, gsi,
- 		 (triggering == ACPI_LEVEL_SENSITIVE) ? "level" : "edge",
- 		 (polarity == ACPI_ACTIVE_LOW) ? "low" : "high", dev->irq);
- 
+ int acpi_pci_irq_enable (struct pci_dev *dev);
 
