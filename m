@@ -1,301 +1,124 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: [patch]change a spinlock to mutex
-Date: Tue, 09 Dec 2008 10:52:19 +0800
-Message-ID: <1228791139.13102.3.camel@sli10-desk.sh.intel.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH] PNPACPI: Enable Power Support
+Date: Mon, 8 Dec 2008 20:00:05 -0700
+Message-ID: <200812082000.05472.bjorn.helgaas@hp.com>
+References: <493D8A1F.2090907@gmx.net> <20081208214910.6l58csoke98gw48w@webmail.mit.edu>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:44469 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750766AbYLICwW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 8 Dec 2008 21:52:22 -0500
+Received: from g4t0014.houston.hp.com ([15.201.24.17]:21814 "EHLO
+	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750829AbYLIDA3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Dec 2008 22:00:29 -0500
+In-Reply-To: <20081208214910.6l58csoke98gw48w@webmail.mit.edu>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux acpi <linux-acpi@vger.kernel.org>
+To: Adam M Belay <abelay@mit.edu>
+Cc: Witold Szczeponik <Witold.Szczeponik@gmx.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rjw@sisk.pl
 
-Change acpi_device_lock to a mutex to avoid race in wakeup device
-read/write. Found by Linus.
+On Monday 08 December 2008 7:49:10 pm Adam M Belay wrote:
+> Hi Witold,
+>
+> All in all your patch looks good, especially in the context of
+> resolving the Thinkpad 600X issue.  I have some patches on the
+> way that will add more complete power management support to the
+> PNP stack and hopefully allow for runtime PM of these system
+> devices, but I think this is a good short-term solution.
+>
+> One quick comment.  acpi_bus_set_power() can fail, and
+> pnpacpi_set_resources() needs to handle this gracefully.  Please
+> update the patch to include this.
 
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
----
- drivers/acpi/scan.c         |   14 +++++++-------
- drivers/acpi/sleep/proc.c   |   13 ++++---------
- drivers/acpi/sleep/sleep.h  |    3 +++
- drivers/acpi/sleep/wakeup.c |   31 ++++++++-----------------------
- 4 files changed, 22 insertions(+), 39 deletions(-)
+Hi Adam,
 
-Index: linux/drivers/acpi/scan.c
-===================================================================
---- linux.orig/drivers/acpi/scan.c	2008-12-09 10:34:00.000000000 +0800
-+++ linux/drivers/acpi/scan.c	2008-12-09 10:36:07.000000000 +0800
-@@ -23,7 +23,7 @@ extern struct acpi_device *acpi_root;
- 
- static LIST_HEAD(acpi_device_list);
- static LIST_HEAD(acpi_bus_id_list);
--DEFINE_SPINLOCK(acpi_device_lock);
-+DEFINE_MUTEX(acpi_device_lock);
- LIST_HEAD(acpi_wakeup_device_list);
- 
- struct acpi_device_bus_id{
-@@ -440,7 +440,7 @@ static int acpi_device_register(struct a
- 		return -ENOMEM;
- 	}
- 
--	spin_lock(&acpi_device_lock);
-+	mutex_lock(&acpi_device_lock);
- 	/*
- 	 * Find suitable bus_id and instance number in acpi_bus_id_list
- 	 * If failed, create one and link it into acpi_bus_id_list
-@@ -468,7 +468,7 @@ static int acpi_device_register(struct a
- 		list_add_tail(&device->g_list, &acpi_device_list);
- 	if (device->wakeup.flags.valid)
- 		list_add_tail(&device->wakeup_list, &acpi_wakeup_device_list);
--	spin_unlock(&acpi_device_lock);
-+	mutex_unlock(&acpi_device_lock);
- 
- 	if (device->parent)
- 		device->dev.parent = &parent->dev;
-@@ -489,20 +489,20 @@ static int acpi_device_register(struct a
- 	device->removal_type = ACPI_BUS_REMOVAL_NORMAL;
- 	return 0;
-   end:
--	spin_lock(&acpi_device_lock);
-+	mutex_lock(&acpi_device_lock);
- 	if (device->parent) {
- 		list_del(&device->node);
- 		list_del(&device->g_list);
- 	} else
- 		list_del(&device->g_list);
- 	list_del(&device->wakeup_list);
--	spin_unlock(&acpi_device_lock);
-+	mutex_unlock(&acpi_device_lock);
- 	return result;
- }
- 
- static void acpi_device_unregister(struct acpi_device *device, int type)
- {
--	spin_lock(&acpi_device_lock);
-+	mutex_lock(&acpi_device_lock);
- 	if (device->parent) {
- 		list_del(&device->node);
- 		list_del(&device->g_list);
-@@ -510,7 +510,7 @@ static void acpi_device_unregister(struc
- 		list_del(&device->g_list);
- 
- 	list_del(&device->wakeup_list);
--	spin_unlock(&acpi_device_lock);
-+	mutex_unlock(&acpi_device_lock);
- 
- 	acpi_detach_data(device->handle, acpi_bus_data_handler);
- 
-Index: linux/drivers/acpi/sleep/proc.c
-===================================================================
---- linux.orig/drivers/acpi/sleep/proc.c	2008-12-09 10:34:18.000000000 +0800
-+++ linux/drivers/acpi/sleep/proc.c	2008-12-09 10:40:10.000000000 +0800
-@@ -338,9 +338,6 @@ acpi_system_write_alarm(struct file *fil
- }
- #endif				/* HAVE_ACPI_LEGACY_ALARM */
- 
--extern struct list_head acpi_wakeup_device_list;
--extern spinlock_t acpi_device_lock;
--
- static int
- acpi_system_wakeup_device_seq_show(struct seq_file *seq, void *offset)
- {
-@@ -348,7 +345,7 @@ acpi_system_wakeup_device_seq_show(struc
- 
- 	seq_printf(seq, "Device\tS-state\t  Status   Sysfs node\n");
- 
--	spin_lock(&acpi_device_lock);
-+	mutex_lock(&acpi_device_lock);
- 	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
- 		struct acpi_device *dev =
- 		    container_of(node, struct acpi_device, wakeup_list);
-@@ -356,7 +353,6 @@ acpi_system_wakeup_device_seq_show(struc
- 
- 		if (!dev->wakeup.flags.valid)
- 			continue;
--		spin_unlock(&acpi_device_lock);
- 
- 		ldev = acpi_get_physical_device(dev->handle);
- 		seq_printf(seq, "%s\t  S%d\t%c%-8s  ",
-@@ -371,9 +367,8 @@ acpi_system_wakeup_device_seq_show(struc
- 		seq_printf(seq, "\n");
- 		put_device(ldev);
- 
--		spin_lock(&acpi_device_lock);
- 	}
--	spin_unlock(&acpi_device_lock);
-+	mutex_unlock(&acpi_device_lock);
- 	return 0;
- }
- 
-@@ -404,7 +399,7 @@ acpi_system_write_wakeup_device(struct f
- 	strbuf[len] = '\0';
- 	sscanf(strbuf, "%s", str);
- 
--	spin_lock(&acpi_device_lock);
-+	mutex_lock(&acpi_device_lock);
- 	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
- 		struct acpi_device *dev =
- 		    container_of(node, struct acpi_device, wakeup_list);
-@@ -441,7 +436,7 @@ acpi_system_write_wakeup_device(struct f
- 			}
- 		}
- 	}
--	spin_unlock(&acpi_device_lock);
-+	mutex_unlock(&acpi_device_lock);
- 	return count;
- }
- 
-Index: linux/drivers/acpi/sleep/sleep.h
-===================================================================
---- linux.orig/drivers/acpi/sleep/sleep.h	2008-12-09 10:37:22.000000000 +0800
-+++ linux/drivers/acpi/sleep/sleep.h	2008-12-09 10:37:50.000000000 +0800
-@@ -5,3 +5,6 @@ extern int acpi_suspend (u32 state);
- extern void acpi_enable_wakeup_device_prep(u8 sleep_state);
- extern void acpi_enable_wakeup_device(u8 sleep_state);
- extern void acpi_disable_wakeup_device(u8 sleep_state);
-+
-+extern struct list_head acpi_wakeup_device_list;
-+extern struct mutex acpi_device_lock;
-Index: linux/drivers/acpi/sleep/wakeup.c
-===================================================================
---- linux.orig/drivers/acpi/sleep/wakeup.c	2008-12-09 10:34:08.000000000 +0800
-+++ linux/drivers/acpi/sleep/wakeup.c	2008-12-09 10:39:18.000000000 +0800
-@@ -14,9 +14,6 @@
- #define _COMPONENT		ACPI_SYSTEM_COMPONENT
- ACPI_MODULE_NAME("wakeup_devices")
- 
--extern struct list_head acpi_wakeup_device_list;
--extern spinlock_t acpi_device_lock;
--
- /**
-  * acpi_enable_wakeup_device_prep - prepare wakeup devices
-  *	@sleep_state:	ACPI state
-@@ -30,7 +27,7 @@ void acpi_enable_wakeup_device_prep(u8 s
- 
- 	ACPI_FUNCTION_TRACE("acpi_enable_wakeup_device_prep");
- 
--	spin_lock(&acpi_device_lock);
-+	mutex_lock(&acpi_device_lock);
- 	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
- 		struct acpi_device *dev = container_of(node,
- 						       struct acpi_device,
-@@ -41,11 +38,9 @@ void acpi_enable_wakeup_device_prep(u8 s
- 		    (sleep_state > (u32) dev->wakeup.sleep_state))
- 			continue;
- 
--		spin_unlock(&acpi_device_lock);
- 		acpi_enable_wakeup_device_power(dev, sleep_state);
--		spin_lock(&acpi_device_lock);
- 	}
--	spin_unlock(&acpi_device_lock);
-+	mutex_unlock(&acpi_device_lock);
- }
- 
- /**
-@@ -62,7 +57,7 @@ void acpi_enable_wakeup_device(u8 sleep_
- 	 * Refer ACPI2.0: P212
- 	 */
- 	ACPI_FUNCTION_TRACE("acpi_enable_wakeup_device");
--	spin_lock(&acpi_device_lock);
-+	mutex_lock(&acpi_device_lock);
- 	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
- 		struct acpi_device *dev =
- 			container_of(node, struct acpi_device, wakeup_list);
-@@ -76,22 +71,18 @@ void acpi_enable_wakeup_device(u8 sleep_
- 		if ((!dev->wakeup.state.enabled && !dev->wakeup.flags.prepared)
- 		    || sleep_state > (u32) dev->wakeup.sleep_state) {
- 			if (dev->wakeup.flags.run_wake) {
--				spin_unlock(&acpi_device_lock);
- 				/* set_gpe_type will disable GPE, leave it like that */
- 				acpi_set_gpe_type(dev->wakeup.gpe_device,
- 						  dev->wakeup.gpe_number,
- 						  ACPI_GPE_TYPE_RUNTIME);
--				spin_lock(&acpi_device_lock);
- 			}
- 			continue;
- 		}
--		spin_unlock(&acpi_device_lock);
- 		if (!dev->wakeup.flags.run_wake)
- 			acpi_enable_gpe(dev->wakeup.gpe_device,
- 					dev->wakeup.gpe_number);
--		spin_lock(&acpi_device_lock);
- 	}
--	spin_unlock(&acpi_device_lock);
-+	mutex_unlock(&acpi_device_lock);
- }
- 
- /**
-@@ -105,7 +96,7 @@ void acpi_disable_wakeup_device(u8 sleep
- 
- 	ACPI_FUNCTION_TRACE("acpi_disable_wakeup_device");
- 
--	spin_lock(&acpi_device_lock);
-+	mutex_lock(&acpi_device_lock);
- 	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
- 		struct acpi_device *dev =
- 			container_of(node, struct acpi_device, wakeup_list);
-@@ -116,19 +107,16 @@ void acpi_disable_wakeup_device(u8 sleep
- 		if ((!dev->wakeup.state.enabled && !dev->wakeup.flags.prepared)
- 		    || sleep_state > (u32) dev->wakeup.sleep_state) {
- 			if (dev->wakeup.flags.run_wake) {
--				spin_unlock(&acpi_device_lock);
- 				acpi_set_gpe_type(dev->wakeup.gpe_device,
- 						  dev->wakeup.gpe_number,
- 						  ACPI_GPE_TYPE_WAKE_RUN);
- 				/* Re-enable it, since set_gpe_type will disable it */
- 				acpi_enable_gpe(dev->wakeup.gpe_device,
- 						dev->wakeup.gpe_number);
--				spin_lock(&acpi_device_lock);
- 			}
- 			continue;
- 		}
- 
--		spin_unlock(&acpi_device_lock);
- 		acpi_disable_wakeup_device_power(dev);
- 		/* Never disable run-wake GPE */
- 		if (!dev->wakeup.flags.run_wake) {
-@@ -137,9 +125,8 @@ void acpi_disable_wakeup_device(u8 sleep
- 			acpi_clear_gpe(dev->wakeup.gpe_device,
- 				       dev->wakeup.gpe_number, ACPI_NOT_ISR);
- 		}
--		spin_lock(&acpi_device_lock);
- 	}
--	spin_unlock(&acpi_device_lock);
-+	mutex_unlock(&acpi_device_lock);
- }
- 
- static int __init acpi_wakeup_device_init(void)
-@@ -149,7 +136,7 @@ static int __init acpi_wakeup_device_ini
- 	if (acpi_disabled)
- 		return 0;
- 
--	spin_lock(&acpi_device_lock);
-+	mutex_lock(&acpi_device_lock);
- 	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
- 		struct acpi_device *dev = container_of(node,
- 						       struct acpi_device,
-@@ -157,16 +144,14 @@ static int __init acpi_wakeup_device_ini
- 		/* In case user doesn't load button driver */
- 		if (!dev->wakeup.flags.run_wake || dev->wakeup.state.enabled)
- 			continue;
--		spin_unlock(&acpi_device_lock);
- 		acpi_set_gpe_type(dev->wakeup.gpe_device,
- 				  dev->wakeup.gpe_number,
- 				  ACPI_GPE_TYPE_WAKE_RUN);
- 		acpi_enable_gpe(dev->wakeup.gpe_device,
- 				dev->wakeup.gpe_number);
- 		dev->wakeup.state.enabled = 1;
--		spin_lock(&acpi_device_lock);
- 	}
--	spin_unlock(&acpi_device_lock);
-+	mutex_unlock(&acpi_device_lock);
- 	return 0;
- }
- 
+Do you have any proposals for how pnpacpi_set_resources() should
+handle failure?  Witold started out with code to call acpi_bus_set_power()
+only if the device is power-manageable, and he then passed the
+return code up.  I suggested letting acpi_bus_set_power() do
+the "is-power-manageable" check.  But then the caller would have
+to distinguish the "device isn't power-manageable" error from
+others, which is kind of ugly.
+
+Bjorn
+
+> Also, for the follow up to this patch, I'm wondering what sort
+> of ACPI behavior we need to support D1 and D2 states.  In PCI,
+> disabling resource decoding (similar to _DIS) is only required
+> for entering D3.  The ACPI spec seems to be ambiguous with this
+> issue.  Len, any thoughts?
+>
+> Thanks,
+> Adam
+>
+> Quoting Witold Szczeponik <Witold.Szczeponik@gmx.net>:
+> > Subject: Enable PNPACPI _PSx Support
+> >
+> >
+> > (This is an updated patch of http://lkml.org/lkml/2008/11/23/211)
+> >
+> > This patch sets the power of PnP ACPI devices to D0 when they
+> > are activated and to D3 when they are disabled.  The latter is
+> > in correspondence with the ACPI 3.0 specification, whereas the
+> > former is added in order to be able to power up a device after
+> > it has been previously disabled (or when booting up a system).
+> > (As a consequence, the patch makes the PnP ACPI code more ACPI
+> > compliant.)
+> >
+> > Section 6.2.2 of the ACPI Specification (at least versions 1.0b
+> > and 3.0a) states: "Prior to running this control method [_DIS],
+> > the OS[PM] will have already put the device in the D3 state."
+> > Unfortunately, there is no clear statement as to when to put
+> > a device in the D0 state. :-( Therefore, the patch executes the
+> > method calls as _PS3/_DIS and _SRS/_PS0. What is clear: "If the
+> > device is disabled, _SRS enables the device at the specified
+> > resources." (From the ACPI 3.0a Specification.)
+> >
+> > The patch fixes a problem with some IBM ThinkPads (at least the
+> > 600E and the 600X) where the serial ports have a dedicated
+> > power source that needs to be brought up before the serial port
+> > can be used.  Without this patch, the serial port is enabled
+> > but has no power. (In the past, the tpctl utility had to be
+> > utilized to turn on the power, but support for this feature
+> > stopped with version 5.9 as it did not support the more recent
+> > kernel versions.)
+> >
+> > No regressions were observed on hardware that does not require
+> > this patch.
+> >
+> > The patch is applied against 2.6.27.8 (vanilla).
+> >
+> >
+> > Signed-off-by: Witold Szczeponik <Witold.Szczeponik@gmx.net>
+> >
+> >
+> > Index: linux/drivers/pnp/pnpacpi/core.c
+> > ===================================================================
+> > --- linux.orig/drivers/pnp/pnpacpi/core.c
+> > +++ linux/drivers/pnp/pnpacpi/core.c
+> > @@ -98,17 +98,20 @@ static int pnpacpi_set_resources(struct
+> >  	status = acpi_set_current_resources(handle, &buffer);
+> >  	if (ACPI_FAILURE(status))
+> >  		ret = -EINVAL;
+> > +	else
+> > +		acpi_bus_set_power(handle, ACPI_STATE_D0);
+> >  	kfree(buffer.pointer);
+> >  	return ret;
+> >  }
+> >
+> >  static int pnpacpi_disable_resources(struct pnp_dev *dev)
+> >  {
+> > +	acpi_handle handle = dev->data;
+> >  	acpi_status status;
+> >
+> >  	/* acpi_unregister_gsi(pnp_irq(dev, 0)); */
+> > -	status = acpi_evaluate_object((acpi_handle) dev->data,
+> > -				      "_DIS", NULL, NULL);
+> > +	acpi_bus_set_power(handle, ACPI_STATE_D3);
+> > +	status = acpi_evaluate_object(handle, "_DIS", NULL, NULL);
+> >  	return ACPI_FAILURE(status) ? -ENODEV : 0;
+> >  }
 
 
