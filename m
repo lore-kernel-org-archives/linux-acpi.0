@@ -1,79 +1,35 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: [intel/acpi] backlight - T61
-Date: Tue, 9 Dec 2008 13:24:47 -0800
-Message-ID: <200812091324.48361.jbarnes@virtuousgeek.org>
-References: <1227854824.3477.9.camel@hidalgo>
-	<1228108103.2713.27.camel@rzhang-dt>
-	<20081203231455.GA11829@localdomain>
+From: Roel Kluin <roel.kluin@gmail.com>
+Subject: [PATCH 21/31] drivers/power: Make static
+Date: Tue, 09 Dec 2008 22:41:07 +0100
+Message-ID: <493EE5F3.8090002@gmail.com>
+References: <493EA286.7080500@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <20081203231455.GA11829@localdomain>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/dri-devel>,
-	<mailto:dri-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=dri-devel>
-List-Post: <mailto:dri-devel@lists.sourceforge.net>
-List-Help: <mailto:dri-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/dri-devel>,
-	<mailto:dri-devel-request@lists.sourceforge.net?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.sourceforge.net
-To: Zhenyu Wang <zhen78@gmail.com>
-Cc: Matthew Garrett <mjg@redhat.com>, Keith Packard <keithp@keithp.com>, intel-gfx@lists.freedesktop.org, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, "dri-devel@lists.sourceforge.net" <dri-devel@lists.sourceforge.net>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755297AbYLIVlj@vger.kernel.org>
+In-Reply-To: <493EA286.7080500@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: astarikovskiy@suse.de
+Cc: linux-acpi@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-T24gV2VkbmVzZGF5LCBEZWNlbWJlciAwMywgMjAwOCAzOjE0IHBtIFpoZW55dSBXYW5nIHdyb3Rl
-Ogo+IE9uIDIwMDguMTIuMDEgMTM6MDg6MjMgKzA4MDAsIFpoYW5nIFJ1aSB3cm90ZToKPiA+ID4g
-SG93ZXZlciwgdGVzdGluZyBGQzEwIHdpdGggdGhlIGxhdGVzdCB1cHN0cmVhbSBrZXJuZWwsCj4g
-PiA+IGluY2x1ZGluZyB0aGUgaTkxNSBjaGFuZ2VzIHRoYXQgYXBwZWFyZWQgdG9kYXkuLi4KPiA+
-ID4gaXQgc2VlbXMgdGhhdCBHVUkgbW9kZSBmb3JnZXRzIHRoZSBicmlnaG5lc3Mgd2hlbgo+ID4g
-PiBJIHN3aXRjaCB0byBjb25zb2xlIG1vZGUuICBFZy4gSWYgSSB1c2UgL3N5cyBvcgo+ID4gPiBo
-b3RrZXlzIGluIEdVSSBtb2RlIHRvIHJlZHVjZSBicmlnaHRuZXNzIHRvIDAsCj4gPiA+IGl0IHN0
-YXlzIGRpbSB3aGVuIEkgc3dpdGNoIHRvIGNvbnNvbGUgbW9kZSwKPiA+ID4gYnV0IHN3aXRjaGVz
-IGJhY2sgdG8gbWF4IGJyaWdodG5lc3Mgd2hlbgo+ID4gPiBJIHN3aXRjaCBiYWNrIHRvIEdVSSBt
-b2RlLgo+ID4KPiA+IGhhaCwgdGhhdCdzIGEgZG9uZSBieSBYLgo+ID4gWmhlbll1IHBvaW50ZWQg
-b3V0IHRoYXQgdGhlIGdyYXBoaWNzIGRyaXZlciB3aWxsIHNldCB0aGUgYmFja2xpZ2h0IHRvCj4g
-PiBtYXhpbXVtIGlmIGl0IGlzIDAg77u/d2hlbiDvu79zd2l0Y2hpbmcgdG8gR1VJLgo+ID4g77u/
-d2hhdCBpZiByZWR1Y2luZyB0aGUgYnJpZ2h0bmVzcyB0byBhIGxvd2VyIGJ1dCBub3QgMCBsZXZl
-bD8KPiA+IGl0IHNob3VsZCBzd2l0Y2ggYmFjayB0byB0aGUgb3JpZ2luYWwgdmFsdWUsIHJpZ2h0
-Pwo+ID4gY2MgWmhlbllVLiA6KQo+Cj4gVGhpcyBkZXBlbmRzIG9uIHRoZSBiYWNrbGlnaHQgY29u
-dHJvbCBtZXRob2QgdXNlZCBieSBYb3JnCj4gdmlkZW8gZHJpdmVyLiBXZSBoYXZlIHRoaXMgY29t
-bWVudCBpbiB0aGUgZHJpdmVyIGZyb20gSmVzc2UgSSB0aGluaywKPgo+ICAvKgo+ICAgKiBJZiB3
-ZSdyZSBnb2luZyBmcm9tIG9mZi0+b24gd2UgbWF5IG5lZWQgdG8gdHVybiBvbiB0aGUgYmFja2xp
-Z2h0Lgo+ICAgKiBXZSBzaG91bGQgdXNlIHRoZSBzYXZlZCB2YWx1ZSB3aGVuZXZlciBwb3NzaWJs
-ZSwgYnV0IG9uIHNvbWUKPiAgICogbWFjaGluZXMgMCBpcyBhIHZhbGlkIGJhY2tsaWdodCB2YWx1
-ZSAoZHVlIHRvIGFuIGV4dGVybmFsIGJhY2tsaWdodAo+ICAgKiBjb250cm9sbGVyIGZvciBleGFt
-cGxlKSwgc28gb24gdGhlbSwgd2hlbiB0dXJuaW5nIExWRFMgYmFjayBvbiwKPiAgICogdGhleSds
-bCBhbHdheXMgcmUtbWF4aW1pemUgdGhlIGJyaWdodG5lc3MuCj4gICAqLwo+IGlmICghKElOUkVH
-KFBQX0NPTlRST0wpICYgUE9XRVJfVEFSR0VUX09OKSAmJgo+IAlkZXZfcHJpdi0+YmFja2xpZ2h0
-X2R1dHlfY3ljbGUgPT0gMCkKPiAJZGV2X3ByaXYtPmJhY2tsaWdodF9kdXR5X2N5Y2xlID0gZGV2
-X3ByaXYtPmJhY2tsaWdodF9tYXg7Cj4KPiBJdCBsb29rcyBpZiB3ZSdyZSB1c2luZyBrZXJuZWwg
-YmFja2xpZ2h0IG1ldGhvZCwgJzAnIHNob3VsZCBiZSBhIGh1bWFuCj4gc2Vuc2libGUgZGltIGxl
-dmVsIGluc3RlYWQgb2YgbWVhbmluZ2xlc3MgbmVhci10by1ibGFjayBsZXZlbCwgcmlnaHQ/Cj4K
-PiBTbyBob3cgYWJvdXQgdGhpcyBwYXRjaCBhZ2FpbnN0IGN1cnJlbnQgeGY4Ni12aWRlby1pbnRl
-bD8KPgo+IC0tLQo+IGRpZmYgLS1naXQgYS9zcmMvaTgzMF9sdmRzLmMgYi9zcmMvaTgzMF9sdmRz
-LmMKPiBpbmRleCAyMzliYzg5Li4xNzk5ZWFiIDEwMDY0NAo+IC0tLSBhL3NyYy9pODMwX2x2ZHMu
-Ywo+ICsrKyBiL3NyYy9pODMwX2x2ZHMuYwo+IEBAIC00MDAsNyArNDAwLDggQEAgaTgzMFNldExW
-RFNQYW5lbFBvd2VyKHhmODZPdXRwdXRQdHIgb3V0cHV0LCBCb29sIG9uKQo+ICAJICogdGhleSds
-bCBhbHdheXMgcmUtbWF4aW1pemUgdGhlIGJyaWdodG5lc3MuCj4gIAkgKi8KPiAgCWlmICghKElO
-UkVHKFBQX0NPTlRST0wpICYgUE9XRVJfVEFSR0VUX09OKSAmJgo+IC0JICAgIGRldl9wcml2LT5i
-YWNrbGlnaHRfZHV0eV9jeWNsZSA9PSAwKQo+ICsJICAgIGRldl9wcml2LT5iYWNrbGlnaHRfZHV0
-eV9jeWNsZSA9PSAwICYmCj4gKwkgICAgcEk4MzAtPmJhY2tsaWdodF9jb250cm9sX21ldGhvZCA8
-IEJDTV9LRVJORUwpCj4gIAkgICAgZGV2X3ByaXYtPmJhY2tsaWdodF9kdXR5X2N5Y2xlID0gZGV2
-X3ByaXYtPmJhY2tsaWdodF9tYXg7Cj4KPiAgCU9VVFJFRyhQUF9DT05UUk9MLCBJTlJFRyhQUF9D
-T05UUk9MKSB8IFBPV0VSX1RBUkdFVF9PTik7Cj4gLS0tCj4KPiBwLnMgTGVuLCBpZiBmb3IgaW50
-ZWwgZ3JhcGhpY3Mgc3BlY2lmaWMgaXNzdWUsIHdlIGhhdmUgYW5vdGhlcgo+IGludGVsLWdmeEBs
-aXN0cy5mcmVlZGVza3RvcC5vcmcgZm9yIHN1Y2ggZGlzY3Vzcy4gVGhhbmtzLgoKSSdkIGJlIGEg
-bGl0dGxlIGhhcHBpZXIgd2l0aCBhICE9IEJDTV9LRVJORUwsIGJ1dCBvdGhlciB0aGFuIHRoYXQg
-aXQgc2VlbXMgCmZpbmUuCgotLSAKSmVzc2UgQmFybmVzLCBJbnRlbCBPcGVuIFNvdXJjZSBUZWNo
-bm9sb2d5IENlbnRlcgoKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tClNGLk5ldCBlbWFpbCBpcyBTcG9u
-c29yZWQgYnkgTUlYMDksIE1hcmNoIDE4LTIwLCAyMDA5IGluIExhcyBWZWdhcywgTmV2YWRhLgpU
-aGUgZnV0dXJlIG9mIHRoZSB3ZWIgY2FuJ3QgaGFwcGVuIHdpdGhvdXQgeW91LiAgSm9pbiB1cyBh
-dCBNSVgwOSB0byBoZWxwCnBhdmUgdGhlIHdheSB0byB0aGUgTmV4dCBXZWIgbm93LiBMZWFybiBt
-b3JlIGFuZCByZWdpc3RlciBhdApodHRwOi8vYWQuZG91YmxlY2xpY2submV0L2NsazsyMDg2Njk0
-Mzg7MTM1MDMwMzg7aT9odHRwOi8vMjAwOS52aXNpdG1peC5jb20vCi0tCl9fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkRyaS1kZXZlbCBtYWlsaW5nIGxpc3QK
-RHJpLWRldmVsQGxpc3RzLnNvdXJjZWZvcmdlLm5ldApodHRwczovL2xpc3RzLnNvdXJjZWZvcmdl
-Lm5ldC9saXN0cy9saXN0aW5mby9kcmktZGV2ZWwK
+Sparse asked whether these could be static.
+
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+---
+ drivers/power/olpc_battery.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/power/olpc_battery.c b/drivers/power/olpc_battery.c
+index 5fbca26..a9fd570 100644
+--- a/drivers/power/olpc_battery.c
++++ b/drivers/power/olpc_battery.c
+@@ -379,7 +379,7 @@ static struct power_supply olpc_bat = {
+ 	.use_for_apm = 1,
+ };
+ 
+-void olpc_battery_trigger_uevent(unsigned long cause)
++static void olpc_battery_trigger_uevent(unsigned long cause)
+ {
+ 	if (cause & EC_SCI_SRC_ACPWR)
+ 		kobject_uevent(&olpc_ac.dev->kobj, KOBJ_CHANGE);
