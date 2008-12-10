@@ -1,28 +1,45 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] /proc/acpi/alarm: handle day-of-month wraparound on
- readback
-Date: Wed, 10 Dec 2008 00:35:12 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0812100034100.17146@localhost.localdomain>
-References: <200806222042.13929.david-b@pacbell.net> <4934176F.6080900@rtr.ca>
- <alpine.LFD.2.00.0812011311490.3197@localhost.localdomain>
- <4934619A.10809@rtr.ca> <493E92D6.8090104@rtr.ca>
+From: Timo Hoenig <thoenig@nouse.net>
+Subject: Re: [PATCH 01/02] Initial work to let ACPI buttons work over INPUT
+ layer
+Date: Wed, 10 Dec 2008 10:26:05 +0100
+Message-ID: <1228901165.10450.13.camel@zimtstern>
+References: <200811291834.46109.dnascimento@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms046pub.verizon.net ([206.46.252.46]:54650 "EHLO
-	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751030AbYLJFf1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Dec 2008 00:35:27 -0500
-In-reply-to: <493E92D6.8090104@rtr.ca>
+Received: from ns.suse.de ([195.135.220.2]:39008 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751567AbYLJJZx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 10 Dec 2008 04:25:53 -0500
+In-Reply-To: <200811291834.46109.dnascimento@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Lord <lkml@rtr.ca>
-Cc: Andrew Morton <akpm@linux-foundation.org>, David Brownell <david-b@pacbell.net>, lkml <linux-kernel@vger.kernel.org>, rtc-linux@googlegroups.com, linux-acpi@vger.kernel.org
+To: dnascimento@gmail.com, corentincj@iksaif.net, sziwan@users.sourceforge.net
+Cc: linux-acpi@vger.kernel.org, Nicolas Trangez <ikke@nicolast.be>
 
-> (repost)
+Hi!
 
-thanks for the refresh, Mark.
-applied to acpi-test.
+On Sat, 2008-11-29 at 18:34 -0200, Daniel Oliveira Nascimento wrote:
 
---
-Len Brown, Intel Open Source Technology Center
+> Updated work of Nicolas Trangez to support INPUT layer in
+> asus-laptop driver in git branch.
+> 
+> Initial discussion can be found here:
+> http://article.gmane.org/gmane.linux.acpi.acpi4asus.user/217
+
+Daniel, Nicolas, thanks for the two patches.
+
+I've been testing your patches on two systems (c.f.
+https://bugzilla.novell.com/show_bug.cgi?id=448004 ) and confirm that
+they just work fine.
+
+Has there been any response regarding an mainline inclusion?  I'm just
+following linux-acpi.  At least there didn't see any response.
+
+Adding Corentin and Karol to CC.
+
+Thanks,
+
+   Timo
+
