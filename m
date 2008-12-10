@@ -1,83 +1,37 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH] PNPACPI: Enable Power Support
-Date: Wed, 10 Dec 2008 21:26:02 -0200
-Message-ID: <20081210232602.GC7589@khazad-dum.debian.net>
-References: <493D8A1F.2090907@gmx.net> <20081210095315.GA20627@khazad-dum.debian.net> <200812101123.00055.oliver@neukum.org>
+From: Maxime Poncet <maxime.poncet@gmail.com>
+Subject: Re: Unexcepted shutdown in 2.6.28-rc5
+Date: Thu, 11 Dec 2008 00:34:19 +0100
+Message-ID: <494051FB.9050201@gmail.com>
+References: <4925EF01.2070405@gmail.com>	 <1227229754.15014.280.camel@rzhang-dt>  <200812072217.04150.rjw@sisk.pl> <1228698996.4181.24.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:51987 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754614AbYLJX0G (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 10 Dec 2008 18:26:06 -0500
-Content-Disposition: inline
-In-Reply-To: <200812101123.00055.oliver@neukum.org>
+Received: from mail-ew0-f17.google.com ([209.85.219.17]:48300 "EHLO
+	mail-ew0-f17.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752603AbYLJXfU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Dec 2008 18:35:20 -0500
+Received: by ewy10 with SMTP id 10so1081109ewy.13
+        for <linux-acpi@vger.kernel.org>; Wed, 10 Dec 2008 15:35:18 -0800 (PST)
+In-Reply-To: <1228698996.4181.24.camel@yakui_zhao.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Oliver Neukum <oliver@neukum.org>
-Cc: Witold Szczeponik <Witold.Szczeponik@gmx.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Bjorn Helgaas <bjorn.helgaas@hp.com>, Adam Belay <abelay@mit.edu>, rjw@sisk.pl
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "Zhang, Rui" <rui.zhang@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <lenb@kernel.org>
 
-On Wed, 10 Dec 2008, Oliver Neukum wrote:
-> Am Mittwoch, 10. Dezember 2008 10:53:15 schrieb Henrique de Moraes Ho=
-lschuh:
-> > Although I do wonder WTF we don't do that on our USB UHCI/EHCI kern=
-el
-> > drivers, that ACPI needs to step in to fix it. =A0If it is not a wa=
-ke
->=20
-> EHCI/UHCI have no way to power down host controllers.
-> It needs external means, namely ACPI.
+Zhao Yakui wrote:
+> Hi, Maxime
+>    As there exist some changes related with EC between 2.6.28-rc3/rc5,
+> Will you please use the git-bisect to identify which commit causes the
+> regression?
+>    Thanks.
+Hi Zhao,
+This issue is resolved for me in 2.6.28-rc7
 
-I see.  So we can't just set the pci devices to D0 to cut power to the =
-USB
-ports and USB controller while in STR?  Must be the EC stuff I just not=
-iced
-in the ACPI AML, then.
+But I am still getting the following message every 5 seconds
+ACPI: Transitioning device [FAN] to D3
+ACPI: Unable to turn cooling device [ffff88007fb63590] 'off'
 
-> > device, why are we leaving it powered up? =A0It is bad enough we do=
-n't
-> > have any sort of proper USB power control, but to leave the entire =
-USB
-> > subsystem powered up without reason?!
->=20
-> We don't. If you unplug all devices, USB will power down as much as i=
-s
-> compatible with detecting new devices.
+I am using bitsect to find out which commit causes this regression.
 
-Thanks for the update.
 
-> > Vista not only powers down the USB HCIs and ports on STR, it also
-> > powers down ports when you "safely remove the USB device", and seem=
-s
-> > to leave the port powered down until you insert a device (or remove
-> > the device already in there, whatever).
->=20
-> If you cut power to a port, you cannot detect a hotplugging. You can
-> suspend it, which Linux does do.
-
-Hmm, probably it is just suspend, then (outside of STR.  On STR, it *is=
-*
-somehow powering down the ports when no wake devices are there, but tha=
-t
-might be done using extra stuff, and not just the PCI functions of the =
-Intel
-ICH6 EHCI/UHCI controllers).
-
-I guess our userspace is not doing the suspend on "safely remove" then?
-Because at least here, it is not behaving as Windows does when I tell K=
-DE to
-"safely eject" (which probably ends up being a HAL request of some sort=
-).
-
---=20
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
