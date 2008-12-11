@@ -1,50 +1,57 @@
-From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-Subject: Re: Fuijtsu Lifebook RFKILL support
-Date: Thu, 11 Dec 2008 12:14:59 +1030 (CST)
-Message-ID: <200812110144.mBB1ixwZ028245@turbo.physics.adelaide.edu.au>
-References: <1228959101.4045.19.camel@localhost>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH] PNPACPI: Enable Power Support
+Date: Wed, 10 Dec 2008 23:50:52 -0200
+Message-ID: <20081211015052.GA18925@khazad-dum.debian.net>
+References: <493D8A1F.2090907@gmx.net> <20081210095315.GA20627@khazad-dum.debian.net> <494018E9.2060507@gmx.net> <20081210232137.GB7589@khazad-dum.debian.net> <20081211012838.GA18065@khazad-dum.debian.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:40310 "EHLO
-	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752571AbYLKBpP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 10 Dec 2008 20:45:15 -0500
-In-Reply-To: <1228959101.4045.19.camel@localhost> from "Tony Vroon" at Dec 11, 2008 01:31:41 AM
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755562AbYLKBvO@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20081211012838.GA18065@khazad-dum.debian.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Witold Szczeponik <Witold.Szczeponik@gmx.net>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Bjorn Helgaas <bjorn.helgaas@hp.com>, Adam Belay <abelay@mit.edu>, rjw@sisk.pl
 List-Id: linux-acpi@vger.kernel.org
-To: tony@linx.net
-Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Ivo van Doorn <ivdoorn@gmail.com>, linux-acpi@vger.kernel.org
 
-> On Thu, 2008-12-11 at 11:50 +1030, Jonathan Woithe wrote:
-> > Do the laptops in question allow you to control each radio individually or
-> > is it just a single global kill switch?
+On Wed, 10 Dec 2008, Henrique de Moraes Holschuh wrote:
+> Bah, never mind.  Major issue between the keyboard and the chair, on my
+> end...  Got PR# and PS# confused.  The ThinkPad ACPI DSDT in question has
+> the standard crap for wake device control, and PR# methods, but no PS#
+> methods.
 > 
-> S6410, S6420 & E8410 all have the one global kill switch on the front.
-> It seems only the BIOS allows disabling individual radios.
-
-Oh OK.
-
-> > The only DSDT I have access to is the one from my box - an S7020.  This has
-> > a hardware rfkill switch which AFAIK doesn't have a software interface.
+> The PR0..PR2 nodes for the UHCI and EHCI USB ports on the ThinkPad T43
+> mention a power resource object, and that power resource CAN power on/off
+> the USB ports (and that freaks out the UHCI and EHCI kernel drivers causing
+> over-current reports, but that was to be expected).  The AML code tells the
+> EC to do some magic that probably tells a MOSFET somewhere in the mainboard
+> to stop supplying power to the ports.
 > 
-> I do believe the S7020 is similar in this respect. It has a global
-> all-or-nothing switch with no software override. I need to see the DSDT
-> to be sure, but I'm quite certain I can get an on/off status from it
-> like on mine.
-
-Sounds fair.
-
-> > Despite this I'll get a DSDT for the S7020 for you in the next few days if
-> > you like.
+> And Windows XP (this is not a Vista BIOS and I never tried running Vista in
+> it...) is noticing that power resource (even without PS3 or PR3 nodes) and
+> calling that power resource _OFF handler to power down USB ports when it
+> doesn't need these devices for wakeup reasons, before entering STR.
 > 
-> Yes please. That one is new to me :)
+> Anyone has any clue on what part of the ACPI spec could result on that
+> behaviour?  Because otherwise I will just bloody special-case it into
+> thinkpad-acpi's suspend and resume stuff.  It will piss the USB subsystem
+> off if I can't arrange to do it on early resume and late suspend, however.
 
-No problem.  It may be a few days (ie: after the weekend) before I can get
-this to you owing to a few things going on at home at present and the
-practically non-existant net connection I have at home at the moment.
+Found it.  ACPI 3.0b, page 238, 7.2 Device Power Management Objects.
 
-Regards
-  jonathan
+"For OSPM to put the device in the D3 state, the following must occur:
+
+All Power Resources no longer referenced by any device in the system must
+be in the OFF state"
+
+If you want to put *any* particular ACPI device into D3, you turn off
+*every* unused power resource, be them related or not to that device...
+
+Windows XP seems to do it, and powers down the USB ports. None of them are
+set for wake-from-S3, they all go to D3 and no references to the power
+resources are left.  We probably should be doing the same.
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
