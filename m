@@ -1,28 +1,41 @@
-From: Uk Online Result <bruneau@sympatico.ca>
-Subject: winner
-Date: Wed, 10 Dec 2008 22:31:05 -0500
-Message-ID: <20081211033105.GOQM1658.simmts5-srv.bellnexxia.net@simip9-ac.srvr.bell.ca>
-Reply-To: mr_pinket11@ymail.com
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: Fuijtsu Lifebook RFKILL support
+Date: Thu, 11 Dec 2008 14:52:47 -0200
+Message-ID: <20081211165247.GA4844@khazad-dum.debian.net>
+References: <1228957506.4045.11.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from simmts5-qfe0.srvr.bell.ca ([206.47.199.163]:55598 "EHLO
-	simmts5-srv.bellnexxia.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751838AbYLKDbI convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 10 Dec 2008 22:31:08 -0500
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:55303 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757667AbYLKQww (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 11 Dec 2008 11:52:52 -0500
+Content-Disposition: inline
+In-Reply-To: <1228957506.4045.11.camel@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: info@winner.com
+To: Tony Vroon <tony@linx.net>
+Cc: Ivo van Doorn <ivdoorn@gmail.com>, linux-acpi@vger.kernel.org, jwoithe@physics.adelaide.edu.au
 
-You have won a sum of =A3500,000 GBP  Get back to us via return email w=
-ith your Name,and Address\Country and your Phone Number for more=20
-information on how you won and the Delivery/Tranfer of your won prize t=
-o you. E-mail: mr_pinket11@ymail.com
+On Thu, 11 Dec 2008, Tony Vroon wrote:
+> The laptop has one "big" kill switch that kills everything,
+> WLAN/Bluetooth/3G, you name it. I have no means to turn individual
+> radios on or off, all I'll get is a big notifier (from which I can fire
+> up a query to see whether the kill switch state got changed).
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+That is an input device, that should issue EV_SW SW_RFKILL_ALL events (and
+not EV_KEY, etc).
+
+So, you won't even #include <linux/rfkill.h>.  The only pitfall I know of is
+that you have to re-sync the input layer at every point it could have missed
+a state change.  This means you must issue gratuitous EV_SW SW_RFKILL_ALL
+events with the current state of the switch after you created the input
+device, after resume (from S3/S4), and when you get the notifier from ACPI
+that the switch state could have changed.
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
