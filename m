@@ -1,31 +1,60 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: Linux 2.6.28-rc8
-Date: Thu, 11 Dec 2008 08:59:03 -0800
-Message-ID: <20081211085903.ab14f3f7.akpm@linux-foundation.org>
-References: <alpine.LFD.2.00.0812101651130.3340@localhost.localdomain>
-	<20081211103800.GC7394@gambetta>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757286AbYLKQ7n@vger.kernel.org>
-In-Reply-To: <20081211103800.GC7394@gambetta>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Frederik Deweerdt <frederik.deweerdt@xprog.eu>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+From: akpm@linux-foundation.org
+Subject: [patch 1/2] acpi: check _PSS invalidation when BIOS report _PSS with 0x80000000
+Date: Thu, 11 Dec 2008 09:00:11 -0800
+Message-ID: <200812111700.mBBH0BQt017390@imap1.linux-foundation.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41409 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757444AbYLKRAj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 11 Dec 2008 12:00:39 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, youquan.song@intel.com, venkatesh.pallipadi@intel.com
 
-On Thu, 11 Dec 2008 11:38:00 +0100 Frederik Deweerdt <frederik.deweerdt@xprog.eu> wrote:
+From: Youquan, Song <youquan.song@intel.com>
 
-> On Wed, Dec 10, 2008 at 05:04:39PM -0800, Linus Torvalds wrote:
-> > 
-> > Nothing overly exciting here. 
-> 
-> -rc8 could be made even less exciting, it seems, by adding this crutially
-> boring fix:
-> http://lkml.org/lkml/2008/12/1/345
-> 
-> It sits in -mm and fixes a regression in mainline (Bugzilla #12047).
-> 
+When cpu frequencey scaling is disabled, some BIOSes report _PSS with all
+0x80000000.  If the kernel treats this case as valid, the kernel will boot
+crash when load cpufreq govenors.
 
-I actually have two acpi patches which look like 2.6.28 material.  I shall
-resend them to Len.
+So in order to cover more buggy BIOSs, the patch just check _PSS core
+frequency invalidation.
+
+Signed-off-by: Youquan, Song <youquan.song@intel.com>
+Signed-off-by: Pallipadi, Venkatesh <venkatesh.pallipadi@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ drivers/acpi/processor_perflib.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff -puN drivers/acpi/processor_perflib.c~acpi-check-_pss-invalidation-when-bios-report-_pss-with-all-0x80000000 drivers/acpi/processor_perflib.c
+--- a/drivers/acpi/processor_perflib.c~acpi-check-_pss-invalidation-when-bios-report-_pss-with-all-0x80000000
++++ a/drivers/acpi/processor_perflib.c
+@@ -50,6 +50,7 @@
+ #define ACPI_PROCESSOR_CLASS		"processor"
+ #define ACPI_PROCESSOR_FILE_PERFORMANCE	"performance"
+ #define _COMPONENT		ACPI_PROCESSOR_COMPONENT
++#define ACPI_PROCESSOR_PSS_INVALID	0x80000000
+ ACPI_MODULE_NAME("processor_perflib");
+ 
+ static DEFINE_MUTEX(performance_mutex);
+@@ -324,6 +325,14 @@ static int acpi_processor_get_performanc
+ 			kfree(pr->performance->states);
+ 			goto end;
+ 		}
++
++		if (px->core_frequency == ACPI_PROCESSOR_PSS_INVALID) {
++			printk(KERN_ERR PREFIX
++				    "P-states disabled in the BIOS\n");
++			result = -EFAULT;
++			kfree(pr->performance->states);
++			goto end;
++		}
+ 	}
+ 
+       end:
+_
