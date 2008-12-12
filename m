@@ -1,189 +1,74 @@
-From: Tony Vroon <tony@linx.net>
-Subject: Re: Fuijtsu Lifebook RFKILL support
-Date: Fri, 12 Dec 2008 01:50:02 +0000
-Message-ID: <1229046602.4030.13.camel@localhost>
-References: <1228957506.4045.11.camel@localhost>
-	 <20081211165247.GA4844@khazad-dum.debian.net>
-	 <1229016827.6446.6.camel@localhost>
-	 <20081211194734.GA18132@khazad-dum.debian.net>
-Reply-To: tony@linx.net
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH]  ACPI: Check _PSS invalidation when BIOS report _PSS with
+ all 0x80000000
+Date: Fri, 12 Dec 2008 00:36:50 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0812120029260.27968@localhost.localdomain>
+References: <3606.172.16.183.72.1227236916.squirrel@linux.intel.com>
+ <20081121150839.58dbedfa.akpm@linux-foundation.org>
+ <20081124230208.GA21491@youquan-linux.bj.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-C4KtPja+ZbxDh7CczdzE"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gold.linx.net ([195.66.232.40]:59080 "EHLO gold.linx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755216AbYLLBuo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 11 Dec 2008 20:50:44 -0500
-In-Reply-To: <20081211194734.GA18132@khazad-dum.debian.net>
+Received: from vms173007pub.verizon.net ([206.46.173.7]:50708 "EHLO
+	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751046AbYLLFhF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Dec 2008 00:37:05 -0500
+In-reply-to: <20081124230208.GA21491@youquan-linux.bj.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Ivo van Doorn <ivdoorn@gmail.com>, linux-acpi@vger.kernel.org, jwoithe@physics.adelaide.edu.au, Peter Gruber <nokos@gmx.net>
+To: "Youquan,Song" <youquan.song@linux.intel.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
+On Mon, 24 Nov 2008, Youquan,Song wrote:
 
---=-C4KtPja+ZbxDh7CczdzE
-Content-Type: multipart/mixed; boundary="=-CjAy0S3luaK2LpkHm7Y0"
+> On Fri, Nov 21, 2008 at 03:08:39PM -0800, Andrew Morton wrote:
+> > On Thu, 20 Nov 2008 19:08:36 -0800 (PST)
+> > youquan_song@linux.intel.com wrote:
+> > 
+> > > Subject: Check _PSS invalidation when BIOS report _PSS with 0x80000000
+> > > 
+> > > When cpu frequencey scaling disable,some BIOS report _PSS with all
+> > > 0x80000000.
+> > > If kernel treat this case as valid, the kernel will boot crash when load
+> > > cpufreq govenors.
+> > > 
+> > > So in order to cover more buggy BIOSs, the patch just check _PSS core
+> > > frequencey invalidtion.
+> > > 
+> > 
+> > It's unclear how many machines this will affect, and what the effects
+> > of not having the patch are upon those machines.  That is useful
+> > information for people who are deciding whcih kernel versions this
+> > patch should be merged into.
+> 
+> I meet 2 machines that if the P-states is disabled in BIOS, the kernel
+> will boot crash at loading cpufreq_userspace governor because kernel
+> consider that P-states validate. I know there are some other machines
+> also exist this bug.
 
+What does _PPC say when P-states are disabled on these machines?
+If it is disabling the _PSS, maybe we should not be looking at the _PSS?
 
---=-CjAy0S3luaK2LpkHm7Y0
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+This would be a good patch if 0x80000000 were actually documented
+in the ACPI spec as disabling P-states, but it isn't.
 
-On Thu, 2008-12-11 at 17:47 -0200, Henrique de Moraes Holschuh wrote:
-> I don't think so if you mean Gnome knowing what to do with EV_SW
-> SW_RFKILL_ALL.  That is not a report that radios got rfkilled, but rather=
- a
-> COMMAND to rfkill all radios.
+Can you open a bugzilla and attach the acpidump output for
+the two failing machines?  Are those machines shipped with
+P-states enabled by default, or disabled by default?
 
-Right, so are we talking across purposes here?
-I want to report radio status to userland so NetworkManager can stop
-helplessly flailing around asking me for a WPA2 password in a loop if I
-kill the radios.
-What I have is an event-driven report that includes radio killswitch
-status, HARD_BLOCKED or UNBLOCKED in rfkill terminology. There is no
-SOFT_BLOCKED as I have no ability to turn individual radios on/off in
-software.
+Also, how, exactly, do we crash when we see these values?
 
-Should I be creating individual Bluetooth/WLAN/WWAN rfkills that flip
-between HARD_BLOCKED & UNBLOCKED with force status and return failure
-for a radio state change attempt?
+> > Do you think this fix is needed in 2.6.28?  2.6.27.x?  2.6.26.x?  etc?
+> > 
+> 
+> I know that the bug exists in kernel as old as 2.6.18 and also exits on
+> 2.6.28, 2.6.27 etc. 
 
-But perhaps code talks, let me just attach what I have right now. Both
-for the rfkill guys to see what information I get and when and for the
-fujitsu-laptop users & devs to confirm that this works on other
-Lifebooks then just the S6420.
-Testers please run with debugging on and report both BTNI and whether
-you get proper event response like so:
-FUJ02B1: acpi_fujitsu_hotkey_notify: radios: [killed], lid: [open],
-docked: [no]
+So we've been exposed to this BIOS bug for more than 10 releases
+and the world has not ended.  Unless we're about to be exposed to
+a raft of new machines with this BIOS issue, and they have P-states
+disabled by default, I'd say this workaround in not urgent.
 
-Regards,
-Tony V.
-
---=-CjAy0S3luaK2LpkHm7Y0
-Content-Disposition: attachment; filename="fujitsu-func-interface.diff"
-Content-Type: text/x-patch; name="fujitsu-func-interface.diff"; charset="UTF-8"
-Content-Transfer-Encoding: base64
-
-LS0tIGxpbnV4LTIuNi9kcml2ZXJzL21pc2MvZnVqaXRzdS1sYXB0b3AuYy5vcmlnCTIwMDgtMTIt
-MDkgMTU6MTk6MTkuMDAwMDAwMDAwICswMDAwDQorKysgbGludXgtMi42L2RyaXZlcnMvbWlzYy9m
-dWppdHN1LWxhcHRvcC5jCTIwMDgtMTItMTIgMDE6MjA6MDcuMDAwMDAwMDAwICswMDAwDQpAQCAt
-Myw2ICszLDcgQEANCiAvKg0KICAgQ29weXJpZ2h0IChDKSAyMDA3LDIwMDggSm9uYXRoYW4gV29p
-dGhlIDxqd29pdGhlQHBoeXNpY3MuYWRlbGFpZGUuZWR1LmF1Pg0KICAgQ29weXJpZ2h0IChDKSAy
-MDA4IFBldGVyIEdydWJlciA8bm9rb3NAZ214Lm5ldD4NCisgIENvcHlyaWdodCAoQykgMjAwOCBU
-b255IFZyb29uIDx0b255QGxpbngubmV0Pg0KICAgQmFzZWQgb24gZWFybGllciB3b3JrOg0KICAg
-ICBDb3B5cmlnaHQgKEMpIDIwMDMgU2hhbmUgU3BlbmNlciA8c2hhbmVAYm9nb21pcC5jb20+DQog
-ICAgIEFkcmlhbiBZZWUgPGJyZXd0LWZ1aml0c3VAYnJld3Qub3JnPg0KQEAgLTY2LDcgKzY3LDcg
-QEANCiAjaW5jbHVkZSA8bGludXgvdmlkZW9fb3V0cHV0Lmg+DQogI2luY2x1ZGUgPGxpbnV4L3Bs
-YXRmb3JtX2RldmljZS5oPg0KIA0KLSNkZWZpbmUgRlVKSVRTVV9EUklWRVJfVkVSU0lPTiAiMC40
-LjMiDQorI2RlZmluZSBGVUpJVFNVX0RSSVZFUl9WRVJTSU9OICIwLjUuMCINCiANCiAjZGVmaW5l
-IEZVSklUU1VfTENEX05fTEVWRUxTIDgNCiANCkBAIC04Myw2ICs4NCwxMiBAQA0KICNkZWZpbmUg
-QUNQSV9WSURFT19OT1RJRllfSU5DX0JSSUdIVE5FU1MgICAgIDB4ODYNCiAjZGVmaW5lIEFDUElf
-VklERU9fTk9USUZZX0RFQ19CUklHSFRORVNTICAgICAweDg3DQogDQorLyogRlVOQyBpbnRlcmZh
-Y2UgLSBjb21tYW5kIHZhbHVlcyAqLw0KKyNkZWZpbmUgRlVOQ19SRktJTEwJMHgxMDAwDQorI2Rl
-ZmluZSBGVU5DX0xFRFMJMHgxMDAxDQorI2RlZmluZSBGVU5DX0JVVFRPTlMJMHgxMDAyDQorI2Rl
-ZmluZSBGVU5DX0JBQ0tMSUdIVCAgMHgxMDA0DQorDQogLyogSG90a2V5IGRldGFpbHMgKi8NCiAj
-ZGVmaW5lIEtFWTFfQ09ERQkweDQxMAkvKiBjb2RlcyBmb3IgdGhlIGtleXMgaW4gdGhlIEdJUkIg
-cmVnaXN0ZXIgKi8NCiAjZGVmaW5lIEtFWTJfQ09ERQkweDQxMQ0KQEAgLTE0NSw4ICsxNTIsNyBA
-QA0KIAlzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZl9kZXZpY2U7DQogCXN0cnVjdCBrZmlmbyAq
-ZmlmbzsNCiAJc3BpbmxvY2tfdCBmaWZvX2xvY2s7DQotDQotCXVuc2lnbmVkIGludCBpcmI7CS8q
-IGluZm8gYWJvdXQgdGhlIHByZXNzZWQgYnV0dG9ucyAqLw0KKwlpbnQgcmZraWxsX3N0YXRlOw0K
-IH07DQogDQogc3RhdGljIHN0cnVjdCBmdWppdHN1X2hvdGtleV90ICpmdWppdHN1X2hvdGtleTsN
-CkBAIC0xNjAsNiArMTY2LDU0IEBADQogDQogc3RhdGljIHZvaWQgYWNwaV9mdWppdHN1X25vdGlm
-eShhY3BpX2hhbmRsZSBoYW5kbGUsIHUzMiBldmVudCwgdm9pZCAqZGF0YSk7DQogDQorLyogRnVq
-aXRzdSBBQ1BJIGludGVyZmFjZSBmdW5jdGlvbiAqLw0KKw0KK3N0YXRpYyBpbnQgY2FsbF9mdWpl
-eF9mdW5jKGludCBjbWQsIGludCBhcmcwLCBpbnQgYXJnMSwgaW50IGFyZzIpDQorew0KKwlhY3Bp
-X3N0YXR1cyBzdGF0dXMgPSBBRV9PSzsNCisJdW5pb24gYWNwaV9vYmplY3QgcGFyYW1zWzRdID0g
-ew0KKwl7IC50eXBlID0gQUNQSV9UWVBFX0lOVEVHRVIgfSwNCisJeyAudHlwZSA9IEFDUElfVFlQ
-RV9JTlRFR0VSIH0sDQorCXsgLnR5cGUgPSBBQ1BJX1RZUEVfSU5URUdFUiB9LA0KKwl7IC50eXBl
-ID0gQUNQSV9UWVBFX0lOVEVHRVIgfQ0KKwl9Ow0KKwlzdHJ1Y3QgYWNwaV9vYmplY3RfbGlzdCBh
-cmdfbGlzdCA9IHsgNCwgJnBhcmFtc1swXSB9Ow0KKwlzdHJ1Y3QgYWNwaV9idWZmZXIgb3V0cHV0
-Ow0KKwl1bmlvbiBhY3BpX29iamVjdCBvdXRfb2JqOw0KKwlhY3BpX2hhbmRsZSBoYW5kbGUgPSBO
-VUxMOw0KKw0KKwlzdGF0dXMgPSBhY3BpX2dldF9oYW5kbGUoZnVqaXRzdV9ob3RrZXktPmFjcGlf
-aGFuZGxlLCAiRlVOQyIsICZoYW5kbGUpOw0KKwlpZiAoQUNQSV9GQUlMVVJFKHN0YXR1cykpIHsN
-CisJCXZkYmdfcHJpbnRrKEZVSkxBUFRPUF9EQkdfRVJST1IsICJGVU5DIGludGVyZmFjZSBpcyBu
-b3QgcHJlc2VudFxuIik7DQorCQlyZXR1cm4gLUVOT0RFVjsNCisJfQ0KKw0KKwlwYXJhbXNbMF0u
-aW50ZWdlci52YWx1ZSA9IGNtZDsNCisJcGFyYW1zWzFdLmludGVnZXIudmFsdWUgPSBhcmcwOw0K
-KwlwYXJhbXNbMl0uaW50ZWdlci52YWx1ZSA9IGFyZzE7DQorCXBhcmFtc1szXS5pbnRlZ2VyLnZh
-bHVlID0gYXJnMjsNCisNCisJb3V0cHV0Lmxlbmd0aCA9IHNpemVvZihvdXRfb2JqKTsNCisJb3V0
-cHV0LnBvaW50ZXIgPSAmb3V0X29iajsNCisNCisJc3RhdHVzID0gYWNwaV9ldmFsdWF0ZV9vYmpl
-Y3QoaGFuZGxlLCBOVUxMLCAmYXJnX2xpc3QsICZvdXRwdXQpOw0KKwlpZiAoQUNQSV9GQUlMVVJF
-KHN0YXR1cykpIHsNCisJCXZkYmdfcHJpbnRrKEZVSkxBUFRPUF9EQkdfV0FSTiwgIkZVTkMgMHgl
-eCAoYXJncyAweCV4LCAweCV4LCAweCV4KSBjYWxsIGZhaWxlZFxuIiwNCisJCQkJY21kLCBhcmcw
-LCBhcmcxLCBhcmcyKTsNCisJCXJldHVybiAtRU5PREVWOw0KKwl9DQorDQorCWlmIChvdXRfb2Jq
-LnR5cGUgIT0gQUNQSV9UWVBFX0lOVEVHRVIpIHsNCisJCXZkYmdfcHJpbnRrKEZVSkxBUFRPUF9E
-QkdfV0FSTiwgIkZVTkMgMHgleCAoYXJncyAweCV4LCAweCV4LCAweCV4KSBkaWQgbm90IHJldHVy
-biBhbiBpbnRlZ2VyXG4iLA0KKwkJCQljbWQsIGFyZzAsIGFyZzEsIGFyZzIpOw0KKwkJcmV0dXJu
-IC1FTk9ERVY7DQorCX0NCisNCisJdmRiZ19wcmludGsoRlVKTEFQVE9QX0RCR19UUkFDRSwgIkZV
-TkMgMHgleCAoYXJncyAweCV4LCAweCV4LCAweCV4KSByZXR1cm5lZCAweCV4XG4iLCBjbWQsIGFy
-ZzAsIGFyZzEsDQorCQkJCWFyZzIsIChpbnQpb3V0X29iai5pbnRlZ2VyLnZhbHVlKTsNCisJcmV0
-dXJuIG91dF9vYmouaW50ZWdlci52YWx1ZTsNCit9DQorDQogLyogSGFyZHdhcmUgYWNjZXNzIGZv
-ciBMQ0QgYnJpZ2h0bmVzcyBjb250cm9sICovDQogDQogc3RhdGljIGludCBzZXRfbGNkX2xldmVs
-KGludCBsZXZlbCkNCkBAIC0zODIsMjYgKzQzNiw2IEBADQogCXJldHVybiBjb3VudDsNCiB9DQog
-DQotLyogSGFyZHdhcmUgYWNjZXNzIGZvciBob3RrZXkgZGV2aWNlICovDQotDQotc3RhdGljIGlu
-dCBnZXRfaXJiKHZvaWQpDQotew0KLQl1bnNpZ25lZCBsb25nIGxvbmcgc3RhdGUgPSAwOw0KLQlh
-Y3BpX3N0YXR1cyBzdGF0dXMgPSBBRV9PSzsNCi0NCi0JdmRiZ19wcmludGsoRlVKTEFQVE9QX0RC
-R19UUkFDRSwgIkdldCBpcmJcbiIpOw0KLQ0KLQlzdGF0dXMgPQ0KLQkgICAgYWNwaV9ldmFsdWF0
-ZV9pbnRlZ2VyKGZ1aml0c3VfaG90a2V5LT5hY3BpX2hhbmRsZSwgIkdJUkIiLCBOVUxMLA0KLQkJ
-CQkgICZzdGF0ZSk7DQotCWlmIChzdGF0dXMgPCAwKQ0KLQkJcmV0dXJuIHN0YXR1czsNCi0NCi0J
-ZnVqaXRzdV9ob3RrZXktPmlyYiA9IHN0YXRlOw0KLQ0KLQlyZXR1cm4gZnVqaXRzdV9ob3RrZXkt
-PmlyYjsNCi19DQotDQogc3RhdGljIHNzaXplX3QNCiBpZ25vcmVfc3RvcmUoc3RydWN0IGRldmlj
-ZSAqZGV2LA0KIAkgICAgIHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICphdHRyLCBjb25zdCBjaGFy
-ICpidWYsIHNpemVfdCBjb3VudCkNCkBAIC03NzEsNyArODA1LDggQEANCiAJaW5wdXQtPmlkLmJ1
-c3R5cGUgPSBCVVNfSE9TVDsNCiAJaW5wdXQtPmlkLnByb2R1Y3QgPSAweDA2Ow0KIAlpbnB1dC0+
-ZGV2LnBhcmVudCA9ICZkZXZpY2UtPmRldjsNCi0JaW5wdXQtPmV2Yml0WzBdID0gQklUKEVWX0tF
-WSk7DQorDQorCXNldF9iaXQoRVZfS0VZLCBpbnB1dC0+ZXZiaXQpOw0KIAlzZXRfYml0KGZ1aml0
-c3UtPmtleWNvZGUxLCBpbnB1dC0+a2V5Yml0KTsNCiAJc2V0X2JpdChmdWppdHN1LT5rZXljb2Rl
-MiwgaW5wdXQtPmtleWJpdCk7DQogCXNldF9iaXQoZnVqaXRzdS0+a2V5Y29kZTMsIGlucHV0LT5r
-ZXliaXQpOw0KQEAgLTgwNCw5ICs4MzksMTcgQEANCiAJfQ0KIA0KIAlpID0gMDsJCQkvKiBEaXNj
-YXJkIGhvdGtleSByaW5nYnVmZmVyICovDQotCXdoaWxlIChnZXRfaXJiKCkgIT0gMCAmJiAoaSsr
-KSA8IE1BWF9IT1RLRVlfUklOR0JVRkZFUl9TSVpFKSA7DQorCXdoaWxlIChjYWxsX2Z1amV4X2Z1
-bmMoRlVOQ19CVVRUT05TLDB4MDEsMHgwLDB4MCkgIT0gMCAmJiAoaSsrKSA8IE1BWF9IT1RLRVlf
-UklOR0JVRkZFUl9TSVpFKSA7DQogCXZkYmdfcHJpbnRrKEZVSkxBUFRPUF9EQkdfSU5GTywgIkRp
-c2NhcmRlZCAlaSByaW5nYnVmZmVyIGVudHJpZXNcbiIsIGkpOw0KIA0KKwkvKiBTeW5jIFJGS0lM
-TCBzdGF0ZSAqLw0KKwlmdWppdHN1X2hvdGtleS0+cmZraWxsX3N0YXRlID0gDQorCQljYWxsX2Z1
-amV4X2Z1bmMoRlVOQ19SRktJTEwsMHgwNCwweDAsMHgwKTsNCisNCisJLyogU3VzcGVjdCB0aGlz
-IGlzIGEga2V5bWFwIG9mIHRoZSBhcHBsaWNhdGlvbiBwYW5lbCwgcHJpbnQgaXQgKi8NCisJdmRi
-Z19wcmludGsoRlVKTEFQVE9QX0RCR19JTkZPLCAiQlROSTogWzB4JXhdIiwNCisJCWNhbGxfZnVq
-ZXhfZnVuYyhGVU5DX0JVVFRPTlMsMHgwLDB4MCwweDApKTsNCisNCiAJcmV0dXJuIHJlc3VsdDsN
-CiANCiBlbmQ6DQpAQCAtODQ4LDE2ICs4OTEsMjUgQEANCiAJc3RydWN0IGlucHV0X2RldiAqaW5w
-dXQ7DQogCWludCBrZXljb2RlLCBrZXljb2RlX3I7DQogCXVuc2lnbmVkIGludCBpcmIgPSAxOw0K
-LQlpbnQgaSwgc3RhdHVzOw0KKwlpbnQgaSwgc3RhdHVzLCByZmtpbGxfbmV3Ow0KIA0KIAlpbnB1
-dCA9IGZ1aml0c3VfaG90a2V5LT5pbnB1dDsNCiANCi0JdmRiZ19wcmludGsoRlVKTEFQVE9QX0RC
-R19UUkFDRSwgIkhvdGtleSBldmVudFxuIik7DQorCXJma2lsbF9uZXcgPSBjYWxsX2Z1amV4X2Z1
-bmMoRlVOQ19SRktJTEwsMHgwNCwweDAsMHgwKTsNCisJaWYgKGZ1aml0c3VfaG90a2V5LT5yZmtp
-bGxfc3RhdGUgIT0gcmZraWxsX25ldykgew0KKwkJdmRiZ19wcmludGsoRlVKTEFQVE9QX0RCR19J
-TkZPLA0KKwkJCSJyYWRpb3M6IFslc10sIGxpZDogWyVzXSwgZG9ja2VkOiBbJXNdXG4iLA0KKwkJ
-CShyZmtpbGxfbmV3ICYgMHgyMCkgPyAib24iIDogImtpbGxlZCIsDQorCQkJKHJma2lsbF9uZXcg
-JiAweDEwMCkgPyAib3BlbiIgOiAiY2xvc2VkIiwNCisJCQkocmZraWxsX25ldyAmIDB4MjAwKSA/
-ICJ5ZXMiIDogIm5vIik7DQorCX0NCisNCisJZnVqaXRzdV9ob3RrZXktPnJma2lsbF9zdGF0ZSA9
-IHJma2lsbF9uZXc7DQogDQogCXN3aXRjaCAoZXZlbnQpIHsNCiAJY2FzZSBBQ1BJX0ZVSklUU1Vf
-Tk9USUZZX0NPREUxOg0KIAkJaSA9IDA7DQotCQl3aGlsZSAoKGlyYiA9IGdldF9pcmIoKSkgIT0g
-MA0KKwkJd2hpbGUgKChpcmIgPSBjYWxsX2Z1amV4X2Z1bmMoRlVOQ19CVVRUT05TLDB4MDEsMHgw
-LDB4MCkpICE9IDANCiAJCSAgICAgICAmJiAoaSsrKSA8IE1BWF9IT1RLRVlfUklOR0JVRkZFUl9T
-SVpFKSB7DQogCQkJdmRiZ19wcmludGsoRlVKTEFQVE9QX0RCR19UUkFDRSwgIkdJUkIgcmVzdWx0
-IFsleF1cbiIsDQogCQkJCSAgICBpcmIpOw0KQEAgLTExMDgsNyArMTE2MCw3IEBADQogTU9EVUxF
-X1BBUk1fREVTQyhkZWJ1ZywgIlNldHMgZGVidWcgbGV2ZWwgYml0LW1hc2siKTsNCiAjZW5kaWYN
-CiANCi1NT0RVTEVfQVVUSE9SKCJKb25hdGhhbiBXb2l0aGUsIFBldGVyIEdydWJlciIpOw0KK01P
-RFVMRV9BVVRIT1IoIkpvbmF0aGFuIFdvaXRoZSwgUGV0ZXIgR3J1YmVyLCBUb255IFZyb29uIik7
-DQogTU9EVUxFX0RFU0NSSVBUSU9OKCJGdWppdHN1IGxhcHRvcCBleHRyYXMgc3VwcG9ydCIpOw0K
-IE1PRFVMRV9WRVJTSU9OKEZVSklUU1VfRFJJVkVSX1ZFUlNJT04pOw0KIE1PRFVMRV9MSUNFTlNF
-KCJHUEwiKTsNCi==
-
-
---=-CjAy0S3luaK2LpkHm7Y0--
-
---=-C4KtPja+ZbxDh7CczdzE
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.9 (GNU/Linux)
-
-iEYEABECAAYFAklBw0oACgkQp5vW4rUFj5ok5gCfdBqJCZtbUlOVMibrFkCa+ulZ
-LkgAoJV0cNYa+jYPJcM++9JmdEG0e5SG
-=9LdH
------END PGP SIGNATURE-----
-
---=-C4KtPja+ZbxDh7CczdzE--
+-- 
+Len Brown, Intel Open Source Technology Center
 
