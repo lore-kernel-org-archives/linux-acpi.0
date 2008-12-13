@@ -1,103 +1,189 @@
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-Subject: Re: Bugs on aspire one A150
-Date: Sat, 13 Dec 2008 20:04:39 +0200
-Message-ID: <1229191479.13970.6.camel@maxim-laptop>
-References: <491506DB.1070000@gmail.com> <200812131435.34072.rjw@sisk.pl>
-	<1229178097.4936.1.camel@maxim-laptop> <200812131842.28420.rjw@sisk.pl>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: 2.6.28-rc8-git1: Reported regressions from 2.6.27
+Date: Sat, 13 Dec 2008 17:29:48 +0100 (CET)
+Message-ID: <u7kfEgp36eE.A.qpG.Y4_QJB@chimera>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <200812131842.28420.rjw@sisk.pl>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, alsa-devel@alsa-project.org, ath5k-devel@lists.ath5k.org, linux-kernel@vger.kernel.org, Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pm@lists.linux-foundation.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: netdev-owner@vger.kernel.org
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, 2008-12-13 at 18:42 +0100, Rafael J. Wysocki wrote:
-> On Saturday, 13 of December 2008, Maxim Levitsky wrote:
-> > On Sat, 2008-12-13 at 14:35 +0100, Rafael J. Wysocki wrote:
-> > > On Saturday, 13 of December 2008, Maxim Levitsky wrote:
-> > > > 
-> > > > So, big thanks for everything.
-> > > > 
-> > > > Now aspire one linux support is very close to perfect,
-> > > > (only problem left is that wireless is limited to 18Mbits/s raw rate,
-> > > > but at some point I or developers of ath5k will get to the bottom of
-> > > > this)
-> > > > 
-> > > > I also noticed, that now the SD only card reader is always enabled
-> > > > regardless of card been there while booting, and same happens in
-> > > > windows, I suspect that this is permanent hardware change, which worries
-> > > > me, but this reader works fine otherwise.
-> > > > (This is another reason why binary bioses are evil, go and find out why
-> > > > it enables it)
-> > > > 
-> > > > 
-> > > > Also forgot to mention that both readers ignore write protect tab on SD
-> > > > card, and I will report this to correct mailing list soon.
-> > > > Everything else works fine
-> > > > 
-> > > > please include acpiphp fix in 2.6.28.
-> > > 
-> > > Which one is this?
-> > 
-> > 
-> > 
-> > acpiphp: Identify more removable slots
-> >     
-> >     According to section 6.3.6 of the ACPI spec, the presence of an _RMV
-> >     method that evaluates to 1 is sufficient to indicate that a slot is
-> >     removable without needing an eject method. This patch refactors the
-> >     ejectable slot detection code a little in order to flag these slots as
-> >     ejectable and register them. Acpihp therefore binds to the expresscard
-> >     slot on my HP test machine.
-> >     
-> >     Signed-off-by: Matthew Garrett <mjg@redhat.com>
-> > 
-> > 
-> > this makes acpiphp handle hotplug of (now one, sd reader is somehow
-> > always present) card reader.
-> 
-> This is
-> http://git.kernel.org/?p=linux/kernel/git/jbarnes/pci-2.6.git;a=commit;h=db9fe9a7230d65916c9938c4f91c75f9c5e00cb7
-> in the PCI tree.
-> 
-> It's scheduled for 2.6.29 and may be included into 2.6.28 -stable, but please
-> remember to notify the stable team as soon as this patch gets merged into the
-> mainline.
+This message contains a list of some regressions from 2.6.27, for which=
+ there
+are no fixes in the mainline I know of.  If any of them have been fixed=
+ already,
+please let me know.
 
-I will, sure.
+If you know of any other unresolved regressions from 2.6.27, please let=
+ me know
+either and I'll add them to the list.  Also, please let me know if any =
+of the
+entries below are invalid.
+
+Each entry from the list will be sent additionally in an automatic repl=
+y to
+this message with CCs to the people involved in reporting and handling =
+the
+issue.
 
 
-Just to note, that I might not need that patch as I told that now one of
-readers is permanently enabled, I don't know why but this seems to be
-hardware failure.
+Listed regressions statistics:
 
-I disconnected power/battery, no cards are in slots, and yet on boot
-there is a sd reader in lspci.
-Same happens in windows.
-It could happen due to suspend/resume, If I remember correctly I put
-card once in slot, and then for whole week system wasn't rebooted, but
-instead went through suspend/resume cycles.
-
-One thing for sure, nobody will fix this (I mean no point to call acer
-support, this is too minor problem)
-
-
-What I worry about is that second one could show same behavier.
-I like this hotplug, as it allows me to test pci hotplug code for real.
-Besides, this isn't done without purpose, device might draw less power
-this way.
+  Date          Total  Pending  Unresolved
+  ----------------------------------------
+  2008-12-13      111       14          13
+  2008-12-07      106       20          17
+  2008-12-04      106       29          21
+  2008-11-22       93       25          15
+  2008-11-16       89       32          18
+  2008-11-09       73       40          27
+  2008-11-02       55       41          29
+  2008-10-25       26       25          20
 
 
-Best regards,
-	Maxim Levitsky
+Unresolved regressions
+----------------------
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D12210
+Subject		: 2.6.28-rc8 big regression in VM
+Submitter	: Lukas Hejtmanek <xhejtman@ics.muni.cz>
+Date		: 2008-12-12 18:38 (2 days old)
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D122910711005135&w=3D=
+4
+Handled-By	: Wu Fengguang <fengguang.wu@intel.com>
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D12209
+Subject		: oldish top core dumps (in its meminfo() function)
+Submitter	: Andreas Mohr <andi@lisas.de>
+Date		: 2008-12-12 18:49 (2 days old)
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D122910784006472&w=3D=
+4
+		  http://marc.info/?l=3Dlinux-kernel&m=3D122907511319288&w=3D4
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D12208
+Subject		: uml is very slow on 2.6.28 host
+Submitter	: Miklos Szeredi <miklos@szeredi.hu>
+Date		: 2008-12-12 9:35 (2 days old)
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D122907463518593&w=3D=
+4
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D12195
+Subject		: "dd" make kernel panic
+Submitter	: alexs <alex.shi@intel.com>
+Date		: 2008-12-10 18:07 (4 days old)
+Handled-By	: James Bottomley <James.Bottomley@HansenPartnership.com>
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D12178
+Subject		: Xorg crash at first start
+Submitter	: C=C3=A9dric Godin <cedric@belbone.be>
+Date		: 2008-12-04 14:26 (10 days old)
+=46irst-Bad-Commit: http://git.kernel.org/?p=3Dlinux/kernel/git/torvald=
+s/linux-2.6.git;a=3Dcommit;h=3D52440211dcdc52c0b757f8b34d122e11b12cdd50
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D122840082828098&w=3D=
+4
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D12160
+Subject		: networking oops after resume from s2ram (2.6.28-rc6)
+Submitter	: Marcin Slusarz <marcin.slusarz@gmail.com>
+Date		: 2008-11-28 21:15 (16 days old)
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D122790701615723&w=3D=
+4
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D12159
+Subject		: 2.6.28-rc6-git1 -- No sound produced from Intel HDA ALSA dri=
+ver
+Submitter	: Miles Lane <miles.lane@gmail.com>
+Date		: 2008-11-27 20:33 (17 days old)
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D122781805620212&w=3D=
+4
+Handled-By	: Takashi Iwai <tiwai@suse.de>
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D12156
+Subject		: v2.6.28-rc2: x86_32 relocation regression?
+Submitter	: Vegard Nossum <vegard.nossum@gmail.com>
+Date		: 2008-11-24 21:19 (20 days old)
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D122756158220966&w=3D=
+4
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D12155
+Subject		: Regression in 2.6.28-rc and 2.6.27-stable - hibernate relate=
+d
+Submitter	: Fabio Comolli <fabio.comolli@gmail.com>
+Date		: 2008-11-23 16:17 (21 days old)
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D122745709926361&w=3D=
+4
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D12100
+Subject		: resume (S2R) broken by Intel microcode module, on A110L
+Submitter	: Andreas Mohr <andi@lisas.de>
+Date		: 2008-11-25 08:48 (19 days old)
+Handled-By	: Dmitry Adamushko <dmitry.adamushko@gmail.com>
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D12061
+Subject		: snd_hda_intel: power_save: sound cracks on powerdown
+Submitter	: Jens Weibler <bugzilla-kernel@jensthebrain.de>
+Date		: 2008-11-18 12:07 (26 days old)
+Handled-By	: Takashi Iwai <tiwai@suse.de>
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D12028
+Subject		: i915 DRM is broken in 2.6.28-rc4
+Submitter	: Adam Tkac <vonsch@gmail.com>
+Date		: 2008-11-14 01:50 (30 days old)
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D11849
+Subject		: default IRQ affinity change in v2.6.27 (breaking several SMP=
+ PPC based systems)
+Submitter	: Kumar Gala <galak@kernel.crashing.org>
+Date		: 2008-10-24 12:45 (51 days old)
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D122485245924125&w=3D=
+4
+
+
+Regressions with patches
+------------------------
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D12047
+Subject		: ACPI toshiba: only register rfkill if bt is enabled
+Submitter	: Andrey Borzenkov <arvidjaar@mail.ru>
+Date		: 2008-10-28 19:10 (47 days old)
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D122522113619025&w=3D=
+2
+Handled-By	: Frederik Deweerdt <frederik.deweerdt@gmail.com>
+Patch		: http://marc.info/?l=3Dlinux-kernel&m=3D122526843117478&w=3D2
+
+
+=46or details, please visit the bug entries and follow the links given =
+in
+references.
+
+As you can see, there is a Bugzilla entry for each of the listed regres=
+sions.
+There also is a Bugzilla entry used for tracking the regressions from 2=
+=2E6.27,
+unresolved as well as resolved, at:
+
+http://bugzilla.kernel.org/show_bug.cgi?id=3D11808
+
+Please let me know if there are any Bugzilla entries that should be add=
+ed to
+the list in there.
+
+Thanks,
+Rafael
+
