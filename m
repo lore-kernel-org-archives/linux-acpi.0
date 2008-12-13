@@ -1,75 +1,39 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Bugs on aspire one A150
-Date: Sat, 13 Dec 2008 18:42:27 +0100
-Message-ID: <200812131842.28420.rjw@sisk.pl>
-References: <491506DB.1070000@gmail.com> <200812131435.34072.rjw@sisk.pl> <1229178097.4936.1.camel@maxim-laptop>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: Fuijtsu Lifebook RFKILL support
+Date: Sat, 13 Dec 2008 17:57:45 +0000
+Message-ID: <20081213175745.GA6825@srcf.ucam.org>
+References: <1228957506.4045.11.camel@localhost> <20081211165247.GA4844@khazad-dum.debian.net> <1229016827.6446.6.camel@localhost> <20081211194734.GA18132@khazad-dum.debian.net> <1229046602.4030.13.camel@localhost> <20081212195331.GA12679@khazad-dum.debian.net> <alpine.LFD.2.00.0812121532580.4064@localhost.localdomain> <1229172465.4010.11.camel@localhost> <20081213132857.GA11428@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:40578 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750933AbYLMRnJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 13 Dec 2008 12:43:09 -0500
-In-Reply-To: <1229178097.4936.1.camel@maxim-laptop>
+Received: from cavan.codon.org.uk ([93.93.128.6]:38856 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750944AbYLMR54 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 13 Dec 2008 12:57:56 -0500
 Content-Disposition: inline
+In-Reply-To: <20081213132857.GA11428@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, ath5k-devel@lists.ath5k.org, alsa-devel@alsa-project.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Tony Vroon <tony@linx.net>, Len Brown <lenb@kernel.org>, Ivo van Doorn <ivdoorn@gmail.com>, linux-acpi@vger.kernel.org, jwoithe@physics.adelaide.edu.au, Peter Gruber <nokos@gmx.net>, linux-wireless@vger.kernel.org
 
-On Saturday, 13 of December 2008, Maxim Levitsky wrote:
-> On Sat, 2008-12-13 at 14:35 +0100, Rafael J. Wysocki wrote:
-> > On Saturday, 13 of December 2008, Maxim Levitsky wrote:
-> > > 
-> > > So, big thanks for everything.
-> > > 
-> > > Now aspire one linux support is very close to perfect,
-> > > (only problem left is that wireless is limited to 18Mbits/s raw rate,
-> > > but at some point I or developers of ath5k will get to the bottom of
-> > > this)
-> > > 
-> > > I also noticed, that now the SD only card reader is always enabled
-> > > regardless of card been there while booting, and same happens in
-> > > windows, I suspect that this is permanent hardware change, which worries
-> > > me, but this reader works fine otherwise.
-> > > (This is another reason why binary bioses are evil, go and find out why
-> > > it enables it)
-> > > 
-> > > 
-> > > Also forgot to mention that both readers ignore write protect tab on SD
-> > > card, and I will report this to correct mailing list soon.
-> > > Everything else works fine
-> > > 
-> > > please include acpiphp fix in 2.6.28.
-> > 
-> > Which one is this?
+On Sat, Dec 13, 2008 at 11:28:57AM -0200, Henrique de Moraes Holschuh wrote:
+> > Len, I would still like to export the 3 values learned about in this
+> > event to userspace. Is it alright for me to create 3 read-only files on
+> > the platform device? (docked, lid, radios)
+> > It would if anything simplify the code.
 > 
-> 
-> 
-> acpiphp: Identify more removable slots
->     
->     According to section 6.3.6 of the ACPI spec, the presence of an _RMV
->     method that evaluates to 1 is sufficient to indicate that a slot is
->     removable without needing an eject method. This patch refactors the
->     ejectable slot detection code a little in order to flag these slots as
->     ejectable and register them. Acpihp therefore binds to the expresscard
->     slot on my HP test machine.
->     
->     Signed-off-by: Matthew Garrett <mjg@redhat.com>
-> 
-> 
-> this makes acpiphp handle hotplug of (now one, sd reader is somehow
-> always present) card reader.
+> FWIW, I think this is also the way to go.  It is much easier for
+> userspace to deal with sysfs attributes.  HAL can deal with more
+> complex stuff, but shell script writers often don't know how to, nor
+> care to, deal with HAL.
 
-This is
-http://git.kernel.org/?p=linux/kernel/git/jbarnes/pci-2.6.git;a=commit;h=db9fe9a7230d65916c9938c4f91c75f9c5e00cb7
-in the PCI tree.
+I feel like I'm missing something here, but surely what we're talking 
+about is simply a single rfkill device that affects all radios and as 
+such should have a new RFKILL_TYPE_ALL type associated with it? I'd read 
+this as there being a software control that affected all radios. If 
+there's no software control at all then I agree that providing an rfkill 
+class here isn't appropriate.
 
-It's scheduled for 2.6.29 and may be included into 2.6.28 -stable, but please
-remember to notify the stable team as soon as this patch gets merged into the
-mainline.
-
-Thanks,
-Rafael
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
