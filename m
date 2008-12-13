@@ -1,67 +1,47 @@
-From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: Re: Fuijtsu Lifebook RFKILL support
-Date: Sat, 13 Dec 2008 11:28:57 -0200
-Message-ID: <20081213132857.GA11428@khazad-dum.debian.net>
-References: <1228957506.4045.11.camel@localhost> <20081211165247.GA4844@khazad-dum.debian.net> <1229016827.6446.6.camel@localhost> <20081211194734.GA18132@khazad-dum.debian.net> <1229046602.4030.13.camel@localhost> <20081212195331.GA12679@khazad-dum.debian.net> <alpine.LFD.2.00.0812121532580.4064@localhost.localdomain> <1229172465.4010.11.camel@localhost>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Bugs on aspire one A150
+Date: Sat, 13 Dec 2008 14:35:33 +0100
+Message-ID: <200812131435.34072.rjw@sisk.pl>
+References: <491506DB.1070000@gmail.com> <1229174138.24940.9.camel@maxim-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:40043 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754226AbYLMNgN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 13 Dec 2008 08:36:13 -0500
+In-Reply-To: <1229174138.24940.9.camel@maxim-laptop>
 Content-Disposition: inline
-In-Reply-To: <1229172465.4010.11.camel@localhost>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Vroon <tony-MIcqEarIBAk@public.gmane.org>
-Cc: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ivo van Doorn <ivdoorn-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jwoithe-JAjqph6Yjy+wq2+NMbbSVdf8k/1jCSAM@public.gmane.org, Peter Gruber <nokos-hi6Y0CQ0nG0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, ath5k-devel@lists.ath5k.org, alsa-devel@alsa-project.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Sat, 13 Dec 2008, Tony Vroon wrote:
-> > What is the WLAN driver involved? Is it rfkill-aware?
+On Saturday, 13 of December 2008, Maxim Levitsky wrote:
 > 
-> The driver is iwlagn, which does indeed notice that it is killed.
-> This information does not reach NetworkManager. Relevant log
-> entries: Dec 12 00:59:01 amalthea iwlagn: Radio Frequency Kill
-> Switch is On: Dec 12 00:59:01 amalthea Kill switch must be turned
-> off for wireless networking to work.
-
-Then, it is just a matter of time for it to be working correctly.  In
-fact, it might already be if you use wireless-testing and latest
-network manager.
-
-Best not to mess with it, any workarounds one adds would just get in
-the way in the future.
-
-> [cutting relevant pieces of text together]
-> > > 1. rfkill actualy is/looks like a hotplug/hotunplug operation
-> > >   1b. You cannot do it at will
-> > >       Attaching it to the rfkill core simply is not supported
+> So, big thanks for everything.
 > 
-> Okay, both Bluetooth & WWAN are USB devices following this terminology.
-> So the rfkill framework is not an appropriate tool for this job,
-> understood.
+> Now aspire one linux support is very close to perfect,
+> (only problem left is that wireless is limited to 18Mbits/s raw rate,
+> but at some point I or developers of ath5k will get to the bottom of
+> this)
 > 
-> Len, I would still like to export the 3 values learned about in this
-> event to userspace. Is it alright for me to create 3 read-only files on
-> the platform device? (docked, lid, radios)
-> It would if anything simplify the code.
+> I also noticed, that now the SD only card reader is always enabled
+> regardless of card been there while booting, and same happens in
+> windows, I suspect that this is permanent hardware change, which worries
+> me, but this reader works fine otherwise.
+> (This is another reason why binary bioses are evil, go and find out why
+> it enables it)
+> 
+> 
+> Also forgot to mention that both readers ignore write protect tab on SD
+> card, and I will report this to correct mailing list soon.
+> Everything else works fine
+> 
+> please include acpiphp fix in 2.6.28.
 
-FWIW, I think this is also the way to go.  It is much easier for
-userspace to deal with sysfs attributes.  HAL can deal with more
-complex stuff, but shell script writers often don't know how to, nor
-care to, deal with HAL.
+Which one is this?
 
-BTW, this also means that it is helpful to shell script writers if you
-also export through read-only sysfs attributes the state of any input
-devices generating EV_SW.  The input layer makes it possible to query
-the switch state easily... through IOCTL after you find out the
-correct input device(s) to query.  Which ain't easy for shell script,
-and nobody wrote a "inputdev" helper in a proper language that can do
-it, for shell script writers to call.
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Rafael
