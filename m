@@ -1,42 +1,45 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: suspend/resume fails on second attempt in LNXVIDEO:00
-Date: Tue, 16 Dec 2008 00:02:43 +0100
-Message-ID: <200812160002.43427.rjw@sisk.pl>
-References: <gi247o$iog$1@ger.gmane.org> <200812152119.35228.rjw@sisk.pl> <gi6g21$bnf$8@ger.gmane.org>
+From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Subject: Re: Fuijtsu Lifebook RFKILL support
+Date: Tue, 16 Dec 2008 10:12:26 +1030 (CST)
+Message-ID: <200812152342.mBFNgQJj028844@sprite.physics.adelaide.edu.au>
+References: <1229361241.13400.1.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:50214 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751980AbYLOXDR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 15 Dec 2008 18:03:17 -0500
-In-Reply-To: <gi6g21$bnf$8@ger.gmane.org>
-Content-Disposition: inline
+Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:41096 "EHLO
+	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752293AbYLOXoF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 15 Dec 2008 18:44:05 -0500
+In-Reply-To: <1229361241.13400.1.camel@localhost> from "Tony Vroon" at Dec 15, 2008 05:14:01 PM
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brian J. Murrell" <brian@interlinx.bc.ca>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: tony@linx.net
+Cc: Dan Williams <dcbw@redhat.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <lenb@kernel.org>, Ivo van Doorn <ivdoorn@gmail.com>, linux-acpi@vger.kernel.org, jwoithe@physics.adelaide.edu.au, Peter Gruber <nokos@gmx.net>, linux-wireless@vger.kernel.org
 
-On Monday, 15 of December 2008, Brian J. Murrell wrote:
-> On Mon, 15 Dec 2008 21:19:34 +0100, Rafael J. Wysocki wrote:
-> > Does it also happen in the minimal configuration (ie. with
-> > init=/bin/bash)?
+Hi Tony
+
+> On Mon, 2008-12-15 at 10:19 -0500, Dan Williams wrote:
+> > I plan to beat the .... out of the hal killswitch support pretty soon.
+> > AFAIK it still doesn't know about softblock, which is part of the whole
+> > reason for the rfkill rewrite in 2.6.26 anyway.  It also doesn't yet
+> > (AFAIK) support uevents from killswitches either, which sucks.
 > 
-> Now, that's an interesting result.  Using the above, pm-suspend does 
-> suspend fine and hitting the flashing power button will resume fine with 
-> the exception of the screen is still black.  That is backlight problems 
-> isn't it?  I can see by disk light activity though that it's actually 
-> still alive though.
+> Could you let me know when you've committed this code so I have another
+> shot at implementing rfkill reporting in fujitsu-laptop?
 
-No, most probably your graphics adapter is not handled correctly in this case,
-because it needs some special user space quirks, which are done by hald that is
-not running.
+This is to let you know that I'm still following this discussion but haven't
+had anything sensible to add to the basic infrastructure issues being worked
+through at present.  It's probably sensible for me to pick up on the next
+version of your patch.
 
-You can try to use the s2ram binary (http://en.opensuse.org/s2ram) to work
-around this issue.
+Also, over the Christmas period (ie: after this week) my responses are
+likely to be slow due to intermittant network access in that time.
 
-Anyway, if you suspend for the second time from this state, does it resume?
+I also haven't forgotten about getting you the DSDT from the S7020 - I just
+haven't had a chance to get to that yet.  I hope to get to this before the
+end of the week.
 
-Rafael
+Regards
+  jonathan
