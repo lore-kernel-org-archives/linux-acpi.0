@@ -1,49 +1,60 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: Re: Unexcepted shutdown in 2.6.28-rc5
-Date: Mon, 15 Dec 2008 10:23:24 +0800
-Message-ID: <1229307804.4181.53.camel@yakui_zhao.sh.intel.com>
-References: <4925EF01.2070405@gmail.com>
-	 <1227229754.15014.280.camel@rzhang-dt>  <200812072217.04150.rjw@sisk.pl>
-	 <1228698996.4181.24.camel@yakui_zhao.sh.intel.com>
-	 <494051FB.9050201@gmail.com>
+From: Lin Ming <ming.m.lin@intel.com>
+Subject: Bug 11884 - _REG and _INI
+Date: Mon, 15 Dec 2008 11:51:03 +0800
+Message-ID: <1229313063.19540.86.camel@minggr.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:53666 "EHLO mga01.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:61698 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751597AbYLOCOi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 14 Dec 2008 21:14:38 -0500
-In-Reply-To: <494051FB.9050201@gmail.com>
+	id S1751884AbYLODwU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 14 Dec 2008 22:52:20 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Maxime Poncet <maxime.poncet@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "Zhang, Rui" <rui.zhang@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <lenb@kernel.org>
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>
 
-On Thu, 2008-12-11 at 07:34 +0800, Maxime Poncet wrote:
-> Zhao Yakui wrote:
-> > Hi, Maxime
-> >    As there exist some changes related with EC between 2.6.28-rc3/rc5,
-> > Will you please use the git-bisect to identify which commit causes the
-> > regression?
-> >    Thanks.
-> Hi Zhao,
-> This issue is resolved for me in 2.6.28-rc7
-Sorry for the late response.
+http://bugzilla.kernel.org/show_bug.cgi?id=3D11884=20
 
-It is good news that the shutdown issue is fixed in 2.6.28-rc7.
-But the following issue still exists.
-   >ACPI: Transitioning device [FAN] to D3
-   >ACPI: Unable to turn cooling device [ffff88007fb63590] 'off'
-Will you please add the boot option of "acpi.power_nocheck=1" and see
-whether the above issue still exists?
-   Thanks.
-> 
-> But I am still getting the following message every 5 seconds
-> ACPI: Transitioning device [FAN] to D3
-> ACPI: Unable to turn cooling device [ffff88007fb63590] 'off'
-> 
-> I am using bitsect to find out which commit causes this regression.
-> 
-> 
+Method(\_SB._INI)
+{
+	//initialize package CUZO
+}
 
+Method(\_SB_.PCI0.LPCB.EC0_._REG)
+{
+	//access package CUZO
+}
+
+=46or this machine, =EF=BB=BF\_SB._INI must be run before =EF=BB=BF\_SB=
+_.PCI0.LPCB.EC0_._REG
+
+But currently early EC _REG method is run before _INI as below acpi_bus=
+_init shows.
+
+void __init acpi_bus_init(void)
+         .....
+         status =3D acpi_ec_ecdt_probe();
+         /* Ignore result. Not having an ECDT is not fatal. */
+
+         status =3D acpi_initialize_objects(ACPI_FULL_INITIALIZATION);
+         .....
+}
+
+=EF=BB=BFacpi_ec_ecdt_probe will install ec handler although no ECDT fo=
+und in this machine.
+
+Alexey,=20
+How about that if there's no ECDT found, we do not install ec handler b=
+efore =EF=BB=BFacpi_initialize_objects?
+
+Lin Ming
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
