@@ -1,53 +1,38 @@
-From: Dan Williams <dcbw-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: Fuijtsu Lifebook RFKILL support
-Date: Mon, 15 Dec 2008 12:59:44 -0500
-Message-ID: <1229363984.12163.114.camel@localhost.localdomain>
-References: <1228957506.4045.11.camel@localhost>
-	 <20081211165247.GA4844@khazad-dum.debian.net>
-	 <1229016827.6446.6.camel@localhost>
-	 <20081211194734.GA18132@khazad-dum.debian.net>
-	 <1229046602.4030.13.camel@localhost>
-	 <20081212195331.GA12679@khazad-dum.debian.net>
-	 <alpine.LFD.2.00.0812121532580.4064@localhost.localdomain>
-	 <1229172465.4010.11.camel@localhost>
-	 <20081213132857.GA11428@khazad-dum.debian.net>
-	 <1229274343.6775.15.camel@localhost.localdomain>
-	 <20081215115336.GD17648@khazad-dum.debian.net>
-	 <1229354348.12163.20.camel@localhost.localdomain>
-	 <1229361241.13400.1.camel@localhost>
+From: =?iso-8859-1?Q?S=E9bastien?= Hinderer
+	<Sebastien.Hinderer@ens-lyon.org>
+Subject: Re: Buggy DSDT on Dell Latitude E5400
+Date: Mon, 15 Dec 2008 20:37:05 +0100
+Message-ID: <20081215193705.GA31760@zen>
+References: <20081214022125.GA29259@zen> <1229304126.2993.22.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1229361241.13400.1.camel@localhost>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-MIcqEarIBAk@public.gmane.org
-Cc: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ivo van Doorn <ivdoorn-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jwoithe-JAjqph6Yjy+wq2+NMbbSVdf8k/1jCSAM@public.gmane.org, Peter Gruber <nokos-hi6Y0CQ0nG0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:65185 "EHLO
+	mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752087AbYLOTin (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 15 Dec 2008 14:38:43 -0500
+Received: from seb by zen.loria.fr with local (Exim 4.69)
+	(envelope-from <Sebastien.Hinderer@ens-lyon.org>)
+	id 1LCJFZ-0008GP-EQ
+	for linux-acpi@vger.kernel.org; Mon, 15 Dec 2008 20:37:05 +0100
+Content-Disposition: inline
+In-Reply-To: <1229304126.2993.22.camel@rzhang-dt>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Mon, 2008-12-15 at 17:14 +0000, Tony Vroon wrote:
-> On Mon, 2008-12-15 at 10:19 -0500, Dan Williams wrote:
-> > I plan to beat the shit out of the hal killswitch support pretty soon.
-> > AFAIK it still doesn't know about softblock, which is part of the whole
-> > reason for the rfkill rewrite in 2.6.26 anyway.  It also doesn't yet
-> > (AFAIK) support uevents from killswitches either, which sucks.
-> 
-> Thanks Dan.
-> Could you let me know when you've committed this code so I have another
-> shot at implementing rfkill reporting in fujitsu-laptop?
+Dear Rui, dear all,
 
-Yeah, though the HAL support will be coded to the kernel rfkill devices,
-so if the platform or the wifi driver supports the kernel rfkill
-interface, the HAL bits should work.
+> please file a bug report at bugzilla.kernel.org
+> and attach the output of acpidump there.
 
-> P.S. Did you get my e-mail about the Sierra Wireless MC8790?
-
-Yes; it's hal-info commit 8912ec2b5d0a221a74156c047b18a26b2d916e13.
-
-Dan
-
-
+Done, it's bug #12231.
+Many thanks for your help,
+S=E9bastien.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
