@@ -1,44 +1,53 @@
-From: "Brian J. Murrell" <brian@interlinx.bc.ca>
-Subject: Re: suspend/resume fails on second attempt in LNXVIDEO:00
-Date: Mon, 15 Dec 2008 17:56:37 +0000 (UTC)
-Message-ID: <gi65ol$bnf$7@ger.gmane.org>
-References: <gi247o$iog$1@ger.gmane.org> <20081215155655.GA1535@ucw.cz>
-	<gi62fj$bnf$5@ger.gmane.org> <494694F8.6080004@gmail.com>
+From: Dan Williams <dcbw-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: Fuijtsu Lifebook RFKILL support
+Date: Mon, 15 Dec 2008 12:59:44 -0500
+Message-ID: <1229363984.12163.114.camel@localhost.localdomain>
+References: <1228957506.4045.11.camel@localhost>
+	 <20081211165247.GA4844@khazad-dum.debian.net>
+	 <1229016827.6446.6.camel@localhost>
+	 <20081211194734.GA18132@khazad-dum.debian.net>
+	 <1229046602.4030.13.camel@localhost>
+	 <20081212195331.GA12679@khazad-dum.debian.net>
+	 <alpine.LFD.2.00.0812121532580.4064@localhost.localdomain>
+	 <1229172465.4010.11.camel@localhost>
+	 <20081213132857.GA11428@khazad-dum.debian.net>
+	 <1229274343.6775.15.camel@localhost.localdomain>
+	 <20081215115336.GD17648@khazad-dum.debian.net>
+	 <1229354348.12163.20.camel@localhost.localdomain>
+	 <1229361241.13400.1.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from main.gmane.org ([80.91.229.2]:41228 "EHLO ciao.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750853AbYLOR4v (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 15 Dec 2008 12:56:51 -0500
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1LCHgW-0001tA-PT
-	for linux-acpi@vger.kernel.org; Mon, 15 Dec 2008 17:56:48 +0000
-Received: from d193-213-184.home3.cgocable.net ([67.193.213.184])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Mon, 15 Dec 2008 17:56:48 +0000
-Received: from brian by d193-213-184.home3.cgocable.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Mon, 15 Dec 2008 17:56:48 +0000
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1229361241.13400.1.camel@localhost>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: tony-MIcqEarIBAk@public.gmane.org
+Cc: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ivo van Doorn <ivdoorn-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jwoithe-JAjqph6Yjy+wq2+NMbbSVdf8k/1jCSAM@public.gmane.org, Peter Gruber <nokos-hi6Y0CQ0nG0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
 
-On Mon, 15 Dec 2008 20:33:44 +0300, Alexey Starikovskiy wrote:
+On Mon, 2008-12-15 at 17:14 +0000, Tony Vroon wrote:
+> On Mon, 2008-12-15 at 10:19 -0500, Dan Williams wrote:
+> > I plan to beat the shit out of the hal killswitch support pretty soon.
+> > AFAIK it still doesn't know about softblock, which is part of the whole
+> > reason for the rfkill rewrite in 2.6.26 anyway.  It also doesn't yet
+> > (AFAIK) support uevents from killswitches either, which sucks.
+> 
+> Thanks Dan.
+> Could you let me know when you've committed this code so I have another
+> shot at implementing rfkill reporting in fujitsu-laptop?
 
->> video                  25360  0
->>   
-> this one ^^^^^
+Yeah, though the HAL support will be coded to the kernel rfkill devices,
+so if the platform or the wifi driver supports the kernel rfkill
+interface, the HAL bits should work.
 
-Ahhh.  Got it.
+> P.S. Did you get my e-mail about the Sierra Wireless MC8790?
 
-Unfortunately that was of no help.  Still only a single suspend/resume 
-cycle worked.  I removed it before the first cycle, (and made sure it was 
-not loaded before the second) for the record.
+Yes; it's hal-info commit 8912ec2b5d0a221a74156c047b18a26b2d916e13.
 
-b.
+Dan
 
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
