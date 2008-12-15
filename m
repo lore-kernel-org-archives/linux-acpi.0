@@ -1,38 +1,37 @@
-From: =?iso-8859-1?Q?S=E9bastien?= Hinderer
-	<Sebastien.Hinderer@ens-lyon.org>
-Subject: Re: Buggy DSDT on Dell Latitude E5400
-Date: Mon, 15 Dec 2008 20:37:05 +0100
-Message-ID: <20081215193705.GA31760@zen>
-References: <20081214022125.GA29259@zen> <1229304126.2993.22.camel@rzhang-dt>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: suspend/resume fails on second attempt in LNXVIDEO:00
+Date: Mon, 15 Dec 2008 21:19:34 +0100
+Message-ID: <200812152119.35228.rjw@sisk.pl>
+References: <gi247o$iog$1@ger.gmane.org> <494694F8.6080004@gmail.com> <gi65ol$bnf$7@ger.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:65185 "EHLO
-	mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752087AbYLOTin (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 15 Dec 2008 14:38:43 -0500
-Received: from seb by zen.loria.fr with local (Exim 4.69)
-	(envelope-from <Sebastien.Hinderer@ens-lyon.org>)
-	id 1LCJFZ-0008GP-EQ
-	for linux-acpi@vger.kernel.org; Mon, 15 Dec 2008 20:37:05 +0100
+Received: from ogre.sisk.pl ([217.79.144.158]:49757 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753059AbYLOUUG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 15 Dec 2008 15:20:06 -0500
+In-Reply-To: <gi65ol$bnf$7@ger.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1229304126.2993.22.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: "Brian J. Murrell" <brian@interlinx.bc.ca>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Dear Rui, dear all,
+On Monday, 15 of December 2008, Brian J. Murrell wrote:
+> On Mon, 15 Dec 2008 20:33:44 +0300, Alexey Starikovskiy wrote:
+> 
+> >> video                  25360  0
+> >>   
+> > this one ^^^^^
+> 
+> Ahhh.  Got it.
+> 
+> Unfortunately that was of no help.  Still only a single suspend/resume 
+> cycle worked.  I removed it before the first cycle, (and made sure it was 
+> not loaded before the second) for the record.
 
-> please file a bug report at bugzilla.kernel.org
-> and attach the output of acpidump there.
+Does it also happen in the minimal configuration (ie. with init=/bin/bash)?
 
-Done, it's bug #12231.
-Many thanks for your help,
-S=E9bastien.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Rafael
