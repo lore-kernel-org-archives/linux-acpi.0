@@ -1,63 +1,49 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: Buggy DSDT on Dell Latitude E5400
-Date: Mon, 15 Dec 2008 09:22:06 +0800
-Message-ID: <1229304126.2993.22.camel@rzhang-dt>
-References: <20081214022125.GA29259@zen>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: Unexcepted shutdown in 2.6.28-rc5
+Date: Mon, 15 Dec 2008 10:23:24 +0800
+Message-ID: <1229307804.4181.53.camel@yakui_zhao.sh.intel.com>
+References: <4925EF01.2070405@gmail.com>
+	 <1227229754.15014.280.camel@rzhang-dt>  <200812072217.04150.rjw@sisk.pl>
+	 <1228698996.4181.24.camel@yakui_zhao.sh.intel.com>
+	 <494051FB.9050201@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:44176 "EHLO mga02.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:53666 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751036AbYLOBXJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 14 Dec 2008 20:23:09 -0500
-In-Reply-To: <20081214022125.GA29259@zen>
+	id S1751597AbYLOCOi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 14 Dec 2008 21:14:38 -0500
+In-Reply-To: <494051FB.9050201@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?ISO-8859-1?Q?S=E9bastien?= Hinderer <Sebastien.Hinderer@ens-lyon.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Maxime Poncet <maxime.poncet@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "Zhang, Rui" <rui.zhang@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <lenb@kernel.org>
 
-Hi, sebatien,
+On Thu, 2008-12-11 at 07:34 +0800, Maxime Poncet wrote:
+> Zhao Yakui wrote:
+> > Hi, Maxime
+> >    As there exist some changes related with EC between 2.6.28-rc3/rc5,
+> > Will you please use the git-bisect to identify which commit causes the
+> > regression?
+> >    Thanks.
+> Hi Zhao,
+> This issue is resolved for me in 2.6.28-rc7
+Sorry for the late response.
 
-please file a bug report at bugzilla.kernel.org
-and attach the output of acpidump there.
-BTW: you can get the acpidump using the latest
-pmtools at:
-http://www.lesswatts.org/projects/acpi/utilities.php
+It is good news that the shutdown issue is fixed in 2.6.28-rc7.
+But the following issue still exists.
+   >ACPI: Transitioning device [FAN] to D3
+   >ACPI: Unable to turn cooling device [ffff88007fb63590] 'off'
+Will you please add the boot option of "acpi.power_nocheck=1" and see
+whether the above issue still exists?
+   Thanks.
+> 
+> But I am still getting the following message every 5 seconds
+> ACPI: Transitioning device [FAN] to D3
+> ACPI: Unable to turn cooling device [ffff88007fb63590] 'off'
+> 
+> I am using bitsect to find out which commit causes this regression.
+> 
+> 
 
-thanks,
-rui
-
-On Sun, 2008-12-14 at 10:21 +0800, S=C3=A9bastien Hinderer wrote:
-> Dear all,
->=20
-> On a recently bought Dell Latitude E5400 laptop with Debian unstable
-> installed, the fan is constantly working.
-> This happens although the temperature reported by acpi -v is around 3=
-0
-> degrees Celcius, and although top reports a CPU usage around 1%.
->=20
-> Moreover, when the installed Windows XP is started and the machine is
-> left untouched, the fan remains turned off all the time.
->=20
-> Are these symptoms the consequence of a buggy DSDT which Windows
-> overrides ?=20
-> In that case, how can the problem be fixed ?
-> Is it necessary to disassemble and study the DSDT, or is it possible =
-to
-> somehow fetch the working one presumably used by Windows XP ?
->=20
-> Any help / suggestion warmly appreciated.
-> Kind regards,
-> Sebastien.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
