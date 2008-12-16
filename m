@@ -1,84 +1,45 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [Bugme-new] [Bug 12235] New:
- /sys/devices/virtual/backlight/acpi_video0/brightness has it backwards
-Date: Tue, 16 Dec 2008 10:00:23 -0800
-Message-ID: <20081216100023.2e437c8c.akpm@linux-foundation.org>
-References: <bug-12235-10286@http.bugzilla.kernel.org/>
+From: "Brian J. Murrell" <brian@interlinx.bc.ca>
+Subject: Re: suspend/resume fails on second attempt in LNXVIDEO:00
+Date: Tue, 16 Dec 2008 18:07:15 +0000 (UTC)
+Message-ID: <gi8qoj$m5f$7@ger.gmane.org>
+References: <gi247o$iog$1@ger.gmane.org> <200812161625.37318.rjw@sisk.pl>
+	<gi8jf1$m5f$5@ger.gmane.org> <200812161713.08451.rjw@sisk.pl>
+	<20081216163746.GA9478@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48779 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751317AbYLPSAq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Dec 2008 13:00:46 -0500
-In-Reply-To: <bug-12235-10286@http.bugzilla.kernel.org/>
+Received: from main.gmane.org ([80.91.229.2]:38960 "EHLO ciao.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751567AbYLPSH0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Dec 2008 13:07:26 -0500
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1LCeKI-0002bb-DN
+	for linux-acpi@vger.kernel.org; Tue, 16 Dec 2008 18:07:22 +0000
+Received: from d193-213-184.home3.cgocable.net ([67.193.213.184])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Tue, 16 Dec 2008 18:07:22 +0000
+Received: from brian by d193-213-184.home3.cgocable.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Tue, 16 Dec 2008 18:07:22 +0000
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: bugme-daemon@bugzilla.kernel.org, khashayar.lists@gmail.com, "Rafael J. Wysocki" <rjw@sisk.pl>, Zhang Rui <rui.zhang@intel.com>
+Cc: linux-kernel@vger.kernel.org
+
+On Tue, 16 Dec 2008 16:37:46 +0000, Matthew Garrett wrote:
+> 
+> I seem to be missing the original message, but: no, s2ram doesn't exist
+> in Ubuntu because pm-utils handles that role.
+
+Well, that's *their* argument but lots of people think otherwise.  There 
+appears to be no shortage of people for whom pm-utils does NOT work yet 
+s2ram does.  https://bugs.launchpad.net/ubuntu/+source/uswsusp/+bug/134238
+
+There is also indication earlier in this thread that it may work for me 
+where pm-utils is not working.
+
+b.
 
 
-(switched to email.  Please respond via emailed reply-to-all, not via the
-bugzilla web interface).
-
-On Tue, 16 Dec 2008 03:36:11 -0800 (PST) bugme-daemon@bugzilla.kernel.org wrote:
-
-> http://bugzilla.kernel.org/show_bug.cgi?id=12235
-> 
->            Summary: /sys/devices/virtual/backlight/acpi_video0/brightness
->                     has it backwards
->            Product: ACPI
->            Version: 2.5
->      KernelVersion: 2.6.28-rc8
->           Platform: All
->         OS/Version: Linux
->               Tree: Mainline
->             Status: NEW
->           Severity: normal
->           Priority: P1
->          Component: Power-Video
->         AssignedTo: acpi_power-video@kernel-bugs.osdl.org
->         ReportedBy: khashayar.lists@gmail.com
-> 
-> 
-> Latest working kernel version:
-> 2.6.27
-> 
-> Earliest failing kernel version:
-> probably 2.6.28-rc1, but could be later in the release candidates.
-> 
-> Distribution:
-> Ubuntu 8.10
-> 
-> Hardware Environment:
-> Asus, N20A, all intel.
-> 
-> Problem Description:
-> If the laptop loads the video module at boot time,
-> /sys/devices/virtual/backlight/acpi_video0/brightness is created. However, it's
-> all backwards, confusing applications like gnome-power-manager and the likes
-> (well, that basically means hal). Echoing 0 to 'brightness' raises the
-> backlight of this laptop to maximum. Echoing 13 to it, takes the backlight to a
-> minimum. 
-> actual_brightness' seems to stay at 0 at all times.
-> 
-> If I disalllow the video module to be loaded at boot time, there's no backlight
-> interface in /sys/class/backlight/*. But, nevertheless, the xbacklight utility
-> and hal seem to be able to control the backlight just fine. In this latter
-> case, withouth the video module loaded, xbacklight & hal handle the backlight
-> correctly, i.e. less means lower backlight, and more means brighter backlight.
-> 
-> I just confirmed this problem exists with the latest git from Linus' tree, as
-> well as the rc8 patch.
-> 
-> If I remember correctly, the 2.6.27-series created an interface under
-> /sys/devices/platform/asus-laptop/ for controlling backlight which worked just
-> fine.
-> 
-> Please let me know what additional information to post. I'd love to have this
-> fixed before the 2.6.28 release.
-
-OK, that's weird.  I have a suspicion that we're about to find out that
-this is intentional, but I don't know what the fix is..
