@@ -1,113 +1,68 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC][PATCH] ACPI: battery: add power_{now, avg} properties to power_class
-Date: Tue, 16 Dec 2008 16:51:30 +0100
-Message-ID: <200812161651.31086.rjw@sisk.pl>
-References: <20081215213855.8414.9349.stgit@thinkpad> <200812161617.21420.rjw@sisk.pl> <4947C924.6090002@suse.de>
+From: "Brian J. Murrell" <brian@interlinx.bc.ca>
+Subject: Re: suspend/resume fails on second attempt in LNXVIDEO:00
+Date: Tue, 16 Dec 2008 16:02:42 +0000 (UTC)
+Message-ID: <gi8jf1$m5f$5@ger.gmane.org>
+References: <gi247o$iog$1@ger.gmane.org> <200812160002.43427.rjw@sisk.pl>
+	<gi7433$m5f$1@ger.gmane.org> <200812161625.37318.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:55357 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755486AbYLPPwB (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
-	Tue, 16 Dec 2008 10:52:01 -0500
-In-Reply-To: <4947C924.6090002@suse.de>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758270AbYLPQDH@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: LenBrown <lenb@kernel.org>, Linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-On Tuesday, 16 of December 2008, Alexey Starikovskiy wrote:
-> Rafael J. Wysocki wrote:
-> > Hi,
-> > 
-> > On Monday, 15 of December 2008, Alexey Starikovskiy wrote:
-> >> ACPI has smart batteries, which work in units of energy and measure
-> >> rate of (dis)charge as power, thus it is not appropriate to export it
-> >> as a current_now.
-> >>
-> >> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-> >> ---
-> >>
-> >>  drivers/acpi/battery.c             |    3 ++-
-> >>  drivers/acpi/sbs.c                 |    6 ++++--
-> >>  drivers/power/power_supply_sysfs.c |    2 ++
-> >>  include/linux/power_supply.h       |    2 ++
-> >>  4 files changed, 10 insertions(+), 3 deletions(-)
-> >>
-> >>
-> >> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-> >> index 1423b0c..88f1fb5 100644
-> >> --- a/drivers/acpi/battery.c
-> >> +++ b/drivers/acpi/battery.c
-> >> @@ -173,6 +173,7 @@ static int acpi_battery_get_property(struct power_supply *psy,
-> >>  		val->intval = battery->voltage_now * 1000;
-> >>  		break;
-> >>  	case POWER_SUPPLY_PROP_CURRENT_NOW:
-> >> +	case POWER_SUPPLY_PROP_POWER_NOW:
-> >>  		val->intval = battery->current_now * 1000;
-> >>  		break;
-> >>  	case POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN:
-> >> @@ -223,7 +224,7 @@ static enum power_supply_property energy_battery_props[] = {
-> >>  	POWER_SUPPLY_PROP_TECHNOLOGY,
-> >>  	POWER_SUPPLY_PROP_VOLTAGE_MIN_DESIGN,
-> >>  	POWER_SUPPLY_PROP_VOLTAGE_NOW,
-> >> -	POWER_SUPPLY_PROP_CURRENT_NOW,
-> >> +	POWER_SUPPLY_PROP_POWER_NOW,
-> >>  	POWER_SUPPLY_PROP_ENERGY_FULL_DESIGN,
-> >>  	POWER_SUPPLY_PROP_ENERGY_FULL,
-> >>  	POWER_SUPPLY_PROP_ENERGY_NOW,
-> >> diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
-> >> index 6050ce4..994c04e 100644
-> >> --- a/drivers/acpi/sbs.c
-> >> +++ b/drivers/acpi/sbs.c
-> >> @@ -224,10 +224,12 @@ static int acpi_sbs_battery_get_property(struct power_supply *psy,
-> >>  				acpi_battery_vscale(battery) * 1000;
-> >>  		break;
-> >>  	case POWER_SUPPLY_PROP_CURRENT_NOW:
-> >> +	case POWER_SUPPLY_PROP_POWER_NOW:
-> >>  		val->intval = abs(battery->current_now) *
-> >>  				acpi_battery_ipscale(battery) * 1000;
-> > 
-> > Please introduce another field called 'battery->power_now' for this purpose.
-> > Otherwise, confusion is guaranteed to ensue.
-> How about 'battery->rate_now' for both cases? All other fields are re-used
-> as well, and it did not cause any confusion.  Probably no-one ever looked at
-> this code.
+On Tue, 16 Dec 2008 16:25:37 +0100, Rafael J. Wysocki wrote:
 
-Well, they are called 'capacity_*', which doesn't imply any particular units,
-while 'current_*' does.
+> Because the hal-driven whitelist allows us to match systems in a more
+> detailed way.  If your system is in the s2ram whitelist already and
+> works with it, there shouldn't be any difference.
 
-Anyway, 'battery->rate_now' would be better than 'battery->current_now'.
-What about 'battery->capacity_flow'?
+Unfortunately, Ubuntu in their "wisdom" removed s2ram and claim "s2both" 
+supersedes it in that it does both suspend to disk and suspend to ram and 
+then suspends, but if your battery dies while suspended you can still 
+resume from the suspend to disk.
+ 
+> Still, I was only considering that as a debugging aid in your case,
+> because s2ram works in the minimal configuration, while hald doesn't.
 
+Right.  I will give s2both a try and see what happens... no joy.  It 
+fails to even run without the swap device mounted, and my swap device is 
+not big enough to hibernate to anyway.  Damn you Ubuntu.
+
+> That's a bit of new information.
 > 
-> > 
-> >>  		break;
-> >>  	case POWER_SUPPLY_PROP_CURRENT_AVG:
-> >> +	case POWER_SUPPLY_PROP_POWER_AVG:
-> >>  		val->intval = abs(battery->current_avg) *
-> >>  				acpi_battery_ipscale(battery) * 1000;
-> > 
-> > Same here.
-> > 
-> > Also, as per our IRC conversation, I'd like 'current_now' to be reported even
-> > if energy units are used, at least for some time, to give a chance to the user
-> > land to switch to 'power_now' and 'power_avg' without pain.
-> To clarify, you suggest that "current_now" will report same value 
-> as "power_now" in case of energy units?
+> What's the list of modules loaded in the minimal configuration?
 
-Yes, with a comment why that is so (ie. because of the userland doing stupid
-things).
+Module                  Size  Used by
+ext3                  130568  1 
+jbd                    53908  1 ext3
+mbcache                16004  1 ext3
+loop                   22540  2 
+usb_storage            78656  0 
+libusual               30356  1 usb_storage
+sd_mod                 41240  2 
+crc_t10dif             10112  1 sd_mod
+sr_mod                 21956  0 
+cdrom                  42272  1 sr_mod
+sg                     36148  0 
+ahci                   37260  1 
+ata_piix               29700  0 
+pata_acpi              12288  0 
+ata_generic            13060  0 
+libata                176160  4 ahci,ata_piix,pata_acpi,ata_generic
+scsi_mod              156948  5 usb_storage,sd_mod,sr_mod,sg,libata
+8139too                31744  0 
+8139cp                 27776  0 
+mii                    13440  2 8139too,8139cp
+ehci_hcd               41996  0 
+uhci_hcd               30352  0 
+usbcore               149392  5 usb_storage,libusual,ehci_hcd,uhci_hcd
+thermal                23708  0 
+processor              49708  3 thermal
+fan                    12676  0 
+fuse                   58780  3 
 
-> > You can put information about that into
-> > Documentation/feature-removal-schedule.txt and say that after 2.6.29
-> > 'current_now' will no longer be reported when energy units are used.
-> Sounds good.
-
-OK
-
-Thanks,
-Rafael
+Cheers,
+b.
