@@ -1,183 +1,184 @@
-From: Len Brown <lenb@kernel.org>
-Subject: acpi_os_allocate(GFP_KERNEL) (was Re: acpi_evaluate_integer broken by
- design)
-Date: Tue, 16 Dec 2008 00:24:43 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0812152240500.30475@localhost.localdomain>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: acpi_os_allocate(GFP_KERNEL) (was Re: acpi_evaluate_integer
+ broken by design)
+Date: Mon, 15 Dec 2008 21:41:40 -0800
+Message-ID: <20081215214140.9031d4c8.akpm@linux-foundation.org>
 References: <20081125110508.GA1943@elf.ucw.cz>
- <20081126132050.cecb170b.akpm@linux-foundation.org>
- <alpine.LFD.2.00.0811261729550.3895@localhost.localdomain>
- <20081126150224.947c18d4.akpm@linux-foundation.org>
+	<20081126132050.cecb170b.akpm@linux-foundation.org>
+	<alpine.LFD.2.00.0811261729550.3895@localhost.localdomain>
+	<20081126150224.947c18d4.akpm@linux-foundation.org>
+	<alpine.LFD.2.00.0812152240500.30475@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms044pub.verizon.net ([206.46.252.44]:41955 "EHLO
-	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750721AbYLPFYs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Dec 2008 00:24:48 -0500
-In-reply-to: <20081126150224.947c18d4.akpm@linux-foundation.org>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44481 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750855AbYLPFl6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Dec 2008 00:41:58 -0500
+In-Reply-To: <alpine.LFD.2.00.0812152240500.30475@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
+To: Len Brown <lenb@kernel.org>
 Cc: pavel@suse.cz, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
+On Tue, 16 Dec 2008 00:24:43 -0500 (EST) Len Brown <lenb@kernel.org> wrote:
 
-> > The reason that the ACPI code is littered with bogus
-> > irqs_disabled() ? GFP_ATOMIC : GFP_KERNEL)
-> > is because, like boot, resume starts life with interrupts off.
+> > Obviously, it is even better to do neither.  It is a basic and
+> > oft-reoccurring design mistake for a low-level piece of code to
+> > hardwire its GFP_foo decision.  The gfp_t should be passed in from the
+> > callers, all the way down the chain from the top-level code which
+> > actually knows what state this thread of control is in.
 > 
-> yes, suspend's disabling of interrupts causes problems all over the place.
+> Here the caller does not know.
+
+I bet it does it's just that the caller is thirty five levels of
+function call higher up...
+
+> The crux of the problem it that the AML interpreter
+> may need to allocate memory and thus may sleep.
+> Under nominal conditions the interpreter only runs in 
+> user-context and allocatges with GFP_KERNEL
+> so sleeping is just dandy.
 > 
-> If we really do need to inspect global state to handle this, it would
-> be much better to create a new
+> But AML also needs to run at boot time and at resume time
+> to do things like configure interrupts before interrupts are
+> enabled...
 > 
-> bool resume_is_running_so_you_cant_sleep;
+> boot-time is handled by _cond_resched()
+> not calling __cond_resched unless
+> system_state == SYSTEM_RUNNING
+> 
+> I suppose I could do something like this,
+> though I'm not sure of the prettiest place
+> to check system_resume_irqsoff == true,
+> so that is left out for now...
+> 
 >
-> and to test that.  Something which is clear, highly specific and which
-> cannot be accidentally triggered via other means.
-
-can do.
-
-> > I would prefer that resume and boot handle this the same way,
-> > with system_state.  However, a few years ago when I suggested
-> > using system_state for resume, Andrew thought that was a very
-> > bad idea.  Andrew, do you still feel that way?
+> ...
 > 
-> yep.  We've had problems in the past with system_state, where people add
-> new states, and old code breaks.  Plus as we add more dependencies on
-> system_state, that reduces our ability to add new states and makes it
-> harder to alter (ie: fix) system_state transitions, etc.  Just run
-> away!
-> 
-> As I said above, if we have a piece of code which wants to know when a
-> separate piece of code is in a particualr state, it is better to add a
-> new state flag just for that application, rather than trying to infer
-> things from the heavily overloaded system_state.
-> 
-> 
-> Obviously, it is even better to do neither.  It is a basic and
-> oft-reoccurring design mistake for a low-level piece of code to
-> hardwire its GFP_foo decision.  The gfp_t should be passed in from the
-> callers, all the way down the chain from the top-level code which
-> actually knows what state this thread of control is in.
+> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+> index e52ad91..def91fa 100644
+> --- a/drivers/acpi/pci_link.c
+> +++ b/drivers/acpi/pci_link.c
+> @@ -320,7 +320,7 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
+>  	if (!link || !irq)
+>  		return -EINVAL;
+>  
+> -	resource = kzalloc(sizeof(*resource) + 1, irqs_disabled() ? GFP_ATOMIC: GFP_KERNEL);
+> +	resource = kzalloc(sizeof(*resource) + 1, GFP_KERNEL);
+>  	if (!resource)
+>  		return -ENOMEM;
+>  
+> diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+> index bb7d50d..27243f9 100644
+> --- a/drivers/acpi/power.c
+> +++ b/drivers/acpi/power.c
+> @@ -218,8 +218,7 @@ static int acpi_power_on(acpi_handle handle, struct acpi_device *dev)
+>  	}
+>  
+>  	if (!found) {
+> -		ref = kmalloc(sizeof (struct acpi_power_reference),
+> -		    irqs_disabled() ? GFP_ATOMIC : GFP_KERNEL);
+> +		ref = kmalloc(sizeof (struct acpi_power_reference), GFP_KERNEL);
+>  		if (!ref) {
+>  			ACPI_DEBUG_PRINT((ACPI_DB_INFO, "kmalloc() failed\n"));
+>  			mutex_unlock(&resource->resource_lock);
+> diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
+> index 029c8c0..9fbf73f 100644
+> --- a/include/acpi/platform/aclinux.h
+> +++ b/include/acpi/platform/aclinux.h
+> @@ -121,17 +121,16 @@ static inline acpi_thread_id acpi_os_get_thread_id(void)
+>  #include <acpi/actypes.h>
+>  static inline void *acpi_os_allocate(acpi_size size)
+>  {
+> -	return kmalloc(size, irqs_disabled()? GFP_ATOMIC : GFP_KERNEL);
+> +	return kmalloc(size, GFP_KERNEL);
+>  }
+>  static inline void *acpi_os_allocate_zeroed(acpi_size size)
+>  {
+> -	return kzalloc(size, irqs_disabled()? GFP_ATOMIC : GFP_KERNEL);
+> +	return kzalloc(size, GFP_KERNEL);
+>  }
+>  
+>  static inline void *acpi_os_acquire_object(acpi_cache_t * cache)
+>  {
+> -	return kmem_cache_zalloc(cache,
+> -				 irqs_disabled()? GFP_ATOMIC : GFP_KERNEL);
+> +	return kmem_cache_zalloc(cache, GFP_KERNEL);
+>  }
+>  
+>  #define ACPI_ALLOCATE(a)	acpi_os_allocate(a)
+> diff --git a/include/linux/suspend.h b/include/linux/suspend.h
+> index 2ce8207..a716de8 100644
+> --- a/include/linux/suspend.h
+> +++ b/include/linux/suspend.h
+> @@ -128,9 +128,16 @@ extern void arch_suspend_disable_irqs(void);
+>   */
+>  extern void arch_suspend_enable_irqs(void);
+>  
+> +/**
+> + * suspend_irqs_off
+> + *
+> + * flag to indicate that IRQs are off for the benefit of suspend
+> + */
+> +extern bool system_suspend_irqs_off;
+>  extern int pm_suspend(suspend_state_t state);
+>  #else /* !CONFIG_SUSPEND */
+>  #define suspend_valid_only_mem	NULL
+> +#define system_suspend_irqs_off false
+>  
+>  static inline void suspend_set_ops(struct platform_suspend_ops *ops) {}
+>  static inline int pm_suspend(suspend_state_t state) { return -ENOSYS; }
+> diff --git a/kernel/power/main.c b/kernel/power/main.c
+> index b8f7ce9..2eadae7 100644
+> --- a/kernel/power/main.c
+> +++ b/kernel/power/main.c
+> @@ -268,16 +268,20 @@ static int suspend_prepare(void)
+>  	return error;
+>  }
+>  
+> +bool system_resume_irqsoff;	/* IRQs are off for resume */
 
-Here the caller does not know.
+I guess that was supposed to be "system_suspend_irqs_off"?
 
-The crux of the problem it that the AML interpreter
-may need to allocate memory and thus may sleep.
-Under nominal conditions the interpreter only runs in 
-user-context and allocatges with GFP_KERNEL
-so sleeping is just dandy.
+>  /* default implementation */
+>  void __attribute__ ((weak)) arch_suspend_disable_irqs(void)
+>  {
+>  	local_irq_disable();
+> +	system_resume_irqsoff = true;
+>  }
+>  
+>  /* default implementation */
+>  void __attribute__ ((weak)) arch_suspend_enable_irqs(void)
+>  {
+>  	local_irq_enable();
+> +	system_resume_irqsoff = false;
+>  }
 
-But AML also needs to run at boot time and at resume time
-to do things like configure interrupts before interrupts are
-enabled...
+(please use __weak)
 
-boot-time is handled by _cond_resched()
-not calling __cond_resched unless
-system_state == SYSTEM_RUNNING
+Whether it's "system_resume_irqsoff" or "system_suspend_irqs_off",
+neither of them actually got used ;)
 
-I suppose I could do something like this,
-though I'm not sure of the prettiest place
-to check system_resume_irqsoff == true,
-so that is left out for now...
+If the code is really this simple and localised then perhaps:
 
--- Len Brown, Intel Open Source Technology Center
+gfp_t acpi_aml_gfp_flags = GFP_ATOMIC;
 
-diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-index e52ad91..def91fa 100644
---- a/drivers/acpi/pci_link.c
-+++ b/drivers/acpi/pci_link.c
-@@ -320,7 +320,7 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
- 	if (!link || !irq)
- 		return -EINVAL;
- 
--	resource = kzalloc(sizeof(*resource) + 1, irqs_disabled() ? GFP_ATOMIC: GFP_KERNEL);
-+	resource = kzalloc(sizeof(*resource) + 1, GFP_KERNEL);
- 	if (!resource)
- 		return -ENOMEM;
- 
-diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-index bb7d50d..27243f9 100644
---- a/drivers/acpi/power.c
-+++ b/drivers/acpi/power.c
-@@ -218,8 +218,7 @@ static int acpi_power_on(acpi_handle handle, struct acpi_device *dev)
- 	}
- 
- 	if (!found) {
--		ref = kmalloc(sizeof (struct acpi_power_reference),
--		    irqs_disabled() ? GFP_ATOMIC : GFP_KERNEL);
-+		ref = kmalloc(sizeof (struct acpi_power_reference), GFP_KERNEL);
- 		if (!ref) {
- 			ACPI_DEBUG_PRINT((ACPI_DB_INFO, "kmalloc() failed\n"));
- 			mutex_unlock(&resource->resource_lock);
-diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
-index 029c8c0..9fbf73f 100644
---- a/include/acpi/platform/aclinux.h
-+++ b/include/acpi/platform/aclinux.h
-@@ -121,17 +121,16 @@ static inline acpi_thread_id acpi_os_get_thread_id(void)
- #include <acpi/actypes.h>
- static inline void *acpi_os_allocate(acpi_size size)
- {
--	return kmalloc(size, irqs_disabled()? GFP_ATOMIC : GFP_KERNEL);
-+	return kmalloc(size, GFP_KERNEL);
- }
- static inline void *acpi_os_allocate_zeroed(acpi_size size)
- {
--	return kzalloc(size, irqs_disabled()? GFP_ATOMIC : GFP_KERNEL);
-+	return kzalloc(size, GFP_KERNEL);
- }
- 
- static inline void *acpi_os_acquire_object(acpi_cache_t * cache)
- {
--	return kmem_cache_zalloc(cache,
--				 irqs_disabled()? GFP_ATOMIC : GFP_KERNEL);
-+	return kmem_cache_zalloc(cache, GFP_KERNEL);
- }
- 
- #define ACPI_ALLOCATE(a)	acpi_os_allocate(a)
-diff --git a/include/linux/suspend.h b/include/linux/suspend.h
-index 2ce8207..a716de8 100644
---- a/include/linux/suspend.h
-+++ b/include/linux/suspend.h
-@@ -128,9 +128,16 @@ extern void arch_suspend_disable_irqs(void);
-  */
- extern void arch_suspend_enable_irqs(void);
- 
-+/**
-+ * suspend_irqs_off
-+ *
-+ * flag to indicate that IRQs are off for the benefit of suspend
-+ */
-+extern bool system_suspend_irqs_off;
- extern int pm_suspend(suspend_state_t state);
- #else /* !CONFIG_SUSPEND */
- #define suspend_valid_only_mem	NULL
-+#define system_suspend_irqs_off false
- 
- static inline void suspend_set_ops(struct platform_suspend_ops *ops) {}
- static inline int pm_suspend(suspend_state_t state) { return -ENOSYS; }
-diff --git a/kernel/power/main.c b/kernel/power/main.c
-index b8f7ce9..2eadae7 100644
---- a/kernel/power/main.c
-+++ b/kernel/power/main.c
-@@ -268,16 +268,20 @@ static int suspend_prepare(void)
- 	return error;
- }
- 
-+bool system_resume_irqsoff;	/* IRQs are off for resume */
-+
- /* default implementation */
- void __attribute__ ((weak)) arch_suspend_disable_irqs(void)
- {
- 	local_irq_disable();
-+	system_resume_irqsoff = true;
- }
- 
- /* default implementation */
- void __attribute__ ((weak)) arch_suspend_enable_irqs(void)
- {
- 	local_irq_enable();
-+	system_resume_irqsoff = false;
- }
- 
- /**
+void __weak arch_suspend_disable_irqs(void)
+{
+	local_irq_disable();
+	acpi_aml_gfp_flags = GFP_ATOMIC;
+}
+
+/* default implementation */
+void __weak arch_suspend_enable_irqs(void)
+{
+	local_irq_enable();
+	acpi_aml_gfp_flags = GFP_KERNEL;
+}
+
+would suffice.  Dunno.
+
+Why are we providing for an arch override of this?
