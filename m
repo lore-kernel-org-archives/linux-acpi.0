@@ -1,63 +1,55 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC][PATCH] ACPI: battery: add power_{now, avg} properties to power_class
-Date: Tue, 16 Dec 2008 16:19:44 +0100
-Message-ID: <200812161619.45073.rjw@sisk.pl>
-References: <20081215213855.8414.9349.stgit@thinkpad> <49476C89.3050707@suse.de> <20081216141845.GB13379@khazad-dum.debian.net>
+From: Dan Williams <dcbw@redhat.com>
+Subject: Re: Fuijtsu Lifebook RFKILL support
+Date: Tue, 16 Dec 2008 10:23:53 -0500
+Message-ID: <1229441034.7307.22.camel@localhost.localdomain>
+References: <1228957506.4045.11.camel@localhost>
+	 <20081211165247.GA4844@khazad-dum.debian.net>
+	 <1229016827.6446.6.camel@localhost>
+	 <20081211194734.GA18132@khazad-dum.debian.net>
+	 <1229046602.4030.13.camel@localhost>
+	 <20081212195331.GA12679@khazad-dum.debian.net>
+	 <alpine.LFD.2.00.0812121532580.4064@localhost.localdomain>
+	 <1229172465.4010.11.camel@localhost>
+	 <20081213132857.GA11428@khazad-dum.debian.net>
+	 <1229274343.6775.15.camel@localhost.localdomain>
+	 <20081215115336.GD17648@khazad-dum.debian.net>
+	 <1229354348.12163.20.camel@localhost.localdomain>
+	 <1229361241.13400.1.camel@localhost>
+	 <1229363984.12163.114.camel@localhost.localdomain>
+	 <1229435444.4246.11.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:55209 "EHLO ogre.sisk.pl"
+Received: from mx2.redhat.com ([66.187.237.31]:47648 "EHLO mx2.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754049AbYLPPTv (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
-	Tue, 16 Dec 2008 10:19:51 -0500
-In-Reply-To: <20081216141845.GB13379@khazad-dum.debian.net>
-Content-Disposition: inline
+	id S1758565AbYLPPZJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Dec 2008 10:25:09 -0500
+In-Reply-To: <1229435444.4246.11.camel@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, LenBrown <lenb@kernel.org>, Linux-acpi@vger.kernel.org
+To: tony@linx.net
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <lenb@kernel.org>, Ivo van Doorn <ivdoorn@gmail.com>, linux-acpi@vger.kernel.org, jwoithe@physics.adelaide.edu.au, Peter Gruber <nokos@gmx.net>, linux-wireless@vger.kernel.org
 
-On Tuesday, 16 of December 2008, Henrique de Moraes Holschuh wrote:
-> On Tue, 16 Dec 2008, Alexey Starikovskiy wrote:
-> > Henrique de Moraes Holschuh wrote:
-> >> On Tue, 16 Dec 2008, Alexey Starikovskiy wrote:
-> >>> @@ -224,10 +224,12 @@ static int acpi_sbs_battery_get_property(struct power_supply *psy,
-> >>>  				acpi_battery_vscale(battery) * 1000;
-> >>>  		break;
-> >>>  	case POWER_SUPPLY_PROP_CURRENT_NOW:
-> >>> +	case POWER_SUPPLY_PROP_POWER_NOW:
-> >>>  		val->intval = abs(battery->current_now) *
-> >>>  				acpi_battery_ipscale(battery) * 1000;
-> >>>  		break;
-> >>>  	case POWER_SUPPLY_PROP_CURRENT_AVG:
-> >>> +	case POWER_SUPPLY_PROP_POWER_AVG:
-> >>>  		val->intval = abs(battery->current_avg) *
-> >>>  				acpi_battery_ipscale(battery) * 1000;
-> >>>  		break;
-> >>
-> >> Excuse me if I am talking nonsense (I have looked over just the patch,
-> >> not the entire file), but how can that be correct?  It is either power
-> >> or current, it cannot be both, so the CURRENT case should be dropped.
-> > file name under /sys depends on property, so if we want some variable to
-> > be named as current_now, it should be returned by case POWER_SUPPLY_PROP_CURRENT_NOW.
-> > Then we register with power_supply, we say which set of properties (either charge or energy) we support,
-> > so for one battery we will receive request for either CURRENT_AVG or POWER_AVG, not both.
-> >> And if it is power, why have fields named current_now... or is
-> >> ipscale() a voltage, and not a scaling factor?
-> > ipscale stands for I/P scaling, as opposed to V scaling -- it depends on units returned by actual battery.
-> > All energy/charge fields are reused, so battery->current_now contains either power_now or current_now from battery.
+On Tue, 2008-12-16 at 13:50 +0000, Tony Vroon wrote:
+> On Mon, 2008-12-15 at 12:59 -0500, Dan Williams wrote:
+> > > P.S. Did you get my e-mail about the Sierra Wireless MC8790?
+> > 
+> > Yes; it's hal-info commit 8912ec2b5d0a221a74156c047b18a26b2d916e13.
 > 
-> I see.  But that's a loaded-spring trap waiting for the unaware.  Can it be
-> called something else that is neutral re. power or current, pretty please?
-> even "current_or_power_now" would be less confusing...
+> That uses USB interface 0 like on the other cards. On the MC8790 you
+> should be using USB interface 3. Unfortunately 0, 1 & 2 are duds that
+> just time out.
+> You can tell them apart from the "real" ones by them only having two
+> endpoints instead of three. I'm not sure whether this is a bug or a
+> feature yet.
 
-As I said in my recent reply to Alex, I'd prefer it if there were separate
-fields called 'power_now' and 'power_avg' under 'battery'.
+Unfortunately, it might actually be any of the interfaces depending on
+hotplug ordering.  These days, having hal-info do static tagging based
+on USB port numbering is somewhat broken; we need to do modem probing
+(I've got that half-done) *and* start tagging the ports in the driver
+itself.  So you may be out of luck until then.
 
-Then, there won't be any confustion and people reading the source will clearly
-understand what is what.
+Dan
 
-Thanks,
-Rafael
+
