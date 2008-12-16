@@ -1,55 +1,53 @@
-From: Dan Williams <dcbw@redhat.com>
-Subject: Re: Fuijtsu Lifebook RFKILL support
-Date: Tue, 16 Dec 2008 10:23:53 -0500
-Message-ID: <1229441034.7307.22.camel@localhost.localdomain>
-References: <1228957506.4045.11.camel@localhost>
-	 <20081211165247.GA4844@khazad-dum.debian.net>
-	 <1229016827.6446.6.camel@localhost>
-	 <20081211194734.GA18132@khazad-dum.debian.net>
-	 <1229046602.4030.13.camel@localhost>
-	 <20081212195331.GA12679@khazad-dum.debian.net>
-	 <alpine.LFD.2.00.0812121532580.4064@localhost.localdomain>
-	 <1229172465.4010.11.camel@localhost>
-	 <20081213132857.GA11428@khazad-dum.debian.net>
-	 <1229274343.6775.15.camel@localhost.localdomain>
-	 <20081215115336.GD17648@khazad-dum.debian.net>
-	 <1229354348.12163.20.camel@localhost.localdomain>
-	 <1229361241.13400.1.camel@localhost>
-	 <1229363984.12163.114.camel@localhost.localdomain>
-	 <1229435444.4246.11.camel@localhost>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: suspend/resume fails on second attempt in LNXVIDEO:00
+Date: Tue, 16 Dec 2008 16:25:37 +0100
+Message-ID: <200812161625.37318.rjw@sisk.pl>
+References: <gi247o$iog$1@ger.gmane.org> <200812160002.43427.rjw@sisk.pl> <gi7433$m5f$1@ger.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.redhat.com ([66.187.237.31]:47648 "EHLO mx2.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758565AbYLPPZJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Dec 2008 10:25:09 -0500
-In-Reply-To: <1229435444.4246.11.camel@localhost>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758604AbYLPPZ4@vger.kernel.org>
+In-Reply-To: <gi7433$m5f$1@ger.gmane.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Brian J. Murrell" <brian@interlinx.bc.ca>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: tony@linx.net
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <lenb@kernel.org>, Ivo van Doorn <ivdoorn@gmail.com>, linux-acpi@vger.kernel.org, jwoithe@physics.adelaide.edu.au, Peter Gruber <nokos@gmx.net>, linux-wireless@vger.kernel.org
 
-On Tue, 2008-12-16 at 13:50 +0000, Tony Vroon wrote:
-> On Mon, 2008-12-15 at 12:59 -0500, Dan Williams wrote:
-> > > P.S. Did you get my e-mail about the Sierra Wireless MC8790?
+On Tuesday, 16 of December 2008, Brian J. Murrell wrote:
+> On Tue, 16 Dec 2008 00:02:43 +0100, Rafael J. Wysocki wrote:
 > > 
-> > Yes; it's hal-info commit 8912ec2b5d0a221a74156c047b18a26b2d916e13.
+> > No, most probably your graphics adapter is not handled correctly in this
+> > case, because it needs some special user space quirks, which are done by
+> > hald that is not running.
 > 
-> That uses USB interface 0 like on the other cards. On the MC8790 you
-> should be using USB interface 3. Unfortunately 0, 1 & 2 are duds that
-> just time out.
-> You can tell them apart from the "real" ones by them only having two
-> endpoints instead of three. I'm not sure whether this is a bug or a
-> feature yet.
+> Hrm.  OK.
+>  
+> > You can try to use the s2ram binary (http://en.opensuse.org/s2ram) to
+> > work around this issue.
+> 
+> That sounds like I am setting for something less than optimal.  Is that 
+> the case?  Why would I want to use what I've been trying to get working 
+> rather than s2ram?  Maybe put another way, why isn't everyone using s2ram?
 
-Unfortunately, it might actually be any of the interfaces depending on
-hotplug ordering.  These days, having hal-info do static tagging based
-on USB port numbering is somewhat broken; we need to do modem probing
-(I've got that half-done) *and* start tagging the ports in the driver
-itself.  So you may be out of luck until then.
+Because the hal-driven whitelist allows us to match systems in a more detailed
+way.  If your system is in the s2ram whitelist already and works with it, there
+shouldn't be any difference.
 
-Dan
+Still, I was only considering that as a debugging aid in your case, because
+s2ram works in the minimal configuration, while hald doesn't.
 
+> Ultimately I'm going to want to be able to suspend as well as hibernate, 
+> for whatever that's worth.
+> 
+> > Anyway, if you suspend for the second time from this state, does it
+> > resume?
+> 
+> No.  It fails just as miserably.  :-(
 
+That's a bit of new information.
+
+What's the list of modules loaded in the minimal configuration?
+
+Rafael
