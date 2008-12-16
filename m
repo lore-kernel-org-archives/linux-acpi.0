@@ -1,86 +1,92 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: reverted battery current conversion fix
-Date: Tue, 16 Dec 2008 16:06:33 +0100
-Message-ID: <200812161606.34110.rjw@sisk.pl>
-References: <87zlixxaht.fsf@szonett.ki.iif.hu> <87ljuggxhf.fsf@tac.ki.iif.hu> <20081216142832.GC13379@khazad-dum.debian.net>
+Subject: Re: [RFC][PATCH] ACPI: battery: add power_{now, avg} properties to power_class
+Date: Tue, 16 Dec 2008 16:17:21 +0100
+Message-ID: <200812161617.21420.rjw@sisk.pl>
+References: <20081215213855.8414.9349.stgit@thinkpad>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:55105 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:55186 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755327AbYLPPHH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Dec 2008 10:07:07 -0500
-In-Reply-To: <20081216142832.GC13379@khazad-dum.debian.net>
+	id S1754221AbYLPPRv (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
+	Tue, 16 Dec 2008 10:17:51 -0500
+In-Reply-To: <20081215213855.8414.9349.stgit@thinkpad>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Ferenc Wagner <wferi@niif.hu>, Alexey Starikovskiy <astarikovskiy@suse.de>, linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: LenBrown <lenb@kernel.org>, Linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-On Tuesday, 16 of December 2008, Henrique de Moraes Holschuh wrote:
-> On Tue, 16 Dec 2008, Ferenc Wagner wrote:
-> > Alexey Starikovskiy <astarikovskiy@suse.de> writes:
-> > > Ferenc Wagner wrote:
-> > >> Alexey Starikovskiy <astarikovskiy@suse.de> writes:
-> > >>> Ferenc Wagner wrote:
-> > >>>> the wild values probably came from some application, which
-> > >>>> previously worked around the wrong sysfs current value (supposedly
-> > >>>> correctly interpreting it as power) and thus got broken by the fix.
-> > >>>
-> > >>> Yes, the application is kpowersaved and it is written with the
-> > >>> assumption that it could get remaining time by dividing either
-> > >>> energy_now or charge_now by current_now.
-> > >>
-> > >> So the first choice depends on the current buggy kernel behaviour.
-> > >> What's the plan of action in such cases?  I found some notes that
-> > >> kpowersaved can or could use HAL for getting this information, in
-> > >> which case HAL also should be fixed.  At least their bug tracker[1] on
-> > >> SF doesn't contain any such issue, maybe one should be added by
-> > >> somebody actually using it if the kernel is to be fixed.
-> > >
-> > > Currently, Rafael suggests, that it is too late to fix the kernel...
+Hi,
 
-Actually no, I didn't say that.
-
-What I said is that it was too late to change the interpretation of
-'current_now' in the case when energy units were used.
-
-> > Too late for 2.6.28 or too late for ever?  The ACPI sysfs interface
-> > appeared about one year ago, if I read the git log right,
-> > documentation followed this spring.  If the supposedly clean sysfs
-> > interface can't live up to its very precise and well thought out
-> > documentation, that should be documented at least.  :(  What a pity.
+On Monday, 15 of December 2008, Alexey Starikovskiy wrote:
+> ACPI has smart batteries, which work in units of energy and measure
+> rate of (dis)charge as power, thus it is not appropriate to export it
+> as a current_now.
 > 
-> I sure hope it is "too late for 2.6.28" :-)
-
-For 2.6.28 it's obviously too late, but I think it generally is too late to
-change whatever is reported via 'current_now', because the userland already
-started to rely on that.
-
-> I can tell you what *I* do on thinkpad-acpi: I fix it, but I warn the users
-> beforehand, and in the release notes, and in the commit message.  And I have
-> documented that fact in the rules of engagement for the thinkpad-acpi sysfs
-> interface, to make it extremely clear to all parties involved.
+> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+> ---
 > 
-> Note that "broken" != "not as neat as we'd like".  In this case, it *is*
-> clearly broken, so what is happening is not a gratuitous ABI change.
+>  drivers/acpi/battery.c             |    3 ++-
+>  drivers/acpi/sbs.c                 |    6 ++++--
+>  drivers/power/power_supply_sysfs.c |    2 ++
+>  include/linux/power_supply.h       |    2 ++
+>  4 files changed, 10 insertions(+), 3 deletions(-)
+> 
+> 
+> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+> index 1423b0c..88f1fb5 100644
+> --- a/drivers/acpi/battery.c
+> +++ b/drivers/acpi/battery.c
+> @@ -173,6 +173,7 @@ static int acpi_battery_get_property(struct power_supply *psy,
+>  		val->intval = battery->voltage_now * 1000;
+>  		break;
+>  	case POWER_SUPPLY_PROP_CURRENT_NOW:
+> +	case POWER_SUPPLY_PROP_POWER_NOW:
+>  		val->intval = battery->current_now * 1000;
+>  		break;
+>  	case POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN:
+> @@ -223,7 +224,7 @@ static enum power_supply_property energy_battery_props[] = {
+>  	POWER_SUPPLY_PROP_TECHNOLOGY,
+>  	POWER_SUPPLY_PROP_VOLTAGE_MIN_DESIGN,
+>  	POWER_SUPPLY_PROP_VOLTAGE_NOW,
+> -	POWER_SUPPLY_PROP_CURRENT_NOW,
+> +	POWER_SUPPLY_PROP_POWER_NOW,
+>  	POWER_SUPPLY_PROP_ENERGY_FULL_DESIGN,
+>  	POWER_SUPPLY_PROP_ENERGY_FULL,
+>  	POWER_SUPPLY_PROP_ENERGY_NOW,
+> diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
+> index 6050ce4..994c04e 100644
+> --- a/drivers/acpi/sbs.c
+> +++ b/drivers/acpi/sbs.c
+> @@ -224,10 +224,12 @@ static int acpi_sbs_battery_get_property(struct power_supply *psy,
+>  				acpi_battery_vscale(battery) * 1000;
+>  		break;
+>  	case POWER_SUPPLY_PROP_CURRENT_NOW:
+> +	case POWER_SUPPLY_PROP_POWER_NOW:
+>  		val->intval = abs(battery->current_now) *
+>  				acpi_battery_ipscale(battery) * 1000;
 
-That only is a semantic difference.  The breakage is actually the same.
+Please introduce another field called 'battery->power_now' for this purpose.
+Otherwise, confusion is guaranteed to ensue.
 
-> And if someone in userspace worked around the broken crap, IT IS THEIR FAULT
-> for doing it in the first place instead of demanding that we fix the mess when
-> they noticed it existed.
+>  		break;
+>  	case POWER_SUPPLY_PROP_CURRENT_AVG:
+> +	case POWER_SUPPLY_PROP_POWER_AVG:
+>  		val->intval = abs(battery->current_avg) *
+>  				acpi_battery_ipscale(battery) * 1000;
 
-I think they didn't understand the interface and found the working settings by
-experimentation.  It's not their fault that had to do that.
+Same here.
 
-> PS: a little foresight can help wonders.  I suggest adding a version
-> read-only attribute to the sysfs interface, and increase it when you do any
-> ABI change that userspace could notice (be them fixes or something else).
+Also, as per our IRC conversation, I'd like 'current_now' to be reported even
+if energy units are used, at least for some time, to give a chance to the user
+land to switch to 'power_now' and 'power_avg' without pain.
 
-Good idea, but it doesn't help in this particular case.
+You can put information about that into
+Documentation/feature-removal-schedule.txt and say that after 2.6.29
+'current_now' will no longer be reported when energy units are used.
 
 Thanks,
 Rafael
