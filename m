@@ -1,45 +1,161 @@
-From: "Brian J. Murrell" <brian@interlinx.bc.ca>
-Subject: Re: suspend/resume fails on second attempt in LNXVIDEO:00
-Date: Tue, 16 Dec 2008 18:07:15 +0000 (UTC)
-Message-ID: <gi8qoj$m5f$7@ger.gmane.org>
-References: <gi247o$iog$1@ger.gmane.org> <200812161625.37318.rjw@sisk.pl>
-	<gi8jf1$m5f$5@ger.gmane.org> <200812161713.08451.rjw@sisk.pl>
-	<20081216163746.GA9478@srcf.ucam.org>
+From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: state of some x86 acpi patches
+Date: Tue, 16 Dec 2008 11:19:40 -0800
+Message-ID: <4947FF4C.80706@goop.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed;
+ boundary="------------080804060007030805090602"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from main.gmane.org ([80.91.229.2]:38960 "EHLO ciao.gmane.org"
+Received: from gw.goop.org ([64.81.55.164]:44058 "EHLO mail.goop.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751567AbYLPSH0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Dec 2008 13:07:26 -0500
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1LCeKI-0002bb-DN
-	for linux-acpi@vger.kernel.org; Tue, 16 Dec 2008 18:07:22 +0000
-Received: from d193-213-184.home3.cgocable.net ([67.193.213.184])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Tue, 16 Dec 2008 18:07:22 +0000
-Received: from brian by d193-213-184.home3.cgocable.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Tue, 16 Dec 2008 18:07:22 +0000
+	id S1751957AbYLPTTn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Dec 2008 14:19:43 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
+To: "Brown, Len" <len.brown@intel.com>, Yinghai Lu <yinghai@kernel.org>, linux-acpi@vger.kernel.org
+Cc: Ingo Molnar <mingo@elte.hu>
 
-On Tue, 16 Dec 2008 16:37:46 +0000, Matthew Garrett wrote:
-> 
-> I seem to be missing the original message, but: no, s2ram doesn't exist
-> in Ubuntu because pm-utils handles that role.
+This is a multi-part message in MIME format.
+--------------080804060007030805090602
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Well, that's *their* argument but lots of people think otherwise.  There 
-appears to be no shortage of people for whom pm-utils does NOT work yet 
-s2ram does.  https://bugs.launchpad.net/ubuntu/+source/uswsusp/+bug/134238
+Hi Len,
 
-There is also indication earlier in this thread that it may work for me 
-where pm-utils is not working.
+Have you seen these three patches?  Do they look OK to you?
 
-b.
+Yinghai Lu improve the third patch ("acpi: remove final __acpi_map_table 
+mapping before setting acpi_gbl_permanent_mmap"), which I think Ingo 
+sent you instead.
 
+Thanks,
+    J
 
+--------------080804060007030805090602
+Content-Type: text/plain;
+ name="x86-__acpi_map_table-use-early_ioremap.patch"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline;
+ filename="x86-__acpi_map_table-use-early_ioremap.patch"
+
+U3ViamVjdDogeDg2OiB1c2UgZWFybHlfaW9yZW1hcCBpbiBfX2FjcGlfbWFwX3RhYmxlCgpf
+X2FjcGlfbWFwX3RhYmxlIGVmZmVjdGl2ZWx5IHJlaW1wbGVtZW50cyBlYXJseV9pb3JlbWFw
+KCkuICBSYXRoZXIKdGhhbiBoYXZlIHRoYXQgZHVwbGljYXRpb24sIGp1c3QgaW1wbGVtZW50
+IGl0IGluIHRlcm1zIG9mCmVhcmx5X2lvcmVtYXAoKS4KCkhvd2V2ZXIsIHVubGlrZSBlYXJs
+eV9pb3JlbWFwKCksIF9fYWNwaV9tYXBfdGFibGUganVzdCBtYWludGFpbnMgYQpzaW5nbGUg
+bWFwcGluZyB3aGljaCBnZXRzIHJlcGxhY2VkIGVhY2ggY2FsbCwgYW5kIGhhcyBubyBjb3Jy
+ZXNwb25kaW5nCnVubWFwIGZ1bmN0aW9uLiAgSW1wbGVtZW50IHRoaXMgYnkganVzdCByZW1v
+dmluZyB0aGUgcHJldmlvdXMgbWFwcGluZwplYWNoIHRpbWUgaXRzIGNhbGxlZC4gIFVuZm9y
+dHVuYXRlbHksIHRoaXMgd2lsbCBsZWF2ZSBhIHN0cmF5IG1hcHBpbmcKYXQgdGhlIGVuZC4K
+ClNpZ25lZC1vZmYtYnk6IEplcmVteSBGaXR6aGFyZGluZ2UgPGplcmVteS5maXR6aGFyZGlu
+Z2VAY2l0cml4LmNvbT4KLS0tCiBhcmNoL3g4Ni9pbmNsdWRlL2FzbS9hY3BpLmggICAgICB8
+ICAgIDMgLS0tCiBhcmNoL3g4Ni9pbmNsdWRlL2FzbS9maXhtYXBfMzIuaCB8ICAgIDQgLS0t
+LQogYXJjaC94ODYvaW5jbHVkZS9hc20vZml4bWFwXzY0LmggfCAgICA0IC0tLS0KIGFyY2gv
+eDg2L2tlcm5lbC9hY3BpL2Jvb3QuYyAgICAgIHwgICAyNyArKysrKysrLS0tLS0tLS0tLS0t
+LS0tLS0tLS0KIDQgZmlsZXMgY2hhbmdlZCwgNyBpbnNlcnRpb25zKCspLCAzMSBkZWxldGlv
+bnMoLSkKCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT0KLS0tIGEvYXJjaC94ODYva2VybmVsL2FjcGkvYm9vdC5j
+CisrKyBiL2FyY2gveDg2L2tlcm5lbC9hY3BpL2Jvb3QuYwpAQCAtMTIxLDggKzEyMSw4IEBA
+CiAgKi8KIGNoYXIgKl9faW5pdCBfX2FjcGlfbWFwX3RhYmxlKHVuc2lnbmVkIGxvbmcgcGh5
+cywgdW5zaWduZWQgbG9uZyBzaXplKQogewotCXVuc2lnbmVkIGxvbmcgYmFzZSwgb2Zmc2V0
+LCBtYXBwZWRfc2l6ZTsKLQlpbnQgaWR4OworCXN0YXRpYyBjaGFyICpwcmV2X21hcDsKKwlz
+dGF0aWMgdW5zaWduZWQgbG9uZyBwcmV2X3NpemU7CiAKIAlpZiAoIXBoeXMgfHwgIXNpemUp
+CiAJCXJldHVybiBOVUxMOwpAQCAtMTMwLDI2ICsxMzAsMTMgQEAKIAlpZiAocGh5cytzaXpl
+IDw9IChtYXhfbG93X3Bmbl9tYXBwZWQgPDwgUEFHRV9TSElGVCkpCiAJCXJldHVybiBfX3Zh
+KHBoeXMpOwogCi0Jb2Zmc2V0ID0gcGh5cyAmIChQQUdFX1NJWkUgLSAxKTsKLQltYXBwZWRf
+c2l6ZSA9IFBBR0VfU0laRSAtIG9mZnNldDsKLQljbGVhcl9maXhtYXAoRklYX0FDUElfRU5E
+KTsKLQlzZXRfZml4bWFwKEZJWF9BQ1BJX0VORCwgcGh5cyk7Ci0JYmFzZSA9IGZpeF90b192
+aXJ0KEZJWF9BQ1BJX0VORCk7CisJaWYgKHByZXZfbWFwKQorCQllYXJseV9pb3VubWFwKHBy
+ZXZfbWFwLCBwcmV2X3NpemUpOwogCi0JLyoKLQkgKiBNb3N0IGNhc2VzIGNhbiBiZSBjb3Zl
+cmVkIGJ5IHRoZSBiZWxvdy4KLQkgKi8KLQlpZHggPSBGSVhfQUNQSV9FTkQ7Ci0Jd2hpbGUg
+KG1hcHBlZF9zaXplIDwgc2l6ZSkgewotCQlpZiAoLS1pZHggPCBGSVhfQUNQSV9CRUdJTikK
+LQkJCXJldHVybiBOVUxMOwkvKiBjYW5ub3QgaGFuZGxlIHRoaXMgKi8KLQkJcGh5cyArPSBQ
+QUdFX1NJWkU7Ci0JCWNsZWFyX2ZpeG1hcChpZHgpOwotCQlzZXRfZml4bWFwKGlkeCwgcGh5
+cyk7Ci0JCW1hcHBlZF9zaXplICs9IFBBR0VfU0laRTsKLQl9CisJcHJldl9zaXplID0gc2l6
+ZTsKKwlwcmV2X21hcCA9IGVhcmx5X2lvcmVtYXAocGh5cywgc2l6ZSk7CiAKLQlyZXR1cm4g
+KCh1bnNpZ25lZCBjaGFyICopYmFzZSArIG9mZnNldCk7CisJcmV0dXJuIHByZXZfbWFwOwog
+fQogCiAjaWZkZWYgQ09ORklHX1BDSV9NTUNPTkZJRwo9PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Ci0tLSBhL2Fy
+Y2gveDg2L2luY2x1ZGUvYXNtL2FjcGkuaAorKysgYi9hcmNoL3g4Ni9pbmNsdWRlL2FzbS9h
+Y3BpLmgKQEAgLTEwMiw5ICsxMDIsNiBAQAogCWFjcGlfbm9pcnEgPSAxOwogfQogCi0vKiBG
+aXhtYXAgcGFnZXMgdG8gcmVzZXJ2ZSBmb3IgQUNQSSBib290LXRpbWUgdGFibGVzIChzZWUg
+Zml4bWFwLmgpICovCi0jZGVmaW5lIEZJWF9BQ1BJX1BBR0VTIDQKLQogZXh0ZXJuIGludCBh
+Y3BpX2dzaV90b19pcnEodTMyIGdzaSwgdW5zaWduZWQgaW50ICppcnEpOwogCiBzdGF0aWMg
+aW5saW5lIHZvaWQgYWNwaV9ub2lycV9zZXQodm9pZCkgeyBhY3BpX25vaXJxID0gMTsgfQo9
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09Ci0tLSBhL2FyY2gveDg2L2luY2x1ZGUvYXNtL2ZpeG1hcF8zMi5oCisr
+KyBiL2FyY2gveDg2L2luY2x1ZGUvYXNtL2ZpeG1hcF8zMi5oCkBAIC05OSwxMCArOTksNiBA
+QAogCQkJKF9fZW5kX29mX3Blcm1hbmVudF9maXhlZF9hZGRyZXNzZXMgJiAyNTUpLAogCUZJ
+WF9CVE1BUF9CRUdJTiA9IEZJWF9CVE1BUF9FTkQgKyBOUl9GSVhfQlRNQVBTKkZJWF9CVE1B
+UFNfTkVTVElORyAtIDEsCiAJRklYX1dQX1RFU1QsCi0jaWZkZWYgQ09ORklHX0FDUEkKLQlG
+SVhfQUNQSV9CRUdJTiwKLQlGSVhfQUNQSV9FTkQgPSBGSVhfQUNQSV9CRUdJTiArIEZJWF9B
+Q1BJX1BBR0VTIC0gMSwKLSNlbmRpZgogI2lmZGVmIENPTkZJR19QUk9WSURFX09IQ0kxMzk0
+X0RNQV9JTklUCiAJRklYX09IQ0kxMzk0X0JBU0UsCiAjZW5kaWYKPT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQot
+LS0gYS9hcmNoL3g4Ni9pbmNsdWRlL2FzbS9maXhtYXBfNjQuaAorKysgYi9hcmNoL3g4Ni9p
+bmNsdWRlL2FzbS9maXhtYXBfNjQuaApAQCAtNTAsMTAgKzUwLDYgQEAKIAlGSVhfUEFSQVZJ
+UlRfQk9PVE1BUCwKICNlbmRpZgogCV9fZW5kX29mX3Blcm1hbmVudF9maXhlZF9hZGRyZXNz
+ZXMsCi0jaWZkZWYgQ09ORklHX0FDUEkKLQlGSVhfQUNQSV9CRUdJTiwKLQlGSVhfQUNQSV9F
+TkQgPSBGSVhfQUNQSV9CRUdJTiArIEZJWF9BQ1BJX1BBR0VTIC0gMSwKLSNlbmRpZgogI2lm
+ZGVmIENPTkZJR19QUk9WSURFX09IQ0kxMzk0X0RNQV9JTklUCiAJRklYX09IQ0kxMzk0X0JB
+U0UsCiAjZW5kaWYK
+--------------080804060007030805090602
+Content-Type: text/plain;
+ name="x86-acpi-always-map.patch"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline;
+ filename="x86-acpi-always-map.patch"
+
+U3ViamVjdDogeDg2OiBhbHdheXMgZXhwbGljaXRseSBtYXAgYWNwaSBtZW1vcnkKCkFsd2F5
+cyBtYXAgYWNwaSB0YWJsZXMsIHJhdGhlciB0aGFuIGFzc3VtaW5nIHdlIGNhbiB1c2UgdGhl
+IG5vcm1hbApsaW5lYXIgbWFwcGluZyB0byBhY2Nlc3MgdGhlIGFjcGkgdGFibGVzLiAgVGhp
+cyBpcyBuZWNlc3NhcnkgaW4gYQp2aXJ0dWFsIGVudmlyb25tZW50IHdoZXJlIHRoZSBsaW5l
+YXIgbWFwcGluZ3MgYXJlIHRvIHBzZXVkby1waHlzaWNhbAptZW1vcnksIGJ1dCB0aGUgYWNw
+aSB0YWJsZXMgZXhpc3QgYXQgYSByZWFsIHBoeXNpY2FsIGFkZHJlc3MuICBJdApkb2Vzbid0
+IGh1cnQgdG8gbWFwIGluIHRoZSBub3JtYWwgbm9uLXZpcnR1YWwgY2FzZSwgc28ganVzdCBk
+byBpdAp1bmNvbmRpdGlvbmFsbHkuCgpTaWduZWQtb2ZmLWJ5OiBKZXJlbXkgRml0emhhcmRp
+bmdlIDxqZXJlbXkuZml0emhhcmRpbmdlQGNpdHJpeC5jb20+Ci0tLQogYXJjaC94ODYva2Vy
+bmVsL2FjcGkvYm9vdC5jIHwgICAgMyAtLS0KIDEgZmlsZSBjaGFuZ2VkLCAzIGRlbGV0aW9u
+cygtKQoKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PQotLS0gYS9hcmNoL3g4Ni9rZXJuZWwvYWNwaS9ib290LmMK
+KysrIGIvYXJjaC94ODYva2VybmVsL2FjcGkvYm9vdC5jCkBAIC0xMjYsOSArMTI2LDYgQEAK
+IAogCWlmICghcGh5cyB8fCAhc2l6ZSkKIAkJcmV0dXJuIE5VTEw7Ci0KLQlpZiAocGh5cytz
+aXplIDw9IChtYXhfbG93X3Bmbl9tYXBwZWQgPDwgUEFHRV9TSElGVCkpCi0JCXJldHVybiBf
+X3ZhKHBoeXMpOwogCiAJaWYgKHByZXZfbWFwKQogCQllYXJseV9pb3VubWFwKHByZXZfbWFw
+LCBwcmV2X3NpemUpOwo=
+--------------080804060007030805090602
+Content-Type: text/plain;
+ name="acpi-clear-__acpi_map_table-mapping.patch"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline;
+ filename="acpi-clear-__acpi_map_table-mapping.patch"
+
+U3ViamVjdDogYWNwaTogcmVtb3ZlIGZpbmFsIF9fYWNwaV9tYXBfdGFibGUgbWFwcGluZyBi
+ZWZvcmUgc2V0dGluZyBhY3BpX2dibF9wZXJtYW5lbnRfbW1hcAoKT24geDg2LCBfX2FjcGlf
+bWFwX3RhYmxlIHVzZXMgZWFybHlfaW9yZW1hcCgpIHRvIGNyZWF0ZSB0aGUgbWFwcGluZywK
+cmVwbGFjaW5nIHRoZSBwcmV2aW91cyBtYXBwaW5nIHdpdGggYSBuZXcgb25lLiAgT25jZSBl
+bm91Z2ggb2YgdGhlCmtlcm5lbCBpcyB1cCBhbiBydW5uaW5nIGl0IHN3aXRjaGVzIHRvIHVz
+aW5nIG5vcm1hbCBpb3JlbWFwKCkuICBBdAp0aGF0IHBvaW50LCB3ZSBuZWVkIHRvIGNsZWFu
+IHVwIHRoZSBmaW5hbCBtYXBwaW5nIHRvIGF2b2lkIGEgd2FybmluZwpmcm9tIHRoZSBlYXJs
+eV9pb3JlbWFwIHN1YnN5c3RlbS4KClNpZ25lZC1vZmYtYnk6IEplcmVteSBGaXR6aGFyZGlu
+Z2UgPGplcmVteS5maXR6aGFyZGluZ2VAY2l0cml4LmNvbT4KLS0tCiBhcmNoL3g4Ni9rZXJu
+ZWwvYWNwaS9ib290LmMgfCAgICA4ICsrKysrLS0tCiBkcml2ZXJzL2FjcGkvYnVzLmMgICAg
+ICAgICAgfCAgICA2ICsrKysrKwogMiBmaWxlcyBjaGFuZ2VkLCAxMSBpbnNlcnRpb25zKCsp
+LCAzIGRlbGV0aW9ucygtKQoKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQotLS0gYS9hcmNoL3g4Ni9rZXJuZWwv
+YWNwaS9ib290LmMKKysrIGIvYXJjaC94ODYva2VybmVsL2FjcGkvYm9vdC5jCkBAIC0xMjQs
+MTEgKzEyNCwxMyBAQAogCXN0YXRpYyBjaGFyICpwcmV2X21hcDsKIAlzdGF0aWMgdW5zaWdu
+ZWQgbG9uZyBwcmV2X3NpemU7CiAKKwlpZiAocHJldl9tYXApIHsKKwkJZWFybHlfaW91bm1h
+cChwcmV2X21hcCwgcHJldl9zaXplKTsKKwkJcHJldl9tYXAgPSBOVUxMOworCX0KKwogCWlm
+ICghcGh5cyB8fCAhc2l6ZSkKIAkJcmV0dXJuIE5VTEw7Ci0KLQlpZiAocHJldl9tYXApCi0J
+CWVhcmx5X2lvdW5tYXAocHJldl9tYXAsIHByZXZfc2l6ZSk7CiAKIAlwcmV2X3NpemUgPSBz
+aXplOwogCXByZXZfbWFwID0gZWFybHlfaW9yZW1hcChwaHlzLCBzaXplKTsKPT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PQotLS0gYS9kcml2ZXJzL2FjcGkvYnVzLmMKKysrIGIvZHJpdmVycy9hY3BpL2J1cy5j
+CkBAIC02NTAsNiArNjUwLDEyIEBACiAJaWYgKCFhY3BpX3N0cmljdCkKIAkJYWNwaV9nYmxf
+ZW5hYmxlX2ludGVycHJldGVyX3NsYWNrID0gVFJVRTsKIAorCS8qCisJICogRG9pbmcgYSB6
+ZXJvLXNpemVkIG1hcHBpbmcgd2lsbCBjbGVhciBvdXQgdGhlIHByZXZpb3VzCisJICogX19h
+Y3BpX21hcF90YWJsZSgpIG1hcHBpbmcsIGlmIGFueS4KKwkgKi8KKwlfX2FjcGlfbWFwX3Rh
+YmxlKDAsIDApOworCiAJYWNwaV9nYmxfcGVybWFuZW50X21tYXAgPSAxOwogCiAJc3RhdHVz
+ID0gYWNwaV9yZWFsbG9jYXRlX3Jvb3RfdGFibGUoKTsK
+--------------080804060007030805090602--
