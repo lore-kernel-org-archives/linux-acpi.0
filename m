@@ -1,53 +1,68 @@
-From: Ferenc Wagner <wferi@niif.hu>
-Subject: Re: reverted battery current conversion fix
-Date: Tue, 16 Dec 2008 12:39:40 +0100
-Message-ID: <87ljuggxhf.fsf@tac.ki.iif.hu>
-References: <87zlixxaht.fsf@szonett.ki.iif.hu> <49476A1B.7020107@suse.de>
-	<87tz94h08k.fsf@tac.ki.iif.hu> <49478749.8000900@suse.de>
+From: Tony Vroon <tony@linx.net>
+Subject: Re: Fuijtsu Lifebook RFKILL support
+Date: Tue, 16 Dec 2008 13:50:44 +0000
+Message-ID: <1229435444.4246.11.camel@localhost>
+References: <1228957506.4045.11.camel@localhost>
+	 <20081211165247.GA4844@khazad-dum.debian.net>
+	 <1229016827.6446.6.camel@localhost>
+	 <20081211194734.GA18132@khazad-dum.debian.net>
+	 <1229046602.4030.13.camel@localhost>
+	 <20081212195331.GA12679@khazad-dum.debian.net>
+	 <alpine.LFD.2.00.0812121532580.4064@localhost.localdomain>
+	 <1229172465.4010.11.camel@localhost>
+	 <20081213132857.GA11428@khazad-dum.debian.net>
+	 <1229274343.6775.15.camel@localhost.localdomain>
+	 <20081215115336.GD17648@khazad-dum.debian.net>
+	 <1229354348.12163.20.camel@localhost.localdomain>
+	 <1229361241.13400.1.camel@localhost>
+	 <1229363984.12163.114.camel@localhost.localdomain>
+Reply-To: tony@linx.net
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-kA9iDojIHnnR12a5JCkn"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from tac.ki.iif.hu ([193.6.222.43]:33556 "EHLO tac.ki.iif.hu"
+Received: from gold.linx.net ([195.66.232.40]:47268 "EHLO gold.linx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752908AbYLPLjl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Dec 2008 06:39:41 -0500
-In-Reply-To: <49478749.8000900@suse.de> (Alexey Starikovskiy's message of
-	"Tue, 16 Dec 2008 13:47:37 +0300")
+	id S1752926AbYLPNvd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Dec 2008 08:51:33 -0500
+In-Reply-To: <1229363984.12163.114.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: linux-acpi@vger.kernel.org, "Rafael J.Wysocki" <rjw@sisk.pl>
+To: Dan Williams <dcbw@redhat.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <lenb@kernel.org>, Ivo van Doorn <ivdoorn@gmail.com>, linux-acpi@vger.kernel.org, jwoithe@physics.adelaide.edu.au, Peter Gruber <nokos@gmx.net>, linux-wireless@vger.kernel.org
 
-Alexey Starikovskiy <astarikovskiy@suse.de> writes:
 
-> Ferenc Wagner wrote:
->
->> Alexey Starikovskiy <astarikovskiy@suse.de> writes:
->>
->>> Ferenc Wagner wrote:
->>>
->>>> the wild values probably came from some application, which
->>>> previously worked around the wrong sysfs current value (supposedly
->>>> correctly interpreting it as power) and thus got broken by the fix.
->>>
->>> Yes, the application is kpowersaved and it is written with the
->>> assumption that it could get remaining time by dividing either
->>> energy_now or charge_now by current_now.
->>
->> So the first choice depends on the current buggy kernel behaviour.
->> What's the plan of action in such cases?  I found some notes that
->> kpowersaved can or could use HAL for getting this information, in
->> which case HAL also should be fixed.  At least their bug tracker[1] on
->> SF doesn't contain any such issue, maybe one should be added by
->> somebody actually using it if the kernel is to be fixed.
->
-> Currently, Rafael suggests, that it is too late to fix the kernel...
+--=-kA9iDojIHnnR12a5JCkn
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-Too late for 2.6.28 or too late for ever?  The ACPI sysfs interface
-appeared about one year ago, if I read the git log right,
-documentation followed this spring.  If the supposedly clean sysfs
-interface can't live up to its very precise and well thought out
-documentation, that should be documented at least.  :(  What a pity.
--- 
+On Mon, 2008-12-15 at 12:59 -0500, Dan Williams wrote:
+> > P.S. Did you get my e-mail about the Sierra Wireless MC8790?
+>=20
+> Yes; it's hal-info commit 8912ec2b5d0a221a74156c047b18a26b2d916e13.
+
+That uses USB interface 0 like on the other cards. On the MC8790 you
+should be using USB interface 3. Unfortunately 0, 1 & 2 are duds that
+just time out.
+You can tell them apart from the "real" ones by them only having two
+endpoints instead of three. I'm not sure whether this is a bug or a
+feature yet.
+
+> Dan
+
 Regards,
-Feri.
+Tony V.
+
+--=-kA9iDojIHnnR12a5JCkn
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.9 (GNU/Linux)
+
+iEYEABECAAYFAklHsjQACgkQp5vW4rUFj5q38ACgvmM+99HXvS3P9pUfgg+Jev3p
+VXQAniIynzn3fg85gTWtX1/8Z0yt0qah
+=lEJq
+-----END PGP SIGNATURE-----
+
+--=-kA9iDojIHnnR12a5JCkn--
+
