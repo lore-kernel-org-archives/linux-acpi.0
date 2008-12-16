@@ -1,318 +1,183 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch]change a spinlock to mutex
-Date: Mon, 15 Dec 2008 22:03:26 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0812152203120.16823@localhost.localdomain>
-References: <1228791139.13102.3.camel@sli10-desk.sh.intel.com>
+Subject: acpi_os_allocate(GFP_KERNEL) (was Re: acpi_evaluate_integer broken by
+ design)
+Date: Tue, 16 Dec 2008 00:24:43 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0812152240500.30475@localhost.localdomain>
+References: <20081125110508.GA1943@elf.ucw.cz>
+ <20081126132050.cecb170b.akpm@linux-foundation.org>
+ <alpine.LFD.2.00.0811261729550.3895@localhost.localdomain>
+ <20081126150224.947c18d4.akpm@linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms042pub.verizon.net ([206.46.252.42]:59663 "EHLO
-	vms042pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751602AbYLPESM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Dec 2008 23:18:12 -0500
-Received: from localhost.localdomain ([96.237.168.40])
- by vms042.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0KBY003DP8I9DCE0@vms042.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Mon, 15 Dec 2008 21:05:18 -0600 (CST)
-In-reply-to: <1228791139.13102.3.camel@sli10-desk.sh.intel.com>
+Received: from vms044pub.verizon.net ([206.46.252.44]:41955 "EHLO
+	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750721AbYLPFYs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Dec 2008 00:24:48 -0500
+In-reply-to: <20081126150224.947c18d4.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: linux acpi <linux-acpi@vger.kernel.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: pavel@suse.cz, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-applied
 
-thanks,
+> > The reason that the ACPI code is littered with bogus
+> > irqs_disabled() ? GFP_ATOMIC : GFP_KERNEL)
+> > is because, like boot, resume starts life with interrupts off.
+> 
+> yes, suspend's disabling of interrupts causes problems all over the place.
+> 
+> If we really do need to inspect global state to handle this, it would
+> be much better to create a new
+> 
+> bool resume_is_running_so_you_cant_sleep;
+>
+> and to test that.  Something which is clear, highly specific and which
+> cannot be accidentally triggered via other means.
+
+can do.
+
+> > I would prefer that resume and boot handle this the same way,
+> > with system_state.  However, a few years ago when I suggested
+> > using system_state for resume, Andrew thought that was a very
+> > bad idea.  Andrew, do you still feel that way?
+> 
+> yep.  We've had problems in the past with system_state, where people add
+> new states, and old code breaks.  Plus as we add more dependencies on
+> system_state, that reduces our ability to add new states and makes it
+> harder to alter (ie: fix) system_state transitions, etc.  Just run
+> away!
+> 
+> As I said above, if we have a piece of code which wants to know when a
+> separate piece of code is in a particualr state, it is better to add a
+> new state flag just for that application, rather than trying to infer
+> things from the heavily overloaded system_state.
+> 
+> 
+> Obviously, it is even better to do neither.  It is a basic and
+> oft-reoccurring design mistake for a low-level piece of code to
+> hardwire its GFP_foo decision.  The gfp_t should be passed in from the
+> callers, all the way down the chain from the top-level code which
+> actually knows what state this thread of control is in.
+
+Here the caller does not know.
+
+The crux of the problem it that the AML interpreter
+may need to allocate memory and thus may sleep.
+Under nominal conditions the interpreter only runs in 
+user-context and allocatges with GFP_KERNEL
+so sleeping is just dandy.
+
+But AML also needs to run at boot time and at resume time
+to do things like configure interrupts before interrupts are
+enabled...
+
+boot-time is handled by _cond_resched()
+not calling __cond_resched unless
+system_state == SYSTEM_RUNNING
+
+I suppose I could do something like this,
+though I'm not sure of the prettiest place
+to check system_resume_irqsoff == true,
+so that is left out for now...
+
 -- Len Brown, Intel Open Source Technology Center
 
-On Tue, 9 Dec 2008, Shaohua Li wrote:
-
-> Change acpi_device_lock to a mutex to avoid race in wakeup device
-> read/write. Found by Linus.
-> 
-> Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-> ---
->  drivers/acpi/scan.c         |   14 +++++++-------
->  drivers/acpi/sleep/proc.c   |   13 ++++---------
->  drivers/acpi/sleep/sleep.h  |    3 +++
->  drivers/acpi/sleep/wakeup.c |   31 ++++++++-----------------------
->  4 files changed, 22 insertions(+), 39 deletions(-)
-> 
-> Index: linux/drivers/acpi/scan.c
-> ===================================================================
-> --- linux.orig/drivers/acpi/scan.c	2008-12-09 10:34:00.000000000 +0800
-> +++ linux/drivers/acpi/scan.c	2008-12-09 10:36:07.000000000 +0800
-> @@ -23,7 +23,7 @@ extern struct acpi_device *acpi_root;
->  
->  static LIST_HEAD(acpi_device_list);
->  static LIST_HEAD(acpi_bus_id_list);
-> -DEFINE_SPINLOCK(acpi_device_lock);
-> +DEFINE_MUTEX(acpi_device_lock);
->  LIST_HEAD(acpi_wakeup_device_list);
->  
->  struct acpi_device_bus_id{
-> @@ -440,7 +440,7 @@ static int acpi_device_register(struct a
->  		return -ENOMEM;
->  	}
->  
-> -	spin_lock(&acpi_device_lock);
-> +	mutex_lock(&acpi_device_lock);
->  	/*
->  	 * Find suitable bus_id and instance number in acpi_bus_id_list
->  	 * If failed, create one and link it into acpi_bus_id_list
-> @@ -468,7 +468,7 @@ static int acpi_device_register(struct a
->  		list_add_tail(&device->g_list, &acpi_device_list);
->  	if (device->wakeup.flags.valid)
->  		list_add_tail(&device->wakeup_list, &acpi_wakeup_device_list);
-> -	spin_unlock(&acpi_device_lock);
-> +	mutex_unlock(&acpi_device_lock);
->  
->  	if (device->parent)
->  		device->dev.parent = &parent->dev;
-> @@ -489,20 +489,20 @@ static int acpi_device_register(struct a
->  	device->removal_type = ACPI_BUS_REMOVAL_NORMAL;
->  	return 0;
->    end:
-> -	spin_lock(&acpi_device_lock);
-> +	mutex_lock(&acpi_device_lock);
->  	if (device->parent) {
->  		list_del(&device->node);
->  		list_del(&device->g_list);
->  	} else
->  		list_del(&device->g_list);
->  	list_del(&device->wakeup_list);
-> -	spin_unlock(&acpi_device_lock);
-> +	mutex_unlock(&acpi_device_lock);
->  	return result;
->  }
->  
->  static void acpi_device_unregister(struct acpi_device *device, int type)
->  {
-> -	spin_lock(&acpi_device_lock);
-> +	mutex_lock(&acpi_device_lock);
->  	if (device->parent) {
->  		list_del(&device->node);
->  		list_del(&device->g_list);
-> @@ -510,7 +510,7 @@ static void acpi_device_unregister(struc
->  		list_del(&device->g_list);
->  
->  	list_del(&device->wakeup_list);
-> -	spin_unlock(&acpi_device_lock);
-> +	mutex_unlock(&acpi_device_lock);
->  
->  	acpi_detach_data(device->handle, acpi_bus_data_handler);
->  
-> Index: linux/drivers/acpi/sleep/proc.c
-> ===================================================================
-> --- linux.orig/drivers/acpi/sleep/proc.c	2008-12-09 10:34:18.000000000 +0800
-> +++ linux/drivers/acpi/sleep/proc.c	2008-12-09 10:40:10.000000000 +0800
-> @@ -338,9 +338,6 @@ acpi_system_write_alarm(struct file *fil
->  }
->  #endif				/* HAVE_ACPI_LEGACY_ALARM */
->  
-> -extern struct list_head acpi_wakeup_device_list;
-> -extern spinlock_t acpi_device_lock;
-> -
->  static int
->  acpi_system_wakeup_device_seq_show(struct seq_file *seq, void *offset)
->  {
-> @@ -348,7 +345,7 @@ acpi_system_wakeup_device_seq_show(struc
->  
->  	seq_printf(seq, "Device\tS-state\t  Status   Sysfs node\n");
->  
-> -	spin_lock(&acpi_device_lock);
-> +	mutex_lock(&acpi_device_lock);
->  	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
->  		struct acpi_device *dev =
->  		    container_of(node, struct acpi_device, wakeup_list);
-> @@ -356,7 +353,6 @@ acpi_system_wakeup_device_seq_show(struc
->  
->  		if (!dev->wakeup.flags.valid)
->  			continue;
-> -		spin_unlock(&acpi_device_lock);
->  
->  		ldev = acpi_get_physical_device(dev->handle);
->  		seq_printf(seq, "%s\t  S%d\t%c%-8s  ",
-> @@ -371,9 +367,8 @@ acpi_system_wakeup_device_seq_show(struc
->  		seq_printf(seq, "\n");
->  		put_device(ldev);
->  
-> -		spin_lock(&acpi_device_lock);
->  	}
-> -	spin_unlock(&acpi_device_lock);
-> +	mutex_unlock(&acpi_device_lock);
->  	return 0;
->  }
->  
-> @@ -404,7 +399,7 @@ acpi_system_write_wakeup_device(struct f
->  	strbuf[len] = '\0';
->  	sscanf(strbuf, "%s", str);
->  
-> -	spin_lock(&acpi_device_lock);
-> +	mutex_lock(&acpi_device_lock);
->  	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
->  		struct acpi_device *dev =
->  		    container_of(node, struct acpi_device, wakeup_list);
-> @@ -441,7 +436,7 @@ acpi_system_write_wakeup_device(struct f
->  			}
->  		}
->  	}
-> -	spin_unlock(&acpi_device_lock);
-> +	mutex_unlock(&acpi_device_lock);
->  	return count;
->  }
->  
-> Index: linux/drivers/acpi/sleep/sleep.h
-> ===================================================================
-> --- linux.orig/drivers/acpi/sleep/sleep.h	2008-12-09 10:37:22.000000000 +0800
-> +++ linux/drivers/acpi/sleep/sleep.h	2008-12-09 10:37:50.000000000 +0800
-> @@ -5,3 +5,6 @@ extern int acpi_suspend (u32 state);
->  extern void acpi_enable_wakeup_device_prep(u8 sleep_state);
->  extern void acpi_enable_wakeup_device(u8 sleep_state);
->  extern void acpi_disable_wakeup_device(u8 sleep_state);
-> +
-> +extern struct list_head acpi_wakeup_device_list;
-> +extern struct mutex acpi_device_lock;
-> Index: linux/drivers/acpi/sleep/wakeup.c
-> ===================================================================
-> --- linux.orig/drivers/acpi/sleep/wakeup.c	2008-12-09 10:34:08.000000000 +0800
-> +++ linux/drivers/acpi/sleep/wakeup.c	2008-12-09 10:39:18.000000000 +0800
-> @@ -14,9 +14,6 @@
->  #define _COMPONENT		ACPI_SYSTEM_COMPONENT
->  ACPI_MODULE_NAME("wakeup_devices")
->  
-> -extern struct list_head acpi_wakeup_device_list;
-> -extern spinlock_t acpi_device_lock;
-> -
->  /**
->   * acpi_enable_wakeup_device_prep - prepare wakeup devices
->   *	@sleep_state:	ACPI state
-> @@ -30,7 +27,7 @@ void acpi_enable_wakeup_device_prep(u8 s
->  
->  	ACPI_FUNCTION_TRACE("acpi_enable_wakeup_device_prep");
->  
-> -	spin_lock(&acpi_device_lock);
-> +	mutex_lock(&acpi_device_lock);
->  	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
->  		struct acpi_device *dev = container_of(node,
->  						       struct acpi_device,
-> @@ -41,11 +38,9 @@ void acpi_enable_wakeup_device_prep(u8 s
->  		    (sleep_state > (u32) dev->wakeup.sleep_state))
->  			continue;
->  
-> -		spin_unlock(&acpi_device_lock);
->  		acpi_enable_wakeup_device_power(dev, sleep_state);
-> -		spin_lock(&acpi_device_lock);
->  	}
-> -	spin_unlock(&acpi_device_lock);
-> +	mutex_unlock(&acpi_device_lock);
->  }
->  
->  /**
-> @@ -62,7 +57,7 @@ void acpi_enable_wakeup_device(u8 sleep_
->  	 * Refer ACPI2.0: P212
->  	 */
->  	ACPI_FUNCTION_TRACE("acpi_enable_wakeup_device");
-> -	spin_lock(&acpi_device_lock);
-> +	mutex_lock(&acpi_device_lock);
->  	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
->  		struct acpi_device *dev =
->  			container_of(node, struct acpi_device, wakeup_list);
-> @@ -76,22 +71,18 @@ void acpi_enable_wakeup_device(u8 sleep_
->  		if ((!dev->wakeup.state.enabled && !dev->wakeup.flags.prepared)
->  		    || sleep_state > (u32) dev->wakeup.sleep_state) {
->  			if (dev->wakeup.flags.run_wake) {
-> -				spin_unlock(&acpi_device_lock);
->  				/* set_gpe_type will disable GPE, leave it like that */
->  				acpi_set_gpe_type(dev->wakeup.gpe_device,
->  						  dev->wakeup.gpe_number,
->  						  ACPI_GPE_TYPE_RUNTIME);
-> -				spin_lock(&acpi_device_lock);
->  			}
->  			continue;
->  		}
-> -		spin_unlock(&acpi_device_lock);
->  		if (!dev->wakeup.flags.run_wake)
->  			acpi_enable_gpe(dev->wakeup.gpe_device,
->  					dev->wakeup.gpe_number);
-> -		spin_lock(&acpi_device_lock);
->  	}
-> -	spin_unlock(&acpi_device_lock);
-> +	mutex_unlock(&acpi_device_lock);
->  }
->  
->  /**
-> @@ -105,7 +96,7 @@ void acpi_disable_wakeup_device(u8 sleep
->  
->  	ACPI_FUNCTION_TRACE("acpi_disable_wakeup_device");
->  
-> -	spin_lock(&acpi_device_lock);
-> +	mutex_lock(&acpi_device_lock);
->  	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
->  		struct acpi_device *dev =
->  			container_of(node, struct acpi_device, wakeup_list);
-> @@ -116,19 +107,16 @@ void acpi_disable_wakeup_device(u8 sleep
->  		if ((!dev->wakeup.state.enabled && !dev->wakeup.flags.prepared)
->  		    || sleep_state > (u32) dev->wakeup.sleep_state) {
->  			if (dev->wakeup.flags.run_wake) {
-> -				spin_unlock(&acpi_device_lock);
->  				acpi_set_gpe_type(dev->wakeup.gpe_device,
->  						  dev->wakeup.gpe_number,
->  						  ACPI_GPE_TYPE_WAKE_RUN);
->  				/* Re-enable it, since set_gpe_type will disable it */
->  				acpi_enable_gpe(dev->wakeup.gpe_device,
->  						dev->wakeup.gpe_number);
-> -				spin_lock(&acpi_device_lock);
->  			}
->  			continue;
->  		}
->  
-> -		spin_unlock(&acpi_device_lock);
->  		acpi_disable_wakeup_device_power(dev);
->  		/* Never disable run-wake GPE */
->  		if (!dev->wakeup.flags.run_wake) {
-> @@ -137,9 +125,8 @@ void acpi_disable_wakeup_device(u8 sleep
->  			acpi_clear_gpe(dev->wakeup.gpe_device,
->  				       dev->wakeup.gpe_number, ACPI_NOT_ISR);
->  		}
-> -		spin_lock(&acpi_device_lock);
->  	}
-> -	spin_unlock(&acpi_device_lock);
-> +	mutex_unlock(&acpi_device_lock);
->  }
->  
->  static int __init acpi_wakeup_device_init(void)
-> @@ -149,7 +136,7 @@ static int __init acpi_wakeup_device_ini
->  	if (acpi_disabled)
->  		return 0;
->  
-> -	spin_lock(&acpi_device_lock);
-> +	mutex_lock(&acpi_device_lock);
->  	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
->  		struct acpi_device *dev = container_of(node,
->  						       struct acpi_device,
-> @@ -157,16 +144,14 @@ static int __init acpi_wakeup_device_ini
->  		/* In case user doesn't load button driver */
->  		if (!dev->wakeup.flags.run_wake || dev->wakeup.state.enabled)
->  			continue;
-> -		spin_unlock(&acpi_device_lock);
->  		acpi_set_gpe_type(dev->wakeup.gpe_device,
->  				  dev->wakeup.gpe_number,
->  				  ACPI_GPE_TYPE_WAKE_RUN);
->  		acpi_enable_gpe(dev->wakeup.gpe_device,
->  				dev->wakeup.gpe_number);
->  		dev->wakeup.state.enabled = 1;
-> -		spin_lock(&acpi_device_lock);
->  	}
-> -	spin_unlock(&acpi_device_lock);
-> +	mutex_unlock(&acpi_device_lock);
->  	return 0;
->  }
->  
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+index e52ad91..def91fa 100644
+--- a/drivers/acpi/pci_link.c
++++ b/drivers/acpi/pci_link.c
+@@ -320,7 +320,7 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
+ 	if (!link || !irq)
+ 		return -EINVAL;
+ 
+-	resource = kzalloc(sizeof(*resource) + 1, irqs_disabled() ? GFP_ATOMIC: GFP_KERNEL);
++	resource = kzalloc(sizeof(*resource) + 1, GFP_KERNEL);
+ 	if (!resource)
+ 		return -ENOMEM;
+ 
+diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+index bb7d50d..27243f9 100644
+--- a/drivers/acpi/power.c
++++ b/drivers/acpi/power.c
+@@ -218,8 +218,7 @@ static int acpi_power_on(acpi_handle handle, struct acpi_device *dev)
+ 	}
+ 
+ 	if (!found) {
+-		ref = kmalloc(sizeof (struct acpi_power_reference),
+-		    irqs_disabled() ? GFP_ATOMIC : GFP_KERNEL);
++		ref = kmalloc(sizeof (struct acpi_power_reference), GFP_KERNEL);
+ 		if (!ref) {
+ 			ACPI_DEBUG_PRINT((ACPI_DB_INFO, "kmalloc() failed\n"));
+ 			mutex_unlock(&resource->resource_lock);
+diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
+index 029c8c0..9fbf73f 100644
+--- a/include/acpi/platform/aclinux.h
++++ b/include/acpi/platform/aclinux.h
+@@ -121,17 +121,16 @@ static inline acpi_thread_id acpi_os_get_thread_id(void)
+ #include <acpi/actypes.h>
+ static inline void *acpi_os_allocate(acpi_size size)
+ {
+-	return kmalloc(size, irqs_disabled()? GFP_ATOMIC : GFP_KERNEL);
++	return kmalloc(size, GFP_KERNEL);
+ }
+ static inline void *acpi_os_allocate_zeroed(acpi_size size)
+ {
+-	return kzalloc(size, irqs_disabled()? GFP_ATOMIC : GFP_KERNEL);
++	return kzalloc(size, GFP_KERNEL);
+ }
+ 
+ static inline void *acpi_os_acquire_object(acpi_cache_t * cache)
+ {
+-	return kmem_cache_zalloc(cache,
+-				 irqs_disabled()? GFP_ATOMIC : GFP_KERNEL);
++	return kmem_cache_zalloc(cache, GFP_KERNEL);
+ }
+ 
+ #define ACPI_ALLOCATE(a)	acpi_os_allocate(a)
+diff --git a/include/linux/suspend.h b/include/linux/suspend.h
+index 2ce8207..a716de8 100644
+--- a/include/linux/suspend.h
++++ b/include/linux/suspend.h
+@@ -128,9 +128,16 @@ extern void arch_suspend_disable_irqs(void);
+  */
+ extern void arch_suspend_enable_irqs(void);
+ 
++/**
++ * suspend_irqs_off
++ *
++ * flag to indicate that IRQs are off for the benefit of suspend
++ */
++extern bool system_suspend_irqs_off;
+ extern int pm_suspend(suspend_state_t state);
+ #else /* !CONFIG_SUSPEND */
+ #define suspend_valid_only_mem	NULL
++#define system_suspend_irqs_off false
+ 
+ static inline void suspend_set_ops(struct platform_suspend_ops *ops) {}
+ static inline int pm_suspend(suspend_state_t state) { return -ENOSYS; }
+diff --git a/kernel/power/main.c b/kernel/power/main.c
+index b8f7ce9..2eadae7 100644
+--- a/kernel/power/main.c
++++ b/kernel/power/main.c
+@@ -268,16 +268,20 @@ static int suspend_prepare(void)
+ 	return error;
+ }
+ 
++bool system_resume_irqsoff;	/* IRQs are off for resume */
++
+ /* default implementation */
+ void __attribute__ ((weak)) arch_suspend_disable_irqs(void)
+ {
+ 	local_irq_disable();
++	system_resume_irqsoff = true;
+ }
+ 
+ /* default implementation */
+ void __attribute__ ((weak)) arch_suspend_enable_irqs(void)
+ {
+ 	local_irq_enable();
++	system_resume_irqsoff = false;
+ }
+ 
+ /**
