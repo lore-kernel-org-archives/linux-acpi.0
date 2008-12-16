@@ -1,41 +1,52 @@
-From: "Brian J. Murrell" <brian@interlinx.bc.ca>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: suspend/resume fails on second attempt in LNXVIDEO:00
-Date: Tue, 16 Dec 2008 16:18:13 +0000 (UTC)
-Message-ID: <gi8kc5$m5f$6@ger.gmane.org>
-References: <gi247o$iog$1@ger.gmane.org> <200812161625.37318.rjw@sisk.pl>
-	<gi8jf1$m5f$5@ger.gmane.org> <200812161713.08451.rjw@sisk.pl>
+Date: Tue, 16 Dec 2008 17:22:40 +0100
+Message-ID: <200812161722.41149.rjw@sisk.pl>
+References: <gi247o$iog$1@ger.gmane.org> <200812161713.08451.rjw@sisk.pl> <gi8kc5$m5f$6@ger.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755913AbYLPQSp@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:55603 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754172AbYLPQWq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Dec 2008 11:22:46 -0500
+In-Reply-To: <gi8kc5$m5f$6@ger.gmane.org>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Brian J. Murrell" <brian@interlinx.bc.ca>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tue, 16 Dec 2008 17:13:08 +0100, Rafael J. Wysocki wrote:
+On Tuesday, 16 of December 2008, Brian J. Murrell wrote:
+> On Tue, 16 Dec 2008 17:13:08 +0100, Rafael J. Wysocki wrote:
+> > 
+> > Hm, this really isn't reasonable.
 > 
-> Hm, this really isn't reasonable.
+> Many people agree with you.  :-)  There is a long bug open with ubuntu to 
+> restore this s2ram.  They seem to be ignoring it though.
+> 
+> > s2both saves the image, which takes
+> > quite a lot of time, while s2ram doesn't.
+> 
+> Indeed.
+>  
+> > You can compile s2ram from sources, it's not too difficult.
+> 
+> Yeah.  I will probably just grab the debian package and dpkg-buildpackage 
+> it on my Ubuntu system.
+>  
+> > Hm.  Is that all loaded when you boot with init=/bin/bash (by which I
+> > mean the minimal config)?
+> 
+> It sure is.  Most assuredly by the initrd.  Debian/Ubuntu systems seem to 
+> put everything but the kitchen sink into their initrds.  Which on the one 
+> hand makes them pretty portable and resilient, but on the other, yes, 
+> bloated.
 
-Many people agree with you.  :-)  There is a long bug open with ubuntu to 
-restore this s2ram.  They seem to be ignoring it though.
+Well, please remove as many modules as you can (using rmmod) and see if your
+second resume still fails.
 
-> s2both saves the image, which takes
-> quite a lot of time, while s2ram doesn't.
-
-Indeed.
- 
-> You can compile s2ram from sources, it's not too difficult.
-
-Yeah.  I will probably just grab the debian package and dpkg-buildpackage 
-it on my Ubuntu system.
- 
-> Hm.  Is that all loaded when you boot with init=/bin/bash (by which I
-> mean the minimal config)?
-
-It sure is.  Most assuredly by the initrd.  Debian/Ubuntu systems seem to 
-put everything but the kitchen sink into their initrds.  Which on the one 
-hand makes them pretty portable and resilient, but on the other, yes, 
-bloated.
-
-b.
+Thanks,
+Rafael
