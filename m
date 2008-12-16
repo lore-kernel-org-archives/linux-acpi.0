@@ -1,270 +1,57 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: acpi_os_allocate(GFP_KERNEL) (was Re: acpi_evaluate_integer broken by design)
-Date: Wed, 17 Dec 2008 00:49:38 +0100
-Message-ID: <200812170049.38464.rjw@sisk.pl>
-References: <20081125110508.GA1943@elf.ucw.cz> <200812161634.25838.rjw@sisk.pl> <200812170040.07977.rjw@sisk.pl>
+From: "Brian J. Murrell" <brian@interlinx.bc.ca>
+Subject: Re: suspend/resume fails on second attempt in LNXVIDEO:00
+Date: Tue, 16 Dec 2008 23:54:36 +0000 (UTC)
+Message-ID: <gi9f3s$m5f$8@ger.gmane.org>
+References: <gi247o$iog$1@ger.gmane.org> <200812161713.08451.rjw@sisk.pl>
+	<gi8kc5$m5f$6@ger.gmane.org> <200812161722.41149.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:57433 "EHLO ogre.sisk.pl"
+Received: from main.gmane.org ([80.91.229.2]:41882 "EHLO ciao.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755504AbYLPXtn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Dec 2008 18:49:43 -0500
-In-Reply-To: <200812170040.07977.rjw@sisk.pl>
-Content-Disposition: inline
+	id S1751567AbYLPXyq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Dec 2008 18:54:46 -0500
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1LCjkR-0007gE-NI
+	for linux-acpi@vger.kernel.org; Tue, 16 Dec 2008 23:54:44 +0000
+Received: from d193-213-184.home3.cgocable.net ([67.193.213.184])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Tue, 16 Dec 2008 23:54:43 +0000
+Received: from brian by d193-213-184.home3.cgocable.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Tue, 16 Dec 2008 23:54:43 +0000
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>
-Cc: pavel@suse.cz, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Johannes Berg <johannes@sipsolutions.net>
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 
-On Wednesday, 17 of December 2008, Rafael J. Wysocki wrote:
-> On Tuesday, 16 of December 2008, Rafael J. Wysocki wrote:
-> > On Tuesday, 16 of December 2008, Andrew Morton wrote:
-> > > On Tue, 16 Dec 2008 00:24:43 -0500 (EST) Len Brown <lenb@kernel.org> wrote:
-> [--snip--]
-> > > 
-> > > (please use __weak)
-> > > 
-> > > Whether it's "system_resume_irqsoff" or "system_suspend_irqs_off",
-> > > neither of them actually got used ;)
-> > > 
-> > > If the code is really this simple and localised then perhaps:
-> > > 
-> > > gfp_t acpi_aml_gfp_flags = GFP_ATOMIC;
-> > > 
-> > > void __weak arch_suspend_disable_irqs(void)
-> > > {
-> > > 	local_irq_disable();
-> > > 	acpi_aml_gfp_flags = GFP_ATOMIC;
-> > > }
-> > > 
-> > > /* default implementation */
-> > > void __weak arch_suspend_enable_irqs(void)
-> > > {
-> > > 	local_irq_enable();
-> > > 	acpi_aml_gfp_flags = GFP_KERNEL;
-> > > }
-> > > 
-> > > would suffice.  Dunno.
-> > 
-> > arch_suspend_disable_irqs() and arch_suspend_enable_irqs() are only used during
-> > suspend to RAM, but we have the 'suspend atomic context' during hibernation as
-> > well.
+On Tue, 16 Dec 2008 17:22:40 +0100, Rafael J. Wysocki wrote:
 > 
-> In fact, we should be using GFP_ATOMIC already while devices are being
-> suspended, so we can switch from GFP_KERNEL to GFP_ATOMIC even before
-> interrupts are enabled.
-> 
-> In particular, we can do that in the suspend/hibernation platform callback as
-> shown in the patch below.
-> 
-> The patch hasn't been tested and is indended for discussion.
+> Well, please remove as many modules as you can (using rmmod) and see if
+> your second resume still fails.
 
-Below is another patch for discussion.
+OK.  I got the list of modules down to:
 
-It standardizes the switching of interrupts etc. during suspend to RAM and
-hibernation and adds disabling/enabling of preemption so that the
-cond_resched() in the ACPI code doesn't try to schedule.
+Module                  Size  Used by
+ipv6                  254836  14 
+ext3                  130568  1 
+jbd                    53908  1 ext3
+mbcache                16004  1 ext3
+loop                   22540  2 
+sd_mod                 41240  2 
+crc_t10dif             10112  1 sd_mod
+ahci                   37260  1 
+libata                176160  1 ahci
+scsi_mod              156948  2 sd_mod,libata
+processor              49708  2 
+fuse                   58780  3 
 
-The patch hasn't been tested yet.
+and that still failed the second resume.  Just to remind you, the first 
+suspend/resume (echo mem >/sys/power/state) works, but the screen is 
+black on returning from the resume.  I can then (blindly typing) do a
+second suspend but resume still hangs the machine.
 
-Thanks,
-Rafael
+b.
 
----
- include/linux/suspend.h |    3 +
- kernel/power/disk.c     |   26 ++++++++--------
- kernel/power/main.c     |   75 ++++++++++++++++++++++++++++++++++++------------
- kernel/power/power.h    |    4 ++
- 4 files changed, 78 insertions(+), 30 deletions(-)
-
-Index: linux-2.6/kernel/power/disk.c
-===================================================================
---- linux-2.6.orig/kernel/power/disk.c
-+++ linux-2.6/kernel/power/disk.c
-@@ -214,8 +214,8 @@ static int create_image(int platform_mod
- 	if (error)
- 		return error;
- 
--	device_pm_lock();
--	local_irq_disable();
-+	suspend_disable_concurrency();
-+
- 	/* At this point, device_suspend() has been called, but *not*
- 	 * device_power_down(). We *must* call device_power_down() now.
- 	 * Otherwise, drivers for some devices (e.g. interrupt controllers)
-@@ -248,9 +248,10 @@ static int create_image(int platform_mod
- 	 */
- 	device_power_up(in_suspend ?
- 		(error ? PMSG_RECOVER : PMSG_THAW) : PMSG_RESTORE);
-+
-  Enable_irqs:
--	local_irq_enable();
--	device_pm_unlock();
-+	suspend_enable_concurrency();
-+
- 	return error;
- }
- 
-@@ -330,8 +331,8 @@ static int resume_target_kernel(void)
- {
- 	int error;
- 
--	device_pm_lock();
--	local_irq_disable();
-+	suspend_disable_concurrency();
-+
- 	error = device_power_down(PMSG_QUIESCE);
- 	if (error) {
- 		printk(KERN_ERR "PM: Some devices failed to power down, "
-@@ -361,9 +362,10 @@ static int resume_target_kernel(void)
- 	restore_processor_state();
- 	touch_softlockup_watchdog();
- 	device_power_up(PMSG_RECOVER);
-+
-  Enable_irqs:
--	local_irq_enable();
--	device_pm_unlock();
-+	suspend_enable_concurrency();
-+
- 	return error;
- }
- 
-@@ -442,16 +444,16 @@ int hibernation_platform_enter(void)
- 	if (error)
- 		goto Finish;
- 
--	device_pm_lock();
--	local_irq_disable();
-+	suspend_disable_concurrency();
-+
- 	error = device_power_down(PMSG_HIBERNATE);
- 	if (!error) {
- 		hibernation_ops->enter();
- 		/* We should never get here */
- 		while (1);
- 	}
--	local_irq_enable();
--	device_pm_unlock();
-+
-+	suspend_enable_concurrency();
- 
- 	/*
- 	 * We don't need to reenable the nonboot CPUs or resume consoles, since
-Index: linux-2.6/kernel/power/main.c
-===================================================================
---- linux-2.6.orig/kernel/power/main.c
-+++ linux-2.6/kernel/power/main.c
-@@ -55,6 +55,46 @@ int pm_notifier_call_chain(unsigned long
- 			== NOTIFY_BAD) ? -EINVAL : 0;
- }
- 
-+/* default implementation */
-+void __weak arch_suspend_disable_irqs(void)
-+{
-+	local_irq_disable();
-+}
-+
-+/* default implementation */
-+void __weak arch_suspend_enable_irqs(void)
-+{
-+	local_irq_enable();
-+}
-+
-+/**
-+ *	suspend_disable_concurrency - disable the execution of any other code
-+ *                                    in parallel with the calling thread
-+ *
-+ *	To be executed with only one CPU on line.
-+ */
-+void suspend_disable_concurrency(void)
-+{
-+	device_pm_lock();
-+	preempt_disable();
-+	arch_suspend_disable_irqs();
-+	BUG_ON(!irqs_disabled());
-+}
-+
-+/**
-+ *	suspend_enable_concurrency - allow other code to be executed in parallel
-+ *                                   with the calling thread
-+ *
-+ *	To be executed with only one CPU on line.
-+ */
-+void suspend_enable_concurrency(void)
-+{
-+	arch_suspend_enable_irqs();
-+	BUG_ON(irqs_disabled());
-+	preempt_enable_no_resched();
-+	device_pm_unlock();
-+}
-+
- #ifdef CONFIG_PM_DEBUG
- int pm_test_level = TEST_NONE;
- 
-@@ -268,18 +321,6 @@ static int suspend_prepare(void)
- 	return error;
- }
- 
--/* default implementation */
--void __attribute__ ((weak)) arch_suspend_disable_irqs(void)
--{
--	local_irq_disable();
--}
--
--/* default implementation */
--void __attribute__ ((weak)) arch_suspend_enable_irqs(void)
--{
--	local_irq_enable();
--}
--
- /**
-  *	suspend_enter - enter the desired system sleep state.
-  *	@state:		state to enter
-@@ -290,9 +331,7 @@ static int suspend_enter(suspend_state_t
- {
- 	int error = 0;
- 
--	device_pm_lock();
--	arch_suspend_disable_irqs();
--	BUG_ON(!irqs_disabled());
-+	suspend_disable_concurrency();
- 
- 	if ((error = device_power_down(PMSG_SUSPEND))) {
- 		printk(KERN_ERR "PM: Some devices failed to power down\n");
-@@ -303,10 +342,10 @@ static int suspend_enter(suspend_state_t
- 		error = suspend_ops->enter(state);
- 
- 	device_power_up(PMSG_RESUME);
-+
-  Done:
--	arch_suspend_enable_irqs();
--	BUG_ON(irqs_disabled());
--	device_pm_unlock();
-+	suspend_enable_concurrency();
-+
- 	return error;
- }
- 
-Index: linux-2.6/kernel/power/power.h
-===================================================================
---- linux-2.6.orig/kernel/power/power.h
-+++ linux-2.6/kernel/power/power.h
-@@ -163,11 +163,15 @@ extern void swsusp_show_speed(struct tim
- #ifdef CONFIG_SUSPEND
- /* kernel/power/main.c */
- extern int suspend_devices_and_enter(suspend_state_t state);
-+extern void suspend_disable_concurrency(void);
-+extern void suspend_enable_concurrency(void);
- #else /* !CONFIG_SUSPEND */
- static inline int suspend_devices_and_enter(suspend_state_t state)
- {
- 	return -ENOSYS;
- }
-+static inline void suspend_disable_concurrency(void) {}
-+static inline void suspend_enable_concurrency(void) {}
- #endif /* !CONFIG_SUSPEND */
- 
- #ifdef CONFIG_PM_SLEEP
