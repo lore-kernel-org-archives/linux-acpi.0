@@ -1,53 +1,101 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: suspend/resume fails on second attempt in LNXVIDEO:00
-Date: Tue, 16 Dec 2008 16:25:37 +0100
-Message-ID: <200812161625.37318.rjw@sisk.pl>
-References: <gi247o$iog$1@ger.gmane.org> <200812160002.43427.rjw@sisk.pl> <gi7433$m5f$1@ger.gmane.org>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: Re: [RFC][PATCH] ACPI: battery: add power_{now, avg} properties to
+ power_class
+Date: Tue, 16 Dec 2008 18:28:36 +0300
+Message-ID: <4947C924.6090002@suse.de>
+References: <20081215213855.8414.9349.stgit@thinkpad> <200812161617.21420.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758604AbYLPPZ4@vger.kernel.org>
-In-Reply-To: <gi7433$m5f$1@ger.gmane.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Brian J. Murrell" <brian@interlinx.bc.ca>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from charybdis-ext.suse.de ([195.135.221.2]:39060 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755793AbYLPP2o (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Tue, 16 Dec 2008 10:28:44 -0500
+In-Reply-To: <200812161617.21420.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: LenBrown <lenb@kernel.org>, Linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-On Tuesday, 16 of December 2008, Brian J. Murrell wrote:
-> On Tue, 16 Dec 2008 00:02:43 +0100, Rafael J. Wysocki wrote:
-> > 
-> > No, most probably your graphics adapter is not handled correctly in this
-> > case, because it needs some special user space quirks, which are done by
-> > hald that is not running.
+Rafael J. Wysocki wrote:
+> Hi,
 > 
-> Hrm.  OK.
->  
-> > You can try to use the s2ram binary (http://en.opensuse.org/s2ram) to
-> > work around this issue.
+> On Monday, 15 of December 2008, Alexey Starikovskiy wrote:
+>> ACPI has smart batteries, which work in units of energy and measure
+>> rate of (dis)charge as power, thus it is not appropriate to export it
+>> as a current_now.
+>>
+>> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+>> ---
+>>
+>>  drivers/acpi/battery.c             |    3 ++-
+>>  drivers/acpi/sbs.c                 |    6 ++++--
+>>  drivers/power/power_supply_sysfs.c |    2 ++
+>>  include/linux/power_supply.h       |    2 ++
+>>  4 files changed, 10 insertions(+), 3 deletions(-)
+>>
+>>
+>> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+>> index 1423b0c..88f1fb5 100644
+>> --- a/drivers/acpi/battery.c
+>> +++ b/drivers/acpi/battery.c
+>> @@ -173,6 +173,7 @@ static int acpi_battery_get_property(struct power_supply *psy,
+>>  		val->intval = battery->voltage_now * 1000;
+>>  		break;
+>>  	case POWER_SUPPLY_PROP_CURRENT_NOW:
+>> +	case POWER_SUPPLY_PROP_POWER_NOW:
+>>  		val->intval = battery->current_now * 1000;
+>>  		break;
+>>  	case POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN:
+>> @@ -223,7 +224,7 @@ static enum power_supply_property energy_battery_props[] = {
+>>  	POWER_SUPPLY_PROP_TECHNOLOGY,
+>>  	POWER_SUPPLY_PROP_VOLTAGE_MIN_DESIGN,
+>>  	POWER_SUPPLY_PROP_VOLTAGE_NOW,
+>> -	POWER_SUPPLY_PROP_CURRENT_NOW,
+>> +	POWER_SUPPLY_PROP_POWER_NOW,
+>>  	POWER_SUPPLY_PROP_ENERGY_FULL_DESIGN,
+>>  	POWER_SUPPLY_PROP_ENERGY_FULL,
+>>  	POWER_SUPPLY_PROP_ENERGY_NOW,
+>> diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
+>> index 6050ce4..994c04e 100644
+>> --- a/drivers/acpi/sbs.c
+>> +++ b/drivers/acpi/sbs.c
+>> @@ -224,10 +224,12 @@ static int acpi_sbs_battery_get_property(struct power_supply *psy,
+>>  				acpi_battery_vscale(battery) * 1000;
+>>  		break;
+>>  	case POWER_SUPPLY_PROP_CURRENT_NOW:
+>> +	case POWER_SUPPLY_PROP_POWER_NOW:
+>>  		val->intval = abs(battery->current_now) *
+>>  				acpi_battery_ipscale(battery) * 1000;
 > 
-> That sounds like I am setting for something less than optimal.  Is that 
-> the case?  Why would I want to use what I've been trying to get working 
-> rather than s2ram?  Maybe put another way, why isn't everyone using s2ram?
-
-Because the hal-driven whitelist allows us to match systems in a more detailed
-way.  If your system is in the s2ram whitelist already and works with it, there
-shouldn't be any difference.
-
-Still, I was only considering that as a debugging aid in your case, because
-s2ram works in the minimal configuration, while hald doesn't.
-
-> Ultimately I'm going to want to be able to suspend as well as hibernate, 
-> for whatever that's worth.
+> Please introduce another field called 'battery->power_now' for this purpose.
+> Otherwise, confusion is guaranteed to ensue.
+How about 'battery->rate_now' for both cases? All other fields are re-used as well, and it did not cause any confusion.
+Probably no-one ever looked at this code.
 > 
-> > Anyway, if you suspend for the second time from this state, does it
-> > resume?
+>>  		break;
+>>  	case POWER_SUPPLY_PROP_CURRENT_AVG:
+>> +	case POWER_SUPPLY_PROP_POWER_AVG:
+>>  		val->intval = abs(battery->current_avg) *
+>>  				acpi_battery_ipscale(battery) * 1000;
 > 
-> No.  It fails just as miserably.  :-(
+> Same here.
+> 
+> Also, as per our IRC conversation, I'd like 'current_now' to be reported even
+> if energy units are used, at least for some time, to give a chance to the user
+> land to switch to 'power_now' and 'power_avg' without pain.
+To clarify, you suggest that "current_now" will report same value 
+as "power_now" in case of energy units?
+> 
+> You can put information about that into
+> Documentation/feature-removal-schedule.txt and say that after 2.6.29
+> 'current_now' will no longer be reported when energy units are used.
+Sounds good.
 
-That's a bit of new information.
+Thanks,
+Alex.
+> 
+> Thanks,
+> Rafael
 
-What's the list of modules loaded in the minimal configuration?
-
-Rafael
