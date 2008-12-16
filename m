@@ -1,194 +1,113 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: acpi_os_allocate(GFP_KERNEL) (was Re: acpi_evaluate_integer broken by design)
-Date: Tue, 16 Dec 2008 16:34:25 +0100
-Message-ID: <200812161634.25838.rjw@sisk.pl>
-References: <20081125110508.GA1943@elf.ucw.cz> <alpine.LFD.2.00.0812152240500.30475@localhost.localdomain> <20081215214140.9031d4c8.akpm@linux-foundation.org>
+Subject: Re: [RFC][PATCH] ACPI: battery: add power_{now, avg} properties to power_class
+Date: Tue, 16 Dec 2008 16:51:30 +0100
+Message-ID: <200812161651.31086.rjw@sisk.pl>
+References: <20081215213855.8414.9349.stgit@thinkpad> <200812161617.21420.rjw@sisk.pl> <4947C924.6090002@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758750AbYLPPfB@vger.kernel.org>
-In-Reply-To: <20081215214140.9031d4c8.akpm@linux-foundation.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:55357 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755486AbYLPPwB (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
+	Tue, 16 Dec 2008 10:52:01 -0500
+In-Reply-To: <4947C924.6090002@suse.de>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Len Brown <lenb@kernel.org>, pavel@suse.cz, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Johannes Berg <johannes@sipsolutions.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: LenBrown <lenb@kernel.org>, Linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-On Tuesday, 16 of December 2008, Andrew Morton wrote:
-> On Tue, 16 Dec 2008 00:24:43 -0500 (EST) Len Brown <lenb@kernel.org> wrote:
-> 
-> > > Obviously, it is even better to do neither.  It is a basic and
-> > > oft-reoccurring design mistake for a low-level piece of code to
-> > > hardwire its GFP_foo decision.  The gfp_t should be passed in from the
-> > > callers, all the way down the chain from the top-level code which
-> > > actually knows what state this thread of control is in.
+On Tuesday, 16 of December 2008, Alexey Starikovskiy wrote:
+> Rafael J. Wysocki wrote:
+> > Hi,
 > > 
-> > Here the caller does not know.
-> 
-> I bet it does it's just that the caller is thirty five levels of
-> function call higher up...
-> 
-> > The crux of the problem it that the AML interpreter
-> > may need to allocate memory and thus may sleep.
-> > Under nominal conditions the interpreter only runs in 
-> > user-context and allocatges with GFP_KERNEL
-> > so sleeping is just dandy.
+> > On Monday, 15 of December 2008, Alexey Starikovskiy wrote:
+> >> ACPI has smart batteries, which work in units of energy and measure
+> >> rate of (dis)charge as power, thus it is not appropriate to export it
+> >> as a current_now.
+> >>
+> >> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+> >> ---
+> >>
+> >>  drivers/acpi/battery.c             |    3 ++-
+> >>  drivers/acpi/sbs.c                 |    6 ++++--
+> >>  drivers/power/power_supply_sysfs.c |    2 ++
+> >>  include/linux/power_supply.h       |    2 ++
+> >>  4 files changed, 10 insertions(+), 3 deletions(-)
+> >>
+> >>
+> >> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+> >> index 1423b0c..88f1fb5 100644
+> >> --- a/drivers/acpi/battery.c
+> >> +++ b/drivers/acpi/battery.c
+> >> @@ -173,6 +173,7 @@ static int acpi_battery_get_property(struct power_supply *psy,
+> >>  		val->intval = battery->voltage_now * 1000;
+> >>  		break;
+> >>  	case POWER_SUPPLY_PROP_CURRENT_NOW:
+> >> +	case POWER_SUPPLY_PROP_POWER_NOW:
+> >>  		val->intval = battery->current_now * 1000;
+> >>  		break;
+> >>  	case POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN:
+> >> @@ -223,7 +224,7 @@ static enum power_supply_property energy_battery_props[] = {
+> >>  	POWER_SUPPLY_PROP_TECHNOLOGY,
+> >>  	POWER_SUPPLY_PROP_VOLTAGE_MIN_DESIGN,
+> >>  	POWER_SUPPLY_PROP_VOLTAGE_NOW,
+> >> -	POWER_SUPPLY_PROP_CURRENT_NOW,
+> >> +	POWER_SUPPLY_PROP_POWER_NOW,
+> >>  	POWER_SUPPLY_PROP_ENERGY_FULL_DESIGN,
+> >>  	POWER_SUPPLY_PROP_ENERGY_FULL,
+> >>  	POWER_SUPPLY_PROP_ENERGY_NOW,
+> >> diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
+> >> index 6050ce4..994c04e 100644
+> >> --- a/drivers/acpi/sbs.c
+> >> +++ b/drivers/acpi/sbs.c
+> >> @@ -224,10 +224,12 @@ static int acpi_sbs_battery_get_property(struct power_supply *psy,
+> >>  				acpi_battery_vscale(battery) * 1000;
+> >>  		break;
+> >>  	case POWER_SUPPLY_PROP_CURRENT_NOW:
+> >> +	case POWER_SUPPLY_PROP_POWER_NOW:
+> >>  		val->intval = abs(battery->current_now) *
+> >>  				acpi_battery_ipscale(battery) * 1000;
 > > 
-> > But AML also needs to run at boot time and at resume time
-> > to do things like configure interrupts before interrupts are
-> > enabled...
+> > Please introduce another field called 'battery->power_now' for this purpose.
+> > Otherwise, confusion is guaranteed to ensue.
+> How about 'battery->rate_now' for both cases? All other fields are re-used
+> as well, and it did not cause any confusion.  Probably no-one ever looked at
+> this code.
+
+Well, they are called 'capacity_*', which doesn't imply any particular units,
+while 'current_*' does.
+
+Anyway, 'battery->rate_now' would be better than 'battery->current_now'.
+What about 'battery->capacity_flow'?
+
+> 
 > > 
-> > boot-time is handled by _cond_resched()
-> > not calling __cond_resched unless
-> > system_state == SYSTEM_RUNNING
+> >>  		break;
+> >>  	case POWER_SUPPLY_PROP_CURRENT_AVG:
+> >> +	case POWER_SUPPLY_PROP_POWER_AVG:
+> >>  		val->intval = abs(battery->current_avg) *
+> >>  				acpi_battery_ipscale(battery) * 1000;
 > > 
-> > I suppose I could do something like this,
-> > though I'm not sure of the prettiest place
-> > to check system_resume_irqsoff == true,
-> > so that is left out for now...
+> > Same here.
 > > 
-> >
-> > ...
-> > 
-> > diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-> > index e52ad91..def91fa 100644
-> > --- a/drivers/acpi/pci_link.c
-> > +++ b/drivers/acpi/pci_link.c
-> > @@ -320,7 +320,7 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
-> >  	if (!link || !irq)
-> >  		return -EINVAL;
-> >  
-> > -	resource = kzalloc(sizeof(*resource) + 1, irqs_disabled() ? GFP_ATOMIC: GFP_KERNEL);
-> > +	resource = kzalloc(sizeof(*resource) + 1, GFP_KERNEL);
-> >  	if (!resource)
-> >  		return -ENOMEM;
-> >  
-> > diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-> > index bb7d50d..27243f9 100644
-> > --- a/drivers/acpi/power.c
-> > +++ b/drivers/acpi/power.c
-> > @@ -218,8 +218,7 @@ static int acpi_power_on(acpi_handle handle, struct acpi_device *dev)
-> >  	}
-> >  
-> >  	if (!found) {
-> > -		ref = kmalloc(sizeof (struct acpi_power_reference),
-> > -		    irqs_disabled() ? GFP_ATOMIC : GFP_KERNEL);
-> > +		ref = kmalloc(sizeof (struct acpi_power_reference), GFP_KERNEL);
-> >  		if (!ref) {
-> >  			ACPI_DEBUG_PRINT((ACPI_DB_INFO, "kmalloc() failed\n"));
-> >  			mutex_unlock(&resource->resource_lock);
-> > diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
-> > index 029c8c0..9fbf73f 100644
-> > --- a/include/acpi/platform/aclinux.h
-> > +++ b/include/acpi/platform/aclinux.h
-> > @@ -121,17 +121,16 @@ static inline acpi_thread_id acpi_os_get_thread_id(void)
-> >  #include <acpi/actypes.h>
-> >  static inline void *acpi_os_allocate(acpi_size size)
-> >  {
-> > -	return kmalloc(size, irqs_disabled()? GFP_ATOMIC : GFP_KERNEL);
-> > +	return kmalloc(size, GFP_KERNEL);
-> >  }
-> >  static inline void *acpi_os_allocate_zeroed(acpi_size size)
-> >  {
-> > -	return kzalloc(size, irqs_disabled()? GFP_ATOMIC : GFP_KERNEL);
-> > +	return kzalloc(size, GFP_KERNEL);
-> >  }
-> >  
-> >  static inline void *acpi_os_acquire_object(acpi_cache_t * cache)
-> >  {
-> > -	return kmem_cache_zalloc(cache,
-> > -				 irqs_disabled()? GFP_ATOMIC : GFP_KERNEL);
-> > +	return kmem_cache_zalloc(cache, GFP_KERNEL);
-> >  }
-> >  
-> >  #define ACPI_ALLOCATE(a)	acpi_os_allocate(a)
-> > diff --git a/include/linux/suspend.h b/include/linux/suspend.h
-> > index 2ce8207..a716de8 100644
-> > --- a/include/linux/suspend.h
-> > +++ b/include/linux/suspend.h
-> > @@ -128,9 +128,16 @@ extern void arch_suspend_disable_irqs(void);
-> >   */
-> >  extern void arch_suspend_enable_irqs(void);
-> >  
-> > +/**
-> > + * suspend_irqs_off
-> > + *
-> > + * flag to indicate that IRQs are off for the benefit of suspend
-> > + */
-> > +extern bool system_suspend_irqs_off;
-> >  extern int pm_suspend(suspend_state_t state);
-> >  #else /* !CONFIG_SUSPEND */
-> >  #define suspend_valid_only_mem	NULL
-> > +#define system_suspend_irqs_off false
-> >  
-> >  static inline void suspend_set_ops(struct platform_suspend_ops *ops) {}
-> >  static inline int pm_suspend(suspend_state_t state) { return -ENOSYS; }
-> > diff --git a/kernel/power/main.c b/kernel/power/main.c
-> > index b8f7ce9..2eadae7 100644
-> > --- a/kernel/power/main.c
-> > +++ b/kernel/power/main.c
-> > @@ -268,16 +268,20 @@ static int suspend_prepare(void)
-> >  	return error;
-> >  }
-> >  
-> > +bool system_resume_irqsoff;	/* IRQs are off for resume */
-> 
-> I guess that was supposed to be "system_suspend_irqs_off"?
-> 
-> >  /* default implementation */
-> >  void __attribute__ ((weak)) arch_suspend_disable_irqs(void)
-> >  {
-> >  	local_irq_disable();
-> > +	system_resume_irqsoff = true;
-> >  }
-> >  
-> >  /* default implementation */
-> >  void __attribute__ ((weak)) arch_suspend_enable_irqs(void)
-> >  {
-> >  	local_irq_enable();
-> > +	system_resume_irqsoff = false;
-> >  }
-> 
-> (please use __weak)
-> 
-> Whether it's "system_resume_irqsoff" or "system_suspend_irqs_off",
-> neither of them actually got used ;)
-> 
-> If the code is really this simple and localised then perhaps:
-> 
-> gfp_t acpi_aml_gfp_flags = GFP_ATOMIC;
-> 
-> void __weak arch_suspend_disable_irqs(void)
-> {
-> 	local_irq_disable();
-> 	acpi_aml_gfp_flags = GFP_ATOMIC;
-> }
-> 
-> /* default implementation */
-> void __weak arch_suspend_enable_irqs(void)
-> {
-> 	local_irq_enable();
-> 	acpi_aml_gfp_flags = GFP_KERNEL;
-> }
-> 
-> would suffice.  Dunno.
+> > Also, as per our IRC conversation, I'd like 'current_now' to be reported even
+> > if energy units are used, at least for some time, to give a chance to the user
+> > land to switch to 'power_now' and 'power_avg' without pain.
+> To clarify, you suggest that "current_now" will report same value 
+> as "power_now" in case of energy units?
 
-arch_suspend_disable_irqs() and arch_suspend_enable_irqs() are only used during
-suspend to RAM, but we have the 'suspend atomic context' during hibernation as
-well.
+Yes, with a comment why that is so (ie. because of the userland doing stupid
+things).
 
-> Why are we providing for an arch override of this?
+> > You can put information about that into
+> > Documentation/feature-removal-schedule.txt and say that after 2.6.29
+> > 'current_now' will no longer be reported when energy units are used.
+> Sounds good.
 
-Because of powerpc that does additional stuff here, AFAICS.
-
-Anyway, analogous situation can happen on shutdown when the nonboot CPUs
-are disabled and interrupts are off on the BSP.
-
-I think what we need is something like 'if the nonboot CPUs are disabled and
-interrupts are off (on the BSP, which is the only CPU active), use GFP_ATOMIC'.
-
-I'll prepare a patch for that, unless someone is faster.
+OK
 
 Thanks,
 Rafael
