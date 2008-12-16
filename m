@@ -1,246 +1,270 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: acpi_os_allocate(GFP_KERNEL) (was Re: acpi_evaluate_integer broken by design)
-Date: Wed, 17 Dec 2008 00:40:07 +0100
-Message-ID: <200812170040.07977.rjw@sisk.pl>
-References: <20081125110508.GA1943@elf.ucw.cz> <20081215214140.9031d4c8.akpm@linux-foundation.org> <200812161634.25838.rjw@sisk.pl>
+Date: Wed, 17 Dec 2008 00:49:38 +0100
+Message-ID: <200812170049.38464.rjw@sisk.pl>
+References: <20081125110508.GA1943@elf.ucw.cz> <200812161634.25838.rjw@sisk.pl> <200812170040.07977.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:57401 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:57433 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753951AbYLPXkn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Dec 2008 18:40:43 -0500
-In-Reply-To: <200812161634.25838.rjw@sisk.pl>
+	id S1755504AbYLPXtn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Dec 2008 18:49:43 -0500
+In-Reply-To: <200812170040.07977.rjw@sisk.pl>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>
 Cc: pavel@suse.cz, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Johannes Berg <johannes@sipsolutions.net>
 
-On Tuesday, 16 of December 2008, Rafael J. Wysocki wrote:
-> On Tuesday, 16 of December 2008, Andrew Morton wrote:
-> > On Tue, 16 Dec 2008 00:24:43 -0500 (EST) Len Brown <lenb@kernel.org> wrote:
-[--snip--]
+On Wednesday, 17 of December 2008, Rafael J. Wysocki wrote:
+> On Tuesday, 16 of December 2008, Rafael J. Wysocki wrote:
+> > On Tuesday, 16 of December 2008, Andrew Morton wrote:
+> > > On Tue, 16 Dec 2008 00:24:43 -0500 (EST) Len Brown <lenb@kernel.org> wrote:
+> [--snip--]
+> > > 
+> > > (please use __weak)
+> > > 
+> > > Whether it's "system_resume_irqsoff" or "system_suspend_irqs_off",
+> > > neither of them actually got used ;)
+> > > 
+> > > If the code is really this simple and localised then perhaps:
+> > > 
+> > > gfp_t acpi_aml_gfp_flags = GFP_ATOMIC;
+> > > 
+> > > void __weak arch_suspend_disable_irqs(void)
+> > > {
+> > > 	local_irq_disable();
+> > > 	acpi_aml_gfp_flags = GFP_ATOMIC;
+> > > }
+> > > 
+> > > /* default implementation */
+> > > void __weak arch_suspend_enable_irqs(void)
+> > > {
+> > > 	local_irq_enable();
+> > > 	acpi_aml_gfp_flags = GFP_KERNEL;
+> > > }
+> > > 
+> > > would suffice.  Dunno.
 > > 
-> > (please use __weak)
-> > 
-> > Whether it's "system_resume_irqsoff" or "system_suspend_irqs_off",
-> > neither of them actually got used ;)
-> > 
-> > If the code is really this simple and localised then perhaps:
-> > 
-> > gfp_t acpi_aml_gfp_flags = GFP_ATOMIC;
-> > 
-> > void __weak arch_suspend_disable_irqs(void)
-> > {
-> > 	local_irq_disable();
-> > 	acpi_aml_gfp_flags = GFP_ATOMIC;
-> > }
-> > 
-> > /* default implementation */
-> > void __weak arch_suspend_enable_irqs(void)
-> > {
-> > 	local_irq_enable();
-> > 	acpi_aml_gfp_flags = GFP_KERNEL;
-> > }
-> > 
-> > would suffice.  Dunno.
+> > arch_suspend_disable_irqs() and arch_suspend_enable_irqs() are only used during
+> > suspend to RAM, but we have the 'suspend atomic context' during hibernation as
+> > well.
 > 
-> arch_suspend_disable_irqs() and arch_suspend_enable_irqs() are only used during
-> suspend to RAM, but we have the 'suspend atomic context' during hibernation as
-> well.
+> In fact, we should be using GFP_ATOMIC already while devices are being
+> suspended, so we can switch from GFP_KERNEL to GFP_ATOMIC even before
+> interrupts are enabled.
+> 
+> In particular, we can do that in the suspend/hibernation platform callback as
+> shown in the patch below.
+> 
+> The patch hasn't been tested and is indended for discussion.
 
-In fact, we should be using GFP_ATOMIC already while devices are being
-suspended, so we can switch from GFP_KERNEL to GFP_ATOMIC even before
-interrupts are enabled.
+Below is another patch for discussion.
 
-In particular, we can do that in the suspend/hibernation platform callback as
-shown in the patch below.
+It standardizes the switching of interrupts etc. during suspend to RAM and
+hibernation and adds disabling/enabling of preemption so that the
+cond_resched() in the ACPI code doesn't try to schedule.
 
-The patch hasn't been tested and is indended for discussion.
-
-[Note: I'm not sure where to place the definition of acpi_gfp_flags.
- Temporarily I put that into bus.c, but if there's a better place, please
- tell me.]
+The patch hasn't been tested yet.
 
 Thanks,
 Rafael
 
 ---
- drivers/acpi/bus.c              |    3 +++
- drivers/acpi/pci_link.c         |    2 +-
- drivers/acpi/sleep/main.c       |   22 ++++++++++++++++++----
- include/acpi/platform/aclinux.h |   15 +++++++++------
- include/linux/acpi.h            |    1 +
- 5 files changed, 32 insertions(+), 11 deletions(-)
+ include/linux/suspend.h |    3 +
+ kernel/power/disk.c     |   26 ++++++++--------
+ kernel/power/main.c     |   75 ++++++++++++++++++++++++++++++++++++------------
+ kernel/power/power.h    |    4 ++
+ 4 files changed, 78 insertions(+), 30 deletions(-)
 
-Index: linux-2.6/drivers/acpi/sleep/main.c
+Index: linux-2.6/kernel/power/disk.c
 ===================================================================
---- linux-2.6.orig/drivers/acpi/sleep/main.c
-+++ linux-2.6/drivers/acpi/sleep/main.c
-@@ -122,6 +122,7 @@ void __init acpi_s4_no_nvs(void)
- static int acpi_pm_disable_gpes(void)
- {
- 	acpi_hw_disable_all_gpes();
-+	acpi_gfp_flags = GFP_ATOMIC;
- 	return 0;
- }
+--- linux-2.6.orig/kernel/power/disk.c
++++ linux-2.6/kernel/power/disk.c
+@@ -214,8 +214,8 @@ static int create_image(int platform_mod
+ 	if (error)
+ 		return error;
  
-@@ -148,8 +149,10 @@ static int acpi_pm_prepare(void)
- {
- 	int error = __acpi_pm_prepare();
- 
--	if (!error)
-+	if (!error) {
- 		acpi_hw_disable_all_gpes();
-+		acpi_gfp_flags = GFP_ATOMIC;
-+	}
- 	return error;
- }
- 
-@@ -175,6 +178,8 @@ static void acpi_pm_finish(void)
- 	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
- 
- 	acpi_target_sleep_state = ACPI_STATE_S0;
+-	device_pm_lock();
+-	local_irq_disable();
++	suspend_disable_concurrency();
 +
-+	acpi_gfp_flags = GFP_KERNEL;
- }
- 
- /**
-@@ -188,6 +193,7 @@ static void acpi_pm_end(void)
+ 	/* At this point, device_suspend() has been called, but *not*
+ 	 * device_power_down(). We *must* call device_power_down() now.
+ 	 * Otherwise, drivers for some devices (e.g. interrupt controllers)
+@@ -248,9 +248,10 @@ static int create_image(int platform_mod
  	 */
- 	acpi_target_sleep_state = ACPI_STATE_S0;
- 	acpi_sleep_tts_switch(acpi_target_sleep_state);
-+	acpi_gfp_flags = GFP_KERNEL;
- }
- #else /* !CONFIG_ACPI_SLEEP */
- #define acpi_target_sleep_state	ACPI_STATE_S0
-@@ -328,7 +334,9 @@ static int acpi_suspend_begin_old(suspen
- {
- 	int error = acpi_suspend_begin(pm_state);
- 
--	if (!error)
-+	if (error)
-+		acpi_gfp_flags = GFP_KERNEL;
-+	else
- 		error = __acpi_pm_prepare();
+ 	device_power_up(in_suspend ?
+ 		(error ? PMSG_RECOVER : PMSG_THAW) : PMSG_RESTORE);
++
+  Enable_irqs:
+-	local_irq_enable();
+-	device_pm_unlock();
++	suspend_enable_concurrency();
++
  	return error;
  }
-@@ -423,7 +431,9 @@ static int acpi_hibernation_pre_snapshot
+ 
+@@ -330,8 +331,8 @@ static int resume_target_kernel(void)
  {
- 	int error = acpi_pm_prepare();
+ 	int error;
  
--	if (!error)
-+	if (error)
-+		acpi_gfp_flags = GFP_KERNEL;
-+	else
- 		hibernate_nvs_save();
- 
+-	device_pm_lock();
+-	local_irq_disable();
++	suspend_disable_concurrency();
++
+ 	error = device_power_down(PMSG_QUIESCE);
+ 	if (error) {
+ 		printk(KERN_ERR "PM: Some devices failed to power down, "
+@@ -361,9 +362,10 @@ static int resume_target_kernel(void)
+ 	restore_processor_state();
+ 	touch_softlockup_watchdog();
+ 	device_power_up(PMSG_RECOVER);
++
+  Enable_irqs:
+-	local_irq_enable();
+-	device_pm_unlock();
++	suspend_enable_concurrency();
++
  	return error;
-@@ -475,6 +485,7 @@ static void acpi_hibernation_leave(void)
- static void acpi_pm_enable_gpes(void)
- {
- 	acpi_hw_enable_all_runtime_gpes();
-+	acpi_gfp_flags = GFP_KERNEL;
  }
  
- static struct platform_hibernation_ops acpi_hibernation_ops = {
-@@ -520,7 +531,9 @@ static int acpi_hibernation_pre_snapshot
- {
- 	int error = acpi_pm_disable_gpes();
+@@ -442,16 +444,16 @@ int hibernation_platform_enter(void)
+ 	if (error)
+ 		goto Finish;
  
--	if (!error)
-+	if (error)
-+		acpi_gfp_flags = GFP_KERNEL;
-+	else
- 		hibernate_nvs_save();
+-	device_pm_lock();
+-	local_irq_disable();
++	suspend_disable_concurrency();
++
+ 	error = device_power_down(PMSG_HIBERNATE);
+ 	if (!error) {
+ 		hibernation_ops->enter();
+ 		/* We should never get here */
+ 		while (1);
+ 	}
+-	local_irq_enable();
+-	device_pm_unlock();
++
++	suspend_enable_concurrency();
  
+ 	/*
+ 	 * We don't need to reenable the nonboot CPUs or resume consoles, since
+Index: linux-2.6/kernel/power/main.c
+===================================================================
+--- linux-2.6.orig/kernel/power/main.c
++++ linux-2.6/kernel/power/main.c
+@@ -55,6 +55,46 @@ int pm_notifier_call_chain(unsigned long
+ 			== NOTIFY_BAD) ? -EINVAL : 0;
+ }
+ 
++/* default implementation */
++void __weak arch_suspend_disable_irqs(void)
++{
++	local_irq_disable();
++}
++
++/* default implementation */
++void __weak arch_suspend_enable_irqs(void)
++{
++	local_irq_enable();
++}
++
++/**
++ *	suspend_disable_concurrency - disable the execution of any other code
++ *                                    in parallel with the calling thread
++ *
++ *	To be executed with only one CPU on line.
++ */
++void suspend_disable_concurrency(void)
++{
++	device_pm_lock();
++	preempt_disable();
++	arch_suspend_disable_irqs();
++	BUG_ON(!irqs_disabled());
++}
++
++/**
++ *	suspend_enable_concurrency - allow other code to be executed in parallel
++ *                                   with the calling thread
++ *
++ *	To be executed with only one CPU on line.
++ */
++void suspend_enable_concurrency(void)
++{
++	arch_suspend_enable_irqs();
++	BUG_ON(irqs_disabled());
++	preempt_enable_no_resched();
++	device_pm_unlock();
++}
++
+ #ifdef CONFIG_PM_DEBUG
+ int pm_test_level = TEST_NONE;
+ 
+@@ -268,18 +321,6 @@ static int suspend_prepare(void)
  	return error;
-@@ -675,6 +688,7 @@ static void acpi_power_off_prepare(void)
- 	/* Prepare to power off the system */
- 	acpi_sleep_prepare(ACPI_STATE_S5);
- 	acpi_hw_disable_all_gpes();
-+	acpi_gfp_flags = GFP_ATOMIC;
  }
  
- static void acpi_power_off(void)
-Index: linux-2.6/drivers/acpi/bus.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/bus.c
-+++ linux-2.6/drivers/acpi/bus.c
-@@ -46,6 +46,9 @@ struct acpi_device *acpi_root;
- struct proc_dir_entry *acpi_root_dir;
- EXPORT_SYMBOL(acpi_root_dir);
- 
-+gfp_t acpi_gfp_flags = GFP_KERNEL;
-+EXPORT_SYMBOL(acpi_gfp_flags);
-+
- #define STRUCT_TO_INT(s)	(*((int*)&s))
- 
- static int set_power_nocheck(const struct dmi_system_id *id)
-Index: linux-2.6/drivers/acpi/pci_link.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/pci_link.c
-+++ linux-2.6/drivers/acpi/pci_link.c
-@@ -320,7 +320,7 @@ static int acpi_pci_link_set(struct acpi
- 	if (!link || !irq)
- 		return -EINVAL;
- 
--	resource = kzalloc(sizeof(*resource) + 1, irqs_disabled() ? GFP_ATOMIC: GFP_KERNEL);
-+	resource = kzalloc(sizeof(*resource) + 1, acpi_gfp_flags);
- 	if (!resource)
- 		return -ENOMEM;
- 
-Index: linux-2.6/include/acpi/platform/aclinux.h
-===================================================================
---- linux-2.6.orig/include/acpi/platform/aclinux.h
-+++ linux-2.6/include/acpi/platform/aclinux.h
-@@ -113,25 +113,28 @@ static inline acpi_thread_id acpi_os_get
- }
- 
- /*
-- * The irqs_disabled() check is for resume from RAM.
-- * Interrupts are off during resume, just like they are for boot.
-+ * acpi_gfp_flags is GFP_KERNEL except for the suspend-to-RAM and hibernation
-+ * code paths, where it equals GFP_ATOMIC.
-+ * Interrupts are off during suspend-resume, just like they are for boot.
-  * However, boot has  (system_state != SYSTEM_RUNNING)
-  * to quiet __might_sleep() in kmalloc() and resume does not.
-  */
- #include <acpi/actypes.h>
-+
-+extern gfp_t acpi_gfp_flags;
-+
- static inline void *acpi_os_allocate(acpi_size size)
+-/* default implementation */
+-void __attribute__ ((weak)) arch_suspend_disable_irqs(void)
+-{
+-	local_irq_disable();
+-}
+-
+-/* default implementation */
+-void __attribute__ ((weak)) arch_suspend_enable_irqs(void)
+-{
+-	local_irq_enable();
+-}
+-
+ /**
+  *	suspend_enter - enter the desired system sleep state.
+  *	@state:		state to enter
+@@ -290,9 +331,7 @@ static int suspend_enter(suspend_state_t
  {
--	return kmalloc(size, irqs_disabled()? GFP_ATOMIC : GFP_KERNEL);
-+	return kmalloc(size, acpi_gfp_flags);
- }
- static inline void *acpi_os_allocate_zeroed(acpi_size size)
- {
--	return kzalloc(size, irqs_disabled()? GFP_ATOMIC : GFP_KERNEL);
-+	return kzalloc(size, acpi_gfp_flags);
+ 	int error = 0;
+ 
+-	device_pm_lock();
+-	arch_suspend_disable_irqs();
+-	BUG_ON(!irqs_disabled());
++	suspend_disable_concurrency();
+ 
+ 	if ((error = device_power_down(PMSG_SUSPEND))) {
+ 		printk(KERN_ERR "PM: Some devices failed to power down\n");
+@@ -303,10 +342,10 @@ static int suspend_enter(suspend_state_t
+ 		error = suspend_ops->enter(state);
+ 
+ 	device_power_up(PMSG_RESUME);
++
+  Done:
+-	arch_suspend_enable_irqs();
+-	BUG_ON(irqs_disabled());
+-	device_pm_unlock();
++	suspend_enable_concurrency();
++
+ 	return error;
  }
  
- static inline void *acpi_os_acquire_object(acpi_cache_t * cache)
- {
--	return kmem_cache_zalloc(cache,
--				 irqs_disabled()? GFP_ATOMIC : GFP_KERNEL);
-+	return kmem_cache_zalloc(cache, acpi_gfp_flags);
- }
- 
- #define ACPI_ALLOCATE(a)	acpi_os_allocate(a)
-Index: linux-2.6/include/linux/acpi.h
+Index: linux-2.6/kernel/power/power.h
 ===================================================================
---- linux-2.6.orig/include/linux/acpi.h
-+++ linux-2.6/include/linux/acpi.h
-@@ -115,6 +115,7 @@ extern int pci_mmcfg_config_num;
+--- linux-2.6.orig/kernel/power/power.h
++++ linux-2.6/kernel/power/power.h
+@@ -163,11 +163,15 @@ extern void swsusp_show_speed(struct tim
+ #ifdef CONFIG_SUSPEND
+ /* kernel/power/main.c */
+ extern int suspend_devices_and_enter(suspend_state_t state);
++extern void suspend_disable_concurrency(void);
++extern void suspend_enable_concurrency(void);
+ #else /* !CONFIG_SUSPEND */
+ static inline int suspend_devices_and_enter(suspend_state_t state)
+ {
+ 	return -ENOSYS;
+ }
++static inline void suspend_disable_concurrency(void) {}
++static inline void suspend_enable_concurrency(void) {}
+ #endif /* !CONFIG_SUSPEND */
  
- extern int sbf_port;
- extern unsigned long acpi_realmode_flags;
-+extern gfp_t acpi_gfp_flags;
- 
- int acpi_register_gsi (u32 gsi, int triggering, int polarity);
- int acpi_gsi_to_irq (u32 gsi, unsigned int *irq);
+ #ifdef CONFIG_PM_SLEEP
