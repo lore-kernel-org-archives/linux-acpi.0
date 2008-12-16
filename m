@@ -1,38 +1,46 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: state of some x86 acpi patches
-Date: Tue, 16 Dec 2008 20:25:34 +0100
-Message-ID: <20081216192534.GB843@elte.hu>
-References: <4947FF4C.80706@goop.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC][PATCH] ACPI: battery: add power_{now, avg} properties to power_class
+Date: Tue, 16 Dec 2008 21:49:01 +0100
+Message-ID: <200812162149.01926.rjw@sisk.pl>
+References: <20081216162756.12100.49260.stgit@thinkpad> <alpine.LFD.2.00.0812161237220.4414@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx3.mail.elte.hu ([157.181.1.138]:49421 "EHLO mx3.mail.elte.hu"
+Received: from ogre.sisk.pl ([217.79.144.158]:56880 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753181AbYLPTZr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Dec 2008 14:25:47 -0500
+	id S1752303AbYLPUtb (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
+	Tue, 16 Dec 2008 15:49:31 -0500
+In-Reply-To: <alpine.LFD.2.00.0812161237220.4414@localhost.localdomain>
 Content-Disposition: inline
-In-Reply-To: <4947FF4C.80706@goop.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: "Brown, Len" <len.brown@intel.com>, Yinghai Lu <yinghai@kernel.org>, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Linux-acpi@vger.kernel.org
 
+On Tuesday, 16 of December 2008, Len Brown wrote:
+> 
+> On Tue, 16 Dec 2008, Alexey Starikovskiy wrote:
+> 
+> > +What:	current_{now,avg} attributes for batteries, reporting in energy units
+> > +When:	2.6.29
+> > +Why:	Batteries, reporting in energy units, will report (dis)charge rate as
+> > +	power (Watts), and not as current (Amperes), thus new power_{now,avg}
+> > +	attributes should be used for such batteries to avoid the confusion.
+> > +Who:	Alexey Starikovskiy <astarikovskiy@suse.de>
+> 
+> I think that a single kernel release cycle is too quick
+> for a user/kernel API change  unless you're trying to fix
+> something that is new and you have a pretty good idea
+> that nobody is using it yet.  Kernel programmers typically
+> want to talk about O(6 months) and Linus comes back and
+> talks aboutg O(10 years)...
 
-* Jeremy Fitzhardinge <jeremy@goop.org> wrote:
+Well, IMO that could be discussed with the people who work on battery monitors.
 
-> Hi Len,
->
-> Have you seen these three patches?  Do they look OK to you?
->
-> Yinghai Lu improve the third patch ("acpi: remove final __acpi_map_table 
-> mapping before setting acpi_gbl_permanent_mmap"), which I think Ingo 
-> sent you instead.
+If they agree to update their stuff in shorter time, we can remove the
+'current_now' thing more quickly.
 
-Len,
-
-i asked about these patches before too - and if that's fine with you we'd 
-just queue them up in the x86 tree (like we did before the .28 merge 
-window). Most of the impact will be on x86. So an Acked-by from you would 
-be fine to start this.
-
-	Ingo
+Thanks,
+Rafael
