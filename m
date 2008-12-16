@@ -1,52 +1,224 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: suspend/resume fails on second attempt in LNXVIDEO:00
-Date: Tue, 16 Dec 2008 17:22:40 +0100
-Message-ID: <200812161722.41149.rjw@sisk.pl>
-References: <gi247o$iog$1@ger.gmane.org> <200812161713.08451.rjw@sisk.pl> <gi8kc5$m5f$6@ger.gmane.org>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: [RFC][PATCH] ACPI: battery: add power_{now,
+	avg} properties to power_class
+Date: Tue, 16 Dec 2008 19:27:56 +0300
+Message-ID: <20081216162756.12100.49260.stgit@thinkpad>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:55603 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754172AbYLPQWq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Dec 2008 11:22:46 -0500
-In-Reply-To: <gi8kc5$m5f$6@ger.gmane.org>
-Content-Disposition: inline
+Received: from charybdis-ext.suse.de ([195.135.221.2]:41677 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755707AbYLPQ1z (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Tue, 16 Dec 2008 11:27:55 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brian J. Murrell" <brian@interlinx.bc.ca>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: LenBrown <lenb@kernel.org>
+Cc: Linux-acpi@vger.kernel.org
 
-On Tuesday, 16 of December 2008, Brian J. Murrell wrote:
-> On Tue, 16 Dec 2008 17:13:08 +0100, Rafael J. Wysocki wrote:
-> > 
-> > Hm, this really isn't reasonable.
-> 
-> Many people agree with you.  :-)  There is a long bug open with ubuntu to 
-> restore this s2ram.  They seem to be ignoring it though.
-> 
-> > s2both saves the image, which takes
-> > quite a lot of time, while s2ram doesn't.
-> 
-> Indeed.
->  
-> > You can compile s2ram from sources, it's not too difficult.
-> 
-> Yeah.  I will probably just grab the debian package and dpkg-buildpackage 
-> it on my Ubuntu system.
->  
-> > Hm.  Is that all loaded when you boot with init=/bin/bash (by which I
-> > mean the minimal config)?
-> 
-> It sure is.  Most assuredly by the initrd.  Debian/Ubuntu systems seem to 
-> put everything but the kitchen sink into their initrds.  Which on the one 
-> hand makes them pretty portable and resilient, but on the other, yes, 
-> bloated.
+ACPI has smart batteries, which work in units of energy and measure
+rate of (dis)charge as power, thus it is not appropriate to export it
+as a current_now. Current_now will be exported until 2.6.29 to allow
+for userland applications to match.
 
-Well, please remove as many modules as you can (using rmmod) and see if your
-second resume still fails.
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+---
 
-Thanks,
-Rafael
+ Documentation/feature-removal-schedule.txt |    8 +++++++
+ drivers/acpi/battery.c                     |   14 +++++++------
+ drivers/acpi/sbs.c                         |   31 ++++++++++++++++------------
+ drivers/power/power_supply_sysfs.c         |    2 ++
+ include/linux/power_supply.h               |    2 ++
+ 5 files changed, 38 insertions(+), 19 deletions(-)
+
+
+diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
+index c28a2ac..f0c1f7b 100644
+--- a/Documentation/feature-removal-schedule.txt
++++ b/Documentation/feature-removal-schedule.txt
+@@ -3,6 +3,14 @@ removed in the kernel source tree.  Every entry should contain what
+ exactly is going away, why it is happening, and who is going to be doing
+ the work.  When the feature is removed from the kernel, it should also
+ be removed from this file.
++---------------------------
++
++What:	current_{now,avg} attributes for batteries, reporting in energy units
++When:	2.6.29
++Why:	Batteries, reporting in energy units, will report (dis)charge rate as
++	power (Watts), and not as current (Amperes), thus new power_{now,avg}
++	attributes should be used for such batteries to avoid the confusion.
++Who:	Alexey Starikovskiy <astarikovskiy@suse.de>
+ 
+ ---------------------------
+ 
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 1423b0c..b972939 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -92,7 +92,7 @@ struct acpi_battery {
+ #endif
+ 	struct acpi_device *device;
+ 	unsigned long update_time;
+-	int current_now;
++	int rate_now;
+ 	int capacity_now;
+ 	int voltage_now;
+ 	int design_capacity;
+@@ -173,7 +173,8 @@ static int acpi_battery_get_property(struct power_supply *psy,
+ 		val->intval = battery->voltage_now * 1000;
+ 		break;
+ 	case POWER_SUPPLY_PROP_CURRENT_NOW:
+-		val->intval = battery->current_now * 1000;
++	case POWER_SUPPLY_PROP_POWER_NOW:
++		val->intval = battery->rate_now * 1000;
+ 		break;
+ 	case POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN:
+ 	case POWER_SUPPLY_PROP_ENERGY_FULL_DESIGN:
+@@ -223,7 +224,8 @@ static enum power_supply_property energy_battery_props[] = {
+ 	POWER_SUPPLY_PROP_TECHNOLOGY,
+ 	POWER_SUPPLY_PROP_VOLTAGE_MIN_DESIGN,
+ 	POWER_SUPPLY_PROP_VOLTAGE_NOW,
+-	POWER_SUPPLY_PROP_CURRENT_NOW,
++	POWER_SUPPLY_PROP_CURRENT_NOW, /* to be removed in 2.6.29 */
++	POWER_SUPPLY_PROP_POWER_NOW,
+ 	POWER_SUPPLY_PROP_ENERGY_FULL_DESIGN,
+ 	POWER_SUPPLY_PROP_ENERGY_FULL,
+ 	POWER_SUPPLY_PROP_ENERGY_NOW,
+@@ -250,7 +252,7 @@ struct acpi_offsets {
+ 
+ static struct acpi_offsets state_offsets[] = {
+ 	{offsetof(struct acpi_battery, state), 0},
+-	{offsetof(struct acpi_battery, current_now), 0},
++	{offsetof(struct acpi_battery, rate_now), 0},
+ 	{offsetof(struct acpi_battery, capacity_now), 0},
+ 	{offsetof(struct acpi_battery, voltage_now), 0},
+ };
+@@ -581,11 +583,11 @@ static int acpi_battery_print_state(struct seq_file *seq, int result)
+ 	else
+ 		seq_printf(seq, "charging state:          charged\n");
+ 
+-	if (battery->current_now == ACPI_BATTERY_VALUE_UNKNOWN)
++	if (battery->rate_now == ACPI_BATTERY_VALUE_UNKNOWN)
+ 		seq_printf(seq, "present rate:            unknown\n");
+ 	else
+ 		seq_printf(seq, "present rate:            %d %s\n",
+-			   battery->current_now, acpi_battery_units(battery));
++			   battery->rate_now, acpi_battery_units(battery));
+ 
+ 	if (battery->capacity_now == ACPI_BATTERY_VALUE_UNKNOWN)
+ 		seq_printf(seq, "remaining capacity:      unknown\n");
+diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
+index 6050ce4..e3b0087 100644
+--- a/drivers/acpi/sbs.c
++++ b/drivers/acpi/sbs.c
+@@ -102,8 +102,8 @@ struct acpi_battery {
+ 	u16 cycle_count;
+ 	u16 temp_now;
+ 	u16 voltage_now;
+-	s16 current_now;
+-	s16 current_avg;
++	s16 rate_now;
++	s16 rate_avg;
+ 	u16 capacity_now;
+ 	u16 state_of_charge;
+ 	u16 state;
+@@ -202,9 +202,9 @@ static int acpi_sbs_battery_get_property(struct power_supply *psy,
+ 		return -ENODEV;
+ 	switch (psp) {
+ 	case POWER_SUPPLY_PROP_STATUS:
+-		if (battery->current_now < 0)
++		if (battery->rate_now < 0)
+ 			val->intval = POWER_SUPPLY_STATUS_DISCHARGING;
+-		else if (battery->current_now > 0)
++		else if (battery->rate_now > 0)
+ 			val->intval = POWER_SUPPLY_STATUS_CHARGING;
+ 		else
+ 			val->intval = POWER_SUPPLY_STATUS_FULL;
+@@ -224,11 +224,13 @@ static int acpi_sbs_battery_get_property(struct power_supply *psy,
+ 				acpi_battery_vscale(battery) * 1000;
+ 		break;
+ 	case POWER_SUPPLY_PROP_CURRENT_NOW:
+-		val->intval = abs(battery->current_now) *
++	case POWER_SUPPLY_PROP_POWER_NOW:
++		val->intval = abs(battery->rate_now) *
+ 				acpi_battery_ipscale(battery) * 1000;
+ 		break;
+ 	case POWER_SUPPLY_PROP_CURRENT_AVG:
+-		val->intval = abs(battery->current_avg) *
++	case POWER_SUPPLY_PROP_POWER_AVG:
++		val->intval = abs(battery->rate_avg) *
+ 				acpi_battery_ipscale(battery) * 1000;
+ 		break;
+ 	case POWER_SUPPLY_PROP_CAPACITY:
+@@ -291,8 +293,10 @@ static enum power_supply_property sbs_energy_battery_props[] = {
+ 	POWER_SUPPLY_PROP_TECHNOLOGY,
+ 	POWER_SUPPLY_PROP_VOLTAGE_MIN_DESIGN,
+ 	POWER_SUPPLY_PROP_VOLTAGE_NOW,
+-	POWER_SUPPLY_PROP_CURRENT_NOW,
+-	POWER_SUPPLY_PROP_CURRENT_AVG,
++	POWER_SUPPLY_PROP_CURRENT_NOW, /* to be removed in 2.6.29 */
++	POWER_SUPPLY_PROP_CURRENT_AVG, /* to be removed in 2.6.29 */
++	POWER_SUPPLY_PROP_POWER_NOW,
++	POWER_SUPPLY_PROP_POWER_AVG,
+ 	POWER_SUPPLY_PROP_CAPACITY,
+ 	POWER_SUPPLY_PROP_ENERGY_FULL_DESIGN,
+ 	POWER_SUPPLY_PROP_ENERGY_FULL,
+@@ -301,6 +305,7 @@ static enum power_supply_property sbs_energy_battery_props[] = {
+ 	POWER_SUPPLY_PROP_MODEL_NAME,
+ 	POWER_SUPPLY_PROP_MANUFACTURER,
+ };
++
+ #endif
+ 
+ /* --------------------------------------------------------------------------
+@@ -330,8 +335,8 @@ static struct acpi_battery_reader info_readers[] = {
+ static struct acpi_battery_reader state_readers[] = {
+ 	{0x08, SMBUS_READ_WORD, offsetof(struct acpi_battery, temp_now)},
+ 	{0x09, SMBUS_READ_WORD, offsetof(struct acpi_battery, voltage_now)},
+-	{0x0a, SMBUS_READ_WORD, offsetof(struct acpi_battery, current_now)},
+-	{0x0b, SMBUS_READ_WORD, offsetof(struct acpi_battery, current_avg)},
++	{0x0a, SMBUS_READ_WORD, offsetof(struct acpi_battery, rate_now)},
++	{0x0b, SMBUS_READ_WORD, offsetof(struct acpi_battery, rate_avg)},
+ 	{0x0f, SMBUS_READ_WORD, offsetof(struct acpi_battery, capacity_now)},
+ 	{0x0e, SMBUS_READ_WORD, offsetof(struct acpi_battery, state_of_charge)},
+ 	{0x16, SMBUS_READ_WORD, offsetof(struct acpi_battery, state)},
+@@ -589,9 +594,9 @@ static int acpi_battery_read_state(struct seq_file *seq, void *offset)
+ 	seq_printf(seq, "capacity state:          %s\n",
+ 		   (battery->state & 0x0010) ? "critical" : "ok");
+ 	seq_printf(seq, "charging state:          %s\n",
+-		   (battery->current_now < 0) ? "discharging" :
+-		   ((battery->current_now > 0) ? "charging" : "charged"));
+-	rate = abs(battery->current_now) * acpi_battery_ipscale(battery);
++		   (battery->rate_now < 0) ? "discharging" :
++		   ((battery->rate_now > 0) ? "charging" : "charged"));
++	rate = abs(battery->rate_now) * acpi_battery_ipscale(battery);
+ 	rate *= (acpi_battery_mode(battery))?(battery->voltage_now *
+ 			acpi_battery_vscale(battery)/1000):1;
+ 	seq_printf(seq, "present rate:            %d%s\n", rate,
+diff --git a/drivers/power/power_supply_sysfs.c b/drivers/power/power_supply_sysfs.c
+index 23ae846..7aa8b4e 100644
+--- a/drivers/power/power_supply_sysfs.c
++++ b/drivers/power/power_supply_sysfs.c
+@@ -93,6 +93,8 @@ static struct device_attribute power_supply_attrs[] = {
+ 	POWER_SUPPLY_ATTR(voltage_avg),
+ 	POWER_SUPPLY_ATTR(current_now),
+ 	POWER_SUPPLY_ATTR(current_avg),
++	POWER_SUPPLY_ATTR(power_now),
++	POWER_SUPPLY_ATTR(power_avg),
+ 	POWER_SUPPLY_ATTR(charge_full_design),
+ 	POWER_SUPPLY_ATTR(charge_empty_design),
+ 	POWER_SUPPLY_ATTR(charge_full),
+diff --git a/include/linux/power_supply.h b/include/linux/power_supply.h
+index f9348cb..105a707 100644
+--- a/include/linux/power_supply.h
++++ b/include/linux/power_supply.h
+@@ -72,6 +72,8 @@ enum power_supply_property {
+ 	POWER_SUPPLY_PROP_VOLTAGE_AVG,
+ 	POWER_SUPPLY_PROP_CURRENT_NOW,
+ 	POWER_SUPPLY_PROP_CURRENT_AVG,
++	POWER_SUPPLY_PROP_POWER_NOW,
++	POWER_SUPPLY_PROP_POWER_AVG,
+ 	POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN,
+ 	POWER_SUPPLY_PROP_CHARGE_EMPTY_DESIGN,
+ 	POWER_SUPPLY_PROP_CHARGE_FULL,
+
