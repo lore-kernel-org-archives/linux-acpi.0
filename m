@@ -1,37 +1,41 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: suspend/resume fails on second attempt in LNXVIDEO:00
-Date: Tue, 16 Dec 2008 16:37:46 +0000
-Message-ID: <20081216163746.GA9478@srcf.ucam.org>
-References: <gi247o$iog$1@ger.gmane.org> <200812161625.37318.rjw@sisk.pl> <gi8jf1$m5f$5@ger.gmane.org> <200812161713.08451.rjw@sisk.pl>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [RFC][PATCH] ACPI: battery: add power_{now,
+ avg} properties to power_class
+Date: Tue, 16 Dec 2008 12:41:41 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0812161237220.4414@localhost.localdomain>
+References: <20081216162756.12100.49260.stgit@thinkpad>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:40076 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755519AbYLPQiD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Dec 2008 11:38:03 -0500
-Content-Disposition: inline
-In-Reply-To: <200812161713.08451.rjw@sisk.pl>
+Received: from vms044pub.verizon.net ([206.46.252.44]:52339 "EHLO
+	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757585AbYLPRmD (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Tue, 16 Dec 2008 12:42:03 -0500
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms044.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
+ 3 2006)) with ESMTPA id <0KBZ00DZ8D5UATB0@vms044.mailsrvcs.net> for
+ Linux-acpi@vger.kernel.org; Tue, 16 Dec 2008 11:41:55 -0600 (CST)
+In-reply-to: <20081216162756.12100.49260.stgit@thinkpad>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "Brian J. Murrell" <brian@interlinx.bc.ca>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Linux-acpi@vger.kernel.org
 
-On Tue, Dec 16, 2008 at 05:13:08PM +0100, Rafael J. Wysocki wrote:
-> On Tuesday, 16 of December 2008, Brian J. Murrell wrote:
-> > On Tue, 16 Dec 2008 16:25:37 +0100, Rafael J. Wysocki wrote:
-> > 
-> > > Because the hal-driven whitelist allows us to match systems in a more
-> > > detailed way.  If your system is in the s2ram whitelist already and
-> > > works with it, there shouldn't be any difference.
-> > 
-> > Unfortunately, Ubuntu in their "wisdom" removed s2ram and claim "s2both" 
-> > supersedes it in that it does both suspend to disk and suspend to ram and 
-> > then suspends, but if your battery dies while suspended you can still 
-> > resume from the suspend to disk.
 
-I seem to be missing the original message, but: no, s2ram doesn't exist 
-in Ubuntu because pm-utils handles that role.
+On Tue, 16 Dec 2008, Alexey Starikovskiy wrote:
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+> +What:	current_{now,avg} attributes for batteries, reporting in energy units
+> +When:	2.6.29
+> +Why:	Batteries, reporting in energy units, will report (dis)charge rate as
+> +	power (Watts), and not as current (Amperes), thus new power_{now,avg}
+> +	attributes should be used for such batteries to avoid the confusion.
+> +Who:	Alexey Starikovskiy <astarikovskiy@suse.de>
+
+I think that a single kernel release cycle is too quick
+for a user/kernel API change  unless you're trying to fix
+something that is new and you have a pretty good idea
+that nobody is using it yet.  Kernel programmers typically
+want to talk about O(6 months) and Linus comes back and
+talks aboutg O(10 years)...
+
+-- Len Brown, Intel Open Source Technology Center
