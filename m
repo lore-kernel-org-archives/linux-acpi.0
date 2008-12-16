@@ -1,38 +1,32 @@
 From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: suspend/resume fails on second attempt in LNXVIDEO:00
-Date: Tue, 16 Dec 2008 20:53:35 +0000
-Message-ID: <20081216205335.GA14332@srcf.ucam.org>
-References: <gi247o$iog$1@ger.gmane.org> <200812161625.37318.rjw@sisk.pl> <gi8jf1$m5f$5@ger.gmane.org> <200812161713.08451.rjw@sisk.pl> <20081216163746.GA9478@srcf.ucam.org> <gi8qoj$m5f$7@ger.gmane.org>
+Subject: Re: [Bugme-new] [Bug 12235] New: /sys/devices/virtual/backlight/acpi_video0/brightness has it backwards
+Date: Tue, 16 Dec 2008 20:55:32 +0000
+Message-ID: <20081216205532.GB14332@srcf.ucam.org>
+References: <bug-12235-10286@http.bugzilla.kernel.org/> <20081216100023.2e437c8c.akpm@linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:34497 "EHLO
+Received: from cavan.codon.org.uk ([93.93.128.6]:34526 "EHLO
 	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751699AbYLPUxh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Dec 2008 15:53:37 -0500
+	with ESMTP id S1758737AbYLPUzh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Dec 2008 15:55:37 -0500
 Content-Disposition: inline
-In-Reply-To: <gi8qoj$m5f$7@ger.gmane.org>
+In-Reply-To: <20081216100023.2e437c8c.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brian J. Murrell" <brian@interlinx.bc.ca>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-acpi@vger.kernel.org, bugme-daemon@bugzilla.kernel.org, khashayar.lists@gmail.com, "Rafael J. Wysocki" <rjw@sisk.pl>, Zhang Rui <rui.zhang@intel.com>
 
-On Tue, Dec 16, 2008 at 06:07:15PM +0000, Brian J. Murrell wrote:
-> On Tue, 16 Dec 2008 16:37:46 +0000, Matthew Garrett wrote:
-> > 
-> > I seem to be missing the original message, but: no, s2ram doesn't exist
-> > in Ubuntu because pm-utils handles that role.
-> 
-> Well, that's *their* argument but lots of people think otherwise.  There 
-> appears to be no shortage of people for whom pm-utils does NOT work yet 
-> s2ram does.  https://bugs.launchpad.net/ubuntu/+source/uswsusp/+bug/134238
+On Tue, Dec 16, 2008 at 10:00:23AM -0800, Andrew Morton wrote:
 
-The right answer to "This piece of software contains bugs" is not 
-"Provide two pieces of software with the same features but different 
-bugs". The only real functional difference between the two is that s2ram 
-has its own internal whitelist rather than just using the hal entries. 
-Suse have normally been good at making sure that they're synced across, 
-but if that's not happening you probably want to poke them.
+> OK, that's weird.  I have a suspicion that we're about to find out that
+> this is intentional, but I don't know what the fix is..
+
+My recollection is that some BIOSes provide the list of brightness 
+values in reverse order - someone posted a patch to sort them in-kernel, 
+but I can't remember what happened to it. xbacklight will work because 
+it triggers a direct write to the hardware if the acpi driver isn't 
+loaded.
 
 -- 
 Matthew Garrett | mjg59@srcf.ucam.org
