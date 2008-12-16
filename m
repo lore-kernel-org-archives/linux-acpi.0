@@ -1,46 +1,38 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC][PATCH] ACPI: battery: add power_{now, avg} properties to power_class
-Date: Tue, 16 Dec 2008 21:49:01 +0100
-Message-ID: <200812162149.01926.rjw@sisk.pl>
-References: <20081216162756.12100.49260.stgit@thinkpad> <alpine.LFD.2.00.0812161237220.4414@localhost.localdomain>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: suspend/resume fails on second attempt in LNXVIDEO:00
+Date: Tue, 16 Dec 2008 20:53:35 +0000
+Message-ID: <20081216205335.GA14332@srcf.ucam.org>
+References: <gi247o$iog$1@ger.gmane.org> <200812161625.37318.rjw@sisk.pl> <gi8jf1$m5f$5@ger.gmane.org> <200812161713.08451.rjw@sisk.pl> <20081216163746.GA9478@srcf.ucam.org> <gi8qoj$m5f$7@ger.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:56880 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752303AbYLPUtb (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
-	Tue, 16 Dec 2008 15:49:31 -0500
-In-Reply-To: <alpine.LFD.2.00.0812161237220.4414@localhost.localdomain>
+Received: from cavan.codon.org.uk ([93.93.128.6]:34497 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751699AbYLPUxh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Dec 2008 15:53:37 -0500
 Content-Disposition: inline
+In-Reply-To: <gi8qoj$m5f$7@ger.gmane.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Linux-acpi@vger.kernel.org
+To: "Brian J. Murrell" <brian@interlinx.bc.ca>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tuesday, 16 of December 2008, Len Brown wrote:
+On Tue, Dec 16, 2008 at 06:07:15PM +0000, Brian J. Murrell wrote:
+> On Tue, 16 Dec 2008 16:37:46 +0000, Matthew Garrett wrote:
+> > 
+> > I seem to be missing the original message, but: no, s2ram doesn't exist
+> > in Ubuntu because pm-utils handles that role.
 > 
-> On Tue, 16 Dec 2008, Alexey Starikovskiy wrote:
-> 
-> > +What:	current_{now,avg} attributes for batteries, reporting in energy units
-> > +When:	2.6.29
-> > +Why:	Batteries, reporting in energy units, will report (dis)charge rate as
-> > +	power (Watts), and not as current (Amperes), thus new power_{now,avg}
-> > +	attributes should be used for such batteries to avoid the confusion.
-> > +Who:	Alexey Starikovskiy <astarikovskiy@suse.de>
-> 
-> I think that a single kernel release cycle is too quick
-> for a user/kernel API change  unless you're trying to fix
-> something that is new and you have a pretty good idea
-> that nobody is using it yet.  Kernel programmers typically
-> want to talk about O(6 months) and Linus comes back and
-> talks aboutg O(10 years)...
+> Well, that's *their* argument but lots of people think otherwise.  There 
+> appears to be no shortage of people for whom pm-utils does NOT work yet 
+> s2ram does.  https://bugs.launchpad.net/ubuntu/+source/uswsusp/+bug/134238
 
-Well, IMO that could be discussed with the people who work on battery monitors.
+The right answer to "This piece of software contains bugs" is not 
+"Provide two pieces of software with the same features but different 
+bugs". The only real functional difference between the two is that s2ram 
+has its own internal whitelist rather than just using the hal entries. 
+Suse have normally been good at making sure that they're synced across, 
+but if that's not happening you probably want to poke them.
 
-If they agree to update their stuff in shorter time, we can remove the
-'current_now' thing more quickly.
-
-Thanks,
-Rafael
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
