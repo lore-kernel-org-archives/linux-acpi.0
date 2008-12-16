@@ -1,47 +1,55 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [RFC][PATCH] ACPI: battery: add power_{now, avg} properties to
-	power_class
-Date: Mon, 15 Dec 2008 23:22:04 -0200
-Message-ID: <20081216012204.GF10767@khazad-dum.debian.net>
-References: <20081215213855.8414.9349.stgit@thinkpad>
+From: "Brian J. Murrell" <brian@interlinx.bc.ca>
+Subject: Re: suspend/resume fails on second attempt in LNXVIDEO:00
+Date: Tue, 16 Dec 2008 02:34:11 +0000 (UTC)
+Message-ID: <gi7433$m5f$1@ger.gmane.org>
+References: <gi247o$iog$1@ger.gmane.org> <200812152119.35228.rjw@sisk.pl>
+	<gi6g21$bnf$8@ger.gmane.org> <200812160002.43427.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:34947 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750965AbYLPBWI (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>);
-	Mon, 15 Dec 2008 20:22:08 -0500
-Content-Disposition: inline
-In-Reply-To: <20081215213855.8414.9349.stgit@thinkpad>
+Received: from main.gmane.org ([80.91.229.2]:48106 "EHLO ciao.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751443AbYLPCe0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 15 Dec 2008 21:34:26 -0500
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1LCPlM-0003ps-Vx
+	for linux-acpi@vger.kernel.org; Tue, 16 Dec 2008 02:34:21 +0000
+Received: from d193-213-184.home3.cgocable.net ([67.193.213.184])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Tue, 16 Dec 2008 02:34:20 +0000
+Received: from brian by d193-213-184.home3.cgocable.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Tue, 16 Dec 2008 02:34:20 +0000
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: LenBrown <lenb@kernel.org>, Linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 
-On Tue, 16 Dec 2008, Alexey Starikovskiy wrote:
-> @@ -224,10 +224,12 @@ static int acpi_sbs_battery_get_property(struct power_supply *psy,
->  				acpi_battery_vscale(battery) * 1000;
->  		break;
->  	case POWER_SUPPLY_PROP_CURRENT_NOW:
-> +	case POWER_SUPPLY_PROP_POWER_NOW:
->  		val->intval = abs(battery->current_now) *
->  				acpi_battery_ipscale(battery) * 1000;
->  		break;
->  	case POWER_SUPPLY_PROP_CURRENT_AVG:
-> +	case POWER_SUPPLY_PROP_POWER_AVG:
->  		val->intval = abs(battery->current_avg) *
->  				acpi_battery_ipscale(battery) * 1000;
->  		break;
+On Tue, 16 Dec 2008 00:02:43 +0100, Rafael J. Wysocki wrote:
+> 
+> No, most probably your graphics adapter is not handled correctly in this
+> case, because it needs some special user space quirks, which are done by
+> hald that is not running.
 
-Excuse me if I am talking nonsense (I have looked over just the patch,
-not the entire file), but how can that be correct?  It is either power
-or current, it cannot be both, so the CURRENT case should be dropped.
-And if it is power, why have fields named current_now... or is
-ipscale() a voltage, and not a scaling factor?
+Hrm.  OK.
+ 
+> You can try to use the s2ram binary (http://en.opensuse.org/s2ram) to
+> work around this issue.
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+That sounds like I am setting for something less than optimal.  Is that 
+the case?  Why would I want to use what I've been trying to get working 
+rather than s2ram?  Maybe put another way, why isn't everyone using s2ram?
+
+Ultimately I'm going to want to be able to suspend as well as hibernate, 
+for whatever that's worth.
+
+> Anyway, if you suspend for the second time from this state, does it
+> resume?
+
+No.  It fails just as miserably.  :-(
+
+b.
+
+
