@@ -1,34 +1,44 @@
-From: Maxime Poncet <maxime.poncet@gmail.com>
-Subject: Re: Unexcepted shutdown in 2.6.28-rc5
-Date: Wed, 17 Dec 2008 11:43:54 +0100
-Message-ID: <4948D7EA.7040204@gmail.com>
-References: <4925EF01.2070405@gmail.com>	 <1227229754.15014.280.camel@rzhang-dt>  <200812072217.04150.rjw@sisk.pl>	 <1228698996.4181.24.camel@yakui_zhao.sh.intel.com>	 <494051FB.9050201@gmail.com> <1229307804.4181.53.camel@yakui_zhao.sh.intel.com>
+From: Andrew Mason <andrew@miniatureworldmaker.com.au>
+Subject: kernel log asked me to send you this
+Date: Thu, 18 Dec 2008 00:35:55 +1030
+Message-ID: <200812180035.57159.andrew@miniatureworldmaker.com.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f21.google.com ([209.85.218.21]:46298 "EHLO
-	mail-bw0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753060AbYLQKof (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Dec 2008 05:44:35 -0500
-Received: by bwz14 with SMTP id 14so5281673bwz.13
-        for <linux-acpi@vger.kernel.org>; Wed, 17 Dec 2008 02:44:33 -0800 (PST)
-In-Reply-To: <1229307804.4181.53.camel@yakui_zhao.sh.intel.com>
+Received: from smtp1.mail.adnap.net.au ([203.6.132.75]:53510 "EHLO
+	smtp1.mail.adnap.net.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751391AbYLQQyX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Dec 2008 11:54:23 -0500
+Received: from [219.90.255.155] (helo=portland.localnet)
+	by smtp1.mail.adnap.net.au with esmtp (Exim 4.63 (FreeBSD))
+	(envelope-from <andrew@miniatureworldmaker.com.au>)
+	id 1LCx2F-000Cn3-5l
+	for linux-acpi@vger.kernel.org; Thu, 18 Dec 2008 00:35:59 +1030
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "Zhang, Rui" <rui.zhang@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <lenb@kernel.org>
+To: linux-acpi@vger.kernel.org
 
-Zhao Yakui wrote:
-> Sorry for the late response.
->
-> It is good news that the shutdown issue is fixed in 2.6.28-rc7.
-> But the following issue still exists.
->    >ACPI: Transitioning device [FAN] to D3
->    >ACPI: Unable to turn cooling device [ffff88007fb63590] 'off'
-> Will you please add the boot option of "acpi.power_nocheck=1" and see
-> whether the above issue still exists?
->    Thanks.
->   
-This boot option resolve this issue.
+Hi, 
+I was having a look through my kernel log and noticed the following lines 
+asking me to send you this information. I'm not sure if you still want it or 
+if its useful or not but here it is :)
+
+
+Dec 14 00:07:34 portland kernel: [    0.470295] ACPI: BIOS _OSI(Linux) query 
+ignored
+Dec 14 00:07:34 portland kernel: [    0.470297] ACPI: DMI System Vendor: 
+LENOVO
+Dec 14 00:07:34 portland kernel: [    0.470299] ACPI: DMI Product Name: 
+7454A13
+Dec 14 00:07:34 portland kernel: [    0.470300] ACPI: DMI Product Version: 
+ThinkPad X200
+Dec 14 00:07:34 portland kernel: [    0.470302] ACPI: DMI Board Name: 7454A13
+Dec 14 00:07:34 portland kernel: [    0.470303] ACPI: DMI BIOS Vendor: LENOVO
+Dec 14 00:07:34 portland kernel: [    0.470304] ACPI: DMI BIOS Date: 
+09/10/2008
+Dec 14 00:07:34 portland kernel: [    0.470306] ACPI: Please send DMI info 
+above to linux-acpi@vger.kernel.org
 
