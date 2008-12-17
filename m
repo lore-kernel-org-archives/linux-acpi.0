@@ -1,47 +1,50 @@
-From: Tomas Carnecky <tom@dbservice.com>
-Subject: Regression in dock/ata driver
-Date: Wed, 17 Dec 2008 03:13:16 +0100
-Message-ID: <4948603C.5020602@dbservice.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH] acpi: move thermal trip handling to generic thermal
+	layer
+Date: Wed, 17 Dec 2008 11:02:18 +0800
+Message-ID: <1229482938.562.29.camel@rzhang-dt>
+References: <20081127174813.GA24258@srcf.ucam.org>
+	 <20081127174956.GB24258@srcf.ucam.org>
+	 <20081203175532.GA20770@srcf.ucam.org>
+	 <1228719540.7929.141.camel@rzhang-dt>
+	 <20081208125904.GA31976@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from office.neopsis.com ([78.46.209.98]:35514 "EHLO
-	office.neopsis.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752346AbYLQCrV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Dec 2008 21:47:21 -0500
-Received: from [192.168.0.130] ([62.65.141.13])
-	(authenticated user tom@dbservice.com)
-	by office.neopsis.com
-	for linux-acpi@vger.kernel.org;
-	Wed, 17 Dec 2008 03:14:06 +0100
+Received: from mga02.intel.com ([134.134.136.20]:26839 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751996AbYLQDDd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Dec 2008 22:03:33 -0500
+In-Reply-To: <20081208125904.GA31976@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Thomas, Sujith" <sujith.thomas@intel.com>
 
-Hi folks,
+On Mon, 2008-12-08 at 20:59 +0800, Matthew Garrett wrote:
+> On Mon, Dec 08, 2008 at 02:59:00PM +0800, Zhang Rui wrote:
+> > On Thu, 2008-12-04 at 01:55 +0800, Matthew Garrett wrote:
+> > > The ACPI code currently carries its own thermal trip handling, meaning that
+> > > any other thermal implementation will need to reimplement it. Move the code
+> > > to the generic thermal layer.
+> > > 
+> > Are these ACPI stuffs generic enough to be ported to the generic thermal
+> > driver?
+> > e.g. the tc1, tc2, tsp, they are mentioned in the ACPI spec, 
+> > so my question is if the thermal zones than ACPI still have these
+> > concepts?
+> 
+> They're needed if you want to implement any sort of sensible 
+> implementation of passive cooling. They might not be expressed in quite 
+> the same way, but the basic concept is identical.
 
-I'm here to report a regression in the dock or ata driver. I found the 
-old thread where me and another affected user are discussing the bug: 
-http://kerneltrap.org/mailarchive/linux-kernel/2008/9/1/3152964/thread
-The bug was eventually fixed and my laptop worked fine for a while. Now 
-I'm seeing the bug again.
+Seeing tc1, tc2, tsp under /sys/class/thermal/ is not good because we
+don't want to make the generic thermal driver too ACPI specific, before
+we've really concluded some basic concepts for passive cooling.
+so why not do this after we have another generic thermal user with
+passive cooling support?
 
-The patch in this thread looks related:
-http://kerneltrap.org/mailarchive/linux-kernel/2008/6/1/1996064/thread
-I will test if commit 246dd412d31e4f5de1d43aa6422a325b785f36e4 or IOW 
-v2.6.26-rc4-212-g246dd41 (which is the merge commit right after the 
-patch from the thread was merged into linux-2.6) still has the bug and 
-report back.
-
-Attached is my current config for 2.6.28-rc8 (which is what I'm running 
-right now).
-
-I'd hate to bisect it, because you folks tend to change the kernel 
-config often and then 'make oldconfig' asks lots of questions and I 
-can't be sure that the new kernel will boot. So if you have an idea 
-where the problem might me or even have a patch ready that I could test, 
-that would be great.
-
-tom
+thanks,
+rui
 
