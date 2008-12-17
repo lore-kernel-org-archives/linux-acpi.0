@@ -1,47 +1,47 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [Bugme-new] [Bug 12235] New:
-	/sys/devices/virtual/backlight/acpi_video0/brightness has it backwards
-Date: Wed, 17 Dec 2008 08:57:36 +0800
-Message-ID: <1229475456.562.5.camel@rzhang-dt>
-References: <bug-12235-10286@http.bugzilla.kernel.org/>
-	 <20081216100023.2e437c8c.akpm@linux-foundation.org>
-	 <20081216205532.GB14332@srcf.ucam.org>
+From: Tomas Carnecky <tom@dbservice.com>
+Subject: Regression in dock/ata driver
+Date: Wed, 17 Dec 2008 03:13:16 +0100
+Message-ID: <4948603C.5020602@dbservice.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:5238 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750767AbYLQA6v (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Dec 2008 19:58:51 -0500
-In-Reply-To: <20081216205532.GB14332@srcf.ucam.org>
+Received: from office.neopsis.com ([78.46.209.98]:35514 "EHLO
+	office.neopsis.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752346AbYLQCrV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Dec 2008 21:47:21 -0500
+Received: from [192.168.0.130] ([62.65.141.13])
+	(authenticated user tom@dbservice.com)
+	by office.neopsis.com
+	for linux-acpi@vger.kernel.org;
+	Wed, 17 Dec 2008 03:14:06 +0100
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "bugme-daemon@bugzilla.kernel.org" <bugme-daemon@bugzilla.kernel.org>, "khashayar.lists@gmail.com" <khashayar.lists@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: linux-acpi@vger.kernel.org
 
-On Wed, 2008-12-17 at 04:55 +0800, Matthew Garrett wrote:
-> On Tue, Dec 16, 2008 at 10:00:23AM -0800, Andrew Morton wrote:
-> 
-> > OK, that's weird.  I have a suspicion that we're about to find out that
-> > this is intentional, but I don't know what the fix is..
-> 
-> My recollection is that some BIOSes provide the list of brightness 
-> values in reverse order - someone posted a patch to sort them in-kernel, 
-> but I can't remember what happened to it. xbacklight will work because 
-> it triggers a direct write to the hardware if the acpi driver isn't 
-> loaded.
-> 
-right, this seems to be a duplicate of
-http://bugzilla.kernel.org/show_bug.cgi?id=12037
+Hi folks,
 
-khashayar,
-please attach the result of "grep . /proc/acpi/video/*/*/*".
-please try the patch in
-http://bugzilla.kernel.org/show_bug.cgi?id=12037#c5
-and see if it helps.
+I'm here to report a regression in the dock or ata driver. I found the 
+old thread where me and another affected user are discussing the bug: 
+http://kerneltrap.org/mailarchive/linux-kernel/2008/9/1/3152964/thread
+The bug was eventually fixed and my laptop worked fine for a while. Now 
+I'm seeing the bug again.
 
-thanks,
-rui
+The patch in this thread looks related:
+http://kerneltrap.org/mailarchive/linux-kernel/2008/6/1/1996064/thread
+I will test if commit 246dd412d31e4f5de1d43aa6422a325b785f36e4 or IOW 
+v2.6.26-rc4-212-g246dd41 (which is the merge commit right after the 
+patch from the thread was merged into linux-2.6) still has the bug and 
+report back.
 
+Attached is my current config for 2.6.28-rc8 (which is what I'm running 
+right now).
+
+I'd hate to bisect it, because you folks tend to change the kernel 
+config often and then 'make oldconfig' asks lots of questions and I 
+can't be sure that the new kernel will boot. So if you have an idea 
+where the problem might me or even have a patch ready that I could test, 
+that would be great.
+
+tom
 
