@@ -1,55 +1,57 @@
-From: "Justin P. Mattock" <justinmattock@gmail.com>
-Subject: Re: suspend/resume fails on second attempt in LNXVIDEO:00
-Date: Thu, 18 Dec 2008 00:11:06 -0800
-Message-ID: <494A059A.8050602@gmail.com>
-References: <gi247o$iog$1@ger.gmane.org> <200812161625.37318.rjw@sisk.pl> <gi8jf1$m5f$5@ger.gmane.org> <200812161713.08451.rjw@sisk.pl> <20081216163746.GA9478@srcf.ucam.org> <gi8qoj$m5f$7@ger.gmane.org> <20081216205335.GA14332@srcf.ucam.org> <20081218075226.GD2110@ucw.cz>
+From: Holger Macht <hmacht@suse.de>
+Subject: Re: Regression in dock/ata driver
+Date: Thu, 18 Dec 2008 12:54:08 +0100
+Message-ID: <1229601248.4402.3.camel@homac.suse>
+References: <4948603C.5020602@dbservice.com>
+Reply-To: hmacht@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.29]:46097 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751231AbYLRILL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Dec 2008 03:11:11 -0500
-Received: by yw-out-2324.google.com with SMTP id 9so122376ywe.1
-        for <linux-acpi@vger.kernel.org>; Thu, 18 Dec 2008 00:11:10 -0800 (PST)
-In-Reply-To: <20081218075226.GD2110@ucw.cz>
+Received: from mail.suse.de ([195.135.220.2]:44759 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751339AbYLRLyW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 18 Dec 2008 06:54:22 -0500
+In-Reply-To: <4948603C.5020602@dbservice.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@suse.cz>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "Brian J. Murrell" <brian@interlinx.bc.ca>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tomas Carnecky <tom@dbservice.com>
+Cc: linux-acpi@vger.kernel.org
 
-Pavel Machek wrote:
-> On Tue 2008-12-16 20:53:35, Matthew Garrett wrote:
->   
->> On Tue, Dec 16, 2008 at 06:07:15PM +0000, Brian J. Murrell wrote:
->>     
->>> On Tue, 16 Dec 2008 16:37:46 +0000, Matthew Garrett wrote:
->>>       
->>>> I seem to be missing the original message, but: no, s2ram doesn't exist
->>>> in Ubuntu because pm-utils handles that role.
->>>>         
->>> Well, that's *their* argument but lots of people think otherwise.  There 
->>> appears to be no shortage of people for whom pm-utils does NOT work yet 
->>> s2ram does.  https://bugs.launchpad.net/ubuntu/+source/uswsusp/+bug/134238
->>>       
->> The right answer to "This piece of software contains bugs" is not 
->> "Provide two pieces of software with the same features but different 
->> bugs". The only real functional difference between the two is that
->>     
->
-> Yes, and that's why pm-utils should die: they have design problems
-> (depend on hal, can't be pagelocked, unusable for suspend debugging).
-> 									Pavel
->   
-When using ubuntu intrepid, s2ram
-did work, but instead of grabbing
-the package from ubuntu, I used Debian
-SID instead. (I have a tendency of mixing
-packages);
+Am Mittwoch, den 17.12.2008, 03:13 +0100 schrieb Tomas Carnecky:
+> Hi folks,
+> 
+> I'm here to report a regression in the dock or ata driver. I found the 
+> old thread where me and another affected user are discussing the bug: 
+> http://kerneltrap.org/mailarchive/linux-kernel/2008/9/1/3152964/thread
+> The bug was eventually fixed and my laptop worked fine for a while. Now 
+> I'm seeing the bug again.
+> 
+> The patch in this thread looks related:
+> http://kerneltrap.org/mailarchive/linux-kernel/2008/6/1/1996064/thread
+> I will test if commit 246dd412d31e4f5de1d43aa6422a325b785f36e4 or IOW 
+> v2.6.26-rc4-212-g246dd41 (which is the merge commit right after the 
+> patch from the thread was merged into linux-2.6) still has the bug and 
+> report back.
+> 
+> Attached is my current config for 2.6.28-rc8 (which is what I'm running 
+> right now).
+> 
+> I'd hate to bisect it, because you folks tend to change the kernel 
+> config often and then 'make oldconfig' asks lots of questions and I 
+> can't be sure that the new kernel will boot. So if you have an idea 
+> where the problem might me or even have a patch ready that I could test, 
+> that would be great.
 
-regards;
+There's is also http://bugzilla.kernel.org/show_bug.cgi?id=11703, which
+seems to be heavily related. I think it's actually the same issue, just
+that in this bug, there's only the bay drive which gets removed, not the
+whole docking station (which shouldn't matter for libata's resume
+functions).
 
-Justin P. Mattock
+I'll try to get my hands on a system where I can reproduce this to be
+able to do sensible debuggin.
 
+Regards,
+ Holger 
 
