@@ -1,36 +1,107 @@
 From: Pavel Machek <pavel@suse.cz>
-Subject: Re: acpi_os_allocate(GFP_KERNEL) (was Re: acpi_evaluate_integer
-	broken by design)
-Date: Thu, 18 Dec 2008 17:48:01 +0100
-Message-ID: <20081218164801.GC16115@elf.ucw.cz>
-References: <20081125110508.GA1943@elf.ucw.cz> <20081215214140.9031d4c8.akpm@linux-foundation.org> <200812161634.25838.rjw@sisk.pl> <200812170040.07977.rjw@sisk.pl> <alpine.LFD.2.00.0812180104500.17738@localhost.localdomain>
+Subject: Re: irqs_disabled() vs ACPI interpreter vs suspend
+Date: Thu, 18 Dec 2008 17:52:55 +0100
+Message-ID: <20081218165255.GD16115@elf.ucw.cz>
+References: <20081125110508.GA1943@elf.ucw.cz> <200812170040.07977.rjw@sisk.pl> <alpine.LFD.2.00.0812180107150.17738@localhost.localdomain> <200812181732.18023.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752633AbYLRQq2@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:33457 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751304AbYLRQvI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Dec 2008 11:51:08 -0500
 Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.0812180104500.17738@localhost.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Johannes Berg <johannes@sipsolutions.net>
+In-Reply-To: <200812181732.18023.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Johannes Berg <johannes@sipsolutions.net>
 
-On Thu 2008-12-18 01:07:08, Len Brown wrote:
-> 
-> 
-> -- Len Brown, Intel Open Source Technology Center
-> 
-> > In fact, we should be using GFP_ATOMIC already while devices are being
-> > suspended, so we can switch from GFP_KERNEL to GFP_ATOMIC even before
-> > interrupts are enabled.
-> 
-> true.  it makes me wonder if tinkering with ACPI
-> is a bad idea -- for it will address only one user of kmalloc.
+Hi!
 
-Other users should already know that they are called while suspending
-device, and behave accordingly (use right flags to kmalloc, etc.)
+> > to answer your question "what happens at boot"...
+> > 
+> > interrupts are enabled in start_kernel()
+> > well before the ACPI interpreter is started
+> > up in a subsys_initcall().
+> > 
+> > The first use of the interpreter indeed allocates memory
+> > (as every invocation of acpi_evaluate_object() does)
+> > to evaluate _PIC
+> > ie. when we print out "ACPI: Using IOAPIC for interrupt routing".
+> > 
+> > So one would first think we could WARN_ON(irqs_disabled())
+> > right at acpi_evaluate_object(), or at any external
+> > entry to the AML interpreter.
+> > 
+> > But _GTS and _BFS are counter-examples --
+> > they are ONLY evaluated with interrupts OFF,
+> > since they are between the invocation of arch_suspend_disable_irqs()
+> > and arch_suspend_enable_irqs().  I believe that they are the
+> > ONLY counter-examples, and for those we'd conceivably
+> > WARN_ON(!irqs_disabled).
+> > 
+> > But at resume...
+> > irqrouter_resume() is called to restore ACPI PCI Interrupt Link Devices
+> > while we still have interrupts disabled.  If we called it after interrupts
+> > were enabled, then an incorrectly resumed link could cause a
+> > screaming interrupt.
+> > 
+> > This is different from boot-time.  At boot time
+> > we disable all the links b/c we know that the drivers
+> > that use them will all request_irq() and we'll set
+> > up the links one by one at that time.
+> > 
+> > Originally we had planned for suspend to be like boot --
+> > every driver would free_irq() at .suspend
+> > and request_irq() at .resume -- indirectly for pci devices
+> > via pci_enable_device()...
+> > This would leave the Links disabled at suspend time, like we
+> > disable them at boot time -- and then the request_irq()'s would
+> > come in from the resumed drivers and the links would be re-programmed.
+> > I don't think we succeeded here, and IIR Linus didn't like our
+> > suggestion that every driver must do something, rather than do nothing....
+> > So the irqrouter_resume safety-net remains.
+> > 
+> > But restoring a PCI Interrupt Link Device evaluates _CRS, _PRS, _SRS --
+> > general methods which are also invoked at other times with
+> > interrupts enabled.  So for those we'd not be able to WARN_ON()
+> > for either irqs enabled or disabled:-(
+> > 
+> > I have to think about irqrouter_resume a bit.
+> > I don't like it, but I don't see an alternative -- unless we
+> > do something like ENFORCE all users of the links have to
+> > stop using them at suspend, so we can _DIS them,
+> > and they must request their IRQs at resume
+> > like they do at boot...
+> 
+> Well, that was my question to Linus in a recent discussion.
+> 
+> I see some technical reasons to require drivers to free IRQs during
+> suspend.  First, the issue above.  Second, some removable devices may not
+> even be present during resume while we may still think they use an IRQ
+> (or is that impossible for some reason?).
+> 
+> Now, _if_ we decide we want devices to free IRQs during suspend, we can make
+> the core do that, so that the drivers won't have to worry about it.
 
-If not, that's a bug...
-								Pavel
+How can we make core do that?
+
+I think that would be everyones prefered suggestion:
+
+Linus: happy, because drivers don't have to do anything
+
+me, Len: happy, because interrupts are freed over suspend
+
+...but I don't see how to do that easily&nicely. AFAICT currently
+drivers do something like
+
+private_struct->my_interrupt = register_irq()...
+
+If we put my_interrupt in struct device (or somewhere) we could handle
+99% devices that have just one interrupt nicely... maybe that's good
+enough? (And the rest can free/register them by hand without telling core).
+									Pavel
 -- 
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
