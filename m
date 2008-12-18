@@ -1,111 +1,36 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: irqs_disabled() vs ACPI interpreter vs suspend
-Date: Thu, 18 Dec 2008 17:32:17 +0100
-Message-ID: <200812181732.18023.rjw@sisk.pl>
-References: <20081125110508.GA1943@elf.ucw.cz> <200812170040.07977.rjw@sisk.pl> <alpine.LFD.2.00.0812180107150.17738@localhost.localdomain>
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: acpi_os_allocate(GFP_KERNEL) (was Re: acpi_evaluate_integer
+	broken by design)
+Date: Thu, 18 Dec 2008 17:48:01 +0100
+Message-ID: <20081218164801.GC16115@elf.ucw.cz>
+References: <20081125110508.GA1943@elf.ucw.cz> <20081215214140.9031d4c8.akpm@linux-foundation.org> <200812161634.25838.rjw@sisk.pl> <200812170040.07977.rjw@sisk.pl> <alpine.LFD.2.00.0812180104500.17738@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:40523 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751212AbYLRQcp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 18 Dec 2008 11:32:45 -0500
-In-Reply-To: <alpine.LFD.2.00.0812180107150.17738@localhost.localdomain>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752633AbYLRQq2@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+In-Reply-To: <alpine.LFD.2.00.0812180104500.17738@localhost.localdomain>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, pavel@suse.cz, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Johannes Berg <johannes@sipsolutions.net>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Johannes Berg <johannes@sipsolutions.net>
+List-Id: linux-acpi@vger.kernel.org
 
-On Thursday, 18 of December 2008, Len Brown wrote:
-> Rafael,
+On Thu 2008-12-18 01:07:08, Len Brown wrote:
 > 
-> to answer your question "what happens at boot"...
 > 
-> interrupts are enabled in start_kernel()
-> well before the ACPI interpreter is started
-> up in a subsys_initcall().
+> -- Len Brown, Intel Open Source Technology Center
 > 
-> The first use of the interpreter indeed allocates memory
-> (as every invocation of acpi_evaluate_object() does)
-> to evaluate _PIC
-> ie. when we print out "ACPI: Using IOAPIC for interrupt routing".
+> > In fact, we should be using GFP_ATOMIC already while devices are being
+> > suspended, so we can switch from GFP_KERNEL to GFP_ATOMIC even before
+> > interrupts are enabled.
 > 
-> So one would first think we could WARN_ON(irqs_disabled())
-> right at acpi_evaluate_object(), or at any external
-> entry to the AML interpreter.
-> 
-> But _GTS and _BFS are counter-examples --
-> they are ONLY evaluated with interrupts OFF,
-> since they are between the invocation of arch_suspend_disable_irqs()
-> and arch_suspend_enable_irqs().  I believe that they are the
-> ONLY counter-examples, and for those we'd conceivably
-> WARN_ON(!irqs_disabled).
-> 
-> But at resume...
-> irqrouter_resume() is called to restore ACPI PCI Interrupt Link Devices
-> while we still have interrupts disabled.  If we called it after interrupts
-> were enabled, then an incorrectly resumed link could cause a
-> screaming interrupt.
-> 
-> This is different from boot-time.  At boot time
-> we disable all the links b/c we know that the drivers
-> that use them will all request_irq() and we'll set
-> up the links one by one at that time.
-> 
-> Originally we had planned for suspend to be like boot --
-> every driver would free_irq() at .suspend
-> and request_irq() at .resume -- indirectly for pci devices
-> via pci_enable_device()...
-> This would leave the Links disabled at suspend time, like we
-> disable them at boot time -- and then the request_irq()'s would
-> come in from the resumed drivers and the links would be re-programmed.
-> I don't think we succeeded here, and IIR Linus didn't like our
-> suggestion that every driver must do something, rather than do nothing....
-> So the irqrouter_resume safety-net remains.
-> 
-> But restoring a PCI Interrupt Link Device evaluates _CRS, _PRS, _SRS --
-> general methods which are also invoked at other times with
-> interrupts enabled.  So for those we'd not be able to WARN_ON()
-> for either irqs enabled or disabled:-(
-> 
-> I have to think about irqrouter_resume a bit.
-> I don't like it, but I don't see an alternative -- unless we
-> do something like ENFORCE all users of the links have to
-> stop using them at suspend, so we can _DIS them,
-> and they must request their IRQs at resume
-> like they do at boot...
+> true.  it makes me wonder if tinkering with ACPI
+> is a bad idea -- for it will address only one user of kmalloc.
 
-Well, that was my question to Linus in a recent discussion.
+Other users should already know that they are called while suspending
+device, and behave accordingly (use right flags to kmalloc, etc.)
 
-I see some technical reasons to require drivers to free IRQs during
-suspend.  First, the issue above.  Second, some removable devices may not
-even be present during resume while we may still think they use an IRQ
-(or is that impossible for some reason?).
-
-Now, _if_ we decide we want devices to free IRQs during suspend, we can make
-the core do that, so that the drivers won't have to worry about it.
-
-Does the ACPI spec say anything about handling interrupts during
-suspend-resume?
-
-> IIR we'd have to add some reference counting to handle shard links
-> so we could _DIS when the last user freed the irq.
-> 
-> So it looks like we will indeed need something like the
-> patch to transform ACPI's use of GFP_KERNEL
-> to GFP_ATOMIC across late suspend
-> and early resume; to avoid warnings from
-> _GTS, _BFS, and irqrouter_resume use of kmalloc.
-
-OK, so there are two possibilities, IMO.
-
-Either we switch that in the suspend callbacks like in my patch #1, or we
-can add a bool variable that will be 'true' is the system is during
-suspend-resume with interrupts off.  Any of them is fine by me, so please let
-me know.
-
-Thanks,
-Rafael
+If not, that's a bug...
+								Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
