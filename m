@@ -1,45 +1,161 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: state of some x86 acpi patches
-Date: Thu, 18 Dec 2008 22:47:41 +0100
-Message-ID: <20081218214741.GD30834@elte.hu>
-References: <4947FF4C.80706@goop.org> <874p111tta.fsf@basil.nowhere.org> <494AA89F.8020308@goop.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [RFC][PATCH] PCI: Make new suspend-resume callbacks carry out core operations
+Date: Fri, 19 Dec 2008 00:49:33 +0100
+Message-ID: <200812190049.34343.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx3.mail.elte.hu ([157.181.1.138]:53220 "EHLO mx3.mail.elte.hu"
+Received: from ogre.sisk.pl ([217.79.144.158]:41966 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751790AbYLRVrz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 18 Dec 2008 16:47:55 -0500
+	id S1750789AbYLRXtn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 18 Dec 2008 18:49:43 -0500
 Content-Disposition: inline
-In-Reply-To: <494AA89F.8020308@goop.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: Andi Kleen <andi@firstfloor.org>, "Brown, Len" <len.brown@intel.com>, Yinghai Lu <yinghai@kernel.org>, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Pavel Machek <pavel@suse.cz>, pm list <linux-pm@lists.linux-foundation.org>, Matthew Wilcox <matthew@wil.cx>, "H. Peter Anvin" <hpa@zytor.com>
 
+Hi Len,
 
-* Jeremy Fitzhardinge <jeremy@goop.org> wrote:
+The patch below adds the callbacks that save/restore the standard PCI config
+registers, change the power state of the device etc. to the new suspend-resume
+callbacks (which are not yet used by device drivers), so that the drivers don't
+have to worry about these operations.
 
-> Andi Kleen wrote:
->> Jeremy Fitzhardinge <jeremy@goop.org> writes:
->>   
->>> However, unlike early_ioremap(), __acpi_map_table just maintains a
->>> single mapping which gets replaced each call, and has no corresponding
->>> unmap function.  Implement this by just removing the previous mapping
->>> each time its called.  Unfortunately, this will leave a stray mapping
->>> at the end.
->>>     
->>
->> Stray mappings are dangerous. They can lead to illegal cache aliases
->> later. Better avoid them.
->>
->> I guess ACPI could call a cleanup function after it's done with
->> all early mappings.
->>   
->
-> Right.  But Yinghai (I think) went through and made all the acpi 
-> mappings get properly mapped and unmapped, so my patch is moot.
+The saving and restoring of the standard PCI config registers is done with
+interrupts off, the other things are done with interrupts enabled.
 
-yes, right.
+The patch should apply to the current linux-next tree.
 
-	Ingo
+Please have a look.
+
+Thanks,
+Rafael
+
+---
+ drivers/pci/pci-driver.c |   40 +++++++++++++++++++++++++++-------------
+ 1 file changed, 27 insertions(+), 13 deletions(-)
+
+Index: linux-2.6/drivers/pci/pci-driver.c
+===================================================================
+--- linux-2.6.orig/drivers/pci/pci-driver.c
++++ linux-2.6/drivers/pci/pci-driver.c
+@@ -435,10 +435,13 @@ static int pci_pm_suspend(struct device 
+ 	int error = 0;
+ 
+ 	if (drv && drv->pm) {
+-		if (drv->pm->suspend) {
++		if (drv->pm->suspend)
+ 			error = drv->pm->suspend(dev);
+-			suspend_report_result(drv->pm->suspend, error);
++		if (!error) {
++			pci_disable_device(pci_dev);
++			error = pci_prepare_to_sleep(pci_dev);
+ 		}
++		suspend_report_result(drv->pm->suspend, error);
+ 	} else if (pci_has_legacy_pm_support(pci_dev)) {
+ 		error = pci_legacy_suspend(dev, PMSG_SUSPEND);
+ 	}
+@@ -454,10 +457,11 @@ static int pci_pm_suspend_noirq(struct d
+ 	int error = 0;
+ 
+ 	if (drv && drv->pm) {
+-		if (drv->pm->suspend_noirq) {
++		if (drv->pm->suspend_noirq)
+ 			error = drv->pm->suspend_noirq(dev);
+-			suspend_report_result(drv->pm->suspend_noirq, error);
+-		}
++		if (!error)
++			pci_save_state(pci_dev);
++		suspend_report_result(drv->pm->suspend_noirq, error);
+ 	} else if (pci_has_legacy_pm_support(pci_dev)) {
+ 		error = pci_legacy_suspend_late(dev, PMSG_SUSPEND);
+ 	} else {
+@@ -476,6 +480,7 @@ static int pci_pm_resume(struct device *
+ 	pci_fixup_device(pci_fixup_resume, pci_dev);
+ 
+ 	if (drv && drv->pm) {
++		pci_enable_device(pci_dev);
+ 		if (drv->pm->resume)
+ 			error = drv->pm->resume(dev);
+ 	} else if (pci_has_legacy_pm_support(pci_dev)) {
+@@ -496,6 +501,7 @@ static int pci_pm_resume_noirq(struct de
+ 	pci_fixup_device(pci_fixup_resume_early, to_pci_dev(dev));
+ 
+ 	if (drv && drv->pm) {
++		pci_restore_state(pci_dev);
+ 		if (drv->pm->resume_noirq)
+ 			error = drv->pm->resume_noirq(dev);
+ 	} else if (pci_has_legacy_pm_support(pci_dev)) {
+@@ -525,10 +531,11 @@ static int pci_pm_freeze(struct device *
+ 	int error = 0;
+ 
+ 	if (drv && drv->pm) {
+-		if (drv->pm->freeze) {
++		if (drv->pm->freeze)
+ 			error = drv->pm->freeze(dev);
+-			suspend_report_result(drv->pm->freeze, error);
+-		}
++		if (!error)
++			pci_disable_device(pci_dev);
++		suspend_report_result(drv->pm->freeze, error);
+ 	} else if (pci_has_legacy_pm_support(pci_dev)) {
+ 		error = pci_legacy_suspend(dev, PMSG_FREEZE);
+ 		pci_fixup_device(pci_fixup_suspend, pci_dev);
+@@ -544,10 +551,11 @@ static int pci_pm_freeze_noirq(struct de
+ 	int error = 0;
+ 
+ 	if (drv && drv->pm) {
+-		if (drv->pm->freeze_noirq) {
++		if (drv->pm->freeze_noirq)
+ 			error = drv->pm->freeze_noirq(dev);
+-			suspend_report_result(drv->pm->freeze_noirq, error);
+-		}
++		if (!error)
++			pci_save_state(pci_dev);
++		suspend_report_result(drv->pm->freeze_noirq, error);
+ 	} else if (pci_has_legacy_pm_support(pci_dev)) {
+ 		error = pci_legacy_suspend_late(dev, PMSG_FREEZE);
+ 	} else {
+@@ -564,6 +572,7 @@ static int pci_pm_thaw(struct device *de
+ 	int error = 0;
+ 
+ 	if (drv && drv->pm) {
++		pci_enable_device(pci_dev);
+ 		if (drv->pm->thaw)
+ 			error =  drv->pm->thaw(dev);
+ 	} else if (pci_has_legacy_pm_support(pci_dev)) {
+@@ -600,10 +609,13 @@ static int pci_pm_poweroff(struct device
+ 	pci_fixup_device(pci_fixup_suspend, pci_dev);
+ 
+ 	if (drv && drv->pm) {
+-		if (drv->pm->poweroff) {
++		if (drv->pm->poweroff)
+ 			error = drv->pm->poweroff(dev);
+-			suspend_report_result(drv->pm->poweroff, error);
++		if (!error) {
++			pci_disable_device(pci_dev);
++			error = pci_prepare_to_sleep(pci_dev);
+ 		}
++		suspend_report_result(drv->pm->poweroff, error);
+ 	} else if (pci_has_legacy_pm_support(pci_dev)) {
+ 		error = pci_legacy_suspend(dev, PMSG_HIBERNATE);
+ 	}
+@@ -635,6 +647,7 @@ static int pci_pm_restore(struct device 
+ 	int error = 0;
+ 
+ 	if (drv && drv->pm) {
++		pci_enable_device(pci_dev);
+ 		if (drv->pm->restore)
+ 			error = drv->pm->restore(dev);
+ 	} else if (pci_has_legacy_pm_support(pci_dev)) {
+@@ -656,6 +669,7 @@ static int pci_pm_restore_noirq(struct d
+ 	pci_fixup_device(pci_fixup_resume, pci_dev);
+ 
+ 	if (drv && drv->pm) {
++		pci_restore_state(pci_dev);
+ 		if (drv->pm->restore_noirq)
+ 			error = drv->pm->restore_noirq(dev);
+ 	} else if (pci_has_legacy_pm_support(pci_dev)) {
