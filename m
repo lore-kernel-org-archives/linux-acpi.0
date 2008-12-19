@@ -1,71 +1,61 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH 2/8] ACPI: introduce a new global root table list and some
-	helper functions for inactive table management
-Date: Fri, 19 Dec 2008 15:57:42 +0800
-Message-ID: <1229673462.562.134.camel@rzhang-dt>
+Subject: [PATCH 3/8] ACPI: acpi_tb_install_table supports inactive tables
+Date: Fri, 19 Dec 2008 15:57:44 +0800
+Message-ID: <1229673464.562.135.camel@rzhang-dt>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:56582 "EHLO mga01.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:20490 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752922AbYLSH7K (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 19 Dec 2008 02:59:10 -0500
+	id S1752932AbYLSH7L (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 19 Dec 2008 02:59:11 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, "Zhang, Rui" <rui.zhang@intel.com>
 
-Introduce acpi_gbl_inactive_root_table_list
-and some helper functions.
+acpi_tb_install_table supports inactive tables.
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- include/acpi/acglobal.h |    1 +
- include/acpi/aclocal.h  |    1 +
- include/acpi/actables.h |    6 ++++++
- 3 files changed, 8 insertions(+)
+ drivers/acpi/tables/tbutils.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-Index: linux-2.6/include/acpi/acglobal.h
+Index: linux-2.6/drivers/acpi/tables/tbutils.c
 ===================================================================
---- linux-2.6.orig/include/acpi/acglobal.h
-+++ linux-2.6/include/acpi/acglobal.h
-@@ -139,6 +139,7 @@ ACPI_EXTERN u32 acpi_gbl_trace_flags;
-  * acpi_gbl_FADT is a local copy of the FADT, converted to a common format.
-  */
- ACPI_EXTERN struct acpi_internal_rsdt acpi_gbl_root_table_list;
-+ACPI_EXTERN struct acpi_internal_rsdt acpi_gbl_inactive_root_table_list;
- ACPI_EXTERN struct acpi_table_fadt acpi_gbl_FADT;
- ACPI_EXTERN struct acpi_table_facs *acpi_gbl_FACS;
- extern u8 acpi_gbl_permanent_mmap;
-Index: linux-2.6/include/acpi/aclocal.h
-===================================================================
---- linux-2.6.orig/include/acpi/aclocal.h
-+++ linux-2.6/include/acpi/aclocal.h
-@@ -235,6 +235,7 @@ struct acpi_table_desc {
- #define ACPI_TABLE_ORIGIN_ALLOCATED     (2)
- #define ACPI_TABLE_ORIGIN_MASK          (3)
- #define ACPI_TABLE_IS_LOADED            (4)
-+#define ACPI_TABLE_ORIGIN_INACTIVE	ACPI_TABLE_ORIGIN_UNKNOWN
+--- linux-2.6.orig/drivers/acpi/tables/tbutils.c
++++ linux-2.6/drivers/acpi/tables/tbutils.c
+@@ -295,6 +295,8 @@ acpi_tb_install_table(acpi_physical_addr
+ 		      u8 flags, char *signature, u32 table_index)
+ {
+ 	struct acpi_table_header *table;
++	struct acpi_internal_rsdt *root_table_list =
++						get_root_table_list(flags);
  
- /* One internal RSDT for table management */
+ 	if (!address) {
+ 		ACPI_ERROR((AE_INFO,
+@@ -321,15 +323,16 @@ acpi_tb_install_table(acpi_physical_addr
  
-Index: linux-2.6/include/acpi/actables.h
-===================================================================
---- linux-2.6.orig/include/acpi/actables.h
-+++ linux-2.6/include/acpi/actables.h
-@@ -46,6 +46,12 @@
+ 	/* Initialize the table entry */
  
- acpi_status acpi_allocate_root_table(u32 initial_table_count);
+-	acpi_gbl_root_table_list.tables[table_index].address = address;
+-	acpi_gbl_root_table_list.tables[table_index].length = table->length;
+-	acpi_gbl_root_table_list.tables[table_index].flags = flags;
++	root_table_list->tables[table_index].address = address;
++	root_table_list->tables[table_index].length = table->length;
++	root_table_list->tables[table_index].flags = flags;
  
-+#define TABLE_IS_ACTIVE(flag)   \
-+	(!((flag & ACPI_TABLE_ORIGIN_MASK) == ACPI_TABLE_ORIGIN_INACTIVE))
-+#define get_root_table_list(flag)       \
-+	(TABLE_IS_ACTIVE(flag) ?        \
-+	&acpi_gbl_root_table_list : &acpi_gbl_inactive_root_table_list)
-+
- /*
-  * tbfadt - FADT parse/convert/validate
-  */
+ 	ACPI_MOVE_32_TO_32(&
+-			   (acpi_gbl_root_table_list.tables[table_index].
++			   (root_table_list->tables[table_index].
+ 			    signature), table->signature);
+ 
+-	acpi_tb_print_table_header(address, table);
++	if (TABLE_IS_ACTIVE(flags))
++		acpi_tb_print_table_header(address, table);
+ 
+ 	if (table_index == ACPI_TABLE_INDEX_DSDT) {
+ 
 
 
