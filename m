@@ -1,60 +1,66 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 2.6.28-rc6] ACPICA: don't cond_resched() when
- irqs_disabled()
-Date: Fri, 19 Dec 2008 03:38:18 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0812190326000.6312@localhost.localdomain>
-References: <20081126135508.GA1891@localhost>
- <alpine.LFD.2.00.0812190016120.6312@localhost.localdomain>
- <1229670120.3990.11.camel@yakui_zhao.sh.intel.com>
+From: "Yinghai Lu" <yinghai@kernel.org>
+Subject: Re: [PATCH 2/2] ACPI: PCI Interrupt Links -- disable when unused
+Date: Fri, 19 Dec 2008 01:10:51 -0800
+Message-ID: <86802c440812190110v6de03a21q4737dcc76ab6fa11@mail.gmail.com>
+References: <8465ab70c5a17f796380b77ef5a0f5197a9f7c31.1229674227.git.len.brown@intel.com>
+	 <c8d8961ad671f84f830bb4e59ccfb689576ecbe0.1229674227.git.len.brown@intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:42327 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751602AbYLSIiY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Dec 2008 03:38:24 -0500
-Received: from localhost.localdomain ([96.237.168.40])
- by vms173005.mailsrvcs.net
- (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0KC4004KR7ZX8KM2@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 19 Dec 2008 02:38:21 -0600 (CST)
-In-reply-to: <1229670120.3990.11.camel@yakui_zhao.sh.intel.com>
+Received: from yw-out-2324.google.com ([74.125.46.31]:28256 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752465AbYLSJKx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Dec 2008 04:10:53 -0500
+Received: by yw-out-2324.google.com with SMTP id 9so324153ywe.1
+        for <linux-acpi@vger.kernel.org>; Fri, 19 Dec 2008 01:10:51 -0800 (PST)
+In-Reply-To: <c8d8961ad671f84f830bb4e59ccfb689576ecbe0.1229674227.git.len.brown@intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: "Wu, Fengguang" <fengguang.wu@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>
 
->     The issue on Fengguang's laptop is different with that on the box of
-> T61.  On Fengguang's laptop after evaluating one ACPI object(GPE
-> _L18object), the irq is disabled mystically. After some investigations
-> we find that it is caused by SMI(The SMI will be triggered while
-> evaluating the ACPI object. And this issue is also related with Video). 
+On Fri, Dec 19, 2008 at 12:22 AM, Len Brown <lenb@kernel.org> wrote:
+> From: Len Brown <len.brown@intel.com>
+>
+> We start the system off with disabled links.
+> Here we enable the reference counting
+> on the links so that when drivers free IRQs
+> the links can return to the disabled state.
+>
+> Drivers free their IRQ and reference on a link
+> when they unload.  They may also do so upon
+> suspend.  However, if they don't, irqrouter_resume()
+> will still resume any links that were
+> not disabled before suspend.
+>
+> Signed-off-by: Len Brown <len.brown@intel.com>
+> ---
+>  drivers/acpi/pci_link.c |    4 +++-
+>  1 files changed, 3 insertions(+), 1 deletions(-)
+>
+> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+> index 595b131..7d12762 100644
+> --- a/drivers/acpi/pci_link.c
+> +++ b/drivers/acpi/pci_link.c
+> @@ -693,6 +693,7 @@ int acpi_pci_link_free_irq(acpi_handle handle)
+>                printk(KERN_ERR PREFIX "Link isn't initialized\n");
+>                return -1;
+>        }
+> +<<<<<<< HEAD:drivers/acpi/pci_link.c
+>  #ifdef FUTURE_USE
+>        /*
+>         * The Link reference count allows us to _DISable an unused link
+> @@ -703,8 +704,9 @@ int acpi_pci_link_free_irq(acpi_handle handle)
+>         * to prevent duplicate acpi_pci_link_set()
+>         * which would harm some systems
+>         */
+> +=======
+> +>>>>>>> 683984a... ACPI: PCI Interrupt Links -- disable when unused:drivers/acpi/pci_link.c
+>        link->refcnt--;
+> -#endif
 
-Interesting.
-I hadn't realized you root-caused that failure.
-This is good to know, but the fact that SMM can
-leave interrupts disabled is frightening.
+looks like merge conflicts fix.
 
-If the BIOS SMM on that box disables interrupts when
-random AML is run, then it is going to run into
-all kinds of other problems in addition to this one...
-
-Hopefully the BIOS bugs is fixed by a BIOS update...
-
->     If the boot option of "noapic" is added on the box of bug12252, the
-> irq_router_resume will be called, in which the _CRS/_SRS object will be
-> evaluated. But unfortunately the irq is disabled when irq_router_resume
-> is called. 
-
-Right.  I forced the T61 to run into this problem by forcing
-it to use PIC mode and suspending -- for it doesn't use the links
-in IOAPIC mode.  Many other systems do use the links in default
-mode, however, so I'm surprised that we had not heard more about
-this failure.
-
-Now that I search for acpi_ps_complete_op() on kerneloops.org,
-I see that just a few people have run into it.
-
-thanks,
--- Len Brown, Intel Open Source Technology Center> 
-
+YH
