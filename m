@@ -1,69 +1,85 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH/RFC] ACPICA: disable ACPI 2.0 _GTS/_BFS support
-Date: Fri, 19 Dec 2008 18:48:49 +0100
-Message-ID: <200812191848.49928.rjw@sisk.pl>
-References: <alpine.LFD.2.00.0812190421140.1988@localhost.localdomain>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 2.6.28-rc6] ACPICA: don't cond_resched() when
+ irqs_disabled()
+Date: Fri, 19 Dec 2008 13:24:25 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0812191322110.3745@localhost.localdomain>
+References: <20081126135508.GA1891@localhost>
+ <alpine.LFD.2.00.0812190016120.6312@localhost.localdomain>
+ <1229670120.3990.11.camel@yakui_zhao.sh.intel.com>
+ <alpine.LFD.2.00.0812190326000.6312@localhost.localdomain>
+ <20081219110145.GA14076@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:46158 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751556AbYLSRtQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 19 Dec 2008 12:49:16 -0500
-In-Reply-To: <alpine.LFD.2.00.0812190421140.1988@localhost.localdomain>
-Content-Disposition: inline
+Received: from vms173003pub.verizon.net ([206.46.173.3]:44007 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751633AbYLSSYe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Dec 2008 13:24:34 -0500
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173003.mailsrvcs.net
+ (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+ with ESMTPA id <0KC400IQ9Z4VRCG3@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 19 Dec 2008 12:24:32 -0600 (CST)
+In-reply-to: <20081219110145.GA14076@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: Wu Fengguang <fengguang.wu@intel.com>
+Cc: "Zhao, Yakui" <yakui.zhao@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Lin, Ming M" <ming.m.lin@intel.com>, "Zhang, Rui" <rui.zhang@intel.com>, "Li, Shaohua" <shaohua.li@intel.com>
 
-On Friday, 19 of December 2008, Len Brown wrote:
-> From: Len Brown <len.brown@intel.com>
-> Organization: Intel Open Source Technology Center
+
+
+
+On Fri, 19 Dec 2008, Wu Fengguang wrote:
+
+> Hi Len,
 > 
-> ACPI 2.0 defined two new methods in the suspend/resume sequence,
-> _GTS (Going to Sleep) and _BFS (Back from Sleep)
+> FYI: this patch from Lin Ming will generate the following messages:
 > 
-> They are optional methods, but if the BIOS supplies them,
-> the OS is supposed to evaluate them immediately before
-> writing the register to sleep, and immediately after waking up --
-> a time when interrupts are disabled.
+> on closing lid =>                                                                                                                
+>                                                                                                                                  
+> [ 8993.764829] irq status before SMI: enable                                                                                     
+> [ 8993.768028] irq status after SMI: disable, value: 0xF3                                                                        
+>                                                                                                                                      
+> on opening lid =>                                                                                                                    
+>                                                                                                                                      
+> [ 8987.590636] irq status before SMI: enable                                                                                         
+> [ 8987.669829] irq status after SMI: enable, value: 0xF3                                                                             
 > 
-> The spec says that they must be self-contained
-> methods, not calling any other methods, perhaps
-> because that they are run under unique conditions?
+> ---
+>  drivers/acpi/executer/exregion.c |   12 ++++++++++++
+>  1 file changed, 12 insertions(+)
 > 
-> These methodds are evaluated in Linux by
-> acpi_evaluate_object(), which always kmalloc's
-> a return structure to conserve stack space.
-> But kmalloc with interrupts off is problematic --
-> do we really want to insist on GFP_ATOMIC here?
-
-Well, I think we should.
-
-Alternatively, we can keep a preallocated buffer for this purpose.
-
-> Now, several years after ACPI 2.0 was released,
-> we have yet to observe a single implementation of
-> _GTS/_BFS in the field -- suggesting that they will
-> never actually be deployed.
+> --- linux-2.6.orig/drivers/acpi/executer/exregion.c
+> +++ linux-2.6/drivers/acpi/executer/exregion.c
+> @@ -300,8 +300,20 @@ acpi_ex_system_io_space_handler(u32 func
+>  
+>  	case ACPI_WRITE:
+>  
+> +		if (address == 0xB2) {
+> +			printk("irq status before SMI: %s\n",
+> +				irqs_disabled() ? "disable" : "enable");
+> +		}
+> +
+>  		status = acpi_os_write_port((acpi_io_address) address,
+>  					    (u32) * value, bit_width);
+> +
+> +		if (address == 0xB2) {
+> +			printk("irq status after SMI: %s, value: 0x%X\n",
+> +				irqs_disabled() ? "disable" : "enable",
+> +				(u32) *value);
+> +		}
+> +
+>  		break;
+>  
+>  	default:
 > 
-> So lets keep Linux simple by removing this
-> theoretical support for _GTS/_BFS, the only
-> AML methods that mandated being evaluated
-> with interrupts disabled.
+> We are now exploring how the Windows execution path manages to avoid this bug.
 
-I'm not sure if I agree with this approach.
+sigh.
 
-My opinion is that we should be able to execute AML code with interrupts
-disabled and there should be means to do that.
+It might be prudent for us to WARN_ON() the IRQ state
+being different before and after any IO write -- in case
+others are running into this too.
 
-The entire irqrouter_resume() thing requires us to evaluate AML with interrupts
-disabled and in that particular case it also really _makes_ _sense_.
+-- Len Brown, Intel Open Source Technology Center
 
-So, IMO dropping _GTS/_BFS doesn't really buy us anything.
-
-Thanks,
-Rafael
