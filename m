@@ -1,15 +1,19 @@
 From: Randy Dunlap <randy.dunlap@oracle.com>
 Subject: [PATCH] doc: fix kernel-parameters.txt formatting
-Date: Fri, 19 Dec 2008 10:57:32 -0800
-Message-ID: <20081219105732.5bd7b671.randy.dunlap@oracle.com>
+Date: Fri, 19 Dec 2008 10:55:42 -0800
+Message-ID: <20081219105542.e565c7c3.randy.dunlap@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet12.oracle.com ([148.87.113.124]:27991 "EHLO
-	rgminet12.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751479AbYLSS5t (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Dec 2008 13:57:49 -0500
+Received: from rcsinet14.oracle.com ([148.87.113.126]:26670 "EHLO
+	rgminet14.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751168AbYLSTAK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Dec 2008 14:00:10 -0500
+Received: from rgminet11.oracle.com (rcsinet11.oracle.com [148.87.113.123])
+	by rgminet14.oracle.com (Switch-3.3.1/Switch-3.3.1) with ESMTP id mBJJ1h6T007011
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-acpi@vger.kernel.org>; Fri, 19 Dec 2008 19:01:50 GMT
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
