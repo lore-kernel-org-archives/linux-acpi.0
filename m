@@ -1,155 +1,251 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH 7/8] ACPI: make inactive table management configurable
-Date: Fri, 19 Dec 2008 15:57:52 +0800
-Message-ID: <1229673472.562.139.camel@rzhang-dt>
+Subject: [PATCH 6/8] ACPI: introduce new interfaces for inactive table
+	management
+Date: Fri, 19 Dec 2008 15:57:50 +0800
+Message-ID: <1229673470.562.138.camel@rzhang-dt>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:26809 "EHLO mga01.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:43283 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753022AbYLSH7U (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 19 Dec 2008 02:59:20 -0500
+	id S1753012AbYLSH7S (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 19 Dec 2008 02:59:18 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, "Zhang, Rui" <rui.zhang@intel.com>
 
-Introduce a new option ACPI_INACTIVE_TABLE_MANAGEMENT,
-which can be used to enable/disable the inactive table
-management.
-this is because Linux wants to enable it all the time,
-but as a piece of ACPICA code, it's not needed by other OSes.
+introduce new interfaces for inactive table management.
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- drivers/acpi/tables/tbxface.c |    5 ++++-
- include/acpi/acconfig.h       |    4 ++++
- include/acpi/acglobal.h       |    2 ++
- include/acpi/acpixf.h         |   14 ++++++++++++++
- include/acpi/actables.h       |    4 ++++
- 5 files changed, 28 insertions(+), 1 deletion(-)
+ drivers/acpi/tables/tbfind.c   |   55 ++++++++++++++++++++++++++++
+ drivers/acpi/tables/tbinstal.c |    5 +-
+ drivers/acpi/tables/tbxface.c  |   78 ++++++++++++++++++++++-------------------
+ include/acpi/acpixf.h          |    7 +++
+ include/acpi/actables.h        |    4 +-
+ 5 files changed, 110 insertions(+), 39 deletions(-)
 
-Index: linux-2.6/include/acpi/acpixf.h
-===================================================================
---- linux-2.6.orig/include/acpi/acpixf.h
-+++ linux-2.6/include/acpi/acpixf.h
-@@ -55,8 +55,13 @@ acpi_status
- acpi_initialize_tables(struct acpi_table_desc *initial_storage,
- 		       u32 initial_table_count, u8 allow_resize);
- 
-+#ifdef ACPI_INACTIVE_TABLE_MANAGEMENT
- acpi_status
- acpi_initialize_inactive_tables(void);
-+#else
-+static inline acpi_status
-+acpi_initialize_inactive_tables(void) { return AE_NOT_FOUND; }
-+#endif
- 
- acpi_status __init acpi_initialize_subsystem(void);
- 
-@@ -122,9 +127,18 @@ acpi_status
- acpi_get_table_by_index(u32 table_index,
- 			struct acpi_table_header **out_table);
- 
-+#ifdef ACPI_INACTIVE_TABLE_MANAGEMENT
- acpi_status
- acpi_get_inactive_table_by_index(u32 table_index,
- 			struct acpi_table_header **out_table);
-+#else
-+static inline acpi_status
-+acpi_get_inactive_table_by_index(u32 table_index,
-+			struct acpi_table_header **out_table)
-+{
-+	return AE_NOT_FOUND;
-+}
-+#endif
- 
- acpi_status
- acpi_install_table_handler(acpi_tbl_handler handler, void *context);
 Index: linux-2.6/drivers/acpi/tables/tbxface.c
 ===================================================================
 --- linux-2.6.orig/drivers/acpi/tables/tbxface.c
 +++ linux-2.6/drivers/acpi/tables/tbxface.c
-@@ -154,7 +154,7 @@ acpi_initialize_tables(struct acpi_table
+@@ -154,6 +154,27 @@ acpi_initialize_tables(struct acpi_table
  	return_ACPI_STATUS(status);
  }
  
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_initialize_inactive_tables
++ *
++ * PARAMETERS:  no
++ *
++ * RETURN:      Status
++ *
++ * DESCRIPTION: Initialize the inactive table.
++ *
++ ******************************************************************************/
++
++acpi_status __init
++acpi_initialize_inactive_tables(void)
++{
++	return_ACPI_STATUS(
++		acpi_tb_parse_root_table(0, ACPI_TABLE_ORIGIN_INACTIVE));
++}
++ACPI_EXPORT_SYMBOL(acpi_initialize_inactive_tables)
++
+ /*******************************************************************************
+  *
+  * FUNCTION:    acpi_reallocate_root_table
+@@ -436,47 +457,32 @@ ACPI_EXPORT_SYMBOL(acpi_get_table)
+ acpi_status
+ acpi_get_table_by_index(u32 table_index, struct acpi_table_header **table)
+ {
+-	acpi_status status;
 -
-+#ifdef ACPI_INACTIVE_TABLE_MANAGEMENT
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_initialize_inactive_tables
-@@ -174,6 +174,7 @@ acpi_initialize_inactive_tables(void)
- 		acpi_tb_parse_root_table(0, ACPI_TABLE_ORIGIN_INACTIVE));
+-	ACPI_FUNCTION_TRACE(acpi_get_table_by_index);
+-
+-	/* Parameter validation */
+-
+-	if (!table) {
+-		return_ACPI_STATUS(AE_BAD_PARAMETER);
+-	}
+-
+-	(void)acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
+-
+-	/* Validate index */
+-
+-	if (table_index >= acpi_gbl_root_table_list.count) {
+-		(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
+-		return_ACPI_STATUS(AE_BAD_PARAMETER);
+-	}
+-
+-	if (!acpi_gbl_root_table_list.tables[table_index].pointer) {
+-
+-		/* Table is not mapped, map it */
+-
+-		status =
+-		    acpi_tb_verify_table(&acpi_gbl_root_table_list.
+-					 tables[table_index]);
+-		if (ACPI_FAILURE(status)) {
+-			(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
+-			return_ACPI_STATUS(status);
+-		}
+-	}
+-
+-	*table = acpi_gbl_root_table_list.tables[table_index].pointer;
+-	(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
+-	return_ACPI_STATUS(AE_OK);
++	return acpi_tb_get_table_by_index(table_index, table, 1);
  }
- ACPI_EXPORT_SYMBOL(acpi_initialize_inactive_tables)
-+#endif
- 
- /*******************************************************************************
-  *
-@@ -461,6 +462,7 @@ acpi_get_table_by_index(u32 table_index,
- }
+-
  ACPI_EXPORT_SYMBOL(acpi_get_table_by_index)
  
-+#ifdef ACPI_INACTIVE_TABLE_MANAGEMENT
  /*******************************************************************************
   *
-  * FUNCTION:	acpi_get_inactive_table_by_index
-@@ -480,6 +482,7 @@ acpi_get_inactive_table_by_index(u32 tab
- 	return acpi_tb_get_table_by_index(table_index, table, 0);
++ * FUNCTION:	acpi_get_inactive_table_by_index
++ *
++ * PARAMETERS:	table_index	- Table index
++ * 		Table		- Where the pointer to the table is returned
++ *
++ * RETURN:      Status and pointer to the table
++ *
++ * DESCRIPTION: Obtain a table by an index into the global inactive table list.
++ *
++ ******************************************************************************/
++acpi_status
++acpi_get_inactive_table_by_index(u32 table_index,
++					struct acpi_table_header **table)
++{
++	return acpi_tb_get_table_by_index(table_index, table, 0);
++}
++ACPI_EXPORT_SYMBOL(acpi_get_inactive_table_by_index)
++
++/*******************************************************************************
++ *
+  * FUNCTION:    acpi_tb_load_namespace
+  *
+  * PARAMETERS:  None
+Index: linux-2.6/drivers/acpi/tables/tbfind.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/tables/tbfind.c
++++ linux-2.6/drivers/acpi/tables/tbfind.c
+@@ -137,3 +137,58 @@ acpi_tb_find_table(char *signature,
+ 
+ 	return_ACPI_STATUS(AE_NOT_FOUND);
  }
- ACPI_EXPORT_SYMBOL(acpi_get_inactive_table_by_index)
-+#endif
- 
- /*******************************************************************************
-  *
-Index: linux-2.6/include/acpi/acconfig.h
-===================================================================
---- linux-2.6.orig/include/acpi/acconfig.h
-+++ linux-2.6/include/acpi/acconfig.h
-@@ -123,6 +123,10 @@
- 
- #define ACPI_MAX_LOOP_ITERATIONS        0xFFFF
- 
-+/* ACPI inactive table management */
 +
-+#define ACPI_INACTIVE_TABLE_MANAGEMENT
++/*******************************************************************************
++ *
++ * FUNCTION:	acpi_tb_get_table_by_index
++ *
++ * PARAMETERS:	table_index	- Table index
++ *		table		- Where the pointer to the table is returned
++ *		flag		- which table list the table is obtained from
++ *
++ * RETURN:	Status and pointer to the table
++ *
++ * DESCRIPTION:	Obtain a table by an index into the global table list.
++ *
++ ******************************************************************************/
++acpi_status
++acpi_tb_get_table_by_index(u32 table_index,
++			struct acpi_table_header **table, int flag)
++{
++	acpi_status status;
++	struct acpi_internal_rsdt *root_table_list =
++				get_root_table_list(flag);
 +
- /******************************************************************************
-  *
-  * ACPI Specification constants (Do not change unless the specification changes)
-Index: linux-2.6/include/acpi/acglobal.h
-===================================================================
---- linux-2.6.orig/include/acpi/acglobal.h
-+++ linux-2.6/include/acpi/acglobal.h
-@@ -139,7 +139,9 @@ ACPI_EXTERN u32 acpi_gbl_trace_flags;
-  * acpi_gbl_FADT is a local copy of the FADT, converted to a common format.
-  */
- ACPI_EXTERN struct acpi_internal_rsdt acpi_gbl_root_table_list;
-+#ifdef ACPI_INACTIVE_TABLE_MANAGEMENT
- ACPI_EXTERN struct acpi_internal_rsdt acpi_gbl_inactive_root_table_list;
-+#endif
- ACPI_EXTERN struct acpi_table_fadt acpi_gbl_FADT;
- ACPI_EXTERN struct acpi_table_facs *acpi_gbl_FACS;
- extern u8 acpi_gbl_permanent_mmap;
++	ACPI_FUNCTION_TRACE(acpi_tb_get_table_by_index);
++
++	/* Parameter validation */
++
++	if (!table)
++		return_ACPI_STATUS(AE_BAD_PARAMETER);
++
++	(void)acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
++
++	/* Validate index */
++
++	if (table_index >= root_table_list->count) {
++		(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
++		return_ACPI_STATUS(AE_BAD_PARAMETER);
++	}
++
++	if (!root_table_list->tables[table_index].pointer) {
++
++		/* Table is not mapped, map it */
++		status =
++			acpi_tb_verify_table(&root_table_list->
++					tables[table_index]);
++		if (ACPI_FAILURE(status)) {
++			(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
++			return_ACPI_STATUS(status);
++		}
++	}
++
++	*table = root_table_list->tables[table_index].pointer;
++	(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
++	return_ACPI_STATUS(AE_OK);
++}
++
 Index: linux-2.6/include/acpi/actables.h
 ===================================================================
 --- linux-2.6.orig/include/acpi/actables.h
 +++ linux-2.6/include/acpi/actables.h
-@@ -48,9 +48,13 @@ acpi_status acpi_allocate_root_table(u32
- 
- #define TABLE_IS_ACTIVE(flag)   \
- 	(!((flag & ACPI_TABLE_ORIGIN_MASK) == ACPI_TABLE_ORIGIN_INACTIVE))
-+#ifdef ACPI_INACTIVE_TABLE_MANAGEMENT
- #define get_root_table_list(flag)       \
- 	(TABLE_IS_ACTIVE(flag) ?        \
- 	&acpi_gbl_root_table_list : &acpi_gbl_inactive_root_table_list)
-+#else
-+#define get_root_table_list(flag) (&acpi_gbl_root_table_list)
-+#endif /* ACPI_INACTIVE_TABLE_MANAGEMENT */
- 
+@@ -65,7 +65,9 @@ void acpi_tb_create_local_fadt(struct ac
+ acpi_status
+ acpi_tb_find_table(char *signature,
+ 		   char *oem_id, char *oem_table_id, u32 *table_index);
+-
++acpi_status
++acpi_tb_get_table_by_index(u32 table_index,
++			struct acpi_table_header **table, int flag);
  /*
-  * tbfadt - FADT parse/convert/validate
+  * tbinstal - Table removal and deletion
+  */
+Index: linux-2.6/include/acpi/acpixf.h
+===================================================================
+--- linux-2.6.orig/include/acpi/acpixf.h
++++ linux-2.6/include/acpi/acpixf.h
+@@ -55,6 +55,9 @@ acpi_status
+ acpi_initialize_tables(struct acpi_table_desc *initial_storage,
+ 		       u32 initial_table_count, u8 allow_resize);
+ 
++acpi_status
++acpi_initialize_inactive_tables(void);
++
+ acpi_status __init acpi_initialize_subsystem(void);
+ 
+ acpi_status acpi_enable_subsystem(u32 flags);
+@@ -120,6 +123,10 @@ acpi_get_table_by_index(u32 table_index,
+ 			struct acpi_table_header **out_table);
+ 
+ acpi_status
++acpi_get_inactive_table_by_index(u32 table_index,
++			struct acpi_table_header **out_table);
++
++acpi_status
+ acpi_install_table_handler(acpi_tbl_handler handler, void *context);
+ 
+ acpi_status acpi_remove_table_handler(acpi_tbl_handler handler);
+Index: linux-2.6/drivers/acpi/tables/tbinstal.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/tables/tbinstal.c
++++ linux-2.6/drivers/acpi/tables/tbinstal.c
+@@ -68,8 +68,9 @@ acpi_status acpi_tb_verify_table(struct 
+ 	/* Map the table if necessary */
+ 
+ 	if (!table_desc->pointer) {
+-		if ((table_desc->flags & ACPI_TABLE_ORIGIN_MASK) ==
+-		    ACPI_TABLE_ORIGIN_MAPPED) {
++		if (((table_desc->flags & ACPI_TABLE_ORIGIN_MASK) ==
++		    ACPI_TABLE_ORIGIN_MAPPED) || table_desc->flags ==
++		    ACPI_TABLE_ORIGIN_INACTIVE) {
+ 			table_desc->pointer =
+ 			    acpi_os_map_memory(table_desc->address,
+ 					       table_desc->length);
 
 
