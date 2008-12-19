@@ -1,33 +1,130 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH 2/2] ACPI: PCI Interrupt Links -- disable when unused
-Date: Fri, 19 Dec 2008 12:21:19 -0800
-Message-ID: <494C023F.6070207@kernel.org>
-References: <8465ab70c5a17f796380b77ef5a0f5197a9f7c31.1229674227.git.len.brown@intel.com> <c8d8961ad671f84f830bb4e59ccfb689576ecbe0.1229674227.git.len.brown@intel.com> <86802c440812190110v6de03a21q4737dcc76ab6fa11@mail.gmail.com> <alpine.LFD.2.00.0812190430450.1988@localhost.localdomain> <86802c440812190357t74dbd18aya6277b3fb1c636b2@mail.gmail.com> <alpine.LFD.2.00.0812191337160.3745@localhost.localdomain>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] doc: fix kernel-parameters.txt formatting
+Date: Fri, 19 Dec 2008 15:58:18 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0812191558070.3745@localhost.localdomain>
+References: <20081219105732.5bd7b671.randy.dunlap@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:51828 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751258AbYLSUVe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 19 Dec 2008 15:21:34 -0500
-In-Reply-To: <alpine.LFD.2.00.0812191337160.3745@localhost.localdomain>
+Received: from vms173009pub.verizon.net ([206.46.173.9]:48145 "EHLO
+	vms173009.mailsrvcs.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751391AbYLSU6Z (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Dec 2008 15:58:25 -0500
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173009.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KC500C4161PK2A1@vms173009.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 19 Dec 2008 14:53:52 -0600 (CST)
+In-reply-to: <20081219105732.5bd7b671.randy.dunlap@oracle.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
+To: Randy Dunlap <randy.dunlap@oracle.com>
 Cc: linux-acpi@vger.kernel.org
 
+applied to suspend branch
 
->> maybe could have one switch in /proc so could not disable that for
->> some kexec path...
-> 
-> I fail to comprehend the benefits of kexec,
-> and the requirements that kexec puts on the kernel, other than:
-> 
-> # CONFIG_KEXEC is not set
-> 
+thanks,
+-Len
 
-for me: it is a tools that i could use to make sure root-cause is in FW, and BIOS guys will not kick back the ball to os team.
-after modifying table or hw reg in first kernel, and kexec even stock kernel, everything will work well.
+-- Len Brown, Intel Open Source Technology Center
 
-YH
+On Fri, 19 Dec 2008, Randy Dunlap wrote:
+
+> From: Randy Dunlap <randy.dunlap@oracle.com>
+> 
+> Spell out "wrt".  I suspect plenty of people won't know
+> what that means.
+> 
+> Fix a '}' that should be a ']'.
+> 
+> Reformat long lines into shorter lines.
+> 
+> Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+> ---
+>  Documentation/kernel-parameters.txt |   40 +++++++++++++++++++-----------------
+>  1 file changed, 22 insertions(+), 18 deletions(-)
+> 
+> --- linux-next-20081219.orig/Documentation/kernel-parameters.txt
+> +++ linux-next-20081219/Documentation/kernel-parameters.txt
+> @@ -153,15 +153,16 @@ and is between 256 and 4096 characters. 
+>  	acpi_sleep=	[HW,ACPI] Sleep options
+>  			Format: { s3_bios, s3_mode, s3_beep, s4_nohwsig,
+>  				  old_ordering, s4_nonvs }
+> -			See Documentation/power/video.txt for s3_bios and s3_mode.
+> +			See Documentation/power/video.txt for information on
+> +			s3_bios and s3_mode.
+>  			s3_beep is for debugging; it makes the PC's speaker beep
+>  			as soon as the kernel's real-mode entry point is called.
+>  			s4_nohwsig prevents ACPI hardware signature from being
+>  			used during resume from hibernation.
+>  			old_ordering causes the ACPI 1.0 ordering of the _PTS
+> -			control method, wrt putting devices into low power
+> -			states, to be enforced (the ACPI 2.0 ordering of _PTS is
+> -			used by default).
+> +			control method, with respect to putting devices into
+> +			low power states, to be enforced (the ACPI 2.0 ordering
+> +			of _PTS is used by default).
+>  			s4_nonvs prevents the kernel from saving/restoring the
+>  			ACPI NVS memory during hibernation.
+>  
+> @@ -198,7 +199,7 @@ and is between 256 and 4096 characters. 
+>  	acpi_skip_timer_override [HW,ACPI]
+>  			Recognize and ignore IRQ0/pin2 Interrupt Override.
+>  			For broken nForce2 BIOS resulting in XT-PIC timer.
+> -	acpi_use_timer_override [HW,ACPI}
+> +	acpi_use_timer_override [HW,ACPI]
+>  			Use timer override. For some broken Nvidia NF5 boards
+>  			that require a timer override, but don't have
+>  			HPET
+> @@ -873,17 +874,19 @@ and is between 256 and 4096 characters. 
+>  			See Documentation/ide/ide.txt.
+>  
+>  	idle=		[X86]
+> -			Format: idle=poll or idle=mwait, idle=halt, idle=nomwait
+> -			Poll forces a polling idle loop that can slightly improves the performance
+> -			of waking up a idle CPU, but will use a lot of power and make the system
+> -			run hot. Not recommended.
+> -			idle=mwait. On systems which support MONITOR/MWAIT but the kernel chose
+> -			to not use it because it doesn't save as much power as a normal idle
+> -			loop use the MONITOR/MWAIT idle loop anyways. Performance should be the same
+> -			as idle=poll.
+> -			idle=halt. Halt is forced to be used for CPU idle.
+> +			Format: idle=poll, idle=mwait, idle=halt, idle=nomwait
+> +			Poll forces a polling idle loop that can slightly
+> +			improve the performance of waking up a idle CPU, but
+> +			will use a lot of power and make the system run hot.
+> +			Not recommended.
+> +			idle=mwait: On systems which support MONITOR/MWAIT but
+> +			the kernel chose to not use it because it doesn't save
+> +			as much power as a normal idle loop, use the
+> +			MONITOR/MWAIT idle loop anyways. Performance should be
+> +			the same as idle=poll.
+> +			idle=halt: Halt is forced to be used for CPU idle.
+>  			In such case C2/C3 won't be used again.
+> -			idle=nomwait. Disable mwait for CPU C-states
+> +			idle=nomwait: Disable mwait for CPU C-states
+>  
+>  	ide-pci-generic.all-generic-ide [HW] (E)IDE subsystem
+>  			Claim all unknown PCI IDE storage controllers.
+> @@ -1078,8 +1081,8 @@ and is between 256 and 4096 characters. 
+>  	lapic		[X86-32,APIC] Enable the local APIC even if BIOS
+>  			disabled it.
+>  
+> -	lapic_timer_c2_ok	[X86-32,x86-64,APIC] trust the local apic timer in
+> -			C2 power state.
+> +	lapic_timer_c2_ok	[X86-32,x86-64,APIC] trust the local apic timer
+> +			in C2 power state.
+>  
+>  	libata.dma=	[LIBATA] DMA control
+>  			libata.dma=0	  Disable all PATA and SATA DMA
+> @@ -2301,7 +2304,8 @@ and is between 256 and 4096 characters. 
+>  
+>  	thermal.psv=	[HW,ACPI]
+>  			-1: disable all passive trip points
+> -			<degrees C>: override all passive trip points to this value
+> +			<degrees C>: override all passive trip points to this
+> +			value
+>  
+>  	thermal.tzp=	[HW,ACPI]
+>  			Specify global default ACPI thermal zone polling rate
+> 
