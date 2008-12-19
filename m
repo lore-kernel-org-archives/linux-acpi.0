@@ -1,44 +1,33 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [linux-pm] [RFC PATCH 2/3] PCI: parallel resume for pci devices on
- bus 0
-Date: Fri, 19 Dec 2008 14:21:59 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0812191417370.3745@localhost.localdomain>
-References: <Pine.LNX.4.44L0.0812191005310.2453-100000@iolanthe.rowland.org>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH 2/2] ACPI: PCI Interrupt Links -- disable when unused
+Date: Fri, 19 Dec 2008 12:21:19 -0800
+Message-ID: <494C023F.6070207@kernel.org>
+References: <8465ab70c5a17f796380b77ef5a0f5197a9f7c31.1229674227.git.len.brown@intel.com> <c8d8961ad671f84f830bb4e59ccfb689576ecbe0.1229674227.git.len.brown@intel.com> <86802c440812190110v6de03a21q4737dcc76ab6fa11@mail.gmail.com> <alpine.LFD.2.00.0812190430450.1988@localhost.localdomain> <86802c440812190357t74dbd18aya6277b3fb1c636b2@mail.gmail.com> <alpine.LFD.2.00.0812191337160.3745@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms044pub.verizon.net ([206.46.252.44]:34561 "EHLO
-	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751137AbYLSTWM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Dec 2008 14:22:12 -0500
-In-reply-to: <Pine.LNX.4.44L0.0812191005310.2453-100000@iolanthe.rowland.org>
+Received: from hera.kernel.org ([140.211.167.34]:51828 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751258AbYLSUVe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 19 Dec 2008 15:21:34 -0500
+In-Reply-To: <alpine.LFD.2.00.0812191337160.3745@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Zhang Rui <rui.zhang@intel.com>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org, "Barnes, Jesse" <jesse.barnes@intel.com>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
 
 
-On Fri, 19 Dec 2008, Alan Stern wrote:
-
-> On Fri, 19 Dec 2008, Zhang Rui wrote:
+>> maybe could have one switch in /proc so could not disable that for
+>> some kexec path...
 > 
-> > device parallel resume support for PCI devices
+> I fail to comprehend the benefits of kexec,
+> and the requirements that kexec puts on the kernel, other than:
 > 
-> There are some PCI devices which won't work right if they are resumed
-> in parallel.  The example I have in mind is a USB host controller
-> device with both a high-speed EHCI controller function and some
-> companion low/full-speed UHCI or OHCI controller functions.  The EHCI
-> driver relies on the fact that the EHCI controller has a higher
-> function number and therefore is resumed _after_ the companion
-> controllers.
+> # CONFIG_KEXEC is not set
 > 
-> We need a way to express dependencies like this between devices.  Or at 
-> least, there has to be a way to prevent certain devices from resuming 
-> in parallel.
 
-Perhaps the most pragmatic approach would be to identify which devices
-benefit the most from parallel resume, and use some hooks so that
-those device drivers can be optimized to resume in parallel
-while everything else takes the existing serialized path?
+for me: it is a tools that i could use to make sure root-cause is in FW, and BIOS guys will not kick back the ball to os team.
+after modifying table or hw reg in first kernel, and kexec even stock kernel, everything will work well.
 
--- Len Brown, Intel Open Source Technology Center
+YH
