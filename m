@@ -1,44 +1,69 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: suspend/resume fails on second attempt in LNXVIDEO:00
-Date: Fri, 19 Dec 2008 18:33:10 +0100
-Message-ID: <200812191833.10979.rjw@sisk.pl>
-References: <gi247o$iog$1@ger.gmane.org> <gicjac$m5f$11@ger.gmane.org> <gieo1h$u78$1@ger.gmane.org>
+Subject: Re: [PATCH/RFC] ACPICA: disable ACPI 2.0 _GTS/_BFS support
+Date: Fri, 19 Dec 2008 18:48:49 +0100
+Message-ID: <200812191848.49928.rjw@sisk.pl>
+References: <alpine.LFD.2.00.0812190421140.1988@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="utf-8"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:46109 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:46158 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751553AbYLSRd1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 19 Dec 2008 12:33:27 -0500
-In-Reply-To: <gieo1h$u78$1@ger.gmane.org>
+	id S1751556AbYLSRtQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 19 Dec 2008 12:49:16 -0500
+In-Reply-To: <alpine.LFD.2.00.0812190421140.1988@localhost.localdomain>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brian J. Murrell" <brian@interlinx.bc.ca>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
 
-On Friday, 19 of December 2008, Brian J. Murrell wrote:
-> On Thu, 18 Dec 2008 04:24:44 +0000, Brian J. Murrell wrote:
+On Friday, 19 of December 2008, Len Brown wrote:
+> From: Len Brown <len.brown@intel.com>
+> Organization: Intel Open Source Technology Center
 > 
-> > 
-> > OK.  I've done my s2ram experiments and go no better than with pm-utils/
-> > kernel mode suspend (where first suspend/resume works, second suspend
-> > works, but second resume hangs the machine).  Here's the full array of
-> > suggestions on http://en.opensuse.org/S2ram and their results:
+> ACPI 2.0 defined two new methods in the suspend/resume sequence,
+> _GTS (Going to Sleep) and _BFS (Back from Sleep)
 > 
-> Just wondering if any of this experimentation is likely to help me or is 
-> this just a loser of a laptop that will be more trouble that it's worth 
-> trying to get to suspend?  I can take it back to the store still.  Maybe 
-> I should and try a different one?
+> They are optional methods, but if the BIOS supplies them,
+> the OS is supposed to evaluate them immediately before
+> writing the register to sleep, and immediately after waking up --
+> a time when interrupts are disabled.
 > 
-> Or does it seem like there still might be a relatively easy fix for this 
-> problem, which would be nice given that it was a pretty good deal (or was 
-> it?).  :-)
+> The spec says that they must be self-contained
+> methods, not calling any other methods, perhaps
+> because that they are run under unique conditions?
+> 
+> These methodds are evaluated in Linux by
+> acpi_evaluate_object(), which always kmalloc's
+> a return structure to conserve stack space.
+> But kmalloc with interrupts off is problematic --
+> do we really want to insist on GFP_ATOMIC here?
 
-You're not the only person having a problem like this and unfortunately it's
-not easy to debug.  I don't know of any fixes available.
+Well, I think we should.
+
+Alternatively, we can keep a preallocated buffer for this purpose.
+
+> Now, several years after ACPI 2.0 was released,
+> we have yet to observe a single implementation of
+> _GTS/_BFS in the field -- suggesting that they will
+> never actually be deployed.
+> 
+> So lets keep Linux simple by removing this
+> theoretical support for _GTS/_BFS, the only
+> AML methods that mandated being evaluated
+> with interrupts disabled.
+
+I'm not sure if I agree with this approach.
+
+My opinion is that we should be able to execute AML code with interrupts
+disabled and there should be means to do that.
+
+The entire irqrouter_resume() thing requires us to evaluate AML with interrupts
+disabled and in that particular case it also really _makes_ _sense_.
+
+So, IMO dropping _GTS/_BFS doesn't really buy us anything.
 
 Thanks,
 Rafael
