@@ -1,21 +1,19 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 2/2] ACPI: PCI Interrupt Links -- disable when unused
-Date: Fri, 19 Dec 2008 03:22:52 -0500
-Message-ID: <c8d8961ad671f84f830bb4e59ccfb689576ecbe0.1229674227.git.len.brown@intel.com>
+Subject: [PATCH 1/2] ACPI: update pci_link debug messages
+Date: Fri, 19 Dec 2008 03:22:51 -0500
+Message-ID: <8465ab70c5a17f796380b77ef5a0f5197a9f7c31.1229674227.git.len.brown@intel.com>
 References: <1229674972-1511-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173009pub.verizon.net ([206.46.173.9]:25542 "EHLO
-	vms173009.mailsrvcs.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753172AbYLSIWz (ORCPT
+Received: from vms173005pub.verizon.net ([206.46.173.5]:37762 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753097AbYLSIWz (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Dec 2008 03:22:55 -0500
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173009.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KC4005QP72NDU92@vms173009.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 19 Dec 2008 02:18:23 -0600 (CST)
+ by vms173005.mailsrvcs.net
+ (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+ with ESMTPA id <0KC4002TM7A5JS82@vms173005.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 19 Dec 2008 02:22:54 -0600 (CST)
 In-reply-to: <1229674972-1511-1-git-send-email-lenb@kernel.org>
-In-reply-to: <8465ab70c5a17f796380b77ef5a0f5197a9f7c31.1229674227.git.len.brown@intel.com>
-References: <8465ab70c5a17f796380b77ef5a0f5197a9f7c31.1229674227.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
@@ -23,45 +21,85 @@ Cc: Len Brown <len.brown@intel.com>
 
 From: Len Brown <len.brown@intel.com>
 
-We start the system off with disabled links.
-Here we enable the reference counting
-on the links so that when drivers free IRQs
-the links can return to the disabled state.
-
-Drivers free their IRQ and reference on a link
-when they unload.  They may also do so upon
-suspend.  However, if they don't, irqrouter_resume()
-will still resume any links that were
-not disabled before suspend.
+debug message format/content, no functional change
 
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/pci_link.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+ drivers/acpi/pci_link.c |   28 ++++++++++++++++++----------
+ 1 files changed, 18 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-index 595b131..7d12762 100644
+index e52ad91..595b131 100644
 --- a/drivers/acpi/pci_link.c
 +++ b/drivers/acpi/pci_link.c
-@@ -693,6 +693,7 @@ int acpi_pci_link_free_irq(acpi_handle handle)
- 		printk(KERN_ERR PREFIX "Link isn't initialized\n");
+@@ -414,7 +414,8 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
+ 		link->irq.active = irq;
+ 	}
+ 
+-	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Set IRQ %d\n", link->irq.active));
++	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Link %s set to IRQ %d\n",
++		acpi_device_bid(link->device), link->irq.active));
+ 
+       end:
+ 	kfree(resource);
+@@ -649,6 +650,9 @@ acpi_pci_link_allocate_irq(acpi_handle handle,
  		return -1;
  	}
-+<<<<<<< HEAD:drivers/acpi/pci_link.c
- #ifdef	FUTURE_USE
- 	/*
- 	 * The Link reference count allows us to _DISable an unused link
-@@ -703,8 +704,9 @@ int acpi_pci_link_free_irq(acpi_handle handle)
- 	 * to prevent duplicate acpi_pci_link_set()
- 	 * which would harm some systems
- 	 */
-+=======
-+>>>>>>> 683984a... ACPI: PCI Interrupt Links -- disable when unused:drivers/acpi/pci_link.c
+ 	link->refcnt++;
++	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
++			  "Link %s is referenced %d\n",
++			  acpi_device_bid(link->device), link->refcnt));
+ 	mutex_unlock(&acpi_link_lock);
+ 
+ 	if (triggering)
+@@ -657,9 +661,6 @@ acpi_pci_link_allocate_irq(acpi_handle handle,
+ 		*polarity = link->irq.polarity;
+ 	if (name)
+ 		*name = acpi_device_bid(link->device);
+-	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-			  "Link %s is referenced\n",
+-			  acpi_device_bid(link->device)));
+ 	return (link->irq.active);
+ }
+ 
+@@ -705,10 +706,13 @@ int acpi_pci_link_free_irq(acpi_handle handle)
  	link->refcnt--;
--#endif
+ #endif
  	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 			  "Link %s is dereferenced %d\n",
- 			  acpi_device_bid(link->device), link->refcnt));
+-			  "Link %s is dereferenced\n",
+-			  acpi_device_bid(link->device)));
++			  "Link %s is dereferenced %d\n",
++			  acpi_device_bid(link->device), link->refcnt));
+ 
+ 	if (link->refcnt == 0) {
++		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
++			  "Link %s is disabled\n",
++			  acpi_device_bid(link->device)));
+ 		acpi_evaluate_object(link->device->handle, "_DIS", NULL, NULL);
+ 	}
+ 	mutex_unlock(&acpi_link_lock);
+@@ -782,13 +786,17 @@ static int acpi_pci_link_add(struct acpi_device *device)
+ 	return result;
+ }
+ 
+-static int acpi_pci_link_resume(struct acpi_pci_link *link)
++static void acpi_pci_link_resume(struct acpi_pci_link *link)
+ {
+ 
++	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Link %s resume ref %d act %d ini %d\n",
++		acpi_device_bid(link->device), link->refcnt,
++		link->irq.active, link->irq.initialized));
++
+ 	if (link->refcnt && link->irq.active && link->irq.initialized)
+-		return (acpi_pci_link_set(link, link->irq.active));
+-	else
+-		return 0;
++		acpi_pci_link_set(link, link->irq.active);
++
++	return;
+ }
+ 
+ static int irqrouter_resume(struct sys_device *dev)
 -- 
 1.5.6.5
 
