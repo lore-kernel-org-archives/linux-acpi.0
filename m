@@ -1,116 +1,71 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH 1/8] ACPI: add sysfs I/F for dynamic ACPI tables
-Date: Fri, 19 Dec 2008 15:57:40 +0800
-Message-ID: <1229673460.562.133.camel@rzhang-dt>
+Subject: [PATCH 2/8] ACPI: introduce a new global root table list and some
+	helper functions for inactive table management
+Date: Fri, 19 Dec 2008 15:57:42 +0800
+Message-ID: <1229673462.562.134.camel@rzhang-dt>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:46685 "EHLO mga14.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:56582 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752916AbYLSH7H (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 19 Dec 2008 02:59:07 -0500
+	id S1752922AbYLSH7K (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 19 Dec 2008 02:59:10 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, "Zhang, Rui" <rui.zhang@intel.com>
 
-
-SSDT tables may be loaded at runtime.
-create sysfs I/F for these dynamic tables
-in /sys/firmware/acpi/tables/dynamic/.
+Introduce acpi_gbl_inactive_root_table_list
+and some helper functions.
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- drivers/acpi/system.c |   48 ++++++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 46 insertions(+), 2 deletions(-)
+ include/acpi/acglobal.h |    1 +
+ include/acpi/aclocal.h  |    1 +
+ include/acpi/actables.h |    6 ++++++
+ 3 files changed, 8 insertions(+)
 
-Index: linux-acpi-2.6/drivers/acpi/system.c
+Index: linux-2.6/include/acpi/acglobal.h
 ===================================================================
---- linux-acpi-2.6.orig/drivers/acpi/system.c	2008-11-10 10:55:48.000000000 +0800
-+++ linux-acpi-2.6/drivers/acpi/system.c	2008-11-10 10:56:32.000000000 +0800
-@@ -62,6 +62,7 @@
-    -------------------------------------------------------------------------- */
- static LIST_HEAD(acpi_table_attr_list);
- static struct kobject *tables_kobj;
-+static struct kobject *dynamic_tables_kobj;
+--- linux-2.6.orig/include/acpi/acglobal.h
++++ linux-2.6/include/acpi/acglobal.h
+@@ -139,6 +139,7 @@ ACPI_EXTERN u32 acpi_gbl_trace_flags;
+  * acpi_gbl_FADT is a local copy of the FADT, converted to a common format.
+  */
+ ACPI_EXTERN struct acpi_internal_rsdt acpi_gbl_root_table_list;
++ACPI_EXTERN struct acpi_internal_rsdt acpi_gbl_inactive_root_table_list;
+ ACPI_EXTERN struct acpi_table_fadt acpi_gbl_FADT;
+ ACPI_EXTERN struct acpi_table_facs *acpi_gbl_FACS;
+ extern u8 acpi_gbl_permanent_mmap;
+Index: linux-2.6/include/acpi/aclocal.h
+===================================================================
+--- linux-2.6.orig/include/acpi/aclocal.h
++++ linux-2.6/include/acpi/aclocal.h
+@@ -235,6 +235,7 @@ struct acpi_table_desc {
+ #define ACPI_TABLE_ORIGIN_ALLOCATED     (2)
+ #define ACPI_TABLE_ORIGIN_MASK          (3)
+ #define ACPI_TABLE_IS_LOADED            (4)
++#define ACPI_TABLE_ORIGIN_INACTIVE	ACPI_TABLE_ORIGIN_UNKNOWN
  
- struct acpi_table_attr {
- 	struct bin_attribute attr;
-@@ -128,6 +128,40 @@
- 	return;
- }
+ /* One internal RSDT for table management */
  
-+static acpi_status
-+acpi_sysfs_table_handler(u32 event, void *table, void *context)
-+{
-+	struct acpi_table_attr *table_attr;
+Index: linux-2.6/include/acpi/actables.h
+===================================================================
+--- linux-2.6.orig/include/acpi/actables.h
++++ linux-2.6/include/acpi/actables.h
+@@ -46,6 +46,12 @@
+ 
+ acpi_status acpi_allocate_root_table(u32 initial_table_count);
+ 
++#define TABLE_IS_ACTIVE(flag)   \
++	(!((flag & ACPI_TABLE_ORIGIN_MASK) == ACPI_TABLE_ORIGIN_INACTIVE))
++#define get_root_table_list(flag)       \
++	(TABLE_IS_ACTIVE(flag) ?        \
++	&acpi_gbl_root_table_list : &acpi_gbl_inactive_root_table_list)
 +
-+	switch (event) {
-+	case ACPI_TABLE_EVENT_LOAD:
-+		table_attr =
-+			kzalloc(sizeof(struct acpi_table_attr), GFP_KERNEL);
-+		if (!table_attr)
-+			return AE_NO_MEMORY;
-+
-+		acpi_table_attr_init(table_attr, table);
-+		if (sysfs_create_bin_file(dynamic_tables_kobj,
-+					&table_attr->attr)) {
-+			kfree(table_attr);
-+			return AE_ERROR;
-+		} else
-+			list_add_tail(&table_attr->node,
-+					&acpi_table_attr_list);
-+		break;
-+	case ACPI_TABLE_EVENT_UNLOAD:
-+		/*
-+		 * we do not need to do anything right now
-+		 * because the table is not deleted from the
-+		 * global table list when unloading it.
-+		 */
-+		break;
-+	default:
-+		return AE_BAD_PARAMETER;
-+	}
-+	return AE_OK;
-+}
-+
- static int acpi_system_sysfs_init(void)
- {
- 	struct acpi_table_attr *table_attr;
-@@ -137,7 +171,11 @@
- 
- 	tables_kobj = kobject_create_and_add("tables", acpi_kobj);
- 	if (!tables_kobj)
--		return -ENOMEM;
-+		goto err;
-+
-+	dynamic_tables_kobj = kobject_create_and_add("dynamic", tables_kobj);
-+	if (!dynamic_tables_kobj)
-+		goto err_dynamic_tables;
- 
- 	do {
- 		result = acpi_get_table_by_index(table_index, &table_header);
-@@ -162,8 +200,14 @@
- 		}
- 	} while (!result);
- 	kobject_uevent(tables_kobj, KOBJ_ADD);
-+	kobject_uevent(dynamic_tables_kobj, KOBJ_ADD);
-+	acpi_gbl_table_handler = acpi_sysfs_table_handler;
- 
- 	return 0;
-+err_dynamic_tables:
-+	kobject_put(tables_kobj);
-+err:
-+	return -ENOMEM;
- }
- 
  /*
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+  * tbfadt - FADT parse/convert/validate
+  */
 
 
