@@ -1,130 +1,63 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] doc: fix kernel-parameters.txt formatting
-Date: Fri, 19 Dec 2008 15:58:18 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0812191558070.3745@localhost.localdomain>
-References: <20081219105732.5bd7b671.randy.dunlap@oracle.com>
+From: "Brian J. Murrell" <brian@interlinx.bc.ca>
+Subject: Re: suspend/resume fails on second attempt in LNXVIDEO:00
+Date: Fri, 19 Dec 2008 21:10:22 +0000 (UTC)
+Message-ID: <gih2jt$u78$3@ger.gmane.org>
+References: <gi247o$iog$1@ger.gmane.org> <gicjac$m5f$11@ger.gmane.org>
+	<gieo1h$u78$1@ger.gmane.org> <200812191833.10979.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173009pub.verizon.net ([206.46.173.9]:48145 "EHLO
-	vms173009.mailsrvcs.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751391AbYLSU6Z (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Dec 2008 15:58:25 -0500
-Received: from localhost.localdomain ([96.237.168.40])
- by vms173009.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KC500C4161PK2A1@vms173009.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 19 Dec 2008 14:53:52 -0600 (CST)
-In-reply-to: <20081219105732.5bd7b671.randy.dunlap@oracle.com>
+Received: from main.gmane.org ([80.91.229.2]:51447 "EHLO ciao.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751392AbYLSVKh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 19 Dec 2008 16:10:37 -0500
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1LDmcB-00011V-Vu
+	for linux-acpi@vger.kernel.org; Fri, 19 Dec 2008 21:10:32 +0000
+Received: from d193-213-184.home3.cgocable.net ([67.193.213.184])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Fri, 19 Dec 2008 21:10:31 +0000
+Received: from brian by d193-213-184.home3.cgocable.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Fri, 19 Dec 2008 21:10:31 +0000
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 
-applied to suspend branch
+On Fri, 19 Dec 2008 18:33:10 +0100, Rafael J. Wysocki wrote:
+> 
+> You're not the only person having a problem like this
 
-thanks,
--Len
+Indeed!
 
--- Len Brown, Intel Open Source Technology Center
+> and unfortunately
+> it's not easy to debug.
 
-On Fri, 19 Dec 2008, Randy Dunlap wrote:
+It seems so, yes.  :-(
 
-> From: Randy Dunlap <randy.dunlap@oracle.com>
-> 
-> Spell out "wrt".  I suspect plenty of people won't know
-> what that means.
-> 
-> Fix a '}' that should be a ']'.
-> 
-> Reformat long lines into shorter lines.
-> 
-> Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-> ---
->  Documentation/kernel-parameters.txt |   40 +++++++++++++++++++-----------------
->  1 file changed, 22 insertions(+), 18 deletions(-)
-> 
-> --- linux-next-20081219.orig/Documentation/kernel-parameters.txt
-> +++ linux-next-20081219/Documentation/kernel-parameters.txt
-> @@ -153,15 +153,16 @@ and is between 256 and 4096 characters. 
->  	acpi_sleep=	[HW,ACPI] Sleep options
->  			Format: { s3_bios, s3_mode, s3_beep, s4_nohwsig,
->  				  old_ordering, s4_nonvs }
-> -			See Documentation/power/video.txt for s3_bios and s3_mode.
-> +			See Documentation/power/video.txt for information on
-> +			s3_bios and s3_mode.
->  			s3_beep is for debugging; it makes the PC's speaker beep
->  			as soon as the kernel's real-mode entry point is called.
->  			s4_nohwsig prevents ACPI hardware signature from being
->  			used during resume from hibernation.
->  			old_ordering causes the ACPI 1.0 ordering of the _PTS
-> -			control method, wrt putting devices into low power
-> -			states, to be enforced (the ACPI 2.0 ordering of _PTS is
-> -			used by default).
-> +			control method, with respect to putting devices into
-> +			low power states, to be enforced (the ACPI 2.0 ordering
-> +			of _PTS is used by default).
->  			s4_nonvs prevents the kernel from saving/restoring the
->  			ACPI NVS memory during hibernation.
->  
-> @@ -198,7 +199,7 @@ and is between 256 and 4096 characters. 
->  	acpi_skip_timer_override [HW,ACPI]
->  			Recognize and ignore IRQ0/pin2 Interrupt Override.
->  			For broken nForce2 BIOS resulting in XT-PIC timer.
-> -	acpi_use_timer_override [HW,ACPI}
-> +	acpi_use_timer_override [HW,ACPI]
->  			Use timer override. For some broken Nvidia NF5 boards
->  			that require a timer override, but don't have
->  			HPET
-> @@ -873,17 +874,19 @@ and is between 256 and 4096 characters. 
->  			See Documentation/ide/ide.txt.
->  
->  	idle=		[X86]
-> -			Format: idle=poll or idle=mwait, idle=halt, idle=nomwait
-> -			Poll forces a polling idle loop that can slightly improves the performance
-> -			of waking up a idle CPU, but will use a lot of power and make the system
-> -			run hot. Not recommended.
-> -			idle=mwait. On systems which support MONITOR/MWAIT but the kernel chose
-> -			to not use it because it doesn't save as much power as a normal idle
-> -			loop use the MONITOR/MWAIT idle loop anyways. Performance should be the same
-> -			as idle=poll.
-> -			idle=halt. Halt is forced to be used for CPU idle.
-> +			Format: idle=poll, idle=mwait, idle=halt, idle=nomwait
-> +			Poll forces a polling idle loop that can slightly
-> +			improve the performance of waking up a idle CPU, but
-> +			will use a lot of power and make the system run hot.
-> +			Not recommended.
-> +			idle=mwait: On systems which support MONITOR/MWAIT but
-> +			the kernel chose to not use it because it doesn't save
-> +			as much power as a normal idle loop, use the
-> +			MONITOR/MWAIT idle loop anyways. Performance should be
-> +			the same as idle=poll.
-> +			idle=halt: Halt is forced to be used for CPU idle.
->  			In such case C2/C3 won't be used again.
-> -			idle=nomwait. Disable mwait for CPU C-states
-> +			idle=nomwait: Disable mwait for CPU C-states
->  
->  	ide-pci-generic.all-generic-ide [HW] (E)IDE subsystem
->  			Claim all unknown PCI IDE storage controllers.
-> @@ -1078,8 +1081,8 @@ and is between 256 and 4096 characters. 
->  	lapic		[X86-32,APIC] Enable the local APIC even if BIOS
->  			disabled it.
->  
-> -	lapic_timer_c2_ok	[X86-32,x86-64,APIC] trust the local apic timer in
-> -			C2 power state.
-> +	lapic_timer_c2_ok	[X86-32,x86-64,APIC] trust the local apic timer
-> +			in C2 power state.
->  
->  	libata.dma=	[LIBATA] DMA control
->  			libata.dma=0	  Disable all PATA and SATA DMA
-> @@ -2301,7 +2304,8 @@ and is between 256 and 4096 characters. 
->  
->  	thermal.psv=	[HW,ACPI]
->  			-1: disable all passive trip points
-> -			<degrees C>: override all passive trip points to this value
-> +			<degrees C>: override all passive trip points to this
-> +			value
->  
->  	thermal.tzp=	[HW,ACPI]
->  			Specify global default ACPI thermal zone polling rate
-> 
+> I don't know of any fixes available.
+
+So I should probably stop holding my breath on this laptop and just go 
+get a different one I guess.  :-(  Too bad.  This is definitely a better 
+laptop than I can buy otherwise for that money.
+
+Maybe my wife will be happy to give up suspending for the better 
+machine.  Suspend is very nice to have though.
+
+If there is anything at all I can do to help progress this along, I'd be 
+more than happy.  I've already built a kernel from source with the power 
+management verbose debugging.  I can apply patches and test easily enough 
+if that helps in any way.
+
+I certainly appreciate the effort you and everyone has already put into 
+this and if goes no further than this, I certainly cannot complain that 
+nobody tried to help.
+
+Thanx!
+
+b.
+
+
