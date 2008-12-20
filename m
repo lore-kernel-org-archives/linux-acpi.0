@@ -1,37 +1,38 @@
-From: hellweiss@gmx.de
-Subject: dmi
-Date: Sat, 20 Dec 2008 09:33:14 +0100
-Message-ID: <20081220083314.287920@gmx.net>
+From: "Brian J. Murrell" <brian@interlinx.bc.ca>
+Subject: Re: need pci=nomsi or ahci fails to resume
+Date: Sat, 20 Dec 2008 14:37:56 +0000 (UTC)
+Message-ID: <gij004$p0c$3@ger.gmane.org>
+References: <gihoel$p0c$1@ger.gmane.org> <494C8A77.2020900@shaw.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:60457 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751082AbYLTIdQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 20 Dec 2008 03:33:16 -0500
+Received: from main.gmane.org ([80.91.229.2]:34885 "EHLO ciao.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755477AbYLTOiK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 20 Dec 2008 09:38:10 -0500
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1LE2xx-00044p-Ho
+	for linux-acpi@vger.kernel.org; Sat, 20 Dec 2008 14:38:05 +0000
+Received: from d193-213-184.home3.cgocable.net ([67.193.213.184])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Sat, 20 Dec 2008 14:38:05 +0000
+Received: from brian by d193-213-184.home3.cgocable.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Sat, 20 Dec 2008 14:38:05 +0000
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 
-hi, you asked me to send you this:
+On Sat, 20 Dec 2008 00:02:31 -0600, Robert Hancock wrote:
+> 
+> You might want to verify this still happens without the nvidia driver
+> loaded..
 
-ACPI: DMI System Vendor: LENOVO
-ACPI: DMI Product Name: 276731G
-ACPI: DMI Product Version: ThinkPad T400
-ACPI: DMI Board Name: 276731G
-ACPI: DMI BIOS Vendor: LENOVO
-ACPI: DMI BIOS Date: 10/30/2008
+Indeed, it does still happen with no nvidia driver loaded.
 
-regards
+b.
 
-a merry xmas and a healthy happy new year 2009
 
---=20
-Psssst! Schon vom neuen GMX MultiMessenger geh=F6rt? Der kann`s mit all=
-en: http://www.gmx.net/de/go/multimessenger
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
