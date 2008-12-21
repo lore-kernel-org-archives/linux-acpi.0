@@ -1,26 +1,77 @@
-From: j7re7g9l07g9n <j7re7g9l07g9n@gmail.com>
-Subject: =?BIG5?B?okgyMDA4LzEyLzIxIKRz4L6s7KfeuvSttrNdrXA=?=
-Date: Sun, 21 Dec 2008 11:55:32 +0800
-Message-ID: <c46fa1830812201955y25fa18cja2bfaacf5b75a9ed__8560.10915381393$1229831824$gmane$org@mail.gmail.com>
+From: Philipp Kolmann <philipp@kolmann.at>
+Subject: Re: ACPI Problem with HP EliteBook 2530p
+Date: Sun, 21 Dec 2008 11:11:24 +0100
+Message-ID: <494E164C.2090406@kolmann.at>
+References: <494D31B0.90807@kolmann.at> <494D530C.8000209@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=BIG5
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from qb-out-0506.google.com ([72.14.204.237]:42544 "EHLO
-	qb-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751144AbYLUDzh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 20 Dec 2008 22:55:37 -0500
-Content-Disposition: inline
+Received: from scs2.zid.tuwien.ac.at ([128.130.33.92]:50407 "EHLO
+	scs2.zid.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751474AbYLUKLc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 21 Dec 2008 05:11:32 -0500
+In-Reply-To: <494D530C.8000209@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linuv@uv.es
+To: Alexey Starikovskiy <aystarik@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-MjAwOC0xMi0yMSAgLSAgMTE6NTUKCqRzTeC+YazsVqfeabr0Za22erNdWa1wCgqn2k+tzGuqulSp
-dm2mrkyhR6vIpOGquqhDo7il86RwqMaxoaFBs6OsT6Rz4L6quqRqqMaxoQoKp9pkrcxoWaZiV7HA
-pVil+Ld+p862SLr0r7ilXad0q2WleLr0rbas/KR1K6vhpXi63rJ6tXumoQoKra1xrslLra04tnE4
-sU2u17v5IKV1rW4kMjksOTAwICAopmKwZaO4pn4xMDBNQiCko62trHm2cbr0r7iqxbahKQoKp9ph
-rcxOsLVoqrpnpKNFpXU4rE8wuvRkr7ihQabTRKxPR7F6QqX4dLd+Uqq6WKRKYqRmCgqjuE6t0zSm
-bmyqukOl+Ea3fk269FivuHO46m+uxlWnWWquyTmn81C3czKqunWzdGWr12SsT1Wr3Datq3OtbkSq
-ugoKpfhst36i7aTGUbCqYqt+NL3oTrnOerakoUGltDOzeTKxejiqumO69DK49Gqq+W6tsQoKv+9S
-vtx4pHM44L51pqg2tE5QsXpZqrpGudoyN7dRCgpYxXeq76jTuXGsorjftsCxTa37oUcwIDkgOCAw
-IDEgMSA5IDggMSAyCjeht1ahumehrXSh16HXYaH4Cg==
+Hi Alexey,
+
+thank you very much for your help.
+
+I can confirm, that the patch in #63 works with 2530p as well. Now the 
+kernel boots without any special acpi parameter.
+
+Only regression I now see with full ACPI turned on, is that  I can't dim 
+the display anymore.
+
+Will this patch go into 2.6.29?
+
+Thanks
+Philipp
+
+Alexey Starikovskiy wrote:
+> Hi Philipp,
+>
+> Please check if http://bugzilla.kernel.org/show_bug.cgi?id=11884 is 
+> the same problem.
+> There is  a patch, which is reported to help with HP 2730p.
+> If patch does not help you, please create new bug report and attach 
+> your acpidump and dmesg (at least from acpi=ht run).
+>
+> Regards,
+> Alex.
+>
+> Philipp Kolmann wrote:
+>> Hi,
+>>
+>> I hope I don't mistreat any code of the mailinglist. I am new here.
+>>
+>> I have a new HP Elitebook 2530p with Debian on it (and also Vista).
+>>
+>> With 2.6.27 I had no ACPI problems until a VISTA Update somehow broke 
+>> the ACPI tables.
+>>
+>> Now if I boot with ACPI enabled on 2.6.27 and 2.6.28-rc9 the computer 
+>> hangs completely.
+>> It only works with acpi=ht.
+>>
+>> I also tried pci=noacpi, acpi=noirq, there it hung saying it has a 
+>> problem with the second CPU.
+>>
+>> Can anyone tell me, how to get the proper debugging info for you, so 
+>> you can help.
+>>
+>> Do you prefer screenshots?
+>>
+>> thanks
+>> Philipp
+>> -- 
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
+
