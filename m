@@ -1,72 +1,71 @@
-From: mrsabdul120 <mrsabdul120@gmail.com>
-Subject: CAN YOU REAL.LY BE TRUSTED BELOVED?
-Date: Mon, 22 Dec 2008 15:50:18 +0100
-Message-ID: <86bb99540812220650o58833032oa66717e4669823a1__42079.9485211775$1229958310$gmane$org@mail.gmail.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [linux-pm] [RFC PATCH 2/3] PCI: parallel resume for pci devices
+ on bus 0
+Date: Mon, 22 Dec 2008 10:52:53 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.0812221038010.17981-100000@netrider.rowland.org>
+References: <1229914579.562.150.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f29.google.com ([209.85.218.29]:36189 "EHLO
-	mail-bw0-f29.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754653AbYLVPDb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Dec 2008 10:03:31 -0500
-Received: by bwz10 with SMTP id 10so1977718bwz.13
-        for <linux-acpi@vger.kernel.org>; Mon, 22 Dec 2008 07:03:29 -0800 (PST)
-Content-Disposition: inline
+Received: from netrider.rowland.org ([192.131.102.5]:2246 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753939AbYLVPwz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Dec 2008 10:52:55 -0500
+In-Reply-To: <1229914579.562.150.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "Barnes, Jesse" <jesse.barnes@intel.com>
 
-Mrs. Abdul Esther,
-Demark Lout Street,
-93050 Kuching,
-Sarawak,Malaysia
+On Mon, 22 Dec 2008, Zhang Rui wrote:
 
-Beloved Friend,
+> On Fri, 2008-12-19 at 23:09 +0800, Alan Stern wrote:
+> > On Fri, 19 Dec 2008, Zhang Rui wrote:
+> > 
+> > > device parallel resume support for PCI devices
+> > 
+> > There are some PCI devices which won't work right if they are resumed
+> > in parallel.  The example I have in mind is a USB host controller
+> > device with both a high-speed EHCI controller function and some
+> > companion low/full-speed UHCI or OHCI controller functions.  The EHCI
+> > driver relies on the fact that the EHCI controller has a higher
+> > function number and therefore is resumed _after_ the companion
+> > controllers.
+> > 
+> well, I never got this problem before.
+> is this normal? does this exist on the Intel hardware?
+> I'd like to do some test if I have chance.
 
-I am writing this mail to you with heavy tears In my eyes and great
+Yes, it is normal, and it does exist on Intel hardware.  It isn't a 
+_problem_ (or at least, it hasn't been a problem up until now) because 
+the order of resuming devices is always the same as the order of 
+registration, which in turn is the same as the order of discovery.
 
-sorrow in my heart because my Doctor told me that I will die in
+You can see this on any Intel ICHx chipset.  I don't have an example 
+right here, but take a look at the machines you have lying around.  
+There are PCI UHCI controllers at 1d.0, 1d.1, ... and a PCI EHCI 
+controller at 1d.7.
 
-three months time due to my illness causer. Base on this
+The issue arises when you have a low-speed or full-speed device plugged 
+in.  The device is handed over from the EHCI controller to one of the 
+companion UHCI controllers, because EHCI manages only high-speed 
+devices.
 
-development I want to will my money which is deposited in a security
+Now consider what happens when the system wakes up from hibernation.  
+The controllers are re-initialized, and when ehci-hcd sees the
+low/full-speed device, it tries to hand the device over to the
+companion controller again.  But if the EHCI controller's resume method
+runs first then the handover will fail, because the companion
+controller has not yet been initialized.  As a result, the device will
+be lost and will have to go through rediscovery and re-enumeration.  
+This could be very annoying if, for example, the device contains a
+mounted filesystem.
 
-company. I sound pessimistic about my health because from the
+> Just like the case above, can you give me a lspci output and show me
+> what exactly the dependency is?
 
-look of things here in the hospital, I know I will surely die
+The dependency is simple: The 1d.7 device must be resumed _after_ 1d.0, 
+1d.1, ..., 1d.6.
 
-anytime. All my hairs are falling off. I am also finding it a
+Alan Stern
 
-difficult to breath freely because of the internal injuries. I am in
-
-search of a reliable person who will use the Money to build charity
-
-organization for the saints and the person will take 20% of the
-
-total sum. While 80% of the money will go to charity organization
-
-and helping the
- orphanage. I grew up as an Orphan and i don't have
-
-anybody/family member to take care of my wealth. The total money in
-
-question is $3.5million dollars. I will provide you with other
-
-information's once you indicate your willingness.
-Please do contact me on my personal email,because i may not be able
-
-to open this dating site any longer due to my precarious
-
-condition.you can now contact me If really you are out to take up
-
-this great challenge.Waiting to read your message. I have limited internet
-access in the hospital.So I am still stuck to the laptop to read your message.
-contact me on my private email:
-
-
-mrsestherabdul11@yahoo.com in your next reply.
-
-
-Yours sincerely.
-
-Mrs Abdul Esther.
