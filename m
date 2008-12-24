@@ -1,25 +1,54 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [linux-pm] [RFC PATCH 2/3] PCI: parallel resume for pci devices
- on bus 0
-Date: Tue, 23 Dec 2008 21:47:33 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.0812232146040.8076-100000@netrider.rowland.org>
-References: <1230086170.562.210.camel@rzhang-dt>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [PATCH 1/2] video: always update the brightness when poking
+	"brightness"
+Date: Wed, 24 Dec 2008 11:07:38 +0800
+Message-ID: <1230088058.562.219.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1230086170.562.210.camel@rzhang-dt>
-Sender: linux-pci-owner@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "Barnes, Jesse" <jesse.barnes@intel.com>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:12579 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751233AbYLXDJb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 23 Dec 2008 22:09:31 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rpurdie@rpsys.net
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>
 
-On Wed, 24 Dec 2008, Zhang Rui wrote:
+bd->props.brightness is a cached value.
+the current code has some potential problems when poking the
+backlight I/F.
 
-> Then I have a question, what if the uchi_hcd is not loaded?
-> the ehci host controller doesn't work in this case?
+For example,
+1. set the brightness level to 5 via sysfs I/F
+2. set the backlight to another level via the procfs,
+3. setting it back to 5 doesn't work because bd->props.brightness
+is still 5.
 
-It does work.  But it handles only high-speed devices; low-speed and 
-full-speed devices will be ignored (unless they are connected through 
-a high-speed hub).
+http://bugzilla.kernel.org/show_bug.cgi?id=12249
 
-Alan Stern
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ drivers/video/backlight/backlight.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+Index: linux-2.6/drivers/video/backlight/backlight.c
+===================================================================
+--- linux-2.6.orig/drivers/video/backlight/backlight.c
++++ linux-2.6/drivers/video/backlight/backlight.c
+@@ -134,10 +134,8 @@ static ssize_t backlight_store_brightnes
+ 		else {
+ 			pr_debug("backlight: set brightness to %d\n",
+ 				 brightness);
+-			if (bd->props.brightness != brightness) {
+-				bd->props.brightness = brightness;
+-				backlight_update_status(bd);
+-			}
++			bd->props.brightness = brightness;
++			backlight_update_status(bd);
+ 			rc = count;
+ 		}
+ 	}
+
+
