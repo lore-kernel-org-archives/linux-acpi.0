@@ -1,107 +1,78 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH 2/2] video: mark "actual_brightness" deprecated
-Date: Wed, 24 Dec 2008 11:07:41 +0800
-Message-ID: <1230088061.562.220.camel@rzhang-dt>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: Re: [PATCH] tc1100-wmi: fix state reporting
+Date: Thu, 25 Dec 2008 07:55:37 +0000
+Message-ID: <200812250755.39288.carlos@strangeworlds.co.uk>
+References: <298610bb0812241845h41f5f916p73f85c64367ed8c@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:2180 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751254AbYLXDJe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 23 Dec 2008 22:09:34 -0500
+Received: from phoenix.slamd64.com ([217.10.145.2]:46779 "EHLO
+	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750948AbYLYHzx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Dec 2008 02:55:53 -0500
+In-Reply-To: <298610bb0812241845h41f5f916p73f85c64367ed8c@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rpurdie@rpsys.net
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>
+To: Krzysztof =?utf-8?q?Kosi=C5=84ski?= <tweenk.pl@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-/sys/class/backlight/.../brightness returns a cached value,
-which confuses a lot of users.
+[Adding CC's]
 
-Make the "brightness" reflect the actual backlight levels,
-and mark /sys/class/backlight/.../brightness as depreacated
-in this patch.
+On Thursday 25 December 2008 02:45:25 Krzysztof Kosi=C5=84ski wrote:
+> This small patch fixes the state reported when reading the files in
+> /sys/devices/platofrm/tc1100-wmi/*. The first change fixes always
+> returning 0 from the files in sysfs. The second one fixes jogdial
+> state reprting to match with the commands used to set it (e.g. now
+> after "echo 0 > /sys/devices/platofrm/tc1100-wmi/jogdial", "cat
+> /sys/devices/platofrm/tc1100-wmi/jogdial" will return 0 instead of 1)=
+=2E
+>
+> Please CC any replies to me (I'm not subscribed).
+> Regards, Krzysztof Kosi=C5=84ski
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- drivers/video/backlight/Kconfig     |   17 +++++++++++++++++
- drivers/video/backlight/backlight.c |   11 ++++++++++-
- 2 files changed, 27 insertions(+), 1 deletion(-)
+Can you resend this with a Signed-off-by, so I can ACK it and Len can m=
+erge=20
+it.
 
-Index: linux-2.6/drivers/video/backlight/Kconfig
-===================================================================
---- linux-2.6.orig/drivers/video/backlight/Kconfig
-+++ linux-2.6/drivers/video/backlight/Kconfig
-@@ -98,6 +98,23 @@ config BACKLIGHT_CLASS_DEVICE
- 	  To have support for your specific LCD panel you will have to
- 	  select the proper drivers which depend on this option.
- 
-+config BACKLIGHT_CLASS_DEVICE_LEGACY_INTERFACE
-+	bool "Deprecated lowlevel Backlight control legacy sysfs I/F"
-+	depends on BACKLIGHT_CLASS_DEVICE
-+	default y
-+	help
-+	  "brightness" file used to return a cached brightness level.
-+	  And users need to poke the "actual_brightness" to get the
-+	  correct current backlight level.
-+	  Now the "brightness" file always reflects the actual
-+	  brightness and "actual_brightness" is superfluous.
-+
-+	  Some applications including X still use this file to get the current
-+	  backlight level, thus we can not remove it immediately.
-+
-+	  Say N here if you're sure no application depends on the
-+	  "actual_brightness" file.
-+
- config BACKLIGHT_ATMEL_LCDC
- 	bool "Atmel LCDC Contrast-as-Backlight control"
- 	depends on BACKLIGHT_CLASS_DEVICE && FB_ATMEL
-Index: linux-2.6/drivers/video/backlight/backlight.c
-===================================================================
---- linux-2.6.orig/drivers/video/backlight/backlight.c
-+++ linux-2.6/drivers/video/backlight/backlight.c
-@@ -108,9 +108,14 @@ static ssize_t backlight_store_power(str
- static ssize_t backlight_show_brightness(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
-+	int rc = -ENXIO;
- 	struct backlight_device *bd = to_backlight_device(dev);
- 
--	return sprintf(buf, "%d\n", bd->props.brightness);
-+	mutex_lock(&bd->ops_lock);
-+	if (bd->ops && bd->ops->get_brightness)
-+		rc = sprintf(buf, "%d\n", bd->ops->get_brightness(bd));
-+	mutex_unlock(&bd->ops_lock);
-+	return rc;
- }
- 
- static ssize_t backlight_store_brightness(struct device *dev,
-@@ -152,6 +157,7 @@ static ssize_t backlight_show_max_bright
- 	return sprintf(buf, "%d\n", bd->props.max_brightness);
- }
- 
-+#ifdef CONFIG_BACKLIGHT_CLASS_DEVICE_LEGACY_INTERFACE
- static ssize_t backlight_show_actual_brightness(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
-@@ -165,6 +171,7 @@ static ssize_t backlight_show_actual_bri
- 
- 	return rc;
- }
-+#endif
- 
- static struct class *backlight_class;
- 
-@@ -178,8 +185,10 @@ static struct device_attribute bl_device
- 	__ATTR(bl_power, 0644, backlight_show_power, backlight_store_power),
- 	__ATTR(brightness, 0644, backlight_show_brightness,
- 		     backlight_store_brightness),
-+#ifdef CONFIG_BACKLIGHT_CLASS_DEVICE_LEGACY_INTERFACE
- 	__ATTR(actual_brightness, 0444, backlight_show_actual_brightness,
- 		     NULL),
-+#endif
- 	__ATTR(max_brightness, 0444, backlight_show_max_brightness, NULL),
- 	__ATTR_NULL,
- };
+Also, please add to your description of this patch that it fixes Bug 12=
+286.
 
+-Carlos
 
+> --- linux-2.6.27/drivers/misc/tc1100-wmi.c	2008-10-10 00:13:53.000000=
+000
+> +0200 +++ linux/drivers/misc/tc1100-wmi.c	2008-12-25 02:58:48.0000000=
+00
+> +0100 @@ -95,9 +95,8 @@
+>  		return -ENODEV;
+>
+>  	obj =3D (union acpi_object *) result.pointer;
+> -	if (obj && obj->type =3D=3D ACPI_TYPE_BUFFER &&
+> -		obj->buffer.length =3D=3D sizeof(u32)) {
+> -		tmp =3D *((u32 *) obj->buffer.pointer);
+> +	if (obj && obj->type =3D=3D ACPI_TYPE_INTEGER) {
+> +		tmp =3D obj->integer.value;
+>  	} else {
+>  		tmp =3D 0;
+>  	}
+> @@ -110,7 +109,7 @@
+>  		*out =3D (tmp =3D=3D 3) ? 1 : 0;
+>  		return 0;
+>  	case TC1100_INSTANCE_JOGDIAL:
+> -		*out =3D (tmp =3D=3D 1) ? 1 : 0;
+> +		*out =3D (tmp =3D=3D 1) ? 0 : 1;
+>  		return 0;
+>  	default:
+>  		return -ENODEV;
+
+--=20
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
