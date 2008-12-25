@@ -1,45 +1,74 @@
-From: "=?UTF-8?Q?Krzysztof_Kosi=C5=84ski?=" <tweenk.pl@gmail.com>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
 Subject: Re: [PATCH] tc1100-wmi: fix state reporting
-Date: Thu, 25 Dec 2008 14:30:46 +0100
-Message-ID: <298610bb0812250530r4661cbfaof88ba9d3946e744f@mail.gmail.com>
-References: <298610bb0812241845h41f5f916p73f85c64367ed8c@mail.gmail.com>
-	 <200812250755.39288.carlos@strangeworlds.co.uk>
+Date: Thu, 25 Dec 2008 17:58:20 +0000
+Message-ID: <200812251758.21371.carlos@strangeworlds.co.uk>
+References: <298610bb0812241845h41f5f916p73f85c64367ed8c@mail.gmail.com> <200812250755.39288.carlos@strangeworlds.co.uk> <298610bb0812250530r4661cbfaof88ba9d3946e744f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.156]:58822 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751488AbYLYNas (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Dec 2008 08:30:48 -0500
-In-Reply-To: <200812250755.39288.carlos@strangeworlds.co.uk>
+Received: from phoenix.slamd64.com ([217.10.145.2]:37341 "EHLO
+	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751595AbYLYR6d convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Dec 2008 12:58:33 -0500
+In-Reply-To: <298610bb0812250530r4661cbfaof88ba9d3946e744f@mail.gmail.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: Krzysztof =?utf-8?q?Kosi=C5=84ski?= <tweenk.pl@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-KFJlc2VuZCkKVGhpcyBzbWFsbCBwYXRjaCBmaXhlcyB0aGUgc3RhdGUgcmVwb3J0ZWQgd2hlbiBy
-ZWFkaW5nIHRoZSBmaWxlcyBpbgovc3lzL2RldmljZXMvcGxhdG9mcm0vdGMxMTAwLXdtaS8qLiBU
-aGUgZmlyc3QgY2hhbmdlIGZpeGVzIGFsd2F5cwpyZXR1cm5pbmcgMCBmcm9tIHRoZSBmaWxlcyBp
-biBzeXNmcy4gVGhlIHNlY29uZCBvbmUgZml4ZXMgam9nZGlhbApzdGF0ZSByZXBvcnRpbmcgdG8g
-bWF0Y2ggd2l0aCB0aGUgY29tbWFuZHMgdXNlZCB0byBzZXQgaXQgKGUuZy4gbm93CmFmdGVyICJl
-Y2hvIDAgPiAvc3lzL2RldmljZXMvcGxhdG9mcm0vdGMxMTAwLXdtaS9qb2dkaWFsIiwgImNhdAov
-c3lzL2RldmljZXMvcGxhdG9mcm0vdGMxMTAwLXdtaS9qb2dkaWFsIiB3aWxsIHJldHVybiAwIGlu
-c3RlYWQgb2YgMSkuCkZpeGVzIGJ1ZyAjMTIyODYuCgpTaWduZWQtb2ZmLWJ5OiBLcnp5c3p0b2Yg
-S29zacWEc2tpIDx0d2VlbmsucGxAZ21haWwuY29tPgoKLS0tIGxpbnV4LTIuNi4yNy9kcml2ZXJz
-L21pc2MvdGMxMTAwLXdtaS5jICAgICAgMjAwOC0xMC0xMAowMDoxMzo1My4wMDAwMDAwMDAgKzAy
-MDAKKysrIGxpbnV4L2RyaXZlcnMvbWlzYy90YzExMDAtd21pLmMgICAgIDIwMDgtMTItMjUgMDI6
-NTg6NDguMDAwMDAwMDAwICswMTAwCkBAIC05NSw5ICs5NSw4IEBACiAgICAgICAgICAgICAgIHJl
-dHVybiAtRU5PREVWOwoKICAgICAgIG9iaiA9ICh1bmlvbiBhY3BpX29iamVjdCAqKSByZXN1bHQu
-cG9pbnRlcjsKLSAgICAgICBpZiAob2JqICYmIG9iai0+dHlwZSA9PSBBQ1BJX1RZUEVfQlVGRkVS
-ICYmCi0gICAgICAgICAgICAgICBvYmotPmJ1ZmZlci5sZW5ndGggPT0gc2l6ZW9mKHUzMikpIHsK
-LSAgICAgICAgICAgICAgIHRtcCA9ICooKHUzMiAqKSBvYmotPmJ1ZmZlci5wb2ludGVyKTsKKyAg
-ICAgICBpZiAob2JqICYmIG9iai0+dHlwZSA9PSBBQ1BJX1RZUEVfSU5URUdFUikgeworICAgICAg
-ICAgICAgICAgdG1wID0gb2JqLT5pbnRlZ2VyLnZhbHVlOwogICAgICAgfSBlbHNlIHsKICAgICAg
-ICAgICAgICAgdG1wID0gMDsKICAgICAgIH0KQEAgLTExMCw3ICsxMDksNyBAQAogICAgICAgICAg
-ICAgICAqb3V0ID0gKHRtcCA9PSAzKSA/IDEgOiAwOwogICAgICAgICAgICAgICByZXR1cm4gMDsK
-ICAgICAgIGNhc2UgVEMxMTAwX0lOU1RBTkNFX0pPR0RJQUw6Ci0gICAgICAgICAgICAgICAqb3V0
-ID0gKHRtcCA9PSAxKSA/IDEgOiAwOworICAgICAgICAgICAgICAgKm91dCA9ICh0bXAgPT0gMSkg
-PyAwIDogMTsKICAgICAgICAgICAgICAgcmV0dXJuIDA7CiAgICAgICBkZWZhdWx0OgogICAgICAg
-ICAgICAgICByZXR1cm4gLUVOT0RFVjsK
+Len, please apply.
+
+On Thursday 25 December 2008 13:30:46 Krzysztof Kosi=C5=84ski wrote:
+> (Resend)
+> This small patch fixes the state reported when reading the files in
+> /sys/devices/platofrm/tc1100-wmi/*. The first change fixes always
+> returning 0 from the files in sysfs. The second one fixes jogdial
+> state reporting to match with the commands used to set it (e.g. now
+> after "echo 0 > /sys/devices/platofrm/tc1100-wmi/jogdial", "cat
+> /sys/devices/platofrm/tc1100-wmi/jogdial" will return 0 instead of 1)=
+=2E
+> Fixes bug #12286.
+>
+> Signed-off-by: Krzysztof Kosi=C5=84ski <tweenk.pl@gmail.com>
+
+Cc: stable@kernel.org
+Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
+
+>
+> --- linux-2.6.27/drivers/misc/tc1100-wmi.c      2008-10-10
+> 00:13:53.000000000 +0200
+> +++ linux/drivers/misc/tc1100-wmi.c     2008-12-25 02:58:48.000000000=
+ +0100
+> @@ -95,9 +95,8 @@
+>                return -ENODEV;
+>
+>        obj =3D (union acpi_object *) result.pointer;
+> -       if (obj && obj->type =3D=3D ACPI_TYPE_BUFFER &&
+> -               obj->buffer.length =3D=3D sizeof(u32)) {
+> -               tmp =3D *((u32 *) obj->buffer.pointer);
+> +       if (obj && obj->type =3D=3D ACPI_TYPE_INTEGER) {
+> +               tmp =3D obj->integer.value;
+>        } else {
+>                tmp =3D 0;
+>        }
+> @@ -110,7 +109,7 @@
+>                *out =3D (tmp =3D=3D 3) ? 1 : 0;
+>                return 0;
+>        case TC1100_INSTANCE_JOGDIAL:
+> -               *out =3D (tmp =3D=3D 1) ? 1 : 0;
+> +               *out =3D (tmp =3D=3D 1) ? 0 : 1;
+>                return 0;
+>        default:
+>                return -ENODEV;
+
+--=20
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
