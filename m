@@ -1,65 +1,54 @@
-From: Toralf =?iso-8859-15?q?F=F6rster?= <toralf.foerster@gmx.de>
-Subject: (unknown)
-Date: Sun, 28 Dec 2008 12:24:38 +0100
-Message-ID: <200812281224.41223.toralf.foerster@gmx.de>
+From: Tony Vroon <tony@vroon.org>
+Subject: Re: Bluetooth driver vs RFKILL state LED
+Date: Sun, 28 Dec 2008 13:43:03 +0000
+Message-ID: <49578267.6020401@vroon.org>
+References: <200812281224.41223.toralf.foerster@gmx.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart3443844.CzGAOAAVVo";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:44032 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1750737AbYL1LYp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 28 Dec 2008 06:24:45 -0500
+Received: from ganymede.vroon.org ([195.66.242.11]:46549 "EHLO
+	ganymede.vroon.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754570AbYL1NzI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 28 Dec 2008 08:55:08 -0500
+In-Reply-To: <200812281224.41223.toralf.foerster@gmx.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: ibm-acpi-devel@lists.sourceforge.net
+To: =?ISO-8859-1?Q?Toralf_F=F6rster?= <toralf.foerster@gmx.de>
+Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
 
---nextPart3443844.CzGAOAAVVo
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Hello,
+Toralf F=F6rster wrote:
+> I'm wondering why at my ThinkPad T41 the bluetooth LED is on even if =
+I did not=20
+> compiled bluetooth support into the kernel nor as module.
 
-I'm wondering why at my ThinkPad T41 the bluetooth LED is on even if I did =
-not=20
-compiled bluetooth support into the kernel nor as module.
+That LED indicates whether the Bluetooth radio is enabled (powered up,
+it is a USB device). Consider it like a light socket. You don't have a
+working bulb in there, but you can still switch the socket on & off.
+You see the results of your switching the moment you screw in a working
+lightbulb (load your Bluetooth driver).
 
-More data:
+It would in fact be a layering violation to care about whether or not a
+Bluetooth driver is loaded when switching the radio on & off. If you
+want your Bluetooth to start out off and remain off, you should set you=
+r
+BIOS up accordingly.
 
-tfoerste@n22 ~ $ uname -a
-Linux n22 2.6.27-gentoo-r7 #6 Sun Dec 28 12:08:24 CET 2008 i686 Intel(R)=20
-Pentium(R) M processor 1700MHz GenuineIntel GNU/Linux
-
-tfoerste@n22 ~ $ cat /proc/acpi/ibm/bluetooth
-status:         enabled
-commands:       enable, disable
-
-tfoerste@n22 ~ $ zgrep CONFIG_BT /proc/config.gz
-# CONFIG_BT is not set
-
-=2D-=20
-MfG/Sincerely
-
-Toralf F=F6rster
-pgp finger print: 7B1A 07F4 EC82 0F90 D4C2 8936 872A E508 7DB6 9DA3
-
-
---nextPart3443844.CzGAOAAVVo
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
+Regards,
+Tony V.
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2.0.9 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
 
-iEYEABECAAYFAklXYfkACgkQhyrlCH22naOgqACfUVufXkwa/X4y1NCEVSLy1HMT
-QeMAoIBLEria2qSD6ANAHQhVovD9hvXl
-=Djxb
+iEYEARECAAYFAklXgmcACgkQp5vW4rUFj5qL8ACeO8mw7Fl5qy5PC0NtqeBkE2Ti
+aEEAnRUo1NcZsM3wt9rBW+m/M4UD05Pf
+=3DmNiX
 -----END PGP SIGNATURE-----
-
---nextPart3443844.CzGAOAAVVo--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
