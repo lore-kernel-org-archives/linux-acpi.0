@@ -1,30 +1,24 @@
-From: "Corentin Chary" <corentin.chary@gmail.com>
-Subject: Re: [PATCH v2 1/3] eeepc-laptop: Add support for extended hotkeys
-Date: Mon, 29 Dec 2008 12:12:52 +0100
-Message-ID: <71cd59b00812290312u282851eepb1ecc2666d6013ab@mail.gmail.com>
-References: <a26244bd6e7cae264155edca7f3c22f8f319b239.1227194932.git.mjg@redhat.com>
-	 <20081228152035.GA13424@srcf.ucam.org>
+From: "Kenneth" <petestream@jhancock.com>
+Subject: Greetings from Kenneth
+Date: Mon, 29 Dec 2008 12:35:51 +0100
+Message-ID: <20081229123551.7040402@jhancock.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f21.google.com ([209.85.218.21]:42099 "EHLO
-	mail-bw0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753588AbYL2LMy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Dec 2008 06:12:54 -0500
-In-Reply-To: <20081228152035.GA13424@srcf.ucam.org>
-Content-Disposition: inline
+Received: from 214.248.91-79.rev.gaoland.net ([79.91.248.214]:58535 "HELO
+	214.248.91-79.rev.gaoland.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752526AbYL2Loz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 29 Dec 2008 06:44:55 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-kernel@vger.kernel.org, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, ecc@cmu.edu, linux acpi <linux-acpi@vger.kernel.org>, lenb@kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Sun, Dec 28, 2008 at 4:20 PM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
-> Hi Len,
->
-> Can these be merged for .29?
+Kenneth wants to show you a custom Online Greeting Card.
+View your greeting E-Card by clicking: 
+http://itsfatherchristmas.com/?cardnum=b89b9407d7
+For your convenience, the greeting card will be available for the next 30 days.
+X-Antivirus: avast! (VPS 081228-0, 28/12/2008), Outbound message
+X-Antivirus-Status: Clean
 
-Acked-by: Corentin Chary <corentincj@iksaif.net>
--- 
-Corentin Chary
-http://xf.iksaif.net
