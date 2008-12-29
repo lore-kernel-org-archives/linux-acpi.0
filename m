@@ -1,34 +1,40 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: "I/O resource 0000:00:1f.3 [0x1c00-0x1c1f] conflicts with ACPI region SMBI"
-Date: Mon, 29 Dec 2008 14:45:28 +0000
-Message-ID: <20081229144528.GA32335@srcf.ucam.org>
-References: <1230560872.2328.4.camel@rhapsody> <20081229143508.GD31266@srcf.ucam.org> <1230561737.2328.7.camel@rhapsody>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH] ACPI: Do not modify SCI_EN directly
+Date: Mon, 29 Dec 2008 19:19:07 +0100
+Message-ID: <200812291919.07663.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:35697 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750966AbYL2Opa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Dec 2008 09:45:30 -0500
+Received: from ogre.sisk.pl ([217.79.144.158]:52802 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752026AbYL2STA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 29 Dec 2008 13:19:00 -0500
 Content-Disposition: inline
-In-Reply-To: <1230561737.2328.7.camel@rhapsody>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: The Holy ettlz <theholyettlz@googlemail.com>
-Cc: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Mon, Dec 29, 2008 at 02:42:17PM +0000, The Holy ettlz wrote:
-
-> Well, i2c-i801 is loaded:
-> 
-> i915                   67080  2 
-> drm                   201328  3 i915
-> i2c_i801               17820  0 
-> i2c_core               29216  2 drm,i2c_i801
-> 
-> Should I be worried?
-
-As long as nothing is actually using it, you'll be fine.
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+RnJvbTogUmFmYWVsIEouIFd5c29ja2kgPHJqd0BzaXNrLnBsPgoKQWNjb3JkaW5nIHRvIHRoZSBB
+Q1BJIHNwZWNpZmljYXRpb24gdGhlIFNDSV9FTiBmbGFnIGlzIGNvbnRyb2xsZWQgYnkKdGhlIGhh
+cmR3YXJlLCB3aGljaCBzZXRzIHRoaXMgZmxhZyB0byBpbmZvcm0gdGhlIGtlcm5lbCB0aGF0IEFD
+UEkgaXMKZW5hYmxlZC4gIEZvciB0aGlzIHJlYXNvbiwgd2Ugc2hvdWxkbid0IHRyeSB0byBtb2Rp
+ZnkgU0NJX0VOCmRpcmVjdGx5LiAgQWxzbywgd2UgZG9uJ3QgbmVlZCB0byBkbyBpdCBpbiBpcnFy
+b3V0ZXJfcmVzdW1lKCksIHNpbmNlCmxvd2VyLWxldmVsIHJlc3VtZSBjb2RlIHRha2VzIGNhcmUg
+b2YgZW5hYmxpbmcgQUNQSSBpbiBjYXNlIGl0IGhhc24ndApiZWVuIGVuYWJsZWQgYnkgdGhlIEJJ
+T1MgYmVmb3JlIHBhc3NpbmcgY29udHJvbCB0byB0aGUga2VybmVsICh3aGljaApieSB0aGUgd2F5
+IGlzIGFnYWluc3QgdGhlIEFDUEkgc3BlY2lmaWNhdGlvbikuCgpTaWduZWQtb2ZmLWJ5OiBSYWZh
+ZWwgSi4gV3lzb2NraSA8cmp3QHNpc2sucGw+Ci0tLQogZHJpdmVycy9hY3BpL3BjaV9saW5rLmMg
+fCAgICA0IC0tLS0KIDEgZmlsZSBjaGFuZ2VkLCA0IGRlbGV0aW9ucygtKQoKSW5kZXg6IGxpbnV4
+LTIuNi9kcml2ZXJzL2FjcGkvcGNpX2xpbmsuYwo9PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Ci0tLSBsaW51eC0yLjYub3Jp
+Zy9kcml2ZXJzL2FjcGkvcGNpX2xpbmsuYworKysgbGludXgtMi42L2RyaXZlcnMvYWNwaS9wY2lf
+bGluay5jCkBAIC03OTMsMTAgKzc5Myw2IEBAIHN0YXRpYyBpbnQgaXJxcm91dGVyX3Jlc3VtZShz
+dHJ1Y3Qgc3lzX2QKIAlzdHJ1Y3QgbGlzdF9oZWFkICpub2RlID0gTlVMTDsKIAlzdHJ1Y3QgYWNw
+aV9wY2lfbGluayAqbGluayA9IE5VTEw7CiAKLQotCS8qIE1ha2Ugc3VyZSBTQ0kgaXMgZW5hYmxl
+ZCBhZ2FpbiAoQXBwbGUgZmlybXdhcmUgYnVnPykgKi8KLQlhY3BpX3NldF9yZWdpc3RlcihBQ1BJ
+X0JJVFJFR19TQ0lfRU5BQkxFLCAxKTsKLQogCWxpc3RfZm9yX2VhY2gobm9kZSwgJmFjcGlfbGlu
+ay5lbnRyaWVzKSB7CiAJCWxpbmsgPSBsaXN0X2VudHJ5KG5vZGUsIHN0cnVjdCBhY3BpX3BjaV9s
+aW5rLCBub2RlKTsKIAkJaWYgKCFsaW5rKSB7CgAK
