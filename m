@@ -1,37 +1,41 @@
 From: Richard Purdie <rpurdie@rpsys.net>
-Subject: Re: [PATCH 2/2] video: mark "actual_brightness" deprecated
-Date: Tue, 30 Dec 2008 10:37:17 +0000
-Message-ID: <1230633437.5328.13.camel@dax.rpnet.com>
-References: <1230088061.562.220.camel@rzhang-dt>
+Subject: Re: [PATCH 1/2] video: always update the brightness when poking
+	"brightness"
+Date: Tue, 30 Dec 2008 10:34:10 +0000
+Message-ID: <1230633250.5328.8.camel@dax.rpnet.com>
+References: <1230088058.562.219.camel@rzhang-dt>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from 93-97-173-237.zone5.bethere.co.uk ([93.97.173.237]:64108 "EHLO
 	tim.rpsys.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751729AbYL3LGH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 30 Dec 2008 06:06:07 -0500
-In-Reply-To: <1230088061.562.220.camel@rzhang-dt>
+	id S1751929AbYL3LGJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 30 Dec 2008 06:06:09 -0500
+In-Reply-To: <1230088058.562.219.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Zhang Rui <rui.zhang@intel.com>
 Cc: linux-acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-
 On Wed, 2008-12-24 at 11:07 +0800, Zhang Rui wrote:
-> /sys/class/backlight/.../brightness returns a cached value,
-> which confuses a lot of users.
+> bd->props.brightness is a cached value.
+> the current code has some potential problems when poking the
+> backlight I/F.
 > 
-> Make the "brightness" reflect the actual backlight levels,
-> and mark /sys/class/backlight/.../brightness as depreacated
-> in this patch.
+> For example,
+> 1. set the brightness level to 5 via sysfs I/F
+> 2. set the backlight to another level via the procfs,
+> 3. setting it back to 5 doesn't work because bd->props.brightness
+> is still 5.
+> 
+> http://bugzilla.kernel.org/show_bug.cgi?id=12249
 
-This isn't an acceptable approach I'm afraid. We have some hardware
-which needs limiting of the backlight brightness in cases of low battery
-for example. "brightness" is the user requested value,
-"actual_brightness" is the one that is actually active. This also makes
-it clear when things like console blanking are active since the actual
-value is 0 but brightness preserves the user requested value.
+The root of the problem here is that there are two interfaces
+controlling the same piece of hardware. Personally, I'd like to see the
+proc interfaces to backlights depreacated but we do need to make them
+work I guess. The real bug looks like the proc interface should update
+props.brightness for that hardware...
 
 Cheers,
 
