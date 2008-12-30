@@ -1,37 +1,54 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: backlight regression on ASUS F6S: inverted brightness control
-Date: Tue, 30 Dec 2008 09:37:47 +0800
-Message-ID: <1230601067.562.235.camel@rzhang-dt>
-References: <200812280611.18320.kel@otaku42.de>
-	 <1230512852.562.228.camel@rzhang-dt>  <200812291839.47270.kel@otaku42.de>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: [PATCH] : ACPI : Add the MWAIT C-state mask to avoid overflow
+Date: Tue, 30 Dec 2008 12:01:09 +0800
+Message-ID: <1230609669.4091.92.camel@yakui_zhao.sh.intel.com>
+References: <20081031184233.8588.42241.stgit@thinkpad>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:44751 "EHLO mga02.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:9791 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751495AbYL3BkO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 29 Dec 2008 20:40:14 -0500
-In-Reply-To: <200812291839.47270.kel@otaku42.de>
+	id S1752097AbYL3DvA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 29 Dec 2008 22:51:00 -0500
+In-Reply-To: <20081031184233.8588.42241.stgit@thinkpad>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kel Modderman <kel@otaku42.de>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: LenBrown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, venkatesh.pallipadi@intel.com
 
-On Mon, 2008-12-29 at 16:39 +0800, Kel Modderman wrote:
-> On Monday 29 December 2008 11:07:32 Zhang Rui wrote:
-> > hi,
-> > 
-> > This is a duplicate of bug
-> > http://bugzilla.kernel.org/show_bug.cgi?id=12302
-> > please try the patch at
-> > http://bugzilla.kernel.org/show_bug.cgi?id=12037#c5
-> 
-> When patch is applied backlight control returned to normality.
-> 
-please attach the output of "grep . /proc/acpi/video/*/*/*" both before
-and after applying this patch.
+Subject: ACPI: Add the MWAIT C-state mask to avoid overflow
+From: Zhao Yakui <yakui.zhao@intel.com>
 
-thanks,
-rui
+Add the MWAIT C-state mask to avoid overflow 
+
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+Acked-by:Venki Pallipadi <venkatesh.pallipadi@intel.com>
+---
+ arch/x86/kernel/acpi/cstate.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+Index: linux-2.6/arch/x86/kernel/acpi/cstate.c
+===================================================================
+--- linux-2.6.orig/arch/x86/kernel/acpi/cstate.c
++++ linux-2.6/arch/x86/kernel/acpi/cstate.c
+@@ -56,6 +56,7 @@ static struct cstate_entry *cpu_cstate_e
+ static short mwait_supported[ACPI_PROCESSOR_MAX_POWER];
+ 
+ #define MWAIT_SUBSTATE_MASK	(0xf)
++#define MWAIT_CSTATE_MASK	(0xf)
+ #define MWAIT_SUBSTATE_SIZE	(4)
+ 
+ #define CPUID_MWAIT_LEAF (5)
+@@ -98,7 +99,8 @@ int acpi_processor_ffh_cstate_probe(unsi
+ 	cpuid(CPUID_MWAIT_LEAF, &eax, &ebx, &ecx, &edx);
+ 
+ 	/* Check whether this particular cx_type (in CST) is supported or not */
+-	cstate_type = (cx->address >> MWAIT_SUBSTATE_SIZE) + 1;
++	cstate_type = ((cx->address >> MWAIT_SUBSTATE_SIZE) &
++			MWAIT_CSTATE_MASK) + 1;
+ 	edx_part = edx >> (cstate_type * MWAIT_SUBSTATE_SIZE);
+ 	num_cstate_subtype = edx_part & MWAIT_SUBSTATE_MASK;
+ 
+
 
