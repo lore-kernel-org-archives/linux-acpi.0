@@ -1,107 +1,33 @@
-From: Kel Modderman <kel@otaku42.de>
-Subject: Re: backlight regression on ASUS F6S: inverted brightness control
-Date: Wed, 31 Dec 2008 02:02:16 +1000
-Message-ID: <200812310202.16459.kel@otaku42.de>
-References: <200812280611.18320.kel@otaku42.de> <200812291839.47270.kel@otaku42.de> <1230601067.562.235.camel@rzhang-dt>
-Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_IYkWJI0tTcuvQjo"
+From: Stephen Gildea <stepheng+linux@gildea.com>
+Subject: Re: [PATCH RFT] fujitsu-laptop: Add BL power, LED control and radio state information
+Date: Tue, 30 Dec 2008 11:39:47 -0500
+Message-ID: <20424.1230655187@ma.gildea.net>
+References: <20081229185605.BF1DF10080@gold.linx.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from venema.h4ckr.net ([217.24.1.135]:56049 "EHLO venema.h4ckr.net"
+Received: from phobia.gildea.net ([63.193.242.231]:4632 "EHLO mail.gildea.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750722AbYL3QC2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 30 Dec 2008 11:02:28 -0500
-In-Reply-To: <1230601067.562.235.camel@rzhang-dt>
+	id S1751304AbYL3REu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 30 Dec 2008 12:04:50 -0500
+Received: from owl.ma.gildea.net (static.unknown.charter.com [75.128.3.30] (may be forged))
+	by mail.gildea.net (8.12.11/8.12.11) with ESMTP id mBUGf8Mh062477
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-acpi@vger.kernel.org>; Tue, 30 Dec 2008 08:41:10 -0800 (PST)
+	(envelope-from stepheng+linux@gildea.com)
+In-Reply-To: Message from tony@linx.net of 29 Dec 2008 18:56:05 GMT
+    <20081229185605.BF1DF10080@gold.linx.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Tony Vroon <tony@linx.net>
+Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Peter Gruber <nokos@gmx.net>, Julian Brown <jules@panic.cs-bristol.org.uk>, linux-acpi@vger.kernel.org
 
---Boundary-00=_IYkWJI0tTcuvQjo
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+>    Stephen, please add a Tested-By header if this works right on
+>    your P8010.
 
-On Tuesday 30 December 2008 11:37:47 Zhang Rui wrote:
-> On Mon, 2008-12-29 at 16:39 +0800, Kel Modderman wrote:
-> > On Monday 29 December 2008 11:07:32 Zhang Rui wrote:
-> > > hi,
-> > > 
-> > > This is a duplicate of bug
-> > > http://bugzilla.kernel.org/show_bug.cgi?id=12302
-> > > please try the patch at
-> > > http://bugzilla.kernel.org/show_bug.cgi?id=12037#c5
-> > 
-> > When patch is applied backlight control returned to normality.
-> > 
-> please attach the output of "grep . /proc/acpi/video/*/*/*" both before
-> and after applying this patch.
+Patch applied to 2.6.28 base, works on my LifeBook P8010.  Builds
+and installs with or without CONFIG_LEDS_CLASS.
 
-Attached.
+Thanks for the new hardware support, Tony.
 
-Thanks, Kel
-
---Boundary-00=_IYkWJI0tTcuvQjo
-Content-Type: text/plain;
-  charset="iso 8859-15";
-  name="before"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="before"
-
-/proc/acpi/video/VGA/CRTD/brightness:<not supported>
-/proc/acpi/video/VGA/CRTD/EDID:<not supported>
-/proc/acpi/video/VGA/CRTD/info:device_id:    0x0100
-/proc/acpi/video/VGA/CRTD/info:type:         UNKNOWN
-/proc/acpi/video/VGA/CRTD/info:known by bios: no
-/proc/acpi/video/VGA/CRTD/state:state:     0x1d
-/proc/acpi/video/VGA/CRTD/state:query:     0x00
-/proc/acpi/video/VGA/DVID/brightness:<not supported>
-/proc/acpi/video/VGA/DVID/EDID:<not supported>
-/proc/acpi/video/VGA/DVID/info:device_id:    0x0120
-/proc/acpi/video/VGA/DVID/info:type:         UNKNOWN
-/proc/acpi/video/VGA/DVID/info:known by bios: no
-/proc/acpi/video/VGA/DVID/state:state:     0x1d
-/proc/acpi/video/VGA/DVID/state:query:     0x00
-/proc/acpi/video/VGA/LCDD/brightness:levels:  15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
-/proc/acpi/video/VGA/LCDD/brightness:current: 0
-/proc/acpi/video/VGA/LCDD/EDID:<not supported>
-/proc/acpi/video/VGA/LCDD/info:device_id:    0x0110
-/proc/acpi/video/VGA/LCDD/info:type:         UNKNOWN
-/proc/acpi/video/VGA/LCDD/info:known by bios: no
-/proc/acpi/video/VGA/LCDD/state:state:     0x1f
-/proc/acpi/video/VGA/LCDD/state:query:     0x01
-
---Boundary-00=_IYkWJI0tTcuvQjo
-Content-Type: text/plain;
-  charset="iso 8859-15";
-  name="after"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="after"
-
-/proc/acpi/video/VGA/CRTD/brightness:<not supported>
-/proc/acpi/video/VGA/CRTD/EDID:<not supported>
-/proc/acpi/video/VGA/CRTD/info:device_id:    0x0100
-/proc/acpi/video/VGA/CRTD/info:type:         UNKNOWN
-/proc/acpi/video/VGA/CRTD/info:known by bios: no
-/proc/acpi/video/VGA/CRTD/state:state:     0x1d
-/proc/acpi/video/VGA/CRTD/state:query:     0x00
-/proc/acpi/video/VGA/DVID/brightness:<not supported>
-/proc/acpi/video/VGA/DVID/EDID:<not supported>
-/proc/acpi/video/VGA/DVID/info:device_id:    0x0120
-/proc/acpi/video/VGA/DVID/info:type:         UNKNOWN
-/proc/acpi/video/VGA/DVID/info:known by bios: no
-/proc/acpi/video/VGA/DVID/state:state:     0x1d
-/proc/acpi/video/VGA/DVID/state:query:     0x00
-/proc/acpi/video/VGA/LCDD/brightness:levels:  15 14 0 1 2 3 4 5 6 7 8 9 10 11 12 13
-/proc/acpi/video/VGA/LCDD/brightness:current: 13
-/proc/acpi/video/VGA/LCDD/EDID:<not supported>
-/proc/acpi/video/VGA/LCDD/info:device_id:    0x0110
-/proc/acpi/video/VGA/LCDD/info:type:         UNKNOWN
-/proc/acpi/video/VGA/LCDD/info:known by bios: no
-/proc/acpi/video/VGA/LCDD/state:state:     0x1f
-/proc/acpi/video/VGA/LCDD/state:query:     0x01
-
---Boundary-00=_IYkWJI0tTcuvQjo--
+Signed-off-by: Stephen Gildea <stepheng+linux@gildea.com>
+Signed-off-by: Tony Vroon <tony@linx.net>
+Tested-by: Stephen Gildea <stepheng+linux@gildea.com>
