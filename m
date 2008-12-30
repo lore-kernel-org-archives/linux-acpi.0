@@ -1,53 +1,43 @@
-From: Tony Vroon <tony@linx.net>
-Subject: Re: [PATCH RFT] fujitsu-laptop: Add BL power, LED control and radio state information
-Date: Tue, 30 Dec 2008 10:09:13 +0000
-Message-ID: <6C698870-C395-4DE4-B41D-6581EA2F7D5F@linx.net>
-References: <200812300945.mBU9jAwh001915@mercury.physics.adelaide.edu.au>
-Mime-Version: 1.0 (iPhone Mail 5F136)
-Content-Type: text/plain;
-	charset=us-ascii;
-	format=flowed;
-	delsp=yes
+From: Richard Purdie <rpurdie@rpsys.net>
+Subject: Re: [PATCH 2/2] video: mark "actual_brightness" deprecated
+Date: Tue, 30 Dec 2008 10:37:17 +0000
+Message-ID: <1230633437.5328.13.camel@dax.rpnet.com>
+References: <1230088061.562.220.camel@rzhang-dt>
+Mime-Version: 1.0
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gold.linx.net ([195.66.232.40]:32905 "EHLO gold.linx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751241AbYL3KI7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 30 Dec 2008 05:08:59 -0500
-In-Reply-To: <200812300945.mBU9jAwh001915@mercury.physics.adelaide.edu.au>
+Received: from 93-97-173-237.zone5.bethere.co.uk ([93.97.173.237]:64108 "EHLO
+	tim.rpsys.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751729AbYL3LGH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 30 Dec 2008 06:06:07 -0500
+In-Reply-To: <1230088061.562.220.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Stephen Gildea <stepheng+linux@gildea.com>, Peter Gruber <nokos@gmx.net>, Julian Brown <jules@panic.cs-bristol.org.uk>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-That is correct, aside from backlight power control no new  
-functionality is unlocked on the S7020. Additional platform files  
-should still appear, reporting a status of 'unknown'.
-This should build successfully, with or without LED class support.
 
-Sent from my iPhone
+On Wed, 2008-12-24 at 11:07 +0800, Zhang Rui wrote:
+> /sys/class/backlight/.../brightness returns a cached value,
+> which confuses a lot of users.
+> 
+> Make the "brightness" reflect the actual backlight levels,
+> and mark /sys/class/backlight/.../brightness as depreacated
+> in this patch.
 
-On 30 Dec 2008, at 09:45, Jonathan Woithe <jwoithe@physics.adelaide.edu.au 
- > wrote:
+This isn't an acceptable approach I'm afraid. We have some hardware
+which needs limiting of the backlight brightness in cases of low battery
+for example. "brightness" is the user requested value,
+"actual_brightness" is the one that is actually active. This also makes
+it clear when things like console blanking are active since the actual
+value is 0 but brightness preserves the user requested value.
 
-> Hi Tony
->
->> Jonathan, if this passes your testing please forward it on to Len  
->> Brown
->> ASAP for inclusion in 2.6.29 (the merge window is open so time is  
->> of the
->> essence).
->
-> I will try.  I only returned from a 4-day camping trip today though,  
-> which
-> is why there was a delay in response.  Also the dialup connection at  
-> home
-> doesn't help.  I will endeavor to test this in the next day or so.   
-> From
-> what I gather, "testing" on the S7020 is more or less a case of  
-> making sure
-> that nothing's broken for me - as far as i can see this adds support  
-> for
-> things the S7020 doesn't have.
->
-> Regards
->  jonathan
+Cheers,
+
+Richard
+
+-- 
+Richard Purdie
+Intel Open Source Technology Centre
+
