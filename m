@@ -1,89 +1,58 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] Add decaying history logic to cpuidle menu idle predictor
-Date: Tue, 30 Dec 2008 18:48:30 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0812301848220.17126@localhost.localdomain>
-References: <20081230224602.GA6898@linux-os.sc.intel.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH, resend] misc: Add dell-wmi driver for hotkey control
+Date: Tue, 30 Dec 2008 15:50:35 -0800
+Message-ID: <20081230155035.8224ca86.akpm@linux-foundation.org>
+References: <20081228153128.GC13424@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms046pub.verizon.net ([206.46.252.46]:48010 "EHLO
-	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751245AbYL3XtL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Dec 2008 18:49:11 -0500
-Received: from localhost.localdomain ([96.237.168.40])
- by vms046.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0KCP00LPDRHIQGF3@vms046.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Tue, 30 Dec 2008 17:49:00 -0600 (CST)
-In-reply-to: <20081230224602.GA6898@linux-os.sc.intel.com>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55142 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751335AbYL3XvQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 30 Dec 2008 18:51:16 -0500
+In-Reply-To: <20081228153128.GC13424@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Cc: linux-acpi@vger.kernel.org, yakui.zhao@intel.com
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org
 
-applied
+On Sun, 28 Dec 2008 15:31:28 +0000
+Matthew Garrett <mjg59@srcf.ucam.org> wrote:
 
--- Len Brown, Intel Open Source Technology Center
+> misc: add dell-wmi driver
+>     
+> Add a WMI driver for Dell laptops. Currently it does nothing but send a
+> generic input event when a button with a picture of a battery on it is
+> pressed, but maybe other uses will appear over time.
+>     
 
-On Tue, 30 Dec 2008, Pallipadi, Venkatesh wrote:
+One wonders whether this driver should really live in drivers/input/?
 
-> 
-> Add decaying history of predicted idle time, instead of using the last early
-> wakeup. This logic helps menu governor do better job of predicting idle time.
-> 
-> With this change, we also measured noticable (~8%) power savings on
-> a DP server system with CPUs supporting deep C states, when system
-> was lightly loaded. There was no change to power or perf on other load
-> conditions.
-> 
-> Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-> 
-> ---
->  drivers/cpuidle/governors/menu.c |   10 +++++++++-
->  1 file changed, 9 insertions(+), 1 deletion(-)
-> 
-> Index: linux-2.6/drivers/cpuidle/governors/menu.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/cpuidle/governors/menu.c	2008-11-10 15:27:13.000000000 -0800
-> +++ linux-2.6/drivers/cpuidle/governors/menu.c	2008-12-30 14:39:15.000000000 -0800
-> @@ -15,12 +15,14 @@
->  #include <linux/tick.h>
->  
->  #define BREAK_FUZZ	4	/* 4 us */
-> +#define PRED_HISTORY_PCT	50
->  
->  struct menu_device {
->  	int		last_state_idx;
->  
->  	unsigned int	expected_us;
->  	unsigned int	predicted_us;
-> +	unsigned int    current_predicted_us;
->  	unsigned int	last_measured_us;
->  	unsigned int	elapsed_us;
->  };
-> @@ -47,6 +49,12 @@ static int menu_select(struct cpuidle_de
->  	data->expected_us =
->  		(u32) ktime_to_ns(tick_nohz_get_sleep_length()) / 1000;
->  
-> +	/* Recalculate predicted_us based on prediction_history_pct */
-> +	data->predicted_us *= PRED_HISTORY_PCT;
-> +	data->predicted_us += (100 - PRED_HISTORY_PCT) *
-> +				data->current_predicted_us;
-> +	data->predicted_us /= 100;
-> +
->  	/* find the deepest idle state that satisfies our constraints */
->  	for (i = CPUIDLE_DRIVER_STATE_START + 1; i < dev->state_count; i++) {
->  		struct cpuidle_state *s = &dev->states[i];
-> @@ -97,7 +105,7 @@ static void menu_reflect(struct cpuidle_
->  		measured_us = -1;
->  
->  	/* Predict time until next break event */
-> -	data->predicted_us = max(measured_us, data->last_measured_us);
-> +	data->current_predicted_us = max(measured_us, data->last_measured_us);
->  
->  	if (last_idle_us + BREAK_FUZZ <
->  	    data->expected_us - target->exit_latency) {
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
++#include <linux/input.h>
++static struct input_dev *dell_wmi_input_dev;
++static int dell_wmi_getkeycode(struct input_dev *dev, int scancode,
++static int dell_wmi_setkeycode(struct input_dev *dev, int scancode, int keycode)
++			input_report_key(dell_wmi_input_dev, key->keycode, 1);
++			input_sync(dell_wmi_input_dev);
++			input_report_key(dell_wmi_input_dev, key->keycode, 0);
++			input_sync(dell_wmi_input_dev);
++static int __init dell_wmi_input_setup(void)
++	dell_wmi_input_dev = input_allocate_device();
++	if (!dell_wmi_input_dev)
++	dell_wmi_input_dev->name = "Dell WMI hotkeys";
++	dell_wmi_input_dev->phys = "wmi/input0";
++	dell_wmi_input_dev->id.bustype = BUS_HOST;
++	dell_wmi_input_dev->getkeycode = dell_wmi_getkeycode;
++	dell_wmi_input_dev->setkeycode = dell_wmi_setkeycode;
++			set_bit(EV_KEY, dell_wmi_input_dev->evbit);
++			set_bit(key->keycode, dell_wmi_input_dev->keybit);
++			set_bit(EV_SW, dell_wmi_input_dev->evbit);
++			set_bit(key->keycode, dell_wmi_input_dev->swbit);
++	err = input_register_device(dell_wmi_input_dev);
++		input_free_device(dell_wmi_input_dev);
++		err = dell_wmi_input_setup();
++			input_unregister_device(dell_wmi_input_dev);
++		input_unregister_device(dell_wmi_input_dev);
+
