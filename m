@@ -1,71 +1,45 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: state of some x86 acpi patches
-Date: Wed, 31 Dec 2008 18:38:15 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0812311821110.3854@localhost.localdomain>
-References: <4947FF4C.80706@goop.org> <20081216192534.GB843@elte.hu>
+Subject: Re: [PATCH 0/8] ACPI: ACPI table management enhencement
+Date: Wed, 31 Dec 2008 18:58:32 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0812311856520.3854@localhost.localdomain>
+References: <1229673457.562.132.camel@rzhang-dt>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173007pub.verizon.net ([206.46.173.7]:56004 "EHLO
-	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751550AbYLaXiS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Dec 2008 18:38:18 -0500
+Received: from vms173005pub.verizon.net ([206.46.173.5]:48491 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756301AbYLaX6h (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Dec 2008 18:58:37 -0500
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173007.mailsrvcs.net
+ by vms173005.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0KCR006RULLIYV12@vms173007.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 31 Dec 2008 17:36:55 -0600 (CST)
-In-reply-to: <20081216192534.GB843@elte.hu>
+ with ESMTPA id <0KCR00A8OMLMXMT6@vms173005.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Wed, 31 Dec 2008 17:58:35 -0600 (CST)
+In-reply-to: <1229673457.562.132.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>, Yinghai Lu <yinghai@kernel.org>, linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-On Tue, 16 Dec 2008, Ingo Molnar wrote:
+On Fri, 19 Dec 2008, Zhang Rui wrote:
 
+> Hi all,
 > 
-> * Jeremy Fitzhardinge <jeremy@goop.org> wrote:
+> this patch set is an ACPI table management enhancement.
 > 
-> > Hi Len,
-> >
-> > Have you seen these three patches?  Do they look OK to you?
-> >
-> > Yinghai Lu improve the third patch ("acpi: remove final __acpi_map_table 
-> > mapping before setting acpi_gbl_permanent_mmap"), which I think Ingo 
-> > sent you instead.
+> Patch 01 adds the new sysfs I/F for ACPI dynamic tables.
+> now dynamic ACPI tables can be get at
+> /sys/firmware/acpi/tables/dynamic/...
 > 
-> Len,
-> 
-> i asked about these patches before too - and if that's fine with you we'd 
-> just queue them up in the x86 tree (like we did before the .28 merge 
-> window). Most of the impact will be on x86. So an Acked-by from you would 
-> be fine to start this.
+> Patch 02 ~ 08 introduce the ACPI inactive table management.
+> Here inactive table means the table that is pointed to by
+> the inactive root table, e.g RSDT if Linux is using XSDT.
+> Detailed introduction of each patch is in the change log.
 
-Sorry for the delay.
-I recall reading your e-mail on this and thought I replied to it,
-but for some reason I found neither your original message nor
-my reply when I searched my archives today.
-
-But I did recall Ingo making a branch for this one, and so looking
-at remotes/origin/acpi-for-len in ingo's tree...
-
-It isn't immediately clear to me what problem this patch series solves,
-and thus it is hard to judge how important this is.
-
-It touches a lot of files, and it is going to run into a bunch of merge 
-conflicts.
-
-I'm not thrilled that the first part of the series makes changes
-which are then undone by the later part of the series --
-that doesn't help w/ conflict resolution...
-
-The change to tbxface.c is an ACPICA API change.
-It looks reasonable and it might be the right change,
-but it is extra work -- we should sync with Bob
-when he gets back from break.
-
-So, this one is sort of a headache, how important is it?
+I recall trying out a previous version of this series,
+and I'd like to try out this version, but I'm having
+trouble getting it to apply.  What tree is it based on?
+(2.6.28 would be a good choice, or the acpica branch)
 
 thanks,
 -- Len Brown, Intel Open Source Technology Center
-
