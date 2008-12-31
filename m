@@ -1,72 +1,37 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 00/20] ACPI: PCI: simplify _PRT handling
-Date: Tue, 30 Dec 2008 23:17:12 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0812302316320.17126@localhost.localdomain>
-References: <20081209042833.26415.24906.stgit@bob.kio>
+Subject: Re: ACPICA Release 20081204 linuxized patch set
+Date: Wed, 31 Dec 2008 01:20:26 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0812310118590.17126@localhost.localdomain>
+References: <1229427449.19540.126.camel@minggr.sh.intel.com>
+ <alpine.LFD.2.00.0812300126550.4331@localhost.localdomain>
+ <1230637665.23502.22.camel@minggr>  <1230690910.23502.25.camel@minggr>
+ <1230699693.23502.29.camel@minggr> <1230701284.23502.33.camel@minggr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173007pub.verizon.net ([206.46.173.7]:35297 "EHLO
-	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751596AbYLaER3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Dec 2008 23:17:29 -0500
+Received: from vms173003pub.verizon.net ([206.46.173.3]:61742 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751141AbYLaGU3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Dec 2008 01:20:29 -0500
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173007.mailsrvcs.net
+ by vms173003.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0KCQ002R53UI6Z26@vms173007.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Tue, 30 Dec 2008 22:15:59 -0600 (CST)
-In-reply-to: <20081209042833.26415.24906.stgit@bob.kio>
+ with ESMTPA id <0KCQ00CEL9M4DWK3@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Wed, 31 Dec 2008 00:20:28 -0600 (CST)
+In-reply-to: <1230701284.23502.33.camel@minggr>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+To: Lin Ming <ming.m.lin@intel.com>
 Cc: linux-acpi@vger.kernel.org
 
-series looks good -- applied all 20.
+Lin-Ming,
 
-thanks,
+I applied v20081204.style.fixes.mbox without
+manually fixing any of the checkpatch.pl errors --
+we'll get those later.
+
+thanks for fixing the series -- every patch builds:-)
+
+cheers,
 -- Len Brown, Intel Open Source Technology Center
 
-On Mon, 8 Dec 2008, Bjorn Helgaas wrote:
-
-> This series simplifies the code that handles ACPI _PRTs (PCI routing
-> tables).  My goal is to make this look more like the corresponding
-> code in other architectures, especially in terms of swizzling, e.g.,
-> the various implementations of common_swizzle() and simple_swizzle(),
-> and the x86 non-ACPI code in pirq_enable_irq().
-> 
-> There should be no functional changes in this series.
-> 
-> Comments welcome.
-> 
-> Bjorn
-> 
-> ---
-> 
-> Bjorn Helgaas (20):
->       ACPI: PCI: add HP copyright
->       ACPI: PCI: whitespace and useless initialization cleanup
->       ACPI: PCI: expand acpi_pci_allocate_irq() and acpi_pci_free_irq() inline
->       ACPI: PCI: simplify struct acpi_prt_entry
->       ACPI: PCI: simplify list of _PRT entries
->       ACPI: PCI: combine lookup and derive
->       ACPI: PCI: follow typical PCI INTx swizzling pattern
->       ACPI: PCI: use positive logic to simplify code
->       ACPI: PCI: remove callback from acpi_pci_irq_lookup & acpi_pci_irq_derive
->       ACPI: PCI: tweak _PRT lookup debug
->       ACPI: PCI: lookup _PRT entry by PCI dev and pin, not segment/bus/dev/pin
->       ACPI: PCI: use 1-based encoding for _PRT quirks
->       ACPI: PCI: always use the PCI INTx pin values, not the _PRT ones
->       ACPI: PCI: add a helper to convert _PRT INTx pin number to name
->       ACPI: PCI: move struct acpi_prt_entry declaration out of public header file
->       ACPI: PCI: fix GSI/IRQ naming confusion
->       ACPI: PCI: ignore _PRT function information
->       ACPI: PCI: simplify buffer management for evaluating _PRT
->       ACPI: PCI: remove unnecessary null pointer checks
->       ACPI: PCI: use conventional PCI address format
-> 
-> 
->  drivers/acpi/pci_bind.c |   12 +
->  drivers/acpi/pci_irq.c  |  416 +++++++++++++++--------------------------------
->  include/linux/acpi.h    |   16 --
->  3 files changed, 136 insertions(+), 308 deletions(-)
-> 
