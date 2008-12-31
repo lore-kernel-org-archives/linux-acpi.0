@@ -1,53 +1,71 @@
-From: "Koornstra, Reinoud" <koornstra@hp.com>
-Subject: RE: rc8 didn't include patch (was Re: 2.6.28-rc7 acpi error
- messages)
-Date: Fri, 12 Dec 2008 19:22:47 +0000
-Message-ID: <E92FAF79A8BBC642A36EEE3AA7F152D82A17319841@GVW1089EXB.americas.hpqcorp.net>
-References: <E92FAF79A8BBC642A36EEE3AA7F152D82A17319337@GVW1089EXB.americas.hpqcorp.net>
- <alpine.LFD.2.00.0812120137440.27968@localhost.localdomain>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: state of some x86 acpi patches
+Date: Wed, 31 Dec 2008 18:38:15 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0812311821110.3854@localhost.localdomain>
+References: <4947FF4C.80706@goop.org> <20081216192534.GB843@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:25277 "EHLO
-	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752055AbYLLTXt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Dec 2008 14:23:49 -0500
-In-Reply-To: <alpine.LFD.2.00.0812120137440.27968@localhost.localdomain>
-Content-Language: en-US
+Received: from vms173007pub.verizon.net ([206.46.173.7]:56004 "EHLO
+	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751550AbYLaXiS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Dec 2008 18:38:18 -0500
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173007.mailsrvcs.net
+ (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+ with ESMTPA id <0KCR006RULLIYV12@vms173007.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Wed, 31 Dec 2008 17:36:55 -0600 (CST)
+In-reply-to: <20081216192534.GB843@elte.hu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>, Yinghai Lu <yinghai@kernel.org>, linux-acpi@vger.kernel.org
 
-What can I do to help out in this?
-I could install windows on this machine as well, but I guess you'd be more interested in how this is supported under windows and just seeing that it's supported well under windows doesn't give the info that's needed.
-Since it's HP hardware, HP must have provided detailed specs to MS to be able to do this well, that is ......
-IF it's being supported well.
-Kind Regards,
+On Tue, 16 Dec 2008, Ingo Molnar wrote:
 
-Reinoud.
+> 
+> * Jeremy Fitzhardinge <jeremy@goop.org> wrote:
+> 
+> > Hi Len,
+> >
+> > Have you seen these three patches?  Do they look OK to you?
+> >
+> > Yinghai Lu improve the third patch ("acpi: remove final __acpi_map_table 
+> > mapping before setting acpi_gbl_permanent_mmap"), which I think Ingo 
+> > sent you instead.
+> 
+> Len,
+> 
+> i asked about these patches before too - and if that's fine with you we'd 
+> just queue them up in the x86 tree (like we did before the .28 merge 
+> window). Most of the impact will be on x86. So an Acked-by from you would 
+> be fine to start this.
 
------Original Message-----
-From: Len Brown [mailto:lenb@kernel.org]
-Sent: Thursday, December 11, 2008 10:40 PM
-To: Koornstra, Reinoud
-Cc: linux-acpi@vger.kernel.org
-Subject: Re: rc8 didn't include patch (was Re: 2.6.28-rc7 acpi error messages)
+Sorry for the delay.
+I recall reading your e-mail on this and thought I replied to it,
+but for some reason I found neither your original message nor
+my reply when I searched my archives today.
 
-> RC8 didn't include from Matthew Garret.
-> Will the next version contain this patch?
+But I did recall Ingo making a branch for this one, and so looking
+at remotes/origin/acpi-for-len in ingo's tree...
 
-nope.
+It isn't immediately clear to me what problem this patch series solves,
+and thus it is hard to judge how important this is.
 
-That patch was based on a guess about what Windows does.
-R8 isn't a time to patch Linux behaviour on all machines
-based on speculation about what Windows does.
+It touches a lot of files, and it is going to run into a bunch of merge 
+conflicts.
 
-The "regression" is that we print an an error message
-that we didn't used to print.  If we have to do anything
-in rc8, we'd delete that warning message for now.
+I'm not thrilled that the first part of the series makes changes
+which are then undone by the later part of the series --
+that doesn't help w/ conflict resolution...
+
+The change to tbxface.c is an ACPICA API change.
+It looks reasonable and it might be the right change,
+but it is extra work -- we should sync with Bob
+when he gets back from break.
+
+So, this one is sort of a headache, how important is it?
 
 thanks,
-Len Brown, Intel Open Source Technology Center
+-- Len Brown, Intel Open Source Technology Center
 
