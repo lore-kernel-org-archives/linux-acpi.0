@@ -1,13 +1,13 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 14/15] ACPICA: actables.h is private
-Date: Wed, 31 Dec 2008 05:52:04 -0500
-Message-ID: <a1de2c84894204e238bbfc9547c3042a3d00996e.1230719806.git.len.brown@intel.com>
+Subject: [PATCH 11/15] ACPICA: acparser.h is private
+Date: Wed, 31 Dec 2008 05:52:01 -0500
+Message-ID: <5b4a25099b7bd7546f53c8039f84c3aed8b75196.1230719805.git.len.brown@intel.com>
 References: <1230720725-9376-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:36237 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755483AbYLaKwO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Dec 2008 05:52:14 -0500
+Received: from vms173005pub.verizon.net ([206.46.173.5]:46751 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755987AbYLaKw1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Dec 2008 05:52:27 -0500
 In-reply-to: <1230720725-9376-1-git-send-email-lenb@kernel.org>
 In-reply-to: <526647e1bb69fd3248558fce365bb1fbfb226ccd.1230719795.git.len.brown@intel.com>
 References: <526647e1bb69fd3248558fce365bb1fbfb226ccd.1230719795.git.len.brown@intel.com>
@@ -20,238 +20,336 @@ From: Len Brown <len.brown@intel.com>
 
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- {include/acpi => kernel/acpi/acpica}/actables.h |    0 
- kernel/acpi/acpica/dsinit.c                     |    2 +-
+ {include/acpi => kernel/acpi/acpica}/acparser.h |    0 
+ kernel/acpi/acpica/dsfield.c                    |    2 +-
+ kernel/acpi/acpica/dsobject.c                   |    2 +-
  kernel/acpi/acpica/dsopcode.c                   |    2 +-
- kernel/acpi/acpica/evxfevnt.c                   |    2 +-
- kernel/acpi/acpica/exconfig.c                   |    2 +-
- kernel/acpi/acpica/hwsleep.c                    |    2 +-
- kernel/acpi/acpica/nsload.c                     |    2 +-
+ kernel/acpi/acpica/dsutils.c                    |    2 +-
+ kernel/acpi/acpica/dswexec.c                    |    2 +-
+ kernel/acpi/acpica/dswload.c                    |    2 +-
+ kernel/acpi/acpica/dswstate.c                   |    2 +-
+ kernel/acpi/acpica/exoparg1.c                   |    2 +-
+ kernel/acpi/acpica/exoparg2.c                   |    2 +-
+ kernel/acpi/acpica/exoparg3.c                   |    2 +-
+ kernel/acpi/acpica/exoparg6.c                   |    2 +-
+ kernel/acpi/acpica/exresop.c                    |    2 +-
+ kernel/acpi/acpica/nseval.c                     |    2 +-
  kernel/acpi/acpica/nsparse.c                    |    2 +-
- kernel/acpi/acpica/nsutils.c                    |    2 +-
- kernel/acpi/acpica/tbfadt.c                     |    2 +-
- kernel/acpi/acpica/tbfind.c                     |    2 +-
- kernel/acpi/acpica/tbinstal.c                   |    2 +-
- kernel/acpi/acpica/tbutils.c                    |    2 +-
- kernel/acpi/acpica/tbxface.c                    |    2 +-
- kernel/acpi/acpica/tbxfroot.c                   |    2 +-
- kernel/acpi/acpica/utinit.c                     |    2 +-
- kernel/acpi/acpica/utxface.c                    |    2 +-
- 17 files changed, 16 insertions(+), 16 deletions(-)
- rename {include/acpi => kernel/acpi/acpica}/actables.h (100%)
+ kernel/acpi/acpica/psargs.c                     |    2 +-
+ kernel/acpi/acpica/psloop.c                     |    2 +-
+ kernel/acpi/acpica/psopcode.c                   |    2 +-
+ kernel/acpi/acpica/psparse.c                    |    2 +-
+ kernel/acpi/acpica/psscope.c                    |    2 +-
+ kernel/acpi/acpica/pstree.c                     |    2 +-
+ kernel/acpi/acpica/psutils.c                    |    2 +-
+ kernel/acpi/acpica/pswalk.c                     |    2 +-
+ kernel/acpi/acpica/psxface.c                    |    2 +-
+ 24 files changed, 23 insertions(+), 23 deletions(-)
+ rename {include/acpi => kernel/acpi/acpica}/acparser.h (100%)
 
-diff --git a/include/acpi/actables.h b/kernel/acpi/acpica/actables.h
+diff --git a/include/acpi/acparser.h b/kernel/acpi/acpica/acparser.h
 similarity index 100%
-rename from include/acpi/actables.h
-rename to kernel/acpi/acpica/actables.h
-diff --git a/kernel/acpi/acpica/dsinit.c b/kernel/acpi/acpica/dsinit.c
-index c063e81..eb144b1 100644
---- a/kernel/acpi/acpica/dsinit.c
-+++ b/kernel/acpi/acpica/dsinit.c
-@@ -45,7 +45,7 @@
- #include "accommon.h"
+rename from include/acpi/acparser.h
+rename to kernel/acpi/acpica/acparser.h
+diff --git a/kernel/acpi/acpica/dsfield.c b/kernel/acpi/acpica/dsfield.c
+index 73a85c8..65e27b5 100644
+--- a/kernel/acpi/acpica/dsfield.c
++++ b/kernel/acpi/acpica/dsfield.c
+@@ -47,7 +47,7 @@
  #include "acdispat.h"
+ #include "acinterp.h"
  #include "acnamesp.h"
--#include <acpi/actables.h>
-+#include "actables.h"
+-#include <acpi/acparser.h>
++#include "acparser.h"
  
  #define _COMPONENT          ACPI_DISPATCHER
- ACPI_MODULE_NAME("dsinit")
+ ACPI_MODULE_NAME("dsfield")
+diff --git a/kernel/acpi/acpica/dsobject.c b/kernel/acpi/acpica/dsobject.c
+index 8ed96dc..ae0140f 100644
+--- a/kernel/acpi/acpica/dsobject.c
++++ b/kernel/acpi/acpica/dsobject.c
+@@ -43,7 +43,7 @@
+ 
+ #include <acpi/acpi.h>
+ #include "accommon.h"
+-#include <acpi/acparser.h>
++#include "acparser.h"
+ #include <acpi/amlcode.h>
+ #include "acdispat.h"
+ #include "acnamesp.h"
 diff --git a/kernel/acpi/acpica/dsopcode.c b/kernel/acpi/acpica/dsopcode.c
-index 4c99739..20b8005 100644
+index e2732fe..4c99739 100644
 --- a/kernel/acpi/acpica/dsopcode.c
 +++ b/kernel/acpi/acpica/dsopcode.c
-@@ -50,7 +50,7 @@
- #include "acinterp.h"
- #include "acnamesp.h"
- #include "acevents.h"
--#include <acpi/actables.h>
-+#include "actables.h"
+@@ -44,7 +44,7 @@
  
- #define _COMPONENT          ACPI_DISPATCHER
- ACPI_MODULE_NAME("dsopcode")
-diff --git a/kernel/acpi/acpica/evxfevnt.c b/kernel/acpi/acpica/evxfevnt.c
-index b3f8caa..35485e4 100644
---- a/kernel/acpi/acpica/evxfevnt.c
-+++ b/kernel/acpi/acpica/evxfevnt.c
-@@ -45,7 +45,7 @@
+ #include <acpi/acpi.h>
  #include "accommon.h"
- #include "acevents.h"
- #include "acnamesp.h"
--#include <acpi/actables.h>
-+#include "actables.h"
- 
- #define _COMPONENT          ACPI_EVENTS
- ACPI_MODULE_NAME("evxfevnt")
-diff --git a/kernel/acpi/acpica/exconfig.c b/kernel/acpi/acpica/exconfig.c
-index fb8e36d..932bbc2 100644
---- a/kernel/acpi/acpica/exconfig.c
-+++ b/kernel/acpi/acpica/exconfig.c
-@@ -45,7 +45,7 @@
- #include "accommon.h"
- #include "acinterp.h"
- #include "acnamesp.h"
--#include <acpi/actables.h>
-+#include "actables.h"
+-#include <acpi/acparser.h>
++#include "acparser.h"
+ #include <acpi/amlcode.h>
  #include "acdispat.h"
+ #include "acinterp.h"
+diff --git a/kernel/acpi/acpica/dsutils.c b/kernel/acpi/acpica/dsutils.c
+index bb302ca..ebc3a79 100644
+--- a/kernel/acpi/acpica/dsutils.c
++++ b/kernel/acpi/acpica/dsutils.c
+@@ -43,7 +43,7 @@
+ 
+ #include <acpi/acpi.h>
+ #include "accommon.h"
+-#include <acpi/acparser.h>
++#include "acparser.h"
+ #include <acpi/amlcode.h>
+ #include "acdispat.h"
+ #include "acinterp.h"
+diff --git a/kernel/acpi/acpica/dswexec.c b/kernel/acpi/acpica/dswexec.c
+index dc7d87c..a2d1932 100644
+--- a/kernel/acpi/acpica/dswexec.c
++++ b/kernel/acpi/acpica/dswexec.c
+@@ -44,7 +44,7 @@
+ 
+ #include <acpi/acpi.h>
+ #include "accommon.h"
+-#include <acpi/acparser.h>
++#include "acparser.h"
+ #include <acpi/amlcode.h>
+ #include "acdispat.h"
+ #include "acinterp.h"
+diff --git a/kernel/acpi/acpica/dswload.c b/kernel/acpi/acpica/dswload.c
+index 35b56e7..259d289 100644
+--- a/kernel/acpi/acpica/dswload.c
++++ b/kernel/acpi/acpica/dswload.c
+@@ -43,7 +43,7 @@
+ 
+ #include <acpi/acpi.h>
+ #include "accommon.h"
+-#include <acpi/acparser.h>
++#include "acparser.h"
+ #include <acpi/amlcode.h>
+ #include "acdispat.h"
+ #include "acinterp.h"
+diff --git a/kernel/acpi/acpica/dswstate.c b/kernel/acpi/acpica/dswstate.c
+index f04912f..40f92bf 100644
+--- a/kernel/acpi/acpica/dswstate.c
++++ b/kernel/acpi/acpica/dswstate.c
+@@ -43,7 +43,7 @@
+ 
+ #include <acpi/acpi.h>
+ #include "accommon.h"
+-#include <acpi/acparser.h>
++#include "acparser.h"
+ #include "acdispat.h"
+ #include "acnamesp.h"
+ 
+diff --git a/kernel/acpi/acpica/exoparg1.c b/kernel/acpi/acpica/exoparg1.c
+index 7a2d7e2..3bd08bb 100644
+--- a/kernel/acpi/acpica/exoparg1.c
++++ b/kernel/acpi/acpica/exoparg1.c
+@@ -44,7 +44,7 @@
+ 
+ #include <acpi/acpi.h>
+ #include "accommon.h"
+-#include <acpi/acparser.h>
++#include "acparser.h"
+ #include "acdispat.h"
+ #include "acinterp.h"
+ #include <acpi/amlcode.h>
+diff --git a/kernel/acpi/acpica/exoparg2.c b/kernel/acpi/acpica/exoparg2.c
+index 4eda2e1..8f321f7 100644
+--- a/kernel/acpi/acpica/exoparg2.c
++++ b/kernel/acpi/acpica/exoparg2.c
+@@ -43,7 +43,7 @@
+ 
+ #include <acpi/acpi.h>
+ #include "accommon.h"
+-#include <acpi/acparser.h>
++#include "acparser.h"
+ #include "acinterp.h"
+ #include "acevents.h"
+ #include <acpi/amlcode.h>
+diff --git a/kernel/acpi/acpica/exoparg3.c b/kernel/acpi/acpica/exoparg3.c
+index 6405c24..dbe7612 100644
+--- a/kernel/acpi/acpica/exoparg3.c
++++ b/kernel/acpi/acpica/exoparg3.c
+@@ -45,7 +45,7 @@
+ #include <acpi/acpi.h>
+ #include "accommon.h"
+ #include "acinterp.h"
+-#include <acpi/acparser.h>
++#include "acparser.h"
+ #include <acpi/amlcode.h>
  
  #define _COMPONENT          ACPI_EXECUTER
-diff --git a/kernel/acpi/acpica/hwsleep.c b/kernel/acpi/acpica/hwsleep.c
-index f290376..a2af2a4 100644
---- a/kernel/acpi/acpica/hwsleep.c
-+++ b/kernel/acpi/acpica/hwsleep.c
-@@ -44,7 +44,7 @@
+diff --git a/kernel/acpi/acpica/exoparg6.c b/kernel/acpi/acpica/exoparg6.c
+index 74eb341..17dfb08 100644
+--- a/kernel/acpi/acpica/exoparg6.c
++++ b/kernel/acpi/acpica/exoparg6.c
+@@ -45,7 +45,7 @@
+ #include <acpi/acpi.h>
+ #include "accommon.h"
+ #include "acinterp.h"
+-#include <acpi/acparser.h>
++#include "acparser.h"
+ #include <acpi/amlcode.h>
+ 
+ #define _COMPONENT          ACPI_EXECUTER
+diff --git a/kernel/acpi/acpica/exresop.c b/kernel/acpi/acpica/exresop.c
+index 68b9577..912148c 100644
+--- a/kernel/acpi/acpica/exresop.c
++++ b/kernel/acpi/acpica/exresop.c
+@@ -45,7 +45,7 @@
+ #include <acpi/acpi.h>
+ #include "accommon.h"
+ #include <acpi/amlcode.h>
+-#include <acpi/acparser.h>
++#include "acparser.h"
+ #include "acinterp.h"
+ #include "acnamesp.h"
+ 
+diff --git a/kernel/acpi/acpica/nseval.c b/kernel/acpi/acpica/nseval.c
+index 07560e7..0f3d5f9 100644
+--- a/kernel/acpi/acpica/nseval.c
++++ b/kernel/acpi/acpica/nseval.c
+@@ -43,7 +43,7 @@
  
  #include <acpi/acpi.h>
  #include "accommon.h"
--#include <acpi/actables.h>
-+#include "actables.h"
- 
- #define _COMPONENT          ACPI_HARDWARE
- ACPI_MODULE_NAME("hwsleep")
-diff --git a/kernel/acpi/acpica/nsload.c b/kernel/acpi/acpica/nsload.c
-index 32e530d..a0ba9e1 100644
---- a/kernel/acpi/acpica/nsload.c
-+++ b/kernel/acpi/acpica/nsload.c
-@@ -45,7 +45,7 @@
- #include "accommon.h"
+-#include <acpi/acparser.h>
++#include "acparser.h"
+ #include "acinterp.h"
  #include "acnamesp.h"
- #include "acdispat.h"
--#include <acpi/actables.h>
-+#include "actables.h"
  
- #define _COMPONENT          ACPI_NAMESPACE
- ACPI_MODULE_NAME("nsload")
 diff --git a/kernel/acpi/acpica/nsparse.c b/kernel/acpi/acpica/nsparse.c
-index b7dd8cd..b9e8d00 100644
+index eae2c46..b7dd8cd 100644
 --- a/kernel/acpi/acpica/nsparse.c
 +++ b/kernel/acpi/acpica/nsparse.c
-@@ -46,7 +46,7 @@
- #include "acnamesp.h"
- #include "acparser.h"
- #include "acdispat.h"
--#include <acpi/actables.h>
-+#include "actables.h"
- 
- #define _COMPONENT          ACPI_NAMESPACE
- ACPI_MODULE_NAME("nsparse")
-diff --git a/kernel/acpi/acpica/nsutils.c b/kernel/acpi/acpica/nsutils.c
-index ac83061..b285ed7 100644
---- a/kernel/acpi/acpica/nsutils.c
-+++ b/kernel/acpi/acpica/nsutils.c
-@@ -46,7 +46,7 @@
- #include "accommon.h"
- #include "acnamesp.h"
- #include <acpi/amlcode.h>
--#include <acpi/actables.h>
-+#include "actables.h"
- 
- #define _COMPONENT          ACPI_NAMESPACE
- ACPI_MODULE_NAME("nsutils")
-diff --git a/kernel/acpi/acpica/tbfadt.c b/kernel/acpi/acpica/tbfadt.c
-index 9c6769e..3636e4f 100644
---- a/kernel/acpi/acpica/tbfadt.c
-+++ b/kernel/acpi/acpica/tbfadt.c
-@@ -43,7 +43,7 @@
- 
- #include <acpi/acpi.h>
- #include "accommon.h"
--#include <acpi/actables.h>
-+#include "actables.h"
- 
- #define _COMPONENT          ACPI_TABLES
- ACPI_MODULE_NAME("tbfadt")
-diff --git a/kernel/acpi/acpica/tbfind.c b/kernel/acpi/acpica/tbfind.c
-index 941e38c..1054dfd 100644
---- a/kernel/acpi/acpica/tbfind.c
-+++ b/kernel/acpi/acpica/tbfind.c
-@@ -43,7 +43,7 @@
- 
- #include <acpi/acpi.h>
- #include "accommon.h"
--#include <acpi/actables.h>
-+#include "actables.h"
- 
- #define _COMPONENT          ACPI_TABLES
- ACPI_MODULE_NAME("tbfind")
-diff --git a/kernel/acpi/acpica/tbinstal.c b/kernel/acpi/acpica/tbinstal.c
-index 94fe615..37374b2 100644
---- a/kernel/acpi/acpica/tbinstal.c
-+++ b/kernel/acpi/acpica/tbinstal.c
 @@ -44,7 +44,7 @@
  #include <acpi/acpi.h>
  #include "accommon.h"
  #include "acnamesp.h"
--#include <acpi/actables.h>
-+#include "actables.h"
+-#include <acpi/acparser.h>
++#include "acparser.h"
+ #include "acdispat.h"
+ #include <acpi/actables.h>
  
- #define _COMPONENT          ACPI_TABLES
- ACPI_MODULE_NAME("tbinstal")
-diff --git a/kernel/acpi/acpica/tbutils.c b/kernel/acpi/acpica/tbutils.c
-index 55627ee..3a8d8d2 100644
---- a/kernel/acpi/acpica/tbutils.c
-+++ b/kernel/acpi/acpica/tbutils.c
+diff --git a/kernel/acpi/acpica/psargs.c b/kernel/acpi/acpica/psargs.c
+index 0765087..a851c73 100644
+--- a/kernel/acpi/acpica/psargs.c
++++ b/kernel/acpi/acpica/psargs.c
 @@ -43,7 +43,7 @@
  
  #include <acpi/acpi.h>
  #include "accommon.h"
--#include <acpi/actables.h>
-+#include "actables.h"
+-#include <acpi/acparser.h>
++#include "acparser.h"
+ #include <acpi/amlcode.h>
+ #include "acnamesp.h"
+ #include "acdispat.h"
+diff --git a/kernel/acpi/acpica/psloop.c b/kernel/acpi/acpica/psloop.c
+index d4f0f65..e993e43 100644
+--- a/kernel/acpi/acpica/psloop.c
++++ b/kernel/acpi/acpica/psloop.c
+@@ -51,7 +51,7 @@
  
- #define _COMPONENT          ACPI_TABLES
- ACPI_MODULE_NAME("tbutils")
-diff --git a/kernel/acpi/acpica/tbxface.c b/kernel/acpi/acpica/tbxface.c
-index ef5954f..c3e841f 100644
---- a/kernel/acpi/acpica/tbxface.c
-+++ b/kernel/acpi/acpica/tbxface.c
-@@ -45,7 +45,7 @@
  #include <acpi/acpi.h>
  #include "accommon.h"
- #include "acnamesp.h"
--#include <acpi/actables.h>
-+#include "actables.h"
+-#include <acpi/acparser.h>
++#include "acparser.h"
+ #include "acdispat.h"
+ #include <acpi/amlcode.h>
  
- #define _COMPONENT          ACPI_TABLES
- ACPI_MODULE_NAME("tbxface")
-diff --git a/kernel/acpi/acpica/tbxfroot.c b/kernel/acpi/acpica/tbxfroot.c
-index 8954e01..b7fc8dd 100644
---- a/kernel/acpi/acpica/tbxfroot.c
-+++ b/kernel/acpi/acpica/tbxfroot.c
+diff --git a/kernel/acpi/acpica/psopcode.c b/kernel/acpi/acpica/psopcode.c
+index ccb9652..9aede84 100644
+--- a/kernel/acpi/acpica/psopcode.c
++++ b/kernel/acpi/acpica/psopcode.c
 @@ -43,7 +43,7 @@
  
  #include <acpi/acpi.h>
  #include "accommon.h"
--#include <acpi/actables.h>
-+#include "actables.h"
+-#include <acpi/acparser.h>
++#include "acparser.h"
+ #include "acopcode.h"
+ #include <acpi/amlcode.h>
  
- #define _COMPONENT          ACPI_TABLES
- ACPI_MODULE_NAME("tbxfroot")
-diff --git a/kernel/acpi/acpica/utinit.c b/kernel/acpi/acpica/utinit.c
-index 10fb977..a54ca84 100644
---- a/kernel/acpi/acpica/utinit.c
-+++ b/kernel/acpi/acpica/utinit.c
-@@ -45,7 +45,7 @@
+diff --git a/kernel/acpi/acpica/psparse.c b/kernel/acpi/acpica/psparse.c
+index c065b31..8d45a31 100644
+--- a/kernel/acpi/acpica/psparse.c
++++ b/kernel/acpi/acpica/psparse.c
+@@ -52,7 +52,7 @@
+ 
+ #include <acpi/acpi.h>
  #include "accommon.h"
+-#include <acpi/acparser.h>
++#include "acparser.h"
+ #include "acdispat.h"
+ #include <acpi/amlcode.h>
  #include "acnamesp.h"
- #include "acevents.h"
--#include <acpi/actables.h>
-+#include "actables.h"
+diff --git a/kernel/acpi/acpica/psscope.c b/kernel/acpi/acpica/psscope.c
+index dc26c4a..2feca5c 100644
+--- a/kernel/acpi/acpica/psscope.c
++++ b/kernel/acpi/acpica/psscope.c
+@@ -43,7 +43,7 @@
  
- #define _COMPONENT          ACPI_UTILITIES
- ACPI_MODULE_NAME("utinit")
-diff --git a/kernel/acpi/acpica/utxface.c b/kernel/acpi/acpica/utxface.c
-index 0edc8fb..078a227 100644
---- a/kernel/acpi/acpica/utxface.c
-+++ b/kernel/acpi/acpica/utxface.c
-@@ -46,7 +46,7 @@
- #include "acevents.h"
- #include "acnamesp.h"
- #include "acdebug.h"
--#include <acpi/actables.h>
-+#include "actables.h"
+ #include <acpi/acpi.h>
+ #include "accommon.h"
+-#include <acpi/acparser.h>
++#include "acparser.h"
  
- #define _COMPONENT          ACPI_UTILITIES
- ACPI_MODULE_NAME("utxface")
+ #define _COMPONENT          ACPI_PARSER
+ ACPI_MODULE_NAME("psscope")
+diff --git a/kernel/acpi/acpica/pstree.c b/kernel/acpi/acpica/pstree.c
+index d355ba1..f317046 100644
+--- a/kernel/acpi/acpica/pstree.c
++++ b/kernel/acpi/acpica/pstree.c
+@@ -43,7 +43,7 @@
+ 
+ #include <acpi/acpi.h>
+ #include "accommon.h"
+-#include <acpi/acparser.h>
++#include "acparser.h"
+ #include <acpi/amlcode.h>
+ 
+ #define _COMPONENT          ACPI_PARSER
+diff --git a/kernel/acpi/acpica/psutils.c b/kernel/acpi/acpica/psutils.c
+index d71e180..5336631 100644
+--- a/kernel/acpi/acpica/psutils.c
++++ b/kernel/acpi/acpica/psutils.c
+@@ -43,7 +43,7 @@
+ 
+ #include <acpi/acpi.h>
+ #include "accommon.h"
+-#include <acpi/acparser.h>
++#include "acparser.h"
+ #include <acpi/amlcode.h>
+ 
+ #define _COMPONENT          ACPI_PARSER
+diff --git a/kernel/acpi/acpica/pswalk.c b/kernel/acpi/acpica/pswalk.c
+index a0cf80c..78b8b79 100644
+--- a/kernel/acpi/acpica/pswalk.c
++++ b/kernel/acpi/acpica/pswalk.c
+@@ -43,7 +43,7 @@
+ 
+ #include <acpi/acpi.h>
+ #include "accommon.h"
+-#include <acpi/acparser.h>
++#include "acparser.h"
+ 
+ #define _COMPONENT          ACPI_PARSER
+ ACPI_MODULE_NAME("pswalk")
+diff --git a/kernel/acpi/acpica/psxface.c b/kernel/acpi/acpica/psxface.c
+index ae30135..e905037 100644
+--- a/kernel/acpi/acpica/psxface.c
++++ b/kernel/acpi/acpica/psxface.c
+@@ -43,7 +43,7 @@
+ 
+ #include <acpi/acpi.h>
+ #include "accommon.h"
+-#include <acpi/acparser.h>
++#include "acparser.h"
+ #include "acdispat.h"
+ #include "acinterp.h"
+ #include <acpi/amlcode.h>
 -- 
 1.5.6.6
 
