@@ -1,95 +1,51 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: backlight regression on ASUS F6S: inverted brightness control
-Date: Wed, 31 Dec 2008 14:21:45 +0800
-Message-ID: <1230704505.562.320.camel@rzhang-dt>
-References: <200812280611.18320.kel@otaku42.de>
-	 <200812291839.47270.kel@otaku42.de> <1230601067.562.235.camel@rzhang-dt>
-	 <200812310202.16459.kel@otaku42.de>  <1230694408.562.306.camel@rzhang-dt>
+From: Robert Hancock <hancockr@shaw.ca>
+Subject: Re: Samsung R560 ACPI issues
+Date: Wed, 31 Dec 2008 01:34:04 -0600
+Message-ID: <495B206C.4020009@shaw.ca>
+References: <20081210134125.243910@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:43962 "EHLO mga03.intel.com"
+Received: from main.gmane.org ([80.91.229.2]:45087 "EHLO ciao.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751735AbYLaGYS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 31 Dec 2008 01:24:18 -0500
-In-Reply-To: <1230694408.562.306.camel@rzhang-dt>
+	id S1754902AbYLaHeQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 31 Dec 2008 02:34:16 -0500
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1LHvan-0005pQ-2y
+	for linux-acpi@vger.kernel.org; Wed, 31 Dec 2008 07:34:13 +0000
+Received: from s0106000c41bb86e1.ss.shawcable.net ([70.76.47.20])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Wed, 31 Dec 2008 07:34:13 +0000
+Received: from hancockr by s0106000c41bb86e1.ss.shawcable.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Wed, 31 Dec 2008 07:34:13 +0000
+In-Reply-To: <20081210134125.243910@gmx.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: trenn@suse.de
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Kel Modderman <kel@otaku42.de>
+To: linux-acpi@vger.kernel.org
 
-Hi, thomas,
+Torsten Schlabach wrote:
+> Dear list!
+> 
+> There seem to be some problems with P8400 based laptops and ACPI when using 64 Bit kernels.
+> 
+> See for example:
+> 
+> https://bugs.launchpad.net/ubuntu/+source/linux/+bug/272530
+> 
+> I have such a laptop. What can I do to help find and possibly fix the problem?
+> 
+> Regards,
+> Torsten
 
-we got a couple of regressions caused by the acpi video detect patch
-set.
-IMO, the reason is that they have buggy ACPI video extension
-implemented. and these laptops used to control the backlight via
-platform drivers.
+Would be useful to narrow down what causes the problem.. It's reported 
+that either mem=4096M or acpi=off is required. It would be useful to 
+build a kernel that has some of the ACPI features (CPU frequency 
+scaling, etc.) disabled and see if you can find out which part is 
+causing the problem.
 
-you can refer to this thread or the bug:
-http://bugzilla.kernel.org/show_bug.cgi?id=3D12037
-http://bugzilla.kernel.org/show_bug.cgi?id=3D12235
-http://bugzilla.kernel.org/show_bug.cgi?id=3D12249
-http://bugzilla.kernel.org/show_bug.cgi?id=3D12302
+This does smell quite possibly like some kind of BIOS or platform bug, 
+though. Obviously Vista 32-bit works, but who knows about 64-bit..
 
-I have fixed one by overriding the DSDT.
-the source code of the customized DSDT can be found at
-http://bugzilla.kernel.org/show_bug.cgi?id=3D12249#c32
-
-so IMO, acpi_video_backlight_support should be able to verify if BIOS
-offers buggy ACPI backlight control methods and returns false  in this
-case. but then we need to move a lot of ACPI video code
-(acpi_video_init_brightness) to video_detect.c, which doesn't sound
-quite good. what do you think?
-
-thanks,
-rui
-
-On Wed, 2008-12-31 at 11:33 +0800, Zhang Rui wrote:
-> the ACPI video backlight I/F on your laptop is broken.
-> could you please boot with acpi_backlight=3Dvendor and see if it work=
-s at
-> before?
->=20
-> BTW: please attach the output of =EF=BB=BF"grep . /proc/acpi/video/*/=
-*/*" in=20
-> 1. 2.6.28 kenrel & boot with "acpi_backlight=3Dvendor"
-> 2. an earlier working kernel, say 2.6.26.
->=20
-> thanks,
-> rui
->=20
->=20
-> On Wed, 2008-12-31 at 00:02 +0800, Kel Modderman wrote:
-> > On Tuesday 30 December 2008 11:37:47 Zhang Rui wrote:
-> > > On Mon, 2008-12-29 at 16:39 +0800, Kel Modderman wrote:
-> > > > On Monday 29 December 2008 11:07:32 Zhang Rui wrote:
-> > > > > hi,
-> > > > >=20
-> > > > > This is a duplicate of bug
-> > > > > http://bugzilla.kernel.org/show_bug.cgi?id=3D12302
-> > > > > please try the patch at
-> > > > > http://bugzilla.kernel.org/show_bug.cgi?id=3D12037#c5
-> > > >=20
-> > > > When patch is applied backlight control returned to normality.
-> > > >=20
-> > > please attach the output of "grep . /proc/acpi/video/*/*/*" both =
-before
-> > > and after applying this patch.
-> >=20
-> > Attached.
-> >=20
-> > Thanks, Kel
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
