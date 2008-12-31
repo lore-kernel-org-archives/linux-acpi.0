@@ -1,35 +1,61 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 1/2] video: always update the brightness when poking "brightness"
-Date: Wed, 31 Dec 2008 03:24:12 +0000
-Message-ID: <20081231032412.GA25598@srcf.ucam.org>
-References: <1230088058.562.219.camel@rzhang-dt> <1230633250.5328.8.camel@dax.rpnet.com> <1230687781.562.249.camel@rzhang-dt> <20081231020146.GA24861@srcf.ucam.org> <1230692328.562.289.camel@rzhang-dt> <1230693119.562.300.camel@rzhang-dt>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: backlight regression on ASUS F6S: inverted brightness control
+Date: Wed, 31 Dec 2008 11:33:28 +0800
+Message-ID: <1230694408.562.306.camel@rzhang-dt>
+References: <200812280611.18320.kel@otaku42.de>
+	 <200812291839.47270.kel@otaku42.de> <1230601067.562.235.camel@rzhang-dt>
+	 <200812310202.16459.kel@otaku42.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:37977 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752327AbYLaDYR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Dec 2008 22:24:17 -0500
-Content-Disposition: inline
-In-Reply-To: <1230693119.562.300.camel@rzhang-dt>
+Received: from mga09.intel.com ([134.134.136.24]:11807 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755560AbYLaDgB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 30 Dec 2008 22:36:01 -0500
+In-Reply-To: <200812310202.16459.kel@otaku42.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>, linux-acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: Kel Modderman <kel@otaku42.de>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wed, Dec 31, 2008 at 11:11:59AM +0800, Zhang Rui wrote:
-> On Wed, 2008-12-31 at 10:58 +0800, Zhang Rui wrote:
-> > always update pros.brightness no matter the backlight is changed
-> > via procfs, hotkeys or sysfs.
-> by the way, with this patch applied, we really don't need
-> "actual_brightness" any more, at least for ACPI backlight class I/F.
-> is there any chance that "actual_brightness" returns a different value
-> from "brightness"?
+the ACPI video backlight I/F on your laptop is broken.
+could you please boot with acpi_backlight=3Dvendor and see if it works =
+at
+before?
 
-Depending on _DOS, AC events can switch the backlight value without 
-sending a notification. I don't /think/ it's worth worrying about that 
-case, but it's still worth keeping the two attributes so that there's a 
-consistent interface for userspace.
+BTW: please attach the output of =EF=BB=BF"grep . /proc/acpi/video/*/*/=
+*" in=20
+1. 2.6.28 kenrel & boot with "acpi_backlight=3Dvendor"
+2. an earlier working kernel, say 2.6.26.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+thanks,
+rui
+
+
+On Wed, 2008-12-31 at 00:02 +0800, Kel Modderman wrote:
+> On Tuesday 30 December 2008 11:37:47 Zhang Rui wrote:
+> > On Mon, 2008-12-29 at 16:39 +0800, Kel Modderman wrote:
+> > > On Monday 29 December 2008 11:07:32 Zhang Rui wrote:
+> > > > hi,
+> > > >=20
+> > > > This is a duplicate of bug
+> > > > http://bugzilla.kernel.org/show_bug.cgi?id=3D12302
+> > > > please try the patch at
+> > > > http://bugzilla.kernel.org/show_bug.cgi?id=3D12037#c5
+> > >=20
+> > > When patch is applied backlight control returned to normality.
+> > >=20
+> > please attach the output of "grep . /proc/acpi/video/*/*/*" both be=
+fore
+> > and after applying this patch.
+>=20
+> Attached.
+>=20
+> Thanks, Kel
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
