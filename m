@@ -1,70 +1,60 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH/RFC] ACPICA: disable ACPI 2.0 _GTS/_BFS support
-Date: Tue, 30 Dec 2008 19:16:56 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0812301905430.17126@localhost.localdomain>
-References: <alpine.LFD.2.00.0812190421140.1988@localhost.localdomain>
- <200812190939.05160.bjorn.helgaas@hp.com>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: [PATCH 1/2] video: always update the brightness when poking
+	"brightness"
+Date: Wed, 31 Dec 2008 09:22:20 +0800
+Message-ID: <1230686540.4091.107.camel@yakui_zhao.sh.intel.com>
+References: <1230088058.562.219.camel@rzhang-dt>
+	 <1230633250.5328.8.camel@dax.rpnet.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:39415 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751859AbYLaARK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Dec 2008 19:17:10 -0500
-Received: from localhost.localdomain ([96.237.168.40])
- by vms173003.mailsrvcs.net
- (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0KCP00JKMSS9NKE6@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Tue, 30 Dec 2008 18:17:00 -0600 (CST)
-In-reply-to: <200812190939.05160.bjorn.helgaas@hp.com>
+Received: from mga01.intel.com ([192.55.52.88]:31056 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751501AbYLaBMI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 30 Dec 2008 20:12:08 -0500
+In-Reply-To: <1230633250.5328.8.camel@dax.rpnet.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: linux-acpi@vger.kernel.org
+To: Richard Purdie <rpurdie@rpsys.net>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Fri, 19 Dec 2008, Bjorn Helgaas wrote:
-
-> On Friday 19 December 2008 02:23:49 am Len Brown wrote:
-> > ACPI 2.0 defined two new methods in the suspend/resume sequence,
-> > _GTS (Going to Sleep) and _BFS (Back from Sleep)
+On Tue, 2008-12-30 at 18:34 +0800, Richard Purdie wrote:
+> On Wed, 2008-12-24 at 11:07 +0800, Zhang Rui wrote:
+> > bd->props.brightness is a cached value.
+> > the current code has some potential problems when poking the
+> > backlight I/F.
 > > 
-> > They are optional methods, but if the BIOS supplies them,
-> > the OS is supposed to evaluate them immediately before
-> > writing the register to sleep, and immediately after waking up --
-> > a time when interrupts are disabled.
+> > For example,
+> > 1. set the brightness level to 5 via sysfs I/F
+> > 2. set the backlight to another level via the procfs,
+> > 3. setting it back to 5 doesn't work because bd->props.brightness
+> > is still 5.
 > > 
-> > ...
-> > Now, several years after ACPI 2.0 was released,
-> > we have yet to observe a single implementation of
-> > _GTS/_BFS in the field -- suggesting that they will
-> > never actually be deployed.
+> > http://bugzilla.kernel.org/show_bug.cgi?id=12249
 > 
-> There are actually some HP ia64 systems that have _GTS.  All
-> the rx7600-, rx8600-, and Superdome-class systems I looked at
-> have it.  But in each case, the method is empty, so I don't
-> know why they even bothered to implement it.
+> The root of the problem here is that there are two interfaces
+> controlling the same piece of hardware. Personally, I'd like to see the
+> proc interfaces to backlights depreacated but we do need to make them
+> work I guess. The real bug looks like the proc interface should update
+> props.brightness for that hardware...
+It is also ok that the props.brightness is also updated when the proc
+interface is called. But in such case the "brightness" won't display the
+user requested value. 
 
-I've seen "place holders" in AML many times.
-_SCP is another popular one that is almost never implemented,
-but sometimes exists and does nothing -- which is
-quite misleading...
+Sometimes the brightness will be changed by BIOS and there is no
+notification event. In such case the props.brightness can't be updated.
+If we want to update the brightness, the request will have no effect.
 
-> > So lets keep Linux simple by removing this
-> > theoretical support for _GTS/_BFS, the only
-> > AML methods that mandated being evaluated
-> > with interrupts disabled.
+So IMO it will be more appropriate that brightness is always updated
+when poking "brightness".
+
+  
+Thanks.
+   Yakui    
 > 
-> Do you want to print a note that _GTS/_BFS exists, but
-> we're ignoring it?  If some platform comes along that
-> uses them, a dmesg note might help debug problems.
-
-Good idea.
-
-Probably the smart thing to do would be to print a
-message if they exist and are non-empty.
-Otherwise we'd have to DMI those HP boxes with
-empty methods.
-
--- Len Brown, Intel Open Source Technology Center
-
+> Cheers,
+> 
+> Richard
+> 
 
