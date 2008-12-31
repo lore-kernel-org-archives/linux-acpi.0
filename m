@@ -1,63 +1,30 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI: Do not modify SCI_EN directly
-Date: Tue, 30 Dec 2008 19:03:25 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0812301903210.17126@localhost.localdomain>
-References: <200812291919.07663.rjw@sisk.pl>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH, resend] misc: Add dell-wmi driver for hotkey control
+Date: Wed, 31 Dec 2008 00:14:45 +0000
+Message-ID: <20081231001445.GA23563@srcf.ucam.org>
+References: <20081228153128.GC13424@srcf.ucam.org> <20081230155035.8224ca86.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="8323328-415918257-1230681806=:17126"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:61808 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751484AbYLaADp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Dec 2008 19:03:45 -0500
-In-reply-to: <200812291919.07663.rjw@sisk.pl>
+Received: from cavan.codon.org.uk ([93.93.128.6]:55262 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751816AbYLaAOt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Dec 2008 19:14:49 -0500
+Content-Disposition: inline
+In-Reply-To: <20081230155035.8224ca86.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Tue, Dec 30, 2008 at 03:50:35PM -0800, Andrew Morton wrote:
 
---8323328-415918257-1230681806=:17126
-Content-Type: TEXT/PLAIN; charset=iso-8859-2
-Content-Transfer-Encoding: 8BIT
+> One wonders whether this driver should really live in drivers/input/?
 
-applied
+Mm. There's certainly an argument for that given its current 
+functionality, but the Dell WMI interface also exposes a bunch of other 
+functionality - we just don't know how to use any of it right now. 
+Moving it later might be more confusing.
 
--- Len Brown, Intel Open Source Technology Center
-
-On Mon, 29 Dec 2008, Rafael J. Wysocki wrote:
-
-> From: Rafael J. Wysocki <rjw@sisk.pl>
-> 
-> According to the ACPI specification the SCI_EN flag is controlled by
-> the hardware, which sets this flag to inform the kernel that ACPI is
-> enabled.  For this reason, we shouldn't try to modify SCI_EN
-> directly.  Also, we don't need to do it in irqrouter_resume(), since
-> lower-level resume code takes care of enabling ACPI in case it hasn't
-> been enabled by the BIOS before passing control to the kernel (which
-> by the way is against the ACPI specification).
-> 
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> ---
->  drivers/acpi/pci_link.c |    4 ----
->  1 file changed, 4 deletions(-)
-> 
-> Index: linux-2.6/drivers/acpi/pci_link.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/pci_link.c
-> +++ linux-2.6/drivers/acpi/pci_link.c
-> @@ -793,10 +793,6 @@ static int irqrouter_resume(struct sys_d
->  	struct list_head *node = NULL;
->  	struct acpi_pci_link *link = NULL;
->  
-> -
-> -	/* Make sure SCI is enabled again (Apple firmware bug?) */
-> -	acpi_set_register(ACPI_BITREG_SCI_ENABLE, 1);
-> -
->  	list_for_each(node, &acpi_link.entries) {
->  		link = list_entry(node, struct acpi_pci_link, node);
->  		if (!link) {
-> --8323328-415918257-1230681806=:17126--
---8323328-415918257-1230681806=:17126--
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
