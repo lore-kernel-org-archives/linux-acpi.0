@@ -1,89 +1,72 @@
-From: Jeremy Fitzhardinge <jeremy@goop.org>
-Subject: Re: state of some x86 acpi patches
-Date: Thu, 01 Jan 2009 17:49:35 +1100
-Message-ID: <495C677F.6080707@goop.org>
-References: <4947FF4C.80706@goop.org> <20081216192534.GB843@elte.hu> <alpine.LFD.2.00.0812311821110.3854@localhost.localdomain>
+From: Robert Hancock <hancockr@shaw.ca>
+Subject: Re: [PATCH 2.6.28-rc6] ACPICA: don't cond_resched() when   irqs_disabled()
+Date: Thu, 01 Jan 2009 13:39:46 -0600
+Message-ID: <495D1C02.7080003@shaw.ca>
+References: <20081126135508.GA1891@localhost> <alpine.LFD.2.00.0812190016120.6312@localhost.localdomain> <1229670120.3990.11.camel@yakui_zhao.sh.intel.com> <alpine.LFD.2.00.0812190326000.6312@localhost.localdomain> <20081219135147.GA16488@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gw.goop.org ([64.81.55.164]:58341 "EHLO mail.goop.org"
+Received: from main.gmane.org ([80.91.229.2]:41663 "EHLO ciao.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750870AbZAAGuE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 1 Jan 2009 01:50:04 -0500
-In-Reply-To: <alpine.LFD.2.00.0812311821110.3854@localhost.localdomain>
+	id S1751536AbZAATkB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 1 Jan 2009 14:40:01 -0500
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1LITOe-0005GF-EC
+	for linux-acpi@vger.kernel.org; Thu, 01 Jan 2009 19:39:56 +0000
+Received: from s0106000c41bb86e1.ss.shawcable.net ([70.76.47.20])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Thu, 01 Jan 2009 19:39:56 +0000
+Received: from hancockr by s0106000c41bb86e1.ss.shawcable.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Thu, 01 Jan 2009 19:39:56 +0000
+In-Reply-To: <20081219135147.GA16488@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>, Yinghai Lu <yinghai@kernel.org>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Len Brown <lenb@kernel.org>, "Zhao, Yakui" <yakui.zhao@intel.com>, "Lin, Ming M" <ming.m.lin@intel.com>, "Zhang, Rui" <rui.zhang@intel.com>, "Li, Shaohua" <shaohua.li@intel.com>
 
-Len Brown wrote:
-> On Tue, 16 Dec 2008, Ingo Molnar wrote:
->
->   
->> * Jeremy Fitzhardinge <jeremy@goop.org> wrote:
->>
->>     
->>> Hi Len,
->>>
->>> Have you seen these three patches?  Do they look OK to you?
->>>
->>> Yinghai Lu improve the third patch ("acpi: remove final __acpi_map_table 
->>> mapping before setting acpi_gbl_permanent_mmap"), which I think Ingo 
->>> sent you instead.
->>>       
->> Len,
->>
->> i asked about these patches before too - and if that's fine with you we'd 
->> just queue them up in the x86 tree (like we did before the .28 merge 
->> window). Most of the impact will be on x86. So an Acked-by from you would 
->> be fine to start this.
->>     
->
-> Sorry for the delay.
-> I recall reading your e-mail on this and thought I replied to it,
-> but for some reason I found neither your original message nor
-> my reply when I searched my archives today.
->
-> But I did recall Ingo making a branch for this one, and so looking
-> at remotes/origin/acpi-for-len in ingo's tree...
->
-> It isn't immediately clear to me what problem this patch series solves,
-> and thus it is hard to judge how important this is.
->
-> It touches a lot of files, and it is going to run into a bunch of merge 
-> conflicts.
->
-> I'm not thrilled that the first part of the series makes changes
-> which are then undone by the later part of the series --
-> that doesn't help w/ conflict resolution...
->
-> The change to tbxface.c is an ACPICA API change.
-> It looks reasonable and it might be the right change,
-> but it is extra work -- we should sync with Bob
-> when he gets back from break.
->
-> So, this one is sort of a headache, how important is it?
->   
+Wu Fengguang wrote:
+> On Fri, Dec 19, 2008 at 10:38:18AM +0200, Len Brown wrote:
+>>>     The issue on Fengguang's laptop is different with that on the box of
+>>> T61.  On Fengguang's laptop after evaluating one ACPI object(GPE
+>>> _L18object), the irq is disabled mystically. After some investigations
+>>> we find that it is caused by SMI(The SMI will be triggered while
+>>> evaluating the ACPI object. And this issue is also related with Video). 
+>> Interesting.
+>> I hadn't realized you root-caused that failure.
+>> This is good to know, but the fact that SMM can
+>> leave interrupts disabled is frightening.
+> 
+>> If the BIOS SMM on that box disables interrupts when
+>> random AML is run, then it is going to run into
+>> all kinds of other problems in addition to this one...
+> 
+> Exactly. This is another warning:
+> 
+> [ 6559.754331] irq status before SMI: enable
+> [ 6559.757388] irq status after SMI: disable, value: 0xF3
+> [ 6599.816127] Corrupted low memory at ffff88000000fe08 (fe08 phys) = 01007062
+> [ 6599.816253] Corrupted low memory at ffff88000000fe10 (fe10 phys) = 7ba83066
+> [ 6599.816376] Corrupted low memory at ffff88000000fe18 (fe18 phys) = 00010062
+> [ 6599.816492] Corrupted low memory at ffff88000000fe20 (fe20 phys) = 01006062
+> [ 6599.816608] Corrupted low memory at ffff88000000fe28 (fe28 phys) = 1000000000
+> [ 6599.816724] Corrupted low memory at ffff88000000fe38 (fe38 phys) = 00000ff0
+> [ 6599.816840] Corrupted low memory at ffff88000000fe40 (fe40 phys) = 000006e0
+> [ 6599.816955] Corrupted low memory at ffff88000000fe48 (fe48 phys) = 880000000000
+> [ 6599.817102] Corrupted low memory at ffff88000000fe50 (fe50 phys) = fffffcf930018
 
-Well, there's several aspects to this series:
+(snip)
 
-The important one from my perspective is using early_ioremap to map the 
-acpi memory, rather than using a private mapping function; this is 
-necessary when running under Xen, so that the right memory gets mapped.
+There is a blacklist at arch/x86/kernel/setup.c for BIOS identifiers 
+that may corrupt low memory, in this case the low memory usage is 
+minimized. This machine should likely be added to that list.
 
-This in itself is pretty straightforward, but it raises a few issues.  
-One is that the acpi code doesn't properly unmap its mapped memory, but 
-relies on a "new mapping replaces old" semantic.  Putting a wrapper 
-around early_ioremap to emulate this is fairly straightforward, but it 
-does leave one trailing mapping, which causes early_ioremap to raise a 
-warning.
+Might be that Linux and the BIOS stomping on this memory in combination 
+is related to some of the other problems seen as well..
 
-I addressed this warning by putting in a hook to unmap the last 
-mapping.  This was simple, but pretty hackish.  Yinghai went the extra 
-distance by making the acpi code properly pair map and unmap calls on 
-all the resources it needs, doing away with the "new map unmaps 
-previous" behaviour, and cleaning up the warning in the process.
+These BIOS authors really need to be beaten with a stick though.. they 
+can't be using this memory without properly marking it as reserved in 
+E820 tables.
 
-Thanks,
-    J
