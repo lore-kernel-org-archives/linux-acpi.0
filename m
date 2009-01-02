@@ -1,40 +1,56 @@
-From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-Subject: Re: [PATCH 2.6.29] fujitsu-laptop: Add BL power,
-Date: Fri, 2 Jan 2009 12:36:17 +1030 (CST)
-Message-ID: <200901020206.n0226HpH010286@mercury.physics.adelaide.edu.au>
-References: <alpine.LFD.2.00.0812311607190.3854@localhost.localdomain>
+From: nokos@gmx.net
+Subject: Re: [PATCH 2.6.29] fujitsu-laptop: Add BL power, LED control and
+	radio state information
+Date: Fri, 02 Jan 2009 13:10:11 +0100
+Message-ID: <1230898211.9451.12.camel@earth.gruber.myown>
+References: <20081231181959.9487110069@gold.linx.net>
+	 <alpine.LFD.2.00.0812311607190.3854@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:60352 "EHLO
-	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750911AbZABCHO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Jan 2009 21:07:14 -0500
-In-Reply-To: <alpine.LFD.2.00.0812311607190.3854@localhost.localdomain> from "Len Brown" at Dec 31, 2008 04:08:39 PM
+Received: from mail-in-09.arcor-online.net ([151.189.21.49]:32840 "EHLO
+	mail-in-09.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757452AbZABMKW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Jan 2009 07:10:22 -0500
+In-Reply-To: <alpine.LFD.2.00.0812311607190.3854@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Tony Vroon <tony@linx.net>, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Stephen Gildea <stepheng+linux@gildea.com>, Peter Gruber <nokos@gmx.net>, Julian Brown <jules@panic.cs-bristol.org.uk>, linux-acpi@vger.kernel.org
+To: Tony Vroon <tony@linx.net>
+Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Stephen Gildea <stepheng+linux@gildea.com>, Peter Gruber <nokos@gmx.net>, Julian Brown <jules@panic.cs-bristol.org.uk>, linux-acpi@vger.kernel.org
 
-Hi Len
+Hi
 
-> > The FUNC interface in the Fujitsu-Siemens DSDT was unused until now. It exposes 
-> > state information that is now reported in additional platform files (whether the 
-> > radios are killed by the hardware switch or operational, whether the machine is 
-> > docked and whether the lid is open). ...
->
-> applied to acpi-test so it can get into linux-next
-> I'll wait for an Ack from Jonathan before pushing upstream, however.
+Tested it on the S6410, and works as expected (I have no dock see the
+docked status change, LED suport does not do anything since there are no
+leds to control). 
+# dmesg
+...
+fujitsu-laptop: BTNI: [0xff0101]
+..
+and I think the buttons are the same as on the S6420
 
-I have now tested this on my S7020 and the patch causes no regressions on
-that platform.  Sorry for the delay - Christmas and New Year does that. :-)
+perhaps we should shorten the driver name a little to make it a bit more
+inline with the other acpi drivers:
+# ls /sys/bus/acpi/drivers
+ac       container  Fujitsu laptop FUJ02B1 ACPI brightness driver
+pci_link processor  thermal
+battery  ec         Fujitsu laptop FUJ02E3 ACPI hotkeys driver
+pci_root sbs        video
+button   fan        hpet
+power    smbus_hc
 
-Acked-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+What do you think?
 
-Regards
-  jonathan
 
+
+
+
+Tested-by: Peter Gruber <nokos@gmx.net>
+
+
+> On Wed, 31 Dec 2008, Tony Vroon wrote:
+> 
 > > The FUNC interface in the Fujitsu-Siemens DSDT was unused until now. It exposes 
 > > state information that is now reported in additional platform files (whether the 
 > > radios are killed by the hardware switch or operational, whether the machine is 
@@ -490,3 +506,8 @@ Regards
 > >  
 > >  static struct pnp_device_id pnp_ids[] = {
 > > 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
