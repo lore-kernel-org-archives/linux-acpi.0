@@ -1,72 +1,492 @@
-From: Robert Hancock <hancockr@shaw.ca>
-Subject: Re: [PATCH 2.6.28-rc6] ACPICA: don't cond_resched() when   irqs_disabled()
-Date: Thu, 01 Jan 2009 13:39:46 -0600
-Message-ID: <495D1C02.7080003@shaw.ca>
-References: <20081126135508.GA1891@localhost> <alpine.LFD.2.00.0812190016120.6312@localhost.localdomain> <1229670120.3990.11.camel@yakui_zhao.sh.intel.com> <alpine.LFD.2.00.0812190326000.6312@localhost.localdomain> <20081219135147.GA16488@localhost>
+From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Subject: Re: [PATCH 2.6.29] fujitsu-laptop: Add BL power,
+Date: Fri, 2 Jan 2009 12:36:17 +1030 (CST)
+Message-ID: <200901020206.n0226HpH010286@mercury.physics.adelaide.edu.au>
+References: <alpine.LFD.2.00.0812311607190.3854@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from main.gmane.org ([80.91.229.2]:41663 "EHLO ciao.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751536AbZAATkB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 1 Jan 2009 14:40:01 -0500
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1LITOe-0005GF-EC
-	for linux-acpi@vger.kernel.org; Thu, 01 Jan 2009 19:39:56 +0000
-Received: from s0106000c41bb86e1.ss.shawcable.net ([70.76.47.20])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Thu, 01 Jan 2009 19:39:56 +0000
-Received: from hancockr by s0106000c41bb86e1.ss.shawcable.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Thu, 01 Jan 2009 19:39:56 +0000
-In-Reply-To: <20081219135147.GA16488@localhost>
+Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:60352 "EHLO
+	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750911AbZABCHO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Jan 2009 21:07:14 -0500
+In-Reply-To: <alpine.LFD.2.00.0812311607190.3854@localhost.localdomain> from "Len Brown" at Dec 31, 2008 04:08:39 PM
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Len Brown <lenb@kernel.org>, "Zhao, Yakui" <yakui.zhao@intel.com>, "Lin, Ming M" <ming.m.lin@intel.com>, "Zhang, Rui" <rui.zhang@intel.com>, "Li, Shaohua" <shaohua.li@intel.com>
+To: Len Brown <lenb@kernel.org>
+Cc: Tony Vroon <tony@linx.net>, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Stephen Gildea <stepheng+linux@gildea.com>, Peter Gruber <nokos@gmx.net>, Julian Brown <jules@panic.cs-bristol.org.uk>, linux-acpi@vger.kernel.org
 
-Wu Fengguang wrote:
-> On Fri, Dec 19, 2008 at 10:38:18AM +0200, Len Brown wrote:
->>>     The issue on Fengguang's laptop is different with that on the box of
->>> T61.  On Fengguang's laptop after evaluating one ACPI object(GPE
->>> _L18object), the irq is disabled mystically. After some investigations
->>> we find that it is caused by SMI(The SMI will be triggered while
->>> evaluating the ACPI object. And this issue is also related with Video). 
->> Interesting.
->> I hadn't realized you root-caused that failure.
->> This is good to know, but the fact that SMM can
->> leave interrupts disabled is frightening.
-> 
->> If the BIOS SMM on that box disables interrupts when
->> random AML is run, then it is going to run into
->> all kinds of other problems in addition to this one...
-> 
-> Exactly. This is another warning:
-> 
-> [ 6559.754331] irq status before SMI: enable
-> [ 6559.757388] irq status after SMI: disable, value: 0xF3
-> [ 6599.816127] Corrupted low memory at ffff88000000fe08 (fe08 phys) = 01007062
-> [ 6599.816253] Corrupted low memory at ffff88000000fe10 (fe10 phys) = 7ba83066
-> [ 6599.816376] Corrupted low memory at ffff88000000fe18 (fe18 phys) = 00010062
-> [ 6599.816492] Corrupted low memory at ffff88000000fe20 (fe20 phys) = 01006062
-> [ 6599.816608] Corrupted low memory at ffff88000000fe28 (fe28 phys) = 1000000000
-> [ 6599.816724] Corrupted low memory at ffff88000000fe38 (fe38 phys) = 00000ff0
-> [ 6599.816840] Corrupted low memory at ffff88000000fe40 (fe40 phys) = 000006e0
-> [ 6599.816955] Corrupted low memory at ffff88000000fe48 (fe48 phys) = 880000000000
-> [ 6599.817102] Corrupted low memory at ffff88000000fe50 (fe50 phys) = fffffcf930018
+Hi Len
 
-(snip)
+> > The FUNC interface in the Fujitsu-Siemens DSDT was unused until now. It exposes 
+> > state information that is now reported in additional platform files (whether the 
+> > radios are killed by the hardware switch or operational, whether the machine is 
+> > docked and whether the lid is open). ...
+>
+> applied to acpi-test so it can get into linux-next
+> I'll wait for an Ack from Jonathan before pushing upstream, however.
 
-There is a blacklist at arch/x86/kernel/setup.c for BIOS identifiers 
-that may corrupt low memory, in this case the low memory usage is 
-minimized. This machine should likely be added to that list.
+I have now tested this on my S7020 and the patch causes no regressions on
+that platform.  Sorry for the delay - Christmas and New Year does that. :-)
 
-Might be that Linux and the BIOS stomping on this memory in combination 
-is related to some of the other problems seen as well..
+Acked-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
 
-These BIOS authors really need to be beaten with a stick though.. they 
-can't be using this memory without properly marking it as reserved in 
-E820 tables.
+Regards
+  jonathan
 
+> > The FUNC interface in the Fujitsu-Siemens DSDT was unused until now. It exposes 
+> > state information that is now reported in additional platform files (whether the 
+> > radios are killed by the hardware switch or operational, whether the machine is 
+> > docked and whether the lid is open).
+> > Support for the backlight class is now extended with the ability to power the 
+> > backlight on & off. Optional support for the LED class allows the keyboard 
+> > headlamps found on the U810 netbook and the Fujitsu logo illumination on the 
+> > P8010 notebook to be turned on & off.
+> > 
+> > This was fed through checkpatch.pl and tested on the S6420, P8010 & U810 platforms.
+> > 
+> > (Awaiting sign-off by Jonathan, which means the S7020 platform will also be tested)
+> > 
+> > Signed-off-by: Stephen Gildea <stepheng+linux@gildea.com>
+> > Tested-by: Stephen Gildea <stepheng+linux@gildea.com>
+> > Tested-by: Julian Brown <jules@panic.cs-bristol.org.uk>
+> > Signed-off-by: Tony Vroon <tony@linx.net>
+> > 
+> > --- linux-2.6/drivers/misc/fujitsu-laptop.c.orig	2008-12-29 16:21:36.000000000 +0000
+> > +++ linux-2.6/drivers/misc/fujitsu-laptop.c	2008-12-31 18:01:22.000000000 +0000
+> > @@ -3,6 +3,7 @@
+> >  /*
+> >    Copyright (C) 2007,2008 Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+> >    Copyright (C) 2008 Peter Gruber <nokos@gmx.net>
+> > +  Copyright (C) 2008 Tony Vroon <tony@linx.net>
+> >    Based on earlier work:
+> >      Copyright (C) 2003 Shane Spencer <shane@bogomip.com>
+> >      Adrian Yee <brewt-fujitsu@brewt.org>
+> > @@ -65,8 +66,11 @@
+> >  #include <linux/kfifo.h>
+> >  #include <linux/video_output.h>
+> >  #include <linux/platform_device.h>
+> > +#ifdef CONFIG_LEDS_CLASS
+> > +#include <linux/leds.h>
+> > +#endif
+> >  
+> > -#define FUJITSU_DRIVER_VERSION "0.4.3"
+> > +#define FUJITSU_DRIVER_VERSION "0.5.0"
+> >  
+> >  #define FUJITSU_LCD_N_LEVELS 8
+> >  
+> > @@ -83,6 +87,24 @@
+> >  #define ACPI_VIDEO_NOTIFY_INC_BRIGHTNESS     0x86
+> >  #define ACPI_VIDEO_NOTIFY_DEC_BRIGHTNESS     0x87
+> >  
+> > +/* FUNC interface - command values */
+> > +#define FUNC_RFKILL	0x1000
+> > +#define FUNC_LEDS	0x1001
+> > +#define FUNC_BUTTONS	0x1002
+> > +#define FUNC_BACKLIGHT  0x1004
+> > +
+> > +/* FUNC interface - responses */
+> > +#define UNSUPPORTED_CMD 0x80000000
+> > +
+> > +#ifdef CONFIG_LEDS_CLASS
+> > +/* FUNC interface - LED control */
+> > +#define FUNC_LED_OFF	0x1
+> > +#define FUNC_LED_ON	0x30001
+> > +#define KEYBOARD_LAMPS	0x100
+> > +#define LOGOLAMP_POWERON 0x2000
+> > +#define LOGOLAMP_ALWAYS  0x4000
+> > +#endif
+> > +
+> >  /* Hotkey details */
+> >  #define KEY1_CODE	0x410	/* codes for the keys in the GIRB register */
+> >  #define KEY2_CODE	0x411
+> > @@ -145,8 +167,9 @@
+> >  	struct platform_device *pf_device;
+> >  	struct kfifo *fifo;
+> >  	spinlock_t fifo_lock;
+> > -
+> > -	unsigned int irb;	/* info about the pressed buttons */
+> > +	int rfkill_state;
+> > +	int logolamp_registered;
+> > +	int kblamps_registered;
+> >  };
+> >  
+> >  static struct fujitsu_hotkey_t *fujitsu_hotkey;
+> > @@ -154,12 +177,139 @@
+> >  static void acpi_fujitsu_hotkey_notify(acpi_handle handle, u32 event,
+> >  				       void *data);
+> >  
+> > +#ifdef CONFIG_LEDS_CLASS
+> > +static enum led_brightness logolamp_get(struct led_classdev *cdev);
+> > +static void logolamp_set(struct led_classdev *cdev,
+> > +			       enum led_brightness brightness);
+> > +
+> > +struct led_classdev logolamp_led = {
+> > + .name = "fujitsu::logolamp",
+> > + .brightness_get = logolamp_get,
+> > + .brightness_set = logolamp_set
+> > +};
+> > +
+> > +static enum led_brightness kblamps_get(struct led_classdev *cdev);
+> > +static void kblamps_set(struct led_classdev *cdev,
+> > +			       enum led_brightness brightness);
+> > +
+> > +struct led_classdev kblamps_led = {
+> > + .name = "fujitsu::kblamps",
+> > + .brightness_get = kblamps_get,
+> > + .brightness_set = kblamps_set
+> > +};
+> > +#endif
+> > +
+> >  #ifdef CONFIG_FUJITSU_LAPTOP_DEBUG
+> >  static u32 dbg_level = 0x03;
+> >  #endif
+> >  
+> >  static void acpi_fujitsu_notify(acpi_handle handle, u32 event, void *data);
+> >  
+> > +/* Fujitsu ACPI interface function */
+> > +
+> > +static int call_fext_func(int cmd, int arg0, int arg1, int arg2)
+> > +{
+> > +	acpi_status status = AE_OK;
+> > +	union acpi_object params[4] = {
+> > +	{ .type = ACPI_TYPE_INTEGER },
+> > +	{ .type = ACPI_TYPE_INTEGER },
+> > +	{ .type = ACPI_TYPE_INTEGER },
+> > +	{ .type = ACPI_TYPE_INTEGER }
+> > +	};
+> > +	struct acpi_object_list arg_list = { 4, &params[0] };
+> > +	struct acpi_buffer output;
+> > +	union acpi_object out_obj;
+> > +	acpi_handle handle = NULL;
+> > +
+> > +	status = acpi_get_handle(fujitsu_hotkey->acpi_handle, "FUNC", &handle);
+> > +	if (ACPI_FAILURE(status)) {
+> > +		vdbg_printk(FUJLAPTOP_DBG_ERROR,
+> > +				"FUNC interface is not present\n");
+> > +		return -ENODEV;
+> > +	}
+> > +
+> > +	params[0].integer.value = cmd;
+> > +	params[1].integer.value = arg0;
+> > +	params[2].integer.value = arg1;
+> > +	params[3].integer.value = arg2;
+> > +
+> > +	output.length = sizeof(out_obj);
+> > +	output.pointer = &out_obj;
+> > +
+> > +	status = acpi_evaluate_object(handle, NULL, &arg_list, &output);
+> > +	if (ACPI_FAILURE(status)) {
+> > +		vdbg_printk(FUJLAPTOP_DBG_WARN,
+> > +			"FUNC 0x%x (args 0x%x, 0x%x, 0x%x) call failed\n",
+> > +				cmd, arg0, arg1, arg2);
+> > +		return -ENODEV;
+> > +	}
+> > +
+> > +	if (out_obj.type != ACPI_TYPE_INTEGER) {
+> > +		vdbg_printk(FUJLAPTOP_DBG_WARN,
+> > +			"FUNC 0x%x (args 0x%x, 0x%x, 0x%x) did not "
+> > +			"return an integer\n",
+> > +			cmd, arg0, arg1, arg2);
+> > +		return -ENODEV;
+> > +	}
+> > +
+> > +	vdbg_printk(FUJLAPTOP_DBG_TRACE,
+> > +		"FUNC 0x%x (args 0x%x, 0x%x, 0x%x) returned 0x%x\n",
+> > +			cmd, arg0, arg1, arg2, (int)out_obj.integer.value);
+> > +	return out_obj.integer.value;
+> > +}
+> > +
+> > +#ifdef CONFIG_LEDS_CLASS
+> > +/* LED class callbacks */
+> > +
+> > +static void logolamp_set(struct led_classdev *cdev,
+> > +			       enum led_brightness brightness)
+> > +{
+> > +	if (brightness >= LED_FULL) {
+> > +		call_fext_func(FUNC_LEDS, 0x1, LOGOLAMP_POWERON, FUNC_LED_ON);
+> > +		call_fext_func(FUNC_LEDS, 0x1, LOGOLAMP_ALWAYS, FUNC_LED_ON);
+> > +	} else if (brightness >= LED_HALF) {
+> > +		call_fext_func(FUNC_LEDS, 0x1, LOGOLAMP_POWERON, FUNC_LED_ON);
+> > +		call_fext_func(FUNC_LEDS, 0x1, LOGOLAMP_ALWAYS, FUNC_LED_OFF);
+> > +	} else {
+> > +		call_fext_func(FUNC_LEDS, 0x1, LOGOLAMP_POWERON, FUNC_LED_OFF);
+> > +	}
+> > +}
+> > +
+> > +static void kblamps_set(struct led_classdev *cdev,
+> > +			       enum led_brightness brightness)
+> > +{
+> > +	if (brightness >= LED_FULL)
+> > +		call_fext_func(FUNC_LEDS, 0x1, KEYBOARD_LAMPS, FUNC_LED_ON);
+> > +	else
+> > +		call_fext_func(FUNC_LEDS, 0x1, KEYBOARD_LAMPS, FUNC_LED_OFF);
+> > +}
+> > +
+> > +static enum led_brightness logolamp_get(struct led_classdev *cdev)
+> > +{
+> > +	enum led_brightness brightness = LED_OFF;
+> > +	int poweron, always;
+> > +
+> > +	poweron = call_fext_func(FUNC_LEDS, 0x2, LOGOLAMP_POWERON, 0x0);
+> > +	if (poweron == FUNC_LED_ON) {
+> > +		brightness = LED_HALF;
+> > +		always = call_fext_func(FUNC_LEDS, 0x2, LOGOLAMP_ALWAYS, 0x0);
+> > +		if (always == FUNC_LED_ON)
+> > +			brightness = LED_FULL;
+> > +	}
+> > +	return brightness;
+> > +}
+> > +
+> > +static enum led_brightness kblamps_get(struct led_classdev *cdev)
+> > +{
+> > +	enum led_brightness brightness = LED_OFF;
+> > +
+> > +	if (call_fext_func(FUNC_LEDS, 0x2, KEYBOARD_LAMPS, 0x0) == FUNC_LED_ON)
+> > +		brightness = LED_FULL;
+> > +
+> > +	return brightness;
+> > +}
+> > +#endif
+> > +
+> >  /* Hardware access for LCD brightness control */
+> >  
+> >  static int set_lcd_level(int level)
+> > @@ -297,10 +447,25 @@
+> >  
+> >  static int bl_update_status(struct backlight_device *b)
+> >  {
+> > +	int ret;
+> > +	if (b->props.power == 4)
+> > +		ret = call_fext_func(FUNC_BACKLIGHT, 0x1, 0x4, 0x3);
+> > +	else
+> > +		ret = call_fext_func(FUNC_BACKLIGHT, 0x1, 0x4, 0x0);
+> > +	if (ret != 0)
+> > +		vdbg_printk(FUJLAPTOP_DBG_ERROR,
+> > +			"Unable to adjust backlight power, error code %i\n",
+> > +			ret);
+> > +
+> >  	if (use_alt_lcd_levels)
+> > -		return set_lcd_level_alt(b->props.brightness);
+> > +		ret = set_lcd_level_alt(b->props.brightness);
+> >  	else
+> > -		return set_lcd_level(b->props.brightness);
+> > +		ret = set_lcd_level(b->props.brightness);
+> > +	if (ret != 0)
+> > +		vdbg_printk(FUJLAPTOP_DBG_ERROR,
+> > +			"Unable to adjust LCD brightness, error code %i\n",
+> > +			ret);
+> > +	return ret;
+> >  }
+> >  
+> >  static struct backlight_ops fujitsubl_ops = {
+> > @@ -382,42 +547,64 @@
+> >  	return count;
+> >  }
+> >  
+> > -/* Hardware access for hotkey device */
+> > -
+> > -static int get_irb(void)
+> > +static ssize_t
+> > +ignore_store(struct device *dev,
+> > +	     struct device_attribute *attr, const char *buf, size_t count)
+> >  {
+> > -	unsigned long long state = 0;
+> > -	acpi_status status = AE_OK;
+> > -
+> > -	vdbg_printk(FUJLAPTOP_DBG_TRACE, "Get irb\n");
+> > -
+> > -	status =
+> > -	    acpi_evaluate_integer(fujitsu_hotkey->acpi_handle, "GIRB", NULL,
+> > -				  &state);
+> > -	if (status < 0)
+> > -		return status;
+> > +	return count;
+> > +}
+> >  
+> > -	fujitsu_hotkey->irb = state;
+> > +static ssize_t
+> > +show_lid_state(struct device *dev,
+> > +			struct device_attribute *attr, char *buf)
+> > +{
+> > +	if (fujitsu_hotkey->rfkill_state == UNSUPPORTED_CMD)
+> > +		return sprintf(buf, "unknown\n");
+> > +	if (fujitsu_hotkey->rfkill_state & 0x100)
+> > +		return sprintf(buf, "open\n");
+> > +	else
+> > +		return sprintf(buf, "closed\n");
+> > +}
+> >  
+> > -	return fujitsu_hotkey->irb;
+> > +static ssize_t
+> > +show_dock_state(struct device *dev,
+> > +			struct device_attribute *attr, char *buf)
+> > +{
+> > +	if (fujitsu_hotkey->rfkill_state == UNSUPPORTED_CMD)
+> > +		return sprintf(buf, "unknown\n");
+> > +	if (fujitsu_hotkey->rfkill_state & 0x200)
+> > +		return sprintf(buf, "docked\n");
+> > +	else
+> > +		return sprintf(buf, "undocked\n");
+> >  }
+> >  
+> >  static ssize_t
+> > -ignore_store(struct device *dev,
+> > -	     struct device_attribute *attr, const char *buf, size_t count)
+> > +show_radios_state(struct device *dev,
+> > +			struct device_attribute *attr, char *buf)
+> >  {
+> > -	return count;
+> > +	if (fujitsu_hotkey->rfkill_state == UNSUPPORTED_CMD)
+> > +		return sprintf(buf, "unknown\n");
+> > +	if (fujitsu_hotkey->rfkill_state & 0x20)
+> > +		return sprintf(buf, "on\n");
+> > +	else
+> > +		return sprintf(buf, "killed\n");
+> >  }
+> >  
+> >  static DEVICE_ATTR(max_brightness, 0444, show_max_brightness, ignore_store);
+> >  static DEVICE_ATTR(brightness_changed, 0444, show_brightness_changed,
+> >  		   ignore_store);
+> >  static DEVICE_ATTR(lcd_level, 0644, show_lcd_level, store_lcd_level);
+> > +static DEVICE_ATTR(lid, 0444, show_lid_state, ignore_store);
+> > +static DEVICE_ATTR(dock, 0444, show_dock_state, ignore_store);
+> > +static DEVICE_ATTR(radios, 0444, show_radios_state, ignore_store);
+> >  
+> >  static struct attribute *fujitsupf_attributes[] = {
+> >  	&dev_attr_brightness_changed.attr,
+> >  	&dev_attr_max_brightness.attr,
+> >  	&dev_attr_lcd_level.attr,
+> > +	&dev_attr_lid.attr,
+> > +	&dev_attr_dock.attr,
+> > +	&dev_attr_radios.attr,
+> >  	NULL
+> >  };
+> >  
+> > @@ -771,7 +958,8 @@
+> >  	input->id.bustype = BUS_HOST;
+> >  	input->id.product = 0x06;
+> >  	input->dev.parent = &device->dev;
+> > -	input->evbit[0] = BIT(EV_KEY);
+> > +
+> > +	set_bit(EV_KEY, input->evbit);
+> >  	set_bit(fujitsu->keycode1, input->keybit);
+> >  	set_bit(fujitsu->keycode2, input->keybit);
+> >  	set_bit(fujitsu->keycode3, input->keybit);
+> > @@ -803,10 +991,44 @@
+> >  			printk(KERN_ERR "_INI Method failed\n");
+> >  	}
+> >  
+> > -	i = 0;			/* Discard hotkey ringbuffer */
+> > -	while (get_irb() != 0 && (i++) < MAX_HOTKEY_RINGBUFFER_SIZE) ;
+> > +	i = 0;
+> > +	while (call_fext_func(FUNC_BUTTONS, 0x1, 0x0, 0x0) != 0
+> > +		&& (i++) < MAX_HOTKEY_RINGBUFFER_SIZE)
+> > +		; /* No action, result is discarded */
+> >  	vdbg_printk(FUJLAPTOP_DBG_INFO, "Discarded %i ringbuffer entries\n", i);
+> >  
+> > +	fujitsu_hotkey->rfkill_state =
+> > +		call_fext_func(FUNC_RFKILL, 0x4, 0x0, 0x0);
+> > +
+> > +	/* Suspect this is a keymap of the application panel, print it */
+> > +	printk(KERN_INFO "fujitsu-laptop: BTNI: [0x%x]\n",
+> > +		call_fext_func(FUNC_BUTTONS, 0x0, 0x0, 0x0));
+> > +
+> > +	#ifdef CONFIG_LEDS_CLASS
+> > +	if (call_fext_func(FUNC_LEDS, 0x0, 0x0, 0x0) & LOGOLAMP_POWERON) {
+> > +		result = led_classdev_register(&fujitsu->pf_device->dev,
+> > +						&logolamp_led);
+> > +		if (result == 0) {
+> > +			fujitsu_hotkey->logolamp_registered = 1;
+> > +		} else {
+> > +			printk(KERN_ERR "fujitsu-laptop: Could not register "
+> > +			"LED handler for logo lamp, error %i\n", result);
+> > +		}
+> > +	}
+> > +
+> > +	if ((call_fext_func(FUNC_LEDS, 0x0, 0x0, 0x0) & KEYBOARD_LAMPS) &&
+> > +	   (call_fext_func(FUNC_BUTTONS, 0x0, 0x0, 0x0) == 0x0)) {
+> > +		result = led_classdev_register(&fujitsu->pf_device->dev,
+> > +						&kblamps_led);
+> > +		if (result == 0) {
+> > +			fujitsu_hotkey->kblamps_registered = 1;
+> > +		} else {
+> > +			printk(KERN_ERR "fujitsu-laptop: Could not register "
+> > +			"LED handler for keyboard lamps, error %i\n", result);
+> > +		}
+> > +	}
+> > +	#endif
+> > +
+> >  	return result;
+> >  
+> >  end:
+> > @@ -852,16 +1074,15 @@
+> >  
+> >  	input = fujitsu_hotkey->input;
+> >  
+> > -	vdbg_printk(FUJLAPTOP_DBG_TRACE, "Hotkey event\n");
+> > +	fujitsu_hotkey->rfkill_state =
+> > +		call_fext_func(FUNC_RFKILL, 0x4, 0x0, 0x0);
+> >  
+> >  	switch (event) {
+> >  	case ACPI_FUJITSU_NOTIFY_CODE1:
+> >  		i = 0;
+> > -		while ((irb = get_irb()) != 0
+> > -		       && (i++) < MAX_HOTKEY_RINGBUFFER_SIZE) {
+> > -			vdbg_printk(FUJLAPTOP_DBG_TRACE, "GIRB result [%x]\n",
+> > -				    irb);
+> > -
+> > +		while ((irb =
+> > +			call_fext_func(FUNC_BUTTONS, 0x1, 0x0, 0x0)) != 0
+> > +				&& (i++) < MAX_HOTKEY_RINGBUFFER_SIZE) {
+> >  			switch (irb & 0x4ff) {
+> >  			case KEY1_CODE:
+> >  				keycode = fujitsu->keycode1;
+> > @@ -1035,6 +1256,15 @@
+> >  		goto fail_hotkey1;
+> >  	}
+> >  
+> > +	/* Sync backlight power status (needs FUJ02E3 device, hence deferred) */
+> > +
+> > +	if (!acpi_video_backlight_support()) {
+> > +		if (call_fext_func(FUNC_BACKLIGHT, 0x2, 0x4, 0x0) == 3)
+> > +			fujitsu->bl_device->props.power = 4;
+> > +		else
+> > +			fujitsu->bl_device->props.power = 0;
+> > +	}
+> > +
+> >  	printk(KERN_INFO "fujitsu-laptop: driver " FUJITSU_DRIVER_VERSION
+> >  	       " successfully loaded.\n");
+> >  
+> > @@ -1074,6 +1304,14 @@
+> >  
+> >  static void __exit fujitsu_cleanup(void)
+> >  {
+> > +	#ifdef CONFIG_LEDS_CLASS
+> > +	if (fujitsu_hotkey->logolamp_registered != 0)
+> > +		led_classdev_unregister(&logolamp_led);
+> > +
+> > +	if (fujitsu_hotkey->kblamps_registered != 0)
+> > +		led_classdev_unregister(&kblamps_led);
+> > +	#endif
+> > +
+> >  	sysfs_remove_group(&fujitsu->pf_device->dev.kobj,
+> >  			   &fujitsupf_attribute_group);
+> >  	platform_device_unregister(fujitsu->pf_device);
+> > @@ -1108,12 +1346,13 @@
+> >  MODULE_PARM_DESC(debug, "Sets debug level bit-mask");
+> >  #endif
+> >  
+> > -MODULE_AUTHOR("Jonathan Woithe, Peter Gruber");
+> > +MODULE_AUTHOR("Jonathan Woithe, Peter Gruber, Tony Vroon");
+> >  MODULE_DESCRIPTION("Fujitsu laptop extras support");
+> >  MODULE_VERSION(FUJITSU_DRIVER_VERSION);
+> >  MODULE_LICENSE("GPL");
+> >  
+> >  MODULE_ALIAS("dmi:*:svnFUJITSUSIEMENS:*:pvr:rvnFUJITSU:rnFJNB1D3:*:cvrS6410:*");
+> > +MODULE_ALIAS("dmi:*:svnFUJITSUSIEMENS:*:pvr:rvnFUJITSU:rnFJNB1E6:*:cvrS6420:*");
+> >  MODULE_ALIAS("dmi:*:svnFUJITSU:*:pvr:rvnFUJITSU:rnFJNB19C:*:cvrS7020:*");
+> >  
+> >  static struct pnp_device_id pnp_ids[] = {
+> > 
