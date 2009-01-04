@@ -1,64 +1,84 @@
-From: Tony Vroon <tony@linx.net>
-Subject: Re: [PATCH 2.6.29] fujitsu-laptop: Add BL power, LED control and
-Date: Sun, 04 Jan 2009 20:44:07 +0000
-Message-ID: <49611F97.6020601@linx.net>
-References: <200901032237.n03MbfOf018915@mercury.physics.adelaide.edu.au>	 <495FED5A.5090102@linx.net> <1231066111.10356.10.camel@earth.gruber.myown>
-Reply-To: tony@linx.net
+From: Kel Modderman <kel@otaku42.de>
+Subject: Re: backlight regression on ASUS F6S: inverted brightness control
+Date: Mon, 5 Jan 2009 06:49:19 +1000
+Message-ID: <200901050649.19747.kel@otaku42.de>
+References: <200812280611.18320.kel@otaku42.de> <200812310202.16459.kel@otaku42.de> <1230694408.562.306.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gold.linx.net ([195.66.232.40]:47772 "EHLO gold.linx.net"
+Received: from venema.h4ckr.net ([217.24.1.135]:35383 "EHLO venema.h4ckr.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752291AbZADUpe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 4 Jan 2009 15:45:34 -0500
-In-Reply-To: <1231066111.10356.10.camel@earth.gruber.myown>
+	id S1751373AbZADUte convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 4 Jan 2009 15:49:34 -0500
+In-Reply-To: <1230694408.562.306.camel@rzhang-dt>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: nokos@gmx.net
-Cc: Stephen Gildea <stepheng+linux@gildea.com>, Julian Brown <jules@panic.cs-bristol.org.uk>, linux-acpi@vger.kernel.org, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Wednesday 31 December 2008 13:33:28 Zhang Rui wrote:
+> the ACPI video backlight I/F on your laptop is broken.
+> could you please boot with acpi_backlight=3Dvendor and see if it work=
+s at
+> before?
+>=20
+> BTW: please attach the output of =EF=BB=BF"grep . /proc/acpi/video/*/=
+*/*" in=20
+> 1. 2.6.28 kenrel & boot with "acpi_backlight=3Dvendor"
 
-nokos@gmx.net wrote:
-> with ACPI_VIDEO:
-> both alt and std interface works (SBLL/SBL2), but only while X is
-> running (I think with ACPI_VIDEO all brighness change etc is handled by
-> the IGD stuff in i915 which is only active if X is running)
+/proc/acpi/video/VGA/CRTD/brightness:<not supported>
+/proc/acpi/video/VGA/CRTD/EDID:<not supported>
+/proc/acpi/video/VGA/CRTD/info:device_id:    0x0100
+/proc/acpi/video/VGA/CRTD/info:type:         UNKNOWN
+/proc/acpi/video/VGA/CRTD/info:known by bios: no
+/proc/acpi/video/VGA/CRTD/state:state:     0x1d
+/proc/acpi/video/VGA/CRTD/state:query:     0x00
+/proc/acpi/video/VGA/DVID/brightness:<not supported>
+/proc/acpi/video/VGA/DVID/EDID:<not supported>
+/proc/acpi/video/VGA/DVID/info:device_id:    0x0120
+/proc/acpi/video/VGA/DVID/info:type:         UNKNOWN
+/proc/acpi/video/VGA/DVID/info:known by bios: no
+/proc/acpi/video/VGA/DVID/state:state:     0x1d
+/proc/acpi/video/VGA/DVID/state:query:     0x00
+/proc/acpi/video/VGA/LCDD/brightness:<not supported>
+/proc/acpi/video/VGA/LCDD/EDID:<not supported>
+/proc/acpi/video/VGA/LCDD/info:device_id:    0x0110
+/proc/acpi/video/VGA/LCDD/info:type:         UNKNOWN
+/proc/acpi/video/VGA/LCDD/info:known by bios: no
+/proc/acpi/video/VGA/LCDD/state:state:     0x1f
+/proc/acpi/video/VGA/LCDD/state:query:     0x01
 
-Okay, perhaps kernel mode setting will improve this situation. As
-userland isn't ready for KMS now I will back off on this and bring it up
-again at around the 2.6.30/2.6.31 timeframe. (As I do agree things
-should work correctly without X running)
+> 2. an earlier working kernel, say 2.6.26.
 
-> without ACPI_VIDEO: 
-> only alt interface changes brightness and it works regardless of X
+/proc/acpi/video/VGA/CRTD/brightness:<not supported>
+/proc/acpi/video/VGA/CRTD/EDID:<not supported>
+/proc/acpi/video/VGA/CRTD/info:device_id:    0x0100
+/proc/acpi/video/VGA/CRTD/info:type:         UNKNOWN
+/proc/acpi/video/VGA/CRTD/info:known by bios: no
+/proc/acpi/video/VGA/CRTD/state:state:     0x1d
+/proc/acpi/video/VGA/CRTD/state:query:     0x00
+/proc/acpi/video/VGA/DVID/brightness:<not supported>
+/proc/acpi/video/VGA/DVID/EDID:<not supported>
+/proc/acpi/video/VGA/DVID/info:device_id:    0x0120
+/proc/acpi/video/VGA/DVID/info:type:         UNKNOWN
+/proc/acpi/video/VGA/DVID/info:known by bios: no
+/proc/acpi/video/VGA/DVID/state:state:     0x1d
+/proc/acpi/video/VGA/DVID/state:query:     0x00
+/proc/acpi/video/VGA/LCDD/brightness:levels:  15 14 13 12 11 10 9 8 7 6=
+ 5 4 3 2 1 0
+/proc/acpi/video/VGA/LCDD/brightness:current: 13
+/proc/acpi/video/VGA/LCDD/EDID:<not supported>
+/proc/acpi/video/VGA/LCDD/info:device_id:    0x0110
+/proc/acpi/video/VGA/LCDD/info:type:         UNKNOWN
+/proc/acpi/video/VGA/LCDD/info:known by bios: no
+/proc/acpi/video/VGA/LCDD/state:state:     0x1f
+/proc/acpi/video/VGA/LCDD/state:query:     0x01
 
-On the current interface though, mind if I remove the distinction
-between GBLL & GBLS? The only difference between them (that you already
-noticed, based on code comments) is that GBLS does not clear GHKS. GHKS
-is the "change caused by brightness keys" flag.
-As a result you already have to override use_alt in 1 case.
-
-A simplier way to autodetect (taking into account your next mail about
-BLNF) would then be to see whether SBL2 exists, and use if it does.
-(I've checked all other DSDTs that I have, SBL2 is unique to the S64XX
-series).
-
-My ultimate goal in this is to make the DMI-based recognition of
-machines unnecessary, especially if BTNI turns out to be useful in
-knowing the keymap.
-
-> Peter 
-
-Regards,
-Tony V.
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.9 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iEYEARECAAYFAklhH5cACgkQp5vW4rUFj5oSJwCfci3c42ogoUhi/Il99Oy8L3BV
-07AAoK/qdg+NC35CyPH0H3b47H0VDecF
-=xGab
------END PGP SIGNATURE-----
+Thanks, Kel.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
