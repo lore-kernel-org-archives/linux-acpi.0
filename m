@@ -1,34 +1,51 @@
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: Re: [PATCH 0/4] Fastboot revisited: Asynchronous function calls
-Date: Sun, 4 Jan 2009 21:44:38 +0000
-Message-ID: <20090104214438.196ff4ff@lxorguk.ukuu.org.uk>
-References: <20090104092430.7ffd2c41@infradead.org>
-	<alpine.LFD.2.00.0901041009060.3179@localhost.localdomain>
+From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Subject: Re: [PATCH 2.6.29] fujitsu-laptop: Add BL power, LED control and
+Date: Mon, 5 Jan 2009 09:10:49 +1030 (CST)
+Message-ID: <200901042240.n04Men6J022263@mercury.physics.adelaide.edu.au>
+References: <49611F97.6020601@linx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.00.0901041009060.3179@localhost.localdomain>
-Sender: linux-ide-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Arjan van de Ven <arjan@infradead.org>, linux-kernel@vger.kernel.org, mingo@elte.hu, fweisbec@gmail.com, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, akpm@linux-foundation.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:48282 "EHLO
+	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751496AbZADWlo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 4 Jan 2009 17:41:44 -0500
+In-Reply-To: <49611F97.6020601@linx.net> from "Tony Vroon" at Jan 04, 2009 08:44:07 PM
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: tony@linx.net
+Cc: nokos@gmx.net, Stephen Gildea <stepheng+linux@gildea.com>, Julian Brown <jules@panic.cs-bristol.org.uk>, linux-acpi@vger.kernel.org, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
 
-> I _think_ it's the irq auto-probing, but that's just a guess. The 8250 
-> driver does some historical crud, like
+Hi Tony
+
+> nokos@gmx.net wrote:
+> > with ACPI_VIDEO:
+> > both alt and std interface works (SBLL/SBL2), but only while X is
+> > running (I think with ACPI_VIDEO all brighness change etc is handled by
+> > the IGD stuff in i915 which is only active if X is running)
 > 
-> 	probe_irq_off(probe_irq_on());
-> 
-> to get rid of any pending irq's, but that should be entirely pointless 
-> these days. I bet that line basically goes back to pre-history, before we 
-> made the auto-probing much stabler.
+> Okay, perhaps kernel mode setting will improve this situation. As
+> userland isn't ready for KMS now I will back off on this and bring it up
+> again at around the 2.6.30/2.6.31 timeframe. (As I do agree things
+> should work correctly without X running)
 
-For non ISA boxes we shouldn't be - but this old code. The IRQ for the
-built in ports is defined by convention, in the BIOS PnP tables or with
-ACPI in the ACPI tables. So we shouldn't even be autoprobing the IRQ.
+Indeed.  Until use_alt is not required for any machine state it should not
+be removed since the removal will constitute a functional regression.
 
-We *do* have to wait one transmission timeout or so to detect buggy uarts
-but in theory that could be moved down into the open path.
+> A simplier way to autodetect (taking into account your next mail about
+> BLNF) would then be to see whether SBL2 exists, and use if it does.
+> (I've checked all other DSDTs that I have, SBL2 is unique to the S64XX
+> series).
 
-Alan
+That makes sense.
 
+> My ultimate goal in this is to make the DMI-based recognition of
+> machines unnecessary, especially if BTNI turns out to be useful in
+> knowing the keymap.
+
+Removing the need for DMI-based machine identification would be a good
+thing as it's one less thing to maintain going forward.
+
+Regards
+  jonathan
