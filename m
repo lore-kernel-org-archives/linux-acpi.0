@@ -1,52 +1,76 @@
-From: Tony Vroon <tony@linx.net>
-Subject: Re: [PATCH 2.6.29] fujitsu-laptop: Add BL power, LED control and
-Date: Sun, 04 Jan 2009 00:14:00 +0000
-Message-ID: <495FFF48.7050709@linx.net>
-References: <200901032237.n03MbfOf018915@mercury.physics.adelaide.edu.au>
-Reply-To: tony@linx.net
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: [PATCH] : ACPI : Add the MWAIT C-state mask to avoid overflow
+Date: Sun, 04 Jan 2009 12:04:21 +0800
+Message-ID: <1231041861.3967.3.camel@yakui_zhao.sh.intel.com>
+References: <20081031184233.8588.42241.stgit@thinkpad>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gold.linx.net ([195.66.232.40]:39000 "EHLO gold.linx.net"
+Received: from mga01.intel.com ([192.55.52.88]:1745 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756067AbZADAP1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 3 Jan 2009 19:15:27 -0500
-In-Reply-To: <200901032237.n03MbfOf018915@mercury.physics.adelaide.edu.au>
+	id S1751793AbZADDyF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 3 Jan 2009 22:54:05 -0500
+In-Reply-To: <20081031184233.8588.42241.stgit@thinkpad>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-Cc: nokos@gmx.net, Stephen Gildea <stepheng+linux@gildea.com>, Julian Brown <jules@panic.cs-bristol.org.uk>, linux-acpi@vger.kernel.org
+To: LenBrown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, venkatesh.pallipadi@intel.com
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Subject: ACPI: Add the MWAIT C-state mask to avoid overflow
+From: Zhao Yakui <yakui.zhao@intel.com>
 
-Jonathan Woithe wrote:
-> I assume you're talking about the textual driver name as opposed to the
-> module name ("fujitsu-laptop").  I have no immediate thoughts regarding
-> this.  Personally I quite like the extended information the above output
-> gives since you're left in no doubt where the driver comes from.
+The Cx Register address obtained from the _CST object is used as the mait
+hints if the register type is FFixedHW. And it is used to check whether
+the Cx type is supported or not.
 
-I would recommend fujitsu_brightness & fujitsu_hotkeys.
-Short, to the point and it fits in with how pci_root in the same
-directory is named.
+On some boxes the following Cx state package is obtained from _CST object:
+    >{
+                ResourceTemplate ()
+                {
+                    Register (FFixedHW,
+                        0x01,               // Bit Width
+                        0x02,               // Bit Offset
+                        0x0000000000889759, // Address
+                        0x03,               // Access Size
+                        )
+                },
 
-I can combine that patch with the removal of the use_alt framework,
-provided Peter gets back with a positive result. I would request that
-the existing patch be applied to 2.6.29 as is so that the merge window
-is not missed though.
-If anything, that new patch can be applied on top.
+                0x03,
+                0xF5,
+                0x015E }
+   In such case we should use the bit[7:4] of Cx address to check whether
+the Cx type is supported or not.
 
-> Regards
->   jonathan
+Add the MWAIT C-state mask to avoid overflow 
 
-Regards,
-Tony V.
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.9 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+Acked-by:Venki Pallipadi <venkatesh.pallipadi@intel.com>
+---
+ arch/x86/kernel/acpi/cstate.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-iEYEARECAAYFAklf/0gACgkQp5vW4rUFj5qiugCeKIU0HDF3Wl14tyIlQJY9fdzT
-nV4AoIX5XeHLvW90XrYErypKFj3HJe75
-=+jrC
------END PGP SIGNATURE-----
+Index: linux-2.6/arch/x86/kernel/acpi/cstate.c
+===================================================================
+--- linux-2.6.orig/arch/x86/kernel/acpi/cstate.c
++++ linux-2.6/arch/x86/kernel/acpi/cstate.c
+@@ -56,6 +56,7 @@ static struct cstate_entry *cpu_cstate_e
+ static short mwait_supported[ACPI_PROCESSOR_MAX_POWER];
+ 
+ #define MWAIT_SUBSTATE_MASK	(0xf)
++#define MWAIT_CSTATE_MASK	(0xf)
+ #define MWAIT_SUBSTATE_SIZE	(4)
+ 
+ #define CPUID_MWAIT_LEAF (5)
+@@ -98,7 +99,8 @@ int acpi_processor_ffh_cstate_probe(unsi
+ 	cpuid(CPUID_MWAIT_LEAF, &eax, &ebx, &ecx, &edx);
+ 
+ 	/* Check whether this particular cx_type (in CST) is supported or not */
+-	cstate_type = (cx->address >> MWAIT_SUBSTATE_SIZE) + 1;
++	cstate_type = ((cx->address >> MWAIT_SUBSTATE_SIZE) &
++			MWAIT_CSTATE_MASK) + 1;
+ 	edx_part = edx >> (cstate_type * MWAIT_SUBSTATE_SIZE);
+ 	num_cstate_subtype = edx_part & MWAIT_SUBSTATE_MASK;
+ 
+
+
