@@ -1,76 +1,87 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: [PATCH] : ACPI : Add the MWAIT C-state mask to avoid overflow
-Date: Sun, 04 Jan 2009 12:04:21 +0800
-Message-ID: <1231041861.3967.3.camel@yakui_zhao.sh.intel.com>
-References: <20081031184233.8588.42241.stgit@thinkpad>
+From: nokos@gmx.net
+Subject: Re: [PATCH 2.6.29] fujitsu-laptop: Add BL power, LED control and
+Date: Sun, 04 Jan 2009 11:48:31 +0100
+Message-ID: <1231066111.10356.10.camel@earth.gruber.myown>
+References: <200901032237.n03MbfOf018915@mercury.physics.adelaide.edu.au>
+	 <495FED5A.5090102@linx.net>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:1745 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751793AbZADDyF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 3 Jan 2009 22:54:05 -0500
-In-Reply-To: <20081031184233.8588.42241.stgit@thinkpad>
+Received: from mail-in-14.arcor-online.net ([151.189.21.54]:57020 "EHLO
+	mail-in-14.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756926AbZADKsm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 4 Jan 2009 05:48:42 -0500
+In-Reply-To: <495FED5A.5090102@linx.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: LenBrown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, venkatesh.pallipadi@intel.com
+To: tony@linx.net
+Cc: Stephen Gildea <stepheng+linux@gildea.com>, Julian Brown <jules@panic.cs-bristol.org.uk>, linux-acpi@vger.kernel.org, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
 
-Subject: ACPI: Add the MWAIT C-state mask to avoid overflow
-From: Zhao Yakui <yakui.zhao@intel.com>
+Hi
 
-The Cx Register address obtained from the _CST object is used as the mait
-hints if the register type is FFixedHW. And it is used to check whether
-the Cx type is supported or not.
+I have done some testing:
 
-On some boxes the following Cx state package is obtained from _CST object:
-    >{
-                ResourceTemplate ()
-                {
-                    Register (FFixedHW,
-                        0x01,               // Bit Width
-                        0x02,               // Bit Offset
-                        0x0000000000889759, // Address
-                        0x03,               // Access Size
-                        )
-                },
+with ACPI_VIDEO:
 
-                0x03,
-                0xF5,
-                0x015E }
-   In such case we should use the bit[7:4] of Cx address to check whether
-the Cx type is supported or not.
+both alt and std interface works (SBLL/SBL2), but only while X is
+running (I think with ACPI_VIDEO all brighness change etc is handled by
+the IGD stuff in i915 which is only active if X is running)
 
-Add the MWAIT C-state mask to avoid overflow 
+without ACPI_VIDEO:
 
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-Acked-by:Venki Pallipadi <venkatesh.pallipadi@intel.com>
----
- arch/x86/kernel/acpi/cstate.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+only alt interface changes brightness and it works regardless of X
 
-Index: linux-2.6/arch/x86/kernel/acpi/cstate.c
-===================================================================
---- linux-2.6.orig/arch/x86/kernel/acpi/cstate.c
-+++ linux-2.6/arch/x86/kernel/acpi/cstate.c
-@@ -56,6 +56,7 @@ static struct cstate_entry *cpu_cstate_e
- static short mwait_supported[ACPI_PROCESSOR_MAX_POWER];
- 
- #define MWAIT_SUBSTATE_MASK	(0xf)
-+#define MWAIT_CSTATE_MASK	(0xf)
- #define MWAIT_SUBSTATE_SIZE	(4)
- 
- #define CPUID_MWAIT_LEAF (5)
-@@ -98,7 +99,8 @@ int acpi_processor_ffh_cstate_probe(unsi
- 	cpuid(CPUID_MWAIT_LEAF, &eax, &ebx, &ecx, &edx);
- 
- 	/* Check whether this particular cx_type (in CST) is supported or not */
--	cstate_type = (cx->address >> MWAIT_SUBSTATE_SIZE) + 1;
-+	cstate_type = ((cx->address >> MWAIT_SUBSTATE_SIZE) &
-+			MWAIT_CSTATE_MASK) + 1;
- 	edx_part = edx >> (cstate_type * MWAIT_SUBSTATE_SIZE);
- 	num_cstate_subtype = edx_part & MWAIT_SUBSTATE_MASK;
- 
+In both cases events for the buttons are generated and it depends on if
+hal/dbus and/or gnome-power-manager/kpower* is running if the the
+brightness get actually changed.
 
+Peter 
+
+
+
+Am Samstag, den 03.01.2009, 22:57 +0000 schrieb Tony Vroon:
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
+> 
+> Peter Gruber wrote:
+> > Tested it on the S6410, and works as expected
+> 
+> On the subject of the S6410 (and S6420, which I have), I believe I can
+> simplify the backlight handling a *LOT*. Peter, to confirm that, could
+> you tell me whether you have ACPI_VIDEO (a kernel config option)
+> disabled? I'm hoping for a kernel configuration of:
+> # CONFIG_ACPI_VIDEO is not set
+> 
+> With ACPI_VIDEO disabled (a default on quite a lot of systems, as it
+> depends on video output switching) SBLL did indeed fail to update the
+> display brightness. Also, the display hotkeys failed to work. Events
+> were reported, but the "before" and "after" levels were always the same
+> value.
+> 
+> After loading ACPI_VIDEO, the hotkeys came to life. Also, after looking
+> at the DSDT I decided to specifically disable use_alt, causing the
+> driver to use SBLL & GBLL instead of SBL2 & GBLS.
+> Display brightness continued to be controllable. (And the Fujitsu laptop
+> driver continues to be useful, as backlight control methods are not
+> present on the ACPI video device)
+> 
+> So it seems to me that we should:
+> 1) explicitly depend on ACPI_VIDEO through Kconfig
+
+We also have to test if the ACPI_VIDEO scenario depends on DRM/DRM_I915
+for the brightness handling and add a depend on those 
+
+> 2) remove the use_alt framework
+> 
+> Regards,
+> Tony V.
+> -----BEGIN PGP SIGNATURE-----
+> Version: GnuPG v2.0.9 (GNU/Linux)
+> Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+> 
+> iEYEARECAAYFAklf7VoACgkQp5vW4rUFj5qXigCfSsDP38ochJ7i6X3/eFiZ3SP1
+> UqEAn28yGSYRBLmvWA3+vNhDSJ1ro5oS
+> =u1wO
+> -----END PGP SIGNATURE-----
 
