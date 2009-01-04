@@ -1,84 +1,34 @@
-From: Kel Modderman <kel@otaku42.de>
-Subject: Re: backlight regression on ASUS F6S: inverted brightness control
-Date: Mon, 5 Jan 2009 06:49:19 +1000
-Message-ID: <200901050649.19747.kel@otaku42.de>
-References: <200812280611.18320.kel@otaku42.de> <200812310202.16459.kel@otaku42.de> <1230694408.562.306.camel@rzhang-dt>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: [PATCH 0/4] Fastboot revisited: Asynchronous function calls
+Date: Sun, 4 Jan 2009 21:44:38 +0000
+Message-ID: <20090104214438.196ff4ff@lxorguk.ukuu.org.uk>
+References: <20090104092430.7ffd2c41@infradead.org>
+	<alpine.LFD.2.00.0901041009060.3179@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from venema.h4ckr.net ([217.24.1.135]:35383 "EHLO venema.h4ckr.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751373AbZADUte convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 4 Jan 2009 15:49:34 -0500
-In-Reply-To: <1230694408.562.306.camel@rzhang-dt>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <alpine.LFD.2.00.0901041009060.3179@localhost.localdomain>
+Sender: linux-ide-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Arjan van de Ven <arjan@infradead.org>, linux-kernel@vger.kernel.org, mingo@elte.hu, fweisbec@gmail.com, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, akpm@linux-foundation.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wednesday 31 December 2008 13:33:28 Zhang Rui wrote:
-> the ACPI video backlight I/F on your laptop is broken.
-> could you please boot with acpi_backlight=3Dvendor and see if it work=
-s at
-> before?
->=20
-> BTW: please attach the output of =EF=BB=BF"grep . /proc/acpi/video/*/=
-*/*" in=20
-> 1. 2.6.28 kenrel & boot with "acpi_backlight=3Dvendor"
+> I _think_ it's the irq auto-probing, but that's just a guess. The 8250 
+> driver does some historical crud, like
+> 
+> 	probe_irq_off(probe_irq_on());
+> 
+> to get rid of any pending irq's, but that should be entirely pointless 
+> these days. I bet that line basically goes back to pre-history, before we 
+> made the auto-probing much stabler.
 
-/proc/acpi/video/VGA/CRTD/brightness:<not supported>
-/proc/acpi/video/VGA/CRTD/EDID:<not supported>
-/proc/acpi/video/VGA/CRTD/info:device_id:    0x0100
-/proc/acpi/video/VGA/CRTD/info:type:         UNKNOWN
-/proc/acpi/video/VGA/CRTD/info:known by bios: no
-/proc/acpi/video/VGA/CRTD/state:state:     0x1d
-/proc/acpi/video/VGA/CRTD/state:query:     0x00
-/proc/acpi/video/VGA/DVID/brightness:<not supported>
-/proc/acpi/video/VGA/DVID/EDID:<not supported>
-/proc/acpi/video/VGA/DVID/info:device_id:    0x0120
-/proc/acpi/video/VGA/DVID/info:type:         UNKNOWN
-/proc/acpi/video/VGA/DVID/info:known by bios: no
-/proc/acpi/video/VGA/DVID/state:state:     0x1d
-/proc/acpi/video/VGA/DVID/state:query:     0x00
-/proc/acpi/video/VGA/LCDD/brightness:<not supported>
-/proc/acpi/video/VGA/LCDD/EDID:<not supported>
-/proc/acpi/video/VGA/LCDD/info:device_id:    0x0110
-/proc/acpi/video/VGA/LCDD/info:type:         UNKNOWN
-/proc/acpi/video/VGA/LCDD/info:known by bios: no
-/proc/acpi/video/VGA/LCDD/state:state:     0x1f
-/proc/acpi/video/VGA/LCDD/state:query:     0x01
+For non ISA boxes we shouldn't be - but this old code. The IRQ for the
+built in ports is defined by convention, in the BIOS PnP tables or with
+ACPI in the ACPI tables. So we shouldn't even be autoprobing the IRQ.
 
-> 2. an earlier working kernel, say 2.6.26.
+We *do* have to wait one transmission timeout or so to detect buggy uarts
+but in theory that could be moved down into the open path.
 
-/proc/acpi/video/VGA/CRTD/brightness:<not supported>
-/proc/acpi/video/VGA/CRTD/EDID:<not supported>
-/proc/acpi/video/VGA/CRTD/info:device_id:    0x0100
-/proc/acpi/video/VGA/CRTD/info:type:         UNKNOWN
-/proc/acpi/video/VGA/CRTD/info:known by bios: no
-/proc/acpi/video/VGA/CRTD/state:state:     0x1d
-/proc/acpi/video/VGA/CRTD/state:query:     0x00
-/proc/acpi/video/VGA/DVID/brightness:<not supported>
-/proc/acpi/video/VGA/DVID/EDID:<not supported>
-/proc/acpi/video/VGA/DVID/info:device_id:    0x0120
-/proc/acpi/video/VGA/DVID/info:type:         UNKNOWN
-/proc/acpi/video/VGA/DVID/info:known by bios: no
-/proc/acpi/video/VGA/DVID/state:state:     0x1d
-/proc/acpi/video/VGA/DVID/state:query:     0x00
-/proc/acpi/video/VGA/LCDD/brightness:levels:  15 14 13 12 11 10 9 8 7 6=
- 5 4 3 2 1 0
-/proc/acpi/video/VGA/LCDD/brightness:current: 13
-/proc/acpi/video/VGA/LCDD/EDID:<not supported>
-/proc/acpi/video/VGA/LCDD/info:device_id:    0x0110
-/proc/acpi/video/VGA/LCDD/info:type:         UNKNOWN
-/proc/acpi/video/VGA/LCDD/info:known by bios: no
-/proc/acpi/video/VGA/LCDD/state:state:     0x1f
-/proc/acpi/video/VGA/LCDD/state:query:     0x01
+Alan
 
-Thanks, Kel.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
