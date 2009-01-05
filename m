@@ -1,47 +1,40 @@
-From: Nigel Cunningham <ncunningham-lkml@crca.org.au>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Subject: Re: [PATCH 0/4] Fastboot revisited: Asynchronous function calls
-Date: Mon, 05 Jan 2009 22:18:25 +1100
-Message-ID: <1231154305.8179.148.camel@nigel-laptop>
+Date: Mon, 5 Jan 2009 16:21:25 +0000
+Message-ID: <20090105162125.093b4adf@lxorguk.ukuu.org.uk>
 References: <20090104092430.7ffd2c41@infradead.org>
-	 <1231135294.8179.45.camel@nigel-laptop>
-	 <20090105025300.3afbec23@infradead.org>
-Reply-To: ncunningham-lkml@crca.org.au
+	<alpine.LFD.2.00.0901041009060.3179@localhost.localdomain>
+	<20090104103104.6fdda9f2@infradead.org>
+	<alpine.LFD.2.00.0901041038570.3179@localhost.localdomain>
+	<20090104110559.306186c4@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.crca.org.au ([67.207.131.56]:55155 "EHLO crca.org.au"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751594AbZAELSP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 Jan 2009 06:18:15 -0500
-In-Reply-To: <20090105025300.3afbec23@infradead.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <20090104110559.306186c4@infradead.org>
+Sender: linux-ide-owner@vger.kernel.org
 To: Arjan van de Ven <arjan@infradead.org>
-Cc: linux-kernel@vger.kernel.org, torvalds@linux-foundation.org, mingo@elte.hu, fweisbec@gmail.com, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, akpm@linux-foundation.org
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org, mingo@elte.hu, fweisbec@gmail.com, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, akpm@linux-foundation.org
+List-Id: linux-acpi@vger.kernel.org
 
-Hi.
+> Right now I don't think I have time for it (this is going to take time..
+> there's so many weird things with serial ports that it's bound to break
+> stuff in the beginning etc)
 
-On Mon, 2009-01-05 at 02:53 -0800, Arjan van de Ven wrote:
-> On Mon, 05 Jan 2009 17:01:34 +1100
-> Nigel Cunningham <ncunningham-lkml@crca.org.au> wrote:
-> 
-> > Hi Arjan.
-> > 
-> > Great work, and valuable too. I'm just wondering if the header file
-> > name "async.h" is a little too generic? Something like async_init.h
-> > perhaps?
-> > 
-> 
-> while the users I have in mind are during init, the concept and
-> infrastructure of asynchronous function calls is by no means limited to
-> that use case... I hope there are many other uses for this :)
+I can't duplicate this. Can you check you don't have
 
-Okee doke. How about async_fn or something like that then? It's just
-that there's async I/O and no doubt other async stuff I haven't thought
-of. Still, it's a relatively minor point.
+config SERIAL_8250_DETECT_IRQ
+        bool "Autodetect IRQ on standard ports (unsafe)"
+        depends on SERIAL_8250_EXTENDED
+        help
+          Say Y here if you want the kernel to try to guess which IRQ
+          to use for your serial port.
 
-Night!
+          This is considered unsafe; it is far better to configure the
+IRQ in a boot script using the setserial command.
 
-Nigel
+          If unsure, say N.
+
+
+enabled
 
