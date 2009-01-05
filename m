@@ -1,58 +1,24 @@
-From: Skywing <Skywing@valhallalegends.com>
-Subject: RE: [patch][rfc] acpi: do not use kmem caches
-Date: Sun, 4 Jan 2009 23:43:55 -0600
-Message-ID: <982D8D05B6407A49AD506E6C3AC8E7D6BFEEA2A60C@caralain.haven.nynaeve.net>
-References: <20081201120002.GB10790@wotan.suse.de>
- <4933E2C3.4020400@gmail.com> <1228138641.14439.18.camel@penberg-laptop>
- <4933EE8A.2010007@gmail.com> <20081201161404.GE10790@wotan.suse.de>
- <4934149A.4020604@gmail.com> <20081201172044.GB14074@infradead.org>
- <alpine.LFD.2.00.0812011241080.3197@localhost.localdomain>
- <20081201181047.GK10790@wotan.suse.de>
- <alpine.LFD.2.00.0812311649230.3854@localhost.localdomain>
- <20090105041440.GB367@wotan.suse.de>
+From: Nigel Cunningham <ncunningham-lkml@crca.org.au>
+Subject: Re: [PATCH 0/4] Fastboot revisited: Asynchronous function calls
+Date: Mon, 05 Jan 2009 17:01:34 +1100
+Message-ID: <1231135294.8179.45.camel@nigel-laptop>
+References: <20090104092430.7ffd2c41@infradead.org>
+Reply-To: ncunningham-lkml@crca.org.au
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20090105041440.GB367@wotan.suse.de>
-Content-Language: en-US
-Sender: owner-linux-mm@kvack.org
-To: Nick Piggin <npiggin@suse.de>, Len Brown <lenb@kernel.org>
-Cc: Christoph Hellwig <hch@infradead.org>, Alexey Starikovskiy <aystarik@gmail.com>, Pekka Enberg <penberg@cs.helsinki.fi>, Linux Memory Management List <linux-mm@kvack.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753456AbZAEGBf@vger.kernel.org>
+In-Reply-To: <20090104092430.7ffd2c41@infradead.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arjan van de Ven <arjan@infradead.org>
+Cc: linux-kernel@vger.kernel.org, torvalds@linux-foundation.org, mingo@elte.hu, fweisbec@gmail.com, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, akpm@linux-foundation.org
 List-Id: linux-acpi@vger.kernel.org
 
------Original Message-----
-From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel=
-.org] On Behalf Of Nick Piggin
-Sent: Sunday, January 04, 2009 11:15 PM
-To: Len Brown
-Cc: Christoph Hellwig; Alexey Starikovskiy; Pekka Enberg; Linux Memory Mana=
-gement List; linux-acpi@vger.kernel.org
-Subject: Re: [patch][rfc] acpi: do not use kmem caches
+Hi Arjan.
 
-> > I think they are here to stay.  We are running
-> > an interpreter in kernel-space with arbitrary input,
-> > so I think the ability to easily isolate run-time memory leaks
-> > on a non-debug system is important.
-> I don't really see the connection. Or why being an interpreter is so
-> special. Filesystems, network stack, etc run in kernel with arbitrary
-> input. If kmem caches are part of a security strategy, then it's
-> broken... You'd surely have to detect bad input before the interpreter
-> turns it into a memory leak (or recover afterward, in which case it
-> isn't a leak).
+Great work, and valuable too. I'm just wondering if the header file name
+"async.h" is a little too generic? Something like async_init.h perhaps?
 
-I think that the purposes of these was to act as a debugging aid, for examp=
-le, if there were BIOS-supplied AML that was triggering a leak.  The point =
-being here that a network card driver has a much more well-defined set of w=
-hat can happen than a fully pluggable interpreter for third party code.
+Regards,
 
-[Of course, this is just my interpretation from following the discussion; I=
-'m not otherwise involved.]
-
-- S
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Nigel
