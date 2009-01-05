@@ -1,68 +1,58 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: Re: [PATCH 4/4] fastboot: make ACPI bus drivers probe asynchronous
-Date: Mon, 05 Jan 2009 13:30:26 +0800
-Message-ID: <1231133426.3967.53.camel@yakui_zhao.sh.intel.com>
-References: <20090104092430.7ffd2c41@infradead.org>
-	 <20090104093103.46167d23@infradead.org>
-	 <1231120992.3967.18.camel@yakui_zhao.sh.intel.com>
-	 <20090104175830.7a7e279e@infradead.org>
-	 <1231123910.3967.34.camel@yakui_zhao.sh.intel.com>
-	 <20090104185103.06e2f531@infradead.org>
+From: Skywing <Skywing@valhallalegends.com>
+Subject: RE: [patch][rfc] acpi: do not use kmem caches
+Date: Sun, 4 Jan 2009 23:43:55 -0600
+Message-ID: <982D8D05B6407A49AD506E6C3AC8E7D6BFEEA2A60C@caralain.haven.nynaeve.net>
+References: <20081201120002.GB10790@wotan.suse.de>
+ <4933E2C3.4020400@gmail.com> <1228138641.14439.18.camel@penberg-laptop>
+ <4933EE8A.2010007@gmail.com> <20081201161404.GE10790@wotan.suse.de>
+ <4934149A.4020604@gmail.com> <20081201172044.GB14074@infradead.org>
+ <alpine.LFD.2.00.0812011241080.3197@localhost.localdomain>
+ <20081201181047.GK10790@wotan.suse.de>
+ <alpine.LFD.2.00.0812311649230.3854@localhost.localdomain>
+ <20090105041440.GB367@wotan.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:39424 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750771AbZAEFUD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 Jan 2009 00:20:03 -0500
-In-Reply-To: <20090104185103.06e2f531@infradead.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20090105041440.GB367@wotan.suse.de>
+Content-Language: en-US
+Sender: owner-linux-mm@kvack.org
+To: Nick Piggin <npiggin@suse.de>, Len Brown <lenb@kernel.org>
+Cc: Christoph Hellwig <hch@infradead.org>, Alexey Starikovskiy <aystarik@gmail.com>, Pekka Enberg <penberg@cs.helsinki.fi>, Linux Memory Management List <linux-mm@kvack.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Arjan van de Ven <arjan@infradead.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>, "mingo@elte.hu" <mingo@elte.hu>, "fweisbec@gmail.com" <fweisbec@gmail.com>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>
 
-On Sun, 2009-01-04 at 18:51 -0800, Arjan van de Ven wrote:
-> On Mon, 05 Jan 2009 10:51:50 +0800
-> Zhao Yakui <yakui.zhao@intel.com> wrote:
-> 
-> > > because of the async_synchronize_cookie() call!
-> > After the async_synchronize_cookie is called, the register sequence
-> > will become strict. 
-> > But there exist multiple threads. It is possible that the function of
-> > acpi_bus_register_async is called on different threads. In such case
-> > the dependency can't be guaranteed. 
-> 
-> this is not correct.
-> when the async_synchronize_cookie() call returns, all previous
-> acpi_bus_register_async() calls have completed. So no older ones can be
-> running.
-Thanks for the detailed explanation. Understand it.
-But I still have another question about the function of
-async_synchronize_cookie. I don't know whether my understanding is
-correct or not.
-The function of async_synchronize_cookie is realized by comparing the
-variable of lowest_in_progress with the cookie. Only when the
-lowest_in_process is greater than or equal to the cookie value, it will
-return. When async_schedule is called, a new cookie will be assigned,
-which can also be used as the second argument of
-async_synchronize_cookie.
+-----Original Message-----
+From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel=
+.org] On Behalf Of Nick Piggin
+Sent: Sunday, January 04, 2009 11:15 PM
+To: Len Brown
+Cc: Christoph Hellwig; Alexey Starikovskiy; Pekka Enberg; Linux Memory Mana=
+gement List; linux-acpi@vger.kernel.org
+Subject: Re: [patch][rfc] acpi: do not use kmem caches
 
-The value of lowest_in_progress is updated after calling the callback
-function (async_func_ptr). But the async_synchronize_cookie is called in
-the callback function (acpi_bus_register_async). 
-In such case it seems that there exists the dead lock. The value of
-lowest_in_progress should be updated before finishing the async callback
-function. But the value of lowest_in_progress is updated after calling
-the async callback function.
+> > I think they are here to stay.  We are running
+> > an interpreter in kernel-space with arbitrary input,
+> > so I think the ability to easily isolate run-time memory leaks
+> > on a non-debug system is important.
+> I don't really see the connection. Or why being an interpreter is so
+> special. Filesystems, network stack, etc run in kernel with arbitrary
+> input. If kmem caches are part of a security strategy, then it's
+> broken... You'd surely have to detect bad input before the interpreter
+> turns it into a memory leak (or recover afterward, in which case it
+> isn't a leak).
 
+I think that the purposes of these was to act as a debugging aid, for examp=
+le, if there were BIOS-supplied AML that was triggering a leak.  The point =
+being here that a network card driver has a much more well-defined set of w=
+hat can happen than a fully pluggable interpreter for third party code.
 
-> 
-> there also can be no newer ones, because newer ones will wait for the
-> current one to entirely complete before they will return from
-> acpi_bus_register_async()
-> 
-> so.. since all older ones are complete, and no new ones can happen..
-> the sequence is strictly followed.
-> 
+[Of course, this is just my interpretation from following the discussion; I=
+'m not otherwise involved.]
 
+- S
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
