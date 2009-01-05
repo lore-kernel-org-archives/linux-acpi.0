@@ -1,150 +1,42 @@
-From: Tino Keitel <tino.keitel@gmx.de>
-Subject: 2.6.28 regression: xbacklight broken on ThinkPad X61s
-Date: Mon, 5 Jan 2009 09:39:11 +0100
-Message-ID: <20090105083911.GA3694@x61>
+From: Frederic Weisbecker <fweisbec@gmail.com>
+Subject: Re: [PATCH 0/4] Fastboot revisited: Asynchronous function calls
+Date: Mon, 5 Jan 2009 09:47:04 +0100
+Message-ID: <20090105084703.GA5741@nowhere>
+References: <20090104092430.7ffd2c41@infradead.org> <1231135294.8179.45.camel@nigel-laptop>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="EVF5PPMfhYS0aIcm"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from eazy.amigager.de ([213.239.192.238]:41224 "EHLO
-	eazy.amigager.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751643AbZAEIjQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Jan 2009 03:39:16 -0500
+Received: from mail-bw0-f21.google.com ([209.85.218.21]:34276 "EHLO
+	mail-bw0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751632AbZAEIrL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Jan 2009 03:47:11 -0500
 Content-Disposition: inline
+In-Reply-To: <1231135294.8179.45.camel@nigel-laptop>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Nigel Cunningham <ncunningham-lkml@crca.org.au>
+Cc: Arjan van de Ven <arjan@infradead.org>, linux-kernel@vger.kernel.org, torvalds@linux-foundation.org, mingo@elte.hu, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, akpm@linux-foundation.org
 
+On Mon, Jan 05, 2009 at 05:01:34PM +1100, Nigel Cunningham wrote:
+> Hi Arjan.
+> 
+> Great work, and valuable too. I'm just wondering if the header file name
+> "async.h" is a little too generic? Something like async_init.h perhaps?
+> 
+> Regards,
+> 
+> Nigel
+>
 
---EVF5PPMfhYS0aIcm
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Hi Nigel,
 
-Hi,
+That's what I thought too at first. But I guess there could be other
+users of these async functions than the initcalls.
+It looks like out of order workqueues that can synchronize themselves.
+It seems a bit more costly than workqueues (since the concept comes along
+a loop of creation/destroying of several threads) but more efficient for the
+same reason as the number of active threads adapts to the number of CPU and jobs to perform.
+The purpose is not the same. But I guess it's more reliable
+than workqueues for pathes that require mutiple parallel jobs which need
+to locally synchronize on critical pathes.
 
-xbacklight is broken as of 2.6.28 on my ThinkPad X61s. It works with
-2.6.27(.8) The difference I can see between both kernels is that 2.6.27
-has 2 backlight ACPI devices, whereas 2.6.28 only has one device.  With
-2.6.28, I can use xbacklight and see the values change in xbacklight
--get, but the actual display brightness doesn't change.
-
-Attached are 2 files with diagnostic output from 2.6.27 and 2.6.28. Any
-hints how to solve or debug this?
-
-Regards,
-Tino
-
-
---EVF5PPMfhYS0aIcm
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="backlight_2.6.27"
-
-dmesg:
-
-acpi device:03: registered as cooling_device2
-input: Video Bus as /class/input/input8
-ACPI: Video Device [VID] (multi-head: yes  rom: no  post: no)
-acpi device:08: registered as cooling_device3
-input: Video Bus as /class/input/input9
-ACPI: Video Device [VID1] (multi-head: yes  rom: no  post: no)
-
-xrandr --prop:
-
-Screen 0: minimum 320 x 200, current 1024 x 768, maximum 1024 x 1024
-VGA disconnected (normal left inverted right x axis y axis)
-LVDS connected 1024x768+0+0 (normal left inverted right x axis y axis) 246mm x 185mm
-	EDID_DATA:
-		00ffffffffffff0030ae004000000000
-		000f010380191278eaed7591574f8b26
-		21505421080001010101010101010101
-		01010101010128150040410026301888
-		3600f6b900000018ed10004041002630
-		18883600f6b9000000180000000f0061
-		43326143280f01004ca3584a000000fe
-		004c544e313231584a2d4c30370a0000
-	PANEL_FITTING: full
-		supported: center       full_aspect  full        
-	BACKLIGHT_CONTROL: kernel
-		supported: native       legacy       combination  kernel      
-	BACKLIGHT: 10 (0x0000000a) range:  (0,15)
-   1024x768       50.0*+   60.0     40.0  
-   800x600        60.3  
-   640x480        60.0     59.9
-
-Xorg log:
-
-(II) intel(0): found backlight control method /sys/class/backlight/acpi_video1
-
-sysfs:
-
-/sys/class/backlight/acpi_video0/subsystem/acpi_video1/bl_power:0
-/sys/class/backlight/acpi_video0/subsystem/acpi_video1/brightness:10
-/sys/class/backlight/acpi_video0/subsystem/acpi_video1/actual_brightness:10
-/sys/class/backlight/acpi_video0/subsystem/acpi_video1/max_brightness:15
-/sys/class/backlight/acpi_video0/subsystem/acpi_video1/power/wakeup:
-/sys/class/backlight/acpi_video0/bl_power:0
-/sys/class/backlight/acpi_video0/brightness:9
-/sys/class/backlight/acpi_video0/actual_brightness:12
-/sys/class/backlight/acpi_video0/max_brightness:15
-/sys/class/backlight/acpi_video0/power/wakeup:
-/sys/class/backlight/acpi_video1/subsystem/acpi_video0/bl_power:0
-/sys/class/backlight/acpi_video1/subsystem/acpi_video0/brightness:9
-/sys/class/backlight/acpi_video1/subsystem/acpi_video0/actual_brightness:12
-/sys/class/backlight/acpi_video1/subsystem/acpi_video0/max_brightness:15
-/sys/class/backlight/acpi_video1/subsystem/acpi_video0/power/wakeup:
-/sys/class/backlight/acpi_video1/bl_power:0
-/sys/class/backlight/acpi_video1/brightness:10
-/sys/class/backlight/acpi_video1/actual_brightness:10
-/sys/class/backlight/acpi_video1/max_brightness:15
-/sys/class/backlight/acpi_video1/power/wakeup:
-
---EVF5PPMfhYS0aIcm
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="backlight_2.6.28"
-
-dmesg:
-
-acpi device:03: registered as cooling_device2
-input: Video Bus as /class/input/input7
-ACPI: Video Device [VID] (multi-head: yes  rom: no  post: no)
-
-xrandr --prop:
-
-Screen 0: minimum 320 x 200, current 1024 x 768, maximum 1024 x 1024
-VGA disconnected (normal left inverted right x axis y axis)
-LVDS connected 1024x768+0+0 (normal left inverted right x axis y axis) 246mm x 185mm
-	EDID_DATA:
-		00ffffffffffff0030ae004000000000
-		000f010380191278eaed7591574f8b26
-		21505421080001010101010101010101
-		01010101010128150040410026301888
-		3600f6b900000018ed10004041002630
-		18883600f6b9000000180000000f0061
-		43326143280f01004ca3584a000000fe
-		004c544e313231584a2d4c30370a0000
-	PANEL_FITTING: full
-		supported: center       full_aspect  full        
-	BACKLIGHT_CONTROL: kernel
-		supported: native       legacy       combination  kernel      
-	BACKLIGHT: 5 (0x00000005) range:  (0,15)
-   1024x768       50.0*+   60.0     40.0  
-   800x600        60.3  
-   640x480        60.0     59.9
-
-Xorg log:
-
-(II) intel(0): found backlight control method /sys/class/backlight/acpi_video0
-
-sysfs:
-
-/sys/class/backlight/acpi_video0/actual_brightness:5
-/sys/class/backlight/acpi_video0/bl_power:0
-/sys/class/backlight/acpi_video0/brightness:5
-/sys/class/backlight/acpi_video0/max_brightness:15
-/sys/class/backlight/acpi_video0/power/wakeup:
-/sys/class/backlight/acpi_video0/subsystem/acpi_video0/bl_power:0
-/sys/class/backlight/acpi_video0/subsystem/acpi_video0/brightness:5
-/sys/class/backlight/acpi_video0/subsystem/acpi_video0/actual_brightness:5
-/sys/class/backlight/acpi_video0/subsystem/acpi_video0/max_brightness:15
-/sys/class/backlight/acpi_video0/subsystem/acpi_video0/power/wakeup:
-
---EVF5PPMfhYS0aIcm--
