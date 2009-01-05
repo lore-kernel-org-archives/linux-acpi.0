@@ -1,51 +1,105 @@
-From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-Subject: Re: [PATCH 2.6.29] fujitsu-laptop: Add BL power, LED control and
-Date: Mon, 5 Jan 2009 09:10:49 +1030 (CST)
-Message-ID: <200901042240.n04Men6J022263@mercury.physics.adelaide.edu.au>
-References: <49611F97.6020601@linx.net>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: [PATCH 4/4] fastboot: make ACPI bus drivers probe asynchronous
+Date: Mon, 05 Jan 2009 10:03:12 +0800
+Message-ID: <1231120992.3967.18.camel@yakui_zhao.sh.intel.com>
+References: <20090104092430.7ffd2c41@infradead.org>
+	 <20090104093103.46167d23@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:48282 "EHLO
-	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751496AbZADWlo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 4 Jan 2009 17:41:44 -0500
-In-Reply-To: <49611F97.6020601@linx.net> from "Tony Vroon" at Jan 04, 2009 08:44:07 PM
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <20090104093103.46167d23@infradead.org>
+Sender: linux-ide-owner@vger.kernel.org
+To: Arjan van de Ven <arjan@infradead.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>, "mingo@elte.hu" <mingo@elte.hu>, "fweisbec@gmail.com" <fweisbec@gmail.com>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: tony@linx.net
-Cc: nokos@gmx.net, Stephen Gildea <stepheng+linux@gildea.com>, Julian Brown <jules@panic.cs-bristol.org.uk>, linux-acpi@vger.kernel.org, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
 
-Hi Tony
-
-> nokos@gmx.net wrote:
-> > with ACPI_VIDEO:
-> > both alt and std interface works (SBLL/SBL2), but only while X is
-> > running (I think with ACPI_VIDEO all brighness change etc is handled by
-> > the IGD stuff in i915 which is only active if X is running)
+On Sun, 2009-01-04 at 09:31 -0800, Arjan van de Ven wrote:
+> From 20af3efd07b775a27a997e3df1039e20ea18f62b Mon Sep 17 00:00:00 2001
+> From: Arjan van de Ven <arjan@linux.intel.com>
+> Date: Sun, 4 Jan 2009 05:32:28 -0800
+> Subject: [PATCH] fastboot: make ACPI bus drivers probe asynchronous
 > 
-> Okay, perhaps kernel mode setting will improve this situation. As
-> userland isn't ready for KMS now I will back off on this and bring it up
-> again at around the 2.6.30/2.6.31 timeframe. (As I do agree things
-> should work correctly without X running)
+> the various ACPI bus drivers have non-overlapping devices and can
+> each be run asynchronous. Some of the ACPI drivers (especially the
+> battery one, but others as well) can take quite a long time to probe.
+It seems that all the ACPI drivers are registered asynchronously after
+this change. 
+   But there exists some dependency between some ACPI device drivers. It
+is not very reasonable that the device driver is loaded asynchronously
+if there exists the dependency between some drivers. 
 
-Indeed.  Until use_alt is not required for any machine state it should not
-be removed since the removal will constitute a functional regression.
+For example: 
+   On some boxes the info of battery is related with Embedded
+controller. The EC driver should be loaded completely before registering
+battery driver.
+   On some boxes there exist the devices of ACPI power resource. And the
+device power state is transited by controlling power resource. In such
+case the power resource device driver should be loaded completely before
+transiting the device power state.
 
-> A simplier way to autodetect (taking into account your next mail about
-> BLNF) would then be to see whether SBL2 exists, and use if it does.
-> (I've checked all other DSDTs that I have, SBL2 is unique to the S64XX
-> series).
 
-That makes sense.
+Best regards.
 
-> My ultimate goal in this is to make the DMI-based recognition of
-> machines unnecessary, especially if BTNI turns out to be useful in
-> knowing the keymap.
+> 
+> Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+> ---
+>  drivers/acpi/scan.c |   23 ++++++++++++++++-------
+>  1 files changed, 16 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 39b7233..a9e542d 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -8,6 +8,7 @@
+>  #include <linux/acpi.h>
+>  #include <linux/signal.h>
+>  #include <linux/kthread.h>
+> +#include <linux/async.h>
+>  
+>  #include <acpi/acpi_drivers.h>
+>  #include <acpi/acinterp.h>	/* for acpi_ex_eisa_id_to_string() */
+> @@ -578,6 +579,19 @@ static int acpi_start_single_object(struct acpi_device *device)
+>  	return result;
+>  }
+>  
+> +static void acpi_bus_register_async(void *data, async_cookie_t cookie)
+> +{
+> +	int ret;
+> +	struct acpi_driver *driver = data;
+> +	driver->drv.name = driver->name;
+> +	driver->drv.bus = &acpi_bus_type;
+> +	driver->drv.owner = driver->owner;
+> +
+> +	async_synchronize_cookie(cookie);
+> +
+> +	ret = driver_register(&driver->drv);
+> +	WARN_ON(ret != 0);
+> +}
+>  /**
+>   * acpi_bus_register_driver - register a driver with the ACPI bus
+>   * @driver: driver being registered
+> @@ -588,16 +602,11 @@ static int acpi_start_single_object(struct acpi_device *device)
+>   */
+>  int acpi_bus_register_driver(struct acpi_driver *driver)
+>  {
+> -	int ret;
+>  
+>  	if (acpi_disabled)
+>  		return -ENODEV;
+> -	driver->drv.name = driver->name;
+> -	driver->drv.bus = &acpi_bus_type;
+> -	driver->drv.owner = driver->owner;
+> -
+> -	ret = driver_register(&driver->drv);
+> -	return ret;
+> +	async_schedule(acpi_bus_register_async, driver);
+> +	return 0;
+>  }
+>  
+>  EXPORT_SYMBOL(acpi_bus_register_driver);
+> -- 
+> 1.6.0.6
+> 
+> 
 
-Removing the need for DMI-based machine identification would be a good
-thing as it's one less thing to maintain going forward.
-
-Regards
-  jonathan
