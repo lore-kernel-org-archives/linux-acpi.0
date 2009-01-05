@@ -1,48 +1,63 @@
-From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-Subject: Re: [PATCH 2.6.29] fujitsu-laptop: Add BL power, LED control and
-Date: Mon, 5 Jan 2009 12:26:58 +1030 (CST)
-Message-ID: <200901050156.n051uwxA022848@mercury.physics.adelaide.edu.au>
-References: <495FFF48.7050709@linx.net>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: [PATCH 4/4] fastboot: make ACPI bus drivers probe asynchronous
+Date: Mon, 05 Jan 2009 10:51:50 +0800
+Message-ID: <1231123910.3967.34.camel@yakui_zhao.sh.intel.com>
+References: <20090104092430.7ffd2c41@infradead.org>
+	 <20090104093103.46167d23@infradead.org>
+	 <1231120992.3967.18.camel@yakui_zhao.sh.intel.com>
+	 <20090104175830.7a7e279e@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:40346 "EHLO
-	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751768AbZAEB51 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 4 Jan 2009 20:57:27 -0500
-In-Reply-To: <495FFF48.7050709@linx.net> from "Tony Vroon" at Jan 04, 2009 12:14:00 AM
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <20090104175830.7a7e279e@infradead.org>
+Sender: linux-ide-owner@vger.kernel.org
+To: Arjan van de Ven <arjan@infradead.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>, "mingo@elte.hu" <mingo@elte.hu>, "fweisbec@gmail.com" <fweisbec@gmail.com>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: tony@linx.net
-Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, nokos@gmx.net, Stephen Gildea <stepheng+linux@gildea.com>, Julian Brown <jules@panic.cs-bristol.org.uk>, linux-acpi@vger.kernel.org
 
-Hi Tony
-
-> Jonathan Woithe wrote:
-> > I assume you're talking about the textual driver name as opposed to the
-> > module name ("fujitsu-laptop").  I have no immediate thoughts regarding
-> > this.  Personally I quite like the extended information the above output
-> > gives since you're left in no doubt where the driver comes from.
+On Sun, 2009-01-04 at 17:58 -0800, Arjan van de Ven wrote:
+> On Mon, 05 Jan 2009 10:03:12 +0800
+> Zhao Yakui <yakui.zhao@intel.com> wrote:
 > 
-> I would recommend fujitsu_brightness & fujitsu_hotkeys.
-> Short, to the point and it fits in with how pci_root in the same
-> directory is named.
+> > On Sun, 2009-01-04 at 09:31 -0800, Arjan van de Ven wrote:
+> > > From 20af3efd07b775a27a997e3df1039e20ea18f62b Mon Sep 17 00:00:00
+> > > 2001 From: Arjan van de Ven <arjan@linux.intel.com>
+> > > Date: Sun, 4 Jan 2009 05:32:28 -0800
+> > > Subject: [PATCH] fastboot: make ACPI bus drivers probe asynchronous
+> > > 
+> > > the various ACPI bus drivers have non-overlapping devices and can
+> > > each be run asynchronous. Some of the ACPI drivers (especially the
+> > > battery one, but others as well) can take quite a long time to
+> > > probe.
+> > It seems that all the ACPI drivers are registered asynchronously after
+> > this change. 
+> 
+> they are registered asynchronously compared to the rest of the kernel,
+> but in strict original sequence compared to eachother.
+> 
+> 
+> > > +static void acpi_bus_register_async(void *data, async_cookie_t
+> > > cookie) +{
+> > > +	int ret;
+> > > +	struct acpi_driver *driver = data;
+> > > +	driver->drv.name = driver->name;
+> > > +	driver->drv.bus = &acpi_bus_type;
+> > > +	driver->drv.owner = driver->owner;
+> > > +
+> > > +	async_synchronize_cookie(cookie);
+> > > +
+> > > +	ret = driver_register(&driver->drv);
+> > > +	WARN_ON(ret != 0);
+> > > +}
+> 
+> because of the async_synchronize_cookie() call!
+After the async_synchronize_cookie is called, the register sequence will
+become strict. 
+But there exist multiple threads. It is possible that the function of
+acpi_bus_register_async is called on different threads. In such case the
+dependency can't be guaranteed. 
 
-Yeah, they work for me.
+Thanks.
+> 
 
-> I can combine that patch with the removal of the use_alt framework,
-> provided Peter gets back with a positive result.
-
-Please keep the two patches separate since they really do deal with
-different things.  In any case, the use_alt framework probably has to say
-for a while yet (see other emails).
-
-> I would request that the existing patch be applied to 2.6.29 as is so that
-> the merge window is not missed though.
-
-Agreed - the existing patch should go through as is and anything else from
-here on should be relative to that.
-
-Regards
-  jonathan
