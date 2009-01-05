@@ -1,42 +1,39 @@
-From: Frederic Weisbecker <fweisbec@gmail.com>
-Subject: Re: [PATCH 0/4] Fastboot revisited: Asynchronous function calls
-Date: Mon, 5 Jan 2009 09:47:04 +0100
-Message-ID: <20090105084703.GA5741@nowhere>
-References: <20090104092430.7ffd2c41@infradead.org> <1231135294.8179.45.camel@nigel-laptop>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: 2.6.28 regression: xbacklight broken on ThinkPad X61s
+Date: Mon, 05 Jan 2009 17:06:15 +0800
+Message-ID: <1231146375.32473.52.camel@rzhang-dt>
+References: <20090105083911.GA3694@x61>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f21.google.com ([209.85.218.21]:34276 "EHLO
-	mail-bw0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751632AbZAEIrL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Jan 2009 03:47:11 -0500
-Content-Disposition: inline
-In-Reply-To: <1231135294.8179.45.camel@nigel-laptop>
+Received: from mga02.intel.com ([134.134.136.20]:18636 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751756AbZAEJE5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 5 Jan 2009 04:04:57 -0500
+In-Reply-To: <20090105083911.GA3694@x61>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Nigel Cunningham <ncunningham-lkml@crca.org.au>
-Cc: Arjan van de Ven <arjan@infradead.org>, linux-kernel@vger.kernel.org, torvalds@linux-foundation.org, mingo@elte.hu, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, akpm@linux-foundation.org
+To: Tino Keitel <tino.keitel@gmx.de>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, trenn@suse.de, mjg59@srcf.ucam.org
 
-On Mon, Jan 05, 2009 at 05:01:34PM +1100, Nigel Cunningham wrote:
-> Hi Arjan.
+On Mon, 2009-01-05 at 16:39 +0800, Tino Keitel wrote:
+> Hi,
 > 
-> Great work, and valuable too. I'm just wondering if the header file name
-> "async.h" is a little too generic? Something like async_init.h perhaps?
+> xbacklight is broken as of 2.6.28 on my ThinkPad X61s. It works with
+> 2.6.27(.8) The difference I can see between both kernels is that 2.6.27
+> has 2 backlight ACPI devices, whereas 2.6.28 only has one device.  With
+> 2.6.28, I can use xbacklight and see the values change in xbacklight
+> -get, but the actual display brightness doesn't change.
 > 
-> Regards,
-> 
-> Nigel
->
+hmm, this regression is caused by commit 
+22c13f9d8179f4c9caecfcb60a95214562b9addc
 
-Hi Nigel,
+but the real problem is that the IGD OpRegion doesn't work well on this
+laptop.
 
-That's what I thought too at first. But I guess there could be other
-users of these async functions than the initcalls.
-It looks like out of order workqueues that can synchronize themselves.
-It seems a bit more costly than workqueues (since the concept comes along
-a loop of creation/destroying of several threads) but more efficient for the
-same reason as the number of active threads adapts to the number of CPU and jobs to perform.
-The purpose is not the same. But I guess it's more reliable
-than workqueues for pathes that require mutiple parallel jobs which need
-to locally synchronize on critical pathes.
+please file a bug at bugzilla.kernel.org and attach the acpidump there.
+
+thanks,
+rui
 
