@@ -1,46 +1,95 @@
-From: Tony Vroon <tony@linx.net>
-Subject: Re: [PATCH RFT] fujitsu-laptop: Simplify SBLL/SBL2 backlight handling
-Date: Tue, 06 Jan 2009 21:03:23 +0000
-Message-ID: <4963C71B.9010800@linx.net>
-References: <200901052210.n05MAUbQ026088@mercury.physics.adelaide.edu.au>
-Reply-To: tony@linx.net
+From: Mark Lord <lkml@rtr.ca>
+Subject: 2.6.28: Oops at acpi_ds_exec_end_op+0x1b: kills machine
+Date: Tue, 06 Jan 2009 16:12:26 -0500
+Message-ID: <4963C93A.1060708@rtr.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gold.linx.net ([195.66.232.40]:33745 "EHLO gold.linx.net"
+Received: from rtr.ca ([76.10.145.34]:44888 "EHLO mail.rtr.ca"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750698AbZAFVFB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 6 Jan 2009 16:05:01 -0500
-In-Reply-To: <200901052210.n05MAUbQ026088@mercury.physics.adelaide.edu.au>
+	id S1751365AbZAFVM3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 6 Jan 2009 16:12:29 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-Cc: Peter Gruber <nokos@gmx.net>, Stephen Gildea <stepheng+linux@gildea.com>, Julian Brown <jules@panic.cs-bristol.org.uk>, linux-acpi@vger.kernel.org
+To: linux-dvb@linuxtv.org, v4l-dvb-maintainer@linuxtv.org, Linux Kernel <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+This happened on our Mythtv box at startup this morning:
+The Oops happened once only, at system startup, on initial device probe.
+Not reproduceable, so probably a rare race of some kind.
+The xc5000 module was loaded with "init_fw=1" to force f/w load on modprobe.
 
-Jonathan Woithe wrote:
-> If this tests out OK for Peter (and any others who try it), then:
-> 
->   Acked-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+2.6.28 kernel, SMP, x86_64, two CPUs (Core2duo 1.86GHz), 2GB RAM.
 
-Thanks Jonathan.
-Stephen, Julian, although this should not affect your platform at all...
-If either of you could test it and confirm that with a Tested-By tag for
-U810 or P8010, that'd be brilliant.
+Oops text typed in by hand from screen photos
+( original photos: http://rtr.ca/xc5000_lockup )
+...
+xc5000: firmware read 12332 bytes.
+xc5000: firmware upload
+BUG kernel NULL pointer dereference at 000000000000000c
+IP: [<ffffffff8038fbcf>] acpi_ds_exec_end_op+0x1b/0x3c4
+PGD 7c8cd067 PUD 7d411067 PMD 0
+Oops: 0000 [#1] PREEMPT SMP
+last sysfs file: /sys/class/firmware/i2c-2/loading
+CPU 0
+...
+Modules linked in: xc5000 au8522 tea5767 tda9887 tda8290 tea5761 fuse au0828(+)
+dvd_core usbhid tuner_simple tuner_types snd_hda_intel msp3400 ... nvidia(P) ...
+...
+Pid: 2383, comm: modprobe Tainted: P A 2.6.28 #9  
+RIP: 0010:[<ffffffff8038fbcf>]  [<ffffffff8038fbcf>] acpi_ds_exec_end_op+0x1b/0x3c4
+RSP: 0018:ffff88007a095ad8  EFLAGS: 00010296
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: ffff88007f8588f0
+R10: ffff88007f8a4d40 R11: ffff8800000bf9e0 R12: 0000000000000000
+R13: ffff88007e43bc10 R14: ffff88007a0ac000 R15: ffff88007e43bc10
+FS:  00007f844d5666e0(0000) GS:ffffffff8060f540(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+...
+Process modprobe (pid: 2383, threadinfo ffff88007a094000, task ffff88007fa043d0)
+Stack:
+ ffff88007a085380 0000000000000000 ffff88007a085380 ffffffffa09cfb28
+ ffff88007e43bc10 ffffffffa09f263f ffff88007a095b18 ffff88007a085380
+ ffffc200109e6000 ffff88007a085380 000000000000f9f9 00000000000094d7
+Call Trace:
+xc_load_fw_and_init_tuner+0x14b/0x29c [xc5000]
+i2c_transfer+0x8a/0x94
+xc5000_init+0x3d/0x6f [xc5000]
+xc5000_attach+0x22c/0x256 [xc5000]
+__symbol_get+0x2c/0xd3
+au0828+dvb_register+0x2ec/x5cb [au0828]
+au0828_usb_probe+0x10c/0x140 [au0828]
+usb_match_id+0x32/0x58 [usbcore]
+usb_probe_interface+0xfb/0x132 [usbcore]
+driver_probe_device+0xb5/0x159
+__driver_attach+0x59/0x80
+__driver_attach+0x0/0x80
+bus_for_each_dev+0x44/0x78
+bus_add_driver+0xac/0x1f2
+driver_register+0xa2/0x11f
+usb_register_driver+0x7e/0xe0 [usbcore]
+au0828_init+0x0/0xbb [au0828]
+au0828_init+0xa1/0xbb [au0828]
+_stext+0x56/0x14f
+vma_link+0x90/0xa2
+update_curr+0x49/0xf0
+enqueue_task_fair+0x14c/0x161
+check_preempt_wakeup+0xf4/0x124
+try_to_wake_up+0x16a/0x17c
+sys_init_module+0xa0/0x1a9
+system_call_fastpath+0x16/0x1b
+Code: 00 66 c7 40 0c c0 00 89 d8 48 83 c4 18 5b 5d c3 41 55 41 54 55 48 89
+ 48 83 ec 08 48 8b 87 08 03 00 00 4c 8b a7 00 03 00 00 <8a> 50 0c 8a 40 0?
+ c8 83 f9 0a 75 25 41 0f b7 4c 24 0a 48
+RIP  [<ffffffff8038fbcf>] acpi_ds_exec_end_op+0x1b/0x3c4
+ RSP <ffff88007a095ad8>
+CR2: 000000000000000c
+---[ end trace c23df576c022eb7e ]---
 
-> Regards
->   jonathan
+Could someone perhaps explain how acpi_ds_exec_end_op even enters the
+picture here?  I'm confused by that.
 
-Regards,
-Tony V.
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.9 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+The driver was doing/completing an i2c firmware transfer at the time of
+the oops.
 
-iEYEARECAAYFAkljxxsACgkQp5vW4rUFj5p5WgCePKfrvTfxeDAQcKTLW+/RB/b3
-BDoAn1MScvEG+vp7akzZ88Zw87dsRJ6B
-=c5Gv
------END PGP SIGNATURE-----
+Thanks
