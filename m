@@ -1,29 +1,37 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] thermal: support forcing support for passive cooling
-Date: Tue, 6 Jan 2009 22:42:38 +0000
-Message-ID: <20090106224238.GA6023@srcf.ucam.org>
-References: <20081127174813.GA24258@srcf.ucam.org> <20081127174956.GB24258@srcf.ucam.org> <20081203175532.GA20770@srcf.ucam.org> <20081203180038.GB20770@srcf.ucam.org> <20081228152240.GB13424@srcf.ucam.org>
+From: Philip <phllbit@gmail.com>
+Subject: syslog
+Date: Tue, 06 Jan 2009 18:15:53 -0500
+Message-ID: <4963E629.6090908@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:39175 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762167AbZAFWmm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Jan 2009 17:42:42 -0500
-Content-Disposition: inline
-In-Reply-To: <20081228152240.GB13424@srcf.ucam.org>
+Received: from yx-out-2324.google.com ([74.125.44.29]:49078 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755715AbZAFXP4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Jan 2009 18:15:56 -0500
+Received: by yx-out-2324.google.com with SMTP id 8so2572568yxm.1
+        for <linux-acpi@vger.kernel.org>; Tue, 06 Jan 2009 15:15:55 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, rui.zhang@intel.com, sujith.thomas@intel.com
+To: linux-acpi@vger.kernel.org
 
-On Sun, Dec 28, 2008 at 03:22:40PM +0000, Matthew Garrett wrote:
-> Hi Len,
-> 
-> I'd be keen on getting these into .29. Is there any problem with them as 
-> it stands?
+I was checking my syslogs and it asked me to send you the following 
+information. The only real problem I have been having is it will 
+sometimes not come out of standby or if it does then it does not 
+recognise the usb mouse.
 
-Ping?
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Jan  6 15:46:36 dell5100 kernel: [   46.713836] ACPI: DMI System Vendor: 
+Dell Inc.               
+Jan  6 15:46:36 dell5100 kernel: [   46.713877] ACPI: DMI Product Name: 
+Dimension 5100              
+Jan  6 15:46:36 dell5100 kernel: [   46.713918] ACPI: DMI Product Version:
+Jan  6 15:46:36 dell5100 kernel: [   46.713957] ACPI: DMI Board Name: 0J8885
+Jan  6 15:46:36 dell5100 kernel: [   46.713995] ACPI: DMI BIOS Vendor: 
+Dell Inc.               
+Jan  6 15:46:36 dell5100 kernel: [   46.714036] ACPI: DMI BIOS Date: 
+07/07/2006
+Jan  6 15:46:36 dell5100 kernel: [   46.714075] ACPI: Please send DMI 
+info above to linux-acpi@vger.kernel.org
+Jan  6 15:46:36 dell5100 kernel: [   46.714117] ACPI: If 
+"acpi_osi=Linux" works better, please notify linux-acpi@vger.kernel.org
