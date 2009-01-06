@@ -1,8 +1,8 @@
 From: Arjan van de Ven <arjan@infradead.org>
 Subject: Re: [PATCH 1/6] fastboot: Asynchronous function calls to speed up
  kernel boot
-Date: Mon, 5 Jan 2009 20:37:06 -0800
-Message-ID: <20090105203706.426cdc1f@infradead.org>
+Date: Tue, 6 Jan 2009 05:57:18 -0800
+Message-ID: <20090106055718.2a5472a1@infradead.org>
 References: <20090105200959.04a626ac@infradead.org>
 	<20090105201041.3289d3dd@infradead.org>
 	<20090105202514.399da36e.akpm@linux-foundation.org>
@@ -10,10 +10,10 @@ Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:52732 "EHLO
+Received: from casper.infradead.org ([85.118.1.10]:46550 "EHLO
 	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750863AbZAFEfO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Jan 2009 23:35:14 -0500
+	with ESMTP id S1751594AbZAFNzX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Jan 2009 08:55:23 -0500
 In-Reply-To: <20090105202514.399da36e.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -31,19 +31,12 @@ Andrew Morton <akpm@linux-foundation.org> wrote:
 > 
 > Am still wondering if this is unacceptably duplicative of dhowells's
 > slow-work infrastructure: http://lkml.org/lkml/2008/11/20/193
-> 
-> 
 
-I talked to David about this today (as I wrote in 0/6). 
-Based on that discussion we got to the conclusion we have incompatible
-requirements. He needs priorities to be honored (which means rather out
-of order execution of the tasks) while I need strict ordering (for the
-synchronization). While it's not entirely impossible to combine those
-two into one system, the resulting complexity isn't really worth it yet.
-
-Of the 307 lines, only 100 are actual thread pool code (the rest is
-synchronization and admin code), and about half of those 100 lines are
-comments.
+ok having looked at it a lot more; I can add priorities to the async
+function calls, at which point they are a superset to the slow-work
+infrastructure basically. I'll need to check with David to make 10)%
+sure the solution I have in mind will work for him, but I suspect it
+will.
 
 
 -- 
