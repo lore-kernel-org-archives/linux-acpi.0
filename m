@@ -1,36 +1,34 @@
-From: Timo Hoenig <thoenig@nouse.net>
-Subject: Re: Fwd: [PATCH 01/02] Initial work to let ACPI buttons work over
- INPUT layer
-Date: Wed, 07 Jan 2009 12:38:40 +0100
-Message-ID: <1231328320.402.5.camel@zimtstern>
-References: <200811291834.46109.dnascimento@gmail.com>
-	 <4ff2fa00812190834s8ef5629ofa1f17a74aa6bfef@mail.gmail.com>
+From: Arjan van de Ven <arjan@infradead.org>
+Subject: Re: [PATCH 0/6] v2: Asynchronous function calls to speed up booting
+ and more
+Date: Wed, 7 Jan 2009 05:21:25 -0800
+Message-ID: <20090107052125.276307d0@infradead.org>
+References: <20090105201508.23e98b4b@infradead.org>
+	<48f7fe350901061919l55006cd6v842e3f7a40e4cd0c@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:51661 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750817AbZAGLhx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 7 Jan 2009 06:37:53 -0500
-In-Reply-To: <4ff2fa00812190834s8ef5629ofa1f17a74aa6bfef@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <48f7fe350901061919l55006cd6v842e3f7a40e4cd0c@mail.gmail.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: Ryan Hope <rmh3093@gmail.com>
+Cc: linux-kernel@vger.kernel.org, torvalds@linux-foundation.org, mingo@elte.hu, akpm@linux-foundation.org, linux-ide@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: Nicolas Trangez <ikke@nicolast.be>, corentincj@iksaif.net, sziwan@users.sourceforge.net, linux-acpi@vger.kernel.org, Daniel Nascimento <dnascimento@gmail.com>
 
-Hi Len, Corentin,
+On Tue, 6 Jan 2009 22:19:33 -0500
+"Ryan Hope" <rmh3093@gmail.com> wrote:
 
-On Fri, 2008-12-19 at 14:34 -0200, Daniel Nascimento wrote:
+> i can't boot with these patches... the kernel panic was something
+> along the line of:
+> 
+> ata_piix: device unavailable because of BAR 0 collisions
+> 
 
-> Please apply this patch in mainstream.
+interesting
+can you send me the "lspci" output of a normal boot?
 
-Would you mind having a look at the Daniel's and Nicolas' patches?
 
-This is sitting here now for quite some time without any obvious reason
-why it shouldn't be merged for 2.6.29.
-
-Thanks,
-
-   Timo
-
+-- 
+Arjan van de Ven 	Intel Open Source Technology Centre
+For development, discussion and tips for power savings, 
+visit http://www.lesswatts.org
