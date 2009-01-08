@@ -1,57 +1,44 @@
-From: "Luca Tettamanti" <kronos.it@gmail.com>
-Subject: Re: [PATCH] ACPI: set acpi_enforce_resources to strict
-Date: Thu, 8 Jan 2009 21:13:37 +0100
-Message-ID: <68676e00901081213i4d40448y257ccbc8d4776c69@mail.gmail.com>
-References: <20090106182012.GA6668@dreamland.darkstar.lan>
-	 <49662697.9080302@redhat.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: How to help with sony-laptop on Vaio VGN-TT11
+Date: Thu, 08 Jan 2009 15:35:37 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0901081534190.4505@localhost.localdomain>
+References: <496634F2.3080505@iworks.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.155]:46667 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756368AbZAHUNi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Jan 2009 15:13:38 -0500
-Received: by fg-out-1718.google.com with SMTP id 19so3311382fgg.17
-        for <linux-acpi@vger.kernel.org>; Thu, 08 Jan 2009 12:13:37 -0800 (PST)
-In-Reply-To: <49662697.9080302@redhat.com>
-Content-Disposition: inline
+Received: from vms173005pub.verizon.net ([206.46.173.5]:50952 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756427AbZAHUf4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Jan 2009 15:35:56 -0500
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173005.mailsrvcs.net
+ (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+ with ESMTPA id <0KD600EXO6JEP1N0@vms173005.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 08 Jan 2009 14:35:44 -0600 (CST)
+In-reply-to: <496634F2.3080505@iworks.at>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>, Jean Delvare <khali@linux-fr.org>
+To: Michael Wallner <mike@iworks.at>
+Cc: linux-acpi@vger.kernel.org
 
-On Thu, Jan 8, 2009 at 5:15 PM, Hans de Goede <hdegoede@redhat.com> wrote:
-[...]
-> So back to the discussion about changing the default of
-> acpi_enforce_resources to strict, Jean and I have been discussing this on
-> IRC and we feel it will most likely cause too much pain. So we would like to
-> suggest to make the default depend up on the motherboard. Our plan is to
-> have the default be "auto" and that will mean "lax", unless the motherboard
-> is atk0110 (Asus ACPI interface for reading hwmon data) capable and in that
-> case "auto" will mean "strict"
+On Thu, 8 Jan 2009, Michael Wallner wrote:
 
-Hum, that would mean putting ATK specific code into ACPI subsystem.
-It's not pretty :S
+> Hi,
+> 
+> I own a new Sony Vaio VGN-TT11 laptop and wonder how I could help to
+> make sony-laptop better support this model.  Where to go from here?
+> 
+> I'm especially interested in getting the backlight to work as I'm unable
+> to work with Linux on this machine unless I would like to become blind.
+> 
+> Thanks a lot,
+> Mike
 
-> The plan is then to merge this acpi subsystem change and the atk0110 driver
-> at the same time, so that people will get different hwmon capabilities, but
-> won't loose hwmon capabilities all together. Important note: this is meant
-> as an temporary state of affairs, the end goal is to make the checking
-> strict.
->
-> Luca do you think you could do a patch implementing the described "auto"
-> value for acpi_enforce_resources ?
+I've recently got a VGN-z540 and was impressed at how bright it is too:-)
 
-So the logic would be:
-- if ATK node is present and the driver is enabled -> strict
-- otherwise -> auto
+they hotkeys do not work,
+however, echo into /sys/class/backlight/*/brightness files works,
+do you have those files?
 
-I don't if I can use the ACPI interpreter early enough to check the
-DSDT though; AFAICS the alternatives are:
-- DMI which would require an entry for each mobo (notebooks don't have
-the ATK interface)
-- an initcall in the ATK driver that overrides the value of
-acpi_enforce_resources to strict
-
-Luca
+cheers,
+Len Brown, Intel Open Source Technology Center
