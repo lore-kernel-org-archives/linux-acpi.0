@@ -1,36 +1,38 @@
-From: "Kamala Narasimhan" <Kamala.Narasimhan@citrix.com>
-Subject: Ways to inject system reset in resume code path
-Date: Wed, 7 Jan 2009 22:28:42 -0500
-Message-ID: <0519110A9448BC429B231AD118D7270803161A64@FTLPEXCH05.citrite.net>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH] ACPI: disable the ACPI backlight control on laptops with buggy _BCL methods
+Date: Thu, 8 Jan 2009 03:32:50 +0000
+Message-ID: <20090108033250.GA2550@srcf.ucam.org>
+References: <1231383496.20746.44.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp02.citrix.com ([66.165.176.63]:24700 "EHLO
-	SMTP02.CITRIX.COM" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750845AbZAHD2n convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Jan 2009 22:28:43 -0500
-Content-class: urn:content-classes:message
+Received: from cavan.codon.org.uk ([93.93.128.6]:39625 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752078AbZAHDc6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Jan 2009 22:32:58 -0500
+Content-Disposition: inline
+In-Reply-To: <1231383496.20746.44.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, trenn@suse.de
 
-Is there a sure bet way to -
+On Thu, Jan 08, 2009 at 10:58:16AM +0800, Zhang Rui wrote:
 
-1) Cause a system reset by setting the 32-bit FACS waking vector to a
-particular address?  Setting it to 0xffff0 did not help as hoped.
-2) Failing that, is there a way to cause a system reset by tweaking the
-16-bit wakeup code?  While zero length idt always causes a system reset
-in protected mode, the same won't work in real mode.  Keyboard reset
-approach also did not work in real mode for some reason.  It would be
-nice to know if there is a trick similar to zero length idt that could
-be used in real mode that is sure to cause system reset early on in the
-real mode wakeup code path.
+> Some users used to control the backlight via the platform interface.
+> But commit c3d6de698c84efdbdd3781b7058bcc339ab43da8 disables the platform
+> backlight control if ACPI video backlight control is available.
+> 
+> This breaks the laptops with buggy _BCL/_BCM/_BQC methods. i.e. only ACPI
+> backlight I/F are available on these laptops but they don't work.
+> 
+> With this patch applied, the ACPI backlight control are disabled instead
+> on these laptops.
 
-I normally inject system reset code at different points in the early
-wakeup code path to troubleshoot resume issues and information on the
-above will help better troubleshoot some S3 resume issues I encounter.
+Why? These all seem to behave consistently, so I can't see any problem 
+with us simply adding support for this varient. Disabling the ACPI 
+control when we have no idea whether there's a platform driver available 
+for the machine doesn't seem like the right fix.
 
-Thanks,
-Kamala
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
