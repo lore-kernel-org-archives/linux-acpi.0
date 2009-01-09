@@ -1,18 +1,19 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 20/94] ACPICA: Update FACS waking vector interfaces
-Date: Fri, 09 Jan 2009 04:26:22 -0500
-Message-ID: <d85988fa0205b18459071e4bd709e48e695b952d.1231492608.git.len.brown@intel.com>
+Subject: [PATCH 23/94] ACPICA: Add a mechanism to escape infinite AML While()
+ loops
+Date: Fri, 09 Jan 2009 04:26:25 -0500
+Message-ID: <fc37445733aeae4fd1a20385850620354263b1d5.1231492608.git.len.brown@intel.com>
 References: <1231493256-11678-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173007pub.verizon.net ([206.46.173.7]:56372 "EHLO
-	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753020AbZAIJ15 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 04:27:57 -0500
+Received: from vms173005pub.verizon.net ([206.46.173.5]:56420 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752739AbZAIJ16 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 04:27:58 -0500
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173007.mailsrvcs.net
+ by vms173005.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0KD700HR2688X1F2@vms173007.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 09 Jan 2009 03:26:33 -0600 (CST)
+ with ESMTPA id <0KD700E866ALPOV2@vms173005.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 09 Jan 2009 03:27:58 -0600 (CST)
 In-reply-to: <1231493256-11678-1-git-send-email-lenb@kernel.org>
 In-reply-to: <c5279dee26c0e8d7c4200993bfc4b540d2469598.1231492606.git.len.brown@intel.com>
 References: <c5279dee26c0e8d7c4200993bfc4b540d2469598.1231492606.git.len.brown@intel.com>
@@ -23,152 +24,112 @@ Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Bro
 
 From: Bob Moore <robert.moore@intel.com>
 
-Split AcpiSetFirmwareWakingVector into two: one for the 32-bit
-vector, another for the 64-bit vector. This is required because the
-host OS must setup the wake much differently for each vector (real
-vs. protected mode, etc.) and the interface should not be deciding
-which vector to use.  Also eliminate the GetFirmwareWakingVector
-interface, as it served no purpose (only the firmware reads the
-vector, OS only writes the vector.)  ACPICA BZ 731.
-
-http://www.acpica.org/bugzilla/show_bug.cgi?id=731
+Add a loop counter to force exit from AML While loops if the
+count becomes too large. This can occur in poorly written AML
+when the hardware does not respond within a while loop and the
+loop does not implement a timeout. The maximum loop count is
+configurable. A new exception code is returned when a loop is
+broken, AE_AML_INFINITE_LOOP.  Bob Moore, Alexey Starikovskiy.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/hardware/hwsleep.c |   54 +++++++++++++++++++++++----------------
- include/acpi/acpixf.h           |    6 +---
- 2 files changed, 34 insertions(+), 26 deletions(-)
+ drivers/acpi/dispatcher/dsopcode.c |   26 ++++++++++++++++++++++----
+ include/acpi/acconfig.h            |    4 ++++
+ include/acpi/acexcep.h             |    4 +++-
+ include/acpi/aclocal.h             |    1 +
+ 4 files changed, 30 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/hardware/hwsleep.c b/drivers/acpi/hardware/hwsleep.c
-index 25dccdf..6a30c80 100644
---- a/drivers/acpi/hardware/hwsleep.c
-+++ b/drivers/acpi/hardware/hwsleep.c
-@@ -52,16 +52,16 @@ ACPI_MODULE_NAME("hwsleep")
-  *
-  * FUNCTION:    acpi_set_firmware_waking_vector
-  *
-- * PARAMETERS:  physical_address    - Physical address of ACPI real mode
-+ * PARAMETERS:  physical_address    - 32-bit physical address of ACPI real mode
-  *                                    entry point.
-  *
-  * RETURN:      Status
-  *
-- * DESCRIPTION: Access function for the firmware_waking_vector field in FACS
-+ * DESCRIPTION: Sets the 32-bit firmware_waking_vector field of the FACS
-  *
-  ******************************************************************************/
- acpi_status
--acpi_set_firmware_waking_vector(acpi_physical_address physical_address)
-+acpi_set_firmware_waking_vector(u32 physical_address)
- {
- 	struct acpi_table_facs *facs;
- 	acpi_status status;
-@@ -85,10 +85,16 @@ acpi_set_firmware_waking_vector(acpi_physical_address physical_address)
- 	 * Protected Mode.  Some systems (for example HP dv5-1004nr) are known
- 	 * to fail to resume if the 64-bit vector is used.
- 	 */
--	if (facs->version >= 1)
--		facs->xfirmware_waking_vector = 0;
+diff --git a/drivers/acpi/dispatcher/dsopcode.c b/drivers/acpi/dispatcher/dsopcode.c
+index 5cd4066..50c892a 100644
+--- a/drivers/acpi/dispatcher/dsopcode.c
++++ b/drivers/acpi/dispatcher/dsopcode.c
+@@ -1262,13 +1262,31 @@ acpi_ds_exec_end_control_op(struct acpi_walk_state * walk_state,
  
--	facs->firmware_waking_vector = (u32)physical_address;
-+	/* Set the 32-bit vector */
+ 		ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH, "[WHILE_OP] Op=%p\n", op));
+ 
+-		if (walk_state->control_state->common.value) {
++		control_state = walk_state->control_state;
++		if (control_state->common.value) {
+ 
+-			/* Predicate was true, go back and evaluate it again! */
++			/* Predicate was true, the body of the loop was just executed */
+ 
++			/*
++			 * This loop counter mechanism allows the interpreter to escape
++			 * possibly infinite loops. This can occur in poorly written AML
++			 * when the hardware does not respond within a while loop and the
++			 * loop does not implement a timeout.
++			 */
++			control_state->control.loop_count++;
++			if (control_state->control.loop_count >
++				ACPI_MAX_LOOP_ITERATIONS) {
++				status = AE_AML_INFINITE_LOOP;
++				break;
++			}
 +
-+	facs->firmware_waking_vector = physical_address;
++			/*
++			 * Go back and evaluate the predicate and maybe execute the loop
++			 * another time
++			 */
+ 			status = AE_CTRL_PENDING;
+ 			walk_state->aml_last_while =
+-			    walk_state->control_state->control.aml_predicate_start;
++			    control_state->control.aml_predicate_start;
+ 			break;
+ 		}
+ 
+diff --git a/include/acpi/acconfig.h b/include/acpi/acconfig.h
+index 29feee2..e50fe71 100644
+--- a/include/acpi/acconfig.h
++++ b/include/acpi/acconfig.h
+@@ -119,6 +119,10 @@
+ 
+ #define ACPI_ROOT_TABLE_SIZE_INCREMENT  4
+ 
++/* Maximum number of While() loop iterations before forced abort */
 +
-+	/* Clear the 64-bit vector if it exists */
++#define ACPI_MAX_LOOP_ITERATIONS        0xFFFF
 +
-+	if ((facs->length > 32) && (facs->version >= 1)) {
-+		facs->xfirmware_waking_vector = 0;
-+	}
- 
- 	return_ACPI_STATUS(AE_OK);
- }
-@@ -97,29 +103,25 @@ ACPI_EXPORT_SYMBOL(acpi_set_firmware_waking_vector)
- 
- /*******************************************************************************
+ /******************************************************************************
   *
-- * FUNCTION:    acpi_get_firmware_waking_vector
-+ * FUNCTION:    acpi_set_firmware_waking_vector64
-  *
-- * PARAMETERS:  *physical_address   - Where the contents of
-- *                                    the firmware_waking_vector field of
-- *                                    the FACS will be returned.
-+ * PARAMETERS:  physical_address    - 64-bit physical address of ACPI protected
-+ *                                    mode entry point.
-  *
-- * RETURN:      Status, vector
-+ * RETURN:      Status
-  *
-- * DESCRIPTION: Access function for the firmware_waking_vector field in FACS
-+ * DESCRIPTION: Sets the 64-bit X_firmware_waking_vector field of the FACS, if
-+ *              it exists in the table.
-  *
-  ******************************************************************************/
--#ifdef ACPI_FUTURE_USAGE
- acpi_status
--acpi_get_firmware_waking_vector(acpi_physical_address * physical_address)
-+acpi_set_firmware_waking_vector64(u64 physical_address)
- {
- 	struct acpi_table_facs *facs;
- 	acpi_status status;
+  * ACPI Specification constants (Do not change unless the specification changes)
+diff --git a/include/acpi/acexcep.h b/include/acpi/acexcep.h
+index 84f5cb2..a1ae105 100644
+--- a/include/acpi/acexcep.h
++++ b/include/acpi/acexcep.h
+@@ -153,8 +153,9 @@
+ #define AE_AML_CIRCULAR_REFERENCE       (acpi_status) (0x001E | AE_CODE_AML)
+ #define AE_AML_BAD_RESOURCE_LENGTH      (acpi_status) (0x001F | AE_CODE_AML)
+ #define AE_AML_ILLEGAL_ADDRESS          (acpi_status) (0x0020 | AE_CODE_AML)
++#define AE_AML_INFINITE_LOOP            (acpi_status) (0x0021 | AE_CODE_AML)
  
--	ACPI_FUNCTION_TRACE(acpi_get_firmware_waking_vector);
-+	ACPI_FUNCTION_TRACE(acpi_set_firmware_waking_vector64);
+-#define AE_CODE_AML_MAX                 0x0020
++#define AE_CODE_AML_MAX                 0x0021
  
--	if (!physical_address) {
--		return_ACPI_STATUS(AE_BAD_PARAMETER);
--	}
+ /*
+  * Internal exceptions used for control
+@@ -267,6 +268,7 @@ char const *acpi_gbl_exception_names_aml[] = {
+ 	"AE_AML_CIRCULAR_REFERENCE",
+ 	"AE_AML_BAD_RESOURCE_LENGTH",
+ 	"AE_AML_ILLEGAL_ADDRESS",
++	"AE_AML_INFINITE_LOOP"
+ };
  
- 	/* Get the FACS */
+ char const *acpi_gbl_exception_names_ctrl[] = {
+diff --git a/include/acpi/aclocal.h b/include/acpi/aclocal.h
+index ecab527..0323fa9 100644
+--- a/include/acpi/aclocal.h
++++ b/include/acpi/aclocal.h
+@@ -566,6 +566,7 @@ struct acpi_control_state {
+ 	union acpi_parse_object *predicate_op;
+ 	u8 *aml_predicate_start;	/* Start of if/while predicate */
+ 	u8 *package_end;	/* End of if/while block */
++	u32 loop_count;		/* While() loop counter */
+ };
  
-@@ -131,14 +133,22 @@ acpi_get_firmware_waking_vector(acpi_physical_address * physical_address)
- 		return_ACPI_STATUS(status);
- 	}
- 
--	/* Get the vector */
--	*physical_address = (acpi_physical_address)facs->firmware_waking_vector;
-+	/* Determine if the 64-bit vector actually exists */
-+
-+	if ((facs->length <= 32) || (facs->version < 1)) {
-+		return_ACPI_STATUS(AE_NOT_EXIST);
-+	}
-+
-+	/* Clear 32-bit vector, set the 64-bit X_ vector */
-+
-+	facs->firmware_waking_vector = 0;
-+	facs->xfirmware_waking_vector = physical_address;
- 
- 	return_ACPI_STATUS(AE_OK);
- }
- 
--ACPI_EXPORT_SYMBOL(acpi_get_firmware_waking_vector)
--#endif
-+ACPI_EXPORT_SYMBOL(acpi_set_firmware_waking_vector64)
-+
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_enter_sleep_state_prep
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index 33bc0e3..c9b903f 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -320,12 +320,10 @@ acpi_status acpi_get_register_unlocked(u32 register_id, u32 *return_value);
- acpi_status acpi_set_register(u32 register_id, u32 value);
- 
- acpi_status
--acpi_set_firmware_waking_vector(acpi_physical_address physical_address);
-+acpi_set_firmware_waking_vector(u32 physical_address);
- 
--#ifdef ACPI_FUTURE_USAGE
- acpi_status
--acpi_get_firmware_waking_vector(acpi_physical_address * physical_address);
--#endif
-+acpi_set_firmware_waking_vector64(u64 physical_address);
- 
- acpi_status
- acpi_get_sleep_type_data(u8 sleep_state, u8 * slp_typ_a, u8 * slp_typ_b);
+ /*
 -- 
 1.5.6.6
 
