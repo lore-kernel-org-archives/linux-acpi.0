@@ -1,56 +1,51 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch 1/6] acpi: fix ACPI_FADT_S4_RTC_WAKE comment
-Date: Fri, 09 Jan 2009 16:28:47 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0901091628440.20020@localhost.localdomain>
-References: <200901092017.n09KH82j014897@imap1.linux-foundation.org>
+From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Subject: RE: [patch 2/6] acpi: check _PSS invalidation when BIOS report _PSS
+ with 0x80000000
+Date: Fri, 9 Jan 2009 13:31:18 -0800
+Message-ID: <7E82351C108FA840AB1866AC776AEC4643B5888C@orsmsx505.amr.corp.intel.com>
+References: <200901092017.n09KH9OP014905@imap1.linux-foundation.org>
+	<alpine.LFD.2.00.0901091559120.16697@localhost.localdomain>
+ <20090109132355.b3a3c4dc.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms046pub.verizon.net ([206.46.252.46]:45861 "EHLO
-	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755765AbZAIV27 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 16:28:59 -0500
-Received: from localhost.localdomain ([96.237.168.40])
- by vms046.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0KD800MUV3O1VSU5@vms046.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 09 Jan 2009 15:28:50 -0600 (CST)
-In-reply-to: <200901092017.n09KH82j014897@imap1.linux-foundation.org>
+Received: from mga09.intel.com ([134.134.136.24]:60555 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757560AbZAIVaj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 16:30:39 -0500
+In-Reply-To: <20090109132355.b3a3c4dc.akpm@linux-foundation.org>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: akpm@linux-foundation.org
-Cc: linux-acpi@vger.kernel.org, dbrownell@users.sourceforge.net
+To: Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Song, Youquan" <youquan.song@intel.com>
 
-applied.
 
---
-Len Brown, Intel Open Source Technology Center
 
-On Fri, 9 Jan 2009, akpm@linux-foundation.org wrote:
+>-----Original Message-----
+>From: Andrew Morton [mailto:akpm@linux-foundation.org]
+>Sent: Friday, January 09, 2009 1:24 PM
+>To: Len Brown
+>Cc: linux-acpi@vger.kernel.org; Song, Youquan; Pallipadi, Venkatesh
+>Subject: Re: [patch 2/6] acpi: check _PSS invalidation when
+>BIOS report _PSS with 0x80000000
+>
+>On Fri, 09 Jan 2009 16:01:47 -0500 (EST)
+>Len Brown <lenb@kernel.org> wrote:
+>
+>> I recall nacking this one some time ago.
+>
+>Well please treat it as a bug report then.  "the kernel will boot
+>crash when load cpufreq govenors".  Bad!
+>
 
-> From: David Brownell <dbrownell@users.sourceforge.net>
-> 
-> Make the comment for ACPI_FADT_S4_RTC_WAKE match the ACPI spec;
-> that bit has nothing to do with status bits.
-> 
-> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-> Cc: Len Brown <lenb@kernel.org>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
-> 
->  include/acpi/actbl.h |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff -puN include/acpi/actbl.h~acpi-fix-acpi_fadt_s4_rtc_wake-comment include/acpi/actbl.h
-> --- a/include/acpi/actbl.h~acpi-fix-acpi_fadt_s4_rtc_wake-comment
-> +++ a/include/acpi/actbl.h
-> @@ -245,7 +245,7 @@ struct acpi_table_fadt {
->  #define ACPI_FADT_POWER_BUTTON      (1<<4)	/* 04: Power button is handled as a generic feature */
->  #define ACPI_FADT_SLEEP_BUTTON      (1<<5)	/* 05: Sleep button is handled as a generic feature, or  not present */
->  #define ACPI_FADT_FIXED_RTC         (1<<6)	/* 06: RTC wakeup stat not in fixed register space */
-> -#define ACPI_FADT_S4_RTC_WAKE       (1<<7)	/* 07: RTC wakeup stat not possible from S4 */
-> +#define ACPI_FADT_S4_RTC_WAKE       (1<<7)	/* 07: RTC wakeup possible from S4 */
->  #define ACPI_FADT_32BIT_TIMER       (1<<8)	/* 08: tmr_val is 32 bits 0=24-bits */
->  #define ACPI_FADT_DOCKING_SUPPORTED (1<<9)	/* 09: Docking supported */
->  #define ACPI_FADT_RESET_REGISTER    (1<<10)	/* 10: System reset via the FADT RESET_REG supported */
-> _
-> 
+I think this should be a special case even when it is not defined in spec.
+
+There is BIOS code out there that is giving 0x80000000 and Linux fails to
+boot on these systems, where as the other OS does not. Existence of even one
+such system means that the code will surely be copied onto other BIOSes and
+I don't think we can persuade BIOS guys to change this.
+
+Thanks,
+Venki
