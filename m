@@ -1,57 +1,103 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 38/94] ACPI: Do not modify SCI_EN directly
-Date: Fri, 09 Jan 2009 04:26:40 -0500
-Message-ID: <11e93130c7ce5228d484fd5e86f3984835d4256b.1231492609.git.len.brown@intel.com>
+Subject: [PATCH 51/94] ACPI: PCI: use positive logic to simplify code
+Date: Fri, 09 Jan 2009 04:26:53 -0500
+Message-ID: <3b1ea18d3b3542b55861d7f968ded705e3bc2aa6.1231492610.git.len.brown@intel.com>
 References: <1231493256-11678-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:40934 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753884AbZAIJ2c (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 04:28:32 -0500
+Received: from vms173005pub.verizon.net ([206.46.173.5]:56420 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753916AbZAIJ2d (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 04:28:33 -0500
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173001.mailsrvcs.net
+ by vms173005.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0KD700D456AUP8PI@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 09 Jan 2009 03:28:06 -0600 (CST)
+ with ESMTPA id <0KD700EMB6B2P3I2@vms173005.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 09 Jan 2009 03:28:15 -0600 (CST)
 In-reply-to: <1231493256-11678-1-git-send-email-lenb@kernel.org>
 In-reply-to: <c5279dee26c0e8d7c4200993bfc4b540d2469598.1231492606.git.len.brown@intel.com>
 References: <c5279dee26c0e8d7c4200993bfc4b540d2469598.1231492606.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <len.brown@intel.com>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-According to the ACPI specification the SCI_EN flag is controlled by
-the hardware, which sets this flag to inform the kernel that ACPI is
-enabled.  For this reason, we shouldn't try to modify SCI_EN
-directly.  Also, we don't need to do it in irqrouter_resume(), since
-lower-level resume code takes care of enabling ACPI in case it hasn't
-been enabled by the BIOS before passing control to the kernel (which
-by the way is against the ACPI specification).
+This doesn't change anything functionally; it just changes tests
+so we test for success instead of failure.  This makes the code
+read more easily and allows us to remove the "!entry" in the while
+loop condition.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/pci_link.c |    4 ----
- 1 files changed, 0 insertions(+), 4 deletions(-)
+ drivers/acpi/pci_irq.c |   33 ++++++++++++++++-----------------
+ 1 files changed, 16 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-index e52ad91..e33c0bc 100644
---- a/drivers/acpi/pci_link.c
-+++ b/drivers/acpi/pci_link.c
-@@ -796,10 +796,6 @@ static int irqrouter_resume(struct sys_device *dev)
- 	struct list_head *node = NULL;
- 	struct acpi_pci_link *link = NULL;
+diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+index 2833822..e42481f 100644
+--- a/drivers/acpi/pci_irq.c
++++ b/drivers/acpi/pci_irq.c
+@@ -384,16 +384,15 @@ acpi_pci_irq_lookup(struct pci_dev *dev, int pin)
+ 	struct acpi_prt_entry *entry;
  
+ 	entry = acpi_pci_irq_find_prt_entry(dev, pin);
+-	if (!entry) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "No %s[%c] _PRT entry\n",
++	if (entry) {
++		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found %s[%c] _PRT entry\n",
+ 				  pci_name(dev), pin_name(pin)));
+-		return NULL;
++		return entry;
+ 	}
+ 
+-	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found %s[%c] _PRT entry\n",
++	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "No %s[%c] _PRT entry\n",
+ 			  pci_name(dev), pin_name(pin)));
 -
--	/* Make sure SCI is enabled again (Apple firmware bug?) */
--	acpi_set_register(ACPI_BITREG_SCI_ENABLE, 1);
+-	return entry;
++	return NULL;
+ }
+ 
+ static struct acpi_prt_entry *
+@@ -408,7 +407,7 @@ acpi_pci_irq_derive(struct pci_dev *dev, int pin)
+ 	 * Attempt to derive an IRQ for this device from a parent bridge's
+ 	 * PCI interrupt routing entry (eg. yenta bridge and add-in card bridge).
+ 	 */
+-	while (!entry && bridge->bus->self) {
++	while (bridge->bus->self) {
+ 		pin = (((pin - 1) + PCI_SLOT(bridge->devfn)) % 4) + 1;
+ 		bridge = bridge->bus->self;
+ 
+@@ -425,18 +424,18 @@ acpi_pci_irq_derive(struct pci_dev *dev, int pin)
+ 		}
+ 
+ 		entry = acpi_pci_irq_lookup(bridge, pin);
++		if (entry) {
++			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
++					 "Derived GSI for %s INT %c from %s\n",
++					 pci_name(dev), pin_name(orig_pin),
++					 pci_name(bridge)));
++			return entry;
++		}
+ 	}
+ 
+-	if (!entry) {
+-		dev_warn(&dev->dev, "can't derive routing for PCI INT %c\n",
+-			 pin_name(orig_pin));
+-		return NULL;
+-	}
 -
- 	list_for_each(node, &acpi_link.entries) {
- 		link = list_entry(node, struct acpi_pci_link, node);
- 		if (!link) {
+-	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Derived GSI for %s INT %c from %s\n",
+-			  pci_name(dev), pin_name(orig_pin), pci_name(bridge)));
+-
+-	return entry;
++	dev_warn(&dev->dev, "can't derive routing for PCI INT %c\n",
++		 pin_name(orig_pin));
++	return NULL;
+ }
+ 
+ /*
 -- 
 1.5.6.6
 
