@@ -1,75 +1,827 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 47/94] ACPI: PCI: use 1-based encoding for _PRT quirks
-Date: Fri, 09 Jan 2009 04:26:49 -0500
-Message-ID: <c458033c9b72a81b890d97ec6339694bab252383.1231492610.git.len.brown@intel.com>
+Subject: [PATCH 13/94] create drivers/platform/x86/ from drivers/misc/
+Date: Fri, 09 Jan 2009 04:26:15 -0500
+Message-ID: <41b16dce390510f550a4d2b12b98e0258bbed6e2.1231492608.git.len.brown@intel.com>
 References: <1231493256-11678-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173007pub.verizon.net ([206.46.173.7]:56372 "EHLO
-	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753656AbZAIJ2W (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 04:28:22 -0500
+Received: from vms046pub.verizon.net ([206.46.252.46]:59678 "EHLO
+	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753727AbZAIJ2Z (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 04:28:25 -0500
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173007.mailsrvcs.net
- (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0KD7004VH68N1GW6@vms173007.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 09 Jan 2009 03:26:48 -0600 (CST)
+ by vms046.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
+ 3 2006)) with ESMTPA id <0KD700LVD6AFX1D7@vms046.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 09 Jan 2009 03:27:53 -0600 (CST)
 In-reply-to: <1231493256-11678-1-git-send-email-lenb@kernel.org>
 In-reply-to: <c5279dee26c0e8d7c4200993bfc4b540d2469598.1231492606.git.len.brown@intel.com>
 References: <c5279dee26c0e8d7c4200993bfc4b540d2469598.1231492606.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <len.brown@intel.com>
+Cc: Len Brown <len.brown@intel.com>
 
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+From: Len Brown <len.brown@intel.com>
 
-Use the PCI INTx pin encoding (1=INTA, 2=INTB, etc) for _PRT quirks.
-Then we can simply compare "entry->pin == quirk->pin".
+Move x86 platform specific drivers from drivers/misc/
+to a new home under drivers/platform/x86/.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+The community has been maintaining x86 vendor-specific
+platform specific drivers under /drivers/misc/ for a few years.
+The oldest ones started life under drivers/acpi.
+They moved out of drivers/acpi/ because they don't actually
+implement the ACPI specification, but either simply
+use ACPI, or implement vendor-specific ACPI extensions.
+
+In the future we anticipate...
+drivers/misc/ will go away.
+other architectures will create drivers/platform/<arch>
+
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/pci_irq.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
+ drivers/Kconfig                                   |    2 +
+ drivers/Makefile                                  |    1 +
+ drivers/misc/Kconfig                              |  280 --------------------
+ drivers/misc/Makefile                             |   12 -
+ drivers/platform/Kconfig                          |    5 +
+ drivers/platform/Makefile                         |    5 +
+ drivers/platform/x86/Kconfig                      |  290 +++++++++++++++++++++
+ drivers/platform/x86/Makefile                     |   16 ++
+ drivers/{misc => platform/x86}/acer-wmi.c         |    0 
+ drivers/{misc => platform/x86}/asus-laptop.c      |    0 
+ drivers/{misc => platform/x86}/compal-laptop.c    |    0 
+ drivers/{misc => platform/x86}/eeepc-laptop.c     |    0 
+ drivers/{misc => platform/x86}/fujitsu-laptop.c   |    0 
+ drivers/{misc => platform/x86}/hp-wmi.c           |    0 
+ drivers/{misc => platform/x86}/intel_menlow.c     |    0 
+ drivers/{misc => platform/x86}/msi-laptop.c       |    0 
+ drivers/{misc => platform/x86}/panasonic-laptop.c |    0 
+ drivers/{misc => platform/x86}/sony-laptop.c      |    0 
+ drivers/{misc => platform/x86}/tc1100-wmi.c       |    0 
+ drivers/{misc => platform/x86}/thinkpad_acpi.c    |    0 
+ 20 files changed, 319 insertions(+), 292 deletions(-)
+ create mode 100644 drivers/platform/Kconfig
+ create mode 100644 drivers/platform/Makefile
+ create mode 100644 drivers/platform/x86/Kconfig
+ create mode 100644 drivers/platform/x86/Makefile
+ rename drivers/{misc => platform/x86}/acer-wmi.c (100%)
+ rename drivers/{misc => platform/x86}/asus-laptop.c (100%)
+ rename drivers/{misc => platform/x86}/compal-laptop.c (100%)
+ rename drivers/{misc => platform/x86}/eeepc-laptop.c (100%)
+ rename drivers/{misc => platform/x86}/fujitsu-laptop.c (100%)
+ rename drivers/{misc => platform/x86}/hp-wmi.c (100%)
+ rename drivers/{misc => platform/x86}/intel_menlow.c (100%)
+ rename drivers/{misc => platform/x86}/msi-laptop.c (100%)
+ rename drivers/{misc => platform/x86}/panasonic-laptop.c (100%)
+ rename drivers/{misc => platform/x86}/sony-laptop.c (100%)
+ rename drivers/{misc => platform/x86}/tc1100-wmi.c (100%)
+ rename drivers/{misc => platform/x86}/thinkpad_acpi.c (100%)
 
-diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-index 2c52cf0..c4a5c49 100644
---- a/drivers/acpi/pci_irq.c
-+++ b/drivers/acpi/pci_irq.c
-@@ -145,19 +145,21 @@ struct prt_quirk {
- 	char			*actual_source;
- };
+diff --git a/drivers/Kconfig b/drivers/Kconfig
+index 2f557f5..00cf955 100644
+--- a/drivers/Kconfig
++++ b/drivers/Kconfig
+@@ -107,4 +107,6 @@ source "drivers/uio/Kconfig"
+ source "drivers/xen/Kconfig"
  
-+#define PCI_INTX_PIN(c)		(c - 'A' + 1)
+ source "drivers/staging/Kconfig"
 +
- /*
-  * These systems have incorrect _PRT entries.  The BIOS claims the PCI
-  * interrupt at the listed segment/bus/device/pin is connected to the first
-  * link device, but it is actually connected to the second.
-  */
- static struct prt_quirk prt_quirks[] = {
--	{ medion_md9580, 0, 0, 9, 'A',
-+	{ medion_md9580, 0, 0, 9, PCI_INTX_PIN('A'),
- 		"\\_SB_.PCI0.ISA_.LNKA",
- 		"\\_SB_.PCI0.ISA_.LNKB"},
--	{ dell_optiplex, 0, 0, 0xd, 'A',
-+	{ dell_optiplex, 0, 0, 0xd, PCI_INTX_PIN('A'),
- 		"\\_SB_.LNKB",
- 		"\\_SB_.LNKA"},
--	{ hp_t5710, 0, 0, 1, 'A',
-+	{ hp_t5710, 0, 0, 1, PCI_INTX_PIN('A'),
- 		"\\_SB_.PCI0.LNK1",
- 		"\\_SB_.PCI0.LNK3"},
- };
-@@ -179,7 +181,7 @@ do_prt_fixups(struct acpi_prt_entry *entry, struct acpi_pci_routing_table *prt)
- 		    entry->id.segment == quirk->segment &&
- 		    entry->id.bus == quirk->bus &&
- 		    entry->id.device == quirk->device &&
--		    pin_name(entry->pin) == quirk->pin &&
-+		    entry->pin == quirk->pin &&
- 		    !strcmp(prt->source, quirk->source) &&
- 		    strlen(prt->source) >= strlen(quirk->actual_source)) {
- 			printk(KERN_WARNING PREFIX "firmware reports "
++source "drivers/platform/Kconfig"
+ endmenu
+diff --git a/drivers/Makefile b/drivers/Makefile
+index fceb71a..46d4828 100644
+--- a/drivers/Makefile
++++ b/drivers/Makefile
+@@ -102,3 +102,4 @@ obj-$(CONFIG_SSB)		+= ssb/
+ obj-$(CONFIG_VIRTIO)		+= virtio/
+ obj-$(CONFIG_REGULATOR)		+= regulator/
+ obj-$(CONFIG_STAGING)		+= staging/
++obj-y				+= platform/
+diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+index dcf6169..8574879 100644
+--- a/drivers/misc/Kconfig
++++ b/drivers/misc/Kconfig
+@@ -136,97 +136,6 @@ config TIFM_7XX1
+ 	  To compile this driver as a module, choose M here: the module will
+ 	  be called tifm_7xx1.
+ 
+-config ACER_WMI
+-	tristate "Acer WMI Laptop Extras (EXPERIMENTAL)"
+-	depends on X86
+-	depends on EXPERIMENTAL
+-	depends on ACPI
+-	depends on LEDS_CLASS
+-	depends on NEW_LEDS
+-	depends on BACKLIGHT_CLASS_DEVICE
+-	depends on SERIO_I8042
+-	depends on RFKILL
+-	select ACPI_WMI
+-	---help---
+-	  This is a driver for newer Acer (and Wistron) laptops. It adds
+-	  wireless radio and bluetooth control, and on some laptops,
+-	  exposes the mail LED and LCD backlight.
+-
+-	  For more information about this driver see
+-	  <file:Documentation/laptops/acer-wmi.txt>
+-
+-	  If you have an ACPI-WMI compatible Acer/ Wistron laptop, say Y or M
+-	  here.
+-
+-config ASUS_LAPTOP
+-	tristate "Asus Laptop Extras (EXPERIMENTAL)"
+-	depends on X86
+-	depends on ACPI
+-	depends on EXPERIMENTAL && !ACPI_ASUS
+-	depends on LEDS_CLASS
+-	depends on NEW_LEDS
+-	depends on BACKLIGHT_CLASS_DEVICE
+-	---help---
+-	  This is the new Linux driver for Asus laptops. It may also support some
+-	  MEDION, JVC or VICTOR laptops. It makes all the extra buttons generate
+-	  standard ACPI events that go through /proc/acpi/events. It also adds
+-	  support for video output switching, LCD backlight control, Bluetooth and
+-	  Wlan control, and most importantly, allows you to blink those fancy LEDs.
+-
+-	  For more information and a userspace daemon for handling the extra
+-	  buttons see <http://acpi4asus.sf.net/>.
+-
+-	  If you have an ACPI-compatible ASUS laptop, say Y or M here.
+-
+-config FUJITSU_LAPTOP
+-	tristate "Fujitsu Laptop Extras"
+-	depends on X86
+-	depends on ACPI
+-	depends on INPUT
+-	depends on BACKLIGHT_CLASS_DEVICE
+-	---help---
+-	  This is a driver for laptops built by Fujitsu:
+-
+-	    * P2xxx/P5xxx/S6xxx/S7xxx series Lifebooks
+-	    * Possibly other Fujitsu laptop models
+-	    * Tested with S6410 and S7020
+-
+-	  It adds support for LCD brightness control and some hotkeys.
+-
+-	  If you have a Fujitsu laptop, say Y or M here.
+-
+-config FUJITSU_LAPTOP_DEBUG
+-	bool "Verbose debug mode for Fujitsu Laptop Extras"
+-	depends on FUJITSU_LAPTOP
+-	default n
+-	---help---
+-	  Enables extra debug output from the fujitsu extras driver, at the
+-	  expense of a slight increase in driver size.
+-
+-	  If you are not sure, say N here.
+-
+-config TC1100_WMI
+-	tristate "HP Compaq TC1100 Tablet WMI Extras (EXPERIMENTAL)"
+-	depends on X86 && !X86_64
+-	depends on EXPERIMENTAL
+-	depends on ACPI
+-	select ACPI_WMI
+-	---help---
+-	  This is a driver for the WMI extensions (wireless and bluetooth power
+-	  control) of the HP Compaq TC1100 tablet.
+-
+-config HP_WMI
+-       tristate "HP WMI extras"
+-       depends on ACPI_WMI
+-       depends on INPUT
+-       depends on RFKILL
+-       help
+-	 Say Y here if you want to support WMI-based hotkeys on HP laptops and
+-	 to read data from WMI such as docking or ambient light sensor state.
+-
+-	 To compile this driver as a module, choose M here: the module will
+-	 be called hp-wmi.
+-
+ config ICS932S401
+ 	tristate "Integrated Circuits ICS932S401"
+ 	depends on I2C && EXPERIMENTAL
+@@ -237,170 +146,6 @@ config ICS932S401
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called ics932s401.
+ 
+-config MSI_LAPTOP
+-	tristate "MSI Laptop Extras"
+-	depends on X86
+-	depends on ACPI
+-	depends on BACKLIGHT_CLASS_DEVICE
+-	---help---
+-	  This is a driver for laptops built by MSI (MICRO-STAR
+-	  INTERNATIONAL):
+-
+-	  MSI MegaBook S270 (MS-1013)
+-	  Cytron/TCM/Medion/Tchibo MD96100/SAM2000
+-
+-	  It adds support for Bluetooth, WLAN and LCD brightness control.
+-
+-	  More information about this driver is available at
+-	  <http://0pointer.de/lennart/tchibo.html>.
+-
+-	  If you have an MSI S270 laptop, say Y or M here.
+-
+-config PANASONIC_LAPTOP
+-	tristate "Panasonic Laptop Extras"
+-	depends on X86 && INPUT && ACPI
+-	depends on BACKLIGHT_CLASS_DEVICE
+-	---help---
+-	  This driver adds support for access to backlight control and hotkeys
+-	  on Panasonic Let's Note laptops.
+-
+-	  If you have a Panasonic Let's note laptop (such as the R1(N variant),
+-	  R2, R3, R5, T2, W2 and Y2 series), say Y.
+-
+-config COMPAL_LAPTOP
+-	tristate "Compal Laptop Extras"
+-	depends on X86
+-	depends on ACPI
+-	depends on BACKLIGHT_CLASS_DEVICE
+-	---help---
+-	  This is a driver for laptops built by Compal:
+-
+-	  Compal FL90/IFL90
+-	  Compal FL91/IFL91
+-	  Compal FL92/JFL92
+-	  Compal FT00/IFT00
+-
+-	  It adds support for Bluetooth, WLAN and LCD brightness control.
+-
+-	  If you have an Compal FL9x/IFL9x/FT00 laptop, say Y or M here.
+-
+-config SONY_LAPTOP
+-	tristate "Sony Laptop Extras"
+-	depends on X86 && ACPI
+-	select BACKLIGHT_CLASS_DEVICE
+-	depends on INPUT
+-	  ---help---
+-	  This mini-driver drives the SNC and SPIC devices present in the ACPI
+-	  BIOS of the Sony Vaio laptops.
+-
+-	  It gives access to some extra laptop functionalities like Bluetooth,
+-	  screen brightness control, Fn keys and allows powering on/off some
+-	  devices.
+-
+-	  Read <file:Documentation/laptops/sony-laptop.txt> for more information.
+-
+-config SONYPI_COMPAT
+-	bool "Sonypi compatibility"
+-	depends on SONY_LAPTOP
+-	  ---help---
+-	  Build the sonypi driver compatibility code into the sony-laptop driver.
+-
+-config THINKPAD_ACPI
+-	tristate "ThinkPad ACPI Laptop Extras"
+-	depends on X86 && ACPI
+-	select BACKLIGHT_LCD_SUPPORT
+-	select BACKLIGHT_CLASS_DEVICE
+-	select HWMON
+-	select NVRAM
+-	select INPUT
+-	select NEW_LEDS
+-	select LEDS_CLASS
+-	select NET
+-	select RFKILL
+-	---help---
+-	  This is a driver for the IBM and Lenovo ThinkPad laptops. It adds
+-	  support for Fn-Fx key combinations, Bluetooth control, video
+-	  output switching, ThinkLight control, UltraBay eject and more.
+-	  For more information about this driver see
+-	  <file:Documentation/laptops/thinkpad-acpi.txt> and
+-	  <http://ibm-acpi.sf.net/> .
+-
+-	  This driver was formerly known as ibm-acpi.
+-
+-	  If you have an IBM or Lenovo ThinkPad laptop, say Y or M here.
+-
+-config THINKPAD_ACPI_DEBUG
+-	bool "Verbose debug mode"
+-	depends on THINKPAD_ACPI
+-	default n
+-	---help---
+-	  Enables extra debugging information, at the expense of a slightly
+-	  increase in driver size.
+-
+-	  If you are not sure, say N here.
+-
+-config THINKPAD_ACPI_DOCK
+-	bool "Legacy Docking Station Support"
+-	depends on THINKPAD_ACPI
+-	depends on ACPI_DOCK=n
+-	default n
+-	---help---
+-	  Allows the thinkpad_acpi driver to handle docking station events.
+-	  This support was made obsolete by the generic ACPI docking station
+-	  support (CONFIG_ACPI_DOCK).  It will allow locking and removing the
+-	  laptop from the docking station, but will not properly connect PCI
+-	  devices.
+-
+-	  If you are not sure, say N here.
+-
+-config THINKPAD_ACPI_BAY
+-	bool "Legacy Removable Bay Support"
+-	depends on THINKPAD_ACPI
+-	default y
+-	---help---
+-	  Allows the thinkpad_acpi driver to handle removable bays.  It will
+-	  electrically disable the device in the bay, and also generate
+-	  notifications when the bay lever is ejected or inserted.
+-
+-	  If you are not sure, say Y here.
+-
+-config THINKPAD_ACPI_VIDEO
+-	bool "Video output control support"
+-	depends on THINKPAD_ACPI
+-	default y
+-	---help---
+-	  Allows the thinkpad_acpi driver to provide an interface to control
+-	  the various video output ports.
+-
+-	  This feature often won't work well, depending on ThinkPad model,
+-	  display state, video output devices in use, whether there is a X
+-	  server running, phase of the moon, and the current mood of
+-	  Schroedinger's cat.  If you can use X.org's RandR to control
+-	  your ThinkPad's video output ports instead of this feature,
+-	  don't think twice: do it and say N here to save some memory.
+-
+-	  If you are not sure, say Y here.
+-
+-config THINKPAD_ACPI_HOTKEY_POLL
+-	bool "Support NVRAM polling for hot keys"
+-	depends on THINKPAD_ACPI
+-	default y
+-	---help---
+-	  Some thinkpad models benefit from NVRAM polling to detect a few of
+-	  the hot key press events.  If you know your ThinkPad model does not
+-	  need to do NVRAM polling to support any of the hot keys you use,
+-	  unselecting this option will save about 1kB of memory.
+-
+-	  ThinkPads T40 and newer, R52 and newer, and X31 and newer are
+-	  unlikely to need NVRAM polling in their latest BIOS versions.
+-
+-	  NVRAM polling can detect at most the following keys: ThinkPad/Access
+-	  IBM, Zoom, Switch Display (fn+F7), ThinkLight, Volume up/down/mute,
+-	  Brightness up/down, Display Expand (fn+F8), Hibernate (fn+F12).
+-
+-	  If you are not sure, say Y here.  The driver enables polling only if
+-	  it is strictly necessary to do so.
+-
+ config ATMEL_SSC
+ 	tristate "Device driver for Atmel SSC peripheral"
+ 	depends on AVR32 || ARCH_AT91
+@@ -413,31 +158,6 @@ config ATMEL_SSC
+ 
+ 	  If unsure, say N.
+ 
+-config INTEL_MENLOW
+-	tristate "Thermal Management driver for Intel menlow platform"
+-	depends on ACPI_THERMAL
+-	select THERMAL
+-	depends on X86
+-	---help---
+-	  ACPI thermal management enhancement driver on
+-	  Intel Menlow platform.
+-
+-	  If unsure, say N.
+-
+-config EEEPC_LAPTOP
+-	tristate "Eee PC Hotkey Driver (EXPERIMENTAL)"
+-	depends on X86
+-	depends on ACPI
+-	depends on BACKLIGHT_CLASS_DEVICE
+-	depends on HWMON
+-	depends on EXPERIMENTAL
+-	depends on RFKILL
+-	---help---
+-	  This driver supports the Fn-Fx keys on Eee PC laptops.
+-	  It also adds the ability to switch camera/wlan on/off.
+-
+-	  If you have an Eee PC laptop, say Y or M here.
+-
+ config ENCLOSURE_SERVICES
+ 	tristate "Enclosure Services"
+ 	default n
+diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
+index 027e1ea..d5749a7 100644
+--- a/drivers/misc/Makefile
++++ b/drivers/misc/Makefile
+@@ -4,28 +4,16 @@
+ 
+ obj-$(CONFIG_IBM_ASM)		+= ibmasm/
+ obj-$(CONFIG_HDPU_FEATURES)	+= hdpuftrs/
+-obj-$(CONFIG_ASUS_LAPTOP)	+= asus-laptop.o
+-obj-$(CONFIG_EEEPC_LAPTOP)	+= eeepc-laptop.o
+-obj-$(CONFIG_MSI_LAPTOP)	+= msi-laptop.o
+-obj-$(CONFIG_COMPAL_LAPTOP)	+= compal-laptop.o
+-obj-$(CONFIG_ACER_WMI)		+= acer-wmi.o
+ obj-$(CONFIG_ATMEL_PWM)		+= atmel_pwm.o
+ obj-$(CONFIG_ATMEL_SSC)		+= atmel-ssc.o
+ obj-$(CONFIG_ATMEL_TCLIB)	+= atmel_tclib.o
+-obj-$(CONFIG_HP_WMI)		+= hp-wmi.o
+ obj-$(CONFIG_ICS932S401)	+= ics932s401.o
+-obj-$(CONFIG_TC1100_WMI)	+= tc1100-wmi.o
+ obj-$(CONFIG_LKDTM)		+= lkdtm.o
+ obj-$(CONFIG_TIFM_CORE)       	+= tifm_core.o
+ obj-$(CONFIG_TIFM_7XX1)       	+= tifm_7xx1.o
+ obj-$(CONFIG_PHANTOM)		+= phantom.o
+ obj-$(CONFIG_SGI_IOC4)		+= ioc4.o
+-obj-$(CONFIG_SONY_LAPTOP)	+= sony-laptop.o
+-obj-$(CONFIG_THINKPAD_ACPI)	+= thinkpad_acpi.o
+-obj-$(CONFIG_FUJITSU_LAPTOP)	+= fujitsu-laptop.o
+-obj-$(CONFIG_PANASONIC_LAPTOP)	+= panasonic-laptop.o
+ obj-$(CONFIG_EEPROM_93CX6)	+= eeprom_93cx6.o
+-obj-$(CONFIG_INTEL_MENLOW)	+= intel_menlow.o
+ obj-$(CONFIG_ENCLOSURE_SERVICES) += enclosure.o
+ obj-$(CONFIG_KGDB_TESTS)	+= kgdbts.o
+ obj-$(CONFIG_SGI_XP)		+= sgi-xp/
+diff --git a/drivers/platform/Kconfig b/drivers/platform/Kconfig
+new file mode 100644
+index 0000000..9652c3f
+--- /dev/null
++++ b/drivers/platform/Kconfig
+@@ -0,0 +1,5 @@
++# drivers/platform/Kconfig
++
++if X86
++source "drivers/platform/x86/Kconfig"
++endif
+diff --git a/drivers/platform/Makefile b/drivers/platform/Makefile
+new file mode 100644
+index 0000000..782953a
+--- /dev/null
++++ b/drivers/platform/Makefile
+@@ -0,0 +1,5 @@
++#
++# Makefile for linux/drivers/platform
++#
++
++obj-$(CONFIG_X86)		+= x86/
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+new file mode 100644
+index 0000000..0a9a5b9
+--- /dev/null
++++ b/drivers/platform/x86/Kconfig
+@@ -0,0 +1,290 @@
++#
++# X86 Platform Specific Drivers
++#
++
++menuconfig X86_PLATFORM_DEVICES
++	bool "X86 Platform Specific Device Drivers"
++	default y
++	---help---
++	  Say Y here to get to see options for device drivers for various
++	  x86 platforms, including vendor-specific laptop extension drivers.
++	  This option alone does not add any kernel code.
++
++	  If you say N, all options in this submenu will be skipped and disabled.
++
++if X86_PLATFORM_DEVICES
++
++config ACER_WMI
++	tristate "Acer WMI Laptop Extras (EXPERIMENTAL)"
++	depends on EXPERIMENTAL
++	depends on ACPI
++	depends on LEDS_CLASS
++	depends on NEW_LEDS
++	depends on BACKLIGHT_CLASS_DEVICE
++	depends on SERIO_I8042
++	depends on RFKILL
++	select ACPI_WMI
++	---help---
++	  This is a driver for newer Acer (and Wistron) laptops. It adds
++	  wireless radio and bluetooth control, and on some laptops,
++	  exposes the mail LED and LCD backlight.
++
++	  For more information about this driver see
++	  <file:Documentation/laptops/acer-wmi.txt>
++
++	  If you have an ACPI-WMI compatible Acer/ Wistron laptop, say Y or M
++	  here.
++
++config ASUS_LAPTOP
++	tristate "Asus Laptop Extras (EXPERIMENTAL)"
++	depends on ACPI
++	depends on EXPERIMENTAL && !ACPI_ASUS
++	depends on LEDS_CLASS
++	depends on NEW_LEDS
++	depends on BACKLIGHT_CLASS_DEVICE
++	---help---
++	  This is the new Linux driver for Asus laptops. It may also support some
++	  MEDION, JVC or VICTOR laptops. It makes all the extra buttons generate
++	  standard ACPI events that go through /proc/acpi/events. It also adds
++	  support for video output switching, LCD backlight control, Bluetooth and
++	  Wlan control, and most importantly, allows you to blink those fancy LEDs.
++
++	  For more information and a userspace daemon for handling the extra
++	  buttons see <http://acpi4asus.sf.net/>.
++
++	  If you have an ACPI-compatible ASUS laptop, say Y or M here.
++
++config FUJITSU_LAPTOP
++	tristate "Fujitsu Laptop Extras"
++	depends on ACPI
++	depends on INPUT
++	depends on BACKLIGHT_CLASS_DEVICE
++	---help---
++	  This is a driver for laptops built by Fujitsu:
++
++	    * P2xxx/P5xxx/S6xxx/S7xxx series Lifebooks
++	    * Possibly other Fujitsu laptop models
++	    * Tested with S6410 and S7020
++
++	  It adds support for LCD brightness control and some hotkeys.
++
++	  If you have a Fujitsu laptop, say Y or M here.
++
++config FUJITSU_LAPTOP_DEBUG
++	bool "Verbose debug mode for Fujitsu Laptop Extras"
++	depends on FUJITSU_LAPTOP
++	default n
++	---help---
++	  Enables extra debug output from the fujitsu extras driver, at the
++	  expense of a slight increase in driver size.
++
++	  If you are not sure, say N here.
++
++config TC1100_WMI
++	tristate "HP Compaq TC1100 Tablet WMI Extras (EXPERIMENTAL)"
++	depends on !X86_64
++	depends on EXPERIMENTAL
++	depends on ACPI
++	select ACPI_WMI
++	---help---
++	  This is a driver for the WMI extensions (wireless and bluetooth power
++	  control) of the HP Compaq TC1100 tablet.
++
++config HP_WMI
++	tristate "HP WMI extras"
++	depends on ACPI_WMI
++	depends on INPUT
++	depends on RFKILL
++	help
++	 Say Y here if you want to support WMI-based hotkeys on HP laptops and
++	 to read data from WMI such as docking or ambient light sensor state.
++
++	 To compile this driver as a module, choose M here: the module will
++	 be called hp-wmi.
++
++config MSI_LAPTOP
++	tristate "MSI Laptop Extras"
++	depends on ACPI
++	depends on BACKLIGHT_CLASS_DEVICE
++	---help---
++	  This is a driver for laptops built by MSI (MICRO-STAR
++	  INTERNATIONAL):
++
++	  MSI MegaBook S270 (MS-1013)
++	  Cytron/TCM/Medion/Tchibo MD96100/SAM2000
++
++	  It adds support for Bluetooth, WLAN and LCD brightness control.
++
++	  More information about this driver is available at
++	  <http://0pointer.de/lennart/tchibo.html>.
++
++	  If you have an MSI S270 laptop, say Y or M here.
++
++config PANASONIC_LAPTOP
++	tristate "Panasonic Laptop Extras"
++	depends on INPUT && ACPI
++	depends on BACKLIGHT_CLASS_DEVICE
++	---help---
++	  This driver adds support for access to backlight control and hotkeys
++	  on Panasonic Let's Note laptops.
++
++	  If you have a Panasonic Let's note laptop (such as the R1(N variant),
++	  R2, R3, R5, T2, W2 and Y2 series), say Y.
++
++config COMPAL_LAPTOP
++	tristate "Compal Laptop Extras"
++	depends on ACPI
++	depends on BACKLIGHT_CLASS_DEVICE
++	---help---
++	  This is a driver for laptops built by Compal:
++
++	  Compal FL90/IFL90
++	  Compal FL91/IFL91
++	  Compal FL92/JFL92
++	  Compal FT00/IFT00
++
++	  It adds support for Bluetooth, WLAN and LCD brightness control.
++
++	  If you have an Compal FL9x/IFL9x/FT00 laptop, say Y or M here.
++
++config SONY_LAPTOP
++	tristate "Sony Laptop Extras"
++	depends on ACPI
++	select BACKLIGHT_CLASS_DEVICE
++	depends on INPUT
++	  ---help---
++	  This mini-driver drives the SNC and SPIC devices present in the ACPI
++	  BIOS of the Sony Vaio laptops.
++
++	  It gives access to some extra laptop functionalities like Bluetooth,
++	  screen brightness control, Fn keys and allows powering on/off some
++	  devices.
++
++	  Read <file:Documentation/laptops/sony-laptop.txt> for more information.
++
++config SONYPI_COMPAT
++	bool "Sonypi compatibility"
++	depends on SONY_LAPTOP
++	  ---help---
++	  Build the sonypi driver compatibility code into the sony-laptop driver.
++
++config THINKPAD_ACPI
++	tristate "ThinkPad ACPI Laptop Extras"
++	depends on ACPI
++	select BACKLIGHT_LCD_SUPPORT
++	select BACKLIGHT_CLASS_DEVICE
++	select HWMON
++	select NVRAM
++	select INPUT
++	select NEW_LEDS
++	select LEDS_CLASS
++	select NET
++	select RFKILL
++	---help---
++	  This is a driver for the IBM and Lenovo ThinkPad laptops. It adds
++	  support for Fn-Fx key combinations, Bluetooth control, video
++	  output switching, ThinkLight control, UltraBay eject and more.
++	  For more information about this driver see
++	  <file:Documentation/laptops/thinkpad-acpi.txt> and
++	  <http://ibm-acpi.sf.net/> .
++
++	  This driver was formerly known as ibm-acpi.
++
++	  If you have an IBM or Lenovo ThinkPad laptop, say Y or M here.
++
++config THINKPAD_ACPI_DEBUG
++	bool "Verbose debug mode"
++	depends on THINKPAD_ACPI
++	default n
++	---help---
++	  Enables extra debugging information, at the expense of a slightly
++	  increase in driver size.
++
++	  If you are not sure, say N here.
++
++config THINKPAD_ACPI_DOCK
++	bool "Legacy Docking Station Support"
++	depends on THINKPAD_ACPI
++	depends on ACPI_DOCK=n
++	default n
++	---help---
++	  Allows the thinkpad_acpi driver to handle docking station events.
++	  This support was made obsolete by the generic ACPI docking station
++	  support (CONFIG_ACPI_DOCK).  It will allow locking and removing the
++	  laptop from the docking station, but will not properly connect PCI
++	  devices.
++
++	  If you are not sure, say N here.
++
++config THINKPAD_ACPI_BAY
++	bool "Legacy Removable Bay Support"
++	depends on THINKPAD_ACPI
++	default y
++	---help---
++	  Allows the thinkpad_acpi driver to handle removable bays.  It will
++	  electrically disable the device in the bay, and also generate
++	  notifications when the bay lever is ejected or inserted.
++
++	  If you are not sure, say Y here.
++
++config THINKPAD_ACPI_VIDEO
++	bool "Video output control support"
++	depends on THINKPAD_ACPI
++	default y
++	---help---
++	  Allows the thinkpad_acpi driver to provide an interface to control
++	  the various video output ports.
++
++	  This feature often won't work well, depending on ThinkPad model,
++	  display state, video output devices in use, whether there is a X
++	  server running, phase of the moon, and the current mood of
++	  Schroedinger's cat.  If you can use X.org's RandR to control
++	  your ThinkPad's video output ports instead of this feature,
++	  don't think twice: do it and say N here to save some memory.
++
++	  If you are not sure, say Y here.
++
++config THINKPAD_ACPI_HOTKEY_POLL
++	bool "Support NVRAM polling for hot keys"
++	depends on THINKPAD_ACPI
++	default y
++	---help---
++	  Some thinkpad models benefit from NVRAM polling to detect a few of
++	  the hot key press events.  If you know your ThinkPad model does not
++	  need to do NVRAM polling to support any of the hot keys you use,
++	  unselecting this option will save about 1kB of memory.
++
++	  ThinkPads T40 and newer, R52 and newer, and X31 and newer are
++	  unlikely to need NVRAM polling in their latest BIOS versions.
++
++	  NVRAM polling can detect at most the following keys: ThinkPad/Access
++	  IBM, Zoom, Switch Display (fn+F7), ThinkLight, Volume up/down/mute,
++	  Brightness up/down, Display Expand (fn+F8), Hibernate (fn+F12).
++
++	  If you are not sure, say Y here.  The driver enables polling only if
++	  it is strictly necessary to do so.
++
++config INTEL_MENLOW
++	tristate "Thermal Management driver for Intel menlow platform"
++	depends on ACPI_THERMAL
++	select THERMAL
++	---help---
++	  ACPI thermal management enhancement driver on
++	  Intel Menlow platform.
++
++	  If unsure, say N.
++
++config EEEPC_LAPTOP
++	tristate "Eee PC Hotkey Driver (EXPERIMENTAL)"
++	depends on ACPI
++	depends on BACKLIGHT_CLASS_DEVICE
++	depends on HWMON
++	depends on EXPERIMENTAL
++	depends on RFKILL
++	---help---
++	  This driver supports the Fn-Fx keys on Eee PC laptops.
++	  It also adds the ability to switch camera/wlan on/off.
++
++	  If you have an Eee PC laptop, say Y or M here.
++
++endif # X86_PLATFORM_DEVICES
+diff --git a/drivers/platform/x86/Makefile b/drivers/platform/x86/Makefile
+new file mode 100644
+index 0000000..4d26b1b
+--- /dev/null
++++ b/drivers/platform/x86/Makefile
+@@ -0,0 +1,16 @@
++#
++# Makefile for linux/drivers/platform/x86
++# x86 Platform-Specific Drivers
++#
++obj-$(CONFIG_ASUS_LAPTOP)	+= asus-laptop.o
++obj-$(CONFIG_EEEPC_LAPTOP)	+= eeepc-laptop.o
++obj-$(CONFIG_MSI_LAPTOP)	+= msi-laptop.o
++obj-$(CONFIG_COMPAL_LAPTOP)	+= compal-laptop.o
++obj-$(CONFIG_ACER_WMI)		+= acer-wmi.o
++obj-$(CONFIG_HP_WMI)		+= hp-wmi.o
++obj-$(CONFIG_TC1100_WMI)	+= tc1100-wmi.o
++obj-$(CONFIG_SONY_LAPTOP)	+= sony-laptop.o
++obj-$(CONFIG_THINKPAD_ACPI)	+= thinkpad_acpi.o
++obj-$(CONFIG_FUJITSU_LAPTOP)	+= fujitsu-laptop.o
++obj-$(CONFIG_PANASONIC_LAPTOP)	+= panasonic-laptop.o
++obj-$(CONFIG_INTEL_MENLOW)	+= intel_menlow.o
+diff --git a/drivers/misc/acer-wmi.c b/drivers/platform/x86/acer-wmi.c
+similarity index 100%
+rename from drivers/misc/acer-wmi.c
+rename to drivers/platform/x86/acer-wmi.c
+diff --git a/drivers/misc/asus-laptop.c b/drivers/platform/x86/asus-laptop.c
+similarity index 100%
+rename from drivers/misc/asus-laptop.c
+rename to drivers/platform/x86/asus-laptop.c
+diff --git a/drivers/misc/compal-laptop.c b/drivers/platform/x86/compal-laptop.c
+similarity index 100%
+rename from drivers/misc/compal-laptop.c
+rename to drivers/platform/x86/compal-laptop.c
+diff --git a/drivers/misc/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
+similarity index 100%
+rename from drivers/misc/eeepc-laptop.c
+rename to drivers/platform/x86/eeepc-laptop.c
+diff --git a/drivers/misc/fujitsu-laptop.c b/drivers/platform/x86/fujitsu-laptop.c
+similarity index 100%
+rename from drivers/misc/fujitsu-laptop.c
+rename to drivers/platform/x86/fujitsu-laptop.c
+diff --git a/drivers/misc/hp-wmi.c b/drivers/platform/x86/hp-wmi.c
+similarity index 100%
+rename from drivers/misc/hp-wmi.c
+rename to drivers/platform/x86/hp-wmi.c
+diff --git a/drivers/misc/intel_menlow.c b/drivers/platform/x86/intel_menlow.c
+similarity index 100%
+rename from drivers/misc/intel_menlow.c
+rename to drivers/platform/x86/intel_menlow.c
+diff --git a/drivers/misc/msi-laptop.c b/drivers/platform/x86/msi-laptop.c
+similarity index 100%
+rename from drivers/misc/msi-laptop.c
+rename to drivers/platform/x86/msi-laptop.c
+diff --git a/drivers/misc/panasonic-laptop.c b/drivers/platform/x86/panasonic-laptop.c
+similarity index 100%
+rename from drivers/misc/panasonic-laptop.c
+rename to drivers/platform/x86/panasonic-laptop.c
+diff --git a/drivers/misc/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
+similarity index 100%
+rename from drivers/misc/sony-laptop.c
+rename to drivers/platform/x86/sony-laptop.c
+diff --git a/drivers/misc/tc1100-wmi.c b/drivers/platform/x86/tc1100-wmi.c
+similarity index 100%
+rename from drivers/misc/tc1100-wmi.c
+rename to drivers/platform/x86/tc1100-wmi.c
+diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
+similarity index 100%
+rename from drivers/misc/thinkpad_acpi.c
+rename to drivers/platform/x86/thinkpad_acpi.c
 -- 
 1.5.6.6
 
