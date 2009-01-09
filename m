@@ -1,63 +1,69 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: git mv (was Re: [git pull] ACPI & Suspend patches for
- 2.6.29-rc0)
-Date: Fri, 9 Jan 2009 13:16:12 -0800 (PST)
-Message-ID: <alpine.LFD.2.00.0901091305160.6528@localhost.localdomain>
-References: <alpine.LFD.2.00.0901090550590.4091@localhost.localdomain> <alpine.LFD.2.00.0901091200150.6528@localhost.localdomain> <alpine.LFD.2.00.0901091537530.16697@localhost.localdomain>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [patch 3/6] eeepc-laptop: enable Bluetooth for Asus EEE 901
+Date: Fri, 09 Jan 2009 16:24:09 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0901091623400.16697@localhost.localdomain>
+References: <200901092017.n09KHA3E014942@imap1.linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37865 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754937AbZAIVQV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 16:16:21 -0500
-In-Reply-To: <alpine.LFD.2.00.0901091537530.16697@localhost.localdomain>
+Received: from vms173003pub.verizon.net ([206.46.173.3]:49318 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756579AbZAIVYP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 16:24:15 -0500
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173003.mailsrvcs.net
+ (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+ with ESMTPA id <0KD800B733GDP669@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 09 Jan 2009 15:24:14 -0600 (CST)
+In-reply-to: <200901092017.n09KHA3E014942@imap1.linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Linux Power Management List <linux-pm@lists.osdl.org>
+To: akpm@linux-foundation.org
+Cc: linux-acpi@vger.kernel.org, santiago@crfreenet.org, corentincj@iksaif.net, mjg59@srcf.ucam.org
 
+the original version of this patch is already in my tree
+queued for linus.
 
+thanks,
+Len Brown, Intel Open Source Technology Center
 
-On Fri, 9 Jan 2009, Len Brown wrote:
+On Fri, 9 Jan 2009, akpm@linux-foundation.org wrote:
+
+> From: Ondrej Zajicek <santiago@crfreenet.org>
 > 
-> I guess using 'git mv' gave me the false expectation
-> that git actually tracks moves like other SCMs
-> and it would show up that way in the diff -- though
-> now that I think about it, I like the comparison
-> of the two endpoints that git did even better.
-
-The main reason "git mv" exists at all is just people migrating from other 
-places expecting it. It's largely just purely synthetic sugar - it has 
-almost no meaning to git long-term.
-
-[ Technically, it _is_ meaningful, in that it obviously not just moves the 
-  file in the checked-out copy, but it also moves the index information 
-  around. So "git mv" clearly does something, but it's not important in 
-  the big picture.
-
-  So using "git mv" is really nothing fundamental - it doesn't really 
-  matter to the end result, and if you had done the 'mv' by just applying 
-  a patch to delete the old file and create a new one, the actual commit 
-  would have been 100% identical. Think of it as a convenience function, 
-  and you won't be wrong. ]
-
-> gitk doesn't use --follow by default, and when it is added, the history 
-> looks pretty strange.
-
-Heh. That's because "--follow" is a total hack, and doesn't do the nice 
-(and pretty complicated) parent rewriting that the real "git log" family 
-of operations normally do.
-
-So yeah, "--follow" is broken. It's really a quick hack there for people 
-who come from some other SCM to feel more comfy with git. If you come from 
-SVN or CVS, you never had proper history, and you never had "gitk" anyway, 
-and so "gitk --follow" doesn't really work. But it makes the pure 
-_textual_ logs look a bit like CVS/SVN.
-
-I'd love to make --follow work better and integrate more, but I've been so 
-successful at never using it myself that I don't much care. And it really 
-is not a very natural thing for git to do, so the hackiness is somewhat 
-inherent.
-
-			Linus
+> eeepc-laptop driver has interface for enabling/disabling Bluetooth, but it
+> does not work.  This patch fixes it.
+> 
+> Signed-off-by: Ondrej Zajicek <santiago@crfreenet.org>
+> Cc: Matthew Garrett <mjg59@srcf.ucam.org>
+> Cc: Corentin Chary <corentincj@iksaif.net>
+> Cc: Len Brown <lenb@kernel.org>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+> 
+>  drivers/platform/x86/eeepc-laptop.c |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff -puN drivers/platform/x86/eeepc-laptop.c~eeepc-laptop-enable-bluetooth-for-asus-eee-901 drivers/platform/x86/eeepc-laptop.c
+> --- a/drivers/platform/x86/eeepc-laptop.c~eeepc-laptop-enable-bluetooth-for-asus-eee-901
+> +++ a/drivers/platform/x86/eeepc-laptop.c
+> @@ -90,7 +90,7 @@ enum {
+>  };
+>  
+>  static const char *cm_getv[] = {
+> -	"WLDG", NULL, NULL, NULL,
+> +	"WLDG", "BTHG", NULL, NULL,
+>  	"CAMG", NULL, NULL, NULL,
+>  	NULL, "PBLG", NULL, NULL,
+>  	"CFVG", NULL, NULL, NULL,
+> @@ -99,7 +99,7 @@ static const char *cm_getv[] = {
+>  };
+>  
+>  static const char *cm_setv[] = {
+> -	"WLDS", NULL, NULL, NULL,
+> +	"WLDS", "BTHS", NULL, NULL,
+>  	"CAMS", NULL, NULL, NULL,
+>  	"SDSP", "PBLS", "HDPS", NULL,
+>  	"CFVS", NULL, NULL, NULL,
+> _
+> 
