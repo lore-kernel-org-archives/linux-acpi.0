@@ -1,89 +1,312 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 04/94] ACPI: video: Fix reversed brightness behavior on
- ThinkPad SL series
-Date: Fri, 09 Jan 2009 04:26:06 -0500
-Message-ID: <935e5f290ec1eb0f1c15004421f5fd3154380fd5.1231492607.git.len.brown@intel.com>
+Subject: [PATCH 06/94] ACPI hibernate: Add a mechanism to save/restore ACPI NVS
+ memory
+Date: Fri, 09 Jan 2009 04:26:08 -0500
+Message-ID: <3f4b0ef7f2899c91b1d6958779f084b44dd59d32.1231492607.git.len.brown@intel.com>
 References: <1231493256-11678-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:40893 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752424AbZAIJ1o (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 04:27:44 -0500
+Received: from vms173005pub.verizon.net ([206.46.173.5]:56378 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752424AbZAIJ1r (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 04:27:47 -0500
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173001.mailsrvcs.net
+ by vms173005.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0KD700L3O6A6LJF7@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 09 Jan 2009 03:27:43 -0600 (CST)
+ with ESMTPA id <0KD700EIM6A9PC03@vms173005.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 09 Jan 2009 03:27:46 -0600 (CST)
 In-reply-to: <1231493256-11678-1-git-send-email-lenb@kernel.org>
 In-reply-to: <c5279dee26c0e8d7c4200993bfc4b540d2469598.1231492606.git.len.brown@intel.com>
 References: <c5279dee26c0e8d7c4200993bfc4b540d2469598.1231492606.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Zhang Rui <rui.zhang@intel.com>
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Section B.6.2 of ACPI 3.0b specification that defines _BCL method
-doesn't require the brightness levels returned to be sorted.
-At least ThinkPad SL300 (and probably all IdeaPads) returns the
-array reversed (i.e. bightest levels have lowest indexes), which
-causes the brightness management behave in completely reversed
-manner on these machines (brightness increases when the laptop is
-idle, while the display dims when used).
+According to the ACPI Specification 3.0b, Section 15.3.2,
+"OSPM will call the _PTS control method some time before entering a
+sleeping state, to allow the platform's AML code to update this
+memory image before entering the sleeping state. After the system
+awakes from an S4 state, OSPM will restore this memory area and call
+the _WAK control method to enable the BIOS to reclaim its memory
+image."  For this reason, implement a mechanism allowing us to save
+the NVS memory during hibernation and to restore it during the
+subsequent resume.
 
-Sorting the array by brightness level values after reading the list
-fixes the issue.
+Based on a patch by Zhang Rui.
 
-http://bugzilla.kernel.org/show_bug.cgi?id=12037
-
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-Tested-by: Lubomir Rintel <lkundrak@v3.sk>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Nigel Cunningham <nigel@tuxonice.net>
+Cc: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/video.c |   15 +++++++++++++++
- 1 files changed, 15 insertions(+), 0 deletions(-)
+ drivers/acpi/sleep/main.c |   53 +++++++++++++++++---
+ include/linux/suspend.h   |   13 +++++
+ kernel/power/swsusp.c     |  122 +++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 180 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index baa4419..38bf8b4 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -36,6 +36,7 @@
- #include <linux/backlight.h>
- #include <linux/thermal.h>
- #include <linux/video_output.h>
-+#include <linux/sort.h>
- #include <asm/uaccess.h>
+diff --git a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
+index 28a691c..45a8015 100644
+--- a/drivers/acpi/sleep/main.c
++++ b/drivers/acpi/sleep/main.c
+@@ -394,9 +394,25 @@ void __init acpi_no_s4_hw_signature(void)
  
- #include <acpi/acpi_bus.h>
-@@ -626,6 +627,16 @@ acpi_video_bus_DOS(struct acpi_video_bus *video, int bios_flag, int lcd_flag)
- }
- 
- /*
-+ * Simple comparison function used to sort backlight levels.
-+ */
+ static int acpi_hibernation_begin(void)
+ {
+-	acpi_target_sleep_state = ACPI_STATE_S4;
+-	acpi_sleep_tts_switch(acpi_target_sleep_state);
+-	return 0;
++	int error;
 +
-+static int
-+acpi_video_cmp_level(const void *a, const void *b)
-+{
-+	return *(int *)a - *(int *)b;
++	error = hibernate_nvs_alloc();
++	if (!error) {
++		acpi_target_sleep_state = ACPI_STATE_S4;
++		acpi_sleep_tts_switch(acpi_target_sleep_state);
++	}
++
++	return error;
 +}
 +
-+/*
-  *  Arg:	
-  *  	device	: video output device (LCD, CRT, ..)
-  *
-@@ -676,6 +687,10 @@ acpi_video_init_brightness(struct acpi_video_device *device)
- 		count++;
- 	}
- 
-+	/* don't sort the first two brightness levels */
-+	sort(&br->levels[2], count - 2, sizeof(br->levels[2]),
-+		acpi_video_cmp_level, NULL);
++static int acpi_hibernation_pre_snapshot(void)
++{
++	int error = acpi_pm_prepare();
 +
- 	if (count < 2)
- 		goto out_free_levels;
++	if (!error)
++		hibernate_nvs_save();
++
++	return error;
+ }
  
+ static int acpi_hibernation_enter(void)
+@@ -417,6 +433,12 @@ static int acpi_hibernation_enter(void)
+ 	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
+ }
+ 
++static void acpi_hibernation_finish(void)
++{
++	hibernate_nvs_free();
++	acpi_pm_finish();
++}
++
+ static void acpi_hibernation_leave(void)
+ {
+ 	/*
+@@ -432,6 +454,8 @@ static void acpi_hibernation_leave(void)
+ 			"cannot resume!\n");
+ 		panic("ACPI S4 hardware signature mismatch");
+ 	}
++	/* Restore the NVS memory area */
++	hibernate_nvs_restore();
+ }
+ 
+ static void acpi_pm_enable_gpes(void)
+@@ -442,8 +466,8 @@ static void acpi_pm_enable_gpes(void)
+ static struct platform_hibernation_ops acpi_hibernation_ops = {
+ 	.begin = acpi_hibernation_begin,
+ 	.end = acpi_pm_end,
+-	.pre_snapshot = acpi_pm_prepare,
+-	.finish = acpi_pm_finish,
++	.pre_snapshot = acpi_hibernation_pre_snapshot,
++	.finish = acpi_hibernation_finish,
+ 	.prepare = acpi_pm_prepare,
+ 	.enter = acpi_hibernation_enter,
+ 	.leave = acpi_hibernation_leave,
+@@ -469,8 +493,21 @@ static int acpi_hibernation_begin_old(void)
+ 
+ 	error = acpi_sleep_prepare(ACPI_STATE_S4);
+ 
++	if (!error) {
++		error = hibernate_nvs_alloc();
++		if (!error)
++			acpi_target_sleep_state = ACPI_STATE_S4;
++	}
++	return error;
++}
++
++static int acpi_hibernation_pre_snapshot_old(void)
++{
++	int error = acpi_pm_disable_gpes();
++
+ 	if (!error)
+-		acpi_target_sleep_state = ACPI_STATE_S4;
++		hibernate_nvs_save();
++
+ 	return error;
+ }
+ 
+@@ -481,8 +518,8 @@ static int acpi_hibernation_begin_old(void)
+ static struct platform_hibernation_ops acpi_hibernation_ops_old = {
+ 	.begin = acpi_hibernation_begin_old,
+ 	.end = acpi_pm_end,
+-	.pre_snapshot = acpi_pm_disable_gpes,
+-	.finish = acpi_pm_finish,
++	.pre_snapshot = acpi_hibernation_pre_snapshot_old,
++	.finish = acpi_hibernation_finish,
+ 	.prepare = acpi_pm_disable_gpes,
+ 	.enter = acpi_hibernation_enter,
+ 	.leave = acpi_hibernation_leave,
+diff --git a/include/linux/suspend.h b/include/linux/suspend.h
+index 2ce8207..2b409c4 100644
+--- a/include/linux/suspend.h
++++ b/include/linux/suspend.h
+@@ -232,6 +232,11 @@ extern unsigned long get_safe_page(gfp_t gfp_mask);
+ 
+ extern void hibernation_set_ops(struct platform_hibernation_ops *ops);
+ extern int hibernate(void);
++extern int hibernate_nvs_register(unsigned long start, unsigned long size);
++extern int hibernate_nvs_alloc(void);
++extern void hibernate_nvs_free(void);
++extern void hibernate_nvs_save(void);
++extern void hibernate_nvs_restore(void);
+ #else /* CONFIG_HIBERNATION */
+ static inline int swsusp_page_is_forbidden(struct page *p) { return 0; }
+ static inline void swsusp_set_page_free(struct page *p) {}
+@@ -239,6 +244,14 @@ static inline void swsusp_unset_page_free(struct page *p) {}
+ 
+ static inline void hibernation_set_ops(struct platform_hibernation_ops *ops) {}
+ static inline int hibernate(void) { return -ENOSYS; }
++static inline int hibernate_nvs_register(unsigned long a, unsigned long b)
++{
++	return 0;
++}
++static inline int hibernate_nvs_alloc(void) { return 0; }
++static inline void hibernate_nvs_free(void) {}
++static inline void hibernate_nvs_save(void) {}
++static inline void hibernate_nvs_restore(void) {}
+ #endif /* CONFIG_HIBERNATION */
+ 
+ #ifdef CONFIG_PM_SLEEP
+diff --git a/kernel/power/swsusp.c b/kernel/power/swsusp.c
+index 023ff2a..a92c914 100644
+--- a/kernel/power/swsusp.c
++++ b/kernel/power/swsusp.c
+@@ -262,3 +262,125 @@ int swsusp_shrink_memory(void)
+ 
+ 	return 0;
+ }
++
++/*
++ * Platforms, like ACPI, may want us to save some memory used by them during
++ * hibernation and to restore the contents of this memory during the subsequent
++ * resume.  The code below implements a mechanism allowing us to do that.
++ */
++
++struct nvs_page {
++	unsigned long phys_start;
++	unsigned int size;
++	void *kaddr;
++	void *data;
++	struct list_head node;
++};
++
++static LIST_HEAD(nvs_list);
++
++/**
++ *	hibernate_nvs_register - register platform NVS memory region to save
++ *	@start - physical address of the region
++ *	@size - size of the region
++ *
++ *	The NVS region need not be page-aligned (both ends) and we arrange
++ *	things so that the data from page-aligned addresses in this region will
++ *	be copied into separate RAM pages.
++ */
++int hibernate_nvs_register(unsigned long start, unsigned long size)
++{
++	struct nvs_page *entry, *next;
++
++	while (size > 0) {
++		unsigned int nr_bytes;
++
++		entry = kzalloc(sizeof(struct nvs_page), GFP_KERNEL);
++		if (!entry)
++			goto Error;
++
++		list_add_tail(&entry->node, &nvs_list);
++		entry->phys_start = start;
++		nr_bytes = PAGE_SIZE - (start & ~PAGE_MASK);
++		entry->size = (size < nr_bytes) ? size : nr_bytes;
++
++		start += entry->size;
++		size -= entry->size;
++	}
++	return 0;
++
++ Error:
++	list_for_each_entry_safe(entry, next, &nvs_list, node) {
++		list_del(&entry->node);
++		kfree(entry);
++	}
++	return -ENOMEM;
++}
++
++/**
++ *	hibernate_nvs_free - free data pages allocated for saving NVS regions
++ */
++void hibernate_nvs_free(void)
++{
++	struct nvs_page *entry;
++
++	list_for_each_entry(entry, &nvs_list, node)
++		if (entry->data) {
++			free_page((unsigned long)entry->data);
++			entry->data = NULL;
++			if (entry->kaddr) {
++				iounmap(entry->kaddr);
++				entry->kaddr = NULL;
++			}
++		}
++}
++
++/**
++ *	hibernate_nvs_alloc - allocate memory necessary for saving NVS regions
++ */
++int hibernate_nvs_alloc(void)
++{
++	struct nvs_page *entry;
++
++	list_for_each_entry(entry, &nvs_list, node) {
++		entry->data = (void *)__get_free_page(GFP_KERNEL);
++		if (!entry->data) {
++			hibernate_nvs_free();
++			return -ENOMEM;
++		}
++	}
++	return 0;
++}
++
++/**
++ *	hibernate_nvs_save - save NVS memory regions
++ */
++void hibernate_nvs_save(void)
++{
++	struct nvs_page *entry;
++
++	printk(KERN_INFO "PM: Saving platform NVS memory\n");
++
++	list_for_each_entry(entry, &nvs_list, node)
++		if (entry->data) {
++			entry->kaddr = ioremap(entry->phys_start, entry->size);
++			memcpy(entry->data, entry->kaddr, entry->size);
++		}
++}
++
++/**
++ *	hibernate_nvs_restore - restore NVS memory regions
++ *
++ *	This function is going to be called with interrupts disabled, so it
++ *	cannot iounmap the virtual addresses used to access the NVS region.
++ */
++void hibernate_nvs_restore(void)
++{
++	struct nvs_page *entry;
++
++	printk(KERN_INFO "PM: Restoring platform NVS memory\n");
++
++	list_for_each_entry(entry, &nvs_list, node)
++		if (entry->data)
++			memcpy(entry->kaddr, entry->data, entry->size);
++}
 -- 
 1.5.6.6
 
