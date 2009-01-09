@@ -1,30 +1,49 @@
-From: Mark Lord <liml@rtr.ca>
-Subject: Re: [PATCH 2/6] fastboot: make scsi probes asynchronous
-Date: Fri, 09 Jan 2009 13:17:17 -0500
-Message-ID: <496794AD.6040403@rtr.ca>
-References: <20090105200959.04a626ac@infradead.org> <20090105201118.5bfa1e36@infradead.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: ACPI & Suspend related patches for 2.6.29
+Date: Fri, 09 Jan 2009 15:04:24 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0901091504180.16697@localhost.localdomain>
+References: <1231493256-11678-1-git-send-email-lenb@kernel.org>
+ <200901091306.54232.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <20090105201118.5bfa1e36@infradead.org>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Arjan van de Ven <arjan@infradead.org>
-Cc: linux-kernel@vger.kernel.org, torvalds@linux-foundation.org, mingo@elte.hu, akpm@linux-foundation.org, linux-ide@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms173003pub.verizon.net ([206.46.173.3]:52184 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752954AbZAIUEe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 15:04:34 -0500
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173003.mailsrvcs.net
+ (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+ with ESMTPA id <0KD700BPYZRGOWS8@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 09 Jan 2009 14:04:29 -0600 (CST)
+In-reply-to: <200901091306.54232.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Andrew Morton <akpm@linux-foundation.org>
 
-Arjan van de Ven wrote:
->>From 19617cfb1840abc69cc2fe74433007fc1daa1cb7 Mon Sep 17 00:00:00 2001
-> From: Arjan van de Ven <arjan@linux.intel.com>
-> Date: Sun, 4 Jan 2009 05:32:28 -0800
-> Subject: [PATCH] fastboot: make scsi probes asynchronous
+i'll get 'em now.
+
+thanks,
+--
+Len Brown, Intel Open Source Technology Center
+
+On Fri, 9 Jan 2009, Rafael J. Wysocki wrote:
+
+> On Friday 09 January 2009, Len Brown wrote:
+> > These pathces are available on:
+> > git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
 > 
-> This patch makes part of the scsi probe (which is mostly device spin up and the
-> partition scan) asynchronous. Only the part that runs after getting the device
-> number allocated is asynchronous, ensuring that device numbering remains stable.
-..
-
-Will this burn up the PSUs in loaded server boxes,
-due to all drives spinning-up simultaneously now?
-
-Just curious.
+> Hi Len,
+> 
+> You didn't take the two compilation fixes we were talking about a couple of
+> days ago (http://lkml.org/lkml/2009/1/6/314, http://lkml.org/lkml/2009/1/6/315).
+> Am I supposed to push them to Andrew?
+> 
+> Thanks,
+> Rafael
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
