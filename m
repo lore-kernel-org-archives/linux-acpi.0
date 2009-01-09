@@ -1,135 +1,37 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] : ACPI : Use RSDT instead of XSDT by adding boot option of
- "acpi=rsdt"
-Date: Fri, 09 Jan 2009 01:35:33 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0901090135300.4091@localhost.localdomain>
-References: <20081031184233.8588.42241.stgit@thinkpad>
- <1229504118.3991.63.camel@yakui_zhao.sh.intel.com>
+From: Norbert Preining <preining@logic.at>
+Subject: Re: How to help with sony-laptop on Vaio VGN-TT11
+Date: Fri, 9 Jan 2009 07:38:04 +0100
+Message-ID: <20090109063804.GE7471@gamma.logic.tuwien.ac.at>
+References: <496634F2.3080505@iworks.at> <alpine.LFD.2.00.0901081534190.4505@localhost.localdomain> <20090108234127.GB19979@gamma.logic.tuwien.ac.at> <20090109015754.GB23621@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms046pub.verizon.net ([206.46.252.46]:39510 "EHLO
-	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751400AbZAIGgJ (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 01:36:09 -0500
-Received: from localhost.localdomain ([96.237.168.40])
- by vms046.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0KD600MQ2YBXVX13@vms046.mailsrvcs.net> for
- Linux-acpi@vger.kernel.org; Fri, 09 Jan 2009 00:36:00 -0600 (CST)
-In-reply-to: <1229504118.3991.63.camel@yakui_zhao.sh.intel.com>
+Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:33402 "EHLO
+	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751651AbZAIGiJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 01:38:09 -0500
+Content-Disposition: inline
+In-Reply-To: <20090109015754.GB23621@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: "Linux-acpi@vger.kernel.org" <Linux-acpi@vger.kernel.org>, trenn@suse.de
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Len Brown <lenb@kernel.org>, Michael Wallner <mike@iworks.at>, linux-acpi@vger.kernel.org
 
-applied
+On Fr, 09 Jan 2009, Matthew Garrett wrote:
+> If you're getting KEY_BRIGHTNESSUP type events from the hotkeys, then 
 
---
-Len Brown, Intel Open Source Technology Center
+Nup, nothing is coming in when pressing the key, no event at all.
 
-On Wed, 17 Dec 2008, Zhao Yakui wrote:
+Best wishes
 
-> From: Zhao Yakui <yakui.zhao@intel.com>
-> 
-> On some boxes there exist both RSDT and XSDT table. But unfortunately
-> sometimes there exists the following error when XSDT table is used:
->    a. 32/64X address mismatch
->    b. The 32/64X FACS address mismatch
-> 
->    In such case the boot option of "acpi=rsdt" is provided so that
-> RSDT is tried instead of XSDT table when the system can't work well.
-> 
-> http://bugzilla.kernel.org/show_bug.cgi?id=8246
-> 
-> Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-> cc:Thomas Renninger <trenn@suse.de>
-> ---
->  Documentation/kernel-parameters.txt |    2 ++
->  arch/ia64/kernel/acpi.c             |    1 +
->  arch/x86/kernel/acpi/boot.c         |    6 +++++-
->  drivers/acpi/tables/tbutils.c       |    3 ++-
->  include/acpi/acpixf.h               |    1 +
->  5 files changed, 11 insertions(+), 2 deletions(-)
-> 
-> Index: linux-2.6/arch/x86/kernel/acpi/boot.c
-> ===================================================================
-> --- linux-2.6.orig/arch/x86/kernel/acpi/boot.c
-> +++ linux-2.6/arch/x86/kernel/acpi/boot.c
-> @@ -47,7 +47,7 @@
->  #endif
->  
->  static int __initdata acpi_force = 0;
-> -
-> +u32 acpi_rsdt_forced;
->  #ifdef	CONFIG_ACPI
->  int acpi_disabled = 0;
->  #else
-> @@ -1783,6 +1783,10 @@ static int __init parse_acpi(char *arg)
->  			disable_acpi();
->  		acpi_ht = 1;
->  	}
-> +	/* acpi=rsdt use RSDT instead of XSDT */
-> +	else if (strcmp(arg, "rsdt") == 0) {
-> +		acpi_rsdt_forced = 1;
-> +	}
->  	/* "acpi=noirq" disables ACPI interrupt routing */
->  	else if (strcmp(arg, "noirq") == 0) {
->  		acpi_noirq_set();
-> Index: linux-2.6/include/acpi/acpixf.h
-> ===================================================================
-> --- linux-2.6.orig/include/acpi/acpixf.h
-> +++ linux-2.6/include/acpi/acpixf.h
-> @@ -48,6 +48,7 @@
->  #include "actypes.h"
->  #include "actbl.h"
->  
-> +extern u32 acpi_rsdt_forced;
->  /*
->   * Global interfaces
->   */
-> Index: linux-2.6/drivers/acpi/tables/tbutils.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/tables/tbutils.c
-> +++ linux-2.6/drivers/acpi/tables/tbutils.c
-> @@ -420,7 +420,8 @@ acpi_tb_parse_root_table(acpi_physical_a
->  
->  	/* Differentiate between RSDT and XSDT root tables */
->  
-> -	if (rsdp->revision > 1 && rsdp->xsdt_physical_address) {
-> +	if (rsdp->revision > 1 && rsdp->xsdt_physical_address
-> +			&& !acpi_rsdt_forced) {
->  		/*
->  		 * Root table is an XSDT (64-bit physical addresses). We must use the
->  		 * XSDT if the revision is > 1 and the XSDT pointer is present, as per
-> Index: linux-2.6/arch/ia64/kernel/acpi.c
-> ===================================================================
-> --- linux-2.6.orig/arch/ia64/kernel/acpi.c
-> +++ linux-2.6/arch/ia64/kernel/acpi.c
-> @@ -65,6 +65,7 @@ EXPORT_SYMBOL(pm_idle);
->  void (*pm_power_off) (void);
->  EXPORT_SYMBOL(pm_power_off);
->  
-> +u32 acpi_rsdt_forced;
->  unsigned int acpi_cpei_override;
->  unsigned int acpi_cpei_phys_cpuid;
->  
-> Index: linux-2.6/Documentation/kernel-parameters.txt
-> ===================================================================
-> --- linux-2.6.orig/Documentation/kernel-parameters.txt
-> +++ linux-2.6/Documentation/kernel-parameters.txt
-> @@ -139,6 +139,8 @@ and is between 256 and 4096 characters. 
->  			ht -- run only enough ACPI to enable Hyper Threading
->  			strict -- Be less tolerant of platforms that are not
->  				strictly ACPI specification compliant.
-> +			rsdt -- RSDT is used instead of XSDT table when both
-> +				exits.
->  
->  			See also Documentation/power/pm.txt, pci=noacpi
->  
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Norbert
+
+-------------------------------------------------------------------------------
+Dr. Norbert Preining <preining@logic.at>        Vienna University of Technology
+Debian Developer <preining@debian.org>                         Debian TeX Group
+gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
+-------------------------------------------------------------------------------
+HUTLERBURN (n.archaic)
+A burn sustained as a result of the behaviour of a clumsy hutler. (The
+precise duties of hutlers are now lost in the mists of history.)
+			--- Douglas Adams, The Meaning of Liff
