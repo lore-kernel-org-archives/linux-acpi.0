@@ -1,37 +1,31 @@
 From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] : ACPI : Use RSDT instead of XSDT by adding boot option of "acpi=rsdt"
-Date: Fri, 9 Jan 2009 12:34:16 +0000
-Message-ID: <20090109123416.GA31003@srcf.ucam.org>
-References: <20081031184233.8588.42241.stgit@thinkpad> <200901091154.43606.trenn@suse.de> <alpine.LFD.2.00.0901090556360.4091@localhost.localdomain> <200901091316.16334.trenn@suse.de>
+Subject: Re: [PATCH] misc: Add oqo-wmi driver for model 2 OQO backlight and rfkill control
+Date: Fri, 9 Jan 2009 12:35:06 +0000
+Message-ID: <20090109123506.GB31003@srcf.ucam.org>
+References: <20081127190517.GA25429@srcf.ucam.org> <alpine.LFD.2.00.0811281431320.3204@localhost.localdomain> <Pine.LNX.4.64.0811282215160.17453@sheavy.abrij.org> <20081129045045.GA13866@srcf.ucam.org> <20081203195537.GB22560@srcf.ucam.org> <alpine.LFD.2.00.0901090112190.4091@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:52012 "EHLO
+Received: from cavan.codon.org.uk ([93.93.128.6]:52031 "EHLO
 	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752801AbZAIMeX (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 07:34:23 -0500
+	with ESMTP id S1752914AbZAIMfP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 07:35:15 -0500
 Content-Disposition: inline
-In-Reply-To: <200901091316.16334.trenn@suse.de>
+In-Reply-To: <alpine.LFD.2.00.0901090112190.4091@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Len Brown <lenb@kernel.org>, Zhao Yakui <yakui.zhao@intel.com>, "Linux-acpi@vger.kernel.org" <Linux-acpi@vger.kernel.org>, me@markdoughty.co.uk, ibm-acpi-devel@lists.sourceforge.net
+To: Len Brown <lenb@kernel.org>
+Cc: "Brian S. Julin" <bri@abrij.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, greg@kroah.com
 
-On Fri, Jan 09, 2009 at 01:16:15PM +0100, Thomas Renninger wrote:
+On Fri, Jan 09, 2009 at 01:13:03AM -0500, Len Brown wrote:
+> Matthew,
+> this refreshed patch sits in my test tree from about a month ago.
+> I guess i was expecting you to reply to the three comments on it before 
+> pushing it upstream.
 
-> IMO this cannot generally be done, because chances are high that machines
-> which do not support Windows likely will break.
-> Chances are high that a machine which does not support Windows uses 64 bit
-> addresses and leaves the 32 bit ones uninitialized, a spec valid configuration 
-> which will then break.
-
-Bear in mind that the values in the 32-bit entries are *io port* 
-addresses, not physical memory addresses. There's only 16 bits of io 
-ports, so the probability of the 64-bit values being programmed 
-correctly and the 32-bit ones containing a valid but not-working set is 
-tiny. If you know of any machines that behave this way, I'd be 
-impressed - and it'll be far easier to dmi whitelist them than the other 
-way around.
+Ah, sorry, I didn't realise you'd picked it up. I'm still trying to find 
+some time to spend with the hardware to make sure a cleaned up version 
+works correctly.
 
 -- 
 Matthew Garrett | mjg59@srcf.ucam.org
