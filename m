@@ -1,59 +1,30 @@
-From: Norbert Preining <preining@logic.at>
-Subject: Re: How to help with sony-laptop on Vaio VGN-TT11
-Date: Fri, 9 Jan 2009 19:10:53 +0100
-Message-ID: <20090109181053.GD31945@gamma.logic.tuwien.ac.at>
-References: <496634F2.3080505@iworks.at> <alpine.LFD.2.00.0901081534190.4505@localhost.localdomain> <20090108234127.GB19979@gamma.logic.tuwien.ac.at> <49673079.2070801@iworks.at>
+From: Mark Lord <liml@rtr.ca>
+Subject: Re: [PATCH 2/6] fastboot: make scsi probes asynchronous
+Date: Fri, 09 Jan 2009 13:17:17 -0500
+Message-ID: <496794AD.6040403@rtr.ca>
+References: <20090105200959.04a626ac@infradead.org> <20090105201118.5bfa1e36@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:38124 "EHLO
-	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753340AbZAISK4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 13:10:56 -0500
-Content-Disposition: inline
-In-Reply-To: <49673079.2070801@iworks.at>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <20090105201118.5bfa1e36@infradead.org>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Arjan van de Ven <arjan@infradead.org>
+Cc: linux-kernel@vger.kernel.org, torvalds@linux-foundation.org, mingo@elte.hu, akpm@linux-foundation.org, linux-ide@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Michael Wallner <mike@iworks.at>
-Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-On Fr, 09 Jan 2009, Michael Wallner wrote:
-> The /sys backlight interface doesn't work for me.
+Arjan van de Ven wrote:
+>>From 19617cfb1840abc69cc2fe74433007fc1daa1cb7 Mon Sep 17 00:00:00 2001
+> From: Arjan van de Ven <arjan@linux.intel.com>
+> Date: Sun, 4 Jan 2009 05:32:28 -0800
+> Subject: [PATCH] fastboot: make scsi probes asynchronous
+> 
+> This patch makes part of the scsi probe (which is mostly device spin up and the
+> partition scan) asynchronous. Only the part that runs after getting the device
+> number allocated is asynchronous, ensuring that device numbering remains stable.
+..
 
-Yes, that is a problem with the kernel you are using. You need
-at least 2.6.28.
+Will this burn up the PSUs in loaded server boxes,
+due to all drives spinning-up simultaneously now?
 
-> Fn+F{1-12} do not work at all (no events).
-
-same here.
-
-> Hardware button for cdrom-eject and s1-button, too.
-
-same here
-
-> Hardware buttons for mute, vol-down, vol-up do work, though.
-
-same here
-
-> Wireless switch does something, I'm just not sure yet what it does,
-> dmesg says "rfkill switch must be enabled for wireless to work" or
-> something along those words.  I'm sorry, I don't have my notebook
-> with me today.
-
-Yes, that is what it says. The hardware button on the front turns off
-all wireless stuff, that is WWAN, BLuetooth, WLAN. That is bad. There is
-a /sys interface for turning them on and off one by one, but that is not
-working either.
-
-Best wishes
-
-Norbert
-
--------------------------------------------------------------------------------
-Dr. Norbert Preining <preining@logic.at>        Vienna University of Technology
-Debian Developer <preining@debian.org>                         Debian TeX Group
-gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
--------------------------------------------------------------------------------
-SCULLET (n.)
-The last teaspoon in the washing up.
-			--- Douglas Adams, The Meaning of Liff
+Just curious.
