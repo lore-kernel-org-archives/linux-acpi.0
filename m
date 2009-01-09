@@ -1,59 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: [patch 2/6] acpi: check _PSS invalidation when BIOS report _PSS with 0x80000000
-Date: Fri, 09 Jan 2009 12:17:09 -0800
-Message-ID: <200901092017.n09KH9OP014905@imap1.linux-foundation.org>
+Subject: [patch 1/6] acpi: fix ACPI_FADT_S4_RTC_WAKE comment
+Date: Fri, 09 Jan 2009 12:17:08 -0800
+Message-ID: <200901092017.n09KH82j014897@imap1.linux-foundation.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35092 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60484 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753415AbZAIUSG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 15:18:06 -0500
+	by vger.kernel.org with ESMTP id S1754797AbZAIUSN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 15:18:13 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, youquan.song@intel.com, venkatesh.pallipadi@intel.com
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, dbrownell@users.sourceforge.net
 
-From: Youquan, Song <youquan.song@intel.com>
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-When cpu frequencey scaling is disabled, some BIOSes report _PSS with all
-0x80000000.  If the kernel treats this case as valid, the kernel will boot
-crash when load cpufreq govenors.
+Make the comment for ACPI_FADT_S4_RTC_WAKE match the ACPI spec;
+that bit has nothing to do with status bits.
 
-So in order to cover more buggy BIOSs, the patch just check _PSS core
-frequency invalidation.
-
-Signed-off-by: Youquan, Song <youquan.song@intel.com>
-Signed-off-by: Pallipadi, Venkatesh <venkatesh.pallipadi@intel.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_perflib.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ include/acpi/actbl.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/acpi/processor_perflib.c~acpi-check-_pss-invalidation-when-bios-report-_pss-with-all-0x80000000 drivers/acpi/processor_perflib.c
---- a/drivers/acpi/processor_perflib.c~acpi-check-_pss-invalidation-when-bios-report-_pss-with-all-0x80000000
-+++ a/drivers/acpi/processor_perflib.c
-@@ -50,6 +50,7 @@
- #define ACPI_PROCESSOR_CLASS		"processor"
- #define ACPI_PROCESSOR_FILE_PERFORMANCE	"performance"
- #define _COMPONENT		ACPI_PROCESSOR_COMPONENT
-+#define ACPI_PROCESSOR_PSS_INVALID	0x80000000
- ACPI_MODULE_NAME("processor_perflib");
- 
- static DEFINE_MUTEX(performance_mutex);
-@@ -324,6 +325,14 @@ static int acpi_processor_get_performanc
- 			kfree(pr->performance->states);
- 			goto end;
- 		}
-+
-+		if (px->core_frequency == ACPI_PROCESSOR_PSS_INVALID) {
-+			printk(KERN_ERR PREFIX
-+				    "P-states disabled in the BIOS\n");
-+			result = -EFAULT;
-+			kfree(pr->performance->states);
-+			goto end;
-+		}
- 	}
- 
-       end:
+diff -puN include/acpi/actbl.h~acpi-fix-acpi_fadt_s4_rtc_wake-comment include/acpi/actbl.h
+--- a/include/acpi/actbl.h~acpi-fix-acpi_fadt_s4_rtc_wake-comment
++++ a/include/acpi/actbl.h
+@@ -245,7 +245,7 @@ struct acpi_table_fadt {
+ #define ACPI_FADT_POWER_BUTTON      (1<<4)	/* 04: Power button is handled as a generic feature */
+ #define ACPI_FADT_SLEEP_BUTTON      (1<<5)	/* 05: Sleep button is handled as a generic feature, or  not present */
+ #define ACPI_FADT_FIXED_RTC         (1<<6)	/* 06: RTC wakeup stat not in fixed register space */
+-#define ACPI_FADT_S4_RTC_WAKE       (1<<7)	/* 07: RTC wakeup stat not possible from S4 */
++#define ACPI_FADT_S4_RTC_WAKE       (1<<7)	/* 07: RTC wakeup possible from S4 */
+ #define ACPI_FADT_32BIT_TIMER       (1<<8)	/* 08: tmr_val is 32 bits 0=24-bits */
+ #define ACPI_FADT_DOCKING_SUPPORTED (1<<9)	/* 09: Docking supported */
+ #define ACPI_FADT_RESET_REGISTER    (1<<10)	/* 10: System reset via the FADT RESET_REG supported */
 _
