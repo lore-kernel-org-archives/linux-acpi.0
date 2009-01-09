@@ -1,29 +1,44 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [patch 2/6] acpi: check _PSS invalidation when BIOS report _PSS
- with 0x80000000
-Date: Fri, 9 Jan 2009 13:23:55 -0800
-Message-ID: <20090109132355.b3a3c4dc.akpm@linux-foundation.org>
-References: <200901092017.n09KH9OP014905@imap1.linux-foundation.org>
-	<alpine.LFD.2.00.0901091559120.16697@localhost.localdomain>
+From: Sam Ravnborg <sam@ravnborg.org>
+Subject: Re: git mv (was Re: [git pull] ACPI & Suspend patches for 2.6.29-rc0)
+Date: Fri, 9 Jan 2009 22:27:57 +0100
+Message-ID: <20090109212757.GA25434@uranus.ravnborg.org>
+References: <alpine.LFD.2.00.0901090550590.4091@localhost.localdomain> <alpine.LFD.2.00.0901091200150.6528@localhost.localdomain> <alpine.LFD.2.00.0901091537530.16697@localhost.localdomain> <alpine.LFD.2.00.0901091305160.6528@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41509 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757491AbZAIVYb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 16:24:31 -0500
-In-Reply-To: <alpine.LFD.2.00.0901091559120.16697@localhost.localdomain>
+Received: from pfepa.post.tele.dk ([195.41.46.235]:42420 "EHLO
+	pfepa.post.tele.dk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755339AbZAIV0Q (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 16:26:16 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.0901091305160.6528@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, youquan.song@intel.com, venkatesh.pallipadi@intel.com
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Linux Power Management List <linux-pm@lists.osdl.org>
 
-On Fri, 09 Jan 2009 16:01:47 -0500 (EST)
-Len Brown <lenb@kernel.org> wrote:
+> 
+> So yeah, "--follow" is broken. It's really a quick hack there for people 
+> who come from some other SCM to feel more comfy with git. If you come from 
+> SVN or CVS, you never had proper history, and you never had "gitk" anyway, 
+> and so "gitk --follow" doesn't really work. But it makes the pure 
+> _textual_ logs look a bit like CVS/SVN.
+> 
+> I'd love to make --follow work better and integrate more, but I've been so 
+> successful at never using it myself that I don't much care. And it really 
+> is not a very natural thing for git to do, so the hackiness is somewhat 
+> inherent.
 
-> I recall nacking this one some time ago.
+What other ways exist so I can see what the heck davem did to
+arch/sparc64/kernel/irq.c then?
 
-Well please treat it as a bug report then.  "the kernel will boot 
-crash when load cpufreq govenors".  Bad!
+I know he added IRQ stacks - but how did the patch look like?
+I know no other way to find the old history than to do:
 
+    git log --follow arch/sparc/kernel/irq_64.c
+
+But this also give me what I want. I'm just curious if there is
+a better way - in the case where you know the old name.
+
+
+	Sam
