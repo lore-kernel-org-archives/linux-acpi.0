@@ -1,154 +1,100 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 12/94] drivers/misc/Makefile, Kconfig: cleanup
-Date: Fri, 09 Jan 2009 04:26:14 -0500
-Message-ID: <8c36790a21eec6c39c372e92c76e81865005a6ce.1231492608.git.len.brown@intel.com>
+Subject: [PATCH 01/94] ACPI: EC: Add some basic check for ECDT data
+Date: Fri, 09 Jan 2009 04:26:03 -0500
+Message-ID: <c5279dee26c0e8d7c4200993bfc4b540d2469598.1231492606.git.len.brown@intel.com>
 References: <1231493256-11678-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:44520 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752739AbZAIJ1w (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 04:27:52 -0500
+Received: from vms042pub.verizon.net ([206.46.252.42]:62823 "EHLO
+	vms042pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753234AbZAIJ17 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 04:27:59 -0500
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173003.mailsrvcs.net
- (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0KD7004Q46AF3D6E@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 09 Jan 2009 03:27:52 -0600 (CST)
+ by vms042.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
+ 3 2006)) with ESMTPA id <0KD700MYI6A39N11@vms042.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 09 Jan 2009 03:27:41 -0600 (CST)
 In-reply-to: <1231493256-11678-1-git-send-email-lenb@kernel.org>
-In-reply-to: <c5279dee26c0e8d7c4200993bfc4b540d2469598.1231492606.git.len.brown@intel.com>
-References: <c5279dee26c0e8d7c4200993bfc4b540d2469598.1231492606.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Len Brown <len.brown@intel.com>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>
 
-From: Len Brown <len.brown@intel.com>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
 
-tabs->space and delete unnecessary dummy build-in.o rule.
+One more ASUS comes with empty ECDT, add a guard for it...
 
-Suggested-by: Sam Ravnborg <sam@ravnborg.org>
+http://bugzilla.kernel.org/show_bug.cgi?id=11880
+
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/Kconfig  |   42 +++++++++++++++++++++---------------------
- drivers/misc/Makefile |    1 -
- 2 files changed, 21 insertions(+), 22 deletions(-)
+ drivers/acpi/ec.c |   43 ++++++++++++++++++++++---------------------
+ 1 files changed, 22 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
-index fee7304..dcf6169 100644
---- a/drivers/misc/Kconfig
-+++ b/drivers/misc/Kconfig
-@@ -120,7 +120,7 @@ config TIFM_CORE
- 	  cards are supported via 'MMC/SD Card support: TI Flash Media MMC/SD
- 	  Interface support (MMC_TIFM_SD)'.
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index cf41f9f..3ba034f 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -977,7 +977,6 @@ static const struct acpi_device_id ec_device_ids[] = {
  
--          To compile this driver as a module, choose M here: the module will
-+	  To compile this driver as a module, choose M here: the module will
- 	  be called tifm_core.
+ int __init acpi_ec_ecdt_probe(void)
+ {
+-	int ret;
+ 	acpi_status status;
+ 	struct acpi_table_ecdt *ecdt_ptr;
  
- config TIFM_7XX1
-@@ -133,11 +133,11 @@ config TIFM_7XX1
- 	  To make actual use of the device, you will have to select some
- 	  flash card format drivers, as outlined in the TIFM_CORE Help.
- 
--          To compile this driver as a module, choose M here: the module will
-+	  To compile this driver as a module, choose M here: the module will
- 	  be called tifm_7xx1.
- 
- config ACER_WMI
--        tristate "Acer WMI Laptop Extras (EXPERIMENTAL)"
-+	tristate "Acer WMI Laptop Extras (EXPERIMENTAL)"
- 	depends on X86
- 	depends on EXPERIMENTAL
- 	depends on ACPI
-@@ -159,14 +159,14 @@ config ACER_WMI
- 	  here.
- 
- config ASUS_LAPTOP
--        tristate "Asus Laptop Extras (EXPERIMENTAL)"
--        depends on X86
--        depends on ACPI
-+	tristate "Asus Laptop Extras (EXPERIMENTAL)"
-+	depends on X86
-+	depends on ACPI
- 	depends on EXPERIMENTAL && !ACPI_ASUS
- 	depends on LEDS_CLASS
- 	depends on NEW_LEDS
- 	depends on BACKLIGHT_CLASS_DEVICE
--        ---help---
-+	---help---
- 	  This is the new Linux driver for Asus laptops. It may also support some
- 	  MEDION, JVC or VICTOR laptops. It makes all the extra buttons generate
- 	  standard ACPI events that go through /proc/acpi/events. It also adds
-@@ -179,12 +179,12 @@ config ASUS_LAPTOP
- 	  If you have an ACPI-compatible ASUS laptop, say Y or M here.
- 
- config FUJITSU_LAPTOP
--        tristate "Fujitsu Laptop Extras"
--        depends on X86
--        depends on ACPI
-+	tristate "Fujitsu Laptop Extras"
-+	depends on X86
-+	depends on ACPI
- 	depends on INPUT
--        depends on BACKLIGHT_CLASS_DEVICE
--        ---help---
-+	depends on BACKLIGHT_CLASS_DEVICE
-+	---help---
- 	  This is a driver for laptops built by Fujitsu:
- 
- 	    * P2xxx/P5xxx/S6xxx/S7xxx series Lifebooks
-@@ -221,11 +221,11 @@ config HP_WMI
-        depends on INPUT
-        depends on RFKILL
-        help
--         Say Y here if you want to support WMI-based hotkeys on HP laptops and
-+	 Say Y here if you want to support WMI-based hotkeys on HP laptops and
- 	 to read data from WMI such as docking or ambient light sensor state.
- 
--         To compile this driver as a module, choose M here: the module will
--         be called hp-wmi.
-+	 To compile this driver as a module, choose M here: the module will
-+	 be called hp-wmi.
- 
- config ICS932S401
- 	tristate "Integrated Circuits ICS932S401"
-@@ -238,11 +238,11 @@ config ICS932S401
- 	  will be called ics932s401.
- 
- config MSI_LAPTOP
--        tristate "MSI Laptop Extras"
--        depends on X86
--        depends on ACPI
--        depends on BACKLIGHT_CLASS_DEVICE
--        ---help---
-+	tristate "MSI Laptop Extras"
-+	depends on X86
-+	depends on ACPI
-+	depends on BACKLIGHT_CLASS_DEVICE
-+	---help---
- 	  This is a driver for laptops built by MSI (MICRO-STAR
- 	  INTERNATIONAL):
- 
-@@ -259,7 +259,7 @@ config MSI_LAPTOP
- config PANASONIC_LAPTOP
- 	tristate "Panasonic Laptop Extras"
- 	depends on X86 && INPUT && ACPI
--        depends on BACKLIGHT_CLASS_DEVICE
-+	depends on BACKLIGHT_CLASS_DEVICE
- 	---help---
- 	  This driver adds support for access to backlight control and hotkeys
- 	  on Panasonic Let's Note laptops.
-diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
-index 817f7f5..027e1ea 100644
---- a/drivers/misc/Makefile
-+++ b/drivers/misc/Makefile
-@@ -1,7 +1,6 @@
- #
- # Makefile for misc devices that really don't fit anywhere else.
- #
--obj- := misc.o	# Dummy rule to force built-in.o to be made
- 
- obj-$(CONFIG_IBM_ASM)		+= ibmasm/
- obj-$(CONFIG_HDPU_FEATURES)	+= hdpuftrs/
+@@ -1005,30 +1004,32 @@ int __init acpi_ec_ecdt_probe(void)
+ 		boot_ec->gpe = ecdt_ptr->gpe;
+ 		boot_ec->handle = ACPI_ROOT_OBJECT;
+ 		acpi_get_handle(ACPI_ROOT_OBJECT, ecdt_ptr->id, &boot_ec->handle);
+-	} else {
+-		/* This workaround is needed only on some broken machines,
+-		 * which require early EC, but fail to provide ECDT */
+-		acpi_handle x;
+-		printk(KERN_DEBUG PREFIX "Look up EC in DSDT\n");
+-		status = acpi_get_devices(ec_device_ids[0].id, ec_parse_device,
+-						boot_ec, NULL);
+-		/* Check that acpi_get_devices actually find something */
+-		if (ACPI_FAILURE(status) || !boot_ec->handle)
+-			goto error;
+-		/* We really need to limit this workaround, the only ASUS,
+-		 * which needs it, has fake EC._INI method, so use it as flag.
+-		 * Keep boot_ec struct as it will be needed soon.
+-		 */
+-		if (ACPI_FAILURE(acpi_get_handle(boot_ec->handle, "_INI", &x)))
+-			return -ENODEV;
++		/* Add some basic check against completely broken table */
++		if (boot_ec->data_addr != boot_ec->command_addr)
++			goto install;
++	/* fall through */
+ 	}
+-
+-	ret = ec_install_handlers(boot_ec);
+-	if (!ret) {
++	/* This workaround is needed only on some broken machines,
++	 * which require early EC, but fail to provide ECDT */
++	acpi_handle x;
++	printk(KERN_DEBUG PREFIX "Look up EC in DSDT\n");
++	status = acpi_get_devices(ec_device_ids[0].id, ec_parse_device,
++					boot_ec, NULL);
++	/* Check that acpi_get_devices actually find something */
++	if (ACPI_FAILURE(status) || !boot_ec->handle)
++		goto error;
++	/* We really need to limit this workaround, the only ASUS,
++	 * which needs it, has fake EC._INI method, so use it as flag.
++	 * Keep boot_ec struct as it will be needed soon.
++	 */
++	if (ACPI_FAILURE(acpi_get_handle(boot_ec->handle, "_INI", &x)))
++		return -ENODEV;
++install:
++	if (!ec_install_handlers(boot_ec)) {
+ 		first_ec = boot_ec;
+ 		return 0;
+ 	}
+-      error:
++error:
+ 	kfree(boot_ec);
+ 	boot_ec = NULL;
+ 	return -ENODEV;
 -- 
 1.5.6.6
 
