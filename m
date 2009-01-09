@@ -1,312 +1,272 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 06/94] ACPI hibernate: Add a mechanism to save/restore ACPI NVS
- memory
-Date: Fri, 09 Jan 2009 04:26:08 -0500
-Message-ID: <3f4b0ef7f2899c91b1d6958779f084b44dd59d32.1231492607.git.len.brown@intel.com>
+Subject: [PATCH 14/94] ACPI: move wmi, asus_acpi,
+ toshiba_acpi to drivers/platform/x86
+Date: Fri, 09 Jan 2009 04:26:16 -0500
+Message-ID: <b4f9fe12157a33351d0df78e925dcacd13252783.1231492608.git.len.brown@intel.com>
 References: <1231493256-11678-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:56378 "EHLO
+Received: from vms173005pub.verizon.net ([206.46.173.5]:56402 "EHLO
 	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752424AbZAIJ1r (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 04:27:47 -0500
+	with ESMTP id S1752863AbZAIJ1x (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 04:27:53 -0500
 Received: from localhost.localdomain ([96.237.168.40])
  by vms173005.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0KD700EIM6A9PC03@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 09 Jan 2009 03:27:46 -0600 (CST)
+ with ESMTPA id <0KD700EFZ6AGOO13@vms173005.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 09 Jan 2009 03:27:53 -0600 (CST)
 In-reply-to: <1231493256-11678-1-git-send-email-lenb@kernel.org>
 In-reply-to: <c5279dee26c0e8d7c4200993bfc4b540d2469598.1231492606.git.len.brown@intel.com>
 References: <c5279dee26c0e8d7c4200993bfc4b540d2469598.1231492606.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Len Brown <len.brown@intel.com>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+From: Len Brown <len.brown@intel.com>
 
-According to the ACPI Specification 3.0b, Section 15.3.2,
-"OSPM will call the _PTS control method some time before entering a
-sleeping state, to allow the platform's AML code to update this
-memory image before entering the sleeping state. After the system
-awakes from an S4 state, OSPM will restore this memory area and call
-the _WAK control method to enable the BIOS to reclaim its memory
-image."  For this reason, implement a mechanism allowing us to save
-the NVS memory during hibernation and to restore it during the
-subsequent resume.
+These are platform specific drivers that happen to use ACPI,
+while drivers/acpi/ is for code that implements ACPI itself.
 
-Based on a patch by Zhang Rui.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Nigel Cunningham <nigel@tuxonice.net>
-Cc: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/sleep/main.c |   53 +++++++++++++++++---
- include/linux/suspend.h   |   13 +++++
- kernel/power/swsusp.c     |  122 +++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 180 insertions(+), 8 deletions(-)
+ drivers/acpi/Kconfig                          |   84 ------------------------
+ drivers/acpi/Makefile                         |    3 -
+ drivers/platform/x86/Kconfig                  |   85 +++++++++++++++++++++++++
+ drivers/platform/x86/Makefile                 |    3 +
+ drivers/{acpi => platform/x86}/asus_acpi.c    |    0 
+ drivers/{acpi => platform/x86}/toshiba_acpi.c |    0 
+ drivers/{acpi => platform/x86}/wmi.c          |    0 
+ 7 files changed, 88 insertions(+), 87 deletions(-)
+ rename drivers/{acpi => platform/x86}/asus_acpi.c (100%)
+ rename drivers/{acpi => platform/x86}/toshiba_acpi.c (100%)
+ rename drivers/{acpi => platform/x86}/wmi.c (100%)
 
-diff --git a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
-index 28a691c..45a8015 100644
---- a/drivers/acpi/sleep/main.c
-+++ b/drivers/acpi/sleep/main.c
-@@ -394,9 +394,25 @@ void __init acpi_no_s4_hw_signature(void)
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index b0243fd..d7f9839 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -196,90 +196,6 @@ config ACPI_NUMA
+ 	depends on (X86 || IA64)
+ 	default y if IA64_GENERIC || IA64_SGI_SN2
  
- static int acpi_hibernation_begin(void)
- {
--	acpi_target_sleep_state = ACPI_STATE_S4;
--	acpi_sleep_tts_switch(acpi_target_sleep_state);
--	return 0;
-+	int error;
-+
-+	error = hibernate_nvs_alloc();
-+	if (!error) {
-+		acpi_target_sleep_state = ACPI_STATE_S4;
-+		acpi_sleep_tts_switch(acpi_target_sleep_state);
-+	}
-+
-+	return error;
-+}
-+
-+static int acpi_hibernation_pre_snapshot(void)
-+{
-+	int error = acpi_pm_prepare();
-+
-+	if (!error)
-+		hibernate_nvs_save();
-+
-+	return error;
- }
+-config ACPI_WMI
+-	tristate "WMI (EXPERIMENTAL)"
+-	depends on X86
+-	depends on EXPERIMENTAL
+-	help
+-	  This driver adds support for the ACPI-WMI (Windows Management
+-	  Instrumentation) mapper device (PNP0C14) found on some systems.
+-
+-	  ACPI-WMI is a proprietary extension to ACPI to expose parts of the
+-	  ACPI firmware to userspace - this is done through various vendor
+-	  defined methods and data blocks in a PNP0C14 device, which are then
+-	  made available for userspace to call.
+-
+-	  The implementation of this in Linux currently only exposes this to
+-	  other kernel space drivers.
+-
+-	  This driver is a required dependency to build the firmware specific
+-	  drivers needed on many machines, including Acer and HP laptops.
+-
+-	  It is safe to enable this driver even if your DSDT doesn't define
+-	  any ACPI-WMI devices.
+-
+-config ACPI_ASUS
+-        tristate "ASUS/Medion Laptop Extras"
+-	depends on X86
+-	select BACKLIGHT_CLASS_DEVICE
+-        ---help---
+-          This driver provides support for extra features of ACPI-compatible
+-          ASUS laptops. As some of Medion laptops are made by ASUS, it may also
+-          support some Medion laptops (such as 9675 for example).  It makes all
+-          the extra buttons generate standard ACPI events that go through
+-          /proc/acpi/events, and (on some models) adds support for changing the
+-          display brightness and output, switching the LCD backlight on and off,
+-          and most importantly, allows you to blink those fancy LEDs intended
+-          for reporting mail and wireless status.
+-
+-	  Note: display switching code is currently considered EXPERIMENTAL,
+-	  toying with these values may even lock your machine.
+-
+-          All settings are changed via /proc/acpi/asus directory entries. Owner
+-          and group for these entries can be set with asus_uid and asus_gid
+-          parameters.
+-
+-          More information and a userspace daemon for handling the extra buttons
+-          at <http://sourceforge.net/projects/acpi4asus/>.
+-
+-          If you have an ACPI-compatible ASUS laptop, say Y or M here. This
+-          driver is still under development, so if your laptop is unsupported or
+-          something works not quite as expected, please use the mailing list
+-          available on the above page (acpi4asus-user@lists.sourceforge.net).
+-
+-	  NOTE: This driver is deprecated and will probably be removed soon,
+-	  use asus-laptop instead.
+-
+-config ACPI_TOSHIBA
+-	tristate "Toshiba Laptop Extras"
+-	depends on X86 && INPUT
+-	select INPUT_POLLDEV
+-	select NET
+-	select RFKILL
+-	select BACKLIGHT_CLASS_DEVICE
+-	---help---
+-	  This driver adds support for access to certain system settings
+-	  on "legacy free" Toshiba laptops.  These laptops can be recognized by
+-	  their lack of a BIOS setup menu and APM support.
+-
+-	  On these machines, all system configuration is handled through the
+-	  ACPI.  This driver is required for access to controls not covered
+-	  by the general ACPI drivers, such as LCD brightness, video output,
+-	  etc.
+-
+-	  This driver differs from the non-ACPI Toshiba laptop driver (located
+-	  under "Processor type and features") in several aspects.
+-	  Configuration is accessed by reading and writing text files in the
+-	  /proc tree instead of by program interface to /dev.  Furthermore, no
+-	  power management functions are exposed, as those are handled by the
+-	  general ACPI drivers.
+-
+-	  More information about this driver is available at
+-	  <http://memebeam.org/toys/ToshibaAcpiDriver>.
+-
+-	  If you have a legacy free Toshiba laptop (such as the Libretto L1
+-	  series), say Y.
+-
+ config ACPI_CUSTOM_DSDT_FILE
+ 	string "Custom DSDT Table file to include"
+ 	default ""
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index 3c0c933..f64af36 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -59,9 +59,6 @@ obj-y				+= power.o
+ obj-$(CONFIG_ACPI_SYSTEM)	+= system.o event.o
+ obj-$(CONFIG_ACPI_DEBUG)	+= debug.o
+ obj-$(CONFIG_ACPI_NUMA)		+= numa.o
+-obj-$(CONFIG_ACPI_WMI)		+= wmi.o
+-obj-$(CONFIG_ACPI_ASUS)		+= asus_acpi.o
+-obj-$(CONFIG_ACPI_TOSHIBA)	+= toshiba_acpi.o
+ obj-$(CONFIG_ACPI_HOTPLUG_MEMORY)	+= acpi_memhotplug.o
+ obj-$(CONFIG_ACPI_PROCFS_POWER)	+= cm_sbs.o
+ obj-$(CONFIG_ACPI_SBS)		+= sbshc.o
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+index 0a9a5b9..31f3ce2 100644
+--- a/drivers/platform/x86/Kconfig
++++ b/drivers/platform/x86/Kconfig
+@@ -287,4 +287,89 @@ config EEEPC_LAPTOP
  
- static int acpi_hibernation_enter(void)
-@@ -417,6 +433,12 @@ static int acpi_hibernation_enter(void)
- 	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
- }
+ 	  If you have an Eee PC laptop, say Y or M here.
  
-+static void acpi_hibernation_finish(void)
-+{
-+	hibernate_nvs_free();
-+	acpi_pm_finish();
-+}
 +
- static void acpi_hibernation_leave(void)
- {
- 	/*
-@@ -432,6 +454,8 @@ static void acpi_hibernation_leave(void)
- 			"cannot resume!\n");
- 		panic("ACPI S4 hardware signature mismatch");
- 	}
-+	/* Restore the NVS memory area */
-+	hibernate_nvs_restore();
- }
- 
- static void acpi_pm_enable_gpes(void)
-@@ -442,8 +466,8 @@ static void acpi_pm_enable_gpes(void)
- static struct platform_hibernation_ops acpi_hibernation_ops = {
- 	.begin = acpi_hibernation_begin,
- 	.end = acpi_pm_end,
--	.pre_snapshot = acpi_pm_prepare,
--	.finish = acpi_pm_finish,
-+	.pre_snapshot = acpi_hibernation_pre_snapshot,
-+	.finish = acpi_hibernation_finish,
- 	.prepare = acpi_pm_prepare,
- 	.enter = acpi_hibernation_enter,
- 	.leave = acpi_hibernation_leave,
-@@ -469,8 +493,21 @@ static int acpi_hibernation_begin_old(void)
- 
- 	error = acpi_sleep_prepare(ACPI_STATE_S4);
- 
-+	if (!error) {
-+		error = hibernate_nvs_alloc();
-+		if (!error)
-+			acpi_target_sleep_state = ACPI_STATE_S4;
-+	}
-+	return error;
-+}
++config ACPI_WMI
++	tristate "WMI (EXPERIMENTAL)"
++	depends on ACPI
++	depends on EXPERIMENTAL
++	help
++	  This driver adds support for the ACPI-WMI (Windows Management
++	  Instrumentation) mapper device (PNP0C14) found on some systems.
 +
-+static int acpi_hibernation_pre_snapshot_old(void)
-+{
-+	int error = acpi_pm_disable_gpes();
++	  ACPI-WMI is a proprietary extension to ACPI to expose parts of the
++	  ACPI firmware to userspace - this is done through various vendor
++	  defined methods and data blocks in a PNP0C14 device, which are then
++	  made available for userspace to call.
 +
- 	if (!error)
--		acpi_target_sleep_state = ACPI_STATE_S4;
-+		hibernate_nvs_save();
++	  The implementation of this in Linux currently only exposes this to
++	  other kernel space drivers.
 +
- 	return error;
- }
- 
-@@ -481,8 +518,8 @@ static int acpi_hibernation_begin_old(void)
- static struct platform_hibernation_ops acpi_hibernation_ops_old = {
- 	.begin = acpi_hibernation_begin_old,
- 	.end = acpi_pm_end,
--	.pre_snapshot = acpi_pm_disable_gpes,
--	.finish = acpi_pm_finish,
-+	.pre_snapshot = acpi_hibernation_pre_snapshot_old,
-+	.finish = acpi_hibernation_finish,
- 	.prepare = acpi_pm_disable_gpes,
- 	.enter = acpi_hibernation_enter,
- 	.leave = acpi_hibernation_leave,
-diff --git a/include/linux/suspend.h b/include/linux/suspend.h
-index 2ce8207..2b409c4 100644
---- a/include/linux/suspend.h
-+++ b/include/linux/suspend.h
-@@ -232,6 +232,11 @@ extern unsigned long get_safe_page(gfp_t gfp_mask);
- 
- extern void hibernation_set_ops(struct platform_hibernation_ops *ops);
- extern int hibernate(void);
-+extern int hibernate_nvs_register(unsigned long start, unsigned long size);
-+extern int hibernate_nvs_alloc(void);
-+extern void hibernate_nvs_free(void);
-+extern void hibernate_nvs_save(void);
-+extern void hibernate_nvs_restore(void);
- #else /* CONFIG_HIBERNATION */
- static inline int swsusp_page_is_forbidden(struct page *p) { return 0; }
- static inline void swsusp_set_page_free(struct page *p) {}
-@@ -239,6 +244,14 @@ static inline void swsusp_unset_page_free(struct page *p) {}
- 
- static inline void hibernation_set_ops(struct platform_hibernation_ops *ops) {}
- static inline int hibernate(void) { return -ENOSYS; }
-+static inline int hibernate_nvs_register(unsigned long a, unsigned long b)
-+{
-+	return 0;
-+}
-+static inline int hibernate_nvs_alloc(void) { return 0; }
-+static inline void hibernate_nvs_free(void) {}
-+static inline void hibernate_nvs_save(void) {}
-+static inline void hibernate_nvs_restore(void) {}
- #endif /* CONFIG_HIBERNATION */
- 
- #ifdef CONFIG_PM_SLEEP
-diff --git a/kernel/power/swsusp.c b/kernel/power/swsusp.c
-index 023ff2a..a92c914 100644
---- a/kernel/power/swsusp.c
-+++ b/kernel/power/swsusp.c
-@@ -262,3 +262,125 @@ int swsusp_shrink_memory(void)
- 
- 	return 0;
- }
++	  This driver is a required dependency to build the firmware specific
++	  drivers needed on many machines, including Acer and HP laptops.
 +
-+/*
-+ * Platforms, like ACPI, may want us to save some memory used by them during
-+ * hibernation and to restore the contents of this memory during the subsequent
-+ * resume.  The code below implements a mechanism allowing us to do that.
-+ */
++	  It is safe to enable this driver even if your DSDT doesn't define
++	  any ACPI-WMI devices.
 +
-+struct nvs_page {
-+	unsigned long phys_start;
-+	unsigned int size;
-+	void *kaddr;
-+	void *data;
-+	struct list_head node;
-+};
++config ACPI_ASUS
++	tristate "ASUS/Medion Laptop Extras"
++	depends on ACPI
++	select BACKLIGHT_CLASS_DEVICE
++	---help---
++	  This driver provides support for extra features of ACPI-compatible
++	  ASUS laptops. As some of Medion laptops are made by ASUS, it may also
++	  support some Medion laptops (such as 9675 for example).  It makes all
++	  the extra buttons generate standard ACPI events that go through
++	  /proc/acpi/events, and (on some models) adds support for changing the
++	  display brightness and output, switching the LCD backlight on and off,
++	  and most importantly, allows you to blink those fancy LEDs intended
++	  for reporting mail and wireless status.
 +
-+static LIST_HEAD(nvs_list);
++	  Note: display switching code is currently considered EXPERIMENTAL,
++	  toying with these values may even lock your machine.
 +
-+/**
-+ *	hibernate_nvs_register - register platform NVS memory region to save
-+ *	@start - physical address of the region
-+ *	@size - size of the region
-+ *
-+ *	The NVS region need not be page-aligned (both ends) and we arrange
-+ *	things so that the data from page-aligned addresses in this region will
-+ *	be copied into separate RAM pages.
-+ */
-+int hibernate_nvs_register(unsigned long start, unsigned long size)
-+{
-+	struct nvs_page *entry, *next;
++	  All settings are changed via /proc/acpi/asus directory entries. Owner
++	  and group for these entries can be set with asus_uid and asus_gid
++	  parameters.
 +
-+	while (size > 0) {
-+		unsigned int nr_bytes;
++	  More information and a userspace daemon for handling the extra buttons
++	  at <http://sourceforge.net/projects/acpi4asus/>.
 +
-+		entry = kzalloc(sizeof(struct nvs_page), GFP_KERNEL);
-+		if (!entry)
-+			goto Error;
++	  If you have an ACPI-compatible ASUS laptop, say Y or M here. This
++	  driver is still under development, so if your laptop is unsupported or
++	  something works not quite as expected, please use the mailing list
++	  available on the above page (acpi4asus-user@lists.sourceforge.net).
 +
-+		list_add_tail(&entry->node, &nvs_list);
-+		entry->phys_start = start;
-+		nr_bytes = PAGE_SIZE - (start & ~PAGE_MASK);
-+		entry->size = (size < nr_bytes) ? size : nr_bytes;
++	  NOTE: This driver is deprecated and will probably be removed soon,
++	  use asus-laptop instead.
 +
-+		start += entry->size;
-+		size -= entry->size;
-+	}
-+	return 0;
++config ACPI_TOSHIBA
++	tristate "Toshiba Laptop Extras"
++	depends on ACPI
++	depends on INPUT
++	select INPUT_POLLDEV
++	select NET
++	select RFKILL
++	select BACKLIGHT_CLASS_DEVICE
++	---help---
++	  This driver adds support for access to certain system settings
++	  on "legacy free" Toshiba laptops.  These laptops can be recognized by
++	  their lack of a BIOS setup menu and APM support.
 +
-+ Error:
-+	list_for_each_entry_safe(entry, next, &nvs_list, node) {
-+		list_del(&entry->node);
-+		kfree(entry);
-+	}
-+	return -ENOMEM;
-+}
++	  On these machines, all system configuration is handled through the
++	  ACPI.  This driver is required for access to controls not covered
++	  by the general ACPI drivers, such as LCD brightness, video output,
++	  etc.
 +
-+/**
-+ *	hibernate_nvs_free - free data pages allocated for saving NVS regions
-+ */
-+void hibernate_nvs_free(void)
-+{
-+	struct nvs_page *entry;
++	  This driver differs from the non-ACPI Toshiba laptop driver (located
++	  under "Processor type and features") in several aspects.
++	  Configuration is accessed by reading and writing text files in the
++	  /proc tree instead of by program interface to /dev.  Furthermore, no
++	  power management functions are exposed, as those are handled by the
++	  general ACPI drivers.
 +
-+	list_for_each_entry(entry, &nvs_list, node)
-+		if (entry->data) {
-+			free_page((unsigned long)entry->data);
-+			entry->data = NULL;
-+			if (entry->kaddr) {
-+				iounmap(entry->kaddr);
-+				entry->kaddr = NULL;
-+			}
-+		}
-+}
++	  More information about this driver is available at
++	  <http://memebeam.org/toys/ToshibaAcpiDriver>.
 +
-+/**
-+ *	hibernate_nvs_alloc - allocate memory necessary for saving NVS regions
-+ */
-+int hibernate_nvs_alloc(void)
-+{
-+	struct nvs_page *entry;
-+
-+	list_for_each_entry(entry, &nvs_list, node) {
-+		entry->data = (void *)__get_free_page(GFP_KERNEL);
-+		if (!entry->data) {
-+			hibernate_nvs_free();
-+			return -ENOMEM;
-+		}
-+	}
-+	return 0;
-+}
-+
-+/**
-+ *	hibernate_nvs_save - save NVS memory regions
-+ */
-+void hibernate_nvs_save(void)
-+{
-+	struct nvs_page *entry;
-+
-+	printk(KERN_INFO "PM: Saving platform NVS memory\n");
-+
-+	list_for_each_entry(entry, &nvs_list, node)
-+		if (entry->data) {
-+			entry->kaddr = ioremap(entry->phys_start, entry->size);
-+			memcpy(entry->data, entry->kaddr, entry->size);
-+		}
-+}
-+
-+/**
-+ *	hibernate_nvs_restore - restore NVS memory regions
-+ *
-+ *	This function is going to be called with interrupts disabled, so it
-+ *	cannot iounmap the virtual addresses used to access the NVS region.
-+ */
-+void hibernate_nvs_restore(void)
-+{
-+	struct nvs_page *entry;
-+
-+	printk(KERN_INFO "PM: Restoring platform NVS memory\n");
-+
-+	list_for_each_entry(entry, &nvs_list, node)
-+		if (entry->data)
-+			memcpy(entry->kaddr, entry->data, entry->size);
-+}
++	  If you have a legacy free Toshiba laptop (such as the Libretto L1
++	  series), say Y.
+ endif # X86_PLATFORM_DEVICES
+diff --git a/drivers/platform/x86/Makefile b/drivers/platform/x86/Makefile
+index 4d26b1b..1e9de2a 100644
+--- a/drivers/platform/x86/Makefile
++++ b/drivers/platform/x86/Makefile
+@@ -14,3 +14,6 @@ obj-$(CONFIG_THINKPAD_ACPI)	+= thinkpad_acpi.o
+ obj-$(CONFIG_FUJITSU_LAPTOP)	+= fujitsu-laptop.o
+ obj-$(CONFIG_PANASONIC_LAPTOP)	+= panasonic-laptop.o
+ obj-$(CONFIG_INTEL_MENLOW)	+= intel_menlow.o
++obj-$(CONFIG_ACPI_WMI)		+= wmi.o
++obj-$(CONFIG_ACPI_ASUS)		+= asus_acpi.o
++obj-$(CONFIG_ACPI_TOSHIBA)	+= toshiba_acpi.o
+diff --git a/drivers/acpi/asus_acpi.c b/drivers/platform/x86/asus_acpi.c
+similarity index 100%
+rename from drivers/acpi/asus_acpi.c
+rename to drivers/platform/x86/asus_acpi.c
+diff --git a/drivers/acpi/toshiba_acpi.c b/drivers/platform/x86/toshiba_acpi.c
+similarity index 100%
+rename from drivers/acpi/toshiba_acpi.c
+rename to drivers/platform/x86/toshiba_acpi.c
+diff --git a/drivers/acpi/wmi.c b/drivers/platform/x86/wmi.c
+similarity index 100%
+rename from drivers/acpi/wmi.c
+rename to drivers/platform/x86/wmi.c
 -- 
 1.5.6.6
 
