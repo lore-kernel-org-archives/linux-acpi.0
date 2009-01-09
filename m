@@ -1,54 +1,50 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch 3/6] eeepc-laptop: enable Bluetooth for Asus EEE 901
-Date: Fri, 09 Jan 2009 16:49:27 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0901091644201.20020@localhost.localdomain>
-References: <200901092017.n09KHA3E014942@imap1.linux-foundation.org>
- <alpine.LFD.2.00.0901091623400.16697@localhost.localdomain>
- <20090109133908.631b0fc1.akpm@linux-foundation.org>
+Subject: RE: [patch 2/6] acpi: check _PSS invalidation when BIOS report _PSS
+ with 0x80000000
+Date: Fri, 09 Jan 2009 16:52:14 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0901091649400.20020@localhost.localdomain>
+References: <200901092017.n09KH9OP014905@imap1.linux-foundation.org>
+ <alpine.LFD.2.00.0901091559120.16697@localhost.localdomain>
+ <20090109132355.b3a3c4dc.akpm@linux-foundation.org>
+ <7E82351C108FA840AB1866AC776AEC4643B5888C@orsmsx505.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:36591 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752285AbZAIVti (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 16:49:38 -0500
+Received: from vms044pub.verizon.net ([206.46.252.44]:59322 "EHLO
+	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758230AbZAIVwS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 16:52:18 -0500
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173001.mailsrvcs.net
- (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0KD800L0D4MILH2D@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 09 Jan 2009 15:49:30 -0600 (CST)
-In-reply-to: <20090109133908.631b0fc1.akpm@linux-foundation.org>
+ by vms044.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
+ 3 2006)) with ESMTPA id <0KD8005XF4R4DCE1@vms044.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 09 Jan 2009 15:52:17 -0600 (CST)
+In-reply-to: <7E82351C108FA840AB1866AC776AEC4643B5888C@orsmsx505.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-acpi@vger.kernel.org, santiago@crfreenet.org, corentincj@iksaif.net, mjg59@srcf.ucam.org
+To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Song, Youquan" <youquan.song@intel.com>
 
-
-
-On Fri, 9 Jan 2009, Andrew Morton wrote:
-
-> On Fri, 09 Jan 2009 16:24:09 -0500 (EST)
-> Len Brown <lenb@kernel.org> wrote:
+> >> I recall nacking this one some time ago.
+> >
+> >Well please treat it as a bug report then.  "the kernel will boot
+> >crash when load cpufreq govenors".  Bad!
+> >
 > 
-> > the original version of this patch is already in my tree
-> > queued for linus.
+> I think this should be a special case even when it is not defined in spec.
 > 
-> It's not in today's linux-next?
+> There is BIOS code out there that is giving 0x80000000 and Linux fails to
+> boot on these systems, where as the other OS does not. Existence of even one
+> such system means that the code will surely be copied onto other BIOSes and
+> I don't think we can persuade BIOS guys to change this.
 
-Yeah, and that was my fault.
-When I saw your e-mail I remembered the patch -- it had been sent a while
-back by a different author.  I found the original
-it on a branch that I'd neglected to merge intot he acpi test branch,
-and so it was not in linux-next.  So I cherry-picked it on top of my 
-release branch that I've already asked Linus to pull.
+Let me be clear.
+I agree that this needs to be fixed.
+My point is that this patch is the wrong way to do it.
 
-If Linus has already pulled my tree, it will make it into the next batch.
-
-sorry for the confusion.
+We need to become hardened to total garbage in this field,
+or we need to do a better job of sanity checking it rather
+than checking one particular bit (of many) that may be bogus.
 
 thanks,
 -Len
 Intel Open Source Technology Center
-
-
-
