@@ -1,84 +1,59 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [git pull] ACPI & Suspend patches for 2.6.29-rc0
-Date: Fri, 9 Jan 2009 12:12:02 -0800 (PST)
-Message-ID: <alpine.LFD.2.00.0901091200150.6528@localhost.localdomain>
-References: <alpine.LFD.2.00.0901090550590.4091@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: akpm@linux-foundation.org
+Subject: [patch 2/6] acpi: check _PSS invalidation when BIOS report _PSS with 0x80000000
+Date: Fri, 09 Jan 2009 12:17:09 -0800
+Message-ID: <200901092017.n09KH9OP014905@imap1.linux-foundation.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45345 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35092 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754556AbZAIUML (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 15:12:11 -0500
-In-Reply-To: <alpine.LFD.2.00.0901090550590.4091@localhost.localdomain>
+	by vger.kernel.org with ESMTP id S1753415AbZAIUSG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 15:18:06 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Linux Power Management List <linux-pm@lists.osdl.org>
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, youquan.song@intel.com, venkatesh.pallipadi@intel.com
 
+From: Youquan, Song <youquan.song@intel.com>
 
+When cpu frequencey scaling is disabled, some BIOSes report _PSS with all
+0x80000000.  If the kernel treats this case as valid, the kernel will boot
+crash when load cpufreq govenors.
 
-On Fri, 9 Jan 2009, Len Brown wrote:
-> 
-> ps. git diff is confused about hwregs.c vs hwxface.c below
->         both got moved.  I'm running git version 1.6.1.76.gc123b,
-> 	and I use "git diff -M --stat --summary linus..$RELEASE"
+So in order to cover more buggy BIOSs, the patch just check _PSS core
+frequency invalidation.
 
-No, "both" didn't get moved. "hwxface.c" is a totally new file when you 
-look at the big picture. Yes, it got moved in one commit, but if you look 
-at the whole history, the _history_ is actually:
+Signed-off-by: Youquan, Song <youquan.song@intel.com>
+Signed-off-by: Pallipadi, Venkatesh <venkatesh.pallipadi@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
- - Move public interfaces from hwregs.c to new file, hwxface.c
+ drivers/acpi/processor_perflib.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
- - rename hwxface.c to another directory
-
-and so git - for the merge statistics - ends up showing this as
-
->  .../acpi/{hardware/hwregs.c => acpica/hwxface.c}   |  744 +++++++-------------
-
-which is actually correct.
-
-Of course, it would _also_ have been correct to show it as the 
-"{hardware/hwregs.c => acpica/hwregs.c}" move that you apparently 
-expected, but what git did was just a more interesting thing.
-
-So my point is that the "movement history" is actually different in a 
-small view than it is in a big one. If you do "git log -C --stat", you'll 
-see the output you expect at each point:
-
-	commit ecfbbc7b46f74ca48b9f42132739114c9e70f8e4
-	Author: Bob Moore <robert.moore@intel.com>
-	Date:   Tue Dec 30 11:04:48 2008 +0800
-	
-	    ACPICA: Move all public H/W interfaces to new hwxface
-	    
-	 drivers/acpi/hardware/hwregs.c  |  498 +----------------------------------
-	 drivers/acpi/hardware/hwxface.c |  555 +++++++++++++++++++++++++++++++++++++++
-
-and
-
-	commit 95b482a8d31116f3f5c2a5089569393234d06385
-	Author: Len Brown <len.brown@intel.com>
-	Date:   Fri Jan 9 00:13:17 2009 -0500
-	
-	    ACPICA: create acpica/ directory
-	
-	 drivers/acpi/{hardware => acpica}/hwregs.c     |    0
-
-but when taken all-together, git decided that the bulk of the data (even 
-if not the _lines_) actally moved from
-
-	drivers/acpi/{hardware/hwregs.c => acpica/hwxface.c}
-
-which is thus what git shows for the merge diff (which is taken over the 
-whole history).
-
-As usual, git is actually smarter and get things more correct than people 
-realize. What you found "surprising" is actually a "profound truth". 
-
-Git is like a great indian mystic. It sees past the veil of the trivial, 
-to find the true connections in life.
-
-Or at least in source code.
-
-			Linus
+diff -puN drivers/acpi/processor_perflib.c~acpi-check-_pss-invalidation-when-bios-report-_pss-with-all-0x80000000 drivers/acpi/processor_perflib.c
+--- a/drivers/acpi/processor_perflib.c~acpi-check-_pss-invalidation-when-bios-report-_pss-with-all-0x80000000
++++ a/drivers/acpi/processor_perflib.c
+@@ -50,6 +50,7 @@
+ #define ACPI_PROCESSOR_CLASS		"processor"
+ #define ACPI_PROCESSOR_FILE_PERFORMANCE	"performance"
+ #define _COMPONENT		ACPI_PROCESSOR_COMPONENT
++#define ACPI_PROCESSOR_PSS_INVALID	0x80000000
+ ACPI_MODULE_NAME("processor_perflib");
+ 
+ static DEFINE_MUTEX(performance_mutex);
+@@ -324,6 +325,14 @@ static int acpi_processor_get_performanc
+ 			kfree(pr->performance->states);
+ 			goto end;
+ 		}
++
++		if (px->core_frequency == ACPI_PROCESSOR_PSS_INVALID) {
++			printk(KERN_ERR PREFIX
++				    "P-states disabled in the BIOS\n");
++			result = -EFAULT;
++			kfree(pr->performance->states);
++			goto end;
++		}
+ 	}
+ 
+       end:
+_
