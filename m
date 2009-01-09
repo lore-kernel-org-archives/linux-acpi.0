@@ -1,100 +1,142 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: why kexec (was Re: [PATCH 2/2] ACPI: PCI Interrupt Links --
- disable when unused)
-Date: Fri, 09 Jan 2009 05:30:15 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0901090520450.4091@localhost.localdomain>
-References: <8465ab70c5a17f796380b77ef5a0f5197a9f7c31.1229674227.git.len.brown@intel.com>
- <c8d8961ad671f84f830bb4e59ccfb689576ecbe0.1229674227.git.len.brown@intel.com>
- <86802c440812190110v6de03a21q4737dcc76ab6fa11@mail.gmail.com>
- <alpine.LFD.2.00.0812190430450.1988@localhost.localdomain>
- <86802c440812190357t74dbd18aya6277b3fb1c636b2@mail.gmail.com>
- <alpine.LFD.2.00.0812191337160.3745@localhost.localdomain>
- <494C023F.6070207@kernel.org>
- <alpine.LFD.2.00.0901090144220.4091@localhost.localdomain>
- <86802c440901082324g50138f71tcd705b909205be6e@mail.gmail.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH] : ACPI : Use RSDT instead of XSDT by adding boot option of "acpi=rsdt"
+Date: Fri, 9 Jan 2009 11:54:42 +0100
+Message-ID: <200901091154.43606.trenn@suse.de>
+References: <20081031184233.8588.42241.stgit@thinkpad> <1229504118.3991.63.camel@yakui_zhao.sh.intel.com> <alpine.LFD.2.00.0901090135300.4091@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173007pub.verizon.net ([206.46.173.7]:44784 "EHLO
-	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751734AbZAIKa3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 05:30:29 -0500
-Received: from localhost.localdomain ([96.237.168.40])
- by vms173007.mailsrvcs.net
- (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0KD700H8X944WQF2@vms173007.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 09 Jan 2009 04:28:53 -0600 (CST)
-In-reply-to: <86802c440901082324g50138f71tcd705b909205be6e@mail.gmail.com>
+Received: from cantor2.suse.de ([195.135.220.15]:41807 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752472AbZAIKyr (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
+	Fri, 9 Jan 2009 05:54:47 -0500
+In-Reply-To: <alpine.LFD.2.00.0901090135300.4091@localhost.localdomain>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Zhao Yakui <yakui.zhao@intel.com>, "Linux-acpi@vger.kernel.org" <Linux-acpi@vger.kernel.org>, me@markdoughty.co.uk, ibm-acpi-devel@lists.sourceforge.net
 
-
-
-> On Thu, Jan 8, 2009 at 10:55 PM, Len Brown <lenb@kernel.org> wrote:
-> >> >> maybe could have one switch in /proc so could not disable that for
-> >> >> some kexec path...
-> >> >
-> >> > I fail to comprehend the benefits of kexec,
-> >> > and the requirements that kexec puts on the kernel, other than:
-> >> >
-> >> > # CONFIG_KEXEC is not set
-> >> >
-> >>
-> >> for me: it is a tools that i could use to make sure root-cause is in FW, and BIOS guys will not kick back the ball to os team.
-> >> after modifying table or hw reg in first kernel, and kexec even stock kernel, everything will work well.
+On Friday 09 January 2009 07:35:33 Len Brown wrote:
+> applied
+>
+> --
+> Len Brown, Intel Open Source Technology Center
+>
+> On Wed, 17 Dec 2008, Zhao Yakui wrote:
+> > From: Zhao Yakui <yakui.zhao@intel.com>
 > >
-> > For ACPI, we already have the ability to override the BIOS tables
-> > upon the 1st boot.
+> > On some boxes there exist both RSDT and XSDT table. But unfortunately
+> > sometimes there exists the following error when XSDT table is used:
+> >    a. 32/64X address mismatch
+> >    b. The 32/64X FACS address mismatch
 > >
-> > I don't know which BIOS guys you refer to,
-> > but when we find a BIOS bug and have access to
-> > the associated BIOS developer, we've never needed
-> > to do such a demonstration to convince them they have a bug.
-> 
-> Your BIOS developer must have enough time or have bunch of BIOS engineers.
+> >    In such case the boot option of "acpi=rsdt" is provided so that
+> > RSDT is tried instead of XSDT table when the system can't work well.
 
-Reasonable engineers do not need their own bugs
-handed to them on a silver platter.
+Great, now we still need a dmi blacklist with machines which are known
+broken. Then we are at the patchset I posted about a year ago -> scnr.
 
-> > kexec seems like a science project that has a chance of working
-> > only under extremely controlled conditions.
-> > I have no problem with that, as long as it is not built into my kernel.
-> 
-> could reduce boot time.
+I am going to post the missing two patches to make R40e and R50e work.
 
-Effort would be better spent on reducing boot time w/ kexec.
+Thanks,
 
-> or some system has problem with reset...
-> 
-> or linuxbios + tinykernel to kexec final production kernel.
-> here linuxbios only init ram and basic pci resource allocation ...
-
-My understanding is that the linuxbios people realized
-that creating a BIOS that boots Linux (tiny or not)
-only to then boot Linux again, was sort of subgenius.
-So they re-named linuxbios to be coreboot and now
-they talk about loading a "payload"....
-
-> > But say kexec is useful to somebody out there -- what are
-> > the requirements that kexec puts on the kernel?
-> 
-> the support got into the mainline kernel several years ago... from 2.6.16?
-
-I'm afraid I'm not being clear.
-This conversation started when you suggested that we should
-put a hook in to ask ACPI to manipulate Link state
-for the benefit of kexec.
-
-My question is, what else does kexec need to properly
-manage the state of the sytem?
-
-I don't think that question has an answer.
-I don't think it will ever have an answer.
-I think that kexec is a viable concept only
-under conditions I don't care about.
-
--Len
+      Thomas
+> >
+> > http://bugzilla.kernel.org/show_bug.cgi?id=8246
+> >
+> > Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+> > cc:Thomas Renninger <trenn@suse.de>
+> > ---
+> >  Documentation/kernel-parameters.txt |    2 ++
+> >  arch/ia64/kernel/acpi.c             |    1 +
+> >  arch/x86/kernel/acpi/boot.c         |    6 +++++-
+> >  drivers/acpi/tables/tbutils.c       |    3 ++-
+> >  include/acpi/acpixf.h               |    1 +
+> >  5 files changed, 11 insertions(+), 2 deletions(-)
+> >
+> > Index: linux-2.6/arch/x86/kernel/acpi/boot.c
+> > ===================================================================
+> > --- linux-2.6.orig/arch/x86/kernel/acpi/boot.c
+> > +++ linux-2.6/arch/x86/kernel/acpi/boot.c
+> > @@ -47,7 +47,7 @@
+> >  #endif
+> >
+> >  static int __initdata acpi_force = 0;
+> > -
+> > +u32 acpi_rsdt_forced;
+> >  #ifdef	CONFIG_ACPI
+> >  int acpi_disabled = 0;
+> >  #else
+> > @@ -1783,6 +1783,10 @@ static int __init parse_acpi(char *arg)
+> >  			disable_acpi();
+> >  		acpi_ht = 1;
+> >  	}
+> > +	/* acpi=rsdt use RSDT instead of XSDT */
+> > +	else if (strcmp(arg, "rsdt") == 0) {
+> > +		acpi_rsdt_forced = 1;
+> > +	}
+> >  	/* "acpi=noirq" disables ACPI interrupt routing */
+> >  	else if (strcmp(arg, "noirq") == 0) {
+> >  		acpi_noirq_set();
+> > Index: linux-2.6/include/acpi/acpixf.h
+> > ===================================================================
+> > --- linux-2.6.orig/include/acpi/acpixf.h
+> > +++ linux-2.6/include/acpi/acpixf.h
+> > @@ -48,6 +48,7 @@
+> >  #include "actypes.h"
+> >  #include "actbl.h"
+> >
+> > +extern u32 acpi_rsdt_forced;
+> >  /*
+> >   * Global interfaces
+> >   */
+> > Index: linux-2.6/drivers/acpi/tables/tbutils.c
+> > ===================================================================
+> > --- linux-2.6.orig/drivers/acpi/tables/tbutils.c
+> > +++ linux-2.6/drivers/acpi/tables/tbutils.c
+> > @@ -420,7 +420,8 @@ acpi_tb_parse_root_table(acpi_physical_a
+> >
+> >  	/* Differentiate between RSDT and XSDT root tables */
+> >
+> > -	if (rsdp->revision > 1 && rsdp->xsdt_physical_address) {
+> > +	if (rsdp->revision > 1 && rsdp->xsdt_physical_address
+> > +			&& !acpi_rsdt_forced) {
+> >  		/*
+> >  		 * Root table is an XSDT (64-bit physical addresses). We must use the
+> >  		 * XSDT if the revision is > 1 and the XSDT pointer is present, as per
+> > Index: linux-2.6/arch/ia64/kernel/acpi.c
+> > ===================================================================
+> > --- linux-2.6.orig/arch/ia64/kernel/acpi.c
+> > +++ linux-2.6/arch/ia64/kernel/acpi.c
+> > @@ -65,6 +65,7 @@ EXPORT_SYMBOL(pm_idle);
+> >  void (*pm_power_off) (void);
+> >  EXPORT_SYMBOL(pm_power_off);
+> >
+> > +u32 acpi_rsdt_forced;
+> >  unsigned int acpi_cpei_override;
+> >  unsigned int acpi_cpei_phys_cpuid;
+> >
+> > Index: linux-2.6/Documentation/kernel-parameters.txt
+> > ===================================================================
+> > --- linux-2.6.orig/Documentation/kernel-parameters.txt
+> > +++ linux-2.6/Documentation/kernel-parameters.txt
+> > @@ -139,6 +139,8 @@ and is between 256 and 4096 characters.
+> >  			ht -- run only enough ACPI to enable Hyper Threading
+> >  			strict -- Be less tolerant of platforms that are not
+> >  				strictly ACPI specification compliant.
+> > +			rsdt -- RSDT is used instead of XSDT table when both
+> > +				exits.
+> >
+> >  			See also Documentation/power/pm.txt, pci=noacpi
+> >
+> >
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
