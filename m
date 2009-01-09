@@ -1,44 +1,56 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Subject: Re: git mv (was Re: [git pull] ACPI & Suspend patches for 2.6.29-rc0)
-Date: Fri, 9 Jan 2009 22:27:57 +0100
-Message-ID: <20090109212757.GA25434@uranus.ravnborg.org>
-References: <alpine.LFD.2.00.0901090550590.4091@localhost.localdomain> <alpine.LFD.2.00.0901091200150.6528@localhost.localdomain> <alpine.LFD.2.00.0901091537530.16697@localhost.localdomain> <alpine.LFD.2.00.0901091305160.6528@localhost.localdomain>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [patch 1/6] acpi: fix ACPI_FADT_S4_RTC_WAKE comment
+Date: Fri, 09 Jan 2009 16:28:47 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0901091628440.20020@localhost.localdomain>
+References: <200901092017.n09KH82j014897@imap1.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from pfepa.post.tele.dk ([195.41.46.235]:42420 "EHLO
-	pfepa.post.tele.dk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755339AbZAIV0Q (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 16:26:16 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.0901091305160.6528@localhost.localdomain>
+Received: from vms046pub.verizon.net ([206.46.252.46]:45861 "EHLO
+	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755765AbZAIV27 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 16:28:59 -0500
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms046.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
+ 3 2006)) with ESMTPA id <0KD800MUV3O1VSU5@vms046.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 09 Jan 2009 15:28:50 -0600 (CST)
+In-reply-to: <200901092017.n09KH82j014897@imap1.linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Linux Power Management List <linux-pm@lists.osdl.org>
+To: akpm@linux-foundation.org
+Cc: linux-acpi@vger.kernel.org, dbrownell@users.sourceforge.net
 
+applied.
+
+--
+Len Brown, Intel Open Source Technology Center
+
+On Fri, 9 Jan 2009, akpm@linux-foundation.org wrote:
+
+> From: David Brownell <dbrownell@users.sourceforge.net>
 > 
-> So yeah, "--follow" is broken. It's really a quick hack there for people 
-> who come from some other SCM to feel more comfy with git. If you come from 
-> SVN or CVS, you never had proper history, and you never had "gitk" anyway, 
-> and so "gitk --follow" doesn't really work. But it makes the pure 
-> _textual_ logs look a bit like CVS/SVN.
+> Make the comment for ACPI_FADT_S4_RTC_WAKE match the ACPI spec;
+> that bit has nothing to do with status bits.
 > 
-> I'd love to make --follow work better and integrate more, but I've been so 
-> successful at never using it myself that I don't much care. And it really 
-> is not a very natural thing for git to do, so the hackiness is somewhat 
-> inherent.
-
-What other ways exist so I can see what the heck davem did to
-arch/sparc64/kernel/irq.c then?
-
-I know he added IRQ stacks - but how did the patch look like?
-I know no other way to find the old history than to do:
-
-    git log --follow arch/sparc/kernel/irq_64.c
-
-But this also give me what I want. I'm just curious if there is
-a better way - in the case where you know the old name.
-
-
-	Sam
+> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+> Cc: Len Brown <lenb@kernel.org>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+> 
+>  include/acpi/actbl.h |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff -puN include/acpi/actbl.h~acpi-fix-acpi_fadt_s4_rtc_wake-comment include/acpi/actbl.h
+> --- a/include/acpi/actbl.h~acpi-fix-acpi_fadt_s4_rtc_wake-comment
+> +++ a/include/acpi/actbl.h
+> @@ -245,7 +245,7 @@ struct acpi_table_fadt {
+>  #define ACPI_FADT_POWER_BUTTON      (1<<4)	/* 04: Power button is handled as a generic feature */
+>  #define ACPI_FADT_SLEEP_BUTTON      (1<<5)	/* 05: Sleep button is handled as a generic feature, or  not present */
+>  #define ACPI_FADT_FIXED_RTC         (1<<6)	/* 06: RTC wakeup stat not in fixed register space */
+> -#define ACPI_FADT_S4_RTC_WAKE       (1<<7)	/* 07: RTC wakeup stat not possible from S4 */
+> +#define ACPI_FADT_S4_RTC_WAKE       (1<<7)	/* 07: RTC wakeup possible from S4 */
+>  #define ACPI_FADT_32BIT_TIMER       (1<<8)	/* 08: tmr_val is 32 bits 0=24-bits */
+>  #define ACPI_FADT_DOCKING_SUPPORTED (1<<9)	/* 09: Docking supported */
+>  #define ACPI_FADT_RESET_REGISTER    (1<<10)	/* 10: System reset via the FADT RESET_REG supported */
+> _
+> 
