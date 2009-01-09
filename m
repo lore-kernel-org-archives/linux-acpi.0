@@ -1,40 +1,84 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] misc: Add oqo-wmi driver for model 2 OQO backlight and
- rfkill control
-Date: Fri, 09 Jan 2009 15:09:17 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0901091507510.16697@localhost.localdomain>
-References: <20081127190517.GA25429@srcf.ucam.org>
- <alpine.LFD.2.00.0811281431320.3204@localhost.localdomain>
- <Pine.LNX.4.64.0811282215160.17453@sheavy.abrij.org>
- <20081129045045.GA13866@srcf.ucam.org> <20081203195537.GB22560@srcf.ucam.org>
- <alpine.LFD.2.00.0901090112190.4091@localhost.localdomain>
- <20090109123506.GB31003@srcf.ucam.org>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [git pull] ACPI & Suspend patches for 2.6.29-rc0
+Date: Fri, 9 Jan 2009 12:12:02 -0800 (PST)
+Message-ID: <alpine.LFD.2.00.0901091200150.6528@localhost.localdomain>
+References: <alpine.LFD.2.00.0901090550590.4091@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms044pub.verizon.net ([206.46.252.44]:56784 "EHLO
-	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753155AbZAIUJX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 15:09:23 -0500
-In-reply-to: <20090109123506.GB31003@srcf.ucam.org>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45345 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754556AbZAIUML (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 15:12:11 -0500
+In-Reply-To: <alpine.LFD.2.00.0901090550590.4091@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: "Brian S. Julin" <bri@abrij.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, greg@kroah.com
+To: Len Brown <lenb@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Linux Power Management List <linux-pm@lists.osdl.org>
 
 
-> > Matthew,
-> > this refreshed patch sits in my test tree from about a month ago.
-> > I guess i was expecting you to reply to the three comments on it before 
-> > pushing it upstream.
+
+On Fri, 9 Jan 2009, Len Brown wrote:
 > 
-> Ah, sorry, I didn't realise you'd picked it up. I'm still trying to find 
-> some time to spend with the hardware to make sure a cleaned up version 
-> works correctly.
+> ps. git diff is confused about hwregs.c vs hwxface.c below
+>         both got moved.  I'm running git version 1.6.1.76.gc123b,
+> 	and I use "git diff -M --stat --summary linus..$RELEASE"
 
-No sweat, just wanted you to know that v1 is in acpi test
-and thus will be in linux-next because of it.
-It will patiently wait there until you're ready to refresh it.
+No, "both" didn't get moved. "hwxface.c" is a totally new file when you 
+look at the big picture. Yes, it got moved in one commit, but if you look 
+at the whole history, the _history_ is actually:
 
-cheers,
--Len
+ - Move public interfaces from hwregs.c to new file, hwxface.c
+
+ - rename hwxface.c to another directory
+
+and so git - for the merge statistics - ends up showing this as
+
+>  .../acpi/{hardware/hwregs.c => acpica/hwxface.c}   |  744 +++++++-------------
+
+which is actually correct.
+
+Of course, it would _also_ have been correct to show it as the 
+"{hardware/hwregs.c => acpica/hwregs.c}" move that you apparently 
+expected, but what git did was just a more interesting thing.
+
+So my point is that the "movement history" is actually different in a 
+small view than it is in a big one. If you do "git log -C --stat", you'll 
+see the output you expect at each point:
+
+	commit ecfbbc7b46f74ca48b9f42132739114c9e70f8e4
+	Author: Bob Moore <robert.moore@intel.com>
+	Date:   Tue Dec 30 11:04:48 2008 +0800
+	
+	    ACPICA: Move all public H/W interfaces to new hwxface
+	    
+	 drivers/acpi/hardware/hwregs.c  |  498 +----------------------------------
+	 drivers/acpi/hardware/hwxface.c |  555 +++++++++++++++++++++++++++++++++++++++
+
+and
+
+	commit 95b482a8d31116f3f5c2a5089569393234d06385
+	Author: Len Brown <len.brown@intel.com>
+	Date:   Fri Jan 9 00:13:17 2009 -0500
+	
+	    ACPICA: create acpica/ directory
+	
+	 drivers/acpi/{hardware => acpica}/hwregs.c     |    0
+
+but when taken all-together, git decided that the bulk of the data (even 
+if not the _lines_) actally moved from
+
+	drivers/acpi/{hardware/hwregs.c => acpica/hwxface.c}
+
+which is thus what git shows for the merge diff (which is taken over the 
+whole history).
+
+As usual, git is actually smarter and get things more correct than people 
+realize. What you found "surprising" is actually a "profound truth". 
+
+Git is like a great indian mystic. It sees past the veil of the trivial, 
+to find the true connections in life.
+
+Or at least in source code.
+
+			Linus
