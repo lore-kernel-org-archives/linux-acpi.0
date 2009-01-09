@@ -1,211 +1,341 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 59/94] ACPI: simplify buffer management for acpi_pci_bind() etc.
-Date: Fri, 09 Jan 2009 04:27:01 -0500
-Message-ID: <087da3b4e2d7d3ef70a4fa649b9a286fdeb0e44e.1231492610.git.len.brown@intel.com>
+Subject: [PATCH 78/94] ACPI: remove private acpica headers from driver files
+Date: Fri, 09 Jan 2009 04:27:20 -0500
+Message-ID: <ea7e96e0f2277107d9ea14c3f16c86ba82b2e560.1231492611.git.len.brown@intel.com>
 References: <1231493256-11678-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:40934 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754189AbZAIJ2s (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 04:28:48 -0500
+Received: from vms173005pub.verizon.net ([206.46.173.5]:56420 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753633AbZAIJ2r (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 04:28:47 -0500
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173001.mailsrvcs.net
+ by vms173005.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0KD700D4G6B8P8PI@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 09 Jan 2009 03:28:21 -0600 (CST)
+ with ESMTPA id <0KD700EWS6BIQ6T2@vms173005.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 09 Jan 2009 03:28:31 -0600 (CST)
 In-reply-to: <1231493256-11678-1-git-send-email-lenb@kernel.org>
 In-reply-to: <c5279dee26c0e8d7c4200993bfc4b540d2469598.1231492606.git.len.brown@intel.com>
 References: <c5279dee26c0e8d7c4200993bfc4b540d2469598.1231492606.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Len Brown <len.brown@intel.com>
+Cc: Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Len Brown <len.brown@intel.com>
+From: Lin Ming <ming.m.lin@intel.com>
 
-use ACPI_ALLOCATE_BUFFER to remove the allocations
-within acpi_pci_bind(), acpi_pci_unbind() and acpi_pci_bind_root().
-While there, delete some unnecessary param inits from those routines.
+External driver files should not include any private acpica headers.
 
-Delete concept of ACPI_PATHNAME_MAX, since this was the last use.
-
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/pci_bind.c         |   80 ++++++++++++++++-----------------------
- include/acpi/platform/aclinux.h |    3 -
- 2 files changed, 33 insertions(+), 50 deletions(-)
+ arch/ia64/include/asm/acpi-ext.h   |    1 -
+ arch/ia64/include/asm/sn/acpi.h    |    2 --
+ arch/ia64/sn/kernel/io_acpi_init.c |    1 -
+ arch/ia64/sn/kernel/io_common.c    |    1 -
+ drivers/acpi/cm_sbs.c              |    3 ---
+ drivers/acpi/debug.c               |    1 -
+ drivers/acpi/ec.c                  |    1 -
+ drivers/acpi/numa.c                |    1 -
+ drivers/acpi/sbshc.c               |    1 -
+ drivers/acpi/scan.c                |    1 -
+ drivers/acpi/sleep/wakeup.c        |    1 -
+ drivers/ata/libata-acpi.c          |    6 ------
+ drivers/ata/pata_acpi.c            |    6 ------
+ drivers/char/tpm/tpm_bios.c        |    2 --
+ drivers/ide/ide-acpi.c             |    6 ------
+ drivers/misc/tc1100-wmi.c          |    1 -
+ drivers/misc/thinkpad_acpi.c       |    1 -
+ drivers/pci/hotplug/acpi_pcihp.c   |    1 -
+ drivers/pci/hotplug/pciehp.h       |    1 -
+ drivers/pci/pci-acpi.c             |    2 --
+ drivers/pnp/pnpacpi/core.c         |    1 -
+ include/linux/pci_hotplug.h        |    1 -
+ 22 files changed, 0 insertions(+), 42 deletions(-)
 
-diff --git a/drivers/acpi/pci_bind.c b/drivers/acpi/pci_bind.c
-index 53f502d..95650f8 100644
---- a/drivers/acpi/pci_bind.c
-+++ b/drivers/acpi/pci_bind.c
-@@ -111,12 +111,11 @@ EXPORT_SYMBOL(acpi_get_pci_id);
- int acpi_pci_bind(struct acpi_device *device)
- {
- 	int result = 0;
--	acpi_status status = AE_OK;
--	struct acpi_pci_data *data = NULL;
--	struct acpi_pci_data *pdata = NULL;
--	char *pathname = NULL;
--	struct acpi_buffer buffer = { 0, NULL };
--	acpi_handle handle = NULL;
-+	acpi_status status;
-+	struct acpi_pci_data *data;
-+	struct acpi_pci_data *pdata;
-+	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-+	acpi_handle handle;
- 	struct pci_dev *dev;
- 	struct pci_bus *bus;
+diff --git a/arch/ia64/include/asm/acpi-ext.h b/arch/ia64/include/asm/acpi-ext.h
+index 734d137..7f8362b 100644
+--- a/arch/ia64/include/asm/acpi-ext.h
++++ b/arch/ia64/include/asm/acpi-ext.h
+@@ -14,7 +14,6 @@
+ #define _ASM_IA64_ACPI_EXT_H
  
-@@ -124,21 +123,18 @@ int acpi_pci_bind(struct acpi_device *device)
- 	if (!device || !device->parent)
- 		return -EINVAL;
+ #include <linux/types.h>
+-#include <acpi/actypes.h>
  
--	pathname = kzalloc(ACPI_PATHNAME_MAX, GFP_KERNEL);
--	if (!pathname)
--		return -ENOMEM;
--	buffer.length = ACPI_PATHNAME_MAX;
--	buffer.pointer = pathname;
+ extern acpi_status hp_acpi_csr_space (acpi_handle, u64 *base, u64 *length);
+ 
+diff --git a/arch/ia64/include/asm/sn/acpi.h b/arch/ia64/include/asm/sn/acpi.h
+index 9ce2801..fd480db 100644
+--- a/arch/ia64/include/asm/sn/acpi.h
++++ b/arch/ia64/include/asm/sn/acpi.h
+@@ -9,8 +9,6 @@
+ #ifndef _ASM_IA64_SN_ACPI_H
+ #define _ASM_IA64_SN_ACPI_H
+ 
+-#include "acpi/acglobal.h"
 -
- 	data = kzalloc(sizeof(struct acpi_pci_data), GFP_KERNEL);
--	if (!data) {
--		kfree(pathname);
-+	if (!data)
- 		return -ENOMEM;
-+
-+	status = acpi_get_name(device->handle, ACPI_FULL_PATHNAME, &buffer);
-+	if (ACPI_FAILURE(status)) {
-+		kfree(data);
-+		return -ENODEV;
- 	}
+ extern int sn_acpi_rev;
+ #define SN_ACPI_BASE_SUPPORT()   (sn_acpi_rev >= 0x20101)
  
--	acpi_get_name(device->handle, ACPI_FULL_PATHNAME, &buffer);
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Binding PCI device [%s]...\n",
--			  pathname));
-+			  (char *)buffer.pointer));
- 
- 	/* 
- 	 * Segment & Bus
-@@ -262,7 +258,7 @@ int acpi_pci_bind(struct acpi_device *device)
- 	}
- 
-       end:
--	kfree(pathname);
-+	kfree(buffer.pointer);
- 	if (result)
- 		kfree(data);
- 
-@@ -272,25 +268,21 @@ int acpi_pci_bind(struct acpi_device *device)
- static int acpi_pci_unbind(struct acpi_device *device)
- {
- 	int result = 0;
--	acpi_status status = AE_OK;
--	struct acpi_pci_data *data = NULL;
--	char *pathname = NULL;
--	struct acpi_buffer buffer = { 0, NULL };
-+	acpi_status status;
-+	struct acpi_pci_data *data;
-+	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+diff --git a/arch/ia64/sn/kernel/io_acpi_init.c b/arch/ia64/sn/kernel/io_acpi_init.c
+index 4c8bc8e..c5a2140 100644
+--- a/arch/ia64/sn/kernel/io_acpi_init.c
++++ b/arch/ia64/sn/kernel/io_acpi_init.c
+@@ -13,7 +13,6 @@
+ #include <asm/sn/sn_sal.h>
+ #include "xtalk/hubdev.h"
+ #include <linux/acpi.h>
+-#include <acpi/acnamesp.h>
  
  
- 	if (!device || !device->parent)
- 		return -EINVAL;
+ /*
+diff --git a/arch/ia64/sn/kernel/io_common.c b/arch/ia64/sn/kernel/io_common.c
+index e1917ed..0d4ffa4 100644
+--- a/arch/ia64/sn/kernel/io_common.c
++++ b/arch/ia64/sn/kernel/io_common.c
+@@ -26,7 +26,6 @@
+ #include <linux/acpi.h>
+ #include <asm/sn/sn2/sn_hwperf.h>
+ #include <asm/sn/acpi.h>
+-#include "acpi/acglobal.h"
  
--	pathname = kzalloc(ACPI_PATHNAME_MAX, GFP_KERNEL);
--	if (!pathname)
--		return -ENOMEM;
-+	status = acpi_get_name(device->handle, ACPI_FULL_PATHNAME, &buffer);
-+	if (ACPI_FAILURE(status))
-+		return -ENODEV;
+ extern void sn_init_cpei_timer(void);
+ extern void register_sn_procfs(void);
+diff --git a/drivers/acpi/cm_sbs.c b/drivers/acpi/cm_sbs.c
+index 307963b..332fe4b 100644
+--- a/drivers/acpi/cm_sbs.c
++++ b/drivers/acpi/cm_sbs.c
+@@ -27,9 +27,6 @@
+ #include <linux/seq_file.h>
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+-#include <acpi/acmacros.h>
+-#include <acpi/actypes.h>
+-#include <acpi/acutils.h>
  
--	buffer.length = ACPI_PATHNAME_MAX;
--	buffer.pointer = pathname;
--	acpi_get_name(device->handle, ACPI_FULL_PATHNAME, &buffer);
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Unbinding PCI device [%s]...\n",
--			  pathname));
--	kfree(pathname);
-+			  (char *) buffer.pointer));
-+	kfree(buffer.pointer);
+ ACPI_MODULE_NAME("cm_sbs");
+ #define ACPI_AC_CLASS		"ac_adapter"
+diff --git a/drivers/acpi/debug.c b/drivers/acpi/debug.c
+index c483968..20223cb 100644
+--- a/drivers/acpi/debug.c
++++ b/drivers/acpi/debug.c
+@@ -9,7 +9,6 @@
+ #include <linux/moduleparam.h>
+ #include <asm/uaccess.h>
+ #include <acpi/acpi_drivers.h>
+-#include <acpi/acglobal.h>
  
- 	status =
- 	    acpi_get_data(device->handle, acpi_pci_data_handler,
-@@ -322,50 +314,44 @@ acpi_pci_bind_root(struct acpi_device *device,
- 		   struct acpi_pci_id *id, struct pci_bus *bus)
- {
- 	int result = 0;
--	acpi_status status = AE_OK;
-+	acpi_status status;
- 	struct acpi_pci_data *data = NULL;
--	char *pathname = NULL;
--	struct acpi_buffer buffer = { 0, NULL };
--
--	pathname = kzalloc(ACPI_PATHNAME_MAX, GFP_KERNEL);
--	if (!pathname)
--		return -ENOMEM;
--
--	buffer.length = ACPI_PATHNAME_MAX;
--	buffer.pointer = pathname;
-+	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+ #define _COMPONENT		ACPI_SYSTEM_COMPONENT
+ ACPI_MODULE_NAME("debug");
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index 2cbc2c9..3105e04 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -42,7 +42,6 @@
+ #include <asm/io.h>
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+-#include <acpi/actypes.h>
  
- 	if (!device || !id || !bus) {
--		kfree(pathname);
- 		return -EINVAL;
- 	}
+ #define ACPI_EC_CLASS			"embedded_controller"
+ #define ACPI_EC_DEVICE_NAME		"Embedded Controller"
+diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
+index 25ceae9..c5e292a 100644
+--- a/drivers/acpi/numa.c
++++ b/drivers/acpi/numa.c
+@@ -29,7 +29,6 @@
+ #include <linux/errno.h>
+ #include <linux/acpi.h>
+ #include <acpi/acpi_bus.h>
+-#include <acpi/acmacros.h>
  
- 	data = kzalloc(sizeof(struct acpi_pci_data), GFP_KERNEL);
--	if (!data) {
--		kfree(pathname);
-+	if (!data)
- 		return -ENOMEM;
--	}
+ #define ACPI_NUMA	0x80000000
+ #define _COMPONENT	ACPI_NUMA
+diff --git a/drivers/acpi/sbshc.c b/drivers/acpi/sbshc.c
+index e53e590..0619734 100644
+--- a/drivers/acpi/sbshc.c
++++ b/drivers/acpi/sbshc.c
+@@ -10,7 +10,6 @@
  
- 	data->id = *id;
- 	data->bus = bus;
- 	device->ops.bind = acpi_pci_bind;
- 	device->ops.unbind = acpi_pci_unbind;
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+-#include <acpi/actypes.h>
+ #include <linux/wait.h>
+ #include <linux/delay.h>
+ #include <linux/interrupt.h>
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 39b7233..c54d7b6 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -10,7 +10,6 @@
+ #include <linux/kthread.h>
  
--	acpi_get_name(device->handle, ACPI_FULL_PATHNAME, &buffer);
-+	status = acpi_get_name(device->handle, ACPI_FULL_PATHNAME, &buffer);
-+	if (ACPI_FAILURE(status)) {
-+		kfree (data);
-+		return -ENODEV;
-+	}
+ #include <acpi/acpi_drivers.h>
+-#include <acpi/acinterp.h>	/* for acpi_ex_eisa_id_to_string() */
  
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Binding PCI root bridge [%s] to "
--			  "%04x:%02x\n", pathname, id->segment, id->bus));
-+			"%04x:%02x\n", (char *)buffer.pointer,
-+			id->segment, id->bus));
+ #define _COMPONENT		ACPI_BUS_COMPONENT
+ ACPI_MODULE_NAME("scan");
+diff --git a/drivers/acpi/sleep/wakeup.c b/drivers/acpi/sleep/wakeup.c
+index db325c2..2d34806 100644
+--- a/drivers/acpi/sleep/wakeup.c
++++ b/drivers/acpi/sleep/wakeup.c
+@@ -8,7 +8,6 @@
+ #include <acpi/acpi_drivers.h>
+ #include <linux/kernel.h>
+ #include <linux/types.h>
+-#include <acpi/acevents.h>
+ #include "sleep.h"
  
- 	status = acpi_attach_data(device->handle, acpi_pci_data_handler, data);
- 	if (ACPI_FAILURE(status)) {
- 		ACPI_EXCEPTION((AE_INFO, status,
- 				"Unable to attach ACPI-PCI context to device %s",
--				pathname));
-+				(char *)buffer.pointer));
- 		result = -ENODEV;
- 		goto end;
- 	}
+ #define _COMPONENT		ACPI_SYSTEM_COMPONENT
+diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c
+index c012307..246987f 100644
+--- a/drivers/ata/libata-acpi.c
++++ b/drivers/ata/libata-acpi.c
+@@ -19,12 +19,6 @@
+ #include "libata.h"
  
-       end:
--	kfree(pathname);
-+	kfree(buffer.pointer);
- 	if (result != 0)
- 		kfree(data);
+ #include <acpi/acpi_bus.h>
+-#include <acpi/acnames.h>
+-#include <acpi/acnamesp.h>
+-#include <acpi/acparser.h>
+-#include <acpi/acexcep.h>
+-#include <acpi/acmacros.h>
+-#include <acpi/actypes.h>
  
-diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
-index 0515e75..9116c98 100644
---- a/include/acpi/platform/aclinux.h
-+++ b/include/acpi/platform/aclinux.h
-@@ -70,9 +70,6 @@
- #define ACPI_EXPORT_SYMBOL(symbol)  EXPORT_SYMBOL(symbol);
- #define strtoul                     simple_strtoul
+ enum {
+ 	ATA_ACPI_FILTER_SETXFER	= 1 << 0,
+diff --git a/drivers/ata/pata_acpi.c b/drivers/ata/pata_acpi.c
+index e2e332d..8b77a98 100644
+--- a/drivers/ata/pata_acpi.c
++++ b/drivers/ata/pata_acpi.c
+@@ -13,12 +13,6 @@
+ #include <linux/device.h>
+ #include <scsi/scsi_host.h>
+ #include <acpi/acpi_bus.h>
+-#include <acpi/acnames.h>
+-#include <acpi/acnamesp.h>
+-#include <acpi/acparser.h>
+-#include <acpi/acexcep.h>
+-#include <acpi/acmacros.h>
+-#include <acpi/actypes.h>
  
--/* Full namespace pathname length limit - arbitrary */
--#define ACPI_PATHNAME_MAX              256
--
- #else				/* !__KERNEL__ */
+ #include <linux/libata.h>
+ #include <linux/ata.h>
+diff --git a/drivers/char/tpm/tpm_bios.c b/drivers/char/tpm/tpm_bios.c
+index 68f052b..ed306eb 100644
+--- a/drivers/char/tpm/tpm_bios.c
++++ b/drivers/char/tpm/tpm_bios.c
+@@ -23,8 +23,6 @@
+ #include <linux/security.h>
+ #include <linux/module.h>
+ #include <acpi/acpi.h>
+-#include <acpi/actypes.h>
+-#include <acpi/actbl.h>
+ #include "tpm.h"
  
- #include <stdarg.h>
+ #define TCG_EVENT_NAME_LEN_MAX	255
+diff --git a/drivers/ide/ide-acpi.c b/drivers/ide/ide-acpi.c
+index 244a8a0..9e8d52a 100644
+--- a/drivers/ide/ide-acpi.c
++++ b/drivers/ide/ide-acpi.c
+@@ -18,12 +18,6 @@
+ #include <linux/dmi.h>
+ 
+ #include <acpi/acpi_bus.h>
+-#include <acpi/acnames.h>
+-#include <acpi/acnamesp.h>
+-#include <acpi/acparser.h>
+-#include <acpi/acexcep.h>
+-#include <acpi/acmacros.h>
+-#include <acpi/actypes.h>
+ 
+ #define REGS_PER_GTF		7
+ struct taskfile_array {
+diff --git a/drivers/misc/tc1100-wmi.c b/drivers/misc/tc1100-wmi.c
+index f25e4c9..b4a4aa9 100644
+--- a/drivers/misc/tc1100-wmi.c
++++ b/drivers/misc/tc1100-wmi.c
+@@ -30,7 +30,6 @@
+ #include <linux/init.h>
+ #include <linux/types.h>
+ #include <acpi/acpi.h>
+-#include <acpi/actypes.h>
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+ #include <linux/platform_device.h>
+diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
+index 899766e..3478453 100644
+--- a/drivers/misc/thinkpad_acpi.c
++++ b/drivers/misc/thinkpad_acpi.c
+@@ -76,7 +76,6 @@
+ #include <linux/workqueue.h>
+ 
+ #include <acpi/acpi_drivers.h>
+-#include <acpi/acnamesp.h>
+ 
+ #include <linux/pci_ids.h>
+ 
+diff --git a/drivers/pci/hotplug/acpi_pcihp.c b/drivers/pci/hotplug/acpi_pcihp.c
+index e17ef54..2c981cb 100644
+--- a/drivers/pci/hotplug/acpi_pcihp.c
++++ b/drivers/pci/hotplug/acpi_pcihp.c
+@@ -33,7 +33,6 @@
+ #include <linux/pci-acpi.h>
+ #include <acpi/acpi.h>
+ #include <acpi/acpi_bus.h>
+-#include <acpi/actypes.h>
+ 
+ #define MY_NAME	"acpi_pcihp"
+ 
+diff --git a/drivers/pci/hotplug/pciehp.h b/drivers/pci/hotplug/pciehp.h
+index b2801a7..7072952 100644
+--- a/drivers/pci/hotplug/pciehp.h
++++ b/drivers/pci/hotplug/pciehp.h
+@@ -217,7 +217,6 @@ struct hpc_ops {
+ #ifdef CONFIG_ACPI
+ #include <acpi/acpi.h>
+ #include <acpi/acpi_bus.h>
+-#include <acpi/actypes.h>
+ #include <linux/pci-acpi.h>
+ 
+ static inline int pciehp_get_hp_hw_control_from_firmware(struct pci_dev *dev)
+diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+index ae5ec76..9d976d5 100644
+--- a/drivers/pci/pci-acpi.c
++++ b/drivers/pci/pci-acpi.c
+@@ -13,8 +13,6 @@
+ #include <linux/module.h>
+ #include <linux/pci-aspm.h>
+ #include <acpi/acpi.h>
+-#include <acpi/acnamesp.h>
+-#include <acpi/acresrc.h>
+ #include <acpi/acpi_bus.h>
+ 
+ #include <linux/pci-acpi.h>
+diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
+index 383e47c..2834846 100644
+--- a/drivers/pnp/pnpacpi/core.c
++++ b/drivers/pnp/pnpacpi/core.c
+@@ -23,7 +23,6 @@
+ #include <linux/pnp.h>
+ #include <linux/mod_devicetable.h>
+ #include <acpi/acpi_bus.h>
+-#include <acpi/actypes.h>
+ 
+ #include "../base.h"
+ #include "pnpacpi.h"
+diff --git a/include/linux/pci_hotplug.h b/include/linux/pci_hotplug.h
+index a00bd1a..c2d1a7d 100644
+--- a/include/linux/pci_hotplug.h
++++ b/include/linux/pci_hotplug.h
+@@ -223,7 +223,6 @@ struct hotplug_params {
+ #ifdef CONFIG_ACPI
+ #include <acpi/acpi.h>
+ #include <acpi/acpi_bus.h>
+-#include <acpi/actypes.h>
+ extern acpi_status acpi_get_hp_params_from_firmware(struct pci_bus *bus,
+ 				struct hotplug_params *hpp);
+ int acpi_get_hp_hw_control_from_firmware(struct pci_dev *dev, u32 flags);
 -- 
 1.5.6.6
 
