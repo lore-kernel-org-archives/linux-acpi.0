@@ -1,295 +1,140 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 27/94] ACPICA: Add global pointer for FACS table to simplify
- FACS access
-Date: Fri, 09 Jan 2009 04:26:29 -0500
-Message-ID: <009c4cbe99bea2da53f29ad685975a36f38c001c.1231492609.git.len.brown@intel.com>
+Subject: [PATCH 71/94] ACPI: panasonic-laptop.c: remove ACPI_FUNCTION_TRACE
+Date: Fri, 09 Jan 2009 04:27:13 -0500
+Message-ID: <46422814f988b32d595dd2ce6d43f4c6d3623d41.1231492611.git.len.brown@intel.com>
 References: <1231493256-11678-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms046pub.verizon.net ([206.46.252.46]:59678 "EHLO
-	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753787AbZAIJ2b (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 04:28:31 -0500
+Received: from vms173003pub.verizon.net ([206.46.173.3]:44602 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753555AbZAIJ2d (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 04:28:33 -0500
 Received: from localhost.localdomain ([96.237.168.40])
- by vms046.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0KD700MII6ANW493@vms046.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 09 Jan 2009 03:28:00 -0600 (CST)
+ by vms173003.mailsrvcs.net
+ (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+ with ESMTPA id <0KD700BCK6BDP297@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 09 Jan 2009 03:28:27 -0600 (CST)
 In-reply-to: <1231493256-11678-1-git-send-email-lenb@kernel.org>
 In-reply-to: <c5279dee26c0e8d7c4200993bfc4b540d2469598.1231492606.git.len.brown@intel.com>
 References: <c5279dee26c0e8d7c4200993bfc4b540d2469598.1231492606.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Bob Moore <robert.moore@intel.com>
+From: Lin Ming <ming.m.lin@intel.com>
 
-Use a global pointer instead of using AcpiGetTableByIndex for
-each FACS access. This simplifies the code for the Global Lock
-and the Firmware Waking Vector(s).
+ACPI_FUNCTION_TRACE is an internal acpica function.
+remove ACPI_FUNCTION_TRACE from driver file
 
-Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/events/evmisc.c      |   22 ++++++----------------
- drivers/acpi/hardware/hwsleep.c   |   37 ++++++-------------------------------
- drivers/acpi/tables/tbutils.c     |   24 ++++++++++++++++++++++++
- drivers/acpi/utilities/utglobal.c |    1 +
- drivers/acpi/utilities/utxface.c  |   11 +++++++++++
- include/acpi/acglobal.h           |    1 +
- include/acpi/actables.h           |    2 ++
- 7 files changed, 51 insertions(+), 47 deletions(-)
+ drivers/misc/panasonic-laptop.c |   22 ----------------------
+ 1 files changed, 0 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/acpi/events/evmisc.c b/drivers/acpi/events/evmisc.c
-index 1d5670b..82c457f 100644
---- a/drivers/acpi/events/evmisc.c
-+++ b/drivers/acpi/events/evmisc.c
-@@ -49,11 +49,7 @@
- #define _COMPONENT          ACPI_EVENTS
- ACPI_MODULE_NAME("evmisc")
+diff --git a/drivers/misc/panasonic-laptop.c b/drivers/misc/panasonic-laptop.c
+index 4a1bc64..f30db36 100644
+--- a/drivers/misc/panasonic-laptop.c
++++ b/drivers/misc/panasonic-laptop.c
+@@ -241,8 +241,6 @@ static int acpi_pcc_write_sset(struct pcc_acpi *pcc, int func, int val)
+ 	};
+ 	acpi_status status = AE_OK;
  
--/* Pointer to FACS needed for the Global Lock */
--static struct acpi_table_facs *facs = NULL;
+-	ACPI_FUNCTION_TRACE("acpi_pcc_write_sset");
 -
- /* Local prototypes */
+ 	status = acpi_evaluate_object(pcc->handle, METHOD_HKEY_SSET,
+ 				      &params, NULL);
+ 
+@@ -254,8 +252,6 @@ static inline int acpi_pcc_get_sqty(struct acpi_device *device)
+ 	unsigned long long s;
+ 	acpi_status status;
+ 
+-	ACPI_FUNCTION_TRACE("acpi_pcc_get_sqty");
 -
- static void ACPI_SYSTEM_XFACE acpi_ev_notify_dispatch(void *context);
+ 	status = acpi_evaluate_integer(device->handle, METHOD_HKEY_SQTY,
+ 				       NULL, &s);
+ 	if (ACPI_SUCCESS(status))
+@@ -274,8 +270,6 @@ static int acpi_pcc_retrieve_biosdata(struct pcc_acpi *pcc, u32 *sinf)
+ 	union acpi_object *hkey = NULL;
+ 	int i;
  
- static u32 acpi_ev_global_lock_handler(void *context);
-@@ -299,7 +295,7 @@ static u32 acpi_ev_global_lock_handler(void *context)
- 	 * If we don't get it now, it will be marked pending and we will
- 	 * take another interrupt when it becomes free.
- 	 */
--	ACPI_ACQUIRE_GLOBAL_LOCK(facs, acquired);
-+	ACPI_ACQUIRE_GLOBAL_LOCK(acpi_gbl_FACS, acquired);
- 	if (acquired) {
+-	ACPI_FUNCTION_TRACE("acpi_pcc_retrieve_biosdata");
+-
+ 	status = acpi_evaluate_object(pcc->handle, METHOD_HKEY_SINF, 0,
+ 				      &buffer);
+ 	if (ACPI_FAILURE(status)) {
+@@ -501,8 +495,6 @@ static void acpi_pcc_generate_keyinput(struct pcc_acpi *pcc)
+ 	int key_code, hkey_num;
+ 	unsigned long long result;
  
- 		/* Got the lock, now wake all threads waiting for it */
-@@ -336,15 +332,8 @@ acpi_status acpi_ev_init_global_lock_handler(void)
+-	ACPI_FUNCTION_TRACE("acpi_pcc_generate_keyinput");
+-
+ 	rc = acpi_evaluate_integer(pcc->handle, METHOD_HKEY_QUERY,
+ 				   NULL, &result);
+ 	if (!ACPI_SUCCESS(rc)) {
+@@ -538,8 +530,6 @@ static void acpi_pcc_hotkey_notify(acpi_handle handle, u32 event, void *data)
+ {
+ 	struct pcc_acpi *pcc = (struct pcc_acpi *) data;
  
- 	ACPI_FUNCTION_TRACE(ev_init_global_lock_handler);
+-	ACPI_FUNCTION_TRACE("acpi_pcc_hotkey_notify");
+-
+ 	switch (event) {
+ 	case HKEY_NOTIFY:
+ 		acpi_pcc_generate_keyinput(pcc);
+@@ -554,8 +544,6 @@ static int acpi_pcc_init_input(struct pcc_acpi *pcc)
+ {
+ 	int i, rc;
  
--	status = acpi_get_table_by_index(ACPI_TABLE_INDEX_FACS,
--					 ACPI_CAST_INDIRECT_PTR(struct
--								acpi_table_header,
--								&facs));
--	if (ACPI_FAILURE(status)) {
--		return_ACPI_STATUS(status);
--	}
-+	/* Attempt installation of the global lock handler */
+-	ACPI_FUNCTION_TRACE("acpi_pcc_init_input");
+-
+ 	pcc->input_dev = input_allocate_device();
+ 	if (!pcc->input_dev) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
+@@ -597,8 +585,6 @@ static int acpi_pcc_hotkey_resume(struct acpi_device *device)
+ 	struct pcc_acpi *pcc = acpi_driver_data(device);
+ 	acpi_status status = AE_OK;
  
--	acpi_gbl_global_lock_present = TRUE;
- 	status = acpi_install_fixed_event_handler(ACPI_EVENT_GLOBAL,
- 						  acpi_ev_global_lock_handler,
- 						  NULL);
-@@ -361,9 +350,10 @@ acpi_status acpi_ev_init_global_lock_handler(void)
- 			    "No response from Global Lock hardware, disabling lock"));
+-	ACPI_FUNCTION_TRACE("acpi_pcc_hotkey_resume");
+-
+ 	if (device == NULL || pcc == NULL)
+ 		return -EINVAL;
  
- 		acpi_gbl_global_lock_present = FALSE;
--		status = AE_OK;
-+		return_ACPI_STATUS(AE_OK);
- 	}
+@@ -616,8 +602,6 @@ static int acpi_pcc_hotkey_add(struct acpi_device *device)
+ 	struct pcc_acpi *pcc;
+ 	int num_sifr, result;
  
-+	acpi_gbl_global_lock_present = TRUE;
- 	return_ACPI_STATUS(status);
+-	ACPI_FUNCTION_TRACE("acpi_pcc_hotkey_add");
+-
+ 	if (!device)
+ 		return -EINVAL;
+ 
+@@ -714,8 +698,6 @@ static int __init acpi_pcc_init(void)
+ {
+ 	int result = 0;
+ 
+-	ACPI_FUNCTION_TRACE("acpi_pcc_init");
+-
+ 	if (acpi_disabled)
+ 		return -ENODEV;
+ 
+@@ -733,8 +715,6 @@ static int acpi_pcc_hotkey_remove(struct acpi_device *device, int type)
+ {
+ 	struct pcc_acpi *pcc = acpi_driver_data(device);
+ 
+-	ACPI_FUNCTION_TRACE("acpi_pcc_hotkey_remove");
+-
+ 	if (!device || !pcc)
+ 		return -EINVAL;
+ 
+@@ -757,8 +737,6 @@ static int acpi_pcc_hotkey_remove(struct acpi_device *device, int type)
+ 
+ static void __exit acpi_pcc_exit(void)
+ {
+-	ACPI_FUNCTION_TRACE("acpi_pcc_exit");
+-
+ 	acpi_bus_unregister_driver(&acpi_pcc_driver);
  }
  
-@@ -472,7 +462,7 @@ acpi_status acpi_ev_acquire_global_lock(u16 timeout)
- 
- 	/* Attempt to acquire the actual hardware lock */
- 
--	ACPI_ACQUIRE_GLOBAL_LOCK(facs, acquired);
-+	ACPI_ACQUIRE_GLOBAL_LOCK(acpi_gbl_FACS, acquired);
- 	if (acquired) {
- 
- 		/* We got the lock */
-@@ -536,7 +526,7 @@ acpi_status acpi_ev_release_global_lock(void)
- 
- 		/* Allow any thread to release the lock */
- 
--		ACPI_RELEASE_GLOBAL_LOCK(facs, pending);
-+		ACPI_RELEASE_GLOBAL_LOCK(acpi_gbl_FACS, pending);
- 
- 		/*
- 		 * If the pending bit was set, we must write GBL_RLS to the control
-diff --git a/drivers/acpi/hardware/hwsleep.c b/drivers/acpi/hardware/hwsleep.c
-index 6a30c80..5ec727f 100644
---- a/drivers/acpi/hardware/hwsleep.c
-+++ b/drivers/acpi/hardware/hwsleep.c
-@@ -63,20 +63,8 @@ ACPI_MODULE_NAME("hwsleep")
- acpi_status
- acpi_set_firmware_waking_vector(u32 physical_address)
- {
--	struct acpi_table_facs *facs;
--	acpi_status status;
--
- 	ACPI_FUNCTION_TRACE(acpi_set_firmware_waking_vector);
- 
--	/* Get the FACS */
--
--	status = acpi_get_table_by_index(ACPI_TABLE_INDEX_FACS,
--					 ACPI_CAST_INDIRECT_PTR(struct
--								acpi_table_header,
--								&facs));
--	if (ACPI_FAILURE(status)) {
--		return_ACPI_STATUS(status);
--	}
- 
- 	/*
- 	 * According to the ACPI specification 2.0c and later, the 64-bit
-@@ -88,12 +76,12 @@ acpi_set_firmware_waking_vector(u32 physical_address)
- 
- 	/* Set the 32-bit vector */
- 
--	facs->firmware_waking_vector = physical_address;
-+	acpi_gbl_FACS->firmware_waking_vector = physical_address;
- 
- 	/* Clear the 64-bit vector if it exists */
- 
--	if ((facs->length > 32) && (facs->version >= 1)) {
--		facs->xfirmware_waking_vector = 0;
-+	if ((acpi_gbl_FACS->length > 32) && (acpi_gbl_FACS->version >= 1)) {
-+		acpi_gbl_FACS->xfirmware_waking_vector = 0;
- 	}
- 
- 	return_ACPI_STATUS(AE_OK);
-@@ -117,32 +105,19 @@ ACPI_EXPORT_SYMBOL(acpi_set_firmware_waking_vector)
- acpi_status
- acpi_set_firmware_waking_vector64(u64 physical_address)
- {
--	struct acpi_table_facs *facs;
--	acpi_status status;
--
- 	ACPI_FUNCTION_TRACE(acpi_set_firmware_waking_vector64);
- 
- 
--	/* Get the FACS */
--
--	status = acpi_get_table_by_index(ACPI_TABLE_INDEX_FACS,
--					 ACPI_CAST_INDIRECT_PTR(struct
--								acpi_table_header,
--								&facs));
--	if (ACPI_FAILURE(status)) {
--		return_ACPI_STATUS(status);
--	}
--
- 	/* Determine if the 64-bit vector actually exists */
- 
--	if ((facs->length <= 32) || (facs->version < 1)) {
-+	if ((acpi_gbl_FACS->length <= 32) || (acpi_gbl_FACS->version < 1)) {
- 		return_ACPI_STATUS(AE_NOT_EXIST);
- 	}
- 
- 	/* Clear 32-bit vector, set the 64-bit X_ vector */
- 
--	facs->firmware_waking_vector = 0;
--	facs->xfirmware_waking_vector = physical_address;
-+	acpi_gbl_FACS->firmware_waking_vector = 0;
-+	acpi_gbl_FACS->xfirmware_waking_vector = physical_address;
- 
- 	return_ACPI_STATUS(AE_OK);
- }
-diff --git a/drivers/acpi/tables/tbutils.c b/drivers/acpi/tables/tbutils.c
-index 0cc92ef..50e6777 100644
---- a/drivers/acpi/tables/tbutils.c
-+++ b/drivers/acpi/tables/tbutils.c
-@@ -113,6 +113,30 @@ acpi_tb_check_xsdt(acpi_physical_address address)
- 
- /*******************************************************************************
-  *
-+ * FUNCTION:    acpi_tb_initialize_facs
-+ *
-+ * PARAMETERS:  None
-+ *
-+ * RETURN:      Status
-+ *
-+ * DESCRIPTION: Create a permanent mapping for the FADT and save it in a global
-+ *              for accessing the Global Lock and Firmware Waking Vector
-+ *
-+ ******************************************************************************/
-+
-+acpi_status acpi_tb_initialize_facs(void)
-+{
-+	acpi_status status;
-+
-+	status = acpi_get_table_by_index(ACPI_TABLE_INDEX_FACS,
-+					 ACPI_CAST_INDIRECT_PTR(struct
-+								acpi_table_header,
-+								&acpi_gbl_FACS));
-+	return status;
-+}
-+
-+/*******************************************************************************
-+ *
-  * FUNCTION:    acpi_tb_tables_loaded
-  *
-  * PARAMETERS:  None
-diff --git a/drivers/acpi/utilities/utglobal.c b/drivers/acpi/utilities/utglobal.c
-index 3dc5311..211d621 100644
---- a/drivers/acpi/utilities/utglobal.c
-+++ b/drivers/acpi/utilities/utglobal.c
-@@ -771,6 +771,7 @@ acpi_status acpi_ut_init_globals(void)
- 	acpi_gbl_global_lock_mutex = NULL;
- 	acpi_gbl_global_lock_acquired = FALSE;
- 	acpi_gbl_global_lock_handle = 0;
-+	acpi_gbl_global_lock_present = FALSE;
- 
- 	/* Miscellaneous variables */
- 
-diff --git a/drivers/acpi/utilities/utxface.c b/drivers/acpi/utilities/utxface.c
-index c198a4d..7ca8952 100644
---- a/drivers/acpi/utilities/utxface.c
-+++ b/drivers/acpi/utilities/utxface.c
-@@ -45,6 +45,7 @@
- #include <acpi/acevents.h>
- #include <acpi/acnamesp.h>
- #include <acpi/acdebug.h>
-+#include <acpi/actables.h>
- 
- #define _COMPONENT          ACPI_UTILITIES
- ACPI_MODULE_NAME("utxface")
-@@ -148,6 +149,16 @@ acpi_status acpi_enable_subsystem(u32 flags)
- 	}
- 
- 	/*
-+	 * Obtain a permanent mapping for the FACS. This is required for the
-+	 * Global Lock and the Firmware Waking Vector
-+	 */
-+	status = acpi_tb_initialize_facs();
-+	if (ACPI_FAILURE(status)) {
-+		ACPI_WARNING((AE_INFO, "Could not map the FACS table"));
-+		return_ACPI_STATUS(status);
-+	}
-+
-+	/*
- 	 * Install the default op_region handlers. These are installed unless
- 	 * other handlers have already been installed via the
- 	 * install_address_space_handler interface.
-diff --git a/include/acpi/acglobal.h b/include/acpi/acglobal.h
-index 15dda46..77d73a4 100644
---- a/include/acpi/acglobal.h
-+++ b/include/acpi/acglobal.h
-@@ -140,6 +140,7 @@ ACPI_EXTERN u32 acpi_gbl_trace_flags;
-  */
- ACPI_EXTERN struct acpi_internal_rsdt acpi_gbl_root_table_list;
- ACPI_EXTERN struct acpi_table_fadt acpi_gbl_FADT;
-+ACPI_EXTERN struct acpi_table_facs *acpi_gbl_FACS;
- extern u8 acpi_gbl_permanent_mmap;
- 
- /* These addresses are calculated from FADT address values */
-diff --git a/include/acpi/actables.h b/include/acpi/actables.h
-index 0cbe1b9..7ce6e33 100644
---- a/include/acpi/actables.h
-+++ b/include/acpi/actables.h
-@@ -94,6 +94,8 @@ void acpi_tb_set_table_loaded_flag(u32 table_index, u8 is_loaded);
- /*
-  * tbutils - table manager utilities
-  */
-+acpi_status acpi_tb_initialize_facs(void);
-+
- u8 acpi_tb_tables_loaded(void);
- 
- void
 -- 
 1.5.6.6
 
