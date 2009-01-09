@@ -1,18 +1,18 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 87/94] ACPICA: delete utcache.c
-Date: Fri, 09 Jan 2009 04:27:29 -0500
-Message-ID: <6620e0c49f577454b772fb381543d60ae53eb885.1231492614.git.len.brown@intel.com>
+Subject: [PATCH 59/94] ACPI: simplify buffer management for acpi_pci_bind() etc.
+Date: Fri, 09 Jan 2009 04:27:01 -0500
+Message-ID: <087da3b4e2d7d3ef70a4fa649b9a286fdeb0e44e.1231492610.git.len.brown@intel.com>
 References: <1231493256-11678-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173007pub.verizon.net ([206.46.173.7]:56372 "EHLO
-	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753786AbZAIJ2u (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 04:28:50 -0500
+Received: from vms173001pub.verizon.net ([206.46.173.1]:40934 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754189AbZAIJ2s (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 04:28:48 -0500
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173007.mailsrvcs.net
+ by vms173001.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0KD70043969E15D6@vms173007.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 09 Jan 2009 03:27:15 -0600 (CST)
+ with ESMTPA id <0KD700D4G6B8P8PI@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 09 Jan 2009 03:28:21 -0600 (CST)
 In-reply-to: <1231493256-11678-1-git-send-email-lenb@kernel.org>
 In-reply-to: <c5279dee26c0e8d7c4200993bfc4b540d2469598.1231492606.git.len.brown@intel.com>
 References: <c5279dee26c0e8d7c4200993bfc4b540d2469598.1231492606.git.len.brown@intel.com>
@@ -23,349 +23,189 @@ Cc: Len Brown <len.brown@intel.com>
 
 From: Len Brown <len.brown@intel.com>
 
-ACPI_USE_LOCAL_CACHE will never be defined by the Linux kernel,
-and thus utcache.c will always be dead code.
+use ACPI_ALLOCATE_BUFFER to remove the allocations
+within acpi_pci_bind(), acpi_pci_unbind() and acpi_pci_bind_root().
+While there, delete some unnecessary param inits from those routines.
+
+Delete concept of ACPI_PATHNAME_MAX, since this was the last use.
 
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/utilities/Makefile  |    2 +-
- drivers/acpi/utilities/utcache.c |  315 --------------------------------------
- 2 files changed, 1 insertions(+), 316 deletions(-)
- delete mode 100644 drivers/acpi/utilities/utcache.c
+ drivers/acpi/pci_bind.c         |   80 ++++++++++++++++-----------------------
+ include/acpi/platform/aclinux.h |    3 -
+ 2 files changed, 33 insertions(+), 50 deletions(-)
 
-diff --git a/drivers/acpi/utilities/Makefile b/drivers/acpi/utilities/Makefile
-index 88eff14..66a71a5 100644
---- a/drivers/acpi/utilities/Makefile
-+++ b/drivers/acpi/utilities/Makefile
-@@ -4,6 +4,6 @@
+diff --git a/drivers/acpi/pci_bind.c b/drivers/acpi/pci_bind.c
+index 53f502d..95650f8 100644
+--- a/drivers/acpi/pci_bind.c
++++ b/drivers/acpi/pci_bind.c
+@@ -111,12 +111,11 @@ EXPORT_SYMBOL(acpi_get_pci_id);
+ int acpi_pci_bind(struct acpi_device *device)
+ {
+ 	int result = 0;
+-	acpi_status status = AE_OK;
+-	struct acpi_pci_data *data = NULL;
+-	struct acpi_pci_data *pdata = NULL;
+-	char *pathname = NULL;
+-	struct acpi_buffer buffer = { 0, NULL };
+-	acpi_handle handle = NULL;
++	acpi_status status;
++	struct acpi_pci_data *data;
++	struct acpi_pci_data *pdata;
++	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
++	acpi_handle handle;
+ 	struct pci_dev *dev;
+ 	struct pci_bus *bus;
  
- obj-y := utalloc.o utdebug.o uteval.o utinit.o utmisc.o utxface.o \
- 		utcopy.o utdelete.o utglobal.o utmath.o utobject.o \
--		utstate.o utmutex.o utobject.o utcache.o utresrc.o
-+		utstate.o utmutex.o utobject.o utresrc.o
+@@ -124,21 +123,18 @@ int acpi_pci_bind(struct acpi_device *device)
+ 	if (!device || !device->parent)
+ 		return -EINVAL;
  
- EXTRA_CFLAGS += $(ACPI_CFLAGS)
-diff --git a/drivers/acpi/utilities/utcache.c b/drivers/acpi/utilities/utcache.c
-deleted file mode 100644
-index 1e549fd..0000000
---- a/drivers/acpi/utilities/utcache.c
-+++ /dev/null
-@@ -1,315 +0,0 @@
--/******************************************************************************
-- *
-- * Module Name: utcache - local cache allocation routines
-- *
-- *****************************************************************************/
+-	pathname = kzalloc(ACPI_PATHNAME_MAX, GFP_KERNEL);
+-	if (!pathname)
+-		return -ENOMEM;
+-	buffer.length = ACPI_PATHNAME_MAX;
+-	buffer.pointer = pathname;
 -
--/*
-- * Copyright (C) 2000 - 2008, Intel Corp.
-- * All rights reserved.
-- *
-- * Redistribution and use in source and binary forms, with or without
-- * modification, are permitted provided that the following conditions
-- * are met:
-- * 1. Redistributions of source code must retain the above copyright
-- *    notice, this list of conditions, and the following disclaimer,
-- *    without modification.
-- * 2. Redistributions in binary form must reproduce at minimum a disclaimer
-- *    substantially similar to the "NO WARRANTY" disclaimer below
-- *    ("Disclaimer") and any redistribution must be conditioned upon
-- *    including a substantially similar Disclaimer requirement for further
-- *    binary redistribution.
-- * 3. Neither the names of the above-listed copyright holders nor the names
-- *    of any contributors may be used to endorse or promote products derived
-- *    from this software without specific prior written permission.
-- *
-- * Alternatively, this software may be distributed under the terms of the
-- * GNU General Public License ("GPL") version 2 as published by the Free
-- * Software Foundation.
-- *
-- * NO WARRANTY
-- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR
-- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-- * HOLDERS OR CONTRIBUTORS BE LIABLE FOR SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-- * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-- * POSSIBILITY OF SUCH DAMAGES.
-- */
+ 	data = kzalloc(sizeof(struct acpi_pci_data), GFP_KERNEL);
+-	if (!data) {
+-		kfree(pathname);
++	if (!data)
+ 		return -ENOMEM;
++
++	status = acpi_get_name(device->handle, ACPI_FULL_PATHNAME, &buffer);
++	if (ACPI_FAILURE(status)) {
++		kfree(data);
++		return -ENODEV;
+ 	}
+ 
+-	acpi_get_name(device->handle, ACPI_FULL_PATHNAME, &buffer);
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Binding PCI device [%s]...\n",
+-			  pathname));
++			  (char *)buffer.pointer));
+ 
+ 	/* 
+ 	 * Segment & Bus
+@@ -262,7 +258,7 @@ int acpi_pci_bind(struct acpi_device *device)
+ 	}
+ 
+       end:
+-	kfree(pathname);
++	kfree(buffer.pointer);
+ 	if (result)
+ 		kfree(data);
+ 
+@@ -272,25 +268,21 @@ int acpi_pci_bind(struct acpi_device *device)
+ static int acpi_pci_unbind(struct acpi_device *device)
+ {
+ 	int result = 0;
+-	acpi_status status = AE_OK;
+-	struct acpi_pci_data *data = NULL;
+-	char *pathname = NULL;
+-	struct acpi_buffer buffer = { 0, NULL };
++	acpi_status status;
++	struct acpi_pci_data *data;
++	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+ 
+ 
+ 	if (!device || !device->parent)
+ 		return -EINVAL;
+ 
+-	pathname = kzalloc(ACPI_PATHNAME_MAX, GFP_KERNEL);
+-	if (!pathname)
+-		return -ENOMEM;
++	status = acpi_get_name(device->handle, ACPI_FULL_PATHNAME, &buffer);
++	if (ACPI_FAILURE(status))
++		return -ENODEV;
+ 
+-	buffer.length = ACPI_PATHNAME_MAX;
+-	buffer.pointer = pathname;
+-	acpi_get_name(device->handle, ACPI_FULL_PATHNAME, &buffer);
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Unbinding PCI device [%s]...\n",
+-			  pathname));
+-	kfree(pathname);
++			  (char *) buffer.pointer));
++	kfree(buffer.pointer);
+ 
+ 	status =
+ 	    acpi_get_data(device->handle, acpi_pci_data_handler,
+@@ -322,50 +314,44 @@ acpi_pci_bind_root(struct acpi_device *device,
+ 		   struct acpi_pci_id *id, struct pci_bus *bus)
+ {
+ 	int result = 0;
+-	acpi_status status = AE_OK;
++	acpi_status status;
+ 	struct acpi_pci_data *data = NULL;
+-	char *pathname = NULL;
+-	struct acpi_buffer buffer = { 0, NULL };
 -
--#include <acpi/acpi.h>
--#include <acpi/accommon.h>
+-	pathname = kzalloc(ACPI_PATHNAME_MAX, GFP_KERNEL);
+-	if (!pathname)
+-		return -ENOMEM;
 -
--#define _COMPONENT          ACPI_UTILITIES
--ACPI_MODULE_NAME("utcache")
--#ifdef ACPI_USE_LOCAL_CACHE
--/*******************************************************************************
-- *
-- * FUNCTION:    acpi_os_create_cache
-- *
-- * PARAMETERS:  cache_name      - Ascii name for the cache
-- *              object_size     - Size of each cached object
-- *              max_depth       - Maximum depth of the cache (in objects)
-- *              return_cache    - Where the new cache object is returned
-- *
-- * RETURN:      Status
-- *
-- * DESCRIPTION: Create a cache object
-- *
-- ******************************************************************************/
--acpi_status
--acpi_os_create_cache(char *cache_name,
--		     u16 object_size,
--		     u16 max_depth, struct acpi_memory_list ** return_cache)
--{
--	struct acpi_memory_list *cache;
--
--	ACPI_FUNCTION_ENTRY();
--
--	if (!cache_name || !return_cache || (object_size < 16)) {
--		return (AE_BAD_PARAMETER);
+-	buffer.length = ACPI_PATHNAME_MAX;
+-	buffer.pointer = pathname;
++	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+ 
+ 	if (!device || !id || !bus) {
+-		kfree(pathname);
+ 		return -EINVAL;
+ 	}
+ 
+ 	data = kzalloc(sizeof(struct acpi_pci_data), GFP_KERNEL);
+-	if (!data) {
+-		kfree(pathname);
++	if (!data)
+ 		return -ENOMEM;
 -	}
+ 
+ 	data->id = *id;
+ 	data->bus = bus;
+ 	device->ops.bind = acpi_pci_bind;
+ 	device->ops.unbind = acpi_pci_unbind;
+ 
+-	acpi_get_name(device->handle, ACPI_FULL_PATHNAME, &buffer);
++	status = acpi_get_name(device->handle, ACPI_FULL_PATHNAME, &buffer);
++	if (ACPI_FAILURE(status)) {
++		kfree (data);
++		return -ENODEV;
++	}
+ 
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Binding PCI root bridge [%s] to "
+-			  "%04x:%02x\n", pathname, id->segment, id->bus));
++			"%04x:%02x\n", (char *)buffer.pointer,
++			id->segment, id->bus));
+ 
+ 	status = acpi_attach_data(device->handle, acpi_pci_data_handler, data);
+ 	if (ACPI_FAILURE(status)) {
+ 		ACPI_EXCEPTION((AE_INFO, status,
+ 				"Unable to attach ACPI-PCI context to device %s",
+-				pathname));
++				(char *)buffer.pointer));
+ 		result = -ENODEV;
+ 		goto end;
+ 	}
+ 
+       end:
+-	kfree(pathname);
++	kfree(buffer.pointer);
+ 	if (result != 0)
+ 		kfree(data);
+ 
+diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
+index 0515e75..9116c98 100644
+--- a/include/acpi/platform/aclinux.h
++++ b/include/acpi/platform/aclinux.h
+@@ -70,9 +70,6 @@
+ #define ACPI_EXPORT_SYMBOL(symbol)  EXPORT_SYMBOL(symbol);
+ #define strtoul                     simple_strtoul
+ 
+-/* Full namespace pathname length limit - arbitrary */
+-#define ACPI_PATHNAME_MAX              256
 -
--	/* Create the cache object */
--
--	cache = acpi_os_allocate(sizeof(struct acpi_memory_list));
--	if (!cache) {
--		return (AE_NO_MEMORY);
--	}
--
--	/* Populate the cache object and return it */
--
--	ACPI_MEMSET(cache, 0, sizeof(struct acpi_memory_list));
--	cache->link_offset = 8;
--	cache->list_name = cache_name;
--	cache->object_size = object_size;
--	cache->max_depth = max_depth;
--
--	*return_cache = cache;
--	return (AE_OK);
--}
--
--/*******************************************************************************
-- *
-- * FUNCTION:    acpi_os_purge_cache
-- *
-- * PARAMETERS:  Cache           - Handle to cache object
-- *
-- * RETURN:      Status
-- *
-- * DESCRIPTION: Free all objects within the requested cache.
-- *
-- ******************************************************************************/
--
--acpi_status acpi_os_purge_cache(struct acpi_memory_list * cache)
--{
--	char *next;
--
--	ACPI_FUNCTION_ENTRY();
--
--	if (!cache) {
--		return (AE_BAD_PARAMETER);
--	}
--
--	/* Walk the list of objects in this cache */
--
--	while (cache->list_head) {
--
--		/* Delete and unlink one cached state object */
--
--		next = *(ACPI_CAST_INDIRECT_PTR(char,
--						&(((char *)cache->
--						   list_head)[cache->
--							      link_offset])));
--		ACPI_FREE(cache->list_head);
--
--		cache->list_head = next;
--		cache->current_depth--;
--	}
--
--	return (AE_OK);
--}
--
--/*******************************************************************************
-- *
-- * FUNCTION:    acpi_os_delete_cache
-- *
-- * PARAMETERS:  Cache           - Handle to cache object
-- *
-- * RETURN:      Status
-- *
-- * DESCRIPTION: Free all objects within the requested cache and delete the
-- *              cache object.
-- *
-- ******************************************************************************/
--
--acpi_status acpi_os_delete_cache(struct acpi_memory_list * cache)
--{
--	acpi_status status;
--
--	ACPI_FUNCTION_ENTRY();
--
--	/* Purge all objects in the cache */
--
--	status = acpi_os_purge_cache(cache);
--	if (ACPI_FAILURE(status)) {
--		return (status);
--	}
--
--	/* Now we can delete the cache object */
--
--	ACPI_FREE(cache);
--	return (AE_OK);
--}
--
--/*******************************************************************************
-- *
-- * FUNCTION:    acpi_os_release_object
-- *
-- * PARAMETERS:  Cache       - Handle to cache object
-- *              Object      - The object to be released
-- *
-- * RETURN:      None
-- *
-- * DESCRIPTION: Release an object to the specified cache.  If cache is full,
-- *              the object is deleted.
-- *
-- ******************************************************************************/
--
--acpi_status
--acpi_os_release_object(struct acpi_memory_list * cache, void *object)
--{
--	acpi_status status;
--
--	ACPI_FUNCTION_ENTRY();
--
--	if (!cache || !object) {
--		return (AE_BAD_PARAMETER);
--	}
--
--	/* If cache is full, just free this object */
--
--	if (cache->current_depth >= cache->max_depth) {
--		ACPI_FREE(object);
--		ACPI_MEM_TRACKING(cache->total_freed++);
--	}
--
--	/* Otherwise put this object back into the cache */
--
--	else {
--		status = acpi_ut_acquire_mutex(ACPI_MTX_CACHES);
--		if (ACPI_FAILURE(status)) {
--			return (status);
--		}
--
--		/* Mark the object as cached */
--
--		ACPI_MEMSET(object, 0xCA, cache->object_size);
--		ACPI_SET_DESCRIPTOR_TYPE(object, ACPI_DESC_TYPE_CACHED);
--
--		/* Put the object at the head of the cache list */
--
--		*(ACPI_CAST_INDIRECT_PTR(char,
--					 &(((char *)object)[cache->
--							    link_offset]))) =
--		    cache->list_head;
--		cache->list_head = object;
--		cache->current_depth++;
--
--		(void)acpi_ut_release_mutex(ACPI_MTX_CACHES);
--	}
--
--	return (AE_OK);
--}
--
--/*******************************************************************************
-- *
-- * FUNCTION:    acpi_os_acquire_object
-- *
-- * PARAMETERS:  Cache           - Handle to cache object
-- *
-- * RETURN:      the acquired object.  NULL on error
-- *
-- * DESCRIPTION: Get an object from the specified cache.  If cache is empty,
-- *              the object is allocated.
-- *
-- ******************************************************************************/
--
--void *acpi_os_acquire_object(struct acpi_memory_list *cache)
--{
--	acpi_status status;
--	void *object;
--
--	ACPI_FUNCTION_NAME(os_acquire_object);
--
--	if (!cache) {
--		return (NULL);
--	}
--
--	status = acpi_ut_acquire_mutex(ACPI_MTX_CACHES);
--	if (ACPI_FAILURE(status)) {
--		return (NULL);
--	}
--
--	ACPI_MEM_TRACKING(cache->requests++);
--
--	/* Check the cache first */
--
--	if (cache->list_head) {
--
--		/* There is an object available, use it */
--
--		object = cache->list_head;
--		cache->list_head = *(ACPI_CAST_INDIRECT_PTR(char,
--							    &(((char *)
--							       object)[cache->
--								       link_offset])));
--
--		cache->current_depth--;
--
--		ACPI_MEM_TRACKING(cache->hits++);
--		ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
--				  "Object %p from %s cache\n", object,
--				  cache->list_name));
--
--		status = acpi_ut_release_mutex(ACPI_MTX_CACHES);
--		if (ACPI_FAILURE(status)) {
--			return (NULL);
--		}
--
--		/* Clear (zero) the previously used Object */
--
--		ACPI_MEMSET(object, 0, cache->object_size);
--	} else {
--		/* The cache is empty, create a new object */
--
--		ACPI_MEM_TRACKING(cache->total_allocated++);
--
--#ifdef ACPI_DBG_TRACK_ALLOCATIONS
--		if ((cache->total_allocated - cache->total_freed) >
--		    cache->max_occupied) {
--			cache->max_occupied =
--			    cache->total_allocated - cache->total_freed;
--		}
--#endif
--
--		/* Avoid deadlock with ACPI_ALLOCATE_ZEROED */
--
--		status = acpi_ut_release_mutex(ACPI_MTX_CACHES);
--		if (ACPI_FAILURE(status)) {
--			return (NULL);
--		}
--
--		object = ACPI_ALLOCATE_ZEROED(cache->object_size);
--		if (!object) {
--			return (NULL);
--		}
--	}
--
--	return (object);
--}
--#endif				/* ACPI_USE_LOCAL_CACHE */
+ #else				/* !__KERNEL__ */
+ 
+ #include <stdarg.h>
 -- 
 1.5.6.6
 
