@@ -1,28 +1,35 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [patch 3/6] eeepc-laptop: enable Bluetooth for Asus EEE 901
-Date: Fri, 9 Jan 2009 13:39:08 -0800
-Message-ID: <20090109133908.631b0fc1.akpm@linux-foundation.org>
-References: <200901092017.n09KHA3E014942@imap1.linux-foundation.org>
-	<alpine.LFD.2.00.0901091623400.16697@localhost.localdomain>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: git mv (was Re: [git pull] ACPI & Suspend patches for
+ 2.6.29-rc0)
+Date: Fri, 9 Jan 2009 13:40:32 -0800 (PST)
+Message-ID: <alpine.LFD.2.00.0901091339270.6528@localhost.localdomain>
+References: <alpine.LFD.2.00.0901090550590.4091@localhost.localdomain> <alpine.LFD.2.00.0901091200150.6528@localhost.localdomain> <alpine.LFD.2.00.0901091537530.16697@localhost.localdomain> <alpine.LFD.2.00.0901091305160.6528@localhost.localdomain>
+ <20090109212757.GA25434@uranus.ravnborg.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39819 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34567 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752217AbZAIVjp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 16:39:45 -0500
-In-Reply-To: <alpine.LFD.2.00.0901091623400.16697@localhost.localdomain>
+	by vger.kernel.org with ESMTP id S1751111AbZAIVlC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 16:41:02 -0500
+In-Reply-To: <20090109212757.GA25434@uranus.ravnborg.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, santiago@crfreenet.org, corentincj@iksaif.net, mjg59@srcf.ucam.org
+To: Sam Ravnborg <sam@ravnborg.org>
+Cc: Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Linux Power Management List <linux-pm@lists.osdl.org>
 
-On Fri, 09 Jan 2009 16:24:09 -0500 (EST)
-Len Brown <lenb@kernel.org> wrote:
 
-> the original version of this patch is already in my tree
-> queued for linus.
 
-It's not in today's linux-next?
+On Fri, 9 Jan 2009, Sam Ravnborg wrote:
+> 
+> What other ways exist so I can see what the heck davem did to
+> arch/sparc64/kernel/irq.c then?
 
+Sure, use "git log --follow".
+
+I'm just saying that you can't expect the rest of the git powertools to 
+print pretty histories.. In particular, none of the graphical tools will 
+give you that nice merge history stuff - because the way "--follow" works, 
+we simply don't do that.
+
+		Linus
