@@ -1,55 +1,101 @@
-From: Norbert Preining <preining@logic.at>
-Subject: Re: How to help with sony-laptop on Vaio VGN-TT11
-Date: Fri, 9 Jan 2009 00:41:27 +0100
-Message-ID: <20090108234127.GB19979@gamma.logic.tuwien.ac.at>
-References: <496634F2.3080505@iworks.at> <alpine.LFD.2.00.0901081534190.4505@localhost.localdomain>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH] ACPI: disable the ACPI backlight control on laptops
+	with buggy _BCL methods
+Date: Fri, 09 Jan 2009 09:13:38 +0800
+Message-ID: <1231463618.20746.93.camel@rzhang-dt>
+References: <1231383496.20746.44.camel@rzhang-dt>
+	 <20090108033250.GA2550@srcf.ucam.org> <1231396321.20746.79.camel@rzhang-dt>
+	 <20090108124342.GA10458@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:38390 "EHLO
-	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752690AbZAHXlm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Jan 2009 18:41:42 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.0901081534190.4505@localhost.localdomain>
+Received: from mga14.intel.com ([143.182.124.37]:48175 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752568AbZAIBMX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 8 Jan 2009 20:12:23 -0500
+In-Reply-To: <20090108124342.GA10458@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Michael Wallner <mike@iworks.at>, linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, "trenn@suse.de" <trenn@suse.de>
 
-Hi Len, hi all,
+On Thu, 2009-01-08 at 20:43 +0800, Matthew Garrett wrote:
+> On Thu, Jan 08, 2009 at 02:32:01PM +0800, Zhang Rui wrote:
+> > > Why? These all seem to behave consistently, so I can't see any pr=
+oblem=20
+> > > with us simply adding support for this varient.
+> > the problem is that the ACPI backlight I/F and the platform I/F coe=
+xists
+> > before commit =EF=BB=BFc3d6de698c84efdbdd3781b7058bcc339ab43da8 app=
+lied, and the
+> > platform I/F is preferred.
+>=20
+> For the machines you've looked at - we don't know if that's true for =
+all=20
+> hardware that behaves this way.
+>=20
+> > =EF=BB=BFin bug 12249 and 12037,
+> > 1. the first two elements in _BCL are NOT the backlight levels when=
+ the
+> > platform is on AC or battery.
+>=20
+> We can detect that easily and adjust behaviour accordingly.
+yes.
+we can fake two elements when evaluating _BCL package.
+>=20
+> > 2. _BQC returns the index of the current brightness =EF=BB=BF=EF=BB=
+=BFin _BCL package
+> > rather than the value, which surely breaks the ACPI video driver.
+>=20
+> And again, we can handle that.
+No, we can not handle this one.
+=46or example,
+                    Name (PCTG, Package (0x10)
+                    {
+                        0x64,
+                        0x5A,
+                        0x55,
+                        0x50,
+                        0x4B,
+                        0x46,
+                        0x41,
+                        0x3C,
+                        0x37,
+                        0x32,
+                        0x2D,
+                        0x28,
+                        0x23,
+                        0x1E,
+                        0x19,
+                        0x14
+                    })
 
-On Do, 08 Jan 2009, Len Brown wrote:
-> I've recently got a VGN-z540 and was impressed at how bright it is too:-)
-> 
-> they hotkeys do not work,
-> however, echo into /sys/class/backlight/*/brightness files works,
-> do you have those files?
+_BQC returns 3 when the actual backlight level is 0x50.
+We only know that the value returned by _BQC is invalid but we never
+know the value is an index until we see the _AML code.
 
-VGN Z11 same problem. hardware keys don't work, but via /sys it does.
+thanks,
+rui
+>=20
+> > 2. every elements in the _BCL package is not a percentage of the ma=
+ximum
+> > brightness, which is also a violation of ACPI spec.
+>=20
+> This seems pretty irrelevant - nothing in the code depends on these=20
+> being percentages.
+>=20
+> > yes, we can make the ACPI backlight control work by using customize=
+d
+> > DSDT. But that's not the fix neither. I don't have any better ideas=
+ than
+> > disable them.
+>=20
+> Just fix up video.c to handle these cases.
+>=20
 
-Michael: Which kernel you are running? There have been some fixed which
-helped my laptop to at least get the /sys files working.
-
-The problems is that the /sys files for the wwan interface etc are NOT
-working, they are not doing anything useful AFAI could deduce. 
-
-Len, does it work on yours? Do you have a WWAN interface built in?
-
-Since both the Z11 (mine) and the Z540 (Len's) are very similar AFAIR
-(seems to be only naming differences for different markets) maybe we can
-fix that ...
-
-Best wishes
-
-Norbert
-
--------------------------------------------------------------------------------
-Dr. Norbert Preining <preining@logic.at>        Vienna University of Technology
-Debian Developer <preining@debian.org>                         Debian TeX Group
-gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
--------------------------------------------------------------------------------
-ABERCRAVE (vb.)
-To strongly desire to swing from the pole on the rear footplate of a
-bus.
-			--- Douglas Adams, The Meaning of Liff
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
