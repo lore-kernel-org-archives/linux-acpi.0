@@ -1,140 +1,119 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 71/94] ACPI: panasonic-laptop.c: remove ACPI_FUNCTION_TRACE
-Date: Fri, 09 Jan 2009 04:27:13 -0500
-Message-ID: <46422814f988b32d595dd2ce6d43f4c6d3623d41.1231492611.git.len.brown@intel.com>
+Subject: [PATCH 56/94] ACPI: PCI: expand acpi_pci_allocate_irq() and
+ acpi_pci_free_irq() inline
+Date: Fri, 09 Jan 2009 04:26:58 -0500
+Message-ID: <74f82af1eda39c26c17f8030e4f60c00929ec9df.1231492610.git.len.brown@intel.com>
 References: <1231493256-11678-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:44602 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753555AbZAIJ2d (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 04:28:33 -0500
+Received: from vms173007pub.verizon.net ([206.46.173.7]:56372 "EHLO
+	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753907AbZAIJ2c (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 04:28:32 -0500
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173003.mailsrvcs.net
+ by vms173007.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0KD700BCK6BDP297@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 09 Jan 2009 03:28:27 -0600 (CST)
+ with ESMTPA id <0KD700HTF68UX1F2@vms173007.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 09 Jan 2009 03:26:55 -0600 (CST)
 In-reply-to: <1231493256-11678-1-git-send-email-lenb@kernel.org>
 In-reply-to: <c5279dee26c0e8d7c4200993bfc4b540d2469598.1231492606.git.len.brown@intel.com>
 References: <c5279dee26c0e8d7c4200993bfc4b540d2469598.1231492606.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <len.brown@intel.com>
 
-From: Lin Ming <ming.m.lin@intel.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-ACPI_FUNCTION_TRACE is an internal acpica function.
-remove ACPI_FUNCTION_TRACE from driver file
+acpi_pci_allocate_irq() and acpi_pci_free_irq() are trivial and
+only used once, so just open-code them.
 
-Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/panasonic-laptop.c |   22 ----------------------
- 1 files changed, 0 insertions(+), 22 deletions(-)
+ drivers/acpi/pci_irq.c |   56 +++++++++++------------------------------------
+ 1 files changed, 13 insertions(+), 43 deletions(-)
 
-diff --git a/drivers/misc/panasonic-laptop.c b/drivers/misc/panasonic-laptop.c
-index 4a1bc64..f30db36 100644
---- a/drivers/misc/panasonic-laptop.c
-+++ b/drivers/misc/panasonic-laptop.c
-@@ -241,8 +241,6 @@ static int acpi_pcc_write_sset(struct pcc_acpi *pcc, int func, int val)
- 	};
- 	acpi_status status = AE_OK;
- 
--	ACPI_FUNCTION_TRACE("acpi_pcc_write_sset");
+diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+index 643c4e8..03d528e 100644
+--- a/drivers/acpi/pci_irq.c
++++ b/drivers/acpi/pci_irq.c
+@@ -299,44 +299,6 @@ void acpi_pci_irq_del_prt(int segment, int bus)
+ /* --------------------------------------------------------------------------
+                           PCI Interrupt Routing Support
+    -------------------------------------------------------------------------- */
+-static int
+-acpi_pci_allocate_irq(struct acpi_prt_entry *entry,
+-		      int *triggering, int *polarity, char **link)
+-{
+-	int irq;
 -
- 	status = acpi_evaluate_object(pcc->handle, METHOD_HKEY_SSET,
- 				      &params, NULL);
- 
-@@ -254,8 +252,6 @@ static inline int acpi_pcc_get_sqty(struct acpi_device *device)
- 	unsigned long long s;
- 	acpi_status status;
- 
--	ACPI_FUNCTION_TRACE("acpi_pcc_get_sqty");
 -
- 	status = acpi_evaluate_integer(device->handle, METHOD_HKEY_SQTY,
- 				       NULL, &s);
- 	if (ACPI_SUCCESS(status))
-@@ -274,8 +270,6 @@ static int acpi_pcc_retrieve_biosdata(struct pcc_acpi *pcc, u32 *sinf)
- 	union acpi_object *hkey = NULL;
- 	int i;
- 
--	ACPI_FUNCTION_TRACE("acpi_pcc_retrieve_biosdata");
+-	if (entry->link) {
+-		irq = acpi_pci_link_allocate_irq(entry->link, entry->index,
+-						 triggering, polarity, link);
+-		if (irq < 0) {
+-			printk(KERN_WARNING PREFIX
+-				      "Invalid IRQ link routing entry\n");
+-			return -1;
+-		}
+-	} else {
+-		irq = entry->index;
+-		*triggering = ACPI_LEVEL_SENSITIVE;
+-		*polarity = ACPI_ACTIVE_LOW;
+-	}
 -
- 	status = acpi_evaluate_object(pcc->handle, METHOD_HKEY_SINF, 0,
- 				      &buffer);
- 	if (ACPI_FAILURE(status)) {
-@@ -501,8 +495,6 @@ static void acpi_pcc_generate_keyinput(struct pcc_acpi *pcc)
- 	int key_code, hkey_num;
- 	unsigned long long result;
- 
--	ACPI_FUNCTION_TRACE("acpi_pcc_generate_keyinput");
+-	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found GSI %d\n", irq));
+-	return irq;
+-}
 -
- 	rc = acpi_evaluate_integer(pcc->handle, METHOD_HKEY_QUERY,
- 				   NULL, &result);
- 	if (!ACPI_SUCCESS(rc)) {
-@@ -538,8 +530,6 @@ static void acpi_pcc_hotkey_notify(acpi_handle handle, u32 event, void *data)
+-static int
+-acpi_pci_free_irq(struct acpi_prt_entry *entry)
+-{
+-	int irq;
+-
+-	if (entry->link) {
+-		irq = acpi_pci_link_free_irq(entry->link);
+-	} else {
+-		irq = entry->index;
+-	}
+-	return irq;
+-}
+-
+ static struct acpi_prt_entry *
+ acpi_pci_irq_lookup(struct pci_dev *dev, int pin)
  {
- 	struct pcc_acpi *pcc = (struct pcc_acpi *) data;
+@@ -426,10 +388,15 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
+ 			return 0;
+ 	}
  
--	ACPI_FUNCTION_TRACE("acpi_pcc_hotkey_notify");
--
- 	switch (event) {
- 	case HKEY_NOTIFY:
- 		acpi_pcc_generate_keyinput(pcc);
-@@ -554,8 +544,6 @@ static int acpi_pcc_init_input(struct pcc_acpi *pcc)
- {
- 	int i, rc;
+-	if (entry)
+-		gsi = acpi_pci_allocate_irq(entry, &triggering, &polarity,
+-					    &link);
+-	else
++	if (entry) {
++		if (entry->link)
++			gsi = acpi_pci_link_allocate_irq(entry->link,
++							 entry->index,
++							 &triggering, &polarity,
++							 &link);
++		else
++			gsi = entry->index;
++	} else
+ 		gsi = -1;
  
--	ACPI_FUNCTION_TRACE("acpi_pcc_init_input");
--
- 	pcc->input_dev = input_allocate_device();
- 	if (!pcc->input_dev) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-@@ -597,8 +585,6 @@ static int acpi_pcc_hotkey_resume(struct acpi_device *device)
- 	struct pcc_acpi *pcc = acpi_driver_data(device);
- 	acpi_status status = AE_OK;
+ 	/*
+@@ -491,7 +458,10 @@ void acpi_pci_irq_disable(struct pci_dev *dev)
+ 	if (!entry)
+ 		return;
  
--	ACPI_FUNCTION_TRACE("acpi_pcc_hotkey_resume");
--
- 	if (device == NULL || pcc == NULL)
- 		return -EINVAL;
+-	gsi = acpi_pci_free_irq(entry);
++	if (entry->link)
++		gsi = acpi_pci_link_free_irq(entry->link);
++	else
++		gsi = entry->index;
  
-@@ -616,8 +602,6 @@ static int acpi_pcc_hotkey_add(struct acpi_device *device)
- 	struct pcc_acpi *pcc;
- 	int num_sifr, result;
- 
--	ACPI_FUNCTION_TRACE("acpi_pcc_hotkey_add");
--
- 	if (!device)
- 		return -EINVAL;
- 
-@@ -714,8 +698,6 @@ static int __init acpi_pcc_init(void)
- {
- 	int result = 0;
- 
--	ACPI_FUNCTION_TRACE("acpi_pcc_init");
--
- 	if (acpi_disabled)
- 		return -ENODEV;
- 
-@@ -733,8 +715,6 @@ static int acpi_pcc_hotkey_remove(struct acpi_device *device, int type)
- {
- 	struct pcc_acpi *pcc = acpi_driver_data(device);
- 
--	ACPI_FUNCTION_TRACE("acpi_pcc_hotkey_remove");
--
- 	if (!device || !pcc)
- 		return -EINVAL;
- 
-@@ -757,8 +737,6 @@ static int acpi_pcc_hotkey_remove(struct acpi_device *device, int type)
- 
- static void __exit acpi_pcc_exit(void)
- {
--	ACPI_FUNCTION_TRACE("acpi_pcc_exit");
--
- 	acpi_bus_unregister_driver(&acpi_pcc_driver);
- }
- 
+ 	/*
+ 	 * TBD: It might be worth clearing dev->irq by magic constant
 -- 
 1.5.6.6
 
