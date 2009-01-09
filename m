@@ -1,66 +1,63 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch 6/6] acpi dock: terminate eject request is the dock is not
- present
-Date: Fri, 09 Jan 2009 16:09:49 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0901091607200.16697@localhost.localdomain>
-References: <200901092017.n09KHEqd015005@imap1.linux-foundation.org>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: git mv (was Re: [git pull] ACPI & Suspend patches for
+ 2.6.29-rc0)
+Date: Fri, 9 Jan 2009 13:16:12 -0800 (PST)
+Message-ID: <alpine.LFD.2.00.0901091305160.6528@localhost.localdomain>
+References: <alpine.LFD.2.00.0901090550590.4091@localhost.localdomain> <alpine.LFD.2.00.0901091200150.6528@localhost.localdomain> <alpine.LFD.2.00.0901091537530.16697@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:40043 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754302AbZAIVKH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 16:10:07 -0500
-Received: from localhost.localdomain ([96.237.168.40])
- by vms173005.mailsrvcs.net
- (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0KD8007OU2SHMMO0@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 09 Jan 2009 15:09:54 -0600 (CST)
-In-reply-to: <200901092017.n09KHEqd015005@imap1.linux-foundation.org>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37865 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754937AbZAIVQV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 16:16:21 -0500
+In-Reply-To: <alpine.LFD.2.00.0901091537530.16697@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: akpm@linux-foundation.org
-Cc: linux-acpi@vger.kernel.org, marvin@mydatex.cz, hmacht@suse.de, rui.zhang@intel.com, shaohua.li@intel.com, stable@kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Linux Power Management List <linux-pm@lists.osdl.org>
 
-The bug report suggest that this patch is not a complete fix for the 
-issue, so I'd prefer we get a resolution, or at least a better
-understanding of the failure, before sending patches upstream
-for this issue.
 
-thanks
-Len Brown, Intel Open Source Technology Center
 
-On Fri, 9 Jan 2009, akpm@linux-foundation.org wrote:
+On Fri, 9 Jan 2009, Len Brown wrote:
+> 
+> I guess using 'git mv' gave me the false expectation
+> that git actually tracks moves like other SCMs
+> and it would show up that way in the diff -- though
+> now that I think about it, I like the comparison
+> of the two endpoints that git did even better.
 
-> From: Daniel Smolik <marvin@mydatex.cz>
-> 
-> Taken from http://bugzilla.kernel.org/show_bug.cgi?id=12360
-> 
-> nfi if it's right - I merged it so it wouldn't get lost.
-> 
-> Cc: Zhang Rui <rui.zhang@intel.com>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: "Li, Shaohua" <shaohua.li@intel.com>
-> Cc: <hmacht@suse.de>
-> Cc: <stable@kernel.org>		[2.6.26.x, 2.6.27.x, 2.6.28.x]
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
-> 
->  drivers/acpi/dock.c |    3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff -puN drivers/acpi/dock.c~acpi-dock-terminate-eject-request-is-the-dock-is-not-present drivers/acpi/dock.c
-> --- a/drivers/acpi/dock.c~acpi-dock-terminate-eject-request-is-the-dock-is-not-present
-> +++ a/drivers/acpi/dock.c
-> @@ -668,6 +668,9 @@ EXPORT_SYMBOL_GPL(unregister_hotplug_doc
->   */
->  static int handle_eject_request(struct dock_station *ds, u32 event)
->  {
-> +	if (!dock_present(ds))
-> +		return -ENODEV;
-> +
->  	if (dock_in_progress(ds))
->  		return -EBUSY;
->  
-> _
-> 
+The main reason "git mv" exists at all is just people migrating from other 
+places expecting it. It's largely just purely synthetic sugar - it has 
+almost no meaning to git long-term.
+
+[ Technically, it _is_ meaningful, in that it obviously not just moves the 
+  file in the checked-out copy, but it also moves the index information 
+  around. So "git mv" clearly does something, but it's not important in 
+  the big picture.
+
+  So using "git mv" is really nothing fundamental - it doesn't really 
+  matter to the end result, and if you had done the 'mv' by just applying 
+  a patch to delete the old file and create a new one, the actual commit 
+  would have been 100% identical. Think of it as a convenience function, 
+  and you won't be wrong. ]
+
+> gitk doesn't use --follow by default, and when it is added, the history 
+> looks pretty strange.
+
+Heh. That's because "--follow" is a total hack, and doesn't do the nice 
+(and pretty complicated) parent rewriting that the real "git log" family 
+of operations normally do.
+
+So yeah, "--follow" is broken. It's really a quick hack there for people 
+who come from some other SCM to feel more comfy with git. If you come from 
+SVN or CVS, you never had proper history, and you never had "gitk" anyway, 
+and so "gitk --follow" doesn't really work. But it makes the pure 
+_textual_ logs look a bit like CVS/SVN.
+
+I'd love to make --follow work better and integrate more, but I've been so 
+successful at never using it myself that I don't much care. And it really 
+is not a very natural thing for git to do, so the hackiness is somewhat 
+inherent.
+
+			Linus
