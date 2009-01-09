@@ -1,13 +1,14 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 67/94] ACPICA: New: Public GPE group enable/disable interfaces
-Date: Fri, 09 Jan 2009 04:27:09 -0500
-Message-ID: <08ac07b826cfd9a9b28aa094f14e1c023bdc9864.1231492611.git.len.brown@intel.com>
+Subject: [PATCH 76/94] ACPICA: New: acpi_reset interface - write to reset
+ register
+Date: Fri, 09 Jan 2009 04:27:18 -0500
+Message-ID: <d3fd902d1ed43aebfc407c08d7ce86495604124c.1231492611.git.len.brown@intel.com>
 References: <1231493256-11678-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173001pub.verizon.net ([206.46.173.1]:56614 "EHLO
 	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754502AbZAIKSA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 05:18:00 -0500
+	with ESMTP id S1754746AbZAIKR7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 05:17:59 -0500
 Received: from localhost.localdomain ([96.237.168.40])
  by vms173001.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
@@ -23,130 +24,80 @@ Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Bro
 
 From: Bob Moore <robert.moore@intel.com>
 
-Added acpi_disable_all_gpes and acpi_enable_all_runtime_gpes for
-public use.
+Uses the FADT-defined reset register and reset value. Checks the
+FADT flags for the reset register supported bit. Supports reset
+register in memory or I/O space, but not in PCI config space
+since the host has the information to do it.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/events/evxfevnt.c |   58 ++++++++++++++++++++++++++++++++++++++++
- include/acpi/acpixf.h          |   15 +++++++---
- 2 files changed, 69 insertions(+), 4 deletions(-)
+ drivers/acpi/hardware/hwxface.c |   37 +++++++++++++++++++++++++++++++++++++
+ include/acpi/acpixf.h           |    2 ++
+ 2 files changed, 39 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/events/evxfevnt.c b/drivers/acpi/events/evxfevnt.c
-index aa4dec8..f7550da 100644
---- a/drivers/acpi/events/evxfevnt.c
-+++ b/drivers/acpi/events/evxfevnt.c
-@@ -810,3 +810,61 @@ acpi_ev_get_gpe_device(struct acpi_gpe_xrupt_info *gpe_xrupt_info,
+diff --git a/drivers/acpi/hardware/hwxface.c b/drivers/acpi/hardware/hwxface.c
+index b6244a0..0601ed7 100644
+--- a/drivers/acpi/hardware/hwxface.c
++++ b/drivers/acpi/hardware/hwxface.c
+@@ -50,6 +50,43 @@ ACPI_MODULE_NAME("hwxface")
  
- 	return (AE_OK);
- }
-+
-+/******************************************************************************
-+ *
-+ * FUNCTION:    acpi_disable_all_gpes
+ /******************************************************************************
+  *
++ * FUNCTION:    acpi_reset
 + *
 + * PARAMETERS:  None
 + *
 + * RETURN:      Status
 + *
-+ * DESCRIPTION: Disable and clear all GPEs in all GPE blocks
++ * DESCRIPTION: Set reset register in memory or IO space. Note: Does not
++ *              support reset register in PCI config space, this must be
++ *              handled separately.
 + *
 + ******************************************************************************/
-+
-+acpi_status acpi_disable_all_gpes(void)
++acpi_status acpi_reset(void)
 +{
++	struct acpi_generic_address *reset_reg;
 +	acpi_status status;
 +
-+	ACPI_FUNCTION_TRACE(acpi_disable_all_gpes);
++	ACPI_FUNCTION_TRACE(acpi_reset);
 +
-+	status = acpi_ut_acquire_mutex(ACPI_MTX_EVENTS);
-+	if (ACPI_FAILURE(status)) {
-+		return_ACPI_STATUS(status);
++	reset_reg = &acpi_gbl_FADT.reset_register;
++
++	/* Check if the reset register is supported */
++
++	if (!(acpi_gbl_FADT.flags & ACPI_FADT_RESET_REGISTER) ||
++	    !reset_reg->address) {
++		return_ACPI_STATUS(AE_NOT_EXIST);
 +	}
 +
-+	status = acpi_hw_disable_all_gpes();
-+	(void)acpi_ut_release_mutex(ACPI_MTX_EVENTS);
++	/* Write the reset value to the reset register */
 +
++	status = acpi_write(acpi_gbl_FADT.reset_value, reset_reg);
 +	return_ACPI_STATUS(status);
 +}
++
++ACPI_EXPORT_SYMBOL(acpi_reset)
 +
 +/******************************************************************************
 + *
-+ * FUNCTION:    acpi_enable_all_runtime_gpes
-+ *
-+ * PARAMETERS:  None
-+ *
-+ * RETURN:      Status
-+ *
-+ * DESCRIPTION: Enable all "runtime" GPEs, in all GPE blocks
-+ *
-+ ******************************************************************************/
-+
-+acpi_status acpi_enable_all_runtime_gpes(void)
-+{
-+	acpi_status status;
-+
-+	ACPI_FUNCTION_TRACE(acpi_enable_all_runtime_gpes);
-+
-+	status = acpi_ut_acquire_mutex(ACPI_MTX_EVENTS);
-+	if (ACPI_FAILURE(status)) {
-+		return_ACPI_STATUS(status);
-+	}
-+
-+	status = acpi_hw_enable_all_runtime_gpes();
-+	(void)acpi_ut_release_mutex(ACPI_MTX_EVENTS);
-+
-+	return_ACPI_STATUS(status);
-+}
+  * FUNCTION:    acpi_read
+  *
+  * PARAMETERS:  Value               - Where the value is returned
 diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index e09c237..6d8fb6f 100644
+index 030aeb5..b3bcead 100644
 --- a/include/acpi/acpixf.h
 +++ b/include/acpi/acpixf.h
-@@ -229,6 +229,10 @@ acpi_install_gpe_handler(acpi_handle gpe_device,
- 			 u32 gpe_number,
- 			 u32 type, acpi_event_handler address, void *context);
- 
-+acpi_status
-+acpi_remove_gpe_handler(acpi_handle gpe_device,
-+			u32 gpe_number, acpi_event_handler address);
+@@ -322,6 +322,8 @@ acpi_resource_to_address64(struct acpi_resource *resource,
+ /*
+  * Hardware (ACPI device) interfaces
+  */
++acpi_status acpi_reset(void);
 +
- #ifdef ACPI_FUTURE_USAGE
- acpi_status acpi_install_exception_handler(acpi_exception_handler handler);
- #endif
-@@ -240,10 +244,6 @@ acpi_status acpi_acquire_global_lock(u16 timeout, u32 * handle);
+ acpi_status acpi_get_register(u32 register_id, u32 * return_value);
  
- acpi_status acpi_release_global_lock(u32 handle);
- 
--acpi_status
--acpi_remove_gpe_handler(acpi_handle gpe_device,
--			u32 gpe_number, acpi_event_handler address);
--
- acpi_status acpi_enable_event(u32 event, u32 flags);
- 
- acpi_status acpi_disable_event(u32 event, u32 flags);
-@@ -252,6 +252,9 @@ acpi_status acpi_clear_event(u32 event);
- 
- acpi_status acpi_get_event_status(u32 event, acpi_event_status * event_status);
- 
-+/*
-+ * GPE Interfaces
-+ */
- acpi_status acpi_set_gpe_type(acpi_handle gpe_device, u32 gpe_number, u8 type);
- 
- acpi_status acpi_enable_gpe(acpi_handle gpe_device, u32 gpe_number);
-@@ -265,6 +268,10 @@ acpi_get_gpe_status(acpi_handle gpe_device,
- 		    u32 gpe_number,
- 		    u32 flags, acpi_event_status * event_status);
- 
-+acpi_status acpi_disable_all_gpes(void);
-+
-+acpi_status acpi_enable_all_runtime_gpes(void);
-+
- acpi_status acpi_get_gpe_device(u32 gpe_index, acpi_handle *gpe_device);
- 
- acpi_status
+ acpi_status acpi_get_register_unlocked(u32 register_id, u32 *return_value);
 -- 
 1.5.6.6
 
