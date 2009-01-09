@@ -1,56 +1,71 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 18/94] eeepc-laptop: use select and not depends on
-Date: Fri, 09 Jan 2009 04:26:20 -0500
-Message-ID: <d9447183366ce849d7483bbd369752ac748e0422.1231492608.git.len.brown@intel.com>
+Subject: [PATCH 24/94] ACPICA: Update debug output for IndexField I/O
+Date: Fri, 09 Jan 2009 04:26:26 -0500
+Message-ID: <e9a8c6a90953b65326881189a1f3782bb2f6d250.1231492609.git.len.brown@intel.com>
 References: <1231493256-11678-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:44520 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752753AbZAIJ15 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 04:27:57 -0500
+Received: from vms173005pub.verizon.net ([206.46.173.5]:56420 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753390AbZAIJ2G (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 04:28:06 -0500
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173003.mailsrvcs.net
+ by vms173005.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0KD7004KL6AJ3AYC@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 09 Jan 2009 03:27:56 -0600 (CST)
+ with ESMTPA id <0KD700EM06ALP3I2@vms173005.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 09 Jan 2009 03:27:58 -0600 (CST)
 In-reply-to: <1231493256-11678-1-git-send-email-lenb@kernel.org>
 In-reply-to: <c5279dee26c0e8d7c4200993bfc4b540d2469598.1231492606.git.len.brown@intel.com>
 References: <c5279dee26c0e8d7c4200993bfc4b540d2469598.1231492606.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Corentin Chary <corentincj@iksaif.net>, Len Brown <len.brown@intel.com>
+Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Corentin Chary <corentincj@iksaif.net>
+From: Bob Moore <robert.moore@intel.com>
 
-As len said:
-"Kconfig should offer users features, and not make users
-devine their dependencies.
+Split the "data register I/O" with more informative read and
+write messages.
 
-Signed-off-by: Corentin Chary <corentincj@iksaif.net>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/Kconfig |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/acpi/executer/exfldio.c |   11 +++++++----
+ 1 files changed, 7 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
-index fee7304..d9aac2e 100644
---- a/drivers/misc/Kconfig
-+++ b/drivers/misc/Kconfig
-@@ -428,10 +428,10 @@ config EEEPC_LAPTOP
- 	tristate "Eee PC Hotkey Driver (EXPERIMENTAL)"
- 	depends on X86
- 	depends on ACPI
--	depends on BACKLIGHT_CLASS_DEVICE
--	depends on HWMON
- 	depends on EXPERIMENTAL
--	depends on RFKILL
-+	select BACKLIGHT_CLASS_DEVICE
-+	select HWMON
-+	select RFKILL
- 	---help---
- 	  This driver supports the Fn-Fx keys on Eee PC laptops.
- 	  It also adds the ability to switch camera/wlan on/off.
+diff --git a/drivers/acpi/executer/exfldio.c b/drivers/acpi/executer/exfldio.c
+index 9ff9d1f..94500c4 100644
+--- a/drivers/acpi/executer/exfldio.c
++++ b/drivers/acpi/executer/exfldio.c
+@@ -498,14 +498,13 @@ acpi_ex_field_datum_io(union acpi_operand_object *obj_desc,
+ 			return_ACPI_STATUS(status);
+ 		}
+ 
+-		ACPI_DEBUG_PRINT((ACPI_DB_BFIELD,
+-				  "I/O to Data Register: ValuePtr %p\n",
+-				  value));
+-
+ 		if (read_write == ACPI_READ) {
+ 
+ 			/* Read the datum from the data_register */
+ 
++			ACPI_DEBUG_PRINT((ACPI_DB_BFIELD,
++					  "Read from Data Register\n"));
++
+ 			status =
+ 			    acpi_ex_extract_from_field(obj_desc->index_field.
+ 						       data_obj, value,
+@@ -513,6 +512,10 @@ acpi_ex_field_datum_io(union acpi_operand_object *obj_desc,
+ 		} else {
+ 			/* Write the datum to the data_register */
+ 
++			ACPI_DEBUG_PRINT((ACPI_DB_BFIELD,
++					  "Write to Data Register: Value %8.8X%8.8X\n",
++					  ACPI_FORMAT_UINT64(*value)));
++
+ 			status =
+ 			    acpi_ex_insert_into_field(obj_desc->index_field.
+ 						      data_obj, value,
 -- 
 1.5.6.6
 
