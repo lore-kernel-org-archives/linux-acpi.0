@@ -1,14 +1,13 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 69/94] ACPI: sony-laptop.c: call acpi_get_object_info to get
- node info
-Date: Fri, 09 Jan 2009 04:27:11 -0500
-Message-ID: <30823736162ff91512965e3c730557e34fa71d6d.1231492611.git.len.brown@intel.com>
+Subject: [PATCH 80/94] ACPICA: Fixes for various ACPI data tables
+Date: Fri, 09 Jan 2009 04:27:22 -0500
+Message-ID: <7488c8d51134a152f022bc11547157f80a725ff1.1231492614.git.len.brown@intel.com>
 References: <1231493256-11678-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173001pub.verizon.net ([206.46.173.1]:56614 "EHLO
 	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753463AbZAIKR6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 05:17:58 -0500
+	with ESMTP id S1754264AbZAIKR7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 05:17:59 -0500
 Received: from localhost.localdomain ([96.237.168.40])
  by vms173001.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
@@ -20,47 +19,54 @@ References: <c5279dee26c0e8d7c4200993bfc4b540d2469598.1231492606.git.len.brown@i
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Lin Ming <ming.m.lin@intel.com>
+From: Bob Moore <robert.moore@intel.com>
 
-Avoid using internal acpica structures acpi_namespace_node and acpi_operand_object
-Call acpi_get_object_info to get node ascii name and method arg count
+Eliminate extraneous "zero length subtable" messages.
+Fix subtable output for ERST, MCFG, EINJ tables.
+Implement all subtables for HEST.
 
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/sony-laptop.c |   15 +++++++++------
- 1 files changed, 9 insertions(+), 6 deletions(-)
+ include/acpi/acdisasm.h |    8 ++++++++
+ include/acpi/actbl1.h   |    2 +-
+ 2 files changed, 9 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/misc/sony-laptop.c b/drivers/misc/sony-laptop.c
-index 571b211..537959d 100644
---- a/drivers/misc/sony-laptop.c
-+++ b/drivers/misc/sony-laptop.c
-@@ -935,14 +935,17 @@ static void sony_acpi_notify(acpi_handle handle, u32 event, void *data)
- static acpi_status sony_walk_callback(acpi_handle handle, u32 level,
- 				      void *context, void **return_value)
- {
--	struct acpi_namespace_node *node;
--	union acpi_operand_object *operand;
-+	struct acpi_device_info *info;
-+	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER, NULL};
+diff --git a/include/acpi/acdisasm.h b/include/acpi/acdisasm.h
+index 0c1ed38..8eb1d48 100644
+--- a/include/acpi/acdisasm.h
++++ b/include/acpi/acdisasm.h
+@@ -173,6 +173,14 @@ extern struct acpi_dmtable_info acpi_dm_table_info_fadt2[];
+ extern struct acpi_dmtable_info acpi_dm_table_info_gas[];
+ extern struct acpi_dmtable_info acpi_dm_table_info_header[];
+ extern struct acpi_dmtable_info acpi_dm_table_info_hest[];
++extern struct acpi_dmtable_info acpi_dm_table_info_hest0[];
++extern struct acpi_dmtable_info acpi_dm_table_info_hest1[];
++extern struct acpi_dmtable_info acpi_dm_table_info_hest3[];
++extern struct acpi_dmtable_info acpi_dm_table_info_hest4[];
++extern struct acpi_dmtable_info acpi_dm_table_info_hest5[];
++extern struct acpi_dmtable_info acpi_dm_table_info_hest6[];
++extern struct acpi_dmtable_info acpi_dm_table_info_hest7[];
++extern struct acpi_dmtable_info acpi_dm_table_info_hest8[];
+ extern struct acpi_dmtable_info acpi_dm_table_info_hest9[];
+ extern struct acpi_dmtable_info acpi_dm_table_info_hest_notify[];
+ extern struct acpi_dmtable_info acpi_dm_table_info_hpet[];
+diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
+index 63f5b4c..18963b9 100644
+--- a/include/acpi/actbl1.h
++++ b/include/acpi/actbl1.h
+@@ -627,7 +627,7 @@ struct acpi_hest_aer_common {
+ 	u32 uncorrectable_error_mask;
+ 	u32 uncorrectable_error_severity;
+ 	u32 correctable_error_mask;
+-	u32 advanced_error_cababilities;
++	u32 advanced_error_capabilities;
+ };
  
--	node = (struct acpi_namespace_node *)handle;
--	operand = (union acpi_operand_object *)node->object;
-+	if (ACPI_SUCCESS(acpi_get_object_info(handle, &buffer))) {
-+		info = buffer.pointer;
- 
--	printk(KERN_WARNING DRV_PFX "method: name: %4.4s, args %X\n", node->name.ascii,
--	       (u32) operand->method.param_count);
-+		printk(KERN_WARNING DRV_PFX "method: name: %4.4s, args %X\n",
-+			(char *)&info->name, info->param_count);
-+
-+		kfree(buffer.pointer);
-+	}
- 
- 	return AE_OK;
- }
+ /* Hardware Error Notification */
 -- 
 1.5.6.6
 
