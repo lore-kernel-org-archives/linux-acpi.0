@@ -1,34 +1,33 @@
 From: Michael Wallner <mike@iworks.at>
 Subject: Re: How to help with sony-laptop on Vaio VGN-TT11
-Date: Fri, 09 Jan 2009 12:09:45 +0100
-Message-ID: <49673079.2070801@iworks.at>
+Date: Fri, 09 Jan 2009 12:10:04 +0100
+Message-ID: <gk7bab$l9g$2@ger.gmane.org>
 References: <496634F2.3080505@iworks.at> <alpine.LFD.2.00.0901081534190.4505@localhost.localdomain> <20090108234127.GB19979@gamma.logic.tuwien.ac.at>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------080903060408090605010502"
+ boundary="------------090804040809060308010007"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from main.gmane.org ([80.91.229.2]:33906 "EHLO ciao.gmane.org"
+Received: from main.gmane.org ([80.91.229.2]:36285 "EHLO ciao.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751134AbZAILJ4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 9 Jan 2009 06:09:56 -0500
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1LLFFS-0002BY-Jd
-	for linux-acpi@vger.kernel.org; Fri, 09 Jan 2009 11:09:54 +0000
+	id S1752034AbZAILPF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 9 Jan 2009 06:15:05 -0500
+Received: from root by ciao.gmane.org with local (Exim 4.43)
+	id 1LLFKQ-0002Qn-Ii
+	for linux-acpi@vger.kernel.org; Fri, 09 Jan 2009 11:15:02 +0000
 Received: from border-g21.inqnet.at ([213.229.41.14])
         by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
         id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Fri, 09 Jan 2009 11:09:54 +0000
+        for <linux-acpi@vger.kernel.org>; Fri, 09 Jan 2009 11:15:02 +0000
 Received: from mike by border-g21.inqnet.at with local (Gmexim 0.1 (Debian))
         id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Fri, 09 Jan 2009 11:09:54 +0000
+        for <linux-acpi@vger.kernel.org>; Fri, 09 Jan 2009 11:15:02 +0000
 In-Reply-To: <20090108234127.GB19979@gamma.logic.tuwien.ac.at>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Len Brown <lenb@kernel.org>
 
 This is a multi-part message in MIME format.
---------------080903060408090605010502
+--------------090804040809060308010007
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 
@@ -71,7 +70,7 @@ I attached an egrep -i "ACPI|sony" of dmesg.
 
 Mike
 
---------------080903060408090605010502
+--------------090804040809060308010007
 Content-Type: text/plain;
  name="dmesg.txt"
 Content-Transfer-Encoding: quoted-printable
@@ -286,5 +285,5 @@ re dock thermal processor fan fbcon tileblit font bitblit softcursor fuse=
 [   49.629724] sonypi: probe of sonypi failed with error -17
 
 
---------------080903060408090605010502--
+--------------090804040809060308010007--
 
