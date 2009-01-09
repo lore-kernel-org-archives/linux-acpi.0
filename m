@@ -1,93 +1,59 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Regression] USB wakeup problem on Toshiba Portege R500
-Date: Fri, 9 Jan 2009 18:53:41 +0100
-Message-ID: <200901091853.42700.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0901091055050.10951-100000@netrider.rowland.org>
+From: Norbert Preining <preining@logic.at>
+Subject: Re: How to help with sony-laptop on Vaio VGN-TT11
+Date: Fri, 9 Jan 2009 19:10:53 +0100
+Message-ID: <20090109181053.GD31945@gamma.logic.tuwien.ac.at>
+References: <496634F2.3080505@iworks.at> <alpine.LFD.2.00.0901081534190.4505@localhost.localdomain> <20090108234127.GB19979@gamma.logic.tuwien.ac.at> <49673079.2070801@iworks.at>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:58262 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751345AbZAIRyX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 9 Jan 2009 12:54:23 -0500
-In-Reply-To: <Pine.LNX.4.44L0.0901091055050.10951-100000@netrider.rowland.org>
+Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:38124 "EHLO
+	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753340AbZAISK4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 13:10:56 -0500
 Content-Disposition: inline
+In-Reply-To: <49673079.2070801@iworks.at>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Frans Pop <elendil@planet.nl>, oliver@neukum.org, gregkh@suse.de, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, pavel@suse.cz, torvalds@linux-foundation.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: Michael Wallner <mike@iworks.at>
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-[CCing ACPI and Len)
+On Fr, 09 Jan 2009, Michael Wallner wrote:
+> The /sys backlight interface doesn't work for me.
 
-On Friday 09 January 2009, Alan Stern wrote:
-> On Thu, 8 Jan 2009, Frans Pop wrote:
-> 
-> > Rafael J. Wysocki wrote:
-> > > On Thursday 08 January 2009, Oliver Neukum wrote:
-> > >> Am Thursday 08 January 2009 17:36:12 schrieb Rafael J. Wysocki:
-> > >> You are making a very persuasive argument for reverting it.
-> > >> But what about laptops that only have a USB keyboard?
-> > > 
-> > > Well, up to and including 2.6.28 they needed to echo 'enable' to the USB
-> > > controllers' /sys/devices/.../power/wakeup files, so if the patch is
-> > > reverted, they won't be worse off than they were day before
-> > > yesterday. :-) 
-> > > 
-> > > Perhaps we can choose the default depending on whether or not any HID
-> > > devices are attached to given controller?
-> > 
-> > Is "resume on keyboard activity" really all that needed? Both my laptops 
-> > and my desktop resume fine after pressing the power button.
-> > 
-> > Also consider the following cases:
-> > - laptop has been suspended with external USB mouse connected
-> >   - mouse is moved (accidentally or because it is in the way of a coffee
-> >     cup)
-> >   - mouse cable is removed before putting the laptop in a bag for
-> >     transport
-> > - laptop is in docking station with USB mouse/kbd connected to that
-> >   - again, mouse gets moved for some reason
-> >   - laptop is undocked while suspended
-> >   - or the reverse: laptop gets docked
-> > 
-> > IMO it is not desirable that the system gets resumed as a result of any of 
-> > those actions. I'm not complete sure that it would in all those cases, 
-> > but have they been considered?
-> > 
-> > And in general I've always been in favor of things only happening 
-> > automagically if I've explicitly asked for that, and not by default.
-> 
-> I don't mind reverting the "automatically enable PCI wakeup" commit.  But 
-> we should first come to a definite policy for kernel default wakeup 
-> settings, rather than deciding things piecemeal for different subsystems.
-> 
-> My proposal:
-> 
-> 	Devices and events that are clearly associated with system
-> 	wakeup should be enabled by default.  For example: Power
-> 	button and laptop lid.
+Yes, that is a problem with the kernel you are using. You need
+at least 2.6.28.
 
-Agreed.
+> Fn+F{1-12} do not work at all (no events).
 
-> 	All other devices capable of waking up the system should be
-> 	disabled by default.  This presumably includes every PCI
-> 	device.  If users want keyboard or mouse events to cause
-> 	a system resume then they will have to configure their
-> 	desktop management program to enable it.
+same here.
 
-I generally agree, with one exception.  There are network adapters which
-can be enabled to wake up by the BIOS and their drivers set them up for WoL
-currently on this basis.  These should remain enabled IMO.
+> Hardware button for cdrom-eject and s1-button, too.
 
-> 	Devices not capable of directly waking the system can be
-> 	enabled.  This includes things like USB devices, which
-> 	have to pass a wakeup request through their parent and
-> 	therefore can't wake up the system unless the parent is
-> 	also enabled for wakeup.
+same here
 
-Agreed.
+> Hardware buttons for mute, vol-down, vol-up do work, though.
 
-Thanks,
-Rafael
+same here
+
+> Wireless switch does something, I'm just not sure yet what it does,
+> dmesg says "rfkill switch must be enabled for wireless to work" or
+> something along those words.  I'm sorry, I don't have my notebook
+> with me today.
+
+Yes, that is what it says. The hardware button on the front turns off
+all wireless stuff, that is WWAN, BLuetooth, WLAN. That is bad. There is
+a /sys interface for turning them on and off one by one, but that is not
+working either.
+
+Best wishes
+
+Norbert
+
+-------------------------------------------------------------------------------
+Dr. Norbert Preining <preining@logic.at>        Vienna University of Technology
+Debian Developer <preining@debian.org>                         Debian TeX Group
+gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
+-------------------------------------------------------------------------------
+SCULLET (n.)
+The last teaspoon in the washing up.
+			--- Douglas Adams, The Meaning of Liff
