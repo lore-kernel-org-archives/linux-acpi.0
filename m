@@ -1,272 +1,158 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 14/94] ACPI: move wmi, asus_acpi,
- toshiba_acpi to drivers/platform/x86
-Date: Fri, 09 Jan 2009 04:26:16 -0500
-Message-ID: <b4f9fe12157a33351d0df78e925dcacd13252783.1231492608.git.len.brown@intel.com>
+Subject: [PATCH 09/94] Hibernate: Do not oops on resume if image data are
+ incorrect
+Date: Fri, 09 Jan 2009 04:26:11 -0500
+Message-ID: <69643279a88dea000ac2f858091d0e365f778245.1231492608.git.len.brown@intel.com>
 References: <1231493256-11678-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:56402 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752863AbZAIJ1x (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 04:27:53 -0500
+Received: from vms173001pub.verizon.net ([206.46.173.1]:40915 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752669AbZAIJ1u (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 04:27:50 -0500
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173005.mailsrvcs.net
+ by vms173001.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0KD700EFZ6AGOO13@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 09 Jan 2009 03:27:53 -0600 (CST)
+ with ESMTPA id <0KD700LRA6ADLN97@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 09 Jan 2009 03:27:50 -0600 (CST)
 In-reply-to: <1231493256-11678-1-git-send-email-lenb@kernel.org>
 In-reply-to: <c5279dee26c0e8d7c4200993bfc4b540d2469598.1231492606.git.len.brown@intel.com>
 References: <c5279dee26c0e8d7c4200993bfc4b540d2469598.1231492606.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Len Brown <len.brown@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
 
-From: Len Brown <len.brown@intel.com>
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-These are platform specific drivers that happen to use ACPI,
-while drivers/acpi/ is for code that implements ACPI itself.
+During resume from hibernation using the userland interface image
+data are being passed from the used space process to the kernel.
+These data need not be valid, but currently the kernel sometimes
+oopses if it gets invalid image data, which is wrong.  Make the
+kernel return error codes to the user space in such cases.
 
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@suse.cz>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/Kconfig                          |   84 ------------------------
- drivers/acpi/Makefile                         |    3 -
- drivers/platform/x86/Kconfig                  |   85 +++++++++++++++++++++++++
- drivers/platform/x86/Makefile                 |    3 +
- drivers/{acpi => platform/x86}/asus_acpi.c    |    0 
- drivers/{acpi => platform/x86}/toshiba_acpi.c |    0 
- drivers/{acpi => platform/x86}/wmi.c          |    0 
- 7 files changed, 88 insertions(+), 87 deletions(-)
- rename drivers/{acpi => platform/x86}/asus_acpi.c (100%)
- rename drivers/{acpi => platform/x86}/toshiba_acpi.c (100%)
- rename drivers/{acpi => platform/x86}/wmi.c (100%)
+ kernel/power/snapshot.c |   43 ++++++++++++++++++++++++++++++++-----------
+ 1 files changed, 32 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index b0243fd..d7f9839 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -196,90 +196,6 @@ config ACPI_NUMA
- 	depends on (X86 || IA64)
- 	default y if IA64_GENERIC || IA64_SGI_SN2
+diff --git a/kernel/power/snapshot.c b/kernel/power/snapshot.c
+index 5d2ab83..955c8cc 100644
+--- a/kernel/power/snapshot.c
++++ b/kernel/power/snapshot.c
+@@ -519,6 +519,14 @@ static int memory_bm_test_bit(struct memory_bitmap *bm, unsigned long pfn)
+ 	return test_bit(bit, addr);
+ }
  
--config ACPI_WMI
--	tristate "WMI (EXPERIMENTAL)"
--	depends on X86
--	depends on EXPERIMENTAL
--	help
--	  This driver adds support for the ACPI-WMI (Windows Management
--	  Instrumentation) mapper device (PNP0C14) found on some systems.
++static bool memory_bm_pfn_present(struct memory_bitmap *bm, unsigned long pfn)
++{
++	void *addr;
++	unsigned int bit;
++
++	return !memory_bm_find_bit(bm, pfn, &addr, &bit);
++}
++
+ /**
+  *	memory_bm_next_pfn - find the pfn that corresponds to the next set bit
+  *	in the bitmap @bm.  If the pfn cannot be found, BM_END_OF_MAP is
+@@ -1459,9 +1467,7 @@ load_header(struct swsusp_info *info)
+  *	unpack_orig_pfns - for each element of @buf[] (1 page at a time) set
+  *	the corresponding bit in the memory bitmap @bm
+  */
 -
--	  ACPI-WMI is a proprietary extension to ACPI to expose parts of the
--	  ACPI firmware to userspace - this is done through various vendor
--	  defined methods and data blocks in a PNP0C14 device, which are then
--	  made available for userspace to call.
--
--	  The implementation of this in Linux currently only exposes this to
--	  other kernel space drivers.
--
--	  This driver is a required dependency to build the firmware specific
--	  drivers needed on many machines, including Acer and HP laptops.
--
--	  It is safe to enable this driver even if your DSDT doesn't define
--	  any ACPI-WMI devices.
--
--config ACPI_ASUS
--        tristate "ASUS/Medion Laptop Extras"
--	depends on X86
--	select BACKLIGHT_CLASS_DEVICE
--        ---help---
--          This driver provides support for extra features of ACPI-compatible
--          ASUS laptops. As some of Medion laptops are made by ASUS, it may also
--          support some Medion laptops (such as 9675 for example).  It makes all
--          the extra buttons generate standard ACPI events that go through
--          /proc/acpi/events, and (on some models) adds support for changing the
--          display brightness and output, switching the LCD backlight on and off,
--          and most importantly, allows you to blink those fancy LEDs intended
--          for reporting mail and wireless status.
--
--	  Note: display switching code is currently considered EXPERIMENTAL,
--	  toying with these values may even lock your machine.
--
--          All settings are changed via /proc/acpi/asus directory entries. Owner
--          and group for these entries can be set with asus_uid and asus_gid
--          parameters.
--
--          More information and a userspace daemon for handling the extra buttons
--          at <http://sourceforge.net/projects/acpi4asus/>.
--
--          If you have an ACPI-compatible ASUS laptop, say Y or M here. This
--          driver is still under development, so if your laptop is unsupported or
--          something works not quite as expected, please use the mailing list
--          available on the above page (acpi4asus-user@lists.sourceforge.net).
--
--	  NOTE: This driver is deprecated and will probably be removed soon,
--	  use asus-laptop instead.
--
--config ACPI_TOSHIBA
--	tristate "Toshiba Laptop Extras"
--	depends on X86 && INPUT
--	select INPUT_POLLDEV
--	select NET
--	select RFKILL
--	select BACKLIGHT_CLASS_DEVICE
--	---help---
--	  This driver adds support for access to certain system settings
--	  on "legacy free" Toshiba laptops.  These laptops can be recognized by
--	  their lack of a BIOS setup menu and APM support.
--
--	  On these machines, all system configuration is handled through the
--	  ACPI.  This driver is required for access to controls not covered
--	  by the general ACPI drivers, such as LCD brightness, video output,
--	  etc.
--
--	  This driver differs from the non-ACPI Toshiba laptop driver (located
--	  under "Processor type and features") in several aspects.
--	  Configuration is accessed by reading and writing text files in the
--	  /proc tree instead of by program interface to /dev.  Furthermore, no
--	  power management functions are exposed, as those are handled by the
--	  general ACPI drivers.
--
--	  More information about this driver is available at
--	  <http://memebeam.org/toys/ToshibaAcpiDriver>.
--
--	  If you have a legacy free Toshiba laptop (such as the Libretto L1
--	  series), say Y.
--
- config ACPI_CUSTOM_DSDT_FILE
- 	string "Custom DSDT Table file to include"
- 	default ""
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 3c0c933..f64af36 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -59,9 +59,6 @@ obj-y				+= power.o
- obj-$(CONFIG_ACPI_SYSTEM)	+= system.o event.o
- obj-$(CONFIG_ACPI_DEBUG)	+= debug.o
- obj-$(CONFIG_ACPI_NUMA)		+= numa.o
--obj-$(CONFIG_ACPI_WMI)		+= wmi.o
--obj-$(CONFIG_ACPI_ASUS)		+= asus_acpi.o
--obj-$(CONFIG_ACPI_TOSHIBA)	+= toshiba_acpi.o
- obj-$(CONFIG_ACPI_HOTPLUG_MEMORY)	+= acpi_memhotplug.o
- obj-$(CONFIG_ACPI_PROCFS_POWER)	+= cm_sbs.o
- obj-$(CONFIG_ACPI_SBS)		+= sbshc.o
-diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-index 0a9a5b9..31f3ce2 100644
---- a/drivers/platform/x86/Kconfig
-+++ b/drivers/platform/x86/Kconfig
-@@ -287,4 +287,89 @@ config EEEPC_LAPTOP
+-static inline void
+-unpack_orig_pfns(unsigned long *buf, struct memory_bitmap *bm)
++static int unpack_orig_pfns(unsigned long *buf, struct memory_bitmap *bm)
+ {
+ 	int j;
  
- 	  If you have an Eee PC laptop, say Y or M here.
+@@ -1469,8 +1475,13 @@ unpack_orig_pfns(unsigned long *buf, struct memory_bitmap *bm)
+ 		if (unlikely(buf[j] == BM_END_OF_MAP))
+ 			break;
  
+-		memory_bm_set_bit(bm, buf[j]);
++		if (memory_bm_pfn_present(bm, buf[j]))
++			memory_bm_set_bit(bm, buf[j]);
++		else
++			return -EFAULT;
+ 	}
 +
-+config ACPI_WMI
-+	tristate "WMI (EXPERIMENTAL)"
-+	depends on ACPI
-+	depends on EXPERIMENTAL
-+	help
-+	  This driver adds support for the ACPI-WMI (Windows Management
-+	  Instrumentation) mapper device (PNP0C14) found on some systems.
++	return 0;
+ }
+ 
+ /* List of "safe" pages that may be used to store data loaded from the suspend
+@@ -1608,7 +1619,7 @@ get_highmem_page_buffer(struct page *page, struct chain_allocator *ca)
+ 	pbe = chain_alloc(ca, sizeof(struct highmem_pbe));
+ 	if (!pbe) {
+ 		swsusp_free();
+-		return NULL;
++		return ERR_PTR(-ENOMEM);
+ 	}
+ 	pbe->orig_page = page;
+ 	if (safe_highmem_pages > 0) {
+@@ -1677,7 +1688,7 @@ prepare_highmem_image(struct memory_bitmap *bm, unsigned int *nr_highmem_p)
+ static inline void *
+ get_highmem_page_buffer(struct page *page, struct chain_allocator *ca)
+ {
+-	return NULL;
++	return ERR_PTR(-EINVAL);
+ }
+ 
+ static inline void copy_last_highmem_page(void) {}
+@@ -1788,8 +1799,13 @@ prepare_image(struct memory_bitmap *new_bm, struct memory_bitmap *bm)
+ static void *get_buffer(struct memory_bitmap *bm, struct chain_allocator *ca)
+ {
+ 	struct pbe *pbe;
+-	struct page *page = pfn_to_page(memory_bm_next_pfn(bm));
++	struct page *page;
++	unsigned long pfn = memory_bm_next_pfn(bm);
+ 
++	if (pfn == BM_END_OF_MAP)
++		return ERR_PTR(-EFAULT);
 +
-+	  ACPI-WMI is a proprietary extension to ACPI to expose parts of the
-+	  ACPI firmware to userspace - this is done through various vendor
-+	  defined methods and data blocks in a PNP0C14 device, which are then
-+	  made available for userspace to call.
++	page = pfn_to_page(pfn);
+ 	if (PageHighMem(page))
+ 		return get_highmem_page_buffer(page, ca);
+ 
+@@ -1805,7 +1821,7 @@ static void *get_buffer(struct memory_bitmap *bm, struct chain_allocator *ca)
+ 	pbe = chain_alloc(ca, sizeof(struct pbe));
+ 	if (!pbe) {
+ 		swsusp_free();
+-		return NULL;
++		return ERR_PTR(-ENOMEM);
+ 	}
+ 	pbe->orig_address = page_address(page);
+ 	pbe->address = safe_pages_list;
+@@ -1868,7 +1884,10 @@ int snapshot_write_next(struct snapshot_handle *handle, size_t count)
+ 				return error;
+ 
+ 		} else if (handle->prev <= nr_meta_pages) {
+-			unpack_orig_pfns(buffer, &copy_bm);
++			error = unpack_orig_pfns(buffer, &copy_bm);
++			if (error)
++				return error;
 +
-+	  The implementation of this in Linux currently only exposes this to
-+	  other kernel space drivers.
-+
-+	  This driver is a required dependency to build the firmware specific
-+	  drivers needed on many machines, including Acer and HP laptops.
-+
-+	  It is safe to enable this driver even if your DSDT doesn't define
-+	  any ACPI-WMI devices.
-+
-+config ACPI_ASUS
-+	tristate "ASUS/Medion Laptop Extras"
-+	depends on ACPI
-+	select BACKLIGHT_CLASS_DEVICE
-+	---help---
-+	  This driver provides support for extra features of ACPI-compatible
-+	  ASUS laptops. As some of Medion laptops are made by ASUS, it may also
-+	  support some Medion laptops (such as 9675 for example).  It makes all
-+	  the extra buttons generate standard ACPI events that go through
-+	  /proc/acpi/events, and (on some models) adds support for changing the
-+	  display brightness and output, switching the LCD backlight on and off,
-+	  and most importantly, allows you to blink those fancy LEDs intended
-+	  for reporting mail and wireless status.
-+
-+	  Note: display switching code is currently considered EXPERIMENTAL,
-+	  toying with these values may even lock your machine.
-+
-+	  All settings are changed via /proc/acpi/asus directory entries. Owner
-+	  and group for these entries can be set with asus_uid and asus_gid
-+	  parameters.
-+
-+	  More information and a userspace daemon for handling the extra buttons
-+	  at <http://sourceforge.net/projects/acpi4asus/>.
-+
-+	  If you have an ACPI-compatible ASUS laptop, say Y or M here. This
-+	  driver is still under development, so if your laptop is unsupported or
-+	  something works not quite as expected, please use the mailing list
-+	  available on the above page (acpi4asus-user@lists.sourceforge.net).
-+
-+	  NOTE: This driver is deprecated and will probably be removed soon,
-+	  use asus-laptop instead.
-+
-+config ACPI_TOSHIBA
-+	tristate "Toshiba Laptop Extras"
-+	depends on ACPI
-+	depends on INPUT
-+	select INPUT_POLLDEV
-+	select NET
-+	select RFKILL
-+	select BACKLIGHT_CLASS_DEVICE
-+	---help---
-+	  This driver adds support for access to certain system settings
-+	  on "legacy free" Toshiba laptops.  These laptops can be recognized by
-+	  their lack of a BIOS setup menu and APM support.
-+
-+	  On these machines, all system configuration is handled through the
-+	  ACPI.  This driver is required for access to controls not covered
-+	  by the general ACPI drivers, such as LCD brightness, video output,
-+	  etc.
-+
-+	  This driver differs from the non-ACPI Toshiba laptop driver (located
-+	  under "Processor type and features") in several aspects.
-+	  Configuration is accessed by reading and writing text files in the
-+	  /proc tree instead of by program interface to /dev.  Furthermore, no
-+	  power management functions are exposed, as those are handled by the
-+	  general ACPI drivers.
-+
-+	  More information about this driver is available at
-+	  <http://memebeam.org/toys/ToshibaAcpiDriver>.
-+
-+	  If you have a legacy free Toshiba laptop (such as the Libretto L1
-+	  series), say Y.
- endif # X86_PLATFORM_DEVICES
-diff --git a/drivers/platform/x86/Makefile b/drivers/platform/x86/Makefile
-index 4d26b1b..1e9de2a 100644
---- a/drivers/platform/x86/Makefile
-+++ b/drivers/platform/x86/Makefile
-@@ -14,3 +14,6 @@ obj-$(CONFIG_THINKPAD_ACPI)	+= thinkpad_acpi.o
- obj-$(CONFIG_FUJITSU_LAPTOP)	+= fujitsu-laptop.o
- obj-$(CONFIG_PANASONIC_LAPTOP)	+= panasonic-laptop.o
- obj-$(CONFIG_INTEL_MENLOW)	+= intel_menlow.o
-+obj-$(CONFIG_ACPI_WMI)		+= wmi.o
-+obj-$(CONFIG_ACPI_ASUS)		+= asus_acpi.o
-+obj-$(CONFIG_ACPI_TOSHIBA)	+= toshiba_acpi.o
-diff --git a/drivers/acpi/asus_acpi.c b/drivers/platform/x86/asus_acpi.c
-similarity index 100%
-rename from drivers/acpi/asus_acpi.c
-rename to drivers/platform/x86/asus_acpi.c
-diff --git a/drivers/acpi/toshiba_acpi.c b/drivers/platform/x86/toshiba_acpi.c
-similarity index 100%
-rename from drivers/acpi/toshiba_acpi.c
-rename to drivers/platform/x86/toshiba_acpi.c
-diff --git a/drivers/acpi/wmi.c b/drivers/platform/x86/wmi.c
-similarity index 100%
-rename from drivers/acpi/wmi.c
-rename to drivers/platform/x86/wmi.c
+ 			if (handle->prev == nr_meta_pages) {
+ 				error = prepare_image(&orig_bm, &copy_bm);
+ 				if (error)
+@@ -1879,12 +1898,14 @@ int snapshot_write_next(struct snapshot_handle *handle, size_t count)
+ 				restore_pblist = NULL;
+ 				handle->buffer = get_buffer(&orig_bm, &ca);
+ 				handle->sync_read = 0;
+-				if (!handle->buffer)
+-					return -ENOMEM;
++				if (IS_ERR(handle->buffer))
++					return PTR_ERR(handle->buffer);
+ 			}
+ 		} else {
+ 			copy_last_highmem_page();
+ 			handle->buffer = get_buffer(&orig_bm, &ca);
++			if (IS_ERR(handle->buffer))
++				return PTR_ERR(handle->buffer);
+ 			if (handle->buffer != buffer)
+ 				handle->sync_read = 0;
+ 		}
 -- 
 1.5.6.6
 
