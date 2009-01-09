@@ -1,31 +1,93 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] misc: Add oqo-wmi driver for model 2 OQO backlight and rfkill control
-Date: Fri, 9 Jan 2009 12:35:06 +0000
-Message-ID: <20090109123506.GB31003@srcf.ucam.org>
-References: <20081127190517.GA25429@srcf.ucam.org> <alpine.LFD.2.00.0811281431320.3204@localhost.localdomain> <Pine.LNX.4.64.0811282215160.17453@sheavy.abrij.org> <20081129045045.GA13866@srcf.ucam.org> <20081203195537.GB22560@srcf.ucam.org> <alpine.LFD.2.00.0901090112190.4091@localhost.localdomain>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [Regression] USB wakeup problem on Toshiba Portege R500
+Date: Fri, 9 Jan 2009 18:53:41 +0100
+Message-ID: <200901091853.42700.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0901091055050.10951-100000@netrider.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:52031 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752914AbZAIMfP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2009 07:35:15 -0500
+Received: from ogre.sisk.pl ([217.79.144.158]:58262 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751345AbZAIRyX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 9 Jan 2009 12:54:23 -0500
+In-Reply-To: <Pine.LNX.4.44L0.0901091055050.10951-100000@netrider.rowland.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.0901090112190.4091@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: "Brian S. Julin" <bri@abrij.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, greg@kroah.com
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Frans Pop <elendil@planet.nl>, oliver@neukum.org, gregkh@suse.de, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, pavel@suse.cz, torvalds@linux-foundation.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Fri, Jan 09, 2009 at 01:13:03AM -0500, Len Brown wrote:
-> Matthew,
-> this refreshed patch sits in my test tree from about a month ago.
-> I guess i was expecting you to reply to the three comments on it before 
-> pushing it upstream.
+[CCing ACPI and Len)
 
-Ah, sorry, I didn't realise you'd picked it up. I'm still trying to find 
-some time to spend with the hardware to make sure a cleaned up version 
-works correctly.
+On Friday 09 January 2009, Alan Stern wrote:
+> On Thu, 8 Jan 2009, Frans Pop wrote:
+> 
+> > Rafael J. Wysocki wrote:
+> > > On Thursday 08 January 2009, Oliver Neukum wrote:
+> > >> Am Thursday 08 January 2009 17:36:12 schrieb Rafael J. Wysocki:
+> > >> You are making a very persuasive argument for reverting it.
+> > >> But what about laptops that only have a USB keyboard?
+> > > 
+> > > Well, up to and including 2.6.28 they needed to echo 'enable' to the USB
+> > > controllers' /sys/devices/.../power/wakeup files, so if the patch is
+> > > reverted, they won't be worse off than they were day before
+> > > yesterday. :-) 
+> > > 
+> > > Perhaps we can choose the default depending on whether or not any HID
+> > > devices are attached to given controller?
+> > 
+> > Is "resume on keyboard activity" really all that needed? Both my laptops 
+> > and my desktop resume fine after pressing the power button.
+> > 
+> > Also consider the following cases:
+> > - laptop has been suspended with external USB mouse connected
+> >   - mouse is moved (accidentally or because it is in the way of a coffee
+> >     cup)
+> >   - mouse cable is removed before putting the laptop in a bag for
+> >     transport
+> > - laptop is in docking station with USB mouse/kbd connected to that
+> >   - again, mouse gets moved for some reason
+> >   - laptop is undocked while suspended
+> >   - or the reverse: laptop gets docked
+> > 
+> > IMO it is not desirable that the system gets resumed as a result of any of 
+> > those actions. I'm not complete sure that it would in all those cases, 
+> > but have they been considered?
+> > 
+> > And in general I've always been in favor of things only happening 
+> > automagically if I've explicitly asked for that, and not by default.
+> 
+> I don't mind reverting the "automatically enable PCI wakeup" commit.  But 
+> we should first come to a definite policy for kernel default wakeup 
+> settings, rather than deciding things piecemeal for different subsystems.
+> 
+> My proposal:
+> 
+> 	Devices and events that are clearly associated with system
+> 	wakeup should be enabled by default.  For example: Power
+> 	button and laptop lid.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Agreed.
+
+> 	All other devices capable of waking up the system should be
+> 	disabled by default.  This presumably includes every PCI
+> 	device.  If users want keyboard or mouse events to cause
+> 	a system resume then they will have to configure their
+> 	desktop management program to enable it.
+
+I generally agree, with one exception.  There are network adapters which
+can be enabled to wake up by the BIOS and their drivers set them up for WoL
+currently on this basis.  These should remain enabled IMO.
+
+> 	Devices not capable of directly waking the system can be
+> 	enabled.  This includes things like USB devices, which
+> 	have to pass a wakeup request through their parent and
+> 	therefore can't wake up the system unless the parent is
+> 	also enabled for wakeup.
+
+Agreed.
+
+Thanks,
+Rafael
