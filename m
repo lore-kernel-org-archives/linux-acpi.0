@@ -1,87 +1,110 @@
-From: James Bottomley <James.Bottomley@HansenPartnership.com>
-Subject: ACPI hotplug panic with current git head
-Date: Sat, 10 Jan 2009 10:17:30 -0600
-Message-ID: <1231604250.3642.33.camel@localhost.localdomain>
+From: Arjan van de Ven <arjan@infradead.org>
+Subject: [PATCH] acpi: Initialize the batter driver asynchronous
+Date: Sat, 10 Jan 2009 16:29:05 -0500
+Message-ID: <20090110162905.157ac543@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from accolon.hansenpartnership.com ([76.243.235.52]:54790 "EHLO
-	accolon.hansenpartnership.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752399AbZAJQRe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 10 Jan 2009 11:17:34 -0500
+Received: from casper.infradead.org ([85.118.1.10]:39750 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751778AbZAJV07 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 10 Jan 2009 16:26:59 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 
-This is on an IBM Maia system with the calgary IOMMU enabled. It's a
-fatal boot up panic.
+>From 9c2e4ec16b9e555ec8e1a52392a583543e7146a9 Mon Sep 17 00:00:00 2001
+From: Arjan van de Ven <arjan@linux.intel.com>
+Date: Sat, 10 Jan 2009 14:19:05 -0500
+Subject: [PATCH] acpi: Initialize the batter driver asynchronous
 
-James
+The battery driver tends to take quite some time to initialize (100ms-300ms
+is quite typical).
+This patch initializes the batter driver asynchronously, so that other
+things in the kernel can initialize in parallel to this 300 msec.
 
+As part of this, the batter driver had to move to the back of the acpi init
+order (hence the Makefile change). Without this move, the next ACPI driver
+would just block on the ACPI/devicee layer semaphores until the battery driver was
+done anyway, not gaining any boot time.
+
+Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
 ---
+ drivers/acpi/Makefile  |    2 +-
+ drivers/acpi/battery.c |   15 +++++++++++----
+ 2 files changed, 12 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index d80f4cc..84f182e 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -37,7 +37,6 @@ obj-y				+= scan.o
+ # Keep EC driver first. Initialization of others depend on it.
+ obj-y				+= ec.o
+ obj-$(CONFIG_ACPI_AC) 		+= ac.o
+-obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
+ obj-$(CONFIG_ACPI_BUTTON)	+= button.o
+ obj-$(CONFIG_ACPI_FAN)		+= fan.o
+ obj-$(CONFIG_ACPI_DOCK)		+= dock.o
+@@ -57,5 +56,6 @@ obj-$(CONFIG_ACPI_DEBUG)	+= debug.o
+ obj-$(CONFIG_ACPI_NUMA)		+= numa.o
+ obj-$(CONFIG_ACPI_HOTPLUG_MEMORY)	+= acpi_memhotplug.o
+ obj-$(CONFIG_ACPI_PROCFS_POWER)	+= cm_sbs.o
++obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
+ obj-$(CONFIG_ACPI_SBS)		+= sbshc.o
+ obj-$(CONFIG_ACPI_SBS)		+= sbs.o
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 65132f9..1211799 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -30,6 +30,7 @@
+ #include <linux/init.h>
+ #include <linux/types.h>
+ #include <linux/jiffies.h>
++#include <linux/async.h>
+ 
+ #ifdef CONFIG_ACPI_PROCFS_POWER
+ #include <linux/proc_fs.h>
+@@ -878,21 +879,27 @@ static struct acpi_driver acpi_battery_driver = {
+ 		},
+ };
+ 
+-static int __init acpi_battery_init(void)
++static void __init acpi_battery_init_async(void *unused, async_cookie_t cookie)
+ {
+ 	if (acpi_disabled)
+-		return -ENODEV;
++		return;
+ #ifdef CONFIG_ACPI_PROCFS_POWER
+ 	acpi_battery_dir = acpi_lock_battery_dir();
+ 	if (!acpi_battery_dir)
+-		return -ENODEV;
++		return;
+ #endif
+ 	if (acpi_bus_register_driver(&acpi_battery_driver) < 0) {
+ #ifdef CONFIG_ACPI_PROCFS_POWER
+ 		acpi_unlock_battery_dir(acpi_battery_dir);
+ #endif
+-		return -ENODEV;
++		return;
+ 	}
++	return;
++}
++
++static int __init acpi_battery_init(void)
++{
++	async_schedule(acpi_battery_init_async, NULL);
+ 	return 0;
+ }
+ 
+-- 
+1.6.0.6
 
 
-Block layer SCSI generic (bsg) driver version 0.4 loaded (major 254)
-io scheduler noop registered
-io scheduler anticipatory registered
-io scheduler deadline registered
-io scheduler cfq registered (default)
-pci_hotplug: PCI Hot Plug PCI Core version: 0.5
-acpiphp: ACPI Hot Plug PCI Controller Driver version: 0.5
-BUG: unable to handle kernel NULL pointer dereference at 0000000000000010
-IP: [<ffffffff8039646f>] acpi_ns_get_next_node+0xb/0x3c
-PGD 0 
-Oops: 0000 [#1] SMP 
-last sysfs file: 
-CPU 0 
-Modules linked in:
-Pid: 1, comm: swapper Not tainted 2.6.28 #1
-RIP: 0010:[<ffffffff8039646f>]  [<ffffffff8039646f>] acpi_ns_get_next_node+0xb/0x3c
-RSP: 0018:ffff88007f87fd30  EFLAGS: 00010246
-RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
-RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
-RBP: 0000000000000000 R08: ffffffff8037d260 R09: ffff88007f87fdfc
-R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000001
-R13: 0000000000000000 R14: 0000000000000001 R15: 0000000000000000
-FS:  0000000000000000(0000) GS:ffffffff80742040(0000) knlGS:0000000000000000
-CS:  0010 DS: 0018 ES: 0018 CR0: 000000008005003b
-CR2: 0000000000000010 CR3: 0000000000201000 CR4: 00000000000006a0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-Process swapper (pid: 1, threadinfo ffff88007f87e000, task ffff88007f875040)
-Stack:
- 0000000000000000 ffffffff803964f5 ffff88007f81b728 0000000000001001
- ffff88007f87fdfc ffffffff8037d260 0000000600000001 0000000000000000
- ffffffff8037d260 0000000000000000 0000000000000001 ffff88007f87fdfc
-Call Trace:
- [<ffffffff803964f5>] acpi_ns_walk_namespace+0x55/0x138
- [<ffffffff8037d260>] is_pci_dock_device+0x0/0x20
- [<ffffffff8037d260>] is_pci_dock_device+0x0/0x20
- [<ffffffff80394a9e>] acpi_walk_namespace+0x5f/0x83
- [<ffffffff8037dd33>] detect_ejectable_slots+0x53/0x70
- [<ffffffff8037de38>] add_bridge+0xe8/0x200
- [<ffffffff80394aaa>] acpi_walk_namespace+0x6b/0x83
- [<ffffffff803a4ad1>] acpi_pci_register_driver+0x48/0x61
- [<ffffffff806fc5df>] acpiphp_init+0x0/0x58
- [<ffffffff806fc732>] acpiphp_glue_init+0x4c/0x5a
- [<ffffffff806fc616>] acpiphp_init+0x37/0x58
- [<ffffffff8020903b>] _stext+0x3b/0x180
- [<ffffffff80312598>] create_proc_entry+0x58/0xa0
- [<ffffffff802815d1>] register_irq_proc+0xc1/0xe0
- [<ffffffff806db64b>] kernel_init+0x152/0x1ac
- [<ffffffff8023d970>] finish_task_switch+0x0/0x110
- [<ffffffff8020ca7a>] child_rip+0xa/0x20
- [<ffffffff8020c47c>] restore_args+0x0/0x30
- [<ffffffff806db4f9>] kernel_init+0x0/0x1ac
- [<ffffffff8020ca70>] child_rip+0x0/0x20
-Code: 89 c2 48 8b 00 48 85 c0 75 f5 48 8b 45 00 48 89 02 44 88 65 09 48 89 5d 00 31 c0 5b 5d 41 5c c3 53 48 85 d2 89 fb 48 89 d7 75 06 <48> 8b 56 10 eb 08 e8 73 f1 ff ff 48 89 c2 85 db 74 1a eb 13 0f 
-RIP  [<ffffffff8039646f>] acpi_ns_get_next_node+0xb/0x3c
- RSP <ffff88007f87fd30>
-CR2: 0000000000000010
----[ end trace a7919e7f17c0a725 ]---
 
-James
-
-
+-- 
+Arjan van de Ven 	Intel Open Source Technology Centre
+For development, discussion and tips for power savings, 
+visit http://www.lesswatts.org
