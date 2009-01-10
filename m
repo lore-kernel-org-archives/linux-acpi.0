@@ -1,76 +1,87 @@
-From: Daniel Smolik <marvin@mydatex.cz>
-Subject: Re: [patch 6/6] acpi dock: terminate eject request is the dock is
- not present
-Date: Sat, 10 Jan 2009 08:42:31 +0100
-Message-ID: <49685167.7050804@mydatex.cz>
-References: <200901092017.n09KHEqd015005@imap1.linux-foundation.org> <alpine.LFD.2.00.0901091607200.16697@localhost.localdomain>
+From: James Bottomley <James.Bottomley@HansenPartnership.com>
+Subject: ACPI hotplug panic with current git head
+Date: Sat, 10 Jan 2009 10:17:30 -0600
+Message-ID: <1231604250.3642.33.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fwc.sitour.cz ([62.209.212.18]:3109 "EHLO kali.sitour.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751037AbZAJIJF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 10 Jan 2009 03:09:05 -0500
-In-Reply-To: <alpine.LFD.2.00.0901091607200.16697@localhost.localdomain>
+Received: from accolon.hansenpartnership.com ([76.243.235.52]:54790 "EHLO
+	accolon.hansenpartnership.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752399AbZAJQRe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 10 Jan 2009 11:17:34 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: akpm@linux-foundation.org, linux-acpi@vger.kernel.org, hmacht@suse.de, rui.zhang@intel.com, shaohua.li@intel.com, stable@kernel.org
+To: linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
 
-Len Brown napsal(a):
-> The bug report suggest that this patch is not a complete fix for the 
-> issue, so I'd prefer we get a resolution, or at least a better
-> understanding of the failure, before sending patches upstream
-> for this issue.
->   
-Hi,
-you are right I don't  understand how it works. I only diff dock.c from 
-2.6.26 to .26.28 and search differences.
-But I apply this patch  5 days ago and dock and undock witout problems 
-as with 2.6.26.
+This is on an IBM Maia system with the calgary IOMMU enabled. It's a
+fatal boot up panic.
 
-Regards
-                      Dan Smolik
+James
+
+---
 
 
-> thanks
-> Len Brown, Intel Open Source Technology Center
->
-> On Fri, 9 Jan 2009, akpm@linux-foundation.org wrote:
->
->   
->> From: Daniel Smolik <marvin@mydatex.cz>
->>
->> Taken from http://bugzilla.kernel.org/show_bug.cgi?id=12360
->>
->> nfi if it's right - I merged it so it wouldn't get lost.
->>
->> Cc: Zhang Rui <rui.zhang@intel.com>
->> Cc: Len Brown <lenb@kernel.org>
->> Cc: "Li, Shaohua" <shaohua.li@intel.com>
->> Cc: <hmacht@suse.de>
->> Cc: <stable@kernel.org>		[2.6.26.x, 2.6.27.x, 2.6.28.x]
->> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
->> ---
->>
->>  drivers/acpi/dock.c |    3 +++
->>  1 file changed, 3 insertions(+)
->>
->> diff -puN drivers/acpi/dock.c~acpi-dock-terminate-eject-request-is-the-dock-is-not-present drivers/acpi/dock.c
->> --- a/drivers/acpi/dock.c~acpi-dock-terminate-eject-request-is-the-dock-is-not-present
->> +++ a/drivers/acpi/dock.c
->> @@ -668,6 +668,9 @@ EXPORT_SYMBOL_GPL(unregister_hotplug_doc
->>   */
->>  static int handle_eject_request(struct dock_station *ds, u32 event)
->>  {
->> +	if (!dock_present(ds))
->> +		return -ENODEV;
->> +
->>  	if (dock_in_progress(ds))
->>  		return -EBUSY;
->>  
->> _
->>
->>     
+Block layer SCSI generic (bsg) driver version 0.4 loaded (major 254)
+io scheduler noop registered
+io scheduler anticipatory registered
+io scheduler deadline registered
+io scheduler cfq registered (default)
+pci_hotplug: PCI Hot Plug PCI Core version: 0.5
+acpiphp: ACPI Hot Plug PCI Controller Driver version: 0.5
+BUG: unable to handle kernel NULL pointer dereference at 0000000000000010
+IP: [<ffffffff8039646f>] acpi_ns_get_next_node+0xb/0x3c
+PGD 0 
+Oops: 0000 [#1] SMP 
+last sysfs file: 
+CPU 0 
+Modules linked in:
+Pid: 1, comm: swapper Not tainted 2.6.28 #1
+RIP: 0010:[<ffffffff8039646f>]  [<ffffffff8039646f>] acpi_ns_get_next_node+0xb/0x3c
+RSP: 0018:ffff88007f87fd30  EFLAGS: 00010246
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: 0000000000000000 R08: ffffffff8037d260 R09: ffff88007f87fdfc
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000001
+R13: 0000000000000000 R14: 0000000000000001 R15: 0000000000000000
+FS:  0000000000000000(0000) GS:ffffffff80742040(0000) knlGS:0000000000000000
+CS:  0010 DS: 0018 ES: 0018 CR0: 000000008005003b
+CR2: 0000000000000010 CR3: 0000000000201000 CR4: 00000000000006a0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+Process swapper (pid: 1, threadinfo ffff88007f87e000, task ffff88007f875040)
+Stack:
+ 0000000000000000 ffffffff803964f5 ffff88007f81b728 0000000000001001
+ ffff88007f87fdfc ffffffff8037d260 0000000600000001 0000000000000000
+ ffffffff8037d260 0000000000000000 0000000000000001 ffff88007f87fdfc
+Call Trace:
+ [<ffffffff803964f5>] acpi_ns_walk_namespace+0x55/0x138
+ [<ffffffff8037d260>] is_pci_dock_device+0x0/0x20
+ [<ffffffff8037d260>] is_pci_dock_device+0x0/0x20
+ [<ffffffff80394a9e>] acpi_walk_namespace+0x5f/0x83
+ [<ffffffff8037dd33>] detect_ejectable_slots+0x53/0x70
+ [<ffffffff8037de38>] add_bridge+0xe8/0x200
+ [<ffffffff80394aaa>] acpi_walk_namespace+0x6b/0x83
+ [<ffffffff803a4ad1>] acpi_pci_register_driver+0x48/0x61
+ [<ffffffff806fc5df>] acpiphp_init+0x0/0x58
+ [<ffffffff806fc732>] acpiphp_glue_init+0x4c/0x5a
+ [<ffffffff806fc616>] acpiphp_init+0x37/0x58
+ [<ffffffff8020903b>] _stext+0x3b/0x180
+ [<ffffffff80312598>] create_proc_entry+0x58/0xa0
+ [<ffffffff802815d1>] register_irq_proc+0xc1/0xe0
+ [<ffffffff806db64b>] kernel_init+0x152/0x1ac
+ [<ffffffff8023d970>] finish_task_switch+0x0/0x110
+ [<ffffffff8020ca7a>] child_rip+0xa/0x20
+ [<ffffffff8020c47c>] restore_args+0x0/0x30
+ [<ffffffff806db4f9>] kernel_init+0x0/0x1ac
+ [<ffffffff8020ca70>] child_rip+0x0/0x20
+Code: 89 c2 48 8b 00 48 85 c0 75 f5 48 8b 45 00 48 89 02 44 88 65 09 48 89 5d 00 31 c0 5b 5d 41 5c c3 53 48 85 d2 89 fb 48 89 d7 75 06 <48> 8b 56 10 eb 08 e8 73 f1 ff ff 48 89 c2 85 db 74 1a eb 13 0f 
+RIP  [<ffffffff8039646f>] acpi_ns_get_next_node+0xb/0x3c
+ RSP <ffff88007f87fd30>
+CR2: 0000000000000010
+---[ end trace a7919e7f17c0a725 ]---
+
+James
+
 
