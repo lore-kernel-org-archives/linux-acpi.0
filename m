@@ -1,158 +1,261 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 04/13] ACPI: thinkpad-acpi: resume with radios disabled
-Date: Sun, 11 Jan 2009 03:01:01 -0200
-Message-ID: <1231650070-21722-5-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 08/13] ACPI: thinkpad-acpi: clean up hotkey_notify()
+Date: Sun, 11 Jan 2009 03:01:05 -0200
+Message-ID: <1231650070-21722-9-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:43346 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:42945 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750997AbZAKFBR (ORCPT
+	by vger.kernel.org with ESMTP id S1751046AbZAKFBS (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 11 Jan 2009 00:01:17 -0500
+	Sun, 11 Jan 2009 00:01:18 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Instruct the firmware to not enable the radios when resuming.  This
-is safer, and the rfkill core will take care to manually enable any
-radios that need to be enabled.
+Clean up the hotkey_notify() handler, which handles the HKEY notifications
+from the ACPI firmware.  It was getting too long and deep.
+
+No functional changes.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 ---
- drivers/platform/x86/thinkpad_acpi.c |   66 ++++++++++++++++++++++++++++-----
- 1 files changed, 56 insertions(+), 10 deletions(-)
+ drivers/platform/x86/thinkpad_acpi.c |  174 +++++++++++++++++++++-------------
+ 1 files changed, 109 insertions(+), 65 deletions(-)
 
 diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index a086ce8..b2c5913 100644
+index 7670c8e..d833ee6 100644
 --- a/drivers/platform/x86/thinkpad_acpi.c
 +++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -122,6 +122,27 @@ enum {
- #define TPACPI_HKEY_INPUT_PRODUCT	0x5054 /* "TP" */
- #define TPACPI_HKEY_INPUT_VERSION	0x4101
+@@ -2571,13 +2571,100 @@ err_exit:
+ 	return (res < 0)? res : 1;
+ }
  
-+/* ACPI \WGSV commands */
-+enum {
-+	TP_ACPI_WGSV_GET_STATE		= 0x01, /* Get state information */
-+	TP_ACPI_WGSV_PWR_ON_ON_RESUME	= 0x02, /* Resume WWAN powered on */
-+	TP_ACPI_WGSV_PWR_OFF_ON_RESUME	= 0x03,	/* Resume WWAN powered off */
-+	TP_ACPI_WGSV_SAVE_STATE		= 0x04, /* Save state for S4/S5 */
-+};
-+
-+/* TP_ACPI_WGSV_GET_STATE bits */
-+enum {
-+	TP_ACPI_WGSV_STATE_WWANEXIST	= 0x0001, /* WWAN hw available */
-+	TP_ACPI_WGSV_STATE_WWANPWR	= 0x0002, /* WWAN radio enabled */
-+	TP_ACPI_WGSV_STATE_WWANPWRRES	= 0x0004, /* WWAN state at resume */
-+	TP_ACPI_WGSV_STATE_WWANBIOSOFF	= 0x0008, /* WWAN disabled in BIOS */
-+	TP_ACPI_WGSV_STATE_BLTHEXIST	= 0x0001, /* BLTH hw available */
-+	TP_ACPI_WGSV_STATE_BLTHPWR	= 0x0002, /* BLTH radio enabled */
-+	TP_ACPI_WGSV_STATE_BLTHPWRRES	= 0x0004, /* BLTH state at resume */
-+	TP_ACPI_WGSV_STATE_BLTHBIOSOFF	= 0x0008, /* BLTH disabled in BIOS */
-+	TP_ACPI_WGSV_STATE_UWBEXIST	= 0x0010, /* UWB hw available */
-+	TP_ACPI_WGSV_STATE_UWBPWR	= 0x0020, /* UWB radio enabled */
-+};
- 
- /****************************************************************************
-  * Main driver
-@@ -2766,11 +2787,28 @@ enum {
- 	/* ACPI GBDC/SBDC bits */
- 	TP_ACPI_BLUETOOTH_HWPRESENT	= 0x01,	/* Bluetooth hw available */
- 	TP_ACPI_BLUETOOTH_RADIOSSW	= 0x02,	/* Bluetooth radio enabled */
--	TP_ACPI_BLUETOOTH_UNK		= 0x04,	/* unknown function */
-+	TP_ACPI_BLUETOOTH_RESUMECTRL	= 0x04,	/* Bluetooth state at resume:
-+						   off / last state */
-+};
-+
-+enum {
-+	/* ACPI \BLTH commands */
-+	TP_ACPI_BLTH_GET_ULTRAPORT_ID	= 0x00, /* Get Ultraport BT ID */
-+	TP_ACPI_BLTH_GET_PWR_ON_RESUME	= 0x01, /* Get power-on-resume state */
-+	TP_ACPI_BLTH_PWR_ON_ON_RESUME	= 0x02, /* Resume powered on */
-+	TP_ACPI_BLTH_PWR_OFF_ON_RESUME	= 0x03,	/* Resume powered off */
-+	TP_ACPI_BLTH_SAVE_STATE		= 0x05, /* Save state for S4/S5 */
- };
- 
- static struct rfkill *tpacpi_bluetooth_rfkill;
- 
-+static void bluetooth_suspend(pm_message_t state)
++static bool hotkey_notify_hotkey(const u32 hkey,
++				 bool *send_acpi_ev,
++				 bool *ignore_acpi_ev)
 +{
-+	/* Try to make sure radio will resume powered off */
-+	acpi_evalf(NULL, NULL, "\\BLTH", "vd",
-+		   TP_ACPI_BLTH_PWR_OFF_ON_RESUME);
++	/* 0x1000-0x1FFF: key presses */
++	unsigned int scancode = hkey & 0xfff;
++	*send_acpi_ev = true;
++	*ignore_acpi_ev = false;
++
++	if (scancode > 0 && scancode < 0x21) {
++		scancode--;
++		if (!(hotkey_source_mask & (1 << scancode))) {
++			tpacpi_input_send_key(scancode);
++			*send_acpi_ev = false;
++		} else {
++			*ignore_acpi_ev = true;
++		}
++		return true;
++	}
++	return false;
 +}
 +
- static int bluetooth_get_radiosw(void)
- {
- 	int status;
-@@ -2830,12 +2868,11 @@ static int bluetooth_set_radiosw(int radio_on, int update_rfk)
- 	}
- #endif
- 
--	if (!acpi_evalf(hkey_handle, &status, "GBDC", "d"))
--		return -EIO;
-+	/* We make sure to keep TP_ACPI_BLUETOOTH_RESUMECTRL off */
- 	if (radio_on)
--		status |= TP_ACPI_BLUETOOTH_RADIOSSW;
-+		status = TP_ACPI_BLUETOOTH_RADIOSSW;
- 	else
--		status &= ~TP_ACPI_BLUETOOTH_RADIOSSW;
-+		status = 0;
- 	if (!acpi_evalf(hkey_handle, NULL, "SBDC", "vd", status))
- 		return -EIO;
- 
-@@ -3012,6 +3049,7 @@ static struct ibm_struct bluetooth_driver_data = {
- 	.read = bluetooth_read,
- 	.write = bluetooth_write,
- 	.exit = bluetooth_exit,
-+	.suspend = bluetooth_suspend,
- };
- 
- /*************************************************************************
-@@ -3022,11 +3060,19 @@ enum {
- 	/* ACPI GWAN/SWAN bits */
- 	TP_ACPI_WANCARD_HWPRESENT	= 0x01,	/* Wan hw available */
- 	TP_ACPI_WANCARD_RADIOSSW	= 0x02,	/* Wan radio enabled */
--	TP_ACPI_WANCARD_UNK		= 0x04,	/* unknown function */
-+	TP_ACPI_WANCARD_RESUMECTRL	= 0x04,	/* Wan state at resume:
-+						   off / last state */
- };
- 
- static struct rfkill *tpacpi_wan_rfkill;
- 
-+static void wan_suspend(pm_message_t state)
++static bool hotkey_notify_wakeup(const u32 hkey,
++				 bool *send_acpi_ev,
++				 bool *ignore_acpi_ev)
 +{
-+	/* Try to make sure radio will resume powered off */
-+	acpi_evalf(NULL, NULL, "\\WGSV", "qvd",
-+		   TP_ACPI_WGSV_PWR_OFF_ON_RESUME);
++	/* 0x2000-0x2FFF: Wakeup reason */
++	*send_acpi_ev = true;
++	*ignore_acpi_ev = false;
++
++	switch (hkey) {
++	case 0x2304: /* suspend, undock */
++	case 0x2404: /* hibernation, undock */
++		hotkey_wakeup_reason = TP_ACPI_WAKEUP_UNDOCK;
++		*ignore_acpi_ev = true;
++		break;
++
++	case 0x2305: /* suspend, bay eject */
++	case 0x2405: /* hibernation, bay eject */
++		hotkey_wakeup_reason = TP_ACPI_WAKEUP_BAYEJ;
++		*ignore_acpi_ev = true;
++		break;
++
++	default:
++		return false;
++	}
++
++	if (hotkey_wakeup_reason != TP_ACPI_WAKEUP_NONE) {
++		printk(TPACPI_INFO
++		       "woke up due to a hot-unplug "
++		       "request...\n");
++		hotkey_wakeup_reason_notify_change();
++	}
++	return true;
 +}
 +
- static int wan_get_radiosw(void)
++static bool hotkey_notify_usrevent(const u32 hkey,
++				 bool *send_acpi_ev,
++				 bool *ignore_acpi_ev)
++{
++	/* 0x5000-0x5FFF: human interface helpers */
++	*send_acpi_ev = true;
++	*ignore_acpi_ev = false;
++
++	switch (hkey) {
++	case 0x5010: /* Lenovo new BIOS: brightness changed */
++	case 0x500b: /* X61t: tablet pen inserted into bay */
++	case 0x500c: /* X61t: tablet pen removed from bay */
++		return true;
++
++	case 0x5009: /* X41t-X61t: swivel up (tablet mode) */
++	case 0x500a: /* X41t-X61t: swivel down (normal mode) */
++		tpacpi_input_send_tabletsw();
++		hotkey_tablet_mode_notify_change();
++		*send_acpi_ev = false;
++		return true;
++
++	case 0x5001:
++	case 0x5002:
++		/* LID switch events.  Do not propagate */
++		*ignore_acpi_ev = true;
++		return true;
++
++	default:
++		return false;
++	}
++}
++
+ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
  {
- 	int status;
-@@ -3086,12 +3132,11 @@ static int wan_set_radiosw(int radio_on, int update_rfk)
- 	}
- #endif
+ 	u32 hkey;
+-	unsigned int scancode;
+-	int send_acpi_ev;
+-	int ignore_acpi_ev;
+-	int unk_ev;
++	bool send_acpi_ev;
++	bool ignore_acpi_ev;
++	bool known_ev;
  
--	if (!acpi_evalf(hkey_handle, &status, "GWAN", "d"))
--		return -EIO;
-+	/* We make sure to keep TP_ACPI_WANCARD_RESUMECTRL off */
- 	if (radio_on)
--		status |= TP_ACPI_WANCARD_RADIOSSW;
-+		status = TP_ACPI_WANCARD_RADIOSSW;
- 	else
--		status &= ~TP_ACPI_WANCARD_RADIOSSW;
-+		status = 0;
- 	if (!acpi_evalf(hkey_handle, NULL, "SWAN", "vd", status))
- 		return -EIO;
+ 	if (event != 0x80) {
+ 		printk(TPACPI_ERR
+@@ -2601,105 +2688,62 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
+ 			return;
+ 		}
  
-@@ -3266,6 +3311,7 @@ static struct ibm_struct wan_driver_data = {
- 	.read = wan_read,
- 	.write = wan_write,
- 	.exit = wan_exit,
-+	.suspend = wan_suspend,
- };
+-		send_acpi_ev = 1;
+-		ignore_acpi_ev = 0;
+-		unk_ev = 0;
++		send_acpi_ev = true;
++		ignore_acpi_ev = false;
  
- /*************************************************************************
+ 		switch (hkey >> 12) {
+ 		case 1:
+ 			/* 0x1000-0x1FFF: key presses */
+-			scancode = hkey & 0xfff;
+-			if (scancode > 0 && scancode < 0x21) {
+-				scancode--;
+-				if (!(hotkey_source_mask & (1 << scancode))) {
+-					tpacpi_input_send_key(scancode);
+-					send_acpi_ev = 0;
+-				} else {
+-					ignore_acpi_ev = 1;
+-				}
+-			} else {
+-				unk_ev = 1;
+-			}
++			known_ev = hotkey_notify_hotkey(hkey, &send_acpi_ev,
++						 &ignore_acpi_ev);
+ 			break;
+ 		case 2:
+-			/* Wakeup reason */
+-			switch (hkey) {
+-			case 0x2304: /* suspend, undock */
+-			case 0x2404: /* hibernation, undock */
+-				hotkey_wakeup_reason = TP_ACPI_WAKEUP_UNDOCK;
+-				ignore_acpi_ev = 1;
+-				break;
+-			case 0x2305: /* suspend, bay eject */
+-			case 0x2405: /* hibernation, bay eject */
+-				hotkey_wakeup_reason = TP_ACPI_WAKEUP_BAYEJ;
+-				ignore_acpi_ev = 1;
+-				break;
+-			default:
+-				unk_ev = 1;
+-			}
+-			if (hotkey_wakeup_reason != TP_ACPI_WAKEUP_NONE) {
+-				printk(TPACPI_INFO
+-				       "woke up due to a hot-unplug "
+-				       "request...\n");
+-				hotkey_wakeup_reason_notify_change();
+-			}
++			/* 0x2000-0x2FFF: Wakeup reason */
++			known_ev = hotkey_notify_wakeup(hkey, &send_acpi_ev,
++						 &ignore_acpi_ev);
+ 			break;
+ 		case 3:
+-			/* bay-related wakeups */
++			/* 0x3000-0x3FFF: bay-related wakeups */
+ 			if (hkey == 0x3003) {
+ 				hotkey_autosleep_ack = 1;
+ 				printk(TPACPI_INFO
+ 				       "bay ejected\n");
+ 				hotkey_wakeup_hotunplug_complete_notify_change();
++				known_ev = true;
+ 			} else {
+-				unk_ev = 1;
++				known_ev = false;
+ 			}
+ 			break;
+ 		case 4:
+-			/* dock-related wakeups */
++			/* 0x4000-0x4FFF: dock-related wakeups */
+ 			if (hkey == 0x4003) {
+ 				hotkey_autosleep_ack = 1;
+ 				printk(TPACPI_INFO
+ 				       "undocked\n");
+ 				hotkey_wakeup_hotunplug_complete_notify_change();
++				known_ev = true;
+ 			} else {
+-				unk_ev = 1;
++				known_ev = false;
+ 			}
+ 			break;
+ 		case 5:
+ 			/* 0x5000-0x5FFF: human interface helpers */
+-			switch (hkey) {
+-			case 0x5010: /* Lenovo new BIOS: brightness changed */
+-			case 0x500b: /* X61t: tablet pen inserted into bay */
+-			case 0x500c: /* X61t: tablet pen removed from bay */
+-				break;
+-			case 0x5009: /* X41t-X61t: swivel up (tablet mode) */
+-			case 0x500a: /* X41t-X61t: swivel down (normal mode) */
+-				tpacpi_input_send_tabletsw();
+-				hotkey_tablet_mode_notify_change();
+-				send_acpi_ev = 0;
+-				break;
+-			case 0x5001:
+-			case 0x5002:
+-				/* LID switch events.  Do not propagate */
+-				ignore_acpi_ev = 1;
+-				break;
+-			default:
+-				unk_ev = 1;
+-			}
++			known_ev = hotkey_notify_usrevent(hkey, &send_acpi_ev,
++						 &ignore_acpi_ev);
+ 			break;
+ 		case 7:
+ 			/* 0x7000-0x7FFF: misc */
+ 			if (tp_features.hotkey_wlsw && hkey == 0x7000) {
+ 				tpacpi_send_radiosw_update();
+ 				send_acpi_ev = 0;
++				known_ev = true;
+ 				break;
+ 			}
+ 			/* fallthrough to default */
+ 		default:
+-			unk_ev = 1;
++			known_ev = false;
+ 		}
+-		if (unk_ev) {
++		if (!known_ev) {
+ 			printk(TPACPI_NOTICE
+ 			       "unhandled HKEY event 0x%04x\n", hkey);
+ 		}
 -- 
 1.5.6.5
 
