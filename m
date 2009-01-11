@@ -1,155 +1,155 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 05/13] ACPI: thinkpad-acpi: preserve radio state across shutdown
-Date: Sun, 11 Jan 2009 03:01:02 -0200
-Message-ID: <1231650070-21722-6-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 04/13] ACPI: thinkpad-acpi: resume with radios disabled
+Date: Sun, 11 Jan 2009 03:01:01 -0200
+Message-ID: <1231650070-21722-5-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:33860 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:43346 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750938AbZAKFBR (ORCPT
+	by vger.kernel.org with ESMTP id S1750997AbZAKFBR (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
 	Sun, 11 Jan 2009 00:01:17 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Ivo van Doorn <IvDoorn@gmail.com>
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Store in firmware NVRAM the radio state on machine shutdown for WWAN and
-bluetooth.  Also, try to set the initial boot state of these radios as the
-rfkill default state for their respective classes.
+Instruct the firmware to not enable the radios when resuming.  This
+is safer, and the rfkill core will take care to manually enable any
+radios that need to be enabled.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Ivo van Doorn <IvDoorn@gmail.com>
 ---
- drivers/platform/x86/thinkpad_acpi.c |   59 +++++++++++++++++++++++++++++++--
- 1 files changed, 55 insertions(+), 4 deletions(-)
+ drivers/platform/x86/thinkpad_acpi.c |   66 ++++++++++++++++++++++++++++-----
+ 1 files changed, 56 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index b2c5913..27d709b 100644
+index a086ce8..b2c5913 100644
 --- a/drivers/platform/x86/thinkpad_acpi.c
 +++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -222,6 +222,7 @@ struct ibm_struct {
- 	void (*exit) (void);
- 	void (*resume) (void);
- 	void (*suspend) (pm_message_t state);
-+	void (*shutdown) (void);
+@@ -122,6 +122,27 @@ enum {
+ #define TPACPI_HKEY_INPUT_PRODUCT	0x5054 /* "TP" */
+ #define TPACPI_HKEY_INPUT_VERSION	0x4101
  
- 	struct list_head all_drivers;
- 
-@@ -759,6 +760,18 @@ static int tpacpi_resume_handler(struct platform_device *pdev)
- 	return 0;
- }
- 
-+static void tpacpi_shutdown_handler(struct platform_device *pdev)
-+{
-+	struct ibm_struct *ibm, *itmp;
++/* ACPI \WGSV commands */
++enum {
++	TP_ACPI_WGSV_GET_STATE		= 0x01, /* Get state information */
++	TP_ACPI_WGSV_PWR_ON_ON_RESUME	= 0x02, /* Resume WWAN powered on */
++	TP_ACPI_WGSV_PWR_OFF_ON_RESUME	= 0x03,	/* Resume WWAN powered off */
++	TP_ACPI_WGSV_SAVE_STATE		= 0x04, /* Save state for S4/S5 */
++};
 +
-+	list_for_each_entry_safe(ibm, itmp,
-+				 &tpacpi_all_drivers,
-+				 all_drivers) {
-+		if (ibm->shutdown)
-+			(ibm->shutdown)();
-+	}
-+}
++/* TP_ACPI_WGSV_GET_STATE bits */
++enum {
++	TP_ACPI_WGSV_STATE_WWANEXIST	= 0x0001, /* WWAN hw available */
++	TP_ACPI_WGSV_STATE_WWANPWR	= 0x0002, /* WWAN radio enabled */
++	TP_ACPI_WGSV_STATE_WWANPWRRES	= 0x0004, /* WWAN state at resume */
++	TP_ACPI_WGSV_STATE_WWANBIOSOFF	= 0x0008, /* WWAN disabled in BIOS */
++	TP_ACPI_WGSV_STATE_BLTHEXIST	= 0x0001, /* BLTH hw available */
++	TP_ACPI_WGSV_STATE_BLTHPWR	= 0x0002, /* BLTH radio enabled */
++	TP_ACPI_WGSV_STATE_BLTHPWRRES	= 0x0004, /* BLTH state at resume */
++	TP_ACPI_WGSV_STATE_BLTHBIOSOFF	= 0x0008, /* BLTH disabled in BIOS */
++	TP_ACPI_WGSV_STATE_UWBEXIST	= 0x0010, /* UWB hw available */
++	TP_ACPI_WGSV_STATE_UWBPWR	= 0x0020, /* UWB radio enabled */
++};
+ 
+ /****************************************************************************
+  * Main driver
+@@ -2766,11 +2787,28 @@ enum {
+ 	/* ACPI GBDC/SBDC bits */
+ 	TP_ACPI_BLUETOOTH_HWPRESENT	= 0x01,	/* Bluetooth hw available */
+ 	TP_ACPI_BLUETOOTH_RADIOSSW	= 0x02,	/* Bluetooth radio enabled */
+-	TP_ACPI_BLUETOOTH_UNK		= 0x04,	/* unknown function */
++	TP_ACPI_BLUETOOTH_RESUMECTRL	= 0x04,	/* Bluetooth state at resume:
++						   off / last state */
++};
 +
- static struct platform_driver tpacpi_pdriver = {
- 	.driver = {
- 		.name = TPACPI_DRVR_NAME,
-@@ -766,6 +779,7 @@ static struct platform_driver tpacpi_pdriver = {
- 	},
- 	.suspend = tpacpi_suspend_handler,
- 	.resume = tpacpi_resume_handler,
-+	.shutdown = tpacpi_shutdown_handler,
++enum {
++	/* ACPI \BLTH commands */
++	TP_ACPI_BLTH_GET_ULTRAPORT_ID	= 0x00, /* Get Ultraport BT ID */
++	TP_ACPI_BLTH_GET_PWR_ON_RESUME	= 0x01, /* Get power-on-resume state */
++	TP_ACPI_BLTH_PWR_ON_ON_RESUME	= 0x02, /* Resume powered on */
++	TP_ACPI_BLTH_PWR_OFF_ON_RESUME	= 0x03,	/* Resume powered off */
++	TP_ACPI_BLTH_SAVE_STATE		= 0x05, /* Save state for S4/S5 */
  };
  
- static struct platform_driver tpacpi_hwmon_pdriver = {
-@@ -957,7 +971,22 @@ static int __init tpacpi_new_rfkill(const unsigned int id,
- 			int (*get_state)(void *, enum rfkill_state *))
- {
- 	int res;
--	enum rfkill_state initial_state;
-+	enum rfkill_state initial_state = RFKILL_STATE_SOFT_BLOCKED;
-+
-+	res = get_state(NULL, &initial_state);
-+	if (res < 0) {
-+		printk(TPACPI_ERR
-+			"failed to read initial state for %s, error %d; "
-+			"will turn radio off\n", name, res);
-+	} else {
-+		/* try to set the initial state as the default for the rfkill
-+		 * type, since we ask the firmware to preserve it across S5 in
-+		 * NVRAM */
-+		rfkill_set_default(rfktype,
-+				(initial_state == RFKILL_STATE_UNBLOCKED) ?
-+					RFKILL_STATE_UNBLOCKED :
-+					RFKILL_STATE_SOFT_BLOCKED);
-+	}
+ static struct rfkill *tpacpi_bluetooth_rfkill;
  
- 	*rfk = rfkill_allocate(&tpacpi_pdev->dev, rfktype);
- 	if (!*rfk) {
-@@ -969,9 +998,7 @@ static int __init tpacpi_new_rfkill(const unsigned int id,
- 	(*rfk)->name = name;
- 	(*rfk)->get_state = get_state;
- 	(*rfk)->toggle_radio = toggle_radio;
--
--	if (!get_state(NULL, &initial_state))
--		(*rfk)->state = initial_state;
-+	(*rfk)->state = initial_state;
- 
- 	res = rfkill_register(*rfk);
- 	if (res < 0) {
-@@ -2943,8 +2970,19 @@ static int tpacpi_bluetooth_rfk_set(void *data, enum rfkill_state state)
- 	return bluetooth_set_radiosw((state == RFKILL_STATE_UNBLOCKED), 0);
- }
- 
-+static void bluetooth_shutdown(void)
++static void bluetooth_suspend(pm_message_t state)
 +{
-+	/* Order firmware to save current state to NVRAM */
-+	if (!acpi_evalf(NULL, NULL, "\\BLTH", "vd",
-+			TP_ACPI_BLTH_SAVE_STATE))
-+		printk(TPACPI_NOTICE
-+			"failed to save bluetooth state to NVRAM\n");
++	/* Try to make sure radio will resume powered off */
++	acpi_evalf(NULL, NULL, "\\BLTH", "vd",
++		   TP_ACPI_BLTH_PWR_OFF_ON_RESUME);
 +}
 +
- static void bluetooth_exit(void)
+ static int bluetooth_get_radiosw(void)
  {
-+	bluetooth_shutdown();
-+
- 	if (tpacpi_bluetooth_rfkill)
- 		rfkill_unregister(tpacpi_bluetooth_rfkill);
+ 	int status;
+@@ -2830,12 +2868,11 @@ static int bluetooth_set_radiosw(int radio_on, int update_rfk)
+ 	}
+ #endif
  
-@@ -3050,6 +3088,7 @@ static struct ibm_struct bluetooth_driver_data = {
+-	if (!acpi_evalf(hkey_handle, &status, "GBDC", "d"))
+-		return -EIO;
++	/* We make sure to keep TP_ACPI_BLUETOOTH_RESUMECTRL off */
+ 	if (radio_on)
+-		status |= TP_ACPI_BLUETOOTH_RADIOSSW;
++		status = TP_ACPI_BLUETOOTH_RADIOSSW;
+ 	else
+-		status &= ~TP_ACPI_BLUETOOTH_RADIOSSW;
++		status = 0;
+ 	if (!acpi_evalf(hkey_handle, NULL, "SBDC", "vd", status))
+ 		return -EIO;
+ 
+@@ -3012,6 +3049,7 @@ static struct ibm_struct bluetooth_driver_data = {
+ 	.read = bluetooth_read,
  	.write = bluetooth_write,
  	.exit = bluetooth_exit,
- 	.suspend = bluetooth_suspend,
-+	.shutdown = bluetooth_shutdown,
++	.suspend = bluetooth_suspend,
  };
  
  /*************************************************************************
-@@ -3207,8 +3246,19 @@ static int tpacpi_wan_rfk_set(void *data, enum rfkill_state state)
- 	return wan_set_radiosw((state == RFKILL_STATE_UNBLOCKED), 0);
- }
+@@ -3022,11 +3060,19 @@ enum {
+ 	/* ACPI GWAN/SWAN bits */
+ 	TP_ACPI_WANCARD_HWPRESENT	= 0x01,	/* Wan hw available */
+ 	TP_ACPI_WANCARD_RADIOSSW	= 0x02,	/* Wan radio enabled */
+-	TP_ACPI_WANCARD_UNK		= 0x04,	/* unknown function */
++	TP_ACPI_WANCARD_RESUMECTRL	= 0x04,	/* Wan state at resume:
++						   off / last state */
+ };
  
-+static void wan_shutdown(void)
+ static struct rfkill *tpacpi_wan_rfkill;
+ 
++static void wan_suspend(pm_message_t state)
 +{
-+	/* Order firmware to save current state to NVRAM */
-+	if (!acpi_evalf(NULL, NULL, "\\WGSV", "vd",
-+			TP_ACPI_WGSV_SAVE_STATE))
-+		printk(TPACPI_NOTICE
-+			"failed to save WWAN state to NVRAM\n");
++	/* Try to make sure radio will resume powered off */
++	acpi_evalf(NULL, NULL, "\\WGSV", "qvd",
++		   TP_ACPI_WGSV_PWR_OFF_ON_RESUME);
 +}
 +
- static void wan_exit(void)
+ static int wan_get_radiosw(void)
  {
-+	wan_shutdown();
-+
- 	if (tpacpi_wan_rfkill)
- 		rfkill_unregister(tpacpi_wan_rfkill);
+ 	int status;
+@@ -3086,12 +3132,11 @@ static int wan_set_radiosw(int radio_on, int update_rfk)
+ 	}
+ #endif
  
-@@ -3312,6 +3362,7 @@ static struct ibm_struct wan_driver_data = {
+-	if (!acpi_evalf(hkey_handle, &status, "GWAN", "d"))
+-		return -EIO;
++	/* We make sure to keep TP_ACPI_WANCARD_RESUMECTRL off */
+ 	if (radio_on)
+-		status |= TP_ACPI_WANCARD_RADIOSSW;
++		status = TP_ACPI_WANCARD_RADIOSSW;
+ 	else
+-		status &= ~TP_ACPI_WANCARD_RADIOSSW;
++		status = 0;
+ 	if (!acpi_evalf(hkey_handle, NULL, "SWAN", "vd", status))
+ 		return -EIO;
+ 
+@@ -3266,6 +3311,7 @@ static struct ibm_struct wan_driver_data = {
+ 	.read = wan_read,
  	.write = wan_write,
  	.exit = wan_exit,
- 	.suspend = wan_suspend,
-+	.shutdown = wan_shutdown,
++	.suspend = wan_suspend,
  };
  
  /*************************************************************************
