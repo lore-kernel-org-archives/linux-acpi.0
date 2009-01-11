@@ -1,341 +1,158 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 03/13] ACPI: thinkpad-acpi: debug facility to emulate the rf switches
-Date: Sun, 11 Jan 2009 03:01:00 -0200
-Message-ID: <1231650070-21722-4-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 05/13] ACPI: thinkpad-acpi: preserve radio state across shutdown
+Date: Sun, 11 Jan 2009 03:01:02 -0200
+Message-ID: <1231650070-21722-6-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:50605 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:33860 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750973AbZAKFBQ (ORCPT
+	by vger.kernel.org with ESMTP id S1750938AbZAKFBR (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 11 Jan 2009 00:01:16 -0500
+	Sun, 11 Jan 2009 00:01:17 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Ivo van Doorn <IvDoorn@gmail.com>
 
-This code is required to keep the thinkpad-acpi maintainer sane, and
-it is disabled by default.
-
-Add a debug facility to simulate an rfkill hardware rocker switch, a
-bluetooth rfkill soft-switch, a WWAN rfkill soft-switch on thinkpads.
-
-The simulated switches obviously do not kill any radios in hardware or
-firmware (unlike the real one).  They also don't issue deprecated proc
-events.
+Store in firmware NVRAM the radio state on machine shutdown for WWAN and
+bluetooth.  Also, try to set the initial boot state of these radios as the
+rfkill default state for their respective classes.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Ivo van Doorn <IvDoorn@gmail.com>
 ---
- drivers/platform/x86/Kconfig         |   11 ++
- drivers/platform/x86/thinkpad_acpi.c |  190 ++++++++++++++++++++++++++++++++++
- 2 files changed, 201 insertions(+), 0 deletions(-)
+ drivers/platform/x86/thinkpad_acpi.c |   59 +++++++++++++++++++++++++++++++--
+ 1 files changed, 55 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-index e65448e..431772b 100644
---- a/drivers/platform/x86/Kconfig
-+++ b/drivers/platform/x86/Kconfig
-@@ -192,6 +192,17 @@ config THINKPAD_ACPI
- 
- 	  If you have an IBM or Lenovo ThinkPad laptop, say Y or M here.
- 
-+config THINKPAD_ACPI_DEBUGFACILITIES
-+	bool "Maintainer debug facilities"
-+	depends on THINKPAD_ACPI
-+	default n
-+	---help---
-+	  Enables extra stuff in the thinkpad-acpi which is completely useless
-+	  for normal use.  Read the driver source to find out what it does.
-+
-+	  Say N here, unless you were told by a kernel maintainer to do
-+	  otherwise.
-+
- config THINKPAD_ACPI_DEBUG
- 	bool "Verbose debug mode"
- 	depends on THINKPAD_ACPI
 diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index ee3fa00..a086ce8 100644
+index b2c5913..27d709b 100644
 --- a/drivers/platform/x86/thinkpad_acpi.c
 +++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -288,6 +288,16 @@ struct tpacpi_led_classdev {
- 	unsigned int led;
+@@ -222,6 +222,7 @@ struct ibm_struct {
+ 	void (*exit) (void);
+ 	void (*resume) (void);
+ 	void (*suspend) (pm_message_t state);
++	void (*shutdown) (void);
+ 
+ 	struct list_head all_drivers;
+ 
+@@ -759,6 +760,18 @@ static int tpacpi_resume_handler(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static void tpacpi_shutdown_handler(struct platform_device *pdev)
++{
++	struct ibm_struct *ibm, *itmp;
++
++	list_for_each_entry_safe(ibm, itmp,
++				 &tpacpi_all_drivers,
++				 all_drivers) {
++		if (ibm->shutdown)
++			(ibm->shutdown)();
++	}
++}
++
+ static struct platform_driver tpacpi_pdriver = {
+ 	.driver = {
+ 		.name = TPACPI_DRVR_NAME,
+@@ -766,6 +779,7 @@ static struct platform_driver tpacpi_pdriver = {
+ 	},
+ 	.suspend = tpacpi_suspend_handler,
+ 	.resume = tpacpi_resume_handler,
++	.shutdown = tpacpi_shutdown_handler,
  };
  
-+#ifdef CONFIG_THINKPAD_ACPI_DEBUGFACILITIES
-+static int dbg_wlswemul;
-+static int tpacpi_wlsw_emulstate;
-+static int dbg_bluetoothemul;
-+static int tpacpi_bluetooth_emulstate;
-+static int dbg_wwanemul;
-+static int tpacpi_wwan_emulstate;
-+#endif
+ static struct platform_driver tpacpi_hwmon_pdriver = {
+@@ -957,7 +971,22 @@ static int __init tpacpi_new_rfkill(const unsigned int id,
+ 			int (*get_state)(void *, enum rfkill_state *))
+ {
+ 	int res;
+-	enum rfkill_state initial_state;
++	enum rfkill_state initial_state = RFKILL_STATE_SOFT_BLOCKED;
 +
-+
- /****************************************************************************
-  ****************************************************************************
-  *
-@@ -1006,6 +1016,94 @@ static DRIVER_ATTR(version, S_IRUGO,
++	res = get_state(NULL, &initial_state);
++	if (res < 0) {
++		printk(TPACPI_ERR
++			"failed to read initial state for %s, error %d; "
++			"will turn radio off\n", name, res);
++	} else {
++		/* try to set the initial state as the default for the rfkill
++		 * type, since we ask the firmware to preserve it across S5 in
++		 * NVRAM */
++		rfkill_set_default(rfktype,
++				(initial_state == RFKILL_STATE_UNBLOCKED) ?
++					RFKILL_STATE_UNBLOCKED :
++					RFKILL_STATE_SOFT_BLOCKED);
++	}
  
- /* --------------------------------------------------------------------- */
+ 	*rfk = rfkill_allocate(&tpacpi_pdev->dev, rfktype);
+ 	if (!*rfk) {
+@@ -969,9 +998,7 @@ static int __init tpacpi_new_rfkill(const unsigned int id,
+ 	(*rfk)->name = name;
+ 	(*rfk)->get_state = get_state;
+ 	(*rfk)->toggle_radio = toggle_radio;
+-
+-	if (!get_state(NULL, &initial_state))
+-		(*rfk)->state = initial_state;
++	(*rfk)->state = initial_state;
  
-+#ifdef CONFIG_THINKPAD_ACPI_DEBUGFACILITIES
-+
-+static void tpacpi_send_radiosw_update(void);
-+
-+/* wlsw_emulstate ------------------------------------------------------ */
-+static ssize_t tpacpi_driver_wlsw_emulstate_show(struct device_driver *drv,
-+						char *buf)
-+{
-+	return snprintf(buf, PAGE_SIZE, "%d\n", !!tpacpi_wlsw_emulstate);
-+}
-+
-+static ssize_t tpacpi_driver_wlsw_emulstate_store(struct device_driver *drv,
-+						const char *buf, size_t count)
-+{
-+	unsigned long t;
-+
-+	if (parse_strtoul(buf, 1, &t))
-+		return -EINVAL;
-+
-+	if (tpacpi_wlsw_emulstate != t) {
-+		tpacpi_wlsw_emulstate = !!t;
-+		tpacpi_send_radiosw_update();
-+	} else
-+		tpacpi_wlsw_emulstate = !!t;
-+
-+	return count;
-+}
-+
-+static DRIVER_ATTR(wlsw_emulstate, S_IWUSR | S_IRUGO,
-+		tpacpi_driver_wlsw_emulstate_show,
-+		tpacpi_driver_wlsw_emulstate_store);
-+
-+/* bluetooth_emulstate ------------------------------------------------- */
-+static ssize_t tpacpi_driver_bluetooth_emulstate_show(
-+					struct device_driver *drv,
-+					char *buf)
-+{
-+	return snprintf(buf, PAGE_SIZE, "%d\n", !!tpacpi_bluetooth_emulstate);
-+}
-+
-+static ssize_t tpacpi_driver_bluetooth_emulstate_store(
-+					struct device_driver *drv,
-+					const char *buf, size_t count)
-+{
-+	unsigned long t;
-+
-+	if (parse_strtoul(buf, 1, &t))
-+		return -EINVAL;
-+
-+	tpacpi_bluetooth_emulstate = !!t;
-+
-+	return count;
-+}
-+
-+static DRIVER_ATTR(bluetooth_emulstate, S_IWUSR | S_IRUGO,
-+		tpacpi_driver_bluetooth_emulstate_show,
-+		tpacpi_driver_bluetooth_emulstate_store);
-+
-+/* wwan_emulstate ------------------------------------------------- */
-+static ssize_t tpacpi_driver_wwan_emulstate_show(
-+					struct device_driver *drv,
-+					char *buf)
-+{
-+	return snprintf(buf, PAGE_SIZE, "%d\n", !!tpacpi_wwan_emulstate);
-+}
-+
-+static ssize_t tpacpi_driver_wwan_emulstate_store(
-+					struct device_driver *drv,
-+					const char *buf, size_t count)
-+{
-+	unsigned long t;
-+
-+	if (parse_strtoul(buf, 1, &t))
-+		return -EINVAL;
-+
-+	tpacpi_wwan_emulstate = !!t;
-+
-+	return count;
-+}
-+
-+static DRIVER_ATTR(wwan_emulstate, S_IWUSR | S_IRUGO,
-+		tpacpi_driver_wwan_emulstate_show,
-+		tpacpi_driver_wwan_emulstate_store);
-+
-+#endif
-+
-+/* --------------------------------------------------------------------- */
-+
- static struct driver_attribute *tpacpi_driver_attributes[] = {
- 	&driver_attr_debug_level, &driver_attr_version,
- 	&driver_attr_interface_version,
-@@ -1022,6 +1120,15 @@ static int __init tpacpi_create_driver_attributes(struct device_driver *drv)
- 		i++;
- 	}
- 
-+#ifdef CONFIG_THINKPAD_ACPI_DEBUGFACILITIES
-+	if (!res && dbg_wlswemul)
-+		res = driver_create_file(drv, &driver_attr_wlsw_emulstate);
-+	if (!res && dbg_bluetoothemul)
-+		res = driver_create_file(drv, &driver_attr_bluetooth_emulstate);
-+	if (!res && dbg_wwanemul)
-+		res = driver_create_file(drv, &driver_attr_wwan_emulstate);
-+#endif
-+
- 	return res;
+ 	res = rfkill_register(*rfk);
+ 	if (res < 0) {
+@@ -2943,8 +2970,19 @@ static int tpacpi_bluetooth_rfk_set(void *data, enum rfkill_state state)
+ 	return bluetooth_set_radiosw((state == RFKILL_STATE_UNBLOCKED), 0);
  }
  
-@@ -1031,6 +1138,12 @@ static void tpacpi_remove_driver_attributes(struct device_driver *drv)
- 
- 	for (i = 0; i < ARRAY_SIZE(tpacpi_driver_attributes); i++)
- 		driver_remove_file(drv, tpacpi_driver_attributes[i]);
++static void bluetooth_shutdown(void)
++{
++	/* Order firmware to save current state to NVRAM */
++	if (!acpi_evalf(NULL, NULL, "\\BLTH", "vd",
++			TP_ACPI_BLTH_SAVE_STATE))
++		printk(TPACPI_NOTICE
++			"failed to save bluetooth state to NVRAM\n");
++}
 +
-+#ifdef THINKPAD_ACPI_DEBUGFACILITIES
-+	driver_remove_file(drv, &driver_attr_wlsw_emulstate);
-+	driver_remove_file(drv, &driver_attr_bluetooth_emulstate);
-+	driver_remove_file(drv, &driver_attr_wwan_emulstate);
-+#endif
+ static void bluetooth_exit(void)
+ {
++	bluetooth_shutdown();
++
+ 	if (tpacpi_bluetooth_rfkill)
+ 		rfkill_unregister(tpacpi_bluetooth_rfkill);
+ 
+@@ -3050,6 +3088,7 @@ static struct ibm_struct bluetooth_driver_data = {
+ 	.write = bluetooth_write,
+ 	.exit = bluetooth_exit,
+ 	.suspend = bluetooth_suspend,
++	.shutdown = bluetooth_shutdown,
+ };
+ 
+ /*************************************************************************
+@@ -3207,8 +3246,19 @@ static int tpacpi_wan_rfk_set(void *data, enum rfkill_state state)
+ 	return wan_set_radiosw((state == RFKILL_STATE_UNBLOCKED), 0);
  }
  
- /****************************************************************************
-@@ -1216,6 +1329,12 @@ static struct attribute_set *hotkey_dev_attributes;
- 
- static int hotkey_get_wlsw(int *status)
++static void wan_shutdown(void)
++{
++	/* Order firmware to save current state to NVRAM */
++	if (!acpi_evalf(NULL, NULL, "\\WGSV", "vd",
++			TP_ACPI_WGSV_SAVE_STATE))
++		printk(TPACPI_NOTICE
++			"failed to save WWAN state to NVRAM\n");
++}
++
+ static void wan_exit(void)
  {
-+#ifdef CONFIG_THINKPAD_ACPI_DEBUGFACILITIES
-+	if (dbg_wlswemul) {
-+		*status = !!tpacpi_wlsw_emulstate;
-+		return 0;
-+	}
-+#endif
- 	if (!acpi_evalf(hkey_handle, status, "WLSW", "d"))
- 		return -EIO;
- 	return 0;
-@@ -2222,6 +2341,13 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
- 		    hotkey_source_mask, hotkey_poll_freq);
- #endif
- 
-+#ifdef CONFIG_THINKPAD_ACPI_DEBUGFACILITIES
-+	if (dbg_wlswemul) {
-+		tp_features.hotkey_wlsw = 1;
-+		printk(TPACPI_INFO
-+			"radio switch emulation enabled\n");
-+	} else
-+#endif
- 	/* Not all thinkpads have a hardware radio switch */
- 	if (acpi_evalf(hkey_handle, &status, "WLSW", "qd")) {
- 		tp_features.hotkey_wlsw = 1;
-@@ -2656,6 +2782,12 @@ static int bluetooth_get_radiosw(void)
- 	if (tp_features.hotkey_wlsw && !hotkey_get_wlsw(&status) && !status)
- 		return RFKILL_STATE_HARD_BLOCKED;
- 
-+#ifdef CONFIG_THINKPAD_ACPI_DEBUGFACILITIES
-+	if (dbg_bluetoothemul)
-+		return (tpacpi_bluetooth_emulstate) ?
-+			RFKILL_STATE_UNBLOCKED : RFKILL_STATE_SOFT_BLOCKED;
-+#endif
++	wan_shutdown();
 +
- 	if (!acpi_evalf(hkey_handle, &status, "GBDC", "d"))
- 		return -EIO;
+ 	if (tpacpi_wan_rfkill)
+ 		rfkill_unregister(tpacpi_wan_rfkill);
  
-@@ -2689,6 +2821,15 @@ static int bluetooth_set_radiosw(int radio_on, int update_rfk)
- 	    && radio_on)
- 		return -EPERM;
+@@ -3312,6 +3362,7 @@ static struct ibm_struct wan_driver_data = {
+ 	.write = wan_write,
+ 	.exit = wan_exit,
+ 	.suspend = wan_suspend,
++	.shutdown = wan_shutdown,
+ };
  
-+#ifdef CONFIG_THINKPAD_ACPI_DEBUGFACILITIES
-+	if (dbg_bluetoothemul) {
-+		tpacpi_bluetooth_emulstate = !!radio_on;
-+		if (update_rfk)
-+			bluetooth_update_rfk();
-+		return 0;
-+	}
-+#endif
-+
- 	if (!acpi_evalf(hkey_handle, &status, "GBDC", "d"))
- 		return -EIO;
- 	if (radio_on)
-@@ -2792,6 +2933,13 @@ static int __init bluetooth_init(struct ibm_init_struct *iibm)
- 		str_supported(tp_features.bluetooth),
- 		status);
- 
-+#ifdef CONFIG_THINKPAD_ACPI_DEBUGFACILITIES
-+	if (dbg_bluetoothemul) {
-+		tp_features.bluetooth = 1;
-+		printk(TPACPI_INFO
-+			"bluetooth switch emulation enabled\n");
-+	} else
-+#endif
- 	if (tp_features.bluetooth &&
- 	    !(status & TP_ACPI_BLUETOOTH_HWPRESENT)) {
- 		/* no bluetooth hardware present in system */
-@@ -2890,6 +3038,12 @@ static int wan_get_radiosw(void)
- 	if (tp_features.hotkey_wlsw && !hotkey_get_wlsw(&status) && !status)
- 		return RFKILL_STATE_HARD_BLOCKED;
- 
-+#ifdef CONFIG_THINKPAD_ACPI_DEBUGFACILITIES
-+	if (dbg_wwanemul)
-+		return (tpacpi_wwan_emulstate) ?
-+			RFKILL_STATE_UNBLOCKED : RFKILL_STATE_SOFT_BLOCKED;
-+#endif
-+
- 	if (!acpi_evalf(hkey_handle, &status, "GWAN", "d"))
- 		return -EIO;
- 
-@@ -2923,6 +3077,15 @@ static int wan_set_radiosw(int radio_on, int update_rfk)
- 	    && radio_on)
- 		return -EPERM;
- 
-+#ifdef CONFIG_THINKPAD_ACPI_DEBUGFACILITIES
-+	if (dbg_wwanemul) {
-+		tpacpi_wwan_emulstate = !!radio_on;
-+		if (update_rfk)
-+			wan_update_rfk();
-+		return 0;
-+	}
-+#endif
-+
- 	if (!acpi_evalf(hkey_handle, &status, "GWAN", "d"))
- 		return -EIO;
- 	if (radio_on)
-@@ -3024,6 +3187,13 @@ static int __init wan_init(struct ibm_init_struct *iibm)
- 		str_supported(tp_features.wan),
- 		status);
- 
-+#ifdef CONFIG_THINKPAD_ACPI_DEBUGFACILITIES
-+	if (dbg_wwanemul) {
-+		tp_features.wan = 1;
-+		printk(TPACPI_INFO
-+			"wwan switch emulation enabled\n");
-+	} else
-+#endif
- 	if (tp_features.wan &&
- 	    !(status & TP_ACPI_WANCARD_HWPRESENT)) {
- 		/* no wan hardware present in system */
-@@ -6701,6 +6871,26 @@ TPACPI_PARAM(brightness);
- TPACPI_PARAM(volume);
- TPACPI_PARAM(fan);
- 
-+#ifdef CONFIG_THINKPAD_ACPI_DEBUGFACILITIES
-+module_param(dbg_wlswemul, uint, 0);
-+MODULE_PARM_DESC(dbg_wlswemul, "Enables WLSW emulation");
-+module_param_named(wlsw_state, tpacpi_wlsw_emulstate, bool, 0);
-+MODULE_PARM_DESC(wlsw_state,
-+		 "Initial state of the emulated WLSW switch");
-+
-+module_param(dbg_bluetoothemul, uint, 0);
-+MODULE_PARM_DESC(dbg_bluetoothemul, "Enables bluetooth switch emulation");
-+module_param_named(bluetooth_state, tpacpi_bluetooth_emulstate, bool, 0);
-+MODULE_PARM_DESC(bluetooth_state,
-+		 "Initial state of the emulated bluetooth switch");
-+
-+module_param(dbg_wwanemul, uint, 0);
-+MODULE_PARM_DESC(dbg_wwanemul, "Enables WWAN switch emulation");
-+module_param_named(wwan_state, tpacpi_wwan_emulstate, bool, 0);
-+MODULE_PARM_DESC(wwan_state,
-+		 "Initial state of the emulated WWAN switch");
-+#endif
-+
- static void thinkpad_acpi_module_exit(void)
- {
- 	struct ibm_struct *ibm, *itmp;
+ /*************************************************************************
 -- 
 1.5.6.5
 
