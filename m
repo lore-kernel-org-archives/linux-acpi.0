@@ -1,34 +1,40 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH 03/15] ACPICA: move common private headers under
-	kernel/acpi/acpica/
-Date: Sun, 11 Jan 2009 05:09:11 +0100
-Message-ID: <20090111040911.GH28520@elte.hu>
-References: <526647e1bb69fd3248558fce365bb1fbfb226ccd.1230719795.git.len.brown@intel.com> <c6b6f68232ab6da57e764c64b23b4649c4e7c463.1230719801.git.len.brown@intel.com> <20090102191451.GB14249@elte.hu> <alpine.LFD.2.00.0901021438060.3590@localhost.localdomain> <20090107221017.GD17917@elte.hu> <20090108160304.GA30619@infradead.org> <alpine.LFD.2.00.0901082328160.4091@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: [PATCH 01/13] ACPI: thinkpad-acpi: update documents for the new location
+Date: Sun, 11 Jan 2009 03:00:58 -0200
+Message-ID: <1231650070-21722-2-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx3.mail.elte.hu ([157.181.1.138]:55079 "EHLO mx3.mail.elte.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751808AbZAKEKJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 10 Jan 2009 23:10:09 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.0901082328160.4091@localhost.localdomain>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:44604 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750749AbZAKFBP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 11 Jan 2009 00:01:15 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: Christoph Hellwig <hch@infradead.org>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
+Update documentation to reflect the new location of the
+thinkpad-acpi driver.
 
-* Len Brown <lenb@kernel.org> wrote:
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+---
+ Documentation/laptops/thinkpad-acpi.txt |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-> > On Wed, Jan 07, 2009 at 11:10:17PM +0100, Ingo Molnar wrote:
-> > > i still tend to regard kernel/* as the core Linux kernel, as code that can 
-> > > be improved infinitely (only subject to the laws of physics), without 
-> > > having to worry about how the ACPI spec wants certain things done.
-> 
-> I want to move the Linux-ACPI code and the ACPICA core out of drivers/ 
-> simply because they are not drivers, and never will be.
+diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
+index 898b498..ddc371e 100644
+--- a/Documentation/laptops/thinkpad-acpi.txt
++++ b/Documentation/laptops/thinkpad-acpi.txt
+@@ -16,7 +16,8 @@ supported by the generic Linux ACPI drivers.
+ This driver used to be named ibm-acpi until kernel 2.6.21 and release
+ 0.13-20070314.  It used to be in the drivers/acpi tree, but it was
+ moved to the drivers/misc tree and renamed to thinkpad-acpi for kernel
+-2.6.22, and release 0.14.
++2.6.22, and release 0.14.  It was moved to drivers/platform/x86 for
++kernel 2.6.29.
+ 
+ The driver is named "thinkpad-acpi".  In some places, like module
+ names, "thinkpad_acpi" is used because of userspace issues.
+-- 
+1.5.6.5
 
-which files are these exactly, in Linus's latest tree?
-
-	Ingo
