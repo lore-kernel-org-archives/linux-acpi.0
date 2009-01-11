@@ -1,110 +1,34 @@
-From: Arjan van de Ven <arjan@infradead.org>
-Subject: [PATCH] acpi: Initialize the batter driver asynchronous
-Date: Sat, 10 Jan 2009 16:29:05 -0500
-Message-ID: <20090110162905.157ac543@infradead.org>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [PATCH 03/15] ACPICA: move common private headers under
+	kernel/acpi/acpica/
+Date: Sun, 11 Jan 2009 05:09:11 +0100
+Message-ID: <20090111040911.GH28520@elte.hu>
+References: <526647e1bb69fd3248558fce365bb1fbfb226ccd.1230719795.git.len.brown@intel.com> <c6b6f68232ab6da57e764c64b23b4649c4e7c463.1230719801.git.len.brown@intel.com> <20090102191451.GB14249@elte.hu> <alpine.LFD.2.00.0901021438060.3590@localhost.localdomain> <20090107221017.GD17917@elte.hu> <20090108160304.GA30619@infradead.org> <alpine.LFD.2.00.0901082328160.4091@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:39750 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751778AbZAJV07 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 10 Jan 2009 16:26:59 -0500
+Received: from mx3.mail.elte.hu ([157.181.1.138]:55079 "EHLO mx3.mail.elte.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751808AbZAKEKJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 10 Jan 2009 23:10:09 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.0901082328160.4091@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-
->From 9c2e4ec16b9e555ec8e1a52392a583543e7146a9 Mon Sep 17 00:00:00 2001
-From: Arjan van de Ven <arjan@linux.intel.com>
-Date: Sat, 10 Jan 2009 14:19:05 -0500
-Subject: [PATCH] acpi: Initialize the batter driver asynchronous
-
-The battery driver tends to take quite some time to initialize (100ms-300ms
-is quite typical).
-This patch initializes the batter driver asynchronously, so that other
-things in the kernel can initialize in parallel to this 300 msec.
-
-As part of this, the batter driver had to move to the back of the acpi init
-order (hence the Makefile change). Without this move, the next ACPI driver
-would just block on the ACPI/devicee layer semaphores until the battery driver was
-done anyway, not gaining any boot time.
-
-Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
----
- drivers/acpi/Makefile  |    2 +-
- drivers/acpi/battery.c |   15 +++++++++++----
- 2 files changed, 12 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index d80f4cc..84f182e 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -37,7 +37,6 @@ obj-y				+= scan.o
- # Keep EC driver first. Initialization of others depend on it.
- obj-y				+= ec.o
- obj-$(CONFIG_ACPI_AC) 		+= ac.o
--obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
- obj-$(CONFIG_ACPI_BUTTON)	+= button.o
- obj-$(CONFIG_ACPI_FAN)		+= fan.o
- obj-$(CONFIG_ACPI_DOCK)		+= dock.o
-@@ -57,5 +56,6 @@ obj-$(CONFIG_ACPI_DEBUG)	+= debug.o
- obj-$(CONFIG_ACPI_NUMA)		+= numa.o
- obj-$(CONFIG_ACPI_HOTPLUG_MEMORY)	+= acpi_memhotplug.o
- obj-$(CONFIG_ACPI_PROCFS_POWER)	+= cm_sbs.o
-+obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
- obj-$(CONFIG_ACPI_SBS)		+= sbshc.o
- obj-$(CONFIG_ACPI_SBS)		+= sbs.o
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index 65132f9..1211799 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -30,6 +30,7 @@
- #include <linux/init.h>
- #include <linux/types.h>
- #include <linux/jiffies.h>
-+#include <linux/async.h>
- 
- #ifdef CONFIG_ACPI_PROCFS_POWER
- #include <linux/proc_fs.h>
-@@ -878,21 +879,27 @@ static struct acpi_driver acpi_battery_driver = {
- 		},
- };
- 
--static int __init acpi_battery_init(void)
-+static void __init acpi_battery_init_async(void *unused, async_cookie_t cookie)
- {
- 	if (acpi_disabled)
--		return -ENODEV;
-+		return;
- #ifdef CONFIG_ACPI_PROCFS_POWER
- 	acpi_battery_dir = acpi_lock_battery_dir();
- 	if (!acpi_battery_dir)
--		return -ENODEV;
-+		return;
- #endif
- 	if (acpi_bus_register_driver(&acpi_battery_driver) < 0) {
- #ifdef CONFIG_ACPI_PROCFS_POWER
- 		acpi_unlock_battery_dir(acpi_battery_dir);
- #endif
--		return -ENODEV;
-+		return;
- 	}
-+	return;
-+}
-+
-+static int __init acpi_battery_init(void)
-+{
-+	async_schedule(acpi_battery_init_async, NULL);
- 	return 0;
- }
- 
--- 
-1.6.0.6
+To: Len Brown <lenb@kernel.org>
+Cc: Christoph Hellwig <hch@infradead.org>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>
 
 
+* Len Brown <lenb@kernel.org> wrote:
 
--- 
-Arjan van de Ven 	Intel Open Source Technology Centre
-For development, discussion and tips for power savings, 
-visit http://www.lesswatts.org
+> > On Wed, Jan 07, 2009 at 11:10:17PM +0100, Ingo Molnar wrote:
+> > > i still tend to regard kernel/* as the core Linux kernel, as code that can 
+> > > be improved infinitely (only subject to the laws of physics), without 
+> > > having to worry about how the ACPI spec wants certain things done.
+> 
+> I want to move the Linux-ACPI code and the ACPICA core out of drivers/ 
+> simply because they are not drivers, and never will be.
+
+which files are these exactly, in Linus's latest tree?
+
+	Ingo
