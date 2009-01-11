@@ -1,40 +1,67 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 01/13] ACPI: thinkpad-acpi: update documents for the new location
-Date: Sun, 11 Jan 2009 03:00:58 -0200
-Message-ID: <1231650070-21722-2-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 02/13] ACPI: thinkpad-acpi: struct device - replace bus_id with dev_name(), dev_set_name()
+Date: Sun, 11 Jan 2009 03:00:59 -0200
+Message-ID: <1231650070-21722-3-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:44604 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:48429 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750749AbZAKFBP (ORCPT
+	by vger.kernel.org with ESMTP id S1750779AbZAKFBP (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
 	Sun, 11 Jan 2009 00:01:15 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Kay Sievers <kay.sievers@vrfy.org>
 
-Update documentation to reflect the new location of the
-thinkpad-acpi driver.
+From: Kay Sievers <kay.sievers@vrfy.org>
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
+Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
+Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 ---
- Documentation/laptops/thinkpad-acpi.txt |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ drivers/platform/x86/thinkpad_acpi.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
-index 898b498..ddc371e 100644
---- a/Documentation/laptops/thinkpad-acpi.txt
-+++ b/Documentation/laptops/thinkpad-acpi.txt
-@@ -16,7 +16,8 @@ supported by the generic Linux ACPI drivers.
- This driver used to be named ibm-acpi until kernel 2.6.21 and release
- 0.13-20070314.  It used to be in the drivers/acpi tree, but it was
- moved to the drivers/misc tree and renamed to thinkpad-acpi for kernel
--2.6.22, and release 0.14.
-+2.6.22, and release 0.14.  It was moved to drivers/platform/x86 for
-+kernel 2.6.29.
+diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
+index 3478453..ee3fa00 100644
+--- a/drivers/platform/x86/thinkpad_acpi.c
++++ b/drivers/platform/x86/thinkpad_acpi.c
+@@ -2375,7 +2375,7 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
+ 		/* forward it to userspace, maybe it knows how to handle it */
+ 		acpi_bus_generate_netlink_event(
+ 					ibm->acpi->device->pnp.device_class,
+-					ibm->acpi->device->dev.bus_id,
++					dev_name(&ibm->acpi->device->dev),
+ 					event, 0);
+ 		return;
+ 	}
+@@ -2505,7 +2505,7 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
+ 		if (!ignore_acpi_ev && send_acpi_ev) {
+ 			acpi_bus_generate_netlink_event(
+ 					ibm->acpi->device->pnp.device_class,
+-					ibm->acpi->device->dev.bus_id,
++					dev_name(&ibm->acpi->device->dev),
+ 					event, hkey);
+ 		}
+ 	}
+@@ -3724,7 +3724,7 @@ static void dock_notify(struct ibm_struct *ibm, u32 event)
+ 	}
+ 	acpi_bus_generate_proc_event(ibm->acpi->device, event, data);
+ 	acpi_bus_generate_netlink_event(ibm->acpi->device->pnp.device_class,
+-					  ibm->acpi->device->dev.bus_id,
++					  dev_name(&ibm->acpi->device->dev),
+ 					  event, data);
+ }
  
- The driver is named "thinkpad-acpi".  In some places, like module
- names, "thinkpad_acpi" is used because of userspace issues.
+@@ -3826,7 +3826,7 @@ static void bay_notify(struct ibm_struct *ibm, u32 event)
+ {
+ 	acpi_bus_generate_proc_event(ibm->acpi->device, event, 0);
+ 	acpi_bus_generate_netlink_event(ibm->acpi->device->pnp.device_class,
+-					  ibm->acpi->device->dev.bus_id,
++					  dev_name(&ibm->acpi->device->dev),
+ 					  event, 0);
+ }
+ 
 -- 
 1.5.6.5
 
