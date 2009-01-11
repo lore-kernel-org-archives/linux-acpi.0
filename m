@@ -1,78 +1,46 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH] ACPI: set acpi_enforce_resources to strict
-Date: Sun, 11 Jan 2009 20:04:56 +0100
-Message-ID: <496A42D8.6070105@redhat.com>
-References: <20090106182012.GA6668@dreamland.darkstar.lan>	 <49662697.9080302@redhat.com> <68676e00901081213i4d40448y257ccbc8d4776c69@mail.gmail.com>
+From: Matthias Heinz <mheinz@cs.uni-frankfurt.de>
+Subject: Re: 2.6.29-rc1: Reported regressions from 2.6.28
+Date: Sun, 11 Jan 2009 15:39:46 +0100
+Message-ID: <200901111539.48098.mheinz@cs.uni-frankfurt.de>
+References: <XU-8icArWLM.A.UpG.8GfaJB@chimera>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.redhat.com ([66.187.237.31]:58694 "EHLO mx2.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751902AbZAKTEs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 11 Jan 2009 14:04:48 -0500
-In-Reply-To: <68676e00901081213i4d40448y257ccbc8d4776c69@mail.gmail.com>
+Received: from hera.rbi.informatik.uni-frankfurt.de ([141.2.1.1]:38691 "EHLO
+	hera.rbi.informatik.uni-frankfurt.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752199AbZAKXHT convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 11 Jan 2009 18:07:19 -0500
+In-Reply-To: <XU-8icArWLM.A.UpG.8GfaJB@chimera>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Luca Tettamanti <kronos.it@gmail.com>
-Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>, Jean Delvare <khali@linux-fr.org>
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>
 
+Am Sonntag, 11. Januar 2009 schrieb Rafael J. Wysocki:
+> If you know of any other unresolved regressions from 2.6.28, please l=
+et me
+> know either and I'll add them to the list. =C2=A0Also, please let me =
+know if any
+> of the entries below are invalid.
 
+Unresolved regressions
+----------------------
 
-Luca Tettamanti wrote:
-> On Thu, Jan 8, 2009 at 5:15 PM, Hans de Goede <hdegoede@redhat.com> wrote:
-> [...]
->> So back to the discussion about changing the default of
->> acpi_enforce_resources to strict, Jean and I have been discussing this on
->> IRC and we feel it will most likely cause too much pain. So we would like to
->> suggest to make the default depend up on the motherboard. Our plan is to
->> have the default be "auto" and that will mean "lax", unless the motherboard
->> is atk0110 (Asus ACPI interface for reading hwmon data) capable and in that
->> case "auto" will mean "strict"
-> 
-> Hum, that would mean putting ATK specific code into ACPI subsystem.
-> It's not pretty :S
-> 
+Bug-Entry=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0: http://bugzilla.ke=
+rnel.org/show_bug.cgi?id=3D12174
+Subject=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0: No backl=
+ight control on Samsung x360
 
-Agreed, an alternative Jean and I discussed was to make the default strict for 
-all Asus boards, that would be easier (simple strcmp on baseboard 
-manufacturer). I don't know how large the atk detection code is.
-
->> The plan is then to merge this acpi subsystem change and the atk0110 driver
->> at the same time, so that people will get different hwmon capabilities, but
->> won't loose hwmon capabilities all together. Important note: this is meant
->> as an temporary state of affairs, the end goal is to make the checking
->> strict.
->>
->> Luca do you think you could do a patch implementing the described "auto"
->> value for acpi_enforce_resources ?
-> 
-> So the logic would be:
-> - if ATK node is present and the driver is enabled -> strict
-> - otherwise -> auto
-> 
-
-No the logic would be:
-if (acpi_enforce_resources == auto) {
-   if (atk0110)
-     acpi_enforce_resources = strict;
-   else
-     acpi_enforce_resources = lax;
-}
-
-
-> - DMI which would require an entry for each mobo (notebooks don't have
-> the ATK interface)
-
-Yes, if the atk0110 case is too trouble some, changing this over to make auto 
-be strict on all Asus boards is ok too.
-
-> - an initcall in the ATK driver that overrides the value of
-> acpi_enforce_resources to strict
-
-That won't work, the atk0110 driver might be a module and the conflicting 
-drivers could be loaded first.
-
-Regards,
-
-Hans
+I think this is a common bug on systems with a broken(?) bios, exposing=
+ wrong=20
+driver names. With 2.6.27 it was at least possible to control the backl=
+ight=20
+over the NVID interface.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
