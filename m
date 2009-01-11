@@ -1,51 +1,78 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: 2.6.29-rc1: Reported regressions from 2.6.28
-Date: Sun, 11 Jan 2009 20:00:59 +0100
-Message-ID: <200901112001.00394.rjw@sisk.pl>
-References: <XU-8icArWLM.A.UpG.8GfaJB@chimera> <3f9a31f40901110546h4c069b5dx9726a0fbf8caf5a1@mail.gmail.com> <20090111135237.GA20184@elte.hu>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH] ACPI: set acpi_enforce_resources to strict
+Date: Sun, 11 Jan 2009 20:04:56 +0100
+Message-ID: <496A42D8.6070105@redhat.com>
+References: <20090106182012.GA6668@dreamland.darkstar.lan>	 <49662697.9080302@redhat.com> <68676e00901081213i4d40448y257ccbc8d4776c69@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <20090111135237.GA20184@elte.hu>
-Content-Disposition: inline
-Sender: linux-scsi-owner@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Jaswinder Singh Rajput <jaswinderlinux@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx2.redhat.com ([66.187.237.31]:58694 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751902AbZAKTEs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 11 Jan 2009 14:04:48 -0500
+In-Reply-To: <68676e00901081213i4d40448y257ccbc8d4776c69@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Luca Tettamanti <kronos.it@gmail.com>
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>, Jean Delvare <khali@linux-fr.org>
 
-On Sunday 11 January 2009, Ingo Molnar wrote:
-> 
-> * Jaswinder Singh Rajput <jaswinderlinux@gmail.com> wrote:
-> 
-> > On Sun, Jan 11, 2009 at 4:42 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > >
-> > > Regressions with patches
-> > > ------------------------
-> > >
-> > > Bug-Entry       : http://bugzilla.kernel.org/show_bug.cgi?id=12428
-> > > Subject         : Build error on latest git
-> > > Submitter       : Petr Titera <P.Titera@century.cz>
-> > > Date            : 2009-01-11 9:49 (1 days old)
-> > > References      : http://marc.info/?l=linux-kernel&m=123166856318712&w=4
-> > > Handled-By      : Petr Titera <P.Titera@century.cz>
-> > > Patch           : http://marc.info/?l=linux-kernel&m=123167509024996&w=4
-> > 
-> > This is a wrong fix, asm/smp.h should only be included when CONFIG_SMP 
-> > is defined.
-> > 
-> > I am still in the process of cleaning non-smp data from asm/smp.h for 
-> > x86
-> > 
-> > Attach patch is the solution for the time being
-> > 
-> > Ingo, can you please put this in urgent queue.
-> 
-> yes, it already is - see below.
 
-Link to this patch was added to the bug entry.  Pleaes let me know or close the
-bug when it's merged.
 
-Thanks,
-Rafael
+Luca Tettamanti wrote:
+> On Thu, Jan 8, 2009 at 5:15 PM, Hans de Goede <hdegoede@redhat.com> wrote:
+> [...]
+>> So back to the discussion about changing the default of
+>> acpi_enforce_resources to strict, Jean and I have been discussing this on
+>> IRC and we feel it will most likely cause too much pain. So we would like to
+>> suggest to make the default depend up on the motherboard. Our plan is to
+>> have the default be "auto" and that will mean "lax", unless the motherboard
+>> is atk0110 (Asus ACPI interface for reading hwmon data) capable and in that
+>> case "auto" will mean "strict"
+> 
+> Hum, that would mean putting ATK specific code into ACPI subsystem.
+> It's not pretty :S
+> 
+
+Agreed, an alternative Jean and I discussed was to make the default strict for 
+all Asus boards, that would be easier (simple strcmp on baseboard 
+manufacturer). I don't know how large the atk detection code is.
+
+>> The plan is then to merge this acpi subsystem change and the atk0110 driver
+>> at the same time, so that people will get different hwmon capabilities, but
+>> won't loose hwmon capabilities all together. Important note: this is meant
+>> as an temporary state of affairs, the end goal is to make the checking
+>> strict.
+>>
+>> Luca do you think you could do a patch implementing the described "auto"
+>> value for acpi_enforce_resources ?
+> 
+> So the logic would be:
+> - if ATK node is present and the driver is enabled -> strict
+> - otherwise -> auto
+> 
+
+No the logic would be:
+if (acpi_enforce_resources == auto) {
+   if (atk0110)
+     acpi_enforce_resources = strict;
+   else
+     acpi_enforce_resources = lax;
+}
+
+
+> - DMI which would require an entry for each mobo (notebooks don't have
+> the ATK interface)
+
+Yes, if the atk0110 case is too trouble some, changing this over to make auto 
+be strict on all Asus boards is ok too.
+
+> - an initcall in the ATK driver that overrides the value of
+> acpi_enforce_resources to strict
+
+That won't work, the atk0110 driver might be a module and the conflicting 
+drivers could be loaded first.
+
+Regards,
+
+Hans
