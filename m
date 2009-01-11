@@ -1,91 +1,51 @@
-From: Holger Macht <hmacht@suse.de>
-Subject: Re: [patch 6/6] acpi dock: terminate eject request is the dock is
- not present
-Date: Sun, 11 Jan 2009 17:14:58 +0100
-Message-ID: <1231690498.16665.0.camel@homac.suse>
-References: <200901092017.n09KHEqd015005@imap1.linux-foundation.org>
-	 <alpine.LFD.2.00.0901091607200.16697@localhost.localdomain>
-	 <49685167.7050804@mydatex.cz>
-Reply-To: hmacht@suse.de
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: 2.6.29-rc1: Reported regressions from 2.6.28
+Date: Sun, 11 Jan 2009 20:00:59 +0100
+Message-ID: <200901112001.00394.rjw@sisk.pl>
+References: <XU-8icArWLM.A.UpG.8GfaJB@chimera> <3f9a31f40901110546h4c069b5dx9726a0fbf8caf5a1@mail.gmail.com> <20090111135237.GA20184@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:58138 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751936AbZAKQPh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 11 Jan 2009 11:15:37 -0500
-In-Reply-To: <49685167.7050804@mydatex.cz>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <20090111135237.GA20184@elte.hu>
+Content-Disposition: inline
+Sender: linux-scsi-owner@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Jaswinder Singh Rajput <jaswinderlinux@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Smolik <marvin@mydatex.cz>
-Cc: Len Brown <lenb@kernel.org>, akpm@linux-foundation.org, linux-acpi@vger.kernel.org, rui.zhang@intel.com, shaohua.li@intel.com, stable@kernel.org
 
-Am Samstag, den 10.01.2009, 08:42 +0100 schrieb Daniel Smolik:
-> Len Brown napsal(a):
-> > The bug report suggest that this patch is not a complete fix for the 
-> > issue, so I'd prefer we get a resolution, or at least a better
-> > understanding of the failure, before sending patches upstream
-> > for this issue.
-> >   
-> Hi,
-> you are right I don't  understand how it works. I only diff dock.c from 
-> 2.6.26 to .26.28 and search differences.
-> But I apply this patch  5 days ago and dock and undock witout problems 
-> as with 2.6.26.
-
-You also tried to eject/insert your bay with this patch applied. This
-cannot work, at least not in a clean way.
-
-I'm currently debugging and seem to get the idea what's going wrong. Stay
-tuned...
-
-Regards,
-	Holger
-
+On Sunday 11 January 2009, Ingo Molnar wrote:
 > 
-> Regards
->                       Dan Smolik
+> * Jaswinder Singh Rajput <jaswinderlinux@gmail.com> wrote:
 > 
+> > On Sun, Jan 11, 2009 at 4:42 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > >
+> > > Regressions with patches
+> > > ------------------------
+> > >
+> > > Bug-Entry       : http://bugzilla.kernel.org/show_bug.cgi?id=12428
+> > > Subject         : Build error on latest git
+> > > Submitter       : Petr Titera <P.Titera@century.cz>
+> > > Date            : 2009-01-11 9:49 (1 days old)
+> > > References      : http://marc.info/?l=linux-kernel&m=123166856318712&w=4
+> > > Handled-By      : Petr Titera <P.Titera@century.cz>
+> > > Patch           : http://marc.info/?l=linux-kernel&m=123167509024996&w=4
+> > 
+> > This is a wrong fix, asm/smp.h should only be included when CONFIG_SMP 
+> > is defined.
+> > 
+> > I am still in the process of cleaning non-smp data from asm/smp.h for 
+> > x86
+> > 
+> > Attach patch is the solution for the time being
+> > 
+> > Ingo, can you please put this in urgent queue.
 > 
-> > thanks
-> > Len Brown, Intel Open Source Technology Center
-> >
-> > On Fri, 9 Jan 2009, akpm@linux-foundation.org wrote:
-> >
-> >   
-> >> From: Daniel Smolik <marvin@mydatex.cz>
-> >>
-> >> Taken from http://bugzilla.kernel.org/show_bug.cgi?id=12360
-> >>
-> >> nfi if it's right - I merged it so it wouldn't get lost.
-> >>
-> >> Cc: Zhang Rui <rui.zhang@intel.com>
-> >> Cc: Len Brown <lenb@kernel.org>
-> >> Cc: "Li, Shaohua" <shaohua.li@intel.com>
-> >> Cc: <hmacht@suse.de>
-> >> Cc: <stable@kernel.org>		[2.6.26.x, 2.6.27.x, 2.6.28.x]
-> >> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> >> ---
-> >>
-> >>  drivers/acpi/dock.c |    3 +++
-> >>  1 file changed, 3 insertions(+)
-> >>
-> >> diff -puN drivers/acpi/dock.c~acpi-dock-terminate-eject-request-is-the-dock-is-not-present drivers/acpi/dock.c
-> >> --- a/drivers/acpi/dock.c~acpi-dock-terminate-eject-request-is-the-dock-is-not-present
-> >> +++ a/drivers/acpi/dock.c
-> >> @@ -668,6 +668,9 @@ EXPORT_SYMBOL_GPL(unregister_hotplug_doc
-> >>   */
-> >>  static int handle_eject_request(struct dock_station *ds, u32 event)
-> >>  {
-> >> +	if (!dock_present(ds))
-> >> +		return -ENODEV;
-> >> +
-> >>  	if (dock_in_progress(ds))
-> >>  		return -EBUSY;
-> >>  
-> >> _
-> >>
-> >>     
-> 
+> yes, it already is - see below.
 
+Link to this patch was added to the bug entry.  Pleaes let me know or close the
+bug when it's merged.
+
+Thanks,
+Rafael
