@@ -1,193 +1,106 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
-Subject: Re: [PATCH] ACPI: set acpi_enforce_resources to strict
-Date: Mon, 12 Jan 2009 21:28:05 +0100
-Message-ID: <20090112202804.GA14535@dreamland.darkstar.lan>
-References: <20090106182012.GA6668@dreamland.darkstar.lan> <49662697.9080302@redhat.com> <68676e00901081213i4d40448y257ccbc8d4776c69@mail.gmail.com> <496A42D8.6070105@redhat.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: ACPI hotplug panic with current git head
+Date: Mon, 12 Jan 2009 16:16:16 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0901121604380.5859@localhost.localdomain>
+References: <1231604250.3642.33.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f21.google.com ([209.85.218.21]:38659 "EHLO
-	mail-bw0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753279AbZALU17 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Jan 2009 15:27:59 -0500
-Received: by bwz14 with SMTP id 14so32804977bwz.13
-        for <linux-acpi@vger.kernel.org>; Mon, 12 Jan 2009 12:27:57 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <496A42D8.6070105@redhat.com>
+Received: from vms046pub.verizon.net ([206.46.252.46]:58165 "EHLO
+	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752593AbZALVQ0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Jan 2009 16:16:26 -0500
+In-reply-to: <1231604250.3642.33.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>, Jean Delvare <khali@linux-fr.org>
+To: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
 
-Il Sun, Jan 11, 2009 at 08:04:56PM +0100, Hans de Goede ha scritto: 
-> Luca Tettamanti wrote:
->> On Thu, Jan 8, 2009 at 5:15 PM, Hans de Goede <hdegoede@redhat.com> wrote:
->> [...]
->>> So back to the discussion about changing the default of
->>> acpi_enforce_resources to strict, Jean and I have been discussing this on
->>> IRC and we feel it will most likely cause too much pain. So we would like to
->>> suggest to make the default depend up on the motherboard. Our plan is to
->>> have the default be "auto" and that will mean "lax", unless the motherboard
->>> is atk0110 (Asus ACPI interface for reading hwmon data) capable and in that
->>> case "auto" will mean "strict"
->>
->> Hum, that would mean putting ATK specific code into ACPI subsystem.
->> It's not pretty :S
->>
->
-> Agreed, an alternative Jean and I discussed was to make the default 
-> strict for all Asus boards, that would be easier (simple strcmp on 
-> baseboard manufacturer). I don't know how large the atk detection code 
-> is.
+> This is on an IBM Maia system with the calgary IOMMU enabled. It's a
+> fatal boot up panic.
+> 
 
-Pretty small, 25 LoC.
+James,
+A guided bisect...
+Please let me know which of these fail
 
->>> The plan is then to merge this acpi subsystem change and the atk0110 driver
->>> at the same time, so that people will get different hwmon capabilities, but
->>> won't loose hwmon capabilities all together. Important note: this is meant
->>> as an temporary state of affairs, the end goal is to make the checking
->>> strict.
->>>
->>> Luca do you think you could do a patch implementing the described "auto"
->>> value for acpi_enforce_resources ?
->>
->> So the logic would be:
->> - if ATK node is present and the driver is enabled -> strict
->> - otherwise -> auto
->>
->
-> No the logic would be:
-> if (acpi_enforce_resources == auto) {
->   if (atk0110)
->     acpi_enforce_resources = strict;
->   else
->     acpi_enforce_resources = lax;
-> }
-
-Detection is pretty easy, the only problem is that I had to hijack the
-fs_initcal level, because the code shall run _after_ the interpreter has
-been initialized (subsys) but before native drivers have a chance to
-poke the HW. So this what I've come up with (I just wrote it - I plan to
-reboot tomorrow to test it...):
-
----
- Documentation/kernel-parameters.txt |   19 +++++++++++++
- drivers/acpi/osl.c                  |   49 ++++++++++++++++++++++++++++++++++--
- 2 files changed, 66 insertions(+), 2 deletions(-)
-
-Index: linux-2.6.git/Documentation/kernel-parameters.txt
-===================================================================
---- linux-2.6.git.orig/Documentation/kernel-parameters.txt	2009-01-12 21:21:34.573074955 +0100
-+++ linux-2.6.git/Documentation/kernel-parameters.txt	2009-01-12 21:22:01.164076567 +0100
-@@ -251,6 +251,25 @@
- 			to assume that this machine's pmtimer latches its value
- 			and always returns good values.
- 
-+	acpi_enforce_resources=	[ACPI]
-+			{ strict, auto, lax, no }
-+			Check for resource conflicts between native drivers
-+			and ACPI OperationRegions (SystemIO and System Memory
-+			only). IO ports and memory declared in ACPI might be
-+			used by the ACPI subsystem in arbitrary AML code and
-+			can interfere with legacy drivers.
-+			strict: access to resources claimed by ACPI is denied;
-+			legacy drivers trying to access reserved resources
-+			will fail to load.
-+			auto (default): try and detect ACPI devices with known
-+			ACPI drivers; escalates the setting to "strict" if such
-+			a device is found, otherwise behaves like "lax".
-+			lax: access to resources claimed by ACPI is allowed;
-+			legacy drivers trying to access reserved resources
-+			will load and a warning message is logged.
-+			no: ACPI OperationRegions are not marked as reserved,
-+			no further checks are performed.
-+
- 	agp=		[AGP]
- 			{ off | try_unsupported }
- 			off: disable AGP support
-Index: linux-2.6.git/drivers/acpi/osl.c
-===================================================================
---- linux-2.6.git.orig/drivers/acpi/osl.c	2009-01-12 21:21:34.549076302 +0100
-+++ linux-2.6.git/drivers/acpi/osl.c	2009-01-12 21:22:01.164076567 +0100
-@@ -1063,6 +1063,9 @@
-  * in arbitrary AML code and can interfere with legacy drivers.
-  * acpi_enforce_resources= can be set to:
-  *
-+ *   - auto             (3)
-+ *     -> detect possible conflicts with ACPI drivers and switch to
-+ *     strict if needed, otherwise act like lax
-  *   - strict           (2)
-  *     -> further driver trying to access the resources will not load
-  *   - lax (default)    (1)
-@@ -1073,11 +1076,12 @@
-  *     -> ACPI Operation Region resources will not be registered
-  *
-  */
--#define ENFORCE_RESOURCES_STRICT 2
-+#define ENFORCE_RESOURCES_STRICT 3
-+#define ENFORCE_RESOURCES_AUTO   2
- #define ENFORCE_RESOURCES_LAX    1
- #define ENFORCE_RESOURCES_NO     0
- 
--static unsigned int acpi_enforce_resources = ENFORCE_RESOURCES_LAX;
-+static unsigned int acpi_enforce_resources = ENFORCE_RESOURCES_AUTO;
- 
- static int __init acpi_enforce_resources_setup(char *str)
- {
-@@ -1086,6 +1090,8 @@
- 
- 	if (!strcmp("strict", str))
- 		acpi_enforce_resources = ENFORCE_RESOURCES_STRICT;
-+	else if (!strcmp("auto", str))
-+		acpi_enforce_resources = ENFORCE_RESOURCES_AUTO;
- 	else if (!strcmp("lax", str))
- 		acpi_enforce_resources = ENFORCE_RESOURCES_LAX;
- 	else if (!strcmp("no", str))
-@@ -1096,6 +1102,40 @@
- 
- __setup("acpi_enforce_resources=", acpi_enforce_resources_setup);
- 
-+static int __init acpi_detect_asus_atk(void)
-+{
-+	struct acpi_buffer output;
-+	union acpi_object *hid;
-+	acpi_status ret;
-+
-+	if (acpi_enforce_resources != ENFORCE_RESOURCES_AUTO)
-+		return 0;
-+
-+	output.pointer = NULL;
-+	output.length = ACPI_ALLOCATE_BUFFER;
-+	ret = acpi_evaluate_object_typed(NULL, "\\_SB.PCI0.SBRG.ASOC._HID",
-+			NULL, &output, ACPI_TYPE_STRING);
-+	if (ret == AE_OK) {
-+		hid = output.pointer;
-+
-+		if (!strcmp("ATK0110", hid->string.pointer)) {
-+			printk(KERN_DEBUG "Asus ATK0110 interface detected: "
-+					"enforcing resource checking.\n");
-+
-+			acpi_enforce_resources = ENFORCE_RESOURCES_STRICT;
-+		} else {
-+			acpi_enforce_resources =  ENFORCE_RESOURCES_LAX;
-+		}
-+
-+		ACPI_FREE(output.pointer);
-+	} else {
-+		acpi_enforce_resources =  ENFORCE_RESOURCES_LAX;
-+	}
-+
-+	return 0;
-+}
-+fs_initcall(acpi_detect_asus_atk);
-+
- /* Check for resource conflicts between ACPI OperationRegions and native
-  * drivers */
- int acpi_check_resource_conflict(struct resource *res)
+a3a798c88a14b35e5d4ca30716dbc9eb9a1ddfe2 is 2.6.29 at ACPI merge
+efcb3cf7f00c3c424db012380a8a974c2676a3c8 is 2.6.29 before ACPI merge
+ec9f168fcc344d2ffec1c8c822076bf22dab5c33 is 2.6.28 with most ACPI
+e8443c358c34f3fe65236e24147ddf0cd0e61b08 is 2.6.28 plus just ACPICA
 
 
-Luca
--- 
-Ligabue canta: "Tutti vogliono viaggiare in primaaaa..."
-Io ci ho provato e dopo un chilometro ho fuso il motore e bruciato
-la frizione...
+Please test the "2.6.28+ACPICA" one first.
+If it fails, we are close so you can skip the others above
+and bisect between that and 2.6.28.
+
+thanks,
+-Len
+
+> Block layer SCSI generic (bsg) driver version 0.4 loaded (major 254)
+> io scheduler noop registered
+> io scheduler anticipatory registered
+> io scheduler deadline registered
+> io scheduler cfq registered (default)
+> pci_hotplug: PCI Hot Plug PCI Core version: 0.5
+> acpiphp: ACPI Hot Plug PCI Controller Driver version: 0.5
+> BUG: unable to handle kernel NULL pointer dereference at 0000000000000010
+> IP: [<ffffffff8039646f>] acpi_ns_get_next_node+0xb/0x3c
+> PGD 0 
+> Oops: 0000 [#1] SMP 
+> last sysfs file: 
+> CPU 0 
+> Modules linked in:
+> Pid: 1, comm: swapper Not tainted 2.6.28 #1
+> RIP: 0010:[<ffffffff8039646f>]  [<ffffffff8039646f>] acpi_ns_get_next_node+0xb/0x3c
+> RSP: 0018:ffff88007f87fd30  EFLAGS: 00010246
+> RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+> RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
+> RBP: 0000000000000000 R08: ffffffff8037d260 R09: ffff88007f87fdfc
+> R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000001
+> R13: 0000000000000000 R14: 0000000000000001 R15: 0000000000000000
+> FS:  0000000000000000(0000) GS:ffffffff80742040(0000) knlGS:0000000000000000
+> CS:  0010 DS: 0018 ES: 0018 CR0: 000000008005003b
+> CR2: 0000000000000010 CR3: 0000000000201000 CR4: 00000000000006a0
+> DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+> DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+> Process swapper (pid: 1, threadinfo ffff88007f87e000, task ffff88007f875040)
+> Stack:
+>  0000000000000000 ffffffff803964f5 ffff88007f81b728 0000000000001001
+>  ffff88007f87fdfc ffffffff8037d260 0000000600000001 0000000000000000
+>  ffffffff8037d260 0000000000000000 0000000000000001 ffff88007f87fdfc
+> Call Trace:
+>  [<ffffffff803964f5>] acpi_ns_walk_namespace+0x55/0x138
+>  [<ffffffff8037d260>] is_pci_dock_device+0x0/0x20
+>  [<ffffffff8037d260>] is_pci_dock_device+0x0/0x20
+>  [<ffffffff80394a9e>] acpi_walk_namespace+0x5f/0x83
+>  [<ffffffff8037dd33>] detect_ejectable_slots+0x53/0x70
+>  [<ffffffff8037de38>] add_bridge+0xe8/0x200
+>  [<ffffffff80394aaa>] acpi_walk_namespace+0x6b/0x83
+>  [<ffffffff803a4ad1>] acpi_pci_register_driver+0x48/0x61
+>  [<ffffffff806fc5df>] acpiphp_init+0x0/0x58
+>  [<ffffffff806fc732>] acpiphp_glue_init+0x4c/0x5a
+>  [<ffffffff806fc616>] acpiphp_init+0x37/0x58
+>  [<ffffffff8020903b>] _stext+0x3b/0x180
+>  [<ffffffff80312598>] create_proc_entry+0x58/0xa0
+>  [<ffffffff802815d1>] register_irq_proc+0xc1/0xe0
+>  [<ffffffff806db64b>] kernel_init+0x152/0x1ac
+>  [<ffffffff8023d970>] finish_task_switch+0x0/0x110
+>  [<ffffffff8020ca7a>] child_rip+0xa/0x20
+>  [<ffffffff8020c47c>] restore_args+0x0/0x30
+>  [<ffffffff806db4f9>] kernel_init+0x0/0x1ac
+>  [<ffffffff8020ca70>] child_rip+0x0/0x20
+> Code: 89 c2 48 8b 00 48 85 c0 75 f5 48 8b 45 00 48 89 02 44 88 65 09 48 89 5d 00 31 c0 5b 5d 41 5c c3 53 48 85 d2 89 fb 48 89 d7 75 06 <48> 8b 56 10 eb 08 e8 73 f1 ff ff 48 89 c2 85 db 74 1a eb 13 0f 
+> RIP  [<ffffffff8039646f>] acpi_ns_get_next_node+0xb/0x3c
+>  RSP <ffff88007f87fd30>
+> CR2: 0000000000000010
+> ---[ end trace a7919e7f17c0a725 ]---
+> 
+> James
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
