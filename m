@@ -1,35 +1,59 @@
-From: "Corentin Chary" <corentin.chary@gmail.com>
-Subject: Re: Fwd: [PATCH 01/02] Initial work to let ACPI buttons work over INPUT layer
-Date: Mon, 12 Jan 2009 13:00:28 +0100
-Message-ID: <71cd59b00901120400t1545e85avcfaa5b23a3c3ee79@mail.gmail.com>
-References: <200811291834.46109.dnascimento@gmail.com>
-	 <4ff2fa00812190834s8ef5629ofa1f17a74aa6bfef@mail.gmail.com>
-	 <1231328320.402.5.camel@zimtstern>
-	 <71cd59b00901120359h4c0ff723v4f49bdd180fcc9e8@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] : ACPI : Use clocksource to get the C-state time instead of ACPI PM timer
+Date: Mon, 12 Jan 2009 13:27:59 +0100
+Message-ID: <200901121327.59772.rjw@sisk.pl>
+References: <20081031184233.8588.42241.stgit@thinkpad> <200901120858.46440.rjw@sisk.pl> <1231752719.4026.73.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f21.google.com ([209.85.218.21]:38839 "EHLO
-	mail-bw0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753815AbZALMAc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Jan 2009 07:00:32 -0500
-Received: by bwz14 with SMTP id 14so31972863bwz.13
-        for <linux-acpi@vger.kernel.org>; Mon, 12 Jan 2009 04:00:30 -0800 (PST)
-In-Reply-To: <71cd59b00901120359h4c0ff723v4f49bdd180fcc9e8@mail.gmail.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:42388 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750799AbZALM2o (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 12 Jan 2009 07:28:44 -0500
+In-Reply-To: <1231752719.4026.73.camel@yakui_zhao.sh.intel.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Timo Hoenig <thoenig@nouse.net>
-Cc: lenb@kernel.org, Nicolas Trangez <ikke@nicolast.be>, sziwan@users.sourceforge.net, linux-acpi@vger.kernel.org, Daniel Nascimento <dnascimento@gmail.com>
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: LenBrown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
 
-> I don't think this patch is ok, things should be done in cleaner way,
-> like it's eeepc-laptop.
-Sorry : like it's done in eeepc-laptop.
+On Monday 12 January 2009, Zhao Yakui wrote:
+> On Mon, 2009-01-12 at 15:58 +0800, Rafael J. Wysocki wrote:
+> > On Monday 12 January 2009, Zhao Yakui wrote:
+> > > Subject: ACPI: Use clocksource to get the C-state time instead of ACPI PM timer
+> > > From: Zhao Yakui <yakui.zhao@intel.com>
+> > > 
+> > >     On most boxes the ACPI PM timer is 24-bit counter that runs on 3.579545MHz
+> > > clock. In such case the max C-state sleep time should be less than 4687ms when
+> > > it is used to record C2/C3 duration time. 
+> > >     But on some boxes the max C-state sleep time is more than 4687ms. In such
+> > > case the overflow happens and the C-state duration time can't be counted
+> > > accurately.
+> > >     Use clocksource to get the C-state time instead of ACPI PM timer
+> > 
+> > I haven't looked at the patch in detail, but what I would do would be to use
+> > the ACPI PM timer by default and _if_ the results from that are not reasonable,
+> > _then_ fall back to the clocksource.  Is this what you have implemented?
+> 
+> What you said is also OK. But it is not easy to detect whether the
+> result by using ACPI PM timer is not reasonable.  If doing so, another
+> clocksource(for example: hpet) should also be used in cpuidle driver and
+> compared with ACPI PM timer. (Sometimes the ACPI PM timer will be used
+> as the current clocksource. In such case it will be duplicated).
+> 
+> So the current clocksource will be used to count the C-state time
+> instead of ACPI PM timer. If the current clocksource is changed by user,
+> OS will select the reliable clocksource as the current one.
 
-Take a look at struct eeepc_keymap and eeepc_hotk_notitfy().
+I understand the idea.  My point was to stick to the current behavior where
+it is known to work and only change the behavior when it doesn't work.  Still,
+if that is difficult to implement, the idea to always use the clocksource is
+probably better than the current situation.
 
+Of course, if it happens to introduce regressions you'll have to consider the
+other approach anyway.
 
--- 
-Corentin Chary
-http://xf.iksaif.net
+Thanks,
+Rafael
