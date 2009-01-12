@@ -1,54 +1,68 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Regression] USB wakeup problem on Toshiba Portege R500
-Date: Mon, 12 Jan 2009 23:53:59 +0100
-Message-ID: <200901122353.59887.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0901121649470.13021-100000@netrider.rowland.org>
+From: Matthew Garrett <mjg@redhat.com>
+Subject: Re: [PATCH] : ACPI : Use RSDT instead of XSDT by adding boot option of "acpi=rsdt"
+Date: Mon, 12 Jan 2009 23:38:57 +0000
+Message-ID: <20090112233857.GB6849@srcf.ucam.org>
+References: <20081031184233.8588.42241.stgit@thinkpad> <200901121513.06126.trenn@suse.de> <20090112141655.GA21052@srcf.ucam.org> <200901122317.08849.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:46378 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1763292AbZALWyf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 12 Jan 2009 17:54:35 -0500
-In-Reply-To: <Pine.LNX.4.44L0.0901121649470.13021-100000@netrider.rowland.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:43480 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751066AbZALXjI (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Mon, 12 Jan 2009 18:39:08 -0500
 Content-Disposition: inline
+In-Reply-To: <200901122317.08849.trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Frans Pop <elendil@planet.nl>, oliver@neukum.org, gregkh@suse.de, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, pavel@suse.cz, torvalds@linux-foundation.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: Thomas Renninger <trenn@suse.de>
+Cc: Len Brown <lenb@kernel.org>, Zhao Yakui <yakui.zhao@intel.com>, "Linux-acpi@vger.kernel.org" <Linux-acpi@vger.kernel.org>, me@markdoughty.co.uk, ibm-acpi-devel@lists.sourceforge.net
 
-On Monday 12 January 2009, Alan Stern wrote:
-> On Fri, 9 Jan 2009, Rafael J. Wysocki wrote:
-> 
-> > > My proposal:
-> > > 
-> > > 	Devices and events that are clearly associated with system
-> > > 	wakeup should be enabled by default.  For example: Power
-> > > 	button and laptop lid.
-> > 
-> > Agreed.
-> > 
-> > > 	All other devices capable of waking up the system should be
-> > > 	disabled by default.  This presumably includes every PCI
-> > > 	device.  If users want keyboard or mouse events to cause
-> > > 	a system resume then they will have to configure their
-> > > 	desktop management program to enable it.
-> > 
-> > I generally agree, with one exception.  There are network adapters which
-> > can be enabled to wake up by the BIOS and their drivers set them up for WoL
-> > currently on this basis.  These should remain enabled IMO.
-> 
-> How do we know which adapters these are?  IMO the PCI core should
-> disable wakeup by default for all devices when they are detected.
+On Mon, Jan 12, 2009 at 11:17:07PM +0100, Thomas Renninger wrote:
+> On Monday 12 January 2009 03:16:55 pm Matthew Garrett wrote:
+> > On Mon, Jan 12, 2009 at 03:13:04PM +0100, Thomas Renninger wrote:
+> > > 99.998% of all machines work fine with the current, spec conform
+> > > implementation.
+> > > There are the two ThinkPads for which the vendor admitted that the BIOS
+> > > is broken which work better with the rsdt blacklisted.
+> >
+> > Two Thinkpads, an entire range of HP workstations, how many others?
+> You wanted to provide more info about the HPs. Are they even sold? Have you 
+> informed HP that their BIOSes are broken?
+> It's easy and safe (also in respect of not breaking Windows) for them to fix 
+> them. If we do not wait some more months, I am confident they are going to do 
+> it, tell me privately if you need contacts.
 
-This is what we do.
+Yes, this has been discussed with HP. Some of the machines are still 
+being sold - some are out of support and so will not receive updated 
+BIOSes. http://www.google.com/search?q=32%2F64X%20address%20mismatch 
+shows that it's not just limited to Thinkpads and HPs.
 
-> Is it sufficient to have the adapter drivers enable wakeup during
-> their probe routines?
+> > We have no idea which bugs are being triggered by this. Refusing to fix it 
+> > because we'll potentially break some machines that may not even exist is 
+> > not a sensible plan.
+> The plan is to stay to the spec. Is that so wrong?
 
-Yes, it is.
+When sticking to the spec results in hardware that fails to work, then 
+yes, sticking to the spec is the wrong thing to do. We violate all sorts 
+of specs in all sorts of places simply because hardware and software are 
+written by humans who make mistakes. When producing an operating system, 
+the aim is for it to work on the hardware our users want supported.
 
-Thanks,
-Rafael
+> There are netbooks which only support Linux and I hope there will be a lot 
+> more machines only supporting Linux as OS in the future.
+> Such Windows compatibility, Spec violating fixes will break them.
+> It's the broken BIOSes, those machines the vendor never ever tried booting 
+> Linux which need the boot param and blacklist adding...
+
+Find me one x86 netbook vendor who hasn't validated Windows on their 
+system.
+
+> Maybe we come away with this change this time, maybe we hurt someone badly who
+> did everything right: stick to the spec, tested and verified that Linux works 
+> fine.
+
+Or, more likely, we make this change and people find that their hardware 
+starts working.
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
